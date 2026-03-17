@@ -1,0 +1,69 @@
+@layer theme, base, antd, components, utilities;
+@import 'tailwindcss';
+@import "@antdv-next/tailwind/theme.css";
+@import 'tw-animate-css';
+@plugin "@tailwindcss/typography";
+@plugin "@tailwindcss/nesting";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* NProgress 进度条样式 - 使用 Tailwind @apply */
+#nprogress {
+  @apply pointer-events-none;
+}
+
+#nprogress .bar {
+  @apply fixed top-0 left-0 w-full z-[9999] h-[3px];
+  background: linear-gradient(90deg, var(--ant-primary-color, #1677ff) 0%, var(--ant-primary-color, #1677ff) 100%);
+}
+
+#nprogress .peg {
+  @apply block absolute right-0 w-[100px] h-full opacity-100;
+  box-shadow: 0 0 10px var(--ant-primary-color, #1677ff), 0 0 5px var(--ant-primary-color, #1677ff);
+  transform: rotate(3deg) translate(0, -4px);
+}
+
+::selection {
+    @apply bg-primary text-white;
+}
+
+::view-transition-new(root),
+::view-transition-old(root) {
+    animation: none !important;
+    mix-blend-mode: normal;
+    z-index: 9999
+}
+
+html,
+body {
+    @apply h-full overflow-hidden;
+}
+
+#app {
+    @apply h-full;
+}
+
+.dark {
+    color-scheme: dark;
+}
+
+.icon {
+    @apply p-1! cursor-pointer w-8 h-8 rounded-2xl px-2 hover:bg-zinc-100 dark:hover:bg-gray-600 flex items-center justify-center transition-all;
+}
+
+.outline-box {
+    @apply rounded-lg cursor-pointer outline-border outline-solid outline-1 p-1 relative not-[.outline-box-active]:after:hover:h-full not-[.outline-box-active]:after:hover:left-0 not-[.outline-box-active]:after:hover:opacity-100 not-[.outline-box-active]:after:hover:outline-primary not-[.outline-box-active]:after:hover:p-1 not-[.outline-box-active]:after:hover:top-0 not-[.outline-box-active]:after:hover:w-full after:h-0 after:left-1/2 after:opacity-0 after:outline-transparent after:outline-solid after:outline-2 after:absolute after:top-1/2 after:duration-300 after:transition-all after:ease-in-out after:w-px after:z-20 after:content-[""];
+}
+
+.outline-box-active {
+    @apply outline-primary outline-2 after:hidden;
+}
+
+/* 色弱模式 */
+.color-weak {
+    @apply invert-100;
+}
+
+/* 灰色模式 */
+.gray-mode {
+    @apply grayscale;
+}

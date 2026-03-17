@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title><%= VITE_APP_TITLE %></title>
+    <meta name="naive-ui-style" />
+    <style>
+      html {
+        line-height: 1.15;
+      }
+
+      .loading {
+        align-items: center;
+        background: #f4f7f9;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        justify-content: center;
+        left: 0;
+        position: fixed;
+        top: 0;
+        width: 100vw;
+        z-index: 9999;
+        transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .loading.hidden {
+        opacity: 0;
+        pointer-events: none;
+        visibility: hidden;
+      }
+
+      .dark .loading {
+        background: #0d0d10;
+      }
+
+      .dark .title {
+        color: #fff;
+      }
+
+      .title {
+        background: linear-gradient(135deg, var(--color-primary, #007bff), var(--color-primary, #007bff), 0.7);
+        -webkit-background-clip: text;
+        color: rgba(0, 0, 0, 0.85);
+        background-clip: text;
+        font-size: 32px;
+        font-weight: 700;
+        margin-top: 66px;
+        letter-spacing: 1px;
+      }
+
+      .dark .title {
+        background: linear-gradient(135deg, #fff, var(--color-primary, #007bff), 0.8);
+        -webkit-background-clip: text;
+        background-clip: text;
+      }
+
+      .loader {
+        height: 48px;
+        position: relative;
+        width: 48px;
+      }
+
+      .loader:before {
+        animation: shadow-ani 0.5s linear infinite;
+        background: var(--color-primary, #007bff);
+        border-radius: 50%;
+        height: 5px;
+        top: 60px;
+        width: 48px;
+      }
+
+      .loader:after,
+      .loader:before {
+        content: '';
+        left: 0;
+        position: absolute;
+      }
+
+      .loader:after {
+        animation: jump-ani 0.5s linear infinite;
+        background: var(--color-primary, #007bff);
+        border-radius: 4px;
+        height: 100%;
+        top: 0;
+        width: 100%;
+      }
+
+      @keyframes jump-ani {
+        15% {
+          border-bottom-right-radius: 3px;
+        }
+
+        25% {
+          transform: translateY(9px) rotate(22.5deg);
+        }
+
+        50% {
+          border-bottom-right-radius: 40px;
+          transform: translateY(18px) scaleY(0.9) rotate(45deg);
+        }
+
+        75% {
+          transform: translateY(9px) rotate(67.5deg);
+        }
+
+        to {
+          transform: translateY(0) rotate(90deg);
+        }
+      }
+
+      @keyframes shadow-ani {
+        0%,
+        to {
+          transform: scale(1);
+        }
+
+        50% {
+          transform: scaleX(1.2);
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <div class="loading" id="__app-loading__">
+        <div class="loader"></div>
+        <div class="title"><%= VITE_APP_TITLE %></div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
