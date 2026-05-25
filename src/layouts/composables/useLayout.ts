@@ -1,127 +1,104 @@
-import { computed, ref } from 'vue'
-import { useRoute } from 'vue-router'
-import { useAppStore } from '@/stores/modules/app'
+import { computed, ref, watch } from 'vue'
+import { useRoute, type RouteLocationMatched } from 'vue-router'
+import { useToggle, useMediaQuery, useFullscreen as _useFullscreen } from '@vueuse/core'
+import type { LayoutMode } from '#/app'
+import type { MenuConfig } from '#/menu'
 
-export type LayoutMode = 'vertical' | 'horizontal' | 'mixed'
-
-export interface LayoutState {
-  collapsed: boolean
-  isMobile: boolean
-  sidebarWidth: number
-  headerHeight: number
-}
+export type { LayoutMode }
 
 export const COLLAPSED_WIDTH = 80
 
+const [collapsed, toggleCollapsed] = useToggle(false)
+const isMobile = useMediaQuery('(max-width: 767px)')
+const { isFullscreen: _isFullscreenRef, toggle: _toggleFullscreenFn } = _useFullscreen()
+const isFullscreenRef = _isFullscreenRef
+const toggleFullscreenFn = _toggleFullscreenFn
+
+watch(isMobile, (mobile) => {
+  if (mobile) {
+    collapsed.value = true
+  }
+})
+
+function checkMobile() {
+  void isMobile
+}
+
+function setCollapsed(value: boolean) {
+  collapsed.value = value
+}
+
 export function useLayout() {
-  const appStore = useAppStore()
-
-  const collapsed = ref(false)
-  const isMobile = ref(false)
-
-  const sidebarWidth = computed(() => {
-    return collapsed.value ? COLLAPSED_WIDTH : appStore.sidebarWidth
-  })
-
-  const headerHeight = computed(() => 48)
-
-  const toggleCollapsed = () => {
-    collapsed.value = !collapsed.value
-  }
-
-  const setCollapsed = (value: boolean) => {
-    collapsed.value = value
-  }
-
-  const checkMobile = () => {
-    isMobile.value = window.innerWidth < 768
-    if (isMobile.value) {
-      collapsed.value = true
-    }
-  }
-
   return {
     collapsed,
     isMobile,
-    sidebarWidth,
-    headerHeight,
+    isFullscreen: isFullscreenRef,
     toggleCollapsed,
-    setCollapsed,
+    toggleFullscreen: toggleFullscreenFn,
     checkMobile,
+    setCollapsed,
+    COLLAPSED_WIDTH,
   }
 }
 
-export function useMenu() {
-  const appStore = useAppStore()
+export function useFullscreen() {
+  return {
+    isFullscreen: isFullscreenRef,
+    toggle: toggleFullscreenFn,
+  }
+}
+
+export function useBreadcrumb() {
   const route = useRoute()
-
-  const selectedKeys = computed(() => {
-    const path = route.path
-    return [path]
+  const breadcrumbs = computed(() => {
+    const matched = route.matched.filter(
+      item => item.meta && typeof item.meta === 'object' && 'title' in item.meta,
+    )
+    return matched.map((item: RouteLocationMatched & { meta: Record<string, unknown> }) => ({
+      title: (item.meta?.title as string) || '',
+      path: item.path,
+    }))
   })
+  return { breadcrumbs }
+}
 
+function getParentPaths(path: string): string[] {
+  const parents: string[] = []
+  const segments = path.split('/').filter(Boolean)
+  let current = ''
+  for (let i = 0; i < segments.length - 1; i++) {
+    current += `/${segments[i]}`
+    parents.push(current)
+  }
+  return parents
+}
+
+export function useMenu(_menus?: MenuConfig[]) {
+  const route = useRoute()
+  const selectedKeys = ref<string[]>([])
   const openKeys = ref<string[]>([])
 
-  const menuTheme = computed(() => {
-    return appStore.darkSidebar ? 'dark' : 'light'
-  })
+  watch(
+    () => route.path,
+    (path) => {
+      selectedKeys.value = [path]
+      const parents = getParentPaths(path)
+      parents.forEach((parent) => {
+        if (!openKeys.value.includes(parent)) {
+          openKeys.value = [...openKeys.value, parent]
+        }
+      })
+    },
+    { immediate: true },
+  )
 
-  const handleMenuSelect = ({ key }: { key: string }) => {
-    console.log('Menu selected:', key)
-  }
-
-  const handleOpenChange = (keys: string[]) => {
+  function handleOpenChange(keys: string[]) {
     openKeys.value = keys
   }
 
   return {
     selectedKeys,
     openKeys,
-    menuTheme,
-    handleMenuSelect,
     handleOpenChange,
-  }
-}
-
-export interface BreadcrumbItem {
-  title: string
-  path: string
-  icon?: string
-}
-
-export function useBreadcrumb() {
-  const route = useRoute()
-
-  const breadcrumbs = computed<BreadcrumbItem[]>(() => {
-    const matched = route.matched.filter(item => item.meta && item.meta.title)
-    return matched.map(item => ({
-      title: String(item.meta?.title || ''),
-      path: item.path,
-      icon: item.meta?.icon as string | undefined,
-    }))
-  })
-
-  return {
-    breadcrumbs,
-  }
-}
-
-export function useFullscreen() {
-  const isFullscreen = ref(false)
-
-  const toggle = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen()
-      isFullscreen.value = true
-    }
-    else {
-      document.exitFullscreen()
-      isFullscreen.value = false
-    }
-  }
-
-  return {
-    isFullscreen,
-    toggle,
   }
 }

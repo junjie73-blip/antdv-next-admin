@@ -1,4 +1,4 @@
-export { createRequestQueue, requestQueue } from './cancel'
-export { cancelAllRequests, createRequest, del, get, patch, pauseRequests, post, put, request, resumeRequests } from './instance'
-export { withRetry } from './retry'
-export type { RequestConfig, RequestOptions, RequestQueue, Response, RetryOptions } from './types'
+export { useRequest as useAlovaRequest, useWatcher as useAlovaWatcher } from 'alova/client'
+
+export { createRequestClient, http, RequestError } from './alova'
+export type { RequestMeta } from './interface'

@@ -2,7 +2,8 @@
 import type { MenuProps } from 'antdv-next'
 
 import { Icon } from '@iconify/vue'
-import { h } from 'vue'
+import { h, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useWatermark } from '@/composables/web/useWatermark'
 import { useAppStore } from '@/stores/modules/app'
 import { cn } from '@/utils/cn'
@@ -10,14 +11,21 @@ import LayoutFooter from './components/LayoutFooter.vue'
 import LayoutHeader from './components/LayoutHeader.vue'
 import LayoutSidebar from './components/LayoutSidebar.vue'
 import LayoutTabs from './components/LayoutTabs.vue'
-import { COLLAPSED_WIDTH, useLayout } from './composables/useLayout'
+import { useLayout } from './composables/useLayout'
 
 defineOptions({
   name: 'DefaultLayout',
 })
 
+const router = useRouter()
 const appStore = useAppStore()
-const { collapsed, isMobile, checkMobile, toggleCollapsed } = useLayout()
+const { collapsed, checkMobile, toggleCollapsed } = useLayout()
+
+const cachedRoutes = computed(() =>
+  router.getRoutes()
+    .filter(route => route.meta?.keepAlive)
+    .map(route => route.name as string),
+)
 
 const activeTopMenu = ref('/system')
 
@@ -54,6 +62,8 @@ onUnmounted(() => {
 const isVertical = computed(() => appStore.layout === 'vertical')
 const isHorizontal = computed(() => appStore.layout === 'horizontal')
 const isMixed = computed(() => appStore.layout === 'mixed')
+const isGeekStyle = computed(() => appStore.themeStyle === 'geek')
+const isDarkMode = computed(() => appStore.themeMode === 'dark' || isGeekStyle.value)
 
 const hasChildren = computed(() => {
   if (!isMixed.value || !activeTopMenu.value)
@@ -64,57 +74,23 @@ const hasChildren = computed(() => {
 
 const layoutClassName = computed(() =>
   cn(
-    'min-h-screen',
-    'bg-gray-50 dark:bg-gray-900',
-  ),
-)
-
-const mainClassName = computed(() =>
-  cn(
-    'flex flex-col',
-    'transition-all duration-200',
-    'fixed top-12 right-0 bottom-0 left-0',
-    'overflow-hidden',
+    'h-screen flex flex-col overflow-hidden',
+    isGeekStyle.value
+      ? 'bg-[#0a0a0a]'
+      : 'bg-gray-50 dark:bg-gray-900',
   ),
 )
 
 const contentClassName = computed(() =>
   cn(
-    'flex-1 p-4 overflow-auto',
-    'bg-gray-50 dark:bg-gray-900',
+    'p-4 min-h-full',
+    isGeekStyle.value
+      ? 'bg-[#0a0a0a]'
+      : 'bg-gray-50 dark:bg-gray-900',
   ),
 )
 
 const transitionName = computed(() => `page-${appStore.transitionEffect}`)
-
-const mainStyle = computed(() => {
-  const tabsHeight = appStore.showTabs ? 88 : 48
-
-  if (isHorizontal.value) {
-    return {
-      left: 0,
-      top: `${tabsHeight}px`,
-    }
-  }
-
-  if (isMixed.value) {
-    if (!hasChildren.value) {
-      return {
-        left: 0,
-        top: `${tabsHeight}px`,
-      }
-    }
-    return {
-      left: `${collapsed.value ? COLLAPSED_WIDTH : appStore.sidebarWidth}px`,
-      top: `${tabsHeight}px`,
-    }
-  }
-
-  return {
-    left: isMobile.value ? 0 : `${collapsed.value ? COLLAPSED_WIDTH : appStore.sidebarWidth}px`,
-    top: `${tabsHeight}px`,
-  }
-})
 
 function handleTopMenuSelect(key: string) {
   activeTopMenu.value = key
@@ -128,55 +104,68 @@ useWatermark({
 
 <template>
   <div :class="layoutClassName">
-    <!-- 垂直布局：侧边栏 -->
-    <LayoutSidebar
-      v-if="isVertical"
+    <!-- 水平 / 混合布局：顶部 Header（含 Logo + 水平菜单） -->
+    <LayoutHeader
+      v-if="isHorizontal || isMixed"
       :collapsed="collapsed"
-      @menuClick="() => {}"
-    />
-
-    <!-- 混合布局：侧边栏（只显示子菜单） -->
-    <LayoutSidebar
-      v-if="isMixed && hasChildren"
-      :collapsed="collapsed"
-      mixed
+      :horizontal="isHorizontal"
+      :mixed="isMixed"
       :active-top-menu="activeTopMenu"
-      @menuClick="() => {}"
+      @toggleCollapsed="toggleCollapsed"
+      @topMenuSelect="handleTopMenuSelect"
     />
 
-    <div
-      :class="mainClassName"
-      :style="mainStyle"
-    >
-      <!-- Header -->
-      <LayoutHeader
+    <div class="flex flex-1 overflow-hidden">
+      <!-- 垂直布局：侧边栏 -->
+      <LayoutSidebar
+        v-if="isVertical"
         :collapsed="collapsed"
-        :horizontal="isHorizontal"
-        :mixed="isMixed"
-        :active-top-menu="activeTopMenu"
-        @toggleCollapsed="toggleCollapsed"
-        @topMenuSelect="handleTopMenuSelect"
+        @menuClick="() => {}"
       />
 
-      <LayoutTabs :has-children="isMixed && hasChildren" />
+      <!-- 混合布局：侧边栏（有子菜单时才显示） -->
+      <LayoutSidebar
+        v-if="isMixed && hasChildren"
+        :collapsed="collapsed"
+        mixed
+        :active-top-menu="activeTopMenu"
+        @menuClick="() => {}"
+      />
 
-      <main :class="contentClassName">
-        <router-view v-slot="{ Component, route }">
-          <transition
-            :name="transitionName"
-            mode="out-in"
-          >
-            <keep-alive :include="[]">
-              <component
-                :is="Component"
-                :key="route.path"
-              />
-            </keep-alive>
-          </transition>
-        </router-view>
-      </main>
+      <!-- 主内容区域 -->
+      <div class="flex flex-col flex-1 overflow-hidden">
+        <!-- 垂直布局：Header 在主区域内（折叠按钮 + 面包屑） -->
+        <LayoutHeader
+          v-if="isVertical"
+          :collapsed="collapsed"
+          @toggleCollapsed="toggleCollapsed"
+        />
 
-      <LayoutFooter v-if="appStore.showFooter" />
+        <LayoutTabs :has-children="isMixed && hasChildren" />
+
+        <PerfectScrollbar
+          class="flex-1"
+          :options="{ suppressScrollX: true, wheelPropagation: true }"
+        >
+          <main :class="contentClassName">
+            <router-view v-slot="{ Component, route }">
+              <transition
+                :name="transitionName"
+                mode="out-in"
+              >
+                <keep-alive :include="cachedRoutes">
+                  <component
+                    :is="Component"
+                    :key="route.path"
+                  />
+                </keep-alive>
+              </transition>
+            </router-view>
+          </main>
+        </PerfectScrollbar>
+
+        <LayoutFooter v-if="appStore.showFooter" />
+      </div>
     </div>
   </div>
 </template>

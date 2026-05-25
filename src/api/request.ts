@@ -1,40 +1,32 @@
-import type { Response } from '@/utils/request'
-import { get, post } from '@/utils/request'
+import { http } from '@/utils/request'
 
-interface LoginParams {
-  username: string
-  password: string
+export interface R<T = unknown> {
+  code: number
+  data: T
+  message: string
 }
 
-interface LoginResponse {
-  user: {
-    id: string
-    username: string
-    token: string
-    role: string
-    permissions: string[]
-    roles?: string[]
+export interface RL<T = unknown> {
+  code: number
+  data: {
+    list: T[]
+    total: number
   }
+  message: string
 }
 
-interface UserInfoResponse {
-  user: {
-    id: string
-    username: string
-    role: string
-    permissions: string[]
-    roles?: string[]
-  }
+export function get<T = unknown>(url: string, params?: Record<string, unknown>) {
+  return http.Get<R<T>>(url, { params }).then(res => res.data)
 }
 
-export function login(params: LoginParams): Promise<Response<LoginResponse>> {
-  return post('/auth/login', params)
+export function post<T = unknown>(url: string, data?: Record<string, unknown>) {
+  return http.Post<R<T>>(url, data).then(res => res.data)
 }
 
-export function logout(): Promise<Response<null>> {
-  return post('/auth/logout')
+export function put<T = unknown>(url: string, data?: Record<string, unknown>) {
+  return http.Put<R<T>>(url, data).then(res => res.data)
 }
 
-export function getUserInfo(): Promise<Response<UserInfoResponse>> {
-  return get('/auth/user-info')
+export function del<T = unknown>(url: string, params?: Record<string, unknown>) {
+  return http.Delete<R<T>>(url, { params }).then(res => res.data)
 }

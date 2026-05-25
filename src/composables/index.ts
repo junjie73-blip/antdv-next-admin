@@ -1,6 +1,5 @@
 export { usePermission } from './web/permission'
 export { useSSE } from './web/sse'
-export { useMessage } from './web/useMessage'
 export { useTheme } from './web/useTheme'
 export { useWatermark } from './web/useWatermark'
 export * from './web/useWelcomeNotification'

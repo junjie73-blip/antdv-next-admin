@@ -3,6 +3,7 @@ import type { FormInstance } from 'antdv-next'
 import type { Rule } from 'antdv-next/dist/form/types'
 
 import { LockOutlined, MailOutlined, MobileOutlined, UserOutlined } from '@antdv-next/icons'
+import { Icon } from '@iconify/vue'
 import { message } from 'antdv-next'
 import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -84,6 +85,108 @@ const inputClassName = computed(() =>
   ),
 )
 
+const decorBlob1ClassName = computed(() =>
+  cn(
+    'absolute top-1/4 left-1/4 w-[500px] h-[500px]',
+    'rounded-full blur-[100px]',
+  ),
+)
+
+const decorBlob1Style = computed(() => ({
+  background: 'color-mix(in srgb, var(--ant-color-primary) 15%, transparent)',
+}))
+
+const decorBlob2ClassName = computed(() =>
+  cn(
+    'absolute bottom-1/4 right-1/4 w-[400px] h-[400px]',
+    'rounded-full blur-[80px]',
+  ),
+)
+
+const decorBlob2Style = computed(() => ({
+  background: 'color-mix(in srgb, var(--ant-color-primary) 10%, transparent)',
+}))
+
+const decorBlob3ClassName = computed(() =>
+  cn(
+    'absolute top-1/2 left-1/2 w-[300px] h-[300px]',
+    'rounded-full blur-[60px]',
+  ),
+)
+
+const decorBlob3Style = computed(() => ({
+  background: 'color-mix(in srgb, var(--ant-color-primary) 8%, transparent)',
+}))
+
+const gridBgClassName = computed(() =>
+  cn(
+    'absolute inset-0',
+    'bg-[linear-gradient(rgba(100,100,100,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(100,100,100,0.03)_1px,transparent_1px)]',
+    'bg-[size:48px_48px]',
+  ),
+)
+
+const logoContainerClassName = computed(() =>
+  cn(
+    'inline-flex items-center gap-3 px-5 py-2.5',
+    'bg-white/60 backdrop-blur-md rounded-xl',
+    'border border-white/80 shadow-lg shadow-slate-900/5',
+  ),
+)
+
+const logoIconClassName = computed(() =>
+  cn(
+    'w-9 h-9 rounded-lg flex items-center justify-center shadow-md',
+  ),
+)
+
+const logoIconStyle = computed(() => ({
+  background: 'var(--ant-color-primary)',
+  boxShadow: '0 4px 12px color-mix(in srgb, var(--ant-color-primary) 30%, transparent)',
+}))
+
+const titleHighlightStyle = computed(() => ({
+  color: 'var(--ant-color-primary)',
+}))
+
+const featureIconClassName = computed(() =>
+  cn(
+    'w-11 h-11 bg-white/60 backdrop-blur-md rounded-lg flex items-center justify-center',
+    'border border-white/80 shadow-md shadow-slate-900/5 transition-all duration-300',
+  ),
+)
+
+const featureIconStyle = computed(() => ({
+  color: 'var(--ant-color-primary)',
+}))
+
+const loginTypeContainerClassName = computed(() =>
+  cn('flex bg-stone-100/80 rounded-lg p-1'),
+)
+
+const loginTypeBtnBaseClassName = computed(() =>
+  cn(
+    'flex-1 py-2 rounded-md text-sm font-medium transition-all duration-200',
+  ),
+)
+
+const loginTypeActiveBtnStyle = computed(() => ({ color: 'var(--ant-color-primary)' }))
+
+const sendCodeBtnStyle = computed(() => ({
+  color: 'var(--ant-color-primary)',
+}))
+
+const registerLinkStyle = computed(() => ({
+  color: 'var(--ant-color-primary)',
+}))
+
+const thirdPartyBtnClassName = computed(() =>
+  cn(
+    'w-11 h-11 bg-white/80 backdrop-blur-sm rounded-lg flex items-center justify-center',
+    'border border-stone-200 hover:border-stone-300 transition-all duration-200 shadow-sm',
+  ),
+)
+
 const accountRules: Record<string, Rule[]> = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [
@@ -155,30 +258,30 @@ function handleSendCode() {
       <!-- 装饰性背景 -->
       <div class="absolute inset-0">
         <div
-          class="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full blur-[100px]"
-          style="background: color-mix(in srgb, var(--ant-color-primary) 15%, transparent)"
+          :class="decorBlob1ClassName"
+          :style="decorBlob1Style"
         />
         <div
-          class="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full blur-[80px]"
-          style="background: color-mix(in srgb, var(--ant-color-primary) 10%, transparent)"
+          :class="decorBlob2ClassName"
+          :style="decorBlob2Style"
         />
         <div
-          class="absolute top-1/2 left-1/2 w-[300px] h-[300px] rounded-full blur-[60px]"
-          style="background: color-mix(in srgb, var(--ant-color-primary) 8%, transparent)"
+          :class="decorBlob3ClassName"
+          :style="decorBlob3Style"
         />
       </div>
 
       <!-- 网格背景 -->
-      <div class="absolute inset-0 bg-[linear-gradient(rgba(100,100,100,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(100,100,100,0.03)_1px,transparent_1px)] bg-[size:48px_48px]" />
+      <div :class="gridBgClassName" />
 
       <!-- 内容 -->
       <div class="relative z-10 flex flex-col justify-center px-12 xl:px-20">
         <!-- Logo -->
         <div class="mb-12">
-          <div class="inline-flex items-center gap-3 px-5 py-2.5 bg-white/60 backdrop-blur-md rounded-xl border border-white/80 shadow-lg shadow-slate-900/5">
+          <div :class="logoContainerClassName">
             <div
-              class="w-9 h-9 rounded-lg flex items-center justify-center shadow-md"
-              style="background: var(--ant-color-primary); box-shadow: 0 4px 12px color-mix(in srgb, var(--ant-color-primary) 30%, transparent)"
+              :class="logoIconClassName"
+              :style="logoIconStyle"
             >
               <svg
                 class="w-5 h-5 text-white"
@@ -197,9 +300,7 @@ function handleSendCode() {
         <!-- 标题 -->
         <h1 class="text-4xl xl:text-5xl font-bold text-stone-800 mb-6 leading-tight">
           构建现代化<br>
-          <span style="color: var(--ant-color-primary)">
-            管理系统
-          </span>
+          <span :style="titleHighlightStyle">管理系统</span>
         </h1>
 
         <p class="text-lg text-stone-600 mb-12 max-w-lg leading-relaxed">
@@ -209,79 +310,32 @@ function handleSendCode() {
         <!-- 特性列表 -->
         <div class="space-y-5">
           <div class="flex items-center gap-4 group">
-            <div
-              class="w-11 h-11 bg-white/60 backdrop-blur-md rounded-lg flex items-center justify-center border border-white/80 shadow-md shadow-slate-900/5 transition-all duration-300"
-              style="--hover-bg: color-mix(in srgb, var(--ant-color-primary) 5%, white)"
-            >
-              <svg
-                class="w-5 h-5"
-                style="color: var(--ant-color-primary)"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
+            <div :class="featureIconClassName">
+              <Icon icon="carbon:flash" class="w-5 h-5" :style="featureIconStyle" />
             </div>
             <div>
-              <h3 class="text-stone-800 font-medium">
-                极速开发
-              </h3>
-              <p class="text-stone-500 text-sm">
-                开箱即用的组件与模板
-              </p>
+              <h3 class="text-stone-800 font-medium">极速开发</h3>
+              <p class="text-stone-500 text-sm">开箱即用的组件与模板</p>
             </div>
           </div>
 
           <div class="flex items-center gap-4 group">
-            <div class="w-11 h-11 bg-white/60 backdrop-blur-md rounded-lg flex items-center justify-center border border-white/80 shadow-md shadow-slate-900/5 transition-all duration-300">
-              <svg
-                class="w-5 h-5"
-                style="color: var(--ant-color-primary)"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
+            <div :class="featureIconClassName">
+              <Icon icon="carbon:shield-checkmark" class="w-5 h-5" :style="featureIconStyle" />
             </div>
             <div>
-              <h3 class="text-stone-800 font-medium">
-                安全可靠
-              </h3>
-              <p class="text-stone-500 text-sm">
-                完善的权限管理体系
-              </p>
+              <h3 class="text-stone-800 font-medium">安全可靠</h3>
+              <p class="text-stone-500 text-sm">完善的权限管理体系</p>
             </div>
           </div>
 
           <div class="flex items-center gap-4 group">
-            <div class="w-11 h-11 bg-white/60 backdrop-blur-md rounded-lg flex items-center justify-center border border-white/80 shadow-md shadow-slate-900/5 transition-all duration-300">
-              <svg
-                class="w-5 h-5"
-                style="color: var(--ant-color-primary)"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="3"
-                />
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-              </svg>
+            <div :class="featureIconClassName">
+              <Icon icon="carbon:settings-adjust" class="w-5 h-5" :style="featureIconStyle" />
             </div>
             <div>
-              <h3 class="text-stone-800 font-medium">
-                灵活配置
-              </h3>
-              <p class="text-stone-500 text-sm">
-                高度可定制的主题系统
-              </p>
+              <h3 class="text-stone-800 font-medium">灵活配置</h3>
+              <p class="text-stone-500 text-sm">高度可定制的主题系统</p>
             </div>
           </div>
         </div>
@@ -303,27 +357,25 @@ function handleSendCode() {
 
         <!-- 登录类型切换 -->
         <div class="mb-6">
-          <div class="flex bg-stone-100/80 rounded-lg p-1">
+          <div :class="loginTypeContainerClassName">
             <button
-              :class="cn(
-                'flex-1 py-2 rounded-md text-sm font-medium transition-all duration-200',
+              :class="cn(loginTypeBtnBaseClassName,
                 loginType === 'account'
                   ? 'bg-white shadow-sm'
                   : 'text-stone-500 hover:text-stone-700',
               )"
-              :style="loginType === 'account' ? { color: 'var(--ant-color-primary)' } : {}"
+              :style="loginType === 'account' ? loginTypeActiveBtnStyle : {}"
               @click="loginType = 'account'"
             >
               账号登录
             </button>
             <button
-              :class="cn(
-                'flex-1 py-2 rounded-md text-sm font-medium transition-all duration-200',
+              :class="cn(loginTypeBtnBaseClassName,
                 loginType === 'mobile'
                   ? 'bg-white shadow-sm'
                   : 'text-stone-500 hover:text-stone-700',
               )"
-              :style="loginType === 'mobile' ? { color: 'var(--ant-color-primary)' } : {}"
+              :style="loginType === 'mobile' ? loginTypeActiveBtnStyle : {}"
               @click="loginType = 'mobile'"
             >
               手机登录
@@ -419,7 +471,7 @@ function handleSendCode() {
                     type="link"
                     size="small"
                     class="!p-0"
-                    style="color: var(--ant-color-primary)"
+                    :style="sendCodeBtnStyle"
                     @click="handleSendCode"
                   >
                     发送验证码
@@ -449,7 +501,7 @@ function handleSendCode() {
           <a-button
             type="link"
             class="!p-0 !ml-1"
-            style="color: var(--ant-color-primary)"
+            :style="registerLinkStyle"
             @click="handleRegister"
           >
             立即注册
@@ -468,44 +520,14 @@ function handleSendCode() {
 
         <!-- 第三方登录 -->
         <div class="flex justify-center gap-3">
-          <button class="w-11 h-11 bg-white/80 backdrop-blur-sm rounded-lg flex items-center justify-center border border-stone-200 hover:border-stone-300 transition-all duration-200 shadow-sm">
-            <svg
-              viewBox="0 0 24 24"
-              width="18"
-              height="18"
-              class="text-stone-500"
-            >
-              <path
-                fill="currentColor"
-                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"
-              />
-            </svg>
+          <button :class="thirdPartyBtnClassName">
+            <Icon icon="mdi:web" width="18" height="18" class="text-stone-500" />
           </button>
-          <button class="w-11 h-11 bg-white/80 backdrop-blur-sm rounded-lg flex items-center justify-center border border-stone-200 hover:border-stone-300 transition-all duration-200 shadow-sm">
-            <svg
-              viewBox="0 0 24 24"
-              width="18"
-              height="18"
-              class="text-stone-500"
-            >
-              <path
-                fill="currentColor"
-                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"
-              />
-            </svg>
+          <button :class="thirdPartyBtnClassName">
+            <Icon icon="ic:baseline-telegram" width="18" height="18" class="text-stone-500" />
           </button>
-          <button class="w-11 h-11 bg-white/80 backdrop-blur-sm rounded-lg flex items-center justify-center border border-stone-200 hover:border-stone-300 transition-all duration-200 shadow-sm">
-            <svg
-              viewBox="0 0 24 24"
-              width="18"
-              height="18"
-              class="text-stone-500"
-            >
-              <path
-                fill="currentColor"
-                d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z"
-              />
-            </svg>
+          <button :class="thirdPartyBtnClassName">
+            <Icon icon="mdi:github" width="18" height="18" class="text-stone-500" />
           </button>
         </div>
       </div>

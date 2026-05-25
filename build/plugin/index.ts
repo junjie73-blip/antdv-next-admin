@@ -11,7 +11,6 @@ import VueRouter from 'unplugin-vue-router/vite'
 import viteCompressPlugin from 'vite-plugin-compression'
 import viteDtsPlugin from 'vite-plugin-dts'
 import { createHtmlPlugin as viteHtmlPlugin } from 'vite-plugin-html'
-import { mockDevServerPlugin } from 'vite-plugin-mock-dev-server'
 import { VitePWA } from 'vite-plugin-pwa'
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
 import viteVueDevTools from 'vite-plugin-vue-devtools'
@@ -78,15 +77,6 @@ export async function createPlugin({
       symbolId: 'icon-[name]',
     }),
   ]
-
-  if (!isBuild && env.VITE_MOCK) {
-    plugins.push(
-      mockDevServerPlugin({
-        prefix: '/api',
-        log: true,
-      }),
-    )
-  }
 
   if (env.VITE_DEVTOOLS) {
     plugins.push(viteVueDevTools())

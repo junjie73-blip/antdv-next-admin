@@ -2,15 +2,16 @@
 import type { BreadcrumbProps, MenuProps } from 'antdv-next'
 
 import { Icon } from '@iconify/vue'
-import { Badge, Dropdown, Menu } from 'antdv-next'
+import { Badge, Dropdown, Menu, Popover, Segmented } from 'antdv-next'
+import dayjs from 'dayjs'
 import { computed, h, ref } from 'vue'
+import { useEventListener } from '@vueuse/core'
 import { useRouter } from 'vue-router'
 import { useThemeTransition } from '@/composables/web/useThemeTransition'
 import { useAppStore } from '@/stores/modules/app'
 import { useUserStore } from '@/stores/modules/user'
 import { cn } from '@/utils/cn'
-import { COLLAPSED_WIDTH, useBreadcrumb, useFullscreen } from '../composables/useLayout'
-import MenuSearch from './MenuSearch.vue'
+import { useBreadcrumb, useFullscreen } from '../composables/useLayout'
 import SettingDrawer from './SettingDrawer.vue'
 
 const props = defineProps<{
@@ -36,20 +37,110 @@ const { breadcrumbs } = useBreadcrumb()
 const { isFullscreen, toggle: toggleFullscreen } = useFullscreen()
 const { toggleThemeWithAnimation } = useThemeTransition()
 
-const showSearch = ref(false)
 const showSetting = ref(false)
+const showNotification = ref(false)
 const appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
+
+interface NotificationItem {
+  id: string
+  title: string
+  description: string
+  time: string
+  read: boolean
+  type: 'info' | 'success' | 'warning' | 'error'
+}
+
+const notifications = ref<NotificationItem[]>([
+  {
+    id: '1',
+    title: '系统更新通知',
+    description: '系统将于今晚 22:00 进行版本更新，届时服务将短暂中断',
+    time: dayjs().subtract(10, 'minute').format('YYYY-MM-DD HH:mm:ss'),
+    read: false,
+    type: 'warning',
+  },
+  {
+    id: '2',
+    title: '新用户注册',
+    description: '有新用户「张三」注册了系统账号，请及时审核',
+    time: dayjs().subtract(30, 'minute').format('YYYY-MM-DD HH:mm:ss'),
+    read: false,
+    type: 'info',
+  },
+  {
+    id: '3',
+    title: '任务完成',
+    description: '数据备份任务已成功完成，共备份 2.3GB 数据',
+    time: dayjs().subtract(2, 'hour').format('YYYY-MM-DD HH:mm:ss'),
+    read: false,
+    type: 'success',
+  },
+  {
+    id: '4',
+    title: '登录异常告警',
+    description: '检测到来自异常 IP 的登录尝试，已自动拦截',
+    time: dayjs().subtract(5, 'hour').format('YYYY-MM-DD HH:mm:ss'),
+    read: true,
+    type: 'error',
+  },
+  {
+    id: '5',
+    title: '存储空间不足',
+    description: '服务器磁盘使用率已达 85%，请及时清理',
+    time: dayjs().subtract(1, 'day').format('YYYY-MM-DD HH:mm:ss'),
+    read: true,
+    type: 'warning',
+  },
+])
+
+const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
+
+const notificationTab = ref<'all' | 'unread' | 'read'>('all')
+
+const filteredNotifications = computed(() => {
+  if (notificationTab.value === 'unread')
+    return notifications.value.filter(n => !n.read)
+  if (notificationTab.value === 'read')
+    return notifications.value.filter(n => n.read)
+  return notifications.value
+})
+
+const isEmpty = computed(() => filteredNotifications.value.length === 0)
+
+const notificationTypeConfig: Record<string, { icon: string, color: string }> = {
+  info: { icon: 'carbon:information-filled', color: 'text-blue-500' },
+  success: { icon: 'carbon:checkmark-filled', color: 'text-green-500' },
+  warning: { icon: 'carbon:warning-filled', color: 'text-yellow-500' },
+  error: { icon: 'carbon:error-filled', color: 'text-red-500' },
+}
+
+const notificationTabItems = computed(() => [
+  { label: '全部', value: 'all' as const },
+  { label: `未读 (${unreadCount.value})`, value: 'unread' as const },
+  { label: '已读', value: 'read' as const },
+])
+
+function handleMarkAllRead() {
+  notifications.value.forEach(n => n.read = true)
+}
+
+function handleClearAll() {
+  notifications.value = []
+  showNotification.value = false
+}
+
+function handleNotificationClick(item: NotificationItem) {
+  item.read = true
+  showNotification.value = false
+}
 
 const isGeekStyle = computed(() => appStore.themeStyle === 'geek')
 const isDarkMode = computed(() => appStore.themeMode === 'dark' || isGeekStyle.value)
-const isVertical = computed(() => appStore.layout === 'vertical')
 
 const headerClassName = computed(() =>
   cn(
-    'fixed top-0 right-0 z-50',
     'h-12 px-4 flex items-center justify-between',
-    'border-b shadow-sm',
-    'transition-all duration-200',
+    'border-b shadow-sm flex-shrink-0',
     isGeekStyle.value
       ? 'bg-[#0a0a0a] border-[#1a1a1a] text-[#00ff88]'
       : isDarkMode.value
@@ -57,15 +148,6 @@ const headerClassName = computed(() =>
         : 'bg-white border-gray-200 text-gray-800',
   ),
 )
-
-const headerStyle = computed(() => {
-  if (props.horizontal || props.mixed) {
-    return { left: 0 }
-  }
-  return {
-    left: `${props.collapsed ? COLLAPSED_WIDTH : appStore.sidebarWidth}px`,
-  }
-})
 
 const breadcrumbItems = computed<BreadcrumbProps['items']>(() => {
   const items: BreadcrumbProps['items'] = [
@@ -154,6 +236,22 @@ const actionBtnClassName = computed(() =>
   ),
 )
 
+const notificationItemClassName = (read: boolean) =>
+  cn(
+    'flex items-start gap-3 px-3 py-2.5 cursor-pointer transition-colors duration-150',
+    read
+      ? isGeekStyle.value
+        ? 'bg-[#0a0a0a] hover:bg-[#111]'
+        : isDarkMode.value
+          ? 'bg-gray-800 hover:bg-gray-750'
+          : 'bg-white hover:bg-gray-50'
+      : isGeekStyle.value
+        ? 'bg-[#111] hover:bg-[#1a1a1a]'
+        : isDarkMode.value
+          ? 'bg-gray-750 hover:bg-gray-700'
+          : 'bg-blue-50 hover:bg-blue-100',
+  )
+
 function handleToggle() {
   emit('toggleCollapsed')
 }
@@ -201,12 +299,17 @@ function handleHorizontalMenuSelect({ key }: { key: string }) {
   }
   emit('topMenuSelect', key)
 }
+
+useEventListener('keydown', (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && !showSetting.value && !showNotification.value) {
+    handleLogout()
+  }
+})
 </script>
 
 <template>
   <header
     :class="headerClassName"
-    :style="headerStyle"
   >
     <div class="flex items-center gap-4 flex-1">
       <!-- 垂直布局：折叠按钮 + 面包屑 -->
@@ -296,28 +399,107 @@ function handleHorizontalMenuSelect({ key }: { key: string }) {
     </div>
 
     <div class="flex items-center gap-2">
-      <div
-        :class="actionBtnClassName"
-        @click="showSearch = true"
+      <Popover
+        v-model:open="showNotification"
+        trigger="click"
+        placement="bottomRight"
+        :overlay-class-name="isGeekStyle ? 'notification-popover-geek' : ''"
       >
-        <Icon
-          icon="carbon:search"
-          class="text-lg"
-        />
-      </div>
+        <template #content>
+          <div class="w-[380px]">
+            <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+              <span class="text-sm font-medium">通知</span>
+              <div class="flex items-center gap-2">
+                <a-button
+                  v-if="notifications.length > 0"
+                  type="link"
+                  size="small"
+                  @click="handleMarkAllRead"
+                >
+                  全部已读
+                </a-button>
+                <a-button
+                  v-if="notifications.length > 0"
+                  type="link"
+                  size="small"
+                  danger
+                  @click="handleClearAll"
+                >
+                  清空
+                </a-button>
+              </div>
+            </div>
 
-      <Badge
-        :count="5"
-        :offset="[-2,
-                  2]"
-      >
-        <div :class="actionBtnClassName">
-          <Icon
-            icon="carbon:notification"
-            class="text-lg"
-          />
-        </div>
-      </Badge>
+            <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+              <Segmented
+                block
+                size="small"
+                :value="notificationTab"
+                :options="notificationTabItems"
+                @change="(val) => { notificationTab = val as 'all' | 'unread' | 'read' }"
+              />
+            </div>
+
+            <PerfectScrollbar class="h-[300px]">
+              <div
+                v-for="item in filteredNotifications"
+                :key="item.id"
+                :class="notificationItemClassName(item.read)"
+                @click="handleNotificationClick(item)"
+              >
+                <Icon
+                  :icon="notificationTypeConfig[item.type].icon"
+                  class="text-lg mt-0.5 flex-shrink-0"
+                  :class="notificationTypeConfig[item.type].color"
+                />
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="text-sm leading-tight"
+                      :class="item.read ? (isGeekStyle ? 'text-gray-400' : 'text-gray-600 dark:text-gray-300') : 'font-medium'"
+                    >
+                      {{ item.title }}
+                    </span>
+                    <span
+                      v-if="!item.read"
+                      class="w-2 h-2 rounded-full bg-primary flex-shrink-0"
+                    />
+                  </div>
+                  <div class="text-xs text-gray-400 mt-0.5 truncate">
+                    {{ item.description }}
+                  </div>
+                  <div class="text-xs text-gray-400 mt-1">
+                    {{ item.time }}
+                  </div>
+                </div>
+              </div>
+              <div
+                v-if="isEmpty"
+                class="py-12 text-center"
+              >
+                <Icon
+                  icon="carbon:notification-off"
+                  class="text-4xl text-gray-300 dark:text-gray-600 mb-2"
+                />
+                <div class="text-sm text-gray-400">
+                  暂无通知
+                </div>
+              </div>
+            </PerfectScrollbar>
+          </div>
+        </template>
+        <Badge
+          :count="unreadCount"
+          :offset="[-2, 2]"
+        >
+          <div :class="actionBtnClassName">
+            <Icon
+              icon="carbon:notification"
+              class="text-lg"
+            />
+          </div>
+        </Badge>
+      </Popover>
 
       <Dropdown
         :menu="{ items: sizeOptions, selectedKeys: [appStore.componentSize], onClick: handleSizeSelect }"
@@ -327,19 +509,6 @@ function handleHorizontalMenuSelect({ key }: { key: string }) {
         <div :class="actionBtnClassName">
           <Icon
             icon="carbon:grid"
-            class="text-lg"
-          />
-        </div>
-      </Dropdown>
-
-      <Dropdown
-        :menu="{ items: localeOptions, selectedKeys: [appStore.locale], onClick: handleLocaleSelect }"
-        placement="bottom"
-        :arrow="{ pointAtCenter: true }"
-      >
-        <div :class="actionBtnClassName">
-          <Icon
-            icon="carbon:language"
             class="text-lg"
           />
         </div>
@@ -404,7 +573,6 @@ function handleHorizontalMenuSelect({ key }: { key: string }) {
       </Dropdown>
     </div>
 
-    <MenuSearch v-model:visible="showSearch" />
     <SettingDrawer v-model:visible="showSetting" />
   </header>
 </template>

@@ -1,170 +1,207 @@
-import type { WebSocketEventCallback, WebSocketEventHandlers, WebSocketEventType, WebSocketOptions } from './types'
-import { computed, onUnmounted, readonly, ref } from 'vue'
-import { DEFAULT_HEARTBEAT_CONFIG, DEFAULT_WEBSOCKET_OPTIONS } from './constants'
-import { EventManager } from './EventManager'
-import { HeartbeatManager } from './HeartbeatManager'
-import { ReconnectManager } from './ReconnectManager'
-import { WebSocketStateManager } from './WebSocketStateManager'
+import { computed, onScopeDispose, ref, watch } from 'vue'
+import { useWebSocket as _useWebSocket } from '@vueuse/core'
 
-export function useWebSocket(options: WebSocketOptions) {
-  const finalOptions = { ...DEFAULT_WEBSOCKET_OPTIONS, ...options }
-
-  const stateManager = new WebSocketStateManager()
-  const eventManager = new EventManager()
-  const readyState = readonly(stateManager.getStateRef())
-  const reconnectAttempts = ref(0)
-
-  const send = (data: string | ArrayBuffer | Blob) => {
-    const ws = stateManager.getWebSocket()
-    if (!ws || ws.readyState !== WebSocket.OPEN) {
-      console.warn('WebSocket is not connected')
-      return false
-    }
-
-    try {
-      ws.send(data)
-      return true
-    }
-    catch (error) {
-      console.error('Failed to send message:', error)
-      return false
-    }
+export interface UseWebSocketOptions {
+  url: () => string | URL
+  protocols?: string[] | string
+  autoConnect?: boolean
+  autoDisconnect?: boolean
+  heartbeat?: {
+    interval: number
+    message?: string | (() => string)
+    timeout?: number
+    pongMessage?: string
   }
+  reconnect?: {
+    retries: number
+    interval: number
+    onFailed?: () => void
+  }
+}
 
-  const heartbeatManager = new HeartbeatManager(
-    {
-      interval: finalOptions.heartbeatInterval!,
-      timeout: finalOptions.heartbeatTimeout!,
-      message: DEFAULT_HEARTBEAT_CONFIG.message,
-    },
-    (message) => {
-      send(message)
-    },
-  )
-  const reconnectManager = new ReconnectManager({
-    enabled: finalOptions.reconnectEnabled!,
-    interval: finalOptions.reconnectInterval!,
-    maxAttempts: finalOptions.maxReconnectAttempts!,
-    delayMultiplier: finalOptions.reconnectDelayMultiplier!,
-    maxDelay: finalOptions.maxReconnectDelay!,
+type WebSocketEventType = 'open' | 'close' | 'error' | 'message' | 'stateChange'
+
+interface WebSocketEventCallback<T = unknown> {
+  (data: T): void
+}
+
+export function useWebSocket(options: UseWebSocketOptions) {
+  const {
+    url,
+    protocols,
+    autoConnect = true,
+    autoDisconnect = true,
+    heartbeat,
+    reconnect,
+  } = options
+
+  const urlRef = typeof url === 'function' ? computed(url) : ref(url)
+
+  const {
+    data,
+    status,
+    open,
+    close,
+    send,
+    ws,
+  } = _useWebSocket(urlRef, {
+    immediate: false,
+    autoReconnect: reconnect ? { retries: reconnect.retries, delay: reconnect.interval, onFailed: reconnect.onFailed } : false,
   })
 
-  const connect = () => {
-    if (stateManager.isConnecting() || stateManager.isConnected()) {
+  const isConnected = computed(() => status.value === 'OPEN')
+  const isConnecting = computed(() => status.value === 'CONNECTING')
+  const isError = ref(false)
+
+  const listeners = new Map<WebSocketEventType, Set<WebSocketEventCallback>>()
+
+  function on(event: WebSocketEventType, callback: WebSocketEventCallback) {
+    if (!listeners.has(event)) {
+      listeners.set(event, new Set())
+    }
+    listeners.get(event)!.add(callback)
+  }
+
+  function once(event: WebSocketEventType, callback: WebSocketEventCallback) {
+    const wrapper: WebSocketEventCallback = (data) => {
+      callback(data)
+      off(event, wrapper)
+    }
+    on(event, wrapper)
+  }
+
+  function off(event: WebSocketEventType, callback?: WebSocketEventCallback) {
+    if (!callback) {
+      listeners.delete(event)
       return
     }
+    listeners.get(event)?.delete(callback)
+  }
 
-    stateManager.setState('connecting' as any)
-    eventManager.emit('stateChange' as any, 'connecting' as any)
+  function emit(event: WebSocketEventType, data?: unknown) {
+    listeners.get(event)?.forEach(cb => cb(data))
+  }
 
-    try {
-      const ws = new WebSocket(finalOptions.url, finalOptions.protocols)
-      stateManager.setWebSocket(ws)
+  watch(status, (newStatus, oldStatus) => {
+    if (newStatus !== oldStatus) {
+      if (newStatus === 'OPEN') {
+        isError.value = false
+        emit('open')
+        emit('stateChange', 'connected')
+      }
+      else if (newStatus === 'CLOSED' && oldStatus === 'OPEN') {
+        emit('close')
+        emit('stateChange', 'disconnected')
+      }
+      else if (newStatus === 'CONNECTING') {
+        emit('stateChange', 'connecting')
+      }
+    }
+  })
 
-      ws.onopen = (event) => {
-        stateManager.setState('connected' as any)
-        eventManager.emit('stateChange' as any, 'connected' as any)
-        eventManager.emit('open' as any, event)
+  watch(data, (newData) => {
+    if (newData) {
+      try {
+        const parsed = JSON.parse(newData as string)
+        if (heartbeat?.pongMessage && parsed === heartbeat.pongMessage) {
+          return
+        }
+        emit('message', parsed)
+      }
+      catch {
+        emit('message', newData)
+      }
+    }
+  })
 
-        reconnectManager.reset()
-        reconnectAttempts.value = 0
+  let heartbeatTimer: ReturnType<typeof setInterval> | null = null
 
-        heartbeatManager.start()
+  function startHeartbeat() {
+    if (!heartbeat || !isConnected.value)
+      return
+
+    stopHeartbeat()
+
+    let heartbeatTimeoutTimer: number | null = null
+
+    heartbeatTimer = setInterval(() => {
+      if (!isConnected.value) {
+        stopHeartbeat()
+        return
       }
 
-      ws.onclose = (event) => {
-        stateManager.setState('disconnected' as any)
-        eventManager.emit('stateChange' as any, 'disconnected' as any)
-        eventManager.emit('close' as any, event)
+      const msg = typeof heartbeat.message === 'function' ? heartbeat.message() : (heartbeat.message ?? 'ping')
 
-        heartbeatManager.stop()
+      try {
+        send(msg)
 
-        if (reconnectManager.isEnabled() && !reconnectManager.hasReachedMaxAttempts()) {
-          reconnectManager.start()
+        if (heartbeat.timeout) {
+          if (heartbeatTimeoutTimer) {
+            clearTimeout(heartbeatTimeoutTimer)
+          }
+          heartbeatTimeoutTimer = setTimeout(() => {
+            if (isConnected.value) {
+              close()
+            }
+          }, heartbeat.timeout) as unknown as number
         }
       }
-
-      ws.onerror = (event) => {
-        stateManager.setState('error' as any)
-        eventManager.emit('stateChange' as any, 'error' as any)
-        eventManager.emit('error' as any, event)
+      catch {
+        close()
       }
+    }, heartbeat.interval)
+  }
 
-      ws.onmessage = (event) => {
-        eventManager.emit('message' as any, event.data)
-      }
-    }
-    catch (error) {
-      stateManager.setState('error' as any)
-      eventManager.emit('stateChange' as any, 'error' as any)
-      eventManager.emit('error' as any, error as any)
+  function stopHeartbeat() {
+    if (heartbeatTimer) {
+      clearInterval(heartbeatTimer)
+      heartbeatTimer = null
     }
   }
 
-  const disconnect = () => {
-    reconnectManager.stop()
-    heartbeatManager.stop()
-    stateManager.clearWebSocket()
-    stateManager.setState('disconnected' as any)
-    eventManager.emit('stateChange' as any, 'disconnected' as any)
+  function connect() {
+    open()
   }
 
-  const on = <T = unknown>(eventType: WebSocketEventType, callback: WebSocketEventCallback<T>) => {
-    return eventManager.on(eventType, callback)
+  function disconnect() {
+    stopHeartbeat()
+    close()
   }
 
-  const once = <T = unknown>(eventType: WebSocketEventType, callback: WebSocketEventCallback<T>) => {
-    return eventManager.once(eventType, callback)
-  }
-
-  const off = (eventType: WebSocketEventType, callback?: WebSocketEventCallback) => {
-    eventManager.off(eventType, callback)
-  }
-
-  const registerHandlers = (handlers: WebSocketEventHandlers) => {
-    return eventManager.registerHandlers(handlers)
-  }
-
-  const reconnect = () => {
-    reconnectManager.reset()
-    reconnectAttempts.value = 0
-    disconnect()
+  function connectWithAutoCleanup() {
     connect()
+
+    if (autoDisconnect) {
+      onScopeDispose(disconnect)
+    }
   }
 
-  reconnectManager.setReconnectCallback(() => {
-    reconnectAttempts.value = reconnectManager.getCurrentAttempt()
-    connect()
-  })
+  if (autoConnect) {
+    connectWithAutoCleanup()
+  }
 
-  reconnectManager.setMaxAttemptsReachedCallback(() => {
-    console.warn('Max reconnect attempts reached')
-  })
-
-  heartbeatManager.setTimeoutCallback(() => {
-    console.warn('Heartbeat timeout, closing connection')
-    disconnect()
-  })
-
-  onUnmounted(() => {
-    disconnect()
-    eventManager.removeAllListeners()
-  })
+  watch(isConnected, (connected) => {
+    if (connected) {
+      startHeartbeat()
+    }
+    else {
+      stopHeartbeat()
+    }
+  }, { immediate: false })
 
   return {
+    isConnected,
+    isConnecting,
+    isError,
+    status,
+    data,
     connect,
     disconnect,
     send,
+    ws,
     on,
-    once,
     off,
-    registerHandlers,
-    reconnect,
-    readyState,
-    isConnected: computed(() => stateManager.isConnected()),
-    isConnecting: computed(() => stateManager.isConnecting()),
-    isDisconnected: computed(() => stateManager.isDisconnected()),
-    isError: computed(() => stateManager.isError()),
-    reconnectAttempts: readonly(reconnectAttempts),
+    once,
+    emit,
   }
 }

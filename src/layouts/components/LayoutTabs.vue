@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { CloseCircleOutlined, CloseOutlined, ReloadOutlined, SettingOutlined } from '@antdv-next/icons'
 import { Dropdown } from 'antdv-next'
-import { computed, h, ref, watch } from 'vue'
+import { computed, h, nextTick, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/modules/app'
 import { cn } from '@/utils/cn'
-import { COLLAPSED_WIDTH } from '../composables/useLayout'
 
 const props = defineProps<{
   hasChildren?: boolean
@@ -42,42 +41,53 @@ watch(
         title: route.meta.title as string,
         closable: path !== '/dashboard',
       })
+      nextTick(() => {
+        scrollToLastTab()
+      })
     }
   },
   { immediate: true },
 )
 
-const isHorizontal = computed(() => appStore.layout === 'horizontal')
-const isMixed = computed(() => appStore.layout === 'mixed')
+function scrollToLastTab() {
+  nextTick(() => {
+    if (!scrollContainerRef.value) return
+    const el = scrollContainerRef.value as any
+    const ps = el.$ps
+    if (ps?.element) {
+      const lastTab = ps.element.querySelector('[class*="shrink-0"]:last-child') as HTMLElement
+      if (lastTab) {
+        ps.element.scrollLeft = lastTab.offsetLeft + lastTab.offsetWidth - ps.element.clientWidth + 16
+        ps.update()
+      }
+    }
+  })
+}
+
+
+const isGeekStyle = computed(() => appStore.themeStyle === 'geek')
 
 const tabsClassName = computed(() =>
   cn(
-    'fixed left-0 right-0 z-40',
-    'h-10 px-2 flex items-center',
-    'bg-white dark:bg-gray-800',
-    'border-b border-gray-200 dark:border-gray-700',
-    'transition-all duration-200',
+    'h-10 px-2 flex items-center flex-shrink-0',
+    isGeekStyle.value
+      ? 'bg-[#0a0a0a] border-[#1a1a1a]'
+      : 'bg-white dark:bg-gray-800',
+    isGeekStyle.value
+      ? 'border-b border-[#1a1a1a]'
+      : 'border-b border-gray-200 dark:border-gray-700',
   ),
 )
 
-const tabsStyle = computed(() => {
-  if (isHorizontal.value) {
-    return { top: '48px', left: 0 }
-  }
-  if (isMixed.value) {
-    if (!props.hasChildren) {
-      return { top: '48px', left: 0 }
-    }
-    return {
-      top: '48px',
-      left: `${appStore.sidebarCollapsed ? COLLAPSED_WIDTH : appStore.sidebarWidth}px`,
-    }
-  }
-  return {
-    top: '48px',
-    left: `${appStore.sidebarCollapsed ? COLLAPSED_WIDTH : appStore.sidebarWidth}px`,
-  }
-})
+const tabItemClassName = (key: string) => cn(
+  'px-3 py-1.5 text-sm rounded cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap',
+  'transition-colors duration-200',
+  activeKey.value === key
+    ? 'bg-primary text-white'
+    : isGeekStyle.value
+      ? 'bg-[#1a1a1a] text-gray-400 hover:bg-[#222] hover:text-gray-300'
+      : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600',
+)
 
 function handleTabClick(key: string) {
   router.push(key)
@@ -141,40 +151,75 @@ function handleDropdownClick({ key }: { key: string }) {
       break
   }
 }
+
+const scrollContainerRef = ref<any>(null)
+
+let isDragging = false
+let startX = 0
+let startScrollLeft = 0
+
+function onMouseDown(e: MouseEvent) {
+  isDragging = true
+  startX = e.pageX
+  const el = scrollContainerRef.value as any
+  const ps = el?.$ps || el
+  startScrollLeft = ps?.element?.scrollLeft || 0
+  document.addEventListener('mousemove', onMouseMove)
+  document.addEventListener('mouseup', onMouseUp)
+  e.preventDefault()
+}
+
+function onMouseMove(e: MouseEvent) {
+  if (!isDragging || !scrollContainerRef.value) return
+  const x = e.pageX
+  const walk = (x - startX) * 1.5
+  const ps = (scrollContainerRef.value as any).$ps || scrollContainerRef.value
+  if (ps && ps.element) {
+    ps.element.scrollLeft = Math.max(0, startScrollLeft - walk)
+  }
+}
+
+function onMouseUp() {
+  isDragging = false
+  document.removeEventListener('mousemove', onMouseMove)
+  document.removeEventListener('mouseup', onMouseUp)
+}
 </script>
 
 <template>
   <div
     v-if="appStore.showTabs"
     :class="tabsClassName"
-    :style="tabsStyle"
   >
-    <div class="flex-1 overflow-hidden flex items-center gap-1">
-      <div
-        v-for="tab in tabs"
-        :key="tab.key"
-        :class="cn(
-          'px-3 py-1 text-sm rounded cursor-pointer flex items-center gap-2',
-          'transition-colors duration-200',
-          activeKey === tab.key
-            ? 'bg-primary text-white'
-            : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600',
-        )"
-        @click="handleTabClick(tab.key)"
-      >
-        <span>{{ tab.title }}</span>
-        <CloseOutlined
-          v-if="tab.closable"
-          class="text-xs hover:text-red-500"
-          @click.stop="removeTab(tab.key)"
-        />
+    <PerfectScrollbar
+      ref="scrollContainerRef"
+      class="min-w-0 flex-1 cursor-grab select-none"
+      :options="{ suppressScrollX: false, suppressScrollY: true, wheelPropagation: false }"
+      :class="{ 'grabbing': isDragging }"
+      @mousedown.prevent="onMouseDown"
+    >
+      <div class="inline-flex items-center gap-1 h-full">
+        <div
+          v-for="tab in tabs"
+          :key="tab.key"
+          :class="tabItemClassName(tab.key)"
+          @click="handleTabClick(tab.key)"
+        >
+          <span>{{ tab.title }}</span>
+          <CloseOutlined
+            v-if="tab.closable"
+            class="text-xs hover:text-red-500 ml-0.5"
+            @click.stop="removeTab(tab.key)"
+          />
+        </div>
       </div>
-    </div>
+    </PerfectScrollbar>
 
     <Dropdown :menu="{ items: dropdownItems, onClick: handleDropdownClick }">
       <a-button
         type="text"
         size="small"
+        class="shrink-0 ml-2"
       >
         <template #icon>
           <SettingOutlined />
