@@ -4,6 +4,8 @@ export default defineConfig({
   title: 'Antdv Next Vue Admin',
   description: '现代化企业级后台管理系统模板 - 基于 Vue 3 + TypeScript + Antdv Next + Tailwind CSS',
   lang: 'zh-CN',
+  // GitHub Pages 部署路径，与仓库名保持一致
+  base: process.env.VITEPRESS_BASE || '/',
 
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
