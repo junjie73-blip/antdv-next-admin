@@ -23,8 +23,8 @@ export default defineConfig({
       {
         text: '更多',
         items: [
-          { text: 'Changelog', link: 'https://github.com/your-repo/antdv-next-admin/blob/main/CHANGELOG.md' },
-          { text: 'GitHub', link: 'https://github.com/your-repo/antdv-next-admin' },
+          { text: 'Changelog', link: 'https://github.com/junjie73-blip/antdv-next-admin/blob/main/CHANGELOG.md' },
+          { text: 'GitHub', link: 'https://github.com/junjie73-blip/antdv-next-admin.git' },
         ],
       },
     ],
@@ -107,7 +107,7 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/your-repo/antdv-next-admin' },
+      { icon: 'github', link: 'https://github.com/junjie73-blip/antdv-next-admin.git' },
     ],
 
     footer: {
@@ -116,7 +116,7 @@ export default defineConfig({
     },
 
     editLink: {
-      pattern: 'https://github.com/junjie73-blip/antdv-next-admin/edit/main/docs/:path',
+      pattern: 'https://github.com/junjie73-blip/antdv-next-admin.git/edit/main/docs/:path',
       text: '在 GitHub 上编辑此页',
     },
 
