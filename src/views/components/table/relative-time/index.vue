@@ -16,7 +16,10 @@ const timelineData = ref([
 
 function getDotClassName(status: string) {
   return cn(
-    'w-3', 'h-3', 'rounded-full', 'mt-1.5',
+    'w-3',
+    'h-3',
+    'rounded-full',
+    'mt-1.5',
     {
       'bg-green-500': status === 'published' || status === 'completed' || status === 'resolved',
       'bg-blue-500': status === 'pending' || status === 'reviewing',
@@ -54,12 +57,19 @@ const [registerRelative] = useTable({
   <div :class="containerClassName">
     <a-card title="基础用法">
       <a-timeline>
-        <a-timeline-item v-for="item in timelineData" :key="item.id">
+        <a-timeline-item
+          v-for="item in timelineData"
+          :key="item.id"
+        >
           <template #dot>
             <div :class="getDotClassName(item.status)" />
           </template>
-          <p :class="eventTitleClassName">{{ item.event }}</p>
-          <p :class="eventTimeClassName">{{ item.time }}</p>
+          <p :class="eventTitleClassName">
+            {{ item.event }}
+          </p>
+          <p :class="eventTimeClassName">
+            {{ item.time }}
+          </p>
         </a-timeline-item>
       </a-timeline>
     </a-card>
@@ -67,25 +77,47 @@ const [registerRelative] = useTable({
     <a-card title="自定义颜色和位置">
       <a-timeline mode="left">
         <a-timeline-item color="green">
-          <p :class="eventTitleClassName">创建服务成功</p>
-          <p :class="eventTimeClassName">2015-09-01</p>
+          <p :class="eventTitleClassName">
+            创建服务成功
+          </p>
+          <p :class="eventTimeClassName">
+            2015-09-01
+          </p>
         </a-timeline-item>
         <a-timeline-item color="green">
-          <p :class="eventTitleClassName">通过审核</p>
-          <p :class="eventTimeClassName">2015-09-01</p>
+          <p :class="eventTitleClassName">
+            通过审核
+          </p>
+          <p :class="eventTimeClassName">
+            2015-09-01
+          </p>
         </a-timeline-item>
         <a-timeline-item color="red">
-          <p :class="eventTitleClassName">活动开始报名</p>
-          <p :class="eventTimeClassName">2015-09-10</p>
+          <p :class="eventTitleClassName">
+            活动开始报名
+          </p>
+          <p :class="eventTimeClassName">
+            2015-09-10
+          </p>
         </a-timeline-item>
         <a-timeline-item>
-          <p :class="eventTitleClassName">活动进行中</p>
-          <p :class="eventTimeClassName">2015-09-15</p>
-          <a-tag color="blue">进行中</a-tag>
+          <p :class="eventTitleClassName">
+            活动进行中
+          </p>
+          <p :class="eventTimeClassName">
+            2015-09-15
+          </p>
+          <a-tag color="blue">
+            进行中
+          </a-tag>
         </a-timeline-item>
         <a-timeline-item color="gray">
-          <p :class="eventTitleClassName">活动结束</p>
-          <p :class="eventTimeClassName">2015-12-31</p>
+          <p :class="eventTitleClassName">
+            活动结束
+          </p>
+          <p :class="eventTimeClassName">
+            2015-12-31
+          </p>
         </a-timeline-item>
       </a-timeline>
     </a-card>

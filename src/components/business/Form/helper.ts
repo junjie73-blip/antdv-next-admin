@@ -1,7 +1,7 @@
 import type { FormSchema, Recordable, Rule } from './types'
-import { isFunction } from 'es-toolkit'
-import { defu } from 'defu'
 import dayjs from 'dayjs'
+import { defu } from 'defu'
+import { isFunction } from 'es-toolkit'
 
 export function setComponentProps(schema: FormSchema, formModel: Recordable, formActionType: any) {
   const { componentProps = {} } = schema

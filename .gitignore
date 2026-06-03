@@ -38,4 +38,6 @@ __screenshots__/
 test-results/
 playwright-report/
 
+.tmp/*
 *.zip
+*/cache/*

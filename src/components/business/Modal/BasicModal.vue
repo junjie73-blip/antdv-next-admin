@@ -51,7 +51,6 @@ const wrapClassName = computed(() => {
   ].filter(Boolean).join(' ')
 })
 
-// 计算 styles - 用于移除 padding
 const modalStyles = computed<AntModalProps['styles']>(() => ({
   container: {
     padding: '0',
@@ -61,6 +60,7 @@ const modalStyles = computed<AntModalProps['styles']>(() => ({
   },
   body: {
     padding: '0',
+    ...(props.bodyStyle || {}),
   },
 }))
 
@@ -166,7 +166,6 @@ const footerClassName = cn(
     :z-index="zIndex"
     :mask="mask"
     :mask-style="maskStyle"
-    :body-style="bodyStyle"
     :dialog-style="dialogStyle"
     :wrap-class-name="wrapClassName"
     :destroy-on-hidden="destroyOnClose"

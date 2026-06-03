@@ -39,8 +39,14 @@ function handleSubmit() {
 
 <template>
   <div :class="containerClassName">
-    <a-card :title="cardTitle" variant="borderless">
-      <a-form :model="formData" layout="vertical">
+    <a-card
+      :title="cardTitle"
+      variant="borderless"
+    >
+      <a-form
+        :model="formData"
+        layout="vertical"
+      >
         <a-form-item label="Color Picker">
           <a-space>
             <a-input
@@ -68,9 +74,14 @@ function handleSubmit() {
               v-model:value="tagInputValue"
               placeholder="Enter tag and press Add"
               style="width: 200px"
-              @press-enter="addTag"
+              @pressEnter="addTag"
             />
-            <a-button size="small" @click="addTag">Add</a-button>
+            <a-button
+              size="small"
+              @click="addTag"
+            >
+              Add
+            </a-button>
           </a-space>
           <div class="mt-2 flex flex-wrap gap-1">
             <a-tag
@@ -96,13 +107,21 @@ function handleSubmit() {
 
         <a-form-item label="Switch">
           <a-switch v-model:checked="formData.switchValue" />
-          <span class="ml-2" :class="formData.switchValue ? 'text-green-600' : 'text-gray-400'">
+          <span
+            class="ml-2"
+            :class="formData.switchValue ? 'text-green-600' : 'text-gray-400'"
+          >
             {{ formData.switchValue ? 'Enabled' : 'Disabled' }}
           </span>
         </a-form-item>
 
         <a-form-item>
-          <a-button type="primary" @click="handleSubmit">Submit</a-button>
+          <a-button
+            type="primary"
+            @click="handleSubmit"
+          >
+            Submit
+          </a-button>
         </a-form-item>
       </a-form>
     </a-card>

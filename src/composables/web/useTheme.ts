@@ -14,12 +14,12 @@ export function useTheme() {
     )
 
     if (!document.startViewTransition) {
-      appStore.setTheme(isDark ? 'light' : 'dark')
+      appStore.updateSetting({ theme: isDark ? 'light' : 'dark' })
       return
     }
 
     const transition = document.startViewTransition(() => {
-      appStore.setTheme(isDark ? 'light' : 'dark')
+      appStore.updateSetting({ theme: isDark ? 'light' : 'dark' })
     })
 
     await transition.ready

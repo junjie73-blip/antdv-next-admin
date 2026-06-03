@@ -99,7 +99,8 @@ export function useChunkUpload(options: ChunkUploadOptions = {}) {
 
   async function processChunks(file: File): Promise<void> {
     const totalChunks = chunks.value.length
-    if (totalChunks === 0) return
+    if (totalChunks === 0)
+      return
 
     const w = getWorker()
 
@@ -113,7 +114,8 @@ export function useChunkUpload(options: ChunkUploadOptions = {}) {
         if (e.data.type === 'progress') {
           const { index, progress: chunkProgress } = e.data
           chunks.value[index].progress = chunkProgress
-        } else if (e.data.type === 'complete') {
+        }
+        else if (e.data.type === 'complete') {
           hash.value = e.data.hash
         }
       }
@@ -133,7 +135,8 @@ export function useChunkUpload(options: ChunkUploadOptions = {}) {
           return
         }
 
-        if (pausedFlag.value) return
+        if (pausedFlag.value)
+          return
 
         if (currentIndex >= totalChunks) {
           if (activeCount === 0) {
@@ -193,10 +196,12 @@ export function useChunkUpload(options: ChunkUploadOptions = {}) {
           status.value = 'error'
           return
         }
-        if (cancelledFlag.value) return
+        if (cancelledFlag.value)
+          return
 
         while (activeCount < concurrent && currentIndex < totalChunks) {
-          if (pausedFlag.value) break
+          if (pausedFlag.value)
+            break
           submitNext()
         }
 

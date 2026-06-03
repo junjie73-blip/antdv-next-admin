@@ -3,6 +3,7 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import { createApp } from 'vue'
 import { PerfectScrollbarPlugin } from 'vue3-perfect-scrollbar'
 import App from './App.vue'
+import i18n from './locales'
 import { setupRouter } from './router'
 import 'virtual:svg-icons-register'
 import './styles/global.css'
@@ -14,6 +15,7 @@ const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
 
 app.use(pinia)
+app.use(i18n)
 setupRouter(app)
 app.use(PerfectScrollbarPlugin)
 

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { FormSchema, Recordable, RenderCallbackParams } from './types'
 import { isFunction } from 'es-toolkit'
-import { isArray } from 'es-toolkit/compat'
 import { computed, unref } from 'vue'
 import IconifyIcon from '@/components/common/Icon/IconifyIcon.vue'
 import { getComponent } from './componentMap'
@@ -91,7 +90,7 @@ const getColProps = computed(() => {
 
 const getHelpMessage = computed(() => {
   const { helpMessage } = props.schema
-  if (isArray(helpMessage)) {
+  if (Array.isArray(helpMessage)) {
     return helpMessage.join('\n')
   }
   return helpMessage
@@ -131,7 +130,11 @@ function handleValueChange(value: any) {
           </span>
         </template>
         <template v-if="schema.slot">
-          <slot :name="schema.slot" />
+          <slot
+            :name="schema.slot"
+            :model="formModel"
+            :field="schema.field"
+          />
         </template>
 
         <template v-else-if="getComponentInstance">

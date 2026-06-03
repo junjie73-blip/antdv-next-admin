@@ -4,6 +4,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { DefaultLayout } from '@/layouts'
 import { frontendMenus } from '@/router/menus'
+import { http } from '@/utils/request'
 
 const modules = import.meta.glob('/src/views/**/*.vue')
 
@@ -91,54 +92,8 @@ function generateRoutesFromBackendMenus(backendMenus: BackendMenu[]): InternalRo
 }
 
 async function fetchBackendMenus(): Promise<BackendMenu[]> {
-  await new Promise(resolve => setTimeout(resolve, 300))
-
-  return [
-    {
-      id: 1,
-      parentId: null,
-      path: '/dashboard',
-      name: 'Dashboard',
-      title: '仪表盘',
-      icon: 'carbon:dashboard',
-      component: '@/views/dashboard/index.vue',
-      keepAlive: true,
-      sort: 1,
-    },
-    {
-      id: 2,
-      parentId: null,
-      path: '/system',
-      name: 'System',
-      title: '系统管理',
-      icon: 'carbon:settings',
-      sort: 2,
-      children: [
-        {
-          id: 3,
-          parentId: 2,
-          path: 'user',
-          name: 'SystemUser',
-          title: '用户管理',
-          icon: 'carbon:user',
-          component: '@/views/system/user/index.vue',
-          keepAlive: true,
-          sort: 1,
-        },
-        {
-          id: 4,
-          parentId: 2,
-          path: 'role',
-          name: 'SystemRole',
-          title: '角色管理',
-          icon: 'carbon:group',
-          component: '@/views/system/role/index.vue',
-          keepAlive: true,
-          sort: 2,
-        },
-      ],
-    },
-  ]
+  const response = await http.Get<{ code: number, data: { list: BackendMenu[] }, message: string }>('/menus')
+  return response.data.list
 }
 
 export const useRouteStore = defineStore('route', () => {

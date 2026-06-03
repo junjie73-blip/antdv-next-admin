@@ -29,7 +29,8 @@ async function computeHash(buffers: ArrayBuffer[]): Promise<string> {
     const hashBuffer = await crypto.subtle.digest('SHA-256', merged)
     const hashArray = Array.from(new Uint8Array(hashBuffer))
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-  } catch {
+  }
+  catch {
     let hash = 0
     for (let i = 0; i < merged.length; i++) {
       hash = ((hash << 5) - hash + merged[i]) | 0

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { BasicColumn, BasicTableProps, Recordable, TableActionType, TableRowSelection } from './types'
 import { Table } from 'antdv-next'
-import { computed, isVNode, nextTick, onMounted, ref, unref } from 'vue'
+import { computed, isVNode, nextTick, onMounted, ref, unref, watch } from 'vue'
 import { BasicForm } from '@/components/business/Form'
 import { cn } from '@/utils/cn'
 import TableAction from './components/TableAction'
@@ -30,6 +30,7 @@ const props = withDefaults(defineProps<BasicTableProps>(), {
   resizeHeightOffset: 0,
   showHeader: true,
   size: 'middle',
+  showTableSetting: true,
 })
 
 const emit = defineEmits<{
@@ -124,6 +125,7 @@ const tableScroll = useTableScroll({
 
 // 搜索表单
 const tableForm = useTableForm({
+  baseProps: getMergedProps,
   propsRef,
   fetch: dataSource.fetch,
 })
@@ -140,10 +142,41 @@ const getDataSource = computed(() => {
   return unref(dataSource.dataSourceRef)
 })
 
+watch(getDataSource, (data) => {
+  if (getMergedProps.value.isTree && data.length > 0) {
+    const rowKey = getMergedProps.value.rowKey || 'id'
+    expandedRowKeysRef.value = data
+      .filter((record: Recordable) => record.children?.length > 0)
+      .map((record: Recordable) => String(record[rowKey]))
+  }
+})
+
 // 行选择配置
 const getRowSelection = computed((): TableRowSelection | undefined => {
   const selection = rowSelection.getRowSelection.value
   return selection || undefined
+})
+
+// 树形展开配置（保持引用稳定，避免每次渲染创建新对象）
+const getExpandable = computed(() => {
+  if (getMergedProps.value.isTree) {
+    return {
+      indentSize: getMergedProps.value.indentSize ?? 20,
+      childrenColumnName: getMergedProps.value.childrenColumnName || 'children',
+      defaultExpandAllRows: true,
+      onExpandedRowsChange: (keys: string[]) => { expandedRowKeysRef.value = keys },
+    }
+  }
+
+  if (getMergedProps.value.expandedRowRender) {
+    return {
+      expandedRowRender: getMergedProps.value.expandedRowRender,
+      expandedRowKeys: expandedRowKeysRef.value,
+      onExpandedRowsChange: (keys: string[]) => { expandedRowKeysRef.value = keys },
+    }
+  }
+
+  return undefined
 })
 
 // 分页配置
@@ -376,8 +409,8 @@ defineExpose(tableActionType)
       class="mb-4"
     >
       <BasicForm
-        v-bind="getFormConfig"
-        @register="tableForm.getForm"
+        v-bind="tableForm.getFormProps"
+        @register="tableForm.registerForm"
       />
     </div>
 
@@ -386,7 +419,7 @@ defineExpose(tableActionType)
       v-if="showTableSetting || $slots.toolbar"
       class="flex items-center justify-between mb-4"
     >
-      <div class="flex-1">
+      <div class="flex items-center flex-wrap gap-2">
         <slot name="toolbar" />
       </div>
       <TableSetting
@@ -417,13 +450,7 @@ defineExpose(tableActionType)
       :row-class-name="getMergedProps.rowClassName"
       :expanded-row-keys="expandedRowKeysRef"
       :size="getMergedProps.size"
-      :expandable="getMergedProps.expandedRowRender
-        ? {
-          expandedRowRender: getMergedProps.expandedRowRender,
-          expandedRowKeys: expandedRowKeysRef,
-          onExpandedRowsChange: (keys: string[]) => { expandedRowKeysRef.value = keys },
-        }
-        : undefined"
+      :expandable="getExpandable"
       @change="handleTableChange"
       @rowClick="handleRowClick"
     >
@@ -619,17 +646,8 @@ defineExpose(tableActionType)
 </template>
 
 <style scoped>
-.basic-table :deep(.ant-table) {
-  background-color: white;
-}
-
 .basic-table :deep(.ant-table-thead > tr > th) {
-  background-color: rgb(249, 250, 251);
   font-weight: 500;
-}
-
-.basic-table :deep(.ant-table-tbody > tr:hover > td) {
-  background-color: rgb(239, 246, 255);
 }
 
 .basic-table :deep(.ant-pagination) {
@@ -640,6 +658,15 @@ defineExpose(tableActionType)
 /* 确保表格单元格不会遮挡下拉菜单 */
 .basic-table :deep(.ant-table-cell) {
   overflow: visible !important;
+}
+
+/* 操作列内容居中（text-align 对 flex 子元素不生效） */
+.basic-table :deep(.ant-table-cell:last-of-type) {
+  text-align: center;
+}
+
+.basic-table :deep(.ant-table-cell:last-of-type > .ant-wrapper) {
+  justify-content: center;
 }
 
 /* 下拉菜单样式 */

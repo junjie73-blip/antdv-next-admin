@@ -1,8 +1,9 @@
-import { computed, ref, watch } from 'vue'
-import { useRoute, type RouteLocationMatched } from 'vue-router'
-import { useToggle, useMediaQuery, useFullscreen as _useFullscreen } from '@vueuse/core'
 import type { LayoutMode } from '#/app'
 import type { MenuConfig } from '#/menu'
+import type { RouteLocationMatched } from 'vue-router'
+import { useFullscreen as _useFullscreen, useMediaQuery, useToggle } from '@vueuse/core'
+import { computed, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
 export type { LayoutMode }
 

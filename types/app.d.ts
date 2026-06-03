@@ -42,6 +42,7 @@ export interface AppSetting {
   sidebarWidth: number
   showBreadcrumb: boolean
   showTabs: boolean
+  tabShowIcon: boolean
   showFooter: boolean
   enableWaterRipple: boolean
   transitionEffect: TransitionEffect

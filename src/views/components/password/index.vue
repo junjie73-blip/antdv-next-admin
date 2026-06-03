@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { cn } from '@/utils/cn'
-import { ref, computed, watch } from 'vue'
+import { Icon } from '@iconify/vue'
 import { useDebounceFn } from '@vueuse/core'
 import { message } from 'antdv-next'
-import { Icon } from '@iconify/vue'
+import { computed, ref, watch } from 'vue'
+import { cn } from '@/utils/cn'
 
 const containerClass = cn('space-y-6')
 const cardDescClass = cn('text-gray-600 dark:text-gray-400 mb-4')
@@ -98,61 +98,74 @@ interface StrengthResult {
 
 const passwordStrength = computed<StrengthResult>(() => {
   const pwd = password.value
-  if (!pwd) return { level: 0, text: '', color: '', bgColor: '', textColor: '', percent: 0, segments: [] }
+  if (!pwd)
+    return { level: 0, text: '', color: '', bgColor: '', textColor: '', percent: 0, segments: [] }
 
   let score = 0
-  if (pwd.length >= 8) score++
-  if (pwd.length >= 12) score++
-  if (/[a-z]/.test(pwd)) score++
-  if (/[A-Z]/.test(pwd)) score++
-  if (/\d/.test(pwd)) score++
-  if (/[^a-zA-Z\d]/.test(pwd)) score++
+  if (pwd.length >= 8)
+    score++
+  if (pwd.length >= 12)
+    score++
+  if (/[a-z]/.test(pwd))
+    score++
+  if (/[A-Z]/.test(pwd))
+    score++
+  if (/\d/.test(pwd))
+    score++
+  if (/[^a-z\d]/i.test(pwd))
+    score++
 
-  if (score <= 2) return {
-    level: 1,
-    text: 'Weak',
-    color: '#ff4d4f',
-    bgColor: '#fff2f0',
-    textColor: '#ff4d4f',
-    percent: 25,
-    segments: [
-      { color: '#ff4d4f', active: true },
-      { color: '#d9d9d9', active: false },
-      { color: '#d9d9d9', active: false },
-      { color: '#d9d9d9', active: false },
-    ],
+  if (score <= 2) {
+    return {
+      level: 1,
+      text: '弱',
+      color: '#ff4d4f',
+      bgColor: '#fff2f0',
+      textColor: '#ff4d4f',
+      percent: 25,
+      segments: [
+        { color: '#ff4d4f', active: true },
+        { color: '#d9d9d9', active: false },
+        { color: '#d9d9d9', active: false },
+        { color: '#d9d9d9', active: false },
+      ],
+    }
   }
-  if (score <= 4) return {
-    level: 2,
-    text: 'Fair',
-    color: '#faad14',
-    bgColor: '#fffbe6',
-    textColor: '#faad14',
-    percent: 50,
-    segments: [
-      { color: '#faad14', active: true },
-      { color: '#faad14', active: true },
-      { color: '#d9d9d9', active: false },
-      { color: '#d9d9d9', active: false },
-    ],
+  if (score <= 4) {
+    return {
+      level: 2,
+      text: '一般',
+      color: '#faad14',
+      bgColor: '#fffbe6',
+      textColor: '#faad14',
+      percent: 50,
+      segments: [
+        { color: '#faad14', active: true },
+        { color: '#faad14', active: true },
+        { color: '#d9d9d9', active: false },
+        { color: '#d9d9d9', active: false },
+      ],
+    }
   }
-  if (score <= 5) return {
-    level: 3,
-    text: 'Good',
-    color: '#1677ff',
-    bgColor: '#e6f7ff',
-    textColor: '#1677ff',
-    percent: 75,
-    segments: [
-      { color: '#1677ff', active: true },
-      { color: '#1677ff', active: true },
-      { color: '#1677ff', active: true },
-      { color: '#d9d9d9', active: false },
-    ],
+  if (score <= 5) {
+    return {
+      level: 3,
+      text: '良好',
+      color: '#1677ff',
+      bgColor: '#e6f7ff',
+      textColor: '#1677ff',
+      percent: 75,
+      segments: [
+        { color: '#1677ff', active: true },
+        { color: '#1677ff', active: true },
+        { color: '#1677ff', active: true },
+        { color: '#d9d9d9', active: false },
+      ],
+    }
   }
   return {
     level: 4,
-    text: 'Strong',
+    text: '强',
     color: '#52c41a',
     bgColor: '#f6ffed',
     textColor: '#52c41a',
@@ -167,16 +180,17 @@ const passwordStrength = computed<StrengthResult>(() => {
 })
 
 const passwordTips = computed<TipItem[]>(() => {
-  if (!password.value) return []
+  if (!password.value)
+    return []
 
   const pwd = password.value
   return [
-    { text: 'At least 8 characters', done: pwd.length >= 8 },
-    { text: 'At least 12 characters (recommended)', done: pwd.length >= 12 },
-    { text: 'Contains lowercase letters (a-z)', done: /[a-z]/.test(pwd) },
-    { text: 'Contains uppercase letters (A-Z)', done: /[A-Z]/.test(pwd) },
-    { text: 'Contains numbers (0-9)', done: /\d/.test(pwd) },
-    { text: 'Contains special characters (!@#...)', done: /[^a-zA-Z\d]/.test(pwd) },
+    { text: '至少8个字符', done: pwd.length >= 8 },
+    { text: '至少12个字符（推荐）', done: pwd.length >= 12 },
+    { text: '包含小写字母 (a-z)', done: /[a-z]/.test(pwd) },
+    { text: '包含大写字母 (A-Z)', done: /[A-Z]/.test(pwd) },
+    { text: '包含数字 (0-9)', done: /\d/.test(pwd) },
+    { text: '包含特殊字符 (!@#...)', done: /[^a-z\d]/i.test(pwd) },
   ]
 })
 
@@ -203,17 +217,21 @@ const generatorOptions = ref<GeneratorOptions>({
 
 function generateRandomPassword() {
   let chars = ''
-  if (generatorOptions.value.lowercase) chars += 'abcdefghijklmnopqrstuvwxyz'
-  if (generatorOptions.value.uppercase) chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-  if (generatorOptions.value.numbers) chars += '0123456789'
-  if (generatorOptions.value.symbols) chars += '!@#$%^&*()_+-=[]{}|;:,.<>?'
+  if (generatorOptions.value.lowercase)
+    chars += 'abcdefghijklmnopqrstuvwxyz'
+  if (generatorOptions.value.uppercase)
+    chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  if (generatorOptions.value.numbers)
+    chars += '0123456789'
+  if (generatorOptions.value.symbols)
+    chars += '!@#$%^&*()_+-=[]{}|;:,.<>?'
 
   if (generatorOptions.value.excludeAmbiguous) {
     chars = chars.replace(/[l1IoO0]/g, '')
   }
 
   if (!chars) {
-    message.warning('Please select at least one character type')
+    message.warning('请至少选择一种字符类型')
     return
   }
 
@@ -222,7 +240,13 @@ function generateRandomPassword() {
   crypto.getRandomValues(array)
 
   for (let i = 0; i < generatorOptions.value.length; i++) {
-    result += chars[array[i] % chars.length]
+    const val = array[i]
+    if (val === undefined)
+      continue
+    const idx = val % chars.length
+    const ch = chars[idx]
+    if (ch !== undefined)
+      result += ch
   }
 
   generatedPassword.value = result
@@ -230,9 +254,16 @@ function generateRandomPassword() {
 }
 
 function copyGeneratedPassword() {
-  if (!generatedPassword.value) return
-  navigator.clipboard.writeText(generatedPassword.value).then(() => {
-    message.success('Password copied to clipboard')
+  if (!generatedPassword.value)
+    return
+  window.navigator.clipboard.writeText(generatedPassword.value).then(() => {
+    message.success('密码已复制到剪贴板')
+  })
+}
+
+function copyHistoryPassword(pwd: string) {
+  window.navigator.clipboard.writeText(pwd).then(() => {
+    message.success('密码已复制')
   })
 }
 
@@ -263,12 +294,12 @@ watch(password, (newVal) => {
 
 function useHistoryPassword(pwd: string) {
   password.value = pwd
-  message.info('Password loaded from history')
+  message.info('已从历史加载密码')
 }
 
 function clearHistory() {
   passwordHistory.value = []
-  message.success('History cleared')
+  message.success('历史已清空')
 }
 
 // ==================== Password Policy Validation ====================
@@ -299,37 +330,42 @@ interface PolicyValidationResult {
 
 const policyValidation = computed<PolicyValidationResult>(() => {
   const pwd = password.value
-  if (!pwd) return { valid: null, errors: [] }
+  if (!pwd)
+    return { valid: null, errors: [] }
 
   const errors: string[] = []
 
   if (pwd.length < policyConfig.value.minLength) {
-    errors.push(`Minimum ${policyConfig.value.minLength} characters required`)
+    errors.push(`至少需要 ${policyConfig.value.minLength} 个字符`)
   }
   if (pwd.length > policyConfig.value.maxLength) {
-    errors.push(`Maximum ${policyConfig.value.maxLength} characters allowed`)
+    errors.push(`最多允许 ${policyConfig.value.maxLength} 个字符`)
   }
   if (policyConfig.value.requireUppercase && !/[A-Z]/.test(pwd)) {
-    errors.push('At least one uppercase letter required')
+    errors.push('至少需要一个大写字母')
   }
   if (policyConfig.value.requireLowercase && !/[a-z]/.test(pwd)) {
-    errors.push('At least one lowercase letter required')
+    errors.push('至少需要一个小写字母')
   }
   if (policyConfig.value.requireNumber && !/\d/.test(pwd)) {
-    errors.push('At least one number required')
+    errors.push('至少需要一个数字')
   }
-  if (policyConfig.value.requireSpecialChar && !/[^a-zA-Z\d]/.test(pwd)) {
-    errors.push('At least one special character required')
+  if (policyConfig.value.requireSpecialChar && !/[^a-z\d]/i.test(pwd)) {
+    errors.push('至少需要一个特殊字符')
   }
 
   let typeCount = 0
-  if (/[a-z]/.test(pwd)) typeCount++
-  if (/[A-Z]/.test(pwd)) typeCount++
-  if (/\d/.test(pwd)) typeCount++
-  if (/[^a-zA-Z\d]/.test(pwd)) typeCount++
+  if (/[a-z]/.test(pwd))
+    typeCount++
+  if (/[A-Z]/.test(pwd))
+    typeCount++
+  if (/\d/.test(pwd))
+    typeCount++
+  if (/[^a-z\d]/i.test(pwd))
+    typeCount++
 
   if (typeCount < policyConfig.value.minUniqueTypes) {
-    errors.push(`At least ${policyConfig.value.minUniqueTypes} different character types required`)
+    errors.push(`至少需要 ${policyConfig.value.minUniqueTypes} 种不同的字符类型`)
   }
 
   return {
@@ -340,23 +376,24 @@ const policyValidation = computed<PolicyValidationResult>(() => {
 
 // ==================== Combined Dashboard ====================
 const overallValid = computed(() => {
-  if (!password.value) return null
+  if (!password.value)
+    return null
   return (passwordStrength.value?.level ?? 0) >= 2 && policyValidation.value.valid === true
 })
 </script>
 
 <template>
   <div :class="containerClass">
-    <!-- ==================== 1. Password Strength Indicator ==================== -->
-    <a-card title="Password Strength Indicator">
+    <!-- ==================== 1. 密码强度检测器 ==================== -->
+    <a-card title="密码强度检测器">
       <p :class="cardDescClass">
-        Real-time password strength analysis with visual feedback and security suggestions.
+        实时密码强度分析，提供视觉反馈和安全建议。
       </p>
       <div :class="passwordCardClass">
         <div :class="relativeClass">
           <a-input-password
             v-model:value="password"
-            placeholder="Enter your password"
+            placeholder="输入密码"
             allow-clear
             size="large"
             :visibility-toggle="false"
@@ -375,7 +412,10 @@ const overallValid = computed(() => {
           </a-input-password>
         </div>
 
-        <div v-if="password" :class="passwordStrengthClass">
+        <div
+          v-if="password"
+          :class="passwordStrengthClass"
+        >
           <div :class="strengthBarOuterClass">
             <div :class="strengthBarInnerClass">
               <div
@@ -388,22 +428,28 @@ const overallValid = computed(() => {
           </div>
 
           <div :class="strengthInfoRowClass">
-            <span :class="strengthInfoLabelClass">Password Strength</span>
+            <span :class="strengthInfoLabelClass">密码强度</span>
             <div :class="strengthInfoRightClass">
               <Icon
                 :icon="passwordStrength.level === 1 ? 'carbon:warning-alt' : passwordStrength.level === 2 ? 'carbon:warning' : passwordStrength.level === 3 ? 'carbon:checkmark' : 'carbon:checkmark-filled'"
                 :class="`text-${passwordStrength.color}`"
               />
-              <span :style="{ color: passwordStrength.textColor }" class="font-medium">{{ passwordStrength.text }}</span>
+              <span
+                :style="{ color: passwordStrength.textColor }"
+                class="font-medium"
+              >{{ passwordStrength.text }}</span>
               <span :class="strengthPercentClass">{{ passwordStrength.percent }}%</span>
             </div>
           </div>
         </div>
 
-        <div v-if="passwordTips.length > 0" :class="tipsContainerClass">
+        <div
+          v-if="passwordTips.length > 0"
+          :class="tipsContainerClass"
+        >
           <h4 :class="tipsTitleClass">
             <Icon icon="carbon:security" />
-            Security Tips
+            安全建议
           </h4>
           <ul :class="tipsListClass">
             <li
@@ -411,7 +457,10 @@ const overallValid = computed(() => {
               :key="index"
               :class="tip.done ? tipsItemSuccessClass : tipsItemFailClass"
             >
-              <Icon :icon="tip.done ? 'carbon:checkmark-filled' : 'carbon:close'" :class="tipsIconClass" />
+              <Icon
+                :icon="tip.done ? 'carbon:checkmark-filled' : 'carbon:close'"
+                :class="tipsIconClass"
+              />
               {{ tip.text }}
             </li>
           </ul>
@@ -419,22 +468,25 @@ const overallValid = computed(() => {
       </div>
     </a-card>
 
-    <!-- ==================== 2. Password Visibility Toggle ==================== -->
-    <a-card title="Password Visibility Toggle">
+    <!-- ==================== 2. 密码可见性切换 ==================== -->
+    <a-card title="密码可见性切换">
       <p :class="cardDescClass">
-        Toggle password visibility to verify what you have typed.
+        切换密码可见性，验证输入内容。
       </p>
       <div :class="passwordCardClass">
         <div :class="relativeClass">
           <a-input
             :value="password"
-            placeholder="Enter your password"
+            placeholder="输入密码"
             allow-clear
             size="large"
             :type="showPassword ? 'text' : 'password'"
           >
             <template #prefix>
-              <Icon icon="carbon:locked" :class="iconGrayClass" />
+              <Icon
+                icon="carbon:locked"
+                :class="iconGrayClass"
+              />
             </template>
             <template #suffix>
               <button
@@ -451,90 +503,111 @@ const overallValid = computed(() => {
         </div>
         <div :class="visibilityInfoClass">
           <Icon icon="carbon:information" />
-          Current status: <strong>{{ showPassword ? 'Visible' : 'Hidden' }}</strong>
+          当前状态：<strong>{{ showPassword ? '可见' : '隐藏' }}</strong>
         </div>
       </div>
     </a-card>
 
-    <!-- ==================== 3. Password Generator ==================== -->
-    <a-card title="Password Generator">
+    <!-- ==================== 3. 密码生成器 ==================== -->
+    <a-card title="密码生成器">
       <p :class="cardDescClass">
-        Generate strong random passwords with customizable options.
+        生成强随机密码，支持自定义选项。
       </p>
       <div :class="passwordCardClass">
         <div :class="generatorGridClass">
           <div>
-            <label :class="generatorLabelClass">Length: {{ generatorOptions.length }}</label>
-            <a-slider v-model:value="generatorOptions.length" :min="8" :max="64" :step="1" />
+            <label :class="generatorLabelClass">长度: {{ generatorOptions.length }}</label>
+            <a-slider
+              v-model:value="generatorOptions.length"
+              :min="8"
+              :max="64"
+              :step="1"
+            />
           </div>
           <div :class="generatorCheckItemClass">
             <label :class="generatorCheckLabelClass">
               <a-checkbox v-model:checked="generatorOptions.uppercase" />
-              Uppercase (A-Z)
+              大写字母 (A-Z)
             </label>
           </div>
           <div :class="generatorCheckItemClass">
             <label :class="generatorCheckLabelClass">
               <a-checkbox v-model:checked="generatorOptions.lowercase" />
-              Lowercase (a-z)
+              小写字母 (a-z)
             </label>
           </div>
           <div :class="generatorCheckItemClass">
             <label :class="generatorCheckLabelClass">
               <a-checkbox v-model:checked="generatorOptions.numbers" />
-              Numbers (0-9)
+              数字 (0-9)
             </label>
           </div>
           <div :class="generatorCheckItemClass">
             <label :class="generatorCheckLabelClass">
               <a-checkbox v-model:checked="generatorOptions.symbols" />
-              Symbols (!@#...)
+              特殊符号 (!@#...)
             </label>
           </div>
           <div :class="generatorCheckItemClass">
             <label :class="generatorCheckLabelClass">
               <a-checkbox v-model:checked="generatorOptions.excludeAmbiguous" />
-              Exclude ambiguous chars
+              排除易混淆字符
             </label>
           </div>
         </div>
 
-        <a-button type="primary" block size="large" @click="generateRandomPassword">
+        <a-button
+          type="primary"
+          block
+          size="large"
+          @click="generateRandomPassword"
+        >
           <template #icon>
             <Icon icon="carbon:renew" />
           </template>
-          Generate Password
+          生成密码
         </a-button>
 
-        <div v-if="generatedPassword" :class="resultCardClass">
+        <div
+          v-if="generatedPassword"
+          :class="resultCardClass"
+        >
           <div :class="resultCardInnerClass">
             <div :class="resultCardCodeWrapClass">
-              <p :class="resultLabelClass">Generated secure password:</p>
+              <p :class="resultLabelClass">
+                生成的密码:
+              </p>
               <code :class="resultCodeClass">
                 {{ generatedPassword }}
               </code>
               <p :class="resultMetaClass">
-                Length: {{ generatedPassword.length }} characters
+                长度: {{ generatedPassword.length }} 字符
               </p>
             </div>
-            <a-button type="link" @click="copyGeneratedPassword">
+            <a-button
+              type="link"
+              @click="copyGeneratedPassword"
+            >
               <template #icon>
                 <Icon icon="carbon:copy" />
               </template>
-              Copy
+              复制
             </a-button>
           </div>
         </div>
       </div>
     </a-card>
 
-    <!-- ==================== 4. Password History ==================== -->
-    <a-card title="Password History">
+    <!-- ==================== 4. 密码历史 ==================== -->
+    <a-card title="密码历史">
       <p :class="cardDescClass">
-        Automatically saves recently used passwords (up to {{ MAX_HISTORY }} entries).
+        自动保存最近使用的密码（最多 {{ MAX_HISTORY }} 条）。
       </p>
       <div :class="passwordCardClass">
-        <div v-if="passwordHistory.length > 0" :class="historyListClass">
+        <div
+          v-if="passwordHistory.length > 0"
+          :class="historyListClass"
+        >
           <div
             v-for="(pwd, index) in passwordHistory"
             :key="index"
@@ -542,80 +615,109 @@ const overallValid = computed(() => {
             @click="useHistoryPassword(pwd)"
           >
             <div :class="historyItemLeftClass">
-              <Icon icon="carbon:time" :class="iconGrayClass" />
+              <Icon
+                icon="carbon:time"
+                :class="iconGrayClass"
+              />
               <code :class="historyCodeClass">{{ pwd.replace(/./g, '*') }}</code>
-              <span :class="historyLenClass">{{ pwd.length }} chars</span>
+              <span :class="historyLenClass">{{ pwd.length }} 字符</span>
             </div>
             <div :class="historyActionsClass">
-              <a-tooltip title="Use this password">
-                <Icon icon="carbon:checkmark" class="text-green-500 cursor-pointer" />
+              <a-tooltip title="使用此密码">
+                <Icon
+                  icon="carbon:checkmark"
+                  class="text-green-500 cursor-pointer"
+                />
               </a-tooltip>
-              <a-tooltip title="Copy to clipboard">
+              <a-tooltip title="复制到剪贴板">
                 <Icon
                   icon="carbon:copy"
                   class="text-blue-500 cursor-pointer"
-                  @click.stop="navigator.clipboard.writeText(pwd); message.success('Password copied')"
+                  @click.stop="copyHistoryPassword(pwd)"
                 />
               </a-tooltip>
             </div>
           </div>
           <div :class="historyFooterClass">
-            <a-button danger size="small" @click="clearHistory">
-              Clear History
+            <a-button
+              danger
+              size="small"
+              @click="clearHistory"
+            >
+              清空历史
             </a-button>
           </div>
         </div>
-        <div v-else :class="historyEmptyClass">
-          <Icon icon="carbon:document" class="text-4xl mb-2 opacity-30" />
-          <p>No password history</p>
-          <p class="text-sm mt-1">Passwords you enter will appear here automatically</p>
+        <div
+          v-else
+          :class="historyEmptyClass"
+        >
+          <Icon
+            icon="carbon:document"
+            class="text-4xl mb-2 opacity-30"
+          />
+          <p>暂无密码历史</p>
+          <p class="text-sm mt-1">
+            您输入的密码将自动显示在此处
+          </p>
         </div>
       </div>
     </a-card>
 
-    <!-- ==================== 5. Password Policy Validation ==================== -->
-    <a-card title="Password Policy Validation">
+    <!-- ==================== 5. 密码策略验证 ==================== -->
+    <a-card title="密码策略验证">
       <p :class="cardDescClass">
-        Configure password complexity requirements and validate your password in real-time.
+        配置密码复杂度要求并实时验证。
       </p>
       <div :class="passwordCardClass">
         <div :class="policyGridClass">
           <div>
-            <label :class="generatorLabelClass">Min Length: {{ policyConfig.minLength }}</label>
-            <a-slider v-model:value="policyConfig.minLength" :min="6" :max="20" :step="1" />
+            <label :class="generatorLabelClass">最小长度: {{ policyConfig.minLength }}</label>
+            <a-slider
+              v-model:value="policyConfig.minLength"
+              :min="6"
+              :max="20"
+              :step="1"
+            />
           </div>
           <div>
-            <label :class="generatorLabelClass">Max Length: {{ policyConfig.maxLength }}</label>
-            <a-slider v-model:value="policyConfig.maxLength" :min="16" :max="128" :step="1" />
+            <label :class="generatorLabelClass">最大长度: {{ policyConfig.maxLength }}</label>
+            <a-slider
+              v-model:value="policyConfig.maxLength"
+              :min="16"
+              :max="128"
+              :step="1"
+            />
           </div>
         </div>
 
         <div :class="policyCheckGridClass">
           <label :class="policyCheckCardClass">
             <a-checkbox v-model:checked="policyConfig.requireUppercase" />
-            <span class="text-sm">Require uppercase letters</span>
+            <span class="text-sm">要求大写字母</span>
           </label>
           <label :class="policyCheckCardClass">
             <a-checkbox v-model:checked="policyConfig.requireLowercase" />
-            <span class="text-sm">Require lowercase letters</span>
+            <span class="text-sm">要求小写字母</span>
           </label>
           <label :class="policyCheckCardClass">
             <a-checkbox v-model:checked="policyConfig.requireNumber" />
-            <span class="text-sm">Require numbers</span>
+            <span class="text-sm">要求数字</span>
           </label>
           <label :class="policyCheckCardClass">
             <a-checkbox v-model:checked="policyConfig.requireSpecialChar" />
-            <span class="text-sm">Require special characters</span>
+            <span class="text-sm">要求特殊字符</span>
           </label>
           <label :class="policyCheckCardWideClass">
             <a-checkbox v-model:value="policyConfig.minUniqueTypes" />
-            <span class="text-sm">Minimum {{ policyConfig.minUniqueTypes }} character types</span>
+            <span class="text-sm">最少 {{ policyConfig.minUniqueTypes }} 种字符类型</span>
           </label>
         </div>
 
         <div
           v-if="password"
-          :class="[policyResultClass, policyValidation.valid === true ? policySuccessClass : policyFailClass]"
+          :class="[policyResultClass,
+                   policyValidation.valid === true ? policySuccessClass : policyFailClass]"
         >
           <div :class="policyResultInnerClass">
             <Icon
@@ -624,10 +726,16 @@ const overallValid = computed(() => {
               class="text-xl mt-0.5"
             />
             <div class="flex-1">
-              <h4 class="font-medium" :class="policyValidation.valid ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'">
-                {{ policyValidation.valid ? 'Policy requirements met!' : 'Policy requirements not met' }}
+              <h4
+                class="font-medium"
+                :class="policyValidation.valid ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'"
+              >
+                {{ policyValidation.valid ? '策略要求已满足！' : '策略要求未满足' }}
               </h4>
-              <ul v-if="!policyValidation.valid && policyValidation.errors.length > 0" class="mt-2 space-y-1">
+              <ul
+                v-if="!policyValidation.valid && policyValidation.errors.length > 0"
+                class="mt-2 space-y-1"
+              >
                 <li
                   v-for="(error, index) in policyValidation.errors"
                   :key="index"
@@ -643,23 +751,26 @@ const overallValid = computed(() => {
       </div>
     </a-card>
 
-    <!-- ==================== 6. Combined Dashboard ==================== -->
-    <a-card title="Combined Dashboard">
+    <!-- ==================== 6. 综合仪表盘 ==================== -->
+    <a-card title="综合仪表盘">
       <p :class="cardDescClass">
-        All features combined in a single unified panel.
+        所有功能整合在一个统一面板中。
       </p>
       <div :class="passwordCardClass">
         <div :class="relativeClass">
           <a-input
             :value="password"
-            placeholder="Enter your password"
+            placeholder="输入密码"
             allow-clear
             size="large"
             :type="showPassword ? 'text' : 'password'"
             :status="overallValid === false ? 'error' : overallValid === true ? undefined : undefined"
           >
             <template #prefix>
-              <Icon icon="carbon:password" :class="iconGrayClass" />
+              <Icon
+                icon="carbon:password"
+                :class="iconGrayClass"
+              />
             </template>
             <template #suffix>
               <div :class="suffixRowClass">
@@ -684,7 +795,10 @@ const overallValid = computed(() => {
           </a-input>
         </div>
 
-        <div v-if="password" :class="strengthBarOuterClass">
+        <div
+          v-if="password"
+          :class="strengthBarOuterClass"
+        >
           <div :class="strengthBarInnerClass">
             <div
               v-for="(segment, index) in passwordStrength.segments"
@@ -700,21 +814,26 @@ const overallValid = computed(() => {
             <template #icon>
               <Icon icon="carbon:renew" />
             </template>
-            Generate
+            生成
           </a-button>
-          <a-button v-if="generatedPassword" @click="copyGeneratedPassword">
+          <a-button
+            v-if="generatedPassword"
+            @click="copyGeneratedPassword"
+          >
             <template #icon>
               <Icon icon="carbon:copy" />
             </template>
-            Copy
+            复制
           </a-button>
         </div>
 
         <div :class="dashboardStatusGridClass">
-          <div :class="[
-            statusCardBaseClass,
-            !password ? statusCardNeutralClass : passwordStrength.level >= 2 ? statusCardSuccessClass : statusCardFailClass,
-          ]">
+          <div
+            :class="[
+              statusCardBaseClass,
+              !password ? statusCardNeutralClass : passwordStrength.level >= 2 ? statusCardSuccessClass : statusCardFailClass,
+            ]"
+          >
             <Icon
               :icon="!password ? 'carbon:help' : passwordStrength.level >= 2 ? 'carbon:checkmark-filled' : 'carbon:close-filled'"
               :class="{
@@ -723,12 +842,16 @@ const overallValid = computed(() => {
               }"
               class="text-xl"
             />
-            <p class="text-xs mt-1">Strength</p>
+            <p class="text-xs mt-1">
+              强度
+            </p>
           </div>
-          <div :class="[
-            statusCardBaseClass,
-            !policyValidation.valid ? (policyValidation.valid === true ? statusCardSuccessClass : statusCardFailClass) : statusCardNeutralClass,
-          ]">
+          <div
+            :class="[
+              statusCardBaseClass,
+              policyValidation.valid === true ? statusCardSuccessClass : policyValidation.valid === false ? statusCardFailClass : statusCardNeutralClass,
+            ]"
+          >
             <Icon
               :icon="!policyValidation.valid ? 'carbon:help' : policyValidation.valid ? 'carbon:checkmark-filled' : 'carbon:close-filled'"
               :class="{
@@ -737,16 +860,28 @@ const overallValid = computed(() => {
               }"
               class="text-xl"
             />
-            <p class="text-xs mt-1">Policy</p>
+            <p class="text-xs mt-1">
+              策略
+            </p>
           </div>
-          <div :class="[statusCardBaseClass, statusCardNeutralClass]">
-            <Icon icon="carbon:history" class="text-gray-500 text-xl" />
-            <p class="text-xs mt-1">History ({{ passwordHistory.length }})</p>
+          <div
+            :class="[statusCardBaseClass,
+                     statusCardNeutralClass]"
+          >
+            <Icon
+              icon="carbon:history"
+              class="text-gray-500 text-xl"
+            />
+            <p class="text-xs mt-1">
+              历史 ({{ passwordHistory.length }})
+            </p>
           </div>
-          <div :class="[
-            statusCardBaseClass,
-            overallValid === true ? statusCardSuccessClass : overallValid === false ? statusCardWarningClass : statusCardNeutralClass,
-          ]">
+          <div
+            :class="[
+              statusCardBaseClass,
+              overallValid === true ? statusCardSuccessClass : overallValid === false ? statusCardWarningClass : statusCardNeutralClass,
+            ]"
+          >
             <Icon
               :icon="overallValid === null ? 'carbon:help' : overallValid ? 'carbon:checkmark-filled' : 'carbon:warning-alt'"
               :class="{
@@ -755,14 +890,16 @@ const overallValid = computed(() => {
               }"
               class="text-xl"
             />
-            <p class="text-xs mt-1">Overall</p>
+            <p class="text-xs mt-1">
+              综合
+            </p>
           </div>
         </div>
 
         <div v-if="passwordHistory.length > 0">
           <h4 :class="dashboardHistoryTitleClass">
             <Icon icon="carbon:time" />
-            Quick History Selection
+            快速选择历史
           </h4>
           <div :class="dashboardHistoryTagsClass">
             <a-tag
@@ -771,8 +908,8 @@ const overallValid = computed(() => {
               class="cursor-pointer hover:border-blue-500"
               @click="useHistoryPassword(pwd)"
             >
-              History #{{ index + 1 }}
-              <span class="ml-1 opacity-60">({{ pwd.length }} chars)</span>
+              历史 #{{ index + 1 }}
+              <span class="ml-1 opacity-60">({{ pwd.length }} 字符)</span>
             </a-tag>
           </div>
         </div>

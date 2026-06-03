@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { cn } from '@/utils/cn'
-import { CountTo } from '@/components/business/CountTo'
 import { ref } from 'vue'
+import { CountTo } from '@/components/business/CountTo'
+import { cn } from '@/utils/cn'
 
 // 容器类名
 const containerClassName = cn('space-y-6')
@@ -25,21 +25,23 @@ const numberValueClassName = cn('text-3xl font-bold')
 const decimalGridClassName = cn('grid grid-cols-1 md:grid-cols-4 gap-6')
 
 // 前缀后缀 - 渐变背景卡片
-const prefixCardClassName = (color: string) =>
-  cn(
+function prefixCardClassName(color: string) {
+  return cn(
     'flex flex-col items-center p-6 rounded-lg border',
     color,
   )
+}
 
 // 分隔符展示
 const separatorGridClassName = cn('grid grid-cols-1 md:grid-cols-3 gap-6')
 
 // 正负数展示
-const signCardClassName = (color: string) =>
-  cn(
+function signCardClassName(color: string) {
+  return cn(
     'flex flex-col items-center p-6 rounded-lg border',
     color,
   )
+}
 const signLabelClassName = cn('text-sm text-gray-500 mb-2')
 const signChangeClassName = cn('text-xs mt-1')
 
@@ -105,8 +107,9 @@ const dashboardData: DashboardItem[] = [
 ]
 
 const dashboardGridClassName = cn('grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6')
-const dashboardCardClassName = (bgColor: string) =>
-  cn('rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow', bgColor)
+function dashboardCardClassName(bgColor: string) {
+  return cn('rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow', bgColor)
+}
 const dashboardTitleClassName = cn('text-sm font-medium')
 const dashboardValueClassName = cn('text-3xl font-bold')
 const dashboardTrendClassName = cn('flex items-center gap-1 text-sm')
@@ -160,7 +163,10 @@ function resetDynamicCounter() {
     </div>
 
     <!-- 1. 基础用法 -->
-    <a-card title="基础用法" variant="borderless">
+    <a-card
+      title="基础用法"
+      variant="borderless"
+    >
       <template #extra>
         <span :class="cardExtraClassName">从 0 到目标数字的动画</span>
       </template>
@@ -176,7 +182,10 @@ function resetDynamicCounter() {
     </a-card>
 
     <!-- 2. 小数精度 -->
-    <a-card title="小数精度" variant="borderless">
+    <a-card
+      title="小数精度"
+      variant="borderless"
+    >
       <template #extra>
         <span :class="cardExtraClassName">配置 decimals 控制小数位数</span>
       </template>
@@ -222,7 +231,10 @@ function resetDynamicCounter() {
     </a-card>
 
     <!-- 3. 前缀后缀 -->
-    <a-card title="前缀后缀" variant="borderless">
+    <a-card
+      title="前缀后缀"
+      variant="borderless"
+    >
       <template #extra>
         <span :class="cardExtraClassName">添加 ¥、%、人 等单位符号</span>
       </template>
@@ -270,7 +282,10 @@ function resetDynamicCounter() {
     </a-card>
 
     <!-- 4. 分隔符 -->
-    <a-card title="千分位分隔符" variant="borderless">
+    <a-card
+      title="千分位分隔符"
+      variant="borderless"
+    >
       <template #extra>
         <span :class="cardExtraClassName">大数字使用逗号分隔，更易读</span>
       </template>
@@ -306,7 +321,10 @@ function resetDynamicCounter() {
     </a-card>
 
     <!-- 5. 正负数 -->
-    <a-card title="正负数展示" variant="borderless">
+    <a-card
+      title="正负数展示"
+      variant="borderless"
+    >
       <template #extra>
         <span :class="cardExtraClassName">支持正数和负数的动画效果</span>
       </template>
@@ -351,7 +369,10 @@ function resetDynamicCounter() {
     </a-card>
 
     <!-- 6. 缓动函数 -->
-    <a-card title="缓动函数对比" variant="borderless">
+    <a-card
+      title="缓动函数对比"
+      variant="borderless"
+    >
       <template #extra>
         <span :class="cardExtraClassName">不同缓动效果让动画更有节奏感</span>
       </template>
@@ -430,7 +451,10 @@ function resetDynamicCounter() {
     </a-card>
 
     <!-- 7. 数据看板面板 -->
-    <a-card title="数据看板面板" variant="borderless">
+    <a-card
+      title="数据看板面板"
+      variant="borderless"
+    >
       <template #extra>
         <span :class="cardExtraClassName">模拟真实业务场景的数据展示</span>
       </template>
@@ -472,7 +496,10 @@ function resetDynamicCounter() {
     </a-card>
 
     <!-- 8. 动态更新 -->
-    <a-card title="动态更新目标值" variant="borderless">
+    <a-card
+      title="动态更新目标值"
+      variant="borderless"
+    >
       <template #extra>
         <span :class="cardExtraClassName">点击按钮改变目标值，动画自动重播</span>
       </template>
@@ -489,10 +516,17 @@ function resetDynamicCounter() {
           />
         </div>
         <div :class="buttonGroupClassName">
-          <a-button type="primary" size="large" @click="updateDynamicValue">
+          <a-button
+            type="primary"
+            size="large"
+            @click="updateDynamicValue"
+          >
             🎲 随机生成新数值
           </a-button>
-          <a-button size="large" @click="resetDynamicCounter">
+          <a-button
+            size="large"
+            @click="resetDynamicCounter"
+          >
             🔄 重播动画
           </a-button>
         </div>

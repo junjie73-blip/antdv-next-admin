@@ -1,5 +1,5 @@
-import { computed, onScopeDispose, ref, watch } from 'vue'
 import { useWebSocket as _useWebSocket } from '@vueuse/core'
+import { computed, onScopeDispose, ref, watch } from 'vue'
 
 export interface UseWebSocketOptions {
   url: () => string | URL

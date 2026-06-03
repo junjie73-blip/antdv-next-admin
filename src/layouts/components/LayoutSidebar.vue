@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import type { MenuProps } from 'antdv-next'
 
-import { Icon } from '@iconify/vue'
 import { Menu } from 'antdv-next'
-import { computed, h, unref } from 'vue'
+import { computed, unref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/modules/app'
 import { useRouteStore } from '@/stores/modules/route'
-import type { MenuConfig } from '#/menu'
 import { cn } from '@/utils/cn'
-import { COLLAPSED_WIDTH, useLayout, useMenu } from '../composables/useLayout'
+import { transformMenuConfigToItems } from '@/utils/helpers/menu'
+import { COLLAPSED_WIDTH, useMenu } from '../composables/useLayout'
 
 const props = defineProps<{
   collapsed?: boolean
@@ -43,41 +42,12 @@ const menuTheme = computed(() => {
   return appStore.darkSidebar ? 'dark' : 'light'
 })
 
-/**
- * 将 MenuConfig 转换为 antdv Menu items 格式
- */
-function transformMenuItems(menus: MenuConfig[], parentPath = ''): MenuProps['items'] {
-  return menus
-    .filter(menu => !menu.hidden)
-    .map((menu) => {
-      const fullPath = parentPath ? `${parentPath}/${menu.path}` : menu.path
-      const item: Record<string, any> = {
-        key: fullPath,
-        label: menu.title,
-      }
-
-      if (menu.icon) {
-        item.icon = () => h(Icon, { icon: menu.icon, class: 'text-lg' })
-      }
-
-      if (menu.children && menu.children.length > 0) {
-        item.children = transformMenuItems(menu.children, menu.path.startsWith('/') ? menu.path : `${parentPath}/${menu.path}`)
-      }
-
-      return item as MenuProps['items'][number]
-    })
-    .filter(Boolean)
-}
-
-/**
- * 从 store 获取菜单数据并转换
- */
 const allMenuItems = computed<MenuProps['items']>(() => {
   const menus = unref(routeStore.menus)
   if (!menus || menus.length === 0) {
     return []
   }
-  return transformMenuItems(menus)
+  return transformMenuConfigToItems(menus)
 })
 
 const sidebarClassName = computed(() =>

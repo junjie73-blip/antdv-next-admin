@@ -3,12 +3,20 @@ import type { FormInstance } from 'antdv-next'
 import type { FormActionType, FormProps, FormSchema, NamePath, Recordable } from './types'
 import { computed, onMounted, reactive, ref, unref, watch } from 'vue'
 import IconifyIcon from '@/components/common/Icon/IconifyIcon.vue'
+import { cn } from '@/utils/cn'
 import FormItem from './FormItem.vue'
 import { deepMerge, formatDateFields, handleRangeValue } from './helper'
 
 interface Props extends Partial<FormProps> {}
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<FormProps>(), {
+  showActionButtonGroup: true,
+  showResetButton: true,
+  showSubmitButton: true,
+  submitOnReset: true,
+  autoSubmitOnEnter: true,
+  labelAlign: 'right',
+})
 
 const emit = defineEmits<{
   register: [instance: FormActionType]
@@ -122,6 +130,22 @@ const getAdvancedButtonOptions = computed(() => {
     text: unref(isAdvanced) ? '收起' : '展开',
     icon: unref(isAdvanced) ? 'carbon:chevron-up' : 'carbon:chevron-down',
   }
+})
+
+const needCollapse = computed(() => {
+  const schemas = unref(schemaRef) || []
+  const filtered = schemas.filter(s => s.component !== 'Divider')
+  let totalSpan = 0
+  for (const schema of filtered) {
+    totalSpan += schema.colProps?.span || 24
+    if (totalSpan > 24)
+      return true
+  }
+  return false
+})
+
+const showExpandButton = computed(() => {
+  return getProps.value.showAdvancedButton && unref(needCollapse)
 })
 
 function setFormModel(key: string, value: any) {
@@ -340,7 +364,7 @@ defineExpose(formActionType)
   >
     <a-row v-bind="getRowProps">
       <template
-        v-for="schema in getSchemas"
+        v-for="(schema, idx) in getSchemas"
         :key="schema.field"
       >
         <FormItem
@@ -349,7 +373,18 @@ defineExpose(formActionType)
           :form-model="formModel"
           :form-action-type="formActionType"
           :set-form-model="setFormModel"
-        />
+        >
+          <template
+            v-for="(_, slotName) in $slots"
+            :key="slotName"
+            #[slotName]="slotProps"
+          >
+            <slot
+              :name="slotName"
+              v-bind="slotProps"
+            />
+          </template>
+        </FormItem>
       </template>
 
       <template
@@ -365,23 +400,13 @@ defineExpose(formActionType)
 
       <a-col
         v-if="getProps.showActionButtonGroup"
-        v-bind="getActionColOptions"
+        :span="unref(needCollapse) ? 24 : undefined"
+        :class="cn(
+          'flex justify-end',
+          !unref(needCollapse) && 'flex-1',
+        )"
       >
-        <a-space>
-          <slot name="resetBefore" />
-          <a-button
-            v-if="getProps.showResetButton"
-            v-bind="getResetButtonOptions"
-            @click="handleReset"
-          >
-            <template
-              v-if="getResetButtonOptions.preIcon"
-              #icon
-            >
-              <IconifyIcon :icon="getResetButtonOptions.preIcon" />
-            </template>
-            {{ getResetButtonOptions.text }}
-          </a-button>
+        <div class="flex gap-2 flex-wrap">
           <slot name="submitBefore" />
           <a-button
             v-if="getProps.showSubmitButton"
@@ -396,8 +421,21 @@ defineExpose(formActionType)
             </template>
             {{ getSubmitButtonOptions.text }}
           </a-button>
+          <slot name="resetBefore" />
           <a-button
-            v-if="getProps.showAdvancedButton"
+            v-if="getProps.showResetButton"
+            @click="handleReset"
+          >
+            <template
+              v-if="getResetButtonOptions.preIcon"
+              #icon
+            >
+              <IconifyIcon :icon="getResetButtonOptions.preIcon" />
+            </template>
+            {{ getResetButtonOptions.text }}
+          </a-button>
+          <a-button
+            v-if="showExpandButton"
             type="link"
             @click="toggleAdvanced"
           >
@@ -408,7 +446,7 @@ defineExpose(formActionType)
             {{ getAdvancedButtonOptions.text }}
           </a-button>
           <slot name="actionAfter" />
-        </a-space>
+        </div>
       </a-col>
     </a-row>
   </a-form>

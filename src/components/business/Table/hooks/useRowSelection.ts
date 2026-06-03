@@ -5,7 +5,7 @@ import type {
   UseRowSelectionReturn,
 } from '../types'
 import { isBoolean, isFunction } from 'es-toolkit'
-import { computed, ref, unref, watch } from 'vue'
+import { computed, reactive, unref, watch } from 'vue'
 
 /**
  * 行选择管理 Hook
@@ -19,10 +19,11 @@ export function useRowSelection(options: UseRowSelectionOptions): UseRowSelectio
     clearSelectOnPageChange = false,
   } = options
 
-  // 选中的行 keys
-  const selectedRowKeysRef = ref<string[]>([])
-  // 选中的行数据
-  const selectedRowsRef = ref<Recordable[]>([])
+  // 选中的行 keys（用 reactive 保持引用稳定，避免每次渲染新数组）
+  const state = reactive({
+    selectedRowKeys: [] as string[],
+    selectedRows: [] as Recordable[],
+  })
 
   /**
    * 获取 rowKey 值
@@ -32,13 +33,15 @@ export function useRowSelection(options: UseRowSelectionOptions): UseRowSelectio
     if (isFunction(key)) {
       return key(record)
     }
-    return record[key] as string
+    return String(record[key])
   }
 
   /**
-   * 获取行选择配置
+   * 获取行选择配置 — 对齐官方 demo 模式
+   * 官方写法：computed(() => ({ type, selectedRowKeys, onChange }))
+   * 关键：selectedRowKeys 和 onChange 必须同时提供，且引用稳定
    */
-  const getRowSelection = computed((): TableRowSelection | null => {
+  const getRowSelection = computed<TableRowSelection | null>(() => {
     const config = unref(rowSelection)
 
     if (!config) {
@@ -50,38 +53,39 @@ export function useRowSelection(options: UseRowSelectionOptions): UseRowSelectio
       if (!config)
         return null
       return {
-        type: 'checkbox',
-        selectedRowKeys: selectedRowKeysRef.value,
+        type: 'checkbox' as const,
+        selectedRowKeys: state.selectedRowKeys,
         onChange: onSelectionChange,
       }
     }
 
-    // 合并配置
+    // 合并用户配置：保留用户传入的属性（type、checkStrictly 等）
+    // 但强制覆盖 selectedRowKeys 和 onChange 为内部管理的状态
     return {
-      type: 'checkbox',
       ...config,
-      selectedRowKeys: selectedRowKeysRef.value,
+      selectedRowKeys: state.selectedRowKeys,
       onChange: onSelectionChange,
     }
   })
 
   /**
-   * 选择改变回调
+   * 选择改变回调 — 对齐官方签名 (selectedRowKeys, selectedRows, info)
+   * 官方 demo：onChange = (_selectedRowKeys, selectedRows) => { selectedRowKeys.value = _selectedRowKeys }
    */
   function onSelectionChange(
     keys: string[] | number[],
     rows: Recordable[],
-    info?: { type: string },
+    info?: { type: 'all' | 'single' | 'multiple' },
   ): void {
-    // 将 keys 转换为字符串数组
-    const stringKeys = keys.map(String)
-    selectedRowKeysRef.value = stringKeys
-    selectedRowsRef.value = rows
+    // 直接用原始 key 类型，不做 String 转换
+    // antdv-next 内部用 === 匹配，必须与 rowKey 返回值类型一致
+    state.selectedRowKeys = keys as any
+    state.selectedRows = rows
 
-    // 调用用户配置的回调
+    // 调用用户配置的回调（如果用户自己传了 onChange）
     const config = unref(rowSelection)
-    if (!isBoolean(config) && config?.onChange) {
-      config.onChange(keys, rows, info as { type: 'all' | 'single' | 'multiple' })
+    if (!isBoolean(config) && isFunction(config?.onChange)) {
+      config.onChange(keys, rows, info)
     }
   }
 
@@ -89,18 +93,18 @@ export function useRowSelection(options: UseRowSelectionOptions): UseRowSelectio
    * 清空选中
    */
   const clearSelectedRowKeys = () => {
-    selectedRowKeysRef.value = []
-    selectedRowsRef.value = []
+    state.selectedRowKeys = []
+    state.selectedRows = []
   }
 
   /**
    * 删除指定 key 的选中
    */
   const deleteSelectRowByKey = (key: string) => {
-    const index = selectedRowKeysRef.value.indexOf(key)
+    const index = state.selectedRowKeys.indexOf(key)
     if (index > -1) {
-      selectedRowKeysRef.value.splice(index, 1)
-      selectedRowsRef.value.splice(index, 1)
+      state.selectedRowKeys.splice(index, 1)
+      state.selectedRows.splice(index, 1)
     }
   }
 
@@ -108,12 +112,12 @@ export function useRowSelection(options: UseRowSelectionOptions): UseRowSelectio
    * 设置选中的 keys
    */
   const setSelectedRowKeys = (keys: string[]) => {
-    selectedRowKeysRef.value = keys
+    state.selectedRowKeys = [...keys]
 
     // 同步更新 selectedRows
     if (dataSourceRef?.value) {
       const keySet = new Set(keys)
-      selectedRowsRef.value = dataSourceRef.value.filter((row) => {
+      state.selectedRows = dataSourceRef.value.filter((row) => {
         return keySet.has(getRowKeyValue(row))
       })
     }
@@ -123,7 +127,7 @@ export function useRowSelection(options: UseRowSelectionOptions): UseRowSelectio
    * 获取选中的行
    */
   const getSelectRows = (): Recordable[] => {
-    return selectedRowsRef.value
+    return state.selectedRows
   }
 
   /**
@@ -134,7 +138,7 @@ export function useRowSelection(options: UseRowSelectionOptions): UseRowSelectio
     watch(
       () => dataSourceRef.value,
       (newData) => {
-        if (selectedRowKeysRef.value.length === 0) {
+        if (state.selectedRowKeys.length === 0) {
           return
         }
 
@@ -145,8 +149,8 @@ export function useRowSelection(options: UseRowSelectionOptions): UseRowSelectio
         }
 
         // 重新匹配选中行数据
-        const keySet = new Set(selectedRowKeysRef.value)
-        selectedRowsRef.value = newData.filter((row) => {
+        const keySet = new Set(state.selectedRowKeys)
+        state.selectedRows = newData.filter((row) => {
           return keySet.has(getRowKeyValue(row))
         })
       },
@@ -155,8 +159,8 @@ export function useRowSelection(options: UseRowSelectionOptions): UseRowSelectio
   }
 
   return {
-    selectedRowKeysRef,
-    selectedRowsRef,
+    selectedRowKeysRef: computed(() => state.selectedRowKeys),
+    selectedRowsRef: computed(() => state.selectedRows),
     getRowSelection,
     clearSelectedRowKeys,
     deleteSelectRowByKey,

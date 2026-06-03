@@ -1,39 +1,29 @@
 import type { MockWrapper } from '@alova/mock'
 import type { RequestMeta } from './interface'
 import { createAlovaMockAdapter } from '@alova/mock'
-import { message } from 'antdv-next'
 import { createAlova } from 'alova'
 import adapterFetch from 'alova/fetch'
 import VueHook from 'alova/vue'
+import { message } from 'antdv-next'
 import { useUserStore } from '@/stores/modules/user'
+import authMock from '../../../mock/auth'
+
+import loginMock from '../../../mock/login'
+import menuMock from '../../../mock/menu'
+import tableMock from '../../../mock/table'
+import userMock from '../../../mock/user'
 import { AUTHORIZATION_KEY } from './constant'
 
 interface CreateRequestClientOptions {
   customFetch?: typeof fetch
 }
 
-const MOCK_MODULES = import.meta.glob(
-  [
-    '../../mock/**/*.ts',
-    '!../../mock/**/*.spec.ts',
-    '!../../mock/**/*.test.ts',
-    '!../../mock/**/__tests__/**/*.ts',
-    '!../../mock/**/seeds/**/*.ts',
-  ],
-  { eager: true },
-) as Record<
-  string,
-  {
-    default?: MockWrapper
-  }
->
-
 class AlovaRequestError<T = unknown> extends Error {
   data?: T
   status: number
   statusText: string
 
-  constructor(message: string, options: { data?: T; status: number; statusText: string }) {
+  constructor(message: string, options: { data?: T, status: number, statusText: string }) {
     super(message)
     this.name = 'RequestError'
     this.data = options.data
@@ -42,29 +32,32 @@ class AlovaRequestError<T = unknown> extends Error {
   }
 }
 
+const isMockEnabled = import.meta.env.VITE_MOCK === 'true'
+
 export function createRequestClient(options: CreateRequestClientOptions = {}) {
-  const realtimeAdapter = adapterFetch({
+  const fetchAdapter = adapterFetch({
     customFetch: options.customFetch,
   })
 
-  const mockAdapter = createAlovaMockAdapter(loadMockWrappers(), {
-    delay: 0,
-    httpAdapter: realtimeAdapter,
-    matchMode: 'methodurl',
-  })
+  const mockWrappers: MockWrapper[] = [
+    authMock,
+    loginMock,
+    menuMock,
+    tableMock,
+    userMock,
+  ]
 
-  const requestAdapter = (
-    elements: Parameters<typeof realtimeAdapter>[0],
-    method: Parameters<typeof realtimeAdapter>[1],
-  ) => {
-    return shouldUseMock(method.config.meta)
-      ? mockAdapter(elements, method)
-      : realtimeAdapter(elements, method)
-  }
+  const mockAdapter = createAlovaMockAdapter(mockWrappers, {
+    enable: isMockEnabled,
+    httpAdapter: fetchAdapter,
+    matchMode: 'methodurl',
+    delay: [200, 500],
+    mockRequestLogger: isMockEnabled,
+  })
 
   return createAlova({
     baseURL: import.meta.env.VITE_APP_BASE_API || '',
-    requestAdapter,
+    requestAdapter: mockAdapter,
     shareRequest: true,
     statesHook: VueHook,
     async beforeRequest(method) {
@@ -83,8 +76,20 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
     responded: {
       async onSuccess(response) {
         const contentType = response.headers.get('content-type') ?? ''
-        const isJson = contentType.includes('application/json')
-        const payload = isJson ? await response.json() : response
+
+        let payload: unknown
+        if (contentType.includes('application/json')) {
+          payload = await response.json()
+        }
+        else {
+          const text = await response.clone().text()
+          try {
+            payload = JSON.parse(text)
+          }
+          catch {
+            payload = await response.text()
+          }
+        }
 
         if (!response.ok) {
           const requestError = new AlovaRequestError(
@@ -109,23 +114,6 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
 }
 
 export const http = createRequestClient()
-
-function loadMockWrappers() {
-  return Object.values(MOCK_MODULES)
-    .map(module => module.default)
-    .filter((module): module is MockWrapper => Boolean(module))
-}
-
-function isMockEnabled() {
-  return import.meta.env.VITE_MOCK
-}
-
-function shouldUseMock(meta?: RequestMeta) {
-  if (typeof meta?.mock === 'boolean') {
-    return meta.mock
-  }
-  return isMockEnabled()
-}
 
 async function reportRequestError(error: unknown) {
   if (error instanceof AlovaRequestError) {

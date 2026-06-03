@@ -1,5 +1,4 @@
 import type { BackendMenu } from '#/menu'
-import type { R } from '@/api/request'
 import { get } from '@/api/request'
 
 interface MenuResponse {

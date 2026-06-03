@@ -6,6 +6,7 @@ import { useForm } from '../../Form/useForm'
 
 interface UseTableFormOptions {
   propsRef?: Ref<BasicTableProps>
+  baseProps?: ComputedRef<BasicTableProps>
   formConfig?: Partial<FormProps>
   useSearchForm?: boolean
   fieldMapToTime?: [string, [string, string], string?][]
@@ -110,6 +111,7 @@ function replaceSchemaKey(values: Recordable, schemas: FormSchema[]): Recordable
 export function useTableForm(options?: UseTableFormOptions): UseTableFormReturn {
   const {
     propsRef,
+    baseProps,
     formConfig: formConfigOption,
     useSearchForm: useSearchFormOption,
     fieldMapToTime: fieldMapToTimeOption,
@@ -120,14 +122,14 @@ export function useTableForm(options?: UseTableFormOptions): UseTableFormReturn 
   // 表单实例
   const formRef = ref<FormActionType | null>(null)
 
-  // 使用 useForm 获取表单方法
-  const [registerForm, formMethods] = useForm()
-
   /**
    * 获取表格 props
-   * 优先从 options 获取，其次从 propsRef 获取
+   * 优先从 baseProps（defineProps 模式）获取，其次从 propsRef（useTable 模式）获取
    */
   const getProps = (): Partial<BasicTableProps> => {
+    if (baseProps) {
+      return unref(baseProps) || {}
+    }
     if (propsRef) {
       return unref(propsRef) || {}
     }
@@ -149,10 +151,10 @@ export function useTableForm(options?: UseTableFormOptions): UseTableFormReturn 
       showSubmitButton: true,
       submitOnReset: true,
       autoSubmitOnEnter: true,
+      showAdvancedButton: useSearchForm ?? false,
       ...formConfig,
     }
 
-    // 如果启用了搜索表单，设置默认的提交和重置回调
     if (useSearchForm) {
       defaultFormProps.submitFunc = handleSubmit
       defaultFormProps.resetFunc = handleReset
@@ -160,6 +162,20 @@ export function useTableForm(options?: UseTableFormOptions): UseTableFormReturn 
 
     return defaultFormProps
   })
+
+  // 使用 useForm 获取表单方法，传入初始表单配置
+  const [registerForm, formMethods] = useForm(getFormProps.value)
+
+  // 监听表单配置变化，实时同步到 useForm（解决初始化时序问题）
+  watch(
+    () => ({ ...unref(getFormProps) }),
+    (newProps) => {
+      if (newProps && Object.keys(newProps).length > 0 && formRef.value) {
+        formRef.value?.setProps(newProps)
+      }
+    },
+    { deep: true },
+  )
 
   /**
    * 获取表单 schemas
@@ -281,6 +297,7 @@ export function useTableForm(options?: UseTableFormOptions): UseTableFormReturn 
   )
 
   return {
+    registerForm: registerForm as (instance: FormActionType) => void,
     getForm,
     getFormProps,
     handleSearchInfoFn,

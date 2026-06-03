@@ -1,5 +1,5 @@
-import type { MockContext } from '../../index'
-import { defineMock } from '../../index'
+import type { MockContext } from '../index'
+import { defineMock } from '../index'
 import { faker } from '@faker-js/faker'
 
 function generateUser() {

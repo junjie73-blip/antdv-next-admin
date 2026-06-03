@@ -44,6 +44,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/dashboard/echarts/': RouteRecordInfo<
+      '/dashboard/echarts/',
+      '/dashboard/echarts',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/demo/table-pagination-test': RouteRecordInfo<
       '/demo/table-pagination-test',
       '/demo/table-pagination-test',
@@ -72,9 +79,44 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/system/dict/': RouteRecordInfo<
+      '/system/dict/',
+      '/system/dict',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/system/log/': RouteRecordInfo<
+      '/system/log/',
+      '/system/log',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/system/menu/': RouteRecordInfo<
+      '/system/menu/',
+      '/system/menu',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/system/micro-app/': RouteRecordInfo<
       '/system/micro-app/',
       '/system/micro-app',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/system/notice/': RouteRecordInfo<
+      '/system/notice/',
+      '/system/notice',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/system/online/': RouteRecordInfo<
+      '/system/online/',
+      '/system/online',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -131,6 +173,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/views/dashboard/echarts/index.vue': {
+      routes:
+        | '/dashboard/echarts/'
+      views:
+        | never
+    }
     'src/views/demo/table-pagination-test.vue': {
       routes:
         | '/demo/table-pagination-test'
@@ -155,9 +203,39 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/views/system/dict/index.vue': {
+      routes:
+        | '/system/dict/'
+      views:
+        | never
+    }
+    'src/views/system/log/index.vue': {
+      routes:
+        | '/system/log/'
+      views:
+        | never
+    }
+    'src/views/system/menu/index.vue': {
+      routes:
+        | '/system/menu/'
+      views:
+        | never
+    }
     'src/views/system/micro-app/index.vue': {
       routes:
         | '/system/micro-app/'
+      views:
+        | never
+    }
+    'src/views/system/notice/index.vue': {
+      routes:
+        | '/system/notice/'
+      views:
+        | never
+    }
+    'src/views/system/online/index.vue': {
+      routes:
+        | '/system/online/'
       views:
         | never
     }

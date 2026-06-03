@@ -1,5 +1,9 @@
+import type { MenuConfig } from '#/menu'
+import type { MenuProps } from 'antdv-next'
 import type { RouteMeta, RouteRecordRaw } from 'vue-router'
+import { Icon } from '@iconify/vue'
 import { isPlainObject } from 'es-toolkit'
+import { h } from 'vue'
 
 interface MenuItem {
   key: string
@@ -68,6 +72,32 @@ function buildMenuTree(routes: RouteRecordRaw[], parentPath = ''): MenuItem[] {
   }
 
   return sortMenus(menus)
+}
+
+export function transformMenuConfigToItems(menus: MenuConfig[], parentPath = ''): MenuProps['items'] {
+  return menus
+    .filter(menu => !menu.hidden)
+    .map((menu) => {
+      const fullPath = parentPath ? `${parentPath}/${menu.path}` : menu.path
+      const item: Record<string, any> = {
+        key: fullPath,
+        label: menu.title,
+      }
+
+      if (menu.icon) {
+        item.icon = () => h(Icon, { icon: menu.icon, class: 'text-lg' })
+      }
+
+      if (menu.children && menu.children.length > 0) {
+        item.children = transformMenuConfigToItems(
+          menu.children,
+          menu.path.startsWith('/') ? menu.path : `${parentPath}/${menu.path}`,
+        )
+      }
+
+      return item as MenuProps['items'][number]
+    })
+    .filter(Boolean)
 }
 
 export function generateMenuList(routes: RouteRecordRaw[]): MenuItem[] {

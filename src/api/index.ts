@@ -1,4 +1,3 @@
-import type { R } from '@/api/request'
 import { get, post } from '@/api/request'
 
 interface LoginParams {

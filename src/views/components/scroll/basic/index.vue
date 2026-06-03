@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { message } from 'antdv-next'
-import { computed, ref } from 'vue'
-import { cn } from '@/utils/cn'
+import { ref } from 'vue'
 import { Scrollbar } from '@/components/common/Scrollbar'
+import { cn } from '@/utils/cn'
 
 const containerClassName = cn('space-y-6')
 const scrollContentClassName = cn('p-4 rounded-lg bg-gray-50 dark:bg-gray-800')
@@ -30,7 +29,8 @@ const chatMessages = ref([
 const newMessage = ref('')
 
 function sendMessage() {
-  if (!newMessage.value.trim()) return
+  if (!newMessage.value.trim())
+    return
   chatMessages.value.push({
     id: Date.now(),
     text: newMessage.value.trim(),
@@ -43,20 +43,34 @@ function sendMessage() {
 
 <template>
   <div :class="containerClassName">
-    <a-card title="Basic Scroll" variant="borderless">
+    <a-card
+      title="Basic Scroll"
+      variant="borderless"
+    >
       <div class="space-y-4">
         <a-button @click="basicItems.push({ id: basicItems.length + 1, title: `New Item ${basicItems.length + 1}`, desc: 'Newly added item' })">
           Add Item
         </a-button>
-        <div class="h-80 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden" :class="scrollContentClassName">
+        <div
+          class="h-80 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
+          :class="scrollContentClassName"
+        >
           <Scrollbar>
-            <div v-for="item in basicItems" :key="item.id" class="flex items-center gap-3 px-4 py-2.5 border-b border-gray-100 dark:border-gray-700 last:border-0">
+            <div
+              v-for="item in basicItems"
+              :key="item.id"
+              class="flex items-center gap-3 px-4 py-2.5 border-b border-gray-100 dark:border-gray-700 last:border-0"
+            >
               <span class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-medium">
                 {{ item.id }}
               </span>
               <div>
-                <p class="font-medium text-gray-800 dark:text-gray-200">{{ item.title }}</p>
-                <p class="text-xs text-gray-500">{{ item.desc }}</p>
+                <p class="font-medium text-gray-800 dark:text-gray-200">
+                  {{ item.title }}
+                </p>
+                <p class="text-xs text-gray-500">
+                  {{ item.desc }}
+                </p>
               </div>
             </div>
           </Scrollbar>
@@ -64,7 +78,10 @@ function sendMessage() {
       </div>
     </a-card>
 
-    <a-card title="Horizontal Scroll" variant="borderless">
+    <a-card
+      title="Horizontal Scroll"
+      variant="borderless"
+    >
       <div class="h-32 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
         <Scrollbar>
           <div class="flex gap-3 p-4 min-w-max">
@@ -81,21 +98,32 @@ function sendMessage() {
       </div>
     </a-card>
 
-    <a-card title="Chat Scroll" variant="borderless">
+    <a-card
+      title="Chat Scroll"
+      variant="borderless"
+    >
       <div class="space-y-3">
         <div class="h-80 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden flex flex-col">
           <Scrollbar class="flex-1 p-4">
-            <div v-for="msg in chatMessages" :key="msg.id" :class="['flex mb-3', msg.self ? 'justify-end' : 'justify-start']">
+            <div
+              v-for="msg in chatMessages"
+              :key="msg.id"
+              class="flex mb-3"
+              :class="[msg.self ? 'justify-end' : 'justify-start']"
+            >
               <div
+                class="max-w-[70%] px-4 py-2 rounded-2xl text-sm"
                 :class="[
-                  'max-w-[70%] px-4 py-2 rounded-2xl text-sm',
                   msg.self
                     ? 'bg-blue-500 text-white rounded-br-md'
                     : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-md',
                 ]"
               >
                 {{ msg.text }}
-                <div :class="['text-xs mt-1', msg.self ? 'text-blue-100' : 'text-gray-400']">
+                <div
+                  class="text-xs mt-1"
+                  :class="[msg.self ? 'text-blue-100' : 'text-gray-400']"
+                >
                   {{ msg.time }}
                 </div>
               </div>
@@ -105,9 +133,14 @@ function sendMessage() {
             <a-input
               v-model:value="newMessage"
               placeholder="Type a message..."
-              @press-enter="sendMessage"
+              @pressEnter="sendMessage"
             />
-            <a-button type="primary" @click="sendMessage">Send</a-button>
+            <a-button
+              type="primary"
+              @click="sendMessage"
+            >
+              Send
+            </a-button>
           </div>
         </div>
       </div>

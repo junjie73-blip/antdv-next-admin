@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type { MenuProps } from 'antdv-next'
 
-import { Icon } from '@iconify/vue'
-import { h, computed } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useWatermark } from '@/composables/web/useWatermark'
 import { useAppStore } from '@/stores/modules/app'
+import { useRouteStore } from '@/stores/modules/route'
 import { cn } from '@/utils/cn'
+import { transformMenuConfigToItems } from '@/utils/helpers/menu'
 import LayoutFooter from './components/LayoutFooter.vue'
 import LayoutHeader from './components/LayoutHeader.vue'
 import LayoutSidebar from './components/LayoutSidebar.vue'
@@ -19,6 +20,7 @@ defineOptions({
 
 const router = useRouter()
 const appStore = useAppStore()
+const routeStore = useRouteStore()
 const { collapsed, checkMobile, toggleCollapsed } = useLayout()
 
 const cachedRoutes = computed(() =>
@@ -29,22 +31,9 @@ const cachedRoutes = computed(() =>
 
 const activeTopMenu = ref('/system')
 
-const allMenuItems: MenuProps['items'] = [
-  {
-    key: '/dashboard',
-    icon: () => h(Icon, { icon: 'carbon:dashboard', class: 'text-lg' }),
-    label: '仪表盘',
-  },
-  {
-    key: '/system',
-    icon: () => h(Icon, { icon: 'carbon:settings', class: 'text-lg' }),
-    label: '系统管理',
-    children: [
-      { key: '/system/user', label: '用户管理', icon: () => h(Icon, { icon: 'carbon:user', class: 'text-lg' }) },
-      { key: '/system/role', label: '角色管理', icon: () => h(Icon, { icon: 'carbon:group', class: 'text-lg' }) },
-    ],
-  },
-]
+const allMenuItems = computed<MenuProps['items']>(() =>
+  transformMenuConfigToItems(routeStore.menus),
+)
 
 function handleResize() {
   checkMobile()
@@ -68,7 +57,7 @@ const isDarkMode = computed(() => appStore.themeMode === 'dark' || isGeekStyle.v
 const hasChildren = computed(() => {
   if (!isMixed.value || !activeTopMenu.value)
     return false
-  const topMenu = allMenuItems.find(item => item?.key === activeTopMenu.value)
+  const topMenu = allMenuItems.value.find(item => item?.key === activeTopMenu.value)
   return !!(topMenu && 'children' in topMenu && topMenu.children && topMenu.children.length > 0)
 })
 
@@ -83,7 +72,7 @@ const layoutClassName = computed(() =>
 
 const contentClassName = computed(() =>
   cn(
-    'p-4 min-h-full',
+    'p-4 h-full',
     isGeekStyle.value
       ? 'bg-[#0a0a0a]'
       : 'bg-gray-50 dark:bg-gray-900',
@@ -141,7 +130,10 @@ useWatermark({
           @toggleCollapsed="toggleCollapsed"
         />
 
-        <LayoutTabs :has-children="isMixed && hasChildren" />
+        <LayoutTabs
+          :has-children="isMixed && hasChildren"
+          :show-icon="appStore.tabShowIcon ?? true"
+        />
 
         <PerfectScrollbar
           class="flex-1"

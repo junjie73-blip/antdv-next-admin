@@ -2,6 +2,7 @@ import type { UserInfo } from '#/user'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { cache } from '@/utils/cache'
+import { http } from '@/utils/request'
 
 const TOKEN_KEY = 'auth_token'
 const USER_INFO_KEY = 'user_info'
@@ -13,7 +14,10 @@ export const useUserStore = defineStore('user', () => {
 
   const isLoggedIn = computed(() => !!token.value)
   const username = computed(() => userInfo.value?.username || '')
+  const nickname = computed(() => userInfo.value?.nickname || '')
   const avatar = computed(() => userInfo.value?.avatar || '')
+  const email = computed(() => userInfo.value?.email || '')
+  const phone = computed(() => userInfo.value?.phone || '')
   const roles = computed(() => userInfo.value?.roles || [])
   const permissions = computed(() => userInfo.value?.permissions || [])
 
@@ -28,27 +32,49 @@ export const useUserStore = defineStore('user', () => {
   }
 
   const login = async (username: string, password: string) => {
-    await new Promise(resolve => setTimeout(resolve, 500))
+    try {
+      const response = await http.Post<{
+        code: number
+        data: {
+          user: {
+            id: number
+            username: string
+            nickname?: string
+            avatar?: string
+            email?: string
+            phone?: string
+            token: string
+            roles: string[]
+            permissions: string[]
+          }
+        }
+        message: string
+      }>('/auth/login', { username, password })
 
-    if (username === 'admin' && password === 'admin123') {
-      const mockToken = `mock_token_${Date.now()}`
-      const mockUserInfo: UserInfo = {
-        id: 1,
-        username: 'admin',
-        nickname: '管理员',
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
-        email: 'admin@example.com',
-        roles: ['admin'],
-        permissions: ['*'],
+      if (response.code === 200) {
+        const { user } = response.data
+        const mockUserInfo: UserInfo = {
+          id: user.id,
+          username: user.username,
+          nickname: user.nickname || user.username,
+          avatar: user.avatar || '',
+          email: user.email || '',
+          phone: user.phone || '',
+          roles: user.roles || [],
+          permissions: user.permissions || [],
+        }
+
+        setToken(user.token)
+        setUserInfo(mockUserInfo)
+
+        return { success: true }
       }
 
-      setToken(mockToken)
-      setUserInfo(mockUserInfo)
-
-      return { success: true }
+      return { success: false, message: response.message || '登录失败' }
     }
-
-    return { success: false, message: '用户名或密码错误' }
+    catch {
+      return { success: false, message: '网络请求失败' }
+    }
   }
 
   const logout = () => {
@@ -74,7 +100,10 @@ export const useUserStore = defineStore('user', () => {
     userInfo,
     isLoggedIn,
     username,
+    nickname,
     avatar,
+    email,
+    phone,
     roles,
     permissions,
     setToken,

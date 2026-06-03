@@ -2,13 +2,14 @@
 import type { BreadcrumbProps, MenuProps } from 'antdv-next'
 
 import { Icon } from '@iconify/vue'
-import { Badge, Dropdown, Menu, Popover, Segmented } from 'antdv-next'
+import { Badge, Dropdown, Menu, Modal, Popover, Segmented } from 'antdv-next'
 import dayjs from 'dayjs'
 import { computed, h, ref } from 'vue'
-import { useEventListener } from '@vueuse/core'
 import { useRouter } from 'vue-router'
+import { useLocale } from '@/composables/web/useLocale'
 import { useThemeTransition } from '@/composables/web/useThemeTransition'
 import { useAppStore } from '@/stores/modules/app'
+import { useRouteStore } from '@/stores/modules/route'
 import { useUserStore } from '@/stores/modules/user'
 import { cn } from '@/utils/cn'
 import { useBreadcrumb, useFullscreen } from '../composables/useLayout'
@@ -33,12 +34,15 @@ defineOptions({
 const router = useRouter()
 const appStore = useAppStore()
 const userStore = useUserStore()
+const routeStore = useRouteStore()
 const { breadcrumbs } = useBreadcrumb()
 const { isFullscreen, toggle: toggleFullscreen } = useFullscreen()
 const { toggleThemeWithAnimation } = useThemeTransition()
+const { setLocale } = useLocale()
 
 const showSetting = ref(false)
 const showNotification = ref(false)
+const showLockScreen = ref(false)
 const appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
 
 interface NotificationItem {
@@ -150,35 +154,26 @@ const headerClassName = computed(() =>
 )
 
 const breadcrumbItems = computed<BreadcrumbProps['items']>(() => {
-  const items: BreadcrumbProps['items'] = [
-    {
-      title: '首页',
-      path: '/dashboard',
-    },
-  ]
-
-  breadcrumbs.value.forEach((item) => {
-    items.push({
-      title: item.title,
-      path: item.path,
-    })
-  })
-
-  return items
+  return breadcrumbs.value.map(item => ({
+    title: item.title,
+    path: item.path,
+  }))
 })
 
-const horizontalMenuItems: MenuProps['items'] = [
-  {
-    key: '/dashboard',
-    icon: () => h(Icon, { icon: 'carbon:dashboard', class: 'text-lg' }),
-    label: '仪表盘',
-  },
-  {
-    key: '/system',
-    icon: () => h(Icon, { icon: 'carbon:settings', class: 'text-lg' }),
-    label: '系统管理',
-  },
-]
+const horizontalMenuItems: MenuProps['items'] = computed(() => {
+  const isHorizontal = appStore.layout === 'horizontal'
+  return (routeStore.menus || []).map(menu => ({
+    key: menu.path,
+    icon: () => h(Icon, { icon: menu.icon || 'carbon:folder', class: 'text-lg' }),
+    label: menu.title,
+    children: isHorizontal && menu.children?.length
+      ? menu.children.map(child => ({
+          key: `${menu.path}/${child.path}`,
+          label: child.title,
+        }))
+      : undefined,
+  }))
+})
 
 const sizeOptions: MenuProps['items'] = [
   { key: 'small', label: '小' },
@@ -236,8 +231,8 @@ const actionBtnClassName = computed(() =>
   ),
 )
 
-const notificationItemClassName = (read: boolean) =>
-  cn(
+function notificationItemClassName(read: boolean) {
+  return cn(
     'flex items-start gap-3 px-3 py-2.5 cursor-pointer transition-colors duration-150',
     read
       ? isGeekStyle.value
@@ -251,6 +246,7 @@ const notificationItemClassName = (read: boolean) =>
           ? 'bg-gray-750 hover:bg-gray-700'
           : 'bg-blue-50 hover:bg-blue-100',
   )
+}
 
 function handleToggle() {
   emit('toggleCollapsed')
@@ -261,20 +257,29 @@ function handleThemeToggle(event: MouseEvent) {
 }
 
 function handleLogout() {
-  userStore.logout()
-  router.push('/login')
+  Modal.confirm({
+    title: '退出登录',
+    content: '确定要退出当前账号吗？',
+    okText: '确定',
+    cancelText: '取消',
+    centered: true,
+    onOk: () => {
+      userStore.logout()
+      router.push('/login')
+    },
+  })
 }
 
 function handleSizeSelect({ key }: { key: string }) {
-  appStore.setComponentSize(key as 'small' | 'middle' | 'large')
+  appStore.updateSetting({ componentSize: key as 'small' | 'middle' | 'large' })
 }
 
 function handleLocaleSelect({ key }: { key: string }) {
-  appStore.setLocale(key)
+  setLocale(key as 'zh-CN' | 'en-US')
 }
 
 function handleThemeStyleSelect({ key }: { key: string }) {
-  appStore.setThemeStyle(key as 'default' | 'compact' | 'illustration' | 'bootstrap' | 'skeuomorphism' | 'glass' | 'geek')
+  appStore.updateSetting({ themeStyle: key as 'default' | 'compact' | 'illustration' | 'bootstrap' | 'skeuomorphism' | 'glass' | 'geek' })
 }
 
 function handleUserMenuClick({ key }: { key: string }) {
@@ -282,10 +287,10 @@ function handleUserMenuClick({ key }: { key: string }) {
     handleLogout()
   }
   else if (key === 'profile') {
-    router.push('/profile')
+    router.push('/account/center')
   }
   else if (key === 'settings') {
-    router.push('/settings')
+    router.push('/account/settings')
   }
 }
 
@@ -300,11 +305,13 @@ function handleHorizontalMenuSelect({ key }: { key: string }) {
   emit('topMenuSelect', key)
 }
 
-useEventListener('keydown', (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && !showSetting.value && !showNotification.value) {
-    handleLogout()
-  }
-})
+function handleLockScreen() {
+  showLockScreen.value = true
+}
+
+function handleUnlock() {
+  showLockScreen.value = false
+}
 </script>
 
 <template>
@@ -490,7 +497,8 @@ useEventListener('keydown', (e: KeyboardEvent) => {
         </template>
         <Badge
           :count="unreadCount"
-          :offset="[-2, 2]"
+          :offset="[-2,
+                    2]"
         >
           <div :class="actionBtnClassName">
             <Icon
@@ -549,6 +557,16 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 
       <div
         :class="actionBtnClassName"
+        @click="handleLockScreen"
+      >
+        <Icon
+          icon="carbon:locked"
+          class="text-lg"
+        />
+      </div>
+
+      <div
+        :class="actionBtnClassName"
         @click="showSetting = true"
       >
         <Icon
@@ -574,6 +592,47 @@ useEventListener('keydown', (e: KeyboardEvent) => {
     </div>
 
     <SettingDrawer v-model:visible="showSetting" />
+
+    <!-- 锁屏 -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div
+          v-if="showLockScreen"
+          class="fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-sm"
+          :class="isGeekStyle ? 'bg-[#0a0a0a]/95' : isDarkMode ? 'bg-gray-900/90' : 'bg-gray-100/90'"
+        >
+          <div
+            class="w-full max-w-sm p-8 rounded-xl text-center shadow-2xl"
+            :class="isGeekStyle ? 'bg-[#111] border border-[#1a1a1a]' : isDarkMode ? 'bg-gray-800' : 'bg-white'"
+          >
+            <Icon
+              icon="carbon:locked"
+              class="text-5xl mb-4"
+              :class="isGeekStyle ? 'text-[#00ff88]' : 'text-primary'"
+            />
+            <h3
+              class="text-lg font-medium mb-2"
+              :class="isGeekStyle ? 'text-[#00ff88]' : ''"
+            >
+              屏幕已锁定
+            </h3>
+            <p class="text-sm opacity-60 mb-6">
+              请点击解锁按钮或按任意键继续
+            </p>
+            <button
+              type="button"
+              class="px-6 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+              :class="isGeekStyle
+                ? 'bg-[#00ff88] text-black hover:bg-[#00dd77]'
+                : 'bg-primary text-white hover:bg-primary/80'"
+              @click="handleUnlock"
+            >
+              解锁屏幕
+            </button>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </header>
 </template>
 

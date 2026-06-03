@@ -25,6 +25,7 @@ export const DEFAULT_SETTING: AppSetting = {
   sidebarWidth: 210,
   showBreadcrumb: true,
   showTabs: true,
+  tabShowIcon: true,
   showFooter: true,
   enableWaterRipple: true,
   transitionEffect: 'fade-slide',

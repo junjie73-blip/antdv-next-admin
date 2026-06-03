@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import type { UploadChangeParam, UploadFile, UploadProps } from 'antdv-next'
 import { message } from 'antdv-next'
-import { computed, ref } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
+
+// ===== 大文件切片上传 =====
+import { useChunkUpload } from '@/composables/useChunkUpload'
 
 import { cn } from '@/utils/cn'
 
@@ -228,90 +231,228 @@ function handleDragSortChange(info: UploadChangeParam) {
   }
 }
 
-// ===== 大文件切片上传 =====
-import { useChunkUpload } from '@/composables/useChunkUpload'
-
 const largeFileCardDescClassName = cn('mb-3 text-sm text-gray-500 dark:text-gray-400')
-const largeFileProgressBarClassName = cn('w-full h-2 bg-gray-200 rounded-full overflow-hidden')
-const largeFileProgressFillClassName = cn('h-full bg-blue-500 rounded-full transition-all duration-300')
-const largeFileChunkGridClassName = cn('grid grid-cols-8 gap-1 mt-4')
-const largeFileChunkItemClassName = cn('h-4 rounded')
-const largeFileControlGroupClassName = cn('flex gap-2 mt-4')
-const largeFileInfoClassName = cn('space-y-2')
-const largeFileStatusIdleClassName = cn('text-gray-500')
+
+const largeFileToolbarClassName = cn('flex gap-2 mb-4')
+const largeFileSelectInputClassName = cn('hidden')
+
+const largeFileStatusWaitingClassName = cn('text-gray-500')
 const largeFileStatusUploadingClassName = cn('text-blue-600')
 const largeFileStatusPausedClassName = cn('text-yellow-600')
 const largeFileStatusCompletedClassName = cn('text-green-600')
 const largeFileStatusErrorClassName = cn('text-red-600')
 
-const statusClassNameMap: Record<string, string> = {
-  idle: largeFileStatusIdleClassName,
+const largeFileStatusClassNameMap: Record<string, string> = {
+  waiting: largeFileStatusWaitingClassName,
   uploading: largeFileStatusUploadingClassName,
   paused: largeFileStatusPausedClassName,
   completed: largeFileStatusCompletedClassName,
   error: largeFileStatusErrorClassName,
 }
 
-const chunkStatusClassMap = {
-  pending: cn('bg-gray-200'),
-  uploading: cn('bg-blue-400 animate-pulse'),
-  done: cn('bg-green-500'),
-  error: cn('bg-red-500'),
+const largeFileStatusTextMap: Record<string, string> = {
+  waiting: '等待中',
+  uploading: '上传中',
+  paused: '已暂停',
+  completed: '已完成',
+  error: '失败',
 }
 
-const {
-  uploadFile,
-  pause,
-  resume,
-  cancel,
-  progress: uploadProgress,
-  chunks: chunkList,
-  status: uploadStatus,
-} = useChunkUpload({ chunkSize: 5 * 1024 * 1024, concurrent: 3 })
+const largeFileTableProgressBarClassName = cn('flex-1 h-2 bg-gray-200 rounded-full overflow-hidden')
+const largeFileTableProgressFillClassName = cn('h-full bg-blue-500 rounded-full transition-all duration-300')
+const largeFileTableProgressTextClassName = cn('text-xs text-gray-500 w-10 text-right')
+const largeFileTableActionsClassName = cn('flex gap-1')
+const largeFileTableProgressRowClassName = cn('flex items-center gap-2')
 
-const largeFileName = ref('')
-const largeFileSize = ref(0)
+interface FileQueueItem {
+  id: string
+  fileName: string
+  fileSize: number
+  status: 'waiting' | 'uploading' | 'paused' | 'completed' | 'error'
+  progress: number
+  file: File
+}
+
+const largeFileColumns = [
+  { title: '文件名', dataIndex: 'fileName', key: 'fileName', ellipsis: true },
+  { title: '大小', key: 'fileSize', width: 120 },
+  { title: '进度', key: 'progress', width: 220 },
+  { title: '状态', key: 'status', width: 100 },
+  { title: '操作', key: 'actions', width: 280 },
+]
+
+const fileQueue = ref<FileQueueItem[]>([])
+const largeFileInputRef = useTemplateRef<HTMLInputElement>('largeFileInputRef')
+const isProcessingQueue = ref(false)
+const uploaderMap = new Map<string, ReturnType<typeof useChunkUpload>>()
+let idCounter = 0
+
+function getUploader(item: FileQueueItem): ReturnType<typeof useChunkUpload> {
+  return uploaderMap.get(item.id)!
+}
+
+function createFileQueueItem(file: File): FileQueueItem {
+  const id = `file-${++idCounter}`
+  const uploader = useChunkUpload({ chunkSize: 5 * 1024 * 1024, concurrent: 3 })
+  uploaderMap.set(id, uploader)
+
+  const item: FileQueueItem = {
+    id,
+    fileName: file.name,
+    fileSize: file.size,
+    status: 'waiting',
+    progress: 0,
+    file,
+  }
+
+  watch(
+    () => uploader.progress.value,
+    (val) => { item.progress = val },
+  )
+
+  watch(
+    () => uploader.status.value,
+    (val) => {
+      if (val === 'idle')
+        item.status = 'waiting'
+      else if (val === 'uploading')
+        item.status = 'uploading'
+      else if (val === 'paused')
+        item.status = 'paused'
+      else if (val === 'completed')
+        item.status = 'completed'
+      else if (val === 'error')
+        item.status = 'error'
+    },
+  )
+
+  return item
+}
+
+function handleSelectFileClick() {
+  largeFileInputRef.value?.click()
+}
 
 function handleLargeFileSelect(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
-  largeFileName.value = file.name
-  largeFileSize.value = file.size
-  uploadFile(file)
+  const files = (e.target as HTMLInputElement).files
+  if (!files || files.length === 0)
+    return
+  const fileArray = Array.from(files)
+  for (const file of fileArray) {
+    fileQueue.value.push(createFileQueueItem(file))
+  }
+  ;(e.target as HTMLInputElement).value = ''
 }
 
-function handlePause() {
-  pause()
+async function startQueueUpload() {
+  if (isProcessingQueue.value)
+    return
+  isProcessingQueue.value = true
+
+  for (const item of fileQueue.value) {
+    if (item.status === 'completed' || item.status === 'error')
+      continue
+
+    const uploader = getUploader(item)
+
+    if (item.status === 'paused') {
+      uploader.resume()
+    }
+    else {
+      uploader.uploadFile(item.file).catch(() => {})
+    }
+
+    await new Promise<void>((resolve) => {
+      const stop = watch(
+        () => item.status,
+        (val) => {
+          if (val === 'completed' || val === 'error') {
+            stop()
+            resolve()
+          }
+        },
+      )
+    })
+  }
+
+  isProcessingQueue.value = false
 }
 
-function handleResume() {
-  resume()
+const hasUploadingItem = computed(() => fileQueue.value.some(item => item.status === 'uploading'))
+const hasPausedItem = computed(() => fileQueue.value.some(item => item.status === 'paused'))
+
+function handlePauseAll() {
+  fileQueue.value.forEach((item) => {
+    if (item.status === 'uploading')
+      getUploader(item).pause()
+  })
 }
 
-function handleCancel() {
-  cancel()
-  largeFileName.value = ''
-  largeFileSize.value = 0
+function handleResumeAll() {
+  fileQueue.value.forEach((item) => {
+    if (item.status === 'paused')
+      getUploader(item).resume()
+  })
+  if (!isProcessingQueue.value) {
+    startQueueUpload()
+  }
+}
+
+function handleCancelAll() {
+  fileQueue.value.forEach((item) => {
+    getUploader(item).cancel()
+  })
+  uploaderMap.clear()
+  fileQueue.value = []
+  isProcessingQueue.value = false
+}
+
+function handlePauseItem(item: FileQueueItem) {
+  getUploader(item).pause()
+}
+
+function handleResumeItem(item: FileQueueItem) {
+  getUploader(item).resume()
+  if (!isProcessingQueue.value) {
+    startQueueUpload()
+  }
+}
+
+function handleDeleteItem(item: FileQueueItem) {
+  getUploader(item).cancel()
+  uploaderMap.delete(item.id)
+  const idx = fileQueue.value.indexOf(item)
+  if (idx !== -1)
+    fileQueue.value.splice(idx, 1)
+}
+
+function handleCancelItem(item: FileQueueItem) {
+  getUploader(item).cancel()
 }
 
 function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  if (bytes < 1024)
+    return `${bytes} B`
+  if (bytes < 1024 * 1024)
+    return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
-function chunkStatusClass(status: string) {
-  return chunkStatusClassMap[status as keyof typeof chunkStatusClassMap] || chunkStatusClassMap.pending
+function getStatusClassName(status: string) {
+  return largeFileStatusClassNameMap[status] || largeFileStatusWaitingClassName
 }
 
-function statusTextClass() {
-  return statusClassNameMap[uploadStatus.value] || largeFileStatusIdleClassName
+function getStatusText(status: string) {
+  return largeFileStatusTextMap[status] || status
 }
 </script>
 
 <template>
   <div :class="containerClassName">
-    <a-card title="基础上传" variant="borderless">
+    <a-card
+      title="基础上传"
+      variant="borderless"
+    >
       <div :class="descClassName">
         点击或拖拽文件到此区域进行上传，支持多文件选择
       </div>
@@ -333,7 +474,10 @@ function statusTextClass() {
       </a-upload>
     </a-card>
 
-    <a-card title="图片墙" variant="borderless">
+    <a-card
+      title="图片墙"
+      variant="borderless"
+    >
       <div :class="descClassName">
         图片墙效果，支持预览，仅 jpg/png/gif 格式，单张不超过 2MB
       </div>
@@ -346,7 +490,9 @@ function statusTextClass() {
       >
         <div>
           <plus-outlined />
-          <div style="margin-top: 8px">上传</div>
+          <div style="margin-top: 8px">
+            上传
+          </div>
         </div>
       </a-upload>
       <a-image
@@ -356,7 +502,10 @@ function statusTextClass() {
       />
     </a-card>
 
-    <a-card title="头像上传" variant="borderless">
+    <a-card
+      title="头像上传"
+      variant="borderless"
+    >
       <div :class="descClassName">
         圆形头像裁剪上传，仅限图片格式，不超过 5MB
       </div>
@@ -369,19 +518,27 @@ function statusTextClass() {
           list-type="picture"
           @change="handleAvatarChange"
         >
-          <div v-if="avatarFileList.length === 0" :class="avatarUploaderClassName">
+          <div
+            v-if="avatarFileList.length === 0"
+            :class="avatarUploaderClassName"
+          >
             <avatar-loading v-if="avatarLoading" />
-            <camera-outlined v-else class="text-2xl text-gray-400" />
+            <camera-outlined
+              v-else
+              class="text-2xl text-gray-400"
+            />
           </div>
           <img
             v-else
             :src="avatarFileList[0]?.url || avatarFileList[0]?.response?.url"
             alt="avatar"
             :class="avatarImageClassName"
-          />
+          >
         </a-upload>
         <div :class="avatarInfoClassName">
-          <h4 :class="avatarTitleClassName">上传头像</h4>
+          <h4 :class="avatarTitleClassName">
+            上传头像
+          </h4>
           <ul :class="avatarRuleListClassName">
             <li>支持 JPG、PNG、GIF 格式</li>
             <li>文件大小不超过 5MB</li>
@@ -391,7 +548,10 @@ function statusTextClass() {
       </div>
     </a-card>
 
-    <a-card title="自定义上传按钮" variant="borderless">
+    <a-card
+      title="自定义上传按钮"
+      variant="borderless"
+    >
       <div :class="descClassName">
         带图标的自定义上传区域，支持拖拽
       </div>
@@ -409,7 +569,10 @@ function statusTextClass() {
       </a-upload>
     </a-card>
 
-    <a-card title="上传状态展示" variant="borderless">
+    <a-card
+      title="上传状态展示"
+      variant="borderless"
+    >
       <div :class="descClassName">
         展示 uploading（上传中）、error（错误）、done（完成）三种状态
       </div>
@@ -441,7 +604,10 @@ function statusTextClass() {
       </div>
     </a-card>
 
-    <a-card title="上传前校验" variant="borderless">
+    <a-card
+      title="上传前校验"
+      variant="borderless"
+    >
       <div :class="descClassName">
         文件类型和大小校验提示，仅允许 PDF/Word/图片，最大 10MB
       </div>
@@ -461,7 +627,10 @@ function statusTextClass() {
       </div>
     </a-card>
 
-    <a-card title="手动上传" variant="borderless">
+    <a-card
+      title="手动上传"
+      variant="borderless"
+    >
       <div :class="descClassName">
         先选择文件，再点击按钮才会上传
       </div>
@@ -493,12 +662,18 @@ function statusTextClass() {
           清空列表
         </a-button>
       </div>
-      <div v-if="manualFileList.length > 0" :class="manualSelectedTipClassName">
+      <div
+        v-if="manualFileList.length > 0"
+        :class="manualSelectedTipClassName"
+      >
         已选择 {{ manualFileList.length }} 个文件，请点击「开始上传」按钮
       </div>
     </a-card>
 
-    <a-card title="拖拽排序" variant="borderless">
+    <a-card
+      title="拖拽排序"
+      variant="borderless"
+    >
       <div :class="descClassName">
         上传后的图片列表可通过拖拽调整顺序
       </div>
@@ -511,7 +686,9 @@ function statusTextClass() {
       >
         <div>
           <plus-outlined />
-          <div style="margin-top: 8px">添加图片</div>
+          <div style="margin-top: 8px">
+            添加图片
+          </div>
         </div>
       </a-upload>
       <div :class="dragTipClassName">
@@ -519,65 +696,121 @@ function statusTextClass() {
       </div>
     </a-card>
 
-    <a-card title="Large File Upload (Chunked)" variant="borderless">
+    <a-card
+      title="大文件上传"
+      variant="borderless"
+    >
       <div :class="largeFileCardDescClassName">
-        Support pause/resume and chunk-based upload with Web Worker. Select a large file (50MB+) to see chunk progress.
+        支持暂停/恢复，基于切片上传的大文件上传组件，支持多文件队列
       </div>
 
-      <div class="mb-4">
+      <div :class="largeFileToolbarClassName">
         <input
+          ref="largeFileInputRef"
           type="file"
+          multiple
+          :class="largeFileSelectInputClassName"
           @change="handleLargeFileSelect"
-          accept="*/*"
-        />
+        >
+        <a-button @click="handleSelectFileClick">
+          <folder-open-outlined />
+          选择文件
+        </a-button>
+        <a-button
+          type="primary"
+          :disabled="fileQueue.length === 0"
+          @click="startQueueUpload"
+        >
+          <cloud-upload-outlined />
+          开始上传
+        </a-button>
+        <a-button
+          :disabled="!hasUploadingItem"
+          @click="handlePauseAll"
+        >
+          <pause-outlined />
+          暂停
+        </a-button>
+        <a-button
+          :disabled="!hasPausedItem"
+          @click="handleResumeAll"
+        >
+          <caret-right-outlined />
+          恢复
+        </a-button>
+        <a-button
+          danger
+          :disabled="fileQueue.length === 0"
+          @click="handleCancelAll"
+        >
+          <close-outlined />
+          取消
+        </a-button>
       </div>
 
-      <div v-if="largeFileName" :class="largeFileInfoClassName">
-        <p>File: {{ largeFileName }} ({{ formatFileSize(largeFileSize) }})</p>
-        <p>
-          Status:
-          <span :class="statusTextClass()">{{ uploadStatus }}</span>
-        </p>
-        <p>Overall Progress: {{ uploadProgress.toFixed(1) }}%</p>
-
-        <div :class="largeFileProgressBarClassName">
-          <div
-            :style="{ width: uploadProgress + '%' }"
-            :class="largeFileProgressFillClassName"
-          />
-        </div>
-
-        <div :class="largeFileChunkGridClassName">
-          <div
-            v-for="chunk in chunkList"
-            :key="chunk.index"
-            :class="[largeFileChunkItemClassName, chunkStatusClass(chunk.status)]"
-            :title="`Chunk ${chunk.index}: ${chunk.status}`"
-          />
-        </div>
-
-        <div :class="largeFileControlGroupClassName">
-          <a-button
-            @click="handlePause"
-            :disabled="uploadStatus !== 'uploading'"
-          >
-            Pause
-          </a-button>
-          <a-button
-            @click="handleResume"
-            :disabled="uploadStatus !== 'paused'"
-          >
-            Resume
-          </a-button>
-          <a-button
-            danger
-            @click="handleCancel"
-            :disabled="uploadStatus === 'idle' || uploadStatus === 'completed'"
-          >
-            Cancel
-          </a-button>
-        </div>
-      </div>
+      <a-table
+        :columns="largeFileColumns"
+        :data-source="fileQueue"
+        :pagination="false"
+        row-key="id"
+      >
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'fileSize'">
+            {{ formatFileSize(record.fileSize) }}
+          </template>
+          <template v-else-if="column.key === 'progress'">
+            <div :class="largeFileTableProgressRowClassName">
+              <div :class="largeFileTableProgressBarClassName">
+                <div
+                  :style="{ width: `${record.progress}%` }"
+                  :class="largeFileTableProgressFillClassName"
+                />
+              </div>
+              <span :class="largeFileTableProgressTextClassName">{{ record.progress }}%</span>
+            </div>
+          </template>
+          <template v-else-if="column.key === 'status'">
+            <span :class="getStatusClassName(record.status)">{{ getStatusText(record.status) }}</span>
+          </template>
+          <template v-else-if="column.key === 'actions'">
+            <div :class="largeFileTableActionsClassName">
+              <a-button
+                size="small"
+                :disabled="record.status !== 'uploading'"
+                @click="handlePauseItem(record)"
+              >
+                <pause-outlined />
+                暂停
+              </a-button>
+              <a-button
+                size="small"
+                :disabled="record.status !== 'paused'"
+                @click="handleResumeItem(record)"
+              >
+                <caret-right-outlined />
+                恢复
+              </a-button>
+              <a-button
+                size="small"
+                danger
+                @click="handleDeleteItem(record)"
+              >
+                <delete-outlined />
+                删除
+              </a-button>
+              <a-button
+                size="small"
+                danger
+                :disabled="record.status !== 'uploading' && record.status !== 'paused'"
+                @click="handleCancelItem(record)"
+              >
+                <close-outlined />
+                取消
+              </a-button>
+            </div>
+          </template>
+        </template>
+      </a-table>
     </a-card>
   </div>
 </template>

@@ -48,9 +48,9 @@ export function useColumns(options: UseColumnsOptions): UseColumnsReturn {
       key: 'action',
       dataIndex: 'action',
       title: '操作',
-      width: actionCol.width || 120,
+      width: actionCol.width || 200,
       fixed: actionCol.fixed || 'right',
-      align: actionCol.align || 'center',
+      align: 'center',
       ...actionCol,
     }
   }

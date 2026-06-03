@@ -60,28 +60,50 @@ function handleRefresh() {
       </BasicTable>
 
       <div :class="toolbarClassName">
-        <a-button type="primary" @click="handleRefresh">刷新数据</a-button>
+        <a-button
+          type="primary"
+          @click="handleRefresh"
+        >
+          刷新数据
+        </a-button>
       </div>
     </a-card>
 
     <a-card title="骨架屏加载动画">
-      <a-alert message="点击下方按钮查看加载状态" type="info" show-icon :class="infoClassName" />
+      <a-alert
+        message="点击下方按钮查看加载状态"
+        type="info"
+        show-icon
+        :class="infoClassName"
+      />
 
-      <a-skeleton :loading="loading" active :paragraph="{ rows: 5 }">
+      <a-skeleton
+        :loading="loading"
+        active
+        :paragraph="{ rows: 5 }"
+      >
         <div :class="skeletonContentClassName">
           <p>这是表格的实际内容，当 loading 为 true 时会显示骨架屏</p>
         </div>
       </a-skeleton>
 
       <div :class="toolbarClassName">
-        <a-button :type="loading ? 'default' : 'primary'" @click="loading = !loading">
+        <a-button
+          :type="loading ? 'default' : 'primary'"
+          @click="loading = !loading"
+        >
           {{ loading ? '停止加载' : '开始加载' }}
         </a-button>
       </div>
     </a-card>
 
     <a-card title="行动画效果">
-      <a-alert message="添加/删除行时会有平滑的过渡动画效果" type="success" show-icon :class="infoClassName" />
+      <a-alert
+        message="添加/删除行时会有平滑的过渡动画效果"
+        type="success"
+        show-icon
+        :class="infoClassName"
+      />
 
       <BasicTable @register="registerAnimated" />
     </a-card>

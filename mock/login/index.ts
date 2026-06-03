@@ -1,5 +1,5 @@
-import type { MockContext } from '../../index'
-import { defineMock } from '../../index'
+import type { MockContext } from '../index'
+import { defineMock } from '../index'
 
 export default defineMock({
   '[POST]/auth/login'({ data }: MockContext) {
@@ -22,6 +22,10 @@ export default defineMock({
         user: {
           id: '1',
           username: 'admin',
+          nickname: '管理员',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
+          email: 'admin@antdv-next.com',
+          phone: '138-0000-0001',
           token: `mock_token_${Date.now()}`,
           role: 'admin',
           permissions: ['*'],

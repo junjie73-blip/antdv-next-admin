@@ -82,15 +82,15 @@ function handleThemeChange(value: string | number, event?: MouseEvent) {
 }
 
 function handleLayoutChange(value: string | number) {
-  appStore.setLayout(value as LayoutMode)
+  appStore.updateSetting({ layout: value as LayoutMode })
 }
 
 function handleSizeChange(value: string | number) {
-  appStore.setComponentSize(value as ComponentSize)
+  appStore.updateSetting({ componentSize: value as ComponentSize })
 }
 
 function handleThemeStyleChange(value: string) {
-  appStore.setThemeStyle(value as ThemeStyle)
+  appStore.updateSetting({ themeStyle: value as ThemeStyle })
 }
 
 function handlePrimaryColorChange(color: string) {
@@ -98,22 +98,22 @@ function handlePrimaryColorChange(color: string) {
 }
 
 function handleTransitionChange(value: TransitionEffect) {
-  appStore.setTransitionEffect(value)
+  appStore.updateSetting({ transitionEffect: value })
 }
 
 function handleNotificationPositionChange(value: NotificationPosition) {
-  appStore.setNotificationPosition(value)
+  appStore.updateSetting({ notificationPosition: value })
 }
 
 function handleBorderRadiusChange(value: number | null) {
   if (value !== null) {
-    appStore.setBorderRadius(value)
+    appStore.updateSetting({ borderRadius: value })
   }
 }
 
 function handleSidebarWidthChange(value: number | null) {
   if (value !== null) {
-    appStore.setSidebarWidth(value)
+    appStore.updateSetting({ sidebarWidth: value })
   }
 }
 
@@ -145,10 +145,9 @@ function getPrimaryColor(style: { token?: Record<string, unknown> }): string {
             :options="themeOptions"
             :value="appStore.themeMode"
             block
-            @change="(value) => {
+            @change="(value: string) => {
               if (value !== appStore.themeMode) {
-                toggleThemeWithAnimation()
-                appStore.setTheme(value as 'light' | 'dark')
+                appStore.updateSetting({ theme: value as 'light' | 'dark' })
               }
             }"
           />
@@ -283,6 +282,16 @@ function getPrimaryColor(style: { token?: Record<string, unknown> }): string {
                 @change="appStore.toggleTabs"
               />
             </div>
+            <div
+              v-if="appStore.showTabs"
+              :class="settingItemClassName"
+            >
+              <span class="text-sm">标签页显示图标</span>
+              <Switch
+                :checked="appStore.tabShowIcon"
+                @change="appStore.toggleTabShowIcon"
+              />
+            </div>
             <div :class="settingItemClassName">
               <span class="text-sm">显示页脚</span>
               <Switch
@@ -327,7 +336,7 @@ function getPrimaryColor(style: { token?: Record<string, unknown> }): string {
                 :value="appStore.watermarkContent"
                 placeholder="请输入水印内容"
                 class="w-32"
-                @update:value="appStore.setWatermarkContent"
+                @update:value="(val: string) => appStore.updateSetting({ watermarkContent: val })"
               />
             </div>
           </div>

@@ -46,7 +46,9 @@ const basicColumns: BasicColumn[] = [
   { title: 'Name', dataIndex: 'name', key: 'name', sorter: true, width: 120 },
   { title: 'Age', dataIndex: 'age', key: 'age', sorter: true, width: 80, align: 'center' },
   {
-    title: 'Department', dataIndex: 'department', key: 'department',
+    title: 'Department',
+    dataIndex: 'department',
+    key: 'department',
     filters: [
       { text: 'Engineering', value: 'Engineering' },
       { text: 'Product', value: 'Product' },
@@ -129,17 +131,23 @@ const [registerPagination] = useTable({
 
 const treeData = [
   {
-    key: 1, name: 'HQ', type: 'company',
+    key: 1,
+    name: 'HQ',
+    type: 'company',
     children: [
       {
-        key: 11, name: 'Engineering Dept', type: 'department',
+        key: 11,
+        name: 'Engineering Dept',
+        type: 'department',
         children: [
           { key: 111, name: 'Frontend Team', type: 'team', memberCount: 12 },
           { key: 112, name: 'Backend Team', type: 'team', memberCount: 8 },
         ],
       },
       {
-        key: 12, name: 'Product Dept', type: 'department',
+        key: 12,
+        name: 'Product Dept',
+        type: 'department',
         children: [
           { key: 121, name: 'PM Team', type: 'team', memberCount: 5 },
         ],
@@ -177,17 +185,34 @@ const [registerLoading] = useTable({
 
 <template>
   <div :class="containerClassName">
-    <a-card title="Basic Table" variant="borderless">
+    <a-card
+      title="Basic Table"
+      variant="borderless"
+    >
       <div :class="toolbarClassName">
         <span :class="descriptionClassName">Sorting, filtering, loading, and selection support</span>
         <a-space>
-          <a-button type="primary" size="small" @click="handleBasicRefresh">Refresh</a-button>
-          <a-button size="small" :disabled="basicSelectedKeys.length === 0" @click="handleBulkAction">Bulk Action</a-button>
+          <a-button
+            type="primary"
+            size="small"
+            @click="handleBasicRefresh"
+          >
+            Refresh
+          </a-button>
+          <a-button
+            size="small"
+            :disabled="basicSelectedKeys.length === 0"
+            @click="handleBulkAction"
+          >
+            Bulk Action
+          </a-button>
         </a-space>
       </div>
       <BasicTable @register="registerBasic">
         <template #cell-status="{ record }">
-          <a-tag :color="statusColorMap[record?.status] || 'default'">{{ record?.status }}</a-tag>
+          <a-tag :color="statusColorMap[record?.status] || 'default'">
+            {{ record?.status }}
+          </a-tag>
         </template>
         <template #cell-salary="{ record }">
           <span :class="monoClassName">¥{{ record?.salary?.toLocaleString() ?? '-' }}</span>
@@ -195,10 +220,15 @@ const [registerLoading] = useTable({
       </BasicTable>
     </a-card>
 
-    <a-card title="Pagination" variant="borderless">
+    <a-card
+      title="Pagination"
+      variant="borderless"
+    >
       <BasicTable @register="registerPagination">
         <template #cell-status="{ record }">
-          <a-tag :color="orderStatusColorMap[record?.status] || 'default'">{{ record?.status }}</a-tag>
+          <a-tag :color="orderStatusColorMap[record?.status] || 'default'">
+            {{ record?.status }}
+          </a-tag>
         </template>
         <template #cell-amount="{ record }">
           <span :class="monoClassName">¥{{ record?.amount?.toLocaleString() ?? '-' }}</span>
@@ -206,10 +236,15 @@ const [registerLoading] = useTable({
       </BasicTable>
     </a-card>
 
-    <a-card title="Expandable / Tree Data" variant="borderless">
+    <a-card
+      title="Expandable / Tree Data"
+      variant="borderless"
+    >
       <BasicTable @register="registerTree">
         <template #cell-type="{ record }">
-          <a-tag :color="typeColorMap[record?.type] || 'default'">{{ record?.type }}</a-tag>
+          <a-tag :color="typeColorMap[record?.type] || 'default'">
+            {{ record?.type }}
+          </a-tag>
         </template>
         <template #cell-memberCount="{ record }">
           <span>{{ record?.memberCount ?? '-' }}</span>
@@ -217,14 +252,25 @@ const [registerLoading] = useTable({
       </BasicTable>
     </a-card>
 
-    <a-card title="Empty &amp; Loading States" variant="borderless">
-      <a-space direction="vertical" :size="16" :style="fullWidthStyle">
+    <a-card
+      title="Empty &amp; Loading States"
+      variant="borderless"
+    >
+      <a-space
+        direction="vertical"
+        :size="16"
+        :style="fullWidthStyle"
+      >
         <div>
-          <p :class="labelClassName">Loading state</p>
+          <p :class="labelClassName">
+            Loading state
+          </p>
           <BasicTable @register="registerLoading" />
         </div>
         <div>
-          <p :class="labelClassName">Empty state</p>
+          <p :class="labelClassName">
+            Empty state
+          </p>
           <BasicTable @register="registerEmpty" />
         </div>
       </a-space>

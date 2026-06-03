@@ -65,7 +65,6 @@ const wrapClassName = computed(() => {
 
 const drawerBodyClassName = cn('drawer-body relative h-full min-h-0', { 'p-4': props.useWrapper })
 
-// 计算 styles - 用于移除 padding
 const drawerStyles = computed<AntDrawerProps['styles']>(() => ({
   header: {
     padding: '0',
@@ -73,6 +72,7 @@ const drawerStyles = computed<AntDrawerProps['styles']>(() => ({
   },
   body: {
     padding: '0',
+    ...(props.bodyStyle || {}),
   },
   footer: {
     padding: '0',
@@ -183,7 +183,6 @@ const footerClassName = cn(
     :mask="mask"
     :footer="null"
     :mask-style="maskStyle"
-    :body-style="bodyStyle"
     :drawer-style="drawerStyle"
     :header-style="headerStyle"
     :footer-style="footerStyle"
