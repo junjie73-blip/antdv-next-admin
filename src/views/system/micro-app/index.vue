@@ -1,25 +1,22 @@
 <script setup lang="tsx">
-import type { MicroAppItem } from '#/micro-app'
-import { computed, ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { getAllMicroApps, microAppConfig } from '@/config/micro-app'
 import { cn } from '@/utils/cn'
+import type { MicroAppItem } from '#/micro-app'
 
-// 状态管理
+// 状态
 const apps = ref<MicroAppItem[]>(getAllMicroApps())
 const isEnabled = computed(() => microAppConfig.enabled)
 const searchKeyword = ref('')
 const statusFilter = ref<string>('all')
-const loaderFilter = ref<string>('all')
-const drawerVisible = ref(false)
-const currentApp = ref<MicroAppItem | null>(null)
-const previewVisible = ref(false)
+const activeAppKey = ref<string>('')
+const iframeLoaded = ref<Record<string, boolean>>({})
+const iframeLoading = ref<string | null>(null)
 
-// 统计数据
-const totalCount = computed(() => apps.value.length)
-const runningCount = computed(() => apps.value.filter(app => app.active).length)
-const stoppedCount = computed(() => apps.value.filter(app => !app.active).length)
-const iframeCount = computed(() => apps.value.filter(app => app.loader === 'iframe').length)
-const webcomponentCount = computed(() => apps.value.filter(app => app.loader === 'webcomponent').length)
+// 当前选中的子应用
+const currentApp = computed(() => {
+  return apps.value.find(app => app.name === activeAppKey.value) || null
+})
 
 // 筛选后的列表
 const filteredApps = computed(() => {
@@ -31,8 +28,7 @@ const filteredApps = computed(() => {
     const matchStatus = statusFilter.value === 'all' || (
       statusFilter.value === 'running' ? app.active : !app.active
     )
-    const matchLoader = loaderFilter.value === 'all' || app.loader === loaderFilter.value
-    return matchKeyword && matchStatus && matchLoader
+    return matchKeyword && matchStatus
   })
 })
 
@@ -40,13 +36,6 @@ const filteredApps = computed(() => {
 const statCardClassName = cn(
   'p-4 rounded-lg border bg-white dark:bg-gray-800',
   'border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow',
-)
-
-const appCardClassName = cn(
-  'p-5 rounded-lg border cursor-pointer',
-  'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700',
-  'hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-600',
-  'transition-all duration-200',
 )
 
 function getStatusTagClass(active: boolean) {
@@ -70,444 +59,287 @@ function handleToggleStatus(app: MicroAppItem) {
   app.active = !app.active
 }
 
-function handleViewDetail(app: MicroAppItem) {
-  currentApp.value = app
-  drawerVisible.value = true
+function handleSelectApp(app: MicroAppItem) {
+  activeAppKey.value = app.name
 }
 
-function handlePreview(app: MicroAppItem) {
-  currentApp.value = app
-  previewVisible.value = true
+function handleIframeLoad(name: string) {
+  iframeLoaded.value[name] = true
+  iframeLoading.value = null
+}
+
+function handleIframeError(name: string) {
+  iframeLoaded.value[name] = false
+  iframeLoading.value = null
 }
 
 function handleResetFilters() {
   searchKeyword.value = ''
   statusFilter.value = 'all'
-  loaderFilter.value = 'all'
 }
+
+function handleRefreshIframe() {
+  if (!currentApp.value) return
+  iframeLoaded.value[currentApp.value.name] = false
+  const iframeEl = document.querySelector(`iframe[data-app="${currentApp.value.name}"]`) as HTMLIFrameElement
+  if (iframeEl) {
+    iframeLoading.value = currentApp.value.name
+    iframeEl.src = iframeEl.src
+  }
+}
+
+// 获取子应用预览 URL（使用主应用自身页面作为演示）
+function getAppPreviewUrl(app: MicroAppItem): string {
+  // 如果配置了 url 且是外部地址，直接使用
+  if (app.url?.startsWith('http')) {
+    // 演示模式：将外部地址映射到本应用的对应页面
+    const routeMap: Record<string, string> = {
+      'sub-app-example': '/#/dashboard',
+      'crm-system': '/#/system/user',
+      'data-bi': '/#/dashboard/echarts',
+      'workflow-engine': '/#/system/role',
+      'file-manager': '/#/system/dict',
+      'message-center': '/#/system/notice',
+    }
+    const mappedRoute = routeMap[app.name]
+    if (mappedRoute) {
+      return window.location.origin + mappedRoute
+    }
+  }
+  // 默认：映射到系统内的演示页面
+  const demoRoutes: Record<string, string> = {
+    'sub-app-example': '/#/dashboard',
+    'crm-system': '/#/system/user',
+    'data-bi': '/#/dashboard/echarts',
+    'workflow-engine': '/#/system/role',
+    'file-manager': '/#/system/dict',
+    'message-center': '/#/system/notice',
+  }
+  const route = demoRoutes[app.name] || '/#/dashboard'
+  return window.location.origin + route
+}
+
+// 初始选中第一个
+watch(
+  () => filteredApps.value,
+  (list) => {
+    if (list.length > 0 && !activeAppKey.value) {
+      handleSelectApp(list[0])
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
-  <div class="p-6">
+  <div class="h-full flex flex-col p-4 gap-4">
     <!-- 页面标题 -->
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-        微前端管理
-      </h1>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-        管理和监控所有注册的微前端子应用
-      </p>
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-xl font-bold text-gray-900 dark:text-white">
+          微前端管理
+        </h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          子应用注册与预览（iframe 嵌套模式）
+        </p>
+      </div>
+      <a-button v-if="currentApp" @click="handleRefreshIframe">
+        <Icon icon="carbon:refresh" class="mr-1" />
+        刷新预览
+      </a-button>
     </div>
 
     <!-- 未启用提示 -->
     <div
       v-if="!isEnabled"
-      class="p-4 mb-6 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800"
+      class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800"
     >
-      <div class="flex items-center gap-2">
-        <span class="i-carbon-warning-alt text-yellow-500 text-xl" />
-        <p class="text-sm text-yellow-800 dark:text-yellow-200">
-          微前端功能未启用。请在 .env 文件中设置 VITE_MICRO_APP=true 启用。
-        </p>
-      </div>
-    </div>
-
-    <!-- 统计卡片 -->
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-      <div :class="statCardClassName">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
-            <span class="i-carbon-application text-blue-600 dark:text-blue-400 text-xl" />
-          </div>
-          <div>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white">
-              {{ totalCount }}
-            </p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">
-              总应用数
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div :class="statCardClassName">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/40 flex items-center justify-center">
-            <span class="i-carbon-circle-filled text-green-500 text-xl" />
-          </div>
-          <div>
-            <p class="text-2xl font-bold text-green-600 dark:text-green-400">
-              {{ runningCount }}
-            </p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">
-              运行中
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div :class="statCardClassName">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-            <span class="i-carbon-pause-filled text-gray-500 text-xl" />
-          </div>
-          <div>
-            <p class="text-2xl font-bold text-gray-600 dark:text-gray-400">
-              {{ stoppedCount }}
-            </p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">
-              已停止
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div :class="statCardClassName">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center">
-            <span class="i-carbon-document-text text-purple-600 dark:text-purple-400 text-xl" />
-          </div>
-          <div>
-            <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">
-              {{ iframeCount }}
-            </p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">
-              iframe 模式
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div :class="statCardClassName">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-cyan-100 dark:bg-cyan-900/40 flex items-center justify-center">
-            <span class="i-carbon-code text-cyan-600 dark:text-cyan-400 text-xl" />
-          </div>
-          <div>
-            <p class="text-2xl font-bold text-cyan-600 dark:text-cyan-400">
-              {{ webcomponentCount }}
-            </p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">
-              WebComponent
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 搜索与筛选栏 -->
-    <div class="flex flex-wrap items-center gap-3 mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-      <a-input
-        v-model:value="searchKeyword"
-        placeholder="搜索应用名称 / 标识 / 负责人"
-        allow-clear
-        style="width: 280px"
-      >
-        <template #prefix>
-          <span class="i-carbon-search text-gray-400" />
-        </template>
-      </a-input>
-
-      <a-select
-        v-model:value="statusFilter"
-        style="width: 130px"
-        placeholder="运行状态"
-      >
-        <a-select-option value="all">
-          全部状态
-        </a-select-option>
-        <a-select-option value="running">
-          运行中
-        </a-select-option>
-        <a-select-option value="stopped">
-          已停止
-        </a-select-option>
-      </a-select>
-
-      <a-select
-        v-model:value="loaderFilter"
-        style="width: 140px"
-        placeholder="加载方式"
-      >
-        <a-select-option value="all">
-          全部模式
-        </a-select-option>
-        <a-select-option value="webcomponent">
-          WebComponent
-        </a-select-option>
-        <a-select-option value="iframe">
-          iframe
-        </a-select-option>
-      </a-select>
-
-      <a-button @click="handleResetFilters">
-        重置
-      </a-button>
-
-      <span class="ml-auto text-sm text-gray-500 dark:text-gray-400">
-        共 {{ filteredApps.length }} 个应用
+      <span class="i-carbon-warning-alt text-yellow-500 mr-2" />
+      <span class="text-sm text-yellow-800 dark:text-yellow-200">
+        微前端功能未启用，请在 .env 中设置 VITE_MICRO_APP=true
       </span>
     </div>
 
-    <!-- 应用卡片网格 -->
-    <div
-      v-if="filteredApps.length > 0"
-      class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"
-    >
+    <!-- 主内容区：左右分栏 -->
+    <div class="flex gap-4 min-h-0 flex-1">
+      <!-- 左侧：应用列表 -->
       <div
-        v-for="app in filteredApps"
-        :key="app.name"
-        :class="appCardClassName"
-        @click="handleViewDetail(app)"
+        class="w-[320px] shrink-0 flex flex-col gap-3 overflow-y-auto rounded-lg border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 p-3"
       >
-        <!-- 卡片头部：图标 + 名称 + 状态 -->
-        <div class="flex items-start justify-between mb-3">
+        <!-- 统计概览 -->
+        <div class="grid grid-cols-3 gap-2">
+          <div :class="statCardClassName" class="p-2 text-center">
+            <p class="text-lg font-bold text-gray-900 dark:text-white">{{ apps.length }}</p>
+            <p class="text-[10px] text-gray-500">总数</p>
+          </div>
+          <div :class="statCardClassName" class="p-2 text-center">
+            <p class="text-lg font-bold text-green-600">{{ apps.filter(a => a.active).length }}</p>
+            <p class="text-[10px] text-gray-500">运行</p>
+          </div>
+          <div :class="statCardClassName" class="p-2 text-center">
+            <p class="text-lg font-bold text-gray-500">{{ apps.filter(a => !a.active).length }}</p>
+            <p class="text-[10px] text-gray-500">停止</p>
+          </div>
+        </div>
+
+        <!-- 搜索筛选 -->
+        <div class="flex flex-col gap-2">
+          <a-input
+            v-model:value="searchKeyword"
+            placeholder="搜索子应用..."
+            size="small"
+            allow-clear
+          >
+            <template #prefix>
+              <span class="i-carbon-search text-gray-400 text-xs" />
+            </template>
+          </a-input>
+          <a-select
+            v-model:value="statusFilter"
+            size="small"
+            class="w-full"
+          >
+            <a-select-option value="all">全部状态</a-select-option>
+            <a-select-option value="running">运行中</a-select-option>
+            <a-select-option value="stopped">已停止</a-select-option>
+          </a-select>
+        </div>
+
+        <!-- 应用列表 -->
+        <div class="flex-1 overflow-y-auto space-y-2 min-h-0">
+          <div
+            v-for="app in filteredApps"
+            :key="app.name"
+            :class="cn(
+              'p-3 rounded-lg border cursor-pointer transition-all duration-150',
+              'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700',
+              activeAppKey === app.name
+                ? 'border-blue-400 bg-blue-50/50 dark:border-blue-500 dark:bg-blue-900/20 shadow-sm'
+                : 'hover:border-blue-300 hover:shadow-sm',
+            )"
+            @click="handleSelectApp(app)"
+          >
+            <!-- 应用头部 -->
+            <div class="flex items-center gap-2 mb-1.5">
+              <div
+                class="w-7 h-7 rounded-md flex items-center justify-center shrink-0 text-sm"
+                :class="app.active
+                  ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                  : 'bg-gray-100 dark:bg-gray-700'"
+              >
+                <span
+                  v-if="app.icon"
+                  :class="[app.icon, app.active ? 'text-white' : 'text-gray-500']"
+                />
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  {{ app.title }}
+                </p>
+                <p class="text-[10px] text-gray-400 truncate">{{ app.name }}</p>
+              </div>
+              <span :class="getStatusTagClass(!!app.active)" class="shrink-0 text-[10px] px-1.5 py-0.5">
+                {{ app.active ? '运行' : '停止' }}
+              </span>
+            </div>
+
+            <!-- 元信息 -->
+            <div class="flex items-center gap-2 text-[10px] text-gray-500">
+              <span>v{{ app.version ?? '-' }}</span>
+              <span :class="getLoaderBadgeClass(app.loader)">{{ app.loader === 'iframe' ? 'iframe' : 'WC' }}</span>
+            </div>
+          </div>
+
+          <!-- 空状态 -->
+          <div
+            v-if="filteredApps.length === 0"
+            class="flex flex-col items-center justify-center py-8 text-gray-400"
+          >
+            <span class="i-carbon-application text-3xl mb-2 opacity-30" />
+            <p class="text-xs">无匹配的子应用</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧：iframe 预览区域 -->
+      <div class="flex-1 flex flex-col min-w-0 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden bg-gray-50 dark:bg-gray-900">
+        <!-- 预览头部信息栏 -->
+        <div
+          v-if="currentApp"
+          class="flex items-center justify-between px-4 py-2.5 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700"
+        >
           <div class="flex items-center gap-3">
             <div
-              class="w-11 h-11 rounded-xl flex items-center justify-center"
-              :class="app.active
+              class="w-8 h-8 rounded-lg flex items-center justify-center"
+              :class="currentApp.active
                 ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
                 : 'bg-gray-100 dark:bg-gray-700'"
             >
               <span
-                v-if="app.icon"
-                :class="[app.icon,
-                         app.active ? 'text-white' : 'text-gray-500']"
-                class="text-xl"
-              />
-              <span
-                v-else
-                :class="app.active ? 'text-white' : 'text-gray-400'"
-                class="i-carbon-application text-xl"
+                v-if="currentApp.icon"
+                :class="[currentApp.icon, currentApp.active ? 'text-white' : 'text-gray-500']"
+                class="text-base"
               />
             </div>
             <div>
-              <h3 class="text-base font-semibold text-gray-900 dark:text-white leading-tight">
-                {{ app.title }}
-              </h3>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                {{ app.name }}
+              <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                {{ currentApp.title }}
               </p>
+              <p class="text-[10px] text-gray-500">{{ getAppPreviewUrl(currentApp) }}</p>
             </div>
           </div>
-          <span :class="getStatusTagClass(!!app.active)">
-            {{ app.active ? '运行中' : '已停止' }}
-          </span>
-        </div>
-
-        <!-- 描述 -->
-        <p
-          v-if="app.description"
-          class="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2"
-        >
-          {{ app.description }}
-        </p>
-
-        <!-- 元信息行 -->
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-500 dark:text-gray-400 mb-4">
-          <span v-if="app.version">
-            <span class="i-carbon-tag text-xs mr-0.5" />v{{ app.version }}
-          </span>
-          <span v-if="app.owner">
-            <span class="i-carbon-user text-xs mr-0.5" />{{ app.owner }}
-          </span>
-          <span :class="getLoaderBadgeClass(app.loader)">
-            {{ app.loader === 'iframe' ? 'iframe' : 'WebComponent' }}
-          </span>
-        </div>
-
-        <!-- 地址 -->
-        <div class="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-50 dark:bg-gray-900/60 rounded-md mb-4">
-          <span class="i-carbon-link text-gray-400 text-xs shrink-0" />
-          <span class="text-xs text-gray-600 dark:text-gray-400 truncate font-mono">
-            {{ app.url }}
-          </span>
-        </div>
-
-        <!-- 操作按钮 -->
-        <div
-          class="flex items-center gap-2 pt-3 border-t border-gray-100 dark:border-gray-700"
-          @click.stop
-        >
-          <a-button
-            :type="app.active ? 'default' : 'primary'"
-            size="small"
-            @click="handleToggleStatus(app)"
-          >
-            {{ app.active ? '停止' : '启动' }}
-          </a-button>
-          <a-button
-            size="small"
-            @click="handlePreview(app)"
-          >
-            预览
-          </a-button>
-          <a-popconfirm
-            title="确定要重启该应用吗？"
-            ok-text="确定"
-            cancel-text="取消"
-            @confirm="() => { app.active = false; setTimeout(() => { app.active = true }, 500); }"
-          >
+          <div class="flex items-center gap-2">
+            <span :class="getStatusTagClass(!!currentApp.active)">
+              {{ currentApp.active ? '运行中' : '已停止' }}
+            </span>
             <a-button
+              :type="currentApp.active ? 'default' : 'primary'"
               size="small"
-              :disabled="!app.active"
+              @click="handleToggleStatus(currentApp!)"
             >
-              重启
+              {{ currentApp.active ? '停止' : '启动' }}
             </a-button>
-          </a-popconfirm>
-        </div>
-      </div>
-    </div>
-
-    <!-- 空状态 -->
-    <div
-      v-else
-      class="text-center py-16"
-    >
-      <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-        <span class="i-carbon-application text-4xl text-gray-400" />
-      </div>
-      <p class="text-gray-500 dark:text-gray-400 text-base">
-        未找到匹配的子应用
-      </p>
-      <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">
-        尝试调整搜索条件或筛选器
-      </p>
-      <a-button
-        type="link"
-        class="mt-3"
-        @click="handleResetFilters"
-      >
-        清除筛选条件
-      </a-button>
-    </div>
-
-    <!-- 详情抽屉 -->
-    <BasicDrawer
-      v-model:open="drawerVisible"
-      :title="currentApp?.title ?? '应用详情'"
-      width="520"
-    >
-      <template v-if="currentApp">
-        <!-- 头部信息 -->
-        <div class="flex items-center gap-4 mb-6 pb-5 border-b border-gray-100 dark:border-gray-700">
-          <div
-            class="w-14 h-14 rounded-xl flex items-center justify-center"
-            :class="currentApp.active
-              ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
-              : 'bg-gray-100 dark:bg-gray-700'"
-          >
-            <span
-              v-if="currentApp.icon"
-              :class="[currentApp.icon,
-                       currentApp.active ? 'text-white' : 'text-gray-500']"
-              class="text-2xl"
-            />
           </div>
-          <div class="flex-1">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-              {{ currentApp.title }}
-            </h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-              {{ currentApp.name }}
+        </div>
+
+        <!-- iframe 容器 -->
+        <div class="flex-1 relative bg-white dark:bg-gray-800">
+          <!-- 加载态 -->
+          <div
+            v-if="!iframeLoaded[currentApp!.name]"
+            class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900"
+          >
+            <a-spin size="large" />
+            <p class="mt-2 text-xs text-gray-500">
+              正在加载子应用 {{ currentApp?.title }}...
             </p>
           </div>
-          <span
-            :class="getStatusTagClass(!!currentApp.active)"
-            class="text-sm px-3 py-1"
+
+          <!-- iframe 嵌入子应用 -->
+          <iframe
+            v-if="currentApp"
+            :data-app="currentApp.name"
+            :src="getAppPreviewUrl(currentApp)"
+            class="w-full h-full border-0"
+            :style="{ minHeight: '500px' }"
+            frameborder="0"
+            allow="clipboard-write; autoplay; fullscreen"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
+            @load="handleIframeLoad(currentApp!.name)"
+            @error="handleIframeError(currentApp!.name)"
+          />
+
+          <!-- 无选中状态 -->
+          <div
+            v-if="!currentApp"
+            class="h-full flex flex-col items-center justify-center text-gray-400"
           >
-            {{ currentApp.active ? '运行中' : '已停止' }}
-          </span>
+            <span class="i-carbon-application text-5xl mb-3 opacity-20" />
+            <p class="text-sm">选择左侧子应用开始预览</p>
+            <p class="text-xs mt-1 opacity-60">支持 iframe 嵌套模式</p>
+          </div>
         </div>
-
-        <!-- 描述 -->
-        <div
-          v-if="currentApp.description"
-          class="mb-6 p-3 bg-gray-50 dark:bg-gray-900/60 rounded-lg"
-        >
-          <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-            {{ currentApp.description }}
-          </p>
-        </div>
-
-        <!-- 详细信息表格 -->
-        <a-descriptions
-          :column="1"
-          bordered
-          size="small"
-        >
-          <a-descriptions-item label="应用标识">
-            <code class="text-xs px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded font-mono">{{ currentApp.name }}</code>
-          </a-descriptions-item>
-          <a-descriptions-item label="访问地址">
-            <a-typography-link
-              :href="currentApp.url"
-              target="_blank"
-            >
-              {{ currentApp.url }}
-            </a-typography-link>
-          </a-descriptions-item>
-          <a-descriptions-item label="基础路由">
-            <code class="text-xs px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded font-mono">{{ currentApp.baseroute ?? '/' }}</code>
-          </a-descriptions-item>
-          <a-descriptions-item label="版本号">
-            <a-tag color="blue">
-              v{{ currentApp.version ?? '-' }}
-            </a-tag>
-          </a-descriptions-item>
-          <a-descriptions-item label="负责团队">
-            {{ currentApp.owner ?? '-' }}
-          </a-descriptions-item>
-          <a-descriptions-item label="加载方式">
-            <a-tag :color="currentApp.loader === 'iframe' ? 'purple' : 'processing'">
-              {{ currentApp.loader === 'iframe' ? 'iframe' : 'WebComponent' }}
-            </a-tag>
-          </a-descriptions-item>
-          <a-descriptions-item label="健康检查">
-            <code class="text-xs px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded font-mono">{{ currentApp.healthUrl ?? '-' }}</code>
-          </a-descriptions-item>
-          <a-descriptions-item label="最后更新">
-            {{ currentApp.lastUpdate ?? '-' }}
-          </a-descriptions-item>
-        </a-descriptions>
-
-        <!-- 底部操作 -->
-        <div class="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700 flex gap-3">
-          <a-button
-            :type="currentApp.active ? 'default' : 'primary'"
-            block
-            size="large"
-            @click="handleToggleStatus(currentApp!)"
-          >
-            {{ currentApp.active ? '停止应用' : '启动应用' }}
-          </a-button>
-          <a-button
-            block
-            size="large"
-            @click="handlePreview(currentApp!); drawerVisible = false"
-          >
-            打开预览
-          </a-button>
-        </div>
-      </template>
-    </BasicDrawer>
-
-    <!-- 预览弹窗 -->
-    <BasicModal
-      v-model:open="previewVisible"
-      :title="`${currentApp?.title} - 预览`"
-      width="90%"
-      :style="{ maxWidth: '1200px', height: '80vh' }"
-      :footer="null"
-    >
-      <div class="h-[calc(80vh-100px)] rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-        <MicroAppContainer
-          v-if="currentApp"
-          :name="currentApp.name"
-          :url="currentApp.url"
-          :baseroute="currentApp.baseroute"
-        />
       </div>
-    </BasicModal>
+    </div>
   </div>
 </template>

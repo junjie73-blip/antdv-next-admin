@@ -21,7 +21,7 @@
 
 ### `.env` — 公共变量
 
-```env
+```bash
 # 应用标题
 VITE_APP_TITLE=Antdv Next Vue Admin
 
@@ -41,7 +41,7 @@ VITE_VISUALIZER=true
 
 ### `.env.production` — 生产环境
 
-```env
+```bash
 # 生产环境压缩格式
 VITE_COMPRESS=gzip
 

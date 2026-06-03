@@ -78,7 +78,8 @@ export async function createPlugin({
     }),
   ]
 
-  if (env.VITE_DEVTOOLS) {
+  // 仅开发环境加载 Vue DevTools，避免生产环境请求 /@vite/client
+  if (env.VITE_DEVTOOLS && !isBuild) {
     plugins.push(viteVueDevTools())
   }
   isBuild && env.VITE_ARCHIVER && plugins.push(viteArchiverPlugin({}))

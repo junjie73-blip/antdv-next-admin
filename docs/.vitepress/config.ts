@@ -6,6 +6,7 @@ export default defineConfig({
   lang: 'zh-CN',
   // GitHub Pages 部署路径，与仓库名保持一致
   base: process.env.VITEPRESS_BASE || '/',
+  ignoreDeadLinks: true,
 
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
@@ -115,7 +116,7 @@ export default defineConfig({
     },
 
     editLink: {
-      pattern: 'https://github.com/your-repo/antdv-next-admin/edit/main/docs/:path',
+      pattern: 'https://github.com/junjie73-blip/antdv-next-admin/edit/main/docs/:path',
       text: '在 GitHub 上编辑此页',
     },
 

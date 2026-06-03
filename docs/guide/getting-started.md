@@ -29,7 +29,7 @@ pnpm install
 bun dev
 ```
 
-启动后访问 http://localhost:9080
+启动后访问 `http://localhost:9080`
 
 > 默认账号：`admin` / 密码：`admin123`
 

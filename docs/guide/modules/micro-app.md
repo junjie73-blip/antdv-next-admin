@@ -517,7 +517,7 @@ export function getAllMicroApps(): MicroAppItem[] {
 
 ### 环境变量配置
 
-```env
+```bash
 # .env 文件
 VITE_MICRO_APP=true
 ```

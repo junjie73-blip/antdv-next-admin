@@ -22,6 +22,14 @@ export const frontendMenus: MenuConfig[] = [
         component: '@/views/dashboard/index.vue',
         keepAlive: true,
       },
+      {
+        path: 'micro-app',
+        name: 'SystemMicroApp',
+        title: '微前端管理',
+        icon: 'carbon:cloud-app',
+        component: '@/views/system/micro-app/index.vue',
+        keepAlive: true,
+      },
     ],
   },
   {
