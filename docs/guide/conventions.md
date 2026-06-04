@@ -91,11 +91,11 @@ docs(readme): 更新技术栈版本号
 ### 安装新依赖
 
 ```bash
-# 必须使用 bun
-bun add package-name
+# 必须使用 pnpm
+pnpm add package-name
 
 # 开发依赖
-bun add -D package-name
+pnpm add -D package-name
 ```
 
 ### 安全审计
@@ -103,5 +103,5 @@ bun add -D package-name
 每次引入新依赖后必须执行审计：
 
 ```bash
-bun audit package-name
+pnpm audit package-name
 ```

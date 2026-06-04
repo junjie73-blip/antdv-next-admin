@@ -33,7 +33,7 @@ const displayRole = computed(() => {
   return '未分配'
 })
 
-const displayPermissions = computed(() => {
+const _displayPermissions = computed(() => {
   const perms = userStore.permissions
   if (Array.isArray(perms) && perms.length > 0) {
     return perms.join('、')

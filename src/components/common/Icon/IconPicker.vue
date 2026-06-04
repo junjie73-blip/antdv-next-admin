@@ -171,7 +171,7 @@ onBeforeUnmount(() => {
 function iconItemClassName(icon: string) {
   return cn(
     'flex items-center justify-center',
-    'w-7 h-7 rounded',
+    'w-8 h-8 rounded',
     'border border-gray-200 dark:border-gray-700',
     'hover:bg-blue-50 hover:border-blue-400 dark:hover:bg-blue-900/30 dark:hover:border-blue-500',
     'cursor-pointer transition-all duration-150',
@@ -185,7 +185,7 @@ function iconItemClassName(icon: string) {
 
 const inputClassName = cn('cursor-pointer')
 const popoverContentClassName = cn('w-[520px]')
-const gridRowClassName = cn('grid grid-cols-10 gap-1')
+const gridRowClassName = cn('grid grid-cols-10 gap-1.5')
 const scrollerContainerClassName = cn('flex-1 mt-3')
 const totalInfoClassName = cn(
   'flex items-center justify-between',

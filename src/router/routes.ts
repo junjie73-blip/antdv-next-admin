@@ -2,6 +2,14 @@ import type { AppRouteRecordRaw } from '#/app-router'
 
 export const constantRoutes: AppRouteRecordRaw[] = [
   {
+    path: '/',
+    redirect: '/login',
+    meta: {
+      title: '根路径',
+      hidden: true,
+    },
+  },
+  {
     path: '/login',
     name: 'Login',
     component: () => import('@/views/login/index.vue'),

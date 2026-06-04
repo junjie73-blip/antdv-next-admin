@@ -94,7 +94,25 @@ export function useMenu(_menus?: MenuConfig[]) {
   )
 
   function handleOpenChange(keys: string[]) {
-    openKeys.value = keys
+    // 支持多个子菜单同时展开：合并新旧 keys 而非替换
+    const current = new Set(openKeys.value)
+    const next = new Set(keys)
+
+    // 判断是展开还是收起操作
+    const added = [...next].filter(k => !current.has(k))
+    const removed = [...current].filter(k => !next.has(k))
+
+    if (removed.length > 0) {
+      // 收起操作：移除被关闭的 key
+      openKeys.value = [...current].filter(k => !removed.includes(k))
+    }
+    else if (added.length > 0) {
+      // 展开操作：追加新 key，保留已有的
+      openKeys.value = [...current, ...added]
+    }
+    else {
+      openKeys.value = keys
+    }
   }
 
   return {

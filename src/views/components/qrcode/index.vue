@@ -27,8 +27,12 @@ async function generateBasicQR() {
   }
 }
 
-watch(basicText, () => { generateBasicQR() })
-onMounted(() => { generateBasicQR() })
+watch(basicText, () => {
+  generateBasicQR()
+})
+onMounted(() => {
+  generateBasicQR()
+})
 
 const logoText = ref('https://antdv-next.com')
 const logoQrCanvas = useTemplateRef<HTMLCanvasElement>('logoQrCanvas')
@@ -68,8 +72,12 @@ async function generateLogoQR() {
   }
 }
 
-watch([logoText, showLogo], () => { generateLogoQR() })
-onMounted(() => { generateLogoQR() })
+watch([logoText, showLogo], () => {
+  generateLogoQR()
+})
+onMounted(() => {
+  generateLogoQR()
+})
 
 const downloadFormat = ref<'png' | 'svg' | 'dataURL'>('png')
 const downloadQrCanvas = useTemplateRef<HTMLCanvasElement>('downloadQrCanvas')
@@ -89,7 +97,9 @@ async function generateDownloadQR() {
   }
 }
 
-onMounted(() => { generateDownloadQR() })
+onMounted(() => {
+  generateDownloadQR()
+})
 
 function handleDownload() {
   if (!downloadQrCanvas.value)
@@ -141,7 +151,9 @@ function simulateScan() {
     const randomResult = results[Math.floor(Math.random() * results.length)]
     scanResult.value = randomResult
     scanHistory.value.unshift(randomResult)
-    if (scanHistory.value.length > 5) { scanHistory.value.pop() }
+    if (scanHistory.value.length > 5) {
+      scanHistory.value.pop()
+    }
     scanning.value = false
     message.success('Scan complete')
   }, 1500)
@@ -181,8 +193,12 @@ async function generateErrorCorrectionQRs() {
   }
 }
 
-watch(errorCorrectionLevel, () => { generateErrorCorrectionQRs() })
-onMounted(() => { generateErrorCorrectionQRs() })
+watch(errorCorrectionLevel, () => {
+  generateErrorCorrectionQRs()
+})
+onMounted(() => {
+  generateErrorCorrectionQRs()
+})
 
 const customSize = ref(200)
 const customDarkColor = ref('#1677ff')
@@ -205,8 +221,12 @@ async function generateCustomQR() {
   }
 }
 
-watch([customSize, customDarkColor, customLightColor, customText], () => { generateCustomQR() })
-onMounted(() => { generateCustomQR() })
+watch([customSize, customDarkColor, customLightColor, customText], () => {
+  generateCustomQR()
+})
+onMounted(() => {
+  generateCustomQR()
+})
 
 const colorPresets = [
   { name: 'B&W', dark: '#000000', light: '#ffffff' },

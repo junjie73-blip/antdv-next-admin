@@ -72,6 +72,17 @@ export function getDynamicRules(schema: FormSchema, formModel: Recordable, formA
     ]
   }
 
+  // 防御性检查：过滤掉 pattern 为 null/undefined 的规则，避免 async-validator 报错
+  if (rules && Array.isArray(rules)) {
+    return rules.filter((rule) => {
+      if (rule.pattern != null && !(rule.pattern instanceof RegExp)) {
+        console.warn(`[Form] 字段 "${schema.field}" 的规则包含无效 pattern，已跳过`)
+        return false
+      }
+      return true
+    })
+  }
+
   return rules
 }
 

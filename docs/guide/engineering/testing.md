@@ -36,19 +36,19 @@ export default mergeConfig(
 
 ```bash
 # 运行所有测试
-bun run test:unit
+pnpm run test:unit
 
 # 监听模式（文件变更自动重跑）
-bun run test:unit -- --watch
+pnpm run test:unit -- --watch
 
 # 覆盖率报告
-bun run test:unit -- --coverage
+pnpm run test:unit -- --coverage
 
 # 运行指定测试文件
-bun run test:unit -- src/components/business/Form/__tests__/*.spec.ts
+pnpm run test:unit -- src/components/business/Form/__tests__/*.spec.ts
 
 # 运行匹配名称的测试
-bun run test:unit -- --reporter=verbose
+pnpm run test:unit -- --reporter=verbose
 ```
 
 ## 测试文件命名规范
@@ -355,16 +355,16 @@ export default defineConfig({
 
 ```bash
 # 运行所有 E2E 测试
-bun run test:e2e
+pnpm test:e2e
 
 # 仅运行 Chrome
-bun run test:e2e --project=chromium
+pnpm test:e2e --project=chromium
 
 # UI 模式（可视化调试）
-bun run test:e2e --ui
+pnpm test:e2e --ui
 
 # 生成测试报告
-bun run test:e2e --reporter=html
+pnpm test:e2e --reporter=html
 ```
 
 ## 测试用例编写规范
@@ -442,19 +442,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install --frozen-lockfile
-      - run: bun run test:unit -- --coverage
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run test:unit -- --coverage
       - uses: codecov/codecov-action@v4  # 上传覆盖率
 
   e2e-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install --frozen-lockfile
-      - run: bun run build
-      - run: bun run test:e2e
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+      - run: pnpm test:e2e
 ```
 
 ### 测试质量门禁建议

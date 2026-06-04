@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1677ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4096ff;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- 圆角矩形背景 -->
+  <rect x="2" y="2" width="36" height="36" rx="10" ry="10" fill="url(#grad)"/>
+  <!-- A 字母（白色） -->
+  <path d="M20 10 L12 30 L16 30 L18.5 24 L25.5 24 L28 30 L32 30 L24 10 Z M19.5 21 L22 15 L24.5 21 Z"
+        fill="white"/>
+  <!-- 装饰点 -->
+  <circle cx="28" cy="14" r="2" fill="white" opacity="0.7"/>
+</svg>

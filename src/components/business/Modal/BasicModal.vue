@@ -168,7 +168,7 @@ const footerClassName = cn(
     :mask-style="maskStyle"
     :dialog-style="dialogStyle"
     :wrap-class-name="wrapClassName"
-    :destroy-on-hidden="destroyOnClose"
+    :destroy-on-hidden="destroyOnHidden"
     :styles="modalStyles"
     @cancel="handleVisibleChange"
   >

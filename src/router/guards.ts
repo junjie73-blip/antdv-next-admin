@@ -1,6 +1,7 @@
 import type { Router } from 'vue-router'
 import NProgress from 'nprogress'
 import { useAppStore } from '@/stores/modules/app'
+import { useDictStore } from '@/stores/modules/dict'
 import { useRouteStore } from '@/stores/modules/route'
 import { useUserStore } from '@/stores/modules/user'
 import { catchAllRoute } from './routes'
@@ -106,6 +107,21 @@ function createDynamicRouteGuard(router: Router) {
     }
 
     if (routeStore.isLoaded) {
+      // 检查目标路由是否已注册（处理刷新场景）
+      const matched = router.hasRoute(to.name as string) || to.matched.length > 0
+      if (!matched && to.path !== '/' && to.path !== '/404' && to.path !== '/login') {
+        // 路由未注册，重新初始化
+        routeStore.resetRoutes()
+        // 下一轮 beforeEach 会重新加载路由
+        return { path: to.fullPath, replace: true }
+      }
+
+      // 路由已就绪，异步预加载字典数据（不阻塞导航）
+      const dictStore = useDictStore()
+      if (!dictStore.isLoaded && !dictStore.loading) {
+        dictStore.fetchAllDicts()
+      }
+
       return true
     }
 

@@ -1,8 +1,8 @@
 <script setup lang="tsx">
-import { ref, computed, watch } from 'vue'
+import type { MicroAppItem } from '#/micro-app'
+import { computed, ref, watch } from 'vue'
 import { getAllMicroApps, microAppConfig } from '@/config/micro-app'
 import { cn } from '@/utils/cn'
-import type { MicroAppItem } from '#/micro-app'
 
 // 状态
 const apps = ref<MicroAppItem[]>(getAllMicroApps())
@@ -73,18 +73,23 @@ function handleIframeError(name: string) {
   iframeLoading.value = null
 }
 
-function handleResetFilters() {
+function _handleResetFilters() {
   searchKeyword.value = ''
   statusFilter.value = 'all'
 }
 
 function handleRefreshIframe() {
-  if (!currentApp.value) return
+  if (!currentApp.value)
+    return
   iframeLoaded.value[currentApp.value.name] = false
   const iframeEl = document.querySelector(`iframe[data-app="${currentApp.value.name}"]`) as HTMLIFrameElement
   if (iframeEl) {
-    iframeLoading.value = currentApp.value.name
-    iframeEl.src = iframeEl.src
+    // 强制刷新 iframe
+    const src = iframeEl.src
+    iframeEl.src = 'about:blank'
+    setTimeout(() => {
+      iframeEl.src = src
+    }, 50)
   }
 }
 
@@ -143,8 +148,14 @@ watch(
           子应用注册与预览（iframe 嵌套模式）
         </p>
       </div>
-      <a-button v-if="currentApp" @click="handleRefreshIframe">
-        <Icon icon="carbon:refresh" class="mr-1" />
+      <a-button
+        v-if="currentApp"
+        @click="handleRefreshIframe"
+      >
+        <Icon
+          icon="carbon:refresh"
+          class="mr-1"
+        />
         刷新预览
       </a-button>
     </div>
@@ -168,17 +179,38 @@ watch(
       >
         <!-- 统计概览 -->
         <div class="grid grid-cols-3 gap-2">
-          <div :class="statCardClassName" class="p-2 text-center">
-            <p class="text-lg font-bold text-gray-900 dark:text-white">{{ apps.length }}</p>
-            <p class="text-[10px] text-gray-500">总数</p>
+          <div
+            :class="statCardClassName"
+            class="p-2 text-center"
+          >
+            <p class="text-lg font-bold text-gray-900 dark:text-white">
+              {{ apps.length }}
+            </p>
+            <p class="text-[10px] text-gray-500">
+              总数
+            </p>
           </div>
-          <div :class="statCardClassName" class="p-2 text-center">
-            <p class="text-lg font-bold text-green-600">{{ apps.filter(a => a.active).length }}</p>
-            <p class="text-[10px] text-gray-500">运行</p>
+          <div
+            :class="statCardClassName"
+            class="p-2 text-center"
+          >
+            <p class="text-lg font-bold text-green-600">
+              {{ apps.filter(a => a.active).length }}
+            </p>
+            <p class="text-[10px] text-gray-500">
+              运行
+            </p>
           </div>
-          <div :class="statCardClassName" class="p-2 text-center">
-            <p class="text-lg font-bold text-gray-500">{{ apps.filter(a => !a.active).length }}</p>
-            <p class="text-[10px] text-gray-500">停止</p>
+          <div
+            :class="statCardClassName"
+            class="p-2 text-center"
+          >
+            <p class="text-lg font-bold text-gray-500">
+              {{ apps.filter(a => !a.active).length }}
+            </p>
+            <p class="text-[10px] text-gray-500">
+              停止
+            </p>
           </div>
         </div>
 
@@ -199,9 +231,15 @@ watch(
             size="small"
             class="w-full"
           >
-            <a-select-option value="all">全部状态</a-select-option>
-            <a-select-option value="running">运行中</a-select-option>
-            <a-select-option value="stopped">已停止</a-select-option>
+            <a-select-option value="all">
+              全部状态
+            </a-select-option>
+            <a-select-option value="running">
+              运行中
+            </a-select-option>
+            <a-select-option value="stopped">
+              已停止
+            </a-select-option>
           </a-select>
         </div>
 
@@ -229,16 +267,22 @@ watch(
               >
                 <span
                   v-if="app.icon"
-                  :class="[app.icon, app.active ? 'text-white' : 'text-gray-500']"
+                  :class="[app.icon,
+                           app.active ? 'text-white' : 'text-gray-500']"
                 />
               </div>
               <div class="min-w-0 flex-1">
                 <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
                   {{ app.title }}
                 </p>
-                <p class="text-[10px] text-gray-400 truncate">{{ app.name }}</p>
+                <p class="text-[10px] text-gray-400 truncate">
+                  {{ app.name }}
+                </p>
               </div>
-              <span :class="getStatusTagClass(!!app.active)" class="shrink-0 text-[10px] px-1.5 py-0.5">
+              <span
+                :class="getStatusTagClass(!!app.active)"
+                class="shrink-0 text-[10px] px-1.5 py-0.5"
+              >
                 {{ app.active ? '运行' : '停止' }}
               </span>
             </div>
@@ -256,7 +300,9 @@ watch(
             class="flex flex-col items-center justify-center py-8 text-gray-400"
           >
             <span class="i-carbon-application text-3xl mb-2 opacity-30" />
-            <p class="text-xs">无匹配的子应用</p>
+            <p class="text-xs">
+              无匹配的子应用
+            </p>
           </div>
         </div>
       </div>
@@ -277,7 +323,8 @@ watch(
             >
               <span
                 v-if="currentApp.icon"
-                :class="[currentApp.icon, currentApp.active ? 'text-white' : 'text-gray-500']"
+                :class="[currentApp.icon,
+                         currentApp.active ? 'text-white' : 'text-gray-500']"
                 class="text-base"
               />
             </div>
@@ -285,7 +332,9 @@ watch(
               <p class="text-sm font-semibold text-gray-900 dark:text-white">
                 {{ currentApp.title }}
               </p>
-              <p class="text-[10px] text-gray-500">{{ getAppPreviewUrl(currentApp) }}</p>
+              <p class="text-[10px] text-gray-500">
+                {{ getAppPreviewUrl(currentApp) }}
+              </p>
             </div>
           </div>
           <div class="flex items-center gap-2">
@@ -335,8 +384,12 @@ watch(
             class="h-full flex flex-col items-center justify-center text-gray-400"
           >
             <span class="i-carbon-application text-5xl mb-3 opacity-20" />
-            <p class="text-sm">选择左侧子应用开始预览</p>
-            <p class="text-xs mt-1 opacity-60">支持 iframe 嵌套模式</p>
+            <p class="text-sm">
+              选择左侧子应用开始预览
+            </p>
+            <p class="text-xs mt-1 opacity-60">
+              支持 iframe 嵌套模式
+            </p>
           </div>
         </div>
       </div>

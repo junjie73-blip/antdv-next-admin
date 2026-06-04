@@ -30,7 +30,6 @@ const uploadSectionClassName = cn('flex flex-col items-center justify-center p-6
 const uploadIconClassName = cn('text-4xl text-gray-400 mb-2')
 const uploadTextClassName = cn('text-gray-600 dark:text-gray-400')
 const uploadHintClassName = cn('text-sm text-gray-400 dark:text-gray-500 mt-1')
-const emptyStateClassName = cn('flex items-center justify-center w-full h-[400px] bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700')
 const previewSectionClassName = cn('mt-4')
 const previewTitleClassName = cn('text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3')
 const previewGridClassName = cn('flex gap-4')

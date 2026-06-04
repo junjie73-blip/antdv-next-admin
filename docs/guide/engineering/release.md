@@ -76,7 +76,7 @@
 
 ### 命令详解
 
-#### `bun run release` — 自动版本升级
+#### `pnpm run release` — 自动版本升级
 
 根据 commit 类型自动决定版本号升级幅度：
 
@@ -97,12 +97,12 @@
 
 ---
 
-#### `bun run release:first` — 首次发布
+#### `pnpm run release:first` — 首次发布
 
 用于项目首次发布，从 `0.0.0` 开始：
 
 ```bash
-bun run release:first
+pnpm run release:first
 # 输出: 1.0.0 (首个正式版本)
 ```
 
@@ -110,13 +110,13 @@ bun run release:first
 
 ---
 
-#### `bun run release:minor` — 次版本发布
+#### `pnpm run release:minor` — 次版本发布
 
 强制升级次版本号：
 
 ```bash
 # 当前版本: 1.2.3
-bun run release:minor
+pnpm run release:minor
 # 新版本: 1.3.0
 
 # 无论 commit 中是否有 feat，都会升级 MINOR 位
@@ -126,13 +126,13 @@ bun run release:minor
 
 ---
 
-#### `bun run release:major` — 主版本发布
+#### `pnpm run release:major` — 主版本发布
 
 强制升级主版本号：
 
 ```bash
 # 当前版本: 1.2.3
-bun run release:major
+pnpm run release:major
 # 新版本: 2.0.0
 
 # 表示有不兼容的重大变更
@@ -142,13 +142,13 @@ bun run release:major
 
 ---
 
-#### `bun run release:patch` — 补丁版本发布
+#### `pnpm run release:patch` — 补丁版本发布
 
 仅升级补丁号：
 
 ```bash
 # 当前版本: 1.2.3
-bun run release:patch
+pnpm run release:patch
 # 新版本: 1.2.4
 
 # 仅包含 bug 修复
@@ -242,7 +242,7 @@ BREAKING CHANGE: getSession() 方法已移除，请使用 TokenManager.getToken(
 
 ```bash
 # 1. 执行 release 命令（生成 changelog + version bump commit）
-bun run release:minor
+pnpm run release:minor
 
 # 2. 创建 annotated tag
 git tag -a v1.3.0 -m "Release v1.3.0"
@@ -277,10 +277,10 @@ git log v1.2.0..v1.3.0 --oneline
 
 ```bash
 # 1. 更新版本
-bun run release:minor
+pnpm run release:minor
 
 # 2. 构建
-bun run build
+pnpm run build
 
 # 3. 登录 npm（首次需要）
 npm login
@@ -295,12 +295,12 @@ git push origin main --tags
 
 ### 发布前检查清单
 
-- [ ] 所有测试通过 (`bun run test:unit`)
-- [ ] 类型检查通过 (`bun run type-check`)
-- [ ] Lint 检查通过 (`bun run lint:fix`)
+- [ ] 所有测试通过 (`pnpm run test:unit`)
+- [ ] 类型检查通过 (`pnpm run type-check`)
+- [ ] Lint 检查通过 (`pnpm run lint:fix`)
 - [ ] CHANGELOG.md 内容正确
 - [ ] package.json version 已更新
-- [ ] 无安全漏洞 (`bun audit`)
+- [ ] 无安全漏洞 (`pnpm audit`)
 
 ## 完整发布流程示例
 
@@ -311,10 +311,10 @@ git push origin main --tags
 git checkout main && git pull
 
 # 2. 运行测试和质量检查
-bun run test:unit && bun run type-check && bun run lint:fix
+pnpm run test:unit && pnpm run type-check && pnpm run lint:fix
 
 # 3. 执行补丁发布
-bun run release:patch
+pnpm run release:patch
 
 # 4. 检查生成的 CHANGELOG
 cat CHANGELOG.md | head -30
@@ -334,7 +334,7 @@ git push origin v1.2.4
 git log v1.0.0..main --oneline | grep "BREAKING"
 
 # 2. 执行 major 发布
-bun run release:major
+pnpm run release:major
 
 # 3. 仔细审查 CHANGELOG 中的 Breaking Changes 部分
 cat CHANGELOG.md

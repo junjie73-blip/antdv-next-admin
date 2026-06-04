@@ -13,7 +13,6 @@ interface InitMessage {
 
 type WorkerMessage = ProcessMessage | InitMessage
 
-let globalFileSize = 0
 let chunks: ArrayBuffer[] = []
 
 async function computeHash(buffers: ArrayBuffer[]): Promise<string> {
@@ -43,13 +42,12 @@ function simulateProcess(duration: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, duration))
 }
 
-self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
+globalThis.onmessage = async (e: MessageEvent<WorkerMessage>) => {
   const { type } = e.data
 
   if (type === 'init') {
-    globalFileSize = e.data.fileSize
     chunks = []
-    self.postMessage({ type: 'ready' })
+    globalThis.postMessage({ type: 'ready' })
     return
   }
 
@@ -58,7 +56,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
     chunks[index] = chunk
 
     const progress = (index + 1) / total
-    self.postMessage({
+    globalThis.postMessage({
       type: 'progress',
       index,
       progress: Math.round(progress * 100),
@@ -69,6 +67,6 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 
   if (type === 'process' && e.data.index === e.data.total - 1) {
     const hash = await computeHash(chunks)
-    self.postMessage({ type: 'complete', hash })
+    globalThis.postMessage({ type: 'complete', hash })
   }
 }

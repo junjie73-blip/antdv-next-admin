@@ -1,7 +1,7 @@
-包管理器使用`Bun`，框架：`Vue 3`+`TypeScript`+`Antdv Next` + `Tailwindcss`
+包管理器使用`pnpm`，框架：`Vue 3`+`TypeScript`+`Antdv Next` + `Tailwindcss`
 禁止在标签上编写`Tailwindcss`类名，而是使用`cn`,需要从`@/utils/cn`中导入，动态生成类名。禁止将`cn`函数的参数写在模板中，例如：`<div :class="cn('bg-red-500', 'text-white')">`。而是在script setup中定义类名变量，例如：`const className = cn('bg-red-500', 'text-white')`，然后在模板中使用该变量，例如：`<div :class="className">`。
 禁止使用`less`,`scss`等预处理器，仅使用`Tailwindcss`。
-导入新的依赖，需要执行`bun add 依赖名`。
+导入新的依赖，需要执行`pnpm add 依赖名`。
 dom 需要使用  `useTemplateRef` 来获取 dom 元素，禁止直接使用 `document.querySelector` 等方法。
 该项目配置了自动导入，禁止在此导入组件，例如：`import { NDropdownOption } from 'naive-ui'`。而是在模版中使用组件，例如：`<n-dropdown>`。
 存入缓存一律使用`localStorageCacheStorage`,从`@/utils/cache`中导入。禁止直接使用`localStorage`。

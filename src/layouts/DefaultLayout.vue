@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { MenuProps } from 'antdv-next'
 
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useWatermark } from '@/composables/web/useWatermark'
 import { useAppStore } from '@/stores/modules/app'
@@ -52,7 +52,7 @@ const isVertical = computed(() => appStore.layout === 'vertical')
 const isHorizontal = computed(() => appStore.layout === 'horizontal')
 const isMixed = computed(() => appStore.layout === 'mixed')
 const isGeekStyle = computed(() => appStore.themeStyle === 'geek')
-const isDarkMode = computed(() => appStore.themeMode === 'dark' || isGeekStyle.value)
+const _isDarkMode = computed(() => appStore.themeMode === 'dark' || isGeekStyle.value)
 
 const hasChildren = computed(() => {
   if (!isMixed.value || !activeTopMenu.value)
@@ -141,17 +141,29 @@ useWatermark({
         >
           <main :class="contentClassName">
             <router-view v-slot="{ Component, route }">
-              <transition
-                :name="transitionName"
-                mode="out-in"
-              >
+              <!-- 微前端页面：禁用 out-in 模式，避免 iframe/微应用被 transition 销毁 -->
+              <template v-if="route.meta?.microApp">
                 <keep-alive :include="cachedRoutes">
                   <component
                     :is="Component"
                     :key="route.path"
                   />
                 </keep-alive>
-              </transition>
+              </template>
+              <!-- 普通页面：保持原有过渡效果 -->
+              <template v-else>
+                <transition
+                  :name="transitionName"
+                  mode="out-in"
+                >
+                  <keep-alive :include="cachedRoutes">
+                    <component
+                      :is="Component"
+                      :key="route.path"
+                    />
+                  </keep-alive>
+                </transition>
+              </template>
             </router-view>
           </main>
         </PerfectScrollbar>

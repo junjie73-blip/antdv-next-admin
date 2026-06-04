@@ -38,6 +38,10 @@ export function createCache<T = unknown>(options: CacheOptions = {}): CacheInsta
     }
   }
 
+  const removeItem = (key: string): void => {
+    storage.removeItem(buildKey(key))
+  }
+
   const getItem = (key: string): T | null => {
     const data = storage.getItem(buildKey(key))
     if (!data)
@@ -63,13 +67,9 @@ export function createCache<T = unknown>(options: CacheOptions = {}): CacheInsta
     const item: CacheItem<T> = {
       value,
       expire: expire ? Date.now() + expire * 1000 : 0,
-      createTime: Date.now(),
+      time: Date.now(),
     }
     storage.setItem(buildKey(key), serialize(item))
-  }
-
-  const removeItem = (key: string): void => {
-    storage.removeItem(buildKey(key))
   }
 
   const hasItem = (key: string): boolean => {

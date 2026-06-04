@@ -32,7 +32,7 @@ const emit = defineEmits<{
 
 // 容器引用
 const wrapRef = shallowRef<HTMLElement | null>(null)
-const viewRef = shallowRef<HTMLElement | null>(null)
+const _viewRef = shallowRef<HTMLElement | null>(null)
 const trackVerticalRef = shallowRef<HTMLElement | null>(null)
 const thumbVerticalRef = shallowRef<HTMLElement | null>(null)
 const trackHorizontalRef = shallowRef<HTMLElement | null>(null)

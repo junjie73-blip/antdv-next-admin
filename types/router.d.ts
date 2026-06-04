@@ -79,6 +79,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/system/dept/': RouteRecordInfo<
+      '/system/dept/',
+      '/system/dept',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/system/dict/': RouteRecordInfo<
       '/system/dict/',
       '/system/dict',
@@ -86,9 +93,23 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/system/file/': RouteRecordInfo<
+      '/system/file/',
+      '/system/file',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/system/log/': RouteRecordInfo<
       '/system/log/',
       '/system/log',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/system/login-log/': RouteRecordInfo<
+      '/system/login-log/',
+      '/system/login-log',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -117,6 +138,13 @@ declare module 'vue-router/auto-routes' {
     '/system/online/': RouteRecordInfo<
       '/system/online/',
       '/system/online',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/system/post/': RouteRecordInfo<
+      '/system/post/',
+      '/system/post',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -203,15 +231,33 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/views/system/dept/index.vue': {
+      routes:
+        | '/system/dept/'
+      views:
+        | never
+    }
     'src/views/system/dict/index.vue': {
       routes:
         | '/system/dict/'
       views:
         | never
     }
+    'src/views/system/file/index.vue': {
+      routes:
+        | '/system/file/'
+      views:
+        | never
+    }
     'src/views/system/log/index.vue': {
       routes:
         | '/system/log/'
+      views:
+        | never
+    }
+    'src/views/system/login-log/index.vue': {
+      routes:
+        | '/system/login-log/'
       views:
         | never
     }
@@ -236,6 +282,12 @@ declare module 'vue-router/auto-routes' {
     'src/views/system/online/index.vue': {
       routes:
         | '/system/online/'
+      views:
+        | never
+    }
+    'src/views/system/post/index.vue': {
+      routes:
+        | '/system/post/'
       views:
         | never
     }

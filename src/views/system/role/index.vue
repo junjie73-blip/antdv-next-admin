@@ -4,9 +4,16 @@ import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
 import { message } from 'antdv-next'
 import { computed, ref } from 'vue'
+import {
+  addRole,
+  deleteRole,
+  getRoleList,
+  updateRole,
+} from '@/api/system'
 import { BasicDrawer, useDrawer } from '@/components/business/Drawer'
 import { BasicForm, useForm } from '@/components/business/Form'
 import { BasicTable, useTable } from '@/components/business/Table'
+import { useDictStore } from '@/stores'
 import { cn } from '@/utils/cn'
 import { exportToExcel } from '@/utils/excel'
 
@@ -26,7 +33,7 @@ interface RoleRecord {
 const containerClassName = cn('space-y-4')
 const cardClassName = cn('shadow-sm')
 const tagClassName = cn('inline-flex items-center gap-1')
-const actionClassName = cn('flex', 'items-center', 'whitespace-nowrap')
+const actionClassName = cn('flex', 'items-center', 'justify-center', 'whitespace-nowrap')
 const btnClassName = cn('!px-0.5')
 const dividerClassName = cn('mx-0')
 
@@ -39,15 +46,9 @@ const statusLabelMap: Record<number, string> = {
   0: '停用',
 }
 
-// Mock 数据 — 丰富的角色数据
-const allData = ref<RoleRecord[]>([
-  { id: 1, name: '超级管理员', code: 'super_admin', description: '拥有系统所有权限，不可删除', sort: 0, status: 1, menuIds: [1, 2, 3, 4, 5, 6, 7, 8], createdAt: '2024-01-01 10:00:00' },
-  { id: 2, name: '管理员', code: 'admin', description: '拥有大部分管理权限', sort: 1, status: 1, menuIds: [1, 2, 3, 5, 6], createdAt: '2024-01-02 11:00:00' },
-  { id: 3, name: '普通用户', code: 'user', description: '普通用户基础权限', sort: 2, status: 1, menuIds: [1, 7], createdAt: '2024-01-03 12:00:00' },
-  { id: 4, name: '访客', code: 'guest', description: '只读权限，仅可浏览公开内容', sort: 3, status: 0, menuIds: [1], createdAt: '2024-01-05 14:00:00' },
-  { id: 5, name: '运营人员', code: 'operator', description: '负责日常运营操作', sort: 4, status: 1, menuIds: [1, 2, 7, 8], createdAt: '2024-02-10 09:30:00' },
-  { id: 6, name: '开发人员', code: 'developer', description: '拥有开发和调试相关权限', sort: 5, status: 1, menuIds: [1, 2, 3, 4, 9], createdAt: '2024-03-15 16:20:00' },
-])
+const dictStore = useDictStore()
+
+const statusOptions = computed(() => dictStore.getOptions('sys_normal_disable'))
 
 // 动态菜单权限树 — 从菜单配置生成
 interface MenuTreeNode {
@@ -56,7 +57,6 @@ interface MenuTreeNode {
   children?: MenuTreeNode[]
 }
 
-// 菜单数据（与 mock/menu 和 router/menus 保持同步）
 const menuSourceData = [
   {
     id: 1,
@@ -104,7 +104,6 @@ const menuSourceData = [
   },
 ]
 
-// 将菜单源数据转换为 a-tree 需要的格式
 function buildMenuTree(menus: typeof menuSourceData): MenuTreeNode[] {
   return menus.map(menu => ({
     title: menu.title,
@@ -116,7 +115,6 @@ function buildMenuTree(menus: typeof menuSourceData): MenuTreeNode[] {
   }))
 }
 
-// 计算属性：动态生成的权限树数据
 const permissionTreeData = computed(() => buildMenuTree(menuSourceData))
 
 const isEditing = ref(false)
@@ -132,7 +130,7 @@ const searchFormSchemas: FormSchema[] = [
     field: 'keyword',
     label: '关键词',
     component: 'Input',
-    colProps: { span: 8 },
+    colProps: { span: 6 },
     componentProps: {
       placeholder: '搜索角色名称/编码...',
       allowClear: true,
@@ -142,14 +140,11 @@ const searchFormSchemas: FormSchema[] = [
     field: 'status',
     label: '状态',
     component: 'Select',
-    colProps: { span: 8 },
+    colProps: { span: 6 },
     componentProps: {
       placeholder: '选择状态',
       allowClear: true,
-      options: [
-        { label: '正常', value: 1 },
-        { label: '停用', value: 0 },
-      ],
+      options: statusOptions.value,
     },
   },
 ]
@@ -160,7 +155,6 @@ const drawerFormSchemas: FormSchema[] = [
     label: '角色名称',
     component: 'Input',
     required: true,
-    colProps: { span: 24 },
     componentProps: { placeholder: '请输入角色名称' },
   },
   {
@@ -168,8 +162,27 @@ const drawerFormSchemas: FormSchema[] = [
     label: '角色编码',
     component: 'Input',
     required: true,
-    colProps: { span: 24 },
     componentProps: { placeholder: '请输入角色编码，如 admin' },
+  },
+  {
+    field: 'sort',
+    label: '排序',
+    component: 'InputNumber',
+    colProps: { span: 12 },
+    defaultValue: 0,
+    componentProps: { min: 0, placeholder: '数字越小越靠前', style: { width: '100%' } },
+  },
+  {
+    field: 'status',
+    label: '状态',
+    component: 'RadioGroup',
+    colProps: { span: 12 },
+    defaultValue: 1,
+    componentProps: () => ({
+      optionType: 'button',
+      buttonStyle: 'solid',
+      options: statusOptions.value,
+    }),
   },
   {
     field: 'description',
@@ -178,48 +191,24 @@ const drawerFormSchemas: FormSchema[] = [
     colProps: { span: 24 },
     componentProps: { placeholder: '请输入角色描述...', rows: 3 },
   },
-  {
-    field: 'sort',
-    label: '排序',
-    component: 'InputNumber',
-    colProps: { span: 24 },
-    defaultValue: 0,
-    componentProps: { min: 0, placeholder: '数字越小越靠前', style: { width: '100%' } },
-  },
-  {
-    field: 'status',
-    label: '状态',
-    component: 'RadioGroup',
-    colProps: { span: 24 },
-    defaultValue: 1,
-    componentProps: {
-      optionType: 'button',
-      buttonStyle: 'solid',
-      options: [
-        { label: '正常', value: 1 },
-        { label: '停用', value: 0 },
-      ],
-    },
-  },
 ]
 
+// API 适配层
 async function mockApi(params: Record<string, any>) {
-  const { keyword, status } = params
-  let filtered = [...allData.value]
-
-  if (keyword) {
-    const kw = String(keyword).toLowerCase()
-    filtered = filtered.filter(
-      i => i.name.toLowerCase().includes(kw) || i.code.toLowerCase().includes(kw),
-    )
+  try {
+    const res = await getRoleList(params)
+    console.log('[Role] raw response:', res)
+    // 兼容 mock 直接返回完整响应或已解包的数据
+    const data = res?.data ?? res
+    console.log('[Role] parsed data:', data)
+    const result = { items: data?.list || [], total: data?.total || 0 }
+    console.log('[Role] result:', result)
+    return result
   }
-
-  if (status !== undefined && status !== null && status !== '') {
-    filtered = filtered.filter(i => i.status === Number(status))
+  catch (e) {
+    console.error('[Role] mockApi error:', e)
+    return { items: [], total: 0 }
   }
-
-  const total = filtered.length
-  return { items: filtered, total }
 }
 
 function handleAdd() {
@@ -255,31 +244,35 @@ function handlePermission(record: RoleRecord) {
   permDrawerMethods.openDrawer()
 }
 
-function handleDelete(record: RoleRecord) {
+async function handleDelete(record: RoleRecord) {
   if (record.code === 'super_admin') {
     message.warning('超级管理员角色不允许删除')
     return
   }
-  const idx = allData.value.findIndex(i => i.id === record.id)
-  if (idx > -1) {
-    allData.value.splice(idx, 1)
+  try {
+    await deleteRole(record.id)
     message.success(`已删除角色：${record.name}`)
     tableMethods.value?.reload()
   }
+  catch (e: any) {
+    message.error(e?.message || '删除失败')
+  }
 }
 
-function handleToggleStatus(record: RoleRecord) {
-  const item = allData.value.find(i => i.id === record.id)
-  if (item) {
-    item.status = item.status === 1 ? 0 : 1
-    message.success(`已${item.status === 1 ? '启用' : '停用'}：${item.name}`)
+async function handleToggleStatus(record: RoleRecord) {
+  try {
+    await updateRole(record.id, { status: record.status === 1 ? 0 : 1 })
+    message.success(`已${record.status === 1 ? '停用' : '启用'}：${record.name}`)
     tableMethods.value?.reload()
+  }
+  catch (e: any) {
+    message.error(e?.message || '操作失败')
   }
 }
 
 function handleExport() {
   const selectedRows = (tableMethods.value?.getSelectRows?.() || []) as any[]
-  const dataToExport = selectedRows.length > 0 ? selectedRows : allData.value
+  const dataToExport = selectedRows.length > 0 ? selectedRows : []
   exportToExcel({
     filename: '角色列表',
     sheetName: '角色管理',
@@ -306,43 +299,26 @@ async function handleSave() {
     return
   }
 
-  // 编码唯一性检查
-  const existing = allData.value.find(i => i.code === values.code && (!currentRecord.value || i.id !== currentRecord.value.id))
-  if (existing) {
-    message.warning(`角色编码 "${values.code}" 已存在`)
-    return
-  }
-
-  const now = new Date().toISOString().replace('T', ' ').substring(0, 19)
-
-  if (isEditing.value && currentRecord.value) {
-    const idx = allData.value.findIndex(i => i.id === currentRecord.value!.id)
-    if (idx > -1) {
-      allData.value[idx] = {
-        ...allData.value[idx]!,
-        ...values,
-        id: currentRecord.value.id,
-        menuIds: currentRecord.value.menuIds,
-      }
+  try {
+    if (isEditing.value && currentRecord.value) {
+      await updateRole(currentRecord.value.id, values)
+      message.success(`已更新角色：${values.name}`)
     }
-    message.success(`已更新角色：${values.name}`)
-  }
-  else {
-    const newId = Math.max(...allData.value.map(i => i.id), 0) + 1
-    allData.value.push({
-      id: newId,
-      ...values,
-      menuIds: [],
-      createdAt: now,
-    })
-    message.success(`已新增角色：${values.name}`)
-  }
+    else {
+      await addRole(values)
+      message.success(`已新增角色：${values.name}`)
+    }
 
-  drawerMethods.closeDrawer()
-  tableMethods.value?.reload()
+    drawerMethods.closeDrawer()
+    tableMethods.value?.reload()
+  }
+  catch (e: any) {
+    message.error(e?.message || '保存失败')
+  }
 }
 
 const columns: BasicColumn[] = [
+  { title: '#', key: 'index', width: 60, align: 'center', customRender: ({ index }) => index + 1 },
   { title: 'ID', dataIndex: 'id', key: 'id', width: 70, align: 'center' },
   { title: '角色名称', dataIndex: 'name', key: 'name', width: 140 },
   { title: '角色编码', dataIndex: 'code', key: 'code', width: 150 },
@@ -369,7 +345,7 @@ const columns: BasicColumn[] = [
                        pageSizeOptions: ['10',
                                          '20',
                                          '50'] }"
-        :action-column="{ width: 300, title: '操作', fixed: 'right' }"
+        :action-column="{ width: 280, title: '操作', fixed: 'right' }"
         @register="tableRegister"
       >
         <template #toolbar>
@@ -483,6 +459,7 @@ const columns: BasicColumn[] = [
         :schemas="drawerFormSchemas"
         :label-width="80"
         :show-action-button-group="false"
+        :grid="{ cols: 2, gutter: 16 }"
         @register="formRegister"
       />
     </BasicDrawer>
@@ -519,16 +496,6 @@ const columns: BasicColumn[] = [
             }
           }"
         />
-
-        <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-          <a-button
-            type="primary"
-            block
-            @click="() => { message.success('权限保存成功'); permDrawerMethods.closeDrawer() }"
-          >
-            保存权限
-          </a-button>
-        </div>
       </div>
     </BasicDrawer>
   </div>

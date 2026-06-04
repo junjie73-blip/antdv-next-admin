@@ -19,10 +19,18 @@ interface InternalRoute {
     requiresAuth?: boolean
     roles?: string[]
     permissions?: string[]
+    microApp?: MicroAppConfig
   }
   component?: unknown
   redirect?: string
   children?: InternalRoute[]
+}
+
+interface MicroAppConfig {
+  name: string
+  url: string
+  baseroute: string
+  keepAlive?: boolean
 }
 
 function generateRoutesFromMenus(menus: MenuConfig[]): InternalRoute[] {
@@ -38,6 +46,7 @@ function generateRoutesFromMenus(menus: MenuConfig[]): InternalRoute[] {
         requiresAuth: menu.requiresAuth,
         roles: menu.roles,
         permissions: menu.permissions,
+        microApp: menu.microApp,
       },
     }
 
@@ -71,6 +80,7 @@ function generateRoutesFromBackendMenus(backendMenus: BackendMenu[]): InternalRo
         requiresAuth: menu.requiresAuth,
         roles: menu.roles,
         permissions: menu.permissions,
+        microApp: (menu as any).microApp,
       },
     }
 

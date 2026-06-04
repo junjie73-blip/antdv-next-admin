@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FormInstance } from 'antdv-next'
 import type { FormActionType, FormProps, FormSchema, NamePath, Recordable } from './types'
-import { computed, onMounted, reactive, ref, unref, watch } from 'vue'
+import { computed, onMounted, provide, reactive, ref, unref, watch } from 'vue'
 import IconifyIcon from '@/components/common/Icon/IconifyIcon.vue'
 import { cn } from '@/utils/cn'
 import FormItem from './FormItem.vue'
@@ -30,6 +30,10 @@ const formRef = ref<FormInstance>()
 const propsRef = ref<Partial<FormProps>>({})
 const isAdvanced = ref(false)
 
+// 向子组件（FormItem）提供 grid 布局上下文
+const formGridContext = computed(() => getProps.value.grid)
+provide('formGridContext', formGridContext)
+
 const getProps = computed(() => {
   return deepMerge({ ...props }, { ...unref(propsRef), schemas: unref(schemaRef) })
 })
@@ -38,6 +42,7 @@ const getAlwaysShowLines = computed(() => {
   return getProps.value.alwaysShowLines || 3
 })
 
+// 基础 schemas 过滤 + 高级按钮折叠
 const getSchemas = computed(() => {
   const schemas = unref(schemaRef) || []
   const filtered = schemas.filter(schema => schema.component !== 'Divider')
@@ -46,7 +51,6 @@ const getSchemas = computed(() => {
     return filtered
   }
 
-  // 根据行数计算需要显示的字段数量
   const lineCount = getAlwaysShowLines.value
   let currentLine = 0
   let currentRowSpan = 0
@@ -71,14 +75,42 @@ const getSchemas = computed(() => {
   return result
 })
 
+const getGridColSpan = computed(() => {
+  const grid = getProps.value.grid
+  if (!grid?.cols || grid.cols < 1 || grid.cols > 4)
+    return null
+  return Math.floor(24 / grid.cols)
+})
+
+// 根据 grid 配置自动计算每个字段的 colProps
+const getProcessedSchemas = computed(() => {
+  const gridSpan = getGridColSpan.value
+  const schemas = getSchemas.value
+
+  if (gridSpan === null)
+    return schemas
+
+  return schemas.map((schema) => {
+    const userSpan = schema.colProps?.span
+    return {
+      ...schema,
+      colProps: {
+        span: userSpan ?? gridSpan,
+        ...schema.colProps,
+      },
+    }
+  })
+})
+
 const getDividerSchemas = computed(() => {
   const schemas = unref(schemaRef) || []
   return schemas.filter(schema => schema.component === 'Divider')
 })
 
 const getRowProps = computed(() => {
+  const grid = getProps.value.grid
   return {
-    gutter: 24,
+    gutter: grid?.gutter ?? 24,
     ...getProps.value.baseRowStyle,
   }
 })
@@ -133,10 +165,9 @@ const getAdvancedButtonOptions = computed(() => {
 })
 
 const needCollapse = computed(() => {
-  const schemas = unref(schemaRef) || []
-  const filtered = schemas.filter(s => s.component !== 'Divider')
+  const schemas = getProcessedSchemas.value
   let totalSpan = 0
-  for (const schema of filtered) {
+  for (const schema of schemas) {
     totalSpan += schema.colProps?.span || 24
     if (totalSpan > 24)
       return true
@@ -364,7 +395,7 @@ defineExpose(formActionType)
   >
     <a-row v-bind="getRowProps">
       <template
-        v-for="(schema, idx) in getSchemas"
+        v-for="(schema, idx) in getProcessedSchemas"
         :key="schema.field"
       >
         <FormItem

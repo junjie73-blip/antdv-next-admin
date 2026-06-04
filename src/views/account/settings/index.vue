@@ -309,6 +309,6 @@ function handleThemeToggle() {
           </div>
         </div>
       </div>
-    </BasicModal>
+    </basicmodal>
   </div>
 </template>

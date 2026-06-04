@@ -106,12 +106,16 @@ function generateAreaPath() {
 
   // 面积路径：从左下角开始 → 各点连线 → 右下角闭合
   let areaPath = `M ${padding.left} ${padding.top + chartH}`
-  points.forEach((p) => { areaPath += ` L ${p.x} ${p.y}` })
+  points.forEach((p) => {
+    areaPath += ` L ${p.x} ${p.y}`
+  })
   areaPath += ` L ${points[points.length - 1].x} ${padding.top + chartH} Z`
 
   // 折线路径
   let linePath = `M ${points[0].x} ${points[0].y}`
-  points.slice(1).forEach((p) => { linePath += ` L ${p.x} ${p.y}` })
+  points.slice(1).forEach((p) => {
+    linePath += ` L ${p.x} ${p.y}`
+  })
 
   return { areaPath, linePath, points, padding, width, height, chartH }
 }

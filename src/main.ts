@@ -20,3 +20,12 @@ setupRouter(app)
 app.use(PerfectScrollbarPlugin)
 
 app.mount('#app')
+
+// 注册 Service Worker（PWA 支持）
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // 开发环境或不支持时静默失败
+    })
+  })
+}

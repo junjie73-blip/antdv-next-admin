@@ -9,7 +9,7 @@
 ![Antdv Next](https://img.shields.io/badge/Antdv_Next-1.x-1890ff?logo=antdesign&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-06b6d4?logo=tailwindcss&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-7-646cff?logo=vite&logoColor=white)
-![Bun](https://img.shields.io/badge/Bun-1.x-a020f0?logo=bun&logoColor=white)
+![pnpm](https://img.shields.io/badge/pnpm-9.x-f69220?logo=pnpm&logoColor=white)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
 ---
@@ -115,7 +115,7 @@
 | 国际化 | vue-i18n | ^11.4.4 |
 | Excel 处理 | xlsx (SheetJS) | ^0.18.5 |
 | 构建工具 | Vite 7 | ^7.3.1 |
-| 包管理器 | Bun | 1.x |
+| 包管理器 | pnpm | ^10.12.4 |
 
 ---
 
@@ -124,24 +124,23 @@
 ### 环境要求
 
 - **Node.js** ^20.19.0 || >=22.12.0
-- **Bun**（推荐）或 npm/pnpm/yarn
+- **pnpm**（推荐）或 npm/yarn/bun
 
 ### 安装依赖
 
 ```bash
-# 使用 Bun（推荐）
-bun install
+# 使用 pnpm（推荐）
+pnpm install
 
 # 或使用其他包管理器
 npm install
-pnpm install
 yarn install
 ```
 
 ### 启动开发服务器
 
 ```bash
-bun dev
+pnpm dev
 ```
 
 启动后访问 http://localhost:9080
@@ -151,19 +150,19 @@ bun dev
 ### 构建生产版本
 
 ```bash
-bun run build
+pnpm run build
 ```
 
 ### 类型检查
 
 ```bash
-bun run type-check
+pnpm run type-check
 ```
 
 ### 修复代码问题
 
 ```bash
-bun run lint:fix
+pnpm run lint:fix
 ```
 
 ---
@@ -260,7 +259,7 @@ antdv-next-admin/
 ### 单元测试（Vitest）
 
 ```bash
-bun test:unit
+pnpm test:unit
 ```
 
 ### E2E 测试（Playwright）
@@ -270,19 +269,19 @@ bun test:unit
 npx playwright install
 
 # 构建项目（CI 环境必须先构建）
-bun run build
+pnpm run build
 
 # 运行所有 E2E 测试
-bun test:e2e
+pnpm test:e2e
 
 # 仅运行 Chromium
-bun test:e2e --project=chromium
+pnpm test:e2e --project=chromium
 
 # 运行指定文件
-bun test:e2e tests/example.spec.ts
+pnpm test:e2e tests/example.spec.ts
 
 # 调试模式
-bun test:e2e --debug
+pnpm test:e2e --debug
 ```
 
 ---
@@ -320,10 +319,10 @@ git commit
 ### 版本发布
 
 ```bash
-bun run release        # 自动补丁版本 (1.0.0 → 1.0.1)
-bun run release:minor  # 次版本 (1.0.0 → 1.1.0)
-bun run release:major  # 主版本 (1.0.0 → 2.0.0)
-bun run release:first  # 首次发布
+pnpm run release        # 自动补丁版本 (1.0.0 → 1.0.1)
+pnpm run release:minor  # 次版本 (1.0.0 → 1.1.0)
+pnpm run release:major  # 主版本 (1.0.0 → 2.0.0)
+pnpm run release:first  # 首次发布
 ```
 
 > 由 standard-version 自动生成 CHANGELOG 并更新版本号

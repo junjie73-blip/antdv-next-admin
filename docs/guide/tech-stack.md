@@ -13,7 +13,7 @@
 | Pinia | ^3.0.4 | 状态管理方案 |
 | Alova | ^3.5.1 | HTTP 请求客户端 |
 | Vite | ^7.3.1 | 构建开发工具 |
-| Bun | - | 包管理器与运行时 |
+| pnpm | ^10.12.4 | 包管理器 |
 
 ---
 
@@ -591,57 +591,58 @@ export default defineConfig({
 
 ```bash
 # 启动开发服务器
-bun run dev
+pnpm run dev
 
 # 构建生产版本
-bun run build
+pnpm run build
 
 # 预览生产构建
-bun run preview
+pnpm run preview
 
 # 文档开发
-bun run docs:dev
+pnpm run docs:dev
 
 # 文档构建
-bun run docs:build
+pnpm run docs:build
 ```
 
 ---
 
-## Bun 包管理器
+## pnpm 包管理器
 
-### 为什么选择 Bun
+### 为什么选择 pnpm
 
-Bun 是一个全能型的 JavaScript 运行时和包管理器：
+pnpm 是一个快速、节省磁盘空间的包管理器，具有以下优势：
 
-- **极速安装** — 比 npm/pnpm 快 10~20 倍
-- **内置运行时** — 兼容 Node.js 生态
-- **TypeScript 原生支持** — 无需额外编译步骤
-- **统一的工具链** — 包管理 + 运行时 + 打包一体化
+- **磁盘空间高效** — 使用内容寻址存储（CAS），全局只保留一份副本，避免重复下载
+- **严格依赖管理** — 默认使用非扁平的 `node_modules` 结构，杜绝幽灵依赖问题
+- **极快的安装速度** — 相比 npm/yarn，安装速度提升 2~3 倍
+- **Monorepo 原生支持** — 内置 workspace 功能，完美支持多包项目管理
+- **兼容 npm 生态** — 完全兼容 npm 的 package.json 和 registry
 
 ### 在项目中的用法
 
 ```bash
 # 安装依赖
-bun install
+pnpm install
 
 # 添加新依赖
-bun add lodash-es
-bun add -D @types/lodash-es
+pnpm add lodash-es
+pnpm add -D @types/lodash-es
 
 # 运行脚本
-bun run dev
-bun run build
+pnpm run dev
+pnpm run build
 
 # 执行 lint
-bun run lint:fix
+pnpm run lint:fix
 
 # 类型检查
-bun run type-check
+pnpm run type-check
 ```
 
 ::: tip 依赖审计
-引入新的依赖包后，建议执行 `bun audit` 命令检查安全漏洞。
+引入新的依赖包后，建议执行 `pnpm audit` 命令检查安全漏洞。
 :::
 
 ---
@@ -663,7 +664,7 @@ bun run type-check
 │            通信层 (Alova 3)                    │
 │   请求共享 / 响应缓存 / Token 注入 / Mock      │
 ├─────────────────────────────────────────────┤
-│            构建层 (Vite 7 + Bun)               │
+│            构建层 (Vite 7 + pnpm)               │
 │   HMR / Tree-shaking / 代码分割 / 压缩         │
 └─────────────────────────────────────────────┘
 ```

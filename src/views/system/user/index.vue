@@ -3,11 +3,20 @@ import type { FormSchema } from '@/components/business/Form'
 import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
 import { message } from 'antdv-next'
-import { ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import * as XLSX from 'xlsx'
+import {
+  addUser,
+  deleteUser,
+  getDeptTree,
+  getUserList,
+  getUserOptions,
+  updateUser,
+} from '@/api/system'
 import { BasicForm, useForm } from '@/components/business/Form'
 import { BasicModal, useModal } from '@/components/business/Modal'
 import { BasicTable, useTable } from '@/components/business/Table'
+import { useDictStore } from '@/stores'
 import { cn } from '@/utils/cn'
 import { usePrint } from '@/utils/print'
 
@@ -40,7 +49,7 @@ const rightPanelClassName = cn('flex-1 min-w-0')
 const cardClassName = cn('shadow-sm')
 const treeCardClassName = cn('shadow-sm h-full')
 const statusTagClassName = cn('inline-flex items-center gap-1')
-const actionClassName = cn('flex', 'items-center')
+const actionClassName = cn('flex', 'items-center', 'justify-center')
 const btnClassName = cn('!px-0.5')
 const dividerClassName = cn('mx-0')
 
@@ -54,65 +63,65 @@ const statusLabelMap: Record<number, string> = {
   0: '禁用',
 }
 
-const mockDeptTree: DeptNode[] = [
-  {
-    id: 1,
-    name: '总公司',
-    children: [
-      { id: 2, name: '技术部' },
-      { id: 3, name: '产品部' },
-      { id: 4, name: '市场部' },
-      { id: 5, name: '运营部' },
-    ],
-  },
-]
+const dictStore = useDictStore()
 
-const allDeptNodes: { id: number, name: string }[] = [
-  { id: 1, name: '总公司' },
-  { id: 2, name: '技术部' },
-  { id: 3, name: '产品部' },
-  { id: 4, name: '市场部' },
-  { id: 5, name: '运营部' },
-]
+const statusOptions = computed(() => dictStore.getOptions('sys_normal_disable'))
 
-const roleOptions = [
-  { label: '超级管理员', value: 1 },
-  { label: '管理员', value: 2 },
-  { label: '普通用户', value: 3 },
-  { label: '运维人员', value: 4 },
-]
+// 从 API 获取部门和角色选项
+const mockDeptTree = ref<DeptNode[]>([])
+const allDeptNodes = ref<{ id: number, name: string }[]>([])
+const roleOptions = ref<{ label: string, value: number }[]>([])
 
-const mockData: UserRecord[] = [
-  { id: 1, username: 'admin', nickname: '超级管理员', email: 'admin@example.com', phone: '13800000001', deptName: '总公司', deptId: 1, status: 1, role: '超级管理员', roleId: 1, remark: '系统内置管理员', createdAt: '2024-01-01 10:00:00' },
-  { id: 2, username: 'zhangsan', nickname: '张三', email: 'zhangsan@example.com', phone: '13800000002', deptName: '技术部', deptId: 2, status: 1, role: '管理员', roleId: 2, remark: '', createdAt: '2024-01-15 10:00:00' },
-  { id: 3, username: 'lisi', nickname: '李四', email: 'lisi@example.com', phone: '13800000003', deptName: '技术部', deptId: 2, status: 1, role: '普通用户', roleId: 3, remark: '', createdAt: '2024-02-01 10:00:00' },
-  { id: 4, username: 'wangwu', nickname: '王五', email: 'wangwu@example.com', phone: '13800000004', deptName: '技术部', deptId: 2, status: 1, role: '普通用户', roleId: 3, remark: '', createdAt: '2024-02-10 10:00:00' },
-  { id: 5, username: 'zhaoliu', nickname: '赵六', email: 'zhaoliu@example.com', phone: '13800000005', deptName: '技术部', deptId: 2, status: 0, role: '普通用户', roleId: 3, remark: '已离职', createdAt: '2024-03-01 10:00:00' },
-  { id: 6, username: 'sunqi', nickname: '孙七', email: 'sunqi@example.com', phone: '13800000006', deptName: '产品部', deptId: 3, status: 1, role: '管理员', roleId: 2, remark: '', createdAt: '2024-03-15 10:00:00' },
-  { id: 7, username: 'zhouba', nickname: '周八', email: 'zhouba@example.com', phone: '13800000007', deptName: '产品部', deptId: 3, status: 1, role: '普通用户', roleId: 3, remark: '', createdAt: '2024-04-01 10:00:00' },
-  { id: 8, username: 'wujiu', nickname: '吴九', email: 'wujiu@example.com', phone: '13800000008', deptName: '产品部', deptId: 3, status: 1, role: '普通用户', roleId: 3, remark: '', createdAt: '2024-04-10 10:00:00' },
-  { id: 9, username: 'zhengshi', nickname: '郑十', email: 'zhengshi@example.com', phone: '13800000009', deptName: '市场部', deptId: 4, status: 1, role: '管理员', roleId: 2, remark: '', createdAt: '2024-05-01 10:00:00' },
-  { id: 10, username: 'chenyi', nickname: '陈一', email: 'chenyi@example.com', phone: '13800000010', deptName: '市场部', deptId: 4, status: 1, role: '普通用户', roleId: 3, remark: '', createdAt: '2024-05-15 10:00:00' },
-  { id: 11, username: 'liuer', nickname: '刘二', email: 'liuer@example.com', phone: '13800000011', deptName: '市场部', deptId: 4, status: 0, role: '普通用户', roleId: 3, remark: '', createdAt: '2024-06-01 10:00:00' },
-  { id: 12, username: 'huangsan', nickname: '黄三', email: 'huangsan@example.com', phone: '13800000012', deptName: '运营部', deptId: 5, status: 1, role: '管理员', roleId: 2, remark: '', createdAt: '2024-06-10 10:00:00' },
-  { id: 13, username: 'linxi', nickname: '林四', email: 'linxi@example.com', phone: '13800000013', deptName: '运营部', deptId: 5, status: 1, role: '普通用户', roleId: 3, remark: '', createdAt: '2024-07-01 10:00:00' },
-  { id: 14, username: 'hexu', nickname: '何五', email: 'hexu@example.com', phone: '13800000014', deptName: '运营部', deptId: 5, status: 1, role: '普通用户', roleId: 3, remark: '', createdAt: '2024-07-15 10:00:00' },
-  { id: 15, username: 'caoqi', nickname: '曹七', email: 'caoqi@example.com', phone: '13800000015', deptName: '技术部', deptId: 2, status: 1, role: '运维人员', roleId: 4, remark: '', createdAt: '2024-08-01 10:00:00' },
-  { id: 16, username: 'luoba', nickname: '罗八', email: 'luoba@example.com', phone: '13800000016', deptName: '技术部', deptId: 2, status: 1, role: '普通用户', roleId: 3, remark: '', createdAt: '2024-08-10 10:00:00' },
-  { id: 17, username: 'liangjiu', nickname: '梁九', email: 'liangjiu@example.com', phone: '13800000017', deptName: '产品部', deptId: 3, status: 0, role: '普通用户', roleId: 3, remark: '已禁用', createdAt: '2024-09-01 10:00:00' },
-  { id: 18, username: 'songshi', nickname: '宋十', email: 'songshi@example.com', phone: '13800000018', deptName: '市场部', deptId: 4, status: 1, role: '运维人员', roleId: 4, remark: '', createdAt: '2024-09-15 10:00:00' },
-]
+onMounted(async () => {
+  try {
+    const [deptRes, optionRes] = await Promise.all([getDeptTree(), getUserOptions()])
+    // 兼容 mock 返回完整响应或已解包的数据
+    const deptData = Array.isArray(deptRes) ? deptRes : (deptRes?.data ?? deptRes ?? [])
+    const optData = Array.isArray(optionRes) ? optionRes : (optionRes?.data ?? optionRes ?? [])
+    mockDeptTree.value = deptData
+    // 扁平化部门树用于查找名称
+    function flatten(nodes: DeptNode[]): { id: number, name: string }[] {
+      const result: { id: number, name: string }[] = []
+      for (const node of nodes) {
+        result.push({ id: node.id, name: node.name })
+        if (node.children)
+          result.push(...flatten(node.children))
+      }
+      return result
+    }
+    allDeptNodes.value = flatten(mockDeptTree.value)
+    roleOptions.value = optData.map((item: any) => ({
+      label: item.label,
+      value: item.value,
+    }))
+  }
+  catch (e) {
+    console.error('获取基础数据失败', e)
+  }
+})
 
-const allData = ref<UserRecord[]>([...mockData])
-
+// ========== 状态管理 ==========
+const selectedDeptId = ref<number | null>(null)
 const isEditing = ref(false)
 const currentRecord = ref<UserRecord | null>(null)
-const selectedDeptId = ref<number | null>(null)
 const treeExpandedKeys = ref<number[]>([1])
 
 const [modalRegister, modalMethods] = useModal()
 const [tableRegister, tableMethods] = useTable()
 const [formRegister, formMethods] = useForm()
+
+// API 适配层 — 将 API 返回的 { list, total } 转换为 BasicTable 需要的 { items, total }
+async function mockApi(params: Record<string, any>) {
+  // 合并选中的部门ID作为筛选条件
+  const requestParams = {
+    ...params,
+    ...(selectedDeptId.value !== null && { deptId: selectedDeptId.value }),
+  }
+  const res = await getUserList(requestParams)
+  // 兼容 mock 直接返回完整响应或已解包的数据
+  const data = res?.data ?? res
+  return { items: data?.list || [], total: data?.total || 0 }
+}
 
 const searchFormSchemas: FormSchema[] = [
   {
@@ -123,7 +132,7 @@ const searchFormSchemas: FormSchema[] = [
       placeholder: '搜索用户名/昵称/邮箱/手机号...',
       allowClear: true,
     },
-    colProps: { span: 8 },
+    colProps: { span: 6 },
   },
   {
     field: 'status',
@@ -132,12 +141,9 @@ const searchFormSchemas: FormSchema[] = [
     componentProps: {
       placeholder: '选择状态',
       allowClear: true,
-      options: [
-        { label: '正常', value: 1 },
-        { label: '禁用', value: 0 },
-      ],
+      options: statusOptions.value,
     },
-    colProps: { span: 8 },
+    colProps: { span: 6 },
   },
 ]
 
@@ -147,7 +153,6 @@ const modalFormSchemas: FormSchema[] = [
     label: '用户名',
     component: 'Input',
     required: true,
-    colProps: { span: 12 },
     componentProps: { placeholder: '请输入用户名' },
   },
   {
@@ -155,38 +160,33 @@ const modalFormSchemas: FormSchema[] = [
     label: '昵称',
     component: 'Input',
     required: true,
-    colProps: { span: 12 },
     componentProps: { placeholder: '请输入昵称' },
   },
   {
     field: 'password',
     label: '密码',
     component: 'InputPassword',
-    colProps: { span: 12 },
     componentProps: { placeholder: '留空则不修改密码' },
   },
   {
     field: 'phone',
     label: '手机号',
     component: 'Input',
-    colProps: { span: 12 },
     componentProps: { placeholder: '请输入手机号' },
   },
   {
     field: 'email',
     label: '邮箱',
     component: 'Input',
-    colProps: { span: 24 },
     componentProps: { placeholder: '请输入邮箱地址' },
   },
   {
     field: 'deptId',
     label: '部门',
     component: 'TreeSelect',
-    colProps: { span: 12 },
     componentProps: {
       treeData: mockDeptTree,
-      fieldNames: { children: 'children', title: 'name', key: 'id', value: 'id' },
+      fieldNames: { children: 'children', label: 'name', value: 'id' },
       placeholder: '请选择部门',
       treeDefaultExpandAll: true,
     },
@@ -195,61 +195,39 @@ const modalFormSchemas: FormSchema[] = [
     field: 'roleId',
     label: '角色',
     component: 'Select',
-    colProps: { span: 12 },
     componentProps: {
       options: roleOptions,
       placeholder: '请选择角色',
     },
   },
   {
+    field: 'sortOrder',
+    label: '排序号',
+    component: 'InputNumber',
+    colProps: { span: 12 },
+    defaultValue: 0,
+    componentProps: { min: 0, placeholder: '数字越小越靠前', style: { width: '100%' } },
+  },
+  {
     field: 'status',
     label: '状态',
-    component: 'Select',
+    component: 'RadioGroup',
+    defaultValue: 1,
     colProps: { span: 12 },
-    componentProps: {
-      options: [
-        { label: '正常', value: 1 },
-        { label: '禁用', value: 0 },
-      ],
-    },
+    componentProps: () => ({
+      optionType: 'button',
+      buttonStyle: 'solid',
+      options: statusOptions.value,
+    }),
   },
   {
     field: 'remark',
     label: '备注',
-    component: 'Input',
-    colProps: { span: 12 },
-    componentProps: { placeholder: '请输入备注' },
+    component: 'InputTextArea',
+    colProps: { span: 24 },
+    componentProps: { placeholder: '请输入备注', rows: 3 },
   },
 ]
-
-async function mockApi(params: Record<string, any>) {
-  const { keyword, status, page = 1, pageSize = 10 } = params
-  let filtered = [...allData.value]
-
-  if (selectedDeptId.value !== null) {
-    filtered = filtered.filter(i => i.deptId === selectedDeptId.value)
-  }
-
-  if (keyword) {
-    const kw = String(keyword).toLowerCase()
-    filtered = filtered.filter(
-      i => i.username.toLowerCase().includes(kw)
-        || i.nickname.toLowerCase().includes(kw)
-        || i.email.toLowerCase().includes(kw)
-        || i.phone.includes(kw),
-    )
-  }
-
-  if (status !== undefined && status !== null && status !== '') {
-    filtered = filtered.filter(i => i.status === Number(status))
-  }
-
-  const total = filtered.length
-  const start = (Number(page) - 1) * Number(pageSize)
-  const items = filtered.slice(start, start + Number(pageSize))
-
-  return { items, total }
-}
 
 function handleDeptSelect(_selectedKeys: (string | number)[], info: { node: { id: number } }) {
   selectedDeptId.value = info.node.id
@@ -268,10 +246,15 @@ function handleAdd() {
     deptId: undefined,
     roleId: undefined,
     status: 1,
+    sortOrder: 0,
     remark: '',
   })
   formMethods.clearValidate()
   modalMethods.openModal()
+}
+
+function handleDetail(record: UserRecord) {
+  message.info(`查看用户详情：${record.nickname}`)
 }
 
 function handleEdit(record: UserRecord) {
@@ -286,18 +269,21 @@ function handleEdit(record: UserRecord) {
     deptId: record.deptId,
     roleId: record.roleId,
     status: record.status,
+    sortOrder: (record as any).sortOrder ?? 0,
     remark: record.remark,
   })
   formMethods.clearValidate()
   modalMethods.openModal()
 }
 
-function handleDelete(record: UserRecord) {
-  const idx = allData.value.findIndex(i => i.id === record.id)
-  if (idx > -1) {
-    allData.value.splice(idx, 1)
+async function handleDelete(record: UserRecord) {
+  try {
+    await deleteUser(record.id)
     message.success(`已删除用户：${record.nickname}`)
     tableMethods.value?.reload()
+  }
+  catch (e: any) {
+    message.error(e?.message || '删除失败')
   }
 }
 
@@ -356,63 +342,34 @@ async function handleSave() {
     return
   }
 
-  const now = new Date().toISOString().replace('T', ' ').substring(0, 19)
-
-  if (isEditing.value && currentRecord.value) {
-    const idx = allData.value.findIndex(i => i.id === currentRecord.value!.id)
-    if (idx > -1) {
-      const dept = allDeptNodes.find(d => d.id === values.deptId)
-      const role = roleOptions.find(r => r.value === values.roleId)
-      allData.value[idx] = {
-        ...allData.value[idx]!,
-        username: values.username,
-        nickname: values.nickname,
-        email: values.email,
-        phone: values.phone,
-        deptId: values.deptId!,
-        deptName: dept?.name || '',
-        roleId: values.roleId!,
-        role: role?.label || '',
-        status: values.status,
-        remark: values.remark,
-      }
+  try {
+    if (isEditing.value && currentRecord.value) {
+      await updateUser(currentRecord.value.id, values)
+      message.success(`已更新用户：${values.nickname}`)
     }
-    message.success(`已更新用户：${values.nickname}`)
-  }
-  else {
-    const newId = Math.max(...allData.value.map(i => i.id), 0) + 1
-    const dept = allDeptNodes.find(d => d.id === values.deptId)
-    const role = roleOptions.find(r => r.value === values.roleId)
-    allData.value.push({
-      id: newId,
-      username: values.username,
-      nickname: values.nickname,
-      email: values.email,
-      phone: values.phone,
-      deptId: values.deptId!,
-      deptName: dept?.name || '',
-      roleId: values.roleId!,
-      role: role?.label || '',
-      status: values.status,
-      remark: values.remark,
-      createdAt: now,
-    })
-    message.success(`已新增用户：${values.nickname}`)
-  }
+    else {
+      await addUser(values)
+      message.success(`已新增用户：${values.nickname}`)
+    }
 
-  modalMethods.closeModal()
-  tableMethods.value?.reload()
+    modalMethods.closeModal()
+    tableMethods.value?.reload()
+  }
+  catch (e: any) {
+    message.error(e?.message || '保存失败')
+  }
 }
 
 const columns: BasicColumn[] = [
-  { title: '用户名', dataIndex: 'username', key: 'username', width: 120 },
-  { title: '昵称', dataIndex: 'nickname', key: 'nickname', width: 120 },
+  { title: '#', key: 'index', width: 60, align: 'center', customRender: ({ index }) => index + 1 },
+  { title: '用户名', dataIndex: 'username', key: 'username', width: 120, align: 'center' },
+  { title: '昵称', dataIndex: 'nickname', key: 'nickname', width: 120, align: 'center' },
   { title: '邮箱', dataIndex: 'email', key: 'email', width: 200, ellipsis: true },
-  { title: '手机号', dataIndex: 'phone', key: 'phone', width: 140 },
+  { title: '手机号', dataIndex: 'phone', key: 'phone', width: 140, align: 'center' },
   { title: '部门', dataIndex: 'deptName', key: 'deptName', width: 100, align: 'center' },
   { title: '角色', dataIndex: 'role', key: 'role', width: 120, align: 'center' },
   { title: '状态', dataIndex: 'status', key: 'status', width: 80, align: 'center' },
-  { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 170 },
+  { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 170, align: 'center' },
 ]
 </script>
 
@@ -447,12 +404,13 @@ const columns: BasicColumn[] = [
           :immediate="true"
           :use-search-form="true"
           :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
-          :action-column="{ width: 180, title: '操作', fixed: 'right' }"
+          :action-column="{ width: 240, title: '操作', fixed: 'right' }"
           :row-selection="{ type: 'checkbox' }"
           :pagination="{ showSizeChanger: true,
                          pageSizeOptions: ['10',
                                            '20',
                                            '50'] }"
+          :scroll="{ x: 1400 }"
           @register="tableRegister"
         >
           <template #toolbar>
@@ -489,6 +447,20 @@ const columns: BasicColumn[] = [
 
           <template #action="{ record }">
             <div :class="actionClassName">
+              <a-button
+                type="link"
+                :class="btnClassName"
+                @click="() => handleDetail(record)"
+              >
+                <template #icon>
+                  <Icon icon="ant-design:eye-outlined" />
+                </template>
+                详情
+              </a-button>
+              <a-divider
+                type="vertical"
+                :class="dividerClassName"
+              />
               <a-button
                 type="link"
                 :class="btnClassName"
@@ -530,6 +502,7 @@ const columns: BasicColumn[] = [
         :schemas="modalFormSchemas"
         :label-width="80"
         :show-action-button-group="false"
+        :grid="{ cols: 2, gutter: 16 }"
         @register="formRegister"
       />
     </BasicModal>

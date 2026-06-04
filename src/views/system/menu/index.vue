@@ -4,12 +4,13 @@ import type { FormSchema } from '@/components/business/Form'
 import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
 import { message } from 'antdv-next'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { BasicDrawer, useDrawer } from '@/components/business/Drawer'
 import { BasicForm, useForm } from '@/components/business/Form'
 import { BasicTable, useTable } from '@/components/business/Table'
 import IconPicker from '@/components/common/Icon/IconPicker.vue'
 import { frontendMenus } from '@/router/menus'
+import { useDictStore } from '@/stores'
 import { cn } from '@/utils/cn'
 
 defineOptions({ name: 'SystemMenu' })
@@ -22,9 +23,10 @@ interface MenuRecord {
   perms: string
   path: string
   component: string
-  menuType: 'M' | 'C' | 'F'
+  menuType: 'M' | 'C' | 'F' | 'MICRO'
   parentId: number | null
   status: number
+  microAppConfig?: MicroAppConfig
   children?: MenuRecord[]
   createdAt: string
 }
@@ -32,7 +34,7 @@ interface MenuRecord {
 const containerClassName = cn('space-y-4')
 const cardClassName = cn('shadow-sm')
 const tagClassName = cn('inline-flex items-center gap-1')
-const actionClassName = cn('flex', 'items-center')
+const actionClassName = cn('flex', 'items-center', 'justify-center')
 const btnClassName = cn('!px-0.5')
 const dividerClassName = cn('mx-0')
 
@@ -57,6 +59,10 @@ const statusLabelMap: Record<number, string> = {
   1: '正常',
   0: '停用',
 }
+
+const dictStore = useDictStore()
+
+const statusOptions = computed(() => dictStore.getOptions('sys_normal_disable'))
 
 function convertFrontendMenusToRecords(menus: MenuConfig[], parentId: number | null, startId: number): { records: MenuRecord[], nextId: number } {
   const result: MenuRecord[] = []
@@ -201,7 +207,7 @@ const drawerFormSchemas: FormSchema[] = [
     field: 'menuType',
     label: '菜单类型',
     component: 'RadioGroup',
-    colProps: { span: 24 },
+    defaultValue: 'C',
     componentProps: {
       optionType: 'button',
       buttonStyle: 'solid',
@@ -216,7 +222,6 @@ const drawerFormSchemas: FormSchema[] = [
     field: 'parentId',
     label: '上级菜单',
     component: 'TreeSelect',
-    colProps: { span: 24 },
     componentProps: {
       treeData: getParentTreeOptions(),
       placeholder: '请选择上级菜单（留空为顶级）',
@@ -229,14 +234,12 @@ const drawerFormSchemas: FormSchema[] = [
     label: '菜单名称',
     component: 'Input',
     required: true,
-    colProps: { span: 24 },
     componentProps: { placeholder: '请输入菜单名称' },
   },
   {
     field: 'icon',
     label: '图标',
     component: 'Input',
-    colProps: { span: 24 },
     slot: 'iconPicker',
     componentProps: { placeholder: '点击选择图标', readonly: true },
   },
@@ -244,7 +247,6 @@ const drawerFormSchemas: FormSchema[] = [
     field: 'path',
     label: '路由地址',
     component: 'Input',
-    colProps: { span: 24 },
     componentProps: { placeholder: '例如：/system/user' },
     dynamicDisabled: ({ model }) => {
       const mt = (model as any).menuType || 'M'
@@ -255,7 +257,6 @@ const drawerFormSchemas: FormSchema[] = [
     field: 'component',
     label: '组件路径',
     component: 'Input',
-    colProps: { span: 24 },
     componentProps: { placeholder: '例如：system/user/index' },
     dynamicDisabled: ({ model }) => {
       const mt = (model as any).menuType || 'M'
@@ -266,7 +267,6 @@ const drawerFormSchemas: FormSchema[] = [
     field: 'perms',
     label: '权限标识',
     component: 'Input',
-    colProps: { span: 24 },
     componentProps: { placeholder: '例如：system:user:list' },
     dynamicDisabled: ({ model }) => {
       const mt = (model as any).menuType || 'M'
@@ -277,7 +277,7 @@ const drawerFormSchemas: FormSchema[] = [
     field: 'orderNum',
     label: '排序',
     component: 'InputNumber',
-    colProps: { span: 24 },
+    colProps: { span: 12 },
     componentProps: {
       min: 0,
       placeholder: '请输入排序号',
@@ -288,16 +288,13 @@ const drawerFormSchemas: FormSchema[] = [
     field: 'status',
     label: '状态',
     component: 'RadioGroup',
-    colProps: { span: 24 },
     defaultValue: 1,
-    componentProps: {
+    colProps: { span: 12 },
+    componentProps: () => ({
       optionType: 'button',
       buttonStyle: 'solid',
-      options: [
-        { label: '正常', value: 1 },
-        { label: '停用', value: 0 },
-      ],
-    },
+      options: statusOptions.value,
+    }),
   },
 ]
 
@@ -327,7 +324,7 @@ function handleAdd() {
   currentRecord.value = null
   formMethods.setFieldsValue({
     parentId: undefined,
-    menuType: 'M',
+    menuType: 'C',
     menuName: '',
     icon: '',
     path: '',
@@ -481,6 +478,7 @@ function handleIconSelect(icon: string) {
 }
 
 const columns: BasicColumn[] = [
+  { title: '#', key: 'index', width: 60, align: 'center', customRender: ({ index }) => index + 1 },
   { title: '菜单名称', dataIndex: 'menuName', key: 'menuName', width: 200 },
   { title: '图标', dataIndex: 'icon', key: 'icon', width: 70, align: 'center' },
   { title: '排序', dataIndex: 'orderNum', key: 'orderNum', width: 70, align: 'center' },
@@ -489,7 +487,7 @@ const columns: BasicColumn[] = [
   { title: '组件路径', dataIndex: 'component', key: 'component', width: 180, ellipsis: true },
   { title: '类型', dataIndex: 'menuType', key: 'menuType', width: 80, align: 'center' },
   { title: '状态', dataIndex: 'status', key: 'status', width: 80, align: 'center' },
-  { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 170 },
+  { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 170, align: 'center' },
 ]
 </script>
 
@@ -508,7 +506,8 @@ const columns: BasicColumn[] = [
         :is-tree="true"
         children-column-name="children"
         :pagination="false"
-        :action-column="{ width: 180, title: '操作', fixed: 'right' }"
+        :action-column="{ width: 280, title: '操作', fixed: 'right' }"
+        :scroll="{ x: 1400 }"
         @register="tableRegister"
       >
         <template #toolbar>
@@ -523,12 +522,14 @@ const columns: BasicColumn[] = [
           </a-button>
         </template>
         <template #cell-icon="{ record }">
-          <Icon
-            v-if="record.icon"
-            :icon="record.icon"
-            class="text-lg"
-          />
-          <span v-else>-</span>
+          <div class="flex items-center justify-center">
+            <Icon
+              v-if="record.icon"
+              :icon="record.icon"
+              class="text-lg"
+            />
+            <span v-else>-</span>
+          </div>
         </template>
 
         <template #cell-menuType="{ record }">
@@ -603,6 +604,7 @@ const columns: BasicColumn[] = [
         :schemas="drawerFormSchemas"
         :label-width="80"
         :show-action-button-group="false"
+        :grid="{ cols: 2, gutter: 16 }"
         @register="formRegister"
       >
         <template #iconPicker="{ model, field }">

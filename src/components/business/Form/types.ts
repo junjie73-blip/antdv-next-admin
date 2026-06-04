@@ -84,6 +84,9 @@ interface BaseFormSchema {
   itemProps?: Partial<FormItemProps>
   emptySpan?: number | Partial<ColEx>
 
+  /** 全行对齐：当在多列布局(grid.cols>1)中独占一行时，输入框宽度自动对齐到多列总宽度 */
+  fullRowAlign?: boolean
+
   show?: boolean | ((params: RenderCallbackParams) => boolean)
   ifShow?: boolean | ((params: RenderCallbackParams) => boolean)
   dynamicDisabled?: boolean | ((params: RenderCallbackParams) => boolean)
@@ -111,6 +114,15 @@ export interface FormSchema<T extends ComponentType = ComponentType> extends Bas
   componentProps?: Partial<ComponentPropsMap[T]> | ((params: RenderCallbackParams<T>) => Partial<ComponentPropsMap[T]>)
 }
 
+export interface FormGridProps {
+  /** 每行列数，1-4。如设置 2 则每行两个字段 */
+  cols?: number
+  /** 列间距，默认 24 */
+  gutter?: number | [number, number]
+  /** 响应式断点配置，如 { xs: 1, sm: 2, md: 3 } */
+  responsive?: Record<string, number>
+}
+
 export interface FormProps {
   schemas?: FormSchema[]
   model?: Recordable
@@ -120,6 +132,9 @@ export interface FormProps {
   wrapperCol?: Partial<ColEx>
   baseColProps?: Partial<ColEx>
   baseRowStyle?: object
+
+  /** 网格布局配置，用于控制每行字段列数 */
+  grid?: FormGridProps
 
   submitOnReset?: boolean
   autoFocusFirstItem?: boolean

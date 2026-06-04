@@ -1,9 +1,5 @@
 import type { PendingRequest, RequestQueue } from './types'
 
-function generateKey(url: string, method: string): string {
-  return `${method}_${url}`
-}
-
 export function createRequestQueue(): RequestQueue {
   const pending = new Map<string, PendingRequest>()
 

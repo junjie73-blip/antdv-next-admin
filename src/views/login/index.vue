@@ -84,7 +84,8 @@ async function handleLogin() {
 
     if (result.success) {
       message.success('登录成功')
-      router.push('/dashboard')
+      // 跳转到根路径，让动态路由守卫负责初始化和重定向到 /dashboard
+      router.push('/')
     }
     else {
       message.error(result.message || '登录失败')

@@ -3,7 +3,7 @@
 ## 环境要求
 
 - **Node.js** ^20.19.0 || >=22.12.0
-- **Bun**（推荐）或 npm / pnpm / yarn
+- **pnpm**（推荐）或 npm / yarn / bun
 - **Git**
 
 ## 安装
@@ -15,18 +15,18 @@ git clone https://github.com/your-repo/antdv-next-admin.git
 # 进入项目目录
 cd antdvv-next-admin
 
-# 安装依赖（使用 Bun）
-bun install
+# 安装依赖（使用 pnpm）
+pnpm install
 
 # 或使用其他包管理器
 npm install
-pnpm install
+yarn install
 ```
 
 ## 启动开发服务器
 
 ```bash
-bun dev
+pnpm dev
 ```
 
 启动后访问 `http://localhost:9080`
@@ -36,7 +36,7 @@ bun dev
 ## 构建生产版本
 
 ```bash
-bun run build
+pnpm run build
 ```
 
 构建产物输出到 `dist/` 目录。
@@ -44,7 +44,7 @@ bun run build
 ## 预览生产构建
 
 ```bash
-bun run preview
+pnpm run preview
 ```
 
 ## 目录速览

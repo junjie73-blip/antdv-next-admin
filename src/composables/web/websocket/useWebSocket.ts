@@ -28,12 +28,12 @@ interface WebSocketEventCallback<T = unknown> {
 export function useWebSocket(options: UseWebSocketOptions) {
   const {
     url,
-    protocols,
     autoConnect = true,
     autoDisconnect = true,
     heartbeat,
     reconnect,
   } = options
+  const { protocols: _protocols } = options
 
   const urlRef = typeof url === 'function' ? computed(url) : ref(url)
 

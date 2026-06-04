@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FormSchema, Recordable, RenderCallbackParams } from './types'
 import { isFunction } from 'es-toolkit'
-import { computed, unref } from 'vue'
+import { computed, inject, unref } from 'vue'
 import IconifyIcon from '@/components/common/Icon/IconifyIcon.vue'
 import { getComponent } from './componentMap'
 import { getDynamicDisabled, getDynamicRules, getShow, setComponentProps } from './helper'
@@ -18,7 +18,7 @@ interface FormItemRule {
   min?: number
   pattern?: RegExp
   required?: boolean
-  transform?: (value: any) => any
+  transform?: (value: any) => (error?: string) => Promise<void> | string | void
   type?: RuleType
   whitespace?: boolean
   trigger?: TriggerType | TriggerType[]
@@ -26,14 +26,18 @@ interface FormItemRule {
   validator?: (rule: any, value: any, callback: (error?: string) => void) => Promise<void | string> | void
 }
 
+// 注入父级 grid 布局上下文
+type GridContext = { cols?: number, gutter?: number | [number, number] } | undefined | null
+const props = defineProps<Props>()
+
+const gridConfig = inject<GridContext>('formGridContext', null)
+
 interface Props {
   schema: FormSchema
   formModel: Recordable
   formActionType: any
   setFormModel: (key: string, value: any) => void
 }
-
-const props = defineProps<Props>()
 
 const getShowState = computed(() => {
   return getShow(props.schema, unref(props.formModel), props.formActionType)
@@ -88,6 +92,42 @@ const getColProps = computed(() => {
   }
 })
 
+// 全行对齐：当字段独占一行(span=24)且处于多列布局时，限制输入框宽度对齐多列总宽度
+const mergedItemProps = computed(() => {
+  const base = { ...props.schema.itemProps }
+  const cols = gridConfig?.value?.cols
+  if (!cols || cols <= 1)
+    return base
+
+  const span = props.schema.colProps?.span ?? 24
+  const isFullRow = span === 24 || props.schema.fullRowAlign
+  if (!isFullRow)
+    return base
+
+  // N 列布局中，span=24 字段的 wrapper 比 N 个小列 wrapper 总和更宽（label 占比差异）
+  // 通过约束 wrapperCol 的 max-width 实现视觉对齐
+  const gutterPx = Array.isArray(gridConfig.value.gutter)
+    ? gridConfig.value.gutter[0]
+    : (gridConfig.value.gutter ?? 24)
+
+  const existingStyle = typeof base.style === 'object' ? base.style : {}
+  const existingWrapperCol = typeof base.wrapperCol === 'object' ? base.wrapperCol : {}
+  return {
+    ...base,
+    style: {
+      ...existingStyle,
+      class: `${existingStyle.class || ''} form-item-full-row-align`.trim(),
+    },
+    wrapperCol: {
+      ...existingWrapperCol,
+      style: {
+        maxWidth: `calc(100% - ${gutterPx}px)`,
+        ...(existingWrapperCol as any)?.style || {},
+      },
+    },
+  }
+})
+
 const getHelpMessage = computed(() => {
   const { helpMessage } = props.schema
   if (Array.isArray(helpMessage)) {
@@ -110,7 +150,7 @@ function handleValueChange(value: any) {
       <a-form-item
         :name="schema.field"
         :rules="getRulesValue as any"
-        v-bind="schema.itemProps"
+        v-bind="mergedItemProps"
       >
         <template #label>
           <span class="form-item-label">

@@ -52,7 +52,7 @@ function processRoute(route: RouteRecordRaw): MenuItem | null {
   }
 }
 
-function buildMenuTree(routes: RouteRecordRaw[], parentPath = ''): MenuItem[] {
+function buildMenuTree(routes: RouteRecordRaw[], _parentPath = ''): MenuItem[] {
   const menus: MenuItem[] = []
 
   for (const route of routes) {

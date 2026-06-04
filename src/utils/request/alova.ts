@@ -7,9 +7,18 @@ import VueHook from 'alova/vue'
 import { message } from 'antdv-next'
 import { useUserStore } from '@/stores/modules/user'
 import authMock from '../../../mock/auth'
-
+import deptMock from '../../../mock/dept'
+import dictMock from '../../../mock/dict'
+import fileMock from '../../../mock/file'
+import logMock from '../../../mock/log'
 import loginMock from '../../../mock/login'
+import loginLogMock from '../../../mock/login-log'
 import menuMock from '../../../mock/menu'
+import noticeMock from '../../../mock/notice'
+import onlineMock from '../../../mock/online'
+import postMock from '../../../mock/post'
+import roleMock from '../../../mock/role'
+import settingsMock from '../../../mock/settings'
 import tableMock from '../../../mock/table'
 import userMock from '../../../mock/user'
 import { AUTHORIZATION_KEY } from './constant'
@@ -45,6 +54,16 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
     menuMock,
     tableMock,
     userMock,
+    deptMock,
+    loginLogMock,
+    postMock,
+    fileMock,
+    settingsMock,
+    dictMock,
+    logMock,
+    onlineMock,
+    noticeMock,
+    roleMock,
   ]
 
   const mockAdapter = createAlovaMockAdapter(mockWrappers, {

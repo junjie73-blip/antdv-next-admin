@@ -102,7 +102,7 @@ const rules: Record<string, Rule[]> = {
     {
       validator: (_rule, value) => {
         if (value && value !== formState.password) {
-          return Promise.reject('两次密码输入不一致')
+          return Promise.reject(new Error('两次密码输入不一致'))
         }
         return Promise.resolve()
       },
@@ -137,7 +137,7 @@ function handleBackToLogin() {
   router.push('/login')
 }
 
-function handleSendCode() {
+function _handleSendCode() {
   if (!formState.email || !/^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/.test(formState.email)) {
     message.error('请输入正确的邮箱')
     return

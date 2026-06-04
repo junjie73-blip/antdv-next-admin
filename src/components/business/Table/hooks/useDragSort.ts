@@ -41,7 +41,7 @@ export function useDragSort(options: UseDragSortOptions): UseDragSortReturn {
   /**
    * 获取 rowKey 值
    */
-  const getRowKeyValue = (record: Recordable): string => {
+  const _getRowKeyValue = (record: Recordable): string => {
     if (typeof rowKey === 'function') {
       return rowKey(record)
     }

@@ -4,6 +4,8 @@ import type { MenuProps } from 'antdv-next'
 import { Menu } from 'antdv-next'
 import { computed, unref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import logoIconUrl from '@/assets/images/logo-icon.svg'
+import logoUrl from '@/assets/images/logo.svg'
 import { useAppStore } from '@/stores/modules/app'
 import { useRouteStore } from '@/stores/modules/route'
 import { cn } from '@/utils/cn'
@@ -24,14 +26,14 @@ defineOptions({
   name: 'LayoutSidebar',
 })
 
-const route = useRoute()
+const _route = useRoute()
 const router = useRouter()
 const appStore = useAppStore()
 const routeStore = useRouteStore()
 const { sidebarWidth } = appStore
 const { selectedKeys, openKeys, handleOpenChange } = useMenu()
 
-const appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
+const _appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
 
 const isGeekStyle = computed(() => appStore.themeStyle === 'geek')
 const isDarkMode = computed(() => appStore.themeMode === 'dark' || isGeekStyle.value)
@@ -110,21 +112,20 @@ const handleMenuSelect: MenuProps['onSelect'] = ({ key }) => {
       :class="logoClassName"
     >
       <div
-        class="flex items-center justify-center w-full px-2 gap-2"
-        :class="props.collapsed ? 'text-xl' : 'text-base'"
+        class="flex items-center justify-center w-full px-2"
       >
-        <Icon
-          icon="carbon:cube"
-          class="text-2xl flex-shrink-0"
-          :class="isGeekStyle ? 'text-[#00ff88]' : 'text-primary'"
-        />
-        <span
-          v-if="!props.collapsed"
-          class="font-bold truncate"
-          :class="isGeekStyle ? 'text-[#00ff88]' : 'text-primary'"
+        <img
+          v-if="props.collapsed"
+          :src="logoIconUrl"
+          alt="A"
+          class="w-8 h-8 object-contain"
         >
-          {{ appTitle }}
-        </span>
+        <img
+          v-else
+          :src="logoUrl"
+          alt="Antdv Next Admin"
+          class="w-auto h-8 object-contain"
+        >
       </div>
     </div>
 

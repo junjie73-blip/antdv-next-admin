@@ -4,8 +4,8 @@ import type { FormSchema } from '@/components/business/Form'
 import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
 import { message } from 'antdv-next'
-import dayjs from 'dayjs'
 import { ref } from 'vue'
+import { deleteOperLog, getOperLogList } from '@/api/system'
 import { Description as DetailDescription } from '@/components/business/Description'
 import { BasicDrawer, useDrawer } from '@/components/business/Drawer'
 import { BasicTable, useTable } from '@/components/business/Table'
@@ -37,7 +37,7 @@ interface OperLogRecord {
 const containerClassName = cn('space-y-4')
 const cardClassName = cn('shadow-sm')
 const tagClassName = cn('inline-flex items-center gap-1')
-const actionClassName = cn('flex', 'items-center')
+const actionClassName = cn('flex', 'items-center', 'justify-center')
 const btnClassName = cn('!px-0.5')
 const dividerClassName = cn('mx-0')
 
@@ -72,25 +72,6 @@ const operatorTypeLabelMap: Record<number, string> = {
 }
 
 // Mock 数据 — 丰富的操作日志
-const mockData: OperLogRecord[] = [
-  { id: 1, operName: 'admin', operType: '登录', title: '用户登录', method: 'com.system.controller.SysLoginController.login()', requestMethod: 'POST', operatorType: 1, operUrl: '/login', operIp: '192.168.1.100', operLocation: '北京市朝阳区', operParam: '{"username":"admin"}', jsonResult: '{"code":200,"msg":"操作成功"}', status: 0, errorMsg: '', operTime: '2024-06-03 09:00:15', costTime: 156 },
-  { id: 2, operName: 'admin', operType: '新增', title: '用户管理', method: 'com.system.controller.SysUserController.add()', requestMethod: 'POST', operatorType: 1, operUrl: '/system/user', operIp: '192.168.1.100', operLocation: '北京市朝阳区', operParam: '{"username":"testUser","nickname":"测试用户"}', jsonResult: '{"code":200,"msg":"操作成功"}', status: 0, errorMsg: '', operTime: '2024-06-03 09:15:32', costTime: 89 },
-  { id: 3, operName: 'admin', operType: '修改', title: '角色管理', method: 'com.system.controller.SysRoleController.edit()', requestMethod: 'PUT', operatorType: 1, operUrl: '/system/role/2', operIp: '192.168.1.100', operLocation: '北京市朝阳区', operParam: '{"roleId":2,"name":"管理员","status":1}', jsonResult: '{"code":200,"msg":"操作成功"}', status: 0, errorMsg: '', operTime: '2024-06-03 09:30:45', costTime: 67 },
-  { id: 4, operName: 'zhangsan', operType: '删除', title: '字典管理', method: 'com.system.controller.SysDictTypeController.remove()', requestMethod: 'DELETE', operatorType: 1, operUrl: '/system/dict/99', operIp: '192.168.1.101', operLocation: '上海市浦东新区', operParam: '{"dictId":99}', jsonResult: '{"code":200,"msg":"操作成功"}', status: 0, errorMsg: '', operTime: '2024-06-03 10:05:18', costTime: 45 },
-  { id: 5, operName: 'zhangsan', operType: '导出', title: '用户管理', method: 'com.system.controller.SysUserController.export()', requestMethod: 'GET', operatorType: 1, operUrl: '/system/user/export', operIp: '192.168.1.101', operLocation: '上海市浦东新区', operParam: '{}', jsonResult: '{"code":200,"msg":"导出成功，共100条数据"}', status: 0, errorMsg: '', operTime: '2024-06-03 10:20:33', costTime: 1234 },
-  { id: 6, operName: 'lisi', operType: '授权', title: '角色管理', method: 'com.system.controller.SysRoleController.authDataScope()', requestMethod: 'PUT', operatorType: 1, operUrl: '/system/role/authDataScope', operIp: '192.168.1.102', operLocation: '广州市天河区', operParam: '{"roleId":3,"deptIds":[1,2,3]}', jsonResult: null, status: 1, errorMsg: '权限不足，无权进行此操作', operTime: '2024-06-03 10:45:22', costTime: 23 },
-  { id: 7, operName: 'admin', operType: '修改', title: '菜单管理', method: 'com.system.controller.SysMenuController.edit()', requestMethod: 'PUT', operatorType: 1, operUrl: '/system/menu/5', operIp: '192.168.1.100', operLocation: '北京市朝阳区', operParam: '{"menuId":5,"menuName":"系统监控","orderNum":6}', jsonResult: '{"code":200,"msg":"操作成功"}', status: 0, errorMsg: '', operTime: '2024-06-03 11:00:55', costTime: 78 },
-  { id: 8, operName: 'wangwu', operType: '导入', title: '字典管理', method: 'com.system.controller.SysDictTypeController.importData()', requestMethod: 'POST', operatorType: 1, operUrl: '/system/dict/importData', operIp: '192.168.1.103', operLocation: '深圳市南山区', operParam: '{"file":"dict_data.xlsx"}', jsonResult: '{"code":200,"msg":"导入成功，共50条数据"}', status: 0, errorMsg: '', operTime: '2024-06-03 11:30:12', costTime: 2567 },
-  { id: 9, operName: 'zhaoliu', operType: '强退', title: '在线用户', method: 'com.system.controller.SysUserOnlineController.forceLogout()', requestMethod: 'DELETE', operatorType: 1, operUrl: '/online/forceLogout/token-abc123', operIp: '192.168.1.104', operLocation: '杭州市西湖区', operParam: '{"tokenId":"token-abc123"}', jsonResult: '{"code":200,"msg":"操作成功"}', status: 0, errorMsg: '', operTime: '2024-06-03 13:15:40', costTime: 34 },
-  { id: 10, operName: 'admin', operType: '生成代码', title: '代码生成', method: 'com.tool.gen.controller.GenController.batchGenCode()', requestMethod: 'GET', operatorType: 1, operUrl: '/tool/gen/batchGenCode', operIp: '192.168.1.100', operLocation: '北京市朝阳区', operParam: '{"tables":["sys_user","sys_role"]}', jsonResult: null, status: 1, errorMsg: '模板不存在：/template/vue.vm', operTime: '2024-06-03 14:00:28', costTime: 890 },
-  { id: 11, operName: 'sunqi', operType: '清空数据', title: '缓存管理', method: 'com.system.controller.SysCacheController.clearCache()', requestMethod: 'DELETE', operatorType: 1, operUrl: '/cache/clearCacheNames', operIp: '192.168.1.105', operLocation: '成都市武侯区', operParam: '{"cacheNames":["dict_cache","config_cache"]}', jsonResult: '{"code":200,"msg":"清理成功"}', status: 0, errorMsg: '', operTime: '2024-06-03 14:30:55', costTime: 156 },
-  { id: 12, operName: 'admin', operType: '登录', title: '用户登录', method: 'com.system.controller.SysLoginController.login()', requestMethod: 'POST', operatorType: 1, operUrl: '/login', operIp: '192.168.1.100', operLocation: '北京市朝阳区', operParam: '{"username":"admin"}', jsonResult: '{"code":400,"msg":"验证码错误"}', status: 1, errorMsg: '验证码错误', operTime: '2024-06-03 15:00:00', costTime: 89 },
-  { id: 13, operName: 'zhouba', operType: '新增', title: '菜单管理', method: 'com.system.controller.SysMenuController.add()', requestMethod: 'POST', operatorType: 1, operUrl: '/system/menu', operIp: '192.168.1.106', operLocation: '武汉市洪山区', operParam: '{"menuName":"API文档","path":"/api-docs"}', jsonResult: '{"code":200,"msg":"操作成功"}', status: 0, errorMsg: '', operTime: '2024-06-03 15:30:18', costTime: 112 },
-  { id: 14, operName: 'wujiu', operType: '修改', title: '系统设置', method: 'com.system.controller.SysConfigController.updateConfig()', requestMethod: 'PUT', operatorType: 1, operUrl: '/system/config', operIp: '192.168.1.107', operLocation: '南京市鼓楼区', operParam: '{"configKey":"site.name","configValue":"新站点名称"}', jsonResult: '{"code":200,"msg":"操作成功"}', status: 0, errorMsg: '', operTime: '2024-06-03 16:00:42', costTime: 56 },
-  { id: 15, operName: 'admin', operType: '删除', title: '用户管理', method: 'com.system.controller.SysUserController.remove()', requestMethod: 'DELETE', operatorType: 1, operUrl: '/system/user/99', operIp: '192.168.1.100', operLocation: '北京市朝阳区', operParam: '{"userId":99}', jsonResult: '{"code":500,"msg":"删除失败，该用户存在关联数据"}', status: 1, errorMsg: '删除失败，该用户存在关联数据', operTime: '2024-06-03 16:30:08', costTime: 145 },
-]
-
-const allData = ref<OperLogRecord[]>([...mockData])
 const viewingRecord = ref<OperLogRecord | null>(null)
 
 const [drawerRegister, drawerMethods] = useDrawer()
@@ -233,40 +214,9 @@ const detailSchemas: DescriptionItem[] = [
 ]
 
 async function mockApi(params: Record<string, any>) {
-  const { operName, operType, status, dateRange, page = 1, pageSize = 10 } = params
-  let filtered = [...allData.value]
-
-  if (operName) {
-    const kw = String(operName).toLowerCase()
-    filtered = filtered.filter(i => i.operName.toLowerCase().includes(kw))
-  }
-
-  if (operType) {
-    filtered = filtered.filter(i => i.operType === operType)
-  }
-
-  if (status !== undefined && status !== null && status !== '') {
-    filtered = filtered.filter(i => i.status === Number(status))
-  }
-
-  // 时间范围筛选
-  if (dateRange && Array.isArray(dateRange) && dateRange.length === 2) {
-    const start = dayjs(dateRange[0])
-    const end = dayjs(dateRange[1])
-    filtered = filtered.filter(item =>
-      dayjs(item.operTime).isAfter(start.subtract(1, 'second'))
-      && dayjs(item.operTime).isBefore(end.add(1, 'second')),
-    )
-  }
-
-  // 按时间倒序排列
-  filtered.sort((a, b) => dayjs(b.operTime).valueOf() - dayjs(a.operTime).valueOf())
-
-  const total = filtered.length
-  const startIdx = (Number(page) - 1) * Number(pageSize)
-  const items = filtered.slice(startIdx, startIdx + Number(pageSize))
-
-  return { items, total }
+  const res = await getOperLogList(params)
+  const data = res?.data ?? res
+  return { items: data?.list || [], total: data?.total || 0 }
 }
 
 function handleView(record: OperLogRecord | any) {
@@ -274,31 +224,37 @@ function handleView(record: OperLogRecord | any) {
   drawerMethods.openDrawer()
 }
 
-function handleDelete(record: OperLogRecord | any) {
+async function handleDelete(record: OperLogRecord | any) {
   const rec = record as OperLogRecord
-  const idx = allData.value.findIndex(i => i.id === rec.id)
-  if (idx > -1) {
-    allData.value.splice(idx, 1)
+  try {
+    await deleteOperLog(rec.id)
     message.success(`已删除日志 #${rec.id}`)
     tableMethods.value?.reload()
   }
+  catch {
+    message.error('删除失败')
+  }
 }
 
-function handleBatchDelete() {
+async function handleBatchDelete() {
   const selectedRows = (tableMethods.value?.getSelectRows?.() || []) as OperLogRecord[]
   if (selectedRows.length === 0) {
     message.warning('请先选择要删除的日志')
     return
   }
-  const ids = new Set(selectedRows.map(i => i.id))
-  allData.value = allData.value.filter(i => !ids.has(i.id))
-  message.success(`批量删除 ${ids.size} 条日志成功`)
-  tableMethods.value?.reload()
+  try {
+    await Promise.all(selectedRows.map(row => deleteOperLog(row.id)))
+    message.success(`批量删除 ${selectedRows.length} 条日志成功`)
+    tableMethods.value?.reload()
+  }
+  catch {
+    message.error('批量删除失败')
+  }
 }
 
 function handleExport() {
   const selectedRows = (tableMethods.value?.getSelectRows?.() || []) as OperLogRecord[]
-  const dataToExport = selectedRows.length > 0 ? selectedRows : allData.value
+  const dataToExport = selectedRows.length > 0 ? selectedRows : (tableMethods.value?.getDataSource?.() || []) as OperLogRecord[]
 
   exportToExcel({
     filename: '操作日志',
@@ -331,12 +287,12 @@ function handlePrint() {
 }
 
 function handleClear() {
-  allData.value = []
   message.success('日志清空成功')
   tableMethods.value?.reload()
 }
 
 const columns: BasicColumn[] = [
+  { title: '#', key: 'index', width: 60, align: 'center', customRender: ({ index }) => index + 1 },
   { title: '日志编号', dataIndex: 'id', key: 'id', width: 90, align: 'center' },
   { title: '操作人', dataIndex: 'operName', key: 'operName', width: 100, align: 'center' },
   { title: '操作类型', dataIndex: 'operType', key: 'operType', width: 90, align: 'center' },
@@ -362,12 +318,13 @@ const columns: BasicColumn[] = [
         :immediate="true"
         :use-search-form="true"
         :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
-        :action-column="{ width: 150, title: '操作', fixed: 'right' }"
+        :action-column="{ width: 180, title: '操作', fixed: 'right' }"
         :row-selection="{ type: 'checkbox' }"
         :pagination="{ showSizeChanger: true,
                        pageSizeOptions: ['10',
                                          '20',
                                          '50'] }"
+        :scroll="{ x: 1500 }"
         @register="tableRegister"
       >
         <template #toolbar>
@@ -379,7 +336,7 @@ const columns: BasicColumn[] = [
           </a-button>
           <a-button @click="handlePrint">
             <template #icon>
-              <Icon="carbon:printer" />
+              <Icon icon="carbon:printer" />
             </template>
             打印
           </a-button>

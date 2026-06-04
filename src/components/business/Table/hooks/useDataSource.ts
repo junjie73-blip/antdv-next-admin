@@ -26,7 +26,6 @@ const DEFAULT_FETCH_SETTING: FetchSetting = {
 export function useDataSource(options: UseDataSourceOptions): UseDataSourceReturn {
   const {
     api,
-    params,
     dataSource,
     beforeFetch,
     afterFetch,

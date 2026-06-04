@@ -22,14 +22,6 @@ export const frontendMenus: MenuConfig[] = [
         component: '@/views/dashboard/index.vue',
         keepAlive: true,
       },
-      {
-        path: 'micro-app',
-        name: 'SystemMicroApp',
-        title: '微前端管理',
-        icon: 'carbon:cloud-app',
-        component: '@/views/system/micro-app/index.vue',
-        keepAlive: true,
-      },
     ],
   },
   {
@@ -272,38 +264,6 @@ export const frontendMenus: MenuConfig[] = [
     ],
   },
   {
-    path: '/micro-app',
-    name: 'MicroApp',
-    title: '微前端',
-    icon: 'carbon:cloud-app',
-    children: [
-      {
-        path: 'sub-app-1',
-        name: 'SubApp1',
-        title: '子应用1',
-        icon: 'carbon:app',
-        microApp: {
-          name: 'sub-app-1',
-          url: 'http://localhost:9090',
-          baseroute: '/micro-app/sub-app-1',
-          keepAlive: true,
-        },
-      },
-      {
-        path: 'sub-app-2',
-        name: 'SubApp2',
-        title: '子应用2',
-        icon: 'carbon:app-connect',
-        microApp: {
-          name: 'sub-app-2',
-          url: 'http://localhost:9091',
-          baseroute: '/micro-app/sub-app-2',
-          keepAlive: true,
-        },
-      },
-    ],
-  },
-  {
     path: '/system',
     name: 'System',
     title: '系统设置',
@@ -331,6 +291,20 @@ export const frontendMenus: MenuConfig[] = [
         keepAlive: true,
       },
       {
+        path: 'dept',
+        name: 'SystemDept',
+        title: '部门管理',
+        component: '@/views/system/dept/index.vue',
+        keepAlive: true,
+      },
+      {
+        path: 'post',
+        name: 'SystemPost',
+        title: '岗位管理',
+        component: '@/views/system/post/index.vue',
+        keepAlive: true,
+      },
+      {
         path: 'dict',
         name: 'SystemDict',
         title: '字典管理',
@@ -342,6 +316,13 @@ export const frontendMenus: MenuConfig[] = [
         name: 'SystemMenu',
         title: '菜单管理',
         component: '@/views/system/menu/index.vue',
+        keepAlive: true,
+      },
+      {
+        path: 'login-log',
+        name: 'SystemLoginLog',
+        title: '登录日志',
+        component: '@/views/system/login-log/index.vue',
         keepAlive: true,
       },
       {
@@ -363,6 +344,13 @@ export const frontendMenus: MenuConfig[] = [
         name: 'SystemNotice',
         title: '消息通知',
         component: '@/views/system/notice/index.vue',
+        keepAlive: true,
+      },
+      {
+        path: 'file',
+        name: 'SystemFile',
+        title: '文件中心',
+        component: '@/views/system/file/index.vue',
         keepAlive: true,
       },
     ],

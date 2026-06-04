@@ -70,11 +70,21 @@ function kpiIconWrap(color: string): string {
 }
 
 // ========== ECharts 主题工具函数 ==========
-function textColor() { return isDark.value ? '#d1d5db' : '#374151' }
-function subTextColor() { return isDark.value ? '#6b7280' : '#9ca3af' }
-function borderColor() { return isDark.value ? '#374151' : '#e5e7eb' }
-function axisLineColor() { return isDark.value ? '#4b5563' : '#d1d5db' }
-function tooltipBg() { return isDark.value ? 'rgba(31,41,55,0.96)' : 'rgba(255,255,255,0.96)' }
+function textColor() {
+  return isDark.value ? '#d1d5db' : '#374151'
+}
+function subTextColor() {
+  return isDark.value ? '#6b7280' : '#9ca3af'
+}
+function borderColor() {
+  return isDark.value ? '#374151' : '#e5e7eb'
+}
+function axisLineColor() {
+  return isDark.value ? '#4b5563' : '#d1d5db'
+}
+function tooltipBg() {
+  return isDark.value ? 'rgba(31,41,55,0.96)' : 'rgba(255,255,255,0.96)'
+}
 
 function baseOption(extra: Record<string, any> = {}): Record<string, any> {
   return {
@@ -499,7 +509,7 @@ function initModuleRank() {
       },
       series: [{
         type: 'bar',
-        data: sorted.map((d, i) => ({
+        data: sorted.map(d => ({
           value: d.value,
           itemStyle: {
             color: gradient([PALETTE.primary, 'rgba(22,119,255,0.25)'], false),
@@ -610,7 +620,10 @@ function handleExportReport() {
             triggerDownload()
           }
         }
-        img.onerror = () => { offsetY += 300 + chartGap; checkLast() }
+        img.onerror = () => {
+          offsetY += 300 + chartGap
+          checkLast()
+        }
         img.src = dataUrl
       }
       catch {
@@ -692,13 +705,13 @@ function safeInit(name: string, refEl: Ref<HTMLDivElement | undefined>, initFn: 
 }
 
 function initAll() {
-  safeInit('mainTrend', mainTrendRef, el => initMainTrend())
-  safeInit('trafficDist', trafficDistRef, el => initTrafficDist())
-  safeInit('systemHealth', systemHealthRef, el => initSystemHealth())
-  safeInit('resourceRadar', resourceRadarRef, el => initResourceRadar())
-  safeInit('activityHeatmap', activityHeatmapRef, el => initActivityHeatmap())
-  safeInit('userJourney', userJourneyRef, el => initUserJourney())
-  safeInit('moduleRank', moduleRankRef, el => initModuleRank())
+  safeInit('mainTrend', mainTrendRef, () => initMainTrend())
+  safeInit('trafficDist', trafficDistRef, () => initTrafficDist())
+  safeInit('systemHealth', systemHealthRef, () => initSystemHealth())
+  safeInit('resourceRadar', resourceRadarRef, () => initResourceRadar())
+  safeInit('activityHeatmap', activityHeatmapRef, () => initActivityHeatmap())
+  safeInit('userJourney', userJourneyRef, () => initUserJourney())
+  safeInit('moduleRank', moduleRankRef, () => initModuleRank())
 }
 
 function disposeAll() {

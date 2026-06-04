@@ -147,7 +147,7 @@ function handleTabClick(key: string) {
   router.push(key)
 }
 
-function handleTabEdit(targetKey: any, action: 'add' | 'remove') {
+function _handleTabEdit(targetKey: any, action: 'add' | 'remove') {
   if (action === 'remove' && typeof targetKey === 'string') {
     removeTab(targetKey)
   }
@@ -205,8 +205,6 @@ function handleDropdownClick({ key }: { key: string }) {
       break
   }
 }
-
-const scrollContainerRef = ref<any>(null)
 
 let isDragging = false
 let startX = 0

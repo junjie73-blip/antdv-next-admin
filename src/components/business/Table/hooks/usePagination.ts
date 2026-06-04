@@ -4,7 +4,7 @@ import { isPlainObject } from 'es-toolkit'
 import { computed, ref, unref } from 'vue'
 
 // 使用原生方法替代 es-toolkit
-const isBoolean = (val: unknown): val is boolean => typeof val === 'boolean'
+const _isBoolean = (val: unknown): val is boolean => typeof val === 'boolean'
 
 /**
  * 默认分页配置
@@ -25,7 +25,7 @@ const DEFAULT_PAGINATION_CONFIG: AntPaginationProps = {
  * 为什么需要：统一管理表格分页状态和逻辑
  */
 export function usePagination(options: UsePaginationOptions): UsePaginationReturn {
-  const { pagination, fetchSetting } = options
+  const { pagination } = options
 
   // 是否显示分页
   const showPaginationRef = ref(true)

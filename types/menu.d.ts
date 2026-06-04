@@ -1,3 +1,14 @@
+export interface MicroAppConfig {
+  name: string
+  url: string
+  baseroute: string
+  keepAlive?: boolean
+  disableMemoryRouter?: boolean
+  disablePatchRequest?: boolean
+  inline?: boolean
+  destroy?: boolean
+}
+
 export interface MenuConfig {
   path: string
   name: string
@@ -10,6 +21,7 @@ export interface MenuConfig {
   requiresAuth?: boolean
   roles?: string[]
   permissions?: string[]
+  microApp?: MicroAppConfig
   children?: MenuConfig[]
 }
 

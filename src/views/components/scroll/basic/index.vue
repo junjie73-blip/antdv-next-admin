@@ -5,7 +5,6 @@ import { cn } from '@/utils/cn'
 
 const containerClassName = cn('space-y-6')
 const scrollContentClassName = cn('p-4 rounded-lg bg-gray-50 dark:bg-gray-800')
-const cardClassName = cn('rounded-xl border border-gray-100 dark:border-gray-800')
 
 const basicItems = Array.from({ length: 30 }, (_, i) => ({
   id: i + 1,

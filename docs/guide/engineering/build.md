@@ -162,7 +162,7 @@ visualizer({
 
 ```bash
 # 执行带分析的构建
-bun run build
+pnpm run build
 # 打开 stats.html 查看分析结果
 ```
 
@@ -221,10 +221,10 @@ terserOptions: {
 # 构建阶段
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY package.json bun.lock ./
-RUN corepack enable && bun install --frozen-lockfile
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable && pnpm install --frozen-lockfile
 COPY . .
-RUN bun run build
+RUN pnpm run build
 
 # 生产阶段
 FROM nginx:alpine
@@ -342,23 +342,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: bun run lint:fix
+        run: pnpm run lint:fix
 
       - name: Type check
-        run: bun run type-check
+        run: pnpm run type-check
 
       - name: Unit test
-        run: bun run test:unit
+        run: pnpm run test:unit
 
       - name: Build
-        run: bun run build
+        run: pnpm run build
 
       - name: Deploy to Server
         if: success()

@@ -4,6 +4,12 @@ import { ref } from 'vue'
 import { useModal } from '@/components/business/Modal'
 import { cn } from '@/utils/cn'
 
+const [registerBasicModal, basicModalMethods] = useModal()
+const [registerLargeModal, largeModalMethods] = useModal()
+const [registerNoFooterModal, noFooterModalMethods] = useModal()
+const [registerAsyncModal, asyncModalMethods] = useModal()
+const [_registerContentModal, _contentModalMethods] = useModal()
+
 const containerClassName = cn('space-y-6')
 
 const formData = ref({ name: '', email: '', description: '' })
@@ -14,11 +20,6 @@ function handleSubmit() {
   message.success('基础弹窗已提交')
   basicModalMethods?.closeModal()
 }
-
-const [registerBasicModal, basicModalMethods] = useModal()
-const [registerLargeModal, largeModalMethods] = useModal()
-const [registerNoFooterModal, noFooterModalMethods] = useModal()
-const [registerAsyncModal, asyncModalMethods] = useModal()
 
 const asyncLoading = ref(false)
 const asyncResult = ref('')

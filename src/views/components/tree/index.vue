@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { message } from 'antdv-next'
 import { ref } from 'vue'
 
 import { cn } from '@/utils/cn'
@@ -246,14 +247,13 @@ const draggableTreeData = ref<TreeNode[]>([
 function onDrop(info: any) {
   const dragKeys = info.dragNodesKeys || []
   const dropKey = info.node?.key
-  const dropPosition = info.dropPosition ?? -1
 
   // 构建新顺序提示信息
   const newOrder = draggableTreeData.value[0]?.children
     ?.map((item, index) => `${index + 1}. ${item.title}`)
     .join('\n') || ''
 
-  alert(`拖拽完成！\n\n拖拽节点: ${dragKeys.join(', ') || '未知'}\n目标位置: ${dropKey || '末尾'}\n\n新顺序:\n${newOrder}`)
+  message.info(`拖拽完成！\n\n拖拽节点: ${dragKeys.join(', ') || '未知'}\n目标位置: ${dropKey || '末尾'}\n\n新顺序:\n${newOrder}`)
 }
 
 function allowDrop(): boolean {
@@ -296,15 +296,15 @@ const actionTreeData = ref<TreeNode[]>([
 ])
 
 function handleAddChild(nodeKey: string) {
-  alert(`添加子节点到: ${nodeKey}`)
+  message.info(`添加子节点到: ${nodeKey}`)
 }
 
 function handleEdit(nodeKey: string, title: string) {
-  alert(`编辑节点:\nKey: ${nodeKey}\nTitle: ${title}`)
+  message.info(`编辑节点:\nKey: ${nodeKey}\nTitle: ${title}`)
 }
 
 function handleDelete(nodeKey: string) {
-  alert(`删除节点: ${nodeKey}`)
+  message.warning(`删除节点: ${nodeKey}`)
 }
 
 // ==================== 7. 连接线样式树 ====================

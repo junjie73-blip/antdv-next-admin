@@ -21,7 +21,7 @@ const rules: Record<string, FormProps['rules']> = {
     {
       validator: (_rule, value: string) => {
         if (value && !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) {
-          return Promise.reject('密码必须包含大写字母、小写字母和数字')
+          return Promise.reject(new Error('密码必须包含大写字母、小写字母和数字'))
         }
         return Promise.resolve()
       },
@@ -33,7 +33,7 @@ const rules: Record<string, FormProps['rules']> = {
     {
       validator: (_rule, value: string) => {
         if (value && value !== formState.password) {
-          return Promise.reject('两次输入的密码不一致')
+          return Promise.reject(new Error('两次输入的密码不一致'))
         }
         return Promise.resolve()
       },
@@ -49,7 +49,7 @@ const rules: Record<string, FormProps['rules']> = {
     {
       validator: (_rule, value: number | null) => {
         if (value !== null && (value < 1 || value > 120)) {
-          return Promise.reject('年龄必须在1-120之间')
+          return Promise.reject(new Error('年龄必须在1-120之间'))
         }
         return Promise.resolve()
       },

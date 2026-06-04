@@ -87,7 +87,7 @@ export function useTableScroll(options: UseTableScrollOptions): UseTableScrollRe
   /**
    * 监听滚动配置变化
    */
-  const updateScroll = () => {
+  const _updateScroll = () => {
     scrollRef.value = unref(getScroll)
   }
 

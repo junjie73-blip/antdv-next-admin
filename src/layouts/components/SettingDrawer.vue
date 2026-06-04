@@ -75,7 +75,7 @@ const settingItemClassName = cn(
   'py-2',
 )
 
-function handleThemeChange(value: string | number, event?: MouseEvent) {
+function _handleThemeChange(value: string | number, event?: MouseEvent) {
   if (value !== appStore.themeMode) {
     toggleThemeWithAnimation(event)
   }

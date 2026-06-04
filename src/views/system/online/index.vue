@@ -7,6 +7,7 @@ import { message } from 'antdv-next'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { onMounted, onUnmounted, ref } from 'vue'
+import { forceLogout, getOnlineUserList } from '@/api/system'
 import { Description as DetailDescription } from '@/components/business/Description'
 import { BasicDrawer, useDrawer } from '@/components/business/Drawer'
 import { BasicTable, useTable } from '@/components/business/Table'
@@ -34,114 +35,10 @@ interface OnlineUserRecord {
 const containerClassName = cn('space-y-4')
 const cardClassName = cn('shadow-sm')
 const tagClassName = cn('inline-flex items-center gap-1')
-const actionClassName = cn('flex', 'items-center')
+const actionClassName = cn('flex', 'items-center', 'justify-center')
 const btnClassName = cn('!px-0.5')
 const dividerClassName = cn('mx-0')
 
-// 模拟在线用户数据
-function generateOnlineUsers(): OnlineUserRecord[] {
-  const now = dayjs()
-  return [
-    {
-      tokenId: 'tok-admin-001',
-      sessionId: 'sess-admin-001',
-      username: 'admin',
-      nickname: '超级管理员',
-      ip: '192.168.1.100',
-      location: '北京市朝阳区',
-      browser: 'Chrome 125.0',
-      os: 'Windows 11',
-      loginTime: now.subtract(30, 'minute').format('YYYY-MM-DD HH:mm:ss'),
-      status: 0,
-    },
-    {
-      tokenId: 'tok-zhangsan-002',
-      sessionId: 'sess-zhangsan-002',
-      username: 'zhangsan',
-      nickname: '张三',
-      ip: '192.168.1.101',
-      location: '上海市浦东新区',
-      browser: 'Firefox 126.0',
-      os: 'Windows 10',
-      loginTime: now.subtract(15, 'minute').format('YYYY-MM-DD HH:mm:ss'),
-      status: 0,
-    },
-    {
-      tokenId: 'tok-lisi-003',
-      sessionId: 'sess-lisi-003',
-      username: 'lisi',
-      nickname: '李四',
-      ip: '192.168.1.102',
-      location: '广州市天河区',
-      browser: 'Safari 17.4',
-      os: 'macOS Sonoma',
-      loginTime: now.subtract(8, 'minute').format('YYYY-MM-DD HH:mm:ss'),
-      status: 0,
-    },
-    {
-      tokenId: 'tok-wangwu-004',
-      sessionId: 'sess-wangwu-004',
-      username: 'wangwu',
-      nickname: '王五',
-      ip: '10.0.0.55',
-      location: '内网地址',
-      browser: 'Edge 124.0',
-      os: 'Windows 11',
-      loginTime: now.subtract(45, 'minute').format('YYYY-MM-DD HH:mm:ss'),
-      status: 0,
-    },
-    {
-      tokenId: 'tok-zhaoliu-005',
-      sessionId: 'sess-zhaoliu-005',
-      username: 'zhaoliu',
-      nickname: '赵六',
-      ip: '172.16.0.88',
-      location: '内网地址',
-      browser: 'Chrome 125.0',
-      os: 'Ubuntu 22.04',
-      loginTime: now.subtract(2, 'hour').format('YYYY-MM-DD HH:mm:ss'),
-      status: 0,
-    },
-    {
-      tokenId: 'tok-sunqi-006',
-      sessionId: 'sess-sunqi-006',
-      username: 'sunqi',
-      nickname: '孙七',
-      ip: '192.168.1.105',
-      location: '成都市武侯区',
-      browser: 'Chrome Mobile 125.0',
-      os: 'iOS 17.5',
-      loginTime: now.subtract(5, 'minute').format('YYYY-MM-DD HH:mm:ss'),
-      status: 0,
-    },
-    {
-      tokenId: 'tok-zhouba-007',
-      sessionId: 'sess-zhouba-007',
-      username: 'zhouba',
-      nickname: '周八',
-      ip: '192.168.1.106',
-      location: '武汉市洪山区',
-      browser: 'WeChat MiniProgram',
-      os: 'Android 14',
-      loginTime: now.subtract(12, 'minute').format('YYYY-MM-DD HH:mm:ss'),
-      status: 0,
-    },
-    {
-      tokenId: 'tok-wujiu-008',
-      sessionId: 'sess-wujiu-008',
-      username: 'wujiu',
-      nickname: '吴九',
-      ip: '192.168.1.107',
-      location: '南京市鼓楼区',
-      browser: 'Postman Runtime',
-      os: 'macOS Ventura',
-      loginTime: now.subtract(1, 'hour').format('YYYY-MM-DD HH:mm:ss'),
-      status: 0,
-    },
-  ]
-}
-
-const allData = ref<OnlineUserRecord[]>(generateOnlineUsers())
 const viewingRecord = ref<OnlineUserRecord | null>(null)
 const onlineCount = ref(0)
 
@@ -159,7 +56,7 @@ const searchFormSchemas: FormSchema[] = [
       placeholder: '搜索用户名/昵称/IP地址...',
       allowClear: true,
     },
-    colProps: { span: 8 },
+    colProps: { span: 6 },
   },
   {
     field: 'status',
@@ -211,30 +108,11 @@ const detailSchemas: DescriptionItem[] = [
 ]
 
 async function mockApi(params: Record<string, any>) {
-  const { keyword, status, page = 1, pageSize = 10 } = params
-  let filtered = [...allData.value]
-
-  if (keyword) {
-    const kw = String(keyword).toLowerCase()
-    filtered = filtered.filter(i =>
-      i.username.toLowerCase().includes(kw)
-      || i.nickname.toLowerCase().includes(kw)
-      || i.ip.includes(kw),
-    )
-  }
-
-  if (status !== undefined && status !== null && status !== '') {
-    filtered = filtered.filter(i => i.status === Number(status))
-  }
-
-  // 按登录时间倒序
-  filtered.sort((a, b) => dayjs(b.loginTime).valueOf() - dayjs(a.loginTime).valueOf())
-
-  const total = filtered.length
-  const startIdx = (Number(page) - 1) * Number(pageSize)
-  const items = filtered.slice(startIdx, startIdx + Number(pageSize))
-
-  return { items, total }
+  const res = await getOnlineUserList(params)
+  const data = res?.data ?? res
+  const items = data?.list || []
+  onlineCount.value = data?.total || items.length
+  return { items, total: data?.total || 0 }
 }
 
 function handleView(record: OnlineUserRecord | any) {
@@ -242,7 +120,7 @@ function handleView(record: OnlineUserRecord | any) {
   drawerMethods.openDrawer()
 }
 
-function handleForceLogout(record: OnlineUserRecord | any) {
+async function handleForceLogout(record: OnlineUserRecord | any) {
   const rec = record as OnlineUserRecord
   // 不能踢出自己
   if (rec.username === 'admin') {
@@ -250,15 +128,17 @@ function handleForceLogout(record: OnlineUserRecord | any) {
     return
   }
 
-  const idx = allData.value.findIndex(i => i.tokenId === rec.tokenId)
-  if (idx > -1) {
-    allData.value.splice(idx, 1)
+  try {
+    await forceLogout(rec.tokenId)
     message.success(`已强制退出用户「${rec.nickname}」`)
     tableMethods.value?.reload()
   }
+  catch {
+    message.error('强制退出失败')
+  }
 }
 
-function handleBatchForceLogout() {
+async function handleBatchForceLogout() {
   const selectedRows = (tableMethods.value?.getSelectRows?.() || []) as OnlineUserRecord[]
   if (selectedRows.length === 0) {
     message.warning('请先选择要强退的用户')
@@ -272,14 +152,19 @@ function handleBatchForceLogout() {
     return
   }
 
-  const kickIds = new Set(canKick.map(r => r.tokenId))
-  const kickedNames = canKick.map(r => r.nickname)
-  allData.value = allData.value.filter(i => !kickIds.has(i.tokenId))
-  message.success(`已强制退出 ${kickedNames.length} 个会话：${kickedNames.join('、')}`)
-  tableMethods.value?.reload()
+  try {
+    await Promise.all(canKick.map(r => forceLogout(r.tokenId)))
+    const kickedNames = canKick.map(r => r.nickname)
+    message.success(`已强制退出 ${kickedNames.length} 个会话：${kickedNames.join('、')}`)
+    tableMethods.value?.reload()
+  }
+  catch {
+    message.error('批量强制退出失败')
+  }
 }
 
 function handleExport() {
+  const tableData = (tableMethods.value?.getDataSource?.() || []) as OnlineUserRecord[]
   exportToExcel({
     filename: '在线用户',
     sheetName: '在线用户',
@@ -294,7 +179,7 @@ function handleExport() {
       { header: '登录时间', key: 'loginTime', width: 20 },
       { header: '状态', key: 'status', width: 8 },
     ],
-    data: allData.value.map(i => ({ ...i, status: i.status === 0 ? '在线' : '离线' })),
+    data: tableData.map(i => ({ ...i, status: i.status === 0 ? '在线' : '离线' })),
   })
 }
 
@@ -306,52 +191,14 @@ function handlePrint() {
 }
 
 function updateOnlineCount() {
-  onlineCount.value = allData.value.length
+  // 在线数量已在 mockApi 中从 API 响应更新
 }
 
 // 模拟实时刷新在线列表
 function startAutoRefresh() {
   stopAutoRefresh()
   refreshTimer = setInterval(() => {
-    // 随机模拟有新用户上线或下线（小概率事件）
-    if (Math.random() > 0.9) {
-      // 模拟新用户上线
-      const newId = Date.now()
-      const names = ['chenyi', 'liuer', 'huangsan', 'linxi', 'hexu']
-      const locations = ['西安市雁塔区', '郑州市金水区', '长沙市岳麓区', '沈阳市和平区', '济南市历下区']
-      const browsers = ['Chrome 125.0', 'Firefox 126.0', 'Edge 124.0', 'Safari 17.4']
-      const oss = ['Windows 11', 'Windows 10', 'macOS Sonoma', 'Ubuntu 22.04']
-
-      allData.value.push({
-        tokenId: `tok-auto-${newId}`,
-        sessionId: `sess-auto-${newId}`,
-        username: names[Math.floor(Math.random() * names.length)]!,
-        nickname: `自动用户${Math.floor(Math.random() * 100)}`,
-        ip: `192.168.1.${Math.floor(Math.random() * 255)}`,
-        location: locations[Math.floor(Math.random() * locations.length)]!,
-        browser: browsers[Math.floor(Math.random() * browsers.length)]!,
-        os: oss[Math.floor(Math.random() * oss.length)]!,
-        loginTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-        status: 0,
-      })
-      tableMethods.value?.reload()
-    }
-    else if (Math.random() > 0.95 && allData.value.length > 1) {
-      // 模拟用户下线（非 admin）
-      const nonAdminUsers = allData.value.filter(u => u.username !== 'admin')
-      if (nonAdminUsers.length > 0) {
-        const randomIdx = Math.floor(Math.random() * nonAdminUsers.length)
-        const userToLeave = nonAdminUsers[randomIdx]
-        if (userToLeave) {
-          const globalIdx = allData.value.findIndex(u => u.tokenId === userToLeave.tokenId)
-          if (globalIdx > -1) {
-            allData.value.splice(globalIdx, 1)
-            tableMethods.value?.reload()
-          }
-        }
-      }
-    }
-    updateOnlineCount()
+    tableMethods.value?.reload()
   }, 30000) // 每30秒刷新一次
 }
 
@@ -372,14 +219,15 @@ onUnmounted(() => {
 })
 
 const columns: BasicColumn[] = [
+  { title: '#', key: 'index', width: 60, align: 'center', customRender: ({ index }) => index + 1 },
   { title: '会话标识', dataIndex: 'tokenId', key: 'tokenId', width: 180, ellipsis: true },
   { title: '用户名', dataIndex: 'username', key: 'username', width: 110, align: 'center' },
-  { title: '昵称', dataIndex: 'nickname', key: 'nickname', width: 110 },
+  { title: '昵称', dataIndex: 'nickname', key: 'nickname', width: 110, align: 'center' },
   { title: 'IP 地址', dataIndex: 'ip', key: 'ip', width: 140, align: 'center' },
   { title: '登录地点', dataIndex: 'location', key: 'location', width: 130, ellipsis: true },
   { title: '浏览器', dataIndex: 'browser', key: 'browser', width: 160, ellipsis: true },
   { title: '操作系统', dataIndex: 'os', key: 'os', width: 130, ellipsis: true },
-  { title: '登录时间', dataIndex: 'loginTime', key: 'loginTime', width: 170 },
+  { title: '登录时间', dataIndex: 'loginTime', key: 'loginTime', width: 170, align: 'center' },
   {
     title: '状态',
     dataIndex: 'status',
@@ -474,12 +322,13 @@ const columns: BasicColumn[] = [
         :immediate="true"
         :use-search-form="true"
         :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
-        :action-column="{ width: 150, title: '操作', fixed: 'right' }"
+        :action-column="{ width: 180, title: '操作', fixed: 'right' }"
         :row-selection="{ type: 'checkbox' }"
         :pagination="{ showSizeChanger: true,
                        pageSizeOptions: ['10',
                                          '20',
                                          '50'] }"
+        :scroll="{ x: 1500 }"
         @register="tableRegister"
       >
         <template #toolbar>

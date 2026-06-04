@@ -1,9 +1,7 @@
 import type {
   PaginationProps as AntPaginationProps,
 } from 'antdv-next'
-import type { CSSProperties, VNode } from 'vue'
-// 从 vue 导入 ComputedRef
-import type { ComputedRef, Ref } from 'vue'
+import type { ComputedRef, CSSProperties, Ref, VNode } from 'vue'
 
 import type { FormProps, FormSchema } from '../Form/types'
 

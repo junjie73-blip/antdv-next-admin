@@ -15,7 +15,7 @@ import { cn } from '@/utils/cn'
 import { useBreadcrumb, useFullscreen } from '../composables/useLayout'
 import SettingDrawer from './SettingDrawer.vue'
 
-const props = defineProps<{
+const _props = defineProps<{
   collapsed?: boolean
   horizontal?: boolean
   mixed?: boolean
@@ -42,7 +42,6 @@ const { setLocale } = useLocale()
 
 const showSetting = ref(false)
 const showNotification = ref(false)
-const showLockScreen = ref(false)
 const appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
 
 interface NotificationItem {
@@ -181,7 +180,7 @@ const sizeOptions: MenuProps['items'] = [
   { key: 'large', label: '大' },
 ]
 
-const localeOptions: MenuProps['items'] = [
+const _localeOptions: MenuProps['items'] = [
   { key: 'zh-CN', label: '简体中文' },
   { key: 'en-US', label: 'English' },
   { key: 'ja-JP', label: '日本語' },
@@ -274,7 +273,7 @@ function handleSizeSelect({ key }: { key: string }) {
   appStore.updateSetting({ componentSize: key as 'small' | 'middle' | 'large' })
 }
 
-function handleLocaleSelect({ key }: { key: string }) {
+function _handleLocaleSelect({ key }: { key: string }) {
   setLocale(key as 'zh-CN' | 'en-US')
 }
 
@@ -303,14 +302,6 @@ function handleHorizontalMenuSelect({ key }: { key: string }) {
     router.push(key)
   }
   emit('topMenuSelect', key)
-}
-
-function handleLockScreen() {
-  showLockScreen.value = true
-}
-
-function handleUnlock() {
-  showLockScreen.value = false
 }
 </script>
 
@@ -557,16 +548,6 @@ function handleUnlock() {
 
       <div
         :class="actionBtnClassName"
-        @click="handleLockScreen"
-      >
-        <Icon
-          icon="carbon:locked"
-          class="text-lg"
-        />
-      </div>
-
-      <div
-        :class="actionBtnClassName"
         @click="showSetting = true"
       >
         <Icon
@@ -592,47 +573,6 @@ function handleUnlock() {
     </div>
 
     <SettingDrawer v-model:visible="showSetting" />
-
-    <!-- 锁屏 -->
-    <Teleport to="body">
-      <Transition name="fade">
-        <div
-          v-if="showLockScreen"
-          class="fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-sm"
-          :class="isGeekStyle ? 'bg-[#0a0a0a]/95' : isDarkMode ? 'bg-gray-900/90' : 'bg-gray-100/90'"
-        >
-          <div
-            class="w-full max-w-sm p-8 rounded-xl text-center shadow-2xl"
-            :class="isGeekStyle ? 'bg-[#111] border border-[#1a1a1a]' : isDarkMode ? 'bg-gray-800' : 'bg-white'"
-          >
-            <Icon
-              icon="carbon:locked"
-              class="text-5xl mb-4"
-              :class="isGeekStyle ? 'text-[#00ff88]' : 'text-primary'"
-            />
-            <h3
-              class="text-lg font-medium mb-2"
-              :class="isGeekStyle ? 'text-[#00ff88]' : ''"
-            >
-              屏幕已锁定
-            </h3>
-            <p class="text-sm opacity-60 mb-6">
-              请点击解锁按钮或按任意键继续
-            </p>
-            <button
-              type="button"
-              class="px-6 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
-              :class="isGeekStyle
-                ? 'bg-[#00ff88] text-black hover:bg-[#00dd77]'
-                : 'bg-primary text-white hover:bg-primary/80'"
-              @click="handleUnlock"
-            >
-              解锁屏幕
-            </button>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
   </header>
 </template>
 

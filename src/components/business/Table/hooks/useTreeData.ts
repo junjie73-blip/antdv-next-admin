@@ -159,25 +159,6 @@ export function useTreeData(options: UseTreeDataOptions): UseTreeDataReturn {
   }
 
   /**
-   * 根据 key 查找记录
-   */
-  const findRecordByKey = (data: Recordable[], key: string): Recordable | null => {
-    for (const record of data) {
-      const recordKey = getRowKeyValue(record)
-      if (recordKey === key) {
-        return record
-      }
-      const children = getChildren(record)
-      if (children.length > 0) {
-        const found = findRecordByKey(children, key)
-        if (found)
-          return found
-      }
-    }
-    return null
-  }
-
-  /**
    * 扁平化树形数据
    */
   const flatData = computed(() => {

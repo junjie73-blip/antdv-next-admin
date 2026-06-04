@@ -4,12 +4,14 @@ import type { FormSchema } from '@/components/business/Form'
 import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
 import { message } from 'antdv-next'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { addSetting, deleteSetting, getSettingsList, updateSetting } from '@/api/system'
 import { Description as DetailDescription } from '@/components/business/Description'
 import { BasicDrawer, useDrawer } from '@/components/business/Drawer'
 import { BasicForm, useForm } from '@/components/business/Form'
 import { BasicModal, useModal } from '@/components/business/Modal'
 import { BasicTable, useTable } from '@/components/business/Table'
+import { useDictStore } from '@/stores'
 import { cn } from '@/utils/cn'
 
 defineOptions({ name: 'SystemSettings' })
@@ -27,10 +29,14 @@ interface SystemConfig {
   updatedAt: string
 }
 
+const dictStore = useDictStore()
+
+const statusOptions = computed(() => dictStore.getOptions('sys_normal_disable'))
+
 const containerClassName = cn('space-y-4')
 const cardClassName = cn('shadow-sm')
 const valueCellClassName = cn('truncate', 'block', 'max-w-[180px]')
-const actionClassName = cn('flex', 'items-center')
+const actionClassName = cn('flex', 'items-center', 'justify-center')
 const btnClassName = cn('!px-0.5')
 const dividerClassName = cn('mx-0')
 
@@ -96,24 +102,6 @@ const detailSchemas: DescriptionItem[] = [
   { field: 'updatedAt', label: '更新时间' },
 ]
 
-const mockData: SystemConfig[] = [
-  { id: 1, key: 'site.name', name: '站点名称', value: 'Antdv Next Admin', type: 'text', group: '通用设置', description: '系统站点显示名称', enabled: true, createdAt: '2024-01-15 10:00:00', updatedAt: '2024-05-20 14:30:00' },
-  { id: 2, key: 'site.logo', name: '站点Logo', value: '/logo.png', type: 'text', group: '通用设置', description: '站点Logo图片路径', enabled: true, createdAt: '2024-01-15 10:00:00', updatedAt: '2024-05-18 09:00:00' },
-  { id: 3, key: 'site.subtitle', name: '副标题', value: '企业级后台管理系统', type: 'text', group: '通用设置', description: '站点副标题，显示在Logo下方', enabled: true, createdAt: '2024-01-16 08:00:00', updatedAt: '2024-05-22 10:00:00' },
-  { id: 4, key: 'site.icp', name: 'ICP备案号', value: '京ICP备2024000001号', type: 'text', group: '通用设置', description: '网站ICP备案号', enabled: true, createdAt: '2024-01-16 08:00:00', updatedAt: '2024-05-22 10:00:00' },
-  { id: 5, key: 'site.copyright', name: '版权信息', value: '© 2024 Antdv Next Admin', type: 'text', group: '通用设置', description: '网站底部版权信息', enabled: true, createdAt: '2024-01-16 08:30:00', updatedAt: '2024-05-22 10:15:00' },
-  { id: 6, key: 'site.language', name: '默认语言', value: 'zh-CN', type: 'text', group: '通用设置', description: '系统默认显示语言', enabled: true, createdAt: '2024-01-16 08:30:00', updatedAt: '2024-05-22 10:15:00' },
-  { id: 8, key: 'feature.darkMode', name: '暗黑模式', value: 'true', type: 'boolean', group: '功能开关', description: '启用暗黑模式切换', enabled: true, createdAt: '2024-05-01 09:00:00', updatedAt: '2024-05-20 08:00:00' },
-  { id: 9, key: 'feature.watermark', name: '水印功能', value: 'true', type: 'boolean', group: '功能开关', description: '启用页面水印', enabled: false, createdAt: '2024-05-01 09:00:00', updatedAt: '2024-05-02 14:00:00' },
-  { id: 16, key: 'security.loginRetry', name: '登录重试次数', value: '5', type: 'number', group: '安全设置', description: '最大登录失败重试次数', enabled: true, createdAt: '2024-03-10 09:00:00', updatedAt: '2024-05-10 10:00:00' },
-  { id: 22, key: 'upload.maxSize', name: '最大上传大小', value: '10', type: 'number', group: '上传设置', description: '单文件最大上传大小（MB）', enabled: true, createdAt: '2024-02-01 08:00:00', updatedAt: '2024-05-15 11:00:00' },
-  { id: 26, key: 'notification.emailAlert', name: '邮件告警', value: 'false', type: 'boolean', group: '通知设置', description: '系统错误时发送邮件告警', enabled: false, createdAt: '2024-04-01 10:00:00', updatedAt: '2024-04-20 15:00:00' },
-  { id: 30, key: 'cache.ttl', name: '缓存过期时间', value: '3600', type: 'number', group: '缓存设置', description: '默认缓存TTL（秒）', enabled: true, createdAt: '2024-04-15 08:00:00', updatedAt: '2024-05-19 12:00:00' },
-  { id: 34, key: 'theme.primaryColor', name: '主题色', value: '#1677ff', type: 'text', group: '主题设置', description: '系统主题色', enabled: true, createdAt: '2024-06-01 09:00:00', updatedAt: '2024-06-10 14:00:00' },
-]
-
-const allData = ref<SystemConfig[]>([...mockData])
-
 const isEditing = ref(false)
 const currentRecord = ref<SystemConfig | null>(null)
 const viewingRecord = ref<SystemConfig | null>(null)
@@ -155,14 +143,11 @@ const searchFormSchemas: FormSchema[] = [
     label: '状态',
     component: 'Select',
     colProps: { span: 6 },
-    componentProps: {
+    componentProps: () => ({
       placeholder: '选择状态',
       allowClear: true,
-      options: [
-        { label: '启用', value: true },
-        { label: '禁用', value: false },
-      ],
-    },
+      options: statusOptions.value,
+    }),
   },
 ]
 
@@ -172,7 +157,6 @@ const modalFormSchemas: FormSchema[] = [
     label: '配置键',
     component: 'Input',
     required: true,
-    colProps: { span: 12 },
     componentProps: { placeholder: '例如：site.name' },
   },
   {
@@ -180,14 +164,12 @@ const modalFormSchemas: FormSchema[] = [
     label: '配置名称',
     component: 'Input',
     required: true,
-    colProps: { span: 12 },
     componentProps: { placeholder: '例如：站点名称' },
   },
   {
     field: 'type',
     label: '配置类型',
     component: 'Select',
-    colProps: { span: 12 },
     componentProps: {
       options: [
         { label: '文本', value: 'text' },
@@ -201,7 +183,6 @@ const modalFormSchemas: FormSchema[] = [
     field: 'group',
     label: '所属分组',
     component: 'Select',
-    colProps: { span: 12 },
     componentProps: {
       options: Object.keys(groupColorMap).map(g => ({ label: g, value: g })),
     },
@@ -210,50 +191,41 @@ const modalFormSchemas: FormSchema[] = [
     field: 'value',
     label: '配置值',
     component: 'Input',
-    colProps: { span: 24 },
     componentProps: { placeholder: '请输入配置值' },
+  },
+  {
+    field: 'sortOrder',
+    label: '排序号',
+    component: 'InputNumber',
+    colProps: { span: 12 },
+    defaultValue: 0,
+    componentProps: { min: 0, placeholder: '数字越小越靠前', style: { width: '100%' } },
+  },
+  {
+    field: 'enabled',
+    label: '启用状态',
+    component: 'RadioGroup',
+    defaultValue: true,
+    colProps: { span: 12 },
+    componentProps: () => ({
+      optionType: 'button',
+      buttonStyle: 'solid',
+      options: statusOptions.value,
+    }),
   },
   {
     field: 'description',
     label: '描述信息',
     component: 'InputTextArea',
     colProps: { span: 24 },
-    componentProps: { placeholder: '请输入配置描述...', rows: 2 },
-  },
-  {
-    field: 'enabled',
-    label: '启用状态',
-    component: 'Switch',
-    colProps: { span: 24 },
+    componentProps: { placeholder: '请输入配置描述...', rows: 3 },
   },
 ]
 
 async function mockApi(params: Record<string, any>) {
-  const { keyword, type, enabled, page = 1, pageSize = 10 } = params
-  let filtered = [...allData.value]
-
-  if (keyword) {
-    const kw = String(keyword).toLowerCase()
-    filtered = filtered.filter(
-      i => i.name.toLowerCase().includes(kw)
-        || i.key.toLowerCase().includes(kw)
-        || i.group.includes(kw),
-    )
-  }
-
-  if (type) {
-    filtered = filtered.filter(i => i.type === type)
-  }
-
-  if (enabled !== undefined && enabled !== null && enabled !== '') {
-    filtered = filtered.filter(i => i.enabled === (enabled === 'true' || enabled === true))
-  }
-
-  const total = filtered.length
-  const start = (Number(page) - 1) * Number(pageSize)
-  const items = filtered.slice(start, start + Number(pageSize))
-
-  return { items, total }
+  const res = await getSettingsList(params)
+  const data = res?.data ?? res
+  return { items: data?.list || [], total: data?.total || 0 }
 }
 
 function handleAdd() {
@@ -266,6 +238,7 @@ function handleAdd() {
     type: 'text',
     group: '通用设置',
     description: '',
+    sortOrder: 0,
     enabled: true,
   })
   formMethods.clearValidate()
@@ -282,6 +255,7 @@ function handleEdit(record: SystemConfig) {
     type: record.type,
     group: record.group,
     description: record.description,
+    sortOrder: (record as any).sortOrder ?? 0,
     enabled: record.enabled,
   })
   formMethods.clearValidate()
@@ -293,12 +267,14 @@ function handleView(record: SystemConfig) {
   drawerMethods.openDrawer()
 }
 
-function handleDelete(record: SystemConfig) {
-  const idx = allData.value.findIndex(i => i.id === record.id)
-  if (idx > -1) {
-    allData.value.splice(idx, 1)
+async function handleDelete(record: SystemConfig) {
+  try {
+    await deleteSetting(record.id)
     message.success(`已删除配置：${record.name}`)
     tableMethods.value?.reload()
+  }
+  catch {
+    message.error('删除失败')
   }
 }
 
@@ -308,40 +284,41 @@ async function handleSave() {
     return
   }
 
-  const now = new Date().toISOString().replace('T', ' ').substring(0, 19)
-
-  if (isEditing.value && currentRecord.value) {
-    const idx = allData.value.findIndex(i => i.id === currentRecord.value!.id)
-    if (idx > -1) {
-      allData.value[idx] = { ...allData.value[idx]!, ...values, id: currentRecord.value.id, updatedAt: now }
+  try {
+    if (isEditing.value && currentRecord.value) {
+      await updateSetting(currentRecord.value.id, values)
+      message.success(`已更新配置：${values.name}`)
     }
-    message.success(`已更新配置：${values.name}`)
-  }
-  else {
-    const newId = Math.max(...allData.value.map(i => i.id), 0) + 1
-    allData.value.push({
-      id: newId,
-      ...values,
-      createdAt: now,
-      updatedAt: now,
-    })
-    message.success(`已新增配置：${values.name}`)
-  }
+    else {
+      await addSetting(values)
+      message.success(`已新增配置：${values.name}`)
+    }
 
-  modalMethods.closeModal()
-  tableMethods.value?.reload()
-}
-
-function handleToggleEnabled(record: SystemConfig, enabled: boolean) {
-  const item = allData.value.find(i => i.id === record.id)
-  if (item) {
-    item.enabled = enabled
-    message.success(`${enabled ? '已启用' : '已禁用'}：${item.name}`)
+    modalMethods.closeModal()
     tableMethods.value?.reload()
   }
+  catch {
+    message.error('保存失败')
+  }
+}
+
+async function handleToggleEnabled(record: SystemConfig, enabled: boolean) {
+  try {
+    await updateSetting(record.id, { enabled })
+    message.success(`${enabled ? '已启用' : '已禁用'}：${record.name}`)
+    tableMethods.value?.reload()
+  }
+  catch {
+    message.error('操作失败')
+  }
+}
+
+function handleApply(record: SystemConfig) {
+  message.success(`已将「${record.name}」应用到系统`)
 }
 
 const columns: BasicColumn[] = [
+  { title: '#', key: 'index', width: 60, align: 'center', customRender: ({ index }) => index + 1 },
   { title: '配置键', dataIndex: 'key', key: 'key', width: 180, ellipsis: true },
   { title: '名称', dataIndex: 'name', key: 'name', width: 160 },
   { title: '配置值', dataIndex: 'value', key: 'value', width: 200, ellipsis: true },
@@ -365,7 +342,8 @@ const columns: BasicColumn[] = [
         :immediate="true"
         :use-search-form="true"
         :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
-        :action-column="{ width: 220, title: '操作', fixed: 'right' }"
+        :scroll="{ x: 1400 }"
+        :action-column="{ width: 280, title: '操作', fixed: 'right' }"
         @register="tableRegister"
       >
         <template #toolbar>
@@ -413,6 +391,20 @@ const columns: BasicColumn[] = [
 
         <template #action="{ record }">
           <div :class="actionClassName">
+            <a-button
+              type="link"
+              :class="btnClassName"
+              @click="() => handleApply(record)"
+            >
+              <template #icon>
+                <Icon icon="carbon:restart" />
+              </template>
+              应用
+            </a-button>
+            <a-divider
+              type="vertical"
+              :class="dividerClassName"
+            />
             <a-button
               type="link"
               :class="btnClassName"
@@ -466,13 +458,14 @@ const columns: BasicColumn[] = [
       <BasicForm
         :schemas="modalFormSchemas"
         :label-width="80"
-        :show-action-button-group="true"
+        :show-action-button-group="false"
+        :grid="{ cols: 2, gutter: 16 }"
         @register="formRegister"
       />
     </BasicModal>
 
     <BasicDrawer
-      :title="`查看设置 - ${viewingRecord?.name || ''}`"
+      :title="`详情设置 - ${viewingRecord?.name || ''}`"
       :size="520"
       @register="drawerRegister"
     >
