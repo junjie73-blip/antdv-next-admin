@@ -1,10 +1,11 @@
 {
   "name": "antdv-next-admin",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
+  "packageManager": "pnpm@10.12.4",
   "engines": {
-    "node": "^22.12.0"
+    "node": "^24.12.0"
   },
   "scripts": {
     "dev": "vite",
@@ -31,6 +32,8 @@
     "@antdv-next/happy-work-theme": "^1.0.0",
     "@antdv-next/icons": "^1.0.5",
     "@antdv-next/tailwind": "^1.0.2",
+    "@form-create/antd-designer": "^3.4.0",
+    "@form-create/antdv-next": "^3.3.1",
     "@iconify/iconify": "^3.1.1",
     "@iconify/json": "^2.2.482",
     "@iconify/vue": "^5.0.0",
@@ -39,6 +42,9 @@
     "@tailwindcss/vite": "^4.2.1",
     "@videojs-player/vue": "^1.0.0",
     "@videojs/http-streaming": "^3.17.4",
+    "@vue-office/docx": "^1.6.3",
+    "@vue-office/excel": "^1.7.14",
+    "@vue-office/pdf": "^2.0.10",
     "@vueuse/core": "^14.2.1",
     "@wangeditor-next/plugin-mention": "^1.0.19",
     "@wangeditor/editor": "^5.1.23",
@@ -148,6 +154,5 @@
     "vitepress": "^1.6.4",
     "vitest": "^4.1.0",
     "vue-tsc": "^3.2.5"
-  },
-  "packageManager": "pnpm@10.12.4"
+  }
 }
