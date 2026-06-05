@@ -207,6 +207,11 @@ const userDropdownItems: MenuProps['items'] = [
     label: '账户设置',
     icon: () => h(Icon, { icon: 'carbon:settings' }),
   },
+  {
+    key: 'docs',
+    label: '文档中心',
+    icon: () => h(Icon, { icon: 'carbon:book' }),
+  },
   { type: 'divider' },
   {
     key: 'logout',
@@ -290,6 +295,9 @@ function handleUserMenuClick({ key }: { key: string }) {
   }
   else if (key === 'settings') {
     router.push('/account/settings')
+  }
+  else if (key === 'docs') {
+    window.open('https://junjie73-blip.github.io/antdv-next-admin/', '_blank')
   }
 }
 
