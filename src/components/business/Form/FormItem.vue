@@ -87,7 +87,7 @@ const getSuffixValue = computed(() => {
 
 const getColProps = computed(() => {
   return {
-    span: 24,
+    span: 6,
     ...props.schema.colProps,
   }
 })

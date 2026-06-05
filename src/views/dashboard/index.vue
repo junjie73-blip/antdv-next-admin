@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 import { computed, ref } from 'vue'
+import { faker } from '@faker-js/faker/locale/zh_CN'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/modules/app'
 import { cn } from '@/utils/cn'
+
+// 设置中文 locale 并固定种子，保证每次刷新数据一致但真实
+faker.seed(42)
 
 const router = useRouter()
 const appStore = useAppStore()
@@ -12,7 +16,7 @@ const containerClassName = computed(() =>
   cn('p-6 space-y-6'),
 )
 
-// ========== 统计卡片数据 ==========
+// ========== 统计卡片数据（faker 生成） ==========
 interface StatCard {
   title: string
   value: string
@@ -25,33 +29,33 @@ interface StatCard {
 const statCards: StatCard[] = [
   {
     title: '今日访问',
-    value: '2,847',
+    value: faker.number.int({ min: 1200, max: 5000 }).toLocaleString(),
     icon: 'carbon:view',
-    trend: 12.5,
+    trend: faker.number.float({ min: -15, max: 25, fractionDigits: 1 }),
     trendLabel: '较昨日',
     color: 'blue',
   },
   {
     title: '在线用户',
-    value: '186',
+    value: faker.number.int({ min: 80, max: 300 }).toString(),
     icon: 'carbon:user-multiple',
-    trend: -3.2,
+    trend: faker.number.float({ min: -10, max: 10, fractionDigits: 1 }),
     trendLabel: '较昨日',
     color: 'green',
   },
   {
     title: '消息通知',
-    value: '24',
+    value: faker.number.int({ min: 5, max: 50 }).toString(),
     icon: 'carbon:notification',
-    trend: 8.0,
+    trend: faker.number.float({ min: -5, max: 20, fractionDigits: 1 }),
     trendLabel: '较上周',
     color: 'orange',
   },
   {
     title: '待办事项',
-    value: '13',
+    value: faker.number.int({ min: 3, max: 20 }).toString(),
     icon: 'carbon:task',
-    trend: -15.0,
+    trend: faker.number.float({ min: -20, max: 5, fractionDigits: 1 }),
     trendLabel: '较昨日',
     color: 'purple',
   },
@@ -77,16 +81,12 @@ function getStatIconBg(color: string) {
   return map[color] || map.blue
 }
 
-// ========== 访问趋势图数据（近7天） ==========
-const chartData = [
-  { day: '周一', value: 1200 },
-  { day: '周二', value: 1900 },
-  { day: '周三', value: 1650 },
-  { day: '周二', value: 2300 },
-  { day: '周五', value: 2100 },
-  { day: '周六', value: 1400 },
-  { day: '周日', value: 2847 },
-]
+// ========== 访问趋势图数据（近7天，faker 生成） ==========
+const dayLabels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+const chartData = dayLabels.map(day => ({
+  day,
+  value: faker.number.int({ min: 800, max: 3500 }),
+}))
 
 const maxValue = Math.max(...chartData.map(d => d.value))
 
@@ -104,14 +104,12 @@ function generateAreaPath() {
     y: padding.top + chartH - (d.value / maxValue) * chartH,
   }))
 
-  // 面积路径：从左下角开始 → 各点连线 → 右下角闭合
   let areaPath = `M ${padding.left} ${padding.top + chartH}`
   points.forEach((p) => {
     areaPath += ` L ${p.x} ${p.y}`
   })
   areaPath += ` L ${points[points.length - 1].x} ${padding.top + chartH} Z`
 
-  // 折线路径
   let linePath = `M ${points[0].x} ${points[0].y}`
   points.slice(1).forEach((p) => {
     linePath += ` L ${p.x} ${p.y}`
@@ -172,7 +170,7 @@ function handleQuickAction(route: string) {
   }
 }
 
-// ========== 最近动态 ==========
+// ========== 最近动态（faker 生成） ==========
 interface Activity {
   user: string
   avatar: string
@@ -182,14 +180,57 @@ interface Activity {
   type: 'user' | 'role' | 'menu' | 'dict' | 'system'
 }
 
-const activities: Activity[] = [
-  { user: '管理员', avatar: 'A', action: '创建了用户', target: '张三 (zhangsan)', time: '2 分钟前', type: 'user' },
-  { user: '管理员', avatar: 'A', action: '修改了角色', target: '运营人员', time: '8 分钟前', type: 'role' },
-  { user: '张三', avatar: 'Z', action: '更新了菜单', target: '系统监控', time: '15 分钟前', type: 'menu' },
-  { user: '李四', avatar: 'L', action: '新增了字典项', target: '订单状态', time: '30 分钟前', type: 'dict' },
-  { user: '王五', avatar: 'W', action: '修改了配置', target: '站点名称', time: '1 小时前', type: 'system' },
-  { user: '赵六', avatar: 'Z', action: '删除了用户', target: '已离职员工', time: '2 小时前', type: 'user' },
+/** 动作模板库 — 覆盖用户、角色、菜单、字典、系统五大类操作 */
+const actionTemplates: { action: string, targetFn: () => string, type: Activity['type'] }[] = [
+  // 用户相关
+  { action: '创建了用户', targetFn: () => faker.person.fullName(), type: 'user' },
+  { action: '修改了用户信息', targetFn: () => faker.person.fullName(), type: 'user' },
+  { action: '删除了用户', targetFn: () => faker.person.fullName(), type: 'user' },
+  { action: '重置了密码', targetFn: () => faker.person.fullName(), type: 'user' },
+  { action: '启用了账号', targetFn: () => faker.person.fullName(), type: 'user' },
+  // 角色相关
+  { action: '修改了角色权限', targetFn: () => faker.helpers.arrayElement(['管理员', '运营人员', '编辑者', '访客', '客服']), type: 'role' },
+  { action: '新增了角色', targetFn: () => faker.company.buzzNoun() + '组', type: 'role' },
+  { action: '分配了角色', targetFn: () => `${faker.person.firstName()} → ${faker.helpers.arrayElement(['编辑者', '审核员'])}`, type: 'role' },
+  // 菜单相关
+  { action: '更新了菜单配置', targetFn: () => faker.helpers.arrayElement(['系统监控', '用户管理', '日志中心', '数据看板', 'API网关']), type: 'menu' },
+  { action: '新增了菜单项', targetFn: () => faker.helpers.arrayElement(['API文档', '工单系统', '报表中心', '消息中心']), type: 'menu' },
+  { action: '调整了菜单顺序', targetFn: () => faker.helpers.arrayElement(['顶部导航', '侧边栏', '快捷入口']), type: 'menu' },
+  // 字典相关
+  { action: '新增了字典项', targetFn: () => `${faker.helpers.arrayElement(['订单状态', '支付方式', '物流公司', '商品分类'])} - ${faker.word.sample()}`, type: 'dict' },
+  { action: '修改了字典值', targetFn: () => faker.helpers.arrayElement(['性别选项', '学历列表', '行业分类']), type: 'dict' },
+  // 系统相关
+  { action: '修改了系统参数', targetFn: () => faker.helpers.arrayElement(['站点名称', '文件上传限制', '会话超时时间', '登录验证码']), type: 'system' },
+  { action: '执行了数据备份', targetFn: () => `${faker.date.recent().toLocaleDateString('zh-CN')} 全量备份`, type: 'system' },
+  { action: '更新了系统版本', targetFn: () => `v${faker.system.semver()}`, type: 'system' },
+  { action: '清理了缓存', targetFn: () => faker.helpers.arrayElement(['Redis缓存', 'CDN缓存', '页面缓存']), type: 'system' },
 ]
+
+/** 时间描述生成 */
+function generateTimeAgo(): string {
+  const minutes = faker.number.int({ min: 1, max: 180 })
+  if (minutes < 60)
+    return `${minutes} 分钟前`
+  if (minutes < 1440)
+    return `${Math.floor(minutes / 60)} 小时前`
+  return `${Math.floor(minutes / 1440)} 天前`
+}
+
+/** 使用 ref 包装，确保 vue3-seamless-scroll 能检测到数据变化 */
+const activities = ref<Activity[]>(
+  Array.from({ length: 20 }, (_, i) => {
+    const template = actionTemplates[i % actionTemplates.length]
+    const userName = faker.person.lastName() + faker.person.firstName()[0]
+    return {
+      user: userName,
+      avatar: userName[0],
+      action: template.action,
+      target: template.targetFn(),
+      time: generateTimeAgo(),
+      type: template.type,
+    }
+  }),
+)
 
 function getActivityTypeColor(type: string) {
   const map: Record<string, string> = {
@@ -202,7 +243,7 @@ function getActivityTypeColor(type: string) {
   return map[type] || map.user
 }
 
-// ========== 待办事项 ==========
+// ========== 待办事项（faker 生成） ==========
 interface TodoItem {
   id: number
   content: string
@@ -210,13 +251,31 @@ interface TodoItem {
   done: boolean
 }
 
-const todoList = ref<TodoItem[]>([
-  { id: 1, content: '审核新注册用户申请 (3 条待审)', priority: 'high', done: false },
-  { id: 2, content: '更新系统安全策略文档', priority: 'medium', done: false },
-  { id: 3, content: '清理过期日志文件', priority: 'low', done: true },
-  { id: 4, content: '备份本季度数据库', priority: 'high', done: false },
-  { id: 5, content: '检查服务器 SSL 证书有效期', priority: 'medium', done: false },
-])
+const todoTemplates = [
+  () => `审核新注册用户 ${faker.person.fullName()} 的申请资料`,
+  () => `更新${faker.helpers.arrayElement(['安全策略文档', '隐私协议条款', '服务使用协议'])}`,
+  () => `清理 ${faker.date.recent().getMonth() + 1} 月过期的${faker.helpers.arrayElement(['访问日志', '错误日志', '操作日志'])}`,
+  () => `备份 ${faker.helpers.arrayElement(['主数据库', '用户表', '订单表', '配置信息'])} 到备用服务器`,
+  () => `检查服务器 ${faker.helpers.arrayElement(['SSL证书有效期', '磁盘剩余空间', '内存占用率', 'CPU负载'])}`,
+  () => `处理工单 #${faker.string.numeric(6)}：${faker.lorem.sentence({ min: 4, max: 8 })}`,
+  () => `审批${faker.helpers.arrayElement(['员工请假申请', '费用报销单', '采购申请单', '合同签署申请'])}`,
+  () => `更新${faker.helpers.arrayElement(['首页Banner图', '公告栏内容', '帮助中心文档', 'FAQ条目'])}`,
+  () => `对接${faker.company.name()} 的${faker.helpers.arrayElement(['API接口', '数据同步', 'SSO单点登录'])}`,
+  () => `修复线上 Bug：${faker.helpers.arrayElement(['用户登录偶发失败', '文件上传超时', '搜索结果不正确'])}`,
+  () => `优化${faker.helpers.arrayElement(['首页加载速度', '查询接口响应', '图片压缩质量'])}`,
+  () => `完成 ${faker.date.recent().toLocaleDateString('zh-CN')} 版本发布前的回归测试`,
+]
+
+const priorities: TodoItem['priority'][] = ['high', 'medium', 'low']
+
+const todoList = ref<TodoItem[]>(
+  Array.from({ length: 15 }, (_, i) => ({
+    id: i + 1,
+    content: todoTemplates[i % todoTemplates.length](),
+    priority: priorities[i % 3],
+    done: i % 4 === 0, // 约 25% 概率已完成
+  })),
+)
 
 function getPriorityTag(priority: string) {
   const map: Record<string, { color: string, label: string }> = {
@@ -226,6 +285,13 @@ function getPriorityTag(priority: string) {
   }
   return map[priority] || map.medium
 }
+
+// ========== 样式变量（遵循项目规范：cn 在 script setup 中定义）==========
+/** PerfectScrollbar 统一配置：禁用横向滚动 + 启用滚轮传播 */
+const scrollbarOptions = { wheelPropagation: true, suppressScrollX: true }
+
+/** 两个面板统一固定高度，确保底部对齐 */
+const panelScrollHeight = cn('h-[380px]')
 </script>
 
 <template>
@@ -320,10 +386,10 @@ function getPriorityTag(priority: string) {
       </a-col>
     </a-row>
 
-    <!-- 图表 + 待办 -->
+    <!-- 图表 + 快捷操作 -->
     <a-row
-      :gutter="[16,
-                16]"
+      :gutter="[16, 16]"
+      align="stretch"
     >
       <!-- 访问趋势 -->
       <a-col
@@ -425,76 +491,17 @@ function getPriorityTag(priority: string) {
         </a-card>
       </a-col>
 
-      <!-- 待办事项 -->
-      <a-col
-        :xs="24"
-        :lg="8"
-      >
-        <a-card
-          title="待办事项"
-          variant="borderless"
-          class-name="rounded-xl border border-gray-100 dark:border-gray-800 h-full"
-        >
-          <template #extra>
-            <a-badge
-              :count="todoList.filter(t => !t.done).length"
-              :offset="[0,
-                        0]"
-            >
-              <span class="text-sm text-gray-400">进行中</span>
-            </a-badge>
-          </template>
-          <div class="space-y-3">
-            <div
-              v-for="todo in todoList"
-              :key="todo.id"
-              :class="cn(
-                'flex items-start gap-3 p-3 rounded-lg transition-colors',
-                todo.done ? 'bg-gray-50 dark:bg-gray-900/30' : 'bg-white dark:bg-gray-900/20 border border-gray-100 dark:border-gray-800',
-              )"
-            >
-              <a-checkbox
-                :checked="todo.done"
-                class="mt-0.5"
-              />
-              <div class="flex-1 min-w-0">
-                <p
-                  :class="cn(
-                    'text-sm',
-                    todo.done ? 'text-gray-400 line-through' : 'text-gray-700 dark:text-gray-300',
-                  )"
-                >
-                  {{ todo.content }}
-                </p>
-              </div>
-              <a-tag
-                :color="getPriorityTag(todo.priority).color"
-                size="small"
-              >
-                {{ getPriorityTag(todo.priority).label }}
-              </a-tag>
-            </div>
-          </div>
-        </a-card>
-      </a-col>
-    </a-row>
-
-    <!-- 快捷操作 + 最近动态 -->
-    <a-row
-      :gutter="[16,
-                16]"
-    >
       <!-- 快捷操作 -->
       <a-col
         :xs="24"
-        :lg="10"
+        :lg="8"
       >
         <a-card
           title="快捷操作"
           variant="borderless"
           class-name="rounded-xl border border-gray-100 dark:border-gray-800 h-full"
         >
-          <div class="grid grid-cols-3 gap-3">
+          <div class="grid grid-cols-3 gap-3 py-2">
             <div
               v-for="action in quickActions"
               :key="action.label"
@@ -508,6 +515,66 @@ function getPriorityTag(priority: string) {
               <span class="text-xs text-gray-600 dark:text-gray-400 font-medium">{{ action.label }}</span>
             </div>
           </div>
+        </a-card>
+      </a-col>
+    </a-row>
+
+    <!-- 待办事项 + 最近动态 -->
+    <a-row
+      :gutter="[16, 16]"
+      align="stretch"
+    >
+      <!-- 待办事项 -->
+      <a-col
+        :xs="24"
+        :lg="10"
+      >
+        <a-card
+          title="待办事项"
+          variant="borderless"
+          class-name="rounded-xl border border-gray-100 dark:border-gray-800 h-full"
+        >
+          <template #extra>
+            <a-badge
+              :count="todoList.filter(t => !t.done).length"
+              :offset="[0, 0]"
+            >
+              <span class="text-sm text-gray-400">进行中</span>
+            </a-badge>
+          </template>
+          <PerfectScrollbar :options="scrollbarOptions" :class="panelScrollHeight">
+            <div class="space-y-3 p-1">
+                <div
+                  v-for="data in todoList"
+                  :key="data.id"
+                  :class="cn(
+                    'flex items-start gap-3 p-3 rounded-lg transition-colors',
+                    data.done ? 'bg-gray-50 dark:bg-gray-900/30' : 'bg-white dark:bg-gray-900/20 border border-gray-100 dark:border-gray-800',
+                  )"
+                >
+                  <a-checkbox
+                    :checked="data.done"
+                    class="mt-0.5"
+                  />
+                  <div class="flex-1 min-w-0">
+                    <p
+                      :class="cn(
+                        'text-sm',
+                        data.done ? 'text-gray-400 line-through' : 'text-gray-700 dark:text-gray-300',
+                      )"
+                    >
+                      {{ data.content }}
+                    </p>
+                  </div>
+                  <a-tag
+                    :color="getPriorityTag(data.priority).color"
+                    size="small"
+                  >
+                    {{ getPriorityTag(data.priority).label }}
+                  </a-tag>
+                </div>
+            </div>
+          </PerfectScrollbar>
         </a-card>
       </a-col>
 
@@ -529,34 +596,33 @@ function getPriorityTag(priority: string) {
               查看全部
             </a-button>
           </template>
-          <a-timeline
-            mode="left"
-            class="mt-2"
-          >
-            <a-timeline-item
-              v-for="(activity, index) in activities"
-              :key="index"
-              :color="index === 0 ? '#1677ff' : undefined"
-            >
-              <div class="flex items-center gap-2 flex-wrap">
-                <a-avatar
-                  :size="28"
-                  :class="getActivityTypeColor(activity.type)"
+          <PerfectScrollbar :options="scrollbarOptions" :class="panelScrollHeight">
+            <a-timeline mode="left" class="mt-2 p-1">
+                <a-timeline-item
+                  v-for="(data, index) in activities"
+                  :key="index"
+                  :color="index === 0 ? '#1677ff' : undefined"
                 >
-                  {{ activity.avatar }}
-                </a-avatar>
-                <span class="font-medium text-gray-800 dark:text-gray-200 text-sm">{{ activity.user }}</span>
-                <span class="text-gray-500 text-sm">{{ activity.action }}</span>
-                <a-tag
-                  color="blue"
-                  size="small"
-                >
-                  {{ activity.target }}
-                </a-tag>
-                <span class="text-gray-400 text-xs ml-auto">{{ activity.time }}</span>
-              </div>
-            </a-timeline-item>
-          </a-timeline>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <a-avatar
+                      :size="28"
+                      :class="getActivityTypeColor(data.type)"
+                    >
+                      {{ data.avatar }}
+                    </a-avatar>
+                    <span class="font-medium text-gray-800 dark:text-gray-200 text-sm">{{ data.user }}</span>
+                    <span class="text-gray-500 text-sm">{{ data.action }}</span>
+                    <a-tag
+                      color="blue"
+                      size="small"
+                    >
+                      {{ data.target }}
+                    </a-tag>
+                    <span class="text-gray-400 text-xs ml-auto">{{ data.time }}</span>
+                  </div>
+                </a-timeline-item>
+              </a-timeline>
+          </PerfectScrollbar>
         </a-card>
       </a-col>
     </a-row>

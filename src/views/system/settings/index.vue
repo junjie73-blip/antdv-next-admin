@@ -13,6 +13,7 @@ import { BasicModal, useModal } from '@/components/business/Modal'
 import { BasicTable, useTable } from '@/components/business/Table'
 import { useDictStore } from '@/stores'
 import { cn } from '@/utils/cn'
+import { DictType } from '@/enums/dict'
 
 defineOptions({ name: 'SystemSettings' })
 
@@ -31,7 +32,7 @@ interface SystemConfig {
 
 const dictStore = useDictStore()
 
-const statusOptions = computed(() => dictStore.getOptions('sys_normal_disable'))
+const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
 
 const containerClassName = cn('space-y-4')
 const cardClassName = cn('shadow-sm')
@@ -155,6 +156,7 @@ const modalFormSchemas: FormSchema[] = [
   {
     field: 'key',
     label: '配置键',
+    colProps: { span: 12 },
     component: 'Input',
     required: true,
     componentProps: { placeholder: '例如：site.name' },
@@ -162,6 +164,7 @@ const modalFormSchemas: FormSchema[] = [
   {
     field: 'name',
     label: '配置名称',
+    colProps: { span: 12 },
     component: 'Input',
     required: true,
     componentProps: { placeholder: '例如：站点名称' },
@@ -170,6 +173,7 @@ const modalFormSchemas: FormSchema[] = [
     field: 'type',
     label: '配置类型',
     component: 'Select',
+    colProps: { span: 12 },
     componentProps: {
       options: [
         { label: '文本', value: 'text' },
@@ -183,6 +187,7 @@ const modalFormSchemas: FormSchema[] = [
     field: 'group',
     label: '所属分组',
     component: 'Select',
+    colProps: { span: 12 },
     componentProps: {
       options: Object.keys(groupColorMap).map(g => ({ label: g, value: g })),
     },
@@ -192,6 +197,7 @@ const modalFormSchemas: FormSchema[] = [
     label: '配置值',
     component: 'Input',
     componentProps: { placeholder: '请输入配置值' },
+    colProps: { span: 24 },
   },
   {
     field: 'sortOrder',
@@ -205,7 +211,7 @@ const modalFormSchemas: FormSchema[] = [
     field: 'enabled',
     label: '启用状态',
     component: 'RadioGroup',
-    defaultValue: true,
+    defaultValue: '0',
     colProps: { span: 12 },
     componentProps: () => ({
       optionType: 'button',

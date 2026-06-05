@@ -15,6 +15,7 @@ import { BasicModal, useModal } from '@/components/business/Modal'
 import { BasicTable, useTable } from '@/components/business/Table'
 import { useDictStore } from '@/stores'
 import { cn } from '@/utils/cn'
+import { DictType } from '@/enums/dict'
 
 defineOptions({ name: 'SystemDept' })
 
@@ -56,7 +57,7 @@ const dividerClassName = cn('mx-0')
 // ========== 状态映射 ==========
 const dictStore = useDictStore()
 
-const statusOptions = computed(() => dictStore.getOptions('sys_normal_disable'))
+const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
 
 const statusColorMap: Record<number, string> = {
   1: 'green',
@@ -216,7 +217,7 @@ const modalFormSchemas: FormSchema[] = [
     field: 'status',
     label: '状态',
     component: 'RadioGroup',
-    defaultValue: 1,
+    defaultValue: 0,
     colProps: { span: 12 },
     componentProps: () => ({
       optionType: 'button',

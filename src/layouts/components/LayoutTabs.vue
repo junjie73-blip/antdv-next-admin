@@ -2,7 +2,7 @@
 import { CloseCircleOutlined, CloseOutlined, ReloadOutlined, SettingOutlined } from '@antdv-next/icons'
 import { Icon } from '@iconify/vue'
 import { Dropdown } from 'antdv-next'
-import { computed, h, nextTick, ref, watch } from 'vue'
+import { computed, h, nextTick, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/modules/app'
 import { useRouteStore } from '@/stores/modules/route'
@@ -80,6 +80,9 @@ const tabs = ref<TabItem[]>([
 const homeTabKey = computed(() => tabs.value[0]?.key ?? '/dashboard')
 
 const activeKey = ref(route.path)
+
+/** 滚动容器引用 */
+const scrollContainerRef = useTemplateRef('scrollContainerRef')
 
 watch(
   () => route.path,

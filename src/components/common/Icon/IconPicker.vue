@@ -4,9 +4,7 @@ import phIcons from '@iconify/json/json/ph.json'
 import tablerIcons from '@iconify/json/json/tabler.json'
 import { Icon } from '@iconify/vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { RecycleScroller } from 'vue-virtual-scroller'
 import { cn } from '@/utils/cn'
-import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 
 interface CollectionInfo {
   prefix: string
@@ -14,9 +12,10 @@ interface CollectionInfo {
   total: number
 }
 
-interface IconRow {
-  id: number
-  icons: string[]
+interface CollectionInfo {
+  prefix: string
+  name: string
+  total: number
 }
 
 interface Props {
@@ -59,15 +58,22 @@ const COLLECTIONS: CollectionInfo[] = [
   { prefix: 'tabler', name: 'Tabler', total: Object.keys(tablerIcons.icons).length },
 ]
 
-const GRID_COLS = 10
-const ROW_HEIGHT = 48
-const CONTAINER_HEIGHT = 400
+/** 每行显示的图标数 */
+const GRID_COLS = 8
+/** 图标容器高度 */
+const CONTAINER_HEIGHT = 440
+/** 默认每页数量 */
+const DEFAULT_PAGE_SIZE = 80
 
 const visible = ref(false)
 const searchValue = ref('')
 const allIcons = ref<string[]>([])
 const filteredIcons = ref<string[]>([])
 const selectedPrefix = ref('all')
+/** 当前页码 */
+const currentPage = ref(1)
+/** 每页条数 */
+const pageSize = ref(DEFAULT_PAGE_SIZE)
 
 const selectedIcon = computed(() => props.modelValue || props.currentIcon)
 
@@ -84,28 +90,29 @@ function loadAllFromLocal() {
   allIcons.value = icons
 }
 
-const iconRows = computed<IconRow[]>(() => {
-  const rows: IconRow[] = []
-  for (let i = 0; i < filteredIcons.value.length; i += GRID_COLS) {
-    rows.push({
-      id: i,
-      icons: filteredIcons.value.slice(i, i + GRID_COLS),
-    })
-  }
-  return rows
+/** 当前页的图标数据（扁平数组，由整体 grid 布局自动换行） */
+const pagedIcons = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return filteredIcons.value.slice(start, end)
 })
+
+/** 总条数 */
+const totalCount = computed(() => filteredIcons.value.length)
 
 const segmentOptions = computed(() => {
   const options: { label: string, value: string }[] = [
     { label: '全部', value: 'all' },
   ]
   for (const col of COLLECTIONS) {
-    options.push({ label: `${col.name} (${col.total})`, value: col.prefix })
+    options.push({ label: `${col.name} `, value: col.prefix })
   }
   return options
 })
 
 function applyFilter() {
+  // 切换分类或搜索时重置到第一页
+  currentPage.value = 1
   let source = allIcons.value
 
   if (selectedPrefix.value !== 'all') {
@@ -171,7 +178,7 @@ onBeforeUnmount(() => {
 function iconItemClassName(icon: string) {
   return cn(
     'flex items-center justify-center',
-    'w-8 h-8 rounded',
+    'w-14 h-14 rounded-lg',
     'border border-gray-200 dark:border-gray-700',
     'hover:bg-blue-50 hover:border-blue-400 dark:hover:bg-blue-900/30 dark:hover:border-blue-500',
     'cursor-pointer transition-all duration-150',
@@ -184,15 +191,14 @@ function iconItemClassName(icon: string) {
 }
 
 const inputClassName = cn('cursor-pointer')
-const popoverContentClassName = cn('w-[520px]')
-const gridRowClassName = cn('grid grid-cols-10 gap-1.5')
-const scrollerContainerClassName = cn('flex-1 mt-3')
-const totalInfoClassName = cn(
-  'flex items-center justify-between',
-  'pt-3 mt-3',
+const popoverContentClassName = cn('w-[580px]')
+const gridRowClassName = cn('grid grid-cols-8 gap-2 p-1')
+const scrollerContainerClassName = cn('mt-3 ')
+const countClassName = cn('text-xs text-gray-500 dark:text-gray-400')
+const paginationWrapperClassName = cn(
+  'flex items-center justify-between pt-3 mt-3',
   'border-t border-gray-200 dark:border-gray-700',
 )
-const countClassName = cn('text-xs text-gray-500 dark:text-gray-400')
 </script>
 
 <template>
@@ -213,7 +219,7 @@ const countClassName = cn('text-xs text-gray-500 dark:text-gray-400')
           @change="(val: any) => handleSegmentChange(val)"
         />
 
-        <div class="my-2">
+        <div class="my-4">
           <a-input
             v-model:value="searchValue"
             placeholder="搜索图标..."
@@ -239,44 +245,47 @@ const countClassName = cn('text-xs text-gray-500 dark:text-gray-400')
           v-else
           :class="scrollerContainerClassName"
         >
-          <RecycleScroller
-            :items="iconRows"
-            :item-size="ROW_HEIGHT"
-            key-field="id"
-            :style="{ height: `${CONTAINER_HEIGHT}px` }"
-            class="scroller"
-          >
-            <template #default="{ item }">
-              <div :class="gridRowClassName">
-                <a-tooltip
-                  v-for="icon in item.icons"
-                  :key="icon"
-                  :title="icon"
-                  placement="top"
-                  :auto-adjust="false"
+          <PerfectScrollbar :options="{ wheelPropagation: true, suppressScrollX: true }" :style="{ height: `${CONTAINER_HEIGHT}px` }">
+            <!-- 整体 grid 容器，CSS Grid 自动换行 -->
+            <div :class="gridRowClassName">
+              <a-tooltip
+                v-for="icon in pagedIcons"
+                :key="icon"
+                :title="icon"
+                placement="top"
+                :auto-adjust="false"
+              >
+                <div
+                  :class="iconItemClassName(icon)"
+                  @click="handleSelectIcon(icon)"
                 >
-                  <div
-                    :class="iconItemClassName(icon)"
-                    @click="handleSelectIcon(icon)"
-                  >
-                    <Icon
-                      :icon="icon"
-                      :width="18"
-                    />
-                  </div>
-                </a-tooltip>
-              </div>
-            </template>
-          </RecycleScroller>
+                  <Icon
+                    :icon="icon"
+                    :width="20"
+                  />
+                </div>
+              </a-tooltip>
+            </div>
+          </PerfectScrollbar>
         </div>
 
+        <!-- 使用 Antdv Next 分页组件 -->
         <div
-          v-if="filteredIcons.length > 0"
-          :class="totalInfoClassName"
+          v-if="totalCount > 0"
+          :class="paginationWrapperClassName"
         >
-          <span :class="countClassName">
-            共 {{ filteredIcons.length }} 个图标
-          </span>
+          <span :class="countClassName">共 {{ totalCount }} 个图标</span>
+          <a-pagination
+            v-model:current="currentPage"
+            v-model:page-size="pageSize"
+            :total="totalCount"
+            size="small"
+            :show-total="(total: number) => ''"
+            :show-size-changer="true"
+            :page-size-options="[50, 80, 100, 200]"
+            :show-quick-jumper="true"
+            simple
+          />
         </div>
       </div>
     </template>
@@ -315,9 +324,5 @@ const countClassName = cn('text-xs text-gray-500 dark:text-gray-400')
 <style scoped>
 .icon-picker-popover :deep(.ant-popover-inner) {
   padding: 12px;
-}
-
-.scroller {
-  padding: 0;
 }
 </style>

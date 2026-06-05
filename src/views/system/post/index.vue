@@ -17,6 +17,7 @@ import { BasicModal, useModal } from '@/components/business/Modal'
 import { BasicTable, useTable } from '@/components/business/Table'
 import { useDictStore } from '@/stores'
 import { cn } from '@/utils/cn'
+import { DictType } from '@/enums/dict'
 
 defineOptions({ name: 'SystemPost' })
 
@@ -53,7 +54,7 @@ const dividerClassName = cn('mx-0')
 // ========== 状态映射 ==========
 const dictStore = useDictStore()
 
-const statusOptions = computed(() => dictStore.getOptions('sys_normal_disable'))
+const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
 
 const statusColorMap: Record<number, string> = {
   1: 'green',
@@ -160,6 +161,7 @@ const modalFormSchemas: FormSchema[] = [
     label: '岗位名称',
     component: 'Input',
     required: true,
+    colProps: { span: 24 },
     componentProps: { placeholder: '请输入岗位名称' },
   },
   {
@@ -167,6 +169,7 @@ const modalFormSchemas: FormSchema[] = [
     label: '岗位编码',
     component: 'Input',
     required: true,
+    colProps: { span: 24 },
     componentProps: { placeholder: '请输入岗位编码（唯一），如 POST_FE_001' },
   },
   {
@@ -174,6 +177,7 @@ const modalFormSchemas: FormSchema[] = [
     label: '所属部门',
     component: 'TreeSelect',
     required: true,
+    colProps: { span: 24 },
     componentProps: {
       treeData: deptTreeData,
       fieldNames: { children: 'children', label: 'name', value: 'id' },
@@ -194,7 +198,7 @@ const modalFormSchemas: FormSchema[] = [
     label: '状态',
     component: 'RadioGroup',
     colProps: { span: 12 },
-    defaultValue: 1,
+    defaultValue: 0,
     componentProps: () => ({
       optionType: 'button',
       buttonStyle: 'solid',
@@ -288,7 +292,7 @@ function handleAdd() {
     code: '',
     deptId: undefined,
     sortOrder: 0,
-    status: 1,
+    status: 0,
     remark: '',
   })
   formMethods.clearValidate()

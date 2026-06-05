@@ -33,6 +33,24 @@ const routeStore = useRouteStore()
 const { sidebarWidth } = appStore
 const { selectedKeys, openKeys, handleOpenChange } = useMenu()
 
+/** 计算菜单项层级（用于手风琴模式） */
+const menuLevelKeys = computed(() => {
+  const items = allMenuItems.value
+  if (!items || items.length === 0)
+    return {}
+  const map: Record<string, number> = {}
+  const walk = (list: any[], level = 1) => {
+    for (const item of list) {
+      if (item?.key)
+        map[item.key] = level
+      if (item?.children)
+        walk(item.children, level + 1)
+    }
+  }
+  walk(items as any[])
+  return map
+})
+
 const _appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
 
 const isGeekStyle = computed(() => appStore.themeStyle === 'geek')
@@ -136,13 +154,13 @@ const handleMenuSelect: MenuProps['onSelect'] = ({ key }) => {
     >
       <Menu
         v-model:selected-keys="selectedKeys"
-        v-model:open-keys="openKeys"
+        :open-keys="openKeys"
         mode="inline"
         :theme="menuTheme"
         :items="menuItems"
         :inline-collapsed="props.collapsed"
         @select="handleMenuSelect"
-        @openChange="handleOpenChange"
+        @openChange="(keys: string[]) => handleOpenChange(keys, menuLevelKeys)"
       />
     </PerfectScrollbar>
   </aside>

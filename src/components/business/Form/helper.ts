@@ -3,9 +3,35 @@ import dayjs from 'dayjs'
 import { defu } from 'defu'
 import { isFunction } from 'es-toolkit'
 
-export function setComponentProps(schema: FormSchema, formModel: Recordable, formActionType: any) {
-  const { componentProps = {} } = schema
+/** 需要自动添加 allowClear 的组件类型 */
+const CLEARABLE_COMPONENTS = ['Input', 'InputPassword', 'InputSearch', 'Select', 'TreeSelect', 'Cascader', 'AutoComplete', 'DatePicker', 'TimePicker', 'MonthPicker', 'RangePicker', 'WeekPicker', 'TimeRangePicker'] as const
 
+/** 需要自动生成 placeholder 的组件类型 */
+const PLACEHOLDER_COMPONENTS = ['Input', 'InputPassword', 'InputSearch', 'InputTextArea', 'InputNumber', 'Select', 'TreeSelect', 'Cascader', 'AutoComplete', 'DatePicker', 'TimePicker', 'MonthPicker', 'RangePicker', 'WeekPicker', 'TimeRangePicker'] as const
+
+/** 组件默认 placeholder 模板 */
+const PLACEHOLDER_TEMPLATES: Record<string, (label: string) => string> = {
+  Input: label => `请输入${label}`,
+  InputPassword: label => `请输入${label}`,
+  InputSearch: label => `搜索${label}`,
+  InputTextArea: label => `请输入${label}`,
+  InputNumber: label => `请输入${label}`,
+  Select: label => `请选择${label}`,
+  TreeSelect: label => `请选择${label}`,
+  Cascader: label => `请选择${label}`,
+  AutoComplete: label => `请输入${label}`,
+  DatePicker: label => `请选择${label}`,
+  TimePicker: label => `请选择${label}`,
+  MonthPicker: label => `请选择${label}`,
+  RangePicker: label => `请选择${label}范围`,
+  WeekPicker: label => `请选择${label}`,
+  TimeRangePicker: label => `请选择${label}范围`,
+}
+
+export function setComponentProps(schema: FormSchema, formModel: Recordable, formActionType: any) {
+  const { component, componentProps = {}, label } = schema
+
+  // 如果 componentProps 是函数，保持原逻辑
   if (isFunction(componentProps)) {
     return componentProps({
       schema,
@@ -15,7 +41,22 @@ export function setComponentProps(schema: FormSchema, formModel: Recordable, for
     })
   }
 
-  return componentProps
+  const result: Record<string, any> = { ...componentProps }
+
+  // 自动生成 placeholder（仅在未手动设置时）
+  if (component && PLACEHOLDER_COMPONENTS.includes(component as any) && !result.placeholder && label) {
+    const template = PLACEHOLDER_TEMPLATES[component]
+    if (template) {
+      result.placeholder = template(label)
+    }
+  }
+
+  // 自动添加 allowClear（仅在支持且未手动设置时）
+  if (component && CLEARABLE_COMPONENTS.includes(component as any) && result.allowClear === undefined) {
+    result.allowClear = true
+  }
+
+  return result
 }
 
 export function getShow(schema: FormSchema, formModel: Recordable, formActionType: any) {

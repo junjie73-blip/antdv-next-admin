@@ -11,9 +11,9 @@
     { "type": "ci", "section": "🔄 CI/CD", "hidden": true },
     { "type": "build", "section": "📦 Build", "hidden": true }
   ],
-  "commitUrlFormat": "https://github.com/your-repo/antdv-next-admin/commits/{{hash}}",
-  "compareUrlFormat": "https://github.com/your-repo/antdv-next-admin/compare/{{previousTag}}...{{currentTag}}",
-  "issueUrlFormat": "https://github.com/your-repo/antdv-next-admin/issues/{{id}}",
+  "commitUrlFormat": "https://github.com/junjie73-blip/antdv-next-admin/commits/{{hash}}",
+  "compareUrlFormat": "https://github.com/junjie73-blip/antdv-next-admin/compare/{{previousTag}}...{{currentTag}}",
+  "issueUrlFormat": "https://github.com/junjie73-blip/antdv-next-admin/issues/{{id}}",
   "releaseCommitMessageFormat": "chore(release): {{currentTag}}",
   "skip": {
     "tag": true,

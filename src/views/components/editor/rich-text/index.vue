@@ -81,7 +81,6 @@ watch(() => editorRef.value, () => {
 
     <a-card
       :class="editorCardClassName"
-      title="富文本编辑器"
       :styles="{ body: { padding: '0' } }"
     >
       <Editor

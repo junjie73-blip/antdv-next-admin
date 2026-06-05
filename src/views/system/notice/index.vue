@@ -5,8 +5,10 @@ import { message } from 'antdv-next'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { computed, onMounted, ref } from 'vue'
-import { deleteNotice, getNoticeList, markAllNoticeRead, markNoticeRead } from '@/api/system'
+import { deleteNotice, getNoticeList, markAllNoticeRead, markNoticeRead, saveNotice } from '@/api/system'
 import { BasicTable, useTable } from '@/components/business/Table'
+import { BasicModal, useModal } from '@/components/business/Modal'
+import { BasicForm, useForm } from '@/components/business/Form'
 import { cn } from '@/utils/cn'
 
 defineOptions({ name: 'SystemNotice' })
@@ -63,6 +65,72 @@ const filteredData = computed(() => {
 })
 
 const [tableRegister, tableMethods] = useTable()
+const [modalRegister, modalMethods] = useModal()
+const [formRegister, formMethods] = useForm()
+
+const isEditingNotice = ref(false)
+const editingNoticeId = ref<number | null>(null)
+
+/** 新增/编辑消息表单 */
+const noticeFormSchemas: FormSchema[] = [
+  {
+    field: 'title',
+    label: '消息标题',
+    component: 'Input',
+    required: true,
+    componentProps: { placeholder: '请输入消息标题' },
+  },
+  {
+    field: 'type',
+    label: '消息类型',
+    component: 'Select',
+    defaultValue: 2,
+    componentProps: () => ({
+      options: [
+        { label: '系统公告', value: 1 },
+        { label: '通知消息', value: 2 },
+        { label: '待办提醒', value: 3 },
+      ],
+    }),
+  },
+  {
+    field: 'priority',
+    label: '优先级',
+    component: 'Select',
+    defaultValue: 0,
+    colProps: { span: 12 },
+    componentProps: () => ({
+      options: [
+        { label: '普通', value: 0 },
+        { label: '重要', value: 1 },
+        { label: '紧急', value: 2 },
+      ],
+    }),
+  },
+  {
+    field: 'status',
+    label: '状态',
+    component: 'RadioGroup',
+    defaultValue: 0,
+    colProps: { span: 12 },
+    componentProps: () => ({
+      optionType: 'button',
+      buttonStyle: 'solid',
+      options: [
+        { label: '未发布', value: 0 },
+        { label: '已发布', value: 1 },
+      ],
+    }),
+  },
+  {
+    field: 'content',
+    label: '消息内容',
+    component: 'InputTextArea',
+    required: true,
+    colProps: { span: 24 },
+    componentProps: { placeholder: '请输入消息内容...', rows: 5 },
+  },
+]
 
 // 加载全部数据用于统计和 Tab 过滤
 async function loadAllData() {
@@ -150,6 +218,39 @@ onMounted(async () => {
   await loadAllData()
   tableMethods.value?.reload()
 })
+
+/** 新增消息 */
+function handleAdd() {
+  isEditingNotice.value = false
+  editingNoticeId.value = null
+  formMethods.setFieldsValue({
+    title: '',
+    type: 2,
+    priority: 0,
+    status: 0,
+    content: '',
+  })
+  formMethods.clearValidate()
+  modalMethods.openModal()
+}
+
+/** 保存消息 */
+async function handleSaveNotice() {
+  const values = await formMethods.validate()
+  if (!values)
+    return
+
+  try {
+    await saveNotice(values)
+    message.success('消息保存成功')
+    modalMethods.closeModal()
+    await loadAllData()
+    tableMethods.value?.reload()
+  }
+  catch (e: any) {
+    message.error(e?.message || '保存失败')
+  }
+}
 
 const columns: BasicColumn[] = [
   { title: '#', key: 'index', width: 60, align: 'center', customRender: ({ index }) => index + 1 },
@@ -337,6 +438,15 @@ const columns: BasicColumn[] = [
           />
         </a-tabs>
         <div class="flex gap-2">
+          <a-button
+            type="primary"
+            @click="handleAdd"
+          >
+            <template #icon>
+              <Icon icon="ant-design:plus-outlined" />
+            </template>
+            新增消息
+          </a-button>
           <a-button @click="handleMarkAllRead">
             <template #icon>
               <Icon icon="carbon:checkmark-outline" />
@@ -475,5 +585,21 @@ const columns: BasicColumn[] = [
         </div>
       </template>
     </a-drawer>
+
+    <!-- 新增/编辑消息弹窗 -->
+    <BasicModal
+      :title="isEditingNotice ? '编辑消息' : '新增消息'"
+      :width="640"
+      @register="modalRegister"
+      @ok="handleSaveNotice"
+    >
+      <BasicForm
+        :schemas="noticeFormSchemas"
+        :label-width="90"
+        :show-action-button-group="false"
+        :grid="{ cols: 2, gutter: 16 }"
+        @register="formRegister"
+      />
+    </BasicModal>
   </div>
 </template>

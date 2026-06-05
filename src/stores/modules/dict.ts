@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { getDictList } from '@/api/system'
+import { CacheKey } from '@/enums/cache'
+import { localStorageCacheStorage } from '@/utils/cache'
 
 /** 单个字典项 */
 export interface DictItem {
@@ -27,11 +29,9 @@ interface StoredDictData {
   loadedAt: number
 }
 
-const DICT_STORAGE_KEY = 'antdv_dict_data'
-
 function loadFromStorage(): Record<string, DictItem[]> {
   try {
-    const raw = localStorage.getItem(DICT_STORAGE_KEY)
+    const raw = localStorageCacheStorage.getItem(CacheKey.DICT_DATA)
     if (!raw)
       return {}
     const data: StoredDictData = JSON.parse(raw)
@@ -48,7 +48,7 @@ function loadFromStorage(): Record<string, DictItem[]> {
 function saveToStorage(dicts: Record<string, DictItem[]>) {
   try {
     const data: StoredDictData = { dicts, loadedAt: Date.now() }
-    localStorage.setItem(DICT_STORAGE_KEY, JSON.stringify(data))
+    localStorageCacheStorage.setItem(CacheKey.DICT_DATA, JSON.stringify(data))
   }
   catch {
     // 静默失败
@@ -134,7 +134,7 @@ export const useDictStore = defineStore('dict', () => {
    */
   function clearDict() {
     dictMap.value = {}
-    localStorage.removeItem(DICT_STORAGE_KEY)
+    localStorageCacheStorage.removeItem(CacheKey.DICT_DATA)
   }
 
   return {

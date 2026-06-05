@@ -261,6 +261,13 @@ export const frontendMenus: MenuConfig[] = [
           },
         ],
       },
+      // {
+      //   path: 'form-designer',
+      //   name: 'FormDesigner',
+      //   title: '表单设计器',
+      //   icon: 'carbon:pen-tool',
+      //   component: '@/views/components/form-designer/index.vue',
+      // },
     ],
   },
   {

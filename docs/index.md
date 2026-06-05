@@ -11,7 +11,7 @@ hero:
       link: /guide/getting-started
     - theme: alt
       text: GitHub
-      link: https://github.com/your-repo/antdv-next-admin
+      link: https://github.com/junjie73-blip/antdv-next-admin
 
 features:
   - icon: ⚡

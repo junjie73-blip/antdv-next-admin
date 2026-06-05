@@ -18,6 +18,7 @@ import { BasicModal, useModal } from '@/components/business/Modal'
 import { BasicTable, useTable } from '@/components/business/Table'
 import { useDictStore } from '@/stores'
 import { cn } from '@/utils/cn'
+import { DictType } from '@/enums/dict'
 import { usePrint } from '@/utils/print'
 
 defineOptions({ name: 'SystemUser' })
@@ -65,7 +66,7 @@ const statusLabelMap: Record<number, string> = {
 
 const dictStore = useDictStore()
 
-const statusOptions = computed(() => dictStore.getOptions('sys_normal_disable'))
+const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
 
 // 从 API 获取部门和角色选项
 const mockDeptTree = ref<DeptNode[]>([])

@@ -2,6 +2,7 @@
 import type { UploadChangeParam, UploadFile, UploadProps } from 'antdv-next'
 import { message } from 'antdv-next'
 import { computed, ref, useTemplateRef } from 'vue'
+import { Icon } from '@iconify/vue'
 
 // ===== 大文件切片上传 =====
 import { useChunkUpload } from '@/composables/useChunkUpload'
@@ -274,6 +275,7 @@ interface FileQueueItem {
 }
 
 const largeFileColumns = [
+  { title: '缩略图', key: 'thumbnail', width: 80, align: 'center' },
   { title: '文件名', dataIndex: 'fileName', key: 'fileName', ellipsis: true },
   { title: '大小', key: 'fileSize', width: 120 },
   { title: '进度', key: 'progress', width: 220 },
@@ -444,6 +446,107 @@ function getStatusClassName(status: string) {
 
 function getStatusText(status: string) {
   return largeFileStatusTextMap[status] || status
+}
+
+/** 根据文件扩展名获取对应图标 */
+function getFileIcon(fileName: string): string {
+  const ext = fileName.split('.').pop()?.toLowerCase() || ''
+  const iconMap: Record<string, string> = {
+    png: 'carbon:image',
+    jpg: 'carbon:image',
+    jpeg: 'carbon:image',
+    gif: 'carbon:image',
+    webp: 'carbon:image',
+    svg: 'carbon:image',
+    pdf: 'carbon:document-pdf',
+    doc: 'carbon:document',
+    docx: 'carbon:document',
+    xls: 'carbon:table',
+    xlsx: 'carbon:table',
+    zip: 'carbon:folder-archive',
+    rar: 'carbon:folder-archive',
+    mp4: 'carbon:video-fill',
+    mp3: 'carbon:sound',
+    txt: 'carbon:text-new',
+  }
+  return iconMap[ext] || 'carbon:document'
+}
+
+/** 判断是否为图片文件（可预览） */
+function isImageFile(fileName: string): boolean {
+  const imgExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg']
+  const ext = fileName.split('.').pop()?.toLowerCase() || ''
+  return imgExts.includes(ext)
+}
+
+/** 判断是否为 PDF 文件 */
+function isPdfFile(fileName: string): boolean {
+  return fileName.split('.').pop()?.toLowerCase() === 'pdf'
+}
+
+/** 判断是否为 Word 文档 */
+function isDocxFile(fileName: string): boolean {
+  const ext = fileName.split('.').pop()?.toLowerCase() || ''
+  return ['doc', 'docx'].includes(ext)
+}
+
+/** 判断是否为 Excel 文件 */
+function isExcelFile(fileName: string): boolean {
+  const ext = fileName.split('.').pop()?.toLowerCase() || ''
+  return ['xls', 'xlsx'].includes(ext)
+}
+
+/** 获取文件预览类型 */
+type PreviewType = 'image' | 'pdf' | 'docx' | 'excel' | null
+
+function getPreviewType(fileName: string): PreviewType {
+  if (isImageFile(fileName)) return 'image'
+  if (isPdfFile(fileName)) return 'pdf'
+  if (isDocxFile(fileName)) return 'docx'
+  if (isExcelFile(fileName)) return 'excel'
+  return null
+}
+
+const previewVisible = ref(false)
+const previewUrl = ref('')
+const previewType = ref<PreviewType>(null)
+const previewFileName = ref('')
+
+/** 通用预览处理 */
+function handlePreview(item: FileQueueItem) {
+  const type = getPreviewType(item.fileName)
+  if (!type) {
+    message.info(`暂不支持预览 ${item.fileName.split('.').pop()?.toUpperCase()} 格式文件`)
+    return
+  }
+
+  previewType.value = type
+  previewFileName.value = item.fileName
+
+  if (type === 'image') {
+    previewUrl.value = URL.createObjectURL(item.file)
+  }
+  else if (type === 'pdf') {
+    previewUrl.value = URL.createObjectURL(item.file)
+  }
+  else {
+    // docx/excel 使用 ArrayBuffer 传给 @vue-office 组件
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      previewUrl.value = e.target?.result as string
+      previewVisible.value = true
+    }
+    reader.readAsArrayBuffer(item.file)
+    return // 等待 FileReader 完成
+  }
+  previewVisible.value = true
+}
+
+function handlePreviewClose() {
+  previewVisible.value = false
+  previewUrl.value = ''
+  previewType.value = null
+  // 释放 Object URL 避免内存泄漏
 }
 </script>
 
@@ -713,7 +816,9 @@ function getStatusText(status: string) {
           @change="handleLargeFileSelect"
         >
         <a-button @click="handleSelectFileClick">
-          <folder-open-outlined />
+          <template #icon>
+            <Icon icon="carbon:document-import" />
+          </template>
           选择文件
         </a-button>
         <a-button
@@ -721,21 +826,27 @@ function getStatusText(status: string) {
           :disabled="fileQueue.length === 0"
           @click="startQueueUpload"
         >
-          <cloud-upload-outlined />
+          <template #icon>
+            <Icon icon="carbon:cloud-upload" />
+          </template>
           开始上传
         </a-button>
         <a-button
           :disabled="!hasUploadingItem"
           @click="handlePauseAll"
         >
-          <pause-outlined />
+          <template #icon>
+            <Icon icon="carbon:pause" />
+          </template>
           暂停
         </a-button>
         <a-button
           :disabled="!hasPausedItem"
           @click="handleResumeAll"
         >
-          <caret-right-outlined />
+          <template #icon>
+            <Icon icon="carbon:play" />
+          </template>
           恢复
         </a-button>
         <a-button
@@ -743,7 +854,9 @@ function getStatusText(status: string) {
           :disabled="fileQueue.length === 0"
           @click="handleCancelAll"
         >
-          <close-outlined />
+          <template #icon>
+            <Icon icon="carbon:close" />
+          </template>
           取消
         </a-button>
       </div>
@@ -755,7 +868,41 @@ function getStatusText(status: string) {
         row-key="id"
       >
         <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'fileSize'">
+          <template v-if="column.key === 'thumbnail'">
+            <div
+              v-if="isImageFile(record.fileName)"
+              class="w-10 h-10 rounded overflow-hidden cursor-pointer border border-gray-200"
+              @click="handlePreview(record)"
+            >
+              <img
+                :src="URL.createObjectURL(record.file)"
+                alt=""
+                class="w-full h-full object-cover"
+              >
+            </div>
+            <div
+              v-else-if="getPreviewType(record.fileName)"
+              class="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
+              @click="handlePreview(record)"
+            >
+              <Icon
+                :icon="getFileIcon(record.fileName)"
+                :width="20"
+                class="text-gray-500 hover:text-blue-500"
+              />
+            </div>
+            <div
+              v-else
+              class="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded"
+            >
+              <Icon
+                :icon="getFileIcon(record.fileName)"
+                :width="20"
+                class="text-gray-400"
+              />
+            </div>
+          </template>
+          <template v-else-if="column.key === 'fileSize'">
             {{ formatFileSize(record.fileSize) }}
           </template>
           <template v-else-if="column.key === 'progress'">
@@ -775,42 +922,94 @@ function getStatusText(status: string) {
           <template v-else-if="column.key === 'actions'">
             <div :class="largeFileTableActionsClassName">
               <a-button
+                type="link"
                 size="small"
                 :disabled="record.status !== 'uploading'"
                 @click="handlePauseItem(record)"
               >
-                <pause-outlined />
                 暂停
               </a-button>
               <a-button
+                type="link"
                 size="small"
                 :disabled="record.status !== 'paused'"
                 @click="handleResumeItem(record)"
               >
-                <caret-right-outlined />
                 恢复
               </a-button>
               <a-button
+                type="link"
                 size="small"
                 danger
                 @click="handleDeleteItem(record)"
               >
-                <delete-outlined />
                 删除
               </a-button>
               <a-button
+                type="link"
                 size="small"
                 danger
                 :disabled="record.status !== 'uploading' && record.status !== 'paused'"
                 @click="handleCancelItem(record)"
               >
-                <close-outlined />
                 取消
               </a-button>
             </div>
           </template>
         </template>
       </a-table>
+      <!-- 文件预览弹窗 -->
+      <a-modal
+        :open="previewVisible"
+        :title="`预览：${previewFileName}`"
+        :footer="null"
+        width="800px"
+        destroy-on-hidden
+        @cancel="handlePreviewClose"
+      >
+        <!-- 图片预览 -->
+        <a-image
+          v-if="previewType === 'image'"
+          :src="previewUrl"
+          :style="{ maxHeight: '70vh' }"
+          :preview="{ visible: false }"
+        />
+        <!-- PDF 预览（iframe 嵌入） -->
+        <iframe
+          v-else-if="previewType === 'pdf'"
+          :src="previewUrl"
+          class="w-full rounded border-0"
+          style="height: 70vh;"
+        />
+        <!-- Word 预览（@vue-office/docx，需安装依赖） -->
+        <div
+          v-else-if="previewType === 'docx'"
+          class="w-full rounded overflow-auto bg-gray-50 dark:bg-gray-900 p-4"
+          style="height: 70vh;"
+        >
+          <div class="h-full flex items-center justify-center text-gray-400">
+            <div class="text-center">
+              <Icon icon="carbon:document" :width="48" class="mb-2 opacity-50" />
+              <p>Word 预览组件加载中...</p>
+              <p class="text-xs mt-1">如未显示请确认已安装 @vue-office/docx 依赖</p>
+            </div>
+          </div>
+        </div>
+        <!-- Excel 预览（@vue-office/excel，需安装依赖） -->
+        <div
+          v-else-if="previewType === 'excel'"
+          class="w-full rounded overflow-auto bg-gray-50 dark:bg-gray-900 p-4"
+          style="height: 70vh;"
+        >
+          <div class="h-full flex items-center justify-center text-gray-400">
+            <div class="text-center">
+              <Icon icon="carbon:table" :width="48" class="mb-2 opacity-50" />
+              <p>Excel 预览组件加载中...</p>
+              <p class="text-xs mt-1">如未显示请确认已安装 @vue-office/excel 依赖</p>
+            </div>
+          </div>
+        </div>
+      </a-modal>
     </a-card>
   </div>
 </template>

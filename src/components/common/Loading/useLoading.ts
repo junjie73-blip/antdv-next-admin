@@ -41,13 +41,17 @@ export function useLoading(options: UseLoadingOptions = {}): LoadingInstance {
   let vm: InstanceType<typeof Loading> | null = null
 
   /**
-   * 获取目标元素
+   * 获取目标元素 — 确保返回有效的 DOM 元素
    */
-  const getTargetElement = (): HTMLElement | null => {
+  const getTargetElement = (): Element | null => {
     if (typeof target === 'string') {
       return document.querySelector(target)
     }
-    return unref(target) as HTMLElement | null
+    const el = unref(target)
+    // 兼容 ref<Element> 和直接传入 DOM 元素的情况
+    if (el instanceof Element)
+      return el
+    return null
   }
 
   /**

@@ -15,6 +15,7 @@ import { BasicForm, useForm } from '@/components/business/Form'
 import { BasicTable, useTable } from '@/components/business/Table'
 import { useDictStore } from '@/stores'
 import { cn } from '@/utils/cn'
+import { DictType } from '@/enums/dict'
 import { exportToExcel } from '@/utils/excel'
 
 defineOptions({ name: 'SystemRole' })
@@ -48,7 +49,7 @@ const statusLabelMap: Record<number, string> = {
 
 const dictStore = useDictStore()
 
-const statusOptions = computed(() => dictStore.getOptions('sys_normal_disable'))
+const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
 
 // 动态菜单权限树 — 从菜单配置生成
 interface MenuTreeNode {
@@ -155,6 +156,7 @@ const drawerFormSchemas: FormSchema[] = [
     label: '角色名称',
     component: 'Input',
     required: true,
+    colProps: { span: 24 },
     componentProps: { placeholder: '请输入角色名称' },
   },
   {
@@ -162,6 +164,7 @@ const drawerFormSchemas: FormSchema[] = [
     label: '角色编码',
     component: 'Input',
     required: true,
+    colProps: { span: 24 },
     componentProps: { placeholder: '请输入角色编码，如 admin' },
   },
   {
@@ -177,7 +180,7 @@ const drawerFormSchemas: FormSchema[] = [
     label: '状态',
     component: 'RadioGroup',
     colProps: { span: 12 },
-    defaultValue: 1,
+    defaultValue: 0,
     componentProps: () => ({
       optionType: 'button',
       buttonStyle: 'solid',
@@ -219,7 +222,7 @@ function handleAdd() {
     code: '',
     description: '',
     sort: 0,
-    status: 1,
+    status: 0,
   })
   formMethods.clearValidate()
   drawerMethods.openDrawer()

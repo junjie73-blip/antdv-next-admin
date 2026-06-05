@@ -23,32 +23,31 @@ const leftIcon = ref('')
 const rightIcon = ref('')
 
 function handleBasicChange(value: string) {
-  message.success(`Selected icon: ${value || '(cleared)'}`)
+  message.success(`已选择图标：${value || '(已清除)'}`)
 }
 
 function handleLeftChange(value: string) {
-  message.info(`Left icon changed to: ${value || '(cleared)'}`)
+  message.info(`左侧图标变更为：${value || '(已清除)'}`)
 }
 
 function handleRightChange(value: string) {
-  message.info(`Right icon changed to: ${value || '(cleared)'}`)
+  message.info(`右侧图标变更为：${value || '(已清除)'}`)
 }
 </script>
 
 <template>
   <div :class="containerClassName">
     <a-card
-      title="Basic Usage"
+      title="基础用法"
       variant="borderless"
     >
       <p class="text-gray-600 dark:text-gray-400 mb-4">
-        Click the input to open the icon picker. Search or browse icon collections and
-        click an icon to select it.
+        点击输入框打开图标选择器，搜索或浏览图标集合后点击选择。
       </p>
       <div class="max-w-md">
         <IconPicker
           v-model="selectedIcon"
-          placeholder="Click to select an icon"
+          placeholder="点击选择图标"
           @change="handleBasicChange"
         />
         <div :class="infoBoxClassName">
@@ -57,24 +56,24 @@ function handleRightChange(value: string) {
             :class="infoIconClassName"
           />
           <span :class="infoTextClassName">
-            Selected: {{ selectedIcon || '(none)' }}
+            已选：{{ selectedIcon || '(无)' }}
           </span>
         </div>
       </div>
     </a-card>
 
     <a-card
-      title="Default Value"
+      title="默认值"
       variant="borderless"
     >
       <p class="text-gray-600 dark:text-gray-400 mb-4">
-        Provide an initial icon value via <code>v-model</code>. In this example,
-        <code>carbon:star-filled</code> is pre-selected.
+        通过 <code>v-model</code> 提供初始图标值。本例中预设了
+        <code>carbon:star-filled</code> 图标。
       </p>
       <div class="max-w-md">
         <IconPicker
           v-model="defaultIcon"
-          placeholder="Has default icon"
+          placeholder="已有默认图标"
         />
         <div :class="infoBoxClassName">
           <Icon
@@ -82,53 +81,53 @@ function handleRightChange(value: string) {
             :class="infoIconClassName"
           />
           <span :class="infoTextClassName">
-            Default: {{ defaultIcon }}
+            默认值：{{ defaultIcon }}
           </span>
         </div>
       </div>
     </a-card>
 
     <a-card
-      title="Disabled (Read-only)"
+      title="禁用状态（只读）"
       variant="borderless"
     >
       <p class="text-gray-600 dark:text-gray-400 mb-4">
-        Set <code>:disabled=&quot;true&quot;</code> to prevent user interaction.
+        设置 <code>:disabled=&quot;true&quot;</code> 可禁止用户交互。
       </p>
       <div class="max-w-md">
         <IconPicker
           v-model="disabledValue"
           disabled
-          placeholder="This picker is disabled"
+          placeholder="此选择器已被禁用"
         />
       </div>
     </a-card>
 
     <a-card
-      title="Multiple Instances"
+      title="多实例"
       variant="borderless"
     >
       <p class="text-gray-600 dark:text-gray-400 mb-4">
-        Two independent icon pickers side by side, each with its own state.
+        多个独立的图标选择器并排显示，各自维护独立的状态。
       </p>
       <div :class="twinContainerClassName">
         <div>
           <label class="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-400">
-            Left Picker
+            左侧选择器
           </label>
           <IconPicker
             v-model="leftIcon"
-            placeholder="Pick left icon"
+            placeholder="请选择左侧图标"
             @change="handleLeftChange"
           />
         </div>
         <div>
           <label class="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-400">
-            Right Picker
+            右侧选择器
           </label>
           <IconPicker
             v-model="rightIcon"
-            placeholder="Pick right icon"
+            placeholder="请选择右侧图标"
             @change="handleRightChange"
           />
         </div>
@@ -136,17 +135,16 @@ function handleRightChange(value: string) {
     </a-card>
 
     <a-card
-      title="Change Event"
+      title="变更事件"
       variant="borderless"
     >
       <p class="text-gray-600 dark:text-gray-400 mb-4">
-        The <code>@change</code> event fires every time the icon selection changes,
-        including clearing. A <code>message</code> toast is shown with the selected value.
+        每次图标选择变更时触发 <code>@change</code> 事件（包括清空操作），通过消息提示展示选中值。
       </p>
       <div class="max-w-md">
         <IconPicker
           v-model="selectedIcon"
-          placeholder="Select an icon to see the toast"
+          placeholder="选择图标查看提示效果"
           @change="handleBasicChange"
         />
       </div>

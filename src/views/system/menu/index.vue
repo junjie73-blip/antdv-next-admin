@@ -12,6 +12,7 @@ import IconPicker from '@/components/common/Icon/IconPicker.vue'
 import { frontendMenus } from '@/router/menus'
 import { useDictStore } from '@/stores'
 import { cn } from '@/utils/cn'
+import { DictType } from '@/enums/dict'
 
 defineOptions({ name: 'SystemMenu' })
 
@@ -62,7 +63,7 @@ const statusLabelMap: Record<number, string> = {
 
 const dictStore = useDictStore()
 
-const statusOptions = computed(() => dictStore.getOptions('sys_normal_disable'))
+const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
 
 function convertFrontendMenusToRecords(menus: MenuConfig[], parentId: number | null, startId: number): { records: MenuRecord[], nextId: number } {
   const result: MenuRecord[] = []

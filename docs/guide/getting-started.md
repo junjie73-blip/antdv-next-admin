@@ -3,17 +3,17 @@
 ## 环境要求
 
 - **Node.js** ^20.19.0 || >=22.12.0
-- **pnpm**（推荐）或 npm / yarn / bun
+- **pnpm**（推荐）或 npm / yarn / pnpm
 - **Git**
 
 ## 安装
 
 ```bash
 # 克隆仓库
-git clone https://github.com/your-repo/antdv-next-admin.git
+git clone https://github.com/junjie73-blip/antdv-next-admin.git
 
 # 进入项目目录
-cd antdvv-next-admin
+cd antdv-next-admin
 
 # 安装依赖（使用 pnpm）
 pnpm install

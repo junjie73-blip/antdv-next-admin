@@ -271,3 +271,8 @@ export function markAllNoticeRead() {
 export function deleteNotice(id: number) {
   return del<void>(`/system/notice/${id}`)
 }
+
+/** 新增/编辑消息 */
+export function saveNotice(data: Record<string, any>) {
+  return post<void>('/system/notice/save', data)
+}

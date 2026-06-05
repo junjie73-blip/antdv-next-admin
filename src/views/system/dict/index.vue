@@ -19,6 +19,7 @@ import { BasicModal, useModal } from '@/components/business/Modal'
 import { BasicTable, useTable } from '@/components/business/Table'
 import { useDictStore } from '@/stores'
 import { cn } from '@/utils/cn'
+import { DictType } from '@/enums/dict'
 import { exportToExcel } from '@/utils/excel'
 
 defineOptions({ name: 'SystemDict' })
@@ -62,7 +63,7 @@ const statusLabelMap: Record<number, string> = {
 
 const dictStore = useDictStore()
 
-const statusOptions = computed(() => dictStore.getOptions('sys_normal_disable'))
+const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
 
 const isEditing = ref(false)
 const isEditingItem = ref(false)
@@ -134,7 +135,7 @@ const modalFormSchemas: FormSchema[] = [
     field: 'status',
     label: '状态',
     component: 'RadioGroup',
-    defaultValue: 1,
+    defaultValue: 0,
     colProps: { span: 12 },
     componentProps: () => ({
       optionType: 'button',
@@ -181,7 +182,7 @@ const itemFormSchemas: FormSchema[] = [
     field: 'status',
     label: '状态',
     component: 'RadioGroup',
-    defaultValue: 1,
+    defaultValue: 0,
     colProps: { span: 12 },
     componentProps: () => ({
       optionType: 'button',

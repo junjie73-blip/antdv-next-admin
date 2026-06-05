@@ -20,9 +20,9 @@
     { "type": "ci", "section": "🔄 CI/CD", "hidden": true },
     { "type": "build", "section": "📦 Build", "hidden": true }
   ],
-  "commitUrlFormat": "https://github.com/your-repo/antdv-next-admin/commits/{{hash}}",
-  "compareUrlFormat": "https://github.com/your-repo/antdv-next-admin/compare/{{previousTag}}...{{currentTag}}",
-  "issueUrlFormat": "https://github.com/your-repo/antdv-next-admin/issues/{{id}}",
+  "commitUrlFormat": "https://github.com/junjie73-blip/antdv-next-admin/commits/{{hash}}",
+  "compareUrlFormat": "https://github.com/junjie73-blip/antdv-next-admin/compare/{{previousTag}}...{{currentTag}}",
+  "issueUrlFormat": "https://github.com/junjie73-blip/antdv-next-admin/issues/{{id}}",
   "releaseCommitMessageFormat": "chore(release): {{currentTag}}",
   "skip": {
     "tag": true,
@@ -33,18 +33,18 @@
 
 ### 类型与 CHANGELOG 分区说明
 
-| commit type | CHANGELOG 分区 | 是否显示 | 说明 |
-|-------------|---------------|---------|------|
-| `feat` | 🚀 Features | ✅ 显示 | 新功能 |
-| `fix` | 🐛 Bug Fixes | ✅ 显示 | 问题修复 |
-| `docs` | 📝 Documentation | ✅ 显示 | 文档更新 |
-| `style` | 💅 Styles | ✅ 显示 | 样式调整（不影响代码逻辑） |
-| `refactor` | ♻️ Code Refactoring | ✅ 显示 | 重构（非新功能、非修复） |
-| `perf` | ⚡ Performance | ✅ 显示 | 性能优化 |
-| `test` | 🧪 Tests | ❌ 隐藏 | 测试相关 |
-| `chore` | 🔧 Chores | ❌ 隐藏 | 构建/工具链变更 |
-| `ci` | 🔄 CI/CD | ❌ 隐藏 | CI 配置变更 |
-| `build` | 📦 Build | ❌ 隐藏 | 构建系统变更 |
+| commit type | CHANGELOG 分区     | 是否显示 | 说明                       |
+| ----------- | ------------------ | -------- | -------------------------- |
+| `feat`      | 🚀 Features         | ✅ 显示   | 新功能                     |
+| `fix`       | 🐛 Bug Fixes        | ✅ 显示   | 问题修复                   |
+| `docs`      | 📝 Documentation    | ✅ 显示   | 文档更新                   |
+| `style`     | 💅 Styles           | ✅ 显示   | 样式调整（不影响代码逻辑） |
+| `refactor`  | ♻️ Code Refactoring | ✅ 显示   | 重构（非新功能、非修复）   |
+| `perf`      | ⚡ Performance      | ✅ 显示   | 性能优化                   |
+| `test`      | 🧪 Tests            | ❌ 隐藏   | 测试相关                   |
+| `chore`     | 🔧 Chores           | ❌ 隐藏   | 构建/工具链变更            |
+| `ci`        | 🔄 CI/CD            | ❌ 隐藏   | CI 配置变更                |
+| `build`     | 📦 Build            | ❌ 隐藏   | 构建系统变更               |
 
 ### skip 配置说明
 
@@ -182,34 +182,34 @@ Closes #123
 
 ### Type 列表
 
-| Type | 说明 | 触发版本升级 |
-|------|------|------------|
-| `feat` | 新功能 | MINOR (或 MAJOR) |
-| `fix` | 修复 bug | PATCH |
-| `docs` | 文档变更 | - |
-| `style` | 代码格式（不影响逻辑） | - |
-| `refactor` | 重构（非新功能、非修复） | - |
-| `perf` | 性能优化 | - |
-| `test` | 测试相关 | - |
-| `chore` | 构建过程/辅助工具变更 | - |
-| `ci` | CI/CD 配置变更 | - |
-| `revert` | 回滚之前的 commit | - |
+| Type       | 说明                     | 触发版本升级     |
+| ---------- | ------------------------ | ---------------- |
+| `feat`     | 新功能                   | MINOR (或 MAJOR) |
+| `fix`      | 修复 bug                 | PATCH            |
+| `docs`     | 文档变更                 | -                |
+| `style`    | 代码格式（不影响逻辑）   | -                |
+| `refactor` | 重构（非新功能、非修复） | -                |
+| `perf`     | 性能优化                 | -                |
+| `test`     | 测试相关                 | -                |
+| `chore`    | 构建过程/辅助工具变更    | -                |
+| `ci`       | CI/CD 配置变更           | -                |
+| `revert`   | 回滚之前的 commit        | -                |
 
 ### Scope 约定
 
 Scope 用于说明本次改动的影响范围，本项目常用的 scope：
 
-| Scope | 说明 |
-|-------|------|
-| `table` | Table 组件 |
-| `form` | Form 组件 |
-| `modal` | Modal 组件 |
-| `drawer` | Drawer 组件 |
-| `auth` | 权限认证模块 |
-| `layout` | 布局组件 |
-| `utils` | 工具函数 |
-| `config` | 配置文件 |
-| `deps` | 依赖管理 |
+| Scope    | 说明         |
+| -------- | ------------ |
+| `table`  | Table 组件   |
+| `form`   | Form 组件    |
+| `modal`  | Modal 组件   |
+| `drawer` | Drawer 组件  |
+| `auth`   | 权限认证模块 |
+| `layout` | 布局组件     |
+| `utils`  | 工具函数     |
+| `config` | 配置文件     |
+| `deps`   | 依赖管理     |
 
 ### Body 和 Footer
 
