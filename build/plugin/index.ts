@@ -91,11 +91,41 @@ export async function createPlugin({
       injectRegister: 'script-defer',
       strategies: 'generateSW',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         clientsClaim: true,
         skipWaiting: true,
-        maximumFileSizeToCacheInBytes: 1024 * 1024 * 10,
+        // 设置为 20MB 以容纳大型 vendor 包（antdv-next 约 18.5MB）
+        // 生产环境建议通过按需加载优化 antdv-next 来减小体积
+        maximumFileSizeToCacheInBytes: 1024 * 1024 * 20,
+        runtimeCaching: [
+          {
+            urlPattern: /\/api\/.*$/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60,
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'image-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 30 * 24 * 60 * 60,
+              },
+            },
+          },
+        ],
       },
+      includeAssets: ['favicon.ico', 'pwa-icons/*.svg'],
     }),
   )
   if (env.VITE_VISUALIZER) {

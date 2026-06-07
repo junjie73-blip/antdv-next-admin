@@ -1,16 +1,7 @@
 <script setup lang="ts">
-import carbonIcons from '@iconify/json/json/carbon.json'
-import phIcons from '@iconify/json/json/ph.json'
-import tablerIcons from '@iconify/json/json/tabler.json'
 import { Icon } from '@iconify/vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { cn } from '@/utils/cn'
-
-interface CollectionInfo {
-  prefix: string
-  name: string
-  total: number
-}
 
 interface CollectionInfo {
   prefix: string
@@ -44,19 +35,11 @@ const emit = defineEmits<{
   'select': [value: string]
 }>()
 
-type IconData = typeof carbonIcons
-
-const COLLECTION_MAP: Record<string, IconData> = {
-  carbon: carbonIcons,
-  ph: phIcons,
-  tabler: tablerIcons,
-}
-
-const COLLECTIONS: CollectionInfo[] = [
-  { prefix: 'carbon', name: 'Carbon', total: Object.keys(carbonIcons.icons).length },
-  { prefix: 'ph', name: 'Phosphor', total: Object.keys(phIcons.icons).length },
-  { prefix: 'tabler', name: 'Tabler', total: Object.keys(tablerIcons.icons).length },
-]
+// 图标集合信息（延迟加载）
+type IconData = { icons: Record<string, { body: string }> }
+let COLLECTION_MAP: Record<string, IconData> | null = null
+let COLLECTIONS: CollectionInfo[] = []
+let iconsLoaded = false
 
 /** 每行显示的图标数 */
 const GRID_COLS = 8
@@ -74,10 +57,52 @@ const selectedPrefix = ref('all')
 const currentPage = ref(1)
 /** 每页条数 */
 const pageSize = ref(DEFAULT_PAGE_SIZE)
+const loading = ref(false)
 
 const selectedIcon = computed(() => props.modelValue || props.currentIcon)
 
+/**
+ * 懒加载图标数据 - 只在首次打开时加载
+ * 避免将 7MB+ 的图标数据打包进主 bundle
+ */
+async function loadIcons() {
+  if (iconsLoaded) return
+
+  loading.value = true
+  try {
+    // 动态导入三个图标集（会被打包到单独的 vendor-icons chunk）
+    const [carbonIcons, phIcons, tablerIcons] = await Promise.all([
+      import('@iconify/json/json/carbon.json'),
+      import('@iconify/json/json/ph.json'),
+      import('@iconify/json/json/tabler.json'),
+    ])
+
+    COLLECTION_MAP = {
+      carbon: carbonIcons.default,
+      ph: phIcons.default,
+      tabler: tablerIcons.default,
+    }
+
+    COLLECTIONS = [
+      { prefix: 'carbon', name: 'Carbon', total: Object.keys(carbonIcons.default.icons).length },
+      { prefix: 'ph', name: 'Phosphor', total: Object.keys(phIcons.default.icons).length },
+      { prefix: 'tabler', name: 'Tabler', total: Object.keys(tablerIcons.default.icons).length },
+    ]
+
+    iconsLoaded = true
+    loadAllFromLocal()
+  }
+  catch (error) {
+    console.error('Failed to load icon collections:', error)
+  }
+  finally {
+    loading.value = false
+  }
+}
+
 function loadAllFromLocal() {
+  if (!COLLECTION_MAP) return
+
   const icons: string[] = []
   for (const col of COLLECTIONS) {
     const data = COLLECTION_MAP[col.prefix]
@@ -158,17 +183,13 @@ watch(searchValue, () => {
   }, 200)
 })
 
-watch(visible, (val) => {
+// 首次打开时懒加载图标数据
+watch(visible, async (val) => {
   if (val && allIcons.value.length === 0) {
-    loadAllFromLocal()
+    await loadIcons()
     applyFilter()
   }
 })
-
-if (allIcons.value.length === 0) {
-  loadAllFromLocal()
-  applyFilter()
-}
 
 onBeforeUnmount(() => {
   if (searchTimeout)
@@ -235,10 +256,18 @@ const paginationWrapperClassName = cn(
         </div>
 
         <div
-          v-if="filteredIcons.length === 0"
+          v-if="filteredIcons.length === 0 && !loading"
           class="py-10"
         >
           <a-empty description="暂无图标" />
+        </div>
+
+        <!-- 加载状态 -->
+        <div
+          v-else-if="loading"
+          class="py-10 flex justify-center"
+        >
+          <a-spin size="large" />
         </div>
 
         <div

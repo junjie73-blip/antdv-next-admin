@@ -12,6 +12,7 @@ import { cn } from '@/utils/cn'
 import { useLoginStyles } from './composables/useLoginStyles'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 
 const {
@@ -84,8 +85,9 @@ async function handleLogin() {
 
     if (result.success) {
       message.success('登录成功')
-      // 跳转到根路径，让动态路由守卫负责初始化和重定向到 /dashboard
-      router.push('/')
+      // 优先跳转到重定向路径（如从其他页面被拦截到登录页），否则默认到仪表盘
+      const redirect = (route.query.redirect as string) || '/dashboard/echarts'
+      router.push(redirect)
     }
     else {
       message.error(result.message || '登录失败')
