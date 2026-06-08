@@ -9,6 +9,7 @@ import { cn } from '@/utils/cn'
 const props = withDefaults(defineProps<DrawerProps>(), {
   placement: 'right',
   useWrapper: true,
+  showFooter: true,
   showCancelBtn: true,
   showOkBtn: true,
   cancelText: '关闭',
@@ -30,6 +31,10 @@ const emit = defineEmits<{
 }>()
 
 const slots = useSlots()
+
+// ARIA 无障碍 ID（用于关联标题和内容）
+const drawerId = `drawer-${Math.random().toString(36).slice(2, 9)}`
+const drawerTitleId = `${drawerId}-title`
 
 // 状态
 const visibleRef = ref(props.open || false)
@@ -167,6 +172,7 @@ const closeBtnClassName = cn(
 
 const footerClassName = cn(
   'flex items-center justify-center gap-3 px-4 py-3',
+  'border-t border-gray-200 dark:border-gray-700',
 )
 </script>
 
@@ -189,11 +195,16 @@ const footerClassName = cn(
     :wrap-class-name="wrapClassName"
     :destroy-on-hidden="destroyOnHidden"
     :styles="drawerStyles"
+    aria-modal="true"
+    role="dialog"
     @close="handleCancel"
   >
     <!-- 自定义头部 -->
     <template #title>
-      <div :class="headerClassName">
+      <div
+        :id="drawerTitleId"
+        :class="headerClassName"
+      >
         <div :class="cn('flex items-center gap-2')">
           <span :class="cn('text-lg font-medium text-gray-900')">{{ title }}</span>
           <slot name="titleTip" />
@@ -203,6 +214,8 @@ const footerClassName = cn(
           <button
             v-if="closable"
             :class="closeBtnClassName"
+            type="button"
+            :aria-label="`关闭${title ? ` ${title}` : ''}`"
             @click="handleCancel"
           >
             <Icon icon="ant-design:close-outlined" />
@@ -212,7 +225,12 @@ const footerClassName = cn(
     </template>
 
     <!-- 内容区域 -->
-    <div :class="drawerBodyClassName">
+    <div
+      :class="drawerBodyClassName"
+      role="region"
+      :aria-label="title || '抽屉内容'"
+      :aria-labelledby="drawerTitleId"
+    >
       <!-- Loading 遮罩 -->
       <div
         v-if="loadingRef"
@@ -237,7 +255,7 @@ const footerClassName = cn(
     <!-- 底部按钮 -->
     <template #footer>
       <div
-        v-if="!slots.footer && (showCancelBtn || showOkBtn)"
+        v-if="showFooter && !slots.footer && (showCancelBtn || showOkBtn)"
         :class="footerClassName"
       >
         <slot name="insertFooter" />

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import { message } from 'antdv-next'
+
 import QRCode from 'qrcode'
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
 import { cn } from '@/utils/cn'

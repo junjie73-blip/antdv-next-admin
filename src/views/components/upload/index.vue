@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { UploadChangeParam, UploadFile, UploadProps } from 'antdv-next'
-import { message } from 'antdv-next'
-import { computed, ref, useTemplateRef } from 'vue'
+
 import { Icon } from '@iconify/vue'
+import { computed, ref, useTemplateRef } from 'vue'
 
 // ===== 大文件切片上传 =====
 import { useChunkUpload } from '@/composables/useChunkUpload'
@@ -500,10 +500,14 @@ function isExcelFile(fileName: string): boolean {
 type PreviewType = 'image' | 'pdf' | 'docx' | 'excel' | null
 
 function getPreviewType(fileName: string): PreviewType {
-  if (isImageFile(fileName)) return 'image'
-  if (isPdfFile(fileName)) return 'pdf'
-  if (isDocxFile(fileName)) return 'docx'
-  if (isExcelFile(fileName)) return 'excel'
+  if (isImageFile(fileName))
+    return 'image'
+  if (isPdfFile(fileName))
+    return 'pdf'
+  if (isDocxFile(fileName))
+    return 'docx'
+  if (isExcelFile(fileName))
+    return 'excel'
   return null
 }
 
@@ -989,9 +993,15 @@ function handlePreviewClose() {
         >
           <div class="h-full flex items-center justify-center text-gray-400">
             <div class="text-center">
-              <Icon icon="carbon:document" :width="48" class="mb-2 opacity-50" />
+              <Icon
+                icon="carbon:document"
+                :width="48"
+                class="mb-2 opacity-50"
+              />
               <p>Word 预览组件加载中...</p>
-              <p class="text-xs mt-1">如未显示请确认已安装 @vue-office/docx 依赖</p>
+              <p class="text-xs mt-1">
+                如未显示请确认已安装 @vue-office/docx 依赖
+              </p>
             </div>
           </div>
         </div>
@@ -1003,9 +1013,15 @@ function handlePreviewClose() {
         >
           <div class="h-full flex items-center justify-center text-gray-400">
             <div class="text-center">
-              <Icon icon="carbon:table" :width="48" class="mb-2 opacity-50" />
+              <Icon
+                icon="carbon:table"
+                :width="48"
+                class="mb-2 opacity-50"
+              />
               <p>Excel 预览组件加载中...</p>
-              <p class="text-xs mt-1">如未显示请确认已安装 @vue-office/excel 依赖</p>
+              <p class="text-xs mt-1">
+                如未显示请确认已安装 @vue-office/excel 依赖
+              </p>
             </div>
           </div>
         </div>

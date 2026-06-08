@@ -65,11 +65,25 @@ export async function createPlugin({
         VueRouterAutoImports,
         '@vueuse/core',
         'pinia',
+        // antdv-next API 自动导入（message, Modal, notification 等）
+        {
+          'antdv-next': [
+            'message',
+            'notification',
+            'Modal',
+            'Drawer',
+          ],
+        },
       ],
       dts: join(process.cwd(), '/types/auto-imports.d.ts'),
     }),
     Components({
-      resolvers: [AntdvNextResolver()],
+      resolvers: [
+        AntdvNextResolver({
+          // 启用图标自动导入
+          resolveIcons: true,
+        }),
+      ],
       dts: join(process.cwd(), '/types/components.d.ts'),
     }),
     createSvgIconsPlugin({

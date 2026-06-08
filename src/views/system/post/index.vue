@@ -3,7 +3,7 @@ import type { FormSchema } from '@/components/business/Form'
 import type { BasicColumn } from '@/components/business/Table'
 import { faker } from '@faker-js/faker/locale/zh_CN'
 import { Icon } from '@iconify/vue'
-import { message } from 'antdv-next'
+
 import { computed, ref, useTemplateRef } from 'vue'
 import {
   addPost,
@@ -15,9 +15,9 @@ import { BasicDrawer, useDrawer } from '@/components/business/Drawer'
 import { BasicForm, useForm } from '@/components/business/Form'
 import { BasicModal, useModal } from '@/components/business/Modal'
 import { BasicTable, useTable } from '@/components/business/Table'
+import { DictType } from '@/enums/dict'
 import { useDictStore } from '@/stores'
 import { cn } from '@/utils/cn'
-import { DictType } from '@/enums/dict'
 
 defineOptions({ name: 'SystemPost' })
 

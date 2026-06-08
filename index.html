@@ -1,11 +1,116 @@
 <!doctype html>
-<html lang="">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title><%= VITE_APP_TITLE %></title>
     <meta name="naive-ui-style" />
+
+    <!-- ==================== SEO 基础标签 ==================== -->
+    <!-- 页面描述（150-160 字符，包含核心关键词） -->
+    <meta name="description" content="Antdv Next Vue Admin - 基于 Vue 3 + TypeScript + Antdv Next 的现代化后台管理系统模板，支持暗色模式、国际化、RBAC 权限控制，开箱即用的企业级解决方案。" />
+
+    <!-- 关键词（5-8 个，用逗号分隔） -->
+    <meta name="keywords" content="Antdv Next, Vue Admin, Vue3, TypeScript, 后台管理系统, Admin Template, 企业级应用, RBAC权限" />
+
+    <!-- 作者信息 -->
+    <meta name="author" content="Antdv Next Team" />
+
+    <!-- 搜索引擎爬虫指令：允许索引和跟踪链接 -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+
+    <!-- 规范 URL（防止重复内容问题，部署时需替换为实际域名） -->
+    <link rel="canonical" href="<%= VITE_APP_BASE_URL || 'https://example.com' %>" />
+
+    <!-- ==================== 移动端优化 ==================== -->
+    <!-- iOS Safari 状态栏颜色适配 -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="<%= VITE_APP_TITLE %>" />
+
+    <!-- Android Chrome 主题色 -->
+    <meta name="theme-color" content="#1677ff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1f1f1f" media="(prefers-color-scheme: dark)" />
+
+    <!-- 禁止电话号码自动识别（避免干扰正常数字显示） -->
+    <meta name="format-detection" content="telephone=no, email=no, address=no" />
+
+    <!-- Referrer 策略（保护用户隐私，同时支持跨域分析） -->
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+
+    <!-- ==================== Open Graph 社交媒体标签 ==================== -->
+    <!-- Facebook / LinkedIn / 微信等分享时使用 -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="<%= VITE_APP_TITLE %>" />
+    <meta property="og:description" content="基于 Vue 3 + Antdv Next 的现代化后台管理系统，支持暗色模式、国际化、RBAC 权限控制。" />
+    <meta property="og:url" content="<%= VITE_APP_BASE_URL || 'https://example.com' %>" />
+    <meta property="og:site_name" content="<%= VITE_APP_TITLE %>" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:locale:alternate" content="en_US" />
+
+    <!-- 分享图片（建议 1200x630px，< 300KB） -->
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="<%= VITE_APP_TITLE %> - 现代化后台管理系统" />
+    <meta property="og:image:type" content="image/png" />
+
+    <!-- ==================== Twitter Card 标签 ==================== -->
+    <!-- Twitter 分享卡片样式 -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="<%= VITE_APP_TITLE %>" />
+    <meta name="twitter:description" content="基于 Vue 3 + Antdv Next 的现代化后台管理系统，支持暗色模式、国际化、RBAC 权限控制。" />
+    <meta name="twitter:image" content="/og-image.png" />
+    <!-- Twitter 账号（可选，替换为实际账号） -->
+    <meta name="twitter:site" content="@antdv_next" />
+    <meta name="twitter:creator" content="@antdv_next" />
+
+    <!-- ==================== 其他实用标签 ==================== -->
+    <!-- PWA 相关（如果启用了 vite-plugin-pwa） -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="<%= VITE_APP_TITLE %>" />
+    <meta name="msapplication-TileColor" content="#1677ff" />
+    <meta name="msapplication-TileImage" content="/pwa-192x192.png" />
+
+    <!-- DNS 预解析（加速外部资源加载） -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+
+    <!-- ==================== 安全防护头 ==================== -->
+    <meta http-equiv="Content-Security-Policy"
+      content="default-src 'self';
+               script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net;
+               style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
+               img-src 'self' data: https: blob:;
+               font-src 'self' data: https://fonts.gstatic.com;
+               connect-src 'self' https:;
+               frame-src 'self' http://localhost:* https:;
+               form-action 'self';
+               base-uri 'self';
+               object-src 'none';
+               upgrade-insecure-requests;" />
+
+    <!-- X-Content-Type-Options: 防止 MIME 嗅探攻击（meta 标签有效） -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+
+    <!--
+      ⚠️ X-Frame-Options 注意事项：
+      X-Frame-Options 不能通过 <meta> 标签设置！浏览器会忽略它。
+      正确方式：通过 HTTP 响应头或 Vite 开发服务器中间件设置。
+
+      当前已通过 CSP 的 frame-src 指令提供等效保护（现代浏览器支持）。
+      如需在生产环境强制设置，请在 nginx/vite 配置中添加响应头：
+
+      # nginx 示例
+      # add_header X-Frame-Options SAMEORIGIN always;
+
+      # 或在 vite.config.ts 的 server.headers 中配置
+    -->
+
+    <!-- IE 兼容性（可移除） -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <style>
       html {
         line-height: 1.15;

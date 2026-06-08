@@ -3,11 +3,18 @@ import { autoPrefixTransformer, px2remTransformer } from '@antdv-next/cssinjs'
 import { HappyProvider } from '@antdv-next/happy-work-theme'
 import { ConfigProvider, StyleProvider } from 'antdv-next'
 import dayjs from 'dayjs'
-import { computed, shallowRef, watch } from 'vue'
+import { computed, onMounted, shallowRef, watch } from 'vue'
 import { getThemeConfig } from '@/settings'
 import { useAppStore } from '@/stores/modules/app'
+import { useUserStore } from '@/stores/modules/user'
 
 const appStore = useAppStore()
+const userStore = useUserStore()
+
+// 应用启动时解密 Token
+onMounted(() => {
+  userStore.initToken()
+})
 
 const antdLocale = shallowRef<any>()
 

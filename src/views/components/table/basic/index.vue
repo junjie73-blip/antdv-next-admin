@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { BasicColumn } from '@/components/business/Table'
-import { message } from 'antdv-next'
+
 import { ref } from 'vue'
 import { BasicTable, useTable } from '@/components/business/Table'
 import { cn } from '@/utils/cn'

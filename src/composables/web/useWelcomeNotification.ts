@@ -1,5 +1,5 @@
 import { Icon } from '@iconify/vue'
-import { notification } from 'antdv-next'
+
 import { h } from 'vue'
 import { getPersonalizedWelcome } from '@/utils/welcome'
 

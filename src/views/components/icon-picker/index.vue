@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import { message } from 'antdv-next'
+
 import { ref } from 'vue'
 import { IconPicker } from '@/components/common/Icon'
 import { cn } from '@/utils/cn'

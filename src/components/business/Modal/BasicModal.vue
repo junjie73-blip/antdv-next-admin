@@ -9,6 +9,7 @@ import ModalWrapper from './components/ModalWrapper.vue'
 
 const props = withDefaults(defineProps<ModalProps>(), {
   useWrapper: true,
+  showFooter: true,
   showCancelBtn: true,
   showOkBtn: true,
   cancelText: '关闭',
@@ -32,6 +33,17 @@ const emit = defineEmits<{
 }>()
 
 const slots = useSlots()
+
+// ARIA 无障碍 ID（用于关联标题和内容）— 使用 useId 确保服务端渲染安全
+const modalId = `modal-${Math.random().toString(36).slice(2, 9)}`
+const modalTitleId = `${modalId}-title`
+const modalContentId = `${modalId}-content`
+
+// 将 ID 显式暴露到组件实例，避免 Vue 编译器优化导致的模板访问问题
+defineExpose({
+  modalTitleId,
+  modalContentId,
+})
 
 // 状态
 const visibleRef = ref(props.visible || false)
@@ -170,11 +182,16 @@ const footerClassName = cn(
     :wrap-class-name="wrapClassName"
     :destroy-on-hidden="destroyOnHidden"
     :styles="modalStyles"
+    aria-modal="true"
+    role="dialog"
     @cancel="handleVisibleChange"
   >
     <!-- 自定义头部 -->
     <template #title>
-      <div :class="headerClassName">
+      <div
+        :id="modalTitleId"
+        :class="headerClassName"
+      >
         <div :class="cn('flex items-center gap-2')">
           <span :class="cn('text-lg font-medium text-gray-900')">{{ title }}</span>
           <slot name="titleTip" />
@@ -184,6 +201,8 @@ const footerClassName = cn(
           <button
             v-if="closable"
             :class="closeBtnClassName"
+            type="button"
+            :aria-label="`关闭${title ? ` ${title}` : ''}`"
             @click="handleCancel"
           >
             <Icon icon="ant-design:close-outlined" />
@@ -201,13 +220,14 @@ const footerClassName = cn(
       :footer-offset="wrapperFooterOffset"
       :visible="visibleRef"
       :use-wrapper="useWrapper"
+      :aria-describedby="modalContentId"
     >
       <slot />
     </ModalWrapper>
 
     <!-- 底部按钮 -->
     <div
-      v-if="!slots.footer && (showCancelBtn || showOkBtn)"
+      v-if="showFooter && !slots.footer && (showCancelBtn || showOkBtn)"
       :class="footerClassName"
     >
       <slot name="insertFooter" />

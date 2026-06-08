@@ -3,16 +3,16 @@ import type { MenuConfig } from '#/menu'
 import type { FormSchema } from '@/components/business/Form'
 import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
-import { message } from 'antdv-next'
+
 import { computed, ref } from 'vue'
 import { BasicDrawer, useDrawer } from '@/components/business/Drawer'
 import { BasicForm, useForm } from '@/components/business/Form'
 import { BasicTable, useTable } from '@/components/business/Table'
 import IconPicker from '@/components/common/Icon/IconPicker.vue'
+import { DictType } from '@/enums/dict'
 import { frontendMenus } from '@/router/menus'
 import { useDictStore } from '@/stores'
 import { cn } from '@/utils/cn'
-import { DictType } from '@/enums/dict'
 
 defineOptions({ name: 'SystemMenu' })
 
@@ -24,9 +24,10 @@ interface MenuRecord {
   perms: string
   path: string
   component: string
-  menuType: 'M' | 'C' | 'F' | 'MICRO'
+  menuType: 'M' | 'C' | 'F' | 'L' | 'MICRO'
   parentId: number | null
   status: number
+  linkUrl?: string
   microAppConfig?: MicroAppConfig
   children?: MenuRecord[]
   createdAt: string
@@ -43,12 +44,14 @@ const menuTypeColorMap: Record<string, string> = {
   M: 'blue',
   C: 'green',
   F: 'orange',
+  L: 'purple',
 }
 
 const menuTypeLabelMap: Record<string, string> = {
   M: '目录',
   C: '菜单',
   F: '按钮',
+  L: '链接',
 }
 
 const statusColorMap: Record<number, string> = {
@@ -81,7 +84,7 @@ function convertFrontendMenusToRecords(menus: MenuConfig[], parentId: number | n
       component: menu.component || '',
       menuType: menu.children?.length ? 'M' : 'C',
       parentId,
-      status: 1,
+      status: 0,
       createdAt: now,
     }
     result.push(record)
@@ -197,6 +200,7 @@ const searchFormSchemas: FormSchema[] = [
         { label: '目录', value: 'M' },
         { label: '菜单', value: 'C' },
         { label: '按钮', value: 'F' },
+        { label: '链接', value: 'L' },
       ],
     },
     colProps: { span: 8 },
@@ -216,6 +220,7 @@ const drawerFormSchemas: FormSchema[] = [
         { label: '目录', value: 'M' },
         { label: '菜单', value: 'C' },
         { label: '按钮', value: 'F' },
+        { label: '链接', value: 'L' },
       ],
     },
   },
@@ -243,6 +248,10 @@ const drawerFormSchemas: FormSchema[] = [
     component: 'Input',
     slot: 'iconPicker',
     componentProps: { placeholder: '点击选择图标', readonly: true },
+    dynamicDisabled: ({ model }) => {
+      const mt = (model as any).menuType || 'M'
+      return mt === 'F'
+    },
   },
   {
     field: 'path',
@@ -265,20 +274,28 @@ const drawerFormSchemas: FormSchema[] = [
     },
   },
   {
+    field: 'linkUrl',
+    label: '链接地址',
+    component: 'Input',
+    componentProps: { placeholder: '外部或微前端链接地址，如 https://crm.example.com' },
+    ifShow: ({ model }) => {
+      return (model as any).menuType === 'L'
+    },
+  },
+  {
     field: 'perms',
     label: '权限标识',
     component: 'Input',
     componentProps: { placeholder: '例如：system:user:list' },
     dynamicDisabled: ({ model }) => {
       const mt = (model as any).menuType || 'M'
-      return mt === 'M'
+      return mt === 'M' || mt === 'L'
     },
   },
   {
     field: 'orderNum',
     label: '排序',
     component: 'InputNumber',
-    colProps: { span: 12 },
     componentProps: {
       min: 0,
       placeholder: '请输入排序号',
@@ -289,8 +306,7 @@ const drawerFormSchemas: FormSchema[] = [
     field: 'status',
     label: '状态',
     component: 'RadioGroup',
-    defaultValue: 1,
-    colProps: { span: 12 },
+    defaultValue: 0,
     componentProps: () => ({
       optionType: 'button',
       buttonStyle: 'solid',
@@ -332,7 +348,8 @@ function handleAdd() {
     component: '',
     perms: '',
     orderNum: 0,
-    status: 1,
+    status: 0,
+    linkUrl: '',
   })
   formMethods.clearValidate()
   drawerMethods.openDrawer()
@@ -351,7 +368,8 @@ function handleAddChild(record: MenuRecord) {
     component: childType === 'C' ? '' : '',
     perms: '',
     orderNum: 0,
-    status: 1,
+    status: 0,
+    linkUrl: '',
   })
   formMethods.clearValidate()
   drawerMethods.openDrawer()
@@ -370,6 +388,7 @@ function handleEdit(record: MenuRecord) {
     perms: record.perms,
     orderNum: record.orderNum,
     status: record.status,
+    linkUrl: (record as any).linkUrl || '',
   })
   formMethods.clearValidate()
   drawerMethods.openDrawer()
@@ -408,10 +427,16 @@ async function handleSave() {
   if (values.menuType === 'M') {
     values.component = ''
     values.perms = ''
+    values.linkUrl = ''
   }
   else if (values.menuType === 'F') {
     values.path = ''
     values.component = ''
+    values.linkUrl = ''
+  }
+  else if (values.menuType === 'L') {
+    values.component = ''
+    values.perms = ''
   }
 
   if (!values.menuName) {
@@ -426,6 +451,11 @@ async function handleSave() {
 
   if (values.menuType === 'C' && (!values.path || !values.component)) {
     message.warning('菜单类型必须填写路由地址和组件路径')
+    return
+  }
+
+  if (values.menuType === 'L' && !values.linkUrl) {
+    message.warning('链接类型必须填写链接地址')
     return
   }
 
@@ -446,6 +476,7 @@ async function handleSave() {
         perms: values.perms,
         orderNum: values.orderNum,
         status: values.status,
+        linkUrl: values.linkUrl || '',
       }
     }
     allData.value = rebuildTree(flat)
@@ -464,6 +495,7 @@ async function handleSave() {
       perms: values.perms,
       orderNum: values.orderNum,
       status: values.status,
+      linkUrl: values.linkUrl || '',
       createdAt: now,
     })
     allData.value = rebuildTree(flat)
@@ -537,7 +569,7 @@ const columns: BasicColumn[] = [
           <a-tag :color="menuTypeColorMap[record.menuType] || 'default'">
             <span :class="tagClassName">
               <Icon
-                :icon="record.menuType === 'M' ? 'carbon:folder' : record.menuType === 'C' ? 'carbon:document' : 'carbon:cu3'"
+                :icon="record.menuType === 'M' ? 'carbon:folder' : record.menuType === 'C' ? 'carbon:document' : record.menuType === 'F' ? 'carbon:cu3' : 'carbon:link'"
               />
               {{ menuTypeLabelMap[record.menuType] || record.menuType }}
             </span>
@@ -605,7 +637,7 @@ const columns: BasicColumn[] = [
         :schemas="drawerFormSchemas"
         :label-width="80"
         :show-action-button-group="false"
-        :grid="{ cols: 2, gutter: 16 }"
+        :grid="{ cols: 1, gutter: 16 }"
         @register="formRegister"
       >
         <template #iconPicker="{ model, field }">

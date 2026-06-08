@@ -6,7 +6,9 @@
 // biome-ignore lint: disable
 export {}
 declare global {
+  const Drawer: typeof import('antdv-next').Drawer
   const EffectScope: typeof import('vue').EffectScope
+  const Modal: typeof import('antdv-next').Modal
   const acceptHMRUpdate: typeof import('pinia').acceptHMRUpdate
   const asyncComputed: typeof import('@vueuse/core').asyncComputed
   const autoResetRef: typeof import('@vueuse/core').autoResetRef
@@ -59,7 +61,9 @@ declare global {
   const mapStores: typeof import('pinia').mapStores
   const mapWritableState: typeof import('pinia').mapWritableState
   const markRaw: typeof import('vue').markRaw
+  const message: typeof import('antdv-next').message
   const nextTick: typeof import('vue').nextTick
+  const notification: typeof import('antdv-next').notification
   const onActivated: typeof import('vue').onActivated
   const onBeforeMount: typeof import('vue').onBeforeMount
   const onBeforeRouteLeave: typeof import('vue-router').onBeforeRouteLeave

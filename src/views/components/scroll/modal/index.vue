@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { message } from 'antdv-next'
 import { ref } from 'vue'
 import { useModal } from '@/components/business/Modal'
 import { cn } from '@/utils/cn'

@@ -1,0 +1,292 @@
+# CI/CD 工作流 - antdv-next-admin
+#
+# 功能：
+# - 代码检查（ESLint + TypeScript 类型检查）
+# - 单元测试（Vitest）
+# - E2E 测试（Playwright）
+# - 构建验证
+# - Bundle Size 监控
+#
+# 触发条件：
+# - push 到 main 分支
+# - pull request 到 main 分支
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+# 并发控制：同一分支只保留最新的运行
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PNPM_VERSION: '9'
+  NODE_VERSION: '24'
+
+jobs:
+  # ==================== 代码检查 ====================
+  lint:
+    name: 📋 Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint
+        run: pnpm lint
+
+      - name: Run TypeScript type check
+        run: pnpm typecheck
+
+  # ==================== 单元测试 ====================
+  test-unit:
+    name: 🧪 Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests with coverage
+        run: pnpm test:unit -- --coverage
+
+      - name: Upload coverage report
+        if: success()
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+
+  # ==================== E2E 测试 ====================
+  test-e2e:
+    name: 🌐 E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Build application
+        run: pnpm build
+
+      - name: Run E2E tests
+        run: pnpm test:e2e
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+  # ==================== 构建验证 ====================
+  build:
+    name: 🔨 Build & Bundle Analysis
+    runs-on: ubuntu-latest
+    needs: [test-unit]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build production bundle
+        run: pnpm build
+
+      - name: Check bundle size
+        run: |
+          echo "📦 Bundle Size Summary:"
+          du -sh dist/
+          echo ""
+          echo "Top 10 largest files:"
+          find dist -type f -name "*.js" -o -name "*.css" | sort -k5 -rh | head -n 10 | xargs ls -lhS
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          path: dist/
+          retention-days: 7
+
+  # ==================== 安全审计 ====================
+  security-audit:
+    name: 🔒 Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run security audit
+        run: pnpm audit --audit-level moderate
+
+      - name: Check for vulnerabilities
+        run: |
+          echo "🔍 Checking for known vulnerabilities..."
+          pnpm audit --json > audit-report.json || true
+          
+          # 输出摘要
+          if [ -f audit-report.json ]; then
+            echo "Audit report generated"
+            cat audit-report.json | jq '{ total: (.vulnerabilities | length), summary: [.vulnerabilities[].severity] | group_by(.) | map({severity: .[0], count: length}) }'
+          fi
+
+  # ==================== 部署（仅 main 分支或 tag） ====================
+  deploy:
+    name: 🚀 Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, test-e2e]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    environment: production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          path: dist/
+
+      - name: Deploy to Vercel (示例)
+        # 取消注释以启用 Vercel 部署
+        # uses: amondnet/vercel-action@v25
+        # with:
+        #   vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        #   vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        #   vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        #   vercel-args: '--prod'
+
+      - name: Deploy to Netlify (示例)
+        # 取消注释以启用 Netlify 部署
+        # uses: nwtgck/actions-netlify@v3
+        # with:
+        #   publish-dir: './dist'
+        #   production-deploy: true
+        # env:
+        #   NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        #   NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+      - name: Create GitHub Release (仅 tag 时)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/**
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ==================== 通知 ====================
+  notify:
+    name: 📢 Notify
+    runs-on: ubuntu-latest
+    needs: [lint, test-unit, test-e2e, build]
+    if: always()
+    steps:
+      - name: Send Slack notification (可选)
+        # 取消注释以启用 Slack 通知
+        # uses: slackapi/slack-github-action@v1
+        # with:
+        #   payload: |
+        #     {
+        #       "text": "CI/CD Pipeline Result",
+        #       "blocks": [
+        #         {
+        #           "type": "section",
+        #           "text": {
+        #             "type": "mrkdwn",
+        #             "text": "*${{ job.status == 'success' && '✅' || '❌' }} CI/CD Pipeline Complete*\n\nRepo: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nCommit: ${{ github.sha }}"
+        #           }
+        #         }
+        #       ]
+        #     }
+        # env:
+        #   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Summary
+        run: |
+          echo "## 📊 CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 📋 Lint & Type Check | ${{ needs.lint.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Unit Tests | ${{ needs.test-unit.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🌐 E2E Tests | ${{ needs.test-e2e.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔨 Build | ${{ needs.build.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY

@@ -3,7 +3,7 @@ import type { TreeData } from 'antdv-next/es/tree'
 import type { FormSchema } from '@/components/business/Form'
 import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
-import { Modal as AntModal, message } from 'antdv-next'
+import { Modal as AntModal } from 'antdv-next'
 import { computed, ref, useTemplateRef } from 'vue'
 import {
   createFolder,

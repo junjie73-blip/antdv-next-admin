@@ -31,6 +31,9 @@ const props = withDefaults(defineProps<BasicTableProps>(), {
   showHeader: true,
   size: 'middle',
   showTableSetting: true,
+  // 默认启用虚拟滚动（大数据量时性能提升显著）
+  // 数据量 < 100 时自动降级为普通渲染
+  virtual: true,
 })
 
 const emit = defineEmits<{

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import { message } from 'antdv-next'
+
 import { reactive, ref } from 'vue'
 import { BasicModal, useModal } from '@/components/business/Modal'
 import { useAppStore } from '@/stores/modules/app'

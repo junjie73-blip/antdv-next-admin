@@ -3,7 +3,7 @@ import type { DescriptionItem } from '@/components/business/Description'
 import type { FormSchema } from '@/components/business/Form'
 import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
-import { message } from 'antdv-next'
+
 import { computed, ref } from 'vue'
 import { addSetting, deleteSetting, getSettingsList, updateSetting } from '@/api/system'
 import { Description as DetailDescription } from '@/components/business/Description'
@@ -11,9 +11,9 @@ import { BasicDrawer, useDrawer } from '@/components/business/Drawer'
 import { BasicForm, useForm } from '@/components/business/Form'
 import { BasicModal, useModal } from '@/components/business/Modal'
 import { BasicTable, useTable } from '@/components/business/Table'
+import { DictType } from '@/enums/dict'
 import { useDictStore } from '@/stores'
 import { cn } from '@/utils/cn'
-import { DictType } from '@/enums/dict'
 
 defineOptions({ name: 'SystemSettings' })
 

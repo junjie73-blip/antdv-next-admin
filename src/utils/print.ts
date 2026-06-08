@@ -1,5 +1,3 @@
-import { message } from 'antdv-next'
-
 export interface PrintOptions {
   /** 打印标题 */
   title?: string

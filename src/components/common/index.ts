@@ -1,3 +1,5 @@
+export * from './ErrorBoundary'
 export * from './Icon'
 export * from './Loading'
 export * from './Scrollbar'
+export * from './Skeleton'

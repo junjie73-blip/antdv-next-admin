@@ -2,7 +2,7 @@
 import type { FormSchema } from '@/components/business/Form'
 import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
-import { message } from 'antdv-next'
+
 import { computed, onMounted, ref } from 'vue'
 import * as XLSX from 'xlsx'
 import {
@@ -16,9 +16,9 @@ import {
 import { BasicForm, useForm } from '@/components/business/Form'
 import { BasicModal, useModal } from '@/components/business/Modal'
 import { BasicTable, useTable } from '@/components/business/Table'
+import { DictType } from '@/enums/dict'
 import { useDictStore } from '@/stores'
 import { cn } from '@/utils/cn'
-import { DictType } from '@/enums/dict'
 import { usePrint } from '@/utils/print'
 
 defineOptions({ name: 'SystemUser' })
@@ -246,7 +246,7 @@ function handleAdd() {
     phone: '',
     deptId: undefined,
     roleId: undefined,
-    status: 1,
+    status: 0,
     sortOrder: 0,
     remark: '',
   })

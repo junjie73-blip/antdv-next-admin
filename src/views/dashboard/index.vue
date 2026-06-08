@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { faker } from '@faker-js/faker/locale/zh_CN'
 import { Icon } from '@iconify/vue'
 import { computed, ref } from 'vue'
-import { faker } from '@faker-js/faker/locale/zh_CN'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/modules/app'
 import { cn } from '@/utils/cn'
@@ -190,7 +190,7 @@ const actionTemplates: { action: string, targetFn: () => string, type: Activity[
   { action: '启用了账号', targetFn: () => faker.person.fullName(), type: 'user' },
   // 角色相关
   { action: '修改了角色权限', targetFn: () => faker.helpers.arrayElement(['管理员', '运营人员', '编辑者', '访客', '客服']), type: 'role' },
-  { action: '新增了角色', targetFn: () => faker.company.buzzNoun() + '组', type: 'role' },
+  { action: '新增了角色', targetFn: () => `${faker.company.buzzNoun()}组`, type: 'role' },
   { action: '分配了角色', targetFn: () => `${faker.person.firstName()} → ${faker.helpers.arrayElement(['编辑者', '审核员'])}`, type: 'role' },
   // 菜单相关
   { action: '更新了菜单配置', targetFn: () => faker.helpers.arrayElement(['系统监控', '用户管理', '日志中心', '数据看板', 'API网关']), type: 'menu' },
@@ -388,7 +388,8 @@ const panelScrollHeight = cn('h-[380px]')
 
     <!-- 图表 + 快捷操作 -->
     <a-row
-      :gutter="[16, 16]"
+      :gutter="[16,
+                16]"
       align="stretch"
     >
       <!-- 访问趋势 -->
@@ -521,7 +522,8 @@ const panelScrollHeight = cn('h-[380px]')
 
     <!-- 待办事项 + 最近动态 -->
     <a-row
-      :gutter="[16, 16]"
+      :gutter="[16,
+                16]"
       align="stretch"
     >
       <!-- 待办事项 -->
@@ -537,42 +539,46 @@ const panelScrollHeight = cn('h-[380px]')
           <template #extra>
             <a-badge
               :count="todoList.filter(t => !t.done).length"
-              :offset="[0, 0]"
+              :offset="[0,
+                        0]"
             >
               <span class="text-sm text-gray-400">进行中</span>
             </a-badge>
           </template>
-          <PerfectScrollbar :options="scrollbarOptions" :class="panelScrollHeight">
+          <PerfectScrollbar
+            :options="scrollbarOptions"
+            :class="panelScrollHeight"
+          >
             <div class="space-y-3 p-1">
-                <div
-                  v-for="data in todoList"
-                  :key="data.id"
-                  :class="cn(
-                    'flex items-start gap-3 p-3 rounded-lg transition-colors',
-                    data.done ? 'bg-gray-50 dark:bg-gray-900/30' : 'bg-white dark:bg-gray-900/20 border border-gray-100 dark:border-gray-800',
-                  )"
-                >
-                  <a-checkbox
-                    :checked="data.done"
-                    class="mt-0.5"
-                  />
-                  <div class="flex-1 min-w-0">
-                    <p
-                      :class="cn(
-                        'text-sm',
-                        data.done ? 'text-gray-400 line-through' : 'text-gray-700 dark:text-gray-300',
-                      )"
-                    >
-                      {{ data.content }}
-                    </p>
-                  </div>
-                  <a-tag
-                    :color="getPriorityTag(data.priority).color"
-                    size="small"
+              <div
+                v-for="data in todoList"
+                :key="data.id"
+                :class="cn(
+                  'flex items-start gap-3 p-3 rounded-lg transition-colors',
+                  data.done ? 'bg-gray-50 dark:bg-gray-900/30' : 'bg-white dark:bg-gray-900/20 border border-gray-100 dark:border-gray-800',
+                )"
+              >
+                <a-checkbox
+                  :checked="data.done"
+                  class="mt-0.5"
+                />
+                <div class="flex-1 min-w-0">
+                  <p
+                    :class="cn(
+                      'text-sm',
+                      data.done ? 'text-gray-400 line-through' : 'text-gray-700 dark:text-gray-300',
+                    )"
                   >
-                    {{ getPriorityTag(data.priority).label }}
-                  </a-tag>
+                    {{ data.content }}
+                  </p>
                 </div>
+                <a-tag
+                  :color="getPriorityTag(data.priority).color"
+                  size="small"
+                >
+                  {{ getPriorityTag(data.priority).label }}
+                </a-tag>
+              </div>
             </div>
           </PerfectScrollbar>
         </a-card>
@@ -596,32 +602,38 @@ const panelScrollHeight = cn('h-[380px]')
               查看全部
             </a-button>
           </template>
-          <PerfectScrollbar :options="scrollbarOptions" :class="panelScrollHeight">
-            <a-timeline mode="left" class="mt-2 p-1">
-                <a-timeline-item
-                  v-for="(data, index) in activities"
-                  :key="index"
-                  :color="index === 0 ? '#1677ff' : undefined"
-                >
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <a-avatar
-                      :size="28"
-                      :class="getActivityTypeColor(data.type)"
-                    >
-                      {{ data.avatar }}
-                    </a-avatar>
-                    <span class="font-medium text-gray-800 dark:text-gray-200 text-sm">{{ data.user }}</span>
-                    <span class="text-gray-500 text-sm">{{ data.action }}</span>
-                    <a-tag
-                      color="blue"
-                      size="small"
-                    >
-                      {{ data.target }}
-                    </a-tag>
-                    <span class="text-gray-400 text-xs ml-auto">{{ data.time }}</span>
-                  </div>
-                </a-timeline-item>
-              </a-timeline>
+          <PerfectScrollbar
+            :options="scrollbarOptions"
+            :class="panelScrollHeight"
+          >
+            <a-timeline
+              mode="left"
+              class="mt-2 p-1"
+            >
+              <a-timeline-item
+                v-for="(data, index) in activities"
+                :key="index"
+                :color="index === 0 ? '#1677ff' : undefined"
+              >
+                <div class="flex items-center gap-2 flex-wrap">
+                  <a-avatar
+                    :size="28"
+                    :class="getActivityTypeColor(data.type)"
+                  >
+                    {{ data.avatar }}
+                  </a-avatar>
+                  <span class="font-medium text-gray-800 dark:text-gray-200 text-sm">{{ data.user }}</span>
+                  <span class="text-gray-500 text-sm">{{ data.action }}</span>
+                  <a-tag
+                    color="blue"
+                    size="small"
+                  >
+                    {{ data.target }}
+                  </a-tag>
+                  <span class="text-gray-400 text-xs ml-auto">{{ data.time }}</span>
+                </div>
+              </a-timeline-item>
+            </a-timeline>
           </PerfectScrollbar>
         </a-card>
       </a-col>

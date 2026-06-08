@@ -131,6 +131,15 @@ const getLabelCol = computed(() => {
 })
 
 const getWrapperCol = computed(() => {
+  // 单列模式：wrapper 撑满剩余空间，不留空白
+  const gridCols = getProps.value.grid?.cols
+  if (gridCols && gridCols <= 1) {
+    // 有固定 labelWidth 时用 flex 填充，否则不限制宽度
+    if (getProps.value.labelWidth) {
+      return { style: { flex: 1, maxWidth: '100%' } }
+    }
+    return { span: 24, offset: 0 }
+  }
   return getProps.value.wrapperCol || { span: 18 }
 })
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { BasicColumn } from '@/components/business/Table/types'
 import type { TreeDataNode } from '@/components/business/TreeTable'
-import { message } from 'antdv-next'
+
 import { ref } from 'vue'
 import { TreeTable } from '@/components/business/TreeTable'
 import { cn } from '@/utils/cn'

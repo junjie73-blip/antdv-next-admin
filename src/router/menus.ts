@@ -4,25 +4,10 @@ export const frontendMenus: MenuConfig[] = [
   {
     path: '/dashboard',
     name: 'Dashboard',
-    title: '仪表盘',
+    title: '数据看板',
     icon: 'carbon:dashboard',
-    redirect: '/dashboard/echarts',
-    children: [
-      {
-        path: 'echarts',
-        name: 'DashboardEcharts',
-        title: 'ECharts仪表盘',
-        component: '@/views/dashboard/echarts/index.vue',
-        keepAlive: true,
-      },
-      {
-        path: 'index',
-        name: 'DashboardAnalysis',
-        title: '分析页',
-        component: '@/views/dashboard/index.vue',
-        keepAlive: true,
-      },
-    ],
+    component: '@/views/dashboard/analysis/index.vue',
+    keepAlive: true,
   },
   {
     path: '/account',
@@ -326,20 +311,6 @@ export const frontendMenus: MenuConfig[] = [
         keepAlive: true,
       },
       {
-        path: 'login-log',
-        name: 'SystemLoginLog',
-        title: '登录日志',
-        component: '@/views/system/login-log/index.vue',
-        keepAlive: true,
-      },
-      {
-        path: 'log',
-        name: 'SystemLog',
-        title: '操作日志',
-        component: '@/views/system/log/index.vue',
-        keepAlive: true,
-      },
-      {
         path: 'online',
         name: 'SystemOnline',
         title: '在线用户',
@@ -358,6 +329,31 @@ export const frontendMenus: MenuConfig[] = [
         name: 'SystemFile',
         title: '文件中心',
         component: '@/views/system/file/index.vue',
+        keepAlive: true,
+      },
+    ],
+  },
+  // ==================== 日志管理（独立一级菜单）====================
+  {
+    path: '/logs',
+    name: 'Logs',
+    title: '日志管理',
+    icon: 'carbon:catalog',
+    children: [
+      {
+        path: 'operation',
+        name: 'LogsOperation',
+        title: '操作日志',
+        icon: 'carbon:activity',
+        component: '@/views/system/log/index.vue',
+        keepAlive: true,
+      },
+      {
+        path: 'login',
+        name: 'LogsLogin',
+        title: '登录日志',
+        icon: 'carbon:user-multiple',
+        component: '@/views/system/login-log/index.vue',
         keepAlive: true,
       },
     ],

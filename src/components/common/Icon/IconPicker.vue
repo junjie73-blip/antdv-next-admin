@@ -36,7 +36,7 @@ const emit = defineEmits<{
 }>()
 
 // 图标集合信息（延迟加载）
-type IconData = { icons: Record<string, { body: string }> }
+interface IconData { icons: Record<string, { body: string }> }
 let COLLECTION_MAP: Record<string, IconData> | null = null
 let COLLECTIONS: CollectionInfo[] = []
 let iconsLoaded = false
@@ -66,7 +66,8 @@ const selectedIcon = computed(() => props.modelValue || props.currentIcon)
  * 避免将 7MB+ 的图标数据打包进主 bundle
  */
 async function loadIcons() {
-  if (iconsLoaded) return
+  if (iconsLoaded)
+    return
 
   loading.value = true
   try {
@@ -101,7 +102,8 @@ async function loadIcons() {
 }
 
 function loadAllFromLocal() {
-  if (!COLLECTION_MAP) return
+  if (!COLLECTION_MAP)
+    return
 
   const icons: string[] = []
   for (const col of COLLECTIONS) {
@@ -212,7 +214,7 @@ function iconItemClassName(icon: string) {
 }
 
 const inputClassName = cn('cursor-pointer')
-const popoverContentClassName = cn('w-[580px]')
+const popoverContentClassName = cn('w-[640px]')
 const gridRowClassName = cn('grid grid-cols-8 gap-2 p-1')
 const scrollerContainerClassName = cn('mt-3 ')
 const countClassName = cn('text-xs text-gray-500 dark:text-gray-400')
@@ -229,6 +231,7 @@ const paginationWrapperClassName = cn(
     placement="bottomLeft"
     :disabled="props.disabled"
     overlay-class-name="icon-picker-popover"
+    :get-popup-container="() => document?.body || undefined"
   >
     <template #content>
       <div :class="popoverContentClassName">
@@ -274,7 +277,10 @@ const paginationWrapperClassName = cn(
           v-else
           :class="scrollerContainerClassName"
         >
-          <PerfectScrollbar :options="{ wheelPropagation: true, suppressScrollX: true }" :style="{ height: `${CONTAINER_HEIGHT}px` }">
+          <PerfectScrollbar
+            :options="{ wheelPropagation: true, suppressScrollX: true }"
+            :style="{ height: `${CONTAINER_HEIGHT}px` }"
+          >
             <!-- 整体 grid 容器，CSS Grid 自动换行 -->
             <div :class="gridRowClassName">
               <a-tooltip
@@ -311,7 +317,10 @@ const paginationWrapperClassName = cn(
             size="small"
             :show-total="(total: number) => ''"
             :show-size-changer="true"
-            :page-size-options="[50, 80, 100, 200]"
+            :page-size-options="[50,
+                                 80,
+                                 100,
+                                 200]"
             :show-quick-jumper="true"
             simple
           />

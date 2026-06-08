@@ -41,6 +41,8 @@ export interface DrawerProps {
   'showCancelBtn'?: boolean
   /** 显示确认按钮（默认 true） */
   'showOkBtn'?: boolean
+  /** 显示底部操作栏（默认 true，设为 false 可隐藏整个底部按钮区域） */
+  'showFooter'?: boolean
   /** 取消按钮文本（默认 '关闭'） */
   'cancelText'?: string
   /** 确认按钮文本（默认 '保存'） */

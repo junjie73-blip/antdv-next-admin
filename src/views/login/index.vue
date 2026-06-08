@@ -4,7 +4,7 @@ import type { Rule } from 'antdv-next/dist/form/types'
 
 import { LockOutlined, MailOutlined, MobileOutlined, UserOutlined } from '@antdv-next/icons'
 import { Icon } from '@iconify/vue'
-import { message } from 'antdv-next'
+
 import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/modules/user'

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 import { useDebounceFn } from '@vueuse/core'
-import { message } from 'antdv-next'
+
 import { computed, ref, watch } from 'vue'
 import { cn } from '@/utils/cn'
 

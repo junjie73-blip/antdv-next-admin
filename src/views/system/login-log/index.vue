@@ -3,7 +3,7 @@ import type { DescriptionItem } from '@/components/business/Description'
 import type { FormSchema } from '@/components/business/Form'
 import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
-import { message } from 'antdv-next'
+
 import { ref } from 'vue'
 import {
   getLoginLogList,

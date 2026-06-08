@@ -2,7 +2,7 @@
 import type { FormSchema } from '@/components/business/Form'
 import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
-import { message } from 'antdv-next'
+
 import { computed, ref } from 'vue'
 import {
   addDict,
@@ -17,9 +17,9 @@ import {
 import { BasicForm, useForm } from '@/components/business/Form'
 import { BasicModal, useModal } from '@/components/business/Modal'
 import { BasicTable, useTable } from '@/components/business/Table'
+import { DictType } from '@/enums/dict'
 import { useDictStore } from '@/stores'
 import { cn } from '@/utils/cn'
-import { DictType } from '@/enums/dict'
 import { exportToExcel } from '@/utils/excel'
 
 defineOptions({ name: 'SystemDict' })
@@ -221,7 +221,7 @@ function handleAdd() {
     typeName: '',
     typeCode: '',
     sort: 0,
-    status: 1,
+    status: 0,
     remark: '',
   })
   formMethods.clearValidate()
@@ -297,7 +297,7 @@ function handleAddItem() {
     dictLabel: '',
     dictValue: '',
     sort: 0,
-    status: 1,
+    status: 0,
     remark: '',
   })
   itemFormMethods.clearValidate()
@@ -344,7 +344,7 @@ async function handleSaveItem() {
       dictLabel: '',
       dictValue: '',
       sort: 0,
-      status: 1,
+      status: 0,
       remark: '',
     })
     itemTableMethods.value?.reload()

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
-import { message } from 'antdv-next'
+
 import { computed, ref, shallowRef, watch } from 'vue'
 import { cn } from '@/utils/cn'
 import '@wangeditor/editor/dist/css/style.css'

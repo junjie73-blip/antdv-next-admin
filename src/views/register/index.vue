@@ -3,7 +3,7 @@ import type { FormInstance } from 'antdv-next'
 import type { Rule } from 'antdv-next/dist/form/types'
 
 import { LockOutlined, MailOutlined, UserOutlined } from '@antdv-next/icons'
-import { message } from 'antdv-next'
+
 import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { cn } from '@/utils/cn'

@@ -75,7 +75,7 @@ function getParentPaths(path: string): string[] {
 }
 
 /** 获取菜单项的层级映射（用于手风琴模式） */
-interface LevelKeyItem { key?: string; children?: LevelKeyItem[] }
+interface LevelKeyItem { key?: string, children?: LevelKeyItem[] }
 
 function getLevelKeys(items: LevelKeyItem[]): Record<string, number> {
   const map: Record<string, number> = {}

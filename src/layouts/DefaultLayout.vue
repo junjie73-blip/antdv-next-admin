@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import type { MenuProps } from 'antdv-next'
 
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, markRaw, onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
 import { useRouter } from 'vue-router'
+import PageLoading from '@/components/common/Loading/PageLoading.vue'
+import RouteLoadingBar from '@/components/common/Loading/RouteLoadingBar.vue'
+import { useRouteLoading } from '@/composables/useRouteLoading'
 import { useWatermark } from '@/composables/web/useWatermark'
 import { useAppStore } from '@/stores/modules/app'
 import { useRouteStore } from '@/stores/modules/route'
@@ -22,6 +25,17 @@ const router = useRouter()
 const appStore = useAppStore()
 const routeStore = useRouteStore()
 const { collapsed, checkMobile, toggleCollapsed } = useLayout()
+
+// 路由切换 loading 状态管理（增强版：集成性能监控）
+const {
+  isLoading: isRouteLoading,
+  isSlow,
+  cancel: cancelRouteLoading,
+} = useRouteLoading({
+  minDuration: 400,
+  auto: true,
+  enableMonitoring: true, // 启用性能监控
+})
 
 const cachedRoutes = computed(() =>
   router.getRoutes()
@@ -79,6 +93,25 @@ const contentClassName = computed(() =>
   ),
 )
 
+// 主内容区滚动容器引用（供路由切换时回到顶部）
+const scrollbarRef = useTemplateRef<InstanceType<typeof import('vue')['DefineComponent']>>('mainScrollbar')
+
+/** 滚动到顶部 */
+function scrollToTop() {
+  const el = scrollbarRef.value?.$el as HTMLElement | undefined
+  if (el) {
+    el.scrollTo({ top: 0, left: 0 })
+  }
+}
+
+// 挂载到 window 供路由守卫调用
+onMounted(() => {
+  ;(window as any).__layoutScrollToTop = scrollToTop
+})
+onUnmounted(() => {
+  delete (window as any).__layoutScrollToTop
+})
+
 const transitionName = computed(() => `page-${appStore.transitionEffect}`)
 
 function handleTopMenuSelect(key: string) {
@@ -92,6 +125,15 @@ useWatermark({
 </script>
 
 <template>
+  <!-- 路由切换进度条（增强版：百分比 + 可取消 + 慢加载警告） -->
+  <RouteLoadingBar
+    :duration="250"
+    :show-percentage="true"
+    :cancellable="true"
+    :slow-threshold="3000"
+    @cancel="cancelRouteLoading"
+  />
+
   <div :class="layoutClassName">
     <!-- 水平 / 混合布局：顶部 Header（含 Logo + 水平菜单） -->
     <LayoutHeader
@@ -136,16 +178,27 @@ useWatermark({
         />
 
         <PerfectScrollbar
+          ref="mainScrollbar"
           class="flex-1"
           :options="{ suppressScrollX: true, wheelPropagation: true }"
         >
-          <main :class="contentClassName">
+          <main
+            :class="contentClassName"
+            class="relative"
+          >
+            <!-- 页面切换骨架屏（支持错误状态） -->
+            <PageLoading
+              :loading="isRouteLoading"
+              variant="default"
+              :error="isSlow"
+            />
+
             <router-view v-slot="{ Component, route }">
               <!-- 微前端页面：禁用 out-in 模式，避免 iframe/微应用被 transition 销毁 -->
               <template v-if="route.meta?.microApp">
                 <keep-alive :include="cachedRoutes">
                   <component
-                    :is="Component"
+                    :is="markRaw(Component)"
                     :key="route.path"
                   />
                 </keep-alive>
@@ -158,7 +211,7 @@ useWatermark({
                 >
                   <keep-alive :include="cachedRoutes">
                     <component
-                      :is="Component"
+                      :is="markRaw(Component)"
                       :key="route.path"
                     />
                   </keep-alive>

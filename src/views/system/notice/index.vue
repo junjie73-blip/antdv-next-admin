@@ -1,14 +1,14 @@
 <script setup lang="tsx">
 import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
-import { message } from 'antdv-next'
+
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { computed, onMounted, ref } from 'vue'
 import { deleteNotice, getNoticeList, markAllNoticeRead, markNoticeRead, saveNotice } from '@/api/system'
-import { BasicTable, useTable } from '@/components/business/Table'
-import { BasicModal, useModal } from '@/components/business/Modal'
 import { BasicForm, useForm } from '@/components/business/Form'
+import { BasicModal, useModal } from '@/components/business/Modal'
+import { BasicTable, useTable } from '@/components/business/Table'
 import { cn } from '@/utils/cn'
 
 defineOptions({ name: 'SystemNotice' })

@@ -1,5 +1,6 @@
 import type { Router } from 'vue-router'
 import NProgress from 'nprogress'
+import { useLogger } from '@/composables/useLogger'
 import { useAppStore } from '@/stores/modules/app'
 import { useDictStore } from '@/stores/modules/dict'
 import { useRouteStore } from '@/stores/modules/route'
@@ -93,6 +94,10 @@ function createTitleGuard(router: Router) {
     else {
       document.title = appTitle
     }
+
+    // 页面切换时自动滚动到顶部（内部滚动容器）
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    ;(window as any).__layoutScrollToTop?.()
   })
 }
 
@@ -150,4 +155,19 @@ export function setupRouterGuards(router: Router) {
   createDynamicRouteGuard(router)
   createPermissionGuard(router)
   createTitleGuard(router)
+  createRouteLogGuard(router)
+}
+
+/**
+ * 路由跳转日志守卫 — 记录每次页面切换到操作日志
+ */
+function createRouteLogGuard(router: Router) {
+  router.afterEach((to, from) => {
+    // 跳过白名单路由和首次加载
+    if (WHITE_LIST.includes(to.path) || from.path === '/')
+      return
+
+    const logger = useLogger()
+    logger.logRouteChange(from.path, to.path, to.meta.title as string | undefined)
+  })
 }
