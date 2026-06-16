@@ -44,9 +44,23 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/dashboard/analysis/': RouteRecordInfo<
+      '/dashboard/analysis/',
+      '/dashboard/analysis',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/dashboard/echarts/': RouteRecordInfo<
       '/dashboard/echarts/',
       '/dashboard/echarts',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/dashboard/workbench/': RouteRecordInfo<
+      '/dashboard/workbench/',
+      '/dashboard/workbench',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -75,6 +89,20 @@ declare module 'vue-router/auto-routes' {
     '/register/': RouteRecordInfo<
       '/register/',
       '/register',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/screen/monitor/': RouteRecordInfo<
+      '/screen/monitor/',
+      '/screen/monitor',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/security/dashboard/': RouteRecordInfo<
+      '/security/dashboard/',
+      '/security/dashboard',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -201,9 +229,21 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/views/dashboard/analysis/index.vue': {
+      routes:
+        | '/dashboard/analysis/'
+      views:
+        | never
+    }
     'src/views/dashboard/echarts/index.vue': {
       routes:
         | '/dashboard/echarts/'
+      views:
+        | never
+    }
+    'src/views/dashboard/workbench/index.vue': {
+      routes:
+        | '/dashboard/workbench/'
       views:
         | never
     }
@@ -228,6 +268,18 @@ declare module 'vue-router/auto-routes' {
     'src/views/register/index.vue': {
       routes:
         | '/register/'
+      views:
+        | never
+    }
+    'src/views/screen/monitor/index.vue': {
+      routes:
+        | '/screen/monitor/'
+      views:
+        | never
+    }
+    'src/views/security/dashboard/index.vue': {
+      routes:
+        | '/security/dashboard/'
       views:
         | never
     }

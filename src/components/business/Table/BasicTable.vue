@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { BasicColumn, BasicTableProps, Recordable, TableActionType, TableRowSelection } from './types'
 import { Table } from 'antdv-next'
-import { computed, isVNode, nextTick, onMounted, ref, unref, watch } from 'vue'
+import { computed, h, isVNode, nextTick, onMounted, ref, unref, watch } from 'vue'
 import { BasicForm } from '@/components/business/Form'
 import { cn } from '@/utils/cn'
 import TableAction from './components/TableAction'
@@ -259,6 +259,60 @@ function getOriginalColumn(columnKey: string | number): BasicColumn | undefined 
   return cols.find(col => col.key === columnKey || col.dataIndex === columnKey)
 }
 
+/**
+ * 渲染单元格内容（简化模板嵌套）
+ *
+ * 将复杂的 v-if/v-else 逻辑提取到函数中，
+ * 模板只需调用此函数即可
+ */
+function renderCellContent(column: any, text: any, record: Recordable, index: number): any {
+  const origCol = getOriginalColumn(column.key)
+
+  // 没有原始列配置时的默认渲染
+  const defaultRender = () => [
+    isVNode(text)
+      ? h(() => text)
+      : h('span', text),
+  ]
+
+  if (!origCol) {
+    return defaultRender()
+  }
+
+  // 可编辑单元格
+  if (origCol?.edit || origCol?.editRow) {
+    return () => h(TableEditableCell, {
+      column: origCol,
+      record,
+      value: text,
+      dataIndex: origCol.dataIndex,
+      onSave: handleCellSave,
+      onCancel: handleCellCancel,
+      onChange: handleCellChange,
+    })
+  }
+
+  // 格式化显示（安全渲染）
+  if (origCol?.format) {
+    const formattedContent = handleFormatCell(origCol.format, text, record, index)
+    return () => h('span', {
+      'v-safe-html': formattedContent,
+    })
+  }
+
+  // 图片列
+  if (isImageList(text)) {
+    return () => h(TableImg, {
+      imgList: text,
+      size: 40,
+      simpleShow: true,
+    })
+  }
+
+  // 默认渲染
+  return defaultRender()
+}
+
 // 处理表格变化
 async function handleTableChange(paginationInfo: any, filters: any, sorter: any, extra: any) {
   // 更新分页状态
@@ -398,6 +452,22 @@ const tableActionType: TableActionType = {
 // 注册表格实例
 onMounted(() => {
   emit('register', tableActionType)
+
+  // 全局修复：将表格内的 PopConfirm 移到 body，避免 TD(sticky) 层叠上下文遮挡
+  const fixPopConfirm = () => {
+    document.querySelectorAll('.ant-popconfirm').forEach((el) => {
+      if (el.parentElement !== document.body) {
+        document.body.appendChild(el)
+      }
+    })
+  }
+  // 使用 MutationObserver 监听 DOM 变化，自动修复新出现的 PopConfirm
+  const observer = new MutationObserver(() => {
+    fixPopConfirm()
+  })
+  observer.observe(document.body, { childList: true, subtree: true })
+  // 初始修复已有的 PopConfirm
+  fixPopConfirm()
 })
 
 // 暴露方法
@@ -454,6 +524,7 @@ defineExpose(tableActionType)
       :expanded-row-keys="expandedRowKeysRef"
       :size="getMergedProps.size"
       :expandable="getExpandable"
+      :get-popup-container="() => document.body"
       @change="handleTableChange"
       @rowClick="handleRowClick"
     >
@@ -547,60 +618,8 @@ defineExpose(tableActionType)
               :text="text"
               :index="index"
             >
-              <!-- 获取原始列配置以使用 format -->
-              <template v-if="getOriginalColumn(column.key)">
-                <template
-                  v-for="origCol in [getOriginalColumn(column.key)]"
-                  :key="origCol?.key"
-                >
-                  <!-- 可编辑单元格 -->
-                  <template v-if="origCol?.edit || origCol?.editRow">
-                    <TableEditableCell
-                      :column="origCol"
-                      :record="record"
-                      :value="text"
-                      :data-index="origCol.dataIndex"
-                      @save="handleCellSave"
-                      @cancel="handleCellCancel"
-                      @change="handleCellChange"
-                    />
-                  </template>
-
-                  <!-- 格式化显示 -->
-                  <template v-else-if="origCol?.format">
-                    <span v-html="handleFormatCell(origCol.format, text, record, index)" />
-                  </template>
-
-                  <!-- 图片列 -->
-                  <template v-else-if="isImageList(text)">
-                    <TableImg
-                      :img-list="text"
-                      :size="40"
-                      simple-show
-                    />
-                  </template>
-
-                  <!-- 默认渲染 -->
-                  <template v-else>
-                    <template v-if="isVNode(text)">
-                      <component :is="() => text" />
-                    </template>
-                    <template v-else>
-                      {{ text }}
-                    </template>
-                  </template>
-                </template>
-              </template>
-
-              <!-- 如果没有找到原始列配置，使用默认渲染 -->
-              <template v-else>
-                <template v-if="isVNode(text)">
-                  <component :is="() => text" />
-                </template>
-                <template v-else>
-                  {{ text }}
-                </template>
-              </template>
+              <!-- 使用简化的渲染函数（减少模板嵌套） -->
+              <component :is="() => renderCellContent(column, text, record, index)" />
             </slot>
           </slot>
         </template>
@@ -663,6 +682,45 @@ defineExpose(tableActionType)
   overflow: visible !important;
 }
 
+/* 下拉菜单样式 */
+:global(.table-action-dropdown) {
+  z-index: 999999 !important;
+}
+</style>
+
+<!-- 全局样式：Popconfirm 修复层叠上下文遮挡问题 -->
+<style>
+/* 表格内 PopConfirm 弹窗确保在最上层且不被裁剪 */
+/* 根因：TD(position:sticky) 创建层叠上下文，内部弹窗无法突破 */
+/* 解决方案：配合 TableAction.tsx 的 onOpenChange 将弹窗移到 body */
+.ant-popconfirm {
+  position: fixed !important;
+  z-index: 999999 !important;
+  background-color: #fff !important;
+  filter: none !important;
+  box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 9px 28px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* 关键修复：阻止 TD (sticky cell) 的层叠上下文影响内部弹窗 */
+.ant-table-cell {
+  isolation: auto;
+}
+
+/* 确保表格容器不会裁剪弹出内容 */
+.ant-table-wrapper,
+.ant-table-container,
+.ant-table {
+  overflow: visible !important;
+}
+
+/* 弹出层强制置顶 */
+.ant-popover {
+  position: fixed !important;
+  z-index: 999999 !important;
+}
+</style>
+
+<style scoped>
 /* 操作列内容居中（text-align 对 flex 子元素不生效） */
 .basic-table :deep(.ant-table-cell:last-of-type) {
   text-align: center;

@@ -1,7 +1,7 @@
 import type { AppRouteRecordRaw } from '#/app-router'
 import type { BackendMenu, MenuConfig } from '#/menu'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { markRaw, ref } from 'vue'
 import { DefaultLayout } from '@/layouts'
 import { frontendMenus } from '@/router/menus'
 import { http } from '@/utils/request'
@@ -115,7 +115,7 @@ export const useRouteStore = defineStore('route', () => {
     const dynamicRoutes: AppRouteRecordRaw = {
       path: '/',
       name: 'Root',
-      component: DefaultLayout,
+      component: markRaw(DefaultLayout),
       redirect: '/dashboard',
       meta: {
         title: '首页',
@@ -131,7 +131,7 @@ export const useRouteStore = defineStore('route', () => {
     const dynamicRoutes: AppRouteRecordRaw = {
       path: '/',
       name: 'Root',
-      component: DefaultLayout,
+      component: markRaw(DefaultLayout),
       redirect: '/dashboard',
       meta: {
         title: '首页',

@@ -13,6 +13,7 @@ import { useRouteStore } from '@/stores/modules/route'
 import { useUserStore } from '@/stores/modules/user'
 import { cn } from '@/utils/cn'
 import { useBreadcrumb, useFullscreen } from '../composables/useLayout'
+import AccountDrawer from './AccountDrawer.vue'
 import SettingDrawer from './SettingDrawer.vue'
 
 const _props = defineProps<{
@@ -42,6 +43,7 @@ const { setLocale } = useLocale()
 
 const showSetting = ref(false)
 const showNotification = ref(false)
+const accountDrawerRef = ref<InstanceType<typeof AccountDrawer> | null>(null)
 const appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
 
 interface NotificationItem {
@@ -291,10 +293,10 @@ function handleUserMenuClick({ key }: { key: string }) {
     handleLogout()
   }
   else if (key === 'profile') {
-    router.push('/account/center')
+    accountDrawerRef.value?.open('center')
   }
   else if (key === 'settings') {
-    router.push('/account/settings')
+    accountDrawerRef.value?.open('settings')
   }
   else if (key === 'docs') {
     window.open('https://junjie73-blip.github.io/antdv-next-admin/', '_blank')
@@ -581,6 +583,7 @@ function handleHorizontalMenuSelect({ key }: { key: string }) {
     </div>
 
     <SettingDrawer v-model:visible="showSetting" />
+    <AccountDrawer ref="accountDrawerRef" />
   </header>
 </template>
 

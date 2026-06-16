@@ -186,7 +186,7 @@ const modalFormSchemas: FormSchema[] = [
     label: '部门',
     component: 'TreeSelect',
     componentProps: {
-      treeData: mockDeptTree,
+      treeData: mockDeptTree.value,
       fieldNames: { children: 'children', label: 'name', value: 'id' },
       placeholder: '请选择部门',
       treeDefaultExpandAll: true,
@@ -197,7 +197,7 @@ const modalFormSchemas: FormSchema[] = [
     label: '角色',
     component: 'Select',
     componentProps: {
-      options: roleOptions,
+      options: roleOptions.value,
       placeholder: '请选择角色',
     },
   },

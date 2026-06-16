@@ -61,20 +61,11 @@ interface MenuTreeNode {
 const menuSourceData = [
   {
     id: 1,
-    title: '仪表盘',
+    title: '数据看板',
     path: '/dashboard',
     children: [
-      { id: 101, title: 'ECharts 仪表盘', path: 'echarts' },
-      { id: 102, title: '工作台', path: 'workplace' },
-    ],
-  },
-  {
-    id: 2,
-    title: '个人中心',
-    path: '/account',
-    children: [
-      { id: 201, title: '个人信息', path: 'center' },
-      { id: 202, title: '账户设置', path: 'settings' },
+      { id: 101, title: '实时监控大屏', path: 'monitor' },
+      { id: 102, title: '分析面板', path: 'analysis' },
     ],
   },
   {

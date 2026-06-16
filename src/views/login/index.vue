@@ -86,7 +86,7 @@ async function handleLogin() {
     if (result.success) {
       message.success('登录成功')
       // 优先跳转到重定向路径（如从其他页面被拦截到登录页），否则默认到仪表盘
-      const redirect = (route.query.redirect as string) || '/dashboard/echarts'
+      const redirect = (route.query.redirect as string) || '/dashboard'
       router.push(redirect)
     }
     else {

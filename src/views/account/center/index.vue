@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 
-import { computed, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/modules/user'
 import { cn } from '@/utils/cn'
 
 const userStore = useUserStore()
 const router = useRouter()
+const switchAccountTab = inject<((tab: 'center' | 'settings') => void) | null>('switchAccountTab', null)
 
 const activeTab = ref('basic')
 
@@ -331,7 +332,7 @@ function handleDeleteDevice(device: LoginDevice) {
               </div>
               <a-button
                 size="small"
-                @click="$router.push('/account/settings')"
+                @click="switchAccountTab?.('settings')"
               >
                 前往修改
               </a-button>

@@ -26,7 +26,7 @@ const emit = defineEmits<{
   'register': [instance: DrawerMethods]
   'ok': [e: MouseEvent]
   'cancel': [e: MouseEvent]
-  'visible-change': [visible: boolean]
+  'visibleChange': [visible: boolean]
   'update:visible': [visible: boolean]
 }>()
 
@@ -90,7 +90,7 @@ const drawerMethods: DrawerMethods = {
   openDrawer: (visible = true, data?: any) => {
     if (visible) {
       visibleRef.value = true
-      emit('visible-change', true)
+      emit('visibleChange', true)
       emit('update:visible', true)
     }
   },
@@ -103,7 +103,7 @@ const drawerMethods: DrawerMethods = {
     visibleRef.value = false
     okLoadingRef.value = false
     loadingRef.value = false
-    emit('visible-change', false)
+    emit('visibleChange', false)
     emit('update:visible', false)
   },
   setDrawerProps: (newProps) => {
@@ -112,8 +112,8 @@ const drawerMethods: DrawerMethods = {
   getVisible: () => visibleRef.value,
 }
 
-// 内部方法
-const innerMethods: DrawerInnerMethods = {
+// 内部方法（供 useDrawer composable 使用）
+const _innerMethods: DrawerInnerMethods = {
   ...drawerMethods,
   changeOkLoading: (loading) => {
     okLoadingRef.value = loading
@@ -123,7 +123,11 @@ const innerMethods: DrawerInnerMethods = {
   },
 }
 
-// 注册
+// 暴露内部方法供 composable 访问
+defineExpose({
+  ...drawerMethods,
+  _innerMethods,
+})
 onMounted(() => {
   // 延迟注册，确保父组件已准备好接收
   setTimeout(() => {
@@ -149,13 +153,6 @@ async function handleOk(e: MouseEvent) {
 function handleCancel(e?: MouseEvent) {
   emit('cancel', e as MouseEvent)
   drawerMethods.closeDrawer()
-}
-
-// 处理遮罩层点击关闭
-function handleMaskClick() {
-  if (props.maskClosable) {
-    handleCancel()
-  }
 }
 </script>
 
@@ -248,8 +245,10 @@ const footerClassName = cn(
         </div>
       </div>
 
-      <!-- 内容 -->
-      <slot />
+      <!-- 内容：使用 PerfectScrollbar 替代系统滚动条 -->
+      <PerfectScrollbar class="h-full">
+        <slot />
+      </PerfectScrollbar>
     </div>
 
     <!-- 底部按钮 -->
@@ -303,6 +302,6 @@ const footerClassName = cn(
 :deep(.ant-drawer-body) {
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
 }
 </style>

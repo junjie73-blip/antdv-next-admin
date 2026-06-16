@@ -559,11 +559,11 @@ const rendererToggleClassName = cn(
           </div>
         </div>
 
-        <!-- 预览内容 -->
+        <!-- 预览内容（使用安全指令：保留合法HTML标签，过滤script和事件处理器） -->
         <div
           v-if="renderedHtml"
+          v-safe-html="{ content: renderedHtml, allowHtml: true }"
           :class="previewContentClassName"
-          v-html="renderedHtml"
         />
         <div
           v-else

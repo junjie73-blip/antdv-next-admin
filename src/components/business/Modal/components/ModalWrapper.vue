@@ -38,9 +38,8 @@ const wrapperStyle = computed(() => {
   }
 })
 
-// 内容区域样式
+// 内容区域样式：不再使用原生 overflow，由 PerfectScrollbar 接管滚动
 const bodyStyle = computed(() => ({
-  overflow: 'auto',
   maxHeight: '100%',
 }))
 </script>
@@ -67,12 +66,12 @@ const bodyStyle = computed(() => ({
       </div>
     </div>
 
-    <!-- 内容区域 -->
-    <div
+    <!-- 内容区域：使用 PerfectScrollbar 替代系统滚动条 -->
+    <PerfectScrollbar
       :class="cn('modal-body', 'p-6')"
       :style="bodyStyle"
     >
       <slot />
-    </div>
+    </PerfectScrollbar>
   </div>
 </template>

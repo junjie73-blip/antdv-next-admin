@@ -203,19 +203,21 @@ useWatermark({
                   />
                 </keep-alive>
               </template>
-              <!-- 普通页面：保持原有过渡效果 -->
+              <!-- 全屏大屏页面：禁用 transition + keepAlive，避免 ECharts 资源泄漏影响其他页面 -->
+              <template v-else-if="route.meta?.noTransition">
+                <component
+                  :is="markRaw(Component)"
+                  :key="route.path"
+                />
+              </template>
+              <!-- 普通页面：使用 KeepAlive 缓存，但不使用 Transition 避免渲染冲突 -->
               <template v-else>
-                <transition
-                  :name="transitionName"
-                  mode="out-in"
-                >
-                  <keep-alive :include="cachedRoutes">
-                    <component
-                      :is="markRaw(Component)"
-                      :key="route.path"
-                    />
-                  </keep-alive>
-                </transition>
+                <keep-alive :include="cachedRoutes">
+                  <component
+                    :is="markRaw(Component)"
+                    :key="route.path"
+                  />
+                </keep-alive>
               </template>
             </router-view>
           </main>

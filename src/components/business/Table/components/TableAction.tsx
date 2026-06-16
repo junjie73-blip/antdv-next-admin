@@ -267,7 +267,8 @@ export default defineComponent({
     }
 
     /**
-     * 渲染 Popconfirm 按钮 - 使用较小 padding
+     * 渲染 Popconfirm 按钮
+     * 与 Dropdown 使用相同的 getPopupContainer 模式确保弹窗不被表格 overflow 裁剪
      */
     function renderPopconfirmButton(action: ActionItem, index: number) {
       const label = getActionLabel(action.label, record.value)
@@ -279,6 +280,26 @@ export default defineComponent({
             title={action.popConfirm?.title}
             onConfirm={(e?: MouseEvent) => handleConfirm(action, e)}
             onCancel={(e?: MouseEvent) => handleCancel(action, e)}
+            onOpenChange={(open: boolean) => {
+              if (open) {
+                // 关键修复：将 PopConfirm 移到 body，避免 TD(sticky) 层叠上下文遮挡
+                // 使用递归重试确保 DOM 渲染完成后再移动
+                const moveToEnd = (retry = 0) => {
+                  setTimeout(() => {
+                    const popEl = document.querySelector('.ant-popconfirm')
+                    if (popEl && popEl.parentElement !== document.body) {
+                      document.body.appendChild(popEl)
+                    }
+                    else if (!popEl && retry < 5) {
+                      moveToEnd(retry + 1)
+                    }
+                  }, 20 * (retry + 1))
+                }
+                moveToEnd()
+              }
+            }}
+            zIndex={999999}
+            placement="bottomLeft"
           >
             <Button
               type={getButtonType(action)}

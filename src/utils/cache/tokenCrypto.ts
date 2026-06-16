@@ -2,8 +2,7 @@
  * Token 安全存储工具
  *
  * 使用 AES-256-GCM 加密算法保护敏感数据（Token、用户信息等）
- * 相比原有的 SM4 对称加密，提供更高的安全性：
- * - 256 位密钥长度（vs SM4 的 128 位）
+ * - 256 位密钥长度
  * - GCM 认证模式（同时提供机密性和完整性校验）
  * - 每次加密使用随机 IV（防止模式分析攻击）
  * - 密钥从用户指纹派生（即使源码泄露也难以解密其他用户的 Token）
@@ -12,7 +11,6 @@
 import { EncryptJWT, jwtDecrypt } from 'jose'
 
 const TOKEN_ENCRYPTION_KEY = 'antdv-next-token-protection-key-v2'
-const ALGORITHM = 'A256GCMKW'
 const ENCRYPTION_ALGO = 'A256GCM'
 
 /**
@@ -39,6 +37,7 @@ async function getDeviceFingerprint(): Promise<string> {
 
 /**
  * 获取加密密钥（从设备指纹派生）
+ * 返回 Uint8Array 原始密钥字节（jose 库 alg:'dir' 模式需要）
  */
 async function getEncryptionKey(): Promise<Uint8Array> {
   const fingerprint = await getDeviceFingerprint()
@@ -50,7 +49,7 @@ async function getEncryptionKey(): Promise<Uint8Array> {
     keyMaterial,
     'PBKDF2',
     false,
-    ['deriveBits', 'deriveKey'],
+    ['deriveBits'],
   )
 
   const derivedBits = await crypto.subtle.deriveBits(
@@ -61,7 +60,7 @@ async function getEncryptionKey(): Promise<Uint8Array> {
       hash: 'SHA-256',
     },
     key,
-    256,
+    256, // 256 位 = 32 字节 = A256GCM 所需的密钥长度
   )
 
   return new Uint8Array(derivedBits)
@@ -72,29 +71,21 @@ async function getEncryptionKey(): Promise<Uint8Array> {
  *
  * @param data - 要加密的数据（通常是 Token 字符串）
  * @returns 加密后的 JWT 格式字符串
- * @throws 当 Web Crypto API 不可用时抛出异常
  */
 export async function encryptToken(data: string): Promise<string> {
-  // 检查 Web Crypto API 可用性
   if (!crypto || !crypto.subtle) {
     throw new Error('Web Crypto API 不可用，无法加密 Token')
   }
 
   try {
+    // 使用 alg:'dir' 直接密钥模式，jose 需要 Uint8Array 原始密钥
     const key = await getEncryptionKey()
-    const cryptoKey = await crypto.subtle.importKey(
-      'raw',
-      key,
-      ALGORITHM,
-      true,
-      ['encrypt'],
-    )
 
     return new EncryptJWT({ data })
       .setProtectedHeader({ alg: 'dir', enc: ENCRYPTION_ALGO })
       .setIssuedAt()
-      .setExpirationTime('7d') // Token 加密密文有效期 7 天
-      .encrypt(cryptoKey)
+      .setExpirationTime('7d')
+      .encrypt(key)
   }
   catch (error) {
     console.error('[TokenCrypto] 加密失败:', error)
@@ -109,23 +100,16 @@ export async function encryptToken(data: string): Promise<string> {
  * @returns 解密后的原始数据，如果解密失败返回 null
  */
 export async function decryptToken(encryptedData: string): Promise<string | null> {
-  // 检查 Web Crypto API 可用性
   if (!crypto || !crypto.subtle) {
     console.warn('[TokenCrypto] Web Crypto API 不可用，返回原始数据')
     return encryptedData
   }
 
   try {
+    // 同样使用 Uint8Array 原始密钥
     const key = await getEncryptionKey()
-    const cryptoKey = await crypto.subtle.importKey(
-      'raw',
-      key,
-      ALGORITHM,
-      true,
-      ['decrypt'],
-    )
 
-    const { payload } = await jwtDecrypt(encryptedData, cryptoKey)
+    const { payload } = await jwtDecrypt(encryptedData, key)
 
     if (typeof payload.data === 'string') {
       return payload.data

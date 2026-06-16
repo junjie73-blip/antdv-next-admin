@@ -20,6 +20,8 @@ import noticeMock from '../../../mock/notice'
 import onlineMock from '../../../mock/online'
 import postMock from '../../../mock/post'
 import roleMock from '../../../mock/role'
+import screenMock from '../../../mock/screen'
+import securityMock from '../../../mock/security'
 import settingsMock from '../../../mock/settings'
 import tableMock from '../../../mock/table'
 import userMock from '../../../mock/user'
@@ -70,6 +72,9 @@ const pendingRequests = new Map<string, Promise<any>>()
 
 const isMockEnabled = import.meta.env.VITE_MOCK === 'true'
 
+/** CSRF 初始化状态（避免重复初始化） */
+let csrfInitialized = false
+
 export function createRequestClient(options: CreateRequestClientOptions = {}) {
   const {
     customFetch,
@@ -95,8 +100,10 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
     settingsMock,
     dictMock,
     logMock,
-    onlineMock,
     noticeMock,
+    onlineMock,
+    securityMock,
+    screenMock,
     roleMock,
   ]
 
@@ -123,13 +130,14 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
      */
     async beforeRequest(method) {
       // ==================== 初始化 CSRF 防护 ====================
-      // 确保 CSRF 系统已初始化
-      if (!csrfConfig.tokenKey) {
+      // 使用惰性单例模式，只初始化一次
+      if (!csrfInitialized) {
         initCsrfProtection({
           headerName: 'X-CSRF-Token',
           doubleSubmit: true,
           autoRotate: true,
         })
+        csrfInitialized = true
       }
 
       // ==================== Authorization Token 处理 ====================
@@ -192,11 +200,23 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
       }
 
       // POST/PUT/PATCH 请求去重（防止重复提交）
+      // 注意：alova 已启用 shareRequest，此处为额外的细粒度控制
       if (!CACHEABLE_METHODS.has(method.type as string)) {
         const requestKey = getRequestKey(method)
         if (pendingRequests.has(requestKey)) {
           // 返回已存在的请求，实现去重
           method.response = () => pendingRequests.get(requestKey)!
+        }
+        else {
+          // 拦截并存储新请求（用于去重）
+          const originalResponse = method.response
+          if (originalResponse) {
+            const requestPromise = originalResponse().finally(() => {
+              clearPendingRequest(method)
+            })
+            pendingRequests.set(requestKey, requestPromise)
+            method.response = () => requestPromise
+          }
         }
       }
 
