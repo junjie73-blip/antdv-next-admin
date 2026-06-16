@@ -986,9 +986,9 @@ function handlePreviewClose() {
           style="height: 70vh;"
         />
         <!-- Word 预览（@vue-office/docx，需安装依赖） -->
-        <div
+        <PerfectScrollbar
           v-else-if="previewType === 'docx'"
-          class="w-full rounded overflow-auto bg-gray-50 dark:bg-gray-900 p-4"
+          class="w-full rounded bg-gray-50 dark:bg-gray-900 p-4"
           style="height: 70vh;"
         >
           <div class="h-full flex items-center justify-center text-gray-400">
@@ -1004,11 +1004,11 @@ function handlePreviewClose() {
               </p>
             </div>
           </div>
-        </div>
+        </PerfectScrollbar>
         <!-- Excel 预览（@vue-office/excel，需安装依赖） -->
-        <div
+        <PerfectScrollbar
           v-else-if="previewType === 'excel'"
-          class="w-full rounded overflow-auto bg-gray-50 dark:bg-gray-900 p-4"
+          class="w-full rounded bg-gray-50 dark:bg-gray-900 p-4"
           style="height: 70vh;"
         >
           <div class="h-full flex items-center justify-center text-gray-400">
@@ -1024,7 +1024,7 @@ function handlePreviewClose() {
               </p>
             </div>
           </div>
-        </div>
+        </PerfectScrollbar>
       </a-modal>
     </a-card>
   </div>

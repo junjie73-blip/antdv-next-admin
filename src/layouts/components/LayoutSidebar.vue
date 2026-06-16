@@ -110,10 +110,15 @@ const menuItems = computed(() => {
 })
 
 const handleMenuSelect: MenuProps['onSelect'] = ({ key }) => {
-  if (key.startsWith('/')) {
-    router.push(key)
+  const keyStr = key as string
+  // 外链菜单由 label 中的 <a> 标签处理，避免重复打开
+  if (keyStr.startsWith('external:')) {
+    return
   }
-  emit('menuClick', key as string)
+  if (keyStr.startsWith('/')) {
+    router.push(keyStr)
+  }
+  emit('menuClick', keyStr)
 }
 </script>
 

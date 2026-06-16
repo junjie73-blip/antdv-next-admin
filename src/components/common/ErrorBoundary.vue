@@ -113,7 +113,6 @@ const detailsClassName = cn(
   'mt-4 p-3 w-full max-w-lg',
   'bg-white dark:bg-gray-800 rounded border border-red-200 dark:border-red-700',
   'text-xs text-gray-600 dark:text-gray-400',
-  'overflow-auto max-h-32',
 )
 
 // 开发环境检测
@@ -166,7 +165,9 @@ const isDev = import.meta.env.DEV
         <summary class="cursor-pointer font-medium mb-1">
           调用栈详情
         </summary>
-        <pre class="whitespace-pre-wrap break-all">{{ error.stack }}</pre>
+        <PerfectScrollbar class="max-h-32">
+          <pre class="whitespace-pre-wrap break-all">{{ error.stack }}</pre>
+        </PerfectScrollbar>
       </details>
     </template>
   </div>

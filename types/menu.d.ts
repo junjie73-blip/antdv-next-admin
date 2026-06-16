@@ -22,6 +22,8 @@ export interface MenuConfig {
   roles?: string[]
   permissions?: string[]
   microApp?: MicroAppConfig
+  /** 是否为外链，点击后在新窗口打开 */
+  isExternal?: boolean
   children?: MenuConfig[]
 }
 

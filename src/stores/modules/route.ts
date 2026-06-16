@@ -34,37 +34,39 @@ interface MicroAppConfig {
 }
 
 function generateRoutesFromMenus(menus: MenuConfig[]): InternalRoute[] {
-  return menus.map((menu) => {
-    const route: InternalRoute = {
-      path: menu.path,
-      name: menu.name,
-      meta: {
-        title: menu.title,
-        icon: menu.icon,
-        hidden: menu.hidden,
-        keepAlive: menu.keepAlive,
-        requiresAuth: menu.requiresAuth,
-        roles: menu.roles,
-        permissions: menu.permissions,
-        microApp: menu.microApp,
-      },
-    }
+  return menus
+    .filter(menu => !menu.isExternal)
+    .map((menu) => {
+      const route: InternalRoute = {
+        path: menu.path,
+        name: menu.name,
+        meta: {
+          title: menu.title,
+          icon: menu.icon,
+          hidden: menu.hidden,
+          keepAlive: menu.keepAlive,
+          requiresAuth: menu.requiresAuth,
+          roles: menu.roles,
+          permissions: menu.permissions,
+          microApp: menu.microApp,
+        },
+      }
 
-    if (menu.redirect) {
-      route.redirect = menu.redirect
-    }
+      if (menu.redirect) {
+        route.redirect = menu.redirect
+      }
 
-    if (menu.component) {
-      const componentPath = `/src/${menu.component.replace('@/', '')}`
-      route.component = modules[componentPath]
-    }
+      if (menu.component) {
+        const componentPath = `/src/${menu.component.replace('@/', '')}`
+        route.component = modules[componentPath]
+      }
 
-    if (menu.children && menu.children.length > 0) {
-      route.children = generateRoutesFromMenus(menu.children)
-    }
+      if (menu.children && menu.children.length > 0) {
+        route.children = generateRoutesFromMenus(menu.children)
+      }
 
-    return route
-  })
+      return route
+    })
 }
 
 function generateRoutesFromBackendMenus(backendMenus: BackendMenu[]): InternalRoute[] {

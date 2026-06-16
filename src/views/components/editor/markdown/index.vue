@@ -379,8 +379,10 @@ const previewTitleClassName = cn(
   'flex items-center justify-between',
 )
 
+const previewScrollbarClassName = cn('flex-1')
+
 const previewContentClassName = cn(
-  'flex-1 overflow-y-auto p-4',
+  'p-4',
   'prose prose-sm dark:prose-invert max-w-none',
   'prose-headings:text-gray-800 dark:prose-headings:text-gray-100',
   'prose-p:text-gray-700 dark:prose-p:text-gray-300',
@@ -560,11 +562,15 @@ const rendererToggleClassName = cn(
         </div>
 
         <!-- 预览内容（使用安全指令：保留合法HTML标签，过滤script和事件处理器） -->
-        <div
+        <PerfectScrollbar
           v-if="renderedHtml"
-          v-safe-html="{ content: renderedHtml, allowHtml: true }"
-          :class="previewContentClassName"
-        />
+          :class="previewScrollbarClassName"
+        >
+          <div
+            v-safe-html="{ content: renderedHtml, allowHtml: true }"
+            :class="previewContentClassName"
+          />
+        </PerfectScrollbar>
         <div
           v-else
           :class="emptyPreviewClassName"

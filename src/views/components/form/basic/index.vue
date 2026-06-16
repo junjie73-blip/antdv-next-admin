@@ -258,7 +258,9 @@ function handleGetValues() {
     </a-card>
 
     <a-card title="表单数据">
-      <pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded overflow-auto">{{ JSON.stringify(formResult, null, 2) }}</pre>
+      <PerfectScrollbar class="bg-gray-100 dark:bg-gray-800 p-4 rounded">
+        <pre>{{ JSON.stringify(formResult, null, 2) }}</pre>
+      </PerfectScrollbar>
     </a-card>
   </div>
 </template>

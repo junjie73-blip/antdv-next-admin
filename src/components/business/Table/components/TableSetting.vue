@@ -190,20 +190,22 @@ const isIndeterminate = computed(() => {
           </div>
 
           <!-- 列列表 -->
-          <div :class="cn('max-h-64 overflow-y-auto space-y-1')">
-            <div
-              v-for="(col, idx) in configurableColumns"
-              :key="String(col.key || col.dataIndex || idx)"
-              :class="cn('flex items-center justify-between py-1')"
-            >
-              <Checkbox
-                :checked="isColumnVisible(col)"
-                @change="(e) => toggleColumnVisible(col, e.target.checked)"
+          <PerfectScrollbar :class="cn('max-h-64')">
+            <div :class="cn('space-y-1')">
+              <div
+                v-for="(col, idx) in configurableColumns"
+                :key="String(col.key || col.dataIndex || idx)"
+                :class="cn('flex items-center justify-between py-1')"
               >
-                <span :class="cn('text-sm')">{{ col.title }}</span>
-              </Checkbox>
+                <Checkbox
+                  :checked="isColumnVisible(col)"
+                  @change="(e) => toggleColumnVisible(col, e.target.checked)"
+                >
+                  <span :class="cn('text-sm')">{{ col.title }}</span>
+                </Checkbox>
+              </div>
             </div>
-          </div>
+          </PerfectScrollbar>
 
           <!-- 空状态 -->
           <div

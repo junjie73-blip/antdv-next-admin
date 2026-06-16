@@ -6,9 +6,13 @@ import { cn } from '@/utils/cn'
 const containerClassName = cn('space-y-6')
 
 const treeData = ref([
-  { key: '1', title: 'Root Node 1', children: [
+  { key: '1',
+title: 'Root Node 1',
+children: [
     { key: '1-1', title: 'Child 1-1' },
-    { key: '1-2', title: 'Child 1-2', children: [
+    { key: '1-2',
+title: 'Child 1-2',
+children: [
       { key: '1-2-1', title: 'Grandchild 1-2-1' },
     ] },
   ] },

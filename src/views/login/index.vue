@@ -47,9 +47,13 @@ const formRef = ref<FormInstance>()
 const loading = ref(false)
 const loginType = ref<'account' | 'mobile'>('account')
 
+// 默认填充测试账号，方便本地快速登录
+const DEFAULT_USERNAME = 'admin'
+const DEFAULT_PASSWORD = 'admin123'
+
 const formState = reactive({
-  username: '',
-  password: '',
+  username: DEFAULT_USERNAME,
+  password: DEFAULT_PASSWORD,
   mobile: '',
   code: '',
   remember: true,

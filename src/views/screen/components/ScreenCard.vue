@@ -6,6 +6,8 @@ withDefaults(defineProps<{
   title?: string
   /** 是否显示标题栏发光边框效果 */
   glow?: boolean
+  /** 内容区域额外类名 */
+  bodyClass?: string
 }>(), {
   glow: true,
 })
@@ -38,7 +40,7 @@ const headerTitleClassName = cn('text-sm font-medium text-blue-200/90 tracking-w
     </div>
 
     <!-- 内容区域 -->
-    <div class="p-4">
+    <div :class="cn('p-4', bodyClass)">
       <slot />
     </div>
 

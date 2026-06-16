@@ -165,7 +165,7 @@ const treeHeaderClassName = cn(
 
 const treeHeaderTitleClassName = cn('text-sm font-medium text-gray-700 dark:text-gray-300')
 
-const treeBodyClassName = cn('flex-1 overflow-auto p-2')
+const treeBodyClassName = cn('flex-1 min-h-0 overflow-hidden p-2')
 
 const treeSearchClassName = cn('mb-2')
 
@@ -185,7 +185,7 @@ const tableHeaderClassName = cn(
 
 const tableHeaderTitleClassName = cn('text-sm font-medium text-gray-700 dark:text-gray-300')
 
-const tableBodyClassName = cn('flex-1 overflow-auto')
+const tableBodyClassName = cn('flex-1 overflow-hidden')
 
 const emptyClassName = cn('flex flex-col items-center justify-center py-16 text-gray-400')
 
@@ -210,45 +210,47 @@ const nothingSelectedClassName = cn('text-sm text-gray-400')
       </div>
 
       <div :class="treeBodyClassName">
-        <div
-          v-if="showSearch"
-          :class="treeSearchClassName"
-        >
-          <a-input
-            :placeholder="treeSearchPlaceholder"
-            allow-clear
-            @change="(e: any) => debouncedSearch(e.target.value)"
+        <PerfectScrollbar class="h-full">
+          <div
+            v-if="showSearch"
+            :class="treeSearchClassName"
           >
-            <template #prefix>
-              <Icon
-                icon="carbon:search"
-                class="text-gray-400"
-              />
-            </template>
-          </a-input>
-        </div>
+            <a-input
+              :placeholder="treeSearchPlaceholder"
+              allow-clear
+              @change="(e: any) => debouncedSearch(e.target.value)"
+            >
+              <template #prefix>
+                <Icon
+                  icon="carbon:search"
+                  class="text-gray-400"
+                />
+              </template>
+            </a-input>
+          </div>
 
-        <Tree
-          v-if="filteredTreeData.length > 0"
-          :tree-data="filteredTreeData as any"
-          :expanded-keys="expandedKeys"
-          :selected-keys="selectedKey ? [selectedKey] : []"
-          :field-names="{ key: 'key', title: 'title', children: 'children' }"
-          block-node
-          @select="handleTreeSelect"
-          @expand="(keys: string[]) => { expandedKeys = keys }"
-        />
-
-        <div
-          v-else
-          :class="emptyClassName"
-        >
-          <Icon
-            icon="carbon:search"
-            class="text-3xl mb-2"
+          <Tree
+            v-if="filteredTreeData.length > 0"
+            :tree-data="filteredTreeData as any"
+            :expanded-keys="expandedKeys"
+            :selected-keys="selectedKey ? [selectedKey] : []"
+            :field-names="{ key: 'key', title: 'title', children: 'children' }"
+            block-node
+            @select="handleTreeSelect"
+            @expand="(keys: string[]) => { expandedKeys = keys }"
           />
-          <span class="text-sm">{{ treeEmptyText }}</span>
-        </div>
+
+          <div
+            v-else
+            :class="emptyClassName"
+          >
+            <Icon
+              icon="carbon:search"
+              class="text-3xl mb-2"
+            />
+            <span class="text-sm">{{ treeEmptyText }}</span>
+          </div>
+        </PerfectScrollbar>
       </div>
     </div>
 

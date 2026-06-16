@@ -175,7 +175,7 @@ watch(
     <div class="flex gap-4 min-h-0 flex-1">
       <!-- 左侧：应用列表 -->
       <div
-        class="w-[320px] shrink-0 flex flex-col gap-3 overflow-y-auto rounded-lg border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 p-3"
+        class="w-[320px] shrink-0 flex flex-col gap-3 rounded-lg border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 p-3"
       >
         <!-- 统计概览 -->
         <div class="grid grid-cols-3 gap-2">
@@ -244,67 +244,69 @@ watch(
         </div>
 
         <!-- 应用列表 -->
-        <div class="flex-1 overflow-y-auto space-y-2 min-h-0">
-          <div
-            v-for="app in filteredApps"
-            :key="app.name"
-            :class="cn(
-              'p-3 rounded-lg border cursor-pointer transition-all duration-150',
-              'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700',
-              activeAppKey === app.name
-                ? 'border-blue-400 bg-blue-50/50 dark:border-blue-500 dark:bg-blue-900/20 shadow-sm'
-                : 'hover:border-blue-300 hover:shadow-sm',
-            )"
-            @click="handleSelectApp(app)"
-          >
-            <!-- 应用头部 -->
-            <div class="flex items-center gap-2 mb-1.5">
-              <div
-                class="w-7 h-7 rounded-md flex items-center justify-center shrink-0 text-sm"
-                :class="app.active
-                  ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
-                  : 'bg-gray-100 dark:bg-gray-700'"
-              >
+        <PerfectScrollbar class="flex-1 min-h-0">
+          <div class="space-y-2">
+            <div
+              v-for="app in filteredApps"
+              :key="app.name"
+              :class="cn(
+                'p-3 rounded-lg border cursor-pointer transition-all duration-150',
+                'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700',
+                activeAppKey === app.name
+                  ? 'border-blue-400 bg-blue-50/50 dark:border-blue-500 dark:bg-blue-900/20 shadow-sm'
+                  : 'hover:border-blue-300 hover:shadow-sm',
+              )"
+              @click="handleSelectApp(app)"
+            >
+              <!-- 应用头部 -->
+              <div class="flex items-center gap-2 mb-1.5">
+                <div
+                  class="w-7 h-7 rounded-md flex items-center justify-center shrink-0 text-sm"
+                  :class="app.active
+                    ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                    : 'bg-gray-100 dark:bg-gray-700'"
+                >
+                  <span
+                    v-if="app.icon"
+                    :class="[app.icon,
+                             app.active ? 'text-white' : 'text-gray-500']"
+                  />
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    {{ app.title }}
+                  </p>
+                  <p class="text-[10px] text-gray-400 truncate">
+                    {{ app.name }}
+                  </p>
+                </div>
                 <span
-                  v-if="app.icon"
-                  :class="[app.icon,
-                           app.active ? 'text-white' : 'text-gray-500']"
-                />
+                  :class="getStatusTagClass(!!app.active)"
+                  class="shrink-0 text-[10px] px-1.5 py-0.5"
+                >
+                  {{ app.active ? '运行' : '停止' }}
+                </span>
               </div>
-              <div class="min-w-0 flex-1">
-                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
-                  {{ app.title }}
-                </p>
-                <p class="text-[10px] text-gray-400 truncate">
-                  {{ app.name }}
-                </p>
+
+              <!-- 元信息 -->
+              <div class="flex items-center gap-2 text-[10px] text-gray-500">
+                <span>v{{ app.version ?? '-' }}</span>
+                <span :class="getLoaderBadgeClass(app.loader)">{{ app.loader === 'iframe' ? 'iframe' : 'WC' }}</span>
               </div>
-              <span
-                :class="getStatusTagClass(!!app.active)"
-                class="shrink-0 text-[10px] px-1.5 py-0.5"
-              >
-                {{ app.active ? '运行' : '停止' }}
-              </span>
             </div>
 
-            <!-- 元信息 -->
-            <div class="flex items-center gap-2 text-[10px] text-gray-500">
-              <span>v{{ app.version ?? '-' }}</span>
-              <span :class="getLoaderBadgeClass(app.loader)">{{ app.loader === 'iframe' ? 'iframe' : 'WC' }}</span>
+            <!-- 空状态 -->
+            <div
+              v-if="filteredApps.length === 0"
+              class="flex flex-col items-center justify-center py-8 text-gray-400"
+            >
+              <span class="i-carbon-application text-3xl mb-2 opacity-30" />
+              <p class="text-xs">
+                无匹配的子应用
+              </p>
             </div>
           </div>
-
-          <!-- 空状态 -->
-          <div
-            v-if="filteredApps.length === 0"
-            class="flex flex-col items-center justify-center py-8 text-gray-400"
-          >
-            <span class="i-carbon-application text-3xl mb-2 opacity-30" />
-            <p class="text-xs">
-              无匹配的子应用
-            </p>
-          </div>
-        </div>
+        </PerfectScrollbar>
       </div>
 
       <!-- 右侧：iframe 预览区域 -->

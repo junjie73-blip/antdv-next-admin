@@ -379,22 +379,24 @@ function copyToClipboard(text: string) {
             <Icon icon="carbon:time" />
             Scan History
           </h4>
-          <div class="space-y-2 max-h-48 overflow-y-auto">
-            <div
-              v-for="(result, index) in scanHistory"
-              :key="index"
-              class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-              @click="copyToClipboard(result)"
-            >
-              <div class="flex items-start justify-between gap-2">
-                <code class="flex-1 break-all">{{ result }}</code>
-                <Icon
-                  icon="carbon:copy"
-                  class="text-gray-400 hover:text-blue-500 flex-shrink-0"
-                />
+          <PerfectScrollbar class="max-h-48">
+            <div class="space-y-2">
+              <div
+                v-for="(result, index) in scanHistory"
+                :key="index"
+                class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                @click="copyToClipboard(result)"
+              >
+                <div class="flex items-start justify-between gap-2">
+                  <code class="flex-1 break-all">{{ result }}</code>
+                  <Icon
+                    icon="carbon:copy"
+                    class="text-gray-400 hover:text-blue-500 flex-shrink-0"
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          </PerfectScrollbar>
         </div>
       </div>
     </a-card>

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
 import dayjs from 'dayjs'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { cn } from '@/utils/cn'
@@ -24,7 +23,7 @@ const containerClassName = cn(
 const titleClassName = cn('text-xl font-bold tracking-wider text-white flex items-center gap-2')
 const timeClassName = cn('text-sm text-blue-200/80 font-mono tabular-nums')
 const actionBtnClassName = cn(
-  'px-3 py-1 rounded text-xs border transition-all duration-200 cursor-pointer',
+  'inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded text-xs border transition-all duration-200 cursor-pointer',
   'text-blue-300/70 border-blue-500/30 hover:text-blue-100 hover:border-blue-400/60 hover:bg-blue-500/10',
 )
 
@@ -87,19 +86,12 @@ onBeforeUnmount(() => {
         :class="actionBtnClassName"
         @click="toggleFullscreen"
       >
-        <Icon
-          :icon="isFullscreen ? 'carbon:close' : 'carbon:fullscreen'"
-          :width="14"
-          :height="14"
-        />
+        <FullscreenOutlined v-if="!isFullscreen" class="text-xs" />
+        <FullscreenExitOutlined v-else class="text-xs" />
         {{ isFullscreen ? '退出全屏' : '全屏' }}
       </button>
       <button :class="actionBtnClassName">
-        <Icon
-          icon="carbon:settings"
-          :width="14"
-          :height="14"
-        />
+        <SettingOutlined class="text-xs" />
         设置
       </button>
     </div>

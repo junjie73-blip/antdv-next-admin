@@ -86,7 +86,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div :class="cn(containerClassName, 'bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 h-full flex flex-col')">
+  <div :class="cn(containerClassName, 'bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800')">
     <!-- 标题 -->
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-2">
@@ -110,13 +110,10 @@ onMounted(async () => {
     </div>
 
     <!-- 告警列表 -->
-    <a-spin
-      :spinning="loading"
-      class="flex-1 min-h-0"
-    >
+    <a-spin :spinning="loading">
       <PerfectScrollbar
         v-if="alerts.length > 0"
-        class="h-full pr-1"
+        class="max-h-[240px] pr-1"
       >
         <div class="space-y-2.5">
           <div

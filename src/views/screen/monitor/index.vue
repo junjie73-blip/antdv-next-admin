@@ -138,6 +138,36 @@ function whenReady(name: string, refEl: Ref<HTMLDivElement | undefined>, cb: (el
   }, 3000)
 }
 
+// ======================== 默认数据生成 =========================
+
+/** 生成默认趋势数据，避免 API 异常时主图为空 */
+function generateDefaultTrendData() {
+  return Array.from({ length: 24 }, (_, i) => {
+    const hour = String(i).padStart(2, '0')
+    return {
+      time: `${hour}:00`,
+      pv: Math.floor(800 + Math.random() * 1200),
+      uv: Math.floor(300 + Math.random() * 600),
+      requests: Math.floor(2000 + Math.random() * 3000),
+    }
+  })
+}
+
+/** 生成默认地区分布数据，避免 API 异常时柱状图为空 */
+function generateDefaultRegionData() {
+  return [
+    { name: '北京', value: 9820, users: 3200 },
+    { name: '上海', value: 8650, users: 2800 },
+    { name: '广东', value: 7540, users: 2450 },
+    { name: '浙江', value: 6320, users: 1980 },
+    { name: '江苏', value: 5890, users: 1760 },
+    { name: '四川', value: 4650, users: 1420 },
+    { name: '湖北', value: 3820, users: 1150 },
+    { name: '山东', value: 3210, users: 980 },
+    { name: '福建', value: 2580, users: 760 },
+  ]
+}
+
 // ======================== 图表配置函数 =========================
 
 /** PV/UV 趋势图 */
@@ -342,18 +372,10 @@ function updateAllCharts() {
     attack.setOption(buildAttackSourceOption())
 }
 
-/** 完全销毁所有图表和清理副作用 */
+/** 完全销毁所有图表 */
 function disposeAll() {
   charts.forEach(c => c.dispose())
   charts.clear()
-  // 清理 screen-container 的样式（防止污染后续页面）
-  const container = document.getElementById('screen-container')
-  if (container) {
-    container.style.transform = ''
-    container.style.transformOrigin = ''
-    container.style.width = ''
-    container.style.height = ''
-  }
 }
 
 // PerfectScrollbar 配置
@@ -402,6 +424,8 @@ onMounted(async () => {
   }
   catch (err) {
     console.warn('[Monitor] 数据加载失败，使用默认值:', err)
+    trendData.value = generateDefaultTrendData()
+    regionData.value = generateDefaultRegionData()
     latencyData.value = Array.from({ length: 12 }, (_, i) => ({
       time: `${String(i * 2).padStart(2, '0')}:00`,
       avg: Math.floor(40 + Math.random() * 60),
@@ -466,6 +490,9 @@ onMounted(async () => {
         attackChart.setOption(buildAttackSourceOption())
     }
   }, 5000)
+
+  // 适配完成后统一触发一次 resize，确保图表在 scale 变换后正确渲染
+  setTimeout(() => charts.forEach(c => c.resize()), 300)
 })
 
 function initChartImmediately(name: string, refEl: Ref<HTMLDivElement | undefined>, initFn: (el: HTMLDivElement) => void) {
@@ -530,308 +557,217 @@ function securityAlertLevelText(level: string): string {
 </script>
 
 <template>
-  <!-- 大屏容器（允许滚动以适应不同屏幕） -->
-  <div
+  <!-- 大屏容器 -->
+  <PerfectScrollbar
     id="screen-container"
-    class="w-screen min-h-screen overflow-auto bg-[#0a0e27] text-white"
+    class="w-screen h-screen bg-[#0a0e27] text-white"
   >
-    <!-- 头部 -->
-    <ScreenHeader title="系统实时监控大屏" />
+    <div id="screen-content" class="h-full flex flex-col">
+      <!-- 头部 -->
+      <ScreenHeader title="系统实时监控大屏" />
 
-    <!-- 主体内容（使用 flex 自适应高度而非固定 vh） -->
-    <div class="grid grid-cols-12 gap-3 p-3 pb-4 items-start">
-      <!-- 左侧栏 -->
-      <div class="col-span-3 flex flex-col gap-3">
-        <!-- 核心指标卡片 -->
-        <div class="grid grid-cols-2 gap-3">
-          <ScreenCard>
-            <RealtimeNumber
-              :value="overview.onlineUsers"
-              suffix="人"
-            />
-            <span class="text-[10px] text-blue-300/50 mt-1 block">在线用户</span>
-          </ScreenCard>
-          <ScreenCard>
-            <RealtimeNumber :value="overview.todayVisits" />
-            <span class="text-[10px] text-blue-300/50 mt-1 block">今日访问(PV)</span>
-          </ScreenCard>
-          <ScreenCard>
-            <RealtimeNumber :value="overview.alertCount" />
-            <span class="text-[10px] text-blue-300/50 mt-1 block">告警数</span>
-          </ScreenCard>
-          <ScreenCard>
-            <RealtimeNumber
-              :value="roundedNetworkIn"
-              suffix="MB/s"
-            />
-            <span class="text-[10px] text-blue-300/50 mt-1 block">网络入流量</span>
-          </ScreenCard>
-        </div>
-
-        <!-- 在线用户列表 -->
-        <ScreenCard
-          title="在线用户"
-          class="min-h-[200px]"
-        >
-          <PerfectScrollbar
-            :options="psOptions"
-            class="h-full"
-            style="max-height: calc(100vh - 500px)"
-          >
-            <div class="space-y-2 pr-1">
-              <div
-                v-for="(user, idx) in onlineUsers"
-                :key="idx"
-                class="flex items-center gap-2.5 px-2 py-1.5 rounded bg-blue-900/20 hover:bg-blue-800/30 transition-colors"
-              >
-                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-[10px] font-bold shrink-0">
-                  {{ user.name[0] }}
-                </div>
-                <div class="flex-1 min-w-0">
-                  <div class="text-xs text-blue-100/80 truncate">
-                    {{ user.name }}
-                  </div>
-                  <div class="text-[10px] text-blue-300/40 font-mono">
-                    {{ user.ip }}
-                  </div>
-                </div>
-                <span
-                  class="w-1.5 h-1.5 rounded-full shrink-0"
-                  :class="user.status === 'online' ? 'bg-emerald-400' : 'bg-gray-500'"
-                />
-              </div>
+      <!-- 主体内容 -->
+      <div class="flex-1 min-h-0 grid grid-cols-12 grid-rows-[1fr_auto] gap-3 p-3">
+        <!-- 三列主区域 -->
+        <div class="col-span-12 row-start-1 grid grid-cols-12 gap-3 min-h-0">
+          <!-- 左侧栏 -->
+          <div class="col-span-3 flex flex-col gap-3 h-full min-h-0">
+            <!-- 核心指标卡片 -->
+            <div class="grid grid-cols-2 gap-3 shrink-0">
+              <ScreenCard>
+                <RealtimeNumber :value="overview.onlineUsers" suffix="人" />
+                <span class="text-[10px] text-blue-300/50 mt-1 block">在线用户</span>
+              </ScreenCard>
+              <ScreenCard>
+                <RealtimeNumber :value="overview.todayVisits" />
+                <span class="text-[10px] text-blue-300/50 mt-1 block">今日访问(PV)</span>
+              </ScreenCard>
+              <ScreenCard>
+                <RealtimeNumber :value="overview.alertCount" />
+                <span class="text-[10px] text-blue-300/50 mt-1 block">告警数</span>
+              </ScreenCard>
+              <ScreenCard>
+                <RealtimeNumber :value="roundedNetworkIn" suffix="MB/s" />
+                <span class="text-[10px] text-blue-300/50 mt-1 block">网络入流量</span>
+              </ScreenCard>
             </div>
-          </PerfectScrollbar>
-        </ScreenCard>
-      </div>
 
-      <!-- 中间区域 -->
-      <div class="col-span-6 flex flex-col gap-3">
-        <!-- PV/UV 趋势图（主图） -->
-        <ScreenCard class="min-h-[320px]">
-          <div
-            ref="pvChartRef"
-            class="w-full"
-            style="height: 300px"
-          />
-        </ScreenCard>
-
-        <!-- 第二行：热力图 + 请求类型饼图 -->
-        <div class="grid grid-cols-2 gap-3">
-          <ScreenCard
-            title="用户活跃时段"
-            class="min-h-[220px]"
-          >
-            <div
-              ref="heatmapRef"
-              class="w-full"
-              style="height: 190px"
-            />
-          </ScreenCard>
-          <ScreenCard
-            title="请求类型分布"
-            class="min-h-[220px]"
-          >
-            <div
-              ref="pieChartRef"
-              class="w-full"
-              style="height: 190px"
-            />
-          </ScreenCard>
-        </div>
-
-        <!-- 第三行：网络延迟趋势 + 实时事件流 -->
-        <div class="grid grid-cols-2 gap-3">
-          <ScreenCard
-            title="网络延迟趋势"
-            class="min-h-[220px] flex flex-col"
-          >
-            <div
-              ref="latencyChartRef"
-              class="w-full flex-shrink-0"
-              style="height: 155px"
-            />
-            <!-- 统计指标：填充底部空隙 -->
-            <div class="flex items-center gap-3 mt-2 px-1 text-[11px]">
-              <div class="flex items-center gap-1.5">
-                <span class="w-2 h-0.5 rounded bg-cyan-400" />
-                <span class="text-slate-400">平均</span>
-                <span class="text-cyan-300 font-mono font-medium">{{ latencyStats.avg }}ms</span>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <span
-                  class="w-2 h-0.5 rounded bg-rose-400"
-                  style="border-style: dashed;"
-                />
-                <span class="text-slate-400">P99</span>
-                <span class="text-rose-300 font-mono font-medium">{{ latencyStats.p99 }}ms</span>
-              </div>
-              <div class="flex items-center gap-1.5 ml-auto">
-                <span class="text-slate-500">可用率</span>
-                <span
-                  class="font-mono font-medium"
-                  :class="[latencyStats.availability >= 99.9 ? 'text-emerald-400' : 'text-amber-400']"
-                >{{ latencyStats.availability }}%</span>
-              </div>
-            </div>
-          </ScreenCard>
-          <ScreenCard
-            title="实时事件流"
-            class="min-h-[220px] overflow-hidden flex flex-col"
-          >
-            <PerfectScrollbar
-              :options="psOptions"
-              class="flex-1 min-h-0"
-              style="max-height: 190px"
-            >
-              <div class="space-y-1.5 pr-1">
-                <div
-                  v-for="(evt, idx) in realtimeEvents"
-                  :key="idx"
-                  class="flex items-start gap-2 text-[11px] px-2 py-1.5 rounded bg-blue-900/15 hover:bg-blue-800/25 transition-colors"
-                >
-                  <span
-                    :class="eventLevelColor(evt.level)"
-                    class="w-1 h-1 rounded-full shrink-0 mt-1.5"
-                  />
-                  <span class="text-blue-300/40 font-mono shrink-0">{{ evt.time }}</span>
-                  <span
-                    :class="eventLevelText(evt.level)"
-                    class="shrink-0"
-                  >{{ evt.type.toUpperCase() }}</span>
-                  <span class="text-blue-100/70 truncate">{{ evt.msg }}</span>
-                </div>
-              </div>
-            </PerfectScrollbar>
-          </ScreenCard>
-        </div>
-      </div>
-
-      <!-- 右侧栏 -->
-      <div class="col-span-3 flex flex-col gap-3">
-        <!-- 总请求数 -->
-        <ScreenCard>
-          <div class="text-center py-1">
-            <RealtimeNumber :value="overview.totalRequests" />
-            <span class="text-[10px] text-blue-300/50 block mt-1">总请求数</span>
-          </div>
-        </ScreenCard>
-
-        <!-- 资源使用率 -->
-        <ScreenCard
-          title="资源使用率"
-          class="min-h-[220px]"
-        >
-          <div
-            ref="gaugeRef"
-            class="w-full"
-            style="height: 190px"
-          />
-        </ScreenCard>
-
-        <!-- 地区分布 -->
-        <ScreenCard
-          title="地区用户分布 TOP9"
-          class="min-h-[260px]"
-        >
-          <div
-            ref="regionBarRef"
-            class="w-full"
-            style="height: 230px"
-          />
-        </ScreenCard>
-
-        <!-- 服务状态 + 最近告警 -->
-        <div class="grid grid-cols-1 gap-3">
-          <ScreenCard
-            title="服务健康状态"
-            class="min-h-0"
-          >
-            <div class="space-y-1.5">
-              <div
-                v-for="svc in services"
-                :key="svc.name"
-                class="flex items-center justify-between px-2 py-1.5 rounded bg-blue-900/20"
-              >
-                <span class="text-xs text-blue-100/80">{{ svc.name }}</span>
-                <div class="flex items-center gap-2">
-                  <span class="text-[10px] text-blue-300/50">{{ svc.uptime }}</span>
-                  <span
-                    :class="serviceStatusColor(svc.status)"
-                    class="text-[10px] flex items-center gap-1"
+            <!-- 在线用户列表 -->
+            <ScreenCard title="在线用户" class="flex-1 flex flex-col min-h-0" body-class="flex-1 min-h-0">
+              <PerfectScrollbar :options="psOptions" class="h-full relative">
+                <div class="space-y-2 pr-1">
+                  <div
+                    v-for="(user, idx) in onlineUsers"
+                    :key="idx"
+                    class="flex items-center gap-2.5 px-2 py-1.5 rounded bg-blue-900/20 hover:bg-blue-800/30 transition-colors"
                   >
+                    <div class="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-[10px] font-bold shrink-0">
+                      {{ user.name[0] }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="text-xs text-blue-100/80 truncate">{{ user.name }}</div>
+                      <div class="text-[10px] text-blue-300/40 font-mono">{{ user.ip }}</div>
+                    </div>
                     <span
-                      class="w-1.5 h-1.5 rounded-full inline-block"
-                      :class="svc.status === 'healthy' ? 'bg-emerald-400' : svc.status === 'warning' ? 'bg-yellow-400' : 'bg-red-400'"
+                      class="w-1.5 h-1.5 rounded-full shrink-0"
+                      :class="user.status === 'online' ? 'bg-emerald-400' : 'bg-gray-500'"
                     />
-                    {{ svc.status === 'healthy' ? '正常' : svc.status === 'warning' ? '警告' : '异常' }}
-                  </span>
+                  </div>
                 </div>
-              </div>
+              </PerfectScrollbar>
+            </ScreenCard>
+          </div>
+
+          <!-- 中间区域 -->
+          <div class="col-span-6 flex flex-col gap-3 h-full min-h-0">
+            <!-- PV/UV 趋势图（主图） -->
+            <ScreenCard class="flex-[2] flex flex-col min-h-0" body-class="flex-1 min-h-0">
+              <div ref="pvChartRef" class="w-full h-full min-h-[200px]" />
+            </ScreenCard>
+
+            <!-- 第二行：热力图 + 请求类型饼图 -->
+            <div class="grid grid-cols-2 gap-3 flex-1 min-h-0">
+              <ScreenCard title="用户活跃时段" class="flex flex-col min-h-0" body-class="flex-1 min-h-0">
+                <div ref="heatmapRef" class="w-full h-full min-h-[140px]" />
+              </ScreenCard>
+              <ScreenCard title="请求类型分布" class="flex flex-col min-h-0" body-class="flex-1 min-h-0">
+                <div ref="pieChartRef" class="w-full h-full min-h-[140px]" />
+              </ScreenCard>
             </div>
-          </ScreenCard>
-          <ScreenCard
-            title="最近告警"
-            class="min-h-0 overflow-hidden"
-          >
-            <MarqueeNotice :items="formattedAlerts" />
-          </ScreenCard>
+
+            <!-- 第三行：网络延迟趋势 + 实时事件流 -->
+            <div class="grid grid-cols-2 gap-3 flex-1 min-h-0">
+              <ScreenCard title="网络延迟趋势" class="flex flex-col min-h-0" body-class="flex-1 min-h-0">
+                <div ref="latencyChartRef" class="w-full h-full min-h-[120px]" />
+                <!-- 统计指标 -->
+                <div class="flex items-center gap-3 mt-2 px-1 text-[11px]">
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-0.5 rounded bg-cyan-400" />
+                    <span class="text-slate-400">平均</span>
+                    <span class="text-cyan-300 font-mono font-medium">{{ latencyStats.avg }}ms</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-0.5 rounded bg-rose-400" style="border-style: dashed;" />
+                    <span class="text-slate-400">P99</span>
+                    <span class="text-rose-300 font-mono font-medium">{{ latencyStats.p99 }}ms</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 ml-auto">
+                    <span class="text-slate-500">可用率</span>
+                    <span
+                      class="font-mono font-medium"
+                      :class="[latencyStats.availability >= 99.9 ? 'text-emerald-400' : 'text-amber-400']"
+                    >{{ latencyStats.availability }}%</span>
+                  </div>
+                </div>
+              </ScreenCard>
+              <ScreenCard title="实时事件流" class="flex flex-col min-h-0 overflow-hidden" body-class="flex-1 min-h-0">
+                <PerfectScrollbar :options="psOptions" class="h-full relative">
+                  <div class="space-y-1.5 pr-1">
+                    <div
+                      v-for="(evt, idx) in realtimeEvents"
+                      :key="idx"
+                      class="flex items-start gap-2 text-[11px] px-2 py-1.5 rounded bg-blue-900/15 hover:bg-blue-800/25 transition-colors"
+                    >
+                      <span :class="eventLevelColor(evt.level)" class="w-1 h-1 rounded-full shrink-0 mt-1.5" />
+                      <span class="text-blue-300/40 font-mono shrink-0">{{ evt.time }}</span>
+                      <span :class="eventLevelText(evt.level)" class="shrink-0">{{ evt.type.toUpperCase() }}</span>
+                      <span class="text-blue-100/70 truncate">{{ evt.msg }}</span>
+                    </div>
+                  </div>
+                </PerfectScrollbar>
+              </ScreenCard>
+            </div>
+          </div>
+
+          <!-- 右侧栏 -->
+          <div class="col-span-3 flex flex-col gap-3 h-full min-h-0">
+            <!-- 总请求数 -->
+            <ScreenCard class="shrink-0">
+              <div class="text-center py-1">
+                <RealtimeNumber :value="overview.totalRequests" />
+                <span class="text-[10px] text-blue-300/50 block mt-1">总请求数</span>
+              </div>
+            </ScreenCard>
+
+            <!-- 资源使用率 -->
+            <ScreenCard title="资源使用率" class="flex-1 flex flex-col min-h-0" body-class="flex-1 min-h-0">
+              <div ref="gaugeRef" class="w-full h-full min-h-[140px]" />
+            </ScreenCard>
+
+            <!-- 地区分布 -->
+            <ScreenCard title="地区用户分布 TOP9" class="flex-[1.5] flex flex-col min-h-0" body-class="flex-1 min-h-0">
+              <div ref="regionBarRef" class="w-full h-full min-h-[160px]" />
+            </ScreenCard>
+
+            <!-- 服务与告警 -->
+            <ScreenCard title="服务与告警" class="flex-[1.5] flex flex-col min-h-0" body-class="flex-1 min-h-0 overflow-hidden flex flex-col gap-2">
+              <!-- 服务健康状态 -->
+              <div class="flex-[3] min-h-0 overflow-hidden relative">
+                <PerfectScrollbar class="h-full relative">
+                  <div class="space-y-1.5 pr-1">
+                    <div
+                      v-for="svc in services"
+                      :key="svc.name"
+                      class="flex items-center justify-between px-2 py-1 rounded bg-blue-900/20"
+                    >
+                      <span class="text-xs text-blue-100/80">{{ svc.name }}</span>
+                      <div class="flex items-center gap-2">
+                        <span class="text-[10px] text-blue-300/50">{{ svc.uptime }}</span>
+                        <span :class="serviceStatusColor(svc.status)" class="text-[10px] flex items-center gap-1">
+                          <span
+                            class="w-1.5 h-1.5 rounded-full inline-block"
+                            :class="svc.status === 'healthy' ? 'bg-emerald-400' : svc.status === 'warning' ? 'bg-yellow-400' : 'bg-red-400'"
+                          />
+                          {{ svc.status === 'healthy' ? '正常' : svc.status === 'warning' ? '警告' : '异常' }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </PerfectScrollbar>
+              </div>
+              <!-- 最近告警 -->
+              <div class="flex-[2] min-h-0 overflow-hidden border-t border-blue-500/15 pt-2">
+                <div class="text-[10px] text-blue-300/50 mb-1">最近告警</div>
+                <MarqueeNotice :items="formattedAlerts" />
+              </div>
+            </ScreenCard>
+          </div>
+        </div>
+
+        <!-- 安全威胁态势（底部行） -->
+        <div class="col-span-12 row-start-2 h-[180px] grid grid-cols-12 gap-3 shrink-0 overflow-hidden">
+          <!-- 攻击来源 TOP5 -->
+          <div class="col-span-5 h-full overflow-hidden">
+            <ScreenCard title="攻击来源 TOP5" class="h-full flex flex-col" body-class="flex-1 min-h-0 p-2">
+              <div ref="attackSourceRef" class="w-full h-full min-h-0" />
+            </ScreenCard>
+          </div>
+          <!-- 实时安全告警 -->
+          <div class="col-span-7 h-full overflow-hidden">
+            <ScreenCard title="实时安全告警" class="h-full overflow-hidden flex flex-col" body-class="flex-1 min-h-0 p-2">
+              <PerfectScrollbar :options="psOptions" class="h-full relative">
+                <div class="space-y-1 pr-1">
+                  <div
+                    v-for="(alert, idx) in securityAlerts.slice(0, 3)"
+                    :key="idx"
+                    class="flex items-start gap-2 text-[11px] px-2 py-1 rounded bg-red-900/10 hover:bg-red-900/20 transition-colors"
+                  >
+                    <span :class="securityAlertLevelColor(alert.level)" class="w-1 h-1 rounded-full shrink-0 mt-1.5" />
+                    <span class="text-blue-300/40 font-mono shrink-0">{{ alert.time }}</span>
+                    <span :class="securityAlertLevelText(alert.level)" class="shrink-0 text-[9px] uppercase font-bold">{{ alert.level }}</span>
+                    <span class="text-red-100/70 truncate">{{ alert.msg }}</span>
+                  </div>
+                </div>
+              </PerfectScrollbar>
+            </ScreenCard>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- 安全威胁态势（底部新增行） -->
-    <div class="grid grid-cols-12 gap-3 px-3 pb-4">
-      <!-- 攻击来源 TOP5 -->
-      <div class="col-span-5">
-        <ScreenCard
-          title="攻击来源 TOP5"
-          class="min-h-[180px]"
-        >
-          <div
-            ref="attackSourceRef"
-            class="w-full"
-            style="height: 150px"
-          />
-        </ScreenCard>
-      </div>
-      <!-- 实时安全告警 -->
-      <div class="col-span-7">
-        <ScreenCard
-          title="实时安全告警"
-          class="min-h-[180px] overflow-hidden flex flex-col"
-        >
-          <PerfectScrollbar
-            :options="psOptions"
-            class="flex-1 min-h-0"
-            style="max-height: 150px"
-          >
-            <div class="space-y-1 pr-1">
-              <div
-                v-for="(alert, idx) in securityAlerts"
-                :key="idx"
-                class="flex items-start gap-2 text-[11px] px-2 py-1 rounded bg-red-900/10 hover:bg-red-900/20 transition-colors"
-              >
-                <span
-                  :class="securityAlertLevelColor(alert.level)"
-                  class="w-1 h-1 rounded-full shrink-0 mt-1.5"
-                />
-                <span class="text-blue-300/40 font-mono shrink-0">{{ alert.time }}</span>
-                <span
-                  :class="securityAlertLevelText(alert.level)"
-                  class="shrink-0 text-[9px] uppercase font-bold"
-                >{{ alert.level }}</span>
-                <span class="text-red-100/70 truncate">{{ alert.msg }}</span>
-              </div>
-            </div>
-          </PerfectScrollbar>
-        </ScreenCard>
+      <!-- 底部信息栏 -->
+      <div class="h-6 bg-blue-950/80 border-t border-blue-500/10 flex items-center justify-center text-[10px] text-blue-300/30">
+        <span>数据刷新于 {{ new Date().toLocaleString('zh-CN') }} &nbsp;|&nbsp; Antdv Next Admin Security Monitor &nbsp;|&nbsp; v1.0.0</span>
       </div>
     </div>
-
-    <!-- 底部信息栏 -->
-    <div class="h-6 bg-blue-950/80 border-t border-blue-500/10 flex items-center justify-center text-[10px] text-blue-300/30 mt-3">
-      <span>数据刷新于 {{ new Date().toLocaleString('zh-CN') }} &nbsp;|&nbsp; Antdv Next Admin Security Monitor &nbsp;|&nbsp; v1.0.0</span>
-    </div>
-  </div>
+  </PerfectScrollbar>
 </template>

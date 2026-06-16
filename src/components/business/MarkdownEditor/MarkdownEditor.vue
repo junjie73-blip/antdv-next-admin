@@ -298,7 +298,7 @@ defineExpose(instance)
       :default-config="editorConfig"
       :mode="mode === 'split' ? 'default' : mode"
       :style="{ height: editorHeight }"
-      class="overflow-y-auto"
+      class="overflow-hidden"
       @onCreated="handleCreated"
       @onChange="handleChange"
       @onFocus="handleFocus"

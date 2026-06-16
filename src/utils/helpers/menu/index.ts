@@ -78,10 +78,26 @@ export function transformMenuConfigToItems(menus: MenuConfig[], parentPath = '')
   return menus
     .filter(menu => !menu.hidden)
     .map((menu) => {
-      const fullPath = parentPath ? `${parentPath}/${menu.path}` : menu.path
+      const isExternal = menu.isExternal
+      const fullPath = isExternal
+        ? `external:${menu.path}`
+        : parentPath
+          ? `${parentPath}/${menu.path}`
+          : menu.path
       const item: Record<string, any> = {
         key: fullPath,
-        label: menu.title,
+        label: isExternal
+          ? h('a', {
+              href: menu.path,
+              target: '_blank',
+              rel: 'noopener noreferrer',
+              onClick: (e: MouseEvent) => {
+                e.preventDefault()
+                e.stopPropagation()
+                window.open(menu.path, '_blank', 'noopener,noreferrer')
+              },
+            }, menu.title)
+          : menu.title,
       }
 
       if (menu.icon) {

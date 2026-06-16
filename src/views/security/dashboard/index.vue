@@ -48,14 +48,14 @@ const headerClassName = cn('flex items-center justify-between mb-2')
     </div>
 
     <!-- 第一行：评分卡 + 告警面板 -->
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 items-stretch">
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 items-start">
       <!-- 安全评分（占2列） -->
-      <div class="xl:col-span-2 h-full">
+      <div class="xl:col-span-2">
         <SecurityScoreCard />
       </div>
 
       <!-- 实时告警（占1列） -->
-      <div class="h-full">
+      <div>
         <RealtimeAlertPanel />
       </div>
     </div>

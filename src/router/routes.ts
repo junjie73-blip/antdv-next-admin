@@ -59,6 +59,16 @@ export const constantRoutes: AppRouteRecordRaw[] = [
       layout: 'blank',
     },
   },
+  {
+    path: '/screen/monitor',
+    name: 'ScreenMonitor',
+    component: () => import('@/views/screen/monitor/index.vue'),
+    meta: {
+      title: '实时监控大屏',
+      hidden: true,
+      layout: 'blank',
+    },
+  },
 ]
 
 export const catchAllRoute: AppRouteRecordRaw = {

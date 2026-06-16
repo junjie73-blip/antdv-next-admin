@@ -338,7 +338,7 @@ onUnmounted(() => {
       微前端配置不存在
     </p>
     <!-- 调试信息面板 -->
-    <div class="mt-2 p-4 bg-orange-50 dark:bg-gray-800 rounded-lg text-left text-xs w-full max-w-lg overflow-auto">
+    <PerfectScrollbar class="mt-2 p-4 bg-orange-50 dark:bg-gray-800 rounded-lg text-left text-xs w-full max-w-lg">
       <p class="font-semibold text-orange-600 dark:text-orange-400 mb-2">
         调试信息：
       </p>
@@ -350,7 +350,7 @@ onUnmounted(() => {
         microAppValue: (route.meta as any)?.microApp,
         fullPath: route.fullPath,
       }, null, 2) }}</pre>
-    </div>
+    </PerfectScrollbar>
     <p class="text-xs text-gray-400 text-center mt-2">
       请检查路由配置中是否包含 microApp 字段
     </p>

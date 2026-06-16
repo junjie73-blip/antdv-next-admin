@@ -1,22 +1,21 @@
 import type { MenuConfig } from '#/menu'
 
 export const frontendMenus: MenuConfig[] = [
-  // ==================== 数据看板（以监控大屏为主入口）====================
+  // ==================== 数据看板 ====================
   {
     path: '/dashboard',
     name: 'Dashboard',
     title: '数据看板',
     icon: 'carbon:dashboard',
-    redirect: '/dashboard/monitor',
+    redirect: '/dashboard/analysis',
     children: [
       {
-        path: 'monitor',
+        path: '/screen/monitor',
         name: 'ScreenMonitor',
         title: '实时监控大屏',
         icon: 'carbon:chart-line-data',
-        component: '@/views/screen/monitor/index.vue',
+        isExternal: true,
         keepAlive: false,
-        meta: { noTransition: true },
       },
       {
         path: 'analysis',

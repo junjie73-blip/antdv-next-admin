@@ -86,7 +86,7 @@ watch(() => editorRef.value, () => {
       <Editor
         :default-config="editorConfig"
         :style="{ height: '600px' }"
-        class="overflow-y-auto"
+        class="overflow-hidden"
         @onCreated="handleCreated"
         @onChange="handleChange"
       />

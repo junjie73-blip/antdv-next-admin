@@ -152,7 +152,7 @@ watch(isDark, () => {
 </script>
 
 <template>
-  <div :class="cn(containerClassName, 'bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 h-full')">
+  <div :class="cn(containerClassName, 'bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800')">
     <!-- 标题 -->
     <div class="flex items-center justify-between mb-4">
       <div>

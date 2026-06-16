@@ -5,7 +5,7 @@ import { computed, reactive, ref } from 'vue'
 import { cn } from '@/utils/cn'
 
 const containerClassName = cn('space-y-6')
-const codeBlockClassName = cn('bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 text-sm font-mono overflow-auto h-full')
+const codeBlockClassName = cn('bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 text-sm font-mono h-full')
 
 const formState = reactive({ username: '', password: '', confirmPassword: '', email: '', age: null as number | null })
 const result = computed(() => JSON.stringify(formState, null, 2))
@@ -251,9 +251,9 @@ async function handleLinkedValidate() {
           :span="12"
           class="flex flex-col"
         >
-          <div :class="codeBlockClassName">
+          <PerfectScrollbar :class="codeBlockClassName">
             <pre>{{ result }}</pre>
-          </div>
+          </PerfectScrollbar>
         </a-col>
       </a-row>
     </a-card>
@@ -339,12 +339,12 @@ async function handleLinkedValidate() {
           </a-collapse-panel>
         </a-collapse>
       </a-form>
-      <div
+      <PerfectScrollbar
         :class="codeBlockClassName"
         class="mt-4"
       >
         <pre>{{ progressiveResult }}</pre>
-      </div>
+      </PerfectScrollbar>
     </a-card>
 
     <a-card
