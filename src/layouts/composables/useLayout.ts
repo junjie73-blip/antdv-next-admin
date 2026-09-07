@@ -4,40 +4,29 @@ import type { RouteLocationMatched } from 'vue-router'
 import { useFullscreen as _useFullscreen, useMediaQuery, useToggle } from '@vueuse/core'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useAppStore } from '@/stores'
 
 export type { LayoutMode }
 
 export const COLLAPSED_WIDTH = 80
-
-const [collapsed, toggleCollapsed] = useToggle(false)
 const isMobile = useMediaQuery('(max-width: 767px)')
 const { isFullscreen: _isFullscreenRef, toggle: _toggleFullscreenFn } = _useFullscreen()
 const isFullscreenRef = _isFullscreenRef
 const toggleFullscreenFn = _toggleFullscreenFn
 
-watch(isMobile, (mobile) => {
-  if (mobile) {
-    collapsed.value = true
-  }
-})
-
-function checkMobile() {
-  void isMobile
-}
-
-function setCollapsed(value: boolean) {
-  collapsed.value = value
-}
-
 export function useLayout() {
+  const store = useAppStore()
+
   return {
-    collapsed,
+    collapsed: computed(() => store.sidebarCollapsed),
     isMobile,
     isFullscreen: isFullscreenRef,
-    toggleCollapsed,
+    toggleCollapsed: store.toggleSidebar,
     toggleFullscreen: toggleFullscreenFn,
-    checkMobile,
-    setCollapsed,
+    checkMobile: () => isMobile.value,
+    setCollapsed: (value: boolean) => store.updateSetting({
+      sidebarCollapsed: value,
+    }),
     COLLAPSED_WIDTH,
   }
 }

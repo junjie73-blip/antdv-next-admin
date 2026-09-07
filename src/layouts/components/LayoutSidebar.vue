@@ -226,7 +226,7 @@ const handleMenuSelect: MenuProps['onSelect'] = ({ key }) => {
       @click="toggleCollapsed"
     >
       <Icon
-        icon="ant-design:menu-fold-outlined"
+        icon="ant-design:left-outlined"
         class="text-sm transition-transform duration-200"
         :class="{ 'rotate-180': props.collapsed }"
       />
