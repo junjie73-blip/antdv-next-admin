@@ -41,3 +41,4 @@ playwright-report/
 .tmp/*
 *.zip
 */cache/*
+*prototype/*

@@ -116,25 +116,28 @@ export function useMenu(_menus?: MenuConfig[]) {
    */
   function handleOpenChange(keys: string[], levelKeys?: Record<string, number>) {
     const currentOpenKey = keys.find(key => !openKeys.value.includes(key))
+    const closedKey = openKeys.value.find(key => !keys.includes(key))
 
-    if (currentOpenKey !== undefined && levelKeys) {
-      // 展开操作：过滤掉同层级的其他已展开项
-      const repeatIndex = keys
-        .filter(k => k !== currentOpenKey)
-        .findIndex(k => levelKeys[k] === levelKeys[currentOpenKey])
+    if (currentOpenKey !== undefined) {
+      // 展开操作
+      if (levelKeys) {
+        const repeatIndex = keys
+          .filter(k => k !== currentOpenKey)
+          .findIndex(k => levelKeys[k] === levelKeys[currentOpenKey])
 
+        openKeys.value = keys
+          .filter((_, i) => i !== repeatIndex)
+          .filter(k => (levelKeys[k] ?? 0) <= (levelKeys[currentOpenKey] ?? 0))
+      }
+      else {
+        openKeys.value = [currentOpenKey]
+      }
+    }
+    else if (closedKey !== undefined) {
+      // 收起操作：确实有 key 被关闭了
       openKeys.value = keys
-        .filter((_, i) => i !== repeatIndex)
-        .filter(k => (levelKeys[k] ?? 0) <= (levelKeys[currentOpenKey] ?? 0))
     }
-    else if (currentOpenKey !== undefined) {
-      // 没有层级信息时：只保留最新点击的那个
-      openKeys.value = [currentOpenKey]
-    }
-    else {
-      // 收起操作
-      openKeys.value = keys
-    }
+    // 既没有展开也没有收起，忽略（点击菜单项触发的无关事件，openKeys 由路由 watcher 维护）
   }
 
   return {

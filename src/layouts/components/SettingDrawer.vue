@@ -3,7 +3,7 @@ import type { LayoutMode } from '../composables/useLayout'
 
 import type { ComponentSize, NotificationPosition, ThemeStyle, TransitionEffect } from '@/settings'
 import { Icon } from '@iconify/vue'
-import { Divider, Input, InputNumber, Segmented, Select, Switch } from 'antdv-next'
+import { Input, InputNumber, Segmented, Select, Switch } from 'antdv-next'
 import { computed } from 'vue'
 import { useThemeTransition } from '@/composables/web/useThemeTransition'
 import { THEME_PRESETS } from '@/settings/theme'
@@ -75,6 +75,12 @@ const settingItemClassName = cn(
   'py-2',
 )
 
+const sectionTitleClassName = cn(
+  'text-sm font-semibold text-gray-800 dark:text-gray-200',
+  'pb-2 mb-3',
+  'border-b border-gray-100 dark:border-gray-800',
+)
+
 function _handleThemeChange(value: string | number, event?: MouseEvent) {
   if (value !== appStore.themeMode) {
     toggleThemeWithAnimation(event)
@@ -136,11 +142,10 @@ function getPrimaryColor(style: { token?: Record<string, unknown> }): string {
     size="300px"
   >
     <PerfectScrollbar class="h-full">
-      <div class="space-y-4 pr-2">
+      <div class="space-y-6 pr-2">
+        <!-- 主题模式 -->
         <div>
-          <div class="mb-2 text-sm font-medium">
-            主题模式
-          </div>
+          <div :class="sectionTitleClassName">主题模式</div>
           <Segmented
             :options="themeOptions"
             :value="appStore.themeMode"
@@ -153,12 +158,9 @@ function getPrimaryColor(style: { token?: Record<string, unknown> }): string {
           />
         </div>
 
-        <Divider />
-
+        <!-- 布局方式 -->
         <div>
-          <div class="mb-2 text-sm font-medium">
-            布局方式
-          </div>
+          <div :class="sectionTitleClassName">布局方式</div>
           <div class="grid grid-cols-3 gap-2">
             <div
               v-for="item in LAYOUT_OPTIONS"
@@ -168,7 +170,7 @@ function getPrimaryColor(style: { token?: Record<string, unknown> }): string {
                 'border-2 transition-all duration-200',
                 'hover:border-gray-400',
                 appStore.layout === item.value
-                  ? 'border-primary bg-primary/5'
+                  ? 'border-ant-primary bg-ant-primary/5'
                   : 'border-gray-200',
               )"
               @click="handleLayoutChange(item.value)"
@@ -182,12 +184,9 @@ function getPrimaryColor(style: { token?: Record<string, unknown> }): string {
           </div>
         </div>
 
-        <Divider />
-
+        <!-- 组件大小 -->
         <div>
-          <div class="mb-2 text-sm font-medium">
-            组件大小
-          </div>
+          <div :class="sectionTitleClassName">组件大小</div>
           <Segmented
             :options="sizeOptions"
             :value="appStore.componentSize"
@@ -196,12 +195,9 @@ function getPrimaryColor(style: { token?: Record<string, unknown> }): string {
           />
         </div>
 
-        <Divider />
-
+        <!-- 主题色 -->
         <div>
-          <div class="mb-2 text-sm font-medium">
-            主题色
-          </div>
+          <div :class="sectionTitleClassName">主题色</div>
           <div class="grid grid-cols-2 gap-2">
             <div
               v-for="item in primaryColors"
@@ -211,7 +207,7 @@ function getPrimaryColor(style: { token?: Record<string, unknown> }): string {
                 'border-2 transition-all duration-200',
                 'hover:border-gray-400',
                 appStore.primaryColor === item.color
-                  ? 'border-primary bg-primary/5'
+                  ? 'border-ant-primary bg-ant-primary/5'
                   : 'border-gray-200',
               )"
               @click="handlePrimaryColorChange(item.color)"
@@ -225,12 +221,9 @@ function getPrimaryColor(style: { token?: Record<string, unknown> }): string {
           </div>
         </div>
 
-        <Divider />
-
+        <!-- 主题风格 -->
         <div>
-          <div class="mb-2 text-sm font-medium">
-            主题风格
-          </div>
+          <div :class="sectionTitleClassName">主题风格</div>
           <div class="grid grid-cols-2 gap-2">
             <div
               v-for="style in themeStyles"
@@ -240,7 +233,7 @@ function getPrimaryColor(style: { token?: Record<string, unknown> }): string {
                 'border-2 transition-all duration-200',
                 'hover:border-gray-400',
                 appStore.themeStyle === style.name
-                  ? 'border-primary bg-primary/5'
+                  ? 'border-ant-primary bg-ant-primary/5'
                   : 'border-gray-200',
               )"
               @click="handleThemeStyleChange(style.name)"
@@ -254,12 +247,9 @@ function getPrimaryColor(style: { token?: Record<string, unknown> }): string {
           </div>
         </div>
 
-        <Divider />
-
+        <!-- 界面设置 -->
         <div>
-          <div class="mb-2 text-sm font-medium">
-            界面设置
-          </div>
+          <div :class="sectionTitleClassName">界面设置</div>
           <div class="space-y-1">
             <div :class="settingItemClassName">
               <span class="text-sm">暗色侧边栏</span>
@@ -342,56 +332,57 @@ function getPrimaryColor(style: { token?: Record<string, unknown> }): string {
           </div>
         </div>
 
-        <Divider />
-
-        <div :class="settingItemClassName">
-          <span class="text-sm">侧边栏宽度</span>
-          <InputNumber
-            :value="appStore.sidebarWidth"
-            :min="180"
-            :max="280"
-            :step="10"
-            class="w-24"
-            @change="handleSidebarWidthChange"
-          />
+        <!-- 尺寸设置 -->
+        <div>
+          <div :class="sectionTitleClassName">尺寸设置</div>
+          <div :class="settingItemClassName">
+            <span class="text-sm">侧边栏宽度</span>
+            <InputNumber
+              :value="appStore.sidebarWidth"
+              :min="180"
+              :max="280"
+              :step="10"
+              class="w-24"
+              @change="handleSidebarWidthChange"
+            />
+          </div>
+          <div :class="settingItemClassName">
+            <span class="text-sm">圆角大小</span>
+            <InputNumber
+              :value="appStore.borderRadius"
+              :min="0"
+              :max="16"
+              :step="1"
+              class="w-24"
+              @change="handleBorderRadiusChange"
+            />
+          </div>
         </div>
 
-        <div :class="settingItemClassName">
-          <span class="text-sm">圆角大小</span>
-          <InputNumber
-            :value="appStore.borderRadius"
-            :min="0"
-            :max="16"
-            :step="1"
-            class="w-24"
-            @change="handleBorderRadiusChange"
-          />
+        <!-- 动画与通知 -->
+        <div>
+          <div :class="sectionTitleClassName">动画与通知</div>
+          <div :class="settingItemClassName">
+            <span class="text-sm">页面切换动画</span>
+            <Select
+              :value="appStore.transitionEffect"
+              :options="transitionOptions"
+              class="w-32"
+              @change="handleTransitionChange"
+            />
+          </div>
+          <div :class="settingItemClassName">
+            <span class="text-sm">通知位置</span>
+            <Select
+              :value="appStore.notificationPosition"
+              :options="notificationPositionOptions"
+              class="w-32"
+              @change="handleNotificationPositionChange"
+            />
+          </div>
         </div>
 
-        <Divider />
-
-        <div :class="settingItemClassName">
-          <span class="text-sm">页面切换动画</span>
-          <Select
-            :value="appStore.transitionEffect"
-            :options="transitionOptions"
-            class="w-32"
-            @change="handleTransitionChange"
-          />
-        </div>
-
-        <div :class="settingItemClassName">
-          <span class="text-sm">通知位置</span>
-          <Select
-            :value="appStore.notificationPosition"
-            :options="notificationPositionOptions"
-            class="w-32"
-            @change="handleNotificationPositionChange"
-          />
-        </div>
-
-        <Divider />
-
+        <!-- 重置 -->
         <div>
           <a-button
             block

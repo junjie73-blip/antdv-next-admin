@@ -139,7 +139,7 @@ function tabItemClassName(key: string) {
     'px-3 py-1.5 text-sm rounded cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap',
     'transition-colors duration-200',
     activeKey.value === key
-      ? 'bg-primary text-white'
+      ? 'bg-ant-primary text-white'
       : isGeekStyle.value
         ? 'bg-[#1a1a1a] text-gray-400 hover:bg-[#222] hover:text-gray-300'
         : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600',

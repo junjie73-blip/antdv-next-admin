@@ -35,7 +35,7 @@ interface MicroAppConfig {
 
 function generateRoutesFromMenus(menus: MenuConfig[]): InternalRoute[] {
   return menus
-    .filter(menu => !menu.isExternal)
+    .filter(menu => !menu.isExternal && menu.layout !== 'blank')
     .map((menu) => {
       const route: InternalRoute = {
         path: menu.path,
@@ -67,6 +67,45 @@ function generateRoutesFromMenus(menus: MenuConfig[]): InternalRoute[] {
 
       return route
     })
+}
+
+function generateBlankRoutesFromMenus(menus: MenuConfig[]): InternalRoute[] {
+  const routes: InternalRoute[] = []
+
+  function walk(list: MenuConfig[]) {
+    for (const menu of list) {
+      if (menu.layout === 'blank' && menu.component) {
+        const route: InternalRoute = {
+          path: menu.path,
+          name: menu.name,
+          meta: {
+            title: menu.title,
+            icon: menu.icon,
+            hidden: menu.hidden,
+            keepAlive: menu.keepAlive,
+            requiresAuth: menu.requiresAuth,
+            roles: menu.roles,
+            permissions: menu.permissions,
+            microApp: menu.microApp,
+          },
+        }
+
+        if (menu.component) {
+          const componentPath = `/src/${menu.component.replace('@/', '')}`
+          route.component = modules[componentPath]
+        }
+
+        routes.push(route)
+      }
+
+      if (menu.children && menu.children.length > 0) {
+        walk(menu.children)
+      }
+    }
+  }
+
+  walk(menus)
+  return routes
 }
 
 function generateRoutesFromBackendMenus(backendMenus: BackendMenu[]): InternalRoute[] {
@@ -126,7 +165,9 @@ export const useRouteStore = defineStore('route', () => {
       children: generateRoutesFromMenus(menuList) as unknown as AppRouteRecordRaw[],
     }
 
-    return [dynamicRoutes]
+    const blankRoutes = generateBlankRoutesFromMenus(menuList) as unknown as AppRouteRecordRaw[]
+
+    return [dynamicRoutes, ...blankRoutes]
   }
 
   const generateBackendRoutes = (backendMenuList: BackendMenu[]): AppRouteRecordRaw[] => {

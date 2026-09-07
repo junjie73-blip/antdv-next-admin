@@ -2,7 +2,7 @@
 import type { BreadcrumbProps, MenuProps } from 'antdv-next'
 
 import { Icon } from '@iconify/vue'
-import { Badge, Dropdown, Menu, Modal, Popover, Segmented } from 'antdv-next'
+import { Badge, Dropdown, Menu, Modal, Popover } from 'antdv-next'
 import dayjs from 'dayjs'
 import { computed, h, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -100,38 +100,15 @@ const notifications = ref<NotificationItem[]>([
 
 const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
 
-const notificationTab = ref<'all' | 'unread' | 'read'>('all')
-
-const filteredNotifications = computed(() => {
-  if (notificationTab.value === 'unread')
-    return notifications.value.filter(n => !n.read)
-  if (notificationTab.value === 'read')
-    return notifications.value.filter(n => n.read)
-  return notifications.value
-})
-
-const isEmpty = computed(() => filteredNotifications.value.length === 0)
-
-const notificationTypeConfig: Record<string, { icon: string, color: string }> = {
-  info: { icon: 'carbon:information-filled', color: 'text-blue-500' },
-  success: { icon: 'carbon:checkmark-filled', color: 'text-green-500' },
-  warning: { icon: 'carbon:warning-filled', color: 'text-yellow-500' },
-  error: { icon: 'carbon:error-filled', color: 'text-red-500' },
+const notificationTypeConfig: Record<string, { icon: string }> = {
+  info: { icon: 'carbon:information-filled' },
+  success: { icon: 'carbon:checkmark-filled' },
+  warning: { icon: 'carbon:warning-filled' },
+  error: { icon: 'carbon:error-filled' },
 }
-
-const notificationTabItems = computed(() => [
-  { label: '全部', value: 'all' as const },
-  { label: `未读 (${unreadCount.value})`, value: 'unread' as const },
-  { label: '已读', value: 'read' as const },
-])
 
 function handleMarkAllRead() {
   notifications.value.forEach(n => n.read = true)
-}
-
-function handleClearAll() {
-  notifications.value = []
-  showNotification.value = false
 }
 
 function handleNotificationClick(item: NotificationItem) {
@@ -144,7 +121,7 @@ const isDarkMode = computed(() => appStore.themeMode === 'dark' || isGeekStyle.v
 
 const headerClassName = computed(() =>
   cn(
-    'h-12 px-4 flex items-center justify-between',
+    'h-14 px-6 flex items-center justify-between',
     'border-b shadow-sm flex-shrink-0',
     isGeekStyle.value
       ? 'bg-[#0a0a0a] border-[#1a1a1a] text-[#00ff88]'
@@ -205,11 +182,6 @@ const userDropdownItems: MenuProps['items'] = [
     icon: () => h(Icon, { icon: 'carbon:user-avatar' }),
   },
   {
-    key: 'settings',
-    label: '账户设置',
-    icon: () => h(Icon, { icon: 'carbon:settings' }),
-  },
-  {
     key: 'docs',
     label: '文档中心',
     icon: () => h(Icon, { icon: 'carbon:book' }),
@@ -226,31 +198,35 @@ const userDropdownItems: MenuProps['items'] = [
 const actionBtnClassName = computed(() =>
   cn(
     'flex items-center justify-center',
-    'w-8 h-8 rounded-md',
+    'w-9 h-9 rounded-md',
     'cursor-pointer',
     'transition-colors duration-200',
     isGeekStyle.value
-      ? 'hover:bg-[#1a1a1a]'
+      ? 'text-gray-500 hover:text-[#00ff88] hover:bg-[#1a1a1a]'
       : isDarkMode.value
-        ? 'hover:bg-gray-700'
-        : 'hover:bg-gray-100',
+        ? 'text-gray-400 hover:text-white hover:bg-gray-700'
+        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100',
   ),
 )
 
+const notificationIconBgConfig = computed<Record<string, string>>(() => ({
+  info: isGeekStyle.value ? 'bg-[#0a2a1a] text-[#00ff88]' : 'bg-blue-50 text-blue-500 dark:bg-blue-900/30 dark:text-blue-400',
+  success: isGeekStyle.value ? 'bg-[#0a2a1a] text-[#00ff88]' : 'bg-green-50 text-green-500 dark:bg-green-900/30 dark:text-green-400',
+  warning: isGeekStyle.value ? 'bg-[#2a2a0a] text-[#ffcc00]' : 'bg-yellow-50 text-yellow-500 dark:bg-yellow-900/30 dark:text-yellow-400',
+  error: isGeekStyle.value ? 'bg-[#2a0a0a] text-[#ff4444]' : 'bg-red-50 text-red-500 dark:bg-red-900/30 dark:text-red-400',
+}))
+
 function notificationItemClassName(read: boolean) {
   return cn(
-    'flex items-start gap-3 px-3 py-2.5 cursor-pointer transition-colors duration-150',
+    'flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors duration-150',
+    'border-b border-gray-100 dark:border-gray-800',
     read
       ? isGeekStyle.value
-        ? 'bg-[#0a0a0a] hover:bg-[#111]'
-        : isDarkMode.value
-          ? 'bg-gray-800 hover:bg-gray-750'
-          : 'bg-white hover:bg-gray-50'
+        ? 'hover:bg-[#111]'
+        : 'hover:bg-gray-50 dark:hover:bg-gray-800'
       : isGeekStyle.value
-        ? 'bg-[#111] hover:bg-[#1a1a1a]'
-        : isDarkMode.value
-          ? 'bg-gray-750 hover:bg-gray-700'
-          : 'bg-blue-50 hover:bg-blue-100',
+        ? 'bg-[#111]'
+        : 'bg-blue-50 dark:bg-blue-900/20',
   )
 }
 
@@ -295,9 +271,6 @@ function handleUserMenuClick({ key }: { key: string }) {
   else if (key === 'profile') {
     accountDrawerRef.value?.open('center')
   }
-  else if (key === 'settings') {
-    accountDrawerRef.value?.open('settings')
-  }
   else if (key === 'docs') {
     window.open('https://junjie73-blip.github.io/antdv-next-admin/', '_blank')
   }
@@ -320,18 +293,8 @@ function handleHorizontalMenuSelect({ key }: { key: string }) {
     :class="headerClassName"
   >
     <div class="flex items-center gap-4 flex-1">
-      <!-- 垂直布局：折叠按钮 + 面包屑 -->
+      <!-- 垂直布局：面包屑 -->
       <template v-if="!horizontal && !mixed">
-        <div
-          :class="actionBtnClassName"
-          @click="handleToggle"
-        >
-          <Icon
-            :icon="!collapsed ? 'ant-design:menu-fold-outlined' : 'ant-design:menu-unfold-outlined'"
-            class="text-lg"
-          />
-        </div>
-
         <a-breadcrumb
           v-if="appStore.showBreadcrumb"
           class="hidden md:flex items-center"
@@ -363,9 +326,9 @@ function handleHorizontalMenuSelect({ key }: { key: string }) {
         <div class="flex items-center gap-2">
           <Icon
             icon="carbon:cube"
-            class="text-2xl text-primary"
+            class="text-2xl text-ant-primary"
           />
-          <span class="font-bold text-primary">
+          <span class="font-bold text-ant-primary">
             {{ appTitle }}
           </span>
         </div>
@@ -385,11 +348,11 @@ function handleHorizontalMenuSelect({ key }: { key: string }) {
           <Icon
             icon="carbon:cube"
             class="text-2xl"
-            :class="isGeekStyle ? 'text-[#00ff88]' : 'text-primary'"
+            :class="isGeekStyle ? 'text-[#00ff88]' : 'text-ant-primary'"
           />
           <span
             class="font-bold"
-            :class="isGeekStyle ? 'text-[#00ff88]' : 'text-primary'"
+            :class="isGeekStyle ? 'text-[#00ff88]' : 'text-ant-primary'"
           >
             {{ appTitle }}
           </span>
@@ -406,7 +369,19 @@ function handleHorizontalMenuSelect({ key }: { key: string }) {
       </template>
     </div>
 
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-1">
+      <!-- 全局搜索 -->
+      <div
+        :class="actionBtnClassName"
+        title="全局搜索 (Ctrl+K)"
+      >
+        <Icon
+          icon="carbon:search"
+          class="text-xl"
+        />
+      </div>
+
+      <!-- 通知中心 -->
       <Popover
         v-model:open="showNotification"
         trigger="click"
@@ -414,75 +389,48 @@ function handleHorizontalMenuSelect({ key }: { key: string }) {
         :overlay-class-name="isGeekStyle ? 'notification-popover-geek' : ''"
       >
         <template #content>
-          <div class="w-[380px]">
-            <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-              <span class="text-sm font-medium">通知</span>
-              <div class="flex items-center gap-2">
-                <a-button
-                  v-if="notifications.length > 0"
-                  type="link"
-                  size="small"
-                  @click="handleMarkAllRead"
-                >
-                  全部已读
-                </a-button>
-                <a-button
-                  v-if="notifications.length > 0"
-                  type="link"
-                  size="small"
-                  danger
-                  @click="handleClearAll"
-                >
-                  清空
-                </a-button>
-              </div>
+          <div class="w-[340px]">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+              <strong class="text-sm">通知</strong>
+              <a-tag
+                v-if="unreadCount > 0"
+                color="blue"
+                class="!cursor-pointer !text-xs"
+                @click="handleMarkAllRead"
+              >
+                全部已读
+              </a-tag>
             </div>
-
-            <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-              <Segmented
-                block
-                size="small"
-                :value="notificationTab"
-                :options="notificationTabItems"
-                @change="(val) => { notificationTab = val as 'all' | 'unread' | 'read' }"
-              />
-            </div>
-
-            <PerfectScrollbar class="h-[300px]">
+            <div class="max-h-[360px] overflow-y-auto">
               <div
-                v-for="item in filteredNotifications"
+                v-for="item in notifications"
                 :key="item.id"
                 :class="notificationItemClassName(item.read)"
                 @click="handleNotificationClick(item)"
               >
-                <Icon
-                  :icon="notificationTypeConfig[item.type].icon"
-                  class="text-lg mt-0.5 flex-shrink-0"
-                  :class="notificationTypeConfig[item.type].color"
-                />
+                <div
+                  class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                  :class="notificationIconBgConfig[item.type]"
+                >
+                  <Icon
+                    :icon="notificationTypeConfig[item.type].icon"
+                    class="text-base"
+                  />
+                </div>
                 <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2">
-                    <span
-                      class="text-sm leading-tight"
-                      :class="item.read ? (isGeekStyle ? 'text-gray-400' : 'text-gray-600 dark:text-gray-300') : 'font-medium'"
-                    >
-                      {{ item.title }}
-                    </span>
-                    <span
-                      v-if="!item.read"
-                      class="w-2 h-2 rounded-full bg-primary flex-shrink-0"
-                    />
+                  <div class="text-sm font-medium truncate">
+                    {{ item.title }}
                   </div>
                   <div class="text-xs text-gray-400 mt-0.5 truncate">
                     {{ item.description }}
                   </div>
-                  <div class="text-xs text-gray-400 mt-1">
-                    {{ item.time }}
-                  </div>
                 </div>
+                <span class="text-xs text-gray-400 flex-shrink-0 mt-0.5">
+                  {{ item.time }}
+                </span>
               </div>
               <div
-                v-if="isEmpty"
+                v-if="notifications.length === 0"
                 class="py-12 text-center"
               >
                 <Icon
@@ -493,93 +441,61 @@ function handleHorizontalMenuSelect({ key }: { key: string }) {
                   暂无通知
                 </div>
               </div>
-            </PerfectScrollbar>
+            </div>
+            <div class="py-2 text-center border-t border-gray-100 dark:border-gray-800">
+              <a
+                class="text-xs text-ant-primary hover:underline cursor-pointer"
+                @click="showNotification = false"
+              >
+                查看全部通知
+              </a>
+            </div>
           </div>
         </template>
         <Badge
           :count="unreadCount"
-          :offset="[-2,
-                    2]"
+          :offset="[-2, 2]"
+          :overflow-count="99"
         >
           <div :class="actionBtnClassName">
             <Icon
               icon="carbon:notification"
-              class="text-lg"
+              class="text-xl"
             />
           </div>
         </Badge>
       </Popover>
 
-      <Dropdown
-        :menu="{ items: sizeOptions, selectedKeys: [appStore.componentSize], onClick: handleSizeSelect }"
-        placement="bottom"
-        :arrow="{ pointAtCenter: true }"
-      >
-        <div :class="actionBtnClassName">
-          <Icon
-            icon="carbon:grid"
-            class="text-lg"
-          />
-        </div>
-      </Dropdown>
-
-      <Dropdown
-        :menu="{ items: themeStyleOptions, selectedKeys: [appStore.themeStyle], onClick: handleThemeStyleSelect }"
-        placement="bottom"
-        :arrow="{ pointAtCenter: true }"
-      >
-        <div :class="actionBtnClassName">
-          <Icon
-            icon="carbon:color-palette"
-            class="text-lg"
-          />
-        </div>
-      </Dropdown>
-
-      <div
-        :class="actionBtnClassName"
-        @click="toggleFullscreen"
-      >
-        <Icon
-          :icon="isFullscreen ? 'radix-icons:exit-full-screen' : 'radix-icons:enter-full-screen'"
-          class="text-lg"
-        />
-      </div>
-
-      <div
-        :class="actionBtnClassName"
-        @click="handleThemeToggle"
-      >
-        <Icon
-          :icon="isDarkMode ? 'carbon:moon' : 'carbon:sun'"
-          class="text-lg"
-        />
-      </div>
-
-      <div
-        :class="actionBtnClassName"
-        @click="showSetting = true"
-      >
-        <Icon
-          icon="carbon:settings"
-          class="text-lg"
-        />
-      </div>
-
+      <!-- 用户下拉 -->
       <Dropdown
         :menu="{ items: userDropdownItems, onClick: handleUserMenuClick }"
         placement="bottomRight"
       >
         <div class="flex items-center gap-2 cursor-pointer px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
           <a-avatar
-            :size="28"
-            class="bg-primary"
+            :size="32"
+            class="bg-ant-primary"
           >
             {{ userStore.username?.charAt(0)?.toUpperCase() || 'U' }}
           </a-avatar>
           <span class="text-sm hidden sm:inline">{{ userStore.username || '用户' }}</span>
+          <Icon
+            icon="carbon:chevron-down"
+            class="text-sm text-gray-400"
+          />
         </div>
       </Dropdown>
+
+      <!-- 系统设置 -->
+      <div
+        :class="actionBtnClassName"
+        @click="showSetting = true"
+      >
+        <Icon
+          icon="carbon:settings"
+          class="text-xl"
+        />
+      </div>
     </div>
 
     <SettingDrawer v-model:visible="showSetting" />

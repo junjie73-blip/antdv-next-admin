@@ -22,7 +22,7 @@ const headerClassName = cn('flex items-center justify-between mb-2')
             icon="carbon:security"
             :width="24"
             :height="24"
-            class="text-primary"
+            class="text-ant-primary"
           />
           安全审计仪表盘
         </h1>

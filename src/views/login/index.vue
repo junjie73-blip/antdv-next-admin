@@ -14,6 +14,7 @@ import { useLoginStyles } from './composables/useLoginStyles'
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const _appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
 
 const {
   containerClassName,
@@ -39,21 +40,15 @@ const {
   loginTypeBtnBaseClassName,
   loginTypeActiveBtnStyle,
   sendCodeBtnStyle,
-  registerLinkStyle,
-  thirdPartyBtnClassName,
 } = useLoginStyles()
 
 const formRef = ref<FormInstance>()
 const loading = ref(false)
 const loginType = ref<'account' | 'mobile'>('account')
 
-// 默认填充测试账号，方便本地快速登录
-const DEFAULT_USERNAME = 'admin'
-const DEFAULT_PASSWORD = 'admin123'
-
 const formState = reactive({
-  username: DEFAULT_USERNAME,
-  password: DEFAULT_PASSWORD,
+  username: '',
+  password: '',
   mobile: '',
   code: '',
   remember: true,
@@ -103,10 +98,6 @@ async function handleLogin() {
   finally {
     loading.value = false
   }
-}
-
-function handleRegister() {
-  router.push('/register')
 }
 
 function handleForgotPassword() {
@@ -245,12 +236,14 @@ function handleSendCode() {
       <div :class="glassCardClassName">
         <!-- 标题 -->
         <div class="text-center mb-8">
-          <h2 class="text-2xl font-semibold text-stone-800 mb-2">
-            欢迎回来
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[var(--ant-color-primary)] shadow-lg shadow-[var(--ant-color-primary)]/20 mb-4">
+            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+            </svg>
+          </div>
+          <h2 class="text-xl font-semibold text-stone-800">
+            {{ _appTitle }}
           </h2>
-          <p class="text-stone-500">
-            请登录您的账户继续操作
-          </p>
         </div>
 
         <!-- 登录类型切换 -->
@@ -392,57 +385,6 @@ function handleSendCode() {
             </a-button>
           </a-form-item>
         </a-form>
-
-        <!-- 注册链接 -->
-        <div class="text-center mb-6">
-          <span class="text-stone-500">还没有账户？</span>
-          <a-button
-            type="link"
-            class="!p-0 !ml-1"
-            :style="registerLinkStyle"
-            @click="handleRegister"
-          >
-            立即注册
-          </a-button>
-        </div>
-
-        <!-- 分割线 -->
-        <div class="relative mb-6">
-          <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-stone-200" />
-          </div>
-          <div class="relative flex justify-center text-sm">
-            <span class="px-4 bg-transparent text-stone-400">其他登录方式</span>
-          </div>
-        </div>
-
-        <!-- 第三方登录 -->
-        <div class="flex justify-center gap-3">
-          <button :class="thirdPartyBtnClassName">
-            <Icon
-              icon="mdi:web"
-              width="18"
-              height="18"
-              class="text-stone-500"
-            />
-          </button>
-          <button :class="thirdPartyBtnClassName">
-            <Icon
-              icon="ic:baseline-telegram"
-              width="18"
-              height="18"
-              class="text-stone-500"
-            />
-          </button>
-          <button :class="thirdPartyBtnClassName">
-            <Icon
-              icon="mdi:github"
-              width="18"
-              height="18"
-              class="text-stone-500"
-            />
-          </button>
-        </div>
       </div>
     </div>
   </div>

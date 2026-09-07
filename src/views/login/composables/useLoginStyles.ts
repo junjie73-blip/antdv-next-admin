@@ -130,17 +130,6 @@ export function useLoginStyles() {
     color: 'var(--ant-color-primary)',
   }))
 
-  const registerLinkStyle = computed(() => ({
-    color: 'var(--ant-color-primary)',
-  }))
-
-  const thirdPartyBtnClassName = computed(() =>
-    cn(
-      'w-11 h-11 bg-white/80 backdrop-blur-sm rounded-lg flex items-center justify-center',
-      'border border-stone-200 hover:border-stone-300 transition-all duration-200 shadow-sm',
-    ),
-  )
-
   return {
     containerClassName,
     leftPanelClassName,
@@ -165,7 +154,5 @@ export function useLoginStyles() {
     loginTypeBtnBaseClassName,
     loginTypeActiveBtnStyle,
     sendCodeBtnStyle,
-    registerLinkStyle,
-    thirdPartyBtnClassName,
   }
 }

@@ -44,12 +44,33 @@ interface DictTypeRecord {
   items: DictItemRecord[]
 }
 
-const containerClassName = cn('space-y-4')
+const containerClassName = cn('flex gap-4')
+const leftPanelClassName = cn('w-[280px] shrink-0')
+const rightPanelClassName = cn('flex-1 min-w-0')
 const cardClassName = cn('shadow-sm')
-const tagClassName = cn('inline-flex items-center gap-1')
+const typeItemClassName = (active: boolean) => cn(
+  'flex items-center justify-between',
+  'px-4 py-3 cursor-pointer',
+  'border-b border-gray-100 dark:border-gray-800',
+  'transition-colors duration-200',
+  'hover:bg-gray-50 dark:hover:bg-gray-800',
+  active && 'bg-blue-50 dark:bg-blue-900/20 border-l-[3px] border-l-[var(--ant-color-primary)]',
+)
+const typeItemNameClassName = cn('text-sm font-medium text-gray-800 dark:text-gray-200 truncate')
+const typeItemCodeClassName = cn('text-xs text-gray-400 mt-0.5 truncate')
+const typeItemActionsClassName = cn('flex items-center gap-1 flex-shrink-0 ml-2')
+const typeItemBtnClassName = cn('!p-0.5 !min-w-0')
+const emptyClassName = cn('flex flex-col items-center justify-center py-10 text-gray-400')
+const emptyIconClassName = cn('text-4xl mb-3 opacity-30')
+const emptyTitleClassName = cn('text-sm font-medium')
+const emptyDescClassName = cn('text-xs mt-1')
+const cardFooterClassName = cn('flex justify-start px-4 py-3 border-t border-gray-100 dark:border-gray-800')
+const cardHeaderClassName = cn('flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800')
+const cardTitleClassName = cn('text-sm font-semibold text-gray-800 dark:text-gray-200')
 const actionClassName = cn('flex', 'items-center', 'justify-center')
 const btnClassName = cn('!px-0.5')
 const dividerClassName = cn('mx-0')
+const tagClassName = cn('inline-flex items-center gap-1')
 
 const statusColorMap: Record<number, string> = {
   1: 'green',
@@ -69,40 +90,15 @@ const isEditing = ref(false)
 const isEditingItem = ref(false)
 const currentRecord = ref<DictTypeRecord | null>(null)
 const currentItemRecord = ref<DictItemRecord | null>(null)
-const selectedTypeId = ref<number | null>(null)
-const selectedTypeName = ref<string>('')
+const selectedType = ref<DictTypeRecord | null>(null)
+const dictTypes = ref<DictTypeRecord[]>([])
+const dictItems = ref<DictItemRecord[]>([])
 
 const [modalRegister, modalMethods] = useModal()
 const [itemModalRegister, itemModalMethods] = useModal()
-const [itemEditModalRegister, itemEditModalMethods] = useModal()
-const [tableRegister, tableMethods] = useTable()
-const [itemTableRegister, itemTableMethods] = useTable()
 const [formRegister, formMethods] = useForm()
 const [itemFormRegister, itemFormMethods] = useForm()
-
-const searchFormSchemas: FormSchema[] = [
-  {
-    field: 'keyword',
-    label: '关键词',
-    component: 'Input',
-    componentProps: {
-      placeholder: '搜索字典名称/编码...',
-      allowClear: true,
-    },
-    colProps: { span: 6 },
-  },
-  {
-    field: 'status',
-    label: '状态',
-    component: 'Select',
-    componentProps: () => ({
-      placeholder: '选择状态',
-      allowClear: true,
-      options: statusOptions.value,
-    }),
-    colProps: { span: 6 },
-  },
-]
+const [itemTableRegister, itemTableMethods] = useTable()
 
 const modalFormSchemas: FormSchema[] = [
   {
@@ -199,19 +195,31 @@ const itemFormSchemas: FormSchema[] = [
   },
 ]
 
-async function mockApi(params: Record<string, any>) {
-  const res = await getDictList(params)
-  const data = res?.data ?? res
-  return { items: data?.list || [], total: data?.total || 0 }
+async function loadDictTypes() {
+  try {
+    const res = await getDictList({})
+    const data = res?.data ?? res
+    dictTypes.value = data?.list || []
+  }
+  catch {
+    message.error('加载字典类型失败')
+  }
 }
 
-async function mockItemApi(_params: Record<string, any>) {
-  if (selectedTypeId.value === null)
-    return { items: [], total: 0 }
+async function loadDictItems(typeId: number) {
+  try {
+    const res = await getDictItems(typeId)
+    const items = Array.isArray(res) ? res : (res?.data ?? res ?? [])
+    dictItems.value = items
+  }
+  catch {
+    message.error('加载字典项失败')
+  }
+}
 
-  const res = await getDictItems(selectedTypeId.value)
-  const items = Array.isArray(res) ? res : (res?.data ?? res ?? [])
-  return { items, total: items.length }
+function selectType(type: DictTypeRecord) {
+  selectedType.value = type
+  loadDictItems(type.id)
 }
 
 function handleAdd() {
@@ -246,20 +254,15 @@ async function handleDelete(record: DictTypeRecord) {
   try {
     await deleteDict(record.id)
     message.success(`已删除字典：${record.typeName}`)
-    tableMethods.value?.reload()
+    if (selectedType.value?.id === record.id) {
+      selectedType.value = null
+      dictItems.value = []
+    }
+    await loadDictTypes()
   }
   catch {
     message.error('删除失败')
   }
-}
-
-function handleViewItems(record: DictTypeRecord) {
-  selectedTypeId.value = record.id
-  selectedTypeName.value = record.typeName
-  currentItemRecord.value = null
-  isEditingItem.value = false
-  itemModalMethods.openModal()
-  setTimeout(() => itemTableMethods.value?.reload(), 100)
 }
 
 async function handleSave() {
@@ -283,7 +286,13 @@ async function handleSave() {
     }
 
     modalMethods.closeModal()
-    tableMethods.value?.reload()
+    await loadDictTypes()
+    if (selectedType.value && isEditing.value && currentRecord.value?.id === selectedType.value.id) {
+      const updated = dictTypes.value.find(t => t.id === selectedType.value!.id)
+      if (updated) {
+        selectedType.value = updated
+      }
+    }
   }
   catch {
     message.error('保存失败')
@@ -301,7 +310,7 @@ function handleAddItem() {
     remark: '',
   })
   itemFormMethods.clearValidate()
-  itemEditModalMethods.openModal()
+  itemModalMethods.openModal()
 }
 
 function handleEditItem(item: DictItemRecord) {
@@ -315,7 +324,7 @@ function handleEditItem(item: DictItemRecord) {
     remark: item.remark,
   })
   itemFormMethods.clearValidate()
-  itemEditModalMethods.openModal()
+  itemModalMethods.openModal()
 }
 
 async function handleSaveItem() {
@@ -334,21 +343,14 @@ async function handleSaveItem() {
       message.success(`已更新字典项：${values.dictLabel}`)
     }
     else {
-      await addDictItem({ ...values, dictTypeId: selectedTypeId.value })
+      await addDictItem({ ...values, dictTypeId: selectedType.value!.id })
       message.success(`已新增字典项：${values.dictLabel}`)
     }
 
-    isEditingItem.value = false
-    currentItemRecord.value = null
-    itemFormMethods.setFieldsValue({
-      dictLabel: '',
-      dictValue: '',
-      sort: 0,
-      status: 0,
-      remark: '',
-    })
-    itemTableMethods.value?.reload()
-    itemEditModalMethods.closeModal()
+    itemModalMethods.closeModal()
+    if (selectedType.value) {
+      loadDictItems(selectedType.value.id)
+    }
   }
   catch {
     message.error('保存失败')
@@ -359,7 +361,9 @@ async function handleDeleteItem(item: DictItemRecord) {
   try {
     await deleteDictItem(item.id)
     message.success(`已删除字典项：${item.dictLabel}`)
-    itemTableMethods.value?.reload()
+    if (selectedType.value) {
+      loadDictItems(selectedType.value.id)
+    }
   }
   catch {
     message.error('删除失败')
@@ -367,40 +371,31 @@ async function handleDeleteItem(item: DictItemRecord) {
 }
 
 function handleExport() {
-  const tableData = (tableMethods.value?.getDataSource?.() || []) as DictTypeRecord[]
+  const dataToExport = selectedType.value ? dictItems.value : dictTypes.value
   exportToExcel({
-    filename: '字典列表',
-    sheetName: '字典管理',
-    columns: [
-      { header: 'ID', key: 'id', width: 8 },
-      { header: '字典名称', key: 'typeName', width: 16 },
-      { header: '字典编码', key: 'typeCode', width: 20 },
-      { header: '字典项数', key: 'itemCount', width: 10 },
-      { header: '状态', key: 'status', width: 8 },
-      { header: '备注', key: 'remark', width: 25 },
-    ],
-    data: tableData.map(i => ({
+    filename: selectedType.value ? `字典项_${selectedType.value.typeName}` : '字典列表',
+    sheetName: '数据字典',
+    columns: selectedType.value
+      ? [
+          { header: '字典标签', key: 'dictLabel', width: 16 },
+          { header: '字典键值', key: 'dictValue', width: 16 },
+          { header: '排序', key: 'sort', width: 10 },
+          { header: '状态', key: 'status', width: 8 },
+          { header: '备注', key: 'remark', width: 25 },
+        ]
+      : [
+          { header: 'ID', key: 'id', width: 8 },
+          { header: '字典名称', key: 'typeName', width: 16 },
+          { header: '字典编码', key: 'typeCode', width: 20 },
+          { header: '状态', key: 'status', width: 8 },
+          { header: '备注', key: 'remark', width: 25 },
+        ],
+    data: dataToExport.map((i: any) => ({
       ...i,
-      itemCount: i.items?.length || 0,
       status: i.status === 1 ? '正常' : '停用',
     })),
   })
 }
-
-const columns: BasicColumn[] = [
-  { title: '字典名称', dataIndex: 'typeName', key: 'typeName', width: 160 },
-  { title: '字典编码', dataIndex: 'typeCode', key: 'typeCode', width: 180 },
-  {
-    title: '字典项数',
-    dataIndex: 'items',
-    key: 'itemCount',
-    width: 100,
-    align: 'center',
-  },
-  { title: '状态', dataIndex: 'status', key: 'status', width: 80, align: 'center' },
-  { title: '备注', dataIndex: 'remark', key: 'remark', ellipsis: true },
-  { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 170 },
-]
 
 const itemColumns: BasicColumn[] = [
   { title: '字典标签', dataIndex: 'dictLabel', key: 'dictLabel', width: 130 },
@@ -409,109 +404,198 @@ const itemColumns: BasicColumn[] = [
   { title: '状态', dataIndex: 'status', key: 'status', width: 80, align: 'center' },
   { title: '备注', dataIndex: 'remark', key: 'remark', ellipsis: true },
 ]
+
+async function mockItemApi() {
+  return { items: dictItems.value, total: dictItems.value.length }
+}
+
+loadDictTypes()
 </script>
 
 <template>
   <div :class="containerClassName">
-    <a-card
-      title="字典管理"
-      :class="cardClassName"
-    >
-      <BasicTable
-        :columns="columns"
-        :api="mockApi"
-        :immediate="true"
-        :use-search-form="true"
-        :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
-        :scroll="{ x: 1100 }"
-        :action-column="{ width: 280, title: '操作', fixed: 'right' }"
-        @register="tableRegister"
-      >
-        <template #toolbar>
-          <a-button @click="handleExport">
-            <template #icon>
-              <Icon icon="carbon:export" />
-            </template>
-            导出
-          </a-button>
+    <!-- 左侧：字典类型列表 -->
+    <div :class="leftPanelClassName">
+      <div :class="cardClassName + ' rounded-lg border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900'">
+        <div :class="cardHeaderClassName">
+          <span :class="cardTitleClassName">字典类型</span>
+        </div>
+
+        <!-- 类型列表 -->
+        <div class="max-h-[500px] overflow-y-auto">
+          <div
+            v-if="dictTypes.length === 0"
+            :class="emptyClassName"
+          >
+            <div :class="emptyIconClassName">
+              <Icon icon="carbon:book" />
+            </div>
+            <div :class="emptyTitleClassName">暂无字典类型</div>
+            <div :class="emptyDescClassName">点击下方按钮新增字典类型</div>
+          </div>
+
+          <div
+            v-for="item in dictTypes"
+            :key="item.id"
+            :class="typeItemClassName(selectedType?.id === item.id)"
+            @click="selectType(item)"
+          >
+            <div class="flex-1 min-w-0">
+              <div :class="typeItemNameClassName">{{ item.typeName }}</div>
+              <div :class="typeItemCodeClassName">{{ item.typeCode }}</div>
+            </div>
+            <div :class="typeItemActionsClassName">
+              <a-tag :color="statusColorMap[item.status] || 'default'" class="!text-[10px] !px-1 !py-0 !leading-4">
+                {{ statusLabelMap[item.status] || '未知' }}
+              </a-tag>
+              <a-button
+                type="text"
+                size="small"
+                :class="typeItemBtnClassName"
+                @click.stop="handleEdit(item)"
+              >
+                <template #icon>
+                  <Icon icon="ant-design:edit-outlined" class="text-xs" />
+                </template>
+              </a-button>
+              <a-popconfirm
+                :title="`确定要删除字典「${item.typeName}」吗？`"
+                @confirm="handleDelete(item)"
+              >
+                <a-button
+                  type="text"
+                  danger
+                  size="small"
+                  :class="typeItemBtnClassName"
+                  @click.stop
+                >
+                  <template #icon>
+                    <Icon icon="ant-design:delete-outlined" class="text-xs" />
+                  </template>
+                </a-button>
+              </a-popconfirm>
+            </div>
+          </div>
+        </div>
+
+        <!-- 底部新增按钮 -->
+        <div :class="cardFooterClassName">
           <a-button
             type="primary"
+            size="small"
             @click="handleAdd"
           >
             <template #icon>
               <Icon icon="ant-design:plus-outlined" />
             </template>
-            新增字典
+            新增类型
           </a-button>
-        </template>
+        </div>
+      </div>
+    </div>
 
-        <template #cell-itemCount="{ record }">
-          <span class="text-[#1677ff] font-medium">
-            {{ record.items.length }} 项
+    <!-- 右侧：字典项 -->
+    <div :class="rightPanelClassName">
+      <div :class="cardClassName + ' rounded-lg border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900'">
+        <div :class="cardHeaderClassName">
+          <span :class="cardTitleClassName">
+            {{ selectedType ? `${selectedType.typeName} - 字典项` : '字典项' }}
           </span>
-        </template>
-
-        <template #cell-status="{ record }">
-          <a-tag :color="statusColorMap[record.status] || 'default'">
-            <span :class="tagClassName">
-              <Icon :icon="record.status === 1 ? 'carbon:checkmark-outline' : 'carbon:close-outline'" />
-              {{ statusLabelMap[record.status] || '未知' }}
-            </span>
-          </a-tag>
-        </template>
-
-        <template #cell-createdAt>
-          {{ new Date().toISOString().replace('T', ' ').substring(0, 19) }}
-        </template>
-
-        <template #action="{ record }">
-          <div :class="actionClassName">
+          <div class="flex items-center gap-2">
             <a-button
-              type="link"
-              :class="btnClassName"
-              @click="() => handleViewItems(record)"
+              size="small"
+              @click="handleExport"
             >
               <template #icon>
-                <Icon icon="carbon:catalog" />
+                <Icon icon="carbon:export" />
               </template>
-              字典项
+              导出
             </a-button>
-            <a-divider
-              type="vertical"
-              :class="dividerClassName"
-            />
             <a-button
-              type="link"
-              :class="btnClassName"
-              @click="() => handleEdit(record)"
+              type="primary"
+              size="small"
+              :disabled="!selectedType"
+              @click="handleAddItem"
             >
               <template #icon>
-                <Icon icon="ant-design:edit-outlined" />
+                <Icon icon="ant-design:plus-outlined" />
               </template>
-              编辑
-            </a-button>
-            <a-divider
-              type="vertical"
-              :class="dividerClassName"
-            />
-            <a-button
-              type="link"
-              danger
-              :class="btnClassName"
-              @click="() => handleDelete(record)"
-            >
-              <template #icon>
-                <Icon icon="ant-design:delete-outlined" />
-              </template>
-              删除
+              新增字典项
             </a-button>
           </div>
-        </template>
-      </BasicTable>
-    </a-card>
+        </div>
 
+        <!-- 字典项内容 -->
+        <div class="p-4">
+          <div
+            v-if="!selectedType"
+            :class="emptyClassName"
+          >
+            <div :class="emptyIconClassName">
+              <Icon icon="carbon:book" />
+            </div>
+            <div :class="emptyTitleClassName">请选择字典类型</div>
+            <div :class="emptyDescClassName">从左侧列表中选择一个字典类型，查看其字典项</div>
+          </div>
+
+          <BasicTable
+            v-else
+            :columns="itemColumns"
+            :api="mockItemApi"
+            :immediate="true"
+            :use-search-form="false"
+            :show-table-setting="false"
+            :pagination="{ showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }"
+            :action-column="{ width: 180, title: '操作', fixed: 'right' }"
+            size="small"
+            @register="itemTableRegister"
+          >
+            <template #cell-status="{ record }">
+              <a-tag :color="statusColorMap[record.status] || 'default'">
+                <span :class="tagClassName">
+                  <Icon :icon="record.status === 1 ? 'carbon:checkmark-outline' : 'carbon:close-outline'" />
+                  {{ statusLabelMap[record.status] || '未知' }}
+                </span>
+              </a-tag>
+            </template>
+
+            <template #action="{ record }">
+              <div :class="actionClassName">
+                <a-button
+                  type="link"
+                  :class="btnClassName"
+                  size="small"
+                  @click="() => handleEditItem(record)"
+                >
+                  编辑
+                </a-button>
+                <a-divider
+                  type="vertical"
+                  :class="dividerClassName"
+                />
+                <a-popconfirm
+                  :title="`确定要删除字典项「${record.dictLabel}」吗？`"
+                  @confirm="() => handleDeleteItem(record)"
+                >
+                  <a-button
+                    type="link"
+                    danger
+                    :class="btnClassName"
+                    size="small"
+                  >
+                    删除
+                  </a-button>
+                </a-popconfirm>
+              </div>
+            </template>
+          </BasicTable>
+        </div>
+      </div>
+    </div>
+
+    <!-- 新增/编辑字典类型弹窗 -->
     <BasicModal
-      :title="isEditing ? '编辑字典' : '新增字典'"
+      :title="isEditing ? '编辑字典类型' : '新增字典类型'"
       :width="560"
       @register="modalRegister"
       @ok="handleSave"
@@ -525,86 +609,20 @@ const itemColumns: BasicColumn[] = [
       />
     </BasicModal>
 
+    <!-- 新增/编辑字典项弹窗 -->
     <BasicModal
-      :title="`字典项管理 - ${selectedTypeName}`"
-      :width="900"
-      :show-footer="false"
+      :title="isEditingItem ? '编辑字典项' : '新增字典项'"
+      :width="600"
       @register="itemModalRegister"
+      @ok="handleSaveItem"
     >
-      <div class="mb-4 flex justify-end gap-2">
-        <a-button
-          type="primary"
-          size="small"
-          @click="handleAddItem"
-        >
-          <template #icon>
-            <Icon icon="ant-design:plus-outlined" />
-          </template>
-          新增字典项
-        </a-button>
-      </div>
-
-      <BasicTable
-        :columns="itemColumns"
-        :api="mockItemApi"
-        :immediate="true"
-        :use-search-form="false"
-        :show-table-setting="false"
-        :pagination="false"
-        :action-column="{ width: 180, title: '操作', fixed: 'right' }"
-        size="small"
-        @register="itemTableRegister"
-      >
-        <template #cell-status="{ record }">
-          <a-tag :color="statusColorMap[record.status] || 'default'">
-            <span :class="tagClassName">
-              <Icon :icon="record.status === 1 ? 'carbon:checkmark-outline' : 'carbon:close-outline'" />
-              {{ statusLabelMap[record.status] || '未知' }}
-            </span>
-          </a-tag>
-        </template>
-
-        <template #action="{ record }">
-          <div :class="actionClassName">
-            <a-button
-              type="link"
-              :class="btnClassName"
-              size="small"
-              @click="() => handleEditItem(record)"
-            >
-              编辑
-            </a-button>
-            <a-divider
-              type="vertical"
-              :class="dividerClassName"
-            />
-            <a-button
-              type="link"
-              danger
-              :class="btnClassName"
-              size="small"
-              @click="() => handleDeleteItem(record)"
-            >
-              删除
-            </a-button>
-          </div>
-        </template>
-      </BasicTable>
-
-      <BasicModal
-        :title="isEditingItem ? '编辑字典项' : '新增字典项'"
-        :width="600"
-        @register="itemEditModalRegister"
-        @ok="handleSaveItem"
-      >
-        <BasicForm
-          :schemas="itemFormSchemas"
-          :label-width="80"
-          :show-action-button-group="false"
-          :grid="{ cols: 2, gutter: 16 }"
-          @register="itemFormRegister"
-        />
-      </BasicModal>
+      <BasicForm
+        :schemas="itemFormSchemas"
+        :label-width="80"
+        :show-action-button-group="false"
+        :grid="{ cols: 2, gutter: 16 }"
+        @register="itemFormRegister"
+      />
     </BasicModal>
   </div>
 </template>

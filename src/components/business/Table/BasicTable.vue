@@ -487,6 +487,12 @@ defineExpose(tableActionType)
       />
     </div>
 
+    <!-- 搜索区域与内容区域分割线 -->
+    <div
+      v-if="showSearchForm"
+      class="mb-4 border-t border-gray-200 dark:border-gray-700"
+    />
+
     <!-- 表格头部工具栏 -->
     <div
       v-if="showTableSetting || $slots.toolbar"

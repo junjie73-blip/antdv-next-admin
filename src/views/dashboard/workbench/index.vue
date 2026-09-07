@@ -20,7 +20,7 @@ const recentActivities = [
 ]
 
 const cardClassName = cn(
-  'rounded-xl p-5 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800',
+  'rounded-lg p-5 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm',
 )
 
 const statCards = [
@@ -32,7 +32,7 @@ const statCards = [
 </script>
 
 <template>
-  <div class="p-5 space-y-4">
+  <div class="p-8 space-y-6">
     <!-- 欢迎区 -->
     <div class="flex items-center justify-between">
       <div>
@@ -53,17 +53,24 @@ const statCards = [
         :key="stat.label"
         :class="cardClassName"
       >
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-xs text-gray-500">
-              {{ stat.label }}
-            </p>
-            <p class="text-2xl font-bold mt-1 tabular-nums text-gray-800 dark:text-white">
+        <div class="flex items-start gap-4">
+          <div class="w-11 h-11 rounded-lg bg-ant-primary/10 flex items-center justify-center flex-shrink-0">
+            <Icon
+              :icon="stat.icon"
+              :width="22"
+              class="text-ant-primary"
+            />
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-2xl font-bold text-gray-800 dark:text-white tracking-tight leading-tight tabular-nums">
               {{ stat.value }}
             </p>
+            <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">
+              {{ stat.label }}
+            </p>
             <p
-              :class="stat.up ? 'text-emerald-500' : 'text-red-500'"
-              class="text-xs mt-0.5 flex items-center gap-0.5"
+              :class="stat.up ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'"
+              class="text-xs font-semibold mt-1.5 flex items-center gap-0.5"
             >
               <Icon
                 :icon="stat.up ? 'carbon:arrow-up' : 'carbon:arrow-down'"
@@ -71,13 +78,6 @@ const statCards = [
               />
               {{ stat.change }}
             </p>
-          </div>
-          <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Icon
-              :icon="stat.icon"
-              :width="20"
-              class="text-primary"
-            />
           </div>
         </div>
       </div>
@@ -87,7 +87,7 @@ const statCards = [
     <div class="grid grid-cols-2 gap-4">
       <!-- 快捷操作 -->
       <div :class="cardClassName">
-        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
+        <h3 class="text-base font-semibold text-gray-800 dark:text-gray-200 mb-4">
           快捷操作
         </h3>
         <div class="grid grid-cols-2 gap-3">
@@ -106,7 +106,7 @@ const statCards = [
               />
             </div>
             <div class="min-w-0">
-              <p class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors">
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-ant-primary transition-colors">
                 {{ action.title }}
               </p>
               <p class="text-[11px] text-gray-400 mt-0.5">
@@ -119,7 +119,7 @@ const statCards = [
 
       <!-- 最近动态 -->
       <div :class="cardClassName">
-        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
+        <h3 class="text-base font-semibold text-gray-800 dark:text-gray-200 mb-4">
           最近动态
         </h3>
         <div class="space-y-3">

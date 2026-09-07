@@ -11,8 +11,6 @@ import { cn } from '@/utils/cn'
 defineOptions({ name: 'DashboardAnalysis' })
 const appStore = useAppStore()
 
-const containerClassName = cn('p-6 space-y-6')
-
 // ========== 主题相关 ==========
 const isDark = computed(() => appStore.themeMode === 'dark')
 
@@ -30,11 +28,11 @@ const moduleRankRef = ref<HTMLDivElement>()
 
 // ========== 样式类名（数据分析） ==========
 const analyticsCardClassName = cn(
-  'rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900',
-  'transition-all duration-300 hover:shadow-md',
+  'rounded-lg border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900',
+  'shadow-sm transition-all duration-300 hover:shadow-md',
 )
 const sectionTitleClassName = cn(
-  'text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4',
+  'text-base font-semibold text-gray-800 dark:text-gray-200 mb-4',
 )
 
 // ═══════════════════════════════════════════
@@ -58,24 +56,18 @@ const kpiList: KpiItem[] = [
   { title: '系统负载', value: '42%', icon: 'carbon:chart-line-data', color: 'amber', trend: -5.1, trendLabel: '较昨日' },
 ]
 
-function kpiCardBg(color: string): string {
-  const map: Record<string, string> = {
-    blue: 'bg-blue-50/80 dark:bg-blue-950/20',
-    emerald: 'bg-emerald-50/80 dark:bg-emerald-950/20',
-    violet: 'bg-violet-50/80 dark:bg-violet-950/20',
-    amber: 'bg-amber-50/80 dark:bg-amber-950/20',
-  }
-  return map[color] || map.blue
-}
-
 function kpiIconWrap(color: string): string {
   const map: Record<string, string> = {
-    blue: 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400',
-    emerald: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400',
-    violet: 'bg-violet-100 text-violet-600 dark:bg-violet-900/40 dark:text-violet-400',
-    amber: 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400',
+    blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400',
+    emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400',
+    violet: 'bg-violet-50 text-violet-600 dark:bg-violet-900/40 dark:text-violet-400',
+    amber: 'bg-amber-50 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400',
   }
   return cn('w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0', map[color] || map.blue)
+}
+
+function kpiTrendColor(trend: number): string {
+  return trend >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
 }
 
 // ECharts 主题工具函数
@@ -711,7 +703,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div :class="containerClassName">
+  <div>
     <!-- 页面标题 -->
     <div class="flex items-center justify-between mb-2">
       <div>
@@ -757,16 +749,24 @@ onBeforeUnmount(() => {
         >
           <div
             :class="cn(
-              kpiCardBg(kpi.color), 'rounded-xl p-4 cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg',
+              'rounded-lg border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 cursor-pointer',
+              'transition-all duration-300 hover:shadow-md',
             )"
           >
-            <div class="flex items-start justify-between">
+            <div class="flex items-start gap-4">
+              <div :class="kpiIconWrap(kpi.color)">
+                <Icon
+                  :icon="kpi.icon"
+                  :width="22"
+                  :height="22"
+                />
+              </div>
               <div class="flex-1 min-w-0">
-                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                  {{ kpi.title }}
-                </p>
-                <p class="text-2xl font-bold text-gray-800 dark:text-white mt-1 tracking-tight">
+                <p class="text-2xl font-bold text-gray-800 dark:text-white tracking-tight leading-tight">
                   {{ kpi.value }}
+                </p>
+                <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                  {{ kpi.title }}
                 </p>
                 <div class="flex items-center gap-1 mt-1.5">
                   <Icon
@@ -775,21 +775,11 @@ onBeforeUnmount(() => {
                     :height="12"
                     :class="kpi.trend >= 0 ? 'text-emerald-500' : 'text-red-500'"
                   />
-                  <span
-                    :class="cn(
-                      'text-xs font-medium',
-                      kpi.trend >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400',
-                    )"
-                  >{{ Math.abs(kpi.trend) }}%</span>
-                  <span class="text-[11px] text-gray-400">{{ kpi.trendLabel }}</span>
+                  <span :class="cn('text-xs font-semibold', kpiTrendColor(kpi.trend))">
+                    {{ Math.abs(kpi.trend) }}%
+                  </span>
+                  <span class="text-xs text-gray-400">{{ kpi.trendLabel }}</span>
                 </div>
-              </div>
-              <div :class="kpiIconWrap(kpi.color)">
-                <Icon
-                  :icon="kpi.icon"
-                  :width="22"
-                  :height="22"
-                />
               </div>
             </div>
           </div>

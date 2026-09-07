@@ -81,20 +81,30 @@ export function transformMenuConfigToItems(menus: MenuConfig[], parentPath = '')
       const isExternal = menu.isExternal
       const fullPath = isExternal
         ? `external:${menu.path}`
-        : parentPath
-          ? `${parentPath}/${menu.path}`
-          : menu.path
+        : menu.path.startsWith('/')
+          ? menu.path
+          : parentPath
+            ? `${parentPath}/${menu.path}`
+            : menu.path
       const item: Record<string, any> = {
         key: fullPath,
         label: isExternal
           ? h('a', {
-              href: menu.path,
+              href: `/#${menu.path}`,
               target: '_blank',
               rel: 'noopener noreferrer',
               onClick: (e: MouseEvent) => {
                 e.preventDefault()
                 e.stopPropagation()
-                window.open(menu.path, '_blank', 'noopener,noreferrer')
+                const width = 1400
+                const height = 900
+                const left = (window.screen.width - width) / 2
+                const top = (window.screen.height - height) / 2
+                window.open(
+                  `/#${menu.path}`,
+                  '_blank',
+                  `width=${width},height=${height},left=${left},top=${top},noopener,noreferrer`,
+                )
               },
             }, menu.title)
           : menu.title,

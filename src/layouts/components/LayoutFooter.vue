@@ -35,7 +35,7 @@ const footerClassName = computed(() =>
       <a
         href="https://github.com/antdv-next"
         target="_blank"
-        class="text-primary hover:underline"
+        class="text-ant-primary hover:underline"
       >
         {{ appTitle }}
       </a>

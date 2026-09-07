@@ -61,37 +61,38 @@ interface MenuTreeNode {
 const menuSourceData = [
   {
     id: 1,
-    title: '数据看板',
+    title: '仪表盘',
     path: '/dashboard',
     children: [
-      { id: 101, title: '实时监控大屏', path: 'monitor' },
-      { id: 102, title: '分析面板', path: 'analysis' },
+      { id: 101, title: '分析面板', path: 'analysis' },
+      { id: 102, title: '实时监控大屏', path: 'monitor' },
+    ],
+  },
+  {
+    id: 2,
+    title: '系统管理',
+    path: '/system',
+    children: [
+      { id: 201, title: '用户管理', path: 'user' },
+      { id: 202, title: '角色管理', path: 'role' },
+      { id: 203, title: '菜单管理', path: 'menu' },
+      { id: 204, title: '通知管理', path: 'notice' },
     ],
   },
   {
     id: 3,
-    title: '系统设置',
-    path: '/system',
+    title: '系统工具',
+    path: '/tool',
     children: [
-      { id: 301, title: '配置管理', path: 'config' },
-      { id: 302, title: '用户管理', path: 'user' },
-      { id: 303, title: '角色管理', path: 'role' },
-      { id: 304, title: '字典管理', path: 'dict' },
-      { id: 305, title: '菜单管理', path: 'menu' },
-      { id: 306, title: '操作日志', path: 'log' },
-      { id: 307, title: '在线用户', path: 'online' },
-      { id: 308, title: '消息通知', path: 'notice' },
+      { id: 301, title: '数据字典', path: 'dict' },
     ],
   },
   {
     id: 4,
-    title: '组件演示',
-    path: '/components',
+    title: '系统监控',
+    path: '/monitor',
     children: [
-      { id: 401, title: '表单组件', path: 'form' },
-      { id: 402, title: '表格组件', path: 'table' },
-      { id: 403, title: '描述列表', path: 'description' },
-      { id: 404, title: '弹窗抽屉', path: 'modal-drawer' },
+      { id: 401, title: '系统日志', path: 'log' },
     ],
   },
 ]

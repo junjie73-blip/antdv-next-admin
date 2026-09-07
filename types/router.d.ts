@@ -37,23 +37,9 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/dashboard/': RouteRecordInfo<
-      '/dashboard/',
-      '/dashboard',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/dashboard/analysis/': RouteRecordInfo<
       '/dashboard/analysis/',
       '/dashboard/analysis',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/dashboard/echarts/': RouteRecordInfo<
-      '/dashboard/echarts/',
-      '/dashboard/echarts',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -223,21 +209,9 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/views/dashboard/index.vue': {
-      routes:
-        | '/dashboard/'
-      views:
-        | never
-    }
     'src/views/dashboard/analysis/index.vue': {
       routes:
         | '/dashboard/analysis/'
-      views:
-        | never
-    }
-    'src/views/dashboard/echarts/index.vue': {
-      routes:
-        | '/dashboard/echarts/'
       views:
         | never
     }

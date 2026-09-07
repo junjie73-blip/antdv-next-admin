@@ -162,9 +162,8 @@ export function useRoutePreloader() {
     // 定义常见的相邻路径映射
     const adjacencyMap: Record<string, string[]> = {
       '/dashboard/analysis': ['/system/user'],
-      '/system/user': ['/system/role', '/system/dept'],
+      '/system/user': ['/system/role'],
       '/system/role': ['/system/user', '/system/menu'],
-      '/components/basic': ['/components/form/basic', '/components/table/basic'],
     }
 
     // 获取候选路径
