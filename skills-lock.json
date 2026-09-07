@@ -1,11 +1,23 @@
 {
   "version": 1,
   "skills": {
+    "antdv": {
+      "source": "antdv-next/cli",
+      "sourceType": "github",
+      "skillPath": "skills/antdv/SKILL.md",
+      "computedHash": "03eb1af94f9501f6b9ff2c4a3eb8010840e2492015e31c50402762964be7273e"
+    },
     "antdv-next": {
       "source": "antdv-next/skills",
       "sourceType": "github",
       "skillPath": "skills/antdv-next/SKILL.md",
       "computedHash": "209a85d9fea7e1ce2d52f7cb37313b24e41a477395b0ea8f228d79586bdff628"
+    },
+    "antdv-next-cli-create-pr": {
+      "source": "antdv-next/cli",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/create-pr/SKILL.md",
+      "computedHash": "ed62187839cd00787865cab43b1987d40b71f8cfdaa6ba862a0b130ea3243ac5"
     }
   }
 }

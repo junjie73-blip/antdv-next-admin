@@ -14,7 +14,7 @@ export type {
 export const DEFAULT_SETTING: AppSetting = {
   theme: 'light',
   themeStyle: 'default',
-  componentSize: 'middle',
+  componentSize: 'medium',
   layout: 'vertical',
   darkSidebar: false,
   darkHeader: false,

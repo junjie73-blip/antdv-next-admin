@@ -1,24 +1,24 @@
-import type { MappingAlgorithm } from 'antdv-next'
+import type { ConfigProviderProps, MappingAlgorithm } from 'antdv-next'
 
 export type ThemeMode = 'light' | 'dark'
-export type ComponentSize = 'small' | 'middle' | 'large'
+export type ComponentSize = ConfigProviderProps['componentSize']
 export type LayoutMode = 'vertical' | 'horizontal' | 'mixed'
 export type NotificationPosition = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight'
 export type TransitionEffect = 'fade' | 'slide' | 'zoom' | 'fade-slide' | 'slide-right' | 'slide-left' | 'slide-up' | 'slide-down' | 'scale' | 'flip'
 export type RouteMode = 'frontend' | 'backend'
 
-export type ThemeStyle =
-  | 'default'
-  | 'dark'
-  | 'compact'
-  | 'mui'
-  | 'shadcn'
-  | 'cartoon'
-  | 'illustration'
-  | 'bootstrap'
-  | 'skeuomorphism'
-  | 'glass'
-  | 'geek'
+export type ThemeStyle
+  = | 'default'
+    | 'dark'
+    | 'compact'
+    | 'mui'
+    | 'shadcn'
+    | 'cartoon'
+    | 'illustration'
+    | 'bootstrap'
+    | 'skeuomorphism'
+    | 'glass'
+    | 'geek'
 
 export interface ThemePreset {
   name: string

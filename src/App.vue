@@ -96,6 +96,7 @@ watch(
                         px2remTransformer]"
         :get-popup-container="getPopupContainer"
         :component-size="appStore.componentSize"
+        virtual
       >
         <a-app
           :notification="{

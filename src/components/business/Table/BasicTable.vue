@@ -47,9 +47,6 @@ const emit = defineEmits<{
   (e: 'cell-change', payload: { record: Recordable, dataIndex: string | string[], value: any, column: BasicColumn }): void
 }>()
 
-// 使用原生 Array.isArray
-const isArray = Array.isArray
-
 // ============================================
 // State
 // ============================================
@@ -224,10 +221,6 @@ const showSearchForm = computed(() => {
   return getMergedProps.value.useSearchForm && getMergedProps.value.formConfig
 })
 
-// 搜索表单配置
-const getFormConfig = computed(() => {
-  return getMergedProps.value.formConfig || {}
-})
 
 // ============================================
 // Methods
