@@ -19,7 +19,10 @@ export class EventManager {
     }
   }
 
-  once<T = unknown>(eventType: WebSocketEventType, callback: WebSocketEventCallback<T>): () => void {
+  once<T = unknown>(
+    eventType: WebSocketEventType,
+    callback: WebSocketEventCallback<T>,
+  ): () => void {
     const wrappedCallback = (data: T) => {
       callback(data)
       this.off(eventType, wrappedCallback as WebSocketEventCallback)
@@ -39,8 +42,7 @@ export class EventManager {
       if (handlers.size === 0) {
         this.eventHandlers.delete(eventType)
       }
-    }
-    else {
+    } else {
       this.eventHandlers.delete(eventType)
     }
   }
@@ -54,8 +56,7 @@ export class EventManager {
     handlers.forEach((callback) => {
       try {
         callback(data)
-      }
-      catch (error) {
+      } catch (error) {
         console.error(`Error in event handler for ${eventType}:`, error)
       }
     })
@@ -72,15 +73,14 @@ export class EventManager {
     })
 
     return () => {
-      unsubscribers.forEach(unsubscribe => unsubscribe())
+      unsubscribers.forEach((unsubscribe) => unsubscribe())
     }
   }
 
   removeAllListeners(eventType?: WebSocketEventType): void {
     if (eventType) {
       this.eventHandlers.delete(eventType)
-    }
-    else {
+    } else {
       this.eventHandlers.clear()
     }
   }

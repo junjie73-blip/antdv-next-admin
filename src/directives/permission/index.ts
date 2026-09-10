@@ -13,7 +13,15 @@ export const vPermission: Directive<HTMLElement, PermissionDirectiveBinding> = {
 }
 
 function updatePermission(el: HTMLElement, binding: DirectiveBinding<PermissionDirectiveBinding>) {
-  const { hasPermission, hasAnyPermission, hasAllPermissions, hasRole, hasAnyRole, hasAllRoles, isAdmin } = usePermission()
+  const {
+    hasPermission,
+    hasAnyPermission,
+    hasAllPermissions,
+    hasRole,
+    hasAnyRole,
+    hasAllRoles,
+    isAdmin,
+  } = usePermission()
 
   const value = binding.value
   const arg = binding.arg
@@ -23,78 +31,63 @@ function updatePermission(el: HTMLElement, binding: DirectiveBinding<PermissionD
 
   if (typeof value === 'string') {
     hasAccess = hasPermission(value)
-  }
-  else if (Array.isArray(value)) {
+  } else if (Array.isArray(value)) {
     if (value.length === 0) {
       hasAccess = true
-    }
-    else if (modifiers.all) {
+    } else if (modifiers.all) {
       hasAccess = hasAllPermissions(value)
-    }
-    else {
+    } else {
       hasAccess = hasAnyPermission(value)
     }
-  }
-  else if (typeof value === 'object' && value !== null) {
-    const permissionValue = value as unknown as { permission: string | string[], mode?: string }
+  } else if (typeof value === 'object' && value !== null) {
+    const permissionValue = value as unknown as { permission: string | string[]; mode?: string }
     const permissions = Array.isArray(permissionValue.permission)
       ? permissionValue.permission
       : [permissionValue.permission]
 
     if (permissionValue.mode === 'all') {
       hasAccess = hasAllPermissions(permissions)
-    }
-    else {
+    } else {
       hasAccess = hasAnyPermission(permissions)
     }
-  }
-  else if (arg) {
+  } else if (arg) {
     if (arg === 'role') {
       if (typeof value === 'string') {
         hasAccess = hasRole(value)
-      }
-      else if (Array.isArray(value)) {
+      } else if (Array.isArray(value)) {
         if (modifiers.all) {
           hasAccess = hasAllRoles(value)
-        }
-        else {
+        } else {
           hasAccess = hasAnyRole(value)
         }
       }
-    }
-    else if (arg === 'admin') {
+    } else if (arg === 'admin') {
       hasAccess = isAdmin()
     }
-  }
-  else {
+  } else {
     hasAccess = true
   }
 
   if (modifiers.hide) {
     if (hasAccess) {
       el.style.display = ''
-    }
-    else {
+    } else {
       el.style.display = 'none'
     }
-  }
-  else if (modifiers.disabled) {
+  } else if (modifiers.disabled) {
     if (hasAccess) {
       el.removeAttribute('disabled')
       el.classList.remove('permission-disabled')
-    }
-    else {
+    } else {
       el.setAttribute('disabled', 'true')
       el.classList.add('permission-disabled')
     }
-  }
-  else {
+  } else {
     if (hasAccess) {
       el.style.display = ''
       el.removeAttribute('disabled')
       el.classList.remove('permission-disabled')
-    }
-    else {
+    } else {
       el.style.display = 'none'
       el.setAttribute('disabled', 'true')
       el.classList.add('permission-disabled')

@@ -89,8 +89,7 @@ const XSS_PATTERNS = [
  * @returns 是否检测到危险内容
  */
 export function detectXss(input: string): boolean {
-  if (!input || typeof input !== 'string')
-    return false
+  if (!input || typeof input !== 'string') return false
 
   // 快速检查长度限制
   if (input.length > DEFAULT_OPTIONS.maxLength) {
@@ -119,21 +118,20 @@ export function detectXss(input: string): boolean {
  * → '&lt;script&gt;alert(1)&lt;/script&gt;'
  */
 export function escapeHtml(str: string): string {
-  if (!str)
-    return ''
+  if (!str) return ''
 
   const htmlEscapeMap: Record<string, string> = {
     '&': '&amp;',
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
-    '\'': '&#39;',
+    "'": '&#39;',
     '/': '&#x2F;',
     '`': '&#x60;',
     '=': '&#x3D;',
   }
 
-  return String(str).replace(/[&<>"'`=/]/g, char => htmlEscapeMap[char] ?? char)
+  return String(str).replace(/[&<>"'`=/]/g, (char) => htmlEscapeMap[char] ?? char)
 }
 
 /**
@@ -142,8 +140,7 @@ export function escapeHtml(str: string): string {
  * 攻击向量：<a href="javascript:alert(1)">
  */
 export function escapeUrl(url: string): string {
-  if (!url)
-    return ''
+  if (!url) return ''
 
   // 检测危险的协议
   const dangerousProtocols = ['javascript:', 'vbscript:', 'data:text/html']
@@ -166,12 +163,11 @@ export function escapeUrl(url: string): string {
  * 攻击向量："; alert(1); //
  */
 export function escapeJs(str: string): string {
-  if (!str)
-    return ''
+  if (!str) return ''
 
   const jsEscapeMap: Record<string, string> = {
     '\\': '\\\\',
-    '\'': '\\\'',
+    "'": "\\'",
     '"': '\\"',
     '\n': '\\n',
     '\r': '\\r',
@@ -183,7 +179,7 @@ export function escapeJs(str: string): string {
 
   // 先转义反斜杠，再转义其他字符
   let escaped = String(str).replace(/\\/, '\\\\')
-  escaped = escaped.replace(/['"\n\r\t\0\u2028\u2029]/g, char => jsEscapeMap[char] ?? char)
+  escaped = escaped.replace(/['"\n\r\t\0\u2028\u2029]/g, (char) => jsEscapeMap[char] ?? char)
 
   return escaped
 }
@@ -194,8 +190,7 @@ export function escapeJs(str: string): string {
  * 攻击向量：background: url("javascript:...")
  */
 export function escapeCss(value: string): string {
-  if (!value)
-    return ''
+  if (!value) return ''
 
   // 移除表达式和 URL
   const sanitized = value
@@ -205,8 +200,10 @@ export function escapeCss(value: string): string {
     .replace(/-moz-binding\s*:/gi, '')
 
   // 编码特殊字符
-  return sanitized.replace(/[^\w\-\s#%.!]/g, match =>
-    `\\${match.charCodeAt(0).toString(16).padStart(2, '0')}`)
+  return sanitized.replace(
+    /[^\w\-\s#%.!]/g,
+    (match) => `\\${match.charCodeAt(0).toString(16).padStart(2, '0')}`,
+  )
 }
 
 /**
@@ -252,8 +249,7 @@ export function smartEscape(value: string, context: EscapeType = 'html'): string
  * @returns 安全的字符串
  */
 export function sanitizeInput(input: string, options: XssFilterOptions = {}): string {
-  if (!input)
-    return ''
+  if (!input) return ''
 
   const opts = { ...DEFAULT_OPTIONS, ...options }
 
@@ -263,8 +259,7 @@ export function sanitizeInput(input: string, options: XssFilterOptions = {}): st
   // 如果不允许 HTML，直接转义所有标签
   if (!opts.allowHtml) {
     result = escapeHtml(result)
-  }
-  else {
+  } else {
     // 移除 script 标签
     if (opts.stripScript) {
       result = result.replace(/<script[\s\S]*?<\/script>/gi, '')
@@ -291,8 +286,7 @@ export function sanitizeInput(input: string, options: XssFilterOptions = {}): st
  * @returns 安全的 URL 或空字符串
  */
 export function sanitizeUrl(url: string, allowRelative = false): string {
-  if (!url)
-    return ''
+  if (!url) return ''
 
   const trimmed = url.trim()
 
@@ -309,8 +303,7 @@ export function sanitizeUrl(url: string, allowRelative = false): string {
     }
 
     return parsed.href
-  }
-  catch {
+  } catch {
     // URL 解析失败，可能是相对路径
     if (allowRelative && /^[\w\-./]+$/.test(trimmed)) {
       return trimmed
@@ -360,9 +353,7 @@ interface EscapeBinding {
  */
 export const safeHtmlDirective = {
   mounted(el: HTMLElement, binding: SafeHtmlBinding): void {
-    const rawValue = typeof binding.value === 'string'
-      ? binding.value
-      : binding.value.content
+    const rawValue = typeof binding.value === 'string' ? binding.value : binding.value.content
 
     const options = typeof binding.value === 'object' ? binding.value : {}
 
@@ -370,9 +361,7 @@ export const safeHtmlDirective = {
   },
 
   updated(el: HTMLElement, binding: SafeHtmlBinding): void {
-    const rawValue = typeof binding.value === 'string'
-      ? binding.value
-      : binding.value.content
+    const rawValue = typeof binding.value === 'string' ? binding.value : binding.value.content
 
     const options = typeof binding.value === 'object' ? binding.value : {}
 

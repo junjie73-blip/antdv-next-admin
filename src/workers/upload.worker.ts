@@ -27,9 +27,8 @@ async function computeHash(buffers: ArrayBuffer[]): Promise<string> {
   try {
     const hashBuffer = await crypto.subtle.digest('SHA-256', merged)
     const hashArray = Array.from(new Uint8Array(hashBuffer))
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-  }
-  catch {
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
+  } catch {
     let hash = 0
     for (let i = 0; i < merged.length; i++) {
       hash = ((hash << 5) - hash + merged[i]) | 0
@@ -39,7 +38,7 @@ async function computeHash(buffers: ArrayBuffer[]): Promise<string> {
 }
 
 function simulateProcess(duration: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, duration))
+  return new Promise((resolve) => setTimeout(resolve, duration))
 }
 
 globalThis.onmessage = async (e: MessageEvent<WorkerMessage>) => {

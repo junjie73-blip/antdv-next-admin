@@ -44,10 +44,7 @@ const editorConfig = computed((): Partial<IEditorConfig> => ({
 }))
 
 const toolbarConfig: Partial<IToolbarConfig> = {
-  excludeKeys: [
-    'group-more-style',
-    'fullScreen',
-  ],
+  excludeKeys: ['group-more-style', 'fullScreen'],
 }
 
 function handleCreated(editor: IDomEditor) {
@@ -58,19 +55,19 @@ function handleChange(editor: IDomEditor) {
   editorHtml.value = editor.getHtml()
 }
 
-watch(() => editorRef.value, () => {
-  if (editorRef.value && editorHtml.value) {
-    editorRef.value.setHtml(editorHtml.value)
-  }
-})
+watch(
+  () => editorRef.value,
+  () => {
+    if (editorRef.value && editorHtml.value) {
+      editorRef.value.setHtml(editorHtml.value)
+    }
+  },
+)
 </script>
 
 <template>
   <div :class="containerClassName">
-    <a-card
-      :class="toolbarCardClassName"
-      :styles="{ body: { padding: '0' } }"
-    >
+    <a-card :class="toolbarCardClassName" :styles="{ body: { padding: '0' } }">
       <Toolbar
         :editor="editorRef"
         :default-config="toolbarConfig"
@@ -79,10 +76,7 @@ watch(() => editorRef.value, () => {
       />
     </a-card>
 
-    <a-card
-      :class="editorCardClassName"
-      :styles="{ body: { padding: '0' } }"
-    >
+    <a-card :class="editorCardClassName" :styles="{ body: { padding: '0' } }">
       <Editor
         :default-config="editorConfig"
         :style="{ height: '600px' }"

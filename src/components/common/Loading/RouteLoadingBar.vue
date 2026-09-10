@@ -74,19 +74,16 @@ let loadStartTime = 0
 
 // 计算主题色
 const barColor = computed(() => {
-  if (props.color)
-    return props.color
+  if (props.color) return props.color
 
   // 根据主题模式选择颜色
   const isDark = appStore.themeMode === 'dark'
 
   // 错误状态：红色
-  if (isError.value)
-    return '#ef4444'
+  if (isError.value) return '#ef4444'
 
   // 慢加载警告：橙色
-  if (isSlow.value)
-    return '#f59e0b'
+  if (isSlow.value) return '#f59e0b'
 
   // 正常状态：主题色
   return isDark ? '#6366f1' : '#1677ff'
@@ -94,8 +91,7 @@ const barColor = computed(() => {
 
 // 是否慢加载
 const isSlow = computed(() => {
-  if (!isLoading.value || !loadStartTime)
-    return false
+  if (!isLoading.value || !loadStartTime) return false
 
   const elapsed = Date.now() - loadStartTime
   return elapsed > props.slowThreshold
@@ -146,8 +142,7 @@ const percentageStyle = computed(() => ({
  * 开始加载动画
  */
 function startLoading() {
-  if (!props.enabled)
-    return
+  if (!props.enabled) return
 
   // 清除之前的定时器
   stopLoading()
@@ -185,8 +180,7 @@ function startLoading() {
  * 完成加载动画
  */
 function completeLoading(error = false) {
-  if (!props.enabled || !isLoading.value)
-    return
+  if (!props.enabled || !isLoading.value) return
 
   // 停止渐进式动画
   if (progressTimer) {
@@ -211,8 +205,7 @@ function completeLoading(error = false) {
     completeTimer = setTimeout(() => {
       reset()
     }, 3000)
-  }
-  else {
+  } else {
     // 成功完成
     progress.value = 100
     isComplete.value = true
@@ -222,8 +215,7 @@ function completeLoading(error = false) {
       completeTimer = setTimeout(() => {
         reset()
       }, 400)
-    }
-    else {
+    } else {
       setTimeout(() => {
         reset()
       }, 200)
@@ -246,8 +238,7 @@ function reset() {
  * 用户取消加载
  */
 function handleCancel() {
-  if (!props.cancellable || !isLoading.value)
-    return
+  if (!props.cancellable || !isLoading.value) return
 
   emit('cancel')
   stopLoading()
@@ -326,26 +317,19 @@ defineExpose({
     :aria-valuenow="progress"
     aria-valuemin="0"
     aria-valuemax="100"
-    :aria-label="isError ? '加载失败' : isLoading ? `页面加载中 ${Math.round(progress)}%` : '加载完成'"
+    :aria-label="
+      isError ? '加载失败' : isLoading ? `页面加载中 ${Math.round(progress)}%` : '加载完成'
+    "
   >
     <!-- 主进度条 -->
-    <div
-      :class="barClassName"
-      :style="barStyle"
-    />
+    <div :class="barClassName" :style="barStyle" />
 
     <!-- 阴影/光晕效果 -->
-    <div
-      class="absolute inset-0 opacity-30 blur-sm"
-      :style="{ backgroundColor: barColor }"
-    />
+    <div class="absolute inset-0 opacity-30 blur-sm" :style="{ backgroundColor: barColor }" />
 
     <!-- 百分比文字 -->
     <Transition name="percentage-fade">
-      <span
-        v-if="showPercentage && isLoading && !isComplete"
-        :style="percentageStyle"
-      >
+      <span v-if="showPercentage && isLoading && !isComplete" :style="percentageStyle">
         {{ Math.round(progress) }}%
       </span>
     </Transition>
@@ -364,12 +348,7 @@ defineExpose({
           class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-white/90 dark:bg-gray-800/90 shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           @click="handleCancel"
         >
-          <svg
-            class="w-3 h-3"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -389,12 +368,7 @@ defineExpose({
             class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
             @click="handleRetry"
           >
-            <svg
-              class="w-3 h-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"

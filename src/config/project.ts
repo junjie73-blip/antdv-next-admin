@@ -10,7 +10,7 @@ export const projectConfig: ProjectConfig = {
       pageNumField: 'pageNum',
     },
     sortSetting: {
-      sortField: 'sort',
+      sortField: 'sortOrder',
       orderField: 'order',
     },
     pageSizeOptions: [10, 30, 50, 100],

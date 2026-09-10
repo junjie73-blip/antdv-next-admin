@@ -26,27 +26,16 @@ interface WebSocketEventCallback<T = unknown> {
 }
 
 export function useWebSocket(options: UseWebSocketOptions) {
-  const {
-    url,
-    autoConnect = true,
-    autoDisconnect = true,
-    heartbeat,
-    reconnect,
-  } = options
+  const { url, autoConnect = true, autoDisconnect = true, heartbeat, reconnect } = options
   const { protocols: _protocols } = options
 
   const urlRef = typeof url === 'function' ? computed(url) : ref(url)
 
-  const {
-    data,
-    status,
-    open,
-    close,
-    send,
-    ws,
-  } = _useWebSocket(urlRef, {
+  const { data, status, open, close, send, ws } = _useWebSocket(urlRef, {
     immediate: false,
-    autoReconnect: reconnect ? { retries: reconnect.retries, delay: reconnect.interval, onFailed: reconnect.onFailed } : false,
+    autoReconnect: reconnect
+      ? { retries: reconnect.retries, delay: reconnect.interval, onFailed: reconnect.onFailed }
+      : false,
   })
 
   const isConnected = computed(() => status.value === 'OPEN')
@@ -79,7 +68,7 @@ export function useWebSocket(options: UseWebSocketOptions) {
   }
 
   function emit(event: WebSocketEventType, data?: unknown) {
-    listeners.get(event)?.forEach(cb => cb(data))
+    listeners.get(event)?.forEach((cb) => cb(data))
   }
 
   watch(status, (newStatus, oldStatus) => {
@@ -88,12 +77,10 @@ export function useWebSocket(options: UseWebSocketOptions) {
         isError.value = false
         emit('open')
         emit('stateChange', 'connected')
-      }
-      else if (newStatus === 'CLOSED' && oldStatus === 'OPEN') {
+      } else if (newStatus === 'CLOSED' && oldStatus === 'OPEN') {
         emit('close')
         emit('stateChange', 'disconnected')
-      }
-      else if (newStatus === 'CONNECTING') {
+      } else if (newStatus === 'CONNECTING') {
         emit('stateChange', 'connecting')
       }
     }
@@ -107,8 +94,7 @@ export function useWebSocket(options: UseWebSocketOptions) {
           return
         }
         emit('message', parsed)
-      }
-      catch {
+      } catch {
         emit('message', newData)
       }
     }
@@ -117,8 +103,7 @@ export function useWebSocket(options: UseWebSocketOptions) {
   let heartbeatTimer: ReturnType<typeof setInterval> | null = null
 
   function startHeartbeat() {
-    if (!heartbeat || !isConnected.value)
-      return
+    if (!heartbeat || !isConnected.value) return
 
     stopHeartbeat()
 
@@ -130,7 +115,10 @@ export function useWebSocket(options: UseWebSocketOptions) {
         return
       }
 
-      const msg = typeof heartbeat.message === 'function' ? heartbeat.message() : (heartbeat.message ?? 'ping')
+      const msg =
+        typeof heartbeat.message === 'function'
+          ? heartbeat.message()
+          : (heartbeat.message ?? 'ping')
 
       try {
         send(msg)
@@ -145,8 +133,7 @@ export function useWebSocket(options: UseWebSocketOptions) {
             }
           }, heartbeat.timeout) as unknown as number
         }
-      }
-      catch {
+      } catch {
         close()
       }
     }, heartbeat.interval)
@@ -180,14 +167,17 @@ export function useWebSocket(options: UseWebSocketOptions) {
     connectWithAutoCleanup()
   }
 
-  watch(isConnected, (connected) => {
-    if (connected) {
-      startHeartbeat()
-    }
-    else {
-      stopHeartbeat()
-    }
-  }, { immediate: false })
+  watch(
+    isConnected,
+    (connected) => {
+      if (connected) {
+        startHeartbeat()
+      } else {
+        stopHeartbeat()
+      }
+    },
+    { immediate: false },
+  )
 
   return {
     isConnected,

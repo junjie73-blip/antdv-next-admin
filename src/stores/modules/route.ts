@@ -3,7 +3,6 @@ import type { BackendMenu, MenuConfig } from '#/menu'
 import { defineStore } from 'pinia'
 import { markRaw, ref } from 'vue'
 import { DefaultLayout } from '@/layouts'
-import { frontendMenus } from '@/router/menus'
 import { http } from '@/utils/request'
 
 const modules = import.meta.glob('/src/views/**/*.vue')
@@ -18,7 +17,7 @@ interface InternalRoute {
     keepAlive?: boolean
     requiresAuth?: boolean
     roles?: string[]
-    permissions?: string[]
+    permission?: string[]
     microApp?: MicroAppConfig
   }
   component?: unknown
@@ -35,25 +34,16 @@ interface MicroAppConfig {
 
 function generateRoutesFromMenus(menus: MenuConfig[]): InternalRoute[] {
   return menus
-    .filter(menu => !menu.isExternal && menu.layout !== 'blank')
+    .filter((menu) => !menu.isExternal && menu.layout !== 'blank')
     .map((menu) => {
       const route: InternalRoute = {
         path: menu.path,
         name: menu.name,
         meta: {
-          title: menu.title,
           icon: menu.icon,
-          hidden: menu.hidden,
-          keepAlive: menu.keepAlive,
-          requiresAuth: menu.requiresAuth,
-          roles: menu.roles,
-          permissions: menu.permissions,
-          microApp: menu.microApp,
+          title: menu.name,
+          permission: menu.permission!,
         },
-      }
-
-      if (menu.redirect) {
-        route.redirect = menu.redirect
       }
 
       if (menu.component) {
@@ -79,13 +69,9 @@ function generateBlankRoutesFromMenus(menus: MenuConfig[]): InternalRoute[] {
           path: menu.path,
           name: menu.name,
           meta: {
-            title: menu.title,
+            title: menu.name,
             icon: menu.icon,
-            hidden: menu.hidden,
-            keepAlive: menu.keepAlive,
-            requiresAuth: menu.requiresAuth,
-            roles: menu.roles,
-            permissions: menu.permissions,
+            permission: menu.permission!,
             microApp: menu.microApp,
           },
         }
@@ -109,42 +95,43 @@ function generateBlankRoutesFromMenus(menus: MenuConfig[]): InternalRoute[] {
 }
 
 function generateRoutesFromBackendMenus(backendMenus: BackendMenu[]): InternalRoute[] {
-  return backendMenus.map((menu) => {
-    const route: InternalRoute = {
-      path: menu.path,
-      name: menu.name,
-      meta: {
-        title: menu.title,
-        icon: menu.icon,
-        hidden: menu.hidden,
-        keepAlive: menu.keepAlive,
-        requiresAuth: menu.requiresAuth,
-        roles: menu.roles,
-        permissions: menu.permissions,
-        microApp: (menu as any).microApp,
-      },
-    }
+  return backendMenus
+    .filter((menu) => menu.status === '1' && menu.menuType !== 3) // 只处理启用的目录和菜单，忽略按钮
+    .map((menu) => {
+      const route: InternalRoute = {
+        path: menu.path || '',
+        name: menu.menuName, // 或使用 menuId 作为 name
+        meta: {
+          title: menu.menuName,
+          icon: menu.icon,
+          hidden: false, // 可以根据需要设置
+          keepAlive: false,
+          requiresAuth: true,
+          roles: [], // 可扩展
+          permission: menu.permission ? [menu.permission] : [],
+        },
+      }
 
-    if (menu.redirect) {
-      route.redirect = menu.redirect
-    }
+      if (menu.component) {
+        const componentPath = `/src/${menu.component.replace(/^@\//, '')}`
+        route.component = modules[componentPath]
+      }
 
-    if (menu.component) {
-      const componentPath = `/src/${menu.component.replace('@/', '')}`
-      route.component = modules[componentPath]
-    }
+      if (menu.children && menu.children.length > 0) {
+        route.children = generateRoutesFromBackendMenus(menu.children)
+      }
 
-    if (menu.children && menu.children.length > 0) {
-      route.children = generateRoutesFromBackendMenus(menu.children)
-    }
-
-    return route
-  })
+      return route
+    })
 }
 
 async function fetchBackendMenus(): Promise<BackendMenu[]> {
-  const response = await http.Get<{ code: number, data: { list: BackendMenu[] }, message: string }>('/menus')
-  return response.data.list
+  const response = await http.Get<{ code: number; data: BackendMenu[]; message: string }>(
+    '/auth/menus',
+  )
+  // 兼容不同的返回包裹，例如直接返回数组
+  const data = Array.isArray(response) ? response : response.data
+  return data || []
 }
 
 export const useRouteStore = defineStore('route', () => {
@@ -153,16 +140,20 @@ export const useRouteStore = defineStore('route', () => {
   const isLoaded = ref(false)
 
   const generateRoutes = (menuList: MenuConfig[]): AppRouteRecordRaw[] => {
+    const children = generateRoutesFromBackendMenus(
+      menuList as unknown as BackendMenu[],
+    ) as unknown as AppRouteRecordRaw[]
+    const firstPath = children.length > 0 ? children[0]?.path : '/'
     const dynamicRoutes: AppRouteRecordRaw = {
       path: '/',
       name: 'Root',
       component: markRaw(DefaultLayout),
-      redirect: '/dashboard',
+      redirect: firstPath,
       meta: {
         title: '首页',
         icon: 'carbon:home',
       },
-      children: generateRoutesFromMenus(menuList) as unknown as AppRouteRecordRaw[],
+      children,
     }
 
     const blankRoutes = generateBlankRoutesFromMenus(menuList) as unknown as AppRouteRecordRaw[]
@@ -171,24 +162,25 @@ export const useRouteStore = defineStore('route', () => {
   }
 
   const generateBackendRoutes = (backendMenuList: BackendMenu[]): AppRouteRecordRaw[] => {
+    const children = generateRoutesFromBackendMenus(
+      backendMenuList,
+    ) as unknown as AppRouteRecordRaw[]
+    const firstPath = children.length > 0 ? children[0]?.path : '/'
     const dynamicRoutes: AppRouteRecordRaw = {
       path: '/',
       name: 'Root',
       component: markRaw(DefaultLayout),
-      redirect: '/dashboard',
+      redirect: firstPath,
       meta: {
         title: '首页',
         icon: 'carbon:home',
       },
-      children: generateRoutesFromBackendMenus(backendMenuList) as unknown as AppRouteRecordRaw[],
+      children,
     }
-
     return [dynamicRoutes]
   }
 
   const initFrontendRoutes = () => {
-    menus.value = frontendMenus
-    routes.value = generateRoutes(frontendMenus)
     isLoaded.value = true
   }
 

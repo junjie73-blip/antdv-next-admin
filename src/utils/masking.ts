@@ -20,8 +20,7 @@ export interface MaskingRule {
  * 手机号脱敏：138****1234
  */
 export function maskPhone(phone: string): string {
-  if (!phone)
-    return phone
+  if (!phone) return phone
   return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
 }
 
@@ -29,11 +28,9 @@ export function maskPhone(phone: string): string {
  * 邮箱脱敏：***@example.com
  */
 export function maskEmail(email: string): string {
-  if (!email)
-    return email
+  if (!email) return email
   const [name, domain] = email.split('@')
-  if (!domain)
-    return email
+  if (!domain) return email
   return `${'*'.repeat(Math.min(name.length, 3))}@${domain}`
 }
 
@@ -41,8 +38,7 @@ export function maskEmail(email: string): string {
  * 身份证号脱敏：110***********1234
  */
 export function maskIdCard(idCard: string): string {
-  if (!idCard)
-    return idCard
+  if (!idCard) return idCard
   return idCard.replace(/(.{6}).*(.{4})/, '$1***********$2')
 }
 
@@ -50,8 +46,7 @@ export function maskIdCard(idCard: string): string {
  * 银行卡号脱敏：6222 **** **** 1234
  */
 export function maskBankCard(cardNo: string): string {
-  if (!cardNo)
-    return cardNo
+  if (!cardNo) return cardNo
   const cleaned = cardNo.replace(/\s/g, '')
   return cleaned.replace(/(\d{4})\d*(\d{4})/, '$1 **** **** $2')
 }
@@ -60,10 +55,8 @@ export function maskBankCard(cardNo: string): string {
  * 地址脱敏：北京市朝阳区****路
  */
 export function maskAddress(address: string): string {
-  if (!address)
-    return address
-  if (address.length <= 6)
-    return '***'
+  if (!address) return address
+  if (address.length <= 6) return '***'
   return `${address.slice(0, 6)}****`
 }
 
@@ -71,10 +64,8 @@ export function maskAddress(address: string): string {
  * 姓名脱敏：张*
  */
 export function maskName(name: string): string {
-  if (!name)
-    return name
-  if (name.length <= 1)
-    return '*'
+  if (!name) return name
+  if (name.length <= 1) return '*'
   return name[0] + '*'.repeat(name.length - 1)
 }
 
@@ -82,10 +73,8 @@ export function maskName(name: string): string {
  * 通用脱敏：保留前后 n 位，中间用 * 替换
  */
 export function maskGeneric(str: string, keepStart = 2, keepEnd = 2): string {
-  if (!str)
-    return str
-  if (str.length <= keepStart + keepEnd)
-    return '*'.repeat(str.length)
+  if (!str) return str
+  if (str.length <= keepStart + keepEnd) return '*'.repeat(str.length)
   const start = str.slice(0, keepStart)
   const end = str.slice(-keepEnd)
   return start + '*'.repeat(str.length - keepStart - keepEnd) + end

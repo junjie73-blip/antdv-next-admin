@@ -25,9 +25,9 @@ const props = withDefaults(defineProps<ModalProps>(), {
 })
 
 const emit = defineEmits<{
-  'register': [instance: ModalMethods]
-  'ok': [e: MouseEvent]
-  'cancel': [e: MouseEvent]
+  register: [instance: ModalMethods]
+  ok: [e: MouseEvent]
+  cancel: [e: MouseEvent]
   'visible-change': [visible: boolean]
   'update:open': [visible: boolean]
 }>()
@@ -57,10 +57,7 @@ const getWidth = computed(() => {
 
 // 计算包裹层类名
 const wrapClassName = computed(() => {
-  return [
-    'basic-modal',
-    props.wrapClassName,
-  ].filter(Boolean).join(' ')
+  return ['basic-modal', props.wrapClassName].filter(Boolean).join(' ')
 })
 
 const modalStyles = computed<AntModalProps['styles']>(() => ({
@@ -72,7 +69,7 @@ const modalStyles = computed<AntModalProps['styles']>(() => ({
   },
   body: {
     padding: '0',
-    ...(props.bodyStyle || {}),
+    ...props.bodyStyle,
   },
 }))
 
@@ -88,8 +85,7 @@ const modalMethods: ModalMethods = {
   closeModal: async () => {
     if (props.closeFunc) {
       const canClose = await props.closeFunc()
-      if (!canClose)
-        return
+      if (!canClose) return
     }
     visibleRef.value = false
     okLoadingRef.value = false
@@ -188,10 +184,7 @@ const footerClassName = cn(
   >
     <!-- 自定义头部 -->
     <template #title>
-      <div
-        :id="modalTitleId"
-        :class="headerClassName"
-      >
+      <div :id="modalTitleId" :class="headerClassName">
         <div :class="cn('flex items-center gap-2')">
           <span :class="cn('text-lg font-medium text-gray-900')">{{ title }}</span>
           <slot name="titleTip" />
@@ -231,11 +224,7 @@ const footerClassName = cn(
       :class="footerClassName"
     >
       <slot name="insertFooter" />
-      <Button
-        v-if="showCancelBtn"
-        v-bind="cancelButtonProps"
-        @click="handleCancel"
-      >
+      <Button v-if="showCancelBtn" v-bind="cancelButtonProps" @click="handleCancel">
         <template #icon>
           <Icon icon="ant-design:close-outlined" />
         </template>
@@ -256,10 +245,7 @@ const footerClassName = cn(
       </Button>
       <slot name="appendFooter" />
     </div>
-    <div
-      v-else-if="slots.footer"
-      :class="cn('modal-footer px-6 py-4 border-t border-gray-200')"
-    >
+    <div v-else-if="slots.footer" :class="cn('modal-footer px-6 py-4 border-t border-gray-200')">
       <slot name="footer" />
     </div>
   </Modal>

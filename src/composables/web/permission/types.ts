@@ -49,7 +49,7 @@ export interface PermissionCheckOptions {
 }
 
 export interface PermissionDirectiveBinding {
-  value: string | string[] | { permission: string | string[], mode?: PermissionMode }
+  value: string | string[] | { permission: string | string[]; mode?: PermissionMode }
   arg?: string
   modifiers?: Record<string, boolean>
 }

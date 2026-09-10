@@ -42,8 +42,7 @@ export function usePrint(options: PrintOptions) {
   let el: HTMLElement | null = null
   if (typeof target === 'string') {
     el = document.querySelector(target)
-  }
-  else {
+  } else {
     el = target
   }
 

@@ -236,7 +236,7 @@ export default {
     current: 'Current User',
     keywordPlaceholder: 'Search username/nickname/IP...',
     statsCurrentOnline: 'Currently Online',
-    statsTodayLogin: 'Today\'s Logins',
+    statsTodayLogin: "Today's Logins",
     statsPeakOnline: 'Peak Online',
     statsAvgDuration: 'Avg Session Duration',
   },

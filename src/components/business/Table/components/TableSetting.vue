@@ -54,8 +54,7 @@ function toggleFullscreen() {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen()
     isFullscreen.value = true
-  }
-  else {
+  } else {
     document.exitFullscreen()
     isFullscreen.value = false
   }
@@ -95,7 +94,7 @@ function isColumnVisible(col: BasicColumn): boolean {
  */
 function toggleColumnVisible(col: BasicColumn, checked: boolean) {
   const index = localColumns.value.findIndex(
-    c => c.key === col.key || c.dataIndex === col.dataIndex,
+    (c) => c.key === col.key || c.dataIndex === col.dataIndex,
   )
   if (index > -1) {
     localColumns.value[index] = { ...localColumns.value[index], ifShow: checked }
@@ -128,14 +127,14 @@ function handleSelectAll(checked: boolean) {
  * 是否全部选中
  */
 const isAllSelected = computed(() => {
-  return configurableColumns.value.every(col => isColumnVisible(col))
+  return configurableColumns.value.every((col) => isColumnVisible(col))
 })
 
 /**
  * 是否部分选中
  */
 const isIndeterminate = computed(() => {
-  const visibleCount = configurableColumns.value.filter(col => isColumnVisible(col)).length
+  const visibleCount = configurableColumns.value.filter((col) => isColumnVisible(col)).length
   return visibleCount > 0 && visibleCount < configurableColumns.value.length
 })
 </script>
@@ -143,14 +142,8 @@ const isIndeterminate = computed(() => {
 <template>
   <div :class="cn('flex items-center gap-1')">
     <!-- 刷新 -->
-    <Tooltip
-      v-if="getSetting.redo"
-      title="刷新"
-    >
-      <Button
-        type="text"
-        @click="handleRedo"
-      >
+    <Tooltip v-if="getSetting.redo" title="刷新">
+      <Button type="text" @click="handleRedo">
         <template #icon>
           <Icon icon="ant-design:redo-outlined" />
         </template>
@@ -170,12 +163,7 @@ const isIndeterminate = computed(() => {
           <!-- 标题 -->
           <div :class="cn('flex items-center justify-between mb-3')">
             <span :class="cn('font-medium')">列设置</span>
-            <Button
-              type="link"
-              @click="handleReset"
-            >
-              重置
-            </Button>
+            <Button type="link" @click="handleReset"> 重置 </Button>
           </div>
 
           <!-- 全选 -->
@@ -226,16 +214,16 @@ const isIndeterminate = computed(() => {
     </Popover>
 
     <!-- 全屏 -->
-    <Tooltip
-      v-if="getSetting.fullScreen"
-      :title="isFullscreen ? '退出全屏' : '全屏'"
-    >
-      <Button
-        type="text"
-        @click="toggleFullscreen"
-      >
+    <Tooltip v-if="getSetting.fullScreen" :title="isFullscreen ? '退出全屏' : '全屏'">
+      <Button type="text" @click="toggleFullscreen">
         <template #icon>
-          <Icon :icon="isFullscreen ? 'ant-design:fullscreen-exit-outlined' : 'ant-design:fullscreen-outlined'" />
+          <Icon
+            :icon="
+              isFullscreen
+                ? 'ant-design:fullscreen-exit-outlined'
+                : 'ant-design:fullscreen-outlined'
+            "
+          />
         </template>
       </Button>
     </Tooltip>

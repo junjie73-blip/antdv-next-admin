@@ -27,13 +27,13 @@ const themeOptions = [
   { value: 'dark', label: '暗色' },
 ]
 
-const sizeOptions: { value: ComponentSize, label: string }[] = [
+const sizeOptions: { value: ComponentSize; label: string }[] = [
   { value: 'small', label: '小' },
   { value: 'middle', label: '中' },
   { value: 'large', label: '大' },
 ]
 
-const transitionOptions: { value: TransitionEffect, label: string }[] = [
+const transitionOptions: { value: TransitionEffect; label: string }[] = [
   { value: 'fade', label: '淡入淡出' },
   { value: 'slide', label: '滑动' },
   { value: 'slide-right', label: '右滑' },
@@ -46,17 +46,25 @@ const transitionOptions: { value: TransitionEffect, label: string }[] = [
   { value: 'flip', label: '翻转' },
 ]
 
-const notificationPositionOptions: { value: NotificationPosition, label: string }[] = [
+const notificationPositionOptions: { value: NotificationPosition; label: string }[] = [
   { value: 'topLeft', label: '左上' },
   { value: 'topRight', label: '右上' },
   { value: 'bottomLeft', label: '左下' },
   { value: 'bottomRight', label: '右下' },
 ]
 
-const allowedStyles = ['default', 'compact', 'illustration', 'bootstrap', 'skeuomorphism', 'glass', 'geek'] as ThemeStyle[]
+const allowedStyles = [
+  'default',
+  'compact',
+  'illustration',
+  'bootstrap',
+  'skeuomorphism',
+  'glass',
+  'geek',
+] as ThemeStyle[]
 
 const themeStyles = computed(() =>
-  Object.values(THEME_PRESETS).filter(style => allowedStyles.includes(style.name as ThemeStyle)),
+  Object.values(THEME_PRESETS).filter((style) => allowedStyles.includes(style.name as ThemeStyle)),
 )
 
 const primaryColors = [
@@ -70,10 +78,7 @@ const primaryColors = [
   { color: '#eb2f96', name: '樱花粉' },
 ]
 
-const settingItemClassName = cn(
-  'flex items-center justify-between',
-  'py-2',
-)
+const settingItemClassName = cn('flex items-center justify-between', 'py-2')
 
 const sectionTitleClassName = cn(
   'text-sm font-semibold text-gray-800 dark:text-gray-200',
@@ -150,11 +155,13 @@ function getPrimaryColor(style: { token?: Record<string, unknown> }): string {
             :options="themeOptions"
             :value="appStore.themeMode"
             block
-            @change="(value: string) => {
-              if (value !== appStore.themeMode) {
-                appStore.updateSetting({ theme: value as 'light' | 'dark' })
+            @change="
+              (value: string) => {
+                if (value !== appStore.themeMode) {
+                  appStore.updateSetting({ theme: value as 'light' | 'dark' })
+                }
               }
-            }"
+            "
           />
         </div>
 
@@ -165,20 +172,19 @@ function getPrimaryColor(style: { token?: Record<string, unknown> }): string {
             <div
               v-for="item in LAYOUT_OPTIONS"
               :key="item.value"
-              :class="cn(
-                'flex flex-col items-center gap-1 p-2 rounded cursor-pointer',
-                'border-2 transition-all duration-200',
-                'hover:border-gray-400',
-                appStore.layout === item.value
-                  ? 'border-ant-primary bg-ant-primary/5'
-                  : 'border-gray-200',
-              )"
+              :class="
+                cn(
+                  'flex flex-col items-center gap-1 p-2 rounded cursor-pointer',
+                  'border-2 transition-all duration-200',
+                  'hover:border-gray-400',
+                  appStore.layout === item.value
+                    ? 'border-ant-primary bg-ant-primary/5'
+                    : 'border-gray-200',
+                )
+              "
               @click="handleLayoutChange(item.value)"
             >
-              <LayoutIcon
-                :type="item.value"
-                :active="appStore.layout === item.value"
-              />
+              <LayoutIcon :type="item.value" :active="appStore.layout === item.value" />
               <span class="text-xs">{{ item.label }}</span>
             </div>
           </div>
@@ -202,14 +208,16 @@ function getPrimaryColor(style: { token?: Record<string, unknown> }): string {
             <div
               v-for="item in primaryColors"
               :key="item.color"
-              :class="cn(
-                'flex items-center gap-2 p-2 rounded cursor-pointer',
-                'border-2 transition-all duration-200',
-                'hover:border-gray-400',
-                appStore.primaryColor === item.color
-                  ? 'border-ant-primary bg-ant-primary/5'
-                  : 'border-gray-200',
-              )"
+              :class="
+                cn(
+                  'flex items-center gap-2 p-2 rounded cursor-pointer',
+                  'border-2 transition-all duration-200',
+                  'hover:border-gray-400',
+                  appStore.primaryColor === item.color
+                    ? 'border-ant-primary bg-ant-primary/5'
+                    : 'border-gray-200',
+                )
+              "
               @click="handlePrimaryColorChange(item.color)"
             >
               <div
@@ -228,14 +236,16 @@ function getPrimaryColor(style: { token?: Record<string, unknown> }): string {
             <div
               v-for="style in themeStyles"
               :key="style.name"
-              :class="cn(
-                'flex items-center gap-2 p-2 rounded cursor-pointer',
-                'border-2 transition-all duration-200',
-                'hover:border-gray-400',
-                appStore.themeStyle === style.name
-                  ? 'border-ant-primary bg-ant-primary/5'
-                  : 'border-gray-200',
-              )"
+              :class="
+                cn(
+                  'flex items-center gap-2 p-2 rounded cursor-pointer',
+                  'border-2 transition-all duration-200',
+                  'hover:border-gray-400',
+                  appStore.themeStyle === style.name
+                    ? 'border-ant-primary bg-ant-primary/5'
+                    : 'border-gray-200',
+                )
+              "
               @click="handleThemeStyleChange(style.name)"
             >
               <div
@@ -253,74 +263,41 @@ function getPrimaryColor(style: { token?: Record<string, unknown> }): string {
           <div class="space-y-1">
             <div :class="settingItemClassName">
               <span class="text-sm">暗色侧边栏</span>
-              <Switch
-                :checked="appStore.darkSidebar"
-                @change="appStore.toggleDarkSidebar"
-              />
+              <Switch :checked="appStore.darkSidebar" @change="appStore.toggleDarkSidebar" />
             </div>
             <div :class="settingItemClassName">
               <span class="text-sm">显示面包屑</span>
-              <Switch
-                :checked="appStore.showBreadcrumb"
-                @change="appStore.toggleBreadcrumb"
-              />
+              <Switch :checked="appStore.showBreadcrumb" @change="appStore.toggleBreadcrumb" />
             </div>
             <div :class="settingItemClassName">
               <span class="text-sm">显示标签页</span>
-              <Switch
-                :checked="appStore.showTabs"
-                @change="appStore.toggleTabs"
-              />
+              <Switch :checked="appStore.showTabs" @change="appStore.toggleTabs" />
             </div>
-            <div
-              v-if="appStore.showTabs"
-              :class="settingItemClassName"
-            >
+            <div v-if="appStore.showTabs" :class="settingItemClassName">
               <span class="text-sm">标签页显示图标</span>
-              <Switch
-                :checked="appStore.tabShowIcon"
-                @change="appStore.toggleTabShowIcon"
-              />
+              <Switch :checked="appStore.tabShowIcon" @change="appStore.toggleTabShowIcon" />
             </div>
             <div :class="settingItemClassName">
               <span class="text-sm">显示页脚</span>
-              <Switch
-                :checked="appStore.showFooter"
-                @change="appStore.toggleFooter"
-              />
+              <Switch :checked="appStore.showFooter" @change="appStore.toggleFooter" />
             </div>
             <div :class="settingItemClassName">
               <span class="text-sm">水波纹效果</span>
-              <Switch
-                :checked="appStore.enableWaterRipple"
-                @change="appStore.toggleWaterRipple"
-              />
+              <Switch :checked="appStore.enableWaterRipple" @change="appStore.toggleWaterRipple" />
             </div>
             <div :class="settingItemClassName">
               <span class="text-sm">色弱模式</span>
-              <Switch
-                :checked="appStore.colorWeak"
-                @change="appStore.toggleColorWeak"
-              />
+              <Switch :checked="appStore.colorWeak" @change="appStore.toggleColorWeak" />
             </div>
             <div :class="settingItemClassName">
               <span class="text-sm">灰色模式</span>
-              <Switch
-                :checked="appStore.grayMode"
-                @change="appStore.toggleGrayMode"
-              />
+              <Switch :checked="appStore.grayMode" @change="appStore.toggleGrayMode" />
             </div>
             <div :class="settingItemClassName">
               <span class="text-sm">水印</span>
-              <Switch
-                :checked="appStore.enableWatermark"
-                @change="appStore.toggleWatermark"
-              />
+              <Switch :checked="appStore.enableWatermark" @change="appStore.toggleWatermark" />
             </div>
-            <div
-              v-if="appStore.enableWatermark"
-              :class="settingItemClassName"
-            >
+            <div v-if="appStore.enableWatermark" :class="settingItemClassName">
               <span class="text-sm">水印内容</span>
               <Input
                 :value="appStore.watermarkContent"
@@ -384,10 +361,7 @@ function getPrimaryColor(style: { token?: Record<string, unknown> }): string {
 
         <!-- 重置 -->
         <div>
-          <a-button
-            block
-            @click="handleReset"
-          >
+          <a-button block @click="handleReset">
             <template #icon>
               <Icon icon="carbon:reset" />
             </template>

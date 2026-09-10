@@ -2,12 +2,12 @@
 import type { FormSchema } from '@/components/business/Form'
 import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
-
 import { computed, onMounted, ref } from 'vue'
 import * as XLSX from 'xlsx'
 import {
   addUser,
   deleteUser,
+  batchDeleteUser,
   getDeptTree,
   getUserList,
   getUserOptions,
@@ -20,30 +20,34 @@ import { DictType } from '@/enums/dict'
 import { useDictStore } from '@/stores'
 import { cn } from '@/utils/cn'
 import { usePrint } from '@/utils/print'
+import { useCRUD } from '@/composables/useCRUD'
+import { message } from 'antdv-next'
 
 defineOptions({ name: 'SystemUser' })
 
+// ========== 类型定义（与后端返回字段一致） ==========
 interface UserRecord {
-  id: number
+  userId: string
   username: string
-  nickname: string
+  realName: string
   email: string
   phone: string
-  deptName: string
-  deptId: number
-  status: number
-  role: string
-  roleId: number
-  remark: string
+  deptId?: string
+  deptName?: string
+  roleIds?: string[]
+  roles?: any[]
+  status: string
+  sortOrder?: number
   createdAt: string
 }
 
-interface DeptNode {
-  id: number
-  name: string
-  children?: DeptNode[]
+interface DeptTreeNode {
+  deptId: string
+  deptName: string
+  children?: DeptTreeNode[]
 }
 
+// ========== 样式 ==========
 const containerClassName = cn('flex gap-4')
 const leftPanelClassName = cn('w-[240px] shrink-0')
 const rightPanelClassName = cn('flex-1 min-w-0')
@@ -54,101 +58,108 @@ const actionClassName = cn('flex', 'items-center', 'justify-center')
 const btnClassName = cn('!px-0.5')
 const dividerClassName = cn('mx-0')
 
-const statusColorMap: Record<number, string> = {
-  1: 'green',
-  0: 'red',
-}
-
-const statusLabelMap: Record<number, string> = {
-  1: '正常',
-  0: '禁用',
-}
-
+// ========== 状态映射 ==========
 const dictStore = useDictStore()
-
 const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
+const statusColorMap: Record<string, string> = { '1': 'green', '0': 'red' }
+const statusLabelMap: Record<string, string> = { '1': '正常', '0': '禁用' }
 
-// 从 API 获取部门和角色选项
-const mockDeptTree = ref<DeptNode[]>([])
-const allDeptNodes = ref<{ id: number, name: string }[]>([])
-const roleOptions = ref<{ label: string, value: number }[]>([])
+// ========== 基础数据 ==========
+const deptTreeData = ref<DeptTreeNode[]>([])
+const roleOptions = ref<{ label: string; value: string }[]>([])
+const allDeptNodes = ref<{ deptId: string; deptName: string }[]>([])
 
-onMounted(async () => {
+// 转换部门树节点
+function convertDeptTree(nodes: any[]): DeptTreeNode[] {
+  return nodes.map((node) => {
+    const item: DeptTreeNode = {
+      deptId: node.deptId,
+      deptName: node.deptName,
+    }
+    if (node.children?.length) {
+      item.children = convertDeptTree(node.children)
+    }
+    return item
+  })
+}
+
+// 扁平化部门树
+function flattenDeptTree(nodes: DeptTreeNode[]): { deptId: string; deptName: string }[] {
+  const result: { deptId: string; deptName: string }[] = []
+  function walk(items: DeptTreeNode[]) {
+    for (const item of items) {
+      result.push({ deptId: item.deptId, deptName: item.deptName })
+      if (item.children?.length) walk(item.children)
+    }
+  }
+  walk(nodes)
+  return result
+}
+
+// 加载部门树和角色选项
+async function loadBaseData() {
   try {
     const [deptRes, optionRes] = await Promise.all([getDeptTree(), getUserOptions()])
-    // 兼容 mock 返回完整响应或已解包的数据
     const deptData = Array.isArray(deptRes) ? deptRes : (deptRes?.data ?? deptRes ?? [])
     const optData = Array.isArray(optionRes) ? optionRes : (optionRes?.data ?? optionRes ?? [])
-    mockDeptTree.value = deptData
-    // 扁平化部门树用于查找名称
-    function flatten(nodes: DeptNode[]): { id: number, name: string }[] {
-      const result: { id: number, name: string }[] = []
-      for (const node of nodes) {
-        result.push({ id: node.id, name: node.name })
-        if (node.children)
-          result.push(...flatten(node.children))
-      }
-      return result
-    }
-    allDeptNodes.value = flatten(mockDeptTree.value)
+    deptTreeData.value = convertDeptTree(deptData)
+    allDeptNodes.value = flattenDeptTree(deptTreeData.value)
     roleOptions.value = optData.map((item: any) => ({
       label: item.label,
       value: item.value,
     }))
+  } catch (e) {
+    console.error('加载基础数据失败', e)
+    message.error('加载部门/角色选项失败')
   }
-  catch (e) {
-    console.error('获取基础数据失败', e)
-  }
+}
+
+onMounted(() => {
+  loadBaseData()
 })
 
-// ========== 状态管理 ==========
-const selectedDeptId = ref<number | null>(null)
-const isEditing = ref(false)
-const currentRecord = ref<UserRecord | null>(null)
-const treeExpandedKeys = ref<number[]>([1])
+// ========== 选中部门 ==========
+const selectedDeptId = ref<string>('')
+const treeExpandedKeys = ref<string[]>([])
 
+function handleDeptSelect(_selectedKeys: (string | number)[], info: { node: { deptId: string } }) {
+  const clickedId = info.node.deptId
+  if (selectedDeptId.value === clickedId) {
+    // 再次点击已选中的节点，取消选中
+    selectedDeptId.value = ''
+  } else {
+    selectedDeptId.value = clickedId
+  }
+  // 刷新用户列表
+  tableMethods.value?.reload()
+}
+
+// ========== 表格/表单/弹窗注册 ==========
 const [modalRegister, modalMethods] = useModal()
 const [tableRegister, tableMethods] = useTable()
 const [formRegister, formMethods] = useForm()
 
-// API 适配层 — 将 API 返回的 { list, total } 转换为 BasicTable 需要的 { items, total }
-async function mockApi(params: Record<string, any>) {
-  // 合并选中的部门ID作为筛选条件
-  const requestParams = {
-    ...params,
-    ...(selectedDeptId.value !== null && { deptId: selectedDeptId.value }),
-  }
-  const res = await getUserList(requestParams)
-  // 兼容 mock 直接返回完整响应或已解包的数据
-  const data = res?.data ?? res
-  return { items: data?.list || [], total: data?.total || 0 }
-}
-
+// ========== 搜索表单 ==========
 const searchFormSchemas: FormSchema[] = [
   {
     field: 'keyword',
     label: '关键词',
     component: 'Input',
-    componentProps: {
-      placeholder: '搜索用户名/昵称/邮箱/手机号...',
-      allowClear: true,
-    },
+    componentProps: { placeholder: '搜索用户名/真实姓名/邮箱/手机号...', allowClear: true },
     colProps: { span: 6 },
   },
   {
     field: 'status',
     label: '状态',
     component: 'Select',
-    componentProps: {
-      placeholder: '选择状态',
-      allowClear: true,
-      options: statusOptions.value,
-    },
+    defaultValue: '1',
+    componentProps: { placeholder: '选择状态', allowClear: true, options: statusOptions.value },
     colProps: { span: 6 },
   },
 ]
 
-const modalFormSchemas: FormSchema[] = [
+// ========== 编辑表单 ==========
+const modalFormSchemas = computed<FormSchema[]>(() => [
   {
     field: 'username',
     label: '用户名',
@@ -157,16 +168,17 @@ const modalFormSchemas: FormSchema[] = [
     componentProps: { placeholder: '请输入用户名' },
   },
   {
-    field: 'nickname',
-    label: '昵称',
+    field: 'realName',
+    label: '真实姓名',
     component: 'Input',
     required: true,
-    componentProps: { placeholder: '请输入昵称' },
+    componentProps: { placeholder: '请输入真实姓名' },
   },
   {
     field: 'password',
     label: '密码',
     component: 'InputPassword',
+    ifShow: () => !isEditing.value,
     componentProps: { placeholder: '留空则不修改密码' },
   },
   {
@@ -182,23 +194,24 @@ const modalFormSchemas: FormSchema[] = [
     componentProps: { placeholder: '请输入邮箱地址' },
   },
   {
-    field: 'deptId',
+    field: 'deptIds',
     label: '部门',
-    component: 'TreeSelect',
+    component: 'ATreeSelect',
     componentProps: {
-      treeData: mockDeptTree.value,
-      fieldNames: { children: 'children', label: 'name', value: 'id' },
+      fieldNames: { children: 'children', label: 'deptName', value: 'deptId' },
       placeholder: '请选择部门',
       treeDefaultExpandAll: true,
+      api: '/dept/tree',
     },
   },
   {
-    field: 'roleId',
+    field: 'roleIds',
     label: '角色',
-    component: 'Select',
+    component: 'ASelect',
     componentProps: {
-      options: roleOptions.value,
+      api: '/user/options',
       placeholder: '请选择角色',
+      mode: 'multiple', // 支持多角色
     },
   },
   {
@@ -213,7 +226,7 @@ const modalFormSchemas: FormSchema[] = [
     field: 'status',
     label: '状态',
     component: 'RadioGroup',
-    defaultValue: 1,
+    defaultValue: '1',
     colProps: { span: 12 },
     componentProps: () => ({
       optionType: 'button',
@@ -221,270 +234,218 @@ const modalFormSchemas: FormSchema[] = [
       options: statusOptions.value,
     }),
   },
-  {
-    field: 'remark',
-    label: '备注',
-    component: 'InputTextArea',
-    colProps: { span: 24 },
-    componentProps: { placeholder: '请输入备注', rows: 3 },
-  },
-]
+])
 
-function handleDeptSelect(_selectedKeys: (string | number)[], info: { node: { id: number } }) {
-  selectedDeptId.value = info.node.id
-  tableMethods.value?.reload()
-}
-
-function handleAdd() {
-  isEditing.value = false
-  currentRecord.value = null
-  formMethods.setFieldsValue({
+// ========== 使用 useCRUD ==========
+const {
+  isEditing,
+  currentRecord,
+  handleAdd,
+  handleEdit,
+  handleDelete,
+  handleBatchDelete,
+  handleSave,
+} = useCRUD<UserRecord>({
+  containerType: 'modal',
+  modalMethods,
+  formMethods,
+  tableMethods,
+  idKey: 'userId',
+  confirmDelete: true,
+  getEmptyValues: () => ({
     username: '',
-    nickname: '',
+    realName: '',
     password: '',
     email: '',
     phone: '',
-    deptId: undefined,
-    roleId: undefined,
-    status: 0,
+    deptIds: [],
+    roleIds: [],
     sortOrder: 0,
-    remark: '',
-  })
-  formMethods.clearValidate()
-  modalMethods.openModal()
-}
-
-function handleDetail(record: UserRecord) {
-  message.info(`查看用户详情：${record.nickname}`)
-}
-
-function handleEdit(record: UserRecord) {
-  isEditing.value = true
-  currentRecord.value = record
-  formMethods.setFieldsValue({
+    status: '1',
+  }),
+  getFormValues: (record) => ({
     username: record.username,
-    nickname: record.nickname,
+    realName: record.realName,
     password: '',
     email: record.email,
     phone: record.phone,
-    deptId: record.deptId,
-    roleId: record.roleId,
+    deptIds: record.deptId ? [record.deptId] : [], // 如果只支持单部门可调整
+    roleIds: record.roles?.map((r) => r.roleId) || [],
+    sortOrder: record.sortOrder ?? 0,
     status: record.status,
-    sortOrder: (record as any).sortOrder ?? 0,
-    remark: record.remark,
-  })
-  formMethods.clearValidate()
-  modalMethods.openModal()
-}
-
-async function handleDelete(record: UserRecord) {
-  try {
-    await deleteUser(record.id)
-    message.success(`已删除用户：${record.nickname}`)
+  }),
+  onCreate: async (values) => {
+    await addUser(values)
+  },
+  onUpdate: async (id, values) => {
+    await updateUser(id, values)
+  },
+  onDelete: async (record) => {
+    await deleteUser(record.userId)
+  },
+  onBatchDelete: async (records) => {
+    await batchDeleteUser(records.map((r) => r.userId))
+  },
+  onSaved: async () => {
     tableMethods.value?.reload()
+  },
+  onDeleted: async () => {
+    tableMethods.value?.reload()
+  },
+  messages: {
+    createSuccess: '用户创建成功',
+    updateSuccess: '用户更新成功',
+    deleteSuccess: '用户删除成功',
+    batchDeleteSuccess: '批量删除成功',
+    deleteConfirm: '确定要删除该用户吗？',
+    batchDeleteConfirm: '确定要删除选中的用户吗？',
+  },
+})
+
+// ========== 表格数据加载 ==========
+async function mockApi(params: Record<string, any>) {
+  const requestParams = {
+    ...params,
+    deptId: selectedDeptId.value || undefined,
   }
-  catch (e: any) {
-    message.error(e?.message || '删除失败')
-  }
+  return await getUserList(requestParams)
 }
 
+// ========== 列定义 ==========
+const columns: BasicColumn[] = [
+  {
+    title: '序号',
+    key: 'index',
+    width: 60,
+    align: 'center',
+    customRender: ({ index }) => index + 1,
+  },
+  { title: '用户名', dataIndex: 'username', key: 'username', width: 120, align: 'center' },
+  { title: '真实姓名', dataIndex: 'realName', key: 'realName', width: 120, align: 'center' },
+  { title: '邮箱', dataIndex: 'email', key: 'email', width: 200, ellipsis: true },
+  { title: '手机号', dataIndex: 'phone', key: 'phone', width: 140, align: 'center' },
+  { title: '部门', dataIndex: 'deptName', key: 'deptName', width: 140, align: 'center' },
+  { title: '角色', dataIndex: 'roles', key: 'roles', width: 160, align: 'center' },
+  { title: '状态', dataIndex: 'status', key: 'status', width: 80, align: 'center' },
+  { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 170, align: 'center' },
+]
+
+// ========== 导出 ==========
 function handleExport() {
   const selectedRows = tableMethods.value?.getSelectRows?.() || []
-
   if (selectedRows.length === 0) {
     message.warning('请先选择要导出的用户')
     return
   }
-
-  const headers = ['用户名', '昵称', '邮箱', '手机号', '部门', '角色', '状态']
+  const headers = ['用户名', '真实姓名', '邮箱', '手机号', '部门', '角色', '状态']
   const rows = selectedRows.map((i: UserRecord) => [
     i.username,
-    i.nickname,
+    i.realName,
     i.email,
     i.phone,
-    i.deptName,
-    i.role,
-    i.status === 1 ? '正常' : '禁用',
+    i.deptName || '',
+    (i.roleNames || []).join(','),
+    i.status === '1' ? '正常' : '禁用',
   ])
-
   const ws = XLSX.utils.aoa_to_sheet([headers, ...rows])
-  ws['!cols'] = [
-    { wch: 12 },
-    { wch: 12 },
-    { wch: 24 },
-    { wch: 14 },
-    { wch: 10 },
-    { wch: 12 },
-    { wch: 8 },
-  ]
-
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, '用户列表')
-
   XLSX.writeFile(wb, `用户列表_${new Date().toISOString().slice(0, 10)}.xlsx`)
   message.success(`成功导出 ${selectedRows.length} 条数据`)
 }
 
+// ========== 打印 ==========
 function handlePrint() {
-  usePrint({
-    title: '用户列表',
-    target: '.ant-card-body',
-  })
+  usePrint({ title: '用户列表', target: '.ant-card-body' })
 }
-
-async function handleSave() {
-  const values = await formMethods.validate()
-  if (!values) {
-    return
-  }
-
-  if (!values.username || !values.nickname) {
-    message.warning('请填写用户名和昵称')
-    return
-  }
-
-  try {
-    if (isEditing.value && currentRecord.value) {
-      await updateUser(currentRecord.value.id, values)
-      message.success(`已更新用户：${values.nickname}`)
-    }
-    else {
-      await addUser(values)
-      message.success(`已新增用户：${values.nickname}`)
-    }
-
-    modalMethods.closeModal()
-    tableMethods.value?.reload()
-  }
-  catch (e: any) {
-    message.error(e?.message || '保存失败')
-  }
-}
-
-const columns: BasicColumn[] = [
-  { title: '#', key: 'index', width: 60, align: 'center', customRender: ({ index }) => index + 1 },
-  { title: '用户名', dataIndex: 'username', key: 'username', width: 120, align: 'center' },
-  { title: '昵称', dataIndex: 'nickname', key: 'nickname', width: 120, align: 'center' },
-  { title: '邮箱', dataIndex: 'email', key: 'email', width: 200, ellipsis: true },
-  { title: '手机号', dataIndex: 'phone', key: 'phone', width: 140, align: 'center' },
-  { title: '部门', dataIndex: 'deptName', key: 'deptName', width: 100, align: 'center' },
-  { title: '角色', dataIndex: 'role', key: 'role', width: 120, align: 'center' },
-  { title: '状态', dataIndex: 'status', key: 'status', width: 80, align: 'center' },
-  { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 170, align: 'center' },
-]
 </script>
 
 <template>
   <div :class="containerClassName">
+    <!-- 左侧部门树 -->
     <div :class="leftPanelClassName">
-      <a-card
-        :class="treeCardClassName"
-        title="部门列表"
-        size="small"
-      >
+      <a-card :class="treeCardClassName" title="部门列表" size="small">
         <a-tree
-          :tree-data="mockDeptTree"
-          :field-names="{ children: 'children', title: 'name', key: 'id' }"
+          :tree-data="deptTreeData"
+          :field-names="{ children: 'children', title: 'deptName', key: 'deptId' }"
           :expanded-keys="treeExpandedKeys"
-          :default-selected-keys="selectedDeptId !== null ? [selectedDeptId] : []"
+          :default-selected-keys="selectedDeptId ? [selectedDeptId] : []"
           block-node
           @select="handleDeptSelect"
-          @update:expandedKeys="(keys: number[]) => { treeExpandedKeys = keys }"
+          @update:expandedKeys="
+            (keys: string[]) => {
+              treeExpandedKeys = keys
+            }
+          "
         />
       </a-card>
     </div>
 
+    <!-- 右侧用户列表 -->
     <div :class="rightPanelClassName">
-      <a-card
-        title="用户管理"
-        :class="cardClassName"
-      >
+      <a-card title="用户管理" :class="cardClassName">
         <BasicTable
           :columns="columns"
           :api="mockApi"
           :immediate="true"
           :use-search-form="true"
           :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
-          :action-column="{ width: 240, title: '操作', fixed: 'right' }"
+          :action-column="{ width: 260, title: '操作', fixed: 'right' }"
           :row-selection="{ type: 'checkbox' }"
-          :pagination="{ showSizeChanger: true,
-                         pageSizeOptions: ['10',
-                                           '20',
-                                           '50'] }"
+          :pagination="{ showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }"
           :scroll="{ x: 1400 }"
+          :row-key="(record) => record.userId"
           @register="tableRegister"
         >
           <template #toolbar>
-            <a-button
-              type="primary"
-              @click="handleAdd"
-            >
-              <template #icon>
-                <Icon icon="ant-design:plus-outlined" />
-              </template>
+            <a-button type="primary" @click="() => handleAdd()">
+              <template #icon><Icon icon="ant-design:plus-outlined" /></template>
               新增用户
             </a-button>
             <a-button @click="handleExport">
-              <template #icon>
-                <Icon icon="carbon:export" />
-              </template>
+              <template #icon><Icon icon="carbon:export" /></template>
               导出
             </a-button>
             <a-button @click="handlePrint">
-              <template #icon>
-                <Icon icon="carbon:printer" />
-              </template>
+              <template #icon><Icon icon="carbon:printer" /></template>
               打印
             </a-button>
+            <a-button danger @click="() => handleBatchDelete()">
+              <template #icon><Icon icon="ant-design:delete-outlined" /></template>
+              批量删除
+            </a-button>
           </template>
+
           <template #cell-status="{ record }">
             <a-tag :color="statusColorMap[record.status] || 'default'">
               <span :class="statusTagClassName">
-                <Icon :icon="record.status === 1 ? 'carbon:checkmark-outline' : 'carbon:close-outline'" />
+                <Icon
+                  :icon="
+                    record.status === '1' ? 'carbon:checkmark-outline' : 'carbon:close-outline'
+                  "
+                />
                 {{ statusLabelMap[record.status] || '未知' }}
               </span>
             </a-tag>
           </template>
+          <template #cell-roles="{ record }">
+            {{ record.roles?.map((r) => r.roleName || '-').join(',') || '-' }}
+          </template>
 
           <template #action="{ record }">
             <div :class="actionClassName">
-              <a-button
-                type="link"
-                :class="btnClassName"
-                @click="() => handleDetail(record)"
-              >
-                <template #icon>
-                  <Icon icon="ant-design:eye-outlined" />
-                </template>
-                详情
-              </a-button>
-              <a-divider
-                type="vertical"
-                :class="dividerClassName"
-              />
-              <a-button
-                type="link"
-                :class="btnClassName"
-                @click="() => handleEdit(record)"
-              >
-                <template #icon>
-                  <Icon icon="ant-design:edit-outlined" />
-                </template>
+              <a-button type="link" :class="btnClassName" @click="() => handleEdit(record)">
+                <template #icon><Icon icon="ant-design:edit-outlined" /></template>
                 编辑
               </a-button>
-              <a-divider
-                type="vertical"
-                :class="dividerClassName"
-              />
+              <a-divider type="vertical" :class="dividerClassName" />
               <a-button
                 type="link"
                 danger
                 :class="btnClassName"
                 @click="() => handleDelete(record)"
               >
-                <template #icon>
-                  <Icon icon="ant-design:delete-outlined" />
-                </template>
+                <template #icon><Icon icon="ant-design:delete-outlined" /></template>
                 删除
               </a-button>
             </div>
@@ -493,6 +454,7 @@ const columns: BasicColumn[] = [
       </a-card>
     </div>
 
+    <!-- 新增/编辑弹窗 -->
     <BasicModal
       :title="isEditing ? '编辑用户' : '新增用户'"
       :width="640"

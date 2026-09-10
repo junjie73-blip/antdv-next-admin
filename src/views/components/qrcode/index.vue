@@ -13,16 +13,14 @@ const basicText = ref('https://example.com')
 const basicQrCanvas = useTemplateRef<HTMLCanvasElement>('basicQrCanvas')
 
 async function generateBasicQR() {
-  if (!basicQrCanvas.value)
-    return
+  if (!basicQrCanvas.value) return
   try {
     await QRCode.toCanvas(basicQrCanvas.value, basicText.value, {
       width: 200,
       margin: 2,
       color: { dark: '#000000', light: '#ffffff' },
     })
-  }
-  catch (error) {
+  } catch (error) {
     console.error('QR generation failed', error)
   }
 }
@@ -39,8 +37,7 @@ const logoQrCanvas = useTemplateRef<HTMLCanvasElement>('logoQrCanvas')
 const showLogo = ref(true)
 
 async function generateLogoQR() {
-  if (!logoQrCanvas.value)
-    return
+  if (!logoQrCanvas.value) return
   try {
     await QRCode.toCanvas(logoQrCanvas.value, logoText.value, {
       width: 200,
@@ -56,7 +53,13 @@ async function generateLogoQR() {
         ctx.fillStyle = '#ffffff'
         ctx.fillRect(x - 4, y - 4, size + 8, size + 8)
         ctx.beginPath()
-        ctx.arc(logoQrCanvas.value.width / 2, logoQrCanvas.value.height / 2, size / 2, 0, Math.PI * 2)
+        ctx.arc(
+          logoQrCanvas.value.width / 2,
+          logoQrCanvas.value.height / 2,
+          size / 2,
+          0,
+          Math.PI * 2,
+        )
         ctx.fillStyle = '#1677ff'
         ctx.fill()
         ctx.fillStyle = '#ffffff'
@@ -66,8 +69,7 @@ async function generateLogoQR() {
         ctx.fillText('A', logoQrCanvas.value.width / 2, logoQrCanvas.value.height / 2)
       }
     }
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Logo QR generation failed:', error)
   }
 }
@@ -83,16 +85,14 @@ const downloadFormat = ref<'png' | 'svg' | 'dataURL'>('png')
 const downloadQrCanvas = useTemplateRef<HTMLCanvasElement>('downloadQrCanvas')
 
 async function generateDownloadQR() {
-  if (!downloadQrCanvas.value)
-    return
+  if (!downloadQrCanvas.value) return
   try {
     await QRCode.toCanvas(downloadQrCanvas.value, 'Downloadable QR Code', {
       width: 200,
       margin: 2,
       color: { dark: '#52c41a', light: '#f6ffed' },
     })
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Download QR generation failed', error)
   }
 }
@@ -102,16 +102,14 @@ onMounted(() => {
 })
 
 function handleDownload() {
-  if (!downloadQrCanvas.value)
-    return
+  if (!downloadQrCanvas.value) return
   if (downloadFormat.value === 'png') {
     const link = document.createElement('a')
     link.download = 'qrcode.png'
     link.href = downloadQrCanvas.value.toDataURL('image/png')
     link.click()
     message.success('PNG download success')
-  }
-  else if (downloadFormat.value === 'svg') {
+  } else if (downloadFormat.value === 'svg') {
     QRCode.toString('Downloadable QR Code', {
       type: 'svg',
       width: 200,
@@ -126,8 +124,7 @@ function handleDownload() {
       URL.revokeObjectURL(link.href)
       message.success('SVG download success')
     })
-  }
-  else {
+  } else {
     QRCode.toDataURL('Downloadable QR Code', { width: 200, margin: 2 }).then((url: string) => {
       message.success(`Data URL generated, length: ${Math.round(url.length / 1024)}KB`)
     })
@@ -185,8 +182,7 @@ async function generateErrorCorrectionQRs() {
           errorCorrectionLevel: level as any,
           color: { dark: '#1890ff', light: '#e6f7ff' },
         })
-      }
-      catch (error) {
+      } catch (error) {
         console.error(`Level ${level} QR failed:`, error)
       }
     }
@@ -207,16 +203,14 @@ const customText = ref('Custom QR Code')
 const customQrCanvas = useTemplateRef<HTMLCanvasElement>('customQrCanvas')
 
 async function generateCustomQR() {
-  if (!customQrCanvas.value)
-    return
+  if (!customQrCanvas.value) return
   try {
     await QRCode.toCanvas(customQrCanvas.value, customText.value, {
       width: customSize.value,
       margin: 2,
       color: { dark: customDarkColor.value, light: customLightColor.value },
     })
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Custom QR generation failed:', error)
   }
 }
@@ -237,7 +231,7 @@ const colorPresets = [
   { name: 'Orange', dark: '#fa8c16', light: '#fff7e6' },
 ]
 
-function applyPreset(preset: typeof colorPresets[0]) {
+function applyPreset(preset: (typeof colorPresets)[0]) {
   customDarkColor.value = preset.dark
   customLightColor.value = preset.light
 }
@@ -308,28 +302,15 @@ function copyToClipboard(text: string) {
       </p>
       <div class="max-w-md mx-auto space-y-4">
         <div class="flex gap-2 flex-wrap justify-center">
-          <a-radio-group
-            v-model:value="downloadFormat"
-            button-style="solid"
-          >
-            <a-radio-button value="png">
-              PNG
-            </a-radio-button>
-            <a-radio-button value="svg">
-              SVG
-            </a-radio-button>
-            <a-radio-button value="dataURL">
-              Data URL
-            </a-radio-button>
+          <a-radio-group v-model:value="downloadFormat" button-style="solid">
+            <a-radio-button value="png"> PNG </a-radio-button>
+            <a-radio-button value="svg"> SVG </a-radio-button>
+            <a-radio-button value="dataURL"> Data URL </a-radio-button>
           </a-radio-group>
         </div>
         <div :class="qrCardClassName">
           <canvas ref="downloadQrCanvas" />
-          <a-button
-            type="primary"
-            class="mt-4"
-            @click="handleDownload"
-          >
+          <a-button type="primary" class="mt-4" @click="handleDownload">
             <template #icon>
               <Icon icon="carbon:download" />
             </template>
@@ -345,12 +326,7 @@ function copyToClipboard(text: string) {
       </p>
       <div class="max-w-lg mx-auto space-y-4">
         <div class="flex justify-center">
-          <a-button
-            type="primary"
-            size="large"
-            :loading="scanning"
-            @click="simulateScan"
-          >
+          <a-button type="primary" size="large" :loading="scanning" @click="simulateScan">
             <template #icon>
               <Icon icon="carbon:scan" />
             </template>
@@ -362,15 +338,12 @@ function copyToClipboard(text: string) {
           class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800"
         >
           <div class="flex items-start gap-2">
-            <Icon
-              icon="carbon:checkmark-filled"
-              class="text-green-500 text-xl mt-0.5"
-            />
+            <Icon icon="carbon:checkmark-filled" class="text-green-500 text-xl mt-0.5" />
             <div class="flex-1 min-w-0">
-              <p class="font-medium text-green-700 dark:text-green-300 mb-1">
-                Scan Success
-              </p>
-              <code class="block p-2 bg-white dark:bg-gray-800 rounded text-sm break-all">{{ scanResult }}</code>
+              <p class="font-medium text-green-700 dark:text-green-300 mb-1">Scan Success</p>
+              <code class="block p-2 bg-white dark:bg-gray-800 rounded text-sm break-all">{{
+                scanResult
+              }}</code>
             </div>
           </div>
         </div>
@@ -406,22 +379,11 @@ function copyToClipboard(text: string) {
         Higher correction levels recover more data but produce more complex patterns
       </p>
       <div class="mb-4">
-        <a-radio-group
-          v-model:value="errorCorrectionLevel"
-          button-style="solid"
-        >
-          <a-radio-button value="L">
-            L - Low
-          </a-radio-button>
-          <a-radio-button value="M">
-            M - Medium
-          </a-radio-button>
-          <a-radio-button value="Q">
-            Q - Quartile
-          </a-radio-button>
-          <a-radio-button value="H">
-            H - High
-          </a-radio-button>
+        <a-radio-group v-model:value="errorCorrectionLevel" button-style="solid">
+          <a-radio-button value="L"> L - Low </a-radio-button>
+          <a-radio-button value="M"> M - Medium </a-radio-button>
+          <a-radio-button value="Q"> Q - Quartile </a-radio-button>
+          <a-radio-button value="H"> H - High </a-radio-button>
         </a-radio-group>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -449,22 +411,13 @@ function copyToClipboard(text: string) {
       <div class="max-w-lg mx-auto space-y-4">
         <div>
           <label class="block text-sm font-medium mb-2">Content</label>
-          <a-input
-            v-model:value="customText"
-            placeholder="Enter content"
-            allow-clear
-          />
+          <a-input v-model:value="customText" placeholder="Enter content" allow-clear />
         </div>
         <div>
           <label class="block text-sm font-medium mb-2">
             Size: {{ customSize }}px x {{ customSize }}px
           </label>
-          <a-slider
-            v-model:value="customSize"
-            :min="100"
-            :max="400"
-            :step="10"
-          />
+          <a-slider v-model:value="customSize" :min="100" :max="400" :step="10" />
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
@@ -473,7 +426,7 @@ function copyToClipboard(text: string) {
               v-model="customDarkColor"
               type="color"
               class="w-full h-10 rounded cursor-pointer"
-            >
+            />
           </div>
           <div>
             <label class="block text-sm font-medium mb-2">Background</label>
@@ -481,7 +434,7 @@ function copyToClipboard(text: string) {
               v-model="customLightColor"
               type="color"
               class="w-full h-10 rounded cursor-pointer"
-            >
+            />
           </div>
         </div>
         <div>
@@ -502,10 +455,7 @@ function copyToClipboard(text: string) {
           </div>
         </div>
         <div :class="qrCardClassName">
-          <div
-            :class="qrCanvasContainer"
-            :style="{ backgroundColor: customLightColor }"
-          >
+          <div :class="qrCanvasContainer" :style="{ backgroundColor: customLightColor }">
             <canvas ref="customQrCanvas" />
           </div>
         </div>

@@ -1,238 +1,98 @@
 <script setup lang="ts">
-import type { MenuConfig } from '#/menu'
 import type { FormSchema } from '@/components/business/Form'
 import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
-
 import { computed, ref } from 'vue'
 import { BasicDrawer, useDrawer } from '@/components/business/Drawer'
 import { BasicForm, useForm } from '@/components/business/Form'
 import { BasicTable, useTable } from '@/components/business/Table'
 import IconPicker from '@/components/common/Icon/IconPicker.vue'
 import { DictType } from '@/enums/dict'
-import { frontendMenus } from '@/router/menus'
 import { useDictStore } from '@/stores'
+import { http } from '@/utils'
 import { cn } from '@/utils/cn'
-
+import { useCRUD } from '@/composables/useCRUD'
+import { message } from 'antdv-next'
+import PermissionDrawer from './PermissionDrawer.vue'
 defineOptions({ name: 'SystemMenu' })
 
 interface MenuRecord {
-  id: number
+  menuId: string
   menuName: string
   icon: string
-  orderNum: number
-  perms: string
   path: string
   component: string
-  menuType: 'M' | 'C' | 'F' | 'L' | 'MICRO'
-  parentId: number | null
-  status: number
-  linkUrl?: string
-  microAppConfig?: MicroAppConfig
+  menuType: number
+  parentId: string | null
+  status: string
+  permission: string
+  sortOrder: number
   children?: MenuRecord[]
-  createdAt: string
 }
 
-const containerClassName = cn('space-y-4')
+// ========== 样式工具 ==========
+const containerClassName = cn('space-y-4 h-full')
 const cardClassName = cn('shadow-sm')
 const tagClassName = cn('inline-flex items-center gap-1')
 const actionClassName = cn('flex', 'items-center', 'justify-center')
 const btnClassName = cn('!px-0.5')
 const dividerClassName = cn('mx-0')
 
+// ========== 枚举映射 ==========
 const menuTypeColorMap: Record<string, string> = {
-  M: 'blue',
-  C: 'green',
-  F: 'orange',
-  L: 'purple',
+  1: 'blue',
+  2: 'green',
+  3: 'orange',
 }
-
 const menuTypeLabelMap: Record<string, string> = {
-  M: '目录',
-  C: '菜单',
-  F: '按钮',
-  L: '链接',
+  1: '目录',
+  2: '菜单',
+  3: '按钮',
+}
+const statusColorMap: Record<string, string> = {
+  '1': 'green',
+  '0': 'red',
+}
+const statusLabelMap: Record<string, string> = {
+  '1': '正常',
+  '0': '停用',
 }
 
-const statusColorMap: Record<number, string> = {
-  1: 'green',
-  0: 'red',
-}
-
-const statusLabelMap: Record<number, string> = {
-  1: '正常',
-  0: '停用',
-}
-
+// ========== 字典 ==========
 const dictStore = useDictStore()
-
 const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
 
-function convertFrontendMenusToRecords(menus: MenuConfig[], parentId: number | null, startId: number): { records: MenuRecord[], nextId: number } {
-  const result: MenuRecord[] = []
-  let currentId = startId
-  const now = new Date().toISOString().replace('T', ' ').substring(0, 19)
-
-  for (const menu of menus) {
-    const record: MenuRecord = {
-      id: currentId++,
-      menuName: menu.title,
-      icon: menu.icon || '',
-      orderNum: 0,
-      perms: '',
-      path: menu.path,
-      component: menu.component || '',
-      menuType: menu.children?.length ? 'M' : 'C',
-      parentId,
-      status: 0,
-      createdAt: now,
-    }
-    result.push(record)
-
-    if (menu.children && menu.children.length > 0) {
-      const { records: childRecords, nextId } = convertFrontendMenusToRecords(menu.children, record.id, currentId)
-      result.push(...childRecords)
-      currentId = nextId
-    }
-  }
-
-  return { records: result, nextId: currentId }
-}
-
-function flattenMenuTree(tree: MenuRecord[]): MenuRecord[] {
-  const result: MenuRecord[] = []
-  function walk(nodes: MenuRecord[]) {
-    for (const node of nodes) {
-      result.push(node)
-      if (node.children && node.children.length > 0) {
-        walk(node.children)
-      }
-    }
-  }
-  walk(tree)
-  return result
-}
-
-const { records: initialRecords } = convertFrontendMenusToRecords(frontendMenus, null, 1)
-const allData = ref<MenuRecord[]>(rebuildTree(initialRecords))
-
-function rebuildTree(flat: MenuRecord[]): MenuRecord[] {
-  const map = new Map<number, MenuRecord>()
-  const roots: MenuRecord[] = []
-
-  for (const item of flat) {
-    map.set(item.id, { ...item, children: [] })
-  }
-
-  for (const item of flat) {
-    const node = map.get(item.id)!
-    if (item.parentId === null) {
-      roots.push(node)
-    }
-    else {
-      const parent = map.get(item.parentId)
-      if (parent) {
-        parent.children = parent.children || []
-        parent.children.push(node)
-      }
-    }
-  }
-
-  return roots
-}
-
-const isEditing = ref(false)
-const currentRecord = ref<MenuRecord | null>(null)
-
-const [drawerRegister, drawerMethods] = useDrawer()
-const [tableRegister, tableMethods] = useTable()
-const [formRegister, formMethods] = useForm()
-
-function getParentTreeOptions(): any[] {
-  const flat = flattenMenuTree(allData.value)
-  const filtered = flat.filter(i => i.menuType === 'M' || i.menuType === 'C')
-
-  const map = new Map<number, any>()
-  for (const item of filtered) {
-    map.set(item.id, {
-      label: item.menuName,
-      value: item.id,
-    })
-  }
-
-  const roots: any[] = []
-  for (const item of filtered) {
-    const node = map.get(item.id)!
-    if (item.parentId === null) {
-      roots.push(node)
-    }
-    else {
-      const parent = map.get(item.parentId)
-      if (parent) {
-        parent.children = parent.children || []
-        parent.children.push(node)
-      }
-    }
-  }
-
-  return roots
-}
-
-const searchFormSchemas: FormSchema[] = [
-  {
-    field: 'keyword',
-    label: '关键词',
-    component: 'Input',
-    componentProps: {
-      placeholder: '搜索菜单名称/权限标识...',
-      allowClear: true,
-    },
-    colProps: { span: 8 },
-  },
-  {
-    field: 'menuType',
-    label: '菜单类型',
-    component: 'Select',
-    componentProps: {
-      placeholder: '选择类型',
-      allowClear: true,
-      options: [
-        { label: '目录', value: 'M' },
-        { label: '菜单', value: 'C' },
-        { label: '按钮', value: 'F' },
-        { label: '链接', value: 'L' },
-      ],
-    },
-    colProps: { span: 8 },
-  },
-]
-
+// ========== 表单 Schema ==========
 const drawerFormSchemas: FormSchema[] = [
   {
     field: 'menuType',
     label: '菜单类型',
     component: 'RadioGroup',
-    defaultValue: 'C',
+    defaultValue: 1,
     componentProps: {
       optionType: 'button',
       buttonStyle: 'solid',
       options: [
-        { label: '目录', value: 'M' },
-        { label: '菜单', value: 'C' },
-        { label: '按钮', value: 'F' },
-        { label: '链接', value: 'L' },
+        { label: '目录', value: 1 },
+        { label: '菜单', value: 2 },
+        { label: '按钮', value: 3 },
       ],
     },
   },
   {
     field: 'parentId',
     label: '上级菜单',
-    component: 'TreeSelect',
+    component: 'ATreeSelect',
     componentProps: {
-      treeData: getParentTreeOptions(),
+      api: '/menu/tree',
       placeholder: '请选择上级菜单（留空为顶级）',
       allowClear: true,
       treeDefaultExpandAll: true,
+      fieldNames: {
+        label: 'menuName',
+        value: 'menuId',
+        children: 'children',
+      },
     },
   },
   {
@@ -248,65 +108,39 @@ const drawerFormSchemas: FormSchema[] = [
     component: 'Input',
     slot: 'iconPicker',
     componentProps: { placeholder: '点击选择图标', readonly: true },
-    dynamicDisabled: ({ model }) => {
-      const mt = (model as any).menuType || 'M'
-      return mt === 'F'
-    },
+    dynamicDisabled: ({ model }) => (model as any).menuType === 3,
   },
   {
     field: 'path',
     label: '路由地址',
     component: 'Input',
     componentProps: { placeholder: '例如：/system/user' },
-    dynamicDisabled: ({ model }) => {
-      const mt = (model as any).menuType || 'M'
-      return mt === 'F'
-    },
+    dynamicDisabled: ({ model }) => (model as any).menuType !== 2,
   },
   {
     field: 'component',
     label: '组件路径',
     component: 'Input',
     componentProps: { placeholder: '例如：system/user/index' },
-    dynamicDisabled: ({ model }) => {
-      const mt = (model as any).menuType || 'M'
-      return mt !== 'C'
-    },
+    dynamicDisabled: ({ model }) => (model as any).menuType !== 2,
   },
   {
-    field: 'linkUrl',
-    label: '链接地址',
-    component: 'Input',
-    componentProps: { placeholder: '外部或微前端链接地址，如 https://crm.example.com' },
-    ifShow: ({ model }) => {
-      return (model as any).menuType === 'L'
-    },
-  },
-  {
-    field: 'perms',
+    field: 'permission',
     label: '权限标识',
     component: 'Input',
     componentProps: { placeholder: '例如：system:user:list' },
-    dynamicDisabled: ({ model }) => {
-      const mt = (model as any).menuType || 'M'
-      return mt === 'M' || mt === 'L'
-    },
   },
   {
-    field: 'orderNum',
+    field: 'sortOrder',
     label: '排序',
     component: 'InputNumber',
-    componentProps: {
-      min: 0,
-      placeholder: '请输入排序号',
-      style: { width: '100%' },
-    },
+    componentProps: { min: 0, placeholder: '请输入排序号', style: { width: '100%' } },
   },
   {
     field: 'status',
     label: '状态',
     component: 'RadioGroup',
-    defaultValue: 0,
+    defaultValue: '1',
     componentProps: () => ({
       optionType: 'button',
       buttonStyle: 'solid',
@@ -315,252 +149,137 @@ const drawerFormSchemas: FormSchema[] = [
   },
 ]
 
-async function mockApi(params: Record<string, any>) {
-  const { keyword, menuType } = params
-  const flat = flattenMenuTree(allData.value)
-  let filtered = [...flat]
+// ========== 表格列 ==========
+const columns: BasicColumn[] = [
+  { title: '菜单名称', dataIndex: 'menuName', key: 'menuName', width: 200 },
+  { title: '图标', dataIndex: 'icon', key: 'icon', width: 70, align: 'center' },
+  { title: '排序', dataIndex: 'sortOrder', key: 'sortOrder', width: 70, align: 'center' },
+  { title: '权限标识', dataIndex: 'permission', key: 'permission', width: 180, ellipsis: true },
+  { title: '路由地址', dataIndex: 'path', key: 'path', width: 160, ellipsis: true },
+  { title: '组件路径', dataIndex: 'component', key: 'component', width: 180, ellipsis: true },
+  { title: '类型', dataIndex: 'menuType', key: 'menuType', width: 80, align: 'center' },
+  { title: '状态', dataIndex: 'status', key: 'status', width: 80, align: 'center' },
+  { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 180, align: 'center' },
+]
 
-  if (keyword) {
-    const kw = String(keyword).toLowerCase()
-    filtered = filtered.filter(
-      i => i.menuName.toLowerCase().includes(kw)
-        || i.perms.toLowerCase().includes(kw),
-    )
-  }
-
-  if (menuType) {
-    filtered = filtered.filter(i => i.menuType === menuType)
-  }
-
-  const tree = rebuildTree(filtered)
-  return { items: tree, total: tree.length }
+// ========== 表格 API ==========
+async function mockApi() {
+  return await http.Get('/menu/tree').send(true)
 }
 
-function handleAdd() {
-  isEditing.value = false
-  currentRecord.value = null
-  formMethods.setFieldsValue({
+// ========== 抽屉和表格注册 ==========
+const [drawerRegister, drawerMethods] = useDrawer()
+const [tableRegister, tableMethods] = useTable()
+const [formRegister, formMethods] = useForm()
+
+// ========== 使用 useCRUD ==========
+const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<MenuRecord>({
+  containerType: 'drawer',
+  drawerMethods,
+  formMethods,
+  tableMethods,
+  idKey: 'menuId',
+  confirmDelete: true,
+  getEmptyValues: () => ({
     parentId: undefined,
-    menuType: 'C',
+    menuType: 1,
     menuName: '',
     icon: '',
     path: '',
     component: '',
-    perms: '',
-    orderNum: 0,
-    status: 0,
-    linkUrl: '',
-  })
-  formMethods.clearValidate()
-  drawerMethods.openDrawer()
-}
-
-function handleAddChild(record: MenuRecord) {
-  isEditing.value = false
-  currentRecord.value = null
-  const childType = record.menuType === 'M' ? 'C' : 'F'
-  formMethods.setFieldsValue({
-    parentId: record.id,
-    menuType: childType,
-    menuName: '',
-    icon: '',
-    path: childType === 'F' ? '' : '',
-    component: childType === 'C' ? '' : '',
-    perms: '',
-    orderNum: 0,
-    status: 0,
-    linkUrl: '',
-  })
-  formMethods.clearValidate()
-  drawerMethods.openDrawer()
-}
-
-function handleEdit(record: MenuRecord) {
-  isEditing.value = true
-  currentRecord.value = record
-  formMethods.setFieldsValue({
-    parentId: record.parentId ?? undefined,
+    permission: '',
+    sortOrder: 0,
+    status: '1',
+  }),
+  getFormValues: (record) => ({
+    parentId: record.parentId,
     menuType: record.menuType,
     menuName: record.menuName,
     icon: record.icon,
     path: record.path,
     component: record.component,
-    perms: record.perms,
-    orderNum: record.orderNum,
+    permission: record.permission,
+    sortOrder: record.sortOrder,
     status: record.status,
-    linkUrl: (record as any).linkUrl || '',
-  })
-  formMethods.clearValidate()
-  drawerMethods.openDrawer()
-}
-
-function handleDelete(record: MenuRecord) {
-  const flat = flattenMenuTree(allData.value)
-  const idsToDelete = new Set<number>()
-
-  function collectIds(node: MenuRecord) {
-    idsToDelete.add(node.id)
-    if (node.children) {
-      for (const child of node.children) {
-        collectIds(child)
-      }
+  }),
+  onCreate: async (values) => {
+    await http.Post('/menu', values)
+  },
+  onUpdate: async (id, values) => {
+    await http.Put(`/menu/${id}`, values)
+  },
+  onDelete: async (record) => {
+    await http.Delete(`/menu/${record.menuId}`)
+  },
+  beforeSave: (values) => {
+    if (!values.menuName) {
+      message.warning('请填写菜单名称')
+      return false
     }
-  }
-
-  const target = flat.find(i => i.id === record.id)
-  if (target) {
-    collectIds(target)
-  }
-
-  const remaining = flat.filter(i => !idsToDelete.has(i.id))
-  allData.value = rebuildTree(remaining)
-  message.success(`已删除菜单：${record.menuName}`)
-  tableMethods.value?.reload()
-}
-
-async function handleSave() {
-  const values = await formMethods.validate()
-  if (!values) {
-    return
-  }
-
-  if (values.menuType === 'M') {
-    values.component = ''
-    values.perms = ''
-    values.linkUrl = ''
-  }
-  else if (values.menuType === 'F') {
-    values.path = ''
-    values.component = ''
-    values.linkUrl = ''
-  }
-  else if (values.menuType === 'L') {
-    values.component = ''
-    values.perms = ''
-  }
-
-  if (!values.menuName) {
-    message.warning('请填写菜单名称')
-    return
-  }
-
-  if (values.menuType === 'M' && !values.path) {
-    message.warning('目录类型必须填写路由地址')
-    return
-  }
-
-  if (values.menuType === 'C' && (!values.path || !values.component)) {
-    message.warning('菜单类型必须填写路由地址和组件路径')
-    return
-  }
-
-  if (values.menuType === 'L' && !values.linkUrl) {
-    message.warning('链接类型必须填写链接地址')
-    return
-  }
-
-  const now = new Date().toISOString().replace('T', ' ').substring(0, 19)
-  const flat = flattenMenuTree(allData.value)
-
-  if (isEditing.value && currentRecord.value) {
-    const idx = flat.findIndex(i => i.id === currentRecord.value!.id)
-    if (idx > -1) {
-      flat[idx] = {
-        ...flat[idx]!,
-        parentId: values.parentId ?? null,
-        menuType: values.menuType,
-        menuName: values.menuName,
-        icon: values.icon,
-        path: values.path,
-        component: values.component,
-        perms: values.perms,
-        orderNum: values.orderNum,
-        status: values.status,
-        linkUrl: values.linkUrl || '',
-      }
+    if (values.menuType === 2 && (!values.path || !values.component)) {
+      message.warning('菜单类型必须填写路由地址和组件路径')
+      return false
     }
-    allData.value = rebuildTree(flat)
-    message.success(`已更新菜单：${values.menuName}`)
-  }
-  else {
-    const newId = Math.max(...flat.map(i => i.id), 0) + 1
-    flat.push({
-      id: newId,
-      parentId: values.parentId ?? null,
-      menuType: values.menuType,
-      menuName: values.menuName,
-      icon: values.icon,
-      path: values.path,
-      component: values.component,
-      perms: values.perms,
-      orderNum: values.orderNum,
-      status: values.status,
-      linkUrl: values.linkUrl || '',
-      createdAt: now,
-    })
-    allData.value = rebuildTree(flat)
-    message.success(`已新增菜单：${values.menuName}`)
-  }
+    return true
+  },
+  messages: {
+    createSuccess: '菜单创建成功',
+    updateSuccess: '菜单更新成功',
+    deleteSuccess: '菜单删除成功',
+    deleteConfirm: '确定要删除该菜单吗？',
+  },
+})
 
-  drawerMethods.closeDrawer()
-  tableMethods.value?.reload()
+// ========== 新增子菜单 ==========
+async function handleAddChild(record: MenuRecord) {
+  // 在新增时预填父级 ID
+  await handleAdd({ parentId: record.menuId })
 }
 
+// ========== 图标选择 ==========
 function handleIconSelect(icon: string) {
   formMethods.setFieldsValue({ icon })
 }
-
-const columns: BasicColumn[] = [
-  { title: '#', key: 'index', width: 60, align: 'center', customRender: ({ index }) => index + 1 },
-  { title: '菜单名称', dataIndex: 'menuName', key: 'menuName', width: 200 },
-  { title: '图标', dataIndex: 'icon', key: 'icon', width: 70, align: 'center' },
-  { title: '排序', dataIndex: 'orderNum', key: 'orderNum', width: 70, align: 'center' },
-  { title: '权限标识', dataIndex: 'perms', key: 'perms', width: 180, ellipsis: true },
-  { title: '路由地址', dataIndex: 'path', key: 'path', width: 160, ellipsis: true },
-  { title: '组件路径', dataIndex: 'component', key: 'component', width: 180, ellipsis: true },
-  { title: '类型', dataIndex: 'menuType', key: 'menuType', width: 80, align: 'center' },
-  { title: '状态', dataIndex: 'status', key: 'status', width: 80, align: 'center' },
-  { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 170, align: 'center' },
-]
+// ========== 权限按钮 ==========
+const currentPermissionRecord = ref<MenuRecord>()
+const [permissionDrawerRegister, permissionDrawerMethods] = useDrawer()
+const handleAddPermission = async (record: MenuRecord) => {
+  currentPermissionRecord.value = record
+  await permissionDrawerMethods.openDrawer()
+}
 </script>
 
 <template>
   <div :class="containerClassName">
-    <a-card
-      title="菜单管理"
-      :class="cardClassName"
-    >
+    <a-card :class="cardClassName">
       <BasicTable
+        :show-index-column="false"
         :columns="columns"
         :api="mockApi"
         :immediate="true"
-        :use-search-form="true"
-        :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
+        :use-search-form="false"
         :is-tree="true"
         children-column-name="children"
         :pagination="false"
-        :action-column="{ width: 280, title: '操作', fixed: 'right' }"
-        :scroll="{ x: 1400 }"
+        :action-column="{ width: 350, title: '操作', fixed: 'right' }"
+        :row-key="(record) => record.menuId"
+        virtual
+        :scroll="{ y: 9999999 }"
+        default-expand-all-rows
         @register="tableRegister"
       >
         <template #toolbar>
-          <a-button
-            type="primary"
-            @click="handleAdd"
-          >
+          <a-button type="primary" @click="() => handleAdd()">
             <template #icon>
               <Icon icon="ant-design:plus-outlined" />
             </template>
             新增菜单
           </a-button>
         </template>
+
         <template #cell-icon="{ record }">
           <div class="flex items-center justify-center">
-            <Icon
-              v-if="record.icon"
-              :icon="record.icon"
-              class="text-lg"
-            />
+            <Icon v-if="record.icon" :icon="record.icon" class="text-lg" />
             <span v-else>-</span>
           </div>
         </template>
@@ -569,7 +288,15 @@ const columns: BasicColumn[] = [
           <a-tag :color="menuTypeColorMap[record.menuType] || 'default'">
             <span :class="tagClassName">
               <Icon
-                :icon="record.menuType === 'M' ? 'carbon:folder' : record.menuType === 'C' ? 'carbon:document' : record.menuType === 'F' ? 'carbon:cu3' : 'carbon:link'"
+                :icon="
+                  record.menuType === 1
+                    ? 'carbon:folder'
+                    : record.menuType === 2
+                      ? 'carbon:document'
+                      : record.menuType === 3
+                        ? 'carbon:cu3'
+                        : 'carbon:link'
+                "
               />
               {{ menuTypeLabelMap[record.menuType] || record.menuType }}
             </span>
@@ -579,7 +306,9 @@ const columns: BasicColumn[] = [
         <template #cell-status="{ record }">
           <a-tag :color="statusColorMap[record.status] || 'default'">
             <span :class="tagClassName">
-              <Icon :icon="record.status === 1 ? 'carbon:checkmark-outline' : 'carbon:close-outline'" />
+              <Icon
+                :icon="record.status === '1' ? 'carbon:checkmark-outline' : 'carbon:close-outline'"
+              />
               {{ statusLabelMap[record.status] || '未知' }}
             </span>
           </a-tag>
@@ -590,36 +319,28 @@ const columns: BasicColumn[] = [
             <a-button
               type="link"
               :class="btnClassName"
+              :disabled="record.menuType !== 1"
               @click="() => handleAddChild(record)"
             >
-              <template #icon>
-                <Icon icon="ant-design:plus-circle-outlined" />
-              </template>
-              新增
+              <template #icon><Icon icon="ant-design:plus-circle-outlined" /></template>
+              新增子菜单
             </a-button>
+            <a-divider type="vertical" :class="dividerClassName" />
             <a-button
               type="link"
               :class="btnClassName"
-              @click="() => handleEdit(record)"
+              :disabled="record.menuType !== 2"
+              @click="() => handleAddPermission(record)"
+              >权限按钮</a-button
             >
-              <template #icon>
-                <Icon icon="ant-design:edit-outlined" />
-              </template>
+            <a-divider type="vertical" :class="dividerClassName" />
+            <a-button type="link" :class="btnClassName" @click="() => handleEdit(record)">
+              <template #icon><Icon icon="ant-design:edit-outlined" /></template>
               编辑
             </a-button>
-            <a-divider
-              type="vertical"
-              :class="dividerClassName"
-            />
-            <a-button
-              type="link"
-              danger
-              :class="btnClassName"
-              @click="() => handleDelete(record)"
-            >
-              <template #icon>
-                <Icon icon="ant-design:delete-outlined" />
-              </template>
+            <a-divider type="vertical" :class="dividerClassName" />
+            <a-button type="link" danger :class="btnClassName" @click="() => handleDelete(record)">
+              <template #icon><Icon icon="ant-design:delete-outlined" /></template>
               删除
             </a-button>
           </div>
@@ -643,11 +364,27 @@ const columns: BasicColumn[] = [
         <template #iconPicker="{ model, field }">
           <IconPicker
             :model-value="model[field] || ''"
-            @update:modelValue="(val: string) => { formMethods.setFieldsValue({ [field]: val }) }"
+            @update:modelValue="(val: string) => formMethods.setFieldsValue({ [field]: val })"
             @select="handleIconSelect"
           />
         </template>
       </BasicForm>
+    </BasicDrawer>
+    <BasicDrawer
+      title="权限按钮"
+      :width="640"
+      @register="permissionDrawerRegister"
+      @ok="
+        () => {
+          permissionDrawerMethods.closeDrawer()
+          tableMethods?.reload()
+        }
+      "
+    >
+      <PermissionDrawer
+        :menu="currentPermissionRecord"
+        :visible="permissionDrawerMethods.getVisible()"
+      />
     </BasicDrawer>
   </div>
 </template>

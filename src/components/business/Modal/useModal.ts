@@ -36,10 +36,12 @@ export function useModal(): UseModalReturnType {
       if (modalInstance.value) {
         return modalInstance.value
       }
-      await new Promise(resolve => setTimeout(resolve, 50))
+      await new Promise((resolve) => setTimeout(resolve, 50))
     }
 
-    throw new Error('[useModal] Modal instance not found. Please check if the Modal component is registered.')
+    throw new Error(
+      '[useModal] Modal instance not found. Please check if the Modal component is registered.',
+    )
   }
 
   /**

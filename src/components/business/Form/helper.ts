@@ -4,28 +4,58 @@ import { defu } from 'defu'
 import { isFunction } from 'es-toolkit'
 
 /** 需要自动添加 allowClear 的组件类型 */
-const CLEARABLE_COMPONENTS = ['Input', 'InputPassword', 'InputSearch', 'Select', 'TreeSelect', 'Cascader', 'AutoComplete', 'DatePicker', 'TimePicker', 'MonthPicker', 'RangePicker', 'WeekPicker', 'TimeRangePicker'] as const
+const CLEARABLE_COMPONENTS = [
+  'Input',
+  'InputPassword',
+  'InputSearch',
+  'Select',
+  'TreeSelect',
+  'Cascader',
+  'AutoComplete',
+  'DatePicker',
+  'TimePicker',
+  'MonthPicker',
+  'RangePicker',
+  'WeekPicker',
+  'TimeRangePicker',
+] as const
 
 /** 需要自动生成 placeholder 的组件类型 */
-const PLACEHOLDER_COMPONENTS = ['Input', 'InputPassword', 'InputSearch', 'InputTextArea', 'InputNumber', 'Select', 'TreeSelect', 'Cascader', 'AutoComplete', 'DatePicker', 'TimePicker', 'MonthPicker', 'RangePicker', 'WeekPicker', 'TimeRangePicker'] as const
+const PLACEHOLDER_COMPONENTS = [
+  'Input',
+  'InputPassword',
+  'InputSearch',
+  'InputTextArea',
+  'InputNumber',
+  'Select',
+  'TreeSelect',
+  'Cascader',
+  'AutoComplete',
+  'DatePicker',
+  'TimePicker',
+  'MonthPicker',
+  'RangePicker',
+  'WeekPicker',
+  'TimeRangePicker',
+] as const
 
 /** 组件默认 placeholder 模板 */
 const PLACEHOLDER_TEMPLATES: Record<string, (label: string) => string> = {
-  Input: label => `请输入${label}`,
-  InputPassword: label => `请输入${label}`,
-  InputSearch: label => `搜索${label}`,
-  InputTextArea: label => `请输入${label}`,
-  InputNumber: label => `请输入${label}`,
-  Select: label => `请选择${label}`,
-  TreeSelect: label => `请选择${label}`,
-  Cascader: label => `请选择${label}`,
-  AutoComplete: label => `请输入${label}`,
-  DatePicker: label => `请选择${label}`,
-  TimePicker: label => `请选择${label}`,
-  MonthPicker: label => `请选择${label}`,
-  RangePicker: label => `请选择${label}范围`,
-  WeekPicker: label => `请选择${label}`,
-  TimeRangePicker: label => `请选择${label}范围`,
+  Input: (label) => `请输入${label}`,
+  InputPassword: (label) => `请输入${label}`,
+  InputSearch: (label) => `搜索${label}`,
+  InputTextArea: (label) => `请输入${label}`,
+  InputNumber: (label) => `请输入${label}`,
+  Select: (label) => `请选择${label}`,
+  TreeSelect: (label) => `请选择${label}`,
+  Cascader: (label) => `请选择${label}`,
+  AutoComplete: (label) => `请输入${label}`,
+  DatePicker: (label) => `请选择${label}`,
+  TimePicker: (label) => `请选择${label}`,
+  MonthPicker: (label) => `请选择${label}`,
+  RangePicker: (label) => `请选择${label}范围`,
+  WeekPicker: (label) => `请选择${label}`,
+  TimeRangePicker: (label) => `请选择${label}范围`,
 }
 
 export function setComponentProps(schema: FormSchema, formModel: Recordable, formActionType: any) {
@@ -44,7 +74,12 @@ export function setComponentProps(schema: FormSchema, formModel: Recordable, for
   const result: Record<string, any> = { ...componentProps }
 
   // 自动生成 placeholder（仅在未手动设置时）
-  if (component && PLACEHOLDER_COMPONENTS.includes(component as any) && !result.placeholder && label) {
+  if (
+    component &&
+    PLACEHOLDER_COMPONENTS.includes(component as any) &&
+    !result.placeholder &&
+    label
+  ) {
     const template = PLACEHOLDER_TEMPLATES[component]
     if (template) {
       result.placeholder = template(label)
@@ -52,7 +87,11 @@ export function setComponentProps(schema: FormSchema, formModel: Recordable, for
   }
 
   // 自动添加 allowClear（仅在支持且未手动设置时）
-  if (component && CLEARABLE_COMPONENTS.includes(component as any) && result.allowClear === undefined) {
+  if (
+    component &&
+    CLEARABLE_COMPONENTS.includes(component as any) &&
+    result.allowClear === undefined
+  ) {
     result.allowClear = true
   }
 
@@ -64,11 +103,11 @@ export function getShow(schema: FormSchema, formModel: Recordable, formActionTyp
 
   const showResult = isFunction(show)
     ? show({ schema, values: formModel, model: formModel, field: schema.field })
-    : show ?? true
+    : (show ?? true)
 
   const ifShowResult = isFunction(ifShow)
     ? ifShow({ schema, values: formModel, model: formModel, field: schema.field })
-    : ifShow ?? true
+    : (ifShow ?? true)
 
   return {
     show: showResult,
@@ -76,7 +115,11 @@ export function getShow(schema: FormSchema, formModel: Recordable, formActionTyp
   }
 }
 
-export function getDynamicDisabled(schema: FormSchema, formModel: Recordable, formActionType: any): boolean {
+export function getDynamicDisabled(
+  schema: FormSchema,
+  formModel: Recordable,
+  formActionType: any,
+): boolean {
   const { dynamicDisabled } = schema
 
   if (isFunction(dynamicDisabled)) {
@@ -91,7 +134,11 @@ export function getDynamicDisabled(schema: FormSchema, formModel: Recordable, fo
   return !!dynamicDisabled
 }
 
-export function getDynamicRules(schema: FormSchema, formModel: Recordable, formActionType: any): Rule[] | undefined {
+export function getDynamicRules(
+  schema: FormSchema,
+  formModel: Recordable,
+  formActionType: any,
+): Rule[] | undefined {
   const { rules, required, dynamicRules, rulesMessageJoinLabel } = schema
 
   if (isFunction(dynamicRules)) {
@@ -140,16 +187,14 @@ export function handleRangeValue(
       if (format === 'timestamp') {
         result[startField] = new Date(start).getTime() / 1000
         result[endField] = new Date(end).getTime() / 1000
-      }
-      else if (format === 'timestampStartDay') {
+      } else if (format === 'timestampStartDay') {
         const startDate = new Date(start)
         startDate.setHours(0, 0, 0, 0)
         const endDate = new Date(end)
         endDate.setHours(0, 0, 0, 0)
         result[startField] = startDate.getTime() / 1000
         result[endField] = endDate.getTime() / 1000
-      }
-      else {
+      } else {
         const fmt = format || 'YYYY-MM-DD'
         const startDate = new Date(start)
         const endDate = new Date(end)
@@ -168,16 +213,28 @@ function formatDate(date: Date, format: string): string {
 }
 
 // 日期相关组件类型
-const DATE_COMPONENTS = ['DatePicker', 'MonthPicker', 'RangePicker', 'WeekPicker', 'TimePicker', 'TimeRangePicker'] as const
+const DATE_COMPONENTS = [
+  'DatePicker',
+  'MonthPicker',
+  'RangePicker',
+  'WeekPicker',
+  'TimePicker',
+  'TimeRangePicker',
+] as const
 
 // 判断值是否为 dayjs 对象或 Date 对象
-interface DayjsLike { format: (format: string) => string, isValid?: () => boolean }
+interface DayjsLike {
+  format: (format: string) => string
+  isValid?: () => boolean
+}
 function isDayjsOrDate(value: unknown): value is DayjsLike | Date {
-  if (value === null || value === undefined)
-    return false
-  if (value instanceof Date)
-    return true
-  if (typeof value === 'object' && 'format' in value && typeof (value as DayjsLike).format === 'function') {
+  if (value === null || value === undefined) return false
+  if (value instanceof Date) return true
+  if (
+    typeof value === 'object' &&
+    'format' in value &&
+    typeof (value as DayjsLike).format === 'function'
+  ) {
     return true
   }
   return false
@@ -189,12 +246,10 @@ export function formatDateFields(values: Recordable, schemas: FormSchema[]): Rec
 
   schemas.forEach((schema) => {
     const { component, field } = schema
-    if (!component || !DATE_COMPONENTS.includes(component as any))
-      return
+    if (!component || !DATE_COMPONENTS.includes(component as any)) return
 
     const value = result[field]
-    if (value === undefined || value === null)
-      return
+    if (value === undefined || value === null) return
 
     // 获取组件配置的 format 或 valueFormat
     const componentProps = schema.componentProps
@@ -214,8 +269,7 @@ export function formatDateFields(values: Recordable, schemas: FormSchema[]): Rec
     if (isDayjsOrDate(value)) {
       if (value instanceof Date) {
         result[field] = formatDate(value, formatStr)
-      }
-      else {
+      } else {
         result[field] = value.format(formatStr)
       }
     }

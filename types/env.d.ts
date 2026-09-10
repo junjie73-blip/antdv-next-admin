@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 /// <reference types="vite/client" />
 /// <reference types="vitest/globals" />
 
@@ -19,16 +20,10 @@ interface ImportMetaEnv {
   readonly VITE_VISUALIZER: boolean
   readonly VITE_COMPRESS: 'gzip' | 'brotli' | 'none'
   readonly VITE_ARCHIVER: boolean
-  readonly MODE: string
-  readonly DEV: boolean
-  readonly PROD: boolean
-  readonly SSR: boolean
 }
 
 interface ImportMeta {
   readonly env: ImportMetaEnv
-  readonly glob: (pattern: string) => Record<string, () => Promise<unknown>>
-  readonly url: string
 }
 
 declare namespace NodeJS {
@@ -37,5 +32,3 @@ declare namespace NodeJS {
     [key: string]: string | undefined
   }
 }
-
-declare const process: NodeJS.Process

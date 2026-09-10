@@ -32,14 +32,78 @@ const typeColorMap: Record<string, string> = {
 }
 
 const basicData = [
-  { key: 1, name: 'Zhang San', age: 28, department: 'Engineering', status: 'active', email: 'zhangsan@example.com', salary: 18000 },
-  { key: 2, name: 'Li Si', age: 32, department: 'Product', status: 'active', email: 'lisi@example.com', salary: 22000 },
-  { key: 3, name: 'Wang Wu', age: 24, department: 'Design', status: 'leave', email: 'wangwu@example.com', salary: 15000 },
-  { key: 4, name: 'Zhao Liu', age: 35, department: 'Marketing', status: 'active', email: 'zhaoliu@example.com', salary: 25000 },
-  { key: 5, name: 'Qian Qi', age: 29, department: 'Engineering', status: 'resigned', email: 'qianqi@example.com', salary: 20000 },
-  { key: 6, name: 'Sun Ba', age: 31, department: 'Operations', status: 'active', email: 'sunba@example.com', salary: 17000 },
-  { key: 7, name: 'Zhou Jiu', age: 27, department: 'Engineering', status: 'active', email: 'zhoujiu@example.com', salary: 19000 },
-  { key: 8, name: 'Wu Shi', age: 33, department: 'Product', status: 'leave', email: 'wushi@example.com', salary: 21000 },
+  {
+    key: 1,
+    name: 'Zhang San',
+    age: 28,
+    department: 'Engineering',
+    status: 'active',
+    email: 'zhangsan@example.com',
+    salary: 18000,
+  },
+  {
+    key: 2,
+    name: 'Li Si',
+    age: 32,
+    department: 'Product',
+    status: 'active',
+    email: 'lisi@example.com',
+    salary: 22000,
+  },
+  {
+    key: 3,
+    name: 'Wang Wu',
+    age: 24,
+    department: 'Design',
+    status: 'leave',
+    email: 'wangwu@example.com',
+    salary: 15000,
+  },
+  {
+    key: 4,
+    name: 'Zhao Liu',
+    age: 35,
+    department: 'Marketing',
+    status: 'active',
+    email: 'zhaoliu@example.com',
+    salary: 25000,
+  },
+  {
+    key: 5,
+    name: 'Qian Qi',
+    age: 29,
+    department: 'Engineering',
+    status: 'resigned',
+    email: 'qianqi@example.com',
+    salary: 20000,
+  },
+  {
+    key: 6,
+    name: 'Sun Ba',
+    age: 31,
+    department: 'Operations',
+    status: 'active',
+    email: 'sunba@example.com',
+    salary: 17000,
+  },
+  {
+    key: 7,
+    name: 'Zhou Jiu',
+    age: 27,
+    department: 'Engineering',
+    status: 'active',
+    email: 'zhoujiu@example.com',
+    salary: 19000,
+  },
+  {
+    key: 8,
+    name: 'Wu Shi',
+    age: 33,
+    department: 'Product',
+    status: 'leave',
+    email: 'wushi@example.com',
+    salary: 21000,
+  },
 ]
 
 const basicColumns: BasicColumn[] = [
@@ -60,7 +124,14 @@ const basicColumns: BasicColumn[] = [
   },
   { title: 'Status', dataIndex: 'status', key: 'status', width: 100, align: 'center' },
   { title: 'Email', dataIndex: 'email', key: 'email', ellipsis: true },
-  { title: 'Salary', dataIndex: 'salary', key: 'salary', sorter: (a: any, b: any) => a.salary - b.salary, width: 120, align: 'right' },
+  {
+    title: 'Salary',
+    dataIndex: 'salary',
+    key: 'salary',
+    sorter: (a: any, b: any) => a.salary - b.salary,
+    width: 120,
+    align: 'right',
+  },
 ]
 
 const basicSelectedKeys = ref<(string | number)[]>([])
@@ -69,7 +140,9 @@ const [registerBasic, basicTableRef] = useTable({
   columns: basicColumns,
   dataSource: basicData,
   rowSelection: {
-    onChange: (keys) => { basicSelectedKeys.value = keys },
+    onChange: (keys) => {
+      basicSelectedKeys.value = keys
+    },
   },
   bordered: true,
   rowKey: 'key',
@@ -90,14 +163,70 @@ function handleBulkAction() {
 }
 
 const paginationData = [
-  { key: 1, id: 'ORD-001', customer: 'Client A', amount: 2999, status: 'completed', date: '2024-01-15' },
-  { key: 2, id: 'ORD-002', customer: 'Client B', amount: 5800, status: 'processing', date: '2024-01-16' },
-  { key: 3, id: 'ORD-003', customer: 'Client C', amount: 1200, status: 'completed', date: '2024-01-16' },
-  { key: 4, id: 'ORD-004', customer: 'Client D', amount: 4500, status: 'pending', date: '2024-01-17' },
-  { key: 5, id: 'ORD-005', customer: 'Client E', amount: 3200, status: 'completed', date: '2024-01-17' },
-  { key: 6, id: 'ORD-006', customer: 'Client F', amount: 6800, status: 'processing', date: '2024-01-18' },
-  { key: 7, id: 'ORD-007', customer: 'Client G', amount: 1500, status: 'cancelled', date: '2024-01-18' },
-  { key: 8, id: 'ORD-008', customer: 'Client H', amount: 8900, status: 'completed', date: '2024-01-19' },
+  {
+    key: 1,
+    id: 'ORD-001',
+    customer: 'Client A',
+    amount: 2999,
+    status: 'completed',
+    date: '2024-01-15',
+  },
+  {
+    key: 2,
+    id: 'ORD-002',
+    customer: 'Client B',
+    amount: 5800,
+    status: 'processing',
+    date: '2024-01-16',
+  },
+  {
+    key: 3,
+    id: 'ORD-003',
+    customer: 'Client C',
+    amount: 1200,
+    status: 'completed',
+    date: '2024-01-16',
+  },
+  {
+    key: 4,
+    id: 'ORD-004',
+    customer: 'Client D',
+    amount: 4500,
+    status: 'pending',
+    date: '2024-01-17',
+  },
+  {
+    key: 5,
+    id: 'ORD-005',
+    customer: 'Client E',
+    amount: 3200,
+    status: 'completed',
+    date: '2024-01-17',
+  },
+  {
+    key: 6,
+    id: 'ORD-006',
+    customer: 'Client F',
+    amount: 6800,
+    status: 'processing',
+    date: '2024-01-18',
+  },
+  {
+    key: 7,
+    id: 'ORD-007',
+    customer: 'Client G',
+    amount: 1500,
+    status: 'cancelled',
+    date: '2024-01-18',
+  },
+  {
+    key: 8,
+    id: 'ORD-008',
+    customer: 'Client H',
+    amount: 8900,
+    status: 'completed',
+    date: '2024-01-19',
+  },
 ]
 
 const paginationColumns: BasicColumn[] = [
@@ -108,7 +237,7 @@ const paginationColumns: BasicColumn[] = [
   { title: 'Date', dataIndex: 'date', key: 'date', width: 130 },
 ]
 
-function paginationMockApi(params: { page?: number, pageSize?: number }) {
+function paginationMockApi(params: { page?: number; pageSize?: number }) {
   const { page = 1, pageSize = 3 } = params
   const start = (page - 1) * pageSize
   const end = start + pageSize
@@ -148,9 +277,7 @@ const treeData = [
         key: 12,
         name: 'Product Dept',
         type: 'department',
-        children: [
-          { key: 121, name: 'PM Team', type: 'team', memberCount: 5 },
-        ],
+        children: [{ key: 121, name: 'PM Team', type: 'team', memberCount: 5 }],
       },
     ],
   },
@@ -185,20 +312,13 @@ const [registerLoading] = useTable({
 
 <template>
   <div :class="containerClassName">
-    <a-card
-      title="Basic Table"
-      variant="borderless"
-    >
+    <a-card title="Basic Table" variant="borderless">
       <div :class="toolbarClassName">
-        <span :class="descriptionClassName">Sorting, filtering, loading, and selection support</span>
+        <span :class="descriptionClassName"
+          >Sorting, filtering, loading, and selection support</span
+        >
         <a-space>
-          <a-button
-            type="primary"
-            size="small"
-            @click="handleBasicRefresh"
-          >
-            Refresh
-          </a-button>
+          <a-button type="primary" size="small" @click="handleBasicRefresh"> Refresh </a-button>
           <a-button
             size="small"
             :disabled="basicSelectedKeys.length === 0"
@@ -220,10 +340,7 @@ const [registerLoading] = useTable({
       </BasicTable>
     </a-card>
 
-    <a-card
-      title="Pagination"
-      variant="borderless"
-    >
+    <a-card title="Pagination" variant="borderless">
       <BasicTable @register="registerPagination">
         <template #cell-status="{ record }">
           <a-tag :color="orderStatusColorMap[record?.status] || 'default'">
@@ -236,10 +353,7 @@ const [registerLoading] = useTable({
       </BasicTable>
     </a-card>
 
-    <a-card
-      title="Expandable / Tree Data"
-      variant="borderless"
-    >
+    <a-card title="Expandable / Tree Data" variant="borderless">
       <BasicTable @register="registerTree">
         <template #cell-type="{ record }">
           <a-tag :color="typeColorMap[record?.type] || 'default'">
@@ -252,25 +366,14 @@ const [registerLoading] = useTable({
       </BasicTable>
     </a-card>
 
-    <a-card
-      title="Empty &amp; Loading States"
-      variant="borderless"
-    >
-      <a-space
-        direction="vertical"
-        :size="16"
-        :style="fullWidthStyle"
-      >
+    <a-card title="Empty &amp; Loading States" variant="borderless">
+      <a-space direction="vertical" :size="16" :style="fullWidthStyle">
         <div>
-          <p :class="labelClassName">
-            Loading state
-          </p>
+          <p :class="labelClassName">Loading state</p>
           <BasicTable @register="registerLoading" />
         </div>
         <div>
-          <p :class="labelClassName">
-            Empty state
-          </p>
+          <p :class="labelClassName">Empty state</p>
           <BasicTable @register="registerEmpty" />
         </div>
       </a-space>

@@ -68,8 +68,7 @@ export function useSSE(options: SSEOptions) {
 
         if (reconnectManager.isEnabled() && !reconnectManager.hasReachedMaxAttempts()) {
           reconnectManager.start()
-        }
-        else {
+        } else {
           disconnect()
         }
       }
@@ -87,13 +86,11 @@ export function useSSE(options: SSEOptions) {
         try {
           const parsed = JSON.parse(eventData)
           eventManager.emit('event:message' as any, parsed)
-        }
-        catch {
+        } catch {
           eventManager.emit('event:message' as any, eventData)
         }
       }
-    }
-    catch (error) {
+    } catch (error) {
       stateManager.setState('error' as any)
       eventManager.emit('stateChange' as any, 'error' as any)
       eventManager.emit('error' as any, error as any)

@@ -41,26 +41,28 @@ function handleRegister(instance: TableActionType) {
 }
 
 const filteredTreeData = computed(() => {
-  if (!searchValue.value.trim())
-    return props.treeData
+  if (!searchValue.value.trim()) return props.treeData
   return filterTree(props.treeData, searchValue.value.trim())
 })
 
 const expandedKeys = ref<string[]>([])
 
-watch(() => props.treeData, () => {
-  if (props.treeDefaultExpandAll) {
-    expandedKeys.value = getAllKeys(props.treeData)
-  }
-}, { immediate: true })
+watch(
+  () => props.treeData,
+  () => {
+    if (props.treeDefaultExpandAll) {
+      expandedKeys.value = getAllKeys(props.treeData)
+    }
+  },
+  { immediate: true },
+)
 
 function getAllKeys(nodes: TreeDataNode[]): string[] {
   const keys: string[] = []
   function walk(list: TreeDataNode[]) {
     for (const node of list) {
       keys.push(node.key)
-      if (node.children?.length)
-        walk(node.children)
+      if (node.children?.length) walk(node.children)
     }
   }
   walk(nodes)
@@ -71,9 +73,7 @@ function filterTree(nodes: TreeDataNode[], keyword: string): TreeDataNode[] {
   const result: TreeDataNode[] = []
   for (const node of nodes) {
     const titleMatch = node.title.toLowerCase().includes(keyword.toLowerCase())
-    const filteredChildren = node.children?.length
-      ? filterTree(node.children, keyword)
-      : []
+    const filteredChildren = node.children?.length ? filterTree(node.children, keyword) : []
 
     if (titleMatch || filteredChildren.length > 0) {
       result.push({
@@ -89,16 +89,14 @@ const debouncedSearch = useDebounceFn((val: string) => {
   searchValue.value = val
   if (val.trim()) {
     expandedKeys.value = getAllKeys(filteredTreeData.value)
-  }
-  else {
+  } else {
     expandedKeys.value = getAllKeys(props.treeData)
   }
 }, 300)
 
 async function handleTreeSelect(_selectedKeys: any[], info: { node: any }) {
   const key = info.node?.key as string
-  if (!key)
-    return
+  if (!key) return
   selectedKey.value = key
   currentTreeKey.value = key
   emit('treeSelect', key, info.node)
@@ -123,8 +121,7 @@ function handleDragStart(e: MouseEvent) {
 }
 
 function handleDragMove(e: MouseEvent) {
-  if (!isDragging.value || !panelRef.value)
-    return
+  if (!isDragging.value || !panelRef.value) return
   const rect = panelRef.value.getBoundingClientRect()
   let newWidth = e.clientX - rect.left
   newWidth = Math.max(props.treeMinWidth, Math.min(props.treeMaxWidth, newWidth))
@@ -189,42 +186,28 @@ const tableBodyClassName = cn('flex-1 overflow-hidden')
 
 const emptyClassName = cn('flex flex-col items-center justify-center py-16 text-gray-400')
 
-const placeholderClassName = cn(
-  'flex flex-col items-center justify-center h-full text-gray-400',
-)
+const placeholderClassName = cn('flex flex-col items-center justify-center h-full text-gray-400')
 
 const nothingSelectedClassName = cn('text-sm text-gray-400')
 </script>
 
 <template>
-  <div
-    ref="panelRef"
-    :class="containerClassName"
-  >
-    <div
-      :class="treePanelClassName"
-      :style="treePanelStyle"
-    >
+  <div ref="panelRef" :class="containerClassName">
+    <div :class="treePanelClassName" :style="treePanelStyle">
       <div :class="treeHeaderClassName">
         <span :class="treeHeaderTitleClassName">{{ treeTitle }}</span>
       </div>
 
       <div :class="treeBodyClassName">
         <PerfectScrollbar class="h-full">
-          <div
-            v-if="showSearch"
-            :class="treeSearchClassName"
-          >
+          <div v-if="showSearch" :class="treeSearchClassName">
             <a-input
               :placeholder="treeSearchPlaceholder"
               allow-clear
               @change="(e: any) => debouncedSearch(e.target.value)"
             >
               <template #prefix>
-                <Icon
-                  icon="carbon:search"
-                  class="text-gray-400"
-                />
+                <Icon icon="carbon:search" class="text-gray-400" />
               </template>
             </a-input>
           </div>
@@ -237,36 +220,29 @@ const nothingSelectedClassName = cn('text-sm text-gray-400')
             :field-names="{ key: 'key', title: 'title', children: 'children' }"
             block-node
             @select="handleTreeSelect"
-            @expand="(keys: string[]) => { expandedKeys = keys }"
+            @expand="
+              (keys: string[]) => {
+                expandedKeys = keys
+              }
+            "
           />
 
-          <div
-            v-else
-            :class="emptyClassName"
-          >
-            <Icon
-              icon="carbon:search"
-              class="text-3xl mb-2"
-            />
+          <div v-else :class="emptyClassName">
+            <Icon icon="carbon:search" class="text-3xl mb-2" />
             <span class="text-sm">{{ treeEmptyText }}</span>
           </div>
         </PerfectScrollbar>
       </div>
     </div>
 
-    <div
-      :class="resizeHandleClassName"
-      @mousedown="handleDragStart"
-    />
+    <div :class="resizeHandleClassName" @mousedown="handleDragStart" />
 
     <div :class="tablePanelClassName">
       <div :class="tableHeaderClassName">
         <span :class="tableHeaderTitleClassName">
           {{ tableTitle }}
           <template v-if="selectedKey">
-            <span :class="nothingSelectedClassName">
-              已选择节点
-            </span>
+            <span :class="nothingSelectedClassName"> 已选择节点 </span>
           </template>
         </span>
       </div>
@@ -285,14 +261,8 @@ const nothingSelectedClassName = cn('text-sm text-gray-400')
           />
         </template>
 
-        <div
-          v-else
-          :class="placeholderClassName"
-        >
-          <Icon
-            icon="carbon:tree-view-alt"
-            class="text-4xl mb-3"
-          />
+        <div v-else :class="placeholderClassName">
+          <Icon icon="carbon:tree-view-alt" class="text-4xl mb-3" />
           <span class="text-sm text-gray-400">请在左侧选择节点查看数据</span>
         </div>
       </div>

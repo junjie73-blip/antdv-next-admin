@@ -175,9 +175,7 @@ const [register, { validate, resetFields, setFieldsValue, getFieldsValue }] = us
   showSubmitButton: true,
   showAdvancedButton: true,
   alwaysShowLines: 2,
-  fieldMapToTime: [
-    ['timeRange', ['startTime', 'endTime'], 'YYYY-MM-DD HH:mm:ss'],
-  ],
+  fieldMapToTime: [['timeRange', ['startTime', 'endTime'], 'YYYY-MM-DD HH:mm:ss']],
   submitButtonOptions: {
     text: '查询',
     preIcon: 'carbon:search',
@@ -200,8 +198,7 @@ async function handleValidate() {
     const values = await validate()
     console.log('验证通过:', values)
     formResult.value = values
-  }
-  catch (error) {
+  } catch (error) {
     console.error('验证失败:', error)
   }
 }
@@ -233,27 +230,13 @@ function handleGetValues() {
     <a-card title="基础表单">
       <div class="space-y-4">
         <div class="flex gap-2 flex-wrap">
-          <a-button
-            type="primary"
-            @click="handleValidate"
-          >
-            验证表单
-          </a-button>
-          <a-button @click="handleReset">
-            重置表单
-          </a-button>
-          <a-button @click="handleSetValues">
-            设置
-          </a-button>
-          <a-button @click="handleGetValues">
-            获取
-          </a-button>
+          <a-button type="primary" @click="handleValidate"> 验证表单 </a-button>
+          <a-button @click="handleReset"> 重置表单 </a-button>
+          <a-button @click="handleSetValues"> 设置 </a-button>
+          <a-button @click="handleGetValues"> 获取 </a-button>
         </div>
 
-        <BasicForm
-          @register="register"
-          @submit="handleSubmit"
-        />
+        <BasicForm @register="register" @submit="handleSubmit" />
       </div>
     </a-card>
 

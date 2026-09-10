@@ -12,7 +12,18 @@ const basicItems = Array.from({ length: 30 }, (_, i) => ({
   desc: `Description for item ${i + 1}`,
 }))
 
-const horizontalItems = ['Vue', 'React', 'Angular', 'Svelte', 'Solid', 'Qwik', 'Astro', 'Nuxt', 'Next.js', 'Remix']
+const horizontalItems = [
+  'Vue',
+  'React',
+  'Angular',
+  'Svelte',
+  'Solid',
+  'Qwik',
+  'Astro',
+  'Nuxt',
+  'Next.js',
+  'Remix',
+]
 
 const chatMessages = ref([
   { id: 1, text: 'Hello, how are you?', time: '10:30', self: false },
@@ -28,8 +39,7 @@ const chatMessages = ref([
 const newMessage = ref('')
 
 function sendMessage() {
-  if (!newMessage.value.trim())
-    return
+  if (!newMessage.value.trim()) return
   chatMessages.value.push({
     id: Date.now(),
     text: newMessage.value.trim(),
@@ -42,12 +52,17 @@ function sendMessage() {
 
 <template>
   <div :class="containerClassName">
-    <a-card
-      title="Basic Scroll"
-      variant="borderless"
-    >
+    <a-card title="Basic Scroll" variant="borderless">
       <div class="space-y-4">
-        <a-button @click="basicItems.push({ id: basicItems.length + 1, title: `New Item ${basicItems.length + 1}`, desc: 'Newly added item' })">
+        <a-button
+          @click="
+            basicItems.push({
+              id: basicItems.length + 1,
+              title: `New Item ${basicItems.length + 1}`,
+              desc: 'Newly added item',
+            })
+          "
+        >
           Add Item
         </a-button>
         <div
@@ -60,7 +75,9 @@ function sendMessage() {
               :key="item.id"
               class="flex items-center gap-3 px-4 py-2.5 border-b border-gray-100 dark:border-gray-700 last:border-0"
             >
-              <span class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-medium">
+              <span
+                class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-medium"
+              >
                 {{ item.id }}
               </span>
               <div>
@@ -77,10 +94,7 @@ function sendMessage() {
       </div>
     </a-card>
 
-    <a-card
-      title="Horizontal Scroll"
-      variant="borderless"
-    >
+    <a-card title="Horizontal Scroll" variant="borderless">
       <div class="h-32 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
         <Scrollbar>
           <div class="flex gap-3 p-4 min-w-max">
@@ -97,12 +111,11 @@ function sendMessage() {
       </div>
     </a-card>
 
-    <a-card
-      title="Chat Scroll"
-      variant="borderless"
-    >
+    <a-card title="Chat Scroll" variant="borderless">
       <div class="space-y-3">
-        <div class="h-80 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden flex flex-col">
+        <div
+          class="h-80 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden flex flex-col"
+        >
           <Scrollbar class="flex-1 p-4">
             <div
               v-for="msg in chatMessages"
@@ -119,10 +132,7 @@ function sendMessage() {
                 ]"
               >
                 {{ msg.text }}
-                <div
-                  class="text-xs mt-1"
-                  :class="[msg.self ? 'text-blue-100' : 'text-gray-400']"
-                >
+                <div class="text-xs mt-1" :class="[msg.self ? 'text-blue-100' : 'text-gray-400']">
                   {{ msg.time }}
                 </div>
               </div>
@@ -134,12 +144,7 @@ function sendMessage() {
               placeholder="Type a message..."
               @pressEnter="sendMessage"
             />
-            <a-button
-              type="primary"
-              @click="sendMessage"
-            >
-              Send
-            </a-button>
+            <a-button type="primary" @click="sendMessage"> Send </a-button>
           </div>
         </div>
       </div>

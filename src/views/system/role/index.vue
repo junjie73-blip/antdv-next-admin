@@ -2,14 +2,8 @@
 import type { FormSchema } from '@/components/business/Form'
 import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
-
-import { computed, ref } from 'vue'
-import {
-  addRole,
-  deleteRole,
-  getRoleList,
-  updateRole,
-} from '@/api/system'
+import { computed, onMounted, ref } from 'vue'
+import { addRole, deleteRole, getRoleList, updateRole } from '@/api/system'
 import { BasicDrawer, useDrawer } from '@/components/business/Drawer'
 import { BasicForm, useForm } from '@/components/business/Form'
 import { BasicTable, useTable } from '@/components/business/Table'
@@ -17,101 +11,33 @@ import { DictType } from '@/enums/dict'
 import { useDictStore } from '@/stores'
 import { cn } from '@/utils/cn'
 import { exportToExcel } from '@/utils/excel'
+import { message } from 'antdv-next'
+import { http } from '@/utils'
+import { useCRUD } from '@/composables/useCRUD'
 
 defineOptions({ name: 'SystemRole' })
 
 interface RoleRecord {
-  id: number
-  name: string
-  code: string
+  roleId: string
+  roleName: string
+  roleCode: string
   description: string
-  sort: number
-  status: number
-  menuIds: number[]
+  sortOrder: number
+  status: string
+  menuIds: string[]
   createdAt: string
 }
 
 const containerClassName = cn('space-y-4')
 const cardClassName = cn('shadow-sm')
-const tagClassName = cn('inline-flex items-center gap-1')
 const actionClassName = cn('flex', 'items-center', 'justify-center', 'whitespace-nowrap')
 const btnClassName = cn('!px-0.5')
 const dividerClassName = cn('mx-0')
 
-const statusColorMap: Record<number, string> = {
-  1: 'green',
-  0: 'red',
-}
-const statusLabelMap: Record<number, string> = {
-  1: '正常',
-  0: '停用',
-}
-
 const dictStore = useDictStore()
-
 const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
 
-// 动态菜单权限树 — 从菜单配置生成
-interface MenuTreeNode {
-  title: string
-  key: string
-  children?: MenuTreeNode[]
-}
-
-const menuSourceData = [
-  {
-    id: 1,
-    title: '仪表盘',
-    path: '/dashboard',
-    children: [
-      { id: 101, title: '分析面板', path: 'analysis' },
-      { id: 102, title: '实时监控大屏', path: 'monitor' },
-    ],
-  },
-  {
-    id: 2,
-    title: '系统管理',
-    path: '/system',
-    children: [
-      { id: 201, title: '用户管理', path: 'user' },
-      { id: 202, title: '角色管理', path: 'role' },
-      { id: 203, title: '菜单管理', path: 'menu' },
-      { id: 204, title: '通知管理', path: 'notice' },
-    ],
-  },
-  {
-    id: 3,
-    title: '系统工具',
-    path: '/tool',
-    children: [
-      { id: 301, title: '数据字典', path: 'dict' },
-    ],
-  },
-  {
-    id: 4,
-    title: '系统监控',
-    path: '/monitor',
-    children: [
-      { id: 401, title: '系统日志', path: 'log' },
-    ],
-  },
-]
-
-function buildMenuTree(menus: typeof menuSourceData): MenuTreeNode[] {
-  return menus.map(menu => ({
-    title: menu.title,
-    key: String(menu.id),
-    children: menu.children?.map(child => ({
-      title: child.title,
-      key: String(child.id),
-    })),
-  }))
-}
-
-const permissionTreeData = computed(() => buildMenuTree(menuSourceData))
-
-const isEditing = ref(false)
-const currentRecord = ref<RoleRecord | null>(null)
+const permissionTreeData = ref<any[]>([])
 
 const [drawerRegister, drawerMethods] = useDrawer()
 const [permDrawerRegister, permDrawerMethods] = useDrawer()
@@ -133,6 +59,7 @@ const searchFormSchemas: FormSchema[] = [
     field: 'status',
     label: '状态',
     component: 'Select',
+    defaultValue: '1',
     colProps: { span: 6 },
     componentProps: {
       placeholder: '选择状态',
@@ -144,7 +71,7 @@ const searchFormSchemas: FormSchema[] = [
 
 const drawerFormSchemas: FormSchema[] = [
   {
-    field: 'name',
+    field: 'roleName',
     label: '角色名称',
     component: 'Input',
     required: true,
@@ -152,7 +79,7 @@ const drawerFormSchemas: FormSchema[] = [
     componentProps: { placeholder: '请输入角色名称' },
   },
   {
-    field: 'code',
+    field: 'roleCode',
     label: '角色编码',
     component: 'Input',
     required: true,
@@ -160,7 +87,7 @@ const drawerFormSchemas: FormSchema[] = [
     componentProps: { placeholder: '请输入角色编码，如 admin' },
   },
   {
-    field: 'sort',
+    field: 'sortOrder',
     label: '排序',
     component: 'InputNumber',
     colProps: { span: 12 },
@@ -171,8 +98,8 @@ const drawerFormSchemas: FormSchema[] = [
     field: 'status',
     label: '状态',
     component: 'RadioGroup',
+    defaultValue: '1',
     colProps: { span: 12 },
-    defaultValue: 0,
     componentProps: () => ({
       optionType: 'button',
       buttonStyle: 'solid',
@@ -187,84 +114,90 @@ const drawerFormSchemas: FormSchema[] = [
     componentProps: { placeholder: '请输入角色描述...', rows: 3 },
   },
 ]
-
-// API 适配层
-async function mockApi(params: Record<string, any>) {
-  try {
-    const res = await getRoleList(params)
-    console.log('[Role] raw response:', res)
-    // 兼容 mock 直接返回完整响应或已解包的数据
-    const data = res?.data ?? res
-    console.log('[Role] parsed data:', data)
-    const result = { items: data?.list || [], total: data?.total || 0 }
-    console.log('[Role] result:', result)
-    return result
-  }
-  catch (e) {
-    console.error('[Role] mockApi error:', e)
-    return { items: [], total: 0 }
-  }
-}
-
-function handleAdd() {
-  isEditing.value = false
-  currentRecord.value = null
-  formMethods.setFieldsValue({
-    name: '',
-    code: '',
-    description: '',
-    sort: 0,
-    status: 0,
+const roleMenuTree = ref<any[]>([])
+// ========== 使用 useCRUD ==========
+const { isEditing, currentRecord, handleAdd, handleEdit, handleDelete, handleSave } =
+  useCRUD<RoleRecord>({
+    containerType: 'drawer',
+    drawerMethods,
+    formMethods,
+    tableMethods,
+    idKey: 'roleId',
+    confirmDelete: true,
+    getEmptyValues: () => ({
+      roleName: '',
+      roleCode: '',
+      description: '',
+      sortOrder: 0,
+      status: '1',
+    }),
+    getFormValues: (record) => ({
+      roleName: record.roleName,
+      roleCode: record.roleCode,
+      description: record.description,
+      sortOrder: record.sortOrder,
+      status: record.status,
+    }),
+    onCreate: async (values) => {
+      await addRole(values)
+    },
+    onUpdate: async (id, values) => {
+      await updateRole(id, values)
+    },
+    onDelete: async (record) => {
+      await deleteRole(record.roleId)
+    },
+    messages: {
+      createSuccess: '角色创建成功',
+      updateSuccess: '角色更新成功',
+      deleteSuccess: '角色删除成功',
+      deleteConfirm: '确定要删除该角色吗？',
+    },
   })
-  formMethods.clearValidate()
-  drawerMethods.openDrawer()
-}
 
-function handleEdit(record: RoleRecord) {
-  isEditing.value = true
-  currentRecord.value = record
-  formMethods.setFieldsValue({
-    name: record.name,
-    code: record.code,
-    description: record.description,
-    sort: record.sort,
-    status: record.status,
-  })
-  formMethods.clearValidate()
-  drawerMethods.openDrawer()
-}
-
-function handlePermission(record: RoleRecord) {
-  currentRecord.value = record
-  permDrawerMethods.openDrawer()
-}
-
-async function handleDelete(record: RoleRecord) {
-  if (record.code === 'super_admin') {
-    message.warning('超级管理员角色不允许删除')
-    return
-  }
-  try {
-    await deleteRole(record.id)
-    message.success(`已删除角色：${record.name}`)
-    tableMethods.value?.reload()
-  }
-  catch (e: any) {
-    message.error(e?.message || '删除失败')
-  }
-}
-
+// ========== 状态切换 ==========
 async function handleToggleStatus(record: RoleRecord) {
   try {
-    await updateRole(record.id, { status: record.status === 1 ? 0 : 1 })
-    message.success(`已${record.status === 1 ? '停用' : '启用'}：${record.name}`)
+    const newStatus = record.status === '1' ? '0' : '1'
+    await updateRole(record.roleId, { status: newStatus })
+    message.success(`已${newStatus === '0' ? '停用' : '启用'}：${record.roleName}`)
     tableMethods.value?.reload()
-  }
-  catch (e: any) {
+  } catch (e: any) {
     message.error(e?.message || '操作失败')
   }
 }
+const permDrawerLoading = ref(false)
+// ========== 权限分配 ==========
+async function handlePermission(record: RoleRecord) {
+  currentRecord.value = record
+  permDrawerLoading.value = true
+  try {
+    await permDrawerMethods.openDrawer()
+    // 调用接口获取该角色的菜单树（带 checked）
+    const { data } = await http.Get(`/role/${record.roleId}/menus/tree`).send(true)
+    currentRecord.value.menuIds = data as string[]
+  } catch (e: any) {
+    message.error(e?.message || '加载权限数据失败')
+  } finally {
+    permDrawerLoading.value = false
+  }
+}
 
+async function handleSavePermissions() {
+  if (!currentRecord.value) return
+  try {
+    await http.Put(`/role/${currentRecord.value.roleId}/menus`, {
+      menuIds: currentRecord.value.menuIds,
+    })
+    message.success('权限更新成功')
+    permDrawerMethods.closeDrawer()
+    tableMethods.value?.reload()
+  } catch (e: any) {
+    message.error(e?.message || '权限更新失败')
+  }
+}
+
+// ========== 导出 ==========
 function handleExport() {
   const selectedRows = (tableMethods.value?.getSelectRows?.() || []) as any[]
   const dataToExport = selectedRows.length > 0 ? selectedRows : []
@@ -272,53 +205,40 @@ function handleExport() {
     filename: '角色列表',
     sheetName: '角色管理',
     columns: [
-      { header: 'ID', key: 'id', width: 8 },
-      { header: '角色名称', key: 'name', width: 15 },
-      { header: '角色编码', key: 'code', width: 18 },
+      { header: 'ID', key: 'roleId', width: 8 },
+      { header: '角色名称', key: 'roleName', width: 15 },
+      { header: '角色编码', key: 'roleCode', width: 18 },
       { header: '描述', key: 'description', width: 30 },
-      { header: '排序', key: 'sort', width: 8 },
+      { header: '排序', key: 'sortOrder', width: 8 },
       { header: '状态', key: 'status', width: 8 },
       { header: '创建时间', key: 'createdAt', width: 20 },
     ],
-    data: dataToExport.map(i => ({ ...i, status: i.status === 1 ? '正常' : '停用' })),
+    data: dataToExport.map((i) => ({ ...i, status: i.status === '1' ? '正常' : '停用' })),
   })
 }
 
-async function handleSave() {
-  const values = await formMethods.validate()
-  if (!values)
-    return
-
-  if (!values.name || !values.code) {
-    message.warning('请填写角色名称和编码')
-    return
-  }
-
+// ========== 加载菜单树 ==========
+onMounted(async () => {
   try {
-    if (isEditing.value && currentRecord.value) {
-      await updateRole(currentRecord.value.id, values)
-      message.success(`已更新角色：${values.name}`)
-    }
-    else {
-      await addRole(values)
-      message.success(`已新增角色：${values.name}`)
-    }
-
-    drawerMethods.closeDrawer()
-    tableMethods.value?.reload()
+    const res = await http.Get('/menu/tree').send(true)
+    permissionTreeData.value = res.data
+  } catch (e) {
+    console.error('加载菜单树失败', e)
   }
-  catch (e: any) {
-    message.error(e?.message || '保存失败')
-  }
-}
+})
 
 const columns: BasicColumn[] = [
-  { title: '#', key: 'index', width: 60, align: 'center', customRender: ({ index }) => index + 1 },
-  { title: 'ID', dataIndex: 'id', key: 'id', width: 70, align: 'center' },
-  { title: '角色名称', dataIndex: 'name', key: 'name', width: 140 },
-  { title: '角色编码', dataIndex: 'code', key: 'code', width: 150 },
-  { title: '描述', dataIndex: 'description', key: 'description', ellipsis: true },
-  { title: '排序', dataIndex: 'sort', key: 'sort', width: 70, align: 'center' },
+  {
+    title: '序号',
+    key: 'index',
+    width: 60,
+    align: 'center',
+    customRender: ({ index }) => index + 1,
+  },
+  { title: '角色名称', dataIndex: 'roleName', key: 'roleName', width: 140 },
+  { title: '角色编码', dataIndex: 'roleCode', key: 'roleCode', width: 150 },
+  { title: '描述', dataIndex: 'description', key: 'description', ellipsis: true, width: 300 },
+  { title: '排序', dataIndex: 'sortOrder', key: 'sortOrder', width: 70, align: 'center' },
   { title: '状态', dataIndex: 'status', key: 'status', width: 80, align: 'center' },
   { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 170 },
 ]
@@ -326,118 +246,55 @@ const columns: BasicColumn[] = [
 
 <template>
   <div :class="containerClassName">
-    <a-card
-      title="角色管理"
-      :class="cardClassName"
-    >
+    <a-card title="角色管理" :class="cardClassName">
       <BasicTable
         :columns="columns"
-        :api="mockApi"
+        :api="getRoleList"
         :immediate="true"
         :use-search-form="true"
         :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
-        :pagination="{ showSizeChanger: true,
-                       pageSizeOptions: ['10',
-                                         '20',
-                                         '50'] }"
+        :pagination="{ showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }"
         :action-column="{ width: 280, title: '操作', fixed: 'right' }"
+        :row-key="(record) => record.roleId"
+        :row-selection="{ type: 'checkbox' }"
         @register="tableRegister"
       >
         <template #toolbar>
           <a-button @click="handleExport">
-            <template #icon>
-              <Icon icon="carbon:export" />
-            </template>
+            <template #icon><Icon icon="carbon:export" /></template>
             导出
           </a-button>
-          <a-button
-            type="primary"
-            @click="handleAdd"
-          >
-            <template #icon>
-              <Icon icon="ant-design:plus-outlined" />
-            </template>
+          <a-button type="primary" @click="() => handleAdd()">
+            <template #icon><Icon icon="ant-design:plus-outlined" /></template>
             新增角色
           </a-button>
         </template>
 
         <template #cell-status="{ record }">
-          <a-tag :color="statusColorMap[record.status] || 'default'">
-            <span :class="tagClassName">
-              <Icon :icon="record.status === 1 ? 'carbon:checkmark-outline' : 'carbon:close-outline'" />
-              {{ statusLabelMap[record.status] || '未知' }}
-            </span>
-          </a-tag>
+          <a-switch
+            :checked="record.status"
+            checked-value="1"
+            un-checked-value="0"
+            @change="handleToggleStatus(record)"
+          />
         </template>
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <a-button
-              type="link"
-              :class="btnClassName"
-              @click="() => handlePermission(record)"
-            >
-              <template #icon>
-                <Icon icon="ant-design:safety-certificate-outlined" />
-              </template>
+            <a-button type="link" :class="btnClassName" @click="() => handlePermission(record)">
+              <template #icon><Icon icon="ant-design:safety-certificate-outlined" /></template>
               权限
             </a-button>
-            <a-divider
-              type="vertical"
-              :class="dividerClassName"
-            />
-            <a-button
-              type="link"
-              :class="btnClassName"
-              @click="() => handleEdit(record)"
-            >
-              <template #icon>
-                <Icon icon="ant-design:edit-outlined" />
-              </template>
+            <a-divider type="vertical" :class="dividerClassName" />
+            <a-button type="link" :class="btnClassName" @click="() => handleEdit(record)">
+              <template #icon><Icon icon="ant-design:edit-outlined" /></template>
               编辑
             </a-button>
-            <a-divider
-              type="vertical"
-              :class="dividerClassName"
-            />
-            <a-popconfirm
-              :title="`确定要「${record.status === 1 ? '停用' : '启用'}」角色「${record.name}」吗？`"
-              @confirm="() => handleToggleStatus(record)"
-            >
-              <a-button
-                v-if="record.status === 1"
-                type="link"
-                :class="btnClassName"
-              >
-                停用
-              </a-button>
-              <a-button
-                v-else
-                type="link"
-                :class="btnClassName"
-              >
-                启用
-              </a-button>
-            </a-popconfirm>
-            <a-divider
-              type="vertical"
-              :class="dividerClassName"
-            />
-            <a-popconfirm
-              :title="`确定要删除角色「${record.name}」吗？`"
-              @confirm="() => handleDelete(record)"
-            >
-              <a-button
-                type="link"
-                danger
-                :class="btnClassName"
-              >
-                <template #icon>
-                  <Icon icon="ant-design:delete-outlined" />
-                </template>
-                删除
-              </a-button>
-            </a-popconfirm>
+            <a-divider type="vertical" :class="dividerClassName" />
+            <a-button type="link" danger :class="btnClassName" @click="() => handleDelete(record)">
+              <template #icon><Icon icon="ant-design:delete-outlined" /></template>
+              删除
+            </a-button>
           </div>
         </template>
       </BasicTable>
@@ -461,23 +318,21 @@ const columns: BasicColumn[] = [
 
     <!-- 权限分配抽屉 -->
     <BasicDrawer
-      :title="`权限分配 - ${currentRecord?.name || ''}`"
+      :title="`权限分配 - ${currentRecord?.roleName || ''}`"
       :width="480"
+      :loading="permDrawerLoading"
       @register="permDrawerRegister"
+      @ok="handleSavePermissions"
     >
       <div class="space-y-4">
-        <a-alert
-          message="选择该角色可以访问的菜单和按钮权限"
-          type="info"
-          show-icon
-        />
+        <a-alert message="选择该角色可以访问的菜单和按钮权限" type="info" show-icon />
         <div class="text-sm text-gray-500 dark:text-gray-400">
-          角色编码：<a-tag color="blue">
-            {{ currentRecord?.code }}
-          </a-tag>
+          角色编码：<a-tag color="blue">{{ currentRecord?.roleCode }}</a-tag>
         </div>
         <div class="text-sm text-gray-500 dark:text-gray-400">
-          角色描述：<span class="text-gray-700 dark:text-gray-300">{{ currentRecord?.description }}</span>
+          角色描述：<span class="text-gray-700 dark:text-gray-300">{{
+            currentRecord?.description
+          }}</span>
         </div>
 
         <a-tree
@@ -485,11 +340,14 @@ const columns: BasicColumn[] = [
           default-expand-all
           :tree-data="permissionTreeData"
           :checked-keys="currentRecord?.menuIds || []"
-          @check="(checkedKeys: any) => {
-            if (currentRecord) {
-              currentRecord.menuIds = checkedKeys
+          :field-names="{ title: 'menuName', key: 'menuId' }"
+          @check="
+            (checkedKeys: any) => {
+              if (currentRecord) {
+                currentRecord.menuIds = checkedKeys
+              }
             }
-          }"
+          "
         />
       </div>
     </BasicDrawer>

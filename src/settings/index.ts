@@ -1,4 +1,13 @@
-import type { AppSetting, ComponentSize, LayoutMode, NotificationPosition, RouteMode, ThemeMode, ThemeStyle, TransitionEffect } from '#/app'
+import type {
+  AppSetting,
+  ComponentSize,
+  LayoutMode,
+  NotificationPosition,
+  RouteMode,
+  ThemeMode,
+  ThemeStyle,
+  TransitionEffect,
+} from '#/app'
 
 export type {
   AppSetting,
@@ -34,7 +43,7 @@ export const DEFAULT_SETTING: AppSetting = {
   watermarkContent: import.meta.env.VITE_APP_TITLE || 'Admin',
   sidebarCollapsed: false,
   primaryColor: '#1677ff',
-  routeMode: 'frontend',
+  routeMode: 'backend',
 }
 
 export * from './theme'

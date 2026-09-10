@@ -1,9 +1,5 @@
 // 导出函数式创建方法
-export {
-  createContainerLoading,
-  createFullscreenLoading,
-  createLoading,
-} from './createLoading'
+export { createContainerLoading, createFullscreenLoading, createLoading } from './createLoading'
 
 // 导出指令
 export { default as vLoading } from './directive'

@@ -20,7 +20,10 @@ export function decrypt(data: string, options: AesOptions): string {
   return sm4.decrypt(data, key)
 }
 
-export function encryptObject<T extends Record<string, unknown>>(obj: T, options: AesOptions): string {
+export function encryptObject<T extends Record<string, unknown>>(
+  obj: T,
+  options: AesOptions,
+): string {
   return encrypt(JSON.stringify(obj), options)
 }
 

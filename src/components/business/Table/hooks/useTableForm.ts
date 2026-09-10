@@ -1,4 +1,4 @@
-import type { Ref } from 'vue'
+import type { ComputedRef, Ref } from 'vue'
 import type { FormActionType, FormProps, FormSchema } from '../../Form/types'
 import type { BasicTableProps, Recordable } from '../types'
 import { computed, ref, unref, watch } from 'vue'
@@ -15,6 +15,7 @@ interface UseTableFormOptions {
 }
 
 interface UseTableFormReturn {
+  registerForm: (instance: FormActionType) => void
   getForm: () => FormActionType | null
   getFormProps: ComputedRef<Partial<FormProps>>
   handleSearchInfoFn: (info: Recordable) => Recordable
@@ -26,7 +27,10 @@ interface UseTableFormReturn {
  * 处理时间字段映射
  * 将时间范围字段拆分为开始和结束字段
  */
-function handleRangeTimeValue(values: Recordable, fieldMapToTime?: [string, [string, string], string?][]): Recordable {
+function handleRangeTimeValue(
+  values: Recordable,
+  fieldMapToTime?: [string, [string, string], string?][],
+): Recordable {
   if (!fieldMapToTime || !Array.isArray(fieldMapToTime)) {
     return values
   }
@@ -40,8 +44,7 @@ function handleRangeTimeValue(values: Recordable, fieldMapToTime?: [string, [str
 
       // 处理 dayjs 对象或 Date 对象
       const formatValue = (v: any): string | null => {
-        if (!v)
-          return null
+        if (!v) return null
         if (v instanceof Date) {
           return formatDate(v, format)
         }
@@ -90,13 +93,12 @@ function replaceSchemaKey(values: Recordable, schemas: FormSchema[]): Recordable
   const result: Recordable = {}
 
   Object.keys(values).forEach((key) => {
-    const schema = schemas.find(s => s.field === key)
+    const schema = schemas.find((s) => s.field === key)
     const value = values[key]
 
     if (schema && value !== undefined && value !== null && value !== '') {
       result[key] = value
-    }
-    else if (value !== undefined && value !== null && value !== '') {
+    } else if (value !== undefined && value !== null && value !== '') {
       result[key] = value
     }
   })
@@ -120,7 +122,6 @@ export function useTableForm(options?: UseTableFormOptions): UseTableFormReturn 
   } = options || {}
 
   // 表单实例
-  const formRef = ref<FormActionType | null>(null)
 
   /**
    * 获取表格 props
@@ -170,8 +171,8 @@ export function useTableForm(options?: UseTableFormOptions): UseTableFormReturn 
   watch(
     () => ({ ...unref(getFormProps) }),
     (newProps) => {
-      if (newProps && Object.keys(newProps).length > 0 && formRef.value) {
-        formRef.value?.setProps(newProps)
+      if (newProps && Object.keys(newProps).length > 0 && formMethods) {
+        formMethods.setProps(newProps)
       }
     },
     { deep: true },
@@ -201,7 +202,6 @@ export function useTableForm(options?: UseTableFormOptions): UseTableFormReturn 
     if (fieldMapToTime) {
       result = handleRangeTimeValue(result, fieldMapToTime)
     }
-
     return result
   }
 
@@ -282,14 +282,14 @@ export function useTableForm(options?: UseTableFormOptions): UseTableFormReturn 
    * 获取表单实例
    */
   const getForm = (): FormActionType | null => {
-    return (formRef.value || formMethods) as FormActionType | null
+    return formMethods as FormActionType | null
   }
 
   // 监听表单配置变化，更新表单
   watch(
     () => getProps().formConfig,
     (newConfig) => {
-      if (newConfig && formRef.value) {
+      if (newConfig && formMethods) {
         formMethods.setProps(newConfig)
       }
     },

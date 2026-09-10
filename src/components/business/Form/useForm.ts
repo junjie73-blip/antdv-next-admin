@@ -7,6 +7,7 @@ export function useForm(props?: Partial<FormProps>): UseFormReturnType {
   const formProps = ref<Partial<FormProps>>(props || {})
 
   function register(instance: FormActionType) {
+    console.log(instance, 'instance')
     if (instance) {
       formRef.value = instance
       instance.setProps(unref(formProps))

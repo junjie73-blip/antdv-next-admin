@@ -49,11 +49,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 // 骨架屏基础样式
-const skeletonBaseClassName = cn(
-  'animate-pulse',
-  'bg-gray-200 dark:bg-gray-700',
-  'rounded',
-)
+const skeletonBaseClassName = cn('animate-pulse', 'bg-gray-200 dark:bg-gray-700', 'rounded')
 
 // 标题骨架样式
 const titleClassName = cn(skeletonBaseClassName, 'h-8 w-48 mb-6')
@@ -69,26 +65,14 @@ function getRowClassName(width: string) {
 
 <template>
   <!-- 加载中：显示骨架屏 -->
-  <div
-    v-if="loading"
-    :class="cn('p-4 lg:p-6', props.class)"
-  >
+  <div v-if="loading" :class="cn('p-4 lg:p-6', props.class)">
     <!-- ========== 页面类型骨架屏 ========== -->
-    <div
-      v-if="variant === 'page'"
-      class="space-y-4"
-    >
+    <div v-if="variant === 'page'" class="space-y-4">
       <!-- 标题区域 -->
-      <div
-        v-if="showTitle"
-        :class="titleClassName"
-      />
+      <div v-if="showTitle" :class="titleClassName" />
 
       <!-- 操作按钮区域 -->
-      <div
-        v-if="showActions"
-        class="flex items-center gap-3 mb-4"
-      >
+      <div v-if="showActions" class="flex items-center gap-3 mb-4">
         <div :class="actionClassName" />
         <div :class="actionClassName" />
         <div class="ml-auto flex gap-2">
@@ -108,10 +92,7 @@ function getRowClassName(width: string) {
         </div>
 
         <!-- 侧边栏 -->
-        <div
-          v-if="showSidebar"
-          class="w-64 shrink-0 space-y-3"
-        >
+        <div v-if="showSidebar" class="w-64 shrink-0 space-y-3">
           <div :class="cn(skeletonBaseClassName, 'h-40 w-full')" />
           <div :class="cn(skeletonBaseClassName, 'h-32 w-full')" />
         </div>
@@ -126,7 +107,9 @@ function getRowClassName(width: string) {
       <div
         v-for="i in 6"
         :key="i"
-        :class="cn('p-4 border border-gray-200 dark:border-gray-700 rounded-lg', skeletonBaseClassName)"
+        :class="
+          cn('p-4 border border-gray-200 dark:border-gray-700 rounded-lg', skeletonBaseClassName)
+        "
       >
         <div :class="cn(skeletonBaseClassName, 'h-5 w-2/3 mb-3')" />
         <div :class="cn(skeletonBaseClassName, 'h-4 w-full mb-2')" />
@@ -135,15 +118,8 @@ function getRowClassName(width: string) {
     </div>
 
     <!-- ========== 表单类型骨架屏 ========== -->
-    <div
-      v-else-if="variant === 'form'"
-      class="max-w-2xl space-y-6"
-    >
-      <div
-        v-for="i in 4"
-        :key="i"
-        class="flex items-center gap-4"
-      >
+    <div v-else-if="variant === 'form'" class="max-w-2xl space-y-6">
+      <div v-for="i in 4" :key="i" class="flex items-center gap-4">
         <div :class="cn(skeletonBaseClassName, 'h-4 w-24 shrink-0')" />
         <div :class="cn(skeletonBaseClassName, 'h-10 flex-1')" />
       </div>
@@ -154,10 +130,7 @@ function getRowClassName(width: string) {
     </div>
 
     <!-- ========== 详情类型骨架屏 ========== -->
-    <div
-      v-else-if="variant === 'detail'"
-      class="max-w-4xl space-y-6"
-    >
+    <div v-else-if="variant === 'detail'" class="max-w-4xl space-y-6">
       <!-- 头部信息 -->
       <div class="flex items-center gap-4 pb-4 border-b border-gray-200 dark:border-gray-700">
         <div :class="cn(skeletonBaseClassName, 'h-16 w-16 rounded-full')" />
@@ -169,11 +142,7 @@ function getRowClassName(width: string) {
 
       <!-- 详情字段 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div
-          v-for="i in 6"
-          :key="i"
-          class="space-y-1"
-        >
+        <div v-for="i in 6" :key="i" class="space-y-1">
           <div :class="cn(skeletonBaseClassName, 'h-3 w-20')" />
           <div :class="cn(skeletonBaseClassName, 'h-5 w-full')" />
         </div>

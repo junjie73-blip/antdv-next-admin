@@ -20,22 +20,22 @@ import { useUserStore } from '@/stores/modules/user'
 export type LogLevel = 'info' | 'warn' | 'error' | 'success'
 
 /** 操作类型 */
-export type OperationType
-  = | 'click'
-    | 'navigate'
-    | 'submit'
-    | 'api'
-    | 'download'
-    | 'upload'
-    | 'login'
-    | 'logout'
-    | 'delete'
-    | 'edit'
-    | 'create'
-    | 'search'
-    | 'export'
-    | 'import'
-    | 'custom'
+export type OperationType =
+  | 'click'
+  | 'navigate'
+  | 'submit'
+  | 'api'
+  | 'download'
+  | 'upload'
+  | 'login'
+  | 'logout'
+  | 'delete'
+  | 'edit'
+  | 'create'
+  | 'search'
+  | 'export'
+  | 'import'
+  | 'custom'
 
 /** 登录结果 */
 export type LoginResult = 'success' | 'failure' | 'logout' | 'timeout'
@@ -109,27 +109,34 @@ function parseUA(ua: string) {
 
 export function useLogger() {
   const userStore = useUserStore()
-  const enabled = import.meta.env.VITE_ENABLE_LOGGING === 'true'
-  const shouldLogRoute = import.meta.env.VITE_LOG_ROUTE_CHANGE !== 'false'
+  const enabled = import.meta.env.VITE_ENABLE_LOGGING === true
+  const shouldLogRoute = import.meta.env.VITE_LOG_ROUTE_CHANGE !== false
   const username = computed(() => userStore.userInfo?.username || 'anonymous')
 
   /** 控制台输出（带颜色前缀） */
   function print(level: LogLevel, tag: string, msg: string, data?: unknown) {
-    if (!enabled)
-      return
+    if (!enabled) return
     const styles: Record<LogLevel, string> = {
       info: 'color:#3b82f6;font-weight:bold',
       warn: 'color:#f59e0b;font-weight:bold',
       error: 'color:#ef4444;font-weight:bold',
       success: 'color:#10b981;font-weight:bold',
     }
-    console.log(`%c[${tag}]%c [${formatTime(Date.now())}] ${msg}`, styles[level], 'color:#6b7280', data ?? '')
+    console.log(
+      `%c[${tag}]%c [${formatTime(Date.now())}] ${msg}`,
+      styles[level],
+      'color:#6b7280',
+      data ?? '',
+    )
   }
 
   /** 记录操作日志 */
-  function logOperation(operation: OperationType, description: string, extra?: Record<string, unknown>): OperationLogEntry | null {
-    if (!enabled)
-      return null
+  function logOperation(
+    operation: OperationType,
+    description: string,
+    extra?: Record<string, unknown>,
+  ): OperationLogEntry | null {
+    if (!enabled) return null
 
     const entry: OperationLogEntry = {
       id: generateId(),
@@ -153,11 +160,20 @@ export function useLogger() {
 
   /** 记录登录日志 */
   function logLogin(result: LoginResult, user: string, reason?: string): LoginLogEntry | null {
-    if (!enabled)
-      return null
+    if (!enabled) return null
 
-    const labels: Record<LoginResult, string> = { success: '登录成功', failure: '登录失败', logout: '用户登出', timeout: '登录超时' }
-    const levels: Record<LoginResult, LogLevel> = { success: 'success', failure: 'error', logout: 'info', timeout: 'warn' }
+    const labels: Record<LoginResult, string> = {
+      success: '登录成功',
+      failure: '登录失败',
+      logout: '用户登出',
+      timeout: '登录超时',
+    }
+    const levels: Record<LoginResult, LogLevel> = {
+      success: 'success',
+      failure: 'error',
+      logout: 'info',
+      timeout: 'warn',
+    }
     const { browser, os } = parseUA(navigator.userAgent)
 
     const entry: LoginLogEntry = {
@@ -181,8 +197,7 @@ export function useLogger() {
 
   /** 记录路由跳转 */
   function logRouteChange(from: string, to: string, toTitle?: string): OperationLogEntry | null {
-    if (!enabled || !shouldLogRoute)
-      return null
+    if (!enabled || !shouldLogRoute) return null
     return logOperation('navigate', `页面跳转: ${from} → ${to}`, { toTitle })
   }
 
@@ -203,10 +218,14 @@ export function useLogger() {
 
   function getLogSummary() {
     const opStats: Record<string, number> = {}
-    operationLogs.value.forEach((log) => { opStats[log.operation] = (opStats[log.operation] || 0) + 1 })
+    operationLogs.value.forEach((log) => {
+      opStats[log.operation] = (opStats[log.operation] || 0) + 1
+    })
 
     const loginStats = { success: 0, failure: 0, logout: 0, timeout: 0 }
-    loginLogs.value.forEach((log) => { loginStats[log.result]++ })
+    loginLogs.value.forEach((log) => {
+      loginStats[log.result]++
+    })
 
     return {
       totalOperations: operationLogs.value.length,

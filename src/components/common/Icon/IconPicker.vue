@@ -31,12 +31,14 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
-  'change': [value: string]
-  'select': [value: string]
+  change: [value: string]
+  select: [value: string]
 }>()
 
 // 图标集合信息（延迟加载）
-interface IconData { icons: Record<string, { body: string }> }
+interface IconData {
+  icons: Record<string, { body: string }>
+}
 let COLLECTION_MAP: Record<string, IconData> | null = null
 let COLLECTIONS: CollectionInfo[] = []
 let iconsLoaded = false
@@ -66,8 +68,7 @@ const selectedIcon = computed(() => props.modelValue || props.currentIcon)
  * 避免将 7MB+ 的图标数据打包进主 bundle
  */
 async function loadIcons() {
-  if (iconsLoaded)
-    return
+  if (iconsLoaded) return
 
   loading.value = true
   try {
@@ -92,18 +93,15 @@ async function loadIcons() {
 
     iconsLoaded = true
     loadAllFromLocal()
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Failed to load icon collections:', error)
-  }
-  finally {
+  } finally {
     loading.value = false
   }
 }
 
 function loadAllFromLocal() {
-  if (!COLLECTION_MAP)
-    return
+  if (!COLLECTION_MAP) return
 
   const icons: string[] = []
   for (const col of COLLECTIONS) {
@@ -111,7 +109,7 @@ function loadAllFromLocal() {
     if (data) {
       const names = Object.keys(data.icons)
       col.total = names.length
-      icons.push(...names.map(name => `${col.prefix}:${name}`))
+      icons.push(...names.map((name) => `${col.prefix}:${name}`))
     }
   }
   allIcons.value = icons
@@ -128,9 +126,7 @@ const pagedIcons = computed(() => {
 const totalCount = computed(() => filteredIcons.value.length)
 
 const segmentOptions = computed(() => {
-  const options: { label: string, value: string }[] = [
-    { label: '全部', value: 'all' },
-  ]
+  const options: { label: string; value: string }[] = [{ label: '全部', value: 'all' }]
   for (const col of COLLECTIONS) {
     options.push({ label: `${col.name} `, value: col.prefix })
   }
@@ -143,7 +139,7 @@ function applyFilter() {
   let source = allIcons.value
 
   if (selectedPrefix.value !== 'all') {
-    source = source.filter(icon => icon.startsWith(`${selectedPrefix.value}:`))
+    source = source.filter((icon) => icon.startsWith(`${selectedPrefix.value}:`))
   }
 
   const query = searchValue.value.trim().toLowerCase()
@@ -178,8 +174,7 @@ function handleSegmentChange(value: string) {
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 watch(searchValue, () => {
-  if (searchTimeout)
-    clearTimeout(searchTimeout)
+  if (searchTimeout) clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => {
     applyFilter()
   }, 200)
@@ -194,8 +189,7 @@ watch(visible, async (val) => {
 })
 
 onBeforeUnmount(() => {
-  if (searchTimeout)
-    clearTimeout(searchTimeout)
+  if (searchTimeout) clearTimeout(searchTimeout)
 })
 
 function iconItemClassName(icon: string) {
@@ -244,39 +238,23 @@ const paginationWrapperClassName = cn(
         />
 
         <div class="my-4">
-          <a-input
-            v-model:value="searchValue"
-            placeholder="搜索图标..."
-            allow-clear
-          >
+          <a-input v-model:value="searchValue" placeholder="搜索图标..." allow-clear>
             <template #prefix>
-              <Icon
-                icon="carbon:search"
-                :width="14"
-              />
+              <Icon icon="carbon:search" :width="14" />
             </template>
           </a-input>
         </div>
 
-        <div
-          v-if="filteredIcons.length === 0 && !loading"
-          class="py-10"
-        >
+        <div v-if="filteredIcons.length === 0 && !loading" class="py-10">
           <a-empty description="暂无图标" />
         </div>
 
         <!-- 加载状态 -->
-        <div
-          v-else-if="loading"
-          class="py-10 flex justify-center"
-        >
+        <div v-else-if="loading" class="py-10 flex justify-center">
           <a-spin size="large" />
         </div>
 
-        <div
-          v-else
-          :class="scrollerContainerClassName"
-        >
+        <div v-else :class="scrollerContainerClassName">
           <PerfectScrollbar
             :options="{ wheelPropagation: true, suppressScrollX: true }"
             :style="{ height: `${CONTAINER_HEIGHT}px` }"
@@ -290,14 +268,8 @@ const paginationWrapperClassName = cn(
                 placement="top"
                 :auto-adjust="false"
               >
-                <div
-                  :class="iconItemClassName(icon)"
-                  @click="handleSelectIcon(icon)"
-                >
-                  <Icon
-                    :icon="icon"
-                    :width="20"
-                  />
+                <div :class="iconItemClassName(icon)" @click="handleSelectIcon(icon)">
+                  <Icon :icon="icon" :width="20" />
                 </div>
               </a-tooltip>
             </div>
@@ -305,10 +277,7 @@ const paginationWrapperClassName = cn(
         </div>
 
         <!-- 使用 Antdv Next 分页组件 -->
-        <div
-          v-if="totalCount > 0"
-          :class="paginationWrapperClassName"
-        >
+        <div v-if="totalCount > 0" :class="paginationWrapperClassName">
           <span :class="countClassName">共 {{ totalCount }} 个图标</span>
           <a-pagination
             v-model:current="currentPage"
@@ -317,10 +286,7 @@ const paginationWrapperClassName = cn(
             size="small"
             :show-total="(total: number) => ''"
             :show-size-changer="true"
-            :page-size-options="[50,
-                                 80,
-                                 100,
-                                 200]"
+            :page-size-options="[50, 80, 100, 200]"
             :show-quick-jumper="true"
             simple
           />
@@ -338,21 +304,11 @@ const paginationWrapperClassName = cn(
         :allow-clear="props.allowClear && !!selectedIcon"
         @clear="handleClear"
       >
-        <template
-          v-if="selectedIcon"
-          #prefix
-        >
-          <Icon
-            :icon="selectedIcon"
-            :width="16"
-          />
+        <template v-if="selectedIcon" #prefix>
+          <Icon :icon="selectedIcon" :width="16" />
         </template>
         <template #suffix>
-          <Icon
-            icon="carbon:chevron-down"
-            :width="14"
-            class="text-gray-400"
-          />
+          <Icon icon="carbon:chevron-down" :width="14" class="text-gray-400" />
         </template>
       </a-input>
     </div>

@@ -213,7 +213,7 @@ export interface MarkdownEditorInstance {
   /**
    * 获取字数统计
    */
-  getStats: () => { textLength: number, htmlLength: number }
+  getStats: () => { textLength: number; htmlLength: number }
 }
 
 /**

@@ -23,9 +23,9 @@ const props = withDefaults(defineProps<UploadProps>(), {
 
 const emit = defineEmits<{
   'update:value': [fileList: UploadFile[]]
-  'change': [fileList: UploadFile[]]
-  'success': [response: any, file: UploadFile]
-  'error': [error: Error, file: UploadFile]
+  change: [fileList: UploadFile[]]
+  success: [response: any, file: UploadFile]
+  error: [error: Error, file: UploadFile]
 }>()
 
 // 文件列表
@@ -53,8 +53,7 @@ const handleChange: AntUploadProps['onChange'] = (info) => {
   // 处理上传状态
   if (info.file.status === 'done') {
     emit('success', info.file.response, info.file)
-  }
-  else if (info.file.status === 'error') {
+  } else if (info.file.status === 'error') {
     emit('error', new Error(info.file.error?.message || 'Upload failed'), info.file)
   }
 }
@@ -133,15 +132,8 @@ defineExpose<UploadInstance>({
 
 <template>
   <div :class="cn('upload-wrapper', props.className)">
-    <AntUpload
-      v-model:file-list="fileList"
-      v-bind="uploadProps"
-      @change="handleChange"
-    >
-      <Button
-        v-if="!readonly"
-        :disabled="disabled"
-      >
+    <AntUpload v-model:file-list="fileList" v-bind="uploadProps" @change="handleChange">
+      <Button v-if="!readonly" :disabled="disabled">
         <UploadOutlined />
         {{ uploadText }}
       </Button>

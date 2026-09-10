@@ -34,6 +34,10 @@ export function logout(): Promise<null> {
   return post<null>('/auth/logout')
 }
 
+export function getMenus(): Promise<any> {
+  return get<any>('/auth/menus')
+}
+
 export function getUserInfo(): Promise<UserInfoResponse> {
   return get<UserInfoResponse>('/auth/user-info')
 }

@@ -18,11 +18,7 @@ const DEFAULT_CHUNK_SIZE = 5 * 1024 * 1024
 const DEFAULT_CONCURRENT = 3
 
 export function useChunkUpload(options: ChunkUploadOptions = {}) {
-  const {
-    chunkSize = DEFAULT_CHUNK_SIZE,
-    concurrent = DEFAULT_CONCURRENT,
-    workerUrl,
-  } = options
+  const { chunkSize = DEFAULT_CHUNK_SIZE, concurrent = DEFAULT_CONCURRENT, workerUrl } = options
 
   const chunks = ref<ChunkInfo[]>([])
   const status = ref<UploadStatus>('idle')
@@ -99,8 +95,7 @@ export function useChunkUpload(options: ChunkUploadOptions = {}) {
 
   async function processChunks(file: File): Promise<void> {
     const totalChunks = chunks.value.length
-    if (totalChunks === 0)
-      return
+    if (totalChunks === 0) return
 
     const w = getWorker()
 
@@ -114,8 +109,7 @@ export function useChunkUpload(options: ChunkUploadOptions = {}) {
         if (e.data.type === 'progress') {
           const { index, progress: chunkProgress } = e.data
           chunks.value[index].progress = chunkProgress
-        }
-        else if (e.data.type === 'complete') {
+        } else if (e.data.type === 'complete') {
           hash.value = e.data.hash
         }
       }
@@ -135,8 +129,7 @@ export function useChunkUpload(options: ChunkUploadOptions = {}) {
           return
         }
 
-        if (pausedFlag.value)
-          return
+        if (pausedFlag.value) return
 
         if (currentIndex >= totalChunks) {
           if (activeCount === 0) {
@@ -156,7 +149,8 @@ export function useChunkUpload(options: ChunkUploadOptions = {}) {
         const end = Math.min(start + chunkSize, file.size)
         const slice = file.slice(start, end)
 
-        slice.arrayBuffer()
+        slice
+          .arrayBuffer()
           .then((buffer) => {
             if (cancelledFlag.value || pausedFlag.value) {
               chunks.value[idx].status = 'pending'
@@ -165,12 +159,15 @@ export function useChunkUpload(options: ChunkUploadOptions = {}) {
               return
             }
 
-            w.postMessage({
-              type: 'process',
-              chunk: buffer,
-              index: idx,
-              total: totalChunks,
-            }, [buffer])
+            w.postMessage(
+              {
+                type: 'process',
+                chunk: buffer,
+                index: idx,
+                total: totalChunks,
+              },
+              [buffer],
+            )
 
             chunks.value[idx].status = 'done'
             chunks.value[idx].progress = 100
@@ -196,12 +193,10 @@ export function useChunkUpload(options: ChunkUploadOptions = {}) {
           status.value = 'error'
           return
         }
-        if (cancelledFlag.value)
-          return
+        if (cancelledFlag.value) return
 
         while (activeCount < concurrent && currentIndex < totalChunks) {
-          if (pausedFlag.value)
-            break
+          if (pausedFlag.value) break
           submitNext()
         }
 

@@ -1,362 +1,319 @@
 <script setup lang="ts">
-import type { FormInstance } from 'antdv-next'
-import type { FormActionType, FormProps, FormSchema, NamePath, Recordable } from './types'
-import { computed, onMounted, provide, reactive, ref, unref, watch } from 'vue'
-import IconifyIcon from '@/components/common/Icon/IconifyIcon.vue'
-import { cn } from '@/utils/cn'
-import FormItem from './FormItem.vue'
-import { deepMerge, formatDateFields, handleRangeValue } from './helper'
-
-interface Props extends Partial<FormProps> {}
-
+import type { FormInstance } from "antdv-next";
+import type { FormActionType, FormProps, FormSchema, NamePath, Recordable } from "./types";
+import { computed, onMounted, provide, reactive, ref, unref, useAttrs, watch } from "vue";
+import IconifyIcon from "@/components/common/Icon/IconifyIcon.vue";
+import { cn } from "@/utils/cn";
+import FormItem from "./components/FormItem.vue";
+import { deepMerge, formatDateFields, handleRangeValue } from "./helper";
+defineOptions({
+  name: "BasicForm",
+});
 const props = withDefaults(defineProps<FormProps>(), {
   showActionButtonGroup: true,
   showResetButton: true,
   showSubmitButton: true,
   submitOnReset: true,
   autoSubmitOnEnter: true,
-  labelAlign: 'right',
-})
+  labelAlign: "right",
+});
 
 const emit = defineEmits<{
-  register: [instance: FormActionType]
-  submit: [values: Recordable]
-  reset: [values: Recordable]
-}>()
+  register: [instance: FormActionType];
+  submit: [values: Recordable];
+  reset: [values: Recordable];
+}>();
 
-const formModel = reactive<Recordable>({})
-const schemaRef = ref<FormSchema[]>([])
-const formRef = ref<FormInstance>()
-const propsRef = ref<Partial<FormProps>>({})
-const isAdvanced = ref(false)
+const attrs = useAttrs();
 
-// 向子组件（FormItem）提供 grid 布局上下文
-const formGridContext = computed(() => getProps.value.grid)
-provide('formGridContext', formGridContext)
+// ============ 表单状态 ============
+const formModel = reactive<Recordable>({});
+const schemaRef = ref<FormSchema[]>([]);
+const formRef = ref<FormInstance>();
+const propsRef = ref<Partial<FormProps>>({});
+const isAdvanced = ref(false);
 
+// ============ 合并 props ============
 const getProps = computed(() => {
-  return deepMerge({ ...props }, { ...unref(propsRef), schemas: unref(schemaRef) })
-})
+  return deepMerge({ ...props }, { ...unref(propsRef), schemas: unref(schemaRef) }) as FormProps;
+});
 
-const getAlwaysShowLines = computed(() => {
-  return getProps.value.alwaysShowLines || 3
-})
+// ============ 透传 a-form 原生属性 ============
+const aFormAttrs = computed(() => {
+  const { class: _class, style: _style, ...rest } = attrs;
+  return rest;
+});
 
-// 基础 schemas 过滤 + 高级按钮折叠
-const getSchemas = computed(() => {
-  const schemas = unref(schemaRef) || []
-  const filtered = schemas.filter(schema => schema.component !== 'Divider')
-
-  if (!getProps.value.showAdvancedButton || unref(isAdvanced)) {
-    return filtered
-  }
-
-  const lineCount = getAlwaysShowLines.value
-  let currentLine = 0
-  let currentRowSpan = 0
-  const result: FormSchema[] = []
-
-  for (const schema of filtered) {
-    const span = schema.colProps?.span || 24
-    currentRowSpan += span
-
-    if (currentRowSpan > 24) {
-      currentLine++
-      currentRowSpan = span
-    }
-
-    if (currentLine >= lineCount) {
-      break
-    }
-
-    result.push(schema)
-  }
-
-  return result
-})
-
+// ============ 计算每列的 span ============
 const getGridColSpan = computed(() => {
-  const grid = getProps.value.grid
-  if (!grid?.cols || grid.cols < 1 || grid.cols > 4)
-    return null
-  return Math.floor(24 / grid.cols)
-})
+  const grid = getProps.value.grid;
+  if (!grid?.cols || grid.cols < 1 || grid.cols > 4) return null;
+  return Math.floor(24 / grid.cols);
+});
 
-// 根据 grid 配置自动计算每个字段的 colProps
-const getProcessedSchemas = computed(() => {
-  const gridSpan = getGridColSpan.value
-  const schemas = getSchemas.value
+// ============ 折叠行数 ============
+const alwaysShowLines = computed(() => getProps.value.alwaysShowLines ?? 3);
 
-  if (gridSpan === null)
-    return schemas
+// ============ 核心：按行分组 ============
+const allRows = computed<FormSchema[][]>(() => {
+  const schemas = unref(schemaRef) || [];
+  const defaultSpan = getGridColSpan.value ?? 24;
+  const rows: FormSchema[][] = [];
+  let currentRow: FormSchema[] = [];
+  let currentSpan = 0;
 
-  return schemas.map((schema) => {
-    const userSpan = schema.colProps?.span
-    return {
-      ...schema,
-      colProps: {
-        span: userSpan ?? gridSpan,
-        ...schema.colProps,
-      },
+  for (const schema of schemas) {
+    if (!schema.field && schema.component !== "Divider") continue;
+
+    // Divider 独占一行
+    if (schema.component === "Divider") {
+      if (currentRow.length) {
+        rows.push(currentRow);
+        currentRow = [];
+        currentSpan = 0;
+      }
+      rows.push([schema]);
+      continue;
     }
-  })
-})
 
-const getDividerSchemas = computed(() => {
-  const schemas = unref(schemaRef) || []
-  return schemas.filter(schema => schema.component === 'Divider')
-})
+    const span = (schema.colProps?.span ?? defaultSpan) as number;
+    if (currentSpan + span > 24) {
+      if (currentRow.length) rows.push(currentRow);
+      currentRow = [schema];
+      currentSpan = span;
+    } else {
+      currentRow.push(schema);
+      currentSpan += span;
+    }
+  }
+  if (currentRow.length) rows.push(currentRow);
+  return rows;
+});
 
+// ============ 是否需要折叠 ============
+const needCollapse = computed(() => {
+  return !!getProps.value.showAdvancedButton && allRows.value.length > alwaysShowLines.value;
+});
+
+// ============ 当前显示的所有 schemas（含 Divider） ============
+const displaySchemas = computed<FormSchema[]>(() => {
+  const rows = allRows.value;
+  let visibleRows = rows;
+  if (needCollapse.value && !unref(isAdvanced)) {
+    visibleRows = rows.slice(0, alwaysShowLines.value);
+  }
+  const flat = visibleRows.flat();
+  const cols = getGridColSpan.value;
+  if (cols === null) return flat;
+  return flat.map((schema) => ({
+    ...schema,
+    colProps: {
+      span: cols,
+      ...schema.colProps,
+    },
+  }));
+});
+
+const displayFields = computed(() => displaySchemas.value.filter((s) => s.component !== "Divider"));
+const displayDividers = computed(() =>
+  displaySchemas.value.filter((s) => s.component === "Divider"),
+);
+
+// ============ 布局 ============
 const getRowProps = computed(() => {
-  const grid = getProps.value.grid
+  const grid = getProps.value.grid;
   return {
     gutter: grid?.gutter ?? 24,
     ...getProps.value.baseRowStyle,
-  }
-})
-
-const getBaseColProps = computed(() => {
-  return {
-    span: 24,
-    ...getProps.value.baseColProps,
-  }
-})
+  };
+});
 
 const getLabelCol = computed(() => {
-  const labelWidth = getProps.value.labelWidth
+  const labelWidth = getProps.value.labelWidth;
   if (labelWidth) {
-    return { style: { width: `${labelWidth}px` } }
+    return { style: { width: `${labelWidth}px` } };
   }
-  return getProps.value.labelCol || { span: 6 }
-})
+  return getProps.value.labelCol || { span: 6 };
+});
 
 const getWrapperCol = computed(() => {
-  // 单列模式：wrapper 撑满剩余空间，不留空白
-  const gridCols = getProps.value.grid?.cols
+  const gridCols = getProps.value.grid?.cols;
   if (gridCols && gridCols <= 1) {
-    // 有固定 labelWidth 时用 flex 填充，否则不限制宽度
     if (getProps.value.labelWidth) {
-      return { style: { flex: 1, maxWidth: '100%' } }
+      return { style: { flex: 1, maxWidth: "100%" } };
     }
-    return { span: 24, offset: 0 }
+    return { span: 24, offset: 0 };
   }
-  return getProps.value.wrapperCol || { span: 18 }
-})
+  return getProps.value.wrapperCol || { span: 18 };
+});
 
-const getActionColOptions = computed(() => {
-  return {
-    span: 24,
-    ...getProps.value.actionColOptions,
-  }
-})
+// ============ 按钮配置 ============
+const getSubmitButtonOptions = computed(() => ({
+  text: "查询",
+  preIcon: "carbon:search",
+  ...getProps.value.submitButtonOptions,
+}));
 
-const getSubmitButtonOptions = computed(() => {
-  return {
-    text: '查询',
-    preIcon: 'carbon:search',
-    ...getProps.value.submitButtonOptions,
-  }
-})
+const getResetButtonOptions = computed(() => ({
+  text: "重置",
+  preIcon: "carbon:restart",
+  ...getProps.value.resetButtonOptions,
+}));
 
-const getResetButtonOptions = computed(() => {
-  return {
-    text: '重置',
-    preIcon: 'carbon:restart',
-    ...getProps.value.resetButtonOptions,
-  }
-})
+const getAdvancedButtonOptions = computed(() => ({
+  text: unref(isAdvanced) ? "收起" : "展开",
+  icon: unref(isAdvanced) ? "carbon:chevron-up" : "carbon:chevron-down",
+}));
 
-const getAdvancedButtonOptions = computed(() => {
-  return {
-    text: unref(isAdvanced) ? '收起' : '展开',
-    icon: unref(isAdvanced) ? 'carbon:chevron-up' : 'carbon:chevron-down',
-  }
-})
-
-const needCollapse = computed(() => {
-  const schemas = getProcessedSchemas.value
-  let totalSpan = 0
-  for (const schema of schemas) {
-    totalSpan += schema.colProps?.span || 24
-    if (totalSpan > 24)
-      return true
-  }
-  return false
-})
-
-const showExpandButton = computed(() => {
-  return getProps.value.showAdvancedButton && unref(needCollapse)
-})
-
+// ============ 表单模型操作 ============
 function setFormModel(key: string, value: any) {
-  formModel[key] = value
+  formModel[key] = value;
 }
 
 function initFormModel() {
-  const schemas = unref(schemaRef) || []
+  const schemas = unref(schemaRef) || [];
   schemas.forEach((schema) => {
     if (schema.field && schema.defaultValue !== undefined) {
-      formModel[schema.field] = schema.defaultValue
+      formModel[schema.field] = schema.defaultValue;
     }
-  })
+  });
 }
 
-async function handleSubmit() {
-  try {
-    const values = await validate()
-    if (values) {
-      let processedValues = { ...values }
-
-      // 格式化日期字段
-      const schemas = getProps.value.schemas || []
-      processedValues = formatDateFields(processedValues, schemas)
-
-      // 处理 fieldMapToTime 转换
-      const fieldMapToTime = getProps.value.fieldMapToTime
-      if (fieldMapToTime) {
-        processedValues = handleRangeValue(processedValues, fieldMapToTime)
-      }
-
-      if (getProps.value.submitFunc) {
-        await getProps.value.submitFunc()
-      }
-      else {
-        emit('submit', processedValues)
-      }
-    }
-  }
-  catch (error) {
-    console.error('Form submit error:', error)
-  }
-}
-
-async function handleReset() {
-  const values = { ...formModel }
-  await resetFields()
-  if (getProps.value.submitOnReset) {
-    await handleSubmit()
-  }
-  else {
-    emit('reset', values)
-  }
-}
-
-function toggleAdvanced() {
-  isAdvanced.value = !unref(isAdvanced)
-}
-
-async function validate(): Promise<Recordable> {
-  let values = await formRef.value?.validate?.() || {}
-
-  // 格式化日期字段
-  const schemas = getProps.value.schemas || []
-  values = formatDateFields(values, schemas)
-
-  // 处理 fieldMapToTime 转换
-  const fieldMapToTime = getProps.value.fieldMapToTime
-  return fieldMapToTime ? handleRangeValue(values, fieldMapToTime) : values
+// ============ 表单验证 ============
+async function validate(nameList?: NamePath[]): Promise<Recordable> {
+  let values = (await formRef.value?.validate?.(nameList as any)) || {};
+  const schemas = getProps.value.schemas || [];
+  values = formatDateFields(values, schemas);
+  const fieldMapToTime = getProps.value.fieldMapToTime;
+  return fieldMapToTime ? handleRangeValue(values, fieldMapToTime) : values;
 }
 
 async function validateFields(nameList?: NamePath[]): Promise<Recordable> {
-  let values = await formRef.value?.validateFields?.(nameList as any) || {}
-
-  // 格式化日期字段
-  const schemas = getProps.value.schemas || []
-  values = formatDateFields(values, schemas)
-
-  // 处理 fieldMapToTime 转换
-  const fieldMapToTime = getProps.value.fieldMapToTime
-  return fieldMapToTime ? handleRangeValue(values, fieldMapToTime) : values
+  let values = (await formRef.value?.validateFields?.(nameList as any)) || {};
+  const schemas = getProps.value.schemas || [];
+  values = formatDateFields(values, schemas);
+  const fieldMapToTime = getProps.value.fieldMapToTime;
+  return fieldMapToTime ? handleRangeValue(values, fieldMapToTime) : values;
 }
 
+// ============ 提交 ============
+async function handleSubmit() {
+  try {
+    const values = await validate();
+    if (values) {
+      let processed = { ...values };
+      const schemas = getProps.value.schemas || [];
+      processed = formatDateFields(processed, schemas);
+      const fieldMapToTime = getProps.value.fieldMapToTime;
+      if (fieldMapToTime) {
+        processed = handleRangeValue(processed, fieldMapToTime);
+      }
+
+      // 优先透传给原生 onFinish，其次调用 submitFunc，最后 emit
+      if (getProps.value.onFinish) {
+        getProps.value.onFinish(processed);
+      } else if (getProps.value.submitFunc) {
+        await getProps.value.submitFunc();
+      } else {
+        emit("submit", processed);
+      }
+    }
+  } catch (error) {
+    // 校验失败，交给 a-form 自身的 finishFailed
+    console.error("Form submit error:", error);
+  }
+}
+
+// ============ 重置 ============
+async function handleReset() {
+  const values = { ...formModel };
+  await resetFields();
+  if (getProps.value.submitOnReset) {
+    await handleSubmit();
+  } else {
+    emit("reset", values);
+  }
+}
+
+// ============ 展开/收缩 ============
+function toggleAdvanced() {
+  isAdvanced.value = !unref(isAdvanced);
+}
+
+// ============ 字段操作 ============
 async function resetFields() {
-  await formRef.value?.resetFields?.()
+  await formRef.value?.resetFields?.();
   Object.keys(formModel).forEach((key) => {
-    const schema = unref(schemaRef)?.find(s => s.field === key)
-    if (schema?.defaultValue !== undefined) {
-      formModel[key] = schema.defaultValue
-    }
-    else {
-      formModel[key] = undefined
-    }
-  })
+    const schema = unref(schemaRef)?.find((s) => s.field === key);
+    formModel[key] = schema?.defaultValue !== undefined ? schema.defaultValue : undefined;
+  });
 }
 
 async function setFieldsValue<T>(values: T) {
   Object.keys(values as any).forEach((key) => {
-    formModel[key] = (values as any)[key]
-  })
+    formModel[key] = (values as any)[key];
+  });
 }
 
 function getFieldsValue(): Recordable {
-  return { ...formModel }
+  return { ...formModel };
 }
 
 async function clearValidate(name?: string | string[]) {
   if (name) {
-    const names = Array.isArray(name) ? name : [name]
-    await formRef.value?.clearValidate?.(names as any)
-  }
-  else {
-    await formRef.value?.clearValidate?.()
+    const names = Array.isArray(name) ? name : [name];
+    await formRef.value?.clearValidate?.(names as any);
+  } else {
+    await formRef.value?.clearValidate?.();
   }
 }
 
 async function scrollToField(name: NamePath, options?: ScrollIntoViewOptions) {
-  await formRef.value?.scrollToField?.(name as any, options)
+  await formRef.value?.scrollToField?.(name as any, options);
 }
 
 async function updateSchema(data: Partial<FormSchema> | Partial<FormSchema>[]) {
-  const updateData = Array.isArray(data) ? data : [data]
+  const updateData = Array.isArray(data) ? data : [data];
   updateData.forEach((item) => {
     if (item.field) {
-      const index = schemaRef.value.findIndex(s => s.field === item.field)
+      const index = schemaRef.value.findIndex((s) => s.field === item.field);
       if (index !== -1 && schemaRef.value[index]) {
-        schemaRef.value[index] = deepMerge(schemaRef.value[index], item) as FormSchema
+        schemaRef.value[index] = deepMerge(schemaRef.value[index], item) as FormSchema;
       }
     }
-  })
+  });
 }
 
 async function removeSchemaByField(field: string | string[]) {
-  const fields = Array.isArray(field) ? field : [field]
-  schemaRef.value = schemaRef.value.filter(s => !fields.includes(s.field))
+  const fields = Array.isArray(field) ? field : [field];
+  schemaRef.value = schemaRef.value.filter((s) => !fields.includes(s.field));
 }
 
 async function appendSchemaByField(schema: FormSchema, prefixField?: string, first?: boolean) {
   if (prefixField) {
-    const index = schemaRef.value.findIndex(s => s.field === prefixField)
+    const index = schemaRef.value.findIndex((s) => s.field === prefixField);
     if (index !== -1) {
-      if (first) {
-        schemaRef.value.splice(index, 0, schema)
-      }
-      else {
-        schemaRef.value.splice(index + 1, 0, schema)
-      }
+      schemaRef.value.splice(first ? index : index + 1, 0, schema);
     }
-  }
-  else {
-    if (first) {
-      schemaRef.value.unshift(schema)
-    }
-    else {
-      schemaRef.value.push(schema)
-    }
+  } else {
+    if (first) schemaRef.value.unshift(schema);
+    else schemaRef.value.push(schema);
   }
 }
 
 async function setProps(newProps: Partial<FormProps>) {
-  propsRef.value = deepMerge(unref(propsRef) || {}, newProps)
+  propsRef.value = deepMerge(unref(propsRef) || {}, newProps);
   if (newProps.schemas) {
-    schemaRef.value = newProps.schemas
-    initFormModel()
+    schemaRef.value = newProps.schemas;
+    initFormModel();
   }
 }
 
 function getForm(): FormInstance | null {
-  return formRef.value || null
+  return formRef.value || null;
 }
 
+// ============ 暴露给外部的 API ============
 const formActionType: FormActionType = {
   getFieldsValue,
   setFieldsValue,
@@ -371,24 +328,24 @@ const formActionType: FormActionType = {
   appendSchemaByField,
   setProps,
   getForm,
-}
+};
 
 watch(
   () => props.schemas,
   (schemas) => {
     if (schemas) {
-      schemaRef.value = schemas
-      initFormModel()
+      schemaRef.value = schemas;
+      initFormModel();
     }
   },
   { immediate: true, deep: true },
-)
+);
 
 onMounted(() => {
-  emit('register', formActionType)
-})
+  emit("register", formActionType);
+});
 
-defineExpose(formActionType)
+defineExpose(formActionType);
 </script>
 
 <template>
@@ -400,37 +357,33 @@ defineExpose(formActionType)
     :wrapper-col="getWrapperCol"
     :disabled="getProps.disabled"
     :size="getProps.size as any"
+    :layout="getProps.layout"
+    :colon="getProps.colon"
+    :hide-required-mark="getProps.hideRequiredMark"
+    :required-mark="getProps.requiredMark"
+    :validate-trigger="getProps.validateTrigger"
+    :scroll-to-first-error="getProps.scrollToFirstError"
+    :name="getProps.name"
+    v-bind="aFormAttrs"
     @finish="handleSubmit"
   >
     <a-row v-bind="getRowProps">
-      <template
-        v-for="(schema, idx) in getProcessedSchemas"
-        :key="schema.field"
-      >
+      <!-- 普通字段 -->
+      <template v-for="schema in displayFields" :key="schema.field">
         <FormItem
-          v-if="schema.component !== 'Divider'"
           :schema="schema"
           :form-model="formModel"
           :form-action-type="formActionType"
           :set-form-model="setFormModel"
         >
-          <template
-            v-for="(_, slotName) in $slots"
-            :key="slotName"
-            #[slotName]="slotProps"
-          >
-            <slot
-              :name="slotName"
-              v-bind="slotProps"
-            />
+          <template v-for="(_, slotName) in $slots" :key="slotName" #[slotName]="slotProps">
+            <slot :name="slotName" v-bind="slotProps" />
           </template>
         </FormItem>
       </template>
 
-      <template
-        v-for="(schema, index) in getDividerSchemas"
-        :key="`divider-${index}`"
-      >
+      <!-- 分割线（随展开/收缩一起显示） -->
+      <template v-for="(schema, index) in displayDividers" :key="`divider-${index}`">
         <a-col :span="24">
           <a-divider v-bind="schema.componentProps">
             {{ schema.label }}
@@ -438,51 +391,29 @@ defineExpose(formActionType)
         </a-col>
       </template>
 
+      <!-- 操作按钮 -->
       <a-col
         v-if="getProps.showActionButtonGroup"
-        :span="unref(needCollapse) ? 24 : undefined"
-        :class="cn(
-          'flex justify-end',
-          !unref(needCollapse) && 'flex-1',
-        )"
+        :span="needCollapse ? 24 : undefined"
+        :class="cn('flex justify-end', !needCollapse && 'flex-1')"
       >
         <div class="flex gap-2 flex-wrap">
           <slot name="submitBefore" />
-          <a-button
-            v-if="getProps.showSubmitButton"
-            type="primary"
-            html-type="submit"
-          >
-            <template
-              v-if="getSubmitButtonOptions.preIcon"
-              #icon
-            >
+          <a-button v-if="getProps.showSubmitButton" type="primary" html-type="submit">
+            <template v-if="getSubmitButtonOptions.preIcon" #icon>
               <IconifyIcon :icon="getSubmitButtonOptions.preIcon" />
             </template>
             {{ getSubmitButtonOptions.text }}
           </a-button>
           <slot name="resetBefore" />
-          <a-button
-            v-if="getProps.showResetButton"
-            @click="handleReset"
-          >
-            <template
-              v-if="getResetButtonOptions.preIcon"
-              #icon
-            >
+          <a-button v-if="getProps.showResetButton" @click="handleReset">
+            <template v-if="getResetButtonOptions.preIcon" #icon>
               <IconifyIcon :icon="getResetButtonOptions.preIcon" />
             </template>
             {{ getResetButtonOptions.text }}
           </a-button>
-          <a-button
-            v-if="showExpandButton"
-            type="link"
-            @click="toggleAdvanced"
-          >
-            <IconifyIcon
-              :icon="getAdvancedButtonOptions.icon"
-              class="mr-1"
-            />
+          <a-button v-if="needCollapse" type="link" @click="toggleAdvanced">
+            <IconifyIcon :icon="getAdvancedButtonOptions.icon" class="mr-1" />
             {{ getAdvancedButtonOptions.text }}
           </a-button>
           <slot name="actionAfter" />

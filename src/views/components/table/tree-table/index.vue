@@ -48,39 +48,158 @@ const orgTree: TreeDataNode[] = [
 
 const mockEmployees: Record<string, Array<Record<string, any>>> = {
   'dept-1-1-1': [
-    { id: 1, name: '张三', position: '前端开发工程师', email: 'zhangsan@example.com', status: '在职', joinDate: '2023-01-15' },
-    { id: 2, name: '李四', position: '高级前端工程师', email: 'lisi@example.com', status: '在职', joinDate: '2022-06-01' },
-    { id: 3, name: '王五', position: '前端实习生', email: 'wangwu@example.com', status: '试用', joinDate: '2025-03-10' },
+    {
+      id: 1,
+      name: '张三',
+      position: '前端开发工程师',
+      email: 'zhangsan@example.com',
+      status: '在职',
+      joinDate: '2023-01-15',
+    },
+    {
+      id: 2,
+      name: '李四',
+      position: '高级前端工程师',
+      email: 'lisi@example.com',
+      status: '在职',
+      joinDate: '2022-06-01',
+    },
+    {
+      id: 3,
+      name: '王五',
+      position: '前端实习生',
+      email: 'wangwu@example.com',
+      status: '试用',
+      joinDate: '2025-03-10',
+    },
   ],
   'dept-1-1-2': [
-    { id: 4, name: '赵六', position: '后端架构师', email: 'zhaoliu@example.com', status: '在职', joinDate: '2021-08-20' },
-    { id: 5, name: '孙七', position: 'Java开发工程师', email: 'sunqi@example.com', status: '在职', joinDate: '2023-04-12' },
-    { id: 6, name: '周八', position: 'Go开发工程师', email: 'zhouba@example.com', status: '离职', joinDate: '2022-11-30' },
+    {
+      id: 4,
+      name: '赵六',
+      position: '后端架构师',
+      email: 'zhaoliu@example.com',
+      status: '在职',
+      joinDate: '2021-08-20',
+    },
+    {
+      id: 5,
+      name: '孙七',
+      position: 'Java开发工程师',
+      email: 'sunqi@example.com',
+      status: '在职',
+      joinDate: '2023-04-12',
+    },
+    {
+      id: 6,
+      name: '周八',
+      position: 'Go开发工程师',
+      email: 'zhouba@example.com',
+      status: '离职',
+      joinDate: '2022-11-30',
+    },
   ],
   'dept-1-1-3': [
-    { id: 7, name: '吴九', position: '测试主管', email: 'wujiu@example.com', status: '在职', joinDate: '2021-03-15' },
-    { id: 8, name: '郑十', position: '自动化测试工程师', email: 'zhengshi@example.com', status: '在职', joinDate: '2023-09-01' },
+    {
+      id: 7,
+      name: '吴九',
+      position: '测试主管',
+      email: 'wujiu@example.com',
+      status: '在职',
+      joinDate: '2021-03-15',
+    },
+    {
+      id: 8,
+      name: '郑十',
+      position: '自动化测试工程师',
+      email: 'zhengshi@example.com',
+      status: '在职',
+      joinDate: '2023-09-01',
+    },
   ],
   'dept-1-2-1': [
-    { id: 9, name: '冯十一', position: 'UI设计师', email: 'fengshiyi@example.com', status: '在职', joinDate: '2024-01-10' },
-    { id: 10, name: '陈十二', position: '交互设计师', email: 'chenshier@example.com', status: '在职', joinDate: '2023-07-20' },
+    {
+      id: 9,
+      name: '冯十一',
+      position: 'UI设计师',
+      email: 'fengshiyi@example.com',
+      status: '在职',
+      joinDate: '2024-01-10',
+    },
+    {
+      id: 10,
+      name: '陈十二',
+      position: '交互设计师',
+      email: 'chenshier@example.com',
+      status: '在职',
+      joinDate: '2023-07-20',
+    },
   ],
   'dept-1-2-2': [
-    { id: 11, name: '褚十三', position: '用户研究员', email: 'chushisan@example.com', status: '在职', joinDate: '2024-05-15' },
+    {
+      id: 11,
+      name: '褚十三',
+      position: '用户研究员',
+      email: 'chushisan@example.com',
+      status: '在职',
+      joinDate: '2024-05-15',
+    },
   ],
   'dept-1-3-1': [
-    { id: 12, name: '卫十四', position: '品牌经理', email: 'weishisi@example.com', status: '在职', joinDate: '2022-02-28' },
+    {
+      id: 12,
+      name: '卫十四',
+      position: '品牌经理',
+      email: 'weishisi@example.com',
+      status: '在职',
+      joinDate: '2022-02-28',
+    },
   ],
   'dept-1-3-2': [
-    { id: 13, name: '蒋十五', position: '渠道运营专员', email: 'jiangshiwu@example.com', status: '在职', joinDate: '2024-08-16' },
+    {
+      id: 13,
+      name: '蒋十五',
+      position: '渠道运营专员',
+      email: 'jiangshiwu@example.com',
+      status: '在职',
+      joinDate: '2024-08-16',
+    },
   ],
   'dept-1-4': [
-    { id: 14, name: '沈十六', position: '财务主管', email: 'shenshiliu@example.com', status: '在职', joinDate: '2021-06-10' },
-    { id: 15, name: '韩十七', position: '会计', email: 'hanshiqi@example.com', status: '在职', joinDate: '2023-10-25' },
+    {
+      id: 14,
+      name: '沈十六',
+      position: '财务主管',
+      email: 'shenshiliu@example.com',
+      status: '在职',
+      joinDate: '2021-06-10',
+    },
+    {
+      id: 15,
+      name: '韩十七',
+      position: '会计',
+      email: 'hanshiqi@example.com',
+      status: '在职',
+      joinDate: '2023-10-25',
+    },
   ],
   'dept-1-5': [
-    { id: 16, name: '杨十八', position: 'HR经理', email: 'yangshiba@example.com', status: '在职', joinDate: '2022-04-05' },
-    { id: 17, name: '朱十九', position: '招聘专员', email: 'zhushijiu@example.com', status: '在职', joinDate: '2024-02-14' },
+    {
+      id: 16,
+      name: '杨十八',
+      position: 'HR经理',
+      email: 'yangshiba@example.com',
+      status: '在职',
+      joinDate: '2022-04-05',
+    },
+    {
+      id: 17,
+      name: '朱十九',
+      position: '招聘专员',
+      email: 'zhushijiu@example.com',
+      status: '在职',
+      joinDate: '2024-02-14',
+    },
   ],
   'dept-1-1': [],
   'dept-1-2': [],
@@ -98,10 +217,10 @@ const columns: BasicColumn[] = [
 
 const currentDept = ref('')
 
-async function fetchTableData(params: { treeKey: string, page: number, pageSize: number }) {
+async function fetchTableData(params: { treeKey: string; page: number; pageSize: number }) {
   currentDept.value = params.treeKey
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
   const allData = mockEmployees[params.treeKey] || []
   const start = (params.page - 1) * params.pageSize
@@ -121,9 +240,7 @@ function handleTreeSelect(key: string, node: TreeDataNode) {
 
 <template>
   <div :class="containerClassName">
-    <div :class="pageHeaderClassName">
-      TreeTable 树表格组件
-    </div>
+    <div :class="pageHeaderClassName">TreeTable 树表格组件</div>
 
     <a-card
       variant="borderless"

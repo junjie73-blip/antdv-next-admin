@@ -12,15 +12,12 @@ export interface MicroAppConfig {
 export interface MenuConfig {
   path: string
   name: string
-  title: string
   icon?: string
   component?: string
-  redirect?: string
+  permission?: string[]
   hidden?: boolean
-  keepAlive?: boolean
-  requiresAuth?: boolean
-  roles?: string[]
-  permissions?: string[]
+  menuName?: string
+  title?: string
   microApp?: MicroAppConfig
   /** 是否为外链，点击后在新窗口打开 */
   isExternal?: boolean
@@ -30,20 +27,16 @@ export interface MenuConfig {
 }
 
 export interface BackendMenu {
-  id: string | number
-  parentId: string | number | null
-  path: string
-  name: string
-  title: string
+  menuId: string
+  parentId: string | null
+  menuName: string
+  menuType: number // 1-目录 2-菜单 3-按钮
   icon?: string
+  path?: string
   component?: string
-  redirect?: string
-  hidden?: boolean
-  keepAlive?: boolean
-  requiresAuth?: boolean
-  roles?: string[]
-  permissions?: string[]
-  sort?: number
+  permission?: string
+  sortOrder: number
+  status: string // '0' 禁用 '1' 启用
   children?: BackendMenu[]
 }
 

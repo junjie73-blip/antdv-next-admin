@@ -193,10 +193,7 @@ function MixedLayoutIcon({ active }: { active?: boolean }) {
 export function LayoutIcon(props: LayoutIconProps) {
   const { type, active, class: className } = props
 
-  const containerClassName = cn(
-    'w-full aspect-[4/3]',
-    className,
-  )
+  const containerClassName = cn('w-full aspect-[4/3]', className)
 
   const renderIcon = () => {
     switch (type) {
@@ -211,14 +208,10 @@ export function LayoutIcon(props: LayoutIconProps) {
     }
   }
 
-  return (
-    <div class={containerClassName}>
-      {renderIcon()}
-    </div>
-  )
+  return <div class={containerClassName}>{renderIcon()}</div>
 }
 
-export const LAYOUT_OPTIONS: { value: LayoutMode, label: string }[] = [
+export const LAYOUT_OPTIONS: { value: LayoutMode; label: string }[] = [
   { value: 'vertical', label: '垂直' },
   { value: 'horizontal', label: '水平' },
   { value: 'mixed', label: '混合' },

@@ -1,20 +1,19 @@
 <script setup lang="ts">
-import type { FormInstance } from 'antdv-next'
-import type { Rule } from 'antdv-next/dist/form/types'
+import type { FormInstance } from "antdv-next";
+import type { Rule } from "antdv-next/dist/form/types";
 
-import { LockOutlined, MailOutlined, MobileOutlined, UserOutlined } from '@antdv-next/icons'
-import { Icon } from '@iconify/vue'
+import { LockOutlined, UserOutlined } from "@antdv-next/icons";
+import { Icon } from "@iconify/vue";
+import { computed, reactive, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { message } from "antdv-next";
+import { useUserStore } from "@/stores/modules/user";
+import { useLoginStyles } from "./composables/useLoginStyles";
 
-import { computed, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/modules/user'
-import { cn } from '@/utils/cn'
-import { useLoginStyles } from './composables/useLoginStyles'
-
-const router = useRouter()
-const route = useRoute()
-const userStore = useUserStore()
-const _appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
+const router = useRouter();
+const route = useRoute();
+const userStore = useUserStore();
+const appTitle = import.meta.env.VITE_APP_TITLE || "Antdv Next Admin";
 
 const {
   containerClassName,
@@ -36,118 +35,113 @@ const {
   titleHighlightStyle,
   featureIconClassName,
   featureIconStyle,
-  loginTypeContainerClassName,
-  loginTypeBtnBaseClassName,
-  loginTypeActiveBtnStyle,
-  sendCodeBtnStyle,
-} = useLoginStyles()
+} = useLoginStyles();
 
-const formRef = ref<FormInstance>()
-const loading = ref(false)
-const loginType = ref<'account' | 'mobile'>('account')
+const formRef = ref<FormInstance>();
+const loading = ref(false);
 
 const formState = reactive({
-  username: '',
-  password: '',
-  mobile: '',
-  code: '',
+  username: "",
+  password: "",
   remember: true,
-})
+});
 
-const accountRules: Record<string, Rule[]> = {
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+const rules: Record<string, Rule[]> = {
+  username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码至少6位', trigger: 'blur' },
+    { required: true, message: "请输入密码", trigger: "blur" },
+    { min: 6, message: "密码至少6位", trigger: "blur" },
   ],
-}
+};
 
-const mobileRules: Record<string, Rule[]> = {
-  mobile: [
-    { required: true, message: '请输入手机号', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' },
-  ],
-  code: [
-    { required: true, message: '请输入验证码', trigger: 'blur' },
-    { len: 6, message: '验证码为6位', trigger: 'blur' },
-  ],
-}
+// ============ 第三方登录配置 ============
+const socialLogins = [
+  {
+    key: "wechat",
+    label: "微信",
+    icon: "ri:wechat-fill",
+    color: "#07C160",
+    onClick: () => message.info("微信登录即将上线"),
+  },
+  {
+    key: "github",
+    label: "GitHub",
+    icon: "mdi:github",
+    color: "#24292f",
+    onClick: () => message.info("GitHub 登录即将上线"),
+  },
+  {
+    key: "google",
+    label: "Google",
+    icon: "flat-color-icons:google",
+    color: "#4285F4",
+    onClick: () => message.info("Google 登录即将上线"),
+  },
+  {
+    key: "gitee",
+    label: "Gitee",
+    icon: "simple-icons:gitee",
+    color: "#C71D23",
+    onClick: () => message.info("Gitee 登录即将上线"),
+  },
+];
 
-const currentRules = computed(() => (loginType.value === 'account' ? accountRules : mobileRules))
-
+// ============ 登录 ============
 async function handleLogin() {
   try {
-    await formRef.value?.validate()
-    loading.value = true
+    await formRef.value?.validate();
+    loading.value = true;
 
-    const result = await userStore.login(formState.username, formState.password)
+    const result = await userStore.login(formState.username, formState.password);
 
     if (result.success) {
-      message.success('登录成功')
-      // 优先跳转到重定向路径（如从其他页面被拦截到登录页），否则默认到仪表盘
-      const redirect = (route.query.redirect as string) || '/dashboard'
-      router.push(redirect)
+      message.success("登录成功");
+      const redirect = (route.query.redirect as string) || "/dashboard";
+      router.push(redirect);
+    } else {
+      message.error(result.message || "登录失败");
     }
-    else {
-      message.error(result.message || '登录失败')
-    }
+  } catch {
+    // 校验失败不处理
+  } finally {
+    loading.value = false;
   }
-  catch {
-    message.error('请检查输入')
-  }
-  finally {
-    loading.value = false
-  }
+}
+
+function handleRegister() {
+  router.push("/register");
 }
 
 function handleForgotPassword() {
-  message.info('请联系管理员重置密码')
+  message.info("请联系管理员重置密码");
 }
 
-function handleSendCode() {
-  if (!formState.mobile || !/^1[3-9]\d{9}$/.test(formState.mobile)) {
-    message.error('请输入正确的手机号')
-    return
-  }
-  message.success('验证码已发送')
+function handleSocialLogin(item: (typeof socialLogins)[number]) {
+  item.onClick();
 }
+
+const year = computed(() => new Date().getFullYear());
 </script>
 
 <template>
   <div :class="containerClassName">
-    <!-- 左侧面板 -->
+    <!-- ==================== 左侧品牌区 ==================== -->
     <div :class="leftPanelClassName">
-      <!-- 玻璃背景 -->
       <div :class="leftGlassClassName" />
 
-      <!-- 装饰性背景 -->
       <div class="absolute inset-0">
-        <div
-          :class="decorBlob1ClassName"
-          :style="decorBlob1Style"
-        />
-        <div
-          :class="decorBlob2ClassName"
-          :style="decorBlob2Style"
-        />
-        <div
-          :class="decorBlob3ClassName"
-          :style="decorBlob3Style"
-        />
+        <div :class="decorBlob1ClassName" :style="decorBlob1Style" />
+        <div :class="decorBlob2ClassName" :style="decorBlob2Style" />
+        <div :class="decorBlob3ClassName" :style="decorBlob3Style" />
       </div>
 
-      <!-- 网格背景 -->
       <div :class="gridBgClassName" />
 
-      <!-- 内容 -->
-      <div class="relative z-10 flex flex-col justify-center px-12 xl:px-20">
+      <div class="relative z-10 flex flex-col justify-center px-12 xl:px-20 w-full">
         <!-- Logo -->
-        <div class="mb-12">
+        <div class="mb-10">
           <div :class="logoContainerClassName">
-            <div
-              :class="logoIconClassName"
-              :style="logoIconStyle"
-            >
+            <div :class="logoIconClassName" :style="logoIconStyle">
               <svg
                 class="w-5 h-5 text-white"
                 viewBox="0 0 24 24"
@@ -158,241 +152,180 @@ function handleSendCode() {
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
-            <span class="text-xl font-semibold text-stone-800">Antdv Next</span>
+            <span class="text-base font-semibold text-stone-800">{{ appTitle }}</span>
           </div>
         </div>
 
         <!-- 标题 -->
-        <h1 class="text-4xl xl:text-5xl font-bold text-stone-800 mb-6 leading-tight">
-          构建现代化<br>
+        <h1
+          class="text-4xl xl:text-[42px] font-bold text-stone-800 mb-5 leading-tight tracking-tight"
+        >
+          构建现代化<br />
           <span :style="titleHighlightStyle">管理系统</span>
         </h1>
 
-        <p class="text-lg text-stone-600 mb-12 max-w-lg leading-relaxed">
-          基于 Vue 3 + TypeScript + Ant Design Vue 构建的企业级后台管理解决方案，助您快速开发高质量管理系统。
+        <p class="text-base text-stone-500 mb-10 max-w-md leading-relaxed">
+          基于 Vue 3 + TypeScript 打造的企业级后台解决方案，开箱即用的权限、租户、工作流能力。
         </p>
 
-        <!-- 特性列表 -->
-        <div class="space-y-5">
-          <div class="flex items-center gap-4 group">
+        <!-- 特性 -->
+        <div class="space-y-4 max-w-md">
+          <div class="flex items-center gap-4">
             <div :class="featureIconClassName">
-              <Icon
-                icon="carbon:flash"
-                class="w-5 h-5"
-                :style="featureIconStyle"
-              />
+              <Icon icon="carbon:flash" class="w-5 h-5" :style="featureIconStyle" />
             </div>
             <div>
-              <h3 class="text-stone-800 font-medium">
-                极速开发
-              </h3>
-              <p class="text-stone-500 text-sm">
-                开箱即用的组件与模板
-              </p>
+              <h3 class="text-stone-700 font-medium text-sm">极速开发</h3>
+              <p class="text-stone-400 text-xs mt-0.5">开箱即用的组件与模板</p>
             </div>
           </div>
-
-          <div class="flex items-center gap-4 group">
+          <div class="flex items-center gap-4">
             <div :class="featureIconClassName">
-              <Icon
-                icon="carbon:shield-checkmark"
-                class="w-5 h-5"
-                :style="featureIconStyle"
-              />
+              <Icon icon="carbon:shield-checkmark" class="w-5 h-5" :style="featureIconStyle" />
             </div>
             <div>
-              <h3 class="text-stone-800 font-medium">
-                安全可靠
-              </h3>
-              <p class="text-stone-500 text-sm">
-                完善的权限管理体系
-              </p>
+              <h3 class="text-stone-700 font-medium text-sm">安全可靠</h3>
+              <p class="text-stone-400 text-xs mt-0.5">完善的 RBAC 权限体系</p>
             </div>
           </div>
-
-          <div class="flex items-center gap-4 group">
+          <div class="flex items-center gap-4">
             <div :class="featureIconClassName">
-              <Icon
-                icon="carbon:settings-adjust"
-                class="w-5 h-5"
-                :style="featureIconStyle"
-              />
+              <Icon icon="carbon:settings-adjust" class="w-5 h-5" :style="featureIconStyle" />
             </div>
             <div>
-              <h3 class="text-stone-800 font-medium">
-                灵活配置
-              </h3>
-              <p class="text-stone-500 text-sm">
-                高度可定制的主题系统
-              </p>
+              <h3 class="text-stone-700 font-medium text-sm">灵活配置</h3>
+              <p class="text-stone-400 text-xs mt-0.5">多租户 + 主题系统</p>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 右侧登录面板 -->
+    <!-- ==================== 右侧登录区 ==================== -->
     <div :class="rightPanelClassName">
       <div :class="glassCardClassName">
-        <!-- 标题 -->
-        <div class="text-center mb-8">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[var(--ant-color-primary)] shadow-lg shadow-[var(--ant-color-primary)]/20 mb-4">
-            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-            </svg>
-          </div>
-          <h2 class="text-xl font-semibold text-stone-800">
-            {{ _appTitle }}
-          </h2>
-        </div>
-
-        <!-- 登录类型切换 -->
-        <div class="mb-6">
-          <div :class="loginTypeContainerClassName">
-            <button
-              :class="cn(loginTypeBtnBaseClassName,
-                         loginType === 'account'
-                           ? 'bg-white shadow-sm'
-                           : 'text-stone-500 hover:text-stone-700',
-              )"
-              :style="loginType === 'account' ? loginTypeActiveBtnStyle : {}"
-              @click="loginType = 'account'"
-            >
-              账号登录
-            </button>
-            <button
-              :class="cn(loginTypeBtnBaseClassName,
-                         loginType === 'mobile'
-                           ? 'bg-white shadow-sm'
-                           : 'text-stone-500 hover:text-stone-700',
-              )"
-              :style="loginType === 'mobile' ? loginTypeActiveBtnStyle : {}"
-              @click="loginType = 'mobile'"
-            >
-              手机登录
-            </button>
-          </div>
+        <!-- 头部 -->
+        <div class="mb-8">
+          <h2 class="text-2xl font-bold text-stone-800 tracking-tight">欢迎回来 👋</h2>
+          <p class="text-sm text-stone-500 mt-2">请登录您的账号以继续使用系统</p>
         </div>
 
         <!-- 表单 -->
         <a-form
           ref="formRef"
           :model="formState"
-          :rules="currentRules"
+          :rules="rules"
           layout="vertical"
           @finish="handleLogin"
         >
-          <template v-if="loginType === 'account'">
-            <a-form-item name="username">
-              <a-input
-                v-model:value="formState.username"
-                size="large"
-                placeholder="请输入用户名"
-                :class="inputClassName"
-                allow-clear
-              >
-                <template #prefix>
-                  <UserOutlined class="text-stone-400" />
-                </template>
-              </a-input>
-            </a-form-item>
-
-            <a-form-item name="password">
-              <a-input-password
-                v-model:value="formState.password"
-                size="large"
-                placeholder="请输入密码"
-                :class="inputClassName"
-                allow-clear
-              >
-                <template #prefix>
-                  <LockOutlined class="text-stone-400" />
-                </template>
-              </a-input-password>
-            </a-form-item>
-
-            <a-form-item>
-              <div class="flex justify-between items-center">
-                <a-checkbox
-                  v-model:checked="formState.remember"
-                  class="[&_.ant-checkbox-inner]:!bg-white [&_.ant-checkbox-inner]:!border-slate-300 [&_.ant-checkbox-wrapper]:!text-stone-500"
-                >
-                  记住我
-                </a-checkbox>
-                <a-button
-                  type="link"
-                  size="small"
-                  class="!text-stone-500 hover:!text-stone-700 !p-0"
-                  @click="handleForgotPassword"
-                >
-                  忘记密码？
-                </a-button>
-              </div>
-            </a-form-item>
-          </template>
-
-          <template v-else>
-            <a-form-item name="mobile">
-              <a-input
-                v-model:value="formState.mobile"
-                size="large"
-                placeholder="请输入手机号"
-                :class="inputClassName"
-                allow-clear
-              >
-                <template #prefix>
-                  <MobileOutlined class="text-stone-400" />
-                </template>
-              </a-input>
-            </a-form-item>
-
-            <a-form-item name="code">
-              <a-input
-                v-model:value="formState.code"
-                size="large"
-                placeholder="请输入验证码"
-                :class="inputClassName"
-                allow-clear
-              >
-                <template #prefix>
-                  <MailOutlined class="text-stone-400" />
-                </template>
-                <template #suffix>
-                  <a-button
-                    type="link"
-                    size="small"
-                    class="!p-0"
-                    :style="sendCodeBtnStyle"
-                    @click="handleSendCode"
-                  >
-                    发送验证码
-                  </a-button>
-                </template>
-              </a-input>
-            </a-form-item>
-          </template>
-
-          <a-form-item class="mt-8">
-            <a-button
-              type="primary"
-              html-type="submit"
+          <a-form-item name="username" class="!mb-4">
+            <a-input
+              v-model:value="formState.username"
               size="large"
-              block
-              :loading="loading"
-              class="!h-11 !border-0 !shadow-lg"
+              placeholder="用户名"
+              :class="inputClassName"
+              allow-clear
             >
-              登录
-            </a-button>
+              <template #prefix>
+                <UserOutlined class="text-stone-400" />
+              </template>
+            </a-input>
           </a-form-item>
+
+          <a-form-item name="password" class="!mb-4">
+            <a-input-password
+              v-model:value="formState.password"
+              size="large"
+              placeholder="密码"
+              :class="inputClassName"
+              allow-clear
+            >
+              <template #prefix>
+                <LockOutlined class="text-stone-400" />
+              </template>
+            </a-input-password>
+          </a-form-item>
+
+          <div class="flex items-center justify-between mb-6">
+            <a-checkbox v-model:checked="formState.remember" class="!text-stone-500">
+              记住我
+            </a-checkbox>
+            <a-button
+              type="link"
+              size="small"
+              class="!p-0 !h-auto !text-stone-500 hover:!text-[var(--ant-color-primary)]"
+              @click="handleForgotPassword"
+            >
+              忘记密码？
+            </a-button>
+          </div>
+
+          <a-button
+            type="primary"
+            html-type="submit"
+            size="large"
+            block
+            :loading="loading"
+            class="!h-11 !text-sm !font-medium"
+          >
+            登 录
+          </a-button>
         </a-form>
+
+        <!-- 注册入口 -->
+        <div class="text-center text-sm text-stone-500 mt-5">
+          还没有账号？
+          <a-button
+            type="link"
+            class="!px-1 !h-auto !text-[var(--ant-color-primary)] !font-medium"
+            @click="handleRegister"
+          >
+            立即注册
+          </a-button>
+        </div>
+
+        <!-- 分割线 -->
+        <div class="relative my-7">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-stone-200" />
+          </div>
+          <div class="relative flex justify-center">
+            <span class="px-3 bg-white text-xs text-stone-400">或使用以下方式登录</span>
+          </div>
+        </div>
+
+        <!-- 第三方登录 -->
+        <div class="grid grid-cols-4 gap-3">
+          <button
+            v-for="item in socialLogins"
+            :key="item.key"
+            type="button"
+            class="group cursor-pointer flex items-center justify-center h-11 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 hover:border-stone-300 transition-all duration-200"
+            :title="`使用 ${item.label} 登录`"
+            @click="handleSocialLogin(item)"
+          >
+            <Icon
+              :icon="item.icon"
+              class="text-xl transition-transform duration-200 group-hover:scale-110"
+              :style="{ color: item.color }"
+            />
+          </button>
+        </div>
+
+        <!-- 页脚 -->
+        <div class="text-center text-xs text-stone-400 mt-8">
+          © {{ year }} {{ appTitle }} · 保留所有权利
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-[class*="group"]:hover .w-11 {
-  background-color: color-mix(in srgb, var(--ant-color-primary) 5%, white);
-  border-color: color-mix(in srgb, var(--ant-color-primary) 20%, rgb(203 213 225));
+:deep(.ant-checkbox-wrapper) {
+  font-size: 13px;
+}
+:deep(.ant-form-item-explain-error) {
+  font-size: 12px;
 }
 </style>

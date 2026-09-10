@@ -4,6 +4,40 @@ import { cloneDeep, isFunction, isPlainObject, merge } from 'es-toolkit'
 
 // 使用原生 Array.isArray 替代 es-toolkit 的 isArray
 const isArray = Array.isArray
+const ANT_TABLE_COLUMN_KEYS = new Set([
+  'key',
+  'dataIndex',
+  'title',
+  'width',
+  'minWidth',
+  'align',
+  'fixed',
+  'ellipsis',
+  'sorter',
+  'sortOrder',
+  'sortDirections',
+  'showSorterTooltip',
+  'filters',
+  'filterMode',
+  'filterSearch',
+  'defaultFilteredValue',
+  'filteredValue',
+  'onFilter',
+  'filterDropdown',
+  'filterDropdownOpen',
+  'filterIcon',
+  'className',
+  'headerClassName',
+  'cellStyle',
+  'headerStyle',
+  'resizable',
+  'customRender',
+  'customCell',
+  'customHeaderCell',
+  'children',
+  'colSpan',
+  'rowSpan',
+])
 
 /**
  * 深度合并对象
@@ -27,8 +61,7 @@ export function formatCellValue(
   record: Recordable,
   index: number,
 ): string {
-  if (!format)
-    return String(text ?? '')
+  if (!format) return String(text ?? '')
 
   if (isFunction(format)) {
     return format(text, record, index)
@@ -37,10 +70,8 @@ export function formatCellValue(
   // 字符串模板处理
   // 支持 {{key}} 语法
   return format.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-    if (key === 'text')
-      return text ?? ''
-    if (key === 'index')
-      return String(index)
+    if (key === 'text') return text ?? ''
+    if (key === 'index') return String(index)
     return record[key] ?? ''
   })
 }
@@ -68,37 +99,29 @@ export function generateRowKey(
  * 判断是否为图片列表
  */
 export function isImageList(value: unknown): value is string[] {
-  if (!isArray(value) || value.length === 0)
-    return false
+  if (!isArray(value) || value.length === 0) return false
 
   // 检查第一个元素是否为图片 URL
   const firstItem = (value as unknown[])[0]
-  if (typeof firstItem !== 'string')
-    return false
+  if (typeof firstItem !== 'string') return false
 
   // 简单的图片 URL 判断
   const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg']
   const lowerCase = firstItem.toLowerCase()
-  return imageExtensions.some(ext => lowerCase.includes(ext))
+  return imageExtensions.some((ext) => lowerCase.includes(ext))
 }
 
 /**
  * 格式化日期
  */
-export function formatDate(
-  value: unknown,
-  format = 'YYYY-MM-DD HH:mm:ss',
-): string {
-  if (!value)
-    return ''
+export function formatDate(value: unknown, format = 'YYYY-MM-DD HH:mm:ss'): string {
+  if (!value) return ''
 
   try {
     const date = dayjs(value as string | number | Date)
-    if (!date.isValid())
-      return String(value)
+    if (!date.isValid()) return String(value)
     return date.format(format)
-  }
-  catch {
+  } catch {
     return String(value)
   }
 }
@@ -108,20 +131,16 @@ export function formatDate(
  */
 export function formatNumber(
   value: unknown,
-  options?: { decimals?: number, prefix?: string, suffix?: string },
+  options?: { decimals?: number; prefix?: string; suffix?: string },
 ): string {
-  if (value === null || value === undefined)
-    return ''
+  if (value === null || value === undefined) return ''
 
   const num = Number(value)
-  if (isNaN(num))
-    return String(value)
+  if (isNaN(num)) return String(value)
 
   const { decimals = 0, prefix = '', suffix = '' } = options || {}
 
-  const formatted = decimals > 0
-    ? num.toFixed(decimals)
-    : String(num)
+  const formatted = decimals > 0 ? num.toFixed(decimals) : String(num)
 
   return `${prefix}${formatted}${suffix}`
 }
@@ -129,11 +148,7 @@ export function formatNumber(
 /**
  * 格式化货币
  */
-export function formatCurrency(
-  value: unknown,
-  currency = '¥',
-  decimals = 2,
-): string {
+export function formatCurrency(value: unknown, currency = '¥', decimals = 2): string {
   return formatNumber(value, { decimals, prefix: currency })
 }
 
@@ -148,8 +163,7 @@ export function formatPercent(value: unknown, decimals = 2): string {
  * 截断文本
  */
 export function truncateText(text: string, maxLength: number, suffix = '...'): string {
-  if (!text || text.length <= maxLength)
-    return text
+  if (!text || text.length <= maxLength) return text
   return text.slice(0, maxLength) + suffix
 }
 
@@ -158,8 +172,7 @@ export function truncateText(text: string, maxLength: number, suffix = '...'): s
  * 支持嵌套路径如 'user.name'
  */
 export function getColumnValue(record: Recordable, dataIndex: string | string[]): any {
-  if (!record)
-    return undefined
+  if (!record) return undefined
 
   const keys = isArray(dataIndex) ? dataIndex : (dataIndex as string).split('.')
   let value: any = record
@@ -178,11 +191,7 @@ export function getColumnValue(record: Recordable, dataIndex: string | string[])
  * 设置列数据值
  * 支持嵌套路径
  */
-export function setColumnValue(
-  record: Recordable,
-  dataIndex: string | string[],
-  value: any,
-): void {
+export function setColumnValue(record: Recordable, dataIndex: string | string[], value: any): void {
   const keys = isArray(dataIndex) ? dataIndex : (dataIndex as string).split('.')
   let target: any = record
 
@@ -202,10 +211,8 @@ export function setColumnValue(
  */
 export function filterVisibleColumns(columns: BasicColumn[]): BasicColumn[] {
   return columns.filter((col) => {
-    if (col.ifShow === false)
-      return false
-    if (isFunction(col.ifShow))
-      return col.ifShow(col)
+    if (col.ifShow === false) return false
+    if (isFunction(col.ifShow)) return col.ifShow(col)
     return true
   })
 }
@@ -214,7 +221,7 @@ export function filterVisibleColumns(columns: BasicColumn[]): BasicColumn[] {
  * 排序列
  */
 export function sortColumns(columns: BasicColumn[], order: string[]): BasicColumn[] {
-  const columnMap = new Map(columns.map(col => [col.key || col.dataIndex, col]))
+  const columnMap = new Map(columns.map((col) => [col.key || col.dataIndex, col]))
   const sorted: BasicColumn[] = []
 
   for (const key of order) {
@@ -236,7 +243,8 @@ export function sortColumns(columns: BasicColumn[], order: string[]): BasicColum
  */
 export function getTotalColumnWidth(columns: BasicColumn[]): number {
   return columns.reduce((total, col) => {
-    const width = typeof col.width === 'number' ? col.width : Number.parseInt(col.width as string) || 0
+    const width =
+      typeof col.width === 'number' ? col.width : Number.parseInt(col.width as string) || 0
     return total + width
   }, 0)
 }
@@ -251,8 +259,7 @@ export function debounce<T extends (...args: any[]) => any>(
   let timer: ReturnType<typeof setTimeout> | null = null
 
   return function (this: ThisParameterType<T>, ...args: Parameters<T>) {
-    if (timer)
-      clearTimeout(timer)
+    if (timer) clearTimeout(timer)
     timer = setTimeout(() => {
       fn.apply(this, args)
     }, delay)
@@ -284,57 +291,18 @@ export function throttle<T extends (...args: any[]) => any>(
  * 为什么需要：BasicColumn 可能包含一些自定义属性，需要转换为 antdv-next 能识别的格式
  */
 export function convertColumns(columns: BasicColumn[]): any[] {
-  return columns.map((col) => {
-    // 过滤掉 ifShow 为 false 的列
-    if (col.ifShow === false)
-      return null
-
-    // 转换列配置
-    const converted: any = {
-      ...col,
-      // 确保 key 存在
-      key: col.key || col.dataIndex,
-      // 确保 title 存在
-      title: col.title || '',
-      // 转换 dataIndex
-      dataIndex: col.dataIndex,
-      // 转换 width
-      width: col.width,
-      // 转换 align
-      align: col.align,
-      // 转换 fixed
-      fixed: col.fixed,
-      // 转换 ellipsis
-      ellipsis: col.ellipsis,
-      // 转换 sorter
-      sorter: col.sorter,
-      // 转换 filters
-      filters: col.filters,
-      // 保留 format 用于 #bodyCell 插槽
-      format: col.format,
-      // 保留 edit 相关属性用于 #bodyCell 插槽
-      edit: col.edit,
-      editRow: col.editRow,
-      editComponent: col.editComponent,
-      editComponentProps: col.editComponentProps,
-      customRender: col.customRender,
-    }
-
-    // 移除自定义属性，避免传递给 antdv-next
-    // 注意：保留 format、customRender、edit 等属性，因为在 #bodyCell 插槽中需要使用
-    delete converted.ifShow
-    delete converted.auth
-    delete converted.defaultHidden
-    // delete converted.edit  // 保留 edit，用于 #bodyCell 插槽
-    // delete converted.editRow  // 保留 editRow，用于 #bodyCell 插槽
-    // delete converted.editComponent  // 保留 editComponent，用于 #bodyCell 插槽
-    // delete converted.editComponentProps  // 保留 editComponentProps，用于 #bodyCell 插槽
-    delete converted.editValueMap
-    // delete converted.format  // 保留 format，用于 #bodyCell 插槽
-    // delete converted.customRender  // 保留 customRender，用于 #bodyCell 插槽
-    delete converted.cellStyle
-    delete converted.headerStyle
-
-    return converted
-  }).filter(Boolean)
+  return columns
+    .filter((col) => col.ifShow !== false)
+    .map((col) => {
+      const result: any = {}
+      Object.keys(col).forEach((key) => {
+        if (ANT_TABLE_COLUMN_KEYS.has(key)) {
+          result[key] = (col as any)[key]
+        }
+      })
+      // 保证 antdv-next 必需的 key / title
+      if (!result.key) result.key = col.key || col.dataIndex
+      if (!result.title) result.title = col.title || ''
+      return result
+    })
 }

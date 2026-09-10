@@ -18,9 +18,7 @@ const footerClassName = computed(() =>
   cn(
     'h-8 px-4 flex items-center justify-center flex-shrink-0',
     'text-xs text-gray-500 dark:text-gray-400',
-    isGeekStyle.value
-      ? 'bg-[#0a0a0a] border-[#1a1a1a] text-gray-500'
-      : 'bg-white dark:bg-gray-800',
+    isGeekStyle.value ? 'bg-[#0a0a0a] border-[#1a1a1a] text-gray-500' : 'bg-white dark:bg-gray-800',
     isGeekStyle.value
       ? 'border-t border-[#1a1a1a]'
       : 'border-t border-gray-200 dark:border-gray-700',

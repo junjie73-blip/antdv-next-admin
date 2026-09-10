@@ -12,11 +12,7 @@ function getDefaultPrefix(): string {
 }
 
 export function createCache<T = unknown>(options: CacheOptions = {}): CacheInstance<T> {
-  const {
-    type = 'local',
-    prefix = getDefaultPrefix(),
-    encrypt = true,
-  } = options
+  const { type = 'local', prefix = getDefaultPrefix(), encrypt = true } = options
 
   const storage = createStorage(type)
   const shouldUseEncrypt = encrypt && shouldEncrypt()
@@ -32,8 +28,7 @@ export function createCache<T = unknown>(options: CacheOptions = {}): CacheInsta
     try {
       const json = shouldUseEncrypt ? decryptValue(data, prefix) : data
       return JSON.parse(json) as CacheItem<T>
-    }
-    catch {
+    } catch {
       return null
     }
   }
@@ -44,16 +39,13 @@ export function createCache<T = unknown>(options: CacheOptions = {}): CacheInsta
 
   const getItem = (key: string): T | null => {
     const data = storage.getItem(buildKey(key))
-    if (!data)
-      return null
+    if (!data) return null
 
     const dataStr = data instanceof Promise ? null : data
-    if (!dataStr)
-      return null
+    if (!dataStr) return null
 
     const item = deserialize(dataStr)
-    if (!item)
-      return null
+    if (!item) return null
 
     if (item.expire > 0 && Date.now() > item.expire) {
       removeItem(key)
@@ -91,39 +83,32 @@ export function createCache<T = unknown>(options: CacheOptions = {}): CacheInsta
     if (allKeys instanceof Promise) {
       return []
     }
-    return allKeys.filter(k => k.startsWith(prefix))
+    return allKeys.filter((k) => k.startsWith(prefix))
   }
 
   const getExpire = (key: string): number | null => {
     const data = storage.getItem(buildKey(key))
-    if (!data)
-      return null
+    if (!data) return null
 
     const dataStr = data instanceof Promise ? null : data
-    if (!dataStr)
-      return null
+    if (!dataStr) return null
 
     const item = deserialize(dataStr)
-    if (!item)
-      return null
+    if (!item) return null
 
-    if (item.expire === 0)
-      return null
+    if (item.expire === 0) return null
     return Math.max(0, Math.floor((item.expire - Date.now()) / 1000))
   }
 
   const setExpire = (key: string, expire: number): boolean => {
     const data = storage.getItem(buildKey(key))
-    if (!data)
-      return false
+    if (!data) return false
 
     const dataStr = data instanceof Promise ? null : data
-    if (!dataStr)
-      return false
+    if (!dataStr) return false
 
     const item = deserialize(dataStr)
-    if (!item)
-      return false
+    if (!item) return false
 
     item.expire = Date.now() + expire * 1000
     storage.setItem(buildKey(key), serialize(item))
@@ -132,16 +117,13 @@ export function createCache<T = unknown>(options: CacheOptions = {}): CacheInsta
 
   const touch = (key: string, expire?: number): boolean => {
     const data = storage.getItem(buildKey(key))
-    if (!data)
-      return false
+    if (!data) return false
 
     const dataStr = data instanceof Promise ? null : data
-    if (!dataStr)
-      return false
+    if (!dataStr) return false
 
     const item = deserialize(dataStr)
-    if (!item)
-      return false
+    if (!item) return false
 
     if (item.expire > 0) {
       item.expire = Date.now() + (expire || 3600) * 1000

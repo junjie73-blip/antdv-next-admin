@@ -33,8 +33,7 @@ interface TableActionProps {
 function getButtonType(action: ActionItem): ButtonType {
   const type = action.type || 'link'
   // 过滤掉 'ghost' 类型，因为它不被 antdv-next 支持
-  if (type === 'ghost')
-    return 'default'
+  if (type === 'ghost') return 'default'
   return type as ButtonType
 }
 
@@ -54,8 +53,7 @@ function getButtonSize(action: ActionItem): 'small' | 'middle' | 'large' | undef
  * @returns 是否有权限
  */
 function hasAuth(auth: ActionItem['auth']): boolean {
-  if (!auth)
-    return true
+  if (!auth) return true
   // 这里可以根据实际权限系统调整
   return true
 }
@@ -67,10 +65,8 @@ function hasAuth(auth: ActionItem['auth']): boolean {
  * @returns 是否显示
  */
 function isShow(action: ActionItem, record: Record<string, any>): boolean {
-  if (action.ifShow === false)
-    return false
-  if (isFunction(action.ifShow))
-    return action.ifShow(record)
+  if (action.ifShow === false) return false
+  if (isFunction(action.ifShow)) return action.ifShow(record)
   return true
 }
 
@@ -81,10 +77,8 @@ function isShow(action: ActionItem, record: Record<string, any>): boolean {
  * @returns 是否禁用
  */
 function isDisabled(action: ActionItem, record: Record<string, any>): boolean {
-  if (action.disabled === true)
-    return true
-  if (isFunction(action.disabled))
-    return action.disabled(record)
+  if (action.disabled === true) return true
+  if (isFunction(action.disabled)) return action.disabled(record)
   return false
 }
 
@@ -94,11 +88,12 @@ function isDisabled(action: ActionItem, record: Record<string, any>): boolean {
  * @param record - 当前行数据
  * @returns 标签内容
  */
-function getActionLabel(label: ActionItem['label'], record: Record<string, any>): string | VNode | undefined {
-  if (!label)
-    return undefined
-  if (isFunction(label))
-    return label(record)
+function getActionLabel(
+  label: ActionItem['label'],
+  record: Record<string, any>,
+): string | VNode | undefined {
+  if (!label) return undefined
+  if (isFunction(label)) return label(record)
   return label
 }
 
@@ -150,10 +145,8 @@ export default defineComponent({
      */
     const visibleActions = computed(() => {
       return actions.value.filter((action) => {
-        if (!hasAuth(action.auth))
-          return false
-        if (!isShow(action, record.value))
-          return false
+        if (!hasAuth(action.auth)) return false
+        if (!isShow(action, record.value)) return false
         return true
       })
     })
@@ -164,7 +157,8 @@ export default defineComponent({
      */
     const showActions = computed(() => {
       const visibleCount = visibleActions.value.length
-      const displayCount = visibleCount > maxShowCount.value ? maxShowCount.value - 1 : maxShowCount.value
+      const displayCount =
+        visibleCount > maxShowCount.value ? maxShowCount.value - 1 : maxShowCount.value
       return visibleActions.value.slice(0, displayCount)
     })
 
@@ -218,7 +212,10 @@ export default defineComponent({
     /**
      * 处理 Dropdown 菜单点击
      */
-    function handleDropdownMenuClick(actionList: ActionItem[], info: { key: string, domEvent?: Event }) {
+    function handleDropdownMenuClick(
+      actionList: ActionItem[],
+      info: { key: string; domEvent?: Event },
+    ) {
       const index = Number(info.key)
       const action = actionList[index]
       if (action?.onClick) {
@@ -235,8 +232,7 @@ export default defineComponent({
      * 渲染分割线
      */
     function renderDivider(index: number) {
-      if (index === 0)
-        return null
+      if (index === 0) return null
       return <Divider type="vertical" class={cn('mx-0')} />
     }
 
@@ -285,15 +281,17 @@ export default defineComponent({
                 // 关键修复：将 PopConfirm 移到 body，避免 TD(sticky) 层叠上下文遮挡
                 // 使用递归重试确保 DOM 渲染完成后再移动
                 const moveToEnd = (retry = 0) => {
-                  setTimeout(() => {
-                    const popEl = document.querySelector('.ant-popconfirm')
-                    if (popEl && popEl.parentElement !== document.body) {
-                      document.body.appendChild(popEl)
-                    }
-                    else if (!popEl && retry < 5) {
-                      moveToEnd(retry + 1)
-                    }
-                  }, 20 * (retry + 1))
+                  setTimeout(
+                    () => {
+                      const popEl = document.querySelector('.ant-popconfirm')
+                      if (popEl && popEl.parentElement !== document.body) {
+                        document.body.appendChild(popEl)
+                      } else if (!popEl && retry < 5) {
+                        moveToEnd(retry + 1)
+                      }
+                    },
+                    20 * (retry + 1),
+                  )
                 }
                 moveToEnd()
               }
@@ -324,14 +322,15 @@ export default defineComponent({
      */
     function renderDropdownButton(action: ActionItem, index: number) {
       const label = getActionLabel(action.label, record.value)
-      const dropdownItems = action.dropdown
-        ?.filter(item => item.ifShow !== false)
-        ?.map((item, i) => ({
-          key: i,
-          label: getActionLabel(item.label, record.value),
-          danger: item.danger,
-          disabled: isDisabled(item, record.value),
-        })) ?? []
+      const dropdownItems =
+        action.dropdown
+          ?.filter((item) => item.ifShow !== false)
+          ?.map((item, i) => ({
+            key: i,
+            label: getActionLabel(item.label, record.value),
+            danger: item.danger,
+            disabled: isDisabled(item, record.value),
+          })) ?? []
 
       return (
         <>
@@ -340,7 +339,7 @@ export default defineComponent({
             menu={{ items: dropdownItems }}
             getPopupContainer={() => document.body}
             styles={{ popup: { zIndex: 999999 } }}
-            onMenuClick={(info: { key: string, domEvent?: Event }) => {
+            onMenuClick={(info: { key: string; domEvent?: Event }) => {
               if (action.dropdown) {
                 handleDropdownMenuClick(action.dropdown, info)
               }
@@ -390,8 +389,7 @@ export default defineComponent({
      * 渲染"更多"下拉菜单
      */
     function renderMoreDropdown() {
-      if (!hasDropdown.value)
-        return null
+      if (!hasDropdown.value) return null
 
       const items = dropdownActions.value.map((action, i) => ({
         key: i,
@@ -408,7 +406,7 @@ export default defineComponent({
             classes={{ popup: 'table-action-dropdown' }}
             getPopupContainer={() => document.body}
             styles={{ popup: { zIndex: 999999 } }}
-            onMenuClick={(info: { key: string, domEvent?: Event }) => {
+            onMenuClick={(info: { key: string; domEvent?: Event }) => {
               handleDropdownMenuClick(dropdownActions.value, info)
             }}
           >

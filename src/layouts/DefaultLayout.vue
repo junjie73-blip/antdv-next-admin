@@ -16,6 +16,7 @@ import LayoutHeader from './components/LayoutHeader.vue'
 import LayoutSidebar from './components/LayoutSidebar.vue'
 import LayoutTabs from './components/LayoutTabs.vue'
 import { useLayout } from './composables/useLayout'
+import { useDictStore } from '@/stores'
 
 defineOptions({
   name: 'DefaultLayout',
@@ -25,7 +26,8 @@ const router = useRouter()
 const appStore = useAppStore()
 const routeStore = useRouteStore()
 const { collapsed, checkMobile, toggleCollapsed } = useLayout()
-
+const dictStore = useDictStore()
+const routeStroe = useRouteStore()
 // 路由切换 loading 状态管理（增强版：集成性能监控）
 const {
   isLoading: isRouteLoading,
@@ -38,9 +40,10 @@ const {
 })
 
 const cachedRoutes = computed(() =>
-  router.getRoutes()
-    .filter(route => route.meta?.keepAlive)
-    .map(route => route.name as string),
+  router
+    .getRoutes()
+    .filter((route) => route.meta?.keepAlive)
+    .map((route) => route.name as string),
 )
 
 const activeTopMenu = ref('/system')
@@ -69,32 +72,25 @@ const isGeekStyle = computed(() => appStore.themeStyle === 'geek')
 const _isDarkMode = computed(() => appStore.themeMode === 'dark' || isGeekStyle.value)
 
 const hasChildren = computed(() => {
-  if (!isMixed.value || !activeTopMenu.value)
-    return false
-  const topMenu = allMenuItems.value.find(item => item?.key === activeTopMenu.value)
+  if (!isMixed.value || !activeTopMenu.value) return false
+  const topMenu = allMenuItems.value.find((item) => item?.key === activeTopMenu.value)
   return !!(topMenu && 'children' in topMenu && topMenu.children && topMenu.children.length > 0)
 })
 
 const layoutClassName = computed(() =>
   cn(
     'h-screen flex flex-col overflow-hidden',
-    isGeekStyle.value
-      ? 'bg-[#0a0a0a]'
-      : 'bg-gray-50 dark:bg-gray-900',
+    isGeekStyle.value ? 'bg-[#0a0a0a]' : 'bg-gray-50 dark:bg-gray-900',
   ),
 )
 
 const contentClassName = computed(() =>
-  cn(
-    'p-4 h-full',
-    isGeekStyle.value
-      ? 'bg-[#0a0a0a]'
-      : 'bg-gray-50 dark:bg-gray-900',
-  ),
+  cn('p-4 h-full', isGeekStyle.value ? 'bg-[#0a0a0a]' : 'bg-gray-50 dark:bg-gray-900'),
 )
 
 // 主内容区滚动容器引用（供路由切换时回到顶部）
-const scrollbarRef = useTemplateRef<InstanceType<typeof import('vue')['DefineComponent']>>('mainScrollbar')
+const scrollbarRef =
+  useTemplateRef<InstanceType<(typeof import('vue'))['DefineComponent']>>('mainScrollbar')
 
 /** 滚动到顶部 */
 function scrollToTop() {
@@ -107,6 +103,8 @@ function scrollToTop() {
 // 挂载到 window 供路由守卫调用
 onMounted(() => {
   ;(window as any).__layoutScrollToTop = scrollToTop
+  dictStore.fetchAllDicts()
+  routeStroe.initBackendRoutes()
 })
 onUnmounted(() => {
   delete (window as any).__layoutScrollToTop
@@ -148,11 +146,7 @@ useWatermark({
 
     <div class="flex flex-1 overflow-hidden">
       <!-- 垂直布局：侧边栏 -->
-      <LayoutSidebar
-        v-if="isVertical"
-        :collapsed="collapsed"
-        @menuClick="() => {}"
-      />
+      <LayoutSidebar v-if="isVertical" :collapsed="collapsed" @menuClick="() => {}" />
 
       <!-- 混合布局：侧边栏（有子菜单时才显示） -->
       <LayoutSidebar
@@ -166,11 +160,7 @@ useWatermark({
       <!-- 主内容区域 -->
       <div class="flex flex-col flex-1 overflow-hidden">
         <!-- 垂直布局：Header 在主区域内（折叠按钮 + 面包屑） -->
-        <LayoutHeader
-          v-if="isVertical"
-          :collapsed="collapsed"
-          @toggleCollapsed="toggleCollapsed"
-        />
+        <LayoutHeader v-if="isVertical" :collapsed="collapsed" @toggleCollapsed="toggleCollapsed" />
 
         <LayoutTabs
           :has-children="isMixed && hasChildren"
@@ -182,41 +172,25 @@ useWatermark({
           class="flex-1"
           :options="{ suppressScrollX: true, wheelPropagation: true }"
         >
-          <main
-            :class="contentClassName"
-            class="relative"
-          >
+          <main :class="contentClassName" class="relative">
             <!-- 页面切换骨架屏（支持错误状态） -->
-            <PageLoading
-              :loading="isRouteLoading"
-              variant="default"
-              :error="isSlow"
-            />
+            <PageLoading :loading="isRouteLoading" variant="default" :error="isSlow" />
 
             <router-view v-slot="{ Component, route }">
               <!-- 微前端页面：禁用 out-in 模式，避免 iframe/微应用被 transition 销毁 -->
               <template v-if="route.meta?.microApp">
                 <keep-alive :include="cachedRoutes">
-                  <component
-                    :is="markRaw(Component)"
-                    :key="route.path"
-                  />
+                  <component :is="markRaw(Component)" :key="route.path" />
                 </keep-alive>
               </template>
               <!-- 全屏大屏页面：禁用 transition + keepAlive，避免 ECharts 资源泄漏影响其他页面 -->
               <template v-else-if="route.meta?.noTransition">
-                <component
-                  :is="markRaw(Component)"
-                  :key="route.path"
-                />
+                <component :is="markRaw(Component)" :key="route.path" />
               </template>
               <!-- 普通页面：使用 KeepAlive 缓存，但不使用 Transition 避免渲染冲突 -->
               <template v-else>
                 <keep-alive :include="cachedRoutes">
-                  <component
-                    :is="markRaw(Component)"
-                    :key="route.path"
-                  />
+                  <component :is="markRaw(Component)" :key="route.path" />
                 </keep-alive>
               </template>
             </router-view>

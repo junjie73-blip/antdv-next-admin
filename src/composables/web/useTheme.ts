@@ -8,10 +8,7 @@ export function useTheme() {
     const x = event.clientX
     const y = event.clientY
 
-    const endRadius = Math.hypot(
-      Math.max(x, innerWidth - x),
-      Math.max(y, innerHeight - y),
-    )
+    const endRadius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))
 
     if (!document.startViewTransition) {
       appStore.updateSetting({ theme: isDark ? 'light' : 'dark' })

@@ -38,16 +38,8 @@ const loadedImages = new Set<string>()
 /**
  * 创建 IntersectionObserver 实例
  */
-function createObserver(
-  el: HTMLImageElement,
-  options: LazyOptions,
-): IntersectionObserver {
-  const {
-    rootMargin = '100px',
-    threshold = 0.1,
-    fade = true,
-    duration = 300,
-  } = options
+function createObserver(el: HTMLImageElement, options: LazyOptions): IntersectionObserver {
+  const { rootMargin = '100px', threshold = 0.1, fade = true, duration = 300 } = options
 
   return new IntersectionObserver(
     (entries) => {
@@ -109,8 +101,7 @@ function loadImage(
           el.style.opacity = '1'
         })
       })
-    }
-    else {
+    } else {
       el.src = src
     }
   }
@@ -136,8 +127,7 @@ const lazyDirective: Directive<HTMLImageElement, string | LazyOptions> = {
 
     if (typeof binding.value === 'string') {
       options = { src: binding.value }
-    }
-    else {
+    } else {
       options = binding.value
     }
 

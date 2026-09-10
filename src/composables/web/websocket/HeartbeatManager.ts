@@ -42,9 +42,10 @@ export class HeartbeatManager {
       return
     }
 
-    const message = typeof this.config.message === 'string'
-      ? this.config.message
-      : JSON.stringify(this.config.message)
+    const message =
+      typeof this.config.message === 'string'
+        ? this.config.message
+        : JSON.stringify(this.config.message)
 
     this.onSend(message)
 

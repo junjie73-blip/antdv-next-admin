@@ -13,9 +13,9 @@ import { ref, unref, watch } from 'vue'
  * 默认分页字段配置
  */
 const DEFAULT_FETCH_SETTING: FetchSetting = {
-  pageField: 'page',
+  pageField: 'pageNum',
   sizeField: 'pageSize',
-  listField: 'items',
+  listField: 'list',
   totalField: 'total',
 }
 
@@ -40,8 +40,6 @@ export function useDataSource(options: UseDataSourceOptions): UseDataSourceRetur
   const dataSourceRef = ref<Recordable[]>([])
   // 原始数据（未处理）
   const rawDataSourceRef = ref<Recordable[]>([])
-  // 当前请求参数
-  const currentParamsRef = ref<FetchParams>({})
 
   /**
    * 获取 rowKey 值
@@ -63,11 +61,10 @@ export function useDataSource(options: UseDataSourceOptions): UseDataSourceRetur
 
     // 合并参数 - 使用不同的变量名避免冲突
     const mergedParams: FetchParams = {
-      ...unref(currentParamsRef),
       ...unref(options.params),
       ...opt,
+      fields: unref(options.fields),
     }
-
     // 将 searchInfo 展开到顶层，避免嵌套对象被 alova 序列化为 [object Object]
     const searchData = mergedParams.searchInfo
     if (searchData && isPlainObject(searchData)) {
@@ -94,22 +91,17 @@ export function useDataSource(options: UseDataSourceOptions): UseDataSourceRetur
   const processData = (res: Recordable): Recordable[] => {
     const setting = { ...DEFAULT_FETCH_SETTING, ...fetchSetting }
     const { listField } = setting
-
     // 从响应中提取数据列表
     let data: Recordable[] = []
     if (listField && listField in res) {
       data = res[listField] as Recordable[]
-    }
-    else if ('data' in res && Array.isArray(res.data)) {
+    } else if ('data' in res && Array.isArray(res.data)) {
       data = res.data as Recordable[]
-    }
-    else if ('list' in res && Array.isArray(res.list)) {
+    } else if ('list' in res && Array.isArray(res.list)) {
       data = res.list as Recordable[]
-    }
-    else if ('records' in res && Array.isArray(res.records)) {
+    } else if ('records' in res && Array.isArray(res.records)) {
       data = res.records as Recordable[]
-    }
-    else if (Array.isArray(res)) {
+    } else if (Array.isArray(res)) {
       data = res
     }
 
@@ -117,7 +109,6 @@ export function useDataSource(options: UseDataSourceOptions): UseDataSourceRetur
     if (afterFetch && isFunction(afterFetch)) {
       data = afterFetch(data)
     }
-
     return data
   }
 
@@ -131,11 +122,9 @@ export function useDataSource(options: UseDataSourceOptions): UseDataSourceRetur
     let total = 0
     if (totalField && totalField in res) {
       total = res[totalField] as number
-    }
-    else if ('totalCount' in res) {
+    } else if ('totalCount' in res) {
       total = res.totalCount as number
-    }
-    else if ('total' in res) {
+    } else if ('total' in res) {
       total = res.total as number
     }
 
@@ -174,32 +163,26 @@ export function useDataSource(options: UseDataSourceOptions): UseDataSourceRetur
         fetchParams = result
       }
 
-      // 保存当前参数
-      currentParamsRef.value = fetchParams
-
       // 执行请求
       const res = await apiFn(fetchParams)
 
       // 处理数据
-      const data = processData(res)
+      const data = processData(res?.data ?? res)
       const { total } = processPagination(res)
 
       // 更新数据
       dataSourceRef.value = data
       rawDataSourceRef.value = cloneDeep(data)
-
       // 更新分页
       if (pagination && total > 0) {
         pagination.setPagination({ total })
       }
-    }
-    catch (error) {
+    } catch (error) {
       console.error('[useDataSource] fetch error:', error)
       // 请求失败，保留旧数据或清空
       // dataSourceRef.value = []
       // rawDataSourceRef.value = []
-    }
-    finally {
+    } finally {
       loading?.setLoading(false)
     }
   }
@@ -212,7 +195,7 @@ export function useDataSource(options: UseDataSourceOptions): UseDataSourceRetur
     if (pagination) {
       pagination.setPagination({ current: 1 })
     }
-    await fetch({ ...opt, page: 1 })
+    await fetch({ ...opt, pageNum: 1 })
   }
 
   /**

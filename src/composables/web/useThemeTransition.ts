@@ -27,10 +27,7 @@ export function useThemeTransition() {
 
     transition.ready.then(() => {
       const isToDark = currentTheme === 'light'
-      const clipPath = [
-        `circle(0px at ${x}px ${y}px)`,
-        `circle(${endRadius}px at ${x}px ${y}px)`,
-      ]
+      const clipPath = [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`]
 
       // 亮→暗: old(亮色)收缩，需隐藏 new 防止遮挡
       // 暗→亮: new(亮色)展开，new 本身在顶层无需额外处理
@@ -49,9 +46,7 @@ export function useThemeTransition() {
         {
           duration: 400,
           easing: 'ease-in-out',
-          pseudoElement: isToDark
-            ? '::view-transition-old(root)'
-            : '::view-transition-new(root)',
+          pseudoElement: isToDark ? '::view-transition-old(root)' : '::view-transition-new(root)',
         },
       )
     })

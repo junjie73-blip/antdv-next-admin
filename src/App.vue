@@ -3,14 +3,14 @@ import { autoPrefixTransformer, px2remTransformer } from '@antdv-next/cssinjs'
 import { HappyProvider } from '@antdv-next/happy-work-theme'
 import { ConfigProvider, StyleProvider } from 'antdv-next'
 import dayjs from 'dayjs'
-import { computed, onMounted, shallowRef, watch } from 'vue'
+import { computed, onMounted, shallowRef, watch, watchEffect } from 'vue'
 import { getThemeConfig } from '@/settings'
 import { useAppStore } from '@/stores/modules/app'
 import { useUserStore } from '@/stores/modules/user'
 
 const appStore = useAppStore()
 const userStore = useUserStore()
-
+dayjs.locale('en')
 // 应用启动时解密 Token
 onMounted(() => {
   userStore.initToken()
@@ -18,23 +18,23 @@ onMounted(() => {
 
 const antdLocale = shallowRef<any>()
 
-const getPopupContainer = (triggerNode?: HTMLElement | undefined): HTMLElement => triggerNode?.parentElement || document.body
+const getPopupContainer = (triggerNode?: HTMLElement | undefined): HTMLElement =>
+  triggerNode?.parentElement || document.body
 
-const themeConfig = computed(() => getThemeConfig(
-  appStore.themeStyle,
-  appStore.themeMode === 'dark',
-  appStore.borderRadius,
-  appStore.primaryColor,
-))
+const themeConfig = computed(() =>
+  getThemeConfig(
+    appStore.themeStyle,
+    appStore.themeMode === 'dark',
+    appStore.borderRadius,
+    appStore.primaryColor,
+  ),
+)
 
 const htmlClass = computed(() => {
   const classes: string[] = []
-  if (appStore.themeMode === 'dark')
-    classes.push('dark')
-  if (appStore.colorWeak)
-    classes.push('color-weak')
-  if (appStore.grayMode)
-    classes.push('gray-mode')
+  if (appStore.themeMode === 'dark') classes.push('dark')
+  if (appStore.colorWeak) classes.push('color-weak')
+  if (appStore.grayMode) classes.push('gray-mode')
   return classes.join(' ')
 })
 
@@ -43,10 +43,7 @@ watch(
   async (locale) => {
     const dayjsLocaleMap: Record<string, string> = {
       'zh-CN': 'zh-cn',
-      'zh-TW': 'zh-tw',
       'en-US': 'en',
-      'ja-JP': 'ja',
-      'ko-KR': 'ko',
     }
 
     dayjs.locale(dayjsLocaleMap[locale] || 'en')
@@ -55,8 +52,6 @@ watch(
       'zh-CN': () => import('antdv-next/locale/zh_CN'),
       'zh-TW': () => import('antdv-next/locale/zh_TW'),
       'en-US': () => import('antdv-next/locale/en_US'),
-      'ja-JP': () => import('antdv-next/locale/ja_JP'),
-      'ko-KR': () => import('antdv-next/locale/ko_KR'),
     }
 
     const loader = localeModules[locale] || localeModules['zh-CN']
@@ -83,17 +78,13 @@ watch(
 </script>
 
 <template>
-  <HappyProvider
-    v-slot="{ wave }"
-    :enabled="appStore.enableWaterRipple"
-  >
+  <HappyProvider v-slot="{ wave }" :enabled="appStore.enableWaterRipple">
     <StyleProvider>
       <ConfigProvider
         :theme="themeConfig"
         :wave="wave"
         :locale="antdLocale"
-        :transformers="[autoPrefixTransformer,
-                        px2remTransformer]"
+        :transformers="[autoPrefixTransformer, px2remTransformer]"
         :get-popup-container="getPopupContainer"
         :component-size="appStore.componentSize"
         virtual

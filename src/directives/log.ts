@@ -34,7 +34,11 @@ export const vLogClick: Directive<HTMLElement, string> = {
   mounted(el: HTMLElement, binding: DirectiveBinding<string>) {
     const description = binding.value || el.textContent?.trim() || '未知操作'
     // 从修饰符获取操作类型，默认为 click
-    const operationType = (Object.keys(binding.modifiers).find(m => MODIFIER_MAP[m]) && Object.keys(binding.modifiers).find(m => MODIFIER_MAP[m])) || (binding.arg && MODIFIER_MAP[binding.arg]) || 'click'
+    const operationType =
+      (Object.keys(binding.modifiers).find((m) => MODIFIER_MAP[m]) &&
+        Object.keys(binding.modifiers).find((m) => MODIFIER_MAP[m])) ||
+      (binding.arg && MODIFIER_MAP[binding.arg]) ||
+      'click'
 
     el.addEventListener('click', () => {
       const logger = useLogger()

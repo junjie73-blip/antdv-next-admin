@@ -121,7 +121,11 @@ const editorConfig = computed((): Partial<IEditorConfig> => {
         headers: props.imageUpload.headers,
         meta: props.imageUpload.meta,
         maxFileSize: (props.imageUpload.maxFileSize || 5) * 1024 * 1024,
-        allowedFileTypes: props.imageUpload.allowedFileTypes || ['image/png', 'image/jpeg', 'image/gif'],
+        allowedFileTypes: props.imageUpload.allowedFileTypes || [
+          'image/png',
+          'image/jpeg',
+          'image/gif',
+        ],
         customUpload: props.imageUpload.customUpload,
         onSuccess: (file: File, response: any) => {
           emit('uploadSuccess', file, response)
@@ -236,8 +240,7 @@ watch(
     if (editor) {
       if (disabled) {
         editor.disable()
-      }
-      else {
+      } else {
         editor.enable()
       }
     }
@@ -311,10 +314,7 @@ defineExpose(instance)
       class="flex justify-end px-3 py-1 text-xs text-gray-500 border-t bg-gray-50"
     >
       <span>{{ textLength }} 字</span>
-      <span
-        v-if="maxLength"
-        class="ml-2"
-      >/ {{ maxLength }} 字上限</span>
+      <span v-if="maxLength" class="ml-2">/ {{ maxLength }} 字上限</span>
     </div>
   </div>
 </template>

@@ -11,7 +11,7 @@ export function getSecurityScore() {
       score: number
       status: 'excellent' | 'good' | 'warning' | 'critical'
     }[]
-    trend: { date: string, score: number }[]
+    trend: { date: string; score: number }[]
   }>('/security/score')
 }
 
@@ -30,10 +30,10 @@ export function getSecurityEvents(params?: Record<string, unknown>) {
 /** 安全统计概览（图表数据） */
 export function getSecurityStats() {
   return get<{
-    threatDistribution: { name: string, value: number }[]
-    attackSources: { region: string, value: number }[]
-    dailyEvents: { date: string, count: number }[]
-    responseTime: { date: string, avgMs: number }[]
+    threatDistribution: { name: string; value: number }[]
+    attackSources: { region: string; value: number }[]
+    dailyEvents: { date: string; count: number }[]
+    responseTime: { date: string; avgMs: number }[]
   }>('/security/stats')
 }
 
@@ -41,7 +41,7 @@ export function getSecurityStats() {
 
 /** 告警列表 */
 export function getAlertList(params?: Record<string, unknown>) {
-  return get<{ list: AlertItem[], total: number }>('/security/alerts/list', params)
+  return get<{ list: AlertItem[]; total: number }>('/security/alerts/list', params)
 }
 
 /** 处置告警 */
@@ -55,7 +55,11 @@ export function handleAlert(alertId: string, action: string) {
 export type SecurityEventLevel = 'critical' | 'high' | 'medium' | 'low'
 
 /** 安全事件类型 */
-export type SecurityEventType = 'login_anomaly' | 'permission_change' | 'sensitive_operation' | 'attack_attempt'
+export type SecurityEventType =
+  | 'login_anomaly'
+  | 'permission_change'
+  | 'sensitive_operation'
+  | 'attack_attempt'
 
 /** 安全事件状态 */
 export type SecurityEventStatus = 'pending' | 'handled' | 'dismissed'

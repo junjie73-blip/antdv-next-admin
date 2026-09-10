@@ -6,5 +6,5 @@ interface MenuResponse {
 }
 
 export function getMenus(): Promise<MenuResponse> {
-  return get<MenuResponse>('/menus')
+  return get<MenuResponse>('/auth/menus')
 }

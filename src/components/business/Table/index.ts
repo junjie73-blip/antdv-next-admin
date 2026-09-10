@@ -36,9 +36,6 @@ export { useDragSort } from './hooks/useDragSort'
 export { useLoading } from './hooks/useLoading'
 export { usePagination } from './hooks/usePagination'
 export { useRowSelection } from './hooks/useRowSelection'
-export { useTableScroll } from './hooks/useTableScroll'
-export { useTreeData } from './hooks/useTreeData'
-export { useVirtualScroll } from './hooks/useVirtualScroll'
 
 // 类型
 export type {

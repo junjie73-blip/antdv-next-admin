@@ -62,7 +62,10 @@ export function createLoading(options: CreateLoadingOptions = {}): LoadingInstan
 /**
  * 创建全屏 loading 的快捷方法
  */
-export function createFullscreenLoading(tip?: string, options: Omit<CreateLoadingOptions, 'tip' | 'body'> = {}): LoadingInstance {
+export function createFullscreenLoading(
+  tip?: string,
+  options: Omit<CreateLoadingOptions, 'tip' | 'body'> = {},
+): LoadingInstance {
   return createLoading({
     tip,
     body: true,

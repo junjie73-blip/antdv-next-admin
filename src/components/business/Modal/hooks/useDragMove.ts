@@ -36,18 +36,15 @@ export function useDragMove(
    */
   const handleDragStart = (e: MouseEvent) => {
     // 不可拖拽或全屏时不处理
-    if (!draggable.value || fullscreen.value)
-      return
+    if (!draggable.value || fullscreen.value) return
 
     // 只有点击 header 才能拖拽
     const target = e.target as HTMLElement
     const header = target.closest('.modal-header')
-    if (!header)
-      return
+    if (!header) return
 
     // 如果点击的是按钮，不触发拖拽
-    if (target.closest('button'))
-      return
+    if (target.closest('button')) return
 
     isDragging.value = true
     startX.value = e.clientX
@@ -64,8 +61,7 @@ export function useDragMove(
    * 拖拽中
    */
   const handleDragMove = (e: MouseEvent) => {
-    if (!isDragging.value)
-      return
+    if (!isDragging.value) return
 
     const deltaX = e.clientX - startX.value
     const deltaY = e.clientY - startY.value

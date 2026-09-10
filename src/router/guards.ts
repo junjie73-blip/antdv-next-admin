@@ -58,22 +58,10 @@ function createAuthGuard(router: Router) {
 function createPermissionGuard(router: Router) {
   router.beforeEach((to) => {
     const userStore = useUserStore()
-    const requiredRoles = to.meta.roles as string[] | undefined
     const requiredPermissions = to.meta.permissions as string[] | undefined
 
-    if (!requiredRoles && !requiredPermissions) {
-      return true
-    }
-
-    if (requiredRoles) {
-      const hasRole = requiredRoles.some(role => userStore.hasRole(role))
-      if (!hasRole) {
-        return { path: '/403', replace: true }
-      }
-    }
-
     if (requiredPermissions) {
-      const hasPermission = requiredPermissions.some(perm => userStore.hasPermission(perm))
+      const hasPermission = requiredPermissions.some((perm) => userStore.hasPermission(perm))
       if (!hasPermission) {
         return { path: '/403', replace: true }
       }
@@ -90,8 +78,7 @@ function createTitleGuard(router: Router) {
 
     if (title) {
       document.title = `${title} | ${appTitle}`
-    }
-    else {
+    } else {
       document.title = appTitle
     }
 
@@ -134,8 +121,7 @@ function createDynamicRouteGuard(router: Router) {
 
     if (routeMode === 'frontend') {
       routeStore.initFrontendRoutes()
-    }
-    else {
+    } else {
       await routeStore.initBackendRoutes()
     }
 
@@ -164,8 +150,7 @@ export function setupRouterGuards(router: Router) {
 function createRouteLogGuard(router: Router) {
   router.afterEach((to, from) => {
     // 跳过白名单路由和首次加载
-    if (WHITE_LIST.includes(to.path) || from.path === '/')
-      return
+    if (WHITE_LIST.includes(to.path) || from.path === '/') return
 
     const logger = useLogger()
     logger.logRouteChange(from.path, to.path, to.meta.title as string | undefined)

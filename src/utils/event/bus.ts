@@ -27,8 +27,7 @@ export function createEventBus(): EventBus {
   const clear = (event?: string) => {
     if (event) {
       emitter.all.delete(event)
-    }
-    else {
+    } else {
       emitter.all.clear()
     }
   }

@@ -19,16 +19,16 @@ function getBaseKey(): string {
     // 开发环境使用默认值（仅开发用）
     if (import.meta.env.DEV) {
       console.warn(
-        '[encrypt] 未配置 VITE_CACHE_ENCRYPT_KEY，使用开发环境默认密钥。'
-        + '生产环境请务必设置此环境变量！',
+        '[encrypt] 未配置 VITE_CACHE_ENCRYPT_KEY，使用开发环境默认密钥。' +
+          '生产环境请务必设置此环境变量！',
       )
       return 'antdv-next-admin-dev-cache-key'
     }
 
     // 生产环境必须配置，抛出错误
     throw new Error(
-      '[encrypt] 生产环境未配置 VITE_CACHE_ENCRYPT_KEY 环境变量！'
-      + '请在 .env.production 中设置一个随机的 32 字符密钥。',
+      '[encrypt] 生产环境未配置 VITE_CACHE_ENCRYPT_KEY 环境变量！' +
+        '请在 .env.production 中设置一个随机的 32 字符密钥。',
     )
   }
 
@@ -58,10 +58,9 @@ async function deriveKey(baseKey: string): Promise<string> {
 
     // 转换为十六进制字符串
     return Array.from(new Uint8Array(hashBuffer))
-      .map(b => b.toString(16).padStart(2, '0'))
+      .map((b) => b.toString(16).padStart(2, '0'))
       .join('')
-  }
-  catch {
+  } catch {
     // Web API 不可用时降级为基础密钥
     return baseKey
   }

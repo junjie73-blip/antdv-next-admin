@@ -61,11 +61,14 @@ export const useAppStore = defineStore('app', () => {
 
   const toggleFooter = () => updateSetting({ showFooter: !appSetting.value.showFooter })
 
-  const toggleWaterRipple = () => updateSetting({ enableWaterRipple: !appSetting.value.enableWaterRipple })
+  const toggleWaterRipple = () =>
+    updateSetting({ enableWaterRipple: !appSetting.value.enableWaterRipple })
 
-  const toggleWatermark = () => updateSetting({ enableWatermark: !appSetting.value.enableWatermark })
+  const toggleWatermark = () =>
+    updateSetting({ enableWatermark: !appSetting.value.enableWatermark })
 
-  const toggleSidebar = () => updateSetting({ sidebarCollapsed: !appSetting.value.sidebarCollapsed })
+  const toggleSidebar = () =>
+    updateSetting({ sidebarCollapsed: !appSetting.value.sidebarCollapsed })
 
   return {
     appSetting,

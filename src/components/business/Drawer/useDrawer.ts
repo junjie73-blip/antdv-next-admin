@@ -36,10 +36,12 @@ export function useDrawer(): UseDrawerReturnType {
       if (drawerInstance.value) {
         return drawerInstance.value
       }
-      await new Promise(resolve => setTimeout(resolve, 50))
+      await new Promise((resolve) => setTimeout(resolve, 50))
     }
 
-    throw new Error('[useDrawer] Drawer instance not found. Please check if the Drawer component is registered.')
+    throw new Error(
+      '[useDrawer] Drawer instance not found. Please check if the Drawer component is registered.',
+    )
   }
 
   /**

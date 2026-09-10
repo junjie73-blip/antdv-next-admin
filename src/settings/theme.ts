@@ -199,8 +199,7 @@ function getThemeConfig(
 
   if (isDark && style !== 'dark' && style !== 'geek') {
     algorithm.push(darkAlgorithm)
-  }
-  else if (preset.algorithm) {
+  } else if (preset.algorithm) {
     algorithm.push(preset.algorithm)
   }
 

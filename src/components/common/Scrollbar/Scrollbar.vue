@@ -1,13 +1,6 @@
 <script setup lang="ts">
 import type { ScrollbarInstance, ScrollbarPosition, ScrollbarProps } from './types'
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-  shallowRef,
-} from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
 import { cn } from '@/utils/cn'
 
 /**
@@ -87,11 +80,7 @@ const wrapClassName = computed(() => {
  * 计算视图类名
  */
 const viewClassName = computed(() => {
-  return cn(
-    'scrollbar-view',
-    props.native ? '' : 'h-full',
-    props.viewClass,
-  )
+  return cn('scrollbar-view', props.native ? '' : 'h-full', props.viewClass)
 })
 
 /**
@@ -119,8 +108,7 @@ const thumbStyle = computed(() => {
  * 更新滚动条状态
  */
 function update() {
-  if (!wrapRef.value || props.native)
-    return
+  if (!wrapRef.value || props.native) return
 
   const wrap = wrapRef.value
   const { scrollHeight, clientHeight, scrollWidth, clientWidth } = wrap
@@ -131,8 +119,7 @@ function update() {
     const ratio = clientHeight / scrollHeight
     thumbVerticalHeight.value = Math.max(props.minSize!, clientHeight * ratio)
     thumbVerticalTop.value = (wrap.scrollTop / scrollHeight) * clientHeight
-  }
-  else {
+  } else {
     visibleVertical.value = false
   }
 
@@ -142,8 +129,7 @@ function update() {
     const ratio = clientWidth / scrollWidth
     thumbHorizontalWidth.value = Math.max(props.minSize!, clientWidth * ratio)
     thumbHorizontalLeft.value = (wrap.scrollLeft / scrollWidth) * clientWidth
-  }
-  else {
+  } else {
     visibleHorizontal.value = false
   }
 }
@@ -152,8 +138,7 @@ function update() {
  * 处理滚动事件
  */
 function handleScroll(e: Event) {
-  if (!wrapRef.value)
-    return
+  if (!wrapRef.value) return
 
   const { scrollTop, scrollLeft } = wrapRef.value
 
@@ -168,8 +153,7 @@ function handleScroll(e: Event) {
  * 处理垂直滚动条点击
  */
 function handleVerticalTrackClick(e: MouseEvent) {
-  if (!wrapRef.value || !trackVerticalRef.value)
-    return
+  if (!wrapRef.value || !trackVerticalRef.value) return
 
   const rect = trackVerticalRef.value.getBoundingClientRect()
   const offsetY = e.clientY - rect.top
@@ -180,15 +164,17 @@ function handleVerticalTrackClick(e: MouseEvent) {
   const ratio = (offsetY - thumbHeight / 2) / (trackHeight - thumbHeight)
   const scrollTop = ratio * (wrapRef.value.scrollHeight - wrapRef.value.clientHeight)
 
-  wrapRef.value.scrollTop = Math.max(0, Math.min(scrollTop, wrapRef.value.scrollHeight - wrapRef.value.clientHeight))
+  wrapRef.value.scrollTop = Math.max(
+    0,
+    Math.min(scrollTop, wrapRef.value.scrollHeight - wrapRef.value.clientHeight),
+  )
 }
 
 /**
  * 处理水平滚动条点击
  */
 function handleHorizontalTrackClick(e: MouseEvent) {
-  if (!wrapRef.value || !trackHorizontalRef.value)
-    return
+  if (!wrapRef.value || !trackHorizontalRef.value) return
 
   const rect = trackHorizontalRef.value.getBoundingClientRect()
   const offsetX = e.clientX - rect.left
@@ -198,7 +184,10 @@ function handleHorizontalTrackClick(e: MouseEvent) {
   const ratio = (offsetX - thumbWidth / 2) / (trackWidth - thumbWidth)
   const scrollLeft = ratio * (wrapRef.value.scrollWidth - wrapRef.value.clientWidth)
 
-  wrapRef.value.scrollLeft = Math.max(0, Math.min(scrollLeft, wrapRef.value.scrollWidth - wrapRef.value.clientWidth))
+  wrapRef.value.scrollLeft = Math.max(
+    0,
+    Math.min(scrollLeft, wrapRef.value.scrollWidth - wrapRef.value.clientWidth),
+  )
 }
 
 /**
@@ -218,8 +207,7 @@ function startDragVertical(e: MouseEvent) {
  * 拖拽垂直滚动条
  */
 function handleDragVertical(e: MouseEvent) {
-  if (!isDraggingVertical.value || !wrapRef.value || !trackVerticalRef.value)
-    return
+  if (!isDraggingVertical.value || !wrapRef.value || !trackVerticalRef.value) return
 
   const deltaY = e.clientY - dragStartY.value
   const trackHeight = trackVerticalRef.value.getBoundingClientRect().height
@@ -255,8 +243,7 @@ function startDragHorizontal(e: MouseEvent) {
  * 拖拽水平滚动条
  */
 function handleDragHorizontal(e: MouseEvent) {
-  if (!isDraggingHorizontal.value || !wrapRef.value || !trackHorizontalRef.value)
-    return
+  if (!isDraggingHorizontal.value || !wrapRef.value || !trackHorizontalRef.value) return
 
   const deltaX = e.clientX - dragStartX.value
   const trackWidth = trackHorizontalRef.value.getBoundingClientRect().width
@@ -279,13 +266,11 @@ function stopDragHorizontal() {
  * 滚动到指定位置
  */
 const scrollTo: ScrollbarInstance['scrollTo'] = (options, y) => {
-  if (!wrapRef.value)
-    return
+  if (!wrapRef.value) return
 
   if (typeof options === 'number' && typeof y === 'number') {
     wrapRef.value.scrollTo(options, y)
-  }
-  else if (typeof options === 'object') {
+  } else if (typeof options === 'object') {
     wrapRef.value.scrollTo(options)
   }
 }
@@ -354,11 +339,7 @@ defineExpose<ScrollbarInstance>({
 </script>
 
 <template>
-  <div
-    :class="wrapClassName"
-    :style="[wrapStyle,
-             wrapStyle]"
-  >
+  <div :class="wrapClassName" :style="[wrapStyle, wrapStyle]">
     <!-- 内容区域 -->
     <component
       :is="tag"
@@ -381,24 +362,28 @@ defineExpose<ScrollbarInstance>({
     <div
       v-if="!native && !noVertical && (always || visibleVertical)"
       ref="trackVerticalRef"
-      :class="cn(
-        'scrollbar-track-vertical',
-        'absolute right-0 top-0 bottom-0 z-10',
-        'transition-opacity duration-200',
-        !always && !visibleVertical && 'opacity-0',
-        always && 'opacity-100',
-      )"
+      :class="
+        cn(
+          'scrollbar-track-vertical',
+          'absolute right-0 top-0 bottom-0 z-10',
+          'transition-opacity duration-200',
+          !always && !visibleVertical && 'opacity-0',
+          always && 'opacity-100',
+        )
+      "
       :style="trackStyle"
       @click="handleVerticalTrackClick"
     >
       <div
         ref="thumbVerticalRef"
-        :class="cn(
-          'scrollbar-thumb-vertical',
-          'absolute cursor-pointer',
-          'hover:bg-opacity-50 transition-colors',
-          isDraggingVertical && 'bg-opacity-60',
-        )"
+        :class="
+          cn(
+            'scrollbar-thumb-vertical',
+            'absolute cursor-pointer',
+            'hover:bg-opacity-50 transition-colors',
+            isDraggingVertical && 'bg-opacity-60',
+          )
+        "
         :style="[
           thumbStyle,
           {
@@ -414,24 +399,28 @@ defineExpose<ScrollbarInstance>({
     <div
       v-if="!native && !noHorizontal && (always || visibleHorizontal)"
       ref="trackHorizontalRef"
-      :class="cn(
-        'scrollbar-track-horizontal',
-        'absolute left-0 bottom-0 right-0 z-10',
-        'transition-opacity duration-200',
-        !always && !visibleHorizontal && 'opacity-0',
-        always && 'opacity-100',
-      )"
+      :class="
+        cn(
+          'scrollbar-track-horizontal',
+          'absolute left-0 bottom-0 right-0 z-10',
+          'transition-opacity duration-200',
+          !always && !visibleHorizontal && 'opacity-0',
+          always && 'opacity-100',
+        )
+      "
       :style="{ ...trackStyle, height: `${barWidth}px`, width: 'auto' }"
       @click="handleHorizontalTrackClick"
     >
       <div
         ref="thumbHorizontalRef"
-        :class="cn(
-          'scrollbar-thumb-horizontal',
-          'absolute cursor-pointer',
-          'hover:bg-opacity-50 transition-colors',
-          isDraggingHorizontal && 'bg-opacity-60',
-        )"
+        :class="
+          cn(
+            'scrollbar-thumb-horizontal',
+            'absolute cursor-pointer',
+            'hover:bg-opacity-50 transition-colors',
+            isDraggingHorizontal && 'bg-opacity-60',
+          )
+        "
         :style="[
           thumbStyle,
           {

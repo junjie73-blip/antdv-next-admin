@@ -81,8 +81,7 @@ async function generateToken(): Promise<string> {
   if (crypto && crypto.getRandomValues) {
     // 浏览器环境：使用 Web Crypto API
     crypto.getRandomValues(bytes)
-  }
-  else {
+  } else {
     // 降级方案：使用 Math.random（安全性较低）
     for (let i = 0; i < bytes.length; i++) {
       bytes[i] = Math.floor(Math.random() * 256)
@@ -95,10 +94,7 @@ async function generateToken(): Promise<string> {
     base64 += String.fromCharCode(byte)
   }
 
-  return btoa(base64)
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '')
+  return btoa(base64).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
 /**
@@ -114,14 +110,14 @@ async function simpleHash(str: string): Promise<string> {
   if (crypto && crypto.subtle) {
     const hashBuffer = await crypto.subtle.digest('SHA-256', data)
     const hashArray = Array.from(new Uint8Array(hashBuffer))
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
   }
 
   // 降级：简单 XOR hash
   let hash = 0
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
+    hash = (hash << 5) - hash + char
     hash = hash & hash // Convert to 32bit integer
   }
   return Math.abs(hash).toString(16)
@@ -170,8 +166,7 @@ export async function createCsrfToken(): Promise<CsrfToken> {
     localStorageCacheStorage.setItem(config.tokenKey, JSON.stringify(token), {
       expire: config.expiryMs,
     })
-  }
-  catch (e) {
+  } catch (e) {
     console.warn('[CSRF] Token 持久化失败:', e)
   }
 
@@ -266,8 +261,7 @@ export async function invalidateCsrfToken(): Promise<void> {
 
   try {
     localStorageCacheStorage.removeItem(config.tokenKey)
-  }
-  catch {
+  } catch {
     // 忽略错误
   }
 
@@ -286,8 +280,7 @@ export async function invalidateCsrfToken(): Promise<void> {
 function setCsrfCookie(value: string): void {
   try {
     document.cookie = `${config.cookieName}=${value}; path=/; SameSite=Lax; Secure; HttpOnly=false`
-  }
-  catch {
+  } catch {
     console.warn('[CSRF] Cookie 设置失败')
   }
 }
@@ -298,8 +291,7 @@ function setCsrfCookie(value: string): void {
 function removeCsrfCookie(): void {
   try {
     document.cookie = `${config.cookieName}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
-  }
-  catch {
+  } catch {
     // 忽略错误
   }
 }
@@ -318,8 +310,7 @@ export function getCsrfCookieValue(): string | null {
         return decodeURIComponent(value)
       }
     }
-  }
-  catch {
+  } catch {
     // 忽略解析错误
   }
 
@@ -374,8 +365,7 @@ async function restoreToken(): Promise<void> {
         return
       }
     }
-  }
-  catch {
+  } catch {
     // 解析失败，忽略
   }
 

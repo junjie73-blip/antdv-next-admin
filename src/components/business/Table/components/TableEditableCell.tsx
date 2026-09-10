@@ -35,22 +35,22 @@ export default defineComponent({
     const inputRef = ref<any>(null)
 
     // 监听值变化
-    watch(() => props.value, (newVal) => {
-      editValue.value = newVal
-    })
+    watch(
+      () => props.value,
+      (newVal) => {
+        editValue.value = newVal
+      },
+    )
 
     // 获取编辑组件类型
     const getEditComponent = computed(() => {
       const editComponent = props.column?.editComponent
-      if (editComponent)
-        return editComponent
+      if (editComponent) return editComponent
 
       // 根据值类型推断组件
       const val = props.value
-      if (typeof val === 'boolean')
-        return 'Switch'
-      if (typeof val === 'number')
-        return 'InputNumber'
+      if (typeof val === 'boolean') return 'Switch'
+      if (typeof val === 'number') return 'InputNumber'
       return 'Input'
     })
 
@@ -183,16 +183,10 @@ export default defineComponent({
           <div class="flex items-center gap-2">
             <div class="flex-1">{renderEditComponent()}</div>
             <div class="flex gap-1">
-              <Button
-                type="text"
-                onClick={handleSave}
-              >
+              <Button type="text" onClick={handleSave}>
                 <Icon icon="ant-design:check-outlined" />
               </Button>
-              <Button
-                type="text"
-                onClick={handleCancel}
-              >
+              <Button type="text" onClick={handleCancel}>
                 <Icon icon="ant-design:close-outlined" />
               </Button>
             </div>

@@ -16,17 +16,20 @@ export interface RL<T = unknown> {
 }
 
 export function get<T = unknown>(url: string, params?: Record<string, unknown>) {
-  return http.Get<R<T>>(url, { params }).then(res => res.data)
+  return http
+    .Get<R<T>>(url, { params })
+    .send(true)
+    .then((res) => res.data)
 }
 
 export function post<T = unknown>(url: string, data?: Record<string, unknown>) {
-  return http.Post<R<T>>(url, data).then(res => res.data)
+  return http.Post<R<T>>(url, data).then((res) => res.data)
 }
 
 export function put<T = unknown>(url: string, data?: Record<string, unknown>) {
-  return http.Put<R<T>>(url, data).then(res => res.data)
+  return http.Put<R<T>>(url, data).then((res) => res.data)
 }
 
 export function del<T = unknown>(url: string, params?: Record<string, unknown>) {
-  return http.Delete<R<T>>(url, { params }).then(res => res.data)
+  return http.Delete<R<T>>(url, { params }).then((res) => res.data)
 }

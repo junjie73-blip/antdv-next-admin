@@ -67,9 +67,9 @@ export async function preloadRoute(to: string | RouteLocationRaw): Promise<boole
     if (matched.length > 0) {
       // 预加载所有匹配的路由组件
       const loadPromises = matched
-        .map(record => record.components)
+        .map((record) => record.components)
         .filter(Boolean)
-        .flatMap(components =>
+        .flatMap((components) =>
           Object.values(components).map((component: any) => {
             // 如果是动态导入函数，调用它来触发加载
             if (typeof component === 'function') {
@@ -88,13 +88,11 @@ export async function preloadRoute(to: string | RouteLocationRaw): Promise<boole
 
       console.log(`[RoutePreload] ✅ 成功预加载: ${path}`)
       return true
-    }
-    else {
+    } else {
       console.warn(`[RoutePreload] 未找到匹配路由: ${path}`)
       return false
     }
-  }
-  catch (error) {
+  } catch (error) {
     console.error(`[RoutePreload] ❌ 预加载失败: ${path}`, error)
     return false
   }
@@ -115,7 +113,7 @@ export async function preloadRoutes(routes: string[]): Promise<void> {
   }
 
   for (const chunk of chunks) {
-    await Promise.allSettled(chunk.map(route => preloadRoute(route)))
+    await Promise.allSettled(chunk.map((route) => preloadRoute(route)))
   }
 }
 
@@ -146,8 +144,7 @@ export function useRoutePreloader() {
       }
 
       return success
-    }
-    finally {
+    } finally {
       isPreloading.value = false
     }
   }
@@ -180,14 +177,13 @@ export function useRoutePreloader() {
    */
   function idlePreload(): void {
     if ('requestIdleCallback' in window) {
-      (window as any).requestIdleCallback(
+      ;(window as any).requestIdleCallback(
         () => {
           predictAndPreload()
         },
         { timeout: 3000 },
       )
-    }
-    else {
+    } else {
       setTimeout(predictAndPreload, 2000)
     }
   }

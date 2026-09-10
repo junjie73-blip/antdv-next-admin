@@ -3,8 +3,8 @@ import type { MenuProps } from 'antdv-next'
 
 import { Icon } from '@iconify/vue'
 import { Menu } from 'antdv-next'
-import { computed, unref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, nextTick, unref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import logoIconUrl from '@/assets/images/logo-icon.svg'
 import { useAppStore } from '@/stores/modules/app'
 import { useRouteStore } from '@/stores/modules/route'
@@ -26,13 +26,12 @@ defineOptions({
   name: 'LayoutSidebar',
 })
 
-const _route = useRoute()
 const router = useRouter()
 const appStore = useAppStore()
 const routeStore = useRouteStore()
 const { sidebarWidth } = appStore
 const { toggleCollapsed } = useLayout()
-const { selectedKeys, openKeys, handleOpenChange } = useMenu()
+const { selectedKeys, openKeys, handleOpenChange, setMenuTree, syncMenuByRoute } = useMenu()
 const allMenuItems = computed<MenuProps['items']>(() => {
   const menus = unref(routeStore.menus)
   if (!menus || menus.length === 0) {
@@ -41,23 +40,25 @@ const allMenuItems = computed<MenuProps['items']>(() => {
   return transformMenuConfigToItems(menus)
 })
 
-/** 计算菜单项层级（用于手风琴模式） */
-const menuLevelKeys = computed(() => {
-  const items = allMenuItems.value
-  if (!items || items.length === 0)
-    return {}
-  const map: Record<string, number> = {}
-  const walk = (list: any[], level = 1) => {
-    for (const item of list) {
-      if (item?.key)
-        map[item.key] = level
-      if (item?.children)
-        walk(item.children, level + 1)
+// 监听菜单数据，等菜单加载完后主动同步选中态
+watch(
+  allMenuItems,
+  (items) => {
+    if (items && items.length > 0) {
+      setMenuTree(items as any[])
+      syncMenuByRoute()
     }
-  }
-  walk(items as any[])
-  return map
-})
+  },
+  { immediate: true },
+)
+
+// 混合布局下切换到子菜单时，也要重新同步
+watch(
+  () => props.activeTopMenu,
+  () => {
+    nextTick(() => syncMenuByRoute())
+  },
+)
 
 const _appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
 
@@ -65,12 +66,13 @@ const isGeekStyle = computed(() => appStore.themeStyle === 'geek')
 const isDarkMode = computed(() => appStore.themeMode === 'dark' || isGeekStyle.value)
 
 const menuTheme = computed(() => {
-  if (isGeekStyle.value)
-    return 'dark'
+  if (isGeekStyle.value) return 'dark'
   return appStore.darkSidebar ? 'dark' : 'light'
 })
 
-const isLightSidebar = computed(() => !appStore.darkSidebar && !isDarkMode.value && !isGeekStyle.value)
+const isLightSidebar = computed(
+  () => !appStore.darkSidebar && !isDarkMode.value && !isGeekStyle.value,
+)
 
 const collapseBtnClassName = computed(() =>
   cn(
@@ -161,38 +163,24 @@ const handleMenuSelect: MenuProps['onSelect'] = ({ key }) => {
     }"
   >
     <!-- Logo 区域 -->
-    <div
-      v-if="!mixed"
-      :class="logoClassName"
-    >
-      <transition
-        name="logo-fade"
-        mode="out-in"
-      >
-        <div
-          v-if="props.collapsed"
-          key="collapsed"
-          class="flex items-center justify-center"
-        >
-          <div class="w-9 h-9 rounded-lg bg-[var(--ant-color-primary)] flex items-center justify-center shadow-md shadow-[var(--ant-color-primary)]/20">
-            <img
-              :src="logoIconUrl"
-              alt="A"
-              class="w-5 h-5 object-contain brightness-0 invert"
-            >
+    <div v-if="!mixed" :class="logoClassName">
+      <transition name="logo-fade" mode="out-in">
+        <div v-if="props.collapsed" key="collapsed" class="flex items-center justify-center">
+          <div
+            class="w-9 h-9 rounded-lg bg-[var(--ant-color-primary)] flex items-center justify-center shadow-md shadow-[var(--ant-color-primary)]/20"
+          >
+            <img :src="logoIconUrl" alt="A" class="w-5 h-5 object-contain brightness-0 invert" />
           </div>
         </div>
-        <div
-          v-else
-          key="expanded"
-          class="flex items-center justify-center gap-2.5 px-4"
-        >
-          <div class="w-8 h-8 rounded-lg bg-[var(--ant-color-primary)] flex items-center justify-center shadow-md shadow-[var(--ant-color-primary)]/20 flex-shrink-0">
+        <div v-else key="expanded" class="flex items-center justify-center gap-2.5 px-4">
+          <div
+            class="w-8 h-8 rounded-lg bg-[var(--ant-color-primary)] flex items-center justify-center shadow-md shadow-[var(--ant-color-primary)]/20 flex-shrink-0"
+          >
             <img
               :src="logoIconUrl"
               alt="A"
               class="w-4.5 h-4.5 object-contain brightness-0 invert"
-            >
+            />
           </div>
           <span class="text-base font-semibold text-gray-800 truncate dark:text-white">
             {{ _appTitle }}
@@ -215,16 +203,13 @@ const handleMenuSelect: MenuProps['onSelect'] = ({ key }) => {
           :items="menuItems"
           :inline-collapsed="props.collapsed"
           @select="handleMenuSelect"
-          @openChange="(keys: string[]) => handleOpenChange(keys, menuLevelKeys)"
+          @openChange="handleOpenChange"
         />
       </PerfectScrollbar>
     </div>
 
     <!-- 折叠按钮 -->
-    <div
-      :class="collapseBtnClassName"
-      @click="toggleCollapsed"
-    >
+    <div :class="collapseBtnClassName" @click="toggleCollapsed">
       <Icon
         icon="ant-design:left-outlined"
         class="text-sm transition-transform duration-200"
@@ -240,6 +225,7 @@ const handleMenuSelect: MenuProps['onSelect'] = ({ key }) => {
 .logo-fade-leave-active {
   transition: opacity 0.2s ease;
 }
+
 .logo-fade-enter-from,
 .logo-fade-leave-to {
   opacity: 0;
