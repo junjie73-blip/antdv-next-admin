@@ -1,7 +1,7 @@
 import type { Ref } from "vue";
 import * as echarts from "echarts";
 import { ref } from "vue";
-import { isObject } from "video.js/dist/types/utils/obj";
+import { isObject } from "es-toolkit/compat";
 
 /**
  * 图表实例管理器

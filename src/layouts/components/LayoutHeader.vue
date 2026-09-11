@@ -13,7 +13,7 @@ import { useBreadcrumb } from "../composables/useLayout";
 import AccountDrawer from "./AccountDrawer.vue";
 import SettingDrawer from "./SettingDrawer.vue";
 import { http } from "@/utils";
-import { useWs, type NotificationItem } from "@/utils/ws";
+import { noticeTypeConfig, useWs, type NotificationItem } from "@/utils/ws";
 defineProps<{
   collapsed?: boolean;
   horizontal?: boolean;
@@ -52,9 +52,9 @@ const { notice } = useWs();
 // ========== 获取通知列表（头部小弹窗） ==========
 async function fetchRecentNotifications() {
   try {
-    const { data } = await http
+    const { data } = (await http
       .Get("/notice/my", { params: { pageNum: 1, pageSize: 10 } })
-      .send(true);
+      .send(true)) as any;
     console.log(data, "data");
     if (data && data.list) {
       notifications.value = data.list.map(transformNotice);
@@ -204,11 +204,11 @@ function handleHorizontalMenuSelect({ key }: { key: string }) {
   emit("topMenuSelect", key);
 }
 
-watch(notice, (newData) => {
-  notifications.value.unshift(unref(notice));
+watch(notice, () => {
+  notifications.value.unshift(unref(notice as any));
   unreadCount.value += 1;
   if (showAllNotificationsModal.value) {
-    allNotifications.value.unshift(unref(notice));
+    allNotifications.value.unshift(unref(notice as any));
     totalNotifications.value += 1;
   }
 });
@@ -245,7 +245,7 @@ onMounted(() => {
             >
               <Icon
                 :icon="
-                  index === 0 ? 'carbon:home' : breadcrumbs[index - 1]?.icon || 'carbon:folder'
+                  index === 0 ? 'carbon:home' : breadcrumbs[index - 1]?.icon as string || 'carbon:folder'
                 "
                 class="text-sm"
               />
