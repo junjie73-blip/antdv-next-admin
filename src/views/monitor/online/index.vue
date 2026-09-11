@@ -1,38 +1,35 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { ref } from "vue";
-import { getOnlineList, kickOnline, kickAllOnline } from "@/api/system";
-import { BasicTable, useTable } from "@/components/business/Table";
 import { Modal, message } from "antdv-next";
-import dayjs from "dayjs";
+
+import { getOnlineList, kickAllOnline, kickOnline } from "@/api/system";
+import { BasicTable, TableAction, useTable, type ActionItem } from "@/components/business/Table";
+
+// 抽离的模块
+import { getOnlineActions } from "./actions";
+import { onlineActionColumn, onlineColumns, onlineRowKey, onlineScroll } from "./columns";
+import type { OnlineUserRecord } from "./types";
 
 defineOptions({ name: "MonitorOnline" });
 
+// ========== 表格实例 ==========
 const [tableRegister, tableMethods] = useTable();
 
-function formatTtl(ttl: number): string {
-  if (ttl < 0) return "-";
-  if (ttl < 60) return `${ttl} 秒`;
-  if (ttl < 3600) return `${Math.floor(ttl / 60)} 分钟`;
-  return `${Math.floor(ttl / 3600)} 小时`;
+// ========== 强制单个用户下线 ==========
+// 说明：确认环节由操作项的 popConfirm 负责，这里直接执行副作用
+async function handleKick(record: OnlineUserRecord) {
+  await kickOnline(record.userId);
+  message.success("已强制下线");
+  tableMethods.value?.reload();
 }
 
-async function handleKick(record: any) {
-  Modal.confirm({
-    title: "强制下线",
-    content: `确定要强制用户「${record.username}」下线吗？`,
-    async onOk() {
-      await kickOnline(record.userId);
-      message.success("已强制下线");
-      tableMethods.value?.reload();
-    },
-  });
-}
-
+// ========== 全部下线 ==========
 async function handleKickAll() {
   Modal.confirm({
     title: "全部下线",
     content: "确定要强制所有在线用户下线吗？",
+    okText: "确定",
+    cancelText: "取消",
     okType: "danger",
     async onOk() {
       await kickAllOnline();
@@ -42,46 +39,22 @@ async function handleKickAll() {
   });
 }
 
-const columns = [
-  {
-    title: "序号",
-    key: "index",
-    width: 60,
-    align: "center",
-    customRender: ({ index }: any) => index + 1,
-  },
-  { title: "用户名", dataIndex: "username", key: "username", width: 140 },
-  { title: "真实姓名", dataIndex: "realName", key: "realName", width: 140 },
-  { title: "登录IP", dataIndex: "ip", key: "ip", width: 160 },
-  {
-    title: "登录时间",
-    dataIndex: "loginTime",
-    key: "loginTime",
-    width: 180,
-    customRender: ({ record }: any) =>
-      record.loginTime ? dayjs(record.loginTime).format("YYYY-MM-DD HH:mm:ss") : "-",
-  },
-  {
-    title: "会话剩余",
-    dataIndex: "ttl",
-    key: "ttl",
-    width: 120,
-    align: "center",
-    customRender: ({ record }: any) => formatTtl(record.ttl),
-  },
-];
+// ========== 操作项 ==========
+function getActions(record: OnlineUserRecord): ActionItem[] {
+  return getOnlineActions(record, { onKick: handleKick });
+}
 </script>
 
 <template>
   <a-card title="在线用户" :bordered="false" class="shadow-sm">
     <BasicTable
-      :columns="columns"
+      :columns="onlineColumns"
       :api="getOnlineList"
       :immediate="true"
       :use-search-form="false"
-      :scroll="{ x: 1000 }"
-      :row-key="(r: any) => r.userId"
-      :action-column="{ width: 140, title: '操作', fixed: 'right' }"
+      :scroll="onlineScroll"
+      :row-key="onlineRowKey"
+      :action-column="onlineActionColumn"
       @register="tableRegister"
     >
       <template #toolbar>
@@ -90,10 +63,9 @@ const columns = [
           全部下线
         </a-button>
       </template>
+
       <template #action="{ record }">
-        <a-popconfirm title="确定强制下线该用户？" @confirm="() => handleKick(record)">
-          <a-button type="link" danger size="small">强制下线</a-button>
-        </a-popconfirm>
+        <TableAction :actions="getActions(record as OnlineUserRecord)" />
       </template>
     </BasicTable>
   </a-card>

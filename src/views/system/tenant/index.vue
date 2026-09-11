@@ -254,6 +254,29 @@ const columns: BasicColumn[] = [
   },
   { title: "创建时间", dataIndex: "createdAt", key: "createdAt", width: 170, align: "center" },
 ];
+const getActions = (record: any): ActionItem[] => {
+  return [
+    {
+      label: "编辑",
+      icon: "ant-design:edit-outlined",
+      onClick: () => handleEdit(record),
+    },
+    {
+      label: "查看",
+      icon: "ant-design:eye-outlined",
+      onClick: () => handleView(record),
+    },
+    {
+      label: "删除",
+      icon: "ant-design:delete-outlined",
+      danger: true,
+      popConfirm: {
+        title: "删除租户",
+        confirm: () => handleDelete(record),
+      },
+    },
+  ];
+};
 </script>
 
 <template>
@@ -267,7 +290,7 @@ const columns: BasicColumn[] = [
         :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
         :scroll="{ x: 1400 }"
         :row-selection="{ type: 'checkbox' }"
-        :action-column="{ width: 220, title: '操作', fixed: 'right' }"
+        :action-column="{ width: 250, title: '操作', fixed: 'right' }"
         :pagination="{ showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }"
         :row-key="(record) => record.tenantId"
         table-layout="fixed"
@@ -291,22 +314,7 @@ const columns: BasicColumn[] = [
         </template>
 
         <template #action="{ record }">
-          <div :class="actionClassName">
-            <a-button type="link" :class="btnClassName" @click="() => handleView(record)"
-              >查看</a-button
-            >
-            <a-divider type="vertical" :class="dividerClassName" />
-            <a-button type="link" :class="btnClassName" @click="() => handleEdit(record)"
-              >编辑</a-button
-            >
-            <a-divider type="vertical" :class="dividerClassName" />
-            <a-popconfirm
-              :title="`确定删除租户「${record.tenantName}」吗？`"
-              @confirm="() => handleDelete(record)"
-            >
-              <a-button type="link" danger :class="btnClassName">删除</a-button>
-            </a-popconfirm>
-          </div>
+          <table-action :actions="getActions(record)" />
         </template>
       </BasicTable>
     </a-card>

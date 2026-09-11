@@ -1,217 +1,117 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { computed, onMounted, ref } from 'vue'
+import { Icon } from "@iconify/vue";
+import { computed, onMounted, ref } from "vue";
+import { message } from "antdv-next";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
 import {
+  completeTodo,
+  createTodo,
+  deleteTodo,
   getTodoList,
   getTodoStats,
-  createTodo,
   updateTodo,
-  deleteTodo,
-  completeTodo,
-} from '@/api/system'
-import { BasicForm, useForm } from '@/components/business/Form'
-import { BasicModal, useModal } from '@/components/business/Modal'
-import { message } from 'antdv-next'
-import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
+} from "@/api/system";
+import { BasicForm, useForm } from "@/components/business/Form";
+import { BasicModal, useModal } from "@/components/business/Modal";
 
-dayjs.extend(relativeTime)
-defineOptions({ name: 'MessageTodo' })
+// 抽离的模块
+import { FILTER_META, PRIORITY_MAP } from "./constants";
+import { TODO_EMPTY_VALUES, todoFormSchemas } from "./schemas";
+import type { TodoFilterKey, TodoFilterOption, TodoRecord, TodoStats } from "./types";
+import { filterTodos, getDueTimeInfo, isOverdue, todoToFormValues } from "./utils";
+
+dayjs.extend(relativeTime);
+defineOptions({ name: "MessageTodo" });
 
 // ============ 状态 ============
-const loading = ref(false)
-const stats = ref({ all: 0, uncompleted: 0, completed: 0, overdue: 0 })
-const list = ref<any[]>([])
-const activeFilter = ref<'all' | 'uncompleted' | 'completed' | 'overdue'>('all')
-const [modalRegister, modalMethods] = useModal()
-const [formRegister, formMethods] = useForm()
-const editingId = ref<string | null>(null)
+const loading = ref(false);
+const stats = ref<TodoStats>({ all: 0, uncompleted: 0, completed: 0, overdue: 0 });
+const list = ref<TodoRecord[]>([]);
+const activeFilter = ref<TodoFilterKey>("all");
+const [modalRegister, modalMethods] = useModal();
+const [formRegister, formMethods] = useForm();
+const editingId = ref<string | null>(null);
 
-const priorityMap: Record<number, { label: string; color: string; bg: string }> = {
-  0: {
-    label: '普通',
-    color: '#8c8c8c',
-    bg: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
-  },
-  1: {
-    label: '重要',
-    color: '#faad14',
-    bg: 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400',
-  },
-  2: {
-    label: '紧急',
-    color: '#f5222d',
-    bg: 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400',
-  },
-}
-
-// ============ 过滤配置 ============
-const filterOptions = computed(() => [
-  { key: 'all', label: '全部', icon: 'carbon:list', count: stats.value.all, color: '#1677ff' },
-  {
-    key: 'uncompleted',
-    label: '未完成',
-    icon: 'carbon:in-progress',
-    count: stats.value.uncompleted,
-    color: '#faad14',
-  },
-  {
-    key: 'completed',
-    label: '已完成',
-    icon: 'carbon:checkmark-outline',
-    count: stats.value.completed,
-    color: '#52c41a',
-  },
-  {
-    key: 'overdue',
-    label: '逾期',
-    icon: 'carbon:warning-alt',
-    count: stats.value.overdue,
-    color: '#f5222d',
-  },
-])
+// ============ 过滤器配置（合并统计数值） ============
+const filterOptions = computed<TodoFilterOption[]>(() =>
+  (Object.keys(FILTER_META) as TodoFilterKey[]).map((key) => ({
+    key,
+    ...FILTER_META[key],
+    count: stats.value[key],
+  })),
+);
 
 // ============ 过滤后的列表 ============
-const filteredList = computed(() => {
-  const now = new Date()
-  return list.value.filter((t) => {
-    if (activeFilter.value === 'uncompleted') return t.status === '0'
-    if (activeFilter.value === 'completed') return t.status === '1'
-    if (activeFilter.value === 'overdue')
-      return t.status === '0' && t.dueTime && new Date(t.dueTime) < now
-    return true
-  })
-})
-
-// ============ 表单 Schema ============
-const formSchemas = [
-  {
-    field: 'title',
-    label: '标题',
-    component: 'Input',
-    required: true,
-    colProps: { span: 24 },
-    componentProps: { placeholder: '请输入待办标题' },
-  },
-  {
-    field: 'content',
-    label: '描述',
-    component: 'InputTextArea',
-    colProps: { span: 24 },
-    componentProps: { rows: 3, placeholder: '请输入详情...' },
-  },
-  {
-    field: 'priority',
-    label: '优先级',
-    component: 'RadioGroup',
-    defaultValue: 0,
-    colProps: { span: 24 },
-    componentProps: {
-      optionType: 'button',
-      buttonStyle: 'solid',
-      options: [
-        { label: '普通', value: 0 },
-        { label: '重要', value: 1 },
-        { label: '紧急', value: 2 },
-      ],
-    },
-  },
-  {
-    field: 'dueTime',
-    label: '截止时间',
-    component: 'DatePicker',
-    colProps: { span: 24 },
-    componentProps: {
-      showTime: true,
-      style: { width: '100%' },
-      placeholder: '不填则表示无截止时间',
-    },
-  },
-]
+const filteredList = computed(() => filterTodos(list.value, activeFilter.value));
 
 // ============ 数据加载 ============
 async function load() {
-  loading.value = true
+  loading.value = true;
   try {
     const [listRes, statsRes] = await Promise.all([
       getTodoList({ pageNum: 1, pageSize: 200 }),
       getTodoStats(),
-    ])
-    const ld = listRes?.data ?? listRes
-    list.value = ld?.list || []
-    stats.value = (statsRes?.data ?? statsRes) || stats.value
+    ]);
+    const ld = listRes?.data ?? listRes;
+    list.value = ld?.list || [];
+    stats.value = (statsRes?.data ?? statsRes) || stats.value;
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 // ============ CRUD ============
 function handleAdd() {
-  editingId.value = null
-  formMethods.setFieldsValue({ title: '', content: '', priority: 0, dueTime: null })
-  formMethods.clearValidate()
-  modalMethods.openModal()
+  editingId.value = null;
+  formMethods.setFieldsValue({ ...TODO_EMPTY_VALUES });
+  formMethods.clearValidate();
+  modalMethods.openModal();
 }
 
-function handleEdit(item: any) {
-  editingId.value = item.todoId
-  formMethods.setFieldsValue({
-    title: item.title,
-    content: item.content,
-    priority: item.priority,
-    dueTime: item.dueTime ? dayjs(item.dueTime) : null,
-  })
-  formMethods.clearValidate()
-  modalMethods.openModal()
+function handleEdit(item: TodoRecord) {
+  editingId.value = item.todoId;
+  formMethods.setFieldsValue(todoToFormValues(item));
+  formMethods.clearValidate();
+  modalMethods.openModal();
 }
 
 async function handleSave() {
-  const values = await formMethods.validate()
-  if (!values) return
+  const values = await formMethods.validate();
+  if (!values) return;
+
   const payload: any = {
     ...values,
-    dueTime: values.dueTime ? dayjs(values.dueTime).format('YYYY-MM-DD HH:mm:ss') : null,
-  }
+    dueTime: values.dueTime ? dayjs(values.dueTime).format("YYYY-MM-DD HH:mm:ss") : null,
+  };
+
   if (editingId.value) {
-    await updateTodo(editingId.value, payload)
-    message.success('更新成功')
+    await updateTodo(editingId.value, payload);
+    message.success("更新成功");
   } else {
-    await createTodo(payload)
-    message.success('创建成功')
+    await createTodo(payload);
+    message.success("创建成功");
   }
-  modalMethods.closeModal()
-  load()
+
+  modalMethods.closeModal();
+  load();
 }
 
-async function handleComplete(item: any) {
-  if (item.status === '1') return
-  await completeTodo(item.todoId)
-  message.success('已完成')
-  load()
+async function handleComplete(item: TodoRecord) {
+  if (item.status === "1") return;
+  await completeTodo(item.todoId);
+  message.success("已完成");
+  load();
 }
 
-async function handleDelete(item: any) {
-  await deleteTodo(item.todoId)
-  message.success('已删除')
-  load()
+async function handleDelete(item: TodoRecord) {
+  await deleteTodo(item.todoId);
+  message.success("已删除");
+  load();
 }
 
-function isOverdue(item: any) {
-  return item.status === '0' && item.dueTime && new Date(item.dueTime) < new Date()
-}
-
-// ============ 工具函数 ============
-function getDueTimeInfo(item: any) {
-  if (!item.dueTime) return null
-  const due = dayjs(item.dueTime)
-  const now = dayjs()
-  if (item.status === '1') return { text: due.format('MM-DD HH:mm'), urgent: false, overdue: false }
-  const overdue = due.isBefore(now)
-  const soon = !overdue && due.diff(now, 'hour') < 24
-  return { text: due.format('MM-DD HH:mm'), overdue, urgent: soon }
-}
-
-onMounted(load)
+onMounted(load);
 </script>
 
 <template>
@@ -255,7 +155,7 @@ onMounted(load)
               ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
               : 'hover:bg-gray-50 dark:hover:bg-gray-800/60 text-gray-600 dark:text-gray-400'
           "
-          @click="activeFilter = f.key as any"
+          @click="activeFilter = f.key"
         >
           <div class="flex items-center gap-2">
             <Icon
@@ -302,9 +202,7 @@ onMounted(load)
           </div>
           <div class="text-sm">
             {{
-              activeFilter === 'all'
-                ? '暂无待办'
-                : `没有${filterOptions.find((f) => f.key === activeFilter)?.label}的待办`
+              activeFilter === "all" ? "暂无待办" : `没有${FILTER_META[activeFilter].label}的待办`
             }}
           </div>
           <a-button type="link" @click="handleAdd">立即创建一个 →</a-button>
@@ -321,7 +219,7 @@ onMounted(load)
             <!-- 左侧优先级色条 -->
             <div
               class="absolute left-0 top-2 bottom-2 w-0.5 rounded-full transition-all"
-              :style="{ backgroundColor: priorityMap[item.priority]?.color }"
+              :style="{ backgroundColor: PRIORITY_MAP[item.priority]?.color }"
             />
 
             <!-- 完成勾选 -->
@@ -346,9 +244,9 @@ onMounted(load)
                 </span>
                 <span
                   class="px-1.5 py-0.5 rounded text-[11px] font-medium"
-                  :class="priorityMap[item.priority]?.bg"
+                  :class="PRIORITY_MAP[item.priority]?.bg"
                 >
-                  {{ priorityMap[item.priority]?.label }}
+                  {{ PRIORITY_MAP[item.priority]?.label }}
                 </span>
                 <span
                   v-if="isOverdue(item)"
@@ -415,7 +313,7 @@ onMounted(load)
       @ok="handleSave"
     >
       <BasicForm
-        :schemas="formSchemas"
+        :schemas="todoFormSchemas"
         :label-width="80"
         :show-action-button-group="false"
         :grid="{ cols: 1, gutter: 16 }"
@@ -424,12 +322,3 @@ onMounted(load)
     </BasicModal>
   </div>
 </template>
-
-<style scoped>
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-</style>

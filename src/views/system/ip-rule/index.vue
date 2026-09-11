@@ -4,7 +4,7 @@ import { ref, watch } from "vue";
 import { getIpRuleList, createIpRule, updateIpRule, deleteIpRule } from "@/api/system";
 import { BasicForm, useForm } from "@/components/business/Form";
 import { BasicModal, useModal } from "@/components/business/Modal";
-import { BasicTable, useTable } from "@/components/business/Table";
+import { BasicTable, useTable, type ActionItem } from "@/components/business/Table";
 import { useCRUD } from "@/composables/useCRUD";
 import { message } from "antdv-next";
 import dayjs from "dayjs";
@@ -119,6 +119,24 @@ watch(
     immediate: true,
   },
 );
+const getActions = (record: any): ActionItem[] => {
+  return [
+    {
+      label: "编辑",
+      icon: "ant-design:edit-outlined",
+      onClick: () => handleEdit(record),
+    },
+    {
+      label: "删除",
+      icon: "ant-design:delete-outlined",
+      danger: true,
+      popConfirm: {
+        title: "删除IP规则",
+        confirm: () => handleDelete(record),
+      },
+    },
+  ];
+};
 </script>
 
 <template>
@@ -150,12 +168,7 @@ watch(
         </a-tag>
       </template>
       <template #action="{ record }">
-        <a-space>
-          <a-button type="link" size="small" @click="() => handleEdit(record)">编辑</a-button>
-          <a-popconfirm title="确定删除？" @confirm="() => handleDelete(record)">
-            <a-button type="link" danger size="small">删除</a-button>
-          </a-popconfirm>
-        </a-space>
+        <table-action :actions="getActions(record)" />
       </template>
     </BasicTable>
 

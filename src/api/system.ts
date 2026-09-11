@@ -1,5 +1,6 @@
 import { http } from "@/utils";
 import { del, get, post, put } from "./request";
+import type { FetchParams } from "@/components/business/Table";
 
 // ======================== 用户管理 ========================
 
@@ -25,7 +26,7 @@ export function updateUser(id: number, data: Record<string, unknown>) {
 
 /** 删除用户 */
 export function deleteUser(id: number) {
-  return del<void>(`/user/${id}`);
+  return del<void>(`/user/remove/${id}`);
 }
 
 /** 用户下拉选项 */
@@ -215,12 +216,12 @@ export function forceLogout(tokenId: string) {
 // ======================== 消息通知 ========================
 
 /** 消息通知列表（分页） */
-export function getNoticeList(params?: Record<string, unknown>) {
-  return get<{ list: any[]; total: number }>("/notice/list", params);
+export function getNoticeList(params?: FetchParams) {
+  return get<{ list: any[]; total: number }>("/notice/list", params as any);
 }
 
 /** 标记消息已读 */
-export function markNoticeRead(id: number) {
+export function markNoticeRead(id: string) {
   return put<void>(`/notice/${id}/read`);
 }
 
@@ -251,7 +252,7 @@ export function getMyNoticeList(params?: Record<string, unknown>) {
   return get<{ list: any[]; total: number }>("/notice/my", params);
 }
 // 发送通知
-export function sendNotice(id: number) {
+export function sendNotice(id: string) {
   return post<void>(`/notice/${id}/send`);
 }
 
@@ -302,15 +303,15 @@ export const kickOnline = (userId: string) => http.Delete(`/online/${userId}`);
 export const kickAllOnline = () => http.Post("/online/kick-all");
 
 // 缓存监控
-export const getCacheInfo = () => http.Get("/monitor/cache/info");
+export const getCacheInfo = (): any => http.Get("/monitor/cache/info").send(true);
 export const getCacheKeys = (params: any) => http.Get("/monitor/cache/keys", { params });
 export const deleteCacheKey = (key: string) =>
   http.Delete(`/monitor/cache/key/${encodeURIComponent(key)}`);
 export const clearCache = () => http.Post("/monitor/cache/clear");
 
 // 待办
-export const getTodoList = (params: any) => http.Get("/todo/list", { params });
-export const getTodoStats = () => http.Get("/todo/stats");
+export const getTodoList = (params: any): any => http.Get("/todo/list", { params });
+export const getTodoStats = (): any => http.Get("/todo/stats");
 export const createTodo = (data: any) => http.Post("/todo", data);
 export const updateTodo = (id: string, data: any) => http.Put(`/todo/${id}`, data);
 export const deleteTodo = (id: string) => http.Delete(`/todo/${id}`);

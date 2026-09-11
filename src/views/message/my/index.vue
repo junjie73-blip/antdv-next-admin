@@ -1,67 +1,57 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { ref, watch } from 'vue'
-import { http } from '@/utils'
-import { BasicTable, useTable } from '@/components/business/Table'
-import { message } from 'antdv-next'
-import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
+import { Icon } from "@iconify/vue";
+import { ref, watch } from "vue";
+import { message } from "antdv-next";
+import { BasicTable, useTable } from "@/components/business/Table";
 
-dayjs.extend(relativeTime)
-defineOptions({ name: 'MessageMy' })
+import { getNoticeActions } from "./actions";
+import { fetchMyNotices, markAllNoticesRead } from "./api";
+import { noticeActionColumn, noticeColumns, noticeRowKey, noticeScroll } from "./columns";
+import { NOTICE_TYPE_MAP, TAB_TO_IS_READ } from "./constants";
+import type { NoticeTabKey } from "./types";
 
-const activeTab = ref<'all' | 'unread' | 'read'>('all')
-const [tableRegister, tableMethods] = useTable()
+defineOptions({ name: "MessageMy" });
 
-const typeMap: Record<number, { label: string; color: string }> = {
-  1: { label: '通知', color: 'blue' },
-  2: { label: '公告', color: 'green' },
-  3: { label: '提醒', color: 'orange' },
+const activeTab = ref<NoticeTabKey>("all");
+const [tableRegister, tableMethods] = useTable();
+
+/** 单条标记已读后的处理 */
+function handleMarkReadSuccess() {
+  message.success("已标记为已读");
+  tableMethods.value?.reload();
 }
 
-async function mockApi(params: any) {
-  return await http.Get('/notice/my', { params }).send()
+function handleMarkReadError() {
+  message.error("操作失败");
 }
 
-async function markRead(noticeId: string) {
-  try {
-    await http.Put(`/notice/${noticeId}/read`)
-    message.success('已标记为已读')
-    tableMethods.value?.reload()
-  } catch {
-    message.error('操作失败')
-  }
+/** 表格操作项（每次渲染重新生成以携带最新 record） */
+function getActions(record: any) {
+  return getNoticeActions(record, {
+    onSuccess: handleMarkReadSuccess,
+    onError: handleMarkReadError,
+  });
 }
 
+/** 全部标记已读 */
 async function markAllRead() {
   try {
-    await http.Put('/notice/read-all')
-    message.success('已全部标记为已读')
-    tableMethods.value?.reload()
+    await markAllNoticesRead();
+    message.success("已全部标记为已读");
+    tableMethods.value?.reload();
   } catch {
-    message.error('操作失败')
+    message.error("操作失败");
   }
 }
 
-const columns = [
-  { title: '类型', key: 'noticeType', width: 90, align: 'center' },
-  { title: '标题', dataIndex: 'title', key: 'title', width: 240, ellipsis: true },
-  { title: '内容', dataIndex: 'content', key: 'content', ellipsis: true },
-  { title: '状态', key: 'isRead', width: 90, align: 'center' },
-  {
-    title: '发布时间',
-    dataIndex: 'publishTime',
-    key: 'publishTime',
-    width: 180,
-  },
-]
+/** 切换 Tab 时重新拉取数据 */
 watch(activeTab, (newVal) => {
   tableMethods.value?.reload({
     searchInfo: {
-      isRead: newVal === 'unread' ? 0 : newVal === 'read' ? 1 : undefined,
+      isRead: TAB_TO_IS_READ[newVal],
     },
-  })
-})
+  });
+});
 </script>
 
 <template>
@@ -79,35 +69,30 @@ watch(activeTab, (newVal) => {
     </div>
 
     <BasicTable
-      :columns="columns"
-      :api="mockApi"
+      :columns="noticeColumns"
+      :api="fetchMyNotices"
       :immediate="true"
       :use-search-form="false"
-      :scroll="{ x: 1000 }"
-      :row-key="(r: any) => r.noticeId"
-      :action-column="{ width: 120, title: '操作', fixed: 'right' }"
-      @register="tableRegister"
+      :scroll="noticeScroll"
+      :row-key="noticeRowKey"
+      :action-column="noticeActionColumn"
       :show-table-setting="false"
+      @register="tableRegister"
     >
       <template #cell-noticeType="{ record }">
-        <a-tag :color="typeMap[record.noticeType]?.color">{{
-          typeMap[record.noticeType]?.label
-        }}</a-tag>
+        <a-tag :color="NOTICE_TYPE_MAP[record.noticeType]?.color">
+          {{ NOTICE_TYPE_MAP[record.noticeType]?.label }}
+        </a-tag>
       </template>
+
       <template #cell-isRead="{ record }">
-        <a-tag :color="record.isRead === 1 ? 'default' : 'blue'">{{
-          record.isRead === 1 ? '已读' : '未读'
-        }}</a-tag>
+        <a-tag :color="record.isRead === 1 ? 'default' : 'blue'">
+          {{ record.isRead === 1 ? "已读" : "未读" }}
+        </a-tag>
       </template>
+
       <template #action="{ record }">
-        <a-button
-          v-if="record.isRead !== 1"
-          type="link"
-          size="small"
-          @click="() => markRead(record.noticeId)"
-        >
-          标记已读
-        </a-button>
+        <table-action :actions="getActions(record)" />
       </template>
     </BasicTable>
   </a-card>

@@ -1,204 +1,204 @@
 <script setup lang="ts">
-import type { FormSchema } from '@/components/business/Form'
-import type { BasicColumn } from '@/components/business/Table'
-import { Icon } from '@iconify/vue'
-import { computed, onMounted, ref } from 'vue'
-import { addDept, deleteDept, getDeptList, getDeptTree, updateDept } from '@/api/system'
-import { BasicForm, useForm } from '@/components/business/Form'
-import { BasicModal, useModal } from '@/components/business/Modal'
-import { BasicTable, useTable } from '@/components/business/Table'
-import { DictType } from '@/enums/dict'
-import { useDictStore } from '@/stores'
-import { cn } from '@/utils/cn'
-import { useCRUD } from '@/composables/useCRUD'
-import { message } from 'antdv-next'
+import type { FormSchema } from "@/components/business/Form";
+import type { BasicColumn } from "@/components/business/Table";
+import { Icon } from "@iconify/vue";
+import { computed, onMounted, ref } from "vue";
+import { addDept, deleteDept, getDeptList, getDeptTree, updateDept } from "@/api/system";
+import { BasicForm, useForm } from "@/components/business/Form";
+import { BasicModal, useModal } from "@/components/business/Modal";
+import { BasicTable, useTable } from "@/components/business/Table";
+import { DictType } from "@/enums/dict";
+import { useDictStore } from "@/stores";
+import { cn } from "@/utils/cn";
+import { useCRUD } from "@/composables/useCRUD";
+import { message } from "antdv-next";
 
-defineOptions({ name: 'SystemDept' })
+defineOptions({ name: "SystemDept" });
 
 // ========== 类型定义 ==========
 interface DeptRecord {
-  deptId: string // 主键
-  parentId: string | null
-  deptCode: string
-  deptName: string
-  leader?: string
-  phone?: string
-  email?: string
-  sortOrder: number
-  status: string // '0' | '1'
-  createdAt: string
-  children?: DeptRecord[]
-  userCount?: number // 可选，需后端支持
+  deptId: string; // 主键
+  parentId: string | null;
+  deptCode: string;
+  deptName: string;
+  leader?: string;
+  phone?: string;
+  email?: string;
+  sortOrder: number;
+  status: string; // '0' | '1'
+  createdAt: string;
+  children?: DeptRecord[];
+  userCount?: number; // 可选，需后端支持
 }
 
 interface DeptTreeNode {
-  deptId: string
-  deptName: string
-  children?: DeptTreeNode[]
+  deptId: string;
+  deptName: string;
+  children?: DeptTreeNode[];
 }
 
 // ========== 样式类名 ==========
-const containerClassName = cn('flex gap-4')
-const leftPanelClassName = cn('w-[280px] shrink-0')
-const rightPanelClassName = cn('flex-1 min-w-0')
-const cardClassName = cn('shadow-sm')
-const treeCardClassName = cn('shadow-sm h-full')
-const statusTagClassName = cn('inline-flex items-center gap-1')
-const actionClassName = cn('flex', 'items-center', 'justify-center')
-const btnClassName = cn('!px-0.5')
-const dividerClassName = cn('mx-0')
+const containerClassName = cn("flex gap-4");
+const leftPanelClassName = cn("w-[280px] shrink-0");
+const rightPanelClassName = cn("flex-1 min-w-0");
+const cardClassName = cn("shadow-sm");
+const treeCardClassName = cn("shadow-sm h-full");
+const statusTagClassName = cn("inline-flex items-center gap-1");
+const actionClassName = cn("flex", "items-center", "justify-center");
+const btnClassName = cn("!px-0.5");
+const dividerClassName = cn("mx-0");
 
 // ========== 状态映射 ==========
-const dictStore = useDictStore()
-const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
+const dictStore = useDictStore();
+const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE));
 
-const statusColorMap: Record<number, string> = { 1: 'green', 0: 'red' }
-const statusLabelMap: Record<number, string> = { 1: '正常', 0: '停用' }
+const statusColorMap: Record<number, string> = { 1: "green", 0: "red" };
+const statusLabelMap: Record<number, string> = { 1: "正常", 0: "停用" };
 
 // ========== 数据状态 ==========
-const allData = ref<DeptRecord[]>([])
-const deptTreeData = ref<DeptTreeNode[]>([])
-const selectedDeptId = ref<string | undefined>(undefined) // 默认选中根节点
-const treeExpandedKeys = ref<string[]>([])
+const allData = ref<DeptRecord[]>([]);
+const deptTreeData = ref<DeptTreeNode[]>([]);
+const selectedDeptId = ref<string | undefined>(undefined); // 默认选中根节点
+const treeExpandedKeys = ref<string[]>([]);
 
 // 将 DeptRecord 转换为树节点格式
 function convertToTreeNode(dept: DeptRecord): DeptTreeNode {
-  const node: DeptTreeNode = { deptId: dept.deptId, deptName: dept.deptName }
+  const node: DeptTreeNode = { deptId: dept.deptId, deptName: dept.deptName };
   if (dept.children?.length) {
-    node.children = dept.children.map(convertToTreeNode)
+    node.children = dept.children.map(convertToTreeNode);
   }
-  return node
+  return node;
 }
 
-const loading = ref(false)
+const loading = ref(false);
 // 初始化部门树
 async function initDeptTree() {
-  loading.value = true
+  loading.value = true;
   try {
-    const res = await getDeptTree()
-    allData.value = res
-    deptTreeData.value = res.map(convertToTreeNode)
+    const res = await getDeptTree();
+    allData.value = res;
+    deptTreeData.value = res.map(convertToTreeNode);
   } catch (e) {
-    console.error('获取部门树失败', e)
-    message.error('获取部门树失败')
+    console.error("获取部门树失败", e);
+    message.error("获取部门树失败");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 onMounted(() => {
-  initDeptTree()
-})
+  initDeptTree();
+});
 
 // ========== 表格/表单/弹窗注册 ==========
-const [modalRegister, modalMethods] = useModal()
-const [tableRegister, tableMethods] = useTable()
-const [formRegister, formMethods] = useForm()
+const [modalRegister, modalMethods] = useModal();
+const [tableRegister, tableMethods] = useTable();
+const [formRegister, formMethods] = useForm();
 
 // ========== 表单配置 ==========
 function createSearchFormSchemas(): FormSchema[] {
   return [
     {
-      field: 'keyword',
-      label: '部门名称',
-      component: 'Input',
-      componentProps: { placeholder: '搜索部门名称...', allowClear: true },
+      field: "keyword",
+      label: "部门名称",
+      component: "Input",
+      componentProps: { placeholder: "搜索部门名称...", allowClear: true },
       colProps: { span: 6 },
     },
-  ]
+  ];
 }
 
 function createModalFormSchemas(): FormSchema[] {
   return [
     {
-      field: 'parentId',
-      label: '上级部门',
-      component: 'TreeSelect',
+      field: "parentId",
+      label: "上级部门",
+      component: "TreeSelect",
       componentProps: {
         treeData: deptTreeData.value,
-        fieldNames: { children: 'children', label: 'deptName', value: 'deptId' },
+        fieldNames: { children: "children", label: "deptName", value: "deptId" },
       },
     },
     {
-      field: 'deptName', // 改为 deptName
-      label: '部门名称',
-      component: 'Input',
+      field: "deptName", // 改为 deptName
+      label: "部门名称",
+      component: "Input",
       required: true,
-      componentProps: { placeholder: '请输入部门名称' },
+      componentProps: { placeholder: "请输入部门名称" },
     },
     {
-      field: 'deptCode', // 改为 deptCode
-      label: '部门编码',
-      component: 'Input',
+      field: "deptCode", // 改为 deptCode
+      label: "部门编码",
+      component: "Input",
       required: true,
-      componentProps: { placeholder: '请输入部门编码（唯一）' },
+      componentProps: { placeholder: "请输入部门编码（唯一）" },
     },
     {
-      field: 'leader',
-      label: '负责人',
-      component: 'Input',
-      componentProps: { placeholder: '请输入负责人姓名' },
+      field: "leader",
+      label: "负责人",
+      component: "Input",
+      componentProps: { placeholder: "请输入负责人姓名" },
     },
     {
-      field: 'phone',
-      label: '联系电话',
-      component: 'Input',
-      componentProps: { placeholder: '请输入联系电话' },
+      field: "phone",
+      label: "联系电话",
+      component: "Input",
+      componentProps: { placeholder: "请输入联系电话" },
     },
     {
-      field: 'email', // 新增 email 字段
-      label: '邮箱',
-      component: 'Input',
-      componentProps: { placeholder: '请输入邮箱' },
+      field: "email", // 新增 email 字段
+      label: "邮箱",
+      component: "Input",
+      componentProps: { placeholder: "请输入邮箱" },
     },
     {
-      field: 'sortOrder',
-      label: '排序号',
-      component: 'InputNumber',
+      field: "sortOrder",
+      label: "排序号",
+      component: "InputNumber",
       defaultValue: 0,
       colProps: { span: 12 },
-      componentProps: { min: 0, placeholder: '数字越小越靠前', style: { width: '100%' } },
+      componentProps: { min: 0, placeholder: "数字越小越靠前", style: { width: "100%" } },
     },
     {
-      field: 'status',
-      label: '状态',
-      component: 'RadioGroup',
-      defaultValue: '1',
+      field: "status",
+      label: "状态",
+      component: "RadioGroup",
+      defaultValue: "1",
       colProps: { span: 12 },
       componentProps: () => ({
-        optionType: 'button',
-        buttonStyle: 'solid',
+        optionType: "button",
+        buttonStyle: "solid",
         options: statusOptions.value,
       }),
     },
     // 移除 remark 字段，数据库无此字段
-  ]
+  ];
 }
 
-const searchFormSchemas = createSearchFormSchemas()
-const modalFormSchemas = computed(() => createModalFormSchemas())
+const searchFormSchemas = createSearchFormSchemas();
+const modalFormSchemas = computed(() => createModalFormSchemas());
 
 // ========== 表格 API（本地过滤实现树形展示） ==========
 async function mockApi(params: Record<string, any>) {
-  return await getDeptList({ ...params, parentId: selectedDeptId.value })
+  return await getDeptList({ ...params, parentId: selectedDeptId.value });
 }
 
 // ========== 使用 useCRUD 管理右侧表格 CRUD ==========
 const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<DeptRecord>({
-  containerType: 'modal',
+  containerType: "modal",
   modalMethods,
   formMethods,
   tableMethods,
-  idKey: 'id',
+  idKey: "id",
   confirmDelete: true,
   getEmptyValues: () => ({
     parentId: selectedDeptId.value,
-    deptName: '',
-    deptCode: '',
-    leader: '',
-    phone: '',
-    email: '',
+    deptName: "",
+    deptCode: "",
+    leader: "",
+    phone: "",
+    email: "",
     sortOrder: 0,
-    status: '1',
+    status: "1",
   }),
   getFormValues: (record) => ({
     parentId: record.parentId === null ? undefined : record.parentId,
@@ -211,58 +211,79 @@ const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<D
     status: record.status,
   }),
   onCreate: async (values) => {
-    await addDept(values)
+    await addDept(values);
   },
   onUpdate: async (id, values) => {
-    await updateDept(id, values)
+    await updateDept(id, values);
   },
   onDelete: async (record) => {
-    await deleteDept(record.deptId)
+    await deleteDept(record.deptId);
   },
   onSaved: async () => {
-    await initDeptTree() // 操作成功后刷新树
+    await initDeptTree(); // 操作成功后刷新树
   },
   onDeleted: async () => {
-    await initDeptTree()
+    await initDeptTree();
   },
   messages: {
-    createSuccess: '部门创建成功',
-    updateSuccess: '部门更新成功',
-    deleteSuccess: '部门删除成功',
-    deleteConfirm: '确定要删除该部门吗？子部门也将一并删除。',
+    createSuccess: "部门创建成功",
+    updateSuccess: "部门更新成功",
+    deleteSuccess: "部门删除成功",
+    deleteConfirm: "确定要删除该部门吗？子部门也将一并删除。",
   },
-})
+});
 
 // ========== 自定义事件 ==========
 function handleDeptSelect(_selectedKeys: (string | number)[], info: { node: { deptId: number } }) {
-  selectedDeptId.value = info.node.deptId
-  tableMethods.value?.reload()
+  selectedDeptId.value = info.node.deptId;
+  tableMethods.value?.reload();
 }
 
 function handleAddChild(record: DeptRecord) {
   handleAdd({
     parentId: record.deptId,
-  })
+  });
 }
 
 // ========== 表格列 ==========
 const columns: BasicColumn[] = [
   {
-    title: '序号',
-    key: 'index',
+    title: "序号",
+    key: "index",
     width: 60,
-    align: 'center',
+    align: "center",
     customRender: ({ index }) => index + 1,
   },
-  { title: '部门名称', dataIndex: 'deptName', key: 'deptName', width: 160 },
-  { title: '部门编码', dataIndex: 'deptCode', key: 'deptCode', width: 200, align: 'center' },
-  { title: '负责人', dataIndex: 'leader', key: 'leader', width: 120, align: 'center' },
-  { title: '联系电话', dataIndex: 'phone', key: 'phone', width: 140, align: 'center' },
-  { title: '邮箱', dataIndex: 'email', key: 'email', width: 180, align: 'center' }, // 新增邮箱列
-  { title: '排序号', dataIndex: 'sortOrder', key: 'sortOrder', width: 80, align: 'center' },
-  { title: '状态', dataIndex: 'status', key: 'status', width: 80, align: 'center' },
-  { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 170, align: 'center' },
-]
+  { title: "部门名称", dataIndex: "deptName", key: "deptName", width: 160 },
+  { title: "部门编码", dataIndex: "deptCode", key: "deptCode", width: 200, align: "center" },
+  { title: "负责人", dataIndex: "leader", key: "leader", width: 120, align: "center" },
+  { title: "联系电话", dataIndex: "phone", key: "phone", width: 140, align: "center" },
+  { title: "邮箱", dataIndex: "email", key: "email", width: 180, align: "center" }, // 新增邮箱列
+  { title: "排序号", dataIndex: "sortOrder", key: "sortOrder", width: 80, align: "center" },
+  { title: "状态", dataIndex: "status", key: "status", width: 80, align: "center" },
+  { title: "创建时间", dataIndex: "createdAt", key: "createdAt", width: 170, align: "center" },
+];
+const getActions = (record: DeptRecord) => [
+  {
+    label: "新增子部门",
+    icon: "ant-design:plus-outlined",
+    onClick: () => handleAddChild(record),
+  },
+  {
+    label: "编辑",
+    icon: "ant-design:edit-outlined",
+    onClick: () => handleEdit(record),
+  },
+  {
+    label: "删除",
+    icon: "ant-design:delete-outlined",
+    danger: true,
+    popConfirm: {
+      title: "删除部门",
+      confirm: () => handleDelete(record),
+    },
+  },
+];
 </script>
 
 <template>
@@ -280,7 +301,7 @@ const columns: BasicColumn[] = [
             @select="handleDeptSelect"
             @update:expandedKeys="
               (keys: number[]) => {
-                treeExpandedKeys = keys
+                treeExpandedKeys = keys;
               }
             "
         /></a-spin>
@@ -317,7 +338,7 @@ const columns: BasicColumn[] = [
                 <Icon
                   :icon="record.status === 1 ? 'carbon:checkmark-outline' : 'carbon:close-outline'"
                 />
-                {{ statusLabelMap[record.status] || '未知' }}
+                {{ statusLabelMap[record.status] || "未知" }}
               </span>
             </a-tag>
           </template>
@@ -327,26 +348,7 @@ const columns: BasicColumn[] = [
           </template>
 
           <template #action="{ record }">
-            <div :class="actionClassName">
-              <a-button type="link" :class="btnClassName" @click="() => handleAddChild(record)">
-                <template #icon><Icon icon="ant-design:plus-circle-outlined" /></template>
-                新增
-              </a-button>
-              <a-button type="link" :class="btnClassName" @click="() => handleEdit(record)">
-                <template #icon><Icon icon="ant-design:edit-outlined" /></template>
-                编辑
-              </a-button>
-              <a-divider type="vertical" :class="dividerClassName" />
-              <a-button
-                type="link"
-                danger
-                :class="btnClassName"
-                @click="() => handleDelete(record)"
-              >
-                <template #icon><Icon icon="ant-design:delete-outlined" /></template>
-                删除
-              </a-button>
-            </div>
+            <TableAction :actions="getActions(record)" :record="record"></TableAction>
           </template>
         </BasicTable>
       </a-card>
