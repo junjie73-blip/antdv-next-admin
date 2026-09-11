@@ -133,7 +133,7 @@ const getLabelCol = computed(() => {
   if (labelWidth) {
     return { style: { width: `${labelWidth}px` } };
   }
-  return getProps.value.labelCol || { span: 6 };
+  return getProps.value.labelCol || { span: 4 };
 });
 
 const getWrapperCol = computed(() => {
@@ -357,13 +357,6 @@ defineExpose(formActionType);
     :wrapper-col="getWrapperCol"
     :disabled="getProps.disabled"
     :size="getProps.size as any"
-    :layout="getProps.layout"
-    :colon="getProps.colon"
-    :hide-required-mark="getProps.hideRequiredMark"
-    :required-mark="getProps.requiredMark"
-    :validate-trigger="getProps.validateTrigger"
-    :scroll-to-first-error="getProps.scrollToFirstError"
-    :name="getProps.name"
     v-bind="aFormAttrs"
     @finish="handleSubmit"
   >

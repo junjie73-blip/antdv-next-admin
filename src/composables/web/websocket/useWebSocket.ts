@@ -1,183 +1,183 @@
-import { useWebSocket as _useWebSocket } from '@vueuse/core'
-import { computed, onScopeDispose, ref, watch } from 'vue'
+import { useWebSocket as _useWebSocket } from "@vueuse/core";
+import { computed, onScopeDispose, ref, watch } from "vue";
 
 export interface UseWebSocketOptions {
-  url: () => string | URL
-  protocols?: string[] | string
-  autoConnect?: boolean
-  autoDisconnect?: boolean
+  url: () => string | URL;
+  protocols?: string[] | string;
+  autoConnect?: boolean;
+  autoDisconnect?: boolean;
   heartbeat?: {
-    interval: number
-    message?: string | (() => string)
-    timeout?: number
-    pongMessage?: string
-  }
+    interval: number;
+    message?: string | (() => string);
+    timeout?: number;
+    pongMessage?: string;
+  };
   reconnect?: {
-    retries: number
-    interval: number
-    onFailed?: () => void
-  }
+    retries: number;
+    interval: number;
+    onFailed?: () => void;
+  };
 }
 
-type WebSocketEventType = 'open' | 'close' | 'error' | 'message' | 'stateChange'
+type WebSocketEventType = "open" | "close" | "error" | "message" | "stateChange";
 
 interface WebSocketEventCallback<T = unknown> {
-  (data: T): void
+  (data: T): void;
 }
 
 export function useWebSocket(options: UseWebSocketOptions) {
-  const { url, autoConnect = true, autoDisconnect = true, heartbeat, reconnect } = options
-  const { protocols: _protocols } = options
+  const { url, autoConnect = true, autoDisconnect = true, heartbeat, reconnect } = options;
+  const { protocols: _protocols } = options;
 
-  const urlRef = typeof url === 'function' ? computed(url) : ref(url)
+  const urlRef = typeof url === "function" ? computed(url) : ref(url);
 
   const { data, status, open, close, send, ws } = _useWebSocket(urlRef, {
     immediate: false,
     autoReconnect: reconnect
       ? { retries: reconnect.retries, delay: reconnect.interval, onFailed: reconnect.onFailed }
       : false,
-  })
+  });
 
-  const isConnected = computed(() => status.value === 'OPEN')
-  const isConnecting = computed(() => status.value === 'CONNECTING')
-  const isError = ref(false)
+  const isConnected = computed(() => status.value === "OPEN");
+  const isConnecting = computed(() => status.value === "CONNECTING");
+  const isError = ref(false);
 
-  const listeners = new Map<WebSocketEventType, Set<WebSocketEventCallback>>()
+  const listeners = new Map<WebSocketEventType, Set<WebSocketEventCallback>>();
 
   function on(event: WebSocketEventType, callback: WebSocketEventCallback) {
     if (!listeners.has(event)) {
-      listeners.set(event, new Set())
+      listeners.set(event, new Set());
     }
-    listeners.get(event)!.add(callback)
+    listeners.get(event)!.add(callback);
   }
 
   function once(event: WebSocketEventType, callback: WebSocketEventCallback) {
     const wrapper: WebSocketEventCallback = (data) => {
-      callback(data)
-      off(event, wrapper)
-    }
-    on(event, wrapper)
+      callback(data);
+      off(event, wrapper);
+    };
+    on(event, wrapper);
   }
 
   function off(event: WebSocketEventType, callback?: WebSocketEventCallback) {
     if (!callback) {
-      listeners.delete(event)
-      return
+      listeners.delete(event);
+      return;
     }
-    listeners.get(event)?.delete(callback)
+    listeners.get(event)?.delete(callback);
   }
 
   function emit(event: WebSocketEventType, data?: unknown) {
-    listeners.get(event)?.forEach((cb) => cb(data))
+    listeners.get(event)?.forEach((cb) => cb(data));
   }
 
   watch(status, (newStatus, oldStatus) => {
     if (newStatus !== oldStatus) {
-      if (newStatus === 'OPEN') {
-        isError.value = false
-        emit('open')
-        emit('stateChange', 'connected')
-      } else if (newStatus === 'CLOSED' && oldStatus === 'OPEN') {
-        emit('close')
-        emit('stateChange', 'disconnected')
-      } else if (newStatus === 'CONNECTING') {
-        emit('stateChange', 'connecting')
+      if (newStatus === "OPEN") {
+        isError.value = false;
+        emit("open");
+        emit("stateChange", "connected");
+      } else if (newStatus === "CLOSED" && oldStatus === "OPEN") {
+        emit("close");
+        emit("stateChange", "disconnected");
+      } else if (newStatus === "CONNECTING") {
+        emit("stateChange", "connecting");
       }
     }
-  })
+  });
 
   watch(data, (newData) => {
     if (newData) {
       try {
-        const parsed = JSON.parse(newData as string)
+        const parsed = JSON.parse(newData as string);
         if (heartbeat?.pongMessage && parsed === heartbeat.pongMessage) {
-          return
+          return;
         }
-        emit('message', parsed)
+        emit("message", parsed);
       } catch {
-        emit('message', newData)
+        emit("message", newData);
       }
     }
-  })
+  });
 
-  let heartbeatTimer: ReturnType<typeof setInterval> | null = null
+  let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
 
   function startHeartbeat() {
-    if (!heartbeat || !isConnected.value) return
+    if (!heartbeat || !isConnected.value) return;
 
-    stopHeartbeat()
+    stopHeartbeat();
 
-    let heartbeatTimeoutTimer: number | null = null
+    let heartbeatTimeoutTimer: number | null = null;
 
     heartbeatTimer = setInterval(() => {
       if (!isConnected.value) {
-        stopHeartbeat()
-        return
+        stopHeartbeat();
+        return;
       }
 
       const msg =
-        typeof heartbeat.message === 'function'
+        typeof heartbeat.message === "function"
           ? heartbeat.message()
-          : (heartbeat.message ?? 'ping')
+          : (heartbeat.message ?? "ping");
 
       try {
-        send(msg)
+        send(msg);
 
         if (heartbeat.timeout) {
           if (heartbeatTimeoutTimer) {
-            clearTimeout(heartbeatTimeoutTimer)
+            clearTimeout(heartbeatTimeoutTimer);
           }
           heartbeatTimeoutTimer = setTimeout(() => {
             if (isConnected.value) {
-              close()
+              close();
             }
-          }, heartbeat.timeout) as unknown as number
+          }, heartbeat.timeout) as unknown as number;
         }
       } catch {
-        close()
+        close();
       }
-    }, heartbeat.interval)
+    }, heartbeat.interval);
   }
 
   function stopHeartbeat() {
     if (heartbeatTimer) {
-      clearInterval(heartbeatTimer)
-      heartbeatTimer = null
+      clearInterval(heartbeatTimer);
+      heartbeatTimer = null;
     }
   }
 
   function connect() {
-    open()
+    open();
   }
 
   function disconnect() {
-    stopHeartbeat()
-    close()
+    stopHeartbeat();
+    close();
   }
 
   function connectWithAutoCleanup() {
-    connect()
+    connect();
 
     if (autoDisconnect) {
-      onScopeDispose(disconnect)
+      onScopeDispose(disconnect);
     }
   }
 
   if (autoConnect) {
-    connectWithAutoCleanup()
+    connectWithAutoCleanup();
   }
 
   watch(
     isConnected,
     (connected) => {
       if (connected) {
-        startHeartbeat()
+        startHeartbeat();
       } else {
-        stopHeartbeat()
+        stopHeartbeat();
       }
     },
     { immediate: false },
-  )
+  );
 
   return {
     isConnected,
@@ -193,5 +193,5 @@ export function useWebSocket(options: UseWebSocketOptions) {
     off,
     once,
     emit,
-  }
+  };
 }

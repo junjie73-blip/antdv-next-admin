@@ -4,17 +4,21 @@ import { computed, ref } from "vue";
 import { useLogger } from "@/composables/useLogger";
 import { cache } from "@/utils/cache";
 import { http } from "@/utils/request";
+import { useRouter } from "vue-router";
 
 const TOKEN_KEY = "auth_token";
 const USER_INFO_KEY = "user_info";
-const TOKEN_EXPIRE = 3 * 60 * 60;
+const TOKEN_EXPIRE = 7 * 60 * 60;
+const REFRESH_TOKEN_KEY = "refresh_token";
+const REFRESH_TOKEN_EXPIRE = 3 * 3600;
 
 export const useUserStore = defineStore("user", () => {
   // 初始化时先尝试从缓存读取（可能是旧格式明文）
   const storedToken = cache.getItem(TOKEN_KEY) as string | null;
   const token = ref<string | null>(storedToken);
+  const refreshToken = ref<string | null>(cache.getItem(REFRESH_TOKEN_KEY) as string | null);
   const userInfo = ref<UserInfo | null>(cache.getItem(USER_INFO_KEY) as UserInfo | null);
-
+  const router = useRouter();
   /**
    * 异步初始化 Token（解密）
    * 需要在应用启动后调用
@@ -30,7 +34,6 @@ export const useUserStore = defineStore("user", () => {
       }
     }
   }
-
   const isLoggedIn = computed(() => !!token.value);
   const username = computed(() => userInfo.value?.username || "");
   const nickname = computed(() => userInfo.value?.nickname || "");
@@ -65,10 +68,11 @@ export const useUserStore = defineStore("user", () => {
           email: user.email || "",
           roles: user.roles || [],
         };
-
+        cache.setItem(REFRESH_TOKEN_KEY, response.data.refreshToken, REFRESH_TOKEN_EXPIRE);
         cache.setItem(TOKEN_KEY, response.data.accessToken, TOKEN_EXPIRE);
         setUserInfo(mockUserInfo);
         token.value = response.data.accessToken;
+        refreshToken.value = response.data.refreshToken;
         // 记录登录成功日志
         const logger = useLogger();
         logger.logLogin("success", response.data.username);
@@ -91,7 +95,8 @@ export const useUserStore = defineStore("user", () => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await http.Post("/auth/logout");
     // 记录登出日志
     const logger = useLogger();
     if (userInfo.value?.username) {
@@ -102,6 +107,7 @@ export const useUserStore = defineStore("user", () => {
     userInfo.value = null;
     cache.removeItem(TOKEN_KEY);
     cache.removeItem(USER_INFO_KEY);
+    router.push("/login");
   };
 
   const hasPermission = (permission: string) => {
@@ -118,6 +124,12 @@ export const useUserStore = defineStore("user", () => {
     const res: any = await http.Get("/auth/profile");
     userInfo.value = res.data;
   }
+  const setToken = (accessToken: string, _refreshToken: string) => {
+    token.value = accessToken;
+    refreshToken.value = _refreshToken;
+    cache.setItem(REFRESH_TOKEN_KEY, _refreshToken, REFRESH_TOKEN_EXPIRE);
+    cache.setItem(TOKEN_KEY, accessToken, TOKEN_EXPIRE);
+  };
   return {
     token,
     userInfo,
@@ -135,6 +147,8 @@ export const useUserStore = defineStore("user", () => {
     logout,
     hasPermission,
     hasRole,
+    refreshToken,
     fetchCurrentUser,
+    setToken,
   };
 });

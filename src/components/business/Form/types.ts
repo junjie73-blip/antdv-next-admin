@@ -1,4 +1,4 @@
-import type { ColProps, FormInstance, FormItemProps } from "antdv-next";
+import type { ColProps, FormInstance, FormItemProps, RuleObject } from "antdv-next";
 import type { Component, VNode } from "vue";
 import type { AntdvComponents, ComponentType } from "./componentMap";
 
@@ -15,44 +15,6 @@ export interface ComponentPropsMap {
 export type NamePath = string | number | (string | number)[];
 
 export type FieldMapToTime = [string, [string, string], string?][];
-
-export type RuleType =
-  | "string"
-  | "number"
-  | "boolean"
-  | "method"
-  | "regexp"
-  | "integer"
-  | "float"
-  | "object"
-  | "enum"
-  | "date"
-  | "url"
-  | "hex"
-  | "email"
-  | "tel";
-
-export interface RuleObject {
-  warningOnly?: boolean;
-  enum?: any[];
-  len?: number;
-  max?: number;
-  message?: string;
-  min?: number;
-  pattern?: RegExp;
-  required?: boolean;
-  transform?: (value: any) => any;
-  type?: RuleType;
-  whitespace?: boolean;
-  trigger?: "change" | "blur" | "focus" | ("change" | "blur" | "focus")[];
-  validateTrigger?: "change" | "blur" | "focus" | ("change" | "blur" | "focus")[];
-  validator?: (
-    rule: RuleObject,
-    value: any,
-    callback: (error?: string) => void,
-  ) => Promise<void | any> | void;
-  defaultField?: RuleObject;
-}
 
 export type Rule = RuleObject;
 
@@ -174,21 +136,6 @@ export interface FormProps {
   submitFunc?: () => Promise<void>;
   fieldMapToTime?: FieldMapToTime;
   mergeDynamicData?: Recordable;
-
-  // ===== 新增：a-form 原生属性透传 =====
-  layout?: "horizontal" | "vertical" | "inline";
-  colon?: boolean;
-  hideRequiredMark?: boolean;
-  requiredMark?: boolean | "optional";
-  validateTrigger?: "change" | "blur" | "focus" | Array<"change" | "blur" | "focus">;
-  scrollToFirstError?: boolean | { focus?: boolean };
-  name?: string;
-
-  // ===== 新增：a-form 原生事件 =====
-  onFinish?: (values: Recordable) => void;
-  onFinishFailed?: (errorInfo: { values: Recordable; errorFields: any[] }) => void;
-  onValuesChange?: (changedValues: Recordable, allValues: Recordable) => void;
-  onFieldsChange?: (changedFields: any[], allFields: any[]) => void;
 }
 
 export interface FormActionType {

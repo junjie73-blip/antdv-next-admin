@@ -1,135 +1,98 @@
 <script setup lang="ts">
-import type { FormSchema, Recordable, RenderCallbackParams } from '../types'
-import { isFunction } from 'es-toolkit'
-import { computed, inject, unref } from 'vue'
-import IconifyIcon from '@/components/common/Icon/IconifyIcon.vue'
-import { getComponent } from '../componentMap'
-import { getDynamicDisabled, getDynamicRules, getShow, setComponentProps } from '../helper'
-
-type RuleType =
-  | 'string'
-  | 'number'
-  | 'boolean'
-  | 'method'
-  | 'regexp'
-  | 'integer'
-  | 'float'
-  | 'object'
-  | 'enum'
-  | 'date'
-  | 'url'
-  | 'hex'
-  | 'email'
-  | 'tel'
-type TriggerType = 'change' | 'blur' | 'focus'
-
-interface FormItemRule {
-  warningOnly?: boolean
-  enum?: any[]
-  len?: number
-  max?: number
-  message?: string
-  min?: number
-  pattern?: RegExp
-  required?: boolean
-  transform?: (value: any) => (error?: string) => Promise<void> | string | void
-  type?: RuleType
-  whitespace?: boolean
-  trigger?: TriggerType | TriggerType[]
-  validateTrigger?: TriggerType | TriggerType[]
-  validator?: (
-    rule: any,
-    value: any,
-    callback: (error?: string) => void,
-  ) => Promise<void | string> | void
-}
+import type { FormSchema, Recordable, RenderCallbackParams } from "../types";
+import { isFunction } from "es-toolkit";
+import { computed, inject, unref } from "vue";
+import IconifyIcon from "@/components/common/Icon/IconifyIcon.vue";
+import { getComponent } from "../componentMap";
+import { getDynamicDisabled, getDynamicRules, getShow, setComponentProps } from "../helper";
+import type { RuleObject } from "antdv-next";
 
 // 注入父级 grid 布局上下文
-type GridContext = { cols?: number; gutter?: number | [number, number] } | undefined | null
-const props = defineProps<Props>()
+type GridContext = { cols?: number; gutter?: number | [number, number] } | undefined | null;
+const props = defineProps<Props>();
 
-const gridConfig = inject<GridContext>('formGridContext', null)
+const gridConfig = inject<GridContext>("formGridContext", null);
 
 interface Props {
-  schema: FormSchema
-  formModel: Recordable
-  formActionType: any
-  setFormModel: (key: string, value: any) => void
+  schema: FormSchema;
+  formModel: Recordable;
+  formActionType: any;
+  setFormModel: (key: string, value: any) => void;
 }
 
 const getShowState = computed(() => {
-  return getShow(props.schema, unref(props.formModel), props.formActionType)
-})
+  return getShow(props.schema, unref(props.formModel), props.formActionType);
+});
 
 const getDisabled = computed(() => {
-  return getDynamicDisabled(props.schema, unref(props.formModel), props.formActionType)
-})
+  return getDynamicDisabled(props.schema, unref(props.formModel), props.formActionType);
+});
 
 const getComponentPropsValue = computed(() => {
-  return setComponentProps(props.schema, unref(props.formModel), props.formActionType)
-})
+  return setComponentProps(props.schema, unref(props.formModel), props.formActionType);
+});
 
-const getRulesValue = computed((): FormItemRule[] | undefined => {
-  const rules = getDynamicRules(props.schema, unref(props.formModel), props.formActionType)
-  if (!rules) return undefined
-  return rules as FormItemRule[]
-})
+const getRulesValue = computed((): RuleObject[] | undefined => {
+  const rules = getDynamicRules(props.schema, unref(props.formModel), props.formActionType);
+  if (!rules) return undefined;
+  return rules as RuleObject[];
+});
 
 const getComponentInstance = computed(() => {
-  const { component } = props.schema
-  if (!component) return null
-  return getComponent(component)
-})
+  const { component } = props.schema;
+  if (!component) return null;
+  return getComponent(component);
+});
 
 const getSuffixValue = computed(() => {
-  const { suffix } = props.schema
-  if (!suffix) return null
+  const { suffix } = props.schema;
+  if (!suffix) return null;
 
-  const values = unref(props.formModel) || {}
+  const values = unref(props.formModel) || {};
   const params: RenderCallbackParams = {
     schema: props.schema,
     values,
     model: props.formModel,
     field: props.schema.field,
-  }
+  };
 
   if (isFunction(suffix)) {
-    return suffix(params)
+    return suffix(params);
   }
 
-  return suffix
-})
+  return suffix;
+});
 
 const getColProps = computed(() => {
   return {
     span: 6,
     ...props.schema.colProps,
-  }
-})
+  };
+});
 
 // 全行对齐：当字段独占一行(span=24)且处于多列布局时，限制输入框宽度对齐多列总宽度
 const mergedItemProps = computed(() => {
-  const base = { ...props.schema.itemProps }
-  const cols = gridConfig?.value?.cols
-  if (!cols || cols <= 1) return base
+  const base = { ...props.schema.itemProps };
+  const cols = gridConfig?.cols;
+  if (!cols || cols <= 1) return base;
 
-  const span = props.schema.colProps?.span ?? 24
-  const isFullRow = span === 24 || props.schema.fullRowAlign
-  if (!isFullRow) return base
+  const span = props.schema.colProps?.span ?? 24;
+  const isFullRow = span === 24 || props.schema.fullRowAlign;
+  if (!isFullRow) return base;
 
   // N 列布局中，span=24 字段的 wrapper 比 N 个小列 wrapper 总和更宽（label 占比差异）
   // 通过约束 wrapperCol 的 max-width 实现视觉对齐
-  const gutterPx = Array.isArray(gridConfig.value.gutter)
-    ? gridConfig.value.gutter[0]
-    : (gridConfig.value.gutter ?? 24)
+  const gutterPx = Array.isArray(gridConfig?.gutter)
+    ? gridConfig.gutter[0]
+    : (gridConfig.gutter ?? 24);
 
-  const existingStyle = typeof base.style === 'object' ? base.style : {}
-  const existingWrapperCol = typeof base.wrapperCol === 'object' ? base.wrapperCol : {}
+  const existingStyle: Record<string, any> = {};
+  const existingWrapperCol = typeof base.wrapperCol === "object" ? base.wrapperCol : {};
   return {
     ...base,
     style: {
       ...existingStyle,
-      class: `${existingStyle.class || ''} form-item-full-row-align`.trim(),
+      class: `${existingStyle.class || ""} form-item-full-row-align`.trim(),
     },
     wrapperCol: {
       ...existingWrapperCol,
@@ -138,26 +101,26 @@ const mergedItemProps = computed(() => {
         ...(existingWrapperCol as any)?.style,
       },
     },
-  }
-})
+  };
+});
 
 const getHelpMessage = computed(() => {
-  const { helpMessage } = props.schema
+  const { helpMessage } = props.schema;
   if (Array.isArray(helpMessage)) {
-    return helpMessage.join('\n')
+    return helpMessage.join("\n");
   }
-  return helpMessage
-})
+  return helpMessage;
+});
 
 function handleValueChange(value: any) {
-  props.setFormModel(props.schema.field, value)
+  props.setFormModel(props.schema.field, value);
 }
 </script>
 
 <template>
   <template v-if="getShowState.ifShow">
     <a-col v-show="getShowState.show" v-bind="getColProps">
-      <a-form-item :name="schema.field" :rules="getRulesValue as any" v-bind="mergedItemProps">
+      <a-form-item v-bind="mergedItemProps" :name="schema.field" :rules="getRulesValue">
         <template #label>
           <span class="form-item-label">
             {{ schema.label }}
