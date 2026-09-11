@@ -1,117 +1,70 @@
 <script setup lang="ts">
-import type { FormSchema } from "@/components/business/Form";
-import type { ActionItem, BasicColumn, TableAction } from "@/components/business/Table";
 import { Icon } from "@iconify/vue";
 import { computed, onMounted, ref } from "vue";
+import { message } from "antdv-next";
+
 import { addRole, deleteRole, getRoleList, updateRole } from "@/api/system";
 import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
 import { BasicForm, useForm } from "@/components/business/Form";
-import { BasicTable, useTable } from "@/components/business/Table";
+import { BasicTable, TableAction, useTable, type ActionItem } from "@/components/business/Table";
+import { useCRUD } from "@/composables/useCRUD";
 import { DictType } from "@/enums/dict";
 import { useDictStore } from "@/stores";
-import { cn } from "@/utils/cn";
-import { exportToExcel } from "@/utils/excel";
-import { message } from "antdv-next";
 import { http } from "@/utils";
-import { useCRUD } from "@/composables/useCRUD";
+import { exportToExcel } from "@/utils/excel";
+
+// 抽离的模块
+import { getRoleActions } from "./actions";
+import {
+  roleActionColumn,
+  roleColumns,
+  rolePagination,
+  roleRowKey,
+  roleRowSelection,
+} from "./columns";
+import {
+  ROLE_EMPTY_VALUES,
+  ROLE_EXPORT_COLUMNS,
+  ROLE_EXPORT_FILE_NAME,
+  ROLE_EXPORT_SHEET_NAME,
+  cardClassName,
+  containerClassName,
+} from "./constants";
+import { useRoleFormSchemas, useRoleSearchSchemas } from "./schemas";
+import type { PermissionTreeNode, RoleRecord } from "./types";
+import { mapRoleForExport } from "./utils";
 
 defineOptions({ name: "SystemRole" });
 
-interface RoleRecord {
-  roleId: string;
-  roleName: string;
-  roleCode: string;
-  description: string;
-  sortOrder: number;
-  status: string;
-  menuIds: string[];
-  createdAt: string;
-}
-
-const containerClassName = cn("space-y-4");
-const cardClassName = cn("shadow-sm");
+// ========== 字典 ==========
 const dictStore = useDictStore();
 const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE));
 
-const permissionTreeData = ref<any[]>([]);
-
+// ========== 实例 ==========
 const [drawerRegister, drawerMethods] = useDrawer();
 const [permDrawerRegister, permDrawerMethods] = useDrawer();
 const [tableRegister, tableMethods] = useTable();
 const [formRegister, formMethods] = useForm();
 
-const searchFormSchemas: FormSchema[] = [
-  {
-    field: "keyword",
-    label: "关键词",
-    component: "Input",
-    colProps: { span: 6 },
-    componentProps: {
-      placeholder: "搜索角色名称/编码...",
-      allowClear: true,
-    },
-  },
-  {
-    field: "status",
-    label: "状态",
-    component: "Select",
-    defaultValue: "1",
-    colProps: { span: 6 },
-    componentProps: {
-      placeholder: "选择状态",
-      allowClear: true,
-      options: statusOptions.value,
-    },
-  },
-];
+// ========== Schema（工厂函数，保证字典响应性） ==========
+const searchFormSchemas = useRoleSearchSchemas(statusOptions);
+const drawerFormSchemas = useRoleFormSchemas(statusOptions);
 
-const drawerFormSchemas: FormSchema[] = [
-  {
-    field: "roleName",
-    label: "角色名称",
-    component: "Input",
-    required: true,
-    colProps: { span: 24 },
-    componentProps: { placeholder: "请输入角色名称" },
-  },
-  {
-    field: "roleCode",
-    label: "角色编码",
-    component: "Input",
-    required: true,
-    colProps: { span: 24 },
-    componentProps: { placeholder: "请输入角色编码，如 admin" },
-  },
-  {
-    field: "sortOrder",
-    label: "排序",
-    component: "InputNumber",
-    colProps: { span: 12 },
-    defaultValue: 0,
-    componentProps: { min: 0, placeholder: "数字越小越靠前", style: { width: "100%" } },
-  },
-  {
-    field: "status",
-    label: "状态",
-    component: "RadioGroup",
-    defaultValue: "1",
-    colProps: { span: 12 },
-    componentProps: () => ({
-      optionType: "button",
-      buttonStyle: "solid",
-      options: statusOptions.value,
-    }),
-  },
-  {
-    field: "description",
-    label: "描述",
-    component: "InputTextArea",
-    colProps: { span: 24 },
-    componentProps: { placeholder: "请输入角色描述...", rows: 3 },
-  },
-];
-const roleMenuTree = ref<any[]>([]);
-// ========== 使用 useCRUD ==========
+// ========== 权限树 ==========
+const permissionTreeData = ref<PermissionTreeNode[]>([]);
+const permDrawerLoading = ref(false);
+
+async function loadPermissionTree() {
+  try {
+    const res = (await http.Get("/menu/tree").send(true)) as any;
+    permissionTreeData.value = res.data;
+  } catch (e) {
+    console.error("加载菜单树失败", e);
+  }
+}
+
+// ========== useCRUD ==========
+// 说明：删除确认由操作项 popConfirm 负责，关闭 useCRUD 内置 Modal.confirm。
 const { isEditing, currentRecord, handleAdd, handleEdit, handleDelete, handleSave } =
   useCRUD<RoleRecord>({
     containerType: "drawer",
@@ -119,13 +72,7 @@ const { isEditing, currentRecord, handleAdd, handleEdit, handleDelete, handleSav
     formMethods,
     tableMethods,
     idKey: "roleId",
-    getEmptyValues: () => ({
-      roleName: "",
-      roleCode: "",
-      description: "",
-      sortOrder: 0,
-      status: "1",
-    }),
+    getEmptyValues: () => ({ ...ROLE_EMPTY_VALUES }),
     getFormValues: (record) => ({
       roleName: record.roleName,
       roleCode: record.roleCode,
@@ -146,7 +93,6 @@ const { isEditing, currentRecord, handleAdd, handleEdit, handleDelete, handleSav
       createSuccess: "角色创建成功",
       updateSuccess: "角色更新成功",
       deleteSuccess: "角色删除成功",
-      deleteConfirm: "确定要删除该角色吗？",
     },
   });
 
@@ -159,22 +105,6 @@ async function handleToggleStatus(record: RoleRecord) {
     tableMethods.value?.reload();
   } catch (e: any) {
     message.error(e?.message || "操作失败");
-  }
-}
-const permDrawerLoading = ref(false);
-// ========== 权限分配 ==========
-async function handlePermission(record: RoleRecord) {
-  currentRecord.value = record;
-  permDrawerLoading.value = true;
-  try {
-    await permDrawerMethods.openDrawer();
-    // 调用接口获取该角色的菜单树（带 checked）
-    const { data } = await http.Get(`/role/${record.roleId}/menus/tree`).send(true);
-    currentRecord.value.menuIds = data as string[];
-  } catch (e: any) {
-    message.error(e?.message || "加载权限数据失败");
-  } finally {
-    permDrawerLoading.value = false;
   }
 }
 
@@ -194,80 +124,42 @@ async function handleSavePermissions() {
 
 // ========== 导出 ==========
 function handleExport() {
-  const selectedRows = (tableMethods.value?.getSelectRows?.() || []) as any[];
+  const selectedRows = (tableMethods.value?.getSelectRows?.() || []) as RoleRecord[];
   const dataToExport = selectedRows.length > 0 ? selectedRows : [];
+
   exportToExcel({
-    filename: "角色列表",
-    sheetName: "角色管理",
-    columns: [
-      { header: "ID", key: "roleId", width: 8 },
-      { header: "角色名称", key: "roleName", width: 15 },
-      { header: "角色编码", key: "roleCode", width: 18 },
-      { header: "描述", key: "description", width: 30 },
-      { header: "排序", key: "sortOrder", width: 8 },
-      { header: "状态", key: "status", width: 8 },
-      { header: "创建时间", key: "createdAt", width: 20 },
-    ],
-    data: dataToExport.map((i) => ({ ...i, status: i.status === "1" ? "正常" : "停用" })),
+    filename: ROLE_EXPORT_FILE_NAME,
+    sheetName: ROLE_EXPORT_SHEET_NAME,
+    columns: ROLE_EXPORT_COLUMNS,
+    data: dataToExport.map(mapRoleForExport),
   });
 }
 
-// ========== 加载菜单树 ==========
-onMounted(async () => {
-  try {
-    const res = await http.Get("/menu/tree").send(true);
-    permissionTreeData.value = res.data;
-  } catch (e) {
-    console.error("加载菜单树失败", e);
-  }
-});
+// ========== 操作项 ==========
+function getActions(record: RoleRecord): ActionItem[] {
+  return getRoleActions(record, {
+    onEdit: handleEdit,
+    onDelete: handleDelete,
+  });
+}
 
-const columns: BasicColumn[] = [
-  {
-    title: "序号",
-    key: "index",
-    width: 60,
-    align: "center",
-    customRender: ({ index }) => index + 1,
-  },
-  { title: "角色名称", dataIndex: "roleName", key: "roleName", width: 140 },
-  { title: "角色编码", dataIndex: "roleCode", key: "roleCode", width: 150 },
-  { title: "描述", dataIndex: "description", key: "description", ellipsis: true, width: 300 },
-  { title: "排序", dataIndex: "sortOrder", key: "sortOrder", width: 70, align: "center" },
-  { title: "状态", dataIndex: "status", key: "status", width: 80, align: "center" },
-  { title: "创建时间", dataIndex: "createdAt", key: "createdAt", width: 170 },
-];
-const getActions = (record: any): ActionItem[] => {
-  return [
-    {
-      label: "编辑",
-      onClick: () => handleEdit(record),
-    },
-    {
-      label: "删除",
-      danger: true,
-      popConfirm: {
-        title: "确定要删除该角色吗？",
-        confirm: () => handleDelete(record),
-      },
-    },
-  ];
-};
+// ========== 初始化 ==========
+onMounted(loadPermissionTree);
 </script>
 
 <template>
   <div :class="containerClassName">
     <a-card title="角色管理" :class="cardClassName">
       <BasicTable
-        :columns="columns"
+        :columns="roleColumns"
         :api="getRoleList"
         :immediate="true"
         :use-search-form="true"
         :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
-        :pagination="{ showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }"
-        :action-column="{ width: 280, title: '操作', fixed: 'right' }"
-        :row-key="(record) => record.roleId"
-        :row-selection="{ type: 'checkbox' }"
+        :pagination="rolePagination"
+        :action-column="roleActionColumn"
+        :row-key="roleRowKey"
+        :row-selection="roleRowSelection"
         @register="tableRegister"
       >
         <template #toolbar>
@@ -275,7 +167,7 @@ const getActions = (record: any): ActionItem[] => {
             <template #icon><Icon icon="carbon:export" /></template>
             导出
           </a-button>
-          <a-button type="primary" @click="() => handleAdd()">
+          <a-button type="primary" @click="handleAdd()">
             <template #icon><Icon icon="ant-design:plus-outlined" /></template>
             新增角色
           </a-button>
@@ -286,12 +178,12 @@ const getActions = (record: any): ActionItem[] => {
             :checked="record.status"
             checked-value="1"
             un-checked-value="0"
-            @change="handleToggleStatus(record)"
+            @change="handleToggleStatus(record as RoleRecord)"
           />
         </template>
 
         <template #action="{ record }">
-          <TableAction :actions="getActions(record)"></TableAction>
+          <TableAction :actions="getActions(record as RoleRecord)" />
         </template>
       </BasicTable>
     </a-card>

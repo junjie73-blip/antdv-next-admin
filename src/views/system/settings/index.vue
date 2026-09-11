@@ -1,237 +1,145 @@
-<script setup lang="tsx">
-import type { DescriptionItem } from "@/components/business/Description";
-import type { FormSchema } from "@/components/business/Form";
-import type { ActionItem, BasicColumn } from "@/components/business/Table";
+<script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { ref } from "vue";
+import { nextTick, ref } from "vue";
+import { message } from "antdv-next";
+
 import {
   addSetting,
-  deleteSetting,
-  updateSetting,
   batchDeleteSetting,
+  deleteSetting,
   getSettingsList,
+  updateSetting,
 } from "@/api/system";
 import { Description as DetailDescription } from "@/components/business/Description";
 import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
 import { BasicForm, useForm } from "@/components/business/Form";
 import { BasicModal, useModal } from "@/components/business/Modal";
-import { BasicTable, useTable } from "@/components/business/Table";
-import { cn } from "@/utils/cn";
+import { BasicTable, TableAction, useTable, type ActionItem } from "@/components/business/Table";
 import { useCRUD } from "@/composables/useCRUD";
-import { message } from "antdv-next";
-import dayjs from "dayjs";
+
+// 抽离的模块
+import { getConfigActions } from "./actions";
+import {
+  configActionColumn,
+  configColumns,
+  configPagination,
+  configRowKey,
+  configRowSelection,
+  configScroll,
+} from "./columns";
+import { cardClassName, containerClassName, valueCellClassName } from "./constants";
+import {
+  CONFIG_EMPTY_VALUES,
+  configDetailSchemas,
+  configFormSchemas,
+  configSearchSchemas,
+} from "./schemas";
+import type { ConfigRecord } from "./types";
 
 defineOptions({ name: "SystemSettings" });
-
-// ========== 类型定义（与后端 sys_config 表对齐） ==========
-interface ConfigRecord {
-  configId: string;
-  configKey: string;
-  configValue?: string | null;
-  description?: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// ========== 样式 ==========
-const containerClassName = cn("space-y-4");
-const cardClassName = cn("shadow-sm");
-const valueCellClassName = cn("truncate", "block", "max-w-[260px]");
-const actionClassName = cn("flex", "items-center", "justify-center");
-const btnClassName = cn("!px-0.5");
-const dividerClassName = cn("mx-0");
 
 // ========== 详情 ==========
 const viewingRecord = ref<ConfigRecord | null>(null);
 const [drawerRegister, drawerMethods] = useDrawer();
 
-const detailSchemas: DescriptionItem[] = [
-  {
-    field: "configKey",
-    label: "配置键",
-    render: (value: string) => <a-tag color="blue">{value}</a-tag>,
-  },
-  {
-    field: "configValue",
-    label: "配置值",
-    span: 2,
-    render: (value: string) => (
-      <pre class="whitespace-pre-wrap text-xs bg-gray-50 dark:bg-gray-800 p-2 rounded">
-        {value || "-"}
-      </pre>
-    ),
-  },
-  { field: "description", label: "描述", span: 2 },
-  {
-    field: "createdAt",
-    label: "创建时间",
-    render: (value: string) => dayjs(value).format("YYYY-MM-DD HH:mm:ss"),
-  },
-  {
-    field: "updatedAt",
-    label: "更新时间",
-    render: (value: string) => dayjs(value).format("YYYY-MM-DD HH:mm:ss"),
-  },
-];
-
 function handleView(record: ConfigRecord) {
   viewingRecord.value = null;
-  setTimeout(() => {
+  nextTick(() => {
     viewingRecord.value = record;
     drawerMethods.openDrawer();
   });
 }
 
-// ========== 表格实例 ==========
+// ========== 表格 & 表单实例 ==========
 const [tableRegister, tableMethods] = useTable();
 const [modalRegister, modalMethods] = useModal();
 const [formRegister, formMethods] = useForm();
 
-// ========== 搜索表单 ==========
-const searchFormSchemas: FormSchema[] = [
-  {
-    field: "keyword",
-    label: "关键词",
-    component: "Input",
-    colProps: { span: 8 },
-    componentProps: {
-      placeholder: "搜索配置键或描述...",
-      allowClear: true,
-    },
-  },
-];
-
-// ========== 编辑表单（只保留后端支持的字段） ==========
-const modalFormSchemas: FormSchema[] = [
-  {
-    field: "configKey",
-    label: "配置键",
-    component: "Input",
-    required: true,
-    colProps: { span: 24 },
-    componentProps: { placeholder: "例如：site.name" },
-  },
-  {
-    field: "configValue",
-    label: "配置值",
-    component: "InputTextArea",
-    colProps: { span: 24 },
-    componentProps: { placeholder: "请输入配置值", rows: 3 },
-  },
-  {
-    field: "description",
-    label: "描述",
-    component: "InputTextArea",
-    colProps: { span: 24 },
-    componentProps: { placeholder: "请输入描述信息...", rows: 2 },
-  },
-];
-
 // ========== useCRUD ==========
-const { isEditing, handleAdd, handleEdit, handleDelete, handleSave, handleBatchDelete } =
-  useCRUD<ConfigRecord>({
-    containerType: "modal",
-    modalMethods,
-    formMethods,
-    tableMethods,
-    idKey: "configId",
-    confirmDelete: true,
-    getEmptyValues: () => ({
-      configKey: "",
-      configValue: "",
-      description: "",
-    }),
-    getFormValues: (record) => ({
-      configKey: record.configKey,
-      configValue: record.configValue || "",
-      description: record.description || "",
-    }),
-    onCreate: async (values) => {
-      await addSetting(values);
-    },
-    onUpdate: async (id, values) => {
-      await updateSetting(id, values);
-    },
-    onDelete: async (record) => {
-      await deleteSetting(record.configId);
-    },
-    onBatchDelete: async (records) => {
-      await batchDeleteSetting(records.map((r) => r.configId));
-    },
-    messages: {
-      createSuccess: "配置创建成功",
-      updateSuccess: "配置更新成功",
-      deleteSuccess: "配置删除成功",
-      batchDeleteSuccess: "批量删除成功",
-      deleteConfirm: "确定要删除该配置吗？",
-      batchDeleteConfirm: "确定要删除选中的配置吗？",
-    },
-  });
-
-// ========== 列定义 ==========
-const columns: BasicColumn[] = [
-  {
-    title: "序号",
-    key: "index",
-    width: 60,
-    align: "center",
-    customRender: ({ index }) => index + 1,
+const {
+  isEditing,
+  handleAdd,
+  handleEdit,
+  handleDelete,
+  handleSave,
+  handleBatchDelete: crudBatchDelete,
+} = useCRUD<ConfigRecord>({
+  containerType: "modal",
+  modalMethods,
+  formMethods,
+  tableMethods,
+  idKey: "configId",
+  getEmptyValues: () => ({ ...CONFIG_EMPTY_VALUES }),
+  getFormValues: (record) => ({
+    configKey: record.configKey,
+    configValue: record.configValue || "",
+    description: record.description || "",
+  }),
+  onCreate: async (values) => {
+    await addSetting(values);
   },
-  { title: "配置键", dataIndex: "configKey", key: "configKey", width: 220, ellipsis: true },
-  { title: "配置值", dataIndex: "configValue", key: "configValue", width: 280, ellipsis: true },
-  { title: "描述", dataIndex: "description", key: "description", ellipsis: true },
-  { title: "更新时间", dataIndex: "updatedAt", key: "updatedAt", width: 170, align: "center" },
-];
-const getActions = (record: ConfigRecord): ActionItem[] => {
-  return [
-    {
-      label: "查看",
-      icon: "ant-design:eye-outlined",
-      onClick: () => handleView(record),
-    },
-    {
-      label: "编辑",
-      icon: "ant-design:edit-outlined",
-      onClick: () => handleEdit(record),
-    },
-    {
-      label: "删除",
-      icon: "ant-design:delete-outlined",
-      danger: true,
-      popConfirm: {
-        title: "删除配置",
-        confirm: () => handleDelete(record),
-      },
-    },
-  ];
-};
+  onUpdate: async (id, values) => {
+    await updateSetting(id, values);
+  },
+  onDelete: async (record) => {
+    await deleteSetting(record.configId);
+  },
+  onBatchDelete: async (records) => {
+    await batchDeleteSetting(records.map((r) => r.configId));
+  },
+  messages: {
+    createSuccess: "配置创建成功",
+    updateSuccess: "配置更新成功",
+    deleteSuccess: "配置删除成功",
+    batchDeleteSuccess: "批量删除成功",
+  },
+});
+
+// ========== 批量删除（先弹确认） ==========
+async function handleBatchDelete() {
+  const selected = (tableMethods.value?.getSelectRows?.() || []) as ConfigRecord[];
+  if (selected.length === 0) {
+    message.warning("请先选择要删除的配置");
+    return;
+  }
+  await crudBatchDelete(selected);
+}
+
+// ========== 操作项 ==========
+function getActions(record: ConfigRecord): ActionItem[] {
+  return getConfigActions(record, {
+    onView: handleView,
+    onEdit: handleEdit,
+    onDelete: handleDelete,
+  });
+}
 </script>
 
 <template>
   <div :class="containerClassName">
     <a-card title="系统设置" :class="cardClassName">
       <BasicTable
-        :columns="columns"
+        :columns="configColumns"
         :api="getSettingsList"
         :immediate="true"
         :use-search-form="true"
-        :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
-        :scroll="{ x: 1100 }"
-        :row-selection="{ type: 'checkbox' }"
-        :action-column="{ width: 250, title: '操作', fixed: 'right' }"
-        :pagination="{ showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }"
-        :row-key="(record) => record.configId"
+        :form-config="{ schemas: configSearchSchemas, labelWidth: 80 }"
+        :scroll="configScroll"
+        :row-selection="configRowSelection"
+        :action-column="configActionColumn"
+        :pagination="configPagination"
+        :row-key="configRowKey"
         table-layout="fixed"
         @register="tableRegister"
       >
         <template #toolbar>
-          <a-button type="primary" @click="() => handleAdd()">
+          <a-button type="primary" @click="handleAdd()">
             <template #icon>
               <Icon icon="ant-design:plus-outlined" />
             </template>
             新增设置
           </a-button>
-          <a-button danger @click="() => handleBatchDelete()">
+          <a-button danger @click="handleBatchDelete()">
             <template #icon>
               <Icon icon="ant-design:delete-outlined" />
             </template>
@@ -246,7 +154,7 @@ const getActions = (record: ConfigRecord): ActionItem[] => {
         </template>
 
         <template #action="{ record }">
-          <table-action :actions="getActions(record)" />
+          <TableAction :actions="getActions(record as ConfigRecord)" />
         </template>
       </BasicTable>
     </a-card>
@@ -259,7 +167,7 @@ const getActions = (record: ConfigRecord): ActionItem[] => {
       @ok="handleSave"
     >
       <BasicForm
-        :schemas="modalFormSchemas"
+        :schemas="configFormSchemas"
         :label-width="80"
         :show-action-button-group="false"
         :grid="{ cols: 1, gutter: 16 }"
@@ -279,10 +187,9 @@ const getActions = (record: ConfigRecord): ActionItem[] => {
         v-if="viewingRecord"
         :key="viewingRecord.configId"
         :data="viewingRecord"
-        :schema="detailSchemas"
+        :schema="configDetailSchemas"
         :column="2"
         bordered
-        size="middle"
       />
     </BasicDrawer>
   </div>

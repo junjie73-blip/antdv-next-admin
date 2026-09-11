@@ -1,196 +1,65 @@
 <script setup lang="ts">
-import type { FormSchema } from "@/components/business/Form";
-import type { ActionItem, BasicColumn } from "@/components/business/Table";
 import { Icon } from "@iconify/vue";
 import { computed, ref } from "vue";
+import { message } from "antdv-next";
+
 import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
 import { BasicForm, useForm } from "@/components/business/Form";
-import { BasicTable, useTable } from "@/components/business/Table";
+import { BasicTable, TableAction, useTable, type ActionItem } from "@/components/business/Table";
 import IconPicker from "@/components/common/Icon/IconPicker.vue";
+import { useCRUD } from "@/composables/useCRUD";
 import { DictType } from "@/enums/dict";
 import { useDictStore } from "@/stores";
 import { http } from "@/utils";
-import { cn } from "@/utils/cn";
-import { useCRUD } from "@/composables/useCRUD";
-import { message } from "antdv-next";
-import PermissionDrawer from "./PermissionDrawer.vue";
+
+// 抽离的模块
+import { getMenuActions } from "./actions";
+import { menuActionColumn, menuColumns, menuRowKey, menuScroll } from "./columns";
+import {
+  MENU_EMPTY_VALUES,
+  MENU_STATUS_COLOR_MAP,
+  MENU_STATUS_ICON_MAP,
+  MENU_STATUS_LABEL_MAP,
+  MENU_TYPE_COLOR_MAP,
+  MENU_TYPE_ICON_MAP,
+  MENU_TYPE_LABEL_MAP,
+  cardClassName,
+  containerClassName,
+  tagClassName,
+  validateMenuForm,
+} from "./constants";
+import { useMenuFormSchemas } from "./schemas";
+import type { MenuRecord } from "./types";
+import PermissionDrawer from "./components/PermissionDrawer.vue";
+
 defineOptions({ name: "SystemMenu" });
-
-interface MenuRecord {
-  menuId: string;
-  menuName: string;
-  icon: string;
-  path: string;
-  component: string;
-  menuType: number;
-  parentId: string | null;
-  status: string;
-  permission: string;
-  sortOrder: number;
-  children?: MenuRecord[];
-}
-
-// ========== 样式工具 ==========
-const containerClassName = cn("space-y-4 h-full");
-const cardClassName = cn("shadow-sm");
-const tagClassName = cn("inline-flex items-center gap-1");
-const actionClassName = cn("flex", "items-center", "justify-center");
-const btnClassName = cn("!px-0.5");
-const dividerClassName = cn("mx-0");
-
-// ========== 枚举映射 ==========
-const menuTypeColorMap: Record<string, string> = {
-  1: "blue",
-  2: "green",
-  3: "orange",
-};
-const menuTypeLabelMap: Record<string, string> = {
-  1: "目录",
-  2: "菜单",
-  3: "按钮",
-};
-const statusColorMap: Record<string, string> = {
-  "1": "green",
-  "0": "red",
-};
-const statusLabelMap: Record<string, string> = {
-  "1": "正常",
-  "0": "停用",
-};
 
 // ========== 字典 ==========
 const dictStore = useDictStore();
 const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE));
 
-// ========== 表单 Schema ==========
-const drawerFormSchemas: FormSchema[] = [
-  {
-    field: "menuType",
-    label: "菜单类型",
-    component: "RadioGroup",
-    defaultValue: 1,
-    componentProps: {
-      optionType: "button",
-      buttonStyle: "solid",
-      options: [
-        { label: "目录", value: 1 },
-        { label: "菜单", value: 2 },
-        { label: "按钮", value: 3 },
-      ],
-    },
-  },
-  {
-    field: "parentId",
-    label: "上级菜单",
-    component: "ATreeSelect",
-    componentProps: {
-      api: "/menu/tree",
-      placeholder: "请选择上级菜单（留空为顶级）",
-      allowClear: true,
-      treeDefaultExpandAll: true,
-      fieldNames: {
-        label: "menuName",
-        value: "menuId",
-        children: "children",
-      },
-    },
-  },
-  {
-    field: "menuName",
-    label: "菜单名称",
-    component: "Input",
-    required: true,
-    componentProps: { placeholder: "请输入菜单名称" },
-  },
-  {
-    field: "icon",
-    label: "图标",
-    component: "Input",
-    slot: "iconPicker",
-    componentProps: { placeholder: "点击选择图标", readonly: true },
-    dynamicDisabled: ({ model }) => (model as any).menuType === 3,
-  },
-  {
-    field: "path",
-    label: "路由地址",
-    component: "Input",
-    componentProps: { placeholder: "例如：/system/user" },
-    dynamicDisabled: ({ model }) => (model as any).menuType !== 2,
-  },
-  {
-    field: "component",
-    label: "组件路径",
-    component: "Input",
-    componentProps: { placeholder: "例如：system/user/index" },
-    dynamicDisabled: ({ model }) => (model as any).menuType !== 2,
-  },
-  {
-    field: "permission",
-    label: "权限标识",
-    component: "Input",
-    componentProps: { placeholder: "例如：system:user:list" },
-  },
-  {
-    field: "sortOrder",
-    label: "排序",
-    component: "InputNumber",
-    componentProps: { min: 0, placeholder: "请输入排序号", style: { width: "100%" } },
-  },
-  {
-    field: "status",
-    label: "状态",
-    component: "RadioGroup",
-    defaultValue: "1",
-    componentProps: () => ({
-      optionType: "button",
-      buttonStyle: "solid",
-      options: statusOptions.value,
-    }),
-  },
-];
-
-// ========== 表格列 ==========
-const columns: BasicColumn[] = [
-  { title: "菜单名称", dataIndex: "menuName", key: "menuName", width: 200 },
-  { title: "图标", dataIndex: "icon", key: "icon", width: 70, align: "center" },
-  { title: "排序", dataIndex: "sortOrder", key: "sortOrder", width: 70, align: "center" },
-  { title: "权限标识", dataIndex: "permission", key: "permission", width: 180, ellipsis: true },
-  { title: "路由地址", dataIndex: "path", key: "path", width: 160, ellipsis: true },
-  { title: "组件路径", dataIndex: "component", key: "component", width: 180, ellipsis: true },
-  { title: "类型", dataIndex: "menuType", key: "menuType", width: 80, align: "center" },
-  { title: "状态", dataIndex: "status", key: "status", width: 80, align: "center" },
-  { title: "创建时间", dataIndex: "createdAt", key: "createdAt", width: 180, align: "center" },
-];
-
-// ========== 表格 API ==========
-async function mockApi() {
-  return await http.Get("/menu/tree").send(true);
-}
-
-// ========== 抽屉和表格注册 ==========
+// ========== 注册实例 ==========
 const [drawerRegister, drawerMethods] = useDrawer();
 const [tableRegister, tableMethods] = useTable();
 const [formRegister, formMethods] = useForm();
 
-// ========== 使用 useCRUD ==========
+// ========== 表单 schema ==========
+const drawerFormSchemas = useMenuFormSchemas(statusOptions);
+
+// ========== 表格 API ==========
+async function fetchMenuTree() {
+  return await http.Get("/menu/tree").send(true);
+}
+
+// ========== useCRUD ==========
+// 说明：删除确认由操作项 popConfirm 负责，关闭 useCRUD 内置 Modal.confirm。
 const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<MenuRecord>({
   containerType: "drawer",
   drawerMethods,
   formMethods,
   tableMethods,
   idKey: "menuId",
-  confirmDelete: true,
-  getEmptyValues: () => ({
-    parentId: undefined,
-    menuType: 1,
-    menuName: "",
-    icon: "",
-    path: "",
-    component: "",
-    permission: "",
-    sortOrder: 0,
-    status: "1",
-  }),
+  getEmptyValues: () => ({ ...MENU_EMPTY_VALUES }),
   getFormValues: (record) => ({
     parentId: record.parentId,
     menuType: record.menuType,
@@ -211,13 +80,19 @@ const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<M
   onDelete: async (record) => {
     await http.Delete(`/menu/${record.menuId}`);
   },
-  beforeSave: (values) => {
-    if (!values.menuName) {
-      message.warning("请填写菜单名称");
+  // 业务校验：用 beforeCreate / beforeUpdate 替代原 beforeSave（无效选项）
+  beforeCreate: (values: any) => {
+    const result = validateMenuForm(values);
+    if (result !== true) {
+      message.warning(result);
       return false;
     }
-    if (values.menuType === 2 && (!values.path || !values.component)) {
-      message.warning("菜单类型必须填写路由地址和组件路径");
+    return true;
+  },
+  beforeUpdate: (_record, values: any) => {
+    const result = validateMenuForm(values);
+    if (result !== true) {
+      message.warning(result);
       return false;
     }
     return true;
@@ -226,13 +101,11 @@ const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<M
     createSuccess: "菜单创建成功",
     updateSuccess: "菜单更新成功",
     deleteSuccess: "菜单删除成功",
-    deleteConfirm: "确定要删除该菜单吗？",
   },
 });
 
 // ========== 新增子菜单 ==========
 async function handleAddChild(record: MenuRecord) {
-  // 在新增时预填父级 ID
   await handleAdd({ parentId: record.menuId });
 }
 
@@ -240,43 +113,30 @@ async function handleAddChild(record: MenuRecord) {
 function handleIconSelect(icon: string) {
   formMethods.setFieldsValue({ icon });
 }
-// ========== 权限按钮 ==========
+
+// ========== 权限抽屉 ==========
 const currentPermissionRecord = ref<MenuRecord>();
 const [permissionDrawerRegister, permissionDrawerMethods] = useDrawer();
-const handleAddPermission = async (record: MenuRecord) => {
+
+async function handleAddPermission(record: MenuRecord) {
   currentPermissionRecord.value = record;
   await permissionDrawerMethods.openDrawer();
-};
-const getActions = (record: any): ActionItem[] => {
-  return [
-    {
-      label: "新增子菜单",
-      icon: "ant-design:plus-outlined",
-      disabled: record.menuType !== 1,
-      onClick: () => handleAddChild(record),
-    },
-    {
-      label: "新增权限",
-      icon: "ant-design:plus-outlined",
-      disabled: record.menuType !== 2,
-      onClick: () => handleAddPermission(record),
-    },
-    {
-      label: "编辑",
-      icon: "ant-design:edit-outlined",
-      onClick: () => handleEdit(record),
-    },
-    {
-      label: "删除",
-      icon: "ant-design:delete-outlined",
-      danger: true,
-      popConfirm: {
-        title: "删除菜单",
-        confirm: () => handleDelete(record),
-      },
-    },
-  ];
-};
+}
+
+async function handlePermissionOk() {
+  permissionDrawerMethods.closeDrawer();
+  tableMethods.value?.reload();
+}
+
+// ========== 操作项 ==========
+function getActions(record: MenuRecord): ActionItem[] {
+  return getMenuActions(record, {
+    onAddChild: handleAddChild,
+    onAddPermission: handleAddPermission,
+    onEdit: handleEdit,
+    onDelete: handleDelete,
+  });
+}
 </script>
 
 <template>
@@ -284,25 +144,23 @@ const getActions = (record: any): ActionItem[] => {
     <a-card :class="cardClassName">
       <BasicTable
         :show-index-column="false"
-        :columns="columns"
-        :api="mockApi"
+        :columns="menuColumns"
+        :api="fetchMenuTree"
         :immediate="true"
         :use-search-form="false"
         :is-tree="true"
         children-column-name="children"
         :pagination="false"
-        :action-column="{ width: 400, title: '操作', fixed: 'right' }"
-        :row-key="(record) => record.menuId"
+        :action-column="menuActionColumn"
+        :row-key="menuRowKey"
         virtual
-        :scroll="{ y: 9999999 }"
+        :scroll="menuScroll"
         default-expand-all-rows
         @register="tableRegister"
       >
         <template #toolbar>
-          <a-button type="primary" @click="() => handleAdd()">
-            <template #icon>
-              <Icon icon="ant-design:plus-outlined" />
-            </template>
+          <a-button type="primary" @click="handleAdd()">
+            <template #icon><Icon icon="ant-design:plus-outlined" /></template>
             新增菜单
           </a-button>
         </template>
@@ -315,41 +173,30 @@ const getActions = (record: any): ActionItem[] => {
         </template>
 
         <template #cell-menuType="{ record }">
-          <a-tag :color="menuTypeColorMap[record.menuType] || 'default'">
+          <a-tag :color="MENU_TYPE_COLOR_MAP[record.menuType as 1 | 2 | 3] || 'default'">
             <span :class="tagClassName">
-              <Icon
-                :icon="
-                  record.menuType === 1
-                    ? 'carbon:folder'
-                    : record.menuType === 2
-                      ? 'carbon:document'
-                      : record.menuType === 3
-                        ? 'carbon:cu3'
-                        : 'carbon:link'
-                "
-              />
-              {{ menuTypeLabelMap[record.menuType] || record.menuType }}
+              <Icon :icon="MENU_TYPE_ICON_MAP[record.menuType as 1 | 2 | 3] || 'carbon:link'" />
+              {{ MENU_TYPE_LABEL_MAP[record.menuType as 1 | 2 | 3] || record.menuType }}
             </span>
           </a-tag>
         </template>
 
         <template #cell-status="{ record }">
-          <a-tag :color="statusColorMap[record.status] || 'default'">
+          <a-tag :color="MENU_STATUS_COLOR_MAP[record.status] || 'default'">
             <span :class="tagClassName">
-              <Icon
-                :icon="record.status === '1' ? 'carbon:checkmark-outline' : 'carbon:close-outline'"
-              />
-              {{ statusLabelMap[record.status] || "未知" }}
+              <Icon :icon="MENU_STATUS_ICON_MAP[record.status] || 'carbon:help'" />
+              {{ MENU_STATUS_LABEL_MAP[record.status] || "未知" }}
             </span>
           </a-tag>
         </template>
 
         <template #action="{ record }">
-          <table-action :actions="getActions(record)"></table-action>
+          <TableAction :actions="getActions(record as MenuRecord)" />
         </template>
       </BasicTable>
     </a-card>
 
+    <!-- 菜单编辑抽屉 -->
     <BasicDrawer
       :title="isEditing ? '编辑菜单' : '新增菜单'"
       :width="640"
@@ -365,22 +212,19 @@ const getActions = (record: any): ActionItem[] => {
         <template #iconPicker="{ model, field }">
           <IconPicker
             :model-value="model[field] || ''"
-            @update:modelValue="(val: string) => formMethods.setFieldsValue({ [field]: val })"
+            @update:model-value="(val: string) => formMethods.setFieldsValue({ [field]: val })"
             @select="handleIconSelect"
           />
         </template>
       </BasicForm>
     </BasicDrawer>
+
+    <!-- 权限按钮抽屉 -->
     <BasicDrawer
       title="权限按钮"
       :width="640"
       @register="permissionDrawerRegister"
-      @ok="
-        () => {
-          permissionDrawerMethods.closeDrawer();
-          tableMethods?.reload();
-        }
-      "
+      @ok="handlePermissionOk"
     >
       <PermissionDrawer
         :menu="currentPermissionRecord"

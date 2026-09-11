@@ -10,7 +10,7 @@ export function getUserList(params?: Record<string, unknown>) {
 }
 
 /** 用户详情 */
-export function getUserDetail(id: number) {
+export function getUserDetail(id: string) {
   return get<any>(`/user/detail/${id}`);
 }
 
@@ -20,12 +20,12 @@ export function addUser(data: Record<string, unknown>) {
 }
 
 /** 编辑用户 */
-export function updateUser(id: number, data: Record<string, unknown>) {
+export function updateUser(id: string, data: Record<string, unknown>) {
   return post<any>(`/user/update/${id}`, data);
 }
 
 /** 删除用户 */
-export function deleteUser(id: number) {
+export function deleteUser(id: string) {
   return del<void>(`/user/remove/${id}`);
 }
 
@@ -41,8 +41,8 @@ export function batchDeleteUser(ids: string[]) {
 // ======================== 角色管理 ========================
 
 /** 角色列表 */
-export function getRoleList(params?: Record<string, unknown>) {
-  return get<{ list: any[]; total: number }>("/role/list", params);
+export function getRoleList(params?: FetchParams) {
+  return get<any[]>("/role/list", params as any);
 }
 
 /** 新增角色 */
@@ -51,12 +51,12 @@ export function addRole(data: Record<string, unknown>) {
 }
 
 /** 编辑角色 */
-export function updateRole(id: number, data: Record<string, unknown>) {
+export function updateRole(id: string, data: Record<string, unknown>) {
   return put<any>(`/role/${id}`, data);
 }
 
 /** 删除角色 */
-export function deleteRole(id: number) {
+export function deleteRole(id: string) {
   return del<void>(`/role/${id}`);
 }
 
@@ -112,25 +112,25 @@ export function addPost(data: Record<string, unknown>) {
 }
 
 /** 编辑岗位 */
-export function updatePost(id: number, data: Record<string, unknown>) {
+export function updatePost(id: string, data: Record<string, unknown>) {
   return put<any>(`/system/post/${id}`, data);
 }
 
 /** 删除岗位 */
-export function deletePost(id: number) {
+export function deletePost(id: string) {
   return del<void>(`/system/post/${id}`);
 }
 
 /** 岗位关联的用户列表 */
-export function getPostUsers(postId: number) {
+export function getPostUsers(postId: string) {
   return get<{ list: any[]; total: number }>(`/system/post/users/${postId}`);
 }
 
 // ======================== 文件管理 ========================
 
 /** 文件列表（分页） */
-export function getFileList(params?: Record<string, unknown>) {
-  return get<{ list: any[]; total: number }>("/file/list", params);
+export function getFileList(params?: FetchParams) {
+  return get<any>("/file/list", params as any);
 }
 
 /** 上传文件 */
@@ -139,7 +139,7 @@ export function uploadFile(data: Record<string, unknown>) {
 }
 
 /** 删除文件 */
-export function deleteFile(id: number) {
+export function deleteFile(id: string) {
   return del<void>(`/file/${id}`);
 }
 
@@ -161,12 +161,12 @@ export function addDict(data: Record<string, unknown>) {
 }
 
 /** 编辑字典类型 */
-export function updateDict(id: number, data: Record<string, unknown>) {
+export function updateDict(id: string, data: Record<string, unknown>) {
   return put<any>(`/dict-type/${id}`, data);
 }
 
 /** 删除字典类型 */
-export function deleteDict(id: number) {
+export function deleteDict(id: string) {
   return del<void>(`/dict-type/${id}`);
 }
 
@@ -176,12 +176,12 @@ export function addDictItem(data: Record<string, unknown>) {
 }
 
 /** 编辑字典项 */
-export function updateDictItem(id: number, data: Record<string, unknown>) {
+export function updateDictItem(id: string, data: Record<string, unknown>) {
   return put<any>(`/dict-data/${id}`, data);
 }
 
 /** 删除字典项 */
-export function deleteDictItem(id: number) {
+export function deleteDictItem(id: string) {
   return del<void>(`/dict-data/${id}`);
 }
 // 获取字典树
@@ -318,7 +318,7 @@ export const deleteTodo = (id: string) => http.Delete(`/todo/${id}`);
 export const completeTodo = (id: string) => http.Put(`/todo/${id}/complete`);
 
 // 工作台
-export const getWorkbenchSummary = () => http.Get("/workbench/summary");
+export const getWorkbenchSummary = (): any => http.Get("/workbench/summary");
 
 // 定时任务
 export const getJobList = (params: any) => http.Get("/job/list", { params });

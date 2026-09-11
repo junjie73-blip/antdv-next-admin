@@ -1,146 +1,64 @@
-<script setup lang="tsx">
-import { Icon } from '@iconify/vue'
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { getWorkbenchSummary } from '@/api/system'
-import { useUserStore } from '@/stores/modules/user'
-import dayjs from 'dayjs'
-import { getTimeGreeting } from '@/utils'
+<script setup lang="ts">
+import { Icon } from "@iconify/vue";
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 
-defineOptions({ name: 'Workbench' })
+import { getWorkbenchSummary } from "@/api/system";
+import { useUserStore } from "@/stores/modules/user";
 
-const router = useRouter()
-const userStore = useUserStore()
+// 抽离的模块
+import { DEFAULT_WORKBENCH_DATA, SHORTCUTS, STAT_CARD_CONFIGS } from "./constants";
+import { greeting, getTodayLabel, getWeekLabel } from "./utils";
+import { renderLogItem } from "./render";
+import type { LogItem, WorkbenchData } from "./types";
 
-const data = ref<any>({
-  stats: {
-    userCount: 0,
-    roleCount: 0,
-    deptCount: 0,
-    noticeCount: 0,
-    unreadNotice: 0,
-    todoUncompleted: 0,
-    todoOverdue: 0,
-  },
-  loginTrend: [],
-  recentLogs: [],
-})
+defineOptions({ name: "WorkBench" });
 
-// ============ 欢迎卡片的动态问候语 ============
-const greeting = getTimeGreeting()
-const todayLabel = computed(() => dayjs().format('YYYY年MM月DD日'))
+const router = useRouter();
+const userStore = useUserStore();
 
-const weekLabel = computed(() => {
-  const week = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
-  return week[dayjs().day()]
-})
-
-// ============ 统计卡片 ============
-const statCards = computed(() => [
-  {
-    title: '用户总数',
-    value: data.value.stats?.userCount || 0,
-    suffix: '人',
-    icon: 'carbon:user-multiple',
-    color: '#2563eb',
-    path: '/system/user',
-  },
-  {
-    title: '角色数量',
-    value: data.value.stats?.roleCount || 0,
-    suffix: '个',
-    icon: 'carbon:user-role',
-    color: '#7c3aed',
-    path: '/system/role',
-  },
-  {
-    title: '部门数量',
-    value: data.value.stats?.deptCount || 0,
-    suffix: '个',
-    icon: 'carbon:tree-view',
-    color: '#059669',
-    path: '/system/dept',
-  },
-  {
-    title: '未读消息',
-    value: data.value.stats?.unreadNotice || 0,
-    suffix: '条',
-    icon: 'carbon:notification',
-    color: '#d97706',
-    path: '/message/my',
-  },
-])
-
-// ============ 快捷入口 ============
-const shortcuts = [
-  { title: '用户管理', icon: 'carbon:user-multiple', path: '/system/user', color: '#2563eb' },
-  { title: '角色管理', icon: 'carbon:user-role', path: '/system/role', color: '#7c3aed' },
-  { title: '菜单配置', icon: 'carbon:menu', path: '/system/menu', color: '#059669' },
-  { title: '部门管理', icon: 'carbon:tree-view', path: '/system/dept', color: '#d97706' },
-  {
-    title: '权限管理',
-    icon: 'carbon:shield-checkmark',
-    path: '/system/permission',
-    color: '#0891b2',
-  },
-  { title: '系统配置', icon: 'carbon:settings', path: '/system/config', color: '#db2777' },
-  { title: '通知公告', icon: 'carbon:notification', path: '/system/notice', color: '#dc2626' },
-  { title: '数据字典', icon: 'carbon:book', path: '/system/dict', color: '#4f46e5' },
-]
+// ========== 数据 ==========
+const data = ref<WorkbenchData>({ ...DEFAULT_WORKBENCH_DATA });
 
 async function load() {
-  const res = await getWorkbenchSummary()
-  data.value = res?.data ?? res ?? data.value
+  const res = await getWorkbenchSummary();
+  data.value = res?.data ?? res ?? data.value;
 }
 
+// ========== 欢迎卡片 ==========
+const todayLabel = computed(() => getTodayLabel());
+const weekLabel = computed(() => getWeekLabel());
+
+// ========== 统计卡片（合并静态配置 + 动态数值） ==========
+const statCards = computed(() =>
+  STAT_CARD_CONFIGS.map((cfg) => ({
+    ...cfg,
+    value: data.value.stats?.[cfg.key] || 0,
+  })),
+);
+
+// ========== 最近操作 ==========
+const recentLogs = computed<LogItem[]>(() => data.value.recentLogs || []);
+
+function getLogRowKey(item: LogItem) {
+  return item.log_id;
+}
+
+// ========== 导航 ==========
 function navigate(path: string) {
-  router.push(path)
+  router.push(path);
 }
 
-// ============ Listy 渲染最近操作 ============
-interface LogItem {
-  log_id: string
-  username: string
-  operation: string
-  status: string
-  created_at: string
-}
-
-const recentLogs = computed<LogItem[]>(() => data.value.recentLogs || [])
-
-const renderLogItem = (item: LogItem) => (
-  <div class="group flex items-center gap-3 px-4 py-2.5 border-b border-gray-50 dark:border-gray-800/60 hover:bg-gray-50/70 dark:hover:bg-gray-800/40 transition-colors">
-    <span
-      class="inline-flex items-center justify-center w-14 h-5 rounded text-[11px] font-medium flex-shrink-0"
-      style={{
-        backgroundColor: item.status === '1' ? 'rgba(5,150,105,0.08)' : 'rgba(220,38,38,0.08)',
-        color: item.status === '1' ? '#059669' : '#dc2626',
-      }}
-    >
-      {item.status === '1' ? '成功' : '失败'}
-    </span>
-    <span class="text-[13px] font-medium text-gray-700 dark:text-gray-200 w-24 truncate flex-shrink-0">
-      {item.username || '-'}
-    </span>
-    <span class="text-[13px] text-gray-500 dark:text-gray-400 flex-1 truncate">
-      {item.operation}
-    </span>
-    <span class="text-xs text-gray-400 tabular-nums flex-shrink-0">
-      {dayjs(item.created_at).format('MM-DD HH:mm:ss')}
-    </span>
-  </div>
-)
-
-onMounted(load)
+// ========== 初始化 ==========
+onMounted(load);
 </script>
 
 <template>
   <div class="space-y-4">
-    <!-- ==================== 欢迎卡片（自然风） ==================== -->
+    <!-- ==================== 欢迎卡片 ==================== -->
     <div
       class="relative rounded-xl border border-gray-200/70 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden"
     >
-      <!-- 左侧细强调线 -->
       <div
         class="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-slate-700 via-slate-500 to-slate-300 dark:from-slate-400 dark:via-slate-600 dark:to-slate-800"
       />
@@ -152,7 +70,7 @@ onMounted(load)
             :src="userStore.avatar"
             class="ring-2 ring-gray-100 dark:ring-gray-800 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
           >
-            {{ userStore.username?.charAt(0)?.toUpperCase() || 'U' }}
+            {{ userStore.username?.charAt(0)?.toUpperCase() || "U" }}
           </a-avatar>
           <span
             class="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-gray-900"
@@ -161,7 +79,7 @@ onMounted(load)
 
         <div class="flex-1 min-w-0">
           <h1 class="text-xl font-semibold text-gray-800 dark:text-gray-100 tracking-tight">
-            {{ greeting }}，{{ userStore.username || '用户' }}
+            {{ greeting }}，{{ userStore.username || "用户" }}
           </h1>
           <div class="mt-1.5 flex items-center gap-4 text-[13px] text-gray-500 dark:text-gray-400">
             <span class="inline-flex items-center gap-1.5">
@@ -170,12 +88,11 @@ onMounted(load)
             </span>
             <span class="inline-flex items-center gap-1.5">
               <Icon icon="carbon:user-role" class="text-gray-400" />
-              {{ userStore.roles?.join('、') || '未分配角色' }}
+              {{ userStore.roles?.join("、") || "未分配角色" }}
             </span>
           </div>
         </div>
 
-        <!-- 右侧小数据 -->
         <div class="hidden md:flex items-center gap-6 pr-1">
           <div class="text-right">
             <div
@@ -239,7 +156,7 @@ onMounted(load)
         </template>
         <div class="grid grid-cols-4 gap-2">
           <div
-            v-for="s in shortcuts"
+            v-for="s in SHORTCUTS"
             :key="s.path"
             class="group flex flex-col items-center gap-2 py-3 rounded-lg cursor-pointer transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-800/60"
             @click="navigate(s.path)"
@@ -320,7 +237,7 @@ onMounted(load)
       </a-card>
     </div>
 
-    <!-- ==================== 最近操作（Listy 虚拟列表） ==================== -->
+    <!-- ==================== 最近操作 ==================== -->
     <a-card :bordered="false" class="shadow-sm rounded-xl">
       <template #title>
         <div class="flex items-center gap-2 text-[14px] font-medium">
@@ -338,7 +255,7 @@ onMounted(load)
       <a-listy
         v-else
         :items="recentLogs"
-        :row-key="(item: LogItem) => item.log_id"
+        :row-key="getLogRowKey"
         :height="360"
         :item-render="renderLogItem"
       />

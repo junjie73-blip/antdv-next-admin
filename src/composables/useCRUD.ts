@@ -56,9 +56,9 @@ interface UseCRUDOptions<RecordType = Record<string, any>, FormValues = Record<s
   /** 自定义消息 */
   messages?: CRUDMessages;
   /** 新增前钩子 */
-  beforeCreate?: () => boolean | Promise<boolean>;
+  beforeCreate?: (values: FormValues) => boolean | Promise<boolean>;
   /** 编辑前钩子 */
-  beforeUpdate?: (record: RecordType) => boolean | Promise<boolean>;
+  beforeUpdate?: (record: RecordType, values: FormValues) => boolean | Promise<boolean>;
   /**
    * 删除前钩子
    * 说明：确认逻辑（如 Modal.confirm）请在此钩子内自行处理，

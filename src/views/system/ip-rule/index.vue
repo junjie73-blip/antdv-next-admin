@@ -1,69 +1,44 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
 import { ref, watch } from "vue";
-import { getIpRuleList, createIpRule, updateIpRule, deleteIpRule } from "@/api/system";
+
+import { createIpRule, deleteIpRule, getIpRuleList, updateIpRule } from "@/api/system";
 import { BasicForm, useForm } from "@/components/business/Form";
 import { BasicModal, useModal } from "@/components/business/Modal";
-import { BasicTable, useTable, type ActionItem } from "@/components/business/Table";
+import { BasicTable, TableAction, useTable, type ActionItem } from "@/components/business/Table";
 import { useCRUD } from "@/composables/useCRUD";
-import { message } from "antdv-next";
-import dayjs from "dayjs";
+
+// 抽离的模块
+import { getIpRuleActions } from "./actions";
+import { ipRuleActionColumn, ipRuleColumns, ipRuleRowKey, ipRuleScroll } from "./columns";
+import { IP_RULE_STATUS_COLOR_MAP, IP_RULE_STATUS_LABEL_MAP, TAB_TO_RULE_TYPE } from "./constants";
+import { ipRuleFormSchemas } from "./schemas";
+import type { IpRuleRecord, IpRuleType } from "./types";
 
 defineOptions({ name: "SystemIpRule" });
 
-const activeTab = ref("white");
+// ========== 状态 ==========
+const activeTab = ref<IpRuleType>("white");
+
 const [tableRegister, tableMethods] = useTable();
 const [modalRegister, modalMethods] = useModal();
 const [formRegister, formMethods] = useForm();
 
-const formSchemas = [
-  {
-    field: "ruleType",
-    label: "规则类型",
-    component: "RadioGroup",
-    required: true,
-    defaultValue: "white",
-    componentProps: {
-      optionType: "button",
-      buttonStyle: "solid",
-      options: [
-        { label: "白名单", value: "white" },
-        { label: "黑名单", value: "black" },
-      ],
-    },
-  },
-  {
-    field: "ipPattern",
-    label: "IP / CIDR",
-    component: "Input",
-    required: true,
-    componentProps: { placeholder: "例如：192.168.1.1 或 192.168.1.0/24" },
-  },
-  {
-    field: "status",
-    label: "状态",
-    component: "RadioGroup",
-    defaultValue: "1",
-    componentProps: {
-      optionType: "button",
-      buttonStyle: "solid",
-      options: [
-        { label: "启用", value: "1" },
-        { label: "停用", value: "0" },
-      ],
-    },
-  },
-  { field: "remark", label: "备注", component: "InputTextArea", componentProps: { rows: 3 } },
-];
-
-const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<any>({
+// ========== useCRUD ==========
+// 说明：删除确认由操作项 popConfirm 负责，关闭 useCRUD 内置 Modal.confirm，
+// 避免"气泡确认 + 弹窗确认"双重确认。
+const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<IpRuleRecord>({
   containerType: "modal",
   modalMethods,
   formMethods,
   tableMethods,
   idKey: "ruleId",
-  confirmDelete: true,
-  getEmptyValues: () => ({ ruleType: activeTab.value, ipPattern: "", status: "1", remark: "" }),
+  getEmptyValues: () => ({
+    ruleType: activeTab.value,
+    ipPattern: "",
+    status: "1",
+    remark: "",
+  }),
   getFormValues: (r) => ({
     ruleType: r.ruleType,
     ipPattern: r.ipPattern,
@@ -83,60 +58,29 @@ const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<a
     createSuccess: "创建成功",
     updateSuccess: "更新成功",
     deleteSuccess: "删除成功",
-    deleteConfirm: "确定删除该规则吗？",
   },
 });
 
-const columns = [
-  {
-    title: "序号",
-    key: "index",
-    width: 60,
-    align: "center",
-    customRender: ({ index }: any) => index + 1,
-  },
-  { title: "IP / CIDR", dataIndex: "ipPattern", key: "ipPattern", width: 200 },
-  { title: "状态", key: "status", width: 80, align: "center" },
-  { title: "备注", dataIndex: "remark", key: "remark", ellipsis: true },
-  {
-    title: "创建时间",
-    dataIndex: "createdAt",
-    key: "createdAt",
-    width: 170,
-    customRender: ({ record }: any) => dayjs(record.createdAt).format("YYYY-MM-DD HH:mm:ss"),
-  },
-];
+// ========== Tab 切换时重新拉取 ==========
 watch(
   activeTab,
   (newVal) => {
     tableMethods.value?.reload({
       searchInfo: {
-        ruleType: newVal,
+        ruleType: TAB_TO_RULE_TYPE[newVal],
       },
     });
   },
-  {
-    immediate: true,
-  },
+  { immediate: true },
 );
-const getActions = (record: any): ActionItem[] => {
-  return [
-    {
-      label: "编辑",
-      icon: "ant-design:edit-outlined",
-      onClick: () => handleEdit(record),
-    },
-    {
-      label: "删除",
-      icon: "ant-design:delete-outlined",
-      danger: true,
-      popConfirm: {
-        title: "删除IP规则",
-        confirm: () => handleDelete(record),
-      },
-    },
-  ];
-};
+
+// ========== 操作项 ==========
+function getActions(record: IpRuleRecord): ActionItem[] {
+  return getIpRuleActions(record, {
+    onEdit: handleEdit,
+    onDelete: handleDelete,
+  });
+}
 </script>
 
 <template>
@@ -147,28 +91,30 @@ const getActions = (record: any): ActionItem[] => {
     </a-tabs>
 
     <BasicTable
-      :columns="columns"
+      :columns="ipRuleColumns"
       :api="getIpRuleList"
       :immediate="true"
       :use-search-form="false"
-      :scroll="{ x: 800 }"
-      :row-key="(r: any) => r.ruleId"
-      :action-column="{ width: 160, title: '操作', fixed: 'right' }"
+      :scroll="ipRuleScroll"
+      :row-key="ipRuleRowKey"
+      :action-column="ipRuleActionColumn"
       @register="tableRegister"
     >
       <template #toolbar>
-        <a-button type="primary" @click="() => handleAdd()">
+        <a-button type="primary" @click="handleAdd()">
           <template #icon><Icon icon="ant-design:plus-outlined" /></template>
           新增规则
         </a-button>
       </template>
+
       <template #cell-status="{ record }">
-        <a-tag :color="record.status === '1' ? 'green' : 'red'">
-          {{ record.status === "1" ? "启用" : "停用" }}
+        <a-tag :color="IP_RULE_STATUS_COLOR_MAP[record.status] || 'default'">
+          {{ IP_RULE_STATUS_LABEL_MAP[record.status] || "未知" }}
         </a-tag>
       </template>
+
       <template #action="{ record }">
-        <table-action :actions="getActions(record)" />
+        <TableAction :actions="getActions(record as IpRuleRecord)" />
       </template>
     </BasicTable>
 
@@ -179,7 +125,7 @@ const getActions = (record: any): ActionItem[] => {
       @ok="handleSave"
     >
       <BasicForm
-        :schemas="formSchemas"
+        :schemas="ipRuleFormSchemas"
         :label-width="90"
         :show-action-button-group="false"
         :grid="{ cols: 1, gutter: 16 }"
