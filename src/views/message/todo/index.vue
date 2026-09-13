@@ -14,13 +14,14 @@ import {
   updateTodo,
 } from "@/api/system";
 import { BasicForm, useForm } from "@/components/business/Form";
-import { BasicModal, useModal } from "@/components/business/Modal";
-
 // 抽离的模块
 import { FILTER_META, PRIORITY_MAP } from "./constants";
 import { TODO_EMPTY_VALUES, todoFormSchemas } from "./schemas";
 import type { TodoFilterKey, TodoFilterOption, TodoRecord, TodoStats } from "./types";
 import { filterTodos, getDueTimeInfo, isOverdue, todoToFormValues } from "./utils";
+import { useUserStore } from "@/stores/modules/user";
+import BasicDrawer from "@/components/business/Drawer/BasicDrawer.vue";
+import { useDrawer } from "@/components/business/Drawer";
 
 dayjs.extend(relativeTime);
 defineOptions({ name: "MessageTodo" });
@@ -30,8 +31,9 @@ const loading = ref(false);
 const stats = ref<TodoStats>({ all: 0, uncompleted: 0, completed: 0, overdue: 0 });
 const list = ref<TodoRecord[]>([]);
 const activeFilter = ref<TodoFilterKey>("all");
-const [modalRegister, modalMethods] = useModal();
+const [drawerRegister, drawerMethods] = useDrawer();
 const [formRegister, formMethods] = useForm();
+const userStore = useUserStore();
 const editingId = ref<string | null>(null);
 
 // ============ 过滤器配置（合并统计数值） ============
@@ -63,18 +65,21 @@ async function load() {
 }
 
 // ============ CRUD ============
-function handleAdd() {
+async function handleAdd() {
   editingId.value = null;
+  await drawerMethods.openDrawer();
+  await formMethods.clearValidate();
   formMethods.setFieldsValue({ ...TODO_EMPTY_VALUES });
-  formMethods.clearValidate();
-  modalMethods.openModal();
 }
 
-function handleEdit(item: TodoRecord) {
+async function handleEdit(item: TodoRecord) {
   editingId.value = item.todoId;
-  formMethods.setFieldsValue(todoToFormValues(item));
-  formMethods.clearValidate();
-  modalMethods.openModal();
+  await drawerMethods.openDrawer();
+  await formMethods.clearValidate();
+
+  formMethods.setFieldsValue(
+    todoToFormValues({ ...item, userId: userStore.userInfo?.userId || "" }),
+  );
 }
 
 async function handleSave() {
@@ -83,7 +88,8 @@ async function handleSave() {
 
   const payload: any = {
     ...values,
-    dueTime: values.dueTime ? dayjs(values.dueTime).format("YYYY-MM-DD HH:mm:ss") : null,
+    dueTime: values.dueTime ? new Date(values.dueTime) : null,
+    userId: userStore.userInfo?.userId,
   };
 
   if (editingId.value) {
@@ -94,7 +100,7 @@ async function handleSave() {
     message.success("创建成功");
   }
 
-  modalMethods.closeModal();
+  await drawerMethods.closeDrawer();
   load();
 }
 
@@ -306,10 +312,10 @@ onMounted(load);
     </div>
 
     <!-- ==================== 新建/编辑弹窗 ==================== -->
-    <BasicModal
+    <BasicDrawer
       :title="editingId ? '编辑待办' : '新建待办'"
       :width="520"
-      @register="modalRegister"
+      @register="drawerRegister"
       @ok="handleSave"
     >
       <BasicForm
@@ -317,8 +323,9 @@ onMounted(load);
         :label-width="80"
         :show-action-button-group="false"
         :grid="{ cols: 1, gutter: 16 }"
+        style="height: 400px"
         @register="formRegister"
       />
-    </BasicModal>
+    </BasicDrawer>
   </div>
 </template>

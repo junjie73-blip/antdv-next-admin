@@ -1,5 +1,5 @@
 import type { UserInfo } from "#/user";
-import { defineStore } from "pinia";
+import { defineStore, disposePinia, getActivePinia } from "pinia";
 import { computed, ref } from "vue";
 import { useLogger } from "@/composables/useLogger";
 import { cache } from "@/utils/cache";
@@ -94,7 +94,6 @@ export const useUserStore = defineStore("user", () => {
       return { success: false, message: "登录异常，请重试" };
     }
   };
-
   const logout = async () => {
     await http.Post("/auth/logout");
     // 记录登出日志
@@ -105,8 +104,7 @@ export const useUserStore = defineStore("user", () => {
 
     token.value = null;
     userInfo.value = null;
-    cache.removeItem(TOKEN_KEY);
-    cache.removeItem(USER_INFO_KEY);
+    cache.clear();
     router.push("/login");
   };
 

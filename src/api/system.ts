@@ -310,8 +310,8 @@ export const deleteCacheKey = (key: string) =>
 export const clearCache = () => http.Post("/monitor/cache/clear");
 
 // 待办
-export const getTodoList = (params: any): any => http.Get("/todo/list", { params });
-export const getTodoStats = (): any => http.Get("/todo/stats");
+export const getTodoList = (params: any): any => http.Get("/todo/list", { params }).send(true);
+export const getTodoStats = (): any => http.Get("/todo/stats").send(true);
 export const createTodo = (data: any) => http.Post("/todo", data);
 export const updateTodo = (id: string, data: any) => http.Put(`/todo/${id}`, data);
 export const deleteTodo = (id: string) => http.Delete(`/todo/${id}`);

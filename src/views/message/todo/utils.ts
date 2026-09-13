@@ -65,6 +65,6 @@ export function todoToFormValues(item: TodoRecord) {
     title: item.title,
     content: item.content ?? "",
     priority: item.priority,
-    dueTime: item.dueTime ? dayjs(item.dueTime) : null,
+    dueTime: item.dueTime ? new Date(item.dueTime) : null,
   };
 }

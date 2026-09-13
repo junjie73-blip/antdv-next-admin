@@ -14,6 +14,7 @@ import AccountDrawer from "./AccountDrawer.vue";
 import SettingDrawer from "./SettingDrawer.vue";
 import { http } from "@/utils";
 import { noticeTypeConfig, useWs, type NotificationItem } from "@/utils/ws";
+import { useAuthStore, useDictStore } from "@/stores";
 defineProps<{
   collapsed?: boolean;
   horizontal?: boolean;
@@ -179,7 +180,13 @@ function handleLogout() {
     cancelText: "取消",
     centered: true,
     onOk: () => {
-      userStore.logout();
+      userStore.logout().then(() => {
+        userStore.$reset();
+        useDictStore().$reset();
+        routeStore.$reset();
+        appStore.$reset();
+        useAuthStore().$reset();
+      });
     },
   });
 }

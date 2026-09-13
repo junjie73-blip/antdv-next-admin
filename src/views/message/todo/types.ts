@@ -9,6 +9,7 @@ export interface TodoRecord {
   status: string;
   dueTime?: string | null;
   createdAt: string;
+  userId: string;
 }
 
 /** 待办统计 */
