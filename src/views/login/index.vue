@@ -9,7 +9,7 @@ import { useRoute, useRouter } from "vue-router";
 import { message } from "antdv-next";
 import { useUserStore } from "@/stores/modules/user";
 import { useLoginStyles } from "./composables/useLoginStyles";
-
+import ForgotPasswordModal from "./ForgotPasswordModal.vue";
 const router = useRouter();
 const route = useRoute();
 const userStore = useUserStore();
@@ -44,10 +44,12 @@ const formState = reactive({
   username: "",
   password: "",
   remember: true,
+  tenantCode: "",
 });
 
 const rules: Record<string, Rule[]> = {
   username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
+  tenantCode: [{ required: true, message: "请输入租户编码", trigger: "blur" }],
   password: [
     { required: true, message: "请输入密码", trigger: "blur" },
     { min: 6, message: "密码至少6位", trigger: "blur" },
@@ -92,7 +94,11 @@ async function handleLogin() {
     await formRef.value?.validate();
     loading.value = true;
 
-    const result = await userStore.login(formState.username, formState.password);
+    const result = await userStore.login(
+      formState.username,
+      formState.password,
+      formState.tenantCode,
+    );
 
     if (result.success) {
       message.success("登录成功");
@@ -107,15 +113,21 @@ async function handleLogin() {
     loading.value = false;
   }
 }
-
+const forgotModalOpen = ref(false);
+const loginTenantCode = ref("");
 function handleRegister() {
   router.push("/register");
 }
 
 function handleForgotPassword() {
-  message.info("请联系管理员重置密码");
+  forgotModalOpen.value = true;
 }
-
+function handleResetSuccess(payload: { tenantCode: string; username: string }) {
+  loginTenantCode.value = payload.tenantCode;
+  formState.username = payload.username;
+  formState.password = "";
+  formState.tenantCode = payload.tenantCode;
+}
 function handleSocialLogin(item: (typeof socialLogins)[number]) {
   item.onClick();
 }
@@ -218,6 +230,9 @@ const year = computed(() => new Date().getFullYear());
           layout="vertical"
           @finish="handleLogin"
         >
+          <a-form-item name="tenantCode">
+            <a-input v-model:value="formState.tenantCode" placeholder="请输入租户编码" />
+          </a-form-item>
           <a-form-item name="username" class="!mb-4">
             <a-input
               v-model:value="formState.username"
@@ -318,6 +333,12 @@ const year = computed(() => new Date().getFullYear());
         </div>
       </div>
     </div>
+    <ForgotPasswordModal
+      v-model:open="forgotModalOpen"
+      :default-tenant-code="loginTenantCode"
+      :default-username="formState.username"
+      @success="handleResetSuccess"
+    />
   </div>
 </template>
 

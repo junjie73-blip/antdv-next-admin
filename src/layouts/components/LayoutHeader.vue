@@ -180,13 +180,7 @@ function handleLogout() {
     cancelText: "取消",
     centered: true,
     onOk: () => {
-      userStore.logout().then(() => {
-        userStore.$reset();
-        useDictStore().$reset();
-        routeStore.$reset();
-        appStore.$reset();
-        useAuthStore().$reset();
-      });
+      userStore.logout();
     },
   });
 }

@@ -19,21 +19,7 @@ export const useUserStore = defineStore("user", () => {
   const refreshToken = ref<string | null>(cache.getItem(REFRESH_TOKEN_KEY) as string | null);
   const userInfo = ref<UserInfo | null>(cache.getItem(USER_INFO_KEY) as UserInfo | null);
   const router = useRouter();
-  /**
-   * 异步初始化 Token（解密）
-   * 需要在应用启动后调用
-   */
-  async function initToken() {
-    const stored = cache.getItem(TOKEN_KEY) as string | null;
-    if (stored) {
-      try {
-        token.value = stored;
-      } catch {
-        // 解密失败，可能不是加密格式，直接使用
-        token.value = stored;
-      }
-    }
-  }
+
   const isLoggedIn = computed(() => !!token.value);
   const username = computed(() => userInfo.value?.username || "");
   const nickname = computed(() => userInfo.value?.nickname || "");
@@ -49,24 +35,20 @@ export const useUserStore = defineStore("user", () => {
     cache.setItem(USER_INFO_KEY, response.data);
   };
 
-  const login = async (username: string, password: string) => {
+  const login = async (username: string, password: string, tenantCode: string) => {
     try {
-      const response = await http.Post<{
-        code: number;
-        data: any;
-        message: string;
-      }>("/auth/login", { username, password });
+      const response = await http.Post<any>("/auth/login", { username, password, tenantCode });
 
       if (response.code === 200) {
         const { user } = response.data;
-        console.log(user, "user");
         const mockUserInfo: UserInfo = {
-          id: typeof user.id === "string" ? Number(user.id) : user.id,
+          userId: user.userId,
           username: user.username,
-          nickname: user.nickname || user.username,
+          realname: user.realname || user.username,
           avatar: user.avatar || "",
           email: user.email || "",
           roles: user.roles || [],
+          phone: user.phone || "",
         };
         cache.setItem(REFRESH_TOKEN_KEY, response.data.refreshToken, REFRESH_TOKEN_EXPIRE);
         cache.setItem(TOKEN_KEY, response.data.accessToken, TOKEN_EXPIRE);
@@ -95,17 +77,25 @@ export const useUserStore = defineStore("user", () => {
     }
   };
   const logout = async () => {
-    await http.Post("/auth/logout");
-    // 记录登出日志
+    try {
+      await http.Post("/auth/logout", {}, { meta: { silent: true } });
+    } catch {
+      // 即使后端失败，也要清空本地状态
+    }
+
     const logger = useLogger();
     if (userInfo.value?.username) {
       logger.logLogin("logout", userInfo.value.username);
     }
 
     token.value = null;
+    refreshToken.value = null;
     userInfo.value = null;
-    cache.clear();
-    router.push("/login");
+    cache.removeItem(TOKEN_KEY);
+    cache.removeItem(REFRESH_TOKEN_KEY);
+    cache.removeItem(USER_INFO_KEY);
+
+    router.replace("/login");
   };
 
   const hasPermission = (permission: string) => {
@@ -139,7 +129,6 @@ export const useUserStore = defineStore("user", () => {
     phone,
     roles,
     permissions,
-    initToken,
     setUserInfo,
     login,
     logout,

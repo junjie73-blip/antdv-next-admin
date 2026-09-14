@@ -26,7 +26,17 @@ interface UserInfoResponse {
     roles?: string[];
   };
 }
+export interface ForgotPasswordParams {
+  tenantCode: string;
+  username: string;
+  oldPassword: string;
+  newPassword: string;
+}
 
+export interface ForgotPasswordResult {
+  success: boolean;
+  message?: string;
+}
 export function login(params: LoginParams): Promise<LoginResponse> {
   return post<LoginResponse>("/auth/login", params as unknown as Record<string, unknown>);
 }
@@ -47,4 +57,9 @@ export function getMenus(): Promise<any> {
 
 export function getUserInfo(): Promise<UserInfoResponse> {
   return get<UserInfoResponse>("/auth/user-info");
+}
+
+/** 忘记密码 / 修改密码 */
+export function forgotPassword(data: ForgotPasswordParams) {
+  return http.Post<ForgotPasswordResult>("/auth/forgot-password", data);
 }

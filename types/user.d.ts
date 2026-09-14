@@ -1,7 +1,7 @@
 export interface UserInfo {
   userId: string;
   username: string;
-  nickname: string;
+  realname: string;
   avatar: string;
   email: string;
   phone: string;

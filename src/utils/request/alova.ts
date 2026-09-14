@@ -6,7 +6,7 @@ import VueHook from "alova/vue";
 import { useUserStore } from "@/stores/modules/user";
 import { config as csrfConfig, getCsrfToken, initCsrfProtection } from "@/utils/csrf";
 import { AUTHORIZATION_KEY } from "./constant";
-import { message } from "antdv-next";
+import { message, notification } from "antdv-next";
 import router from "@/router";
 
 // ==================== 业务错误码（与后端 errorHandler 对齐）====================
@@ -506,26 +506,29 @@ async function reportRequestError(error: unknown) {
 
     // 5xx：统一友好文案（包括 500/501/502/503/504 和业务码 5xxxxx）
     if (isServerFailure(error.status, error.code)) {
-      message.error(SERVER_ERROR_MESSAGE);
+      notification.error({ title: "请求错误", description: SERVER_ERROR_MESSAGE });
       return;
     }
 
-    message.error(resolveErrorMessage(error.data, error.message, error.status, error.code));
+    notification.error({
+      title: "请求错误",
+      description: resolveErrorMessage(error.data, error.message, error.status, error.code),
+    });
     return;
   }
 
   if (error instanceof Error) {
     // 网络层异常（fetch 抛 TypeError / AbortError）
-    if (error.name === "AbortError") return; // 用户取消，不提示
+    if (error.name === "AbortError") return; // 用户取消，不提  示
     if (error.name === "TimeoutError") {
-      message.error("请求超时，请检查网络");
+      notification.error({ title: "请求错误", description: "请求超时，请检查网络" });
       return;
     }
-    message.error(error.message || SERVER_ERROR_MESSAGE);
+    notification.error({ title: "请求错误", description: error.message || SERVER_ERROR_MESSAGE });
     return;
   }
 
-  message.error(SERVER_ERROR_MESSAGE);
+  notification.error({ title: "请求错误", description: SERVER_ERROR_MESSAGE });
 }
 
 function resolveErrorMessage(

@@ -1,80 +1,75 @@
 <script setup lang="ts">
-import { autoPrefixTransformer, px2remTransformer } from '@antdv-next/cssinjs'
-import { HappyProvider } from '@antdv-next/happy-work-theme'
-import { ConfigProvider, StyleProvider } from 'antdv-next'
-import dayjs from 'dayjs'
-import { computed, onMounted, shallowRef, watch, watchEffect } from 'vue'
-import { getThemeConfig } from '@/settings'
-import { useAppStore } from '@/stores/modules/app'
-import { useUserStore } from '@/stores/modules/user'
+import { autoPrefixTransformer, px2remTransformer } from "@antdv-next/cssinjs";
+import { HappyProvider } from "@antdv-next/happy-work-theme";
+import { ConfigProvider, StyleProvider } from "antdv-next";
+import dayjs from "dayjs";
+import { computed, onMounted, shallowRef, watch, watchEffect } from "vue";
+import { getThemeConfig } from "@/settings";
+import { useAppStore } from "@/stores/modules/app";
+import { useUserStore } from "@/stores/modules/user";
 
-const appStore = useAppStore()
-const userStore = useUserStore()
-dayjs.locale('en')
-// 应用启动时解密 Token
-onMounted(() => {
-  userStore.initToken()
-})
+const appStore = useAppStore();
+dayjs.locale("en");
 
-const antdLocale = shallowRef<any>()
+const antdLocale = shallowRef<any>();
 
 const getPopupContainer = (triggerNode?: HTMLElement | undefined): HTMLElement =>
-  triggerNode?.parentElement || document.body
+  triggerNode?.parentElement || document.body;
 
 const themeConfig = computed(() =>
   getThemeConfig(
     appStore.themeStyle,
-    appStore.themeMode === 'dark',
+    appStore.themeMode === "dark",
     appStore.borderRadius,
     appStore.primaryColor,
   ),
-)
+);
 
 const htmlClass = computed(() => {
-  const classes: string[] = []
-  if (appStore.themeMode === 'dark') classes.push('dark')
-  if (appStore.colorWeak) classes.push('color-weak')
-  if (appStore.grayMode) classes.push('gray-mode')
-  return classes.join(' ')
-})
+  const classes: string[] = [];
+  if (appStore.themeMode === "dark") classes.push("dark");
+  if (appStore.colorWeak) classes.push("color-weak");
+  if (appStore.grayMode) classes.push("gray-mode");
+  return classes.join(" ");
+});
 
 watch(
   () => appStore.locale,
   async (locale) => {
     const dayjsLocaleMap: Record<string, string> = {
-      'zh-CN': 'zh-cn',
-      'en-US': 'en',
-    }
+      "zh-CN": "zh-cn",
+      "en-US": "en",
+    };
 
-    dayjs.locale(dayjsLocaleMap[locale] || 'en')
+    dayjs.locale(dayjsLocaleMap[locale] || "en");
 
     const localeModules: Record<string, () => Promise<{ default: any }>> = {
-      'zh-CN': () => import('antdv-next/locale/zh_CN'),
-      'zh-TW': () => import('antdv-next/locale/zh_TW'),
-      'en-US': () => import('antdv-next/locale/en_US'),
-    }
+      "zh-CN": () => import("antdv-next/locale/zh_CN"),
+      "zh-TW": () => import("antdv-next/locale/zh_TW"),
+      "en-US": () => import("antdv-next/locale/en_US"),
+    };
 
-    const loader = localeModules[locale] || localeModules['zh-CN']
+    const loader = localeModules[locale] || localeModules["zh-CN"];
     if (loader) {
-      const module = await loader()
-      antdLocale.value = module.default
+      const module = await loader();
+      antdLocale.value = module.default;
     }
   },
   { immediate: true },
-)
+);
 
 watchEffect(() => {
-  const html = document.documentElement
-  html.className = htmlClass.value
-})
+  const html = document.documentElement;
+  html.className = htmlClass.value;
+});
 
 watch(
   () => appStore.primaryColor,
   (color) => {
-    document.documentElement.style.setProperty('--ant-color-primary', color)
+    document.documentElement.style.setProperty("--ant-color-primary", color);
   },
   { immediate: true },
-)
+);
 </script>
 
 <template>
