@@ -2,7 +2,7 @@
 import { Icon } from "@iconify/vue";
 import { ref, watch } from "vue";
 
-import { createIpRule, deleteIpRule, getIpRuleList, updateIpRule } from "@/api/system";
+import { createIpRule, deleteIpRule, getIpRuleList, updateIpRule } from "@/api";
 import { BasicForm, useForm } from "@/components/business/Form";
 import { BasicModal, useModal } from "@/components/business/Modal";
 import { BasicTable, TableAction, useTable, type ActionItem } from "@/components/business/Table";

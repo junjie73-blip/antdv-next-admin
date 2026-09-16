@@ -842,7 +842,7 @@ export interface UseDataSourceOptions {
     setPagination: (pagination: Partial<AntPaginationProps>) => void;
   };
   loading: { setLoading: (value: boolean) => void };
-  fields?: string[] | (() => string[]) | Ref<string[] | undefined>;
+  fields?: string[];
 }
 
 /** useDataSource 返回 */
@@ -856,6 +856,7 @@ export interface UseDataSourceReturn {
   deleteTableDataRecord: (key: string | string[]) => void;
   updateTableDataRecord: (key: string, record: Recordable) => void;
   findTableDataRecord: (key: string) => Recordable | undefined;
+  abort: () => void;
 }
 
 /** useRowSelection 配置 */

@@ -65,7 +65,7 @@ export function buildPermissionPayload(values: {
     permCode: values.permCode,
     permName: values.permName,
     resourceType: values.resourceType,
-    status: values.status === "1" ? 1 : 0,
+    status: values.status === "1",
     description: values.description,
   };
 

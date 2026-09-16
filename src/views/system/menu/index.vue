@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
 import { computed, ref } from "vue";
-import { message } from "antdv-next";
 
 import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
 import { BasicForm, useForm } from "@/components/business/Form";
@@ -17,20 +16,18 @@ import { getMenuActions } from "./actions";
 import { menuActionColumn, menuColumns, menuRowKey, menuScroll } from "./columns";
 import {
   MENU_EMPTY_VALUES,
-  MENU_STATUS_COLOR_MAP,
-  MENU_STATUS_ICON_MAP,
-  MENU_STATUS_LABEL_MAP,
   MENU_TYPE_COLOR_MAP,
   MENU_TYPE_ICON_MAP,
   MENU_TYPE_LABEL_MAP,
   cardClassName,
   containerClassName,
   tagClassName,
-  validateMenuForm,
 } from "./constants";
 import { useMenuFormSchemas } from "./schemas";
 import type { MenuRecord } from "./types";
 import PermissionDrawer from "./components/PermissionDrawer.vue";
+import { changeMenuStatus } from "@/api";
+import { message } from "antdv-next";
 
 defineOptions({ name: "SystemMenu" });
 
@@ -48,7 +45,11 @@ const drawerFormSchemas = useMenuFormSchemas(statusOptions);
 
 // ========== 表格 API ==========
 async function fetchMenuTree() {
-  return await http.Get("/menu/tree").send(true);
+  return await http
+    .Get("/menu/tree", {
+      cacheFor: null,
+    })
+    .send(true);
 }
 
 // ========== useCRUD ==========
@@ -80,23 +81,6 @@ const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<M
   onDelete: async (record) => {
     await http.Delete(`/menu/${record.menuId}`);
   },
-  // 业务校验：用 beforeCreate / beforeUpdate 替代原 beforeSave（无效选项）
-  beforeCreate: (values: any) => {
-    const result = validateMenuForm(values);
-    if (result !== true) {
-      message.warning(result);
-      return false;
-    }
-    return true;
-  },
-  beforeUpdate: (_record, values: any) => {
-    const result = validateMenuForm(values);
-    if (result !== true) {
-      message.warning(result);
-      return false;
-    }
-    return true;
-  },
   messages: {
     createSuccess: "菜单创建成功",
     updateSuccess: "菜单更新成功",
@@ -127,7 +111,16 @@ async function handlePermissionOk() {
   permissionDrawerMethods.closeDrawer();
   tableMethods.value?.reload();
 }
-
+async function handleToggleStatus(record: MenuRecord) {
+  try {
+    const newStatus = record.status === "1" ? "0" : "1";
+    await changeMenuStatus(record.menuId, newStatus);
+    message.success(`已${newStatus === "0" ? "停用" : "启用"}：${record.menuName}`);
+    tableMethods.value?.reload();
+  } catch (e: any) {
+    message.error(e?.message || "操作失败");
+  }
+}
 // ========== 操作项 ==========
 function getActions(record: MenuRecord): ActionItem[] {
   return getMenuActions(record, {
@@ -182,12 +175,12 @@ function getActions(record: MenuRecord): ActionItem[] {
         </template>
 
         <template #cell-status="{ record }">
-          <a-tag :color="MENU_STATUS_COLOR_MAP[record.status] || 'default'">
-            <span :class="tagClassName">
-              <Icon :icon="MENU_STATUS_ICON_MAP[record.status] || 'carbon:help'" />
-              {{ MENU_STATUS_LABEL_MAP[record.status] || "未知" }}
-            </span>
-          </a-tag>
+          <a-switch
+            :checked="record.status"
+            checked-value="1"
+            un-checked-value="0"
+            @change="handleToggleStatus(record as MenuRecord)"
+          ></a-switch>
         </template>
 
         <template #action="{ record }">

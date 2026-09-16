@@ -1,20 +1,25 @@
 <script setup lang="ts">
-import type { TreeSelectProps } from 'antdv-next'
-import { http } from '@/utils'
-import type { DataNode } from 'antdv-next/dist/tree/index'
-import { onMounted } from 'vue'
+import type { TreeSelectProps } from "antdv-next";
+import { http } from "@/utils";
+import type { DataNode } from "antdv-next/dist/tree/index";
+import { onMounted, ref } from "vue";
 interface Props extends /* @vue-ignore */ TreeSelectProps {
-  api: string
+  api: string;
 }
-const { api, ...props } = defineProps<Props>()
-const treeData = ref<DataNode[]>([])
+const { api, ...props } = defineProps<Props>();
+const treeData = ref<DataNode[]>([]);
 async function getTreeData() {
-  const { data: res } = await http.Get<{ data: DataNode[] }>(api).send(true)
-  treeData.value = res
+  const { data: res } = await http
+    .Get<{ data: DataNode[] }>(api, {
+      cacheFor: null,
+    })
+    .send(true);
+  console.log(res, "res");
+  treeData.value = res;
 }
 onMounted(() => {
-  getTreeData()
-})
+  getTreeData();
+});
 </script>
 
 <template>

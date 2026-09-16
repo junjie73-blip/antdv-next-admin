@@ -6,6 +6,8 @@ export interface UserActionContext {
   onEdit: (record: UserRecord) => void;
   /** 删除（确认由 popConfirm 处理） */
   onDelete: (record: UserRecord) => void | Promise<void>;
+  onResetPassword: (record: UserRecord) => void;
+  onViewSensitive: (record: UserRecord) => void;
 }
 
 /**
@@ -18,6 +20,16 @@ export function getUserActions(record: UserRecord, ctx: UserActionContext): Acti
       icon: "ant-design:edit-outlined",
       label: "编辑",
       onClick: () => ctx.onEdit(record),
+    },
+    {
+      icon: "ant-design:key-outlined",
+      label: "重置密码",
+      onClick: () => ctx.onResetPassword(record),
+    },
+    {
+      icon: "ant-design:safety-outlined",
+      label: "敏感信息",
+      onClick: () => ctx.onViewSensitive(record),
     },
     {
       icon: "ant-design:delete-outlined",

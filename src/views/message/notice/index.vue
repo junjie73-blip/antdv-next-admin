@@ -9,27 +9,34 @@ import {
   getNoticeDetail,
   getNoticeList,
   getUserAllOptions,
+  revokeNotice,
   saveNotice,
   sendNotice,
   updateNotice,
-} from "@/api/system";
+} from "@/api";
 import { BasicForm, useForm } from "@/components/business/Form";
 import { BasicModal, useModal } from "@/components/business/Modal";
 import { BasicTable, useTable } from "@/components/business/Table";
 import { useCRUD } from "@/composables/useCRUD";
+import ChannelConfig from "./components/ChannelConfig.vue";
 
 // 抽离的模块
 import { getNoticeActions } from "./actions";
 import { noticeActionColumn, noticeColumns, noticePagination, noticeRowKey } from "./columns";
-import { NOTICE_STATUS_MAP, NOTICE_TYPE_MAP } from "./constants";
+import {
+  NOTICE_PRIORITY_MAP,
+  NOTICE_STATUS_MAP,
+  NOTICE_TYPE_MAP,
+  NOTICE_IS_TOP_MAP,
+} from "./constants";
 import { noticeSearchSchemas, useNoticeFormSchemas } from "./schemas";
 import { cardClassName, containerClassName } from "./style";
 import type { NoticeRecord, UserOption } from "./types";
-
 defineOptions({ name: "SystemNotice" });
 
 // ========== 用户选项 ==========
 const userOptions = ref<UserOption[]>([]);
+const channelConfigOpen = ref(false);
 
 async function loadUserOptions() {
   try {
@@ -105,16 +112,24 @@ async function handleSend(record: NoticeRecord) {
     message.error(e?.message || "发送失败");
   }
 }
-
+async function handleRevoke(record: NoticeRecord) {
+  try {
+    await revokeNotice(record.noticeId);
+    message.success("已撤回");
+    tableMethods.value?.reload();
+  } catch (e: any) {
+    message.error(e?.message || "撤回失败");
+  }
+}
 // ========== 操作项（每次渲染注入最新 record） ==========
 function getActions(record: any) {
   return getNoticeActions(record, {
     onEdit: handleEdit,
     onSend: handleSend,
     onDelete: handleDelete,
+    onRevoke: handleRevoke,
   });
 }
-
 // ========== 初始化 ==========
 loadUserOptions();
 </script>
@@ -139,6 +154,10 @@ loadUserOptions();
               <template #icon><Icon icon="ant-design:plus-outlined" /></template>
               新增通知
             </a-button>
+            <a-button @click="channelConfigOpen = true">
+              <template #icon><Icon icon="carbon:notification" /></template>
+              渠道设置
+            </a-button>
           </template>
 
           <template #cell-noticeType="{ record }">
@@ -152,7 +171,16 @@ loadUserOptions();
               {{ NOTICE_STATUS_MAP[record.status]?.label || record.status }}
             </a-tag>
           </template>
-
+          <template #cell-priority="{ record }">
+            <a-tag :color="NOTICE_PRIORITY_MAP[record.priority]?.color || 'default'">
+              {{ NOTICE_PRIORITY_MAP[record.priority]?.label || record.priority }}
+            </a-tag>
+          </template>
+          <template #cell-isTop="{ record }">
+            <a-tag :color="NOTICE_IS_TOP_MAP[record.isTop]?.color || 'default'">
+              {{ NOTICE_IS_TOP_MAP[record.isTop]?.label || record.isTop }}
+            </a-tag>
+          </template>
           <template #action="{ record }">
             <table-action :actions="getActions(record)" />
           </template>
@@ -174,5 +202,6 @@ loadUserOptions();
         @register="formRegister"
       />
     </BasicModal>
+    <ChannelConfig v-model:open="channelConfigOpen" />
   </div>
 </template>

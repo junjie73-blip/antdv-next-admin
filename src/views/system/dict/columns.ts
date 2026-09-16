@@ -58,3 +58,6 @@ export const dictItemPagination = {
   showSizeChanger: true,
   pageSizeOptions: ["10", "20", "50"],
 };
+
+export const dictTypeRowSelection = { type: "checkbox" as const };
+export const dictTypeRowKey = (record: { dictTypeId: string }) => record.dictTypeId;

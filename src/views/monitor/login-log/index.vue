@@ -4,7 +4,7 @@ import { nextTick, ref } from "vue";
 import { message } from "antdv-next";
 import dayjs from "dayjs";
 
-import { exportLoginLog, getLoginLogList } from "@/api/system";
+import { exportLoginLog, getLoginLogList } from "@/api";
 import { Description } from "@/components/business/Description";
 import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
 import { BasicTable, useTable } from "@/components/business/Table";

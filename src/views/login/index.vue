@@ -2,14 +2,16 @@
 import type { FormInstance } from "antdv-next";
 import type { Rule } from "antdv-next/dist/form/types";
 
-import { LockOutlined, UserOutlined } from "@antdv-next/icons";
+import { LockOutlined, UserOutlined, SafetyOutlined, ReloadOutlined } from "@antdv-next/icons";
 import { Icon } from "@iconify/vue";
-import { computed, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { message } from "antdv-next";
 import { useUserStore } from "@/stores/modules/user";
+import { cache } from "@/utils";
 import { useLoginStyles } from "./composables/useLoginStyles";
 import ForgotPasswordModal from "./ForgotPasswordModal.vue";
+import { getAuthTenantList, getCaptcha } from "@/api/auth";
 const router = useRouter();
 const route = useRoute();
 const userStore = useUserStore();
@@ -39,24 +41,146 @@ const {
 
 const formRef = ref<FormInstance>();
 const loading = ref(false);
-
-const formState = reactive({
+const DEVICE_ID_KEY = "device_id";
+const formState = reactive<{
+  tenantCode: string | undefined;
+  username: string;
+  password: string;
+  remember: boolean;
+  captchaCode: string | undefined;
+}>({
+  tenantCode: undefined,
   username: "",
   password: "",
   remember: true,
-  tenantCode: "",
+  captchaCode: "",
 });
 
+// ============================================================
+// 租户下拉
+// ============================================================
+interface TenantOption {
+  tenantId: string;
+  tenantCode: string;
+  tenantName: string;
+}
+
+const tenantOptions = ref<TenantOption[]>([]);
+const tenantLoading = ref(false);
+
+async function loadTenants() {
+  tenantLoading.value = true;
+  try {
+    tenantOptions.value = await getAuthTenantList();
+  } catch (err) {
+    message.error("加载租户列表失败，请刷新重试");
+    console.error("[login] loadTenants failed", err);
+  } finally {
+    tenantLoading.value = false;
+  }
+}
+
+// ============================================================
+// 图形验证码
+// ============================================================
+const captchaId = ref("");
+const captchaSvg = ref("");
+const captchaLoading = ref(false);
+
+async function refreshCaptcha() {
+  captchaLoading.value = true;
+  try {
+    const data = await getCaptcha();
+    captchaId.value = data.captchaId;
+    captchaSvg.value = data.svg;
+    formState.captchaCode = undefined;
+  } catch (e) {
+    console.log(e);
+    message.error("验证码加载失败");
+  } finally {
+    captchaLoading.value = false;
+  }
+}
+
+// ============================================================
+// 表单校验
+// ============================================================
 const rules: Record<string, Rule[]> = {
+  tenantCode: [{ required: true, message: "请选择租户", trigger: "change" }],
   username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
-  tenantCode: [{ required: true, message: "请输入租户编码", trigger: "blur" }],
   password: [
     { required: true, message: "请输入密码", trigger: "blur" },
     { min: 6, message: "密码至少6位", trigger: "blur" },
   ],
+  captchaCode: [
+    { required: true, message: "请输入验证码", trigger: "blur" },
+    { len: 4, message: "验证码为 4 位", trigger: "blur" },
+  ],
 };
 
-// ============ 第三方登录配置 ============
+// ============================================================
+// 登录
+// ============================================================
+async function handleLogin() {
+  try {
+    await formRef.value?.validate();
+  } catch {
+    return;
+  }
+
+  loading.value = true;
+  try {
+    const result = await userStore.login(
+      formState.username,
+      formState.password,
+      formState.tenantCode,
+      {
+        captchaId: captchaId.value,
+        captchaCode: formState.captchaCode,
+        deviceId: await getDeviceId(),
+      },
+    );
+
+    if (result.success) {
+      // 记住租户编码（下次登录自动回填）
+      cache.setItem("last_tenant_code", formState.tenantCode);
+      message.success("登录成功");
+      const redirect = (route.query.redirect as string) || "/dashboard";
+      router.push(redirect);
+    } else {
+      message.error(result.message || "登录失败");
+      // ⭐ 登录失败 → 刷新验证码（一次性使用）
+      await refreshCaptcha();
+    }
+  } finally {
+    loading.value = false;
+  }
+}
+
+// ============================================================
+// 忘记密码
+// ============================================================
+const forgotModalOpen = ref(false);
+const loginTenantCode = ref("");
+
+function handleRegister() {
+  router.push("/register");
+}
+
+function handleForgotPassword() {
+  forgotModalOpen.value = true;
+}
+
+function handleResetSuccess(payload: { tenantCode: string; username: string }) {
+  loginTenantCode.value = payload.tenantCode;
+  formState.username = payload.username;
+  formState.password = "";
+  formState.tenantCode = payload.tenantCode;
+}
+
+// ============================================================
+// 第三方登录（占位）
+// ============================================================
 const socialLogins = [
   {
     key: "wechat",
@@ -88,51 +212,35 @@ const socialLogins = [
   },
 ];
 
-// ============ 登录 ============
-async function handleLogin() {
-  try {
-    await formRef.value?.validate();
-    loading.value = true;
-
-    const result = await userStore.login(
-      formState.username,
-      formState.password,
-      formState.tenantCode,
-    );
-
-    if (result.success) {
-      message.success("登录成功");
-      const redirect = (route.query.redirect as string) || "/dashboard";
-      router.push(redirect);
-    } else {
-      message.error(result.message || "登录失败");
-    }
-  } catch {
-    // 校验失败不处理
-  } finally {
-    loading.value = false;
-  }
-}
-const forgotModalOpen = ref(false);
-const loginTenantCode = ref("");
-function handleRegister() {
-  router.push("/register");
-}
-
-function handleForgotPassword() {
-  forgotModalOpen.value = true;
-}
-function handleResetSuccess(payload: { tenantCode: string; username: string }) {
-  loginTenantCode.value = payload.tenantCode;
-  formState.username = payload.username;
-  formState.password = "";
-  formState.tenantCode = payload.tenantCode;
-}
 function handleSocialLogin(item: (typeof socialLogins)[number]) {
   item.onClick();
 }
 
 const year = computed(() => new Date().getFullYear());
+
+async function getDeviceId(): Promise<string | undefined> {
+  let id = (await cache.getItem(DEVICE_ID_KEY)) as string;
+  console.log(id);
+  if (!id) {
+    id = `${import.meta.env.MODE}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    cache.setItem(DEVICE_ID_KEY, id);
+  }
+  return id as string;
+}
+
+// ============================================================
+// 初始化
+// ============================================================
+onMounted(async () => {
+  // 1) 回填上次登录的租户
+  const lastTenant = cache.getItem("last_tenant_code");
+  if (lastTenant) {
+    formState.tenantCode = lastTenant as string;
+  }
+
+  // 2) 加载租户列表 + 验证码（并行）
+  await Promise.all([loadTenants(), refreshCaptcha()]);
+});
 </script>
 
 <template>
@@ -150,7 +258,6 @@ const year = computed(() => new Date().getFullYear());
       <div :class="gridBgClassName" />
 
       <div class="relative z-10 flex flex-col justify-center px-12 xl:px-20 w-full">
-        <!-- Logo -->
         <div class="mb-10">
           <div :class="logoContainerClassName">
             <div :class="logoIconClassName" :style="logoIconStyle">
@@ -168,7 +275,6 @@ const year = computed(() => new Date().getFullYear());
           </div>
         </div>
 
-        <!-- 标题 -->
         <h1
           class="text-4xl xl:text-[42px] font-bold text-stone-800 mb-5 leading-tight tracking-tight"
         >
@@ -180,7 +286,6 @@ const year = computed(() => new Date().getFullYear());
           基于 Vue 3 + TypeScript 打造的企业级后台解决方案，开箱即用的权限、租户、工作流能力。
         </p>
 
-        <!-- 特性 -->
         <div class="space-y-4 max-w-md">
           <div class="flex items-center gap-4">
             <div :class="featureIconClassName">
@@ -216,13 +321,11 @@ const year = computed(() => new Date().getFullYear());
     <!-- ==================== 右侧登录区 ==================== -->
     <div :class="rightPanelClassName">
       <div :class="glassCardClassName">
-        <!-- 头部 -->
         <div class="mb-8">
           <h2 class="text-2xl font-bold text-stone-800 tracking-tight">欢迎回来 👋</h2>
           <p class="text-sm text-stone-500 mt-2">请登录您的账号以继续使用系统</p>
         </div>
 
-        <!-- 表单 -->
         <a-form
           ref="formRef"
           :model="formState"
@@ -230,9 +333,23 @@ const year = computed(() => new Date().getFullYear());
           layout="vertical"
           @finish="handleLogin"
         >
-          <a-form-item name="tenantCode">
-            <a-input v-model:value="formState.tenantCode" placeholder="请输入租户编码" />
+          <a-form-item name="tenantCode" class="!mb-4">
+            <a-select
+              v-model:value="formState.tenantCode"
+              :options="tenantOptions"
+              placeholder="请选择租户"
+              :loading="tenantLoading"
+              :class="inputClassName"
+              show-search
+              allow-clear
+              :field-names="{
+                label: 'tenantName',
+                value: 'tenantCode',
+              }"
+            >
+            </a-select>
           </a-form-item>
+
           <a-form-item name="username" class="!mb-4">
             <a-input
               v-model:value="formState.username"
@@ -261,6 +378,41 @@ const year = computed(() => new Date().getFullYear());
             </a-input-password>
           </a-form-item>
 
+          <!-- ⭐ 图形验证码 -->
+          <a-form-item name="captchaCode" class="!mb-4">
+            <div class="flex items-center gap-3">
+              <a-input
+                v-model:value="formState.captchaCode"
+                size="large"
+                placeholder="图形验证码"
+                :class="inputClassName"
+                :maxlength="4"
+                allow-clear
+                class="flex-1"
+              >
+                <template #prefix>
+                  <SafetyOutlined class="text-stone-400" />
+                </template>
+              </a-input>
+
+              <!-- 验证码图片 -->
+              <div
+                class="h-11 w-[120px] flex-shrink-0 rounded-lg overflow-hidden cursor-pointer border border-stone-200 hover:border-[var(--ant-color-primary)] transition-colors bg-stone-50 flex items-center justify-center"
+                :title="'点击刷新验证码'"
+                @click="refreshCaptcha"
+              >
+                <a-spin :spinning="captchaLoading" size="small">
+                  <div
+                    v-if="captchaSvg"
+                    class="w-full h-full flex items-center justify-center [&>svg]:w-full [&>svg]:h-full"
+                    v-html="captchaSvg"
+                  />
+                  <ReloadOutlined v-else class="text-stone-400" />
+                </a-spin>
+              </div>
+            </div>
+          </a-form-item>
+
           <div class="flex items-center justify-between mb-6">
             <a-checkbox v-model:checked="formState.remember" class="!text-stone-500">
               记住我
@@ -287,7 +439,6 @@ const year = computed(() => new Date().getFullYear());
           </a-button>
         </a-form>
 
-        <!-- 注册入口 -->
         <div class="text-center text-sm text-stone-500 mt-5">
           还没有账号？
           <a-button
@@ -299,7 +450,6 @@ const year = computed(() => new Date().getFullYear());
           </a-button>
         </div>
 
-        <!-- 分割线 -->
         <div class="relative my-7">
           <div class="absolute inset-0 flex items-center">
             <div class="w-full border-t border-stone-200" />
@@ -309,7 +459,6 @@ const year = computed(() => new Date().getFullYear());
           </div>
         </div>
 
-        <!-- 第三方登录 -->
         <div class="grid grid-cols-4 gap-3">
           <button
             v-for="item in socialLogins"
@@ -327,12 +476,12 @@ const year = computed(() => new Date().getFullYear());
           </button>
         </div>
 
-        <!-- 页脚 -->
         <div class="text-center text-xs text-stone-400 mt-8">
           © {{ year }} {{ appTitle }} · 保留所有权利
         </div>
       </div>
     </div>
+
     <ForgotPasswordModal
       v-model:open="forgotModalOpen"
       :default-tenant-code="loginTenantCode"
@@ -348,5 +497,11 @@ const year = computed(() => new Date().getFullYear());
 }
 :deep(.ant-form-item-explain-error) {
   font-size: 12px;
+}
+/* 让验证码图片自适应容器 */
+:deep(.captcha-img svg) {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 </style>

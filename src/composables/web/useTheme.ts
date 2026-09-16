@@ -1,48 +1,45 @@
-import { useAppStore } from '@/stores/modules/app'
-
+import { useAppStore } from "@/stores/modules/app";
+import { computed } from "vue";
 export function useTheme() {
-  const appStore = useAppStore()
+  const appStore = useAppStore();
+  const isDark = computed(() => appStore.themeMode === "dark");
+  async function toggleTheme(event?: MouseEvent) {
+    const x = event?.clientX ?? window.innerWidth / 2;
+    const y = event?.clientY ?? window.innerHeight / 2;
 
-  const toggleTheme = async (event: MouseEvent) => {
-    const isDark = appStore.appSetting.theme === 'dark'
-    const x = event.clientX
-    const y = event.clientY
-
-    const endRadius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y),
+    );
 
     if (!document.startViewTransition) {
-      appStore.updateSetting({ theme: isDark ? 'light' : 'dark' })
-      return
+      appStore.toggleTheme();
+      return;
     }
 
     const transition = document.startViewTransition(() => {
-      appStore.updateSetting({ theme: isDark ? 'light' : 'dark' })
-    })
+      appStore.toggleTheme();
+    });
 
-    await transition.ready
+    await transition.ready;
 
-    const isExpanding = !isDark
-    const root = document.documentElement
-    if (root) {
-      root.animate(
-        {
-          clipPath: isExpanding
-            ? [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`]
-            : [`circle(${endRadius}px at ${x}px ${y}px)`, `circle(0px at ${x}px ${y}px)`],
-        },
-        {
-          duration: 800,
-          easing: 'ease-in-out',
-          pseudoElement: isExpanding
-            ? '::view-transition-new(root)'
-            : '::view-transition-old(root)',
-        },
-      )
-    }
+    const isExpanding = isDark.value;
+    document.documentElement.animate(
+      {
+        clipPath: isExpanding
+          ? [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`]
+          : [`circle(${endRadius}px at ${x}px ${y}px)`, `circle(0px at ${x}px ${y}px)`],
+      },
+      {
+        duration: 400,
+        easing: "ease-in-out",
+        pseudoElement: isExpanding ? "::view-transition-new(root)" : "::view-transition-old(root)",
+      },
+    );
   }
 
   return {
     toggleTheme,
-    isDark: computed(() => appStore.appSetting.theme === 'dark'),
-  }
+    isDark,
+  };
 }

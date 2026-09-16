@@ -14,20 +14,27 @@ export const noticeColumns: BasicColumn[] = [
   { title: "标题", dataIndex: "title", key: "title", width: 240, ellipsis: true },
   { title: "类型", dataIndex: "noticeType", key: "noticeType", width: 80, align: "center" },
   { title: "状态", dataIndex: "status", key: "status", width: 90, align: "center" },
+  { title: "优先级", dataIndex: "priority", key: "priority", width: 90, align: "center" },
+  { title: "是否置顶", dataIndex: "isTop", key: "isTop", width: 90, align: "center" },
   {
     title: "发布时间",
     dataIndex: "publishTime",
     key: "publishTime",
     width: 180,
-    customRender: ({ record }: any) =>
-      record.publishTime ? dayjs(record.publishTime).format("YYYY-MM-DD HH:mm") : "未设置",
+  },
+  {
+    title: "发送状态",
+    dataIndex: "sendStatus",
+    key: "sendStatus",
+    width: 90,
+    align: "center",
+    ifShow: false,
   },
   {
     title: "创建时间",
     dataIndex: "createdAt",
     key: "createdAt",
     width: 180,
-    customRender: ({ record }: any) => dayjs(record.createdAt).format("YYYY-MM-DD HH:mm"),
   },
 ];
 

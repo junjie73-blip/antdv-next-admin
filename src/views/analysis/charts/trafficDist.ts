@@ -1,5 +1,5 @@
 import * as echarts from "echarts";
-import { getTrafficDistribution } from "@/api/system";
+import { getTrafficDistribution } from "@/api";
 import { PALETTE } from "../constants";
 import { baseOption, echartsTheme, subTextColor, textColor } from "../theme";
 

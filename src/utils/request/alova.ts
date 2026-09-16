@@ -85,27 +85,28 @@ export function forceLogout(redirect = true): void {
   isLoggingOut = true;
 
   const userStore = useUserStore();
-  (userStore as any).logout?.() ??
-    (userStore as any).resetToken?.() ??
-    (userStore as any).clearToken?.();
+
+  // 只清本地状态，绝不再调会发请求的 logout()
+  const store = userStore as any;
+  if (typeof store.resetToken === "function") {
+    store.resetToken();
+  } else if (typeof store.clearToken === "function") {
+    store.clearToken();
+  } else {
+    // 兜底：至少把 token 清掉，不要走 logout()
+    store.token = "";
+    store.refreshToken = "";
+  }
 
   if (redirect && router.currentRoute.value.path !== "/login") {
-    router
-      .replace({
-        path: "/login",
-        query: { redirect: router.currentRoute.value.fullPath },
-      })
-      .finally(() => {
-        // 跳转完成后再解锁，避免跳转过程中又触发
-        setTimeout(() => {
-          isLoggingOut = false;
-        }, 500);
-      });
-  } else {
-    setTimeout(() => {
-      isLoggingOut = false;
-    }, 500);
+    router.replace({
+      path: "/login",
+      query: { redirect: router.currentRoute.value.fullPath },
+    });
   }
+}
+export function resetLogoutFlag(): void {
+  isLoggingOut = false;
 }
 const SERVER_ERROR_MESSAGE = "服务器繁忙，请稍后重试";
 class AlovaRequestError<T = unknown> extends Error {
@@ -328,6 +329,48 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
 
     responded: {
       async onSuccess(response, method) {
+        // ==================== ⭐ Blob / ArrayBuffer 短路 ====================
+        const responseType = method.config.meta?.responseType;
+
+        if (responseType === "blob" || responseType === "arrayBuffer") {
+          // 成功：直接返回原始二进制
+          if (response.ok) {
+            return responseType === "blob" ? await response.blob() : await response.arrayBuffer();
+          }
+
+          // 失败：此时后端通常会返回 JSON 错误体，尝试解析
+          // 但此时 body 已经是二进制/文本，需要重新读
+          let errorPayload: any = null;
+          try {
+            const cloned = response.clone();
+            const text = await cloned.text();
+            errorPayload = JSON.parse(text);
+          } catch {
+            // 不是 JSON，忽略
+          }
+
+          const bodyCode: number | undefined =
+            errorPayload && typeof errorPayload === "object" && "code" in errorPayload
+              ? (errorPayload as ApiResponse).code
+              : undefined;
+
+          const err = new AlovaRequestError(
+            resolveErrorMessage(
+              errorPayload,
+              `${response.status} ${response.statusText}`,
+              response.status,
+              bodyCode,
+            ),
+            {
+              data: errorPayload,
+              status: response.status,
+              statusText: response.statusText,
+              code: bodyCode ?? response.status,
+            },
+          );
+          await reportRequestError(err);
+          throw err;
+        }
         const contentType = response.headers.get("content-type") ?? "";
         let payload: any;
         if (contentType.includes("application/json")) {
@@ -413,7 +456,7 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
       },
 
       async onError(error, method) {
-        clearPendingRequest(method);
+        clearPendingRequest(method, error);
 
         // 刷新失败等已处理过的错误，不再重复提示 / 重试
         if (error instanceof AlovaRequestError && error.handled) {

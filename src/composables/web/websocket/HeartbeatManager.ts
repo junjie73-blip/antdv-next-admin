@@ -1,98 +1,105 @@
-import type { HeartbeatConfig } from './types'
+import type { HeartbeatConfig } from "./types";
 
 export class HeartbeatManager {
-  private config: HeartbeatConfig
-  private heartbeatTimer: ReturnType<typeof setInterval> | null = null
-  private timeoutTimer: ReturnType<typeof setTimeout> | null = null
-  private isRunning = false
-  private onSend: (message: string) => void
-  private onTimeout?: () => void
+  private config: HeartbeatConfig;
+  private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+  private timeoutTimer: ReturnType<typeof setTimeout> | null = null;
+  private isRunning = false;
+  private onSend: (message: string) => void;
+  private onTimeout?: () => void;
 
   constructor(config: HeartbeatConfig, onSend: (message: string) => void) {
-    this.config = config
-    this.onSend = onSend
+    this.config = config;
+    this.onSend = onSend;
   }
 
   start(): void {
     if (this.isRunning) {
-      return
+      return;
     }
 
-    this.isRunning = true
-    this.scheduleHeartbeat()
+    this.isRunning = true;
+    this.scheduleHeartbeat();
   }
 
   stop(): void {
-    this.isRunning = false
-    this.clearTimers()
+    this.isRunning = false;
+    this.clearTimers();
   }
 
   private scheduleHeartbeat(): void {
     if (!this.isRunning) {
-      return
+      return;
     }
 
     this.heartbeatTimer = setTimeout(() => {
-      this.sendHeartbeat()
-    }, this.config.interval)
+      this.sendHeartbeat();
+    }, this.config.interval);
   }
 
   private sendHeartbeat(): void {
     if (!this.isRunning) {
-      return
+      return;
     }
 
-    const message =
-      typeof this.config.message === 'string'
-        ? this.config.message
-        : JSON.stringify(this.config.message)
+    // ⭐ 支持函数形式，每次取最新值
+    const raw =
+      typeof this.config.message === "function" ? this.config.message() : this.config.message;
 
-    this.onSend(message)
+    const message = typeof raw === "string" ? raw : JSON.stringify(raw);
+
+    this.onSend(message);
+
+    // 先清旧定时器，防止 pong 未回导致累积
+    if (this.timeoutTimer) {
+      clearTimeout(this.timeoutTimer);
+      this.timeoutTimer = null;
+    }
 
     this.timeoutTimer = setTimeout(() => {
       if (this.onTimeout) {
-        this.onTimeout()
+        this.onTimeout();
       }
-    }, this.config.timeout)
+    }, this.config.timeout);
   }
 
   reset(): void {
-    this.clearTimers()
+    this.clearTimers();
     if (this.isRunning) {
-      this.scheduleHeartbeat()
+      this.scheduleHeartbeat();
     }
   }
 
   onPong(): void {
     if (this.timeoutTimer) {
-      clearTimeout(this.timeoutTimer)
-      this.timeoutTimer = null
+      clearTimeout(this.timeoutTimer);
+      this.timeoutTimer = null;
     }
   }
 
   setTimeoutCallback(callback: () => void): void {
-    this.onTimeout = callback
+    this.onTimeout = callback;
   }
 
   updateConfig(config: Partial<HeartbeatConfig>): void {
-    this.config = { ...this.config, ...config }
+    this.config = { ...this.config, ...config };
     if (this.isRunning) {
-      this.reset()
+      this.reset();
     }
   }
 
   private clearTimers(): void {
     if (this.heartbeatTimer) {
-      clearTimeout(this.heartbeatTimer)
-      this.heartbeatTimer = null
+      clearTimeout(this.heartbeatTimer);
+      this.heartbeatTimer = null;
     }
     if (this.timeoutTimer) {
-      clearTimeout(this.timeoutTimer)
-      this.timeoutTimer = null
+      clearTimeout(this.timeoutTimer);
+      this.timeoutTimer = null;
     }
   }
 
   isActive(): boolean {
-    return this.isRunning
+    return this.isRunning;
   }
 }

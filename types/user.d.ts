@@ -6,6 +6,7 @@ export interface UserInfo {
   email: string;
   phone: string;
   roles: string[];
+  permissions?: string[];
 }
 
 export interface LoginParams {

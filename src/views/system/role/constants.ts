@@ -22,6 +22,7 @@ export const ROLE_EMPTY_VALUES = {
   description: "",
   sortOrder: 0,
   status: "1",
+  dataScope: "1",
 };
 
 // ========== 导出配置 ==========

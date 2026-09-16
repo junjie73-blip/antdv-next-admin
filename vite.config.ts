@@ -119,10 +119,8 @@ function loadEnv(): Record<string, any> {
 function createProxy(list: ProxyList = []): ProxyTargetList {
   const ret: ProxyTargetList = {};
   for (const [prefix, target] of list) {
-    console.log(prefix, target, "prefix, target");
     const httpsRE = /^https:\/\//;
     const isHttps = httpsRE.test(target);
-
     ret[prefix] = {
       target,
       changeOrigin: true,

@@ -84,6 +84,30 @@ export function useUserFormSchemas(
       componentProps: { placeholder: "请输入邮箱地址" },
     },
     {
+      field: "gender",
+      label: "性别",
+      component: "RadioGroup",
+      defaultValue: 0,
+      colProps: { span: 12 },
+      componentProps: {
+        optionType: "button",
+        buttonStyle: "solid",
+        options: [
+          { label: "未知", value: 0 },
+          { label: "男", value: 1 },
+          { label: "女", value: 2 },
+        ],
+      },
+    },
+    {
+      field: "avatar",
+      label: "头像",
+      component: "Input",
+      colProps: { span: 24 },
+      slot: "avatarUpload",
+      componentProps: { placeholder: "头像 URL" },
+    },
+    {
       field: "deptIds",
       label: "部门",
       component: "ATreeSelect",
@@ -138,4 +162,34 @@ export const USER_EMPTY_VALUES = {
   roleIds: [],
   sortOrder: 0,
   status: "1",
+  gender: 0,
+  avatar: "",
 };
+
+export const userDetailSchema = [
+  {
+    field: "username",
+    label: "用户名",
+  },
+  {
+    field: "realName",
+    label: "真实姓名",
+  },
+  ,
+  {
+    field: "email",
+    label: "邮箱",
+  },
+  {
+    field: "phone",
+    label: "手机号",
+  },
+  {
+    field: "idCard",
+    label: "身份证号",
+  },
+  {
+    field: "gender",
+    label: "性别",
+  },
+];

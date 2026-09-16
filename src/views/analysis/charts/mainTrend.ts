@@ -1,6 +1,6 @@
 import * as echarts from "echarts";
 import type { ActivityTrendData } from "../types";
-import { getActivityTrend } from "@/api/system";
+import { getActivityTrend } from "@/api";
 import { PALETTE } from "../constants";
 import {
   axisLineColor,

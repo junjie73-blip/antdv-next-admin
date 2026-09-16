@@ -3,7 +3,7 @@ import { Icon } from "@iconify/vue";
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
-import { getWorkbenchSummary } from "@/api/system";
+import { getWorkbenchSummary } from "@/api";
 import { useUserStore } from "@/stores/modules/user";
 
 // 抽离的模块

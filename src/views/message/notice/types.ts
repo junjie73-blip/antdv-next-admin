@@ -10,6 +10,9 @@ export interface NoticeRecord {
   publishTime?: string | null;
   createdAt: string;
   targetUserIds?: string[];
+  /** '0'-未发送 '1'-已发送 */
+  sendStatus: string;
+  sendTime?: string | null;
 }
 
 /** 用户选项 */

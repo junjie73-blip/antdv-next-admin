@@ -85,6 +85,24 @@ export function useRoleFormSchemas(
       }),
     },
     {
+      field: "dataScope",
+      label: "数据权限",
+      component: "Select",
+      defaultValue: "1",
+      colProps: { span: 24 },
+      componentProps: {
+        placeholder: "选择数据权限范围",
+        options: [
+          { label: "全部数据", value: "1" },
+          { label: "自定义数据", value: "2" },
+          { label: "本部门数据", value: "3" },
+          { label: "本部门及以下数据", value: "4" },
+          { label: "仅本人数据", value: "5" },
+        ],
+      },
+      helpMessage: "自定义时需在「权限分配」抽屉中额外配置部门范围",
+    },
+    {
       field: "description",
       label: "描述",
       component: "InputTextArea",

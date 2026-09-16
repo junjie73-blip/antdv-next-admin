@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { getServerInfo } from "@/api/system";
+import { getServerInfo } from "@/api";
 import * as echarts from "echarts"; // ⚠️ 静态 import，不要动态 import
 
 defineOptions({ name: "MonitorServer" });

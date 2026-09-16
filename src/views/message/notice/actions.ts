@@ -6,6 +6,7 @@ export interface NoticeActionContext {
   onEdit: (record: NoticeRecord) => void;
   onSend: (record: NoticeRecord) => void;
   onDelete: (record: NoticeRecord) => void;
+  onRevoke: (record: NoticeRecord) => void;
 }
 
 /**
@@ -23,6 +24,17 @@ export function getNoticeActions(record: NoticeRecord, ctx: NoticeActionContext)
       label: "发送",
       icon: "ant-design:send-outlined",
       onClick: () => ctx.onSend(record),
+      disabled: record.sendStatus === "1",
+    },
+    {
+      label: "撤回",
+      icon: "ant-design:rollback-outlined",
+      disabled: record.sendStatus !== "1",
+      popConfirm: {
+        title: "撤回通知",
+        content: `确定撤回「${record.title}」吗？`,
+        confirm: () => ctx.onRevoke(record),
+      },
     },
     {
       label: "删除",

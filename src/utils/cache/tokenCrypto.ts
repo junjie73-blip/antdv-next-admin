@@ -8,10 +8,10 @@
  * - 密钥从用户指纹派生（即使源码泄露也难以解密其他用户的 Token）
  */
 
-import { EncryptJWT, jwtDecrypt } from 'jose'
+import { EncryptJWT, jwtDecrypt } from "jose";
 
-const TOKEN_ENCRYPTION_KEY = 'antdv-next-token-protection-key-v2'
-const ENCRYPTION_ALGO = 'A256GCM'
+const TOKEN_ENCRYPTION_KEY = "antdv-next-token-protection-key-v2";
+const ENCRYPTION_ALGO = "A256GCM";
 
 /**
  * 从浏览器环境生成设备指纹作为密钥派生因子
@@ -25,14 +25,14 @@ async function getDeviceFingerprint(): Promise<string> {
     screen.width.toString(),
     screen.height.toString(),
     new Date().getTimezoneOffset().toString(),
-  ]
+  ];
 
   // 使用 Web Crypto API 进行简单哈希
-  const data = new TextEncoder().encode(components.join('|'))
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const data = new TextEncoder().encode(components.join("|"));
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
   return Array.from(new Uint8Array(hashBuffer))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('')
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 /**
@@ -40,24 +40,24 @@ async function getDeviceFingerprint(): Promise<string> {
  * 返回 Uint8Array 原始密钥字节（jose 库 alg:'dir' 模式需要）
  */
 async function getEncryptionKey(): Promise<Uint8Array> {
-  const fingerprint = await getDeviceFingerprint()
-  const keyMaterial = new TextEncoder().encode(TOKEN_ENCRYPTION_KEY + fingerprint)
+  const fingerprint = await getDeviceFingerprint();
+  const keyMaterial = new TextEncoder().encode(TOKEN_ENCRYPTION_KEY + fingerprint);
 
   // 使用 PBKDF2 派生密钥
-  const key = await crypto.subtle.importKey('raw', keyMaterial, 'PBKDF2', false, ['deriveBits'])
+  const key = await crypto.subtle.importKey("raw", keyMaterial, "PBKDF2", false, ["deriveBits"]);
 
   const derivedBits = await crypto.subtle.deriveBits(
     {
-      name: 'PBKDF2',
-      salt: new TextEncoder().encode('antdv-next-token-salt'),
+      name: "PBKDF2",
+      salt: new TextEncoder().encode("antdv-next-token-salt"),
       iterations: 100000,
-      hash: 'SHA-256',
+      hash: "SHA-256",
     },
     key,
     256, // 256 位 = 32 字节 = A256GCM 所需的密钥长度
-  )
+  );
 
-  return new Uint8Array(derivedBits)
+  return new Uint8Array(derivedBits);
 }
 
 /**
@@ -68,21 +68,21 @@ async function getEncryptionKey(): Promise<Uint8Array> {
  */
 export async function encryptToken(data: string): Promise<string> {
   if (!crypto || !crypto.subtle) {
-    throw new Error('Web Crypto API 不可用，无法加密 Token')
+    throw new Error("Web Crypto API 不可用，无法加密 Token");
   }
 
   try {
     // 使用 alg:'dir' 直接密钥模式，jose 需要 Uint8Array 原始密钥
-    const key = await getEncryptionKey()
+    const key = await getEncryptionKey();
 
     return new EncryptJWT({ data })
-      .setProtectedHeader({ alg: 'dir', enc: ENCRYPTION_ALGO })
+      .setProtectedHeader({ alg: "dir", enc: ENCRYPTION_ALGO })
       .setIssuedAt()
-      .setExpirationTime('7d')
-      .encrypt(key)
+      .setExpirationTime("7d")
+      .encrypt(key);
   } catch (error) {
-    console.error('[TokenCrypto] 加密失败:', error)
-    throw new Error(`Token 加密失败: ${error instanceof Error ? error.message : '未知错误'}`)
+    console.error("[TokenCrypto] 加密失败:", error);
+    throw new Error(`Token 加密失败: ${error instanceof Error ? error.message : "未知错误"}`);
   }
 }
 
@@ -94,34 +94,34 @@ export async function encryptToken(data: string): Promise<string> {
  */
 export async function decryptToken(encryptedData: string): Promise<string | null> {
   if (!crypto || !crypto.subtle) {
-    console.warn('[TokenCrypto] Web Crypto API 不可用，返回原始数据')
-    return encryptedData
+    console.warn("[TokenCrypto] Web Crypto API 不可用，返回原始数据");
+    return encryptedData;
   }
 
   try {
     // 同样使用 Uint8Array 原始密钥
-    const key = await getEncryptionKey()
+    const key = await getEncryptionKey();
 
-    const { payload } = await jwtDecrypt(encryptedData, key)
+    const { payload } = await jwtDecrypt(encryptedData, key);
 
-    if (typeof payload.data === 'string') {
-      return payload.data
+    if (typeof payload.data === "string") {
+      return payload.data;
     }
 
     // 兼容旧格式（直接存储的明文 Token）
-    return encryptedData
+    return encryptedData;
   } catch (error) {
     // 解密失败可能是因为：
     // 1. 数据不是加密格式（可能是旧版本明文存储）
     // 2. 设备指纹变化（浏览器升级、硬件变更等）
     // 3. 数据被篡改
-    console.warn('[TokenCrypto] 解密失败，尝试降级处理:', error)
+    console.warn("[TokenCrypto] 解密失败，尝试降级处理:", error);
 
     // 尝试作为明文返回（向后兼容）
-    if (encryptedData && !encryptedData.includes('.')) {
-      return encryptedData
+    if (encryptedData && !encryptedData.includes(".")) {
+      return encryptedData;
     }
 
-    return null
+    return null;
   }
 }

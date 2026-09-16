@@ -4,7 +4,8 @@ import type { Rule } from "antdv-next/dist/form/types";
 import { LockOutlined, ShopOutlined, UserOutlined } from "@antdv-next/icons";
 import { message } from "antdv-next";
 import { reactive, ref, watch } from "vue";
-import { forgotPassword } from "@/api";
+import { forgotPassword } from "@/api/auth";
+import { usePasswordPolicy } from "@/composables/usePasswordPolicy";
 
 interface Props {
   /** 从登录页带入的默认值，减少用户输入 */
@@ -21,7 +22,6 @@ const open = defineModel("open", {
   type: Boolean,
 });
 const emit = defineEmits<{
-  "update:open": [value: boolean];
   success: [payload: { tenantCode: string; username: string }];
 }>();
 
@@ -35,7 +35,7 @@ const formState = reactive({
   newPassword: "",
   confirmPassword: "",
 });
-
+const { policyText, validate: validatePassword } = usePasswordPolicy();
 // 弹窗打开时同步外部传入的默认值
 watch(
   () => open.value,
@@ -97,15 +97,15 @@ const rules: Record<string, Rule[]> = {
 
 // ============ 提交 ============
 async function handleSubmit() {
+  loading.value = true;
+
   try {
     await formRef.value?.validate();
-  } catch {
-    return;
-  }
-
-  try {
-    loading.value = true;
-
+    const check = validatePassword(formState.newPassword);
+    if (!check.ok) {
+      message.error(check.message);
+      return;
+    }
     const res = await forgotPassword({
       tenantCode: formState.tenantCode,
       username: formState.username,
@@ -132,7 +132,7 @@ async function handleSubmit() {
 }
 
 function handleClose() {
-  emit("update:open", false);
+  open.value = false;
 }
 </script>
 
@@ -209,7 +209,7 @@ function handleClose() {
           <a-input-password
             v-model:value="formState.newPassword"
             size="large"
-            placeholder="新密码（6-64 位）"
+            :placeholder="`新密码（${policyText}）`"
             allow-clear
             :maxlength="64"
             autocomplete="new-password"

@@ -1,5 +1,5 @@
 import * as echarts from "echarts";
-import { getUserJourney } from "@/api/system";
+import { getUserJourney } from "@/api";
 import { PALETTE } from "../constants";
 import { baseOption, echartsTheme } from "../theme";
 import type { JourneyStage } from "../types";

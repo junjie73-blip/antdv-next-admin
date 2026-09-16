@@ -3,7 +3,7 @@ import { Icon } from "@iconify/vue";
 import { useEventListener } from "@vueuse/core";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 
-import { getDashboardKpi } from "@/api/system";
+import { getDashboardKpi } from "@/api";
 import { useAppStore } from "@/stores/modules/app";
 import { cn } from "@/utils/cn";
 

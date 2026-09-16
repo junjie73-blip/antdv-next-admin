@@ -1,5 +1,5 @@
 import * as echarts from "echarts";
-import { getSystemHealth } from "@/api/system";
+import { getSystemHealth } from "@/api";
 import { PALETTE } from "../constants";
 import { baseOption, echartsTheme, subTextColor, textColor } from "../theme";
 

@@ -3,7 +3,7 @@ import { Icon } from "@iconify/vue";
 import { computed, onMounted, ref } from "vue";
 import { message } from "antdv-next";
 
-import { addDept, deleteDept, getDeptList, getDeptTree, updateDept } from "@/api/system";
+import { addDept, deleteDept, getDeptList, getDeptTree, updateDept } from "@/api";
 import { BasicForm, useForm } from "@/components/business/Form";
 import { BasicModal, useModal } from "@/components/business/Modal";
 import { BasicTable, TableAction, useTable } from "@/components/business/Table";
@@ -28,7 +28,7 @@ import {
 import { deptSearchSchemas, useDeptFormSchemas } from "./schemas";
 import type { DeptRecord, DeptTreeNode } from "./types";
 import { convertToTreeNode } from "./utils";
-
+import DeptUserDrawer from "./components/DeptUserDrawer.vue";
 defineOptions({ name: "SystemDept" });
 
 // ========== 字典 ==========
@@ -41,7 +41,8 @@ const deptTreeData = ref<DeptTreeNode[]>([]);
 const selectedDeptId = ref<string | undefined>(undefined);
 const treeExpandedKeys = ref<string[]>([]);
 const loading = ref(false);
-
+const deptUserOpen = ref(false);
+const deptUserRecord = ref<DeptRecord | null>(null);
 // ========== 注册实例 ==========
 const [modalRegister, modalMethods] = useModal();
 const [tableRegister, tableMethods] = useTable();
@@ -132,12 +133,21 @@ function handleAddChild(record: DeptRecord) {
   handleAdd({ parentId: record.deptId });
 }
 
+function handleAssignUsers(record: DeptRecord) {
+  deptUserRecord.value = record;
+  deptUserOpen.value = true;
+}
+
+function handleUsersSaved() {
+  tableMethods.value?.reload();
+}
 // ========== 操作项 ==========
 function getActions(record: DeptRecord) {
   return getDeptActions(record, {
     onAddChild: handleAddChild,
     onEdit: handleEdit,
     onDelete: handleDelete,
+    onAssignUsers: handleAssignUsers,
   });
 }
 
@@ -221,5 +231,6 @@ onMounted(() => {
         @register="formRegister"
       />
     </BasicModal>
+    <DeptUserDrawer v-model:open="deptUserOpen" :dept="deptUserRecord" @saved="handleUsersSaved" />
   </div>
 </template>

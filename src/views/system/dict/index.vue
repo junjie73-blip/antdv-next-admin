@@ -6,13 +6,14 @@ import { message } from "antdv-next";
 import {
   addDict,
   addDictItem,
+  batchRemoveDictData,
   deleteDict,
   deleteDictItem,
   getDictItems,
   getDictList,
   updateDict,
   updateDictItem,
-} from "@/api/system";
+} from "@/api";
 import { BasicForm, useForm } from "@/components/business/Form";
 import { BasicModal, useModal } from "@/components/business/Modal";
 import { BasicTable, TableAction, useTable } from "@/components/business/Table";
@@ -22,7 +23,13 @@ import { useDictStore } from "@/stores";
 
 // 抽离的模块
 import { getDictItemActions } from "./actions";
-import { dictItemActionColumn, dictItemColumns, dictItemPagination } from "./columns";
+import {
+  dictItemActionColumn,
+  dictItemColumns,
+  dictItemPagination,
+  dictTypeRowKey,
+  dictTypeRowSelection,
+} from "./columns";
 import {
   DICT_STATUS_COLOR_MAP,
   DICT_STATUS_ICON_MAP,
@@ -157,6 +164,9 @@ const itemCrud = useCRUD<DictItemRecord>({
   onDelete: async (record) => await deleteDictItem(record.dictDataId),
   onSaved: async () => itemTableMethods.value?.reload(),
   onDeleted: async () => itemTableMethods.value?.reload(),
+  onBatchDelete: async (records) => {
+    await batchRemoveDictData(records.map((r) => r.dictDataId));
+  },
   messages: {
     createSuccess: "字典项创建成功",
     updateSuccess: "字典项更新成功",
@@ -262,19 +272,6 @@ loadDictTypes();
           <span :class="cardTitleClassName">
             {{ selectedType ? `${selectedType.dictName} - 字典项` : "字典项" }}
           </span>
-          <div class="flex items-center gap-2">
-            <a-button size="small" @click="handleExport">
-              <Icon icon="carbon:export" /> 导出
-            </a-button>
-            <a-button
-              type="primary"
-              size="small"
-              :disabled="!selectedType"
-              @click="itemCrud.handleAdd()"
-            >
-              <Icon icon="ant-design:plus-outlined" /> 新增字典项
-            </a-button>
-          </div>
         </div>
 
         <div class="p-4">
@@ -287,8 +284,24 @@ loadDictTypes();
             :pagination="dictItemPagination"
             :action-column="dictItemActionColumn"
             size="small"
+            :row-selection="dictTypeRowSelection"
+            :row-key="dictTypeRowKey"
             @register="itemTableRegister"
           >
+            <template #toolbar>
+              <a-button size="small" @click="handleExport">
+                <Icon icon="carbon:export" /> 导出
+              </a-button>
+              <a-button
+                type="primary"
+                size="small"
+                :disabled="!selectedType"
+                @click="itemCrud.handleAdd()"
+              >
+                <Icon icon="ant-design:plus-outlined" /> 新增字典项
+              </a-button>
+              <a-button danger @click="itemCrud.handleBatchDelete">批量删除</a-button>
+            </template>
             <template #cell-status="{ record }">
               <a-tag :color="DICT_STATUS_COLOR_MAP[record.status] || 'default'">
                 <span :class="tagClassName">

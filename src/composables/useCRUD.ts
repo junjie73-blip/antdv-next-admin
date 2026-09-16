@@ -1,7 +1,7 @@
 import type { DrawerMethods, ModalMethods } from "@/components";
 import type { FormActionType } from "@/components/business/Form";
 import type { TableActionType } from "@/components/business/Table";
-import { message } from "antdv-next";
+import { message, Modal } from "antdv-next";
 import { ref } from "vue";
 
 type ContainerType = "modal" | "drawer";
@@ -144,7 +144,7 @@ export function useCRUD<RecordType = Record<string, any>, FormValues = Record<st
 
   // ========== 新增 ==========
   async function handleAdd(initialValues?: Partial<FormValues>) {
-    if (beforeCreate && !(await beforeCreate())) return;
+    if (beforeCreate && !(await beforeCreate(initialValues as FormValues))) return;
     isEditing.value = false;
     currentRecord.value = null;
     const empty = getEmptyValues ? getEmptyValues() : {};
@@ -154,9 +154,8 @@ export function useCRUD<RecordType = Record<string, any>, FormValues = Record<st
   }
 
   // ========== 编辑 ==========
-  async function handleEdit(record: RecordType) {
-    if (beforeUpdate && !(await beforeUpdate(record))) return;
-    isEditing.value = true;
+  async function handleEdit(record: RecordType, initialValues?: Partial<FormValues>) {
+    if (beforeUpdate && !(await beforeUpdate(record, initialValues as FormValues))) return;
     currentRecord.value = record;
     isEditing.value = true;
     await openContainer();
@@ -213,15 +212,22 @@ export function useCRUD<RecordType = Record<string, any>, FormValues = Record<st
 
     loading.value = true;
     try {
-      if (onBatchDelete) {
-        await onBatchDelete(selected);
-      } else if (onDelete) {
-        await Promise.all(selected.map((r) => onDelete(r)));
-      } else {
-        throw new Error("未配置删除 API");
-      }
-      message.success(`${msgs.batchDeleteSuccess}（${selected.length} 条）`);
-      refreshTable();
+      Modal.confirm({
+        title: "批量删除",
+        content: `确定删除选中的 ${selected.length} 项吗？`,
+        okType: "danger",
+        async onOk() {
+          if (onBatchDelete) {
+            await onBatchDelete(selected);
+          } else if (onDelete) {
+            await Promise.all(selected.map((r) => onDelete(r)));
+          } else {
+            throw new Error("未配置删除 API");
+          }
+          message.success(`${msgs.batchDeleteSuccess}（${selected.length} 条）`);
+          refreshTable();
+        },
+      });
     } catch (e: any) {
       message.error(e?.message || msgs.deleteFailed);
     } finally {

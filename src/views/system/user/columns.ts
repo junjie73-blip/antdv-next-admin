@@ -1,5 +1,6 @@
 import type { BasicColumn } from "@/components/business/Table";
 import type { UserRecord } from "./types";
+import type { TemplateColumn } from "@/utils/template";
 
 /** 用户表格列 */
 export const userColumns: BasicColumn[] = [
@@ -22,7 +23,7 @@ export const userColumns: BasicColumn[] = [
 
 /** 操作列配置 */
 export const userActionColumn = {
-  width: 260,
+  width: 400,
   title: "操作",
   fixed: "right" as const,
 };
@@ -41,3 +42,18 @@ export const userScroll = { x: 1400 } as const;
 
 /** 行 key 提取 */
 export const userRowKey = (record: UserRecord) => record.userId;
+export const USER_IMPORT_TEMPLATE: TemplateColumn[] = [
+  { header: "用户名", key: "username", width: 16, example: "zhangsan" },
+  { header: "真实姓名", key: "real_name", width: 16, example: "张三" },
+  { header: "邮箱", key: "email", width: 30, example: "zhangsan@example.com" },
+  { header: "手机号", key: "phone", width: 16, example: "13800000000" },
+  { header: "部门编码", key: "deptCode", width: 40, example: "dept1" },
+  { header: "角色编码", key: "roleCode", width: 40, example: "SUPER_ADMIN" },
+  { header: "性别", key: "gender", width: 8, example: 0 },
+  {
+    header: "状态",
+    key: "status",
+    width: 8,
+    example: "1",
+  },
+];

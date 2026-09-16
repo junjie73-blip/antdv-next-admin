@@ -9,10 +9,12 @@ import {
   deleteJob,
   getJobList,
   getJobLogList,
+  pauseJob,
+  resumeJob,
   runJobOnce,
   toggleJobStatus,
   updateJob,
-} from "@/api/system";
+} from "@/api";
 import { BasicForm, useForm } from "@/components/business/Form";
 import { BasicModal, useModal } from "@/components/business/Modal";
 import { BasicTable, TableAction, useTable, type ActionItem } from "@/components/business/Table";
@@ -86,13 +88,25 @@ async function handleClearLog() {
   message.success("已清空");
   logTableMethods.value?.reload();
 }
+async function handlePause(record: JobRecord) {
+  await pauseJob(record.jobId);
+  message.success("已暂停");
+  jobTableMethods.value?.reload();
+}
 
+async function handleResume(record: JobRecord) {
+  await resumeJob(record.jobId);
+  message.success("已恢复");
+  jobTableMethods.value?.reload();
+}
 // ============ 操作项 ============
 function getActions(record: JobRecord): ActionItem[] {
   return getJobActions(record, {
     onRun: handleRun,
     onEdit: handleEdit,
     onDelete: handleDelete,
+    onPause: handlePause,
+    onResume: handleResume,
   });
 }
 

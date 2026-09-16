@@ -1,65 +1,32 @@
-import { get, post } from "@/api/request";
-import { http } from "@/utils";
+/**
+ * 系统模块 API 汇总
+ *
+ * 用法：
+ *   import { getUserList, getRoleList } from "@/api/system";
+ *
+ * 分域文件：
+ *   user / role / dept / menu / dict / notice / permission
+ *   config / tenant / log / monitor / job / ip-rule / file
+ *   dashboard / workbench / todo
+ */
 
-interface LoginParams {
-  username: string;
-  password: string;
-}
-
-interface LoginResponse {
-  user: {
-    id: string;
-    username: string;
-    token: string;
-    role: string;
-    permissions: string[];
-    roles?: string[];
-  };
-}
-
-interface UserInfoResponse {
-  user: {
-    id: string;
-    username: string;
-    role: string;
-    permissions: string[];
-    roles?: string[];
-  };
-}
-export interface ForgotPasswordParams {
-  tenantCode: string;
-  username: string;
-  oldPassword: string;
-  newPassword: string;
-}
-
-export interface ForgotPasswordResult {
-  success: boolean;
-  message?: string;
-}
-export function login(params: LoginParams): Promise<LoginResponse> {
-  return post<LoginResponse>("/auth/login", params as unknown as Record<string, unknown>);
-}
-
-export function logout(): Promise<null> {
-  return http.Post(
-    "/auth/logout",
-    {},
-    {
-      meta: { token: true, silent: true },
-    },
-  );
-}
-
-export function getMenus(): Promise<any> {
-  return get<any>("/auth/menus");
-}
-
-export function getUserInfo(): Promise<UserInfoResponse> {
-  return get<UserInfoResponse>("/auth/user-info");
-}
-
-/** 忘记密码 / 修改密码 */
-export function forgotPassword(data: ForgotPasswordParams) {
-  return http.Post<ForgotPasswordResult>("/auth/forgot-password", data);
-}
+export * from "./user";
+export * from "./role";
+export * from "./dept";
+export * from "./menu";
+export * from "./dict";
+export * from "./notice";
+export * from "./permission";
+export * from "./config";
+export * from "./tenant";
+export * from "./log";
+export * from "./monitor";
+export * from "./job";
+export * from "./ip-rule";
+export * from "./file";
+export * from "./dashboard";
+export * from "./workbench";
+export * from "./todo";
+export * from "./auth";
+export * from "./notice-channel";
+export * from "./todo-group";

@@ -9,6 +9,8 @@ export interface DeptActionContext {
   onEdit: (record: DeptRecord) => void;
   /** 删除（确认由 popConfirm 处理） */
   onDelete: (record: DeptRecord) => void | Promise<void>;
+  /** 分配用户 */
+  onAssignUsers: (record: DeptRecord) => void;
 }
 
 /**
@@ -27,6 +29,12 @@ export function getDeptActions(record: DeptRecord, ctx: DeptActionContext): Acti
       icon: "ant-design:edit-outlined",
       onClick: () => ctx.onEdit(record),
     },
+    {
+      label: "分配用户",
+      icon: "ant-design:usergroup-add-outlined",
+      onClick: () => ctx.onAssignUsers(record),
+    },
+
     {
       label: "删除",
       icon: "ant-design:delete-outlined",

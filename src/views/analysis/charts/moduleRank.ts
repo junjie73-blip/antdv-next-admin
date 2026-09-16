@@ -1,5 +1,5 @@
 import * as echarts from "echarts";
-import { getModuleRank } from "@/api/system";
+import { getModuleRank } from "@/api";
 import { PALETTE } from "../constants";
 import { borderColor, echartsTheme, gradient, subTextColor, textColor } from "../theme";
 import type { ModuleRankItem } from "../types";

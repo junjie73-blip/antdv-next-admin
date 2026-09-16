@@ -1,5 +1,5 @@
 import * as echarts from "echarts";
-import { getResourceUsage } from "@/api/system";
+import { getResourceUsage } from "@/api";
 import { PALETTE } from "../constants";
 import { baseOption, borderColor, echartsTheme, subTextColor } from "../theme";
 import type { ResourceUsageData } from "../types";

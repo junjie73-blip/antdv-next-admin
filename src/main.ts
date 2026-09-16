@@ -7,7 +7,6 @@ import { createApp } from "vue";
 import { PerfectScrollbarPlugin } from "vue3-perfect-scrollbar";
 import App from "./App.vue";
 import { escapeDirective, safeHtmlDirective } from "./directives";
-import { vLogClick } from "./directives/log";
 import i18n from "./locales";
 import { setupRouter } from "./router";
 import { initSecuritySystem } from "./utils/securityInit";
@@ -15,24 +14,50 @@ import "virtual:svg-icons-register";
 import "./assets/styles/global.css";
 import "antdv-next/dist/antd.css";
 import "vue3-perfect-scrollbar/style.css";
-
+import * as Sentry from "@sentry/vue";
 // 按需导入 form-create 组件
 formCreate.use(install);
 
 const app = createApp(App);
 const pinia = createPinia();
-
 // pinia.use(
 //   createPersistedState({
 //     key: (id) => `__xxxx__${id}`,
 //     storage: localStorage,
 //   }),
 // );
+
+if (import.meta.env.PROD) {
+  Sentry.init({
+    app,
+    dsn: "https://7e19b5383e4112d05077bc078a81365f@o4512096256393216.ingest.us.sentry.io/4512096347488256",
+    dataCollection: {
+      // To disable sending user data and HTTP bodies, uncomment the lines below. For more info visit:
+      // https://docs.sentry.io/platforms/javascript/guides/vue/configuration/options/#dataCollection
+      // userInfo: false,
+      // httpBodies: []
+    },
+    integrations: [
+      Sentry.browserTracingIntegration({ router: setupRouter(app) }),
+      Sentry.replayIntegration(),
+    ],
+    // Tracing
+    tracesSampleRate: 1.0, // Capture 100% of the transactions
+    // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
+    tracePropagationTargets: ["localhost", /^https:\/\/yourserver\.io\/api/],
+    // Session Replay
+    replaysSessionSampleRate: 0.1, // This sets the sample rate at 10%. You may want to change it to 100% while in development and then sample at a lower rate in production.
+    replaysOnErrorSampleRate: 1.0, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
+  });
+} else {
+  setupRouter(app);
+}
+
 app.use(pinia);
 app.use(i18n);
 app.use(formCreate);
 app.use(FcDesigner);
-setupRouter(app);
+
 app.use(PerfectScrollbarPlugin);
 
 // ==================== 初始化安全防护系统 ====================
@@ -50,18 +75,4 @@ app.directive("safe-html", safeHtmlDirective);
 // v-escape: 自动转义文本内容（防止注入攻击）
 // 用法：v-escape="value" | v-escape:url="url" | v-escape:js="code"
 app.directive("escape", escapeDirective);
-
-// v-log-click: 自动记录按钮点击操作日志
-// 用法：v-log-click="'保存'" | v-log-click:delete="'删除记录'"
-app.directive("log-click", vLogClick);
-
 app.mount("#app");
-
-// 注册 Service Worker（PWA 支持）
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {
-      // 开发环境或不支持时静默失败
-    });
-  });
-}

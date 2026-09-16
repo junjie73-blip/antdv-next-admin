@@ -2,6 +2,7 @@
 import { Icon } from "@iconify/vue";
 import { Modal, message } from "antdv-next";
 import { computed, onMounted, ref } from "vue";
+import ImportExport from "@/components/business/ImportExport.vue";
 
 import {
   addUser,
@@ -10,8 +11,10 @@ import {
   getDeptTree,
   getUserList,
   getUserOptions,
+  getUserSensitive,
+  resetUserPassword,
   updateUser,
-} from "@/api/system";
+} from "@/api";
 import { BasicForm, useForm } from "@/components/business/Form";
 import { BasicModal, useModal } from "@/components/business/Modal";
 import { BasicTable, TableAction, useTable, type ActionItem } from "@/components/business/Table";
@@ -28,6 +31,7 @@ import {
   userRowKey,
   userRowSelection,
   userScroll,
+  USER_IMPORT_TEMPLATE,
 } from "./columns";
 import {
   USER_STATUS_COLOR_MAP,
@@ -40,15 +44,15 @@ import {
   statusTagClassName,
   treeCardClassName,
 } from "./constants";
-import { USER_EMPTY_VALUES, useUserFormSchemas, useUserSearchSchemas } from "./schemas";
-import type { DeptTreeNode, FlatDeptNode, RoleOption, UserRecord } from "./types";
 import {
-  convertDeptTree,
-  exportUsers,
-  flattenDeptTree,
-  getUserRoleNames,
-  printUserList,
-} from "./utils";
+  USER_EMPTY_VALUES,
+  userDetailSchema,
+  useUserFormSchemas,
+  useUserSearchSchemas,
+} from "./schemas";
+import type { DeptTreeNode, FlatDeptNode, RoleOption, UserRecord } from "./types";
+import { convertDeptTree, flattenDeptTree, getUserRoleNames, printUserList } from "./utils";
+import { http } from "@/utils";
 
 defineOptions({ name: "SystemUser" });
 
@@ -60,7 +64,7 @@ const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABL
 const deptTreeData = ref<DeptTreeNode[]>([]);
 const allDeptNodes = ref<FlatDeptNode[]>([]);
 const roleOptions = ref<RoleOption[]>([]);
-
+const uploadLoading = ref(false);
 async function loadBaseData() {
   try {
     const [deptRes, optionRes] = await Promise.all<any[]>([getDeptTree(), getUserOptions()]);
@@ -123,6 +127,8 @@ const {
     roleIds: record.roles?.map((r) => r.roleId) || [],
     sortOrder: record.sortOrder ?? 0,
     status: record.status,
+    gender: record.gender ?? 0,
+    avatar: record.avatar ?? "",
   }),
   onCreate: async (values) => {
     await addUser(values);
@@ -169,16 +175,44 @@ async function handleBatchDelete() {
     },
   });
 }
-
-// ========== 导出 ==========
-function handleExport() {
-  const selectedRows = (tableMethods.value?.getSelectRows?.() || []) as UserRecord[];
-  if (selectedRows.length === 0) {
-    message.warning("请先选择要导出的用户");
-    return;
+// 头像上传
+// 文件校验函数（before-upload 调用）
+function beforeUpload(file: File) {
+  // 1. 类型校验：仅允许 JPG/PNG
+  const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
+  if (!isJpgOrPng) {
+    message.error("只能上传 JPG/PNG 格式的图片");
+    return false; // 阻止上传
   }
-  exportUsers(selectedRows);
-  message.success(`成功导出 ${selectedRows.length} 条数据`);
+
+  // 2. 大小校验：不超过 2MB
+  const isLt2M = file.size / 1024 / 1024 < 2;
+  if (!isLt2M) {
+    message.error("图片大小不能超过 2MB");
+    return false; // 阻止上传
+  }
+
+  return true; // 校验通过，允许上传
+}
+
+// 自定义上传函数（custom-request 调用）
+async function customUpload({ file, onSuccess, onError }: any) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  uploadLoading.value = true;
+  try {
+    const res = (await http.Post("/upload/file", formData)) as any;
+    const url = res?.data?.url || res?.url;
+    formMethods.setFieldsValue({ avatar: url });
+    message.success("头像上传成功");
+    onSuccess(res);
+  } catch (e: any) {
+    message.error(e?.message || "头像上传失败");
+    onError(e);
+  } finally {
+    uploadLoading.value = false;
+  }
 }
 
 // ========== 打印 ==========
@@ -186,11 +220,61 @@ function handlePrint() {
   printUserList();
 }
 
+// ============ 重置密码 ============
+const resetPwdVisible = ref(false);
+const resetPwdTarget = ref<UserRecord | null>(null);
+const resetPwdValue = ref("");
+const resetPwdLoading = ref(false);
+
+function handleResetPassword(record: UserRecord) {
+  resetPwdTarget.value = record;
+  resetPwdValue.value = "";
+  resetPwdVisible.value = true;
+}
+
+async function confirmResetPassword() {
+  if (resetPwdValue.value.length < 6) {
+    message.warning("密码至少 6 位");
+    return;
+  }
+  resetPwdLoading.value = true;
+  try {
+    await resetUserPassword(resetPwdTarget.value!.userId, resetPwdValue.value);
+    message.success("密码已重置");
+    resetPwdVisible.value = false;
+  } catch (e: any) {
+    message.error(e?.message || "重置失败");
+  } finally {
+    resetPwdLoading.value = false;
+  }
+}
+
+// ============ 敏感信息 ============
+const sensitiveVisible = ref(false);
+const sensitiveData = ref<Record<string, unknown>>({});
+const sensitiveLoading = ref(false);
+
+async function handleViewSensitive(record: UserRecord) {
+  sensitiveVisible.value = true;
+  sensitiveLoading.value = true;
+  sensitiveData.value = {};
+  try {
+    sensitiveData.value = await getUserSensitive(record.userId);
+  } catch (e: any) {
+    message.error(e?.message || "无权限查看");
+    sensitiveVisible.value = false;
+  } finally {
+    sensitiveLoading.value = false;
+  }
+}
+
 // ========== 操作项 ==========
 function getActions(record: UserRecord): ActionItem[] {
   return getUserActions(record, {
     onEdit: handleEdit,
     onDelete: handleDelete,
+    onResetPassword: handleResetPassword,
+    onViewSensitive: handleViewSensitive,
   });
 }
 
@@ -236,10 +320,14 @@ onMounted(loadBaseData);
               <template #icon><Icon icon="ant-design:plus-outlined" /></template>
               新增用户
             </a-button>
-            <a-button @click="handleExport">
-              <template #icon><Icon icon="carbon:export" /></template>
-              导出
-            </a-button>
+            <ImportExport
+              filename="用户列表"
+              module="/user"
+              :export-params="{
+                ids: tableMethods?.getSelectRowKeys(),
+              }"
+              :import-template="USER_IMPORT_TEMPLATE"
+            />
             <a-button @click="handlePrint">
               <template #icon><Icon icon="carbon:printer" /></template>
               打印
@@ -283,7 +371,50 @@ onMounted(loadBaseData);
         :show-action-button-group="false"
         :grid="{ cols: 2, gutter: 16 }"
         @register="formRegister"
-      />
+      >
+        <template #avatarUpload="{ model, field }">
+          <div class="flex items-center gap-4">
+            <a-upload
+              :show-upload-list="false"
+              :accept="'.jpg,.jpeg,.png'"
+              :before-upload="beforeUpload"
+              :custom-request="customUpload"
+            >
+              <a-button :loading="uploadLoading"> 上传头像 </a-button>
+            </a-upload>
+            <img
+              v-if="model[field]"
+              :src="model[field]"
+              class="w-16 h-16 rounded-full object-cover border"
+              alt="avatar"
+            />
+          </div>
+        </template>
+      </BasicForm>
     </BasicModal>
+    <!-- 重置密码弹窗 -->
+    <a-modal
+      v-model:open="resetPwdVisible"
+      title="重置密码"
+      :width="420"
+      :confirm-loading="resetPwdLoading"
+      @ok="confirmResetPassword"
+    >
+      <div class="space-y-3 py-2">
+        <p class="text-sm text-gray-500">为用户「{{ resetPwdTarget?.username }}」设置新密码</p>
+        <a-input-password
+          v-model:value="resetPwdValue"
+          placeholder="请输入新密码（至少 6 位）"
+          :maxlength="64"
+        />
+      </div>
+    </a-modal>
+
+    <!-- 敏感信息弹窗 -->
+    <a-modal v-model:open="sensitiveVisible" title="用户敏感信息" :width="520" :footer="null">
+      <a-spin :spinning="sensitiveLoading">
+        <Description :column="1" :data="sensitiveData" :schema="userDetailSchema"></Description>
+      </a-spin>
+    </a-modal>
   </div>
 </template>

@@ -3,7 +3,7 @@ import type { BreadcrumbProps, MenuProps } from "antdv-next";
 
 import { Icon } from "@iconify/vue";
 import { Badge, Dropdown, Menu, Modal, Popover } from "antdv-next";
-import { computed, h, onMounted, ref, unref, watch } from "vue";
+import { computed, h, onMounted, onUnmounted, ref, unref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/modules/app";
 import { useRouteStore } from "@/stores/modules/route";
@@ -12,9 +12,9 @@ import { cn } from "@/utils/cn";
 import { useBreadcrumb } from "../composables/useLayout";
 import AccountDrawer from "./AccountDrawer.vue";
 import SettingDrawer from "./SettingDrawer.vue";
-import { http } from "@/utils";
-import { noticeTypeConfig, useWs, type NotificationItem } from "@/utils/ws";
-import { useAuthStore, useDictStore } from "@/stores";
+import { eventBus, http } from "@/utils";
+import { noticeTypeConfig, useWebSocket, WS_EVENTS, type NotificationItem } from "@/utils/ws";
+import { getNoticeUnreadCount } from "@/api";
 defineProps<{
   collapsed?: boolean;
   horizontal?: boolean;
@@ -36,7 +36,7 @@ const appStore = useAppStore();
 const userStore = useUserStore();
 const routeStore = useRouteStore();
 const { breadcrumbs } = useBreadcrumb();
-
+const unreadCount = ref(0);
 const showAllNotificationsModal = ref(false);
 const showSetting = ref(false);
 const showNotification = ref(false);
@@ -46,9 +46,8 @@ const appTitle = import.meta.env.VITE_APP_TITLE || "Antdv Next Admin";
 const notifications = ref<NotificationItem[]>([]);
 
 const allNotifications = ref<NotificationItem[]>([]); // 全部通知弹窗数据
-const unreadCount = ref(0);
 const totalNotifications = ref(0);
-const { notice } = useWs();
+const { notice } = useWebSocket();
 
 // ========== 获取通知列表（头部小弹窗） ==========
 async function fetchRecentNotifications() {
@@ -213,17 +212,30 @@ watch(notice, () => {
     totalNotifications.value += 1;
   }
 });
-
+async function loadUnread() {
+  try {
+    unreadCount.value = await getNoticeUnreadCount();
+  } catch {
+    // 静默失败
+  }
+}
 function handleNotificationClick(item: NotificationItem) {
   if (item.isRead === 0) {
     markAsRead(item.noticeId);
   }
   showNotification.value = false;
 }
-useWs();
+const timer = ref<NodeJS.Timeout>();
+useWebSocket();
 onMounted(() => {
   fetchRecentNotifications();
+  timer.value = setInterval(loadUnread, 60_000);
 });
+eventBus.on(WS_EVENTS.REVOKE, () => {
+  fetchRecentNotifications();
+  loadUnread();
+});
+onUnmounted(() => clearInterval(timer.value));
 </script>
 
 <template>

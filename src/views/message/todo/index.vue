@@ -5,14 +5,7 @@ import { message } from "antdv-next";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
-import {
-  completeTodo,
-  createTodo,
-  deleteTodo,
-  getTodoList,
-  getTodoStats,
-  updateTodo,
-} from "@/api/system";
+import { completeTodo, createTodo, deleteTodo, getTodoList, getTodoStats, updateTodo } from "@/api";
 import { BasicForm, useForm } from "@/components/business/Form";
 // 抽离的模块
 import { FILTER_META, PRIORITY_MAP } from "./constants";
@@ -22,7 +15,10 @@ import { filterTodos, getDueTimeInfo, isOverdue, todoToFormValues } from "./util
 import { useUserStore } from "@/stores/modules/user";
 import BasicDrawer from "@/components/business/Drawer/BasicDrawer.vue";
 import { useDrawer } from "@/components/business/Drawer";
-
+import { getTodoGroups, type TodoGroup } from "@/api/todo-group";
+import GroupManager from "./components/GroupManager.vue";
+const groups = ref<TodoGroup[]>([]);
+const activeGroupId = ref<string | undefined>(undefined);
 dayjs.extend(relativeTime);
 defineOptions({ name: "MessageTodo" });
 
@@ -35,7 +31,7 @@ const [drawerRegister, drawerMethods] = useDrawer();
 const [formRegister, formMethods] = useForm();
 const userStore = useUserStore();
 const editingId = ref<string | null>(null);
-
+const groupManagerOpen = ref(false);
 // ============ 过滤器配置（合并统计数值） ============
 const filterOptions = computed<TodoFilterOption[]>(() =>
   (Object.keys(FILTER_META) as TodoFilterKey[]).map((key) => ({
@@ -44,25 +40,13 @@ const filterOptions = computed<TodoFilterOption[]>(() =>
     count: stats.value[key],
   })),
 );
-
+/** 分组变更后重新拉列表 */
+async function handleGroupChanged() {
+  await loadGroups();
+  await load();
+}
 // ============ 过滤后的列表 ============
 const filteredList = computed(() => filterTodos(list.value, activeFilter.value));
-
-// ============ 数据加载 ============
-async function load() {
-  loading.value = true;
-  try {
-    const [listRes, statsRes] = await Promise.all([
-      getTodoList({ pageNum: 1, pageSize: 200 }),
-      getTodoStats(),
-    ]);
-    const ld = listRes?.data ?? listRes;
-    list.value = ld?.list || [];
-    stats.value = (statsRes?.data ?? statsRes) || stats.value;
-  } finally {
-    loading.value = false;
-  }
-}
 
 // ============ CRUD ============
 async function handleAdd() {
@@ -116,6 +100,38 @@ async function handleDelete(item: TodoRecord) {
   message.success("已删除");
   load();
 }
+async function loadGroups() {
+  try {
+    groups.value = await getTodoGroups();
+  } catch (e) {
+    console.error("加载分组失败", e);
+  }
+}
+
+// load() 里带上 groupId
+async function load() {
+  loading.value = true;
+  try {
+    const [listRes, statsRes] = await Promise.all([
+      getTodoList({
+        pageNum: 1,
+        pageSize: 200,
+        groupId: activeGroupId.value,
+      }),
+      getTodoStats(),
+    ]);
+    const ld = listRes?.data ?? listRes;
+    list.value = ld?.list || [];
+    stats.value = (statsRes?.data ?? statsRes) || stats.value;
+  } finally {
+    loading.value = false;
+  }
+}
+
+onMounted(() => {
+  loadGroups();
+  load();
+});
 
 onMounted(load);
 </script>
@@ -152,6 +168,20 @@ onMounted(load);
       <div
         class="rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-2"
       >
+        <div class="mb-2">
+          <a-select
+            v-model:value="activeGroupId"
+            placeholder="全部分组"
+            allow-clear
+            style="width: 100%"
+            :field-names="{
+              label: 'name',
+              value: 'groupId',
+            }"
+            :options="groups"
+            @change="handleGroupChanged"
+          />
+        </div>
         <div
           v-for="f in filterOptions"
           :key="f.key"
@@ -183,12 +213,17 @@ onMounted(load);
           </span>
         </div>
       </div>
-
-      <!-- 新建按钮 -->
-      <a-button type="primary" block @click="handleAdd">
-        <template #icon><Icon icon="ant-design:plus-outlined" /></template>
-        新建待办
-      </a-button>
+      <a-space>
+        <!-- 新建按钮 -->
+        <a-button type="primary" block @click="handleAdd">
+          <template #icon><Icon icon="ant-design:plus-outlined" /></template>
+          新建待办
+        </a-button>
+        <a-button block @click="groupManagerOpen = true">
+          <template #icon><Icon icon="carbon:folder" /></template>
+          管理分组
+        </a-button></a-space
+      >
     </div>
 
     <!-- ==================== 右侧列表 ==================== -->
@@ -327,5 +362,6 @@ onMounted(load);
         @register="formRegister"
       />
     </BasicDrawer>
+    <GroupManager v-model:open="groupManagerOpen" @changed="handleGroupChanged" />
   </div>
 </template>

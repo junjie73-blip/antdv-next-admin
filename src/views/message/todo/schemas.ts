@@ -18,6 +18,21 @@ export const todoFormSchemas: FormSchema[] = [
     componentProps: { rows: 3, placeholder: "请输入详情..." },
   },
   {
+    field: "groupId",
+    label: "分组",
+    component: "ASelect",
+    colProps: { span: 24 },
+    componentProps: {
+      placeholder: "选择分组（可留空）",
+      allowClear: true,
+      api: "/todo-group/list",
+      fieldNames: {
+        label: "name",
+        value: "groupId",
+      },
+    },
+  },
+  {
     field: "priority",
     label: "优先级",
     component: "RadioGroup",

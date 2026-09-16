@@ -9,6 +9,10 @@ export interface JobActionContext {
   onEdit: (record: JobRecord) => void;
   /** 删除（确认由 popConfirm 处理） */
   onDelete: (record: JobRecord) => void | Promise<void>;
+  /** 暂停 */
+  onPause: (record: JobRecord) => void;
+  /** 恢复 */
+  onResume: (record: JobRecord) => void | Promise<void>;
 }
 
 /**
@@ -26,6 +30,19 @@ export function getJobActions(record: JobRecord, ctx: JobActionContext): ActionI
       icon: "ant-design:edit-outlined",
       label: "编辑",
       onClick: () => ctx.onEdit(record),
+    },
+    {
+      icon: "bx:pause-circle",
+      label: "暂停",
+      // 只在启用状态时可暂停
+      disabled: record.status !== "1",
+      onClick: () => ctx.onPause(record),
+    },
+    {
+      icon: "bx:play-circle",
+      label: "恢复",
+      disabled: record.status !== "1", // 或者别的条件，看后端语义
+      onClick: () => ctx.onResume(record),
     },
     {
       label: "删除",

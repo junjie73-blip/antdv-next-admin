@@ -29,6 +29,7 @@ import {
 } from "./constants";
 import { usePermissionFormSchemas } from "./schemas";
 import type { PermissionRecord } from "./types";
+import { getMenuButtons } from "@/api";
 
 defineOptions({ name: "SystemPermissionButton" });
 
@@ -54,7 +55,7 @@ const formSchemas = usePermissionFormSchemas(statusOptions);
 // ========== 表格 API ==========
 async function loadPermissions() {
   if (!props.menu?.menuId) return { list: [], total: 0 };
-  return await http.Get("/menu/buttons", { params: { parentId: props.menu.menuId } }).send(true);
+  return await getMenuButtons(props.menu.menuId);
 }
 
 // ========== useCRUD ==========

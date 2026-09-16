@@ -2,7 +2,13 @@ import type { FormSchema } from "@/components/business/Form";
 import type { ComputedRef } from "vue";
 import { computed } from "vue";
 import type { UserOption } from "./types";
-import { NOTICE_PUBLISH_OPTIONS, NOTICE_STATUS_OPTIONS, NOTICE_TYPE_OPTIONS } from "./constants";
+import {
+  NOTICE_IS_TOP_OPTIONS,
+  NOTICE_PRIORITY_OPTIONS,
+  NOTICE_PUBLISH_OPTIONS,
+  NOTICE_STATUS_OPTIONS,
+  NOTICE_TYPE_OPTIONS,
+} from "./constants";
 
 /** 搜索表单 schema（静态） */
 export const noticeSearchSchemas: FormSchema[] = [
@@ -59,6 +65,24 @@ export function useNoticeFormSchemas(
       component: "Select",
       defaultValue: 1,
       componentProps: { options: NOTICE_TYPE_OPTIONS },
+    },
+    {
+      field: "priority",
+      label: "优先级",
+      component: "RadioGroup",
+      defaultValue: 0,
+      componentProps: {
+        options: NOTICE_PRIORITY_OPTIONS,
+      },
+    },
+    {
+      field: "isTop",
+      label: "是否置顶",
+      component: "RadioGroup",
+      defaultValue: 0,
+      componentProps: {
+        options: NOTICE_IS_TOP_OPTIONS,
+      },
     },
     {
       field: "status",

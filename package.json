@@ -36,6 +36,7 @@
     "@form-create/antd-designer": "^3.4.0",
     "@form-create/antdv-next": "^3.3.3",
     "@iconify/vue": "^5.0.1",
+    "@sentry/vue": "^10.74.0",
     "@tailwindcss/nesting": "0.0.0-insiders.565cd3e",
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",

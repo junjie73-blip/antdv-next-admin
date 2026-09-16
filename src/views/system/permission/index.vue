@@ -3,12 +3,7 @@ import { Icon } from "@iconify/vue";
 import { computed, nextTick, ref } from "vue";
 import dayjs from "dayjs";
 
-import {
-  createPermission,
-  deletePermission,
-  getPermissionList,
-  updatePermission,
-} from "@/api/system";
+import { createPermission, deletePermission, getPermissionList, updatePermission } from "@/api";
 import { Description } from "@/components/business/Description";
 import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
 import { BasicForm, useForm } from "@/components/business/Form";

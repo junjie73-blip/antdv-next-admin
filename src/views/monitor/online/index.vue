@@ -2,7 +2,7 @@
 import { Icon } from "@iconify/vue";
 import { Modal, message } from "antdv-next";
 
-import { getOnlineList, kickAllOnline, kickOnline } from "@/api/system";
+import { getOnlineList, kickAllOnline, kickOnline } from "@/api";
 import { BasicTable, TableAction, useTable, type ActionItem } from "@/components/business/Table";
 
 // 抽离的模块

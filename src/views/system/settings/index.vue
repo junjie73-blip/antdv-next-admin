@@ -9,7 +9,7 @@ import {
   deleteSetting,
   getSettingsList,
   updateSetting,
-} from "@/api/system";
+} from "@/api";
 import { Description as DetailDescription } from "@/components/business/Description";
 import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
 import { BasicForm, useForm } from "@/components/business/Form";

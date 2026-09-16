@@ -2,7 +2,7 @@
 import { Icon } from "@iconify/vue";
 import { message } from "antdv-next";
 
-import { deleteFile, getFileList } from "@/api/system";
+import { deleteFile, getFileList } from "@/api";
 import { BasicTable, TableAction, useTable, type ActionItem } from "@/components/business/Table";
 import { exportToExcel } from "@/utils/excel";
 

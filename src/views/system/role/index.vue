@@ -3,16 +3,15 @@ import { Icon } from "@iconify/vue";
 import { computed, onMounted, ref } from "vue";
 import { message } from "antdv-next";
 
-import { addRole, deleteRole, getRoleList, updateRole } from "@/api/system";
+import { addRole, deleteRole, getDeptTree, getRoleDetail, getRoleList, updateRole } from "@/api";
 import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
 import { BasicForm, useForm } from "@/components/business/Form";
 import { BasicTable, TableAction, useTable, type ActionItem } from "@/components/business/Table";
 import { useCRUD } from "@/composables/useCRUD";
 import { DictType } from "@/enums/dict";
 import { useDictStore } from "@/stores";
-import { http } from "@/utils";
 import { exportToExcel } from "@/utils/excel";
-
+import PermissionDrawer from "./components/PermissionDrawer.vue";
 // 抽离的模块
 import { getRoleActions } from "./actions";
 import {
@@ -31,7 +30,7 @@ import {
   containerClassName,
 } from "./constants";
 import { useRoleFormSchemas, useRoleSearchSchemas } from "./schemas";
-import type { PermissionTreeNode, RoleRecord } from "./types";
+import type { RoleRecord } from "./types";
 import { mapRoleForExport } from "./utils";
 
 defineOptions({ name: "SystemRole" });
@@ -39,10 +38,12 @@ defineOptions({ name: "SystemRole" });
 // ========== 字典 ==========
 const dictStore = useDictStore();
 const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE));
+const deptTreeData = ref<any[]>([]);
+const permDrawerOpen = ref(false);
+const permDrawerRole = ref<RoleRecord | null>(null);
 
 // ========== 实例 ==========
 const [drawerRegister, drawerMethods] = useDrawer();
-const [permDrawerRegister, permDrawerMethods] = useDrawer();
 const [tableRegister, tableMethods] = useTable();
 const [formRegister, formMethods] = useForm();
 
@@ -50,51 +51,39 @@ const [formRegister, formMethods] = useForm();
 const searchFormSchemas = useRoleSearchSchemas(statusOptions);
 const drawerFormSchemas = useRoleFormSchemas(statusOptions);
 
-// ========== 权限树 ==========
-const permissionTreeData = ref<PermissionTreeNode[]>([]);
-const permDrawerLoading = ref(false);
-
-async function loadPermissionTree() {
-  try {
-    const res = (await http.Get("/menu/tree").send(true)) as any;
-    permissionTreeData.value = res.data;
-  } catch (e) {
-    console.error("加载菜单树失败", e);
-  }
-}
-
 // ========== useCRUD ==========
 // 说明：删除确认由操作项 popConfirm 负责，关闭 useCRUD 内置 Modal.confirm。
-const { isEditing, currentRecord, handleAdd, handleEdit, handleDelete, handleSave } =
-  useCRUD<RoleRecord>({
-    containerType: "drawer",
-    drawerMethods,
-    formMethods,
-    tableMethods,
-    idKey: "roleId",
-    getEmptyValues: () => ({ ...ROLE_EMPTY_VALUES }),
-    getFormValues: (record) => ({
-      roleName: record.roleName,
-      roleCode: record.roleCode,
-      description: record.description,
-      sortOrder: record.sortOrder,
-      status: record.status,
-    }),
-    onCreate: async (values) => {
-      await addRole(values);
-    },
-    onUpdate: async (id, values) => {
-      await updateRole(id, values);
-    },
-    onDelete: async (record) => {
-      await deleteRole(record.roleId);
-    },
-    messages: {
-      createSuccess: "角色创建成功",
-      updateSuccess: "角色更新成功",
-      deleteSuccess: "角色删除成功",
-    },
-  });
+const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<RoleRecord>({
+  containerType: "drawer",
+  drawerMethods,
+  formMethods,
+  tableMethods,
+  idKey: "roleId",
+  onFetchDetail: async (id) => await getRoleDetail(id),
+  getEmptyValues: () => ({ ...ROLE_EMPTY_VALUES }),
+  getFormValues: (record) => ({
+    roleName: record.roleName,
+    roleCode: record.roleCode,
+    description: record.description,
+    sortOrder: record.sortOrder,
+    status: record.status,
+    dataScope: record.dataScope ?? "1",
+  }),
+  onCreate: async (values) => {
+    await addRole(values);
+  },
+  onUpdate: async (id, values) => {
+    await updateRole(id, values);
+  },
+  onDelete: async (record) => {
+    await deleteRole(record.roleId);
+  },
+  messages: {
+    createSuccess: "角色创建成功",
+    updateSuccess: "角色更新成功",
+    deleteSuccess: "角色删除成功",
+  },
+});
 
 // ========== 状态切换 ==========
 async function handleToggleStatus(record: RoleRecord) {
@@ -105,20 +94,6 @@ async function handleToggleStatus(record: RoleRecord) {
     tableMethods.value?.reload();
   } catch (e: any) {
     message.error(e?.message || "操作失败");
-  }
-}
-
-async function handleSavePermissions() {
-  if (!currentRecord.value) return;
-  try {
-    await http.Put(`/role/${currentRecord.value.roleId}/menus`, {
-      menuIds: currentRecord.value.menuIds,
-    });
-    message.success("权限更新成功");
-    permDrawerMethods.closeDrawer();
-    tableMethods.value?.reload();
-  } catch (e: any) {
-    message.error(e?.message || "权限更新失败");
   }
 }
 
@@ -140,11 +115,26 @@ function getActions(record: RoleRecord): ActionItem[] {
   return getRoleActions(record, {
     onEdit: handleEdit,
     onDelete: handleDelete,
+    onPermission: handleOpenPermission,
   });
 }
 
+async function loadDeptTree() {
+  deptTreeData.value = await getDeptTree();
+}
+
+function handleOpenPermission(record: RoleRecord) {
+  permDrawerRole.value = record;
+  permDrawerOpen.value = true;
+}
+
+function handlePermissionSaved() {
+  tableMethods.value?.reload();
+}
 // ========== 初始化 ==========
-onMounted(loadPermissionTree);
+onMounted(() => {
+  loadDeptTree();
+});
 </script>
 
 <template>
@@ -205,39 +195,10 @@ onMounted(loadPermissionTree);
     </BasicDrawer>
 
     <!-- 权限分配抽屉 -->
-    <BasicDrawer
-      :title="`权限分配 - ${currentRecord?.roleName || ''}`"
-      :width="480"
-      :loading="permDrawerLoading"
-      @register="permDrawerRegister"
-      @ok="handleSavePermissions"
-    >
-      <div class="space-y-4">
-        <a-alert message="选择该角色可以访问的菜单和按钮权限" type="info" show-icon />
-        <div class="text-sm text-gray-500 dark:text-gray-400">
-          角色编码：<a-tag color="blue">{{ currentRecord?.roleCode }}</a-tag>
-        </div>
-        <div class="text-sm text-gray-500 dark:text-gray-400">
-          角色描述：<span class="text-gray-700 dark:text-gray-300">{{
-            currentRecord?.description
-          }}</span>
-        </div>
-
-        <a-tree
-          checkable
-          default-expand-all
-          :tree-data="permissionTreeData"
-          :checked-keys="currentRecord?.menuIds || []"
-          :field-names="{ title: 'menuName', key: 'menuId' }"
-          @check="
-            (checkedKeys: any) => {
-              if (currentRecord) {
-                currentRecord.menuIds = checkedKeys;
-              }
-            }
-          "
-        />
-      </div>
-    </BasicDrawer>
+    <PermissionDrawer
+      v-model:open="permDrawerOpen"
+      :role="permDrawerRole"
+      @saved="handlePermissionSaved"
+    />
   </div>
 </template>

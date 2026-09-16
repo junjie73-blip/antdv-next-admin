@@ -4,13 +4,7 @@ import { message, Modal } from "antdv-next";
 import dayjs from "dayjs";
 import { nextTick, shallowRef } from "vue";
 
-import {
-  batchDeleteTenant,
-  createTenant,
-  deleteTenant,
-  getTenantList,
-  updateTenant,
-} from "@/api/system";
+import { batchDeleteTenant, createTenant, deleteTenant, getTenantList, updateTenant } from "@/api";
 import { Description } from "@/components/business/Description";
 import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
 import { BasicForm, useForm } from "@/components/business/Form";

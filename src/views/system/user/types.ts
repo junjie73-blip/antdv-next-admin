@@ -12,6 +12,8 @@ export interface UserRecord {
   /** '0'-禁用 '1'-正常 */
   status: string;
   sortOrder?: number;
+  gender?: number;
+  avatar?: string;
   createdAt: string;
 }
 

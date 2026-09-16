@@ -3,13 +3,26 @@ import { autoPrefixTransformer, px2remTransformer } from "@antdv-next/cssinjs";
 import { HappyProvider } from "@antdv-next/happy-work-theme";
 import { ConfigProvider, StyleProvider } from "antdv-next";
 import dayjs from "dayjs";
-import { computed, onMounted, shallowRef, watch, watchEffect } from "vue";
+import "dayjs/locale/zh-cn";
+import "dayjs/locale/zh-tw";
+import "dayjs/locale/en";
+import relativeTime from "dayjs/plugin/relativeTime";
+import { computed, shallowRef, watch, watchEffect } from "vue";
+
 import { getThemeConfig } from "@/settings";
 import { useAppStore } from "@/stores/modules/app";
-import { useUserStore } from "@/stores/modules/user";
+
+// ⭐ 插件只需注册一次，放模块顶部
+dayjs.extend(relativeTime);
 
 const appStore = useAppStore();
-dayjs.locale("en");
+
+// 初始值跟随配置（默认 zh-CN）
+const initialDayjsLocale =
+  ({ "zh-CN": "zh-cn", "zh-TW": "zh-tw", "en-US": "en" } as Record<string, string>)[
+    appStore.locale
+  ] || "zh-cn";
+dayjs.locale(initialDayjsLocale);
 
 const antdLocale = shallowRef<any>();
 
@@ -33,16 +46,19 @@ const htmlClass = computed(() => {
   return classes.join(" ");
 });
 
+const DAYJS_LOCALE_MAP: Record<string, string> = {
+  "zh-CN": "zh-cn",
+  "zh-TW": "zh-tw",
+  "en-US": "en",
+};
+
 watch(
   () => appStore.locale,
   async (locale) => {
-    const dayjsLocaleMap: Record<string, string> = {
-      "zh-CN": "zh-cn",
-      "en-US": "en",
-    };
+    // 1) 切 dayjs
+    dayjs.locale(DAYJS_LOCALE_MAP[locale] || "zh-cn");
 
-    dayjs.locale(dayjsLocaleMap[locale] || "en");
-
+    // 2) 切 antd locale
     const localeModules: Record<string, () => Promise<{ default: any }>> = {
       "zh-CN": () => import("antdv-next/locale/zh_CN"),
       "zh-TW": () => import("antdv-next/locale/zh_TW"),

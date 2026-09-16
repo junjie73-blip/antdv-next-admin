@@ -3,7 +3,7 @@ import { Icon } from "@iconify/vue";
 import { onMounted, ref } from "vue";
 import { Modal, message } from "antdv-next";
 
-import { clearCache, deleteCacheKey, getCacheInfo, getCacheKeys } from "@/api/system";
+import { clearCache, deleteCacheKey, getCacheInfo, getCacheKeys } from "@/api";
 import { BasicTable, TableAction, useTable, type ActionItem } from "@/components/business/Table";
 
 // 抽离的模块
