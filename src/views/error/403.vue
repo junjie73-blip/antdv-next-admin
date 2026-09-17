@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/modules/user'
-import { cn } from '@/utils/cn'
+import { computed } from "vue";
+import { useRouter } from "vue-router";
+import { useUserStore } from "@/stores/modules/user";
+import { cn } from "@/utils/cn";
 
-const router = useRouter()
-const userStore = useUserStore()
+const router = useRouter();
+const userStore = useUserStore();
 
 const containerClassName = computed(() =>
   cn(
-    'min-h-screen flex flex-col items-center justify-center',
-    'bg-gradient-to-br from-gray-100 to-gray-200',
-    'dark:from-gray-800 dark:to-gray-900',
+    "min-h-screen flex flex-col items-center justify-center",
+    "bg-gradient-to-br from-gray-100 to-gray-200",
+    "dark:from-gray-800 dark:to-gray-900",
   ),
-)
+);
 
 function handleBack() {
   if (userStore.isLoggedIn) {
-    router.push('/dashboard')
+    router.push("/dashboard");
   } else {
-    router.push('/login')
+    router.push("/login");
   }
 }
 </script>

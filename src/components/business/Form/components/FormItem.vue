@@ -7,7 +7,6 @@ import { getComponent } from "../componentMap";
 import { getDynamicDisabled, getDynamicRules, getShow, setComponentProps } from "../helper";
 import type { RuleObject } from "antdv-next";
 
-// 注入父级 grid 布局上下文
 type GridContext = { cols?: number; gutter?: number | [number, number] } | undefined | null;
 const props = defineProps<Props>();
 
@@ -70,7 +69,6 @@ const getColProps = computed(() => {
   };
 });
 
-// 全行对齐：当字段独占一行(span=24)且处于多列布局时，限制输入框宽度对齐多列总宽度
 const mergedItemProps = computed(() => {
   const base = { ...props.schema.itemProps };
   const cols = gridConfig?.cols;
@@ -80,8 +78,6 @@ const mergedItemProps = computed(() => {
   const isFullRow = span === 24 || props.schema.fullRowAlign;
   if (!isFullRow) return base;
 
-  // N 列布局中，span=24 字段的 wrapper 比 N 个小列 wrapper 总和更宽（label 占比差异）
-  // 通过约束 wrapperCol 的 max-width 实现视觉对齐
   const gutterPx = Array.isArray(gridConfig?.gutter)
     ? gridConfig.gutter[0]
     : (gridConfig.gutter ?? 24);
@@ -122,13 +118,16 @@ function handleValueChange(value: any) {
     <a-col v-show="getShowState.show" v-bind="getColProps">
       <a-form-item v-bind="mergedItemProps" :name="schema.field" :rules="getRulesValue">
         <template #label>
-          <span class="form-item-label">
+          <span class="inline-flex items-center flex-wrap break-all whitespace-normal">
             {{ schema.label }}
             <a-tooltip v-if="schema.helpMessage" placement="top">
               <template #title>
                 <span>{{ getHelpMessage }}</span>
               </template>
-              <IconifyIcon icon="carbon:information" class="help-icon" />
+              <IconifyIcon
+                icon="carbon:information"
+                class="ml-1 cursor-help text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              />
             </a-tooltip>
           </span>
         </template>
@@ -145,7 +144,7 @@ function handleValueChange(value: any) {
             @update:value="handleValueChange"
           >
             <template v-if="getSuffixValue" #suffix>
-              <span class="ml-2 text-gray-500">{{ getSuffixValue }}</span>
+              <span class="ml-2 text-gray-500 dark:text-gray-400">{{ getSuffixValue }}</span>
             </template>
           </component>
         </template>
@@ -157,24 +156,3 @@ function handleValueChange(value: any) {
     </a-col>
   </template>
 </template>
-
-<style scoped>
-.form-item-label {
-  display: inline-flex;
-  align-items: center;
-  flex-wrap: wrap;
-  word-break: break-all;
-  white-space: normal;
-}
-
-.help-icon {
-  margin-left: 4px;
-  color: rgba(0, 0, 0, 0.45);
-  cursor: help;
-  font-size: 14px;
-}
-
-.help-icon:hover {
-  color: rgba(0, 0, 0, 0.65);
-}
-</style>
