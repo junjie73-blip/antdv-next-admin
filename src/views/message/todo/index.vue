@@ -1,9 +1,17 @@
 <script setup lang="ts">
+
 import { Icon } from "@iconify/vue";
 import { message } from "antdv-next";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { computed, onMounted, ref, watch } from "vue";
+
+import GroupManager from "./components/GroupManager.vue";
+import { FILTER_META, PRIORITY_MAP } from "./constants";
+import { TODO_EMPTY_VALUES, todoFormSchemas } from "./schemas";
+import { filterTodos, getDueTimeInfo, isOverdue, todoToFormValues } from "./utils";
+
+import type { TodoFilterKey, TodoFilterOption, TodoRecord, TodoStats } from "./types";
 
 import { completeTodo, createTodo, deleteTodo, getTodoList, getTodoStats, updateTodo } from "@/api";
 import { getTodoGroups, type TodoGroup } from "@/api/todo-group";
@@ -11,11 +19,8 @@ import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
 import { BasicForm, useForm } from "@/components/business/Form";
 import { useUserStore } from "@/stores/modules/user";
 
-import { FILTER_META, PRIORITY_MAP } from "./constants";
-import GroupManager from "./components/GroupManager.vue";
-import { TODO_EMPTY_VALUES, todoFormSchemas } from "./schemas";
-import type { TodoFilterKey, TodoFilterOption, TodoRecord, TodoStats } from "./types";
-import { filterTodos, getDueTimeInfo, isOverdue, todoToFormValues } from "./utils";
+
+
 
 dayjs.extend(relativeTime);
 defineOptions({ name: "MessageTodo" });
@@ -166,7 +171,8 @@ onMounted(() => {
             <div
               class="w-8 h-8 rounded-xl flex items-center justify-center bg-blue-500/10 dark:bg-blue-500/15"
             >
-              <Icon icon="carbon:task" class="text-blue-500 text-sm" />
+              <Icon icon="carbon:task"
+class="text-blue-500 text-sm" />
             </div>
           </div>
 
@@ -208,7 +214,8 @@ onMounted(() => {
             :options="groups"
           >
             <template #suffixIcon>
-              <Icon icon="carbon:folder" class="text-slate-400" />
+              <Icon icon="carbon:folder"
+class="text-slate-400" />
             </template>
           </a-select>
 
@@ -243,7 +250,8 @@ onMounted(() => {
                       : 'bg-slate-100/80 dark:bg-slate-800/80 text-slate-500 group-hover:scale-105'
                   "
                 >
-                  <Icon :icon="f.icon" class="text-sm" />
+                  <Icon :icon="f.icon"
+class="text-sm" />
                 </div>
                 <span
                   class="text-sm transition-colors truncate"
@@ -309,7 +317,8 @@ onMounted(() => {
           </div>
         </div>
 
-        <a-spin :spinning="loading" class="flex-1">
+        <a-spin :spinning="loading"
+class="flex-1">
           <!-- 空状态 -->
           <div
             v-if="filteredList.length === 0"
@@ -318,7 +327,8 @@ onMounted(() => {
             <div
               class="w-20 h-20 rounded-3xl bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800/60 dark:to-slate-800/30 flex items-center justify-center mb-4 rotate-3"
             >
-              <Icon icon="carbon:task" class="text-4xl text-slate-300 dark:text-slate-600" />
+              <Icon icon="carbon:task"
+class="text-4xl text-slate-300 dark:text-slate-600" />
             </div>
             <div class="text-sm text-slate-500 dark:text-slate-400 font-medium mb-1">
               {{
@@ -336,7 +346,8 @@ onMounted(() => {
           </div>
 
           <!-- 列表 -->
-          <div v-else class="space-y-2">
+          <div v-else
+class="space-y-2">
             <div
               v-for="item in filteredList"
               :key="item.todoId"
@@ -428,13 +439,16 @@ onMounted(() => {
                   class="w-[30px] h-[30px] rounded-[9px] flex items-center justify-center text-slate-400 transition-all duration-200 hover:bg-blue-500/10 hover:text-blue-500 dark:hover:bg-blue-400/15 dark:hover:text-blue-400"
                   @click="handleEdit(item)"
                 >
-                  <Icon icon="ant-design:edit-outlined" class="text-sm" />
+                  <Icon icon="ant-design:edit-outlined"
+class="text-sm" />
                 </button>
-                <a-popconfirm title="确定删除这条待办？" @confirm="handleDelete(item)">
+                <a-popconfirm title="确定删除这条待办？"
+@confirm="handleDelete(item)">
                   <button
                     class="w-[30px] h-[30px] rounded-[9px] flex items-center justify-center text-slate-400 transition-all duration-200 hover:bg-rose-500/10 hover:text-rose-500 dark:hover:bg-rose-400/20 dark:hover:text-rose-400"
                   >
-                    <Icon icon="ant-design:delete-outlined" class="text-sm" />
+                    <Icon icon="ant-design:delete-outlined"
+class="text-sm" />
                   </button>
                 </a-popconfirm>
               </div>
@@ -460,7 +474,8 @@ onMounted(() => {
       />
     </BasicDrawer>
 
-    <GroupManager v-model:open="groupManagerOpen" @changed="handleGroupChanged" />
+    <GroupManager v-model:open="groupManagerOpen"
+@changed="handleGroupChanged" />
   </div>
 </template>
 

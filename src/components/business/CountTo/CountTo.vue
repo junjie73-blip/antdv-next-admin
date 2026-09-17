@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import type { CountToInstance, CountToProps } from './types'
+
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+
+import type { CountToInstance, CountToProps } from './types'
+
 import { cn } from '@/utils/cn'
 
 /**
@@ -165,7 +168,8 @@ defineExpose<CountToInstance>({
 </script>
 
 <template>
-  <span :class="cn('count-to', className)" :style="style">
+  <span :class="cn('count-to', className)"
+:style="style">
     {{ displayValue }}
   </span>
 </template>

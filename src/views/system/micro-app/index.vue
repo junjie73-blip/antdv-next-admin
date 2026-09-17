@@ -1,6 +1,9 @@
 <script setup lang="tsx">
-import type { MicroAppItem } from '#/micro-app'
+
 import { computed, ref, watch } from 'vue'
+
+import type { MicroAppItem } from '#/micro-app'
+
 import { getAllMicroApps, microAppConfig } from '@/config/micro-app'
 import { cn } from '@/utils/cn'
 
@@ -153,8 +156,10 @@ watch(
           子应用注册与预览（iframe 嵌套模式）
         </p>
       </div>
-      <a-button v-if="currentApp" @click="handleRefreshIframe">
-        <Icon icon="carbon:refresh" class="mr-1" />
+      <a-button v-if="currentApp"
+@click="handleRefreshIframe">
+        <Icon icon="carbon:refresh"
+class="mr-1" />
         刷新预览
       </a-button>
     </div>
@@ -178,19 +183,22 @@ watch(
       >
         <!-- 统计概览 -->
         <div class="grid grid-cols-3 gap-2">
-          <div :class="statCardClassName" class="p-2 text-center">
+          <div :class="statCardClassName"
+class="p-2 text-center">
             <p class="text-lg font-bold text-gray-900 dark:text-white">
               {{ apps.length }}
             </p>
             <p class="text-[10px] text-gray-500">总数</p>
           </div>
-          <div :class="statCardClassName" class="p-2 text-center">
+          <div :class="statCardClassName"
+class="p-2 text-center">
             <p class="text-lg font-bold text-green-600">
               {{ apps.filter((a) => a.active).length }}
             </p>
             <p class="text-[10px] text-gray-500">运行</p>
           </div>
-          <div :class="statCardClassName" class="p-2 text-center">
+          <div :class="statCardClassName"
+class="p-2 text-center">
             <p class="text-lg font-bold text-gray-500">
               {{ apps.filter((a) => !a.active).length }}
             </p>
@@ -210,7 +218,9 @@ watch(
               <span class="i-carbon-search text-gray-400 text-xs" />
             </template>
           </a-input>
-          <a-select v-model:value="statusFilter" size="small" class="w-full">
+          <a-select v-model:value="statusFilter"
+size="small"
+class="w-full">
             <a-select-option value="all"> 全部状态 </a-select-option>
             <a-select-option value="running"> 运行中 </a-select-option>
             <a-select-option value="stopped"> 已停止 </a-select-option>

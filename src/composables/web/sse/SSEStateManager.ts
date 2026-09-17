@@ -1,6 +1,10 @@
-import type { Ref } from 'vue'
+
 import { ref } from 'vue'
+
 import { SSEState } from './types'
+
+import type { Ref } from 'vue'
+
 
 export class SSEStateManager {
   private state: Ref<SSEState>

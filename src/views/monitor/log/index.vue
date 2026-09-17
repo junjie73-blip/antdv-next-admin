@@ -1,15 +1,12 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { nextTick, ref } from "vue";
-import { message } from "antdv-next";
-import dayjs from "dayjs";
 
-import { exportAuditLog, getAuditLogList } from "@/api";
-import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
-import { Description } from "@/components/business/Description";
-import { BasicTable, useTable } from "@/components/business/Table";
 
 // 抽离的模块
+import { Icon } from "@iconify/vue";
+import { message } from "antdv-next";
+import dayjs from "dayjs";
+import { nextTick, ref } from "vue";
+
 import {
   auditLogActionColumn,
   auditLogColumns,
@@ -17,14 +14,22 @@ import {
   auditLogRowKey,
   auditLogScroll,
 } from "./columns";
+
 import {
   AUDIT_STATUS_COLOR_MAP,
   AUDIT_STATUS_LABEL_MAP,
   EXECUTE_TIME_WARN_THRESHOLD,
 } from "./constants";
+
 import { auditLogSearchSchemas, createDetailSchemas } from "./schemas";
 import { actionClassName, btnClassName, cardClassName, containerClassName } from "./style";
+
 import type { AuditLogRecord } from "./types";
+
+import { exportAuditLog, getAuditLogList } from "@/api";
+import { Description } from "@/components/business/Description";
+import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
+import { BasicTable, useTable } from "@/components/business/Table";
 
 defineOptions({ name: "SystemAuditLog" });
 
@@ -128,7 +133,10 @@ async function handleExport() {
     </div>
 
     <!-- 日志详情抽屉 -->
-    <BasicDrawer title="日志详情" :width="921" :show-footer="false" @register="drawerRegister">
+    <BasicDrawer title="日志详情"
+:width="921"
+:show-footer="false"
+@register="drawerRegister">
       <Description
         v-if="viewingRecord"
         :colon="false"

@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import type { LoadingProps } from './types'
 import { Spin } from 'antdv-next'
 import { computed } from 'vue'
+
+import type { LoadingProps } from './types'
+
 import { cn } from '@/utils/cn'
+
+
 
 /**
  * Loading 加载组件
@@ -68,12 +72,16 @@ const spinSize = computed(() => {
 </script>
 
 <template>
-  <Transition name="loading-fade" mode="out-in">
-    <div v-show="loading" :class="wrapperClassName" :style="getStyle">
+  <Transition name="loading-fade"
+mode="out-in">
+    <div v-show="loading"
+:class="wrapperClassName"
+:style="getStyle">
       <div class="loading-spin">
         <Spin :size="spinSize" />
       </div>
-      <div v-if="tip" class="loading-tip mt-3 text-sm">
+      <div v-if="tip"
+class="loading-tip mt-3 text-sm">
         {{ tip }}
       </div>
     </div>

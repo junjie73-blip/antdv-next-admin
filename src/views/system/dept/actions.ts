@@ -1,5 +1,6 @@
-import type { ActionItem } from "@/components/business/Table";
 import type { DeptRecord } from "./types";
+
+import type { ActionItem } from "@/components/business/Table";
 
 /** 部门行操作上下文 */
 export interface DeptActionContext {

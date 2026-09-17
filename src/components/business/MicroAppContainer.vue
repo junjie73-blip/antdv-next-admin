@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+
 import { cn } from '@/utils/cn'
+
 
 interface Props {
   name: string
@@ -98,16 +100,19 @@ onUnmounted(() => {
 <template>
   <div :class="containerClassName">
     <!-- 加载状态 -->
-    <div v-if="loading" :class="overlayClassName">
+    <div v-if="loading"
+:class="overlayClassName">
       <a-spin size="large" />
       <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">正在加载子应用...</p>
-      <p v-if="retryCount > 0" class="mt-1 text-xs text-gray-400 dark:text-gray-500">
+      <p v-if="retryCount > 0"
+class="mt-1 text-xs text-gray-400 dark:text-gray-500">
         第 {{ retryCount }} 次重试
       </p>
     </div>
 
     <!-- 错误状态 -->
-    <div v-if="hasError && !loading" :class="overlayClassName">
+    <div v-if="hasError && !loading"
+:class="overlayClassName">
       <div class="text-center max-w-sm px-4">
         <div
           class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center"
@@ -118,12 +123,14 @@ onUnmounted(() => {
         <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">
           {{ errorMessage }}
         </p>
-        <p v-if="url" class="text-xs text-gray-400 dark:text-gray-500 mb-5 font-mono break-all">
+        <p v-if="url"
+class="text-xs text-gray-400 dark:text-gray-500 mb-5 font-mono break-all">
           {{ url }}
         </p>
 
         <div class="flex justify-center gap-3">
-          <a-button type="primary" @click="handleRetry"> 重试加载 </a-button>
+          <a-button type="primary"
+@click="handleRetry"> 重试加载 </a-button>
           <a-button @click="hasError = false"> 关闭提示 </a-button>
         </div>
       </div>

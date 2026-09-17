@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 import { useDebounceFn } from '@vueuse/core'
-
 import { computed, ref, watch } from 'vue'
+
 import { cn } from '@/utils/cn'
+
 
 const containerClass = cn('space-y-6')
 const cardDescClass = cn('text-gray-600 dark:text-gray-400 mb-4')
@@ -411,7 +412,8 @@ const overallValid = computed(() => {
           </a-input-password>
         </div>
 
-        <div v-if="password" :class="passwordStrengthClass">
+        <div v-if="password"
+:class="passwordStrengthClass">
           <div :class="strengthBarOuterClass">
             <div :class="strengthBarInnerClass">
               <div
@@ -438,7 +440,8 @@ const overallValid = computed(() => {
                 "
                 :class="`text-${passwordStrength.color}`"
               />
-              <span :style="{ color: passwordStrength.textColor }" class="font-medium">{{
+              <span :style="{ color: passwordStrength.textColor }"
+class="font-medium">{{
                 passwordStrength.text
               }}</span>
               <span :class="strengthPercentClass">{{ passwordStrength.percent }}%</span>
@@ -446,7 +449,8 @@ const overallValid = computed(() => {
           </div>
         </div>
 
-        <div v-if="passwordTips.length > 0" :class="tipsContainerClass">
+        <div v-if="passwordTips.length > 0"
+:class="tipsContainerClass">
           <h4 :class="tipsTitleClass">
             <Icon icon="carbon:security" />
             安全建议
@@ -481,10 +485,12 @@ const overallValid = computed(() => {
             :type="showPassword ? 'text' : 'password'"
           >
             <template #prefix>
-              <Icon icon="carbon:locked" :class="iconGrayClass" />
+              <Icon icon="carbon:locked"
+:class="iconGrayClass" />
             </template>
             <template #suffix>
-              <button :class="toggleBtnClass" @click="showPassword = !showPassword">
+              <button :class="toggleBtnClass"
+@click="showPassword = !showPassword">
                 <Icon
                   :icon="showPassword ? 'carbon:view-off' : 'carbon:view'"
                   :class="toggleIconClass"
@@ -507,7 +513,10 @@ const overallValid = computed(() => {
         <div :class="generatorGridClass">
           <div>
             <label :class="generatorLabelClass">长度: {{ generatorOptions.length }}</label>
-            <a-slider v-model:value="generatorOptions.length" :min="8" :max="64" :step="1" />
+            <a-slider v-model:value="generatorOptions.length"
+:min="8"
+:max="64"
+:step="1" />
           </div>
           <div :class="generatorCheckItemClass">
             <label :class="generatorCheckLabelClass">
@@ -541,14 +550,18 @@ const overallValid = computed(() => {
           </div>
         </div>
 
-        <a-button type="primary" block size="large" @click="generateRandomPassword">
+        <a-button type="primary"
+block
+size="large"
+@click="generateRandomPassword">
           <template #icon>
             <Icon icon="carbon:renew" />
           </template>
           生成密码
         </a-button>
 
-        <div v-if="generatedPassword" :class="resultCardClass">
+        <div v-if="generatedPassword"
+:class="resultCardClass">
           <div :class="resultCardInnerClass">
             <div :class="resultCardCodeWrapClass">
               <p :class="resultLabelClass">生成的密码:</p>
@@ -557,7 +570,8 @@ const overallValid = computed(() => {
               </code>
               <p :class="resultMetaClass">长度: {{ generatedPassword.length }} 字符</p>
             </div>
-            <a-button type="link" @click="copyGeneratedPassword">
+            <a-button type="link"
+@click="copyGeneratedPassword">
               <template #icon>
                 <Icon icon="carbon:copy" />
               </template>
@@ -572,7 +586,8 @@ const overallValid = computed(() => {
     <a-card title="密码历史">
       <p :class="cardDescClass">自动保存最近使用的密码（最多 {{ MAX_HISTORY }} 条）。</p>
       <div :class="passwordCardClass">
-        <div v-if="passwordHistory.length > 0" :class="historyListClass">
+        <div v-if="passwordHistory.length > 0"
+:class="historyListClass">
           <div
             v-for="(pwd, index) in passwordHistory"
             :key="index"
@@ -580,13 +595,15 @@ const overallValid = computed(() => {
             @click="useHistoryPassword(pwd)"
           >
             <div :class="historyItemLeftClass">
-              <Icon icon="carbon:time" :class="iconGrayClass" />
+              <Icon icon="carbon:time"
+:class="iconGrayClass" />
               <code :class="historyCodeClass">{{ pwd.replace(/./g, '*') }}</code>
               <span :class="historyLenClass">{{ pwd.length }} 字符</span>
             </div>
             <div :class="historyActionsClass">
               <a-tooltip title="使用此密码">
-                <Icon icon="carbon:checkmark" class="text-green-500 cursor-pointer" />
+                <Icon icon="carbon:checkmark"
+class="text-green-500 cursor-pointer" />
               </a-tooltip>
               <a-tooltip title="复制到剪贴板">
                 <Icon
@@ -598,11 +615,15 @@ const overallValid = computed(() => {
             </div>
           </div>
           <div :class="historyFooterClass">
-            <a-button danger size="small" @click="clearHistory"> 清空历史 </a-button>
+            <a-button danger
+size="small"
+@click="clearHistory"> 清空历史 </a-button>
           </div>
         </div>
-        <div v-else :class="historyEmptyClass">
-          <Icon icon="carbon:document" class="text-4xl mb-2 opacity-30" />
+        <div v-else
+:class="historyEmptyClass">
+          <Icon icon="carbon:document"
+class="text-4xl mb-2 opacity-30" />
           <p>暂无密码历史</p>
           <p class="text-sm mt-1">您输入的密码将自动显示在此处</p>
         </div>
@@ -616,11 +637,17 @@ const overallValid = computed(() => {
         <div :class="policyGridClass">
           <div>
             <label :class="generatorLabelClass">最小长度: {{ policyConfig.minLength }}</label>
-            <a-slider v-model:value="policyConfig.minLength" :min="6" :max="20" :step="1" />
+            <a-slider v-model:value="policyConfig.minLength"
+:min="6"
+:max="20"
+:step="1" />
           </div>
           <div>
             <label :class="generatorLabelClass">最大长度: {{ policyConfig.maxLength }}</label>
-            <a-slider v-model:value="policyConfig.maxLength" :min="16" :max="128" :step="1" />
+            <a-slider v-model:value="policyConfig.maxLength"
+:min="16"
+:max="128"
+:step="1" />
           </div>
         </div>
 
@@ -706,7 +733,8 @@ const overallValid = computed(() => {
             "
           >
             <template #prefix>
-              <Icon icon="carbon:password" :class="iconGrayClass" />
+              <Icon icon="carbon:password"
+:class="iconGrayClass" />
             </template>
             <template #suffix>
               <div :class="suffixRowClass">
@@ -720,7 +748,8 @@ const overallValid = computed(() => {
                 >
                   {{ passwordStrength.text }}
                 </span>
-                <button :class="toggleBtnClass" @click="showPassword = !showPassword">
+                <button :class="toggleBtnClass"
+@click="showPassword = !showPassword">
                   <Icon
                     :icon="showPassword ? 'carbon:view-off' : 'carbon:view'"
                     class="text-gray-400 hover:text-blue-500"
@@ -731,7 +760,8 @@ const overallValid = computed(() => {
           </a-input>
         </div>
 
-        <div v-if="password" :class="strengthBarOuterClass">
+        <div v-if="password"
+:class="strengthBarOuterClass">
           <div :class="strengthBarInnerClass">
             <div
               v-for="(segment, index) in passwordStrength.segments"
@@ -749,7 +779,8 @@ const overallValid = computed(() => {
             </template>
             生成
           </a-button>
-          <a-button v-if="generatedPassword" @click="copyGeneratedPassword">
+          <a-button v-if="generatedPassword"
+@click="copyGeneratedPassword">
             <template #icon>
               <Icon icon="carbon:copy" />
             </template>
@@ -811,7 +842,8 @@ const overallValid = computed(() => {
             <p class="text-xs mt-1">策略</p>
           </div>
           <div :class="[statusCardBaseClass, statusCardNeutralClass]">
-            <Icon icon="carbon:history" class="text-gray-500 text-xl" />
+            <Icon icon="carbon:history"
+class="text-gray-500 text-xl" />
             <p class="text-xs mt-1">历史 ({{ passwordHistory.length }})</p>
           </div>
           <div

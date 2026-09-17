@@ -1,4 +1,4 @@
-import type { Component } from "vue";
+
 import {
   AutoComplete,
   Cascader,
@@ -21,8 +21,12 @@ import {
   Transfer,
   TreeSelect,
 } from "antdv-next";
-import ATreeSelect from "./components/ATreeSelect.vue";
+
 import ASelect from "./components/ASelect.vue";
+import ATreeSelect from "./components/ATreeSelect.vue";
+
+import type { Component } from "vue";
+
 export type ComponentType =
   | "Input"
   | "InputGroup"

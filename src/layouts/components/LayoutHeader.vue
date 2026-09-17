@@ -1,21 +1,26 @@
 <script setup lang="tsx">
-import type { BreadcrumbProps, MenuProps } from "antdv-next";
 
 import { Icon } from "@iconify/vue";
 import { Badge, Dropdown, Menu, Modal, Popover } from "antdv-next";
+import dayjs from "dayjs";
 import { computed, h, onMounted, onUnmounted, ref, unref, watch } from "vue";
 import { useRouter } from "vue-router";
+
+import AccountDrawer from "./AccountDrawer.vue";
+import SettingDrawer from "./SettingDrawer.vue";
+import { useBreadcrumb } from "../composables/useLayout";
+
+import type { BreadcrumbProps, MenuProps } from "antdv-next";
+
+
+import { getNoticeUnreadCount } from "@/api";
 import { useAppStore } from "@/stores/modules/app";
 import { useRouteStore } from "@/stores/modules/route";
 import { useUserStore } from "@/stores/modules/user";
-import { cn } from "@/utils/cn";
-import { useBreadcrumb } from "../composables/useLayout";
-import AccountDrawer from "./AccountDrawer.vue";
-import SettingDrawer from "./SettingDrawer.vue";
 import { eventBus, http } from "@/utils";
-import { noticeTypeConfig, useWebSocket, WS_EVENTS, type NotificationItem } from "@/utils/ws";
-import { getNoticeUnreadCount } from "@/api";
-import dayjs from "dayjs";
+import { cn } from "@/utils/cn";
+import { noticeTypeConfig, type NotificationItem, useWebSocket, WS_EVENTS } from "@/utils/ws";
+
 defineProps<{
   collapsed?: boolean;
   horizontal?: boolean;
@@ -250,7 +255,8 @@ onUnmounted(() => clearInterval(timer.value));
           :items="breadcrumbItems"
         >
           <template #separator>
-            <Icon icon="carbon:chevron-right" class="text-xs opacity-50" />
+            <Icon icon="carbon:chevron-right"
+class="text-xs opacity-50" />
           </template>
           <template #titleRender="{ item, index }">
             <span
@@ -272,7 +278,8 @@ onUnmounted(() => clearInterval(timer.value));
       <!-- 水平布局：Logo + 水平菜单 -->
       <template v-else-if="horizontal">
         <div class="flex items-center gap-2">
-          <Icon icon="carbon:cube" class="text-2xl text-ant-primary" />
+          <Icon icon="carbon:cube"
+class="text-2xl text-ant-primary" />
           <span class="font-bold text-ant-primary">
             {{ appTitle }}
           </span>
@@ -295,7 +302,8 @@ onUnmounted(() => clearInterval(timer.value));
             class="text-2xl"
             :class="isGeekStyle ? 'text-[#00ff88]' : 'text-ant-primary'"
           />
-          <span class="font-bold" :class="isGeekStyle ? 'text-[#00ff88]' : 'text-ant-primary'">
+          <span class="font-bold"
+:class="isGeekStyle ? 'text-[#00ff88]' : 'text-ant-primary'">
             {{ appTitle }}
           </span>
         </div>
@@ -316,11 +324,15 @@ onUnmounted(() => clearInterval(timer.value));
         class="flex items-center gap-0.5 px-0.5 py-0.5 rounded-xl bg-white dark:bg-gray-800 shadow-lg shadow-gray-300/40 dark:shadow-black/40"
       >
         <!-- 通知中心 -->
-        <Popover v-model:open="showNotification" trigger="click" placement="bottomRight">
+        <Popover v-model:open="showNotification"
+trigger="click"
+placement="bottomRight">
           <template #content>
             <div class="w-[380px] overflow-hidden rounded-xl">
               <div class="max-h-[360px] overflow-y-auto bg-white dark:bg-gray-900">
-                <a-empty v-if="notifications.length === 0" description="暂无通知" class="!py-10" />
+                <a-empty v-if="notifications.length === 0"
+description="暂无通知"
+class="!py-10" />
 
                 <div
                   v-for="item in notifications"
@@ -383,7 +395,10 @@ onUnmounted(() => clearInterval(timer.value));
             type="text"
             class="group !w-8 !h-8 !p-0 !rounded-lg !text-gray-500 hover:!text-blue-500 hover:!bg-blue-50 dark:hover:!bg-blue-900/20 transition-all duration-200"
           >
-            <Badge :count="unreadCount" size="small" :offset="[-4, 4]" :overflow-count="99">
+            <Badge :count="unreadCount"
+size="small"
+:offset="[-4, 4]"
+:overflow-count="99">
               <Icon
                 icon="carbon:notification"
                 class="text-lg transition-transform duration-200 group-hover:scale-110"
@@ -411,13 +426,16 @@ onUnmounted(() => clearInterval(timer.value));
         <div
           class="flex items-center gap-2 pl-1 pr-2 py-0.5 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         >
-          <a-avatar :size="28" :src="userStore.avatar" class="bg-ant-primary">
+          <a-avatar :size="28"
+:src="userStore.avatar"
+class="bg-ant-primary">
             {{ userStore.username?.charAt(0)?.toUpperCase() || "U" }}
           </a-avatar>
           <span class="text-sm hidden sm:inline text-gray-700 dark:text-gray-200">
             {{ userStore.username || "用户" }}
           </span>
-          <Icon icon="carbon:chevron-down" class="text-xs text-gray-400" />
+          <Icon icon="carbon:chevron-down"
+class="text-xs text-gray-400" />
         </div>
       </Dropdown>
     </div>

@@ -1,5 +1,6 @@
-import { get, post, put, del } from "@/api/request";
 import type { ChannelType } from "./notice-channel";
+
+import { del, get, post, put } from "@/api/request";
 
 export interface TodoGroup {
   groupId: string;

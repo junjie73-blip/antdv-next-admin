@@ -1,5 +1,6 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { encryptToken, decryptToken } from '@/utils/cache/tokenCrypto'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { decryptToken, encryptToken } from '@/utils/cache/tokenCrypto'
 
 describe('tokenCrypto', () => {
   beforeEach(() => {

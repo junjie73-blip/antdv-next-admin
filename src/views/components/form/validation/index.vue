@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import type { FormProps } from 'antdv-next'
 
 import { computed, reactive, ref } from 'vue'
+
+import type { FormProps } from 'antdv-next'
+
 import { cn } from '@/utils/cn'
 
 const containerClassName = cn('space-y-6')
@@ -177,8 +179,11 @@ async function handleLinkedValidate() {
 
 <template>
   <div :class="containerClassName">
-    <a-card title="基础验证" variant="borderless">
-      <a-descriptions :column="1" size="small" class="mb-4">
+    <a-card title="基础验证"
+variant="borderless">
+      <a-descriptions :column="1"
+size="small"
+class="mb-4">
         <a-descriptions-item label="用户名"> 必填，3-16个字符 </a-descriptions-item>
         <a-descriptions-item label="密码">
           必填，至少6个字符，需包含大小写字母和数字
@@ -190,23 +195,34 @@ async function handleLinkedValidate() {
 
       <a-row :gutter="24">
         <a-col :span="12">
-          <a-form ref="formRef" :model="formState" :rules="rules" layout="vertical">
-            <a-form-item label="用户名" name="username">
-              <a-input v-model:value="formState.username" placeholder="请输入用户名" />
+          <a-form ref="formRef"
+:model="formState"
+:rules="rules"
+layout="vertical">
+            <a-form-item label="用户名"
+name="username">
+              <a-input v-model:value="formState.username"
+placeholder="请输入用户名" />
             </a-form-item>
-            <a-form-item label="密码" name="password">
-              <a-input-password v-model:value="formState.password" placeholder="请输入密码" />
+            <a-form-item label="密码"
+name="password">
+              <a-input-password v-model:value="formState.password"
+placeholder="请输入密码" />
             </a-form-item>
-            <a-form-item label="确认密码" name="confirmPassword">
+            <a-form-item label="确认密码"
+name="confirmPassword">
               <a-input-password
                 v-model:value="formState.confirmPassword"
                 placeholder="请再次输入密码"
               />
             </a-form-item>
-            <a-form-item label="邮箱" name="email">
-              <a-input v-model:value="formState.email" placeholder="请输入邮箱" />
+            <a-form-item label="邮箱"
+name="email">
+              <a-input v-model:value="formState.email"
+placeholder="请输入邮箱" />
             </a-form-item>
-            <a-form-item label="年龄" name="age">
+            <a-form-item label="年龄"
+name="age">
               <a-input-number
                 v-model:value="formState.age"
                 :min="1"
@@ -217,13 +233,15 @@ async function handleLinkedValidate() {
             </a-form-item>
             <a-form-item>
               <a-space>
-                <a-button type="primary" @click="handleValidate"> 验证 </a-button>
+                <a-button type="primary"
+@click="handleValidate"> 验证 </a-button>
                 <a-button @click="handleReset"> 重置 </a-button>
               </a-space>
             </a-form-item>
           </a-form>
         </a-col>
-        <a-col :span="12" class="flex flex-col">
+        <a-col :span="12"
+class="flex flex-col">
           <PerfectScrollbar :class="codeBlockClassName">
             <pre>{{ result }}</pre>
           </PerfectScrollbar>
@@ -231,49 +249,71 @@ async function handleLinkedValidate() {
       </a-row>
     </a-card>
 
-    <a-card title="渐进式验证" variant="borderless">
-      <a-form :model="progressiveFormState" layout="vertical">
-        <a-form-item label="姓名" name="name" :rules="[{ required: true }]">
-          <a-input v-model:value="progressiveFormState.name" placeholder="请输入姓名" />
+    <a-card title="渐进式验证"
+variant="borderless">
+      <a-form :model="progressiveFormState"
+layout="vertical">
+        <a-form-item label="姓名"
+name="name"
+:rules="[{ required: true }]">
+          <a-input v-model:value="progressiveFormState.name"
+placeholder="请输入姓名" />
         </a-form-item>
-        <a-form-item label="邮箱" name="email" :rules="[{ required: true, type: 'email' }]">
-          <a-input v-model:value="progressiveFormState.email" placeholder="请输入邮箱" />
+        <a-form-item label="邮箱"
+name="email"
+:rules="[{ required: true, type: 'email' }]">
+          <a-input v-model:value="progressiveFormState.email"
+placeholder="请输入邮箱" />
         </a-form-item>
         <a-collapse :active-key="collapseActiveKey">
           <template #expandIcon>
-            <a-button type="link" size="small" @click="showAdvanced = !showAdvanced">
+            <a-button type="link"
+size="small"
+@click="showAdvanced = !showAdvanced">
               {{ showAdvanced ? '隐藏' : '显示' }}高级字段
             </a-button>
           </template>
-          <a-collapse-panel key="advanced" header="高级字段">
-            <a-form-item label="地址" name="address">
-              <a-input v-model:value="progressiveFormState.address" placeholder="请输入地址" />
+          <a-collapse-panel key="advanced"
+header="高级字段">
+            <a-form-item label="地址"
+name="address">
+              <a-input v-model:value="progressiveFormState.address"
+placeholder="请输入地址" />
             </a-form-item>
-            <a-form-item label="电话" name="phone">
-              <a-input v-model:value="progressiveFormState.phone" placeholder="请输入电话" />
+            <a-form-item label="电话"
+name="phone">
+              <a-input v-model:value="progressiveFormState.phone"
+placeholder="请输入电话" />
             </a-form-item>
-            <a-form-item label="公司" name="company">
-              <a-input v-model:value="progressiveFormState.company" placeholder="请输入公司名称" />
+            <a-form-item label="公司"
+name="company">
+              <a-input v-model:value="progressiveFormState.company"
+placeholder="请输入公司名称" />
             </a-form-item>
-            <a-form-item label="网站" name="website">
-              <a-input v-model:value="progressiveFormState.website" placeholder="请输入网站地址" />
+            <a-form-item label="网站"
+name="website">
+              <a-input v-model:value="progressiveFormState.website"
+placeholder="请输入网站地址" />
             </a-form-item>
           </a-collapse-panel>
         </a-collapse>
       </a-form>
-      <PerfectScrollbar :class="codeBlockClassName" class="mt-4">
+      <PerfectScrollbar :class="codeBlockClassName"
+class="mt-4">
         <pre>{{ progressiveResult }}</pre>
       </PerfectScrollbar>
     </a-card>
 
-    <a-card title="联动验证（省/市/区）" variant="borderless">
+    <a-card title="联动验证（省/市/区）"
+variant="borderless">
       <a-form
         :model="linkedFormState"
         layout="horizontal"
         :label-col="{ span: 4 }"
         :wrapper-col="{ span: 16 }"
       >
-        <a-form-item label="省份" required>
+        <a-form-item label="省份"
+required>
           <a-select
             v-model:value="linkedFormState.province"
             placeholder="请选择省份"
@@ -281,7 +321,8 @@ async function handleLinkedValidate() {
             @change="onProvinceChange"
           />
         </a-form-item>
-        <a-form-item label="城市" required>
+        <a-form-item label="城市"
+required>
           <a-select
             v-model:value="linkedFormState.city"
             placeholder="请选择城市"
@@ -290,7 +331,8 @@ async function handleLinkedValidate() {
             @change="onCityChange"
           />
         </a-form-item>
-        <a-form-item label="区县" required>
+        <a-form-item label="区县"
+required>
           <a-select
             v-model:value="linkedFormState.district"
             placeholder="请选择区县"
@@ -299,7 +341,8 @@ async function handleLinkedValidate() {
           />
         </a-form-item>
         <a-form-item :wrapper-col="{ offset: 4 }">
-          <a-button type="primary" @click="handleLinkedValidate"> 验证联动选择 </a-button>
+          <a-button type="primary"
+@click="handleLinkedValidate"> 验证联动选择 </a-button>
         </a-form-item>
       </a-form>
     </a-card>

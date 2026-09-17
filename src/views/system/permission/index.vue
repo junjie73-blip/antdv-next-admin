@@ -1,16 +1,10 @@
 <script setup lang="ts">
+
 import { Icon } from "@iconify/vue";
 import { nextTick, ref } from "vue";
 
-import { createPermission, deletePermission, getPermissionList, updatePermission } from "@/api";
-import { Description } from "@/components/business/Description";
-import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
-import { BasicForm, useForm } from "@/components/business/Form";
-import { BasicTable, TableAction, useTable, type ActionItem } from "@/components/business/Table";
-import { useCRUD } from "@/composables/useCRUD";
-
-// 抽离的模块
 import { getPermissionActions } from "./actions";
+
 import {
   permissionActionColumn,
   permissionColumns,
@@ -18,8 +12,11 @@ import {
   permissionRowKey,
   permissionScroll,
 } from "./columns";
+
 import {
   ACTION_COLOR_MAP,
+  cardClassName,
+  containerClassName,
   PERM_STATUS_COLOR_MAP,
   PERM_STATUS_LABEL_MAP,
   PERMISSION_EMPTY_VALUES,
@@ -27,11 +24,23 @@ import {
   RESOURCE_TYPE_LABEL_MAP,
   SCOPE_COLOR_MAP,
   SCOPE_LABEL_MAP,
-  cardClassName,
-  containerClassName,
 } from "./constants";
+
 import { permissionDetailSchemas, permissionFormSchemas, permissionSearchSchemas } from "./schemas";
+
 import type { PermissionRecord } from "./types";
+
+import { createPermission, deletePermission, getPermissionList, updatePermission } from "@/api";
+import { Description } from "@/components/business/Description";
+import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
+import { BasicForm, useForm } from "@/components/business/Form";
+import { type ActionItem, BasicTable, TableAction, useTable } from "@/components/business/Table";
+import { useCRUD } from "@/composables/useCRUD";
+
+// 抽离的模块
+
+
+
 
 defineOptions({ name: "SystemPermission" });
 
@@ -98,7 +107,8 @@ function getActions(record: PermissionRecord): ActionItem[] {
 
 <template>
   <div :class="containerClassName">
-    <a-card title="权限管理" :class="cardClassName">
+    <a-card title="权限管理"
+:class="cardClassName">
       <BasicTable
         :columns="permissionColumns"
         :api="getPermissionList"
@@ -113,7 +123,8 @@ function getActions(record: PermissionRecord): ActionItem[] {
         @register="tableRegister"
       >
         <template #toolbar>
-          <a-button type="primary" @click="handleAdd()">
+          <a-button type="primary"
+@click="handleAdd()">
             <template #icon><Icon icon="ant-design:plus-outlined" /></template>
             新增权限
           </a-button>
@@ -132,10 +143,12 @@ function getActions(record: PermissionRecord): ActionItem[] {
         </template>
 
         <template #cell-permAction="{ record }">
-          <a-tag v-if="record.permAction" :color="ACTION_COLOR_MAP[record.permAction] || 'default'">
+          <a-tag v-if="record.permAction"
+:color="ACTION_COLOR_MAP[record.permAction] || 'default'">
             {{ record.permAction }}
           </a-tag>
-          <span v-else class="text-gray-400">-</span>
+          <span v-else
+class="text-gray-400">-</span>
         </template>
 
         <template #cell-status="{ record }">

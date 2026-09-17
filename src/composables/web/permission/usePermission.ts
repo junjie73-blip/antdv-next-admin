@@ -1,7 +1,12 @@
-import type { UsePermissionOptions } from './types'
+
 import { computed, readonly, ref } from 'vue'
-import { useUserStore } from '@/stores/modules/user'
+
 import { PermissionRole } from './types'
+
+import type { UsePermissionOptions } from './types'
+
+import { useUserStore } from '@/stores/modules/user'
+
 
 export function usePermission(options: UsePermissionOptions = {}) {
   const userStore = useUserStore()

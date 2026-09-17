@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { onBeforeRouteUpdate, useRoute } from 'vue-router'
+
+import { useAppStore } from '@/stores/modules/app'
+import { cn } from '@/utils/cn'
 /**
  * RouteLoadingBar - 路由切换顶部进度条（增强版）
  *
@@ -10,9 +14,7 @@ import { computed, ref, watch } from 'vue'
  * 4. 加载时间统计
  * 5. 慢加载警告（超过阈值时变色）
  */
-import { onBeforeRouteUpdate, useRoute } from 'vue-router'
-import { useAppStore } from '@/stores/modules/app'
-import { cn } from '@/utils/cn'
+
 
 const props = withDefaults(defineProps<Props>(), {
   color: '',
@@ -322,14 +324,17 @@ defineExpose({
     "
   >
     <!-- 主进度条 -->
-    <div :class="barClassName" :style="barStyle" />
+    <div :class="barClassName"
+:style="barStyle" />
 
     <!-- 阴影/光晕效果 -->
-    <div class="absolute inset-0 opacity-30 blur-sm" :style="{ backgroundColor: barColor }" />
+    <div class="absolute inset-0 opacity-30 blur-sm"
+:style="{ backgroundColor: barColor }" />
 
     <!-- 百分比文字 -->
     <Transition name="percentage-fade">
-      <span v-if="showPercentage && isLoading && !isComplete" :style="percentageStyle">
+      <span v-if="showPercentage && isLoading && !isComplete"
+:style="percentageStyle">
         {{ Math.round(progress) }}%
       </span>
     </Transition>
@@ -348,7 +353,10 @@ defineExpose({
           class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-white/90 dark:bg-gray-800/90 shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           @click="handleCancel"
         >
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-3 h-3"
+fill="none"
+stroke="currentColor"
+viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -368,7 +376,10 @@ defineExpose({
             class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
             @click="handleRetry"
           >
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-3 h-3"
+fill="none"
+stroke="currentColor"
+viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"

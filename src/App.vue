@@ -9,12 +9,12 @@ import "dayjs/locale/en";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { computed, shallowRef, watch, watchEffect } from "vue";
 
+import ReloadPrompt from "@/components/layout/ReloadPrompt.vue";
 import { getThemeConfig } from "@/settings";
 import { useAppStore } from "@/stores/modules/app";
 
-// ⭐ 插件只需注册一次，放模块顶部
 dayjs.extend(relativeTime);
-
+const mode = import.meta.env.MODE;
 const appStore = useAppStore();
 
 // 初始值跟随配置（默认 zh-CN）
@@ -104,4 +104,5 @@ watch(
       </ConfigProvider>
     </StyleProvider>
   </HappyProvider>
+  <ReloadPrompt v-if="mode === 'production'" />
 </template>

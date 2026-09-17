@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import type { MicroAppConfig } from '#/menu'
+
 
 import { computed, onActivated, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+
+import type { MicroAppConfig } from '#/menu'
+
 import { useUserStore } from '@/stores/modules/user'
 import { cn } from '@/utils/cn'
 
@@ -211,7 +214,9 @@ onUnmounted(() => {
 
 <template>
   <!-- 有配置时：渲染嵌入内容 -->
-  <div v-if="microAppConfig" ref="microAppRef" :class="containerClassName">
+  <div v-if="microAppConfig"
+ref="microAppRef"
+:class="containerClassName">
     <!-- 外部站点：使用 iframe 嵌入 -->
     <iframe
       v-if="useIframe"
@@ -249,7 +254,8 @@ onUnmounted(() => {
     />
 
     <!-- micro-app 库未加载的提示 -->
-    <div v-else class="flex flex-col items-center justify-center h-full gap-4">
+    <div v-else
+class="flex flex-col items-center justify-center h-full gap-4">
       <svg
         class="w-16 h-16 text-yellow-500"
         viewBox="0 0 24 24"
@@ -263,13 +269,15 @@ onUnmounted(() => {
     </div>
 
     <!-- 加载态 -->
-    <div v-if="isLoading && (isMicroAppReady || useIframe)" :class="loadingClassName">
+    <div v-if="isLoading && (isMicroAppReady || useIframe)"
+:class="loadingClassName">
       <a-spin size="large" />
       <p class="mt-2 text-sm text-gray-500">正在加载 {{ microAppConfig.title }}...</p>
     </div>
 
     <!-- 错误态 -->
-    <div v-if="hasError" :class="errorClassName">
+    <div v-if="hasError"
+:class="errorClassName">
       <svg
         class="w-16 h-16 text-red-500 mb-4"
         viewBox="0 0 24 24"
@@ -277,15 +285,24 @@ onUnmounted(() => {
         stroke="currentColor"
         stroke-width="2"
       >
-        <circle cx="12" cy="12" r="10" />
-        <line x1="15" y1="9" x2="9" y2="15" />
-        <line x1="9" y1="9" x2="15" y2="15" />
+        <circle cx="12"
+cy="12"
+r="10" />
+        <line x1="15"
+y1="9"
+x2="9"
+y2="15" />
+        <line x1="9"
+y1="9"
+x2="15"
+y2="15" />
       </svg>
       <p class="text-gray-600 dark:text-gray-400 mb-4">子应用加载失败</p>
       <p class="text-xs text-gray-400 mb-4 max-w-xs text-center break-all">
         {{ microAppConfig.url }}
       </p>
-      <a-button type="primary" @click="retry"> 重试 </a-button>
+      <a-button type="primary"
+@click="retry"> 重试 </a-button>
     </div>
   </div>
 

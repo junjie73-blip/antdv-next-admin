@@ -13,8 +13,11 @@
  * ```
  */
 
-import type { VNode } from 'vue'
+
 import { onErrorCaptured, ref } from 'vue'
+
+import type { VNode } from 'vue'
+
 import { cn } from '@/utils/cn'
 
 interface Props {
@@ -117,9 +120,11 @@ const isDev = import.meta.env.DEV
 
 <template>
   <!-- 错误状态：显示 fallback -->
-  <div v-if="error" :class="defaultFallbackClassName">
+  <div v-if="error"
+:class="defaultFallbackClassName">
     <!-- 使用自定义 fallback -->
-    <component :is="() => props.fallback?.(error!, resetError)" v-if="props.fallback" />
+    <component :is="() => props.fallback?.(error!, resetError)"
+v-if="props.fallback" />
 
     <!-- 默认 fallback UI -->
     <template v-else>
@@ -135,12 +140,15 @@ const isDev = import.meta.env.DEV
       </p>
 
       <!-- 重试按钮 -->
-      <button v-if="resetOnError" :class="retryButtonClassName" @click="handleRetry">
+      <button v-if="resetOnError"
+:class="retryButtonClassName"
+@click="handleRetry">
         🔄 重试
       </button>
 
       <!-- 错误详情（开发环境） -->
-      <details v-if="isDev && error.stack" :class="detailsClassName">
+      <details v-if="isDev && error.stack"
+:class="detailsClassName">
         <summary class="cursor-pointer font-medium mb-1">调用栈详情</summary>
         <PerfectScrollbar class="max-h-32">
           <pre class="whitespace-pre-wrap break-all">{{ error.stack }}</pre>

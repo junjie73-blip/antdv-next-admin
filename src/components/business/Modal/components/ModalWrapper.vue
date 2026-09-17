@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+
 import { cn } from '@/utils/cn'
+
 
 const props = defineProps({
   loading: Boolean,
@@ -44,7 +46,8 @@ const bodyStyle = computed(() => ({
 </script>
 
 <template>
-  <div :class="cn('modal-wrapper', 'relative')" :style="wrapperStyle">
+  <div :class="cn('modal-wrapper', 'relative')"
+:style="wrapperStyle">
     <!-- Loading 遮罩 -->
     <div
       v-if="loading"
@@ -58,12 +61,14 @@ const bodyStyle = computed(() => ({
             cn('w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin')
           "
         />
-        <span v-if="loadingTip" :class="cn('text-gray-600 text-sm')">{{ loadingTip }}</span>
+        <span v-if="loadingTip"
+:class="cn('text-gray-600 text-sm')">{{ loadingTip }}</span>
       </div>
     </div>
 
     <!-- 内容区域：使用 PerfectScrollbar 替代系统滚动条 -->
-    <PerfectScrollbar :class="cn('modal-body', 'p-6')" :style="bodyStyle">
+    <PerfectScrollbar :class="cn('modal-body', 'p-6')"
+:style="bodyStyle">
       <slot />
     </PerfectScrollbar>
   </div>

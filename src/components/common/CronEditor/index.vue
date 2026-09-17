@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
 import { Icon } from "@iconify/vue";
-import { cn } from "@/utils/cn";
 import cronstrue from "cronstrue";
+import { computed, ref, watch } from "vue";
+
+import { cn } from "@/utils/cn";
+
+
 import "cronstrue/locales/zh_CN";
 
 defineOptions({ name: "CronEditor" });
@@ -234,7 +237,8 @@ function handleInputChange(e: Event) {
     </div>
 
     <!-- 预设模式 -->
-    <div v-if="mode === 'preset'" class="grid grid-cols-3 gap-2">
+    <div v-if="mode === 'preset'"
+class="grid grid-cols-3 gap-2">
       <button
         v-for="p in presets"
         :key="p.value"
@@ -255,9 +259,12 @@ function handleInputChange(e: Event) {
     </div>
 
     <!-- 自定义模式 -->
-    <div v-else class="space-y-2">
+    <div v-else
+class="space-y-2">
       <div class="grid grid-cols-6 gap-2">
-        <div v-for="f in fields" :key="f.key" class="flex flex-col gap-1">
+        <div v-for="f in fields"
+:key="f.key"
+class="flex flex-col gap-1">
           <label class="text-xs text-gray-500 text-center">{{ f.label }}</label>
           <a-select
             v-model:value="fieldValues[f.key]"
@@ -284,7 +291,8 @@ function handleInputChange(e: Event) {
         />
       </div>
       <div class="text-xs text-gray-500 whitespace-nowrap pt-1.5">
-        <Icon icon="carbon:information" class="inline" />
+        <Icon icon="carbon:information"
+class="inline" />
         {{ cronDescription }}
       </div>
     </div>

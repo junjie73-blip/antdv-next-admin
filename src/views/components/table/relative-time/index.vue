@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import type { BasicColumn } from '@/components/business/Table'
+
 import { ref } from 'vue'
+
+import type { BasicColumn } from '@/components/business/Table'
+
 import { BasicTable, useTable } from '@/components/business/Table'
 import { cn } from '@/utils/cn'
 
@@ -91,7 +94,8 @@ const [registerRelative] = useTable({
   <div :class="containerClassName">
     <a-card title="基础用法">
       <a-timeline>
-        <a-timeline-item v-for="item in timelineData" :key="item.id">
+        <a-timeline-item v-for="item in timelineData"
+:key="item.id">
           <template #dot>
             <div :class="getDotClassName(item.status)" />
           </template>

@@ -1,7 +1,10 @@
-import type { Ref } from "vue";
+
 import * as echarts from "echarts";
-import { ref } from "vue";
 import { isObject } from "es-toolkit/compat";
+import { ref } from "vue";
+
+import type { Ref } from "vue";
+
 
 /**
  * 图表实例管理器

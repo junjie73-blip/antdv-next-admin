@@ -1,9 +1,17 @@
 <script setup lang="ts">
-import type { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor'
-import type { MarkdownEditorInstance, MarkdownEditorProps } from './types'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import { computed, ref, shallowRef, watch } from 'vue'
+
+import type { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor'
+
+import type { MarkdownEditorInstance, MarkdownEditorProps } from './types'
+
+
 import { cn } from '@/utils/cn'
+
+
+
+
 import '@wangeditor/editor/dist/css/style.css'
 
 /**
@@ -314,7 +322,8 @@ defineExpose(instance)
       class="flex justify-end px-3 py-1 text-xs text-gray-500 border-t bg-gray-50"
     >
       <span>{{ textLength }} 字</span>
-      <span v-if="maxLength" class="ml-2">/ {{ maxLength }} 字上限</span>
+      <span v-if="maxLength"
+class="ml-2">/ {{ maxLength }} 字上限</span>
     </div>
   </div>
 </template>

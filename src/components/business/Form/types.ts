@@ -1,6 +1,9 @@
+
 import type { ColProps, FormInstance, FormItemProps, RuleObject } from "antdv-next";
 import type { Component, VNode } from "vue";
+
 import type { AntdvComponents, ComponentType } from "./componentMap";
+
 
 export type Recordable<T = any> = Record<string, T>;
 

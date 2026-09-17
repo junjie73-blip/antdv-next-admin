@@ -5,7 +5,9 @@ import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 import { Marked } from 'marked'
 import { markedHighlight } from 'marked-highlight'
+
 import { cn } from '@/utils/cn'
+
 
 import 'highlight.js/styles/github-dark.css'
 
@@ -502,8 +504,10 @@ const rendererToggleClassName = cn(
 
         <!-- 工具栏 -->
         <div :class="toolbarContainerClassName">
-          <template v-for="(group, idx) in toolbarGroups" :key="idx">
-            <span v-if="idx > 0" :class="toolbarDividerClassName" />
+          <template v-for="(group, idx) in toolbarGroups"
+:key="idx">
+            <span v-if="idx > 0"
+:class="toolbarDividerClassName" />
             <a-tooltip
               v-for="btn in group.buttons"
               :key="btn.label"
@@ -511,8 +515,11 @@ const rendererToggleClassName = cn(
               placement="top"
               :mouse-enter-delay="0.3"
             >
-              <button type="button" :class="toolbarButtonBaseClassName" @click="btn.action()">
-                <Icon :icon="btn.icon" :width="14" />
+              <button type="button"
+:class="toolbarButtonBaseClassName"
+@click="btn.action()">
+                <Icon :icon="btn.icon"
+:width="14" />
               </button>
             </a-tooltip>
           </template>
@@ -537,7 +544,9 @@ const rendererToggleClassName = cn(
           </div>
           <div class="flex items-center gap-2">
             <span :class="wordCountClassName">{{ markdownContent.length }} 字</span>
-            <button type="button" :class="copyBtnClassName" @click="copy(renderedHtml)">
+            <button type="button"
+:class="copyBtnClassName"
+@click="copy(renderedHtml)">
               <icon-carbon-copy class="text-xs" />
               {{ copied ? '已复制' : '复制HTML' }}
             </button>
@@ -545,13 +554,15 @@ const rendererToggleClassName = cn(
         </div>
 
         <!-- 预览内容（使用安全指令：保留合法HTML标签，过滤script和事件处理器） -->
-        <PerfectScrollbar v-if="renderedHtml" :class="previewScrollbarClassName">
+        <PerfectScrollbar v-if="renderedHtml"
+:class="previewScrollbarClassName">
           <div
             v-safe-html="{ content: renderedHtml, allowHtml: true }"
             :class="previewContentClassName"
           />
         </PerfectScrollbar>
-        <div v-else :class="emptyPreviewClassName">
+        <div v-else
+:class="emptyPreviewClassName">
           <div class="text-center">
             <icon-carbon-document-blank class="text-4xl mb-2 mx-auto opacity-30" />
             <p>在左侧输入 Markdown 内容后，此处将实时预览渲染结果</p>

@@ -1,12 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
-import { useCRUD } from '@/composables/useCRUD'
+
 import {
-  createMockModalMethods,
   createMockFormMethods,
+  createMockModalMethods,
   createMockTableMethods,
   createMockUserRecord,
   waitFor,
 } from '../../utils'
+
+import { useCRUD } from '@/composables/useCRUD'
 
 describe('useCRUD', () => {
   // Mock message

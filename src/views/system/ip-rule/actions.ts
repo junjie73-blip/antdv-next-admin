@@ -1,5 +1,6 @@
-import type { ActionItem } from "@/components/business/Table";
 import type { IpRuleRecord } from "./types";
+
+import type { ActionItem } from "@/components/business/Table";
 
 /** 行操作上下文 */
 export interface IpRuleActionContext {

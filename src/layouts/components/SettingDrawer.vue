@@ -1,17 +1,24 @@
 <script setup lang="ts">
-import type { SegmentedProps, SelectProps } from "antdv-next";
-import type { LayoutMode } from "../composables/useLayout";
-import type { ComponentSize, ThemeStyle, TransitionEffect } from "@/settings";
 
 import { Icon } from "@iconify/vue";
 import { Input, InputNumber, Segmented, Select, Switch, Tooltip } from "antdv-next";
 import { computed, h, ref } from "vue";
 
+import { LAYOUT_OPTIONS, LayoutIcon } from "./LayoutIcon";
+
+
+import type { SegmentedProps, SelectProps } from "antdv-next";
+
+import type { LayoutMode } from "../composables/useLayout";
+
+import type { ComponentSize, ThemeStyle, TransitionEffect } from "@/settings";
+
+
 import { useThemeTransition } from "@/composables/web/useThemeTransition";
 import { THEME_PRESETS } from "@/settings/theme";
 import { useAppStore } from "@/stores/modules/app";
 import { cn } from "@/utils/cn";
-import { LAYOUT_OPTIONS, LayoutIcon } from "./LayoutIcon";
+
 
 defineOptions({ name: "SettingDrawer" });
 
@@ -209,7 +216,8 @@ const isPresetColor = computed(() => {
             <div
               class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500/15 to-indigo-500/15 flex items-center justify-center"
             >
-              <Icon icon="carbon:settings" class="text-ant-primary text-lg" />
+              <Icon icon="carbon:settings"
+class="text-ant-primary text-lg" />
             </div>
             <div>
               <div class="text-[15px] font-semibold text-slate-800 dark:text-slate-100">
@@ -224,7 +232,8 @@ const isPresetColor = computed(() => {
             class="!w-8 !h-8 !p-0 !rounded-lg !text-slate-400 hover:!text-slate-700 hover:!bg-slate-100 dark:hover:!bg-slate-800 dark:hover:!text-slate-200"
             @click="visible = false"
           >
-            <Icon icon="carbon:close" class="text-lg" />
+            <Icon icon="carbon:close"
+class="text-lg" />
           </a-button>
         </div>
       </div>
@@ -274,7 +283,8 @@ const isPresetColor = computed(() => {
                             : {}
                         "
                       >
-                        <LayoutIcon :type="item.value" :active="appStore.layout === item.value" />
+                        <LayoutIcon :type="item.value"
+:active="appStore.layout === item.value" />
                       </div>
                       <span
                         class="text-[11px] font-medium"
@@ -290,7 +300,8 @@ const isPresetColor = computed(() => {
                         v-if="appStore.layout === item.value"
                         class="absolute top-3 right-3 w-5 h-5 rounded-full bg-ant-primary flex items-center justify-center"
                       >
-                        <Icon icon="carbon:checkmark" class="text-white text-xs" />
+                        <Icon icon="carbon:checkmark"
+class="text-white text-xs" />
                       </div>
                     </button>
                   </div>
@@ -411,14 +422,17 @@ const isPresetColor = computed(() => {
                 </div>
                 <div :class="groupBoxClassName">
                   <!-- 路由动画 -->
-                  <a-button type="text" block :class="itemBtnClassName">
+                  <a-button type="text"
+block
+:class="itemBtnClassName">
                     <div class="flex items-center justify-between w-full px-4 py-3">
                       <div class="text-left">
                         <div class="text-[13px] font-medium text-slate-700 dark:text-slate-200">
                           路由动画
                         </div>
                       </div>
-                      <div class="flex-shrink-0" @click.stop>
+                      <div class="flex-shrink-0"
+@click.stop>
                         <Select
                           :value="appStore.transitionEffect"
                           :options="transitionOptions"
@@ -431,14 +445,17 @@ const isPresetColor = computed(() => {
                   </a-button>
 
                   <!-- 菜单宽度 -->
-                  <a-button type="text" block :class="itemBtnClassName">
+                  <a-button type="text"
+block
+:class="itemBtnClassName">
                     <div class="flex items-center justify-between w-full px-4 py-3">
                       <div class="text-left">
                         <div class="text-[13px] font-medium text-slate-700 dark:text-slate-200">
                           菜单宽度
                         </div>
                       </div>
-                      <div class="flex-shrink-0" @click.stop>
+                      <div class="flex-shrink-0"
+@click.stop>
                         <InputNumber
                           :value="appStore.sidebarWidth"
                           :min="180"
@@ -455,14 +472,17 @@ const isPresetColor = computed(() => {
                   </a-button>
 
                   <!-- 标签页风格 -->
-                  <a-button type="text" block :class="itemBtnClassName">
+                  <a-button type="text"
+block
+:class="itemBtnClassName">
                     <div class="flex items-center justify-between w-full px-4 py-3">
                       <div class="text-left">
                         <div class="text-[13px] font-medium text-slate-700 dark:text-slate-200">
                           标签页风格
                         </div>
                       </div>
-                      <div class="flex-shrink-0" @click.stop>
+                      <div class="flex-shrink-0"
+@click.stop>
                         <Select
                           :value="appStore.tabShowIcon ? 'icon' : 'plain'"
                           :options="[
@@ -480,14 +500,17 @@ const isPresetColor = computed(() => {
                   </a-button>
 
                   <!-- 组件尺寸 -->
-                  <a-button type="text" block :class="itemBtnClassName">
+                  <a-button type="text"
+block
+:class="itemBtnClassName">
                     <div class="flex items-center justify-between w-full px-4 py-3">
                       <div class="text-left">
                         <div class="text-[13px] font-medium text-slate-700 dark:text-slate-200">
                           组件尺寸
                         </div>
                       </div>
-                      <div class="flex-shrink-0" @click.stop>
+                      <div class="flex-shrink-0"
+@click.stop>
                         <Select
                           :value="appStore.componentSize"
                           :options="sizeOptions"
@@ -514,7 +537,9 @@ const isPresetColor = computed(() => {
                 </div>
                 <div :class="groupBoxClassName">
                   <!-- 显示标签页 -->
-                  <a-button type="text" block :class="itemBtnClassName">
+                  <a-button type="text"
+block
+:class="itemBtnClassName">
                     <div class="flex items-center justify-between w-full px-4 py-3">
                       <div class="text-left">
                         <div
@@ -522,12 +547,14 @@ const isPresetColor = computed(() => {
                         >
                           显示标签页
                           <Tooltip title="主内容区顶部多标签导航">
-                            <Icon icon="carbon:information" class="text-slate-400 text-xs" />
+                            <Icon icon="carbon:information"
+class="text-slate-400 text-xs" />
                           </Tooltip>
                         </div>
                         <div class="text-[11px] text-slate-400 mt-0.5">主内容区顶部多标签导航</div>
                       </div>
-                      <div class="flex-shrink-0" @click.stop>
+                      <div class="flex-shrink-0"
+@click.stop>
                         <Switch
                           :checked="appStore.showTabs"
                           size="small"
@@ -538,7 +565,9 @@ const isPresetColor = computed(() => {
                   </a-button>
 
                   <!-- 菜单手风琴 -->
-                  <a-button type="text" block :class="itemBtnClassName">
+                  <a-button type="text"
+block
+:class="itemBtnClassName">
                     <div class="flex items-center justify-between w-full px-4 py-3">
                       <div class="text-left">
                         <div class="text-[13px] font-medium text-slate-700 dark:text-slate-200">
@@ -546,14 +575,18 @@ const isPresetColor = computed(() => {
                         </div>
                         <div class="text-[11px] text-slate-400 mt-0.5">仅展开一个子菜单</div>
                       </div>
-                      <div class="flex-shrink-0" @click.stop>
-                        <Switch :checked="false" size="small" />
+                      <div class="flex-shrink-0"
+@click.stop>
+                        <Switch :checked="false"
+size="small" />
                       </div>
                     </div>
                   </a-button>
 
                   <!-- 侧边栏反转 -->
-                  <a-button type="text" block :class="itemBtnClassName">
+                  <a-button type="text"
+block
+:class="itemBtnClassName">
                     <div class="flex items-center justify-between w-full px-4 py-3">
                       <div class="text-left">
                         <div class="text-[13px] font-medium text-slate-700 dark:text-slate-200">
@@ -561,7 +594,8 @@ const isPresetColor = computed(() => {
                         </div>
                         <div class="text-[11px] text-slate-400 mt-0.5">侧栏与内容区对比配色</div>
                       </div>
-                      <div class="flex-shrink-0" @click.stop>
+                      <div class="flex-shrink-0"
+@click.stop>
                         <Switch
                           :checked="appStore.darkSidebar"
                           size="small"
@@ -572,7 +606,9 @@ const isPresetColor = computed(() => {
                   </a-button>
 
                   <!-- 头部反转 -->
-                  <a-button type="text" block :class="itemBtnClassName">
+                  <a-button type="text"
+block
+:class="itemBtnClassName">
                     <div class="flex items-center justify-between w-full px-4 py-3">
                       <div class="text-left">
                         <div class="text-[13px] font-medium text-slate-700 dark:text-slate-200">
@@ -580,7 +616,8 @@ const isPresetColor = computed(() => {
                         </div>
                         <div class="text-[11px] text-slate-400 mt-0.5">顶栏与内容区对比配色</div>
                       </div>
-                      <div class="flex-shrink-0" @click.stop>
+                      <div class="flex-shrink-0"
+@click.stop>
                         <Switch
                           :checked="appStore.darkHeader"
                           size="small"
@@ -591,7 +628,9 @@ const isPresetColor = computed(() => {
                   </a-button>
 
                   <!-- 灰色模式 -->
-                  <a-button type="text" block :class="itemBtnClassName">
+                  <a-button type="text"
+block
+:class="itemBtnClassName">
                     <div class="flex items-center justify-between w-full px-4 py-3">
                       <div class="text-left">
                         <div class="text-[13px] font-medium text-slate-700 dark:text-slate-200">
@@ -599,7 +638,8 @@ const isPresetColor = computed(() => {
                         </div>
                         <div class="text-[11px] text-slate-400 mt-0.5">整体灰度显示</div>
                       </div>
-                      <div class="flex-shrink-0" @click.stop>
+                      <div class="flex-shrink-0"
+@click.stop>
                         <Switch
                           :checked="appStore.grayMode"
                           size="small"
@@ -610,7 +650,9 @@ const isPresetColor = computed(() => {
                   </a-button>
 
                   <!-- 色弱模式 -->
-                  <a-button type="text" block :class="itemBtnClassName">
+                  <a-button type="text"
+block
+:class="itemBtnClassName">
                     <div class="flex items-center justify-between w-full px-4 py-3">
                       <div class="text-left">
                         <div class="text-[13px] font-medium text-slate-700 dark:text-slate-200">
@@ -618,7 +660,8 @@ const isPresetColor = computed(() => {
                         </div>
                         <div class="text-[11px] text-slate-400 mt-0.5">适配色弱阅读</div>
                       </div>
-                      <div class="flex-shrink-0" @click.stop>
+                      <div class="flex-shrink-0"
+@click.stop>
                         <Switch
                           :checked="appStore.colorWeak"
                           size="small"
@@ -629,7 +672,9 @@ const isPresetColor = computed(() => {
                   </a-button>
 
                   <!-- 折叠菜单 -->
-                  <a-button type="text" block :class="itemBtnClassName">
+                  <a-button type="text"
+block
+:class="itemBtnClassName">
                     <div class="flex items-center justify-between w-full px-4 py-3">
                       <div class="text-left">
                         <div class="text-[13px] font-medium text-slate-700 dark:text-slate-200">
@@ -637,7 +682,8 @@ const isPresetColor = computed(() => {
                         </div>
                         <div class="text-[11px] text-slate-400 mt-0.5">侧栏仅保留图标</div>
                       </div>
-                      <div class="flex-shrink-0" @click.stop>
+                      <div class="flex-shrink-0"
+@click.stop>
                         <Switch
                           :checked="appStore.sidebarCollapsed"
                           size="small"
@@ -656,7 +702,9 @@ const isPresetColor = computed(() => {
                   <span>尺寸参数</span>
                 </div>
                 <div :class="groupBoxClassName">
-                  <a-button type="text" block :class="itemBtnClassName">
+                  <a-button type="text"
+block
+:class="itemBtnClassName">
                     <div class="flex items-center justify-between w-full px-4 py-3">
                       <span class="text-[13px] font-medium text-slate-700 dark:text-slate-200">
                         侧边栏宽度
@@ -677,7 +725,9 @@ const isPresetColor = computed(() => {
                     </div>
                   </a-button>
 
-                  <a-button type="text" block :class="itemBtnClassName">
+                  <a-button type="text"
+block
+:class="itemBtnClassName">
                     <div class="flex items-center justify-between w-full px-4 py-3">
                       <span class="text-[13px] font-medium text-slate-700 dark:text-slate-200">
                         圆角大小
@@ -714,7 +764,9 @@ const isPresetColor = computed(() => {
                   <span>水印配置</span>
                 </div>
                 <div :class="groupBoxClassName">
-                  <a-button type="text" block :class="itemBtnClassName">
+                  <a-button type="text"
+block
+:class="itemBtnClassName">
                     <div class="flex items-center justify-between w-full px-4 py-3">
                       <div class="text-left">
                         <div class="text-[13px] font-medium text-slate-700 dark:text-slate-200">
@@ -767,7 +819,9 @@ const isPresetColor = computed(() => {
                   <span>工具栏</span>
                 </div>
                 <div :class="groupBoxClassName">
-                  <a-button type="text" block :class="itemBtnClassName">
+                  <a-button type="text"
+block
+:class="itemBtnClassName">
                     <div class="flex items-center justify-between w-full px-4 py-3">
                       <div class="text-left">
                         <div class="text-[13px] font-medium text-slate-700 dark:text-slate-200">
@@ -796,7 +850,9 @@ const isPresetColor = computed(() => {
                   <span>消息通知</span>
                 </div>
                 <div :class="groupBoxClassName">
-                  <a-button type="text" block :class="itemBtnClassName">
+                  <a-button type="text"
+block
+:class="itemBtnClassName">
                     <div class="flex items-center justify-between w-full px-4 py-3">
                       <span class="text-[13px] font-medium text-slate-700 dark:text-slate-200">
                         通知位置
@@ -823,12 +879,16 @@ const isPresetColor = computed(() => {
                   <span>系统维护</span>
                 </div>
                 <div :class="groupBoxClassName">
-                  <a-button type="text" block :class="itemBtnClassName" @click="handleReset">
+                  <a-button type="text"
+block
+:class="itemBtnClassName"
+@click="handleReset">
                     <div class="flex items-center gap-3 w-full px-4 py-3">
                       <div
                         class="w-9 h-9 rounded-lg bg-gradient-to-br from-rose-500/15 to-pink-500/15 flex items-center justify-center flex-shrink-0"
                       >
-                        <Icon icon="carbon:reset" class="text-rose-500 text-base" />
+                        <Icon icon="carbon:reset"
+class="text-rose-500 text-base" />
                       </div>
                       <div class="text-left">
                         <div class="text-[13px] font-medium text-slate-700 dark:text-slate-200">

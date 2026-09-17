@@ -1,26 +1,29 @@
-import { createWriteStream, existsSync, readFileSync } from "node:fs";
-import { mkdir } from "node:fs/promises";
-import { join } from "node:path";
-import dayjs from "dayjs";
-import { defineConfig, PluginOption } from "vite";
+import { AntdvNextResolver } from "@antdv-next/auto-import-resolver";
 import tailwindcss from "@tailwindcss/vite";
 import viteVue from "@vitejs/plugin-vue";
 import viteVueJsx from "@vitejs/plugin-vue-jsx";
-import viteCompressPlugin from "vite-plugin-compression";
-import { AntdvNextResolver } from "@antdv-next/auto-import-resolver";
+import archiver from "archiver";
+import dayjs from "dayjs";
 import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
-import viteDtsPlugin from "vite-plugin-dts";
-import { createSvgIconsPlugin } from "vite-plugin-svg-icons";
-import viteVueDevTools from "vite-plugin-vue-devtools";
-import packageJson from "./package.json" with { type: "json" };
+import { defineConfig, PluginOption } from "vite";
 import { analyzer } from "vite-bundle-analyzer";
-import viteImagemin from "vite-plugin-imagemin";
+import viteCompressPlugin from "vite-plugin-compression";
+import viteDtsPlugin from "vite-plugin-dts";
 import { createHtmlPlugin as viteHtmlPlugin } from "vite-plugin-html";
+import viteImagemin from "vite-plugin-imagemin";
 import Inspect from "vite-plugin-inspect";
 import { wrapPlugin } from "vite-plugin-performance";
+import { VitePWA } from "vite-plugin-pwa";
+import { createSvgIconsPlugin } from "vite-plugin-svg-icons";
+import viteVueDevTools from "vite-plugin-vue-devtools";
+
+import { createWriteStream, existsSync, readFileSync } from "node:fs";
+import { mkdir } from "node:fs/promises";
+import { join } from "node:path";
+
 import pkg from "./package.json" with { type: "json" };
-import archiver from "archiver";
+
 type ProxyList = [string, string][];
 interface ProxyTarget {
   target: string;
@@ -179,7 +182,7 @@ function viteMetadataPlugin(_root: string): PluginOption {
     enforce: "post",
     config() {
       try {
-        const { version, name } = packageJson;
+        const { version, name } = pkg;
         return {
           define: {
             __APP_METADATA__: JSON.stringify({
@@ -279,6 +282,71 @@ export default defineConfig(({ mode }) => {
       plugins.push(
         analyzer({
           fileName: "stats.html",
+        }),
+      );
+    envConfig.VITE_PWA &&
+      plugins.push(
+        VitePWA({
+          registerType: "prompt",
+          injectRegister: "script-defer",
+          strategies: "generateSW",
+          manifest: {
+            name: envConfig.VITE_APP_TITLE,
+            short_name: envConfig.VITE_APP_TITLE,
+            description: "基于 Vue 3 + Antdv Next 的现代化后台管理系统",
+            icons: [
+              {
+                src: "pwa-icons/pwa-64x64.png",
+                type: "image/png",
+                sizes: "64x64",
+              },
+              {
+                src: "pwa-icons/pwa-192x192.png",
+                type: "image/png",
+                sizes: "192x192",
+              },
+              {
+                src: "pwa-icons/pwa-512x512.png",
+                type: "image/png",
+                sizes: "512x512",
+              },
+              {
+                src: "pwa-icons/maskable-icon-512x512.png",
+                sizes: "512x512",
+                type: "image/png",
+                purpose: "maskable",
+              },
+              {
+                src: "pwa-icons/apple-touch-icon-180x180.png",
+                type: "image/png",
+                sizes: "180x180 180x180",
+              },
+            ],
+          },
+          workbox: {
+            globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+            clientsClaim: true,
+            skipWaiting: true,
+            // 生产环境建议通过按需加载优化 antdv-next 来减小体积
+            maximumFileSizeToCacheInBytes: 1024 * 1024 * 20,
+            runtimeCaching: [
+              {
+                urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
+                handler: "CacheFirst",
+                options: {
+                  cacheName: "image-cache",
+                  expiration: {
+                    maxEntries: 50,
+                    maxAgeSeconds: 30 * 24 * 60 * 60,
+                  },
+                },
+              },
+            ],
+          },
+          includeAssets: ["favicon.ico", "pwa-icons/*.png"],
+          devOptions: {
+            enabled: true,
+          },
         }),
       );
     envConfig.VITE_COMPRESS &&

@@ -1,7 +1,10 @@
-import type { WatermarkOptions } from 'watermark-plus'
+
 
 import { onMounted, onUnmounted, ref, unref, watch } from 'vue'
 import Watermark from 'watermark-plus'
+
+import type { WatermarkOptions } from 'watermark-plus'
+
 
 export interface UseWatermarkOptions {
   content?: unknown

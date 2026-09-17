@@ -1,11 +1,13 @@
+
 import { computed, ref, shallowRef } from "vue";
 
 import { DEFAULT_HEARTBEAT_CONFIG, DEFAULT_RECONNECT_CONFIG } from "./constants";
 import { EventManager } from "./EventManager";
 import { HeartbeatManager } from "./HeartbeatManager";
 import { ReconnectManager } from "./ReconnectManager";
-import { WebSocketStateManager } from "./WebSocketStateManager";
 import { WebSocketEventType, WebSocketState } from "./types";
+import { WebSocketStateManager } from "./WebSocketStateManager";
+
 
 export interface UseWebSocketOptions {
   /** 每次连接时调用，可返回最新 URL（token 变化后重连会用新 URL） */

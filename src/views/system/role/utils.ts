@@ -1,5 +1,6 @@
-import type { RoleRecord } from "./types";
 import { ROLE_STATUS_LABEL_MAP } from "./constants";
+
+import type { RoleRecord } from "./types";
 interface TreeNode {
   menuId: string;
   children?: TreeNode[];

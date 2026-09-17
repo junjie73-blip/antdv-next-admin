@@ -1,10 +1,31 @@
 <script setup lang="ts">
+
 import { Icon } from "@iconify/vue";
+import { message } from "antdv-next";
 import { computed, ref } from "vue";
 
+import { getMenuActions } from "./actions";
+import { menuActionColumn, menuColumns, menuRowKey, menuScroll } from "./columns";
+import PermissionDrawer from "./components/PermissionDrawer.vue";
+
+import {
+  cardClassName,
+  containerClassName,
+  MENU_EMPTY_VALUES,
+  MENU_TYPE_COLOR_MAP,
+  MENU_TYPE_ICON_MAP,
+  MENU_TYPE_LABEL_MAP,
+  tagClassName,
+} from "./constants";
+
+import { useMenuFormSchemas } from "./schemas";
+
+import type { MenuRecord } from "./types";
+
+import { changeMenuStatus } from "@/api";
 import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
 import { BasicForm, useForm } from "@/components/business/Form";
-import { BasicTable, TableAction, useTable, type ActionItem } from "@/components/business/Table";
+import { type ActionItem, BasicTable, TableAction, useTable } from "@/components/business/Table";
 import IconPicker from "@/components/common/Icon/IconPicker.vue";
 import { useCRUD } from "@/composables/useCRUD";
 import { DictType } from "@/enums/dict";
@@ -12,22 +33,11 @@ import { useDictStore } from "@/stores";
 import { http } from "@/utils";
 
 // 抽离的模块
-import { getMenuActions } from "./actions";
-import { menuActionColumn, menuColumns, menuRowKey, menuScroll } from "./columns";
-import {
-  MENU_EMPTY_VALUES,
-  MENU_TYPE_COLOR_MAP,
-  MENU_TYPE_ICON_MAP,
-  MENU_TYPE_LABEL_MAP,
-  cardClassName,
-  containerClassName,
-  tagClassName,
-} from "./constants";
-import { useMenuFormSchemas } from "./schemas";
-import type { MenuRecord } from "./types";
-import PermissionDrawer from "./components/PermissionDrawer.vue";
-import { changeMenuStatus } from "@/api";
-import { message } from "antdv-next";
+
+
+
+
+
 
 defineOptions({ name: "SystemMenu" });
 
@@ -152,7 +162,8 @@ function getActions(record: MenuRecord): ActionItem[] {
         @register="tableRegister"
       >
         <template #toolbar>
-          <a-button type="primary" @click="handleAdd()">
+          <a-button type="primary"
+@click="handleAdd()">
             <template #icon><Icon icon="ant-design:plus-outlined" /></template>
             新增菜单
           </a-button>
@@ -160,7 +171,9 @@ function getActions(record: MenuRecord): ActionItem[] {
 
         <template #cell-icon="{ record }">
           <div class="flex items-center justify-center">
-            <Icon v-if="record.icon" :icon="record.icon" class="text-lg" />
+            <Icon v-if="record.icon"
+:icon="record.icon"
+class="text-lg" />
             <span v-else>-</span>
           </div>
         </template>

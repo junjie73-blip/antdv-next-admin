@@ -1,6 +1,10 @@
-import type { Ref } from 'vue'
+
 import { ref } from 'vue'
+
 import { WebSocketState } from './types'
+
+import type { Ref } from 'vue'
+
 
 export class WebSocketStateManager {
   private state: Ref<WebSocketState>

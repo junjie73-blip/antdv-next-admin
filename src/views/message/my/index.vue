@@ -1,14 +1,18 @@
 <script setup lang="ts">
+
+
 import { Icon } from "@iconify/vue";
-import { ref, watch } from "vue";
 import { message } from "antdv-next";
-import { BasicTable, useTable } from "@/components/business/Table";
+import { ref, watch } from "vue";
 
 import { getNoticeActions } from "./actions";
 import { fetchMyNotices, markAllNoticesRead } from "./api";
 import { noticeActionColumn, noticeColumns, noticeRowKey, noticeScroll } from "./columns";
 import { NOTICE_TYPE_MAP, TAB_TO_IS_READ } from "./constants";
+
 import type { NoticeTabKey } from "./types";
+
+import { BasicTable, useTable } from "@/components/business/Table";
 
 defineOptions({ name: "MessageMy" });
 
@@ -55,12 +59,16 @@ watch(activeTab, (newVal) => {
 </script>
 
 <template>
-  <a-card :bordered="false" class="shadow-sm">
+  <a-card :bordered="false"
+class="shadow-sm">
     <div class="flex items-center justify-between mb-4">
       <a-tabs v-model:active-key="activeTab">
-        <a-tab-pane key="all" tab="全部消息" />
-        <a-tab-pane key="unread" tab="未读消息" />
-        <a-tab-pane key="read" tab="已读消息" />
+        <a-tab-pane key="all"
+tab="全部消息" />
+        <a-tab-pane key="unread"
+tab="未读消息" />
+        <a-tab-pane key="read"
+tab="已读消息" />
       </a-tabs>
       <a-button @click="markAllRead">
         <template #icon><Icon icon="carbon:checkmark-outline" /></template>

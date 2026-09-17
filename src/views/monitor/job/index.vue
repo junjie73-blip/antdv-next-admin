@@ -1,7 +1,24 @@
 <script setup lang="ts">
+
 import { Icon } from "@iconify/vue";
-import { ref, watch } from "vue";
 import { message } from "antdv-next";
+import { ref, watch } from "vue";
+
+import { getJobActions } from "./actions";
+
+import {
+  jobActionColumn,
+  jobColumns,
+  jobRowKey,
+  jobScroll,
+  logColumns,
+  logRowKey,
+} from "./columns";
+
+import { LOG_STATUS_MAP } from "./constants";
+import { JOB_EMPTY_VALUES, jobFormSchemas } from "./schemas";
+
+import type { JobRecord, JobTabKey } from "./types";
 
 import {
   clearJobLog,
@@ -15,25 +32,16 @@ import {
   toggleJobStatus,
   updateJob,
 } from "@/api";
+
 import { BasicForm, useForm } from "@/components/business/Form";
 import { BasicModal, useModal } from "@/components/business/Modal";
-import { BasicTable, TableAction, useTable, type ActionItem } from "@/components/business/Table";
-import { useCRUD } from "@/composables/useCRUD";
+import { type ActionItem, BasicTable, TableAction, useTable } from "@/components/business/Table";
 import CronEditor from "@/components/common/CronEditor/index.vue";
+import { useCRUD } from "@/composables/useCRUD";
 
 // 抽离的模块
-import { getJobActions } from "./actions";
-import {
-  jobActionColumn,
-  jobColumns,
-  jobRowKey,
-  jobScroll,
-  logColumns,
-  logRowKey,
-} from "./columns";
-import { LOG_STATUS_MAP } from "./constants";
-import { JOB_EMPTY_VALUES, jobFormSchemas } from "./schemas";
-import type { JobRecord, JobTabKey } from "./types";
+
+
 
 defineOptions({ name: "MonitorJob" });
 
@@ -121,9 +129,11 @@ watch(activeTab, (newVal) => {
 </script>
 
 <template>
-  <a-card :bordered="false" class="shadow-sm">
+  <a-card :bordered="false"
+class="shadow-sm">
     <a-tabs v-model:active-key="activeTab">
-      <a-tab-pane key="job" tab="任务列表">
+      <a-tab-pane key="job"
+tab="任务列表">
         <BasicTable
           :columns="jobColumns"
           :api="getJobList"
@@ -135,7 +145,8 @@ watch(activeTab, (newVal) => {
           @register="jobTableRegister"
         >
           <template #toolbar>
-            <a-button type="primary" @click="handleAdd()">
+            <a-button type="primary"
+@click="handleAdd()">
               <template #icon><Icon icon="ant-design:plus-outlined" /></template>
               新增任务
             </a-button>
@@ -155,7 +166,8 @@ watch(activeTab, (newVal) => {
         </BasicTable>
       </a-tab-pane>
 
-      <a-tab-pane key="log" tab="执行日志">
+      <a-tab-pane key="log"
+tab="执行日志">
         <BasicTable
           :columns="logColumns"
           :api="getJobLogList"
@@ -166,7 +178,8 @@ watch(activeTab, (newVal) => {
           @register="logTableRegister"
         >
           <template #toolbar>
-            <a-button danger @click="handleClearLog">清空日志</a-button>
+            <a-button danger
+@click="handleClearLog">清空日志</a-button>
           </template>
 
           <template #cell-status="{ record }">

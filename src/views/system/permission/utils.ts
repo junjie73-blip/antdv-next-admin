@@ -1,5 +1,8 @@
 import dayjs from "dayjs";
+
 import type { PermissionRecord, PermissionScope, RawPermissionRecord, ResourceType } from "./types";
+
+
 
 /**
  * 从权限编码推断级别

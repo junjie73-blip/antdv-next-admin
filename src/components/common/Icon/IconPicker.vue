@@ -214,7 +214,9 @@ const prefixOptions = COLLECTIONS.map((c) => ({
             class="flex-1"
           >
             <template #prefix>
-              <Icon icon="lucide:search" :width="13" class="text-gray-400" />
+              <Icon icon="lucide:search"
+:width="13"
+class="text-gray-400" />
             </template>
           </a-input>
         </div>
@@ -224,7 +226,8 @@ const prefixOptions = COLLECTIONS.map((c) => ({
           class="overflow-y-auto overflow-x-hidden pr-1"
           :style="{ height: `${SCROLLER_HEIGHT}px` }"
         >
-          <div v-if="loading" class="h-full flex items-center justify-center">
+          <div v-if="loading"
+class="h-full flex items-center justify-center">
             <a-spin size="large" />
           </div>
 
@@ -234,7 +237,8 @@ const prefixOptions = COLLECTIONS.map((c) => ({
             class="pt-24"
           />
 
-          <div v-else class="grid grid-cols-12 gap-1">
+          <div v-else
+class="grid grid-cols-12 gap-1">
             <a-tooltip
               v-for="icon in pagedIcons"
               :key="icon"
@@ -242,8 +246,11 @@ const prefixOptions = COLLECTIONS.map((c) => ({
               placement="top"
               :mouse-enter-delay="0.3"
             >
-              <button type="button" :class="iconBtnClass(icon)" @click="handleSelect(icon)">
-                <Icon :icon="icon" :width="18" />
+              <button type="button"
+:class="iconBtnClass(icon)"
+@click="handleSelect(icon)">
+                <Icon :icon="icon"
+:width="18" />
               </button>
             </a-tooltip>
           </div>
@@ -276,8 +283,10 @@ const prefixOptions = COLLECTIONS.map((c) => ({
       readonly
       class="cursor-pointer"
     >
-      <template v-if="selectedIcon" #prefix>
-        <Icon :icon="selectedIcon" :width="16" />
+      <template v-if="selectedIcon"
+#prefix>
+        <Icon :icon="selectedIcon"
+:width="16" />
       </template>
       <template #suffix>
         <Icon
@@ -287,7 +296,10 @@ const prefixOptions = COLLECTIONS.map((c) => ({
           class="text-gray-400 hover:text-gray-600 cursor-pointer transition-colors"
           @click="handleClear"
         />
-        <Icon v-else icon="lucide:chevron-down" :width="14" class="text-gray-400" />
+        <Icon v-else
+icon="lucide:chevron-down"
+:width="14"
+class="text-gray-400" />
       </template>
     </a-input>
   </a-popover>

@@ -2,7 +2,9 @@
 import { isString } from "es-toolkit";
 import { computed, ref, useTemplateRef } from "vue";
 import { VueCropper } from "vue-cropper";
+
 import { cn } from "@/utils/cn";
+
 
 type AspectRatioKey = "free" | "1:1" | "16:9" | "4:3";
 
@@ -156,12 +158,15 @@ function handleRealTime(data: { w: number; h: number; url: string }) {
 
 <template>
   <div :class="containerClassName">
-    <a-card variant="borderless" title="图片裁剪">
+    <a-card variant="borderless"
+title="图片裁剪">
       <p :class="cn('text-gray-600 dark:text-gray-400 mb-4')">
         上传图片后，使用下方工具进行裁剪操作，支持旋转、缩放、比例锁定等功能
       </p>
 
-      <div v-if="!imgSrc" :class="uploadSectionClassName" @click="handleUpload">
+      <div v-if="!imgSrc"
+:class="uploadSectionClassName"
+@click="handleUpload">
         <div :class="uploadIconClassName">📷</div>
         <p :class="uploadTextClassName">点击上传图片</p>
         <p :class="uploadHintClassName">支持 JPG、PNG、GIF 等常见格式</p>
@@ -174,7 +179,8 @@ function handleRealTime(data: { w: number; h: number; url: string }) {
         />
       </div>
 
-      <div v-else :class="cropSectionClassName">
+      <div v-else
+:class="cropSectionClassName">
         <div :class="cropperPanelClassName">
           <div :class="cropperWrapperClassName">
             <VueCropper
@@ -210,7 +216,8 @@ function handleRealTime(data: { w: number; h: number; url: string }) {
                   :class="previewImgClassName"
                   alt="裁剪预览"
                 />
-                <div v-else :class="previewEmptyClassName">暂无预览</div>
+                <div v-else
+:class="previewEmptyClassName">暂无预览</div>
               </div>
             </div>
           </div>
@@ -237,8 +244,10 @@ function handleRealTime(data: { w: number; h: number; url: string }) {
           <div :class="controlCardClassName">
             <div :class="controlCardTitleClassName">旋转</div>
             <div :class="rotateBtnGroupClassName">
-              <button :class="rotateBtnClassName" @click="handleRotateLeft">↺ 左转</button>
-              <button :class="rotateBtnClassName" @click="handleRotateRight">↻ 右转</button>
+              <button :class="rotateBtnClassName"
+@click="handleRotateLeft">↺ 左转</button>
+              <button :class="rotateBtnClassName"
+@click="handleRotateRight">↻ 右转</button>
             </div>
           </div>
 
@@ -264,9 +273,12 @@ function handleRealTime(data: { w: number; h: number; url: string }) {
           <div :class="dividerClassName" />
 
           <div :class="actionBtnGroupClassName">
-            <button :class="primaryBtnClassName" @click="handleCrop">确认裁剪</button>
-            <button :class="outlineBtnClassName" @click="handleDownload">下载图片</button>
-            <button :class="outlineBtnClassName" @click="handleReset">重置</button>
+            <button :class="primaryBtnClassName"
+@click="handleCrop">确认裁剪</button>
+            <button :class="outlineBtnClassName"
+@click="handleDownload">下载图片</button>
+            <button :class="outlineBtnClassName"
+@click="handleReset">重置</button>
             <button
               :class="outlineBtnClassName"
               @click="

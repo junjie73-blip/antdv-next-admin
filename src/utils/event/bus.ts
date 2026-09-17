@@ -1,5 +1,8 @@
-import type { EventBus, EventHandler } from './types'
 import mitt from 'mitt'
+
+import type { EventBus, EventHandler } from './types'
+
+
 
 export function createEventBus(): EventBus {
   const emitter = mitt<Record<string, unknown>>()

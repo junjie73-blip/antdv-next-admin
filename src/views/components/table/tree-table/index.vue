@@ -1,8 +1,10 @@
 <script setup lang="ts">
+
+import { ref } from 'vue'
+
 import type { BasicColumn } from '@/components/business/Table/types'
 import type { TreeDataNode } from '@/components/business/TreeTable'
 
-import { ref } from 'vue'
 import { TreeTable } from '@/components/business/TreeTable'
 import { cn } from '@/utils/cn'
 

@@ -5,7 +5,9 @@
  * 在路由切换时显示的加载占位组件
  * 提供比进度条更丰富的视觉反馈
  */
+
 import { computed } from 'vue'
+
 import { useAppStore } from '@/stores/modules/app'
 import { cn } from '@/utils/cn'
 
@@ -54,7 +56,9 @@ const containerClassName = cn(
 </script>
 
 <template>
-  <Transition name="page-loading" mode="out-in" appear>
+  <Transition name="page-loading"
+mode="out-in"
+appear>
     <div
       v-if="loading"
       :class="containerClassName"
@@ -93,7 +97,9 @@ const containerClassName = cn(
             </p>
             <!-- 骨架屏（半透明） -->
             <div class="w-full max-w-md px-6 opacity-50">
-              <div v-for="i in 3" :key="i" :class="cn('h-3 rounded-full mb-2', skeletonBg)" />
+              <div v-for="i in 3"
+:key="i"
+:class="cn('h-3 rounded-full mb-2', skeletonBg)" />
             </div>
           </div>
         </div>

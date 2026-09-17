@@ -1,11 +1,19 @@
 <script setup lang="ts">
-import type { ModalProps as AntModalProps } from 'antdv-next'
-import type { ModalInnerMethods, ModalMethods, ModalProps } from './types'
+
 import { Button, Modal } from 'antdv-next'
 import { computed, onMounted, ref, useSlots, watch } from 'vue'
+
+import ModalWrapper from './components/ModalWrapper.vue'
+
+import type { ModalProps as AntModalProps } from 'antdv-next'
+
+import type { ModalInnerMethods, ModalMethods, ModalProps } from './types'
+
+
+
 import { IconifyIcon as Icon } from '@/components/common/Icon'
 import { cn } from '@/utils/cn'
-import ModalWrapper from './components/ModalWrapper.vue'
+
 
 const props = withDefaults(defineProps<ModalProps>(), {
   useWrapper: true,
@@ -184,7 +192,8 @@ const footerClassName = cn(
   >
     <!-- 自定义头部 -->
     <template #title>
-      <div :id="modalTitleId" :class="headerClassName">
+      <div :id="modalTitleId"
+:class="headerClassName">
         <div :class="cn('flex items-center gap-2')">
           <span :class="cn('text-lg font-medium text-gray-900')">{{ title }}</span>
           <slot name="titleTip" />
@@ -224,7 +233,9 @@ const footerClassName = cn(
       :class="footerClassName"
     >
       <slot name="insertFooter" />
-      <Button v-if="showCancelBtn" v-bind="cancelButtonProps" @click="handleCancel">
+      <Button v-if="showCancelBtn"
+v-bind="cancelButtonProps"
+@click="handleCancel">
         <template #icon>
           <Icon icon="ant-design:close-outlined" />
         </template>
@@ -245,7 +256,8 @@ const footerClassName = cn(
       </Button>
       <slot name="appendFooter" />
     </div>
-    <div v-else-if="slots.footer" :class="cn('modal-footer px-6 py-4 border-t border-gray-200')">
+    <div v-else-if="slots.footer"
+:class="cn('modal-footer px-6 py-4 border-t border-gray-200')">
       <slot name="footer" />
     </div>
   </Modal>

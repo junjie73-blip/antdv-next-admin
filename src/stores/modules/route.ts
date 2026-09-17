@@ -1,7 +1,10 @@
-import type { AppRouteRecordRaw } from '#/app-router'
-import type { BackendMenu, MenuConfig } from '#/menu'
+
 import { defineStore } from 'pinia'
 import { markRaw, ref } from 'vue'
+
+import type { AppRouteRecordRaw } from '#/app-router'
+import type { BackendMenu, MenuConfig } from '#/menu'
+
 import { DefaultLayout } from '@/layouts'
 import { http } from '@/utils/request'
 

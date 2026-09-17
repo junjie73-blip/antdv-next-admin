@@ -1,6 +1,10 @@
-import type { BasicColumn } from "@/components/business/Table";
+
 import dayjs from "dayjs";
+
 import type { JobLogRecord, JobRecord } from "./types";
+
+import type { BasicColumn } from "@/components/business/Table";
+
 /** 任务列表列定义 */
 export const jobColumns: BasicColumn[] = [
   {

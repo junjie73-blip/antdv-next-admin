@@ -1,6 +1,6 @@
-import type { DescriptionItem } from "@/components/business/Description";
-import type { FormSchema } from "@/components/business/Form";
+
 import { h } from "vue";
+
 import {
   ACTION_COLOR_MAP,
   ACTION_OPTIONS,
@@ -11,7 +11,12 @@ import {
   SCOPE_COLOR_MAP,
   SCOPE_LABEL_MAP,
 } from "./constants";
+
 import { needAction } from "./utils";
+
+import type { DescriptionItem } from "@/components/business/Description";
+import type { FormSchema } from "@/components/business/Form";
+
 import { DictType } from "@/enums/dict";
 
 /** 搜索表单 schema */

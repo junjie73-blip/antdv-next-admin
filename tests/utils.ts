@@ -4,8 +4,9 @@
  * 提供测试中常用的辅助函数和 mock 对象
  */
 
-import type { ComponentPublicInstance } from 'vue'
 import { mount } from '@vue/test-utils'
+
+import type { ComponentPublicInstance } from 'vue'
 
 /**
  * 创建模拟的 Modal 实例方法

@@ -1,5 +1,8 @@
-import type { JwtOptions, JwtPayload } from './types'
 import * as jose from 'jose'
+
+import type { JwtOptions, JwtPayload } from './types'
+
+
 
 export async function signJwt(payload: JwtPayload, options: JwtOptions): Promise<string> {
   const { secret, expiresIn } = options

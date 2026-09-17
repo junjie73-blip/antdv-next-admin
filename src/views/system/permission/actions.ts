@@ -1,5 +1,6 @@
-import type { ActionItem } from "@/components/business/Table";
 import type { PermissionRecord } from "./types";
+
+import type { ActionItem } from "@/components/business/Table";
 
 /** 权限行操作上下文 */
 export interface PermissionActionContext {

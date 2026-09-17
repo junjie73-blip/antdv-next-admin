@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { Modal, message } from "antdv-next";
 
-import { getOnlineList, kickAllOnline, kickOnline } from "@/api";
-import { BasicTable, TableAction, useTable, type ActionItem } from "@/components/business/Table";
 
 // 抽离的模块
+import { Icon } from "@iconify/vue";
+import { message, Modal } from "antdv-next";
+
 import { getOnlineActions } from "./actions";
 import { onlineActionColumn, onlineColumns, onlineRowKey, onlineScroll } from "./columns";
+
 import type { OnlineUserRecord } from "./types";
+
+import { getOnlineList, kickAllOnline, kickOnline } from "@/api";
+import { type ActionItem, BasicTable, TableAction, useTable } from "@/components/business/Table";
 
 defineOptions({ name: "MonitorOnline" });
 
@@ -46,7 +49,9 @@ function getActions(record: OnlineUserRecord): ActionItem[] {
 </script>
 
 <template>
-  <a-card title="在线用户" :bordered="false" class="shadow-sm">
+  <a-card title="在线用户"
+:bordered="false"
+class="shadow-sm">
     <BasicTable
       :columns="onlineColumns"
       :api="getOnlineList"
@@ -58,7 +63,8 @@ function getActions(record: OnlineUserRecord): ActionItem[] {
       @register="tableRegister"
     >
       <template #toolbar>
-        <a-button danger @click="handleKickAll">
+        <a-button danger
+@click="handleKickAll">
           <template #icon><Icon icon="ant-design:logout-outlined" /></template>
           全部下线
         </a-button>

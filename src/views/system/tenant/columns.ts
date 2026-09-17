@@ -1,6 +1,10 @@
-import type { BasicColumn } from "@/components/business/Table";
+
 import dayjs from "dayjs";
+
 import type { TenantRecord } from "./types";
+
+import type { BasicColumn } from "@/components/business/Table";
+
 
 /** 租户表格列 */
 export const tenantColumns: BasicColumn[] = [

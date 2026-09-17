@@ -1,6 +1,10 @@
-import type { BasicColumn } from "@/components/business/Table";
+
 import dayjs from "dayjs";
+
 import type { IpRuleRecord } from "./types";
+
+import type { BasicColumn } from "@/components/business/Table";
+
 
 /** IP 规则表格列 */
 export const ipRuleColumns: BasicColumn[] = [

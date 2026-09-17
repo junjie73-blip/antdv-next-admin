@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import type { ScrollbarInstance, ScrollbarPosition, ScrollbarProps } from './types'
+
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
+
+import type { ScrollbarInstance, ScrollbarPosition, ScrollbarProps } from './types'
+
 import { cn } from '@/utils/cn'
 
 /**
@@ -339,7 +342,8 @@ defineExpose<ScrollbarInstance>({
 </script>
 
 <template>
-  <div :class="wrapClassName" :style="[wrapStyle, wrapStyle]">
+  <div :class="wrapClassName"
+:style="[wrapStyle, wrapStyle]">
     <!-- 内容区域 -->
     <component
       :is="tag"

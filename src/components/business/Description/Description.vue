@@ -1,12 +1,21 @@
 <script setup lang="ts">
-import type { VNodeChild } from "vue";
-import type { DescriptionInstance, DescriptionItem, DescriptionProps } from "./types";
-import { computed, h, useSlots } from "vue";
+
+
 import { Descriptions, type DescriptionsProps } from "antdv-next";
-import { cn } from "@/utils/cn";
-import dayjs from "dayjs";
-import { getDictLabel, getDictLabels } from "@/utils/dict";
 import { Image } from "antdv-next";
+import dayjs from "dayjs";
+import { computed, h, useSlots } from "vue";
+
+import type { VNodeChild } from "vue";
+
+import type { DescriptionInstance, DescriptionItem, DescriptionProps } from "./types";
+
+import { cn } from "@/utils/cn";
+import { getDictLabel, getDictLabels } from "@/utils/dict";
+
+
+
+
 const props = withDefaults(defineProps<DescriptionProps>(), {
   column: 3,
   layout: "horizontal",
@@ -171,9 +180,11 @@ defineExpose(instance);
 </script>
 
 <template>
-  <div :class="cn('description-wrapper', className)" :style="style">
+  <div :class="cn('description-wrapper', className)"
+:style="style">
     <!-- 加载中 -->
-    <div v-if="loading" class="description-loading flex items-center justify-center py-8">
+    <div v-if="loading"
+class="description-loading flex items-center justify-center py-8">
       <div
         class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"
       />

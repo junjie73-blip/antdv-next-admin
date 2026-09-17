@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import type { FormSchema } from '@/components/business/Form'
+
 import { ref } from 'vue'
+
+import type { FormSchema } from '@/components/business/Form'
+
 import { BasicForm, useForm } from '@/components/business/Form'
 import { cn } from '@/utils/cn'
 
@@ -230,13 +233,15 @@ function handleGetValues() {
     <a-card title="基础表单">
       <div class="space-y-4">
         <div class="flex gap-2 flex-wrap">
-          <a-button type="primary" @click="handleValidate"> 验证表单 </a-button>
+          <a-button type="primary"
+@click="handleValidate"> 验证表单 </a-button>
           <a-button @click="handleReset"> 重置表单 </a-button>
           <a-button @click="handleSetValues"> 设置 </a-button>
           <a-button @click="handleGetValues"> 获取 </a-button>
         </div>
 
-        <BasicForm @register="register" @submit="handleSubmit" />
+        <BasicForm @register="register"
+@submit="handleSubmit" />
       </div>
     </a-card>
 

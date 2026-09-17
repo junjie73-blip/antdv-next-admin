@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import type { BasicColumn } from '@/components/business/Table'
 
 import { ref } from 'vue'
+
+import type { BasicColumn } from '@/components/business/Table'
+
 import { BasicTable, useTable } from '@/components/business/Table'
 import { cn } from '@/utils/cn'
 
@@ -312,13 +314,16 @@ const [registerLoading] = useTable({
 
 <template>
   <div :class="containerClassName">
-    <a-card title="Basic Table" variant="borderless">
+    <a-card title="Basic Table"
+variant="borderless">
       <div :class="toolbarClassName">
         <span :class="descriptionClassName"
           >Sorting, filtering, loading, and selection support</span
         >
         <a-space>
-          <a-button type="primary" size="small" @click="handleBasicRefresh"> Refresh </a-button>
+          <a-button type="primary"
+size="small"
+@click="handleBasicRefresh"> Refresh </a-button>
           <a-button
             size="small"
             :disabled="basicSelectedKeys.length === 0"
@@ -340,7 +345,8 @@ const [registerLoading] = useTable({
       </BasicTable>
     </a-card>
 
-    <a-card title="Pagination" variant="borderless">
+    <a-card title="Pagination"
+variant="borderless">
       <BasicTable @register="registerPagination">
         <template #cell-status="{ record }">
           <a-tag :color="orderStatusColorMap[record?.status] || 'default'">
@@ -353,7 +359,8 @@ const [registerLoading] = useTable({
       </BasicTable>
     </a-card>
 
-    <a-card title="Expandable / Tree Data" variant="borderless">
+    <a-card title="Expandable / Tree Data"
+variant="borderless">
       <BasicTable @register="registerTree">
         <template #cell-type="{ record }">
           <a-tag :color="typeColorMap[record?.type] || 'default'">
@@ -366,8 +373,11 @@ const [registerLoading] = useTable({
       </BasicTable>
     </a-card>
 
-    <a-card title="Empty &amp; Loading States" variant="borderless">
-      <a-space direction="vertical" :size="16" :style="fullWidthStyle">
+    <a-card title="Empty &amp; Loading States"
+variant="borderless">
+      <a-space direction="vertical"
+:size="16"
+:style="fullWidthStyle">
         <div>
           <p :class="labelClassName">Loading state</p>
           <BasicTable @register="registerLoading" />

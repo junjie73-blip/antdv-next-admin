@@ -1,6 +1,8 @@
-import type { BasicColumn } from "@/components/business/Table";
-import type { FileRecord } from "./types";
 import { formatSize } from "./utils";
+
+import type { FileRecord } from "./types";
+
+import type { BasicColumn } from "@/components/business/Table";
 
 /** 文件表格列 */
 export const fileColumns: BasicColumn[] = [

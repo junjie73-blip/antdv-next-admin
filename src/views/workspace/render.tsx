@@ -1,6 +1,7 @@
-import type { LogItem } from "./types";
 import { LOG_STATUS_COLOR_MAP, LOG_STATUS_LABEL_MAP } from "./constants";
 import { formatLogTime } from "./utils";
+
+import type { LogItem } from "./types";
 
 export function renderLogItem(item: LogItem) {
   const style = LOG_STATUS_COLOR_MAP[item.status] ?? LOG_STATUS_COLOR_MAP["0"];

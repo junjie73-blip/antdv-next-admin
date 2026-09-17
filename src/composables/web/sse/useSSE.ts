@@ -1,9 +1,13 @@
-import type { SSEEventCallback, SSEEventHandlers, SSEEventType, SSEOptions } from './types'
+
 import { computed, onUnmounted, readonly, ref } from 'vue'
+
 import { DEFAULT_SSE_OPTIONS } from './constants'
 import { SSEEventManager } from './SSEEventManager'
 import { SSEReconnectManager } from './SSEReconnectManager'
 import { SSEStateManager } from './SSEStateManager'
+
+import type { SSEEventCallback, SSEEventHandlers, SSEEventType, SSEOptions } from './types'
+
 
 export function useSSE(options: SSEOptions) {
   const finalOptions = { ...DEFAULT_SSE_OPTIONS, ...options }

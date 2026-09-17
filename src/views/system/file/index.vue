@@ -1,18 +1,21 @@
 <script setup lang="ts">
+
+
+// 抽离的模块
 import { Icon } from "@iconify/vue";
 import { message } from "antdv-next";
 
-import { deleteFile, getFileList } from "@/api";
-import { BasicTable, TableAction, useTable, type ActionItem } from "@/components/business/Table";
-import { exportToExcel } from "@/utils/excel";
-
-// 抽离的模块
 import { getFileActions } from "./actions";
 import { fileActionColumn, fileColumns, filePagination, fileRowKey, fileScroll } from "./columns";
 import { cardClassName, containerClassName } from "./constants";
 import { fileSearchSchemas } from "./schemas";
-import type { FileRecord } from "./types";
 import { formatSize, getFileColor, getFileIcon } from "./utils";
+
+import type { FileRecord } from "./types";
+
+import { deleteFile, getFileList } from "@/api";
+import { type ActionItem, BasicTable, TableAction, useTable } from "@/components/business/Table";
+import { exportToExcel } from "@/utils/excel";
 
 defineOptions({ name: "SystemFile" });
 
@@ -84,7 +87,8 @@ function getActions(record: FileRecord): ActionItem[] {
 
 <template>
   <div :class="containerClassName">
-    <a-card :class="cardClassName" :bordered="false">
+    <a-card :class="cardClassName"
+:bordered="false">
       <div class="p-4">
         <BasicTable
           :columns="fileColumns"
@@ -114,7 +118,8 @@ function getActions(record: FileRecord): ActionItem[] {
                 :style="{ color: getFileColor(record as FileRecord), fontSize: '16px' }"
                 class="shrink-0"
               />
-              <span class="truncate" :title="record.filename">{{ record.filename }}</span>
+              <span class="truncate"
+:title="record.filename">{{ record.filename }}</span>
             </div>
           </template>
 

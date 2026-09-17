@@ -1,8 +1,10 @@
 <script setup lang="ts">
+
 import { provide, ref } from 'vue'
+
 import { BasicDrawer, useDrawer } from '@/components/business/Drawer'
-import AccountSettings from '@/views/account/index.vue'
 import { useUserStore } from '@/stores/modules/user'
+import AccountSettings from '@/views/account/index.vue'
 
 defineOptions({ name: 'AccountDrawer' })
 

@@ -1,13 +1,16 @@
-import type { RequestMeta } from "./interface";
+
 import { createAlova } from "alova";
 import adapterFetch from "alova/fetch";
 import VueHook from "alova/vue";
+import { message, notification } from "antdv-next";
 
+import { AUTHORIZATION_KEY } from "./constant";
+
+import type { RequestMeta } from "./interface";
+
+import router from "@/router";
 import { useUserStore } from "@/stores/modules/user";
 import { config as csrfConfig, getCsrfToken, initCsrfProtection } from "@/utils/csrf";
-import { AUTHORIZATION_KEY } from "./constant";
-import { message, notification } from "antdv-next";
-import router from "@/router";
 
 // ==================== 业务错误码（与后端 errorHandler 对齐）====================
 export const ErrorCode = {

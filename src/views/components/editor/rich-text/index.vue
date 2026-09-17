@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import type { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
-
 import { computed, ref, shallowRef, watch } from 'vue'
+
+import type { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor'
+
 import { cn } from '@/utils/cn'
+
+
 import '@wangeditor/editor/dist/css/style.css'
 
 defineOptions({ name: 'EditorRichText' })
@@ -67,7 +70,8 @@ watch(
 
 <template>
   <div :class="containerClassName">
-    <a-card :class="toolbarCardClassName" :styles="{ body: { padding: '0' } }">
+    <a-card :class="toolbarCardClassName"
+:styles="{ body: { padding: '0' } }">
       <Toolbar
         :editor="editorRef"
         :default-config="toolbarConfig"
@@ -76,7 +80,8 @@ watch(
       />
     </a-card>
 
-    <a-card :class="editorCardClassName" :styles="{ body: { padding: '0' } }">
+    <a-card :class="editorCardClassName"
+:styles="{ body: { padding: '0' } }">
       <Editor
         :default-config="editorConfig"
         :style="{ height: '600px' }"

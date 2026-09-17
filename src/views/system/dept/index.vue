@@ -1,7 +1,29 @@
 <script setup lang="ts">
+
 import { Icon } from "@iconify/vue";
-import { computed, onMounted, ref } from "vue";
 import { message } from "antdv-next";
+import { computed, onMounted, ref } from "vue";
+
+import { getDeptActions } from "./actions";
+import { deptActionColumn, deptColumns, deptRowKey, deptScroll } from "./columns";
+import DeptUserDrawer from "./components/DeptUserDrawer.vue";
+
+import {
+  cardClassName,
+  containerClassName,
+  DEPT_STATUS_COLOR_MAP,
+  DEPT_STATUS_ICON_MAP,
+  DEPT_STATUS_LABEL_MAP,
+  leftPanelClassName,
+  rightPanelClassName,
+  statusTagClassName,
+  treeCardClassName,
+} from "./constants";
+
+import { deptSearchSchemas, useDeptFormSchemas } from "./schemas";
+import { convertToTreeNode } from "./utils";
+
+import type { DeptRecord, DeptTreeNode } from "./types";
 
 import { addDept, deleteDept, getDeptList, getDeptTree, updateDept } from "@/api";
 import { BasicForm, useForm } from "@/components/business/Form";
@@ -12,23 +34,10 @@ import { DictType } from "@/enums/dict";
 import { useDictStore } from "@/stores";
 
 // 抽离的模块
-import { getDeptActions } from "./actions";
-import { deptActionColumn, deptColumns, deptRowKey, deptScroll } from "./columns";
-import {
-  DEPT_STATUS_COLOR_MAP,
-  DEPT_STATUS_ICON_MAP,
-  DEPT_STATUS_LABEL_MAP,
-  cardClassName,
-  containerClassName,
-  leftPanelClassName,
-  rightPanelClassName,
-  statusTagClassName,
-  treeCardClassName,
-} from "./constants";
-import { deptSearchSchemas, useDeptFormSchemas } from "./schemas";
-import type { DeptRecord, DeptTreeNode } from "./types";
-import { convertToTreeNode } from "./utils";
-import DeptUserDrawer from "./components/DeptUserDrawer.vue";
+
+
+
+
 defineOptions({ name: "SystemDept" });
 
 // ========== 字典 ==========
@@ -161,7 +170,9 @@ onMounted(() => {
   <div :class="containerClassName">
     <!-- 左侧部门树 -->
     <div :class="leftPanelClassName">
-      <a-card :class="treeCardClassName" title="部门架构" size="small">
+      <a-card :class="treeCardClassName"
+title="部门架构"
+size="small">
         <a-spin :spinning="loading">
           <a-tree
             :tree-data="deptTreeData"
@@ -178,7 +189,8 @@ onMounted(() => {
 
     <!-- 右侧部门列表 -->
     <div :class="rightPanelClassName">
-      <a-card title="部门列表" :class="cardClassName">
+      <a-card title="部门列表"
+:class="cardClassName">
         <BasicTable
           :columns="deptColumns"
           :api="fetchDeptList"
@@ -194,7 +206,8 @@ onMounted(() => {
           @register="tableRegister"
         >
           <template #toolbar>
-            <a-button type="primary" @click="handleAdd()">
+            <a-button type="primary"
+@click="handleAdd()">
               <template #icon><Icon icon="ant-design:plus-outlined" /></template>
               新增部门
             </a-button>
@@ -210,7 +223,8 @@ onMounted(() => {
           </template>
 
           <template #action="{ record }">
-            <TableAction :actions="getActions(record as DeptRecord)" :record="record" />
+            <TableAction :actions="getActions(record as DeptRecord)"
+:record="record" />
           </template>
         </BasicTable>
       </a-card>
@@ -231,6 +245,8 @@ onMounted(() => {
         @register="formRegister"
       />
     </BasicModal>
-    <DeptUserDrawer v-model:open="deptUserOpen" :dept="deptUserRecord" @saved="handleUsersSaved" />
+    <DeptUserDrawer v-model:open="deptUserOpen"
+:dept="deptUserRecord"
+@saved="handleUsersSaved" />
   </div>
 </template>

@@ -1,11 +1,18 @@
 <script setup lang="ts">
-import type { UploadProps as AntUploadProps, UploadFile } from 'antdv-next'
-import type { UploadInstance, UploadProps } from './types'
-import { UploadOutlined } from '@ant-design/icons-vue'
-import { Upload as AntUpload, Button } from 'antdv-next'
 
+
+import { UploadOutlined } from '@ant-design/icons-vue'
+import { Button, Upload as AntUpload } from 'antdv-next'
 import { computed, ref, watch } from 'vue'
+
+import type { UploadFile, UploadProps as AntUploadProps } from 'antdv-next'
+
+import type { UploadInstance, UploadProps } from './types'
+
 import { cn } from '@/utils/cn'
+
+
+
 
 /**
  * Upload - 上传组件
@@ -132,8 +139,11 @@ defineExpose<UploadInstance>({
 
 <template>
   <div :class="cn('upload-wrapper', props.className)">
-    <AntUpload v-model:file-list="fileList" v-bind="uploadProps" @change="handleChange">
-      <Button v-if="!readonly" :disabled="disabled">
+    <AntUpload v-model:file-list="fileList"
+v-bind="uploadProps"
+@change="handleChange">
+      <Button v-if="!readonly"
+:disabled="disabled">
         <UploadOutlined />
         {{ uploadText }}
       </Button>

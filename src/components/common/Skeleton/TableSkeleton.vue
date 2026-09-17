@@ -63,7 +63,8 @@ function getCellClassName(isAction?: boolean) {
 
 <template>
   <!-- 加载中：显示表格骨架屏 -->
-  <div v-if="loading" :class="cn('w-full', props.class)">
+  <div v-if="loading"
+:class="cn('w-full', props.class)">
     <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
       <!-- 表头 -->
       <div
@@ -77,7 +78,8 @@ function getCellClassName(isAction?: boolean) {
           :key="`header-${col}`"
           :class="cn(headerCellClassName, 'flex-1')"
         />
-        <div v-if="showActions" :class="cn(headerCellClassName, 'w-24 shrink-0')" />
+        <div v-if="showActions"
+:class="cn(headerCellClassName, 'w-24 shrink-0')" />
       </div>
 
       <!-- 数据行 -->
@@ -98,13 +100,15 @@ function getCellClassName(isAction?: boolean) {
             :key="`cell-${row}-${col}`"
             :class="cn('px-4 flex-1', getCellClassName())"
           />
-          <div v-if="showActions" :class="cn('px-4 w-24 shrink-0', getCellClassName(true))" />
+          <div v-if="showActions"
+:class="cn('px-4 w-24 shrink-0', getCellClassName(true))" />
         </div>
       </div>
     </div>
 
     <!-- 分页器骨架 -->
-    <div v-if="showPagination" class="flex items-center justify-between mt-4">
+    <div v-if="showPagination"
+class="flex items-center justify-between mt-4">
       <div :class="cn(skeletonBaseClassName, 'h-8 w-48')" />
       <div class="flex items-center gap-2">
         <div :class="cn(skeletonBaseClassName, 'h-8 w-16')" />

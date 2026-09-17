@@ -1,35 +1,45 @@
 <script setup lang="ts">
+
 import { Icon } from "@iconify/vue";
 import { computed, ref, watch } from "vue";
 
+import { getPermissionActions } from "./actions";
+
+import {
+  permissionActionColumn,
+  permissionColumns,
+  permissionPagination,
+  permissionRowKey,
+  permissionScroll,
+} from "./columns";
+
+import {
+  COMMON_BUTTONS,
+  containerClassName,
+  PERMISSION_STATUS_COLOR_MAP,
+  PERMISSION_STATUS_ICON_MAP,
+  PERMISSION_STATUS_LABEL_MAP,
+  tagClassName,
+} from "./constants";
+
+import { usePermissionFormSchemas } from "./schemas";
+
+import type { PermissionRecord } from "./types";
+
+import { getMenuButtons } from "@/api";
 import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
 import { BasicForm, useForm } from "@/components/business/Form";
-import { BasicTable, TableAction, useTable, type ActionItem } from "@/components/business/Table";
+import { type ActionItem, BasicTable, TableAction, useTable } from "@/components/business/Table";
 import { useCRUD } from "@/composables/useCRUD";
 import { DictType } from "@/enums/dict";
 import { useDictStore } from "@/stores";
 import { http } from "@/utils";
 
 // 抽离的模块
-import { getPermissionActions } from "./actions";
-import {
-  permissionActionColumn,
-  permissionColumns,
-  permissionRowKey,
-  permissionPagination,
-  permissionScroll,
-} from "./columns";
-import {
-  COMMON_BUTTONS,
-  PERMISSION_STATUS_COLOR_MAP,
-  PERMISSION_STATUS_ICON_MAP,
-  PERMISSION_STATUS_LABEL_MAP,
-  containerClassName,
-  tagClassName,
-} from "./constants";
-import { usePermissionFormSchemas } from "./schemas";
-import type { PermissionRecord } from "./types";
-import { getMenuButtons } from "@/api";
+
+
+
+
 
 defineOptions({ name: "SystemPermissionButton" });
 
@@ -131,7 +141,8 @@ watch(
   <div :class="containerClassName">
     <!-- 顶部工具栏 -->
     <div class="flex items-center gap-4 mb-4">
-      <a-button type="primary" @click="handleAdd()">
+      <a-button type="primary"
+@click="handleAdd()">
         <template #icon><Icon icon="ant-design:plus-outlined" /></template>
         新增按钮
       </a-button>

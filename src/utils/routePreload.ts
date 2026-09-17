@@ -13,10 +13,13 @@
  * - 路由变化前提前加载下一个可能的页面
  */
 
-import type { RouteLocationRaw } from 'vue-router'
+
 import { tryOnScopeDispose } from '@vueuse/core'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+
+import type { RouteLocationRaw } from 'vue-router'
+
 
 // 预加载缓存（已预加载的路由路径）
 const preloadedRoutes = new Set<string>()

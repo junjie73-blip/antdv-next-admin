@@ -1,10 +1,17 @@
-import type { LayoutMode } from "#/app";
-import type { MenuConfig } from "#/menu";
-import type { RouteLocationMatched } from "vue-router";
 import { useFullscreen as _useFullscreen, useMediaQuery } from "@vueuse/core";
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
+
+import type { RouteLocationMatched } from "vue-router";
+
+import type { LayoutMode } from "#/app";
+import type { MenuConfig } from "#/menu";
+
 import { useAppStore } from "@/stores";
+
+
+
+
 
 export type { LayoutMode };
 

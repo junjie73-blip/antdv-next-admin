@@ -1,5 +1,6 @@
-import type { CreateLoadingOptions, LoadingInstance } from './types'
 import { useLoading } from './useLoading'
+
+import type { CreateLoadingOptions, LoadingInstance } from './types'
 
 /**
  * createLoading - 函数式创建 loading

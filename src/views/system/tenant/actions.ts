@@ -1,5 +1,6 @@
-import type { ActionItem } from "@/components/business/Table";
 import type { TenantRecord } from "./types";
+
+import type { ActionItem } from "@/components/business/Table";
 
 /** 租户行操作上下文 */
 export interface TenantActionContext {

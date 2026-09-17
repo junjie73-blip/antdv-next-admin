@@ -1,10 +1,11 @@
-import type { FileRecord } from "./types";
 import {
   DEFAULT_FILE_COLOR,
   DEFAULT_FILE_ICON,
   MIME_COLOR_RULES,
   MIME_ICON_RULES,
 } from "./constants";
+
+import type { FileRecord } from "./types";
 
 /**
  * 格式化文件大小

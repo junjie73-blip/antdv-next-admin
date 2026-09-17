@@ -1,7 +1,8 @@
+
 import * as echarts from "echarts";
-import type { ActivityTrendData } from "../types";
-import { getActivityTrend } from "@/api";
+
 import { PALETTE } from "../constants";
+
 import {
   axisLineColor,
   baseOption,
@@ -10,6 +11,10 @@ import {
   gradient,
   subTextColor,
 } from "../theme";
+
+import type { ActivityTrendData } from "../types";
+
+import { getActivityTrend } from "@/api";
 
 /** 系统活动趋势（主图） */
 export async function initMainTrend(el: HTMLElement, isDark: boolean, range: string) {

@@ -1,6 +1,7 @@
+import { LOGIN_STATUS_OPTIONS } from "./constants";
+
 import type { DescriptionItem } from "@/components/business/Description";
 import type { FormSchema } from "@/components/business/Form";
-import { LOGIN_STATUS_OPTIONS } from "./constants";
 
 /** 搜索表单 schema */
 export const loginLogSearchSchemas: FormSchema[] = [

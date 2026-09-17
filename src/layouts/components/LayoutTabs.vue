@@ -1,17 +1,21 @@
 <script setup lang="ts">
+
 import {
   CloseCircleOutlined,
   CloseOutlined,
   ReloadOutlined,
   SettingOutlined,
 } from '@antdv-next/icons'
+
 import { Icon } from '@iconify/vue'
 import { Dropdown } from 'antdv-next'
 import { computed, h, nextTick, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+
 import { useAppStore } from '@/stores/modules/app'
 import { useRouteStore } from '@/stores/modules/route'
 import { cn } from '@/utils/cn'
+
 
 const props = defineProps<{
   hasChildren?: boolean
@@ -242,7 +246,8 @@ function onMouseUp() {
 </script>
 
 <template>
-  <div v-if="appStore.showTabs" :class="tabsClassName">
+  <div v-if="appStore.showTabs"
+:class="tabsClassName">
     <PerfectScrollbar
       ref="scrollContainerRef"
       class="min-w-0 flex-1 cursor-grab select-none"
@@ -257,7 +262,10 @@ function onMouseUp() {
           :class="tabItemClassName(tab.key)"
           @click="handleTabClick(tab.key)"
         >
-          <Icon v-if="props.showIcon && tab.icon" :icon="tab.icon" :width="14" :height="14" />
+          <Icon v-if="props.showIcon && tab.icon"
+:icon="tab.icon"
+:width="14"
+:height="14" />
           <span>{{ tab.title }}</span>
           <CloseOutlined
             v-if="tab.closable"
@@ -269,7 +277,9 @@ function onMouseUp() {
     </PerfectScrollbar>
 
     <Dropdown :menu="{ items: dropdownItems, onClick: handleDropdownClick }">
-      <a-button type="text" size="small" class="shrink-0 ml-2">
+      <a-button type="text"
+size="small"
+class="shrink-0 ml-2">
         <template #icon>
           <SettingOutlined />
         </template>

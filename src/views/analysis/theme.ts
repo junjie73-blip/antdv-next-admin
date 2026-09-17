@@ -1,5 +1,8 @@
 import * as echarts from "echarts";
+
 import { PALETTE } from "./constants";
+
+
 
 /** 主文本色 */
 export function textColor(isDark: boolean) {

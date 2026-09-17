@@ -1,6 +1,7 @@
-import type { CacheInstance, CacheItem, CacheOptions } from "./types";
 import { decryptValueSync, encryptValueSync, shouldEncrypt } from "./encrypt";
 import { createStorage } from "./storage";
+
+import type { CacheInstance, CacheItem, CacheOptions } from "./types";
 
 export { localStorageAdapter, memoryStorageAdapter, sessionStorageAdapter } from "./storage";
 export type { CacheInstance, CacheItem, CacheOptions, CacheStorage, StorageType } from "./types";

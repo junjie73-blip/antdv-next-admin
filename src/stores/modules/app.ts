@@ -1,8 +1,13 @@
-import type { AppSetting } from '@/settings'
+
 import { theme } from 'antdv-next'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+
+import type { AppSetting } from '@/settings'
+
 import { DEFAULT_SETTING } from '@/settings'
+
+
 
 export const useAppStore = defineStore('app', () => {
   const { token } = theme.useToken()

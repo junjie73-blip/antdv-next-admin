@@ -1,16 +1,18 @@
 <script setup lang="ts">
+import { LockOutlined, MailOutlined, ShopOutlined, UserOutlined } from "@antdv-next/icons";
+import { Icon } from "@iconify/vue";
+import { message } from "antdv-next";
+import { reactive, ref } from "vue";
+import { useRouter } from "vue-router";
+
+import { useLoginStyles } from "../login/composables/useLoginStyles";
+
 import type { FormInstance } from "antdv-next";
 import type { Rule } from "antdv-next/dist/form/types";
 
-import { LockOutlined, MailOutlined, ShopOutlined, UserOutlined } from "@antdv-next/icons";
-import { Icon } from "@iconify/vue";
-import { reactive, ref } from "vue";
-import { useRouter } from "vue-router";
-import { message } from "antdv-next";
-import { http } from "@/utils";
-import { useLoginStyles } from "../login/composables/useLoginStyles";
 import logoIconUrl from "@/assets/images/logo.png";
 import { useAppStore } from "@/stores";
+import { http } from "@/utils";
 
 defineOptions({ name: "Register" });
 

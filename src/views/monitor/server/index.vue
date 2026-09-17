@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { getServerInfo } from "@/api";
 import * as echarts from "echarts"; // ⚠️ 静态 import，不要动态 import
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+
+import { getServerInfo } from "@/api";
+
 
 defineOptions({ name: "MonitorServer" });
 
@@ -249,7 +251,8 @@ onUnmounted(() => {
         <div
           class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center"
         >
-          <Icon icon="carbon:logo-nodejs" class="text-xl" />
+          <Icon icon="carbon:logo-nodejs"
+class="text-xl" />
         </div>
         <div class="min-w-0 flex-1">
           <div class="text-xs text-gray-400 flex items-center gap-1">
@@ -279,7 +282,8 @@ onUnmounted(() => {
               : 'bg-gray-100 text-gray-400'
           "
         >
-          <Icon icon="logos:redis" class="text-xl" />
+          <Icon icon="logos:redis"
+class="text-xl" />
         </div>
         <div class="min-w-0">
           <div class="text-xs text-gray-400">Redis</div>
@@ -308,7 +312,8 @@ onUnmounted(() => {
               : 'bg-gray-100 text-gray-400'
           "
         >
-          <Icon icon="carbon:data-base" class="text-xl" />
+          <Icon icon="carbon:data-base"
+class="text-xl" />
         </div>
         <div class="min-w-0">
           <div class="text-xs text-gray-400">数据库</div>
@@ -336,7 +341,8 @@ onUnmounted(() => {
         <div
           class="w-10 h-10 rounded-lg bg-purple-50 text-purple-500 flex items-center justify-center flex-shrink-0"
         >
-          <Icon icon="carbon:server" class="text-xl" />
+          <Icon icon="carbon:server"
+class="text-xl" />
         </div>
         <div class="min-w-0">
           <div class="text-xs text-gray-400">系统运行</div>
@@ -355,7 +361,8 @@ onUnmounted(() => {
       >
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2">
-            <Icon icon="carbon:chip" class="text-blue-500" />
+            <Icon icon="carbon:chip"
+class="text-blue-500" />
             <span class="text-sm font-medium text-gray-700 dark:text-gray-200">CPU</span>
           </div>
           <span class="text-xs text-gray-400"
@@ -366,8 +373,15 @@ onUnmounted(() => {
         <div class="flex items-center gap-6">
           <!-- 环形进度 -->
           <div class="relative flex-shrink-0">
-            <svg width="100" height="100" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="42" fill="none" stroke="#f3f4f6" stroke-width="8" />
+            <svg width="100"
+height="100"
+viewBox="0 0 100 100">
+              <circle cx="50"
+cy="50"
+r="42"
+fill="none"
+stroke="#f3f4f6"
+stroke-width="8" />
               <circle
                 cx="50"
                 cy="50"
@@ -425,7 +439,8 @@ onUnmounted(() => {
       >
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2">
-            <Icon icon="carbon:memory" class="text-amber-500" />
+            <Icon icon="carbon:memory"
+class="text-amber-500" />
             <span class="text-sm font-medium text-gray-700 dark:text-gray-200">内存</span>
           </div>
           <span class="text-xs text-gray-400">共 {{ info.memory?.totalHuman }}</span>
@@ -434,8 +449,15 @@ onUnmounted(() => {
         <div class="flex items-center gap-6">
           <!-- 环形进度 -->
           <div class="relative flex-shrink-0">
-            <svg width="100" height="100" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="42" fill="none" stroke="#f3f4f6" stroke-width="8" />
+            <svg width="100"
+height="100"
+viewBox="0 0 100 100">
+              <circle cx="50"
+cy="50"
+r="42"
+fill="none"
+stroke="#f3f4f6"
+stroke-width="8" />
               <circle
                 cx="50"
                 cy="50"
@@ -494,12 +516,14 @@ onUnmounted(() => {
     >
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-2">
-          <Icon icon="carbon:chart-line" class="text-blue-500" />
+          <Icon icon="carbon:chart-line"
+class="text-blue-500" />
           <span class="text-sm font-medium text-gray-700 dark:text-gray-200">实时趋势</span>
         </div>
         <span class="text-xs text-gray-400">每 5 秒刷新 · 最近 30 次采样</span>
       </div>
-      <div ref="trendRef" style="height: 240px" />
+      <div ref="trendRef"
+style="height: 240px" />
     </div>
 
     <!-- ========== Node 进程 + 磁盘 ========== -->
@@ -509,7 +533,8 @@ onUnmounted(() => {
         class="rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 md:col-span-2"
       >
         <div class="flex items-center gap-2 mb-4">
-          <Icon icon="carbon:application-web" class="text-emerald-500" />
+          <Icon icon="carbon:application-web"
+class="text-emerald-500" />
           <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Node 进程</span>
         </div>
         <div class="grid grid-cols-3 gap-4">
@@ -558,7 +583,8 @@ onUnmounted(() => {
         class="rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5"
       >
         <div class="flex items-center gap-2 mb-4">
-          <Icon icon="carbon:data-base" class="text-purple-500" />
+          <Icon icon="carbon:data-base"
+class="text-purple-500" />
           <span class="text-sm font-medium text-gray-700 dark:text-gray-200">磁盘</span>
         </div>
         <div
@@ -567,8 +593,11 @@ onUnmounted(() => {
         >
           暂无数据
         </div>
-        <PerfectScrollbar v-else class="space-y-3 max-h-[180px] h-full">
-          <div v-for="d in info.disks" :key="d.mount" class="space-y-1.5">
+        <PerfectScrollbar v-else
+class="space-y-3 max-h-[180px] h-full">
+          <div v-for="d in info.disks"
+:key="d.mount"
+class="space-y-1.5">
             <div class="flex justify-between text-xs">
               <span class="text-gray-500 font-mono">{{ d.mount }}</span>
               <span class="text-gray-700 dark:text-gray-200 font-medium">{{ d.usage }}%</span>
@@ -593,7 +622,8 @@ onUnmounted(() => {
       class="rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5"
     >
       <div class="flex items-center gap-2 mb-4">
-        <Icon icon="carbon:information" class="text-gray-500" />
+        <Icon icon="carbon:information"
+class="text-gray-500" />
         <span class="text-sm font-medium text-gray-700 dark:text-gray-200">系统信息</span>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -602,7 +632,8 @@ onUnmounted(() => {
           :key="item.label"
           class="flex items-start gap-2 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50"
         >
-          <Icon :icon="item.icon" class="text-gray-400 text-base mt-0.5 flex-shrink-0" />
+          <Icon :icon="item.icon"
+class="text-gray-400 text-base mt-0.5 flex-shrink-0" />
           <div class="min-w-0">
             <div class="text-[11px] text-gray-400">{{ item.label }}</div>
             <div

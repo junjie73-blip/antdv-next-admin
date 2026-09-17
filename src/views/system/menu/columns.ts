@@ -1,5 +1,6 @@
-import type { BasicColumn } from "@/components/business/Table";
 import type { MenuRecord } from "./types";
+
+import type { BasicColumn } from "@/components/business/Table";
 
 /** 菜单表格列 */
 export const menuColumns: BasicColumn[] = [

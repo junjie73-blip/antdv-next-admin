@@ -1,5 +1,6 @@
-import type { ActionItem } from "@/components/business/Table";
 import type { FileRecord } from "./types";
+
+import type { ActionItem } from "@/components/business/Table";
 
 /** 文件行操作上下文 */
 export interface FileActionContext {

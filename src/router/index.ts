@@ -1,8 +1,13 @@
-import type { AppRouteRecordRaw } from "#/app-router";
-import type { App } from "vue";
+
 import { createRouter, createWebHashHistory } from "vue-router";
+
 import { setupRouterGuards } from "./guards";
 import { constantRoutes } from "./routes";
+
+import type { App } from "vue";
+
+import type { AppRouteRecordRaw } from "#/app-router";
+
 
 const router = createRouter({
   history: createWebHashHistory(),

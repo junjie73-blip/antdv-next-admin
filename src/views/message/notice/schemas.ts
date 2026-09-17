@@ -1,7 +1,6 @@
-import type { FormSchema } from "@/components/business/Form";
-import type { ComputedRef } from "vue";
+
 import { computed } from "vue";
-import type { UserOption } from "./types";
+
 import {
   NOTICE_IS_TOP_OPTIONS,
   NOTICE_PRIORITY_OPTIONS,
@@ -9,6 +8,15 @@ import {
   NOTICE_STATUS_OPTIONS,
   NOTICE_TYPE_OPTIONS,
 } from "./constants";
+
+
+import type { ComputedRef } from "vue";
+
+import type { UserOption } from "./types";
+
+
+import type { FormSchema } from "@/components/business/Form";
+
 
 /** 搜索表单 schema（静态） */
 export const noticeSearchSchemas: FormSchema[] = [

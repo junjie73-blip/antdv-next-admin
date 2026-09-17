@@ -1,5 +1,6 @@
-import type { FormSchema } from "@/components/business/Form";
 import { MIME_TYPE_OPTIONS } from "./constants";
+
+import type { FormSchema } from "@/components/business/Form";
 
 /** 文件搜索表单 schema */
 export const fileSearchSchemas: FormSchema[] = [

@@ -1,7 +1,9 @@
-import type { ActionItem } from "@/components/business/Table";
 import { markNoticeRead } from "./api";
 import { NOTICE_READ_STATUS } from "./constants";
+
 import type { NoticeRecord } from "./types";
+
+import type { ActionItem } from "@/components/business/Table";
 
 /** getActions 上下文（由调用方提供副作用处理） */
 export interface NoticeActionContext {

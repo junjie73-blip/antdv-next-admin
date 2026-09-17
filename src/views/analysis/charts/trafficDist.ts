@@ -1,7 +1,10 @@
+
 import * as echarts from "echarts";
-import { getTrafficDistribution } from "@/api";
+
 import { PALETTE } from "../constants";
 import { baseOption, echartsTheme, subTextColor, textColor } from "../theme";
+
+import { getTrafficDistribution } from "@/api";
 
 /** 流量来源分布（环形饼图） */
 export async function initTrafficDist(el: HTMLElement, isDark: boolean): Promise<echarts.ECharts> {

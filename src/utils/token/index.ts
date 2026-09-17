@@ -1,5 +1,6 @@
-import { TOKEN_KEY } from '@/config/constants'
 import { cache } from '../cache'
+
+import { TOKEN_KEY } from '@/config/constants'
 
 export interface UserInfo {
   userId: string

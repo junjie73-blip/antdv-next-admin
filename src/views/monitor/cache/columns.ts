@@ -1,5 +1,6 @@
-import type { BasicColumn } from "@/components/business/Table";
 import { formatTtl } from "./utils";
+
+import type { BasicColumn } from "@/components/business/Table";
 
 /** 缓存 Key 列表列定义 */
 export const cacheColumns: BasicColumn[] = [

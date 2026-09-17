@@ -1,4 +1,4 @@
-import type { UploadProps as AntUploadProps, UploadFile } from 'antdv-next'
+import type { UploadFile, UploadProps as AntUploadProps } from 'antdv-next'
 
 /**
  * Upload 组件属性

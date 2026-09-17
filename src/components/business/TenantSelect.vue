@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed, onMounted, watch } from "vue";
 import { ShopOutlined } from "@antdv-next/icons";
+import { computed, onMounted, watch } from "vue";
+
 import { useTenantStore } from "@/stores/modules/tenant";
+
 
 interface Props {
   /** v-model 绑定的值：租户编码 or 租户 ID */
@@ -131,7 +133,9 @@ defineExpose({
 
     <!-- 无数据 -->
     <template #notFoundContent>
-      <a-empty :image="false" description="暂无租户数据" class="!py-4 !text-xs !text-stone-400" />
+      <a-empty :image="false"
+description="暂无租户数据"
+class="!py-4 !text-xs !text-stone-400" />
     </template>
   </a-select>
 </template>

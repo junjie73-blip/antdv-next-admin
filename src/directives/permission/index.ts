@@ -1,5 +1,8 @@
 import type { Directive, DirectiveBinding } from 'vue'
+
 import type { PermissionDirectiveBinding } from '@/composables/web/permission/types'
+
+
 import { usePermission } from '@/composables/web/permission'
 
 export const vPermission: Directive<HTMLElement, PermissionDirectiveBinding> = {

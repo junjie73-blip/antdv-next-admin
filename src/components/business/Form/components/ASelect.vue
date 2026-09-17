@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import type { SelectProps } from "antdv-next";
-import { http } from "@/utils";
-import type { DataNode } from "antdv-next/dist/tree/index";
+
 import { nextTick, onMounted, ref, watch } from "vue";
+
+import type { SelectProps } from "antdv-next";
+import type { DataNode } from "antdv-next/dist/tree/index";
+
+import { http } from "@/utils";
 interface Props extends /* @vue-ignore */ SelectProps {
   api: string;
 }
@@ -27,7 +30,8 @@ watch(
 </script>
 
 <template>
-  <a-select v-bind="props" :options />
+  <a-select v-bind="props"
+:options />
 </template>
 
 <style scoped></style>

@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import type { DrawerProps as AntDrawerProps } from 'antdv-next'
-import type { DrawerInnerMethods, DrawerMethods, DrawerProps } from './types'
+
 import { Button, Drawer } from 'antdv-next'
 import { computed, onMounted, ref, useSlots, watch } from 'vue'
+
+import type { DrawerProps as AntDrawerProps } from 'antdv-next'
+
+import type { DrawerInnerMethods, DrawerMethods, DrawerProps } from './types'
+
+
+
 import { IconifyIcon as Icon } from '@/components/common/Icon'
 import { cn } from '@/utils/cn'
+
 
 const props = withDefaults(defineProps<DrawerProps>(), {
   placement: 'right',
@@ -194,7 +201,8 @@ const footerClassName = cn(
   >
     <!-- 自定义头部 -->
     <template #title>
-      <div :id="drawerTitleId" :class="headerClassName">
+      <div :id="drawerTitleId"
+:class="headerClassName">
         <div :class="cn('flex items-center gap-2')">
           <span :class="cn('text-lg font-medium text-gray-900')">{{ title }}</span>
           <slot name="titleTip" />
@@ -237,7 +245,8 @@ const footerClassName = cn(
               cn('w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin')
             "
           />
-          <span v-if="loadingTip" :class="cn('text-gray-600 text-sm')">{{ loadingTip }}</span>
+          <span v-if="loadingTip"
+:class="cn('text-gray-600 text-sm')">{{ loadingTip }}</span>
         </div>
       </div>
 
@@ -254,7 +263,9 @@ const footerClassName = cn(
         :class="footerClassName"
       >
         <slot name="insertFooter" />
-        <Button v-if="showCancelBtn" v-bind="cancelButtonProps" @click="handleCancel">
+        <Button v-if="showCancelBtn"
+v-bind="cancelButtonProps"
+@click="handleCancel">
           <template #icon>
             <Icon icon="ant-design:close-outlined" />
           </template>

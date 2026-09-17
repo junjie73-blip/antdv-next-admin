@@ -1,5 +1,6 @@
-import type { ActionItem } from "@/components/business/Table";
 import type { DictItemRecord } from "./types";
+
+import type { ActionItem } from "@/components/business/Table";
 
 /** 字典项行操作上下文 */
 export interface DictItemActionContext {

@@ -1,11 +1,19 @@
 <script setup lang="ts">
-import type { FormInstance } from "antdv-next";
-import type { FormActionType, FormProps, FormSchema, NamePath, Recordable } from "./types";
+
 import { computed, onMounted, provide, reactive, ref, unref, useAttrs, watch } from "vue";
-import IconifyIcon from "@/components/common/Icon/IconifyIcon.vue";
-import { cn } from "@/utils/cn";
+
 import FormItem from "./components/FormItem.vue";
 import { deepMerge, formatDateFields, handleRangeValue } from "./helper";
+
+import type { FormInstance } from "antdv-next";
+
+import type { FormActionType, FormProps, FormSchema, NamePath, Recordable } from "./types";
+
+
+
+import IconifyIcon from "@/components/common/Icon/IconifyIcon.vue";
+import { cn } from "@/utils/cn";
+
 defineOptions({
   name: "BasicForm",
 });
@@ -362,21 +370,26 @@ defineExpose(formActionType);
   >
     <a-row v-bind="getRowProps">
       <!-- 普通字段 -->
-      <template v-for="schema in displayFields" :key="schema.field">
+      <template v-for="schema in displayFields"
+:key="schema.field">
         <FormItem
           :schema="schema"
           :form-model="formModel"
           :form-action-type="formActionType"
           :set-form-model="setFormModel"
         >
-          <template v-for="(_, slotName) in $slots" :key="slotName" #[slotName]="slotProps">
-            <slot :name="slotName" v-bind="slotProps" />
+          <template v-for="(_, slotName) in $slots"
+:key="slotName"
+#[slotName]="slotProps">
+            <slot :name="slotName"
+v-bind="slotProps" />
           </template>
         </FormItem>
       </template>
 
       <!-- 分割线（随展开/收缩一起显示） -->
-      <template v-for="(schema, index) in displayDividers" :key="`divider-${index}`">
+      <template v-for="(schema, index) in displayDividers"
+:key="`divider-${index}`">
         <a-col :span="24">
           <a-divider v-bind="schema.componentProps">
             {{ schema.label }}
@@ -392,21 +405,29 @@ defineExpose(formActionType);
       >
         <div class="flex gap-2 flex-wrap">
           <slot name="submitBefore" />
-          <a-button v-if="getProps.showSubmitButton" type="primary" html-type="submit">
-            <template v-if="getSubmitButtonOptions.preIcon" #icon>
+          <a-button v-if="getProps.showSubmitButton"
+type="primary"
+html-type="submit">
+            <template v-if="getSubmitButtonOptions.preIcon"
+#icon>
               <IconifyIcon :icon="getSubmitButtonOptions.preIcon" />
             </template>
             {{ getSubmitButtonOptions.text }}
           </a-button>
           <slot name="resetBefore" />
-          <a-button v-if="getProps.showResetButton" @click="handleReset">
-            <template v-if="getResetButtonOptions.preIcon" #icon>
+          <a-button v-if="getProps.showResetButton"
+@click="handleReset">
+            <template v-if="getResetButtonOptions.preIcon"
+#icon>
               <IconifyIcon :icon="getResetButtonOptions.preIcon" />
             </template>
             {{ getResetButtonOptions.text }}
           </a-button>
-          <a-button v-if="needCollapse" type="link" @click="toggleAdvanced">
-            <IconifyIcon :icon="getAdvancedButtonOptions.icon" class="mr-1" />
+          <a-button v-if="needCollapse"
+type="link"
+@click="toggleAdvanced">
+            <IconifyIcon :icon="getAdvancedButtonOptions.icon"
+class="mr-1" />
             {{ getAdvancedButtonOptions.text }}
           </a-button>
           <slot name="actionAfter" />

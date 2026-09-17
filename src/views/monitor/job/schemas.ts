@@ -1,10 +1,11 @@
-import type { FormSchema } from "@/components/business/Form";
 import {
   DEFAULT_INVOKE_TARGET,
   DEFAULT_JOB_GROUP,
   INVOKE_TARGET_OPTIONS,
   JOB_STATUS_OPTIONS,
 } from "./constants";
+
+import type { FormSchema } from "@/components/business/Form";
 
 /** 任务弹窗表单 schema */
 export const jobFormSchemas: FormSchema[] = [

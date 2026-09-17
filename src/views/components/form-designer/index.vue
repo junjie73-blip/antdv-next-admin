@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useTemplateRef } from 'vue'
+
 import { cn } from '@/utils/cn'
+
 
 defineOptions({ name: 'FormDesigner' })
 
@@ -30,6 +32,8 @@ const containerClassName = cn('h-[calc(100vh-88px)]', 'bg-gray-100 dark:bg-gray-
 
 <template>
   <div :class="containerClassName">
-    <fc-designer ref="designerRef" height="100%" :config="designerConfig" />
+    <fc-designer ref="designerRef"
+height="100%"
+:config="designerConfig" />
   </div>
 </template>

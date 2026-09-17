@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { describe, expect, it } from 'vitest'
+
 import ErrorBoundary from '@/components/common/ErrorBoundary.vue'
 
 describe('ErrorBoundary', () => {

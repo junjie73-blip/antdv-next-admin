@@ -1,12 +1,20 @@
 <script setup lang="ts">
-import type { VNode } from "vue";
-import type { ActionItem } from "../types";
 
 import { Button, Divider, Dropdown, Popconfirm } from "antdv-next";
 import { isFunction } from "es-toolkit";
 import { computed, defineComponent, h, isVNode } from "vue";
+
+import type { VNode } from "vue";
+
+import type { ActionItem } from "../types";
+
+
 import { IconifyIcon as Icon } from "@/components/common/Icon";
 import { cn } from "@/utils/cn";
+
+
+
+
 
 type ButtonType = "default" | "link" | "dashed" | "text" | "primary";
 
@@ -196,9 +204,12 @@ function getPopupContainer() {
 
 <template>
   <div :class="cn('flex items-center justify-center')">
-    <template v-for="(action, index) in showActions" :key="index">
+    <template v-for="(action, index) in showActions"
+:key="index">
       <!-- 分割线 -->
-      <Divider v-if="index !== 0" type="vertical" :class="cn('mx-0')" />
+      <Divider v-if="index !== 0"
+type="vertical"
+:class="cn('mx-0')" />
 
       <!-- ============ Popconfirm 类型 ============ -->
       <Popconfirm
@@ -218,11 +229,13 @@ function getPopupContainer() {
           :class="cn('!px-0.5')"
           @click="(e) => handleClick(action, e)"
         >
-          <template v-if="action.icon" #icon>
+          <template v-if="action.icon"
+#icon>
             <Icon :icon="action.icon" />
           </template>
           <template #default>
-            <RenderVNode v-if="getLabelVNode(action)" :vnode="getLabelVNode(action)" />
+            <RenderVNode v-if="getLabelVNode(action)"
+:vnode="getLabelVNode(action)" />
           </template>
         </Button>
       </Popconfirm>
@@ -244,8 +257,10 @@ function getPopupContainer() {
         >
           <template #default>
             <span :class="cn('flex items-center gap-1')">
-              <Icon v-if="action.icon" :icon="action.icon" />
-              <RenderVNode v-if="getLabelVNode(action)" :vnode="getLabelVNode(action)" />
+              <Icon v-if="action.icon"
+:icon="action.icon" />
+              <RenderVNode v-if="getLabelVNode(action)"
+:vnode="getLabelVNode(action)" />
               <Icon icon="ant-design:down-outlined" />
             </span>
           </template>
@@ -262,24 +277,28 @@ function getPopupContainer() {
         :class="cn('!px-0.5')"
         @click="(e) => handleClick(action, e)"
       >
-        <template v-if="action.icon" #icon>
+        <template v-if="action.icon"
+#icon>
           <Icon :icon="action.icon" />
         </template>
         <template #default>
-          <RenderVNode v-if="getLabelVNode(action)" :vnode="getLabelVNode(action)" />
+          <RenderVNode v-if="getLabelVNode(action)"
+:vnode="getLabelVNode(action)" />
         </template>
       </Button>
     </template>
 
     <!-- ============ "更多" 下拉菜单 ============ -->
     <template v-if="hasDropdown">
-      <Divider type="vertical" :class="cn('mx-0')" />
+      <Divider type="vertical"
+:class="cn('mx-0')" />
       <Dropdown
         :menu="{ items: moreDropdownItems }"
         :get-popup-container="getPopupContainer"
         @menu-click="(info) => handleDropdownMenuClick(dropdownActions, info)"
       >
-        <Button type="link" :class="cn('!px-0.5')">
+        <Button type="link"
+:class="cn('!px-0.5')">
           <span :class="cn('flex items-center gap-1')">
             <span>更多</span>
             <Icon icon="ant-design:down-outlined" />

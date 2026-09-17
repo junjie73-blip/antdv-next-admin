@@ -1,7 +1,12 @@
-import type { BasicColumn } from "@/components/business/Table";
+
 import dayjs from "dayjs";
-import type { OnlineUserRecord } from "./types";
+
 import { formatSessionTtl } from "./utils";
+
+import type { OnlineUserRecord } from "./types";
+
+import type { BasicColumn } from "@/components/business/Table";
+
 
 /** 在线用户表格列 */
 export const onlineColumns: BasicColumn[] = [

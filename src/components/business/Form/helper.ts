@@ -1,7 +1,10 @@
-import type { FormSchema, Recordable, Rule } from "./types";
+
 import dayjs from "dayjs";
 import { defu } from "defu";
 import { isFunction } from "es-toolkit";
+
+import type { FormSchema, Recordable, Rule } from "./types";
+
 
 /** 需要自动添加 allowClear 的组件类型 */
 const CLEARABLE_COMPONENTS = [

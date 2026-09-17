@@ -1,6 +1,9 @@
 <script setup lang="ts">
+
 import { message } from "antdv-next";
 import { ref, watch } from "vue";
+
+import type { RoleRecord } from "../types";
 
 import {
   assignRoleDepts,
@@ -14,8 +17,8 @@ import {
   getRoleUsers,
   getUserAllOptions,
 } from "@/api";
+
 import { http } from "@/utils";
-import type { RoleRecord } from "../types";
 
 defineOptions({ name: "RolePermissionDrawer" });
 
@@ -226,10 +229,15 @@ function close() {
     <div class="flex flex-col h-full">
       <PerfectScrollbar class="h-full">
         <div class="flex-1 overflow-hidden">
-          <a-tabs v-model:active-key="activeTab" class="h-full">
+          <a-tabs v-model:active-key="activeTab"
+class="h-full">
             <!-- 菜单权限 -->
-            <a-tab-pane key="menu" tab="菜单权限">
-              <a-alert message="勾选菜单和按钮权限，父子联动" type="info" show-icon class="mb-3" />
+            <a-tab-pane key="menu"
+tab="菜单权限">
+              <a-alert message="勾选菜单和按钮权限，父子联动"
+type="info"
+show-icon
+class="mb-3" />
               <a-tree
                 checkable
                 default-expand-all
@@ -241,11 +249,15 @@ function close() {
             </a-tab-pane>
 
             <!-- API 权限 -->
-            <a-tab-pane key="api" tab="API 权限">
+            <a-tab-pane key="api"
+tab="API 权限">
               <a-spin :spinning="apiLoading">
-                <a-checkbox-group v-model:value="selectedPermIds" class="w-full">
+                <a-checkbox-group v-model:value="selectedPermIds"
+class="w-full">
                   <div class="grid grid-cols-2 gap-2">
-                    <a-checkbox v-for="opt in apiOptions" :key="opt.value" :value="opt.value">
+                    <a-checkbox v-for="opt in apiOptions"
+:key="opt.value"
+:value="opt.value">
                       {{ opt.label }}
                     </a-checkbox>
                   </div>
@@ -258,7 +270,8 @@ function close() {
             </a-tab-pane>
 
             <!-- 关联用户 -->
-            <a-tab-pane key="users" tab="关联用户">
+            <a-tab-pane key="users"
+tab="关联用户">
               <a-spin :spinning="userLoading">
                 <a-select
                   v-model:value="selectedUserIds"
@@ -277,7 +290,9 @@ function close() {
             </a-tab-pane>
 
             <!-- 数据权限部门 -->
-            <a-tab-pane v-if="role?.dataScope === '2'" key="dept" tab="数据权限">
+            <a-tab-pane v-if="role?.dataScope === '2'"
+key="dept"
+tab="数据权限">
               <a-alert
                 message="该角色数据权限为「自定义」，请勾选可见部门"
                 type="warning"
@@ -298,7 +313,9 @@ function close() {
       </PerfectScrollbar>
       <div class="flex justify-end gap-2 pt-4 border-t border-solid border-gray-200">
         <a-button @click="close">取消</a-button>
-        <a-button type="primary" :loading="saving" @click="save">保存</a-button>
+        <a-button type="primary"
+:loading="saving"
+@click="save">保存</a-button>
       </div>
     </div>
   </a-drawer>

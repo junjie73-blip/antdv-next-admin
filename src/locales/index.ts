@@ -1,7 +1,10 @@
+
 import { createI18n } from 'vue-i18n'
-import { localStorageCacheStorage } from '@/utils/cache'
+
 import enUS from './lang/en-US'
 import zhCN from './lang/zh-CN'
+
+import { localStorageCacheStorage } from '@/utils/cache'
 
 const i18n = createI18n({
   legacy: false,

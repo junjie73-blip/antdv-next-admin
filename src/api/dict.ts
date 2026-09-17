@@ -1,5 +1,6 @@
-import { http } from "@/utils";
 import { del, get, post, put } from "./request";
+
+import { http } from "@/utils";
 
 // ============================================================
 // 字典类型

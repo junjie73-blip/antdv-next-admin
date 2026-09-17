@@ -1,5 +1,7 @@
 <script setup lang="ts">
+
 import { ref } from 'vue'
+
 import { Scrollbar } from '@/components/common/Scrollbar'
 import { cn } from '@/utils/cn'
 
@@ -52,7 +54,8 @@ function sendMessage() {
 
 <template>
   <div :class="containerClassName">
-    <a-card title="Basic Scroll" variant="borderless">
+    <a-card title="Basic Scroll"
+variant="borderless">
       <div class="space-y-4">
         <a-button
           @click="
@@ -94,7 +97,8 @@ function sendMessage() {
       </div>
     </a-card>
 
-    <a-card title="Horizontal Scroll" variant="borderless">
+    <a-card title="Horizontal Scroll"
+variant="borderless">
       <div class="h-32 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
         <Scrollbar>
           <div class="flex gap-3 p-4 min-w-max">
@@ -111,7 +115,8 @@ function sendMessage() {
       </div>
     </a-card>
 
-    <a-card title="Chat Scroll" variant="borderless">
+    <a-card title="Chat Scroll"
+variant="borderless">
       <div class="space-y-3">
         <div
           class="h-80 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden flex flex-col"
@@ -132,7 +137,8 @@ function sendMessage() {
                 ]"
               >
                 {{ msg.text }}
-                <div class="text-xs mt-1" :class="[msg.self ? 'text-blue-100' : 'text-gray-400']">
+                <div class="text-xs mt-1"
+:class="[msg.self ? 'text-blue-100' : 'text-gray-400']">
                   {{ msg.time }}
                 </div>
               </div>
@@ -144,7 +150,8 @@ function sendMessage() {
               placeholder="Type a message..."
               @pressEnter="sendMessage"
             />
-            <a-button type="primary" @click="sendMessage"> Send </a-button>
+            <a-button type="primary"
+@click="sendMessage"> Send </a-button>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
-import type { BasicColumn } from "@/components/business/Table";
 import type { DeptRecord } from "./types";
+
+import type { BasicColumn } from "@/components/business/Table";
 
 /** 部门表格列 */
 export const deptColumns: BasicColumn[] = [

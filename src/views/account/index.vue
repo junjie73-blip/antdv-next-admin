@@ -1,29 +1,34 @@
 <script setup lang="ts">
+
 import { Icon } from "@iconify/vue";
 import { message, Modal } from "antdv-next";
 import { computed, inject, onMounted, ref, watch } from "vue";
 
+import type { FormSchema } from "@/components/business/Form";
+
+import { uploadFile } from "@/api";
+
 import {
+  type AccessibleTenant,
   changePassword,
   getMyTenants,
   switchTenant,
   updateProfile,
-  type AccessibleTenant,
 } from "@/api/auth";
+
 import {
   disableMFA,
   enableMFA,
   getMFAStatus,
+  type MFAStatus,
   regenerateBackupCodes,
   setupMFA,
-  type MFAStatus,
 } from "@/api/mfa";
-import type { FormSchema } from "@/components/business/Form";
+
 import { BasicForm, useForm } from "@/components/business/Form";
 import { usePasswordPolicy } from "@/composables/usePasswordPolicy";
 import { useUserStore } from "@/stores/modules/user";
 import { cn } from "@/utils/cn";
-import { uploadFile } from "@/api";
 
 defineOptions({ name: "AccountSettings" });
 
@@ -410,7 +415,9 @@ onMounted(() => {
             <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">
               {{ userStore.userInfo?.realName || userStore.username || "用户" }}
             </h2>
-            <a-tag v-for="role in userStore.roles" :key="role" color="blue">
+            <a-tag v-for="role in userStore.roles"
+:key="role"
+color="blue">
               {{ role }}
             </a-tag>
           </div>
@@ -418,11 +425,13 @@ onMounted(() => {
           <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">@{{ userStore.username }}</div>
 
           <div class="flex items-center gap-4 mt-3 text-xs text-gray-400 flex-wrap">
-            <span v-if="userStore.email" class="inline-flex items-center gap-1">
+            <span v-if="userStore.email"
+class="inline-flex items-center gap-1">
               <Icon icon="carbon:email" />
               {{ userStore.email }}
             </span>
-            <span v-if="userStore.phone" class="inline-flex items-center gap-1">
+            <span v-if="userStore.phone"
+class="inline-flex items-center gap-1">
               <Icon icon="carbon:phone" />
               {{ userStore.phone }}
             </span>
@@ -432,10 +441,12 @@ onMounted(() => {
     </div>
 
     <!-- ==================== Tab 卡片 ==================== -->
-    <a-card :bordered="false" :class="cardClassName">
+    <a-card :bordered="false"
+:class="cardClassName">
       <a-tabs v-model:active-key="activeTab">
         <!-- ==================== 基本信息 ==================== -->
-        <a-tab-pane key="profile" tab="基本信息">
+        <a-tab-pane key="profile"
+tab="基本信息">
           <div class="pt-2 max-w-xl">
             <BasicForm
               :schemas="profileFormSchemas"
@@ -465,7 +476,9 @@ onMounted(() => {
               </template>
               <template #actionAfter>
                 <div class="flex justify-end mt-4">
-                  <a-button type="primary" :loading="profileLoading" @click="handleSaveProfile">
+                  <a-button type="primary"
+:loading="profileLoading"
+@click="handleSaveProfile">
                     保存修改
                   </a-button>
                 </div>
@@ -475,14 +488,16 @@ onMounted(() => {
         </a-tab-pane>
 
         <!-- ==================== 账号安全 ==================== -->
-        <a-tab-pane key="security" tab="账号安全">
+        <a-tab-pane key="security"
+tab="账号安全">
           <div class="pt-2 space-y-6">
             <!-- 修改密码 -->
             <div>
               <div
                 class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200 mb-3"
               >
-                <Icon icon="carbon:password" class="text-gray-500" />
+                <Icon icon="carbon:password"
+class="text-gray-500" />
                 <span>修改密码</span>
               </div>
               <div class="max-w-xl">
@@ -514,7 +529,8 @@ onMounted(() => {
               <div
                 class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200 mb-3"
               >
-                <Icon icon="carbon:security" class="text-gray-500" />
+                <Icon icon="carbon:security"
+class="text-gray-500" />
                 <span>两步验证（MFA）</span>
               </div>
               <div
@@ -548,7 +564,8 @@ onMounted(() => {
                   </a-button>
                   <template v-else>
                     <a-button @click="handleRegenerateBackupCodes"> 重新生成备份码 </a-button>
-                    <a-button danger @click="handleMFADisable">禁用 MFA</a-button>
+                    <a-button danger
+@click="handleMFADisable">禁用 MFA</a-button>
                   </template>
                 </div>
               </div>
@@ -557,10 +574,12 @@ onMounted(() => {
         </a-tab-pane>
 
         <!-- ==================== 租户切换 ==================== -->
-        <a-tab-pane key="tenant" tab="租户切换">
+        <a-tab-pane key="tenant"
+tab="租户切换">
           <div class="pt-2">
             <a-spin :spinning="tenantsLoading">
-              <div v-if="tenants.length > 0" class="space-y-2">
+              <div v-if="tenants.length > 0"
+class="space-y-2">
                 <div
                   v-for="tenant in tenants"
                   :key="tenant.tenantId"
@@ -580,14 +599,17 @@ onMounted(() => {
                           : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
                       "
                     >
-                      <Icon icon="carbon:building" class="text-lg" />
+                      <Icon icon="carbon:building"
+class="text-lg" />
                     </div>
                     <div>
                       <div class="flex items-center gap-2">
                         <span class="font-medium text-gray-800 dark:text-gray-100">
                           {{ tenant.tenantName }}
                         </span>
-                        <a-tag v-if="tenant.tenantId === currentTenantId" color="blue" class="!m-0">
+                        <a-tag v-if="tenant.tenantId === currentTenantId"
+color="blue"
+class="!m-0">
                           当前
                         </a-tag>
                       </div>
@@ -605,10 +627,12 @@ onMounted(() => {
                   >
                     切换
                   </a-button>
-                  <span v-else class="text-xs text-gray-400">使用中</span>
+                  <span v-else
+class="text-xs text-gray-400">使用中</span>
                 </div>
               </div>
-              <a-empty v-else-if="!tenantsLoading" description="暂无可访问的租户" />
+              <a-empty v-else-if="!tenantsLoading"
+description="暂无可访问的租户" />
             </a-spin>
           </div>
         </a-tab-pane>
@@ -623,12 +647,15 @@ onMounted(() => {
       :confirm-loading="mfaSubmitting"
       @ok="handleMFAEnable"
     >
-      <div v-if="mfaSetupData" class="space-y-3">
+      <div v-if="mfaSetupData"
+class="space-y-3">
         <p class="text-sm text-gray-500">
           使用验证器 App（如 Google Authenticator）扫描下方二维码：
         </p>
         <div class="flex justify-center">
-          <img :src="mfaSetupData.qrCode" alt="QR" class="w-40 h-40" />
+          <img :src="mfaSetupData.qrCode"
+alt="QR"
+class="w-40 h-40" />
         </div>
         <div class="text-xs text-gray-500 text-center">
           无法扫描？手动输入：<code>{{ mfaSetupData.manualEntryKey }}</code>

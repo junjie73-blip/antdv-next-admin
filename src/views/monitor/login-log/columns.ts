@@ -1,5 +1,6 @@
-import type { BasicColumn } from "@/components/business/Table";
 import type { LoginLogRecord } from "./types";
+
+import type { BasicColumn } from "@/components/business/Table";
 
 /** 登录日志表格列 */
 export const loginLogColumns: BasicColumn[] = [

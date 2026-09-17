@@ -12,7 +12,9 @@
       "#/*": ["./types/*"]
     },
     "types": [
-      "vite/client"
+      "vite/client",
+      "vite-plugin-pwa/client",
+      "vite-plugin-pwa/vue"
     ],
     "baseUrl": ".",
     // `vue-tsc --build` produces a .tsbuildinfo file for incremental type-checking.

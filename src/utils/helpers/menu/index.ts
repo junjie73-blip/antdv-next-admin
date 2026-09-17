@@ -1,9 +1,13 @@
-import type { BackendMenu, MenuConfig } from "#/menu";
-import type { MenuProps } from "antdv-next";
-import type { RouteMeta, RouteRecordRaw } from "vue-router";
+
 import { Icon } from "@iconify/vue";
 import { isPlainObject } from "es-toolkit";
 import { h } from "vue";
+
+import type { MenuProps } from "antdv-next";
+import type { RouteMeta, RouteRecordRaw } from "vue-router";
+
+import type { BackendMenu, MenuConfig } from "#/menu";
+
 
 interface MenuItem {
   key: string;

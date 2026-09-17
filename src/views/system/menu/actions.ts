@@ -1,5 +1,6 @@
-import type { ActionItem } from "@/components/business/Table";
 import type { MenuRecord } from "./types";
+
+import type { ActionItem } from "@/components/business/Table";
 
 /** 菜单行操作上下文 */
 export interface MenuActionContext {

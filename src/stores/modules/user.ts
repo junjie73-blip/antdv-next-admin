@@ -1,18 +1,22 @@
-import type { UserInfo } from "#/user";
+
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-import { cache } from "@/utils/cache";
-import { http } from "@/utils/request";
 import { useRouter } from "vue-router";
+
+import type { UserInfo } from "#/user";
+
 import { getPermissions, getProfile } from "@/api";
+
 import {
   PERMISSIONS_KEY,
   REFRESH_TOKEN_EXPIRE,
   REFRESH_TOKEN_KEY,
   TOKEN_EXPIRE,
   TOKEN_KEY,
-} from "@/config/constants";
-import { USER_INFO_KEY } from "@/config/constants";
+ USER_INFO_KEY } from "@/config/constants";
+
+import { cache } from "@/utils/cache";
+import { http } from "@/utils/request";
 
 export const useUserStore = defineStore("user", () => {
   // ✅ 同步从 cache 读，读到什么就是什么

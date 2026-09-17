@@ -1,19 +1,22 @@
+
 import FcDesigner from "@form-create/antd-designer";
 import formCreate from "@form-create/antdv-next";
 import install from "@form-create/antdv-next/auto-import";
+import * as Sentry from "@sentry/vue";
 import { createPinia } from "pinia";
 import { createApp } from "vue";
 import { PerfectScrollbarPlugin } from "vue3-perfect-scrollbar";
+
 import App from "./App.vue";
 import { escapeDirective, safeHtmlDirective } from "./directives";
 import i18n from "./locales";
 import { setupRouter } from "./router";
 import { initSecuritySystem } from "./utils/securityInit";
+
 import "virtual:svg-icons-register";
 import "./assets/styles/global.css";
 import "antdv-next/dist/antd.css";
 import "vue3-perfect-scrollbar/style.css";
-import * as Sentry from "@sentry/vue";
 // 按需导入 form-create 组件
 formCreate.use(install);
 

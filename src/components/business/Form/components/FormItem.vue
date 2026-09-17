@@ -1,11 +1,18 @@
 <script setup lang="ts">
-import type { FormSchema, Recordable, RenderCallbackParams } from "../types";
+
 import { isFunction } from "es-toolkit";
 import { computed, inject, unref } from "vue";
-import IconifyIcon from "@/components/common/Icon/IconifyIcon.vue";
+
 import { getComponent } from "../componentMap";
 import { getDynamicDisabled, getDynamicRules, getShow, setComponentProps } from "../helper";
+
 import type { RuleObject } from "antdv-next";
+
+import type { FormSchema, Recordable, RenderCallbackParams } from "../types";
+
+
+
+import IconifyIcon from "@/components/common/Icon/IconifyIcon.vue";
 
 type GridContext = { cols?: number; gutter?: number | [number, number] } | undefined | null;
 const props = defineProps<Props>();
@@ -115,12 +122,16 @@ function handleValueChange(value: any) {
 
 <template>
   <template v-if="getShowState.ifShow">
-    <a-col v-show="getShowState.show" v-bind="getColProps">
-      <a-form-item v-bind="mergedItemProps" :name="schema.field" :rules="getRulesValue">
+    <a-col v-show="getShowState.show"
+v-bind="getColProps">
+      <a-form-item v-bind="mergedItemProps"
+:name="schema.field"
+:rules="getRulesValue">
         <template #label>
           <span class="inline-flex items-center flex-wrap break-all whitespace-normal">
             {{ schema.label }}
-            <a-tooltip v-if="schema.helpMessage" placement="top">
+            <a-tooltip v-if="schema.helpMessage"
+placement="top">
               <template #title>
                 <span>{{ getHelpMessage }}</span>
               </template>
@@ -132,7 +143,9 @@ function handleValueChange(value: any) {
           </span>
         </template>
         <template v-if="schema.slot">
-          <slot :name="schema.slot" :model="formModel" :field="schema.field" />
+          <slot :name="schema.slot"
+:model="formModel"
+:field="schema.field" />
         </template>
 
         <template v-else-if="getComponentInstance">
@@ -143,7 +156,8 @@ function handleValueChange(value: any) {
             :value="formModel[schema.field]"
             @update:value="handleValueChange"
           >
-            <template v-if="getSuffixValue" #suffix>
+            <template v-if="getSuffixValue"
+#suffix>
               <span class="ml-2 text-gray-500 dark:text-gray-400">{{ getSuffixValue }}</span>
             </template>
           </component>

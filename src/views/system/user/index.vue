@@ -1,8 +1,43 @@
 <script setup lang="ts">
+
 import { Icon } from "@iconify/vue";
-import { Modal, message } from "antdv-next";
+import { message, Modal } from "antdv-next";
 import { computed, onMounted, ref } from "vue";
-import ImportExport from "@/components/business/ImportExport.vue";
+
+import { getUserActions } from "./actions";
+
+import {
+  USER_IMPORT_TEMPLATE,
+  userActionColumn,
+  userColumns,
+  userPagination,
+  userRowKey,
+  userRowSelection,
+  userScroll,
+} from "./columns";
+
+import {
+  cardClassName,
+  containerClassName,
+  leftPanelClassName,
+  rightPanelClassName,
+  statusTagClassName,
+  treeCardClassName,
+  USER_STATUS_COLOR_MAP,
+  USER_STATUS_ICON_MAP,
+  USER_STATUS_LABEL_MAP,
+} from "./constants";
+
+import {
+  USER_EMPTY_VALUES,
+  userDetailSchema,
+  useUserFormSchemas,
+  useUserSearchSchemas,
+} from "./schemas";
+
+import { convertDeptTree, flattenDeptTree, getUserRoleNames, printUserList } from "./utils";
+
+import type { DeptTreeNode, FlatDeptNode, RoleOption, UserRecord } from "./types";
 
 import {
   addUser,
@@ -15,43 +50,22 @@ import {
   resetUserPassword,
   updateUser,
 } from "@/api";
+
 import { BasicForm, useForm } from "@/components/business/Form";
+import ImportExport from "@/components/business/ImportExport.vue";
 import { BasicModal, useModal } from "@/components/business/Modal";
-import { BasicTable, TableAction, useTable, type ActionItem } from "@/components/business/Table";
+import { type ActionItem, BasicTable, TableAction, useTable } from "@/components/business/Table";
 import { useCRUD } from "@/composables/useCRUD";
 import { DictType } from "@/enums/dict";
 import { useDictStore } from "@/stores";
 
 // 抽离的模块
-import { getUserActions } from "./actions";
-import {
-  userActionColumn,
-  userColumns,
-  userPagination,
-  userRowKey,
-  userRowSelection,
-  userScroll,
-  USER_IMPORT_TEMPLATE,
-} from "./columns";
-import {
-  USER_STATUS_COLOR_MAP,
-  USER_STATUS_ICON_MAP,
-  USER_STATUS_LABEL_MAP,
-  cardClassName,
-  containerClassName,
-  leftPanelClassName,
-  rightPanelClassName,
-  statusTagClassName,
-  treeCardClassName,
-} from "./constants";
-import {
-  USER_EMPTY_VALUES,
-  userDetailSchema,
-  useUserFormSchemas,
-  useUserSearchSchemas,
-} from "./schemas";
-import type { DeptTreeNode, FlatDeptNode, RoleOption, UserRecord } from "./types";
-import { convertDeptTree, flattenDeptTree, getUserRoleNames, printUserList } from "./utils";
+
+
+
+
+
+
 import { http } from "@/utils";
 
 defineOptions({ name: "SystemUser" });
@@ -286,7 +300,9 @@ onMounted(loadBaseData);
   <div :class="containerClassName">
     <!-- 左侧部门树 -->
     <div :class="leftPanelClassName">
-      <a-card :class="treeCardClassName" title="部门列表" size="small">
+      <a-card :class="treeCardClassName"
+title="部门列表"
+size="small">
         <a-tree
           :tree-data="deptTreeData"
           :field-names="{ children: 'children', title: 'deptName', key: 'deptId' }"
@@ -301,7 +317,8 @@ onMounted(loadBaseData);
 
     <!-- 右侧用户列表 -->
     <div :class="rightPanelClassName">
-      <a-card title="用户管理" :class="cardClassName">
+      <a-card title="用户管理"
+:class="cardClassName">
         <BasicTable
           :columns="userColumns"
           :api="fetchUserList"
@@ -316,7 +333,8 @@ onMounted(loadBaseData);
           @register="tableRegister"
         >
           <template #toolbar>
-            <a-button type="primary" @click="handleAdd()">
+            <a-button type="primary"
+@click="handleAdd()">
               <template #icon><Icon icon="ant-design:plus-outlined" /></template>
               新增用户
             </a-button>
@@ -332,7 +350,8 @@ onMounted(loadBaseData);
               <template #icon><Icon icon="carbon:printer" /></template>
               打印
             </a-button>
-            <a-button danger @click="handleBatchDelete()">
+            <a-button danger
+@click="handleBatchDelete()">
               <template #icon><Icon icon="ant-design:delete-outlined" /></template>
               批量删除
             </a-button>
@@ -411,9 +430,14 @@ onMounted(loadBaseData);
     </a-modal>
 
     <!-- 敏感信息弹窗 -->
-    <a-modal v-model:open="sensitiveVisible" title="用户敏感信息" :width="520" :footer="null">
+    <a-modal v-model:open="sensitiveVisible"
+title="用户敏感信息"
+:width="520"
+:footer="null">
       <a-spin :spinning="sensitiveLoading">
-        <Description :column="1" :data="sensitiveData" :schema="userDetailSchema"></Description>
+        <Description :column="1"
+:data="sensitiveData"
+:schema="userDetailSchema"></Description>
       </a-spin>
     </a-modal>
   </div>

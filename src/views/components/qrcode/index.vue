@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-
 import QRCode from 'qrcode'
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
+
 import { cn } from '@/utils/cn'
+
 
 const containerClassName = cn('space-y-6')
 const qrCardClassName = cn('flex flex-col items-center p-6 bg-white dark:bg-gray-800 rounded-lg')
@@ -302,7 +303,8 @@ function copyToClipboard(text: string) {
       </p>
       <div class="max-w-md mx-auto space-y-4">
         <div class="flex gap-2 flex-wrap justify-center">
-          <a-radio-group v-model:value="downloadFormat" button-style="solid">
+          <a-radio-group v-model:value="downloadFormat"
+button-style="solid">
             <a-radio-button value="png"> PNG </a-radio-button>
             <a-radio-button value="svg"> SVG </a-radio-button>
             <a-radio-button value="dataURL"> Data URL </a-radio-button>
@@ -310,7 +312,9 @@ function copyToClipboard(text: string) {
         </div>
         <div :class="qrCardClassName">
           <canvas ref="downloadQrCanvas" />
-          <a-button type="primary" class="mt-4" @click="handleDownload">
+          <a-button type="primary"
+class="mt-4"
+@click="handleDownload">
             <template #icon>
               <Icon icon="carbon:download" />
             </template>
@@ -326,7 +330,10 @@ function copyToClipboard(text: string) {
       </p>
       <div class="max-w-lg mx-auto space-y-4">
         <div class="flex justify-center">
-          <a-button type="primary" size="large" :loading="scanning" @click="simulateScan">
+          <a-button type="primary"
+size="large"
+:loading="scanning"
+@click="simulateScan">
             <template #icon>
               <Icon icon="carbon:scan" />
             </template>
@@ -338,7 +345,8 @@ function copyToClipboard(text: string) {
           class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800"
         >
           <div class="flex items-start gap-2">
-            <Icon icon="carbon:checkmark-filled" class="text-green-500 text-xl mt-0.5" />
+            <Icon icon="carbon:checkmark-filled"
+class="text-green-500 text-xl mt-0.5" />
             <div class="flex-1 min-w-0">
               <p class="font-medium text-green-700 dark:text-green-300 mb-1">Scan Success</p>
               <code class="block p-2 bg-white dark:bg-gray-800 rounded text-sm break-all">{{
@@ -379,7 +387,8 @@ function copyToClipboard(text: string) {
         Higher correction levels recover more data but produce more complex patterns
       </p>
       <div class="mb-4">
-        <a-radio-group v-model:value="errorCorrectionLevel" button-style="solid">
+        <a-radio-group v-model:value="errorCorrectionLevel"
+button-style="solid">
           <a-radio-button value="L"> L - Low </a-radio-button>
           <a-radio-button value="M"> M - Medium </a-radio-button>
           <a-radio-button value="Q"> Q - Quartile </a-radio-button>
@@ -411,13 +420,18 @@ function copyToClipboard(text: string) {
       <div class="max-w-lg mx-auto space-y-4">
         <div>
           <label class="block text-sm font-medium mb-2">Content</label>
-          <a-input v-model:value="customText" placeholder="Enter content" allow-clear />
+          <a-input v-model:value="customText"
+placeholder="Enter content"
+allow-clear />
         </div>
         <div>
           <label class="block text-sm font-medium mb-2">
             Size: {{ customSize }}px x {{ customSize }}px
           </label>
-          <a-slider v-model:value="customSize" :min="100" :max="400" :step="10" />
+          <a-slider v-model:value="customSize"
+:min="100"
+:max="400"
+:step="10" />
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
@@ -455,7 +469,8 @@ function copyToClipboard(text: string) {
           </div>
         </div>
         <div :class="qrCardClassName">
-          <div :class="qrCanvasContainer" :style="{ backgroundColor: customLightColor }">
+          <div :class="qrCanvasContainer"
+:style="{ backgroundColor: customLightColor }">
             <canvas ref="customQrCanvas" />
           </div>
         </div>

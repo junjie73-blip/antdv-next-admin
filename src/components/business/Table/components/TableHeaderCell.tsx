@@ -1,7 +1,14 @@
-import type { PropType } from "vue";
-import type { BasicColumn } from "../types";
+
 import { computed, defineComponent } from "vue";
+
+import type { PropType } from "vue";
+
+import type { BasicColumn } from "../types";
+
+
+
 import { IconifyIcon as Icon } from "@/components/common/Icon";
+
 
 export default defineComponent({
   name: "TableHeaderCell",

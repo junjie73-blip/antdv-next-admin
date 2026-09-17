@@ -1,15 +1,8 @@
 <script setup lang="ts">
-import type {
-  BasicColumn,
-  BasicTableProps,
-  Recordable,
-  TableActionType,
-  TableRowSelection,
-} from "./types";
+
 import { Table } from "antdv-next";
 import { computed, defineComponent, h, isVNode, nextTick, onMounted, ref, unref, watch } from "vue";
-import { BasicForm } from "@/components/business/Form";
-import { cn } from "@/utils/cn";
+
 import TableAction from "./components/TableAction.vue";
 import TableEditableCell from "./components/TableEditableCell";
 import TableHeaderCell from "./components/TableHeaderCell";
@@ -22,6 +15,17 @@ import { useLoading } from "./hooks/useLoading";
 import { usePagination } from "./hooks/usePagination";
 import { useRowSelection } from "./hooks/useRowSelection";
 import { useTableForm } from "./hooks/useTableForm";
+
+import type {
+  BasicColumn,
+  BasicTableProps,
+  Recordable,
+  TableActionType,
+  TableRowSelection,
+} from "./types";
+
+import { BasicForm } from "@/components/business/Form";
+import { cn } from "@/utils/cn";
 
 // ============================================
 // Props & Emits
@@ -488,14 +492,18 @@ defineExpose(tableActionType);
 <template>
   <div :class="tableContainerClassName">
     <!-- 搜索表单 -->
-    <div v-if="showSearchForm" class="mb-4">
-      <BasicForm v-bind="tableForm.getFormProps" @register="tableForm.registerForm" />
+    <div v-if="showSearchForm"
+class="mb-4">
+      <BasicForm v-bind="tableForm.getFormProps"
+@register="tableForm.registerForm" />
     </div>
 
-    <div v-if="showSearchForm" class="mb-4 border-t border-gray-200 dark:border-gray-700" />
+    <div v-if="showSearchForm"
+class="mb-4 border-t border-gray-200 dark:border-gray-700" />
 
     <!-- 工具栏 -->
-    <div v-if="showTableSetting || $slots.toolbar" class="flex items-center justify-between mb-4">
+    <div v-if="showTableSetting || $slots.toolbar"
+class="flex items-center justify-between mb-4">
       <div class="flex items-center flex-wrap gap-2">
         <slot name="toolbar" />
       </div>
@@ -548,22 +556,28 @@ defineExpose(tableActionType);
 
         <!-- 操作列表头 -->
         <template v-else-if="column.key === 'action'">
-          <TableHeaderCell :column="column" @edit="handleHeaderEdit">
-            <slot name="actionHeader" :column="column" />
+          <TableHeaderCell :column="column"
+@edit="handleHeaderEdit">
+            <slot name="actionHeader"
+:column="column" />
           </TableHeaderCell>
         </template>
 
         <!-- 序号列表头 -->
         <template v-else-if="column.key === 'index'">
-          <TableHeaderCell :column="column" @edit="handleHeaderEdit">
-            <slot name="indexHeader" :column="column" />
+          <TableHeaderCell :column="column"
+@edit="handleHeaderEdit">
+            <slot name="indexHeader"
+:column="column" />
           </TableHeaderCell>
         </template>
 
         <!-- 普通列表头 -->
         <template v-else>
-          <TableHeaderCell :column="column" @edit="handleHeaderEdit">
-            <slot :name="`header-${column.key}`" :column="column" />
+          <TableHeaderCell :column="column"
+@edit="handleHeaderEdit">
+            <slot :name="`header-${column.key}`"
+:column="column" />
           </TableHeaderCell>
         </template>
       </template>
@@ -575,7 +589,10 @@ defineExpose(tableActionType);
 
         <!-- 操作列 -->
         <template v-else-if="column.key === 'action'">
-          <slot name="action" :record="record" :index="index" :column="column">
+          <slot name="action"
+:record="record"
+:index="index"
+:column="column">
             <TableAction
               :actions="getActions(record)"
               :max-show-count="getMergedProps.actionColumn?.maxShowCount || 4"
@@ -585,7 +602,11 @@ defineExpose(tableActionType);
 
         <!-- 序号列 -->
         <template v-else-if="column.key === 'index'">
-          <slot name="index" :column="column" :record="record" :text="text" :index="index">
+          <slot name="index"
+:column="column"
+:record="record"
+:text="text"
+:index="index">
             {{ index + 1 }}
           </slot>
         </template>
@@ -623,7 +644,8 @@ defineExpose(tableActionType);
           />
 
           <!-- 4. 统一走 renderCellContent（customRender / format / edit / 图片 / 默认） -->
-          <RenderVNode v-else :vnode="renderCellContent(column, text, record, index)" />
+          <RenderVNode v-else
+:vnode="renderCellContent(column, text, record, index)" />
         </template>
       </template>
 
@@ -646,14 +668,17 @@ defineExpose(tableActionType);
       </template>
 
       <!-- ============ 汇总行 ============ -->
-      <template v-if="getMergedProps.summary || $slots.summary" #summary>
-        <slot name="summary" :data="getDataSource">
+      <template v-if="getMergedProps.summary || $slots.summary"
+#summary>
+        <slot name="summary"
+:data="getDataSource">
           <RenderVNode :vnode="getMergedProps.summary?.(getDataSource)" />
         </slot>
       </template>
 
       <!-- ============ 空数据 ============ -->
-      <template v-if="getMergedProps.emptyText || $slots.empty" #emptyText>
+      <template v-if="getMergedProps.emptyText || $slots.empty"
+#emptyText>
         <slot name="empty">
           {{ getMergedProps.emptyText || "暂无数据" }}
         </slot>
