@@ -25,12 +25,12 @@ export const PERM_STATUS_OPTIONS = [
 ];
 
 // ========== 级别映射 ==========
-export const SCOPE_COLOR_MAP: Record<PermissionScope, string> = {
+export const SCOPE_COLOR_MAP: any = {
   platform: "purple",
   business: "blue",
 };
 
-export const SCOPE_LABEL_MAP: Record<PermissionScope, string> = {
+export const SCOPE_LABEL_MAP: any = {
   platform: "平台级",
   business: "业务级",
 };
@@ -40,26 +40,20 @@ export const SCOPE_OPTIONS = [
   { label: "业务级", value: "business" as PermissionScope },
 ];
 
-// ========== 资源类型映射 ==========
-export const RESOURCE_TYPE_COLOR_MAP: Record<ResourceType, string> = {
-  menu: "purple",
-  button: "green",
+// ========== 资源类型映射（去掉 menu / button） ==========
+export const RESOURCE_TYPE_COLOR_MAP: any = {
   api: "blue",
   data: "orange",
   other: "default",
 };
 
-export const RESOURCE_TYPE_LABEL_MAP: Record<ResourceType, string> = {
-  menu: "菜单",
-  button: "按钮",
+export const RESOURCE_TYPE_LABEL_MAP: any = {
   api: "接口",
   data: "数据",
   other: "其他",
 };
 
 export const RESOURCE_TYPE_OPTIONS = [
-  { label: "菜单", value: "menu" as ResourceType },
-  { label: "按钮", value: "button" as ResourceType },
   { label: "接口", value: "api" as ResourceType },
   { label: "数据", value: "data" as ResourceType },
   { label: "其他", value: "other" as ResourceType },
@@ -88,11 +82,11 @@ export const ACTION_OPTIONS = [
   { label: "导入 (import)", value: "import" },
 ];
 
-// ========== 新增权限时的空表单值 ==========
+// ========== 新增权限时的空表单值（默认 api） ==========
 export const PERMISSION_EMPTY_VALUES = {
   permCode: "",
   permName: "",
-  resourceType: "button" as ResourceType,
+  resourceType: "api" as ResourceType,
   action: "create",
   status: "1",
   description: "",

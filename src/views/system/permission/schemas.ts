@@ -10,7 +10,6 @@ import {
   RESOURCE_TYPE_OPTIONS,
   SCOPE_COLOR_MAP,
   SCOPE_LABEL_MAP,
-  SCOPE_OPTIONS,
 } from "./constants";
 import { needAction } from "./utils";
 import { DictType } from "@/enums/dict";
@@ -30,17 +29,6 @@ export const permissionSearchSchemas: FormSchema[] = [
     component: "Input",
     colProps: { span: 6 },
     componentProps: { placeholder: "搜索权限名称", allowClear: true },
-  },
-  {
-    field: "scope",
-    label: "权限级别",
-    component: "Select",
-    colProps: { span: 4 },
-    componentProps: {
-      placeholder: "全部级别",
-      allowClear: true,
-      options: SCOPE_OPTIONS,
-    },
   },
   {
     field: "resourceType",
@@ -96,14 +84,14 @@ export const permissionFormSchemas: FormSchema[] = [
     component: "Select",
     required: true,
     colProps: { span: 12 },
-    defaultValue: "button",
+    defaultValue: "api",
     componentProps: {
       options: RESOURCE_TYPE_OPTIONS,
       placeholder: "选择资源类型",
     },
   },
   {
-    field: "action",
+    field: "permAction",
     label: "动作",
     component: "Select",
     required: true,
@@ -165,7 +153,7 @@ export const permissionDetailSchemas: DescriptionItem[] = [
       ),
   },
   {
-    field: "action",
+    field: "permAction",
     label: "动作",
     render: (v) => (v ? h("a-tag", { color: ACTION_COLOR_MAP[v as string] || "default" }, v) : "-"),
   },

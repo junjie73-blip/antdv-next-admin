@@ -66,5 +66,6 @@ export function todoToFormValues(item: TodoRecord) {
     content: item.content ?? "",
     priority: item.priority,
     dueTime: item.dueTime ? new Date(item.dueTime) : null,
+    groupId: item.groupId ?? undefined, // ⭐ 新增
   };
 }

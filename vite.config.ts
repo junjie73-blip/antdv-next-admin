@@ -1,7 +1,6 @@
 import { createWriteStream, existsSync, readFileSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
-import { join, resolve } from "node:path";
-import { pathToFileURL } from "node:url";
+import { join } from "node:path";
 import dayjs from "dayjs";
 import { defineConfig, PluginOption } from "vite";
 import tailwindcss from "@tailwindcss/vite";
@@ -23,7 +22,6 @@ import { wrapPlugin } from "vite-plugin-performance";
 import pkg from "./package.json" with { type: "json" };
 import archiver from "archiver";
 type ProxyList = [string, string][];
-type AppEnv = ReturnType<typeof loadEnv>;
 interface ProxyTarget {
   target: string;
   changeOrigin: boolean;
@@ -175,7 +173,7 @@ function viteArchiverPlugin(options: Record<string, string>): PluginOption {
     },
   };
 }
-function viteMetadataPlugin(root: string): PluginOption {
+function viteMetadataPlugin(_root: string): PluginOption {
   return {
     name: "vite:inject-metadata",
     enforce: "post",
@@ -382,6 +380,12 @@ export default defineConfig(({ mode }) => {
                 },
               },
             ],
+          },
+          minify: {
+            compress: {
+              dropConsole: isProd,
+              dropDebuggerger: isProd,
+            },
           },
         },
       },

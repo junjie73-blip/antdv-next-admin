@@ -15,6 +15,7 @@ import SettingDrawer from "./SettingDrawer.vue";
 import { eventBus, http } from "@/utils";
 import { noticeTypeConfig, useWebSocket, WS_EVENTS, type NotificationItem } from "@/utils/ws";
 import { getNoticeUnreadCount } from "@/api";
+import dayjs from "dayjs";
 defineProps<{
   collapsed?: boolean;
   horizontal?: boolean;
@@ -310,101 +311,109 @@ onUnmounted(() => clearInterval(timer.value));
       </template>
     </div>
 
-    <div class="flex items-center gap-1">
-      <!-- 通知中心 -->
-      <Popover
-        v-model:open="showNotification"
-        trigger="click"
-        placement="bottomRight"
-        :overlay-class-name="isGeekStyle ? 'notification-popover-geek' : ''"
+    <div class="flex items-center gap-3">
+      <div
+        class="flex items-center gap-0.5 px-1 py-1 rounded-xl bg-white dark:bg-gray-800 border border-gray-200/80 dark:border-gray-700/80 shadow-sm shadow-gray-200/50 dark:shadow-black/20"
       >
-        <template #content>
-          <div class="w-[380px] overflow-hidden">
-            <!-- 通知列表 -->
-            <div class="max-h-[360px] overflow-y-auto bg-white dark:bg-gray-900">
-              <a-empty v-if="notifications.length === 0" description="暂无通知"> </a-empty>
-              <div
-                v-for="item in notifications"
-                :data-id="item.noticeId"
-                :key="item.noticeId"
-                class="group flex items-start gap-3 px-5 py-4 cursor-pointer transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800"
-                :class="{
-                  'bg-gradient-to-r from-blue-50 to-transparent dark:from-blue-900/20':
-                    !item.isRead,
-                }"
-                @click="handleNotificationClick(item)"
-              >
+        <!-- 通知中心 -->
+        <Popover
+          v-model:open="showNotification"
+          trigger="click"
+          placement="bottomRight"
+          :arrow="false"
+        >
+          <template #content>
+            <div class="w-[380px] overflow-hidden rounded-xl">
+              <!-- 列表 -->
+              <div class="max-h-[360px] overflow-y-auto bg-white dark:bg-gray-900">
+                <a-empty v-if="notifications.length === 0" description="暂无通知" class="!py-10" />
+
                 <div
-                  class="w-10 h-10 rounded-full flex items-center justify-center text-white flex-shrink-0 bg-gradient-to-br"
-                  :class="
-                    noticeTypeConfig[item.noticeType]?.gradient || 'from-gray-500 to-gray-400'
-                  "
+                  v-for="item in notifications"
+                  v-else
+                  :key="item.noticeId"
+                  class="group flex items-start gap-3 px-4 py-3.5 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
+                  :class="{
+                    'bg-blue-50/60 dark:bg-blue-900/10': !item.isRead,
+                  }"
+                  @click="handleNotificationClick(item)"
                 >
-                  <Icon
-                    :icon="noticeTypeConfig[item.noticeType]?.icon || 'carbon:notification'"
-                    class="text-lg"
+                  <div
+                    class="w-9 h-9 rounded-full flex items-center justify-center text-white flex-shrink-0 bg-gradient-to-br"
+                    :class="
+                      noticeTypeConfig[item.noticeType]?.gradient || 'from-slate-500 to-slate-400'
+                    "
+                  >
+                    <Icon
+                      :icon="noticeTypeConfig[item.noticeType]?.icon || 'carbon:notification'"
+                      class="text-base"
+                    />
+                  </div>
+
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
+                        {{ item.title }}
+                      </span>
+                      <span class="text-[11px] text-gray-400 flex-shrink-0">
+                        {{ dayjs(item.publishTime || item.createdAt).fromNow() }}
+                      </span>
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                      {{ item.content }}
+                    </p>
+                  </div>
+
+                  <div
+                    v-if="!item.isRead"
+                    class="w-1.5 h-1.5 mt-3 rounded-full bg-blue-500 flex-shrink-0"
                   />
                 </div>
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">
-                      {{ item.title }}
-                    </span>
-                    <span class="text-xs text-gray-400 flex-shrink-0">
-                      {{ item.publishTime || item.createdAt }}
-                    </span>
-                  </div>
-                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
-                    {{ item.content }}
-                  </p>
-                </div>
-                <div
-                  v-if="!item.isRead"
-                  class="w-2 h-2 mt-2 rounded-full bg-blue-500 flex-shrink-0"
-                />
+              </div>
+
+              <!-- 底部 -->
+              <div
+                class="py-2.5 text-center border-t border-gray-100 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-900/60"
+              >
+                <a
+                  class="text-xs text-indigo-500 hover:text-indigo-600 cursor-pointer font-medium"
+                  @click="handleViewAllNotifications"
+                >
+                  查看全部通知
+                </a>
               </div>
             </div>
+          </template>
 
-            <!-- 底部查看全部 -->
-            <div
-              class="py-3 text-center border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900"
-            >
-              <a
-                class="text-xs text-indigo-500 hover:text-indigo-600 cursor-pointer font-medium"
-                @click="handleViewAllNotifications"
-              >
-                查看全部通知
-              </a>
-            </div>
-          </div>
-        </template>
-        <Badge :count="unreadCount" :offset="[-2, 2]" :overflow-count="99">
-          <div :class="actionBtnClassName">
-            <Icon icon="carbon:notification" class="text-xl" />
-          </div>
-        </Badge>
-      </Popover>
+          <!-- ⭐ 用 a-button 而不是原生 button -->
+          <a-button type="text" class="!w-9 !h-9 !p-0 !rounded-lg">
+            <Badge :count="unreadCount" :offset="[-4, 4]" :overflow-count="99">
+              <Icon icon="carbon:notification" class="text-lg text-gray-500" />
+            </Badge>
+          </a-button>
+        </Popover>
 
-      <!-- 用户下拉 -->
+        <!-- 系统设置 -->
+        <a-button type="text" class="!w-9 !h-9 !p-0 !rounded-lg" @click="showSetting = true">
+          <Icon icon="carbon:settings" class="text-lg text-gray-500" />
+        </a-button>
+      </div>
       <Dropdown
         :menu="{ items: userDropdownItems, onClick: handleUserMenuClick }"
         placement="bottomRight"
       >
         <div
-          class="flex items-center gap-2 cursor-pointer px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+          class="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-xl cursor-pointer bg-white dark:bg-gray-800 border border-gray-200/80 dark:border-gray-700/80 shadow-sm shadow-gray-200/50 dark:shadow-black/20 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
         >
-          <a-avatar :size="32" class="bg-ant-primary" :src="userStore.avatar">
+          <a-avatar :size="28" :src="userStore.avatar" class="bg-ant-primary">
             {{ userStore.username?.charAt(0)?.toUpperCase() || "U" }}
           </a-avatar>
-          <span class="text-sm hidden sm:inline">{{ userStore.username || "用户" }}</span>
-          <Icon icon="carbon:chevron-down" class="text-sm text-gray-400" />
+          <span class="text-sm hidden sm:inline text-gray-700 dark:text-gray-200">
+            {{ userStore.username || "用户" }}
+          </span>
+          <Icon icon="carbon:chevron-down" class="text-xs text-gray-400" />
         </div>
       </Dropdown>
-
-      <!-- 系统设置 -->
-      <div :class="actionBtnClassName" @click="showSetting = true">
-        <Icon icon="carbon:settings" class="text-xl" />
-      </div>
     </div>
 
     <SettingDrawer v-model:visible="showSetting" />
@@ -413,6 +422,17 @@ onUnmounted(() => clearInterval(timer.value));
 </template>
 
 <style scoped>
+:deep(.ant-breadcrumb-separator) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+/* Popover 内边距归零，让内部面板自己控制圆角和间距 */
+:global(.ant-popover-inner) {
+  padding: 0 !important;
+}
+
+/* 面包屑分隔符垂直居中 */
 :deep(.ant-breadcrumb-separator) {
   display: flex;
   justify-content: center;

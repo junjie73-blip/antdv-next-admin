@@ -10,6 +10,7 @@ export interface TodoRecord {
   dueTime?: string | null;
   createdAt: string;
   userId: string;
+  groupId?: string | null;
 }
 
 /** 待办统计 */

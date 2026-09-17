@@ -1,16 +1,13 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { computed, nextTick, ref } from "vue";
-import dayjs from "dayjs";
+import { nextTick, ref } from "vue";
 
 import { createPermission, deletePermission, getPermissionList, updatePermission } from "@/api";
 import { Description } from "@/components/business/Description";
 import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
 import { BasicForm, useForm } from "@/components/business/Form";
-import { BasicModal, useModal } from "@/components/business/Modal";
 import { BasicTable, TableAction, useTable, type ActionItem } from "@/components/business/Table";
 import { useCRUD } from "@/composables/useCRUD";
-import { useUserStore } from "@/stores/modules/user";
 
 // 抽离的模块
 import { getPermissionActions } from "./actions";
@@ -34,39 +31,33 @@ import {
   containerClassName,
 } from "./constants";
 import { permissionDetailSchemas, permissionFormSchemas, permissionSearchSchemas } from "./schemas";
-import type { PermissionRecord, RawPermissionRecord } from "./types";
-import { buildPermissionPayload, filterByPlatformAdmin, mapPermissionRecord } from "./utils";
+import type { PermissionRecord } from "./types";
 
 defineOptions({ name: "SystemPermission" });
 
-// ========== 用户 store ==========
-const userStore = useUserStore();
-const isPlatformAdmin = computed(() => {
-  return userStore.permissions?.some((p: string) => p.startsWith("platform:")) ?? false;
-});
-
-// ========== 详情 ==========
+// ========== 详情抽屉 ==========
 const viewingRecord = ref<PermissionRecord | null>(null);
-const [drawerRegister, drawerMethods] = useDrawer();
+const [detailDrawerRegister, detailDrawerMethods] = useDrawer();
 
 function handleView(record: PermissionRecord) {
   viewingRecord.value = null;
   nextTick(() => {
     viewingRecord.value = record;
-    drawerMethods.openDrawer();
+    detailDrawerMethods.openDrawer();
   });
 }
 
 // ========== 表格 & 表单 ==========
 const [tableRegister, tableMethods] = useTable();
-const [modalRegister, modalMethods] = useModal();
+
+// ⭐ 新增/编辑改用 Drawer
+const [formDrawerRegister, formDrawerMethods] = useDrawer();
 const [formRegister, formMethods] = useForm();
 
 // ========== useCRUD ==========
-// 说明：删除确认由操作项 popConfirm 负责，关闭 useCRUD 内置 Modal.confirm。
 const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<PermissionRecord>({
-  containerType: "modal",
-  modalMethods,
+  containerType: "drawer",
+  drawerMethods: formDrawerMethods,
   formMethods,
   tableMethods,
   idKey: "permId",
@@ -80,10 +71,10 @@ const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<P
     description: record.description || "",
   }),
   onCreate: async (values: any) => {
-    await createPermission(buildPermissionPayload(values));
+    await createPermission(values);
   },
   onUpdate: async (id, values: any) => {
-    await updatePermission(id, buildPermissionPayload(values));
+    await updatePermission(id, values);
   },
   onDelete: async (record) => {
     await deletePermission(record.permId);
@@ -94,18 +85,6 @@ const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<P
     deleteSuccess: "权限删除成功",
   },
 });
-
-// ========== 数据加载 ==========
-async function fetchPermissionList(params: Record<string, any>) {
-  const res = await getPermissionList(params);
-  const data = res?.data ?? res;
-
-  const mapped = (data?.list || []).map((item: RawPermissionRecord) => mapPermissionRecord(item));
-  // 前端兜底：非平台超管过滤掉平台级权限（后端最好也做）
-  const list = filterByPlatformAdmin(mapped, isPlatformAdmin.value);
-
-  return { list, total: list.length };
-}
 
 // ========== 操作项 ==========
 function getActions(record: PermissionRecord): ActionItem[] {
@@ -122,7 +101,7 @@ function getActions(record: PermissionRecord): ActionItem[] {
     <a-card title="权限管理" :class="cardClassName">
       <BasicTable
         :columns="permissionColumns"
-        :api="fetchPermissionList"
+        :api="getPermissionList"
         :immediate="true"
         :use-search-form="true"
         :form-config="{ schemas: permissionSearchSchemas, labelWidth: 80 }"
@@ -152,9 +131,9 @@ function getActions(record: PermissionRecord): ActionItem[] {
           </a-tag>
         </template>
 
-        <template #cell-action="{ record }">
-          <a-tag v-if="record.action" :color="ACTION_COLOR_MAP[record.action] || 'default'">
-            {{ record.action }}
+        <template #cell-permAction="{ record }">
+          <a-tag v-if="record.permAction" :color="ACTION_COLOR_MAP[record.permAction] || 'default'">
+            {{ record.permAction }}
           </a-tag>
           <span v-else class="text-gray-400">-</span>
         </template>
@@ -171,11 +150,11 @@ function getActions(record: PermissionRecord): ActionItem[] {
       </BasicTable>
     </a-card>
 
-    <!-- 新增/编辑弹窗 -->
-    <BasicModal
+    <!-- ⭐ 新增/编辑抽屉 -->
+    <BasicDrawer
       :title="isEditing ? '编辑权限' : '新增权限'"
       :width="620"
-      @register="modalRegister"
+      @register="formDrawerRegister"
       @ok="handleSave"
     >
       <BasicForm
@@ -185,14 +164,14 @@ function getActions(record: PermissionRecord): ActionItem[] {
         :grid="{ cols: 2, gutter: 16 }"
         @register="formRegister"
       />
-    </BasicModal>
+    </BasicDrawer>
 
     <!-- 详情抽屉 -->
     <BasicDrawer
       :title="`权限详情 - ${viewingRecord?.permName || ''}`"
       :width="620"
       :show-footer="false"
-      @register="drawerRegister"
+      @register="detailDrawerRegister"
       @close="viewingRecord = null"
     >
       <Description

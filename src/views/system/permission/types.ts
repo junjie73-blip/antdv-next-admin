@@ -1,8 +1,13 @@
 /** 权限级别 */
 export type PermissionScope = "platform" | "business";
 
-/** 资源类型 */
-export type ResourceType = "menu" | "button" | "api" | "data" | "other";
+/**
+ * 资源类型
+ *
+ * 注：菜单 / 按钮权限由角色管理里分配，
+ *     这里只处理「接口 / 数据 / 其他」三类权限
+ */
+export type ResourceType = "api" | "data" | "other";
 
 /** 权限记录 */
 export interface PermissionRecord {
@@ -10,7 +15,6 @@ export interface PermissionRecord {
   permCode: string;
   permName: string;
   /** 从 permCode 前缀推断 */
-  scope: PermissionScope;
   resourceType: ResourceType;
   action?: string | null;
   description?: string | null;

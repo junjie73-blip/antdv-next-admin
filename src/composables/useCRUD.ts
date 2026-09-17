@@ -2,7 +2,7 @@ import type { DrawerMethods, ModalMethods } from "@/components";
 import type { FormActionType } from "@/components/business/Form";
 import type { TableActionType } from "@/components/business/Table";
 import { message, Modal } from "antdv-next";
-import { ref } from "vue";
+import { nextTick, ref } from "vue";
 
 type ContainerType = "modal" | "drawer";
 
@@ -29,7 +29,10 @@ interface UseCRUDOptions<RecordType = Record<string, any>, FormValues = Record<s
   /** Drawer 方法（containerType 为 drawer 时使用） */
   drawerMethods?: Pick<DrawerMethods, "openDrawer" | "closeDrawer">;
   /** Form 方法 */
-  formMethods: Pick<FormActionType, "setFieldsValue" | "clearValidate" | "validate">;
+  formMethods: Pick<
+    FormActionType,
+    "setFieldsValue" | "clearValidate" | "validate" | "resetFields"
+  >;
   /** Table 方法 */
   tableMethods?: { value: TableActionType | null };
   /** 主键字段名（用于编辑和删除） */
@@ -130,6 +133,7 @@ export function useCRUD<RecordType = Record<string, any>, FormValues = Record<st
   }
 
   async function closeContainer() {
+    formMethods.resetFields();
     if (containerType === "modal") {
       await modalMethods?.closeModal();
     } else {
@@ -149,8 +153,10 @@ export function useCRUD<RecordType = Record<string, any>, FormValues = Record<st
     currentRecord.value = null;
     const empty = getEmptyValues ? getEmptyValues() : {};
     await openContainer();
-    await formMethods.clearValidate();
-    await formMethods.setFieldsValue({ ...empty, ...initialValues });
+    nextTick(async () => {
+      await formMethods.resetFields();
+      await formMethods.setFieldsValue({ ...empty, ...initialValues });
+    });
   }
 
   // ========== 编辑 ==========
@@ -159,7 +165,8 @@ export function useCRUD<RecordType = Record<string, any>, FormValues = Record<st
     currentRecord.value = record;
     isEditing.value = true;
     await openContainer();
-    await formMethods.clearValidate();
+    await formMethods.resetFields();
+    await nextTick();
     let detailRecord = record;
     if (onFetchDetail) {
       try {

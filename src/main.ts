@@ -2,7 +2,6 @@ import FcDesigner from "@form-create/antd-designer";
 import formCreate from "@form-create/antdv-next";
 import install from "@form-create/antdv-next/auto-import";
 import { createPinia } from "pinia";
-import { createPersistedState } from "pinia-plugin-persistedstate";
 import { createApp } from "vue";
 import { PerfectScrollbarPlugin } from "vue3-perfect-scrollbar";
 import App from "./App.vue";
@@ -20,17 +19,11 @@ formCreate.use(install);
 
 const app = createApp(App);
 const pinia = createPinia();
-// pinia.use(
-//   createPersistedState({
-//     key: (id) => `__xxxx__${id}`,
-//     storage: localStorage,
-//   }),
-// );
 
 if (import.meta.env.PROD) {
   Sentry.init({
     app,
-    dsn: "https://7e19b5383e4112d05077bc078a81365f@o4512096256393216.ingest.us.sentry.io/4512096347488256",
+    dsn: import.meta.env.VITE_SENTRY_DSN,
     dataCollection: {
       // To disable sending user data and HTTP bodies, uncomment the lines below. For more info visit:
       // https://docs.sentry.io/platforms/javascript/guides/vue/configuration/options/#dataCollection
@@ -44,7 +37,7 @@ if (import.meta.env.PROD) {
     // Tracing
     tracesSampleRate: 1.0, // Capture 100% of the transactions
     // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
-    tracePropagationTargets: ["localhost", /^https:\/\/yourserver\.io\/api/],
+    tracePropagationTargets: ["localhost", /^https:\/\/121.4.127.82\.io\/api/],
     // Session Replay
     replaysSessionSampleRate: 0.1, // This sets the sample rate at 10%. You may want to change it to 100% while in development and then sample at a lower rate in production.
     replaysOnErrorSampleRate: 1.0, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
