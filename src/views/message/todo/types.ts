@@ -31,4 +31,5 @@ export interface TodoFilterOption {
   icon: string;
   count: number;
   color: string;
+  gradient: string;
 }

@@ -1,0 +1,5 @@
+:root {
+  --ant-primary-color-bg: color-mix(in srgb, var(--ant-primary-color) 10%, white);
+  --ant-primary-color-border: color-mix(in srgb, var(--ant-primary-color) 35%, white);
+  --ant-primary-color-hover: color-mix(in srgb, var(--ant-primary-color) 80%, white);
+}

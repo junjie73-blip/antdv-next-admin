@@ -313,18 +313,12 @@ onUnmounted(() => clearInterval(timer.value));
 
     <div class="flex items-center gap-3">
       <div
-        class="flex items-center gap-0.5 px-1 py-1 rounded-xl bg-white dark:bg-gray-800 border border-gray-200/80 dark:border-gray-700/80 shadow-sm shadow-gray-200/50 dark:shadow-black/20"
+        class="flex items-center gap-0.5 px-0.5 py-0.5 rounded-xl bg-white dark:bg-gray-800 shadow-lg shadow-gray-300/40 dark:shadow-black/40"
       >
         <!-- 通知中心 -->
-        <Popover
-          v-model:open="showNotification"
-          trigger="click"
-          placement="bottomRight"
-          :arrow="false"
-        >
+        <Popover v-model:open="showNotification" trigger="click" placement="bottomRight">
           <template #content>
             <div class="w-[380px] overflow-hidden rounded-xl">
-              <!-- 列表 -->
               <div class="max-h-[360px] overflow-y-auto bg-white dark:bg-gray-900">
                 <a-empty v-if="notifications.length === 0" description="暂无通知" class="!py-10" />
 
@@ -371,7 +365,6 @@ onUnmounted(() => clearInterval(timer.value));
                 </div>
               </div>
 
-              <!-- 底部 -->
               <div
                 class="py-2.5 text-center border-t border-gray-100 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-900/60"
               >
@@ -385,17 +378,30 @@ onUnmounted(() => clearInterval(timer.value));
             </div>
           </template>
 
-          <!-- ⭐ 用 a-button 而不是原生 button -->
-          <a-button type="text" class="!w-9 !h-9 !p-0 !rounded-lg">
-            <Badge :count="unreadCount" :offset="[-4, 4]" :overflow-count="99">
-              <Icon icon="carbon:notification" class="text-lg text-gray-500" />
+          <!-- 图标按钮：hover 变蓝 + 背景高亮 -->
+          <a-button
+            type="text"
+            class="group !w-8 !h-8 !p-0 !rounded-lg !text-gray-500 hover:!text-blue-500 hover:!bg-blue-50 dark:hover:!bg-blue-900/20 transition-all duration-200"
+          >
+            <Badge :count="unreadCount" size="small" :offset="[-4, 4]" :overflow-count="99">
+              <Icon
+                icon="carbon:notification"
+                class="text-lg transition-transform duration-200 group-hover:scale-110"
+              />
             </Badge>
           </a-button>
         </Popover>
 
         <!-- 系统设置 -->
-        <a-button type="text" class="!w-9 !h-9 !p-0 !rounded-lg" @click="showSetting = true">
-          <Icon icon="carbon:settings" class="text-lg text-gray-500" />
+        <a-button
+          type="text"
+          class="group !w-8 !h-8 !p-0 !rounded-lg !text-gray-500 hover:!text-blue-500 hover:!bg-blue-50 dark:hover:!bg-blue-900/20 transition-all duration-200"
+          @click="showSetting = true"
+        >
+          <Icon
+            icon="carbon:settings"
+            class="text-lg transition-transform duration-200 group-hover:rotate-90"
+          />
         </a-button>
       </div>
       <Dropdown
@@ -403,7 +409,7 @@ onUnmounted(() => clearInterval(timer.value));
         placement="bottomRight"
       >
         <div
-          class="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-xl cursor-pointer bg-white dark:bg-gray-800 border border-gray-200/80 dark:border-gray-700/80 shadow-sm shadow-gray-200/50 dark:shadow-black/20 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
+          class="flex items-center gap-2 pl-1 pr-2 py-0.5 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         >
           <a-avatar :size="28" :src="userStore.avatar" class="bg-ant-primary">
             {{ userStore.username?.charAt(0)?.toUpperCase() || "U" }}

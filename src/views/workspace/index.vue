@@ -48,26 +48,18 @@ onMounted(load);
 </script>
 
 <template>
-  <div class="workbench">
-    <!-- ============================================================ -->
-    <!-- 背景光晕层（绝对定位，不影响布局）                             -->
-    <!-- ============================================================ -->
-    <div class="wb-bg" aria-hidden="true">
-      <div class="wb-blob wb-blob-1" />
-      <div class="wb-blob wb-blob-2" />
-      <div class="wb-blob wb-blob-3" />
-    </div>
-
-    <!-- ============================================================ -->
-    <!-- 内容层                                                        -->
-    <!-- ============================================================ -->
+  <div class="relative isolate min-h-full p-1">
     <div class="relative z-10 space-y-5">
       <!-- ==================== 欢迎卡片 ==================== -->
-      <div class="welcome-glass rounded-3xl overflow-hidden">
+      <div
+        class="rounded-3xl overflow-hidden bg-white/50 backdrop-blur-2xl border border-white/70 shadow-[0_8px_32px_-12px_rgba(59,130,246,0.1),0_4px_16px_-8px_rgba(139,92,246,0.06),inset_0_1px_0_rgba(255,255,255,0.8)] dark:bg-slate-900/55 dark:border-slate-600/40 dark:shadow-[0_8px_32px_-12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.04)]"
+      >
         <div class="relative flex items-center gap-6 p-7 md:p-8">
           <!-- 头像 -->
-          <div class="relative flex-shrink-0">
-            <div class="avatar-ring" />
+          <div class="relative shrink-0">
+            <div
+              class="absolute -inset-1 rounded-full blur-md opacity-55 dark:opacity-35 bg-[conic-gradient(from_0deg,#60a5fa,#a78bfa,#34d399,#60a5fa)]"
+            />
             <a-avatar
               :size="72"
               :src="userStore.avatar"
@@ -76,7 +68,7 @@ onMounted(load);
               {{ userStore.username?.charAt(0)?.toUpperCase() || "U" }}
             </a-avatar>
             <span
-              class="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 ring-3 ring-white dark:ring-slate-900"
+              class="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 ring-[3px] ring-white dark:ring-slate-900"
             />
           </div>
 
@@ -93,11 +85,15 @@ onMounted(load);
             </p>
 
             <div class="mt-3 flex items-center gap-2 text-xs flex-wrap">
-              <span class="pill-glass">
+              <span
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-slate-600 dark:text-slate-300 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/70 dark:border-slate-600/40"
+              >
                 <Icon icon="carbon:calendar" class="text-blue-500" />
                 {{ todayLabel }} · {{ weekLabel }}
               </span>
-              <span class="pill-glass">
+              <span
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-slate-600 dark:text-slate-300 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/70 dark:border-slate-600/40"
+              >
                 <Icon icon="carbon:user-role" class="text-violet-500" />
                 {{ userStore.roles?.join("、") || "未分配角色" }}
               </span>
@@ -106,7 +102,10 @@ onMounted(load);
 
           <!-- 右侧数据 -->
           <div class="hidden md:flex items-center gap-4 pr-1">
-            <button class="stat-mini group" @click="navigate('/message/todo')">
+            <button
+              class="group flex flex-col items-end gap-1 px-4 py-3 rounded-2xl hover:bg-white/55 dark:hover:bg-slate-800/50 transition-colors"
+              @click="navigate('/message/todo')"
+            >
               <div class="flex items-baseline gap-1">
                 <span
                   class="text-2xl font-bold text-slate-800 dark:text-slate-100 tabular-nums leading-none"
@@ -120,7 +119,10 @@ onMounted(load);
 
             <div class="w-px h-10 bg-slate-200/80 dark:bg-slate-700/80" />
 
-            <button class="stat-mini group" @click="navigate('/message/my')">
+            <button
+              class="group flex flex-col items-end gap-1 px-4 py-3 rounded-2xl hover:bg-white/55 dark:hover:bg-slate-800/50 transition-colors"
+              @click="navigate('/message/my')"
+            >
               <div class="flex items-baseline gap-1">
                 <span
                   class="text-2xl font-bold text-slate-800 dark:text-slate-100 tabular-nums leading-none"
@@ -146,7 +148,7 @@ onMounted(load);
           class="rounded-2xl"
         >
           <div
-            class="glass-card group relative rounded-2xl px-5 py-5 cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
+            class="group relative rounded-2xl px-5 py-5 cursor-pointer transition-all duration-300 hover:-translate-y-0.5 bg-white/[0.55] dark:bg-slate-900/[0.55] backdrop-blur-xl border border-white/[0.65] dark:border-slate-600/[0.35] shadow-[0_4px_24px_-8px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.7)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.04)]"
             @click="navigate(card.path)"
           >
             <div class="flex items-start justify-between gap-3">
@@ -165,7 +167,7 @@ onMounted(load);
               </div>
 
               <div
-                class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:-rotate-3"
+                class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:-rotate-3"
                 :style="{ backgroundColor: `${card.color}14`, color: card.color }"
               >
                 <Icon :icon="card.icon" class="text-xl" />
@@ -192,12 +194,16 @@ onMounted(load);
           :duration="7"
           :size="200"
         >
-          <div class="glass-card rounded-2xl h-full">
+          <div
+            class="rounded-2xl h-full bg-white/[0.55] dark:bg-slate-900/[0.55] backdrop-blur-xl border border-white/[0.65] dark:border-slate-600/[0.35] shadow-[0_4px_24px_-8px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.7)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.04)]"
+          >
             <div
               class="flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/40 dark:border-slate-700/40"
             >
               <div class="flex items-center gap-2.5">
-                <div class="icon-chip bg-blue-500/12 text-blue-500">
+                <div
+                  class="w-8 h-8 rounded-xl flex items-center justify-center text-base bg-blue-500/[0.12] text-blue-500"
+                >
                   <Icon icon="carbon:apps" />
                 </div>
                 <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">
@@ -241,12 +247,16 @@ onMounted(load);
           :duration="8"
           :size="200"
         >
-          <div class="glass-card rounded-2xl h-full">
+          <div
+            class="rounded-2xl h-full bg-white/[0.55] dark:bg-slate-900/[0.55] backdrop-blur-xl border border-white/[0.65] dark:border-slate-600/[0.35] shadow-[0_4px_24px_-8px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.7)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.04)]"
+          >
             <div
               class="flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/40 dark:border-slate-700/40"
             >
               <div class="flex items-center gap-2.5">
-                <div class="icon-chip bg-cyan-500/12 text-cyan-500">
+                <div
+                  class="w-8 h-8 rounded-xl flex items-center justify-center text-base bg-cyan-500/[0.12] text-cyan-500"
+                >
                   <Icon icon="carbon:task" />
                 </div>
                 <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">
@@ -266,9 +276,13 @@ onMounted(load);
 
             <div class="p-5 space-y-3">
               <!-- 进行中 -->
-              <div class="todo-tile todo-tile-blue">
+              <div
+                class="p-3.5 rounded-2xl border bg-gradient-to-br from-blue-100/60 to-indigo-100/40 border-blue-500/[0.15] dark:from-blue-900/25 dark:to-indigo-900/20 dark:border-blue-500/[0.25]"
+              >
                 <div class="flex items-center gap-3">
-                  <div class="todo-icon bg-gradient-to-br from-blue-400 to-indigo-500">
+                  <div
+                    class="w-10 h-10 rounded-xl flex items-center justify-center text-white bg-gradient-to-br from-blue-400 to-indigo-500 shadow-[0_4px_12px_-2px_rgba(59,130,246,0.25)]"
+                  >
                     <Icon icon="carbon:list-checked" class="text-lg" />
                   </div>
                   <div>
@@ -286,9 +300,13 @@ onMounted(load);
               </div>
 
               <!-- 已逾期 -->
-              <div class="todo-tile todo-tile-rose">
+              <div
+                class="p-3.5 rounded-2xl border bg-gradient-to-br from-rose-100/60 to-pink-100/40 border-rose-500/[0.15] dark:from-rose-900/25 dark:to-pink-900/20 dark:border-rose-500/[0.25]"
+              >
                 <div class="flex items-center gap-3">
-                  <div class="todo-icon bg-gradient-to-br from-rose-400 to-pink-500">
+                  <div
+                    class="w-10 h-10 rounded-xl flex items-center justify-center text-white bg-gradient-to-br from-rose-400 to-pink-500 shadow-[0_4px_12px_-2px_rgba(59,130,246,0.25)]"
+                  >
                     <Icon icon="carbon:warning-alt" class="text-lg" />
                   </div>
                   <div>
@@ -305,7 +323,10 @@ onMounted(load);
                 </div>
               </div>
 
-              <button class="primary-action" @click="navigate('/message/todo')">
+              <button
+                class="w-full py-2.5 rounded-xl text-white text-sm font-medium bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-[0_4px_16px_-4px_rgba(59,130,246,0.35)] hover:shadow-[0_6px_20px_-4px_rgba(59,130,246,0.45)] hover:-translate-y-px transition-all duration-250 flex items-center justify-center gap-1.5"
+                @click="navigate('/message/todo')"
+              >
                 <Icon icon="carbon:arrow-right" />
                 查看全部待办
               </button>
@@ -315,12 +336,16 @@ onMounted(load);
       </div>
 
       <!-- ==================== 最近操作 ==================== -->
-      <div class="glass-card rounded-2xl overflow-hidden">
+      <div
+        class="rounded-2xl overflow-hidden bg-white/[0.55] dark:bg-slate-900/[0.55] backdrop-blur-xl border border-white/[0.65] dark:border-slate-600/[0.35] shadow-[0_4px_24px_-8px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.7)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.04)]"
+      >
         <div
           class="flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/40 dark:border-slate-700/40"
         >
           <div class="flex items-center gap-2.5">
-            <div class="icon-chip bg-slate-500/10 text-slate-500 dark:text-slate-400">
+            <div
+              class="w-8 h-8 rounded-xl flex items-center justify-center text-base bg-slate-500/10 text-slate-500 dark:text-slate-400"
+            >
               <Icon icon="carbon:time" />
             </div>
             <span class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 最近操作 </span>
@@ -330,7 +355,7 @@ onMounted(load);
 
         <div v-if="recentLogs.length === 0" class="py-16 text-center">
           <div
-            class="w-16 h-16 mx-auto rounded-2xl bg-slate-100/60 dark:bg-slate-800/40 flex items-center justify-center mb-3"
+            class="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-3 bg-slate-100/60 dark:bg-slate-800/40"
           >
             <Icon icon="carbon:document" class="text-3xl text-slate-300 dark:text-slate-600" />
           </div>
@@ -348,209 +373,3 @@ onMounted(load);
     </div>
   </div>
 </template>
-
-<style scoped>
-/* ============================================================
-   工作台容器
-   ============================================================ */
-.workbench {
-  position: relative;
-  isolation: isolate;
-  min-height: 100%;
-  padding: 4px;
-}
-
-/* ============================================================
-   液态玻璃卡片（核心）
-   ============================================================ */
-.glass-card {
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.65);
-  box-shadow:
-    0 4px 24px -8px rgba(15, 23, 42, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
-}
-
-:global(.dark) .glass-card {
-  background: rgba(30, 41, 59, 0.5);
-  border-color: rgba(148, 163, 184, 0.14);
-  box-shadow:
-    0 4px 24px -8px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-/* ============================================================
-   欢迎卡片
-   ============================================================ */
-.welcome-glass {
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow:
-    0 8px 32px -12px rgba(59, 130, 246, 0.1),
-    0 4px 16px -8px rgba(139, 92, 246, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-}
-
-:global(.dark) .welcome-glass {
-  background: rgba(30, 41, 59, 0.5);
-  border-color: rgba(148, 163, 184, 0.15);
-  box-shadow:
-    0 8px 32px -12px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-/* 头像光环 */
-.avatar-ring {
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, #60a5fa, #a78bfa, #34d399, #60a5fa);
-  filter: blur(8px);
-  opacity: 0.55;
-}
-
-/* 玻璃胶囊 */
-.pill-glass {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  color: rgb(71 85 105);
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-}
-
-:global(.dark) .pill-glass {
-  color: rgb(203 213 225);
-  background: rgba(30, 41, 59, 0.5);
-  border-color: rgba(148, 163, 184, 0.12);
-}
-
-/* 右侧数据按钮 */
-.stat-mini {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-  padding: 12px 16px;
-  border-radius: 16px;
-  transition: background-color 200ms ease;
-}
-.stat-mini:hover {
-  background: rgba(255, 255, 255, 0.55);
-}
-:global(.dark) .stat-mini:hover {
-  background: rgba(30, 41, 59, 0.5);
-}
-
-/* ============================================================
-   图标小胶囊（标题左侧）
-   ============================================================ */
-.icon-chip {
-  width: 32px;
-  height: 32px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-}
-
-/* ============================================================
-   待办小卡
-   ============================================================ */
-.todo-tile {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px;
-  border-radius: 16px;
-  border: 1px solid transparent;
-}
-
-.todo-tile-blue {
-  background: linear-gradient(135deg, rgba(219, 234, 254, 0.6), rgba(224, 231, 255, 0.4));
-  border-color: rgba(59, 130, 246, 0.15);
-}
-:global(.dark) .todo-tile-blue {
-  background: linear-gradient(135deg, rgba(30, 58, 138, 0.2), rgba(49, 46, 129, 0.15));
-  border-color: rgba(59, 130, 246, 0.15);
-}
-
-.todo-tile-rose {
-  background: linear-gradient(135deg, rgba(255, 228, 230, 0.6), rgba(252, 231, 243, 0.4));
-  border-color: rgba(244, 63, 94, 0.15);
-}
-:global(.dark) .todo-tile-rose {
-  background: linear-gradient(135deg, rgba(136, 19, 55, 0.2), rgba(131, 24, 67, 0.15));
-  border-color: rgba(244, 63, 94, 0.15);
-}
-
-.todo-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.25);
-}
-
-/* ============================================================
-   主操作按钮
-   ============================================================ */
-.primary-action {
-  width: 100%;
-  padding: 10px 16px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
-  color: white;
-  font-size: 14px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  box-shadow: 0 4px 16px -4px rgba(59, 130, 246, 0.35);
-  transition: all 250ms ease;
-  cursor: pointer;
-}
-.primary-action:hover {
-  background: linear-gradient(135deg, #2563eb, #4f46e5);
-  box-shadow: 0 6px 20px -4px rgba(59, 130, 246, 0.45);
-  transform: translateY(-1px);
-}
-
-/* ============================================================
-   降级方案：不支持 backdrop-filter 的浏览器
-   ============================================================ */
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .glass-card {
-    background: rgba(255, 255, 255, 0.92);
-  }
-  :global(.dark) .glass-card {
-    background: rgba(30, 41, 59, 0.92);
-  }
-  .welcome-glass {
-    background: rgba(255, 255, 255, 0.9);
-  }
-  :global(.dark) .welcome-glass {
-    background: rgba(30, 41, 59, 0.9);
-  }
-  .pill-glass {
-    background: rgba(255, 255, 255, 0.95);
-  }
-  :global(.dark) .pill-glass {
-    background: rgba(30, 41, 59, 0.95);
-  }
-}
-</style>

@@ -38,14 +38,6 @@ const themeConfig = computed(() =>
   ),
 );
 
-const htmlClass = computed(() => {
-  const classes: string[] = [];
-  if (appStore.themeMode === "dark") classes.push("dark");
-  if (appStore.colorWeak) classes.push("color-weak");
-  if (appStore.grayMode) classes.push("gray-mode");
-  return classes.join(" ");
-});
-
 const DAYJS_LOCALE_MAP: Record<string, string> = {
   "zh-CN": "zh-cn",
   "zh-TW": "zh-tw",
@@ -76,7 +68,9 @@ watch(
 
 watchEffect(() => {
   const html = document.documentElement;
-  html.className = htmlClass.value;
+  html.classList.toggle("dark", appStore.themeMode === "dark");
+  html.classList.toggle("color-weak", appStore.colorWeak);
+  html.classList.toggle("gray-mode", appStore.grayMode);
 });
 
 watch(

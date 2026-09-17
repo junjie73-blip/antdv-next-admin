@@ -180,8 +180,8 @@ onBeforeUnmount(() => {
     <!-- 页面标题 -->
     <div class="flex items-center justify-between mb-2">
       <div>
-        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">数据分析</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">系统数据分析与可视化</p>
+        <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100">数据分析</h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">系统数据分析与可视化</p>
       </div>
       <a-space>
         <a-segmented v-model:value="currentRange" :options="TIME_RANGE_OPTIONS" size="small" />
@@ -215,9 +215,10 @@ onBeforeUnmount(() => {
               <div
                 :class="
                   cn(
-                    'rounded-lg bg-white dark:bg-gray-900',
-                    'p-5 transition-all duration-300',
-                    'hover:shadow-lg',
+                    'rounded-xl p-5 transition-all duration-300',
+                    ' bg-white dark:bg-slate-900 transition-all duration-300',
+                    'hover:shadow-[0_8px_24px_-8px_rgba(15,23,42,0.12)]',
+                    'dark:hover:shadow-[0_8px_24px_-8px_rgba(0,0,0,0.6)]',
                   )
                 "
               >

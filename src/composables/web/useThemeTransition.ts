@@ -1,58 +1,72 @@
-import { nextTick } from 'vue'
-import { useAppStore } from '@/stores/modules/app'
+import { nextTick } from "vue";
+import { useAppStore } from "@/stores/modules/app";
 
 export function useThemeTransition() {
-  const appStore = useAppStore()
+  const appStore = useAppStore();
 
   async function toggleThemeWithAnimation(event?: MouseEvent) {
-    const x = event?.clientX ?? window.innerWidth / 2
-    const y = event?.clientY ?? window.innerHeight / 2
+    const x = event?.clientX ?? window.innerWidth / 2;
+    const y = event?.clientY ?? window.innerHeight / 2;
 
     const endRadius = Math.hypot(
       Math.max(x, window.innerWidth - x),
       Math.max(y, window.innerHeight - y),
-    )
+    );
 
-    if (!document.startViewTransition) {
-      appStore.toggleTheme()
-      return
+    // ⭐ 提前判断方向（切换前读，避免异步里状态已变）
+    const isToDark = appStore.themeMode === "light";
+
+    if (typeof document.startViewTransition !== "function") {
+      appStore.toggleTheme();
+      return;
     }
 
-    const currentTheme = appStore.themeMode
+    // ============================================================
+    // ⭐ 关键修复：在 startViewTransition 之前注入 opacity:0
+    //
+    // 注入时机对比：
+    // - 晚注入（.ready 之后）：新快照先以 opacity:1 显示一帧 → 闪烁
+    // - 早注入（本次）：伪元素从诞生起就透明，无窗口期
+    // ============================================================
+    let styleEl: HTMLStyleElement | null = null;
+    if (isToDark) {
+      styleEl = document.createElement("style");
+      styleEl.setAttribute("data-theme-transition", "");
+      styleEl.textContent = "::view-transition-new(root){opacity:0 !important;}";
+      document.head.appendChild(styleEl);
+    }
 
-    const transition = document.startViewTransition(async () => {
-      appStore.toggleTheme()
-      await nextTick()
-    })
+    let transition: ViewTransition | null = null;
 
-    transition.ready.then(() => {
-      const isToDark = currentTheme === 'light'
-      const clipPath = [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`]
+    try {
+      transition = document.startViewTransition(async () => {
+        appStore.toggleTheme();
+        await nextTick();
+      });
 
-      // 亮→暗: old(亮色)收缩，需隐藏 new 防止遮挡
-      // 暗→亮: new(亮色)展开，new 本身在顶层无需额外处理
-      let cleanupStyle: HTMLStyleElement | null = null
-      if (isToDark) {
-        // 隐藏 new，让 old 的收缩动画可见
-        cleanupStyle = document.createElement('style')
-        cleanupStyle.textContent = '::view-transition-new(root) { opacity: 0 !important; }'
-        document.head.appendChild(cleanupStyle)
-        // 等 View Transition 完全结束后再恢复，避免闪烁
-        transition.finished.then(() => cleanupStyle?.remove())
-      }
+      await transition.ready;
+
+      const clipPath = [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`];
 
       document.documentElement.animate(
-        { clipPath: isToDark ? [...clipPath].reverse() : clipPath },
+        {
+          clipPath: isToDark ? [...clipPath].reverse() : clipPath,
+        },
         {
           duration: 400,
-          easing: 'ease-in-out',
-          pseudoElement: isToDark ? '::view-transition-old(root)' : '::view-transition-new(root)',
+          easing: "ease-in-out",
+          pseudoElement: isToDark ? "::view-transition-old(root)" : "::view-transition-new(root)",
         },
-      )
-    })
+      );
+
+      await transition.finished;
+    } finally {
+      // 无论成功失败都清理，避免下次切换受影响
+      styleEl?.remove();
+    }
   }
 
   return {
     toggleThemeWithAnimation,
-  }
+  };
 }

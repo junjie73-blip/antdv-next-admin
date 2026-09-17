@@ -2,11 +2,11 @@
 import type { SelectProps } from "antdv-next";
 import { http } from "@/utils";
 import type { DataNode } from "antdv-next/dist/tree/index";
-import { onMounted, ref } from "vue";
+import { nextTick, onMounted, ref, watch } from "vue";
 interface Props extends /* @vue-ignore */ SelectProps {
   api: string;
 }
-const { api, ...props } = defineProps<Props>();
+const { api = "", ...props } = defineProps<Props>();
 const options = ref<DataNode[]>([]);
 async function getTreeData() {
   const { data: res } = await http
@@ -16,9 +16,14 @@ async function getTreeData() {
     .send(true);
   options.value = res;
 }
-onMounted(() => {
-  getTreeData();
-});
+watch(
+  () => api,
+  (newVal) => {
+    if (newVal) {
+      getTreeData();
+    }
+  },
+);
 </script>
 
 <template>

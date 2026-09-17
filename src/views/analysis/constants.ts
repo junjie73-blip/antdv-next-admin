@@ -30,10 +30,14 @@ export const TIME_RANGE_OPTIONS = [
 
 // ========== 样式类名 ==========
 export const analyticsCardClassName = cn(
-  "rounded-lg border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900",
-  "shadow-sm transition-all duration-300 hover:shadow-md",
+  "rounded-xl overflow-hidden",
+  "border border-slate-100 dark:border-slate-800",
+  "bg-white dark:bg-slate-900",
+  "shadow-[0_1px_3px_rgba(15,23,42,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]",
+  "transition-all duration-300",
+  "hover:shadow-[0_4px_16px_-4px_rgba(15,23,42,0.08)] dark:hover:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.4)]",
 );
 
 export const sectionTitleClassName = cn(
-  "text-base font-semibold text-gray-800 dark:text-gray-200 mb-4",
+  "text-base font-semibold text-slate-800 dark:text-slate-200 mb-4",
 );

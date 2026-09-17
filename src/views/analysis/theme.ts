@@ -3,7 +3,7 @@ import { PALETTE } from "./constants";
 
 /** 主文本色 */
 export function textColor(isDark: boolean) {
-  return isDark ? "#d1d5db" : "#374151";
+  return isDark ? "#cbd5e1" : "#64748b";
 }
 
 /** 次要文本色 */
@@ -18,7 +18,7 @@ export function borderColor(isDark: boolean) {
 
 /** 坐标轴线颜色 */
 export function axisLineColor(isDark: boolean) {
-  return isDark ? "#4b5563" : "#d1d5db";
+  return isDark ? "#334155" : "#e5e7eb";
 }
 
 /** Tooltip 背景色 */

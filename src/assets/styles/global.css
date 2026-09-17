@@ -5,7 +5,7 @@
 @plugin "@tailwindcss/typography";
 @plugin "@tailwindcss/nesting";
 @custom-variant dark (&:where(.dark, .dark *));
-
+@import './var.css';
 /* NProgress 进度条样式 - 使用 Tailwind @apply */
 #nprogress {
   @apply pointer-events-none;
@@ -36,7 +36,6 @@
 ::view-transition-old(root) {
   animation: none !important;
   mix-blend-mode: normal;
-  z-index: 9999;
 }
 
 html,
