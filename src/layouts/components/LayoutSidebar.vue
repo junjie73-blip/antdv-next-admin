@@ -1,158 +1,158 @@
 <script setup lang="ts">
-import type { MenuProps } from 'antdv-next'
+import type { MenuProps } from "antdv-next";
 
-import { Icon } from '@iconify/vue'
-import { Menu } from 'antdv-next'
-import { computed, nextTick, unref, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import logoIconUrl from '@/assets/images/logo-icon.svg'
-import { useAppStore } from '@/stores/modules/app'
-import { useRouteStore } from '@/stores/modules/route'
-import { cn } from '@/utils/cn'
-import { transformMenuConfigToItems } from '@/utils/helpers/menu'
-import { COLLAPSED_WIDTH, useLayout, useMenu } from '../composables/useLayout'
+import { Icon } from "@iconify/vue";
+import { Menu } from "antdv-next";
+import { computed, nextTick, unref, watch } from "vue";
+import { useRouter } from "vue-router";
+import logoIconUrl from "@/assets/images/logo.png";
+import { useAppStore } from "@/stores/modules/app";
+import { useRouteStore } from "@/stores/modules/route";
+import { cn } from "@/utils/cn";
+import { transformMenuConfigToItems } from "@/utils/helpers/menu";
+import { COLLAPSED_WIDTH, useLayout, useMenu } from "../composables/useLayout";
 
 const props = defineProps<{
-  collapsed?: boolean
-  mixed?: boolean
-  activeTopMenu?: string
-}>()
+  collapsed?: boolean;
+  mixed?: boolean;
+  activeTopMenu?: string;
+}>();
 
 const emit = defineEmits<{
-  menuClick: [key: string]
-}>()
+  menuClick: [key: string];
+}>();
 
 defineOptions({
-  name: 'LayoutSidebar',
-})
+  name: "LayoutSidebar",
+});
 
-const router = useRouter()
-const appStore = useAppStore()
-const routeStore = useRouteStore()
-const { sidebarWidth } = appStore
-const { toggleCollapsed } = useLayout()
-const { selectedKeys, openKeys, handleOpenChange, setMenuTree, syncMenuByRoute } = useMenu()
-const allMenuItems = computed<MenuProps['items']>(() => {
-  const menus = unref(routeStore.menus)
+const router = useRouter();
+const appStore = useAppStore();
+const routeStore = useRouteStore();
+const { sidebarWidth } = appStore;
+const { toggleCollapsed } = useLayout();
+const { selectedKeys, openKeys, handleOpenChange, setMenuTree, syncMenuByRoute } = useMenu();
+const allMenuItems = computed<MenuProps["items"]>(() => {
+  const menus = unref(routeStore.menus);
   if (!menus || menus.length === 0) {
-    return []
+    return [];
   }
-  return transformMenuConfigToItems(menus)
-})
+  return transformMenuConfigToItems(menus);
+});
 
 // 监听菜单数据，等菜单加载完后主动同步选中态
 watch(
   allMenuItems,
   (items) => {
     if (items && items.length > 0) {
-      setMenuTree(items as any[])
-      syncMenuByRoute()
+      setMenuTree(items as any[]);
+      syncMenuByRoute();
     }
   },
   { immediate: true },
-)
+);
 
 // 混合布局下切换到子菜单时，也要重新同步
 watch(
   () => props.activeTopMenu,
   () => {
-    nextTick(() => syncMenuByRoute())
+    nextTick(() => syncMenuByRoute());
   },
-)
+);
 
-const _appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
+const _appTitle = import.meta.env.VITE_APP_TITLE || "Antdv Next Admin";
 
-const isGeekStyle = computed(() => appStore.themeStyle === 'geek')
-const isDarkMode = computed(() => appStore.themeMode === 'dark' || isGeekStyle.value)
+const isGeekStyle = computed(() => appStore.themeStyle === "geek");
+const isDarkMode = computed(() => appStore.themeMode === "dark" || isGeekStyle.value);
 
 const menuTheme = computed(() => {
-  if (isGeekStyle.value) return 'dark'
-  return appStore.darkSidebar ? 'dark' : 'light'
-})
+  if (isGeekStyle.value) return "dark";
+  return appStore.darkSidebar ? "dark" : "light";
+});
 
 const isLightSidebar = computed(
   () => !appStore.darkSidebar && !isDarkMode.value && !isGeekStyle.value,
-)
+);
 
 const collapseBtnClassName = computed(() =>
   cn(
-    'absolute right-[-12px] top-1/2 -translate-y-1/2',
-    'w-6 h-6 rounded-full',
-    'flex items-center justify-center',
-    'cursor-pointer z-[999]',
-    'border shadow-sm',
-    'transition-all duration-200',
+    "absolute right-[-12px] top-1/2 -translate-y-1/2",
+    "w-6 h-6 rounded-full",
+    "flex items-center justify-center",
+    "cursor-pointer z-[999]",
+    "border shadow-sm",
+    "transition-all duration-200",
     isGeekStyle.value
-      ? 'text-gray-500 bg-[#0a0a0a] border-[#1a1a1a] hover:text-[#00ff88] hover:border-[#00ff88] hover:shadow-[0_2px_8px_rgba(0,255,136,0.2)]'
+      ? "text-gray-500 bg-[#0a0a0a] border-[#1a1a1a] hover:text-[#00ff88] hover:border-[#00ff88] hover:shadow-[0_2px_8px_rgba(0,255,136,0.2)]"
       : appStore.darkSidebar || isDarkMode.value
-        ? 'text-gray-400 bg-gray-900 border-gray-700 hover:text-white hover:border-gray-500 hover:shadow-[0_2px_8px_rgba(0,0,0,0.3)]'
-        : 'text-gray-400 bg-white border-gray-200 hover:text-[var(--ant-color-primary)] hover:border-[var(--ant-color-primary)] hover:shadow-[0_2px_8px_rgba(37,99,235,0.2)]',
+        ? "text-gray-400 bg-gray-900 border-gray-700 hover:text-white hover:border-gray-500 hover:shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
+        : "text-gray-400 bg-white border-gray-200 hover:text-[var(--ant-color-primary)] hover:border-[var(--ant-color-primary)] hover:shadow-[0_2px_8px_rgba(37,99,235,0.2)]",
   ),
-)
+);
 
 const sidebarClassName = computed(() =>
   cn(
-    'relative flex-shrink-0 h-full',
-    'flex flex-col',
-    'transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
-    'border-r',
+    "relative flex-shrink-0 h-full",
+    "flex flex-col",
+    "transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+    "border-r",
     isGeekStyle.value
-      ? 'bg-[#0a0a0a] border-[#1a1a1a]'
+      ? "bg-[#0a0a0a] border-[#1a1a1a]"
       : appStore.darkSidebar || isDarkMode.value
-        ? 'bg-gray-900 border-gray-800'
-        : 'bg-white border-gray-100',
+        ? "bg-gray-900 border-gray-800"
+        : "bg-white border-gray-100",
   ),
-)
+);
 
 const logoClassName = computed(() =>
   cn(
-    'h-14 flex items-center justify-center',
-    'border-b',
-    'overflow-hidden whitespace-nowrap',
-    'transition-all duration-300',
+    "h-14 flex items-center justify-center",
+    "border-b",
+    "overflow-hidden whitespace-nowrap",
+    "transition-all duration-300",
     isGeekStyle.value
-      ? 'border-[#1a1a1a]'
+      ? "border-[#1a1a1a]"
       : appStore.darkSidebar || isDarkMode.value
-        ? 'border-gray-800'
-        : 'border-gray-100',
+        ? "border-gray-800"
+        : "border-gray-100",
   ),
-)
+);
 
 const menuWrapperClassName = computed(() =>
   cn(
-    'flex-1 overflow-hidden',
-    'px-2 py-3',
+    "flex-1 overflow-hidden",
+    "px-2 py-3",
     // 浅色侧边栏菜单定制样式
-    isLightSidebar.value ? 'sidebar-light' : '',
+    isLightSidebar.value ? "sidebar-light" : "",
     // 深色侧边栏菜单定制样式
-    (appStore.darkSidebar || isDarkMode.value) && !isGeekStyle.value ? 'sidebar-dark' : '',
+    (appStore.darkSidebar || isDarkMode.value) && !isGeekStyle.value ? "sidebar-dark" : "",
     // 极客风格
-    isGeekStyle.value ? 'sidebar-geek' : '',
+    isGeekStyle.value ? "sidebar-geek" : "",
   ),
-)
+);
 
 const menuItems = computed(() => {
   if (props.mixed && props.activeTopMenu) {
-    const topMenu = allMenuItems.value?.find((item: any) => item?.key === props.activeTopMenu)
-    if (topMenu && 'children' in topMenu && topMenu.children) {
-      return topMenu.children
+    const topMenu = allMenuItems.value?.find((item: any) => item?.key === props.activeTopMenu);
+    if (topMenu && "children" in topMenu && topMenu.children) {
+      return topMenu.children;
     }
-    return []
+    return [];
   }
-  return allMenuItems.value
-})
+  return allMenuItems.value;
+});
 
-const handleMenuSelect: MenuProps['onSelect'] = ({ key }) => {
-  const keyStr = key as string
+const handleMenuSelect: MenuProps["onSelect"] = ({ key }) => {
+  const keyStr = key as string;
   // 外链菜单由 label 中的 <a> 标签处理，避免重复打开
-  if (keyStr.startsWith('external:')) {
-    return
+  if (keyStr.startsWith("external:")) {
+    return;
   }
-  if (keyStr.startsWith('/')) {
-    router.push(keyStr)
+  if (keyStr.startsWith("/")) {
+    router.push(keyStr);
   }
-  emit('menuClick', keyStr)
-}
+  emit("menuClick", keyStr);
+};
 </script>
 
 <template>
@@ -166,22 +166,10 @@ const handleMenuSelect: MenuProps['onSelect'] = ({ key }) => {
     <div v-if="!mixed" :class="logoClassName">
       <transition name="logo-fade" mode="out-in">
         <div v-if="props.collapsed" key="collapsed" class="flex items-center justify-center">
-          <div
-            class="w-9 h-9 rounded-lg bg-[var(--ant-color-primary)] flex items-center justify-center shadow-md shadow-[var(--ant-color-primary)]/20"
-          >
-            <img :src="logoIconUrl" alt="A" class="w-5 h-5 object-contain brightness-0 invert" />
-          </div>
+          <img :src="logoIconUrl" :alt="_appTitle" class="w-8 h-8 object-contain" />
         </div>
         <div v-else key="expanded" class="flex items-center justify-center gap-2.5 px-4">
-          <div
-            class="w-8 h-8 rounded-lg bg-[var(--ant-color-primary)] flex items-center justify-center shadow-md shadow-[var(--ant-color-primary)]/20 flex-shrink-0"
-          >
-            <img
-              :src="logoIconUrl"
-              alt="A"
-              class="w-4.5 h-4.5 object-contain brightness-0 invert"
-            />
-          </div>
+          <img :src="logoIconUrl" :alt="_appTitle" class="w-8 h-8 object-contain" />
           <span class="text-base font-semibold text-gray-800 truncate dark:text-white">
             {{ _appTitle }}
           </span>
@@ -269,7 +257,7 @@ const handleMenuSelect: MenuProps['onSelect'] = ({ key }) => {
 }
 
 .sidebar-light :deep(.ant-menu-item.ant-menu-item-selected::before) {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 50%;
@@ -360,7 +348,7 @@ const handleMenuSelect: MenuProps['onSelect'] = ({ key }) => {
 }
 
 .sidebar-dark :deep(.ant-menu-item.ant-menu-item-selected::before) {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 50%;

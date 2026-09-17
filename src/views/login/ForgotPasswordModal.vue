@@ -146,11 +146,12 @@ function handleClose() {
     ok-text="确认重置"
     cancel-text="取消"
     :confirm-loading="loading"
+    centered
     @ok="handleSubmit"
     @cancel="handleClose"
   >
     <div class="py-2">
-      <p class="text-sm text-stone-500 mb-5 leading-relaxed">
+      <p class="text-sm text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
         请输入原密码以验证身份，并设置新的登录密码。
       </p>
 
@@ -170,7 +171,7 @@ function handleClose() {
             :maxlength="64"
           >
             <template #prefix>
-              <ShopOutlined class="text-stone-400" />
+              <ShopOutlined class="text-slate-400" />
             </template>
           </a-input>
         </a-form-item>
@@ -185,7 +186,7 @@ function handleClose() {
             autocomplete="username"
           >
             <template #prefix>
-              <UserOutlined class="text-stone-400" />
+              <UserOutlined class="text-slate-400" />
             </template>
           </a-input>
         </a-form-item>
@@ -200,7 +201,7 @@ function handleClose() {
             autocomplete="current-password"
           >
             <template #prefix>
-              <LockOutlined class="text-stone-400" />
+              <LockOutlined class="text-slate-400" />
             </template>
           </a-input-password>
         </a-form-item>
@@ -215,7 +216,7 @@ function handleClose() {
             autocomplete="new-password"
           >
             <template #prefix>
-              <LockOutlined class="text-stone-400" />
+              <LockOutlined class="text-slate-400" />
             </template>
           </a-input-password>
         </a-form-item>
@@ -230,7 +231,7 @@ function handleClose() {
             autocomplete="new-password"
           >
             <template #prefix>
-              <LockOutlined class="text-stone-400" />
+              <LockOutlined class="text-slate-400" />
             </template>
           </a-input-password>
         </a-form-item>
