@@ -1,7 +1,6 @@
 <script setup lang="tsx">
-
 import { Icon } from "@iconify/vue";
-import { Badge, Dropdown, Menu, Modal, Popover } from "antdv-next";
+import { Badge, Dropdown, Menu, Modal, notification, Popover } from "antdv-next";
 import dayjs from "dayjs";
 import { computed, h, onMounted, onUnmounted, ref, unref, watch } from "vue";
 import { useRouter } from "vue-router";
@@ -11,7 +10,6 @@ import SettingDrawer from "./SettingDrawer.vue";
 import { useBreadcrumb } from "../composables/useLayout";
 
 import type { BreadcrumbProps, MenuProps } from "antdv-next";
-
 
 import { getNoticeUnreadCount } from "@/api";
 import { useAppStore } from "@/stores/modules/app";
@@ -64,7 +62,6 @@ async function fetchRecentNotifications() {
     console.log(data, "data");
     if (data && data.list) {
       notifications.value = data.list.map(transformNotice);
-      console.log(notifications.value, "notifications.value");
       unreadCount.value = data.list.filter((n: any) => n.isRead === false || n.isRead === 0).length;
     }
   } catch (e) {
@@ -163,20 +160,6 @@ const userDropdownItems: MenuProps["items"] = [
   },
 ];
 
-const actionBtnClassName = computed(() =>
-  cn(
-    "flex items-center justify-center",
-    "w-9 h-9 rounded-md",
-    "cursor-pointer",
-    "transition-colors duration-200",
-    isGeekStyle.value
-      ? "text-gray-500 hover:text-[#00ff88] hover:bg-[#1a1a1a]"
-      : isDarkMode.value
-        ? "text-gray-400 hover:text-white hover:bg-gray-700"
-        : "text-gray-400 hover:text-gray-600 hover:bg-gray-100",
-  ),
-);
-
 function handleLogout() {
   Modal.confirm({
     title: "退出登录",
@@ -232,16 +215,34 @@ function handleNotificationClick(item: NotificationItem) {
   showNotification.value = false;
 }
 const timer = ref<NodeJS.Timeout>();
-useWebSocket();
 onMounted(() => {
   fetchRecentNotifications();
   timer.value = setInterval(loadUnread, 60_000);
 });
-eventBus.on(WS_EVENTS.REVOKE, () => {
+eventBus.on(WS_EVENTS.FORCE_LOGOUT, () => {
   fetchRecentNotifications();
   loadUnread();
 });
-onUnmounted(() => clearInterval(timer.value));
+eventBus.on(WS_EVENTS.UPLOAD_MERGE, (data: any) => {
+  if (data.status === "completed") {
+    notification.success({
+      title: "文件上传合并成功",
+      description: `文件 ${data.fileName} 已成功上传合并`,
+      placement: "bottomRight",
+    });
+  } else {
+    notification.error({
+      title: "文件上传合并失败",
+      description: `文件 ${data.filename} 已合并失败，失败原因：${data.errorMsg}`,
+      placement: "bottomRight",
+    });
+  }
+});
+
+onUnmounted(() => {
+  clearInterval(timer.value);
+  eventBus.clear();
+});
 </script>
 
 <template>
@@ -255,8 +256,7 @@ onUnmounted(() => clearInterval(timer.value));
           :items="breadcrumbItems"
         >
           <template #separator>
-            <Icon icon="carbon:chevron-right"
-class="text-xs opacity-50" />
+            <Icon icon="carbon:chevron-right" class="text-xs opacity-50" />
           </template>
           <template #titleRender="{ item, index }">
             <span
@@ -278,8 +278,7 @@ class="text-xs opacity-50" />
       <!-- 水平布局：Logo + 水平菜单 -->
       <template v-else-if="horizontal">
         <div class="flex items-center gap-2">
-          <Icon icon="carbon:cube"
-class="text-2xl text-ant-primary" />
+          <Icon icon="carbon:cube" class="text-2xl text-ant-primary" />
           <span class="font-bold text-ant-primary">
             {{ appTitle }}
           </span>
@@ -302,8 +301,7 @@ class="text-2xl text-ant-primary" />
             class="text-2xl"
             :class="isGeekStyle ? 'text-[#00ff88]' : 'text-ant-primary'"
           />
-          <span class="font-bold"
-:class="isGeekStyle ? 'text-[#00ff88]' : 'text-ant-primary'">
+          <span class="font-bold" :class="isGeekStyle ? 'text-[#00ff88]' : 'text-ant-primary'">
             {{ appTitle }}
           </span>
         </div>
@@ -324,15 +322,11 @@ class="text-2xl text-ant-primary" />
         class="flex items-center gap-0.5 px-0.5 py-0.5 rounded-xl bg-white dark:bg-gray-800 shadow-lg shadow-gray-300/40 dark:shadow-black/40"
       >
         <!-- 通知中心 -->
-        <Popover v-model:open="showNotification"
-trigger="click"
-placement="bottomRight">
+        <Popover v-model:open="showNotification" trigger="click" placement="bottomRight">
           <template #content>
             <div class="w-[380px] overflow-hidden rounded-xl">
               <div class="max-h-[360px] overflow-y-auto bg-white dark:bg-gray-900">
-                <a-empty v-if="notifications.length === 0"
-description="暂无通知"
-class="!py-10" />
+                <a-empty v-if="notifications.length === 0" description="暂无通知" class="!py-10" />
 
                 <div
                   v-for="item in notifications"
@@ -395,10 +389,7 @@ class="!py-10" />
             type="text"
             class="group !w-8 !h-8 !p-0 !rounded-lg !text-gray-500 hover:!text-blue-500 hover:!bg-blue-50 dark:hover:!bg-blue-900/20 transition-all duration-200"
           >
-            <Badge :count="unreadCount"
-size="small"
-:offset="[-4, 4]"
-:overflow-count="99">
+            <Badge :count="unreadCount" size="small" :offset="[-4, 4]" :overflow-count="99">
               <Icon
                 icon="carbon:notification"
                 class="text-lg transition-transform duration-200 group-hover:scale-110"
@@ -426,16 +417,13 @@ size="small"
         <div
           class="flex items-center gap-2 pl-1 pr-2 py-0.5 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         >
-          <a-avatar :size="28"
-:src="userStore.avatar"
-class="bg-ant-primary">
+          <a-avatar :size="28" :src="userStore.avatar" class="bg-ant-primary">
             {{ userStore.username?.charAt(0)?.toUpperCase() || "U" }}
           </a-avatar>
           <span class="text-sm hidden sm:inline text-gray-700 dark:text-gray-200">
             {{ userStore.username || "用户" }}
           </span>
-          <Icon icon="carbon:chevron-down"
-class="text-xs text-gray-400" />
+          <Icon icon="carbon:chevron-down" class="text-xs text-gray-400" />
         </div>
       </Dropdown>
     </div>

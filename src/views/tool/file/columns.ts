@@ -29,7 +29,7 @@ export const fileColumns: BasicColumn[] = [
 
 /** 操作列配置 */
 export const fileActionColumn = {
-  width: 180,
+  width: 250,
   title: "操作",
   fixed: "right" as const,
 };
@@ -41,7 +41,7 @@ export const filePagination = {
 };
 
 /** 滚动配置 */
-export const fileScroll = { x: 1000 } as const;
+export const fileScroll = { x: 800 } as const;
 
 /** 行 key 提取 */
 export const fileRowKey = (record: FileRecord) => record.fileId;

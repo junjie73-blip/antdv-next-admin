@@ -1,19 +1,39 @@
-import { del, get } from "./request";
+import { del, get, post } from "./request";
 
 import type { FetchParams } from "@/components/business/Table";
 
 import { http } from "@/utils";
+/* ============================================================
+ * 上传任务管理
+ * ============================================================ */
 
+export type UploadTaskStatus = "pending" | "merging" | "uploading" | "failed";
+
+export interface UploadTaskItem {
+  taskId: string;
+  uploadId?: string;
+  fileName: string;
+  size: number;
+  mimeType?: string;
+  status: UploadTaskStatus;
+  progress?: number;
+  uploadedChunks?: number;
+  totalChunks?: number;
+  errorMsg?: string;
+  createdAt: string;
+  updatedAt?: string;
+  completedAt?: string;
+}
 // ============================================================
 // 文件管理
 // ============================================================
 
 export function getFileList(params?: FetchParams) {
-  return get<{ list: any[]; total: number }>("/file/list", params as any);
+  return http.Get<{ list: any[]; total: number }>("/file/list", { params }).send(true);
 }
 
 export function deleteFile(id: string) {
-  return del<void>(`/file/${id}`);
+  return post<void>(`/upload/delete`, { url: id });
 }
 
 // ============================================================
@@ -44,4 +64,13 @@ export function mergeChunks(data: Record<string, unknown>) {
 
 export function deleteUploadedFile(url: string) {
   return http.Post("/upload/delete", { url });
+}
+/** 查询上传任务列表 */
+export function getUploadTaskList(params: any) {
+  return http.Get("/upload/tasks", { params }).send(true);
+}
+
+/** 取消上传任务（支持批量） */
+export function cancelUploadTasks(taskIds: string[]) {
+  return http.Post("/upload/tasks/cancel", { taskIds });
 }

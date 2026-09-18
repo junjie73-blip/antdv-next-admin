@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { computed, markRaw, onMounted, onUnmounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
 
@@ -11,7 +10,6 @@ import { useLayout } from "./composables/useLayout";
 
 import type { MenuProps } from "antdv-next";
 
-
 import PageLoading from "@/components/common/Loading/PageLoading.vue";
 import RouteLoadingBar from "@/components/common/Loading/RouteLoadingBar.vue";
 import { useRouteLoading } from "@/composables/useRouteLoading";
@@ -21,7 +19,6 @@ import { useAppStore } from "@/stores/modules/app";
 import { useRouteStore } from "@/stores/modules/route";
 import { cn } from "@/utils/cn";
 import { transformMenuConfigToItems } from "@/utils/helpers/menu";
-
 
 defineOptions({
   name: "DefaultLayout",
@@ -89,7 +86,10 @@ const layoutClassName = computed(() =>
 );
 
 const contentClassName = computed(() =>
-  cn("p-4 h-full", isGeekStyle.value ? "bg-[#0a0a0a]" : "bg-gray-50 dark:bg-gray-900"),
+  cn(
+    "p-4 h-[calc(100%-5rem)]  box-border",
+    isGeekStyle.value ? "bg-[#0a0a0a]" : "bg-gray-50 dark:bg-gray-900",
+  ),
 );
 
 // 主内容区滚动容器引用（供路由切换时回到顶部）
@@ -147,9 +147,7 @@ useWatermark({
 
     <div class="flex flex-1 overflow-hidden">
       <!-- 垂直布局：侧边栏 -->
-      <LayoutSidebar v-if="isVertical"
-:collapsed="collapsed"
-@menuClick="() => {}" />
+      <LayoutSidebar v-if="isVertical" :collapsed="collapsed" @menuClick="() => {}" />
 
       <!-- 混合布局：侧边栏（有子菜单时才显示） -->
       <LayoutSidebar
@@ -163,9 +161,7 @@ useWatermark({
       <!-- 主内容区域 -->
       <div class="flex flex-col flex-1 overflow-hidden">
         <!-- 垂直布局：Header 在主区域内（折叠按钮 + 面包屑） -->
-        <LayoutHeader v-if="isVertical"
-:collapsed="collapsed"
-@toggleCollapsed="toggleCollapsed" />
+        <LayoutHeader v-if="isVertical" :collapsed="collapsed" @toggleCollapsed="toggleCollapsed" />
 
         <LayoutTabs
           :has-children="isMixed && hasChildren"
@@ -177,31 +173,25 @@ useWatermark({
           class="flex-1"
           :options="{ suppressScrollX: true, wheelPropagation: true }"
         >
-          <main :class="contentClassName"
-class="relative">
+          <main :class="contentClassName" class="relative">
             <!-- 页面切换骨架屏（支持错误状态） -->
-            <PageLoading :loading="isRouteLoading"
-variant="default"
-:error="isSlow" />
+            <PageLoading :loading="isRouteLoading" variant="default" :error="isSlow" />
 
             <router-view v-slot="{ Component, route }">
               <!-- 微前端页面：禁用 out-in 模式，避免 iframe/微应用被 transition 销毁 -->
               <template v-if="route.meta?.microApp">
                 <keep-alive :include="cachedRoutes">
-                  <component :is="markRaw(Component)"
-:key="route.path" />
+                  <component :is="markRaw(Component)" :key="route.path" />
                 </keep-alive>
               </template>
               <!-- 全屏大屏页面：禁用 transition + keepAlive，避免 ECharts 资源泄漏影响其他页面 -->
               <template v-else-if="route.meta?.noTransition">
-                <component :is="markRaw(Component)"
-:key="route.path" />
+                <component :is="markRaw(Component)" :key="route.path" />
               </template>
               <!-- 普通页面：使用 KeepAlive 缓存，但不使用 Transition 避免渲染冲突 -->
               <template v-else>
                 <keep-alive :include="cachedRoutes">
-                  <component :is="markRaw(Component)"
-:key="route.path" />
+                  <component :is="markRaw(Component)" :key="route.path" />
                 </keep-alive>
               </template>
             </router-view>

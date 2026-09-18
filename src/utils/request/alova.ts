@@ -1,4 +1,3 @@
-
 import { createAlova } from "alova";
 import adapterFetch from "alova/fetch";
 import VueHook from "alova/vue";
@@ -21,6 +20,7 @@ export const ErrorCode = {
   UNAUTHORIZED: 401001,
   FORBIDDEN: 403001,
   NOT_FOUND: 404001,
+  BLOCKED: 403,
 
   // 5xx 业务码（后端显式映射的）
   INTERNAL_ERROR: 500000,
@@ -552,7 +552,7 @@ async function reportRequestError(error: unknown) {
 
     // 5xx：统一友好文案（包括 500/501/502/503/504 和业务码 5xxxxx）
     if (isServerFailure(error.status, error.code)) {
-      notification.error({ title: "请求错误", description: SERVER_ERROR_MESSAGE });
+      notification.error({ title: "请求错误", description: error.message || SERVER_ERROR_MESSAGE });
       return;
     }
 
@@ -573,7 +573,6 @@ async function reportRequestError(error: unknown) {
     notification.error({ title: "请求错误", description: error.message || SERVER_ERROR_MESSAGE });
     return;
   }
-
   notification.error({ title: "请求错误", description: SERVER_ERROR_MESSAGE });
 }
 
@@ -585,9 +584,8 @@ function resolveErrorMessage(
 ): string {
   // 5xx：不把内部错误信息透给用户，统一文案
   if (isServerFailure(status ?? 0, code)) {
-    return SERVER_ERROR_MESSAGE;
+    return data.message || SERVER_ERROR_MESSAGE;
   }
-
   if (typeof data === "object" && data !== null) {
     if ("message" in data && typeof (data as any).message === "string") {
       return (data as any).message;

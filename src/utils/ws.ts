@@ -1,4 +1,3 @@
-
 import { Icon } from "@iconify/vue";
 import { notification } from "antdv-next";
 import { h, ref, watch } from "vue";
@@ -20,7 +19,15 @@ export interface NotificationItem {
   createdAt: string;
   isRead: 0 | 1;
 }
-
+export interface UploadMergeMessage {
+  taskId: string;
+  status: "pending" | "merging" | "uploading" | "completed" | "failed";
+  fileId?: string;
+  url?: string;
+  size?: number;
+  filename?: string;
+  errorMsg?: string;
+}
 export type WsConnState = "idle" | "connecting" | "connected" | "reconnecting" | "closed";
 
 export const noticeTypeConfig: Record<
@@ -55,6 +62,7 @@ export const WS_EVENTS = {
   ERROR: "ws:error",
   REVOKE: "ws:revoke",
   STATUS_CHANGE: "ws:status-change",
+  UPLOAD_MERGE: "ws:upload-merge",
 } as const;
 
 // ==================== 全局单例 ====================
@@ -136,7 +144,15 @@ function handleMessage(raw: unknown): void {
     eventBus.emit(WS_EVENTS.REVOKE, data.data);
     return;
   }
-
+  if (data.type === "upload:merge") {
+    const payload = data.data as UploadMergeMessage;
+    if (!payload?.taskId) {
+      console.warn("[WS] upload:merge 缺少 taskId", payload);
+      return;
+    }
+    eventBus.emit(WS_EVENTS.UPLOAD_MERGE, payload);
+    return;
+  }
   if (data.type === "connected") {
     console.log("[WS] connected:", data.data);
   }
@@ -269,7 +285,10 @@ export function useWebSocket() {
       eventBus.on(WS_EVENTS.STATUS_CHANGE, fn);
       return () => eventBus.off(WS_EVENTS.STATUS_CHANGE, fn);
     },
-
+    onUploadMerge(fn: (data: UploadMergeMessage) => void) {
+      eventBus.on(WS_EVENTS.UPLOAD_MERGE, fn);
+      return () => eventBus.off(WS_EVENTS.UPLOAD_MERGE, fn);
+    },
     /** 手动重连 */
     reconnect() {
       if (!currentToken) return;
