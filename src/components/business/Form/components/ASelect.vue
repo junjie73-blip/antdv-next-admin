@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { nextTick, onMounted, ref, watch } from "vue";
 
 import type { SelectProps } from "antdv-next";
@@ -22,16 +21,17 @@ async function getTreeData() {
 watch(
   () => api,
   (newVal) => {
+    console.log(newVal);
     if (newVal) {
       getTreeData();
     }
   },
+  { immediate: true },
 );
 </script>
 
 <template>
-  <a-select v-bind="props"
-:options />
+  <a-select v-bind="props" :options />
 </template>
 
 <style scoped></style>
