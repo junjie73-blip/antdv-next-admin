@@ -1,15 +1,20 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { message } from "antdv-next";
-import { BasicTable, useTable } from "@/components/business/Table";
-import { deleteGenTable, getGenCodeDownloadUrl, getGenTableList } from "@/api/generator";
-import type { GenTable, GenTableListParams } from "./types";
-import { getTableColumns } from "./columns";
-import { useSearchSchemas } from "./schemas";
-import { getGenTableActions, type GenTableActionContext } from "./actions";
-import { containerClassName } from "./constants";
-import GeneratorDrawer from "./components/GeneratorDrawer.vue";
 import { Icon } from "@iconify/vue";
+import { message } from "antdv-next";
+import { ref } from "vue";
+
+
+
+import { type GenTableActionContext, getGenTableActions } from "./actions";
+import { getTableColumns } from "./columns";
+import GeneratorDrawer from "./components/GeneratorDrawer.vue";
+import { containerClassName } from "./constants";
+import { useSearchSchemas } from "./schemas";
+
+import type { GenTable, GenTableListParams } from "./types";
+
+import { deleteGenTable, getGenCodeDownloadUrl, getGenTableList } from "@/api/generator";
+import { BasicTable, useTable } from "@/components/business/Table";
 import { downloadBlob } from "@/utils/download";
 
 defineOptions({ name: "ToolGenerator" });

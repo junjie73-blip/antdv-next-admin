@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { computed } from "vue";
 import { Button, Space } from "antdv-next";
-import type { GenTableColumn } from "../types";
+import { computed } from "vue";
+
 import {
   HTML_TYPE_OPTIONS,
   PG_TYPE_OPTIONS,
   QUERY_TYPE_OPTIONS,
   TS_TYPE_OPTIONS,
 } from "../constants";
+
+import type { GenTableColumn } from "../types";
+
 
 defineOptions({ name: "GeneratorColumnTable" });
 

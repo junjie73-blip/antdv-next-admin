@@ -1,9 +1,14 @@
 <script setup lang="ts">
+import { Button, message, Spin } from "antdv-next";
 import { ref, watch } from "vue";
-import { Button, Spin, message } from "antdv-next";
-import { previewGenCode } from "@/api/generator";
+
+import { codeBlockClassName, TEMPLATE_TABS } from "../constants";
+
 import type { TemplateKey } from "../types";
-import { TEMPLATE_TABS, codeBlockClassName } from "../constants";
+
+import { previewGenCode } from "@/api/generator";
+
+
 
 defineOptions({ name: "GeneratorCodePreview" });
 

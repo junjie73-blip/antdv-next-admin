@@ -1,23 +1,29 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
 import { Button, message, Space } from "antdv-next";
-import { BasicForm, useForm } from "@/components/business/Form";
-import {
-  createGenTable,
-  getGenCodeDownloadUrl,
-  getGenTableDetail,
-  updateGenTable,
-} from "@/api/generator";
-import type { GenTable, GenTableColumn } from "../types";
-import { useBaseInfoSchemas } from "../schemas";
+import { computed, ref, watch } from "vue";
+
+
 import {
   drawerBodyStyle,
   drawerContentClassName,
   drawerFooterClassName,
   sectionTitleClassName,
 } from "../constants";
-import ColumnTable from "./ColumnTable.vue";
+
+import { useBaseInfoSchemas } from "../schemas";
 import CodePreview from "./CodePreview.vue";
+import ColumnTable from "./ColumnTable.vue";
+
+import type { GenTable, GenTableColumn } from "../types";
+
+import {
+  createGenTable,
+  getGenCodeDownloadUrl,
+  getGenTableDetail,
+  updateGenTable,
+} from "@/api/generator";
+
+import { BasicForm, useForm } from "@/components/business/Form";
 import { useUserStore } from "@/stores/modules/user";
 
 defineOptions({ name: "GeneratorDrawer" });

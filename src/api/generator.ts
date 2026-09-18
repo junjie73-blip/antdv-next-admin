@@ -1,11 +1,12 @@
-import { http } from "@/utils";
 import type {
-  GenTableListParams,
   GenTable,
   GenTableCreateParams,
+  GenTableListParams,
   GenTableUpdateParams,
   TemplateKey,
 } from "@/views/tool/code/types";
+
+import { http } from "@/utils";
 
 /** 列表 */
 export function getGenTableList(params: GenTableListParams) {

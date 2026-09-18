@@ -1,5 +1,6 @@
-import { cn } from "@/utils/cn";
 import type { HtmlType, QueryType, TemplateKey, TplCategory } from "./types";
+
+import { cn } from "@/utils/cn";
 
 // ============================================================
 // 字典
