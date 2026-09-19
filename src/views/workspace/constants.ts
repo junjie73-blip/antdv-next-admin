@@ -9,7 +9,7 @@ export const STAT_CARD_CONFIGS: StatCardConfig[] = [
     title: "团队成员",
     suffix: "人",
     icon: "carbon:user-multiple",
-    color: "#3B82F6", // 蓝
+    color: "#3B82F6",
     path: "/system/user",
   },
   {
@@ -17,7 +17,7 @@ export const STAT_CARD_CONFIGS: StatCardConfig[] = [
     title: "角色数量",
     suffix: "个",
     icon: "carbon:user-role",
-    color: "#8B5CF6", // 紫
+    color: "#8B5CF6",
     path: "/system/role",
   },
   {
@@ -25,7 +25,7 @@ export const STAT_CARD_CONFIGS: StatCardConfig[] = [
     title: "组织部门",
     suffix: "个",
     icon: "carbon:tree-view",
-    color: "#10B981", // 翠
+    color: "#10B981",
     path: "/system/dept",
   },
   {
@@ -33,7 +33,7 @@ export const STAT_CARD_CONFIGS: StatCardConfig[] = [
     title: "未读消息",
     suffix: "条",
     icon: "carbon:notification",
-    color: "#06B6D4", // 青
+    color: "#06B6D4",
     path: "/message/my",
   },
 ];
@@ -48,7 +48,7 @@ export const SHORTCUTS: ShortcutItem[] = [
   { title: "部门管理", icon: "carbon:tree-view", path: "/system/dept", color: "#14B8A6" },
   {
     title: "权限管理",
-    icon: "carbon:shield-checkmark",
+    icon: "carbon:aperture",
     path: "/system/permission",
     color: "#0EA5E9",
   },
@@ -69,9 +69,11 @@ export const DEFAULT_WORKBENCH_DATA: WorkbenchData = {
     unreadNotice: 0,
     todoUncompleted: 0,
     todoOverdue: 0,
+    urgentNoticeCount: 0,
   },
   loginTrend: [],
   recentLogs: [],
+  notices: [],
 };
 
 // ============================================================
@@ -85,4 +87,39 @@ export const LOG_STATUS_COLOR_MAP: Record<string, { bg: string; color: string }>
 export const LOG_STATUS_LABEL_MAP: Record<string, string> = {
   "1": "成功",
   "0": "失败",
+};
+export const NOTICE_PRIORITY_MAP: Record<
+  number,
+  { label: string; color: string; bg: string; border: string; icon: string }
+> = {
+  0: {
+    label: "普通",
+    color: "#64748B",
+    bg: "rgba(100,116,139,0.10)",
+    border: "rgba(100,116,139,0.20)",
+    icon: "carbon:notification",
+  },
+  1: {
+    label: "重要",
+    color: "#EA580C",
+    bg: "rgba(234,88,12,0.10)",
+    border: "rgba(234,88,12,0.22)",
+    icon: "carbon:warning",
+  },
+  2: {
+    label: "紧急",
+    color: "#DC2626",
+    bg: "rgba(220,38,38,0.10)",
+    border: "rgba(220,38,38,0.24)",
+    icon: "carbon:warning-alt",
+  },
+};
+
+/* ============================================================
+ * ⭐ 通知类型
+ * ============================================================ */
+export const NOTICE_TYPE_MAP: Record<number, { label: string; icon: string; color: string }> = {
+  1: { label: "通知", icon: "carbon:notification", color: "#3B82F6" },
+  2: { label: "公告", icon: "carbon:bullhorn", color: "#10B981" },
+  3: { label: "提醒", icon: "carbon:task", color: "#F59E0B" },
 };

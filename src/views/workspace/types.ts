@@ -7,6 +7,8 @@ export interface WorkbenchStats {
   unreadNotice: number;
   todoUncompleted: number;
   todoOverdue: number;
+  /** ⭐ 紧急通知数 */
+  urgentNoticeCount: number;
 }
 
 /** 最近操作日志项 */
@@ -14,21 +16,31 @@ export interface LogItem {
   log_id: string;
   username: string;
   operation: string;
-  /** '0'-失败 '1'-成功 */
   status: string;
   created_at: string;
 }
 
-/** 工作台概览数据 */
-export interface WorkbenchData {
-  stats: WorkbenchStats;
-  loginTrend?: any[];
-  recentLogs: LogItem[];
+/** ⭐ 重要通知项 */
+export interface NoticeBrief {
+  noticeId: string;
+  title: string;
+  noticeType: number;
+  /** 0-普通 1-重要 2-紧急 */
+  priority: number;
+  /** 0-否 1-置顶 */
+  isTop: number;
+  publishTime: string;
+  isRead: 0 | 1;
 }
 
-/** 统计卡片配置（静态） */
+export interface WorkbenchData {
+  stats: WorkbenchStats;
+  loginTrend?: unknown[];
+  recentLogs: LogItem[];
+  notices: NoticeBrief[];
+}
+
 export interface StatCardConfig {
-  /** 对应 stats 字段名 */
   key: keyof WorkbenchStats;
   title: string;
   suffix: string;
@@ -37,7 +49,6 @@ export interface StatCardConfig {
   path: string;
 }
 
-/** 快捷入口配置 */
 export interface ShortcutItem {
   title: string;
   icon: string;

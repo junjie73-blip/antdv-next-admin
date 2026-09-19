@@ -86,10 +86,7 @@ const layoutClassName = computed(() =>
 );
 
 const contentClassName = computed(() =>
-  cn(
-    "p-4 h-[calc(100%-5rem)]  box-border",
-    isGeekStyle.value ? "bg-[#0a0a0a]" : "bg-gray-50 dark:bg-gray-900",
-  ),
+  cn("p-4 h-full  box-border", isGeekStyle.value ? "bg-[#0a0a0a]" : "bg-gray-50 dark:bg-gray-900"),
 );
 
 // 主内容区滚动容器引用（供路由切换时回到顶部）

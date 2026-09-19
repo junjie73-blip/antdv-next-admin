@@ -5,7 +5,7 @@ import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 import { DEFAULT_WORKBENCH_DATA, SHORTCUTS, STAT_CARD_CONFIGS } from "./constants";
-import { renderLogItem } from "./render";
+import { renderLogItem, renderNoticeItem } from "./render";
 import { getSubGreeting, getTodayLabel, getWeekLabel, greeting } from "./utils";
 
 import type { LogItem, WorkbenchData } from "./types";
@@ -44,13 +44,13 @@ function getLogRowKey(item: LogItem) {
 function navigate(path: string) {
   router.push(path);
 }
-
+const notices = computed(() => data.value.notices || []);
 onMounted(load);
 </script>
 
 <template>
-  <div class="relative isolate min-h-full p-1">
-    <div class="relative z-10 space-y-5">
+  <div class="relative isolate h-full p-1">
+    <div class="relative z-10 space-y-5 h-full flex justify-between flex-col">
       <!-- ==================== 欢迎卡片 ==================== -->
       <div
         class="rounded-3xl overflow-hidden bg-white/50 backdrop-blur-2xl border border-white/70 shadow-[0_8px_32px_-12px_rgba(59,130,246,0.1),0_4px_16px_-8px_rgba(139,92,246,0.06),inset_0_1px_0_rgba(255,255,255,0.8)] dark:bg-slate-900/55 dark:border-slate-600/40 dark:shadow-[0_8px_32px_-12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.04)]"
@@ -187,16 +187,16 @@ onMounted(load);
       </div>
 
       <!-- ==================== 快捷入口 + 待办 ==================== -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <!-- 快捷入口 -->
         <BorderBeam
-          class="rounded-2xl lg:col-span-2"
+          class="rounded-2xl"
           color="linear-gradient(90deg, transparent, #3B82F6, transparent)"
           :duration="7"
           :size="200"
         >
           <div
-            class="rounded-2xl h-full bg-white/[0.55] dark:bg-slate-900/[0.55] backdrop-blur-xl border border-white/[0.65] dark:border-slate-600/[0.35] shadow-[0_4px_24px_-8px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.7)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.04)]"
+            class="rounded-2xl lg:col-span-2 h-full bg-white/[0.55] dark:bg-slate-900/[0.55] backdrop-blur-xl border border-white/[0.65] dark:border-slate-600/[0.35] shadow-[0_4px_24px_-8px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.7)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.04)]"
           >
             <div
               class="flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/40 dark:border-slate-700/40"
@@ -335,41 +335,85 @@ onMounted(load);
           </div>
         </BorderBeam>
       </div>
-
       <!-- ==================== 最近操作 ==================== -->
-      <div
-        class="rounded-2xl overflow-hidden bg-white/[0.55] dark:bg-slate-900/[0.55] backdrop-blur-xl border border-white/[0.65] dark:border-slate-600/[0.35] shadow-[0_4px_24px_-8px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.7)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.04)]"
-      >
+      <div class="grid grid-cols-2 gap-4 flex-1">
         <div
-          class="flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/40 dark:border-slate-700/40"
+          class="flex flex-col rounded-2xl overflow-hidden bg-white/[0.55] dark:bg-slate-900/[0.55] backdrop-blur-xl border border-white/[0.65] dark:border-slate-600/[0.35] shadow-[0_4px_24px_-8px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.7)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.04)]"
         >
-          <div class="flex items-center gap-2.5">
-            <div
-              class="w-8 h-8 rounded-xl flex items-center justify-center text-base bg-slate-500/10 text-slate-500 dark:text-slate-400"
-            >
-              <Icon icon="carbon:time" />
-            </div>
-            <span class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 最近操作 </span>
-            <span class="text-xs text-slate-400">（{{ recentLogs.length }} 条）</span>
-          </div>
-        </div>
-
-        <div v-if="recentLogs.length === 0" class="py-16 text-center">
           <div
-            class="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-3 bg-slate-100/60 dark:bg-slate-800/40"
+            class="flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/40 dark:border-slate-700/40"
           >
-            <Icon icon="carbon:document" class="text-3xl text-slate-300 dark:text-slate-600" />
+            <div class="flex items-center gap-2.5">
+              <div
+                class="w-8 h-8 rounded-xl flex items-center justify-center text-base bg-slate-500/10 text-slate-500 dark:text-slate-400"
+              >
+                <Icon icon="ant-design:alert-outlined" />
+              </div>
+              <span class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 重要 </span>
+              <span class="text-xs text-slate-400">（{{ notices.length }} 条）</span>
+            </div>
           </div>
-          <div class="text-sm text-slate-400">暂无操作记录</div>
-        </div>
+          <!-- 通知列表 -->
+          <div
+            v-if="notices.length === 0"
+            class="py-12 text-center flex-1 flex justify-center items-center"
+          >
+            <a-empty description="暂无通知" class="text-sm text-slate-400">
+              <template #image>
+                <Icon
+                  icon="carbon:notification"
+                  class="text-3xl text-slate-300 dark:text-slate-600"
+                />
+              </template>
+            </a-empty>
+          </div>
 
-        <a-listy
-          v-else
-          :items="recentLogs"
-          :row-key="getLogRowKey"
-          :height="360"
-          :item-render="renderLogItem"
-        />
+          <a-listy
+            v-else
+            :items="notices"
+            row-key="noticeId"
+            :height="560"
+            :item-render="renderNoticeItem"
+          />
+        </div>
+        <div
+          class="rounded-2xl flex flex-col overflow-hidden bg-white/[0.55] dark:bg-slate-900/[0.55] backdrop-blur-xl border border-white/[0.65] dark:border-slate-600/[0.35] shadow-[0_4px_24px_-8px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.7)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.04)]"
+        >
+          <div
+            class="flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/40 dark:border-slate-700/40"
+          >
+            <div class="flex items-center gap-2.5">
+              <div
+                class="w-8 h-8 rounded-xl flex items-center justify-center text-base bg-slate-500/10 text-slate-500 dark:text-slate-400"
+              >
+                <Icon icon="carbon:time" />
+              </div>
+              <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                最近操作
+              </span>
+              <span class="text-xs text-slate-400">（{{ recentLogs.length }} 条）</span>
+            </div>
+          </div>
+
+          <div
+            v-if="recentLogs.length === 0"
+            class="py-16 text-center flex-1 flex justify-center items-center"
+          >
+            <a-empty description="暂无操作记录" class="text-sm text-slate-400">
+              <template #image>
+                <Icon icon="carbon:document" class="text-3xl text-slate-300 dark:text-slate-600" />
+              </template>
+            </a-empty>
+          </div>
+
+          <a-listy
+            v-else
+            :items="recentLogs"
+            :row-key="getLogRowKey"
+            :height="560"
+            :item-render="renderLogItem"
+          />
+        </div>
       </div>
     </div>
   </div>
