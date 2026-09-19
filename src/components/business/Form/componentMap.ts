@@ -1,4 +1,3 @@
-
 import {
   AutoComplete,
   Cascader,
@@ -22,6 +21,7 @@ import {
   TreeSelect,
 } from "antdv-next";
 
+import { MarkdownEditor } from "../MarkdownEditor";
 import ASelect from "./components/ASelect.vue";
 import ATreeSelect from "./components/ATreeSelect.vue";
 
@@ -54,7 +54,8 @@ export type ComponentType =
   | "Rate"
   | "Divider"
   | "ASelect"
-  | "Transfer";
+  | "Transfer"
+  | "MarkdownEditor";
 
 export interface AntdvComponents {
   Input: (typeof import("antdv-next"))["Input"];
@@ -84,6 +85,7 @@ export interface AntdvComponents {
   Transfer: (typeof import("antdv-next"))["Transfer"];
   ATreeSelect: typeof ATreeSelect;
   ASelect: typeof ASelect;
+  MarkdownEditor: typeof MarkdownEditor;
 }
 
 export const componentMap: { [K in ComponentType]: Component } = {
@@ -114,6 +116,7 @@ export const componentMap: { [K in ComponentType]: Component } = {
   Transfer,
   ATreeSelect,
   ASelect,
+  MarkdownEditor,
 };
 
 export function addComponent(name: string, component: Component) {

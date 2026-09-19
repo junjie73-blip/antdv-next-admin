@@ -31,8 +31,9 @@ import {
   updateNotice,
 } from "~/api";
 
+import { useDrawer } from "~/components";
+import BasicDrawer from "~/components/business/Drawer/BasicDrawer.vue";
 import { BasicForm, useForm } from "~/components/business/Form";
-import { BasicModal, useModal } from "~/components/business/Modal";
 import { BasicTable, useTable } from "~/components/business/Table";
 import { useCRUD } from "~/composables/useCRUD";
 
@@ -59,13 +60,13 @@ const noticeFormSchemas = useNoticeFormSchemas(ref(userOptions) as any);
 
 // ========== 注册实例 ==========
 const [tableRegister, tableMethods] = useTable();
-const [modalRegister, modalMethods] = useModal();
+const [drawerRegister, drawerMethods] = useDrawer();
 const [formRegister, formMethods] = useForm();
 
 // ========== useCRUD ==========
 const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<NoticeRecord>({
-  containerType: "modal",
-  modalMethods,
+  containerType: "drawer",
+  drawerMethods,
   formMethods,
   tableMethods,
   idKey: "noticeId",
@@ -194,10 +195,10 @@ loadUserOptions();
       </div>
     </a-card>
 
-    <BasicModal
+    <BasicDrawer
       :title="isEditing ? '编辑通知' : '新增通知'"
       :width="640"
-      @register="modalRegister"
+      @register="drawerRegister"
       @ok="handleSave"
     >
       <BasicForm
@@ -207,7 +208,7 @@ loadUserOptions();
         :grid="{ cols: 2, gutter: 16 }"
         @register="formRegister"
       />
-    </BasicModal>
+    </BasicDrawer>
     <ChannelConfig v-model:open="channelConfigOpen" />
   </div>
 </template>

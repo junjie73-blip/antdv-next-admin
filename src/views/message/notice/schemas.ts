@@ -124,10 +124,10 @@ export function useNoticeFormSchemas(
     {
       field: "content",
       label: "内容",
-      component: "InputTextArea",
+      component: "MarkdownEditor",
       required: true,
       colProps: { span: 24 },
-      componentProps: { placeholder: "请输入通知内容", rows: 5 },
+      componentProps: { placeholder: "请输入通知内容", minHeight: 500 },
     },
   ]);
 }
