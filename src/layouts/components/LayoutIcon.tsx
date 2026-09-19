@@ -1,9 +1,8 @@
-
 import { theme } from "antdv-next";
 
 import type { LayoutMode } from "../composables/useLayout";
 
-import { cn } from "@/utils/cn";
+import { cn } from "~/utils/cn";
 
 interface LayoutIconProps {
   type: LayoutMode;

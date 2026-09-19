@@ -1,11 +1,10 @@
-
 import * as XLSX from "xlsx";
 
 import { USER_EXPORT_HEADERS, USER_EXPORT_SHEET_NAME, USER_STATUS_LABEL_MAP } from "./constants";
 
 import type { DeptTreeNode, FlatDeptNode, UserRecord } from "./types";
 
-import { usePrint } from "@/utils/print";
+import { usePrint } from "~/utils/print";
 
 /**
  * 转换后端部门树为前端展示结构

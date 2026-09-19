@@ -1,6 +1,4 @@
 <script setup lang="ts">
-
-
 // 抽离的模块
 import { Icon } from "@iconify/vue";
 import { message } from "antdv-next";
@@ -21,10 +19,10 @@ import { actionClassName, btnClassName, cardClassName, containerClassName } from
 
 import type { LoginLogRecord } from "./types";
 
-import { exportLoginLog, getLoginLogList } from "@/api";
-import { Description } from "@/components/business/Description";
-import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
-import { BasicTable, useTable } from "@/components/business/Table";
+import { exportLoginLog, getLoginLogList } from "~/api";
+import { Description } from "~/components/business/Description";
+import { BasicDrawer, useDrawer } from "~/components/business/Drawer";
+import { BasicTable, useTable } from "~/components/business/Table";
 
 defineOptions({ name: "SystemLoginLog" });
 

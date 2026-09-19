@@ -10,15 +10,15 @@ import { useLayout } from "./composables/useLayout";
 
 import type { MenuProps } from "antdv-next";
 
-import PageLoading from "@/components/common/Loading/PageLoading.vue";
-import RouteLoadingBar from "@/components/common/Loading/RouteLoadingBar.vue";
-import { useRouteLoading } from "@/composables/useRouteLoading";
-import { useWatermark } from "@/composables/web/useWatermark";
-import { useDictStore } from "@/stores";
-import { useAppStore } from "@/stores/modules/app";
-import { useRouteStore } from "@/stores/modules/route";
-import { cn } from "@/utils/cn";
-import { transformMenuConfigToItems } from "@/utils/helpers/menu";
+import PageLoading from "~/components/common/Loading/PageLoading.vue";
+import RouteLoadingBar from "~/components/common/Loading/RouteLoadingBar.vue";
+import { useRouteLoading } from "~/composables/useRouteLoading";
+import { useWatermark } from "~/composables/web/useWatermark";
+import { useDictStore } from "~/stores";
+import { useAppStore } from "~/stores/modules/app";
+import { useRouteStore } from "~/stores/modules/route";
+import { cn } from "~/utils/cn";
+import { transformMenuConfigToItems } from "~/utils/helpers/menu";
 
 defineOptions({
   name: "DefaultLayout",

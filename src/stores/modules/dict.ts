@@ -1,10 +1,9 @@
-
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
-import { getDictList, getDictTree } from "@/api";
-import { CacheKey } from "@/enums/cache";
-import { cache, localStorageCacheStorage } from "@/utils/cache";
+import { getDictList, getDictTree } from "~/api";
+import { CacheKey } from "~/enums/cache";
+import { cache, localStorageCacheStorage } from "~/utils/cache";
 
 /** 单个字典项 */
 export interface DictItem {

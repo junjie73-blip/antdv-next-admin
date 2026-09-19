@@ -1,8 +1,8 @@
 import { del, get, post } from "./request";
 
-import type { FetchParams } from "@/components/business/Table";
+import type { FetchParams } from "~/components/business/Table";
 
-import { http } from "@/utils";
+import { http } from "~/utils";
 /* ============================================================
  * 上传任务管理
  * ============================================================ */
@@ -73,4 +73,13 @@ export function getUploadTaskList(params: any) {
 /** 取消上传任务（支持批量） */
 export function cancelUploadTasks(taskIds: string[]) {
   return http.Post("/upload/tasks/cancel", { taskIds });
+}
+// 文件预览
+export function previewFile(params: any) {
+  return http.Get("/upload/preview", { params });
+}
+
+// 文件下载
+export function downloadFile(params: any) {
+  return http.Get("/upload/download", { params });
 }

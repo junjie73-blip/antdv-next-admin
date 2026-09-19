@@ -2,8 +2,7 @@
 import { Image, Space } from "antdv-next";
 import { computed } from "vue";
 
-import { cn } from "@/utils/cn";
-
+import { cn } from "~/utils/cn";
 
 const props = withDefaults(
   defineProps<{

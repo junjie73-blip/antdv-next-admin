@@ -1,6 +1,6 @@
 import { del, get, post, put } from "./request";
 
-import { http } from "@/utils";
+import { http } from "~/utils";
 
 // ============================================================
 // 部门管理

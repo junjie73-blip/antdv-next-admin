@@ -1,6 +1,6 @@
 import type { JobRecord } from "./types";
 
-import type { ActionItem } from "@/components/business/Table";
+import type { ActionItem } from "~/components/business/Table";
 
 /** 任务行操作上下文 */
 export interface JobActionContext {

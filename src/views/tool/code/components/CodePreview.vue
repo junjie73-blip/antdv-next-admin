@@ -6,9 +6,7 @@ import { codeBlockClassName, TEMPLATE_TABS } from "../constants";
 
 import type { TemplateKey } from "../types";
 
-import { previewGenCode } from "@/api/generator";
-
-
+import { previewGenCode } from "~/api/generator";
 
 defineOptions({ name: "GeneratorCodePreview" });
 

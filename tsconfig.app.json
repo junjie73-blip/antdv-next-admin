@@ -8,7 +8,7 @@
     "allowImportingTsExtensions": false,
     // Path mapping for cleaner imports.
     "paths": {
-      "@/*": ["./src/*"],
+      "~/*": ["./src/*"],
       "#/*": ["./types/*"]
     },
     "types": [

@@ -1,10 +1,9 @@
 <script setup lang="ts">
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import type { CountToInstance, CountToProps } from "./types";
 
-import type { CountToInstance, CountToProps } from './types'
-
-import { cn } from '@/utils/cn'
+import { cn } from "~/utils/cn";
 
 /**
  * CountTo - 数字动画组件
@@ -17,27 +16,27 @@ const props = withDefaults(defineProps<CountToProps>(), {
   duration: 2000,
   autoplay: true,
   decimals: 0,
-  decimal: '.',
-  separator: ',',
-  prefix: '',
-  suffix: '',
+  decimal: ".",
+  separator: ",",
+  prefix: "",
+  suffix: "",
   useEasing: true,
-  easingFn: 'easeOutExpo',
-})
+  easingFn: "easeOutExpo",
+});
 
 const emit = defineEmits<{
-  (e: 'finished'): void
-  (e: 'change', value: number): void
-}>()
+  (e: "finished"): void;
+  (e: "change", value: number): void;
+}>();
 
 // 当前值
-const currentValue = ref(props.startVal)
+const currentValue = ref(props.startVal);
 // 动画状态
-const isAnimating = ref(false)
+const isAnimating = ref(false);
 // 动画 ID
-let animationId: number | null = null
+let animationId: number | null = null;
 // 开始时间
-let startTime: number | null = null
+let startTime: number | null = null;
 
 /**
  * 缓动函数
@@ -45,57 +44,57 @@ let startTime: number | null = null
 const easingFunctions = {
   // 指数缓出
   easeOutExpo: (t: number): number => {
-    return t === 1 ? 1 : 1 - 2 ** (-10 * t)
+    return t === 1 ? 1 : 1 - 2 ** (-10 * t);
   },
   // 线性
   linear: (t: number): number => {
-    return t
+    return t;
   },
   // 三次缓入缓出
   easeInOutCubic: (t: number): number => {
-    return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
+    return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
   },
-}
+};
 
 /**
  * 格式化数字
  */
 function formatNumber(num: number): string {
-  const value = num.toFixed(props.decimals)
-  const parts = value.split('.')
-  const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, props.separator)
-  const decimalPart = parts[1] ? props.decimal + parts[1] : ''
-  return props.prefix + integerPart + decimalPart + props.suffix
+  const value = num.toFixed(props.decimals);
+  const parts = value.split(".");
+  const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, props.separator);
+  const decimalPart = parts[1] ? props.decimal + parts[1] : "";
+  return props.prefix + integerPart + decimalPart + props.suffix;
 }
 
 /**
  * 显示值
  */
-const displayValue = computed(() => formatNumber(currentValue.value))
+const displayValue = computed(() => formatNumber(currentValue.value));
 
 /**
  * 动画循环
  */
 function animate(timestamp: number) {
-  if (!startTime) startTime = timestamp
-  const progress = Math.min((timestamp - startTime) / props.duration, 1)
+  if (!startTime) startTime = timestamp;
+  const progress = Math.min((timestamp - startTime) / props.duration, 1);
 
   // 应用缓动函数
-  const easeProgress = props.useEasing ? easingFunctions[props.easingFn](progress) : progress
+  const easeProgress = props.useEasing ? easingFunctions[props.easingFn](progress) : progress;
 
   // 计算当前值
-  currentValue.value = props.startVal + (props.endVal - props.startVal) * easeProgress
+  currentValue.value = props.startVal + (props.endVal - props.startVal) * easeProgress;
 
   // 触发变化事件
-  emit('change', currentValue.value)
+  emit("change", currentValue.value);
 
   if (progress < 1) {
-    animationId = requestAnimationFrame(animate)
+    animationId = requestAnimationFrame(animate);
   } else {
     // 动画结束
-    currentValue.value = props.endVal
-    isAnimating.value = false
-    emit('finished')
+    currentValue.value = props.endVal;
+    isAnimating.value = false;
+    emit("finished");
   }
 }
 
@@ -103,11 +102,11 @@ function animate(timestamp: number) {
  * 开始动画
  */
 function start() {
-  if (isAnimating.value) return
-  isAnimating.value = true
-  startTime = null
-  currentValue.value = props.startVal
-  animationId = requestAnimationFrame(animate)
+  if (isAnimating.value) return;
+  isAnimating.value = true;
+  startTime = null;
+  currentValue.value = props.startVal;
+  animationId = requestAnimationFrame(animate);
 }
 
 /**
@@ -115,9 +114,9 @@ function start() {
  */
 function pause() {
   if (animationId) {
-    cancelAnimationFrame(animationId)
-    animationId = null
-    isAnimating.value = false
+    cancelAnimationFrame(animationId);
+    animationId = null;
+    isAnimating.value = false;
   }
 }
 
@@ -125,38 +124,38 @@ function pause() {
  * 重置动画
  */
 function reset() {
-  pause()
-  currentValue.value = props.startVal
-  startTime = null
+  pause();
+  currentValue.value = props.startVal;
+  startTime = null;
 }
 
 /**
  * 获取当前值
  */
-const getCurrentValue = () => currentValue.value
+const getCurrentValue = () => currentValue.value;
 
 // 监听 endVal 变化
 watch(
   () => props.endVal,
   () => {
     if (props.autoplay) {
-      reset()
-      start()
+      reset();
+      start();
     }
   },
-)
+);
 
 // 组件挂载时自动播放
 onMounted(() => {
   if (props.autoplay) {
-    start()
+    start();
   }
-})
+});
 
 // 组件卸载时清理
 onUnmounted(() => {
-  pause()
-})
+  pause();
+});
 
 // 暴露实例方法
 defineExpose<CountToInstance>({
@@ -164,12 +163,11 @@ defineExpose<CountToInstance>({
   pause,
   reset,
   getCurrentValue,
-})
+});
 </script>
 
 <template>
-  <span :class="cn('count-to', className)"
-:style="style">
+  <span :class="cn('count-to', className)" :style="style">
     {{ displayValue }}
   </span>
 </template>

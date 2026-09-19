@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { Icon } from "@iconify/vue";
 import { useDebounceFn } from "@vueuse/core";
 import { Tree } from "antdv-next";
@@ -7,13 +6,10 @@ import { computed, onBeforeUnmount, ref, watch } from "vue";
 
 import type { TreeDataNode, TreeTableProps } from "./types";
 
-import type { FetchParams, Recordable, TableActionType } from "@/components/business/Table/types";
+import type { FetchParams, Recordable, TableActionType } from "~/components/business/Table/types";
 
-import { BasicTable } from "@/components/business/Table";
-import { cn } from "@/utils/cn";
-
-
-
+import { BasicTable } from "~/components/business/Table";
+import { cn } from "~/utils/cn";
 
 const props = withDefaults(defineProps<TreeTableProps>(), {
   treeTitle: "目录",
@@ -204,26 +200,22 @@ const nothingSelectedClassName = cn("text-sm text-gray-400 dark:text-gray-500");
 </script>
 
 <template>
-  <div ref="panelRef"
-:class="containerClassName">
-    <div :class="treePanelClassName"
-:style="treePanelStyle">
+  <div ref="panelRef" :class="containerClassName">
+    <div :class="treePanelClassName" :style="treePanelStyle">
       <div :class="treeHeaderClassName">
         <span :class="treeHeaderTitleClassName">{{ treeTitle }}</span>
       </div>
 
       <div :class="treeBodyClassName">
         <PerfectScrollbar class="h-full">
-          <div v-if="showSearch"
-:class="treeSearchClassName">
+          <div v-if="showSearch" :class="treeSearchClassName">
             <a-input
               :placeholder="treeSearchPlaceholder"
               allow-clear
               @change="(e: any) => debouncedSearch(e.target.value)"
             >
               <template #prefix>
-                <Icon icon="carbon:search"
-class="text-gray-400" />
+                <Icon icon="carbon:search" class="text-gray-400" />
               </template>
             </a-input>
           </div>
@@ -243,18 +235,15 @@ class="text-gray-400" />
             "
           />
 
-          <div v-else
-:class="emptyClassName">
-            <Icon icon="carbon:search"
-class="text-3xl mb-2" />
+          <div v-else :class="emptyClassName">
+            <Icon icon="carbon:search" class="text-3xl mb-2" />
             <span class="text-sm">{{ treeEmptyText }}</span>
           </div>
         </PerfectScrollbar>
       </div>
     </div>
 
-    <div :class="resizeHandleClassName"
-@mousedown="handleDragStart" />
+    <div :class="resizeHandleClassName" @mousedown="handleDragStart" />
 
     <div :class="tablePanelClassName">
       <div :class="tableHeaderClassName">
@@ -280,10 +269,8 @@ class="text-3xl mb-2" />
           />
         </template>
 
-        <div v-else
-:class="placeholderClassName">
-          <Icon icon="carbon:tree-view-alt"
-class="text-4xl mb-3" />
+        <div v-else :class="placeholderClassName">
+          <Icon icon="carbon:tree-view-alt" class="text-4xl mb-3" />
           <span class="text-sm text-gray-400">请在左侧选择节点查看数据</span>
         </div>
       </div>

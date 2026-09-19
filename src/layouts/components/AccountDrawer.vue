@@ -1,38 +1,37 @@
 <script setup lang="ts">
+import { provide, ref } from "vue";
 
-import { provide, ref } from 'vue'
+import { BasicDrawer, useDrawer } from "~/components/business/Drawer";
+import { useUserStore } from "~/stores/modules/user";
+import AccountSettings from "~/views/account/index.vue";
 
-import { BasicDrawer, useDrawer } from '@/components/business/Drawer'
-import { useUserStore } from '@/stores/modules/user'
-import AccountSettings from '@/views/account/index.vue'
+defineOptions({ name: "AccountDrawer" });
 
-defineOptions({ name: 'AccountDrawer' })
+const [registerDrawer, drawerMethods] = useDrawer();
+const activeTab = ref("center");
+const userStore = useUserStore();
 
-const [registerDrawer, drawerMethods] = useDrawer()
-const activeTab = ref('center')
-const userStore = useUserStore()
-
-function switchTab(tab: 'center' | 'settings') {
-  activeTab.value = tab
+function switchTab(tab: "center" | "settings") {
+  activeTab.value = tab;
 }
 
 // 供子组件调用：刷新当前用户信息
 async function refreshUser() {
-  await userStore.fetchCurrentUser()
+  await userStore.fetchCurrentUser();
 }
 
-provide('switchAccountTab', switchTab)
-provide('refreshUser', refreshUser)
+provide("switchAccountTab", switchTab);
+provide("refreshUser", refreshUser);
 
-function open(tab: 'center' | 'settings' = 'center') {
-  activeTab.value = tab
-  drawerMethods.openDrawer()
+function open(tab: "center" | "settings" = "center") {
+  activeTab.value = tab;
+  drawerMethods.openDrawer();
 }
 
 function close() {
-  drawerMethods.closeDrawer()
+  drawerMethods.closeDrawer();
 }
-defineExpose({ open, close })
+defineExpose({ open, close });
 </script>
 
 <template>

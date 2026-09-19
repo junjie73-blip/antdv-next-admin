@@ -1,6 +1,6 @@
 import { get } from "./request";
 
-import { http } from "@/utils";
+import { http } from "~/utils";
 
 // ============================================================
 // 审计日志 / 操作日志

@@ -1,7 +1,6 @@
 import { nextTick } from "vue";
 
-import { useAppStore } from "@/stores/modules/app";
-
+import { useAppStore } from "~/stores/modules/app";
 
 export function useThemeTransition() {
   const appStore = useAppStore();

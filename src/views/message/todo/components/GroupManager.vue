@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { Icon } from "@iconify/vue";
 import { message, Modal } from "antdv-next";
 import { computed, ref, watch } from "vue";
@@ -10,8 +9,7 @@ import {
   getTodoGroups,
   type TodoGroup,
   updateTodoGroup,
-} from "@/api/todo-group";
-
+} from "~/api/todo-group";
 
 defineOptions({ name: "TodoGroupManager" });
 
@@ -141,13 +139,9 @@ function close() {
 </script>
 
 <template>
-  <a-drawer :open="open"
-title="待办分组管理"
-:width="480"
-@close="close">
+  <a-drawer :open="open" title="待办分组管理" :width="480" @close="close">
     <template #extra>
-      <a-button type="primary"
-@click="openAdd">
+      <a-button type="primary" @click="openAdd">
         <template #icon><Icon icon="ant-design:plus-outlined" /></template>
         新建分组
       </a-button>
@@ -164,8 +158,7 @@ title="待办分组管理"
       </a-empty>
 
       <!-- 列表 -->
-      <div v-else
-class="space-y-2">
+      <div v-else class="space-y-2">
         <div
           v-for="item in list"
           :key="item.groupId"
@@ -185,15 +178,10 @@ class="space-y-2">
           </div>
 
           <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <a-button type="text"
-size="small"
-@click="openEdit(item)">
+            <a-button type="text" size="small" @click="openEdit(item)">
               <Icon icon="ant-design:edit-outlined" />
             </a-button>
-            <a-button type="text"
-size="small"
-danger
-@click="handleDelete(item)">
+            <a-button type="text" size="small" danger @click="handleDelete(item)">
               <Icon icon="ant-design:delete-outlined" />
             </a-button>
           </div>
@@ -212,9 +200,7 @@ danger
       <div class="space-y-4 py-2">
         <div>
           <div class="text-sm text-gray-600 dark:text-gray-300 mb-1.5">分组名称</div>
-          <a-input v-model:value="form.name"
-placeholder="请输入分组名称"
-:maxlength="64" />
+          <a-input v-model:value="form.name" placeholder="请输入分组名称" :maxlength="64" />
         </div>
 
         <div>
@@ -242,9 +228,7 @@ placeholder="请输入分组名称"
 
         <div>
           <div class="text-sm text-gray-600 dark:text-gray-300 mb-1.5">排序（数字越小越靠前）</div>
-          <a-input-number v-model:value="form.sortOrder"
-:min="0"
-class="w-full" />
+          <a-input-number v-model:value="form.sortOrder" :min="0" class="w-full" />
         </div>
       </div>
     </a-modal>

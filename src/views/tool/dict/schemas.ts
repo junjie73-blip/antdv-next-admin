@@ -2,10 +2,7 @@ import { computed } from "vue";
 
 import type { ComputedRef } from "vue";
 
-import type { FormSchema } from "@/components/business/Form";
-
-
-
+import type { FormSchema } from "~/components/business/Form";
 
 /** 状态选项类型 */
 export interface StatusOption {

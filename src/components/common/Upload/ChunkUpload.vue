@@ -9,7 +9,7 @@ import { formatBytes, formatDuration } from "./utils";
 
 import type { ChunkUploadInstance, ChunkUploadProps, ChunkUploadTask } from "./types";
 
-import { cn } from "@/utils/cn";
+import { cn } from "~/utils/cn";
 
 defineOptions({ name: "ChunkUpload" });
 

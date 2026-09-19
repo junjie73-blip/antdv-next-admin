@@ -1,19 +1,18 @@
-import type { Directive, DirectiveBinding } from 'vue'
+import type { Directive, DirectiveBinding } from "vue";
 
-import type { PermissionDirectiveBinding } from '@/composables/web/permission/types'
+import type { PermissionDirectiveBinding } from "~/composables/web/permission/types";
 
-
-import { usePermission } from '@/composables/web/permission'
+import { usePermission } from "~/composables/web/permission";
 
 export const vPermission: Directive<HTMLElement, PermissionDirectiveBinding> = {
   mounted(el: HTMLElement, binding: DirectiveBinding<PermissionDirectiveBinding>) {
-    updatePermission(el, binding)
+    updatePermission(el, binding);
   },
 
   updated(el: HTMLElement, binding: DirectiveBinding<PermissionDirectiveBinding>) {
-    updatePermission(el, binding)
+    updatePermission(el, binding);
   },
-}
+};
 
 function updatePermission(el: HTMLElement, binding: DirectiveBinding<PermissionDirectiveBinding>) {
   const {
@@ -24,76 +23,76 @@ function updatePermission(el: HTMLElement, binding: DirectiveBinding<PermissionD
     hasAnyRole,
     hasAllRoles,
     isAdmin,
-  } = usePermission()
+  } = usePermission();
 
-  const value = binding.value
-  const arg = binding.arg
-  const modifiers = binding.modifiers || {}
+  const value = binding.value;
+  const arg = binding.arg;
+  const modifiers = binding.modifiers || {};
 
-  let hasAccess = false
+  let hasAccess = false;
 
-  if (typeof value === 'string') {
-    hasAccess = hasPermission(value)
+  if (typeof value === "string") {
+    hasAccess = hasPermission(value);
   } else if (Array.isArray(value)) {
     if (value.length === 0) {
-      hasAccess = true
+      hasAccess = true;
     } else if (modifiers.all) {
-      hasAccess = hasAllPermissions(value)
+      hasAccess = hasAllPermissions(value);
     } else {
-      hasAccess = hasAnyPermission(value)
+      hasAccess = hasAnyPermission(value);
     }
-  } else if (typeof value === 'object' && value !== null) {
-    const permissionValue = value as unknown as { permission: string | string[]; mode?: string }
+  } else if (typeof value === "object" && value !== null) {
+    const permissionValue = value as unknown as { permission: string | string[]; mode?: string };
     const permissions = Array.isArray(permissionValue.permission)
       ? permissionValue.permission
-      : [permissionValue.permission]
+      : [permissionValue.permission];
 
-    if (permissionValue.mode === 'all') {
-      hasAccess = hasAllPermissions(permissions)
+    if (permissionValue.mode === "all") {
+      hasAccess = hasAllPermissions(permissions);
     } else {
-      hasAccess = hasAnyPermission(permissions)
+      hasAccess = hasAnyPermission(permissions);
     }
   } else if (arg) {
-    if (arg === 'role') {
-      if (typeof value === 'string') {
-        hasAccess = hasRole(value)
+    if (arg === "role") {
+      if (typeof value === "string") {
+        hasAccess = hasRole(value);
       } else if (Array.isArray(value)) {
         if (modifiers.all) {
-          hasAccess = hasAllRoles(value)
+          hasAccess = hasAllRoles(value);
         } else {
-          hasAccess = hasAnyRole(value)
+          hasAccess = hasAnyRole(value);
         }
       }
-    } else if (arg === 'admin') {
-      hasAccess = isAdmin()
+    } else if (arg === "admin") {
+      hasAccess = isAdmin();
     }
   } else {
-    hasAccess = true
+    hasAccess = true;
   }
 
   if (modifiers.hide) {
     if (hasAccess) {
-      el.style.display = ''
+      el.style.display = "";
     } else {
-      el.style.display = 'none'
+      el.style.display = "none";
     }
   } else if (modifiers.disabled) {
     if (hasAccess) {
-      el.removeAttribute('disabled')
-      el.classList.remove('permission-disabled')
+      el.removeAttribute("disabled");
+      el.classList.remove("permission-disabled");
     } else {
-      el.setAttribute('disabled', 'true')
-      el.classList.add('permission-disabled')
+      el.setAttribute("disabled", "true");
+      el.classList.add("permission-disabled");
     }
   } else {
     if (hasAccess) {
-      el.style.display = ''
-      el.removeAttribute('disabled')
-      el.classList.remove('permission-disabled')
+      el.style.display = "";
+      el.removeAttribute("disabled");
+      el.classList.remove("permission-disabled");
     } else {
-      el.style.display = 'none'
-      el.setAttribute('disabled', 'true')
-      el.classList.add('permission-disabled')
+      el.style.display = "none";
+      el.setAttribute("disabled", "true");
+      el.classList.add("permission-disabled");
     }
   }
 }

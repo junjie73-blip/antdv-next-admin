@@ -1,4 +1,4 @@
-import { cn } from "@/utils/cn";
+import { cn } from "~/utils/cn";
 
 // ========== 调色板 ==========
 export const PALETTE = {

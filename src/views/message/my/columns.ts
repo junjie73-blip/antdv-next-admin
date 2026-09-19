@@ -1,4 +1,4 @@
-import type { BasicColumn } from "@/components/business/Table";
+import type { BasicColumn } from "~/components/business/Table";
 
 /** 消息表格列定义 */
 export const noticeColumns: BasicColumn[] = [

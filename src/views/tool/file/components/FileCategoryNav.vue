@@ -3,7 +3,7 @@ import { Icon } from "@iconify/vue";
 
 import type { FileCategory } from "../types";
 
-import { cn } from "@/utils/cn";
+import { cn } from "~/utils/cn";
 
 defineOptions({ name: "FileCategoryNav" });
 

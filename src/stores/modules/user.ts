@@ -1,11 +1,10 @@
-
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 
 import type { UserInfo } from "#/user";
 
-import { getPermissions, getProfile } from "@/api";
+import { getPermissions, getProfile } from "~/api";
 
 import {
   PERMISSIONS_KEY,
@@ -13,10 +12,11 @@ import {
   REFRESH_TOKEN_KEY,
   TOKEN_EXPIRE,
   TOKEN_KEY,
- USER_INFO_KEY } from "@/config/constants";
+  USER_INFO_KEY,
+} from "~/config/constants";
 
-import { cache } from "@/utils/cache";
-import { http } from "@/utils/request";
+import { cache } from "~/utils/cache";
+import { http } from "~/utils/request";
 
 export const useUserStore = defineStore("user", () => {
   // ✅ 同步从 cache 读，读到什么就是什么
@@ -72,8 +72,8 @@ export const useUserStore = defineStore("user", () => {
         };
 
         // ✅ 先写缓存（同步落盘），再写 ref
-        cache.setItem(TOKEN_KEY, accessToken, TOKEN_EXPIRE);
-        cache.setItem(REFRESH_TOKEN_KEY, rt, REFRESH_TOKEN_EXPIRE);
+        cache.setItem(TOKEN_KEY, accessToken);
+        cache.setItem(REFRESH_TOKEN_KEY, rt);
         cache.setItem(USER_INFO_KEY, mockUserInfo);
         token.value = accessToken;
         refreshToken.value = rt;
@@ -142,8 +142,8 @@ export const useUserStore = defineStore("user", () => {
   const setToken = (accessToken: string, _refreshToken: string) => {
     token.value = accessToken;
     refreshToken.value = _refreshToken;
-    cache.setItem(TOKEN_KEY, accessToken, TOKEN_EXPIRE);
-    cache.setItem(REFRESH_TOKEN_KEY, _refreshToken, REFRESH_TOKEN_EXPIRE);
+    cache.setItem(TOKEN_KEY, accessToken);
+    cache.setItem(REFRESH_TOKEN_KEY, _refreshToken);
   };
 
   return {

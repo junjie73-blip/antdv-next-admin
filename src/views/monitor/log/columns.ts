@@ -1,6 +1,6 @@
 import type { AuditLogRecord } from "./types";
 
-import type { BasicColumn } from "@/components/business/Table";
+import type { BasicColumn } from "~/components/business/Table";
 
 /** 审计日志表格列 */
 export const auditLogColumns: BasicColumn[] = [

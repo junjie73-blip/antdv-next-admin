@@ -5,7 +5,7 @@ import {
   JOB_STATUS_OPTIONS,
 } from "./constants";
 
-import type { FormSchema } from "@/components/business/Form";
+import type { FormSchema } from "~/components/business/Form";
 
 /** 任务弹窗表单 schema */
 export const jobFormSchemas: FormSchema[] = [

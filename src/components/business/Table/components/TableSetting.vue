@@ -5,10 +5,8 @@ import { computed, ref, watch } from "vue";
 
 import type { BasicColumn, TableSetting } from "../types";
 
-import { IconifyIcon as Icon } from "@/components/common/Icon";
-import { cn } from "@/utils/cn";
-
-
+import { IconifyIcon as Icon } from "~/components/common/Icon";
+import { cn } from "~/utils/cn";
 
 const props = defineProps<{
   setting?: TableSetting;
@@ -107,10 +105,8 @@ const isIndeterminate = computed(() => {
 
 <template>
   <div :class="cn('flex items-center gap-1')">
-    <Tooltip v-if="getSetting.redo"
-title="刷新">
-      <Button type="text"
-@click="handleRedo">
+    <Tooltip v-if="getSetting.redo" title="刷新">
+      <Button type="text" @click="handleRedo">
         <template #icon>
           <Icon icon="ant-design:redo-outlined" />
         </template>
@@ -128,8 +124,7 @@ title="刷新">
         <div :class="cn('w-56')">
           <div :class="cn('mb-3 flex items-center justify-between')">
             <span :class="cn('font-medium')">列设置</span>
-            <Button type="link"
-@click="handleReset"> 重置 </Button>
+            <Button type="link" @click="handleReset"> 重置 </Button>
           </div>
 
           <div :class="cn('mb-2 border-b border-gray-100 pb-2 dark:border-gray-700')">
@@ -176,10 +171,8 @@ title="刷新">
       </Tooltip>
     </Popover>
 
-    <Tooltip v-if="getSetting.fullScreen"
-:title="isFullscreen ? '退出全屏' : '全屏'">
-      <Button type="text"
-@click="toggleFullscreen">
+    <Tooltip v-if="getSetting.fullScreen" :title="isFullscreen ? '退出全屏' : '全屏'">
+      <Button type="text" @click="toggleFullscreen">
         <template #icon>
           <Icon
             :icon="

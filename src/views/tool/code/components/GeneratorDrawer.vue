@@ -2,7 +2,6 @@
 import { Button, message, Space } from "antdv-next";
 import { computed, ref, watch } from "vue";
 
-
 import {
   drawerBodyStyle,
   drawerContentClassName,
@@ -21,10 +20,10 @@ import {
   getGenCodeDownloadUrl,
   getGenTableDetail,
   updateGenTable,
-} from "@/api/generator";
+} from "~/api/generator";
 
-import { BasicForm, useForm } from "@/components/business/Form";
-import { useUserStore } from "@/stores/modules/user";
+import { BasicForm, useForm } from "~/components/business/Form";
+import { useUserStore } from "~/stores/modules/user";
 
 defineOptions({ name: "GeneratorDrawer" });
 

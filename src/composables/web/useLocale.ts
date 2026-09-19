@@ -1,28 +1,27 @@
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 
-import { localStorageCacheStorage } from '@/utils/cache'
+import { localStorageCacheStorage } from "~/utils/cache";
 
+const LOCALE_KEY = "locale";
 
-const LOCALE_KEY = 'locale'
-
-export type LocaleType = 'zh-CN' | 'en-US'
+export type LocaleType = "zh-CN" | "en-US";
 
 export const localeLabels: Record<LocaleType, string> = {
-  'zh-CN': '简体中文',
-  'en-US': 'English',
-}
+  "zh-CN": "简体中文",
+  "en-US": "English",
+};
 
 export function useLocale() {
-  const { locale, t, availableLocales } = useI18n({ useScope: 'global' })
+  const { locale, t, availableLocales } = useI18n({ useScope: "global" });
 
-  const currentLocale = computed<LocaleType>(() => locale.value as LocaleType)
+  const currentLocale = computed<LocaleType>(() => locale.value as LocaleType);
 
   function setLocale(lang: LocaleType) {
-    locale.value = lang
-    localStorageCacheStorage.setItem(LOCALE_KEY, lang)
+    locale.value = lang;
+    localStorageCacheStorage.setItem(LOCALE_KEY, lang);
     // 切换 HTML lang 属性
-    document.documentElement.lang = lang
+    document.documentElement.lang = lang;
   }
 
   return {
@@ -30,5 +29,5 @@ export function useLocale() {
     t,
     setLocale,
     availableLocales,
-  }
+  };
 }

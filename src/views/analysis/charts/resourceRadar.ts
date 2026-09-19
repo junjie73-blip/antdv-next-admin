@@ -1,4 +1,3 @@
-
 import * as echarts from "echarts";
 
 import { PALETTE } from "../constants";
@@ -6,7 +5,7 @@ import { baseOption, borderColor, echartsTheme, subTextColor } from "../theme";
 
 import type { ResourceUsageData } from "../types";
 
-import { getResourceUsage } from "@/api";
+import { getResourceUsage } from "~/api";
 
 /** 资源使用雷达图 */
 export async function initResourceRadar(el: HTMLElement, isDark: boolean) {

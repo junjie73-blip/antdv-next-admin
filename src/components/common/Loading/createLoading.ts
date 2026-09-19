@@ -1,6 +1,6 @@
-import { useLoading } from './useLoading'
+import { useLoading } from "./useLoading";
 
-import type { CreateLoadingOptions, LoadingInstance } from './types'
+import type { CreateLoadingOptions, LoadingInstance } from "./types";
 
 /**
  * createLoading - 函数式创建 loading
@@ -8,7 +8,7 @@ import type { CreateLoadingOptions, LoadingInstance } from './types'
  *
  * @example
  * // 在路由守卫中使用
- * import { createLoading } from '@/components/Loading'
+ * import { createLoading } from '~/components/Loading'
  *
  * const loading = createLoading({
  *   tip: '页面初始化...',
@@ -42,22 +42,22 @@ import type { CreateLoadingOptions, LoadingInstance } from './types'
  * )
  */
 export function createLoading(options: CreateLoadingOptions = {}): LoadingInstance {
-  const { onClose, ...rest } = options
+  const { onClose, ...rest } = options;
 
   // 使用 useLoading 创建实例，默认全屏模式
   const instance = useLoading({
     ...rest,
     body: true,
-  })
+  });
 
   // 包装 close 方法，触发回调
-  const originalClose = instance.close
+  const originalClose = instance.close;
   instance.close = () => {
-    originalClose()
-    onClose?.()
-  }
+    originalClose();
+    onClose?.();
+  };
 
-  return instance
+  return instance;
 }
 
 /**
@@ -65,13 +65,13 @@ export function createLoading(options: CreateLoadingOptions = {}): LoadingInstan
  */
 export function createFullscreenLoading(
   tip?: string,
-  options: Omit<CreateLoadingOptions, 'tip' | 'body'> = {},
+  options: Omit<CreateLoadingOptions, "tip" | "body"> = {},
 ): LoadingInstance {
   return createLoading({
     tip,
     body: true,
     ...options,
-  })
+  });
 }
 
 /**
@@ -80,12 +80,12 @@ export function createFullscreenLoading(
 export function createContainerLoading(
   target: HTMLElement | string,
   tip?: string,
-  options: Omit<CreateLoadingOptions, 'target' | 'tip' | 'body'> = {},
+  options: Omit<CreateLoadingOptions, "target" | "tip" | "body"> = {},
 ): LoadingInstance {
   return createLoading({
     target,
     tip,
     body: false,
     ...options,
-  })
+  });
 }

@@ -1,7 +1,7 @@
 import type { UserInfo } from "#/user";
 
-import { get, post, put } from "@/api/request";
-import { http } from "@/utils";
+import { get, post, put } from "~/api/request";
+import { http } from "~/utils";
 
 // ============================================================
 // 类型

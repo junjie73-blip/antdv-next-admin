@@ -1,6 +1,6 @@
 import { get } from "./request";
 
-import { http } from "@/utils";
+import { http } from "~/utils";
 
 // ============================================================
 // 租户管理

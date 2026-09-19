@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { Icon } from "@iconify/vue";
 import { message } from "antdv-next";
 import { computed, ref } from "vue";
@@ -22,22 +21,17 @@ import { useMenuFormSchemas } from "./schemas";
 
 import type { MenuRecord } from "./types";
 
-import { changeMenuStatus } from "@/api";
-import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
-import { BasicForm, useForm } from "@/components/business/Form";
-import { type ActionItem, BasicTable, TableAction, useTable } from "@/components/business/Table";
-import IconPicker from "@/components/common/Icon/IconPicker.vue";
-import { useCRUD } from "@/composables/useCRUD";
-import { DictType } from "@/enums/dict";
-import { useDictStore } from "@/stores";
-import { http } from "@/utils";
+import { changeMenuStatus } from "~/api";
+import { BasicDrawer, useDrawer } from "~/components/business/Drawer";
+import { BasicForm, useForm } from "~/components/business/Form";
+import { type ActionItem, BasicTable, TableAction, useTable } from "~/components/business/Table";
+import IconPicker from "~/components/common/Icon/IconPicker.vue";
+import { useCRUD } from "~/composables/useCRUD";
+import { DictType } from "~/enums/dict";
+import { useDictStore } from "~/stores";
+import { http } from "~/utils";
 
 // 抽离的模块
-
-
-
-
-
 
 defineOptions({ name: "SystemMenu" });
 
@@ -162,8 +156,7 @@ function getActions(record: MenuRecord): ActionItem[] {
         @register="tableRegister"
       >
         <template #toolbar>
-          <a-button type="primary"
-@click="handleAdd()">
+          <a-button type="primary" @click="handleAdd()">
             <template #icon><Icon icon="ant-design:plus-outlined" /></template>
             新增菜单
           </a-button>
@@ -171,9 +164,7 @@ function getActions(record: MenuRecord): ActionItem[] {
 
         <template #cell-icon="{ record }">
           <div class="flex items-center justify-center">
-            <Icon v-if="record.icon"
-:icon="record.icon"
-class="text-lg" />
+            <Icon v-if="record.icon" :icon="record.icon" class="text-lg" />
             <span v-else>-</span>
           </div>
         </template>

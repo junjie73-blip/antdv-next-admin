@@ -1,7 +1,6 @@
 import { computed, onMounted, ref } from "vue";
 
-import { getPasswordPolicy, type PasswordPolicy } from "@/api/auth";
-
+import { getPasswordPolicy, type PasswordPolicy } from "~/api/auth";
 
 const DEFAULT_POLICY: PasswordPolicy = {
   minLength: 6,

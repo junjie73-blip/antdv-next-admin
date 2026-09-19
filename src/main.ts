@@ -1,10 +1,11 @@
-
 import FcDesigner from "@form-create/antd-designer";
 import formCreate from "@form-create/antdv-next";
 import install from "@form-create/antdv-next/auto-import";
 import * as Sentry from "@sentry/vue";
+import PdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import { createPinia } from "pinia";
 import { createApp } from "vue";
+import VuePdfEmbed, { GlobalWorkerOptions } from "vue-pdf-embed/dist/index.essential.mjs";
 import { PerfectScrollbarPlugin } from "vue3-perfect-scrollbar";
 
 import App from "./App.vue";
@@ -12,14 +13,15 @@ import { escapeDirective, safeHtmlDirective } from "./directives";
 import i18n from "./locales";
 import { setupRouter } from "./router";
 import { initSecuritySystem } from "./utils/securityInit";
-
 import "virtual:svg-icons-register";
 import "./assets/styles/global.css";
 import "antdv-next/dist/antd.css";
 import "vue3-perfect-scrollbar/style.css";
+import "vue-pdf-embed/dist/styles/annotationLayer.css";
+import "vue-pdf-embed/dist/styles/textLayer.css";
+
 // 按需导入 form-create 组件
 formCreate.use(install);
-
 const app = createApp(App);
 const pinia = createPinia();
 
@@ -53,7 +55,6 @@ app.use(pinia);
 app.use(i18n);
 app.use(formCreate);
 app.use(FcDesigner);
-
 app.use(PerfectScrollbarPlugin);
 
 // ==================== 初始化安全防护系统 ====================
@@ -71,4 +72,6 @@ app.directive("safe-html", safeHtmlDirective);
 // v-escape: 自动转义文本内容（防止注入攻击）
 // 用法：v-escape="value" | v-escape:url="url" | v-escape:js="code"
 app.directive("escape", escapeDirective);
+app.component("PdfViewer", VuePdfEmbed);
+GlobalWorkerOptions.workerSrc = PdfWorker;
 app.mount("#app");

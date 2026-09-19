@@ -1,4 +1,3 @@
-
 import * as echarts from "echarts";
 
 import { PALETTE } from "../constants";
@@ -7,7 +6,7 @@ import { borderColor, echartsTheme, gradient, subTextColor, textColor } from "..
 import type { ModuleRankItem } from "../types";
 import type { ChartInitResult } from "./types";
 
-import { getModuleRank } from "@/api";
+import { getModuleRank } from "~/api";
 
 /** 模块使用热度排行（带自动刷新） */
 export async function initModuleRank(

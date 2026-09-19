@@ -7,8 +7,8 @@ import type { VNode } from "vue";
 
 import type { ActionItem } from "../types";
 
-import { IconifyIcon as Icon } from "@/components/common/Icon";
-import { cn } from "@/utils/cn";
+import { IconifyIcon as Icon } from "~/components/common/Icon";
+import { cn } from "~/utils/cn";
 
 type ButtonType = "default" | "link" | "dashed" | "text" | "primary";
 

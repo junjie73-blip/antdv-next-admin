@@ -1,7 +1,4 @@
 <script setup lang="ts">
-
-
-
 import { LockOutlined, ReloadOutlined, SafetyOutlined, UserOutlined } from "@antdv-next/icons";
 import { Icon } from "@iconify/vue";
 import { message } from "antdv-next";
@@ -14,11 +11,11 @@ import ForgotPasswordModal from "./ForgotPasswordModal.vue";
 import type { FormInstance } from "antdv-next";
 import type { Rule } from "antdv-next/dist/form/types";
 
-import { getAuthTenantList, getCaptcha } from "@/api/auth";
-import logoIconUrl from "@/assets/images/logo.png";
-import { useAppStore } from "@/stores";
-import { useUserStore } from "@/stores/modules/user";
-import { cache } from "@/utils";
+import { getAuthTenantList, getCaptcha } from "~/api/auth";
+import logoIconUrl from "~/assets/images/logo.png";
+import { useAppStore } from "~/stores";
+import { useUserStore } from "~/stores/modules/user";
+import { cache } from "~/utils";
 
 const router = useRouter();
 const route = useRoute();
@@ -249,8 +246,7 @@ onMounted(async () => {
 <template>
   <div :class="containerClassName">
     <!-- ==================== 液态玻璃背景层 ==================== -->
-    <div :class="bgLayerClassName"
-aria-hidden="true">
+    <div :class="bgLayerClassName" aria-hidden="true">
       <div :class="blob1ClassName" />
       <div :class="blob2ClassName" />
       <div :class="blob3ClassName" />
@@ -259,8 +255,7 @@ aria-hidden="true">
     </div>
 
     <!-- ==================== 主卡片 ==================== -->
-    <a-border-beam :count="4"
-:color="appStore.appSetting.primaryColor">
+    <a-border-beam :count="4" :color="appStore.appSetting.primaryColor">
       <div class="relative rounded-2xl">
         <div :class="cardClassName">
           <!-- ============ 左侧品牌面板 ============ -->
@@ -272,9 +267,7 @@ aria-hidden="true">
               <!-- Logo -->
               <div :class="brandLogoClassName">
                 <div :class="brandLogoIconClassName">
-                  <img :src="logoIconUrl"
-:alt="appTitle"
-class="w-full h-full object-contain" />
+                  <img :src="logoIconUrl" :alt="appTitle" class="w-full h-full object-contain" />
                 </div>
                 <span class="text-sm font-semibold tracking-wide">{{ appTitle }}</span>
               </div>
@@ -291,18 +284,15 @@ class="w-full h-full object-contain" />
               <!-- 特性胶囊 -->
               <div class="mt-8 flex flex-wrap gap-2">
                 <span :class="brandFeatureClassName">
-                  <Icon icon="carbon:flash"
-class="w-3.5 h-3.5" />
+                  <Icon icon="carbon:flash" class="w-3.5 h-3.5" />
                   极速开发体验
                 </span>
                 <span :class="brandFeatureClassName">
-                  <Icon icon="carbon:color-palette"
-class="w-3.5 h-3.5" />
+                  <Icon icon="carbon:color-palette" class="w-3.5 h-3.5" />
                   现代化 UI 设计
                 </span>
                 <span :class="brandFeatureClassName">
-                  <Icon icon="carbon:security"
-class="w-3.5 h-3.5" />
+                  <Icon icon="carbon:security" class="w-3.5 h-3.5" />
                   企业级安全
                 </span>
               </div>
@@ -335,9 +325,7 @@ class="w-3.5 h-3.5" />
                   class="w-10 h-10 rounded-xl flex items-center justify-center text-white"
                   style="background: var(--ant-color-primary)"
                 >
-                  <img :src="logoIconUrl"
-:alt="appTitle"
-class="w-6 h-6 object-contain" />
+                  <img :src="logoIconUrl" :alt="appTitle" class="w-6 h-6 object-contain" />
                 </div>
                 <span class="text-base font-semibold text-slate-800 dark:text-slate-100">
                   {{ appTitle }}
@@ -370,8 +358,7 @@ class="w-6 h-6 object-contain" />
                 layout="vertical"
                 @finish="handleLogin"
               >
-                <a-form-item name="tenantCode"
-class="!mb-4">
+                <a-form-item name="tenantCode" class="!mb-4">
                   <a-select
                     v-model:value="formState.tenantCode"
                     :options="tenantOptions"
@@ -384,8 +371,7 @@ class="!mb-4">
                   />
                 </a-form-item>
 
-                <a-form-item name="username"
-class="!mb-4">
+                <a-form-item name="username" class="!mb-4">
                   <a-input
                     v-model:value="formState.username"
                     size="large"
@@ -399,8 +385,7 @@ class="!mb-4">
                   </a-input>
                 </a-form-item>
 
-                <a-form-item name="password"
-class="!mb-4">
+                <a-form-item name="password" class="!mb-4">
                   <a-input-password
                     v-model:value="formState.password"
                     size="large"
@@ -414,8 +399,7 @@ class="!mb-4">
                   </a-input-password>
                 </a-form-item>
 
-                <a-form-item name="captchaCode"
-class="!mb-4">
+                <a-form-item name="captchaCode" class="!mb-4">
                   <div class="flex items-center gap-3">
                     <a-input
                       v-model:value="formState.captchaCode"
@@ -435,15 +419,13 @@ class="!mb-4">
                       title="点击刷新验证码"
                       @click="refreshCaptcha"
                     >
-                      <a-spin :spinning="captchaLoading"
-size="small">
+                      <a-spin :spinning="captchaLoading" size="small">
                         <div
                           v-if="captchaSvg"
                           class="w-full h-full flex items-center justify-center [&>svg]:w-full [&>svg]:h-full"
                           v-html="captchaSvg"
                         />
-                        <ReloadOutlined v-else
-class="text-slate-400" />
+                        <ReloadOutlined v-else class="text-slate-400" />
                       </a-spin>
                     </div>
                   </div>

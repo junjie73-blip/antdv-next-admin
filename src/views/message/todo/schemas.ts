@@ -1,4 +1,4 @@
-import type { FormSchema } from "@/components/business/Form";
+import type { FormSchema } from "~/components/business/Form";
 
 /** 待办弹窗表单 schema */
 export const todoFormSchemas: FormSchema[] = [

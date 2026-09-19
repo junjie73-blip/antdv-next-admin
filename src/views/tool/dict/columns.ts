@@ -1,4 +1,4 @@
-import type { BasicColumn } from "@/components/business/Table";
+import type { BasicColumn } from "~/components/business/Table";
 
 /** 字典项表格列 */
 export const dictItemColumns: BasicColumn[] = [

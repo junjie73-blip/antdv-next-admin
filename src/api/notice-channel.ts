@@ -1,4 +1,4 @@
-import { del, get, put } from "@/api/request";
+import { del, get, put } from "~/api/request";
 
 export type ChannelType = "in_app" | "email" | "sms" | "webhook";
 

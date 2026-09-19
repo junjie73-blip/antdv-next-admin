@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { Icon } from "@iconify/vue";
 import { message } from "antdv-next";
 import { nextTick, ref } from "vue";
@@ -32,19 +31,16 @@ import {
   deleteSetting,
   getSettingsList,
   updateSetting,
-} from "@/api";
+} from "~/api";
 
-import { Description as DetailDescription } from "@/components/business/Description";
-import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
-import { BasicForm, useForm } from "@/components/business/Form";
-import { BasicModal, useModal } from "@/components/business/Modal";
-import { type ActionItem, BasicTable, TableAction, useTable } from "@/components/business/Table";
-import { useCRUD } from "@/composables/useCRUD";
+import { Description as DetailDescription } from "~/components/business/Description";
+import { BasicDrawer, useDrawer } from "~/components/business/Drawer";
+import { BasicForm, useForm } from "~/components/business/Form";
+import { BasicModal, useModal } from "~/components/business/Modal";
+import { type ActionItem, BasicTable, TableAction, useTable } from "~/components/business/Table";
+import { useCRUD } from "~/composables/useCRUD";
 
 // 抽离的模块
-
-
-
 
 defineOptions({ name: "SystemSettings" });
 
@@ -127,8 +123,7 @@ function getActions(record: ConfigRecord): ActionItem[] {
 
 <template>
   <div :class="containerClassName">
-    <a-card title="系统设置"
-:class="cardClassName">
+    <a-card title="系统设置" :class="cardClassName">
       <BasicTable
         :columns="configColumns"
         :api="getSettingsList"
@@ -144,15 +139,13 @@ function getActions(record: ConfigRecord): ActionItem[] {
         @register="tableRegister"
       >
         <template #toolbar>
-          <a-button type="primary"
-@click="handleAdd()">
+          <a-button type="primary" @click="handleAdd()">
             <template #icon>
               <Icon icon="ant-design:plus-outlined" />
             </template>
             新增设置
           </a-button>
-          <a-button danger
-@click="handleBatchDelete()">
+          <a-button danger @click="handleBatchDelete()">
             <template #icon>
               <Icon icon="ant-design:delete-outlined" />
             </template>

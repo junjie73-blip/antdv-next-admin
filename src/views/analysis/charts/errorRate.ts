@@ -1,4 +1,3 @@
-
 import * as echarts from "echarts";
 
 import { PALETTE } from "../constants";
@@ -6,7 +5,7 @@ import { baseOption, borderColor, echartsTheme, gradient, subTextColor } from ".
 
 import type { ErrorRateData } from "../types";
 
-import { getErrorRateTrend } from "@/api";
+import { getErrorRateTrend } from "~/api";
 
 /** API 错误率趋势 */
 export async function initErrorRate(el: HTMLElement, isDark: boolean) {

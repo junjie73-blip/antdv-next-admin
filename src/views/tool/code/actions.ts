@@ -1,6 +1,6 @@
 import type { GenTable } from "./types";
 
-import type { ActionItem } from "@/components/business/Table/types";
+import type { ActionItem } from "~/components/business/Table/types";
 
 export interface GenTableActionContext {
   onEdit: (record: GenTable) => void;

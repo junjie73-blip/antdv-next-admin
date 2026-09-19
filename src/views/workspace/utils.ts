@@ -1,7 +1,6 @@
 import dayjs from "dayjs";
 
-import { getTimeGreeting } from "@/utils";
-
+import { getTimeGreeting } from "~/utils";
 
 export const greeting = getTimeGreeting();
 

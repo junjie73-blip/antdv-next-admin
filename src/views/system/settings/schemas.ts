@@ -1,10 +1,8 @@
 import dayjs from "dayjs";
 import { h } from "vue";
 
-import type { DescriptionItem } from "@/components/business/Description";
-import type { FormSchema } from "@/components/business/Form";
-
-
+import type { DescriptionItem } from "~/components/business/Description";
+import type { FormSchema } from "~/components/business/Form";
 
 /** 搜索表单 schema */
 export const configSearchSchemas: FormSchema[] = [

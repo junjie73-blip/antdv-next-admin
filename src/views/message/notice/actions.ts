@@ -1,6 +1,6 @@
 import type { NoticeRecord } from "./types";
 
-import type { ActionItem } from "@/components/business/Table";
+import type { ActionItem } from "~/components/business/Table";
 
 /** 操作回调上下文 */
 export interface NoticeActionContext {

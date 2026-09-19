@@ -1,52 +1,49 @@
 <script setup lang="ts">
+import { ref } from "vue";
 
-import { ref } from 'vue'
+import { useDrawer } from "~/components/business/Drawer";
+import { cn } from "~/utils/cn";
 
-import { useDrawer } from '@/components/business/Drawer'
-import { cn } from '@/utils/cn'
-
-const containerClassName = cn('space-y-6')
+const containerClassName = cn("space-y-6");
 
 const treeData = ref([
   {
-    key: '1',
-    title: 'Root Node 1',
+    key: "1",
+    title: "Root Node 1",
     children: [
-      { key: '1-1', title: 'Child 1-1' },
-      { key: '1-2', title: 'Child 1-2', children: [{ key: '1-2-1', title: 'Grandchild 1-2-1' }] },
+      { key: "1-1", title: "Child 1-1" },
+      { key: "1-2", title: "Child 1-2", children: [{ key: "1-2-1", title: "Grandchild 1-2-1" }] },
     ],
   },
-  { key: '2', title: 'Root Node 2' },
-])
+  { key: "2", title: "Root Node 2" },
+]);
 
-const selectedTreeNode = ref<any>(null)
-const activeTab = ref('info')
+const selectedTreeNode = ref<any>(null);
+const activeTab = ref("info");
 
 function onTreeSelect(_selectedKeys: string[], info: any) {
-  selectedTreeNode.value = info.node
-  message.info(`Selected: ${info.node.title}`)
+  selectedTreeNode.value = info.node;
+  message.info(`Selected: ${info.node.title}`);
 }
 
-const [registerBasicDrawer, basicDrawerMethods] = useDrawer()
-const [registerLargeDrawer, largeDrawerMethods] = useDrawer()
-const [registerNoFooterDrawer, noFooterDrawerMethods] = useDrawer()
+const [registerBasicDrawer, basicDrawerMethods] = useDrawer();
+const [registerLargeDrawer, largeDrawerMethods] = useDrawer();
+const [registerNoFooterDrawer, noFooterDrawerMethods] = useDrawer();
 
-const drawerForm = ref({ name: '', remark: '' })
+const drawerForm = ref({ name: "", remark: "" });
 
 function handleDrawerSubmit() {
-  message.success(`Drawer submitted: ${JSON.stringify(drawerForm.value)}`)
-  basicDrawerMethods?.closeDrawer()
+  message.success(`Drawer submitted: ${JSON.stringify(drawerForm.value)}`);
+  basicDrawerMethods?.closeDrawer();
 }
 </script>
 
 <template>
   <div :class="containerClassName">
-    <a-card title="Basic Drawer"
-variant="borderless">
+    <a-card title="Basic Drawer" variant="borderless">
       <div class="space-y-4">
         <a-space>
-          <a-button type="primary"
-@click="basicDrawerMethods?.openDrawer()">
+          <a-button type="primary" @click="basicDrawerMethods?.openDrawer()">
             Open Basic Drawer
           </a-button>
           <a-button @click="basicDrawerMethods?.closeDrawer()"> Close Drawer </a-button>
@@ -57,33 +54,26 @@ variant="borderless">
       </div>
     </a-card>
 
-    <a-card title="Large Drawer"
-variant="borderless">
+    <a-card title="Large Drawer" variant="borderless">
       <a-space>
-        <a-button type="primary"
-@click="largeDrawerMethods?.openDrawer()">
+        <a-button type="primary" @click="largeDrawerMethods?.openDrawer()">
           Open Large Drawer
         </a-button>
       </a-space>
     </a-card>
 
-    <a-card title="No Footer Drawer"
-variant="borderless">
+    <a-card title="No Footer Drawer" variant="borderless">
       <a-space>
-        <a-button type="primary"
-@click="noFooterDrawerMethods?.openDrawer()">
+        <a-button type="primary" @click="noFooterDrawerMethods?.openDrawer()">
           Open Drawer (No Footer)
         </a-button>
       </a-space>
     </a-card>
 
-    <a-card title="Drawer with Tab Content"
-variant="borderless">
+    <a-card title="Drawer with Tab Content" variant="borderless">
       <a-tabs v-model:active-key="activeTab">
-        <a-tab-pane key="info"
-tab="Info">
-          <a-descriptions :column="1"
-size="small">
+        <a-tab-pane key="info" tab="Info">
+          <a-descriptions :column="1" size="small">
             <a-descriptions-item label="Component"> antdv-next Drawer </a-descriptions-item>
             <a-descriptions-item label="Usage">
               Modal panels sliding in from edges
@@ -91,11 +81,8 @@ size="small">
             <a-descriptions-item label="Placement"> Right (default) </a-descriptions-item>
           </a-descriptions>
         </a-tab-pane>
-        <a-tab-pane key="tree"
-tab="Tree View">
-          <a-tree :tree-data="treeData"
-default-expand-all
-@select="onTreeSelect" />
+        <a-tab-pane key="tree" tab="Tree View">
+          <a-tree :tree-data="treeData" default-expand-all @select="onTreeSelect" />
           <div
             v-if="selectedTreeNode"
             class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm"
@@ -106,31 +93,19 @@ default-expand-all
       </a-tabs>
     </a-card>
 
-    <BasicDrawer title="Basic Drawer"
-@register="registerBasicDrawer"
-@ok="handleDrawerSubmit">
-      <a-form :model="drawerForm"
-layout="vertical">
-        <a-form-item label="Name"
-required>
-          <a-input v-model:value="drawerForm.name"
-placeholder="Enter name" />
+    <BasicDrawer title="Basic Drawer" @register="registerBasicDrawer" @ok="handleDrawerSubmit">
+      <a-form :model="drawerForm" layout="vertical">
+        <a-form-item label="Name" required>
+          <a-input v-model:value="drawerForm.name" placeholder="Enter name" />
         </a-form-item>
         <a-form-item label="Remark">
-          <a-textarea v-model:value="drawerForm.remark"
-placeholder="Enter remark"
-:rows="4" />
+          <a-textarea v-model:value="drawerForm.remark" placeholder="Enter remark" :rows="4" />
         </a-form-item>
       </a-form>
     </BasicDrawer>
 
-    <BasicDrawer title="Large Drawer"
-:width="800"
-@register="registerLargeDrawer">
-      <a-descriptions :column="2"
-bordered
-size="small"
-title="System Information">
+    <BasicDrawer title="Large Drawer" :width="800" @register="registerLargeDrawer">
+      <a-descriptions :column="2" bordered size="small" title="System Information">
         <a-descriptions-item label="Product Name"> Vue 3 Admin Pro </a-descriptions-item>
         <a-descriptions-item label="Version"> v1.0.0 </a-descriptions-item>
         <a-descriptions-item label="Framework"> Vue 3.5 + TypeScript 5.9 </a-descriptions-item>

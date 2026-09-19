@@ -1,6 +1,6 @@
 import type { RoleRecord } from "./types";
 
-import type { ActionItem } from "@/components/business/Table";
+import type { ActionItem } from "~/components/business/Table";
 
 /** 角色行操作上下文 */
 export interface RoleActionContext {

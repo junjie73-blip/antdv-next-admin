@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { message } from "antdv-next";
 import { computed, ref, watch } from "vue";
 
@@ -9,8 +8,7 @@ import {
   getNoticeChannels,
   type NoticeChannel,
   upsertNoticeChannel,
-} from "@/api/notice-channel";
-
+} from "~/api/notice-channel";
 
 defineOptions({ name: "NoticeChannelConfig" });
 
@@ -140,21 +138,14 @@ function close() {
 </script>
 
 <template>
-  <a-drawer :open="open"
-title="通知渠道配置"
-:width="580"
-@close="close">
+  <a-drawer :open="open" title="通知渠道配置" :width="580" @close="close">
     <template #extra>
-      <a-button type="primary"
-:loading="saving"
-@click="save">保存</a-button>
+      <a-button type="primary" :loading="saving" @click="save">保存</a-button>
     </template>
 
     <a-spin :spinning="loading">
       <a-tabs v-model:active-key="activeType">
-        <a-tab-pane v-for="t in CHANNEL_TYPES"
-:key="t"
-:tab="CHANNEL_LABEL[t]">
+        <a-tab-pane v-for="t in CHANNEL_TYPES" :key="t" :tab="CHANNEL_LABEL[t]">
           <div class="space-y-4 pt-2">
             <!-- 启用开关 -->
             <div
@@ -168,14 +159,12 @@ title="通知渠道配置"
             </div>
 
             <!-- 站内信：无配置 -->
-            <div v-if="t === 'in_app'"
-class="text-xs text-gray-400 py-6 text-center">
+            <div v-if="t === 'in_app'" class="text-xs text-gray-400 py-6 text-center">
               站内信无需额外配置
             </div>
 
             <!-- 邮件 -->
-            <a-form v-else-if="t === 'email'"
-layout="vertical">
+            <a-form v-else-if="t === 'email'" layout="vertical">
               <a-row :gutter="12">
                 <a-col :span="16">
                   <a-form-item label="SMTP 服务器">
@@ -200,8 +189,7 @@ layout="vertical">
                 <a-switch v-model:checked="activeForm.config.secure" />
               </a-form-item>
               <a-form-item label="用户名">
-                <a-input v-model:value="activeForm.config.user"
-placeholder="user@example.com" />
+                <a-input v-model:value="activeForm.config.user" placeholder="user@example.com" />
               </a-form-item>
               <a-form-item label="密码">
                 <a-input-password v-model:value="activeForm.config.password" />
@@ -215,8 +203,7 @@ placeholder="user@example.com" />
             </a-form>
 
             <!-- 短信 -->
-            <a-form v-else-if="t === 'sms'"
-layout="vertical">
+            <a-form v-else-if="t === 'sms'" layout="vertical">
               <a-form-item label="服务商">
                 <a-select
                   v-model:value="activeForm.config.provider"
@@ -235,8 +222,7 @@ layout="vertical">
                 <a-input-password v-model:value="activeForm.config.accessSecret" />
               </a-form-item>
               <a-form-item label="短信签名">
-                <a-input v-model:value="activeForm.config.signName"
-placeholder="例如：XXX 科技" />
+                <a-input v-model:value="activeForm.config.signName" placeholder="例如：XXX 科技" />
               </a-form-item>
               <a-form-item label="模板编码">
                 <a-input
@@ -247,8 +233,7 @@ placeholder="例如：XXX 科技" />
             </a-form>
 
             <!-- Webhook -->
-            <a-form v-else-if="t === 'webhook'"
-layout="vertical">
+            <a-form v-else-if="t === 'webhook'" layout="vertical">
               <a-form-item label="回调 URL">
                 <a-input
                   v-model:value="activeForm.config.url"
@@ -256,8 +241,7 @@ layout="vertical">
                 />
               </a-form-item>
               <a-form-item label="请求方法">
-                <a-radio-group v-model:value="activeForm.config.method"
-button-style="solid">
+                <a-radio-group v-model:value="activeForm.config.method" button-style="solid">
                   <a-radio-button value="POST">POST</a-radio-button>
                   <a-radio-button value="PUT">PUT</a-radio-button>
                 </a-radio-group>
@@ -277,9 +261,7 @@ button-style="solid">
             <!-- 备注（所有渠道共用） -->
             <a-form layout="vertical">
               <a-form-item label="备注">
-                <a-textarea v-model:value="activeForm.remark"
-:rows="2"
-:maxlength="256" />
+                <a-textarea v-model:value="activeForm.remark" :rows="2" :maxlength="256" />
               </a-form-item>
             </a-form>
           </div>

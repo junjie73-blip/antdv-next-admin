@@ -1,6 +1,6 @@
 import type { PermissionRecord } from "./types";
 
-import type { BasicColumn } from "@/components/business/Table";
+import type { BasicColumn } from "~/components/business/Table";
 
 /** 权限表格列 */
 export const permissionColumns: BasicColumn[] = [

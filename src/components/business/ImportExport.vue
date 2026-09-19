@@ -4,9 +4,8 @@ import { message, Modal } from "antdv-next";
 import dayjs from "dayjs";
 import { h, ref } from "vue";
 
-import { http } from "@/utils";
-import { generateTemplate, type TemplateColumn } from "@/utils/template";
-
+import { http } from "~/utils";
+import { generateTemplate, type TemplateColumn } from "~/utils/template";
 
 interface Props {
   /** 模块路径，如 "/user"（自动调 `${module}/export` 和 `${module}/import`） */
@@ -228,9 +227,7 @@ function downloadTemplate() {
 
 <template>
   <a-space>
-    <a-button :loading="exporting"
-:disabled="disableExport"
-@click="handleExport">
+    <a-button :loading="exporting" :disabled="disableExport" @click="handleExport">
       <template #icon>
         <DownloadOutlined />
       </template>
@@ -244,16 +241,14 @@ function downloadTemplate() {
       :before-upload="handleBeforeUpload"
       :multiple="false"
     >
-      <a-button :loading="importing"
-:disabled="disableImport">
+      <a-button :loading="importing" :disabled="disableImport">
         <template #icon>
           <UploadOutlined />
         </template>
         {{ importText }}
       </a-button>
     </a-upload>
-    <a-button type="primary"
-@click="downloadTemplate">
+    <a-button type="primary" @click="downloadTemplate">
       <template #icon>
         <UploadOutlined />
       </template>

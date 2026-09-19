@@ -1,6 +1,6 @@
 import type { RoleRecord } from "./types";
 
-import type { BasicColumn } from "@/components/business/Table";
+import type { BasicColumn } from "~/components/business/Table";
 
 /** 角色表格列 */
 export const roleColumns: BasicColumn[] = [

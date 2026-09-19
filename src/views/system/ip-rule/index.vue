@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { Icon } from "@iconify/vue";
 import { ref, watch } from "vue";
 
@@ -10,14 +9,13 @@ import { ipRuleFormSchemas } from "./schemas";
 
 import type { IpRuleRecord, IpRuleType } from "./types";
 
-import { createIpRule, deleteIpRule, getIpRuleList, updateIpRule } from "@/api";
-import { BasicForm, useForm } from "@/components/business/Form";
-import { BasicModal, useModal } from "@/components/business/Modal";
-import { type ActionItem, BasicTable, TableAction, useTable } from "@/components/business/Table";
-import { useCRUD } from "@/composables/useCRUD";
+import { createIpRule, deleteIpRule, getIpRuleList, updateIpRule } from "~/api";
+import { BasicForm, useForm } from "~/components/business/Form";
+import { BasicModal, useModal } from "~/components/business/Modal";
+import { type ActionItem, BasicTable, TableAction, useTable } from "~/components/business/Table";
+import { useCRUD } from "~/composables/useCRUD";
 
 // 抽离的模块
-
 
 defineOptions({ name: "SystemIpRule" });
 
@@ -88,13 +86,10 @@ function getActions(record: IpRuleRecord): ActionItem[] {
 </script>
 
 <template>
-  <a-card :bordered="false"
-class="shadow-sm">
+  <a-card :bordered="false" class="shadow-sm">
     <a-tabs v-model:active-key="activeTab">
-      <a-tab-pane key="white"
-tab="IP 白名单" />
-      <a-tab-pane key="black"
-tab="IP 黑名单" />
+      <a-tab-pane key="white" tab="IP 白名单" />
+      <a-tab-pane key="black" tab="IP 黑名单" />
     </a-tabs>
 
     <BasicTable
@@ -108,8 +103,7 @@ tab="IP 黑名单" />
       @register="tableRegister"
     >
       <template #toolbar>
-        <a-button type="primary"
-@click="handleAdd()">
+        <a-button type="primary" @click="handleAdd()">
           <template #icon><Icon icon="ant-design:plus-outlined" /></template>
           新增规则
         </a-button>

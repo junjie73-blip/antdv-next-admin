@@ -4,9 +4,7 @@ import { ref, watch } from "vue";
 
 import type { DeptRecord } from "../types";
 
-import { getDeptUsers, getUserAllOptions, updateDeptUsers } from "@/api";
-
-
+import { getDeptUsers, getUserAllOptions, updateDeptUsers } from "~/api";
 
 defineOptions({ name: "DeptUserDrawer" });
 
@@ -98,9 +96,7 @@ watch(
 
       <div class="flex justify-end gap-2 pt-4 border-t mt-4">
         <a-button @click="close">取消</a-button>
-        <a-button type="primary"
-:loading="saving"
-@click="save">保存</a-button>
+        <a-button type="primary" :loading="saving" @click="save">保存</a-button>
       </div>
     </div>
   </a-drawer>

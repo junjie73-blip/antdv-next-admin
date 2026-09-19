@@ -8,6 +8,7 @@ export interface FileRecord {
   mimeType?: string;
   uploader?: string;
   createdAt: string;
+  category?: string;
 }
 
 /** MIME 类型筛选选项 */

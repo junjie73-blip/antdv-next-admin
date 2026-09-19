@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { Icon } from "@iconify/vue";
 import { Menu } from "antdv-next";
 import { computed, nextTick, unref, watch } from "vue";
@@ -9,13 +8,11 @@ import { COLLAPSED_WIDTH, useLayout, useMenu } from "../composables/useLayout";
 
 import type { MenuProps } from "antdv-next";
 
-
-import logoIconUrl from "@/assets/images/logo.png";
-import { useAppStore } from "@/stores/modules/app";
-import { useRouteStore } from "@/stores/modules/route";
-import { cn } from "@/utils/cn";
-import { transformMenuConfigToItems } from "@/utils/helpers/menu";
-
+import logoIconUrl from "~/assets/images/logo.png";
+import { useAppStore } from "~/stores/modules/app";
+import { useRouteStore } from "~/stores/modules/route";
+import { cn } from "~/utils/cn";
+import { transformMenuConfigToItems } from "~/utils/helpers/menu";
 
 const props = defineProps<{
   collapsed?: boolean;
@@ -168,23 +165,13 @@ const handleMenuSelect: MenuProps["onSelect"] = ({ key }) => {
     }"
   >
     <!-- Logo 区域 -->
-    <div v-if="!mixed"
-:class="logoClassName">
-      <transition name="logo-fade"
-mode="out-in">
-        <div v-if="props.collapsed"
-key="collapsed"
-class="flex items-center justify-center">
-          <img :src="logoIconUrl"
-:alt="_appTitle"
-class="w-8 h-8 object-contain" />
+    <div v-if="!mixed" :class="logoClassName">
+      <transition name="logo-fade" mode="out-in">
+        <div v-if="props.collapsed" key="collapsed" class="flex items-center justify-center">
+          <img :src="logoIconUrl" :alt="_appTitle" class="w-8 h-8 object-contain" />
         </div>
-        <div v-else
-key="expanded"
-class="flex items-center justify-center gap-2.5 px-4">
-          <img :src="logoIconUrl"
-:alt="_appTitle"
-class="w-8 h-8 object-contain" />
+        <div v-else key="expanded" class="flex items-center justify-center gap-2.5 px-4">
+          <img :src="logoIconUrl" :alt="_appTitle" class="w-8 h-8 object-contain" />
           <span class="text-base font-semibold text-gray-800 truncate dark:text-white">
             {{ _appTitle }}
           </span>
@@ -212,8 +199,7 @@ class="w-8 h-8 object-contain" />
     </div>
 
     <!-- 折叠按钮 -->
-    <div :class="collapseBtnClassName"
-@click="toggleCollapsed">
+    <div :class="collapseBtnClassName" @click="toggleCollapsed">
       <Icon
         icon="ant-design:left-outlined"
         class="text-sm transition-transform duration-200"

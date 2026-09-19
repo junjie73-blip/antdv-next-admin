@@ -5,8 +5,8 @@ import { h, ref, watch } from "vue";
 import { eventBus } from "./event";
 import { forceLogout } from "./request/alova";
 
-import { useWebSocket as useWebSocketComposable } from "@/composables/web/websocket";
-import { useUserStore } from "@/stores/modules/user";
+import { useWebSocket as useWebSocketComposable } from "~/composables/web/websocket";
+import { useUserStore } from "~/stores/modules/user";
 
 // ==================== 类型 ====================
 export interface NotificationItem {

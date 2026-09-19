@@ -5,13 +5,7 @@ import type { PropType } from "vue";
 
 import type { BasicColumn, ComponentType, Recordable } from "../types";
 
-
-import { IconifyIcon as Icon } from "@/components/common/Icon";
-
-
-
-
-
+import { IconifyIcon as Icon } from "~/components/common/Icon";
 
 export default defineComponent({
   name: "TableEditableCell",

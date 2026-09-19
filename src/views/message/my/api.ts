@@ -1,6 +1,6 @@
 import type { NoticeQueryParams } from "./types";
 
-import { http } from "@/utils";
+import { http } from "~/utils";
 
 /** 获取我的消息列表 */
 export function fetchMyNotices(params: NoticeQueryParams) {

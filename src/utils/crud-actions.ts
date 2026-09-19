@@ -1,4 +1,4 @@
-import type { ActionItem } from "@/components/business/Table";
+import type { ActionItem } from "~/components/business/Table";
 
 export interface CrudActionOptions<T> {
   onEdit?: (record: T) => void;

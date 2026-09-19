@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 /**
  * XSS（跨站脚本攻击）防护工具
  *
@@ -19,38 +20,38 @@
 /** XSS 过滤选项 */
 export interface XssFilterOptions {
   /** 是否允许 HTML 标签（默认 false） */
-  allowHtml?: boolean
+  allowHtml?: boolean;
   /** 允许的 HTML 标签白名单 */
-  allowedTags?: string[]
+  allowedTags?: string[];
   /** 禁止的属性黑名单 */
-  forbiddenAttrs?: string[]
+  forbiddenAttrs?: string[];
   /** 是否移除 script 标签（默认 true） */
-  stripScript?: boolean
+  stripScript?: boolean;
   /** 是否移除事件处理器（默认 true） */
-  stripEventHandlers?: boolean
+  stripEventHandlers?: boolean;
   /** 最大输入长度（防止 DOS） */
-  maxLength?: number
+  maxLength?: number;
   /** 是否允许 URL（默认 true） */
-  allowUrl?: boolean
+  allowUrl?: boolean;
   /** 允许的 URL 协议 */
-  urlProtocols?: string[]
+  urlProtocols?: string[];
 }
 
 /** XSS 转义类型 */
-export type EscapeType = 'html' | 'url' | 'js' | 'css' | 'attr'
+export type EscapeType = "html" | "url" | "js" | "css" | "attr";
 
 // ==================== 默认配置 ====================
 
 const DEFAULT_OPTIONS: Required<XssFilterOptions> = {
   allowHtml: false,
   allowedTags: [],
-  forbiddenAttrs: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur'],
+  forbiddenAttrs: ["onerror", "onload", "onclick", "onmouseover", "onfocus", "onblur"],
   stripScript: true,
   stripEventHandlers: true,
   maxLength: 10000,
   allowUrl: true,
-  urlProtocols: ['http', 'https', 'mailto', 'tel'],
-}
+  urlProtocols: ["http", "https", "mailto", "tel"],
+};
 
 // ==================== 危险模式检测 ====================
 
@@ -80,7 +81,7 @@ const XSS_PATTERNS = [
   /<meta[^>]+http-equiv\s*=\s*["']?refresh/i,
   // base 标签劫持
   /<base[^>]+href/gi,
-]
+];
 
 /**
  * 检测字符串是否包含潜在的 XSS 攻击代码
@@ -89,23 +90,23 @@ const XSS_PATTERNS = [
  * @returns 是否检测到危险内容
  */
 export function detectXss(input: string): boolean {
-  if (!input || typeof input !== 'string') return false
+  if (!input || typeof input !== "string") return false;
 
   // 快速检查长度限制
   if (input.length > DEFAULT_OPTIONS.maxLength) {
-    console.warn('[XSS] 输入超过最大长度限制:', input.length)
-    return true
+    console.warn("[XSS] 输入超过最大长度限制:", input.length);
+    return true;
   }
 
   // 检查危险模式
   for (const pattern of XSS_PATTERNS) {
     if (pattern.test(input)) {
-      console.warn('[XSS] 检测到潜在攻击模式:', pattern.source)
-      return true
+      console.warn("[XSS] 检测到潜在攻击模式:", pattern.source);
+      return true;
     }
   }
 
-  return false
+  return false;
 }
 
 // ==================== 输出转义函数 ====================
@@ -118,20 +119,20 @@ export function detectXss(input: string): boolean {
  * → '&lt;script&gt;alert(1)&lt;/script&gt;'
  */
 export function escapeHtml(str: string): string {
-  if (!str) return ''
+  if (!str) return "";
 
   const htmlEscapeMap: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;',
-    '/': '&#x2F;',
-    '`': '&#x60;',
-    '=': '&#x3D;',
-  }
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+    "/": "&#x2F;",
+    "`": "&#x60;",
+    "=": "&#x3D;",
+  };
 
-  return String(str).replace(/[&<>"'`=/]/g, (char) => htmlEscapeMap[char] ?? char)
+  return String(str).replace(/[&<>"'`=/]/g, (char) => htmlEscapeMap[char] ?? char);
 }
 
 /**
@@ -140,21 +141,21 @@ export function escapeHtml(str: string): string {
  * 攻击向量：<a href="javascript:alert(1)">
  */
 export function escapeUrl(url: string): string {
-  if (!url) return ''
+  if (!url) return "";
 
   // 检测危险的协议
-  const dangerousProtocols = ['javascript:', 'vbscript:', 'data:text/html']
-  const lowerUrl = url.toLowerCase().trim()
+  const dangerousProtocols = ["javascript:", "vbscript:", "data:text/html"];
+  const lowerUrl = url.toLowerCase().trim();
 
   for (const protocol of dangerousProtocols) {
     if (lowerUrl.startsWith(protocol)) {
-      console.warn('[XSS] 检测到危险 URL 协议:', protocol)
-      return '#unsafe-url'
+      console.warn("[XSS] 检测到危险 URL 协议:", protocol);
+      return "#unsafe-url";
     }
   }
 
   // 编码特殊字符
-  return encodeURI(url)
+  return encodeURI(url);
 }
 
 /**
@@ -163,25 +164,25 @@ export function escapeUrl(url: string): string {
  * 攻击向量："; alert(1); //
  */
 export function escapeJs(str: string): string {
-  if (!str) return ''
+  if (!str) return "";
 
   const jsEscapeMap: Record<string, string> = {
-    '\\': '\\\\',
+    "\\": "\\\\",
     "'": "\\'",
     '"': '\\"',
-    '\n': '\\n',
-    '\r': '\\r',
-    '\t': '\\t',
-    '\0': '\\0',
-    '\u2028': '\\u2028',
-    '\u2029': '\\u2029',
-  }
+    "\n": "\\n",
+    "\r": "\\r",
+    "\t": "\\t",
+    "\0": "\\0",
+    "\u2028": "\\u2028",
+    "\u2029": "\\u2029",
+  };
 
   // 先转义反斜杠，再转义其他字符
-  let escaped = String(str).replace(/\\/, '\\\\')
-  escaped = escaped.replace(/['"\n\r\t\0\u2028\u2029]/g, (char) => jsEscapeMap[char] ?? char)
+  let escaped = String(str).replace(/\\/, "\\\\");
+  escaped = escaped.replace(/['"\n\r\t\0\u2028\u2029]/g, (char) => jsEscapeMap[char] ?? char);
 
-  return escaped
+  return escaped;
 }
 
 /**
@@ -190,20 +191,20 @@ export function escapeJs(str: string): string {
  * 攻击向量：background: url("javascript:...")
  */
 export function escapeCss(value: string): string {
-  if (!value) return ''
+  if (!value) return "";
 
   // 移除表达式和 URL
   const sanitized = value
-    .replace(/expression\s*\(/gi, '')
-    .replace(/javascript\s*:/gi, '')
-    .replace(/behavior\s*:/gi, '')
-    .replace(/-moz-binding\s*:/gi, '')
+    .replace(/expression\s*\(/gi, "")
+    .replace(/javascript\s*:/gi, "")
+    .replace(/behavior\s*:/gi, "")
+    .replace(/-moz-binding\s*:/gi, "");
 
   // 编码特殊字符
   return sanitized.replace(
     /[^\w\-\s#%.!]/g,
-    (match) => `\\${match.charCodeAt(0).toString(16).padStart(2, '0')}`,
-  )
+    (match) => `\\${match.charCodeAt(0).toString(16).padStart(2, "0")}`,
+  );
 }
 
 /**
@@ -212,7 +213,7 @@ export function escapeCss(value: string): string {
  * 综合了 HTML 和 JS 转义
  */
 export function escapeAttr(value: string): string {
-  return escapeHtml(escapeJs(value))
+  return escapeHtml(escapeJs(value));
 }
 
 /**
@@ -222,20 +223,20 @@ export function escapeAttr(value: string): string {
  * @param context - 转义的上下文环境
  * @returns 转义后的安全字符串
  */
-export function smartEscape(value: string, context: EscapeType = 'html'): string {
+export function smartEscape(value: string, context: EscapeType = "html"): string {
   switch (context) {
-    case 'html':
-      return escapeHtml(value)
-    case 'url':
-      return escapeUrl(value)
-    case 'js':
-      return escapeJs(value)
-    case 'css':
-      return escapeCss(value)
-    case 'attr':
-      return escapeAttr(value)
+    case "html":
+      return escapeHtml(value);
+    case "url":
+      return escapeUrl(value);
+    case "js":
+      return escapeJs(value);
+    case "css":
+      return escapeCss(value);
+    case "attr":
+      return escapeAttr(value);
     default:
-      return escapeHtml(value)
+      return escapeHtml(value);
   }
 }
 
@@ -249,33 +250,23 @@ export function smartEscape(value: string, context: EscapeType = 'html'): string
  * @returns 安全的字符串
  */
 export function sanitizeInput(input: string, options: XssFilterOptions = {}): string {
-  if (!input) return ''
+  if (!input) return "";
 
-  const opts = { ...DEFAULT_OPTIONS, ...options }
+  const opts = { ...DEFAULT_OPTIONS, ...options };
+  let result = input.slice(0, opts.maxLength);
 
-  // 长度截断
-  let result = input.slice(0, opts.maxLength)
-
-  // 如果不允许 HTML，直接转义所有标签
   if (!opts.allowHtml) {
-    result = escapeHtml(result)
+    result = escapeHtml(result);
   } else {
-    // 移除 script 标签
-    if (opts.stripScript) {
-      result = result.replace(/<script[\s\S]*?<\/script>/gi, '')
-    }
-
-    // 移除事件处理器
-    if (opts.stripEventHandlers) {
-      result = result.replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, '')
-      result = result.replace(/\s+on\w+\s*=\s*[^\s>]*/gi, '')
-    }
+    // 替换原来不安全的正则匹配，直接使用 DOMPurify（注意：此处置同步调用）
+    result = DOMPurify.sanitize(result, {
+      ALLOWED_TAGS: opts.allowedTags.length > 0 ? opts.allowedTags : undefined,
+      FORBID_ATTR: opts.forbiddenAttrs,
+      ALLOW_DATA_ATTR: false,
+    });
   }
 
-  // 移除空字节（Null Byte 注入）
-  result = result.replace(/\0/g, '')
-
-  return result.trim()
+  return result.replace(/\0/g, "").trim();
 }
 
 /**
@@ -286,30 +277,30 @@ export function sanitizeInput(input: string, options: XssFilterOptions = {}): st
  * @returns 安全的 URL 或空字符串
  */
 export function sanitizeUrl(url: string, allowRelative = false): string {
-  if (!url) return ''
+  if (!url) return "";
 
-  const trimmed = url.trim()
+  const trimmed = url.trim();
 
   // 检查协议白名单
-  const safeProtocols = DEFAULT_OPTIONS.urlProtocols
+  const safeProtocols = DEFAULT_OPTIONS.urlProtocols;
 
   try {
-    const parsed = new URL(trimmed)
+    const parsed = new URL(trimmed);
 
     // 只允许安全协议
-    if (!safeProtocols.includes(parsed.protocol.replace(':', ''))) {
-      console.warn('[XSS] 不安全的 URL 协议:', parsed.protocol)
-      return ''
+    if (!safeProtocols.includes(parsed.protocol.replace(":", ""))) {
+      console.warn("[XSS] 不安全的 URL 协议:", parsed.protocol);
+      return "";
     }
 
-    return parsed.href
+    return parsed.href;
   } catch {
     // URL 解析失败，可能是相对路径
     if (allowRelative && /^[\w\-./]+$/.test(trimmed)) {
-      return trimmed
+      return trimmed;
     }
 
-    return ''
+    return "";
   }
 }
 
@@ -322,52 +313,61 @@ export function sanitizeUrl(url: string, allowRelative = false): string {
  * 如需更强的 HTML 清理能力，可安装 dompurify：pnpm add dompurify
  */
 export async function purifyHtml(dirty: string, options?: XssFilterOptions): Promise<string> {
-  // 使用内置过滤器进行安全清理
-  return sanitizeInput(dirty, options)
+  const opts = { ...DEFAULT_OPTIONS, ...options };
+
+  // 配置 DOMPurify
+  const domPurifyConfig = {
+    ALLOWED_TAGS: opts.allowedTags.length > 0 ? opts.allowedTags : undefined, // 如果传了白名单就用，没传则默认放行安全标签
+    FORBID_ATTR: opts.forbiddenAttrs,
+    ALLOW_DATA_ATTR: false, // 防止 data-* 属性被利用
+  };
+
+  // 如果允许 HTML，则通过 DOMPurify 清理；如果不允许，则退回 HTML 转义
+  if (opts.allowHtml) {
+    return DOMPurify.sanitize(dirty, domPurifyConfig);
+  } else {
+    return escapeHtml(dirty);
+  }
 }
 
 // ==================== Vue 指令 ====================
 
 /** v-safe-html 指令的 binding value 类型 */
 interface SafeHtmlBindingValue {
-  content: string
+  content: string;
 }
 
 /** v-safe-html 指令的 binding 类型 */
 interface SafeHtmlBinding {
-  value: string | (SafeHtmlBindingValue & Partial<XssFilterOptions>)
+  value: string | (SafeHtmlBindingValue & Partial<XssFilterOptions>);
 }
 
 /** v-escape 指令的 binding 类型 */
 interface EscapeBinding {
-  value: string
-  arg?: EscapeType
+  value: string;
+  arg?: EscapeType;
 }
 
 /**
  * v-safe-html 指令 — 安全地渲染用户提供的 HTML 内容
  *
+ * 优化：
+ * 1. 默认开启 allowHtml，但使用 DOMPurify 白名单清理，防止 XSS
+ * 2. 支持传入 allowedTags 覆盖默认白名单
+ *
  * 使用方式：
  * <div v-safe-html="userContent"></div>
- * <div v-safe-html="{ content: userContent, allowHtml: true }"></div>
+ * <div v-safe-html="{ content: userContent, allowHtml: true, allowedTags: ['p', 'h3', 'table'] }"></div>
  */
 export const safeHtmlDirective = {
   mounted(el: HTMLElement, binding: SafeHtmlBinding): void {
-    const rawValue = typeof binding.value === 'string' ? binding.value : binding.value.content
-
-    const options = typeof binding.value === 'object' ? binding.value : {}
-
-    el.innerHTML = sanitizeInput(rawValue, options)
+    updateSafeHtml(el, binding);
   },
 
   updated(el: HTMLElement, binding: SafeHtmlBinding): void {
-    const rawValue = typeof binding.value === 'string' ? binding.value : binding.value.content
-
-    const options = typeof binding.value === 'object' ? binding.value : {}
-
-    el.innerHTML = sanitizeInput(rawValue, options)
+    updateSafeHtml(el, binding);
   },
-}
+};
 
 /**
  * v-escape 指令 — 自动转义文本内容
@@ -378,12 +378,65 @@ export const safeHtmlDirective = {
  */
 export const escapeDirective = {
   mounted(el: HTMLElement, binding: EscapeBinding): void {
-    const context = binding.arg || 'html'
-    el.textContent = smartEscape(binding.value, context)
+    const context = binding.arg || "html";
+    el.textContent = smartEscape(binding.value, context);
   },
 
   updated(el: HTMLElement, binding: EscapeBinding): void {
-    const context = binding.arg || 'html'
-    el.textContent = smartEscape(binding.value, context)
+    const context = binding.arg || "html";
+    el.textContent = smartEscape(binding.value, context);
   },
+};
+// 抽离公共逻辑
+function updateSafeHtml(el: HTMLElement, binding: SafeHtmlBinding) {
+  const rawValue = typeof binding.value === "string" ? binding.value : binding.value.content;
+  const options = typeof binding.value === "object" ? binding.value : {};
+
+  // 对于 v-safe-html 指令，默认允许基础的富文本标签
+  const defaultSafeTags = [
+    "p",
+    "br",
+    "b",
+    "i",
+    "strong",
+    "em",
+    "span",
+    "div",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "ul",
+    "ol",
+    "li",
+    "table",
+    "thead",
+    "tbody",
+    "tr",
+    "th",
+    "td",
+    "blockquote",
+    "pre",
+    "code",
+    "a",
+    "img",
+  ];
+
+  // 合并配置：默认允许 HTML 并注入基础白名单
+  const mergeOptions: XssFilterOptions = {
+    allowHtml: true,
+    allowedTags: defaultSafeTags,
+    ...options, // 外部传入的配置优先级更高
+  };
+
+  // 执行清理并渲染（同步执行，DOMPurify 是同步的）
+  const safeHtml = DOMPurify.sanitize(rawValue, {
+    ALLOWED_TAGS: mergeOptions.allowedTags,
+    FORBID_ATTR: mergeOptions.forbiddenAttrs || DEFAULT_OPTIONS.forbiddenAttrs,
+    ALLOW_DATA_ATTR: false,
+  });
+
+  el.innerHTML = safeHtml;
 }

@@ -7,11 +7,7 @@ import type { RouteLocationMatched } from "vue-router";
 import type { LayoutMode } from "#/app";
 import type { MenuConfig } from "#/menu";
 
-import { useAppStore } from "@/stores";
-
-
-
-
+import { useAppStore } from "~/stores";
 
 export type { LayoutMode };
 

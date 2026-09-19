@@ -1,4 +1,4 @@
-import { get, post } from "@/api/request";
+import { get, post } from "~/api/request";
 
 export interface MFASetupResult {
   qrCode: string;

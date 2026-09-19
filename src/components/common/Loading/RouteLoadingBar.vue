@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { onBeforeRouteUpdate, useRoute } from 'vue-router'
+import { computed, ref, watch } from "vue";
+import { onBeforeRouteUpdate, useRoute } from "vue-router";
 
-import { useAppStore } from '@/stores/modules/app'
-import { cn } from '@/utils/cn'
+import { useAppStore } from "~/stores/modules/app";
+import { cn } from "~/utils/cn";
 /**
  * RouteLoadingBar - 路由切换顶部进度条（增强版）
  *
@@ -15,9 +15,8 @@ import { cn } from '@/utils/cn'
  * 5. 慢加载警告（超过阈值时变色）
  */
 
-
 const props = withDefaults(defineProps<Props>(), {
-  color: '',
+  color: "",
   height: 3,
   duration: 300,
   enabled: true,
@@ -25,156 +24,156 @@ const props = withDefaults(defineProps<Props>(), {
   showPercentage: false,
   cancellable: false,
   slowThreshold: 3000,
-})
+});
 
 // 定义事件
 const emit = defineEmits<{
-  cancel: []
-  retry: []
-  slow: [duration: number]
-}>()
+  cancel: [];
+  retry: [];
+  slow: [duration: number];
+}>();
 
 defineOptions({
-  name: 'RouteLoadingBar',
-})
+  name: "RouteLoadingBar",
+});
 
 interface Props {
   /** 进度条颜色 */
-  color?: string
+  color?: string;
   /** 进度条高度 */
-  height?: number
+  height?: number;
   /** 动画速度 (ms) */
-  duration?: number
+  duration?: number;
   /** 是否启用 */
-  enabled?: boolean
+  enabled?: boolean;
   /** 是否在导航完成后短暂显示完成状态 */
-  showComplete?: boolean
+  showComplete?: boolean;
   /** 是否显示百分比文字 */
-  showPercentage?: boolean
+  showPercentage?: boolean;
   /** 是否允许用户取消加载 */
-  cancellable?: boolean
+  cancellable?: boolean;
   /** 慢加载阈值 (ms)，超过后进度条变红 */
-  slowThreshold?: number
+  slowThreshold?: number;
 }
 
-const route = useRoute()
-const appStore = useAppStore()
+const route = useRoute();
+const appStore = useAppStore();
 
 // 状态管理
-const isLoading = ref(false)
-const isComplete = ref(false)
-const isError = ref(false)
-const progress = ref(0)
+const isLoading = ref(false);
+const isComplete = ref(false);
+const isError = ref(false);
+const progress = ref(0);
 
 // 定时器引用
-let progressTimer: ReturnType<typeof setInterval> | null = null
-let completeTimer: ReturnType<typeof setTimeout> | null = null
-let slowWarningTimer: ReturnType<typeof setTimeout> | null = null
+let progressTimer: ReturnType<typeof setInterval> | null = null;
+let completeTimer: ReturnType<typeof setTimeout> | null = null;
+let slowWarningTimer: ReturnType<typeof setTimeout> | null = null;
 
 // 加载开始时间（用于计算加载时长）
-let loadStartTime = 0
+let loadStartTime = 0;
 
 // 计算主题色
 const barColor = computed(() => {
-  if (props.color) return props.color
+  if (props.color) return props.color;
 
   // 根据主题模式选择颜色
-  const isDark = appStore.themeMode === 'dark'
+  const isDark = appStore.themeMode === "dark";
 
   // 错误状态：红色
-  if (isError.value) return '#ef4444'
+  if (isError.value) return "#ef4444";
 
   // 慢加载警告：橙色
-  if (isSlow.value) return '#f59e0b'
+  if (isSlow.value) return "#f59e0b";
 
   // 正常状态：主题色
-  return isDark ? '#6366f1' : '#1677ff'
-})
+  return isDark ? "#6366f1" : "#1677ff";
+});
 
 // 是否慢加载
 const isSlow = computed(() => {
-  if (!isLoading.value || !loadStartTime) return false
+  if (!isLoading.value || !loadStartTime) return false;
 
-  const elapsed = Date.now() - loadStartTime
-  return elapsed > props.slowThreshold
-})
+  const elapsed = Date.now() - loadStartTime;
+  return elapsed > props.slowThreshold;
+});
 
 // 进度条样式类名
 const containerClassName = cn(
-  'fixed top-0 left-0 right-0 z-[9999]',
-  'transition-opacity duration-300 ease-out',
+  "fixed top-0 left-0 right-0 z-[9999]",
+  "transition-opacity duration-300 ease-out",
   // 可取消模式：允许鼠标交互
-  props.cancellable ? '' : 'pointer-events-none',
-)
+  props.cancellable ? "" : "pointer-events-none",
+);
 
 const barClassName = cn(
-  'absolute left-0 top-0 h-full transition-all',
-  isComplete.value ? 'ease-out' : 'linear',
+  "absolute left-0 top-0 h-full transition-all",
+  isComplete.value ? "ease-out" : "linear",
   // 错误状态：脉冲动画
-  isError.value && 'animate-pulse',
-)
+  isError.value && "animate-pulse",
+);
 
 // 样式对象
 const containerStyle = computed(() => ({
   opacity: isLoading.value || isComplete.value || isError.value ? 1 : 0,
   height: `${props.height}px`,
-}))
+}));
 
 const barStyle = computed(() => ({
   width: `${progress.value}%`,
   backgroundColor: barColor.value,
-  transitionDuration: isComplete.value || isError.value ? '200ms' : `${props.duration}ms`,
+  transitionDuration: isComplete.value || isError.value ? "200ms" : `${props.duration}ms`,
   boxShadow: `0 0 10px ${barColor.value}40, 0 0 5px ${barColor.value}20`,
-}))
+}));
 
 // 百分比文字位置
 const percentageStyle = computed(() => ({
-  position: 'absolute' as const,
-  right: '10px',
+  position: "absolute" as const,
+  right: "10px",
   top: `-${props.height + 8}px`,
-  fontSize: '12px',
+  fontSize: "12px",
   fontWeight: 500,
   color: barColor.value,
   opacity: isLoading.value ? 1 : 0,
-  transition: 'opacity 200ms ease',
-  pointerEvents: 'none' as const,
-}))
+  transition: "opacity 200ms ease",
+  pointerEvents: "none" as const,
+}));
 
 /**
  * 开始加载动画
  */
 function startLoading() {
-  if (!props.enabled) return
+  if (!props.enabled) return;
 
   // 清除之前的定时器
-  stopLoading()
+  stopLoading();
 
-  isLoading.value = true
-  isComplete.value = false
-  isError.value = false
-  progress.value = 0
-  loadStartTime = Date.now()
+  isLoading.value = true;
+  isComplete.value = false;
+  isError.value = false;
+  progress.value = 0;
+  loadStartTime = Date.now();
 
   // 快速跳到 10%
-  progress.value = 10
+  progress.value = 10;
 
   // 模拟渐进式加载
   progressTimer = setInterval(() => {
     if (progress.value < 90) {
-      const increment = Math.random() * (100 - progress.value) * 0.15
-      progress.value = Math.min(90, progress.value + increment)
+      const increment = Math.random() * (100 - progress.value) * 0.15;
+      progress.value = Math.min(90, progress.value + increment);
     }
-  }, props.duration)
+  }, props.duration);
 
   // 慢加载检测
   if (props.slowThreshold > 0) {
     slowWarningTimer = setTimeout(() => {
       if (isLoading.value) {
-        const duration = Date.now() - loadStartTime
-        emit('slow', duration)
-        console.warn(`[RouteLoadingBar] ⚠️ 慢加载警告: 已加载 ${duration}ms`)
+        const duration = Date.now() - loadStartTime;
+        emit("slow", duration);
+        console.warn(`[RouteLoadingBar] ⚠️ 慢加载警告: 已加载 ${duration}ms`);
       }
-    }, props.slowThreshold)
+    }, props.slowThreshold);
   }
 }
 
@@ -182,45 +181,45 @@ function startLoading() {
  * 完成加载动画
  */
 function completeLoading(error = false) {
-  if (!props.enabled || !isLoading.value) return
+  if (!props.enabled || !isLoading.value) return;
 
   // 停止渐进式动画
   if (progressTimer) {
-    clearInterval(progressTimer)
-    progressTimer = null
+    clearInterval(progressTimer);
+    progressTimer = null;
   }
 
   // 停止慢加载检测
   if (slowWarningTimer) {
-    clearTimeout(slowWarningTimer)
-    slowWarningTimer = null
+    clearTimeout(slowWarningTimer);
+    slowWarningTimer = null;
   }
 
   if (error) {
     // 错误状态
-    isError.value = true
-    progress.value = 100
+    isError.value = true;
+    progress.value = 100;
 
-    console.error('[RouteLoadingBar] ❌ 加载失败')
+    console.error("[RouteLoadingBar] ❌ 加载失败");
 
     // 3 秒后自动隐藏或等待重试
     completeTimer = setTimeout(() => {
-      reset()
-    }, 3000)
+      reset();
+    }, 3000);
   } else {
     // 成功完成
-    progress.value = 100
-    isComplete.value = true
+    progress.value = 100;
+    isComplete.value = true;
 
     // 短暂显示完成状态后隐藏
     if (props.showComplete) {
       completeTimer = setTimeout(() => {
-        reset()
-      }, 400)
+        reset();
+      }, 400);
     } else {
       setTimeout(() => {
-        reset()
-      }, 200)
+        reset();
+      }, 200);
     }
   }
 }
@@ -229,35 +228,35 @@ function completeLoading(error = false) {
  * 重置状态
  */
 function reset() {
-  isLoading.value = false
-  isComplete.value = false
-  isError.value = false
-  progress.value = 0
-  loadStartTime = 0
+  isLoading.value = false;
+  isComplete.value = false;
+  isError.value = false;
+  progress.value = 0;
+  loadStartTime = 0;
 }
 
 /**
  * 用户取消加载
  */
 function handleCancel() {
-  if (!props.cancellable || !isLoading.value) return
+  if (!props.cancellable || !isLoading.value) return;
 
-  emit('cancel')
-  stopLoading()
-  reset()
+  emit("cancel");
+  stopLoading();
+  reset();
 
-  console.log('[RouteLoadingBar] 👆 用户取消加载')
+  console.log("[RouteLoadingBar] 👆 用户取消加载");
 }
 
 /**
  * 重试加载
  */
 function handleRetry() {
-  emit('retry')
-  reset()
-  startLoading()
+  emit("retry");
+  reset();
+  startLoading();
 
-  console.log('[RouteLoadingBar] 🔄 用户触发重试')
+  console.log("[RouteLoadingBar] 🔄 用户触发重试");
 }
 
 /**
@@ -265,16 +264,16 @@ function handleRetry() {
  */
 function stopLoading() {
   if (progressTimer) {
-    clearInterval(progressTimer)
-    progressTimer = null
+    clearInterval(progressTimer);
+    progressTimer = null;
   }
   if (completeTimer) {
-    clearTimeout(completeTimer)
-    completeTimer = null
+    clearTimeout(completeTimer);
+    completeTimer = null;
   }
   if (slowWarningTimer) {
-    clearTimeout(slowWarningTimer)
-    slowWarningTimer = null
+    clearTimeout(slowWarningTimer);
+    slowWarningTimer = null;
   }
 }
 
@@ -282,22 +281,22 @@ function stopLoading() {
 watch(
   () => route.path,
   () => {
-    startLoading()
+    startLoading();
 
     // 使用 requestAnimationFrame 确保 DOM 更新后再完成
-    const minLoadTime = Math.max(300, props.duration * 2)
+    const minLoadTime = Math.max(300, props.duration * 2);
     setTimeout(() => {
-      completeLoading()
-    }, minLoadTime)
+      completeLoading();
+    }, minLoadTime);
   },
-)
+);
 
 // 路由更新前的钩子
 onBeforeRouteUpdate((to, from) => {
   if (to.path !== from.path) {
-    startLoading()
+    startLoading();
   }
-})
+});
 
 // 暴露方法供外部调用
 defineExpose({
@@ -307,7 +306,7 @@ defineExpose({
   stop: stopLoading,
   cancel: handleCancel,
   retry: handleRetry,
-})
+});
 </script>
 
 <template>
@@ -324,17 +323,14 @@ defineExpose({
     "
   >
     <!-- 主进度条 -->
-    <div :class="barClassName"
-:style="barStyle" />
+    <div :class="barClassName" :style="barStyle" />
 
     <!-- 阴影/光晕效果 -->
-    <div class="absolute inset-0 opacity-30 blur-sm"
-:style="{ backgroundColor: barColor }" />
+    <div class="absolute inset-0 opacity-30 blur-sm" :style="{ backgroundColor: barColor }" />
 
     <!-- 百分比文字 -->
     <Transition name="percentage-fade">
-      <span v-if="showPercentage && isLoading && !isComplete"
-:style="percentageStyle">
+      <span v-if="showPercentage && isLoading && !isComplete" :style="percentageStyle">
         {{ Math.round(progress) }}%
       </span>
     </Transition>
@@ -353,10 +349,7 @@ defineExpose({
           class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-white/90 dark:bg-gray-800/90 shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           @click="handleCancel"
         >
-          <svg class="w-3 h-3"
-fill="none"
-stroke="currentColor"
-viewBox="0 0 24 24">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -376,10 +369,7 @@ viewBox="0 0 24 24">
             class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
             @click="handleRetry"
           >
-            <svg class="w-3 h-3"
-fill="none"
-stroke="currentColor"
-viewBox="0 0 24 24">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"

@@ -48,7 +48,7 @@ export function useChunkUpload(options: ChunkUploadOptions = {}) {
 
   function getWorker(): Worker {
     if (!worker.value) {
-      const url = workerUrl || new URL("@/workers/upload.worker.ts", import.meta.url).href;
+      const url = workerUrl || new URL("~/workers/upload.worker.ts", import.meta.url).href;
       worker.value = new Worker(url, { type: "module" });
       // ⭐ 只在创建时挂一次，整个生命周期内不变
       worker.value.addEventListener("message", handleWorkerMessage);

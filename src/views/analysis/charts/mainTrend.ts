@@ -1,4 +1,3 @@
-
 import * as echarts from "echarts";
 
 import { PALETTE } from "../constants";
@@ -14,7 +13,7 @@ import {
 
 import type { ActivityTrendData } from "../types";
 
-import { getActivityTrend } from "@/api";
+import { getActivityTrend } from "~/api";
 
 /** 系统活动趋势（主图） */
 export async function initMainTrend(el: HTMLElement, isDark: boolean, range: string) {

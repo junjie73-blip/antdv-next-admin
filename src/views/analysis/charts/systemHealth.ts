@@ -1,10 +1,9 @@
-
 import * as echarts from "echarts";
 
 import { PALETTE } from "../constants";
 import { baseOption, echartsTheme, subTextColor, textColor } from "../theme";
 
-import { getSystemHealth } from "@/api";
+import { getSystemHealth } from "~/api";
 
 /** 系统健康度仪表盘 */
 export async function initSystemHealth(el: HTMLElement, isDark: boolean) {

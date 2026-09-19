@@ -1,12 +1,11 @@
-
 import { h } from "vue";
 
 import { TENANT_STATUS_OPTIONS } from "./constants";
 
-import type { DescriptionItem } from "@/components/business/Description";
-import type { FormSchema } from "@/components/business/Form";
+import type { DescriptionItem } from "~/components/business/Description";
+import type { FormSchema } from "~/components/business/Form";
 
-import { DictType } from "@/enums/dict";
+import { DictType } from "~/enums/dict";
 
 /** 搜索表单 schema */
 export const tenantSearchSchemas: FormSchema[] = [

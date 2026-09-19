@@ -1,6 +1,6 @@
 import type { ConfigRecord } from "./types";
 
-import type { BasicColumn } from "@/components/business/Table";
+import type { BasicColumn } from "~/components/business/Table";
 
 /** 配置表格列 */
 export const configColumns: BasicColumn[] = [

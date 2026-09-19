@@ -11,13 +11,13 @@ import { useBreadcrumb } from "../composables/useLayout";
 
 import type { BreadcrumbProps, MenuProps } from "antdv-next";
 
-import { getNoticeUnreadCount } from "@/api";
-import { useAppStore } from "@/stores/modules/app";
-import { useRouteStore } from "@/stores/modules/route";
-import { useUserStore } from "@/stores/modules/user";
-import { eventBus, http } from "@/utils";
-import { cn } from "@/utils/cn";
-import { noticeTypeConfig, type NotificationItem, useWebSocket, WS_EVENTS } from "@/utils/ws";
+import { getNoticeUnreadCount } from "~/api";
+import { useAppStore } from "~/stores/modules/app";
+import { useRouteStore } from "~/stores/modules/route";
+import { useUserStore } from "~/stores/modules/user";
+import { eventBus, http } from "~/utils";
+import { cn } from "~/utils/cn";
+import { noticeTypeConfig, type NotificationItem, useWebSocket, WS_EVENTS } from "~/utils/ws";
 
 defineProps<{
   collapsed?: boolean;

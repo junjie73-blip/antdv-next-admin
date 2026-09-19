@@ -1,4 +1,3 @@
-
 import { useTimeoutFn } from "@vueuse/core";
 import { message } from "antdv-next";
 import { cloneDeep, isFunction, isPlainObject } from "es-toolkit";
@@ -12,8 +11,7 @@ import type {
   UseDataSourceReturn,
 } from "../types";
 
-import { isAlovaMethod, resolveErrorMessage, unwrap } from "@/composables/useRequest";
-
+import { isAlovaMethod, resolveErrorMessage, unwrap } from "~/composables/useRequest";
 
 // ⭐ 复用 useAppRequest 里的工具
 

@@ -2,7 +2,7 @@
  * 系统模块 API 汇总
  *
  * 用法：
- *   import { getUserList, getRoleList } from "@/api/system";
+ *   import { getUserList, getRoleList } from "~/api/system";
  *
  * 分域文件：
  *   user / role / dept / menu / dict / notice / permission
@@ -28,5 +28,6 @@ export * from "./dashboard";
 export * from "./workbench";
 export * from "./todo";
 export * from "./auth";
+export * from "./cache";
 export * from "./notice-channel";
 export * from "./todo-group";

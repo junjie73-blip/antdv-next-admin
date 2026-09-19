@@ -1,4 +1,4 @@
-import type { BasicColumn } from "@/components/business/Table";
+import type { BasicColumn } from "~/components/business/Table";
 
 /** 按钮权限表格列 */
 export const permissionColumns: BasicColumn[] = [

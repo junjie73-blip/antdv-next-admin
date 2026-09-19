@@ -1,11 +1,10 @@
 <script setup lang="ts">
-
 import { onMounted, ref } from "vue";
 
 import type { TreeSelectProps } from "antdv-next";
 import type { DataNode } from "antdv-next/dist/tree/index";
 
-import { http } from "@/utils";
+import { http } from "~/utils";
 interface Props extends /* @vue-ignore */ TreeSelectProps {
   api: string;
 }
@@ -26,8 +25,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <a-tree-select v-bind="props"
-:tree-data />
+  <a-tree-select v-bind="props" :tree-data />
 </template>
 
 <style scoped></style>

@@ -1,6 +1,6 @@
 import type { ConfigRecord } from "./types";
 
-import type { ActionItem } from "@/components/business/Table";
+import type { ActionItem } from "~/components/business/Table";
 
 /** 配置行操作上下文 */
 export interface ConfigActionContext {

@@ -14,14 +14,24 @@ import { formatSize, getFileColor, getFileIcon } from "./utils";
 
 import type { FileCategory, FileRecord } from "./types";
 
-import { deleteFile, getFileList } from "@/api";
-import { type ActionItem, BasicTable, TableAction, useTable } from "@/components/business/Table";
-import { ChunkUpload, type ChunkUploadTask, Upload } from "@/components/common/Upload";
-import { useUserStore } from "@/stores/modules/user";
+import { deleteFile, downloadFile, getFileList, previewFile } from "~/api";
+import { type ActionItem, BasicTable, TableAction, useTable } from "~/components/business/Table";
+import PreviewDialog from "~/components/common/PreviewDialog.vue";
+import { ChunkUpload, type ChunkUploadTask, Upload } from "~/components/common/Upload";
+import { useUserStore } from "~/stores/modules/user";
 defineOptions({ name: "SystemFile" });
 const chunkRef = ref<InstanceType<typeof ChunkUpload> | null>(null);
 const chunkDrawerOpen = ref(false);
 const taskModalOpen = ref(false);
+const previewVisible = ref(false);
+const current = ref({
+  fileId: "",
+  url: "",
+  fileName: "",
+  mimeType: "",
+  category: "",
+});
+
 // ============================================================
 // 分类
 // ============================================================
@@ -60,15 +70,28 @@ watch(currentCategory, () => {
   }
 });
 const contentFunc: FileActionContext = {
-  onPreview(record) {},
+  async onPreview(record) {
+    current.value = {
+      fileId: record.fileId,
+      url: record.url, // ⬅️ 数据库里的原始 COS URL，作为兜底
+      fileName: record.filename,
+      mimeType: record.mimeType!,
+      category: record.category!,
+    };
+    previewVisible.value = true;
+  },
   onDelete(record) {
     deleteFile(record.url).then(() => {
       message.success("删除成功");
       tableMethods.value?.reload();
     });
   },
-  onDownload(record) {
-    window.open(record.url, "_blank");
+  async onDownload(record) {
+    const res: any = await downloadFile({
+      url: record.url,
+      fileId: record.fileId,
+    });
+    res.data.url && window.open(res.data.url, "_blank");
   },
 };
 function openChunkDrawer() {
@@ -203,5 +226,13 @@ function handleTasksCanceled(_taskIds: string[]) {
       />
     </a-drawer>
     <UploadTaskModal v-model:open="taskModalOpen" @canceled="handleTasksCanceled" />
+    <PreviewDialog
+      v-model="previewVisible"
+      :file-id="current.fileId"
+      :url="current.url"
+      :file-name="current.fileName"
+      :mime-type="current.mimeType"
+      :category="current.category"
+    />
   </div>
 </template>

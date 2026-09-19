@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { Icon } from "@iconify/vue";
 import { message } from "antdv-next";
 import dayjs from "dayjs";
@@ -30,16 +29,14 @@ import {
   saveNotice,
   sendNotice,
   updateNotice,
-} from "@/api";
+} from "~/api";
 
-import { BasicForm, useForm } from "@/components/business/Form";
-import { BasicModal, useModal } from "@/components/business/Modal";
-import { BasicTable, useTable } from "@/components/business/Table";
-import { useCRUD } from "@/composables/useCRUD";
+import { BasicForm, useForm } from "~/components/business/Form";
+import { BasicModal, useModal } from "~/components/business/Modal";
+import { BasicTable, useTable } from "~/components/business/Table";
+import { useCRUD } from "~/composables/useCRUD";
 
 // 抽离的模块
-
-
 
 defineOptions({ name: "SystemNotice" });
 
@@ -145,8 +142,7 @@ loadUserOptions();
 
 <template>
   <div :class="containerClassName">
-    <a-card :class="cardClassName"
-:bordered="false">
+    <a-card :class="cardClassName" :bordered="false">
       <div class="p-4">
         <BasicTable
           :columns="noticeColumns"
@@ -160,8 +156,7 @@ loadUserOptions();
           @register="tableRegister"
         >
           <template #toolbar>
-            <a-button type="primary"
-@click="handleAdd()">
+            <a-button type="primary" @click="handleAdd()">
               <template #icon><Icon icon="ant-design:plus-outlined" /></template>
               新增通知
             </a-button>

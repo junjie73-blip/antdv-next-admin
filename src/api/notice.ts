@@ -1,8 +1,8 @@
 import { del, get, post, put } from "./request";
 
-import type { FetchParams } from "@/components/business/Table";
+import type { FetchParams } from "~/components/business/Table";
 
-import { http } from "@/utils";
+import { http } from "~/utils";
 
 // ============================================================
 // 通知公告

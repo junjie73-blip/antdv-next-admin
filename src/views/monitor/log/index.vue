@@ -1,6 +1,4 @@
 <script setup lang="ts">
-
-
 // 抽离的模块
 import { Icon } from "@iconify/vue";
 import { message } from "antdv-next";
@@ -26,10 +24,10 @@ import { actionClassName, btnClassName, cardClassName, containerClassName } from
 
 import type { AuditLogRecord } from "./types";
 
-import { exportAuditLog, getAuditLogList } from "@/api";
-import { Description } from "@/components/business/Description";
-import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
-import { BasicTable, useTable } from "@/components/business/Table";
+import { exportAuditLog, getAuditLogList } from "~/api";
+import { Description } from "~/components/business/Description";
+import { BasicDrawer, useDrawer } from "~/components/business/Drawer";
+import { BasicTable, useTable } from "~/components/business/Table";
 
 defineOptions({ name: "SystemAuditLog" });
 
@@ -133,10 +131,7 @@ async function handleExport() {
     </div>
 
     <!-- 日志详情抽屉 -->
-    <BasicDrawer title="日志详情"
-:width="921"
-:show-footer="false"
-@register="drawerRegister">
+    <BasicDrawer title="日志详情" :width="921" :show-footer="false" @register="drawerRegister">
       <Description
         v-if="viewingRecord"
         :colon="false"

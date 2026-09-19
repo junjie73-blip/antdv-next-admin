@@ -1,5 +1,5 @@
 // src/utils/dict.ts
-import { useDictStore } from "@/stores";
+import { useDictStore } from "~/stores";
 
 /**
  * 根据字典类型和值获取 label

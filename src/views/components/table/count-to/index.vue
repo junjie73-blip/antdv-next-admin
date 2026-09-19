@@ -1,137 +1,136 @@
 <script setup lang="ts">
+import { ref } from "vue";
 
-import { ref } from 'vue'
-
-import { CountTo } from '@/components/business/CountTo'
-import { cn } from '@/utils/cn'
+import { CountTo } from "~/components/business/CountTo";
+import { cn } from "~/utils/cn";
 
 // 容器类名
-const containerClassName = cn('space-y-6')
+const containerClassName = cn("space-y-6");
 
 // 页面标题区域
-const pageHeaderClassName = cn('mb-2')
-const pageTitleClassName = cn('text-2xl font-bold text-gray-800 dark:text-gray-100')
-const pageDescClassName = cn('text-gray-500 dark:text-gray-400 mt-1')
+const pageHeaderClassName = cn("mb-2");
+const pageTitleClassName = cn("text-2xl font-bold text-gray-800 dark:text-gray-100");
+const pageDescClassName = cn("text-gray-500 dark:text-gray-400 mt-1");
 
 // 卡片 extra 提示文字
-const cardExtraClassName = cn('text-sm text-gray-400')
+const cardExtraClassName = cn("text-sm text-gray-400");
 
 // 基础用法 - 数字展示区域
 const numberCardClassName = cn(
-  'flex flex-col items-center p-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg',
-)
-const numberLabelClassName = cn('text-sm text-gray-500 mb-2')
-const numberValueClassName = cn('text-3xl font-bold')
+  "flex flex-col items-center p-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg",
+);
+const numberLabelClassName = cn("text-sm text-gray-500 mb-2");
+const numberValueClassName = cn("text-3xl font-bold");
 
 // 小数精度展示
-const decimalGridClassName = cn('grid grid-cols-1 md:grid-cols-4 gap-6')
+const decimalGridClassName = cn("grid grid-cols-1 md:grid-cols-4 gap-6");
 
 // 前缀后缀 - 渐变背景卡片
 function prefixCardClassName(color: string) {
-  return cn('flex flex-col items-center p-6 rounded-lg border', color)
+  return cn("flex flex-col items-center p-6 rounded-lg border", color);
 }
 
 // 分隔符展示
-const separatorGridClassName = cn('grid grid-cols-1 md:grid-cols-3 gap-6')
+const separatorGridClassName = cn("grid grid-cols-1 md:grid-cols-3 gap-6");
 
 // 正负数展示
 function signCardClassName(color: string) {
-  return cn('flex flex-col items-center p-6 rounded-lg border', color)
+  return cn("flex flex-col items-center p-6 rounded-lg border", color);
 }
-const signLabelClassName = cn('text-sm text-gray-500 mb-2')
-const signChangeClassName = cn('text-xs mt-1')
+const signLabelClassName = cn("text-sm text-gray-500 mb-2");
+const signChangeClassName = cn("text-xs mt-1");
 
 // 缓动函数对比
-const easingContainerClassName = cn('space-y-6')
-const easingCardClassName = cn('p-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg')
-const easingHeaderClassName = cn('flex justify-between items-center mb-3')
-const easingNameClassName = cn('font-medium text-gray-700 dark:text-gray-300')
-const easingDescClassName = cn('text-sm text-gray-400')
-const easingDisplayClassName = cn('h-16 flex items-center bg-white dark:bg-gray-900 rounded p-2')
-const easingValueClassName = cn('text-xl font-mono font-bold w-full text-center')
+const easingContainerClassName = cn("space-y-6");
+const easingCardClassName = cn("p-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg");
+const easingHeaderClassName = cn("flex justify-between items-center mb-3");
+const easingNameClassName = cn("font-medium text-gray-700 dark:text-gray-300");
+const easingDescClassName = cn("text-sm text-gray-400");
+const easingDisplayClassName = cn("h-16 flex items-center bg-white dark:bg-gray-900 rounded p-2");
+const easingValueClassName = cn("text-xl font-mono font-bold w-full text-center");
 
 // 数据看板面板
 interface DashboardItem {
-  title: string
-  value: number
-  prefix: string
-  suffix: string
-  icon: string
-  bgColor: string
-  textColor: string
+  title: string;
+  value: number;
+  prefix: string;
+  suffix: string;
+  icon: string;
+  bgColor: string;
+  textColor: string;
 }
 
 const dashboardData: DashboardItem[] = [
   {
-    title: '总用户数',
+    title: "总用户数",
     value: 892156,
-    prefix: '',
-    suffix: '人',
-    icon: '👥',
-    bgColor: 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30',
-    textColor: 'text-blue-600',
+    prefix: "",
+    suffix: "人",
+    icon: "👥",
+    bgColor: "bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30",
+    textColor: "text-blue-600",
   },
   {
-    title: '日活跃',
+    title: "日活跃",
     value: 128456,
-    prefix: '',
-    suffix: '',
-    icon: '📈',
+    prefix: "",
+    suffix: "",
+    icon: "📈",
     bgColor:
-      'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30',
-    textColor: 'text-green-600',
+      "bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30",
+    textColor: "text-green-600",
   },
   {
-    title: '总收入',
+    title: "总收入",
     value: 998888,
-    prefix: '¥',
-    suffix: '',
-    icon: '💰',
+    prefix: "¥",
+    suffix: "",
+    icon: "💰",
     bgColor:
-      'bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/30 dark:to-yellow-800/30',
-    textColor: 'text-yellow-600',
+      "bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/30 dark:to-yellow-800/30",
+    textColor: "text-yellow-600",
   },
   {
-    title: '转化率',
+    title: "转化率",
     value: 68.88,
-    prefix: '',
-    suffix: '%',
-    icon: '🎯',
+    prefix: "",
+    suffix: "%",
+    icon: "🎯",
     bgColor:
-      'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30',
-    textColor: 'text-purple-600',
+      "bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30",
+    textColor: "text-purple-600",
   },
-]
+];
 
-const dashboardGridClassName = cn('grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6')
+const dashboardGridClassName = cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6");
 function dashboardCardClassName(bgColor: string) {
-  return cn('rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow', bgColor)
+  return cn("rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow", bgColor);
 }
-const dashboardTitleClassName = cn('text-sm font-medium')
-const dashboardValueClassName = cn('text-3xl font-bold')
-const dashboardTrendClassName = cn('flex items-center gap-1 text-sm')
-const trendTextClassName = cn('ml-1 text-gray-400')
+const dashboardTitleClassName = cn("text-sm font-medium");
+const dashboardValueClassName = cn("text-3xl font-bold");
+const dashboardTrendClassName = cn("flex items-center gap-1 text-sm");
+const trendTextClassName = cn("ml-1 text-gray-400");
 
 // 动态更新演示
-const dynamicEndVal = ref(2024)
-const countToRef = ref()
+const dynamicEndVal = ref(2024);
+const countToRef = ref();
 
 const dynamicContainerClassName = cn(
-  'p-8 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20 rounded-lg text-center',
-)
-const dynamicLabelClassName = cn('text-sm text-gray-500 block mb-2')
+  "p-8 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20 rounded-lg text-center",
+);
+const dynamicLabelClassName = cn("text-sm text-gray-500 block mb-2");
 const dynamicValueClassName = cn(
-  'text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent',
-)
-const buttonGroupClassName = cn('flex gap-4 justify-center')
-const dynamicTipClassName = cn('text-sm text-gray-400 mt-4')
+  "text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent",
+);
+const buttonGroupClassName = cn("flex gap-4 justify-center");
+const dynamicTipClassName = cn("text-sm text-gray-400 mt-4");
 
 /**
  * 更新动态目标值并重新播放动画
  */
 function updateDynamicValue() {
   // 生成随机数值：1000 ~ 9999
-  dynamicEndVal.value = Math.floor(Math.random() * 9000) + 1000
+  dynamicEndVal.value = Math.floor(Math.random() * 9000) + 1000;
 }
 
 /**
@@ -139,10 +138,10 @@ function updateDynamicValue() {
  */
 function resetDynamicCounter() {
   if (countToRef.value) {
-    countToRef.value.reset()
+    countToRef.value.reset();
     setTimeout(() => {
-      countToRef.value.start()
-    }, 100)
+      countToRef.value.start();
+    }, 100);
   }
 }
 </script>
@@ -156,8 +155,7 @@ function resetDynamicCounter() {
     </div>
 
     <!-- 1. 基础用法 -->
-    <a-card title="基础用法"
-variant="borderless">
+    <a-card title="基础用法" variant="borderless">
       <template #extra>
         <span :class="cardExtraClassName">从 0 到目标数字的动画</span>
       </template>
@@ -173,8 +171,7 @@ variant="borderless">
     </a-card>
 
     <!-- 2. 小数精度 -->
-    <a-card title="小数精度"
-variant="borderless">
+    <a-card title="小数精度" variant="borderless">
       <template #extra>
         <span :class="cardExtraClassName">配置 decimals 控制小数位数</span>
       </template>
@@ -220,8 +217,7 @@ variant="borderless">
     </a-card>
 
     <!-- 3. 前缀后缀 -->
-    <a-card title="前缀后缀"
-variant="borderless">
+    <a-card title="前缀后缀" variant="borderless">
       <template #extra>
         <span :class="cardExtraClassName">添加 ¥、%、人 等单位符号</span>
       </template>
@@ -293,8 +289,7 @@ variant="borderless">
     </a-card>
 
     <!-- 4. 分隔符 -->
-    <a-card title="千分位分隔符"
-variant="borderless">
+    <a-card title="千分位分隔符" variant="borderless">
       <template #extra>
         <span :class="cardExtraClassName">大数字使用逗号分隔，更易读</span>
       </template>
@@ -330,8 +325,7 @@ variant="borderless">
     </a-card>
 
     <!-- 5. 正负数 -->
-    <a-card title="正负数展示"
-variant="borderless">
+    <a-card title="正负数展示" variant="borderless">
       <template #extra>
         <span :class="cardExtraClassName">支持正数和负数的动画效果</span>
       </template>
@@ -396,8 +390,7 @@ variant="borderless">
     </a-card>
 
     <!-- 6. 缓动函数 -->
-    <a-card title="缓动函数对比"
-variant="borderless">
+    <a-card title="缓动函数对比" variant="borderless">
       <template #extra>
         <span :class="cardExtraClassName">不同缓动效果让动画更有节奏感</span>
       </template>
@@ -476,8 +469,7 @@ variant="borderless">
     </a-card>
 
     <!-- 7. 数据看板面板 -->
-    <a-card title="数据看板面板"
-variant="borderless">
+    <a-card title="数据看板面板" variant="borderless">
       <template #extra>
         <span :class="cardExtraClassName">模拟真实业务场景的数据展示</span>
       </template>
@@ -507,10 +499,10 @@ variant="borderless">
           </div>
           <div :class="dashboardTrendClassName">
             <span :class="index % 2 === 0 ? 'text-green-500' : 'text-red-500'">
-              {{ index % 2 === 0 ? '↑' : '↓' }}
+              {{ index % 2 === 0 ? "↑" : "↓" }}
             </span>
             <span :class="index % 2 === 0 ? 'text-green-500' : 'text-red-500'">
-              {{ index % 2 === 0 ? '+' : '-' }}{{ Math.floor(Math.random() * 20 + 5) }}%
+              {{ index % 2 === 0 ? "+" : "-" }}{{ Math.floor(Math.random() * 20 + 5) }}%
             </span>
             <span :class="trendTextClassName">较上月</span>
           </div>
@@ -519,8 +511,7 @@ variant="borderless">
     </a-card>
 
     <!-- 8. 动态更新 -->
-    <a-card title="动态更新目标值"
-variant="borderless">
+    <a-card title="动态更新目标值" variant="borderless">
       <template #extra>
         <span :class="cardExtraClassName">点击按钮改变目标值，动画自动重播</span>
       </template>
@@ -537,13 +528,10 @@ variant="borderless">
           />
         </div>
         <div :class="buttonGroupClassName">
-          <a-button type="primary"
-size="large"
-@click="updateDynamicValue">
+          <a-button type="primary" size="large" @click="updateDynamicValue">
             🎲 随机生成新数值
           </a-button>
-          <a-button size="large"
-@click="resetDynamicCounter"> 🔄 重播动画 </a-button>
+          <a-button size="large" @click="resetDynamicCounter"> 🔄 重播动画 </a-button>
         </div>
         <p :class="dynamicTipClassName">
           点击「随机生成」会改变目标值，CountTo 会检测到 endVal 变化并自动重新播放动画

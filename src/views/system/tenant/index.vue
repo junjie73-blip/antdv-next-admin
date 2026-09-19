@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { Icon } from "@iconify/vue";
 import { message, Modal } from "antdv-next";
 import dayjs from "dayjs";
@@ -32,18 +31,15 @@ import {
 
 import type { TenantRecord } from "./types";
 
-import { batchDeleteTenant, createTenant, deleteTenant, getTenantList, updateTenant } from "@/api";
-import { Description } from "@/components/business/Description";
-import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
-import { BasicForm, useForm } from "@/components/business/Form";
-import { BasicModal, useModal } from "@/components/business/Modal";
-import { type ActionItem, BasicTable, TableAction, useTable } from "@/components/business/Table";
-import { useCRUD } from "@/composables/useCRUD";
+import { batchDeleteTenant, createTenant, deleteTenant, getTenantList, updateTenant } from "~/api";
+import { Description } from "~/components/business/Description";
+import { BasicDrawer, useDrawer } from "~/components/business/Drawer";
+import { BasicForm, useForm } from "~/components/business/Form";
+import { BasicModal, useModal } from "~/components/business/Modal";
+import { type ActionItem, BasicTable, TableAction, useTable } from "~/components/business/Table";
+import { useCRUD } from "~/composables/useCRUD";
 
 // 抽离的模块
-
-
-
 
 defineOptions({ name: "SystemTenant" });
 
@@ -147,8 +143,7 @@ function getActions(record: TenantRecord): ActionItem[] {
 
 <template>
   <div :class="containerClassName">
-    <a-card title="租户管理"
-:class="cardClassName">
+    <a-card title="租户管理" :class="cardClassName">
       <BasicTable
         :columns="tenantColumns"
         :api="getTenantList"
@@ -164,13 +159,11 @@ function getActions(record: TenantRecord): ActionItem[] {
         @register="tableRegister"
       >
         <template #toolbar>
-          <a-button type="primary"
-@click="handleAdd()">
+          <a-button type="primary" @click="handleAdd()">
             <template #icon><Icon icon="ant-design:plus-outlined" /></template>
             新增租户
           </a-button>
-          <a-button danger
-@click="handleBatchDelete()">
+          <a-button danger @click="handleBatchDelete()">
             <template #icon><Icon icon="ant-design:delete-outlined" /></template>
             批量删除
           </a-button>

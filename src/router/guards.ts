@@ -1,15 +1,13 @@
-
 import NProgress from "nprogress";
 
 import { catchAllRoute } from "./routes";
 
 import type { Router } from "vue-router";
 
-import { useAppStore } from "@/stores/modules/app";
-import { useDictStore } from "@/stores/modules/dict";
-import { useRouteStore } from "@/stores/modules/route";
-import { useUserStore } from "@/stores/modules/user";
-
+import { useAppStore } from "~/stores/modules/app";
+import { useDictStore } from "~/stores/modules/dict";
+import { useRouteStore } from "~/stores/modules/route";
+import { useUserStore } from "~/stores/modules/user";
 
 const WHITE_LIST = ["/login", "/register", "/404", "/403", "/503"];
 

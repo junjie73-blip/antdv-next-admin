@@ -10,9 +10,9 @@ import { useLoginStyles } from "../login/composables/useLoginStyles";
 import type { FormInstance } from "antdv-next";
 import type { Rule } from "antdv-next/dist/form/types";
 
-import logoIconUrl from "@/assets/images/logo.png";
-import { useAppStore } from "@/stores";
-import { http } from "@/utils";
+import logoIconUrl from "~/assets/images/logo.png";
+import { useAppStore } from "~/stores";
+import { http } from "~/utils";
 
 defineOptions({ name: "Register" });
 

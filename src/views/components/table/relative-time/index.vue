@@ -1,101 +1,99 @@
 <script setup lang="ts">
+import { ref } from "vue";
 
-import { ref } from 'vue'
+import type { BasicColumn } from "~/components/business/Table";
 
-import type { BasicColumn } from '@/components/business/Table'
+import { BasicTable, useTable } from "~/components/business/Table";
+import { cn } from "~/utils/cn";
 
-import { BasicTable, useTable } from '@/components/business/Table'
-import { cn } from '@/utils/cn'
-
-const containerClassName = cn('space-y-6')
+const containerClassName = cn("space-y-6");
 
 const timelineData = ref([
   {
     id: 1,
-    title: '发布新文章',
-    event: '发布新文章',
-    time: '2024-01-15T10:30:00Z',
-    author: '张三',
-    category: '技术分享',
-    status: 'published',
+    title: "发布新文章",
+    event: "发布新文章",
+    time: "2024-01-15T10:30:00Z",
+    author: "张三",
+    category: "技术分享",
+    status: "published",
   },
   {
     id: 2,
-    title: '代码审查完成',
-    event: '代码审查完成',
-    time: '2024-01-14T16:45:00Z',
-    author: '李四',
-    category: '开发工作',
-    status: 'completed',
+    title: "代码审查完成",
+    event: "代码审查完成",
+    time: "2024-01-14T16:45:00Z",
+    author: "李四",
+    category: "开发工作",
+    status: "completed",
   },
   {
     id: 3,
-    title: '项目启动会议',
-    event: '项目启动会议',
-    time: '2024-01-13T09:00:00Z',
-    author: '王五',
-    category: '项目管理',
-    status: 'pending',
+    title: "项目启动会议",
+    event: "项目启动会议",
+    time: "2024-01-13T09:00:00Z",
+    author: "王五",
+    category: "项目管理",
+    status: "pending",
   },
   {
     id: 4,
-    title: 'Bug 修复',
-    event: 'Bug 修复',
-    time: '2024-01-12T14:20:00Z',
-    author: '赵六',
-    category: '问题追踪',
-    status: 'resolved',
+    title: "Bug 修复",
+    event: "Bug 修复",
+    time: "2024-01-12T14:20:00Z",
+    author: "赵六",
+    category: "问题追踪",
+    status: "resolved",
   },
   {
     id: 5,
-    title: '需求评审',
-    event: '需求评审',
-    time: '2024-01-11T11:15:00Z',
-    author: '钱七',
-    category: '产品规划',
-    status: 'reviewing',
+    title: "需求评审",
+    event: "需求评审",
+    time: "2024-01-11T11:15:00Z",
+    author: "钱七",
+    category: "产品规划",
+    status: "reviewing",
   },
-])
+]);
 
 function getDotClassName(status: string) {
-  return cn('w-3', 'h-3', 'rounded-full', 'mt-1.5', {
-    'bg-green-500': status === 'published' || status === 'completed' || status === 'resolved',
-    'bg-blue-500': status === 'pending' || status === 'reviewing',
-  })
+  return cn("w-3", "h-3", "rounded-full", "mt-1.5", {
+    "bg-green-500": status === "published" || status === "completed" || status === "resolved",
+    "bg-blue-500": status === "pending" || status === "reviewing",
+  });
 }
 
-const eventTitleClassName = cn('font-medium')
-const eventTimeClassName = cn('text-gray-500', 'text-sm')
+const eventTitleClassName = cn("font-medium");
+const eventTimeClassName = cn("text-gray-500", "text-sm");
 
 const tableColumns: BasicColumn[] = [
-  { title: '事件', dataIndex: 'event', key: 'event' },
-  { title: '作者', dataIndex: 'author', key: 'author', width: 80 },
-  { title: '分类', dataIndex: 'category', key: 'category', width: 100 },
-  { title: '状态', dataIndex: 'status', key: 'status', width: 100 },
-  { title: '时间', dataIndex: 'time', key: 'time', width: 180 },
-]
+  { title: "事件", dataIndex: "event", key: "event" },
+  { title: "作者", dataIndex: "author", key: "author", width: 80 },
+  { title: "分类", dataIndex: "category", key: "category", width: 100 },
+  { title: "状态", dataIndex: "status", key: "status", width: 100 },
+  { title: "时间", dataIndex: "time", key: "time", width: 180 },
+];
 
 const statusColorMap: Record<string, string> = {
-  published: 'success',
-  completed: 'success',
-  resolved: 'success',
-  pending: 'processing',
-  reviewing: 'warning',
-}
+  published: "success",
+  completed: "success",
+  resolved: "success",
+  pending: "processing",
+  reviewing: "warning",
+};
 
 const [registerRelative] = useTable({
   columns: tableColumns,
   dataSource: timelineData.value,
-  rowKey: 'id',
-})
+  rowKey: "id",
+});
 </script>
 
 <template>
   <div :class="containerClassName">
     <a-card title="基础用法">
       <a-timeline>
-        <a-timeline-item v-for="item in timelineData"
-:key="item.id">
+        <a-timeline-item v-for="item in timelineData" :key="item.id">
           <template #dot>
             <div :class="getDotClassName(item.status)" />
           </template>
@@ -143,7 +141,7 @@ const [registerRelative] = useTable({
           </a-tag>
         </template>
         <template #cell-time="{ record }">
-          <span>{{ record?.time ? new Date(record.time).toLocaleString('zh-CN') : '-' }}</span>
+          <span>{{ record?.time ? new Date(record.time).toLocaleString("zh-CN") : "-" }}</span>
         </template>
       </BasicTable>
     </a-card>

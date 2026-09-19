@@ -4,9 +4,9 @@ import type {
   GenTableListParams,
   GenTableUpdateParams,
   TemplateKey,
-} from "@/views/tool/code/types";
+} from "~/views/tool/code/types";
 
-import { http } from "@/utils";
+import { http } from "~/utils";
 
 /** 列表 */
 export function getGenTableList(params: GenTableListParams) {

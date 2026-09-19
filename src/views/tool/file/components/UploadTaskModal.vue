@@ -11,7 +11,7 @@ import {
   type UploadTaskItem,
   type UploadTaskListParams,
   type UploadTaskStatus,
-} from "@/api";
+} from "~/api";
 
 import {
   type ActionItem,
@@ -19,7 +19,7 @@ import {
   BasicTable,
   TableAction,
   useTable,
-} from "@/components/business/Table";
+} from "~/components/business/Table";
 
 defineOptions({ name: "UploadTaskModal" });
 

@@ -1,6 +1,6 @@
 import type { PermissionScope, ResourceType } from "./types";
 
-import { cn } from "@/utils/cn";
+import { cn } from "~/utils/cn";
 
 // ========== 样式类名 ==========
 export const containerClassName = cn("space-y-4");

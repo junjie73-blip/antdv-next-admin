@@ -23,8 +23,8 @@ import type {
   TableRowSelection,
 } from "./types";
 
-import { BasicForm } from "@/components/business/Form";
-import { cn } from "@/utils/cn";
+import { BasicForm } from "~/components/business/Form";
+import { cn } from "~/utils/cn";
 
 // ============================================
 // Props & Emits

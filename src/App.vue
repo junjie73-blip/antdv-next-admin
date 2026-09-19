@@ -9,9 +9,9 @@ import "dayjs/locale/en";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { computed, shallowRef, watch, watchEffect } from "vue";
 
-import ReloadPrompt from "@/components/layout/ReloadPrompt.vue";
-import { getThemeConfig } from "@/settings";
-import { useAppStore } from "@/stores/modules/app";
+import ReloadPrompt from "~/components/layout/ReloadPrompt.vue";
+import { getThemeConfig } from "~/settings";
+import { useAppStore } from "~/stores/modules/app";
 
 dayjs.extend(relativeTime);
 const mode = import.meta.env.MODE;

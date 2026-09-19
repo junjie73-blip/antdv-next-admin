@@ -1,46 +1,44 @@
 <script setup lang="ts">
+import { computed, onActivated, onMounted, onUnmounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 
+import type { MicroAppConfig } from "#/menu";
 
-import { computed, onActivated, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
-
-import type { MicroAppConfig } from '#/menu'
-
-import { useUserStore } from '@/stores/modules/user'
-import { cn } from '@/utils/cn'
+import { useUserStore } from "~/stores/modules/user";
+import { cn } from "~/utils/cn";
 
 interface Props {
-  className?: string
+  className?: string;
 }
 
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 
-const route = useRoute()
-const userStore = useUserStore()
+const route = useRoute();
+const userStore = useUserStore();
 
-const microAppRef = ref<HTMLElement | null>(null)
-const isLoading = ref(true)
-const hasError = ref(false)
+const microAppRef = ref<HTMLElement | null>(null);
+const isLoading = ref(true);
+const hasError = ref(false);
 
 const microAppConfig = computed<MicroAppConfig | undefined>(() => {
-  const meta = route.meta as any
-  return meta?.microApp as MicroAppConfig | undefined
-})
+  const meta = route.meta as any;
+  return meta?.microApp as MicroAppConfig | undefined;
+});
 
 // 判断是否为外部站点（使用 iframe 而非 micro-app）
 const isExternalUrl = computed(() => {
-  const url = microAppConfig.value?.url
-  return !!url && (url.startsWith('https://') || url.startsWith('http://'))
-})
+  const url = microAppConfig.value?.url;
+  return !!url && (url.startsWith("https://") || url.startsWith("http://"));
+});
 
 // micro-app 库是否可用
-const isMicroAppReady = computed(() => !!(window as any).microApp)
+const isMicroAppReady = computed(() => !!(window as any).microApp);
 
 // 外部站点用 iframe，内部微前端用 micro-app 组件
-const useIframe = computed(() => isExternalUrl.value || !isMicroAppReady.value)
+const useIframe = computed(() => isExternalUrl.value || !isMicroAppReady.value);
 
 // iframe 的稳定 key——只在 URL 变化时才重建 iframe
-const iframeKey = computed(() => microAppConfig.value?.url ?? 'empty')
+const iframeKey = computed(() => microAppConfig.value?.url ?? "empty");
 
 // 调试信息（帮助定位问题）
 const debugInfo = computed(() => ({
@@ -53,45 +51,47 @@ const debugInfo = computed(() => ({
   useIframe: useIframe.value,
   metaKeys: route.meta ? Object.keys(route.meta) : [],
   allMeta: route.meta,
-}))
+}));
 
 // 开发环境打印调试信息
 watch(
   debugInfo,
   (info) => {
-    console.log('[SubAppView] Debug info:', JSON.stringify(info, null, 2))
+    console.log("[SubAppView] Debug info:", JSON.stringify(info, null, 2));
   },
   { immediate: true },
-)
+);
 
-const containerClassName = computed(() => cn('micro-app-wrapper', 'w-full h-full', props.className))
+const containerClassName = computed(() =>
+  cn("micro-app-wrapper", "w-full h-full", props.className),
+);
 
 const loadingClassName = computed(() =>
   cn(
-    'absolute inset-0 flex items-center justify-center',
-    'bg-white/80 dark:bg-gray-900/80',
-    'z-10',
+    "absolute inset-0 flex items-center justify-center",
+    "bg-white/80 dark:bg-gray-900/80",
+    "z-10",
   ),
-)
+);
 
 const errorClassName = computed(() =>
   cn(
-    'absolute inset-0 flex flex-col items-center justify-center',
-    'bg-white dark:bg-gray-800',
-    'z-20',
+    "absolute inset-0 flex flex-col items-center justify-center",
+    "bg-white dark:bg-gray-800",
+    "z-20",
   ),
-)
+);
 
-const token = computed(() => userStore.token)
-const userInfo = computed(() => userStore.userInfo)
+const token = computed(() => userStore.token);
+const userInfo = computed(() => userStore.userInfo);
 
 function sendDataToChild() {
-  if (!microAppRef.value || !microAppConfig.value || useIframe.value) return
+  if (!microAppRef.value || !microAppConfig.value || useIframe.value) return;
 
-  const childWindow = (microAppRef.value as any).getRootElement?.()
+  const childWindow = (microAppRef.value as any).getRootElement?.();
   if (childWindow) {
     childWindow.dispatchEvent(
-      new CustomEvent('main-app-data', {
+      new CustomEvent("main-app-data", {
         detail: {
           token: token.value,
           userInfo: userInfo.value,
@@ -102,121 +102,119 @@ function sendDataToChild() {
           },
         },
       }),
-    )
+    );
   }
 }
 
 function handleMounted() {
-  console.log('[SubAppView] micro-app mounted event received')
-  isLoading.value = false
-  sendDataToChild()
+  console.log("[SubAppView] micro-app mounted event received");
+  isLoading.value = false;
+  sendDataToChild();
 }
 
 function handleError(err: Event) {
-  console.error('[SubAppView] micro-app error:', err)
-  isLoading.value = false
-  hasError.value = true
+  console.error("[SubAppView] micro-app error:", err);
+  isLoading.value = false;
+  hasError.value = true;
 }
 
 function handleUnmount() {
-  isLoading.value = true
-  hasError.value = false
+  isLoading.value = true;
+  hasError.value = false;
 }
 
 function handleIframeLoad() {
-  console.log('[SubAppView] iframe loaded successfully')
-  isLoading.value = false
-  hasError.value = false
+  console.log("[SubAppView] iframe loaded successfully");
+  isLoading.value = false;
+  hasError.value = false;
 }
 
 function handleIframeError() {
-  console.error('[SubAppView] iframe load error')
-  isLoading.value = false
-  hasError.value = true
+  console.error("[SubAppView] iframe load error");
+  isLoading.value = false;
+  hasError.value = true;
 }
 
 function retry() {
-  console.log('[SubAppView] retry clicked')
-  hasError.value = false
-  isLoading.value = true
+  console.log("[SubAppView] retry clicked");
+  hasError.value = false;
+  isLoading.value = true;
   if (useIframe.value && microAppRef.value) {
-    const iframeEl = microAppRef.value.querySelector('iframe') as HTMLIFrameElement
+    const iframeEl = microAppRef.value.querySelector("iframe") as HTMLIFrameElement;
     if (iframeEl) {
       // 强制刷新 iframe
-      const src = iframeEl.src
-      iframeEl.src = 'about:blank'
+      const src = iframeEl.src;
+      iframeEl.src = "about:blank";
       setTimeout(() => {
-        iframeEl.src = src
-      }, 50)
-      return
+        iframeEl.src = src;
+      }, 50);
+      return;
     }
   }
   if (!useIframe.value && microAppRef.value) {
-    const microAppElement = microAppRef.value.querySelector('micro-app')
+    const microAppElement = microAppRef.value.querySelector("micro-app");
     if (microAppElement) {
-      ;(microAppElement as any).reload()
+      (microAppElement as any).reload();
     }
   }
 }
 
 watch(token, () => {
-  sendDataToChild()
-})
+  sendDataToChild();
+});
 
 onMounted(() => {
   console.log(
-    '[SubAppView] mounted, useIframe:',
+    "[SubAppView] mounted, useIframe:",
     useIframe.value,
-    'microAppConfig:',
+    "microAppConfig:",
     microAppConfig.value,
-  )
+  );
   if (!useIframe.value) {
-    microAppRef.value?.addEventListener('mounted', handleMounted)
-    microAppRef.value?.addEventListener('error', handleError)
-    microAppRef.value?.addEventListener('unmount', handleUnmount)
+    microAppRef.value?.addEventListener("mounted", handleMounted);
+    microAppRef.value?.addEventListener("error", handleError);
+    microAppRef.value?.addEventListener("unmount", handleUnmount);
   }
-})
+});
 
 // keep-alive 激活时检测并恢复 iframe 状态
 onActivated(() => {
   if (useIframe.value) {
     // iframe 模式：检测 contentWindow 是否被清空，必要时重新加载
-    const iframeEl = microAppRef.value?.querySelector('iframe') as HTMLIFrameElement | null
+    const iframeEl = microAppRef.value?.querySelector("iframe") as HTMLIFrameElement | null;
     if (
       iframeEl &&
       (!iframeEl.contentWindow ||
         !iframeEl.contentDocument ||
-        iframeEl.contentDocument.readyState === 'uninitialized')
+        iframeEl.contentDocument.readyState === "uninitialized")
     ) {
-      console.log('[SubAppView] iframe contentWindow lost, reloading...')
-      hasError.value = false
-      isLoading.value = true
+      console.log("[SubAppView] iframe contentWindow lost, reloading...");
+      hasError.value = false;
+      isLoading.value = true;
       // 重新设置 src 触发重新加载
-      const currentSrc = iframeEl.src
-      iframeEl.src = 'about:blank'
+      const currentSrc = iframeEl.src;
+      iframeEl.src = "about:blank";
       setTimeout(() => {
-        iframeEl.src = currentSrc
-      }, 50)
+        iframeEl.src = currentSrc;
+      }, 50);
     } else if (!hasError.value) {
-      isLoading.value = false
+      isLoading.value = false;
     }
   }
-})
+});
 
 onUnmounted(() => {
   if (!useIframe.value) {
-    microAppRef.value?.removeEventListener('mounted', handleMounted)
-    microAppRef.value?.removeEventListener('error', handleError)
-    microAppRef.value?.removeEventListener('unmount', handleUnmount)
+    microAppRef.value?.removeEventListener("mounted", handleMounted);
+    microAppRef.value?.removeEventListener("error", handleError);
+    microAppRef.value?.removeEventListener("unmount", handleUnmount);
   }
-})
+});
 </script>
 
 <template>
   <!-- 有配置时：渲染嵌入内容 -->
-  <div v-if="microAppConfig"
-ref="microAppRef"
-:class="containerClassName">
+  <div v-if="microAppConfig" ref="microAppRef" :class="containerClassName">
     <!-- 外部站点：使用 iframe 嵌入 -->
     <iframe
       v-if="useIframe"
@@ -254,8 +252,7 @@ ref="microAppRef"
     />
 
     <!-- micro-app 库未加载的提示 -->
-    <div v-else
-class="flex flex-col items-center justify-center h-full gap-4">
+    <div v-else class="flex flex-col items-center justify-center h-full gap-4">
       <svg
         class="w-16 h-16 text-yellow-500"
         viewBox="0 0 24 24"
@@ -269,15 +266,13 @@ class="flex flex-col items-center justify-center h-full gap-4">
     </div>
 
     <!-- 加载态 -->
-    <div v-if="isLoading && (isMicroAppReady || useIframe)"
-:class="loadingClassName">
+    <div v-if="isLoading && (isMicroAppReady || useIframe)" :class="loadingClassName">
       <a-spin size="large" />
       <p class="mt-2 text-sm text-gray-500">正在加载 {{ microAppConfig.title }}...</p>
     </div>
 
     <!-- 错误态 -->
-    <div v-if="hasError"
-:class="errorClassName">
+    <div v-if="hasError" :class="errorClassName">
       <svg
         class="w-16 h-16 text-red-500 mb-4"
         viewBox="0 0 24 24"
@@ -285,24 +280,15 @@ class="flex flex-col items-center justify-center h-full gap-4">
         stroke="currentColor"
         stroke-width="2"
       >
-        <circle cx="12"
-cy="12"
-r="10" />
-        <line x1="15"
-y1="9"
-x2="9"
-y2="15" />
-        <line x1="9"
-y1="9"
-x2="15"
-y2="15" />
+        <circle cx="12" cy="12" r="10" />
+        <line x1="15" y1="9" x2="9" y2="15" />
+        <line x1="9" y1="9" x2="15" y2="15" />
       </svg>
       <p class="text-gray-600 dark:text-gray-400 mb-4">子应用加载失败</p>
       <p class="text-xs text-gray-400 mb-4 max-w-xs text-center break-all">
         {{ microAppConfig.url }}
       </p>
-      <a-button type="primary"
-@click="retry"> 重试 </a-button>
+      <a-button type="primary" @click="retry"> 重试 </a-button>
     </div>
   </div>
 

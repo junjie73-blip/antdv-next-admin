@@ -1,7 +1,7 @@
 import type { UserRecord } from "./types";
 
-import type { BasicColumn } from "@/components/business/Table";
-import type { TemplateColumn } from "@/utils/template";
+import type { BasicColumn } from "~/components/business/Table";
+import type { TemplateColumn } from "~/utils/template";
 
 /** 用户表格列 */
 export const userColumns: BasicColumn[] = [

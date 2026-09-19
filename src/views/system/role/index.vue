@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { Icon } from "@iconify/vue";
 import { message } from "antdv-next";
 import { computed, onMounted, ref } from "vue";
@@ -30,20 +29,15 @@ import { mapRoleForExport } from "./utils";
 
 import type { RoleRecord } from "./types";
 
-import { addRole, deleteRole, getDeptTree, getRoleDetail, getRoleList, updateRole } from "@/api";
-import { BasicDrawer, useDrawer } from "@/components/business/Drawer";
-import { BasicForm, useForm } from "@/components/business/Form";
-import { type ActionItem, BasicTable, TableAction, useTable } from "@/components/business/Table";
-import { useCRUD } from "@/composables/useCRUD";
-import { DictType } from "@/enums/dict";
-import { useDictStore } from "@/stores";
-import { exportToExcel } from "@/utils/excel";
+import { addRole, deleteRole, getDeptTree, getRoleDetail, getRoleList, updateRole } from "~/api";
+import { BasicDrawer, useDrawer } from "~/components/business/Drawer";
+import { BasicForm, useForm } from "~/components/business/Form";
+import { type ActionItem, BasicTable, TableAction, useTable } from "~/components/business/Table";
+import { useCRUD } from "~/composables/useCRUD";
+import { DictType } from "~/enums/dict";
+import { useDictStore } from "~/stores";
+import { exportToExcel } from "~/utils/excel";
 // 抽离的模块
-
-
-
-
-
 
 defineOptions({ name: "SystemRole" });
 
@@ -151,8 +145,7 @@ onMounted(() => {
 
 <template>
   <div :class="containerClassName">
-    <a-card title="角色管理"
-:class="cardClassName">
+    <a-card title="角色管理" :class="cardClassName">
       <BasicTable
         :columns="roleColumns"
         :api="getRoleList"
@@ -170,8 +163,7 @@ onMounted(() => {
             <template #icon><Icon icon="carbon:export" /></template>
             导出
           </a-button>
-          <a-button type="primary"
-@click="handleAdd()">
+          <a-button type="primary" @click="handleAdd()">
             <template #icon><Icon icon="ant-design:plus-outlined" /></template>
             新增角色
           </a-button>

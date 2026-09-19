@@ -1,61 +1,59 @@
 <script setup lang="ts">
+import { ref } from "vue";
 
-import { ref } from 'vue'
+import { Scrollbar } from "~/components/common/Scrollbar";
+import { cn } from "~/utils/cn";
 
-import { Scrollbar } from '@/components/common/Scrollbar'
-import { cn } from '@/utils/cn'
-
-const containerClassName = cn('space-y-6')
-const scrollContentClassName = cn('p-4 rounded-lg bg-gray-50 dark:bg-gray-800')
+const containerClassName = cn("space-y-6");
+const scrollContentClassName = cn("p-4 rounded-lg bg-gray-50 dark:bg-gray-800");
 
 const basicItems = Array.from({ length: 30 }, (_, i) => ({
   id: i + 1,
   title: `Item ${i + 1}`,
   desc: `Description for item ${i + 1}`,
-}))
+}));
 
 const horizontalItems = [
-  'Vue',
-  'React',
-  'Angular',
-  'Svelte',
-  'Solid',
-  'Qwik',
-  'Astro',
-  'Nuxt',
-  'Next.js',
-  'Remix',
-]
+  "Vue",
+  "React",
+  "Angular",
+  "Svelte",
+  "Solid",
+  "Qwik",
+  "Astro",
+  "Nuxt",
+  "Next.js",
+  "Remix",
+];
 
 const chatMessages = ref([
-  { id: 1, text: 'Hello, how are you?', time: '10:30', self: false },
-  { id: 2, text: 'I am fine, thank you! What about you?', time: '10:31', self: true },
-  { id: 3, text: 'Great! Working on a new project.', time: '10:32', self: false },
-  { id: 4, text: 'That sounds exciting! What kind of project?', time: '10:33', self: true },
-  { id: 5, text: 'A Vue 3 admin system with antdv-next.', time: '10:34', self: false },
-  { id: 6, text: 'Using Scrollbar component for smooth scrolling.', time: '10:35', self: true },
-  { id: 7, text: 'The performance is really good!', time: '10:36', self: false },
-  { id: 8, text: 'Glad to hear that. Keep up the good work!', time: '10:37', self: true },
-])
+  { id: 1, text: "Hello, how are you?", time: "10:30", self: false },
+  { id: 2, text: "I am fine, thank you! What about you?", time: "10:31", self: true },
+  { id: 3, text: "Great! Working on a new project.", time: "10:32", self: false },
+  { id: 4, text: "That sounds exciting! What kind of project?", time: "10:33", self: true },
+  { id: 5, text: "A Vue 3 admin system with antdv-next.", time: "10:34", self: false },
+  { id: 6, text: "Using Scrollbar component for smooth scrolling.", time: "10:35", self: true },
+  { id: 7, text: "The performance is really good!", time: "10:36", self: false },
+  { id: 8, text: "Glad to hear that. Keep up the good work!", time: "10:37", self: true },
+]);
 
-const newMessage = ref('')
+const newMessage = ref("");
 
 function sendMessage() {
-  if (!newMessage.value.trim()) return
+  if (!newMessage.value.trim()) return;
   chatMessages.value.push({
     id: Date.now(),
     text: newMessage.value.trim(),
-    time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+    time: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
     self: true,
-  })
-  newMessage.value = ''
+  });
+  newMessage.value = "";
 }
 </script>
 
 <template>
   <div :class="containerClassName">
-    <a-card title="Basic Scroll"
-variant="borderless">
+    <a-card title="Basic Scroll" variant="borderless">
       <div class="space-y-4">
         <a-button
           @click="
@@ -97,8 +95,7 @@ variant="borderless">
       </div>
     </a-card>
 
-    <a-card title="Horizontal Scroll"
-variant="borderless">
+    <a-card title="Horizontal Scroll" variant="borderless">
       <div class="h-32 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
         <Scrollbar>
           <div class="flex gap-3 p-4 min-w-max">
@@ -115,8 +112,7 @@ variant="borderless">
       </div>
     </a-card>
 
-    <a-card title="Chat Scroll"
-variant="borderless">
+    <a-card title="Chat Scroll" variant="borderless">
       <div class="space-y-3">
         <div
           class="h-80 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden flex flex-col"
@@ -137,8 +133,7 @@ variant="borderless">
                 ]"
               >
                 {{ msg.text }}
-                <div class="text-xs mt-1"
-:class="[msg.self ? 'text-blue-100' : 'text-gray-400']">
+                <div class="text-xs mt-1" :class="[msg.self ? 'text-blue-100' : 'text-gray-400']">
                   {{ msg.time }}
                 </div>
               </div>
@@ -150,8 +145,7 @@ variant="borderless">
               placeholder="Type a message..."
               @pressEnter="sendMessage"
             />
-            <a-button type="primary"
-@click="sendMessage"> Send </a-button>
+            <a-button type="primary" @click="sendMessage"> Send </a-button>
           </div>
         </div>
       </div>

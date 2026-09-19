@@ -6,59 +6,57 @@
  * 提供比进度条更丰富的视觉反馈
  */
 
-import { computed } from 'vue'
+import { computed } from "vue";
 
-import { useAppStore } from '@/stores/modules/app'
-import { cn } from '@/utils/cn'
+import { useAppStore } from "~/stores/modules/app";
+import { cn } from "~/utils/cn";
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
-  variant: 'default',
+  variant: "default",
   error: false,
-})
+});
 
 defineOptions({
-  name: 'PageLoading',
-})
+  name: "PageLoading",
+});
 
 interface Props {
   /** 是否显示 */
-  loading?: boolean
+  loading?: boolean;
   /** 骨架屏变体：default / simple / detailed */
-  variant?: 'default' | 'simple' | 'detailed'
+  variant?: "default" | "simple" | "detailed";
   /** 是否为错误/慢加载状态 */
-  error?: boolean
+  error?: boolean;
 }
 
-const appStore = useAppStore()
-const isDark = computed(() => appStore.themeMode === 'dark')
+const appStore = useAppStore();
+const isDark = computed(() => appStore.themeMode === "dark");
 
 // 主题相关样式
-const skeletonBg = computed(() => (isDark.value ? 'bg-gray-800/50' : 'bg-gray-100'))
+const skeletonBg = computed(() => (isDark.value ? "bg-gray-800/50" : "bg-gray-100"));
 
 const shimmerFrom = computed(() =>
   isDark.value
-    ? 'from-transparent via-gray-700/30 to-transparent'
-    : 'from-transparent via-white/60 to-transparent',
-)
+    ? "from-transparent via-gray-700/30 to-transparent"
+    : "from-transparent via-white/60 to-transparent",
+);
 
 const containerClassName = cn(
-  'absolute inset-0 z-10 flex flex-col animate-fade-in',
+  "absolute inset-0 z-10 flex flex-col animate-fade-in",
   // 错误状态：红色调
   props.error
     ? isDark.value
-      ? 'bg-red-950/80'
-      : 'bg-red-50/90'
+      ? "bg-red-950/80"
+      : "bg-red-50/90"
     : isDark.value
-      ? 'bg-gray-900/80'
-      : 'bg-gray-50/90',
-)
+      ? "bg-gray-900/80"
+      : "bg-gray-50/90",
+);
 </script>
 
 <template>
-  <Transition name="page-loading"
-mode="out-in"
-appear>
+  <Transition name="page-loading" mode="out-in" appear>
     <div
       v-if="loading"
       :class="containerClassName"
@@ -97,9 +95,7 @@ appear>
             </p>
             <!-- 骨架屏（半透明） -->
             <div class="w-full max-w-md px-6 opacity-50">
-              <div v-for="i in 3"
-:key="i"
-:class="cn('h-3 rounded-full mb-2', skeletonBg)" />
+              <div v-for="i in 3" :key="i" :class="cn('h-3 rounded-full mb-2', skeletonBg)" />
             </div>
           </div>
         </div>

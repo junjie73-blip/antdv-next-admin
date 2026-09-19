@@ -1,6 +1,4 @@
 <script setup lang="ts">
-
-
 import { Icon } from "@iconify/vue";
 import { BorderBeam } from "antdv-next";
 import { computed, onMounted, ref } from "vue";
@@ -12,8 +10,8 @@ import { getSubGreeting, getTodayLabel, getWeekLabel, greeting } from "./utils";
 
 import type { LogItem, WorkbenchData } from "./types";
 
-import { getWorkbenchSummary } from "@/api";
-import { useUserStore } from "@/stores/modules/user";
+import { getWorkbenchSummary } from "~/api";
+import { useUserStore } from "~/stores/modules/user";
 
 defineOptions({ name: "WorkBench" });
 
@@ -91,15 +89,13 @@ onMounted(load);
               <span
                 class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-slate-600 dark:text-slate-300 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/70 dark:border-slate-600/40"
               >
-                <Icon icon="carbon:calendar"
-class="text-blue-500" />
+                <Icon icon="carbon:calendar" class="text-blue-500" />
                 {{ todayLabel }} · {{ weekLabel }}
               </span>
               <span
                 class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-slate-600 dark:text-slate-300 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/70 dark:border-slate-600/40"
               >
-                <Icon icon="carbon:user-role"
-class="text-violet-500" />
+                <Icon icon="carbon:user-role" class="text-violet-500" />
                 {{ userStore.roles?.join("、") || "未分配角色" }}
               </span>
             </div>
@@ -175,8 +171,7 @@ class="text-violet-500" />
                 class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:-rotate-3"
                 :style="{ backgroundColor: `${card.color}14`, color: card.color }"
               >
-                <Icon :icon="card.icon"
-class="text-xl" />
+                <Icon :icon="card.icon" class="text-xl" />
               </div>
             </div>
 
@@ -230,8 +225,7 @@ class="text-xl" />
                   class="relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:-rotate-3"
                   :style="{ backgroundColor: `${s.color}12`, color: s.color }"
                 >
-                  <Icon :icon="s.icon"
-class="text-[22px]" />
+                  <Icon :icon="s.icon" class="text-[22px]" />
                   <div
                     class="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                     :style="{ boxShadow: `0 4px 16px ${s.color}33` }"
@@ -277,8 +271,7 @@ class="text-[22px]" />
                 @click="navigate('/message/todo')"
               >
                 更多
-                <Icon icon="carbon:chevron-right"
-class="text-xs" />
+                <Icon icon="carbon:chevron-right" class="text-xs" />
               </a-button>
             </div>
 
@@ -291,8 +284,7 @@ class="text-xs" />
                   <div
                     class="w-10 h-10 rounded-xl flex items-center justify-center text-white bg-gradient-to-br from-blue-400 to-indigo-500 shadow-[0_4px_12px_-2px_rgba(59,130,246,0.25)]"
                   >
-                    <Icon icon="carbon:list-checked"
-class="text-lg" />
+                    <Icon icon="carbon:list-checked" class="text-lg" />
                   </div>
                   <div>
                     <div class="text-xs text-blue-600/90 dark:text-blue-400/90 font-medium">
@@ -316,8 +308,7 @@ class="text-lg" />
                   <div
                     class="w-10 h-10 rounded-xl flex items-center justify-center text-white bg-gradient-to-br from-rose-400 to-pink-500 shadow-[0_4px_12px_-2px_rgba(59,130,246,0.25)]"
                   >
-                    <Icon icon="carbon:warning-alt"
-class="text-lg" />
+                    <Icon icon="carbon:warning-alt" class="text-lg" />
                   </div>
                   <div>
                     <div class="text-xs text-rose-600/90 dark:text-rose-400/90 font-medium">
@@ -363,13 +354,11 @@ class="text-lg" />
           </div>
         </div>
 
-        <div v-if="recentLogs.length === 0"
-class="py-16 text-center">
+        <div v-if="recentLogs.length === 0" class="py-16 text-center">
           <div
             class="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-3 bg-slate-100/60 dark:bg-slate-800/40"
           >
-            <Icon icon="carbon:document"
-class="text-3xl text-slate-300 dark:text-slate-600" />
+            <Icon icon="carbon:document" class="text-3xl text-slate-300 dark:text-slate-600" />
           </div>
           <div class="text-sm text-slate-400">暂无操作记录</div>
         </div>

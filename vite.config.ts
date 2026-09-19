@@ -372,7 +372,7 @@ export default defineConfig(({ mode }) => {
     base: "./",
     resolve: {
       alias: {
-        "@": join(import.meta.dirname, "./src"),
+        "~": join(import.meta.dirname, "./src"),
         "#": join(import.meta.dirname, "./types"),
       },
     },

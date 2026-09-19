@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { LockOutlined, ShopOutlined, UserOutlined } from "@antdv-next/icons";
 import { message } from "antdv-next";
 import { reactive, ref, watch } from "vue";
@@ -7,8 +6,8 @@ import { reactive, ref, watch } from "vue";
 import type { FormInstance } from "antdv-next";
 import type { Rule } from "antdv-next/dist/form/types";
 
-import { forgotPassword } from "@/api/auth";
-import { usePasswordPolicy } from "@/composables/usePasswordPolicy";
+import { forgotPassword } from "~/api/auth";
+import { usePasswordPolicy } from "~/composables/usePasswordPolicy";
 
 interface Props {
   /** 从登录页带入的默认值，减少用户输入 */
@@ -224,8 +223,7 @@ function handleClose() {
           </a-input-password>
         </a-form-item>
 
-        <a-form-item name="confirmPassword"
-class="!mb-0">
+        <a-form-item name="confirmPassword" class="!mb-0">
           <a-input-password
             v-model:value="formState.confirmPassword"
             size="large"

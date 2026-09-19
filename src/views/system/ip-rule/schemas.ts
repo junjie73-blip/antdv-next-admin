@@ -1,6 +1,6 @@
 import { IP_RULE_STATUS_OPTIONS, IP_RULE_TYPE_OPTIONS } from "./constants";
 
-import type { FormSchema } from "@/components/business/Form";
+import type { FormSchema } from "~/components/business/Form";
 
 /** IP 规则弹窗表单 schema */
 export const ipRuleFormSchemas: FormSchema[] = [

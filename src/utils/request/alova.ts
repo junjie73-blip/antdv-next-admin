@@ -7,9 +7,9 @@ import { AUTHORIZATION_KEY } from "./constant";
 
 import type { RequestMeta } from "./interface";
 
-import router from "@/router";
-import { useUserStore } from "@/stores/modules/user";
-import { config as csrfConfig, getCsrfToken, initCsrfProtection } from "@/utils/csrf";
+import router from "~/router";
+import { useUserStore } from "~/stores/modules/user";
+import { config as csrfConfig, getCsrfToken, initCsrfProtection } from "~/utils/csrf";
 
 // ==================== 业务错误码（与后端 errorHandler 对齐）====================
 export const ErrorCode = {

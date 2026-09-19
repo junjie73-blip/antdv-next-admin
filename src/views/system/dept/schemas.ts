@@ -1,14 +1,10 @@
-
-
 import { computed } from "vue";
 
 import type { ComputedRef } from "vue";
 
 import type { DeptTreeNode } from "./types";
 
-import type { FormSchema } from "@/components/business/Form";
-
-
+import type { FormSchema } from "~/components/business/Form";
 
 /** 搜索表单 schema（静态） */
 export const deptSearchSchemas: FormSchema[] = [

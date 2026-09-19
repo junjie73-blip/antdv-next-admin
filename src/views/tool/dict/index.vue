@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { Icon } from "@iconify/vue";
 import { message } from "antdv-next";
 import { computed, ref } from "vue";
@@ -51,19 +50,16 @@ import {
   getDictList,
   updateDict,
   updateDictItem,
-} from "@/api";
+} from "~/api";
 
-import { BasicForm, useForm } from "@/components/business/Form";
-import { BasicModal, useModal } from "@/components/business/Modal";
-import { BasicTable, TableAction, useTable } from "@/components/business/Table";
-import { useCRUD } from "@/composables/useCRUD";
-import { DictType } from "@/enums/dict";
-import { useDictStore } from "@/stores";
+import { BasicForm, useForm } from "~/components/business/Form";
+import { BasicModal, useModal } from "~/components/business/Modal";
+import { BasicTable, TableAction, useTable } from "~/components/business/Table";
+import { useCRUD } from "~/composables/useCRUD";
+import { DictType } from "~/enums/dict";
+import { useDictStore } from "~/stores";
 
 // 抽离的模块
-
-
-
 
 defineOptions({ name: "SystemDict" });
 
@@ -221,8 +217,7 @@ loadDictTypes();
 
         <a-spin :spinning="typeLoading">
           <div class="max-h-125 overflow-y-auto">
-            <div v-if="dictTypes.length === 0"
-:class="emptyClassName">
+            <div v-if="dictTypes.length === 0" :class="emptyClassName">
               <div :class="emptyIconClassName"><Icon icon="carbon:book" /></div>
               <div :class="emptyTitleClassName">暂无字典类型</div>
               <div :class="emptyDescClassName">点击下方按钮新增字典类型</div>
@@ -251,8 +246,7 @@ loadDictTypes();
                   :class="typeItemBtnClassName"
                   @click.stop="typeCrud.handleEdit(item)"
                 >
-                  <Icon icon="ant-design:edit-outlined"
-class="text-xs" />
+                  <Icon icon="ant-design:edit-outlined" class="text-xs" />
                 </a-button>
                 <a-button
                   type="text"
@@ -261,8 +255,7 @@ class="text-xs" />
                   :class="typeItemBtnClassName"
                   @click.stop="typeCrud.handleDelete(item)"
                 >
-                  <Icon icon="ant-design:delete-outlined"
-class="text-xs" />
+                  <Icon icon="ant-design:delete-outlined" class="text-xs" />
                 </a-button>
               </div>
             </div>
@@ -270,9 +263,7 @@ class="text-xs" />
         </a-spin>
 
         <div :class="cardFooterClassName">
-          <a-button type="primary"
-size="small"
-@click="typeCrud.handleAdd()">
+          <a-button type="primary" size="small" @click="typeCrud.handleAdd()">
             <template #icon><Icon icon="ant-design:plus-outlined" /></template>
             新增类型
           </a-button>
@@ -304,8 +295,7 @@ size="small"
             @register="itemTableRegister"
           >
             <template #toolbar>
-              <a-button size="small"
-@click="handleExport">
+              <a-button size="small" @click="handleExport">
                 <Icon icon="carbon:export" /> 导出
               </a-button>
               <a-button
@@ -316,8 +306,7 @@ size="small"
               >
                 <Icon icon="ant-design:plus-outlined" /> 新增字典项
               </a-button>
-              <a-button danger
-@click="itemCrud.handleBatchDelete">批量删除</a-button>
+              <a-button danger @click="itemCrud.handleBatchDelete">批量删除</a-button>
             </template>
             <template #cell-status="{ record }">
               <a-tag :color="DICT_STATUS_COLOR_MAP[record.status] || 'default'">

@@ -3,7 +3,7 @@ import { computed, type ComputedRef } from "vue";
 import { IDENT_RE, TPL_CATEGORY_OPTIONS } from "./constants";
 
 import type { UserInfo } from "#/user";
-import type { FormSchema } from "@/components/business/Form/types";
+import type { FormSchema } from "~/components/business/Form/types";
 
 /** 搜索表单 schema */
 export function useSearchSchemas(): ComputedRef<FormSchema[]> {

@@ -1,4 +1,3 @@
-
 import * as echarts from "echarts";
 
 import { PALETTE } from "../constants";
@@ -6,7 +5,7 @@ import { baseOption, echartsTheme } from "../theme";
 
 import type { JourneyStage } from "../types";
 
-import { getUserJourney } from "@/api";
+import { getUserJourney } from "~/api";
 
 /** 用户行为漏斗 */
 export async function initUserJourney<T = any>(

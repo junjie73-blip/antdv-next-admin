@@ -1,20 +1,43 @@
-/** 缓存信息概览 */
 export interface CacheInfo {
-  version?: string;
-  connectedClients?: number;
-  usedMemory?: number;
-  uptime?: number;
-  hits?: number;
-  misses?: number;
-  /** 命中率，后端可能直接给字符串数字，例如 "98.5" */
-  hitRate?: string | number;
-  dbKeys?: number;
+  redisVersion: string;
+  redisMode: string;
+  os: string;
+  uptimeDays: number;
+  connectedClients: number;
+  usedMemory: number;
+  usedMemoryHuman: string;
+  usedMemoryPeakHuman: string;
+  maxMemoryHuman: string;
+  totalCommandsProcessed: number;
+  instantaneousOpsPerSec: number;
+  keyspaceHits: number;
+  keyspaceMisses: number;
+  hitRate: string;
+  expiredKeys: number;
+  evictedKeys: number;
+  dbKeys: number;
+  [key: string]: unknown;
 }
 
-/** 缓存 Key 记录 */
-export interface CacheKeyRecord {
+export interface CacheGroupInfo {
+  name: string;
+  prefix: string;
+  remark: string;
+  count: number;
+  discovered?: boolean;
+}
+
+export interface CacheKeyInfo {
+  key: string;
+  ttl: number;
+  type: string;
+}
+
+export interface CacheKeyValue {
   key: string;
   type: string;
-  /** 秒数，-1 表示永久 */
   ttl: number;
+  value: unknown;
+  total?: number;
+  truncated?: boolean;
 }

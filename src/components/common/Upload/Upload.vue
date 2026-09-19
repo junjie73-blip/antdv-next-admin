@@ -9,7 +9,7 @@ import type { UploadFile, UploadProps as AntUploadProps, UploadRequestOption } f
 
 import type { UploadInstance, UploadProps } from "./types";
 
-import { cn } from "@/utils/cn";
+import { cn } from "~/utils/cn";
 
 defineOptions({ name: "Upload" });
 

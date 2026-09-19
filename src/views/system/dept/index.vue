@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { Icon } from "@iconify/vue";
 import { message } from "antdv-next";
 import { computed, onMounted, ref } from "vue";
@@ -25,18 +24,15 @@ import { convertToTreeNode } from "./utils";
 
 import type { DeptRecord, DeptTreeNode } from "./types";
 
-import { addDept, deleteDept, getDeptList, getDeptTree, updateDept } from "@/api";
-import { BasicForm, useForm } from "@/components/business/Form";
-import { BasicModal, useModal } from "@/components/business/Modal";
-import { BasicTable, TableAction, useTable } from "@/components/business/Table";
-import { useCRUD } from "@/composables/useCRUD";
-import { DictType } from "@/enums/dict";
-import { useDictStore } from "@/stores";
+import { addDept, deleteDept, getDeptList, getDeptTree, updateDept } from "~/api";
+import { BasicForm, useForm } from "~/components/business/Form";
+import { BasicModal, useModal } from "~/components/business/Modal";
+import { BasicTable, TableAction, useTable } from "~/components/business/Table";
+import { useCRUD } from "~/composables/useCRUD";
+import { DictType } from "~/enums/dict";
+import { useDictStore } from "~/stores";
 
 // 抽离的模块
-
-
-
 
 defineOptions({ name: "SystemDept" });
 
@@ -170,9 +166,7 @@ onMounted(() => {
   <div :class="containerClassName">
     <!-- 左侧部门树 -->
     <div :class="leftPanelClassName">
-      <a-card :class="treeCardClassName"
-title="部门架构"
-size="small">
+      <a-card :class="treeCardClassName" title="部门架构" size="small">
         <a-spin :spinning="loading">
           <a-tree
             :tree-data="deptTreeData"
@@ -189,8 +183,7 @@ size="small">
 
     <!-- 右侧部门列表 -->
     <div :class="rightPanelClassName">
-      <a-card title="部门列表"
-:class="cardClassName">
+      <a-card title="部门列表" :class="cardClassName">
         <BasicTable
           :columns="deptColumns"
           :api="fetchDeptList"
@@ -206,8 +199,7 @@ size="small">
           @register="tableRegister"
         >
           <template #toolbar>
-            <a-button type="primary"
-@click="handleAdd()">
+            <a-button type="primary" @click="handleAdd()">
               <template #icon><Icon icon="ant-design:plus-outlined" /></template>
               新增部门
             </a-button>
@@ -223,8 +215,7 @@ size="small">
           </template>
 
           <template #action="{ record }">
-            <TableAction :actions="getActions(record as DeptRecord)"
-:record="record" />
+            <TableAction :actions="getActions(record as DeptRecord)" :record="record" />
           </template>
         </BasicTable>
       </a-card>
@@ -245,8 +236,6 @@ size="small">
         @register="formRegister"
       />
     </BasicModal>
-    <DeptUserDrawer v-model:open="deptUserOpen"
-:dept="deptUserRecord"
-@saved="handleUsersSaved" />
+    <DeptUserDrawer v-model:open="deptUserOpen" :dept="deptUserRecord" @saved="handleUsersSaved" />
   </div>
 </template>

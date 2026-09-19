@@ -1,4 +1,4 @@
-import { cn } from "@/utils/cn";
+import { cn } from "~/utils/cn";
 
 export const containerClassName = cn("space-y-4");
 
