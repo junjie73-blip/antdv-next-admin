@@ -11,6 +11,7 @@ import { analyzer } from "vite-bundle-analyzer";
 import viteCompressPlugin from "vite-plugin-compression";
 import viteDtsPlugin from "vite-plugin-dts";
 import { createHtmlPlugin as viteHtmlPlugin } from "vite-plugin-html";
+import iconifyOffline from "vite-plugin-iconify-offline";
 import viteImagemin from "vite-plugin-imagemin";
 import Inspect from "vite-plugin-inspect";
 import { wrapPlugin } from "vite-plugin-performance";
@@ -236,8 +237,7 @@ export default defineConfig(({ mode }) => {
       Components({
         resolvers: [
           AntdvNextResolver({
-            // 启用图标自动导入
-            resolveIcons: true,
+            resolveIcons: false,
           }),
         ],
         dts: join(process.cwd(), "/types/components.d.ts"),
@@ -274,6 +274,7 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ];
+    mode === "production" && plugins.push(iconifyOffline());
     envConfig.VITE_DEVTOOLS && plugins.push(viteVueDevTools());
 
     envConfig.VITE_ARCHIVER && plugins.push(viteArchiverPlugin({}));
@@ -325,8 +326,6 @@ export default defineConfig(({ mode }) => {
           },
           workbox: {
             globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-            clientsClaim: true,
-            skipWaiting: true,
             // 生产环境建议通过按需加载优化 antdv-next 来减小体积
             maximumFileSizeToCacheInBytes: 1024 * 1024 * 20,
             runtimeCaching: [
@@ -402,11 +401,6 @@ export default defineConfig(({ mode }) => {
                     // antdv-next UI 框架（最大，单独拆分）
                     if (id.includes("antdv-next")) {
                       return "vendor-antdv";
-                    }
-
-                    // Iconify 图标库（IconPicker 组件使用，体积大）
-                    if (id.includes("@iconify") || id.includes("iconify")) {
-                      return "vendor-icons";
                     }
 
                     // Vue 生态系统

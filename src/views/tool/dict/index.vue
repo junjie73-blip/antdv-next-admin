@@ -9,11 +9,13 @@ import {
   dictItemActionColumn,
   dictItemColumns,
   dictItemPagination,
+  dictItemScroll,
   dictTypeRowKey,
   dictTypeRowSelection,
 } from "./columns";
 
 import {
+  cardBodyClassName,
   cardClassName,
   cardFooterClassName,
   cardHeaderClassName,
@@ -28,11 +30,13 @@ import {
   emptyTitleClassName,
   leftPanelClassName,
   rightPanelClassName,
+  tableWrapperClassName,
   tagClassName,
   typeItemActionsClassName,
   typeItemBtnClassName,
   typeItemClassName,
   typeItemCodeClassName,
+  typeItemIndicatorClassName,
   typeItemNameClassName,
 } from "./constants";
 
@@ -59,34 +63,28 @@ import { useCRUD } from "~/composables/useCRUD";
 import { DictType } from "~/enums/dict";
 import { useDictStore } from "~/stores";
 
-// 抽离的模块
-
 defineOptions({ name: "SystemDict" });
 
 // ========== 字典 store ==========
 const dictStore = useDictStore();
 const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE));
 
-// ========== 字典类型：状态 + 实例 ==========
+// ========== 类型状态 ==========
 const dictTypes = ref<DictTypeRecord[]>([]);
 const selectedType = ref<DictTypeRecord | null>(null);
 const typeLoading = ref(false);
 
 const [typeModalRegister, typeModalMethods] = useModal();
 const [typeFormRegister, typeFormMethods] = useForm();
-
-// 类型 schema（依赖 statusOptions）
 const typeFormSchemas = useDictTypeFormSchemas(statusOptions);
 
-// ========== 字典项：实例 ==========
+// ========== 字典项状态 ==========
 const [itemModalRegister, itemModalMethods] = useModal();
 const [itemFormRegister, itemFormMethods] = useForm();
 const [itemTableRegister, itemTableMethods] = useTable();
-
-// 字典项 schema
 const itemFormSchemas = useDictItemFormSchemas(statusOptions);
 
-// ========== 加载字典类型列表 ==========
+// ========== 加载字典类型 ==========
 async function loadDictTypes() {
   typeLoading.value = true;
   try {
@@ -104,12 +102,12 @@ function selectType(type: DictTypeRecord) {
   itemTableMethods.value?.reload();
 }
 
-// ========== 字典类型 CRUD ==========
+// ========== 类型 CRUD ==========
 const typeCrud = useCRUD<DictTypeRecord>({
   containerType: "modal",
   modalMethods: typeModalMethods,
   formMethods: typeFormMethods,
-  tableMethods: { value: null }, // 类型没有表格
+  tableMethods: { value: null },
   idKey: "dictTypeId",
   getEmptyValues: () => ({ dictName: "", dictCode: "", status: "1", description: "" }),
   getFormValues: (record) => ({
@@ -121,9 +119,7 @@ const typeCrud = useCRUD<DictTypeRecord>({
   onCreate: async (values) => await addDict(values),
   onUpdate: async (id, values) => await updateDict(id, values),
   onDelete: async (record) => await deleteDict(record.dictTypeId),
-  onSaved: async () => {
-    await loadDictTypes();
-  },
+  onSaved: async () => await loadDictTypes(),
   onDeleted: async () => {
     if (
       selectedType.value &&
@@ -180,9 +176,12 @@ const itemCrud = useCRUD<DictItemRecord>({
   },
 });
 
-// ========== 字典项表格 API ==========
-async function fetchDictItems(params: Record<string, any>) {
-  return await getDictItems({ ...params, dictTypeId: selectedType.value?.dictTypeId });
+// ========== 字典项查询 ==========
+async function fetchDictItems(params: any) {
+  return await getDictItems({
+    ...params,
+    dictTypeId: selectedType.value?.dictTypeId,
+  });
 }
 
 // ========== 导出 ==========
@@ -190,11 +189,10 @@ function handleExport() {
   const dataToExport = selectedType.value
     ? itemTableMethods.value?.getSelectRows?.() || []
     : dictTypes.value;
-  // TODO: 实际导出逻辑
   console.log("export:", dataToExport);
 }
 
-// ========== 字典项操作项 ==========
+// ========== 字典项行操作 ==========
 function getItemActions(record: DictItemRecord) {
   return getDictItemActions(record, {
     onEdit: itemCrud.handleEdit,
@@ -202,85 +200,128 @@ function getItemActions(record: DictItemRecord) {
   });
 }
 
-// ========== 初始化 ==========
 loadDictTypes();
 </script>
 
 <template>
   <div :class="containerClassName">
-    <!-- ==================== 左侧字典类型 ==================== -->
-    <div :class="leftPanelClassName">
+    <!-- ============================================================ -->
+    <!-- 左侧：字典类型                                                  -->
+    <!-- ============================================================ -->
+    <aside :class="leftPanelClassName">
       <div :class="cardClassName">
+        <!-- 头部 -->
         <div :class="cardHeaderClassName">
-          <span :class="cardTitleClassName">字典类型</span>
+          <div class="flex items-center gap-2">
+            <span class="h-3.5 w-1 rounded bg-blue-500 dark:bg-blue-400" />
+            <span :class="cardTitleClassName">字典类型</span>
+            <span
+              class="rounded-full bg-gray-100 px-2 text-xs font-normal text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+            >
+              {{ dictTypes.length }}
+            </span>
+          </div>
         </div>
 
+        <!-- 列表 -->
         <a-spin :spinning="typeLoading">
-          <div class="max-h-125 overflow-y-auto">
+          <div :class="cardBodyClassName" class="max-h-[60vh] lg:max-h-[calc(100vh-260px)]">
+            <!-- 空态 -->
             <div v-if="dictTypes.length === 0" :class="emptyClassName">
-              <div :class="emptyIconClassName"><Icon icon="carbon:book" /></div>
+              <Icon icon="carbon:book" :class="emptyIconClassName" />
               <div :class="emptyTitleClassName">暂无字典类型</div>
               <div :class="emptyDescClassName">点击下方按钮新增字典类型</div>
             </div>
 
+            <!-- 列表项 -->
             <div
               v-for="item in dictTypes"
               :key="item.dictTypeId"
               :class="typeItemClassName(selectedType?.dictTypeId === item.dictTypeId)"
               @click="selectType(item)"
             >
-              <div class="flex-1 min-w-0">
-                <div :class="typeItemNameClassName">{{ item.dictName }}</div>
-                <div :class="typeItemCodeClassName">{{ item.dictCode }}</div>
+              <!-- 激活指示条 -->
+              <span
+                v-if="selectedType?.dictTypeId === item.dictTypeId"
+                :class="typeItemIndicatorClassName"
+              />
+
+              <!-- 名称 + 编码 -->
+              <div class="min-w-0 flex-1">
+                <div :class="typeItemNameClassName">
+                  {{ item.dictName }}
+                </div>
+                <div :class="typeItemCodeClassName">
+                  {{ item.dictCode }}
+                </div>
               </div>
+
+              <!-- 状态标签 + 操作 -->
               <div :class="typeItemActionsClassName">
                 <a-tag
                   :color="DICT_STATUS_COLOR_MAP[item.status] || 'default'"
-                  class="text-[10px]! px-1! py-0! leading-4!"
+                  class="!m-0 !px-1.5 !text-[10px] !leading-4"
                 >
                   {{ DICT_STATUS_LABEL_MAP[item.status] || "未知" }}
                 </a-tag>
-                <a-button
-                  type="text"
-                  size="small"
+
+                <button
+                  type="button"
                   :class="typeItemBtnClassName"
+                  title="编辑"
                   @click.stop="typeCrud.handleEdit(item)"
                 >
                   <Icon icon="ant-design:edit-outlined" class="text-xs" />
-                </a-button>
-                <a-button
-                  type="text"
-                  danger
-                  size="small"
-                  :class="typeItemBtnClassName"
+                </button>
+
+                <button
+                  type="button"
+                  :class="typeItemBtnClassName + ' hover:!text-red-500 dark:hover:!text-red-400'"
+                  title="删除"
                   @click.stop="typeCrud.handleDelete(item)"
                 >
                   <Icon icon="ant-design:delete-outlined" class="text-xs" />
-                </a-button>
+                </button>
               </div>
             </div>
           </div>
         </a-spin>
 
+        <!-- 底部 -->
         <div :class="cardFooterClassName">
-          <a-button type="primary" size="small" @click="typeCrud.handleAdd()">
-            <template #icon><Icon icon="ant-design:plus-outlined" /></template>
+          <a-button type="primary" size="small" block @click="typeCrud.handleAdd()">
+            <template #icon>
+              <Icon icon="ant-design:plus-outlined" />
+            </template>
             新增类型
           </a-button>
         </div>
       </div>
-    </div>
+    </aside>
 
-    <!-- ==================== 右侧字典项 ==================== -->
-    <div :class="rightPanelClassName">
+    <!-- ============================================================ -->
+    <!-- 右侧：字典项                                                    -->
+    <!-- ============================================================ -->
+    <section :class="rightPanelClassName">
       <div :class="cardClassName">
+        <!-- 头部 -->
         <div :class="cardHeaderClassName">
-          <span :class="cardTitleClassName">
-            {{ selectedType ? `${selectedType.dictName} - 字典项` : "字典项" }}
-          </span>
+          <div class="flex items-center gap-2">
+            <span class="h-3.5 w-1 rounded bg-blue-500 dark:bg-blue-400" />
+            <span :class="cardTitleClassName">
+              {{ selectedType ? `${selectedType.dictName} - 字典项` : "字典项" }}
+            </span>
+            <span
+              v-if="selectedType"
+              class="hidden rounded-full bg-gray-100 px-2 text-xs font-normal text-gray-500 sm:inline-block dark:bg-gray-800 dark:text-gray-400"
+            >
+              {{ selectedType.dictCode }}
+            </span>
+          </div>
         </div>
 
-        <div class="p-4">
+        <!-- 表格 -->
+        <div :class="tableWrapperClassName">
           <BasicTable
             :columns="dictItemColumns"
             :api="fetchDictItems"
@@ -289,27 +330,46 @@ loadDictTypes();
             :show-table-setting="false"
             :pagination="dictItemPagination"
             :action-column="dictItemActionColumn"
-            size="small"
             :row-selection="dictTypeRowSelection"
             :row-key="dictTypeRowKey"
+            :scroll="dictItemScroll"
+            size="small"
             @register="itemTableRegister"
           >
+            <!-- 工具栏 -->
             <template #toolbar>
-              <a-button size="small" @click="handleExport">
-                <Icon icon="carbon:export" /> 导出
-              </a-button>
-              <a-button
-                type="primary"
-                size="small"
-                :disabled="!selectedType"
-                @click="itemCrud.handleAdd()"
-              >
-                <Icon icon="ant-design:plus-outlined" /> 新增字典项
-              </a-button>
-              <a-button danger @click="itemCrud.handleBatchDelete">批量删除</a-button>
+              <div class="flex flex-wrap items-center gap-2">
+                <a-button size="small" @click="handleExport">
+                  <template #icon>
+                    <Icon icon="carbon:export" />
+                  </template>
+                  导出
+                </a-button>
+
+                <a-button
+                  type="primary"
+                  size="small"
+                  :disabled="!selectedType"
+                  @click="itemCrud.handleAdd()"
+                >
+                  <template #icon>
+                    <Icon icon="ant-design:plus-outlined" />
+                  </template>
+                  新增字典项
+                </a-button>
+
+                <a-button size="small" danger @click="itemCrud.handleBatchDelete">
+                  <template #icon>
+                    <Icon icon="ant-design:delete-outlined" />
+                  </template>
+                  批量删除
+                </a-button>
+              </div>
             </template>
+
+            <!-- 状态列 -->
             <template #cell-status="{ record }">
-              <a-tag :color="DICT_STATUS_COLOR_MAP[record.status] || 'default'">
+              <a-tag :color="DICT_STATUS_COLOR_MAP[record.status] || 'default'" class="!m-0">
                 <span :class="tagClassName">
                   <Icon :icon="DICT_STATUS_ICON_MAP[record.status] || 'carbon:help'" />
                   {{ DICT_STATUS_LABEL_MAP[record.status] || "未知" }}
@@ -317,15 +377,18 @@ loadDictTypes();
               </a-tag>
             </template>
 
+            <!-- 操作列 -->
             <template #action="{ record }">
               <TableAction :actions="getItemActions(record as DictItemRecord)" />
             </template>
           </BasicTable>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- ==================== 类型弹窗 ==================== -->
+    <!-- ============================================================ -->
+    <!-- 类型弹窗                                                       -->
+    <!-- ============================================================ -->
     <BasicModal
       :title="typeCrud.isEditing.value ? '编辑字典类型' : '新增字典类型'"
       :width="560"
@@ -341,7 +404,9 @@ loadDictTypes();
       />
     </BasicModal>
 
-    <!-- ==================== 字典项弹窗 ==================== -->
+    <!-- ============================================================ -->
+    <!-- 字典项弹窗                                                     -->
+    <!-- ============================================================ -->
     <BasicModal
       :title="itemCrud.isEditing.value ? '编辑字典项' : '新增字典项'"
       :width="600"
