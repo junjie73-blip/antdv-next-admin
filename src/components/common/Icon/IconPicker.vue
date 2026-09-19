@@ -29,7 +29,7 @@ const emit = defineEmits<{
 const PAGE_SIZE = 108;
 const SCROLLER_HEIGHT = 360;
 
-type Prefix = "lucide" | "mdi" | "ant-design" | "fa6-regular";
+type Prefix = "lucide" | "mdi" | "ant-design" | "fa6-regular" | "carbon";
 
 interface CollectionMeta {
   prefix: Prefix;
@@ -43,6 +43,7 @@ const COLLECTIONS: CollectionMeta[] = [
   { prefix: "mdi", name: "Material Design", hint: "Material" },
   { prefix: "ant-design", name: "Ant Design", hint: "Antd" },
   { prefix: "fa6-regular", name: "Font Awesome", hint: "FA Regular" },
+  { prefix: "carbon", name: "Carbon", hint: "Carbon Icons" },
 ];
 
 /**
@@ -58,6 +59,7 @@ const COLLECTION_LOADERS: Record<
   mdi: () => import("@iconify-json/mdi/icons.json") as any,
   "ant-design": () => import("@iconify-json/ant-design/icons.json") as any,
   "fa6-regular": () => import("@iconify-json/fa6-regular/icons.json") as any,
+  carbon: () => import("@iconify-json/carbon/icons.json") as any,
 };
 
 const visible = ref(false);
@@ -214,9 +216,7 @@ const prefixOptions = COLLECTIONS.map((c) => ({
             class="flex-1"
           >
             <template #prefix>
-              <Icon icon="lucide:search"
-:width="13"
-class="text-gray-400" />
+              <Icon icon="lucide:search" :width="13" class="text-gray-400" />
             </template>
           </a-input>
         </div>
@@ -226,8 +226,7 @@ class="text-gray-400" />
           class="overflow-y-auto overflow-x-hidden pr-1"
           :style="{ height: `${SCROLLER_HEIGHT}px` }"
         >
-          <div v-if="loading"
-class="h-full flex items-center justify-center">
+          <div v-if="loading" class="h-full flex items-center justify-center">
             <a-spin size="large" />
           </div>
 
@@ -237,8 +236,7 @@ class="h-full flex items-center justify-center">
             class="pt-24"
           />
 
-          <div v-else
-class="grid grid-cols-12 gap-1">
+          <div v-else class="grid grid-cols-12 gap-1">
             <a-tooltip
               v-for="icon in pagedIcons"
               :key="icon"
@@ -246,11 +244,8 @@ class="grid grid-cols-12 gap-1">
               placement="top"
               :mouse-enter-delay="0.3"
             >
-              <button type="button"
-:class="iconBtnClass(icon)"
-@click="handleSelect(icon)">
-                <Icon :icon="icon"
-:width="18" />
+              <button type="button" :class="iconBtnClass(icon)" @click="handleSelect(icon)">
+                <Icon :icon="icon" :width="18" />
               </button>
             </a-tooltip>
           </div>
@@ -283,10 +278,8 @@ class="grid grid-cols-12 gap-1">
       readonly
       class="cursor-pointer"
     >
-      <template v-if="selectedIcon"
-#prefix>
-        <Icon :icon="selectedIcon"
-:width="16" />
+      <template v-if="selectedIcon" #prefix>
+        <Icon :icon="selectedIcon" :width="16" />
       </template>
       <template #suffix>
         <Icon
@@ -296,10 +289,7 @@ class="grid grid-cols-12 gap-1">
           class="text-gray-400 hover:text-gray-600 cursor-pointer transition-colors"
           @click="handleClear"
         />
-        <Icon v-else
-icon="lucide:chevron-down"
-:width="14"
-class="text-gray-400" />
+        <Icon v-else icon="lucide:chevron-down" :width="14" class="text-gray-400" />
       </template>
     </a-input>
   </a-popover>
