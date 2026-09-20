@@ -87,7 +87,7 @@ watch(
     </div>
 
     <!-- 内容 -->
-    <div class="min-h-0 flex-1 overflow-auto">
+    <div class="min-h-0 flex-1 overflow-hidden">
       <!-- 未选中缓存组 -->
       <div
         v-if="!prefix"
@@ -106,47 +106,49 @@ watch(
       </div>
 
       <!-- 列表 -->
-      <div v-else>
-        <div
-          v-for="item in keys"
-          :key="item.key"
-          :class="[
-            'group flex cursor-pointer items-center justify-between gap-2 border-b border-gray-50 px-3 py-2 transition-colors last:border-b-0',
-            'dark:border-gray-800/50',
-            currentKey === item.key
-              ? 'bg-blue-50 dark:bg-blue-950/40'
-              : 'hover:bg-gray-50 dark:hover:bg-gray-800/60',
-          ]"
-          @click="handleSelect(item)"
-        >
-          <div class="min-w-0 flex-1">
-            <div
-              :class="[
-                'truncate font-mono text-xs',
-                currentKey === item.key
-                  ? 'text-blue-600 dark:text-blue-400'
-                  : 'text-gray-700 dark:text-gray-200',
-              ]"
-              :title="item.key"
-            >
-              {{ item.key }}
-            </div>
-            <div class="mt-0.5 flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
-              <span>{{ item.type }}</span>
-              <span>·</span>
-              <span>{{ formatTtl(item.ttl) }}</span>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            class="shrink-0 rounded p-1 text-gray-300 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 dark:hover:bg-red-950/40"
-            title="删除该 Key"
-            @click="(e) => handleDelete(item, e)"
+      <div v-else class="h-full">
+        <Scrollbar class="h-full" height="594">
+          <div
+            v-for="item in keys"
+            :key="item.key"
+            :class="[
+              'group flex cursor-pointer items-center justify-between gap-2 border-b border-gray-50 px-3 py-2 transition-colors last:border-b-0',
+              'dark:border-gray-800/50',
+              currentKey === item.key
+                ? 'bg-blue-50 dark:bg-blue-950/40'
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/60',
+            ]"
+            @click="handleSelect(item)"
           >
-            <Icon icon="carbon:trash-can" class="text-sm" />
-          </button>
-        </div>
+            <div class="min-w-0 flex-1">
+              <div
+                :class="[
+                  'truncate font-mono text-xs',
+                  currentKey === item.key
+                    ? 'text-blue-600 dark:text-blue-400'
+                    : 'text-gray-700 dark:text-gray-200',
+                ]"
+                :title="item.key"
+              >
+                {{ item.key }}
+              </div>
+              <div class="mt-0.5 flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+                <span>{{ item.type }}</span>
+                <span>·</span>
+                <span>{{ formatTtl(item.ttl) }}</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="shrink-0 rounded p-1 text-gray-300 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 dark:hover:bg-red-950/40"
+              title="删除该 Key"
+              @click="(e) => handleDelete(item, e)"
+            >
+              <Icon icon="carbon:trash-can" class="text-sm" />
+            </button>
+          </div>
+        </Scrollbar>
       </div>
     </div>
   </div>

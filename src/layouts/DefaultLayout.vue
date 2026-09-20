@@ -80,13 +80,13 @@ const hasChildren = computed(() => {
 
 const layoutClassName = computed(() =>
   cn(
-    "h-screen flex flex-col overflow-hidden",
+    "h-screen flex flex-col gap-4 overflow-hidden",
     isGeekStyle.value ? "bg-[#0a0a0a]" : "bg-gray-50 dark:bg-gray-900",
   ),
 );
 
 const contentClassName = computed(() =>
-  cn("p-4 h-full  box-border", isGeekStyle.value ? "bg-[#0a0a0a]" : "bg-gray-50 dark:bg-gray-900"),
+  cn("p-4  flex-1  box-border", isGeekStyle.value ? "bg-[#0a0a0a]" : "bg-gray-50 dark:bg-gray-900"),
 );
 
 // 主内容区滚动容器引用（供路由切换时回到顶部）
@@ -165,35 +165,29 @@ useWatermark({
           :show-icon="appStore.tabShowIcon ?? true"
         />
 
-        <PerfectScrollbar
-          ref="mainScrollbar"
-          class="flex-1"
-          :options="{ suppressScrollX: true, wheelPropagation: true }"
-        >
-          <main :class="contentClassName" class="relative">
-            <!-- 页面切换骨架屏（支持错误状态） -->
-            <PageLoading :loading="isRouteLoading" variant="default" :error="isSlow" />
+        <main :class="contentClassName" class="relative overflow-hidden">
+          <!-- 页面切换骨架屏（支持错误状态） -->
+          <PageLoading :loading="isRouteLoading" variant="default" :error="isSlow" />
 
-            <router-view v-slot="{ Component, route }">
-              <!-- 微前端页面：禁用 out-in 模式，避免 iframe/微应用被 transition 销毁 -->
-              <template v-if="route.meta?.microApp">
-                <keep-alive :include="cachedRoutes">
-                  <component :is="markRaw(Component)" :key="route.path" />
-                </keep-alive>
-              </template>
-              <!-- 全屏大屏页面：禁用 transition + keepAlive，避免 ECharts 资源泄漏影响其他页面 -->
-              <template v-else-if="route.meta?.noTransition">
+          <router-view v-slot="{ Component, route }">
+            <!-- 微前端页面：禁用 out-in 模式，避免 iframe/微应用被 transition 销毁 -->
+            <template v-if="route.meta?.microApp">
+              <keep-alive :include="cachedRoutes">
                 <component :is="markRaw(Component)" :key="route.path" />
-              </template>
-              <!-- 普通页面：使用 KeepAlive 缓存，但不使用 Transition 避免渲染冲突 -->
-              <template v-else>
-                <keep-alive :include="cachedRoutes">
-                  <component :is="markRaw(Component)" :key="route.path" />
-                </keep-alive>
-              </template>
-            </router-view>
-          </main>
-        </PerfectScrollbar>
+              </keep-alive>
+            </template>
+            <!-- 全屏大屏页面：禁用 transition + keepAlive，避免 ECharts 资源泄漏影响其他页面 -->
+            <template v-else-if="route.meta?.noTransition">
+              <component :is="markRaw(Component)" :key="route.path" />
+            </template>
+            <!-- 普通页面：使用 KeepAlive 缓存，但不使用 Transition 避免渲染冲突 -->
+            <template v-else>
+              <keep-alive :include="cachedRoutes">
+                <component :is="markRaw(Component)" :key="route.path" />
+              </keep-alive>
+            </template>
+          </router-view>
+        </main>
 
         <LayoutFooter v-if="appStore.showFooter" />
       </div>

@@ -24,3 +24,7 @@ export function updatePermission(id: string, data: Record<string, any>) {
 export function deletePermission(id: string) {
   return http.Delete(`/permission/${id}`);
 }
+// 获取全部权限
+export function getAllPermissions() {
+  return http.Get("/permission/all");
+}

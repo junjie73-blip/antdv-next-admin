@@ -143,7 +143,7 @@ function getActions(record: TenantRecord): ActionItem[] {
 
 <template>
   <div :class="containerClassName">
-    <a-card title="租户管理" :class="cardClassName">
+    <a-card :class="cardClassName">
       <BasicTable
         :columns="tenantColumns"
         :api="getTenantList"

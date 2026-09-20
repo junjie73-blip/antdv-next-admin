@@ -47,7 +47,7 @@ function getActions(record: OnlineUserRecord): ActionItem[] {
 </script>
 
 <template>
-  <a-card title="在线用户" :bordered="false" class="shadow-sm">
+  <a-card :bordered="false" class="shadow-sm">
     <BasicTable
       :columns="onlineColumns"
       :api="getOnlineList"

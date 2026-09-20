@@ -16,12 +16,17 @@ import {
 } from "./columns";
 
 import {
+  cardBodyClassName,
   cardClassName,
+  cardHeaderClassName,
+  cardTitleBarClassName,
+  cardTitleClassName,
   containerClassName,
+  deptSearchClassName,
   leftPanelClassName,
   rightPanelClassName,
   statusTagClassName,
-  treeCardClassName,
+  toolbarClassName,
   USER_STATUS_COLOR_MAP,
   USER_STATUS_ICON_MAP,
   USER_STATUS_LABEL_MAP,
@@ -57,60 +62,104 @@ import { type ActionItem, BasicTable, TableAction, useTable } from "~/components
 import { useCRUD } from "~/composables/useCRUD";
 import { DictType } from "~/enums/dict";
 import { useDictStore } from "~/stores";
-
-// 抽离的模块
-
 import { http } from "~/utils";
+import { cn } from "~/utils/cn";
 
 defineOptions({ name: "SystemUser" });
 
-// ========== 字典 ==========
+/* ============================================================
+ * 字典
+ * ============================================================ */
 const dictStore = useDictStore();
 const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE));
 
-// ========== 基础数据 ==========
+/* ============================================================
+ * 基础数据
+ * ============================================================ */
 const deptTreeData = ref<DeptTreeNode[]>([]);
 const allDeptNodes = ref<FlatDeptNode[]>([]);
 const roleOptions = ref<RoleOption[]>([]);
 const uploadLoading = ref(false);
+
+/** 部门树搜索关键词 */
+const deptKeyword = ref("");
+const deptSearchLoading = ref(false);
+
+/** 过滤后的部门树（按关键词过滤，保留父链） */
+const filteredDeptTree = computed(() => {
+  if (!deptKeyword.value.trim()) return deptTreeData.value;
+  const kw = deptKeyword.value.toLowerCase();
+
+  function filter(nodes: DeptTreeNode[]): DeptTreeNode[] {
+    const result: DeptTreeNode[] = [];
+    for (const node of nodes) {
+      const children = node.children ? filter(node.children) : [];
+      const matched = node.deptName.toLowerCase().includes(kw);
+      if (matched || children.length > 0) {
+        result.push({ ...node, children: children.length ? children : undefined });
+      }
+    }
+    return result;
+  }
+
+  return filter(deptTreeData.value);
+});
+
 async function loadBaseData() {
+  deptSearchLoading.value = true;
   try {
-    const [deptRes, optionRes] = await Promise.all<any[]>([getDeptTree(), getUserOptions()]);
-    const deptData = Array.isArray(deptRes) ? deptRes : (deptRes?.data ?? deptRes ?? []);
-    const optData = Array.isArray(optionRes) ? optionRes : (optionRes?.data ?? optionRes ?? []);
+    const [deptRes, optionRes] = await Promise.all<unknown[]>([getDeptTree(), getUserOptions()]);
+    const deptData = Array.isArray(deptRes) ? deptRes : ((deptRes as any)?.data ?? deptRes ?? []);
+    const optData = Array.isArray(optionRes)
+      ? optionRes
+      : ((optionRes as any)?.data ?? optionRes ?? []);
 
     deptTreeData.value = convertDeptTree(deptData);
     allDeptNodes.value = flattenDeptTree(deptTreeData.value);
-    roleOptions.value = optData.map((item: any) => ({
+    roleOptions.value = (optData as any[]).map((item) => ({
       label: item.label,
       value: item.value,
     }));
   } catch (e) {
     console.error("加载基础数据失败", e);
     message.error("加载部门/角色选项失败");
+  } finally {
+    deptSearchLoading.value = false;
   }
 }
 
-// ========== 选中部门 ==========
+/* ============================================================
+ * 部门选择
+ * ============================================================ */
 const selectedDeptId = ref<string>("");
 const treeExpandedKeys = ref<string[]>([]);
 
-function handleDeptSelect(_selectedKeys: (string | number)[], info: { node: { deptId: string } }) {
+function handleDeptSelect(_keys: (string | number)[], info: { node: any }) {
   const clickedId = info.node.deptId;
-  // 再次点击已选中的节点，取消选中
   selectedDeptId.value = selectedDeptId.value === clickedId ? "" : clickedId;
   tableMethods.value?.reload();
 }
 
-// ========== 注册实例 ==========
+function clearDeptFilter() {
+  selectedDeptId.value = "";
+  tableMethods.value?.reload();
+}
+
+/* ============================================================
+ * 实例
+ * ============================================================ */
 const [modalRegister, modalMethods] = useModal();
 const [tableRegister, tableMethods] = useTable();
 const [formRegister, formMethods] = useForm();
 
-// ========== Schema ==========
+/* ============================================================
+ * Schema
+ * ============================================================ */
 const searchFormSchemas = useUserSearchSchemas(statusOptions);
 
-// ========== useCRUD ==========
+/* ============================================================
+ * CRUD
+ * ============================================================ */
 const {
   isEditing,
   handleAdd,
@@ -159,15 +208,19 @@ const {
 });
 const modalFormSchemas = useUserFormSchemas(statusOptions, isEditing);
 
-// ========== 表格数据加载 ==========
-async function fetchUserList(params: Record<string, any>) {
+/* ============================================================
+ * 列表数据
+ * ============================================================ */
+async function fetchUserList(params: any) {
   return await getUserList({
     ...params,
     deptId: selectedDeptId.value || undefined,
   });
 }
 
-// ========== 批量删除（先弹确认） ==========
+/* ============================================================
+ * 批量删除
+ * ============================================================ */
 async function handleBatchDelete() {
   const selected = (tableMethods.value?.getSelectRows?.() || []) as UserRecord[];
   if (selected.length === 0) {
@@ -183,27 +236,24 @@ async function handleBatchDelete() {
     },
   });
 }
-// 头像上传
-// 文件校验函数（before-upload 调用）
+
+/* ============================================================
+ * 头像上传
+ * ============================================================ */
 function beforeUpload(file: File) {
-  // 1. 类型校验：仅允许 JPG/PNG
   const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
   if (!isJpgOrPng) {
     message.error("只能上传 JPG/PNG 格式的图片");
-    return false; // 阻止上传
+    return false;
   }
-
-  // 2. 大小校验：不超过 2MB
   const isLt2M = file.size / 1024 / 1024 < 2;
   if (!isLt2M) {
     message.error("图片大小不能超过 2MB");
-    return false; // 阻止上传
+    return false;
   }
-
-  return true; // 校验通过，允许上传
+  return true;
 }
 
-// 自定义上传函数（custom-request 调用）
 async function customUpload({ file, onSuccess, onError }: any) {
   const formData = new FormData();
   formData.append("file", file);
@@ -223,12 +273,16 @@ async function customUpload({ file, onSuccess, onError }: any) {
   }
 }
 
-// ========== 打印 ==========
+/* ============================================================
+ * 打印
+ * ============================================================ */
 function handlePrint() {
   printUserList();
 }
 
-// ============ 重置密码 ============
+/* ============================================================
+ * 重置密码
+ * ============================================================ */
 const resetPwdVisible = ref(false);
 const resetPwdTarget = ref<UserRecord | null>(null);
 const resetPwdValue = ref("");
@@ -257,7 +311,9 @@ async function confirmResetPassword() {
   }
 }
 
-// ============ 敏感信息 ============
+/* ============================================================
+ * 敏感信息
+ * ============================================================ */
 const sensitiveVisible = ref(false);
 const sensitiveData = ref<Record<string, unknown>>({});
 const sensitiveLoading = ref(false);
@@ -276,7 +332,9 @@ async function handleViewSensitive(record: UserRecord) {
   }
 }
 
-// ========== 操作项 ==========
+/* ============================================================
+ * 操作项
+ * ============================================================ */
 function getActions(record: UserRecord): ActionItem[] {
   return getUserActions(record, {
     onEdit: handleEdit,
@@ -286,87 +344,200 @@ function getActions(record: UserRecord): ActionItem[] {
   });
 }
 
-// ========== 初始化 ==========
+/* ============================================================
+ * 初始化
+ * ============================================================ */
 onMounted(loadBaseData);
 </script>
 
 <template>
   <div :class="containerClassName">
-    <!-- 左侧部门树 -->
-    <div :class="leftPanelClassName">
-      <a-card :class="treeCardClassName" title="部门列表" size="small">
-        <a-tree
-          :tree-data="deptTreeData"
-          :field-names="{ children: 'children', title: 'deptName', key: 'deptId' }"
-          :expanded-keys="treeExpandedKeys"
-          :default-selected-keys="selectedDeptId ? [selectedDeptId] : []"
-          block-node
-          @select="handleDeptSelect"
-          @update:expanded-keys="(keys: string[]) => (treeExpandedKeys = keys)"
-        />
-      </a-card>
-    </div>
+    <!-- ============================================================ -->
+    <!-- 左：部门树                                                     -->
+    <!-- ============================================================ -->
+    <aside :class="leftPanelClassName">
+      <div :class="cardClassName">
+        <!-- 头部 -->
+        <div :class="cardHeaderClassName">
+          <div :class="cardTitleClassName">
+            <span :class="cardTitleBarClassName" />
+            <span>部门列表</span>
+            <span
+              class="rounded-full bg-gray-100 px-1.5 text-[10px] font-normal text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+            >
+              {{ allDeptNodes.length }}
+            </span>
+          </div>
 
-    <!-- 右侧用户列表 -->
-    <div :class="rightPanelClassName">
-      <a-card title="用户管理" :class="cardClassName">
+          <button
+            v-if="selectedDeptId"
+            type="button"
+            class="rounded p-1 text-xs text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+            title="清除筛选"
+            @click="clearDeptFilter"
+          >
+            <Icon icon="carbon:filter-remove" />
+          </button>
+        </div>
+
+        <!-- 搜索 -->
+        <div :class="deptSearchClassName">
+          <a-input v-model:value="deptKeyword" placeholder="搜索部门" allow-clear size="small">
+            <template #prefix>
+              <Icon icon="carbon:search" class="text-gray-400" />
+            </template>
+          </a-input>
+        </div>
+
+        <!-- 树 -->
+        <div :class="cardBodyClassName" class="p-3">
+          <a-spin :spinning="deptSearchLoading">
+            <!-- 空态 -->
+            <div
+              v-if="filteredDeptTree.length === 0"
+              class="flex flex-col items-center gap-2 py-10 text-gray-400 dark:text-gray-500"
+            >
+              <Icon icon="carbon:tree-view" class="text-3xl opacity-40" />
+              <span class="text-xs">暂无部门</span>
+            </div>
+
+            <!-- 树 -->
+            <a-tree
+              v-else
+              :tree-data="filteredDeptTree"
+              :field-names="{ children: 'children', title: 'deptName', key: 'deptId' }"
+              :expanded-keys="treeExpandedKeys"
+              :selected-keys="selectedDeptId ? [selectedDeptId] : []"
+              block-node
+              @select="handleDeptSelect"
+              @update:expanded-keys="(keys: string[]) => (treeExpandedKeys = keys)"
+            >
+              <template #title="{ deptName, deptId }">
+                <span
+                  :class="
+                    cn(
+                      'flex items-center gap-1.5 rounded px-1 py-0.5 text-sm transition-colors',
+                      selectedDeptId === deptId
+                        ? 'font-medium text-blue-600 dark:text-blue-400'
+                        : 'text-gray-700 dark:text-gray-200',
+                    )
+                  "
+                >
+                  <Icon
+                    icon="carbon:folder"
+                    class="text-xs"
+                    :class="
+                      selectedDeptId === deptId
+                        ? 'text-blue-500 dark:text-blue-400'
+                        : 'text-gray-400 dark:text-gray-500'
+                    "
+                  />
+                  {{ deptName }}
+                </span>
+              </template>
+            </a-tree>
+          </a-spin>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ============================================================ -->
+    <!-- 右：用户管理                                                   -->
+    <!-- ============================================================ -->
+    <section :class="rightPanelClassName">
+      <div :class="cardClassName">
+        <!-- 头部 -->
+        <div :class="cardHeaderClassName">
+          <div :class="cardTitleClassName">
+            <span :class="cardTitleBarClassName" />
+            <span>用户管理</span>
+            <span
+              v-if="selectedDeptId"
+              class="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-normal text-blue-600 dark:bg-blue-950/40 dark:text-blue-400"
+            >
+              已筛选部门
+            </span>
+          </div>
+        </div>
+
+        <!-- 搜索表单（嵌入 BasicTable 的 form-config） -->
         <BasicTable
           :columns="userColumns"
           :api="fetchUserList"
           :immediate="true"
           :use-search-form="true"
-          :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
+          :form-config="{ schemas: searchFormSchemas, labelWidth: 60 }"
           :action-column="userActionColumn"
           :row-selection="userRowSelection"
           :pagination="userPagination"
           :scroll="userScroll"
           :row-key="userRowKey"
+          size="small"
+          class="p-4"
           @register="tableRegister"
         >
+          <!-- 工具栏 -->
           <template #toolbar>
-            <a-button type="primary" @click="handleAdd()">
-              <template #icon><Icon icon="ant-design:plus-outlined" /></template>
-              新增用户
-            </a-button>
-            <ImportExport
-              filename="用户列表"
-              module="/user"
-              :export-params="{
-                ids: tableMethods?.getSelectRowKeys(),
-              }"
-              :import-template="USER_IMPORT_TEMPLATE"
-            />
-            <a-button @click="handlePrint">
-              <template #icon><Icon icon="carbon:printer" /></template>
-              打印
-            </a-button>
-            <a-button danger @click="handleBatchDelete()">
-              <template #icon><Icon icon="ant-design:delete-outlined" /></template>
-              批量删除
-            </a-button>
+            <div :class="toolbarClassName" class="!p-0">
+              <a-button type="primary" @click="handleAdd()">
+                <template #icon>
+                  <Icon icon="ant-design:plus-outlined" />
+                </template>
+                新增用户
+              </a-button>
+
+              <ImportExport
+                filename="用户列表"
+                module="/user"
+                :export-params="{ ids: tableMethods?.getSelectRowKeys() }"
+                :import-template="USER_IMPORT_TEMPLATE"
+              />
+
+              <a-button @click="handlePrint">
+                <template #icon><Icon icon="carbon:printer" /></template>
+                打印
+              </a-button>
+
+              <a-button danger @click="handleBatchDelete()">
+                <template #icon>
+                  <Icon icon="ant-design:delete-outlined" />
+                </template>
+                批量删除
+              </a-button>
+            </div>
           </template>
 
+          <!-- 状态列 -->
           <template #cell-status="{ record }">
-            <a-tag :color="USER_STATUS_COLOR_MAP[record.status] || 'default'">
+            <a-tag :color="USER_STATUS_COLOR_MAP[record.status] || 'default'" class="!m-0">
               <span :class="statusTagClassName">
-                <Icon :icon="USER_STATUS_ICON_MAP[record.status] || 'carbon:help'" />
+                <Icon
+                  :icon="USER_STATUS_ICON_MAP[record.status] || 'carbon:help'"
+                  class="text-xs"
+                />
                 {{ USER_STATUS_LABEL_MAP[record.status] || "未知" }}
               </span>
             </a-tag>
           </template>
 
+          <!-- 角色列 -->
           <template #cell-roles="{ record }">
-            {{ getUserRoleNames(record as UserRecord) }}
+            <span class="text-xs text-gray-600 dark:text-gray-300">
+              {{ getUserRoleNames(record as UserRecord) }}
+            </span>
           </template>
 
+          <!-- 操作列 -->
           <template #action="{ record }">
             <TableAction :actions="getActions(record as UserRecord)" />
           </template>
         </BasicTable>
-      </a-card>
-    </div>
+      </div>
+    </section>
 
-    <!-- 新增/编辑弹窗 -->
+    <!-- ============================================================ -->
+    <!-- 新增/编辑弹窗                                                  -->
+    <!-- ============================================================ -->
     <BasicModal
       :title="isEditing ? '编辑用户' : '新增用户'"
       :width="640"
@@ -384,23 +555,26 @@ onMounted(loadBaseData);
           <div class="flex items-center gap-4">
             <a-upload
               :show-upload-list="false"
-              :accept="'.jpg,.jpeg,.png'"
+              accept=".jpg,.jpeg,.png"
               :before-upload="beforeUpload"
               :custom-request="customUpload"
             >
-              <a-button :loading="uploadLoading"> 上传头像 </a-button>
+              <a-button :loading="uploadLoading">上传头像</a-button>
             </a-upload>
             <img
               v-if="model[field]"
               :src="model[field]"
-              class="w-16 h-16 rounded-full object-cover border"
+              class="h-16 w-16 rounded-full border border-gray-200 object-cover dark:border-gray-700"
               alt="avatar"
             />
           </div>
         </template>
       </BasicForm>
     </BasicModal>
-    <!-- 重置密码弹窗 -->
+
+    <!-- ============================================================ -->
+    <!-- 重置密码弹窗                                                   -->
+    <!-- ============================================================ -->
     <a-modal
       v-model:open="resetPwdVisible"
       title="重置密码"
@@ -409,7 +583,9 @@ onMounted(loadBaseData);
       @ok="confirmResetPassword"
     >
       <div class="space-y-3 py-2">
-        <p class="text-sm text-gray-500">为用户「{{ resetPwdTarget?.username }}」设置新密码</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          为用户「{{ resetPwdTarget?.username }}」设置新密码
+        </p>
         <a-input-password
           v-model:value="resetPwdValue"
           placeholder="请输入新密码（至少 6 位）"
@@ -418,10 +594,12 @@ onMounted(loadBaseData);
       </div>
     </a-modal>
 
-    <!-- 敏感信息弹窗 -->
+    <!-- ============================================================ -->
+    <!-- 敏感信息弹窗                                                   -->
+    <!-- ============================================================ -->
     <a-modal v-model:open="sensitiveVisible" title="用户敏感信息" :width="520" :footer="null">
       <a-spin :spinning="sensitiveLoading">
-        <Description :column="1" :data="sensitiveData" :schema="userDetailSchema"></Description>
+        <Description :column="1" :data="sensitiveData" :schema="userDetailSchema" />
       </a-spin>
     </a-modal>
   </div>

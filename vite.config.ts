@@ -1,5 +1,6 @@
 import { AntdvNextResolver } from "@antdv-next/auto-import-resolver";
 import tailwindcss from "@tailwindcss/vite";
+import iconifyOffline from "@tomjs/vite-plugin-iconify";
 import viteVue from "@vitejs/plugin-vue";
 import viteVueJsx from "@vitejs/plugin-vue-jsx";
 import archiver from "archiver";
@@ -11,7 +12,6 @@ import { analyzer } from "vite-bundle-analyzer";
 import viteCompressPlugin from "vite-plugin-compression";
 import viteDtsPlugin from "vite-plugin-dts";
 import { createHtmlPlugin as viteHtmlPlugin } from "vite-plugin-html";
-import iconifyOffline from "vite-plugin-iconify-offline";
 import viteImagemin from "vite-plugin-imagemin";
 import Inspect from "vite-plugin-inspect";
 import { wrapPlugin } from "vite-plugin-performance";
@@ -274,7 +274,12 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ];
-    mode === "production" && plugins.push(iconifyOffline());
+    mode === "production" &&
+      plugins.push(
+        iconifyOffline({
+          local: ["carbon", "ant-design", "lucide", "fa6-regular", "mdi"],
+        }),
+      );
     envConfig.VITE_DEVTOOLS && plugins.push(viteVueDevTools());
 
     envConfig.VITE_ARCHIVER && plugins.push(viteArchiverPlugin({}));

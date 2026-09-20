@@ -21,6 +21,8 @@ const props = withDefaults(defineProps<FormProps>(), {
   submitOnReset: true,
   autoSubmitOnEnter: true,
   labelAlign: "right",
+  colon: false,
+  scrollToFirstError: true,
 });
 
 const emit = defineEmits<{

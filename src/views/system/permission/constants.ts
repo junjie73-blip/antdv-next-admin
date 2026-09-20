@@ -70,6 +70,7 @@ export const ACTION_COLOR_MAP: Record<string, string> = {
   import: "purple",
   list: "geekblue",
   detail: "blue",
+  other: "default",
 };
 
 export const ACTION_OPTIONS = [
@@ -81,6 +82,7 @@ export const ACTION_OPTIONS = [
   { label: "详情 (detail)", value: "detail" },
   { label: "导出 (export)", value: "export" },
   { label: "导入 (import)", value: "import" },
+  { label: "其他 (other)", value: "other" },
 ];
 
 // ========== 新增权限时的空表单值（默认 api） ==========

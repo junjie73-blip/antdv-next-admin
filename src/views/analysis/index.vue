@@ -178,7 +178,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div>
+  <PerfectScrollbar class="h-full">
     <!-- 页面标题 -->
     <div class="flex items-center justify-between mb-2">
       <div>
@@ -361,7 +361,7 @@ onBeforeUnmount(() => {
       </a-row>
 
       <!-- 第四行 -->
-      <a-row :gutter="[16, 16]" class="items-stretch mb-12">
+      <a-row :gutter="[16, 16]" class="items-stretch">
         <a-col :xs="24" :lg="10" class="mb-2">
           <a-card
             :class="cn(analyticsCardClassName, 'h-full')"
@@ -391,5 +391,5 @@ onBeforeUnmount(() => {
         </a-col>
       </a-row>
     </div>
-  </div>
+  </PerfectScrollbar>
 </template>

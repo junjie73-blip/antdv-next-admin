@@ -11,11 +11,11 @@ import type { LayoutMode } from "../composables/useLayout";
 
 import type { ComponentSize, ThemeStyle, TransitionEffect } from "~/settings";
 
+import { Scrollbar } from "~/components/common";
 import { useThemeTransition } from "~/composables/web/useThemeTransition";
 import { THEME_PRESETS } from "~/settings/theme";
 import { useAppStore } from "~/stores/modules/app";
 import { cn } from "~/utils/cn";
-
 defineOptions({ name: "SettingDrawer" });
 
 const visible = defineModel<boolean>("visible", { default: false });
@@ -201,6 +201,7 @@ const isPresetColor = computed(() => {
     :body-style="{ padding: '0' }"
     :header-style="{ display: 'none' }"
     root-class-name="setting-drawer"
+    @close="activeSection = 'appearance'"
   >
     <div class="flex flex-col h-full bg-white dark:bg-slate-950">
       <!-- ============================================================ -->
@@ -241,7 +242,7 @@ const isPresetColor = computed(() => {
             block
           />
         </div>
-        <PerfectScrollbar class="h-max">
+        <Scrollbar :height="800">
           <div class="p-5 space-y-6">
             <template v-if="activeSection === 'appearance'">
               <div>
@@ -845,7 +846,7 @@ const isPresetColor = computed(() => {
               </div>
             </template>
           </div>
-        </PerfectScrollbar>
+        </Scrollbar>
       </div>
     </div>
   </a-drawer>

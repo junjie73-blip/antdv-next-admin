@@ -70,7 +70,7 @@ function refreshInfo() {
 </script>
 
 <template>
-  <div class="flex h-[calc(100vh-100px)] flex-col gap-3">
+  <div class="flex h-full flex-col overflow-hidden gap-3">
     <!-- 顶部概览 -->
     <div
       class="rounded-lg border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
@@ -137,7 +137,7 @@ function refreshInfo() {
     </div>
 
     <!-- 三栏布局 -->
-    <div class="grid min-h-0 flex-1 grid-cols-12 gap-3">
+    <div class="grid flex-1 grid-cols-12 gap-3">
       <!-- 左：缓存列表 -->
       <div class="col-span-3 min-h-0">
         <CacheGroupList :current="currentGroup?.name ?? null" @change="handleGroupChange" />

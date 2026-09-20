@@ -145,7 +145,7 @@ onMounted(() => {
 
 <template>
   <div :class="containerClassName">
-    <a-card title="角色管理" :class="cardClassName">
+    <a-card :class="cardClassName">
       <BasicTable
         :columns="roleColumns"
         :api="getRoleList"

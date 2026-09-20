@@ -103,7 +103,7 @@ function getActions(record: PermissionRecord): ActionItem[] {
 
 <template>
   <div :class="containerClassName">
-    <a-card title="权限管理" :class="cardClassName">
+    <a-card :class="cardClassName">
       <BasicTable
         :columns="permissionColumns"
         :api="getPermissionList"

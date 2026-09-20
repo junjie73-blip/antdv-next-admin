@@ -13,7 +13,7 @@ export const deptSearchSchemas: FormSchema[] = [
     label: "部门名称",
     component: "Input",
     componentProps: { placeholder: "搜索部门名称...", allowClear: true },
-    colProps: { span: 6 },
+    colProps: { span: 8 },
   },
 ];
 

@@ -1,8 +1,8 @@
 import { cn } from "~/utils/cn";
 
 // ========== 样式类名 ==========
-export const containerClassName = cn("space-y-4");
-export const cardClassName = cn("shadow-sm");
+export const containerClassName = cn("space-y-4 h-full");
+export const cardClassName = cn("shadow-sm h-full");
 
 // ========== 状态映射 ==========
 export const ROLE_STATUS_COLOR_MAP: Record<string, string> = {

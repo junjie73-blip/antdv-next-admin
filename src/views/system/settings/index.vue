@@ -123,7 +123,7 @@ function getActions(record: ConfigRecord): ActionItem[] {
 
 <template>
   <div :class="containerClassName">
-    <a-card title="系统设置" :class="cardClassName">
+    <a-card :class="cardClassName">
       <BasicTable
         :columns="configColumns"
         :api="getSettingsList"

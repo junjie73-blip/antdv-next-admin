@@ -9,8 +9,8 @@ import {
   assignRoleMenus,
   assignRolePermissions,
   assignRoleUsers,
+  getAllPermissions,
   getDeptTree,
-  getPermissionList,
   getRoleDepts,
   getRoleMenusTree,
   getRoleUsers,
@@ -66,13 +66,12 @@ const apiLoading = ref(false);
 async function loadApiPermissions() {
   apiLoading.value = true;
   try {
-    const res: any = await getPermissionList({ pageNum: 1, pageSize: 999 });
-    const list = res?.data?.list ?? res?.list ?? [];
+    const res: any = await getAllPermissions();
+    const list = res?.data ?? res ?? [];
     apiOptions.value = list.map((p: any) => ({
       label: `${p.permName} (${p.permCode})`,
       value: p.permId,
     }));
-
     // 已关联的权限
     if (props.role) {
       const rolePerms: any = await http
@@ -160,7 +159,6 @@ async function init() {
     const selectedIds = await getRoleMenusTree(props.role.roleId);
     // 用 role 里已有的 menuIds 计算叶子
     checkedMenuKeys.value = filterLeafKeys(menuTreeData.value, selectedIds);
-    console.log(checkedMenuKeys.value, "checkedMenuKeys");
   } catch {}
 
   // API 权限 / 用户 / 部门，按需加载（先只加载当前 Tab 的）
@@ -235,6 +233,7 @@ function close() {
               <a-tree
                 checkable
                 default-expand-all
+                defaultExpandParent
                 :tree-data="menuTreeData"
                 :checked-keys="checkedMenuKeys"
                 :field-names="{ title: 'menuName', key: 'menuId' }"

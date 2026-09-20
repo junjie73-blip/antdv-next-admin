@@ -81,66 +81,67 @@ onMounted(loadGroups);
     </div>
 
     <!-- 列表 -->
-    <div class="min-h-0 flex-1 overflow-auto">
+    <div class="min-h-0 flex-1 overflow-hidden">
       <div v-if="loading" class="p-4 text-center text-xs text-gray-400">加载中...</div>
       <div v-else-if="groups.length === 0" class="p-4 text-center text-xs text-gray-400">
         暂无数据
       </div>
-      <div v-else>
-        <div
-          v-for="group in groups"
-          :key="group.name"
-          :class="[
-            'group flex cursor-pointer items-center justify-between gap-2 border-b border-gray-50 px-3 py-2 transition-colors last:border-b-0',
-            'dark:border-gray-800/50',
-            current === group.name
-              ? 'bg-blue-50 dark:bg-blue-950/40'
-              : 'hover:bg-gray-50 dark:hover:bg-gray-800/60',
-          ]"
-          @click="handleSelect(group)"
-        >
-          <div class="min-w-0 flex-1">
-            <div
-              :class="[
-                'flex items-center gap-1 truncate text-sm',
-                current === group.name
-                  ? 'font-medium text-blue-600 dark:text-blue-400'
-                  : 'text-gray-700 dark:text-gray-200',
-              ]"
-              :title="group.name"
-            >
-              <span class="truncate">{{ group.name }}</span>
-
-              <!-- ⭐ 未分类标记 -->
-              <span
-                v-if="group.discovered"
-                class="shrink-0 rounded bg-amber-100 px-1 text-[10px] leading-4 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400"
-                title="未在 CACHE_GROUPS 中配置"
-              >
-                自动
-              </span>
-            </div>
-
-            <div class="mt-0.5 flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
-              <span>{{ group.remark }}</span>
-              <span
-                v-if="group.count > 0"
-                class="rounded-full bg-blue-100 px-1.5 text-[10px] leading-4 text-blue-600 dark:bg-blue-900/60 dark:text-blue-300"
-              >
-                {{ group.count }}
-              </span>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            class="shrink-0 rounded p-1 text-gray-300 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 dark:hover:bg-red-950/40"
-            title="清空该缓存组"
-            @click="(e) => handleClearGroup(group, e)"
+      <div v-else class="h-full">
+        <Scrollbar class="h-full" height="594">
+          <div
+            v-for="group in groups"
+            :key="group.name"
+            :class="[
+              'group flex cursor-pointer items-center justify-between gap-2 border-b border-gray-50 px-3 py-2 transition-colors last:border-b-0',
+              'dark:border-gray-800/50',
+              current === group.name
+                ? 'bg-blue-50 dark:bg-blue-950/40'
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/60',
+            ]"
+            @click="handleSelect(group)"
           >
-            <Icon icon="carbon:trash-can" class="text-sm" />
-          </button>
-        </div>
+            <div class="min-w-0 flex-1">
+              <div
+                :class="[
+                  'flex items-center gap-1 truncate text-sm',
+                  current === group.name
+                    ? 'font-medium text-blue-600 dark:text-blue-400'
+                    : 'text-gray-700 dark:text-gray-200',
+                ]"
+                :title="group.name"
+              >
+                <span class="truncate">{{ group.name }}</span>
+
+                <!-- ⭐ 未分类标记 -->
+                <span
+                  v-if="group.discovered"
+                  class="shrink-0 rounded bg-amber-100 px-1 text-[10px] leading-4 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400"
+                  title="未在 CACHE_GROUPS 中配置"
+                >
+                  自动
+                </span>
+              </div>
+
+              <div class="mt-0.5 flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+                <span>{{ group.remark }}</span>
+                <span
+                  v-if="group.count > 0"
+                  class="rounded-full bg-blue-100 px-1.5 text-[10px] leading-4 text-blue-600 dark:bg-blue-900/60 dark:text-blue-300"
+                >
+                  {{ group.count }}
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="shrink-0 rounded p-1 text-gray-300 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 dark:hover:bg-red-950/40"
+              title="清空该缓存组"
+              @click="(e) => handleClearGroup(group, e)"
+            >
+              <Icon icon="carbon:trash-can" class="text-sm" />
+            </button></div
+        ></Scrollbar>
       </div>
     </div>
   </div>

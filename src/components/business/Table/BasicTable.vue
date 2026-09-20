@@ -664,3 +664,8 @@ defineExpose(tableActionType);
     </Table>
   </div>
 </template>
+<style scoped>
+:deep(.ant-form-item){
+  margin-bottom:12px
+}
+</style>
