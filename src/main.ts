@@ -9,7 +9,7 @@ import VuePdfEmbed, { GlobalWorkerOptions } from "vue-pdf-embed/dist/index.essen
 import { PerfectScrollbarPlugin } from "vue3-perfect-scrollbar";
 
 import App from "./App.vue";
-import { escapeDirective, safeHtmlDirective } from "./directives";
+import { escapeDirective, safeHtmlDirective, vPermission } from "./directives";
 import i18n from "./locales";
 import { setupRouter } from "./router";
 import { initSecuritySystem } from "./utils/securityInit";
@@ -72,6 +72,9 @@ app.directive("safe-html", safeHtmlDirective);
 // v-escape: 自动转义文本内容（防止注入攻击）
 // 用法：v-escape="value" | v-escape:url="url" | v-escape:js="code"
 app.directive("escape", escapeDirective);
+// v-permission: 权限指令（根据用户角色判断是否显示）
+app.directive("permission", vPermission);
+// ==================== 全局注册组件 ====================
 app.component("PdfViewer", VuePdfEmbed);
 GlobalWorkerOptions.workerSrc = PdfWorker;
 app.mount("#app");

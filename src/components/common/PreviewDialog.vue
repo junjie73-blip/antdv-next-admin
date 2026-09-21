@@ -174,12 +174,11 @@ const category = computed(() => getFileCategory(props.fileName));
 function buildParams() {
   const params: Record<string, string> = {};
   if (props.fileId) params.fileId = props.fileId;
-  if (props.url) params.url = props.url;
   return params;
 }
 
 async function loadPreview() {
-  if (!props.fileId && !props.url) return;
+  if (!props.fileId) return;
   loading.value = true;
   try {
     const params = buildParams();

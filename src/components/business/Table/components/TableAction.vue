@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Button, Divider, Dropdown, Popconfirm } from "antdv-next";
-import { isFunction } from "es-toolkit";
+import { isFunction, isString } from "es-toolkit";
 import { computed, defineComponent, h, isVNode } from "vue";
 
 import type { VNode } from "vue";
@@ -9,6 +9,7 @@ import type { ActionItem } from "../types";
 
 import { IconifyIcon as Icon } from "~/components/common/Icon";
 import { cn } from "~/utils/cn";
+import { usePermission } from "~/composables";
 
 type ButtonType = "default" | "link" | "dashed" | "text" | "primary";
 
@@ -26,7 +27,7 @@ const props = withDefaults(defineProps<Props>(), {
   maxShowCount: 4,
   record: () => ({}),
 });
-
+const { hasPermission } = usePermission();
 /**
  * VNode 渲染辅助组件
  * 用于把动态 VNode（如函数式 label）渲染到模板中
@@ -59,7 +60,7 @@ function getButtonSize(action: ActionItem): "small" | "middle" | "large" | undef
 function hasAuth(auth: ActionItem["auth"]): boolean {
   if (!auth) return true;
   // 可根据实际权限系统调整
-  return true;
+  return hasPermission(isString(auth) ? auth : auth.join(","));
 }
 
 function isShow(action: ActionItem, record: Record<string, any>): boolean {

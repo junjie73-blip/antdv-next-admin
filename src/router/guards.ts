@@ -93,7 +93,6 @@ function createTitleGuard(router: Router) {
 function createDynamicRouteGuard(router: Router) {
   router.beforeEach(async (to) => {
     const routeStore = useRouteStore();
-    const appStore = useAppStore();
     const userStore = useUserStore();
 
     if (!userStore.isLoggedIn) {
@@ -120,7 +119,7 @@ function createDynamicRouteGuard(router: Router) {
     }
 
     await routeStore.initBackendRoutes();
-
+    await userStore.loadPermissions();
     routeStore.routes.forEach((route) => {
       router.addRoute(route);
     });

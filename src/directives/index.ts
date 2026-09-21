@@ -8,7 +8,7 @@
  */
 
 // 权限控制指令
-export { vPermission } from "./permission/export";
+export { vPermission } from "./permission";
 
 export * from "./permission/types";
 // 安全防护指令

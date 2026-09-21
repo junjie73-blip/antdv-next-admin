@@ -20,17 +20,20 @@ export function getRoleActions(record: RoleRecord, ctx: RoleActionContext): Acti
     {
       label: "编辑",
       icon: "ant-design:edit-outlined",
+      auth: "system:role:update",
       onClick: () => ctx.onEdit(record),
     },
     {
       label: "授权",
       icon: "ant-design:lock-outlined",
+      auth: "system:role:auth",
       onClick: () => ctx.onPermission(record),
     },
     {
       label: "删除",
       icon: "ant-design:delete-outlined",
       danger: true,
+      auth: "system:role:delete",
       popConfirm: {
         title: "确定要删除该角色吗？",
         content: `确定要删除「${record.roleName}」吗？`,

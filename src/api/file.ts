@@ -76,10 +76,10 @@ export function cancelUploadTasks(taskIds: string[]) {
 }
 // 文件预览
 export function previewFile(params: any) {
-  return http.Get("/upload/preview", { params });
+  return http.Get("/upload/preview", { params }).send(true);
 }
 
 // 文件下载
 export function downloadFile(params: any) {
-  return http.Get("/upload/download", { params });
+  return http.Get("/upload/download", { params }).send(true);
 }

@@ -160,10 +160,12 @@ onMounted(() => {
       >
         <template #toolbar>
           <a-button @click="handleExport">
-            <template #icon><Icon icon="carbon:export" /></template>
+            <template #icon
+              ><Icon icon="carbon:export" v-permission="'system:role:export'"
+            /></template>
             导出
           </a-button>
-          <a-button type="primary" @click="handleAdd()">
+          <a-button type="primary" @click="handleAdd()" v-permission="'system:role:create'">
             <template #icon><Icon icon="ant-design:plus-outlined" /></template>
             新增角色
           </a-button>
