@@ -1,15 +1,19 @@
 import { createAlova } from "alova";
 import adapterFetch from "alova/fetch";
 import VueHook from "alova/vue";
-import { message, notification } from "antdv-next";
+import { notification } from "antdv-next";
 
 import { AUTHORIZATION_KEY } from "./constant";
+import { cache } from "../cache";
+import { getTokenRemainingSeconds, isTokenExpired } from "../jwt";
 
 import type { RequestMeta } from "./interface";
 
+import { REFRESH_TOKEN_KEY, TOKEN_KEY } from "~/config/constants";
 import router from "~/router";
 import { useUserStore } from "~/stores/modules/user";
 import { config as csrfConfig, getCsrfToken, initCsrfProtection } from "~/utils/csrf";
+
 
 // ==================== 业务错误码（与后端 errorHandler 对齐）====================
 export const ErrorCode = {
@@ -30,7 +34,16 @@ export const ErrorCode = {
   HTTP_SERVICE_UNAVAILABLE: 503,
   HTTP_GATEWAY_TIMEOUT: 504,
 } as const;
-const AUTH_ENDPOINTS = ["/auth/login", "/auth/logout", "/auth/refresh"];
+const AUTH_ENDPOINTS = [
+  "/auth/login",
+  "/auth/logout",
+  "/auth/refresh",
+  "/auth/register",
+  "/auth/captcha",
+  "/tenant/options",
+  "/auth/forgot-password",
+  "/auth/password-policy",
+];
 
 function isAuthEndpoint(url?: string): boolean {
   if (!url) return false;
@@ -88,15 +101,12 @@ export function forceLogout(redirect = true): void {
   isLoggingOut = true;
 
   const userStore = useUserStore();
-
-  // 只清本地状态，绝不再调会发请求的 logout()
   const store = userStore as any;
   if (typeof store.resetToken === "function") {
     store.resetToken();
   } else if (typeof store.clearToken === "function") {
     store.clearToken();
   } else {
-    // 兜底：至少把 token 清掉，不要走 logout()
     store.token = "";
     store.refreshToken = "";
   }
@@ -107,6 +117,11 @@ export function forceLogout(redirect = true): void {
       query: { redirect: router.currentRoute.value.fullPath },
     });
   }
+
+  // ⭐ 5 秒后自动重置，防止状态永久污染
+  setTimeout(() => {
+    isLoggingOut = false;
+  }, 5000);
 }
 export function resetLogoutFlag(): void {
   isLoggingOut = false;
@@ -170,6 +185,14 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
   async function doRefreshToken(): Promise<string> {
     const userStore = useUserStore();
     const refreshTokenValue = userStore.refreshToken;
+    console.log("[Auth] doRefreshToken 启动", {
+      hasRefreshToken: !!refreshTokenValue,
+      refreshTokenPreview: refreshTokenValue?.slice(0, 20),
+      currentAccessTokenPreview: userStore.token?.slice(0, 20),
+      baseURL,
+      refreshUrl: `${baseURL.replace(/\/$/, "")}/auth/refresh`,
+    });
+
     if (!refreshTokenValue) throw new Error("缺少 refresh token");
 
     const headers: Record<string, string> = {
@@ -190,7 +213,12 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
       headers,
       body: JSON.stringify({ refreshToken: refreshTokenValue }),
     });
-
+    const rawText = await response.clone().text();
+    console.log("[Auth] refresh 响应", {
+      status: response.status,
+      ok: response.ok,
+      body: rawText.slice(0, 500),
+    });
     const payload = (await response.json().catch(() => ({}))) as ApiResponse<{
       accessToken: string;
       refreshToken?: string;
@@ -205,7 +233,7 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
     const newRefreshToken = payload.data?.refreshToken ?? refreshTokenValue;
     if (!newAccessToken) throw new Error("刷新接口未返回 accessToken");
 
-    userStore.setToken({ token: newAccessToken, refreshToken: newRefreshToken });
+    userStore.setToken(newAccessToken, newRefreshToken);
     return newAccessToken;
   }
 
@@ -250,7 +278,14 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
     timeout,
 
     async beforeRequest(method) {
-      // ---------- CSRF 初始化 ----------
+      /* ============================================================
+       * 0. 重置重试标记（防止 alova method 复用污染）
+       * ============================================================ */
+      (method as any)._retried = false;
+
+      /* ============================================================
+       * 1. CSRF 初始化
+       * ============================================================ */
       if (!csrfInitialized) {
         initCsrfProtection({
           headerName: "X-CSRF-Token",
@@ -260,9 +295,58 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
         csrfInitialized = true;
       }
 
-      // ---------- Authorization ----------
-      if (method.config.meta?.token !== false) {
+      const methodType = (method.type as string).toUpperCase();
+
+      /* ============================================================
+       * 2. 判断是否需要 token
+       * ============================================================ */
+      const isAuthApi = isAuthEndpoint(method.url);
+
+      if (!isAuthApi) {
         const userStore = useUserStore();
+        // const { token: accessToken, refreshToken } = userStore;
+        const accessToken = cache.getItem(TOKEN_KEY);
+        const refreshToken = cache.getItem(REFRESH_TOKEN_KEY);
+        // ---------- 2.1 本地没有 access token ----------
+        if (!accessToken) {
+          // 有 refresh token → 主动刷新
+          if (refreshToken) {
+            try {
+              console.log("[Auth] 本地无 accessToken，尝试主动刷新");
+              await getRefreshPromise();
+            } catch (err) {
+              console.error("[Auth] 主动刷新失败", err);
+              forceLogout();
+              throw new Error("登录已过期，请重新登录");
+            }
+          } else {
+            // 无 refresh token → 直接跳登录，不发请求
+            console.warn("[Auth] 无 token，拦截请求", method.url);
+            forceLogout();
+            throw new Error("未登录");
+          }
+        }
+
+        // ---------- 2.2 access token 快过期 ----------
+        else if (isTokenExpired(accessToken as string, 60)) {
+          // 有 refresh token → 提前刷新
+          if (refreshToken) {
+            try {
+              console.log(
+                "[Auth] accessToken 即将过期（剩余",
+                getTokenRemainingSeconds(accessToken),
+                "秒），主动刷新",
+              );
+              await getRefreshPromise();
+            } catch (err) {
+              console.error("[Auth] 提前刷新失败，继续使用旧 token 尝试", err);
+              // 主动刷新失败不强制登出，让请求打出去看后端反应
+              // 后端 401 时会走 onSuccess 的刷新分支兜底
+            }
+          }
+        }
+
+        // ---------- 2.3 加上 Authorization 头 ----------
         if (userStore.token) {
           method.config.headers = {
             ...method.config.headers,
@@ -271,8 +355,9 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
         }
       }
 
-      // ---------- CSRF Token ----------
-      const methodType = (method.type as string).toUpperCase();
+      /* ============================================================
+       * 3. CSRF Token（仅状态变更请求）
+       * ============================================================ */
       if (STATE_CHANGING_METHODS.includes(methodType)) {
         try {
           const csrfToken = await getCsrfToken();
@@ -287,7 +372,9 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
         }
       }
 
-      // ---------- 通用安全头 ----------
+      /* ============================================================
+       * 4. 通用安全头
+       * ============================================================ */
       const isFormData = method.data instanceof FormData;
       method.config.headers = {
         ...method.config.headers,
@@ -303,7 +390,9 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
           : {}),
       };
 
-      // ---------- 请求去重 ----------
+      /* ============================================================
+       * 5. 请求去重
+       * ============================================================ */
       if (!CACHEABLE_METHODS.has(method.type as string)) {
         const requestKey = getRequestKey(method);
         if (pendingRequests.has(requestKey)) {
@@ -320,7 +409,9 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
         }
       }
 
-      // ---------- GET 缓存 ----------
+      /* ============================================================
+       * 6. GET 缓存
+       * ============================================================ */
       if (enableCache && CACHEABLE_METHODS.has(method.type as string)) {
         method.config.cacheFor = {
           mode: "memory",
@@ -393,20 +484,21 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
             : undefined;
 
         // ==================== 401 无感刷新 ====================
-        const isRefreshEndpoint = method.url.includes("/auth/refresh");
         const alreadyRetried = (method as any)._retried === true;
 
         if (
           isUnauthorized(response.status, bodyCode) &&
-          !isAuthEndpoint(method.url) && // ← 关键：auth 接口本身不刷新
+          !isAuthEndpoint(method.url) &&
           !alreadyRetried &&
-          !isLoggingOut // ← 正在登出，别再折腾
+          !isLoggingOut
         ) {
           (method as any)._retried = true;
+
+          // ⭐ 刷新失败 → 登出
           try {
             await getRefreshPromise();
-            return await method.send();
-          } catch {
+          } catch (refreshErr) {
+            console.error("[Auth] 刷新失败", refreshErr);
             forceLogout();
             const err = new AlovaRequestError("登录已过期", {
               status: 401,
@@ -416,6 +508,9 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
             err.handled = true;
             throw err;
           }
+
+          // ⭐ 刷新成功 → 重试（重试失败不再强登出）
+          return await method.send();
         }
 
         // ==================== HTTP 层失败 ====================
@@ -498,7 +593,7 @@ function getRequestKey(method: any): string {
   ].join(":");
 }
 
-function clearPendingRequest(method: any, error: unknown): void {
+function clearPendingRequest(method: any, error?: unknown): void {
   if (error instanceof AlovaRequestError && error.handled) throw error;
   if (isLoggingOut) throw error;
   const requestKey = getRequestKey(method);

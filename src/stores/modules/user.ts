@@ -17,6 +17,7 @@ import {
 
 import { cache } from "~/utils/cache";
 import { http } from "~/utils/request";
+import { resetLogoutFlag } from "~/utils/request/alova";
 
 export const useUserStore = defineStore("user", () => {
   // ✅ 同步从 cache 读，读到什么就是什么
@@ -60,7 +61,7 @@ export const useUserStore = defineStore("user", () => {
 
       if (response.code === 200) {
         const { user, accessToken, refreshToken: rt } = response.data;
-
+        resetLogoutFlag();
         const mockUserInfo: UserInfo = {
           userId: user.userId,
           username: user.username,
