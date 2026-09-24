@@ -15,9 +15,9 @@ export {
   useCsrf,
   validateCsrfToken,
   validateDoubleSubmit,
-} from "./csrf";
+} from './csrf'
 
-export type { CsrfConfig, CsrfToken } from "./csrf";
+export type { CsrfConfig, CsrfToken } from './csrf'
 
 // XSS 防护
 export {
@@ -30,6 +30,6 @@ export {
   sanitizeInput,
   sanitizeUrl,
   smartEscape,
-} from "./xss";
+} from './xss'
 
-export type { EscapeType, XssFilterOptions } from "./xss";
+export type { EscapeType, XssFilterOptions } from './xss'

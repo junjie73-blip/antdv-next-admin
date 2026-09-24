@@ -1,72 +1,72 @@
-import type { AppRouteRecordRaw } from "#/app-router";
+import type { AppRouteRecordRaw } from '#/app-router'
 
 export const constantRoutes: AppRouteRecordRaw[] = [
   {
-    path: "/",
-    redirect: "/login",
+    path: '/',
+    redirect: '/login',
     meta: {
-      title: "根路径",
+      title: '根路径',
       hidden: true,
     },
   },
   {
-    path: "/login",
-    name: "Login",
-    component: () => import("~/views/login/index.vue"),
+    path: '/login',
+    name: 'Login',
+    component: () => import('~/views/login/index.vue'),
     meta: {
-      title: "登录",
+      title: '登录',
       hidden: true,
-      layout: "blank",
+      layout: 'blank',
     },
   },
   {
-    path: "/register",
-    name: "Register",
-    component: () => import("~/views/register/index.vue"),
+    path: '/register',
+    name: 'Register',
+    component: () => import('~/views/register/index.vue'),
     meta: {
-      title: "注册",
+      title: '注册',
       hidden: true,
-      layout: "blank",
+      layout: 'blank',
     },
   },
   {
-    path: "/404",
-    name: "NotFound",
-    component: () => import("~/views/error/404.vue"),
+    path: '/404',
+    name: 'NotFound',
+    component: () => import('~/views/error/404.vue'),
     meta: {
-      title: "页面不存在",
+      title: '页面不存在',
       hidden: true,
-      layout: "blank",
+      layout: 'blank',
     },
   },
   {
-    path: "/403",
-    name: "Forbidden",
-    component: () => import("~/views/error/403.vue"),
+    path: '/403',
+    name: 'Forbidden',
+    component: () => import('~/views/error/403.vue'),
     meta: {
-      title: "无权限",
+      title: '无权限',
       hidden: true,
-      layout: "blank",
+      layout: 'blank',
     },
   },
   {
-    path: "/503",
-    name: "ServiceUnavailable",
-    component: () => import("~/views/error/503.vue"),
+    path: '/503',
+    name: 'ServiceUnavailable',
+    component: () => import('~/views/error/503.vue'),
     meta: {
-      title: "服务不可用",
+      title: '服务不可用',
       hidden: true,
-      layout: "blank",
+      layout: 'blank',
     },
   },
-];
+]
 
 export const catchAllRoute: AppRouteRecordRaw = {
-  path: "/:pathMatch(.*)*",
-  name: "CatchAll",
-  redirect: "/404",
+  path: '/:pathMatch(.*)*',
+  name: 'CatchAll',
+  redirect: '/404',
   meta: {
-    title: "CatchAll",
+    title: 'CatchAll',
     hidden: true,
   },
-};
+}

@@ -1,20 +1,20 @@
-import { message } from "antdv-next";
+import { message } from 'antdv-next'
 
 export interface PrintOptions {
   /** 打印标题 */
-  title?: string;
+  title?: string
   /** 要打印的 DOM 元素或选择器 */
-  target: string | HTMLElement;
+  target: string | HTMLElement
   /** 打印前回调（用于隐藏不需要打印的元素） */
-  onBeforePrint?: () => void;
+  onBeforePrint?: () => void
   /** 打印后回调（用于恢复隐藏的元素） */
-  onAfterPrint?: () => void;
+  onAfterPrint?: () => void
   /** 是否显示页眉，默认 true */
-  showHeader?: boolean;
+  showHeader?: boolean
   /** 是否显示页脚（日期），默认 true */
-  showFooter?: boolean;
+  showFooter?: boolean
   /** 样式覆盖 */
-  styles?: string;
+  styles?: string
 }
 
 /**
@@ -38,42 +38,42 @@ export function usePrint(options: PrintOptions) {
     showHeader = true,
     showFooter = true,
     styles,
-  } = options;
+  } = options
 
   // 获取目标元素
-  let el: HTMLElement | null = null;
-  if (typeof target === "string") {
-    el = document.querySelector(target);
+  let el: HTMLElement | null = null
+  if (typeof target === 'string') {
+    el = document.querySelector(target)
   } else {
-    el = target;
+    el = target
   }
 
   if (!el) {
-    message.error("未找到打印目标元素");
-    return;
+    message.error('未找到打印目标元素')
+    return
   }
 
   // 执行打印前回调
-  onBeforePrint?.();
+  onBeforePrint?.()
 
   // 创建打印框架
-  const iframe = document.createElement("iframe");
-  iframe.style.position = "absolute";
-  iframe.style.width = "0";
-  iframe.style.height = "0";
-  iframe.style.border = "none";
-  iframe.style.left = "-9999px";
-  document.body.appendChild(iframe);
+  const iframe = document.createElement('iframe')
+  iframe.style.position = 'absolute'
+  iframe.style.width = '0'
+  iframe.style.height = '0'
+  iframe.style.border = 'none'
+  iframe.style.left = '-9999px'
+  document.body.appendChild(iframe)
 
-  const doc = iframe.contentWindow?.document;
+  const doc = iframe.contentWindow?.document
   if (!doc) {
-    document.body.removeChild(iframe);
-    message.error("创建打印窗口失败");
-    return;
+    document.body.removeChild(iframe)
+    message.error('创建打印窗口失败')
+    return
   }
 
   // 构建打印内容
-  const printContent = el.innerHTML;
+  const printContent = el.innerHTML
 
   // 默认打印样式
   const defaultStyles = `
@@ -91,47 +91,47 @@ export function usePrint(options: PrintOptions) {
     @media print {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
-  `;
+  `
 
-  doc.open();
+  doc.open()
   doc.write(`
     <!DOCTYPE html>
     <html>
       <head>
         <title>${title}</title>
-        <style>${defaultStyles} ${styles || ""}</style>
+        <style>${defaultStyles} ${styles || ''}</style>
       </head>
       <body>
-        ${showHeader ? `<div class="print-header"><h1>${title}</h1><p>打印时间：${new Date().toLocaleString()}</p></div>` : ""}
+        ${showHeader ? `<div class="print-header"><h1>${title}</h1><p>打印时间：${new Date().toLocaleString()}</p></div>` : ''}
         <div class="print-content">${printContent}</div>
-        ${showFooter ? '<div class="print-footer">第 &nbsp;/&nbsp; 页</div>' : ""}
+        ${showFooter ? '<div class="print-footer">第 &nbsp;/&nbsp; 页</div>' : ''}
       </body>
     </html>
-  `);
-  doc.close();
+  `)
+  doc.close()
 
   // 等待内容渲染完成后触发打印
-  const contentWindow = iframe.contentWindow;
+  const contentWindow = iframe.contentWindow
   if (contentWindow) {
     contentWindow.onload = () => {
-      contentWindow.focus();
-      contentWindow.print();
+      contentWindow.focus()
+      contentWindow.print()
 
       // 清理
       setTimeout(() => {
-        document.body.removeChild(iframe);
-        onAfterPrint?.();
-      }, 1000);
-    };
+        document.body.removeChild(iframe)
+        onAfterPrint?.()
+      }, 1000)
+    }
 
     // 处理取消打印的情况
-    contentWindow.addEventListener("afterprint", () => {
+    contentWindow.addEventListener('afterprint', () => {
       setTimeout(() => {
         if (iframe.parentNode) {
-          document.body.removeChild(iframe);
+          document.body.removeChild(iframe)
         }
-        onAfterPrint?.();
-      }, 100);
-    });
+        onAfterPrint?.()
+      }, 100)
+    })
   }
 }

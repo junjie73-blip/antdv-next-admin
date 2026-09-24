@@ -1,17 +1,24 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { nextTick, ref } from "vue";
+import { Icon } from '@iconify/vue'
+import { nextTick, ref } from 'vue'
 
-import { getPermissionActions } from "./actions";
+import { createPermission, deletePermission, getPermissionList, updatePermission } from '~/api'
+import { Description } from '~/components/business/Description'
+import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
+import { BasicForm, useForm } from '~/components/business/Form'
+import { type ActionItem, BasicTable, TableAction, useTable } from '~/components/business/Table'
+import { useCRUD } from '~/composables/useCRUD'
 
+import type { PermissionRecord } from './types'
+
+import { getPermissionActions } from './actions'
 import {
   permissionActionColumn,
   permissionColumns,
   permissionPagination,
   permissionRowKey,
   permissionScroll,
-} from "./columns";
-
+} from './columns'
 import {
   ACTION_COLOR_MAP,
   cardClassName,
@@ -23,73 +30,63 @@ import {
   RESOURCE_TYPE_LABEL_MAP,
   SCOPE_COLOR_MAP,
   SCOPE_LABEL_MAP,
-} from "./constants";
-
-import { permissionDetailSchemas, permissionFormSchemas, permissionSearchSchemas } from "./schemas";
-
-import type { PermissionRecord } from "./types";
-
-import { createPermission, deletePermission, getPermissionList, updatePermission } from "~/api";
-import { Description } from "~/components/business/Description";
-import { BasicDrawer, useDrawer } from "~/components/business/Drawer";
-import { BasicForm, useForm } from "~/components/business/Form";
-import { type ActionItem, BasicTable, TableAction, useTable } from "~/components/business/Table";
-import { useCRUD } from "~/composables/useCRUD";
+} from './constants'
+import { permissionDetailSchemas, permissionFormSchemas, permissionSearchSchemas } from './schemas'
 
 // 抽离的模块
 
-defineOptions({ name: "SystemPermission" });
+defineOptions({ name: 'SystemPermission' })
 
 // ========== 详情抽屉 ==========
-const viewingRecord = ref<PermissionRecord | null>(null);
-const [detailDrawerRegister, detailDrawerMethods] = useDrawer();
+const viewingRecord = ref<PermissionRecord | null>(null)
+const [detailDrawerRegister, detailDrawerMethods] = useDrawer()
 
 function handleView(record: PermissionRecord) {
-  viewingRecord.value = null;
+  viewingRecord.value = null
   nextTick(() => {
-    viewingRecord.value = record;
-    detailDrawerMethods.openDrawer();
-  });
+    viewingRecord.value = record
+    detailDrawerMethods.openDrawer()
+  })
 }
 
 // ========== 表格 & 表单 ==========
-const [tableRegister, tableMethods] = useTable();
+const [tableRegister, tableMethods] = useTable()
 
 // ⭐ 新增/编辑改用 Drawer
-const [formDrawerRegister, formDrawerMethods] = useDrawer();
-const [formRegister, formMethods] = useForm();
+const [formDrawerRegister, formDrawerMethods] = useDrawer()
+const [formRegister, formMethods] = useForm()
 
 // ========== useCRUD ==========
 const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<PermissionRecord>({
-  containerType: "drawer",
+  containerType: 'drawer',
   drawerMethods: formDrawerMethods,
   formMethods,
   tableMethods,
-  idKey: "permId",
+  idKey: 'permId',
   getEmptyValues: () => ({ ...PERMISSION_EMPTY_VALUES }),
   getFormValues: (record) => ({
     permCode: record.permCode,
     permName: record.permName,
     resourceType: record.resourceType,
-    action: record.action || "",
+    action: record.action || '',
     status: record.status,
-    description: record.description || "",
+    description: record.description || '',
   }),
   onCreate: async (values: any) => {
-    await createPermission(values);
+    await createPermission(values)
   },
   onUpdate: async (id, values: any) => {
-    await updatePermission(id, values);
+    await updatePermission(id, values)
   },
   onDelete: async (record) => {
-    await deletePermission(record.permId);
+    await deletePermission(record.permId)
   },
   messages: {
-    createSuccess: "权限创建成功",
-    updateSuccess: "权限更新成功",
-    deleteSuccess: "权限删除成功",
+    createSuccess: '权限创建成功',
+    updateSuccess: '权限更新成功',
+    deleteSuccess: '权限删除成功',
   },
-});
+})
 
 // ========== 操作项 ==========
 function getActions(record: PermissionRecord): ActionItem[] {
@@ -97,7 +94,7 @@ function getActions(record: PermissionRecord): ActionItem[] {
     onView: handleView,
     onEdit: handleEdit,
     onDelete: handleDelete,
-  });
+  })
 }
 </script>
 
@@ -145,7 +142,7 @@ function getActions(record: PermissionRecord): ActionItem[] {
 
         <template #cell-status="{ record }">
           <a-tag :color="PERM_STATUS_COLOR_MAP[record.status] || 'default'">
-            {{ PERM_STATUS_LABEL_MAP[record.status] || "未知" }}
+            {{ PERM_STATUS_LABEL_MAP[record.status] || '未知' }}
           </a-tag>
         </template>
 

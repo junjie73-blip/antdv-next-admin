@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { message, Modal, Tag } from "antdv-next";
-import { computed, h, ref, watch } from "vue";
-
-import { formatSize } from "../utils";
+import { Icon } from '@iconify/vue'
+import { message, Modal, Tag } from 'antdv-next'
+import { computed, h, ref, watch } from 'vue'
 
 import {
   cancelUploadTasks,
@@ -11,180 +9,174 @@ import {
   type UploadTaskItem,
   type UploadTaskListParams,
   type UploadTaskStatus,
-} from "~/api";
+} from '~/api'
+import { type ActionItem, type BasicColumn, BasicTable, TableAction, useTable } from '~/components/business/Table'
 
-import {
-  type ActionItem,
-  type BasicColumn,
-  BasicTable,
-  TableAction,
-  useTable,
-} from "~/components/business/Table";
+import { formatSize } from '../utils'
 
-defineOptions({ name: "UploadTaskModal" });
+defineOptions({ name: 'UploadTaskModal' })
 
 const props = defineProps<{
-  open: boolean;
-}>();
+  open: boolean
+}>()
 
 const emit = defineEmits<{
-  "update:open": [v: boolean];
+  'update:open': [v: boolean]
   /** 取消成功后通知外部（比如刷新文件列表） */
-  canceled: [taskIds: string[]];
-}>();
+  canceled: [taskIds: string[]]
+}>()
 
 const visible = computed({
   get: () => props.open,
-  set: (v) => emit("update:open", v),
-});
+  set: (v) => emit('update:open', v),
+})
 
 const STATUS_MAP: Record<UploadTaskStatus, { label: string; color: string; icon: string }> = {
-  pending: { label: "等待中", color: "default", icon: "carbon:time" },
+  pending: { label: '等待中', color: 'default', icon: 'carbon:time' },
   uploading: {
-    label: "上传中",
-    color: "processing",
-    icon: "carbon:in-progress",
+    label: '上传中',
+    color: 'processing',
+    icon: 'carbon:in-progress',
   },
-  merging: { label: "合并中", color: "purple", icon: "carbon:merge" },
-  failed: { label: "失败", color: "error", icon: "carbon:warning" },
-};
+  merging: { label: '合并中', color: 'purple', icon: 'carbon:merge' },
+  failed: { label: '失败', color: 'error', icon: 'carbon:warning' },
+}
 
-const [tableRegister, tableMethods] = useTable();
-const selectedKeys = ref<string[]>([]);
+const [tableRegister, tableMethods] = useTable()
+const selectedKeys = ref<string[]>([])
 /* ============================================================
  * 表格列
  * ============================================================ */
 const columns: BasicColumn[] = [
   {
-    title: "文件名",
-    dataIndex: "fileName",
-    key: "fileName",
+    title: '文件名',
+    dataIndex: 'fileName',
+    key: 'fileName',
     width: 240,
     ellipsis: true,
   },
   {
-    title: "大小",
-    dataIndex: "totalSize",
-    key: "totalSize",
+    title: '大小',
+    dataIndex: 'totalSize',
+    key: 'totalSize',
     width: 100,
-    align: "center",
+    align: 'center',
   },
   {
-    title: "状态",
-    dataIndex: "status",
-    key: "status",
+    title: '状态',
+    dataIndex: 'status',
+    key: 'status',
     width: 110,
-    align: "center",
+    align: 'center',
   },
   {
-    title: "进度",
-    dataIndex: "progress",
-    key: "progress",
+    title: '进度',
+    dataIndex: 'progress',
+    key: 'progress',
     width: 160,
-    align: "center",
+    align: 'center',
   },
   {
-    title: "错误信息",
-    dataIndex: "errorMsg",
-    key: "errorMsg",
+    title: '错误信息',
+    dataIndex: 'errorMsg',
+    key: 'errorMsg',
     ellipsis: true,
     customRender: ({ text }) =>
       text
-        ? h("span", { class: "text-xs text-red-500" }, String(text))
-        : h("span", { class: "text-xs text-gray-400" }, "-"),
+        ? h('span', { class: 'text-xs text-red-500' }, String(text))
+        : h('span', { class: 'text-xs text-gray-400' }, '-'),
   },
   {
-    title: "创建时间",
-    dataIndex: "createdAt",
-    key: "createdAt",
+    title: '创建时间',
+    dataIndex: 'createdAt',
+    key: 'createdAt',
     width: 170,
-    align: "center",
+    align: 'center',
   },
-];
+]
 
 /* ============================================================
  * 行操作
  * ============================================================ */
 function getTaskActions(record: UploadTaskItem): ActionItem[] {
   const canCancel =
-    record.status === "pending" ||
-    record.status === "uploading" ||
-    record.status === "merging" ||
-    record.status === "failed";
+    record.status === 'pending' ||
+    record.status === 'uploading' ||
+    record.status === 'merging' ||
+    record.status === 'failed'
 
-  if (!canCancel) return [];
+  if (!canCancel) return []
 
   return [
     {
-      label: "取消",
-      icon: "ant-design:close-circle-outlined",
+      label: '取消',
+      icon: 'ant-design:close-circle-outlined',
       danger: true,
-      disabled: () => record.status === "failed",
+      disabled: () => record.status === 'failed',
       popConfirm: {
-        title: "取消上传任务",
+        title: '取消上传任务',
         content: `确定取消「${record.fileName}」吗？`,
         confirm: () => handleCancelSingle(record),
       },
     },
-  ];
+  ]
 }
 
 const actionColumn = {
   width: 120,
-  title: "操作",
-  fixed: "right" as const,
+  title: '操作',
+  fixed: 'right' as const,
   actions: (record: UploadTaskItem) => getTaskActions(record),
-};
+}
 
 /* ============================================================
  * 取消逻辑
  * ============================================================ */
-const canceling = ref(false);
+const canceling = ref(false)
 
 async function handleCancelSingle(record: UploadTaskItem) {
-  canceling.value = true;
+  canceling.value = true
   try {
-    await cancelUploadTasks([record.taskId]);
-    message.success(`已取消「${record.filename}」`);
-    emit("canceled", [record.taskId]);
-    tableMethods.value?.reload();
+    await cancelUploadTasks([record.taskId])
+    message.success(`已取消「${record.filename}」`)
+    emit('canceled', [record.taskId])
+    tableMethods.value?.reload()
   } finally {
-    canceling.value = false;
+    canceling.value = false
   }
 }
 
 async function handleBatchCancel() {
   if (selectedKeys.value.length === 0) {
-    message.warning("请至少选择一条任务");
-    return;
+    message.warning('请至少选择一条任务')
+    return
   }
 
   Modal.confirm({
-    title: "批量取消上传任务",
+    title: '批量取消上传任务',
     content: `确定取消选中的 ${selectedKeys.value.length} 个任务吗？`,
     okButtonProps: { danger: true },
     async onOk() {
-      canceling.value = true;
+      canceling.value = true
       try {
-        const ids = [...selectedKeys.value];
-        await cancelUploadTasks(ids);
-        message.success(`已取消 ${ids.length} 个任务`);
-        emit("canceled", ids);
-        selectedKeys.value = [];
-        tableMethods.value?.reload();
+        const ids = [...selectedKeys.value]
+        await cancelUploadTasks(ids)
+        message.success(`已取消 ${ids.length} 个任务`)
+        emit('canceled', ids)
+        selectedKeys.value = []
+        tableMethods.value?.reload()
       } finally {
-        canceling.value = false;
+        canceling.value = false
       }
     },
-  });
+  })
 }
 function getProgress(record: UploadTaskItem) {
-  const r = record as UploadTaskItem;
-  const uploaded = r.uploadedChunks ?? 0;
-  const total = r.totalChunks ?? 0;
-  const percent =
-    r.progress != null ? r.progress : total > 0 ? Math.round((uploaded / total) * 100) : 0;
-  return percent;
+  const r = record as UploadTaskItem
+  const uploaded = r.uploadedChunks ?? 0
+  const total = r.totalChunks ?? 0
+  const percent = r.progress != null ? r.progress : total > 0 ? Math.round((uploaded / total) * 100) : 0
+  return percent
 }
 </script>
 
@@ -216,15 +208,8 @@ function getProgress(record: UploadTaskItem) {
       >
         <template #tool>
           <div class="flex items-center justify-between">
-            <span class="text-sm text-gray-500 dark:text-gray-400">
-              已选 {{ selectedKeys.length }} 项
-            </span>
-            <a-button
-              danger
-              :disabled="selectedKeys.length === 0"
-              :loading="canceling"
-              @click="handleBatchCancel"
-            >
+            <span class="text-sm text-gray-500 dark:text-gray-400"> 已选 {{ selectedKeys.length }} 项 </span>
+            <a-button danger :disabled="selectedKeys.length === 0" :loading="canceling" @click="handleBatchCancel">
               <template #icon><Icon icon="carbon:close" /></template>
               批量取消
             </a-button>
@@ -235,7 +220,7 @@ function getProgress(record: UploadTaskItem) {
         </template>
         <template #cell-status="{ text }">
           <a-tag :color="STATUS_MAP[text as UploadTaskStatus]?.color || 'blue'">{{
-            STATUS_MAP[text as UploadTaskStatus]?.label || "-"
+            STATUS_MAP[text as UploadTaskStatus]?.label || '-'
           }}</a-tag>
         </template>
         <template #cell-progress="{ record }">

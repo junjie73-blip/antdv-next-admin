@@ -1,135 +1,135 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { useEventListener } from "@vueuse/core";
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { Icon } from '@iconify/vue'
+import { useEventListener } from '@vueuse/core'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-import { initErrorRate } from "./charts/errorRate";
-import { initMainTrend } from "./charts/mainTrend";
-import { initModuleRank } from "./charts/moduleRank";
-import { initResourceRadar } from "./charts/resourceRadar";
-import { initSystemHealth } from "./charts/systemHealth";
-import { initTrafficDist } from "./charts/trafficDist";
-import { initUserJourney } from "./charts/userJourney";
-import { analyticsCardClassName, sectionTitleClassName, TIME_RANGE_OPTIONS } from "./constants";
-import { useChartManager } from "./hooks/useChartManager";
-import { useExportReport } from "./hooks/useExportReport";
-import { borderBeamColor, kpiIconWrap } from "./kpi";
+import { getDashboardKpi } from '~/api'
+import { useAppStore } from '~/stores/modules/app'
+import { cn } from '~/utils/cn'
 
-import type { KpiItem, TimeRange } from "./types";
+import type { KpiItem, TimeRange } from './types'
 
-import { getDashboardKpi } from "~/api";
-import { useAppStore } from "~/stores/modules/app";
-import { cn } from "~/utils/cn";
+import { initErrorRate } from './charts/errorRate'
+import { initMainTrend } from './charts/mainTrend'
+import { initModuleRank } from './charts/moduleRank'
+import { initResourceRadar } from './charts/resourceRadar'
+import { initSystemHealth } from './charts/systemHealth'
+import { initTrafficDist } from './charts/trafficDist'
+import { initUserJourney } from './charts/userJourney'
+import { analyticsCardClassName, sectionTitleClassName, TIME_RANGE_OPTIONS } from './constants'
+import { useChartManager } from './hooks/useChartManager'
+import { useExportReport } from './hooks/useExportReport'
+import { borderBeamColor, kpiIconWrap } from './kpi'
 
 // 抽离的模块
 
 // 各图表
 
-defineOptions({ name: "DashboardAnalysis" });
+defineOptions({ name: 'DashboardAnalysis' })
 
 // ========== Store ==========
-const appStore = useAppStore();
-const isDark = computed(() => appStore.themeMode === "dark");
+const appStore = useAppStore()
+const isDark = computed(() => appStore.themeMode === 'dark')
 
 // ========== 范围 ==========
-const currentRange = ref<TimeRange>("7d");
+const currentRange = ref<TimeRange>('7d')
 
 // ========== KPI ==========
-const kpiList = ref<KpiItem[]>([]);
-const kpiLoading = ref(false);
+const kpiList = ref<KpiItem[]>([])
+const kpiLoading = ref(false)
 
 async function loadKpi() {
-  kpiLoading.value = true;
+  kpiLoading.value = true
   try {
-    const res = await getDashboardKpi();
-    kpiList.value = res?.data ?? res ?? [];
+    const res = await getDashboardKpi()
+    kpiList.value = res?.data ?? res ?? []
   } catch (e) {
-    console.warn("加载 KPI 失败", e);
+    console.warn('加载 KPI 失败', e)
   } finally {
-    kpiLoading.value = false;
+    kpiLoading.value = false
   }
 }
 
 // ========== 各区块 loading ==========
-const mainTrendLoading = ref(false);
-const trafficDistLoading = ref(false);
-const systemHealthLoading = ref(false);
-const resourceRadarLoading = ref(false);
-const activityHeatmapLoading = ref(false);
-const userJourneyLoading = ref(false);
-const moduleRankLoading = ref(false);
+const mainTrendLoading = ref(false)
+const trafficDistLoading = ref(false)
+const systemHealthLoading = ref(false)
+const resourceRadarLoading = ref(false)
+const activityHeatmapLoading = ref(false)
+const userJourneyLoading = ref(false)
+const moduleRankLoading = ref(false)
 
 // ========== DOM 引用 ==========
-const mainTrendRef = ref<HTMLDivElement>();
-const trafficDistRef = ref<HTMLDivElement>();
-const systemHealthRef = ref<HTMLDivElement>();
-const resourceRadarRef = ref<HTMLDivElement>();
-const activityHeatmapRef = ref<HTMLDivElement>();
-const userJourneyRef = ref<HTMLDivElement>();
-const moduleRankRef = ref<HTMLDivElement>();
+const mainTrendRef = ref<HTMLDivElement>()
+const trafficDistRef = ref<HTMLDivElement>()
+const systemHealthRef = ref<HTMLDivElement>()
+const resourceRadarRef = ref<HTMLDivElement>()
+const activityHeatmapRef = ref<HTMLDivElement>()
+const userJourneyRef = ref<HTMLDivElement>()
+const moduleRankRef = ref<HTMLDivElement>()
 
 // ========== 图表管理 ==========
-const { safeInit, disposeAll, remove, resizeAll } = useChartManager();
+const { safeInit, disposeAll, remove, resizeAll } = useChartManager()
 
 /** 用 loading 状态包一层图表初始化 */
 function withLoading(loadingRef: typeof mainTrendLoading, fn: () => Promise<any>) {
   return async () => {
-    loadingRef.value = true;
+    loadingRef.value = true
     try {
-      await fn();
+      await fn()
     } finally {
-      loadingRef.value = false;
+      loadingRef.value = false
     }
-  };
+  }
 }
 
 function initAllCharts() {
-  const dark = isDark.value;
+  const dark = isDark.value
 
   safeInit(
-    "mainTrend",
+    'mainTrend',
     mainTrendRef,
     withLoading(mainTrendLoading, async () => {
-      const instance = await initMainTrend(mainTrendRef.value!, dark, currentRange.value);
-      return instance;
+      const instance = await initMainTrend(mainTrendRef.value!, dark, currentRange.value)
+      return instance
     }),
-  );
+  )
 
   safeInit(
-    "trafficDist",
+    'trafficDist',
     trafficDistRef,
     withLoading(trafficDistLoading, () => initTrafficDist(trafficDistRef.value!, dark)),
-  );
+  )
 
   safeInit(
-    "systemHealth",
+    'systemHealth',
     systemHealthRef,
     withLoading(systemHealthLoading, () => initSystemHealth(systemHealthRef.value!, dark)),
-  );
+  )
 
   safeInit(
-    "resourceRadar",
+    'resourceRadar',
     resourceRadarRef,
     withLoading(resourceRadarLoading, () => initResourceRadar(resourceRadarRef.value!, dark)),
-  );
+  )
 
   safeInit(
-    "activityHeatmap",
+    'activityHeatmap',
     activityHeatmapRef,
     withLoading(activityHeatmapLoading, () => initErrorRate(activityHeatmapRef.value!, dark)),
-  );
+  )
 
   safeInit(
-    "userJourney",
+    'userJourney',
     userJourneyRef,
     withLoading(userJourneyLoading, () => initUserJourney(userJourneyRef.value!, dark)),
-  );
+  )
 
   safeInit(
-    "moduleRank",
+    'moduleRank',
     moduleRankRef,
     withLoading(moduleRankLoading, () => initModuleRank(moduleRankRef.value!, dark)),
-  );
+  )
 }
 
 // ========== 报告导出 ==========
@@ -137,53 +137,53 @@ const { handleExport } = useExportReport({
   isDark,
   getChart: (name) => {
     // 从 useChartManager 里取实例
-    const { get } = useChartManager();
-    return get(name);
+    const { get } = useChartManager()
+    return get(name)
   },
   chartCount: 7,
-});
+})
 
 // ========== 生命周期 ==========
-useEventListener(window, "resize", resizeAll);
+useEventListener(window, 'resize', resizeAll)
 
 onMounted(async () => {
-  await loadKpi();
-  nextTick(() => initAllCharts());
-});
+  await loadKpi()
+  nextTick(() => initAllCharts())
+})
 
 // 时间范围变化：只重建主趋势图
 watch(currentRange, async () => {
-  remove("mainTrend");
+  remove('mainTrend')
   await initMainTrend(mainTrendRef.value!, isDark.value, currentRange.value).then((instance) => {
     // 手动注册（remove 已 dispose 旧的）
-    const { get } = useChartManager();
-    if (!get("mainTrend")) {
+    const { get } = useChartManager()
+    if (!get('mainTrend')) {
       // 通过 safeInit 走一遍注册路径
       safeInit(
-        "mainTrend",
+        'mainTrend',
         mainTrendRef,
         withLoading(mainTrendLoading, async () => {
-          const inst = await initMainTrend(mainTrendRef.value!, isDark.value, currentRange.value);
-          return inst;
+          const inst = await initMainTrend(mainTrendRef.value!, isDark.value, currentRange.value)
+          return inst
         }),
-      );
+      )
     }
-    return instance;
-  });
-});
+    return instance
+  })
+})
 
 onBeforeUnmount(() => {
-  disposeAll();
-});
+  disposeAll()
+})
 </script>
 
 <template>
   <PerfectScrollbar class="h-full">
     <!-- 页面标题 -->
-    <div class="flex items-center justify-between mb-2">
+    <div class="mb-2 flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100">数据分析</h1>
-        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">系统数据分析与可视化</p>
+        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">系统数据分析与可视化</p>
       </div>
       <a-space>
         <a-segmented v-model:value="currentRange" :options="TIME_RANGE_OPTIONS" size="small" />
@@ -200,49 +200,40 @@ onBeforeUnmount(() => {
       <a-row :gutter="[16, 16]" class="mb-6">
         <template v-if="kpiLoading">
           <a-col v-for="i in 4" :key="`sk-${i}`" :xs="24" :sm="12" :lg="6">
-            <div
-              class="rounded-lg bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5"
-            >
+            <div class="rounded-lg border border-gray-100 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
               <a-skeleton active :paragraph="{ rows: 2 }" />
             </div> </a-col
         ></template>
         <template v-else>
           <a-col v-for="kpi in kpiList" :key="kpi.title" :xs="24" :sm="12" :lg="6">
-            <a-border-beam
-              :color="borderBeamColor(kpi.color)"
-              :size="160"
-              :duration="8"
-              :border-width="1.5"
-            >
+            <a-border-beam :color="borderBeamColor(kpi.color)" :size="160" :duration="8" :border-width="1.5">
               <div
                 :class="
                   cn(
                     'rounded-xl p-5 transition-all duration-300',
-                    ' bg-white dark:bg-slate-900 transition-all duration-300',
+                    'bg-white transition-all duration-300 dark:bg-slate-900',
                     'hover:shadow-[0_8px_24px_-8px_rgba(15,23,42,0.12)]',
                     'dark:hover:shadow-[0_8px_24px_-8px_rgba(0,0,0,0.6)]',
                   )
                 "
               >
                 <div class="flex items-start justify-between gap-4">
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2 mb-2">
-                      <span
-                        class="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider"
-                      >
+                  <div class="min-w-0 flex-1">
+                    <div class="mb-2 flex items-center gap-2">
+                      <span class="text-xs font-medium tracking-wider text-gray-400 uppercase dark:text-gray-500">
                         {{ kpi.title }}
                       </span>
                     </div>
                     <div class="flex items-baseline gap-2">
-                      <span class="text-3xl font-bold text-gray-800 dark:text-white tracking-tight">
+                      <span class="text-3xl font-bold tracking-tight text-gray-800 dark:text-white">
                         {{ kpi.value }}
                       </span>
                     </div>
-                    <div class="flex items-center gap-1 mt-2">
+                    <div class="mt-2 flex items-center gap-1">
                       <span
                         :class="
                           cn(
-                            'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-xs font-semibold',
+                            'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-semibold',
                             kpi.trend >= 0
                               ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
                               : 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400',
@@ -265,7 +256,7 @@ onBeforeUnmount(() => {
                   <div
                     :class="
                       cn(
-                        'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0',
+                        'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl',
                         'transition-transform duration-300 group-hover:scale-110',
                         kpiIconWrap(kpi.color),
                       )
@@ -287,14 +278,9 @@ onBeforeUnmount(() => {
         :styles="{ body: { padding: '20px 24px' } }"
         class="mt-6"
       >
-        <div class="flex items-center justify-between mb-4">
+        <div class="mb-4 flex items-center justify-between">
           <h3 :class="sectionTitleClassName">系统活动趋势</h3>
-          <a-radio-group
-            size="small"
-            button-style="solid"
-            default-value="pv"
-            class="scale-90 origin-right"
-          >
+          <a-radio-group size="small" button-style="solid" default-value="pv" class="origin-right scale-90">
             <a-radio-button value="pv"> PV / UV </a-radio-button>
             <a-radio-button value="api"> API 调用 </a-radio-button>
           </a-radio-group>
@@ -307,11 +293,7 @@ onBeforeUnmount(() => {
       <!-- 第二行 -->
       <a-row :gutter="[16, 16]" class="mt-6">
         <a-col :xs="24" :lg="12">
-          <a-card
-            :class="analyticsCardClassName"
-            variant="borderless"
-            :styles="{ body: { padding: '20px 24px' } }"
-          >
+          <a-card :class="analyticsCardClassName" variant="borderless" :styles="{ body: { padding: '20px 24px' } }">
             <h3 :class="sectionTitleClassName">流量来源分布</h3>
             <a-spin :spinning="trafficDistLoading" description="加载中...">
               <div ref="trafficDistRef" class="w-full" style="height: 320px" />
@@ -319,11 +301,7 @@ onBeforeUnmount(() => {
           </a-card>
         </a-col>
         <a-col :xs="24" :lg="12">
-          <a-card
-            :class="analyticsCardClassName"
-            variant="borderless"
-            :styles="{ body: { padding: '20px 24px' } }"
-          >
+          <a-card :class="analyticsCardClassName" variant="borderless" :styles="{ body: { padding: '20px 24px' } }">
             <h3 :class="sectionTitleClassName">系统健康度</h3>
             <a-spin :spinning="systemHealthLoading" description="加载中...">
               <div ref="systemHealthRef" class="w-full" style="height: 320px" />
@@ -335,11 +313,7 @@ onBeforeUnmount(() => {
       <!-- 第三行 -->
       <a-row :gutter="[16, 16]">
         <a-col :xs="24" :lg="12">
-          <a-card
-            :class="analyticsCardClassName"
-            variant="borderless"
-            :styles="{ body: { padding: '20px 24px' } }"
-          >
+          <a-card :class="analyticsCardClassName" variant="borderless" :styles="{ body: { padding: '20px 24px' } }">
             <h3 :class="sectionTitleClassName">资源使用概况</h3>
             <a-spin :spinning="resourceRadarLoading" description="加载中...">
               <div ref="resourceRadarRef" class="w-full" style="height: 320px" />
@@ -347,11 +321,7 @@ onBeforeUnmount(() => {
           </a-card>
         </a-col>
         <a-col :xs="24" :lg="12">
-          <a-card
-            :class="analyticsCardClassName"
-            variant="borderless"
-            :styles="{ body: { padding: '20px 24px' } }"
-          >
+          <a-card :class="analyticsCardClassName" variant="borderless" :styles="{ body: { padding: '20px 24px' } }">
             <h3 :class="sectionTitleClassName">API 错误率趋势</h3>
             <a-spin :spinning="activityHeatmapLoading" description="加载中...">
               <div ref="activityHeatmapRef" class="w-full" style="height: 320px" />
@@ -380,7 +350,7 @@ onBeforeUnmount(() => {
             variant="borderless"
             :styles="{ body: { padding: '20px 24px', display: 'flex', flexDirection: 'column' } }"
           >
-            <div class="flex items-center justify-between mb-4">
+            <div class="mb-4 flex items-center justify-between">
               <h3 :class="sectionTitleClassName">模块使用热度</h3>
               <a-tag color="blue" class="text-[11px]">实时更新</a-tag>
             </div>

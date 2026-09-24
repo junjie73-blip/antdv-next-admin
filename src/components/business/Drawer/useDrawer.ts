@@ -1,12 +1,8 @@
-import { nextTick, onUnmounted, ref } from 'vue'
-
 import type { Ref } from 'vue'
 
+import { nextTick, onUnmounted, ref } from 'vue'
+
 import type { DrawerMethods, Nullable, UseDrawerReturnType } from './types'
-
-
-
-
 
 /**
  * useDrawer - 用于页面组件控制独立抽屉组件
@@ -45,9 +41,7 @@ export function useDrawer(): UseDrawerReturnType {
       await new Promise((resolve) => setTimeout(resolve, 50))
     }
 
-    throw new Error(
-      '[useDrawer] Drawer instance not found. Please check if the Drawer component is registered.',
-    )
+    throw new Error('[useDrawer] Drawer instance not found. Please check if the Drawer component is registered.')
   }
 
   /**

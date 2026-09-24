@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Spin } from "antdv-next";
-import { computed } from "vue";
+import { Spin } from 'antdv-next'
+import { computed } from 'vue'
 
-import type { LoadingProps } from "./types";
+import { cn } from '~/utils/cn'
 
-import { cn } from "~/utils/cn";
+import type { LoadingProps } from './types'
 
 /**
  * Loading 加载组件
@@ -12,23 +12,23 @@ import { cn } from "~/utils/cn";
  */
 
 const props = withDefaults(defineProps<LoadingProps>(), {
-  size: "default",
+  size: 'default',
   absolute: false,
   loading: false,
-  theme: "light",
-});
+  theme: 'light',
+})
 
 /**
  * 计算样式
  * 优先使用自定义背景色，否则使用主题色
  */
 const getStyle = computed(() => {
-  const style: Record<string, string> = {};
+  const style: Record<string, string> = {}
   if (props.background) {
-    style.backgroundColor = props.background;
+    style.backgroundColor = props.background
   }
-  return style;
-});
+  return style
+})
 
 /**
  * 计算类名
@@ -37,36 +37,36 @@ const getStyle = computed(() => {
  */
 const wrapperClassName = computed(() => {
   return cn(
-    "loading-wrapper",
-    "flex flex-col items-center justify-center",
-    "z-[9999] transition-all duration-300",
+    'loading-wrapper',
+    'flex flex-col items-center justify-center',
+    'z-[9999] transition-all duration-300',
     // 全屏模式
-    !props.absolute && "fixed inset-0 w-screen h-screen",
+    !props.absolute && 'fixed inset-0 w-screen h-screen',
     // 绝对定位模式（容器内）
-    props.absolute && "absolute inset-0 w-full h-full",
+    props.absolute && 'absolute inset-0 w-full h-full',
     // 尺寸
-    props.size === "small" && "loading-small",
-    props.size === "large" && "loading-large",
+    props.size === 'small' && 'loading-small',
+    props.size === 'large' && 'loading-large',
     // 主题背景色（仅当没有自定义背景时）
-    !props.background && !props.absolute && props.theme === "light" && "bg-white/80",
-    !props.background && !props.absolute && props.theme === "dark" && "bg-black/70 text-white",
-    !props.background && props.absolute && props.theme === "light" && "bg-white/60",
-    !props.background && props.absolute && props.theme === "dark" && "bg-black/50 text-white",
-  );
-});
+    !props.background && !props.absolute && props.theme === 'light' && 'bg-white/80',
+    !props.background && !props.absolute && props.theme === 'dark' && 'bg-black/70 text-white',
+    !props.background && props.absolute && props.theme === 'light' && 'bg-white/60',
+    !props.background && props.absolute && props.theme === 'dark' && 'bg-black/50 text-white',
+  )
+})
 
 /**
  * Spin 尺寸映射
  * 将 LoadingSize 映射到 Spin 组件的 size
  */
 const spinSize = computed(() => {
-  const sizeMap: Record<string, "small" | "default" | "large"> = {
-    small: "small",
-    default: "default",
-    large: "large",
-  };
-  return sizeMap[props.size] || "default";
-});
+  const sizeMap: Record<string, 'small' | 'default' | 'large'> = {
+    small: 'small',
+    default: 'default',
+    large: 'large',
+  }
+  return sizeMap[props.size] || 'default'
+})
 </script>
 
 <template>

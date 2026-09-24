@@ -1,27 +1,27 @@
 <script setup lang="ts">
-import { LockOutlined, ReloadOutlined, SafetyOutlined, UserOutlined } from "@antdv-next/icons";
-import { Icon } from "@iconify/vue";
-import { message } from "antdv-next";
-import { computed, onMounted, reactive, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import type { FormInstance } from 'antdv-next'
+import type { Rule } from 'antdv-next/dist/form/types'
 
-import { useLoginStyles } from "./composables/useLoginStyles";
-import ForgotPasswordModal from "./ForgotPasswordModal.vue";
+import { LockOutlined, ReloadOutlined, SafetyOutlined, UserOutlined } from '@antdv-next/icons'
+import { Icon } from '@iconify/vue'
+import { message } from 'antdv-next'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
-import type { FormInstance } from "antdv-next";
-import type { Rule } from "antdv-next/dist/form/types";
+import { getAuthTenantList, getCaptcha } from '~/api/auth'
+import logoIconUrl from '~/assets/images/logo.png'
+import { useAppStore } from '~/stores'
+import { useUserStore } from '~/stores/modules/user'
+import { cache } from '~/utils'
 
-import { getAuthTenantList, getCaptcha } from "~/api/auth";
-import logoIconUrl from "~/assets/images/logo.png";
-import { useAppStore } from "~/stores";
-import { useUserStore } from "~/stores/modules/user";
-import { cache } from "~/utils";
+import { useLoginStyles } from './composables/useLoginStyles'
+import ForgotPasswordModal from './ForgotPasswordModal.vue'
 
-const router = useRouter();
-const route = useRoute();
-const userStore = useUserStore();
-const appTitle = import.meta.env.VITE_APP_TITLE || "Antdv Next Admin";
-const appStore = useAppStore();
+const router = useRouter()
+const route = useRoute()
+const userStore = useUserStore()
+const appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
+const appStore = useAppStore()
 const {
   containerClassName,
   bgLayerClassName,
@@ -42,69 +42,69 @@ const {
   brandLogoIconClassName,
   brandFeatureClassName,
   brandPreviewClassName,
-} = useLoginStyles();
+} = useLoginStyles()
 
-const formRef = ref<FormInstance>();
-const loading = ref(false);
-const DEVICE_ID_KEY = "device_id";
+const formRef = ref<FormInstance>()
+const loading = ref(false)
+const DEVICE_ID_KEY = 'device_id'
 
 const formState = reactive<{
-  tenantCode: string | undefined;
-  username: string;
-  password: string;
-  remember: boolean;
-  captchaCode: string | undefined;
+  tenantCode: string | undefined
+  username: string
+  password: string
+  remember: boolean
+  captchaCode: string | undefined
 }>({
   tenantCode: undefined,
-  username: "",
-  password: "",
+  username: '',
+  password: '',
   remember: true,
-  captchaCode: "",
-});
+  captchaCode: '',
+})
 
 // ============================================================
 // 租户下拉
 // ============================================================
 interface TenantOption {
-  tenantId: string;
-  tenantCode: string;
-  tenantName: string;
+  tenantId: string
+  tenantCode: string
+  tenantName: string
 }
 
-const tenantOptions = ref<TenantOption[]>([]);
-const tenantLoading = ref(false);
+const tenantOptions = ref<TenantOption[]>([])
+const tenantLoading = ref(false)
 
 async function loadTenants() {
-  tenantLoading.value = true;
+  tenantLoading.value = true
   try {
-    tenantOptions.value = await getAuthTenantList();
+    tenantOptions.value = await getAuthTenantList()
   } catch (err) {
-    message.error("加载租户列表失败，请刷新重试");
-    console.error("[login] loadTenants failed", err);
+    message.error('加载租户列表失败，请刷新重试')
+    console.error('[login] loadTenants failed', err)
   } finally {
-    tenantLoading.value = false;
+    tenantLoading.value = false
   }
 }
 
 // ============================================================
 // 图形验证码
 // ============================================================
-const captchaId = ref("");
-const captchaSvg = ref("");
-const captchaLoading = ref(false);
+const captchaId = ref('')
+const captchaSvg = ref('')
+const captchaLoading = ref(false)
 
 async function refreshCaptcha() {
-  captchaLoading.value = true;
+  captchaLoading.value = true
   try {
-    const data = await getCaptcha();
-    captchaId.value = data.captchaId;
-    captchaSvg.value = data.svg;
-    formState.captchaCode = undefined;
+    const data = await getCaptcha()
+    captchaId.value = data.captchaId
+    captchaSvg.value = data.svg
+    formState.captchaCode = undefined
   } catch (e) {
-    console.log(e);
-    message.error("验证码加载失败");
+    console.log(e)
+    message.error('验证码加载失败')
   } finally {
-    captchaLoading.value = false;
+    captchaLoading.value = false
   }
 }
 
@@ -112,74 +112,69 @@ async function refreshCaptcha() {
 // 表单校验
 // ============================================================
 const rules: Record<string, Rule[]> = {
-  tenantCode: [{ required: true, message: "请选择租户", trigger: "change" }],
-  username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
+  tenantCode: [{ required: true, message: '请选择租户', trigger: 'change' }],
+  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [
-    { required: true, message: "请输入密码", trigger: "blur" },
-    { min: 6, message: "密码至少6位", trigger: "blur" },
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, message: '密码至少6位', trigger: 'blur' },
   ],
   captchaCode: [
-    { required: true, message: "请输入验证码", trigger: "blur" },
-    { len: 4, message: "验证码为 4 位", trigger: "blur" },
+    { required: true, message: '请输入验证码', trigger: 'blur' },
+    { len: 4, message: '验证码为 4 位', trigger: 'blur' },
   ],
-};
+}
 
 // ============================================================
 // 登录
 // ============================================================
 async function handleLogin() {
   try {
-    await formRef.value?.validate();
+    await formRef.value?.validate()
   } catch {
-    return;
+    return
   }
 
-  loading.value = true;
+  loading.value = true
   try {
-    const result = await userStore.login(
-      formState.username,
-      formState.password,
-      formState.tenantCode!,
-      {
-        captchaId: captchaId.value,
-        captchaCode: formState.captchaCode,
-        deviceId: await getDeviceId(),
-      },
-    );
+    const result = await userStore.login(formState.username, formState.password, formState.tenantCode!, {
+      captchaId: captchaId.value,
+      captchaCode: formState.captchaCode,
+      deviceId: await getDeviceId(),
+    })
 
     if (result.success) {
-      cache.setItem("last_tenant_code", formState.tenantCode);
-      message.success("登录成功");
-      const redirect = (route.query.redirect as string) || "/dashboard";
-      router.push(redirect);
+      cache.setItem('last_tenant_code', formState.tenantCode)
+      message.success('登录成功')
+      const redirect = (route.query.redirect as string) || '/dashboard'
+      router.push(redirect)
     } else {
-      message.error(result.message || "登录失败");
-      await refreshCaptcha();
+      message.error(result.message || '登录失败')
+      await refreshCaptcha()
     }
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 
 // ============================================================
 // 忘记密码
 // ============================================================
-const forgotModalOpen = ref(false);
-const loginTenantCode = ref("");
+const forgotModalOpen = ref(false)
+const loginTenantCode = ref('')
 
 function handleRegister() {
-  router.push("/register");
+  router.push('/register')
 }
 
 function handleForgotPassword() {
-  forgotModalOpen.value = true;
+  forgotModalOpen.value = true
 }
 
 function handleResetSuccess(payload: { tenantCode: string; username: string }) {
-  loginTenantCode.value = payload.tenantCode;
-  formState.username = payload.username;
-  formState.password = "";
-  formState.tenantCode = payload.tenantCode;
+  loginTenantCode.value = payload.tenantCode
+  formState.username = payload.username
+  formState.password = ''
+  formState.tenantCode = payload.tenantCode
 }
 
 // ============================================================
@@ -187,60 +182,60 @@ function handleResetSuccess(payload: { tenantCode: string; username: string }) {
 // ============================================================
 const socialLogins = [
   {
-    key: "wechat",
-    label: "微信",
-    icon: "ri:wechat-fill",
-    color: "#07C160",
-    onClick: () => message.info("微信登录即将上线"),
+    key: 'wechat',
+    label: '微信',
+    icon: 'ri:wechat-fill',
+    color: '#07C160',
+    onClick: () => message.info('微信登录即将上线'),
   },
   {
-    key: "github",
-    label: "GitHub",
-    icon: "mdi:github",
-    color: "#24292f",
-    onClick: () => message.info("GitHub 登录即将上线"),
+    key: 'github',
+    label: 'GitHub',
+    icon: 'mdi:github',
+    color: '#24292f',
+    onClick: () => message.info('GitHub 登录即将上线'),
   },
   {
-    key: "google",
-    label: "Google",
-    icon: "flat-color-icons:google",
-    color: "#4285F4",
-    onClick: () => message.info("Google 登录即将上线"),
+    key: 'google',
+    label: 'Google',
+    icon: 'flat-color-icons:google',
+    color: '#4285F4',
+    onClick: () => message.info('Google 登录即将上线'),
   },
   {
-    key: "gitee",
-    label: "Gitee",
-    icon: "simple-icons:gitee",
-    color: "#C71D23",
-    onClick: () => message.info("Gitee 登录即将上线"),
+    key: 'gitee',
+    label: 'Gitee',
+    icon: 'simple-icons:gitee',
+    color: '#C71D23',
+    onClick: () => message.info('Gitee 登录即将上线'),
   },
-];
+]
 
 function handleSocialLogin(item: (typeof socialLogins)[number]) {
-  item.onClick();
+  item.onClick()
 }
 
-const year = computed(() => new Date().getFullYear());
+const year = computed(() => new Date().getFullYear())
 
 async function getDeviceId(): Promise<string | undefined> {
-  let id = (await cache.getItem(DEVICE_ID_KEY)) as string;
+  let id = (await cache.getItem(DEVICE_ID_KEY)) as string
   if (!id) {
-    id = `${import.meta.env.MODE}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-    cache.setItem(DEVICE_ID_KEY, id);
+    id = `${import.meta.env.MODE}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+    cache.setItem(DEVICE_ID_KEY, id)
   }
-  return id as string;
+  return id as string
 }
 
 // ============================================================
 // 初始化
 // ============================================================
 onMounted(async () => {
-  const lastTenant = cache.getItem("last_tenant_code");
+  const lastTenant = cache.getItem('last_tenant_code')
   if (lastTenant) {
-    formState.tenantCode = lastTenant as string;
+    formState.tenantCode = lastTenant as string
   }
-  await Promise.all([loadTenants(), refreshCaptcha()]);
-});
+  await Promise.all([loadTenants(), refreshCaptcha()])
+})
 </script>
 
 <template>
@@ -267,32 +262,32 @@ onMounted(async () => {
               <!-- Logo -->
               <div :class="brandLogoClassName">
                 <div :class="brandLogoIconClassName">
-                  <img :src="logoIconUrl" :alt="appTitle" class="w-full h-full object-contain" />
+                  <img :src="logoIconUrl" :alt="appTitle" class="h-full w-full object-contain" />
                 </div>
                 <span class="text-sm font-semibold tracking-wide">{{ appTitle }}</span>
               </div>
 
               <!-- 标题 -->
               <div class="mt-10">
-                <h1 class="text-3xl font-bold leading-snug tracking-tight">
+                <h1 class="text-3xl leading-snug font-bold tracking-tight">
                   欢迎登录<br />
                   管理平台
                 </h1>
-                <p class="mt-4 text-sm text-white/80 leading-relaxed">或许我们只是差点运气</p>
+                <p class="mt-4 text-sm leading-relaxed text-white/80">或许我们只是差点运气</p>
               </div>
 
               <!-- 特性胶囊 -->
               <div class="mt-8 flex flex-wrap gap-2">
                 <span :class="brandFeatureClassName">
-                  <Icon icon="carbon:flash" class="w-3.5 h-3.5" />
+                  <Icon icon="carbon:flash" class="h-3.5 w-3.5" />
                   极速开发体验
                 </span>
                 <span :class="brandFeatureClassName">
-                  <Icon icon="carbon:color-palette" class="w-3.5 h-3.5" />
+                  <Icon icon="carbon:color-palette" class="h-3.5 w-3.5" />
                   现代化 UI 设计
                 </span>
                 <span :class="brandFeatureClassName">
-                  <Icon icon="carbon:security" class="w-3.5 h-3.5" />
+                  <Icon icon="carbon:security" class="h-3.5 w-3.5" />
                   企业级安全
                 </span>
               </div>
@@ -300,15 +295,15 @@ onMounted(async () => {
               <!-- 预览图（装饰） -->
               <div class="mt-12">
                 <div :class="brandPreviewClassName">
-                  <div class="flex items-center gap-1.5 mb-2.5">
-                    <div class="w-2 h-2 rounded-full bg-white/40" />
-                    <div class="w-2 h-2 rounded-full bg-white/30" />
-                    <div class="w-2 h-2 rounded-full bg-white/20" />
+                  <div class="mb-2.5 flex items-center gap-1.5">
+                    <div class="h-2 w-2 rounded-full bg-white/40" />
+                    <div class="h-2 w-2 rounded-full bg-white/30" />
+                    <div class="h-2 w-2 rounded-full bg-white/20" />
                   </div>
                   <div class="space-y-1.5">
-                    <div class="h-1.5 rounded-full bg-white/20 w-3/4" />
-                    <div class="h-1.5 rounded-full bg-white/15 w-1/2" />
-                    <div class="h-1.5 rounded-full bg-white/10 w-2/3" />
+                    <div class="h-1.5 w-3/4 rounded-full bg-white/20" />
+                    <div class="h-1.5 w-1/2 rounded-full bg-white/15" />
+                    <div class="h-1.5 w-2/3 rounded-full bg-white/10" />
                   </div>
                 </div>
                 <div class="mt-3 text-[11px] text-white/60">© {{ year }} {{ appTitle }} Team</div>
@@ -320,12 +315,12 @@ onMounted(async () => {
           <div :class="formPanelClassName">
             <div :class="formWrapClassName">
               <!-- 移动端 Logo -->
-              <div class="lg:hidden mb-8 flex items-center justify-center gap-2.5">
+              <div class="mb-8 flex items-center justify-center gap-2.5 lg:hidden">
                 <div
-                  class="w-10 h-10 rounded-xl flex items-center justify-center text-white"
+                  class="flex h-10 w-10 items-center justify-center rounded-xl text-white"
                   style="background: var(--ant-color-primary)"
                 >
-                  <img :src="logoIconUrl" :alt="appTitle" class="w-6 h-6 object-contain" />
+                  <img :src="logoIconUrl" :alt="appTitle" class="h-6 w-6 object-contain" />
                 </div>
                 <span class="text-base font-semibold text-slate-800 dark:text-slate-100">
                   {{ appTitle }}
@@ -333,31 +328,19 @@ onMounted(async () => {
               </div>
 
               <!-- 标题 -->
-              <div class="text-center mb-8">
+              <div class="mb-8 text-center">
                 <span
-                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50/80 dark:bg-blue-500/10 text-[11px] font-medium text-blue-600 dark:text-blue-400 border border-blue-100/60 dark:border-blue-500/20 backdrop-blur-sm"
+                  class="inline-flex items-center gap-1.5 rounded-full border border-blue-100/60 bg-blue-50/80 px-3 py-1 text-[11px] font-medium text-blue-600 backdrop-blur-sm dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-400"
                 >
-                  <span class="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                  <span class="h-1.5 w-1.5 rounded-full bg-blue-500" />
                   账号密码登录
                 </span>
-                <h2
-                  class="mt-4 text-2xl font-bold text-slate-900 dark:text-slate-50 tracking-tight"
-                >
-                  登录
-                </h2>
-                <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                  请输入用户名 · 请输入密码
-                </p>
+                <h2 class="mt-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">登录</h2>
+                <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">请输入用户名 · 请输入密码</p>
               </div>
 
               <!-- 表单 -->
-              <a-form
-                ref="formRef"
-                :model="formState"
-                :rules="rules"
-                layout="vertical"
-                @finish="handleLogin"
-              >
+              <a-form ref="formRef" :model="formState" :rules="rules" layout="vertical" @finish="handleLogin">
                 <a-form-item name="tenantCode" class="!mb-4">
                   <a-select
                     v-model:value="formState.tenantCode"
@@ -415,14 +398,14 @@ onMounted(async () => {
                     </a-input>
 
                     <div
-                      class="h-11 w-[110px] shrink-0 rounded-lg overflow-hidden cursor-pointer border border-white/60 dark:border-white/[0.08] bg-white/50 dark:bg-slate-800/40 backdrop-blur-sm hover:border-white/90 dark:hover:border-white/[0.15] transition-colors flex items-center justify-center"
+                      class="flex h-11 w-[110px] shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-white/60 bg-white/50 backdrop-blur-sm transition-colors hover:border-white/90 dark:border-white/[0.08] dark:bg-slate-800/40 dark:hover:border-white/[0.15]"
                       title="点击刷新验证码"
                       @click="refreshCaptcha"
                     >
                       <a-spin :spinning="captchaLoading" size="small">
                         <div
                           v-if="captchaSvg"
-                          class="w-full h-full flex items-center justify-center [&>svg]:w-full [&>svg]:h-full"
+                          class="flex h-full w-full items-center justify-center [&>svg]:h-full [&>svg]:w-full"
                           v-html="captchaSvg"
                         />
                         <ReloadOutlined v-else class="text-slate-400" />
@@ -431,7 +414,7 @@ onMounted(async () => {
                   </div>
                 </a-form-item>
 
-                <div class="flex items-center justify-between mb-6">
+                <div class="mb-6 flex items-center justify-between">
                   <a-checkbox
                     v-model:checked="formState.remember"
                     class="!text-[13px] !text-slate-600 dark:!text-slate-400"
@@ -441,7 +424,7 @@ onMounted(async () => {
                   <a-button
                     type="link"
                     size="small"
-                    class="!p-0 !h-auto !text-[13px] !text-slate-500 dark:!text-slate-400 hover:!text-[var(--ant-color-primary)]"
+                    class="!h-auto !p-0 !text-[13px] !text-slate-500 hover:!text-[var(--ant-color-primary)] dark:!text-slate-400"
                     @click="handleForgotPassword"
                   >
                     忘记密码？
@@ -454,17 +437,17 @@ onMounted(async () => {
                   size="large"
                   block
                   :loading="loading"
-                  class="!h-11 !text-sm !font-medium !rounded-lg"
+                  class="!h-11 !rounded-lg !text-sm !font-medium"
                 >
                   登 录
                 </a-button>
               </a-form>
 
-              <div class="text-center text-sm text-slate-500 dark:text-slate-400 mt-5">
+              <div class="mt-5 text-center text-sm text-slate-500 dark:text-slate-400">
                 还没有账号？
                 <a-button
                   type="link"
-                  class="!px-1 !h-auto !text-[var(--ant-color-primary)] !font-medium"
+                  class="!h-auto !px-1 !font-medium !text-[var(--ant-color-primary)]"
                   @click="handleRegister"
                 >
                   立即注册
@@ -476,9 +459,7 @@ onMounted(async () => {
                   <div class="w-full border-t border-white/50 dark:border-white/[0.06]" />
                 </div>
                 <div class="relative flex justify-center">
-                  <span class="px-3 bg-transparent text-[11px] text-slate-400">
-                    或使用以下方式登录
-                  </span>
+                  <span class="bg-transparent px-3 text-[11px] text-slate-400"> 或使用以下方式登录 </span>
                 </div>
               </div>
 
@@ -487,7 +468,7 @@ onMounted(async () => {
                   v-for="item in socialLogins"
                   :key="item.key"
                   type="button"
-                  class="group cursor-pointer flex items-center justify-center h-10 rounded-lg border border-white/60 dark:border-white/[0.08] bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm hover:bg-white/70 dark:hover:bg-slate-700/60 hover:border-white/90 dark:hover:border-white/[0.15] transition-all duration-200"
+                  class="group flex h-10 cursor-pointer items-center justify-center rounded-lg border border-white/60 bg-white/40 backdrop-blur-sm transition-all duration-200 hover:border-white/90 hover:bg-white/70 dark:border-white/[0.08] dark:bg-slate-800/40 dark:hover:border-white/[0.15] dark:hover:bg-slate-700/60"
                   :title="`使用 ${item.label} 登录`"
                   @click="handleSocialLogin(item)"
                 >

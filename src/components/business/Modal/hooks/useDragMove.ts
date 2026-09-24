@@ -1,8 +1,6 @@
-import { computed, ref, watch } from 'vue'
-
 import type { Ref } from 'vue'
 
-
+import { computed, ref, watch } from 'vue'
 
 /**
  * 弹窗拖拽逻辑
@@ -10,11 +8,7 @@ import type { Ref } from 'vue'
  * @param visible - 弹窗显示状态
  * @param fullscreen - 全屏状态
  */
-export function useDragMove(
-  draggable: Ref<boolean>,
-  visible: Ref<boolean>,
-  fullscreen: Ref<boolean>,
-) {
+export function useDragMove(draggable: Ref<boolean>, visible: Ref<boolean>, fullscreen: Ref<boolean>) {
   // 拖拽位置
   const x = ref(0)
   const y = ref(0)

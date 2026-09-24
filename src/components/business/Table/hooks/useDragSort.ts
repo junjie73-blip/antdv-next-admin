@@ -1,13 +1,9 @@
-
+import type { Ref } from 'vue'
 
 import Sortable from 'sortablejs'
 import { onUnmounted } from 'vue'
 
-import type { Ref } from 'vue'
-
 import type { Recordable } from '../types'
-
-
 
 export interface UseDragSortOptions {
   dataSource: Ref<Recordable[]>
@@ -30,16 +26,7 @@ export interface UseDragSortReturn {
  * 为什么需要：实现表格行的拖拽排序功能
  */
 export function useDragSort(options: UseDragSortOptions): UseDragSortReturn {
-  const {
-    dataSource,
-    enabled,
-    rowKey,
-    handle,
-    animation = 150,
-    disabled,
-    onDragEnd,
-    canDrop,
-  } = options
+  const { dataSource, enabled, rowKey, handle, animation = 150, disabled, onDragEnd, canDrop } = options
 
   // Sortable 实例
   let sortableInstance: Sortable | null = null

@@ -30,10 +30,7 @@ export function initSecuritySystem(options?: {
 
   // 开发环境输出安全状态
   if (import.meta.env.DEV) {
-    console.log(
-      '%c[Security] ✅ 安全防护系统已初始化',
-      'color: #10b981; font-weight: bold; font-size: 12px;',
-    )
+    console.log('%c[Security] ✅ 安全防护系统已初始化', 'color: #10b981; font-weight: bold; font-size: 12px;')
     console.log('%c  ├─ CSRF Token 防护: 已启用', 'color: #6b7280; font-size: 11px;')
     console.log('%c  ├─ Double Submit Cookie: 已启用', 'color: #6b7280; font-size: 11px;')
     console.log('%c  └─ XSS 防护指令: v-safe-html, v-escape', 'color: #6b7280; font-size: 11px;')

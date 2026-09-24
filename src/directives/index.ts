@@ -8,8 +8,8 @@
  */
 
 // 权限控制指令
-export { vPermission } from "./permission";
+export { vPermission } from './permission'
 
-export * from "./permission/types";
+export * from './permission/types'
 // 安全防护指令
-export { escapeDirective, safeHtmlDirective } from "~/utils/xss";
+export { escapeDirective, safeHtmlDirective } from '~/utils/xss'

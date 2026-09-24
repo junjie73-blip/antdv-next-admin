@@ -1,101 +1,96 @@
 <script setup lang="ts">
-import { Editor, Toolbar } from "@wangeditor/editor-for-vue";
-import { message } from "antdv-next";
-import { computed, nextTick, onBeforeUnmount, ref, shallowRef, watch } from "vue";
+import type { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor'
 
-import { uploadFile, validateFile } from "./utils";
+import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
+import { message } from 'antdv-next'
+import { computed, nextTick, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 
-import type { IDomEditor, IEditorConfig, IToolbarConfig } from "@wangeditor/editor";
+import { cn } from '~/utils/cn'
 
-import type {
-  ImageUploadConfig,
-  MarkdownEditorInstance,
-  MarkdownEditorProps,
-  VideoUploadConfig,
-} from "./types";
+import type { ImageUploadConfig, MarkdownEditorInstance, MarkdownEditorProps, VideoUploadConfig } from './types'
 
-import { cn } from "~/utils/cn";
+import { uploadFile, validateFile } from './utils'
 
-import "@wangeditor/editor/dist/css/style.css";
+import '@wangeditor/editor/dist/css/style.css'
 
-defineOptions({ name: "MarkdownEditor" });
+defineOptions({ name: 'MarkdownEditor' })
 
 const props = withDefaults(defineProps<MarkdownEditorProps>(), {
-  value: "",
+  value: '',
   minHeight: 160,
   maxHeight: 500,
   height: undefined,
-  mode: "edit",
-  theme: "light",
-  placeholder: "请输入内容...",
+  mode: 'edit',
+  theme: 'light',
+  placeholder: '请输入内容...',
   readonly: false,
   disabled: false,
   showToolbar: true,
   autoFocus: false,
   showCount: true,
   compact: false,
-});
+})
 
-const model = defineModel<string>("value", { default: "" });
+const model = defineModel<string>('value', { default: '' })
 
 const emit = defineEmits<{
-  change: [html: string, text: string];
-  focus: [editor: IDomEditor];
-  blur: [editor: IDomEditor];
-  uploadSuccess: [file: File, response: unknown];
-  uploadError: [file: File, error: unknown];
-  maxLength: [currentLength: number, maxLength: number];
-  created: [editor: IDomEditor];
-  destroyed: [];
-}>();
+  change: [html: string, text: string]
+  focus: [editor: IDomEditor]
+  blur: [editor: IDomEditor]
+  uploadSuccess: [file: File, response: unknown]
+  uploadError: [file: File, error: unknown]
+  maxLength: [currentLength: number, maxLength: number]
+  created: [editor: IDomEditor]
+  destroyed: []
+}>()
 
 /* ============================================================
  * 状态
  * ============================================================ */
 
-const editorRef = shallowRef<IDomEditor | null>(null);
-const textLength = ref(0);
-const htmlLength = ref(0);
+const editorRef = shallowRef<IDomEditor | null>(null)
+const textLength = ref(0)
+const htmlLength = ref(0)
 
-let isInternalUpdate = false;
-let internalUpdateTimer: ReturnType<typeof setTimeout> | null = null;
+let isInternalUpdate = false
+let internalUpdateTimer: ReturnType<typeof setTimeout> | null = null
 
 /* ============================================================
  * 工具
  * ============================================================ */
 
 function isEmptyContent(html: string | null | undefined): boolean {
-  if (!html) return true;
+  if (!html) return true
   const text = html
-    .replace(/<[^>]*>/g, "")
-    .replace(/&nbsp;/g, " ")
-    .trim();
-  return text === "";
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .trim()
+  return text === ''
 }
 
 function normalizeHtml(v: string | null | undefined): string {
-  return v == null ? "" : String(v);
+  return v == null ? '' : String(v)
 }
 
 function isSameContent(a: string, b: string): boolean {
-  if (isEmptyContent(a) && isEmptyContent(b)) return true;
-  return a === b;
+  if (isEmptyContent(a) && isEmptyContent(b)) return true
+  return a === b
 }
 
 function markInternalUpdate(): void {
-  isInternalUpdate = true;
-  if (internalUpdateTimer) clearTimeout(internalUpdateTimer);
+  isInternalUpdate = true
+  if (internalUpdateTimer) clearTimeout(internalUpdateTimer)
   internalUpdateTimer = setTimeout(() => {
-    isInternalUpdate = false;
-    internalUpdateTimer = null;
-  }, 200);
+    isInternalUpdate = false
+    internalUpdateTimer = null
+  }, 200)
 }
 
 function updateStats(): void {
-  const editor = editorRef.value;
-  if (!editor) return;
-  textLength.value = editor.getText().length;
-  htmlLength.value = editor.getHtml().length;
+  const editor = editorRef.value
+  if (!editor) return
+  textLength.value = editor.getText().length
+  htmlLength.value = editor.getHtml().length
 }
 
 /* ============================================================
@@ -103,41 +98,41 @@ function updateStats(): void {
  * ============================================================ */
 
 function toCssSize(v: number | string | undefined): string | undefined {
-  if (v === undefined) return undefined;
-  return typeof v === "number" ? `${v}px` : v;
+  if (v === undefined) return undefined
+  return typeof v === 'number' ? `${v}px` : v
 }
 
-const fixedHeight = computed(() => toCssSize(props.height));
-const minHeightCss = computed(() => toCssSize(props.minHeight) ?? "160px");
-const maxHeightCss = computed(() => toCssSize(props.maxHeight) ?? "500px");
+const fixedHeight = computed(() => toCssSize(props.height))
+const minHeightCss = computed(() => toCssSize(props.minHeight) ?? '160px')
+const maxHeightCss = computed(() => toCssSize(props.maxHeight) ?? '500px')
 
 const editorStyle = computed(() => {
-  if (fixedHeight.value) return { height: fixedHeight.value };
+  if (fixedHeight.value) return { height: fixedHeight.value }
   return {
     minHeight: minHeightCss.value,
     maxHeight: maxHeightCss.value,
-  };
-});
+  }
+})
 
 /* ============================================================
  * ⭐ 图片上传
  * ============================================================ */
 
-const DEFAULT_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/gif", "image/webp"];
+const DEFAULT_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp']
 
-const DEFAULT_VIDEO_TYPES = ["video/mp4", "video/webm", "video/ogg", "video/quicktime"];
+const DEFAULT_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime']
 
 const imageUploadConfig = computed<ImageUploadConfig>(() => ({
   maxFileSize: 5,
   allowedFileTypes: DEFAULT_IMAGE_TYPES,
   ...props.imageUpload,
-}));
+}))
 
 const videoUploadConfig = computed<VideoUploadConfig>(() => ({
   maxFileSize: 100,
   allowedFileTypes: DEFAULT_VIDEO_TYPES,
   ...props.videoUpload,
-}));
+}))
 
 /**
  * 图片自定义上传
@@ -148,16 +143,16 @@ const videoUploadConfig = computed<VideoUploadConfig>(() => ({
  */
 function createImageUploader(insertFn: (url: string, alt?: string, href?: string) => void) {
   return async (file: File) => {
-    const cfg = imageUploadConfig.value;
+    const cfg = imageUploadConfig.value
 
     if (
       !validateFile(file, {
         maxSizeMB: cfg.maxFileSize,
         allowedTypes: cfg.allowedFileTypes,
-        label: "图片",
+        label: '图片',
       })
     ) {
-      return;
+      return
     }
 
     try {
@@ -167,20 +162,20 @@ function createImageUploader(insertFn: (url: string, alt?: string, href?: string
         server: cfg.server,
         fieldName: cfg.fieldName,
         meta: cfg.meta,
-      });
+      })
 
       // 插入到编辑器
-      insertFn(result.url, result.filename, result.url);
+      insertFn(result.url, result.filename, result.url)
 
-      cfg.onSuccess?.(file, result);
-      emit("uploadSuccess", file, result);
+      cfg.onSuccess?.(file, result)
+      emit('uploadSuccess', file, result)
     } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
-      message.error(`图片上传失败：${error.message}`);
-      cfg.onError?.(file, error);
-      emit("uploadError", file, error);
+      const error = err instanceof Error ? err : new Error(String(err))
+      message.error(`图片上传失败：${error.message}`)
+      cfg.onError?.(file, error)
+      emit('uploadError', file, error)
     }
-  };
+  }
 }
 
 /**
@@ -188,16 +183,16 @@ function createImageUploader(insertFn: (url: string, alt?: string, href?: string
  */
 function createVideoUploader(insertFn: (url: string, poster?: string) => void) {
   return async (file: File) => {
-    const cfg = videoUploadConfig.value;
+    const cfg = videoUploadConfig.value
 
     if (
       !validateFile(file, {
         maxSizeMB: cfg.maxFileSize,
         allowedTypes: cfg.allowedFileTypes,
-        label: "视频",
+        label: '视频',
       })
     ) {
-      return;
+      return
     }
 
     try {
@@ -206,19 +201,19 @@ function createVideoUploader(insertFn: (url: string, poster?: string) => void) {
         server: cfg.server,
         fieldName: cfg.fieldName,
         meta: cfg.meta,
-      });
+      })
 
-      insertFn(result.url);
+      insertFn(result.url)
 
-      cfg.onSuccess?.(file, result);
-      emit("uploadSuccess", file, result);
+      cfg.onSuccess?.(file, result)
+      emit('uploadSuccess', file, result)
     } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
-      message.error(`视频上传失败：${error.message}`);
-      cfg.onError?.(file, error);
-      emit("uploadError", file, error);
+      const error = err instanceof Error ? err : new Error(String(err))
+      message.error(`视频上传失败：${error.message}`)
+      cfg.onError?.(file, error)
+      emit('uploadError', file, error)
     }
-  };
+  }
 }
 
 /* ============================================================
@@ -227,43 +222,43 @@ function createVideoUploader(insertFn: (url: string, poster?: string) => void) {
 
 const defaultToolbarConfig: Partial<IToolbarConfig> = {
   toolbarKeys: [
-    "headerSelect",
-    "|",
-    "bold",
-    "italic",
-    "underline",
-    "through",
-    "color",
-    "bgColor",
-    "|",
-    "fontSize",
-    "fontFamily",
-    "lineHeight",
-    "|",
-    "bulletedList",
-    "numberedList",
-    "todo",
-    "justifyLeft",
-    "justifyCenter",
-    "justifyRight",
-    "|",
-    "insertLink",
-    "uploadImage",
-    "uploadVideo",
-    "insertTable",
-    "codeBlock",
-    "|",
-    "undo",
-    "redo",
-    "|",
-    "fullScreen",
+    'headerSelect',
+    '|',
+    'bold',
+    'italic',
+    'underline',
+    'through',
+    'color',
+    'bgColor',
+    '|',
+    'fontSize',
+    'fontFamily',
+    'lineHeight',
+    '|',
+    'bulletedList',
+    'numberedList',
+    'todo',
+    'justifyLeft',
+    'justifyCenter',
+    'justifyRight',
+    '|',
+    'insertLink',
+    'uploadImage',
+    'uploadVideo',
+    'insertTable',
+    'codeBlock',
+    '|',
+    'undo',
+    'redo',
+    '|',
+    'fullScreen',
   ],
-};
+}
 
 const toolbarConfig = computed<Partial<IToolbarConfig>>(() => ({
   ...defaultToolbarConfig,
   ...props.toolbarConfig,
-}));
+}))
 
 /* ============================================================
  * 编辑器配置
@@ -276,59 +271,59 @@ const editorConfig = computed<Partial<IEditorConfig>>(() => {
     autoFocus: props.autoFocus,
     scroll: true,
     ...props.editorConfig,
-  };
+  }
 
   const menuConf: Record<string, unknown> = {
     ...(config.MENU_CONF as Record<string, unknown> | undefined),
-  };
+  }
 
   // ⭐ 图片上传
-  const imgCfg = imageUploadConfig.value;
+  const imgCfg = imageUploadConfig.value
   menuConf.uploadImage = {
     // wangeditor 要求的字段
-    server: imgCfg.server ?? "", // 实际不用，走 customUpload
-    fieldName: imgCfg.fieldName ?? "file",
+    server: imgCfg.server ?? '', // 实际不用，走 customUpload
+    fieldName: imgCfg.fieldName ?? 'file',
     maxFileSize: (imgCfg.maxFileSize ?? 5) * 1024 * 1024,
     allowedFileTypes: imgCfg.allowedFileTypes ?? DEFAULT_IMAGE_TYPES,
 
     // ⭐ 自定义上传：走系统 http
     customUpload: (file: File, insertFn: (url: string, alt?: string, href?: string) => void) => {
       if (imgCfg.customUpload) {
-        imgCfg.customUpload(file, insertFn);
+        imgCfg.customUpload(file, insertFn)
       } else {
-        void createImageUploader(insertFn)(file);
+        void createImageUploader(insertFn)(file)
       }
     },
-  };
+  }
 
   // ⭐ 视频上传
-  const vidCfg = videoUploadConfig.value;
+  const vidCfg = videoUploadConfig.value
   menuConf.uploadVideo = {
-    server: vidCfg.server ?? "",
-    fieldName: vidCfg.fieldName ?? "file",
+    server: vidCfg.server ?? '',
+    fieldName: vidCfg.fieldName ?? 'file',
     maxFileSize: (vidCfg.maxFileSize ?? 100) * 1024 * 1024,
     allowedFileTypes: vidCfg.allowedFileTypes ?? DEFAULT_VIDEO_TYPES,
 
     customUpload: (file: File, insertFn: (url: string, poster?: string) => void) => {
       if (vidCfg.customUpload) {
-        vidCfg.customUpload(file, insertFn);
+        vidCfg.customUpload(file, insertFn)
       } else {
-        void createVideoUploader(insertFn)(file);
+        void createVideoUploader(insertFn)(file)
       }
     },
-  };
-
-  config.MENU_CONF = menuConf as IEditorConfig["MENU_CONF"];
-
-  if (props.maxLength) {
-    config.maxLength = props.maxLength;
-    config.onMaxLength = (editor: IDomEditor) => {
-      emit("maxLength", editor.getText().length, props.maxLength!);
-    };
   }
 
-  return config;
-});
+  config.MENU_CONF = menuConf as IEditorConfig['MENU_CONF']
+
+  if (props.maxLength) {
+    config.maxLength = props.maxLength
+    config.onMaxLength = (editor: IDomEditor) => {
+      emit('maxLength', editor.getText().length, props.maxLength!)
+    }
+  }
+
+  return config
+})
 
 /* ============================================================
  * 类名
@@ -336,104 +331,104 @@ const editorConfig = computed<Partial<IEditorConfig>>(() => {
 
 const containerClassName = computed(() =>
   cn(
-    "markdown-editor flex flex-col overflow-hidden rounded-md border",
-    "border-gray-200 bg-white transition-colors",
-    "focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-500/20",
-    "dark:border-gray-700 dark:bg-gray-900",
-    props.disabled && "pointer-events-none opacity-60",
-    props.compact && "markdown-editor-compact",
+    'markdown-editor flex flex-col overflow-hidden rounded-md border',
+    'border-gray-200 bg-white transition-colors',
+    'focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-500/20',
+    'dark:border-gray-700 dark:bg-gray-900',
+    props.disabled && 'pointer-events-none opacity-60',
+    props.compact && 'markdown-editor-compact',
   ),
-);
+)
 
 const toolbarClassName = computed(() =>
-  cn("shrink-0 border-b border-gray-200 dark:border-gray-700", props.compact && "compact-toolbar"),
-);
+  cn('shrink-0 border-b border-gray-200 dark:border-gray-700', props.compact && 'compact-toolbar'),
+)
 
 /* ============================================================
  * 生命周期
  * ============================================================ */
 
 function handleCreated(editor: IDomEditor) {
-  editorRef.value = editor;
+  editorRef.value = editor
 
-  const initial = normalizeHtml(model.value);
+  const initial = normalizeHtml(model.value)
   if (!isEmptyContent(initial)) {
     nextTick(() => {
-      if (editorRef.value !== editor) return;
-      editor.setHtml(initial);
-      updateStats();
-    });
+      if (editorRef.value !== editor) return
+      editor.setHtml(initial)
+      updateStats()
+    })
   }
 
   if (props.autoFocus) {
-    nextTick(() => editor.focus());
+    nextTick(() => editor.focus())
   }
 
-  updateStats();
-  emit("created", editor);
+  updateStats()
+  emit('created', editor)
 }
 
 function handleChange(editor: IDomEditor) {
-  const html = editor.getHtml();
-  const text = editor.getText();
+  const html = editor.getHtml()
+  const text = editor.getText()
 
-  markInternalUpdate();
-  model.value = html;
+  markInternalUpdate()
+  model.value = html
 
-  emit("change", html, text);
-  textLength.value = text.length;
-  htmlLength.value = html.length;
+  emit('change', html, text)
+  textLength.value = text.length
+  htmlLength.value = html.length
 }
 
 function handleFocus(editor: IDomEditor) {
-  emit("focus", editor);
+  emit('focus', editor)
 }
 
 function handleBlur(editor: IDomEditor) {
-  emit("blur", editor);
+  emit('blur', editor)
 }
 
 watch(
   () => model.value,
   (newValue) => {
-    if (isInternalUpdate) return;
-    const editor = editorRef.value;
-    if (!editor) return;
+    if (isInternalUpdate) return
+    const editor = editorRef.value
+    if (!editor) return
 
-    const next = normalizeHtml(newValue);
-    const current = editor.getHtml();
-    if (isSameContent(next, current)) return;
+    const next = normalizeHtml(newValue)
+    const current = editor.getHtml()
+    if (isSameContent(next, current)) return
 
-    editor.setHtml(next);
-    updateStats();
+    editor.setHtml(next)
+    updateStats()
   },
   {
     immediate: true,
   },
-);
+)
 
 watch(
   () => props.readonly || props.disabled,
   (locked) => {
-    const editor = editorRef.value;
-    if (!editor) return;
-    if (locked) editor.disable();
-    else editor.enable();
+    const editor = editorRef.value
+    if (!editor) return
+    if (locked) editor.disable()
+    else editor.enable()
   },
-);
+)
 
 onBeforeUnmount(() => {
   if (internalUpdateTimer) {
-    clearTimeout(internalUpdateTimer);
-    internalUpdateTimer = null;
+    clearTimeout(internalUpdateTimer)
+    internalUpdateTimer = null
   }
-  const editor = editorRef.value;
+  const editor = editorRef.value
   if (editor) {
-    editor.destroy();
-    editorRef.value = null;
+    editor.destroy()
+    editorRef.value = null
   }
-  emit("destroyed");
-});
+  emit('destroyed')
+})
 
 /* ============================================================
  * 实例方法
@@ -441,32 +436,32 @@ onBeforeUnmount(() => {
 
 const instance: MarkdownEditorInstance = {
   getEditor: () => editorRef.value,
-  getHtml: () => editorRef.value?.getHtml() ?? "",
-  getMarkdown: () => editorRef.value?.getHtml() ?? "",
-  getText: () => editorRef.value?.getText() ?? "",
+  getHtml: () => editorRef.value?.getHtml() ?? '',
+  getMarkdown: () => editorRef.value?.getHtml() ?? '',
+  getText: () => editorRef.value?.getText() ?? '',
   setHtml: (html: string) => {
-    const editor = editorRef.value;
-    if (!editor) return;
-    markInternalUpdate();
-    editor.setHtml(normalizeHtml(html));
-    model.value = html;
-    updateStats();
+    const editor = editorRef.value
+    if (!editor) return
+    markInternalUpdate()
+    editor.setHtml(normalizeHtml(html))
+    model.value = html
+    updateStats()
   },
   setMarkdown: (markdown: string) => {
-    const editor = editorRef.value;
-    if (!editor) return;
-    markInternalUpdate();
-    editor.setHtml(normalizeHtml(markdown));
-    model.value = markdown;
-    updateStats();
+    const editor = editorRef.value
+    if (!editor) return
+    markInternalUpdate()
+    editor.setHtml(normalizeHtml(markdown))
+    model.value = markdown
+    updateStats()
   },
   clear: () => {
-    const editor = editorRef.value;
-    if (!editor) return;
-    markInternalUpdate();
-    editor.clear();
-    model.value = "";
-    updateStats();
+    const editor = editorRef.value
+    if (!editor) return
+    markInternalUpdate()
+    editor.clear()
+    model.value = ''
+    updateStats()
   },
   focus: () => editorRef.value?.focus(),
   blur: () => editorRef.value?.blur(),
@@ -475,24 +470,22 @@ const instance: MarkdownEditorInstance = {
   insertText: (text: string) => editorRef.value?.insertText(text),
   insertHtml: (html: string) => editorRef.value?.dangerouslyInsertHtml(html),
   // ⭐ 新增：手动插入图片 / 视频（供外部调用）
-  insertImage: (url: string, alt = "", href = "") => {
-    editorRef.value?.dangerouslyInsertHtml(
-      `<img src="${url}" alt="${alt}" ${href ? `data-href="${href}"` : ""} />`,
-    );
+  insertImage: (url: string, alt = '', href = '') => {
+    editorRef.value?.dangerouslyInsertHtml(`<img src="${url}" alt="${alt}" ${href ? `data-href="${href}"` : ''} />`)
   },
-  insertVideo: (url: string, poster = "") => {
+  insertVideo: (url: string, poster = '') => {
     editorRef.value?.dangerouslyInsertHtml(
-      `<video src="${url}" ${poster ? `poster="${poster}"` : ""} controls></video>`,
-    );
+      `<video src="${url}" ${poster ? `poster="${poster}"` : ''} controls></video>`,
+    )
   },
   selectAll: () => editorRef.value?.selectAll(),
   getStats: () => ({
     textLength: textLength.value,
     htmlLength: htmlLength.value,
   }),
-};
+}
 
-defineExpose(instance);
+defineExpose(instance)
 </script>
 
 <template>
@@ -524,9 +517,7 @@ defineExpose(instance);
       class="flex shrink-0 items-center justify-end gap-2 border-t border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800/60 dark:text-gray-400"
     >
       <span>{{ textLength }} 字</span>
-      <span v-if="maxLength" class="text-gray-400 dark:text-gray-500">
-        / {{ maxLength }} 上限
-      </span>
+      <span v-if="maxLength" class="text-gray-400 dark:text-gray-500"> / {{ maxLength }} 上限 </span>
     </div>
   </div>
 </template>

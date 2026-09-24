@@ -1,28 +1,28 @@
-import * as echarts from "echarts";
+import * as echarts from 'echarts'
 
-import { PALETTE } from "../constants";
-import { baseOption, borderColor, echartsTheme, subTextColor } from "../theme";
+import { getResourceUsage } from '~/api'
 
-import type { ResourceUsageData } from "../types";
+import type { ResourceUsageData } from '../types'
 
-import { getResourceUsage } from "~/api";
+import { PALETTE } from '../constants'
+import { baseOption, borderColor, echartsTheme, subTextColor } from '../theme'
 
 /** 资源使用雷达图 */
 export async function initResourceRadar(el: HTMLElement, isDark: boolean) {
-  const instance = echarts.init(el, echartsTheme(isDark));
+  const instance = echarts.init(el, echartsTheme(isDark))
 
-  let usage: ResourceUsageData = { indicators: [], current: [], peak: [] };
+  let usage: ResourceUsageData = { indicators: [], current: [], peak: [] }
   try {
-    const res = await getResourceUsage();
-    usage = res?.data ?? res ?? usage;
+    const res = await getResourceUsage()
+    usage = res?.data ?? res ?? usage
   } catch (e) {
-    console.warn("加载资源使用失败", e);
+    console.warn('加载资源使用失败', e)
   }
 
   instance.setOption(
     baseOption(isDark, {
       legend: {
-        data: ["当前", "峰值"],
+        data: ['当前', '峰值'],
         bottom: 0,
         textStyle: { color: subTextColor(isDark), fontSize: 12 },
       },
@@ -32,8 +32,8 @@ export async function initResourceRadar(el: HTMLElement, isDark: boolean) {
         splitArea: {
           areaStyle: {
             color: [
-              isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)",
-              isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
+              isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+              isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
             ],
           },
         },
@@ -42,28 +42,28 @@ export async function initResourceRadar(el: HTMLElement, isDark: boolean) {
       },
       series: [
         {
-          name: "当前",
-          type: "radar",
-          data: [{ value: usage.current, name: "当前" }],
-          symbol: "circle",
+          name: '当前',
+          type: 'radar',
+          data: [{ value: usage.current, name: '当前' }],
+          symbol: 'circle',
           symbolSize: 5,
           lineStyle: { color: PALETTE.primary, width: 2 },
-          areaStyle: { color: "rgba(22,119,255,0.18)" },
+          areaStyle: { color: 'rgba(22,119,255,0.18)' },
           itemStyle: { color: PALETTE.primary },
         },
         {
-          name: "峰值",
-          type: "radar",
-          data: [{ value: usage.peak, name: "峰值" }],
-          symbol: "circle",
+          name: '峰值',
+          type: 'radar',
+          data: [{ value: usage.peak, name: '峰值' }],
+          symbol: 'circle',
           symbolSize: 4,
-          lineStyle: { color: PALETTE.danger, width: 1.5, type: "dashed" },
-          areaStyle: { color: "rgba(255,77,79,0.06)" },
+          lineStyle: { color: PALETTE.danger, width: 1.5, type: 'dashed' },
+          areaStyle: { color: 'rgba(255,77,79,0.06)' },
           itemStyle: { color: PALETTE.danger },
         },
       ],
     }),
-  );
+  )
 
-  return instance;
+  return instance
 }

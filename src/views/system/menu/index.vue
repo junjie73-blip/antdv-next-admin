@@ -1,12 +1,23 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { message } from "antdv-next";
-import { computed, ref } from "vue";
+import { Icon } from '@iconify/vue'
+import { message } from 'antdv-next'
+import { computed, ref } from 'vue'
 
-import { getMenuActions } from "./actions";
-import { menuActionColumn, menuColumns, menuRowKey, menuScroll } from "./columns";
-import PermissionDrawer from "./components/PermissionDrawer.vue";
+import { changeMenuStatus } from '~/api'
+import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
+import { BasicForm, useForm } from '~/components/business/Form'
+import { type ActionItem, BasicTable, TableAction, useTable } from '~/components/business/Table'
+import IconPicker from '~/components/common/Icon/IconPicker.vue'
+import { useCRUD } from '~/composables/useCRUD'
+import { DictType } from '~/enums/dict'
+import { useDictStore } from '~/stores'
+import { http } from '~/utils'
 
+import type { MenuRecord } from './types'
+
+import { getMenuActions } from './actions'
+import { menuActionColumn, menuColumns, menuRowKey, menuScroll } from './columns'
+import PermissionDrawer from './components/PermissionDrawer.vue'
 import {
   cardClassName,
   containerClassName,
@@ -15,55 +26,42 @@ import {
   MENU_TYPE_ICON_MAP,
   MENU_TYPE_LABEL_MAP,
   tagClassName,
-} from "./constants";
-
-import { useMenuFormSchemas } from "./schemas";
-
-import type { MenuRecord } from "./types";
-
-import { changeMenuStatus } from "~/api";
-import { BasicDrawer, useDrawer } from "~/components/business/Drawer";
-import { BasicForm, useForm } from "~/components/business/Form";
-import { type ActionItem, BasicTable, TableAction, useTable } from "~/components/business/Table";
-import IconPicker from "~/components/common/Icon/IconPicker.vue";
-import { useCRUD } from "~/composables/useCRUD";
-import { DictType } from "~/enums/dict";
-import { useDictStore } from "~/stores";
-import { http } from "~/utils";
+} from './constants'
+import { useMenuFormSchemas } from './schemas'
 
 // 抽离的模块
 
-defineOptions({ name: "SystemMenu" });
+defineOptions({ name: 'SystemMenu' })
 
 // ========== 字典 ==========
-const dictStore = useDictStore();
-const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE));
+const dictStore = useDictStore()
+const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
 
 // ========== 注册实例 ==========
-const [drawerRegister, drawerMethods] = useDrawer();
-const [tableRegister, tableMethods] = useTable();
-const [formRegister, formMethods] = useForm();
+const [drawerRegister, drawerMethods] = useDrawer()
+const [tableRegister, tableMethods] = useTable()
+const [formRegister, formMethods] = useForm()
 
 // ========== 表单 schema ==========
-const drawerFormSchemas = useMenuFormSchemas(statusOptions);
+const drawerFormSchemas = useMenuFormSchemas(statusOptions)
 
 // ========== 表格 API ==========
 async function fetchMenuTree() {
   return await http
-    .Get("/menu/tree", {
+    .Get('/menu/tree', {
       cacheFor: null,
     })
-    .send(true);
+    .send(true)
 }
 
 // ========== useCRUD ==========
 // 说明：删除确认由操作项 popConfirm 负责，关闭 useCRUD 内置 Modal.confirm。
 const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<MenuRecord>({
-  containerType: "drawer",
+  containerType: 'drawer',
   drawerMethods,
   formMethods,
   tableMethods,
-  idKey: "menuId",
+  idKey: 'menuId',
   getEmptyValues: () => ({ ...MENU_EMPTY_VALUES }),
   getFormValues: (record) => ({
     parentId: record.parentId,
@@ -77,52 +75,52 @@ const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<M
     status: record.status,
   }),
   onCreate: async (values) => {
-    await http.Post("/menu", values);
+    await http.Post('/menu', values)
   },
   onUpdate: async (id, values) => {
-    await http.Put(`/menu/${id}`, values);
+    await http.Put(`/menu/${id}`, values)
   },
   onDelete: async (record) => {
-    await http.Delete(`/menu/${record.menuId}`);
+    await http.Delete(`/menu/${record.menuId}`)
   },
   messages: {
-    createSuccess: "菜单创建成功",
-    updateSuccess: "菜单更新成功",
-    deleteSuccess: "菜单删除成功",
+    createSuccess: '菜单创建成功',
+    updateSuccess: '菜单更新成功',
+    deleteSuccess: '菜单删除成功',
   },
-});
+})
 
 // ========== 新增子菜单 ==========
 async function handleAddChild(record: MenuRecord) {
-  await handleAdd({ parentId: record.menuId });
+  await handleAdd({ parentId: record.menuId })
 }
 
 // ========== 图标选择 ==========
 function handleIconSelect(icon: string) {
-  formMethods.setFieldsValue({ icon });
+  formMethods.setFieldsValue({ icon })
 }
 
 // ========== 权限抽屉 ==========
-const currentPermissionRecord = ref<MenuRecord>();
-const [permissionDrawerRegister, permissionDrawerMethods] = useDrawer();
+const currentPermissionRecord = ref<MenuRecord>()
+const [permissionDrawerRegister, permissionDrawerMethods] = useDrawer()
 
 async function handleAddPermission(record: MenuRecord) {
-  currentPermissionRecord.value = record;
-  await permissionDrawerMethods.openDrawer();
+  currentPermissionRecord.value = record
+  await permissionDrawerMethods.openDrawer()
 }
 
 async function handlePermissionOk() {
-  permissionDrawerMethods.closeDrawer();
-  tableMethods.value?.reload();
+  permissionDrawerMethods.closeDrawer()
+  tableMethods.value?.reload()
 }
 async function handleToggleStatus(record: MenuRecord) {
   try {
-    const newStatus = record.status === "1" ? "0" : "1";
-    await changeMenuStatus(record.menuId, newStatus);
-    message.success(`已${newStatus === "0" ? "停用" : "启用"}：${record.menuName}`);
-    tableMethods.value?.reload();
+    const newStatus = record.status === '1' ? '0' : '1'
+    await changeMenuStatus(record.menuId, newStatus)
+    message.success(`已${newStatus === '0' ? '停用' : '启用'}：${record.menuName}`)
+    tableMethods.value?.reload()
   } catch (e: any) {
-    message.error(e?.message || "操作失败");
+    message.error(e?.message || '操作失败')
   }
 }
 // ========== 操作项 ==========
@@ -132,7 +130,7 @@ function getActions(record: MenuRecord): ActionItem[] {
     onAddPermission: handleAddPermission,
     onEdit: handleEdit,
     onDelete: handleDelete,
-  });
+  })
 }
 </script>
 
@@ -194,12 +192,7 @@ function getActions(record: MenuRecord): ActionItem[] {
     </a-card>
 
     <!-- 菜单编辑抽屉 -->
-    <BasicDrawer
-      :title="isEditing ? '编辑菜单' : '新增菜单'"
-      :width="640"
-      @register="drawerRegister"
-      @ok="handleSave"
-    >
+    <BasicDrawer :title="isEditing ? '编辑菜单' : '新增菜单'" :width="640" @register="drawerRegister" @ok="handleSave">
       <BasicForm
         :schemas="drawerFormSchemas"
         :show-action-button-group="false"
@@ -217,16 +210,8 @@ function getActions(record: MenuRecord): ActionItem[] {
     </BasicDrawer>
 
     <!-- 权限按钮抽屉 -->
-    <BasicDrawer
-      title="权限按钮"
-      :width="640"
-      @register="permissionDrawerRegister"
-      @ok="handlePermissionOk"
-    >
-      <PermissionDrawer
-        :menu="currentPermissionRecord"
-        :visible="permissionDrawerMethods.getVisible()"
-      />
+    <BasicDrawer title="权限按钮" :width="640" @register="permissionDrawerRegister" @ok="handlePermissionOk">
+      <PermissionDrawer :menu="currentPermissionRecord" :visible="permissionDrawerMethods.getVisible()" />
     </BasicDrawer>
   </div>
 </template>

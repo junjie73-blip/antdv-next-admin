@@ -1,15 +1,11 @@
+import type { ComputedRef, Ref } from 'vue'
 
 import { computed, ref, unref, watch } from 'vue'
-
-import { useForm } from '../../Form/useForm'
-
-
-import type { ComputedRef, Ref } from 'vue'
 
 import type { FormActionType, FormProps, FormSchema } from '../../Form/types'
 import type { BasicTableProps, Recordable } from '../types'
 
-
+import { useForm } from '../../Form/useForm'
 
 interface UseTableFormOptions {
   propsRef?: Ref<BasicTableProps>
@@ -34,10 +30,7 @@ interface UseTableFormReturn {
  * 处理时间字段映射
  * 将时间范围字段拆分为开始和结束字段
  */
-function handleRangeTimeValue(
-  values: Recordable,
-  fieldMapToTime?: [string, [string, string], string?][],
-): Recordable {
+function handleRangeTimeValue(values: Recordable, fieldMapToTime?: [string, [string, string], string?][]): Recordable {
   if (!fieldMapToTime || !Array.isArray(fieldMapToTime)) {
     return values
   }

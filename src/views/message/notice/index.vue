@@ -1,24 +1,8 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { message } from "antdv-next";
-import dayjs from "dayjs";
-import { ref } from "vue";
-
-import { getNoticeActions } from "./actions";
-import { noticeActionColumn, noticeColumns, noticePagination, noticeRowKey } from "./columns";
-import ChannelConfig from "./components/ChannelConfig.vue";
-
-import {
-  NOTICE_IS_TOP_MAP,
-  NOTICE_PRIORITY_MAP,
-  NOTICE_STATUS_MAP,
-  NOTICE_TYPE_MAP,
-} from "./constants";
-
-import { noticeSearchSchemas, useNoticeFormSchemas } from "./schemas";
-import { cardClassName, containerClassName } from "./style";
-
-import type { NoticeRecord, UserOption } from "./types";
+import { Icon } from '@iconify/vue'
+import { message } from 'antdv-next'
+import dayjs from 'dayjs'
+import { ref } from 'vue'
 
 import {
   deleteNotice,
@@ -29,55 +13,63 @@ import {
   saveNotice,
   sendNotice,
   updateNotice,
-} from "~/api";
+} from '~/api'
+import { useDrawer } from '~/components'
+import BasicDrawer from '~/components/business/Drawer/BasicDrawer.vue'
+import { BasicForm, useForm } from '~/components/business/Form'
+import { BasicTable, useTable } from '~/components/business/Table'
+import { useCRUD } from '~/composables/useCRUD'
 
-import { useDrawer } from "~/components";
-import BasicDrawer from "~/components/business/Drawer/BasicDrawer.vue";
-import { BasicForm, useForm } from "~/components/business/Form";
-import { BasicTable, useTable } from "~/components/business/Table";
-import { useCRUD } from "~/composables/useCRUD";
+import type { NoticeRecord, UserOption } from './types'
+
+import { getNoticeActions } from './actions'
+import { noticeActionColumn, noticeColumns, noticePagination, noticeRowKey } from './columns'
+import ChannelConfig from './components/ChannelConfig.vue'
+import { NOTICE_IS_TOP_MAP, NOTICE_PRIORITY_MAP, NOTICE_STATUS_MAP, NOTICE_TYPE_MAP } from './constants'
+import { noticeSearchSchemas, useNoticeFormSchemas } from './schemas'
+import { cardClassName, containerClassName } from './style'
 
 // 抽离的模块
 
-defineOptions({ name: "SystemNotice" });
+defineOptions({ name: 'SystemNotice' })
 
 // ========== 用户选项 ==========
-const userOptions = ref<UserOption[]>([]);
-const channelConfigOpen = ref(false);
+const userOptions = ref<UserOption[]>([])
+const channelConfigOpen = ref(false)
 
 async function loadUserOptions() {
   try {
-    const res = await getUserAllOptions();
-    const data = Array.isArray(res) ? res : (res?.data ?? res ?? []);
-    userOptions.value = data;
+    const res = await getUserAllOptions()
+    const data = Array.isArray(res) ? res : (res?.data ?? res ?? [])
+    userOptions.value = data
   } catch (e) {
-    console.error(e);
+    console.error(e)
   }
 }
 
 // ========== 弹窗表单 schema（依赖 userOptions） ==========
-const noticeFormSchemas = useNoticeFormSchemas(ref(userOptions) as any);
+const noticeFormSchemas = useNoticeFormSchemas(ref(userOptions) as any)
 
 // ========== 注册实例 ==========
-const [tableRegister, tableMethods] = useTable();
-const [drawerRegister, drawerMethods] = useDrawer();
-const [formRegister, formMethods] = useForm();
+const [tableRegister, tableMethods] = useTable()
+const [drawerRegister, drawerMethods] = useDrawer()
+const [formRegister, formMethods] = useForm()
 
 // ========== useCRUD ==========
 const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<NoticeRecord>({
-  containerType: "drawer",
+  containerType: 'drawer',
   drawerMethods,
   formMethods,
   tableMethods,
-  idKey: "noticeId",
+  idKey: 'noticeId',
   onFetchDetail: async (id) => await getNoticeDetail(id),
   getEmptyValues: () => ({
-    title: "",
+    title: '',
     noticeType: 1,
-    status: "0",
+    status: '0',
     publishTime: null,
     targetUserIds: [],
-    content: "",
+    content: '',
   }),
   getFormValues: (record) => ({
     title: record.title,
@@ -90,42 +82,40 @@ const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<N
   onCreate: async (values: any) => {
     const payload = {
       ...values,
-      publishTime: values.publishTime
-        ? dayjs(values.publishTime).format("YYYY-MM-DD HH:mm:ss")
-        : null,
-    };
-    await saveNotice(payload);
+      publishTime: values.publishTime ? dayjs(values.publishTime).format('YYYY-MM-DD HH:mm:ss') : null,
+    }
+    await saveNotice(payload)
   },
   onUpdate: async (id, values) => {
-    await updateNotice(id, values);
+    await updateNotice(id, values)
   },
   onDelete: async (record) => {
-    await deleteNotice(record.noticeId);
+    await deleteNotice(record.noticeId)
   },
   messages: {
-    createSuccess: "通知创建成功",
-    updateSuccess: "通知更新成功",
-    deleteSuccess: "通知删除成功",
+    createSuccess: '通知创建成功',
+    updateSuccess: '通知更新成功',
+    deleteSuccess: '通知删除成功',
   },
-});
+})
 
 // ========== 手动发送 ==========
 async function handleSend(record: NoticeRecord) {
   try {
-    await sendNotice(record.noticeId);
-    message.success(`已发送通知「${record.title}」`);
-    tableMethods.value?.reload();
+    await sendNotice(record.noticeId)
+    message.success(`已发送通知「${record.title}」`)
+    tableMethods.value?.reload()
   } catch (e: any) {
-    message.error(e?.message || "发送失败");
+    message.error(e?.message || '发送失败')
   }
 }
 async function handleRevoke(record: NoticeRecord) {
   try {
-    await revokeNotice(record.noticeId);
-    message.success("已撤回");
-    tableMethods.value?.reload();
+    await revokeNotice(record.noticeId)
+    message.success('已撤回')
+    tableMethods.value?.reload()
   } catch (e: any) {
-    message.error(e?.message || "撤回失败");
+    message.error(e?.message || '撤回失败')
   }
 }
 // ========== 操作项（每次渲染注入最新 record） ==========
@@ -135,10 +125,10 @@ function getActions(record: any) {
     onSend: handleSend,
     onDelete: handleDelete,
     onRevoke: handleRevoke,
-  });
+  })
 }
 // ========== 初始化 ==========
-loadUserOptions();
+loadUserOptions()
 </script>
 
 <template>
@@ -169,7 +159,7 @@ loadUserOptions();
 
           <template #cell-noticeType="{ record }">
             <a-tag :color="NOTICE_TYPE_MAP[record.noticeType]?.color || 'default'">
-              {{ NOTICE_TYPE_MAP[record.noticeType]?.label || "未知" }}
+              {{ NOTICE_TYPE_MAP[record.noticeType]?.label || '未知' }}
             </a-tag>
           </template>
 
@@ -195,12 +185,7 @@ loadUserOptions();
       </div>
     </a-card>
 
-    <BasicDrawer
-      :title="isEditing ? '编辑通知' : '新增通知'"
-      :width="640"
-      @register="drawerRegister"
-      @ok="handleSave"
-    >
+    <BasicDrawer :title="isEditing ? '编辑通知' : '新增通知'" :width="640" @register="drawerRegister" @ok="handleSave">
       <BasicForm
         :schemas="noticeFormSchemas"
         :label-width="90"

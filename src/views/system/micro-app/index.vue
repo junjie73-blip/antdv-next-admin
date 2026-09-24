@@ -1,24 +1,24 @@
 <script setup lang="tsx">
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch } from 'vue'
 
-import type { MicroAppItem } from "#/micro-app";
+import type { MicroAppItem } from '#/micro-app'
 
-import { getAllMicroApps, microAppConfig } from "~/config/micro-app";
-import { cn } from "~/utils/cn";
+import { getAllMicroApps, microAppConfig } from '~/config/micro-app'
+import { cn } from '~/utils/cn'
 
 // 状态
-const apps = ref<MicroAppItem[]>(getAllMicroApps());
-const isEnabled = computed(() => microAppConfig.enabled);
-const searchKeyword = ref("");
-const statusFilter = ref<string>("all");
-const activeAppKey = ref<string>("");
-const iframeLoaded = ref<Record<string, boolean>>({});
-const iframeLoading = ref<string | null>(null);
+const apps = ref<MicroAppItem[]>(getAllMicroApps())
+const isEnabled = computed(() => microAppConfig.enabled)
+const searchKeyword = ref('')
+const statusFilter = ref<string>('all')
+const activeAppKey = ref<string>('')
+const iframeLoaded = ref<Record<string, boolean>>({})
+const iframeLoading = ref<string | null>(null)
 
 // 当前选中的子应用
 const currentApp = computed(() => {
-  return apps.value.find((app) => app.name === activeAppKey.value) || null;
-});
+  return apps.value.find((app) => app.name === activeAppKey.value) || null
+})
 
 // 筛选后的列表
 const filteredApps = computed(() => {
@@ -27,110 +27,101 @@ const filteredApps = computed(() => {
       !searchKeyword.value ||
       app.title.includes(searchKeyword.value) ||
       app.name.includes(searchKeyword.value) ||
-      (app.owner && app.owner.includes(searchKeyword.value));
-    const matchStatus =
-      statusFilter.value === "all" || (statusFilter.value === "running" ? app.active : !app.active);
-    return matchKeyword && matchStatus;
-  });
-});
+      (app.owner && app.owner.includes(searchKeyword.value))
+    const matchStatus = statusFilter.value === 'all' || (statusFilter.value === 'running' ? app.active : !app.active)
+    return matchKeyword && matchStatus
+  })
+})
 
 // 样式类名
 const statCardClassName = cn(
-  "p-4 rounded-lg border bg-white dark:bg-gray-800",
-  "border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow",
-);
+  'p-4 rounded-lg border bg-white dark:bg-gray-800',
+  'border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow',
+)
 
 function getStatusTagClass(active: boolean) {
   return cn(
-    "px-2.5 py-1 rounded-full text-xs font-medium",
+    'px-2.5 py-1 rounded-full text-xs font-medium',
     active
-      ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
-      : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400",
-  );
+      ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
+      : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
+  )
 }
 
 function getLoaderBadgeClass(loader?: string) {
-  if (loader === "iframe") {
-    return cn(
-      "px-2 py-0.5 rounded text-xs",
-      "bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
-    );
+  if (loader === 'iframe') {
+    return cn('px-2 py-0.5 rounded text-xs', 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400')
   }
-  return cn(
-    "px-2 py-0.5 rounded text-xs",
-    "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  );
+  return cn('px-2 py-0.5 rounded text-xs', 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400')
 }
 
 // 操作函数
 function handleToggleStatus(app: MicroAppItem) {
-  app.active = !app.active;
+  app.active = !app.active
 }
 
 function handleSelectApp(app: MicroAppItem) {
-  activeAppKey.value = app.name;
+  activeAppKey.value = app.name
 }
 
 function handleIframeLoad(name: string) {
-  iframeLoaded.value[name] = true;
-  iframeLoading.value = null;
+  iframeLoaded.value[name] = true
+  iframeLoading.value = null
 }
 
 function handleIframeError(name: string) {
-  iframeLoaded.value[name] = false;
-  iframeLoading.value = null;
+  iframeLoaded.value[name] = false
+  iframeLoading.value = null
 }
 
 function _handleResetFilters() {
-  searchKeyword.value = "";
-  statusFilter.value = "all";
+  searchKeyword.value = ''
+  statusFilter.value = 'all'
 }
 
 function handleRefreshIframe() {
-  if (!currentApp.value) return;
-  iframeLoaded.value[currentApp.value.name] = false;
-  const iframeEl = document.querySelector(
-    `iframe[data-app="${currentApp.value.name}"]`,
-  ) as HTMLIFrameElement;
+  if (!currentApp.value) return
+  iframeLoaded.value[currentApp.value.name] = false
+  const iframeEl = document.querySelector(`iframe[data-app="${currentApp.value.name}"]`) as HTMLIFrameElement
   if (iframeEl) {
     // 强制刷新 iframe
-    const src = iframeEl.src;
-    iframeEl.src = "about:blank";
+    const src = iframeEl.src
+    iframeEl.src = 'about:blank'
     setTimeout(() => {
-      iframeEl.src = src;
-    }, 50);
+      iframeEl.src = src
+    }, 50)
   }
 }
 
 // 获取子应用预览 URL（使用主应用自身页面作为演示）
 function getAppPreviewUrl(app: MicroAppItem): string {
   // 如果配置了 url 且是外部地址，直接使用
-  if (app.url?.startsWith("http")) {
+  if (app.url?.startsWith('http')) {
     // 演示模式：将外部地址映射到本应用的对应页面
     const routeMap: Record<string, string> = {
-      "sub-app-example": "/#/dashboard",
-      "crm-system": "/#/system/user",
-      "data-bi": "/#/dashboard/echarts",
-      "workflow-engine": "/#/system/role",
-      "file-manager": "/#/system/dict",
-      "message-center": "/#/system/notice",
-    };
-    const mappedRoute = routeMap[app.name];
+      'sub-app-example': '/#/dashboard',
+      'crm-system': '/#/system/user',
+      'data-bi': '/#/dashboard/echarts',
+      'workflow-engine': '/#/system/role',
+      'file-manager': '/#/system/dict',
+      'message-center': '/#/system/notice',
+    }
+    const mappedRoute = routeMap[app.name]
     if (mappedRoute) {
-      return window.location.origin + mappedRoute;
+      return window.location.origin + mappedRoute
     }
   }
   // 默认：映射到系统内的演示页面
   const demoRoutes: Record<string, string> = {
-    "sub-app-example": "/#/dashboard",
-    "crm-system": "/#/system/user",
-    "data-bi": "/#/dashboard/echarts",
-    "workflow-engine": "/#/system/role",
-    "file-manager": "/#/system/dict",
-    "message-center": "/#/system/notice",
-  };
-  const route = demoRoutes[app.name] || "/#/dashboard";
-  return window.location.origin + route;
+    'sub-app-example': '/#/dashboard',
+    'crm-system': '/#/system/user',
+    'data-bi': '/#/dashboard/echarts',
+    'workflow-engine': '/#/system/role',
+    'file-manager': '/#/system/dict',
+    'message-center': '/#/system/notice',
+  }
+  const route = demoRoutes[app.name] || '/#/dashboard'
+  return window.location.origin + route
 }
 
 // 初始选中第一个
@@ -138,22 +129,20 @@ watch(
   () => filteredApps.value,
   (list) => {
     if (list.length > 0 && !activeAppKey.value) {
-      handleSelectApp(list[0]);
+      handleSelectApp(list[0])
     }
   },
   { immediate: true },
-);
+)
 </script>
 
 <template>
-  <div class="h-full flex flex-col p-4 gap-4">
+  <div class="flex h-full flex-col gap-4 p-4">
     <!-- 页面标题 -->
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-xl font-bold text-gray-900 dark:text-white">微前端管理</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-          子应用注册与预览（iframe 嵌套模式）
-        </p>
+        <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">子应用注册与预览（iframe 嵌套模式）</p>
       </div>
       <a-button v-if="currentApp" @click="handleRefreshIframe">
         <Icon icon="carbon:refresh" class="mr-1" />
@@ -164,19 +153,19 @@ watch(
     <!-- 未启用提示 -->
     <div
       v-if="!isEnabled"
-      class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800"
+      class="rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-800 dark:bg-yellow-900/20"
     >
-      <span class="i-carbon-warning-alt text-yellow-500 mr-2" />
+      <span class="i-carbon-warning-alt mr-2 text-yellow-500" />
       <span class="text-sm text-yellow-800 dark:text-yellow-200">
         微前端功能未启用，请在 .env 中设置 VITE_MICRO_APP=true
       </span>
     </div>
 
     <!-- 主内容区：左右分栏 -->
-    <div class="flex gap-4 min-h-0 flex-1">
+    <div class="flex min-h-0 flex-1 gap-4">
       <!-- 左侧：应用列表 -->
       <div
-        class="w-[320px] shrink-0 flex flex-col gap-3 rounded-lg border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 p-3"
+        class="flex w-[320px] shrink-0 flex-col gap-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-800"
       >
         <!-- 统计概览 -->
         <div class="grid grid-cols-3 gap-2">
@@ -202,14 +191,9 @@ watch(
 
         <!-- 搜索筛选 -->
         <div class="flex flex-col gap-2">
-          <a-input
-            v-model:value="searchKeyword"
-            placeholder="搜索子应用..."
-            size="small"
-            allow-clear
-          >
+          <a-input v-model:value="searchKeyword" placeholder="搜索子应用..." size="small" allow-clear>
             <template #prefix>
-              <span class="i-carbon-search text-gray-400 text-xs" />
+              <span class="i-carbon-search text-xs text-gray-400" />
             </template>
           </a-input>
           <a-select v-model:value="statusFilter" size="small" class="w-full">
@@ -220,68 +204,53 @@ watch(
         </div>
 
         <!-- 应用列表 -->
-        <PerfectScrollbar class="flex-1 min-h-0">
+        <PerfectScrollbar class="min-h-0 flex-1">
           <div class="space-y-2">
             <div
               v-for="app in filteredApps"
               :key="app.name"
               :class="
                 cn(
-                  'p-3 rounded-lg border cursor-pointer transition-all duration-150',
-                  'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700',
+                  'cursor-pointer rounded-lg border p-3 transition-all duration-150',
+                  'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800',
                   activeAppKey === app.name
-                    ? 'border-blue-400 bg-blue-50/50 dark:border-blue-500 dark:bg-blue-900/20 shadow-sm'
+                    ? 'border-blue-400 bg-blue-50/50 shadow-sm dark:border-blue-500 dark:bg-blue-900/20'
                     : 'hover:border-blue-300 hover:shadow-sm',
                 )
               "
               @click="handleSelectApp(app)"
             >
               <!-- 应用头部 -->
-              <div class="flex items-center gap-2 mb-1.5">
+              <div class="mb-1.5 flex items-center gap-2">
                 <div
-                  class="w-7 h-7 rounded-md flex items-center justify-center shrink-0 text-sm"
-                  :class="
-                    app.active
-                      ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
-                      : 'bg-gray-100 dark:bg-gray-700'
-                  "
+                  class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-sm"
+                  :class="app.active ? 'bg-gradient-to-br from-blue-500 to-indigo-600' : 'bg-gray-100 dark:bg-gray-700'"
                 >
-                  <span
-                    v-if="app.icon"
-                    :class="[app.icon, app.active ? 'text-white' : 'text-gray-500']"
-                  />
+                  <span v-if="app.icon" :class="[app.icon, app.active ? 'text-white' : 'text-gray-500']" />
                 </div>
                 <div class="min-w-0 flex-1">
-                  <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  <p class="truncate text-sm font-medium text-gray-900 dark:text-white">
                     {{ app.title }}
                   </p>
-                  <p class="text-[10px] text-gray-400 truncate">
+                  <p class="truncate text-[10px] text-gray-400">
                     {{ app.name }}
                   </p>
                 </div>
-                <span
-                  :class="getStatusTagClass(!!app.active)"
-                  class="shrink-0 text-[10px] px-1.5 py-0.5"
-                >
-                  {{ app.active ? "运行" : "停止" }}
+                <span :class="getStatusTagClass(!!app.active)" class="shrink-0 px-1.5 py-0.5 text-[10px]">
+                  {{ app.active ? '运行' : '停止' }}
                 </span>
               </div>
 
               <!-- 元信息 -->
               <div class="flex items-center gap-2 text-[10px] text-gray-500">
-                <span>v{{ app.version ?? "-" }}</span>
-                <span :class="getLoaderBadgeClass(app.loader)">{{
-                  app.loader === "iframe" ? "iframe" : "WC"
-                }}</span>
+                <span>v{{ app.version ?? '-' }}</span>
+                <span :class="getLoaderBadgeClass(app.loader)">{{ app.loader === 'iframe' ? 'iframe' : 'WC' }}</span>
               </div>
             </div>
 
             <!-- 空状态 -->
-            <div
-              v-if="filteredApps.length === 0"
-              class="flex flex-col items-center justify-center py-8 text-gray-400"
-            >
-              <span class="i-carbon-application text-3xl mb-2 opacity-30" />
+            <div v-if="filteredApps.length === 0" class="flex flex-col items-center justify-center py-8 text-gray-400">
+              <span class="i-carbon-application mb-2 text-3xl opacity-30" />
               <p class="text-xs">无匹配的子应用</p>
             </div>
           </div>
@@ -290,20 +259,18 @@ watch(
 
       <!-- 右侧：iframe 预览区域 -->
       <div
-        class="flex-1 flex flex-col min-w-0 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden bg-gray-50 dark:bg-gray-900"
+        class="flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
       >
         <!-- 预览头部信息栏 -->
         <div
           v-if="currentApp"
-          class="flex items-center justify-between px-4 py-2.5 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700"
+          class="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-2.5 dark:border-gray-700 dark:bg-gray-800"
         >
           <div class="flex items-center gap-3">
             <div
-              class="w-8 h-8 rounded-lg flex items-center justify-center"
+              class="flex h-8 w-8 items-center justify-center rounded-lg"
               :class="
-                currentApp.active
-                  ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
-                  : 'bg-gray-100 dark:bg-gray-700'
+                currentApp.active ? 'bg-gradient-to-br from-blue-500 to-indigo-600' : 'bg-gray-100 dark:bg-gray-700'
               "
             >
               <span
@@ -323,20 +290,20 @@ watch(
           </div>
           <div class="flex items-center gap-2">
             <span :class="getStatusTagClass(!!currentApp.active)">
-              {{ currentApp.active ? "运行中" : "已停止" }}
+              {{ currentApp.active ? '运行中' : '已停止' }}
             </span>
             <a-button
               :type="currentApp.active ? 'default' : 'primary'"
               size="small"
               @click="handleToggleStatus(currentApp!)"
             >
-              {{ currentApp.active ? "停止" : "启动" }}
+              {{ currentApp.active ? '停止' : '启动' }}
             </a-button>
           </div>
         </div>
 
         <!-- iframe 容器 -->
-        <div class="flex-1 relative bg-white dark:bg-gray-800">
+        <div class="relative flex-1 bg-white dark:bg-gray-800">
           <!-- 加载态 -->
           <div
             v-if="!iframeLoaded[currentApp!.name]"
@@ -351,7 +318,7 @@ watch(
             v-if="currentApp"
             :data-app="currentApp.name"
             :src="getAppPreviewUrl(currentApp)"
-            class="w-full h-full border-0"
+            class="h-full w-full border-0"
             :style="{ minHeight: '500px' }"
             frameborder="0"
             allow="clipboard-write; autoplay; fullscreen"
@@ -361,13 +328,10 @@ watch(
           />
 
           <!-- 无选中状态 -->
-          <div
-            v-if="!currentApp"
-            class="h-full flex flex-col items-center justify-center text-gray-400"
-          >
-            <span class="i-carbon-application text-5xl mb-3 opacity-20" />
+          <div v-if="!currentApp" class="flex h-full flex-col items-center justify-center text-gray-400">
+            <span class="i-carbon-application mb-3 text-5xl opacity-20" />
             <p class="text-sm">选择左侧子应用开始预览</p>
-            <p class="text-xs mt-1 opacity-60">支持 iframe 嵌套模式</p>
+            <p class="mt-1 text-xs opacity-60">支持 iframe 嵌套模式</p>
           </div>
         </div>
       </div>

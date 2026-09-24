@@ -6,8 +6,8 @@
  * - 其他：`X 小时`
  */
 export function formatSessionTtl(ttl: number): string {
-  if (ttl < 0) return "-";
-  if (ttl < 60) return `${ttl} 秒`;
-  if (ttl < 3600) return `${Math.floor(ttl / 60)} 分钟`;
-  return `${Math.floor(ttl / 3600)} 小时`;
+  if (ttl < 0) return '-'
+  if (ttl < 60) return `${ttl} 秒`
+  if (ttl < 3600) return `${Math.floor(ttl / 60)} 分钟`
+  return `${Math.floor(ttl / 3600)} 小时`
 }

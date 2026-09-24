@@ -1,14 +1,14 @@
-import type { UserRecord } from "./types";
+import type { ActionItem } from '~/components/business/Table'
 
-import type { ActionItem } from "~/components/business/Table";
+import type { UserRecord } from './types'
 
 /** 用户行操作上下文 */
 export interface UserActionContext {
-  onEdit: (record: UserRecord) => void;
+  onEdit: (record: UserRecord) => void
   /** 删除（确认由 popConfirm 处理） */
-  onDelete: (record: UserRecord) => void | Promise<void>;
-  onResetPassword: (record: UserRecord) => void;
-  onViewSensitive: (record: UserRecord) => void;
+  onDelete: (record: UserRecord) => void | Promise<void>
+  onResetPassword: (record: UserRecord) => void
+  onViewSensitive: (record: UserRecord) => void
 }
 
 /**
@@ -18,29 +18,29 @@ export interface UserActionContext {
 export function getUserActions(record: UserRecord, ctx: UserActionContext): ActionItem[] {
   return [
     {
-      icon: "ant-design:edit-outlined",
-      label: "编辑",
+      icon: 'ant-design:edit-outlined',
+      label: '编辑',
       onClick: () => ctx.onEdit(record),
     },
     {
-      icon: "ant-design:key-outlined",
-      label: "重置密码",
+      icon: 'ant-design:key-outlined',
+      label: '重置密码',
       onClick: () => ctx.onResetPassword(record),
     },
     {
-      icon: "ant-design:safety-outlined",
-      label: "敏感信息",
+      icon: 'ant-design:safety-outlined',
+      label: '敏感信息',
       onClick: () => ctx.onViewSensitive(record),
     },
     {
-      icon: "ant-design:delete-outlined",
-      label: "删除",
+      icon: 'ant-design:delete-outlined',
+      label: '删除',
       danger: true,
       popConfirm: {
-        title: "删除用户",
+        title: '删除用户',
         content: `确定删除「${record.username}」吗？`,
         confirm: () => ctx.onDelete(record),
       },
     },
-  ];
+  ]
 }

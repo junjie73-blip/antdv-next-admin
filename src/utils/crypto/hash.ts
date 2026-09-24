@@ -37,10 +37,7 @@ export async function sha256(data: string): Promise<string> {
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
 }
 
-export function hash(
-  data: string,
-  options: { algorithm?: 'md5' | 'sha256' } = {},
-): string | Promise<string> {
+export function hash(data: string, options: { algorithm?: 'md5' | 'sha256' } = {}): string | Promise<string> {
   const { algorithm = 'md5' } = options
   return algorithm === 'md5' ? md5(data) : sha256(data)
 }

@@ -1,8 +1,6 @@
-import dayjs from "dayjs";
+import dayjs from 'dayjs'
 
-import type { PermissionRecord, PermissionScope, RawPermissionRecord, ResourceType } from "./types";
-
-
+import type { PermissionRecord, PermissionScope, RawPermissionRecord, ResourceType } from './types'
 
 /**
  * 从权限编码推断级别
@@ -10,7 +8,7 @@ import type { PermissionRecord, PermissionScope, RawPermissionRecord, ResourceTy
  * - 其他 → business
  */
 export function getScopeByCode(code: string): PermissionScope {
-  return code.startsWith("platform:") ? "platform" : "business";
+  return code.startsWith('platform:') ? 'platform' : 'business'
 }
 
 /**
@@ -20,7 +18,7 @@ export function getScopeByCode(code: string): PermissionScope {
  * - api / other 需要
  */
 export function needAction(resourceType: ResourceType | string): boolean {
-  return resourceType !== "data";
+  return resourceType !== 'data'
 }
 
 /**
@@ -35,7 +33,7 @@ export function mapPermissionRecord(item: RawPermissionRecord): PermissionRecord
     action: item.action,
     description: item.description,
     status: String(item.status),
-    createdAt: item.createdAt ? dayjs(item.createdAt).format("YYYY-MM-DD HH:mm:ss") : "",
-    updatedAt: item.updatedAt ? dayjs(item.updatedAt).format("YYYY-MM-DD HH:mm:ss") : "",
-  };
+    createdAt: item.createdAt ? dayjs(item.createdAt).format('YYYY-MM-DD HH:mm:ss') : '',
+    updatedAt: item.updatedAt ? dayjs(item.updatedAt).format('YYYY-MM-DD HH:mm:ss') : '',
+  }
 }

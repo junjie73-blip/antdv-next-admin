@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { useTemplateRef } from "vue";
+import { useTemplateRef } from 'vue'
 
-import { cn } from "~/utils/cn";
+import { cn } from '~/utils/cn'
 
-defineOptions({ name: "FormDesigner" });
+defineOptions({ name: 'FormDesigner' })
 
-const designerRef = useTemplateRef("designerRef");
+const designerRef = useTemplateRef('designerRef')
 
 // 设计器配置
 const designerConfig = {
@@ -24,9 +24,9 @@ const designerConfig = {
   showAi: false,
   showMenuBar: true,
   autoActive: true,
-};
+}
 
-const containerClassName = cn("h-[calc(100vh-88px)]", "bg-gray-100 dark:bg-gray-900");
+const containerClassName = cn('h-[calc(100vh-88px)]', 'bg-gray-100 dark:bg-gray-900')
 </script>
 
 <template>

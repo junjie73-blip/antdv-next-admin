@@ -1,50 +1,50 @@
 <script setup lang="ts">
-import { Button, Checkbox, Popover, Tooltip } from "antdv-next";
-import { cloneDeep } from "es-toolkit";
-import { computed, ref, watch } from "vue";
+import { Button, Checkbox, Popover, Tooltip } from 'antdv-next'
+import { cloneDeep } from 'es-toolkit'
+import { computed, ref, watch } from 'vue'
 
-import type { BasicColumn, TableSetting } from "../types";
+import { IconifyIcon as Icon } from '~/components/common/Icon'
+import { cn } from '~/utils/cn'
 
-import { IconifyIcon as Icon } from "~/components/common/Icon";
-import { cn } from "~/utils/cn";
+import type { BasicColumn, TableSetting } from '../types'
 
 const props = defineProps<{
-  setting?: TableSetting;
-  columns?: BasicColumn[];
-  cacheColumns?: BasicColumn[];
-}>();
+  setting?: TableSetting
+  columns?: BasicColumn[]
+  cacheColumns?: BasicColumn[]
+}>()
 
 const emit = defineEmits<{
-  (e: "redo"): void;
-  (e: "update:columns", columns: BasicColumn[]): void;
-  (e: "reset"): void;
-}>();
+  (e: 'redo'): void
+  (e: 'update:columns', columns: BasicColumn[]): void
+  (e: 'reset'): void
+}>()
 
-const isFullscreen = ref(false);
-const settingVisible = ref(false);
-const localColumns = ref<BasicColumn[]>([]);
+const isFullscreen = ref(false)
+const settingVisible = ref(false)
+const localColumns = ref<BasicColumn[]>([])
 
 watch(
   () => props.columns,
   (newColumns) => {
     if (newColumns) {
-      localColumns.value = cloneDeep(newColumns);
+      localColumns.value = cloneDeep(newColumns)
     }
   },
   { immediate: true, deep: true },
-);
+)
 
 function handleRedo() {
-  emit("redo");
+  emit('redo')
 }
 
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen();
-    isFullscreen.value = true;
+    document.documentElement.requestFullscreen()
+    isFullscreen.value = true
   } else {
-    document.exitFullscreen();
-    isFullscreen.value = false;
+    document.exitFullscreen()
+    isFullscreen.value = false
   }
 }
 
@@ -54,53 +54,51 @@ const getSetting = computed(() => {
     setting: true,
     fullScreen: true,
     ...props.setting,
-  };
-});
+  }
+})
 
 const configurableColumns = computed(() => {
   return localColumns.value.filter((col) => {
-    const key = col.key || col.dataIndex;
-    return key !== "ant-table-selection-column" && key !== "index" && key !== "action";
-  });
-});
+    const key = col.key || col.dataIndex
+    return key !== 'ant-table-selection-column' && key !== 'index' && key !== 'action'
+  })
+})
 
 function isColumnVisible(col: BasicColumn): boolean {
-  return col.ifShow !== false;
+  return col.ifShow !== false
 }
 
 function toggleColumnVisible(col: BasicColumn, checked: boolean) {
-  const index = localColumns.value.findIndex(
-    (c) => c.key === col.key || c.dataIndex === col.dataIndex,
-  );
+  const index = localColumns.value.findIndex((c) => c.key === col.key || c.dataIndex === col.dataIndex)
   if (index > -1) {
-    localColumns.value[index] = { ...localColumns.value[index], ifShow: checked };
-    emit("update:columns", cloneDeep(localColumns.value));
+    localColumns.value[index] = { ...localColumns.value[index], ifShow: checked }
+    emit('update:columns', cloneDeep(localColumns.value))
   }
 }
 
 function handleReset() {
-  emit("reset");
+  emit('reset')
 }
 
 function handleSelectAll(checked: boolean) {
   localColumns.value = localColumns.value.map((col) => {
-    const key = col.key || col.dataIndex;
-    if (key !== "ant-table-selection-column" && key !== "index" && key !== "action") {
-      return { ...col, ifShow: checked };
+    const key = col.key || col.dataIndex
+    if (key !== 'ant-table-selection-column' && key !== 'index' && key !== 'action') {
+      return { ...col, ifShow: checked }
     }
-    return col;
-  });
-  emit("update:columns", cloneDeep(localColumns.value));
+    return col
+  })
+  emit('update:columns', cloneDeep(localColumns.value))
 }
 
 const isAllSelected = computed(() => {
-  return configurableColumns.value.every((col) => isColumnVisible(col));
-});
+  return configurableColumns.value.every((col) => isColumnVisible(col))
+})
 
 const isIndeterminate = computed(() => {
-  const visibleCount = configurableColumns.value.filter((col) => isColumnVisible(col)).length;
-  return visibleCount > 0 && visibleCount < configurableColumns.value.length;
-});
+  const visibleCount = configurableColumns.value.filter((col) => isColumnVisible(col)).length
+  return visibleCount > 0 && visibleCount < configurableColumns.value.length
+})
 </script>
 
 <template>
@@ -144,20 +142,14 @@ const isIndeterminate = computed(() => {
                 :key="String(col.key || col.dataIndex || idx)"
                 :class="cn('flex items-center justify-between py-1')"
               >
-                <Checkbox
-                  :checked="isColumnVisible(col)"
-                  @change="(e) => toggleColumnVisible(col, e.target.checked)"
-                >
+                <Checkbox :checked="isColumnVisible(col)" @change="(e) => toggleColumnVisible(col, e.target.checked)">
                   <span :class="cn('text-sm')">{{ col.title }}</span>
                 </Checkbox>
               </div>
             </div>
           </PerfectScrollbar>
 
-          <div
-            v-if="configurableColumns.length === 0"
-            :class="cn('py-4 text-center text-gray-400 dark:text-gray-500')"
-          >
+          <div v-if="configurableColumns.length === 0" :class="cn('py-4 text-center text-gray-400 dark:text-gray-500')">
             暂无可用列
           </div>
         </div>
@@ -174,13 +166,7 @@ const isIndeterminate = computed(() => {
     <Tooltip v-if="getSetting.fullScreen" :title="isFullscreen ? '退出全屏' : '全屏'">
       <Button type="text" @click="toggleFullscreen">
         <template #icon>
-          <Icon
-            :icon="
-              isFullscreen
-                ? 'ant-design:fullscreen-exit-outlined'
-                : 'ant-design:fullscreen-outlined'
-            "
-          />
+          <Icon :icon="isFullscreen ? 'ant-design:fullscreen-exit-outlined' : 'ant-design:fullscreen-outlined'" />
         </template>
       </Button>
     </Tooltip>

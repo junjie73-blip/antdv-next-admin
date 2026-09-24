@@ -1,37 +1,35 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
+import { Icon } from '@iconify/vue'
 
-import type { FileCategory } from "../types";
+import { cn } from '~/utils/cn'
 
-import { cn } from "~/utils/cn";
+import type { FileCategory } from '../types'
 
-defineOptions({ name: "FileCategoryNav" });
+defineOptions({ name: 'FileCategoryNav' })
 
 const props = defineProps<{
-  categories: FileCategory[];
-  modelValue: string;
-}>();
+  categories: FileCategory[]
+  modelValue: string
+}>()
 
 const emit = defineEmits<{
-  "update:modelValue": [key: string];
-}>();
+  'update:modelValue': [key: string]
+}>()
 
 function handleSelect(key: string) {
-  if (key === props.modelValue) return;
-  emit("update:modelValue", key);
+  if (key === props.modelValue) return
+  emit('update:modelValue', key)
 }
 </script>
 
 <template>
   <aside
-    class="flex flex-col gap-3 rounded-lg border bg-white p-3 border-gray-100 dark:border-gray-800 dark:bg-gray-900 md:w-60 lg:w-64 md:shrink-0"
+    class="flex flex-col gap-3 rounded-lg border border-gray-100 bg-white p-3 md:w-60 md:shrink-0 lg:w-64 dark:border-gray-800 dark:bg-gray-900"
   >
     <!-- 标题（小屏隐藏） -->
-    <div
-      class="hidden items-center gap-2 border-b pb-2 border-gray-100 dark:border-gray-800 md:flex"
-    >
+    <div class="hidden items-center gap-2 border-b border-gray-100 pb-2 md:flex dark:border-gray-800">
       <div
-        class="flex h-8 w-8 items-center justify-center rounded-md bg-blue-50 text-blue-500 dark:bg-blue-950 dark:text-blue-400"
+        class="text-ant-primary flex h-8 w-8 items-center justify-center rounded-md bg-blue-50 dark:bg-blue-950 dark:text-blue-400"
       >
         <Icon icon="carbon:folder" class="text-lg" />
       </div>

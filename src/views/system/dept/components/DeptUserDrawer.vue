@@ -1,70 +1,70 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { message } from "antdv-next";
-import { ref, watch } from "vue";
+import { Icon } from '@iconify/vue'
+import { message } from 'antdv-next'
+import { ref, watch } from 'vue'
 
-import type { DeptRecord } from "../types";
+import { getDeptUsers, getUserAllOptions, updateDeptUsers } from '~/api'
 
-import { getDeptUsers, getUserAllOptions, updateDeptUsers } from "~/api";
+import type { DeptRecord } from '../types'
 
-defineOptions({ name: "DeptUserDrawer" });
+defineOptions({ name: 'DeptUserDrawer' })
 
 const props = defineProps<{
-  open: boolean;
-  dept: DeptRecord | null;
-}>();
+  open: boolean
+  dept: DeptRecord | null
+}>()
 
 const emit = defineEmits<{
-  "update:open": [v: boolean];
-  saved: [];
-}>();
+  'update:open': [v: boolean]
+  saved: []
+}>()
 
-const loading = ref(false);
-const saving = ref(false);
-const selectedUserIds = ref<string[]>([]);
-const userOptions = ref<{ label: string; value: string }[]>([]);
+const loading = ref(false)
+const saving = ref(false)
+const selectedUserIds = ref<string[]>([])
+const userOptions = ref<{ label: string; value: string }[]>([])
 
 async function load() {
-  if (!props.dept) return;
-  loading.value = true;
+  if (!props.dept) return
+  loading.value = true
   try {
-    const [users, all] = await Promise.all([getDeptUsers(props.dept.deptId), getUserAllOptions()]);
-    const allList = (all as { data?: unknown[] })?.data ?? all ?? [];
+    const [users, all] = await Promise.all([getDeptUsers(props.dept.deptId), getUserAllOptions()])
+    const allList = (all as { data?: unknown[] })?.data ?? all ?? []
     userOptions.value = (allList as any[]).map((u) => ({
       label: u.username || u.label,
       value: u.userId || u.value,
-    }));
-    selectedUserIds.value = (users as any[]).map((u) => u.userId ?? u);
+    }))
+    selectedUserIds.value = (users as any[]).map((u) => u.userId ?? u)
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 
 async function save() {
-  if (!props.dept) return;
-  saving.value = true;
+  if (!props.dept) return
+  saving.value = true
   try {
-    await updateDeptUsers(props.dept.deptId, selectedUserIds.value);
-    message.success("已保存");
-    emit("saved");
-    emit("update:open", false);
+    await updateDeptUsers(props.dept.deptId, selectedUserIds.value)
+    message.success('已保存')
+    emit('saved')
+    emit('update:open', false)
   } catch (e: any) {
-    message.error(e?.message || "保存失败");
+    message.error(e?.message || '保存失败')
   } finally {
-    saving.value = false;
+    saving.value = false
   }
 }
 
 function close() {
-  emit("update:open", false);
+  emit('update:open', false)
 }
 
 watch(
   () => props.open,
   (v) => {
-    if (v) void load();
+    if (v) void load()
   },
-);
+)
 </script>
 
 <template>
@@ -86,9 +86,7 @@ watch(
           <Icon icon="carbon:information" class="mt-0.5 shrink-0 text-sm" />
           <div>
             <div class="font-medium">批量分配用户到该部门</div>
-            <div class="mt-0.5 opacity-80">
-              已选 {{ selectedUserIds.length }} / {{ userOptions.length }} 人
-            </div>
+            <div class="mt-0.5 opacity-80">已选 {{ selectedUserIds.length }} / {{ userOptions.length }} 人</div>
           </div>
         </div>
       </div>
@@ -104,19 +102,14 @@ watch(
             :max-tag-count="10"
             show-search
             allow-clear
-            :filter-option="
-              (input: string, opt: any) =>
-                String(opt.label).toLowerCase().includes(input.toLowerCase())
-            "
+            :filter-option="(input: string, opt: any) => String(opt.label).toLowerCase().includes(input.toLowerCase())"
             class="w-full"
           />
         </a-spin>
       </div>
 
       <!-- 底部操作 -->
-      <div
-        class="flex shrink-0 justify-end gap-2 border-t border-gray-100 pt-4 dark:border-gray-800"
-      >
+      <div class="flex shrink-0 justify-end gap-2 border-t border-gray-100 pt-4 dark:border-gray-800">
         <a-button @click="close">取消</a-button>
         <a-button type="primary" :loading="saving" @click="save"> 保存 </a-button>
       </div>

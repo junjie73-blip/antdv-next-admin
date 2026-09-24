@@ -1,5 +1,6 @@
-import type { DirectiveBinding } from "vue";
-import type { PermissionDirectiveBinding } from "./types";
+import type { DirectiveBinding } from 'vue'
+
+import type { PermissionDirectiveBinding } from './types'
 
 /**
  * 根据 binding 计算是否有权限
@@ -15,77 +16,74 @@ import type { PermissionDirectiveBinding } from "./types";
 export function resolveAccess(
   binding: DirectiveBinding<PermissionDirectiveBinding>,
   helpers: {
-    hasPermission: (p: string) => boolean;
-    hasAnyPermission: (ps: string[]) => boolean;
-    hasAllPermissions: (ps: string[]) => boolean;
-    hasRole: (r: string) => boolean;
-    hasAnyRole: (rs: string[]) => boolean;
-    hasAllRoles: (rs: string[]) => boolean;
-    isAdmin: () => boolean;
+    hasPermission: (p: string) => boolean
+    hasAnyPermission: (ps: string[]) => boolean
+    hasAllPermissions: (ps: string[]) => boolean
+    hasRole: (r: string) => boolean
+    hasAnyRole: (rs: string[]) => boolean
+    hasAllRoles: (rs: string[]) => boolean
+    isAdmin: () => boolean
   },
 ): boolean {
-  const { value, arg, modifiers = {} } = binding;
+  const { value, arg, modifiers = {} } = binding
 
   /* ---------- 1. arg 优先 ---------- */
-  if (arg === "role") {
+  if (arg === 'role') {
     if (Array.isArray(value)) {
-      if (value.length === 0) return true;
-      return modifiers.all ? helpers.hasAllRoles(value) : helpers.hasAnyRole(value);
+      if (value.length === 0) return true
+      return modifiers.all ? helpers.hasAllRoles(value) : helpers.hasAnyRole(value)
     }
-    return helpers.hasRole(String(value ?? ""));
+    return helpers.hasRole(String(value ?? ''))
   }
 
-  if (arg === "admin") {
-    return helpers.isAdmin();
+  if (arg === 'admin') {
+    return helpers.isAdmin()
   }
 
   /* ---------- 2. 无值时默认通过 ---------- */
-  if (value === undefined || value === null || value === "") {
-    return true;
+  if (value === undefined || value === null) {
+    return true
   }
 
   /* ---------- 3. 字符串 ---------- */
-  if (typeof value === "string") {
-    return helpers.hasPermission(value);
+  if (typeof value === 'string') {
+    return helpers.hasPermission(value)
   }
 
   /* ---------- 4. 数组 ---------- */
   if (Array.isArray(value)) {
-    if (value.length === 0) return true;
-    return modifiers.all ? helpers.hasAllPermissions(value) : helpers.hasAnyPermission(value);
+    if (value.length === 0) return true
+    return modifiers.all ? helpers.hasAllPermissions(value) : helpers.hasAnyPermission(value)
   }
 
   /* ---------- 5. 对象 ---------- */
-  if (typeof value === "object") {
-    const permission = Array.isArray(value.permission) ? value.permission : [value.permission];
-    return value.mode === "all"
-      ? helpers.hasAllPermissions(permission)
-      : helpers.hasAnyPermission(permission);
+  if (typeof value === 'object') {
+    const permission = Array.isArray(value) ? value : [value]
+    return modifiers.all
+      ? helpers.hasAllPermissions(permission as string[])
+      : helpers.hasAnyPermission(permission as string[])
   }
 
-  return true;
+  return true
 }
 
 /**
  * 判断 binding 是否需要重新计算
  * 只在 value / arg 真正变化时才重跑
  */
-export function isBindingChanged(
-  prev: DirectiveBinding<PermissionDirectiveBinding> | null,
-  next: DirectiveBinding<PermissionDirectiveBinding>,
-): boolean {
-  if (!prev) return true;
-  if (prev.arg !== next.arg) return true;
-  return !isSameValue(prev.value, next.value);
+export function isBindingChanged(prev: DirectiveBinding<any> | null, next: DirectiveBinding<any>): boolean {
+  if (!prev) return true
+  if (prev.arg !== next.arg) return true
+  return !isSameValue(prev.value, next.value)
 }
 
 function isSameValue(a: unknown, b: unknown): boolean {
-  if (a === b) return true;
+  if (a === b) return true
   if (Array.isArray(a) && Array.isArray(b)) {
-    return a.length === b.length && a.every((v, i) => v === b[i]);
+    return a.length === b.length && a.every((v, i) => v === b[i])
   }
-  if (typeof a === "object" && typeof b === "object" && a && b) {
-    return JSON.stringify(a) === JSON.stringify(b);
+  if (typeof a === 'object' && typeof b === 'object' && a && b) {
+    return JSON.stringify(a) === JSON.stringify(b)
   }
-  return false;
+  return false
 }

@@ -19,10 +19,7 @@ export class EventManager {
     }
   }
 
-  once<T = unknown>(
-    eventType: WebSocketEventType,
-    callback: WebSocketEventCallback<T>,
-  ): () => void {
+  once<T = unknown>(eventType: WebSocketEventType, callback: WebSocketEventCallback<T>): () => void {
     const wrappedCallback = (data: T) => {
       callback(data)
       this.off(eventType, wrappedCallback as WebSocketEventCallback)

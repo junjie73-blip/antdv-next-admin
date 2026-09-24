@@ -1,90 +1,90 @@
 <script setup lang="ts">
-import { ShopOutlined } from "@antdv-next/icons";
-import { computed, onMounted, watch } from "vue";
+import { ShopOutlined } from '@antdv-next/icons'
+import { computed, onMounted, watch } from 'vue'
 
-import { useTenantStore } from "~/stores/modules/tenant";
+import { useTenantStore } from '~/stores/modules/tenant'
 
 interface Props {
   /** v-model 绑定的值：租户编码 or 租户 ID */
-  modelValue?: string;
+  modelValue?: string
   /** 绑定类型：'code'（默认，登录用）| 'id'（管理端用） */
-  valueType?: "code" | "id";
-  placeholder?: string;
-  disabled?: boolean;
-  allowClear?: boolean;
-  size?: "small" | "middle" | "large";
+  valueType?: 'code' | 'id'
+  placeholder?: string
+  disabled?: boolean
+  allowClear?: boolean
+  size?: 'small' | 'middle' | 'large'
   /** 是否只返回启用租户 */
-  onlyEnabled?: boolean;
+  onlyEnabled?: boolean
   /** 是否立即加载 */
-  immediate?: boolean;
+  immediate?: boolean
   /** 是否显示搜索 */
-  showSearch?: boolean;
+  showSearch?: boolean
   /** 支持传入自定义样式类 */
-  class?: string;
+  class?: string
   /** 支持下拉框样式 */
-  dropdownClass?: string;
+  dropdownClass?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  valueType: "code",
-  placeholder: "请选择租户",
+  valueType: 'code',
+  placeholder: '请选择租户',
   disabled: false,
   allowClear: true,
-  size: "middle",
+  size: 'middle',
   onlyEnabled: true,
   immediate: true,
   showSearch: true,
-});
+})
 
 const emit = defineEmits<{
-  "update:modelValue": [value: string | undefined];
-  change: [value: string | undefined, option: any];
-}>();
+  'update:modelValue': [value: string | undefined]
+  change: [value: string | undefined, option: any]
+}>()
 
-const tenantStore = useTenantStore();
+const tenantStore = useTenantStore()
 
 // ============================================================
 // v-model 双向绑定
 // ============================================================
 const innerValue = computed<string | undefined>({
   get: () => props.modelValue,
-  set: (v) => emit("update:modelValue", v),
-});
+  set: (v) => emit('update:modelValue', v),
+})
 
 // ============================================================
 // 下拉选项（根据 valueType 决定 value 是 code 还是 id）
 // ============================================================
 const selectOptions = computed(() => {
   return tenantStore.options.map((t) => ({
-    value: props.valueType === "id" ? t.tenantId : t.tenantCode,
+    value: props.valueType === 'id' ? t.tenantId : t.tenantCode,
     label: t.tenantName,
     code: t.tenantCode,
     tenantId: t.tenantId,
-  }));
-});
+  }))
+})
 
 // ============================================================
 // 搜索过滤
 // ============================================================
 function filterOption(input: string, option: any): boolean {
-  if (!input) return true;
-  const keyword = input.toLowerCase();
+  if (!input) return true
+  const keyword = input.toLowerCase()
   return (
-    String(option.label || "")
+    String(option.label || '')
       .toLowerCase()
       .includes(keyword) ||
-    String(option.code || "")
+    String(option.code || '')
       .toLowerCase()
       .includes(keyword)
-  );
+  )
 }
 
 // ============================================================
 // 事件
 // ============================================================
 function handleChange(value: string | undefined) {
-  const option = selectOptions.value.find((o) => o.value === value);
-  emit("change", value, option);
+  const option = selectOptions.value.find((o) => o.value === value)
+  emit('change', value, option)
 }
 
 // ============================================================
@@ -93,14 +93,14 @@ function handleChange(value: string | undefined) {
 onMounted(() => {
   if (props.immediate) {
     // ⭐ 静默失败：不弹 message，父组件自行处理
-    tenantStore.load().catch(() => {});
+    tenantStore.load().catch(() => {})
   }
-});
+})
 
 // ⭐ 暴露 refresh 给父组件
 defineExpose({
   refresh: () => tenantStore.load(true),
-});
+})
 </script>
 
 <template>

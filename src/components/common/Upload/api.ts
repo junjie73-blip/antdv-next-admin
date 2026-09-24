@@ -1,34 +1,34 @@
-import { http } from "~/utils";
+import { http } from '~/utils'
 
 /* ============================================================
  * 类型
  * ============================================================ */
 
 export interface UploadedFileResult {
-  fileId: string;
-  filename: string;
-  url: string;
-  size: number;
-  mimeType?: string;
+  fileId: string
+  filename: string
+  url: string
+  size: number
+  mimeType?: string
 }
 
 export interface ChunkCheckResult {
   /** 是否秒传 */
-  uploaded?: boolean;
+  uploaded?: boolean
   /** 已上传的分片索引 */
-  uploadedChunks?: number[];
+  uploadedChunks?: number[]
   /** 秒传时返回的文件记录 */
-  result?: UploadedFileResult;
+  result?: UploadedFileResult
 }
 
 export interface ChunkMergeResult {
-  taskId: string;
+  taskId: string
   /** 合并状态 */
-  status: "pending" | "merging" | "uploading" | "completed" | "failed";
+  status: 'pending' | 'merging' | 'uploading' | 'completed' | 'failed'
 }
 
 /** 进度回调 */
-export type ProgressCallback = (loaded: number, total: number) => void;
+export type ProgressCallback = (loaded: number, total: number) => void
 
 /* ============================================================
  * 小文件上传
@@ -37,22 +37,16 @@ export type ProgressCallback = (loaded: number, total: number) => void;
  *  - 走系统 http，自动带认证头 / 租户头 / 请求签名
  *  - 支持上传进度
  */
-export function uploadSingleFile(
-  file: File,
-  extraData?: Record<string, unknown>,
-): Promise<UploadedFileResult> {
-  const formData = new FormData();
-  formData.append("file", file);
+export function uploadSingleFile(file: File, extraData?: Record<string, unknown>): Promise<UploadedFileResult> {
+  const formData = new FormData()
+  formData.append('file', file)
   if (extraData) {
     for (const [k, v] of Object.entries(extraData)) {
-      if (v !== undefined && v !== null) formData.append(k, String(v));
+      if (v !== undefined && v !== null) formData.append(k, String(v))
     }
   }
 
-  return http.Post<{ code: number; data: UploadedFileResult; message?: string }>(
-    "/upload/file",
-    formData,
-  );
+  return http.Post<{ code: number; data: UploadedFileResult; message?: string }>('/upload/file', formData)
 }
 
 /* ============================================================
@@ -62,14 +56,10 @@ export function uploadSingleFile(
  *  - GET 请求，query 参数 uploadId = hash
  *  - 响应 data.uploaded = true 表示秒传
  */
-export function checkChunks(
-  uploadId: string,
-  filename: string,
-  size: number,
-): Promise<ChunkCheckResult> {
-  return http.Get<{ code: number; data: ChunkCheckResult; message?: string }>("/upload/check", {
+export function checkChunks(uploadId: string, filename: string, size: number): Promise<ChunkCheckResult> {
+  return http.Get<{ code: number; data: ChunkCheckResult; message?: string }>('/upload/check', {
     params: { uploadId, filename, size },
-  });
+  })
 }
 
 /* ============================================================
@@ -80,21 +70,21 @@ export function checkChunks(
  *  - 单分片内不细化进度，分片是"原子上传"，完成后靠累计更新进度
  */
 export function uploadChunk(params: {
-  uploadId: string;
-  index: number;
-  total: number;
-  chunk: Blob;
-  filename: string;
+  uploadId: string
+  index: number
+  total: number
+  chunk: Blob
+  filename: string
 }): Promise<void> {
-  const { uploadId, index, total, chunk, filename } = params;
+  const { uploadId, index, total, chunk, filename } = params
 
-  const formData = new FormData();
-  formData.append("uploadId", uploadId);
-  formData.append("chunkIndex", String(index));
-  formData.append("totalChunks", String(total));
-  formData.append("file", chunk, `${filename}.part${index}`);
+  const formData = new FormData()
+  formData.append('uploadId', uploadId)
+  formData.append('chunkIndex', String(index))
+  formData.append('totalChunks', String(total))
+  formData.append('file', chunk, `${filename}.part${index}`)
 
-  return http.Post<{ code: number; message?: string }>("/upload/chunk", formData);
+  return http.Post<{ code: number; message?: string }>('/upload/chunk', formData)
 }
 
 /* ============================================================
@@ -105,24 +95,24 @@ export function uploadChunk(params: {
  *  - 响应 data.result 是最终文件记录
  */
 export function mergeChunks(params: {
-  uploadId: string;
-  filename: string;
-  size: number;
-  totalChunks: number;
-  mimeType?: string;
+  uploadId: string
+  filename: string
+  size: number
+  totalChunks: number
+  mimeType?: string
 }): Promise<ChunkMergeResult> {
   return http.Post<{
-    code: number;
-    data: ChunkMergeResult;
-    message?: string;
-  }>("/upload/merge", params, {
+    code: number
+    data: ChunkMergeResult
+    message?: string
+  }>('/upload/merge', params, {
     timeout: 50 * 60 * 60,
-  });
+  })
 }
 
 /* ============================================================
  * 删除物理文件（可选）
  * ============================================================ */
 export function deletePhysicalFile(url: string): Promise<void> {
-  return http.Post<{ code: number; message?: string }>("/upload/delete", { url });
+  return http.Post<{ code: number; message?: string }>('/upload/delete', { url })
 }

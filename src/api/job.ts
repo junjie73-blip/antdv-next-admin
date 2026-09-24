@@ -1,39 +1,39 @@
-import { http } from "~/utils";
+import { http } from '~/utils'
 // ============================================================
 // 定时任务
 // ============================================================
 
 export function getJobList(params: any) {
-  return http.Get("/job/list", { params });
+  return http.Get('/job/list', { params })
 }
 
 export function createJob(data: any) {
-  return http.Post("/job", data);
+  return http.Post('/job', data)
 }
 
 export function updateJob(id: string, data: any) {
-  return http.Put(`/job/${id}`, data);
+  return http.Put(`/job/${id}`, data)
 }
 
 export function deleteJob(id: string) {
-  return http.Delete(`/job/${id}`);
+  return http.Delete(`/job/${id}`)
 }
 
 /** 启停任务 —— body 是 { status: "0"|"1" } */
 export function toggleJobStatus(id: string, status: string) {
-  return http.Put(`/job/${id}/status`, { status });
+  return http.Put(`/job/${id}/status`, { status })
 }
 
 export function runJobOnce(id: string) {
-  return http.Post(`/job/${id}/run`);
+  return http.Post(`/job/${id}/run`)
 }
 
 export function pauseJob(id: string) {
-  return http.Put(`/job/${id}/pause`);
+  return http.Put(`/job/${id}/pause`)
 }
 
 export function resumeJob(id: string) {
-  return http.Put(`/job/${id}/resume`);
+  return http.Put(`/job/${id}/resume`)
 }
 
 // ============================================================
@@ -41,9 +41,9 @@ export function resumeJob(id: string) {
 // ============================================================
 
 export function getJobLogList(params: any) {
-  return http.Get("/job-log/list", { params });
+  return http.Get('/job-log/list', { params })
 }
 
 export function clearJobLog(jobId?: string) {
-  return http.Delete("/job-log/clear", { params: { jobId } });
+  return http.Delete('/job-log/clear', { params: { jobId } })
 }

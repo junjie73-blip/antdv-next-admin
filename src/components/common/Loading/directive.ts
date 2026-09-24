@@ -1,13 +1,10 @@
+import type { App, Directive } from 'vue'
 
 import { createApp } from 'vue'
 
-import Loading from './Loading.vue'
-
-import type { App, Directive } from 'vue'
-
 import type { LoadingDirectiveBinding, LoadingProps, LoadingSize, LoadingTheme } from './types'
 
-
+import Loading from './Loading.vue'
 
 /**
  * v-loading 指令

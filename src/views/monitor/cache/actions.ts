@@ -1,10 +1,10 @@
-import type { CacheKeyRecord } from "./types";
+import type { ActionItem } from '~/components/business/Table'
 
-import type { ActionItem } from "~/components/business/Table";
+import type { CacheKeyRecord } from './types'
 
 /** 操作回调上下文 */
 export interface CacheActionContext {
-  onDelete: (record: CacheKeyRecord) => void | Promise<void>;
+  onDelete: (record: CacheKeyRecord) => void | Promise<void>
 }
 
 /**
@@ -14,13 +14,13 @@ export interface CacheActionContext {
 export function getCacheActions(record: CacheKeyRecord, ctx: CacheActionContext): ActionItem[] {
   return [
     {
-      label: "删除",
+      label: '删除',
       danger: true,
       popConfirm: {
-        title: "删除 Key",
+        title: '删除 Key',
         content: `确定删除「${record.key}」吗？`,
         confirm: () => ctx.onDelete(record),
       },
     },
-  ];
+  ]
 }

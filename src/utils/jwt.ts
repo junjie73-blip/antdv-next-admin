@@ -9,21 +9,21 @@
 
 export interface JwtPayload {
   /** 过期时间（Unix 秒） */
-  exp?: number;
+  exp?: number
   /** 签发时间（Unix 秒） */
-  iat?: number;
+  iat?: number
   /** 生效时间（Unix 秒） */
-  nbf?: number;
+  nbf?: number
   /** 签发者 */
-  iss?: string;
+  iss?: string
   /** 受众 */
-  aud?: string | string[];
+  aud?: string | string[]
   /** 业务字段 */
-  userId?: string;
-  tenantId?: string;
-  username?: string;
-  type?: string;
-  [key: string]: unknown;
+  userId?: string
+  tenantId?: string
+  username?: string
+  type?: string
+  [key: string]: unknown
 }
 
 /* ============================================================
@@ -33,27 +33,27 @@ export interface JwtPayload {
  */
 
 function base64UrlToBase64(input: string): string {
-  let output = input.replace(/-/g, "+").replace(/_/g, "/");
+  let output = input.replace(/-/g, '+').replace(/_/g, '/')
   // 补齐 = 让长度是 4 的倍数
   while (output.length % 4 !== 0) {
-    output += "=";
+    output += '='
   }
-  return output;
+  return output
 }
 
 /** UTF-8 安全的 atob */
 function base64Decode(input: string): string {
-  const binary = atob(base64UrlToBase64(input));
+  const binary = atob(base64UrlToBase64(input))
   // 转成 UTF-8 字符串（防止中文乱码）
   try {
     return decodeURIComponent(
       binary
-        .split("")
-        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join(""),
-    );
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join(''),
+    )
   } catch {
-    return binary;
+    return binary
   }
 }
 
@@ -68,22 +68,22 @@ function base64Decode(input: string): string {
  * @returns payload 对象，解析失败返回 null
  */
 export function parseJwt(token: string | null | undefined): JwtPayload | null {
-  if (!token) return null;
+  if (!token) return null
 
   try {
-    const parts = token.split(".");
+    const parts = token.split('.')
     // 标准 JWT 是 3 段
-    if (parts.length !== 3) return null;
+    if (parts.length !== 3) return null
 
-    const payloadJson = base64Decode(parts[1]!);
-    const payload = JSON.parse(payloadJson) as JwtPayload;
+    const payloadJson = base64Decode(parts[1]!)
+    const payload = JSON.parse(payloadJson) as JwtPayload
 
     // 基础校验：必须是对象
-    if (typeof payload !== "object" || payload === null) return null;
+    if (typeof payload !== 'object' || payload === null) return null
 
-    return payload;
+    return payload
   } catch {
-    return null;
+    return null
   }
 }
 
@@ -95,42 +95,42 @@ export function parseJwt(token: string | null | undefined): JwtPayload | null {
  * @returns true = 已过期 / 快过期 / 无法解析
  */
 export function isTokenExpired(token: string | null | undefined, offsetSeconds = 60): boolean {
-  if (!token) return true;
+  if (!token) return true
 
-  const payload = parseJwt(token);
+  const payload = parseJwt(token)
   if (!payload) {
     // 不是标准 JWT（比如 opaque token），交给后端判断
-    return false;
+    return false
   }
 
-  if (typeof payload.exp !== "number") {
+  if (typeof payload.exp !== 'number') {
     // 没有 exp，视为长期有效
-    return false;
+    return false
   }
 
-  const now = Math.floor(Date.now() / 1000);
-  return payload.exp - now <= offsetSeconds;
+  const now = Math.floor(Date.now() / 1000)
+  return payload.exp - now <= offsetSeconds
 }
 
 /**
  * 剩余有效秒数
  */
 export function getTokenRemainingSeconds(token: string | null | undefined): number {
-  if (!token) return 0;
+  if (!token) return 0
 
-  const payload = parseJwt(token);
-  if (!payload || typeof payload.exp !== "number") {
-    return Number.POSITIVE_INFINITY;
+  const payload = parseJwt(token)
+  if (!payload || typeof payload.exp !== 'number') {
+    return Number.POSITIVE_INFINITY
   }
 
-  const now = Math.floor(Date.now() / 1000);
-  return Math.max(0, payload.exp - now);
+  const now = Math.floor(Date.now() / 1000)
+  return Math.max(0, payload.exp - now)
 }
 
 /**
  * 判断是否为 JWT 格式
  */
 export function isJwtFormat(token: string | null | undefined): boolean {
-  if (!token) return false;
-  return token.split(".").length === 3;
+  if (!token) return false
+  return token.split('.').length === 3
 }

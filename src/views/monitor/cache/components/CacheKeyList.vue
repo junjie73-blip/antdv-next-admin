@@ -1,66 +1,64 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { message } from "antdv-next";
-import { ref, watch } from "vue";
+import { Icon } from '@iconify/vue'
+import { message } from 'antdv-next'
+import { ref, watch } from 'vue'
 
-import { formatTtl } from "../utils";
+import { deleteCacheKey, getCacheKeys } from '~/api'
 
-import type { CacheKeyInfo } from "../types";
+import type { CacheKeyInfo } from '../types'
 
-import { deleteCacheKey, getCacheKeys } from "~/api";
+import { formatTtl } from '../utils'
 
-defineOptions({ name: "CacheKeyList" });
+defineOptions({ name: 'CacheKeyList' })
 
 const props = defineProps<{
-  prefix: string | null;
-  groupName: string | null;
-  currentKey: string | null;
-}>();
+  prefix: string | null
+  groupName: string | null
+  currentKey: string | null
+}>()
 
 const emit = defineEmits<{
-  change: [key: string | null];
-}>();
+  change: [key: string | null]
+}>()
 
-const loading = ref(false);
-const keys = ref<CacheKeyInfo[]>([]);
+const loading = ref(false)
+const keys = ref<CacheKeyInfo[]>([])
 
 async function loadKeys() {
   if (!props.prefix) {
-    keys.value = [];
-    return;
+    keys.value = []
+    return
   }
-  loading.value = true;
+  loading.value = true
   try {
-    const res = (await getCacheKeys({ prefix: props.prefix })) as
-      | { data?: CacheKeyInfo[] }
-      | CacheKeyInfo[];
-    keys.value = (res as { data?: CacheKeyInfo[] })?.data ?? (res as CacheKeyInfo[]) ?? [];
+    const res = (await getCacheKeys({ prefix: props.prefix })) as { data?: CacheKeyInfo[] } | CacheKeyInfo[]
+    keys.value = (res as { data?: CacheKeyInfo[] })?.data ?? (res as CacheKeyInfo[]) ?? []
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 
 function handleSelect(item: CacheKeyInfo) {
-  if (props.currentKey === item.key) return;
-  emit("change", item.key);
+  if (props.currentKey === item.key) return
+  emit('change', item.key)
 }
 
 async function handleDelete(item: CacheKeyInfo, e: Event) {
-  e.stopPropagation();
-  await deleteCacheKey(item.key);
-  message.success("已删除");
-  if (props.currentKey === item.key) emit("change", null);
-  await loadKeys();
+  e.stopPropagation()
+  await deleteCacheKey(item.key)
+  message.success('已删除')
+  if (props.currentKey === item.key) emit('change', null)
+  await loadKeys()
 }
 
 watch(
   () => props.prefix,
   () => {
-    emit("change", null);
-    void loadKeys();
+    emit('change', null)
+    void loadKeys()
   },
   { immediate: true },
-);
+)
 </script>
 
 <template>
@@ -68,9 +66,7 @@ watch(
     class="flex h-full flex-col rounded-lg border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
   >
     <!-- 头部 -->
-    <div
-      class="flex shrink-0 items-center justify-between border-b border-gray-100 px-3 py-2.5 dark:border-gray-800"
-    >
+    <div class="flex shrink-0 items-center justify-between border-b border-gray-100 px-3 py-2.5 dark:border-gray-800">
       <div class="flex items-center gap-2">
         <span class="h-3 w-0.5 rounded bg-blue-500" />
         <span class="text-sm font-medium text-gray-700 dark:text-gray-200"> 键名列表 </span>
@@ -101,22 +97,18 @@ watch(
       <div v-else-if="loading" class="p-4 text-center text-xs text-gray-400">加载中...</div>
 
       <!-- 空 -->
-      <div v-else-if="keys.length === 0" class="p-4 text-center text-xs text-gray-400">
-        暂无数据
-      </div>
+      <div v-else-if="keys.length === 0" class="p-4 text-center text-xs text-gray-400">暂无数据</div>
 
       <!-- 列表 -->
       <div v-else class="h-full">
-        <Scrollbar class="h-full" height="594">
+        <Scrollbar class="h-full" :height="594">
           <div
             v-for="item in keys"
             :key="item.key"
             :class="[
               'group flex cursor-pointer items-center justify-between gap-2 border-b border-gray-50 px-3 py-2 transition-colors last:border-b-0',
               'dark:border-gray-800/50',
-              currentKey === item.key
-                ? 'bg-blue-50 dark:bg-blue-950/40'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/60',
+              currentKey === item.key ? 'bg-blue-50 dark:bg-blue-950/40' : 'hover:bg-gray-50 dark:hover:bg-gray-800/60',
             ]"
             @click="handleSelect(item)"
           >
@@ -124,9 +116,7 @@ watch(
               <div
                 :class="[
                   'truncate font-mono text-xs',
-                  currentKey === item.key
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-gray-700 dark:text-gray-200',
+                  currentKey === item.key ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-200',
                 ]"
                 :title="item.key"
               >
@@ -141,7 +131,7 @@ watch(
 
             <button
               type="button"
-              class="shrink-0 rounded p-1 text-gray-300 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 dark:hover:bg-red-950/40"
+              class="shrink-0 rounded p-1 text-gray-300 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/40"
               title="删除该 Key"
               @click="(e) => handleDelete(item, e)"
             >

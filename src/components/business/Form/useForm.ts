@@ -1,10 +1,8 @@
-
 import { ref, unref } from 'vue'
-
-import { deepMerge } from './helper'
 
 import type { FormActionType, FormProps, FormSchema, NamePath, UseFormReturnType } from './types'
 
+import { deepMerge } from './helper'
 
 export function useForm(props?: Partial<FormProps>): UseFormReturnType {
   const formRef = ref<FormActionType | null>(null)

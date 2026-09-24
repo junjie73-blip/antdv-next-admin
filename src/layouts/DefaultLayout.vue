@@ -1,14 +1,8 @@
 <script setup lang="ts">
+import type { MenuProps } from "antdv-next";
+
 import { computed, markRaw, onMounted, onUnmounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
-
-import LayoutFooter from "./components/LayoutFooter.vue";
-import LayoutHeader from "./components/LayoutHeader.vue";
-import LayoutSidebar from "./components/LayoutSidebar.vue";
-import LayoutTabs from "./components/LayoutTabs.vue";
-import { useLayout } from "./composables/useLayout";
-
-import type { MenuProps } from "antdv-next";
 
 import PageLoading from "~/components/common/Loading/PageLoading.vue";
 import RouteLoadingBar from "~/components/common/Loading/RouteLoadingBar.vue";
@@ -19,6 +13,12 @@ import { useAppStore } from "~/stores/modules/app";
 import { useRouteStore } from "~/stores/modules/route";
 import { cn } from "~/utils/cn";
 import { transformMenuConfigToItems } from "~/utils/helpers/menu";
+
+import LayoutFooter from "./components/LayoutFooter.vue";
+import LayoutHeader from "./components/LayoutHeader.vue";
+import LayoutSidebar from "./components/LayoutSidebar.vue";
+import LayoutTabs from "./components/LayoutTabs.vue";
+import { useLayout } from "./composables/useLayout";
 
 defineOptions({
   name: "DefaultLayout",
@@ -156,7 +156,7 @@ useWatermark({
       />
 
       <!-- 主内容区域 -->
-      <div class="flex flex-col flex-1 overflow-hidden">
+      <div class="flex flex-1 flex-col overflow-hidden">
         <!-- 垂直布局：Header 在主区域内（折叠按钮 + 面包屑） -->
         <LayoutHeader v-if="isVertical" :collapsed="collapsed" @toggleCollapsed="toggleCollapsed" />
 
@@ -166,27 +166,26 @@ useWatermark({
         />
 
         <main :class="contentClassName" class="relative overflow-hidden">
-          <!-- 页面切换骨架屏（支持错误状态） -->
           <PageLoading :loading="isRouteLoading" variant="default" :error="isSlow" />
-
-          <router-view v-slot="{ Component, route }">
-            <!-- 微前端页面：禁用 out-in 模式，避免 iframe/微应用被 transition 销毁 -->
-            <template v-if="route.meta?.microApp">
-              <keep-alive :include="cachedRoutes">
+          <PageTransition>
+            <router-view v-slot="{ Component, route }">
+              <!-- 微前端页面：禁用 out-in 模式，避免 iframe/微应用被 transition 销毁 -->
+              <template v-if="route.meta?.microApp">
+                <keep-alive :include="cachedRoutes">
+                  <component :is="markRaw(Component)" :key="route.path" />
+                </keep-alive>
+              </template>
+              <!-- 全屏大屏页面：禁用 transition + keepAlive，避免 ECharts 资源泄漏影响其他页面 -->
+              <template v-else-if="route.meta?.noTransition">
                 <component :is="markRaw(Component)" :key="route.path" />
-              </keep-alive>
-            </template>
-            <!-- 全屏大屏页面：禁用 transition + keepAlive，避免 ECharts 资源泄漏影响其他页面 -->
-            <template v-else-if="route.meta?.noTransition">
-              <component :is="markRaw(Component)" :key="route.path" />
-            </template>
-            <!-- 普通页面：使用 KeepAlive 缓存，但不使用 Transition 避免渲染冲突 -->
-            <template v-else>
-              <keep-alive :include="cachedRoutes">
-                <component :is="markRaw(Component)" :key="route.path" />
-              </keep-alive>
-            </template>
-          </router-view>
+              </template>
+              <!-- 普通页面：使用 KeepAlive 缓存，但不使用 Transition 避免渲染冲突 -->
+              <template v-else>
+                <keep-alive :include="cachedRoutes">
+                  <component :is="markRaw(Component)" :key="route.path" />
+                </keep-alive>
+              </template> </router-view
+          ></PageTransition>
         </main>
 
         <LayoutFooter v-if="appStore.showFooter" />
@@ -194,161 +193,3 @@ useWatermark({
     </div>
   </div>
 </template>
-
-<style scoped>
-/* 淡入淡出 */
-.page-fade-enter-active,
-.page-fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.page-fade-enter-from,
-.page-fade-leave-to {
-  opacity: 0;
-}
-
-/* 滑动（水平） */
-.page-slide-enter-active,
-.page-slide-leave-active {
-  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-.page-slide-enter-from {
-  opacity: 0;
-  transform: translateX(30px);
-}
-
-.page-slide-leave-to {
-  opacity: 0;
-  transform: translateX(-30px);
-}
-
-/* 右滑 */
-.page-slide-right-enter-active,
-.page-slide-right-leave-active {
-  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-.page-slide-right-enter-from {
-  opacity: 0;
-  transform: translateX(30px);
-}
-
-.page-slide-right-leave-to {
-  opacity: 0;
-  transform: translateX(-30px);
-}
-
-/* 左滑 */
-.page-slide-left-enter-active,
-.page-slide-left-leave-active {
-  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-.page-slide-left-enter-from {
-  opacity: 0;
-  transform: translateX(-30px);
-}
-
-.page-slide-left-leave-to {
-  opacity: 0;
-  transform: translateX(30px);
-}
-
-/* 上滑 */
-.page-slide-up-enter-active,
-.page-slide-up-leave-active {
-  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-.page-slide-up-enter-from {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.page-slide-up-leave-to {
-  opacity: 0;
-  transform: translateY(-20px);
-}
-
-/* 下滑 */
-.page-slide-down-enter-active,
-.page-slide-down-leave-active {
-  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-.page-slide-down-enter-from {
-  opacity: 0;
-  transform: translateY(-20px);
-}
-
-.page-slide-down-leave-to {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-/* 缩放 */
-.page-zoom-enter-active,
-.page-zoom-leave-active {
-  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-.page-zoom-enter-from {
-  opacity: 0;
-  transform: scale(0.9);
-}
-
-.page-zoom-leave-to {
-  opacity: 0;
-  transform: scale(1.1);
-}
-
-/* 淡入滑动 */
-.page-fade-slide-enter-active,
-.page-fade-slide-leave-active {
-  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-.page-fade-slide-enter-from {
-  opacity: 0;
-  transform: translateY(10px);
-}
-
-.page-fade-slide-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
-/* 缩放淡入 */
-.page-scale-enter-active,
-.page-scale-leave-active {
-  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-.page-scale-enter-from {
-  opacity: 0;
-  transform: scale(0.95);
-}
-
-.page-scale-leave-to {
-  opacity: 0;
-  transform: scale(1.05);
-}
-
-/* 翻转 */
-.page-flip-enter-active,
-.page-flip-leave-active {
-  transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
-  transform-style: preserve-3d;
-}
-
-.page-flip-enter-from {
-  opacity: 0;
-  transform: rotateY(90deg);
-}
-
-.page-flip-leave-to {
-  opacity: 0;
-  transform: rotateY(-90deg);
-}
-</style>

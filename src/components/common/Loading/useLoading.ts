@@ -1,12 +1,9 @@
 import { tryOnUnmounted } from '@vueuse/core'
 import { createApp, ref, unref } from 'vue'
 
-import Loading from './Loading.vue'
-
 import type { LoadingInstance, UseLoadingOptions } from './types'
 
-
-
+import Loading from './Loading.vue'
 
 /**
  * useLoading - 组合式函数

@@ -1,8 +1,6 @@
-import { computed } from 'vue'
-
 import type { ComputedRef, Ref } from 'vue'
 
-
+import { computed } from 'vue'
 
 /**
  * 弹窗全屏逻辑

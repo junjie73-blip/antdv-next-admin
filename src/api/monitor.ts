@@ -1,9 +1,9 @@
-import { http } from "~/utils";
+import { http } from '~/utils'
 
 // ============================================================
 // 服务监控
 // ============================================================
 
 export function getServerInfo() {
-  return http.Get("/monitor/server/info");
+  return http.Get('/monitor/server/info')
 }

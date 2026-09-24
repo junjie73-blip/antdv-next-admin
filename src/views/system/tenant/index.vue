@@ -1,11 +1,20 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { message, Modal } from "antdv-next";
-import dayjs from "dayjs";
-import { nextTick, shallowRef } from "vue";
+import { Icon } from '@iconify/vue'
+import { message, Modal } from 'antdv-next'
+import dayjs from 'dayjs'
+import { nextTick, shallowRef } from 'vue'
 
-import { getTenantActions } from "./actions";
+import { batchDeleteTenant, createTenant, deleteTenant, getTenantList, updateTenant } from '~/api'
+import { Description } from '~/components/business/Description'
+import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
+import { BasicForm, useForm } from '~/components/business/Form'
+import { BasicModal, useModal } from '~/components/business/Modal'
+import { type ActionItem, BasicTable, TableAction, useTable } from '~/components/business/Table'
+import { useCRUD } from '~/composables/useCRUD'
 
+import type { TenantRecord } from './types'
+
+import { getTenantActions } from './actions'
 import {
   tenantActionColumn,
   tenantColumns,
@@ -13,52 +22,30 @@ import {
   tenantRowKey,
   tenantRowSelection,
   tenantScroll,
-} from "./columns";
-
-import {
-  cardClassName,
-  containerClassName,
-  TENANT_STATUS_COLOR_MAP,
-  TENANT_STATUS_LABEL_MAP,
-} from "./constants";
-
-import {
-  TENANT_EMPTY_VALUES,
-  tenantDetailSchemas,
-  tenantFormSchemas,
-  tenantSearchSchemas,
-} from "./schemas";
-
-import type { TenantRecord } from "./types";
-
-import { batchDeleteTenant, createTenant, deleteTenant, getTenantList, updateTenant } from "~/api";
-import { Description } from "~/components/business/Description";
-import { BasicDrawer, useDrawer } from "~/components/business/Drawer";
-import { BasicForm, useForm } from "~/components/business/Form";
-import { BasicModal, useModal } from "~/components/business/Modal";
-import { type ActionItem, BasicTable, TableAction, useTable } from "~/components/business/Table";
-import { useCRUD } from "~/composables/useCRUD";
+} from './columns'
+import { cardClassName, containerClassName, TENANT_STATUS_COLOR_MAP, TENANT_STATUS_LABEL_MAP } from './constants'
+import { TENANT_EMPTY_VALUES, tenantDetailSchemas, tenantFormSchemas, tenantSearchSchemas } from './schemas'
 
 // 抽离的模块
 
-defineOptions({ name: "SystemTenant" });
+defineOptions({ name: 'SystemTenant' })
 
 // ========== 详情 ==========
-const viewingRecord = shallowRef<TenantRecord | null>(null);
-const [drawerRegister, drawerMethods] = useDrawer();
+const viewingRecord = shallowRef<TenantRecord | null>(null)
+const [drawerRegister, drawerMethods] = useDrawer()
 
 function handleView(record: TenantRecord) {
-  viewingRecord.value = null;
-  drawerMethods.openDrawer();
+  viewingRecord.value = null
+  drawerMethods.openDrawer()
   nextTick(() => {
-    viewingRecord.value = record;
-  });
+    viewingRecord.value = record
+  })
 }
 
 // ========== 表格 & 表单实例 ==========
-const [tableRegister, tableMethods] = useTable();
-const [modalRegister, modalMethods] = useModal();
-const [formRegister, formMethods] = useForm();
+const [tableRegister, tableMethods] = useTable()
+const [modalRegister, modalMethods] = useModal()
+const [formRegister, formMethods] = useForm()
 
 // ========== useCRUD ==========
 // 说明：单条删除确认由操作项 popConfirm 负责，关闭 useCRUD 内置 Modal.confirm；
@@ -71,64 +58,64 @@ const {
   handleSave,
   handleBatchDelete: crudBatchDelete,
 } = useCRUD<TenantRecord>({
-  containerType: "modal",
+  containerType: 'modal',
   modalMethods,
   formMethods,
   tableMethods,
-  idKey: "tenantId",
+  idKey: 'tenantId',
   getEmptyValues: () => ({ ...TENANT_EMPTY_VALUES }),
   getFormValues: (record) => ({
     tenantCode: record.tenantCode,
     tenantName: record.tenantName,
-    contactName: record.contactName || "",
-    contactPhone: record.contactPhone || "",
-    contactEmail: record.contactEmail || "",
+    contactName: record.contactName || '',
+    contactPhone: record.contactPhone || '',
+    contactEmail: record.contactEmail || '',
     status: record.status,
     expireTime: record.expireTime ? dayjs(record.expireTime) : null,
   }),
   onCreate: async (values: any) => {
     const payload = {
       ...values,
-      expireTime: values.expireTime ? dayjs(values.expireTime).format("YYYY-MM-DD HH:mm:ss") : null,
-    };
-    await createTenant(payload);
+      expireTime: values.expireTime ? dayjs(values.expireTime).format('YYYY-MM-DD HH:mm:ss') : null,
+    }
+    await createTenant(payload)
   },
   onUpdate: async (id, values: any) => {
     const payload = {
       ...values,
-      expireTime: values.expireTime ? dayjs(values.expireTime).format("YYYY-MM-DD HH:mm:ss") : null,
-    };
-    await updateTenant(id, payload);
+      expireTime: values.expireTime ? dayjs(values.expireTime).format('YYYY-MM-DD HH:mm:ss') : null,
+    }
+    await updateTenant(id, payload)
   },
   onDelete: async (record) => {
-    await deleteTenant(record.tenantId);
+    await deleteTenant(record.tenantId)
   },
   onBatchDelete: async (records) => {
-    await batchDeleteTenant(records.map((r) => r.tenantId));
+    await batchDeleteTenant(records.map((r) => r.tenantId))
   },
   messages: {
-    createSuccess: "租户创建成功",
-    updateSuccess: "租户更新成功",
-    deleteSuccess: "租户删除成功",
-    batchDeleteSuccess: "批量删除成功",
+    createSuccess: '租户创建成功',
+    updateSuccess: '租户更新成功',
+    deleteSuccess: '租户删除成功',
+    batchDeleteSuccess: '批量删除成功',
   },
-});
+})
 
 // ========== 批量删除（先弹确认） ==========
 async function handleBatchDelete() {
-  const selected = (tableMethods.value?.getSelectRows?.() || []) as TenantRecord[];
+  const selected = (tableMethods.value?.getSelectRows?.() || []) as TenantRecord[]
   if (selected.length === 0) {
-    message.warning("请先选择要删除的租户");
-    return;
+    message.warning('请先选择要删除的租户')
+    return
   }
   Modal.confirm({
-    title: "批量删除",
+    title: '批量删除',
     content: `确定要删除选中的 ${selected.length} 个租户吗？该操作不可恢复`,
-    okType: "danger",
+    okType: 'danger',
     async onOk() {
-      await crudBatchDelete(selected);
+      await crudBatchDelete(selected)
     },
-  });
+  })
 }
 
 // ========== 操作项 ==========
@@ -137,7 +124,7 @@ function getActions(record: TenantRecord): ActionItem[] {
     onEdit: handleEdit,
     onView: handleView,
     onDelete: handleDelete,
-  });
+  })
 }
 </script>
 
@@ -171,7 +158,7 @@ function getActions(record: TenantRecord): ActionItem[] {
 
         <template #cell-status="{ record }">
           <a-tag :color="TENANT_STATUS_COLOR_MAP[record.status] || 'default'">
-            {{ TENANT_STATUS_LABEL_MAP[record.status] || "未知" }}
+            {{ TENANT_STATUS_LABEL_MAP[record.status] || '未知' }}
           </a-tag>
         </template>
 
@@ -181,12 +168,7 @@ function getActions(record: TenantRecord): ActionItem[] {
       </BasicTable>
     </a-card>
 
-    <BasicModal
-      :title="isEditing ? '编辑租户' : '新增租户'"
-      :width="640"
-      @register="modalRegister"
-      @ok="handleSave"
-    >
+    <BasicModal :title="isEditing ? '编辑租户' : '新增租户'" :width="640" @register="modalRegister" @ok="handleSave">
       <BasicForm
         :schemas="tenantFormSchemas"
         :label-width="90"

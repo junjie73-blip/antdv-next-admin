@@ -1,167 +1,166 @@
 <script setup lang="ts">
-import { Button, Divider, Dropdown, Popconfirm } from "antdv-next";
-import { isFunction, isString } from "es-toolkit";
-import { computed, defineComponent, h, isVNode } from "vue";
+import type { VNode } from 'vue'
 
-import type { VNode } from "vue";
+import { Button, Divider, Dropdown, Popconfirm } from 'antdv-next'
+import { isFunction, isString } from 'es-toolkit'
+import { computed, defineComponent, h, isVNode } from 'vue'
 
-import type { ActionItem } from "../types";
+import { IconifyIcon as Icon } from '~/components/common/Icon'
+import { usePermission } from '~/composables'
+import { cn } from '~/utils/cn'
 
-import { IconifyIcon as Icon } from "~/components/common/Icon";
-import { cn } from "~/utils/cn";
-import { usePermission } from "~/composables";
+import type { ActionItem } from '../types'
 
-type ButtonType = "default" | "link" | "dashed" | "text" | "primary";
+type ButtonType = 'default' | 'link' | 'dashed' | 'text' | 'primary'
 
 interface Props {
   /** 操作项列表 */
-  actions?: ActionItem[];
+  actions?: ActionItem[]
   /** 最多显示的操作数量，超出部分放入下拉菜单 */
-  maxShowCount?: number;
+  maxShowCount?: number
   /** 当前行数据 */
-  record?: Record<string, any>;
+  record?: Record<string, any>
 }
 
 const props = withDefaults(defineProps<Props>(), {
   actions: () => [],
   maxShowCount: 4,
   record: () => ({}),
-});
-const { hasPermission } = usePermission();
+})
+const { hasPermission } = usePermission()
 /**
  * VNode 渲染辅助组件
  * 用于把动态 VNode（如函数式 label）渲染到模板中
  */
 const RenderVNode = defineComponent({
-  name: "RenderVNode",
+  name: 'RenderVNode',
   props: {
     vnode: { type: [Object, Array, String, Number, Boolean], default: null },
   },
   setup(p) {
-    return () => p.vnode as any;
+    return () => p.vnode as any
   },
-});
+})
 
 // ============================
 // 工具函数
 // ============================
 
 function getButtonType(action: ActionItem): ButtonType {
-  const type = action.type || "link";
+  const type = action.type || 'link'
   // antdv-next 不支持 ghost，映射为 default
-  if (type === "ghost") return "default";
-  return type as ButtonType;
+  if (type === 'ghost') return 'default'
+  return type as ButtonType
 }
 
-function getButtonSize(action: ActionItem): "small" | "middle" | "large" | undefined {
-  return action.size || undefined;
+function getButtonSize(action: ActionItem): 'small' | 'middle' | 'large' | undefined {
+  return action.size || undefined
 }
 
-function hasAuth(auth: ActionItem["auth"]): boolean {
-  if (!auth) return true;
+function hasAuth(auth: ActionItem['auth']): boolean {
+  if (!auth) return true
   // 可根据实际权限系统调整
-  return hasPermission(isString(auth) ? auth : auth.join(","));
+  return hasPermission(isString(auth) ? auth : auth.join(','))
 }
 
 function isShow(action: ActionItem, record: Record<string, any>): boolean {
-  if (action.ifShow === false) return false;
-  if (isFunction(action.ifShow)) return action.ifShow(record);
-  return true;
+  if (action.ifShow === false) return false
+  if (isFunction(action.ifShow)) return action.ifShow(record)
+  return true
 }
 
 function isDisabled(action: ActionItem, record: Record<string, any>): boolean {
-  if (action.disabled === true) return true;
-  if (isFunction(action.disabled)) return action.disabled(record);
-  return false;
+  if (action.disabled === true) return true
+  if (isFunction(action.disabled)) return action.disabled(record)
+  return false
 }
 
-function getActionLabel(
-  label: ActionItem["label"],
-  record: Record<string, any>,
-): string | VNode | undefined {
-  if (!label) return undefined;
-  if (isFunction(label)) return label(record);
-  return label;
+function getActionLabel(label: ActionItem['label'], record: Record<string, any>): string | VNode | undefined {
+  if (!label) return undefined
+  if (isFunction(label)) return label(record)
+  return label
 }
 
 // ============================
 // 响应式状态
 // ============================
 
-const currentRecord = computed(() => props.record || {});
-const actionsRef = computed(() => props.actions || []);
-const maxShowCountRef = computed(() => props.maxShowCount || 4);
+const currentRecord = computed(() => props.record || {})
+const actionsRef = computed(() => props.actions || [])
+const maxShowCountRef = computed(() => props.maxShowCount || 4)
 
 /** 可见的操作项（按权限 / ifShow 过滤） */
 const visibleActions = computed(() => {
   return actionsRef.value.filter((action) => {
-    if (!hasAuth(action.auth)) return false;
-    if (!isShow(action, currentRecord.value)) return false;
-    return true;
-  });
-});
+    if (!hasAuth(action.auth)) return false
+    if (!isShow(action, currentRecord.value)) return false
+    return true
+  })
+})
 
 /** 直接显示的操作项（超出则截断） */
 const showActions = computed(() => {
-  const visibleCount = visibleActions.value.length;
-  const displayCount =
-    visibleCount > maxShowCountRef.value ? maxShowCountRef.value - 1 : maxShowCountRef.value;
-  return visibleActions.value.slice(0, displayCount);
-});
+  const visibleCount = visibleActions.value.length
+  const displayCount = visibleCount > maxShowCountRef.value ? maxShowCountRef.value - 1 : maxShowCountRef.value
+  return visibleActions.value.slice(0, displayCount)
+})
 
 /** 放入"更多"下拉的操作项 */
 const dropdownActions = computed(() => {
-  if (visibleActions.value.length <= maxShowCountRef.value) return [];
-  return visibleActions.value.slice(maxShowCountRef.value - 1);
-});
+  if (visibleActions.value.length <= maxShowCountRef.value) return []
+  return visibleActions.value.slice(maxShowCountRef.value - 1)
+})
 
-const hasDropdown = computed(() => dropdownActions.value.length > 0);
+const hasDropdown = computed(() => dropdownActions.value.length > 0)
 
 /** "更多"下拉菜单项 */
 const moreDropdownItems = computed(() => {
-  return dropdownActions.value.map((action, i) => ({
-    key: i,
-    label: getActionLabel(action.label, currentRecord.value) || "操作",
-    danger: action.danger,
-    disabled: isDisabled(action, currentRecord.value),
-  }));
-});
+  return dropdownActions.value.map((action, i) => {
+    const obj = {
+      key: i,
+      label: getActionLabel(action.label, currentRecord.value) || '操作',
+      danger: action.danger,
+      disabled: isDisabled(action, currentRecord.value),
+    }
+    if (action.icon) {
+      obj.icon = h(Icon, { icon: action.icon! })
+    }
+    return obj
+  })
+})
 
 // ============================
 // 事件处理
 // ============================
 
 function handleClick(action: ActionItem, e: MouseEvent) {
-  action.onClick?.(currentRecord.value, e);
+  action.onClick?.(currentRecord.value, e)
 }
 
 function handleConfirm(action: ActionItem, e?: MouseEvent) {
   if (action.popConfirm?.confirm && e) {
-    action.popConfirm.confirm(currentRecord.value, e);
+    action.popConfirm.confirm(currentRecord.value, e)
   }
 }
 
 function handleCancel(action: ActionItem, e?: MouseEvent) {
   if (action.popConfirm?.cancel && e) {
-    action.popConfirm.cancel(currentRecord.value, e);
+    action.popConfirm.cancel(currentRecord.value, e)
   }
 }
 
-function handleDropdownMenuClick(
-  actionList: ActionItem[],
-  info: { key: string; domEvent?: Event },
-) {
-  const index = Number(info.key);
-  const action = actionList[index];
+function handleDropdownMenuClick(actionList: ActionItem[], info: { key: string; domEvent?: Event }) {
+  const index = Number(info.key)
+  const action = actionList[index]
   if (action?.onClick) {
-    info.domEvent?.stopPropagation?.();
-    action.onClick(currentRecord.value, info.domEvent as MouseEvent);
+    info.domEvent?.stopPropagation?.()
+    action.onClick(currentRecord.value, info.domEvent as MouseEvent)
   }
 }
 
 function onSubDropdownMenuClick(action: ActionItem, info: { key: string; domEvent?: Event }) {
   if (action.dropdown) {
-    handleDropdownMenuClick(action.dropdown, info);
+    handleDropdownMenuClick(action.dropdown, info)
   }
 }
 
@@ -171,10 +170,10 @@ function onSubDropdownMenuClick(action: ActionItem, info: { key: string; domEven
 
 /** 获取某个 action 的 label VNode（兼容字符串 / VNode） */
 function getLabelVNode(action: ActionItem): VNode | null {
-  const label = getActionLabel(action.label, currentRecord.value);
-  if (!label) return null;
-  if (isVNode(label)) return label;
-  return h("span", String(label));
+  const label = getActionLabel(action.label, currentRecord.value)
+  if (!label) return null
+  if (isVNode(label)) return label
+  return h('span', String(label))
 }
 
 /** 获取子级 Dropdown 菜单项 */
@@ -188,12 +187,12 @@ function getSubDropdownItems(action: ActionItem) {
         danger: item.danger,
         disabled: isDisabled(item, currentRecord.value),
       })) ?? []
-  );
+  )
 }
 
 /** 强制 Popconfirm / Dropdown 渲染到 body，避免被表格固定列裁剪 */
 function getPopupContainer() {
-  return document.body;
+  return document.body
 }
 </script>
 

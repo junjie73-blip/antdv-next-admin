@@ -1,0 +1,14 @@
+import { defineConfig } from "oxlint";
+
+export default defineConfig({
+  plugins: ["eslint", "typescript", "unicorn", "oxc", "vue", "vitest", "import"],
+  env: {
+    browser: true,
+  },
+  categories: {
+    correctness: "error",
+  },
+  rules: {
+    "eslint/no-unused-vars": "error",
+  },
+});

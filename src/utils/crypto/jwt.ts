@@ -2,15 +2,11 @@ import * as jose from 'jose'
 
 import type { JwtOptions, JwtPayload } from './types'
 
-
-
 export async function signJwt(payload: JwtPayload, options: JwtOptions): Promise<string> {
   const { secret, expiresIn } = options
   const secretKey = new TextEncoder().encode(secret)
 
-  let jwt: jose.SignJWT = new jose.SignJWT(payload)
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
+  let jwt: jose.SignJWT = new jose.SignJWT(payload).setProtectedHeader({ alg: 'HS256' }).setIssuedAt()
 
   if (expiresIn) {
     if (typeof expiresIn === 'number') {

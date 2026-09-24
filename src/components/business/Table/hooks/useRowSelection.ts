@@ -1,14 +1,7 @@
-
 import { isBoolean, isFunction } from 'es-toolkit'
 import { computed, reactive, unref, watch } from 'vue'
 
-import type {
-  Recordable,
-  TableRowSelection,
-  UseRowSelectionOptions,
-  UseRowSelectionReturn,
-} from '../types'
-
+import type { Recordable, TableRowSelection, UseRowSelectionOptions, UseRowSelectionReturn } from '../types'
 
 /**
  * 行选择管理 Hook

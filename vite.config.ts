@@ -273,13 +273,10 @@ export default defineConfig(({ mode }) => {
           ],
         },
       }),
+      iconifyOffline({
+        local: ["carbon", "ant-design", "lucide", "fa6-regular", "mdi"],
+      }),
     ];
-    mode === "production" &&
-      plugins.push(
-        iconifyOffline({
-          local: ["carbon", "ant-design", "lucide", "fa6-regular", "mdi"],
-        }),
-      );
     envConfig.VITE_DEVTOOLS && plugins.push(viteVueDevTools());
 
     envConfig.VITE_ARCHIVER && plugins.push(viteArchiverPlugin({}));

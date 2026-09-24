@@ -1,9 +1,8 @@
-
-import dayjs from 'dayjs'
 import { cloneDeep, isFunction, isPlainObject, merge } from 'es-toolkit'
 
-import type { BasicColumn, Recordable } from './types'
+import dayjs from '~/utils/dayjs'
 
+import type { BasicColumn, Recordable } from './types'
 
 // 使用原生 Array.isArray 替代 es-toolkit 的 isArray
 const isArray = Array.isArray
@@ -246,8 +245,7 @@ export function sortColumns(columns: BasicColumn[], order: string[]): BasicColum
  */
 export function getTotalColumnWidth(columns: BasicColumn[]): number {
   return columns.reduce((total, col) => {
-    const width =
-      typeof col.width === 'number' ? col.width : Number.parseInt(col.width as string) || 0
+    const width = typeof col.width === 'number' ? col.width : Number.parseInt(col.width as string) || 0
     return total + width
   }, 0)
 }
@@ -255,10 +253,7 @@ export function getTotalColumnWidth(columns: BasicColumn[]): number {
 /**
  * 延迟执行
  */
-export function debounce<T extends (...args: any[]) => any>(
-  fn: T,
-  delay: number,
-): (...args: Parameters<T>) => void {
+export function debounce<T extends (...args: any[]) => any>(fn: T, delay: number): (...args: Parameters<T>) => void {
   let timer: ReturnType<typeof setTimeout> | null = null
 
   return function (this: ThisParameterType<T>, ...args: Parameters<T>) {
@@ -272,10 +267,7 @@ export function debounce<T extends (...args: any[]) => any>(
 /**
  * 节流执行
  */
-export function throttle<T extends (...args: any[]) => any>(
-  fn: T,
-  limit: number,
-): (...args: Parameters<T>) => void {
+export function throttle<T extends (...args: any[]) => any>(fn: T, limit: number): (...args: Parameters<T>) => void {
   let inThrottle = false
 
   return function (this: ThisParameterType<T>, ...args: Parameters<T>) {

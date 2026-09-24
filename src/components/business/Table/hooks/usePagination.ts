@@ -1,13 +1,9 @@
-
+import type { PaginationProps as AntPaginationProps } from 'antdv-next'
 
 import { isPlainObject } from 'es-toolkit'
 import { computed, ref, unref } from 'vue'
 
-import type { PaginationProps as AntPaginationProps } from 'antdv-next'
-
 import type { UsePaginationOptions, UsePaginationReturn } from '../types'
-
-
 
 // 使用原生方法替代 es-toolkit
 const _isBoolean = (val: unknown): val is boolean => typeof val === 'boolean'

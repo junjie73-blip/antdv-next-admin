@@ -1,5 +1,57 @@
-:root {
-  --ant-primary-color-bg: color-mix(in srgb, var(--ant-primary-color) 10%, white);
-  --ant-primary-color-border: color-mix(in srgb, var(--ant-primary-color) 35%, white);
-  --ant-primary-color-hover: color-mix(in srgb, var(--ant-primary-color) 80%, white);
+@layer components {
+  /* ---------- 容器 ---------- */
+  .scrollbar {
+    @apply relative h-full overflow-hidden;
+  }
+
+  /* ---------- 滚动区 ---------- */
+  .scrollbar__wrap {
+    @apply h-full overflow-auto;
+  }
+
+  .scrollbar__wrap--hidden-default {
+    scrollbar-width: none;
+  }
+  .scrollbar__wrap--hidden-default::-webkit-scrollbar {
+    @apply hidden h-0 w-0 opacity-0;
+  }
+
+  .scrollbar__view {
+    /* 默认无样式，给 slot 内容保留 */
+  }
+
+  /* ---------- 滑块 ---------- */
+  .scrollbar__thumb {
+    @apply relative block h-0 w-0 cursor-pointer rounded-[inherit] bg-slate-400/30 transition-colors duration-300 hover:bg-slate-400/50;
+  }
+
+  /* ---------- 轨道 ---------- */
+  .scrollbar__bar {
+    @apply absolute right-0.5 bottom-0.5 z-1 rounded;
+  }
+
+  /* 纵向轨道 */
+  .scrollbar__bar.is-vertical {
+    @apply top-0.5 w-1.5;
+  }
+  .scrollbar__bar.is-vertical > div {
+    @apply w-full;
+  }
+
+  /* 横向轨道 */
+  .scrollbar__bar.is-horizontal {
+    @apply left-0.5 h-1.5;
+  }
+  .scrollbar__bar.is-horizontal > div {
+    @apply h-full;
+  }
+}
+
+/* ============================================================
+ * 暗色适配
+ * ============================================================ */
+@layer components {
+  .dark .scrollbar__thumb {
+    @apply bg-slate-500/35 hover:bg-slate-500/55;
+  }
 }

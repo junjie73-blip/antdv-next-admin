@@ -1,39 +1,39 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref } from 'vue'
 
-import { cn } from "~/utils/cn";
+import { cn } from '~/utils/cn'
 
-const containerClassName = cn("space-y-6");
+const containerClassName = cn('space-y-6')
 
-const cardTitle = ref("Custom component example");
+const cardTitle = ref('Custom component example')
 
 const formData = ref({
-  username: "",
-  password: "",
+  username: '',
+  password: '',
   tags: [] as string[],
-  color: "#1677ff",
+  color: '#1677ff',
   sliderValue: 50,
   switchValue: false,
   rateValue: 3,
-});
+})
 
-const tagInputValue = ref("");
+const tagInputValue = ref('')
 
 function addTag() {
   if (tagInputValue.value.trim()) {
-    formData.value.tags = [...formData.value.tags, tagInputValue.value.trim()];
-    tagInputValue.value = "";
+    formData.value.tags = [...formData.value.tags, tagInputValue.value.trim()]
+    tagInputValue.value = ''
   }
 }
 
 function removeTag(index: number) {
-  formData.value.tags = formData.value.tags.filter((_, i) => i !== index);
+  formData.value.tags = formData.value.tags.filter((_, i) => i !== index)
 }
 
-const colorPresets = ["#1677ff", "#52c41a", "#faad14", "#ff4d4f", "#722ed1", "#13c2c2"];
+const colorPresets = ['#1677ff', '#52c41a', '#faad14', '#ff4d4f', '#722ed1', '#13c2c2']
 
 function handleSubmit() {
-  message.success("Form submitted successfully");
+  message.success('Form submitted successfully')
 }
 </script>
 
@@ -54,12 +54,8 @@ function handleSubmit() {
             <button
               v-for="preset in colorPresets"
               :key="preset"
-              class="w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 cursor-pointer"
-              :class="
-                formData.color === preset
-                  ? 'border-gray-800 dark:border-white'
-                  : 'border-transparent'
-              "
+              class="h-6 w-6 cursor-pointer rounded-full border-2 transition-transform hover:scale-110"
+              :class="formData.color === preset ? 'border-gray-800 dark:border-white' : 'border-transparent'"
               :style="{ backgroundColor: preset }"
               @click="formData.color = preset"
             />
@@ -77,12 +73,7 @@ function handleSubmit() {
             <a-button size="small" @click="addTag"> Add </a-button>
           </a-space>
           <div class="mt-2 flex flex-wrap gap-1">
-            <a-tag
-              v-for="(tag, index) in formData.tags"
-              :key="index"
-              closable
-              @close="removeTag(index)"
-            >
+            <a-tag v-for="(tag, index) in formData.tags" :key="index" closable @close="removeTag(index)">
               {{ tag }}
             </a-tag>
           </div>
@@ -101,7 +92,7 @@ function handleSubmit() {
         <a-form-item label="Switch">
           <a-switch v-model:checked="formData.switchValue" />
           <span class="ml-2" :class="formData.switchValue ? 'text-green-600' : 'text-gray-400'">
-            {{ formData.switchValue ? "Enabled" : "Disabled" }}
+            {{ formData.switchValue ? 'Enabled' : 'Disabled' }}
           </span>
         </a-form-item>
 

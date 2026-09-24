@@ -31,7 +31,7 @@ export function maskEmail(email: string): string {
   if (!email) return email
   const [name, domain] = email.split('@')
   if (!domain) return email
-  return `${'*'.repeat(Math.min(name.length, 3))}@${domain}`
+  return `${'*'.repeat(Math.min(name!.length, 3))}@${domain}`
 }
 
 /**

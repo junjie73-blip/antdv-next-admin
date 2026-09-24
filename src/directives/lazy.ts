@@ -62,12 +62,7 @@ function createObserver(el: HTMLImageElement, options: LazyOptions): Intersectio
 /**
  * 加载图片
  */
-function loadImage(
-  el: HTMLImageElement,
-  options: LazyOptions,
-  fade: boolean,
-  duration: number,
-): void {
+function loadImage(el: HTMLImageElement, options: LazyOptions, fade: boolean, duration: number): void {
   const { src, placeholder, error } = options
 
   // 显示占位图

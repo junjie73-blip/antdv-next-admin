@@ -1,80 +1,78 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { onMounted, onUnmounted, ref } from "vue";
+import { Icon } from '@iconify/vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 
-import CacheGroupList from "./components/CacheGroupList.vue";
-import CacheKeyList from "./components/CacheKeyList.vue";
-import CacheValuePanel from "./components/CacheValuePanel.vue";
+import { getCacheInfo } from '~/api'
 
-import type { CacheInfo } from "./types";
+import type { CacheInfo } from './types'
 
-import { getCacheInfo } from "~/api";
+import CacheGroupList from './components/CacheGroupList.vue'
+import CacheKeyList from './components/CacheKeyList.vue'
+import CacheValuePanel from './components/CacheValuePanel.vue'
 
-defineOptions({ name: "MonitorCache" });
+defineOptions({ name: 'MonitorCache' })
 
 /* ============================================================
  * 联动状态
  * ============================================================ */
-const info = ref<CacheInfo | null>(null);
+const info = ref<CacheInfo | null>(null)
 
 /** 左侧选中 */
-const currentGroup = ref<{ name: string; prefix: string } | null>(null);
+const currentGroup = ref<{ name: string; prefix: string } | null>(null)
 /** 中间选中 */
-const currentKey = ref<string | null>(null);
+const currentKey = ref<string | null>(null)
 
 /** 左栏选中变化 → 重置中、右栏 */
 function handleGroupChange(group: { name: string; prefix: string } | null) {
-  currentGroup.value = group;
-  currentKey.value = null;
+  currentGroup.value = group
+  currentKey.value = null
 }
 
 /** 中栏选中变化 */
 function handleKeyChange(key: string | null) {
-  currentKey.value = key;
+  currentKey.value = key
 }
 
 /* ============================================================
  * 顶部概览
  * ============================================================ */
 async function loadInfo() {
-  const res = (await getCacheInfo()) as { data?: CacheInfo } | CacheInfo;
-  info.value = (res as { data?: CacheInfo })?.data ?? (res as CacheInfo) ?? null;
+  const res = (await getCacheInfo()) as { data?: CacheInfo } | CacheInfo
+  info.value = (res as { data?: CacheInfo })?.data ?? (res as CacheInfo) ?? null
 }
 
-const lastUpdate = ref("");
+const lastUpdate = ref('')
 
 function updateTimeText() {
-  const d = new Date();
-  const pad = (n: number) => String(n).padStart(2, "0");
-  lastUpdate.value = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  const d = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  lastUpdate.value = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
 
-let timer: ReturnType<typeof setInterval> | null = null;
+let timer: ReturnType<typeof setInterval> | null = null
 
 onMounted(() => {
-  void loadInfo();
-  updateTimeText();
-  timer = setInterval(() => void loadInfo(), 30000);
+  void loadInfo()
+  updateTimeText()
+  timer = setInterval(() => void loadInfo(), 30000)
   // 每 5 秒更新"更新于"文案
-  setInterval(updateTimeText, 5000);
-});
+  setInterval(updateTimeText, 5000)
+})
 
 onUnmounted(() => {
-  if (timer) clearInterval(timer);
-});
+  if (timer) clearInterval(timer)
+})
 
 function refreshInfo() {
-  void loadInfo();
-  updateTimeText();
+  void loadInfo()
+  updateTimeText()
 }
 </script>
 
 <template>
-  <div class="flex h-full flex-col overflow-hidden gap-3">
+  <div class="flex h-full flex-col gap-3 overflow-hidden">
     <!-- 顶部概览 -->
-    <div
-      class="rounded-lg border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
-    >
+    <div class="rounded-lg border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-base font-medium text-gray-800 dark:text-gray-100">缓存监控</h2>
@@ -100,7 +98,7 @@ function refreshInfo() {
         <div class="flex flex-col">
           <span class="text-xs text-gray-500 dark:text-gray-400">Redis 版本</span>
           <span class="text-sm font-medium text-gray-800 dark:text-gray-100">
-            {{ info?.redisVersion || "-" }}
+            {{ info?.redisVersion || '-' }}
           </span>
         </div>
         <div class="flex flex-col">
@@ -112,26 +110,20 @@ function refreshInfo() {
         <div class="flex flex-col">
           <span class="text-xs text-gray-500 dark:text-gray-400">已用内存</span>
           <span class="text-sm font-medium text-gray-800 dark:text-gray-100">
-            {{ info?.usedMemoryHuman || "-" }}
+            {{ info?.usedMemoryHuman || '-' }}
           </span>
         </div>
         <div class="flex flex-col">
           <span class="text-xs text-gray-500 dark:text-gray-400">运行时间</span>
-          <span class="text-sm font-medium text-gray-800 dark:text-gray-100">
-            {{ info?.uptimeDays ?? 0 }} 天
-          </span>
+          <span class="text-sm font-medium text-gray-800 dark:text-gray-100"> {{ info?.uptimeDays ?? 0 }} 天 </span>
         </div>
         <div class="flex flex-col">
           <span class="text-xs text-gray-500 dark:text-gray-400">命中率</span>
-          <span class="text-sm font-medium text-gray-800 dark:text-gray-100">
-            {{ info?.hitRate || "0.00" }}%
-          </span>
+          <span class="text-sm font-medium text-gray-800 dark:text-gray-100"> {{ info?.hitRate || '0.00' }}% </span>
         </div>
         <div class="flex flex-col">
           <span class="text-xs text-gray-500 dark:text-gray-400">Key 数量</span>
-          <span class="text-sm font-medium text-gray-800 dark:text-gray-100">
-            {{ info?.dbKeys ?? 0 }} 个
-          </span>
+          <span class="text-sm font-medium text-gray-800 dark:text-gray-100"> {{ info?.dbKeys ?? 0 }} 个 </span>
         </div>
       </div>
     </div>

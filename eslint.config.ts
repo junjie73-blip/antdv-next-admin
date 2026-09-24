@@ -2,7 +2,6 @@ import pluginVitest from "@vitest/eslint-plugin";
 import { defineConfigWithVueTs, vueTsConfigs } from "@vue/eslint-config-typescript";
 import { globalIgnores } from "eslint/config";
 import skipFormatting from "eslint-config-prettier/flat";
-import importPlugin from "eslint-plugin-import";
 import pluginOxlint from "eslint-plugin-oxlint";
 import pluginPlaywright from "eslint-plugin-playwright";
 import pluginVue from "eslint-plugin-vue";
@@ -18,7 +17,6 @@ export default defineConfigWithVueTs(
     files: ["**/*.{vue,ts,mts,tsx}"],
     ignores: ["**/node_modules/**", "**/dist/**", "**/test/**"],
   },
-  importPlugin.flatConfigs.recommended,
   globalIgnores(["**/dist/**", "**/dist-ssr/**", "**/coverage/**"]),
 
   ...pluginVue.configs["flat/essential"],
@@ -53,23 +51,7 @@ export default defineConfigWithVueTs(
         },
       ],
       "vue/multi-word-component-names": "off",
-      "import/no-unresolved": "off",
-      "import/named": "off",
-      "import/namespace": "off",
-      "import/order": [
-        "error",
-        {
-          groups: ["external", "builtin", ["parent", "sibling"], "index", "object", "type"],
-          "newlines-between": "always-and-inside-groups",
-          alphabetize: {
-            order: "asc",
-            caseInsensitive: true,
-          },
-          named: true,
-          sortTypesGroup: true,
-          consolidateIslands: "inside-groups",
-        },
-      ],
+      "vue/block-lang": "off",
     },
   },
 );

@@ -1,105 +1,99 @@
 <script setup lang="ts">
-import dayjs from "dayjs";
-import { ref } from "vue";
+import dayjs from 'dayjs'
+import { ref } from 'vue'
 
-import { cn } from "~/utils/cn";
+import { cn } from '~/utils/cn'
 
 // 容器样式
-const containerClassName = cn("space-y-6");
+const containerClassName = cn('space-y-6')
 
 // 通用样式 - 标签文字
-const labelClassName = cn("text-sm", "text-gray-500", "mb-2");
-const labelMb3ClassName = cn("text-sm", "text-gray-500", "mb-3");
+const labelClassName = cn('text-sm', 'text-gray-500', 'mb-2')
+const labelMb3ClassName = cn('text-sm', 'text-gray-500', 'mb-3')
 
 // 通用样式 - 按钮容器
-const buttonGroupClassName = cn("flex", "flex-wrap", "gap-3");
-const buttonItemsCenterClassName = cn("flex", "flex-wrap", "items-center", "gap-3");
+const buttonGroupClassName = cn('flex', 'flex-wrap', 'gap-3')
+const buttonItemsCenterClassName = cn('flex', 'flex-wrap', 'items-center', 'gap-3')
 
 // 通用样式 - 网格布局
-const gridCols2ClassName = cn("grid", "grid-cols-1", "md:grid-cols-2", "gap-6");
-const gridCols3ClassName = cn("grid", "grid-cols-1", "md:grid-cols-3", "gap-6");
+const gridCols2ClassName = cn('grid', 'grid-cols-1', 'md:grid-cols-2', 'gap-6')
+const gridCols3ClassName = cn('grid', 'grid-cols-1', 'md:grid-cols-3', 'gap-6')
 
 // 通用样式 - Flex 布局
-const flexColGap2ClassName = cn("flex", "flex-col", "gap-2");
-const flexWrapItemsCenterGap8ClassName = cn("flex", "flex-wrap", "items-center", "gap-8");
-const flexWrapItemsCenterGap12ClassName = cn("flex", "flex-wrap", "items-center", "gap-12");
-const flexItemsCenterGap4ClassName = cn("flex", "items-center", "gap-4");
+const flexColGap2ClassName = cn('flex', 'flex-col', 'gap-2')
+const flexWrapItemsCenterGap8ClassName = cn('flex', 'flex-wrap', 'items-center', 'gap-8')
+const flexWrapItemsCenterGap12ClassName = cn('flex', 'flex-wrap', 'items-center', 'gap-12')
+const flexItemsCenterGap4ClassName = cn('flex', 'items-center', 'gap-4')
 
 // Typography 样式
-const h1ClassName = cn("text-3xl", "font-bold", "text-gray-900", "dark:text-white", "mb-2");
-const h2ClassName = cn("text-2xl", "font-semibold", "text-gray-800", "dark:text-gray-100", "mb-2");
-const h3ClassName = cn("text-xl", "font-medium", "text-gray-700", "dark:text-gray-200", "mb-2");
-const h4ClassName = cn("text-lg", "font-medium", "text-gray-600", "dark:text-gray-300");
-const paragraphClassName = cn("text-gray-700", "dark:text-gray-300", "leading-relaxed", "mb-3");
-const helperTextClassName = cn("text-gray-500", "dark:text-gray-400", "text-sm");
-const linkClassName = cn("text-blue-500", "hover:text-blue-600");
-const ellipsisClassName = cn(
-  "w-full",
-  "overflow-hidden",
-  "text-ellipsis",
-  "whitespace-pre-wrap",
-  "break-all",
-);
+const h1ClassName = cn('text-3xl', 'font-bold', 'text-gray-900', 'dark:text-white', 'mb-2')
+const h2ClassName = cn('text-2xl', 'font-semibold', 'text-gray-800', 'dark:text-gray-100', 'mb-2')
+const h3ClassName = cn('text-xl', 'font-medium', 'text-gray-700', 'dark:text-gray-200', 'mb-2')
+const h4ClassName = cn('text-lg', 'font-medium', 'text-gray-600', 'dark:text-gray-300')
+const paragraphClassName = cn('text-gray-700', 'dark:text-gray-300', 'leading-relaxed', 'mb-3')
+const helperTextClassName = cn('text-gray-500', 'dark:text-gray-400', 'text-sm')
+const linkClassName = cn('text-ant-primary', 'hover:text-blue-600')
+const ellipsisClassName = cn('w-full', 'overflow-hidden', 'text-ellipsis', 'whitespace-pre-wrap', 'break-all')
 
 // Input 相关状态
-const inputText = ref("");
-const passwordValue = ref("");
-const searchText = ref("");
-const textareaValue = ref("");
+const inputText = ref('')
+const passwordValue = ref('')
+const searchText = ref('')
+const textareaValue = ref('')
 
 // Select 相关状态
-const selectValue = ref<string>();
-const multiSelectValue = ref<string[]>([]);
-const searchSelectValue = ref<string>();
+const selectValue = ref<string>()
+const multiSelectValue = ref<string[]>([])
+const searchSelectValue = ref<string>()
 
 const selectOptions = [
-  { value: "option1", label: "选项一" },
-  { value: "option2", label: "选项二" },
-  { value: "option3", label: "选项三" },
-  { value: "option4", label: "选项四" },
-];
+  { value: 'option1', label: '选项一' },
+  { value: 'option2', label: '选项二' },
+  { value: 'option3', label: '选项三' },
+  { value: 'option4', label: '选项四' },
+]
 
 // Radio 相关状态
-const radioValue = ref("apple");
-const buttonRadioValue = ref("beijing");
+const radioValue = ref('apple')
+const buttonRadioValue = ref('beijing')
 
 // Checkbox 相关状态
-const checkboxValues = ref<string[]>(["apple"]);
-const checkAll = ref(false);
-const isIndeterminate = ref(true);
-const buttonCheckboxValues = ref<string[]>([]);
+const checkboxValues = ref<string[]>(['apple'])
+const checkAll = ref(false)
+const isIndeterminate = ref(true)
+const buttonCheckboxValues = ref<string[]>([])
 
 // Switch 相关状态
-const switchValue = ref(false);
-const switchWithText = ref(true);
-const smallSwitchValue = ref(true);
+const switchValue = ref(false)
+const switchWithText = ref(true)
+const smallSwitchValue = ref(true)
 
 // Slider 相关状态
-const sliderValue = ref(30);
-const inputSliderValue = ref(50);
-const rangeSliderValue = ref<[number, number]>([20, 60]);
-const verticalSliderValue = ref(30);
+const sliderValue = ref(30)
+const inputSliderValue = ref(50)
+const rangeSliderValue = ref<[number, number]>([20, 60])
+const verticalSliderValue = ref(30)
 
 // Rate 相关状态
-const rateValue = ref(3);
-const allowHalfRateValue = ref(2.5);
-const readonlyRateValue = ref(4);
+const rateValue = ref(3)
+const allowHalfRateValue = ref(2.5)
+const readonlyRateValue = ref(4)
 
 // DatePicker 相关状态
-const dateValue = ref<dayjs.Dayjs>(dayjs());
-const dateRangeValue = ref<[dayjs.Dayjs, dayjs.Dayjs]>([dayjs().subtract(7, "day"), dayjs()]);
-const timeValue = ref<dayjs.Dayjs>(dayjs());
+const dateValue = ref<dayjs.Dayjs>(dayjs())
+const dateRangeValue = ref<[dayjs.Dayjs, dayjs.Dayjs]>([dayjs().subtract(7, 'day'), dayjs()])
+const timeValue = ref<dayjs.Dayjs>(dayjs())
 
 // Checkbox 全选/取消逻辑
-const fruitOptions = ["apple", "banana", "orange"];
+const fruitOptions = ['apple', 'banana', 'orange']
 function handleCheckAllChange(checked: boolean) {
-  checkboxValues.value = checked ? [...fruitOptions] : [];
-  isIndeterminate.value = false;
+  checkboxValues.value = checked ? [...fruitOptions] : []
+  isIndeterminate.value = false
 }
 function handleCheckedChange(values: string[]) {
-  const checkedCount = values.length;
-  checkAll.value = checkedCount === fruitOptions.length;
-  isIndeterminate.value = checkedCount > 0 && checkedCount < fruitOptions.length;
+  const checkedCount = values.length
+  checkAll.value = checkedCount === fruitOptions.length
+  isIndeterminate.value = checkedCount > 0 && checkedCount < fruitOptions.length
 }
 </script>
 
@@ -225,13 +219,7 @@ function handleCheckedChange(values: string[]) {
         <!-- 字数统计 -->
         <div :class="cn('md:col-span-2')">
           <div :class="labelClassName">字数统计</div>
-          <a-textarea
-            v-model:value="textareaValue"
-            placeholder="限制输入100字"
-            :maxlength="100"
-            show-count
-            :rows="3"
-          />
+          <a-textarea v-model:value="textareaValue" placeholder="限制输入100字" :maxlength="100" show-count :rows="3" />
         </div>
       </div>
     </a-card>
@@ -242,12 +230,7 @@ function handleCheckedChange(values: string[]) {
         <!-- 基础选择 -->
         <div>
           <div :class="labelClassName">基础选择</div>
-          <a-select
-            v-model:value="selectValue"
-            :options="selectOptions"
-            placeholder="请选择"
-            style="width: 100%"
-          />
+          <a-select v-model:value="selectValue" :options="selectOptions" placeholder="请选择" style="width: 100%" />
         </div>
 
         <!-- 多选 -->
@@ -418,21 +401,13 @@ function handleCheckedChange(values: string[]) {
           <!-- 带文字 -->
           <div>
             <div :class="labelClassName">带文字描述</div>
-            <a-switch
-              v-model:checked="switchWithText"
-              checked-children="开"
-              un-checked-children="关"
-            />
+            <a-switch v-model:checked="switchWithText" checked-children="开" un-checked-children="关" />
           </div>
 
           <!-- 自定义内容 -->
           <div>
             <div :class="labelClassName">自定义内容</div>
-            <a-switch
-              v-model:checked="switchWithText"
-              checked-children="启用"
-              un-checked-children="停用"
-            />
+            <a-switch v-model:checked="switchWithText" checked-children="启用" un-checked-children="停用" />
           </div>
 
           <!-- 大小 -->
@@ -475,9 +450,7 @@ function handleCheckedChange(values: string[]) {
         <!-- 范围滑块 + 垂直方向 -->
         <div :class="gridCols2ClassName">
           <div>
-            <div :class="labelMb3ClassName">
-              范围选择 ({{ rangeSliderValue[0] }} - {{ rangeSliderValue[1] }})
-            </div>
+            <div :class="labelMb3ClassName">范围选择 ({{ rangeSliderValue[0] }} - {{ rangeSliderValue[1] }})</div>
             <a-range-slider v-model:value="rangeSliderValue" />
           </div>
 
@@ -498,10 +471,7 @@ function handleCheckedChange(values: string[]) {
 
           <div>
             <div :class="labelMb3ClassName">刻度标记</div>
-            <a-slider
-              v-model:value="sliderValue"
-              :marks="{ 0: '0°C', 26: '26°C', 37: '37°C', 100: '100°C' }"
-            />
+            <a-slider v-model:value="sliderValue" :marks="{ 0: '0°C', 26: '26°C', 37: '37°C', 100: '100°C' }" />
           </div>
         </div>
       </div>
@@ -614,9 +584,7 @@ function handleCheckedChange(values: string[]) {
         <!-- 可复制文本 -->
         <div>
           <div :class="labelMb3ClassName">可复制文本</div>
-          <a-typography-paragraph copyable>
-            这段文字可以被复制，点击复制按钮即可复制到剪贴板。
-          </a-typography-paragraph>
+          <a-typography-paragraph copyable> 这段文字可以被复制，点击复制按钮即可复制到剪贴板。 </a-typography-paragraph>
           <a-typography-paragraph copyable :copy-texts="['复制成功', '复制失败']">
             支持自定义复制提示信息的可复制文本组件。
           </a-typography-paragraph>

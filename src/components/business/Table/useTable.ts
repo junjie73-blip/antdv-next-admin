@@ -1,12 +1,8 @@
-import { ref } from 'vue'
-
 import type { Ref } from 'vue'
 
+import { ref } from 'vue'
+
 import type { BasicTableProps, TableActionType } from './types'
-
-
-
-
 
 /**
  * useTable Hook

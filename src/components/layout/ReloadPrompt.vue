@@ -112,7 +112,7 @@ function close() {
       v-if="visible"
       role="alert"
       aria-live="polite"
-      class="fixed right-4 bottom-4 z-[9999] w-[calc(100vw-2rem)] max-w-[380px] sm:w-[380px] overflow-hidden rounded-2xl bg-white/95 backdrop-blur-xl backdrop-saturate-150 border border-slate-200/80 shadow-[0_12px_40px_-12px_rgba(15,23,42,0.18),0_4px_12px_-6px_rgba(15,23,42,0.08)] dark:bg-slate-900/95 dark:border-slate-700/60 dark:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.6),0_4px_12px_-6px_rgba(0,0,0,0.4)]"
+      class="fixed right-4 bottom-4 z-[9999] w-[calc(100vw-2rem)] max-w-[380px] overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-[0_12px_40px_-12px_rgba(15,23,42,0.18),0_4px_12px_-6px_rgba(15,23,42,0.08)] backdrop-blur-xl backdrop-saturate-150 sm:w-[380px] dark:border-slate-700/60 dark:bg-slate-900/95 dark:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.6),0_4px_12px_-6px_rgba(0,0,0,0.4)]"
     >
       <!-- 顶部渐变色带 -->
       <div
@@ -131,7 +131,7 @@ function close() {
             class="flex h-10 w-10 items-center justify-center rounded-2xl transition-colors duration-300"
             :class="
               isUpdate
-                ? 'bg-blue-50 text-blue-500 dark:bg-blue-500/15 dark:text-blue-400'
+                ? 'text-ant-primary bg-blue-50 dark:bg-blue-500/15 dark:text-blue-400'
                 : 'bg-emerald-50 text-emerald-500 dark:bg-emerald-500/15 dark:text-emerald-400'
             "
           >
@@ -144,13 +144,13 @@ function close() {
           <!-- 脉冲环（仅更新态显示） -->
           <span
             v-if="isUpdate"
-            class="pointer-events-none absolute inset-0 rounded-2xl animate-[ping_2.5s_ease-out_infinite] bg-blue-400/20"
+            class="pointer-events-none absolute inset-0 animate-[ping_2.5s_ease-out_infinite] rounded-2xl bg-blue-400/20"
           />
         </div>
 
         <!-- 主体内容 -->
         <div class="min-w-0 flex-1">
-          <h3 class="text-sm font-semibold leading-5 text-slate-800 dark:text-slate-100">
+          <h3 class="text-sm leading-5 font-semibold text-slate-800 dark:text-slate-100">
             {{ isUpdate ? "发现新版本" : "离线可用" }}
           </h3>
 
@@ -186,7 +186,7 @@ function close() {
                 稍后
                 <span
                   v-if="countdown > 0"
-                  class="ml-1 tabular-nums text-slate-400 dark:text-slate-500"
+                  class="ml-1 text-slate-400 tabular-nums dark:text-slate-500"
                 >
                   ({{ countdown }}s)
                 </span>
@@ -222,7 +222,7 @@ function close() {
         class="h-0.5 w-full bg-slate-100/80 dark:bg-slate-800/60"
       >
         <div
-          class="h-full bg-blue-500 transition-[width] duration-1000 ease-linear dark:bg-blue-400"
+          class="h-full bg-ant-primary transition-[width] duration-1000 ease-linear"
           :style="{ width: `${countdownProgress}%` }"
         />
       </div>

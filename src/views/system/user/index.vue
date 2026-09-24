@@ -1,10 +1,32 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { message, Modal } from "antdv-next";
-import { computed, onMounted, ref } from "vue";
+import { Icon } from '@iconify/vue'
+import { message, Modal } from 'antdv-next'
+import { computed, onMounted, ref } from 'vue'
 
-import { getUserActions } from "./actions";
+import {
+  addUser,
+  batchDeleteUser,
+  deleteUser,
+  getDeptTree,
+  getUserList,
+  getUserOptions,
+  getUserSensitive,
+  resetUserPassword,
+  updateUser,
+} from '~/api'
+import { BasicForm, useForm } from '~/components/business/Form'
+import ImportExport from '~/components/business/ImportExport.vue'
+import { BasicModal, useModal } from '~/components/business/Modal'
+import { type ActionItem, BasicTable, TableAction, useTable } from '~/components/business/Table'
+import { useCRUD } from '~/composables/useCRUD'
+import { DictType } from '~/enums/dict'
+import { useDictStore } from '~/stores'
+import { http } from '~/utils'
+import { cn } from '~/utils/cn'
 
+import type { DeptTreeNode, FlatDeptNode, RoleOption, UserRecord } from './types'
+
+import { getUserActions } from './actions'
 import {
   USER_IMPORT_TEMPLATE,
   userActionColumn,
@@ -13,8 +35,7 @@ import {
   userRowKey,
   userRowSelection,
   userScroll,
-} from "./columns";
-
+} from './columns'
 import {
   cardBodyClassName,
   cardClassName,
@@ -30,132 +51,99 @@ import {
   USER_STATUS_COLOR_MAP,
   USER_STATUS_ICON_MAP,
   USER_STATUS_LABEL_MAP,
-} from "./constants";
+} from './constants'
+import { USER_EMPTY_VALUES, userDetailSchema, useUserFormSchemas, useUserSearchSchemas } from './schemas'
+import { convertDeptTree, flattenDeptTree, getUserRoleNames, printUserList } from './utils'
 
-import {
-  USER_EMPTY_VALUES,
-  userDetailSchema,
-  useUserFormSchemas,
-  useUserSearchSchemas,
-} from "./schemas";
-
-import { convertDeptTree, flattenDeptTree, getUserRoleNames, printUserList } from "./utils";
-
-import type { DeptTreeNode, FlatDeptNode, RoleOption, UserRecord } from "./types";
-
-import {
-  addUser,
-  batchDeleteUser,
-  deleteUser,
-  getDeptTree,
-  getUserList,
-  getUserOptions,
-  getUserSensitive,
-  resetUserPassword,
-  updateUser,
-} from "~/api";
-
-import { BasicForm, useForm } from "~/components/business/Form";
-import ImportExport from "~/components/business/ImportExport.vue";
-import { BasicModal, useModal } from "~/components/business/Modal";
-import { type ActionItem, BasicTable, TableAction, useTable } from "~/components/business/Table";
-import { useCRUD } from "~/composables/useCRUD";
-import { DictType } from "~/enums/dict";
-import { useDictStore } from "~/stores";
-import { http } from "~/utils";
-import { cn } from "~/utils/cn";
-
-defineOptions({ name: "SystemUser" });
+defineOptions({ name: 'SystemUser' })
 
 /* ============================================================
  * 字典
  * ============================================================ */
-const dictStore = useDictStore();
-const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE));
+const dictStore = useDictStore()
+const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
 
 /* ============================================================
  * 基础数据
  * ============================================================ */
-const deptTreeData = ref<DeptTreeNode[]>([]);
-const allDeptNodes = ref<FlatDeptNode[]>([]);
-const roleOptions = ref<RoleOption[]>([]);
-const uploadLoading = ref(false);
+const deptTreeData = ref<DeptTreeNode[]>([])
+const allDeptNodes = ref<FlatDeptNode[]>([])
+const roleOptions = ref<RoleOption[]>([])
+const uploadLoading = ref(false)
 
 /** 部门树搜索关键词 */
-const deptKeyword = ref("");
-const deptSearchLoading = ref(false);
+const deptKeyword = ref('')
+const deptSearchLoading = ref(false)
 
 /** 过滤后的部门树（按关键词过滤，保留父链） */
 const filteredDeptTree = computed(() => {
-  if (!deptKeyword.value.trim()) return deptTreeData.value;
-  const kw = deptKeyword.value.toLowerCase();
+  if (!deptKeyword.value.trim()) return deptTreeData.value
+  const kw = deptKeyword.value.toLowerCase()
 
   function filter(nodes: DeptTreeNode[]): DeptTreeNode[] {
-    const result: DeptTreeNode[] = [];
+    const result: DeptTreeNode[] = []
     for (const node of nodes) {
-      const children = node.children ? filter(node.children) : [];
-      const matched = node.deptName.toLowerCase().includes(kw);
+      const children = node.children ? filter(node.children) : []
+      const matched = node.deptName.toLowerCase().includes(kw)
       if (matched || children.length > 0) {
-        result.push({ ...node, children: children.length ? children : undefined });
+        result.push({ ...node, children: children.length ? children : undefined })
       }
     }
-    return result;
+    return result
   }
 
-  return filter(deptTreeData.value);
-});
+  return filter(deptTreeData.value)
+})
 
 async function loadBaseData() {
-  deptSearchLoading.value = true;
+  deptSearchLoading.value = true
   try {
-    const [deptRes, optionRes] = await Promise.all<unknown[]>([getDeptTree(), getUserOptions()]);
-    const deptData = Array.isArray(deptRes) ? deptRes : ((deptRes as any)?.data ?? deptRes ?? []);
-    const optData = Array.isArray(optionRes)
-      ? optionRes
-      : ((optionRes as any)?.data ?? optionRes ?? []);
+    const [deptRes, optionRes] = await Promise.all<unknown[]>([getDeptTree(), getUserOptions()])
+    const deptData = Array.isArray(deptRes) ? deptRes : ((deptRes as any)?.data ?? deptRes ?? [])
+    const optData = Array.isArray(optionRes) ? optionRes : ((optionRes as any)?.data ?? optionRes ?? [])
 
-    deptTreeData.value = convertDeptTree(deptData);
-    allDeptNodes.value = flattenDeptTree(deptTreeData.value);
+    deptTreeData.value = convertDeptTree(deptData)
+    allDeptNodes.value = flattenDeptTree(deptTreeData.value)
     roleOptions.value = (optData as any[]).map((item) => ({
       label: item.label,
       value: item.value,
-    }));
+    }))
   } catch (e) {
-    console.error("加载基础数据失败", e);
-    message.error("加载部门/角色选项失败");
+    console.error('加载基础数据失败', e)
+    message.error('加载部门/角色选项失败')
   } finally {
-    deptSearchLoading.value = false;
+    deptSearchLoading.value = false
   }
 }
 
 /* ============================================================
  * 部门选择
  * ============================================================ */
-const selectedDeptId = ref<string>("");
-const treeExpandedKeys = ref<string[]>([]);
+const selectedDeptId = ref<string>('')
+const treeExpandedKeys = ref<string[]>([])
 
 function handleDeptSelect(_keys: (string | number)[], info: { node: any }) {
-  const clickedId = info.node.deptId;
-  selectedDeptId.value = selectedDeptId.value === clickedId ? "" : clickedId;
-  tableMethods.value?.reload();
+  const clickedId = info.node.deptId
+  selectedDeptId.value = selectedDeptId.value === clickedId ? '' : clickedId
+  tableMethods.value?.reload()
 }
 
 function clearDeptFilter() {
-  selectedDeptId.value = "";
-  tableMethods.value?.reload();
+  selectedDeptId.value = ''
+  tableMethods.value?.reload()
 }
 
 /* ============================================================
  * 实例
  * ============================================================ */
-const [modalRegister, modalMethods] = useModal();
-const [tableRegister, tableMethods] = useTable();
-const [formRegister, formMethods] = useForm();
+const [modalRegister, modalMethods] = useModal()
+const [tableRegister, tableMethods] = useTable()
+const [formRegister, formMethods] = useForm()
 
 /* ============================================================
  * Schema
  * ============================================================ */
-const searchFormSchemas = useUserSearchSchemas(statusOptions);
+const searchFormSchemas = useUserSearchSchemas(statusOptions)
 
 /* ============================================================
  * CRUD
@@ -168,16 +156,16 @@ const {
   handleSave,
   handleBatchDelete: crudBatchDelete,
 } = useCRUD<UserRecord>({
-  containerType: "modal",
+  containerType: 'modal',
   modalMethods,
   formMethods,
   tableMethods,
-  idKey: "userId",
+  idKey: 'userId',
   getEmptyValues: () => ({ ...USER_EMPTY_VALUES }),
   getFormValues: (record) => ({
     username: record.username,
     realName: record.realName,
-    password: "",
+    password: '',
     email: record.email,
     phone: record.phone,
     deptIds: record.deptId ? [record.deptId] : [],
@@ -185,28 +173,28 @@ const {
     sortOrder: record.sortOrder ?? 0,
     status: record.status,
     gender: record.gender ?? 0,
-    avatar: record.avatar ?? "",
+    avatar: record.avatar ?? '',
   }),
   onCreate: async (values) => {
-    await addUser(values);
+    await addUser(values)
   },
   onUpdate: async (id, values) => {
-    await updateUser(id, values);
+    await updateUser(id, values)
   },
   onDelete: async (record) => {
-    await deleteUser(record.userId);
+    await deleteUser(record.userId)
   },
   onBatchDelete: async (records) => {
-    await batchDeleteUser(records.map((r) => r.userId));
+    await batchDeleteUser(records.map((r) => r.userId))
   },
   messages: {
-    createSuccess: "用户创建成功",
-    updateSuccess: "用户更新成功",
-    deleteSuccess: "用户删除成功",
-    batchDeleteSuccess: "批量删除成功",
+    createSuccess: '用户创建成功',
+    updateSuccess: '用户更新成功',
+    deleteSuccess: '用户删除成功',
+    batchDeleteSuccess: '批量删除成功',
   },
-});
-const modalFormSchemas = useUserFormSchemas(statusOptions, isEditing);
+})
+const modalFormSchemas = useUserFormSchemas(statusOptions, isEditing)
 
 /* ============================================================
  * 列表数据
@@ -215,61 +203,61 @@ async function fetchUserList(params: any) {
   return await getUserList({
     ...params,
     deptId: selectedDeptId.value || undefined,
-  });
+  })
 }
 
 /* ============================================================
  * 批量删除
  * ============================================================ */
 async function handleBatchDelete() {
-  const selected = (tableMethods.value?.getSelectRows?.() || []) as UserRecord[];
+  const selected = (tableMethods.value?.getSelectRows?.() || []) as UserRecord[]
   if (selected.length === 0) {
-    message.warning("请先选择要删除的用户");
-    return;
+    message.warning('请先选择要删除的用户')
+    return
   }
   Modal.confirm({
-    title: "批量删除",
+    title: '批量删除',
     content: `确定要删除选中的 ${selected.length} 个用户吗？`,
-    okType: "danger",
+    okType: 'danger',
     async onOk() {
-      await crudBatchDelete(selected);
+      await crudBatchDelete(selected)
     },
-  });
+  })
 }
 
 /* ============================================================
  * 头像上传
  * ============================================================ */
 function beforeUpload(file: File) {
-  const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
+  const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png'
   if (!isJpgOrPng) {
-    message.error("只能上传 JPG/PNG 格式的图片");
-    return false;
+    message.error('只能上传 JPG/PNG 格式的图片')
+    return false
   }
-  const isLt2M = file.size / 1024 / 1024 < 2;
+  const isLt2M = file.size / 1024 / 1024 < 2
   if (!isLt2M) {
-    message.error("图片大小不能超过 2MB");
-    return false;
+    message.error('图片大小不能超过 2MB')
+    return false
   }
-  return true;
+  return true
 }
 
 async function customUpload({ file, onSuccess, onError }: any) {
-  const formData = new FormData();
-  formData.append("file", file);
+  const formData = new FormData()
+  formData.append('file', file)
 
-  uploadLoading.value = true;
+  uploadLoading.value = true
   try {
-    const res = (await http.Post("/upload/file", formData)) as any;
-    const url = res?.data?.url || res?.url;
-    formMethods.setFieldsValue({ avatar: url });
-    message.success("头像上传成功");
-    onSuccess(res);
+    const res = (await http.Post('/upload/file', formData)) as any
+    const url = res?.data?.url || res?.url
+    formMethods.setFieldsValue({ avatar: url })
+    message.success('头像上传成功')
+    onSuccess(res)
   } catch (e: any) {
-    message.error(e?.message || "头像上传失败");
-    onError(e);
+    message.error(e?.message || '头像上传失败')
+    onError(e)
   } finally {
-    uploadLoading.value = false;
+    uploadLoading.value = false
   }
 }
 
@@ -277,58 +265,58 @@ async function customUpload({ file, onSuccess, onError }: any) {
  * 打印
  * ============================================================ */
 function handlePrint() {
-  printUserList();
+  printUserList()
 }
 
 /* ============================================================
  * 重置密码
  * ============================================================ */
-const resetPwdVisible = ref(false);
-const resetPwdTarget = ref<UserRecord | null>(null);
-const resetPwdValue = ref("");
-const resetPwdLoading = ref(false);
+const resetPwdVisible = ref(false)
+const resetPwdTarget = ref<UserRecord | null>(null)
+const resetPwdValue = ref('')
+const resetPwdLoading = ref(false)
 
 function handleResetPassword(record: UserRecord) {
-  resetPwdTarget.value = record;
-  resetPwdValue.value = "";
-  resetPwdVisible.value = true;
+  resetPwdTarget.value = record
+  resetPwdValue.value = ''
+  resetPwdVisible.value = true
 }
 
 async function confirmResetPassword() {
   if (resetPwdValue.value.length < 6) {
-    message.warning("密码至少 6 位");
-    return;
+    message.warning('密码至少 6 位')
+    return
   }
-  resetPwdLoading.value = true;
+  resetPwdLoading.value = true
   try {
-    await resetUserPassword(resetPwdTarget.value!.userId, resetPwdValue.value);
-    message.success("密码已重置");
-    resetPwdVisible.value = false;
+    await resetUserPassword(resetPwdTarget.value!.userId, resetPwdValue.value)
+    message.success('密码已重置')
+    resetPwdVisible.value = false
   } catch (e: any) {
-    message.error(e?.message || "重置失败");
+    message.error(e?.message || '重置失败')
   } finally {
-    resetPwdLoading.value = false;
+    resetPwdLoading.value = false
   }
 }
 
 /* ============================================================
  * 敏感信息
  * ============================================================ */
-const sensitiveVisible = ref(false);
-const sensitiveData = ref<Record<string, unknown>>({});
-const sensitiveLoading = ref(false);
+const sensitiveVisible = ref(false)
+const sensitiveData = ref<Record<string, unknown>>({})
+const sensitiveLoading = ref(false)
 
 async function handleViewSensitive(record: UserRecord) {
-  sensitiveVisible.value = true;
-  sensitiveLoading.value = true;
-  sensitiveData.value = {};
+  sensitiveVisible.value = true
+  sensitiveLoading.value = true
+  sensitiveData.value = {}
   try {
-    sensitiveData.value = await getUserSensitive(record.userId);
+    sensitiveData.value = await getUserSensitive(record.userId)
   } catch (e: any) {
-    message.error(e?.message || "无权限查看");
-    sensitiveVisible.value = false;
+    message.error(e?.message || '无权限查看')
+    sensitiveVisible.value = false
   } finally {
-    sensitiveLoading.value = false;
+    sensitiveLoading.value = false
   }
 }
 
@@ -341,13 +329,13 @@ function getActions(record: UserRecord): ActionItem[] {
     onDelete: handleDelete,
     onResetPassword: handleResetPassword,
     onViewSensitive: handleViewSensitive,
-  });
+  })
 }
 
 /* ============================================================
  * 初始化
  * ============================================================ */
-onMounted(loadBaseData);
+onMounted(loadBaseData)
 </script>
 
 <template>
@@ -428,7 +416,7 @@ onMounted(loadBaseData);
                     class="text-xs"
                     :class="
                       selectedDeptId === deptId
-                        ? 'text-blue-500 dark:text-blue-400'
+                        ? 'text-ant-primary dark:text-blue-400'
                         : 'text-gray-400 dark:text-gray-500'
                     "
                   />
@@ -511,11 +499,8 @@ onMounted(loadBaseData);
           <template #cell-status="{ record }">
             <a-tag :color="USER_STATUS_COLOR_MAP[record.status] || 'default'" class="!m-0">
               <span :class="statusTagClassName">
-                <Icon
-                  :icon="USER_STATUS_ICON_MAP[record.status] || 'carbon:help'"
-                  class="text-xs"
-                />
-                {{ USER_STATUS_LABEL_MAP[record.status] || "未知" }}
+                <Icon :icon="USER_STATUS_ICON_MAP[record.status] || 'carbon:help'" class="text-xs" />
+                {{ USER_STATUS_LABEL_MAP[record.status] || '未知' }}
               </span>
             </a-tag>
           </template>
@@ -538,12 +523,7 @@ onMounted(loadBaseData);
     <!-- ============================================================ -->
     <!-- 新增/编辑弹窗                                                  -->
     <!-- ============================================================ -->
-    <BasicModal
-      :title="isEditing ? '编辑用户' : '新增用户'"
-      :width="640"
-      @register="modalRegister"
-      @ok="handleSave"
-    >
+    <BasicModal :title="isEditing ? '编辑用户' : '新增用户'" :width="640" @register="modalRegister" @ok="handleSave">
       <BasicForm
         :schemas="modalFormSchemas"
         :label-width="80"
@@ -583,14 +563,8 @@ onMounted(loadBaseData);
       @ok="confirmResetPassword"
     >
       <div class="space-y-3 py-2">
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-          为用户「{{ resetPwdTarget?.username }}」设置新密码
-        </p>
-        <a-input-password
-          v-model:value="resetPwdValue"
-          placeholder="请输入新密码（至少 6 位）"
-          :maxlength="64"
-        />
+        <p class="text-sm text-gray-500 dark:text-gray-400">为用户「{{ resetPwdTarget?.username }}」设置新密码</p>
+        <a-input-password v-model:value="resetPwdValue" placeholder="请输入新密码（至少 6 位）" :maxlength="64" />
       </div>
     </a-modal>
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed } from 'vue'
 
-import { cn } from "~/utils/cn";
+import { cn } from '~/utils/cn'
 
 const props = defineProps({
   loading: Boolean,
@@ -17,31 +17,31 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
-});
+})
 
 // 计算 wrapper 样式
 const wrapperStyle = computed(() => {
-  if (!props.useWrapper) return {};
+  if (!props.useWrapper) return {}
 
   if (props.height) {
     return {
       height: `${props.height}px`,
-    };
+    }
   }
 
   // 视口高度 - 顶部间距 - 底部间距 - footerOffset
-  const maxHeight = window.innerHeight - 200 - props.footerOffset;
+  const maxHeight = window.innerHeight - 200 - props.footerOffset
 
   return {
     maxHeight: `${maxHeight}px`,
-    minHeight: props.minHeight ? `${props.minHeight}px` : "200px",
-  };
-});
+    minHeight: props.minHeight ? `${props.minHeight}px` : '200px',
+  }
+})
 
-// 内容区域样式：不再使用原生 overflow，由 PerfectScrollbar 接管滚动
+// 内容区域样式：不再使用原生 overflow，由 Scrollbar 接管滚动
 const bodyStyle = computed(() => ({
-  maxHeight: "100%",
-}));
+  maxHeight: '100%',
+}))
 </script>
 
 <template>
@@ -49,23 +49,17 @@ const bodyStyle = computed(() => ({
     <!-- Loading 遮罩 -->
     <div
       v-if="loading"
-      :class="
-        cn('absolute inset-0 z-10 flex items-center justify-center', 'bg-white/80 backdrop-blur-sm')
-      "
+      :class="cn('absolute inset-0 z-10 flex items-center justify-center', 'bg-white/80 backdrop-blur-sm')"
     >
       <div :class="cn('flex flex-col items-center gap-2')">
-        <div
-          :class="
-            cn('w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin')
-          "
-        />
-        <span v-if="loadingTip" :class="cn('text-gray-600 text-sm')">{{ loadingTip }}</span>
+        <div :class="cn('h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent')" />
+        <span v-if="loadingTip" :class="cn('text-sm text-gray-600')">{{ loadingTip }}</span>
       </div>
     </div>
 
-    <!-- 内容区域：使用 PerfectScrollbar 替代系统滚动条 -->
-    <PerfectScrollbar :class="cn('modal-body', 'p-6')" :style="bodyStyle">
+    <!-- 内容区域：使用 Scrollbar 替代系统滚动条 -->
+    <Scrollbar :class="cn('modal-body', 'p-6')" :style="bodyStyle">
       <slot />
-    </PerfectScrollbar>
+    </Scrollbar>
   </div>
 </template>

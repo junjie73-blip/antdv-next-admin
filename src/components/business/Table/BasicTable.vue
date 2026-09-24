@@ -1,76 +1,64 @@
 <script setup lang="ts">
-import { Table } from "antdv-next";
-import { computed, defineComponent, h, isVNode, nextTick, onMounted, ref, unref, watch } from "vue";
+import { Table } from 'antdv-next'
+import { computed, defineComponent, h, isVNode, nextTick, onMounted, ref, unref, watch } from 'vue'
 
-import TableAction from "./components/TableAction.vue";
-import TableEditableCell from "./components/TableEditableCell";
-import TableHeaderCell from "./components/TableHeaderCell";
-import TableImg from "./components/TableImg.vue";
-import TableSetting from "./components/TableSetting.vue";
-import { convertColumns, formatCellValue, isImageList } from "./helper";
-import { useColumns } from "./hooks/useColumns";
-import { useDataSource } from "./hooks/useDataSource";
-import { useLoading } from "./hooks/useLoading";
-import { usePagination } from "./hooks/usePagination";
-import { useRowSelection } from "./hooks/useRowSelection";
-import { useTableForm } from "./hooks/useTableForm";
+import { BasicForm } from '~/components/business/Form'
+import { cn } from '~/utils/cn'
 
-import type {
-  BasicColumn,
-  BasicTableProps,
-  Recordable,
-  TableActionType,
-  TableRowSelection,
-} from "./types";
+import type { BasicColumn, BasicTableProps, Recordable, TableActionType, TableRowSelection } from './types'
 
-import { BasicForm } from "~/components/business/Form";
-import { cn } from "~/utils/cn";
+import TableAction from './components/TableAction.vue'
+import TableEditableCell from './components/TableEditableCell'
+import TableHeaderCell from './components/TableHeaderCell'
+import TableImg from './components/TableImg.vue'
+import TableSetting from './components/TableSetting.vue'
+import { convertColumns, formatCellValue, isImageList } from './helper'
+import { useColumns } from './hooks/useColumns'
+import { useDataSource } from './hooks/useDataSource'
+import { useLoading } from './hooks/useLoading'
+import { usePagination } from './hooks/usePagination'
+import { useRowSelection } from './hooks/useRowSelection'
+import { useTableForm } from './hooks/useTableForm'
 
 // ============================================
 // Props & Emits
 // ============================================
 
 const props = withDefaults(defineProps<BasicTableProps>(), {
-  rowKey: "id",
+  rowKey: 'id',
   showIndexColumn: false,
   immediate: true,
   canResize: false,
   resizeHeightOffset: 0,
   showHeader: true,
-  size: "small",
+  size: 'small',
   showTableSetting: true,
-  tableLayout: "fixed",
-});
+  tableLayout: 'fixed',
+})
 
 const emit = defineEmits<{
-  (e: "change", pagination: any, filters: any, sorter: any): void;
-  (e: "row-click", record: any, index: number, event: Event): void;
-  (e: "row-db-click", record: any, index: number, event: Event): void;
-  (e: "register", instance: TableActionType): void;
-  (e: "header-edit", column: BasicColumn): void;
+  (e: 'change', pagination: any, filters: any, sorter: any): void
+  (e: 'row-click', record: any, index: number, event: Event): void
+  (e: 'row-db-click', record: any, index: number, event: Event): void
+  (e: 'register', instance: TableActionType): void
+  (e: 'header-edit', column: BasicColumn): void
+  (e: 'cell-save', payload: { record: Recordable; dataIndex: string | string[]; value: any; column: BasicColumn }): void
+  (e: 'cell-cancel', payload: { record: Recordable; dataIndex: string | string[]; column: BasicColumn }): void
   (
-    e: "cell-save",
+    e: 'cell-change',
     payload: { record: Recordable; dataIndex: string | string[]; value: any; column: BasicColumn },
-  ): void;
-  (
-    e: "cell-cancel",
-    payload: { record: Recordable; dataIndex: string | string[]; column: BasicColumn },
-  ): void;
-  (
-    e: "cell-change",
-    payload: { record: Recordable; dataIndex: string | string[]; value: any; column: BasicColumn },
-  ): void;
-}>();
+  ): void
+}>()
 
 // ============================================
 // State
 // ============================================
 
-const propsRef = ref<Partial<BasicTableProps>>({});
-const tableRef = ref<InstanceType<typeof Table>>();
+const propsRef = ref<Partial<BasicTableProps>>({})
+const tableRef = ref<InstanceType<typeof Table>>()
 
 // 展开行的 key 列表（统一由 getExpandable 管理）
-const expandedRowKeysRef = ref<string[]>([]);
+const expandedRowKeysRef = ref<string[]>([])
 
 // ============================================
 // Computed
@@ -80,25 +68,25 @@ const getMergedProps = computed((): BasicTableProps => {
   return {
     ...props,
     ...unref(propsRef),
-  } as BasicTableProps;
-});
+  } as BasicTableProps
+})
 
 // ============================================
 // Hooks
 // ============================================
 
-const { loadingRef, setLoading } = useLoading(props.loading);
+const { loadingRef, setLoading } = useLoading(props.loading)
 
 const pagination = usePagination({
   pagination: computed(() => getMergedProps.value.pagination),
-});
+})
 
 const columns = useColumns({
   columns: computed(() => getMergedProps.value.columns || []),
   showIndexColumn: computed(() => getMergedProps.value.showIndexColumn ?? false),
   indexColumnProps: props.indexColumnProps,
   actionColumn: computed(() => getMergedProps.value.actionColumn),
-});
+})
 
 const dataSource = useDataSource({
   api: computed(() => getMergedProps.value.api),
@@ -107,7 +95,7 @@ const dataSource = useDataSource({
   beforeFetch: props.beforeFetch,
   afterFetch: props.afterFetch,
   fetchSetting: props.fetchSetting,
-  rowKey: computed(() => getMergedProps.value.rowKey || "id"),
+  rowKey: computed(() => getMergedProps.value.rowKey || 'id'),
   immediate: props.immediate,
   pagination: {
     getPagination: () => pagination.getPagination.value,
@@ -115,86 +103,83 @@ const dataSource = useDataSource({
   },
   loading: { setLoading },
   fields: computed(
-    () =>
-      getMergedProps.value.columns
-        ?.filter((item) => item.dataIndex)
-        .map((item) => item.dataIndex) || [],
+    () => getMergedProps.value.columns?.filter((item) => item.dataIndex).map((item) => item.dataIndex) || [],
   ),
-});
+})
 
 const rowSelection = useRowSelection({
   rowSelection: computed(() => getMergedProps.value.rowSelection),
   dataSourceRef: dataSource.dataSourceRef,
-  rowKey: computed(() => getMergedProps.value.rowKey || "id"),
-});
+  rowKey: computed(() => getMergedProps.value.rowKey || 'id'),
+})
 
 const tableForm = useTableForm({
   baseProps: getMergedProps,
   propsRef,
   fetch: dataSource.fetch,
-});
+})
 
 // ============================================
 // 列 / 数据
 // ============================================
 
-const getColumns = computed(() => convertColumns(columns.getColumns()));
+const getColumns = computed(() => convertColumns(columns.getColumns()))
 
-const getDataSource = computed(() => unref(dataSource.dataSourceRef));
+const getDataSource = computed(() => unref(dataSource.dataSourceRef))
 
 // 递归收集所有可展开的 key（支持多级子节点）
 function collectExpandableKeys(list: Recordable[], rowKey: string): string[] {
-  const keys: string[] = [];
-  const childrenField = getMergedProps.value.childrenColumnName || "children";
+  const keys: string[] = []
+  const childrenField = getMergedProps.value.childrenColumnName || 'children'
   const walk = (arr: Recordable[]) => {
     for (const item of arr) {
-      const children = item?.[childrenField];
+      const children = item?.[childrenField]
       if (Array.isArray(children) && children.length > 0) {
-        keys.push(String(item[rowKey]));
-        walk(children);
+        keys.push(String(item[rowKey]))
+        walk(children)
       }
     }
-  };
-  walk(list);
-  return keys;
+  }
+  walk(list)
+  return keys
 }
 
 // 树形数据就绪后自动展开所有节点
 watch(getDataSource, (data) => {
   if (getMergedProps.value.isTree && data.length > 0) {
-    const rowKey = (getMergedProps.value.rowKey as string) || "id";
-    expandedRowKeysRef.value = collectExpandableKeys(data, rowKey);
+    const rowKey = (getMergedProps.value.rowKey as string) || 'id'
+    expandedRowKeysRef.value = collectExpandableKeys(data, rowKey)
   }
-});
+})
 
 // ============================================
 // 行选择
 // ============================================
 
 const getRowSelection = computed((): TableRowSelection | undefined => {
-  const selection = rowSelection.getRowSelection.value;
-  return selection || undefined;
-});
+  const selection = rowSelection.getRowSelection.value
+  return selection || undefined
+})
 
 // ============================================
 // 展开配置（统一合并，关键修复）
 // ============================================
 
 const getExpandable = computed(() => {
-  const userExpandable = getMergedProps.value.expandable || {};
+  const userExpandable = getMergedProps.value.expandable || {}
 
   // 1) 树形表格
   if (getMergedProps.value.isTree) {
     return {
       indentSize: getMergedProps.value.indentSize ?? 20,
-      childrenColumnName: getMergedProps.value.childrenColumnName || "children",
+      childrenColumnName: getMergedProps.value.childrenColumnName || 'children',
       defaultExpandAllRows: getMergedProps.value.defaultExpandAllRows ?? true,
       expandedRowKeys: expandedRowKeysRef.value,
       onExpandedRowsChange: (keys: string[]) => {
-        expandedRowKeysRef.value = keys;
+        expandedRowKeysRef.value = keys
       },
       ...userExpandable,
-    };
+    }
   }
 
   // 2) 自定义展开行
@@ -203,96 +188,94 @@ const getExpandable = computed(() => {
       expandedRowRender: getMergedProps.value.expandedRowRender,
       expandedRowKeys: expandedRowKeysRef.value,
       onExpandedRowsChange: (keys: string[]) => {
-        expandedRowKeysRef.value = keys;
+        expandedRowKeysRef.value = keys
       },
       ...userExpandable,
-    };
+    }
   }
 
   // 3) 用户自定义 expandable
-  return Object.keys(userExpandable).length > 0 ? userExpandable : undefined;
-});
+  return Object.keys(userExpandable).length > 0 ? userExpandable : undefined
+})
 
 // ============================================
 // 分页 / 容器
 // ============================================
 
 const getPagination = computed(() => {
-  const paginationConfig = pagination.getPagination.value;
-  if (!paginationConfig) return false;
+  const paginationConfig = pagination.getPagination.value
+  if (!paginationConfig) return false
   return {
     ...paginationConfig,
-    size: getMergedProps.value.size || "middle",
-  };
-});
+    size: getMergedProps.value.size || 'middle',
+  }
+})
 
-const tableContainerClassName = computed(() =>
-  cn("basic-table", "w-full", getMergedProps.value.canResize && "h-full"),
-);
+const tableContainerClassName = computed(() => cn('basic-table', 'w-full', getMergedProps.value.canResize && 'h-full'))
 
-const showTableSetting = computed(() => getMergedProps.value.showTableSetting);
+const showTableSetting = computed(() => getMergedProps.value.showTableSetting)
 
 const tableSettingConfig = computed(() => {
-  return getMergedProps.value.tableSetting || { redo: true, setting: true, fullScreen: true };
-});
+  return getMergedProps.value.tableSetting || { redo: true, setting: true, fullScreen: true }
+})
 
 const showSearchForm = computed(() => {
-  return getMergedProps.value.useSearchForm && getMergedProps.value.formConfig;
-});
+  return getMergedProps.value.useSearchForm && getMergedProps.value.formConfig
+})
 
 // 弹出容器，默认挂到 body
 const getPopupContainer = computed(() => {
-  return getMergedProps.value.getPopupContainer || (() => document.body);
-});
+  return getMergedProps.value.getPopupContainer || (() => document.body)
+})
 
 // 行事件透传：统一在 onRow 里 emit + 用户回调
 const getOnRow = computed(() => {
-  const userOnRow = getMergedProps.value.onRow;
+  const userOnRow = getMergedProps.value.onRow
   return (record: Recordable, index: number) => {
-    const userProps = userOnRow?.(record, index) || {};
+    const userProps = userOnRow?.(record, index) || {}
     return {
       ...userProps,
       onClick: (event: MouseEvent) => {
-        emit("row-click", record, index, event);
-        userProps.onClick?.(event);
+        emit('row-click', record, index, event)
+        userProps.onClick?.(event)
       },
       onDblclick: (event: MouseEvent) => {
-        emit("row-db-click", record, index, event);
-        userProps.onDblclick?.(event);
+        emit('row-db-click', record, index, event)
+        userProps.onDblclick?.(event)
       },
-    };
-  };
-});
+    }
+  }
+})
 
 // ============================================
 // Methods
 // ============================================
 
 function setProps(p: Partial<BasicTableProps>) {
-  propsRef.value = { ...unref(propsRef), ...p };
+  propsRef.value = { ...unref(propsRef), ...p }
 }
 
 function getActions(record: Recordable): any[] {
-  const actionColumn = getMergedProps.value.actionColumn;
-  if (!actionColumn?.actions) return [];
-  return actionColumn.actions(record);
+  const actionColumn = getMergedProps.value.actionColumn
+  if (!actionColumn?.actions) return []
+  return actionColumn.actions(record)
 }
 
 function handleFormatCell(format: any, text: any, record: Recordable, index: number): string {
-  if (!format) return text;
-  return formatCellValue(format, text, record, index);
+  if (!format) return text
+  return formatCellValue(format, text, record, index)
 }
 
 function getOriginalColumn(columnKey: string | number): BasicColumn | undefined {
-  const cols = columns.getColumns();
-  return cols.find((col) => col.key === columnKey || col.dataIndex === columnKey);
+  const cols = columns.getColumns()
+  return cols.find((col) => col.key === columnKey || col.dataIndex === columnKey)
 }
 /**
  * 渲染任意 VNode 的辅助组件
  * Vue 3 模板里无法直接把 VNode 作为插值渲染，需要一个包装组件
  */
 const RenderVNode = defineComponent({
-  name: "RenderVNode",
+  name: 'RenderVNode',
   props: {
     vnode: {
       type: [Object, Array, String, Number, Boolean],
@@ -300,26 +283,26 @@ const RenderVNode = defineComponent({
     },
   },
   setup(p) {
-    return () => p.vnode as any;
+    return () => p.vnode as any
   },
-});
+})
 /**
  * 统一单元格渲染
  * 优先级：customRender > format > edit > image > default
  * 注意：这里不再处理 `cell-*` 插槽，插槽在模板里优先拦截
  */
 function renderCellContent(column: any, text: any, record: Recordable, index: number): any {
-  const origCol = getOriginalColumn(column.key);
+  const origCol = getOriginalColumn(column.key)
 
   // 1. customRender 优先
   if (origCol?.customRender) {
-    return origCol.customRender({ text, record, index, column: origCol });
+    return origCol.customRender({ text, record, index, column: origCol })
   }
 
   // 2. 格式化（format 是字符串模板或函数）
   if (origCol?.format) {
-    const formattedContent = handleFormatCell(origCol.format, text, record, index);
-    return h("span", { innerHTML: formattedContent });
+    const formattedContent = handleFormatCell(origCol.format, text, record, index)
+    return h('span', { innerHTML: formattedContent })
   }
 
   // 3. 可编辑单元格
@@ -332,7 +315,7 @@ function renderCellContent(column: any, text: any, record: Recordable, index: nu
       onSave: handleCellSave,
       onCancel: handleCellCancel,
       onChange: handleCellChange,
-    });
+    })
   }
 
   // 4. 图片列
@@ -341,11 +324,11 @@ function renderCellContent(column: any, text: any, record: Recordable, index: nu
       imgList: text,
       size: 40,
       simpleShow: true,
-    });
+    })
   }
 
   // 5. 默认
-  return isVNode(text) ? h(() => text) : h("span", text);
+  return isVNode(text) ? h(() => text) : h('span', text)
 }
 
 async function handleTableChange(paginationInfo: any, filters: any, sorter: any) {
@@ -353,52 +336,48 @@ async function handleTableChange(paginationInfo: any, filters: any, sorter: any)
     pagination.setPagination({
       current: paginationInfo.current,
       pageSize: paginationInfo.pageSize,
-    });
+    })
   }
 
-  await nextTick();
-  await dataSource.fetch();
+  await nextTick()
+  await dataSource.fetch()
 
-  emit("change", paginationInfo, filters, sorter);
+  emit('change', paginationInfo, filters, sorter)
 }
 
 function handleUpdateColumns(newColumns: BasicColumn[]) {
-  columns.setColumns(newColumns);
+  columns.setColumns(newColumns)
 }
 
 function handleResetColumns() {
-  const cacheColumns = columns.getCacheColumns();
-  columns.setColumns(cacheColumns);
+  const cacheColumns = columns.getCacheColumns()
+  columns.setColumns(cacheColumns)
 }
 
 function handleHeaderEdit(column: BasicColumn) {
-  emit("header-edit", column);
+  emit('header-edit', column)
 }
 
 function handleCellSave(payload: {
-  record: Recordable;
-  dataIndex: string | string[];
-  value: any;
-  column: BasicColumn;
+  record: Recordable
+  dataIndex: string | string[]
+  value: any
+  column: BasicColumn
 }) {
-  emit("cell-save", payload);
+  emit('cell-save', payload)
 }
 
-function handleCellCancel(payload: {
-  record: Recordable;
-  dataIndex: string | string[];
-  column: BasicColumn;
-}) {
-  emit("cell-cancel", payload);
+function handleCellCancel(payload: { record: Recordable; dataIndex: string | string[]; column: BasicColumn }) {
+  emit('cell-cancel', payload)
 }
 
 function handleCellChange(payload: {
-  record: Recordable;
-  dataIndex: string | string[];
-  value: any;
-  column: BasicColumn;
+  record: Recordable
+  dataIndex: string | string[]
+  value: any
+  column: BasicColumn
 }) {
-  emit("cell-change", payload);
+  emit('cell-change', payload)
 }
 
 // ============================================
@@ -422,28 +401,28 @@ const tableActionType: TableActionType = {
 
   // 行操作
   expandAll: () => {
-    const rowKey = (getMergedProps.value.rowKey as string) || "id";
-    expandedRowKeysRef.value = collectExpandableKeys(getDataSource.value, rowKey);
+    const rowKey = (getMergedProps.value.rowKey as string) || 'id'
+    expandedRowKeysRef.value = collectExpandableKeys(getDataSource.value, rowKey)
   },
   collapseAll: () => {
-    expandedRowKeysRef.value = [];
+    expandedRowKeysRef.value = []
   },
   expandRows: (keys: string[]) => {
-    const currentKeys = new Set(expandedRowKeysRef.value);
-    keys.forEach((key) => currentKeys.add(key));
-    expandedRowKeysRef.value = Array.from(currentKeys);
+    const currentKeys = new Set(expandedRowKeysRef.value)
+    keys.forEach((key) => currentKeys.add(key))
+    expandedRowKeysRef.value = Array.from(currentKeys)
   },
   collapseRows: (keys: string[]) => {
-    const keySet = new Set(keys);
-    expandedRowKeysRef.value = expandedRowKeysRef.value.filter((key) => !keySet.has(key));
+    const keySet = new Set(keys)
+    expandedRowKeysRef.value = expandedRowKeysRef.value.filter((key) => !keySet.has(key))
   },
   scrollTo: (pos: { left?: number; top?: number }) => {
-    const el = tableRef.value?.$el as HTMLElement | undefined;
-    if (!el) return;
-    const bodyEl = el.querySelector(".ant-table-body") as HTMLElement | null;
-    if (!bodyEl) return;
-    if (pos.top !== undefined) bodyEl.scrollTop = pos.top;
-    if (pos.left !== undefined) bodyEl.scrollLeft = pos.left;
+    const el = tableRef.value?.$el as HTMLElement | undefined
+    if (!el) return
+    const bodyEl = el.querySelector('.ant-table-body') as HTMLElement | null
+    if (!bodyEl) return
+    if (pos.top !== undefined) bodyEl.scrollTop = pos.top
+    if (pos.left !== undefined) bodyEl.scrollLeft = pos.left
   },
   selectRows: rowSelection.setSelectedRowKeys,
   getSelectRows: rowSelection.getSelectRows,
@@ -475,17 +454,17 @@ const tableActionType: TableActionType = {
   findTableDataRecord: dataSource.findTableDataRecord,
   getDataSource: () => unref(dataSource.dataSourceRef),
   setTableData: dataSource.setTableData,
-};
+}
 
 // ============================================
 // Lifecycle
 // ============================================
 
 onMounted(() => {
-  emit("register", tableActionType);
-});
+  emit('register', tableActionType)
+})
 
-defineExpose(tableActionType);
+defineExpose(tableActionType)
 </script>
 
 <template>
@@ -498,8 +477,8 @@ defineExpose(tableActionType);
     <div v-if="showSearchForm" class="mb-4 border-t border-gray-200 dark:border-gray-700" />
 
     <!-- 工具栏 -->
-    <div v-if="showTableSetting || $slots.toolbar" class="flex items-center justify-between mb-4">
-      <div class="flex items-center flex-wrap gap-2">
+    <div v-if="showTableSetting || $slots.toolbar" class="mb-4 flex items-center justify-between">
+      <div class="flex flex-wrap items-center gap-2">
         <slot name="toolbar" />
       </div>
       <TableSetting
@@ -635,16 +614,8 @@ defineExpose(tableActionType);
         v-if="getMergedProps.expandedRowRender || $slots.expandedRowRender"
         #expandedRowRender="{ record, index, indent, expanded }"
       >
-        <slot
-          name="expandedRowRender"
-          :record="record"
-          :index="index"
-          :indent="indent"
-          :expanded="expanded"
-        >
-          <RenderVNode
-            :vnode="getMergedProps.expandedRowRender?.(record, index, indent, expanded)"
-          />
+        <slot name="expandedRowRender" :record="record" :index="index" :indent="indent" :expanded="expanded">
+          <RenderVNode :vnode="getMergedProps.expandedRowRender?.(record, index, indent, expanded)" />
         </slot>
       </template>
 
@@ -658,14 +629,14 @@ defineExpose(tableActionType);
       <!-- ============ 空数据 ============ -->
       <template v-if="getMergedProps.emptyText || $slots.empty" #emptyText>
         <slot name="empty">
-          {{ getMergedProps.emptyText || "暂无数据" }}
+          {{ getMergedProps.emptyText || '暂无数据' }}
         </slot>
       </template>
     </Table>
   </div>
 </template>
 <style scoped>
-:deep(.ant-form-item){
-  margin-bottom:12px
+:deep(.ant-form-item) {
+  margin-bottom: 12px;
 }
 </style>
