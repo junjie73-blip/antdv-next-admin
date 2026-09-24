@@ -1,5 +1,6 @@
-import type { EventBus, EventHandler } from './types'
 import mitt from 'mitt'
+
+import type { EventBus, EventHandler } from './types'
 
 export function createEventBus(): EventBus {
   const emitter = mitt<Record<string, unknown>>()
@@ -27,8 +28,7 @@ export function createEventBus(): EventBus {
   const clear = (event?: string) => {
     if (event) {
       emitter.all.delete(event)
-    }
-    else {
+    } else {
       emitter.all.clear()
     }
   }

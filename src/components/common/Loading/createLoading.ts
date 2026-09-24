@@ -1,4 +1,5 @@
 import type { CreateLoadingOptions, LoadingInstance } from './types'
+
 import { useLoading } from './useLoading'
 
 /**
@@ -7,7 +8,7 @@ import { useLoading } from './useLoading'
  *
  * @example
  * // 在路由守卫中使用
- * import { createLoading } from '@/components/Loading'
+ * import { createLoading } from '~/components/Loading'
  *
  * const loading = createLoading({
  *   tip: '页面初始化...',
@@ -62,7 +63,10 @@ export function createLoading(options: CreateLoadingOptions = {}): LoadingInstan
 /**
  * 创建全屏 loading 的快捷方法
  */
-export function createFullscreenLoading(tip?: string, options: Omit<CreateLoadingOptions, 'tip' | 'body'> = {}): LoadingInstance {
+export function createFullscreenLoading(
+  tip?: string,
+  options: Omit<CreateLoadingOptions, 'tip' | 'body'> = {},
+): LoadingInstance {
   return createLoading({
     tip,
     body: true,

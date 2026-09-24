@@ -3,22 +3,27 @@ import type { ModalProps } from './types'
 /**
  * Modal 组件默认 Props
  */
-export const defaultModalProps: Required<Pick<ModalProps, | 'draggable'
-  | 'canFullscreen'
-  | 'defaultFullscreen'
-  | 'useWrapper'
-  | 'showCancelBtn'
-  | 'showOkBtn'
-  | 'cancelText'
-  | 'okText'
-  | 'maskClosable'
-  | 'keyboard'
-  | 'closable'
-  | 'centered'
-  | 'wrapperFooterOffset'
-  | 'zIndex'
-  | 'mask'
-  | 'destroyOnClose'>> = {
+export const defaultModalProps: Required<
+  Pick<
+    ModalProps,
+    | 'draggable'
+    | 'canFullscreen'
+    | 'defaultFullscreen'
+    | 'useWrapper'
+    | 'showCancelBtn'
+    | 'showOkBtn'
+    | 'cancelText'
+    | 'okText'
+    | 'maskClosable'
+    | 'keyboard'
+    | 'closable'
+    | 'centered'
+    | 'wrapperFooterOffset'
+    | 'zIndex'
+    | 'mask'
+    | 'destroyOnClose'
+  >
+> = {
   draggable: true,
   canFullscreen: true,
   defaultFullscreen: false,

@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import type { DrawerProps as AntDrawerProps } from 'antdv-next'
-import type { DrawerInnerMethods, DrawerMethods, DrawerProps } from './types'
+
 import { Button, Drawer } from 'antdv-next'
 import { computed, onMounted, ref, useSlots, watch } from 'vue'
-import { IconifyIcon as Icon } from '@/components/common/Icon'
-import { cn } from '@/utils/cn'
+
+import { IconifyIcon as Icon } from '~/components/common/Icon'
+import { cn } from '~/utils/cn'
+
+import type { DrawerInnerMethods, DrawerMethods, DrawerProps } from './types'
 
 const props = withDefaults(defineProps<DrawerProps>(), {
   placement: 'right',
@@ -23,10 +26,10 @@ const props = withDefaults(defineProps<DrawerProps>(), {
 })
 
 const emit = defineEmits<{
-  'register': [instance: DrawerMethods]
-  'ok': [e: MouseEvent]
-  'cancel': [e: MouseEvent]
-  'visibleChange': [visible: boolean]
+  register: [instance: DrawerMethods]
+  ok: [e: MouseEvent]
+  cancel: [e: MouseEvent]
+  visibleChange: [visible: boolean]
   'update:visible': [visible: boolean]
 }>()
 
@@ -62,10 +65,7 @@ const getSize = computed(() => {
 
 // 计算包裹层类名
 const wrapClassName = computed(() => {
-  return [
-    'basic-drawer',
-    props.wrapClassName,
-  ].filter(Boolean).join(' ')
+  return ['basic-drawer', props.wrapClassName].filter(Boolean).join(' ')
 })
 
 const drawerBodyClassName = cn('drawer-body relative h-full min-h-0', { 'p-4': props.useWrapper })
@@ -77,7 +77,7 @@ const drawerStyles = computed<AntDrawerProps['styles']>(() => ({
   },
   body: {
     padding: '0',
-    ...(props.bodyStyle || {}),
+    ...props.bodyStyle,
   },
   footer: {
     padding: '0',
@@ -97,8 +97,7 @@ const drawerMethods: DrawerMethods = {
   closeDrawer: async () => {
     if (props.closeFunc) {
       const canClose = await props.closeFunc()
-      if (!canClose)
-        return
+      if (!canClose) return
     }
     visibleRef.value = false
     okLoadingRef.value = false
@@ -158,9 +157,7 @@ function handleCancel(e?: MouseEvent) {
 
 <script lang="ts">
 // 在 script 中定义类名变量，遵循项目规范
-const headerClassName = cn(
-  'drawer-header flex items-center justify-between px-6 py-4 border-b border-gray-200',
-)
+const headerClassName = cn('drawer-header flex items-center justify-between px-6 py-4 border-b border-gray-200')
 
 const closeBtnClassName = cn(
   'p-1 text-gray-400 hover:text-gray-600 transition-colors',
@@ -198,10 +195,7 @@ const footerClassName = cn(
   >
     <!-- 自定义头部 -->
     <template #title>
-      <div
-        :id="drawerTitleId"
-        :class="headerClassName"
-      >
+      <div :id="drawerTitleId" :class="headerClassName">
         <div :class="cn('flex items-center gap-2')">
           <span :class="cn('text-lg font-medium text-gray-900')">{{ title }}</span>
           <slot name="titleTip" />
@@ -222,47 +216,29 @@ const footerClassName = cn(
     </template>
 
     <!-- 内容区域 -->
-    <div
-      :class="drawerBodyClassName"
-      role="region"
-      :aria-label="title || '抽屉内容'"
-      :aria-labelledby="drawerTitleId"
-    >
+    <div :class="drawerBodyClassName" role="region" :aria-label="title || '抽屉内容'" :aria-labelledby="drawerTitleId">
       <!-- Loading 遮罩 -->
       <div
         v-if="loadingRef"
-        :class="cn(
-          'absolute inset-0 z-10 flex items-center justify-center',
-          'bg-white/80 backdrop-blur-sm',
-        )"
+        :class="cn('absolute inset-0 z-10 flex items-center justify-center', 'bg-white/80 backdrop-blur-sm')"
       >
         <div :class="cn('flex flex-col items-center gap-2')">
-          <div :class="cn('w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin')" />
-          <span
-            v-if="loadingTip"
-            :class="cn('text-gray-600 text-sm')"
-          >{{ loadingTip }}</span>
+          <div :class="cn('h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent')" />
+          <span v-if="loadingTip" :class="cn('text-sm text-gray-600')">{{ loadingTip }}</span>
         </div>
       </div>
 
-      <!-- 内容：使用 PerfectScrollbar 替代系统滚动条 -->
-      <PerfectScrollbar class="h-full">
+      <!-- 内容：使用 Scrollbar 替代系统滚动条 -->
+      <Scrollbar class="h-max" height="785">
         <slot />
-      </PerfectScrollbar>
+      </Scrollbar>
     </div>
 
     <!-- 底部按钮 -->
     <template #footer>
-      <div
-        v-if="showFooter && !slots.footer && (showCancelBtn || showOkBtn)"
-        :class="footerClassName"
-      >
+      <div v-if="showFooter && !slots.footer && (showCancelBtn || showOkBtn)" :class="footerClassName">
         <slot name="insertFooter" />
-        <Button
-          v-if="showCancelBtn"
-          v-bind="cancelButtonProps"
-          @click="handleCancel"
-        >
+        <Button v-if="showCancelBtn" v-bind="cancelButtonProps" @click="handleCancel">
           <template #icon>
             <Icon icon="ant-design:close-outlined" />
           </template>
@@ -283,9 +259,7 @@ const footerClassName = cn(
         </Button>
         <slot name="appendFooter" />
       </div>
-      <div
-        v-else-if="slots.footer"
-      >
+      <div v-else-if="slots.footer">
         <slot name="footer" />
       </div>
     </template>

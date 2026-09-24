@@ -1,5 +1,7 @@
 import type { VNodeChild } from 'vue'
 
+import type { Recordable } from '../Form'
+
 /**
  * Description 组件尺寸
  */
@@ -14,7 +16,7 @@ export type DescriptionLayout = 'horizontal' | 'vertical'
  * Description 组件边框样式
  */
 export type DescriptionBordered = boolean | 'bordered' | 'none'
-
+export type DescriptionFieldType = 'text' | 'dict' | 'image' | 'images' | 'date' | 'datetime' | 'tag'
 /**
  * DescriptionItem 配置项
  */
@@ -65,6 +67,17 @@ export interface DescriptionItem {
    * 标签样式
    */
   labelStyle?: Record<string, string>
+  /** 字段渲染类型 */
+  type?: DescriptionFieldType
+
+  /** 字典编码（type='dict' 时必填） */
+  dictType?: string
+
+  /** 日期格式（type='date' / 'datetime' 时使用） */
+  dateFormat?: string
+
+  /** 图片尺寸（type='image' / 'images' 时使用） */
+  imageSize?: number
 }
 
 /**

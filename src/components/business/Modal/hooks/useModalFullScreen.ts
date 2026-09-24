@@ -1,4 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
+
 import { computed } from 'vue'
 
 /**
@@ -6,16 +7,12 @@ import { computed } from 'vue'
  * @param fullscreen - 全屏状态
  * @param canFullscreen - 是否可全屏
  */
-export function useModalFullScreen(
-  fullscreen: Ref<boolean>,
-  canFullscreen: boolean,
-) {
+export function useModalFullScreen(fullscreen: Ref<boolean>, canFullscreen: boolean) {
   /**
    * 切换全屏
    */
   const toggleFullscreen = () => {
-    if (!canFullscreen)
-      return
+    if (!canFullscreen) return
     fullscreen.value = !fullscreen.value
   }
 

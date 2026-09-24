@@ -1,6 +1,4 @@
-import type {
-  PaginationProps as AntPaginationProps,
-} from 'antdv-next'
+import type { PaginationProps as AntPaginationProps, TableProps } from 'antdv-next'
 import type { ComputedRef, CSSProperties, Ref, VNode } from 'vue'
 
 import type { FormProps, FormSchema } from '../Form/types'
@@ -11,13 +9,25 @@ export interface TableScroll {
   y?: string | number
   scrollToFirstRowOnChange?: boolean
 }
+// 行事件处理器
+export interface TableRowEventHandlers {
+  onClick?: (event: MouseEvent) => void
+  onDblclick?: (event: MouseEvent) => void
+  onContextmenu?: (event: MouseEvent) => void
+  onMouseenter?: (event: MouseEvent) => void
+  onMouseleave?: (event: MouseEvent) => void
+}
 
 /** 展开行配置 */
 export interface TableExpandable {
   expandedRowKeys?: string[]
   defaultExpandedRowKeys?: string[]
   expandedRowRender?: (record: Recordable, index: number, indent: number, expanded: boolean) => VNode
-  expandIcon?: (props: { expanded: boolean, record: Recordable, onExpand: (record: Recordable, e: Event) => void }) => VNode
+  expandIcon?: (props: {
+    expanded: boolean
+    record: Recordable
+    onExpand: (record: Recordable, e: Event) => void
+  }) => VNode
   expandRowByClick?: boolean
   onExpand?: (expanded: boolean, record: Recordable) => void
   onExpandedRowsChange?: (expandedRows: string[]) => void
@@ -50,24 +60,24 @@ export type ArrayElement<T> = T extends (infer E)[] ? E : never
 // ============================================
 
 /** 编辑组件类型 */
-export type ComponentType
-  = | 'Input'
-    | 'InputNumber'
-    | 'Select'
-    | 'ApiSelect'
-    | 'Checkbox'
-    | 'Switch'
-    | 'DatePicker'
-    | 'TimePicker'
-    | 'RangePicker'
-    | 'Radio'
-    | 'RadioGroup'
-    | 'CheckboxGroup'
-    | 'Cascader'
-    | 'TreeSelect'
-    | 'ApiTreeSelect'
-    | 'ApiRadioGroup'
-    | 'ApiCascader'
+export type ComponentType =
+  | 'Input'
+  | 'InputNumber'
+  | 'Select'
+  | 'ApiSelect'
+  | 'Checkbox'
+  | 'Switch'
+  | 'DatePicker'
+  | 'TimePicker'
+  | 'RangePicker'
+  | 'Radio'
+  | 'RadioGroup'
+  | 'CheckboxGroup'
+  | 'Cascader'
+  | 'TreeSelect'
+  | 'ApiTreeSelect'
+  | 'ApiRadioGroup'
+  | 'ApiCascader'
 
 /** 表格列配置 */
 export interface BasicColumn {
@@ -78,7 +88,10 @@ export interface BasicColumn {
   dataIndex?: string | string[]
 
   /** 列标题 */
-  title?: string | VNode | ((options: { sortOrder: string | boolean, filters: Recordable, sortColumn: BasicColumn }) => VNode)
+  title?:
+    | string
+    | VNode
+    | ((options: { sortOrder: string | boolean; filters: Recordable; sortColumn: BasicColumn }) => VNode)
 
   /** 默认隐藏 */
   defaultHidden?: boolean
@@ -108,7 +121,12 @@ export interface BasicColumn {
   format?: string | ((text: any, record: Recordable, index: number) => string | VNode)
 
   /** 自定义渲染函数（优先级高于 format） */
-  customRender?: (options: { text: any, record: Recordable, index: number, column: BasicColumn }) => VNode | string | number
+  customRender?: (options: {
+    text: any
+    record: Recordable
+    index: number
+    column: BasicColumn
+  }) => VNode | string | number
 
   /** 列宽 */
   width?: string | number
@@ -135,16 +153,19 @@ export interface BasicColumn {
   headerStyle?: CSSProperties
 
   /** 排序配置 */
-  sorter?: boolean | ((a: Recordable, b: Recordable) => number) | { compare: (a: Recordable, b: Recordable) => number, multiple: number }
+  sorter?:
+    | boolean
+    | ((a: Recordable, b: Recordable) => number)
+    | { compare: (a: Recordable, b: Recordable) => number; multiple: number }
 
   /** 筛选配置 */
-  filters?: { text: string, value: string, children?: { text: string, value: string }[] }[]
+  filters?: { text: string; value: string; children?: { text: string; value: string }[] }[]
 
   /** 筛选模式 */
   filterMode?: 'menu' | 'tree'
 
   /** 筛选搜索配置 */
-  filterSearch?: boolean | ((input: string, filter: { text: string, value: string }) => boolean)
+  filterSearch?: boolean | ((input: string, filter: { text: string; value: string }) => boolean)
 
   /** 默认筛选值 */
   defaultFilteredValue?: string[]
@@ -159,7 +180,14 @@ export interface BasicColumn {
   onFilterDropdownOpenChange?: (open: boolean) => void
 
   /** 自定义筛选下拉框 */
-  filterDropdown?: VNode | ((props: { setSelectedKeys: (keys: string[]) => void, selectedKeys: string[], confirm: () => void, clearFilters: () => void }) => VNode)
+  filterDropdown?:
+    | VNode
+    | ((props: {
+        setSelectedKeys: (keys: string[]) => void
+        selectedKeys: string[]
+        confirm: () => void
+        clearFilters: () => void
+      }) => VNode)
 
   /** 是否显示筛选图标 */
   filterIcon?: VNode | ((filtered: boolean) => VNode)
@@ -271,13 +299,17 @@ export interface TableRowSelection {
   selectedRows?: Recordable[]
 
   /** 选择改变回调 */
-  onChange?: (selectedRowKeys: string[] | number[], selectedRows: Recordable[], info?: { type: 'all' | 'single' | 'multiple' }) => void
+  onChange?: (
+    selectedRowKeys: string[] | number[],
+    selectedRows: Recordable[],
+    info?: { type: 'all' | 'single' | 'multiple' },
+  ) => void
 
   /** 单行选择回调 */
   onSelect?: (record: Recordable, selected: boolean, selectedRows: Recordable[], nativeEvent: Event) => void
 
   /** 获取 Checkbox 属性 */
-  getCheckboxProps?: (record: Recordable) => { disabled?: boolean, name?: string }
+  getCheckboxProps?: (record: Recordable) => { disabled?: boolean; name?: string }
 
   /** 获取标题 Checkbox 属性 */
   getTitleCheckboxProps?: () => { disabled?: boolean }
@@ -335,7 +367,7 @@ export interface FetchParams {
   searchInfo?: Recordable
 
   /** 分页参数 */
-  page?: number
+  pageNum?: number
 
   /** 每页条数 */
   pageSize?: number
@@ -345,10 +377,12 @@ export interface FetchParams {
 
   /** 筛选信息 */
   filterInfo?: Recordable
+  /** 字段列表 */
+  fields?: string[]
 }
 
 /** API 函数类型 */
-export type ApiFn = (params: FetchParams) => Promise<Recordable>
+export type ApiFn = (params: FetchParams) => Promise<any>
 
 // ============================================
 // 表格属性类型
@@ -433,13 +467,17 @@ export interface BasicTableProps {
   handleSearchInfoFn?: (values: Recordable) => Recordable
 
   /** 行 key */
-  rowKey?: string | ((record: Recordable) => string)
+  rowKey?: string | ((record: any) => string)
 
   /** 展开行渲染 */
   expandedRowRender?: (record: Recordable, index: number, indent: number, expanded: boolean) => VNode
 
   /** 展开图标 */
-  expandIcon?: (props: { expanded: boolean, record: Recordable, onExpand: (record: Recordable, e: Event) => void }) => VNode
+  expandIcon?: (props: {
+    expanded: boolean
+    record: Recordable
+    onExpand: (record: Recordable, e: Event) => void
+  }) => VNode
 
   /** 默认展开所有行 */
   defaultExpandAllRows?: boolean
@@ -493,16 +531,38 @@ export interface BasicTableProps {
 
   /** 是否启用虚拟滚动 */
   virtual?: boolean
-
-  /** 虚拟滚动配置 */
-  virtualConfig?: {
-    /** 每行高度 */
-    itemHeight?: number
-    /** 缓冲区大小 */
-    bufferSize?: number
-    /** 是否启用动态高度 */
-    dynamic?: boolean
+  /** 行属性（事件 + 样式） */
+  onRow?: (
+    record: Recordable,
+    index: number,
+  ) => TableRowEventHandlers & {
+    style?: CSSProperties
+    class?: string
   }
+
+  /** 表头行属性 */
+  onHeaderRow?: (
+    columns: BasicColumn[],
+    index: number,
+  ) => TableRowEventHandlers & {
+    style?: CSSProperties
+    class?: string
+  }
+
+  /** 排序提示 */
+  showSorterTooltip?: boolean | { title?: string; target?: string }
+
+  /** 排序方向 */
+  sortDirections?: ('ascend' | 'descend')[]
+
+  /** 弹出容器 */
+  getPopupContainer?: () => HTMLElement
+
+  /** 表格标题 */
+  caption?: string | VNode
+
+  /** 表格底部 */
+  footer?: (data: Recordable[]) => VNode
 
   /** 是否启用拖拽排序 */
   dragSort?: boolean
@@ -555,7 +615,14 @@ export interface BasicTableProps {
   tableLayout?: 'auto' | 'fixed'
 
   /** 粘性头部 */
-  sticky?: boolean | { offsetHeader?: number, offsetSummary?: number, offsetScroll?: number, getContainer?: () => HTMLElement }
+  sticky?:
+    | boolean
+    | {
+        offsetHeader?: number
+        offsetSummary?: number
+        offsetScroll?: number
+        getContainer?: () => HTMLElement
+      }
 
   /** 汇总行 */
   summary?: (data: Recordable[]) => VNode
@@ -566,11 +633,11 @@ export interface BasicTableProps {
   /** 是否显示表头 */
   showHeader?: boolean
 
-  /** 是否显示排序按钮 */
-  showSorterTooltip?: boolean | { title?: string }
-
   /** 表格尺寸 */
-  size?: 'small' | 'middle' | 'large'
+  size?: TableProps['size']
+
+  /** 是否可展开 */
+  expandable?: TableProps['expandable']
 }
 
 // ============================================
@@ -625,7 +692,7 @@ export interface TableActionType {
   collapseRows: (keys: string[]) => void
 
   /** 滚动到指定行 */
-  scrollTo: (pos: { left?: number, top?: number }) => void
+  scrollTo: (pos: { left?: number; top?: number }) => void
 
   /** 选中行 */
   selectRows: (keys: string[]) => void
@@ -743,8 +810,12 @@ export interface UseDataSourceOptions {
   fetchSetting?: FetchSetting
   rowKey?: string | ((record: Recordable) => string) | Ref<string | ((record: Recordable) => string) | undefined>
   immediate?: boolean
-  pagination?: { getPagination: () => AntPaginationProps | false, setPagination: (pagination: Partial<AntPaginationProps>) => void }
+  pagination?: {
+    getPagination: () => AntPaginationProps | false
+    setPagination: (pagination: Partial<AntPaginationProps>) => void
+  }
   loading: { setLoading: (value: boolean) => void }
+  fields?: string[]
 }
 
 /** useDataSource 返回 */
@@ -758,6 +829,7 @@ export interface UseDataSourceReturn {
   deleteTableDataRecord: (key: string | string[]) => void
   updateTableDataRecord: (key: string, record: Recordable) => void
   findTableDataRecord: (key: string) => Recordable | undefined
+  abort: () => void
 }
 
 /** useRowSelection 配置 */
@@ -806,7 +878,7 @@ export interface UseTableScrollReturn {
   scrollRef: Ref<TableScroll | undefined>
   getScroll: ComputedRef<TableScroll | undefined>
   redoHeight: () => Promise<void>
-  scrollTo: (pos: { left?: number, top?: number }) => void
+  scrollTo: (pos: { left?: number; top?: number }) => void
 }
 
 /** useTableForm 配置 */
@@ -856,7 +928,11 @@ export interface TableExpandableConfig {
   expandedRowRender?: (record: Recordable, index: number, indent: number, expanded: boolean) => VNode
 
   /** 展开图标 */
-  expandIcon?: (props: { expanded: boolean, record: Recordable, onExpand: (record: Recordable, e: MouseEvent) => void }) => VNode
+  expandIcon?: (props: {
+    expanded: boolean
+    record: Recordable
+    onExpand: (record: Recordable, e: MouseEvent) => void
+  }) => VNode
 
   /** 点击行展开 */
   expandRowByClick?: boolean

@@ -1,19 +1,25 @@
 <script setup lang="ts">
 import type { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor'
-import type { MarkdownEditorInstance, MarkdownEditorProps } from './types'
+
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
-import { computed, ref, shallowRef, watch } from 'vue'
-import { cn } from '@/utils/cn'
+import { message } from 'antdv-next'
+import { computed, nextTick, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
+
+import { cn } from '~/utils/cn'
+
+import type { ImageUploadConfig, MarkdownEditorInstance, MarkdownEditorProps, VideoUploadConfig } from './types'
+
+import { uploadFile, validateFile } from './utils'
+
 import '@wangeditor/editor/dist/css/style.css'
 
-/**
- * MarkdownEditor - Markdown 富文本编辑器组件
- * 基于 WangEditor 封装
- */
+defineOptions({ name: 'MarkdownEditor' })
 
 const props = withDefaults(defineProps<MarkdownEditorProps>(), {
-  modelValue: '',
-  height: '500px',
+  value: '',
+  minHeight: 160,
+  maxHeight: 500,
+  height: undefined,
   mode: 'edit',
   theme: 'light',
   placeholder: '请输入内容...',
@@ -22,41 +28,198 @@ const props = withDefaults(defineProps<MarkdownEditorProps>(), {
   showToolbar: true,
   autoFocus: false,
   showCount: true,
+  compact: false,
 })
 
+const model = defineModel<string>('value', { default: '' })
+
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void
-  (e: 'change', value: string, html: string): void
-  (e: 'focus', editor: IDomEditor): void
-  (e: 'blur', editor: IDomEditor): void
-  (e: 'uploadSuccess', file: File, response: any): void
-  (e: 'uploadError', file: File, error: any): void
-  (e: 'maxLength', currentLength: number, maxLength: number): void
+  change: [html: string, text: string]
+  focus: [editor: IDomEditor]
+  blur: [editor: IDomEditor]
+  uploadSuccess: [file: File, response: unknown]
+  uploadError: [file: File, error: unknown]
+  maxLength: [currentLength: number, maxLength: number]
+  created: [editor: IDomEditor]
+  destroyed: []
 }>()
 
-// 编辑器实例
+/* ============================================================
+ * 状态
+ * ============================================================ */
+
 const editorRef = shallowRef<IDomEditor | null>(null)
-
-// 编辑器内容
-const editorValue = ref(props.modelValue)
-
-// 字数统计
 const textLength = ref(0)
 const htmlLength = ref(0)
 
-/**
- * 计算编辑器高度
- */
-const editorHeight = computed(() => {
-  if (typeof props.height === 'number') {
-    return `${props.height}px`
+let isInternalUpdate = false
+let internalUpdateTimer: ReturnType<typeof setTimeout> | null = null
+
+/* ============================================================
+ * 工具
+ * ============================================================ */
+
+function isEmptyContent(html: string | null | undefined): boolean {
+  if (!html) return true
+  const text = html
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .trim()
+  return text === ''
+}
+
+function normalizeHtml(v: string | null | undefined): string {
+  return v == null ? '' : String(v)
+}
+
+function isSameContent(a: string, b: string): boolean {
+  if (isEmptyContent(a) && isEmptyContent(b)) return true
+  return a === b
+}
+
+function markInternalUpdate(): void {
+  isInternalUpdate = true
+  if (internalUpdateTimer) clearTimeout(internalUpdateTimer)
+  internalUpdateTimer = setTimeout(() => {
+    isInternalUpdate = false
+    internalUpdateTimer = null
+  }, 200)
+}
+
+function updateStats(): void {
+  const editor = editorRef.value
+  if (!editor) return
+  textLength.value = editor.getText().length
+  htmlLength.value = editor.getHtml().length
+}
+
+/* ============================================================
+ * 高度
+ * ============================================================ */
+
+function toCssSize(v: number | string | undefined): string | undefined {
+  if (v === undefined) return undefined
+  return typeof v === 'number' ? `${v}px` : v
+}
+
+const fixedHeight = computed(() => toCssSize(props.height))
+const minHeightCss = computed(() => toCssSize(props.minHeight) ?? '160px')
+const maxHeightCss = computed(() => toCssSize(props.maxHeight) ?? '500px')
+
+const editorStyle = computed(() => {
+  if (fixedHeight.value) return { height: fixedHeight.value }
+  return {
+    minHeight: minHeightCss.value,
+    maxHeight: maxHeightCss.value,
   }
-  return props.height
 })
 
+/* ============================================================
+ * ⭐ 图片上传
+ * ============================================================ */
+
+const DEFAULT_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp']
+
+const DEFAULT_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime']
+
+const imageUploadConfig = computed<ImageUploadConfig>(() => ({
+  maxFileSize: 5,
+  allowedFileTypes: DEFAULT_IMAGE_TYPES,
+  ...props.imageUpload,
+}))
+
+const videoUploadConfig = computed<VideoUploadConfig>(() => ({
+  maxFileSize: 100,
+  allowedFileTypes: DEFAULT_VIDEO_TYPES,
+  ...props.videoUpload,
+}))
+
 /**
- * 工具栏配置
+ * 图片自定义上传
+ *
+ * 说明：
+ *  - 走系统 http 封装，自动带 token / 租户头 / 错误提示
+ *  - 成功后调 insertFn(url) 让 wangeditor 插入
  */
+function createImageUploader(insertFn: (url: string, alt?: string, href?: string) => void) {
+  return async (file: File) => {
+    const cfg = imageUploadConfig.value
+
+    if (
+      !validateFile(file, {
+        maxSizeMB: cfg.maxFileSize,
+        allowedTypes: cfg.allowedFileTypes,
+        label: '图片',
+      })
+    ) {
+      return
+    }
+
+    try {
+      // 上传前插入占位（可选：如果想让用户看到上传中状态）
+      const result = await uploadFile({
+        file,
+        server: cfg.server,
+        fieldName: cfg.fieldName,
+        meta: cfg.meta,
+      })
+
+      // 插入到编辑器
+      insertFn(result.url, result.filename, result.url)
+
+      cfg.onSuccess?.(file, result)
+      emit('uploadSuccess', file, result)
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err))
+      message.error(`图片上传失败：${error.message}`)
+      cfg.onError?.(file, error)
+      emit('uploadError', file, error)
+    }
+  }
+}
+
+/**
+ * 视频自定义上传
+ */
+function createVideoUploader(insertFn: (url: string, poster?: string) => void) {
+  return async (file: File) => {
+    const cfg = videoUploadConfig.value
+
+    if (
+      !validateFile(file, {
+        maxSizeMB: cfg.maxFileSize,
+        allowedTypes: cfg.allowedFileTypes,
+        label: '视频',
+      })
+    ) {
+      return
+    }
+
+    try {
+      const result = await uploadFile({
+        file,
+        server: cfg.server,
+        fieldName: cfg.fieldName,
+        meta: cfg.meta,
+      })
+
+      insertFn(result.url)
+
+      cfg.onSuccess?.(file, result)
+      emit('uploadSuccess', file, result)
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err))
+      message.error(`视频上传失败：${error.message}`)
+      cfg.onError?.(file, error)
+      emit('uploadError', file, error)
+    }
+  }
+}
+
+/* ============================================================
+ * 工具栏配置
+ * ============================================================ */
+
 const defaultToolbarConfig: Partial<IToolbarConfig> = {
   toolbarKeys: [
     'headerSelect',
@@ -81,7 +244,7 @@ const defaultToolbarConfig: Partial<IToolbarConfig> = {
     '|',
     'insertLink',
     'uploadImage',
-    'insertVideo',
+    'uploadVideo',
     'insertTable',
     'codeBlock',
     '|',
@@ -92,17 +255,16 @@ const defaultToolbarConfig: Partial<IToolbarConfig> = {
   ],
 }
 
-const toolbarConfig = computed((): Partial<IToolbarConfig> => {
-  return {
-    ...defaultToolbarConfig,
-    ...props.toolbarConfig,
-  }
-})
+const toolbarConfig = computed<Partial<IToolbarConfig>>(() => ({
+  ...defaultToolbarConfig,
+  ...props.toolbarConfig,
+}))
 
-/**
+/* ============================================================
  * 编辑器配置
- */
-const editorConfig = computed((): Partial<IEditorConfig> => {
+ * ============================================================ */
+
+const editorConfig = computed<Partial<IEditorConfig>>(() => {
   const config: Partial<IEditorConfig> = {
     placeholder: props.placeholder,
     readOnly: props.readonly || props.disabled,
@@ -111,166 +273,211 @@ const editorConfig = computed((): Partial<IEditorConfig> => {
     ...props.editorConfig,
   }
 
-  // 图片上传配置
-  if (props.imageUpload) {
-    config.MENU_CONF = {
-      ...config.MENU_CONF,
-      uploadImage: {
-        server: props.imageUpload.server,
-        fieldName: props.imageUpload.fieldName || 'file',
-        headers: props.imageUpload.headers,
-        meta: props.imageUpload.meta,
-        maxFileSize: (props.imageUpload.maxFileSize || 5) * 1024 * 1024,
-        allowedFileTypes: props.imageUpload.allowedFileTypes || ['image/png', 'image/jpeg', 'image/gif'],
-        customUpload: props.imageUpload.customUpload,
-        onSuccess: (file: File, response: any) => {
-          emit('uploadSuccess', file, response)
-        },
-        onError: (file: File, error: any) => {
-          emit('uploadError', file, error)
-        },
-      },
-    }
+  const menuConf: Record<string, unknown> = {
+    ...(config.MENU_CONF as Record<string, unknown> | undefined),
   }
 
-  // 最大字数限制
+  // ⭐ 图片上传
+  const imgCfg = imageUploadConfig.value
+  menuConf.uploadImage = {
+    // wangeditor 要求的字段
+    server: imgCfg.server ?? '', // 实际不用，走 customUpload
+    fieldName: imgCfg.fieldName ?? 'file',
+    maxFileSize: (imgCfg.maxFileSize ?? 5) * 1024 * 1024,
+    allowedFileTypes: imgCfg.allowedFileTypes ?? DEFAULT_IMAGE_TYPES,
+
+    // ⭐ 自定义上传：走系统 http
+    customUpload: (file: File, insertFn: (url: string, alt?: string, href?: string) => void) => {
+      if (imgCfg.customUpload) {
+        imgCfg.customUpload(file, insertFn)
+      } else {
+        void createImageUploader(insertFn)(file)
+      }
+    },
+  }
+
+  // ⭐ 视频上传
+  const vidCfg = videoUploadConfig.value
+  menuConf.uploadVideo = {
+    server: vidCfg.server ?? '',
+    fieldName: vidCfg.fieldName ?? 'file',
+    maxFileSize: (vidCfg.maxFileSize ?? 100) * 1024 * 1024,
+    allowedFileTypes: vidCfg.allowedFileTypes ?? DEFAULT_VIDEO_TYPES,
+
+    customUpload: (file: File, insertFn: (url: string, poster?: string) => void) => {
+      if (vidCfg.customUpload) {
+        vidCfg.customUpload(file, insertFn)
+      } else {
+        void createVideoUploader(insertFn)(file)
+      }
+    },
+  }
+
+  config.MENU_CONF = menuConf as IEditorConfig['MENU_CONF']
+
   if (props.maxLength) {
     config.maxLength = props.maxLength
     config.onMaxLength = (editor: IDomEditor) => {
-      const length = editor.getText().length
-      emit('maxLength', length, props.maxLength!)
+      emit('maxLength', editor.getText().length, props.maxLength!)
     }
   }
 
   return config
 })
 
-/**
- * 编辑器容器类名
- */
-const containerClassName = computed(() => {
-  return cn(
-    'markdown-editor',
-    'border rounded overflow-hidden',
-    props.theme === 'dark' && 'dark-theme',
-    props.disabled && 'opacity-60 pointer-events-none',
-  )
-})
+/* ============================================================
+ * 类名
+ * ============================================================ */
 
-/**
- * 编辑器创建完成回调
- */
+const containerClassName = computed(() =>
+  cn(
+    'markdown-editor flex flex-col overflow-hidden rounded-md border',
+    'border-gray-200 bg-white transition-colors',
+    'focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-500/20',
+    'dark:border-gray-700 dark:bg-gray-900',
+    props.disabled && 'pointer-events-none opacity-60',
+    props.compact && 'markdown-editor-compact',
+  ),
+)
+
+const toolbarClassName = computed(() =>
+  cn('shrink-0 border-b border-gray-200 dark:border-gray-700', props.compact && 'compact-toolbar'),
+)
+
+/* ============================================================
+ * 生命周期
+ * ============================================================ */
+
 function handleCreated(editor: IDomEditor) {
   editorRef.value = editor
 
-  // 初始化内容
-  if (props.modelValue && editor.isEmpty()) {
-    editor.setHtml(props.modelValue)
+  const initial = normalizeHtml(model.value)
+  if (!isEmptyContent(initial)) {
+    nextTick(() => {
+      if (editorRef.value !== editor) return
+      editor.setHtml(initial)
+      updateStats()
+    })
   }
 
-  // 更新字数统计
+  if (props.autoFocus) {
+    nextTick(() => editor.focus())
+  }
+
   updateStats()
+  emit('created', editor)
 }
 
-/**
- * 内容变化回调
- */
 function handleChange(editor: IDomEditor) {
   const html = editor.getHtml()
   const text = editor.getText()
 
-  editorValue.value = html
+  markInternalUpdate()
+  model.value = html
+
+  emit('change', html, text)
   textLength.value = text.length
   htmlLength.value = html.length
-
-  emit('update:modelValue', html)
-  emit('change', html, text)
 }
 
-/**
- * 聚焦回调
- */
 function handleFocus(editor: IDomEditor) {
   emit('focus', editor)
 }
 
-/**
- * 失焦回调
- */
 function handleBlur(editor: IDomEditor) {
   emit('blur', editor)
 }
 
-/**
- * 更新字数统计
- */
-function updateStats() {
+watch(
+  () => model.value,
+  (newValue) => {
+    if (isInternalUpdate) return
+    const editor = editorRef.value
+    if (!editor) return
+
+    const next = normalizeHtml(newValue)
+    const current = editor.getHtml()
+    if (isSameContent(next, current)) return
+
+    editor.setHtml(next)
+    updateStats()
+  },
+  {
+    immediate: true,
+  },
+)
+
+watch(
+  () => props.readonly || props.disabled,
+  (locked) => {
+    const editor = editorRef.value
+    if (!editor) return
+    if (locked) editor.disable()
+    else editor.enable()
+  },
+)
+
+onBeforeUnmount(() => {
+  if (internalUpdateTimer) {
+    clearTimeout(internalUpdateTimer)
+    internalUpdateTimer = null
+  }
   const editor = editorRef.value
   if (editor) {
-    textLength.value = editor.getText().length
-    htmlLength.value = editor.getHtml().length
+    editor.destroy()
+    editorRef.value = null
   }
-}
+  emit('destroyed')
+})
 
-/**
- * 监听 modelValue 变化
- */
-watch(
-  () => props.modelValue,
-  (newValue) => {
-    const editor = editorRef.value
-    if (editor && newValue !== editor.getHtml()) {
-      editor.setHtml(newValue || '')
-      updateStats()
-    }
-  },
-)
+/* ============================================================
+ * 实例方法
+ * ============================================================ */
 
-/**
- * 监听 disabled 变化
- */
-watch(
-  () => props.disabled,
-  (disabled) => {
-    const editor = editorRef.value
-    if (editor) {
-      if (disabled) {
-        editor.disable()
-      }
-      else {
-        editor.enable()
-      }
-    }
-  },
-)
-
-/**
- * 组件实例方法
- */
 const instance: MarkdownEditorInstance = {
   getEditor: () => editorRef.value,
-  getHtml: () => editorRef.value?.getHtml() || '',
-  getMarkdown: () => editorRef.value?.getHtml() || '', // WangEditor 输出 HTML，如需 Markdown 需额外转换
-  getText: () => editorRef.value?.getText() || '',
+  getHtml: () => editorRef.value?.getHtml() ?? '',
+  getMarkdown: () => editorRef.value?.getHtml() ?? '',
+  getText: () => editorRef.value?.getText() ?? '',
   setHtml: (html: string) => {
-    editorRef.value?.setHtml(html)
+    const editor = editorRef.value
+    if (!editor) return
+    markInternalUpdate()
+    editor.setHtml(normalizeHtml(html))
+    model.value = html
     updateStats()
   },
   setMarkdown: (markdown: string) => {
-    // 如需支持 Markdown 输入，需要引入 markdown-it 等库进行转换
-    editorRef.value?.setHtml(markdown)
+    const editor = editorRef.value
+    if (!editor) return
+    markInternalUpdate()
+    editor.setHtml(normalizeHtml(markdown))
+    model.value = markdown
     updateStats()
   },
   clear: () => {
-    editorRef.value?.clear()
+    const editor = editorRef.value
+    if (!editor) return
+    markInternalUpdate()
+    editor.clear()
+    model.value = ''
     updateStats()
   },
   focus: () => editorRef.value?.focus(),
   blur: () => editorRef.value?.blur(),
-  undo: () => editorRef.value?.undo(),
-  redo: () => editorRef.value?.redo(),
+  undo: () => editorRef.value?.undo?.(),
+  redo: () => editorRef.value?.redo?.(),
   insertText: (text: string) => editorRef.value?.insertText(text),
   insertHtml: (html: string) => editorRef.value?.dangerouslyInsertHtml(html),
+  // ⭐ 新增：手动插入图片 / 视频（供外部调用）
+  insertImage: (url: string, alt = '', href = '') => {
+    editorRef.value?.dangerouslyInsertHtml(`<img src="${url}" alt="${alt}" ${href ? `data-href="${href}"` : ''} />`)
+  },
+  insertVideo: (url: string, poster = '') => {
+    editorRef.value?.dangerouslyInsertHtml(
+      `<video src="${url}" ${poster ? `poster="${poster}"` : ''} controls></video>`,
+    )
+  },
   selectAll: () => editorRef.value?.selectAll(),
   getStats: () => ({
     textLength: textLength.value,
@@ -278,7 +485,6 @@ const instance: MarkdownEditorInstance = {
   }),
 }
 
-// 暴露实例方法
 defineExpose(instance)
 </script>
 
@@ -290,15 +496,15 @@ defineExpose(instance)
       :editor="editorRef"
       :default-config="toolbarConfig"
       :mode="mode === 'split' ? 'default' : mode"
-      class="border-b"
+      :class="toolbarClassName"
     />
 
-    <!-- 编辑器 -->
+    <!-- 编辑器（自适应高度） -->
     <Editor
       :default-config="editorConfig"
       :mode="mode === 'split' ? 'default' : mode"
-      :style="{ height: editorHeight }"
-      class="overflow-hidden"
+      :style="editorStyle"
+      class="min-h-0 flex-1 overflow-hidden"
       @onCreated="handleCreated"
       @onChange="handleChange"
       @onFocus="handleFocus"
@@ -308,29 +514,75 @@ defineExpose(instance)
     <!-- 字数统计 -->
     <div
       v-if="showCount"
-      class="flex justify-end px-3 py-1 text-xs text-gray-500 border-t bg-gray-50"
+      class="flex shrink-0 items-center justify-end gap-2 border-t border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800/60 dark:text-gray-400"
     >
       <span>{{ textLength }} 字</span>
-      <span
-        v-if="maxLength"
-        class="ml-2"
-      >/ {{ maxLength }} 字上限</span>
+      <span v-if="maxLength" class="text-gray-400 dark:text-gray-500"> / {{ maxLength }} 上限 </span>
     </div>
   </div>
 </template>
 
 <style scoped>
+/* ============================================================
+ * WangEditor 内部 DOM，无法用 Tailwind 类名控制
+ * ============================================================ */
+
 .markdown-editor :deep(.w-e-text-container) {
   background-color: transparent;
+  /* 让内容区自适应父容器高度 */
+  height: 100% !important;
 }
 
-.markdown-editor.dark-theme :deep(.w-e-toolbar) {
+.markdown-editor :deep(.w-e-text-placeholder) {
+  top: 12px;
+  font-style: normal;
+}
+
+/* 紧凑模式：压缩工具栏 */
+.markdown-editor-compact :deep(.w-e-bar) {
+  padding: 2px 4px;
+}
+
+.markdown-editor-compact :deep(.w-e-bar-item) {
+  height: 26px;
+  padding: 0 2px;
+}
+
+.markdown-editor-compact :deep(.w-e-bar-item button) {
+  height: 26px;
+  min-width: 26px;
+  padding: 0 4px;
+}
+
+.markdown-editor-compact :deep(.w-e-text-container) {
+  min-height: 120px;
+}
+
+/* 深色模式 */
+:global(.dark) .markdown-editor :deep(.w-e-toolbar) {
   background-color: #1f2937;
+  border-color: #374151;
   color: #e5e7eb;
 }
 
-.markdown-editor.dark-theme :deep(.w-e-text-container) {
+:global(.dark) .markdown-editor :deep(.w-e-bar-item button) {
+  color: #e5e7eb;
+}
+
+:global(.dark) .markdown-editor :deep(.w-e-bar-item button:hover) {
+  background-color: #374151;
+}
+
+:global(.dark) .markdown-editor :deep(.w-e-text-container) {
   background-color: #111827;
   color: #e5e7eb;
+}
+
+:global(.dark) .markdown-editor :deep(.w-e-text-placeholder) {
+  color: #6b7280;
+}
+
+:global(.dark) .markdown-editor :deep(.w-e-bar-divider) {
+  background-color: #374151;
 }
 </style>

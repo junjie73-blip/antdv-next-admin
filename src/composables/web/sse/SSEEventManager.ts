@@ -67,8 +67,7 @@ export class SSEEventManager {
       if (handlers.size === 0) {
         this.eventHandlers.delete(eventType as SSEEventType)
       }
-    }
-    else {
+    } else {
       this.eventHandlers.delete(eventType as SSEEventType)
     }
   }
@@ -84,8 +83,7 @@ export class SSEEventManager {
       if (handlers.size === 0) {
         this.namedEventHandlers.delete(eventName)
       }
-    }
-    else {
+    } else {
       this.namedEventHandlers.delete(eventName)
     }
   }
@@ -105,8 +103,7 @@ export class SSEEventManager {
     handlers.forEach((callback) => {
       try {
         callback(data)
-      }
-      catch (error) {
+      } catch (error) {
         console.error(`Error in event handler for ${eventType}:`, error)
       }
     })
@@ -121,8 +118,7 @@ export class SSEEventManager {
     handlers.forEach((callback) => {
       try {
         callback(data)
-      }
-      catch (error) {
+      } catch (error) {
         console.error(`Error in named event handler for ${eventName}:`, error)
       }
     })
@@ -139,7 +135,7 @@ export class SSEEventManager {
     })
 
     return () => {
-      unsubscribers.forEach(unsubscribe => unsubscribe())
+      unsubscribers.forEach((unsubscribe) => unsubscribe())
     }
   }
 
@@ -148,12 +144,10 @@ export class SSEEventManager {
       if (eventType.startsWith('event:')) {
         const eventName = eventType.replace('event:', '')
         this.namedEventHandlers.delete(eventName)
-      }
-      else {
+      } else {
         this.eventHandlers.delete(eventType as SSEEventType)
       }
-    }
-    else {
+    } else {
       this.eventHandlers.clear()
       this.namedEventHandlers.clear()
     }

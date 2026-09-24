@@ -5,7 +5,8 @@ import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 import { Marked } from 'marked'
 import { markedHighlight } from 'marked-highlight'
-import { cn } from '@/utils/cn'
+
+import { cn } from '~/utils/cn'
 
 import 'highlight.js/styles/github-dark.css'
 
@@ -143,8 +144,7 @@ $$
 const markdownContent = ref(defaultMarkdown)
 
 const renderedHtml = computed(() => {
-  if (!markdownContent.value)
-    return ''
+  if (!markdownContent.value) return ''
   if (renderer.value === 'marked') {
     return markedInstance.parse(markdownContent.value) as string
   }
@@ -153,36 +153,24 @@ const renderedHtml = computed(() => {
 
 const textareaRef = useTemplateRef<HTMLTextAreaElement>('textareaRef')
 
-function insertMarkdown(
-  before: string,
-  after = '',
-  placeholder = '',
-  keepSelection = false,
-) {
+function insertMarkdown(before: string, after = '', placeholder = '', keepSelection = false) {
   const textarea = textareaRef.value
-  if (!textarea)
-    return
+  if (!textarea) return
 
   const start = textarea.selectionStart
   const end = textarea.selectionEnd
   const selectedText = markdownContent.value.substring(start, end)
 
-  const replacement = keepSelection
-    ? `${before}${selectedText}${after}`
-    : `${before}${placeholder}${after}`
+  const replacement = keepSelection ? `${before}${selectedText}${after}` : `${before}${placeholder}${after}`
 
-  markdownContent.value
-    = markdownContent.value.substring(0, start)
-      + replacement
-      + markdownContent.value.substring(end)
+  markdownContent.value = markdownContent.value.substring(0, start) + replacement + markdownContent.value.substring(end)
 
   void nextTick(() => {
     textarea.focus()
     if (keepSelection) {
       const newCursorEnd = start + replacement.length
       textarea.setSelectionRange(newCursorEnd, newCursorEnd)
-    }
-    else {
+    } else {
       const cursorPos = start + before.length + placeholder.length
       textarea.setSelectionRange(cursorPos, cursorPos)
     }
@@ -191,8 +179,7 @@ function insertMarkdown(
 
 function insertLink() {
   const textarea = textareaRef.value
-  if (!textarea)
-    return
+  if (!textarea) return
 
   const start = textarea.selectionStart
   const end = textarea.selectionEnd
@@ -200,16 +187,14 @@ function insertLink() {
 
   if (selectedText) {
     insertMarkdown('[', '](url)', selectedText, true)
-  }
-  else {
+  } else {
     insertMarkdown('[', '](url)', '链接文本')
   }
 }
 
 function insertImage() {
   const textarea = textareaRef.value
-  if (!textarea)
-    return
+  if (!textarea) return
 
   const start = textarea.selectionStart
   const end = textarea.selectionEnd
@@ -217,23 +202,20 @@ function insertImage() {
 
   if (selectedText) {
     insertMarkdown('![', '](url)', selectedText, true)
-  }
-  else {
+  } else {
     insertMarkdown('![', '](url)', '图片描述')
   }
 }
 
 function insertTable() {
-  const tableTemplate = '\n| 列1   | 列2   | 列3   |\n| ----- | ----- | ----- |\n| 内容1 | 内容2 | 内容3 |\n| 内容4 | 内容5 | 内容6 |\n'
+  const tableTemplate =
+    '\n| 列1   | 列2   | 列3   |\n| ----- | ----- | ----- |\n| 内容1 | 内容2 | 内容3 |\n| 内容4 | 内容5 | 内容6 |\n'
   const textarea = textareaRef.value
-  if (!textarea)
-    return
+  if (!textarea) return
 
   const start = textarea.selectionStart
-  markdownContent.value
-    = markdownContent.value.substring(0, start)
-      + tableTemplate
-      + markdownContent.value.substring(start)
+  markdownContent.value =
+    markdownContent.value.substring(0, start) + tableTemplate + markdownContent.value.substring(start)
 
   void nextTick(() => {
     textarea.focus()
@@ -250,14 +232,10 @@ function insertHeading(level: number) {
 function insertCodeBlock() {
   const template = '\n```\n\n```\n'
   const textarea = textareaRef.value
-  if (!textarea)
-    return
+  if (!textarea) return
 
   const start = textarea.selectionStart
-  markdownContent.value
-    = markdownContent.value.substring(0, start)
-      + template
-      + markdownContent.value.substring(start)
+  markdownContent.value = markdownContent.value.substring(0, start) + template + markdownContent.value.substring(start)
 
   void nextTick(() => {
     textarea.focus()
@@ -269,14 +247,10 @@ function insertCodeBlock() {
 function insertTaskList() {
   const template = '\n- [ ] 待办事项1\n- [ ] 待办事项2\n- [ ] 待办事项3\n'
   const textarea = textareaRef.value
-  if (!textarea)
-    return
+  if (!textarea) return
 
   const start = textarea.selectionStart
-  markdownContent.value
-    = markdownContent.value.substring(0, start)
-      + template
-      + markdownContent.value.substring(start)
+  markdownContent.value = markdownContent.value.substring(0, start) + template + markdownContent.value.substring(start)
 
   void nextTick(() => {
     textarea.focus()
@@ -288,10 +262,26 @@ function insertTaskList() {
 const toolbarGroups = [
   {
     buttons: [
-      { label: '加粗', icon: 'carbon:text-bold', action: () => insertMarkdown('**', '**', '粗体文字', false) },
-      { label: '斜体', icon: 'carbon:text-italic', action: () => insertMarkdown('*', '*', '斜体文字', false) },
-      { label: '删除线', icon: 'carbon:text-strikethrough', action: () => insertMarkdown('~~', '~~', '删除线文字', false) },
-      { label: '行内代码', icon: 'carbon:code', action: () => insertMarkdown('`', '`', '代码', false) },
+      {
+        label: '加粗',
+        icon: 'carbon:text-bold',
+        action: () => insertMarkdown('**', '**', '粗体文字', false),
+      },
+      {
+        label: '斜体',
+        icon: 'carbon:text-italic',
+        action: () => insertMarkdown('*', '*', '斜体文字', false),
+      },
+      {
+        label: '删除线',
+        icon: 'carbon:text-strikethrough',
+        action: () => insertMarkdown('~~', '~~', '删除线文字', false),
+      },
+      {
+        label: '行内代码',
+        icon: 'carbon:code',
+        action: () => insertMarkdown('`', '`', '代码', false),
+      },
     ],
   },
   {
@@ -303,9 +293,21 @@ const toolbarGroups = [
   },
   {
     buttons: [
-      { label: '引用', icon: 'carbon:quotes', action: () => insertMarkdown('\n> ', '', '引用内容', false) },
-      { label: '无序列表', icon: 'carbon:list', action: () => insertMarkdown('\n- ', '', '列表项', false) },
-      { label: '有序列表', icon: 'carbon:list-numbered', action: () => insertMarkdown('\n1. ', '', '列表项', false) },
+      {
+        label: '引用',
+        icon: 'carbon:quotes',
+        action: () => insertMarkdown('\n> ', '', '引用内容', false),
+      },
+      {
+        label: '无序列表',
+        icon: 'carbon:list',
+        action: () => insertMarkdown('\n- ', '', '列表项', false),
+      },
+      {
+        label: '有序列表',
+        icon: 'carbon:list-numbered',
+        action: () => insertMarkdown('\n1. ', '', '列表项', false),
+      },
       { label: '任务列表', icon: 'carbon:checkbox-checked', action: insertTaskList },
     ],
   },
@@ -319,7 +321,11 @@ const toolbarGroups = [
     buttons: [
       { label: '链接', icon: 'carbon:link', action: insertLink },
       { label: '图片', icon: 'carbon:image', action: insertImage },
-      { label: '分割线', icon: 'carbon:horizontal-rule', action: () => insertMarkdown('\n\n---\n\n', '', '', false) },
+      {
+        label: '分割线',
+        icon: 'carbon:horizontal-rule',
+        action: () => insertMarkdown('\n\n---\n\n', '', '', false),
+      },
     ],
   },
 ]
@@ -355,10 +361,7 @@ const toolbarButtonBaseClassName = cn(
   'text-xs',
 )
 
-const toolbarDividerClassName = cn(
-  'w-px h-4 mx-0.5',
-  'bg-gray-300 dark:bg-gray-600',
-)
+const toolbarDividerClassName = cn('w-px h-4 mx-0.5', 'bg-gray-300 dark:bg-gray-600')
 
 const textareaClassName = cn(
   'flex-1 w-full p-4',
@@ -386,7 +389,7 @@ const previewContentClassName = cn(
   'prose prose-sm dark:prose-invert max-w-none',
   'prose-headings:text-gray-800 dark:prose-headings:text-gray-100',
   'prose-p:text-gray-700 dark:prose-p:text-gray-300',
-  'prose-a:text-blue-500 dark:prose-a:text-blue-400',
+  'prose-a:text-ant-primary dark:prose-a:text-blue-400',
   'prose-code:text-pink-500 dark:prose-code:text-pink-400',
   'prose-code:bg-gray-100 dark:prose-code:bg-gray-800',
   'prose-code:px-1 prose-code:py-0.5 prose-code:rounded',
@@ -406,20 +409,11 @@ const previewContentClassName = cn(
   '[&_pre_code]:bg-transparent [&_pre_code]:p-0',
 )
 
-const pageTitleClassName = cn(
-  'text-2xl font-bold',
-  'text-gray-800 dark:text-gray-100',
-  'mb-1',
-)
+const pageTitleClassName = cn('text-2xl font-bold', 'text-gray-800 dark:text-gray-100', 'mb-1')
 
-const pageSubtitleClassName = cn(
-  'text-sm text-gray-500 dark:text-gray-400',
-  'mb-4',
-)
+const pageSubtitleClassName = cn('text-sm text-gray-500 dark:text-gray-400', 'mb-4')
 
-const mainContainerClassName = cn(
-  'flex flex-1 gap-4 h-[calc(100vh-140px)] min-h-[500px]',
-)
+const mainContainerClassName = cn('flex flex-1 gap-4 h-[calc(100vh-140px)] min-h-[500px]')
 
 const copyBtnClassName = cn(
   'inline-flex items-center gap-1',
@@ -435,9 +429,7 @@ const emptyPreviewClassName = cn(
   'text-sm',
 )
 
-const wordCountClassName = cn(
-  'text-xs text-gray-400 dark:text-gray-500',
-)
+const wordCountClassName = cn('text-xs text-gray-400 dark:text-gray-500')
 
 const rendererToggleClassName = cn(
   'inline-flex items-center',
@@ -448,42 +440,42 @@ const rendererToggleClassName = cn(
 </script>
 
 <template>
-  <div class="p-4 h-full flex flex-col">
-    <div class="flex items-center justify-between mb-1">
+  <div class="flex h-full flex-col p-4">
+    <div class="mb-1 flex items-center justify-between">
       <div>
-        <h1 :class="pageTitleClassName">
-          Markdown 编辑器
-        </h1>
-        <p :class="pageSubtitleClassName">
-          基于 marked + highlight.js + markdown-it 的实时预览 Markdown 编辑器
-        </p>
+        <h1 :class="pageTitleClassName">Markdown 编辑器</h1>
+        <p :class="pageSubtitleClassName">基于 marked + highlight.js + markdown-it 的实时预览 Markdown 编辑器</p>
       </div>
     </div>
 
     <!-- 渲染引擎切换 -->
-    <div class="flex items-center gap-2 mb-3">
+    <div class="mb-3 flex items-center gap-2">
       <span class="text-xs text-gray-500 dark:text-gray-400">渲染引擎：</span>
       <div :class="rendererToggleClassName">
         <button
           type="button"
-          :class="cn(
-            'px-2.5 py-0.5 rounded-md transition-colors duration-150',
-            renderer === 'marked'
-              ? 'bg-white dark:bg-gray-700 shadow-sm text-gray-800 dark:text-gray-200 font-medium'
-              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
-          )"
+          :class="
+            cn(
+              'rounded-md px-2.5 py-0.5 transition-colors duration-150',
+              renderer === 'marked'
+                ? 'bg-white font-medium text-gray-800 shadow-sm dark:bg-gray-700 dark:text-gray-200'
+                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300',
+            )
+          "
           @click="renderer = 'marked'"
         >
           marked
         </button>
         <button
           type="button"
-          :class="cn(
-            'px-2.5 py-0.5 rounded-md transition-colors duration-150',
-            renderer === 'markdown-it'
-              ? 'bg-white dark:bg-gray-700 shadow-sm text-gray-800 dark:text-gray-200 font-medium'
-              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
-          )"
+          :class="
+            cn(
+              'rounded-md px-2.5 py-0.5 transition-colors duration-150',
+              renderer === 'markdown-it'
+                ? 'bg-white font-medium text-gray-800 shadow-sm dark:bg-gray-700 dark:text-gray-200'
+                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300',
+            )
+          "
           @click="renderer = 'markdown-it'"
         >
           markdown-it
@@ -502,14 +494,8 @@ const rendererToggleClassName = cn(
 
         <!-- 工具栏 -->
         <div :class="toolbarContainerClassName">
-          <template
-            v-for="(group, idx) in toolbarGroups"
-            :key="idx"
-          >
-            <span
-              v-if="idx > 0"
-              :class="toolbarDividerClassName"
-            />
+          <template v-for="(group, idx) in toolbarGroups" :key="idx">
+            <span v-if="idx > 0" :class="toolbarDividerClassName" />
             <a-tooltip
               v-for="btn in group.buttons"
               :key="btn.label"
@@ -517,15 +503,8 @@ const rendererToggleClassName = cn(
               placement="top"
               :mouse-enter-delay="0.3"
             >
-              <button
-                type="button"
-                :class="toolbarButtonBaseClassName"
-                @click="btn.action()"
-              >
-                <Icon
-                  :icon="btn.icon"
-                  :width="14"
-                />
+              <button type="button" :class="toolbarButtonBaseClassName" @click="btn.action()">
+                <Icon :icon="btn.icon" :width="14" />
               </button>
             </a-tooltip>
           </template>
@@ -550,11 +529,7 @@ const rendererToggleClassName = cn(
           </div>
           <div class="flex items-center gap-2">
             <span :class="wordCountClassName">{{ markdownContent.length }} 字</span>
-            <button
-              type="button"
-              :class="copyBtnClassName"
-              @click="copy(renderedHtml)"
-            >
+            <button type="button" :class="copyBtnClassName" @click="copy(renderedHtml)">
               <icon-carbon-copy class="text-xs" />
               {{ copied ? '已复制' : '复制HTML' }}
             </button>
@@ -562,21 +537,12 @@ const rendererToggleClassName = cn(
         </div>
 
         <!-- 预览内容（使用安全指令：保留合法HTML标签，过滤script和事件处理器） -->
-        <PerfectScrollbar
-          v-if="renderedHtml"
-          :class="previewScrollbarClassName"
-        >
-          <div
-            v-safe-html="{ content: renderedHtml, allowHtml: true }"
-            :class="previewContentClassName"
-          />
+        <PerfectScrollbar v-if="renderedHtml" :class="previewScrollbarClassName">
+          <div v-safe-html="{ content: renderedHtml, allowHtml: true }" :class="previewContentClassName" />
         </PerfectScrollbar>
-        <div
-          v-else
-          :class="emptyPreviewClassName"
-        >
+        <div v-else :class="emptyPreviewClassName">
           <div class="text-center">
-            <icon-carbon-document-blank class="text-4xl mb-2 mx-auto opacity-30" />
+            <icon-carbon-document-blank class="mx-auto mb-2 text-4xl opacity-30" />
             <p>在左侧输入 Markdown 内容后，此处将实时预览渲染结果</p>
           </div>
         </div>

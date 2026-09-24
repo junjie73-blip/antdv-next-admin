@@ -1,10 +1,19 @@
-import { useWebSocket as _useWebSocket } from '@vueuse/core'
-import { computed, onScopeDispose, ref, watch } from 'vue'
+import { computed, ref, shallowRef } from 'vue'
+
+import { DEFAULT_HEARTBEAT_CONFIG, DEFAULT_RECONNECT_CONFIG } from './constants'
+import { EventManager } from './EventManager'
+import { HeartbeatManager } from './HeartbeatManager'
+import { ReconnectManager } from './ReconnectManager'
+import { WebSocketEventType, WebSocketState } from './types'
+import { WebSocketStateManager } from './WebSocketStateManager'
 
 export interface UseWebSocketOptions {
+  /** 每次连接时调用，可返回最新 URL（token 变化后重连会用新 URL） */
   url: () => string | URL
   protocols?: string[] | string
+  /** 是否在创建时自动连接，默认 false */
   autoConnect?: boolean
+  /** @deprecated 已去除 onScopeDispose 自动断开，此参数仅为兼容保留 */
   autoDisconnect?: boolean
   heartbeat?: {
     interval: number
@@ -13,195 +22,302 @@ export interface UseWebSocketOptions {
     pongMessage?: string
   }
   reconnect?: {
+    /** 最大重试次数；<=0 表示无限（推荐用 -1） */
     retries: number
+    /** 基础延迟（ms） */
     interval: number
+    /** 退避倍数，默认 2 */
+    delayMultiplier?: number
+    /** 最大延迟，默认 30000 */
+    maxDelay?: number
+    /** 达到最大重试次数时回调（无限重试时不会触发） */
     onFailed?: () => void
   }
 }
 
-type WebSocketEventType = 'open' | 'close' | 'error' | 'message' | 'stateChange'
-
-interface WebSocketEventCallback<T = unknown> {
-  (data: T): void
-}
+/** 兼容 vueuse 风格的字符串状态 */
+export type WsStatusString = 'OPEN' | 'CONNECTING' | 'CLOSED'
 
 export function useWebSocket(options: UseWebSocketOptions) {
-  const {
-    url,
-    autoConnect = true,
-    autoDisconnect = true,
-    heartbeat,
-    reconnect,
-  } = options
-  const { protocols: _protocols } = options
+  const { url: urlGetter, protocols, autoConnect = false, heartbeat, reconnect } = options
 
-  const urlRef = typeof url === 'function' ? computed(url) : ref(url)
+  // ==================== 管理器 ====================
+  const stateManager = new WebSocketStateManager()
+  const eventManager = new EventManager()
 
-  const {
-    data,
-    status,
-    open,
-    close,
-    send,
-    ws,
-  } = _useWebSocket(urlRef, {
-    immediate: false,
-    autoReconnect: reconnect ? { retries: reconnect.retries, delay: reconnect.interval, onFailed: reconnect.onFailed } : false,
+  const reconnectManager = new ReconnectManager({
+    enabled: !!reconnect,
+    interval: reconnect?.interval ?? DEFAULT_RECONNECT_CONFIG.interval,
+    maxAttempts: reconnect?.retries ?? DEFAULT_RECONNECT_CONFIG.maxAttempts,
+    delayMultiplier: reconnect?.delayMultiplier ?? DEFAULT_RECONNECT_CONFIG.delayMultiplier,
+    maxDelay: reconnect?.maxDelay ?? DEFAULT_RECONNECT_CONFIG.maxDelay,
   })
 
-  const isConnected = computed(() => status.value === 'OPEN')
-  const isConnecting = computed(() => status.value === 'CONNECTING')
-  const isError = ref(false)
+  const heartbeatManager = new HeartbeatManager(
+    {
+      interval: heartbeat?.interval ?? DEFAULT_HEARTBEAT_CONFIG.interval,
+      timeout: heartbeat?.timeout ?? DEFAULT_HEARTBEAT_CONFIG.timeout,
+      message: heartbeat?.message ?? DEFAULT_HEARTBEAT_CONFIG.message,
+    },
+    (msg) => sendRaw(msg),
+  )
 
-  const listeners = new Map<WebSocketEventType, Set<WebSocketEventCallback>>()
+  // ==================== 响应式状态 ====================
+  const data = ref<string | ArrayBuffer | Blob | null>(null)
+  const ws = shallowRef<WebSocket | null>(null)
 
-  function on(event: WebSocketEventType, callback: WebSocketEventCallback) {
-    if (!listeners.has(event)) {
-      listeners.set(event, new Set())
+  const isConnected = computed(() => stateManager.isConnected())
+  const isConnecting = computed(() => stateManager.isConnecting())
+  const isError = computed(() => stateManager.isError())
+
+  const status = computed<WsStatusString>(() => {
+    const s = stateManager.getState()
+    if (s === WebSocketState.Connected) return 'OPEN'
+    if (s === WebSocketState.Connecting) return 'CONNECTING'
+    return 'CLOSED'
+  })
+
+  // ==================== 内部标志 ====================
+  /** 用户主动关闭 → 不触发自动重连 */
+  let manuallyClosed = false
+
+  // ==================== 核心操作 ====================
+  function sendRaw(msg: string | ArrayBufferLike | Blob | ArrayBufferView): void {
+    const socket = stateManager.getWebSocket()
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(msg as any)
+    } else {
+      console.warn('[WS] send failed: socket not open')
     }
-    listeners.get(event)!.add(callback)
   }
 
-  function once(event: WebSocketEventType, callback: WebSocketEventCallback) {
-    const wrapper: WebSocketEventCallback = (data) => {
-      callback(data)
-      off(event, wrapper)
-    }
-    on(event, wrapper)
+  function send(msg: string | ArrayBufferLike | Blob | ArrayBufferView): void {
+    sendRaw(msg)
   }
 
-  function off(event: WebSocketEventType, callback?: WebSocketEventCallback) {
-    if (!callback) {
-      listeners.delete(event)
+  /** 断开并清除底层 socket（不会触碰 manuallyClosed） */
+  function cleanupSocket(): void {
+    const socket = stateManager.getWebSocket()
+    if (!socket) return
+
+    // ⭐ 先摘监听，避免 close 触发 onclose → 递归重连
+    socket.onopen = null
+    socket.onmessage = null
+    socket.onerror = null
+    socket.onclose = null
+
+    try {
+      if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
+        socket.close(1000, 'client cleanup')
+      }
+    } catch {
+      /* ignore */
+    }
+
+    stateManager.setWebSocket(null)
+    ws.value = null
+  }
+
+  function stopAllTimers(): void {
+    heartbeatManager.stop()
+    reconnectManager.stop()
+  }
+
+  /** 打开连接（幂等：已连接/连接中直接返回） */
+  function open(): void {
+    manuallyClosed = false
+
+    const current = stateManager.getWebSocket()
+    if (current && (current.readyState === WebSocket.OPEN || current.readyState === WebSocket.CONNECTING)) {
       return
     }
-    listeners.get(event)?.delete(callback)
-  }
 
-  function emit(event: WebSocketEventType, data?: unknown) {
-    listeners.get(event)?.forEach(cb => cb(data))
-  }
-
-  watch(status, (newStatus, oldStatus) => {
-    if (newStatus !== oldStatus) {
-      if (newStatus === 'OPEN') {
-        isError.value = false
-        emit('open')
-        emit('stateChange', 'connected')
-      }
-      else if (newStatus === 'CLOSED' && oldStatus === 'OPEN') {
-        emit('close')
-        emit('stateChange', 'disconnected')
-      }
-      else if (newStatus === 'CONNECTING') {
-        emit('stateChange', 'connecting')
-      }
-    }
-  })
-
-  watch(data, (newData) => {
-    if (newData) {
-      try {
-        const parsed = JSON.parse(newData as string)
-        if (heartbeat?.pongMessage && parsed === heartbeat.pongMessage) {
-          return
-        }
-        emit('message', parsed)
-      }
-      catch {
-        emit('message', newData)
-      }
-    }
-  })
-
-  let heartbeatTimer: ReturnType<typeof setInterval> | null = null
-
-  function startHeartbeat() {
-    if (!heartbeat || !isConnected.value)
+    // 解析 URL
+    let urlStr: string
+    try {
+      const raw = urlGetter()
+      urlStr = raw instanceof URL ? raw.toString() : String(raw)
+    } catch (err) {
+      console.error('[WS] invalid url', err)
+      stateManager.setState(WebSocketState.Error)
+      eventManager.emit(WebSocketEventType.StateChange, WebSocketState.Error)
+      eventManager.emit(WebSocketEventType.Error, err as Event)
       return
+    }
 
-    stopHeartbeat()
+    stateManager.setState(WebSocketState.Connecting)
+    eventManager.emit(WebSocketEventType.StateChange, WebSocketState.Connecting)
 
-    let heartbeatTimeoutTimer: number | null = null
+    // 创建原生 WebSocket
+    let socket: WebSocket
+    try {
+      socket = protocols ? new WebSocket(urlStr, protocols) : new WebSocket(urlStr)
+    } catch (err) {
+      console.error('[WS] new WebSocket failed', err)
+      stateManager.setState(WebSocketState.Error)
+      eventManager.emit(WebSocketEventType.StateChange, WebSocketState.Error)
+      eventManager.emit(WebSocketEventType.Error, err as Event)
+      scheduleReconnect()
+      return
+    }
 
-    heartbeatTimer = setInterval(() => {
-      if (!isConnected.value) {
-        stopHeartbeat()
-        return
+    ws.value = socket
+    stateManager.setWebSocket(socket)
+
+    // ---------------- onopen ----------------
+    socket.onopen = (ev) => {
+      // 连上就重置重连计数
+      reconnectManager.reset()
+
+      stateManager.setState(WebSocketState.Connected)
+      eventManager.emit(WebSocketEventType.StateChange, WebSocketState.Connected)
+      eventManager.emit(WebSocketEventType.Open, ev)
+
+      if (heartbeat) {
+        heartbeatManager.start()
       }
+    }
 
-      const msg = typeof heartbeat.message === 'function' ? heartbeat.message() : (heartbeat.message ?? 'ping')
+    // ---------------- onmessage ----------------
+    socket.onmessage = (ev) => {
+      // ⭐ 不用 watch(ref) 派发，直接事件派发，避免内容相同时丢失
+      data.value = ev.data
 
-      try {
-        send(msg)
-
-        if (heartbeat.timeout) {
-          if (heartbeatTimeoutTimer) {
-            clearTimeout(heartbeatTimeoutTimer)
+      // 心跳 pong 拦截
+      if (heartbeat?.pongMessage) {
+        try {
+          const parsed = typeof ev.data === 'string' ? JSON.parse(ev.data) : ev.data
+          if (parsed === heartbeat.pongMessage) {
+            heartbeatManager.onPong()
+            return
           }
-          heartbeatTimeoutTimer = setTimeout(() => {
-            if (isConnected.value) {
-              close()
-            }
-          }, heartbeat.timeout) as unknown as number
+        } catch {
+          // 非 JSON，忽略
         }
       }
-      catch {
-        close()
-      }
-    }, heartbeat.interval)
-  }
 
-  function stopHeartbeat() {
-    if (heartbeatTimer) {
-      clearInterval(heartbeatTimer)
-      heartbeatTimer = null
+      eventManager.emit(WebSocketEventType.Message, ev.data)
+    }
+
+    // ---------------- onerror ----------------
+    socket.onerror = (ev) => {
+      stateManager.setState(WebSocketState.Error)
+      eventManager.emit(WebSocketEventType.StateChange, WebSocketState.Error)
+      eventManager.emit(WebSocketEventType.Error, ev)
+      // 不在 error 里重连，等 onclose 统一处理
+    }
+
+    // ---------------- onclose ----------------
+    socket.onclose = (ev) => {
+      heartbeatManager.stop()
+
+      stateManager.setState(WebSocketState.Disconnected)
+      eventManager.emit(WebSocketEventType.StateChange, WebSocketState.Disconnected)
+      eventManager.emit(WebSocketEventType.Close, ev)
+
+      ws.value = null
+      stateManager.setWebSocket(null)
+
+      // 用户主动关闭 → 不重连
+      if (manuallyClosed) return
+
+      // 允许自动重连
+      if (!reconnectManager.isEnabled()) return
+
+      scheduleReconnect()
     }
   }
 
-  function connect() {
+  /** 安排重连（start 内部会判断次数上限并调用 onFailed） */
+  function scheduleReconnect(): void {
+    reconnectManager.start()
+  }
+
+  /** 主动断开（用户级操作），不触发自动重连 */
+  function disconnect(): void {
+    manuallyClosed = true
+    stopAllTimers()
+    cleanupSocket()
+    stateManager.setState(WebSocketState.Disconnected)
+    eventManager.emit(WebSocketEventType.StateChange, WebSocketState.Disconnected)
+  }
+
+  // ==================== 心跳超时 → 关闭（触发自动重连） ====================
+  heartbeatManager.setTimeoutCallback(() => {
+    console.warn('[WS] heartbeat timeout, closing for reconnect')
+    const socket = stateManager.getWebSocket()
+    if (!socket) return
+    try {
+      // 4000 是自定义码，不是正常关闭 → onclose 会走重连分支
+      socket.close(4000, 'heartbeat timeout')
+    } catch {
+      /* ignore */
+    }
+  })
+
+  // ==================== 重连回调 ====================
+  reconnectManager.setReconnectCallback(() => {
+    if (manuallyClosed) return
+    open()
+  })
+
+  reconnectManager.setMaxAttemptsReachedCallback(() => {
+    console.warn('[WS] max reconnect attempts reached')
+    reconnect?.onFailed?.()
+  })
+
+  // ==================== 自动连接 ====================
+  if (autoConnect) {
     open()
   }
 
-  function disconnect() {
-    stopHeartbeat()
-    close()
+  // ==================== 事件 API ====================
+  function on<T = unknown>(
+    eventType: 'open' | 'close' | 'error' | 'message' | 'stateChange',
+    callback: (data: T) => void,
+  ): () => void {
+    return eventManager.on(eventType as WebSocketEventType, callback as any)
   }
 
-  function connectWithAutoCleanup() {
-    connect()
-
-    if (autoDisconnect) {
-      onScopeDispose(disconnect)
-    }
+  function once<T = unknown>(
+    eventType: 'open' | 'close' | 'error' | 'message' | 'stateChange',
+    callback: (data: T) => void,
+  ): () => void {
+    return eventManager.once(eventType as WebSocketEventType, callback as any)
   }
 
-  if (autoConnect) {
-    connectWithAutoCleanup()
+  function off(
+    eventType: 'open' | 'close' | 'error' | 'message' | 'stateChange',
+    callback?: (data: unknown) => void,
+  ): void {
+    eventManager.off(eventType as WebSocketEventType, callback as any)
   }
 
-  watch(isConnected, (connected) => {
-    if (connected) {
-      startHeartbeat()
-    }
-    else {
-      stopHeartbeat()
-    }
-  }, { immediate: false })
+  function emit<T = unknown>(eventType: 'open' | 'close' | 'error' | 'message' | 'stateChange', payload?: T): void {
+    eventManager.emit(eventType as WebSocketEventType, payload as any)
+  }
 
   return {
+    // 响应式状态
     isConnected,
     isConnecting,
     isError,
     status,
     data,
-    connect,
-    disconnect,
-    send,
     ws,
+
+    // 操作
+    connect: open,
+    open,
+    disconnect,
+    /** 别名，语义更清晰 */
+    close: disconnect,
+    send,
+
+    // 事件
     on,
-    off,
     once,
+    off,
     emit,
   }
 }

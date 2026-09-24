@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import type { UploadChangeParam, UploadFile, UploadProps } from 'antdv-next'
-
 import { Icon } from '@iconify/vue'
-import { computed, ref, useTemplateRef } from 'vue'
+import { message, type UploadChangeParam, type UploadFile, type UploadProps } from 'antdv-next'
+import { computed, ref, useTemplateRef, watch } from 'vue'
 
 // ===== 大文件切片上传 =====
-import { useChunkUpload } from '@/composables/useChunkUpload'
-
-import { cn } from '@/utils/cn'
+import { useChunkUpload } from '~/composables/useChunkUpload'
+import { cn } from '~/utils/cn'
 
 const containerClassName = cn('space-y-6')
 const descClassName = cn('mb-3 text-sm text-gray-500 dark:text-gray-400')
@@ -50,9 +48,7 @@ const avatarUploaderClassName = cn(
   'w-24 h-24 rounded-full overflow-hidden cursor-pointer border-2 border-dashed border-gray-300 hover:border-blue-500 transition-colors flex items-center justify-center bg-gray-50 dark:bg-gray-800',
 )
 
-const avatarImageClassName = cn(
-  'w-full h-full object-cover',
-)
+const avatarImageClassName = cn('w-full h-full object-cover')
 
 const avatarInfoClassName = cn('flex-1')
 const avatarTitleClassName = cn('font-medium text-gray-700 dark:text-gray-300 mb-2')
@@ -77,13 +73,11 @@ const handleAvatarBeforeUpload: UploadProps['beforeUpload'] = (file) => {
 const handleAvatarChange: UploadProps['onChange'] = (info: UploadChangeParam) => {
   if (info.file.status === 'uploading') {
     avatarLoading.value = true
-  }
-  else {
+  } else {
     avatarLoading.value = false
     if (info.file.status === 'done') {
       message.success(`${info.file.name} 上传成功`)
-    }
-    else if (info.file.status === 'error') {
+    } else if (info.file.status === 'error') {
       message.error(`${info.file.name} 上传失败`)
     }
   }
@@ -130,8 +124,7 @@ const statusTextErrorClassName = cn('text-red-600 dark:text-red-400')
 const statusDotDoneClassName = cn('w-3 h-3 rounded-full bg-green-500')
 const statusTextDoneClassName = cn('text-green-600 dark:text-green-400')
 
-const handleStatusChange: UploadProps['onChange'] = (_info: UploadChangeParam) => {
-}
+const handleStatusChange: UploadProps['onChange'] = (_info: UploadChangeParam) => {}
 
 const validateFileList = ref<UploadFile[]>([])
 
@@ -181,12 +174,10 @@ async function handleManualUpload() {
   try {
     await manualUploadRef.value?.submit()
     message.success('所有文件已提交上传')
-  }
-  catch (error) {
+  } catch (error) {
     console.error('手动上传失败', error)
     message.error('上传失败，请重试')
-  }
-  finally {
+  } finally {
     manualUploading.value = false
   }
 }
@@ -309,22 +300,19 @@ function createFileQueueItem(file: File): FileQueueItem {
 
   watch(
     () => uploader.progress.value,
-    (val) => { item.progress = val },
+    (val) => {
+      item.progress = val
+    },
   )
 
   watch(
     () => uploader.status.value,
     (val) => {
-      if (val === 'idle')
-        item.status = 'waiting'
-      else if (val === 'uploading')
-        item.status = 'uploading'
-      else if (val === 'paused')
-        item.status = 'paused'
-      else if (val === 'completed')
-        item.status = 'completed'
-      else if (val === 'error')
-        item.status = 'error'
+      if (val === 'idle') item.status = 'waiting'
+      else if (val === 'uploading') item.status = 'uploading'
+      else if (val === 'paused') item.status = 'paused'
+      else if (val === 'completed') item.status = 'completed'
+      else if (val === 'error') item.status = 'error'
     },
   )
 
@@ -337,8 +325,7 @@ function handleSelectFileClick() {
 
 function handleLargeFileSelect(e: Event) {
   const files = (e.target as HTMLInputElement).files
-  if (!files || files.length === 0)
-    return
+  if (!files || files.length === 0) return
   const fileArray = Array.from(files)
   for (const file of fileArray) {
     fileQueue.value.push(createFileQueueItem(file))
@@ -347,20 +334,17 @@ function handleLargeFileSelect(e: Event) {
 }
 
 async function startQueueUpload() {
-  if (isProcessingQueue.value)
-    return
+  if (isProcessingQueue.value) return
   isProcessingQueue.value = true
 
   for (const item of fileQueue.value) {
-    if (item.status === 'completed' || item.status === 'error')
-      continue
+    if (item.status === 'completed' || item.status === 'error') continue
 
     const uploader = getUploader(item)
 
     if (item.status === 'paused') {
       uploader.resume()
-    }
-    else {
+    } else {
       uploader.uploadFile(item.file).catch(() => {})
     }
 
@@ -380,20 +364,18 @@ async function startQueueUpload() {
   isProcessingQueue.value = false
 }
 
-const hasUploadingItem = computed(() => fileQueue.value.some(item => item.status === 'uploading'))
-const hasPausedItem = computed(() => fileQueue.value.some(item => item.status === 'paused'))
+const hasUploadingItem = computed(() => fileQueue.value.some((item) => item.status === 'uploading'))
+const hasPausedItem = computed(() => fileQueue.value.some((item) => item.status === 'paused'))
 
 function handlePauseAll() {
   fileQueue.value.forEach((item) => {
-    if (item.status === 'uploading')
-      getUploader(item).pause()
+    if (item.status === 'uploading') getUploader(item).pause()
   })
 }
 
 function handleResumeAll() {
   fileQueue.value.forEach((item) => {
-    if (item.status === 'paused')
-      getUploader(item).resume()
+    if (item.status === 'paused') getUploader(item).resume()
   })
   if (!isProcessingQueue.value) {
     startQueueUpload()
@@ -424,8 +406,7 @@ function handleDeleteItem(item: FileQueueItem) {
   getUploader(item).cancel()
   uploaderMap.delete(item.id)
   const idx = fileQueue.value.indexOf(item)
-  if (idx !== -1)
-    fileQueue.value.splice(idx, 1)
+  if (idx !== -1) fileQueue.value.splice(idx, 1)
 }
 
 function handleCancelItem(item: FileQueueItem) {
@@ -433,10 +414,8 @@ function handleCancelItem(item: FileQueueItem) {
 }
 
 function formatFileSize(bytes: number): string {
-  if (bytes < 1024)
-    return `${bytes} B`
-  if (bytes < 1024 * 1024)
-    return `${(bytes / 1024).toFixed(1)} KB`
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
@@ -500,14 +479,10 @@ function isExcelFile(fileName: string): boolean {
 type PreviewType = 'image' | 'pdf' | 'docx' | 'excel' | null
 
 function getPreviewType(fileName: string): PreviewType {
-  if (isImageFile(fileName))
-    return 'image'
-  if (isPdfFile(fileName))
-    return 'pdf'
-  if (isDocxFile(fileName))
-    return 'docx'
-  if (isExcelFile(fileName))
-    return 'excel'
+  if (isImageFile(fileName)) return 'image'
+  if (isPdfFile(fileName)) return 'pdf'
+  if (isDocxFile(fileName)) return 'docx'
+  if (isExcelFile(fileName)) return 'excel'
   return null
 }
 
@@ -529,11 +504,9 @@ function handlePreview(item: FileQueueItem) {
 
   if (type === 'image') {
     previewUrl.value = URL.createObjectURL(item.file)
-  }
-  else if (type === 'pdf') {
+  } else if (type === 'pdf') {
     previewUrl.value = URL.createObjectURL(item.file)
-  }
-  else {
+  } else {
     // docx/excel 使用 ArrayBuffer 传给 @vue-office 组件
     const reader = new FileReader()
     reader.onload = (e) => {
@@ -556,38 +529,19 @@ function handlePreviewClose() {
 
 <template>
   <div :class="containerClassName">
-    <a-card
-      title="基础上传"
-      variant="borderless"
-    >
-      <div :class="descClassName">
-        点击或拖拽文件到此区域进行上传，支持多文件选择
-      </div>
-      <a-upload
-        v-model:file-list="basicFileList"
-        :multiple="true"
-        action="/api/upload"
-        :drag="true"
-      >
+    <a-card title="基础上传" variant="borderless">
+      <div :class="descClassName">点击或拖拽文件到此区域进行上传，支持多文件选择</div>
+      <a-upload v-model:file-list="basicFileList" :multiple="true" action="/api/upload" :drag="true">
         <p class="ant-upload-drag-icon">
           <icon-inbox />
         </p>
-        <p class="ant-upload-text">
-          点击或拖拽文件到此区域上传
-        </p>
-        <p class="ant-upload-hint">
-          支持单个或批量上传，严禁上传公司数据或其他敏感信息
-        </p>
+        <p class="ant-upload-text">点击或拖拽文件到此区域上传</p>
+        <p class="ant-upload-hint">支持单个或批量上传，严禁上传公司数据或其他敏感信息</p>
       </a-upload>
     </a-card>
 
-    <a-card
-      title="图片墙"
-      variant="borderless"
-    >
-      <div :class="descClassName">
-        图片墙效果，支持预览，仅 jpg/png/gif 格式，单张不超过 2MB
-      </div>
+    <a-card title="图片墙" variant="borderless">
+      <div :class="descClassName">图片墙效果，支持预览，仅 jpg/png/gif 格式，单张不超过 2MB</div>
       <a-upload
         v-model:file-list="imageFileList"
         v-bind="imageUploadProps"
@@ -597,25 +551,14 @@ function handlePreviewClose() {
       >
         <div>
           <plus-outlined />
-          <div style="margin-top: 8px">
-            上传
-          </div>
+          <div style="margin-top: 8px">上传</div>
         </div>
       </a-upload>
-      <a-image
-        :src="imagePreviewUrl"
-        :visible="imagePreviewVisible"
-        @cancel="handleImageCancel"
-      />
+      <a-image :src="imagePreviewUrl" :visible="imagePreviewVisible" @cancel="handleImageCancel" />
     </a-card>
 
-    <a-card
-      title="头像上传"
-      variant="borderless"
-    >
-      <div :class="descClassName">
-        圆形头像裁剪上传，仅限图片格式，不超过 5MB
-      </div>
+    <a-card title="头像上传" variant="borderless">
+      <div :class="descClassName">圆形头像裁剪上传，仅限图片格式，不超过 5MB</div>
       <div class="flex items-start gap-6">
         <a-upload
           v-model:file-list="avatarFileList"
@@ -625,27 +568,19 @@ function handlePreviewClose() {
           list-type="picture"
           @change="handleAvatarChange"
         >
-          <div
-            v-if="avatarFileList.length === 0"
-            :class="avatarUploaderClassName"
-          >
+          <div v-if="avatarFileList.length === 0" :class="avatarUploaderClassName">
             <avatar-loading v-if="avatarLoading" />
-            <camera-outlined
-              v-else
-              class="text-2xl text-gray-400"
-            />
+            <camera-outlined v-else class="text-2xl text-gray-400" />
           </div>
           <img
             v-else
             :src="avatarFileList[0]?.url || avatarFileList[0]?.response?.url"
             alt="avatar"
             :class="avatarImageClassName"
-          >
+          />
         </a-upload>
         <div :class="avatarInfoClassName">
-          <h4 :class="avatarTitleClassName">
-            上传头像
-          </h4>
+          <h4 :class="avatarTitleClassName">上传头像</h4>
           <ul :class="avatarRuleListClassName">
             <li>支持 JPG、PNG、GIF 格式</li>
             <li>文件大小不超过 5MB</li>
@@ -655,19 +590,9 @@ function handlePreviewClose() {
       </div>
     </a-card>
 
-    <a-card
-      title="自定义上传按钮"
-      variant="borderless"
-    >
-      <div :class="descClassName">
-        带图标的自定义上传区域，支持拖拽
-      </div>
-      <a-upload
-        v-model:file-list="customFileList"
-        action="/api/upload/custom"
-        :drag="true"
-        :multiple="true"
-      >
+    <a-card title="自定义上传按钮" variant="borderless">
+      <div :class="descClassName">带图标的自定义上传区域，支持拖拽</div>
+      <a-upload v-model:file-list="customFileList" action="/api/upload/custom" :drag="true" :multiple="true">
         <div :class="customUploadAreaClassName">
           <cloud-upload-outlined :class="customIconClassName" />
           <span :class="customTextClassName">点击或拖拽文件到此处上传</span>
@@ -676,18 +601,9 @@ function handlePreviewClose() {
       </a-upload>
     </a-card>
 
-    <a-card
-      title="上传状态展示"
-      variant="borderless"
-    >
-      <div :class="descClassName">
-        展示 uploading（上传中）、error（错误）、done（完成）三种状态
-      </div>
-      <a-upload
-        v-model:file-list="statusFileList"
-        action="/api/upload/status"
-        @change="handleStatusChange"
-      >
+    <a-card title="上传状态展示" variant="borderless">
+      <div :class="descClassName">展示 uploading（上传中）、error（错误）、done（完成）三种状态</div>
+      <a-upload v-model:file-list="statusFileList" action="/api/upload/status" @change="handleStatusChange">
         <a-button>
           <upload-outlined />
           选择文件
@@ -711,13 +627,8 @@ function handlePreviewClose() {
       </div>
     </a-card>
 
-    <a-card
-      title="上传前校验"
-      variant="borderless"
-    >
-      <div :class="descClassName">
-        文件类型和大小校验提示，仅允许 PDF/Word/图片，最大 10MB
-      </div>
+    <a-card title="上传前校验" variant="borderless">
+      <div :class="descClassName">文件类型和大小校验提示，仅允许 PDF/Word/图片，最大 10MB</div>
       <a-upload
         v-model:file-list="validateFileList"
         action="/api/upload/validate"
@@ -729,18 +640,11 @@ function handlePreviewClose() {
           选择文件（PDF/Word/图片）
         </a-button>
       </a-upload>
-      <div :class="validateTipClassName">
-        提示：尝试上传非指定格式的文件或超过 10MB 的文件，查看校验效果
-      </div>
+      <div :class="validateTipClassName">提示：尝试上传非指定格式的文件或超过 10MB 的文件，查看校验效果</div>
     </a-card>
 
-    <a-card
-      title="手动上传"
-      variant="borderless"
-    >
-      <div :class="descClassName">
-        先选择文件，再点击按钮才会上传
-      </div>
+    <a-card title="手动上传" variant="borderless">
+      <div :class="descClassName">先选择文件，再点击按钮才会上传</div>
       <div :class="manualButtonGroupClassName">
         <a-upload
           ref="manualUploadRef"
@@ -762,28 +666,15 @@ function handlePreviewClose() {
         >
           开始上传
         </a-button>
-        <a-button
-          :disabled="manualFileList.length === 0"
-          @click="handleManualClear"
-        >
-          清空列表
-        </a-button>
+        <a-button :disabled="manualFileList.length === 0" @click="handleManualClear"> 清空列表 </a-button>
       </div>
-      <div
-        v-if="manualFileList.length > 0"
-        :class="manualSelectedTipClassName"
-      >
+      <div v-if="manualFileList.length > 0" :class="manualSelectedTipClassName">
         已选择 {{ manualFileList.length }} 个文件，请点击「开始上传」按钮
       </div>
     </a-card>
 
-    <a-card
-      title="拖拽排序"
-      variant="borderless"
-    >
-      <div :class="descClassName">
-        上传后的图片列表可通过拖拽调整顺序
-      </div>
+    <a-card title="拖拽排序" variant="borderless">
+      <div :class="descClassName">上传后的图片列表可通过拖拽调整顺序</div>
       <a-upload
         v-model:file-list="dragSortFileList"
         action="/api/upload/drag-sort"
@@ -793,23 +684,14 @@ function handlePreviewClose() {
       >
         <div>
           <plus-outlined />
-          <div style="margin-top: 8px">
-            添加图片
-          </div>
+          <div style="margin-top: 8px">添加图片</div>
         </div>
       </a-upload>
-      <div :class="dragTipClassName">
-        提示：鼠标悬停在图片上可看到操作按钮，拖拽图标可调整顺序
-      </div>
+      <div :class="dragTipClassName">提示：鼠标悬停在图片上可看到操作按钮，拖拽图标可调整顺序</div>
     </a-card>
 
-    <a-card
-      title="大文件上传"
-      variant="borderless"
-    >
-      <div :class="largeFileCardDescClassName">
-        支持暂停/恢复，基于切片上传的大文件上传组件，支持多文件队列
-      </div>
+    <a-card title="大文件上传" variant="borderless">
+      <div :class="largeFileCardDescClassName">支持暂停/恢复，基于切片上传的大文件上传组件，支持多文件队列</div>
 
       <div :class="largeFileToolbarClassName">
         <input
@@ -818,46 +700,32 @@ function handlePreviewClose() {
           multiple
           :class="largeFileSelectInputClassName"
           @change="handleLargeFileSelect"
-        >
+        />
         <a-button @click="handleSelectFileClick">
           <template #icon>
             <Icon icon="carbon:document-import" />
           </template>
           选择文件
         </a-button>
-        <a-button
-          type="primary"
-          :disabled="fileQueue.length === 0"
-          @click="startQueueUpload"
-        >
+        <a-button type="primary" :disabled="fileQueue.length === 0" @click="startQueueUpload">
           <template #icon>
             <Icon icon="carbon:cloud-upload" />
           </template>
           开始上传
         </a-button>
-        <a-button
-          :disabled="!hasUploadingItem"
-          @click="handlePauseAll"
-        >
+        <a-button :disabled="!hasUploadingItem" @click="handlePauseAll">
           <template #icon>
             <Icon icon="carbon:pause" />
           </template>
           暂停
         </a-button>
-        <a-button
-          :disabled="!hasPausedItem"
-          @click="handleResumeAll"
-        >
+        <a-button :disabled="!hasPausedItem" @click="handleResumeAll">
           <template #icon>
             <Icon icon="carbon:play" />
           </template>
           恢复
         </a-button>
-        <a-button
-          danger
-          :disabled="fileQueue.length === 0"
-          @click="handleCancelAll"
-        >
+        <a-button danger :disabled="fileQueue.length === 0" @click="handleCancelAll">
           <template #icon>
             <Icon icon="carbon:close" />
           </template>
@@ -865,45 +733,25 @@ function handlePreviewClose() {
         </a-button>
       </div>
 
-      <a-table
-        :columns="largeFileColumns"
-        :data-source="fileQueue"
-        :pagination="false"
-        row-key="id"
-      >
+      <a-table :columns="largeFileColumns" :data-source="fileQueue" :pagination="false" row-key="id">
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'thumbnail'">
             <div
               v-if="isImageFile(record.fileName)"
-              class="w-10 h-10 rounded overflow-hidden cursor-pointer border border-gray-200"
+              class="h-10 w-10 cursor-pointer overflow-hidden rounded border border-gray-200"
               @click="handlePreview(record)"
             >
-              <img
-                :src="URL.createObjectURL(record.file)"
-                alt=""
-                class="w-full h-full object-cover"
-              >
+              <img :src="URL.createObjectURL(record.file)" alt="" class="h-full w-full object-cover" />
             </div>
             <div
               v-else-if="getPreviewType(record.fileName)"
-              class="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
+              class="flex h-10 w-10 cursor-pointer items-center justify-center rounded bg-gray-100 transition-colors hover:bg-blue-50 dark:bg-gray-800 dark:hover:bg-blue-900/30"
               @click="handlePreview(record)"
             >
-              <Icon
-                :icon="getFileIcon(record.fileName)"
-                :width="20"
-                class="text-gray-500 hover:text-blue-500"
-              />
+              <Icon :icon="getFileIcon(record.fileName)" :width="20" class="hover:text-ant-primary text-gray-500" />
             </div>
-            <div
-              v-else
-              class="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded"
-            >
-              <Icon
-                :icon="getFileIcon(record.fileName)"
-                :width="20"
-                class="text-gray-400"
-              />
+            <div v-else class="flex h-10 w-10 items-center justify-center rounded bg-gray-100 dark:bg-gray-800">
+              <Icon :icon="getFileIcon(record.fileName)" :width="20" class="text-gray-400" />
             </div>
           </template>
           <template v-else-if="column.key === 'fileSize'">
@@ -912,10 +760,7 @@ function handlePreviewClose() {
           <template v-else-if="column.key === 'progress'">
             <div :class="largeFileTableProgressRowClassName">
               <div :class="largeFileTableProgressBarClassName">
-                <div
-                  :style="{ width: `${record.progress}%` }"
-                  :class="largeFileTableProgressFillClassName"
-                />
+                <div :style="{ width: `${record.progress}%` }" :class="largeFileTableProgressFillClassName" />
               </div>
               <span :class="largeFileTableProgressTextClassName">{{ record.progress }}%</span>
             </div>
@@ -941,14 +786,7 @@ function handlePreviewClose() {
               >
                 恢复
               </a-button>
-              <a-button
-                type="link"
-                size="small"
-                danger
-                @click="handleDeleteItem(record)"
-              >
-                删除
-              </a-button>
+              <a-button type="link" size="small" danger @click="handleDeleteItem(record)"> 删除 </a-button>
               <a-button
                 type="link"
                 size="small"
@@ -983,45 +821,33 @@ function handlePreviewClose() {
           v-else-if="previewType === 'pdf'"
           :src="previewUrl"
           class="w-full rounded border-0"
-          style="height: 70vh;"
+          style="height: 70vh"
         />
         <!-- Word 预览（@vue-office/docx，需安装依赖） -->
         <PerfectScrollbar
           v-else-if="previewType === 'docx'"
-          class="w-full rounded bg-gray-50 dark:bg-gray-900 p-4"
-          style="height: 70vh;"
+          class="w-full rounded bg-gray-50 p-4 dark:bg-gray-900"
+          style="height: 70vh"
         >
-          <div class="h-full flex items-center justify-center text-gray-400">
+          <div class="flex h-full items-center justify-center text-gray-400">
             <div class="text-center">
-              <Icon
-                icon="carbon:document"
-                :width="48"
-                class="mb-2 opacity-50"
-              />
+              <Icon icon="carbon:document" :width="48" class="mb-2 opacity-50" />
               <p>Word 预览组件加载中...</p>
-              <p class="text-xs mt-1">
-                如未显示请确认已安装 @vue-office/docx 依赖
-              </p>
+              <p class="mt-1 text-xs">如未显示请确认已安装 @vue-office/docx 依赖</p>
             </div>
           </div>
         </PerfectScrollbar>
         <!-- Excel 预览（@vue-office/excel，需安装依赖） -->
         <PerfectScrollbar
           v-else-if="previewType === 'excel'"
-          class="w-full rounded bg-gray-50 dark:bg-gray-900 p-4"
-          style="height: 70vh;"
+          class="w-full rounded bg-gray-50 p-4 dark:bg-gray-900"
+          style="height: 70vh"
         >
-          <div class="h-full flex items-center justify-center text-gray-400">
+          <div class="flex h-full items-center justify-center text-gray-400">
             <div class="text-center">
-              <Icon
-                icon="carbon:table"
-                :width="48"
-                class="mb-2 opacity-50"
-              />
+              <Icon icon="carbon:table" :width="48" class="mb-2 opacity-50" />
               <p>Excel 预览组件加载中...</p>
-              <p class="text-xs mt-1">
-                如未显示请确认已安装 @vue-office/excel 依赖
-              </p>
+              <p class="mt-1 text-xs">如未显示请确认已安装 @vue-office/excel 依赖</p>
             </div>
           </div>
         </PerfectScrollbar>

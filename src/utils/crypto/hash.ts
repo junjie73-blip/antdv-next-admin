@@ -17,7 +17,7 @@ export function md5File(file: File): Promise<string> {
 
     reader.onloadend = () => {
       const spark = new SparkMD5()
-      chunks.forEach(chunk => spark.append(chunk))
+      chunks.forEach((chunk) => spark.append(chunk))
       resolve(spark.end())
     }
 
@@ -34,7 +34,7 @@ export async function sha256(data: string): Promise<string> {
   const dataBuffer = encoder.encode(data)
   const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer)
   const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
 }
 
 export function hash(data: string, options: { algorithm?: 'md5' | 'sha256' } = {}): string | Promise<string> {

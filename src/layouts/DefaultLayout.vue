@@ -1,31 +1,35 @@
 <script setup lang="ts">
-import type { MenuProps } from 'antdv-next'
+import type { MenuProps } from "antdv-next";
 
-import { computed, markRaw, onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
-import { useRouter } from 'vue-router'
-import PageLoading from '@/components/common/Loading/PageLoading.vue'
-import RouteLoadingBar from '@/components/common/Loading/RouteLoadingBar.vue'
-import { useRouteLoading } from '@/composables/useRouteLoading'
-import { useWatermark } from '@/composables/web/useWatermark'
-import { useAppStore } from '@/stores/modules/app'
-import { useRouteStore } from '@/stores/modules/route'
-import { cn } from '@/utils/cn'
-import { transformMenuConfigToItems } from '@/utils/helpers/menu'
-import LayoutFooter from './components/LayoutFooter.vue'
-import LayoutHeader from './components/LayoutHeader.vue'
-import LayoutSidebar from './components/LayoutSidebar.vue'
-import LayoutTabs from './components/LayoutTabs.vue'
-import { useLayout } from './composables/useLayout'
+import { computed, markRaw, onMounted, onUnmounted, ref, useTemplateRef } from "vue";
+import { useRouter } from "vue-router";
+
+import PageLoading from "~/components/common/Loading/PageLoading.vue";
+import RouteLoadingBar from "~/components/common/Loading/RouteLoadingBar.vue";
+import { useRouteLoading } from "~/composables/useRouteLoading";
+import { useWatermark } from "~/composables/web/useWatermark";
+import { useDictStore } from "~/stores";
+import { useAppStore } from "~/stores/modules/app";
+import { useRouteStore } from "~/stores/modules/route";
+import { cn } from "~/utils/cn";
+import { transformMenuConfigToItems } from "~/utils/helpers/menu";
+
+import LayoutFooter from "./components/LayoutFooter.vue";
+import LayoutHeader from "./components/LayoutHeader.vue";
+import LayoutSidebar from "./components/LayoutSidebar.vue";
+import LayoutTabs from "./components/LayoutTabs.vue";
+import { useLayout } from "./composables/useLayout";
 
 defineOptions({
-  name: 'DefaultLayout',
-})
+  name: "DefaultLayout",
+});
 
-const router = useRouter()
-const appStore = useAppStore()
-const routeStore = useRouteStore()
-const { collapsed, checkMobile, toggleCollapsed } = useLayout()
-
+const router = useRouter();
+const appStore = useAppStore();
+const routeStore = useRouteStore();
+const { collapsed, checkMobile, toggleCollapsed } = useLayout();
+const dictStore = useDictStore();
+const routeStroe = useRouteStore();
 // 路由切换 loading 状态管理（增强版：集成性能监控）
 const {
   isLoading: isRouteLoading,
@@ -34,94 +38,85 @@ const {
 } = useRouteLoading({
   minDuration: 400,
   auto: true,
-  enableMonitoring: true, // 启用性能监控
-})
+});
 
 const cachedRoutes = computed(() =>
-  router.getRoutes()
-    .filter(route => route.meta?.keepAlive)
-    .map(route => route.name as string),
-)
+  router
+    .getRoutes()
+    .filter((route) => route.meta?.keepAlive)
+    .map((route) => route.name as string),
+);
 
-const activeTopMenu = ref('/system')
+const activeTopMenu = ref("/system");
 
-const allMenuItems = computed<MenuProps['items']>(() =>
+const allMenuItems = computed<MenuProps["items"]>(() =>
   transformMenuConfigToItems(routeStore.menus),
-)
+);
 
 function handleResize() {
-  checkMobile()
+  checkMobile();
 }
 
 onMounted(() => {
-  checkMobile()
-  window.addEventListener('resize', handleResize)
-})
+  checkMobile();
+  window.addEventListener("resize", handleResize);
+});
 
 onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
-})
+  window.removeEventListener("resize", handleResize);
+});
 
-const isVertical = computed(() => appStore.layout === 'vertical')
-const isHorizontal = computed(() => appStore.layout === 'horizontal')
-const isMixed = computed(() => appStore.layout === 'mixed')
-const isGeekStyle = computed(() => appStore.themeStyle === 'geek')
-const _isDarkMode = computed(() => appStore.themeMode === 'dark' || isGeekStyle.value)
+const isVertical = computed(() => appStore.layout === "vertical");
+const isHorizontal = computed(() => appStore.layout === "horizontal");
+const isMixed = computed(() => appStore.layout === "mixed");
+const isGeekStyle = computed(() => appStore.themeStyle === "geek");
+const _isDarkMode = computed(() => appStore.themeMode === "dark" || isGeekStyle.value);
 
 const hasChildren = computed(() => {
-  if (!isMixed.value || !activeTopMenu.value)
-    return false
-  const topMenu = allMenuItems.value.find(item => item?.key === activeTopMenu.value)
-  return !!(topMenu && 'children' in topMenu && topMenu.children && topMenu.children.length > 0)
-})
+  if (!isMixed.value || !activeTopMenu.value) return false;
+  const topMenu = allMenuItems.value?.find((item) => item?.key === activeTopMenu.value);
+  return !!(topMenu && "children" in topMenu && topMenu.children && topMenu.children.length > 0);
+});
 
 const layoutClassName = computed(() =>
   cn(
-    'h-screen flex flex-col overflow-hidden',
-    isGeekStyle.value
-      ? 'bg-[#0a0a0a]'
-      : 'bg-gray-50 dark:bg-gray-900',
+    "h-screen flex flex-col gap-4 overflow-hidden",
+    isGeekStyle.value ? "bg-[#0a0a0a]" : "bg-gray-50 dark:bg-gray-900",
   ),
-)
+);
 
 const contentClassName = computed(() =>
-  cn(
-    'p-4 h-full',
-    isGeekStyle.value
-      ? 'bg-[#0a0a0a]'
-      : 'bg-gray-50 dark:bg-gray-900',
-  ),
-)
+  cn("p-4  flex-1  box-border", isGeekStyle.value ? "bg-[#0a0a0a]" : "bg-gray-50 dark:bg-gray-900"),
+);
 
 // 主内容区滚动容器引用（供路由切换时回到顶部）
-const scrollbarRef = useTemplateRef<InstanceType<typeof import('vue')['DefineComponent']>>('mainScrollbar')
+const scrollbarRef = useTemplateRef("mainScrollbar");
 
 /** 滚动到顶部 */
 function scrollToTop() {
-  const el = scrollbarRef.value?.$el as HTMLElement | undefined
+  const el = scrollbarRef.value?.$el as HTMLElement | undefined;
   if (el) {
-    el.scrollTo({ top: 0, left: 0 })
+    el.scrollTo({ top: 0, left: 0 });
   }
 }
 
 // 挂载到 window 供路由守卫调用
 onMounted(() => {
-  ;(window as any).__layoutScrollToTop = scrollToTop
-})
+  (window as any).__layoutScrollToTop = scrollToTop;
+  console.log(router.getRoutes());
+});
 onUnmounted(() => {
-  delete (window as any).__layoutScrollToTop
-})
-
-const transitionName = computed(() => `page-${appStore.transitionEffect}`)
+  delete (window as any).__layoutScrollToTop;
+});
 
 function handleTopMenuSelect(key: string) {
-  activeTopMenu.value = key
+  activeTopMenu.value = key;
 }
 
 useWatermark({
   content: computed(() => appStore.watermarkContent),
   enabled: computed(() => appStore.enableWatermark),
-})
+});
 </script>
 
 <template>
@@ -148,11 +143,7 @@ useWatermark({
 
     <div class="flex flex-1 overflow-hidden">
       <!-- 垂直布局：侧边栏 -->
-      <LayoutSidebar
-        v-if="isVertical"
-        :collapsed="collapsed"
-        @menuClick="() => {}"
-      />
+      <LayoutSidebar v-if="isVertical" :collapsed="collapsed" @menuClick="() => {}" />
 
       <!-- 混合布局：侧边栏（有子菜单时才显示） -->
       <LayoutSidebar
@@ -164,225 +155,40 @@ useWatermark({
       />
 
       <!-- 主内容区域 -->
-      <div class="flex flex-col flex-1 overflow-hidden">
+      <div class="flex flex-1 flex-col overflow-hidden">
         <!-- 垂直布局：Header 在主区域内（折叠按钮 + 面包屑） -->
-        <LayoutHeader
-          v-if="isVertical"
-          :collapsed="collapsed"
-          @toggleCollapsed="toggleCollapsed"
-        />
+        <LayoutHeader v-if="isVertical" :collapsed="collapsed" @toggleCollapsed="toggleCollapsed" />
 
         <LayoutTabs
           :has-children="isMixed && hasChildren"
           :show-icon="appStore.tabShowIcon ?? true"
         />
 
-        <PerfectScrollbar
-          ref="mainScrollbar"
-          class="flex-1"
-          :options="{ suppressScrollX: true, wheelPropagation: true }"
-        >
-          <main
-            :class="contentClassName"
-            class="relative"
-          >
-            <!-- 页面切换骨架屏（支持错误状态） -->
-            <PageLoading
-              :loading="isRouteLoading"
-              variant="default"
-              :error="isSlow"
-            />
-
+        <main :class="contentClassName" class="relative overflow-hidden">
+          <PageLoading :loading="isRouteLoading" variant="default" :error="isSlow" />
+          <PageTransition>
             <router-view v-slot="{ Component, route }">
               <!-- 微前端页面：禁用 out-in 模式，避免 iframe/微应用被 transition 销毁 -->
               <template v-if="route.meta?.microApp">
                 <keep-alive :include="cachedRoutes">
-                  <component
-                    :is="markRaw(Component)"
-                    :key="route.path"
-                  />
+                  <component :is="markRaw(Component)" :key="route.path" />
                 </keep-alive>
               </template>
               <!-- 全屏大屏页面：禁用 transition + keepAlive，避免 ECharts 资源泄漏影响其他页面 -->
               <template v-else-if="route.meta?.noTransition">
-                <component
-                  :is="markRaw(Component)"
-                  :key="route.path"
-                />
+                <component :is="markRaw(Component)" :key="route.path" />
               </template>
               <!-- 普通页面：使用 KeepAlive 缓存，但不使用 Transition 避免渲染冲突 -->
               <template v-else>
                 <keep-alive :include="cachedRoutes">
-                  <component
-                    :is="markRaw(Component)"
-                    :key="route.path"
-                  />
+                  <component :is="markRaw(Component)" :key="route.path" />
                 </keep-alive>
-              </template>
-            </router-view>
-          </main>
-        </PerfectScrollbar>
+              </template> </router-view
+          ></PageTransition>
+        </main>
 
         <LayoutFooter v-if="appStore.showFooter" />
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-/* 淡入淡出 */
-.page-fade-enter-active,
-.page-fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.page-fade-enter-from,
-.page-fade-leave-to {
-  opacity: 0;
-}
-
-/* 滑动（水平） */
-.page-slide-enter-active,
-.page-slide-leave-active {
-  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-.page-slide-enter-from {
-  opacity: 0;
-  transform: translateX(30px);
-}
-
-.page-slide-leave-to {
-  opacity: 0;
-  transform: translateX(-30px);
-}
-
-/* 右滑 */
-.page-slide-right-enter-active,
-.page-slide-right-leave-active {
-  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-.page-slide-right-enter-from {
-  opacity: 0;
-  transform: translateX(30px);
-}
-
-.page-slide-right-leave-to {
-  opacity: 0;
-  transform: translateX(-30px);
-}
-
-/* 左滑 */
-.page-slide-left-enter-active,
-.page-slide-left-leave-active {
-  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-.page-slide-left-enter-from {
-  opacity: 0;
-  transform: translateX(-30px);
-}
-
-.page-slide-left-leave-to {
-  opacity: 0;
-  transform: translateX(30px);
-}
-
-/* 上滑 */
-.page-slide-up-enter-active,
-.page-slide-up-leave-active {
-  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-.page-slide-up-enter-from {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.page-slide-up-leave-to {
-  opacity: 0;
-  transform: translateY(-20px);
-}
-
-/* 下滑 */
-.page-slide-down-enter-active,
-.page-slide-down-leave-active {
-  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-.page-slide-down-enter-from {
-  opacity: 0;
-  transform: translateY(-20px);
-}
-
-.page-slide-down-leave-to {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-/* 缩放 */
-.page-zoom-enter-active,
-.page-zoom-leave-active {
-  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-.page-zoom-enter-from {
-  opacity: 0;
-  transform: scale(0.9);
-}
-
-.page-zoom-leave-to {
-  opacity: 0;
-  transform: scale(1.1);
-}
-
-/* 淡入滑动 */
-.page-fade-slide-enter-active,
-.page-fade-slide-leave-active {
-  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-.page-fade-slide-enter-from {
-  opacity: 0;
-  transform: translateY(10px);
-}
-
-.page-fade-slide-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
-/* 缩放淡入 */
-.page-scale-enter-active,
-.page-scale-leave-active {
-  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-.page-scale-enter-from {
-  opacity: 0;
-  transform: scale(0.95);
-}
-
-.page-scale-leave-to {
-  opacity: 0;
-  transform: scale(1.05);
-}
-
-/* 翻转 */
-.page-flip-enter-active,
-.page-flip-leave-active {
-  transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
-  transform-style: preserve-3d;
-}
-
-.page-flip-enter-from {
-  opacity: 0;
-  transform: rotateY(90deg);
-}
-
-.page-flip-leave-to {
-  opacity: 0;
-  transform: rotateY(-90deg);
-}
-</style>

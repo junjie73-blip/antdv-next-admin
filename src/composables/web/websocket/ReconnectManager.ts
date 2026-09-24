@@ -16,7 +16,8 @@ export class ReconnectManager {
       return
     }
 
-    if (this.currentAttempt >= this.config.maxAttempts) {
+    // ⭐ maxAttempts <= 0 表示无限重试
+    if (this.hasReachedMaxAttempts()) {
       if (this.onMaxAttemptsReached) {
         this.onMaxAttemptsReached()
       }
@@ -33,11 +34,9 @@ export class ReconnectManager {
     }, delay)
   }
 
-  stop(): void {
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer)
-      this.reconnectTimer = null
-    }
+  stop(): boolean {
+    if (this.config.maxAttempts <= 0) return false
+    return this.currentAttempt >= this.config.maxAttempts
   }
 
   reset(): void {
@@ -77,6 +76,7 @@ export class ReconnectManager {
 
   updateConfig(config: Partial<ReconnectConfig>): void {
     this.config = { ...this.config, ...config }
+    this.reset()
   }
 
   isEnabled(): boolean {

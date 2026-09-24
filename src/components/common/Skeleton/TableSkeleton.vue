@@ -18,7 +18,7 @@
  * ```
  */
 
-import { cn } from '@/utils/cn'
+import { cn } from '~/utils/cn'
 
 interface Props {
   /** 是否显示骨架屏 */
@@ -47,17 +47,10 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 // 骨架屏基础样式（带动画）
-const skeletonBaseClassName = cn(
-  'animate-pulse',
-  'bg-gray-200 dark:bg-gray-700',
-  'rounded',
-)
+const skeletonBaseClassName = cn('animate-pulse', 'bg-gray-200 dark:bg-gray-700', 'rounded')
 
 // 表头单元格样式
-const headerCellClassName = cn(
-  skeletonBaseClassName,
-  'h-10 px-4',
-)
+const headerCellClassName = cn(skeletonBaseClassName, 'h-10 px-4')
 
 // 数据行单元格样式
 function getCellClassName(isAction?: boolean) {
@@ -70,25 +63,15 @@ function getCellClassName(isAction?: boolean) {
 
 <template>
   <!-- 加载中：显示表格骨架屏 -->
-  <div
-    v-if="loading"
-    :class="cn('w-full', props.class)"
-  >
-    <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+  <div v-if="loading" :class="cn('w-full', props.class)">
+    <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
       <!-- 表头 -->
       <div
         v-if="showHeader"
-        :class="cn('flex bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700')"
+        :class="cn('flex border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800')"
       >
-        <div
-          v-for="col in columns"
-          :key="`header-${col}`"
-          :class="cn(headerCellClassName, 'flex-1')"
-        />
-        <div
-          v-if="showActions"
-          :class="cn(headerCellClassName, 'w-24 shrink-0')"
-        />
+        <div v-for="col in columns" :key="`header-${col}`" :class="cn(headerCellClassName, 'flex-1')" />
+        <div v-if="showActions" :class="cn(headerCellClassName, 'w-24 shrink-0')" />
       </div>
 
       <!-- 数据行 -->
@@ -96,30 +79,22 @@ function getCellClassName(isAction?: boolean) {
         <div
           v-for="row in rows"
           :key="`row-${row}`"
-          :class="cn(
-            'flex items-center',
-            row !== rows && 'border-b border-gray-100 dark:border-gray-800',
-            row % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50/50 dark:bg-gray-900/50',
-          )"
+          :class="
+            cn(
+              'flex items-center',
+              row !== rows && 'border-b border-gray-100 dark:border-gray-800',
+              row % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50/50 dark:bg-gray-900/50',
+            )
+          "
         >
-          <div
-            v-for="col in columns"
-            :key="`cell-${row}-${col}`"
-            :class="cn('px-4 flex-1', getCellClassName())"
-          />
-          <div
-            v-if="showActions"
-            :class="cn('px-4 w-24 shrink-0', getCellClassName(true))"
-          />
+          <div v-for="col in columns" :key="`cell-${row}-${col}`" :class="cn('flex-1 px-4', getCellClassName())" />
+          <div v-if="showActions" :class="cn('w-24 shrink-0 px-4', getCellClassName(true))" />
         </div>
       </div>
     </div>
 
     <!-- 分页器骨架 -->
-    <div
-      v-if="showPagination"
-      class="flex items-center justify-between mt-4"
-    >
+    <div v-if="showPagination" class="mt-4 flex items-center justify-between">
       <div :class="cn(skeletonBaseClassName, 'h-8 w-48')" />
       <div class="flex items-center gap-2">
         <div :class="cn(skeletonBaseClassName, 'h-8 w-16')" />

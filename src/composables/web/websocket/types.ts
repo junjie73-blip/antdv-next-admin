@@ -40,7 +40,7 @@ export interface WebSocketEventHandlers {
 export interface HeartbeatConfig {
   interval: number
   timeout: number
-  message: string | object
+  message: string | object | (() => string | object)
 }
 
 export interface ReconnectConfig {

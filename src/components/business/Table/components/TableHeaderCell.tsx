@@ -1,7 +1,10 @@
 import type { PropType } from 'vue'
-import type { BasicColumn } from '../types'
+
 import { computed, defineComponent } from 'vue'
-import { IconifyIcon as Icon } from '@/components/common/Icon'
+
+import { IconifyIcon as Icon } from '~/components/common/Icon'
+
+import type { BasicColumn } from '../types'
 
 export default defineComponent({
   name: 'TableHeaderCell',
@@ -17,12 +20,10 @@ export default defineComponent({
   },
   emits: ['edit'],
   setup(props, { emit, slots }) {
-    // 是否显示编辑图标
     const showEditIcon = computed(() => {
       return props.editable || props.column?.edit || props.column?.editRow
     })
 
-    // 获取对齐方式
     const getAlignClass = computed(() => {
       const align = props.column?.align
       switch (align) {
@@ -36,7 +37,6 @@ export default defineComponent({
       }
     })
 
-    // 处理编辑点击
     const handleEditClick = (e: Event) => {
       e.stopPropagation()
       emit('edit', props.column)
@@ -47,13 +47,11 @@ export default defineComponent({
 
       return (
         <div class={`flex items-center gap-1 ${getAlignClass.value}`}>
-          {/* 列标题 */}
           <span>{column.title}</span>
 
-          {/* 编辑图标 */}
           {showEditIcon.value && (
             <span
-              class="cursor-pointer text-gray-400 hover:text-blue-500 transition-colors"
+              class="hover:text-ant-primary-500 dark:hover:text-ant-primary-400 cursor-pointer text-gray-400 transition-colors dark:text-gray-500"
               onClick={handleEditClick}
               title="点击编辑"
             >
@@ -61,7 +59,6 @@ export default defineComponent({
             </span>
           )}
 
-          {/* 自定义插槽内容 */}
           {slots.default?.()}
         </div>
       )

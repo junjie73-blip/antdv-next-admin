@@ -42,3 +42,4 @@ playwright-report/
 *.zip
 */cache/*
 *prototype/*
+dev-list/*

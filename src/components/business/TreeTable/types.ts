@@ -1,4 +1,4 @@
-import type { BasicColumn } from '@/components/business/Table/types'
+import type { BasicColumn } from '~/components/business/Table/types'
 
 export interface TreeDataNode {
   key: string

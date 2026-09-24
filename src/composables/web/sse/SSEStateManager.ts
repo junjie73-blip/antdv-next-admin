@@ -1,5 +1,7 @@
 import type { Ref } from 'vue'
+
 import { ref } from 'vue'
+
 import { SSEState } from './types'
 
 export class SSEStateManager {

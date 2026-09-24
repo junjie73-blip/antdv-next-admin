@@ -1,45 +1,45 @@
-import type { AppRouteRecordRaw } from '#/app-router'
-import type { BackendMenu, MenuConfig } from '#/menu'
-import { defineStore } from 'pinia'
-import { markRaw, ref } from 'vue'
-import { DefaultLayout } from '@/layouts'
-import { frontendMenus } from '@/router/menus'
-import { http } from '@/utils/request'
+import type { AppRouteRecordRaw } from "#/app-router";
+import type { BackendMenu, MenuConfig } from "#/menu";
+import { defineStore } from "pinia";
+import { markRaw, ref } from "vue";
+import { DefaultLayout } from "~/layouts";
+import { frontendMenus } from "~/router/menus";
+import { http } from "~/utils/request";
 
-const modules = import.meta.glob('/src/views/**/*.vue')
+const modules = import.meta.glob("/src/views/**/*.vue");
 
 interface InternalRoute {
-  path: string
-  name?: string
+  path: string;
+  name?: string;
   meta?: {
-    title: string
-    icon?: string
-    hidden?: boolean
-    keepAlive?: boolean
-    requiresAuth?: boolean
-    roles?: string[]
-    permissions?: string[]
-    microApp?: MicroAppConfig
-  }
-  component?: unknown
-  redirect?: string
-  children?: InternalRoute[]
+    title: string;
+    icon?: string;
+    hidden?: boolean;
+    keepAlive?: boolean;
+    requiresAuth?: boolean;
+    roles?: string[];
+    permissions?: string[];
+    microApp?: MicroAppConfig;
+  };
+  component?: unknown;
+  redirect?: string;
+  children?: InternalRoute[];
 }
 
 interface MicroAppConfig {
-  name: string
-  url: string
-  baseroute: string
-  keepAlive?: boolean
+  name: string;
+  url: string;
+  baseroute: string;
+  keepAlive?: boolean;
 }
 
 function generateRoutesFromMenus(menus: MenuConfig[]): InternalRoute[] {
   return menus
-    .filter(menu => !menu.isExternal && menu.layout !== 'blank')
+    .filter((menu) => !menu.isExternal && menu.layout !== "blank")
     .map((menu) => {
       const route: InternalRoute = {
         path: menu.path,
-        name: menu.name,
+        name: menu.title,
         meta: {
           title: menu.title,
           icon: menu.icon,
@@ -50,34 +50,34 @@ function generateRoutesFromMenus(menus: MenuConfig[]): InternalRoute[] {
           permissions: menu.permissions,
           microApp: menu.microApp,
         },
-      }
+      };
 
       if (menu.redirect) {
-        route.redirect = menu.redirect
+        route.redirect = menu.redirect;
       }
 
       if (menu.component) {
-        const componentPath = `/src/${menu.component.replace('@/', '')}`
-        route.component = modules[componentPath]
+        const componentPath = `/src/${menu.component.replace("~/", "")}`;
+        route.component = modules[componentPath];
       }
 
       if (menu.children && menu.children.length > 0) {
-        route.children = generateRoutesFromMenus(menu.children)
+        route.children = generateRoutesFromMenus(menu.children);
       }
 
-      return route
-    })
+      return route;
+    });
 }
 
 function generateBlankRoutesFromMenus(menus: MenuConfig[]): InternalRoute[] {
-  const routes: InternalRoute[] = []
+  const routes: InternalRoute[] = [];
 
   function walk(list: MenuConfig[]) {
     for (const menu of list) {
-      if (menu.layout === 'blank' && menu.component) {
+      if (menu.layout === "blank" && menu.component) {
         const route: InternalRoute = {
           path: menu.path,
-          name: menu.name,
+          name: menu.title,
           meta: {
             title: menu.title,
             icon: menu.icon,
@@ -88,31 +88,31 @@ function generateBlankRoutesFromMenus(menus: MenuConfig[]): InternalRoute[] {
             permissions: menu.permissions,
             microApp: menu.microApp,
           },
-        }
+        };
 
         if (menu.component) {
-          const componentPath = `/src/${menu.component.replace('@/', '')}`
-          route.component = modules[componentPath]
+          const componentPath = `/src/${menu.component.replace("~/", "")}`;
+          route.component = modules[componentPath];
         }
 
-        routes.push(route)
+        routes.push(route);
       }
 
       if (menu.children && menu.children.length > 0) {
-        walk(menu.children)
+        walk(menu.children);
       }
     }
   }
 
-  walk(menus)
-  return routes
+  walk(menus);
+  return routes;
 }
 
 function generateRoutesFromBackendMenus(backendMenus: BackendMenu[]): InternalRoute[] {
   return backendMenus.map((menu) => {
     const route: InternalRoute = {
       path: menu.path,
-      name: menu.name,
+      name: menu.title,
       meta: {
         title: menu.title,
         icon: menu.icon,
@@ -123,87 +123,89 @@ function generateRoutesFromBackendMenus(backendMenus: BackendMenu[]): InternalRo
         permissions: menu.permissions,
         microApp: (menu as any).microApp,
       },
-    }
+    };
 
     if (menu.redirect) {
-      route.redirect = menu.redirect
+      route.redirect = menu.redirect;
     }
 
     if (menu.component) {
-      const componentPath = `/src/${menu.component.replace('@/', '')}`
-      route.component = modules[componentPath]
+      const componentPath = `/src/${menu.component.replace("~/", "")}`;
+      route.component = modules[componentPath];
     }
 
     if (menu.children && menu.children.length > 0) {
-      route.children = generateRoutesFromBackendMenus(menu.children)
+      route.children = generateRoutesFromBackendMenus(menu.children);
     }
 
-    return route
-  })
+    return route;
+  });
 }
 
 async function fetchBackendMenus(): Promise<BackendMenu[]> {
-  const response = await http.Get<{ code: number, data: { list: BackendMenu[] }, message: string }>('/menus')
-  return response.data.list
+  const response = await http.Get<{ code: number; data: { list: BackendMenu[] }; message: string }>(
+    "/menus",
+  );
+  return response.data.list;
 }
 
-export const useRouteStore = defineStore('route', () => {
-  const menus = ref<MenuConfig[]>([])
-  const routes = ref<AppRouteRecordRaw[]>([])
-  const isLoaded = ref(false)
+export const useRouteStore = defineStore("route", () => {
+  const menus = ref<MenuConfig[]>([]);
+  const routes = ref<AppRouteRecordRaw[]>([]);
+  const isLoaded = ref(false);
 
   const generateRoutes = (menuList: MenuConfig[]): AppRouteRecordRaw[] => {
     const dynamicRoutes: AppRouteRecordRaw = {
-      path: '/',
-      name: 'Root',
+      path: "/",
+      name: "Root",
       component: markRaw(DefaultLayout),
-      redirect: '/dashboard',
+      redirect: "/dashboard",
       meta: {
-        title: '首页',
-        icon: 'carbon:home',
+        title: "首页",
+        icon: "carbon:home",
       },
       children: generateRoutesFromMenus(menuList) as unknown as AppRouteRecordRaw[],
-    }
+    };
 
-    const blankRoutes = generateBlankRoutesFromMenus(menuList) as unknown as AppRouteRecordRaw[]
+    const blankRoutes = generateBlankRoutesFromMenus(menuList) as unknown as AppRouteRecordRaw[];
 
-    return [dynamicRoutes, ...blankRoutes]
-  }
+    return [dynamicRoutes, ...blankRoutes];
+  };
 
   const generateBackendRoutes = (backendMenuList: BackendMenu[]): AppRouteRecordRaw[] => {
     const dynamicRoutes: AppRouteRecordRaw = {
-      path: '/',
-      name: 'Root',
+      path: "/",
+      name: "Root",
       component: markRaw(DefaultLayout),
-      redirect: '/dashboard',
+      redirect: "/dashboard",
       meta: {
-        title: '首页',
-        icon: 'carbon:home',
+        title: "首页",
+        icon: "carbon:home",
       },
       children: generateRoutesFromBackendMenus(backendMenuList) as unknown as AppRouteRecordRaw[],
-    }
+    };
 
-    return [dynamicRoutes]
-  }
+    return [dynamicRoutes];
+  };
 
   const initFrontendRoutes = () => {
-    menus.value = frontendMenus
-    routes.value = generateRoutes(frontendMenus)
-    isLoaded.value = true
-  }
+    menus.value = frontendMenus;
+    routes.value = generateRoutes(frontendMenus);
+    isLoaded.value = true;
+  };
 
   const initBackendRoutes = async () => {
-    const backendMenus = await fetchBackendMenus()
-    menus.value = backendMenus as unknown as MenuConfig[]
-    routes.value = generateBackendRoutes(backendMenus)
-    isLoaded.value = true
-  }
+    const backendMenus = await fetchBackendMenus();
+    menus.value = backendMenus as unknown as MenuConfig[];
+    routes.value = generateBackendRoutes(backendMenus);
+    isLoaded.value = true;
+  };
 
   const resetRoutes = () => {
-    menus.value = []
-    routes.value = []
-    isLoaded.value = false
-  }
+    menus.value = [];
+    routes.value = [];
+    isLoaded.value = false;
+  };
 
   return {
     menus,
@@ -214,5 +216,5 @@ export const useRouteStore = defineStore('route', () => {
     initFrontendRoutes,
     initBackendRoutes,
     resetRoutes,
-  }
-})
+  };
+});

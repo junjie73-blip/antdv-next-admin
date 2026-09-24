@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { cn } from '@/utils/cn'
+
+import { cn } from '~/utils/cn'
 
 // ==================== 类型定义 ====================
 interface Product {
@@ -247,21 +248,19 @@ function getCoverGradient(index: number): string {
 const searchQuery = ref('')
 const activeCategory = ref<string>('全部')
 const categoryList = computed(() => {
-  const tags = new Set(productList.value.map(item => item.tag))
+  const tags = new Set(productList.value.map((item) => item.tag))
   return ['全部', ...tags]
 })
 
 const filteredProducts = computed(() => {
   let result = productList.value
   if (activeCategory.value !== '全部') {
-    result = result.filter(item => item.tag === activeCategory.value)
+    result = result.filter((item) => item.tag === activeCategory.value)
   }
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase()
     result = result.filter(
-      item =>
-        item.name.toLowerCase().includes(query)
-        || item.description.toLowerCase().includes(query),
+      (item) => item.name.toLowerCase().includes(query) || item.description.toLowerCase().includes(query),
     )
   }
   return result
@@ -281,20 +280,12 @@ function handleLoadMore() {
 <template>
   <div :class="containerClassName">
     <!-- ========== 1. 基础卡片列表 ========== -->
-    <a-card
-      title="基础卡片列表"
-      variant="borderless"
-    >
+    <a-card title="基础卡片列表" variant="borderless">
       <div :class="grid3ColClassName">
-        <a-card
-          v-for="(product, index) in productList.slice(0, 3)"
-          :key="product.id"
-          :variant="bordered"
-          hoverable
-        >
+        <a-card v-for="(product, index) in productList.slice(0, 3)" :key="product.id" :variant="bordered" hoverable>
           <!-- 封面区域 -->
           <div :class="cn(cardCoverClassName, `bg-gradient-to-br ${getCoverGradient(index)}`)">
-            <span class="text-white/80 text-sm font-medium">{{ product.tag }}</span>
+            <span class="text-sm font-medium text-white/80">{{ product.tag }}</span>
           </div>
           <!-- 内容区 -->
           <h3 :class="cardTitleClassName">
@@ -313,17 +304,10 @@ function handleLoadMore() {
     </a-card>
 
     <!-- ========== 2. 数据看板卡片 ========== -->
-    <a-card
-      title="数据看板"
-      :variant="borderless"
-    >
+    <a-card title="数据看板" :variant="borderless">
       <div :class="grid4ColClassName">
-        <div
-          v-for="stat in statCards"
-          :key="stat.title"
-          :class="statCardClassName"
-        >
-          <div class="flex items-start justify-between mb-3">
+        <div v-for="stat in statCards" :key="stat.title" :class="statCardClassName">
+          <div class="mb-3 flex items-start justify-between">
             <span :class="cn(statIconClassName, stat.color)">{{ stat.icon }}</span>
             <span :class="stat.trend === 'up' ? trendUpClassName : trendDownClassName">
               {{ stat.trend === 'up' ? '↑' : '↓' }} {{ stat.trendValue }}
@@ -340,19 +324,10 @@ function handleLoadMore() {
     </a-card>
 
     <!-- ========== 3. 悬停效果卡片 ========== -->
-    <a-card
-      title="悬停效果"
-      :variant="borderless"
-    >
-      <p :class="sectionTipClassName">
-        鼠标悬停在卡片上查看动画效果：阴影加深 + 轻微上浮 + 缩放
-      </p>
+    <a-card title="悬停效果" :variant="borderless">
+      <p :class="sectionTipClassName">鼠标悬停在卡片上查看动画效果：阴影加深 + 轻微上浮 + 缩放</p>
       <div :class="grid3ColClassName">
-        <div
-          v-for="(product, index) in productList.slice(0, 6)"
-          :key="product.id"
-          :class="hoverCardClassName"
-        >
+        <div v-for="(product, index) in productList.slice(0, 6)" :key="product.id" :class="hoverCardClassName">
           <div :class="cn(hoverCoverClassName, `bg-gradient-to-br ${getCoverGradient(index + 2)}`)" />
           <h4 :class="hoverTitleClassName">
             {{ product.name }}
@@ -365,10 +340,7 @@ function handleLoadMore() {
     </a-card>
 
     <!-- ========== 4. 可筛选列表 ========== -->
-    <a-card
-      title="可筛选列表"
-      :variant="borderless"
-    >
+    <a-card title="可筛选列表" :variant="borderless">
       <!-- 搜索框和分类标签 -->
       <div :class="filterSectionClassName">
         <a-input-search
@@ -401,7 +373,7 @@ function handleLoadMore() {
             <div class="flex items-start gap-3">
               <div :class="cn(filterCardCoverClassName, `bg-gradient-to-br ${getCoverGradient(index)}`)" />
               <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2 mb-1">
+                <div class="mb-1 flex items-center gap-2">
                   <h4 :class="filterCardTitleClassName">
                     {{ product.name }}
                   </h4>
@@ -419,67 +391,36 @@ function handleLoadMore() {
           </a-card>
         </div>
       </template>
-      <a-empty
-        v-else
-        description="没有找到匹配的卡片"
-      />
+      <a-empty v-else description="没有找到匹配的卡片" />
     </a-card>
 
     <!-- ========== 5. 加载更多 ========== -->
-    <a-card
-      title="加载更多"
-      :variant="borderless"
-    >
-      <p :class="loadMoreInfoClassName">
-        当前显示 {{ displayCount }} / {{ productList.length }} 条
-      </p>
+    <a-card title="加载更多" :variant="borderless">
+      <p :class="loadMoreInfoClassName">当前显示 {{ displayCount }} / {{ productList.length }} 条</p>
       <div :class="grid3ColClassName">
-        <a-card
-          v-for="(product, index) in displayedProducts"
-          :key="product.id"
-          :variant="bordered"
-        >
+        <a-card v-for="(product, index) in displayedProducts" :key="product.id" :variant="bordered">
           <div :class="cn(loadMoreCoverClassName, `bg-gradient-to-br ${getCoverGradient(index + 4)}`)">
             <span :class="loadMoreIndexClassName">#{{ String(product.id).padStart(2, '0') }}</span>
           </div>
           <h4 :class="hoverTitleClassName">
             {{ product.name }}
           </h4>
-          <p :class="loadMoreMetaClassName">
-            {{ product.tag }} · ¥{{ product.price }}
-          </p>
+          <p :class="loadMoreMetaClassName">{{ product.tag }} · ¥{{ product.price }}</p>
         </a-card>
       </div>
-      <div
-        v-if="hasMore"
-        :class="loadMoreCenterClassName"
-      >
+      <div v-if="hasMore" :class="loadMoreCenterClassName">
         <a-button @click="handleLoadMore">
           加载更多 ({{ Math.min(LOAD_MORE_STEP, productList.length - displayCount) }} 条)
         </a-button>
       </div>
-      <div
-        v-else
-        :class="loadMoreDoneClassName"
-      >
-        已加载全部数据 ~
-      </div>
+      <div v-else :class="loadMoreDoneClassName">已加载全部数据 ~</div>
     </a-card>
 
     <!-- ========== 6. 瀑布流布局 ========== -->
-    <a-card
-      title="瀑布流布局 (CSS Columns)"
-      :variant="borderless"
-    >
-      <p :class="sectionTipClassName">
-        使用 CSS columns 实现瀑布流效果，卡片高度不同
-      </p>
+    <a-card title="瀑布流布局 (CSS Columns)" :variant="borderless">
+      <p :class="sectionTipClassName">使用 CSS columns 实现瀑布流效果，卡片高度不同</p>
       <div :class="masonryClassName">
-        <div
-          v-for="(product, index) in productList"
-          :key="product.id"
-          :class="masonryItemClassName"
-        >
+        <div v-for="(product, index) in productList" :key="product.id" :class="masonryItemClassName">
           <!-- 动态高度封面 -->
           <div
             :class="cn(masonryCoverBaseClassName, `bg-gradient-to-br ${getCoverGradient(index)}`)"

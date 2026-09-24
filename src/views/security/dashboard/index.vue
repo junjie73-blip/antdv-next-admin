@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { cn } from '@/utils/cn'
-import RealtimeAlertPanel from './components/RealtimeAlertPanel.vue'
-import SecurityScoreCard from './components/SecurityScoreCard.vue'
-import SecurityStatsCharts from './components/SecurityStatsCharts.vue'
-import SecurityTimeline from './components/SecurityTimeline.vue'
+import { Icon } from "@iconify/vue";
+import { cn } from "~/utils/cn";
+import RealtimeAlertPanel from "./components/RealtimeAlertPanel.vue";
+import SecurityScoreCard from "./components/SecurityScoreCard.vue";
+import SecurityStatsCharts from "./components/SecurityStatsCharts.vue";
+import SecurityTimeline from "./components/SecurityTimeline.vue";
 
-defineOptions({ name: 'SecurityDashboard' })
+defineOptions({ name: "SecurityDashboard" });
 
-const containerClassName = cn('p-5 space-y-4')
-const headerClassName = cn('flex items-center justify-between mb-2')
+const containerClassName = cn("p-5 space-y-4");
+const headerClassName = cn("flex items-center justify-between mb-2");
 </script>
 
 <template>
@@ -18,26 +18,13 @@ const headerClassName = cn('flex items-center justify-between mb-2')
     <div :class="headerClassName">
       <div>
         <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-          <Icon
-            icon="carbon:security"
-            :width="24"
-            :height="24"
-            class="text-ant-primary"
-          />
+          <Icon icon="carbon:security" :width="24" :height="24" class="text-ant-primary" />
           安全审计仪表盘
         </h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          实时安全态势感知与威胁分析中心
-        </p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">实时安全态势感知与威胁分析中心</p>
       </div>
       <a-space>
-        <a-segmented
-          :options="['今日',
-                     '近7天',
-                     '近30天']"
-          default-value="今日"
-          size="small"
-        />
+        <a-segmented :options="['今日', '近7天', '近30天']" default-value="今日" size="small" />
         <a-button size="small">
           <template #icon>
             <Icon icon="carbon:download" />

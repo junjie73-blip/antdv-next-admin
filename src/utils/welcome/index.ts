@@ -1,4 +1,4 @@
-import dayjs from 'dayjs'
+import dayjs from '~/utils/dayjs'
 
 interface WelcomeConfig {
   icon: string
@@ -18,14 +18,10 @@ type TimePeriod = 'morning' | 'noon' | 'afternoon' | 'evening' | 'night'
 function getTimePeriod(): TimePeriod {
   const hour = dayjs().hour()
 
-  if (hour >= MORNING_START && hour < NOON_START)
-    return 'morning'
-  if (hour >= NOON_START && hour < AFTERNOON_START)
-    return 'noon'
-  if (hour >= AFTERNOON_START && hour < EVENING_START)
-    return 'afternoon'
-  if (hour >= EVENING_START && hour < NIGHT_START)
-    return 'evening'
+  if (hour >= MORNING_START && hour < NOON_START) return 'morning'
+  if (hour >= NOON_START && hour < AFTERNOON_START) return 'noon'
+  if (hour >= AFTERNOON_START && hour < EVENING_START) return 'afternoon'
+  if (hour >= EVENING_START && hour < NIGHT_START) return 'evening'
   return 'night'
 }
 

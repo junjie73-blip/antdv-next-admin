@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { VideoPlayer } from '@videojs-player/vue'
-import { cn } from '@/utils/cn'
+
+import { cn } from '~/utils/cn'
+
 import 'video.js/dist/video-js.css'
 import '@videojs/http-streaming'
 
@@ -18,13 +20,7 @@ const noticeClassName = cn(
   'dark:text-blue-300',
   'text-sm',
 )
-const playerWrapperClassName = cn(
-  'rounded-lg',
-  'overflow-hidden',
-  'border',
-  'border-gray-200',
-  'dark:border-gray-700',
-)
+const playerWrapperClassName = cn('rounded-lg', 'overflow-hidden', 'border', 'border-gray-200', 'dark:border-gray-700')
 
 const mp4Src = 'https://vjs.zencdn.net/v/oceans.mp4'
 const mp4Poster = 'https://vjs.zencdn.net/v/oceans.png'
@@ -75,54 +71,27 @@ const loopPlayerOptions = {
 
 <template>
   <div :class="containerClassName">
-    <a-card
-      title="MP4 视频播放"
-      variant="borderless"
-    >
-      <div :class="labelClassName">
-        标准 MP4 格式视频，提供完整的播放控制栏，支持倍速播放、画中画等功能
-      </div>
+    <a-card title="MP4 视频播放" variant="borderless">
+      <div :class="labelClassName">标准 MP4 格式视频，提供完整的播放控制栏，支持倍速播放、画中画等功能</div>
       <div :class="playerWrapperClassName">
-        <VideoPlayer
-          :src="mp4Src"
-          :options="mp4PlayerOptions"
-        />
+        <VideoPlayer :src="mp4Src" :options="mp4PlayerOptions" />
       </div>
     </a-card>
 
-    <a-card
-      title="HLS 流媒体播放"
-      variant="borderless"
-    >
-      <div :class="labelClassName">
-        HLS (m3u8) 自适应码率流媒体视频，可根据网络状况自动切换清晰度
-      </div>
+    <a-card title="HLS 流媒体播放" variant="borderless">
+      <div :class="labelClassName">HLS (m3u8) 自适应码率流媒体视频，可根据网络状况自动切换清晰度</div>
       <div :class="noticeClassName">
         <span>💡 提示：HLS 播放依赖 Media Source Extensions (MSE)，推荐使用 Chrome、Firefox 或 Edge 浏览器</span>
       </div>
-      <div
-        :class="playerWrapperClassName"
-        class="mt-3"
-      >
-        <VideoPlayer
-          :src="hlsSrc"
-          :options="hlsPlayerOptions"
-        />
+      <div :class="playerWrapperClassName" class="mt-3">
+        <VideoPlayer :src="hlsSrc" :options="hlsPlayerOptions" />
       </div>
     </a-card>
 
-    <a-card
-      title="自动循环播放"
-      variant="borderless"
-    >
-      <div :class="labelClassName">
-        静音自动循环播放模式，适合用作背景视频或演示场景
-      </div>
+    <a-card title="自动循环播放" variant="borderless">
+      <div :class="labelClassName">静音自动循环播放模式，适合用作背景视频或演示场景</div>
       <div :class="playerWrapperClassName">
-        <VideoPlayer
-          :src="loopSrc"
-          :options="loopPlayerOptions"
-        />
+        <VideoPlayer :src="loopSrc" :options="loopPlayerOptions" />
       </div>
     </a-card>
   </div>

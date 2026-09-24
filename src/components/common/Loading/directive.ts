@@ -1,6 +1,9 @@
 import type { App, Directive } from 'vue'
-import type { LoadingDirectiveBinding, LoadingProps, LoadingSize, LoadingTheme } from './types'
+
 import { createApp } from 'vue'
+
+import type { LoadingDirectiveBinding, LoadingProps, LoadingSize, LoadingTheme } from './types'
+
 import Loading from './Loading.vue'
 
 /**
@@ -82,16 +85,13 @@ function getLoadingState(el: HTMLElement): LoadingState | undefined {
  * 设置 loading 状态
  */
 function setLoadingState(el: HTMLElement, state: LoadingState | undefined): void {
-  (el as HTMLElement & { _loadingState?: LoadingState })._loadingState = state
+  ;(el as HTMLElement & { _loadingState?: LoadingState })._loadingState = state
 }
 
 /**
  * 创建 loading 实例
  */
-function createLoadingInstance(
-  el: HTMLElement,
-  binding: LoadingDirectiveBinding,
-): void {
+function createLoadingInstance(el: HTMLElement, binding: LoadingDirectiveBinding): void {
   // 如果已存在，先移除
   const existingState = getLoadingState(el)
   if (existingState) {
@@ -128,8 +128,7 @@ function createLoadingInstance(
   // 添加到 DOM
   if (isBody) {
     document.body.appendChild(loadingEl)
-  }
-  else {
+  } else {
     el.appendChild(loadingEl)
   }
 }
@@ -139,8 +138,7 @@ function createLoadingInstance(
  */
 function removeLoading(el: HTMLElement): void {
   const state = getLoadingState(el)
-  if (!state)
-    return
+  if (!state) return
 
   const { app, loadingEl } = state
 
@@ -181,8 +179,7 @@ const loadingDirective: Directive<HTMLElement, boolean> = {
       if (!state) {
         createLoadingInstance(el, binding as LoadingDirectiveBinding)
       }
-    }
-    else {
+    } else {
       // 关闭 loading
       if (state) {
         removeLoading(el)

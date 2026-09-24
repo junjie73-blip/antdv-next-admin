@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import type { FormInstance } from 'antdv-next'
-import type { Rule } from 'antdv-next/dist/form/types'
+import type { FormInstance } from "antdv-next";
+import type { Rule } from "antdv-next/dist/form/types";
 
-import { LockOutlined, MailOutlined, MobileOutlined, UserOutlined } from '@antdv-next/icons'
-import { Icon } from '@iconify/vue'
+import { LockOutlined, MailOutlined, MobileOutlined, UserOutlined } from "@antdv-next/icons";
+import { Icon } from "@iconify/vue";
 
-import { computed, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/modules/user'
-import { cn } from '@/utils/cn'
-import { useLoginStyles } from './composables/useLoginStyles'
+import { computed, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useUserStore } from "~/stores/modules/user";
+import { cn } from "~/utils/cn";
+import { useLoginStyles } from "./composables/useLoginStyles";
 
-const router = useRouter()
-const route = useRoute()
-const userStore = useUserStore()
-const _appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
+const router = useRouter();
+const route = useRoute();
+const userStore = useUserStore();
+const _appTitle = import.meta.env.VITE_APP_TITLE || "Antdv Next Admin";
 
 const {
   containerClassName,
@@ -40,76 +40,73 @@ const {
   loginTypeBtnBaseClassName,
   loginTypeActiveBtnStyle,
   sendCodeBtnStyle,
-} = useLoginStyles()
+} = useLoginStyles();
 
-const formRef = ref<FormInstance>()
-const loading = ref(false)
-const loginType = ref<'account' | 'mobile'>('account')
+const formRef = ref<FormInstance>();
+const loading = ref(false);
+const loginType = ref<"account" | "mobile">("account");
 
 const formState = reactive({
-  username: '',
-  password: '',
-  mobile: '',
-  code: '',
+  username: "",
+  password: "",
+  mobile: "",
+  code: "",
   remember: true,
-})
+});
 
 const accountRules: Record<string, Rule[]> = {
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码至少6位', trigger: 'blur' },
+    { required: true, message: "请输入密码", trigger: "blur" },
+    { min: 6, message: "密码至少6位", trigger: "blur" },
   ],
-}
+};
 
 const mobileRules: Record<string, Rule[]> = {
   mobile: [
-    { required: true, message: '请输入手机号', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' },
+    { required: true, message: "请输入手机号", trigger: "blur" },
+    { pattern: /^1[3-9]\d{9}$/, message: "手机号格式不正确", trigger: "blur" },
   ],
   code: [
-    { required: true, message: '请输入验证码', trigger: 'blur' },
-    { len: 6, message: '验证码为6位', trigger: 'blur' },
+    { required: true, message: "请输入验证码", trigger: "blur" },
+    { len: 6, message: "验证码为6位", trigger: "blur" },
   ],
-}
+};
 
-const currentRules = computed(() => (loginType.value === 'account' ? accountRules : mobileRules))
+const currentRules = computed(() => (loginType.value === "account" ? accountRules : mobileRules));
 
 async function handleLogin() {
   try {
-    await formRef.value?.validate()
-    loading.value = true
+    await formRef.value?.validate();
+    loading.value = true;
 
-    const result = await userStore.login(formState.username, formState.password)
+    const result = await userStore.login(formState.username, formState.password);
 
     if (result.success) {
-      message.success('登录成功')
+      message.success("登录成功");
       // 优先跳转到重定向路径（如从其他页面被拦截到登录页），否则默认到仪表盘
-      const redirect = (route.query.redirect as string) || '/dashboard'
-      router.push(redirect)
+      const redirect = (route.query.redirect as string) || "/dashboard";
+      router.push(redirect);
+    } else {
+      message.error(result.message || "登录失败");
     }
-    else {
-      message.error(result.message || '登录失败')
-    }
-  }
-  catch {
-    message.error('请检查输入')
-  }
-  finally {
-    loading.value = false
+  } catch {
+    message.error("请检查输入");
+  } finally {
+    loading.value = false;
   }
 }
 
 function handleForgotPassword() {
-  message.info('请联系管理员重置密码')
+  message.info("请联系管理员重置密码");
 }
 
 function handleSendCode() {
   if (!formState.mobile || !/^1[3-9]\d{9}$/.test(formState.mobile)) {
-    message.error('请输入正确的手机号')
-    return
+    message.error("请输入正确的手机号");
+    return;
   }
-  message.success('验证码已发送')
+  message.success("验证码已发送");
 }
 </script>
 
@@ -122,18 +119,9 @@ function handleSendCode() {
 
       <!-- 装饰性背景 -->
       <div class="absolute inset-0">
-        <div
-          :class="decorBlob1ClassName"
-          :style="decorBlob1Style"
-        />
-        <div
-          :class="decorBlob2ClassName"
-          :style="decorBlob2Style"
-        />
-        <div
-          :class="decorBlob3ClassName"
-          :style="decorBlob3Style"
-        />
+        <div :class="decorBlob1ClassName" :style="decorBlob1Style" />
+        <div :class="decorBlob2ClassName" :style="decorBlob2Style" />
+        <div :class="decorBlob3ClassName" :style="decorBlob3Style" />
       </div>
 
       <!-- 网格背景 -->
@@ -144,10 +132,7 @@ function handleSendCode() {
         <!-- Logo -->
         <div class="mb-12">
           <div :class="logoContainerClassName">
-            <div
-              :class="logoIconClassName"
-              :style="logoIconStyle"
-            >
+            <div :class="logoIconClassName" :style="logoIconStyle">
               <svg
                 class="w-5 h-5 text-white"
                 viewBox="0 0 24 24"
@@ -164,67 +149,44 @@ function handleSendCode() {
 
         <!-- 标题 -->
         <h1 class="text-4xl xl:text-5xl font-bold text-stone-800 mb-6 leading-tight">
-          构建现代化<br>
+          构建现代化<br />
           <span :style="titleHighlightStyle">管理系统</span>
         </h1>
 
         <p class="text-lg text-stone-600 mb-12 max-w-lg leading-relaxed">
-          基于 Vue 3 + TypeScript + Ant Design Vue 构建的企业级后台管理解决方案，助您快速开发高质量管理系统。
+          基于 Vue 3 + TypeScript + Ant Design Vue
+          构建的企业级后台管理解决方案，助您快速开发高质量管理系统。
         </p>
 
         <!-- 特性列表 -->
         <div class="space-y-5">
           <div class="flex items-center gap-4 group">
             <div :class="featureIconClassName">
-              <Icon
-                icon="carbon:flash"
-                class="w-5 h-5"
-                :style="featureIconStyle"
-              />
+              <Icon icon="carbon:flash" class="w-5 h-5" :style="featureIconStyle" />
             </div>
             <div>
-              <h3 class="text-stone-800 font-medium">
-                极速开发
-              </h3>
-              <p class="text-stone-500 text-sm">
-                开箱即用的组件与模板
-              </p>
+              <h3 class="text-stone-800 font-medium">极速开发</h3>
+              <p class="text-stone-500 text-sm">开箱即用的组件与模板</p>
             </div>
           </div>
 
           <div class="flex items-center gap-4 group">
             <div :class="featureIconClassName">
-              <Icon
-                icon="carbon:shield-checkmark"
-                class="w-5 h-5"
-                :style="featureIconStyle"
-              />
+              <Icon icon="carbon:shield-checkmark" class="w-5 h-5" :style="featureIconStyle" />
             </div>
             <div>
-              <h3 class="text-stone-800 font-medium">
-                安全可靠
-              </h3>
-              <p class="text-stone-500 text-sm">
-                完善的权限管理体系
-              </p>
+              <h3 class="text-stone-800 font-medium">安全可靠</h3>
+              <p class="text-stone-500 text-sm">完善的权限管理体系</p>
             </div>
           </div>
 
           <div class="flex items-center gap-4 group">
             <div :class="featureIconClassName">
-              <Icon
-                icon="carbon:settings-adjust"
-                class="w-5 h-5"
-                :style="featureIconStyle"
-              />
+              <Icon icon="carbon:settings-adjust" class="w-5 h-5" :style="featureIconStyle" />
             </div>
             <div>
-              <h3 class="text-stone-800 font-medium">
-                灵活配置
-              </h3>
-              <p class="text-stone-500 text-sm">
-                高度可定制的主题系统
-              </p>
+              <h3 class="text-stone-800 font-medium">灵活配置</h3>
+              <p class="text-stone-500 text-sm">高度可定制的主题系统</p>
             </div>
           </div>
         </div>
@@ -236,8 +198,16 @@ function handleSendCode() {
       <div :class="glassCardClassName">
         <!-- 标题 -->
         <div class="text-center mb-8">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[var(--ant-color-primary)] shadow-lg shadow-[var(--ant-color-primary)]/20 mb-4">
-            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <div
+            class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[var(--ant-color-primary)] shadow-lg shadow-[var(--ant-color-primary)]/20 mb-4"
+          >
+            <svg
+              class="w-6 h-6 text-white"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
             </svg>
           </div>
@@ -250,22 +220,28 @@ function handleSendCode() {
         <div class="mb-6">
           <div :class="loginTypeContainerClassName">
             <button
-              :class="cn(loginTypeBtnBaseClassName,
-                         loginType === 'account'
-                           ? 'bg-white shadow-sm'
-                           : 'text-stone-500 hover:text-stone-700',
-              )"
+              :class="
+                cn(
+                  loginTypeBtnBaseClassName,
+                  loginType === 'account'
+                    ? 'bg-white shadow-sm'
+                    : 'text-stone-500 hover:text-stone-700',
+                )
+              "
               :style="loginType === 'account' ? loginTypeActiveBtnStyle : {}"
               @click="loginType = 'account'"
             >
               账号登录
             </button>
             <button
-              :class="cn(loginTypeBtnBaseClassName,
-                         loginType === 'mobile'
-                           ? 'bg-white shadow-sm'
-                           : 'text-stone-500 hover:text-stone-700',
-              )"
+              :class="
+                cn(
+                  loginTypeBtnBaseClassName,
+                  loginType === 'mobile'
+                    ? 'bg-white shadow-sm'
+                    : 'text-stone-500 hover:text-stone-700',
+                )
+              "
               :style="loginType === 'mobile' ? loginTypeActiveBtnStyle : {}"
               @click="loginType = 'mobile'"
             >

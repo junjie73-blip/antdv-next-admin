@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor'
-import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 
+import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import { computed, ref, shallowRef, watch } from 'vue'
-import { cn } from '@/utils/cn'
+
+import { cn } from '~/utils/cn'
+
 import '@wangeditor/editor/dist/css/style.css'
 
 defineOptions({ name: 'EditorRichText' })
@@ -44,10 +46,7 @@ const editorConfig = computed((): Partial<IEditorConfig> => ({
 }))
 
 const toolbarConfig: Partial<IToolbarConfig> = {
-  excludeKeys: [
-    'group-more-style',
-    'fullScreen',
-  ],
+  excludeKeys: ['group-more-style', 'fullScreen'],
 }
 
 function handleCreated(editor: IDomEditor) {
@@ -58,31 +57,23 @@ function handleChange(editor: IDomEditor) {
   editorHtml.value = editor.getHtml()
 }
 
-watch(() => editorRef.value, () => {
-  if (editorRef.value && editorHtml.value) {
-    editorRef.value.setHtml(editorHtml.value)
-  }
-})
+watch(
+  () => editorRef.value,
+  () => {
+    if (editorRef.value && editorHtml.value) {
+      editorRef.value.setHtml(editorHtml.value)
+    }
+  },
+)
 </script>
 
 <template>
   <div :class="containerClassName">
-    <a-card
-      :class="toolbarCardClassName"
-      :styles="{ body: { padding: '0' } }"
-    >
-      <Toolbar
-        :editor="editorRef"
-        :default-config="toolbarConfig"
-        mode="default"
-        class="!border-0"
-      />
+    <a-card :class="toolbarCardClassName" :styles="{ body: { padding: '0' } }">
+      <Toolbar :editor="editorRef" :default-config="toolbarConfig" mode="default" class="!border-0" />
     </a-card>
 
-    <a-card
-      :class="editorCardClassName"
-      :styles="{ body: { padding: '0' } }"
-    >
+    <a-card :class="editorCardClassName" :styles="{ body: { padding: '0' } }">
       <Editor
         :default-config="editorConfig"
         :style="{ height: '600px' }"

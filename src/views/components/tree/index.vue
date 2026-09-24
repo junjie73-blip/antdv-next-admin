@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-import { cn } from '@/utils/cn'
+import { cn } from '~/utils/cn'
 
 // ==================== 类型定义 ====================
 interface TreeNode {
@@ -15,9 +15,7 @@ interface TreeNode {
 // ==================== 样式定义 ====================
 const containerClassName = cn('space-y-6')
 
-const infoBoxClassName = cn(
-  'mb-4 p-3 rounded-lg text-sm',
-)
+const infoBoxClassName = cn('mb-4 p-3 rounded-lg text-sm')
 
 const blueInfoClassName = cn(
   ...infoBoxClassName.split(' '),
@@ -48,9 +46,7 @@ const actionNodeClassName = cn(
   'flex items-center justify-between group w-full pr-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded px-1 -mx-1',
 )
 
-const actionButtonsClassName = cn(
-  'flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity',
-)
+const actionButtonsClassName = cn('flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity')
 
 // ==================== 1. 基础用法 - 文件目录结构 ====================
 const basicTreeData = ref<TreeNode[]>([
@@ -124,11 +120,10 @@ const checkableTreeData = ref<TreeNode[]>([
 const checkedKeys = ref<string[]>([])
 const halfCheckedKeys = ref<string[]>([])
 
-function handleCheck(keys: string[] | { checked: string[], halfChecked: string[] }) {
+function handleCheck(keys: string[] | { checked: string[]; halfChecked: string[] }) {
   if (Array.isArray(keys)) {
     checkedKeys.value = keys
-  }
-  else {
+  } else {
     checkedKeys.value = keys.checked
     halfCheckedKeys.value = keys.halfChecked
   }
@@ -171,9 +166,7 @@ const searchableTreeData = ref<TreeNode[]>([
   {
     key: 'search-3',
     title: '深圳分公司',
-    children: [
-      { key: 'search-3-1', title: '南山区创新中心' },
-    ],
+    children: [{ key: 'search-3-1', title: '南山区创新中心' }],
   },
 ])
 
@@ -198,12 +191,10 @@ const asyncTreeData = ref<TreeNode[]>([
 
 function findNode(nodes: TreeNode[], key: string): TreeNode | null {
   for (const node of nodes) {
-    if (node.key === key)
-      return node
+    if (node.key === key) return node
     if (node.children) {
       const found = findNode(node.children, key)
-      if (found)
-        return found
+      if (found) return found
     }
   }
   return null
@@ -248,11 +239,12 @@ function onDrop(info: any) {
   const dropKey = info.node?.key
 
   // 构建新顺序提示信息
-  const newOrder = draggableTreeData.value[0]?.children
-    ?.map((item, index) => `${index + 1}. ${item.title}`)
-    .join('\n') || ''
+  const newOrder =
+    draggableTreeData.value[0]?.children?.map((item, index) => `${index + 1}. ${item.title}`).join('\n') || ''
 
-  message.info(`拖拽完成！\n\n拖拽节点: ${dragKeys.join(', ') || '未知'}\n目标位置: ${dropKey || '末尾'}\n\n新顺序:\n${newOrder}`)
+  message.info(
+    `拖拽完成！\n\n拖拽节点: ${dragKeys.join(', ') || '未知'}\n目标位置: ${dropKey || '末尾'}\n\n新顺序:\n${newOrder}`,
+  )
 }
 
 function allowDrop(): boolean {
@@ -381,19 +373,11 @@ const virtualTreeData = ref<TreeNode[]>(generateLargeTreeData())
 <template>
   <div :class="containerClassName">
     <!-- 1. 基础用法 -->
-    <a-card
-      title="基础用法"
-      variant="borderless"
-    >
+    <a-card title="基础用法" variant="borderless">
       <template #extra>
-        <span class="text-gray-400 text-sm">展示文件目录结构</span>
+        <span class="text-sm text-gray-400">展示文件目录结构</span>
       </template>
-      <a-tree
-        :tree-data="basicTreeData"
-        :default-expanded-keys="['root',
-                                 'src']"
-        :show-icon="false"
-      >
+      <a-tree :tree-data="basicTreeData" :default-expanded-keys="['root', 'src']" :show-icon="false">
         <template #title="{ title }">
           <span class="text-gray-700 dark:text-gray-300">{{ title }}</span>
         </template>
@@ -401,35 +385,21 @@ const virtualTreeData = ref<TreeNode[]>(generateLargeTreeData())
     </a-card>
 
     <!-- 2. 可勾选的树 -->
-    <a-card
-      title="可勾选的树"
-      variant="borderless"
-    >
+    <a-card title="可勾选的树" variant="borderless">
       <template #extra>
-        <span class="text-gray-400 text-sm">Checkbox 多选模式</span>
+        <span class="text-sm text-gray-400">Checkbox 多选模式</span>
       </template>
       <div :class="blueInfoClassName">
-        <p class="mb-1">
-          已选中: {{ checkedKeys.length }} 个节点
-        </p>
-        <p
-          v-if="halfCheckedKeys.length > 0"
-          class="text-xs opacity-80"
-        >
-          半选状态: {{ halfCheckedKeys.join(', ') }}
-        </p>
-        <p class="text-xs opacity-60 mt-1 break-all">
-          Keys: [{{ checkedKeys.join(', ') || '无' }}]
-        </p>
+        <p class="mb-1">已选中: {{ checkedKeys.length }} 个节点</p>
+        <p v-if="halfCheckedKeys.length > 0" class="text-xs opacity-80">半选状态: {{ halfCheckedKeys.join(', ') }}</p>
+        <p class="mt-1 text-xs break-all opacity-60">Keys: [{{ checkedKeys.join(', ') || '无' }}]</p>
       </div>
       <a-tree
         :tree-data="checkableTreeData"
         checkable
         show-line
         :checked-keys="checkedKeys"
-        :default-expanded-keys="['dept-1',
-                                 'dept-1-1',
-                                 'dept-1-2']"
+        :default-expanded-keys="['dept-1', 'dept-1-1', 'dept-1-2']"
         @check="handleCheck"
       >
         <template #title="{ title }">
@@ -439,58 +409,35 @@ const virtualTreeData = ref<TreeNode[]>(generateLargeTreeData())
     </a-card>
 
     <!-- 3. 搜索过滤树 -->
-    <a-card
-      title="搜索过滤树"
-      variant="borderless"
-    >
+    <a-card title="搜索过滤树" variant="borderless">
       <template #extra>
-        <span class="text-gray-400 text-sm">输入关键字过滤匹配节点</span>
+        <span class="text-sm text-gray-400">输入关键字过滤匹配节点</span>
       </template>
       <div class="mb-4">
-        <a-input
-          v-model:value="searchValue"
-          placeholder="输入关键字搜索..."
-          allow-clear
-          style="max-width: 320px"
-        />
+        <a-input v-model:value="searchValue" placeholder="输入关键字搜索..." allow-clear style="max-width: 320px" />
       </div>
       <a-tree
         :tree-data="searchableTreeData"
-        :default-expanded-keys="['search-1',
-                                 'search-1-1',
-                                 'search-2']"
+        :default-expanded-keys="['search-1', 'search-1-1', 'search-2']"
         :search-value="searchValue"
       />
     </a-card>
 
     <!-- 4. 异步加载数据 -->
-    <a-card
-      title="异步加载数据"
-      variant="borderless"
-    >
+    <a-card title="异步加载数据" variant="borderless">
       <template #extra>
-        <span class="text-gray-400 text-sm">点击展开时动态加载子节点</span>
+        <span class="text-sm text-gray-400">点击展开时动态加载子节点</span>
       </template>
-      <div :class="yellowInfoClassName">
-        提示：点击非叶子节点的展开图标，将模拟 500ms 延迟加载子节点数据
-      </div>
-      <a-tree
-        :tree-data="asyncTreeData"
-        :load-data="onLoadData"
-      />
+      <div :class="yellowInfoClassName">提示：点击非叶子节点的展开图标，将模拟 500ms 延迟加载子节点数据</div>
+      <a-tree :tree-data="asyncTreeData" :load-data="onLoadData" />
     </a-card>
 
     <!-- 5. 拖拽排序树 -->
-    <a-card
-      title="拖拽排序树"
-      variant="borderless"
-    >
+    <a-card title="拖拽排序树" variant="borderless">
       <template #extra>
-        <span class="text-gray-400 text-sm">拖拽节点重新排列顺序</span>
+        <span class="text-sm text-gray-400">拖拽节点重新排列顺序</span>
       </template>
-      <div :class="greenInfoClassName">
-        提示：按住节点拖动到目标位置释放即可调整顺序
-      </div>
+      <div :class="greenInfoClassName">提示：按住节点拖动到目标位置释放即可调整顺序</div>
       <a-tree
         :tree-data="draggableTreeData"
         draggable
@@ -501,86 +448,39 @@ const virtualTreeData = ref<TreeNode[]>(generateLargeTreeData())
     </a-card>
 
     <!-- 6. 带操作按钮的树 -->
-    <a-card
-      title="带操作按钮的树"
-      variant="borderless"
-    >
+    <a-card title="带操作按钮的树" variant="borderless">
       <template #extra>
-        <span class="text-gray-400 text-sm">每个节点支持增删改操作</span>
+        <span class="text-sm text-gray-400">每个节点支持增删改操作</span>
       </template>
       <a-tree
         :tree-data="actionTreeData"
-        :default-expanded-keys="['action-1',
-                                 'action-1-1',
-                                 'action-1-2',
-                                 'action-1-3']"
+        :default-expanded-keys="['action-1', 'action-1-1', 'action-1-2', 'action-1-3']"
       >
         <template #title="{ title, key }">
           <div :class="actionNodeClassName">
             <span class="flex-1">{{ title }}</span>
             <div :class="actionButtonsClassName">
-              <a-button
-                type="link"
-                size="small"
-                @click.stop="handleEdit(key, title)"
-              >
+              <a-button type="link" size="small" @click.stop="handleEdit(key, title)">
                 <template #icon>
-                  <svg
-                    class="w-4 h-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
                     <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                   </svg>
                 </template>
               </a-button>
-              <a-button
-                type="link"
-                size="small"
-                danger
-                @click.stop="handleDelete(key)"
-              >
+              <a-button type="link" size="small" danger @click.stop="handleDelete(key)">
                 <template #icon>
-                  <svg
-                    class="w-4 h-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="3 6 5 6 21 6" />
                     <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
                   </svg>
                 </template>
               </a-button>
-              <a-button
-                type="link"
-                size="small"
-                @click.stop="handleAddChild(key)"
-              >
+              <a-button type="link" size="small" @click.stop="handleAddChild(key)">
                 <template #icon>
-                  <svg
-                    class="w-4 h-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <line
-                      x1="12"
-                      y1="5"
-                      x2="12"
-                      y2="19"
-                    />
-                    <line
-                      x1="5"
-                      y1="12"
-                      x2="19"
-                      y2="12"
-                    />
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
                   </svg>
                 </template>
               </a-button>
@@ -591,20 +491,14 @@ const virtualTreeData = ref<TreeNode[]>(generateLargeTreeData())
     </a-card>
 
     <!-- 7. 连接线样式 -->
-    <a-card
-      title="连接线样式"
-      variant="borderless"
-    >
+    <a-card title="连接线样式" variant="borderless">
       <template #extra>
-        <span class="text-gray-400 text-sm">使用 showLine 属性显示树形连接线</span>
+        <span class="text-sm text-gray-400">使用 showLine 属性显示树形连接线</span>
       </template>
       <a-tree
         :tree-data="lineTreeData"
         show-line
-        :default-expanded-keys="['line-1',
-                                 'line-1-1',
-                                 'line-1-2',
-                                 'line-1-3']"
+        :default-expanded-keys="['line-1', 'line-1-1', 'line-1-2', 'line-1-3']"
       >
         <template #title="{ title }">
           <span class="font-medium">{{ title }}</span>
@@ -613,27 +507,16 @@ const virtualTreeData = ref<TreeNode[]>(generateLargeTreeData())
     </a-card>
 
     <!-- 8. 虚拟滚动树（大数据量性能优化） -->
-    <a-card
-      title="虚拟滚动树"
-      variant="borderless"
-    >
+    <a-card title="虚拟滚动树" variant="borderless">
       <template #extra>
-        <span class="text-gray-400 text-sm">1000+ 节点的性能优化演示</span>
+        <span class="text-sm text-gray-400">1000+ 节点的性能优化演示</span>
       </template>
       <div :class="purpleInfoClassName">
         性能提示：本示例包含 1 个根节点 + 100 个分组 + 1000 个叶子节点，总计 1101 个节点。
         使用虚拟滚动技术确保流畅渲染。
       </div>
-      <div
-        :class="virtualScrollContainerClassName"
-        style="height: 400px;"
-      >
-        <a-tree
-          :tree-data="virtualTreeData"
-          :expanded-keys="virtualExpandedKeys"
-          :virtual-scroll="true"
-          :height="380"
-        >
+      <div :class="virtualScrollContainerClassName" style="height: 400px">
+        <a-tree :tree-data="virtualTreeData" :expanded-keys="virtualExpandedKeys" :virtual-scroll="true" :height="380">
           <template #title="{ title }">
             <span>{{ title }}</span>
           </template>

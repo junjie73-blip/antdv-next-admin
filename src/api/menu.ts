@@ -1,10 +1,10 @@
-import type { BackendMenu } from '#/menu'
-import { get } from '@/api/request'
+import type { BackendMenu } from "#/menu";
+import { get } from "~/api/request";
 
 interface MenuResponse {
-  list: BackendMenu[]
+  list: BackendMenu[];
 }
 
 export function getMenus(): Promise<MenuResponse> {
-  return get<MenuResponse>('/menus')
+  return get<MenuResponse>("/menus");
 }
