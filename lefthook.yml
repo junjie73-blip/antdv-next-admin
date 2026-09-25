@@ -1,8 +1,7 @@
 pre-commit:
   parallel: true
-  piped: true
   commands:
-    biome:
+    oxc:
       glob: "*.{js,ts,jsx,tsx,json,jsonc}"
       run: pnpm run format
       stage_fixed: true
