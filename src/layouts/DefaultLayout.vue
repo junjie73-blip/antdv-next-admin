@@ -1,35 +1,35 @@
 <script setup lang="ts">
-import type { MenuProps } from "antdv-next";
+import type { MenuProps } from 'antdv-next'
 
-import { computed, markRaw, onMounted, onUnmounted, ref, useTemplateRef } from "vue";
-import { useRouter } from "vue-router";
+import { computed, markRaw, onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
+import { useRouter } from 'vue-router'
 
-import PageLoading from "~/components/common/Loading/PageLoading.vue";
-import RouteLoadingBar from "~/components/common/Loading/RouteLoadingBar.vue";
-import { useRouteLoading } from "~/composables/useRouteLoading";
-import { useWatermark } from "~/composables/web/useWatermark";
-import { useDictStore } from "~/stores";
-import { useAppStore } from "~/stores/modules/app";
-import { useRouteStore } from "~/stores/modules/route";
-import { cn } from "~/utils/cn";
-import { transformMenuConfigToItems } from "~/utils/helpers/menu";
+import PageLoading from '~/components/common/Loading/PageLoading.vue'
+import RouteLoadingBar from '~/components/common/Loading/RouteLoadingBar.vue'
+import { useRouteLoading } from '~/composables/useRouteLoading'
+import { useWatermark } from '~/composables/web/useWatermark'
+import { useDictStore } from '~/stores'
+import { useAppStore } from '~/stores/modules/app'
+import { useRouteStore } from '~/stores/modules/route'
+import { cn } from '~/utils/cn'
+import { transformMenuConfigToItems } from '~/utils/helpers/menu'
 
-import LayoutFooter from "./components/LayoutFooter.vue";
-import LayoutHeader from "./components/LayoutHeader.vue";
-import LayoutSidebar from "./components/LayoutSidebar.vue";
-import LayoutTabs from "./components/LayoutTabs.vue";
-import { useLayout } from "./composables/useLayout";
+import LayoutFooter from './components/LayoutFooter.vue'
+import LayoutHeader from './components/LayoutHeader.vue'
+import LayoutSidebar from './components/LayoutSidebar.vue'
+import LayoutTabs from './components/LayoutTabs.vue'
+import { useLayout } from './composables/useLayout'
 
 defineOptions({
-  name: "DefaultLayout",
-});
+  name: 'DefaultLayout',
+})
 
-const router = useRouter();
-const appStore = useAppStore();
-const routeStore = useRouteStore();
-const { collapsed, checkMobile, toggleCollapsed } = useLayout();
-const dictStore = useDictStore();
-const routeStroe = useRouteStore();
+const router = useRouter()
+const appStore = useAppStore()
+const routeStore = useRouteStore()
+const { collapsed, checkMobile, toggleCollapsed } = useLayout()
+const dictStore = useDictStore()
+const routeStroe = useRouteStore()
 // 路由切换 loading 状态管理（增强版：集成性能监控）
 const {
   isLoading: isRouteLoading,
@@ -38,86 +38,84 @@ const {
 } = useRouteLoading({
   minDuration: 400,
   auto: true,
-});
+})
 
 const cachedRoutes = computed(() =>
   router
     .getRoutes()
     .filter((route) => route.meta?.keepAlive)
     .map((route) => route.name as string),
-);
+)
 
-const activeTopMenu = ref("/system");
+const activeTopMenu = ref('/system')
 
-const allMenuItems = computed<MenuProps["items"]>(() =>
-  transformMenuConfigToItems(routeStore.menus),
-);
+const allMenuItems = computed<MenuProps['items']>(() => transformMenuConfigToItems(routeStore.menus))
 
 function handleResize() {
-  checkMobile();
+  checkMobile()
 }
 
 onMounted(() => {
-  checkMobile();
-  window.addEventListener("resize", handleResize);
-});
+  checkMobile()
+  window.addEventListener('resize', handleResize)
+})
 
 onUnmounted(() => {
-  window.removeEventListener("resize", handleResize);
-});
+  window.removeEventListener('resize', handleResize)
+})
 
-const isVertical = computed(() => appStore.layout === "vertical");
-const isHorizontal = computed(() => appStore.layout === "horizontal");
-const isMixed = computed(() => appStore.layout === "mixed");
-const isGeekStyle = computed(() => appStore.themeStyle === "geek");
-const _isDarkMode = computed(() => appStore.themeMode === "dark" || isGeekStyle.value);
+const isVertical = computed(() => appStore.layout === 'vertical')
+const isHorizontal = computed(() => appStore.layout === 'horizontal')
+const isMixed = computed(() => appStore.layout === 'mixed')
+const isGeekStyle = computed(() => appStore.themeStyle === 'geek')
+const _isDarkMode = computed(() => appStore.themeMode === 'dark' || isGeekStyle.value)
 
 const hasChildren = computed(() => {
-  if (!isMixed.value || !activeTopMenu.value) return false;
-  const topMenu = allMenuItems.value?.find((item) => item?.key === activeTopMenu.value);
-  return !!(topMenu && "children" in topMenu && topMenu.children && topMenu.children.length > 0);
-});
+  if (!isMixed.value || !activeTopMenu.value) return false
+  const topMenu = allMenuItems.value?.find((item) => item?.key === activeTopMenu.value)
+  return !!(topMenu && 'children' in topMenu && topMenu.children && topMenu.children.length > 0)
+})
 
 const layoutClassName = computed(() =>
   cn(
-    "h-screen flex flex-col gap-4 overflow-hidden",
-    isGeekStyle.value ? "bg-[#0a0a0a]" : "bg-gray-50 dark:bg-gray-900",
+    'h-screen flex flex-col gap-4 overflow-hidden',
+    isGeekStyle.value ? 'bg-[#0a0a0a]' : 'bg-gray-50 dark:bg-gray-900',
   ),
-);
+)
 
 const contentClassName = computed(() =>
-  cn("p-4  flex-1  box-border", isGeekStyle.value ? "bg-[#0a0a0a]" : "bg-gray-50 dark:bg-gray-900"),
-);
+  cn('p-4  flex-1  box-border', isGeekStyle.value ? 'bg-[#0a0a0a]' : 'bg-gray-50 dark:bg-gray-900'),
+)
 
 // 主内容区滚动容器引用（供路由切换时回到顶部）
-const scrollbarRef = useTemplateRef("mainScrollbar");
+const scrollbarRef = useTemplateRef('mainScrollbar')
 
 /** 滚动到顶部 */
 function scrollToTop() {
-  const el = scrollbarRef.value?.$el as HTMLElement | undefined;
+  const el = scrollbarRef.value?.$el as HTMLElement | undefined
   if (el) {
-    el.scrollTo({ top: 0, left: 0 });
+    el.scrollTo({ top: 0, left: 0 })
   }
 }
 
 // 挂载到 window 供路由守卫调用
 onMounted(() => {
-  (window as any).__layoutScrollToTop = scrollToTop;
-  dictStore.fetchAllDicts();
-  routeStroe.initBackendRoutes();
-});
+  ;(window as any).__layoutScrollToTop = scrollToTop
+  dictStore.fetchAllDicts()
+  routeStroe.initBackendRoutes()
+})
 onUnmounted(() => {
-  delete (window as any).__layoutScrollToTop;
-});
+  delete (window as any).__layoutScrollToTop
+})
 
 function handleTopMenuSelect(key: string) {
-  activeTopMenu.value = key;
+  activeTopMenu.value = key
 }
 
 useWatermark({
   content: computed(() => appStore.watermarkContent),
   enabled: computed(() => appStore.enableWatermark),
-});
+})
 </script>
 
 <template>
@@ -160,10 +158,7 @@ useWatermark({
         <!-- 垂直布局：Header 在主区域内（折叠按钮 + 面包屑） -->
         <LayoutHeader v-if="isVertical" :collapsed="collapsed" @toggleCollapsed="toggleCollapsed" />
 
-        <LayoutTabs
-          :has-children="isMixed && hasChildren"
-          :show-icon="appStore.tabShowIcon ?? true"
-        />
+        <LayoutTabs :has-children="isMixed && hasChildren" :show-icon="appStore.tabShowIcon ?? true" />
 
         <main :class="contentClassName" class="relative overflow-hidden">
           <PageLoading :loading="isRouteLoading" variant="default" :error="isSlow" />

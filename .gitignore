@@ -43,3 +43,10 @@ playwright-report/
 */cache/*
 *prototype/*
 dev-list
+.kiro/*
+.trae/*
+.shared/*
+e2e/*
+tests/*
+skills-lock.json
+.agents/*

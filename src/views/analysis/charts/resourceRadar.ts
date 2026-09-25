@@ -6,7 +6,7 @@ import type { ResourceUsageData } from '../types'
 
 import { PALETTE } from '../constants'
 import { baseOption, borderColor, echartsTheme, subTextColor } from '../theme'
-
+import 'echarts-wordcloud'
 /** 资源使用雷达图 */
 export async function initResourceRadar(el: HTMLElement, isDark: boolean) {
   const instance = echarts.init(el, echartsTheme(isDark))

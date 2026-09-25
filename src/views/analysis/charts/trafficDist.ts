@@ -4,7 +4,7 @@ import { getTrafficDistribution } from '~/api'
 
 import { PALETTE } from '../constants'
 import { baseOption, echartsTheme, subTextColor, textColor } from '../theme'
-
+import 'echarts-wordcloud'
 /** 流量来源分布（环形饼图） */
 export async function initTrafficDist(el: HTMLElement, isDark: boolean): Promise<echarts.ECharts> {
   const instance = echarts.init(el, echartsTheme(isDark))

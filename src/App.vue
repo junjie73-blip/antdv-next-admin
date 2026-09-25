@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { autoPrefixTransformer, px2remTransformer } from '@antdv-next/cssinjs'
 import { HappyProvider } from '@antdv-next/happy-work-theme'
-// eslint-disable-next-line import/order
 import { ConfigProvider, StyleProvider } from 'antdv-next'
 import 'dayjs/locale/zh-cn'
 import 'dayjs/locale/zh-tw'

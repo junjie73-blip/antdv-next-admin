@@ -2,6 +2,7 @@
 import { Icon } from '@iconify/vue'
 import * as echarts from 'echarts' // ⚠️ 静态 import，不要动态 import
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import 'echarts-wordcloud'
 
 import { getServerInfo } from '~/api'
 

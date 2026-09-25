@@ -6,7 +6,7 @@ import type { ActivityTrendData } from '../types'
 
 import { PALETTE } from '../constants'
 import { axisLineColor, baseOption, borderColor, echartsTheme, gradient, subTextColor } from '../theme'
-
+import 'echarts-wordcloud'
 /** 系统活动趋势（主图） */
 export async function initMainTrend(el: HTMLElement, isDark: boolean, range: string) {
   const instance = echarts.init(el, echartsTheme(isDark))

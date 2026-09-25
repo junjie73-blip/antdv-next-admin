@@ -1,7 +1,50 @@
-import type { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor'
+import type { Editor } from '@tiptap/vue-3'
 
 export type MarkdownEditorMode = 'edit' | 'preview' | 'split'
 export type MarkdownEditorTheme = 'light' | 'dark'
+
+/**
+ * 工具栏按键标识
+ *
+ * 名称沿用 wangEditor 的叫法，存量配置（toolbarKeys / excludeKeys）无需改写。
+ * `|` 表示分组竖线。
+ */
+export type MarkdownEditorToolbarKey =
+  | '|'
+  | 'headerSelect'
+  | 'bold'
+  | 'italic'
+  | 'underline'
+  | 'through'
+  | 'color'
+  | 'bgColor'
+  | 'fontSize'
+  | 'fontFamily'
+  | 'lineHeight'
+  | 'bulletedList'
+  | 'numberedList'
+  | 'todo'
+  | 'justifyLeft'
+  | 'justifyCenter'
+  | 'justifyRight'
+  | 'insertLink'
+  | 'uploadImage'
+  | 'uploadVideo'
+  | 'insertTable'
+  | 'codeBlock'
+  | 'undo'
+  | 'redo'
+  | 'fullScreen'
+
+export interface MarkdownEditorToolbarConfig {
+  /**
+   * 完整自定义按键列表。
+   * 与 wangEditor 一致：一旦配置，excludeKeys 不再生效。
+   */
+  toolbarKeys?: MarkdownEditorToolbarKey[]
+  /** 从默认按键中排除若干项 */
+  excludeKeys?: MarkdownEditorToolbarKey[]
+}
 
 /** 上传响应（后端统一格式） */
 export interface UploadResponse {
@@ -72,10 +115,8 @@ export interface MarkdownEditorProps {
   readonly?: boolean
   disabled?: boolean
   showToolbar?: boolean
-  toolbarConfig?: Partial<IToolbarConfig>
-  editorConfig?: Partial<IEditorConfig>
+  toolbarConfig?: MarkdownEditorToolbarConfig
   imageUpload?: ImageUploadConfig
-  /** ⭐ 新增：视频上传配置 */
   videoUpload?: VideoUploadConfig
   autoFocus?: boolean
   maxLength?: number
@@ -83,8 +124,27 @@ export interface MarkdownEditorProps {
   compact?: boolean
 }
 
+/**
+ * 编辑器事件
+ *
+ * `change` 的第二个参数为纯文本，`getMarkdown` / `setMarkdown` 与 HTML 等价，
+ * 均与迁移前的 wangEditor 实现保持一致。
+ * `update:value` 供 `v-model:value` 使用。
+ */
+export interface MarkdownEditorEvents {
+  'update:value': [value: string]
+  change: [html: string, text: string]
+  focus: [editor: Editor]
+  blur: [editor: Editor]
+  uploadSuccess: [file: File, response: UploadResponse]
+  uploadError: [file: File, error: Error]
+  maxLength: [currentLength: number, maxLength: number]
+  created: [editor: Editor]
+  destroyed: []
+}
+
 export interface MarkdownEditorInstance {
-  getEditor: () => IDomEditor | null
+  getEditor: () => Editor | null
   getHtml: () => string
   getMarkdown: () => string
   getText: () => string

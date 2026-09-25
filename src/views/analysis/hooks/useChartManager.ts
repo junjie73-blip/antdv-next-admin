@@ -3,7 +3,7 @@ import type { Ref } from 'vue'
 import * as echarts from 'echarts'
 import { isObject } from 'es-toolkit/compat'
 import { ref } from 'vue'
-
+import 'echarts-wordcloud'
 /**
  * 图表实例管理器
  * - 维护 name → ECharts 实例
@@ -115,5 +115,6 @@ export function useChartManager() {
     disposeAll,
     safeInit,
     resizeAll,
+    register,
   }
 }

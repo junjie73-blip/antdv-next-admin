@@ -7,7 +7,7 @@ import type { ChartInitResult } from './types'
 
 import { PALETTE } from '../constants'
 import { borderColor, echartsTheme, gradient, subTextColor, textColor } from '../theme'
-
+import 'echarts-wordcloud'
 /** 模块使用热度排行（带自动刷新） */
 export async function initModuleRank(
   el: HTMLElement,

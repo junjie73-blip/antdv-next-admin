@@ -247,31 +247,11 @@ export default defineConfig(({ mode }) => {
         symbolId: "icon-[name]",
       }),
       viteImagemin({
-        gifsicle: {
-          optimizationLevel: 7,
-          interlaced: false,
-        },
-        optipng: {
-          optimizationLevel: 7,
-        },
-        mozjpeg: {
-          quality: 20,
-        },
-        pngquant: {
-          quality: [0.8, 0.9],
-          speed: 4,
-        },
-        svgo: {
-          plugins: [
-            {
-              name: "removeViewBox",
-            },
-            {
-              name: "removeEmptyAttrs",
-              active: false,
-            },
-          ],
-        },
+        gifsicle: { optimizationLevel: 3 },
+        optipng: { optimizationLevel: 7 },
+        mozjpeg: { quality: 80 },
+        pngquant: { quality: [0.8, 0.9] },
+        webp: { quality: 80 },
       }),
       iconifyOffline({
         local: ["carbon", "ant-design", "lucide", "fa6-regular", "mdi"],
@@ -355,6 +335,9 @@ export default defineConfig(({ mode }) => {
       plugins.push(
         viteCompressPlugin({
           deleteOriginFile: false,
+          verbose: true,
+          disable: false,
+          threshold: 10240,
           ext: envConfig.VITE_COMPRESS === "brotli" ? ".br" : ".gz",
         }),
       );
@@ -394,7 +377,8 @@ export default defineConfig(({ mode }) => {
         output: {
           chunkFileNames: "js/[name]-[hash].js",
           assetFileNames: "assets/[name]-[hash].[ext]",
-          entryFileNames: "js/index-[name]-[hash].js",
+          entryFileNames: "js/[name]-[hash].js",
+          experimentalMinChunkSize: 20 * 1024,
           codeSplitting: {
             groups: [
               {
@@ -402,7 +386,7 @@ export default defineConfig(({ mode }) => {
                   if (id.includes("node_modules")) {
                     // antdv-next UI 框架（最大，单独拆分）
                     if (id.includes("antdv-next")) {
-                      return "vendor-antdv";
+                      return "vendor-ui";
                     }
 
                     // Vue 生态系统
@@ -414,26 +398,12 @@ export default defineConfig(({ mode }) => {
                     if (id.includes("echarts")) {
                       return "vendor-echarts";
                     }
-
-                    // Excel 处理库
-                    if (id.includes("xlsx")) {
-                      return "vendor-xlsx";
-                    }
-
-                    // 编辑器相关（WangEditor、Markdown）
-                    if (
-                      id.includes("@wangeditor") ||
-                      id.includes("markdown-it") ||
-                      id.includes("marked")
-                    ) {
-                      return "vendor-editor";
-                    }
-
                     // 工具库
                     if (
                       id.includes("@vueuse") ||
                       id.includes("es-toolkit") ||
-                      id.includes("dayjs")
+                      id.includes("dayjs") ||
+                      id.includes("xlsx")
                     ) {
                       return "vendor-utils";
                     }
@@ -453,6 +423,10 @@ export default defineConfig(({ mode }) => {
           },
         },
       },
+    },
+    optimizeDeps: {
+      exclude: ["vue"],
+      include: ["@vueuse", "es-toolkit", "antdv-next"],
     },
   };
 });

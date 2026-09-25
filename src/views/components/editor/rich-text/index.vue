@@ -1,86 +1,64 @@
 <script setup lang="ts">
-import type { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor'
+import { message } from 'antdv-next'
+import { ref } from 'vue'
 
-import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
-import { computed, ref, shallowRef, watch } from 'vue'
+import type {
+  ImageUploadConfig,
+  MarkdownEditorToolbarConfig,
+  VideoUploadConfig,
+} from '~/components/business/MarkdownEditor'
 
+import { MarkdownEditor } from '~/components/business/MarkdownEditor'
 import { cn } from '~/utils/cn'
-
-import '@wangeditor/editor/dist/css/style.css'
 
 defineOptions({ name: 'EditorRichText' })
 
-const editorRef = shallowRef<IDomEditor | null>(null)
 const editorHtml = ref('')
 
-const containerClassName = cn('space-y-4')
-const toolbarCardClassName = cn('shadow-sm', 'sticky', 'top-0', 'z-10')
-const editorCardClassName = cn('shadow-sm')
-
-const editorConfig = computed((): Partial<IEditorConfig> => ({
-  placeholder: '请输入内容...',
-  autoFocus: false,
-  scroll: true,
-  MENU_CONF: {
-    uploadImage: {
-      fieldName: 'file',
-      maxFileSize: 5 * 1024 * 1024,
-      allowedFileTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
-      async customUpload(file: File, insertFn: (url: string, alt: string, href: string) => void) {
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          const url = e.target?.result as string
-          insertFn(url, file.name, url)
-        }
-        reader.readAsDataURL(file)
-      },
-    },
-    uploadVideo: {
-      async customUpload(file: File, insertFn: (url: string, poster: string) => void) {
-        const url = URL.createObjectURL(file)
-        insertFn(url, '')
-        message.warning('视频文件较大，建议使用视频链接代替')
-      },
-    },
-  },
-}))
-
-const toolbarConfig: Partial<IToolbarConfig> = {
-  excludeKeys: ['group-more-style', 'fullScreen'],
+const toolbarConfig: MarkdownEditorToolbarConfig = {
+  excludeKeys: ['fullScreen'],
 }
 
-function handleCreated(editor: IDomEditor) {
-  editorRef.value = editor
-}
-
-function handleChange(editor: IDomEditor) {
-  editorHtml.value = editor.getHtml()
-}
-
-watch(
-  () => editorRef.value,
-  () => {
-    if (editorRef.value && editorHtml.value) {
-      editorRef.value.setHtml(editorHtml.value)
+// 演示用：图片转 base64 内联，视频用临时 blob 地址
+const imageUpload: ImageUploadConfig = {
+  customUpload(file, insertFn) {
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const url = event.target?.result as string
+      insertFn(url, file.name, url)
     }
+    reader.readAsDataURL(file)
   },
-)
+}
+
+const videoUpload: VideoUploadConfig = {
+  customUpload(file, insertFn) {
+    insertFn(URL.createObjectURL(file), '')
+    message.warning('视频文件较大，建议使用视频链接代替')
+  },
+}
+
+const pageTitleClassName = cn('text-2xl font-bold', 'text-gray-800 dark:text-gray-100', 'mb-1')
+
+const pageSubtitleClassName = cn('text-sm text-gray-500 dark:text-gray-400')
 </script>
 
 <template>
-  <div :class="containerClassName">
-    <a-card :class="toolbarCardClassName" :styles="{ body: { padding: '0' } }">
-      <Toolbar :editor="editorRef" :default-config="toolbarConfig" mode="default" class="!border-0" />
-    </a-card>
+  <div class="flex h-full flex-col p-4">
+    <div class="mb-3">
+      <h1 :class="pageTitleClassName">富文本编辑器</h1>
+      <p :class="pageSubtitleClassName">
+        基于 tiptap 的富文本编辑器，支持文本格式化、列表、表格、图片 / 视频上传与撤销重做
+      </p>
+    </div>
 
-    <a-card :class="editorCardClassName" :styles="{ body: { padding: '0' } }">
-      <Editor
-        :default-config="editorConfig"
-        :style="{ height: '600px' }"
-        class="overflow-hidden"
-        @onCreated="handleCreated"
-        @onChange="handleChange"
-      />
-    </a-card>
+    <MarkdownEditor
+      v-model:value="editorHtml"
+      :height="600"
+      placeholder="请输入内容..."
+      :toolbar-config="toolbarConfig"
+      :image-upload="imageUpload"
+      :video-upload="videoUpload"
+    />
   </div>
 </template>

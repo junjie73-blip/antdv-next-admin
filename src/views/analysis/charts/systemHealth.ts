@@ -4,7 +4,7 @@ import { getSystemHealth } from '~/api'
 
 import { PALETTE } from '../constants'
 import { baseOption, echartsTheme, subTextColor, textColor } from '../theme'
-
+import 'echarts-wordcloud'
 /** 系统健康度仪表盘 */
 export async function initSystemHealth(el: HTMLElement, isDark: boolean) {
   const instance = echarts.init(el, echartsTheme(isDark))

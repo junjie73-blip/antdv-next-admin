@@ -6,7 +6,7 @@ import type { JourneyStage } from '../types'
 
 import { PALETTE } from '../constants'
 import { baseOption, echartsTheme } from '../theme'
-
+import 'echarts-wordcloud'
 /** 用户行为漏斗 */
 export async function initUserJourney<T = any>(el: HTMLElement, isDark: boolean): Promise<echarts.ECharts> {
   const instance = echarts.init(el, echartsTheme(isDark))
