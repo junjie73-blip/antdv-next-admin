@@ -1,7 +1,7 @@
 {
   "name": "antdv-next-admin",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.0.3",
   "private": true,
   "packageManager": "pnpm@10.12.4",
   "engines": {
@@ -20,11 +20,11 @@
     "lint:oxlint": "oxlint ./src --fix",
     "lint:eslint": "eslint ./src --fix",
     "format": "oxfmt src/",
-    "cs": "changeset",
-    "cs:version": "changeset version",
-    "cs:release": "changeset publish",
-    "cs:pre": "changeset pre enter",
-    "cs:pre:exit": "changeset pre exit",
+    "release": "standard-version",
+    "release:first": "standard-version --first-release",
+    "release:minor": "standard-version --release-as minor",
+    "release:major": "standard-version --release-as major",
+    "release:patch": "standard-version --release-as patch",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
