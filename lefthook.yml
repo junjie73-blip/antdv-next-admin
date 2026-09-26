@@ -9,5 +9,14 @@ pre-commit:
 pre-push:
   parallel: true
   commands:
+    release:
+      stage_fixed: true
+      run: pnpm run release
+      description: "Release version"
+    patch:
+      name: "Release patch version"
+      description: "Release patch version"
+      stage_fixed: true
+      run: pnpm run release:patch
     build:
       run: pnpm run build
