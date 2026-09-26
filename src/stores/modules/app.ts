@@ -1,3 +1,4 @@
+import { useColorMode } from '@vueuse/core'
 import { theme } from 'antdv-next'
 import { defineStore } from 'pinia'
 import { ref, toRef, watch } from 'vue'
@@ -6,10 +7,63 @@ import { type AppSetting, DEFAULT_SETTING } from '~/settings'
 import { cache } from '~/utils'
 import { setTimezone } from '~/utils/dayjs'
 
+/* ============================================================
+ * 设置版本号：改默认值时递增，强制老用户刷新配置
+ * ============================================================ */
+const SETTING_VERSION = 2
+
+function loadAppSetting(): AppSetting {
+  const cached = cache.getItem('appSetting') as (AppSetting & { __v?: number }) | null
+
+  // 无缓存 / 版本过期 → 用默认值
+  if (!cached || (cached.__v ?? 0) < SETTING_VERSION) {
+    const fresh = { ...DEFAULT_SETTING, __v: SETTING_VERSION } as AppSetting
+    cache.setItem('appSetting', fresh)
+    return fresh
+  }
+
+  return cached
+}
+
 export const useAppStore = defineStore('app', () => {
   const { token } = theme.useToken()
 
-  const appSetting = ref<AppSetting>((cache.getItem('appSetting') as AppSetting) || DEFAULT_SETTING)
+  const appSetting = ref<AppSetting>(loadAppSetting())
+
+  const colorMode = useColorMode({
+    initialValue: appSetting.value.theme,
+    emitAuto: true,
+    selector: 'html',
+    attribute: 'class',
+  })
+
+  const { store: modeStore, system: systemMode } = colorMode
+
+  watch(
+    () => appSetting.value.theme,
+    (val) => {
+      if (val && val !== modeStore.value) {
+        modeStore.value = val
+      }
+    },
+    { immediate: true },
+  )
+
+  // ② modeStore → appSetting.theme
+  watch(
+    modeStore,
+    (val) => {
+      if (val && val !== appSetting.value.theme) {
+        appSetting.value = {
+          ...appSetting.value,
+          theme: val as AppSetting['theme'],
+        }
+        cache.setItem('appSetting', appSetting.value)
+      }
+    },
+    { immediate: true },
+  )
+
   /* ---------- 主题 ---------- */
   const themeMode = toRef(() => appSetting.value.theme)
   const themeStyle = toRef(() => appSetting.value.themeStyle)
@@ -88,7 +142,10 @@ export const useAppStore = defineStore('app', () => {
       updateSetting({
         hideBreadcrumbWhenOnlyOne: !appSetting.value.hideBreadcrumbWhenOnlyOne,
       }),
-    showBreadcrumbIcon: () => updateSetting({ showBreadcrumbIcon: !appSetting.value.showBreadcrumbIcon }),
+    showBreadcrumbIcon: () =>
+      updateSetting({
+        showBreadcrumbIcon: !appSetting.value.showBreadcrumbIcon,
+      }),
     widgetNotice: () => updateSetting({ widgetNotice: !appSetting.value.widgetNotice }),
     widgetFullscreen: () => updateSetting({ widgetFullscreen: !appSetting.value.widgetFullscreen }),
     widgetTheme: () => updateSetting({ widgetTheme: !appSetting.value.widgetTheme }),
@@ -105,19 +162,20 @@ export const useAppStore = defineStore('app', () => {
     timezone: () => updateSetting({ timezone: appSetting.value.timezone }),
     locale: () => updateSetting({ locale: appSetting.value.locale }),
   }
+
   watch(
     timezone,
     (tz) => {
-      if (tz) {
-        setTimezone(tz)
-      }
+      if (tz) setTimezone(tz)
     },
     { immediate: true },
   )
+
   return {
     appSetting,
     token,
-
+    colorMode,
+    systemTheme: systemMode,
     themeMode,
     themeStyle,
     primaryColor,
@@ -127,7 +185,6 @@ export const useAppStore = defineStore('app', () => {
     darkHeader,
     colorWeak,
     grayMode,
-
     layout,
     sidebarCollapsed,
     sidebarWidth,
@@ -137,7 +194,6 @@ export const useAppStore = defineStore('app', () => {
     showBreadcrumb,
     hideBreadcrumbWhenOnlyOne,
     showBreadcrumbIcon,
-
     widgetNotice,
     widgetFullscreen,
     widgetTheme,
@@ -145,7 +201,6 @@ export const useAppStore = defineStore('app', () => {
     widgetLogout,
     widgetSearch,
     widgetPreferences,
-
     showFooter,
     showCopyright,
     copyrightCompany,
@@ -160,7 +215,6 @@ export const useAppStore = defineStore('app', () => {
     transitionEffect,
     showProgressBar,
     showLoading,
-
     updateSetting,
     resetSetting,
     toggles,

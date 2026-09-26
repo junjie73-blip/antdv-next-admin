@@ -2,11 +2,4 @@
 export { default as Scrollbar } from './Scrollbar.vue'
 
 // 导出类型
-export type {
-  ScrollbarEvents,
-  ScrollbarInstance,
-  ScrollbarPosition,
-  ScrollbarProps,
-  ScrollbarSize,
-  ScrollbarSlots,
-} from './types'
+export type { BarMap, BarMapItem, ScrollbarType } from './types'

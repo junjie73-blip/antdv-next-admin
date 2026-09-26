@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { computed } from 'vue'
+import { Icon } from "@iconify/vue";
+import { computed } from "vue";
 
-import { useAppStore } from '~/stores/modules/app'
+import { useAppStore } from "~/stores/modules/app";
 
-defineOptions({ name: 'LayoutFooter' })
+defineOptions({ name: "LayoutFooter" });
 
-const appStore = useAppStore()
+const appStore = useAppStore();
 
-const currentYear = computed(() => new Date().getFullYear())
-const showFooter = computed(() => appStore.showFooter)
-const showCopyright = computed(() => appStore.showCopyright)
-const company = computed(() => appStore.copyrightCompany || 'Antdv Admin')
-const icp = computed(() => appStore.copyrightIcp)
+const currentYear = computed(() => new Date().getFullYear());
+const showFooter = computed(() => appStore.showFooter);
+const showCopyright = computed(() => appStore.showCopyright);
+const company = computed(() => appStore.copyrightCompany || "Antdv Admin");
+const icp = computed(() => appStore.copyrightIcp);
 </script>
 
 <template>
-  <footer
+  <a-layout-footer
     v-if="showFooter"
     class="flex shrink-0 flex-wrap items-center justify-center gap-x-3 gap-y-1 border-t border-slate-100 bg-white px-4 py-3 text-xs text-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-500"
   >
@@ -51,5 +51,5 @@ const icp = computed(() => appStore.copyrightIcp)
         <span>All Rights Reserved</span>
       </span>
     </template>
-  </footer>
+  </a-layout-footer>
 </template>

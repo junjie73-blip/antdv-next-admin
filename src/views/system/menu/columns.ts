@@ -11,6 +11,12 @@ export const menuColumns: BasicColumn[] = [
   { title: '路由地址', dataIndex: 'path', key: 'path', width: 160, ellipsis: true },
   { title: '组件路径', dataIndex: 'component', key: 'component', width: 180, ellipsis: true },
   { title: '类型', dataIndex: 'menuType', key: 'menuType', width: 80, align: 'center' },
+  {
+    title: '属性',
+    key: 'attributes',
+    width: 220,
+    align: 'left',
+  },
   { title: '状态', dataIndex: 'status', key: 'status', width: 80, align: 'center' },
   { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 180, align: 'center' },
 ]

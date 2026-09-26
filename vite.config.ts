@@ -390,22 +390,28 @@ export default defineConfig(({ mode }) => {
                     }
 
                     // Vue 生态系统
-                    if (id.includes("vue") || id.includes("pinia") || id.includes("vue-router")) {
+                    else if (
+                      id.includes("vue") ||
+                      id.includes("pinia") ||
+                      id.includes("vue-router")
+                    ) {
                       return "vendor-vue";
                     }
 
                     // ECharts 图表库
-                    if (id.includes("echarts")) {
+                    else if (id.includes("echarts")) {
                       return "vendor-echarts";
                     }
                     // 工具库
-                    if (
+                    else if (
                       id.includes("@vueuse") ||
                       id.includes("es-toolkit") ||
                       id.includes("dayjs") ||
                       id.includes("xlsx")
                     ) {
                       return "vendor-utils";
+                    } else if (id.includes("@vue-office")) {
+                      return "vendor-office";
                     }
 
                     // 其他第三方库统一归入 vendor

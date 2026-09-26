@@ -1,6 +1,6 @@
 import { cn } from '~/utils/cn'
 
-import type { MenuType } from './types'
+import type { MenuLayout, MenuType } from './types'
 
 // ========== 样式类名 ==========
 export const containerClassName = cn('space-y-4 h-full')
@@ -60,12 +60,36 @@ export function validateMenuForm(
     menuType: number
     path: string
     component: string
+    isExternal: boolean
+    microAppName: string
+    microAppUrl: string
+    microAppBaseroute: string
   }>,
 ): true | string {
   if (!values.menuName) return '请填写菜单名称'
-  if (values.menuType === 2 && (!values.path || !values.component)) {
-    return '菜单类型必须填写路由地址和组件路径'
+
+  if (values.menuType === 2) {
+    // 外链：不要求 component
+    if (values.isExternal) {
+      if (!values.path) return '外链菜单必须填写外链地址'
+      return true
+    }
+
+    // 微应用：component 可以空，但 name / url / baseroute 必填
+    const isMicroApp = !!values.microAppName || !!values.microAppUrl || !!values.microAppBaseroute
+    if (isMicroApp) {
+      if (!values.microAppName) return '微应用名称必填'
+      if (!values.microAppUrl) return '微应用入口 URL 必填'
+      if (!values.microAppBaseroute) return '微应用路由前缀必填'
+      if (!values.path) return '微应用菜单必须填写路由地址'
+      return true
+    }
+
+    // 普通菜单：path + component 都必填
+    if (!values.path) return '菜单必须填写路由地址'
+    if (!values.component) return '菜单必须填写组件路径'
   }
+
   return true
 }
 
@@ -79,4 +103,21 @@ export const MENU_EMPTY_VALUES = {
   permission: '',
   sortOrder: 0,
   status: '1',
+  isExternal: false,
+  layout: null as MenuLayout | null,
+  hidden: false,
+  keepAlive: false,
+
+  microAppName: '',
+  microAppUrl: '',
+  microAppBaseroute: '',
+  microAppKeepAlive: false,
 }
+export const MENU_LAYOUT_OPTIONS: Array<{ label: string; value: MenuLayout }> = [
+  { label: '默认布局', value: 'default' },
+  { label: '无布局全屏', value: 'blank' },
+]
+export const YES_NO_OPTIONS = [
+  { label: '否', value: false },
+  { label: '是', value: true },
+]

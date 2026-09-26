@@ -4,7 +4,7 @@ import { computed } from 'vue'
 
 import type { FormSchema } from '~/components/business/Form'
 
-import { MENU_TYPE_OPTIONS } from './constants'
+import { MENU_LAYOUT_OPTIONS, MENU_TYPE_OPTIONS, YES_NO_OPTIONS } from './constants'
 
 /** 状态选项类型 */
 export interface StatusOption {
@@ -75,6 +75,97 @@ export function useMenuFormSchemas(statusOptions: ComputedRef<StatusOption[]>): 
       dynamicDisabled: ({ model }) => (model as any).menuType !== 2,
     },
     {
+      field: 'isExternal',
+      label: '是否外链',
+      component: 'RadioGroup',
+      defaultValue: false,
+      componentProps: {
+        optionType: 'button',
+        buttonStyle: 'solid',
+        options: YES_NO_OPTIONS,
+      },
+      ifShow: ({ model }) => (model as any).menuType === 2,
+    },
+    {
+      field: 'layout',
+      label: '布局类型',
+      component: 'Select',
+      componentProps: {
+        placeholder: '默认使用主布局',
+        allowClear: true,
+        options: MENU_LAYOUT_OPTIONS,
+      },
+      ifShow: ({ model }) => (model as any).menuType !== 3,
+    },
+    {
+      field: 'hidden',
+      label: '侧边栏隐藏',
+      component: 'RadioGroup',
+      defaultValue: false,
+      componentProps: {
+        optionType: 'button',
+        buttonStyle: 'solid',
+        options: YES_NO_OPTIONS,
+      },
+      ifShow: ({ model }) => (model as any).menuType !== 3,
+    },
+    {
+      field: 'keepAlive',
+      label: '页面缓存',
+      component: 'RadioGroup',
+      defaultValue: false,
+      componentProps: {
+        optionType: 'button',
+        buttonStyle: 'solid',
+        options: YES_NO_OPTIONS,
+      },
+      ifShow: ({ model }) => (model as any).menuType !== 3,
+    },
+    {
+      field: 'microAppName',
+      label: '微应用名称',
+      component: 'Input',
+      componentProps: { placeholder: '例如：app-a' },
+      ifShow: ({ model }) => {
+        const m = model as any
+        // 只在菜单类型、非外链时展示
+        if (m.menuType !== 2) return false
+        if (m.isExternal) return false
+        // 已有微应用配置，或组件路径为空时展示
+        return !!(m.microAppName || m.microAppUrl || m.microAppBaseroute || !m.component)
+      },
+    },
+    {
+      field: 'microAppUrl',
+      label: '微应用入口',
+      component: 'Input',
+      componentProps: { placeholder: '例如：https://app-a.example.com' },
+      ifShow: ({ model }) => {
+        const m = model as any
+        return m.menuType === 2 && !m.isExternal && !!m.microAppName
+      },
+    },
+    {
+      field: 'microAppBaseroute',
+      label: '微应用前缀',
+      component: 'Input',
+      componentProps: { placeholder: '例如：/app-a' },
+      ifShow: ({ model }) => {
+        const m = model as any
+        return m.menuType === 2 && !m.isExternal && !!m.microAppName
+      },
+    },
+    {
+      field: 'microAppKeepAlive',
+      label: '微应用缓存',
+      component: 'Switch',
+      defaultValue: false,
+      ifShow: ({ model }) => {
+        const m = model as any
+        return m.menuType === 2 && !m.isExternal && !!m.microAppName
+      },
+    },
+    {
       field: 'permission',
       label: '权限标识',
       component: 'Input',
@@ -111,4 +202,13 @@ export const MENU_EMPTY_VALUES = {
   permission: '',
   sortOrder: 0,
   status: '1',
+  isExternal: false,
+  layout: null as null | 'blank' | 'default',
+  hidden: false,
+  keepAlive: false,
+
+  microAppName: '',
+  microAppUrl: '',
+  microAppBaseroute: '',
+  microAppKeepAlive: false,
 }

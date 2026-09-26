@@ -5,7 +5,6 @@ import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 import type { LayoutMode } from '#/app'
-import type { MenuConfig } from '#/menu'
 
 import { useAppStore } from '~/stores'
 
@@ -24,7 +23,9 @@ export function useLayout() {
     collapsed: computed(() => store.sidebarCollapsed),
     isMobile,
     isFullscreen: isFullscreenRef,
-    toggleCollapsed: store.toggleSidebar,
+    toggleCollapsed: () => {
+      store.updateSetting({ sidebarCollapsed: !store.sidebarCollapsed })
+    },
     toggleFullscreen: toggleFullscreenFn,
     checkMobile: () => isMobile.value,
     setCollapsed: (value: boolean) =>
@@ -53,17 +54,6 @@ export function useBreadcrumb() {
     }))
   })
   return { breadcrumbs }
-}
-
-function getParentPaths(path: string): string[] {
-  const parents: string[] = []
-  const segments = path.split('/').filter(Boolean)
-  let current = ''
-  for (let i = 0; i < segments.length - 1; i++) {
-    current += `/${segments[i]}`
-    parents.push(current)
-  }
-  return parents
 }
 
 export function useMenu() {

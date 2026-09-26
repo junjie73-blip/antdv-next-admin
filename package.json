@@ -1,11 +1,33 @@
 {
   "name": "antdv-next-admin",
   "type": "module",
-  "version": null,
+  "version": "0.0.1",
   "private": true,
   "packageManager": "pnpm@10.12.4",
   "engines": {
     "node": ">=22.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@vue-office/docx",
+      "@vue-office/excel",
+      "@vue-office/pdf",
+      "@vue-office/pptx"
+    ],
+    "ignoredBuiltDependencies": [
+      "core-js",
+      "core-js-pure",
+      "cwebp-bin",
+      "es5-ext",
+      "esbuild",
+      "gifsicle",
+      "jpegtran-bin",
+      "lefthook",
+      "mozjpeg",
+      "optipng-bin",
+      "pngquant-bin",
+      "vue-demi"
+    ]
   },
   "scripts": {
     "dev": "vite",

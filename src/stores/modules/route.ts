@@ -2,14 +2,14 @@ import { defineStore } from 'pinia'
 import { markRaw, ref } from 'vue'
 
 import type { AppRouteRecordRaw } from '#/app-router'
-import type { BackendMenu, MenuConfig } from '#/menu'
+import type { BackendMenu, MenuConfig, MicroAppConfig } from '#/menu'
 
 import { DefaultLayout } from '~/layouts'
 import { http } from '~/utils/request'
 
 const modules = import.meta.glob('/src/views/**/*.vue')
 
-interface InternalRoute {
+export interface InternalRoute {
   path: string
   name?: string
   meta?: {
@@ -20,102 +20,60 @@ interface InternalRoute {
     requiresAuth?: boolean
     roles?: string[]
     permission?: string[]
-    microApp?: MicroAppConfig
+    microApp?: MicroAppConfig // ⭐ 透传
+    isExternal?: boolean // ⭐
+    layout?: 'blank' | 'default' | null // ⭐
   }
   component?: unknown
   redirect?: string
   children?: InternalRoute[]
 }
 
-interface MicroAppConfig {
-  name: string
-  url: string
-  baseroute: string
-  keepAlive?: boolean
-}
-
-function generateRoutesFromMenus(menus: MenuConfig[]): InternalRoute[] {
-  return menus
-    .filter((menu) => !menu.isExternal && menu.layout !== 'blank')
-    .map((menu) => {
-      const route: InternalRoute = {
-        path: menu.path,
-        name: menu.name,
-        meta: {
-          icon: menu.icon,
-          title: menu.name,
-          permission: menu.permission!,
-        },
-      }
-
-      if (menu.component) {
-        const componentPath = `/src/${menu.component.replace('~/', '')}`
-        route.component = modules[componentPath]
-      }
-
-      if (menu.children && menu.children.length > 0) {
-        route.children = generateRoutesFromMenus(menu.children)
-      }
-
-      return route
-    })
-}
-
-function generateBlankRoutesFromMenus(menus: MenuConfig[]): InternalRoute[] {
-  const routes: InternalRoute[] = []
-
-  function walk(list: MenuConfig[]) {
-    for (const menu of list) {
-      if (menu.layout === 'blank' && menu.component) {
-        const route: InternalRoute = {
-          path: menu.path,
-          name: menu.name,
-          meta: {
-            title: menu.name,
-            icon: menu.icon,
-            permission: menu.permission!,
-            microApp: menu.microApp,
-          },
-        }
-
-        if (menu.component) {
-          const componentPath = `/src/${menu.component.replace('~/', '')}`
-          route.component = modules[componentPath]
-        }
-
-        routes.push(route)
-      }
-
-      if (menu.children && menu.children.length > 0) {
-        walk(menu.children)
-      }
-    }
+/** 把菜单实体转为路由 meta（统一处理新字段） */
+function buildMeta(menu: BackendMenu) {
+  return {
+    title: menu.menuName,
+    icon: menu.icon,
+    hidden: !!menu.hidden,
+    keepAlive: !!menu.keepAlive,
+    requiresAuth: true,
+    roles: [],
+    permission: menu.permission ? [menu.permission] : [],
+    microApp: menu.microApp ?? undefined,
+    isExternal: !!menu.isExternal,
+    layout: menu.layout ?? undefined,
   }
-
-  walk(menus)
-  return routes
 }
 
-function generateRoutesFromBackendMenus(backendMenus: BackendMenu[]): InternalRoute[] {
+/** 解析组件路径：支持 @/ 与 ~/ 前缀 */
+function resolveComponentPath(component: string): string {
+  const cleaned = component.replace(/^@\//, '').replace(/^~\//, '')
+  return `/src/${cleaned}`
+}
+
+/**
+ * 生成主布局下的路由
+ * - 过滤：外链（isExternal）、blank 布局（单独生成）、按钮（menuType=3）、停用（status!=='1'）
+ */
+export function generateRoutesFromBackendMenus(backendMenus: BackendMenu[]): InternalRoute[] {
   return backendMenus
-    .filter((menu) => menu.status === '1' && menu.menuType !== 3) // 只处理启用的目录和菜单，忽略按钮
+    .filter((menu) => {
+      if (menu.status !== '1') return false // 停用
+      if (menu.menuType === 3) return false // 按钮
+      if (menu.isExternal) return false // 外链不挂主布局
+      if (menu.layout === 'blank') return false // 全屏路由单独注册
+      return true
+    })
     .map((menu) => {
       const route: InternalRoute = {
         path: menu.path || '',
-        name: menu.menuName, // 或使用 menuId 作为 name
-        meta: {
-          title: menu.menuName,
-          icon: menu.icon,
-          hidden: false, // 可以根据需要设置
-          keepAlive: false,
-          requiresAuth: true,
-          roles: [], // 可扩展
-          permission: menu.permission ? [menu.permission] : [],
-        },
+        name: menu.menuName,
+        meta: buildMeta(menu),
       }
 
-      if (menu.component) {
-        const componentPath = `/src/${menu.component.replace(/^@\//, '')}`
+      // 微应用：不加载本地组件
+      if (!menu.microApp && menu.component) {
+        const componentPath = resolveComponentPath(menu.component)
         route.component = modules[componentPath]
       }
 
@@ -127,9 +85,44 @@ function generateRoutesFromBackendMenus(backendMenus: BackendMenu[]): InternalRo
     })
 }
 
+/**
+ * 生成 blank 布局路由（全屏渲染，不挂主布局）
+ * 递归查找所有 layout === 'blank' 的节点
+ */
+function generateBlankRoutesFromBackendMenus(backendMenus: BackendMenu[]): InternalRoute[] {
+  const routes: InternalRoute[] = []
+
+  function walk(list: BackendMenu[]) {
+    for (const menu of list) {
+      if (menu.status !== '1' || menu.menuType === 3) continue
+      if (menu.layout === 'blank' && menu.path) {
+        const route: InternalRoute = {
+          path: menu.path,
+          name: menu.menuName,
+          meta: buildMeta(menu),
+        }
+        // 微应用不加载组件，由外部渲染器接管
+        if (!menu.microApp && menu.component) {
+          route.component = modules[resolveComponentPath(menu.component)]
+        }
+        routes.push(route)
+      }
+      if (menu.children && menu.children.length > 0) {
+        walk(menu.children)
+      }
+    }
+  }
+
+  walk(backendMenus)
+  return routes
+}
+
 async function fetchBackendMenus(): Promise<BackendMenu[]> {
-  const response = await http.Get<{ code: number; data: BackendMenu[]; message: string }>('/auth/menus')
-  // 兼容不同的返回包裹，例如直接返回数组
+  const response = await http.Get<{
+    code: number
+    data: BackendMenu[]
+    message: string
+  }>('/auth/menus')
   const data = Array.isArray(response) ? response : response.data
   return data || []
 }
@@ -139,47 +132,25 @@ export const useRouteStore = defineStore('route', () => {
   const routes = ref<AppRouteRecordRaw[]>([])
   const isLoaded = ref(false)
 
-  const generateRoutes = (menuList: MenuConfig[]): AppRouteRecordRaw[] => {
-    const children = generateRoutesFromBackendMenus(
-      menuList as unknown as BackendMenu[],
-    ) as unknown as AppRouteRecordRaw[]
-    const firstPath = children.length > 0 ? children[0]?.path : '/'
-    const dynamicRoutes: AppRouteRecordRaw = {
-      path: '/',
-      name: 'Root',
-      component: markRaw(DefaultLayout),
-      redirect: firstPath,
-      meta: {
-        title: '首页',
-        icon: 'carbon:home',
-      },
-      children,
-    }
-
-    const blankRoutes = generateBlankRoutesFromMenus(menuList) as unknown as AppRouteRecordRaw[]
-
-    return [dynamicRoutes, ...blankRoutes]
-  }
-
+  /**
+   * 根据后端菜单列表生成路由树
+   */
   const generateBackendRoutes = (backendMenuList: BackendMenu[]): AppRouteRecordRaw[] => {
     const children = generateRoutesFromBackendMenus(backendMenuList) as unknown as AppRouteRecordRaw[]
     const firstPath = children.length > 0 ? children[0]?.path : '/'
-    const dynamicRoutes: AppRouteRecordRaw = {
+    const mainLayoutRoute: AppRouteRecordRaw = {
       path: '/',
       name: 'Root',
       component: markRaw(DefaultLayout),
       redirect: firstPath,
-      meta: {
-        title: '首页',
-        icon: 'carbon:home',
-      },
+      meta: { title: '首页', icon: 'carbon:home' },
       children,
     }
-    return [dynamicRoutes]
-  }
 
-  const initFrontendRoutes = () => {
-    isLoaded.value = true
+    // blank 布局路由挂到根（不经过 DefaultLayout）
+    const blankRoutes = generateBlankRoutesFromBackendMenus(backendMenuList) as unknown as AppRouteRecordRaw[]
+
+    return [mainLayoutRoute, ...blankRoutes]
   }
 
   const initBackendRoutes = async () => {
@@ -199,9 +170,7 @@ export const useRouteStore = defineStore('route', () => {
     menus,
     routes,
     isLoaded,
-    generateRoutes,
     generateBackendRoutes,
-    initFrontendRoutes,
     initBackendRoutes,
     resetRoutes,
   }

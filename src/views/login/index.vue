@@ -1,489 +1,391 @@
 <script setup lang="ts">
-import type { FormInstance } from 'antdv-next'
-import type { Rule } from 'antdv-next/dist/form/types'
+import type { FormInstance } from "antdv-next";
+import type { Rule } from "antdv-next/dist/form/types";
 
-import { LockOutlined, ReloadOutlined, SafetyOutlined, UserOutlined } from '@antdv-next/icons'
-import { Icon } from '@iconify/vue'
-import { message } from 'antdv-next'
-import { computed, onMounted, reactive, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { LockOutlined, ReloadOutlined, SafetyOutlined, UserOutlined } from "@antdv-next/icons";
+import { message } from "antdv-next";
+import { onMounted, reactive, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
-import { getAuthTenantList, getCaptcha } from '~/api/auth'
-import logoIconUrl from '~/assets/images/logo.png'
-import { useAppStore } from '~/stores'
-import { useUserStore } from '~/stores/modules/user'
-import { cache } from '~/utils'
+import logoIconUrl from "~/assets/images/logo.png";
+import { useAppStore } from "~/stores";
+import { useUserStore } from "~/stores/modules/user";
+import { cache } from "~/utils";
 
-import { useLoginStyles } from './composables/useLoginStyles'
-import ForgotPasswordModal from './ForgotPasswordModal.vue'
+import { getAuthTenantList, getCaptcha } from "~/api/auth";
+import ForgotPasswordModal from "./ForgotPasswordModal.vue";
+import { useAuthStyles } from "~/components/common/Auth/composables/useAuthStyles.js";
 
-const router = useRouter()
-const route = useRoute()
-const userStore = useUserStore()
-const appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
-const appStore = useAppStore()
-const {
-  containerClassName,
-  bgLayerClassName,
-  blob1ClassName,
-  blob2ClassName,
-  blob3ClassName,
-  blob4ClassName,
-  gridClassName,
-  cardClassName,
-  brandPanelClassName,
-  brandGlowClassName,
-  brandGridClassName,
-  brandContentClassName,
-  formPanelClassName,
-  formWrapClassName,
-  inputClassName,
-  brandLogoClassName,
-  brandLogoIconClassName,
-  brandFeatureClassName,
-  brandPreviewClassName,
-} = useLoginStyles()
+defineOptions({ name: "Login" });
 
-const formRef = ref<FormInstance>()
-const loading = ref(false)
-const DEVICE_ID_KEY = 'device_id'
+const router = useRouter();
+const route = useRoute();
+const userStore = useUserStore();
+const appTitle = import.meta.env.VITE_APP_TITLE || "Antdv Next Admin";
+const appStore = useAppStore();
+
+const { containerClassName, cardClassName, inputClassName, submitButtonClassName } =
+  useAuthStyles();
+
+const formRef = ref<FormInstance>();
+const loading = ref(false);
+const DEVICE_ID_KEY = "device_id";
 
 const formState = reactive<{
-  tenantCode: string | undefined
-  username: string
-  password: string
-  remember: boolean
-  captchaCode: string | undefined
+  tenantCode: string | undefined;
+  username: string;
+  password: string;
+  remember: boolean;
+  captchaCode: string | undefined;
 }>({
   tenantCode: undefined,
-  username: '',
-  password: '',
+  username: "",
+  password: "",
   remember: true,
-  captchaCode: '',
-})
+  captchaCode: "",
+});
 
-// ============================================================
-// 租户下拉
-// ============================================================
+/* ============================================================
+ * 品牌面板配置
+ * ============================================================ */
+const brandFeatures = [
+  { icon: "carbon:flash", text: "极速开发体验" },
+  { icon: "carbon:color-palette", text: "现代化 UI 设计" },
+  { icon: "carbon:security", text: "企业级安全" },
+];
+
+const brandStats = [
+  { icon: "carbon:user-multiple", value: "10K+", label: "Active Users" },
+  { icon: "carbon:application", value: "500+", label: "Deployments" },
+  { icon: "carbon:star", value: "4.9", label: "Rating" },
+];
+
+/* ============================================================
+ * 租户下拉
+ * ============================================================ */
 interface TenantOption {
-  tenantId: string
-  tenantCode: string
-  tenantName: string
+  tenantId: string;
+  tenantCode: string;
+  tenantName: string;
 }
 
-const tenantOptions = ref<TenantOption[]>([])
-const tenantLoading = ref(false)
+const tenantOptions = ref<TenantOption[]>([]);
+const tenantLoading = ref(false);
 
 async function loadTenants() {
-  tenantLoading.value = true
+  tenantLoading.value = true;
   try {
-    tenantOptions.value = await getAuthTenantList()
+    tenantOptions.value = await getAuthTenantList();
   } catch (err) {
-    message.error('加载租户列表失败，请刷新重试')
-    console.error('[login] loadTenants failed', err)
+    message.error("加载租户列表失败，请刷新重试");
+    console.error("[login] loadTenants failed", err);
   } finally {
-    tenantLoading.value = false
+    tenantLoading.value = false;
   }
 }
 
-// ============================================================
-// 图形验证码
-// ============================================================
-const captchaId = ref('')
-const captchaSvg = ref('')
-const captchaLoading = ref(false)
+/* ============================================================
+ * 验证码
+ * ============================================================ */
+const captchaId = ref("");
+const captchaSvg = ref("");
+const captchaLoading = ref(false);
 
 async function refreshCaptcha() {
-  captchaLoading.value = true
+  captchaLoading.value = true;
   try {
-    const data = await getCaptcha()
-    captchaId.value = data.captchaId
-    captchaSvg.value = data.svg
-    formState.captchaCode = undefined
+    const data = await getCaptcha();
+    captchaId.value = data.captchaId;
+    captchaSvg.value = data.svg;
+    formState.captchaCode = undefined;
   } catch (e) {
-    console.log(e)
-    message.error('验证码加载失败')
+    console.error(e);
+    message.error("验证码加载失败");
   } finally {
-    captchaLoading.value = false
+    captchaLoading.value = false;
   }
 }
 
-// ============================================================
-// 表单校验
-// ============================================================
+/* ============================================================
+ * 校验
+ * ============================================================ */
 const rules: Record<string, Rule[]> = {
-  tenantCode: [{ required: true, message: '请选择租户', trigger: 'change' }],
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  tenantCode: [{ required: true, message: "请选择租户", trigger: "change" }],
+  username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码至少6位', trigger: 'blur' },
+    { required: true, message: "请输入密码", trigger: "blur" },
+    { min: 6, message: "密码至少6位", trigger: "blur" },
   ],
   captchaCode: [
-    { required: true, message: '请输入验证码', trigger: 'blur' },
-    { len: 4, message: '验证码为 4 位', trigger: 'blur' },
+    { required: true, message: "请输入验证码", trigger: "blur" },
+    { len: 4, message: "验证码为 4 位", trigger: "blur" },
   ],
-}
+};
 
-// ============================================================
-// 登录
-// ============================================================
+/* ============================================================
+ * 登录
+ * ============================================================ */
 async function handleLogin() {
   try {
-    await formRef.value?.validate()
+    await formRef.value?.validate();
   } catch {
-    return
+    return;
   }
 
-  loading.value = true
+  loading.value = true;
   try {
-    const result = await userStore.login(formState.username, formState.password, formState.tenantCode!, {
-      captchaId: captchaId.value,
-      captchaCode: formState.captchaCode,
-      deviceId: await getDeviceId(),
-    })
+    const result = await userStore.login(
+      formState.username,
+      formState.password,
+      formState.tenantCode!,
+      {
+        captchaId: captchaId.value,
+        captchaCode: formState.captchaCode,
+        deviceId: await getDeviceId(),
+      },
+    );
 
     if (result.success) {
-      cache.setItem('last_tenant_code', formState.tenantCode)
-      message.success('登录成功')
-      const redirect = (route.query.redirect as string) || '/dashboard'
-      router.push(redirect)
+      cache.setItem("last_tenant_code", formState.tenantCode);
+      message.success("登录成功");
+      const redirect = (route.query.redirect as string) || "/dashboard";
+      router.push(redirect);
     } else {
-      message.error(result.message || '登录失败')
-      await refreshCaptcha()
+      message.error(result.message || "登录失败");
+      await refreshCaptcha();
     }
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
-// ============================================================
-// 忘记密码
-// ============================================================
-const forgotModalOpen = ref(false)
-const loginTenantCode = ref('')
+/* ============================================================
+ * 忘记密码
+ * ============================================================ */
+const forgotModalOpen = ref(false);
+const loginTenantCode = ref("");
 
 function handleRegister() {
-  router.push('/register')
+  router.push("/register");
 }
 
 function handleForgotPassword() {
-  forgotModalOpen.value = true
+  forgotModalOpen.value = true;
 }
 
 function handleResetSuccess(payload: { tenantCode: string; username: string }) {
-  loginTenantCode.value = payload.tenantCode
-  formState.username = payload.username
-  formState.password = ''
-  formState.tenantCode = payload.tenantCode
+  loginTenantCode.value = payload.tenantCode;
+  formState.username = payload.username;
+  formState.password = "";
+  formState.tenantCode = payload.tenantCode;
 }
 
-// ============================================================
-// 第三方登录
-// ============================================================
+/* ============================================================
+ * 第三方登录
+ * ============================================================ */
 const socialLogins = [
   {
-    key: 'wechat',
-    label: '微信',
-    icon: 'ri:wechat-fill',
-    color: '#07C160',
-    onClick: () => message.info('微信登录即将上线'),
+    key: "wechat",
+    label: "微信",
+    icon: "ri:wechat-fill",
+    iconClassName: "text-[#07C160]",
   },
   {
-    key: 'github',
-    label: 'GitHub',
-    icon: 'mdi:github',
-    color: '#24292f',
-    onClick: () => message.info('GitHub 登录即将上线'),
+    key: "github",
+    label: "GitHub",
+    icon: "mdi:github",
+    iconClassName: "text-slate-800 dark:text-slate-200",
   },
   {
-    key: 'google',
-    label: 'Google',
-    icon: 'flat-color-icons:google',
-    color: '#4285F4',
-    onClick: () => message.info('Google 登录即将上线'),
+    key: "google",
+    label: "Google",
+    icon: "flat-color-icons:google",
+    iconClassName: "",
   },
   {
-    key: 'gitee',
-    label: 'Gitee',
-    icon: 'simple-icons:gitee',
-    color: '#C71D23',
-    onClick: () => message.info('Gitee 登录即将上线'),
+    key: "gitee",
+    label: "Gitee",
+    icon: "simple-icons:gitee",
+    iconClassName: "text-[#C71D23]",
   },
-]
+];
 
-function handleSocialLogin(item: (typeof socialLogins)[number]) {
-  item.onClick()
+function handleSocialLogin(key: string) {
+  const item = socialLogins.find((x) => x.key === key);
+  message.info(`${item?.label ?? key} 登录即将上线`);
 }
 
-const year = computed(() => new Date().getFullYear())
-
+/* ============================================================
+ * 设备ID
+ * ============================================================ */
 async function getDeviceId(): Promise<string | undefined> {
-  let id = (await cache.getItem(DEVICE_ID_KEY)) as string
+  let id = (await cache.getItem(DEVICE_ID_KEY)) as string;
   if (!id) {
-    id = `${import.meta.env.MODE}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
-    cache.setItem(DEVICE_ID_KEY, id)
+    id = `${import.meta.env.MODE}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    cache.setItem(DEVICE_ID_KEY, id);
   }
-  return id as string
+  return id as string;
 }
 
-// ============================================================
-// 初始化
-// ============================================================
+/* ============================================================
+ * 初始化
+ * ============================================================ */
 onMounted(async () => {
-  const lastTenant = cache.getItem('last_tenant_code')
+  const lastTenant = cache.getItem("last_tenant_code");
   if (lastTenant) {
-    formState.tenantCode = lastTenant as string
+    formState.tenantCode = lastTenant as string;
   }
-  await Promise.all([loadTenants(), refreshCaptcha()])
-})
+  await Promise.all([loadTenants(), refreshCaptcha()]);
+});
 </script>
 
 <template>
   <div :class="containerClassName">
-    <!-- ==================== 液态玻璃背景层 ==================== -->
-    <div :class="bgLayerClassName" aria-hidden="true">
-      <div :class="blob1ClassName" />
-      <div :class="blob2ClassName" />
-      <div :class="blob3ClassName" />
-      <div :class="blob4ClassName" />
-      <div :class="gridClassName" />
-    </div>
+    <AuthBackground />
 
-    <!-- ==================== 主卡片 ==================== -->
     <a-border-beam :count="4" :color="appStore.appSetting.primaryColor">
       <div class="relative rounded-2xl">
         <div :class="cardClassName">
-          <!-- ============ 左侧品牌面板 ============ -->
-          <div :class="brandPanelClassName">
-            <div :class="brandGlowClassName" />
-            <div :class="brandGridClassName" />
+          <!-- 左侧品牌 -->
+          <AuthBrandPanel
+            :app-title="appTitle"
+            :logo="logoIconUrl"
+            headline="欢迎登录&#10;管理平台"
+            subhead="或许我们只是差点运气"
+            :features="brandFeatures"
+            :stats="brandStats"
+          />
 
-            <div :class="brandContentClassName">
-              <!-- Logo -->
-              <div :class="brandLogoClassName">
-                <div :class="brandLogoIconClassName">
-                  <img :src="logoIconUrl" :alt="appTitle" class="h-full w-full object-contain" />
-                </div>
-                <span class="text-sm font-semibold tracking-wide">{{ appTitle }}</span>
-              </div>
+          <!-- 右侧表单 -->
+          <AuthFormPanel :app-title="appTitle" :logo="logoIconUrl">
+            <AuthHeader
+              badge-text="账号密码登录"
+              title="登录"
+              subtitle="请输入用户名 · 请输入密码"
+            />
 
-              <!-- 标题 -->
-              <div class="mt-10">
-                <h1 class="text-3xl leading-snug font-bold tracking-tight">
-                  欢迎登录<br />
-                  管理平台
-                </h1>
-                <p class="mt-4 text-sm leading-relaxed text-white/80">或许我们只是差点运气</p>
-              </div>
+            <a-form
+              ref="formRef"
+              :model="formState"
+              :rules="rules"
+              layout="vertical"
+              @finish="handleLogin"
+            >
+              <a-form-item name="tenantCode" class="!mb-4">
+                <a-select
+                  v-model:value="formState.tenantCode"
+                  :options="tenantOptions"
+                  placeholder="请选择租户"
+                  :loading="tenantLoading"
+                  :class="inputClassName"
+                  show-search
+                  allow-clear
+                  :field-names="{ label: 'tenantName', value: 'tenantCode' }"
+                />
+              </a-form-item>
 
-              <!-- 特性胶囊 -->
-              <div class="mt-8 flex flex-wrap gap-2">
-                <span :class="brandFeatureClassName">
-                  <Icon icon="carbon:flash" class="h-3.5 w-3.5" />
-                  极速开发体验
-                </span>
-                <span :class="brandFeatureClassName">
-                  <Icon icon="carbon:color-palette" class="h-3.5 w-3.5" />
-                  现代化 UI 设计
-                </span>
-                <span :class="brandFeatureClassName">
-                  <Icon icon="carbon:security" class="h-3.5 w-3.5" />
-                  企业级安全
-                </span>
-              </div>
-
-              <!-- 预览图（装饰） -->
-              <div class="mt-12">
-                <div :class="brandPreviewClassName">
-                  <div class="mb-2.5 flex items-center gap-1.5">
-                    <div class="h-2 w-2 rounded-full bg-white/40" />
-                    <div class="h-2 w-2 rounded-full bg-white/30" />
-                    <div class="h-2 w-2 rounded-full bg-white/20" />
-                  </div>
-                  <div class="space-y-1.5">
-                    <div class="h-1.5 w-3/4 rounded-full bg-white/20" />
-                    <div class="h-1.5 w-1/2 rounded-full bg-white/15" />
-                    <div class="h-1.5 w-2/3 rounded-full bg-white/10" />
-                  </div>
-                </div>
-                <div class="mt-3 text-[11px] text-white/60">© {{ year }} {{ appTitle }} Team</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ============ 右侧表单面板 ============ -->
-          <div :class="formPanelClassName">
-            <div :class="formWrapClassName">
-              <!-- 移动端 Logo -->
-              <div class="mb-8 flex items-center justify-center gap-2.5 lg:hidden">
-                <div
-                  class="flex h-10 w-10 items-center justify-center rounded-xl text-white"
-                  style="background: var(--ant-color-primary)"
+              <a-form-item name="username" class="!mb-4">
+                <a-input
+                  v-model:value="formState.username"
+                  size="large"
+                  placeholder="用户名"
+                  :class="inputClassName"
+                  allow-clear
                 >
-                  <img :src="logoIconUrl" :alt="appTitle" class="h-6 w-6 object-contain" />
-                </div>
-                <span class="text-base font-semibold text-slate-800 dark:text-slate-100">
-                  {{ appTitle }}
-                </span>
-              </div>
+                  <template #prefix>
+                    <UserOutlined class="text-slate-400" />
+                  </template>
+                </a-input>
+              </a-form-item>
 
-              <!-- 标题 -->
-              <div class="mb-8 text-center">
-                <span
-                  class="inline-flex items-center gap-1.5 rounded-full border border-blue-100/60 bg-blue-50/80 px-3 py-1 text-[11px] font-medium text-blue-600 backdrop-blur-sm dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-400"
+              <a-form-item name="password" class="!mb-4">
+                <a-input-password
+                  v-model:value="formState.password"
+                  size="large"
+                  placeholder="密码"
+                  :class="inputClassName"
+                  allow-clear
                 >
-                  <span class="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                  账号密码登录
-                </span>
-                <h2 class="mt-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">登录</h2>
-                <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">请输入用户名 · 请输入密码</p>
-              </div>
+                  <template #prefix>
+                    <LockOutlined class="text-slate-400" />
+                  </template>
+                </a-input-password>
+              </a-form-item>
 
-              <!-- 表单 -->
-              <a-form ref="formRef" :model="formState" :rules="rules" layout="vertical" @finish="handleLogin">
-                <a-form-item name="tenantCode" class="!mb-4">
-                  <a-select
-                    v-model:value="formState.tenantCode"
-                    :options="tenantOptions"
-                    placeholder="请选择租户"
-                    :loading="tenantLoading"
-                    :class="inputClassName"
-                    show-search
-                    allow-clear
-                    :field-names="{ label: 'tenantName', value: 'tenantCode' }"
-                  />
-                </a-form-item>
-
-                <a-form-item name="username" class="!mb-4">
+              <a-form-item name="captchaCode" class="!mb-4">
+                <div class="flex items-center gap-3">
                   <a-input
-                    v-model:value="formState.username"
+                    v-model:value="formState.captchaCode"
                     size="large"
-                    placeholder="用户名"
-                    :class="inputClassName"
+                    placeholder="图形验证码"
+                    :class="[inputClassName, 'flex-1']"
+                    :maxlength="4"
                     allow-clear
                   >
                     <template #prefix>
-                      <UserOutlined class="text-slate-400" />
+                      <SafetyOutlined class="text-slate-400" />
                     </template>
                   </a-input>
-                </a-form-item>
 
-                <a-form-item name="password" class="!mb-4">
-                  <a-input-password
-                    v-model:value="formState.password"
-                    size="large"
-                    placeholder="密码"
-                    :class="inputClassName"
-                    allow-clear
+                  <div
+                    class="flex h-11 w-[110px] shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-white/60 bg-white/50 backdrop-blur-sm transition-colors hover:border-white/90 dark:border-white/[0.08] dark:bg-slate-800/40 dark:hover:border-white/[0.15]"
+                    title="点击刷新验证码"
+                    @click="refreshCaptcha"
                   >
-                    <template #prefix>
-                      <LockOutlined class="text-slate-400" />
-                    </template>
-                  </a-input-password>
-                </a-form-item>
-
-                <a-form-item name="captchaCode" class="!mb-4">
-                  <div class="flex items-center gap-3">
-                    <a-input
-                      v-model:value="formState.captchaCode"
-                      size="large"
-                      placeholder="图形验证码"
-                      :class="[inputClassName, 'flex-1']"
-                      :maxlength="4"
-                      allow-clear
-                    >
-                      <template #prefix>
-                        <SafetyOutlined class="text-slate-400" />
-                      </template>
-                    </a-input>
-
-                    <div
-                      class="flex h-11 w-[110px] shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-white/60 bg-white/50 backdrop-blur-sm transition-colors hover:border-white/90 dark:border-white/[0.08] dark:bg-slate-800/40 dark:hover:border-white/[0.15]"
-                      title="点击刷新验证码"
-                      @click="refreshCaptcha"
-                    >
-                      <a-spin :spinning="captchaLoading" size="small">
-                        <div
-                          v-if="captchaSvg"
-                          class="flex h-full w-full items-center justify-center [&>svg]:h-full [&>svg]:w-full"
-                          v-html="captchaSvg"
-                        />
-                        <ReloadOutlined v-else class="text-slate-400" />
-                      </a-spin>
-                    </div>
+                    <a-spin :spinning="captchaLoading" size="small">
+                      <div
+                        v-if="captchaSvg"
+                        class="flex h-full w-full items-center justify-center [&>svg]:h-full [&>svg]:w-full"
+                        v-html="captchaSvg"
+                      />
+                      <ReloadOutlined v-else class="text-slate-400" />
+                    </a-spin>
                   </div>
-                </a-form-item>
-
-                <div class="mb-6 flex items-center justify-between">
-                  <a-checkbox
-                    v-model:checked="formState.remember"
-                    class="!text-[13px] !text-slate-600 dark:!text-slate-400"
-                  >
-                    记住我
-                  </a-checkbox>
-                  <a-button
-                    type="link"
-                    size="small"
-                    class="!h-auto !p-0 !text-[13px] !text-slate-500 hover:!text-[var(--ant-color-primary)] dark:!text-slate-400"
-                    @click="handleForgotPassword"
-                  >
-                    忘记密码？
-                  </a-button>
                 </div>
+              </a-form-item>
 
-                <a-button
-                  type="primary"
-                  html-type="submit"
-                  size="large"
-                  block
-                  :loading="loading"
-                  class="!h-11 !rounded-lg !text-sm !font-medium"
+              <div class="mb-6 flex items-center justify-between">
+                <a-checkbox
+                  v-model:checked="formState.remember"
+                  class="!text-[13px] !text-slate-600 dark:!text-slate-400"
                 >
-                  登 录
-                </a-button>
-              </a-form>
-
-              <div class="mt-5 text-center text-sm text-slate-500 dark:text-slate-400">
-                还没有账号？
+                  记住我
+                </a-checkbox>
                 <a-button
                   type="link"
-                  class="!h-auto !px-1 !font-medium !text-[var(--ant-color-primary)]"
-                  @click="handleRegister"
+                  size="small"
+                  class="!h-auto !p-0 !text-[13px] !text-slate-500 hover:!text-[var(--ant-color-primary)] dark:!text-slate-400"
+                  @click="handleForgotPassword"
                 >
-                  立即注册
+                  忘记密码？
                 </a-button>
               </div>
 
-              <div class="relative my-6">
-                <div class="absolute inset-0 flex items-center">
-                  <div class="w-full border-t border-white/50 dark:border-white/[0.06]" />
-                </div>
-                <div class="relative flex justify-center">
-                  <span class="bg-transparent px-3 text-[11px] text-slate-400"> 或使用以下方式登录 </span>
-                </div>
-              </div>
+              <a-button
+                type="primary"
+                html-type="submit"
+                size="large"
+                block
+                :loading="loading"
+                :class="submitButtonClassName"
+              >
+                登 录
+              </a-button>
+            </a-form>
 
-              <div class="grid grid-cols-4 gap-2.5">
-                <button
-                  v-for="item in socialLogins"
-                  :key="item.key"
-                  type="button"
-                  class="group flex h-10 cursor-pointer items-center justify-center rounded-lg border border-white/60 bg-white/40 backdrop-blur-sm transition-all duration-200 hover:border-white/90 hover:bg-white/70 dark:border-white/[0.08] dark:bg-slate-800/40 dark:hover:border-white/[0.15] dark:hover:bg-slate-700/60"
-                  :title="`使用 ${item.label} 登录`"
-                  @click="handleSocialLogin(item)"
-                >
-                  <Icon
-                    :icon="item.icon"
-                    class="text-lg transition-transform duration-200 group-hover:scale-110"
-                    :style="{ color: item.color }"
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
+            <AuthFooterLink text="还没有账号？" action-text="立即注册" @action="handleRegister" />
+
+            <AuthDivider>或使用以下方式登录</AuthDivider>
+
+            <AuthSocialLogin :items="socialLogins" @click="handleSocialLogin" />
+
+            <!-- 信任标识 -->
+            <AuthTrustBadges />
+          </AuthFormPanel>
         </div>
       </div>
     </a-border-beam>
+
     <ForgotPasswordModal
       v-model:open="forgotModalOpen"
       :default-tenant-code="loginTenantCode"
@@ -492,9 +394,3 @@ onMounted(async () => {
     />
   </div>
 </template>
-
-<style scoped>
-:deep(.ant-form-item-explain-error) {
-  font-size: 12px;
-}
-</style>
