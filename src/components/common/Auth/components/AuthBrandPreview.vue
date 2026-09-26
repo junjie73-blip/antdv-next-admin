@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { useAuthStyles } from "../composables/useAuthStyles";
+import { useAuthStyles } from '../composables/useAuthStyles'
 
-defineOptions({ name: "AuthBrandPreview" });
+defineOptions({ name: 'AuthBrandPreview' })
 
 defineProps<{
-  year: number;
-  appTitle: string;
-}>();
+  year: number
+  appTitle: string
+}>()
 
-const { brandPreviewClassName } = useAuthStyles();
+const { brandPreviewClassName } = useAuthStyles()
 </script>
 
 <template>

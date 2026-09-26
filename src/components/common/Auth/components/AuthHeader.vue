@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { cn } from "~/utils/cn";
+import { cn } from '~/utils/cn'
 
-import { useAuthStyles } from "../composables/useAuthStyles";
+import { useAuthStyles } from '../composables/useAuthStyles'
 
-defineOptions({ name: "AuthHeader" });
+defineOptions({ name: 'AuthHeader' })
 
 defineProps<{
-  badgeText: string;
-  title: string;
-  subtitle: string;
-  className?: string;
-}>();
+  badgeText: string
+  title: string
+  subtitle: string
+  className?: string
+}>()
 
-const { formHeaderBadgeClassName } = useAuthStyles();
+const { formHeaderBadgeClassName } = useAuthStyles()
 </script>
 
 <template>

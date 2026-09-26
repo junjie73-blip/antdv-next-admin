@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineOptions({ name: "AuthDivider" });
+defineOptions({ name: 'AuthDivider' })
 </script>
 
 <template>

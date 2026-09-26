@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useAuthStyles } from "../composables/useAuthStyles";
+import { useAuthStyles } from '../composables/useAuthStyles'
 
-defineOptions({ name: "AuthBackground" });
+defineOptions({ name: 'AuthBackground' })
 
 const {
   bgLayerClassName,
@@ -20,7 +20,7 @@ const {
   cornerGlowBottomClassName,
   sparklesClassName,
   noiseClassName,
-} = useAuthStyles();
+} = useAuthStyles()
 </script>
 
 <template>

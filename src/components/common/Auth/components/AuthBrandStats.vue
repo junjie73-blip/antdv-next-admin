@@ -1,19 +1,20 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { cn } from "~/utils/cn";
+import { Icon } from '@iconify/vue'
 
-defineOptions({ name: "AuthBrandStats" });
+import { cn } from '~/utils/cn'
+
+defineOptions({ name: 'AuthBrandStats' })
 
 export interface AuthStat {
-  icon: string;
-  value: string;
-  label: string;
+  icon: string
+  value: string
+  label: string
 }
 
 defineProps<{
-  stats: AuthStat[];
-  className?: string;
-}>();
+  stats: AuthStat[]
+  className?: string
+}>()
 </script>
 
 <template>
@@ -23,7 +24,7 @@ defineProps<{
       <span class="text-lg font-semibold tracking-tight text-white tabular-nums">
         {{ stat.value }}
       </span>
-      <span class="text-[10px] uppercase tracking-wider text-white/50">
+      <span class="text-[10px] tracking-wider text-white/50 uppercase">
         {{ stat.label }}
       </span>
     </div>

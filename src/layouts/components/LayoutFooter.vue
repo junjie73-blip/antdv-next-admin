@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { computed } from "vue";
+import { Icon } from '@iconify/vue'
+import { computed } from 'vue'
 
-import { useAppStore } from "~/stores/modules/app";
+import { useAppStore } from '~/stores/modules/app'
 
-defineOptions({ name: "LayoutFooter" });
+defineOptions({ name: 'LayoutFooter' })
 
-const appStore = useAppStore();
+const appStore = useAppStore()
 
-const currentYear = computed(() => new Date().getFullYear());
-const showFooter = computed(() => appStore.showFooter);
-const showCopyright = computed(() => appStore.showCopyright);
-const company = computed(() => appStore.copyrightCompany || "Antdv Admin");
-const icp = computed(() => appStore.copyrightIcp);
+const currentYear = computed(() => new Date().getFullYear())
+const showFooter = computed(() => appStore.showFooter)
+const showCopyright = computed(() => appStore.showCopyright)
+const company = computed(() => appStore.copyrightCompany || 'Antdv Admin')
+const icp = computed(() => appStore.copyrightIcp)
 </script>
 
 <template>

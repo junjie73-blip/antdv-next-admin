@@ -1,31 +1,32 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { cn } from "~/utils/cn";
+import { Icon } from '@iconify/vue'
 
-import { useAuthStyles } from "../composables/useAuthStyles";
+import { cn } from '~/utils/cn'
 
-defineOptions({ name: "AuthTrustBadges" });
+import { useAuthStyles } from '../composables/useAuthStyles'
+
+defineOptions({ name: 'AuthTrustBadges' })
 
 export interface TrustBadge {
-  icon: string;
-  text: string;
+  icon: string
+  text: string
 }
 
 withDefaults(
   defineProps<{
-    badges?: TrustBadge[];
-    className?: string;
+    badges?: TrustBadge[]
+    className?: string
   }>(),
   {
     badges: () => [
-      { icon: "carbon:locked", text: "SSL 加密" },
-      { icon: "carbon:shield-alert", text: "隐私保护" },
-      { icon: "carbon:data-base", text: "数据隔离" },
+      { icon: 'carbon:locked', text: 'SSL 加密' },
+      { icon: 'carbon:shield-alert', text: '隐私保护' },
+      { icon: 'carbon:data-base', text: '数据隔离' },
     ],
   },
-);
+)
 
-const { trustBadgeClassName } = useAuthStyles();
+const { trustBadgeClassName } = useAuthStyles()
 </script>
 
 <template>

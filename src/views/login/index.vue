@@ -1,108 +1,107 @@
 <script setup lang="ts">
-import type { FormInstance } from "antdv-next";
-import type { Rule } from "antdv-next/dist/form/types";
+import type { FormInstance } from 'antdv-next'
+import type { Rule } from 'antdv-next/dist/form/types'
 
-import { LockOutlined, ReloadOutlined, SafetyOutlined, UserOutlined } from "@antdv-next/icons";
-import { message } from "antdv-next";
-import { onMounted, reactive, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { LockOutlined, ReloadOutlined, SafetyOutlined, UserOutlined } from '@antdv-next/icons'
+import { message } from 'antdv-next'
+import { onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
-import logoIconUrl from "~/assets/images/logo.png";
-import { useAppStore } from "~/stores";
-import { useUserStore } from "~/stores/modules/user";
-import { cache } from "~/utils";
+import { getAuthTenantList, getCaptcha } from '~/api/auth'
+import logoIconUrl from '~/assets/images/logo.png'
+import { useAuthStyles } from '~/components/common/Auth/composables/useAuthStyles.js'
+import { useAppStore } from '~/stores'
+import { useUserStore } from '~/stores/modules/user'
+import { cache } from '~/utils'
 
-import { getAuthTenantList, getCaptcha } from "~/api/auth";
-import ForgotPasswordModal from "./ForgotPasswordModal.vue";
-import { useAuthStyles } from "~/components/common/Auth/composables/useAuthStyles.js";
+import ForgotPasswordModal from './ForgotPasswordModal.vue'
 
-defineOptions({ name: "Login" });
+defineOptions({ name: 'Login' })
 
-const router = useRouter();
-const route = useRoute();
-const userStore = useUserStore();
-const appTitle = import.meta.env.VITE_APP_TITLE || "Antdv Next Admin";
-const appStore = useAppStore();
+const router = useRouter()
+const route = useRoute()
+const userStore = useUserStore()
+const appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
+const appStore = useAppStore()
 
-const { containerClassName, cardClassName, inputClassName, submitButtonClassName } =
-  useAuthStyles();
+const { containerClassName, cardClassName, inputClassName, submitButtonClassName } = useAuthStyles()
 
-const formRef = ref<FormInstance>();
-const loading = ref(false);
-const DEVICE_ID_KEY = "device_id";
+const formRef = ref<FormInstance>()
+const loading = ref(false)
+const DEVICE_ID_KEY = 'device_id'
 
 const formState = reactive<{
-  tenantCode: string | undefined;
-  username: string;
-  password: string;
-  remember: boolean;
-  captchaCode: string | undefined;
+  tenantCode: string | undefined
+  username: string
+  password: string
+  remember: boolean
+  captchaCode: string | undefined
 }>({
   tenantCode: undefined,
-  username: "",
-  password: "",
+  username: '',
+  password: '',
   remember: true,
-  captchaCode: "",
-});
+  captchaCode: '',
+})
 
 /* ============================================================
  * 品牌面板配置
  * ============================================================ */
 const brandFeatures = [
-  { icon: "carbon:flash", text: "极速开发体验" },
-  { icon: "carbon:color-palette", text: "现代化 UI 设计" },
-  { icon: "carbon:security", text: "企业级安全" },
-];
+  { icon: 'carbon:flash', text: '极速开发体验' },
+  { icon: 'carbon:color-palette', text: '现代化 UI 设计' },
+  { icon: 'carbon:security', text: '企业级安全' },
+]
 
 const brandStats = [
-  { icon: "carbon:user-multiple", value: "10K+", label: "Active Users" },
-  { icon: "carbon:application", value: "500+", label: "Deployments" },
-  { icon: "carbon:star", value: "4.9", label: "Rating" },
-];
+  { icon: 'carbon:user-multiple', value: '10K+', label: 'Active Users' },
+  { icon: 'carbon:application', value: '500+', label: 'Deployments' },
+  { icon: 'carbon:star', value: '4.9', label: 'Rating' },
+]
 
 /* ============================================================
  * 租户下拉
  * ============================================================ */
 interface TenantOption {
-  tenantId: string;
-  tenantCode: string;
-  tenantName: string;
+  tenantId: string
+  tenantCode: string
+  tenantName: string
 }
 
-const tenantOptions = ref<TenantOption[]>([]);
-const tenantLoading = ref(false);
+const tenantOptions = ref<TenantOption[]>([])
+const tenantLoading = ref(false)
 
 async function loadTenants() {
-  tenantLoading.value = true;
+  tenantLoading.value = true
   try {
-    tenantOptions.value = await getAuthTenantList();
+    tenantOptions.value = await getAuthTenantList()
   } catch (err) {
-    message.error("加载租户列表失败，请刷新重试");
-    console.error("[login] loadTenants failed", err);
+    message.error('加载租户列表失败，请刷新重试')
+    console.error('[login] loadTenants failed', err)
   } finally {
-    tenantLoading.value = false;
+    tenantLoading.value = false
   }
 }
 
 /* ============================================================
  * 验证码
  * ============================================================ */
-const captchaId = ref("");
-const captchaSvg = ref("");
-const captchaLoading = ref(false);
+const captchaId = ref('')
+const captchaSvg = ref('')
+const captchaLoading = ref(false)
 
 async function refreshCaptcha() {
-  captchaLoading.value = true;
+  captchaLoading.value = true
   try {
-    const data = await getCaptcha();
-    captchaId.value = data.captchaId;
-    captchaSvg.value = data.svg;
-    formState.captchaCode = undefined;
+    const data = await getCaptcha()
+    captchaId.value = data.captchaId
+    captchaSvg.value = data.svg
+    formState.captchaCode = undefined
   } catch (e) {
-    console.error(e);
-    message.error("验证码加载失败");
+    console.error(e)
+    message.error('验证码加载失败')
   } finally {
-    captchaLoading.value = false;
+    captchaLoading.value = false
   }
 }
 
@@ -110,74 +109,69 @@ async function refreshCaptcha() {
  * 校验
  * ============================================================ */
 const rules: Record<string, Rule[]> = {
-  tenantCode: [{ required: true, message: "请选择租户", trigger: "change" }],
-  username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
+  tenantCode: [{ required: true, message: '请选择租户', trigger: 'change' }],
+  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [
-    { required: true, message: "请输入密码", trigger: "blur" },
-    { min: 6, message: "密码至少6位", trigger: "blur" },
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, message: '密码至少6位', trigger: 'blur' },
   ],
   captchaCode: [
-    { required: true, message: "请输入验证码", trigger: "blur" },
-    { len: 4, message: "验证码为 4 位", trigger: "blur" },
+    { required: true, message: '请输入验证码', trigger: 'blur' },
+    { len: 4, message: '验证码为 4 位', trigger: 'blur' },
   ],
-};
+}
 
 /* ============================================================
  * 登录
  * ============================================================ */
 async function handleLogin() {
   try {
-    await formRef.value?.validate();
+    await formRef.value?.validate()
   } catch {
-    return;
+    return
   }
 
-  loading.value = true;
+  loading.value = true
   try {
-    const result = await userStore.login(
-      formState.username,
-      formState.password,
-      formState.tenantCode!,
-      {
-        captchaId: captchaId.value,
-        captchaCode: formState.captchaCode,
-        deviceId: await getDeviceId(),
-      },
-    );
+    const result = await userStore.login(formState.username, formState.password, formState.tenantCode!, {
+      captchaId: captchaId.value,
+      captchaCode: formState.captchaCode,
+      deviceId: await getDeviceId(),
+    })
 
     if (result.success) {
-      cache.setItem("last_tenant_code", formState.tenantCode);
-      message.success("登录成功");
-      const redirect = (route.query.redirect as string) || "/dashboard";
-      router.push(redirect);
+      cache.setItem('last_tenant_code', formState.tenantCode)
+      message.success('登录成功')
+      const redirect = (route.query.redirect as string) || '/dashboard'
+      router.push(redirect)
     } else {
-      message.error(result.message || "登录失败");
-      await refreshCaptcha();
+      message.error(result.message || '登录失败')
+      await refreshCaptcha()
     }
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 
 /* ============================================================
  * 忘记密码
  * ============================================================ */
-const forgotModalOpen = ref(false);
-const loginTenantCode = ref("");
+const forgotModalOpen = ref(false)
+const loginTenantCode = ref('')
 
 function handleRegister() {
-  router.push("/register");
+  router.push('/register')
 }
 
 function handleForgotPassword() {
-  forgotModalOpen.value = true;
+  forgotModalOpen.value = true
 }
 
 function handleResetSuccess(payload: { tenantCode: string; username: string }) {
-  loginTenantCode.value = payload.tenantCode;
-  formState.username = payload.username;
-  formState.password = "";
-  formState.tenantCode = payload.tenantCode;
+  loginTenantCode.value = payload.tenantCode
+  formState.username = payload.username
+  formState.password = ''
+  formState.tenantCode = payload.tenantCode
 }
 
 /* ============================================================
@@ -185,58 +179,58 @@ function handleResetSuccess(payload: { tenantCode: string; username: string }) {
  * ============================================================ */
 const socialLogins = [
   {
-    key: "wechat",
-    label: "微信",
-    icon: "ri:wechat-fill",
-    iconClassName: "text-[#07C160]",
+    key: 'wechat',
+    label: '微信',
+    icon: 'ri:wechat-fill',
+    iconClassName: 'text-[#07C160]',
   },
   {
-    key: "github",
-    label: "GitHub",
-    icon: "mdi:github",
-    iconClassName: "text-slate-800 dark:text-slate-200",
+    key: 'github',
+    label: 'GitHub',
+    icon: 'mdi:github',
+    iconClassName: 'text-slate-800 dark:text-slate-200',
   },
   {
-    key: "google",
-    label: "Google",
-    icon: "flat-color-icons:google",
-    iconClassName: "",
+    key: 'google',
+    label: 'Google',
+    icon: 'flat-color-icons:google',
+    iconClassName: '',
   },
   {
-    key: "gitee",
-    label: "Gitee",
-    icon: "simple-icons:gitee",
-    iconClassName: "text-[#C71D23]",
+    key: 'gitee',
+    label: 'Gitee',
+    icon: 'simple-icons:gitee',
+    iconClassName: 'text-[#C71D23]',
   },
-];
+]
 
 function handleSocialLogin(key: string) {
-  const item = socialLogins.find((x) => x.key === key);
-  message.info(`${item?.label ?? key} 登录即将上线`);
+  const item = socialLogins.find((x) => x.key === key)
+  message.info(`${item?.label ?? key} 登录即将上线`)
 }
 
 /* ============================================================
  * 设备ID
  * ============================================================ */
 async function getDeviceId(): Promise<string | undefined> {
-  let id = (await cache.getItem(DEVICE_ID_KEY)) as string;
+  let id = (await cache.getItem(DEVICE_ID_KEY)) as string
   if (!id) {
-    id = `${import.meta.env.MODE}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-    cache.setItem(DEVICE_ID_KEY, id);
+    id = `${import.meta.env.MODE}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+    cache.setItem(DEVICE_ID_KEY, id)
   }
-  return id as string;
+  return id as string
 }
 
 /* ============================================================
  * 初始化
  * ============================================================ */
 onMounted(async () => {
-  const lastTenant = cache.getItem("last_tenant_code");
+  const lastTenant = cache.getItem('last_tenant_code')
   if (lastTenant) {
-    formState.tenantCode = lastTenant as string;
+    formState.tenantCode = lastTenant as string
   }
-  await Promise.all([loadTenants(), refreshCaptcha()]);
-});
+  await Promise.all([loadTenants(), refreshCaptcha()])
+})
 </script>
 
 <template>
@@ -258,19 +252,9 @@ onMounted(async () => {
 
           <!-- 右侧表单 -->
           <AuthFormPanel :app-title="appTitle" :logo="logoIconUrl">
-            <AuthHeader
-              badge-text="账号密码登录"
-              title="登录"
-              subtitle="请输入用户名 · 请输入密码"
-            />
+            <AuthHeader badge-text="账号密码登录" title="登录" subtitle="请输入用户名 · 请输入密码" />
 
-            <a-form
-              ref="formRef"
-              :model="formState"
-              :rules="rules"
-              layout="vertical"
-              @finish="handleLogin"
-            >
+            <a-form ref="formRef" :model="formState" :rules="rules" layout="vertical" @finish="handleLogin">
               <a-form-item name="tenantCode" class="!mb-4">
                 <a-select
                   v-model:value="formState.tenantCode"
