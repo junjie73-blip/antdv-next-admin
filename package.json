@@ -24,10 +24,7 @@
     "release:first": "standard-version --first-release",
     "release:minor": "standard-version --release-as minor",
     "release:major": "standard-version --release-as major",
-    "release:patch": "standard-version --release-as patch",
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "release:patch": "standard-version --release-as patch"
   },
   "dependencies": {
     "@antdv-next/cssinjs": "^1.0.6",

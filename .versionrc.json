@@ -1,0 +1,22 @@
+{
+  "types": [
+    { "type": "feat", "section": "🚀 新需求" },
+    { "type": "fix", "section": "🐛 修复问题" },
+    { "type": "docs", "section": "📝 文档变更" },
+    { "type": "style", "section": "💅 样式变更" },
+    { "type": "refactor", "section": "♻️ 代码重构" },
+    { "type": "perf", "section": "⚡ 性能优化" },
+    { "type": "test", "section": "🧪 测试变更", "hidden": true },
+    { "type": "chore", "section": "🔧 任务变更", "hidden": true },
+    { "type": "ci", "section": "🔄 CI/CD", "hidden": true },
+    { "type": "build", "section": "📦 构建变更", "hidden": true }
+  ],
+  "commitUrlFormat": "https://github.com/junjie73-blip/antdv-next-admin/commits/{{hash}}",
+  "compareUrlFormat": "https://github.com/junjie73-blip/antdv-next-admin/compare/{{previousTag}}...{{currentTag}}",
+  "issueUrlFormat": "https://github.com/junjie73-blip/antdv-next-admin/issues/{{id}}",
+  "releaseCommitMessageFormat": "chore(release): {{currentTag}}",
+  "skip": {
+    "tag": true,
+    "commit": false
+  }
+}
