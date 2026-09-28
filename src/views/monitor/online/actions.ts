@@ -1,5 +1,7 @@
 import type { ActionItem } from '~/components/business/Table'
 
+import { MONITOR_PERMS } from '~/enums/permissions'
+
 import type { OnlineUserRecord } from './types'
 
 /** 操作回调上下文 */
@@ -17,6 +19,7 @@ export function getOnlineActions(record: OnlineUserRecord, ctx: OnlineActionCont
     {
       label: '强制下线',
       danger: true,
+      auth: MONITOR_PERMS.online.forceLogout,
       popConfirm: {
         title: '强制下线',
         content: `确定要强制用户「${record.username}」下线吗？`,

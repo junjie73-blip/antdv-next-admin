@@ -1,5 +1,7 @@
 import type { ActionItem } from '~/components/business/Table'
 
+import { SYSTEM_PERMS } from '~/enums/permissions'
+
 import type { TenantRecord } from './types'
 
 /** 租户行操作上下文 */
@@ -20,16 +22,19 @@ export function getTenantActions(record: TenantRecord, ctx: TenantActionContext)
       label: '编辑',
       icon: 'ant-design:edit-outlined',
       onClick: () => ctx.onEdit(record),
+      auth: SYSTEM_PERMS.tenant.update,
     },
     {
       label: '查看',
       icon: 'ant-design:eye-outlined',
       onClick: () => ctx.onView(record),
+      auth: SYSTEM_PERMS.tenant.detail,
     },
     {
       label: '删除',
       icon: 'ant-design:delete-outlined',
       danger: true,
+      auth: SYSTEM_PERMS.tenant.delete,
       popConfirm: {
         title: '删除租户',
         content: `确定要删除「${record.tenantName}」吗？该操作不可恢复`,

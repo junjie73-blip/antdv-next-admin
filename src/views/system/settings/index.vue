@@ -1,19 +1,25 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { message } from 'antdv-next'
-import { nextTick, ref } from 'vue'
+import { Icon } from "@iconify/vue";
+import { message } from "antdv-next";
+import { nextTick, ref } from "vue";
 
-import { addSetting, batchDeleteSetting, deleteSetting, getSettingsList, updateSetting } from '~/api'
-import { Description as DetailDescription } from '~/components/business/Description'
-import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
-import { BasicForm, useForm } from '~/components/business/Form'
-import { BasicModal, useModal } from '~/components/business/Modal'
-import { type ActionItem, BasicTable, TableAction, useTable } from '~/components/business/Table'
-import { useCRUD } from '~/composables/useCRUD'
+import {
+  addSetting,
+  batchDeleteSetting,
+  deleteSetting,
+  getSettingsList,
+  updateSetting,
+} from "~/api";
+import { Description as DetailDescription } from "~/components/business/Description";
+import { BasicDrawer, useDrawer } from "~/components/business/Drawer";
+import { BasicForm, useForm } from "~/components/business/Form";
+import { BasicModal, useModal } from "~/components/business/Modal";
+import { type ActionItem, BasicTable, TableAction, useTable } from "~/components/business/Table";
+import { useCRUD } from "~/composables/useCRUD";
 
-import type { ConfigRecord } from './types'
+import type { ConfigRecord } from "./types";
 
-import { getConfigActions } from './actions'
+import { getConfigActions } from "./actions";
 import {
   configActionColumn,
   configColumns,
@@ -21,30 +27,36 @@ import {
   configRowKey,
   configRowSelection,
   configScroll,
-} from './columns'
-import { cardClassName, containerClassName, valueCellClassName } from './constants'
-import { CONFIG_EMPTY_VALUES, configDetailSchemas, configFormSchemas, configSearchSchemas } from './schemas'
+} from "./columns";
+import { cardClassName, containerClassName, valueCellClassName } from "./constants";
+import {
+  CONFIG_EMPTY_VALUES,
+  configDetailSchemas,
+  configFormSchemas,
+  configSearchSchemas,
+} from "./schemas";
+import { SYSTEM_PERMS } from "~/enums/permissions";
 
 // 抽离的模块
 
-defineOptions({ name: 'SystemSettings' })
+defineOptions({ name: "SystemSettings" });
 
 // ========== 详情 ==========
-const viewingRecord = ref<ConfigRecord | null>(null)
-const [drawerRegister, drawerMethods] = useDrawer()
+const viewingRecord = ref<ConfigRecord | null>(null);
+const [drawerRegister, drawerMethods] = useDrawer();
 
 function handleView(record: ConfigRecord) {
-  viewingRecord.value = null
+  viewingRecord.value = null;
   nextTick(() => {
-    viewingRecord.value = record
-    drawerMethods.openDrawer()
-  })
+    viewingRecord.value = record;
+    drawerMethods.openDrawer();
+  });
 }
 
 // ========== 表格 & 表单实例 ==========
-const [tableRegister, tableMethods] = useTable()
-const [modalRegister, modalMethods] = useModal()
-const [formRegister, formMethods] = useForm()
+const [tableRegister, tableMethods] = useTable();
+const [modalRegister, modalMethods] = useModal();
+const [formRegister, formMethods] = useForm();
 
 // ========== useCRUD ==========
 const {
@@ -55,45 +67,45 @@ const {
   handleSave,
   handleBatchDelete: crudBatchDelete,
 } = useCRUD<ConfigRecord>({
-  containerType: 'modal',
+  containerType: "modal",
   modalMethods,
   formMethods,
   tableMethods,
-  idKey: 'configId',
+  idKey: "configId",
   getEmptyValues: () => ({ ...CONFIG_EMPTY_VALUES }),
   getFormValues: (record) => ({
     configKey: record.configKey,
-    configValue: record.configValue || '',
-    description: record.description || '',
+    configValue: record.configValue || "",
+    description: record.description || "",
   }),
   onCreate: async (values) => {
-    await addSetting(values)
+    await addSetting(values);
   },
   onUpdate: async (id, values) => {
-    await updateSetting(id, values)
+    await updateSetting(id, values);
   },
   onDelete: async (record) => {
-    await deleteSetting(record.configId)
+    await deleteSetting(record.configId);
   },
   onBatchDelete: async (records) => {
-    await batchDeleteSetting(records.map((r) => r.configId))
+    await batchDeleteSetting(records.map((r) => r.configId));
   },
   messages: {
-    createSuccess: '配置创建成功',
-    updateSuccess: '配置更新成功',
-    deleteSuccess: '配置删除成功',
-    batchDeleteSuccess: '批量删除成功',
+    createSuccess: "配置创建成功",
+    updateSuccess: "配置更新成功",
+    deleteSuccess: "配置删除成功",
+    batchDeleteSuccess: "批量删除成功",
   },
-})
+});
 
 // ========== 批量删除（先弹确认） ==========
 async function handleBatchDelete() {
-  const selected = (tableMethods.value?.getSelectRows?.() || []) as ConfigRecord[]
+  const selected = (tableMethods.value?.getSelectRows?.() || []) as ConfigRecord[];
   if (selected.length === 0) {
-    message.warning('请先选择要删除的配置')
-    return
+    message.warning("请先选择要删除的配置");
+    return;
   }
-  await crudBatchDelete(selected)
+  await crudBatchDelete(selected);
 }
 
 // ========== 操作项 ==========
@@ -102,7 +114,7 @@ function getActions(record: ConfigRecord): ActionItem[] {
     onView: handleView,
     onEdit: handleEdit,
     onDelete: handleDelete,
-  })
+  });
 }
 </script>
 
@@ -124,13 +136,17 @@ function getActions(record: ConfigRecord): ActionItem[] {
         @register="tableRegister"
       >
         <template #toolbar>
-          <a-button type="primary" @click="handleAdd()">
+          <a-button type="primary" @click="handleAdd()" v-permission="SYSTEM_PERMS.settings.create">
             <template #icon>
               <Icon icon="ant-design:plus-outlined" />
             </template>
             新增设置
           </a-button>
-          <a-button danger @click="handleBatchDelete()">
+          <a-button
+            danger
+            @click="handleBatchDelete()"
+            v-permission="SYSTEM_PERMS.settings.deleteBatch"
+          >
             <template #icon>
               <Icon icon="ant-design:delete-outlined" />
             </template>
@@ -140,7 +156,7 @@ function getActions(record: ConfigRecord): ActionItem[] {
 
         <template #cell-configValue="{ text }">
           <a-tooltip :title="text">
-            <span :class="valueCellClassName">{{ text || '-' }}</span>
+            <span :class="valueCellClassName">{{ text || "-" }}</span>
           </a-tooltip>
         </template>
 
@@ -151,7 +167,12 @@ function getActions(record: ConfigRecord): ActionItem[] {
     </a-card>
 
     <!-- 新增/编辑弹窗 -->
-    <BasicModal :title="isEditing ? '编辑设置' : '新增设置'" :width="560" @register="modalRegister" @ok="handleSave">
+    <BasicModal
+      :title="isEditing ? '编辑设置' : '新增设置'"
+      :width="560"
+      @register="modalRegister"
+      @ok="handleSave"
+    >
       <BasicForm
         :schemas="configFormSchemas"
         :label-width="80"

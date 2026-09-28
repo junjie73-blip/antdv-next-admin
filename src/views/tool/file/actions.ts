@@ -1,5 +1,7 @@
 import type { ActionItem } from '~/components/business/Table'
 
+import { TOOL_PERMS } from '~/enums/permissions'
+
 import type { FileRecord } from './types'
 
 /** 文件行操作上下文 */
@@ -19,17 +21,20 @@ export function getFileActions(record: FileRecord, ctx: FileActionContext): Acti
     {
       label: '预览',
       icon: 'ant-design:eye-outlined',
+      auth: TOOL_PERMS.file.preview,
       onClick: () => ctx.onPreview(record),
     },
     {
       label: '下载',
       icon: 'ant-design:download-outlined',
       onClick: () => ctx.onDownload(record),
+      auth: TOOL_PERMS.file.download,
     },
     {
       label: '删除',
       icon: 'ant-design:delete-outlined',
       danger: true,
+      auth: TOOL_PERMS.file.delete,
       popConfirm: {
         title: '删除文件',
         content: `确定要删除「${record.filename}」吗？`,

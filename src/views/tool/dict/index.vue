@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { message } from 'antdv-next'
-import { computed, ref } from 'vue'
+import { Icon } from "@iconify/vue";
+import { message } from "antdv-next";
+import { computed, ref } from "vue";
 
 import {
   addDict,
@@ -13,17 +13,17 @@ import {
   getDictList,
   updateDict,
   updateDictItem,
-} from '~/api'
-import { BasicForm, useForm } from '~/components/business/Form'
-import { BasicModal, useModal } from '~/components/business/Modal'
-import { BasicTable, TableAction, useTable } from '~/components/business/Table'
-import { useCRUD } from '~/composables/useCRUD'
-import { DictType } from '~/enums/dict'
-import { useDictStore } from '~/stores'
+} from "~/api";
+import { BasicForm, useForm } from "~/components/business/Form";
+import { BasicModal, useModal } from "~/components/business/Modal";
+import { BasicTable, TableAction, useTable } from "~/components/business/Table";
+import { useCRUD } from "~/composables/useCRUD";
+import { DictType } from "~/enums/dict";
+import { useDictStore } from "~/stores";
 
-import type { DictItemRecord, DictTypeRecord } from './types'
+import type { DictItemRecord, DictTypeRecord } from "./types";
 
-import { getDictItemActions } from './actions'
+import { getDictItemActions } from "./actions";
 import {
   dictItemActionColumn,
   dictItemColumns,
@@ -31,7 +31,7 @@ import {
   dictItemScroll,
   dictTypeRowKey,
   dictTypeRowSelection,
-} from './columns'
+} from "./columns";
 import {
   cardBodyClassName,
   cardClassName,
@@ -56,56 +56,57 @@ import {
   typeItemCodeClassName,
   typeItemIndicatorClassName,
   typeItemNameClassName,
-} from './constants'
-import { useDictItemFormSchemas, useDictTypeFormSchemas } from './schemas'
+} from "./constants";
+import { useDictItemFormSchemas, useDictTypeFormSchemas } from "./schemas";
+import { TOOL_PERMS } from "~/enums/permissions";
 
-defineOptions({ name: 'SystemDict' })
+defineOptions({ name: "SystemDict" });
 
 // ========== 字典 store ==========
-const dictStore = useDictStore()
-const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
+const dictStore = useDictStore();
+const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE));
 
 // ========== 类型状态 ==========
-const dictTypes = ref<DictTypeRecord[]>([])
-const selectedType = ref<DictTypeRecord | null>(null)
-const typeLoading = ref(false)
+const dictTypes = ref<DictTypeRecord[]>([]);
+const selectedType = ref<DictTypeRecord | null>(null);
+const typeLoading = ref(false);
 
-const [typeModalRegister, typeModalMethods] = useModal()
-const [typeFormRegister, typeFormMethods] = useForm()
-const typeFormSchemas = useDictTypeFormSchemas(statusOptions)
+const [typeModalRegister, typeModalMethods] = useModal();
+const [typeFormRegister, typeFormMethods] = useForm();
+const typeFormSchemas = useDictTypeFormSchemas(statusOptions);
 
 // ========== 字典项状态 ==========
-const [itemModalRegister, itemModalMethods] = useModal()
-const [itemFormRegister, itemFormMethods] = useForm()
-const [itemTableRegister, itemTableMethods] = useTable()
-const itemFormSchemas = useDictItemFormSchemas(statusOptions)
+const [itemModalRegister, itemModalMethods] = useModal();
+const [itemFormRegister, itemFormMethods] = useForm();
+const [itemTableRegister, itemTableMethods] = useTable();
+const itemFormSchemas = useDictItemFormSchemas(statusOptions);
 
 // ========== 加载字典类型 ==========
 async function loadDictTypes() {
-  typeLoading.value = true
+  typeLoading.value = true;
   try {
-    const res = await getDictList()
-    dictTypes.value = res?.list || res || []
+    const res = await getDictList();
+    dictTypes.value = res?.list || res || [];
   } catch (e) {
-    message.error('加载字典类型失败' + e)
+    message.error("加载字典类型失败" + e);
   } finally {
-    typeLoading.value = false
+    typeLoading.value = false;
   }
 }
 
 function selectType(type: DictTypeRecord) {
-  selectedType.value = type
-  itemTableMethods.value?.reload()
+  selectedType.value = type;
+  itemTableMethods.value?.reload();
 }
 
 // ========== 类型 CRUD ==========
 const typeCrud = useCRUD<DictTypeRecord>({
-  containerType: 'modal',
+  containerType: "modal",
   modalMethods: typeModalMethods,
   formMethods: typeFormMethods,
   tableMethods: { value: null },
-  idKey: 'dictTypeId',
-  getEmptyValues: () => ({ dictName: '', dictCode: '', status: '1', description: '' }),
+  idKey: "dictTypeId",
+  getEmptyValues: () => ({ dictName: "", dictCode: "", status: "1", description: "" }),
   getFormValues: (record) => ({
     dictName: record.dictName,
     dictCode: record.dictCode,
@@ -117,32 +118,35 @@ const typeCrud = useCRUD<DictTypeRecord>({
   onDelete: async (record) => await deleteDict(record.dictTypeId),
   onSaved: async () => await loadDictTypes(),
   onDeleted: async () => {
-    if (selectedType.value && !dictTypes.value.some((t) => t.dictTypeId === selectedType.value!.dictTypeId)) {
-      selectedType.value = null
+    if (
+      selectedType.value &&
+      !dictTypes.value.some((t) => t.dictTypeId === selectedType.value!.dictTypeId)
+    ) {
+      selectedType.value = null;
     }
-    await loadDictTypes()
+    await loadDictTypes();
   },
   messages: {
-    createSuccess: '字典类型创建成功',
-    updateSuccess: '字典类型更新成功',
-    deleteSuccess: '字典类型删除成功',
-    deleteConfirm: '确定要删除该字典类型吗？',
+    createSuccess: "字典类型创建成功",
+    updateSuccess: "字典类型更新成功",
+    deleteSuccess: "字典类型删除成功",
+    deleteConfirm: "确定要删除该字典类型吗？",
   },
-})
+});
 
 // ========== 字典项 CRUD ==========
 const itemCrud = useCRUD<DictItemRecord>({
-  containerType: 'modal',
+  containerType: "modal",
   modalMethods: itemModalMethods,
   formMethods: itemFormMethods,
   tableMethods: itemTableMethods,
-  idKey: 'dictDataId',
+  idKey: "dictDataId",
   getEmptyValues: () => ({
-    dictLabel: '',
-    dictValue: '',
+    dictLabel: "",
+    dictValue: "",
     sortOrder: 0,
-    status: '1',
-    remark: '',
+    status: "1",
+    remark: "",
   }),
   getFormValues: (record) => ({
     dictLabel: record.dictLabel,
@@ -152,35 +156,37 @@ const itemCrud = useCRUD<DictItemRecord>({
     remark: record.remark,
   }),
   onCreate: async (values) => {
-    if (!selectedType.value) throw new Error('请先选择字典类型')
-    await addDictItem({ ...values, dictTypeId: selectedType.value.dictTypeId })
+    if (!selectedType.value) throw new Error("请先选择字典类型");
+    await addDictItem({ ...values, dictTypeId: selectedType.value.dictTypeId });
   },
   onUpdate: async (id, values) => await updateDictItem(id, values),
   onDelete: async (record) => await deleteDictItem(record.dictDataId),
   onSaved: async () => itemTableMethods.value?.reload(),
   onDeleted: async () => itemTableMethods.value?.reload(),
   onBatchDelete: async (records) => {
-    await batchRemoveDictData(records.map((r) => r.dictDataId))
+    await batchRemoveDictData(records.map((r) => r.dictDataId));
   },
   messages: {
-    createSuccess: '字典项创建成功',
-    updateSuccess: '字典项更新成功',
-    deleteSuccess: '字典项删除成功',
+    createSuccess: "字典项创建成功",
+    updateSuccess: "字典项更新成功",
+    deleteSuccess: "字典项删除成功",
   },
-})
+});
 
 // ========== 字典项查询 ==========
 async function fetchDictItems(params: any) {
   return await getDictItems({
     ...params,
     dictTypeId: selectedType.value?.dictTypeId,
-  })
+  });
 }
 
 // ========== 导出 ==========
 function handleExport() {
-  const dataToExport = selectedType.value ? itemTableMethods.value?.getSelectRows?.() || [] : dictTypes.value
-  console.log('export:', dataToExport)
+  const dataToExport = selectedType.value
+    ? itemTableMethods.value?.getSelectRows?.() || []
+    : dictTypes.value;
+  console.log("export:", dataToExport);
 }
 
 // ========== 字典项行操作 ==========
@@ -188,10 +194,10 @@ function getItemActions(record: DictItemRecord) {
   return getDictItemActions(record, {
     onEdit: itemCrud.handleEdit,
     onDelete: itemCrud.handleDelete,
-  })
+  });
 }
 
-loadDictTypes()
+loadDictTypes();
 </script>
 
 <template>
@@ -204,7 +210,7 @@ loadDictTypes()
         <!-- 头部 -->
         <div :class="cardHeaderClassName">
           <div class="flex items-center gap-2">
-            <span class="h-3.5 w-1 rounded bg-blue-500 dark:bg-blue-400" />
+            <span class="h-3.5 w-1 rounded bg-ant-primary" />
             <span :class="cardTitleClassName">字典类型</span>
             <span
               class="rounded-full bg-gray-100 px-2 text-xs font-normal text-gray-500 dark:bg-gray-800 dark:text-gray-400"
@@ -232,7 +238,10 @@ loadDictTypes()
               @click="selectType(item)"
             >
               <!-- 激活指示条 -->
-              <span v-if="selectedType?.dictTypeId === item.dictTypeId" :class="typeItemIndicatorClassName" />
+              <span
+                v-if="selectedType?.dictTypeId === item.dictTypeId"
+                :class="typeItemIndicatorClassName"
+              />
 
               <!-- 名称 + 编码 -->
               <div class="min-w-0 flex-1">
@@ -250,7 +259,7 @@ loadDictTypes()
                   :color="DICT_STATUS_COLOR_MAP[item.status] || 'default'"
                   class="!m-0 !px-1.5 !text-[10px] !leading-4"
                 >
-                  {{ DICT_STATUS_LABEL_MAP[item.status] || '未知' }}
+                  {{ DICT_STATUS_LABEL_MAP[item.status] || "未知" }}
                 </a-tag>
 
                 <button
@@ -258,7 +267,9 @@ loadDictTypes()
                   :class="typeItemBtnClassName"
                   title="编辑"
                   @click.stop="typeCrud.handleEdit(item)"
+                  v-permission="TOOL_PERMS.dict.update"
                 >
+                  >
                   <Icon icon="ant-design:edit-outlined" class="text-xs" />
                 </button>
 
@@ -267,7 +278,9 @@ loadDictTypes()
                   :class="typeItemBtnClassName + ' hover:!text-red-500 dark:hover:!text-red-400'"
                   title="删除"
                   @click.stop="typeCrud.handleDelete(item)"
+                  v-permission="TOOL_PERMS.dict.delete"
                 >
+                  >
                   <Icon icon="ant-design:delete-outlined" class="text-xs" />
                 </button>
               </div>
@@ -277,7 +290,13 @@ loadDictTypes()
 
         <!-- 底部 -->
         <div :class="cardFooterClassName">
-          <a-button type="primary" size="small" block @click="typeCrud.handleAdd()">
+          <a-button
+            type="primary"
+            size="small"
+            block
+            @click="typeCrud.handleAdd()"
+            v-permission="TOOL_PERMS.dict.create"
+          >
             <template #icon>
               <Icon icon="ant-design:plus-outlined" />
             </template>
@@ -297,7 +316,7 @@ loadDictTypes()
           <div class="flex items-center gap-2">
             <span class="h-3.5 w-1 rounded bg-blue-500 dark:bg-blue-400" />
             <span :class="cardTitleClassName">
-              {{ selectedType ? `${selectedType.dictName} - 字典项` : '字典项' }}
+              {{ selectedType ? `${selectedType.dictName} - 字典项` : "字典项" }}
             </span>
             <span
               v-if="selectedType"
@@ -327,21 +346,32 @@ loadDictTypes()
             <!-- 工具栏 -->
             <template #toolbar>
               <div class="flex flex-wrap items-center gap-2">
-                <a-button size="small" @click="handleExport">
+                <a-button size="small" @click="handleExport" v-permission="TOOL_PERMS.dict.export">
                   <template #icon>
                     <Icon icon="carbon:export" />
                   </template>
                   导出
                 </a-button>
 
-                <a-button type="primary" size="small" :disabled="!selectedType" @click="itemCrud.handleAdd()">
+                <a-button
+                  type="primary"
+                  size="small"
+                  :disabled="!selectedType"
+                  @click="itemCrud.handleAdd()"
+                  v-permission="TOOL_PERMS.dict.create"
+                >
                   <template #icon>
                     <Icon icon="ant-design:plus-outlined" />
                   </template>
                   新增字典项
                 </a-button>
 
-                <a-button size="small" danger @click="itemCrud.handleBatchDelete">
+                <a-button
+                  size="small"
+                  danger
+                  @click="() => itemCrud.handleBatchDelete()"
+                  v-permission="TOOL_PERMS.dict.deleteBatch"
+                >
                   <template #icon>
                     <Icon icon="ant-design:delete-outlined" />
                   </template>
@@ -355,7 +385,7 @@ loadDictTypes()
               <a-tag :color="DICT_STATUS_COLOR_MAP[record.status] || 'default'" class="!m-0">
                 <span :class="tagClassName">
                   <Icon :icon="DICT_STATUS_ICON_MAP[record.status] || 'carbon:help'" />
-                  {{ DICT_STATUS_LABEL_MAP[record.status] || '未知' }}
+                  {{ DICT_STATUS_LABEL_MAP[record.status] || "未知" }}
                 </span>
               </a-tag>
             </template>

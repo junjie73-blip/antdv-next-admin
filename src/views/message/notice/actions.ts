@@ -1,5 +1,7 @@
 import type { ActionItem } from '~/components/business/Table'
 
+import { MESSAGE_PERMS } from '~/enums/permissions'
+
 import type { NoticeRecord } from './types'
 
 /** 操作回调上下文 */
@@ -19,17 +21,20 @@ export function getNoticeActions(record: NoticeRecord, ctx: NoticeActionContext)
     {
       label: '编辑',
       icon: 'ant-design:edit-outlined',
+      auth: MESSAGE_PERMS.notice.update,
       onClick: () => ctx.onEdit(record),
     },
     {
       label: '发送',
       icon: 'ant-design:send-outlined',
+      auth: MESSAGE_PERMS.notice.send,
       onClick: () => ctx.onSend(record),
       disabled: record.sendStatus === '1',
     },
     {
       label: '撤回',
       icon: 'ant-design:rollback-outlined',
+      auth: MESSAGE_PERMS.notice.revoke,
       disabled: record.sendStatus !== '1',
       popConfirm: {
         title: '撤回通知',
@@ -40,6 +45,7 @@ export function getNoticeActions(record: NoticeRecord, ctx: NoticeActionContext)
     {
       label: '删除',
       icon: 'ant-design:delete-outlined',
+      auth: MESSAGE_PERMS.notice.delete,
       danger: true,
       popConfirm: {
         title: '删除通知',

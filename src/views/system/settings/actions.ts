@@ -1,5 +1,7 @@
 import type { ActionItem } from '~/components/business/Table'
 
+import { SYSTEM_PERMS } from '~/enums/permissions'
+
 import type { ConfigRecord } from './types'
 
 /** 配置行操作上下文 */
@@ -22,16 +24,19 @@ export function getConfigActions(record: ConfigRecord, ctx: ConfigActionContext)
       label: '查看',
       icon: 'ant-design:eye-outlined',
       onClick: () => ctx.onView(record),
+      auth: SYSTEM_PERMS.settings.detail,
     },
     {
       label: '编辑',
       icon: 'ant-design:edit-outlined',
       onClick: () => ctx.onEdit(record),
+      auth: SYSTEM_PERMS.settings.update,
     },
     {
       label: '删除',
       icon: 'ant-design:delete-outlined',
       danger: true,
+      auth: SYSTEM_PERMS.settings.delete,
       popConfirm: {
         title: '删除配置',
         content: `确定要删除「${record.configKey}」吗？`,

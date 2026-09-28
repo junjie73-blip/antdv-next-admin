@@ -1,5 +1,7 @@
 import type { ActionItem } from '~/components/business/Table'
 
+import { SYSTEM_PERMS } from '~/enums/permissions'
+
 import type { RoleRecord } from './types'
 
 /** 角色行操作上下文 */
@@ -21,16 +23,19 @@ export function getRoleActions(record: RoleRecord, ctx: RoleActionContext): Acti
       label: '编辑',
       icon: 'ant-design:edit-outlined',
       onClick: () => ctx.onEdit(record),
+      auth: SYSTEM_PERMS.role.update,
     },
     {
       label: '授权',
       icon: 'ant-design:lock-outlined',
       onClick: () => ctx.onPermission(record),
+      auth: SYSTEM_PERMS.role.authorize,
     },
     {
       label: '删除',
       icon: 'ant-design:delete-outlined',
       danger: true,
+      auth: SYSTEM_PERMS.role.delete,
       popConfirm: {
         title: '确定要删除该角色吗？',
         content: `确定要删除「${record.roleName}」吗？`,

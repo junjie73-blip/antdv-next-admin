@@ -1,5 +1,7 @@
 import type { ActionItem } from '~/components/business/Table'
 
+import { APPROVAL_PERMS } from '~/enums/permissions'
+
 import type { ApprovalActionContext, ApprovalFlowRecord } from './types'
 
 export function getApprovalActions(record: ApprovalFlowRecord, ctx: ApprovalActionContext): ActionItem[] {
@@ -7,6 +9,7 @@ export function getApprovalActions(record: ApprovalFlowRecord, ctx: ApprovalActi
     {
       label: '查看审批过程',
       icon: 'lucide:git-branch',
+      auth: APPROVAL_PERMS.flow.detail,
       onClick: () => ctx.onViewFlow(record),
     },
   ]
@@ -17,12 +20,14 @@ export function getApprovalActions(record: ApprovalFlowRecord, ctx: ApprovalActi
       {
         label: '通过',
         icon: 'lucide:check',
+        auth: APPROVAL_PERMS.flow.approve,
         onClick: () => ctx.onApprove(record),
       },
       {
         label: '驳回',
         icon: 'lucide:x',
         danger: true,
+        auth: APPROVAL_PERMS.flow.reject,
         onClick: () => ctx.onReject(record),
       },
     )
@@ -34,12 +39,14 @@ export function getApprovalActions(record: ApprovalFlowRecord, ctx: ApprovalActi
       {
         label: '重新提交',
         icon: 'lucide:refresh-cw',
+        auth: APPROVAL_PERMS.flow.update,
         onClick: () => ctx.onResubmit(record),
       },
       {
         label: '删除',
         icon: 'lucide:trash-2',
         danger: true,
+        auth: APPROVAL_PERMS.flow.delete,
         popConfirm: {
           title: '删除申请',
           content: `确定删除「${record.title}」吗？`,
@@ -55,6 +62,7 @@ export function getApprovalActions(record: ApprovalFlowRecord, ctx: ApprovalActi
       label: '删除',
       icon: 'lucide:trash-2',
       danger: true,
+      auth: APPROVAL_PERMS.flow.delete,
       popConfirm: {
         title: '删除申请',
         content: `确定删除「${record.title}」吗？`,

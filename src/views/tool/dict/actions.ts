@@ -1,5 +1,7 @@
 import type { ActionItem } from '~/components/business/Table'
 
+import { TOOL_PERMS } from '~/enums/permissions'
+
 import type { DictItemRecord } from './types'
 
 /** 字典项行操作上下文 */
@@ -19,6 +21,7 @@ export function getDictItemActions(record: DictItemRecord, ctx: DictItemActionCo
       label: '编辑',
       icon: 'ant-design:edit-outlined',
       onClick: () => ctx.onEdit(record),
+      auth: TOOL_PERMS.dict.update,
     },
     {
       label: '删除',
@@ -29,6 +32,7 @@ export function getDictItemActions(record: DictItemRecord, ctx: DictItemActionCo
         content: `确定要删除「${record.dictLabel}」吗？`,
         confirm: () => ctx.onDelete(record),
       },
+      auth: TOOL_PERMS.dict.delete,
     },
   ]
 }

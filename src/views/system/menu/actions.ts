@@ -1,5 +1,7 @@
 import type { ActionItem } from '~/components/business/Table'
 
+import { SYSTEM_PERMS } from '~/enums/permissions'
+
 import type { MenuRecord } from './types'
 
 /** 菜单行操作上下文 */
@@ -24,22 +26,26 @@ export function getMenuActions(record: MenuRecord, ctx: MenuActionContext): Acti
       icon: 'ant-design:plus-outlined',
       disabled: record.menuType !== 1,
       onClick: () => ctx.onAddChild(record),
+      auth: SYSTEM_PERMS.menu.create,
     },
     {
       label: '新增权限',
       icon: 'ant-design:plus-outlined',
       disabled: record.menuType !== 2,
       onClick: () => ctx.onAddPermission(record),
+      auth: SYSTEM_PERMS.menu.createPerm,
     },
     {
       label: '编辑',
       icon: 'ant-design:edit-outlined',
       onClick: () => ctx.onEdit(record),
+      auth: SYSTEM_PERMS.menu.update,
     },
     {
       label: '删除',
       icon: 'ant-design:delete-outlined',
       danger: true,
+      auth: SYSTEM_PERMS.menu.delete,
       popConfirm: {
         title: '删除菜单',
         content: `确定要删除「${record.menuName}」吗？`,

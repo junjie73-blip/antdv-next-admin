@@ -1,6 +1,6 @@
 <template>
   <div :class="containerClassName">
-    <a-card title="审批日志" :bordered="false">
+    <a-card :bordered="false">
       <BasicTable
         :columns="logColumns"
         :api="getApprovalLogs"
@@ -21,16 +21,16 @@
 </template>
 
 <script setup lang="ts">
-import { useTable } from '~/components/business/Table'
+import { useTable } from "~/components/business/Table";
 
-import type { ApprovalLogRecord } from './types'
+import type { ApprovalLogRecord } from "./types";
 
-import { getApprovalLogs } from './api'
-import { logColumns } from './columns'
-import { ACTION_MAP, containerClassName } from './constants'
-import { searchSchemas } from './schemas'
+import { getApprovalLogs } from "./api";
+import { logColumns } from "./columns";
+import { ACTION_MAP, containerClassName } from "./constants";
+import { searchSchemas } from "./schemas";
 
-defineOptions({ name: 'ApprovalLogPage' })
+defineOptions({ name: "ApprovalLogPage" });
 
-const [tableRegister, _] = useTable()
+const [tableRegister, _] = useTable();
 </script>

@@ -1,5 +1,7 @@
 import type { ActionItem } from '~/components/business/Table'
 
+import { SYSTEM_PERMS } from '~/enums/permissions'
+
 import type { UserRecord } from './types'
 
 /** 用户行操作上下文 */
@@ -21,21 +23,25 @@ export function getUserActions(record: UserRecord, ctx: UserActionContext): Acti
       icon: 'ant-design:edit-outlined',
       label: '编辑',
       onClick: () => ctx.onEdit(record),
+      auth: SYSTEM_PERMS.user.update,
     },
     {
       icon: 'ant-design:key-outlined',
       label: '重置密码',
       onClick: () => ctx.onResetPassword(record),
+      auth: SYSTEM_PERMS.user.resetPwd,
     },
     {
       icon: 'ant-design:safety-outlined',
       label: '敏感信息',
       onClick: () => ctx.onViewSensitive(record),
+      auth: SYSTEM_PERMS.user.sensitive,
     },
     {
       icon: 'ant-design:delete-outlined',
       label: '删除',
       danger: true,
+      auth: SYSTEM_PERMS.user.delete,
       popConfirm: {
         title: '删除用户',
         content: `确定删除「${record.username}」吗？`,

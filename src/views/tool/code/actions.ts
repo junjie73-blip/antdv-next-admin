@@ -1,5 +1,7 @@
 import type { ActionItem } from '~/components/business/Table/types'
 
+import { TOOL_PERMS } from '~/enums/permissions'
+
 import type { GenTable } from './types'
 
 export interface GenTableActionContext {
@@ -19,11 +21,13 @@ export function getGenTableActions(record: GenTable, ctx: GenTableActionContext)
       label: '编辑',
       icon: 'ant-design:edit-outlined',
       onClick: () => ctx.onEdit(record),
+      auth: TOOL_PERMS.code.update,
     },
     {
       label: '生成代码',
       icon: 'ant-design:download-outlined',
       onClick: () => ctx.onGenerate(record),
+      auth: TOOL_PERMS.code.generate,
     },
     {
       label: '删除',
@@ -34,6 +38,7 @@ export function getGenTableActions(record: GenTable, ctx: GenTableActionContext)
         content: `删除后数据库表不会被删除，确定删除「${record.tableName}」的配置吗？`,
         confirm: () => ctx.onDelete(record),
       },
+      auth: TOOL_PERMS.code.delete,
     },
   ]
 }

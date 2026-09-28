@@ -1,5 +1,7 @@
 import type { ActionItem } from '~/components/business/Table'
 
+import { MESSAGE_PERMS } from '~/enums/permissions'
+
 import type { NoticeRecord } from './types'
 
 import { markNoticeRead } from './api'
@@ -26,6 +28,7 @@ export function getNoticeActions(record: NoticeRecord, ctx: NoticeActionContext 
       icon: 'at-icons:checkmark',
       danger: true,
       disabled: record.isRead === NOTICE_READ_STATUS.READ,
+      auth: MESSAGE_PERMS.my.read,
       popConfirm: {
         title: '标记已读',
         confirm: async () => {

@@ -1,5 +1,7 @@
 import type { ActionItem } from '~/components/business/Table'
 
+import { MONITOR_PERMS } from '~/enums/permissions'
+
 import type { JobRecord } from './types'
 
 /** 任务行操作上下文 */
@@ -26,20 +28,20 @@ export function getJobActions(record: JobRecord, ctx: JobActionContext): ActionI
       icon: 'bx:play-circle',
       label: '立即执行',
       onClick: () => ctx.onRun(record),
-      auth: 'monitor:job:run',
+      auth: MONITOR_PERMS.job.run,
     },
     {
       icon: 'ant-design:edit-outlined',
       label: '编辑',
       onClick: () => ctx.onEdit(record),
-      auth: 'monitor:job:update',
+      auth: MONITOR_PERMS.job.update,
     },
     {
       icon: 'bx:pause-circle',
       label: '暂停',
       // 只在启用状态时可暂停
       disabled: record.isPaused !== '1',
-      auth: 'monitor:job:paused',
+      auth: MONITOR_PERMS.job.paused,
       onClick: () => ctx.onPause(record),
     },
     {
@@ -47,13 +49,13 @@ export function getJobActions(record: JobRecord, ctx: JobActionContext): ActionI
       label: '恢复',
       disabled: record.isPaused === '1', // 或者别的条件，看后端语义
       onClick: () => ctx.onResume(record),
-      auth: 'monitor:job:resume',
+      auth: MONITOR_PERMS.job.resume,
     },
     {
       label: '删除',
       icon: 'ant-design:delete-outlined',
       danger: true,
-      auth: 'monitor:job:delete',
+      auth: MONITOR_PERMS.job.delete,
       popConfirm: {
         title: '删除任务',
         content: `确定删除「${record.jobName}」吗？`,

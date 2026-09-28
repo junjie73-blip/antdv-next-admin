@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { message } from 'antdv-next'
-import { computed, onMounted, ref } from 'vue'
+import { Icon } from "@iconify/vue";
+import { message } from "antdv-next";
+import { computed, onMounted, ref } from "vue";
 
-import { addDept, deleteDept, getDeptList, getDeptTree, updateDept } from '~/api'
-import { BasicForm, useForm } from '~/components/business/Form'
-import { BasicModal, useModal } from '~/components/business/Modal'
-import { BasicTable, TableAction, useTable } from '~/components/business/Table'
-import { useCRUD } from '~/composables/useCRUD'
-import { DictType } from '~/enums/dict'
-import { useDictStore } from '~/stores'
+import { addDept, deleteDept, getDeptList, getDeptTree, updateDept } from "~/api";
+import { BasicForm, useForm } from "~/components/business/Form";
+import { BasicModal, useModal } from "~/components/business/Modal";
+import { BasicTable, TableAction, useTable } from "~/components/business/Table";
+import { useCRUD } from "~/composables/useCRUD";
+import { DictType } from "~/enums/dict";
+import { useDictStore } from "~/stores";
 
-import type { DeptRecord, DeptTreeNode } from './types'
+import type { DeptRecord, DeptTreeNode } from "./types";
 
-import { getDeptActions } from './actions'
-import { deptActionColumn, deptColumns, deptRowKey, deptScroll } from './columns'
-import DeptUserDrawer from './components/DeptUserDrawer.vue'
+import { getDeptActions } from "./actions";
+import { deptActionColumn, deptColumns, deptRowKey, deptScroll } from "./columns";
+import DeptUserDrawer from "./components/DeptUserDrawer.vue";
 import {
   cardBodyClassName,
   cardClassName,
@@ -33,60 +33,61 @@ import {
   toolbarClassName,
   treeNodeClassName,
   treeNodeIconClassName,
-} from './constants'
-import { deptSearchSchemas, useDeptFormSchemas } from './schemas'
-import { convertToTreeNode } from './utils'
+} from "./constants";
+import { deptSearchSchemas, useDeptFormSchemas } from "./schemas";
+import { convertToTreeNode } from "./utils";
+import { SYSTEM_PERMS } from "~/enums/permissions";
 
-defineOptions({ name: 'SystemDept' })
+defineOptions({ name: "SystemDept" });
 
 /* ============================================================
  * 字典
  * ============================================================ */
-const dictStore = useDictStore()
-const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
+const dictStore = useDictStore();
+const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE));
 
 /* ============================================================
  * 状态
  * ============================================================ */
-const allData = ref<DeptRecord[]>([])
-const deptTreeData = ref<DeptTreeNode[]>([])
-const selectedDeptId = ref<string | undefined>(undefined)
-const treeExpandedKeys = ref<string[]>([])
-const loading = ref(false)
-const deptUserOpen = ref(false)
-const deptUserRecord = ref<DeptRecord | null>(null)
+const allData = ref<DeptRecord[]>([]);
+const deptTreeData = ref<DeptTreeNode[]>([]);
+const selectedDeptId = ref<string | undefined>(undefined);
+const treeExpandedKeys = ref<string[]>([]);
+const loading = ref(false);
+const deptUserOpen = ref(false);
+const deptUserRecord = ref<DeptRecord | null>(null);
 
 /** 部门树搜索 */
-const deptKeyword = ref('')
+const deptKeyword = ref("");
 
 /** 过滤后的部门树 */
 const filteredTreeData = computed(() => {
-  if (!deptKeyword.value.trim()) return deptTreeData.value
-  const kw = deptKeyword.value.toLowerCase()
+  if (!deptKeyword.value.trim()) return deptTreeData.value;
+  const kw = deptKeyword.value.toLowerCase();
 
   function filter(nodes: DeptTreeNode[]): DeptTreeNode[] {
-    const result: DeptTreeNode[] = []
+    const result: DeptTreeNode[] = [];
     for (const node of nodes) {
-      const children = node.children ? filter(node.children) : []
-      const matched = node.deptName.toLowerCase().includes(kw)
+      const children = node.children ? filter(node.children) : [];
+      const matched = node.deptName.toLowerCase().includes(kw);
       if (matched || children.length > 0) {
         result.push({
           ...node,
           children: children.length ? children : undefined,
-        })
+        });
       }
     }
-    return result
+    return result;
   }
-  return filter(deptTreeData.value)
-})
+  return filter(deptTreeData.value);
+});
 
 /* ============================================================
  * 注册实例
  * ============================================================ */
-const [modalRegister, modalMethods] = useModal()
-const [tableRegister, tableMethods] = useTable()
-const [formRegister, formMethods] = useForm()
+const [modalRegister, modalMethods] = useModal();
+const [tableRegister, tableMethods] = useTable();
+const [formRegister, formMethods] = useForm();
 
 /* ============================================================
  * Schema
@@ -94,22 +95,22 @@ const [formRegister, formMethods] = useForm()
 const deptFormSchemas = useDeptFormSchemas(
   computed(() => deptTreeData.value),
   statusOptions,
-)
+);
 
 /* ============================================================
  * 初始化部门树
  * ============================================================ */
 async function initDeptTree() {
-  loading.value = true
+  loading.value = true;
   try {
-    const res = await getDeptTree()
-    allData.value = res
-    deptTreeData.value = res.map(convertToTreeNode)
+    const res = await getDeptTree();
+    allData.value = res;
+    deptTreeData.value = res.map(convertToTreeNode);
   } catch (e) {
-    console.error('获取部门树失败', e)
-    message.error('获取部门树失败')
+    console.error("获取部门树失败", e);
+    message.error("获取部门树失败");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
@@ -117,83 +118,83 @@ async function initDeptTree() {
  * 表格 API
  * ============================================================ */
 async function fetchDeptList(params: any) {
-  return await getDeptList({ ...params, parentId: selectedDeptId.value })
+  return await getDeptList({ ...params, parentId: selectedDeptId.value });
 }
 
 /* ============================================================
  * CRUD
  * ============================================================ */
 const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<DeptRecord>({
-  containerType: 'modal',
+  containerType: "modal",
   modalMethods,
   formMethods,
   tableMethods,
-  idKey: 'deptId',
+  idKey: "deptId",
   getEmptyValues: () => ({
     parentId: selectedDeptId.value ?? null,
-    deptName: '',
-    deptCode: '',
-    leader: '',
-    phone: '',
-    email: '',
+    deptName: "",
+    deptCode: "",
+    leader: "",
+    phone: "",
+    email: "",
     sortOrder: 0,
-    status: '1',
+    status: "1",
   }),
   getFormValues: (record) => record,
   onCreate: async (values) => {
-    await addDept(values)
+    await addDept(values);
   },
   onUpdate: async (id, values) => {
-    await updateDept(id, values)
+    await updateDept(id, values);
   },
   onDelete: async (record) => {
-    await deleteDept(record.deptId)
+    await deleteDept(record.deptId);
   },
   onSaved: async () => {
-    await initDeptTree()
+    await initDeptTree();
   },
   onDeleted: async () => {
-    await initDeptTree()
+    await initDeptTree();
   },
   messages: {
-    createSuccess: '部门创建成功',
-    updateSuccess: '部门更新成功',
-    deleteSuccess: '部门删除成功',
+    createSuccess: "部门创建成功",
+    updateSuccess: "部门更新成功",
+    deleteSuccess: "部门删除成功",
   },
-})
+});
 
 /* ============================================================
  * 事件
  * ============================================================ */
 function handleDeptSelect(_keys: (string | number)[], info: { node: { deptId: string } }) {
-  const clicked = info.node.deptId
+  const clicked = info.node.deptId;
   // 再次点击取消选中
-  selectedDeptId.value = selectedDeptId.value === clicked ? undefined : clicked
-  tableMethods.value?.reload()
+  selectedDeptId.value = selectedDeptId.value === clicked ? undefined : clicked;
+  tableMethods.value?.reload();
 }
 
 function clearDeptFilter() {
-  selectedDeptId.value = undefined
-  tableMethods.value?.reload()
+  selectedDeptId.value = undefined;
+  tableMethods.value?.reload();
 }
 
 function handleAddChild(record: DeptRecord) {
-  handleAdd({ parentId: record.deptId })
+  handleAdd({ parentId: record.deptId });
 }
 
 function handleAssignUsers(record: DeptRecord) {
-  deptUserRecord.value = record
-  deptUserOpen.value = true
+  deptUserRecord.value = record;
+  deptUserOpen.value = true;
 }
 
 function handleUsersSaved() {
-  tableMethods.value?.reload()
+  tableMethods.value?.reload();
 }
 
 /** 手动刷新 */
 function handleRefresh() {
-  void initDeptTree()
-  tableMethods.value?.reload()
+  void initDeptTree();
+  tableMethods.value?.reload();
 }
 
 /* ============================================================
@@ -205,15 +206,15 @@ function getActions(record: DeptRecord) {
     onEdit: handleEdit,
     onDelete: handleDelete,
     onAssignUsers: handleAssignUsers,
-  })
+  });
 }
 
 /* ============================================================
  * 初始化
  * ============================================================ */
 onMounted(() => {
-  void initDeptTree()
-})
+  void initDeptTree();
+});
 </script>
 
 <template>
@@ -276,7 +277,7 @@ onMounted(() => {
             >
               <Icon icon="carbon:tree-view" class="text-3xl opacity-40" />
               <span class="text-xs">
-                {{ deptKeyword ? '未匹配到部门' : '暂无部门' }}
+                {{ deptKeyword ? "未匹配到部门" : "暂无部门" }}
               </span>
             </div>
 
@@ -293,7 +294,10 @@ onMounted(() => {
             >
               <template #title="{ deptName, deptId }">
                 <span :class="treeNodeClassName(selectedDeptId === deptId)">
-                  <Icon icon="carbon:folder" :class="treeNodeIconClassName(selectedDeptId === deptId)" />
+                  <Icon
+                    icon="carbon:folder"
+                    :class="treeNodeIconClassName(selectedDeptId === deptId)"
+                  />
                   <span class="truncate">{{ deptName }}</span>
                 </span>
               </template>
@@ -339,26 +343,27 @@ onMounted(() => {
           @register="tableRegister"
         >
           <template #toolbar>
-            <div :class="toolbarClassName" class="!p-0">
-              <a-button type="primary" @click="handleAdd()">
-                <template #icon>
-                  <Icon icon="ant-design:plus-outlined" />
-                </template>
-                新增部门
-              </a-button>
+            <a-button type="primary" @click="handleAdd()" v-permission="SYSTEM_PERMS.dept.create">
+              <template #icon>
+                <Icon icon="ant-design:plus-outlined" />
+              </template>
+              新增部门
+            </a-button>
 
-              <a-button @click="handleRefresh">
-                <template #icon><Icon icon="carbon:renew" /></template>
-                刷新
-              </a-button>
-            </div>
+            <a-button @click="handleRefresh">
+              <template #icon><Icon icon="carbon:renew" /></template>
+              刷新
+            </a-button>
           </template>
 
           <template #cell-status="{ record }">
             <a-tag :color="DEPT_STATUS_COLOR_MAP[record.status] || 'default'" class="!m-0">
               <span :class="statusTagClassName">
-                <Icon :icon="DEPT_STATUS_ICON_MAP[record.status] || 'carbon:help'" class="text-xs" />
-                {{ DEPT_STATUS_LABEL_MAP[record.status] || '未知' }}
+                <Icon
+                  :icon="DEPT_STATUS_ICON_MAP[record.status] || 'carbon:help'"
+                  class="text-xs"
+                />
+                {{ DEPT_STATUS_LABEL_MAP[record.status] || "未知" }}
               </span>
             </a-tag>
           </template>
@@ -373,7 +378,12 @@ onMounted(() => {
     <!-- ============================================================ -->
     <!-- 新增/编辑弹窗                                                  -->
     <!-- ============================================================ -->
-    <BasicModal :title="isEditing ? '编辑部门' : '新增部门'" :width="640" @register="modalRegister" @ok="handleSave">
+    <BasicModal
+      :title="isEditing ? '编辑部门' : '新增部门'"
+      :width="640"
+      @register="modalRegister"
+      @ok="handleSave"
+    >
       <BasicForm
         :schemas="deptFormSchemas"
         :label-width="80"

@@ -1,5 +1,7 @@
 import type { ActionItem } from '~/components/business/Table'
 
+import { SYSTEM_PERMS } from '~/enums/permissions'
+
 import type { PermissionRecord } from './types'
 
 /** 权限行操作上下文 */
@@ -22,11 +24,13 @@ export function getPermissionActions(record: PermissionRecord, ctx: PermissionAc
       label: '查看',
       icon: 'ant-design:eye-outlined',
       onClick: () => ctx.onView(record),
+      auth: SYSTEM_PERMS.permission.detail,
     },
     {
       label: '编辑',
       icon: 'ant-design:edit-outlined',
       onClick: () => ctx.onEdit(record),
+      auth: SYSTEM_PERMS.permission.update,
     },
     {
       label: '删除',
@@ -37,6 +41,7 @@ export function getPermissionActions(record: PermissionRecord, ctx: PermissionAc
         content: `确定要删除权限「${record.permName}」吗？删除后关联的角色将失去此权限`,
         confirm: () => ctx.onDelete(record),
       },
+      auth: SYSTEM_PERMS.permission.delete,
     },
   ]
 }

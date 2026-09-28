@@ -1,5 +1,7 @@
 import type { ActionItem } from '~/components/business/Table'
 
+import { SYSTEM_PERMS } from '~/enums/permissions'
+
 import type { IpRuleRecord } from './types'
 
 /** 行操作上下文 */
@@ -19,11 +21,13 @@ export function getIpRuleActions(record: IpRuleRecord, ctx: IpRuleActionContext)
       label: '编辑',
       icon: 'ant-design:edit-outlined',
       onClick: () => ctx.onEdit(record),
+      auth: SYSTEM_PERMS.ipRule.update,
     },
     {
       label: '删除',
       icon: 'ant-design:delete-outlined',
       danger: true,
+      auth: SYSTEM_PERMS.ipRule.delete,
       popConfirm: {
         title: '删除IP规则',
         content: `确定要删除「${record.ipPattern}」吗？`,

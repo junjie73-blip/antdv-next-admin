@@ -1,48 +1,49 @@
 <script setup lang="ts">
 // 抽离的模块
-import { Icon } from '@iconify/vue'
-import { message, Modal } from 'antdv-next'
+import { Icon } from "@iconify/vue";
+import { message, Modal } from "antdv-next";
 
-import { getOnlineList, kickAllOnline, kickOnline } from '~/api'
-import { type ActionItem, BasicTable, TableAction, useTable } from '~/components/business/Table'
+import { getOnlineList, kickAllOnline, kickOnline } from "~/api";
+import { type ActionItem, BasicTable, TableAction, useTable } from "~/components/business/Table";
 
-import type { OnlineUserRecord } from './types'
+import type { OnlineUserRecord } from "./types";
 
-import { getOnlineActions } from './actions'
-import { onlineActionColumn, onlineColumns, onlineRowKey, onlineScroll } from './columns'
+import { getOnlineActions } from "./actions";
+import { onlineActionColumn, onlineColumns, onlineRowKey, onlineScroll } from "./columns";
+import { MONITOR_PERMS } from "~/enums/permissions";
 
-defineOptions({ name: 'MonitorOnline' })
+defineOptions({ name: "MonitorOnline" });
 
 // ========== 表格实例 ==========
-const [tableRegister, tableMethods] = useTable()
+const [tableRegister, tableMethods] = useTable();
 
 // ========== 强制单个用户下线 ==========
 // 说明：确认环节由操作项的 popConfirm 负责，这里直接执行副作用
 async function handleKick(record: OnlineUserRecord) {
-  await kickOnline(record.userId)
-  message.success('已强制下线')
-  tableMethods.value?.reload()
+  await kickOnline(record.userId);
+  message.success("已强制下线");
+  tableMethods.value?.reload();
 }
 
 // ========== 全部下线 ==========
 async function handleKickAll() {
   Modal.confirm({
-    title: '全部下线',
-    content: '确定要强制所有在线用户下线吗？',
-    okText: '确定',
-    cancelText: '取消',
-    okType: 'danger',
+    title: "全部下线",
+    content: "确定要强制所有在线用户下线吗？",
+    okText: "确定",
+    cancelText: "取消",
+    okType: "danger",
     async onOk() {
-      await kickAllOnline()
-      message.success('已全部下线')
-      tableMethods.value?.reload()
+      await kickAllOnline();
+      message.success("已全部下线");
+      tableMethods.value?.reload();
     },
-  })
+  });
 }
 
 // ========== 操作项 ==========
 function getActions(record: OnlineUserRecord): ActionItem[] {
-  return getOnlineActions(record, { onKick: handleKick })
+  return getOnlineActions(record, { onKick: handleKick });
 }
 </script>
 
@@ -59,7 +60,7 @@ function getActions(record: OnlineUserRecord): ActionItem[] {
       @register="tableRegister"
     >
       <template #toolbar>
-        <a-button danger @click="handleKickAll">
+        <a-button danger @click="handleKickAll" v-permission="MONITOR_PERMS.online.forceLogoutAll">
           <template #icon><Icon icon="ant-design:logout-outlined" /></template>
           全部下线
         </a-button>
