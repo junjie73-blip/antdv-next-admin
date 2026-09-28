@@ -1,0 +1,10 @@
+import { cn } from '~/utils'
+
+export const ACTION_MAP: Record<string, { label: string; color: string }> = {
+  SUBMIT: { label: '提交', color: 'blue' },
+  APPROVE: { label: '通过', color: 'green' },
+  REJECT: { label: '驳回', color: 'red' },
+  RESUBMIT: { label: '重新提交', color: 'purple' },
+}
+
+export const containerClassName = cn('p-4', 'space-y-4')

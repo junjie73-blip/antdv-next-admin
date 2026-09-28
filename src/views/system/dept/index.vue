@@ -139,16 +139,7 @@ const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<D
     sortOrder: 0,
     status: '1',
   }),
-  getFormValues: (record) => ({
-    parentId: record.parentId === null ? undefined : record.parentId,
-    deptName: record.deptName,
-    deptCode: record.deptCode,
-    leader: record.leader,
-    phone: record.phone,
-    email: record.email,
-    sortOrder: record.sortOrder,
-    status: record.status,
-  }),
+  getFormValues: (record) => record,
   onCreate: async (values) => {
     await addDept(values)
   },

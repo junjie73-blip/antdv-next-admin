@@ -412,8 +412,18 @@ export default defineConfig(({ mode }) => {
                       return "vendor-utils";
                     } else if (id.includes("@vue-office")) {
                       return "vendor-office";
-                    }
-
+                    } else if (id.includes("@vue-office")) return "vendor-vue-office";
+                    else if (id.includes("pdfjs-dist")) return "vendor-pdfjs";
+                    else if (id.includes("echarts")) return "vendor-echarts";
+                    else if (id.includes("@intlify") || id.includes("vue-i18n"))
+                      return "vendor-i18n";
+                    else if (id.includes("highlight.js")) return "vendor-highlight";
+                    else if (
+                      id.includes("@form-create") ||
+                      id.includes("prosemirror") ||
+                      id.includes("marked")
+                    )
+                      return "vendor-editor";
                     // 其他第三方库统一归入 vendor
                     return "vendor";
                   }
