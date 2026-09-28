@@ -1,43 +1,43 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { message } from "antdv-next";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-import { computed, onMounted, ref, watch } from "vue";
+import { Icon } from '@iconify/vue'
+import { message } from 'antdv-next'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import { computed, onMounted, ref, watch } from 'vue'
 
-import { completeTodo, createTodo, deleteTodo, getTodoList, getTodoStats, updateTodo } from "~/api";
-import { getTodoGroups, type TodoGroup } from "~/api/todo-group";
-import { BasicDrawer, useDrawer } from "~/components/business/Drawer";
-import { BasicForm, useForm } from "~/components/business/Form";
-import { useUserStore } from "~/stores/modules/user";
+import { completeTodo, createTodo, deleteTodo, getTodoList, getTodoStats, updateTodo } from '~/api'
+import { getTodoGroups, type TodoGroup } from '~/api/todo-group'
+import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
+import { BasicForm, useForm } from '~/components/business/Form'
+import { MESSAGE_PERMS } from '~/enums/permissions'
+import { useUserStore } from '~/stores/modules/user'
 
-import type { TodoFilterKey, TodoFilterOption, TodoRecord, TodoStats } from "./types";
+import type { TodoFilterKey, TodoFilterOption, TodoRecord, TodoStats } from './types'
 
-import GroupManager from "./components/GroupManager.vue";
-import { FILTER_META, PRIORITY_MAP } from "./constants";
-import { TODO_EMPTY_VALUES, todoFormSchemas } from "./schemas";
-import { filterTodos, getDueTimeInfo, isOverdue, todoToFormValues } from "./utils";
-import { MESSAGE_PERMS } from "~/enums/permissions";
+import GroupManager from './components/GroupManager.vue'
+import { FILTER_META, PRIORITY_MAP } from './constants'
+import { TODO_EMPTY_VALUES, todoFormSchemas } from './schemas'
+import { filterTodos, getDueTimeInfo, isOverdue, todoToFormValues } from './utils'
 
-dayjs.extend(relativeTime);
-defineOptions({ name: "MessageTodo" });
+dayjs.extend(relativeTime)
+defineOptions({ name: 'MessageTodo' })
 
-const userStore = useUserStore();
+const userStore = useUserStore()
 
 // ============ 状态 ============
-const loading = ref(false);
-const stats = ref<TodoStats>({ all: 0, uncompleted: 0, completed: 0, overdue: 0 });
-const list = ref<TodoRecord[]>([]);
-const activeFilter = ref<TodoFilterKey>("all");
-const activeGroupId = ref<string | undefined>(undefined);
-const groups = ref<TodoGroup[]>([]);
-const groupManagerOpen = ref(false);
-const editingId = ref<string | null>(null);
-const pageNum = ref(1);
-const pageSize = ref(10);
-const total = ref(0);
-const [drawerRegister, drawerMethods] = useDrawer();
-const [formRegister, formMethods] = useForm();
+const loading = ref(false)
+const stats = ref<TodoStats>({ all: 0, uncompleted: 0, completed: 0, overdue: 0 })
+const list = ref<TodoRecord[]>([])
+const activeFilter = ref<TodoFilterKey>('all')
+const activeGroupId = ref<string | undefined>(undefined)
+const groups = ref<TodoGroup[]>([])
+const groupManagerOpen = ref(false)
+const editingId = ref<string | null>(null)
+const pageNum = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+const [drawerRegister, drawerMethods] = useDrawer()
+const [formRegister, formMethods] = useForm()
 
 // ============ 计算 ============
 const filterOptions = computed<TodoFilterOption[]>(() =>
@@ -46,25 +46,25 @@ const filterOptions = computed<TodoFilterOption[]>(() =>
     ...FILTER_META[key],
     count: stats.value[key],
   })),
-);
+)
 
-const filteredList = computed(() => filterTodos(list.value, activeFilter.value));
+const filteredList = computed(() => filterTodos(list.value, activeFilter.value))
 
 const completionRate = computed(() =>
   stats.value.all > 0 ? Math.round((stats.value.completed / stats.value.all) * 100) : 0,
-);
+)
 
 // ============ 数据 ============
 async function loadGroups() {
   try {
-    groups.value = await getTodoGroups();
+    groups.value = await getTodoGroups()
   } catch (e) {
-    console.error("加载分组失败", e);
+    console.error('加载分组失败', e)
   }
 }
 
 async function load() {
-  loading.value = true;
+  loading.value = true
   try {
     const [listRes, statsRes] = await Promise.all([
       getTodoList({
@@ -73,93 +73,89 @@ async function load() {
         groupId: activeGroupId.value,
       }),
       getTodoStats(),
-    ]);
-    const ld = (listRes as any)?.data ?? listRes;
-    list.value = ld?.list || [];
-    total.value = ld?.total ?? 0;
+    ])
+    const ld = (listRes as any)?.data ?? listRes
+    list.value = ld?.list || []
+    total.value = ld?.total ?? 0
 
-    stats.value = ((statsRes as any)?.data ?? statsRes) || stats.value;
+    stats.value = ((statsRes as any)?.data ?? statsRes) || stats.value
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 
 async function handleGroupChanged() {
-  await loadGroups();
-  await load();
+  await loadGroups()
+  await load()
 }
 
-watch(activeGroupId, load);
+watch(activeGroupId, load)
 
 // ============ CRUD ============
 async function handleAdd() {
-  editingId.value = null;
-  await drawerMethods.openDrawer();
-  await formMethods.clearValidate();
+  editingId.value = null
+  await drawerMethods.openDrawer()
+  await formMethods.clearValidate()
   formMethods.setFieldsValue({
     ...TODO_EMPTY_VALUES,
     groupId: activeGroupId.value ?? undefined,
-  });
+  })
 }
 
 async function handleEdit(item: TodoRecord) {
-  editingId.value = item.todoId;
-  await drawerMethods.openDrawer();
-  await formMethods.clearValidate();
-  formMethods.setFieldsValue(
-    todoToFormValues({ ...item, userId: userStore.userInfo?.userId || "" }),
-  );
+  editingId.value = item.todoId
+  await drawerMethods.openDrawer()
+  await formMethods.clearValidate()
+  formMethods.setFieldsValue(todoToFormValues({ ...item, userId: userStore.userInfo?.userId || '' }))
 }
 
 async function handleSave() {
-  const values = await formMethods.validate();
-  if (!values) return;
+  const values = await formMethods.validate()
+  if (!values) return
 
   const payload: any = {
     ...values,
     dueTime: values.dueTime ? new Date(values.dueTime) : null,
     userId: userStore.userInfo?.userId,
     groupId: values.groupId || null,
-  };
-
-  if (editingId.value) {
-    await updateTodo(editingId.value, payload);
-    message.success("更新成功");
-  } else {
-    await createTodo(payload);
-    message.success("创建成功");
   }
 
-  await drawerMethods.closeDrawer();
-  load();
+  if (editingId.value) {
+    await updateTodo(editingId.value, payload)
+    message.success('更新成功')
+  } else {
+    await createTodo(payload)
+    message.success('创建成功')
+  }
+
+  await drawerMethods.closeDrawer()
+  load()
 }
 
 async function handleComplete(item: TodoRecord) {
-  if (item.status === "1") return;
-  await completeTodo(item.todoId);
-  message.success("已完成");
-  load();
+  if (item.status === '1') return
+  await completeTodo(item.todoId)
+  message.success('已完成')
+  load()
 }
 
 async function handleDelete(item: TodoRecord) {
-  await deleteTodo(item.todoId);
-  message.success("已删除");
-  load();
+  await deleteTodo(item.todoId)
+  message.success('已删除')
+  load()
 }
 function handlePaginationChange() {
-  load();
+  load()
 }
 onMounted(() => {
-  loadGroups();
-  load();
-});
+  loadGroups()
+  load()
+})
 </script>
 
 <template>
   <div class="relative isolate min-h-full p-1">
-    <div
-      class="relative z-10 flex h-full min-h-0 w-full max-w-full flex-col gap-3 lg:flex-row lg:gap-4"
-    >
+    <div class="relative z-10 flex h-full min-h-0 w-full max-w-full flex-col gap-3 lg:flex-row lg:gap-4">
       <!-- ============================================================ -->
       <!-- 左侧导航区                                                    -->
       <!-- ============================================================ -->
@@ -175,9 +171,7 @@ onMounted(() => {
 
           <div class="mb-4 flex items-center justify-between">
             <span class="text-xs font-medium tracking-wide text-slate-400">我的待办</span>
-            <div
-              class="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/10 dark:bg-blue-500/15"
-            >
+            <div class="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/10 dark:bg-blue-500/15">
               <Icon icon="carbon:task" class="text-ant-primary text-sm" />
             </div>
           </div>
@@ -271,11 +265,7 @@ onMounted(() => {
 
               <span
                 class="flex h-5 min-w-[22px] shrink-0 items-center justify-center rounded-full px-1.5 text-[11px] font-medium tabular-nums transition-colors"
-                :class="
-                  activeFilter === f.key
-                    ? 'text-white'
-                    : 'bg-slate-100/80 text-slate-500 dark:bg-slate-800/80'
-                "
+                :class="activeFilter === f.key ? 'text-white' : 'bg-slate-100/80 text-slate-500 dark:bg-slate-800/80'"
                 :style="{ backgroundColor: activeFilter === f.key ? f.color : undefined }"
               >
                 {{ f.count }}
@@ -312,9 +302,7 @@ onMounted(() => {
         class="flex min-w-0 flex-1 flex-col rounded-2xl border border-white/[0.7] bg-white/[0.6] p-3 shadow-[0_4px_24px_-8px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.8)] backdrop-blur-xl sm:p-4 dark:border-slate-600/[0.35] dark:bg-slate-900/[0.55] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.04)]"
       >
         <!-- 标题栏 -->
-        <div
-          class="mb-3 flex items-center justify-between border-b border-white/40 pb-3 dark:border-slate-700/40"
-        >
+        <div class="mb-3 flex items-center justify-between border-b border-white/40 pb-3 dark:border-slate-700/40">
           <div class="flex items-center gap-2">
             <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">
               {{ FILTER_META[activeFilter].label }}待办
@@ -325,19 +313,14 @@ onMounted(() => {
 
         <a-spin :spinning="loading" class="flex-1">
           <!-- 空状态 -->
-          <div
-            v-if="filteredList.length === 0"
-            class="flex flex-col items-center justify-center py-16 sm:py-24"
-          >
+          <div v-if="filteredList.length === 0" class="flex flex-col items-center justify-center py-16 sm:py-24">
             <div
               class="mb-4 flex h-20 w-20 rotate-3 items-center justify-center rounded-3xl bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800/60 dark:to-slate-800/30"
             >
               <Icon icon="carbon:task" class="text-4xl text-slate-300 dark:text-slate-600" />
             </div>
             <div class="mb-1 text-sm font-medium text-slate-500 dark:text-slate-400">
-              {{
-                activeFilter === "all" ? "暂无待办" : `没有${FILTER_META[activeFilter].label}的待办`
-              }}
+              {{ activeFilter === 'all' ? '暂无待办' : `没有${FILTER_META[activeFilter].label}的待办` }}
             </div>
             <div class="mb-4 text-xs text-slate-400">创建你的第一条待办吧</div>
             <button
@@ -367,22 +350,14 @@ onMounted(() => {
               />
 
               <!-- 勾选 -->
-              <a-checkbox
-                :checked="item.status === '1'"
-                class="mt-0.5 shrink-0"
-                @change="() => handleComplete(item)"
-              />
+              <a-checkbox :checked="item.status === '1'" class="mt-0.5 shrink-0" @change="() => handleComplete(item)" />
 
               <!-- 内容 -->
               <div class="min-w-0 flex-1">
                 <div class="flex flex-wrap items-center gap-2">
                   <span
                     class="text-[14px] font-medium break-words transition-colors"
-                    :class="
-                      item.status === '1'
-                        ? 'text-slate-400 line-through'
-                        : 'text-slate-800 dark:text-slate-200'
-                    "
+                    :class="item.status === '1' ? 'text-slate-400 line-through' : 'text-slate-800 dark:text-slate-200'"
                   >
                     {{ item.title }}
                   </span>
@@ -411,9 +386,7 @@ onMounted(() => {
                   {{ item.content }}
                 </p>
 
-                <div
-                  class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400"
-                >
+                <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
                   <span
                     v-if="getDueTimeInfo(item)"
                     class="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5"
@@ -482,12 +455,7 @@ onMounted(() => {
     </div>
 
     <!-- ==================== 新建/编辑抽屉 ==================== -->
-    <BasicDrawer
-      :title="editingId ? '编辑待办' : '新建待办'"
-      :width="520"
-      @register="drawerRegister"
-      @ok="handleSave"
-    >
+    <BasicDrawer :title="editingId ? '编辑待办' : '新建待办'" :width="520" @register="drawerRegister" @ok="handleSave">
       <BasicForm
         :schemas="todoFormSchemas"
         :label-width="80"

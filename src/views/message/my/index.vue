@@ -1,31 +1,31 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { message } from "antdv-next";
-import { ref, watch } from "vue";
+import { Icon } from '@iconify/vue'
+import { message } from 'antdv-next'
+import { ref, watch } from 'vue'
 
-import { BasicTable, useTable } from "~/components/business/Table";
+import { BasicTable, useTable } from '~/components/business/Table'
+import { MESSAGE_PERMS } from '~/enums/permissions'
 
-import type { NoticeTabKey } from "./types";
+import type { NoticeTabKey } from './types'
 
-import { getNoticeActions } from "./actions";
-import { fetchMyNotices, markAllNoticesRead } from "./api";
-import { noticeActionColumn, noticeColumns, noticeRowKey, noticeScroll } from "./columns";
-import { NOTICE_TYPE_MAP, TAB_TO_IS_READ } from "./constants";
-import { MESSAGE_PERMS } from "~/enums/permissions";
+import { getNoticeActions } from './actions'
+import { fetchMyNotices, markAllNoticesRead } from './api'
+import { noticeActionColumn, noticeColumns, noticeRowKey, noticeScroll } from './columns'
+import { NOTICE_TYPE_MAP, TAB_TO_IS_READ } from './constants'
 
-defineOptions({ name: "MessageMy" });
+defineOptions({ name: 'MessageMy' })
 
-const activeTab = ref<NoticeTabKey>("all");
-const [tableRegister, tableMethods] = useTable();
+const activeTab = ref<NoticeTabKey>('all')
+const [tableRegister, tableMethods] = useTable()
 
 /** 单条标记已读后的处理 */
 function handleMarkReadSuccess() {
-  message.success("已标记为已读");
-  tableMethods.value?.reload();
+  message.success('已标记为已读')
+  tableMethods.value?.reload()
 }
 
 function handleMarkReadError() {
-  message.error("操作失败");
+  message.error('操作失败')
 }
 
 /** 表格操作项（每次渲染重新生成以携带最新 record） */
@@ -33,17 +33,17 @@ function getActions(record: any) {
   return getNoticeActions(record, {
     onSuccess: handleMarkReadSuccess,
     onError: handleMarkReadError,
-  });
+  })
 }
 
 /** 全部标记已读 */
 async function markAllRead() {
   try {
-    await markAllNoticesRead();
-    message.success("已全部标记为已读");
-    tableMethods.value?.reload();
+    await markAllNoticesRead()
+    message.success('已全部标记为已读')
+    tableMethods.value?.reload()
   } catch {
-    message.error("操作失败");
+    message.error('操作失败')
   }
 }
 
@@ -53,8 +53,8 @@ watch(activeTab, (newVal) => {
     searchInfo: {
       isRead: TAB_TO_IS_READ[newVal],
     },
-  });
-});
+  })
+})
 </script>
 
 <template>
@@ -90,7 +90,7 @@ watch(activeTab, (newVal) => {
 
       <template #cell-isRead="{ record }">
         <a-tag :color="record.isRead === 1 ? 'default' : 'blue'">
-          {{ record.isRead === 1 ? "已读" : "未读" }}
+          {{ record.isRead === 1 ? '已读' : '未读' }}
         </a-tag>
       </template>
 
