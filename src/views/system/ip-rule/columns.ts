@@ -11,6 +11,7 @@ export const ipRuleColumns: BasicColumn[] = [
     key: 'index',
     width: 60,
     align: 'center',
+    dataIndex: 'ruleId',
     customRender: ({ index }: any) => index + 1,
   },
   { title: 'IP / CIDR', dataIndex: 'ipPattern', key: 'ipPattern', width: 200 },

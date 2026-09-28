@@ -4,6 +4,14 @@ import type { MenuRecord } from './types'
 
 /** 菜单表格列 */
 export const menuColumns: BasicColumn[] = [
+  {
+    title: '序号',
+    key: 'index',
+    width: 60,
+    align: 'center',
+    dataIndex: 'menuId',
+    ifShow: false,
+  },
   { title: '菜单名称', dataIndex: 'menuName', key: 'menuName', width: 200 },
   { title: '图标', dataIndex: 'icon', key: 'icon', width: 70, align: 'center' },
   { title: '排序', dataIndex: 'sortOrder', key: 'sortOrder', width: 70, align: 'center' },

@@ -19,6 +19,7 @@ export const deptColumns: BasicColumn[] = [
     title: '序号',
     key: 'index',
     width: 60,
+    dataIndex: 'deptId',
     align: 'center',
     customRender: ({ index }) => index + 1,
   },

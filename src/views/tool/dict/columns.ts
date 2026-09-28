@@ -3,6 +3,14 @@ import type { BasicColumn } from '~/components/business/Table'
 /** 字典项表格列 */
 export const dictItemColumns: BasicColumn[] = [
   {
+    title: '序号',
+    key: 'index',
+    width: 60,
+    align: 'center',
+    dataIndex: 'dictDataId',
+    customRender: ({ index }: any) => index + 1,
+  },
+  {
     title: '字典标签',
     dataIndex: 'dictLabel',
     key: 'dictLabel',

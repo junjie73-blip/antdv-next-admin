@@ -6,6 +6,14 @@ import type { BasicColumn } from '~/components/business/Table/types'
 /** 生成表列表的列定义 */
 export function getTableColumns(): BasicColumn[] {
   return [
+    {
+      title: '序号',
+      key: 'index',
+      width: 60,
+      align: 'center',
+      dataIndex: 'tableId',
+      customRender: ({ index }: any) => index + 1,
+    },
     { title: '表名', dataIndex: 'tableName', key: 'tableName', width: 220 },
     {
       title: '表描述',
