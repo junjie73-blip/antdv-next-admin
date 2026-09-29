@@ -4,13 +4,13 @@ import * as echarts from 'echarts' // ⚠️ 静态 import，不要动态 import
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import 'echarts-wordcloud'
 
-import { getServerInfo } from '~/api'
+import { getServerInfo, getServerSnapshot } from '~/api'
 
 defineOptions({ name: 'MonitorServer' })
 
 const info = ref<any>({ history: [] })
-let timer: any = null
-let chart: echarts.ECharts | null = null
+let pollTimer: any = null
+const chart = shallowRef<echarts.ECharts>()
 const trendRef = ref<HTMLDivElement>()
 
 async function load() {
@@ -55,7 +55,8 @@ const sysItems = computed(() => [
 ])
 const processUptime = computed(() => info.value.process?.uptime || 0)
 const systemUptime = computed(() => info.value.system?.uptime || 0)
-
+const MAX_POINTS = 30 // 保留最近 30 个采样点
+const POLL_INTERVAL = 5000 // 每 5 秒刷新
 // 是否显示"重启过"的提示
 const hasRestarted = computed(() => {
   // 系统运行超过 1 小时，但进程运行小于 10 分钟 → 明显重启过
@@ -63,11 +64,11 @@ const hasRestarted = computed(() => {
 })
 // ========== 图表：初始化时就把结构定好 ==========
 function initChart() {
-  if (!trendRef.value || chart) return
+  if (!trendRef.value || chart.value) return
 
-  chart = echarts.init(trendRef.value)
+  chart.value = echarts.init(trendRef.value)
 
-  chart.setOption({
+  chart.value.setOption({
     grid: { left: 48, right: 24, top: 44, bottom: 36 },
     tooltip: {
       trigger: 'axis',
@@ -99,7 +100,6 @@ function initChart() {
       axisLabel: {
         color: '#9ca3af',
         fontSize: 10,
-        // 只显示部分标签，避免拥挤
         interval: 4,
       },
       axisTick: { show: false },
@@ -120,12 +120,12 @@ function initChart() {
       {
         name: 'CPU',
         type: 'line',
-        smooth: 0.4, // ← 平滑曲线
-        showSymbol: true, // ← 显示点（尤其是只有 1 个点时）
+        smooth: 0.4,
+        showSymbol: true,
         symbol: 'circle',
         symbolSize: 6,
         data: [],
-        lineStyle: { color: '#3b82f6', width: 2.5 }, // ← 线更粗
+        lineStyle: { color: '#3b82f6', width: 2.5 },
         itemStyle: { color: '#3b82f6', borderWidth: 2, borderColor: '#fff' },
         areaStyle: {
           color: {
@@ -195,49 +195,78 @@ function initChart() {
     animationEasing: 'cubicOut',
   })
 }
+const timeAxis: string[] = []
+const cpuData: number[] = []
+const memData: number[] = []
+const heapData: number[] = []
+
+function pushSample(snap) {
+  const d = new Date(snap.timestamp ?? Date.now())
+  const t = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`
+
+  timeAxis.push(t)
+  cpuData.push(snap.cpu)
+  memData.push(snap.memory)
+  heapData.push(snap.heap)
+
+  // 滑动窗口：超出上限则移除最旧的点
+  if (timeAxis.length > MAX_POINTS) {
+    timeAxis.shift()
+    cpuData.shift()
+    memData.shift()
+    heapData.shift()
+  }
+}
 
 // ========== 每次数据更新，只替换 data ==========
-function updateChart() {
-  if (!chart) return
-  const history = info.value.history || []
-  chart.setOption({
-    xAxis: {
-      data: history.map((h: any) => h.time.substring(11, 19)),
-    },
-    series: [
-      { data: history.map((h: any) => h.cpu) },
-      { data: history.map((h: any) => h.memory) },
-      { data: history.map((h: any) => h.heap) },
-    ],
+function refreshChart() {
+  if (!chart.value) return
+
+  chart.value.setOption({
+    xAxis: { data: [...timeAxis] },
+    series: [{ data: [...cpuData] }, { data: [...memData] }, { data: [...heapData] }],
   })
 }
 
 // 数据变化时更新图表
-watch(
-  () => info.value.history,
-  () => updateChart(),
-  { deep: true },
-)
+async function tick() {
+  try {
+    const res: any = await getServerSnapshot()
+    const snap = res?.data ?? res
+    if (!snap || typeof snap.cpu !== 'number') return
+
+    pushSample(snap)
+    refreshChart()
+    load()
+  } catch (err) {
+    console.warn('[monitor] snapshot failed:', err)
+    // 轮询失败不中断，等下次
+  }
+}
 
 // ========== 生命周期 ==========
 onMounted(async () => {
-  await load()
   // ⚠️ nextTick 确保 DOM 渲染完成后再 initChart
   await new Promise((r) => setTimeout(r, 0))
   initChart()
-  updateChart()
+  await tick()
 
-  timer = setInterval(async () => {
-    await load()
-    // watch 会自动触发 updateChart
-  }, 5000)
+  pollTimer = setInterval(tick, POLL_INTERVAL) // 每 5 秒轮询
 })
 
-onUnmounted(() => {
-  clearInterval(timer)
-  chart?.dispose()
-  chart = null
+onBeforeUnmount(() => {
+  if (pollTimer) {
+    clearInterval(pollTimer)
+    pollTimer = null
+  }
+  window.removeEventListener('resize', resizeChart)
+  chart.value?.dispose()
+  chart.value = undefined
 })
+
+function resizeChart() {
+  chart.value?.resize()
+}
 </script>
 
 <template>

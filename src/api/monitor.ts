@@ -7,3 +7,6 @@ import { http } from '~/utils'
 export function getServerInfo() {
   return http.Get('/monitor/server/info')
 }
+export function getServerSnapshot() {
+  return http.Get('/monitor/server/snapshot').send(true)
+}
