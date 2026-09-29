@@ -5,6 +5,19 @@
 配套 VitePress 文档站已独立为 [antdv-docs](https://github.com/junjie73-blip/antdv-docs) 仓库，与代码仓库并列存放，不在本仓库内；克隆文档仓库后运行 `pnpm dev` 即可查阅。
 
 ***
+## 账号密码
+
+| 用户名          | 密码   | 角色       |
+| --------------- | ------ | ---------- |
+| super/admin     | 123456 | 超级管理员 |
+| fe_lead/be_lead | 123456 | 组长       |
+| fin_mgr         | 123456 | 管理员     |
+| hr_mgr          | 123456 | 管理员     |
+| tech_lead       | 123456 | 管理员     |
+| test_user1      | 123456 | 普通用户   |
+| test_user2      | 123456 | 普通用户   |
+| test_guest_1    | 123456 | 访客       |
+| test_guest_2    | 123456 | 访客       |
 
 ## 技术栈
 

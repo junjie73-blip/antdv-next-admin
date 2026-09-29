@@ -5,10 +5,6 @@ All notable changes to this project will be documented in this file. See [standa
 ## [0.1.0](https://github.com/junjie73-blip/antdv-next-admin/compare/v0.0.3...v0.1.0) (2026-09-28)
 
 
-### ⚠ BREAKING CHANGES
-
-* 🧨 我的消息，通知公告，部门管理，ip名单，菜单管理，代码生成器
-
 ### 📝 文档变更
 
 * 将文档迁移到新仓库，独立设置 ([4e54d9e](https://github.com/junjie73-blip/antdv-next-admin/commits/4e54d9e4f7e91fc104e838647e49f4fd5ac27edd))
