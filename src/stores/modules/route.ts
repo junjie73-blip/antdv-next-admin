@@ -72,7 +72,7 @@ export function generateRoutesFromBackendMenus(backendMenus: BackendMenu[]): Int
       }
 
       // 微应用：不加载本地组件
-      if (!menu.microApp && menu.component) {
+      if (!menu.isExternal && menu.component) {
         const componentPath = resolveComponentPath(menu.component)
         route.component = modules[componentPath]
       }
@@ -80,7 +80,6 @@ export function generateRoutesFromBackendMenus(backendMenus: BackendMenu[]): Int
       if (menu.children && menu.children.length > 0) {
         route.children = generateRoutesFromBackendMenus(menu.children)
       }
-
       return route
     })
 }
@@ -101,8 +100,7 @@ function generateBlankRoutesFromBackendMenus(backendMenus: BackendMenu[]): Inter
           name: menu.menuName,
           meta: buildMeta(menu),
         }
-        // 微应用不加载组件，由外部渲染器接管
-        if (!menu.microApp && menu.component) {
+        if (menu.component && menu.layout !== 'blank') {
           route.component = modules[resolveComponentPath(menu.component)]
         }
         routes.push(route)
@@ -149,7 +147,6 @@ export const useRouteStore = defineStore('route', () => {
 
     // blank 布局路由挂到根（不经过 DefaultLayout）
     const blankRoutes = generateBlankRoutesFromBackendMenus(backendMenuList) as unknown as AppRouteRecordRaw[]
-
     return [mainLayoutRoute, ...blankRoutes]
   }
 
