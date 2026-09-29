@@ -59,3 +59,4 @@ export function markAllNoticeRead(noticeIds?: string[]) {
 export function getNoticeUnreadCount() {
   return get<number>('/notice/unread-count')
 }
+export const getTemplateOptions = () => get('/notice/template/options')

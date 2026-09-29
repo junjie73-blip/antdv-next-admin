@@ -51,7 +51,10 @@ export const noticeSearchSchemas: FormSchema[] = [
  * 生成弹窗表单 schema
  * 为什么用函数：接收人选项是异步加载的，需要保持响应性
  */
-export function useNoticeFormSchemas(userOptions: ComputedRef<UserOption[]>): ComputedRef<FormSchema[]> {
+export function useNoticeFormSchemas(
+  userOptions: ComputedRef<UserOption[]>,
+  templateOptions: Ref<{ label: string; value: string }[]>,
+): ComputedRef<FormSchema[]> {
   return computed<FormSchema[]>(() => [
     {
       field: 'title',
@@ -118,6 +121,20 @@ export function useNoticeFormSchemas(userOptions: ComputedRef<UserOption[]>): Co
         placeholder: '选择接收用户（不选则发送给所有人）',
         options: userOptions.value,
       },
+    },
+    {
+      field: 'templateId',
+      label: '消息模板',
+      component: 'Select',
+      colProps: { span: 24 },
+      componentProps: {
+        placeholder: '选择消息模板（不选则使用系统默认）',
+        allowClear: true,
+        showSearch: true,
+        options: templateOptions.value,
+        optionFilterProp: 'label',
+      },
+      helpMessage: '选择后将使用模板内容作为邮件正文；否则使用通知内容',
     },
     {
       field: 'content',

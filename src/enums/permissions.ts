@@ -167,6 +167,14 @@ export const MESSAGE_PERMS = {
     groupUpdate: 'message:todo:groupUpdate',
     groupDelete: 'message:todo:groupDelete',
   },
+  /** 模板管理 */
+  template: {
+    create: 'message:template:create',
+    update: 'message:template:update',
+    delete: 'message:template:delete',
+    detail: 'message:template:detail',
+    test: 'message:template:test',
+  },
 } as const
 
 /* ============================================================

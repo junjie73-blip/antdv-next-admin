@@ -8,6 +8,7 @@ import {
   deleteNotice,
   getNoticeDetail,
   getNoticeList,
+  getTemplateOptions,
   getUserAllOptions,
   revokeNotice,
   saveNotice,
@@ -23,6 +24,7 @@ import { MESSAGE_PERMS } from '~/enums/permissions'
 
 import type { NoticeRecord, UserOption } from './types'
 
+import { CHANNEL_MAP } from '../template/constants'
 import { getNoticeActions } from './actions'
 import { noticeActionColumn, noticeColumns, noticePagination, noticeRowKey } from './columns'
 import ChannelConfig from './components/ChannelConfig.vue'
@@ -37,7 +39,7 @@ defineOptions({ name: 'SystemNotice' })
 // ========== 用户选项 ==========
 const userOptions = ref<UserOption[]>([])
 const channelConfigOpen = ref(false)
-
+const templateOptions = ref<{ label: string; value: string }[]>([])
 async function loadUserOptions() {
   try {
     const res = await getUserAllOptions()
@@ -47,9 +49,22 @@ async function loadUserOptions() {
     console.error(e)
   }
 }
-
+async function loadTemplateOptions() {
+  try {
+    const res: any = await getTemplateOptions()
+    const list = res?.data ?? []
+    templateOptions.value = list
+      .filter((t: any) => t.status === '1')
+      .map((t: any) => ({
+        label: `${t.templateName} (${CHANNEL_MAP[t.channelType]?.label ?? t.channelType})`,
+        value: t.templateId,
+      }))
+  } catch (e) {
+    console.error('加载模板失败', e)
+  }
+}
 // ========== 弹窗表单 schema（依赖 userOptions） ==========
-const noticeFormSchemas = useNoticeFormSchemas(ref(userOptions) as any)
+const noticeFormSchemas = useNoticeFormSchemas(ref(userOptions) as any, templateOptions)
 
 // ========== 注册实例 ==========
 const [tableRegister, tableMethods] = useTable()
@@ -130,6 +145,7 @@ function getActions(record: any) {
 }
 // ========== 初始化 ==========
 loadUserOptions()
+loadTemplateOptions()
 </script>
 
 <template>
