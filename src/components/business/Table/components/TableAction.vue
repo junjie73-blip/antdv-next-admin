@@ -88,7 +88,8 @@ function getActionLabel(label: ActionItem['label'], record: Record<string, any>)
 const currentRecord = computed(() => props.record || {})
 const actionsRef = computed(() => props.actions || [])
 const maxShowCountRef = computed(() => props.maxShowCount || 4)
-
+const moreDropdownOpen = ref(false)
+const subDropdownOpenMap = ref(false)
 /** 可见的操作项（按权限 / ifShow 过滤） */
 const visibleActions = computed(() => {
   return actionsRef.value.filter((action) => {
@@ -112,22 +113,6 @@ const dropdownActions = computed(() => {
 })
 
 const hasDropdown = computed(() => dropdownActions.value.length > 0)
-
-/** "更多"下拉菜单项 */
-const moreDropdownItems = computed(() => {
-  return dropdownActions.value.map((action, i) => {
-    const obj = {
-      key: i,
-      label: getActionLabel(action.label, currentRecord.value) || '操作',
-      danger: action.danger,
-      disabled: isDisabled(action, currentRecord.value),
-    }
-    if (action.icon) {
-      obj.icon = h(Icon, { icon: action.icon! })
-    }
-    return obj
-  })
-})
 
 // ============================
 // 事件处理
@@ -176,23 +161,108 @@ function getLabelVNode(action: ActionItem): VNode | null {
   return h('span', String(label))
 }
 
-/** 获取子级 Dropdown 菜单项 */
-function getSubDropdownItems(action: ActionItem) {
-  return (
-    action.dropdown
-      ?.filter((item) => item.ifShow !== false)
-      ?.map((item, i) => ({
-        key: i,
-        label: getActionLabel(item.label, currentRecord.value),
-        danger: item.danger,
-        disabled: isDisabled(item, currentRecord.value),
-      })) ?? []
-  )
-}
-
 /** 强制 Popconfirm / Dropdown 渲染到 body，避免被表格固定列裁剪 */
 function getPopupContainer() {
   return document.body
+}
+function getDropdownItemPopupContainer(trigger?: HTMLElement) {
+  return trigger?.parentElement || document.body
+}
+/** 渲染下拉菜单里的单个 action（含 Popconfirm 分支） */
+function renderDropdownAction(action: ActionItem, key: string | number, closeDropdown: () => void) {
+  const disabled = isDisabled(action, currentRecord.value)
+  const label = getActionLabel(action.label, currentRecord.value) ?? '操作'
+  const labelVNode = isVNode(label) ? label : h('span', String(label))
+
+  // 核心：完全模拟 antdv-next 的 dropdown-item 样式
+  const itemClass = cn(
+    'flex items-center gap-2 px-3 py-1.5 mx-1 rounded text-sm transition-colors duration-200 select-none cursor-pointer',
+    // 危险操作（如删除）使用红色，普通操作使用灰色
+    action.danger ? 'text-red-500 hover:bg-red-50' : 'text-gray-700 hover:bg-gray-100',
+    // 禁用状态覆盖悬浮效果
+    disabled && 'opacity-50 cursor-not-allowed !text-gray-400 hover:!bg-transparent',
+  )
+
+  const content = h(
+    'div',
+    {
+      class: itemClass,
+      onClick: (e: MouseEvent) => {
+        if (disabled) return
+        if (action.popConfirm) return // 有 Popconfirm 时不直接执行，交给 Popconfirm
+        action.onClick?.(currentRecord.value, e)
+        closeDropdown()
+      },
+    },
+    [
+      // 图标部分
+      action.icon ? h(Icon, { icon: action.icon, class: 'text-base shrink-0' }) : null,
+      // 文本部分，超出截断
+      h('span', { class: 'truncate' }, [labelVNode]),
+    ],
+  )
+
+  // 没有二次确认，直接返回带事件的 div
+  if (!action.popConfirm) {
+    return h('div', { key }, [content])
+  }
+
+  // 有二次确认，用 Popconfirm 包裹
+  return h('div', { key }, [
+    h(
+      Popconfirm,
+      {
+        title: action.popConfirm.title,
+        description: action.popConfirm.content,
+        zIndex: 999999,
+        disabled, // 禁用时 Popconfirm 也不应弹出
+        getPopupContainer: getDropdownItemPopupContainer,
+        onConfirm: (e: MouseEvent) => {
+          if (action.popConfirm?.confirm) {
+            action.popConfirm.confirm(currentRecord.value, e)
+          } else {
+            action.onClick?.(currentRecord.value, e)
+          }
+          closeDropdown()
+        },
+        onCancel: (e: MouseEvent) => {
+          action.popConfirm?.cancel?.(currentRecord.value, e)
+        },
+      },
+      { default: () => content },
+    ),
+  ])
+}
+
+/** 子级下拉中可见的 action（保证渲染索引与点击索引一致） */
+function getVisibleSubActions(action: ActionItem) {
+  return (action.dropdown ?? []).filter((item) => hasAuth(item.auth) && isShow(item, currentRecord.value))
+}
+
+/** 渲染"更多"下拉内容 */
+function renderMoreDropdownContent() {
+  return h(
+    'div',
+    { class: 'py-1.5 min-w-[120px] bg-white dark:bg-slate-500 rounded' },
+    dropdownActions.value.map((action, i) =>
+      renderDropdownAction(action, i, () => {
+        moreDropdownOpen.value = false
+      }),
+    ),
+  )
+}
+
+/** 渲染子级下拉内容 */
+function renderSubDropdownContent(action: ActionItem, index: number) {
+  return h(
+    'div',
+    { class: 'py-1.5  min-w-[120px]  bg-white dark:bg-slate-500 rounded' },
+    getVisibleSubActions(action).map((item, i) =>
+      renderDropdownAction(item, i, () => {
+        subDropdownOpenMap.value[index] = false
+      }),
+    ),
+  )
 }
 </script>
 
@@ -232,8 +302,8 @@ function getPopupContainer() {
       <!-- ============ Dropdown 类型 ============ -->
       <Dropdown
         v-else-if="action.dropdown && action.dropdown.length > 0"
-        :menu="{ items: getSubDropdownItems(action) }"
-        :get-popup-container="getPopupContainer"
+        v-model:open="subDropdownOpenMap[index]"
+        :popup-render="() => renderSubDropdownContent(action, index)"
         :styles="{ popup: { zIndex: 999999 } }"
         @menu-click="(info) => onSubDropdownMenuClick(action, info)"
       >
@@ -277,7 +347,8 @@ function getPopupContainer() {
     <template v-if="hasDropdown">
       <Divider type="vertical" :class="cn('mx-0')" />
       <Dropdown
-        :menu="{ items: moreDropdownItems }"
+        v-model:open="moreDropdownOpen"
+        :popup-render="renderMoreDropdownContent"
         :get-popup-container="getPopupContainer"
         @menu-click="(info) => handleDropdownMenuClick(dropdownActions, info)"
       >
