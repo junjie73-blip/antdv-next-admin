@@ -172,7 +172,7 @@ useWatermark({
               <!-- 全屏大屏页面：禁用 transition + keepAlive，避免 ECharts 资源泄漏影响其他页面 -->
               <template v-else-if="route.meta?.noTransition">
                 <component :is="markRaw(Component)" v-if="Component" :key="route.path" />
-                <div v-else class="flex items-center justify-center h-full text-gray-400 text-sm">
+                <div v-else class="flex h-full items-center justify-center text-sm text-gray-400">
                   微应用组件未加载
                 </div>
               </template>

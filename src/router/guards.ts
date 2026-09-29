@@ -116,16 +116,23 @@ function createDynamicRouteGuard(router: Router) {
 
       return true
     }
+    try {
+      await routeStore.initBackendRoutes()
+      await userStore.loadPermissions()
+      routeStore.routes.forEach((route) => {
+        const name = route.name as string
+        if (name && !router.hasRoute(name)) {
+          router.addRoute(route)
+        } else if (!name) {
+          router.addRoute(route)
+        }
+      })
+      router.addRoute(catchAllRoute)
 
-    await routeStore.initBackendRoutes()
-    await userStore.loadPermissions()
-    routeStore.routes.forEach((route) => {
-      router.addRoute(route)
-    })
-
-    router.addRoute(catchAllRoute)
-
-    return { ...to, replace: true }
+      return { ...to, replace: true }
+    } catch (_error) {
+      return { path: '/503', replace: true }
+    }
   })
 }
 
