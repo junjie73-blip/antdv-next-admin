@@ -64,7 +64,58 @@ export interface ForgotPasswordResult {
   success: boolean
   message?: string
 }
+export interface CancelStatus {
+  pending: boolean
+  cancelledAt?: string
+  effectiveAt?: string
+  reason?: string
+  remainingDays?: number
+}
+export interface LoginLogItem {
+  logId: string
+  ipAddress: string
+  userAgent: string | null
+  browser: string
+  os: string
+  status: '0' | '1'
+  message: string | null
+  createdAt: string
+}
 
+export interface MyLoginLogParams {
+  pageNum?: number
+  pageSize?: number
+  status?: '0' | '1'
+  startTime?: string
+  endTime?: string
+}
+export interface SendEmailCodeParams {
+  email: string
+  scene?: 'email_bind' | 'email_change'
+}
+
+export interface VerifyEmailParams {
+  email: string
+  code: string
+}
+
+/** 查询我的登录日志 */
+export function getMyLoginLogs(params: MyLoginLogParams = {}) {
+  return http
+    .Get<{
+      data: { list: LoginLogItem[]; total: number; pageNum: number; pageSize: number }
+    }>('/auth/my/login-logs', { params })
+    .send(true)
+}
+/** 查询注销状态 */
+export function getCancelStatus() {
+  return http.Get<{ data: CancelStatus }>('/auth/cancel-account/status').send(true)
+}
+
+/** 提交注销申请 */
+export function submitCancelAccount(data: { password: string; reason?: string }) {
+  return http.Post<{ data: { effectiveAt: string; bufferDays: number } }>('/auth/cancel-account', data).send(true)
+}
 // ============================================================
 // 登录 / 登出 / 注册
 // ============================================================
@@ -151,4 +202,13 @@ export function switchTenant(tenantId: string) {
 // 租户列表
 export function getAuthTenantList(): Promise<AccessibleTenant[]> {
   return get<AccessibleTenant[]>('/tenant/options')
+}
+/** 发送邮箱验证码 */
+export function sendEmailCode(data: SendEmailCodeParams) {
+  return http.Post<{ data: { expiresIn: number } }>('/auth/email/send-code', data).send(true)
+}
+
+/** 验证并绑定邮箱 */
+export function verifyEmail(data: VerifyEmailParams) {
+  return http.Post<{ data: null }>('/auth/email/verify', data).send(true)
 }

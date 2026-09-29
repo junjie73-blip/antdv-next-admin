@@ -13,13 +13,17 @@ import { usePasswordPolicy } from '~/composables/usePasswordPolicy'
 import { useUserStore } from '~/stores/modules/user'
 import { cn } from '~/utils/cn'
 
+import CancelAccountPanel from './components/CancelAccountPanel.vue'
+import EmailVerifyPanel from './components/EmailVerifyPanel.vue'
+import LoginLogPanel from './components/LoginLogPanel.vue'
+
 defineOptions({ name: 'AccountSettings' })
 
 const userStore = useUserStore()
 const refreshUser = inject<() => Promise<void>>('refreshUser', async () => {})
 
 // ============ 布局 ============
-const containerClassName = cn('space-y-4')
+const containerClassName = cn('space-y-4 overflow-hidden')
 const cardClassName = cn('shadow-sm')
 
 const activeTab = ref<'profile' | 'security' | 'tenant'>('profile')
@@ -482,7 +486,7 @@ onMounted(() => {
                 </BasicForm>
               </div>
             </div>
-
+            <EmailVerifyPanel />
             <!-- MFA -->
             <div>
               <div class="mb-3 flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -518,6 +522,10 @@ onMounted(() => {
                 </div>
               </div>
             </div>
+            <!-- 登录日志 -->
+            <LoginLogPanel />
+            <!-- 注销账号 -->
+            <CancelAccountPanel />
           </div>
         </a-tab-pane>
 
