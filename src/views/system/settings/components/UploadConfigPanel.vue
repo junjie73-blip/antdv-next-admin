@@ -1,99 +1,100 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { message } from "antdv-next";
-import { computed, onMounted, reactive, ref } from "vue";
-import { getUploadConfig, updateUploadConfig, type UploadConfig } from "../api";
+import { Icon } from '@iconify/vue'
+import { message } from 'antdv-next'
+import { computed, onMounted, reactive, ref } from 'vue'
 
-defineOptions({ name: "UploadConfigPanel" });
+import { getUploadConfig, updateUploadConfig, type UploadConfig } from '../api'
 
-const loading = ref(false);
-const saving = ref(false);
+defineOptions({ name: 'UploadConfigPanel' })
+
+const loading = ref(false)
+const saving = ref(false)
 
 const form = reactive<UploadConfig>({
-  storage: "local",
+  storage: 'local',
   maxSize: 10,
-  allowedTypes: "jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx,zip",
+  allowedTypes: 'jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx,zip',
 
   // local
-  localPath: "/uploads/files",
-  localUrl: "/uploads",
+  localPath: '/uploads/files',
+  localUrl: '/uploads',
 
   // minio
-  minioEndpoint: "",
+  minioEndpoint: '',
   minioPort: 9000,
   minioUseSSL: false,
-  minioRegion: "us-east-1",
-  minioBucket: "",
-  minioPublicUrl: "",
-  minioAccessKey: "",
-  minioSecretKey: "",
+  minioRegion: 'us-east-1',
+  minioBucket: '',
+  minioPublicUrl: '',
+  minioAccessKey: '',
+  minioSecretKey: '',
 
   // oss
-  ossRegion: "",
-  ossBucket: "",
-  ossEndpoint: "",
-  ossCustomDomain: "",
-  ossAccessKeyId: "",
-  ossAccessKeySecret: "",
+  ossRegion: '',
+  ossBucket: '',
+  ossEndpoint: '',
+  ossCustomDomain: '',
+  ossAccessKeyId: '',
+  ossAccessKeySecret: '',
 
   // cos
-  cosRegion: "",
-  cosBucket: "",
-  cosCustomDomain: "",
-  cosSecretId: "",
-  cosSecretKey: "",
+  cosRegion: '',
+  cosBucket: '',
+  cosCustomDomain: '',
+  cosSecretId: '',
+  cosSecretKey: '',
 
   // s3
-  s3Region: "",
-  s3Bucket: "",
-  s3CustomDomain: "",
-  s3AccessKeyId: "",
-  s3AccessKeySecret: "",
-});
+  s3Region: '',
+  s3Bucket: '',
+  s3CustomDomain: '',
+  s3AccessKeyId: '',
+  s3AccessKeySecret: '',
+})
 
 /* ============================================================
  * 存储类型选项
  * ============================================================ */
 const STORAGE_OPTIONS = [
-  { label: "本地存储", value: "local", icon: "carbon:driver-analysis" },
-  { label: "MinIO", value: "minio", icon: "carbon:server-proxy" },
-  { label: "阿里云 OSS", value: "oss", icon: "carbon:cloud" },
-  { label: "腾讯云 COS", value: "cos", icon: "carbon:cloud" },
-  { label: "AWS S3", value: "s3", icon: "carbon:cloud" },
-];
+  { label: '本地存储', value: 'local', icon: 'carbon:driver-analysis' },
+  { label: 'MinIO', value: 'minio', icon: 'carbon:server-proxy' },
+  { label: '阿里云 OSS', value: 'oss', icon: 'carbon:cloud' },
+  { label: '腾讯云 COS', value: 'cos', icon: 'carbon:cloud' },
+  { label: 'AWS S3', value: 's3', icon: 'carbon:cloud' },
+]
 
-const isLocal = computed(() => form.storage === "local");
-const isMinio = computed(() => form.storage === "minio");
-const isOss = computed(() => form.storage === "oss");
-const isCos = computed(() => form.storage === "cos");
-const isS3 = computed(() => form.storage === "s3");
+const isLocal = computed(() => form.storage === 'local')
+const isMinio = computed(() => form.storage === 'minio')
+const isOss = computed(() => form.storage === 'oss')
+const isCos = computed(() => form.storage === 'cos')
+const isS3 = computed(() => form.storage === 's3')
 
 /* ============================================================
  * 加载 / 保存
  * ============================================================ */
 async function load() {
-  loading.value = true;
+  loading.value = true
   try {
-    const res: any = await getUploadConfig();
-    Object.assign(form, res?.data ?? res);
+    const res: any = await getUploadConfig()
+    Object.assign(form, res?.data ?? res)
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 
 async function save() {
-  saving.value = true;
+  saving.value = true
   try {
-    await updateUploadConfig({ ...form });
-    message.success("上传配置已保存");
+    await updateUploadConfig({ ...form })
+    message.success('上传配置已保存')
   } catch (e: any) {
-    message.error(e?.message || "保存失败");
+    message.error(e?.message || '保存失败')
   } finally {
-    saving.value = false;
+    saving.value = false
   }
 }
 
-onMounted(load);
+onMounted(load)
 </script>
 
 <template>
@@ -145,10 +146,7 @@ onMounted(load);
               <a-switch v-model:checked="form.minioUseSSL" />
             </a-form-item>
             <a-form-item label="对外访问前缀">
-              <a-input
-                v-model:value="form.minioPublicUrl"
-                placeholder="/minio-api 或 https://cdn.xxx.com"
-              />
+              <a-input v-model:value="form.minioPublicUrl" placeholder="/minio-api 或 https://cdn.xxx.com" />
             </a-form-item>
             <a-form-item label="AccessKey" required>
               <a-input v-model:value="form.minioAccessKey" placeholder="minioadmin" />
@@ -171,16 +169,10 @@ onMounted(load);
               <a-input v-model:value="form.ossBucket" placeholder="my-bucket" />
             </a-form-item>
             <a-form-item label="Endpoint">
-              <a-input
-                v-model:value="form.ossEndpoint"
-                placeholder="oss-cn-hangzhou.aliyuncs.com（可选）"
-              />
+              <a-input v-model:value="form.ossEndpoint" placeholder="oss-cn-hangzhou.aliyuncs.com（可选）" />
             </a-form-item>
             <a-form-item label="自定义域名">
-              <a-input
-                v-model:value="form.ossCustomDomain"
-                placeholder="https://cdn.example.com（可选）"
-              />
+              <a-input v-model:value="form.ossCustomDomain" placeholder="https://cdn.example.com（可选）" />
             </a-form-item>
             <a-form-item label="AccessKeyId" required>
               <a-input v-model:value="form.ossAccessKeyId" placeholder="LTAI..." />
@@ -203,10 +195,7 @@ onMounted(load);
               <a-input v-model:value="form.cosBucket" placeholder="my-bucket-1250000000" />
             </a-form-item>
             <a-form-item label="自定义域名">
-              <a-input
-                v-model:value="form.cosCustomDomain"
-                placeholder="https://cdn.example.com（可选）"
-              />
+              <a-input v-model:value="form.cosCustomDomain" placeholder="https://cdn.example.com（可选）" />
             </a-form-item>
             <a-form-item label="SecretId" required>
               <a-input v-model:value="form.cosSecretId" placeholder="AKID..." />
@@ -229,10 +218,7 @@ onMounted(load);
               <a-input v-model:value="form.s3Bucket" placeholder="my-bucket" />
             </a-form-item>
             <a-form-item label="自定义域名">
-              <a-input
-                v-model:value="form.s3CustomDomain"
-                placeholder="https://cdn.example.com（可选）"
-              />
+              <a-input v-model:value="form.s3CustomDomain" placeholder="https://cdn.example.com（可选）" />
             </a-form-item>
             <a-form-item label="AccessKeyId" required>
               <a-input v-model:value="form.s3AccessKeyId" placeholder="AKIA..." />

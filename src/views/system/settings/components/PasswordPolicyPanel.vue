@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { message } from "antdv-next";
-import { computed, onMounted, reactive, ref } from "vue";
-import { getPasswordPolicy, updatePasswordPolicy, type PasswordPolicy } from "../api";
+import { Icon } from '@iconify/vue'
+import { message } from 'antdv-next'
+import { computed, onMounted, reactive, ref } from 'vue'
 
-defineOptions({ name: "PasswordPolicyPanel" });
+import { getPasswordPolicy, updatePasswordPolicy, type PasswordPolicy } from '../api'
 
-const loading = ref(false);
-const saving = ref(false);
+defineOptions({ name: 'PasswordPolicyPanel' })
+
+const loading = ref(false)
+const saving = ref(false)
 const form = reactive<PasswordPolicy>({
   minLength: 8,
   requireUppercase: true,
@@ -16,56 +17,56 @@ const form = reactive<PasswordPolicy>({
   requireSpecial: false,
   historyCount: 5,
   expireDays: 90,
-});
+})
 
 /* ============================================================
  * 实时预览：示例密码是否满足
  * ============================================================ */
-const samplePassword = ref("Abc123456");
+const samplePassword = ref('Abc123456')
 
 const checks = computed(() => [
   { label: `长度 ≥ ${form.minLength}`, ok: samplePassword.value.length >= form.minLength },
-  { label: "包含大写", ok: !form.requireUppercase || /[A-Z]/.test(samplePassword.value) },
-  { label: "包含小写", ok: !form.requireLowercase || /[a-z]/.test(samplePassword.value) },
-  { label: "包含数字", ok: !form.requireNumber || /\d/.test(samplePassword.value) },
-  { label: "包含特殊字符", ok: !form.requireSpecial || /[^A-Za-z0-9]/.test(samplePassword.value) },
-]);
+  { label: '包含大写', ok: !form.requireUppercase || /[A-Z]/.test(samplePassword.value) },
+  { label: '包含小写', ok: !form.requireLowercase || /[a-z]/.test(samplePassword.value) },
+  { label: '包含数字', ok: !form.requireNumber || /\d/.test(samplePassword.value) },
+  { label: '包含特殊字符', ok: !form.requireSpecial || /[^A-Za-z0-9]/.test(samplePassword.value) },
+])
 
 const strengthLevel = computed(() => {
-  const passed = checks.value.filter((c) => c.ok).length;
-  const total = checks.value.length;
-  const ratio = passed / total;
-  if (ratio >= 1) return { level: "强", color: "bg-emerald-500", pct: 100 };
-  if (ratio >= 0.6) return { level: "中", color: "bg-amber-500", pct: 60 };
-  return { level: "弱", color: "bg-rose-500", pct: 30 };
-});
+  const passed = checks.value.filter((c) => c.ok).length
+  const total = checks.value.length
+  const ratio = passed / total
+  if (ratio >= 1) return { level: '强', color: 'bg-emerald-500', pct: 100 }
+  if (ratio >= 0.6) return { level: '中', color: 'bg-amber-500', pct: 60 }
+  return { level: '弱', color: 'bg-rose-500', pct: 30 }
+})
 
 /* ============================================================
  * 加载 / 保存
  * ============================================================ */
 async function load() {
-  loading.value = true;
+  loading.value = true
   try {
-    const res: any = await getPasswordPolicy();
-    Object.assign(form, res?.data ?? res);
+    const res: any = await getPasswordPolicy()
+    Object.assign(form, res?.data ?? res)
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 
 async function save() {
-  saving.value = true;
+  saving.value = true
   try {
-    await updatePasswordPolicy({ ...form });
-    message.success("密码策略已保存");
+    await updatePasswordPolicy({ ...form })
+    message.success('密码策略已保存')
   } catch (e: any) {
-    message.error(e?.message || "保存失败");
+    message.error(e?.message || '保存失败')
   } finally {
-    saving.value = false;
+    saving.value = false
   }
 }
 
-onMounted(load);
+onMounted(load)
 </script>
 
 <template>
@@ -105,9 +106,7 @@ onMounted(load);
             <a-input-number v-model:value="form.historyCount" :min="0" :max="20" class="w-full">
               <template #addonAfter>次</template>
             </a-input-number>
-            <div class="mt-1 text-xs text-slate-400">
-              新密码不能与最近 N 次使用的密码相同，0 表示不检查
-            </div>
+            <div class="mt-1 text-xs text-slate-400">新密码不能与最近 N 次使用的密码相同，0 表示不检查</div>
           </a-form-item>
 
           <a-form-item label="密码有效期">

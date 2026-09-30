@@ -1,46 +1,47 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { message } from "antdv-next";
-import { onMounted, reactive, ref } from "vue";
-import { getSiteInfo, updateSiteInfo, type SiteInfo } from "../api";
+import { Icon } from '@iconify/vue'
+import { message } from 'antdv-next'
+import { onMounted, reactive, ref } from 'vue'
 
-defineOptions({ name: "SiteInfoPanel" });
+import { getSiteInfo, updateSiteInfo, type SiteInfo } from '../api'
 
-const loading = ref(false);
-const saving = ref(false);
+defineOptions({ name: 'SiteInfoPanel' })
+
+const loading = ref(false)
+const saving = ref(false)
 const form = reactive<SiteInfo>({
-  name: "",
-  logo: "",
-  favicon: "",
-  icp: "",
-  copyright: "",
-  description: "",
-  keywords: "",
-});
+  name: '',
+  logo: '',
+  favicon: '',
+  icp: '',
+  copyright: '',
+  description: '',
+  keywords: '',
+})
 
 async function load() {
-  loading.value = true;
+  loading.value = true
   try {
-    const res: any = await getSiteInfo();
-    Object.assign(form, res?.data ?? res);
+    const res: any = await getSiteInfo()
+    Object.assign(form, res?.data ?? res)
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 
 async function save() {
-  saving.value = true;
+  saving.value = true
   try {
-    await updateSiteInfo({ ...form });
-    message.success("网站信息已保存");
+    await updateSiteInfo({ ...form })
+    message.success('网站信息已保存')
   } catch (e: any) {
-    message.error(e?.message || "保存失败");
+    message.error(e?.message || '保存失败')
   } finally {
-    saving.value = false;
+    saving.value = false
   }
 }
 
-onMounted(load);
+onMounted(load)
 </script>
 
 <template>

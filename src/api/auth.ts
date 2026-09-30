@@ -98,7 +98,14 @@ export interface VerifyEmailParams {
   email: string
   code: string
 }
-
+export interface DeviceItem {
+  deviceId: string
+  current: boolean
+  lastActiveAt: number | null
+  ip: string | null
+  userAgent: string | null
+  ttl: number
+}
 /** 查询我的登录日志 */
 export function getMyLoginLogs(params: MyLoginLogParams = {}) {
   return http
@@ -211,4 +218,12 @@ export function sendEmailCode(data: SendEmailCodeParams) {
 /** 验证并绑定邮箱 */
 export function verifyEmail(data: VerifyEmailParams) {
   return http.Post<{ data: null }>('/auth/email/verify', data).send(true)
+}
+
+export function getMyDevices() {
+  return http.Get<DeviceItem[]>('/auth/my-devices')
+}
+
+export function kickMyDevice(deviceId: string) {
+  return http.Delete(`/auth/my-devices/${deviceId}`)
 }

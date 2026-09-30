@@ -7,6 +7,8 @@ export interface UserInfo {
   phone: string;
   roles: string[];
   permissions?: string[];
+  dataScope?: DataScope;
+  tenantId?: string;
 }
 
 export interface LoginParams {
