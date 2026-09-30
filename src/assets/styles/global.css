@@ -88,3 +88,27 @@ body {
 .ps__thumb-x {
   @apply hidden;
 }
+.scrollbar__wrap--hidden-default {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar__wrap--hidden-default::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar__bar {
+  @apply rounded-ant-DEFAULT absolute z-1 bg-transparent select-none;
+}
+.scrollbar__bar.is-vertical {
+  @apply top-0.5 right-0.5 bottom-0.5 w-1.5;
+}
+.scrollbar__bar.is-horizontal {
+  @apply top-0.5 bottom-0.5 left-0.5 h-1.5;
+}
+.scrollbar__thumb {
+  border-radius: inherit;
+  @apply relative block h-0 w-0 cursor-pointer bg-zinc-300 transition-[background-color] duration-300;
+}
+.scrollbar__thumb:hover {
+  @apply bg-zinc-500;
+}

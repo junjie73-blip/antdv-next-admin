@@ -102,7 +102,7 @@ watch(
 
       <!-- 列表 -->
       <div v-else class="h-full">
-        <Scrollbar class="h-full" :height="594">
+        <Scrollbar class="h-full" :max-height="495">
           <div
             v-for="item in keys"
             :key="item.key"

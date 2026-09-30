@@ -66,7 +66,7 @@ function handleClose() {
         </div>
 
         <!-- 面板（滚动） -->
-        <Scrollbar class="h-full" height="720">
+        <Scrollbar class="h-full" :max-height="712">
           <div class="px-5 pt-1">
             <AppearancePanel v-if="activeSection === 'appearance'" />
             <LayoutPanel v-else-if="activeSection === 'layout'" />
