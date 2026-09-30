@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { message } from 'antdv-next'
+import { message, Select } from 'antdv-next'
 import { ref, watch } from 'vue'
 
 import {
@@ -17,6 +17,8 @@ import {
 import { http } from '~/utils'
 
 import type { RoleRecord } from '../types'
+
+import DataScopePreview from './DataScopePreview.vue'
 
 defineOptions({ name: 'RolePermissionDrawer' })
 
@@ -218,7 +220,7 @@ function close() {
   <a-drawer :open="open" :title="`权限分配 - ${role?.roleName || ''}`" :width="560" :footer="null" @close="close">
     <div class="flex h-full flex-col">
       <PerfectScrollbar class="h-full">
-        <div class="flex-1 overflow-hidden">
+        <div class="h-full flex-1 overflow-hidden">
           <a-tabs v-model:active-key="activeTab" class="h-full">
             <!-- 菜单权限 -->
             <a-tab-pane key="menu" tab="菜单权限">
@@ -251,7 +253,7 @@ function close() {
             <!-- 关联用户 -->
             <a-tab-pane key="users" tab="关联用户">
               <a-spin :spinning="userLoading">
-                <a-select
+                <Select
                   v-model:value="selectedUserIds"
                   mode="multiple"
                   placeholder="选择用户"
@@ -277,6 +279,9 @@ function close() {
                 :field-names="{ title: 'deptName', key: 'deptId' }"
                 @check="onDeptCheck"
               />
+            </a-tab-pane>
+            <a-tab-pane key="data-scope" tab="数据权限预览">
+              <DataScopePreview v-if="role?.roleId" :role-id="role.roleId" :role-name="role.roleName" />
             </a-tab-pane>
           </a-tabs>
         </div>

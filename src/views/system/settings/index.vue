@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import PasswordPolicyPanel from "./components/PasswordPolicyPanel.vue";
-import SiteInfoPanel from "./components/SiteInfoPanel.vue";
-import UploadConfigPanel from "./components/UploadConfigPanel.vue";
+import PasswordPolicyPanel from './components/PasswordPolicyPanel.vue'
+import SiteInfoPanel from './components/SiteInfoPanel.vue'
+import UploadConfigPanel from './components/UploadConfigPanel.vue'
 
-defineOptions({ name: "SystemSettings" });
+defineOptions({ name: 'SystemSettings' })
 </script>
 
 <template>
