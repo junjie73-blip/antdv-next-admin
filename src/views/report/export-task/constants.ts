@@ -2,7 +2,7 @@ import { cn } from '~/utils'
 
 import type { ExportTaskStatus, ExportType } from './types'
 
-export const containerClassName = cn('p-4', 'space-y-4')
+export const containerClassName = cn('space-y-4')
 
 /** 状态配置 */
 export const STATUS_MAP: Record<ExportTaskStatus, { label: string; color: string; badge: string; icon: string }> = {

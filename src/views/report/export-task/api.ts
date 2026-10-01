@@ -24,11 +24,11 @@ export function getExportTaskDetail(id: string) {
 }
 
 export function getExportTaskStats() {
-  return http.Get<ExportStats>('/report/export-task/stats')
+  return http.Get<any>('/report/export-task/stats')
 }
 
 export function getExportTaskTrend(days = 7) {
-  return http.Get<{ list: ExportTrendItem[] }>('/report/export-task/trend', {
+  return http.Get<any>('/report/export-task/trend', {
     params: { days },
   })
 }

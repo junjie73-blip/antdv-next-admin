@@ -1,12 +1,12 @@
 <template>
   <div :class="containerClassName">
     <!-- 统计卡片 -->
-    <ExportStatsCards :stats="stats" :loading="statsLoading" />
+    <ExportStatsCards :stats :loading="statsLoading" />
 
     <!-- 图表区 -->
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
       <div class="lg:col-span-1">
-        <ExportStatusPie :stats="stats" :loading="statsLoading" />
+        <ExportStatusPie :stats :loading="statsLoading" />
       </div>
       <div class="lg:col-span-2">
         <ExportTrendChart :data="trend" :loading="trendLoading" />
@@ -39,12 +39,12 @@
                 :key="tab.value"
                 type="button"
                 :class="[
-                  'rounded-full px-3 py-1 text-xs font-medium transition-all',
+                  'cursor-pointer rounded-full px-3 py-1 text-xs font-medium transition-all',
                   activeStatus === tab.value
                     ? 'bg-slate-900 text-white shadow-sm'
                     : 'bg-white text-slate-600 ring-1 ring-slate-200 ring-inset hover:bg-slate-50',
                 ]"
-                @click="handleStatusChange(tab.value)"
+                @click="() => handleStatusChange(tab.value)"
               >
                 {{ tab.label }}
                 <span v-if="getTabCount(tab.value) > 0" class="ml-1 text-[10px] opacity-70">
@@ -181,9 +181,8 @@ import { message } from 'antdv-next'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 import { BasicTable, useTable } from '~/components/business/Table'
-import TableAction from '~/components/business/Table/TableAction.vue'
-import { useWebSocket } from '~/composables/web/ws'
 import dayjs from '~/utils/dayjs'
+import { useWebSocket } from '~/utils/ws'
 
 import type { ExportStats, ExportTaskActionContext, ExportTaskRecord, ExportTrendItem } from './types'
 
@@ -235,7 +234,8 @@ const currentTask = ref<ExportTaskRecord | null>(null)
 async function loadStats() {
   statsLoading.value = true
   try {
-    stats.value = await getExportTaskStats()
+    const { data: res } = await getExportTaskStats()
+    stats.value = res
   } finally {
     statsLoading.value = false
   }
@@ -244,7 +244,7 @@ async function loadStats() {
 async function loadTrend() {
   trendLoading.value = true
   try {
-    const res = await getExportTaskTrend(7)
+    const { data: res } = await getExportTaskTrend(7)
     trend.value = res.list
   } finally {
     trendLoading.value = false
@@ -252,6 +252,8 @@ async function loadTrend() {
 }
 
 function handleStatusChange(status: string) {
+  console.log(status)
+
   activeStatus.value = status
   tableMethods.value?.reload({
     searchInfo: { status: status || undefined },
