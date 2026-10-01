@@ -28,6 +28,7 @@ const router = useRouter()
 const appStore = useAppStore()
 const routeStore = useRouteStore()
 const { collapsed, checkMobile, toggleCollapsed } = useLayout()
+const route = useRoute()
 const dictStore = useDictStore()
 const routeStroe = useRouteStore()
 // 路由切换 loading 状态管理（增强版：集成性能监控）
@@ -47,9 +48,13 @@ const cachedRoutes = computed(() =>
     .map((route) => route.name as string),
 )
 
-const activeTopMenu = ref('/system')
+const activeTopMenu = ref('')
 
-const allMenuItems = computed<MenuProps['items']>(() => transformMenuConfigToItems(routeStore.menus))
+const allMenuItems = computed<MenuProps['items']>(() => {
+  const menus = unref(routeStore.menus)
+  if (!menus || menus.length === 0) return []
+  return transformMenuConfigToItems(menus)
+})
 
 function handleResize() {
   checkMobile()
@@ -62,11 +67,12 @@ const isGeekStyle = computed(() => appStore.themeStyle === 'geek')
 const _isDarkMode = computed(() => appStore.themeMode === 'dark' || isGeekStyle.value)
 
 const hasChildren = computed(() => {
-  if (!isMixed.value || !activeTopMenu.value) return false
-  const topMenu = allMenuItems.value?.find((item) => item?.key === activeTopMenu.value)
-  return !!(topMenu && 'children' in topMenu && topMenu.children && topMenu.children.length > 0)
-})
+  if (!isMixed.value) return false
+  if (!activeTopMenu.value) return false
 
+  const topMenu = (allMenuItems.value || []).find((item: any) => item?.key === activeTopMenu.value)
+  return !!(topMenu && Array.isArray((topMenu as any).children) && (topMenu as any).children.length > 0)
+})
 const layoutClassName = computed(() =>
   cn(
     'h-screen flex flex-col gap-4 overflow-hidden',
@@ -80,6 +86,46 @@ const contentClassName = computed(() =>
 
 // 主内容区滚动容器引用（供路由切换时回到顶部）
 const scrollbarRef = useTemplateRef('mainScrollbar')
+function resolveActiveTopMenu(path: string): string {
+  const items = (allMenuItems.value || []) as any[]
+  if (!items.length) return ''
+
+  /**
+   * 判断节点（或其后代）是否匹配当前路径
+   * - key === path  → 完全匹配
+   * - path.startsWith(key + '/')  → 子路由前缀匹配
+   * - 递归子级（关键：兼容 key 与 path 无前缀关系的菜单）
+   */
+  const isMatch = (item: any): boolean => {
+    if (!item) return false
+    const key = String(item.key ?? '')
+    if (!key || key.startsWith('external:')) return false
+
+    // 完全匹配
+    if (key === path) return true
+
+    // 前缀匹配（带 / 后缀，避免 /not 误匹配 /notice）
+    if (path.startsWith(key + '/')) return true
+
+    // 递归子级
+    if (Array.isArray(item.children)) {
+      for (const child of item.children) {
+        if (isMatch(child)) return true
+      }
+    }
+
+    return false
+  }
+
+  // 遍历一级菜单，返回第一个匹配的顶级 key
+  for (const item of items) {
+    if (isMatch(item)) {
+      return String(item.key ?? '')
+    }
+  }
+
+  return ''
+}
 
 /** 滚动到顶部 */
 function scrollToTop() {
@@ -88,7 +134,16 @@ function scrollToTop() {
     el.scrollTo({ top: 0, left: 0 })
   }
 }
-
+function handleTopMenuSelect(key: string) {
+  activeTopMenu.value = key
+}
+watch(
+  [() => route.path, allMenuItems],
+  ([path]) => {
+    activeTopMenu.value = resolveActiveTopMenu(path as string)
+  },
+  { immediate: true },
+)
 // 挂载到 window 供路由守卫调用
 onMounted(() => {
   checkMobile()
@@ -101,10 +156,6 @@ onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   delete (window as any).__layoutScrollToTop
 })
-
-function handleTopMenuSelect(key: string) {
-  activeTopMenu.value = key
-}
 
 useWatermark({
   content: computed(() => appStore.watermarkContent),

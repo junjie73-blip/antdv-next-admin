@@ -52,15 +52,26 @@ function getRouteIcon(path: string): string | undefined {
 /** 递归查找第一个菜单的最内层叶子节点 */
 function findFirstLeafMenu(menus: any[], parentPath = ''): { path: string; title: string; icon?: string } | null {
   if (!menus.length) return null
-  const first = menus[0]
-  // 拼接完整路径（子级 path 可能是相对路径如 'echarts'）
-  const fullPath = first.path.startsWith('/') ? first.path : `${parentPath}/${first.path}`.replace(/\/+/g, '/')
-  // 没有子级 → 自身就是叶子节点
-  if (!first.children?.length) {
-    return { path: fullPath, title: first.title || first.name, icon: first.icon }
+
+  for (const menu of menus) {
+    const fullPath = menu.path.startsWith('/') ? menu.path : `${parentPath}/${menu.path}`.replace(/\/+/g, '/')
+
+    // ⭐ 有子菜单 → 递归到子菜单
+    if (Array.isArray(menu.children) && menu.children.length > 0) {
+      const leaf = findFirstLeafMenu(menu.children, fullPath)
+      if (leaf) return leaf
+      continue
+    }
+
+    // ⭐ 无子菜单 → 自身即叶子
+    return {
+      path: fullPath,
+      title: menu.title || menu.name,
+      icon: menu.icon,
+    }
   }
-  // 有子级 → 继续往下递归，传递当前路径作为父级
-  return findFirstLeafMenu(first.children, fullPath)
+
+  return null
 }
 
 const leafMenu = findFirstLeafMenu(routeStore.menus)
@@ -83,10 +94,18 @@ watch(
   (path) => {
     activeKey.value = path
     const exists = tabs.value.some((tab) => tab.key === path)
-    if (!exists && route.meta?.title) {
+
+    // ⭐ 只有当路由有 title 且是叶子节点（无 children 或已指定为可显示）才生成 tab
+    const route_ = router.resolve(path)
+    const isMenuParent = routeStore.menus.some((m) => {
+      if (m.path !== path) return false
+      return Array.isArray(m.children) && m.children.length > 0
+    })
+
+    if (!exists && route_.meta?.title && !isMenuParent) {
       tabs.value.push({
         key: path,
-        title: route.meta.title as string,
+        title: route_.meta.title as string,
         icon: getRouteIcon(path),
         closable: path !== homeTabKey.value,
       })

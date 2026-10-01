@@ -34,33 +34,11 @@ const routeStore = useRouteStore()
 const { sidebarWidth } = appStore
 const { toggleCollapsed } = useLayout()
 const { selectedKeys, openKeys, handleOpenChange, setMenuTree, syncMenuByRoute } = useMenu()
-const allMenuItems = computed<MenuProps['items']>(() => {
+const fullMenuTree = computed<MenuProps['items']>(() => {
   const menus = unref(routeStore.menus)
-  if (!menus || menus.length === 0) {
-    return []
-  }
+  if (!menus || menus.length === 0) return []
   return transformMenuConfigToItems(menus)
 })
-
-// 监听菜单数据，等菜单加载完后主动同步选中态
-watch(
-  allMenuItems,
-  (items) => {
-    if (items && items.length > 0) {
-      setMenuTree(items as any[])
-      syncMenuByRoute()
-    }
-  },
-  { immediate: true },
-)
-
-// 混合布局下切换到子菜单时，也要重新同步
-watch(
-  () => props.activeTopMenu,
-  () => {
-    nextTick(() => syncMenuByRoute())
-  },
-)
 
 const _appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
 
@@ -117,15 +95,16 @@ const menuWrapperClassName = computed(() =>
   ),
 )
 
-const menuItems = computed(() => {
+const menuItems = computed<MenuProps['items']>(() => {
   if (props.mixed && props.activeTopMenu) {
-    const topMenu = allMenuItems.value?.find((item: any) => item?.key === props.activeTopMenu)
-    if (topMenu && 'children' in topMenu && topMenu.children) {
-      return topMenu.children
+    const topMenu = (fullMenuTree.value || []).find((item: any) => item?.key === props.activeTopMenu)
+
+    if (topMenu && Array.isArray((topMenu as any).children) && (topMenu as any).children.length > 0) {
+      return (topMenu as any).children as MenuProps['items']
     }
     return []
   }
-  return allMenuItems.value
+  return fullMenuTree.value
 })
 
 const handleMenuSelect: MenuProps['onSelect'] = ({ key }) => {
@@ -139,6 +118,27 @@ const handleMenuSelect: MenuProps['onSelect'] = ({ key }) => {
   }
   emit('menuClick', keyStr)
 }
+
+watch(
+  fullMenuTree,
+  (tree) => {
+    if (tree && tree.length > 0) {
+      setMenuTree(tree as any[])
+      syncMenuByRoute()
+    }
+  },
+  { immediate: true },
+)
+watch(
+  () => props.activeTopMenu,
+  () => {
+    nextTick(() => syncMenuByRoute())
+  },
+)
+watch(
+  () => router.currentRoute.value.path,
+  () => syncMenuByRoute(),
+)
 </script>
 
 <template>

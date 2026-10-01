@@ -82,35 +82,49 @@ export function useMenu() {
 
   /** 根据当前路由路径反查菜单 key */
   function findMenuKeyByPath(path: string, list: any[] = menuTree.value): string | null {
-    for (const item of list) {
-      if (!item?.key) continue
-      // 外链 key 形如 external:/xxx，跳过
-      const key = String(item.key)
-      if (!key.startsWith('external:')) {
-        // 完全匹配
-        if (key === path) return key
-        // 兼容子路由：如 /user/detail/1 命中 /user
-        if (path.startsWith(key + '/')) return key
-      }
-      if (Array.isArray(item.children)) {
-        const found = findMenuKeyByPath(path, item.children)
-        if (found) return found
+    let bestMatch: string | null = null
+    let bestMatchLen = 0
+
+    const walk = (items: any[]) => {
+      for (const item of items) {
+        if (!item?.key) continue
+        const key = String(item.key)
+
+        // 外链跳过
+        if (key.startsWith('external:')) continue
+
+        // 完全匹配 or 前缀匹配
+        if (key === path || path.startsWith(key + '/')) {
+          if (key.length > bestMatchLen) {
+            bestMatch = key
+            bestMatchLen = key.length
+          }
+        }
+
+        // 递归子级（继续找更长的匹配）
+        if (Array.isArray(item.children)) {
+          walk(item.children)
+        }
       }
     }
-    return null
+
+    walk(list)
+    return bestMatch
   }
 
   /** 同步选中态与展开态 */
   function syncMenuByRoute(path?: string) {
     const currentPath = path || route.path
     const matchedKey = findMenuKeyByPath(currentPath)
+
     if (!matchedKey) {
       selectedKeys.value = []
       return
     }
+
     selectedKeys.value = [matchedKey]
 
-    // 构建祖先链作为 openKeys
+    // ⭐ 构建祖先链作为 openKeys（从匹配 key 向上回溯）
     const ancestors: string[] = []
     let cursor: string | undefined = matchedKey
     while (cursor && parentMap.value[cursor]) {
