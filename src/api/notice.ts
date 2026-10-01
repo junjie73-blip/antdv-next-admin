@@ -39,7 +39,9 @@ export function revokeNotice(id: string) {
 export function exportNotices(params?: Record<string, unknown>) {
   return get<any>('/notice/export', params)
 }
-
+export function batchDelete(ids: string[]) {
+  return http.Post<void>('/notice/batch-delete', { ids })
+}
 // ============================================================
 // 我的消息
 // ============================================================
@@ -52,11 +54,20 @@ export function markNoticeRead(noticeId: string) {
   return put<void>(`/notice/${noticeId}/read`)
 }
 
-export function markAllNoticeRead(noticeIds?: string[]) {
-  return put<void>('/notice/read-all', noticeIds ? { noticeIds } : {})
+export function markAllNoticeRead(params?: { source?: string; noticeType?: number }) {
+  return http.Put<void>('/notice/read-all', params)
 }
 
 export function getNoticeUnreadCount() {
   return get<number>('/notice/unread-count')
 }
 export const getTemplateOptions = () => get('/notice/template/options')
+
+export function getWfNotificationList(params: {
+  instanceId?: string
+  eventType?: string
+  pageNum?: number
+  pageSize?: number
+}) {
+  return http.Get('/workflow/notification/list', { params })
+}

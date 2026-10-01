@@ -19,7 +19,20 @@ export interface NotificationItem {
   createdAt: string
   isRead: 0 | 1
   priority: number
+  /** 消息来源：notice | workflow | report | system */
+  source?: 'notice' | 'workflow' | 'report' | 'system'
+  /** 工作流通知：跳转参数 */
+  bizType?: string | null
+  bizId?: string | null
+  bizSource?: string | null
 }
+
+/** ⭐ 撤回消息载荷 */
+export interface RevokePayload {
+  noticeId: string
+  at?: number
+}
+
 export interface UploadMergeMessage {
   taskId: string
   status: 'pending' | 'merging' | 'uploading' | 'completed' | 'failed'
@@ -29,6 +42,7 @@ export interface UploadMergeMessage {
   filename?: string
   errorMsg?: string
 }
+
 export type WsConnState = 'idle' | 'connecting' | 'connected' | 'reconnecting' | 'closed'
 
 export const noticeTypeConfig: Record<number, { label: string; icon: string; color: string; gradient: string }> = {
@@ -87,16 +101,29 @@ function setStatus(s: WsConnState): void {
 
 function transformNotice(item: any): NotificationItem {
   return {
-    noticeId: item.noticeId,
+    noticeId: item.noticeId ?? item.notice_id,
     title: item.title,
     content: item.content || '',
-    noticeType: item.noticeType,
-    status: item.status,
+    noticeType: item.noticeType ?? item.notice_type ?? 1,
+    status: item.status ?? '1',
     publishTime: item.publishTime || item.publish_time || null,
-    createdAt: item.createdAt || item.created_at,
+    createdAt: item.createdAt || item.created_at || new Date().toISOString(),
     isRead: (item.isRead ?? item.is_read ?? 0) as 0 | 1,
     priority: item.priority || 0,
+    source: item.source ?? 'notice',
+    bizType: item.bizType ?? item.biz_type ?? null,
+    bizId: item.bizId ?? item.biz_id ?? null,
+    bizSource: item.bizSource ?? item.biz_source ?? null,
   }
+}
+
+/**
+ * ⭐ 从撤回载荷中提取 noticeId（兼容多种结构）
+ */
+function extractRevokeId(payload: any): string | null {
+  if (!payload) return null
+  if (typeof payload === 'string') return payload
+  return payload.noticeId ?? payload.notice_id ?? null
 }
 
 function handleMessage(raw: unknown): void {
@@ -108,7 +135,10 @@ function handleMessage(raw: unknown): void {
     return
   }
 
-  if (data.type === 'notice:push') {
+  /* ============================================================
+   * 通知推送（notice:push / workflow:notify 统一入口）
+   * ============================================================ */
+  if (data.type === 'notice:push' || data.type === 'workflow:notify' || data.type === 'report:notify') {
     const notice = transformNotice(data.data)
     sharedNotice.value = notice
     eventBus.emit(WS_EVENTS.NOTICE, notice)
@@ -126,6 +156,37 @@ function handleMessage(raw: unknown): void {
     return
   }
 
+  /* ============================================================
+   * ⭐ 通知撤回
+   * ============================================================
+   * 处理：
+   *  1. 若撤回的正是当前共享的 sharedNotice → 清空
+   *  2. 广播给所有订阅方（useNotice 会移除列表项）
+   */
+  if (data.type === 'notice:revoke') {
+    const noticeId = extractRevokeId(data.data)
+    if (!noticeId) {
+      console.warn('[WS] notice:revoke 缺少 noticeId', data.data)
+      return
+    }
+
+    // 撤回的是当前展示的共享通知 → 清空
+    if (sharedNotice.value?.noticeId === noticeId) {
+      sharedNotice.value = null
+    }
+
+    const payload: RevokePayload = {
+      noticeId,
+      at: data.data?.at ?? data.timestamp ?? Date.now(),
+    }
+
+    eventBus.emit(WS_EVENTS.REVOKE, payload)
+    return
+  }
+
+  /* ============================================================
+   * 强制下线
+   * ============================================================ */
   if (data.type === 'force-logout') {
     const reason = data.data?.reason || '您已被管理员强制下线'
     notification.warning({
@@ -139,10 +200,9 @@ function handleMessage(raw: unknown): void {
     return
   }
 
-  if (data.type === 'notice:revoke') {
-    eventBus.emit(WS_EVENTS.REVOKE, data.data)
-    return
-  }
+  /* ============================================================
+   * 文件上传合并
+   * ============================================================ */
   if (data.type === 'upload:merge') {
     const payload = data.data as UploadMergeMessage
     if (!payload?.taskId) {
@@ -152,6 +212,10 @@ function handleMessage(raw: unknown): void {
     eventBus.emit(WS_EVENTS.UPLOAD_MERGE, payload)
     return
   }
+
+  /* ============================================================
+   * 连接确认
+   * ============================================================ */
   if (data.type === 'connected') {
     console.log('[WS] connected:', data.data)
   }
@@ -176,9 +240,8 @@ function createSocket(token: string): void {
 
   socketApi = useWebSocketComposable({
     url: () => currentUrl,
-    autoConnect: false, // 手动控制
+    autoConnect: false,
     reconnect: {
-      // ⭐ <=0 表示无限重连（见 ReconnectManager 的修改）
       retries: -1,
       interval: 2000,
       delayMultiplier: 2,
@@ -195,7 +258,6 @@ function createSocket(token: string): void {
   })
 
   socketApi.on('close', () => {
-    // 如果 token 还在，说明是异常断开 → 显示 reconnecting
     if (currentToken === token) {
       setStatus('reconnecting')
     } else {
@@ -212,13 +274,6 @@ function createSocket(token: string): void {
   socketApi.connect()
 }
 
-/**
- * 根据 token 建立/复用连接
- *
- * - token 为空：断开
- * - token 未变且已连接：复用
- * - token 变化 / 连接已断：重建
- */
 function ensureSocket(token: string): void {
   if (!token) {
     destroySocket()
@@ -228,22 +283,19 @@ function ensureSocket(token: string): void {
     return
   }
 
-  // token 未变 + 连接健康 → 复用
   if (socketApi && currentToken === token && socketApi.isConnected.value) {
     return
   }
 
-  // token 未变但连接断了 → 直接触发重连，不重建
   if (socketApi && currentToken === token && !socketApi.isConnected.value) {
     try {
       socketApi.connect()
       return
     } catch {
-      // 失败则往下走重建
+      /* fallthrough to recreate */
     }
   }
 
-  // token 变化 / 无实例 → 重建
   createSocket(token)
 }
 
@@ -275,6 +327,20 @@ export function useWebSocket() {
       return () => eventBus.off(WS_EVENTS.NOTICE, fn)
     },
 
+    /* ============================================================
+     * ⭐ 通知撤回订阅
+     * ============================================================
+     * 使用示例：
+     *   const off = ws.onRevoke(({ noticeId }) => {
+     *     list.value = list.value.filter((n) => n.noticeId !== noticeId);
+     *   });
+     *   onUnmounted(off);
+     */
+    onRevoke(fn: (payload: RevokePayload) => void) {
+      eventBus.on(WS_EVENTS.REVOKE, fn)
+      return () => eventBus.off(WS_EVENTS.REVOKE, fn)
+    },
+
     onForceLogout(fn: (data?: any) => void) {
       eventBus.on(WS_EVENTS.FORCE_LOGOUT, fn)
       return () => eventBus.off(WS_EVENTS.FORCE_LOGOUT, fn)
@@ -284,10 +350,12 @@ export function useWebSocket() {
       eventBus.on(WS_EVENTS.STATUS_CHANGE, fn)
       return () => eventBus.off(WS_EVENTS.STATUS_CHANGE, fn)
     },
+
     onUploadMerge(fn: (data: UploadMergeMessage) => void) {
       eventBus.on(WS_EVENTS.UPLOAD_MERGE, fn)
       return () => eventBus.off(WS_EVENTS.UPLOAD_MERGE, fn)
     },
+
     /** 手动重连 */
     reconnect() {
       if (!currentToken) return

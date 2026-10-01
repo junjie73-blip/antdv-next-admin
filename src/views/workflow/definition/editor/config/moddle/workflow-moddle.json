@@ -1,0 +1,24 @@
+{
+  "name": "Workflow",
+  "uri": "http://saas-admin/workflow",
+  "prefix": "workflow",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "associations": [],
+  "types": [
+    {
+      "name": "CustomProps",
+      "extends": ["bpmn:ExtensionElements"],
+      "properties": [
+        { "name": "assigneeType", "type": "String", "isAttr": true },
+        { "name": "assigneeValue", "type": "String", "isAttr": true },
+        { "name": "signType", "type": "String", "isAttr": true },
+        { "name": "timeout", "type": "String", "isAttr": true },
+        { "name": "timeoutAction", "type": "String", "isAttr": true },
+        { "name": "priority", "type": "Integer", "isAttr": true },
+        { "name": "formSchema", "type": "String", "isAttr": false }
+      ]
+    }
+  ]
+}
