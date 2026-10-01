@@ -1,6 +1,12 @@
 <template>
   <div :class="containerClassName">
-    <a-card :bordered="false">
+    <a-card
+      :bordered="false"
+      class="h-full"
+      :body-style="{
+        padding: '12px',
+      }"
+    >
       <!-- 分类 -->
       <div class="mb-4 flex flex-wrap gap-2">
         <a-button
@@ -15,7 +21,7 @@
       </div>
 
       <a-spin :spinning="loading">
-        <a-row :gutter="[16, 16]">
+        <a-row :gutter="[16, 16]" v-if="list.length > 0">
           <a-col v-for="report in list" :key="report.report_id" :xs="24" :sm="12" :md="8" :lg="6">
             <a-card hoverable class="h-full cursor-pointer" @click="openReport(report)">
               <div class="flex items-start justify-between">
@@ -50,7 +56,7 @@
           </a-col>
         </a-row>
 
-        <a-empty v-if="!loading && list.length === 0" description="暂无报表" />
+        <a-empty v-if="list.length === 0" description="暂无报表" />
       </a-spin>
 
       <div v-if="total > pageSize" class="mt-4 flex justify-end">
@@ -95,7 +101,7 @@ const viewerCode = ref<string | null>(null)
 async function fetchList() {
   loading.value = true
   try {
-    const res = await getReportList({
+    const { data: res } = await getReportList({
       pageNum: pageNum.value,
       pageSize: pageSize.value,
       category: category.value || undefined,

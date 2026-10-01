@@ -15,22 +15,29 @@
             {{ ACTION_MAP[record.action]?.label ?? record.action }}
           </a-tag>
         </template>
+
+        <template #cell-created_at="{ record }">
+          <span class="text-gray-600">
+            {{ dayjs(record.created_at).format('YYYY-MM-DD HH:mm:ss') }}
+          </span>
+        </template>
       </BasicTable>
     </a-card>
   </div>
 </template>
 
 <script setup lang="ts">
+import { getApprovalLogs } from '~/api/workflow'
 import { useTable } from '~/components/business/Table'
+import dayjs from '~/utils/dayjs'
 
 import type { ApprovalLogRecord } from './types'
 
-import { getApprovalLogs } from './api'
 import { logColumns } from './columns'
 import { ACTION_MAP, containerClassName } from './constants'
 import { searchSchemas } from './schemas'
 
-defineOptions({ name: 'ApprovalLogPage' })
+defineOptions({ name: 'WorkflowApprovalLog' })
 
 const [tableRegister, _] = useTable()
 </script>

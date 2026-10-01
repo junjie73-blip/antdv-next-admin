@@ -20,6 +20,9 @@ import './assets/styles/global.css'
 import 'vue3-perfect-scrollbar/style.css'
 import 'vue-pdf-embed/dist/styles/annotationLayer.css'
 import 'vue-pdf-embed/dist/styles/textLayer.css'
+import 'bpmn-js/dist/assets/diagram-js.css'
+import 'bpmn-js/dist/assets/bpmn-js.css'
+import 'bpmn-js/dist/assets/bpmn-font/css/bpmn.css'
 // 按需导入 form-create 组件
 formCreate.use(install)
 const app = createApp(App)

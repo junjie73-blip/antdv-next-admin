@@ -233,7 +233,49 @@ export const TOOL_PERMS = {
     delete: 'tool:file:delete',
   },
 } as const
+export const WORKFLOW_PERMS = {
+  center: {
+    todo: 'workflow:center:todo',
+    complete: 'workflow:center:complete',
+    batch: 'workflow:center:batch',
+    detail: 'workflow:center:detail',
+    done: 'workflow:center:done',
+    initiated: 'workflow:center:initiated',
+  },
+  definition: {
+    list: 'workflow:definition:list',
+    create: 'workflow:definition:create',
+    update: 'workflow:definition:update',
+    delete: 'workflow:definition:delete',
+    publish: 'workflow:definition:publish',
+    newVersion: 'workflow:definition:new-version',
+  },
+  log: {
+    list: 'workflow:approval-log:list',
+  },
+} as const
 
+export const REPORT_PERMS = {
+  list: {
+    view: 'report:list:view',
+  },
+  viewer: {
+    execute: 'report:viewer:execute',
+    export: 'report:viewer:export',
+  },
+  dataset: {
+    list: 'report:dataset:list',
+    create: 'report:dataset:create',
+    update: 'report:dataset:update',
+    delete: 'report:dataset:delete',
+    test: 'report:dataset:test',
+  },
+  exportTask: {
+    list: 'report:export-task:list',
+    download: 'report:export-task:download',
+    cancel: 'report:export-task:cancel',
+  },
+} as const
 /* ============================================================
  * 汇总
  * ============================================================ */
@@ -244,6 +286,8 @@ export const PERMS = {
   message: MESSAGE_PERMS,
   approval: APPROVAL_PERMS,
   tool: TOOL_PERMS,
+  workflow: WORKFLOW_PERMS,
+  report: REPORT_PERMS,
 } as const
 
 /* ============================================================
