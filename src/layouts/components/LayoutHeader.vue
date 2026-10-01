@@ -196,7 +196,7 @@ function handleUserMenuClick({ key }: { key: string }) {
   if (key === 'profile') {
     accountDrawerRef.value?.open('center')
   } else if (key === 'docs') {
-    window.open('https://junjie73-blip.github.io/antdv-next-admin/', '_blank')
+    window.open('https://github.com/junjie73-blip/antdv-docs/', '_blank')
   }
 }
 
