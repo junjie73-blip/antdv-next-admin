@@ -1,5 +1,5 @@
 export class MemoryCache {
-  private store = new Map<string, { value: string, expire?: number }>()
+  private store = new Map<string, { value: string; expire?: number }>()
   private timers = new Map<string, ReturnType<typeof setTimeout>>()
 
   set(key: string, value: string, expire?: number): void {
@@ -17,8 +17,7 @@ export class MemoryCache {
 
   get(key: string): string | null {
     const item = this.store.get(key)
-    if (!item)
-      return null
+    if (!item) return null
 
     if (item.expire && Date.now() > item.expire) {
       this.delete(key)
@@ -42,7 +41,7 @@ export class MemoryCache {
   }
 
   clear(): void {
-    this.timers.forEach(timer => clearTimeout(timer))
+    this.timers.forEach((timer) => clearTimeout(timer))
     this.timers.clear()
     this.store.clear()
   }

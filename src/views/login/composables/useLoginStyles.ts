@@ -1,14 +1,13 @@
 import { computed } from 'vue'
-import { cn } from '@/utils/cn'
+
+import { cn } from '~/utils/cn'
 
 export function useLoginStyles() {
   const containerClassName = computed(() =>
     cn('min-h-screen flex', 'bg-gradient-to-br from-stone-100 via-slate-50 to-gray-50'),
   )
 
-  const leftPanelClassName = computed(() =>
-    cn('hidden lg:flex lg:w-1/2 xl:w-3/5', 'relative overflow-hidden'),
-  )
+  const leftPanelClassName = computed(() => cn('hidden lg:flex lg:w-1/2 xl:w-3/5', 'relative overflow-hidden'))
 
   const leftGlassClassName = computed(() =>
     cn('absolute inset-0', 'bg-gradient-to-br from-white/60 via-slate-100/40 to-gray-100/50', 'backdrop-blur-xl'),
@@ -92,9 +91,7 @@ export function useLoginStyles() {
     ),
   )
 
-  const logoIconClassName = computed(() =>
-    cn('w-9 h-9 rounded-lg flex items-center justify-center shadow-md'),
-  )
+  const logoIconClassName = computed(() => cn('w-9 h-9 rounded-lg flex items-center justify-center shadow-md'))
 
   const logoIconStyle = computed(() => ({
     background: 'var(--ant-color-primary)',
@@ -116,9 +113,7 @@ export function useLoginStyles() {
     color: 'var(--ant-color-primary)',
   }))
 
-  const loginTypeContainerClassName = computed(() =>
-    cn('flex bg-stone-100/80 rounded-lg p-1'),
-  )
+  const loginTypeContainerClassName = computed(() => cn('flex bg-stone-100/80 rounded-lg p-1'))
 
   const loginTypeBtnBaseClassName = computed(() =>
     cn('flex-1 py-2 rounded-md text-sm font-medium transition-all duration-200'),

@@ -4,11 +4,12 @@ import type { Rule } from 'antdv-next/dist/form/types'
 
 import { LockOutlined, MailOutlined, MobileOutlined, UserOutlined } from '@antdv-next/icons'
 import { Icon } from '@iconify/vue'
-
 import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/modules/user'
-import { cn } from '@/utils/cn'
+
+import { useUserStore } from '~/stores/modules/user'
+import { cn } from '~/utils/cn'
+
 import { useLoginStyles } from './composables/useLoginStyles'
 
 const router = useRouter()
@@ -87,15 +88,12 @@ async function handleLogin() {
       // 优先跳转到重定向路径（如从其他页面被拦截到登录页），否则默认到仪表盘
       const redirect = (route.query.redirect as string) || '/dashboard'
       router.push(redirect)
-    }
-    else {
+    } else {
       message.error(result.message || '登录失败')
     }
-  }
-  catch {
+  } catch {
     message.error('请检查输入')
-  }
-  finally {
+  } finally {
     loading.value = false
   }
 }
@@ -122,18 +120,9 @@ function handleSendCode() {
 
       <!-- 装饰性背景 -->
       <div class="absolute inset-0">
-        <div
-          :class="decorBlob1ClassName"
-          :style="decorBlob1Style"
-        />
-        <div
-          :class="decorBlob2ClassName"
-          :style="decorBlob2Style"
-        />
-        <div
-          :class="decorBlob3ClassName"
-          :style="decorBlob3Style"
-        />
+        <div :class="decorBlob1ClassName" :style="decorBlob1Style" />
+        <div :class="decorBlob2ClassName" :style="decorBlob2Style" />
+        <div :class="decorBlob3ClassName" :style="decorBlob3Style" />
       </div>
 
       <!-- 网格背景 -->
@@ -144,17 +133,8 @@ function handleSendCode() {
         <!-- Logo -->
         <div class="mb-12">
           <div :class="logoContainerClassName">
-            <div
-              :class="logoIconClassName"
-              :style="logoIconStyle"
-            >
-              <svg
-                class="w-5 h-5 text-white"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
+            <div :class="logoIconClassName" :style="logoIconStyle">
+              <svg class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
@@ -163,68 +143,44 @@ function handleSendCode() {
         </div>
 
         <!-- 标题 -->
-        <h1 class="text-4xl xl:text-5xl font-bold text-stone-800 mb-6 leading-tight">
-          构建现代化<br>
+        <h1 class="mb-6 text-4xl leading-tight font-bold text-stone-800 xl:text-5xl">
+          构建现代化<br />
           <span :style="titleHighlightStyle">管理系统</span>
         </h1>
 
-        <p class="text-lg text-stone-600 mb-12 max-w-lg leading-relaxed">
+        <p class="mb-12 max-w-lg text-lg leading-relaxed text-stone-600">
           基于 Vue 3 + TypeScript + Ant Design Vue 构建的企业级后台管理解决方案，助您快速开发高质量管理系统。
         </p>
 
         <!-- 特性列表 -->
         <div class="space-y-5">
-          <div class="flex items-center gap-4 group">
+          <div class="group flex items-center gap-4">
             <div :class="featureIconClassName">
-              <Icon
-                icon="carbon:flash"
-                class="w-5 h-5"
-                :style="featureIconStyle"
-              />
+              <Icon icon="carbon:flash" class="h-5 w-5" :style="featureIconStyle" />
             </div>
             <div>
-              <h3 class="text-stone-800 font-medium">
-                极速开发
-              </h3>
-              <p class="text-stone-500 text-sm">
-                开箱即用的组件与模板
-              </p>
+              <h3 class="font-medium text-stone-800">极速开发</h3>
+              <p class="text-sm text-stone-500">开箱即用的组件与模板</p>
             </div>
           </div>
 
-          <div class="flex items-center gap-4 group">
+          <div class="group flex items-center gap-4">
             <div :class="featureIconClassName">
-              <Icon
-                icon="carbon:shield-checkmark"
-                class="w-5 h-5"
-                :style="featureIconStyle"
-              />
+              <Icon icon="carbon:shield-checkmark" class="h-5 w-5" :style="featureIconStyle" />
             </div>
             <div>
-              <h3 class="text-stone-800 font-medium">
-                安全可靠
-              </h3>
-              <p class="text-stone-500 text-sm">
-                完善的权限管理体系
-              </p>
+              <h3 class="font-medium text-stone-800">安全可靠</h3>
+              <p class="text-sm text-stone-500">完善的权限管理体系</p>
             </div>
           </div>
 
-          <div class="flex items-center gap-4 group">
+          <div class="group flex items-center gap-4">
             <div :class="featureIconClassName">
-              <Icon
-                icon="carbon:settings-adjust"
-                class="w-5 h-5"
-                :style="featureIconStyle"
-              />
+              <Icon icon="carbon:settings-adjust" class="h-5 w-5" :style="featureIconStyle" />
             </div>
             <div>
-              <h3 class="text-stone-800 font-medium">
-                灵活配置
-              </h3>
-              <p class="text-stone-500 text-sm">
-                高度可定制的主题系统
-              </p>
+              <h3 class="font-medium text-stone-800">灵活配置</h3>
+              <p class="text-sm text-stone-500">高度可定制的主题系统</p>
             </div>
           </div>
         </div>
@@ -235,9 +191,11 @@ function handleSendCode() {
     <div :class="rightPanelClassName">
       <div :class="glassCardClassName">
         <!-- 标题 -->
-        <div class="text-center mb-8">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[var(--ant-color-primary)] shadow-lg shadow-[var(--ant-color-primary)]/20 mb-4">
-            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="mb-8 text-center">
+          <div
+            class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--ant-color-primary)] shadow-[var(--ant-color-primary)]/20 shadow-lg"
+          >
+            <svg class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
             </svg>
           </div>
@@ -250,22 +208,24 @@ function handleSendCode() {
         <div class="mb-6">
           <div :class="loginTypeContainerClassName">
             <button
-              :class="cn(loginTypeBtnBaseClassName,
-                         loginType === 'account'
-                           ? 'bg-white shadow-sm'
-                           : 'text-stone-500 hover:text-stone-700',
-              )"
+              :class="
+                cn(
+                  loginTypeBtnBaseClassName,
+                  loginType === 'account' ? 'bg-white shadow-sm' : 'text-stone-500 hover:text-stone-700',
+                )
+              "
               :style="loginType === 'account' ? loginTypeActiveBtnStyle : {}"
               @click="loginType = 'account'"
             >
               账号登录
             </button>
             <button
-              :class="cn(loginTypeBtnBaseClassName,
-                         loginType === 'mobile'
-                           ? 'bg-white shadow-sm'
-                           : 'text-stone-500 hover:text-stone-700',
-              )"
+              :class="
+                cn(
+                  loginTypeBtnBaseClassName,
+                  loginType === 'mobile' ? 'bg-white shadow-sm' : 'text-stone-500 hover:text-stone-700',
+                )
+              "
               :style="loginType === 'mobile' ? loginTypeActiveBtnStyle : {}"
               @click="loginType = 'mobile'"
             >
@@ -275,13 +235,7 @@ function handleSendCode() {
         </div>
 
         <!-- 表单 -->
-        <a-form
-          ref="formRef"
-          :model="formState"
-          :rules="currentRules"
-          layout="vertical"
-          @finish="handleLogin"
-        >
+        <a-form ref="formRef" :model="formState" :rules="currentRules" layout="vertical" @finish="handleLogin">
           <template v-if="loginType === 'account'">
             <a-form-item name="username">
               <a-input
@@ -312,17 +266,17 @@ function handleSendCode() {
             </a-form-item>
 
             <a-form-item>
-              <div class="flex justify-between items-center">
+              <div class="flex items-center justify-between">
                 <a-checkbox
                   v-model:checked="formState.remember"
-                  class="[&_.ant-checkbox-inner]:!bg-white [&_.ant-checkbox-inner]:!border-slate-300 [&_.ant-checkbox-wrapper]:!text-stone-500"
+                  class="[&_.ant-checkbox-inner]:!border-slate-300 [&_.ant-checkbox-inner]:!bg-white [&_.ant-checkbox-wrapper]:!text-stone-500"
                 >
                   记住我
                 </a-checkbox>
                 <a-button
                   type="link"
                   size="small"
-                  class="!text-stone-500 hover:!text-stone-700 !p-0"
+                  class="!p-0 !text-stone-500 hover:!text-stone-700"
                   @click="handleForgotPassword"
                 >
                   忘记密码？
@@ -358,13 +312,7 @@ function handleSendCode() {
                   <MailOutlined class="text-stone-400" />
                 </template>
                 <template #suffix>
-                  <a-button
-                    type="link"
-                    size="small"
-                    class="!p-0"
-                    :style="sendCodeBtnStyle"
-                    @click="handleSendCode"
-                  >
+                  <a-button type="link" size="small" class="!p-0" :style="sendCodeBtnStyle" @click="handleSendCode">
                     发送验证码
                   </a-button>
                 </template>
@@ -391,7 +339,7 @@ function handleSendCode() {
 </template>
 
 <style scoped>
-[class*="group"]:hover .w-11 {
+[class*='group']:hover .w-11 {
   background-color: color-mix(in srgb, var(--ant-color-primary) 5%, white);
   border-color: color-mix(in srgb, var(--ant-color-primary) 20%, rgb(203 213 225));
 }

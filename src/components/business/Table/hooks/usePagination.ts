@@ -1,7 +1,9 @@
 import type { PaginationProps as AntPaginationProps } from 'antdv-next'
-import type { UsePaginationOptions, UsePaginationReturn } from '../types'
+
 import { isPlainObject } from 'es-toolkit'
 import { computed, ref, unref } from 'vue'
+
+import type { UsePaginationOptions, UsePaginationReturn } from '../types'
 
 // 使用原生方法替代 es-toolkit
 const _isBoolean = (val: unknown): val is boolean => typeof val === 'boolean'
@@ -65,8 +67,7 @@ export function usePagination(options: UsePaginationOptions): UsePaginationRetur
     const currentPagination = unref(paginationRef)
     if (currentPagination === false) {
       paginationRef.value = { ...DEFAULT_PAGINATION_CONFIG, ...paginationInfo }
-    }
-    else {
+    } else {
       paginationRef.value = { ...currentPagination, ...paginationInfo }
     }
   }
@@ -78,8 +79,7 @@ export function usePagination(options: UsePaginationOptions): UsePaginationRetur
     showPaginationRef.value = show
     if (!show) {
       paginationRef.value = false
-    }
-    else {
+    } else {
       paginationRef.value = { ...DEFAULT_PAGINATION_CONFIG }
     }
   }
@@ -100,12 +100,10 @@ export function usePagination(options: UsePaginationOptions): UsePaginationRetur
     if (config === false) {
       paginationRef.value = false
       showPaginationRef.value = false
-    }
-    else if (isPlainObject(config)) {
+    } else if (isPlainObject(config)) {
       paginationRef.value = { ...DEFAULT_PAGINATION_CONFIG, ...config }
       showPaginationRef.value = true
-    }
-    else {
+    } else {
       paginationRef.value = { ...DEFAULT_PAGINATION_CONFIG }
       showPaginationRef.value = true
     }

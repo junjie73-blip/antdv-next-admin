@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import type { ModalProps as AntModalProps } from 'antdv-next'
-import type { ModalInnerMethods, ModalMethods, ModalProps } from './types'
+
 import { Button, Modal } from 'antdv-next'
 import { computed, onMounted, ref, useSlots, watch } from 'vue'
-import { IconifyIcon as Icon } from '@/components/common/Icon'
-import { cn } from '@/utils/cn'
+
+import { IconifyIcon as Icon } from '~/components/common/Icon'
+import { cn } from '~/utils/cn'
+
+import type { ModalInnerMethods, ModalMethods, ModalProps } from './types'
+
 import ModalWrapper from './components/ModalWrapper.vue'
 
 const props = withDefaults(defineProps<ModalProps>(), {
@@ -25,9 +29,9 @@ const props = withDefaults(defineProps<ModalProps>(), {
 })
 
 const emit = defineEmits<{
-  'register': [instance: ModalMethods]
-  'ok': [e: MouseEvent]
-  'cancel': [e: MouseEvent]
+  register: [instance: ModalMethods]
+  ok: [e: MouseEvent]
+  cancel: [e: MouseEvent]
   'visible-change': [visible: boolean]
   'update:open': [visible: boolean]
 }>()
@@ -57,10 +61,7 @@ const getWidth = computed(() => {
 
 // 计算包裹层类名
 const wrapClassName = computed(() => {
-  return [
-    'basic-modal',
-    props.wrapClassName,
-  ].filter(Boolean).join(' ')
+  return ['basic-modal', props.wrapClassName].filter(Boolean).join(' ')
 })
 
 const modalStyles = computed<AntModalProps['styles']>(() => ({
@@ -72,7 +73,7 @@ const modalStyles = computed<AntModalProps['styles']>(() => ({
   },
   body: {
     padding: '0',
-    ...(props.bodyStyle || {}),
+    ...props.bodyStyle,
   },
 }))
 
@@ -88,8 +89,7 @@ const modalMethods: ModalMethods = {
   closeModal: async () => {
     if (props.closeFunc) {
       const canClose = await props.closeFunc()
-      if (!canClose)
-        return
+      if (!canClose) return
     }
     visibleRef.value = false
     okLoadingRef.value = false
@@ -151,18 +151,14 @@ function handleVisibleChange(visible: boolean) {
 
 <script lang="ts">
 // 在 script 中定义类名变量，遵循项目规范
-const headerClassName = cn(
-  'modal-header flex items-center justify-between px-6 py-4 border-b border-gray-200',
-)
+const headerClassName = cn('modal-header flex items-center justify-between px-6 py-4 border-b border-gray-200')
 
 const closeBtnClassName = cn(
   'p-1 text-gray-400 hover:text-gray-600 transition-colors',
   'cursor-pointer hover:bg-gray-100 rounded',
 )
 
-const footerClassName = cn(
-  'modal-footer flex items-center justify-center gap-3 px-6 py-4 border-t border-gray-200',
-)
+const footerClassName = cn('modal-footer flex items-center justify-center gap-3 px-6 py-4 border-t border-gray-200')
 </script>
 
 <template>
@@ -188,10 +184,7 @@ const footerClassName = cn(
   >
     <!-- 自定义头部 -->
     <template #title>
-      <div
-        :id="modalTitleId"
-        :class="headerClassName"
-      >
+      <div :id="modalTitleId" :class="headerClassName">
         <div :class="cn('flex items-center gap-2')">
           <span :class="cn('text-lg font-medium text-gray-900')">{{ title }}</span>
           <slot name="titleTip" />
@@ -226,16 +219,9 @@ const footerClassName = cn(
     </ModalWrapper>
 
     <!-- 底部按钮 -->
-    <div
-      v-if="showFooter && !slots.footer && (showCancelBtn || showOkBtn)"
-      :class="footerClassName"
-    >
+    <div v-if="showFooter && !slots.footer && (showCancelBtn || showOkBtn)" :class="footerClassName">
       <slot name="insertFooter" />
-      <Button
-        v-if="showCancelBtn"
-        v-bind="cancelButtonProps"
-        @click="handleCancel"
-      >
+      <Button v-if="showCancelBtn" v-bind="cancelButtonProps" @click="handleCancel">
         <template #icon>
           <Icon icon="ant-design:close-outlined" />
         </template>
@@ -256,10 +242,7 @@ const footerClassName = cn(
       </Button>
       <slot name="appendFooter" />
     </div>
-    <div
-      v-else-if="slots.footer"
-      :class="cn('modal-footer px-6 py-4 border-t border-gray-200')"
-    >
+    <div v-else-if="slots.footer" :class="cn('modal-footer border-t border-gray-200 px-6 py-4')">
       <slot name="footer" />
     </div>
   </Modal>

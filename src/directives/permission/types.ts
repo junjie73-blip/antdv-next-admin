@@ -49,9 +49,19 @@ export interface PermissionCheckOptions {
 }
 
 export interface PermissionDirectiveBinding {
-  value: string | string[] | { permission: string | string[], mode?: PermissionMode }
-  arg?: string
-  modifiers?: Record<string, boolean>
+  value:
+    | string
+    | string[]
+    | {
+        permission: string | string[]
+        mode?: PermissionMode
+      }
+  arg?: 'role' | 'admin'
+  modifiers?: {
+    all?: boolean
+    hide?: boolean
+    disabled?: boolean
+  }
 }
 
 export interface UsePermissionOptions {

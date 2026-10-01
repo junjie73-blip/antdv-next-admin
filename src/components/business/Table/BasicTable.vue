@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import type { BasicColumn, BasicTableProps, Recordable, TableActionType, TableRowSelection } from './types'
 import { Table } from 'antdv-next'
-import { computed, h, isVNode, nextTick, onMounted, ref, unref, watch } from 'vue'
-import { BasicForm } from '@/components/business/Form'
-import { cn } from '@/utils/cn'
-import TableAction from './components/TableAction'
+import { computed, defineComponent, h, isVNode, nextTick, onMounted, ref, unref, watch } from 'vue'
+
+import { BasicForm } from '~/components/business/Form'
+import { cn } from '~/utils/cn'
+
+import type { BasicColumn, BasicTableProps, Recordable, TableActionType, TableRowSelection } from './types'
+
+import TableAction from './components/TableAction.vue'
 import TableEditableCell from './components/TableEditableCell'
 import TableHeaderCell from './components/TableHeaderCell'
 import TableImg from './components/TableImg.vue'
@@ -16,7 +19,6 @@ import { useLoading } from './hooks/useLoading'
 import { usePagination } from './hooks/usePagination'
 import { useRowSelection } from './hooks/useRowSelection'
 import { useTableForm } from './hooks/useTableForm'
-import { useTableScroll } from './hooks/useTableScroll'
 
 // ============================================
 // Props & Emits
@@ -29,11 +31,9 @@ const props = withDefaults(defineProps<BasicTableProps>(), {
   canResize: false,
   resizeHeightOffset: 0,
   showHeader: true,
-  size: 'middle',
+  size: 'small',
   showTableSetting: true,
-  // 默认启用虚拟滚动（大数据量时性能提升显著）
-  // 数据量 < 100 时自动降级为普通渲染
-  virtual: true,
+  tableLayout: 'fixed',
 })
 
 const emit = defineEmits<{
@@ -42,29 +42,28 @@ const emit = defineEmits<{
   (e: 'row-db-click', record: any, index: number, event: Event): void
   (e: 'register', instance: TableActionType): void
   (e: 'header-edit', column: BasicColumn): void
-  (e: 'cell-save', payload: { record: Recordable, dataIndex: string | string[], value: any, column: BasicColumn }): void
-  (e: 'cell-cancel', payload: { record: Recordable, dataIndex: string | string[], column: BasicColumn }): void
-  (e: 'cell-change', payload: { record: Recordable, dataIndex: string | string[], value: any, column: BasicColumn }): void
+  (e: 'cell-save', payload: { record: Recordable; dataIndex: string | string[]; value: any; column: BasicColumn }): void
+  (e: 'cell-cancel', payload: { record: Recordable; dataIndex: string | string[]; column: BasicColumn }): void
+  (
+    e: 'cell-change',
+    payload: { record: Recordable; dataIndex: string | string[]; value: any; column: BasicColumn },
+  ): void
 }>()
 
 // ============================================
 // State
 // ============================================
 
-// 内部 props 引用（用于 useTable 模式）
 const propsRef = ref<Partial<BasicTableProps>>({})
-
-// 表格 ref
 const tableRef = ref<InstanceType<typeof Table>>()
 
-// 展开行的 key 列表
+// 展开行的 key 列表（统一由 getExpandable 管理）
 const expandedRowKeysRef = ref<string[]>([])
 
 // ============================================
 // Computed
 // ============================================
 
-// 合并 props（支持 useTable 模式）
 const getMergedProps = computed((): BasicTableProps => {
   return {
     ...props,
@@ -76,15 +75,12 @@ const getMergedProps = computed((): BasicTableProps => {
 // Hooks
 // ============================================
 
-// 加载状态
 const { loadingRef, setLoading } = useLoading(props.loading)
 
-// 分页
 const pagination = usePagination({
   pagination: computed(() => getMergedProps.value.pagination),
 })
 
-// 列配置
 const columns = useColumns({
   columns: computed(() => getMergedProps.value.columns || []),
   showIndexColumn: computed(() => getMergedProps.value.showIndexColumn ?? false),
@@ -92,7 +88,6 @@ const columns = useColumns({
   actionColumn: computed(() => getMergedProps.value.actionColumn),
 })
 
-// 数据源
 const dataSource = useDataSource({
   api: computed(() => getMergedProps.value.api),
   params: computed(() => getMergedProps.value.params || {}),
@@ -107,174 +102,212 @@ const dataSource = useDataSource({
     setPagination: pagination.setPagination,
   },
   loading: { setLoading },
+  fields: computed(
+    () => getMergedProps.value.columns?.filter((item) => item.dataIndex).map((item) => item.dataIndex) || [],
+  ),
 })
 
-// 行选择
 const rowSelection = useRowSelection({
   rowSelection: computed(() => getMergedProps.value.rowSelection),
   dataSourceRef: dataSource.dataSourceRef,
   rowKey: computed(() => getMergedProps.value.rowKey || 'id'),
 })
 
-// 滚动
-const tableScroll = useTableScroll({
-  scroll: computed(() => getMergedProps.value.scroll),
-  canResize: computed(() => getMergedProps.value.canResize ?? false),
-  resizeHeightOffset: computed(() => getMergedProps.value.resizeHeightOffset ?? 0),
-})
-
-// 搜索表单
 const tableForm = useTableForm({
   baseProps: getMergedProps,
   propsRef,
   fetch: dataSource.fetch,
 })
 
-// 表格列
-const getColumns = computed(() => {
-  const cols = columns.getColumns()
-  // 转换为 antdv-next 支持的格式
-  return convertColumns(cols)
-})
+// ============================================
+// 列 / 数据
+// ============================================
 
-// 表格数据
-const getDataSource = computed(() => {
-  return unref(dataSource.dataSourceRef)
-})
+const getColumns = computed(() => convertColumns(columns.getColumns()))
 
+const getDataSource = computed(() => unref(dataSource.dataSourceRef))
+
+// 递归收集所有可展开的 key（支持多级子节点）
+function collectExpandableKeys(list: Recordable[], rowKey: string): string[] {
+  const keys: string[] = []
+  const childrenField = getMergedProps.value.childrenColumnName || 'children'
+  const walk = (arr: Recordable[]) => {
+    for (const item of arr) {
+      const children = item?.[childrenField]
+      if (Array.isArray(children) && children.length > 0) {
+        keys.push(String(item[rowKey]))
+        walk(children)
+      }
+    }
+  }
+  walk(list)
+  return keys
+}
+
+// 树形数据就绪后自动展开所有节点
 watch(getDataSource, (data) => {
   if (getMergedProps.value.isTree && data.length > 0) {
-    const rowKey = getMergedProps.value.rowKey || 'id'
-    expandedRowKeysRef.value = data
-      .filter((record: Recordable) => record.children?.length > 0)
-      .map((record: Recordable) => String(record[rowKey]))
+    const rowKey = (getMergedProps.value.rowKey as string) || 'id'
+    expandedRowKeysRef.value = collectExpandableKeys(data, rowKey)
   }
 })
 
-// 行选择配置
+// ============================================
+// 行选择
+// ============================================
+
 const getRowSelection = computed((): TableRowSelection | undefined => {
   const selection = rowSelection.getRowSelection.value
   return selection || undefined
 })
 
-// 树形展开配置（保持引用稳定，避免每次渲染创建新对象）
+// ============================================
+// 展开配置（统一合并，关键修复）
+// ============================================
+
 const getExpandable = computed(() => {
+  const userExpandable = getMergedProps.value.expandable || {}
+
+  // 1) 树形表格
   if (getMergedProps.value.isTree) {
     return {
       indentSize: getMergedProps.value.indentSize ?? 20,
       childrenColumnName: getMergedProps.value.childrenColumnName || 'children',
-      defaultExpandAllRows: true,
-      onExpandedRowsChange: (keys: string[]) => { expandedRowKeysRef.value = keys },
+      defaultExpandAllRows: getMergedProps.value.defaultExpandAllRows ?? true,
+      expandedRowKeys: expandedRowKeysRef.value,
+      onExpandedRowsChange: (keys: string[]) => {
+        expandedRowKeysRef.value = keys
+      },
+      ...userExpandable,
     }
   }
 
+  // 2) 自定义展开行
   if (getMergedProps.value.expandedRowRender) {
     return {
       expandedRowRender: getMergedProps.value.expandedRowRender,
       expandedRowKeys: expandedRowKeysRef.value,
-      onExpandedRowsChange: (keys: string[]) => { expandedRowKeysRef.value = keys },
+      onExpandedRowsChange: (keys: string[]) => {
+        expandedRowKeysRef.value = keys
+      },
+      ...userExpandable,
     }
   }
 
-  return undefined
+  // 3) 用户自定义 expandable
+  return Object.keys(userExpandable).length > 0 ? userExpandable : undefined
 })
 
-// 分页配置
+// ============================================
+// 分页 / 容器
+// ============================================
+
 const getPagination = computed(() => {
   const paginationConfig = pagination.getPagination.value
-  if (!paginationConfig)
-    return false
-
-  // 强制分页器使用与表格相同的 size，避免被 ConfigProvider 覆盖
+  if (!paginationConfig) return false
   return {
     ...paginationConfig,
     size: getMergedProps.value.size || 'middle',
   }
 })
 
-// 滚动配置
-const getScroll = computed(() => {
-  return tableScroll.getScroll.value
-})
+const tableContainerClassName = computed(() => cn('basic-table', 'w-full', getMergedProps.value.canResize && 'h-full'))
 
-// 表格容器类名
-const tableContainerClassName = computed(() => {
-  return cn(
-    'basic-table',
-    'w-full',
-    getMergedProps.value.canResize && 'h-full',
-  )
-})
+const showTableSetting = computed(() => getMergedProps.value.showTableSetting)
 
-// 是否显示表格设置
-const showTableSetting = computed(() => {
-  return getMergedProps.value.showTableSetting
-})
-
-// 表格设置配置
 const tableSettingConfig = computed(() => {
   return getMergedProps.value.tableSetting || { redo: true, setting: true, fullScreen: true }
 })
 
-// 是否显示搜索表单
 const showSearchForm = computed(() => {
   return getMergedProps.value.useSearchForm && getMergedProps.value.formConfig
 })
 
+// 弹出容器，默认挂到 body
+const getPopupContainer = computed(() => {
+  return getMergedProps.value.getPopupContainer || (() => document.body)
+})
+
+// 行事件透传：统一在 onRow 里 emit + 用户回调
+const getOnRow = computed(() => {
+  const userOnRow = getMergedProps.value.onRow
+  return (record: Recordable, index: number) => {
+    const userProps = userOnRow?.(record, index) || {}
+    return {
+      ...userProps,
+      onClick: (event: MouseEvent) => {
+        emit('row-click', record, index, event)
+        userProps.onClick?.(event)
+      },
+      onDblclick: (event: MouseEvent) => {
+        emit('row-db-click', record, index, event)
+        userProps.onDblclick?.(event)
+      },
+    }
+  }
+})
 
 // ============================================
 // Methods
 // ============================================
 
-// 设置 props
 function setProps(p: Partial<BasicTableProps>) {
   propsRef.value = { ...unref(propsRef), ...p }
 }
 
-// 获取操作列操作项
 function getActions(record: Recordable): any[] {
   const actionColumn = getMergedProps.value.actionColumn
-  if (!actionColumn?.actions)
-    return []
+  if (!actionColumn?.actions) return []
   return actionColumn.actions(record)
 }
 
-// 处理格式化单元格
 function handleFormatCell(format: any, text: any, record: Recordable, index: number): string {
-  if (!format)
-    return text
+  if (!format) return text
   return formatCellValue(format, text, record, index)
 }
 
-// 根据 key 获取原始列配置
 function getOriginalColumn(columnKey: string | number): BasicColumn | undefined {
   const cols = columns.getColumns()
-  return cols.find(col => col.key === columnKey || col.dataIndex === columnKey)
+  return cols.find((col) => col.key === columnKey || col.dataIndex === columnKey)
 }
-
 /**
- * 渲染单元格内容（简化模板嵌套）
- *
- * 将复杂的 v-if/v-else 逻辑提取到函数中，
- * 模板只需调用此函数即可
+ * 渲染任意 VNode 的辅助组件
+ * Vue 3 模板里无法直接把 VNode 作为插值渲染，需要一个包装组件
+ */
+const RenderVNode = defineComponent({
+  name: 'RenderVNode',
+  props: {
+    vnode: {
+      type: [Object, Array, String, Number, Boolean],
+      default: null,
+    },
+  },
+  setup(p) {
+    return () => p.vnode as any
+  },
+})
+/**
+ * 统一单元格渲染
+ * 优先级：customRender > format > edit > image > default
+ * 注意：这里不再处理 `cell-*` 插槽，插槽在模板里优先拦截
  */
 function renderCellContent(column: any, text: any, record: Recordable, index: number): any {
   const origCol = getOriginalColumn(column.key)
 
-  // 没有原始列配置时的默认渲染
-  const defaultRender = () => [
-    isVNode(text)
-      ? h(() => text)
-      : h('span', text),
-  ]
-
-  if (!origCol) {
-    return defaultRender()
+  // 1. customRender 优先
+  if (origCol?.customRender) {
+    return origCol.customRender({ text, record, index, column: origCol })
   }
 
-  // 可编辑单元格
+  // 2. 格式化（format 是字符串模板或函数）
+  if (origCol?.format) {
+    const formattedContent = handleFormatCell(origCol.format, text, record, index)
+    return h('span', { innerHTML: formattedContent })
+  }
+
+  // 3. 可编辑单元格
   if (origCol?.edit || origCol?.editRow) {
-    return () => h(TableEditableCell, {
+    return h(TableEditableCell, {
       column: origCol,
       record,
       value: text,
@@ -285,30 +318,20 @@ function renderCellContent(column: any, text: any, record: Recordable, index: nu
     })
   }
 
-  // 格式化显示（安全渲染）
-  if (origCol?.format) {
-    const formattedContent = handleFormatCell(origCol.format, text, record, index)
-    return () => h('span', {
-      'v-safe-html': formattedContent,
-    })
-  }
-
-  // 图片列
+  // 4. 图片列
   if (isImageList(text)) {
-    return () => h(TableImg, {
+    return h(TableImg, {
       imgList: text,
       size: 40,
       simpleShow: true,
     })
   }
 
-  // 默认渲染
-  return defaultRender()
+  // 5. 默认
+  return isVNode(text) ? h(() => text) : h('span', text)
 }
 
-// 处理表格变化
-async function handleTableChange(paginationInfo: any, filters: any, sorter: any, extra: any) {
-  // 更新分页状态
+async function handleTableChange(paginationInfo: any, filters: any, sorter: any) {
   if (paginationInfo) {
     pagination.setPagination({
       current: paginationInfo.current,
@@ -316,55 +339,44 @@ async function handleTableChange(paginationInfo: any, filters: any, sorter: any,
     })
   }
 
-  // 等待分页状态更新完成后再获取数据
-  // 使用 nextTick 确保分页状态已同步
   await nextTick()
-
-  // 重新获取数据
   await dataSource.fetch()
 
-  // 触发事件
   emit('change', paginationInfo, filters, sorter)
 }
 
-// 处理行点击
-function handleRowClick(record: Recordable, index: number, event: Event) {
-  emit('row-click', record, index, event)
-}
-
-// 处理行双击
-function handleRowDoubleClick(record: Recordable, index: number, event: Event) {
-  emit('row-db-click', record, index, event)
-}
-
-// 处理更新列
 function handleUpdateColumns(newColumns: BasicColumn[]) {
   columns.setColumns(newColumns)
 }
 
-// 处理重置列
 function handleResetColumns() {
   const cacheColumns = columns.getCacheColumns()
   columns.setColumns(cacheColumns)
 }
 
-// 处理表头编辑点击
 function handleHeaderEdit(column: BasicColumn) {
   emit('header-edit', column)
 }
 
-// 处理单元格保存
-function handleCellSave(payload: { record: Recordable, dataIndex: string | string[], value: any, column: BasicColumn }) {
+function handleCellSave(payload: {
+  record: Recordable
+  dataIndex: string | string[]
+  value: any
+  column: BasicColumn
+}) {
   emit('cell-save', payload)
 }
 
-// 处理单元格取消
-function handleCellCancel(payload: { record: Recordable, dataIndex: string | string[], column: BasicColumn }) {
+function handleCellCancel(payload: { record: Recordable; dataIndex: string | string[]; column: BasicColumn }) {
   emit('cell-cancel', payload)
 }
 
-// 处理单元格变化
-function handleCellChange(payload: { record: Recordable, dataIndex: string | string[], value: any, column: BasicColumn }) {
+function handleCellChange(payload: {
+  record: Recordable
+  dataIndex: string | string[]
+  value: any
+  column: BasicColumn
+}) {
   emit('cell-change', payload)
 }
 
@@ -376,36 +388,42 @@ const tableActionType: TableActionType = {
   // 基础操作
   setProps,
   reload: dataSource.reload,
-  redoHeight: tableScroll.redoHeight,
   setLoading,
   getRawDataSource: () => unref(dataSource.rawDataSourceRef),
+  redoHeight: async () => {},
 
   // 列操作
   setColumns: columns.setColumns,
   getColumns: columns.getColumns,
   updateColumn: columns.updateColumn,
-  getVisibleColumns: () => columns.getColumns().filter(col => col.ifShow !== false),
+  getVisibleColumns: () => columns.getColumns().filter((col) => col.ifShow !== false),
   getCacheColumns: columns.getCacheColumns,
 
   // 行操作
   expandAll: () => {
-    const rowKey = getMergedProps.value.rowKey || 'id'
-    const allKeys = getDataSource.value.map((record: Recordable) => String(record[rowKey]))
-    expandedRowKeysRef.value = allKeys
+    const rowKey = (getMergedProps.value.rowKey as string) || 'id'
+    expandedRowKeysRef.value = collectExpandableKeys(getDataSource.value, rowKey)
   },
   collapseAll: () => {
     expandedRowKeysRef.value = []
   },
   expandRows: (keys: string[]) => {
     const currentKeys = new Set(expandedRowKeysRef.value)
-    keys.forEach(key => currentKeys.add(key))
+    keys.forEach((key) => currentKeys.add(key))
     expandedRowKeysRef.value = Array.from(currentKeys)
   },
   collapseRows: (keys: string[]) => {
     const keySet = new Set(keys)
-    expandedRowKeysRef.value = expandedRowKeysRef.value.filter(key => !keySet.has(key))
+    expandedRowKeysRef.value = expandedRowKeysRef.value.filter((key) => !keySet.has(key))
   },
-  scrollTo: tableScroll.scrollTo,
+  scrollTo: (pos: { left?: number; top?: number }) => {
+    const el = tableRef.value?.$el as HTMLElement | undefined
+    if (!el) return
+    const bodyEl = el.querySelector('.ant-table-body') as HTMLElement | null
+    if (!bodyEl) return
+    if (pos.top !== undefined) bodyEl.scrollTop = pos.top
+    if (pos.left !== undefined) bodyEl.scrollLeft = pos.left
+  },
   selectRows: rowSelection.setSelectedRowKeys,
   getSelectRows: rowSelection.getSelectRows,
   getSelectRowKeys: () => unref(rowSelection.selectedRowKeysRef),
@@ -418,16 +436,16 @@ const tableActionType: TableActionType = {
   setShowPagination: pagination.setShowPagination,
   getShowPagination: pagination.getShowPagination,
 
-  // 表单操作
-  getFormValues: () => ({}),
-  setFormValues: () => {},
-  resetForm: () => {},
-  submitForm: async () => {},
-  validateForm: async () => ({}),
+  // 表单操作 - 接真实实现
+  getFormValues: () => (tableForm.getForm() as any)?.getFieldsValue?.() ?? {},
+  setFormValues: (values: Recordable) => (tableForm.getForm() as any)?.setFieldsValue?.(values),
+  resetForm: () => (tableForm.getForm() as any)?.resetFields?.(),
+  submitForm: async () => (tableForm.getForm() as any)?.submit?.(),
+  validateForm: async () => (tableForm.getForm() as any)?.validate?.() ?? {},
   updateFormSchema: () => {},
   appendFormSchema: () => {},
   removeFormSchema: () => {},
-  getForm: () => ({}),
+  getForm: () => tableForm.getForm() as any,
 
   // 数据操作
   insertTableDataRecord: dataSource.insertTableDataRecord,
@@ -442,56 +460,25 @@ const tableActionType: TableActionType = {
 // Lifecycle
 // ============================================
 
-// 注册表格实例
 onMounted(() => {
   emit('register', tableActionType)
-
-  // 全局修复：将表格内的 PopConfirm 移到 body，避免 TD(sticky) 层叠上下文遮挡
-  const fixPopConfirm = () => {
-    document.querySelectorAll('.ant-popconfirm').forEach((el) => {
-      if (el.parentElement !== document.body) {
-        document.body.appendChild(el)
-      }
-    })
-  }
-  // 使用 MutationObserver 监听 DOM 变化，自动修复新出现的 PopConfirm
-  const observer = new MutationObserver(() => {
-    fixPopConfirm()
-  })
-  observer.observe(document.body, { childList: true, subtree: true })
-  // 初始修复已有的 PopConfirm
-  fixPopConfirm()
 })
 
-// 暴露方法
 defineExpose(tableActionType)
 </script>
 
 <template>
   <div :class="tableContainerClassName">
     <!-- 搜索表单 -->
-    <div
-      v-if="showSearchForm"
-      class="mb-4"
-    >
-      <BasicForm
-        v-bind="tableForm.getFormProps"
-        @register="tableForm.registerForm"
-      />
+    <div v-if="showSearchForm" class="mb-4">
+      <BasicForm v-bind="tableForm.getFormProps" @register="tableForm.registerForm" />
     </div>
 
-    <!-- 搜索区域与内容区域分割线 -->
-    <div
-      v-if="showSearchForm"
-      class="mb-4 border-t border-gray-200 dark:border-gray-700"
-    />
+    <div v-if="showSearchForm" class="mb-4 border-t border-gray-200 dark:border-gray-700" />
 
-    <!-- 表格头部工具栏 -->
-    <div
-      v-if="showTableSetting || $slots.toolbar"
-      class="flex items-center justify-between mb-4"
-    >
-      <div class="flex items-center flex-wrap gap-2">
+    <!-- 工具栏 -->
+    <div v-if="showTableSetting || $slots.toolbar" class="mb-4 flex items-center justify-between">
+      <div class="flex flex-wrap items-center gap-2">
         <slot name="toolbar" />
       </div>
       <TableSetting
@@ -504,6 +491,7 @@ defineExpose(tableActionType)
         @reset="handleResetColumns"
       />
     </div>
+
     <!-- 表格主体 -->
     <Table
       ref="tableRef"
@@ -512,7 +500,6 @@ defineExpose(tableActionType)
       :loading="loadingRef"
       :pagination="getPagination"
       :row-selection="getRowSelection as any"
-      :scroll="getScroll"
       :row-key="getMergedProps.rowKey"
       :bordered="getMergedProps.bordered"
       :table-layout="getMergedProps.tableLayout"
@@ -520,67 +507,57 @@ defineExpose(tableActionType)
       :show-header="getMergedProps.showHeader ?? true"
       :locale="getMergedProps.locale"
       :row-class-name="getMergedProps.rowClassName"
-      :expanded-row-keys="expandedRowKeysRef"
       :size="getMergedProps.size"
       :expandable="getExpandable"
-      :get-popup-container="() => document.body"
+      :scroll="getMergedProps.scroll"
+      :title="getMergedProps.title"
+      :caption="getMergedProps.caption"
+      :footer="getMergedProps.footer"
+      :summary="getMergedProps.summary"
+      :show-sorter-tooltip="getMergedProps.showSorterTooltip"
+      :sort-directions="getMergedProps.sortDirections"
+      :on-row="getOnRow"
+      :on-header-row="getMergedProps.onHeaderRow"
+      :get-popup-container="getPopupContainer"
       @change="handleTableChange"
-      @rowClick="handleRowClick"
     >
-      <!-- 表头插槽 -->
+      <!-- ============ 表头插槽 ============ -->
       <template #headerCell="{ column }">
-        <!-- 选择列：使用默认渲染 -->
+        <!-- 选择列：默认 -->
         <template v-if="column.key === 'ant-table-selection-column'">
           {{ column.title }}
         </template>
 
-        <!-- 操作列 -->
+        <!-- 操作列表头 -->
         <template v-else-if="column.key === 'action'">
-          <TableHeaderCell
-            :column="column"
-            @edit="handleHeaderEdit"
-          >
-            <slot
-              name="actionHeader"
-              :column="column"
-            />
+          <TableHeaderCell :column="column" @edit="handleHeaderEdit">
+            <slot name="actionHeader" :column="column" />
           </TableHeaderCell>
         </template>
 
-        <!-- 序号列 -->
+        <!-- 序号列表头 -->
         <template v-else-if="column.key === 'index'">
-          <TableHeaderCell
-            :column="column"
-            @edit="handleHeaderEdit"
-          >
-            <slot
-              name="indexHeader"
-              :column="column"
-            />
+          <TableHeaderCell :column="column" @edit="handleHeaderEdit">
+            <slot name="indexHeader" :column="column" />
           </TableHeaderCell>
         </template>
 
-        <!-- 普通列 -->
+        <!-- 普通列表头 -->
         <template v-else>
-          <TableHeaderCell
-            :column="column"
-            @edit="handleHeaderEdit"
-          />
+          <TableHeaderCell :column="column" @edit="handleHeaderEdit">
+            <slot :name="`header-${column.key}`" :column="column" />
+          </TableHeaderCell>
         </template>
       </template>
 
-      <!-- 单元格插槽 -->
+      <!-- ============ 单元格插槽 ============ -->
       <template #bodyCell="{ column, record, text, index }">
-        <!-- 选择列：不渲染，让 antdv-next 使用默认渲染 -->
+        <!-- 选择列：交给 antdv-next 默认渲染 -->
         <template v-if="column.key === 'ant-table-selection-column'" />
 
         <!-- 操作列 -->
         <template v-else-if="column.key === 'action'">
-          <slot
-            name="action"
-            :record="record"
-            :index="index"
-          >
+          <slot name="action" :record="record" :index="index" :column="column">
             <TableAction
               :actions="getActions(record)"
               :max-show-count="getMergedProps.actionColumn?.maxShowCount || 4"
@@ -590,74 +567,67 @@ defineExpose(tableActionType)
 
         <!-- 序号列 -->
         <template v-else-if="column.key === 'index'">
-          <slot
-            name="index"
-            :column="column"
-            :record="record"
-            :text="text"
-            :index="index"
-          >
+          <slot name="index" :column="column" :record="record" :text="text" :index="index">
             {{ index + 1 }}
           </slot>
         </template>
 
-        <!-- 普通列 -->
+        <!-- 普通单元格：插槽优先级最高 -->
         <template v-else>
+          <!-- 1. `cell-${key}` 插槽 -->
           <slot
+            v-if="$slots[`cell-${column.key}`]"
             :name="`cell-${column.key}`"
             :column="column"
             :record="record"
             :text="text"
             :index="index"
-          >
-            <slot
-              :name="column.dataIndex"
-              :column="column"
-              :record="record"
-              :text="text"
-              :index="index"
-            >
-              <!-- 使用简化的渲染函数（减少模板嵌套） -->
-              <component :is="() => renderCellContent(column, text, record, index)" />
-            </slot>
-          </slot>
+          />
+
+          <!-- 2. `cell-${dataIndex}` 插槽 -->
+          <slot
+            v-else-if="typeof column.dataIndex === 'string' && $slots[`cell-${column.dataIndex}`]"
+            :name="`cell-${column.dataIndex}`"
+            :column="column"
+            :record="record"
+            :text="text"
+            :index="index"
+          />
+
+          <!-- 3. dataIndex 直接命名的插槽（兼容老写法） -->
+          <slot
+            v-else-if="typeof column.dataIndex === 'string' && $slots[column.dataIndex]"
+            :name="column.dataIndex"
+            :column="column"
+            :record="record"
+            :text="text"
+            :index="index"
+          />
+
+          <!-- 4. 统一走 renderCellContent（customRender / format / edit / 图片 / 默认） -->
+          <RenderVNode v-else :vnode="renderCellContent(column, text, record, index)" />
         </template>
       </template>
 
-      <!-- 展开行 -->
+      <!-- ============ 展开行 ============ -->
       <template
-        v-if="getMergedProps.expandedRowRender"
+        v-if="getMergedProps.expandedRowRender || $slots.expandedRowRender"
         #expandedRowRender="{ record, index, indent, expanded }"
       >
-        <slot
-          name="expandedRowRender"
-          :record="record"
-          :index="index"
-          :indent="indent"
-          :expanded="expanded"
-        >
-          <component :is="() => getMergedProps.expandedRowRender?.(record, index, indent, expanded)" />
+        <slot name="expandedRowRender" :record="record" :index="index" :indent="indent" :expanded="expanded">
+          <RenderVNode :vnode="getMergedProps.expandedRowRender?.(record, index, indent, expanded)" />
         </slot>
       </template>
 
-      <!-- 汇总行 -->
-      <template
-        v-if="getMergedProps.summary"
-        #summary
-      >
-        <slot
-          name="summary"
-          :data="getDataSource"
-        >
-          <component :is="() => getMergedProps.summary?.(getDataSource)" />
+      <!-- ============ 汇总行 ============ -->
+      <template v-if="getMergedProps.summary || $slots.summary" #summary>
+        <slot name="summary" :data="getDataSource">
+          <RenderVNode :vnode="getMergedProps.summary?.(getDataSource)" />
         </slot>
       </template>
 
-      <!-- 空数据 -->
-      <template
-        v-if="getMergedProps.emptyText || $slots.empty"
-        #emptyText
-      >
+      <!-- ============ 空数据 ============ -->
+      <template v-if="getMergedProps.emptyText || $slots.empty" #emptyText>
         <slot name="empty">
           {{ getMergedProps.emptyText || '暂无数据' }}
         </slot>
@@ -665,72 +635,8 @@ defineExpose(tableActionType)
     </Table>
   </div>
 </template>
-
 <style scoped>
-.basic-table :deep(.ant-table-thead > tr > th) {
-  font-weight: 500;
-}
-
-.basic-table :deep(.ant-pagination) {
-  margin-top: 1rem;
-  justify-content: flex-end;
-}
-
-/* 确保表格单元格不会遮挡下拉菜单 */
-.basic-table :deep(.ant-table-cell) {
-  overflow: visible !important;
-}
-
-/* 下拉菜单样式 */
-:global(.table-action-dropdown) {
-  z-index: 999999 !important;
-}
-</style>
-
-<!-- 全局样式：Popconfirm 修复层叠上下文遮挡问题 -->
-<style>
-/* 表格内 PopConfirm 弹窗确保在最上层且不被裁剪 */
-/* 根因：TD(position:sticky) 创建层叠上下文，内部弹窗无法突破 */
-/* 解决方案：配合 TableAction.tsx 的 onOpenChange 将弹窗移到 body */
-.ant-popconfirm {
-  position: fixed !important;
-  z-index: 999999 !important;
-  background-color: #fff !important;
-  filter: none !important;
-  box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 9px 28px 8px rgba(0, 0, 0, 0.05) !important;
-}
-
-/* 关键修复：阻止 TD (sticky cell) 的层叠上下文影响内部弹窗 */
-.ant-table-cell {
-  isolation: auto;
-}
-
-/* 确保表格容器不会裁剪弹出内容 */
-.ant-table-wrapper,
-.ant-table-container,
-.ant-table {
-  overflow: visible !important;
-}
-
-/* 弹出层强制置顶 */
-.ant-popover {
-  position: fixed !important;
-  z-index: 999999 !important;
-}
-</style>
-
-<style scoped>
-/* 操作列内容居中（text-align 对 flex 子元素不生效） */
-.basic-table :deep(.ant-table-cell:last-of-type) {
-  text-align: center;
-}
-
-.basic-table :deep(.ant-table-cell:last-of-type > .ant-wrapper) {
-  justify-content: center;
-}
-
-/* 下拉菜单样式 */
-:global(.table-action-dropdown) {
-  z-index: 999999 !important;
+:deep(.ant-form-item) {
+  margin-bottom: 12px;
 }
 </style>

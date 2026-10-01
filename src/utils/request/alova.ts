@@ -1,13 +1,16 @@
 import type { MockWrapper } from '@alova/mock'
-import type { RequestMeta } from './interface'
+
 import { createAlovaMockAdapter } from '@alova/mock'
 import { createAlova } from 'alova'
 import adapterFetch from 'alova/fetch'
 import VueHook from 'alova/vue'
 
-import { useUserStore } from '@/stores/modules/user'
+import { useUserStore } from '~/stores/modules/user'
 // 安全相关导入
-import { config as csrfConfig, getCsrfToken, initCsrfProtection } from '@/utils/csrf'
+import { config as csrfConfig, getCsrfToken, initCsrfProtection } from '~/utils/csrf'
+
+import type { RequestMeta } from './interface'
+
 import authMock from '../../../mock/auth'
 import deptMock from '../../../mock/dept'
 import dictMock from '../../../mock/dict'
@@ -165,8 +168,7 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
               [csrfConfig.headerName]: csrfToken.value,
             }
           }
-        }
-        catch {
+        } catch {
           console.warn('[Security] CSRF Token 获取失败，继续请求')
         }
       }
@@ -176,8 +178,7 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
         ...(method.config.headers ?? {}),
 
         // Content-Type 安全：防止 MIME 嗅探攻击
-        'Content-Type': method.config.headers?.['Content-Type']
-          || 'application/json; charset=utf-8',
+        'Content-Type': method.config.headers?.['Content-Type'] || 'application/json; charset=utf-8',
 
         // X-Content-Type-Options: 防止 MIME 嗅探（仅服务端返回时有效，客户端发送无影响）
         'X-Content-Type-Options': 'nosniff',
@@ -192,11 +193,9 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
         'Referrer-Policy': 'strict-origin-when-cross-origin',
 
         // Cache-Control: 敏感操作不缓存
-        ...(
-          stateChangingMethods.includes(methodType)
-            ? { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
-            : {}
-        ),
+        ...(stateChangingMethods.includes(methodType)
+          ? { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
+          : {}),
       }
 
       // POST/PUT/PATCH 请求去重（防止重复提交）
@@ -206,8 +205,7 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
         if (pendingRequests.has(requestKey)) {
           // 返回已存在的请求，实现去重
           method.response = () => pendingRequests.get(requestKey)!
-        }
-        else {
+        } else {
           // 拦截并存储新请求（用于去重）
           const originalResponse = method.response
           if (originalResponse) {
@@ -242,13 +240,11 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
         let payload: unknown
         if (contentType.includes('application/json')) {
           payload = await response.json()
-        }
-        else {
+        } else {
           const text = await response.clone().text()
           try {
             payload = JSON.parse(text)
-          }
-          catch {
+          } catch {
             payload = await response.text()
           }
         }
@@ -282,18 +278,14 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
         const shouldRetry = getRetryConfig(error, method, maxRetries)
 
         if (shouldRetry.shouldRetry) {
-          console.warn(
-            `[API] 请求失败，正在重试 (${shouldRetry.currentAttempt}/${maxRetries})...`,
-            method.url,
-          )
+          console.warn(`[API] 请求失败，正在重试 (${shouldRetry.currentAttempt}/${maxRetries})...`, method.url)
 
           // 等待一段时间后重试（指数退避）
           await delay(calculateBackoff(shouldRetry.currentAttempt))
 
           try {
             return await method.send()
-          }
-          catch (retryError) {
+          } catch (retryError) {
             // 重试也失败了，上报最终错误
             await reportRequestError(retryError)
             throw retryError
@@ -312,12 +304,7 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
  * 获取请求唯一标识（用于去重）
  */
 function getRequestKey(method: any): string {
-  return [
-    method.type,
-    method.url,
-    JSON.stringify(method.params ?? {}),
-    JSON.stringify(method.data ?? {}),
-  ].join(':')
+  return [method.type, method.url, JSON.stringify(method.params ?? {}), JSON.stringify(method.data ?? {})].join(':')
 }
 
 /**
@@ -342,20 +329,22 @@ function calculateBackoff(attempt: number, baseDelay = 300): number {
  * 延迟工具函数
  */
 function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms))
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 /**
  * 判断是否应该重试请求
  */
-function getRetryConfig(error: any, method: any, maxRetries: number): {
+function getRetryConfig(
+  error: any,
+  method: any,
+  maxRetries: number,
+): {
   shouldRetry: boolean
   currentAttempt: number
 } {
   // 从错误对象中获取当前重试次数
-  const currentAttempt = error instanceof AlovaRequestError
-    ? error.retryCount + 1
-    : 1
+  const currentAttempt = error instanceof AlovaRequestError ? error.retryCount + 1 : 1
 
   // 检查是否超过最大重试次数
   if (currentAttempt > maxRetries) {

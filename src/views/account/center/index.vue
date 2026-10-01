@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-
 import { computed, inject, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/modules/user'
-import { cn } from '@/utils/cn'
+
+import { useUserStore } from '~/stores/modules/user'
+import { cn } from '~/utils/cn'
 
 const userStore = useUserStore()
 const router = useRouter()
@@ -46,18 +46,36 @@ const securityInfo = {
   passwordStrength: 85,
   twoFactorEnabled: true,
   loginDevices: [
-    { device: 'MacBook Pro - Chrome', location: 'Shanghai, CN', time: '当前会话', icon: 'carbon:laptop' },
-    { device: 'iPhone 15 Pro - Safari', location: 'Shanghai, CN', time: '2小时前', icon: 'carbon:phone' },
+    {
+      device: 'MacBook Pro - Chrome',
+      location: 'Shanghai, CN',
+      time: '当前会话',
+      icon: 'carbon:laptop',
+    },
+    {
+      device: 'iPhone 15 Pro - Safari',
+      location: 'Shanghai, CN',
+      time: '2小时前',
+      icon: 'carbon:phone',
+    },
     { device: 'Windows PC - Edge', location: 'Beijing, CN', time: '3天前', icon: 'carbon:desktop' },
   ],
 }
 
 const activityLogs = [
   { action: '登录成功', time: '2026-05-21 09:30:00', color: 'text-green-600 dark:text-green-400' },
-  { action: '更新个人资料', time: '2026-05-20 14:22:00', color: 'text-blue-600 dark:text-blue-400' },
+  {
+    action: '更新个人资料',
+    time: '2026-05-20 14:22:00',
+    color: 'text-blue-600 dark:text-blue-400',
+  },
   { action: '修改密码', time: '2026-05-18 11:05:00', color: 'text-amber-600 dark:text-amber-400' },
   { action: '登录成功', time: '2026-05-18 09:15:00', color: 'text-green-600 dark:text-green-400' },
-  { action: '导出报告数据', time: '2026-05-17 16:45:00', color: 'text-purple-600 dark:text-purple-400' },
+  {
+    action: '导出报告数据',
+    time: '2026-05-17 16:45:00',
+    color: 'text-purple-600 dark:text-purple-400',
+  },
 ]
 
 const userCardClassName = computed(() =>
@@ -74,9 +92,7 @@ const avatarWrapperClassName = cn(
 
 const avatarImgClassName = cn('w-full h-full object-cover')
 
-const statItemClassName = cn(
-  'flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400',
-)
+const statItemClassName = cn('flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400')
 
 const securityHeaderClassName = cn('flex items-center justify-between')
 
@@ -101,7 +117,12 @@ const permissionTagClassName = cn('mr-1 mb-1')
 
 const hasAvatar = computed(() => {
   const info = userStore.userInfo
-  return info !== null && typeof info === 'object' && typeof (info as any).avatar === 'string' && (info as any).avatar.length > 0
+  return (
+    info !== null &&
+    typeof info === 'object' &&
+    typeof (info as any).avatar === 'string' &&
+    (info as any).avatar.length > 0
+  )
 })
 
 function getActivityColorClass(color: string) {
@@ -123,14 +144,12 @@ function handleSwipeStart(e: MouseEvent, deviceId: string) {
 }
 
 function handleGlobalMouseMove(e: MouseEvent) {
-  if (draggingDeviceId.value === null)
-    return
+  if (draggingDeviceId.value === null) return
   const delta = e.clientX - swipeStartX.value
   if (delta > 20) {
     swipedDeviceId.value = draggingDeviceId.value!
     swipeCurrentX.value = Math.min(delta, 120)
-  }
-  else {
+  } else {
     swipedDeviceId.value = null
     swipeCurrentX.value = 0
   }
@@ -155,9 +174,8 @@ function handleDeleteDevice(device: LoginDevice) {
       cancelText: '取消',
       centered: true,
       onOk: () => {
-        const idx = securityInfo.loginDevices.findIndex(d => d.device === device.device)
-        if (idx > -1)
-          securityInfo.loginDevices.splice(idx, 1)
+        const idx = securityInfo.loginDevices.findIndex((d) => d.device === device.device)
+        if (idx > -1) securityInfo.loginDevices.splice(idx, 1)
         swipedDeviceId.value = null
         userStore.logout()
         router.push('/login')
@@ -177,7 +195,7 @@ function handleDeleteDevice(device: LoginDevice) {
     cancelText: '取消',
     centered: true,
     onOk: () => {
-      const idx = securityInfo.loginDevices.findIndex(d => d.device === device.device)
+      const idx = securityInfo.loginDevices.findIndex((d) => d.device === device.device)
       if (idx > -1) {
         securityInfo.loginDevices.splice(idx, 1)
         message.success(`已移除设备：${device.device}`)
@@ -193,29 +211,18 @@ function handleDeleteDevice(device: LoginDevice) {
 
 <template>
   <div :class="containerClassName">
-    <a-card
-      variant="borderless"
-      :class="userCardClassName"
-    >
+    <a-card variant="borderless" :class="userCardClassName">
       <div class="flex items-start gap-6">
         <div :class="avatarWrapperClassName">
           <template v-if="hasAvatar">
-            <img
-              :src="userStore.avatar"
-              :alt="userStore.nickname"
-              :class="avatarImgClassName"
-            >
+            <img :src="userStore.avatar" :alt="userStore.nickname" :class="avatarImgClassName" />
           </template>
           <template v-else>
-            <Icon
-              icon="carbon:user-avatar-filled"
-              width="42"
-              height="42"
-            />
+            <Icon icon="carbon:user-avatar-filled" width="42" height="42" />
           </template>
         </div>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-3 mb-2">
+        <div class="min-w-0 flex-1">
+          <div class="mb-2 flex items-center gap-3">
             <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
               {{ userStore.nickname || userStore.username }}
             </h1>
@@ -223,58 +230,34 @@ function handleDeleteDevice(device: LoginDevice) {
               {{ displayRole }}
             </a-tag>
           </div>
-          <div class="flex items-center gap-6 mb-3">
+          <div class="mb-3 flex items-center gap-6">
             <span :class="statItemClassName">
-              <Icon
-                icon="carbon:building"
-                width="16"
-                height="16"
-              />
+              <Icon icon="carbon:building" width="16" height="16" />
               技术研发部
             </span>
             <span :class="statItemClassName">
-              <Icon
-                icon="carbon:email"
-                width="16"
-                height="16"
-              />
+              <Icon icon="carbon:email" width="16" height="16" />
               {{ userStore.email }}
             </span>
             <span :class="statItemClassName">
-              <Icon
-                icon="carbon:phone"
-                width="16"
-                height="16"
-              />
+              <Icon icon="carbon:phone" width="16" height="16" />
               {{ userStore.phone }}
             </span>
           </div>
         </div>
         <div class="flex-shrink-0">
           <a-space>
-            <a-button type="primary">
-              编辑资料
-            </a-button>
+            <a-button type="primary"> 编辑资料 </a-button>
             <a-button>分享</a-button>
           </a-space>
         </div>
       </div>
     </a-card>
 
-    <a-card
-      variant="borderless"
-      :class="cardClassName"
-    >
+    <a-card variant="borderless" :class="cardClassName">
       <a-tabs v-model:active-key="activeTab">
-        <a-tab-pane
-          key="basic"
-          tab="基本信息"
-        >
-          <a-descriptions
-            :column="2"
-            bordered
-            size="middle"
-          >
+        <a-tab-pane key="basic" tab="基本信息">
+          <a-descriptions :column="2" bordered size="middle">
             <a-descriptions-item label="用户名">
               {{ userStore.username }}
             </a-descriptions-item>
@@ -287,37 +270,14 @@ function handleDeleteDevice(device: LoginDevice) {
             <a-descriptions-item label="手机号">
               {{ userStore.phone }}
             </a-descriptions-item>
-            <a-descriptions-item
-              label="性别"
-              :span="2"
-            >
-              未设置
-            </a-descriptions-item>
-            <a-descriptions-item
-              label="生日"
-              :span="2"
-            >
-              未设置
-            </a-descriptions-item>
-            <a-descriptions-item
-              label="地址"
-              :span="2"
-            >
-              未设置
-            </a-descriptions-item>
-            <a-descriptions-item
-              label="个人简介"
-              :span="2"
-            >
-              未设置
-            </a-descriptions-item>
+            <a-descriptions-item label="性别" :span="2"> 未设置 </a-descriptions-item>
+            <a-descriptions-item label="生日" :span="2"> 未设置 </a-descriptions-item>
+            <a-descriptions-item label="地址" :span="2"> 未设置 </a-descriptions-item>
+            <a-descriptions-item label="个人简介" :span="2"> 未设置 </a-descriptions-item>
           </a-descriptions>
         </a-tab-pane>
 
-        <a-tab-pane
-          key="security"
-          tab="安全设置"
-        >
+        <a-tab-pane key="security" tab="安全设置">
           <div class="space-y-6">
             <div class="space-y-2">
               <div :class="securityHeaderClassName">
@@ -325,17 +285,9 @@ function handleDeleteDevice(device: LoginDevice) {
                 <span class="text-sm text-green-600 dark:text-green-400">{{ securityInfo.passwordStrength }}%</span>
               </div>
               <div :class="passwordStrengthBarClassName">
-                <div
-                  :class="passwordStrengthFillClassName"
-                  :style="{ width: `${securityInfo.passwordStrength}%` }"
-                />
+                <div :class="passwordStrengthFillClassName" :style="{ width: `${securityInfo.passwordStrength}%` }" />
               </div>
-              <a-button
-                size="small"
-                @click="switchAccountTab?.('settings')"
-              >
-                前往修改
-              </a-button>
+              <a-button size="small" @click="switchAccountTab?.('settings')"> 前往修改 </a-button>
             </div>
 
             <a-divider />
@@ -344,17 +296,11 @@ function handleDeleteDevice(device: LoginDevice) {
               <div :class="securityHeaderClassName">
                 <span class="font-medium text-gray-700 dark:text-gray-300">双因素认证</span>
                 <span :class="twoFactorBadgeClassName">
-                  <Icon
-                    icon="carbon:checkmark-filled"
-                    width="14"
-                    height="14"
-                  />
+                  <Icon icon="carbon:checkmark-filled" width="14" height="14" />
                   已启用
                 </span>
               </div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                您的账户已受双因素认证保护。
-              </p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">您的账户已受双因素认证保护。</p>
             </div>
 
             <a-divider />
@@ -365,21 +311,24 @@ function handleDeleteDevice(device: LoginDevice) {
                 v-for="device in securityInfo.loginDevices"
                 :key="device.device"
                 class="relative overflow-hidden rounded-lg select-none"
-                :class="{ 'cursor-grabbing': draggingDeviceId === device.device, 'cursor-grab': !draggingDeviceId }"
+                :class="{
+                  'cursor-grabbing': draggingDeviceId === device.device,
+                  'cursor-grab': !draggingDeviceId,
+                }"
                 @mousedown="(e: MouseEvent) => handleSwipeStart(e, device.device)"
               >
                 <div
-                  class="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-gray-800 transition-transform duration-200"
+                  class="flex items-center justify-between rounded-lg border border-gray-100 p-3 transition-transform duration-200 dark:border-gray-800"
                   :class="{ 'translate-x-[-80px]': swipedDeviceId === device.device }"
-                  :style="{ transform: swipedDeviceId === device.device ? `translateX(-${swipeCurrentX.value}px)` : undefined }"
+                  :style="{
+                    transform: swipedDeviceId === device.device ? `translateX(-${swipeCurrentX.value}px)` : undefined,
+                  }"
                 >
                   <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500">
-                      <Icon
-                        :icon="device.icon"
-                        width="20"
-                        height="20"
-                      />
+                    <div
+                      class="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-500 dark:bg-gray-800"
+                    >
+                      <Icon :icon="device.icon" width="20" height="20" />
                     </div>
                     <div>
                       <p class="font-medium text-gray-800 dark:text-gray-200">
@@ -390,20 +339,16 @@ function handleDeleteDevice(device: LoginDevice) {
                       </p>
                     </div>
                   </div>
-                  <span class="text-xs text-gray-400 shrink-0">{{ device.time }}</span>
+                  <span class="shrink-0 text-xs text-gray-400">{{ device.time }}</span>
                 </div>
                 <!-- 右滑显示的删除按钮 -->
                 <div
                   v-if="swipedDeviceId === device.device"
-                  class="absolute right-0 top-0 bottom-0 w-20 flex items-center justify-center bg-red-500 rounded-r-lg cursor-pointer transition-opacity duration-150"
+                  class="absolute top-0 right-0 bottom-0 flex w-20 cursor-pointer items-center justify-center rounded-r-lg bg-red-500 transition-opacity duration-150"
                   @click.stop="handleDeleteDevice(device)"
                 >
                   <div class="flex flex-col items-center gap-0.5 text-white">
-                    <Icon
-                      icon="ant-design:delete-outlined"
-                      width="18"
-                      height="18"
-                    />
+                    <Icon icon="ant-design:delete-outlined" width="18" height="18" />
                     <span class="text-xs">删除</span>
                   </div>
                 </div>
@@ -412,23 +357,17 @@ function handleDeleteDevice(device: LoginDevice) {
           </div>
         </a-tab-pane>
 
-        <a-tab-pane
-          key="activity"
-          tab="活动日志"
-        >
+        <a-tab-pane key="activity" tab="活动日志">
           <a-timeline>
-            <a-timeline-item
-              v-for="log in activityLogs"
-              :key="log.time"
-            >
+            <a-timeline-item v-for="log in activityLogs" :key="log.time">
               <template #dot>
-                <div class="w-2.5 h-2.5 rounded-full bg-blue-500 ring-4 ring-blue-100 dark:ring-blue-900/30" />
+                <div class="h-2.5 w-2.5 rounded-full bg-blue-500 ring-4 ring-blue-100 dark:ring-blue-900/30" />
               </template>
               <div class="ml-1">
                 <p :class="getActivityColorClass(log.color)">
                   {{ log.action }}
                 </p>
-                <p class="text-xs text-gray-400 mt-0.5">
+                <p class="mt-0.5 text-xs text-gray-400">
                   {{ log.time }}
                 </p>
               </div>
@@ -436,10 +375,7 @@ function handleDeleteDevice(device: LoginDevice) {
           </a-timeline>
         </a-tab-pane>
 
-        <a-tab-pane
-          key="team"
-          tab="团队信息"
-        >
+        <a-tab-pane key="team" tab="团队信息">
           <div class="space-y-4">
             <div :class="teamInfoItemClassName">
               <span :class="teamInfoLabelClassName">角色</span>

@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { getDictList } from '@/api/system'
-import { CacheKey } from '@/enums/cache'
-import { localStorageCacheStorage } from '@/utils/cache'
+
+import { getDictList } from '~/api/system'
+import { CacheKey } from '~/enums/cache'
+import { localStorageCacheStorage } from '~/utils/cache'
 
 /** 单个字典项 */
 export interface DictItem {
@@ -32,15 +33,12 @@ interface StoredDictData {
 function loadFromStorage(): Record<string, DictItem[]> {
   try {
     const raw = localStorageCacheStorage.getItem(CacheKey.DICT_DATA)
-    if (!raw)
-      return {}
+    if (!raw) return {}
     const data: StoredDictData = JSON.parse(raw)
     // 数据超过1小时视为过期
-    if (Date.now() - data.loadedAt > 3600 * 1000)
-      return {}
+    if (Date.now() - data.loadedAt > 3600 * 1000) return {}
     return data.dicts
-  }
-  catch {
+  } catch {
     return {}
   }
 }
@@ -49,8 +47,7 @@ function saveToStorage(dicts: Record<string, DictItem[]>) {
   try {
     const data: StoredDictData = { dicts, loadedAt: Date.now() }
     localStorageCacheStorage.setItem(CacheKey.DICT_DATA, JSON.stringify(data))
-  }
-  catch {
+  } catch {
     // 静默失败
   }
 }
@@ -66,8 +63,7 @@ export const useDictStore = defineStore('dict', () => {
    * 从服务端获取所有字典数据并缓存到内存和 localStorage
    */
   async function fetchAllDicts() {
-    if (loading.value)
-      return
+    if (loading.value) return
     loading.value = true
     try {
       const res = await getDictList({})
@@ -77,19 +73,15 @@ export const useDictStore = defineStore('dict', () => {
       const map: Record<string, DictItem[]> = {}
       for (const dict of list) {
         if (dict.status === 1 && dict.items) {
-          map[dict.typeCode] = dict.items
-            .filter(item => item.status === 1)
-            .sort((a, b) => a.sort - b.sort)
+          map[dict.typeCode] = dict.items.filter((item) => item.status === 1).sort((a, b) => a.sort - b.sort)
         }
       }
 
       dictMap.value = map
       saveToStorage(map)
-    }
-    catch (e) {
+    } catch (e) {
       console.error('[Dict] 加载字典数据失败', e)
-    }
-    finally {
+    } finally {
       loading.value = false
     }
   }
@@ -99,9 +91,9 @@ export const useDictStore = defineStore('dict', () => {
    * @param typeCode 字典编码，如 'sys_user_sex'
    * @returns 下拉选项数组，格式为 [{ label, value }, ...]
    */
-  function getOptions(typeCode: string): { label: string, value: string | number }[] {
+  function getOptions(typeCode: string): { label: string; value: string | number }[] {
     const items = dictMap.value[typeCode] || []
-    return items.map(item => ({
+    return items.map((item) => ({
       label: item.dictLabel,
       value: item.dictValue,
     }))
@@ -115,9 +107,7 @@ export const useDictStore = defineStore('dict', () => {
    */
   function getLabel(typeCode: string, value: string | number): string {
     const items = dictMap.value[typeCode] || []
-    const found = items.find(item =>
-      String(item.dictValue) === String(value),
-    )
+    const found = items.find((item) => String(item.dictValue) === String(value))
     return found?.dictLabel ?? String(value)
   }
 

@@ -1,227 +1,190 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { Icon, loadIcons } from '@iconify/vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { cn } from '@/utils/cn'
-
-interface CollectionInfo {
-  prefix: string
-  name: string
-  total: number
-}
 
 interface Props {
-  modelValue?: string
   currentIcon?: string
   placeholder?: string
   disabled?: boolean
   size?: 'small' | 'middle' | 'large'
   allowClear?: boolean
-  defaultPrefix?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  modelValue: '',
   currentIcon: '',
-  placeholder: '选择一个图标',
+  placeholder: '选择图标',
   disabled: false,
   size: 'middle',
   allowClear: true,
-  defaultPrefix: 'carbon',
 })
 
+/** v-model 简化：直接读写，无需手动 emit update:modelValue */
+const modelValue = defineModel<string>({ default: '' })
+
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
-  'change': [value: string]
-  'select': [value: string]
+  change: [value: string]
+  select: [value: string]
 }>()
 
-// 图标集合信息（延迟加载）
-interface IconData { icons: Record<string, { body: string }> }
-let COLLECTION_MAP: Record<string, IconData> | null = null
-let COLLECTIONS: CollectionInfo[] = []
-let iconsLoaded = false
+const PAGE_SIZE = 108
+const SCROLLER_HEIGHT = 360
 
-/** 每行显示的图标数 */
-const GRID_COLS = 8
-/** 图标容器高度 */
-const CONTAINER_HEIGHT = 440
-/** 默认每页数量 */
-const DEFAULT_PAGE_SIZE = 80
+type Prefix = 'lucide' | 'mdi' | 'ant-design' | 'fa6-regular' | 'carbon'
+
+interface CollectionMeta {
+  prefix: Prefix
+  name: string
+  /** 说明性描述，仅显示在 select option 里 */
+  hint: string
+}
+
+const COLLECTIONS: CollectionMeta[] = [
+  { prefix: 'lucide', name: 'Lucide', hint: '通用线性' },
+  { prefix: 'mdi', name: 'Material Design', hint: 'Material' },
+  { prefix: 'ant-design', name: 'Ant Design', hint: 'Antd' },
+  { prefix: 'fa6-regular', name: 'Font Awesome', hint: 'FA Regular' },
+  { prefix: 'carbon', name: 'Carbon', hint: 'Carbon Icons' },
+]
+
+/**
+ * 图标集 lazily loader
+ * - 每个 icons.json 会被 Vite 打包成独立的 chunk
+ * - 只在切换到该分类时加载，不切就不下载
+ */
+const COLLECTION_LOADERS: Record<Prefix, () => Promise<{ default: { icons: Record<string, unknown> } }>> = {
+  lucide: () => import('@iconify-json/lucide/icons.json') as any,
+  mdi: () => import('@iconify-json/mdi/icons.json') as any,
+  'ant-design': () => import('@iconify-json/ant-design/icons.json') as any,
+  'fa6-regular': () => import('@iconify-json/fa6-regular/icons.json') as any,
+  carbon: () => import('@iconify-json/carbon/icons.json') as any,
+}
 
 const visible = ref(false)
 const searchValue = ref('')
-const allIcons = ref<string[]>([])
-const filteredIcons = ref<string[]>([])
-const selectedPrefix = ref('all')
-/** 当前页码 */
+const selectedPrefix = ref<Prefix>('lucide')
 const currentPage = ref(1)
-/** 每页条数 */
-const pageSize = ref(DEFAULT_PAGE_SIZE)
 const loading = ref(false)
 
-const selectedIcon = computed(() => props.modelValue || props.currentIcon)
+/** 已加载的图标名（按 prefix 分组缓存） */
+const iconNamesMap = ref<Record<string, string[]>>({})
+const loadingPrefixes = new Set<Prefix>()
+
+const selectedIcon = computed(() => modelValue.value || props.currentIcon)
 
 /**
- * 懒加载图标数据 - 只在首次打开时加载
- * 避免将 7MB+ 的图标数据打包进主 bundle
+ * 加载某个分类的图标名列表
+ * - 已加载过则直接返回
+ * - 加载中不重复请求
  */
-async function loadIcons() {
-  if (iconsLoaded)
-    return
-
-  loading.value = true
+async function loadCollection(prefix: Prefix): Promise<void> {
+  if (iconNamesMap.value[prefix] || loadingPrefixes.has(prefix)) return
+  loadingPrefixes.add(prefix)
   try {
-    // 动态导入三个图标集（会被打包到单独的 vendor-icons chunk）
-    const [carbonIcons, phIcons, tablerIcons] = await Promise.all([
-      import('@iconify/json/json/carbon.json'),
-      import('@iconify/json/json/ph.json'),
-      import('@iconify/json/json/tabler.json'),
-    ])
+    const mod = await COLLECTION_LOADERS[prefix]()
+    const icons = mod.default?.icons ?? {}
+    const names = Object.keys(icons)
+    iconNamesMap.value = { ...iconNamesMap.value, [prefix]: names }
+  } catch (e) {
+    console.error(`[IconPicker] 加载图标集 "${prefix}" 失败:`, e)
+    iconNamesMap.value = { ...iconNamesMap.value, [prefix]: [] }
+  } finally {
+    loadingPrefixes.delete(prefix)
+  }
+}
 
-    COLLECTION_MAP = {
-      carbon: carbonIcons.default,
-      ph: phIcons.default,
-      tabler: tablerIcons.default,
+/**
+ * 当前分类下的图标列表（含搜索过滤）
+ * 搜索只在当前分类内进行，不跨分类
+ */
+const currentIcons = computed(() => {
+  const names = iconNamesMap.value[selectedPrefix.value] ?? []
+  const q = searchValue.value.trim().toLowerCase()
+  const filtered = q ? names.filter((n) => n.toLowerCase().includes(q)) : names
+  return filtered.map((n) => `${selectedPrefix.value}:${n}`)
+})
+
+const pagedIcons = computed(() => {
+  const start = (currentPage.value - 1) * PAGE_SIZE
+  return currentIcons.value.slice(start, start + PAGE_SIZE)
+})
+
+const totalCount = computed(() => currentIcons.value.length)
+
+/**
+ * 预加载当前页图标的 SVG（Iconify 内部有缓存，翻页不会重复请求）
+ * 用 50ms 防抖，避免快速翻页时对每一页都发请求
+ */
+let preloadTimer: ReturnType<typeof setTimeout> | null = null
+function schedulePreload(icons: string[]) {
+  if (preloadTimer) clearTimeout(preloadTimer)
+  preloadTimer = setTimeout(() => {
+    if (icons.length) {
+      loadIcons(icons)
     }
+  }, 50)
+}
 
-    COLLECTIONS = [
-      { prefix: 'carbon', name: 'Carbon', total: Object.keys(carbonIcons.default.icons).length },
-      { prefix: 'ph', name: 'Phosphor', total: Object.keys(phIcons.default.icons).length },
-      { prefix: 'tabler', name: 'Tabler', total: Object.keys(tablerIcons.default.icons).length },
-    ]
+watch(pagedIcons, (icons) => schedulePreload(icons))
 
-    iconsLoaded = true
-    loadAllFromLocal()
-  }
-  catch (error) {
-    console.error('Failed to load icon collections:', error)
-  }
-  finally {
+// 切换分类：重置搜索/页码，并加载该分类
+watch(selectedPrefix, async (prefix) => {
+  searchValue.value = ''
+  currentPage.value = 1
+  if (!iconNamesMap.value[prefix]) {
+    loading.value = true
+    await loadCollection(prefix)
     loading.value = false
   }
-}
-
-function loadAllFromLocal() {
-  if (!COLLECTION_MAP)
-    return
-
-  const icons: string[] = []
-  for (const col of COLLECTIONS) {
-    const data = COLLECTION_MAP[col.prefix]
-    if (data) {
-      const names = Object.keys(data.icons)
-      col.total = names.length
-      icons.push(...names.map(name => `${col.prefix}:${name}`))
-    }
-  }
-  allIcons.value = icons
-}
-
-/** 当前页的图标数据（扁平数组，由整体 grid 布局自动换行） */
-const pagedIcons = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredIcons.value.slice(start, end)
 })
 
-/** 总条数 */
-const totalCount = computed(() => filteredIcons.value.length)
-
-const segmentOptions = computed(() => {
-  const options: { label: string, value: string }[] = [
-    { label: '全部', value: 'all' },
-  ]
-  for (const col of COLLECTIONS) {
-    options.push({ label: `${col.name} `, value: col.prefix })
-  }
-  return options
-})
-
-function applyFilter() {
-  // 切换分类或搜索时重置到第一页
+// 搜索时回到第 1 页
+watch(searchValue, () => {
   currentPage.value = 1
-  let source = allIcons.value
+})
 
-  if (selectedPrefix.value !== 'all') {
-    source = source.filter(icon => icon.startsWith(`${selectedPrefix.value}:`))
+// 首次打开时加载默认分类
+watch(visible, async (val) => {
+  if (!val) return
+  const prefix = selectedPrefix.value
+  if (!iconNamesMap.value[prefix]) {
+    loading.value = true
+    await loadCollection(prefix)
+    loading.value = false
   }
+})
 
-  const query = searchValue.value.trim().toLowerCase()
-  if (query) {
-    source = source.filter((icon) => {
-      const [, name] = icon.split(':')
-      return name.toLowerCase().includes(query)
-    })
-  }
+onBeforeUnmount(() => {
+  if (preloadTimer) clearTimeout(preloadTimer)
+})
 
-  filteredIcons.value = source
-}
-
-function handleSelectIcon(icon: string) {
-  emit('update:modelValue', icon)
+function handleSelect(icon: string) {
+  modelValue.value = icon
   emit('change', icon)
   emit('select', icon)
   visible.value = false
 }
 
-function handleClear() {
-  emit('update:modelValue', '')
+function handleClear(e: MouseEvent) {
+  e.stopPropagation()
+  modelValue.value = ''
   emit('change', '')
 }
 
-function handleSegmentChange(value: string) {
-  selectedPrefix.value = value
-  searchValue.value = ''
-  applyFilter()
+function iconBtnClass(icon: string) {
+  const isActive = selectedIcon.value === icon
+  return [
+    'flex items-center justify-center w-9 h-9 rounded-md',
+    'transition-colors duration-100 cursor-pointer',
+    isActive
+      ? 'bg-blue-500 text-white hover:bg-blue-500'
+      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white',
+  ]
 }
 
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
-
-watch(searchValue, () => {
-  if (searchTimeout)
-    clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => {
-    applyFilter()
-  }, 200)
-})
-
-// 首次打开时懒加载图标数据
-watch(visible, async (val) => {
-  if (val && allIcons.value.length === 0) {
-    await loadIcons()
-    applyFilter()
-  }
-})
-
-onBeforeUnmount(() => {
-  if (searchTimeout)
-    clearTimeout(searchTimeout)
-})
-
-function iconItemClassName(icon: string) {
-  return cn(
-    'flex items-center justify-center',
-    'w-14 h-14 rounded-lg',
-    'border border-gray-200 dark:border-gray-700',
-    'hover:bg-blue-50 hover:border-blue-400 dark:hover:bg-blue-900/30 dark:hover:border-blue-500',
-    'cursor-pointer transition-all duration-150',
-    'hover:scale-110 active:scale-95',
-    {
-      'bg-blue-50 border-blue-500 dark:bg-blue-900/30 dark:border-blue-500':
-        selectedIcon.value === icon,
-    },
-  )
-}
-
-const inputClassName = cn('cursor-pointer')
-const popoverContentClassName = cn('w-[640px]')
-const gridRowClassName = cn('grid grid-cols-8 gap-2 p-1')
-const scrollerContainerClassName = cn('mt-3 ')
-const countClassName = cn('text-xs text-gray-500 dark:text-gray-400')
-const paginationWrapperClassName = cn(
-  'flex items-center justify-between pt-3 mt-3',
-  'border-t border-gray-200 dark:border-gray-700',
-)
+const prefixOptions = COLLECTIONS.map((c) => ({
+  label: c.name,
+  value: c.prefix,
+}))
 </script>
 
 <template>
@@ -231,131 +194,87 @@ const paginationWrapperClassName = cn(
     placement="bottomLeft"
     :disabled="props.disabled"
     overlay-class-name="icon-picker-popover"
-    :get-popup-container="() => document?.body || undefined"
   >
     <template #content>
-      <div :class="popoverContentClassName">
-        <a-segmented
-          v-model:value="selectedPrefix"
-          :options="segmentOptions"
-          block
-          class="mb-6"
-          @change="(val: any) => handleSegmentChange(val)"
-        />
-
-        <div class="my-4">
+      <div class="w-[560px]">
+        <!-- 工具栏：分类下拉 + 搜索，同一行更紧凑 -->
+        <div class="mb-3 flex items-center gap-2">
+          <a-select v-model:value="selectedPrefix" :options="prefixOptions" size="small" style="width: 150px" />
           <a-input
             v-model:value="searchValue"
-            placeholder="搜索图标..."
+            :placeholder="`在 ${COLLECTIONS.find((c) => c.prefix === selectedPrefix)?.name ?? ''} 中搜索...`"
             allow-clear
+            size="small"
+            class="flex-1"
           >
             <template #prefix>
-              <Icon
-                icon="carbon:search"
-                :width="14"
-              />
+              <Icon icon="lucide:search" :width="13" class="text-gray-400" />
             </template>
           </a-input>
         </div>
 
-        <div
-          v-if="filteredIcons.length === 0 && !loading"
-          class="py-10"
-        >
-          <a-empty description="暂无图标" />
+        <!-- 图标网格：固定高度 + 原生滚动 -->
+        <div class="overflow-x-hidden overflow-y-auto pr-1" :style="{ height: `${SCROLLER_HEIGHT}px` }">
+          <div v-if="loading" class="flex h-full items-center justify-center">
+            <a-spin size="large" />
+          </div>
+
+          <a-empty
+            v-else-if="currentIcons.length === 0"
+            :description="searchValue ? '没有匹配的图标' : '暂无图标'"
+            class="pt-24"
+          />
+
+          <div v-else class="grid grid-cols-12 gap-1">
+            <a-tooltip v-for="icon in pagedIcons" :key="icon" :title="icon" placement="top" :mouse-enter-delay="0.3">
+              <button type="button" :class="iconBtnClass(icon)" @click="handleSelect(icon)">
+                <Icon :icon="icon" :width="18" />
+              </button>
+            </a-tooltip>
+          </div>
         </div>
 
-        <!-- 加载状态 -->
+        <!-- 底部分页：仅超过一页时显示 -->
         <div
-          v-else-if="loading"
-          class="py-10 flex justify-center"
+          v-if="totalCount > PAGE_SIZE"
+          class="mt-3 flex items-center justify-between border-t border-gray-200 pt-3 dark:border-gray-700"
         >
-          <a-spin size="large" />
-        </div>
-
-        <div
-          v-else
-          :class="scrollerContainerClassName"
-        >
-          <PerfectScrollbar
-            :options="{ wheelPropagation: true, suppressScrollX: true }"
-            :style="{ height: `${CONTAINER_HEIGHT}px` }"
-          >
-            <!-- 整体 grid 容器，CSS Grid 自动换行 -->
-            <div :class="gridRowClassName">
-              <a-tooltip
-                v-for="icon in pagedIcons"
-                :key="icon"
-                :title="icon"
-                placement="top"
-                :auto-adjust="false"
-              >
-                <div
-                  :class="iconItemClassName(icon)"
-                  @click="handleSelectIcon(icon)"
-                >
-                  <Icon
-                    :icon="icon"
-                    :width="20"
-                  />
-                </div>
-              </a-tooltip>
-            </div>
-          </PerfectScrollbar>
-        </div>
-
-        <!-- 使用 Antdv Next 分页组件 -->
-        <div
-          v-if="totalCount > 0"
-          :class="paginationWrapperClassName"
-        >
-          <span :class="countClassName">共 {{ totalCount }} 个图标</span>
+          <span class="text-xs text-gray-400">{{ totalCount }} 个图标</span>
           <a-pagination
             v-model:current="currentPage"
-            v-model:page-size="pageSize"
             :total="totalCount"
+            :page-size="PAGE_SIZE"
             size="small"
-            :show-total="(total: number) => ''"
-            :show-size-changer="true"
-            :page-size-options="[50,
-                                 80,
-                                 100,
-                                 200]"
-            :show-quick-jumper="true"
             simple
+            :show-size-changer="false"
           />
         </div>
       </div>
     </template>
 
-    <div :class="inputClassName">
-      <a-input
-        :value="selectedIcon"
-        :placeholder="props.placeholder"
-        :disabled="props.disabled"
-        :size="props.size"
-        readonly
-        :allow-clear="props.allowClear && !!selectedIcon"
-        @clear="handleClear"
-      >
-        <template
-          v-if="selectedIcon"
-          #prefix
-        >
-          <Icon
-            :icon="selectedIcon"
-            :width="16"
-          />
-        </template>
-        <template #suffix>
-          <Icon
-            icon="carbon:chevron-down"
-            :width="14"
-            class="text-gray-400"
-          />
-        </template>
-      </a-input>
-    </div>
+    <!-- 触发输入框 -->
+    <a-input
+      :value="selectedIcon"
+      :placeholder="props.placeholder"
+      :disabled="props.disabled"
+      :size="props.size"
+      readonly
+      class="cursor-pointer"
+    >
+      <template v-if="selectedIcon" #prefix>
+        <Icon :icon="selectedIcon" :width="16" />
+      </template>
+      <template #suffix>
+        <Icon
+          v-if="props.allowClear && selectedIcon"
+          icon="lucide:x"
+          :width="14"
+          class="cursor-pointer text-gray-400 transition-colors hover:text-gray-600"
+          @click="handleClear"
+        />
+        <Icon v-else icon="lucide:chevron-down" :width="14" class="text-gray-400" />
+      </template>
+    </a-input>
   </a-popover>
 </template>
 

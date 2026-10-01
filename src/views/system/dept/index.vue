@@ -1,21 +1,17 @@
 <script setup lang="ts">
-import type { FormSchema } from '@/components/business/Form'
-import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
-
 import { computed, onMounted, ref, useTemplateRef } from 'vue'
-import {
-  addDept,
-  deleteDept,
-  getDeptTree,
-  updateDept,
-} from '@/api/system'
-import { BasicForm, useForm } from '@/components/business/Form'
-import { BasicModal, useModal } from '@/components/business/Modal'
-import { BasicTable, useTable } from '@/components/business/Table'
-import { DictType } from '@/enums/dict'
-import { useDictStore } from '@/stores'
-import { cn } from '@/utils/cn'
+
+import type { FormSchema } from '~/components/business/Form'
+import type { BasicColumn } from '~/components/business/Table'
+
+import { addDept, deleteDept, getDeptTree, updateDept } from '~/api/system'
+import { BasicForm, useForm } from '~/components/business/Form'
+import { BasicModal, useModal } from '~/components/business/Modal'
+import { BasicTable, useTable } from '~/components/business/Table'
+import { DictType } from '~/enums/dict'
+import { useDictStore } from '~/stores'
+import { cn } from '~/utils/cn'
 
 defineOptions({ name: 'SystemDept' })
 
@@ -89,8 +85,7 @@ async function initDeptTree() {
     const data = Array.isArray(res) ? res : (res?.data ?? res ?? [])
     allData.value = data
     deptTreeData.value = data.map(convertToTreeNode)
-  }
-  catch (e) {
+  } catch (e) {
     console.error('获取部门树失败', e)
   }
 }
@@ -105,8 +100,7 @@ function flattenDepts(nodes: DeptRecord[]): DeptRecord[] {
   function walk(items: DeptRecord[]) {
     for (const item of items) {
       result.push(item)
-      if (item.children && item.children.length > 0)
-        walk(item.children)
+      if (item.children && item.children.length > 0) walk(item.children)
     }
   }
   walk(nodes)
@@ -117,9 +111,8 @@ const flatAllDepts = computed(() => flattenDepts(allData.value))
 
 // 获取选中部门的直接子部门（保持树形结构）
 function getChildrenOnly(deptId: number): DeptRecord[] {
-  const target = flatAllDepts.value.find(d => d.id === deptId)
-  if (!target || !target.children || target.children.length === 0)
-    return []
+  const target = flatAllDepts.value.find((d) => d.id === deptId)
+  if (!target || !target.children || target.children.length === 0) return []
   return target.children
 }
 
@@ -238,7 +231,7 @@ const modalFormSchemas: FormSchema[] = [
 async function mockApi(params: Record<string, any>) {
   const { keyword } = params
   // 获取选中部门的直接子部门（保持树形结构）
-  const target = flatAllDepts.value.find(d => d.id === selectedDeptId.value)
+  const target = flatAllDepts.value.find((d) => d.id === selectedDeptId.value)
   let items = target?.children || []
 
   if (keyword) {
@@ -248,8 +241,7 @@ async function mockApi(params: Record<string, any>) {
       return nodes.reduce((acc, node) => {
         if (node.name.toLowerCase().includes(kw)) {
           acc.push(node)
-        }
-        else if (node.children?.length) {
+        } else if (node.children?.length) {
           const filtered = filterTree(node.children)
           if (filtered.length > 0) {
             acc.push({ ...node, children: filtered })
@@ -330,8 +322,7 @@ async function handleDelete(record: DeptRecord) {
     const data = Array.isArray(res) ? res : (res?.data ?? res ?? [])
     allData.value = data
     tableMethods.value?.reload()
-  }
-  catch (e: any) {
+  } catch (e: any) {
     message.error(e?.message || '删除失败')
   }
 }
@@ -339,18 +330,16 @@ async function handleDelete(record: DeptRecord) {
 function handleToggleExpand() {
   isAllExpanded.value = !isAllExpanded.value
   if (isAllExpanded.value) {
-    const allIds = flatAllDepts.value.map(d => d.id)
+    const allIds = flatAllDepts.value.map((d) => d.id)
     treeExpandedKeys.value = allIds
-  }
-  else {
+  } else {
     treeExpandedKeys.value = [allData.value[0]?.id ?? 1]
   }
 }
 
 async function handleSave() {
   const values = await formMethods.validate()
-  if (!values)
-    return
+  if (!values) return
 
   if (!values.name || !values.code) {
     message.warning('请填写部门名称和编码')
@@ -361,8 +350,7 @@ async function handleSave() {
     if (isEditing.value && currentRecord.value) {
       await updateDept(currentRecord.value.id, values)
       message.success(`已更新部门：${values.name}`)
-    }
-    else {
+    } else {
       await addDept(values)
       message.success(`已新增部门：${values.name}`)
     }
@@ -372,8 +360,7 @@ async function handleSave() {
 
     modalMethods.closeModal()
     tableMethods.value?.reload()
-  }
-  catch (e: any) {
+  } catch (e: any) {
     message.error(e?.message || '保存失败')
   }
 }
@@ -397,18 +384,9 @@ const columns: BasicColumn[] = [
   <div :class="containerClassName">
     <!-- 左侧部门树 -->
     <div :class="leftPanelClassName">
-      <a-card
-        :class="treeCardClassName"
-        title="部门架构"
-        size="small"
-      >
+      <a-card :class="treeCardClassName" title="部门架构" size="small">
         <template #extra>
-          <a-button
-            type="link"
-            size="small"
-            :class="btnClassName"
-            @click="handleToggleExpand"
-          >
+          <a-button type="link" size="small" :class="btnClassName" @click="handleToggleExpand">
             <template #icon>
               <Icon :icon="isAllExpanded ? 'carbon:collapse-all' : 'carbon:expand-all'" />
             </template>
@@ -422,22 +400,25 @@ const columns: BasicColumn[] = [
           :default-selected-keys="[selectedDeptId]"
           block-node
           @select="handleDeptSelect"
-          @update:expandedKeys="(keys: number[]) => { treeExpandedKeys = keys }"
+          @update:expandedKeys="
+            (keys: number[]) => {
+              treeExpandedKeys = keys
+            }
+          "
         />
       </a-card>
     </div>
 
     <!-- 右侧内容区 -->
     <div :class="rightPanelClassName">
-      <a-card
-        title="部门列表"
-        :class="cardClassName"
-      >
+      <a-card title="部门列表" :class="cardClassName">
         <!-- 统计信息 -->
         <div :class="headerClassName">
           <div :class="statClassName">
             当前选中：
-            <span class="font-medium text-gray-700 dark:text-gray-300">{{ flatAllDepts.find(d => d.id === selectedDeptId)?.name }}</span>
+            <span class="font-medium text-gray-700 dark:text-gray-300">{{
+              flatAllDepts.find((d) => d.id === selectedDeptId)?.name
+            }}</span>
             <span class="mx-2">|</span>
             直接子部门：<span :class="statNumClassName">{{ currentStat.deptCount }}</span>
             个
@@ -462,10 +443,7 @@ const columns: BasicColumn[] = [
           @register="tableRegister"
         >
           <template #toolbar>
-            <a-button
-              type="primary"
-              @click="handleAdd"
-            >
+            <a-button type="primary" @click="handleAdd">
               <template #icon>
                 <Icon icon="ant-design:plus-outlined" />
               </template>
@@ -483,47 +461,29 @@ const columns: BasicColumn[] = [
           </template>
 
           <template #cell-userCount="{ record }">
-            <a-badge
-              :count="record.userCount"
-              :number-style="{ backgroundColor: '#1677ff' }"
-            />
+            <a-badge :count="record.userCount" :number-style="{ backgroundColor: '#1677ff' }" />
           </template>
 
           <template #action="{ record }">
             <div :class="actionClassName">
-              <a-button
-                type="link"
-                :class="btnClassName"
-                @click="() => handleAddChild(record)"
-              >
+              <a-button type="link" :class="btnClassName" @click="() => handleAddChild(record)">
                 <template #icon>
                   <Icon icon="ant-design:plus-circle-outlined" />
                 </template>
                 新增
               </a-button>
-              <a-button
-                type="link"
-                :class="btnClassName"
-                @click="() => handleEdit(record)"
-              >
+              <a-button type="link" :class="btnClassName" @click="() => handleEdit(record)">
                 <template #icon>
                   <Icon icon="ant-design:edit-outlined" />
                 </template>
                 编辑
               </a-button>
-              <a-divider
-                type="vertical"
-                :class="dividerClassName"
-              />
+              <a-divider type="vertical" :class="dividerClassName" />
               <a-popconfirm
                 :title="`确定要删除部门「${record.name}」吗？子部门也将一并删除。`"
                 @confirm="() => handleDelete(record)"
               >
-                <a-button
-                  type="link"
-                  danger
-                  :class="btnClassName"
-                >
+                <a-button type="link" danger :class="btnClassName">
                   <template #icon>
                     <Icon icon="ant-design:delete-outlined" />
                   </template>
@@ -537,12 +497,7 @@ const columns: BasicColumn[] = [
     </div>
 
     <!-- 新增/编辑弹窗 -->
-    <BasicModal
-      :title="isEditing ? '编辑部门' : '新增部门'"
-      :width="640"
-      @register="modalRegister"
-      @ok="handleSave"
-    >
+    <BasicModal :title="isEditing ? '编辑部门' : '新增部门'" :width="640" @register="modalRegister" @ok="handleSave">
       <BasicForm
         :schemas="modalFormSchemas"
         :label-width="80"

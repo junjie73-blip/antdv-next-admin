@@ -1,6 +1,6 @@
 declare module '@wangeditor/editor-for-vue' {
-  import type { Component } from 'vue'
   import type { IDomEditor, IEditorConfig, IToolbarConfig, SlateDescendant, SlateElement, SlateText } from '@wangeditor/editor'
+  import type { Component } from 'vue'
 
   export const Editor: Component<{
     defaultConfig?: Partial<IEditorConfig>

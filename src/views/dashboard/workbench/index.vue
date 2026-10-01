@@ -1,14 +1,35 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import { cn } from '@/utils/cn'
+
+import { cn } from '~/utils/cn'
 
 defineOptions({ name: 'DashboardWorkbench' })
 
 const quickActions = [
-  { icon: 'carbon:user-multiple', title: '用户管理', desc: '管理系统用户', color: 'text-blue-500 bg-blue-50 dark:bg-blue-950/30' },
-  { icon: 'carbon:role', title: '角色权限', desc: '配置角色与权限', color: 'text-purple-500 bg-purple-50 dark:bg-purple-950/30' },
-  { icon: 'carbon:document-security', title: '安全审计', desc: '查看安全态势', color: 'text-red-500 bg-red-50 dark:bg-red-950/30' },
-  { icon: 'carbon:chart-line-data', title: '监控大屏', desc: '实时数据监控', color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30' },
+  {
+    icon: 'carbon:user-multiple',
+    title: '用户管理',
+    desc: '管理系统用户',
+    color: 'text-blue-500 bg-blue-50 dark:bg-blue-950/30',
+  },
+  {
+    icon: 'carbon:role',
+    title: '角色权限',
+    desc: '配置角色与权限',
+    color: 'text-purple-500 bg-purple-50 dark:bg-purple-950/30',
+  },
+  {
+    icon: 'carbon:document-security',
+    title: '安全审计',
+    desc: '查看安全态势',
+    color: 'text-red-500 bg-red-50 dark:bg-red-950/30',
+  },
+  {
+    icon: 'carbon:chart-line-data',
+    title: '监控大屏',
+    desc: '实时数据监控',
+    color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30',
+  },
 ]
 
 const recentActivities = [
@@ -32,50 +53,42 @@ const statCards = [
 </script>
 
 <template>
-  <div class="p-8 space-y-6">
+  <div class="space-y-6 p-8">
     <!-- 欢迎区 -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
-          工作台
-        </h1>
-        <p class="text-sm text-gray-500 mt-1">
-          欢迎回来，这是您的系统概览
-        </p>
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">工作台</h1>
+        <p class="mt-1 text-sm text-gray-500">欢迎回来，这是您的系统概览</p>
       </div>
-      <span class="text-xs text-gray-400">{{ new Date().toLocaleDateString('zh-CN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }}</span>
+      <span class="text-xs text-gray-400">{{
+        new Date().toLocaleDateString('zh-CN', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })
+      }}</span>
     </div>
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-4 gap-4">
-      <div
-        v-for="stat in statCards"
-        :key="stat.label"
-        :class="cardClassName"
-      >
+      <div v-for="stat in statCards" :key="stat.label" :class="cardClassName">
         <div class="flex items-start gap-4">
-          <div class="w-11 h-11 rounded-lg bg-ant-primary/10 flex items-center justify-center flex-shrink-0">
-            <Icon
-              :icon="stat.icon"
-              :width="22"
-              class="text-ant-primary"
-            />
+          <div class="bg-ant-primary/10 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg">
+            <Icon :icon="stat.icon" :width="22" class="text-ant-primary" />
           </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-2xl font-bold text-gray-800 dark:text-white tracking-tight leading-tight tabular-nums">
+          <div class="min-w-0 flex-1">
+            <p class="text-2xl leading-tight font-bold tracking-tight text-gray-800 tabular-nums dark:text-white">
               {{ stat.value }}
             </p>
-            <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">
+            <p class="mt-1 text-sm text-gray-400 dark:text-gray-500">
               {{ stat.label }}
             </p>
             <p
               :class="stat.up ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'"
-              class="text-xs font-semibold mt-1.5 flex items-center gap-0.5"
+              class="mt-1.5 flex items-center gap-0.5 text-xs font-semibold"
             >
-              <Icon
-                :icon="stat.up ? 'carbon:arrow-up' : 'carbon:arrow-down'"
-                :width="12"
-              />
+              <Icon :icon="stat.up ? 'carbon:arrow-up' : 'carbon:arrow-down'" :width="12" />
               {{ stat.change }}
             </p>
           </div>
@@ -87,29 +100,23 @@ const statCards = [
     <div class="grid grid-cols-2 gap-4">
       <!-- 快捷操作 -->
       <div :class="cardClassName">
-        <h3 class="text-base font-semibold text-gray-800 dark:text-gray-200 mb-4">
-          快捷操作
-        </h3>
+        <h3 class="mb-4 text-base font-semibold text-gray-800 dark:text-gray-200">快捷操作</h3>
         <div class="grid grid-cols-2 gap-3">
           <div
             v-for="action in quickActions"
             :key="action.title"
-            class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors group"
+            class="group flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
           >
-            <div
-              :class="action.color"
-              class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-            >
-              <Icon
-                :icon="action.icon"
-                :width="18"
-              />
+            <div :class="action.color" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
+              <Icon :icon="action.icon" :width="18" />
             </div>
             <div class="min-w-0">
-              <p class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-ant-primary transition-colors">
+              <p
+                class="group-hover:text-ant-primary text-sm font-medium text-gray-700 transition-colors dark:text-gray-300"
+              >
                 {{ action.title }}
               </p>
-              <p class="text-[11px] text-gray-400 mt-0.5">
+              <p class="mt-0.5 text-[11px] text-gray-400">
                 {{ action.desc }}
               </p>
             </div>
@@ -119,24 +126,26 @@ const statCards = [
 
       <!-- 最近动态 -->
       <div :class="cardClassName">
-        <h3 class="text-base font-semibold text-gray-800 dark:text-gray-200 mb-4">
-          最近动态
-        </h3>
+        <h3 class="mb-4 text-base font-semibold text-gray-800 dark:text-gray-200">最近动态</h3>
         <div class="space-y-3">
-          <div
-            v-for="(activity, i) in recentActivities"
-            :key="i"
-            class="flex items-start gap-3 text-sm"
-          >
+          <div v-for="(activity, i) in recentActivities" :key="i" class="flex items-start gap-3 text-sm">
             <span
-              class="w-1.5 h-1.5 rounded-full mt-2 shrink-0"
-              :class="activity.type === 'alert' ? 'bg-red-400' : activity.type === 'login' ? 'bg-blue-400' : activity.type === 'permission' ? 'bg-orange-400' : 'bg-gray-400'"
+              class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full"
+              :class="
+                activity.type === 'alert'
+                  ? 'bg-red-400'
+                  : activity.type === 'login'
+                    ? 'bg-blue-400'
+                    : activity.type === 'permission'
+                      ? 'bg-orange-400'
+                      : 'bg-gray-400'
+              "
             />
             <div class="min-w-0 flex-1">
-              <p class="text-gray-600 dark:text-gray-400 truncate">
+              <p class="truncate text-gray-600 dark:text-gray-400">
                 {{ activity.action }}
               </p>
-              <p class="text-[11px] text-gray-400 mt-0.5">
+              <p class="mt-0.5 text-[11px] text-gray-400">
                 {{ activity.time }}
               </p>
             </div>

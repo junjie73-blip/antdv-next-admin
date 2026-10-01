@@ -17,12 +17,19 @@ export interface ChunkUploadOptions {
 const DEFAULT_CHUNK_SIZE = 5 * 1024 * 1024
 const DEFAULT_CONCURRENT = 3
 
+/**
+ * 分片上传 composable
+ *
+ * ⚠️ worker 协议约定：
+ *   主线程 → worker:
+ *     { type: 'process', chunk: ArrayBuffer, index: number, total: number }
+ *    worker → 主线程:
+ *     { type: 'progress', index: number, progress: number }   // 0-100
+ *     { type: 'chunk-done', index: number, hash?: string }     // 单片完成
+ *     { type: 'error', index: number, message: string }        // 单片失败
+ */
 export function useChunkUpload(options: ChunkUploadOptions = {}) {
-  const {
-    chunkSize = DEFAULT_CHUNK_SIZE,
-    concurrent = DEFAULT_CONCURRENT,
-    workerUrl,
-  } = options
+  const { chunkSize = DEFAULT_CHUNK_SIZE, concurrent = DEFAULT_CONCURRENT, workerUrl } = options
 
   const chunks = ref<ChunkInfo[]>([])
   const status = ref<UploadStatus>('idle')
@@ -36,12 +43,47 @@ export function useChunkUpload(options: ChunkUploadOptions = {}) {
   const cancelledFlag = shallowRef(false)
   const currentFile = shallowRef<File | null>(null)
 
+  /** 每个 chunk 的 pending resolve/reject，key 是 index */
+  const pendingChunks = new Map<number, { resolve: () => void; reject: (e: Error) => void }>()
+
   function getWorker(): Worker {
     if (!worker.value) {
-      const url = workerUrl || new URL('@/workers/upload.worker.ts', import.meta.url).href
+      const url = workerUrl || new URL('~/workers/upload.worker.ts', import.meta.url).href
       worker.value = new Worker(url, { type: 'module' })
+      // ⭐ 只在创建时挂一次，整个生命周期内不变
+      worker.value.addEventListener('message', handleWorkerMessage)
     }
     return worker.value
+  }
+
+  /** 统一的 worker 消息派发 */
+  function handleWorkerMessage(e: MessageEvent) {
+    const { type, index, progress: chunkProgress, hash: chunkHash, message } = e.data ?? {}
+
+    if (type === 'progress') {
+      if (typeof index === 'number' && chunks.value[index]) {
+        chunks.value[index].progress = chunkProgress
+      }
+      return
+    }
+
+    if (type === 'chunk-done') {
+      if (typeof index === 'number') {
+        if (chunkHash) hash.value = chunkHash
+        pendingChunks.get(index)?.resolve()
+        pendingChunks.delete(index)
+      }
+      return
+    }
+
+    if (type === 'error') {
+      if (typeof index === 'number') {
+        const p = pendingChunks.get(index)
+        p?.reject(new Error(message || `chunk ${index} failed`))
+        pendingChunks.delete(index)
+      }
+      return
+    }
   }
 
   function resetState() {
@@ -51,6 +93,7 @@ export function useChunkUpload(options: ChunkUploadOptions = {}) {
     pausedFlag.value = false
     cancelledFlag.value = false
     currentFile.value = null
+    pendingChunks.clear()
   }
 
   function pause() {
@@ -70,6 +113,10 @@ export function useChunkUpload(options: ChunkUploadOptions = {}) {
 
   function cancel() {
     cancelledFlag.value = true
+    // 拒绝所有挂起的 chunk
+    pendingChunks.forEach((p) => p.reject(new Error('cancelled')))
+    pendingChunks.clear()
+
     if (worker.value) {
       worker.value.terminate()
       worker.value = null
@@ -91,129 +138,154 @@ export function useChunkUpload(options: ChunkUploadOptions = {}) {
       progress: 0,
     }))
 
-    const w = getWorker()
-    w.postMessage({ type: 'init', chunkSize, fileSize: file.size })
-
     await processChunks(file)
+  }
+
+  /** 单 chunk 处理：等待 worker 回 chunk-done */
+  function processOneChunk(w: Worker, file: File, idx: number, total: number): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      if (cancelledFlag.value) {
+        reject(new Error('cancelled'))
+        return
+      }
+
+      // ⭐ 先登记 pending，再发消息，避免 worker 秒回时找不到 handler
+      pendingChunks.set(idx, { resolve, reject })
+
+      chunks.value[idx].status = 'uploading'
+      chunks.value[idx].progress = 0
+
+      const start = idx * chunkSize
+      const end = Math.min(start + chunkSize, file.size)
+      const slice = file.slice(start, end)
+
+      slice
+        .arrayBuffer()
+        .then((buffer) => {
+          if (cancelledFlag.value || pausedFlag.value) {
+            pendingChunks.delete(idx)
+            chunks.value[idx].status = 'pending'
+            reject(new Error('paused-or-cancelled'))
+            return
+          }
+          // ⭐ 元信息塞进消息里，不再依赖独立的 init
+          w.postMessage(
+            {
+              type: 'process',
+              chunk: buffer,
+              index: idx,
+              total,
+              chunkSize,
+              fileSize: file.size,
+            },
+            [buffer],
+          )
+        })
+        .catch((err) => {
+          pendingChunks.delete(idx)
+          chunks.value[idx].status = 'error'
+          reject(err)
+        })
+    })
   }
 
   async function processChunks(file: File): Promise<void> {
     const totalChunks = chunks.value.length
-    if (totalChunks === 0)
-      return
+    if (totalChunks === 0) return
 
     const w = getWorker()
+    let currentIndex = 0
+    let activeCount = 0
+    let completedCount = 0
+    // 记录已经处理过的 index，resume 时不重复
+    const doneSet = new Set<number>()
+    // 记录正在处理的 index，避免 resume 时重复 dispatch
+    const inflightSet = new Set<number>()
+
+    // 把已完成/正在进行的 index 先记下来（resume 场景）
+    chunks.value.forEach((c) => {
+      if (c.status === 'done') doneSet.add(c.index)
+      if (c.status === 'uploading') inflightSet.add(c.index)
+    })
+    completedCount = doneSet.size
+
+    const updateProgress = () => {
+      progress.value = Math.round((completedCount / totalChunks) * 100)
+    }
+    updateProgress()
 
     return new Promise<void>((resolve, reject) => {
-      let currentIndex = 0
-      let activeCount = 0
-      let completedCount = 0
-      let hasError = false
+      let aborted = false
 
-      w.onmessage = (e: MessageEvent) => {
-        if (e.data.type === 'progress') {
-          const { index, progress: chunkProgress } = e.data
-          chunks.value[index].progress = chunkProgress
-        }
-        else if (e.data.type === 'complete') {
-          hash.value = e.data.hash
-        }
-      }
+      const dispatch = () => {
+        while (
+          !aborted &&
+          !cancelledFlag.value &&
+          !pausedFlag.value &&
+          activeCount < concurrent &&
+          currentIndex < totalChunks
+        ) {
+          const idx = currentIndex++
 
-      w.onerror = () => {
-        hasError = true
-        status.value = 'error'
-        w.terminate()
-        worker.value = null
-        reject(new Error('Worker error'))
-      }
-
-      function submitNext() {
-        if (cancelledFlag.value) {
-          w.terminate()
-          worker.value = null
-          return
-        }
-
-        if (pausedFlag.value)
-          return
-
-        if (currentIndex >= totalChunks) {
-          if (activeCount === 0) {
-            status.value = 'completed'
-            resolve()
+          // 已完成的跳过
+          if (doneSet.has(idx)) {
+            continue
           }
-          return
-        }
+          // 正在进行的跳过（resume 场景）
+          if (inflightSet.has(idx)) {
+            activeCount++
+            continue
+          }
 
-        const idx = currentIndex
-        currentIndex++
+          inflightSet.add(idx)
+          activeCount++
 
-        chunks.value[idx].status = 'uploading'
-        activeCount++
-
-        const start = idx * chunkSize
-        const end = Math.min(start + chunkSize, file.size)
-        const slice = file.slice(start, end)
-
-        slice.arrayBuffer()
-          .then((buffer) => {
-            if (cancelledFlag.value || pausedFlag.value) {
-              chunks.value[idx].status = 'pending'
+          processOneChunk(w, file, idx, totalChunks)
+            .then(() => {
+              chunks.value[idx].status = 'done'
+              chunks.value[idx].progress = 100
+              doneSet.add(idx)
+              inflightSet.delete(idx)
+              completedCount++
               activeCount--
-              checkDone()
-              return
-            }
+              updateProgress()
 
-            w.postMessage({
-              type: 'process',
-              chunk: buffer,
-              index: idx,
-              total: totalChunks,
-            }, [buffer])
+              if (completedCount >= totalChunks) {
+                status.value = 'completed'
+                resolve()
+              } else {
+                dispatch()
+              }
+            })
+            .catch((err) => {
+              inflightSet.delete(idx)
+              activeCount--
 
-            chunks.value[idx].status = 'done'
-            chunks.value[idx].progress = 100
-            completedCount++
-            progress.value = Math.round((completedCount / totalChunks) * 100)
-            activeCount--
-
-            checkDone()
-          })
-          .catch(() => {
-            if (!cancelledFlag.value && !pausedFlag.value) {
+              if (cancelledFlag.value || err?.message === 'paused-or-cancelled') {
+                // 暂停/取消：不推进，等待 resume
+                return
+              }
               chunks.value[idx].status = 'error'
-              hasError = true
+              aborted = true
               status.value = 'error'
-            }
-            activeCount--
-            checkDone()
-          })
-      }
-
-      function checkDone() {
-        if (hasError) {
-          status.value = 'error'
-          return
-        }
-        if (cancelledFlag.value)
-          return
-
-        while (activeCount < concurrent && currentIndex < totalChunks) {
-          if (pausedFlag.value)
-            break
-          submitNext()
+              reject(err)
+            })
         }
 
-        if (completedCount >= totalChunks && activeCount === 0) {
+        // 全部完成
+        if (
+          !aborted &&
+          !cancelledFlag.value &&
+          !pausedFlag.value &&
+          completedCount >= totalChunks &&
+          activeCount === 0
+        ) {
           status.value = 'completed'
           resolve()
         }
       }
 
-      for (let i = 0; i < concurrent && i < totalChunks; i++) {
-        submitNext()
-      }
+      dispatch()
     })
   }
 

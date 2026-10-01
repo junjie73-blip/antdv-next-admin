@@ -42,11 +42,18 @@ export class HeartbeatManager {
       return
     }
 
-    const message = typeof this.config.message === 'string'
-      ? this.config.message
-      : JSON.stringify(this.config.message)
+    // ⭐ 支持函数形式，每次取最新值
+    const raw = typeof this.config.message === 'function' ? this.config.message() : this.config.message
+
+    const message = typeof raw === 'string' ? raw : JSON.stringify(raw)
 
     this.onSend(message)
+
+    // 先清旧定时器，防止 pong 未回导致累积
+    if (this.timeoutTimer) {
+      clearTimeout(this.timeoutTimer)
+      this.timeoutTimer = null
+    }
 
     this.timeoutTimer = setTimeout(() => {
       if (this.onTimeout) {

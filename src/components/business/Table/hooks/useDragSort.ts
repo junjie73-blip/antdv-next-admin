@@ -1,7 +1,9 @@
 import type { Ref } from 'vue'
-import type { Recordable } from '../types'
+
 import Sortable from 'sortablejs'
 import { onUnmounted } from 'vue'
+
+import type { Recordable } from '../types'
 
 export interface UseDragSortOptions {
   dataSource: Ref<Recordable[]>
@@ -24,16 +26,7 @@ export interface UseDragSortReturn {
  * 为什么需要：实现表格行的拖拽排序功能
  */
 export function useDragSort(options: UseDragSortOptions): UseDragSortReturn {
-  const {
-    dataSource,
-    enabled,
-    rowKey,
-    handle,
-    animation = 150,
-    disabled,
-    onDragEnd,
-    canDrop,
-  } = options
+  const { dataSource, enabled, rowKey, handle, animation = 150, disabled, onDragEnd, canDrop } = options
 
   // Sortable 实例
   let sortableInstance: Sortable | null = null
@@ -62,8 +55,7 @@ export function useDragSort(options: UseDragSortOptions): UseDragSortReturn {
    * 初始化 Sortable
    */
   const initSortable = (el: HTMLElement) => {
-    if (!enabled || sortableInstance)
-      return
+    if (!enabled || sortableInstance) return
 
     sortableInstance = new Sortable(el, {
       handle,
@@ -77,24 +69,21 @@ export function useDragSort(options: UseDragSortOptions): UseDragSortReturn {
         }
       },
       onMove: (evt) => {
-        if (!canDrop)
-          return true
+        if (!canDrop) return true
 
         const dragIndex = (evt as any).draggedRowIndex ?? (evt as any).oldIndex ?? 0
         const dropIndex = (evt as any).relatedRowIndex ?? (evt as any).newIndex ?? 0
         const dragRecord = dataSource.value[dragIndex!]
         const dropRecord = dataSource.value[dropIndex!]
 
-        if (!dragRecord || !dropRecord)
-          return false
+        if (!dragRecord || !dropRecord) return false
 
         return canDrop(dragRecord, dropRecord)
       },
       onEnd: (evt) => {
         const { oldIndex, newIndex } = evt
 
-        if (oldIndex === newIndex)
-          return
+        if (oldIndex === newIndex) return
 
         // 保存旧数据
         const oldData = [...dataSource.value]

@@ -1,22 +1,18 @@
 <script setup lang="ts">
-import type { FormSchema } from '@/components/business/Form'
-import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
-
 import { computed, ref } from 'vue'
-import {
-  addRole,
-  deleteRole,
-  getRoleList,
-  updateRole,
-} from '@/api/system'
-import { BasicDrawer, useDrawer } from '@/components/business/Drawer'
-import { BasicForm, useForm } from '@/components/business/Form'
-import { BasicTable, useTable } from '@/components/business/Table'
-import { DictType } from '@/enums/dict'
-import { useDictStore } from '@/stores'
-import { cn } from '@/utils/cn'
-import { exportToExcel } from '@/utils/excel'
+
+import type { FormSchema } from '~/components/business/Form'
+import type { BasicColumn } from '~/components/business/Table'
+
+import { addRole, deleteRole, getRoleList, updateRole } from '~/api/system'
+import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
+import { BasicForm, useForm } from '~/components/business/Form'
+import { BasicTable, useTable } from '~/components/business/Table'
+import { DictType } from '~/enums/dict'
+import { useDictStore } from '~/stores'
+import { cn } from '~/utils/cn'
+import { exportToExcel } from '~/utils/excel'
 
 defineOptions({ name: 'SystemRole' })
 
@@ -83,25 +79,21 @@ const menuSourceData = [
     id: 3,
     title: '系统工具',
     path: '/tool',
-    children: [
-      { id: 301, title: '数据字典', path: 'dict' },
-    ],
+    children: [{ id: 301, title: '数据字典', path: 'dict' }],
   },
   {
     id: 4,
     title: '系统监控',
     path: '/monitor',
-    children: [
-      { id: 401, title: '系统日志', path: 'log' },
-    ],
+    children: [{ id: 401, title: '系统日志', path: 'log' }],
   },
 ]
 
 function buildMenuTree(menus: typeof menuSourceData): MenuTreeNode[] {
-  return menus.map(menu => ({
+  return menus.map((menu) => ({
     title: menu.title,
     key: String(menu.id),
-    children: menu.children?.map(child => ({
+    children: menu.children?.map((child) => ({
       title: child.title,
       key: String(child.id),
     })),
@@ -199,8 +191,7 @@ async function mockApi(params: Record<string, any>) {
     const result = { items: data?.list || [], total: data?.total || 0 }
     console.log('[Role] result:', result)
     return result
-  }
-  catch (e) {
+  } catch (e) {
     console.error('[Role] mockApi error:', e)
     return { items: [], total: 0 }
   }
@@ -248,8 +239,7 @@ async function handleDelete(record: RoleRecord) {
     await deleteRole(record.id)
     message.success(`已删除角色：${record.name}`)
     tableMethods.value?.reload()
-  }
-  catch (e: any) {
+  } catch (e: any) {
     message.error(e?.message || '删除失败')
   }
 }
@@ -259,8 +249,7 @@ async function handleToggleStatus(record: RoleRecord) {
     await updateRole(record.id, { status: record.status === 1 ? 0 : 1 })
     message.success(`已${record.status === 1 ? '停用' : '启用'}：${record.name}`)
     tableMethods.value?.reload()
-  }
-  catch (e: any) {
+  } catch (e: any) {
     message.error(e?.message || '操作失败')
   }
 }
@@ -280,14 +269,13 @@ function handleExport() {
       { header: '状态', key: 'status', width: 8 },
       { header: '创建时间', key: 'createdAt', width: 20 },
     ],
-    data: dataToExport.map(i => ({ ...i, status: i.status === 1 ? '正常' : '停用' })),
+    data: dataToExport.map((i) => ({ ...i, status: i.status === 1 ? '正常' : '停用' })),
   })
 }
 
 async function handleSave() {
   const values = await formMethods.validate()
-  if (!values)
-    return
+  if (!values) return
 
   if (!values.name || !values.code) {
     message.warning('请填写角色名称和编码')
@@ -298,16 +286,14 @@ async function handleSave() {
     if (isEditing.value && currentRecord.value) {
       await updateRole(currentRecord.value.id, values)
       message.success(`已更新角色：${values.name}`)
-    }
-    else {
+    } else {
       await addRole(values)
       message.success(`已新增角色：${values.name}`)
     }
 
     drawerMethods.closeDrawer()
     tableMethods.value?.reload()
-  }
-  catch (e: any) {
+  } catch (e: any) {
     message.error(e?.message || '保存失败')
   }
 }
@@ -326,20 +312,14 @@ const columns: BasicColumn[] = [
 
 <template>
   <div :class="containerClassName">
-    <a-card
-      title="角色管理"
-      :class="cardClassName"
-    >
+    <a-card title="角色管理" :class="cardClassName">
       <BasicTable
         :columns="columns"
         :api="mockApi"
         :immediate="true"
         :use-search-form="true"
         :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
-        :pagination="{ showSizeChanger: true,
-                       pageSizeOptions: ['10',
-                                         '20',
-                                         '50'] }"
+        :pagination="{ showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }"
         :action-column="{ width: 280, title: '操作', fixed: 'right' }"
         @register="tableRegister"
       >
@@ -350,10 +330,7 @@ const columns: BasicColumn[] = [
             </template>
             导出
           </a-button>
-          <a-button
-            type="primary"
-            @click="handleAdd"
-          >
+          <a-button type="primary" @click="handleAdd">
             <template #icon>
               <Icon icon="ant-design:plus-outlined" />
             </template>
@@ -372,66 +349,30 @@ const columns: BasicColumn[] = [
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <a-button
-              type="link"
-              :class="btnClassName"
-              @click="() => handlePermission(record)"
-            >
+            <a-button type="link" :class="btnClassName" @click="() => handlePermission(record)">
               <template #icon>
                 <Icon icon="ant-design:safety-certificate-outlined" />
               </template>
               权限
             </a-button>
-            <a-divider
-              type="vertical"
-              :class="dividerClassName"
-            />
-            <a-button
-              type="link"
-              :class="btnClassName"
-              @click="() => handleEdit(record)"
-            >
+            <a-divider type="vertical" :class="dividerClassName" />
+            <a-button type="link" :class="btnClassName" @click="() => handleEdit(record)">
               <template #icon>
                 <Icon icon="ant-design:edit-outlined" />
               </template>
               编辑
             </a-button>
-            <a-divider
-              type="vertical"
-              :class="dividerClassName"
-            />
+            <a-divider type="vertical" :class="dividerClassName" />
             <a-popconfirm
               :title="`确定要「${record.status === 1 ? '停用' : '启用'}」角色「${record.name}」吗？`"
               @confirm="() => handleToggleStatus(record)"
             >
-              <a-button
-                v-if="record.status === 1"
-                type="link"
-                :class="btnClassName"
-              >
-                停用
-              </a-button>
-              <a-button
-                v-else
-                type="link"
-                :class="btnClassName"
-              >
-                启用
-              </a-button>
+              <a-button v-if="record.status === 1" type="link" :class="btnClassName"> 停用 </a-button>
+              <a-button v-else type="link" :class="btnClassName"> 启用 </a-button>
             </a-popconfirm>
-            <a-divider
-              type="vertical"
-              :class="dividerClassName"
-            />
-            <a-popconfirm
-              :title="`确定要删除角色「${record.name}」吗？`"
-              @confirm="() => handleDelete(record)"
-            >
-              <a-button
-                type="link"
-                danger
-                :class="btnClassName"
-              >
+            <a-divider type="vertical" :class="dividerClassName" />
+            <a-popconfirm :title="`确定要删除角色「${record.name}」吗？`" @confirm="() => handleDelete(record)">
+              <a-button type="link" danger :class="btnClassName">
                 <template #icon>
                   <Icon icon="ant-design:delete-outlined" />
                 </template>
@@ -444,12 +385,7 @@ const columns: BasicColumn[] = [
     </a-card>
 
     <!-- 新增/编辑抽屉 -->
-    <BasicDrawer
-      :title="isEditing ? '编辑角色' : '新增角色'"
-      :width="520"
-      @register="drawerRegister"
-      @ok="handleSave"
-    >
+    <BasicDrawer :title="isEditing ? '编辑角色' : '新增角色'" :width="520" @register="drawerRegister" @ok="handleSave">
       <BasicForm
         :schemas="drawerFormSchemas"
         :label-width="80"
@@ -460,17 +396,9 @@ const columns: BasicColumn[] = [
     </BasicDrawer>
 
     <!-- 权限分配抽屉 -->
-    <BasicDrawer
-      :title="`权限分配 - ${currentRecord?.name || ''}`"
-      :width="480"
-      @register="permDrawerRegister"
-    >
+    <BasicDrawer :title="`权限分配 - ${currentRecord?.name || ''}`" :width="480" @register="permDrawerRegister">
       <div class="space-y-4">
-        <a-alert
-          message="选择该角色可以访问的菜单和按钮权限"
-          type="info"
-          show-icon
-        />
+        <a-alert message="选择该角色可以访问的菜单和按钮权限" type="info" show-icon />
         <div class="text-sm text-gray-500 dark:text-gray-400">
           角色编码：<a-tag color="blue">
             {{ currentRecord?.code }}
@@ -485,11 +413,13 @@ const columns: BasicColumn[] = [
           default-expand-all
           :tree-data="permissionTreeData"
           :checked-keys="currentRecord?.menuIds || []"
-          @check="(checkedKeys: any) => {
-            if (currentRecord) {
-              currentRecord.menuIds = checkedKeys
+          @check="
+            (checkedKeys: any) => {
+              if (currentRecord) {
+                currentRecord.menuIds = checkedKeys
+              }
             }
-          }"
+          "
         />
       </div>
     </BasicDrawer>

@@ -1,3 +1,5 @@
+import { message } from 'antdv-next'
+
 export interface PrintOptions {
   /** 打印标题 */
   title?: string
@@ -42,8 +44,7 @@ export function usePrint(options: PrintOptions) {
   let el: HTMLElement | null = null
   if (typeof target === 'string') {
     el = document.querySelector(target)
-  }
-  else {
+  } else {
     el = target
   }
 

@@ -1,2 +1,2 @@
-export { default as PageSkeleton } from './PageSkeleton'
-export { default as TableSkeleton } from './TableSkeleton'
+export { default as PageSkeleton } from './PageSkeleton.vue'
+export { default as TableSkeleton } from './TableSkeleton.vue'

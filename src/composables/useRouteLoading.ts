@@ -21,10 +21,7 @@ export interface RouteLoadingOptions {
 }
 
 export function useRouteLoading(options: RouteLoadingOptions = {}) {
-  const {
-    minDuration = 300,
-    auto = true,
-  } = options
+  const { minDuration = 300, auto = true } = options
 
   const router = useRouter()
   const route = useRoute()
@@ -42,8 +39,7 @@ export function useRouteLoading(options: RouteLoadingOptions = {}) {
    * 开始加载
    */
   function start() {
-    if (isLoading.value && !isComplete.value)
-      return
+    if (isLoading.value && !isComplete.value) return
 
     isLoading.value = isComplete.value = isError.value = false
     startTime.value = Date.now()
@@ -87,11 +83,14 @@ export function useRouteLoading(options: RouteLoadingOptions = {}) {
       isComplete.value = !error
       isError.value = error
 
-      setTimeout(() => {
-        isLoading.value = false
-        isComplete.value = false
-        isError.value = false
-      }, error ? 500 : 200)
+      setTimeout(
+        () => {
+          isLoading.value = false
+          isComplete.value = false
+          isError.value = false
+        },
+        error ? 500 : 200,
+      )
     }, remaining)
   }
 
@@ -99,8 +98,7 @@ export function useRouteLoading(options: RouteLoadingOptions = {}) {
    * 取消加载
    */
   function cancel() {
-    if (!isLoading.value)
-      return
+    if (!isLoading.value) return
 
     reset()
   }
@@ -113,12 +111,10 @@ export function useRouteLoading(options: RouteLoadingOptions = {}) {
     try {
       const result = await fn()
       return result
-    }
-    catch (e) {
+    } catch (e) {
       error()
       throw e
-    }
-    finally {
+    } finally {
       complete()
     }
   }
@@ -139,10 +135,8 @@ export function useRouteLoading(options: RouteLoadingOptions = {}) {
 
   // 计算属性
   const progress = computed(() => {
-    if (!isLoading.value)
-      return 0
-    if (isComplete.value || isError.value)
-      return 100
+    if (!isLoading.value) return 0
+    if (isComplete.value || isError.value) return 100
 
     const elapsed = Date.now() - startTime.value
     return Math.min(90, 10 + (elapsed / (minDuration * 3)) * 80)
@@ -150,8 +144,7 @@ export function useRouteLoading(options: RouteLoadingOptions = {}) {
 
   // 当前耗时
   const elapsed = computed(() => {
-    if (!startTime.value)
-      return 0
+    if (!startTime.value) return 0
     return Date.now() - startTime.value
   })
 
@@ -166,7 +159,7 @@ export function useRouteLoading(options: RouteLoadingOptions = {}) {
       () => route.path,
       async () => {
         start()
-        await new Promise(resolve => setTimeout(resolve, minDuration))
+        await new Promise((resolve) => setTimeout(resolve, minDuration))
         complete()
       },
     )

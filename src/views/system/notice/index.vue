@@ -1,15 +1,16 @@
 <script setup lang="tsx">
-import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
-
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { computed, onMounted, ref } from 'vue'
-import { deleteNotice, getNoticeList, markAllNoticeRead, markNoticeRead, saveNotice } from '@/api/system'
-import { BasicForm, useForm } from '@/components/business/Form'
-import { BasicModal, useModal } from '@/components/business/Modal'
-import { BasicTable, useTable } from '@/components/business/Table'
-import { cn } from '@/utils/cn'
+
+import type { BasicColumn } from '~/components/business/Table'
+
+import { deleteNotice, getNoticeList, markAllNoticeRead, markNoticeRead, saveNotice } from '~/api/system'
+import { BasicForm, useForm } from '~/components/business/Form'
+import { BasicModal, useModal } from '~/components/business/Modal'
+import { BasicTable, useTable } from '~/components/business/Table'
+import { cn } from '~/utils/cn'
 
 defineOptions({ name: 'SystemNotice' })
 
@@ -37,18 +38,18 @@ const viewingNotice = ref<NoticeRecord | null>(null)
 const showDetailDrawer = ref(false)
 
 // 统计数据
-const unreadCount = computed(() => allData.value.filter(n => n.status === 0).length)
-const systemCount = computed(() => allData.value.filter(n => n.type === 1).length)
-const noticeCount = computed(() => allData.value.filter(n => n.type === 2).length)
-const todoCount = computed(() => allData.value.filter(n => n.type === 3).length)
+const unreadCount = computed(() => allData.value.filter((n) => n.status === 0).length)
+const systemCount = computed(() => allData.value.filter((n) => n.type === 1).length)
+const noticeCount = computed(() => allData.value.filter((n) => n.type === 2).length)
+const todoCount = computed(() => allData.value.filter((n) => n.type === 3).length)
 
 // 类型映射
-const typeMap: Record<number, { label: string, color: string }> = {
+const typeMap: Record<number, { label: string; color: string }> = {
   1: { label: '公告', color: 'blue' },
   2: { label: '通知', color: 'green' },
   3: { label: '待办', color: 'orange' },
 }
-const priorityMap: Record<number, { label: string, color: string }> = {
+const priorityMap: Record<number, { label: string; color: string }> = {
   0: { label: '普通', color: 'default' },
   1: { label: '重要', color: 'orange' },
   2: { label: '紧急', color: 'red' },
@@ -56,12 +57,10 @@ const priorityMap: Record<number, { label: string, color: string }> = {
 
 // Tab 切换过滤
 const filteredData = computed(() => {
-  if (activeTabKey.value === 'all')
-    return allData.value
-  if (activeTabKey.value === 'unread')
-    return allData.value.filter(n => n.status === 0)
+  if (activeTabKey.value === 'all') return allData.value
+  if (activeTabKey.value === 'unread') return allData.value.filter((n) => n.status === 0)
   const typeNum = Number(activeTabKey.value)
-  return allData.value.filter(n => n.type === typeNum)
+  return allData.value.filter((n) => n.type === typeNum)
 })
 
 const [tableRegister, tableMethods] = useTable()
@@ -138,8 +137,7 @@ async function loadAllData() {
     const res = await getNoticeList({ pageSize: 1000 })
     const data = res?.data ?? res
     allData.value = data?.list || []
-  }
-  catch {
+  } catch {
     allData.value = []
   }
 }
@@ -178,14 +176,13 @@ async function handleMarkRead(record: NoticeRecord | any) {
     message.success(`「${rec.title}」已标记为已读`)
     tableMethods.value?.reload()
     await loadAllData()
-  }
-  catch {
+  } catch {
     message.error('操作失败')
   }
 }
 
 async function handleMarkAllRead() {
-  const unreadItems = allData.value.filter(n => n.status === 0)
+  const unreadItems = allData.value.filter((n) => n.status === 0)
   if (unreadItems.length === 0) {
     message.info('没有未读消息')
     return
@@ -195,8 +192,7 @@ async function handleMarkAllRead() {
     message.success(`已将 ${unreadItems.length} 条消息标记为已读`)
     await loadAllData()
     tableMethods.value?.reload()
-  }
-  catch {
+  } catch {
     message.error('操作失败')
   }
 }
@@ -208,8 +204,7 @@ async function handleDelete(record: NoticeRecord | any) {
     message.success(`已删除消息「${rec.title}」`)
     await loadAllData()
     tableMethods.value?.reload()
-  }
-  catch {
+  } catch {
     message.error('删除失败')
   }
 }
@@ -237,8 +232,7 @@ function handleAdd() {
 /** 保存消息 */
 async function handleSaveNotice() {
   const values = await formMethods.validate()
-  if (!values)
-    return
+  if (!values) return
 
   try {
     await saveNotice(values)
@@ -246,8 +240,7 @@ async function handleSaveNotice() {
     modalMethods.closeModal()
     await loadAllData()
     tableMethods.value?.reload()
-  }
-  catch (e: any) {
+  } catch (e: any) {
     message.error(e?.message || '保存失败')
   }
 }
@@ -262,10 +255,8 @@ const columns: BasicColumn[] = [
     ellipsis: true,
     customRender: ({ record }: any) => (
       <div class="flex items-center gap-2">
-        {record.status === 0 && <span class="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />}
-        <span class={record.priority === 2 ? 'font-medium text-red-600 dark:text-red-400' : ''}>
-          {record.title}
-        </span>
+        {record.status === 0 && <span class="h-2 w-2 flex-shrink-0 rounded-full bg-blue-500" />}
+        <span class={record.priority === 2 ? 'font-medium text-red-600 dark:text-red-400' : ''}>{record.title}</span>
       </div>
     ),
   },
@@ -276,9 +267,7 @@ const columns: BasicColumn[] = [
     width: 80,
     align: 'center',
     customRender: ({ record }: any) => (
-      <a-tag color={typeMap[record.type]?.color || 'default'}>
-        {typeMap[record.type]?.label || '未知'}
-      </a-tag>
+      <a-tag color={typeMap[record.type]?.color || 'default'}>{typeMap[record.type]?.label || '未知'}</a-tag>
     ),
   },
   {
@@ -301,8 +290,7 @@ const columns: BasicColumn[] = [
     width: 170,
     customRender: ({ record }: any) => (
       <span>
-        {record.sendTime}
-        {' '}
+        {record.sendTime}{' '}
         (
         {dayjs(record.sendTime).fromNow(true)}
         前)
@@ -331,79 +319,31 @@ const columns: BasicColumn[] = [
   <div :class="containerClassName">
     <!-- 统计卡片 -->
     <div class="grid grid-cols-4 gap-4">
-      <a-card
-        :class="cardClassName"
-        size="small"
-        hoverable
-        @click="handleTabChange('unread')"
-      >
-        <a-statistic
-          title="未读消息"
-          :value="unreadCount"
-          suffix="条"
-        >
+      <a-card :class="cardClassName" size="small" hoverable @click="handleTabChange('unread')">
+        <a-statistic title="未读消息" :value="unreadCount" suffix="条">
           <template #prefix>
-            <Icon
-              icon="carbon:notification-new"
-              class="text-blue-500 text-lg mr-1"
-            />
+            <Icon icon="carbon:notification-new" class="mr-1 text-lg text-blue-500" />
           </template>
         </a-statistic>
       </a-card>
-      <a-card
-        :class="cardClassName"
-        size="small"
-        hoverable
-        @click="handleTabChange('1')"
-      >
-        <a-statistic
-          title="系统公告"
-          :value="systemCount"
-          suffix="条"
-        >
+      <a-card :class="cardClassName" size="small" hoverable @click="handleTabChange('1')">
+        <a-statistic title="系统公告" :value="systemCount" suffix="条">
           <template #prefix>
-            <Icon
-              icon="carbon:megaphone"
-              class="text-green-500 text-lg mr-1"
-            />
+            <Icon icon="carbon:megaphone" class="mr-1 text-lg text-green-500" />
           </template>
         </a-statistic>
       </a-card>
-      <a-card
-        :class="cardClassName"
-        size="small"
-        hoverable
-        @click="handleTabChange('2')"
-      >
-        <a-statistic
-          title="通知消息"
-          :value="noticeCount"
-          suffix="条"
-        >
+      <a-card :class="cardClassName" size="small" hoverable @click="handleTabChange('2')">
+        <a-statistic title="通知消息" :value="noticeCount" suffix="条">
           <template #prefix>
-            <Icon
-              icon="carbon:email"
-              class="text-orange-500 text-lg mr-1"
-            />
+            <Icon icon="carbon:email" class="mr-1 text-lg text-orange-500" />
           </template>
         </a-statistic>
       </a-card>
-      <a-card
-        :class="cardClassName"
-        size="small"
-        hoverable
-        @click="handleTabChange('3')"
-      >
-        <a-statistic
-          title="待办提醒"
-          :value="todoCount"
-          suffix="条"
-        >
+      <a-card :class="cardClassName" size="small" hoverable @click="handleTabChange('3')">
+        <a-statistic title="待办提醒" :value="todoCount" suffix="条">
           <template #prefix>
-            <Icon
-              icon="carbon:task"
-              class="text-purple-500 text-lg mr-1"
-            />
+            <Icon icon="carbon:task" class="mr-1 text-lg text-purple-500" />
           </template>
         </a-statistic>
       </a-card>
@@ -411,37 +351,16 @@ const columns: BasicColumn[] = [
 
     <!-- Tab 切换 + 工具栏 -->
     <a-card :class="cardClassName">
-      <div class="flex justify-between items-center mb-4">
-        <a-tabs
-          v-model:active-key="activeTabKey"
-          @change="handleTabChange"
-        >
-          <a-tab-pane
-            key="all"
-            tab="全部消息"
-          />
-          <a-tab-pane
-            key="unread"
-            tab="未读消息"
-          />
-          <a-tab-pane
-            key="1"
-            tab="系统公告"
-          />
-          <a-tab-pane
-            key="2"
-            tab="通知消息"
-          />
-          <a-tab-pane
-            key="3"
-            tab="待办提醒"
-          />
+      <div class="mb-4 flex items-center justify-between">
+        <a-tabs v-model:active-key="activeTabKey" @change="handleTabChange">
+          <a-tab-pane key="all" tab="全部消息" />
+          <a-tab-pane key="unread" tab="未读消息" />
+          <a-tab-pane key="1" tab="系统公告" />
+          <a-tab-pane key="2" tab="通知消息" />
+          <a-tab-pane key="3" tab="待办提醒" />
         </a-tabs>
         <div class="flex gap-2">
-          <a-button
-            type="primary"
-            @click="handleAdd"
-          >
+          <a-button type="primary" @click="handleAdd">
             <template #icon>
               <Icon icon="ant-design:plus-outlined" />
             </template>
@@ -462,48 +381,26 @@ const columns: BasicColumn[] = [
         :immediate="true"
         :use-search-form="false"
         :action-column="{ width: 180, title: '操作', fixed: 'right' }"
-        :pagination="{ showSizeChanger: true,
-                       pageSizeOptions: ['10',
-                                         '20',
-                                         '50'] }"
+        :pagination="{ showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }"
         @register="tableRegister"
       >
         <template #action="{ record }">
           <div class="flex items-center justify-center gap-1">
-            <a-button
-              type="link"
-              class="!px-0.5"
-              @click="() => handleView(record)"
-            >
+            <a-button type="link" class="!px-0.5" @click="() => handleView(record)">
               <template #icon>
                 <Icon icon="ant-design:eye-outlined" />
               </template>
               详情
             </a-button>
-            <a-divider
-              type="vertical"
-              class="mx-0"
-            />
-            <a-button
-              v-if="record.status === 0"
-              type="link"
-              class="!px-0.5"
-              @click="() => handleMarkRead(record)"
-            >
+            <a-divider type="vertical" class="mx-0" />
+            <a-button v-if="record.status === 0" type="link" class="!px-0.5" @click="() => handleMarkRead(record)">
               <template #icon>
                 <Icon icon="carbon:checkmark-outline" />
               </template>
               已读
             </a-button>
-            <a-popconfirm
-              :title="`确定要删除消息「${record.title}」吗？`"
-              @confirm="() => handleDelete(record)"
-            >
-              <a-button
-                type="link"
-                danger
-                class="!px-0.5"
-              >
+            <a-popconfirm :title="`确定要删除消息「${record.title}」吗？`" @confirm="() => handleDelete(record)">
+              <a-button type="link" danger class="!px-0.5">
                 <template #icon>
                   <Icon icon="ant-design:delete-outlined" />
                 </template>
@@ -539,31 +436,22 @@ const columns: BasicColumn[] = [
           </div>
 
           <!-- 元信息 -->
-          <a-descriptions
-            :column="1"
-            bordered
-            size="small"
-          >
+          <a-descriptions :column="1" bordered size="small">
             <a-descriptions-item label="发送人">
               {{ viewingNotice.sender }}
             </a-descriptions-item>
             <a-descriptions-item label="发送时间">
               {{ viewingNotice.sendTime }}
             </a-descriptions-item>
-            <a-descriptions-item
-              v-if="viewingNotice.readTime"
-              label="阅读时间"
-            >
+            <a-descriptions-item v-if="viewingNotice.readTime" label="阅读时间">
               {{ viewingNotice.readTime }}
             </a-descriptions-item>
           </a-descriptions>
 
           <!-- 内容区域 -->
-          <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <h4 class="font-medium mb-2">
-              消息内容
-            </h4>
-            <div class="whitespace-pre-wrap text-gray-700 dark:text-gray-300 leading-relaxed">
+          <div class="mt-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
+            <h4 class="mb-2 font-medium">消息内容</h4>
+            <div class="leading-relaxed whitespace-pre-wrap text-gray-700 dark:text-gray-300">
               {{ viewingNotice.content }}
             </div>
           </div>
@@ -572,13 +460,14 @@ const columns: BasicColumn[] = [
 
       <template #footer>
         <div class="flex justify-end gap-2">
-          <a-button @click="showDetailDrawer = false">
-            关闭
-          </a-button>
+          <a-button @click="showDetailDrawer = false"> 关闭 </a-button>
           <a-button
             v-if="viewingNotice?.status === 0"
             type="primary"
-            @click="handleMarkRead(viewingNotice); showDetailDrawer = false"
+            @click="
+              handleMarkRead(viewingNotice)
+              showDetailDrawer = false
+            "
           >
             标记已读并关闭
           </a-button>

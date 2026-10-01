@@ -31,7 +31,7 @@ export interface EChartsLib extends EChartsInstance {
       y0: number,
       x1: number,
       y1: number,
-      stops: Array<{ offset: number, color: string }>
+      stops: Array<{ offset: number; color: string }>,
     ) => any
   }
 }
@@ -100,7 +100,7 @@ async function _loadEchartsInternal(): Promise<EChartsLib> {
     installCanvasRenderer,
   ] = await Promise.all([
     // 核心（包含 init 函数，但不包含渲染器）
-    import('echarts/core').then(m => m.default || m),
+    import('echarts/core').then((m) => m.default || m),
     // 图表 — ECharts 6.x 路径：lib/chart/{type}/install
     import('echarts/lib/chart/line/install'),
     import('echarts/lib/chart/bar/install'),
@@ -152,16 +152,17 @@ async function _loadEchartsInternal(): Promise<EChartsLib> {
  * 用于路由预判或用户鼠标悬停菜单时触发
  */
 export function preloadEcharts(): void {
-  if (cachedEcharts || loadPromise)
-    return
+  if (cachedEcharts || loadPromise) return
 
   // 使用 requestIdleCallback 在浏览器空闲时加载
   if ('requestIdleCallback' in window) {
-    (window as any).requestIdleCallback(() => {
-      loadEcharts().catch(console.error)
-    }, { timeout: 3000 })
-  }
-  else {
+    ;(window as any).requestIdleCallback(
+      () => {
+        loadEcharts().catch(console.error)
+      },
+      { timeout: 3000 },
+    )
+  } else {
     // 降级方案：延迟加载
     setTimeout(() => {
       loadEcharts().catch(console.error)

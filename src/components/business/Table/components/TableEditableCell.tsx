@@ -1,9 +1,11 @@
 import type { PropType } from 'vue'
-import type { BasicColumn, ComponentType, Recordable } from '../types'
 
 import { Button, DatePicker, Input, InputNumber, Select, Switch } from 'antdv-next'
 import { computed, defineComponent, nextTick, ref, watch } from 'vue'
-import { IconifyIcon as Icon } from '@/components/common/Icon'
+
+import { IconifyIcon as Icon } from '~/components/common/Icon'
+
+import type { BasicColumn, ComponentType, Recordable } from '../types'
 
 export default defineComponent({
   name: 'TableEditableCell',
@@ -35,22 +37,22 @@ export default defineComponent({
     const inputRef = ref<any>(null)
 
     // 监听值变化
-    watch(() => props.value, (newVal) => {
-      editValue.value = newVal
-    })
+    watch(
+      () => props.value,
+      (newVal) => {
+        editValue.value = newVal
+      },
+    )
 
     // 获取编辑组件类型
     const getEditComponent = computed(() => {
       const editComponent = props.column?.editComponent
-      if (editComponent)
-        return editComponent
+      if (editComponent) return editComponent
 
       // 根据值类型推断组件
       const val = props.value
-      if (typeof val === 'boolean')
-        return 'Switch'
-      if (typeof val === 'number')
-        return 'InputNumber'
+      if (typeof val === 'boolean') return 'Switch'
+      if (typeof val === 'number') return 'InputNumber'
       return 'Input'
     })
 
@@ -129,32 +131,11 @@ export default defineComponent({
             />
           )
         case 'Select':
-          return (
-            <Select
-              ref={inputRef}
-              value={editValue.value}
-              onChange={handleChange}
-              {...componentProps}
-            />
-          )
+          return <Select ref={inputRef} value={editValue.value} onChange={handleChange} {...componentProps} />
         case 'DatePicker':
-          return (
-            <DatePicker
-              ref={inputRef}
-              value={editValue.value}
-              onChange={handleChange}
-              {...componentProps}
-            />
-          )
+          return <DatePicker ref={inputRef} value={editValue.value} onChange={handleChange} {...componentProps} />
         case 'Switch':
-          return (
-            <Switch
-              ref={inputRef}
-              checked={editValue.value}
-              onChange={handleChange}
-              {...componentProps}
-            />
-          )
+          return <Switch ref={inputRef} checked={editValue.value} onChange={handleChange} {...componentProps} />
         default:
           return (
             <Input
@@ -169,30 +150,21 @@ export default defineComponent({
     }
 
     return () => {
-      // 检查是否可编辑
       const isEditable = props.column?.edit || props.column?.editRow
 
       if (!isEditable) {
-        // 不可编辑，显示值
         return <span>{props.value}</span>
       }
 
       if (isEditing.value) {
-        // 编辑状态
         return (
           <div class="flex items-center gap-2">
             <div class="flex-1">{renderEditComponent()}</div>
             <div class="flex gap-1">
-              <Button
-                type="text"
-                onClick={handleSave}
-              >
+              <Button type="text" onClick={handleSave}>
                 <Icon icon="ant-design:check-outlined" />
               </Button>
-              <Button
-                type="text"
-                onClick={handleCancel}
-              >
+              <Button type="text" onClick={handleCancel}>
                 <Icon icon="ant-design:close-outlined" />
               </Button>
             </div>
@@ -200,17 +172,16 @@ export default defineComponent({
         )
       }
 
-      // 显示状态，点击可编辑
       return (
         <div
-          class="editable-cell flex items-center gap-1 cursor-pointer hover:text-blue-500 group"
+          class="editable-cell group hover:text-ant-primary-500 dark:hover:text-ant-primary-400 flex cursor-pointer items-center gap-1"
           onClick={startEdit}
           title="点击编辑"
         >
           <span>{props.value}</span>
           <Icon
             icon="ant-design:edit-outlined"
-            class="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400"
+            class="text-gray-400 opacity-0 transition-opacity group-hover:opacity-100 dark:text-gray-500"
           />
         </div>
       )

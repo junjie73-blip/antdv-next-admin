@@ -1,19 +1,20 @@
 export interface ProjectConfig {
-  projectName: string
+  projectName: string;
   table: {
     fetchSetting: {
-      listField: string
-      pageSizeField: string
-      totalField: string
-      pageNumField: string
-    }
+      listField: string;
+      pageSizeField: string;
+      totalField: string;
+      pageNumField: string;
+    };
     sortSetting: {
-      sortField: string
-      orderField: string
-    }
-    pageSizeOptions: number[]
-    defaultPageSize: number
-    defaultPageNum: number
-  }
-  routeMap: string
+      sortField: string;
+      orderField: string;
+    };
+    pageSizeOptions: number[];
+    defaultPageSize: number;
+    defaultPageNum: number;
+  };
+  routeMap: string;
+  scrollbar: Record<string, any>;
 }

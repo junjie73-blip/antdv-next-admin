@@ -62,8 +62,7 @@ export function useWatermark(options: UseWatermarkOptions = {}) {
 
     if (enabled && content) {
       createWatermark(content)
-    }
-    else {
+    } else {
       destroyWatermark()
     }
   }
@@ -82,8 +81,7 @@ export function useWatermark(options: UseWatermarkOptions = {}) {
       const enabled = unref(options.enabled as any)
       if (enabled && newContent) {
         updateWatermark(newContent)
-      }
-      else {
+      } else {
         destroyWatermark()
       }
     },
@@ -95,8 +93,7 @@ export function useWatermark(options: UseWatermarkOptions = {}) {
       const content = unref(options.content as any)
       if (newEnabled && content) {
         createWatermark(content)
-      }
-      else {
+      } else {
         destroyWatermark()
       }
     },

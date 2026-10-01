@@ -1,6 +1,7 @@
-import type { BasicColumn, UseColumnsOptions, UseColumnsReturn } from '../types'
 import { cloneDeep, isString } from 'es-toolkit'
 import { ref, unref, watch } from 'vue'
+
+import type { BasicColumn, UseColumnsOptions, UseColumnsReturn } from '../types'
 
 // 使用原生 Array.isArray 替代 es-toolkit 的 isArray
 const isArray = Array.isArray
@@ -10,12 +11,7 @@ const isArray = Array.isArray
  * 为什么需要：统一管理表格列的配置、缓存和更新
  */
 export function useColumns(options: UseColumnsOptions): UseColumnsReturn {
-  const {
-    columns,
-    showIndexColumn = false,
-    indexColumnProps = {},
-    actionColumn,
-  } = options
+  const { columns, showIndexColumn = false, indexColumnProps = {}, actionColumn } = options
 
   // 列数据
   const columnsRef = ref<BasicColumn[]>([])
@@ -41,8 +37,7 @@ export function useColumns(options: UseColumnsOptions): UseColumnsReturn {
    */
   const getActionColumn = (): BasicColumn | null => {
     const actionCol = unref(actionColumn)
-    if (!actionCol)
-      return null
+    if (!actionCol) return null
 
     return {
       key: 'action',
@@ -68,7 +63,7 @@ export function useColumns(options: UseColumnsOptions): UseColumnsReturn {
     }
 
     // 添加数据列，设置默认 align 为 center
-    const processedCols = cols.map(col => ({
+    const processedCols = cols.map((col) => ({
       align: 'center' as const,
       ...col,
     }))
@@ -88,8 +83,7 @@ export function useColumns(options: UseColumnsOptions): UseColumnsReturn {
    */
   const initColumns = () => {
     const rawColumns = unref(columns)
-    if (!isArray(rawColumns))
-      return
+    if (!isArray(rawColumns)) return
 
     const processed = processColumns(cloneDeep(rawColumns))
     columnsRef.value = processed
@@ -101,8 +95,7 @@ export function useColumns(options: UseColumnsOptions): UseColumnsReturn {
    * 支持传入列配置数组或列 key 数组（用于快速设置显示/隐藏）
    */
   const setColumns = (columnList: BasicColumn[] | string[]) => {
-    if (!isArray(columnList))
-      return
+    if (!isArray(columnList)) return
 
     // 如果是字符串数组，从缓存中查找对应列
     if (columnList.length > 0 && isString(columnList[0])) {
@@ -110,15 +103,14 @@ export function useColumns(options: UseColumnsOptions): UseColumnsReturn {
       const newColumns: BasicColumn[] = []
 
       keys.forEach((key) => {
-        const col = cacheColumnsRef.value.find(item => item.key === key || item.dataIndex === key)
+        const col = cacheColumnsRef.value.find((item) => item.key === key || item.dataIndex === key)
         if (col) {
           newColumns.push(col)
         }
       })
 
       columnsRef.value = newColumns
-    }
-    else {
+    } else {
       // 直接设置列配置
       columnsRef.value = columnList as BasicColumn[]
     }
@@ -149,7 +141,7 @@ export function useColumns(options: UseColumnsOptions): UseColumnsReturn {
    * 更新单个列
    */
   const updateColumn = (column: Partial<BasicColumn>, key: string) => {
-    const index = columnsRef.value.findIndex(col => col.key === key || col.dataIndex === key)
+    const index = columnsRef.value.findIndex((col) => col.key === key || col.dataIndex === key)
     if (index > -1) {
       columnsRef.value[index] = { ...columnsRef.value[index], ...column }
     }

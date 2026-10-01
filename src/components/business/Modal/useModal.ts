@@ -1,6 +1,8 @@
 import type { Ref } from 'vue'
-import type { ModalMethods, Nullable, UseModalReturnType } from './types'
+
 import { nextTick, onUnmounted, ref } from 'vue'
+
+import type { ModalMethods, Nullable, UseModalReturnType } from './types'
 
 /**
  * useModal - 用于页面组件控制独立弹窗组件
@@ -36,7 +38,7 @@ export function useModal(): UseModalReturnType {
       if (modalInstance.value) {
         return modalInstance.value
       }
-      await new Promise(resolve => setTimeout(resolve, 50))
+      await new Promise((resolve) => setTimeout(resolve, 50))
     }
 
     throw new Error('[useModal] Modal instance not found. Please check if the Modal component is registered.')

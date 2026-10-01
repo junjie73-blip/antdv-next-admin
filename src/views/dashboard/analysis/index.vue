@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
+
 import { Icon } from '@iconify/vue'
 import { useEventListener } from '@vueuse/core'
 import { message } from 'antdv-next'
 import * as echarts from 'echarts'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useAppStore } from '@/stores/modules/app'
-import { cn } from '@/utils/cn'
+
+import { useAppStore } from '~/stores/modules/app'
+import { cn } from '~/utils/cn'
 
 defineOptions({ name: 'DashboardAnalysis' })
 const appStore = useAppStore()
@@ -31,9 +33,7 @@ const analyticsCardClassName = cn(
   'rounded-lg border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900',
   'shadow-sm transition-all duration-300 hover:shadow-md',
 )
-const sectionTitleClassName = cn(
-  'text-base font-semibold text-gray-800 dark:text-gray-200 mb-4',
-)
+const sectionTitleClassName = cn('text-base font-semibold text-gray-800 dark:text-gray-200 mb-4')
 
 // ═══════════════════════════════════════════
 // 📈 数据分析图表数据
@@ -50,10 +50,38 @@ interface KpiItem {
 }
 
 const kpiList: KpiItem[] = [
-  { title: '今日访问', value: '12,847', icon: 'carbon:view', color: 'blue', trend: 12.5, trendLabel: '较昨日' },
-  { title: '活跃用户', value: '1,286', icon: 'carbon:user-multiple', color: 'emerald', trend: -3.2, trendLabel: '较昨日' },
-  { title: 'API 调用', value: '89.4K', icon: 'carbon:cloud-upload', color: 'violet', trend: 24.8, trendLabel: '较上周' },
-  { title: '系统负载', value: '42%', icon: 'carbon:chart-line-data', color: 'amber', trend: -5.1, trendLabel: '较昨日' },
+  {
+    title: '今日访问',
+    value: '12,847',
+    icon: 'carbon:view',
+    color: 'blue',
+    trend: 12.5,
+    trendLabel: '较昨日',
+  },
+  {
+    title: '活跃用户',
+    value: '1,286',
+    icon: 'carbon:user-multiple',
+    color: 'emerald',
+    trend: -3.2,
+    trendLabel: '较昨日',
+  },
+  {
+    title: 'API 调用',
+    value: '89.4K',
+    icon: 'carbon:cloud-upload',
+    color: 'violet',
+    trend: 24.8,
+    trendLabel: '较上周',
+  },
+  {
+    title: '系统负载',
+    value: '42%',
+    icon: 'carbon:chart-line-data',
+    color: 'amber',
+    trend: -5.1,
+    trendLabel: '较昨日',
+  },
 ]
 
 function kpiIconWrap(color: string): string {
@@ -101,7 +129,10 @@ function baseOption(extra: Record<string, any> = {}): Record<string, any> {
 }
 
 function gradient(colors: [string, string], vertical = true) {
-  return new echarts.graphic.LinearGradient(0, 0, vertical ? 0 : 1, vertical ? 1 : 0, [{ offset: 0, color: colors[0] }, { offset: 1, color: colors[1] }])
+  return new echarts.graphic.LinearGradient(0, 0, vertical ? 0 : 1, vertical ? 1 : 0, [
+    { offset: 0, color: colors[0] },
+    { offset: 1, color: colors[1] },
+  ])
 }
 
 const PALETTE = {
@@ -116,8 +147,7 @@ const PALETTE = {
 // Chart 1: 系统活动趋势（主图）
 function initMainTrend() {
   const el = mainTrendRef.value
-  if (!el)
-    return
+  if (!el) return
   const instance = echarts.init(el, isDark.value ? 'dark' : undefined)
   charts.set('mainTrend', instance)
 
@@ -126,88 +156,93 @@ function initMainTrend() {
   const uv = Array.from({ length: 30 }, () => Math.floor(Math.random() * 2000 + 800))
   const apiCalls = Array.from({ length: 30 }, () => Math.floor(Math.random() * 80000 + 40000))
 
-  instance.setOption(baseOption({
-    legend: {
-      data: ['页面访问(PV)', '独立访客(UV)', 'API调用'],
-      top: 0,
-      right: 0,
-      textStyle: { color: subTextColor(), fontSize: 12 },
-      itemWidth: 14,
-      itemHeight: 3,
-      itemGap: 20,
-    },
-    grid: { left: '3%', right: '4%', top: '36px', bottom: '8%', containLabel: true },
-    xAxis: {
-      type: 'category',
-      data: days,
-      boundaryGap: false,
-      axisLine: { lineStyle: { color: axisLineColor() } },
-      axisLabel: { color: subTextColor(), fontSize: 11, interval: 4 },
-      axisTick: { show: false },
-    },
-    yAxis: [
-      {
-        type: 'value',
-        name: '访问量',
-        nameTextStyle: { color: subTextColor(), fontSize: 11 },
-        axisLabel: { color: subTextColor(), fontSize: 11 },
-        splitLine: { lineStyle: { color: borderColor(), type: 'dashed', opacity: 0.5 } },
-        position: 'left',
+  instance.setOption(
+    baseOption({
+      legend: {
+        data: ['页面访问(PV)', '独立访客(UV)', 'API调用'],
+        top: 0,
+        right: 0,
+        textStyle: { color: subTextColor(), fontSize: 12 },
+        itemWidth: 14,
+        itemHeight: 3,
+        itemGap: 20,
       },
-      {
-        type: 'value',
-        name: 'API',
-        nameTextStyle: { color: subTextColor(), fontSize: 11 },
-        axisLabel: { color: subTextColor(), fontSize: 11, formatter: (v: number) => `${v / 1000}k` },
-        splitLine: { show: false },
-        position: 'right',
+      grid: { left: '3%', right: '4%', top: '36px', bottom: '8%', containLabel: true },
+      xAxis: {
+        type: 'category',
+        data: days,
+        boundaryGap: false,
+        axisLine: { lineStyle: { color: axisLineColor() } },
+        axisLabel: { color: subTextColor(), fontSize: 11, interval: 4 },
+        axisTick: { show: false },
       },
-    ],
-    series: [
-      {
-        name: '页面访问(PV)',
-        type: 'line',
-        data: pv,
-        smooth: true,
-        symbol: 'none',
-        lineStyle: { color: PALETTE.primary, width: 2.5 },
-        areaStyle: { color: gradient(['rgba(22,119,255,0.18)', 'rgba(22,119,255,0.01)']) },
-        emphasis: { focus: 'series' },
-      },
-      {
-        name: '独立访客(UV)',
-        type: 'line',
-        data: uv,
-        smooth: true,
-        symbol: 'none',
-        lineStyle: { color: PALETTE.success, width: 2 },
-        areaStyle: { color: gradient(['rgba(82,196,26,0.12)', 'rgba(82,196,26,0.01)']) },
-        emphasis: { focus: 'series' },
-      },
-      {
-        name: 'API调用',
-        type: 'bar',
-        yAxisIndex: 1,
-        data: apiCalls,
-        barWidth: 10,
-        barGap: '-100%',
-        itemStyle: {
-          borderRadius: [3, 3, 0, 0],
-          color: gradient(['rgba(114,46,209,0.6)', 'rgba(114,46,209,0.08)']),
+      yAxis: [
+        {
+          type: 'value',
+          name: '访问量',
+          nameTextStyle: { color: subTextColor(), fontSize: 11 },
+          axisLabel: { color: subTextColor(), fontSize: 11 },
+          splitLine: { lineStyle: { color: borderColor(), type: 'dashed', opacity: 0.5 } },
+          position: 'left',
         },
-        emphasis: { focus: 'series' },
-      },
-    ],
-    animationDuration: 1200,
-    animationEasing: 'cubicOut',
-  }))
+        {
+          type: 'value',
+          name: 'API',
+          nameTextStyle: { color: subTextColor(), fontSize: 11 },
+          axisLabel: {
+            color: subTextColor(),
+            fontSize: 11,
+            formatter: (v: number) => `${v / 1000}k`,
+          },
+          splitLine: { show: false },
+          position: 'right',
+        },
+      ],
+      series: [
+        {
+          name: '页面访问(PV)',
+          type: 'line',
+          data: pv,
+          smooth: true,
+          symbol: 'none',
+          lineStyle: { color: PALETTE.primary, width: 2.5 },
+          areaStyle: { color: gradient(['rgba(22,119,255,0.18)', 'rgba(22,119,255,0.01)']) },
+          emphasis: { focus: 'series' },
+        },
+        {
+          name: '独立访客(UV)',
+          type: 'line',
+          data: uv,
+          smooth: true,
+          symbol: 'none',
+          lineStyle: { color: PALETTE.success, width: 2 },
+          areaStyle: { color: gradient(['rgba(82,196,26,0.12)', 'rgba(82,196,26,0.01)']) },
+          emphasis: { focus: 'series' },
+        },
+        {
+          name: 'API调用',
+          type: 'bar',
+          yAxisIndex: 1,
+          data: apiCalls,
+          barWidth: 10,
+          barGap: '-100%',
+          itemStyle: {
+            borderRadius: [3, 3, 0, 0],
+            color: gradient(['rgba(114,46,209,0.6)', 'rgba(114,46,209,0.08)']),
+          },
+          emphasis: { focus: 'series' },
+        },
+      ],
+      animationDuration: 1200,
+      animationEasing: 'cubicOut',
+    }),
+  )
 }
 
 // Chart 2: 流量来源分布
 function initTrafficDist() {
   const el = trafficDistRef.value
-  if (!el)
-    return
+  if (!el) return
   const instance = echarts.init(el, isDark.value ? 'dark' : undefined)
   charts.set('trafficDist', instance)
 
@@ -220,90 +255,96 @@ function initTrafficDist() {
     { value: 520, name: '其他渠道' },
   ]
 
-  instance.setOption(baseOption({
-    tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
-    legend: {
-      orient: 'vertical',
-      right: '2%',
-      top: 'center',
-      textStyle: { color: subTextColor(), fontSize: 12 },
-      itemWidth: 10,
-      itemHeight: 10,
-      itemGap: 14,
-      icon: 'circle',
-    },
-    series: [{
-      type: 'pie',
-      radius: ['42%', '72%'],
-      center: ['38%', '50%'],
-      avoidLabelOverlap: true,
-      padAngle: 2,
-      itemStyle: {
-        borderRadius: 6,
-        borderColor: isDark.value ? '#111827' : '#fff',
-        borderWidth: 2,
+  instance.setOption(
+    baseOption({
+      tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+      legend: {
+        orient: 'vertical',
+        right: '2%',
+        top: 'center',
+        textStyle: { color: subTextColor(), fontSize: 12 },
+        itemWidth: 10,
+        itemHeight: 10,
+        itemGap: 14,
+        icon: 'circle',
       },
-      label: { show: false },
-      emphasis: {
-        label: { show: true, fontSize: 14, fontWeight: 'bold', color: textColor() },
-        scaleSize: 8,
-      },
-      data,
-      color: [PALETTE.primary, PALETTE.success, PALETTE.warning, PALETTE.info, PALETTE.cyan, PALETTE.danger],
-    }],
-  }))
+      series: [
+        {
+          type: 'pie',
+          radius: ['42%', '72%'],
+          center: ['38%', '50%'],
+          avoidLabelOverlap: true,
+          padAngle: 2,
+          itemStyle: {
+            borderRadius: 6,
+            borderColor: isDark.value ? '#111827' : '#fff',
+            borderWidth: 2,
+          },
+          label: { show: false },
+          emphasis: {
+            label: { show: true, fontSize: 14, fontWeight: 'bold', color: textColor() },
+            scaleSize: 8,
+          },
+          data,
+          color: [PALETTE.primary, PALETTE.success, PALETTE.warning, PALETTE.info, PALETTE.cyan, PALETTE.danger],
+        },
+      ],
+    }),
+  )
 }
 
 // Chart 3: 系统健康仪表盘
 function initSystemHealth() {
   const el = systemHealthRef.value
-  if (!el)
-    return
+  if (!el) return
   const instance = echarts.init(el, isDark.value ? 'dark' : undefined)
   charts.set('systemHealth', instance)
 
-  instance.setOption(baseOption({
-    series: [{
-      type: 'gauge',
-      startAngle: 210,
-      endAngle: -30,
-      radius: '92%',
-      min: 0,
-      max: 100,
-      axisLine: {
-        lineStyle: {
-          width: 14,
-          color: [
-            [0.35, PALETTE.success],
-            [0.65, PALETTE.warning],
-            [1, PALETTE.danger],
-          ],
+  instance.setOption(
+    baseOption({
+      series: [
+        {
+          type: 'gauge',
+          startAngle: 210,
+          endAngle: -30,
+          radius: '92%',
+          min: 0,
+          max: 100,
+          axisLine: {
+            lineStyle: {
+              width: 14,
+              color: [
+                [0.35, PALETTE.success],
+                [0.65, PALETTE.warning],
+                [1, PALETTE.danger],
+              ],
+            },
+          },
+          pointer: { length: '58%', width: 4, itemStyle: { color: 'auto' } },
+          axisTick: { length: 6, lineStyle: { color: 'auto', width: 1.5 } },
+          splitLine: { length: 12, lineStyle: { color: 'auto', width: 2 } },
+          axisLabel: { color: subTextColor(), distance: 18, fontSize: 10 },
+          detail: {
+            valueAnimation: true,
+            formatter: '{value}%',
+            color: textColor(),
+            fontSize: 26,
+            fontWeight: 700,
+            offsetCenter: [0, '55%'],
+          },
+          title: { show: false },
+          data: [{ value: 86.2 }],
+          animationDuration: 1800,
         },
-      },
-      pointer: { length: '58%', width: 4, itemStyle: { color: 'auto' } },
-      axisTick: { length: 6, lineStyle: { color: 'auto', width: 1.5 } },
-      splitLine: { length: 12, lineStyle: { color: 'auto', width: 2 } },
-      axisLabel: { color: subTextColor(), distance: 18, fontSize: 10 },
-      detail: {
-        valueAnimation: true,
-        formatter: '{value}%',
-        color: textColor(),
-        fontSize: 26,
-        fontWeight: 700,
-        offsetCenter: [0, '55%'],
-      },
-      title: { show: false },
-      data: [{ value: 86.2 }],
-      animationDuration: 1800,
-    }],
-  }))
+      ],
+    }),
+  )
 }
 
 // Chart 4: 资源使用雷达图
 function initResourceRadar() {
   const el = resourceRadarRef.value
-  if (!el)
-    return
+  if (!el) return
   const instance = echarts.init(el, isDark.value ? 'dark' : undefined)
   charts.set('resourceRadar', instance)
 
@@ -316,56 +357,57 @@ function initResourceRadar() {
     { name: '缓存', max: 100 },
   ]
 
-  instance.setOption(baseOption({
-    legend: {
-      data: ['当前', '峰值'],
-      bottom: 0,
-      textStyle: { color: subTextColor(), fontSize: 12 },
-    },
-    radar: {
-      indicator: indicators.map(i => ({ ...i, color: subTextColor() })),
-      axisName: { color: subTextColor(), fontSize: 11 },
-      splitArea: {
-        areaStyle: {
-          color: [
-            isDark.value ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
-            isDark.value ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
-          ],
+  instance.setOption(
+    baseOption({
+      legend: {
+        data: ['当前', '峰值'],
+        bottom: 0,
+        textStyle: { color: subTextColor(), fontSize: 12 },
+      },
+      radar: {
+        indicator: indicators.map((i) => ({ ...i, color: subTextColor() })),
+        axisName: { color: subTextColor(), fontSize: 11 },
+        splitArea: {
+          areaStyle: {
+            color: [
+              isDark.value ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+              isDark.value ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+            ],
+          },
         },
+        splitLine: { lineStyle: { color: borderColor(), opacity: 0.4 } },
+        axisLine: { lineStyle: { color: borderColor(), opacity: 0.4 } },
       },
-      splitLine: { lineStyle: { color: borderColor(), opacity: 0.4 } },
-      axisLine: { lineStyle: { color: borderColor(), opacity: 0.4 } },
-    },
-    series: [
-      {
-        name: '当前',
-        type: 'radar',
-        data: [{ value: [42, 68, 55, 30, 48, 62], name: '当前' }],
-        symbol: 'circle',
-        symbolSize: 5,
-        lineStyle: { color: PALETTE.primary, width: 2 },
-        areaStyle: { color: 'rgba(22,119,255,0.18)' },
-        itemStyle: { color: PALETTE.primary },
-      },
-      {
-        name: '峰值',
-        type: 'radar',
-        data: [{ value: [78, 85, 72, 58, 76, 88], name: '峰值' }],
-        symbol: 'circle',
-        symbolSize: 4,
-        lineStyle: { color: PALETTE.danger, width: 1.5, type: 'dashed' },
-        areaStyle: { color: 'rgba(255,77,79,0.06)' },
-        itemStyle: { color: PALETTE.danger },
-      },
-    ],
-  }))
+      series: [
+        {
+          name: '当前',
+          type: 'radar',
+          data: [{ value: [42, 68, 55, 30, 48, 62], name: '当前' }],
+          symbol: 'circle',
+          symbolSize: 5,
+          lineStyle: { color: PALETTE.primary, width: 2 },
+          areaStyle: { color: 'rgba(22,119,255,0.18)' },
+          itemStyle: { color: PALETTE.primary },
+        },
+        {
+          name: '峰值',
+          type: 'radar',
+          data: [{ value: [78, 85, 72, 58, 76, 88], name: '峰值' }],
+          symbol: 'circle',
+          symbolSize: 4,
+          lineStyle: { color: PALETTE.danger, width: 1.5, type: 'dashed' },
+          areaStyle: { color: 'rgba(255,77,79,0.06)' },
+          itemStyle: { color: PALETTE.danger },
+        },
+      ],
+    }),
+  )
 }
 
 // Chart 5: API 错误率趋势
 function initActivityHeatmap() {
   const el = activityHeatmapRef.value
-  if (!el)
-    return
+  if (!el) return
   const instance = echarts.init(el, isDark.value ? 'dark' : undefined)
   charts.set('activityHeatmap', instance)
 
@@ -381,25 +423,62 @@ function initActivityHeatmap() {
     return Number(Math.max(0, val).toFixed(2))
   })
 
-  instance.setOption(baseOption({
-    legend: { data: ['总错误率', '4xx 客户端错误', '5xx 服务端错误'], top: 0, textStyle: { color: subTextColor(), fontSize: 10 } },
-    grid: { left: '3%', right: '4%', top: '32px', bottom: '10%', containLabel: true },
-    xAxis: { type: 'category', data: hours, axisLabel: { color: subTextColor(), fontSize: 9, interval: 2 }, axisLine: { lineStyle: { color: borderColor() } }, axisTick: { show: false } },
-    yAxis: { type: 'value', name: '错误率 (%)', nameTextStyle: { color: subTextColor(), fontSize: 10 }, axisLabel: { color: subTextColor(), fontSize: 9, formatter: '{value}%' }, splitLine: { lineStyle: { color: borderColor(), type: 'dashed', opacity: 0.4 } } },
-    series: [
-      { name: '总错误率', type: 'line', data: errorRates, smooth: true, symbol: 'none', lineStyle: { color: PALETTE.danger, width: 2 }, areaStyle: { color: gradient(['rgba(255,77,79,0.15)', 'rgba(255,77,79,0.01)']) } },
-      { name: '4xx 客户端错误', type: 'bar', data: errors4xx, barWidth: 6, itemStyle: { color: PALETTE.warning, borderRadius: [2, 2, 0, 0] } },
-      { name: '5xx 服务端错误', type: 'bar', data: errors5xx, barWidth: 6, itemStyle: { color: PALETTE.danger, borderRadius: [2, 2, 0, 0] } },
-    ],
-    animationDuration: 1200,
-  }))
+  instance.setOption(
+    baseOption({
+      legend: {
+        data: ['总错误率', '4xx 客户端错误', '5xx 服务端错误'],
+        top: 0,
+        textStyle: { color: subTextColor(), fontSize: 10 },
+      },
+      grid: { left: '3%', right: '4%', top: '32px', bottom: '10%', containLabel: true },
+      xAxis: {
+        type: 'category',
+        data: hours,
+        axisLabel: { color: subTextColor(), fontSize: 9, interval: 2 },
+        axisLine: { lineStyle: { color: borderColor() } },
+        axisTick: { show: false },
+      },
+      yAxis: {
+        type: 'value',
+        name: '错误率 (%)',
+        nameTextStyle: { color: subTextColor(), fontSize: 10 },
+        axisLabel: { color: subTextColor(), fontSize: 9, formatter: '{value}%' },
+        splitLine: { lineStyle: { color: borderColor(), type: 'dashed', opacity: 0.4 } },
+      },
+      series: [
+        {
+          name: '总错误率',
+          type: 'line',
+          data: errorRates,
+          smooth: true,
+          symbol: 'none',
+          lineStyle: { color: PALETTE.danger, width: 2 },
+          areaStyle: { color: gradient(['rgba(255,77,79,0.15)', 'rgba(255,77,79,0.01)']) },
+        },
+        {
+          name: '4xx 客户端错误',
+          type: 'bar',
+          data: errors4xx,
+          barWidth: 6,
+          itemStyle: { color: PALETTE.warning, borderRadius: [2, 2, 0, 0] },
+        },
+        {
+          name: '5xx 服务端错误',
+          type: 'bar',
+          data: errors5xx,
+          barWidth: 6,
+          itemStyle: { color: PALETTE.danger, borderRadius: [2, 2, 0, 0] },
+        },
+      ],
+      animationDuration: 1200,
+    }),
+  )
 }
 
 // Chart 6: 用户行为漏斗
 function initUserJourney() {
   const el = userJourneyRef.value
-  if (!el)
-    return
+  if (!el) return
   const instance = echarts.init(el, isDark.value ? 'dark' : undefined)
   charts.set('userJourney', instance)
 
@@ -412,41 +491,45 @@ function initUserJourney() {
   ]
   const total = stages[0]?.value ?? 10000
 
-  instance.setOption(baseOption({
-    tooltip: {
-      formatter: (params: any) => {
-        const rate = (((params.value ?? 0) / total) * 100).toFixed(1)
-        return `<b>${params.name}</b><br/>人数: ${params.value}<br/>转化率: ${rate}%`
+  instance.setOption(
+    baseOption({
+      tooltip: {
+        formatter: (params: any) => {
+          const rate = (((params.value ?? 0) / total) * 100).toFixed(1)
+          return `<b>${params.name}</b><br/>人数: ${params.value}<br/>转化率: ${rate}%`
+        },
       },
-    },
-    series: [{
-      type: 'funnel',
-      left: '12%',
-      top: 16,
-      bottom: 16,
-      width: '76%',
-      sort: 'descending',
-      gap: 3,
-      label: {
-        show: true,
-        position: 'inside',
-        formatter: '{b}\n{c}',
-        color: '#fff',
-        fontSize: 12,
-        fontWeight: 500,
-      },
-      labelLine: { show: false },
-      itemStyle: {
-        borderColor: isDark.value ? '#111827' : '#fff',
-        borderWidth: 2,
-        shadowBlur: 8,
-        shadowColor: 'rgba(0,0,0,0.08)',
-      },
-      data: stages,
-      color: [PALETTE.primary, '#4096ff', '#69b1ff', '#91caff', '#bae0fe'],
-      animationDuration: 1500,
-    }],
-  }))
+      series: [
+        {
+          type: 'funnel',
+          left: '12%',
+          top: 16,
+          bottom: 16,
+          width: '76%',
+          sort: 'descending',
+          gap: 3,
+          label: {
+            show: true,
+            position: 'inside',
+            formatter: '{b}\n{c}',
+            color: '#fff',
+            fontSize: 12,
+            fontWeight: 500,
+          },
+          labelLine: { show: false },
+          itemStyle: {
+            borderColor: isDark.value ? '#111827' : '#fff',
+            borderWidth: 2,
+            shadowBlur: 8,
+            shadowColor: 'rgba(0,0,0,0.08)',
+          },
+          data: stages,
+          color: [PALETTE.primary, '#4096ff', '#69b1ff', '#91caff', '#bae0fe'],
+          animationDuration: 1500,
+        },
+      ],
+    }),
+  )
 }
 
 // Chart 7: 模块使用排行（动态）
@@ -454,8 +537,7 @@ let moduleRankTimer: ReturnType<typeof setInterval> | null = null
 
 function initModuleRank() {
   const el = moduleRankRef.value
-  if (!el)
-    return
+  if (!el) return
   const instance = echarts.init(el, isDark.value ? 'dark' : undefined)
   charts.set('moduleRank', instance)
 
@@ -471,7 +553,8 @@ function initModuleRank() {
       [530, 480, 360, 400, 370, 330, 300, 270],
     ]
     const current = baseData[round % baseData.length]!
-    const sorted = modules.map((name, i) => ({ name, value: current[i]! + Math.round(Math.random() * 30 - 15) }))
+    const sorted = modules
+      .map((name, i) => ({ name, value: current[i]! + Math.round(Math.random() * 30 - 15) }))
       .sort((a, b) => b.value - a.value)
 
     instance.setOption({
@@ -484,26 +567,34 @@ function initModuleRank() {
       },
       yAxis: {
         type: 'category',
-        data: sorted.map(d => d.name),
+        data: sorted.map((d) => d.name),
         axisLabel: { color: textColor(), fontSize: 12 },
         axisTick: { show: false },
         axisLine: { show: false },
         inverse: true,
       },
-      series: [{
-        type: 'bar',
-        data: sorted.map(d => ({
-          value: d.value,
-          itemStyle: {
-            color: gradient([PALETTE.primary, 'rgba(22,119,255,0.25)'], false),
-            borderRadius: [0, 4, 4, 0],
+      series: [
+        {
+          type: 'bar',
+          data: sorted.map((d) => ({
+            value: d.value,
+            itemStyle: {
+              color: gradient([PALETTE.primary, 'rgba(22,119,255,0.25)'], false),
+              borderRadius: [0, 4, 4, 0],
+            },
+          })),
+          barWidth: 16,
+          label: {
+            show: true,
+            position: 'right',
+            color: subTextColor(),
+            fontSize: 11,
+            formatter: '{c}',
           },
-        })),
-        barWidth: 16,
-        label: { show: true, position: 'right', color: subTextColor(), fontSize: 11, formatter: '{c}' },
-        animationDuration: 800,
-        animationEasing: 'cubicInOut',
-      }],
+          animationDuration: 800,
+          animationEasing: 'cubicInOut',
+        },
+      ],
     })
     round++
   }
@@ -514,7 +605,7 @@ function initModuleRank() {
 }
 
 // 导出报告
-const CHART_EXPORT_CONFIG: { name: string, key: string }[] = [
+const CHART_EXPORT_CONFIG: { name: string; key: string }[] = [
   { name: '系统活动趋势', key: 'mainTrend' },
   { name: '流量来源分布', key: 'trafficDist' },
   { name: '系统健康度', key: 'systemHealth' },
@@ -544,8 +635,7 @@ function handleExportReport() {
     if (instance) {
       const el = instance.getDom()
       totalHeight += Math.max(Number(el.offsetHeight) || 400, 400)
-    }
-    else {
+    } else {
       totalHeight += 400
     }
   }
@@ -598,13 +688,11 @@ function handleExportReport() {
           checkLast()
         }
         img.src = dataUrl
-      }
-      catch {
+      } catch {
         offsetY += 300 + chartGap
         checkLast()
       }
-    }
-    else {
+    } else {
       offsetY += 300 + chartGap
       checkLast()
     }
@@ -618,8 +706,7 @@ function handleExportReport() {
   let doneCount = 0
   function checkLast() {
     doneCount++
-    if (doneCount >= CHART_EXPORT_CONFIG.length)
-      triggerDownload()
+    if (doneCount >= CHART_EXPORT_CONFIG.length) triggerDownload()
   }
 
   function triggerDownload() {
@@ -635,8 +722,7 @@ function handleExportReport() {
 
 function safeInit(name: string, refEl: Ref<HTMLDivElement | undefined>, initFn: (el: HTMLDivElement) => void) {
   const el = refEl.value
-  if (!el || charts.has(name))
-    return
+  if (!el || charts.has(name)) return
 
   if (el.offsetWidth > 0 && el.offsetHeight > 0) {
     initFn(el)
@@ -645,8 +731,7 @@ function safeInit(name: string, refEl: Ref<HTMLDivElement | undefined>, initFn: 
 
   let cleaned = false
   const observer = new ResizeObserver((entries) => {
-    if (cleaned)
-      return
+    if (cleaned) return
     for (const entry of entries) {
       if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
         cleaned = true
@@ -666,8 +751,7 @@ function safeInit(name: string, refEl: Ref<HTMLDivElement | undefined>, initFn: 
       cleaned = true
       observer.disconnect()
       const target = refEl.value
-      if (target)
-        initFn(target)
+      if (target) initFn(target)
     }
   }, 3000)
 }
@@ -683,11 +767,11 @@ function initAllCharts() {
 }
 
 function disposeAll() {
-  charts.forEach(c => c.dispose())
+  charts.forEach((c) => c.dispose())
   charts.clear()
 }
 
-useEventListener(window, 'resize', () => charts.forEach(c => c.resize()))
+useEventListener(window, 'resize', () => charts.forEach((c) => c.resize()))
 
 onMounted(() => {
   nextTick(() => initAllCharts())
@@ -705,27 +789,14 @@ onBeforeUnmount(() => {
 <template>
   <div>
     <!-- 页面标题 -->
-    <div class="flex items-center justify-between mb-2">
+    <div class="mb-2 flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
-          数据分析
-        </h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          系统数据分析与可视化
-        </p>
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">数据分析</h1>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">系统数据分析与可视化</p>
       </div>
       <a-space>
-        <a-segmented
-          :options="['今日',
-                     '近7天',
-                     '近30天']"
-          default-value="今日"
-          size="small"
-        />
-        <a-button
-          size="small"
-          @click="handleExportReport"
-        >
+        <a-segmented :options="['今日', '近7天', '近30天']" default-value="今日" size="small" />
+        <a-button size="small" @click="handleExportReport">
           <template #icon>
             <Icon icon="carbon:download" />
           </template>
@@ -737,38 +808,28 @@ onBeforeUnmount(() => {
     <!-- 数据分析内容 -->
     <div class="space-y-8">
       <!-- KPI 统计卡片区 -->
-      <a-row
-        :gutter="[16,
-                  16]"
-      >
-        <a-col
-          v-for="kpi in kpiList"
-          :key="kpi.title"
-          :xs="12"
-          :sm="6"
-        >
+      <a-row :gutter="[16, 16]">
+        <a-col v-for="kpi in kpiList" :key="kpi.title" :xs="12" :sm="6">
           <div
-            :class="cn(
-              'rounded-lg border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 cursor-pointer',
-              'transition-all duration-300 hover:shadow-md',
-            )"
+            :class="
+              cn(
+                'cursor-pointer rounded-lg border border-gray-100 bg-white p-5 dark:border-gray-800 dark:bg-gray-900',
+                'transition-all duration-300 hover:shadow-md',
+              )
+            "
           >
             <div class="flex items-start gap-4">
               <div :class="kpiIconWrap(kpi.color)">
-                <Icon
-                  :icon="kpi.icon"
-                  :width="22"
-                  :height="22"
-                />
+                <Icon :icon="kpi.icon" :width="22" :height="22" />
               </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-2xl font-bold text-gray-800 dark:text-white tracking-tight leading-tight">
+              <div class="min-w-0 flex-1">
+                <p class="text-2xl leading-tight font-bold tracking-tight text-gray-800 dark:text-white">
                   {{ kpi.value }}
                 </p>
-                <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                <p class="mt-1 text-sm text-gray-400 dark:text-gray-500">
                   {{ kpi.title }}
                 </p>
-                <div class="flex items-center gap-1 mt-1.5">
+                <div class="mt-1.5 flex items-center gap-1">
                   <Icon
                     :icon="kpi.trend >= 0 ? 'carbon:arrow-up' : 'carbon:arrow-down'"
                     :width="12"
@@ -793,174 +854,71 @@ onBeforeUnmount(() => {
         :styles="{ body: { padding: '20px 24px' } }"
         class="mt-6"
       >
-        <div class="flex items-center justify-between mb-4">
-          <h3 :class="sectionTitleClassName">
-            系统活动趋势
-          </h3>
-          <a-radio-group
-            size="small"
-            button-style="solid"
-            default-value="pv"
-            class="scale-90 origin-right"
-          >
-            <a-radio-button value="pv">
-              PV / UV
-            </a-radio-button>
-            <a-radio-button value="api">
-              API 调用
-            </a-radio-button>
+        <div class="mb-4 flex items-center justify-between">
+          <h3 :class="sectionTitleClassName">系统活动趋势</h3>
+          <a-radio-group size="small" button-style="solid" default-value="pv" class="origin-right scale-90">
+            <a-radio-button value="pv"> PV / UV </a-radio-button>
+            <a-radio-button value="api"> API 调用 </a-radio-button>
           </a-radio-group>
         </div>
-        <div
-          ref="mainTrendRef"
-          class="w-full"
-          style="height: 380px;"
-        />
+        <div ref="mainTrendRef" class="w-full" style="height: 380px" />
       </a-card>
 
       <!-- 第二行：分布 + 仪表盘 -->
-      <a-row
-        :gutter="[16,
-                  16]"
-        class="mt-6"
-      >
-        <a-col
-          :xs="24"
-          :lg="12"
-        >
-          <a-card
-            :class="analyticsCardClassName"
-            variant="borderless"
-            :styles="{ body: { padding: '20px 24px' } }"
-          >
-            <h3 :class="sectionTitleClassName">
-              流量来源分布
-            </h3>
-            <div
-              ref="trafficDistRef"
-              class="w-full"
-              style="height: 320px;"
-            />
+      <a-row :gutter="[16, 16]" class="mt-6">
+        <a-col :xs="24" :lg="12">
+          <a-card :class="analyticsCardClassName" variant="borderless" :styles="{ body: { padding: '20px 24px' } }">
+            <h3 :class="sectionTitleClassName">流量来源分布</h3>
+            <div ref="trafficDistRef" class="w-full" style="height: 320px" />
           </a-card>
         </a-col>
-        <a-col
-          :xs="24"
-          :lg="12"
-        >
-          <a-card
-            :class="analyticsCardClassName"
-            variant="borderless"
-            :styles="{ body: { padding: '20px 24px' } }"
-          >
-            <h3 :class="sectionTitleClassName">
-              系统健康度
-            </h3>
-            <div
-              ref="systemHealthRef"
-              class="w-full"
-              style="height: 320px;"
-            />
+        <a-col :xs="24" :lg="12">
+          <a-card :class="analyticsCardClassName" variant="borderless" :styles="{ body: { padding: '20px 24px' } }">
+            <h3 :class="sectionTitleClassName">系统健康度</h3>
+            <div ref="systemHealthRef" class="w-full" style="height: 320px" />
           </a-card>
         </a-col>
       </a-row>
 
       <!-- 第三行：雷达图 + 热力图 -->
-      <a-row
-        :gutter="[16,
-                  16]"
-      >
-        <a-col
-          :xs="24"
-          :lg="12"
-        >
-          <a-card
-            :class="analyticsCardClassName"
-            variant="borderless"
-            :styles="{ body: { padding: '20px 24px' } }"
-          >
-            <h3 :class="sectionTitleClassName">
-              资源使用概况
-            </h3>
-            <div
-              ref="resourceRadarRef"
-              class="w-full"
-              style="height: 320px;"
-            />
+      <a-row :gutter="[16, 16]">
+        <a-col :xs="24" :lg="12">
+          <a-card :class="analyticsCardClassName" variant="borderless" :styles="{ body: { padding: '20px 24px' } }">
+            <h3 :class="sectionTitleClassName">资源使用概况</h3>
+            <div ref="resourceRadarRef" class="w-full" style="height: 320px" />
           </a-card>
         </a-col>
-        <a-col
-          :xs="24"
-          :lg="12"
-        >
-          <a-card
-            :class="analyticsCardClassName"
-            variant="borderless"
-            :styles="{ body: { padding: '20px 24px' } }"
-          >
-            <h3 :class="sectionTitleClassName">
-              API 错误率趋势
-            </h3>
-            <div
-              ref="activityHeatmapRef"
-              class="w-full"
-              style="height: 320px;"
-            />
+        <a-col :xs="24" :lg="12">
+          <a-card :class="analyticsCardClassName" variant="borderless" :styles="{ body: { padding: '20px 24px' } }">
+            <h3 :class="sectionTitleClassName">API 错误率趋势</h3>
+            <div ref="activityHeatmapRef" class="w-full" style="height: 320px" />
           </a-card>
         </a-col>
       </a-row>
 
       <!-- 第四行：漏斗 + 排行榜 -->
-      <a-row
-        :gutter="[16,
-                  16]"
-        class="items-stretch mb-12"
-      >
-        <a-col
-          :xs="24"
-          :lg="10"
-          class="mb-2"
-        >
+      <a-row :gutter="[16, 16]" class="mb-12 items-stretch">
+        <a-col :xs="24" :lg="10" class="mb-2">
           <a-card
             :class="cn(analyticsCardClassName, 'h-full')"
             variant="borderless"
             :styles="{ body: { padding: '20px 24px', display: 'flex', flexDirection: 'column' } }"
           >
-            <h3 :class="sectionTitleClassName">
-              用户行为漏斗
-            </h3>
-            <div
-              ref="userJourneyRef"
-              class="w-full flex-1"
-              style="min-height: 280px;"
-            />
+            <h3 :class="sectionTitleClassName">用户行为漏斗</h3>
+            <div ref="userJourneyRef" class="w-full flex-1" style="min-height: 280px" />
           </a-card>
         </a-col>
-        <a-col
-          :xs="24"
-          :lg="14"
-          class="mb-2"
-        >
+        <a-col :xs="24" :lg="14" class="mb-2">
           <a-card
             :class="cn(analyticsCardClassName, 'h-full')"
             variant="borderless"
             :styles="{ body: { padding: '20px 24px', display: 'flex', flexDirection: 'column' } }"
           >
-            <div class="flex items-center justify-between mb-4">
-              <h3 :class="sectionTitleClassName">
-                模块使用热度
-              </h3>
-              <a-tag
-                color="blue"
-                class="text-[11px]"
-              >
-                实时更新
-              </a-tag>
+            <div class="mb-4 flex items-center justify-between">
+              <h3 :class="sectionTitleClassName">模块使用热度</h3>
+              <a-tag color="blue" class="text-[11px]"> 实时更新 </a-tag>
             </div>
-            <div
-              ref="moduleRankRef"
-              class="w-full flex-1"
-              style="min-height: 280px;"
-            />
+            <div ref="moduleRankRef" class="w-full flex-1" style="min-height: 280px" />
           </a-card>
         </a-col>
       </a-row>

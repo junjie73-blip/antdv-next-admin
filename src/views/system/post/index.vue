@@ -1,23 +1,19 @@
 <script setup lang="ts">
-import type { FormSchema } from '@/components/business/Form'
-import type { BasicColumn } from '@/components/business/Table'
 import { faker } from '@faker-js/faker/locale/zh_CN'
 import { Icon } from '@iconify/vue'
-
 import { computed, ref, useTemplateRef } from 'vue'
-import {
-  addPost,
-  deletePost,
-  getPostList,
-  updatePost,
-} from '@/api/system'
-import { BasicDrawer, useDrawer } from '@/components/business/Drawer'
-import { BasicForm, useForm } from '@/components/business/Form'
-import { BasicModal, useModal } from '@/components/business/Modal'
-import { BasicTable, useTable } from '@/components/business/Table'
-import { DictType } from '@/enums/dict'
-import { useDictStore } from '@/stores'
-import { cn } from '@/utils/cn'
+
+import type { FormSchema } from '~/components/business/Form'
+import type { BasicColumn } from '~/components/business/Table'
+
+import { addPost, deletePost, getPostList, updatePost } from '~/api/system'
+import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
+import { BasicForm, useForm } from '~/components/business/Form'
+import { BasicModal, useModal } from '~/components/business/Modal'
+import { BasicTable, useTable } from '~/components/business/Table'
+import { DictType } from '~/enums/dict'
+import { useDictStore } from '~/stores'
+import { cn } from '~/utils/cn'
 
 defineOptions({ name: 'SystemPost' })
 
@@ -227,26 +223,23 @@ const availableUsers = computed(() => {
   let list = [...userPool.value]
   if (assignSearchKeyword.value) {
     const kw = assignSearchKeyword.value.toLowerCase()
-    list = list.filter(
-      u => u.nickname.toLowerCase().includes(kw) || u.username.toLowerCase().includes(kw),
-    )
+    list = list.filter((u) => u.nickname.toLowerCase().includes(kw) || u.username.toLowerCase().includes(kw))
   }
   return list
 })
 
 const _assignedUsers = computed(() => {
-  if (!assignPostRecord.value)
-    return []
-  return userPool.value.filter(u => assignPostRecord.value!.userIds.includes(u.id))
+  if (!assignPostRecord.value) return []
+  return userPool.value.filter((u) => assignPostRecord.value!.userIds.includes(u.id))
 })
 
 const _unassignedUsers = computed(() => {
   const assignedIds = new Set(selectedAssignUserIds.value)
-  return availableUsers.value.filter(u => !assignedIds.has(u.id))
+  return availableUsers.value.filter((u) => !assignedIds.has(u.id))
 })
 
 const transferDataSource = computed(() =>
-  userPool.value.map(u => ({
+  userPool.value.map((u) => ({
     key: u.id,
     title: `${u.nickname} (${u.username})`,
   })),
@@ -263,22 +256,19 @@ function _handleToggleAssignUser(user: UserRecord) {
   const idx = selectedAssignUserIds.value.indexOf(user.id)
   if (idx > -1) {
     selectedAssignUserIds.value.splice(idx, 1)
-  }
-  else {
+  } else {
     selectedAssignUserIds.value.push(user.id)
   }
 }
 
 async function handleSaveAssign() {
-  if (!assignPostRecord.value)
-    return
+  if (!assignPostRecord.value) return
   try {
     await updatePost(assignPostRecord.value.id, { userIds: selectedAssignUserIds.value })
     message.success(`已为「${assignPostRecord.value.name}」分配 ${selectedAssignUserIds.value.length} 名用户`)
     assignModalMethods.closeModal()
     tableMethods.value?.reload()
-  }
-  catch (e: any) {
+  } catch (e: any) {
     message.error(e?.message || '保存失败')
   }
 }
@@ -319,8 +309,7 @@ async function handleDelete(record: PostRecord) {
     await deletePost(record.id)
     message.success(`已删除岗位：${record.name}`)
     tableMethods.value?.reload()
-  }
-  catch (e: any) {
+  } catch (e: any) {
     message.error(e?.message || '删除失败')
   }
 }
@@ -330,16 +319,14 @@ async function handleToggleStatus(record: PostRecord) {
     await updatePost(record.id, { status: record.status === 1 ? 0 : 1 })
     message.success(`已${record.status === 1 ? '停用' : '启用'}：${record.name}`)
     tableMethods.value?.reload()
-  }
-  catch (e: any) {
+  } catch (e: any) {
     message.error(e?.message || '操作失败')
   }
 }
 
 async function handleSave() {
   const values = await formMethods.validate()
-  if (!values)
-    return
+  if (!values) return
 
   if (!values.name || !values.code) {
     message.warning('请填写岗位名称和编码')
@@ -350,16 +337,14 @@ async function handleSave() {
     if (isEditing.value && currentRecord.value) {
       await updatePost(currentRecord.value.id, values)
       message.success(`已更新岗位：${values.name}`)
-    }
-    else {
+    } else {
       await addPost(values)
       message.success(`已新增岗位：${values.name}`)
     }
 
     drawerMethods.closeDrawer()
     tableMethods.value?.reload()
-  }
-  catch (e: any) {
+  } catch (e: any) {
     message.error(e?.message || '保存失败')
   }
 }
@@ -380,10 +365,7 @@ const columns: BasicColumn[] = [
 
 <template>
   <div :class="containerClassName">
-    <a-card
-      title="岗位管理"
-      :class="cardClassName"
-    >
+    <a-card title="岗位管理" :class="cardClassName">
       <BasicTable
         ref="tableRef"
         :columns="columns"
@@ -391,19 +373,13 @@ const columns: BasicColumn[] = [
         :immediate="true"
         :use-search-form="true"
         :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
-        :pagination="{ showSizeChanger: true,
-                       pageSizeOptions: ['10',
-                                         '20',
-                                         '50'] }"
+        :pagination="{ showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }"
         :scroll="{ x: 1400 }"
         :action-column="{ width: 280, title: '操作', fixed: 'right' }"
         @register="tableRegister"
       >
         <template #toolbar>
-          <a-button
-            type="primary"
-            @click="handleAdd"
-          >
+          <a-button type="primary" @click="handleAdd">
             <template #icon>
               <Icon icon="ant-design:plus-outlined" />
             </template>
@@ -421,74 +397,35 @@ const columns: BasicColumn[] = [
         </template>
 
         <template #cell-userCount="{ record }">
-          <a-badge
-            :count="record.userCount"
-            :number-style="{ backgroundColor: '#1677ff' }"
-          />
+          <a-badge :count="record.userCount" :number-style="{ backgroundColor: '#1677ff' }" />
         </template>
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <a-button
-              type="link"
-              :class="btnClassName"
-              @click="() => handleOpenAssign(record)"
-            >
+            <a-button type="link" :class="btnClassName" @click="() => handleOpenAssign(record)">
               <template #icon>
                 <Icon icon="ant-design:user-switch-outlined" />
               </template>
               分配用户
             </a-button>
-            <a-divider
-              type="vertical"
-              :class="dividerClassName"
-            />
-            <a-button
-              type="link"
-              :class="btnClassName"
-              @click="() => handleEdit(record)"
-            >
+            <a-divider type="vertical" :class="dividerClassName" />
+            <a-button type="link" :class="btnClassName" @click="() => handleEdit(record)">
               <template #icon>
                 <Icon icon="ant-design:edit-outlined" />
               </template>
               编辑
             </a-button>
-            <a-divider
-              type="vertical"
-              :class="dividerClassName"
-            />
+            <a-divider type="vertical" :class="dividerClassName" />
             <a-popconfirm
               :title="`确定要「${record.status === 1 ? '停用' : '启用'}」岗位「${record.name}」吗？`"
               @confirm="() => handleToggleStatus(record)"
             >
-              <a-button
-                v-if="record.status === 1"
-                type="link"
-                :class="btnClassName"
-              >
-                停用
-              </a-button>
-              <a-button
-                v-else
-                type="link"
-                :class="btnClassName"
-              >
-                启用
-              </a-button>
+              <a-button v-if="record.status === 1" type="link" :class="btnClassName"> 停用 </a-button>
+              <a-button v-else type="link" :class="btnClassName"> 启用 </a-button>
             </a-popconfirm>
-            <a-divider
-              type="vertical"
-              :class="dividerClassName"
-            />
-            <a-popconfirm
-              :title="`确定要删除岗位「${record.name}」吗？`"
-              @confirm="() => handleDelete(record)"
-            >
-              <a-button
-                type="link"
-                danger
-                :class="btnClassName"
-              >
+            <a-divider type="vertical" :class="dividerClassName" />
+            <a-popconfirm :title="`确定要删除岗位「${record.name}」吗？`" @confirm="() => handleDelete(record)">
+              <a-button type="link" danger :class="btnClassName">
                 <template #icon>
                   <Icon icon="ant-design:delete-outlined" />
                 </template>
@@ -501,12 +438,7 @@ const columns: BasicColumn[] = [
     </a-card>
 
     <!-- 新增/编辑抽屉 -->
-    <BasicDrawer
-      :title="isEditing ? '编辑岗位' : '新增岗位'"
-      :width="560"
-      @register="drawerRegister"
-      @ok="handleSave"
-    >
+    <BasicDrawer :title="isEditing ? '编辑岗位' : '新增岗位'" :width="560" @register="drawerRegister" @ok="handleSave">
       <BasicForm
         :schemas="modalFormSchemas"
         :label-width="90"
@@ -525,29 +457,24 @@ const columns: BasicColumn[] = [
     >
       <div class="space-y-4">
         <!-- 岗位信息提示 -->
-        <a-alert
-          message="选择要分配到该岗位的用户，支持多选"
-          type="info"
-          show-icon
-        />
+        <a-alert message="选择要分配到该岗位的用户，支持多选" type="info" show-icon />
 
         <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-          <span>岗位编码：<a-tag color="blue">{{ assignPostRecord?.code }}</a-tag></span>
-          <span>所属部门：<a-tag color="cyan">{{ assignPostRecord?.deptName }}</a-tag></span>
-          <span>已选：<a-tag color="orange">{{ selectedAssignUserIds.length }} 人</a-tag></span>
+          <span
+            >岗位编码：<a-tag color="blue">{{ assignPostRecord?.code }}</a-tag></span
+          >
+          <span
+            >所属部门：<a-tag color="cyan">{{ assignPostRecord?.deptName }}</a-tag></span
+          >
+          <span
+            >已选：<a-tag color="orange">{{ selectedAssignUserIds.length }} 人</a-tag></span
+          >
         </div>
 
         <!-- 搜索框 -->
-        <a-input
-          v-model:value="assignSearchKeyword"
-          placeholder="搜索用户名/昵称..."
-          allow-clear
-        >
+        <a-input v-model:value="assignSearchKeyword" placeholder="搜索用户名/昵称..." allow-clear>
           <template #prefix>
-            <Icon
-              icon="ant-design:search-outlined"
-              class="text-gray-400"
-            />
+            <Icon icon="ant-design:search-outlined" class="text-gray-400" />
           </template>
         </a-input>
 
@@ -555,8 +482,7 @@ const columns: BasicColumn[] = [
         <a-transfer
           v-model:target-keys="selectedAssignUserIds"
           :data-source="transferDataSource"
-          :titles="['待选用户',
-                    '已选用户']"
+          :titles="['待选用户', '已选用户']"
           :render="(item: any) => item.title"
           show-search
         />

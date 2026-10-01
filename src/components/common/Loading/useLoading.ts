@@ -1,6 +1,8 @@
-import type { LoadingInstance, UseLoadingOptions } from './types'
 import { tryOnUnmounted } from '@vueuse/core'
 import { createApp, ref, unref } from 'vue'
+
+import type { LoadingInstance, UseLoadingOptions } from './types'
+
 import Loading from './Loading.vue'
 
 /**
@@ -24,12 +26,7 @@ import Loading from './Loading.vue'
  * })
  */
 export function useLoading(options: UseLoadingOptions = {}): LoadingInstance {
-  const {
-    target = document.body,
-    body = true,
-    wrapClass,
-    ...props
-  } = options
+  const { target = document.body, body = true, wrapClass, ...props } = options
 
   // 响应式状态
   const loadingRef = ref(props.loading ?? false)
@@ -49,8 +46,7 @@ export function useLoading(options: UseLoadingOptions = {}): LoadingInstance {
     }
     const el = unref(target)
     // 兼容 ref<Element> 和直接传入 DOM 元素的情况
-    if (el instanceof Element)
-      return el
+    if (el instanceof Element) return el
     return null
   }
 
@@ -58,8 +54,7 @@ export function useLoading(options: UseLoadingOptions = {}): LoadingInstance {
    * 创建 loading DOM 元素和组件
    */
   const createLoadingEl = () => {
-    if (loadingEl)
-      return
+    if (loadingEl) return
 
     const targetEl = getTargetElement()
 
@@ -96,8 +91,7 @@ export function useLoading(options: UseLoadingOptions = {}): LoadingInstance {
     // 添加到 DOM
     if (body) {
       document.body.appendChild(loadingEl)
-    }
-    else {
+    } else {
       targetEl.appendChild(loadingEl)
     }
   }

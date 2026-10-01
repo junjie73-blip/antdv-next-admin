@@ -1,9 +1,11 @@
-import type { MenuConfig } from '#/menu'
 import type { MenuProps } from 'antdv-next'
 import type { RouteMeta, RouteRecordRaw } from 'vue-router'
+
 import { Icon } from '@iconify/vue'
 import { isPlainObject } from 'es-toolkit'
 import { h } from 'vue'
+
+import type { MenuConfig } from '#/menu'
 
 interface MenuItem {
   key: string
@@ -62,8 +64,7 @@ function buildMenuTree(routes: RouteRecordRaw[], _parentPath = ''): MenuItem[] {
         menuItem.children = buildMenuTree(route.children, route.path)
         menus.push(menuItem)
       }
-    }
-    else {
+    } else {
       const menuItem = processRoute(route)
       if (menuItem) {
         menus.push(menuItem)
@@ -76,7 +77,7 @@ function buildMenuTree(routes: RouteRecordRaw[], _parentPath = ''): MenuItem[] {
 
 export function transformMenuConfigToItems(menus: MenuConfig[], parentPath = ''): MenuProps['items'] {
   return menus
-    .filter(menu => !menu.hidden)
+    .filter((menu) => !menu.hidden)
     .map((menu) => {
       const isExternal = menu.isExternal
       const fullPath = isExternal
@@ -89,24 +90,28 @@ export function transformMenuConfigToItems(menus: MenuConfig[], parentPath = '')
       const item: Record<string, any> = {
         key: fullPath,
         label: isExternal
-          ? h('a', {
-              href: `/#${menu.path}`,
-              target: '_blank',
-              rel: 'noopener noreferrer',
-              onClick: (e: MouseEvent) => {
-                e.preventDefault()
-                e.stopPropagation()
-                const width = 1400
-                const height = 900
-                const left = (window.screen.width - width) / 2
-                const top = (window.screen.height - height) / 2
-                window.open(
-                  `/#${menu.path}`,
-                  '_blank',
-                  `width=${width},height=${height},left=${left},top=${top},noopener,noreferrer`,
-                )
+          ? h(
+              'a',
+              {
+                href: `/#${menu.path}`,
+                target: '_blank',
+                rel: 'noopener noreferrer',
+                onClick: (e: MouseEvent) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  const width = 1400
+                  const height = 900
+                  const left = (window.screen.width - width) / 2
+                  const top = (window.screen.height - height) / 2
+                  window.open(
+                    `/#${menu.path}`,
+                    '_blank',
+                    `width=${width},height=${height},left=${left},top=${top},noopener,noreferrer`,
+                  )
+                },
               },
-            }, menu.title)
+              menu.title,
+            )
           : menu.title,
       }
 
@@ -148,12 +153,10 @@ export function flattenMenus(menus: MenuItem[]): MenuItem[] {
 
 export function findMenuByKey(menus: MenuItem[], key: string): MenuItem | undefined {
   for (const menu of menus) {
-    if (menu.key === key)
-      return menu
+    if (menu.key === key) return menu
     if (menu.children) {
       const found = findMenuByKey(menu.children, key)
-      if (found)
-        return found
+      if (found) return found
     }
   }
   return undefined

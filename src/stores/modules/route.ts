@@ -1,10 +1,12 @@
-import type { AppRouteRecordRaw } from '#/app-router'
-import type { BackendMenu, MenuConfig } from '#/menu'
 import { defineStore } from 'pinia'
 import { markRaw, ref } from 'vue'
-import { DefaultLayout } from '@/layouts'
-import { frontendMenus } from '@/router/menus'
-import { http } from '@/utils/request'
+
+import type { AppRouteRecordRaw } from '#/app-router'
+import type { BackendMenu, MenuConfig } from '#/menu'
+
+import { DefaultLayout } from '~/layouts'
+import { frontendMenus } from '~/router/menus'
+import { http } from '~/utils/request'
 
 const modules = import.meta.glob('/src/views/**/*.vue')
 
@@ -35,7 +37,7 @@ interface MicroAppConfig {
 
 function generateRoutesFromMenus(menus: MenuConfig[]): InternalRoute[] {
   return menus
-    .filter(menu => !menu.isExternal && menu.layout !== 'blank')
+    .filter((menu) => !menu.isExternal && menu.layout !== 'blank')
     .map((menu) => {
       const route: InternalRoute = {
         path: menu.path,
@@ -57,7 +59,7 @@ function generateRoutesFromMenus(menus: MenuConfig[]): InternalRoute[] {
       }
 
       if (menu.component) {
-        const componentPath = `/src/${menu.component.replace('@/', '')}`
+        const componentPath = `/src/${menu.component.replace('~/', '')}`
         route.component = modules[componentPath]
       }
 
@@ -91,7 +93,7 @@ function generateBlankRoutesFromMenus(menus: MenuConfig[]): InternalRoute[] {
         }
 
         if (menu.component) {
-          const componentPath = `/src/${menu.component.replace('@/', '')}`
+          const componentPath = `/src/${menu.component.replace('~/', '')}`
           route.component = modules[componentPath]
         }
 
@@ -130,7 +132,7 @@ function generateRoutesFromBackendMenus(backendMenus: BackendMenu[]): InternalRo
     }
 
     if (menu.component) {
-      const componentPath = `/src/${menu.component.replace('@/', '')}`
+      const componentPath = `/src/${menu.component.replace('~/', '')}`
       route.component = modules[componentPath]
     }
 
@@ -143,7 +145,7 @@ function generateRoutesFromBackendMenus(backendMenus: BackendMenu[]): InternalRo
 }
 
 async function fetchBackendMenus(): Promise<BackendMenu[]> {
-  const response = await http.Get<{ code: number, data: { list: BackendMenu[] }, message: string }>('/menus')
+  const response = await http.Get<{ code: number; data: { list: BackendMenu[] }; message: string }>('/menus')
   return response.data.list
 }
 

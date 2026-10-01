@@ -1,10 +1,11 @@
-import type { UserInfo } from '#/user'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { useLogger } from '@/composables/useLogger'
-import { cache } from '@/utils/cache'
-import { decryptToken, encryptToken } from '@/utils/cache/tokenCrypto'
-import { http } from '@/utils/request'
+
+import type { UserInfo } from '#/user'
+
+import { cache } from '~/utils/cache'
+import { decryptToken, encryptToken } from '~/utils/cache/tokenCrypto'
+import { http } from '~/utils/request'
 
 const TOKEN_KEY = 'auth_token'
 const USER_INFO_KEY = 'user_info'
@@ -25,8 +26,7 @@ export const useUserStore = defineStore('user', () => {
     if (stored) {
       try {
         token.value = await decryptToken(stored)
-      }
-      catch {
+      } catch {
         // 解密失败，可能不是加密格式，直接使用
         token.value = stored
       }
@@ -90,8 +90,7 @@ export const useUserStore = defineStore('user', () => {
         // 安全存储 Token（加密可能失败，需要降级处理）
         try {
           await setToken(user.token)
-        }
-        catch (encryptError) {
+        } catch (encryptError) {
           // 加密失败时降级为明文存储 + 控制台警告
           console.warn('[UserStore] ⚠️ Token 加密失败，降级为明文存储:', encryptError)
           token.value = user.token
@@ -100,20 +99,11 @@ export const useUserStore = defineStore('user', () => {
 
         setUserInfo(mockUserInfo)
 
-        // 记录登录成功日志
-        const logger = useLogger()
-        logger.logLogin('success', user.username)
-
         return { success: true }
       }
 
-      // 记录登录失败日志
-      const logger = useLogger()
-      logger.logLogin('failure', username, response.message || '登录失败')
-
       return { success: false, message: response.message || '登录失败' }
-    }
-    catch (error) {
+    } catch (error) {
       // 区分不同类型的错误，提供准确的错误信息
       if (error instanceof Error) {
         console.error('[UserStore] 登录请求失败:', error)
@@ -125,12 +115,6 @@ export const useUserStore = defineStore('user', () => {
   }
 
   const logout = () => {
-    // 记录登出日志
-    const logger = useLogger()
-    if (userInfo.value?.username) {
-      logger.logLogin('logout', userInfo.value.username)
-    }
-
     token.value = null
     userInfo.value = null
     cache.removeItem(TOKEN_KEY)

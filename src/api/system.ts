@@ -4,7 +4,7 @@ import { del, get, post, put } from './request'
 
 /** 用户列表分页 */
 export function getUserList(params?: Record<string, unknown>) {
-  return get<{ list: any[], total: number }>('/system/user/list', params)
+  return get<{ list: any[]; total: number }>('/system/user/list', params)
 }
 
 /** 用户详情 */
@@ -36,7 +36,7 @@ export function getUserOptions() {
 
 /** 角色列表 */
 export function getRoleList(params?: Record<string, unknown>) {
-  return get<{ list: any[], total: number }>('/system/role/list', params)
+  return get<{ list: any[]; total: number }>('/system/role/list', params)
 }
 
 /** 新增角色 */
@@ -68,7 +68,7 @@ export function getDeptTree() {
 
 /** 部门列表（扁平） */
 export function getDeptList(params?: Record<string, unknown>) {
-  return get<{ list: any[], total: number }>('/system/dept/list', params)
+  return get<{ list: any[]; total: number }>('/system/dept/list', params)
 }
 
 /** 新增部门 */
@@ -90,7 +90,7 @@ export function deleteDept(id: number) {
 
 /** 登录日志列表（分页） */
 export function getLoginLogList(params?: Record<string, unknown>) {
-  return get<{ list: any[], total: number }>('/system/login-log/list', params)
+  return get<{ list: any[]; total: number }>('/system/login-log/list', params)
 }
 
 /** 登录日志统计 */
@@ -107,7 +107,7 @@ export function getLoginLogStats() {
 
 /** 岗位列表 */
 export function getPostList(params?: Record<string, unknown>) {
-  return get<{ list: any[], total: number }>('/system/post/list', params)
+  return get<{ list: any[]; total: number }>('/system/post/list', params)
 }
 
 /** 新增岗位 */
@@ -127,14 +127,14 @@ export function deletePost(id: number) {
 
 /** 岗位关联的用户列表 */
 export function getPostUsers(postId: number) {
-  return get<{ list: any[], total: number }>(`/system/post/users/${postId}`)
+  return get<{ list: any[]; total: number }>(`/system/post/users/${postId}`)
 }
 
 // ======================== 文件管理 ========================
 
 /** 文件列表（分页） */
 export function getFileList(params?: Record<string, unknown>) {
-  return get<{ list: any[], total: number }>('/system/file/list', params)
+  return get<{ list: any[]; total: number }>('/system/file/list', params)
 }
 
 /** 文件夹树形结构 */
@@ -166,7 +166,7 @@ export function renameFile(id: number, data: Record<string, unknown>) {
 
 /** 配置列表分页 */
 export function getSettingsList(params?: Record<string, unknown>) {
-  return get<{ list: any[], total: number }>('/system/settings/list', params)
+  return get<{ list: any[]; total: number }>('/system/settings/list', params)
 }
 
 /** 新增配置 */
@@ -188,7 +188,7 @@ export function deleteSetting(id: number) {
 
 /** 字典类型列表（分页） */
 export function getDictList(params?: Record<string, unknown>) {
-  return get<{ list: any[], total: number }>('/system/dict/list', params)
+  return get<{ list: any[]; total: number }>('/system/dict/list', params)
 }
 
 /** 获取某字典类型的字典项 */
@@ -230,7 +230,7 @@ export function deleteDictItem(id: number) {
 
 /** 操作日志列表（分页） */
 export function getOperLogList(params?: Record<string, unknown>) {
-  return get<{ list: any[], total: number }>('/system/log/list', params)
+  return get<{ list: any[]; total: number }>('/system/log/list', params)
 }
 
 /** 删除操作日志 */
@@ -242,7 +242,7 @@ export function deleteOperLog(id: number) {
 
 /** 在线用户列表（分页） */
 export function getOnlineUserList(params?: Record<string, unknown>) {
-  return get<{ list: any[], total: number }>('/system/online/list', params)
+  return get<{ list: any[]; total: number }>('/system/online/list', params)
 }
 
 /** 强制退出（踢出）在线用户 */
@@ -254,7 +254,7 @@ export function forceLogout(tokenId: string) {
 
 /** 消息通知列表（分页） */
 export function getNoticeList(params?: Record<string, unknown>) {
-  return get<{ list: any[], total: number }>('/system/notice/list', params)
+  return get<{ list: any[]; total: number }>('/system/notice/list', params)
 }
 
 /** 标记消息已读 */

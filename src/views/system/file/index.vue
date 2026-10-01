@@ -1,22 +1,18 @@
 <script setup lang="tsx">
 import type { TreeData } from 'antdv-next/es/tree'
-import type { FormSchema } from '@/components/business/Form'
-import type { BasicColumn } from '@/components/business/Table'
+
 import { Icon } from '@iconify/vue'
 import { Modal as AntModal } from 'antdv-next'
 import { computed, ref, useTemplateRef } from 'vue'
-import {
-  createFolder,
-  deleteFile,
-  getFileList,
-  getFileTree,
-  renameFile,
-  uploadFile,
-} from '@/api/system'
-import { BasicForm, useForm } from '@/components/business/Form'
-import { BasicModal, useModal } from '@/components/business/Modal'
-import { BasicTable, useTable } from '@/components/business/Table'
-import { cn } from '@/utils/cn'
+
+import type { FormSchema } from '~/components/business/Form'
+import type { BasicColumn } from '~/components/business/Table'
+
+import { createFolder, deleteFile, getFileList, getFileTree, renameFile, uploadFile } from '~/api/system'
+import { BasicForm, useForm } from '~/components/business/Form'
+import { BasicModal, useModal } from '~/components/business/Modal'
+import { BasicTable, useTable } from '~/components/business/Table'
+import { cn } from '~/utils/cn'
 
 defineOptions({ name: 'SystemFile' })
 
@@ -50,8 +46,7 @@ const dividerClassName = cn('mx-0')
 
 // ========== 文件类型图标映射 ==========
 function getFileIcon(record: FileRecord): string {
-  if (record.isFolder)
-    return 'carbon:folder'
+  if (record.isFolder) return 'carbon:folder'
 
   const iconMap: Record<string, string> = {
     image: 'carbon:image',
@@ -64,8 +59,7 @@ function getFileIcon(record: FileRecord): string {
 }
 
 function getFileColor(record: FileRecord): string {
-  if (record.isFolder)
-    return '#faad14'
+  if (record.isFolder) return '#faad14'
 
   const colorMap: Record<string, string> = {
     image: '#1677ff',
@@ -108,8 +102,7 @@ async function loadFileTree() {
   try {
     const res = await getFileTree()
     fileTreeData.value = res.data || []
-  }
-  catch (e) {
+  } catch (e) {
     console.error('获取文件树失败', e)
   }
 }
@@ -178,13 +171,11 @@ function handleNavigateToFolder(node: any) {
   // 更新面包屑路径
   if (node.key === '__root__') {
     currentPath.value = [{ title: '根目录', key: '__root__' }]
-  }
-  else {
-    const pathIndex = currentPath.value.findIndex(p => p.key === node.key)
+  } else {
+    const pathIndex = currentPath.value.findIndex((p) => p.key === node.key)
     if (pathIndex > -1) {
       currentPath.value = currentPath.value.slice(0, pathIndex + 1)
-    }
-    else {
+    } else {
       currentPath.value.push(node)
     }
   }
@@ -211,8 +202,7 @@ function handleRename(record: FileRecord) {
 
 async function handleSaveFolderOrRename() {
   const values = await formMethods.validate()
-  if (!values)
-    return
+  if (!values) return
 
   if (!values.name) {
     message.warning('请填写名称')
@@ -224,8 +214,7 @@ async function handleSaveFolderOrRename() {
       // 重命名操作
       await renameFile(currentRecord.value.id, values)
       message.success(`已重命名为：${values.name}`)
-    }
-    else {
+    } else {
       // 新建文件夹
       await createFolder(values, currentParentId.value ?? undefined)
       message.success(`已创建文件夹：${values.name}`)
@@ -234,8 +223,7 @@ async function handleSaveFolderOrRename() {
     modalMethods.closeModal()
     tableMethods.value?.reload()
     loadFileTree()
-  }
-  catch (e: any) {
+  } catch (e: any) {
     message.error(e?.message || '操作失败')
   }
 }
@@ -262,8 +250,7 @@ async function handleSimulateUpload(fileList?: any[]) {
       uploadModalMethods.closeModal()
       tableMethods.value?.reload()
       loadFileTree()
-    }
-    catch (e: any) {
+    } catch (e: any) {
       message.error(e?.message || '上传失败')
     }
     return
@@ -282,8 +269,7 @@ async function handleSimulateUpload(fileList?: any[]) {
         parentId: currentParentId.value,
       })
       successCount++
-    }
-    catch {
+    } catch {
       // 继续处理其他文件
     }
   }
@@ -300,8 +286,7 @@ async function handleDelete(record: FileRecord | any) {
     message.success(`已删除：${record.name}`)
     tableMethods.value?.reload()
     loadFileTree()
-  }
-  catch (e: any) {
+  } catch (e: any) {
     message.error(e?.message || '删除失败')
   }
 }
@@ -324,8 +309,7 @@ function handleBatchDelete() {
         try {
           await deleteFile(row.id)
           successCount++
-        }
-        catch {
+        } catch {
           // 继续处理其他文件
         }
       }
@@ -350,13 +334,12 @@ function handleSelectionChange(keys: (string | number)[], rows: FileRecord[]) {
 // ========== 计算属性 ==========
 const currentStats = computed(() => {
   const rows = (tableMethods.value?.getDataSource?.() || []) as FileRecord[]
-  const folders = rows.filter(r => r.isFolder).length
+  const folders = rows.filter((r) => r.isFolder).length
   const files = rows.length - folders
-  const totalSize = rows.filter(r => !r.isFolder).reduce((sum, r) => sum + r.size, 0)
+  const totalSize = rows.filter((r) => !r.isFolder).reduce((sum, r) => sum + r.size, 0)
 
   function formatSize(bytes: number): string {
-    if (bytes === 0)
-      return '0 B'
+    if (bytes === 0) return '0 B'
     const units = ['B', 'KB', 'MB', 'GB']
     const k = 1024
     const i = Math.floor(Math.log(bytes) / Math.log(k))
@@ -381,11 +364,7 @@ const columns: BasicColumn[] = [
   <div :class="containerClassName">
     <!-- 左侧文件树 -->
     <div :class="leftPanelClassName">
-      <a-card
-        :class="treeCardClassName"
-        title="文件结构"
-        size="small"
-      >
+      <a-card :class="treeCardClassName" title="文件结构" size="small">
         <a-tree
           :tree-data="fileTreeData"
           default-expand-all
@@ -405,30 +384,22 @@ const columns: BasicColumn[] = [
 
     <!-- 右侧内容区 -->
     <div :class="rightPanelClassName">
-      <a-card
-        title="文件列表"
-        :class="cardClassName"
-      >
+      <a-card title="文件列表" :class="cardClassName">
         <!-- 面包屑导航 -->
         <div :class="breadcrumbClassName">
           <span>当前位置：</span>
-          <template
-            v-for="(item, index) in currentPath"
-            :key="item.key"
-          >
-            <a
-              class="hover:text-blue-500 cursor-pointer transition-colors"
-              @click="handleNavigateToFolder(item)"
-            >{{ item.title }}</a>
-            <span
-              v-if="index < currentPath.length - 1"
-              class="mx-1"
-            >/</span>
+          <template v-for="(item, index) in currentPath" :key="item.key">
+            <a class="cursor-pointer transition-colors hover:text-blue-500" @click="handleNavigateToFolder(item)">{{
+              item.title
+            }}</a>
+            <span v-if="index < currentPath.length - 1" class="mx-1">/</span>
           </template>
         </div>
 
         <!-- 统计信息 -->
-        <div class="flex items-center gap-4 mb-4 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 px-3 py-2 rounded-lg">
+        <div
+          class="mb-4 flex items-center gap-4 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+        >
           <span>
             共
             {{ currentStats.totalCount }}
@@ -459,10 +430,7 @@ const columns: BasicColumn[] = [
           :use-search-form="true"
           :form-config="{ schemas: searchFormSchemas, labelWidth: 70 }"
           :row-selection="{ type: 'checkbox', onChange: handleSelectionChange }"
-          :pagination="{ showSizeChanger: true,
-                         pageSizeOptions: ['20',
-                                           '50',
-                                           '100'] }"
+          :pagination="{ showSizeChanger: true, pageSizeOptions: ['20', '50', '100'] }"
           :action-column="{ width: 280, title: '操作', fixed: 'right' }"
           @register="tableRegister"
         >
@@ -473,19 +441,13 @@ const columns: BasicColumn[] = [
               </template>
               新建文件夹
             </a-button>
-            <a-button
-              type="primary"
-              @click="handleUpload"
-            >
+            <a-button type="primary" @click="handleUpload">
               <template #icon>
                 <Icon icon="ant-design:cloud-upload-outlined" />
               </template>
               上传文件
             </a-button>
-            <a-button
-              danger
-              @click="handleBatchDelete"
-            >
+            <a-button danger @click="handleBatchDelete">
               <template #icon>
                 <Icon icon="ant-design:delete-outlined" />
               </template>
@@ -496,55 +458,41 @@ const columns: BasicColumn[] = [
           </template>
 
           <template #cell-name="{ record }">
-            <div class="flex items-center gap-2 min-w-0">
+            <div class="flex min-w-0 items-center gap-2">
               <Icon
                 :icon="getFileIcon(record)"
-                :style="{ color: getFileColor(record), fontSize: record.isFolder ? '18px' : '16px' }"
+                :style="{
+                  color: getFileColor(record),
+                  fontSize: record.isFolder ? '18px' : '16px',
+                }"
                 class="shrink-0"
               />
-              <span
-                class="truncate cursor-pointer hover:text-blue-500 transition-colors"
-                :title="record.name"
-              >{{ record.name }}</span>
+              <span class="cursor-pointer truncate transition-colors hover:text-blue-500" :title="record.name">{{
+                record.name
+              }}</span>
             </div>
           </template>
 
           <template #action="{ record }">
             <div :class="actionClassName">
-              <a-button
-                v-if="!record.isFolder"
-                type="link"
-                :class="btnClassName"
-                @click="() => handleDownload(record)"
-              >
+              <a-button v-if="!record.isFolder" type="link" :class="btnClassName" @click="() => handleDownload(record)">
                 <template #icon>
                   <Icon icon="ant-design:download-outlined" />
                 </template>
                 下载
               </a-button>
-              <a-button
-                type="link"
-                :class="btnClassName"
-                @click="() => handleRename(record)"
-              >
+              <a-button type="link" :class="btnClassName" @click="() => handleRename(record)">
                 <template #icon>
                   <Icon icon="ant-design:edit-outlined" />
                 </template>
                 重命名
               </a-button>
-              <a-divider
-                type="vertical"
-                :class="dividerClassName"
-              />
+              <a-divider type="vertical" :class="dividerClassName" />
               <a-popconfirm
                 :title="`确定要删除「${record.name}」吗？${record.isFolder ? '文件夹内的所有内容也将被删除。' : ''}`"
                 @confirm="() => handleDelete(record)"
               >
-                <a-button
-                  type="link"
-                  danger
-                  :class="btnClassName"
-                >
+                <a-button type="link" danger :class="btnClassName">
                   <template #icon>
                     <Icon icon="ant-design:delete-outlined" />
                   </template>
@@ -574,18 +522,9 @@ const columns: BasicColumn[] = [
     </BasicModal>
 
     <!-- 上传弹窗 -->
-    <BasicModal
-      title="上传文件"
-      :width="520"
-      :show-footer="false"
-      @register="uploadModalRegister"
-    >
+    <BasicModal title="上传文件" :width="520" :show-footer="false" @register="uploadModalRegister">
       <div class="space-y-4">
-        <a-alert
-          message="选择要上传的文件，支持多文件同时上传"
-          type="info"
-          show-icon
-        />
+        <a-alert message="选择要上传的文件，支持多文件同时上传" type="info" show-icon />
 
         <a-upload-dragger
           name="file"
@@ -605,27 +544,14 @@ const columns: BasicColumn[] = [
           }"
         >
           <p class="ant-upload-drag-icon">
-            <Icon
-              icon="carbon:cloud-upload"
-              style="font-size: 48px; color: #1677ff"
-            />
+            <Icon icon="carbon:cloud-upload" style="font-size: 48px; color: #1677ff" />
           </p>
-          <p class="ant-upload-text">
-            点击或拖拽文件到此区域上传
-          </p>
-          <p class="ant-upload-hint">
-            支持单个或批量上传，最大支持 10 个文件，单个文件不超过 100MB
-          </p>
+          <p class="ant-upload-text">点击或拖拽文件到此区域上传</p>
+          <p class="ant-upload-hint">支持单个或批量上传，最大支持 10 个文件，单个文件不超过 100MB</p>
         </a-upload-dragger>
 
-        <div class="pt-3 border-t border-gray-200 dark:border-gray-700">
-          <a-button
-            type="primary"
-            block
-            @click="handleSimulateUpload()"
-          >
-            模拟上传（测试用）
-          </a-button>
+        <div class="border-t border-gray-200 pt-3 dark:border-gray-700">
+          <a-button type="primary" block @click="handleSimulateUpload()"> 模拟上传（测试用） </a-button>
         </div>
       </div>
     </BasicModal>

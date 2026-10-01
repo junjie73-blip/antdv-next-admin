@@ -12,8 +12,7 @@ export function useScreenAdapter(designWidth = 1920, designHeight = 1080, target
 
   function adapt() {
     const contentEl = document.getElementById(targetId)
-    if (!contentEl)
-      return
+    if (!contentEl) return
 
     const scaleX = window.innerWidth / designWidth
     const scaleY = window.innerHeight / designHeight

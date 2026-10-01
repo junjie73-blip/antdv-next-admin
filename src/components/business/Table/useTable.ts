@@ -1,9 +1,8 @@
 import type { Ref } from 'vue'
-import type {
-  BasicTableProps,
-  TableActionType,
-} from './types'
+
 import { ref } from 'vue'
+
+import type { BasicTableProps, TableActionType } from './types'
 
 /**
  * useTable Hook
@@ -22,7 +21,9 @@ import { ref } from 'vue'
  * methods.reload()
  * methods.setColumns([...])
  */
-export function useTable(props?: Partial<BasicTableProps>): [(instance: TableActionType) => void, Ref<TableActionType | null>] {
+export function useTable(
+  props?: Partial<BasicTableProps>,
+): [(instance: TableActionType) => void, Ref<TableActionType | null>] {
   // 表格实例引用
   const tableRef = ref<TableActionType | null>(null)
 

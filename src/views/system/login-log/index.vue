@@ -1,20 +1,18 @@
 <script setup lang="tsx">
-import type { DescriptionItem } from '@/components/business/Description'
-import type { FormSchema } from '@/components/business/Form'
-import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
-
 import { ref } from 'vue'
-import {
-  getLoginLogList,
-  getLoginLogStats,
-} from '@/api/system'
-import { Description as DetailDescription } from '@/components/business/Description'
-import { BasicDrawer, useDrawer } from '@/components/business/Drawer'
-import { BasicTable, useTable } from '@/components/business/Table'
-import { cn } from '@/utils/cn'
-import { exportToExcel } from '@/utils/excel'
-import { usePrint } from '@/utils/print'
+
+import type { DescriptionItem } from '~/components/business/Description'
+import type { FormSchema } from '~/components/business/Form'
+import type { BasicColumn } from '~/components/business/Table'
+
+import { getLoginLogList, getLoginLogStats } from '~/api/system'
+import { Description as DetailDescription } from '~/components/business/Description'
+import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
+import { BasicTable, useTable } from '~/components/business/Table'
+import { cn } from '~/utils/cn'
+import { exportToExcel } from '~/utils/excel'
+import { usePrint } from '~/utils/print'
 
 defineOptions({ name: 'SystemLoginLog' })
 
@@ -62,8 +60,7 @@ async function loadStats() {
     weekLoginCount.value = data.weekCount || 0
     monthLoginCount.value = data.monthCount || 0
     todayFailCount.value = data.todayFailCount || 0
-  }
-  catch (e) {
+  } catch (e) {
     console.error('获取统计失败', e)
   }
 }
@@ -131,10 +128,8 @@ const detailSchemas: DescriptionItem[] = [
   {
     field: 'status',
     label: '登录状态',
-    render: value => (
-      <a-tag color={value === 'success' ? 'green' : 'red'}>
-        {value === 'success' ? '成功' : '失败'}
-      </a-tag>
+    render: (value) => (
+      <a-tag color={value === 'success' ? 'green' : 'red'}>{value === 'success' ? '成功' : '失败'}</a-tag>
     ),
   },
   { field: 'message', label: '登录消息' },
@@ -145,19 +140,13 @@ const detailSchemas: DescriptionItem[] = [
     render: (value) => {
       const ms = value as number
       const color = ms > 1000 ? 'red' : ms > 500 ? 'orange' : 'green'
-      return (
-        <a-tag color={color}>
-          {ms}
-          {' '}
-          ms
-        </a-tag>
-      )
+      return <a-tag color={color}>{ms} ms</a-tag>
     },
   },
   {
     field: 'userAgent',
     label: 'User-Agent',
-    render: value => (
+    render: (value) => (
       <a-typography-paragraph
         copyable={{ text: value as string }}
         ellipsis={{ rows: 3, expandable: true, symbol: '展开' }}
@@ -219,7 +208,7 @@ function handleExport() {
       { header: '登录耗时(ms)', key: 'duration', width: 12 },
       { header: '登录时间', key: 'loginTime', width: 20 },
     ],
-    data: dataToExport.map(i => ({
+    data: dataToExport.map((i) => ({
       ...i,
       status: i.status === 'success' ? '成功' : '失败',
     })),
@@ -242,7 +231,13 @@ const columns: BasicColumn[] = [
   { title: '#', key: 'index', width: 60, align: 'center', customRender: ({ index }) => index + 1 },
   { title: 'ID', dataIndex: 'id', key: 'id', width: 70, align: 'center' },
   { title: '用户名', dataIndex: 'username', key: 'username', width: 110, align: 'center' },
-  { title: '登录账号', dataIndex: 'loginAccount', key: 'loginAccount', width: 120, align: 'center' },
+  {
+    title: '登录账号',
+    dataIndex: 'loginAccount',
+    key: 'loginAccount',
+    width: 120,
+    align: 'center',
+  },
   { title: '登录IP', dataIndex: 'ip', key: 'ip', width: 140, align: 'center' },
   { title: '登录地点', dataIndex: 'location', key: 'location', width: 130, ellipsis: true },
   { title: '浏览器', dataIndex: 'browser', key: 'browser', width: 150, ellipsis: true },
@@ -257,83 +252,38 @@ const columns: BasicColumn[] = [
   <div :class="containerClassName">
     <!-- 统计卡片区域 -->
     <div :class="statsGridClassName">
-      <a-card
-        :class="cardClassName"
-        size="small"
-      >
-        <a-statistic
-          title="今日登录次数"
-          :value="todayLoginCount"
-          suffix="次"
-        >
+      <a-card :class="cardClassName" size="small">
+        <a-statistic title="今日登录次数" :value="todayLoginCount" suffix="次">
           <template #prefix>
-            <Icon
-              icon="carbon:login"
-              class="text-blue-500 text-lg mr-1"
-            />
+            <Icon icon="carbon:login" class="mr-1 text-lg text-blue-500" />
           </template>
         </a-statistic>
       </a-card>
-      <a-card
-        :class="cardClassName"
-        size="small"
-      >
-        <a-statistic
-          title="本周登录次数"
-          :value="weekLoginCount"
-          suffix="次"
-        >
+      <a-card :class="cardClassName" size="small">
+        <a-statistic title="本周登录次数" :value="weekLoginCount" suffix="次">
           <template #prefix>
-            <Icon
-              icon="carbon:calendar"
-              class="text-green-500 text-lg mr-1"
-            />
+            <Icon icon="carbon:calendar" class="mr-1 text-lg text-green-500" />
           </template>
         </a-statistic>
       </a-card>
-      <a-card
-        :class="cardClassName"
-        size="small"
-      >
-        <a-statistic
-          title="本月登录次数"
-          :value="monthLoginCount"
-          suffix="次"
-        >
+      <a-card :class="cardClassName" size="small">
+        <a-statistic title="本月登录次数" :value="monthLoginCount" suffix="次">
           <template #prefix>
-            <Icon
-              icon="carbon:chart-line-data"
-              class="text-orange-500 text-lg mr-1"
-            />
+            <Icon icon="carbon:chart-line-data" class="mr-1 text-lg text-orange-500" />
           </template>
         </a-statistic>
       </a-card>
-      <a-card
-        :class="[cardClassName,
-                 failCardClassName]"
-        size="small"
-      >
-        <a-statistic
-          title="今日失败次数"
-          :value="todayFailCount"
-          suffix="次"
-          :value-style="{ color: '#cf1322' }"
-        >
+      <a-card :class="[cardClassName, failCardClassName]" size="small">
+        <a-statistic title="今日失败次数" :value="todayFailCount" suffix="次" :value-style="{ color: '#cf1322' }">
           <template #prefix>
-            <Icon
-              icon="carbon:error"
-              class="text-red-500 text-lg mr-1"
-            />
+            <Icon icon="carbon:error" class="mr-1 text-lg text-red-500" />
           </template>
         </a-statistic>
       </a-card>
     </div>
 
     <!-- 表格区域 -->
-    <a-card
-      title="登录日志"
-      :class="cardClassName"
-    >
+    <a-card title="登录日志" :class="cardClassName">
       <BasicTable
         :columns="columns"
         :api="mockApi"
@@ -342,10 +292,7 @@ const columns: BasicColumn[] = [
         :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
         :action-column="{ width: 180, title: '操作', fixed: 'right' }"
         :row-selection="{ type: 'checkbox' }"
-        :pagination="{ showSizeChanger: true,
-                       pageSizeOptions: ['10',
-                                         '20',
-                                         '50'] }"
+        :pagination="{ showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }"
         :scroll="{ x: 1600 }"
         @register="tableRegister"
       >
@@ -362,19 +309,13 @@ const columns: BasicColumn[] = [
             </template>
             打印
           </a-button>
-          <a-button
-            danger
-            @click="handleBatchDelete"
-          >
+          <a-button danger @click="handleBatchDelete">
             <template #icon>
               <Icon icon="ant-design:delete-outlined" />
             </template>
             批量删除
           </a-button>
-          <a-popconfirm
-            title="确定要清空所有登录日志吗？此操作不可恢复！"
-            @confirm="handleClear"
-          >
+          <a-popconfirm title="确定要清空所有登录日志吗？此操作不可恢复！" @confirm="handleClear">
             <a-button danger>
               <template #icon>
                 <Icon icon="carbon:trash-can" />
@@ -395,29 +336,15 @@ const columns: BasicColumn[] = [
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <a-button
-              type="link"
-              :class="btnClassName"
-              @click="() => handleView(record)"
-            >
+            <a-button type="link" :class="btnClassName" @click="() => handleView(record)">
               <template #icon>
                 <Icon icon="ant-design:eye-outlined" />
               </template>
               详情
             </a-button>
-            <a-divider
-              type="vertical"
-              :class="dividerClassName"
-            />
-            <a-popconfirm
-              :title="`确定要删除日志 #${record.id} 吗？`"
-              @confirm="() => handleDelete(record)"
-            >
-              <a-button
-                type="link"
-                danger
-                :class="btnClassName"
-              >
+            <a-divider type="vertical" :class="dividerClassName" />
+            <a-popconfirm :title="`确定要删除日志 #${record.id} 吗？`" @confirm="() => handleDelete(record)">
+              <a-button type="link" danger :class="btnClassName">
                 <template #icon>
                   <Icon icon="ant-design:delete-outlined" />
                 </template>
@@ -430,26 +357,11 @@ const columns: BasicColumn[] = [
     </a-card>
 
     <!-- 详情抽屉 -->
-    <BasicDrawer
-      title="登录日志详情"
-      :width="640"
-      :show-footer="false"
-      @register="drawerRegister"
-    >
-      <DetailDescription
-        v-if="viewingRecord"
-        :data="viewingRecord"
-        :schema="detailSchemas"
-        :column="1"
-        bordered
-      />
+    <BasicDrawer title="登录日志详情" :width="640" :show-footer="false" @register="drawerRegister">
+      <DetailDescription v-if="viewingRecord" :data="viewingRecord" :schema="detailSchemas" :column="1" bordered />
 
-      <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <a-alert
-          message="提示：如发现异常登录记录，请及时修改密码并联系安全管理人员"
-          type="warning"
-          show-icon
-        />
+      <div class="mt-6 border-t border-gray-200 pt-4 dark:border-gray-700">
+        <a-alert message="提示：如发现异常登录记录，请及时修改密码并联系安全管理人员" type="warning" show-icon />
       </div>
     </BasicDrawer>
   </div>

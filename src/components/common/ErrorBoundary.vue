@@ -14,8 +14,10 @@
  */
 
 import type { VNode } from 'vue'
+
 import { onErrorCaptured, ref } from 'vue'
-import { cn } from '@/utils/cn'
+
+import { cn } from '~/utils/cn'
 
 interface Props {
   /** 自定义 fallback 渲染函数 */
@@ -48,8 +50,7 @@ onErrorCaptured((err: unknown, instance, info) => {
     errorObj = err
     // 追加组件信息
     errorObj.message = `[${info}] ${errorObj.message}`
-  }
-  else {
+  } else {
     errorObj = new Error(String(err))
     errorObj.name = 'UnknownError'
   }
@@ -90,16 +91,9 @@ const defaultFallbackClassName = cn(
   'rounded-lg border border-red-200 dark:border-red-800',
 )
 
-const titleClassName = cn(
-  'text-lg font-semibold text-red-700 dark:text-red-400',
-  'mb-2',
-)
+const titleClassName = cn('text-lg font-semibold text-red-700 dark:text-red-400', 'mb-2')
 
-const messageClassName = cn(
-  'text-sm text-red-600 dark:text-red-300',
-  'mb-4 text-center max-w-md',
-  'break-all',
-)
+const messageClassName = cn('text-sm text-red-600 dark:text-red-300', 'mb-4 text-center max-w-md', 'break-all')
 
 const retryButtonClassName = cn(
   'px-4 py-2',
@@ -121,27 +115,17 @@ const isDev = import.meta.env.DEV
 
 <template>
   <!-- 错误状态：显示 fallback -->
-  <div
-    v-if="error"
-    :class="defaultFallbackClassName"
-  >
+  <div v-if="error" :class="defaultFallbackClassName">
     <!-- 使用自定义 fallback -->
-    <component
-      :is="() => props.fallback?.(error!, resetError)"
-      v-if="props.fallback"
-    />
+    <component :is="() => props.fallback?.(error!, resetError)" v-if="props.fallback" />
 
     <!-- 默认 fallback UI -->
     <template v-else>
       <!-- 错误图标 -->
-      <div class="mb-4 text-6xl">
-        ⚠️
-      </div>
+      <div class="mb-4 text-6xl">⚠️</div>
 
       <!-- 错误标题 -->
-      <h3 :class="titleClassName">
-        出错了
-      </h3>
+      <h3 :class="titleClassName">出错了</h3>
 
       <!-- 错误消息 -->
       <p :class="messageClassName">
@@ -149,24 +133,13 @@ const isDev = import.meta.env.DEV
       </p>
 
       <!-- 重试按钮 -->
-      <button
-        v-if="resetOnError"
-        :class="retryButtonClassName"
-        @click="handleRetry"
-      >
-        🔄 重试
-      </button>
+      <button v-if="resetOnError" :class="retryButtonClassName" @click="handleRetry">🔄 重试</button>
 
       <!-- 错误详情（开发环境） -->
-      <details
-        v-if="isDev && error.stack"
-        :class="detailsClassName"
-      >
-        <summary class="cursor-pointer font-medium mb-1">
-          调用栈详情
-        </summary>
+      <details v-if="isDev && error.stack" :class="detailsClassName">
+        <summary class="mb-1 cursor-pointer font-medium">调用栈详情</summary>
         <PerfectScrollbar class="max-h-32">
-          <pre class="whitespace-pre-wrap break-all">{{ error.stack }}</pre>
+          <pre class="break-all whitespace-pre-wrap">{{ error.stack }}</pre>
         </PerfectScrollbar>
       </details>
     </template>
@@ -182,7 +155,7 @@ const isDev = import.meta.env.DEV
     <template #fallback>
       <slot name="loading">
         <div class="flex items-center justify-center p-8">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div class="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
         </div>
       </slot>
     </template>

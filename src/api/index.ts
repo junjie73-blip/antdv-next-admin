@@ -1,4 +1,4 @@
-import { get, post } from '@/api/request'
+import { get, post } from '~/api/request'
 
 interface LoginParams {
   username: string

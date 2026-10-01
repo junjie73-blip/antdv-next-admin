@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import type { DescriptionInstance, DescriptionItem, DescriptionProps } from './types'
-import { computed, ref } from 'vue'
-import { cn } from '@/utils/cn'
+import type { VNodeChild } from 'vue'
 
-/**
- * Description - 描述列表组件
- * 对标 Vben Admin 的 Description 组件
- */
+import { Descriptions, type DescriptionsProps } from 'antdv-next'
+import { Image } from 'antdv-next'
+import dayjs from 'dayjs'
+import { computed, h, useSlots } from 'vue'
+
+import { cn } from '~/utils/cn'
+import { getDictLabel, getDictLabels } from '~/utils/dict'
+
+import type { DescriptionInstance, DescriptionItem, DescriptionProps } from './types'
 
 const props = withDefaults(defineProps<DescriptionProps>(), {
   column: 3,
-  size: 'default',
   layout: 'horizontal',
   bordered: false,
   colon: true,
@@ -18,221 +20,170 @@ const props = withDefaults(defineProps<DescriptionProps>(), {
   emptyText: '-',
 })
 
-// 数据源
-const dataRef = ref(props.data)
+const slots = useSlots()
 
-/**
- * 计算尺寸类名
- */
-const sizeClassName = computed(() => {
-  const sizeMap: Record<string, string> = {
-    small: 'text-sm',
-    default: 'text-base',
-    large: 'text-lg',
+// ========== 数据源 ==========
+const dataRef = computed(() => props.data || {})
+
+// ========== 过滤 schema ==========
+const filteredSchema = computed(() => (props.schema || []).filter((item) => item.show !== false))
+
+// ========== 取值 ==========
+function getFieldValue(item: DescriptionItem): any {
+  const value = item.value !== undefined ? item.value : dataRef.value[item.field]
+  if (value === undefined || value === null || value === '') {
+    return props.emptyText
   }
-  return sizeMap[props.size] || sizeMap.default
-})
-
-/**
- * 计算过滤后的 schema
- */
-const filteredSchema = computed(() => {
-  return props.schema?.filter(item => item.show !== false) || []
-})
-
-/**
- * 获取字段值
- */
-function getFieldValue(item: DescriptionItem) {
-  const value = item.value !== undefined ? item.value : dataRef.value?.[item.field]
-  return value !== undefined && value !== null && value !== '' ? value : props.emptyText
+  return value
 }
 
-/**
- * 计算内容样式
- */
-function getContentStyle(item: DescriptionItem) {
-  return {
-    ...item.contentStyle,
+/** 标签 */
+function renderLabel(item: DescriptionItem): VNodeChild {
+  const slotName = `${item.field}-label`
+  if (slots[slotName]) {
+    return slots[slotName]!({ item, data: dataRef.value })
+  }
+  if (item.renderLabel) {
+    return item.renderLabel(item.label || item.field, dataRef.value)
+  }
+  return item.label || item.field
+}
+
+/** 单张图片 */
+function renderImage(value: any, size = 60): VNodeChild {
+  if (!value || value === props.emptyText) return h('span', props.emptyText)
+  const url = typeof value === 'string' ? value : value.url
+  return h(Image, {
+    src: url,
+    width: size,
+    preview: true,
+  })
+}
+
+/** 多张图片 */
+function renderImages(value: any, size = 60): VNodeChild {
+  if (!value || value === props.emptyText) return h('span', props.emptyText)
+  const list: string[] = Array.isArray(value)
+    ? value.map((v: any) => (typeof v === 'string' ? v : v.url))
+    : String(value).split(',').filter(Boolean)
+  return h(
+    'div',
+    {},
+    {
+      default: () =>
+        list.map((url, i) =>
+          h(Image, {
+            key: i,
+            src: url,
+            width: size,
+            height: size,
+          }),
+        ),
+    },
+  )
+}
+
+/** 主内容渲染 */
+function renderValue(item: DescriptionItem): VNodeChild {
+  const slotName = item.field
+  const value = getFieldValue(item)
+
+  // 1. slot 优先
+  if (slots[slotName]) {
+    return slots[slotName]!({ item, data: dataRef.value, value })
+  }
+
+  // 2. 自定义 render 优先
+  if (item.render) {
+    const result = item.render(value, dataRef.value)
+    if (typeof result === 'string' || typeof result === 'number') {
+      return h('span', result)
+    }
+    return result
+  }
+
+  // 3. 按 type 分发
+  switch (item.type) {
+    case 'dict': {
+      if (!item.dictType) return h('span', value)
+      // 值是数组或逗号分隔时，用 getDictLabels
+      const isMulti = Array.isArray(value) || String(value).includes(',')
+      const label = isMulti ? getDictLabels(item.dictType, value) : getDictLabel(item.dictType, value)
+      return h('span', label)
+    }
+
+    case 'image':
+      return renderImage(value, item.imageSize || 60)
+
+    case 'images':
+      return renderImages(value, item.imageSize || 60)
+
+    case 'date':
+      return h('span', value === props.emptyText ? value : dayjs(value).format(item.dateFormat || 'YYYY-MM-DD'))
+
+    case 'datetime':
+      return h(
+        'span',
+        value === props.emptyText ? value : dayjs(value).format(item.dateFormat || 'YYYY-MM-DD HH:mm:ss'),
+      )
+
+    case 'tag':
+      return h('span', value)
+
+    case 'text':
+    default:
+      if (typeof value === 'string' || typeof value === 'number') {
+        return h('span', value)
+      }
+      return value
   }
 }
 
-/**
- * 计算标签样式
- */
-function getLabelStyle(item: DescriptionItem) {
-  return {
-    ...item.labelStyle,
-  }
-}
-
-/**
- * 计算网格列宽
- */
-const gridStyle = computed(() => {
-  return {
-    gridTemplateColumns: `repeat(${props.column}, minmax(0, 1fr))`,
-  }
+// ========== 转成 a-descriptions 的 items 格式 ==========
+const items = computed<DescriptionsProps['items']>(() => {
+  return filteredSchema.value.map((item) => ({
+    key: item.field,
+    label: renderLabel(item),
+    content: renderValue(item),
+    span: item.span || 1,
+    labelStyle: item.labelStyle,
+    contentStyle: item.contentStyle,
+  })) as DescriptionsProps['items']
 })
 
-/**
- * 组件实例方法
- */
+// ========== size 映射（antdv-next 只接受 default / middle / small） ==========
+const antSize = computed<'default' | 'middle' | 'small'>(() => {
+  if (props.size === 'small') return 'small'
+  return 'default'
+})
+
+// ========== 实例方法 ==========
 const instance: DescriptionInstance = {
-  getData: () => dataRef.value,
-  setData: (data: Recordable) => {
-    dataRef.value = data
+  getData: () => props.data,
+  setData: () => {
+    console.warn('[Description] setData 不支持在只读模式下使用')
   },
 }
-
 defineExpose(instance)
 </script>
 
 <template>
-  <div
-    :class="cn(
-      'description',
-      'bg-white',
-      sizeClassName,
-      className,
-    )"
-    :style="style"
-  >
-    <!-- 标题 -->
-    <div
-      v-if="title"
-      class="description-title mb-4 font-medium text-gray-900"
-    >
-      {{ title }}
+  <div :class="cn('description-wrapper', className)" :style="style">
+    <!-- 加载中 -->
+    <div v-if="loading" class="description-loading flex items-center justify-center py-8">
+      <div class="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900 dark:border-gray-100" />
     </div>
 
-    <!-- 加载状态 -->
-    <div
-      v-if="loading"
-      class="description-loading flex items-center justify-center py-8"
-    >
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
-    </div>
-
-    <!-- 内容区域 -->
-    <div
+    <!-- 描述列表 -->
+    <Descriptions
       v-else
-      :class="cn(
-        'description-content',
-        bordered && 'border border-gray-200 rounded',
-        !bordered && 'border-b border-gray-200',
-      )"
-    >
-      <!-- 无边框模式 - 网格布局 -->
-      <div
-        v-if="!bordered"
-        class="grid gap-4"
-        :style="gridStyle"
-      >
-        <div
-          v-for="item in filteredSchema"
-          :key="item.field"
-          :class="cn(
-            'description-item',
-            'flex',
-            layout === 'horizontal' && 'flex-row items-start',
-            layout === 'vertical' && 'flex-col',
-            item.span && item.span > 1 && `col-span-${item.span}`,
-          )"
-          :style="{ gridColumn: item.span ? `span ${item.span} / span ${item.span}` : undefined }"
-        >
-          <!-- 标签 -->
-          <div
-            :class="cn(
-              'description-label',
-              'text-gray-500 flex-shrink-0',
-              layout === 'horizontal' && 'w-24 mr-4',
-              layout === 'vertical' && 'mb-1',
-            )"
-            :style="getLabelStyle(item)"
-          >
-            <template v-if="item.renderLabel">
-              <component :is="item.renderLabel(item.label || item.field, dataRef)" />
-            </template>
-            <template v-else>
-              {{ item.label || item.field }}{{ colon && layout === 'horizontal' ? '：' : '' }}
-            </template>
-          </div>
-
-          <!-- 内容 -->
-          <div
-            class="description-content-value text-gray-900 flex-1"
-            :style="getContentStyle(item)"
-          >
-            <template v-if="item.render">
-              <component :is="item.render(getFieldValue(item), dataRef)" />
-            </template>
-            <template v-else>
-              {{ getFieldValue(item) }}
-            </template>
-          </div>
-        </div>
-      </div>
-
-      <!-- 有边框模式 - 表格布局 -->
-      <table
-        v-else
-        class="description-table w-full border-collapse"
-      >
-        <tbody>
-          <tr
-            v-for="(row, rowIndex) in Math.ceil(filteredSchema.length / column)"
-            :key="rowIndex"
-            class="border-b border-gray-200 last:border-b-0"
-          >
-            <template
-              v-for="(item, colIndex) in filteredSchema.slice(rowIndex * column, (rowIndex + 1) * column)"
-              :key="item.field"
-            >
-              <!-- 标签单元格 -->
-              <td
-                :class="cn(
-                  'description-label-cell',
-                  'py-3 px-4 bg-gray-50 text-gray-500 font-medium',
-                  'border-r border-gray-200 last:border-r-0',
-                  'w-1/6',
-                )"
-              >
-                <template v-if="item.renderLabel">
-                  <component :is="item.renderLabel(item.label || item.field, dataRef)" />
-                </template>
-                <template v-else>
-                  {{ item.label || item.field }}{{ colon ? '：' : '' }}
-                </template>
-              </td>
-
-              <!-- 内容单元格 -->
-              <td
-                :class="cn(
-                  'description-content-cell',
-                  'py-3 px-4 text-gray-900',
-                  'border-r border-gray-200 last:border-r-0',
-                  item.span && item.span > 1 ? `w-${(item.span * 2 - 1)}/6` : 'w-1/6',
-                )"
-                :colspan="item.span ? item.span * 2 - 1 : 1"
-              >
-                <template v-if="item.render">
-                  <component :is="item.render(getFieldValue(item), dataRef)" />
-                </template>
-                <template v-else>
-                  {{ getFieldValue(item) }}
-                </template>
-              </td>
-            </template>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+      :title="title"
+      :items="items"
+      :column="column"
+      :size="antSize"
+      :layout="layout"
+      :bordered="bordered"
+      :colon="colon"
+    />
   </div>
 </template>
-
-<style scoped>
-.description-item:last-child {
-  border-bottom: none;
-}
-</style>

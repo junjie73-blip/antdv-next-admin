@@ -1,25 +1,19 @@
 <script setup lang="ts">
-import type { FormSchema } from '@/components/business/Form'
-import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
-
 import { computed, onMounted, ref } from 'vue'
 import * as XLSX from 'xlsx'
-import {
-  addUser,
-  deleteUser,
-  getDeptTree,
-  getUserList,
-  getUserOptions,
-  updateUser,
-} from '@/api/system'
-import { BasicForm, useForm } from '@/components/business/Form'
-import { BasicModal, useModal } from '@/components/business/Modal'
-import { BasicTable, useTable } from '@/components/business/Table'
-import { DictType } from '@/enums/dict'
-import { useDictStore } from '@/stores'
-import { cn } from '@/utils/cn'
-import { usePrint } from '@/utils/print'
+
+import type { FormSchema } from '~/components/business/Form'
+import type { BasicColumn } from '~/components/business/Table'
+
+import { addUser, deleteUser, getDeptTree, getUserList, getUserOptions, updateUser } from '~/api/system'
+import { BasicForm, useForm } from '~/components/business/Form'
+import { BasicModal, useModal } from '~/components/business/Modal'
+import { BasicTable, useTable } from '~/components/business/Table'
+import { DictType } from '~/enums/dict'
+import { useDictStore } from '~/stores'
+import { cn } from '~/utils/cn'
+import { usePrint } from '~/utils/print'
 
 defineOptions({ name: 'SystemUser' })
 
@@ -70,8 +64,8 @@ const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABL
 
 // 从 API 获取部门和角色选项
 const mockDeptTree = ref<DeptNode[]>([])
-const allDeptNodes = ref<{ id: number, name: string }[]>([])
-const roleOptions = ref<{ label: string, value: number }[]>([])
+const allDeptNodes = ref<{ id: number; name: string }[]>([])
+const roleOptions = ref<{ label: string; value: number }[]>([])
 
 onMounted(async () => {
   try {
@@ -81,12 +75,11 @@ onMounted(async () => {
     const optData = Array.isArray(optionRes) ? optionRes : (optionRes?.data ?? optionRes ?? [])
     mockDeptTree.value = deptData
     // 扁平化部门树用于查找名称
-    function flatten(nodes: DeptNode[]): { id: number, name: string }[] {
-      const result: { id: number, name: string }[] = []
+    function flatten(nodes: DeptNode[]): { id: number; name: string }[] {
+      const result: { id: number; name: string }[] = []
       for (const node of nodes) {
         result.push({ id: node.id, name: node.name })
-        if (node.children)
-          result.push(...flatten(node.children))
+        if (node.children) result.push(...flatten(node.children))
       }
       return result
     }
@@ -95,8 +88,7 @@ onMounted(async () => {
       label: item.label,
       value: item.value,
     }))
-  }
-  catch (e) {
+  } catch (e) {
     console.error('获取基础数据失败', e)
   }
 })
@@ -282,8 +274,7 @@ async function handleDelete(record: UserRecord) {
     await deleteUser(record.id)
     message.success(`已删除用户：${record.nickname}`)
     tableMethods.value?.reload()
-  }
-  catch (e: any) {
+  } catch (e: any) {
     message.error(e?.message || '删除失败')
   }
 }
@@ -308,15 +299,7 @@ function handleExport() {
   ])
 
   const ws = XLSX.utils.aoa_to_sheet([headers, ...rows])
-  ws['!cols'] = [
-    { wch: 12 },
-    { wch: 12 },
-    { wch: 24 },
-    { wch: 14 },
-    { wch: 10 },
-    { wch: 12 },
-    { wch: 8 },
-  ]
+  ws['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 24 }, { wch: 14 }, { wch: 10 }, { wch: 12 }, { wch: 8 }]
 
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, '用户列表')
@@ -347,16 +330,14 @@ async function handleSave() {
     if (isEditing.value && currentRecord.value) {
       await updateUser(currentRecord.value.id, values)
       message.success(`已更新用户：${values.nickname}`)
-    }
-    else {
+    } else {
       await addUser(values)
       message.success(`已新增用户：${values.nickname}`)
     }
 
     modalMethods.closeModal()
     tableMethods.value?.reload()
-  }
-  catch (e: any) {
+  } catch (e: any) {
     message.error(e?.message || '保存失败')
   }
 }
@@ -377,11 +358,7 @@ const columns: BasicColumn[] = [
 <template>
   <div :class="containerClassName">
     <div :class="leftPanelClassName">
-      <a-card
-        :class="treeCardClassName"
-        title="部门列表"
-        size="small"
-      >
+      <a-card :class="treeCardClassName" title="部门列表" size="small">
         <a-tree
           :tree-data="mockDeptTree"
           :field-names="{ children: 'children', title: 'name', key: 'id' }"
@@ -389,16 +366,17 @@ const columns: BasicColumn[] = [
           :default-selected-keys="selectedDeptId !== null ? [selectedDeptId] : []"
           block-node
           @select="handleDeptSelect"
-          @update:expandedKeys="(keys: number[]) => { treeExpandedKeys = keys }"
+          @update:expandedKeys="
+            (keys: number[]) => {
+              treeExpandedKeys = keys
+            }
+          "
         />
       </a-card>
     </div>
 
     <div :class="rightPanelClassName">
-      <a-card
-        title="用户管理"
-        :class="cardClassName"
-      >
+      <a-card title="用户管理" :class="cardClassName">
         <BasicTable
           :columns="columns"
           :api="mockApi"
@@ -407,18 +385,12 @@ const columns: BasicColumn[] = [
           :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
           :action-column="{ width: 240, title: '操作', fixed: 'right' }"
           :row-selection="{ type: 'checkbox' }"
-          :pagination="{ showSizeChanger: true,
-                         pageSizeOptions: ['10',
-                                           '20',
-                                           '50'] }"
+          :pagination="{ showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }"
           :scroll="{ x: 1400 }"
           @register="tableRegister"
         >
           <template #toolbar>
-            <a-button
-              type="primary"
-              @click="handleAdd"
-            >
+            <a-button type="primary" @click="handleAdd">
               <template #icon>
                 <Icon icon="ant-design:plus-outlined" />
               </template>
@@ -448,40 +420,21 @@ const columns: BasicColumn[] = [
 
           <template #action="{ record }">
             <div :class="actionClassName">
-              <a-button
-                type="link"
-                :class="btnClassName"
-                @click="() => handleDetail(record)"
-              >
+              <a-button type="link" :class="btnClassName" @click="() => handleDetail(record)">
                 <template #icon>
                   <Icon icon="ant-design:eye-outlined" />
                 </template>
                 详情
               </a-button>
-              <a-divider
-                type="vertical"
-                :class="dividerClassName"
-              />
-              <a-button
-                type="link"
-                :class="btnClassName"
-                @click="() => handleEdit(record)"
-              >
+              <a-divider type="vertical" :class="dividerClassName" />
+              <a-button type="link" :class="btnClassName" @click="() => handleEdit(record)">
                 <template #icon>
                   <Icon icon="ant-design:edit-outlined" />
                 </template>
                 编辑
               </a-button>
-              <a-divider
-                type="vertical"
-                :class="dividerClassName"
-              />
-              <a-button
-                type="link"
-                danger
-                :class="btnClassName"
-                @click="() => handleDelete(record)"
-              >
+              <a-divider type="vertical" :class="dividerClassName" />
+              <a-button type="link" danger :class="btnClassName" @click="() => handleDelete(record)">
                 <template #icon>
                   <Icon icon="ant-design:delete-outlined" />
                 </template>
@@ -493,12 +446,7 @@ const columns: BasicColumn[] = [
       </a-card>
     </div>
 
-    <BasicModal
-      :title="isEditing ? '编辑用户' : '新增用户'"
-      :width="640"
-      @register="modalRegister"
-      @ok="handleSave"
-    >
+    <BasicModal :title="isEditing ? '编辑用户' : '新增用户'" :width="640" @register="modalRegister" @ok="handleSave">
       <BasicForm
         :schemas="modalFormSchemas"
         :label-width="80"

@@ -1,6 +1,9 @@
-import type { AppRouteRecordRaw } from '#/app-router'
 import type { App } from 'vue'
+
 import { createRouter, createWebHashHistory } from 'vue-router'
+
+import type { AppRouteRecordRaw } from '#/app-router'
+
 import { setupRouterGuards } from './guards'
 import { constantRoutes } from './routes'
 
@@ -17,6 +20,7 @@ const router = createRouter({
 export function setupRouter(app: App) {
   setupRouterGuards(router)
   app.use(router)
+  return router
 }
 
 export default router

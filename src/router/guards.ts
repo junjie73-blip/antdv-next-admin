@@ -1,10 +1,12 @@
 import type { Router } from 'vue-router'
+
 import NProgress from 'nprogress'
-import { useLogger } from '@/composables/useLogger'
-import { useAppStore } from '@/stores/modules/app'
-import { useDictStore } from '@/stores/modules/dict'
-import { useRouteStore } from '@/stores/modules/route'
-import { useUserStore } from '@/stores/modules/user'
+
+import { useAppStore } from '~/stores/modules/app'
+import { useDictStore } from '~/stores/modules/dict'
+import { useRouteStore } from '~/stores/modules/route'
+import { useUserStore } from '~/stores/modules/user'
+
 import { catchAllRoute } from './routes'
 
 const WHITE_LIST = ['/login', '/register', '/404', '/403', '/503']
@@ -66,14 +68,14 @@ function createPermissionGuard(router: Router) {
     }
 
     if (requiredRoles) {
-      const hasRole = requiredRoles.some(role => userStore.hasRole(role))
+      const hasRole = requiredRoles.some((role) => userStore.hasRole(role))
       if (!hasRole) {
         return { path: '/403', replace: true }
       }
     }
 
     if (requiredPermissions) {
-      const hasPermission = requiredPermissions.some(perm => userStore.hasPermission(perm))
+      const hasPermission = requiredPermissions.some((perm) => userStore.hasPermission(perm))
       if (!hasPermission) {
         return { path: '/403', replace: true }
       }
@@ -90,8 +92,7 @@ function createTitleGuard(router: Router) {
 
     if (title) {
       document.title = `${title} | ${appTitle}`
-    }
-    else {
+    } else {
       document.title = appTitle
     }
 
@@ -133,9 +134,8 @@ function createDynamicRouteGuard(router: Router) {
     const routeMode = appStore.appSetting.routeMode
 
     if (routeMode === 'frontend') {
-      routeStore.initFrontendRoutes()
-    }
-    else {
+      await routeStore.initFrontendRoutes()
+    } else {
       await routeStore.initBackendRoutes()
     }
 
@@ -164,10 +164,6 @@ export function setupRouterGuards(router: Router) {
 function createRouteLogGuard(router: Router) {
   router.afterEach((to, from) => {
     // 跳过白名单路由和首次加载
-    if (WHITE_LIST.includes(to.path) || from.path === '/')
-      return
-
-    const logger = useLogger()
-    logger.logRouteChange(from.path, to.path, to.meta.title as string | undefined)
+    if (WHITE_LIST.includes(to.path) || from.path === '/') return
   })
 }

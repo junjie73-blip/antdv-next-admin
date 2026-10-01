@@ -2,7 +2,7 @@
 export { default as BasicTable } from './BasicTable.vue'
 
 // 子组件
-export { default as TableAction } from './components/TableAction'
+export { default as TableAction } from './components/TableAction.vue'
 
 export { default as TableEditableCell } from './components/TableEditableCell'
 export { default as TableHeaderCell } from './components/TableHeaderCell'
@@ -36,9 +36,6 @@ export { useDragSort } from './hooks/useDragSort'
 export { useLoading } from './hooks/useLoading'
 export { usePagination } from './hooks/usePagination'
 export { useRowSelection } from './hooks/useRowSelection'
-export { useTableScroll } from './hooks/useTableScroll'
-export { useTreeData } from './hooks/useTreeData'
-export { useVirtualScroll } from './hooks/useVirtualScroll'
 
 // 类型
 export type {

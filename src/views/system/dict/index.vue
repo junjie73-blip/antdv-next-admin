@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import type { FormSchema } from '@/components/business/Form'
-import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
-
 import { computed, ref } from 'vue'
+
+import type { FormSchema } from '~/components/business/Form'
+import type { BasicColumn } from '~/components/business/Table'
+
 import {
   addDict,
   addDictItem,
@@ -13,14 +14,14 @@ import {
   getDictList,
   updateDict,
   updateDictItem,
-} from '@/api/system'
-import { BasicForm, useForm } from '@/components/business/Form'
-import { BasicModal, useModal } from '@/components/business/Modal'
-import { BasicTable, useTable } from '@/components/business/Table'
-import { DictType } from '@/enums/dict'
-import { useDictStore } from '@/stores'
-import { cn } from '@/utils/cn'
-import { exportToExcel } from '@/utils/excel'
+} from '~/api/system'
+import { BasicForm, useForm } from '~/components/business/Form'
+import { BasicModal, useModal } from '~/components/business/Modal'
+import { BasicTable, useTable } from '~/components/business/Table'
+import { DictType } from '~/enums/dict'
+import { useDictStore } from '~/stores'
+import { cn } from '~/utils/cn'
+import { exportToExcel } from '~/utils/excel'
 
 defineOptions({ name: 'SystemDict' })
 
@@ -48,14 +49,15 @@ const containerClassName = cn('flex gap-4')
 const leftPanelClassName = cn('w-[280px] shrink-0')
 const rightPanelClassName = cn('flex-1 min-w-0')
 const cardClassName = cn('shadow-sm')
-const typeItemClassName = (active: boolean) => cn(
-  'flex items-center justify-between',
-  'px-4 py-3 cursor-pointer',
-  'border-b border-gray-100 dark:border-gray-800',
-  'transition-colors duration-200',
-  'hover:bg-gray-50 dark:hover:bg-gray-800',
-  active && 'bg-blue-50 dark:bg-blue-900/20 border-l-[3px] border-l-[var(--ant-color-primary)]',
-)
+const typeItemClassName = (active: boolean) =>
+  cn(
+    'flex items-center justify-between',
+    'px-4 py-3 cursor-pointer',
+    'border-b border-gray-100 dark:border-gray-800',
+    'transition-colors duration-200',
+    'hover:bg-gray-50 dark:hover:bg-gray-800',
+    active && 'bg-blue-50 dark:bg-blue-900/20 border-l-[3px] border-l-[var(--ant-color-primary)]',
+  )
 const typeItemNameClassName = cn('text-sm font-medium text-gray-800 dark:text-gray-200 truncate')
 const typeItemCodeClassName = cn('text-xs text-gray-400 mt-0.5 truncate')
 const typeItemActionsClassName = cn('flex items-center gap-1 flex-shrink-0 ml-2')
@@ -65,7 +67,9 @@ const emptyIconClassName = cn('text-4xl mb-3 opacity-30')
 const emptyTitleClassName = cn('text-sm font-medium')
 const emptyDescClassName = cn('text-xs mt-1')
 const cardFooterClassName = cn('flex justify-start px-4 py-3 border-t border-gray-100 dark:border-gray-800')
-const cardHeaderClassName = cn('flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800')
+const cardHeaderClassName = cn(
+  'flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800',
+)
 const cardTitleClassName = cn('text-sm font-semibold text-gray-800 dark:text-gray-200')
 const actionClassName = cn('flex', 'items-center', 'justify-center')
 const btnClassName = cn('!px-0.5')
@@ -200,8 +204,7 @@ async function loadDictTypes() {
     const res = await getDictList({})
     const data = res?.data ?? res
     dictTypes.value = data?.list || []
-  }
-  catch {
+  } catch {
     message.error('加载字典类型失败')
   }
 }
@@ -211,8 +214,7 @@ async function loadDictItems(typeId: number) {
     const res = await getDictItems(typeId)
     const items = Array.isArray(res) ? res : (res?.data ?? res ?? [])
     dictItems.value = items
-  }
-  catch {
+  } catch {
     message.error('加载字典项失败')
   }
 }
@@ -259,16 +261,14 @@ async function handleDelete(record: DictTypeRecord) {
       dictItems.value = []
     }
     await loadDictTypes()
-  }
-  catch {
+  } catch {
     message.error('删除失败')
   }
 }
 
 async function handleSave() {
   const values = await formMethods.validate()
-  if (!values)
-    return
+  if (!values) return
 
   if (!values.typeName || !values.typeCode) {
     message.warning('请填写字典名称和编码')
@@ -279,8 +279,7 @@ async function handleSave() {
     if (isEditing.value && currentRecord.value) {
       await updateDict(currentRecord.value.id, values)
       message.success(`已更新字典：${values.typeName}`)
-    }
-    else {
+    } else {
       await addDict(values)
       message.success(`已新增字典：${values.typeName}`)
     }
@@ -288,13 +287,12 @@ async function handleSave() {
     modalMethods.closeModal()
     await loadDictTypes()
     if (selectedType.value && isEditing.value && currentRecord.value?.id === selectedType.value.id) {
-      const updated = dictTypes.value.find(t => t.id === selectedType.value!.id)
+      const updated = dictTypes.value.find((t) => t.id === selectedType.value!.id)
       if (updated) {
         selectedType.value = updated
       }
     }
-  }
-  catch {
+  } catch {
     message.error('保存失败')
   }
 }
@@ -329,8 +327,7 @@ function handleEditItem(item: DictItemRecord) {
 
 async function handleSaveItem() {
   const values = await itemFormMethods.validate()
-  if (!values)
-    return
+  if (!values) return
 
   if (!values.dictLabel || !values.dictValue) {
     message.warning('请填写字典标签和键值')
@@ -341,8 +338,7 @@ async function handleSaveItem() {
     if (isEditingItem.value && currentItemRecord.value) {
       await updateDictItem(currentItemRecord.value.id, values)
       message.success(`已更新字典项：${values.dictLabel}`)
-    }
-    else {
+    } else {
       await addDictItem({ ...values, dictTypeId: selectedType.value!.id })
       message.success(`已新增字典项：${values.dictLabel}`)
     }
@@ -351,8 +347,7 @@ async function handleSaveItem() {
     if (selectedType.value) {
       loadDictItems(selectedType.value.id)
     }
-  }
-  catch {
+  } catch {
     message.error('保存失败')
   }
 }
@@ -364,8 +359,7 @@ async function handleDeleteItem(item: DictItemRecord) {
     if (selectedType.value) {
       loadDictItems(selectedType.value.id)
     }
-  }
-  catch {
+  } catch {
     message.error('删除失败')
   }
 }
@@ -416,17 +410,14 @@ loadDictTypes()
   <div :class="containerClassName">
     <!-- 左侧：字典类型列表 -->
     <div :class="leftPanelClassName">
-      <div :class="cardClassName + ' rounded-lg border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900'">
+      <div :class="cardClassName + ' rounded-lg border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900'">
         <div :class="cardHeaderClassName">
           <span :class="cardTitleClassName">字典类型</span>
         </div>
 
         <!-- 类型列表 -->
         <div class="max-h-[500px] overflow-y-auto">
-          <div
-            v-if="dictTypes.length === 0"
-            :class="emptyClassName"
-          >
+          <div v-if="dictTypes.length === 0" :class="emptyClassName">
             <div :class="emptyIconClassName">
               <Icon icon="carbon:book" />
             </div>
@@ -440,35 +431,21 @@ loadDictTypes()
             :class="typeItemClassName(selectedType?.id === item.id)"
             @click="selectType(item)"
           >
-            <div class="flex-1 min-w-0">
+            <div class="min-w-0 flex-1">
               <div :class="typeItemNameClassName">{{ item.typeName }}</div>
               <div :class="typeItemCodeClassName">{{ item.typeCode }}</div>
             </div>
             <div :class="typeItemActionsClassName">
-              <a-tag :color="statusColorMap[item.status] || 'default'" class="!text-[10px] !px-1 !py-0 !leading-4">
+              <a-tag :color="statusColorMap[item.status] || 'default'" class="!px-1 !py-0 !text-[10px] !leading-4">
                 {{ statusLabelMap[item.status] || '未知' }}
               </a-tag>
-              <a-button
-                type="text"
-                size="small"
-                :class="typeItemBtnClassName"
-                @click.stop="handleEdit(item)"
-              >
+              <a-button type="text" size="small" :class="typeItemBtnClassName" @click.stop="handleEdit(item)">
                 <template #icon>
                   <Icon icon="ant-design:edit-outlined" class="text-xs" />
                 </template>
               </a-button>
-              <a-popconfirm
-                :title="`确定要删除字典「${item.typeName}」吗？`"
-                @confirm="handleDelete(item)"
-              >
-                <a-button
-                  type="text"
-                  danger
-                  size="small"
-                  :class="typeItemBtnClassName"
-                  @click.stop
-                >
+              <a-popconfirm :title="`确定要删除字典「${item.typeName}」吗？`" @confirm="handleDelete(item)">
+                <a-button type="text" danger size="small" :class="typeItemBtnClassName" @click.stop>
                   <template #icon>
                     <Icon icon="ant-design:delete-outlined" class="text-xs" />
                   </template>
@@ -480,11 +457,7 @@ loadDictTypes()
 
         <!-- 底部新增按钮 -->
         <div :class="cardFooterClassName">
-          <a-button
-            type="primary"
-            size="small"
-            @click="handleAdd"
-          >
+          <a-button type="primary" size="small" @click="handleAdd">
             <template #icon>
               <Icon icon="ant-design:plus-outlined" />
             </template>
@@ -496,27 +469,19 @@ loadDictTypes()
 
     <!-- 右侧：字典项 -->
     <div :class="rightPanelClassName">
-      <div :class="cardClassName + ' rounded-lg border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900'">
+      <div :class="cardClassName + ' rounded-lg border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900'">
         <div :class="cardHeaderClassName">
           <span :class="cardTitleClassName">
             {{ selectedType ? `${selectedType.typeName} - 字典项` : '字典项' }}
           </span>
           <div class="flex items-center gap-2">
-            <a-button
-              size="small"
-              @click="handleExport"
-            >
+            <a-button size="small" @click="handleExport">
               <template #icon>
                 <Icon icon="carbon:export" />
               </template>
               导出
             </a-button>
-            <a-button
-              type="primary"
-              size="small"
-              :disabled="!selectedType"
-              @click="handleAddItem"
-            >
+            <a-button type="primary" size="small" :disabled="!selectedType" @click="handleAddItem">
               <template #icon>
                 <Icon icon="ant-design:plus-outlined" />
               </template>
@@ -527,10 +492,7 @@ loadDictTypes()
 
         <!-- 字典项内容 -->
         <div class="p-4">
-          <div
-            v-if="!selectedType"
-            :class="emptyClassName"
-          >
+          <div v-if="!selectedType" :class="emptyClassName">
             <div :class="emptyIconClassName">
               <Icon icon="carbon:book" />
             </div>
@@ -561,30 +523,15 @@ loadDictTypes()
 
             <template #action="{ record }">
               <div :class="actionClassName">
-                <a-button
-                  type="link"
-                  :class="btnClassName"
-                  size="small"
-                  @click="() => handleEditItem(record)"
-                >
+                <a-button type="link" :class="btnClassName" size="small" @click="() => handleEditItem(record)">
                   编辑
                 </a-button>
-                <a-divider
-                  type="vertical"
-                  :class="dividerClassName"
-                />
+                <a-divider type="vertical" :class="dividerClassName" />
                 <a-popconfirm
                   :title="`确定要删除字典项「${record.dictLabel}」吗？`"
                   @confirm="() => handleDeleteItem(record)"
                 >
-                  <a-button
-                    type="link"
-                    danger
-                    :class="btnClassName"
-                    size="small"
-                  >
-                    删除
-                  </a-button>
+                  <a-button type="link" danger :class="btnClassName" size="small"> 删除 </a-button>
                 </a-popconfirm>
               </div>
             </template>

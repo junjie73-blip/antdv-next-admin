@@ -108,7 +108,7 @@ export default {
     deleteConfirm: 'Are you sure to delete user "{name}"?',
     resetPassword: 'Reset Password',
     assignRole: 'Assign Role',
-    keywordPlaceholder: 'Search username/nickname/phone...',
+    keywordPlaceholder: 'Search username/realname/phone...',
     exportSuccess: 'Exported {count} records successfully',
   },
 
@@ -236,7 +236,7 @@ export default {
     current: 'Current User',
     keywordPlaceholder: 'Search username/nickname/IP...',
     statsCurrentOnline: 'Currently Online',
-    statsTodayLogin: 'Today\'s Logins',
+    statsTodayLogin: "Today's Logins",
     statsPeakOnline: 'Peak Online',
     statsAvgDuration: 'Avg Session Duration',
   },

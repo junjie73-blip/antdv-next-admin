@@ -1,5 +1,7 @@
 import { createI18n } from 'vue-i18n'
-import { localStorageCacheStorage } from '@/utils/cache'
+
+import { localStorageCacheStorage } from '~/utils/cache'
+
 import enUS from './lang/en-US'
 import zhCN from './lang/zh-CN'
 

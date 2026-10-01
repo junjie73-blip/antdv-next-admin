@@ -1,5 +1,6 @@
-import type { ColProps, FormInstance, FormItemProps } from 'antdv-next'
+import type { ColProps, FormInstance, FormItemProps, RuleObject } from 'antdv-next'
 import type { Component, VNode } from 'vue'
+
 import type { AntdvComponents, ComponentType } from './componentMap'
 
 export type Recordable<T = any> = Record<string, T>
@@ -8,33 +9,13 @@ export type Recordable<T = any> = Record<string, T>
 type ExtractComponentProps<T> = T extends abstract new (props: infer P) => any ? P : never
 
 // 根据 ComponentType 映射到对应的 Props 类型
-export type ComponentPropsMap = {
+export interface ComponentPropsMap {
   [K in ComponentType]: ExtractComponentProps<AntdvComponents[K]>
 }
 
 export type NamePath = string | number | (string | number)[]
 
 export type FieldMapToTime = [string, [string, string], string?][]
-
-export type RuleType = 'string' | 'number' | 'boolean' | 'method' | 'regexp' | 'integer' | 'float' | 'object' | 'enum' | 'date' | 'url' | 'hex' | 'email' | 'tel'
-
-export interface RuleObject {
-  warningOnly?: boolean
-  enum?: any[]
-  len?: number
-  max?: number
-  message?: string
-  min?: number
-  pattern?: RegExp
-  required?: boolean
-  transform?: (value: any) => any
-  type?: RuleType
-  whitespace?: boolean
-  trigger?: 'change' | 'blur' | 'focus' | ('change' | 'blur' | 'focus')[]
-  validateTrigger?: 'change' | 'blur' | 'focus' | ('change' | 'blur' | 'focus')[]
-  validator?: (rule: RuleObject, value: any, callback: (error?: string) => void) => Promise<void | any> | void
-  defaultField?: RuleObject
-}
 
 export type Rule = RuleObject
 
@@ -132,10 +113,7 @@ export interface FormProps {
   wrapperCol?: Partial<ColEx>
   baseColProps?: Partial<ColEx>
   baseRowStyle?: object
-
-  /** 网格布局配置，用于控制每行字段列数 */
   grid?: FormGridProps
-
   submitOnReset?: boolean
   autoFocusFirstItem?: boolean
   compact?: boolean
@@ -144,22 +122,18 @@ export interface FormProps {
   autoSetPlaceHolder?: boolean
   autoSubmitOnEnter?: boolean
   rulesMessageJoinLabel?: boolean
-
   showAdvancedButton?: boolean
   autoAdvancedLine?: number
   alwaysShowLines?: number
-
   showActionButtonGroup?: boolean
   showResetButton?: boolean
   showSubmitButton?: boolean
   resetButtonOptions?: ActionButtonOptions
   submitButtonOptions?: ActionButtonOptions
   actionColOptions?: Partial<ColEx>
-
   resetFunc?: () => Promise<void>
   submitFunc?: () => Promise<void>
   fieldMapToTime?: FieldMapToTime
-
   mergeDynamicData?: Recordable
 }
 

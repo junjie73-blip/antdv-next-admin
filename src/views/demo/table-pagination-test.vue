@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import type { BasicColumn } from '@/components/business/Table'
 import { Alert, Button, Card, Space } from 'antdv-next'
 import { ref } from 'vue'
-import { BasicTable, useTable } from '@/components/business/Table'
+
+import type { BasicColumn } from '~/components/business/Table'
+
+import { BasicTable, useTable } from '~/components/business/Table'
 
 /**
  * 表格分页测试页面
@@ -75,7 +77,7 @@ function mockApi(params: any) {
 
       console.log('[Mock API] 请求参数:', params)
       console.log('[Mock API] 返回数据条数:', data.length)
-      console.log('[Mock API] 当前页数据:', data.map(d => d.id).join(', '))
+      console.log('[Mock API] 当前页数据:', data.map((d) => d.id).join(', '))
 
       resolve({
         items: data,
@@ -182,24 +184,11 @@ function testPaginationSize() {
       />
 
       <Space class="mb-4">
-        <Button
-          type="primary"
-          @click="testNormalPagination"
-        >
-          测试正常分页
-        </Button>
-        <Button @click="testChangePageSize">
-          测试切换每页条数
-        </Button>
-        <Button @click="testQuickPageChange">
-          测试快速切换页码
-        </Button>
-        <Button @click="testDataChange">
-          测试数据量变化
-        </Button>
-        <Button @click="testPaginationSize">
-          测试分页器尺寸
-        </Button>
+        <Button type="primary" @click="testNormalPagination"> 测试正常分页 </Button>
+        <Button @click="testChangePageSize"> 测试切换每页条数 </Button>
+        <Button @click="testQuickPageChange"> 测试快速切换页码 </Button>
+        <Button @click="testDataChange"> 测试数据量变化 </Button>
+        <Button @click="testPaginationSize"> 测试分页器尺寸 </Button>
       </Space>
 
       <BasicTable @register="registerTable" />

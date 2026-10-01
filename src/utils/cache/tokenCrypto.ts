@@ -31,7 +31,7 @@ async function getDeviceFingerprint(): Promise<string> {
   const data = new TextEncoder().encode(components.join('|'))
   const hashBuffer = await crypto.subtle.digest('SHA-256', data)
   return Array.from(new Uint8Array(hashBuffer))
-    .map(b => b.toString(16).padStart(2, '0'))
+    .map((b) => b.toString(16).padStart(2, '0'))
     .join('')
 }
 
@@ -44,13 +44,7 @@ async function getEncryptionKey(): Promise<Uint8Array> {
   const keyMaterial = new TextEncoder().encode(TOKEN_ENCRYPTION_KEY + fingerprint)
 
   // 使用 PBKDF2 派生密钥
-  const key = await crypto.subtle.importKey(
-    'raw',
-    keyMaterial,
-    'PBKDF2',
-    false,
-    ['deriveBits'],
-  )
+  const key = await crypto.subtle.importKey('raw', keyMaterial, 'PBKDF2', false, ['deriveBits'])
 
   const derivedBits = await crypto.subtle.deriveBits(
     {
@@ -86,8 +80,7 @@ export async function encryptToken(data: string): Promise<string> {
       .setIssuedAt()
       .setExpirationTime('7d')
       .encrypt(key)
-  }
-  catch (error) {
+  } catch (error) {
     console.error('[TokenCrypto] 加密失败:', error)
     throw new Error(`Token 加密失败: ${error instanceof Error ? error.message : '未知错误'}`)
   }
@@ -117,8 +110,7 @@ export async function decryptToken(encryptedData: string): Promise<string | null
 
     // 兼容旧格式（直接存储的明文 Token）
     return encryptedData
-  }
-  catch (error) {
+  } catch (error) {
     // 解密失败可能是因为：
     // 1. 数据不是加密格式（可能是旧版本明文存储）
     // 2. 设备指纹变化（浏览器升级、硬件变更等）

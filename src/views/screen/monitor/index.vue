@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
+
 import { useEventListener } from '@vueuse/core'
 import * as echarts from 'echarts'
 import { isPlainObject } from 'es-toolkit'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue'
-import { getScreenMonitorData } from '@/api/screen'
+
+import { getScreenMonitorData } from '~/api/screen'
+
 import MarqueeNotice from '../components/MarqueeNotice.vue'
 import RealtimeNumber from '../components/RealtimeNumber.vue'
 import ScreenCard from '../components/ScreenCard.vue'
@@ -28,15 +31,15 @@ const overview = ref({
   networkOut: 42.1,
 })
 
-const trendData = ref<{ time: string, pv: number, uv: number, requests: number }[]>([])
-const regionData = ref<{ name: string, value: number, users: number }[]>([])
+const trendData = ref<{ time: string; pv: number; uv: number; requests: number }[]>([])
+const regionData = ref<{ name: string; value: number; users: number }[]>([])
 const services = ref<any[]>([])
 const alerts = ref<any[]>([])
 
 // 计算属性：简化模板中的复杂表达式
 const roundedNetworkIn = computed(() => Math.round(overview.value.networkIn))
 const roundedNetworkOut = computed(() => Math.round(overview.value.networkOut))
-const formattedAlerts = computed(() => alerts.value.map(a => `[${(a.level || '').toUpperCase()}] ${a.message}`))
+const formattedAlerts = computed(() => alerts.value.map((a) => `[${(a.level || '').toUpperCase()}] ${a.message}`))
 
 // 请求类型分布数据
 const requestTypes = ref([
@@ -62,18 +65,17 @@ const realtimeEvents = ref([
 const onlineUsers = ref(
   Array.from({ length: 50 }, (_, i) => ({
     name: ['张伟', '李娜', '王芳', '刘洋', '陈静', '杨帆', '赵敏', '黄磊', '周杰', '吴昊'][i % 10],
-    ip: `192.168.${10 + (i % 20)}.${20 + (i * 3) % 250}`,
+    ip: `192.168.${10 + (i % 20)}.${20 + ((i * 3) % 250)}`,
     status: Math.random() > 0.1 ? 'online' : 'away',
   })),
 )
 
 // 网络延迟数据
-const latencyData = ref<Array<{ time: string, avg: number, p99: number }>>([])
+const latencyData = ref<Array<{ time: string; avg: number; p99: number }>>([])
 
 // 延迟统计指标（用于底部填充展示）
 const latencyStats = computed(() => {
-  if (latencyData.value.length === 0)
-    return { avg: '--', p99: '--', availability: '99.9' }
+  if (latencyData.value.length === 0) return { avg: '--', p99: '--', availability: '99.9' }
   const avgVal = Math.round(latencyData.value.reduce((s, d) => s + d.avg, 0) / latencyData.value.length)
   const p99Val = Math.round(latencyData.value.reduce((s, d) => s + d.p99, 0) / latencyData.value.length)
   // 模拟可用率（基于 P99 阈值估算）
@@ -93,7 +95,11 @@ const attackSources = ref([
 // 安全告警实时数据
 const securityAlerts = ref([
   { time: '10:53:01', level: 'critical', msg: '检测到 SQL 注入攻击尝试，来源 IP: 45.33.78.12' },
-  { time: '10:52:45', level: 'high', msg: '暴力破解登录失败已达 50 次，已自动封禁 IP: 91.102.44.7' },
+  {
+    time: '10:52:45',
+    level: 'high',
+    msg: '暴力破解登录失败已达 50 次，已自动封禁 IP: 91.102.44.7',
+  },
   { time: '10:52:18', level: 'medium', msg: '异常文件上传行为检测：/upload/shell.jsp' },
   { time: '10:51:55', level: 'high', msg: 'XSS 攻击拦截：&lt;script&gt;alert(1)&lt;/script&gt;' },
   { time: '10:51:30', level: 'low', msg: '可疑目录扫描：/admin, /backup, /.git' },
@@ -113,18 +119,20 @@ const charts = new Map<string, echarts.ECharts>()
 /** 安全等待 DOM 尺寸就绪后执行回调 */
 function whenReady(name: string, refEl: Ref<HTMLDivElement | undefined>, cb: (el: HTMLDivElement) => void) {
   const el = refEl.value
-  if (!el || charts.has(name))
+  if (!el || charts.has(name)) return
+  if (el.offsetWidth > 0 && el.offsetHeight > 0) {
+    cb(el)
     return
-  if (el.offsetWidth > 0 && el.offsetHeight > 0) { cb(el); return }
+  }
   let done = false
   const ob = new ResizeObserver((entries) => {
-    if (done)
-      return
+    if (done) return
     for (const e of entries) {
       if (e.contentRect.width > 0 && e.contentRect.height > 0) {
-        done = true; ob.disconnect()
-        const t = refEl.value; if (t && !charts.has(name))
-          cb(t)
+        done = true
+        ob.disconnect()
+        const t = refEl.value
+        if (t && !charts.has(name)) cb(t)
         break
       }
     }
@@ -132,8 +140,10 @@ function whenReady(name: string, refEl: Ref<HTMLDivElement | undefined>, cb: (el
   ob.observe(el)
   setTimeout(() => {
     if (!done && !charts.has(name)) {
-      done = true; ob.disconnect(); const t = refEl.value; if (t)
-        cb(t)
+      done = true
+      ob.disconnect()
+      const t = refEl.value
+      if (t) cb(t)
     }
   }, 3000)
 }
@@ -175,17 +185,75 @@ function buildPVOption(data: typeof trendData.value) {
   const palette = { line: '#3b82f6', uv: '#22c55e', bar: '#f59e0b' }
   return {
     grid: { left: 50, right: 20, top: 25, bottom: 30 },
-    tooltip: { trigger: 'axis', backgroundColor: 'rgba(17,24,39,0.95)', borderColor: '#334155', textStyle: { color: '#e2e8f0', fontSize: 12 }, axisPointer: { type: 'cross' } },
-    legend: { data: ['PV', 'UV', '请求数'], top: 0, right: 0, textStyle: { color: '#94a3b8', fontSize: 11 }, itemWidth: 14, itemHeight: 2 },
-    xAxis: { type: 'category', boundaryGap: false, data: data.map(d => d.time), axisLabel: { color: '#64748b', fontSize: 10, interval: 5 }, axisLine: { lineStyle: { color: '#334155' } }, axisTick: { show: false }, splitLine: { show: false } },
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(17,24,39,0.95)',
+      borderColor: '#334155',
+      textStyle: { color: '#e2e8f0', fontSize: 12 },
+      axisPointer: { type: 'cross' },
+    },
+    legend: {
+      data: ['PV', 'UV', '请求数'],
+      top: 0,
+      right: 0,
+      textStyle: { color: '#94a3b8', fontSize: 11 },
+      itemWidth: 14,
+      itemHeight: 2,
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: data.map((d) => d.time),
+      axisLabel: { color: '#64748b', fontSize: 10, interval: 5 },
+      axisLine: { lineStyle: { color: '#334155' } },
+      axisTick: { show: false },
+      splitLine: { show: false },
+    },
     yAxis: [
-      { type: 'value', axisLabel: { color: '#64748b', fontSize: 10 }, splitLine: { lineStyle: { color: '#1e293b', type: 'dashed' } } },
+      {
+        type: 'value',
+        axisLabel: { color: '#64748b', fontSize: 10 },
+        splitLine: { lineStyle: { color: '#1e293b', type: 'dashed' } },
+      },
       { type: 'value', axisLabel: { color: '#64748b', fontSize: 10 }, splitLine: { show: false } },
     ],
     series: [
-      { name: 'PV', type: 'line', smooth: true, symbol: 'none', data: data.map(d => d.pv), lineStyle: { color: palette.line, width: 2 }, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(59,130,246,0.3)' }, { offset: 1, color: 'rgba(59,130,246,0.02)' }]) } },
-      { name: 'UV', type: 'line', smooth: true, symbol: 'none', data: data.map(d => d.uv), lineStyle: { color: palette.uv, width: 2, type: 'dashed' } },
-      { name: '请求数', type: 'bar', barWidth: 8, yAxisIndex: 1, data: data.map(d => d.requests), itemStyle: { borderRadius: [2, 2, 0, 0], color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#f59e0b' }, { offset: 1, color: 'rgba(245,158,11,0.15)' }]) } },
+      {
+        name: 'PV',
+        type: 'line',
+        smooth: true,
+        symbol: 'none',
+        data: data.map((d) => d.pv),
+        lineStyle: { color: palette.line, width: 2 },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(59,130,246,0.3)' },
+            { offset: 1, color: 'rgba(59,130,246,0.02)' },
+          ]),
+        },
+      },
+      {
+        name: 'UV',
+        type: 'line',
+        smooth: true,
+        symbol: 'none',
+        data: data.map((d) => d.uv),
+        lineStyle: { color: palette.uv, width: 2, type: 'dashed' },
+      },
+      {
+        name: '请求数',
+        type: 'bar',
+        barWidth: 8,
+        yAxisIndex: 1,
+        data: data.map((d) => d.requests),
+        itemStyle: {
+          borderRadius: [2, 2, 0, 0],
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#f59e0b' },
+            { offset: 1, color: 'rgba(245,158,11,0.15)' },
+          ]),
+        },
+      },
     ],
     animationDuration: 1500,
   }
@@ -196,22 +264,42 @@ function buildRegionOption(data: typeof regionData.value) {
   const colors = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#a855f7', '#ec4899', '#06b6d4', '#84cc16', '#6366f1']
   return {
     grid: { left: 60, right: 20, top: 20, bottom: 30 },
-    tooltip: { trigger: 'axis', backgroundColor: 'rgba(17,24,39,0.95)', borderColor: '#334155', textStyle: { color: '#e2e8f0', fontSize: 12 } },
-    xAxis: { type: 'value', axisLabel: { color: '#64748b', fontSize: 10 }, splitLine: { lineStyle: { color: '#1e293b', type: 'dashed' } } },
-    yAxis: { type: 'category', data: data.map(r => r.name).reverse(), axisLabel: { color: '#94a3b8', fontSize: 11 }, axisLine: { lineStyle: { color: '#334155' } }, axisTick: { show: false } },
-    series: [{
-      type: 'bar',
-      barWidth: 14,
-      data: data.map(r => r.value).reverse(),
-      itemStyle: {
-        borderRadius: [0, 4, 4, 0],
-        color(params: any) {
-          const c = colors[params.dataIndex % colors.length]
-          return new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: c }, { offset: 1, color: `${c}33` }])
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(17,24,39,0.95)',
+      borderColor: '#334155',
+      textStyle: { color: '#e2e8f0', fontSize: 12 },
+    },
+    xAxis: {
+      type: 'value',
+      axisLabel: { color: '#64748b', fontSize: 10 },
+      splitLine: { lineStyle: { color: '#1e293b', type: 'dashed' } },
+    },
+    yAxis: {
+      type: 'category',
+      data: data.map((r) => r.name).reverse(),
+      axisLabel: { color: '#94a3b8', fontSize: 11 },
+      axisLine: { lineStyle: { color: '#334155' } },
+      axisTick: { show: false },
+    },
+    series: [
+      {
+        type: 'bar',
+        barWidth: 14,
+        data: data.map((r) => r.value).reverse(),
+        itemStyle: {
+          borderRadius: [0, 4, 4, 0],
+          color(params: any) {
+            const c = colors[params.dataIndex % colors.length]
+            return new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+              { offset: 0, color: c },
+              { offset: 1, color: `${c}33` },
+            ])
+          },
         },
+        animationDuration: 1200,
       },
-      animationDuration: 1200,
-    }],
+    ],
   }
 }
 
@@ -228,12 +316,28 @@ function buildGaugeOption(cpu: number, mem: number) {
         min: 0,
         max: 100,
         splitNumber: 5,
-        axisLine: { lineStyle: { width: 12, color: [[0.6, '#22c55e'], [0.85, '#f59e0b'], [1, '#ef4444']] } },
+        axisLine: {
+          lineStyle: {
+            width: 12,
+            color: [
+              [0.6, '#22c55e'],
+              [0.85, '#f59e0b'],
+              [1, '#ef4444'],
+            ],
+          },
+        },
         pointer: { length: '55%', width: 4, itemStyle: { color: 'auto' } },
         axisTick: { distance: -16, length: 6, lineStyle: { color: '#334155', width: 1 } },
         splitLine: { distance: -18, length: 14, lineStyle: { color: '#334155', width: 2 } },
         axisLabel: { distance: -22, color: '#64748b', fontSize: 9 },
-        detail: { valueAnimation: true, formatter: '{value}%', color: '#e2e8f0', fontSize: 18, fontWeight: 'bold', offsetCenter: [0, '70%'] },
+        detail: {
+          valueAnimation: true,
+          formatter: '{value}%',
+          color: '#e2e8f0',
+          fontSize: 18,
+          fontWeight: 'bold',
+          offsetCenter: [0, '70%'],
+        },
         title: { offsetCenter: [0, '95%'], color: '#94a3b8', fontSize: 11 },
         data: [{ value: Math.round(cpu), name: 'CPU' }],
       },
@@ -246,12 +350,28 @@ function buildGaugeOption(cpu: number, mem: number) {
         min: 0,
         max: 100,
         splitNumber: 5,
-        axisLine: { lineStyle: { width: 12, color: [[0.6, '#22c55e'], [0.85, '#f59e0b'], [1, '#ef4444']] } },
+        axisLine: {
+          lineStyle: {
+            width: 12,
+            color: [
+              [0.6, '#22c55e'],
+              [0.85, '#f59e0b'],
+              [1, '#ef4444'],
+            ],
+          },
+        },
         pointer: { length: '55%', width: 4, itemStyle: { color: 'auto' } },
         axisTick: { distance: -16, length: 6, lineStyle: { color: '#334155', width: 1 } },
         splitLine: { distance: -18, length: 14, lineStyle: { color: '#334155', width: 2 } },
         axisLabel: { distance: -22, color: '#64748b', fontSize: 9 },
-        detail: { valueAnimation: true, formatter: '{value}%', color: '#e2e8f0', fontSize: 18, fontWeight: 'bold', offsetCenter: [0, '70%'] },
+        detail: {
+          valueAnimation: true,
+          formatter: '{value}%',
+          color: '#e2e8f0',
+          fontSize: 18,
+          fontWeight: 'bold',
+          offsetCenter: [0, '70%'],
+        },
         title: { offsetCenter: [0, '95%'], color: '#94a3b8', fontSize: 11 },
         data: [{ value: Math.round(mem), name: '内存' }],
       },
@@ -267,17 +387,51 @@ function buildHeatmapOption() {
   const data: number[][][] = []
   for (let d = 0; d < 7; d++) {
     for (let h = 0; h < 24; h++) {
-      const base = d < 5 ? ((h >= 9 && h <= 18) ? 80 : 20) : ((h >= 19 && h <= 23) ? 70 : 15)
+      const base = d < 5 ? (h >= 9 && h <= 18 ? 80 : 20) : h >= 19 && h <= 23 ? 70 : 15
       data.push([h, d, base + Math.floor(Math.random() * 40)])
     }
   }
   return {
-    tooltip: { position: 'top', backgroundColor: 'rgba(17,24,39,0.95)', borderColor: '#334155', textStyle: { color: '#e2e8f0', fontSize: 12 }, formatter(p: any) { return `${hours[p.data[0]]}<br/>${days[p.data[1]]}<br/>活跃度: ${p.data[2]}` } },
+    tooltip: {
+      position: 'top',
+      backgroundColor: 'rgba(17,24,39,0.95)',
+      borderColor: '#334155',
+      textStyle: { color: '#e2e8f0', fontSize: 12 },
+      formatter(p: any) {
+        return `${hours[p.data[0]]}<br/>${days[p.data[1]]}<br/>活跃度: ${p.data[2]}`
+      },
+    },
     grid: { left: 50, right: 20, top: 10, bottom: 35 },
-    xAxis: { type: 'category', data: hours, axisLabel: { color: '#64748b', fontSize: 9, interval: 3 }, splitArea: { show: true, areaStyle: { color: ['#1e293b', '#0f172a'] } } },
-    yAxis: { type: 'category', data: days, axisLabel: { color: '#94a3b8', fontSize: 10 }, splitArea: { show: true, areaStyle: { color: ['#1e293b', '#0f172a'] } } },
-    visualMap: { min: 0, max: 100, calculable: true, orient: 'horizontal', left: 'center', bottom: 0, inRange: { color: ['#0f172a', '#1e3a5f', '#2563eb', '#3b82f6', '#93c5fd'] }, textStyle: { color: '#64748b', fontSize: 10 } },
-    series: [{ type: 'heatmap', data, label: { show: false }, emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.5)' } } }],
+    xAxis: {
+      type: 'category',
+      data: hours,
+      axisLabel: { color: '#64748b', fontSize: 9, interval: 3 },
+      splitArea: { show: true, areaStyle: { color: ['#1e293b', '#0f172a'] } },
+    },
+    yAxis: {
+      type: 'category',
+      data: days,
+      axisLabel: { color: '#94a3b8', fontSize: 10 },
+      splitArea: { show: true, areaStyle: { color: ['#1e293b', '#0f172a'] } },
+    },
+    visualMap: {
+      min: 0,
+      max: 100,
+      calculable: true,
+      orient: 'horizontal',
+      left: 'center',
+      bottom: 0,
+      inRange: { color: ['#0f172a', '#1e3a5f', '#2563eb', '#3b82f6', '#93c5fd'] },
+      textStyle: { color: '#64748b', fontSize: 10 },
+    },
+    series: [
+      {
+        type: 'heatmap',
+        data,
+        label: { show: false },
+        emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.5)' } },
+      },
+    ],
     animationDuration: 1500,
   }
 }
@@ -285,20 +439,43 @@ function buildHeatmapOption() {
 /** 请求类型分布饼图 */
 function buildPieOption() {
   return {
-    tooltip: { trigger: 'item', backgroundColor: 'rgba(17,24,39,0.95)', borderColor: '#334155', textStyle: { color: '#e2e8f0' }, formatter: '{b}: {c} ({d}%)' },
-    legend: { orient: 'vertical', right: '4%', top: 'center', textStyle: { color: '#94a3b8', fontSize: 11 }, itemWidth: 10, itemHeight: 10, itemGap: 12 },
-    series: [{
-      type: 'pie',
-      radius: ['42%', '72%'],
-      center: ['38%', '50%'],
-      avoidLabelOverlap: true,
-      padAngle: 3,
-      itemStyle: { borderRadius: 6, borderColor: '#0a0e27', borderWidth: 2 },
-      label: { show: false },
-      emphasis: { label: { show: true, fontSize: 13, fontWeight: 'bold', color: '#e2e8f0' }, scaleSize: 8 },
-      data: requestTypes.value.map(t => ({ value: t.value, name: t.name, itemStyle: { color: t.color } })),
-      animationDuration: 1200,
-    }],
+    tooltip: {
+      trigger: 'item',
+      backgroundColor: 'rgba(17,24,39,0.95)',
+      borderColor: '#334155',
+      textStyle: { color: '#e2e8f0' },
+      formatter: '{b}: {c} ({d}%)',
+    },
+    legend: {
+      orient: 'vertical',
+      right: '4%',
+      top: 'center',
+      textStyle: { color: '#94a3b8', fontSize: 11 },
+      itemWidth: 10,
+      itemHeight: 10,
+      itemGap: 12,
+    },
+    series: [
+      {
+        type: 'pie',
+        radius: ['42%', '72%'],
+        center: ['38%', '50%'],
+        avoidLabelOverlap: true,
+        padAngle: 3,
+        itemStyle: { borderRadius: 6, borderColor: '#0a0e27', borderWidth: 2 },
+        label: { show: false },
+        emphasis: {
+          label: { show: true, fontSize: 13, fontWeight: 'bold', color: '#e2e8f0' },
+          scaleSize: 8,
+        },
+        data: requestTypes.value.map((t) => ({
+          value: t.value,
+          name: t.name,
+          itemStyle: { color: t.color },
+        })),
+        animationDuration: 1200,
+      },
+    ],
   }
 }
 
@@ -306,13 +483,56 @@ function buildPieOption() {
 function buildLatencyOption(data: typeof latencyData.value) {
   return {
     grid: { left: 45, right: 15, top: 15, bottom: 25 },
-    tooltip: { trigger: 'axis', backgroundColor: 'rgba(17,24,39,0.95)', borderColor: '#334155', textStyle: { color: '#e2e8f0', fontSize: 11 } },
-    legend: { data: ['平均延迟', 'P99'], top: 0, right: 0, textStyle: { color: '#94a3b8', fontSize: 10 }, itemWidth: 12, itemHeight: 2 },
-    xAxis: { type: 'category', boundaryGap: false, data: data.map(d => d.time), axisLabel: { color: '#64748b', fontSize: 9, interval: 4 }, axisLine: { lineStyle: { color: '#334155' } }, axisTick: { show: false } },
-    yAxis: { type: 'value', axisLabel: { color: '#64748b', fontSize: 9, formatter: '{value}ms' }, splitLine: { lineStyle: { color: '#1e293b', type: 'dashed' } } },
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(17,24,39,0.95)',
+      borderColor: '#334155',
+      textStyle: { color: '#e2e8f0', fontSize: 11 },
+    },
+    legend: {
+      data: ['平均延迟', 'P99'],
+      top: 0,
+      right: 0,
+      textStyle: { color: '#94a3b8', fontSize: 10 },
+      itemWidth: 12,
+      itemHeight: 2,
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: data.map((d) => d.time),
+      axisLabel: { color: '#64748b', fontSize: 9, interval: 4 },
+      axisLine: { lineStyle: { color: '#334155' } },
+      axisTick: { show: false },
+    },
+    yAxis: {
+      type: 'value',
+      axisLabel: { color: '#64748b', fontSize: 9, formatter: '{value}ms' },
+      splitLine: { lineStyle: { color: '#1e293b', type: 'dashed' } },
+    },
     series: [
-      { name: '平均延迟', type: 'line', smooth: true, symbol: 'none', data: data.map(d => d.avg), lineStyle: { color: '#06b6d4', width: 2 }, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(6,182,212,0.25)' }, { offset: 1, color: 'rgba(6,182,212,0.02)' }]) } },
-      { name: 'P99', type: 'line', smooth: true, symbol: 'none', data: data.map(d => d.p99), lineStyle: { color: '#f43f5e', width: 1.5, type: 'dashed' } },
+      {
+        name: '平均延迟',
+        type: 'line',
+        smooth: true,
+        symbol: 'none',
+        data: data.map((d) => d.avg),
+        lineStyle: { color: '#06b6d4', width: 2 },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(6,182,212,0.25)' },
+            { offset: 1, color: 'rgba(6,182,212,0.02)' },
+          ]),
+        },
+      },
+      {
+        name: 'P99',
+        type: 'line',
+        smooth: true,
+        symbol: 'none',
+        data: data.map((d) => d.p99),
+        lineStyle: { color: '#f43f5e', width: 1.5, type: 'dashed' },
+      },
     ],
     animationDuration: 1200,
   }
@@ -323,58 +543,66 @@ function buildAttackSourceOption() {
   const sorted = [...attackSources.value].sort((a, b) => b.value - a.value)
   return {
     grid: { left: '2%', right: '8%', top: '3%', bottom: '1%', containLabel: true },
-    xAxis: { type: 'value', max: 3500, axisLabel: { color: '#64748b', fontSize: 9 }, splitLine: { lineStyle: { color: '#1e293b', type: 'dashed', opacity: 0.5 } } },
-    yAxis: { type: 'category', data: sorted.map(d => d.name), axisLabel: { color: '#94a3b8', fontSize: 10 }, axisTick: { show: false }, axisLine: { show: false }, inverse: true },
-    series: [{
-      type: 'bar',
-      data: sorted.map(d => ({
-        value: d.value,
-        itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-            { offset: 0, color: `${d.color}20` },
-            { offset: 1, color: d.color },
-          ]),
-          borderRadius: [0, 4, 4, 0],
-        },
-      })),
-      barWidth: 14,
-      label: { show: true, position: 'right', color: '#e2e8f0', fontSize: 10, formatter: '{c}' },
-      animationDuration: 1000,
-      animationEasing: 'cubicOut',
-    }],
+    xAxis: {
+      type: 'value',
+      max: 3500,
+      axisLabel: { color: '#64748b', fontSize: 9 },
+      splitLine: { lineStyle: { color: '#1e293b', type: 'dashed', opacity: 0.5 } },
+    },
+    yAxis: {
+      type: 'category',
+      data: sorted.map((d) => d.name),
+      axisLabel: { color: '#94a3b8', fontSize: 10 },
+      axisTick: { show: false },
+      axisLine: { show: false },
+      inverse: true,
+    },
+    series: [
+      {
+        type: 'bar',
+        data: sorted.map((d) => ({
+          value: d.value,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+              { offset: 0, color: `${d.color}20` },
+              { offset: 1, color: d.color },
+            ]),
+            borderRadius: [0, 4, 4, 0],
+          },
+        })),
+        barWidth: 14,
+        label: { show: true, position: 'right', color: '#e2e8f0', fontSize: 10, formatter: '{c}' },
+        animationDuration: 1000,
+        animationEasing: 'cubicOut',
+      },
+    ],
   }
 }
 
 // ======================== 统一更新所有图表 ========================
 function updateAllCharts() {
   const pv = charts.get('pv')
-  if (pv && trendData.value.length)
-    pv.setOption(buildPVOption(trendData.value))
+  if (pv && trendData.value.length) pv.setOption(buildPVOption(trendData.value))
 
   const region = charts.get('region')
-  if (region && regionData.value.length)
-    region.setOption(buildRegionOption(regionData.value))
+  if (region && regionData.value.length) region.setOption(buildRegionOption(regionData.value))
 
   const gauge = charts.get('gauge')
-  if (gauge)
-    gauge.setOption(buildGaugeOption(overview.value.cpuUsage, overview.value.memUsage))
+  if (gauge) gauge.setOption(buildGaugeOption(overview.value.cpuUsage, overview.value.memUsage))
 
   const pie = charts.get('pie')
-  if (pie)
-    pie.setOption(buildPieOption())
+  if (pie) pie.setOption(buildPieOption())
 
   const latency = charts.get('latency')
-  if (latency && latencyData.value.length)
-    latency.setOption(buildLatencyOption(latencyData.value))
+  if (latency && latencyData.value.length) latency.setOption(buildLatencyOption(latencyData.value))
 
   const attack = charts.get('attack')
-  if (attack)
-    attack.setOption(buildAttackSourceOption())
+  if (attack) attack.setOption(buildAttackSourceOption())
 }
 
 /** 完全销毁所有图表 */
 function disposeAll() {
-  charts.forEach(c => c.dispose())
+  charts.forEach((c) => c.dispose())
   charts.clear()
 }
 
@@ -387,13 +615,29 @@ let refreshTimer: ReturnType<typeof setInterval> | null = null
 // ======================== 生命周期 ========================
 onMounted(async () => {
   // 阶段1：创建所有图表实例
-  initChartImmediately('pv', pvChartRef, (el) => { charts.set('pv', echarts.init(el, 'dark')) })
-  initChartImmediately('region', regionBarRef, (el) => { charts.set('region', echarts.init(el, 'dark')) })
-  initChartImmediately('gauge', gaugeRef, (el) => { charts.set('gauge', echarts.init(el, 'dark')) })
-  initChartImmediately('heatmap', heatmapRef, (el) => { const instance = echarts.init(el, 'dark'); charts.set('heatmap', instance); instance.setOption(buildHeatmapOption()) })
-  initChartImmediately('pie', pieChartRef, (el) => { charts.set('pie', echarts.init(el, 'dark')) })
-  initChartImmediately('latency', latencyChartRef, (el) => { charts.set('latency', echarts.init(el, 'dark')) })
-  initChartImmediately('attack', attackSourceRef, (el) => { charts.set('attack', echarts.init(el, 'dark')) })
+  initChartImmediately('pv', pvChartRef, (el) => {
+    charts.set('pv', echarts.init(el, 'dark'))
+  })
+  initChartImmediately('region', regionBarRef, (el) => {
+    charts.set('region', echarts.init(el, 'dark'))
+  })
+  initChartImmediately('gauge', gaugeRef, (el) => {
+    charts.set('gauge', echarts.init(el, 'dark'))
+  })
+  initChartImmediately('heatmap', heatmapRef, (el) => {
+    const instance = echarts.init(el, 'dark')
+    charts.set('heatmap', instance)
+    instance.setOption(buildHeatmapOption())
+  })
+  initChartImmediately('pie', pieChartRef, (el) => {
+    charts.set('pie', echarts.init(el, 'dark'))
+  })
+  initChartImmediately('latency', latencyChartRef, (el) => {
+    charts.set('latency', echarts.init(el, 'dark'))
+  })
+  initChartImmediately('attack', attackSourceRef, (el) => {
+    charts.set('attack', echarts.init(el, 'dark'))
+  })
 
   // 阶段2：加载数据
   try {
@@ -409,20 +653,18 @@ onMounted(async () => {
       alerts.value = (data as any).alerts ?? []
 
       // 生成网络延迟数据
-      latencyData.value = trendData.value.slice(-12).map(d => ({
+      latencyData.value = trendData.value.slice(-12).map((d) => ({
         time: d.time,
         avg: Math.floor(30 + Math.random() * 80),
         p99: Math.floor(100 + Math.random() * 200),
       }))
-    }
-    else {
+    } else {
       console.warn('[Monitor] API 返回格式异常:', { res, raw, data })
     }
 
     await nextTick()
     updateAllCharts()
-  }
-  catch (err) {
+  } catch (err) {
     console.warn('[Monitor] 数据加载失败，使用默认值:', err)
     trendData.value = generateDefaultTrendData()
     regionData.value = generateDefaultRegionData()
@@ -440,8 +682,12 @@ onMounted(async () => {
     overview.value.onlineUsers += Math.floor(Math.random() * 10) - 4
     overview.value.todayVisits += Math.floor(Math.random() * 20)
     overview.value.totalRequests += Math.floor(Math.random() * 500)
-    overview.value.cpuUsage = Number(Math.max(10, Math.min(95, overview.value.cpuUsage + (Math.random() - 0.5) * 5)).toFixed(1))
-    overview.value.memUsage = Number(Math.max(30, Math.min(90, overview.value.memUsage + (Math.random() - 0.5) * 3)).toFixed(1))
+    overview.value.cpuUsage = Number(
+      Math.max(10, Math.min(95, overview.value.cpuUsage + (Math.random() - 0.5) * 5)).toFixed(1),
+    )
+    overview.value.memUsage = Number(
+      Math.max(30, Math.min(90, overview.value.memUsage + (Math.random() - 0.5) * 3)).toFixed(1),
+    )
     // 更新延迟数据
     if (latencyData.value.length > 0) {
       const last = latencyData.value[latencyData.value.length - 1]!
@@ -450,64 +696,92 @@ onMounted(async () => {
         avg: Math.max(20, Math.min(150, last.avg + Math.floor(Math.random() * 20 - 10))),
         p99: Math.max(80, Math.min(300, last.p99 + Math.floor(Math.random() * 40 - 20))),
       })
-      if (latencyData.value.length > 24)
-        latencyData.value.shift()
+      if (latencyData.value.length > 24) latencyData.value.shift()
       const latencyChart = charts.get('latency')
-      if (latencyChart)
-        latencyChart.setOption(buildLatencyOption(latencyData.value))
+      if (latencyChart) latencyChart.setOption(buildLatencyOption(latencyData.value))
     }
     // 模拟新事件
     if (Math.random() > 0.6) {
       const eventTemplates = [
         { type: 'api', msg: 'API 响应超时警告', level: 'warning' },
-        { type: 'login', msg: `用户 ${['张伟', '李娜', '王芳', '刘洋'][Math.floor(Math.random() * 4)]} 登录`, level: 'info' },
-        { type: 'alert', msg: 'CPU/Memory 使用率异常', level: Math.random() > 0.5 ? 'warning' : 'error' },
+        {
+          type: 'login',
+          msg: `用户 ${['张伟', '李娜', '王芳', '刘洋'][Math.floor(Math.random() * 4)]} 登录`,
+          level: 'info',
+        },
+        {
+          type: 'alert',
+          msg: 'CPU/Memory 使用率异常',
+          level: Math.random() > 0.5 ? 'warning' : 'error',
+        },
         { type: 'success', msg: '定时任务执行完成', level: 'success' },
       ]
       const evt = eventTemplates[Math.floor(Math.random() * eventTemplates.length)]!
       realtimeEvents.value.unshift({ time: new Date().toLocaleTimeString('zh-CN'), ...evt })
-      if (realtimeEvents.value.length > 50)
-        realtimeEvents.value.pop()
+      if (realtimeEvents.value.length > 50) realtimeEvents.value.pop()
     }
     // 模拟安全告警动态更新
     if (Math.random() > 0.5) {
       const alertTemplates = [
-        { level: 'critical' as const, msg: `检测到 ${['SQL注入', 'XSS攻击', '命令注入', 'SSRF攻击'][Math.floor(Math.random() * 4)]} 尝试，来源: ${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}` },
-        { level: 'high' as const, msg: `暴力破解攻击：IP ${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.x.x 已尝试 ${10 + Math.floor(Math.random() * 90)} 次` },
-        { level: 'medium' as const, msg: `异常访问：${['敏感路径扫描', '越权尝试', '大量404请求', '可疑User-Agent'][Math.floor(Math.random() * 4)]}` },
-        { level: 'low' as const, msg: `安全提醒：${['弱密码检测', '证书即将过期', '未加密传输', '登录地点变更'][Math.floor(Math.random() * 4)]}` },
+        {
+          level: 'critical' as const,
+          msg: `检测到 ${['SQL注入', 'XSS攻击', '命令注入', 'SSRF攻击'][Math.floor(Math.random() * 4)]} 尝试，来源: ${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+        },
+        {
+          level: 'high' as const,
+          msg: `暴力破解攻击：IP ${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.x.x 已尝试 ${10 + Math.floor(Math.random() * 90)} 次`,
+        },
+        {
+          level: 'medium' as const,
+          msg: `异常访问：${['敏感路径扫描', '越权尝试', '大量404请求', '可疑User-Agent'][Math.floor(Math.random() * 4)]}`,
+        },
+        {
+          level: 'low' as const,
+          msg: `安全提醒：${['弱密码检测', '证书即将过期', '未加密传输', '登录地点变更'][Math.floor(Math.random() * 4)]}`,
+        },
       ]
       const sa = alertTemplates[Math.floor(Math.random() * alertTemplates.length)]!
       securityAlerts.value.unshift({ time: new Date().toLocaleTimeString('zh-CN'), ...sa })
-      if (securityAlerts.value.length > 15)
-        securityAlerts.value.pop()
+      if (securityAlerts.value.length > 15) securityAlerts.value.pop()
     }
     // 更新攻击来源数据
     if (Math.random() > 0.7) {
-      attackSources.value = attackSources.value.map(s => ({ ...s, value: Math.max(100, s.value + Math.floor(Math.random() * 200 - 80)) }))
+      attackSources.value = attackSources.value.map((s) => ({
+        ...s,
+        value: Math.max(100, s.value + Math.floor(Math.random() * 200 - 80)),
+      }))
       const attackChart = charts.get('attack')
-      if (attackChart)
-        attackChart.setOption(buildAttackSourceOption())
+      if (attackChart) attackChart.setOption(buildAttackSourceOption())
     }
   }, 5000)
 
   // 适配完成后统一触发一次 resize，确保图表在 scale 变换后正确渲染
-  setTimeout(() => charts.forEach(c => c.resize()), 300)
+  setTimeout(() => charts.forEach((c) => c.resize()), 300)
 })
 
-function initChartImmediately(name: string, refEl: Ref<HTMLDivElement | undefined>, initFn: (el: HTMLDivElement) => void) {
+function initChartImmediately(
+  name: string,
+  refEl: Ref<HTMLDivElement | undefined>,
+  initFn: (el: HTMLDivElement) => void,
+) {
   const el = refEl.value
-  if (!el || charts.has(name))
+  if (!el || charts.has(name)) return
+  if (el.offsetWidth > 0 && el.offsetHeight > 0) {
+    initFn(el)
     return
-  if (el.offsetWidth > 0 && el.offsetHeight > 0) { initFn(el); return }
+  }
   whenReady(name, refEl, initFn)
 }
 
-watch([() => overview.value.cpuUsage, () => overview.value.memUsage], () => {
-  updateAllCharts()
-}, { deep: true })
+watch(
+  [() => overview.value.cpuUsage, () => overview.value.memUsage],
+  () => {
+    updateAllCharts()
+  },
+  { deep: true },
+)
 
-useEventListener(window, 'resize', () => charts.forEach(c => c.resize()))
+useEventListener(window, 'resize', () => charts.forEach((c) => c.resize()))
 
 // 关键：确保组件卸载时完全清理所有资源（同步注册）
 onBeforeUnmount(() => {
@@ -546,70 +820,79 @@ function eventLevelText(level: string): string {
 }
 
 function securityAlertLevelColor(level: string): string {
-  const map: Record<string, string> = { critical: 'bg-red-500', high: 'bg-orange-500', medium: 'bg-yellow-500', low: 'bg-blue-400' }
+  const map: Record<string, string> = {
+    critical: 'bg-red-500',
+    high: 'bg-orange-500',
+    medium: 'bg-yellow-500',
+    low: 'bg-blue-400',
+  }
   return map[level] || 'bg-gray-500'
 }
 
 function securityAlertLevelText(level: string): string {
-  const map: Record<string, string> = { critical: 'text-red-400', high: 'text-orange-400', medium: 'text-yellow-400', low: 'text-blue-300' }
+  const map: Record<string, string> = {
+    critical: 'text-red-400',
+    high: 'text-orange-400',
+    medium: 'text-yellow-400',
+    low: 'text-blue-300',
+  }
   return map[level] || 'text-gray-400'
 }
 </script>
 
 <template>
   <!-- 大屏容器 -->
-  <PerfectScrollbar
-    id="screen-container"
-    class="w-screen h-screen bg-[#0a0e27] text-white"
-  >
-    <div id="screen-content" class="h-full flex flex-col">
+  <PerfectScrollbar id="screen-container" class="h-screen w-screen bg-[#0a0e27] text-white">
+    <div id="screen-content" class="flex h-full flex-col">
       <!-- 头部 -->
       <ScreenHeader title="系统实时监控大屏" />
 
       <!-- 主体内容 -->
-      <div class="flex-1 min-h-0 grid grid-cols-12 grid-rows-[1fr_auto] gap-3 p-3">
+      <div class="grid min-h-0 flex-1 grid-cols-12 grid-rows-[1fr_auto] gap-3 p-3">
         <!-- 三列主区域 -->
-        <div class="col-span-12 row-start-1 grid grid-cols-12 gap-3 min-h-0">
+        <div class="col-span-12 row-start-1 grid min-h-0 grid-cols-12 gap-3">
           <!-- 左侧栏 -->
-          <div class="col-span-3 flex flex-col gap-3 h-full min-h-0">
+          <div class="col-span-3 flex h-full min-h-0 flex-col gap-3">
             <!-- 核心指标卡片 -->
-            <div class="grid grid-cols-2 gap-3 shrink-0">
+            <div class="grid shrink-0 grid-cols-2 gap-3">
               <ScreenCard>
                 <RealtimeNumber :value="overview.onlineUsers" suffix="人" />
-                <span class="text-[10px] text-blue-300/50 mt-1 block">在线用户</span>
+                <span class="mt-1 block text-[10px] text-blue-300/50">在线用户</span>
               </ScreenCard>
               <ScreenCard>
                 <RealtimeNumber :value="overview.todayVisits" />
-                <span class="text-[10px] text-blue-300/50 mt-1 block">今日访问(PV)</span>
+                <span class="mt-1 block text-[10px] text-blue-300/50">今日访问(PV)</span>
               </ScreenCard>
               <ScreenCard>
                 <RealtimeNumber :value="overview.alertCount" />
-                <span class="text-[10px] text-blue-300/50 mt-1 block">告警数</span>
+                <span class="mt-1 block text-[10px] text-blue-300/50">告警数</span>
               </ScreenCard>
               <ScreenCard>
                 <RealtimeNumber :value="roundedNetworkIn" suffix="MB/s" />
-                <span class="text-[10px] text-blue-300/50 mt-1 block">网络入流量</span>
+                <span class="mt-1 block text-[10px] text-blue-300/50">网络入流量</span>
               </ScreenCard>
             </div>
 
             <!-- 在线用户列表 -->
-            <ScreenCard title="在线用户" class="flex-1 flex flex-col min-h-0" body-class="flex-1 min-h-0">
-              <PerfectScrollbar :options="psOptions" class="h-full relative">
+            <ScreenCard title="在线用户" class="flex min-h-0 flex-1 flex-col" body-class="flex-1 min-h-0">
+              <PerfectScrollbar :options="psOptions" class="relative h-full">
                 <div class="space-y-2 pr-1">
                   <div
                     v-for="(user, idx) in onlineUsers"
                     :key="idx"
-                    class="flex items-center gap-2.5 px-2 py-1.5 rounded bg-blue-900/20 hover:bg-blue-800/30 transition-colors"
+                    class="flex items-center gap-2.5 rounded bg-blue-900/20 px-2 py-1.5 transition-colors hover:bg-blue-800/30"
                   >
-                    <div class="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-[10px] font-bold shrink-0">
+                    <div
+                      class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-purple-500 text-[10px] font-bold"
+                    >
                       {{ user.name[0] }}
                     </div>
-                    <div class="flex-1 min-w-0">
-                      <div class="text-xs text-blue-100/80 truncate">{{ user.name }}</div>
-                      <div class="text-[10px] text-blue-300/40 font-mono">{{ user.ip }}</div>
+                    <div class="min-w-0 flex-1">
+                      <div class="truncate text-xs text-blue-100/80">{{ user.name }}</div>
+                      <div class="font-mono text-[10px] text-blue-300/40">{{ user.ip }}</div>
                     </div>
                     <span
-                      class="w-1.5 h-1.5 rounded-full shrink-0"
+                      class="h-1.5 w-1.5 shrink-0 rounded-full"
                       :class="user.status === 'online' ? 'bg-emerald-400' : 'bg-gray-500'"
                     />
                   </div>
@@ -619,59 +902,60 @@ function securityAlertLevelText(level: string): string {
           </div>
 
           <!-- 中间区域 -->
-          <div class="col-span-6 flex flex-col gap-3 h-full min-h-0">
+          <div class="col-span-6 flex h-full min-h-0 flex-col gap-3">
             <!-- PV/UV 趋势图（主图） -->
-            <ScreenCard class="flex-[2] flex flex-col min-h-0" body-class="flex-1 min-h-0">
-              <div ref="pvChartRef" class="w-full h-full min-h-[200px]" />
+            <ScreenCard class="flex min-h-0 flex-[2] flex-col" body-class="flex-1 min-h-0">
+              <div ref="pvChartRef" class="h-full min-h-[200px] w-full" />
             </ScreenCard>
 
             <!-- 第二行：热力图 + 请求类型饼图 -->
-            <div class="grid grid-cols-2 gap-3 flex-1 min-h-0">
-              <ScreenCard title="用户活跃时段" class="flex flex-col min-h-0" body-class="flex-1 min-h-0">
-                <div ref="heatmapRef" class="w-full h-full min-h-[140px]" />
+            <div class="grid min-h-0 flex-1 grid-cols-2 gap-3">
+              <ScreenCard title="用户活跃时段" class="flex min-h-0 flex-col" body-class="flex-1 min-h-0">
+                <div ref="heatmapRef" class="h-full min-h-[140px] w-full" />
               </ScreenCard>
-              <ScreenCard title="请求类型分布" class="flex flex-col min-h-0" body-class="flex-1 min-h-0">
-                <div ref="pieChartRef" class="w-full h-full min-h-[140px]" />
+              <ScreenCard title="请求类型分布" class="flex min-h-0 flex-col" body-class="flex-1 min-h-0">
+                <div ref="pieChartRef" class="h-full min-h-[140px] w-full" />
               </ScreenCard>
             </div>
 
             <!-- 第三行：网络延迟趋势 + 实时事件流 -->
-            <div class="grid grid-cols-2 gap-3 flex-1 min-h-0">
-              <ScreenCard title="网络延迟趋势" class="flex flex-col min-h-0" body-class="flex-1 min-h-0">
-                <div ref="latencyChartRef" class="w-full h-full min-h-[120px]" />
+            <div class="grid min-h-0 flex-1 grid-cols-2 gap-3">
+              <ScreenCard title="网络延迟趋势" class="flex min-h-0 flex-col" body-class="flex-1 min-h-0">
+                <div ref="latencyChartRef" class="h-full min-h-[120px] w-full" />
                 <!-- 统计指标 -->
-                <div class="flex items-center gap-3 mt-2 px-1 text-[11px]">
+                <div class="mt-2 flex items-center gap-3 px-1 text-[11px]">
                   <div class="flex items-center gap-1.5">
-                    <span class="w-2 h-0.5 rounded bg-cyan-400" />
+                    <span class="h-0.5 w-2 rounded bg-cyan-400" />
                     <span class="text-slate-400">平均</span>
-                    <span class="text-cyan-300 font-mono font-medium">{{ latencyStats.avg }}ms</span>
+                    <span class="font-mono font-medium text-cyan-300">{{ latencyStats.avg }}ms</span>
                   </div>
                   <div class="flex items-center gap-1.5">
-                    <span class="w-2 h-0.5 rounded bg-rose-400" style="border-style: dashed;" />
+                    <span class="h-0.5 w-2 rounded bg-rose-400" style="border-style: dashed" />
                     <span class="text-slate-400">P99</span>
-                    <span class="text-rose-300 font-mono font-medium">{{ latencyStats.p99 }}ms</span>
+                    <span class="font-mono font-medium text-rose-300">{{ latencyStats.p99 }}ms</span>
                   </div>
-                  <div class="flex items-center gap-1.5 ml-auto">
+                  <div class="ml-auto flex items-center gap-1.5">
                     <span class="text-slate-500">可用率</span>
                     <span
                       class="font-mono font-medium"
                       :class="[latencyStats.availability >= 99.9 ? 'text-emerald-400' : 'text-amber-400']"
-                    >{{ latencyStats.availability }}%</span>
+                      >{{ latencyStats.availability }}%</span
+                    >
                   </div>
                 </div>
               </ScreenCard>
-              <ScreenCard title="实时事件流" class="flex flex-col min-h-0 overflow-hidden" body-class="flex-1 min-h-0">
-                <PerfectScrollbar :options="psOptions" class="h-full relative">
+              <ScreenCard title="实时事件流" class="flex min-h-0 flex-col overflow-hidden" body-class="flex-1 min-h-0">
+                <PerfectScrollbar :options="psOptions" class="relative h-full">
                   <div class="space-y-1.5 pr-1">
                     <div
                       v-for="(evt, idx) in realtimeEvents"
                       :key="idx"
-                      class="flex items-start gap-2 text-[11px] px-2 py-1.5 rounded bg-blue-900/15 hover:bg-blue-800/25 transition-colors"
+                      class="flex items-start gap-2 rounded bg-blue-900/15 px-2 py-1.5 text-[11px] transition-colors hover:bg-blue-800/25"
                     >
-                      <span :class="eventLevelColor(evt.level)" class="w-1 h-1 rounded-full shrink-0 mt-1.5" />
-                      <span class="text-blue-300/40 font-mono shrink-0">{{ evt.time }}</span>
+                      <span :class="eventLevelColor(evt.level)" class="mt-1.5 h-1 w-1 shrink-0 rounded-full" />
+                      <span class="shrink-0 font-mono text-blue-300/40">{{ evt.time }}</span>
                       <span :class="eventLevelText(evt.level)" class="shrink-0">{{ evt.type.toUpperCase() }}</span>
-                      <span class="text-blue-100/70 truncate">{{ evt.msg }}</span>
+                      <span class="truncate text-blue-100/70">{{ evt.msg }}</span>
                     </div>
                   </div>
                 </PerfectScrollbar>
@@ -680,43 +964,53 @@ function securityAlertLevelText(level: string): string {
           </div>
 
           <!-- 右侧栏 -->
-          <div class="col-span-3 flex flex-col gap-3 h-full min-h-0">
+          <div class="col-span-3 flex h-full min-h-0 flex-col gap-3">
             <!-- 总请求数 -->
             <ScreenCard class="shrink-0">
-              <div class="text-center py-1">
+              <div class="py-1 text-center">
                 <RealtimeNumber :value="overview.totalRequests" />
-                <span class="text-[10px] text-blue-300/50 block mt-1">总请求数</span>
+                <span class="mt-1 block text-[10px] text-blue-300/50">总请求数</span>
               </div>
             </ScreenCard>
 
             <!-- 资源使用率 -->
-            <ScreenCard title="资源使用率" class="flex-1 flex flex-col min-h-0" body-class="flex-1 min-h-0">
-              <div ref="gaugeRef" class="w-full h-full min-h-[140px]" />
+            <ScreenCard title="资源使用率" class="flex min-h-0 flex-1 flex-col" body-class="flex-1 min-h-0">
+              <div ref="gaugeRef" class="h-full min-h-[140px] w-full" />
             </ScreenCard>
 
             <!-- 地区分布 -->
-            <ScreenCard title="地区用户分布 TOP9" class="flex-[1.5] flex flex-col min-h-0" body-class="flex-1 min-h-0">
-              <div ref="regionBarRef" class="w-full h-full min-h-[160px]" />
+            <ScreenCard title="地区用户分布 TOP9" class="flex min-h-0 flex-[1.5] flex-col" body-class="flex-1 min-h-0">
+              <div ref="regionBarRef" class="h-full min-h-[160px] w-full" />
             </ScreenCard>
 
             <!-- 服务与告警 -->
-            <ScreenCard title="服务与告警" class="flex-[1.5] flex flex-col min-h-0" body-class="flex-1 min-h-0 overflow-hidden flex flex-col gap-2">
+            <ScreenCard
+              title="服务与告警"
+              class="flex min-h-0 flex-[1.5] flex-col"
+              body-class="flex-1 min-h-0 overflow-hidden flex flex-col gap-2"
+            >
               <!-- 服务健康状态 -->
-              <div class="flex-[3] min-h-0 overflow-hidden relative">
-                <PerfectScrollbar class="h-full relative">
+              <div class="relative min-h-0 flex-[3] overflow-hidden">
+                <PerfectScrollbar class="relative h-full">
                   <div class="space-y-1.5 pr-1">
                     <div
                       v-for="svc in services"
                       :key="svc.name"
-                      class="flex items-center justify-between px-2 py-1 rounded bg-blue-900/20"
+                      class="flex items-center justify-between rounded bg-blue-900/20 px-2 py-1"
                     >
                       <span class="text-xs text-blue-100/80">{{ svc.name }}</span>
                       <div class="flex items-center gap-2">
                         <span class="text-[10px] text-blue-300/50">{{ svc.uptime }}</span>
-                        <span :class="serviceStatusColor(svc.status)" class="text-[10px] flex items-center gap-1">
+                        <span :class="serviceStatusColor(svc.status)" class="flex items-center gap-1 text-[10px]">
                           <span
-                            class="w-1.5 h-1.5 rounded-full inline-block"
-                            :class="svc.status === 'healthy' ? 'bg-emerald-400' : svc.status === 'warning' ? 'bg-yellow-400' : 'bg-red-400'"
+                            class="inline-block h-1.5 w-1.5 rounded-full"
+                            :class="
+                              svc.status === 'healthy'
+                                ? 'bg-emerald-400'
+                                : svc.status === 'warning'
+                                  ? 'bg-yellow-400'
+                                  : 'bg-red-400'
+                            "
                           />
                           {{ svc.status === 'healthy' ? '正常' : svc.status === 'warning' ? '警告' : '异常' }}
                         </span>
@@ -726,8 +1020,8 @@ function securityAlertLevelText(level: string): string {
                 </PerfectScrollbar>
               </div>
               <!-- 最近告警 -->
-              <div class="flex-[2] min-h-0 overflow-hidden border-t border-blue-500/15 pt-2">
-                <div class="text-[10px] text-blue-300/50 mb-1">最近告警</div>
+              <div class="min-h-0 flex-[2] overflow-hidden border-t border-blue-500/15 pt-2">
+                <div class="mb-1 text-[10px] text-blue-300/50">最近告警</div>
                 <MarqueeNotice :items="formattedAlerts" />
               </div>
             </ScreenCard>
@@ -735,27 +1029,35 @@ function securityAlertLevelText(level: string): string {
         </div>
 
         <!-- 安全威胁态势（底部行） -->
-        <div class="col-span-12 row-start-2 h-[180px] grid grid-cols-12 gap-3 shrink-0 overflow-hidden">
+        <div class="col-span-12 row-start-2 grid h-[180px] shrink-0 grid-cols-12 gap-3 overflow-hidden">
           <!-- 攻击来源 TOP5 -->
           <div class="col-span-5 h-full overflow-hidden">
-            <ScreenCard title="攻击来源 TOP5" class="h-full flex flex-col" body-class="flex-1 min-h-0 p-2">
-              <div ref="attackSourceRef" class="w-full h-full min-h-0" />
+            <ScreenCard title="攻击来源 TOP5" class="flex h-full flex-col" body-class="flex-1 min-h-0 p-2">
+              <div ref="attackSourceRef" class="h-full min-h-0 w-full" />
             </ScreenCard>
           </div>
           <!-- 实时安全告警 -->
           <div class="col-span-7 h-full overflow-hidden">
-            <ScreenCard title="实时安全告警" class="h-full overflow-hidden flex flex-col" body-class="flex-1 min-h-0 p-2">
-              <PerfectScrollbar :options="psOptions" class="h-full relative">
+            <ScreenCard
+              title="实时安全告警"
+              class="flex h-full flex-col overflow-hidden"
+              body-class="flex-1 min-h-0 p-2"
+            >
+              <PerfectScrollbar :options="psOptions" class="relative h-full">
                 <div class="space-y-1 pr-1">
                   <div
                     v-for="(alert, idx) in securityAlerts.slice(0, 3)"
                     :key="idx"
-                    class="flex items-start gap-2 text-[11px] px-2 py-1 rounded bg-red-900/10 hover:bg-red-900/20 transition-colors"
+                    class="flex items-start gap-2 rounded bg-red-900/10 px-2 py-1 text-[11px] transition-colors hover:bg-red-900/20"
                   >
-                    <span :class="securityAlertLevelColor(alert.level)" class="w-1 h-1 rounded-full shrink-0 mt-1.5" />
-                    <span class="text-blue-300/40 font-mono shrink-0">{{ alert.time }}</span>
-                    <span :class="securityAlertLevelText(alert.level)" class="shrink-0 text-[9px] uppercase font-bold">{{ alert.level }}</span>
-                    <span class="text-red-100/70 truncate">{{ alert.msg }}</span>
+                    <span :class="securityAlertLevelColor(alert.level)" class="mt-1.5 h-1 w-1 shrink-0 rounded-full" />
+                    <span class="shrink-0 font-mono text-blue-300/40">{{ alert.time }}</span>
+                    <span
+                      :class="securityAlertLevelText(alert.level)"
+                      class="shrink-0 text-[9px] font-bold uppercase"
+                      >{{ alert.level }}</span
+                    >
+                    <span class="truncate text-red-100/70">{{ alert.msg }}</span>
                   </div>
                 </div>
               </PerfectScrollbar>
@@ -765,8 +1067,13 @@ function securityAlertLevelText(level: string): string {
       </div>
 
       <!-- 底部信息栏 -->
-      <div class="h-6 bg-blue-950/80 border-t border-blue-500/10 flex items-center justify-center text-[10px] text-blue-300/30">
-        <span>数据刷新于 {{ new Date().toLocaleString('zh-CN') }} &nbsp;|&nbsp; Antdv Next Admin Security Monitor &nbsp;|&nbsp; v1.0.0</span>
+      <div
+        class="flex h-6 items-center justify-center border-t border-blue-500/10 bg-blue-950/80 text-[10px] text-blue-300/30"
+      >
+        <span
+          >数据刷新于 {{ new Date().toLocaleString('zh-CN') }} &nbsp;|&nbsp; Antdv Next Admin Security Monitor
+          &nbsp;|&nbsp; v1.0.0</span
+        >
       </div>
     </div>
   </PerfectScrollbar>

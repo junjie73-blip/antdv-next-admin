@@ -3,10 +3,10 @@ import type { FormInstance } from 'antdv-next'
 import type { Rule } from 'antdv-next/dist/form/types'
 
 import { LockOutlined, MailOutlined, UserOutlined } from '@antdv-next/icons'
-
 import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { cn } from '@/utils/cn'
+
+import { cn } from '~/utils/cn'
 
 const router = useRouter()
 
@@ -24,25 +24,13 @@ const formState = reactive({
 })
 
 const containerClassName = computed(() =>
-  cn(
-    'min-h-screen flex',
-    'bg-gradient-to-br from-stone-100 via-slate-50 to-gray-50',
-  ),
+  cn('min-h-screen flex', 'bg-gradient-to-br from-stone-100 via-slate-50 to-gray-50'),
 )
 
-const leftPanelClassName = computed(() =>
-  cn(
-    'hidden lg:flex lg:w-1/2 xl:w-3/5',
-    'relative overflow-hidden',
-  ),
-)
+const leftPanelClassName = computed(() => cn('hidden lg:flex lg:w-1/2 xl:w-3/5', 'relative overflow-hidden'))
 
 const leftGlassClassName = computed(() =>
-  cn(
-    'absolute inset-0',
-    'bg-gradient-to-br from-white/60 via-slate-100/40 to-gray-100/50',
-    'backdrop-blur-xl',
-  ),
+  cn('absolute inset-0', 'bg-gradient-to-br from-white/60 via-slate-100/40 to-gray-100/50', 'backdrop-blur-xl'),
 )
 
 const rightPanelClassName = computed(() =>
@@ -120,15 +108,13 @@ async function handleRegister() {
     await formRef.value?.validate()
     loading.value = true
 
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000))
 
     message.success('注册成功，请登录')
     router.push('/login')
-  }
-  catch {
+  } catch {
     message.error('注册失败，请检查输入')
-  }
-  finally {
+  } finally {
     loading.value = false
   }
 }
@@ -163,38 +149,39 @@ function _handleSendCode() {
       <!-- 装饰性背景 -->
       <div class="absolute inset-0">
         <div
-          class="absolute top-1/4 right-1/4 w-[500px] h-[500px] rounded-full blur-[100px]"
+          class="absolute top-1/4 right-1/4 h-[500px] w-[500px] rounded-full blur-[100px]"
           style="background: color-mix(in srgb, var(--ant-color-primary) 15%, transparent)"
         />
         <div
-          class="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] rounded-full blur-[80px]"
+          class="absolute bottom-1/4 left-1/4 h-[400px] w-[400px] rounded-full blur-[80px]"
           style="background: color-mix(in srgb, var(--ant-color-primary) 10%, transparent)"
         />
         <div
-          class="absolute top-1/2 right-1/3 w-[300px] h-[300px] rounded-full blur-[60px]"
+          class="absolute top-1/2 right-1/3 h-[300px] w-[300px] rounded-full blur-[60px]"
           style="background: color-mix(in srgb, var(--ant-color-primary) 8%, transparent)"
         />
       </div>
 
       <!-- 网格背景 -->
-      <div class="absolute inset-0 bg-[linear-gradient(rgba(100,100,100,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(100,100,100,0.03)_1px,transparent_1px)] bg-[size:48px_48px]" />
+      <div
+        class="absolute inset-0 bg-[linear-gradient(rgba(100,100,100,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(100,100,100,0.03)_1px,transparent_1px)] bg-[size:48px_48px]"
+      />
 
       <!-- 内容 -->
       <div class="relative z-10 flex flex-col justify-center px-12 xl:px-20">
         <!-- Logo -->
         <div class="mb-12">
-          <div class="inline-flex items-center gap-3 px-5 py-2.5 bg-white/60 backdrop-blur-md rounded-xl border border-white/80 shadow-lg shadow-slate-900/5">
+          <div
+            class="inline-flex items-center gap-3 rounded-xl border border-white/80 bg-white/60 px-5 py-2.5 shadow-lg shadow-slate-900/5 backdrop-blur-md"
+          >
             <div
-              class="w-9 h-9 rounded-lg flex items-center justify-center shadow-md"
-              style="background: var(--ant-color-primary); box-shadow: 0 4px 12px color-mix(in srgb, var(--ant-color-primary) 30%, transparent)"
+              class="flex h-9 w-9 items-center justify-center rounded-lg shadow-md"
+              style="
+                background: var(--ant-color-primary);
+                box-shadow: 0 4px 12px color-mix(in srgb, var(--ant-color-primary) 30%, transparent);
+              "
             >
-              <svg
-                class="w-5 h-5 text-white"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
+              <svg class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
@@ -203,23 +190,23 @@ function _handleSendCode() {
         </div>
 
         <!-- 标题 -->
-        <h1 class="text-4xl xl:text-5xl font-bold text-stone-800 mb-6 leading-tight">
-          开启您的<br>
-          <span style="color: var(--ant-color-primary)">
-            高效之旅
-          </span>
+        <h1 class="mb-6 text-4xl leading-tight font-bold text-stone-800 xl:text-5xl">
+          开启您的<br />
+          <span style="color: var(--ant-color-primary)"> 高效之旅 </span>
         </h1>
 
-        <p class="text-lg text-stone-600 mb-12 max-w-lg leading-relaxed">
+        <p class="mb-12 max-w-lg text-lg leading-relaxed text-stone-600">
           注册账户，体验现代化的管理系统解决方案，让工作更高效、更智能。
         </p>
 
         <!-- 特性列表 -->
         <div class="space-y-5">
-          <div class="flex items-center gap-4 group">
-            <div class="w-11 h-11 bg-white/60 backdrop-blur-md rounded-lg flex items-center justify-center border border-white/80 shadow-md shadow-slate-900/5 transition-all duration-300">
+          <div class="group flex items-center gap-4">
+            <div
+              class="flex h-11 w-11 items-center justify-center rounded-lg border border-white/80 bg-white/60 shadow-md shadow-slate-900/5 backdrop-blur-md transition-all duration-300"
+            >
               <svg
-                class="w-5 h-5"
+                class="h-5 w-5"
                 style="color: var(--ant-color-primary)"
                 viewBox="0 0 24 24"
                 fill="none"
@@ -227,70 +214,45 @@ function _handleSendCode() {
                 stroke-width="2"
               >
                 <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle
-                  cx="8.5"
-                  cy="7"
-                  r="4"
-                />
-                <line
-                  x1="20"
-                  y1="8"
-                  x2="20"
-                  y2="14"
-                />
-                <line
-                  x1="23"
-                  y1="11"
-                  x2="17"
-                  y2="11"
-                />
+                <circle cx="8.5" cy="7" r="4" />
+                <line x1="20" y1="8" x2="20" y2="14" />
+                <line x1="23" y1="11" x2="17" y2="11" />
               </svg>
             </div>
             <div>
-              <h3 class="text-stone-800 font-medium">
-                快速注册
-              </h3>
-              <p class="text-stone-500 text-sm">
-                简单几步即可完成注册
-              </p>
+              <h3 class="font-medium text-stone-800">快速注册</h3>
+              <p class="text-sm text-stone-500">简单几步即可完成注册</p>
             </div>
           </div>
 
-          <div class="flex items-center gap-4 group">
-            <div class="w-11 h-11 bg-white/60 backdrop-blur-md rounded-lg flex items-center justify-center border border-white/80 shadow-md shadow-slate-900/5 transition-all duration-300">
+          <div class="group flex items-center gap-4">
+            <div
+              class="flex h-11 w-11 items-center justify-center rounded-lg border border-white/80 bg-white/60 shadow-md shadow-slate-900/5 backdrop-blur-md transition-all duration-300"
+            >
               <svg
-                class="w-5 h-5"
+                class="h-5 w-5"
                 style="color: var(--ant-color-primary)"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2"
               >
-                <rect
-                  x="3"
-                  y="11"
-                  width="18"
-                  height="11"
-                  rx="2"
-                  ry="2"
-                />
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
             </div>
             <div>
-              <h3 class="text-stone-800 font-medium">
-                安全加密
-              </h3>
-              <p class="text-stone-500 text-sm">
-                数据安全有保障
-              </p>
+              <h3 class="font-medium text-stone-800">安全加密</h3>
+              <p class="text-sm text-stone-500">数据安全有保障</p>
             </div>
           </div>
 
-          <div class="flex items-center gap-4 group">
-            <div class="w-11 h-11 bg-white/60 backdrop-blur-md rounded-lg flex items-center justify-center border border-white/80 shadow-md shadow-slate-900/5 transition-all duration-300">
+          <div class="group flex items-center gap-4">
+            <div
+              class="flex h-11 w-11 items-center justify-center rounded-lg border border-white/80 bg-white/60 shadow-md shadow-slate-900/5 backdrop-blur-md transition-all duration-300"
+            >
               <svg
-                class="w-5 h-5"
+                class="h-5 w-5"
                 style="color: var(--ant-color-primary)"
                 viewBox="0 0 24 24"
                 fill="none"
@@ -302,12 +264,8 @@ function _handleSendCode() {
               </svg>
             </div>
             <div>
-              <h3 class="text-stone-800 font-medium">
-                免费试用
-              </h3>
-              <p class="text-stone-500 text-sm">
-                立即体验所有功能
-              </p>
+              <h3 class="font-medium text-stone-800">免费试用</h3>
+              <p class="text-sm text-stone-500">立即体验所有功能</p>
             </div>
           </div>
         </div>
@@ -318,23 +276,13 @@ function _handleSendCode() {
     <div :class="rightPanelClassName">
       <div :class="glassCardClassName">
         <!-- 标题 -->
-        <div class="text-center mb-8">
-          <h2 class="text-2xl font-semibold text-stone-800 mb-2">
-            创建账户
-          </h2>
-          <p class="text-stone-500">
-            填写以下信息完成注册
-          </p>
+        <div class="mb-8 text-center">
+          <h2 class="mb-2 text-2xl font-semibold text-stone-800">创建账户</h2>
+          <p class="text-stone-500">填写以下信息完成注册</p>
         </div>
 
         <!-- 表单 -->
-        <a-form
-          ref="formRef"
-          :model="formState"
-          :rules="rules"
-          layout="vertical"
-          @finish="handleRegister"
-        >
+        <a-form ref="formRef" :model="formState" :rules="rules" layout="vertical" @finish="handleRegister">
           <a-form-item name="username">
             <a-input
               v-model:value="formState.username"
@@ -394,22 +342,14 @@ function _handleSendCode() {
           <a-form-item name="agreement">
             <a-checkbox
               v-model:checked="formState.agreement"
-              class="[&_.ant-checkbox-inner]:!bg-white [&_.ant-checkbox-inner]:!border-slate-300 [&_.ant-checkbox-wrapper]:!text-stone-500"
+              class="[&_.ant-checkbox-inner]:!border-slate-300 [&_.ant-checkbox-inner]:!bg-white [&_.ant-checkbox-wrapper]:!text-stone-500"
             >
               我已阅读并同意
-              <a-button
-                type="link"
-                size="small"
-                class="!text-stone-400 hover:!text-stone-600 !p-0"
-              >
+              <a-button type="link" size="small" class="!p-0 !text-stone-400 hover:!text-stone-600">
                 《用户协议》
               </a-button>
               和
-              <a-button
-                type="link"
-                size="small"
-                class="!text-stone-400 hover:!text-stone-600 !p-0"
-              >
+              <a-button type="link" size="small" class="!p-0 !text-stone-400 hover:!text-stone-600">
                 《隐私政策》
               </a-button>
             </a-checkbox>
@@ -432,12 +372,7 @@ function _handleSendCode() {
         <!-- 登录链接 -->
         <div class="text-center">
           <span class="text-stone-500">已有账户？</span>
-          <a-button
-            type="link"
-            class="!p-0 !ml-1"
-            style="color: var(--ant-color-primary)"
-            @click="handleBackToLogin"
-          >
+          <a-button type="link" class="!ml-1 !p-0" style="color: var(--ant-color-primary)" @click="handleBackToLogin">
             立即登录
           </a-button>
         </div>
@@ -447,7 +382,7 @@ function _handleSendCode() {
 </template>
 
 <style scoped>
-[class*="group"]:hover .w-11 {
+[class*='group']:hover .w-11 {
   background-color: color-mix(in srgb, var(--ant-color-primary) 5%, white);
   border-color: color-mix(in srgb, var(--ant-color-primary) 20%, rgb(203 213 225));
 }

@@ -1,18 +1,19 @@
 <script setup lang="ts">
-import type { MenuConfig } from '#/menu'
-import type { FormSchema } from '@/components/business/Form'
-import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
-
 import { computed, ref } from 'vue'
-import { BasicDrawer, useDrawer } from '@/components/business/Drawer'
-import { BasicForm, useForm } from '@/components/business/Form'
-import { BasicTable, useTable } from '@/components/business/Table'
-import IconPicker from '@/components/common/Icon/IconPicker.vue'
-import { DictType } from '@/enums/dict'
-import { frontendMenus } from '@/router/menus'
-import { useDictStore } from '@/stores'
-import { cn } from '@/utils/cn'
+
+import type { MenuConfig } from '#/menu'
+import type { FormSchema } from '~/components/business/Form'
+import type { BasicColumn } from '~/components/business/Table'
+
+import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
+import { BasicForm, useForm } from '~/components/business/Form'
+import { BasicTable, useTable } from '~/components/business/Table'
+import IconPicker from '~/components/common/Icon/IconPicker.vue'
+import { DictType } from '~/enums/dict'
+import { frontendMenus } from '~/router/menus'
+import { useDictStore } from '~/stores'
+import { cn } from '~/utils/cn'
 
 defineOptions({ name: 'SystemMenu' })
 
@@ -68,7 +69,11 @@ const dictStore = useDictStore()
 
 const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
 
-function convertFrontendMenusToRecords(menus: MenuConfig[], parentId: number | null, startId: number): { records: MenuRecord[], nextId: number } {
+function convertFrontendMenusToRecords(
+  menus: MenuConfig[],
+  parentId: number | null,
+  startId: number,
+): { records: MenuRecord[]; nextId: number } {
   const result: MenuRecord[] = []
   let currentId = startId
   const now = new Date().toISOString().replace('T', ' ').substring(0, 19)
@@ -128,8 +133,7 @@ function rebuildTree(flat: MenuRecord[]): MenuRecord[] {
     const node = map.get(item.id)!
     if (item.parentId === null) {
       roots.push(node)
-    }
-    else {
+    } else {
       const parent = map.get(item.parentId)
       if (parent) {
         parent.children = parent.children || []
@@ -150,7 +154,7 @@ const [formRegister, formMethods] = useForm()
 
 function getParentTreeOptions(): any[] {
   const flat = flattenMenuTree(allData.value)
-  const filtered = flat.filter(i => i.menuType === 'M' || i.menuType === 'C')
+  const filtered = flat.filter((i) => i.menuType === 'M' || i.menuType === 'C')
 
   const map = new Map<number, any>()
   for (const item of filtered) {
@@ -165,8 +169,7 @@ function getParentTreeOptions(): any[] {
     const node = map.get(item.id)!
     if (item.parentId === null) {
       roots.push(node)
-    }
-    else {
+    } else {
       const parent = map.get(item.parentId)
       if (parent) {
         parent.children = parent.children || []
@@ -322,14 +325,11 @@ async function mockApi(params: Record<string, any>) {
 
   if (keyword) {
     const kw = String(keyword).toLowerCase()
-    filtered = filtered.filter(
-      i => i.menuName.toLowerCase().includes(kw)
-        || i.perms.toLowerCase().includes(kw),
-    )
+    filtered = filtered.filter((i) => i.menuName.toLowerCase().includes(kw) || i.perms.toLowerCase().includes(kw))
   }
 
   if (menuType) {
-    filtered = filtered.filter(i => i.menuType === menuType)
+    filtered = filtered.filter((i) => i.menuType === menuType)
   }
 
   const tree = rebuildTree(filtered)
@@ -407,12 +407,12 @@ function handleDelete(record: MenuRecord) {
     }
   }
 
-  const target = flat.find(i => i.id === record.id)
+  const target = flat.find((i) => i.id === record.id)
   if (target) {
     collectIds(target)
   }
 
-  const remaining = flat.filter(i => !idsToDelete.has(i.id))
+  const remaining = flat.filter((i) => !idsToDelete.has(i.id))
   allData.value = rebuildTree(remaining)
   message.success(`已删除菜单：${record.menuName}`)
   tableMethods.value?.reload()
@@ -428,13 +428,11 @@ async function handleSave() {
     values.component = ''
     values.perms = ''
     values.linkUrl = ''
-  }
-  else if (values.menuType === 'F') {
+  } else if (values.menuType === 'F') {
     values.path = ''
     values.component = ''
     values.linkUrl = ''
-  }
-  else if (values.menuType === 'L') {
+  } else if (values.menuType === 'L') {
     values.component = ''
     values.perms = ''
   }
@@ -463,7 +461,7 @@ async function handleSave() {
   const flat = flattenMenuTree(allData.value)
 
   if (isEditing.value && currentRecord.value) {
-    const idx = flat.findIndex(i => i.id === currentRecord.value!.id)
+    const idx = flat.findIndex((i) => i.id === currentRecord.value!.id)
     if (idx > -1) {
       flat[idx] = {
         ...flat[idx]!,
@@ -481,9 +479,8 @@ async function handleSave() {
     }
     allData.value = rebuildTree(flat)
     message.success(`已更新菜单：${values.menuName}`)
-  }
-  else {
-    const newId = Math.max(...flat.map(i => i.id), 0) + 1
+  } else {
+    const newId = Math.max(...flat.map((i) => i.id), 0) + 1
     flat.push({
       id: newId,
       parentId: values.parentId ?? null,
@@ -526,10 +523,7 @@ const columns: BasicColumn[] = [
 
 <template>
   <div :class="containerClassName">
-    <a-card
-      title="菜单管理"
-      :class="cardClassName"
-    >
+    <a-card title="菜单管理" :class="cardClassName">
       <BasicTable
         :columns="columns"
         :api="mockApi"
@@ -544,10 +538,7 @@ const columns: BasicColumn[] = [
         @register="tableRegister"
       >
         <template #toolbar>
-          <a-button
-            type="primary"
-            @click="handleAdd"
-          >
+          <a-button type="primary" @click="handleAdd">
             <template #icon>
               <Icon icon="ant-design:plus-outlined" />
             </template>
@@ -556,11 +547,7 @@ const columns: BasicColumn[] = [
         </template>
         <template #cell-icon="{ record }">
           <div class="flex items-center justify-center">
-            <Icon
-              v-if="record.icon"
-              :icon="record.icon"
-              class="text-lg"
-            />
+            <Icon v-if="record.icon" :icon="record.icon" class="text-lg" />
             <span v-else>-</span>
           </div>
         </template>
@@ -569,7 +556,15 @@ const columns: BasicColumn[] = [
           <a-tag :color="menuTypeColorMap[record.menuType] || 'default'">
             <span :class="tagClassName">
               <Icon
-                :icon="record.menuType === 'M' ? 'carbon:folder' : record.menuType === 'C' ? 'carbon:document' : record.menuType === 'F' ? 'carbon:cu3' : 'carbon:link'"
+                :icon="
+                  record.menuType === 'M'
+                    ? 'carbon:folder'
+                    : record.menuType === 'C'
+                      ? 'carbon:document'
+                      : record.menuType === 'F'
+                        ? 'carbon:cu3'
+                        : 'carbon:link'
+                "
               />
               {{ menuTypeLabelMap[record.menuType] || record.menuType }}
             </span>
@@ -587,36 +582,20 @@ const columns: BasicColumn[] = [
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <a-button
-              type="link"
-              :class="btnClassName"
-              @click="() => handleAddChild(record)"
-            >
+            <a-button type="link" :class="btnClassName" @click="() => handleAddChild(record)">
               <template #icon>
                 <Icon icon="ant-design:plus-circle-outlined" />
               </template>
               新增
             </a-button>
-            <a-button
-              type="link"
-              :class="btnClassName"
-              @click="() => handleEdit(record)"
-            >
+            <a-button type="link" :class="btnClassName" @click="() => handleEdit(record)">
               <template #icon>
                 <Icon icon="ant-design:edit-outlined" />
               </template>
               编辑
             </a-button>
-            <a-divider
-              type="vertical"
-              :class="dividerClassName"
-            />
-            <a-button
-              type="link"
-              danger
-              :class="btnClassName"
-              @click="() => handleDelete(record)"
-            >
+            <a-divider type="vertical" :class="dividerClassName" />
+            <a-button type="link" danger :class="btnClassName" @click="() => handleDelete(record)">
               <template #icon>
                 <Icon icon="ant-design:delete-outlined" />
               </template>
@@ -627,12 +606,7 @@ const columns: BasicColumn[] = [
       </BasicTable>
     </a-card>
 
-    <BasicDrawer
-      :title="isEditing ? '编辑菜单' : '新增菜单'"
-      :width="640"
-      @register="drawerRegister"
-      @ok="handleSave"
-    >
+    <BasicDrawer :title="isEditing ? '编辑菜单' : '新增菜单'" :width="640" @register="drawerRegister" @ok="handleSave">
       <BasicForm
         :schemas="drawerFormSchemas"
         :label-width="80"
@@ -643,7 +617,11 @@ const columns: BasicColumn[] = [
         <template #iconPicker="{ model, field }">
           <IconPicker
             :model-value="model[field] || ''"
-            @update:modelValue="(val: string) => { formMethods.setFieldsValue({ [field]: val }) }"
+            @update:modelValue="
+              (val: string) => {
+                formMethods.setFieldsValue({ [field]: val })
+              }
+            "
             @select="handleIconSelect"
           />
         </template>

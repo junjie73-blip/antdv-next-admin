@@ -1,19 +1,20 @@
 <script setup lang="tsx">
-import type { DescriptionItem } from '@/components/business/Description'
-import type { FormSchema } from '@/components/business/Form'
-import type { BasicColumn } from '@/components/business/Table'
 import { Icon } from '@iconify/vue'
-
 import { computed, ref } from 'vue'
-import { addSetting, deleteSetting, getSettingsList, updateSetting } from '@/api/system'
-import { Description as DetailDescription } from '@/components/business/Description'
-import { BasicDrawer, useDrawer } from '@/components/business/Drawer'
-import { BasicForm, useForm } from '@/components/business/Form'
-import { BasicModal, useModal } from '@/components/business/Modal'
-import { BasicTable, useTable } from '@/components/business/Table'
-import { DictType } from '@/enums/dict'
-import { useDictStore } from '@/stores'
-import { cn } from '@/utils/cn'
+
+import type { DescriptionItem } from '~/components/business/Description'
+import type { FormSchema } from '~/components/business/Form'
+import type { BasicColumn } from '~/components/business/Table'
+
+import { addSetting, deleteSetting, getSettingsList, updateSetting } from '~/api/system'
+import { Description as DetailDescription } from '~/components/business/Description'
+import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
+import { BasicForm, useForm } from '~/components/business/Form'
+import { BasicModal, useModal } from '~/components/business/Modal'
+import { BasicTable, useTable } from '~/components/business/Table'
+import { DictType } from '~/enums/dict'
+import { useDictStore } from '~/stores'
+import { cn } from '~/utils/cn'
 
 defineOptions({ name: 'SystemSettings' })
 
@@ -86,7 +87,9 @@ const detailSchemas: DescriptionItem[] = [
   {
     field: 'type',
     label: '配置类型',
-    render: (_: string, record: any) => <a-tag color={typeColorMap[record.type] || 'default'}>{typeLabelMap[record.type] || record.type}</a-tag>,
+    render: (_: string, record: any) => (
+      <a-tag color={typeColorMap[record.type] || 'default'}>{typeLabelMap[record.type] || record.type}</a-tag>
+    ),
   },
   {
     field: 'group',
@@ -97,7 +100,9 @@ const detailSchemas: DescriptionItem[] = [
   {
     field: 'enabled',
     label: '启用状态',
-    render: (_: any, record: any) => <a-tag color={record.enabled ? 'green' : 'red'}>{record.enabled ? '已启用' : '已禁用'}</a-tag>,
+    render: (_: any, record: any) => (
+      <a-tag color={record.enabled ? 'green' : 'red'}>{record.enabled ? '已启用' : '已禁用'}</a-tag>
+    ),
   },
   { field: 'createdAt', label: '创建时间' },
   { field: 'updatedAt', label: '更新时间' },
@@ -189,7 +194,7 @@ const modalFormSchemas: FormSchema[] = [
     component: 'Select',
     colProps: { span: 12 },
     componentProps: {
-      options: Object.keys(groupColorMap).map(g => ({ label: g, value: g })),
+      options: Object.keys(groupColorMap).map((g) => ({ label: g, value: g })),
     },
   },
   {
@@ -278,8 +283,7 @@ async function handleDelete(record: SystemConfig) {
     await deleteSetting(record.id)
     message.success(`已删除配置：${record.name}`)
     tableMethods.value?.reload()
-  }
-  catch {
+  } catch {
     message.error('删除失败')
   }
 }
@@ -294,16 +298,14 @@ async function handleSave() {
     if (isEditing.value && currentRecord.value) {
       await updateSetting(currentRecord.value.id, values)
       message.success(`已更新配置：${values.name}`)
-    }
-    else {
+    } else {
       await addSetting(values)
       message.success(`已新增配置：${values.name}`)
     }
 
     modalMethods.closeModal()
     tableMethods.value?.reload()
-  }
-  catch {
+  } catch {
     message.error('保存失败')
   }
 }
@@ -313,8 +315,7 @@ async function handleToggleEnabled(record: SystemConfig, enabled: boolean) {
     await updateSetting(record.id, { enabled })
     message.success(`${enabled ? '已启用' : '已禁用'}：${record.name}`)
     tableMethods.value?.reload()
-  }
-  catch {
+  } catch {
     message.error('操作失败')
   }
 }
@@ -338,10 +339,7 @@ const columns: BasicColumn[] = [
 
 <template>
   <div :class="containerClassName">
-    <a-card
-      title="系统设置"
-      :class="cardClassName"
-    >
+    <a-card title="系统设置" :class="cardClassName">
       <BasicTable
         :columns="columns"
         :api="mockApi"
@@ -353,10 +351,7 @@ const columns: BasicColumn[] = [
         @register="tableRegister"
       >
         <template #toolbar>
-          <a-button
-            type="primary"
-            @click="handleAdd"
-          >
+          <a-button type="primary" @click="handleAdd">
             <template #icon>
               <Icon icon="ant-design:plus-outlined" />
             </template>
@@ -371,13 +366,10 @@ const columns: BasicColumn[] = [
         <template #cell-group="{ record }">
           <a-tag
             :color="groupColorMap[record.group] || 'default'"
-            class="whitespace-nowrap flex! items-center w-full justify-between"
+            class="flex! w-full items-center justify-between whitespace-nowrap"
           >
             <template #icon>
-              <Icon
-                v-if="groupIconMap[record.group]"
-                :icon="groupIconMap[record.group]!"
-              />
+              <Icon v-if="groupIconMap[record.group]" :icon="groupIconMap[record.group]!" />
             </template>
             {{ record.group }}
           </a-tag>
@@ -397,54 +389,28 @@ const columns: BasicColumn[] = [
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <a-button
-              type="link"
-              :class="btnClassName"
-              @click="() => handleApply(record)"
-            >
+            <a-button type="link" :class="btnClassName" @click="() => handleApply(record)">
               <template #icon>
                 <Icon icon="carbon:restart" />
               </template>
               应用
             </a-button>
-            <a-divider
-              type="vertical"
-              :class="dividerClassName"
-            />
-            <a-button
-              type="link"
-              :class="btnClassName"
-              @click="() => handleView(record)"
-            >
+            <a-divider type="vertical" :class="dividerClassName" />
+            <a-button type="link" :class="btnClassName" @click="() => handleView(record)">
               <template #icon>
                 <Icon icon="ant-design:eye-outlined" />
               </template>
               查看
             </a-button>
-            <a-divider
-              type="vertical"
-              :class="dividerClassName"
-            />
-            <a-button
-              type="link"
-              :class="btnClassName"
-              @click="() => handleEdit(record)"
-            >
+            <a-divider type="vertical" :class="dividerClassName" />
+            <a-button type="link" :class="btnClassName" @click="() => handleEdit(record)">
               <template #icon>
                 <Icon icon="ant-design:edit-outlined" />
               </template>
               编辑
             </a-button>
-            <a-divider
-              type="vertical"
-              :class="dividerClassName"
-            />
-            <a-button
-              type="link"
-              danger
-              :class="btnClassName"
-              @click="() => handleDelete(record)"
-            >
+            <a-divider type="vertical" :class="dividerClassName" />
+            <a-button type="link" danger :class="btnClassName" @click="() => handleDelete(record)">
               <template #icon>
                 <Icon icon="ant-design:delete-outlined" />
               </template>
@@ -455,12 +421,7 @@ const columns: BasicColumn[] = [
       </BasicTable>
     </a-card>
 
-    <BasicModal
-      :title="isEditing ? '编辑设置' : '新增设置'"
-      :width="640"
-      @register="modalRegister"
-      @ok="handleSave"
-    >
+    <BasicModal :title="isEditing ? '编辑设置' : '新增设置'" :width="640" @register="modalRegister" @ok="handleSave">
       <BasicForm
         :schemas="modalFormSchemas"
         :label-width="80"
@@ -470,18 +431,8 @@ const columns: BasicColumn[] = [
       />
     </BasicModal>
 
-    <BasicDrawer
-      :title="`详情设置 - ${viewingRecord?.name || ''}`"
-      :size="520"
-      @register="drawerRegister"
-    >
-      <DetailDescription
-        v-if="viewingRecord"
-        :data="viewingRecord"
-        :schema="detailSchemas"
-        :column="1"
-        bordered
-      />
+    <BasicDrawer :title="`详情设置 - ${viewingRecord?.name || ''}`" :size="520" @register="drawerRegister">
+      <DetailDescription v-if="viewingRecord" :data="viewingRecord" :schema="detailSchemas" :column="1" bordered />
     </BasicDrawer>
   </div>
 </template>

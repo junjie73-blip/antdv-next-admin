@@ -1,5 +1,6 @@
 import type { BackendMenu } from '#/menu'
-import { get } from '@/api/request'
+
+import { get } from '~/api/request'
 
 interface MenuResponse {
   list: BackendMenu[]

@@ -1,7 +1,7 @@
 import type { MicroAppConfig, MicroAppItem } from '#/micro-app'
 
 export const microAppConfig: MicroAppConfig = {
-  enabled: import.meta.env.VITE_MICRO_APP === 'true' || import.meta.env.VITE_MICRO_APP === true,
+  enabled: import.meta.env.VITE_MICRO_APP === true,
   apps: [
     {
       name: 'sub-app-example',
@@ -89,7 +89,7 @@ export const microAppConfig: MicroAppConfig = {
 }
 
 export function getMicroAppByName(name: string): MicroAppItem | undefined {
-  return microAppConfig.apps.find(app => app.name === name)
+  return microAppConfig.apps.find((app) => app.name === name)
 }
 
 export function getAllMicroApps(): MicroAppItem[] {

@@ -1,16 +1,19 @@
 <script setup lang="ts">
-import { cn } from '@/utils/cn'
+import { cn } from '~/utils/cn'
 
-withDefaults(defineProps<{
-  /** 卡片标题 */
-  title?: string
-  /** 是否显示标题栏发光边框效果 */
-  glow?: boolean
-  /** 内容区域额外类名 */
-  bodyClass?: string
-}>(), {
-  glow: true,
-})
+withDefaults(
+  defineProps<{
+    /** 卡片标题 */
+    title?: string
+    /** 是否显示标题栏发光边框效果 */
+    glow?: boolean
+    /** 内容区域额外类名 */
+    bodyClass?: string
+  }>(),
+  {
+    glow: true,
+  },
+)
 
 defineOptions({ name: 'ScreenCard' })
 
@@ -29,12 +32,9 @@ const headerTitleClassName = cn('text-sm font-medium text-blue-200/90 tracking-w
 <template>
   <div :class="containerClassName">
     <!-- 标题栏 -->
-    <div
-      v-if="$slots.header || title"
-      :class="headerClassName"
-    >
+    <div v-if="$slots.header || title" :class="headerClassName">
       <slot name="header">
-        <span class="w-1 h-3.5 bg-blue-400/70 rounded-sm" />
+        <span class="h-3.5 w-1 rounded-sm bg-blue-400/70" />
         <span :class="headerTitleClassName">{{ title }}</span>
       </slot>
     </div>
@@ -45,21 +45,9 @@ const headerTitleClassName = cn('text-sm font-medium text-blue-200/90 tracking-w
     </div>
 
     <!-- 装饰角标 -->
-    <span
-      v-if="glow"
-      class="absolute top-0 left-0 w-3 h-3 border-l border-t border-blue-400/40 rounded-tl"
-    />
-    <span
-      v-if="glow"
-      class="absolute top-0 right-0 w-3 h-3 border-r border-t border-blue-400/40 rounded-tr"
-    />
-    <span
-      v-if="glow"
-      class="absolute bottom-0 left-0 w-3 h-3 border-l border-b border-blue-400/40 rounded-bl"
-    />
-    <span
-      v-if="glow"
-      class="absolute bottom-0 right-0 w-3 h-3 border-r border-b border-blue-400/40 rounded-br"
-    />
+    <span v-if="glow" class="absolute top-0 left-0 h-3 w-3 rounded-tl border-t border-l border-blue-400/40" />
+    <span v-if="glow" class="absolute top-0 right-0 h-3 w-3 rounded-tr border-t border-r border-blue-400/40" />
+    <span v-if="glow" class="absolute bottom-0 left-0 h-3 w-3 rounded-bl border-b border-l border-blue-400/40" />
+    <span v-if="glow" class="absolute right-0 bottom-0 h-3 w-3 rounded-br border-r border-b border-blue-400/40" />
   </div>
 </template>

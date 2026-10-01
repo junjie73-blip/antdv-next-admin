@@ -1,5 +1,7 @@
-import dayjs from 'dayjs'
+import { message } from 'antdv-next'
 import * as XLSX from 'xlsx'
+
+import dayjs from '~/utils/dayjs'
 
 export interface ExportColumn {
   header: string
@@ -36,13 +38,7 @@ export interface ExportOptions {
  * ```
  */
 export function exportToExcel(options: ExportOptions) {
-  const {
-    filename,
-    columns,
-    data,
-    sheetName = 'Sheet1',
-    autoWidth = true,
-  } = options
+  const { filename, columns, data, sheetName = 'Sheet1', autoWidth = true } = options
 
   if (!data || data.length === 0) {
     message.warning('没有可导出的数据')
@@ -50,15 +46,13 @@ export function exportToExcel(options: ExportOptions) {
   }
 
   // 构建表头行和数据行
-  const headers = columns.map(col => col.header)
-  const rows = data.map(item =>
+  const headers = columns.map((col) => col.header)
+  const rows = data.map((item) =>
     columns.map((col) => {
       const value = item[col.key]
       // 处理特殊值
-      if (value === null || value === undefined)
-        return ''
-      if (typeof value === 'object')
-        return JSON.stringify(value)
+      if (value === null || value === undefined) return ''
+      if (typeof value === 'object') return JSON.stringify(value)
       return value
     }),
   )
@@ -70,16 +64,12 @@ export function exportToExcel(options: ExportOptions) {
   // 自动调整列宽
   if (autoWidth) {
     const colWidths = columns.map((col, idx) => ({
-      wch: col.width || Math.max(
-        headers[idx]?.length || 10,
-        ...data.map(item => String(item[col.key] ?? '').length),
-      ),
+      wch: col.width || Math.max(headers[idx]?.length || 10, ...data.map((item) => String(item[col.key] ?? '').length)),
     }))
     ws['!cols'] = colWidths
-  }
-  else if (columns.some(col => col.width)) {
+  } else if (columns.some((col) => col.width)) {
     // 使用指定的列宽
-    ws['!cols'] = columns.map(col => ({ wch: col.width || 12 }))
+    ws['!cols'] = columns.map((col) => ({ wch: col.width || 12 }))
   }
 
   // 创建工作簿

@@ -1,17 +1,21 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { cn } from '@/utils/cn'
 
-const props = withDefaults(defineProps<{
-  /** 大屏标题 */
-  title?: string
-  /** 是否显示全屏按钮 */
-  showFullscreen?: boolean
-}>(), {
-  title: '数据监控中心',
-  showFullscreen: true,
-})
+import { cn } from '~/utils/cn'
+
+const props = withDefaults(
+  defineProps<{
+    /** 大屏标题 */
+    title?: string
+    /** 是否显示全屏按钮 */
+    showFullscreen?: boolean
+  }>(),
+  {
+    title: '数据监控中心',
+    showFullscreen: true,
+  },
+)
 
 defineOptions({ name: 'ScreenHeader' })
 
@@ -39,8 +43,7 @@ function toggleFullscreen() {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen()
     isFullscreen.value = true
-  }
-  else {
+  } else {
     document.exitFullscreen()
     isFullscreen.value = false
   }
@@ -55,8 +58,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  if (timer)
-    clearInterval(timer)
+  if (timer) clearInterval(timer)
   document.removeEventListener('fullscreenchange', () => {})
 })
 </script>
@@ -65,9 +67,9 @@ onBeforeUnmount(() => {
   <div :class="containerClassName">
     <!-- 左侧：标题 -->
     <div :class="titleClassName">
-      <span class="w-1.5 h-6 bg-blue-400 rounded-full" />
+      <span class="h-6 w-1.5 rounded-full bg-blue-400" />
       {{ title }}
-      <span class="text-[10px] text-blue-300/50 ml-2 tracking-widest">SECURITY MONITOR</span>
+      <span class="ml-2 text-[10px] tracking-widest text-blue-300/50">SECURITY MONITOR</span>
     </div>
 
     <!-- 中间：时间 -->
@@ -78,14 +80,8 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- 右侧：操作按钮 -->
-    <div
-      v-if="showFullscreen"
-      class="flex items-center gap-3"
-    >
-      <button
-        :class="actionBtnClassName"
-        @click="toggleFullscreen"
-      >
+    <div v-if="showFullscreen" class="flex items-center gap-3">
+      <button :class="actionBtnClassName" @click="toggleFullscreen">
         <FullscreenOutlined v-if="!isFullscreen" class="text-xs" />
         <FullscreenExitOutlined v-else class="text-xs" />
         {{ isFullscreen ? '退出全屏' : '全屏' }}

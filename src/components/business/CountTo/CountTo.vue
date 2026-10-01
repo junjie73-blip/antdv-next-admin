@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import type { CountToInstance, CountToProps } from './types'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { cn } from '@/utils/cn'
+
+import { cn } from '~/utils/cn'
+
+import type { CountToInstance, CountToProps } from './types'
 
 /**
  * CountTo - 数字动画组件
@@ -74,14 +76,11 @@ const displayValue = computed(() => formatNumber(currentValue.value))
  * 动画循环
  */
 function animate(timestamp: number) {
-  if (!startTime)
-    startTime = timestamp
+  if (!startTime) startTime = timestamp
   const progress = Math.min((timestamp - startTime) / props.duration, 1)
 
   // 应用缓动函数
-  const easeProgress = props.useEasing
-    ? easingFunctions[props.easingFn](progress)
-    : progress
+  const easeProgress = props.useEasing ? easingFunctions[props.easingFn](progress) : progress
 
   // 计算当前值
   currentValue.value = props.startVal + (props.endVal - props.startVal) * easeProgress
@@ -91,8 +90,7 @@ function animate(timestamp: number) {
 
   if (progress < 1) {
     animationId = requestAnimationFrame(animate)
-  }
-  else {
+  } else {
     // 动画结束
     currentValue.value = props.endVal
     isAnimating.value = false
@@ -104,8 +102,7 @@ function animate(timestamp: number) {
  * 开始动画
  */
 function start() {
-  if (isAnimating.value)
-    return
+  if (isAnimating.value) return
   isAnimating.value = true
   startTime = null
   currentValue.value = props.startVal
@@ -170,10 +167,7 @@ defineExpose<CountToInstance>({
 </script>
 
 <template>
-  <span
-    :class="cn('count-to', className)"
-    :style="style"
-  >
+  <span :class="cn('count-to', className)" :style="style">
     {{ displayValue }}
   </span>
 </template>
