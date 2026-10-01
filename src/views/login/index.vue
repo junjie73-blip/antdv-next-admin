@@ -38,8 +38,8 @@ const formState = reactive<{
   captchaCode: string | undefined
 }>({
   tenantCode: undefined,
-  username: '',
-  password: '',
+  username: 'super',
+  password: '123456',
   remember: true,
   captchaCode: '',
 })
