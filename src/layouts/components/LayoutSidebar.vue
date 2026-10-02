@@ -365,47 +365,11 @@ watch(
 .sidebar-dark :deep(.ant-menu-sub .ant-menu-item) {
   padding-left: 48px !important;
 }
-
-/* ===================== 极客风格菜单定制 ===================== */
-.sidebar-geek :deep(.ant-menu) {
-  background: transparent;
-  border-inline-end: none !important;
+:deep(.ant-layout-sider-children) {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
-
-.sidebar-geek :deep(.ant-menu-item) {
-  margin: 2px 0;
-  border-radius: 4px;
-  height: 40px;
-  line-height: 40px;
-  transition: all 0.15s ease;
-  width: calc(100%);
-}
-
-.sidebar-geek :deep(.ant-menu-item.ant-menu-item-selected) {
-  background: rgba(0, 255, 136, 0.08);
-  color: #00ff88;
-}
-
-.sidebar-geek :deep(.ant-menu-item.ant-menu-item-selected::after) {
-  display: none;
-}
-
-.sidebar-geek :deep(.ant-menu-submenu-title) {
-  margin: 2px 0;
-  border-radius: 4px;
-  height: 40px;
-  line-height: 40px;
-  transition: all 0.15s ease;
-}
-
-.sidebar-geek :deep(.ant-menu-sub.ant-menu-inline) {
-  background: transparent !important;
-}
-
-.sidebar-geek :deep(.ant-menu-sub .ant-menu-item) {
-  padding-left: 48px !important;
-}
-
 /* ===================== 通用优化 ===================== */
 /* 折叠状态下的 tooltip 弹出菜单也保持一致的圆角 */
 :deep(.ant-menu-submenu-popup .ant-menu) {

@@ -243,28 +243,6 @@ export function createRequestClient(options: CreateRequestClientOptions = {}) {
     return refreshPromise
   }
 
-  /** 刷新失败：清状态 + 跳登录 + 返回一个 handled 的错误 */
-  function handleRefreshFailure(originalError?: unknown): AlovaRequestError {
-    const userStore = useUserStore()
-    ;(userStore as any).logout?.() ?? (userStore as any).resetToken?.() ?? (userStore as any).clearToken?.()
-
-    if (router.currentRoute.value.path !== '/login') {
-      router.replace({
-        path: '/login',
-        query: { redirect: router.currentRoute.value.fullPath },
-      })
-    }
-
-    const err = new AlovaRequestError('登录已过期，请重新登录', {
-      status: 401,
-      statusText: 'Unauthorized',
-      code: ErrorCode.UNAUTHORIZED,
-      data: originalError,
-    })
-    err.handled = true
-    return err
-  }
-
   return createAlova({
     baseURL,
     requestAdapter: fetchAdapter,
@@ -655,6 +633,6 @@ function resolveErrorMessage(data: unknown, fallback: string, status?: number, c
   return fallback
 }
 
-export const http = createRequestClient()
+export const http = createRequestClient<any>()
 export type { RequestMeta }
 export { AlovaRequestError as RequestError }

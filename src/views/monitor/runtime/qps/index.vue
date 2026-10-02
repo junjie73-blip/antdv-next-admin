@@ -156,7 +156,7 @@ const columns = [
 
 <template>
   <PerfectScrollbar class="h-full">
-    <div class="space-y-4 p-4">
+    <div class="space-y-4">
       <!-- 概览 -->
       <div v-if="summary" class="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <div class="rounded-xl border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">

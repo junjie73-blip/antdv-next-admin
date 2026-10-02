@@ -86,6 +86,30 @@ export const SYSTEM_PERMS = {
     deleteBatch: 'system:settings:deleteBatch',
     detail: 'system:settings:detail',
   },
+  userGroup: {
+    list: 'user-group:list',
+    create: 'user-group:create',
+    update: 'user-group:update',
+    delete: 'user-group:delete',
+    members: 'user-group:manage-member',
+    roles: 'user-group:manage-role',
+  },
+  storage: {
+    list: 'system:storage:list',
+    manage: 'system:storage:manage',
+  },
+  fieldMask: {
+    list: 'system:field-mask:list',
+    manage: 'system:field-mask:manage',
+  },
+  genTemplate: {
+    list: 'tool:gen:template:list',
+    manage: 'tool:gen:template:manage',
+  },
+  archivePolicy: {
+    list: 'system:archive-policy:list',
+    manage: 'system:archive-policy:manage',
+  },
 } as const
 
 /* ============================================================
@@ -114,6 +138,8 @@ export const MONITOR_PERMS = {
   /** 缓存监控 */
   cache: {
     delete: 'monitor:cache:delete',
+    list: 'system:cache:manage',
+    manage: 'system:cache:manage',
   },
 
   /** 服务监控 */
@@ -132,6 +158,18 @@ export const MONITOR_PERMS = {
   loginLog: {
     detail: 'monitor:login-log:detail',
     export: 'monitor:login-log:export',
+  },
+  slowQuery: {
+    list: 'monitor:slow-query:list',
+    review: 'monitor:slow-query:review',
+  },
+  logs: {
+    list: 'monitor:logs:list',
+    query: 'monitor:logs:query',
+  },
+  queue: {
+    list: 'monitor:queue:list',
+    manage: 'monitor:queue:manage',
   },
 } as const
 
@@ -235,23 +273,43 @@ export const TOOL_PERMS = {
 } as const
 export const WORKFLOW_PERMS = {
   center: {
-    todo: 'workflow:center:todo',
+    list: 'workflow:center:todo',
     complete: 'workflow:center:complete',
     batch: 'workflow:center:batch',
     detail: 'workflow:center:detail',
-    done: 'workflow:center:done',
     initiated: 'workflow:center:initiated',
+    done: 'workflow:center:done',
+  },
+  cc: {
+    list: 'workflow:cc:list',
+    read: 'workflow:cc:read',
+  },
+  delegate: {
+    list: 'workflow:delegate:list',
+    create: 'workflow:delegate:create',
+    update: 'workflow:delegate:update',
+    delete: 'workflow:delegate:delete',
+    revoke: 'workflow:delegate:revoke',
+  },
+  task: {
+    addSign: 'workflow:task:add-sign',
+    transfer: 'workflow:task:transfer',
+    rollback: 'workflow:task:rollback',
+  },
+  instance: {
+    suspend: 'workflow:instance:suspend',
+    resume: 'workflow:instance:resume',
+    terminate: 'workflow:instance:terminate',
   },
   definition: {
     list: 'workflow:definition:list',
     create: 'workflow:definition:create',
     update: 'workflow:definition:update',
-    delete: 'workflow:definition:delete',
     publish: 'workflow:definition:publish',
     newVersion: 'workflow:definition:new-version',
-  },
-  log: {
-    list: 'workflow:approval-log:list',
+    delete: 'workflow:definition:delete',
+    validate: 'workflow:definition:validate',
+    importXml: 'workflow:definition:import-xml',
   },
 } as const
 

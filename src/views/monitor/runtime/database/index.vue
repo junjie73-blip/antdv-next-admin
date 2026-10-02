@@ -72,32 +72,6 @@ const tableSizeOption = computed(() => {
 })
 
 /* ============================================================
- * 慢查询耗时 Top 10
- * ============================================================ */
-const slowQueryOption = computed(() => {
-  const top = slowQueries.value.slice(0, 10).reverse()
-  return {
-    tooltip: { trigger: 'axis' },
-    grid: { left: 60, right: 30, top: 20, bottom: 30 },
-    xAxis: {
-      type: 'value',
-      axisLabel: { formatter: '{value} ms' },
-    },
-    yAxis: {
-      type: 'category',
-      data: top.map((q, i) => `#${i + 1}`),
-    },
-    series: [
-      {
-        type: 'bar',
-        data: top.map((q) => q.meanTime),
-        itemStyle: { color: '#ef4444', borderRadius: [0, 4, 4, 0] },
-      },
-    ],
-  }
-})
-
-/* ============================================================
  * 索引使用 Top 10
  * ============================================================ */
 const indexUsageOption = computed(() => {
@@ -162,7 +136,7 @@ const columns = [
 </script>
 
 <template>
-  <div class="space-y-4 p-4">
+  <div class="space-y-4">
     <!-- 概览 -->
     <div v-if="info" class="grid grid-cols-2 gap-4 lg:grid-cols-4">
       <div class="rounded-xl border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -192,34 +166,18 @@ const columns = [
     </div>
 
     <a-card :bordered="false" class="shadow-sm">
-      <a-tabs v-model:active-key="activeTab">
-        <a-tab-pane key="overview" tab="表统计">
-          <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div>
-              <div class="mb-2 text-sm font-medium">表大小 Top 10</div>
-              <ECharts :option="tableSizeOption" height="360px" />
-            </div>
-            <div>
-              <div class="mb-2 text-sm font-medium">索引使用 Top 10</div>
-              <ECharts :option="indexUsageOption" height="360px" />
-            </div>
-          </div>
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div>
+          <div class="mb-2 text-sm font-medium">表大小 Top 10</div>
+          <ECharts :option="tableSizeOption" height="360px" />
+        </div>
+        <div>
+          <div class="mb-2 text-sm font-medium">索引使用 Top 10</div>
+          <ECharts :option="indexUsageOption" height="360px" />
+        </div>
+      </div>
 
-          <a-table :data-source="tables" :pagination="false" size="small" row-key="name" class="mt-4" :columns>
-          </a-table>
-        </a-tab-pane>
-
-        <a-tab-pane key="slow" tab="慢查询">
-          <ECharts :option="slowQueryOption" height="320px" />
-          <a-table :data-source="slowQueries" :pagination="false" size="small" class="mt-4">
-            <a-table-column title="查询" data-index="query" :ellipsis="true" width="50%" />
-            <a-table-column title="调用次数" data-index="calls" align="right" width="100" />
-            <a-table-column title="平均耗时(ms)" data-index="meanTime" align="right" width="120" />
-            <a-table-column title="总耗时(ms)" data-index="totalTime" align="right" width="120" />
-            <a-table-column title="返回行数" data-index="rows" align="right" width="100" />
-          </a-table>
-        </a-tab-pane>
-      </a-tabs>
+      <a-table :data-source="tables" :pagination="false" size="small" row-key="name" class="mt-4" :columns> </a-table>
     </a-card>
   </div>
 </template>

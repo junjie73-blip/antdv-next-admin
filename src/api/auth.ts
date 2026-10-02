@@ -106,14 +106,36 @@ export interface DeviceItem {
   userAgent: string | null
   ttl: number
 }
-/** 查询我的登录日志 */
-export function getMyLoginLogs(params: MyLoginLogParams = {}) {
-  return http
-    .Get<{
-      data: { list: LoginLogItem[]; total: number; pageNum: number; pageSize: number }
-    }>('/auth/my/login-logs', { params })
-    .send(true)
+export interface AbnormalLoginItem {
+  logId: string
+  userId: string
+  username: string
+  ipAddress: string
+  userAgent: string | null
+  status: string
+  message: string | null
+  createdAt: string
+  isAbnormal: number
+  abnormalType: string | null
+  abnormalReason: string | null
+  country: string | null
+  province: string | null
+  city: string | null
+  isp: string | null
+  notifyStatus: number
 }
+
+export interface AbnormalLoginListParams {
+  pageNum?: number
+  pageSize?: number
+}
+
+export interface AbnormalStats {
+  total: number
+  last7days: number
+  typeDistribution: Record<string, number>
+}
+
 /** 查询注销状态 */
 export function getCancelStatus() {
   return http.Get<{ data: CancelStatus }>('/auth/cancel-account/status').send(true)
@@ -226,4 +248,67 @@ export function getMyDevices() {
 
 export function kickMyDevice(deviceId: string) {
   return http.Delete(`/auth/my-devices/${deviceId}`)
+}
+
+/* ============================================================
+ * ⭐ 我的异常登录（个人中心）
+ * ============================================================ */
+export function getMyAbnormalLogins(params: AbnormalLoginListParams) {
+  return http.Get<{ list: AbnormalLoginItem[]; total: number }>('/login-security/my/abnormal', {
+    params,
+  })
+}
+
+/* ============================================================
+ * 我的全部登录记录（等价 /auth/my/login-logs）
+ * ============================================================ */
+export function getMyLoginLogs(params: AbnormalLoginListParams) {
+  return http
+    .Get<{ list: AbnormalLoginItem[]; total: number }>('/login-security/my/logs', {
+      params,
+    })
+    .send(true)
+}
+
+/* ============================================================
+ * 管理员视角
+ * ============================================================ */
+export function getAbnormalList(
+  params: AbnormalLoginListParams & {
+    userId?: string
+    abnormalType?: string
+  },
+) {
+  return http
+    .Get<{ list: AbnormalLoginItem[]; total: number }>('/login-security/abnormal/list', {
+      params,
+    })
+    .send(true)
+}
+
+export function getAbnormalStats() {
+  return http.Get<AbnormalStats>('/login-security/abnormal/stats').send(true)
+}
+export type NotifyChannel = 'in_app' | 'email' | 'sms' | 'webhook'
+export type NotifyEvent = 'notice' | 'todo' | 'workflow' | 'announcement' | 'system' | '*'
+
+export interface PreferenceItem {
+  channel: NotifyChannel
+  eventType: NotifyEvent
+  enabled: number
+}
+
+/** 后端返回结构：{ [channel]: { [eventType]: 0 | 1 } } */
+export type NoticePreferenceMap = Record<string, Record<string, number>>
+
+export function getMyNoticePreferences() {
+  return http.Get<NoticePreferenceMap>('/notice-preference/me')
+}
+
+export function setMyNoticePreferences(data: { items: PreferenceItem[] }) {
+  return http.Put('/notice-preference/me', data)
+}
+
+export function resetMyNoticePreferences(data: { channel?: NotifyChannel }) {
+  return http.Post('/notice-preference/me/reset', data)
 }

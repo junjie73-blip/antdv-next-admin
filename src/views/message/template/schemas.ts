@@ -1,4 +1,6 @@
-import { computed, type ComputedRef } from 'vue'
+import type { Ref } from 'vue'
+
+import { computed } from 'vue'
 
 import type { FormSchema } from '~/components/business/Form'
 
@@ -10,16 +12,15 @@ export const searchSchemas: FormSchema[] = [
     label: '关键词',
     component: 'Input',
     colProps: { span: 6 },
-    componentProps: { placeholder: '搜索模板名称/编码', allowClear: true },
+    componentProps: { placeholder: '搜索名称 / 编码', allowClear: true },
   },
-
   {
     field: 'channelType',
     label: '渠道',
     component: 'Select',
     colProps: { span: 6 },
     componentProps: {
-      placeholder: '全部渠道',
+      placeholder: '全部',
       allowClear: true,
       options: CHANNEL_OPTIONS.map((c) => ({ label: c.label, value: c.value })),
     },
@@ -30,7 +31,7 @@ export const searchSchemas: FormSchema[] = [
     component: 'Select',
     colProps: { span: 6 },
     componentProps: {
-      placeholder: '全部状态',
+      placeholder: '全部',
       allowClear: true,
       options: Object.entries(TEMPLATE_STATUS_MAP).map(([value, meta]) => ({
         label: meta.label,
@@ -40,7 +41,7 @@ export const searchSchemas: FormSchema[] = [
   },
 ]
 
-export function useTemplateFormSchemas(isEditing: ComputedRef<boolean>): ComputedRef<FormSchema[]> {
+export function useTemplateFormSchemas(isEditing: Ref<boolean>) {
   return computed<FormSchema[]>(() => [
     {
       field: 'templateCode',
@@ -94,7 +95,10 @@ export function useTemplateFormSchemas(isEditing: ComputedRef<boolean>): Compute
       label: '模板标题',
       component: 'Input',
       colProps: { span: 24 },
-      componentProps: { placeholder: '如「欢迎加入 ${appName}」，可包含变量', maxlength: 256 },
+      componentProps: {
+        placeholder: '可包含变量，如「欢迎加入 ${appName}」',
+        maxlength: 256,
+      },
     },
     {
       field: 'content',
@@ -102,31 +106,13 @@ export function useTemplateFormSchemas(isEditing: ComputedRef<boolean>): Compute
       slot: 'templateEditor',
       colProps: { span: 24 },
       required: true,
-      componentProps: { placeholder: '模板内容，可包含变量', rows: 2, maxlength: 512 },
     },
-    {
-      field: 'contentFormat',
-      label: '__hidden__',
-      component: 'Input',
-      hidden: true,
-      colProps: { span: 0 },
-      defaultValue: 'markdown',
-    },
-    {
-      field: 'params',
-      label: '__hidden__',
-      component: 'Input',
-      hidden: true,
-      colProps: { span: 0 },
-      defaultValue: [],
-    },
-
     {
       field: 'remark',
       label: '备注',
       component: 'InputTextArea',
       colProps: { span: 24 },
-      componentProps: { placeholder: '模板说明，便于团队理解', rows: 2, maxlength: 512 },
+      componentProps: { placeholder: '模板说明', rows: 2, maxlength: 512 },
     },
   ])
 }

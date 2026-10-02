@@ -5,14 +5,24 @@ export interface NoticeRecord {
   content: string
   /** 1-通知 2-公告 3-提醒 */
   noticeType: number
-  /** '0'-草稿 '1'-发布 */
+  /** '0'-草稿 '1'-已发布 */
   status: string
-  publishTime?: string | null
-  createdAt: string
-  targetUserIds?: string[]
-  /** '0'-未发送 '1'-已发送 */
+  /** 0-普通 1-重要 2-紧急 */
+  priority: number
+  /** 0-普通 1-置顶 */
+  isTop: number
+  /** ⭐ 关联的消息模板 ID */
+  templateId?: string | null
+  /** ⭐ 发送状态 '0'-未发送 '1'-已发送 */
   sendStatus: string
   sendTime?: string | null
+  publishTime?: string | null
+  /** ⭐ 撤回相关 */
+  revokedAt?: string | null
+  revokedBy?: string | null
+  targetUserIds?: string[]
+  createdAt: string
+  updatedAt?: string
 }
 
 /** 用户选项 */

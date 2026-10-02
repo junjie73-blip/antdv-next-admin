@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { DownloadOutlined, UploadOutlined } from '@antdv-next/icons'
 import { message, Modal } from 'antdv-next'
-import dayjs from 'dayjs'
 import { h, ref } from 'vue'
 
 import { http } from '~/utils'
 import { generateTemplate, type TemplateColumn } from '~/utils/template'
+import { submitExport } from '~/views/system/export/api'
 
 interface Props {
   /** 模块路径，如 "/user"（自动调 `${module}/export` 和 `${module}/import`） */
@@ -38,6 +38,8 @@ interface Props {
   importTemplate?: TemplateColumn[]
   // 权限
   permissions: string[]
+  importProps?: Record<string, any>
+  exportProps?: Record<string, any>
 }
 
 interface ImportResult {
@@ -80,25 +82,14 @@ async function handleExport() {
     params.ids = params.ids.join(',')
   }
   try {
-    const res = await http
-      .Get(`${props.module}/export`, {
-        params,
-        meta: { responseType: 'blob' },
-      } as any)
-      .send(true)
-
-    // res 可能是 Blob 或包含 blob 的对象
-    const blob = res instanceof Blob ? res : (res as any)?.data
-
-    if (!(blob instanceof Blob)) {
-      throw new Error('导出失败：返回数据格式不正确')
-    }
-
-    // 从 header 或默认命名生成文件名
-    const downloadName = `${props.filename || props.module.split('/').pop()}_${dayjs().format('YYYY-MM-DD')}_${new Date().getTime()}.xlsx`
-
-    triggerDownload(blob, downloadName)
-    message.success('导出成功')
+    const {
+      data: { taskId },
+    } = await submitExport({
+      bizType: props.exportProps?.bizType,
+      exportFormat: props.exportProps?.exportFormat ?? 'xlsx',
+      queryParams: params,
+    })
+    message.success(`导出任务已提交（ID: ${taskId.slice(0, 8)}），可在「导出中心」查看进度`)
     props.onExportSuccess?.()
   } catch (e: any) {
     const err = e instanceof Error ? e : new Error(String(e))
@@ -107,20 +98,6 @@ async function handleExport() {
   } finally {
     exporting.value = false
   }
-}
-
-/** 触发浏览器下载 */
-function triggerDownload(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.style.display = 'none'
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  // 延迟释放，避免某些浏览器提前 revoke 导致下载失败
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
 // ============================================================

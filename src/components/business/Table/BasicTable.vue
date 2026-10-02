@@ -34,6 +34,9 @@ const props = withDefaults(defineProps<BasicTableProps>(), {
   size: 'small',
   showTableSetting: true,
   tableLayout: 'fixed',
+  scroll: {
+    y: 440,
+  },
 })
 
 const emit = defineEmits<{

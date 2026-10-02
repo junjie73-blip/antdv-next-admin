@@ -52,3 +52,16 @@ export const NOTICE_IS_TOP_MAP: Record<number, { label: string; color: string }>
   0: { label: '否', color: 'gray' },
   1: { label: '是', color: 'green' },
 }
+export const NOTICE_SEND_STATUS_MAP: Record<string, { label: string; color: string }> = {
+  '0': { label: '未发送', color: 'default' },
+  '1': { label: '已发送', color: 'cyan' },
+}
+
+/** 发送状态筛选选项 */
+export const NOTICE_SEND_STATUS_OPTIONS = [
+  { label: '未发送', value: '0' },
+  { label: '已发送', value: '1' },
+]
+
+/** 撤回状态映射（派生，无需新增字段） */
+export const NOTICE_REVOKE_LABEL = '已撤回'

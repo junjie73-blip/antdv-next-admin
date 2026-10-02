@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { message } from 'antdv-next'
+import { message, Select } from 'antdv-next'
 import { computed, ref, watch } from 'vue'
 
 import {
@@ -46,16 +46,28 @@ const DEFAULT_FORMS: Record<ChannelType, ChannelForm> = {
     enabled: 0,
     config: {
       provider: 'aliyun',
-      accessKey: '',
-      accessSecret: '',
+      accessKeyId: '',
+      accessKeySecret: '',
+      secretId: '',
+      secretKey: '',
+      appKey: '',
+      appSecret: '',
       signName: '',
-      templateCode: '',
+      defaultTemplateId: '',
+      region: 'cn-hangzhou',
+      endpoint: '',
+      sender: '',
     },
     remark: '',
   },
   webhook: {
     enabled: 0,
-    config: { url: '', method: 'POST', secret: '', headers: '' },
+    config: {
+      url: '',
+      secret: '',
+      enableIdempotency: true,
+      headers: '',
+    },
     remark: '',
   },
 }
@@ -80,7 +92,7 @@ async function load() {
       if (!base) continue
       forms.value[item.channelType] = {
         enabled: item.enabled ?? 0,
-        config: { ...base.config, ...item.config },
+        config: { ...base.config, ...JSON.parse((item.config as unknown as string) || '{}') },
         remark: item.remark || '',
       }
     }
@@ -190,7 +202,7 @@ function close() {
             <!-- 短信 -->
             <a-form v-else-if="t === 'sms'" layout="vertical">
               <a-form-item label="服务商">
-                <a-select
+                <Select
                   v-model:value="activeForm.config.provider"
                   :options="[
                     { label: '阿里云', value: 'aliyun' },
@@ -200,17 +212,57 @@ function close() {
                   placeholder="选择服务商"
                 />
               </a-form-item>
-              <a-form-item label="AccessKey">
-                <a-input v-model:value="activeForm.config.accessKey" />
-              </a-form-item>
-              <a-form-item label="AccessSecret">
-                <a-input-password v-model:value="activeForm.config.accessSecret" />
-              </a-form-item>
+
+              <!-- 阿里云 -->
+              <template v-if="activeForm.config.provider === 'aliyun'">
+                <a-form-item label="AccessKeyId">
+                  <a-input v-model:value="activeForm.config.accessKeyId" />
+                </a-form-item>
+                <a-form-item label="AccessKeySecret">
+                  <a-input-password v-model:value="activeForm.config.accessKeySecret" />
+                </a-form-item>
+                <a-form-item label="Region">
+                  <a-input v-model:value="activeForm.config.region" placeholder="cn-hangzhou" />
+                </a-form-item>
+              </template>
+
+              <!-- 腾讯云 -->
+              <template v-else-if="activeForm.config.provider === 'tencent'">
+                <a-form-item label="SecretId">
+                  <a-input v-model:value="activeForm.config.secretId" />
+                </a-form-item>
+                <a-form-item label="SecretKey">
+                  <a-input-password v-model:value="activeForm.config.secretKey" />
+                </a-form-item>
+                <a-form-item label="Region">
+                  <a-input v-model:value="activeForm.config.region" placeholder="ap-guangzhou" />
+                </a-form-item>
+              </template>
+
+              <!-- 华为云 -->
+              <template v-else-if="activeForm.config.provider === 'huawei'">
+                <a-form-item label="AppKey">
+                  <a-input v-model:value="activeForm.config.appKey" />
+                </a-form-item>
+                <a-form-item label="AppSecret">
+                  <a-input-password v-model:value="activeForm.config.appSecret" />
+                </a-form-item>
+                <a-form-item label="Endpoint">
+                  <a-input
+                    v-model:value="activeForm.config.endpoint"
+                    placeholder="https://smsapi.cn-north-4.myhuaweicloud.com"
+                  />
+                </a-form-item>
+                <a-form-item label="通道号（Sender）">
+                  <a-input v-model:value="activeForm.config.sender" placeholder="10690000..." />
+                </a-form-item>
+              </template>
+
               <a-form-item label="短信签名">
-                <a-input v-model:value="activeForm.config.signName" placeholder="例如：XXX 科技" />
+                <a-input v-model:value="activeForm.config.signName" placeholder="例如：ACME 科技" />
               </a-form-item>
-              <a-form-item label="模板编码">
-                <a-input v-model:value="activeForm.config.templateCode" placeholder="SMS_12345678" />
+              <a-form-item label="默认模板 ID">
+                <a-input v-model:value="activeForm.config.defaultTemplateId" placeholder="SMS_123456789" />
               </a-form-item>
             </a-form>
 
@@ -219,16 +271,19 @@ function close() {
               <a-form-item label="回调 URL">
                 <a-input v-model:value="activeForm.config.url" placeholder="https://example.com/webhook" />
               </a-form-item>
-              <a-form-item label="请求方法">
-                <a-radio-group v-model:value="activeForm.config.method" button-style="solid">
-                  <a-radio-button value="POST">POST</a-radio-button>
-                  <a-radio-button value="PUT">PUT</a-radio-button>
-                </a-radio-group>
-              </a-form-item>
               <a-form-item label="签名密钥">
-                <a-input-password v-model:value="activeForm.config.secret" />
+                <a-input-password
+                  v-model:value="activeForm.config.secret"
+                  placeholder="留空则不签名；设置后请求头带 X-Signature"
+                />
               </a-form-item>
-              <a-form-item label="自定义请求头 (JSON)">
+              <a-form-item label="启用幂等">
+                <a-switch v-model:checked="activeForm.config.enableIdempotency" />
+                <div class="ml-2 inline-block text-xs text-gray-400">
+                  开启后请求头带 X-Idempotency-Key，接收方可去重
+                </div>
+              </a-form-item>
+              <a-form-item label="自定义请求头（JSON）">
                 <a-textarea
                   v-model:value="activeForm.config.headers"
                   :rows="3"

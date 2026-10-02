@@ -61,3 +61,6 @@ export function assignRoleDepts(id: string, deptIds: string[]) {
 export function exportRoles(params?: Record<string, unknown>) {
   return get<any>('/role/export', params)
 }
+export function getUserRoleOptions() {
+  return get('/role/options')
+}

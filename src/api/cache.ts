@@ -2,6 +2,36 @@ import type { CacheGroupInfo, CacheInfo, CacheKeyInfo, CacheKeyValue } from '~/v
 
 import { http } from '~/utils'
 
+/* ============================================================
+ * 缓存操作日志
+ * ============================================================ */
+export type CacheOperationType = 'clear_group' | 'delete_key' | 'view_stats'
+
+export interface CacheOperationLog {
+  logId: string
+  tenantId: string
+  operatorId: string | null
+  operatorName: string | null
+  operation: CacheOperationType | string
+  target: string
+  keyCount: number
+  durationMs: number
+  /** '1' 成功 / '0' 失败 */
+  status: string
+  errorMsg: string | null
+  createdAt: string
+}
+
+export interface CacheOperationListParams {
+  pageNum?: number
+  pageSize?: number
+}
+
+export function getCacheOperations(params: CacheOperationListParams = {}) {
+  return http.Get<{ list: CacheOperationLog[]; total: number }>('/monitor/cache/operations', {
+    params,
+  })
+}
 /** Redis 概览 */
 export function getCacheInfo() {
   return http.Get<CacheInfo>('/monitor/cache/info')

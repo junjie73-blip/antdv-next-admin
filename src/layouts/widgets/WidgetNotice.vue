@@ -9,6 +9,7 @@ import type { NoticeRecord } from '~/views/message/my/types'
 import { useNotice } from '~/composables/useNotice.js'
 
 import NoticeItem from './components/NoticeItem.vue'
+import WidgetButton from './components/WidgetButton.vue'
 
 defineOptions({ name: 'WidgetNotice' })
 
@@ -86,10 +87,7 @@ const popoverStyles = { body: { padding: 0 } }
     @open-change="handleOpenChange"
   >
     <!-- 触发按钮 -->
-    <button
-      type="button"
-      class="relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100"
-    >
+    <WidgetButton>
       <Icon icon="lucide:bell" class="h-4.5 w-4.5" />
       <span
         v-if="unreadCount > 0"
@@ -97,7 +95,7 @@ const popoverStyles = { body: { padding: 0 } }
       >
         {{ unreadCount > 99 ? '99+' : unreadCount }}
       </span>
-    </button>
+    </WidgetButton>
 
     <!-- 内容 -->
     <template #content>
@@ -142,13 +140,7 @@ const popoverStyles = { body: { padding: 0 } }
 
         <!-- 底部 -->
         <div class="flex shrink-0 items-center justify-center border-t border-slate-100 py-2.5">
-          <button
-            type="button"
-            class="text-xs text-blue-600 transition-colors hover:text-blue-700"
-            @click="handleViewAll"
-          >
-            查看全部通知 →
-          </button>
+          <a-button type="link" @click="handleViewAll"> 查看全部通知 → </a-button>
         </div>
       </div>
     </template>

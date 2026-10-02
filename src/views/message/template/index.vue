@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import { message } from 'antdv-next'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
 import { BasicForm, useForm } from '~/components/business/Form'
 import { type ActionItem, BasicTable, TableAction, useTable } from '~/components/business/Table'
 import { useCRUD } from '~/composables/useCRUD'
+import dayjs from '~/utils/dayjs'
 
 import type { TemplateRecord } from './types'
 
 import { getTemplateActions } from './actions'
 import { createTemplate, deleteTemplate, getTemplateDetail, getTemplateList, updateTemplate } from './api'
-import { templateActionColumn, templateColumns, templateRowKey } from './columns'
+import { templateActionColumn, templateColumns, templatePagination, templateRowKey } from './columns'
 import TemplateEditor from './components/TemplateEditor.vue'
 import TemplatePreviewModal from './components/TemplatePreviewModal.vue'
 import TemplateTestModal from './components/TemplateTestModal.vue'
@@ -26,11 +26,11 @@ const [tableRegister, tableMethods] = useTable()
 const [drawerRegister, drawerMethods] = useDrawer()
 const [formRegister, formMethods] = useForm()
 
-/* ========== 表单 ========== */
-const formSchemas = useTemplateFormSchemas(
-  // 复用 isEditing 计算属性，从 useCRUD 拿到
-  ref(false) as never,
-)
+/* ========== ⭐ 用 ref 承接 isEditing（在 useCRUD 后同步） ========== */
+const isEditingRef = ref(false)
+
+/* ========== 表单 schema（引用 isEditingRef） ========== */
+const formSchemas = useTemplateFormSchemas(isEditingRef)
 
 /* ========== 预览 / 测试 ========== */
 const previewOpen = ref(false)
@@ -66,6 +66,7 @@ const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<T
     channelType: 'email',
     title: '',
     content: '',
+    contentFormat: 'markdown',
     params: [],
     remark: '',
     status: '1',
@@ -76,27 +77,28 @@ const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<T
     channelType: record.channelType,
     title: record.title ?? '',
     content: record.content,
+    contentFormat: (record as any).contentFormat ?? 'markdown',
     params: (record.params ?? []) as never,
     remark: record.remark ?? '',
     status: record.status,
   }),
   onCreate: async (values) => {
-    const payload = {
+    await createTemplate({
       ...values,
       content: values.content ?? '',
       contentFormat: values.contentFormat ?? 'markdown',
       params: values.params ?? [],
-    }
-    await createTemplate(payload)
+    })
   },
   onUpdate: async (id, values) => {
-    const payload = {
-      ...values,
-      content: values.content ?? '',
-      contentFormat: values.contentFormat ?? 'markdown',
-      params: values.params ?? [],
-    }
-    await updateTemplate(id, payload)
+    // ⭐ 更新时不允许改编码
+    const { templateCode: _ignore, ...rest } = values as any
+    await updateTemplate(id, {
+      ...rest,
+      content: rest.content ?? '',
+      contentFormat: rest.contentFormat ?? 'markdown',
+      params: rest.params ?? [],
+    })
   },
   onDelete: async (record) => {
     await deleteTemplate(record.templateId)
@@ -108,6 +110,15 @@ const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<T
   },
 })
 
+/* ========== ⭐ 同步 isEditing 到 ref ========== */
+watch(
+  isEditing,
+  (v) => {
+    isEditingRef.value = v
+  },
+  { immediate: true },
+)
+
 /* ========== 复制 ========== */
 function handleCopy(record: TemplateRecord) {
   handleAdd({
@@ -116,11 +127,11 @@ function handleCopy(record: TemplateRecord) {
     channelType: record.channelType,
     title: record.title ?? '',
     content: record.content,
+    contentFormat: (record as any).contentFormat ?? 'markdown',
     params: record.params ?? [],
     remark: record.remark ?? '',
     status: record.status,
   })
-  message.success('已复制，请修改编码后保存')
 }
 
 /* ========== 操作项 ========== */
@@ -144,6 +155,7 @@ function getActions(record: TemplateRecord): ActionItem[] {
       :use-search-form="true"
       :form-config="{ schemas: searchSchemas, labelWidth: 80 }"
       :action-column="templateActionColumn"
+      :pagination="templatePagination"
       :row-key="templateRowKey"
       @register="tableRegister"
     >
@@ -154,21 +166,33 @@ function getActions(record: TemplateRecord): ActionItem[] {
         </a-button>
       </template>
 
+      <!-- ⭐ 渠道 -->
       <template #cell-channelType="{ record }">
         <a-tag :color="CHANNEL_MAP[record.channelType]?.color || 'default'">
-          <Icon :icon="CHANNEL_MAP[record.channelType]?.icon!" class="mr-0.5" />
+          <Icon :icon="CHANNEL_MAP[record.channelType]?.icon || 'carbon:channel'" class="mr-0.5 inline" />
           {{ CHANNEL_MAP[record.channelType]?.label || record.channelType }}
         </a-tag>
       </template>
 
+      <!-- ⭐ 变量数 -->
       <template #cell-params="{ record }">
-        <span class="text-xs text-slate-500"> {{ (record.params ?? []).length }} 个 </span>
+        <a-tag :color="(record.params?.length ?? 0) > 0 ? 'blue' : 'default'">
+          {{ (record.params ?? []).length }}
+        </a-tag>
       </template>
 
+      <!-- ⭐ 状态 -->
       <template #cell-status="{ record }">
         <a-tag :color="TEMPLATE_STATUS_MAP[record.status]?.color || 'default'">
           {{ TEMPLATE_STATUS_MAP[record.status]?.label || record.status }}
         </a-tag>
+      </template>
+
+      <!-- ⭐ 时间 -->
+      <template #cell-updatedAt="{ record }">
+        <span class="text-xs text-slate-500">
+          {{ record.updatedAt ? dayjs(record.updatedAt).format('YYYY-MM-DD HH:mm') : '—' }}
+        </span>
       </template>
 
       <template #action="{ record }">
@@ -176,13 +200,12 @@ function getActions(record: TemplateRecord): ActionItem[] {
       </template>
     </BasicTable>
 
-    <!-- 新增/编辑抽屉 -->
     <BasicDrawer :title="isEditing ? '编辑模板' : '新增模板'" :width="960" @register="drawerRegister" @ok="handleSave">
       <BasicForm
         :schemas="formSchemas"
-        :label-width="90"
+        :label-width="120"
         :show-action-button-group="false"
-        :grid="{ cols: 2, gutter: 16 }"
+        :colon="false"
         @register="formRegister"
       >
         <template #templateEditor="{ model }">
@@ -198,10 +221,7 @@ function getActions(record: TemplateRecord): ActionItem[] {
       </BasicForm>
     </BasicDrawer>
 
-    <!-- 预览弹窗 -->
     <TemplatePreviewModal v-model:open="previewOpen" :template="previewRecord" />
-
-    <!-- 测试发送弹窗 -->
     <TemplateTestModal v-model:open="testOpen" :template="testRecord" />
   </a-card>
 </template>

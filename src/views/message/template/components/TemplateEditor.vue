@@ -421,7 +421,7 @@ watch(
           </span>
           <span class="text-[11px] text-slate-400">
             用
-            <code class="rounded bg-slate-100 px-1 dark:bg-slate-800">${'{'}变量名{'}'}</code>
+            <code class="rounded bg-slate-100 px-1 dark:bg-slate-800">${'{'}变量{'}'}</code>
             表示占位符
           </span>
         </div>
@@ -446,7 +446,7 @@ watch(
       <!-- 预览区 -->
       <div>
         <div class="mb-1.5 flex items-center gap-2">
-          <span class="text-xs font-medium text-slate-600 dark:text-slate-400"> 实时预览 </span>
+          <span class="text-xs font-medium text-slate-600 dark:text-slate-400">实时预览</span>
           <span
             class="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400"
           >
@@ -455,7 +455,7 @@ watch(
           </span>
         </div>
         <div
-          class="preview-pane min-h-[300px] w-full overflow-auto rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm leading-relaxed dark:border-slate-700 dark:bg-slate-900"
+          class="prose prose-sm dark:prose-invert min-h-[300px] w-full max-w-none overflow-auto rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm leading-relaxed dark:border-slate-700 dark:bg-slate-900"
           v-html="renderedHtml"
         />
       </div>

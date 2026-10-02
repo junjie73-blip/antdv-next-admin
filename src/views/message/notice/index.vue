@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 import { message } from 'antdv-next'
-import dayjs from 'dayjs'
 import { ref } from 'vue'
 
 import {
@@ -28,11 +27,15 @@ import { CHANNEL_MAP } from '../template/constants'
 import { getNoticeActions } from './actions'
 import { noticeActionColumn, noticeColumns, noticePagination, noticeRowKey } from './columns'
 import ChannelConfig from './components/ChannelConfig.vue'
-import { NOTICE_IS_TOP_MAP, NOTICE_PRIORITY_MAP, NOTICE_STATUS_MAP, NOTICE_TYPE_MAP } from './constants'
+import {
+  NOTICE_IS_TOP_MAP,
+  NOTICE_PRIORITY_MAP,
+  NOTICE_SEND_STATUS_MAP, // ⭐ 新增
+  NOTICE_STATUS_MAP,
+  NOTICE_TYPE_MAP,
+} from './constants'
 import { noticeSearchSchemas, useNoticeFormSchemas } from './schemas'
 import { cardClassName, containerClassName } from './style'
-
-// 抽离的模块
 
 defineOptions({ name: 'SystemNotice' })
 
@@ -40,15 +43,17 @@ defineOptions({ name: 'SystemNotice' })
 const userOptions = ref<UserOption[]>([])
 const channelConfigOpen = ref(false)
 const templateOptions = ref<{ label: string; value: string }[]>([])
+
 async function loadUserOptions() {
   try {
     const res = await getUserAllOptions()
-    const data = Array.isArray(res) ? res : (res?.data ?? res ?? [])
+    const data = Array.isArray(res) ? res : ((res as any)?.data ?? res ?? [])
     userOptions.value = data
   } catch (e) {
     console.error(e)
   }
 }
+
 async function loadTemplateOptions() {
   try {
     const res: any = await getTemplateOptions()
@@ -63,8 +68,10 @@ async function loadTemplateOptions() {
     console.error('加载模板失败', e)
   }
 }
-// ========== 弹窗表单 schema（依赖 userOptions） ==========
-const noticeFormSchemas = useNoticeFormSchemas(ref(userOptions) as any, templateOptions)
+
+// ========== 弹窗表单 schema（依赖 userOptions / templateOptions）==========
+// ⭐ 不再 ref(userOptions) 双重包装
+const noticeFormSchemas = useNoticeFormSchemas(userOptions, templateOptions)
 
 // ========== 注册实例 ==========
 const [tableRegister, tableMethods] = useTable()
@@ -82,27 +89,32 @@ const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<N
   getEmptyValues: () => ({
     title: '',
     noticeType: 1,
+    priority: 0,
+    isTop: 0,
     status: '0',
     publishTime: null,
+    templateId: null,
     targetUserIds: [],
     content: '',
   }),
   getFormValues: (record) => ({
     title: record.title,
     noticeType: record.noticeType,
+    priority: record.priority ?? 0,
+    isTop: record.isTop ?? 0,
     status: record.status,
-    publishTime: record.publishTime ? dayjs(record.publishTime) : null,
+    // ⭐ 后端返回的 publishTime 是字符串，DatePicker 支持直接赋值
+    publishTime: record.publishTime || null,
+    templateId: record.templateId ?? null,
     targetUserIds: record.targetUserIds || [],
     content: record.content,
   }),
   onCreate: async (values: any) => {
-    const payload = {
-      ...values,
-      publishTime: values.publishTime ? dayjs(values.publishTime).format('YYYY-MM-DD HH:mm:ss') : null,
-    }
-    await saveNotice(payload)
+    // ⭐ valueFormat 已统一为 'YYYY-MM-DD HH:mm:ss'，无需手动 dayjs 转换
+    await saveNotice(values)
   },
   onUpdate: async (id, values) => {
+    // ⭐ 同步格式化逻辑
     await updateNotice(id, values)
   },
   onDelete: async (record) => {
@@ -117,6 +129,10 @@ const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<N
 
 // ========== 手动发送 ==========
 async function handleSend(record: NoticeRecord) {
+  if (record.sendStatus === '1') {
+    message.warning('该通知已发送')
+    return
+  }
   try {
     await sendNotice(record.noticeId)
     message.success(`已发送通知「${record.title}」`)
@@ -125,7 +141,13 @@ async function handleSend(record: NoticeRecord) {
     message.error(e?.message || '发送失败')
   }
 }
+
+// ========== 撤回 ==========
 async function handleRevoke(record: NoticeRecord) {
+  if (record.sendStatus !== '1') {
+    message.warning('只能撤回已发送的通知')
+    return
+  }
   try {
     await revokeNotice(record.noticeId)
     message.success('已撤回')
@@ -134,8 +156,9 @@ async function handleRevoke(record: NoticeRecord) {
     message.error(e?.message || '撤回失败')
   }
 }
-// ========== 操作项（每次渲染注入最新 record） ==========
-function getActions(record: any) {
+
+// ========== 操作项 ==========
+function getActions(record: NoticeRecord) {
   return getNoticeActions(record, {
     onEdit: handleEdit,
     onSend: handleSend,
@@ -143,6 +166,7 @@ function getActions(record: any) {
     onRevoke: handleRevoke,
   })
 }
+
 // ========== 初始化 ==========
 loadUserOptions()
 loadTemplateOptions()
@@ -185,24 +209,34 @@ loadTemplateOptions()
               {{ NOTICE_STATUS_MAP[record.status]?.label || record.status }}
             </a-tag>
           </template>
+
           <template #cell-priority="{ record }">
             <a-tag :color="NOTICE_PRIORITY_MAP[record.priority]?.color || 'default'">
               {{ NOTICE_PRIORITY_MAP[record.priority]?.label || record.priority }}
             </a-tag>
           </template>
+
           <template #cell-isTop="{ record }">
             <a-tag :color="NOTICE_IS_TOP_MAP[record.isTop]?.color || 'default'">
               {{ NOTICE_IS_TOP_MAP[record.isTop]?.label || record.isTop }}
             </a-tag>
           </template>
+
+          <!-- ⭐ 新增：发送状态 -->
+          <template #cell-sendStatus="{ record }">
+            <a-tag :color="NOTICE_SEND_STATUS_MAP[record.sendStatus]?.color || 'default'">
+              {{ NOTICE_SEND_STATUS_MAP[record.sendStatus]?.label || record.sendStatus }}
+            </a-tag>
+          </template>
+
           <template #action="{ record }">
-            <table-action :actions="getActions(record)" />
+            <table-action :actions="getActions(record as NoticeRecord)" />
           </template>
         </BasicTable>
       </div>
     </a-card>
 
-    <BasicDrawer :title="isEditing ? '编辑通知' : '新增通知'" :width="640" @register="drawerRegister" @ok="handleSave">
+    <BasicDrawer :title="isEditing ? '编辑通知' : '新增通知'" :width="720" @register="drawerRegister" @ok="handleSave">
       <BasicForm
         :schemas="noticeFormSchemas"
         :label-width="90"
@@ -211,6 +245,7 @@ loadTemplateOptions()
         @register="formRegister"
       />
     </BasicDrawer>
+
     <ChannelConfig v-model:open="channelConfigOpen" />
   </div>
 </template>
