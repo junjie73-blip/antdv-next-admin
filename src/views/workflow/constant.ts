@@ -16,7 +16,7 @@ export const REJECT_REASON_OPTIONS = [
   { label: '其他', value: 'other' },
 ]
 
-export const containerClassName = cn('p-4', 'space-y-4')
+export const containerClassName = cn('space-y-4')
 export const REJECT_REASON_LABEL_MAP: Record<string, string> = REJECT_REASON_OPTIONS.reduce(
   (acc, item) => {
     acc[item.value] = item.label

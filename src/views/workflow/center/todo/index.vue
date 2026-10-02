@@ -68,6 +68,9 @@
 
     <!-- 流程详情抽屉 -->
     <FlowDetailDrawer v-model:open="detailOpen" :source="detailSource" :instance-id="detailInstanceId" />
+    <AddSignModal v-model:open="addSignOpen" :task-id="actionTaskId" @success="onSuccess" />
+    <TransferModal v-model:open="transferOpen" :task-id="actionTaskId" @success="onSuccess" />
+    <TransferHistoryModal v-model:open="transferHistoryOpen" :task-id="actionTaskId" />
   </div>
 </template>
 
@@ -76,8 +79,7 @@ import { Icon } from '@iconify/vue'
 import { message } from 'antdv-next'
 import { ref } from 'vue'
 
-import type { TodoSource } from '~/api'
-
+import { rollbackTask, type TodoSource } from '~/api'
 import { useTable } from '~/components/business/Table'
 import { TableAction } from '~/components/business/Table'
 import { WORKFLOW_PERMS } from '~/enums/permissions'
@@ -87,16 +89,20 @@ import type { TodoActionContext, TodoItem } from './types'
 
 import ApproveModal from '../../components/ApproveModal.vue'
 import FlowDetailDrawer from '../../components/FlowDetailDrawer.vue'
+import AddSignModal from '../components/AddSignModal.vue'
+import TransferHistoryModal from '../components/TransferHistoryModal.vue'
+import TransferModal from '../components/TransferModal.vue'
 import { getTodoActions } from './actions'
 import { centerBatchComplete, getCenterTodoList } from './api'
 import { todoColumns } from './columns'
 import { PRIORITY_MAP, SOURCE_MAP, containerClassName } from './constants'
 import { searchSchemas } from './schemas'
+
 defineOptions({ name: 'WorkflowCenterTodo' })
 
 const [tableRegister, tableMethods] = useTable()
 
-const actionColumn = { width: 220, fixed: 'right' as const, align: 'center' as const }
+const actionColumn = { width: 350, fixed: 'right' as const, align: 'center' as const }
 
 const batchLoading = ref(false)
 const approveOpen = ref(false)
@@ -104,7 +110,10 @@ const currentRecord = ref<TodoItem | null>(null)
 const detailOpen = ref(false)
 const detailSource = ref<TodoSource | null>(null)
 const detailInstanceId = ref<string | null>(null)
-
+const addSignOpen = ref(false)
+const transferOpen = ref(false)
+const transferHistoryOpen = ref(false)
+const actionTaskId = ref<string | null>(null)
 function isOverdue(due?: string | null) {
   if (!due) return false
   return new Date(due) < new Date()
@@ -123,6 +132,23 @@ const actionCtx: TodoActionContext = {
     detailSource.value = item.source
     detailInstanceId.value = item.instanceId
     detailOpen.value = true
+  },
+  onAddSign(item) {
+    actionTaskId.value = item.id
+    addSignOpen.value = true
+  },
+  onTransfer(item) {
+    actionTaskId.value = item.id
+    transferOpen.value = true
+  },
+  async onRollback(item) {
+    await rollbackTask(item.id, { reason: '审批人主动回退' })
+    message.success('已回退')
+    await tableMethods.value?.reload?.()
+  },
+  onTransferHistory(item) {
+    actionTaskId.value = item.id
+    transferHistoryOpen.value = true
   },
 }
 

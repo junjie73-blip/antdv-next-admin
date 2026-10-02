@@ -17,6 +17,14 @@
           <template #icon><Icon icon="lucide:image" /></template>
           导出图片
         </a-button>
+        <a-button @click="handleValidate">
+          <template #icon><Icon icon="lucide:check-circle" /></template>
+          校验
+        </a-button>
+        <a-button @click="importXmlVisible = true">
+          <template #icon><Icon icon="lucide:upload" /></template>
+          导入 XML
+        </a-button>
         <a-button type="primary" :loading="saving" @click="handleSave">
           <template #icon><Icon icon="lucide:save" /></template>
           保存
@@ -35,6 +43,9 @@
         <PropertiesPanel :selected-element="selectedElement" @update="handleUpdateElement" />
       </div>
     </div>
+    <a-modal v-model:open="importXmlVisible" title="导入 BPMN XML" :width="720" @ok="handleImportXml">
+      <a-textarea v-model:value="importXmlText" :rows="16" class="font-mono text-sm" placeholder="粘贴 BPMN 2.0 XML" />
+    </a-modal>
   </a-drawer>
 </template>
 
@@ -43,8 +54,11 @@ import { Icon } from '@iconify/vue'
 import { message } from 'antdv-next'
 import { computed, ref } from 'vue'
 
+import { importBpmnXml, validateDefinition } from '~/api/workflow'
+
 import BpmnCanvas from './components/BpmnCanvas.vue'
 import PropertiesPanel from './components/PropertiesPanel.vue'
+import { xmlToJson } from './utils/bpmn-json'
 
 defineOptions({ name: 'WorkflowDefinitionEditor' })
 
@@ -62,7 +76,8 @@ const canvasRef = ref<InstanceType<typeof BpmnCanvas> | null>(null)
 const saving = ref(false)
 const selectedElement = ref<any>(null)
 const currentXml = ref('')
-
+const importXmlVisible = ref(false)
+const importXmlText = ref('')
 const isEdit = computed(() => !!props.record)
 
 const initialXml = computed(() => props.existingXml ?? undefined)
@@ -173,5 +188,39 @@ function downloadBlob(blob: Blob, filename: string) {
   a.download = filename
   a.click()
   URL.revokeObjectURL(url)
+}
+
+/** 校验 BPMN */
+async function handleValidate() {
+  try {
+    const xml = await canvasRef.value?.saveXML()
+    if (!xml) return
+    const json = await xmlToJson(xml)
+    const res: any = await validateDefinition(json)
+    const data = res?.data ?? res
+    if (data?.valid) {
+      message.success('校验通过')
+    } else {
+      message.error(data?.error || '校验失败')
+    }
+  } catch (e: any) {
+    message.error(e?.message || '校验失败')
+  }
+}
+async function handleImportXml() {
+  if (!importXmlText.value.trim()) {
+    message.warning('请粘贴 XML')
+    return
+  }
+  try {
+    const res: any = await importBpmnXml(importXmlText.value)
+    const data = res?.data ?? res
+    await canvasRef.value?.importXML(data.xml)
+    importXmlVisible.value = false
+    importXmlText.value = ''
+    message.success('已导入')
+  } catch (e: any) {
+    message.error(e?.message || '导入失败')
+  }
 }
 </script>

@@ -10,13 +10,13 @@
         :row-key="(r: ApprovalLogRecord) => r.log_id"
         @register="tableRegister"
       >
-        <template #cell-action="{ record }">
+        <template #cell-op="{ record }">
           <a-tag :color="ACTION_MAP[record.action]?.color ?? 'default'">
             {{ ACTION_MAP[record.action]?.label ?? record.action }}
           </a-tag>
         </template>
 
-        <template #cell-created_at="{ record }">
+        <template #cell-createdAt="{ record }">
           <span class="text-gray-600">
             {{ dayjs(record.created_at).format('YYYY-MM-DD HH:mm:ss') }}
           </span>
