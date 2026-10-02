@@ -93,7 +93,7 @@ export const userRowSelection = {
 }
 
 /** 滚动：总宽 1250 + 操作列 260 = 1510 */
-export const userScroll = { x: 1300 } as const
+export const userScroll = { x: 1300, y: 440 } as const
 
 /** 行 key */
 export const userRowKey = (record: UserRecord) => record.userId

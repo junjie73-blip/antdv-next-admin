@@ -481,6 +481,10 @@ onMounted(loadBaseData)
                 :export-params="{ ids: tableMethods?.getSelectRowKeys() }"
                 :import-template="USER_IMPORT_TEMPLATE"
                 :permissions="[SYSTEM_PERMS.user.import, SYSTEM_PERMS.user.export]"
+                :export-props="{
+                  bizType: 'user',
+                  queryParams: tableMethods?.getFormValues(),
+                }"
               />
 
               <a-button @click="handlePrint" v-permission="SYSTEM_PERMS.user.print">
