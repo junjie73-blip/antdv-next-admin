@@ -1,3 +1,3 @@
 import { cn } from '~/utils'
 
-export const containerClassName = cn('p-4', 'space-y-4')
+export const containerClassName = cn('space-y-4')
