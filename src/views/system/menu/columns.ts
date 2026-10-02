@@ -37,7 +37,7 @@ export const menuActionColumn = {
 }
 
 /** 滚动配置 */
-export const menuScroll = { y: 9999999 } as const
+export const menuScroll = { y: 600 } as const
 
 /** 行 key 提取 */
 export const menuRowKey = (record: MenuRecord) => record.menuId

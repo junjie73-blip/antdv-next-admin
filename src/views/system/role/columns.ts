@@ -9,6 +9,7 @@ export const roleColumns: BasicColumn[] = [
     key: 'index',
     width: 60,
     align: 'center',
+    dataIndex: 'roleId',
     customRender: ({ index }) => index + 1,
   },
   { title: '角色名称', dataIndex: 'roleName', key: 'roleName', width: 140 },
