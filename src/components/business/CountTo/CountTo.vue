@@ -1,14 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useRafFn } from '@vueuse/core'
+import { computed, onMounted, ref, watch } from 'vue'
 
 import { cn } from '~/utils/cn'
 
 import type { CountToInstance, CountToProps } from './types'
-
-/**
- * CountTo - 数字动画组件
- * 对标 Vben Admin 的 CountTo 组件
- */
 
 const props = withDefaults(defineProps<CountToProps>(), {
   startVal: 0,
@@ -29,112 +25,65 @@ const emit = defineEmits<{
   (e: 'change', value: number): void
 }>()
 
-// 当前值
-const currentValue = ref(props.startVal)
-// 动画状态
-const isAnimating = ref(false)
-// 动画 ID
-let animationId: number | null = null
-// 开始时间
-let startTime: number | null = null
-
-/**
- * 缓动函数
- */
+// ============ 缓动函数 ============
 const easingFunctions = {
-  // 指数缓出
-  easeOutExpo: (t: number): number => {
-    return t === 1 ? 1 : 1 - 2 ** (-10 * t)
-  },
-  // 线性
-  linear: (t: number): number => {
-    return t
-  },
-  // 三次缓入缓出
-  easeInOutCubic: (t: number): number => {
-    return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
-  },
-}
+  easeOutExpo: (t: number) => (t === 1 ? 1 : 1 - 2 ** (-10 * t)),
+  linear: (t: number) => t,
+  easeInOutCubic: (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2),
+} as const
 
-/**
- * 格式化数字
- */
+// ============ 状态 ============
+const currentValue = ref(props.startVal)
+const startTimestamp = ref<number | null>(null)
+
+// ============ 格式化 ============
 function formatNumber(num: number): string {
-  const value = num.toFixed(props.decimals)
-  const parts = value.split('.')
-  const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, props.separator)
-  const decimalPart = parts[1] ? props.decimal + parts[1] : ''
-  return props.prefix + integerPart + decimalPart + props.suffix
+  const [integerPart, decimalPart] = num.toFixed(props.decimals).split('.')
+  const formatted = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, props.separator)
+  const decimalStr = decimalPart ? props.decimal + decimalPart : ''
+  return `${props.prefix}${formatted}${decimalStr}${props.suffix}`
 }
 
-/**
- * 显示值
- */
 const displayValue = computed(() => formatNumber(currentValue.value))
 
-/**
- * 动画循环
- */
-function animate(timestamp: number) {
-  if (!startTime) startTime = timestamp
-  const progress = Math.min((timestamp - startTime) / props.duration, 1)
+// ============ 动画：useRafFn 自动管理 RAF 生命周期 ============
+const { pause, resume, isActive } = useRafFn(
+  ({ timestamp }) => {
+    if (startTimestamp.value === null) startTimestamp.value = timestamp
+    const progress = Math.min((timestamp - startTimestamp.value) / props.duration, 1)
+    const eased = props.useEasing ? easingFunctions[props.easingFn](progress) : progress
 
-  // 应用缓动函数
-  const easeProgress = props.useEasing ? easingFunctions[props.easingFn](progress) : progress
+    currentValue.value = props.startVal + (props.endVal - props.startVal) * eased
+    emit('change', currentValue.value)
 
-  // 计算当前值
-  currentValue.value = props.startVal + (props.endVal - props.startVal) * easeProgress
+    if (progress >= 1) {
+      currentValue.value = props.endVal
+      pause()
+      emit('finished')
+    }
+  },
+  { immediate: false },
+)
 
-  // 触发变化事件
-  emit('change', currentValue.value)
-
-  if (progress < 1) {
-    animationId = requestAnimationFrame(animate)
-  } else {
-    // 动画结束
-    currentValue.value = props.endVal
-    isAnimating.value = false
-    emit('finished')
-  }
-}
-
-/**
- * 开始动画
- */
+// ============ 对外方法 ============
 function start() {
-  if (isAnimating.value) return
-  isAnimating.value = true
-  startTime = null
+  if (isActive.value) return
+  startTimestamp.value = null
   currentValue.value = props.startVal
-  animationId = requestAnimationFrame(animate)
+  resume()
 }
 
-/**
- * 暂停动画
- */
-function pause() {
-  if (animationId) {
-    cancelAnimationFrame(animationId)
-    animationId = null
-    isAnimating.value = false
-  }
+function pauseAnimation() {
+  pause()
 }
 
-/**
- * 重置动画
- */
 function reset() {
   pause()
   currentValue.value = props.startVal
-  startTime = null
+  startTimestamp.value = null
 }
 
-/**
- * 获取当前值
- */
-const getCurrentValue = () => currentValue.value
-
-// 监听 endVal 变化
+// ============ 生命周期 ============
 watch(
   () => props.endVal,
   () => {
@@ -145,24 +94,17 @@ watch(
   },
 )
 
-// 组件挂载时自动播放
 onMounted(() => {
-  if (props.autoplay) {
-    start()
-  }
+  if (props.autoplay) start()
 })
 
-// 组件卸载时清理
-onUnmounted(() => {
-  pause()
-})
+// useRafFn 会在组件卸载时自动 pause，无需手动 onUnmounted
 
-// 暴露实例方法
 defineExpose<CountToInstance>({
   start,
-  pause,
+  pause: pauseAnimation,
   reset,
-  getCurrentValue,
+  getCurrentValue: () => currentValue.value,
 })
 </script>
 

@@ -2,7 +2,7 @@
 import type { RuleObject } from 'antdv-next'
 
 import { isFunction } from 'es-toolkit'
-import { computed, inject, unref } from 'vue'
+import { computed, inject, unref, type ComputedRef } from 'vue'
 
 import IconifyIcon from '~/components/common/Icon/IconifyIcon.vue'
 
@@ -11,11 +11,6 @@ import type { FormSchema, Recordable, RenderCallbackParams } from '../types'
 import { getComponent } from '../componentMap'
 import { getDynamicDisabled, getDynamicRules, getShow, setComponentProps } from '../helper'
 
-type GridContext = { cols?: number; gutter?: number | [number, number] } | undefined | null
-const props = defineProps<Props>()
-
-const gridConfig = inject<GridContext>('formGridContext', null)
-
 interface Props {
   schema: FormSchema
   formModel: Recordable
@@ -23,31 +18,49 @@ interface Props {
   setFormModel: (key: string, value: any) => void
 }
 
+const props = defineProps<Props>()
+
+type GridContext =
+  | {
+      cols?: ComputedRef<number>
+      span?: ComputedRef<number>
+      gutter?: ComputedRef<number | [number, number]>
+    }
+  | undefined
+  | null
+
+const gridConfig = inject<GridContext>('formGridContext', null)
+
+// ★ 所有依赖 schema 的 computed 都加空值兜底
 const getShowState = computed(() => {
+  if (!props.schema) return { show: false, ifShow: false }
   return getShow(props.schema, unref(props.formModel), props.formActionType)
 })
 
 const getDisabled = computed(() => {
+  if (!props.schema) return false
   return getDynamicDisabled(props.schema, unref(props.formModel), props.formActionType)
 })
 
 const getComponentPropsValue = computed(() => {
+  if (!props.schema) return {}
   return setComponentProps(props.schema, unref(props.formModel), props.formActionType)
 })
 
 const getRulesValue = computed((): RuleObject[] | undefined => {
+  if (!props.schema) return undefined
   const rules = getDynamicRules(props.schema, unref(props.formModel), props.formActionType)
   if (!rules) return undefined
   return rules as RuleObject[]
 })
 
 const getComponentInstance = computed(() => {
-  const { component } = props.schema
-  if (!component) return null
-  return getComponent(component)
+  if (!props.schema?.component) return null
+  return getComponent(props.schema.component)
 })
 
 const getSuffixValue = computed(() => {
+  if (!props.schema) return null
   const { suffix } = props.schema
   if (!suffix) return null
 
@@ -62,27 +75,28 @@ const getSuffixValue = computed(() => {
   if (isFunction(suffix)) {
     return suffix(params)
   }
-
   return suffix
 })
 
 const getColProps = computed(() => {
+  const defaultSpan = unref(gridConfig?.span) ?? 24
   return {
-    span: 6,
-    ...props.schema.colProps,
+    span: defaultSpan,
+    ...props.schema?.colProps,
   }
 })
 
 const mergedItemProps = computed(() => {
-  const base = { ...props.schema.itemProps }
-  const cols = gridConfig?.cols
+  const base = { ...props.schema?.itemProps }
+  const cols = unref(gridConfig?.cols)
   if (!cols || cols <= 1) return base
 
-  const span = props.schema.colProps?.span ?? 24
-  const isFullRow = span === 24 || props.schema.fullRowAlign
+  const span = props.schema?.colProps?.span ?? unref(gridConfig?.span) ?? 24
+  const isFullRow = span === 24 || props.schema?.fullRowAlign
   if (!isFullRow) return base
 
-  const gutterPx = Array.isArray(gridConfig?.gutter) ? gridConfig.gutter[0] : (gridConfig.gutter ?? 24)
+  const gutterRaw = unref(gridConfig?.gutter)
+  const gutterPx = Array.isArray(gutterRaw) ? gutterRaw[0] : (gutterRaw ?? 24)
 
   const existingStyle: Record<string, any> = {}
   const existingWrapperCol = typeof base.wrapperCol === 'object' ? base.wrapperCol : {}
@@ -103,7 +117,7 @@ const mergedItemProps = computed(() => {
 })
 
 const getHelpMessage = computed(() => {
-  const { helpMessage } = props.schema
+  const { helpMessage } = props.schema ?? {}
   if (Array.isArray(helpMessage)) {
     return helpMessage.join('\n')
   }
@@ -111,12 +125,13 @@ const getHelpMessage = computed(() => {
 })
 
 function handleValueChange(value: any) {
+  if (!props.schema) return
   props.setFormModel(props.schema.field, value)
 }
 </script>
 
 <template>
-  <template v-if="getShowState.ifShow">
+  <template v-if="schema && getShowState.ifShow">
     <a-col v-show="getShowState.show" v-bind="getColProps">
       <a-form-item v-bind="mergedItemProps" :name="schema.field" :rules="getRulesValue">
         <template #label>
@@ -133,6 +148,7 @@ function handleValueChange(value: any) {
             </a-tooltip>
           </span>
         </template>
+
         <template v-if="schema.slot">
           <slot :name="schema.slot" :model="formModel" :field="schema.field" />
         </template>

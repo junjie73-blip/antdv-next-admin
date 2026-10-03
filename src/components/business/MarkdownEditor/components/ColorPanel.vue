@@ -1,12 +1,23 @@
 <script setup lang="ts">
-defineProps<{
+import { isString } from 'es-toolkit'
+import { computed } from 'vue'
+
+import { cn } from '~/utils/cn'
+
+const props = defineProps<{
   colors: string[]
   current?: string
-  /** 是否提供"清除颜色"入口 */
   clearable?: boolean
 }>()
 
 const emit = defineEmits<{ select: [value: string] }>()
+
+/** 归一化当前色值：null/undefined 处理为空串 */
+const normalizedCurrent = computed(() => (isString(props.current) ? props.current.toLowerCase() : ''))
+
+function isActive(color: string) {
+  return color.toLowerCase() === normalizedCurrent.value
+}
 </script>
 
 <template>
@@ -17,8 +28,12 @@ const emit = defineEmits<{ select: [value: string] }>()
         :key="color"
         type="button"
         :title="color"
-        class="h-4 w-4 rounded-sm border border-gray-300 transition-transform hover:scale-110 dark:border-gray-600"
-        :class="color.toLowerCase() === current?.toLowerCase() && 'ring-2 ring-blue-500'"
+        :class="
+          cn(
+            'h-4 w-4 rounded-sm border border-gray-300 transition-transform hover:scale-110 dark:border-gray-600',
+            isActive(color) && 'ring-2 ring-blue-500',
+          )
+        "
         :style="{ backgroundColor: color }"
         @click="emit('select', color)"
       />

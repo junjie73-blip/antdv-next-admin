@@ -36,7 +36,7 @@ const emit = defineEmits<{
 const slots = useSlots()
 
 // ARIA 无障碍 ID（用于关联标题和内容）
-const drawerId = `drawer-${Math.random().toString(36).slice(2, 9)}`
+const drawerId = useId()
 const drawerTitleId = `${drawerId}-title`
 
 // 状态
@@ -129,13 +129,12 @@ defineExpose({
   ...drawerMethods,
   _innerMethods,
 })
-onMounted(() => {
-  // 延迟注册，确保父组件已准备好接收
-  setTimeout(() => {
-    emit('register', drawerMethods)
-  }, 0)
+const { start: scheduleRegister } = useTimeoutFn(() => emit('register', drawerMethods), 0, {
+  immediate: false,
 })
-
+onMounted(() => {
+  scheduleRegister()
+})
 // 监听 open 变化
 watch(
   () => props.open,

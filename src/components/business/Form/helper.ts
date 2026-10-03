@@ -1,5 +1,4 @@
 import dayjs from 'dayjs'
-import { defu } from 'defu'
 import { isFunction } from 'es-toolkit'
 
 import type { FormSchema, Recordable, Rule } from './types'
@@ -59,10 +58,11 @@ const PLACEHOLDER_TEMPLATES: Record<string, (label: string) => string> = {
   TimeRangePicker: (label) => `请选择${label}范围`,
 }
 
-export function setComponentProps(schema: FormSchema, formModel: Recordable, formActionType: any) {
+export function setComponentProps(schema: FormSchema | undefined, formModel: Recordable, _formActionType: any) {
+  if (!schema) return {}
+
   const { component, componentProps = {}, label } = schema
 
-  // 如果 componentProps 是函数，保持原逻辑
   if (isFunction(componentProps)) {
     return componentProps({
       schema,
@@ -74,7 +74,6 @@ export function setComponentProps(schema: FormSchema, formModel: Recordable, for
 
   const result: Record<string, any> = { ...componentProps }
 
-  // 自动生成 placeholder（仅在未手动设置时）
   if (component && PLACEHOLDER_COMPONENTS.includes(component as any) && !result.placeholder && label) {
     const template = PLACEHOLDER_TEMPLATES[component]
     if (template) {
@@ -82,7 +81,6 @@ export function setComponentProps(schema: FormSchema, formModel: Recordable, for
     }
   }
 
-  // 自动添加 allowClear（仅在支持且未手动设置时）
   if (component && CLEARABLE_COMPONENTS.includes(component as any) && result.allowClear === undefined) {
     result.allowClear = true
   }
@@ -90,7 +88,10 @@ export function setComponentProps(schema: FormSchema, formModel: Recordable, for
   return result
 }
 
-export function getShow(schema: FormSchema, formModel: Recordable, formActionType: any) {
+export function getShow(schema: FormSchema | undefined, formModel: Recordable, _formActionType: any) {
+  // schema 为空 → 视为不渲染
+  if (!schema) return { show: false, ifShow: false }
+
   const { show, ifShow } = schema
 
   const showResult = isFunction(show)
@@ -101,13 +102,16 @@ export function getShow(schema: FormSchema, formModel: Recordable, formActionTyp
     ? ifShow({ schema, values: formModel, model: formModel, field: schema.field })
     : (ifShow ?? true)
 
-  return {
-    show: showResult,
-    ifShow: ifShowResult,
-  }
+  return { show: showResult, ifShow: ifShowResult }
 }
 
-export function getDynamicDisabled(schema: FormSchema, formModel: Recordable, formActionType: any): boolean {
+export function getDynamicDisabled(
+  schema: FormSchema | undefined,
+  formModel: Recordable,
+  _formActionType: any,
+): boolean {
+  if (!schema) return false
+
   const { dynamicDisabled } = schema
 
   if (isFunction(dynamicDisabled)) {
@@ -122,10 +126,15 @@ export function getDynamicDisabled(schema: FormSchema, formModel: Recordable, fo
   return !!dynamicDisabled
 }
 
-export function getDynamicRules(schema: FormSchema, formModel: Recordable, formActionType: any): Rule[] | undefined {
+export function getDynamicRules(
+  schema: FormSchema | undefined,
+  formModel: Recordable,
+  _formActionType: any,
+): Rule[] | undefined {
+  if (!schema) return undefined
+
   const { rules, required, dynamicRules, rulesMessageJoinLabel } = schema
 
-  // 动态 rules 优先，直接返回
   if (isFunction(dynamicRules)) {
     return dynamicRules({
       schema,
@@ -137,7 +146,6 @@ export function getDynamicRules(schema: FormSchema, formModel: Recordable, formA
 
   const label = schema.label || schema.field
 
-  // 过滤无效规则
   const validRules: Rule[] = Array.isArray(rules)
     ? rules.filter((rule) => {
         if (rule.pattern != null && !(rule.pattern instanceof RegExp)) {
@@ -148,7 +156,6 @@ export function getDynamicRules(schema: FormSchema, formModel: Recordable, formA
       })
     : []
 
-  // 合并 required 规则
   if (required) {
     const hasRequired = validRules.some((r) => r.required)
     if (!hasRequired) {
@@ -192,7 +199,6 @@ export function handleRangeValue(
       delete result[field]
     }
   })
-
   return result
 }
 
@@ -200,7 +206,6 @@ function formatDate(date: Date, format: string): string {
   return dayjs(date).format(format)
 }
 
-// 日期相关组件类型
 const DATE_COMPONENTS = [
   'DatePicker',
   'MonthPicker',
@@ -210,7 +215,6 @@ const DATE_COMPONENTS = [
   'TimeRangePicker',
 ] as const
 
-// 判断值是否为 dayjs 对象或 Date 对象
 interface DayjsLike {
   format: (format: string) => string
   isValid?: () => boolean
@@ -224,7 +228,6 @@ function isDayjsOrDate(value: unknown): value is DayjsLike | Date {
   return false
 }
 
-// 格式化日期字段
 export function formatDateFields(values: Recordable, schemas: FormSchema[]): Recordable {
   const result = { ...values }
 
@@ -235,7 +238,6 @@ export function formatDateFields(values: Recordable, schemas: FormSchema[]): Rec
     const value = result[field]
     if (value === undefined || value === null) return
 
-    // 获取组件配置的 format 或 valueFormat
     const componentProps = schema.componentProps
     let formatStr = 'YYYY-MM-DD HH:mm:ss'
 
@@ -243,13 +245,10 @@ export function formatDateFields(values: Recordable, schemas: FormSchema[]): Rec
       formatStr = (componentProps as any).valueFormat || (componentProps as any).format || formatStr
     }
 
-    // 处理 RangePicker 的范围值
     if (component === 'RangePicker' || component === 'TimeRangePicker') {
-      // RangePicker 的值在 handleRangeValue 中处理
       return
     }
 
-    // 处理单个日期值
     if (isDayjsOrDate(value)) {
       if (value instanceof Date) {
         result[field] = formatDate(value, formatStr)
@@ -262,6 +261,62 @@ export function formatDateFields(values: Recordable, schemas: FormSchema[]): Rec
   return result
 }
 
-export function deepMerge<T extends Record<string, any>>(target: T, source: Partial<T>): T {
-  return defu(target, source) as T
+/* ============================================================
+ * 深度合并：数组「替换」而非「拼接」
+ *
+ * 原实现用 defu，会把 [A,B,C] 与 [A,B,C] 合并成 6 个元素，
+ * 导致 BasicForm.getProps 每次重算时 schemas 数量翻倍（3 → 6 → 9）。
+ * 现改用自实现，规则：
+ *  - 目标是数组         → 保留目标
+ *  - 目标无该键         → 拷贝源（数组/对象做浅拷贝）
+ *  - 都是纯对象         → 递归合并
+ *  - 其它               → 目标优先
+ * ============================================================ */
+function isPlainObject(v: unknown): v is Record<string, any> {
+  if (v === null || typeof v !== 'object') return false
+  if (Array.isArray(v)) return false
+  if (v instanceof Date) return false
+  const proto = Object.getPrototypeOf(v)
+  return proto === Object.prototype || proto === null
+}
+
+export function deepMerge<T extends Record<string, any>>(target: T, source: Partial<T> | undefined): T {
+  if (!source) return { ...target }
+
+  const result: any = Array.isArray(target) ? [...target] : { ...target }
+
+  for (const key of Object.keys(source)) {
+    const sourceVal = (source as any)[key]
+    const targetVal = result[key]
+
+    // 源值为 undefined → 忽略，保留目标
+    if (sourceVal === undefined) continue
+
+    // 目标无该键 → 直接使用源值（浅拷贝防止引用外泄）
+    if (targetVal === undefined) {
+      if (Array.isArray(sourceVal)) result[key] = [...sourceVal]
+      else if (isPlainObject(sourceVal)) result[key] = { ...sourceVal }
+      else result[key] = sourceVal
+      continue
+    }
+
+    // 目标是数组 → 绝不与源拼接，保留目标
+    if (Array.isArray(targetVal)) continue
+
+    // 源是数组而目标不是 → 用源（拷贝）
+    if (Array.isArray(sourceVal)) {
+      result[key] = [...sourceVal]
+      continue
+    }
+
+    // 都是纯对象 → 递归
+    if (isPlainObject(targetVal) && isPlainObject(sourceVal)) {
+      result[key] = deepMerge(targetVal, sourceVal)
+      continue
+    }
+
+    // 其它情况：目标优先
+  }
+
+  return result
 }

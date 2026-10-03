@@ -3,7 +3,7 @@ import { Icon } from '@iconify/vue'
 import { Tag } from 'antdv-next'
 import { onMounted, onUnmounted, ref, watch, h } from 'vue'
 
-import { useEcharts } from '~/composables/composables/useEcharts'
+import { useEcharts } from '~/composables/useEcharts'
 import dayjs from '~/utils/dayjs'
 
 import type { IsolationOverview, IsolationRun, IsolationTrend, RuleDistribution, TableHeat } from './types'

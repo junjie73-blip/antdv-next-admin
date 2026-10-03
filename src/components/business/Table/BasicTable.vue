@@ -74,6 +74,29 @@ const getMergedProps = computed((): BasicTableProps => {
   } as BasicTableProps
 })
 
+// ⭐ 高频访问的 props 缓存（减少模板中重复 getMergedProps.value.X）
+const mergedColumns = computed(() => getMergedProps.value.columns || [])
+const mergedRowKey = computed(() => (getMergedProps.value.rowKey as string) || 'id')
+const mergedIsTree = computed(() => getMergedProps.value.isTree)
+const mergedChildrenField = computed(() => getMergedProps.value.childrenColumnName || 'children')
+const mergedSize = computed(() => getMergedProps.value.size || 'middle')
+const mergedScroll = computed(() => getMergedProps.value.scroll)
+const mergedShowHeader = computed(() => getMergedProps.value.showHeader ?? true)
+const mergedTableLayout = computed(() => getMergedProps.value.tableLayout)
+const mergedBordered = computed(() => getMergedProps.value.bordered)
+const mergedSticky = computed(() => getMergedProps.value.sticky)
+const mergedLocale = computed(() => getMergedProps.value.locale)
+const mergedRowClassName = computed(() => getMergedProps.value.rowClassName)
+const mergedOnHeaderRow = computed(() => getMergedProps.value.onHeaderRow)
+const mergedTitle = computed(() => getMergedProps.value.title)
+const mergedCaption = computed(() => getMergedProps.value.caption)
+const mergedFooter = computed(() => getMergedProps.value.footer)
+const mergedSummary = computed(() => getMergedProps.value.summary)
+const mergedShowSorterTooltip = computed(() => getMergedProps.value.showSorterTooltip)
+const mergedSortDirections = computed(() => getMergedProps.value.sortDirections)
+const mergedEmptyText = computed(() => getMergedProps.value.emptyText)
+const mergedActionColumn = computed(() => getMergedProps.value.actionColumn)
+
 // ============================================
 // Hooks
 // ============================================
@@ -131,9 +154,10 @@ const getColumns = computed(() => convertColumns(columns.getColumns()))
 const getDataSource = computed(() => unref(dataSource.dataSourceRef))
 
 // 递归收集所有可展开的 key（支持多级子节点）
-function collectExpandableKeys(list: Recordable[], rowKey: string): string[] {
+function collectExpandableKeys(list: Recordable[]): string[] {
   const keys: string[] = []
-  const childrenField = getMergedProps.value.childrenColumnName || 'children'
+  const childrenField = mergedChildrenField.value
+  const rowKey = mergedRowKey.value
   const walk = (arr: Recordable[]) => {
     for (const item of arr) {
       const children = item?.[childrenField]
@@ -148,12 +172,16 @@ function collectExpandableKeys(list: Recordable[], rowKey: string): string[] {
 }
 
 // 树形数据就绪后自动展开所有节点
-watch(getDataSource, (data) => {
-  if (getMergedProps.value.isTree && data.length > 0) {
-    const rowKey = (getMergedProps.value.rowKey as string) || 'id'
-    expandedRowKeysRef.value = collectExpandableKeys(data, rowKey)
-  }
-})
+// ⭐ flush: 'post' 避免在渲染前同步触发，减少一次多余渲染
+watch(
+  getDataSource,
+  (data) => {
+    if (mergedIsTree.value && data.length > 0) {
+      expandedRowKeysRef.value = collectExpandableKeys(data)
+    }
+  },
+  { flush: 'post' },
+)
 
 // ============================================
 // 行选择
@@ -165,17 +193,17 @@ const getRowSelection = computed((): TableRowSelection | undefined => {
 })
 
 // ============================================
-// 展开配置（统一合并，关键修复）
+// 展开配置（统一合并）
 // ============================================
 
 const getExpandable = computed(() => {
   const userExpandable = getMergedProps.value.expandable || {}
 
   // 1) 树形表格
-  if (getMergedProps.value.isTree) {
+  if (mergedIsTree.value) {
     return {
       indentSize: getMergedProps.value.indentSize ?? 20,
-      childrenColumnName: getMergedProps.value.childrenColumnName || 'children',
+      childrenColumnName: mergedChildrenField.value,
       defaultExpandAllRows: getMergedProps.value.defaultExpandAllRows ?? true,
       expandedRowKeys: expandedRowKeysRef.value,
       onExpandedRowsChange: (keys: string[]) => {
@@ -210,7 +238,7 @@ const getPagination = computed(() => {
   if (!paginationConfig) return false
   return {
     ...paginationConfig,
-    size: getMergedProps.value.size || 'middle',
+    size: mergedSize.value,
   }
 })
 
@@ -273,6 +301,7 @@ function getOriginalColumn(columnKey: string | number): BasicColumn | undefined 
   const cols = columns.getColumns()
   return cols.find((col) => col.key === columnKey || col.dataIndex === columnKey)
 }
+
 /**
  * 渲染任意 VNode 的辅助组件
  * Vue 3 模板里无法直接把 VNode 作为插值渲染，需要一个包装组件
@@ -289,6 +318,7 @@ const RenderVNode = defineComponent({
     return () => p.vnode as any
   },
 })
+
 /**
  * 统一单元格渲染
  * 优先级：customRender > format > edit > image > default
@@ -404,8 +434,7 @@ const tableActionType: TableActionType = {
 
   // 行操作
   expandAll: () => {
-    const rowKey = (getMergedProps.value.rowKey as string) || 'id'
-    expandedRowKeysRef.value = collectExpandableKeys(getDataSource.value, rowKey)
+    expandedRowKeysRef.value = collectExpandableKeys(getDataSource.value)
   },
   collapseAll: () => {
     expandedRowKeysRef.value = []
@@ -439,7 +468,7 @@ const tableActionType: TableActionType = {
   setShowPagination: pagination.setShowPagination,
   getShowPagination: pagination.getShowPagination,
 
-  // 表单操作 - 接真实实现
+  // 表单操作
   getFormValues: () => (tableForm.getForm() as any)?.getFieldsValue?.() ?? {},
   setFormValues: (values: Recordable) => (tableForm.getForm() as any)?.setFieldsValue?.(values),
   resetForm: () => (tableForm.getForm() as any)?.resetFields?.(),
@@ -473,11 +502,11 @@ defineExpose(tableActionType)
 <template>
   <div :class="tableContainerClassName">
     <!-- 搜索表单 -->
-    <div v-if="showSearchForm" class="mb-4">
+    <div v-if="showSearchForm" class="mb-2">
       <BasicForm v-bind="tableForm.getFormProps" @register="tableForm.registerForm" />
     </div>
 
-    <div v-if="showSearchForm" class="mb-4 border-t border-gray-200 dark:border-gray-700" />
+    <div v-if="showSearchForm" class="mb-2 border-t border-gray-200 dark:border-gray-700" />
 
     <!-- 工具栏 -->
     <div v-if="showTableSetting || $slots.toolbar" class="mb-4 flex items-center justify-between">
@@ -503,24 +532,24 @@ defineExpose(tableActionType)
       :loading="loadingRef"
       :pagination="getPagination"
       :row-selection="getRowSelection as any"
-      :row-key="getMergedProps.rowKey"
-      :bordered="getMergedProps.bordered"
-      :table-layout="getMergedProps.tableLayout"
-      :sticky="getMergedProps.sticky"
-      :show-header="getMergedProps.showHeader ?? true"
-      :locale="getMergedProps.locale"
-      :row-class-name="getMergedProps.rowClassName"
-      :size="getMergedProps.size"
+      :row-key="mergedRowKey"
+      :bordered="mergedBordered"
+      :table-layout="mergedTableLayout"
+      :sticky="mergedSticky"
+      :show-header="mergedShowHeader"
+      :locale="mergedLocale"
+      :row-class-name="mergedRowClassName"
+      :size="mergedSize"
       :expandable="getExpandable"
-      :scroll="getMergedProps.scroll"
-      :title="getMergedProps.title"
-      :caption="getMergedProps.caption"
-      :footer="getMergedProps.footer"
-      :summary="getMergedProps.summary"
-      :show-sorter-tooltip="getMergedProps.showSorterTooltip"
-      :sort-directions="getMergedProps.sortDirections"
+      :scroll="mergedScroll"
+      :title="mergedTitle"
+      :caption="mergedCaption"
+      :footer="mergedFooter"
+      :summary="mergedSummary"
+      :show-sorter-tooltip="mergedShowSorterTooltip"
+      :sort-directions="mergedSortDirections"
       :on-row="getOnRow"
-      :on-header-row="getMergedProps.onHeaderRow"
+      :on-header-row="mergedOnHeaderRow"
       :get-popup-container="getPopupContainer"
       @change="handleTableChange"
     >
@@ -561,10 +590,7 @@ defineExpose(tableActionType)
         <!-- 操作列 -->
         <template v-else-if="column.key === 'action'">
           <slot name="action" :record="record" :index="index" :column="column">
-            <TableAction
-              :actions="getActions(record)"
-              :max-show-count="getMergedProps.actionColumn?.maxShowCount || 4"
-            />
+            <TableAction :actions="getActions(record)" :max-show-count="mergedActionColumn?.maxShowCount || 4" />
           </slot>
         </template>
 
@@ -630,14 +656,15 @@ defineExpose(tableActionType)
       </template>
 
       <!-- ============ 空数据 ============ -->
-      <template v-if="getMergedProps.emptyText || $slots.empty" #emptyText>
+      <template v-if="mergedEmptyText || $slots.empty" #emptyText>
         <slot name="empty">
-          {{ getMergedProps.emptyText || '暂无数据' }}
+          {{ mergedEmptyText || '暂无数据' }}
         </slot>
       </template>
     </Table>
   </div>
 </template>
+
 <style scoped>
 :deep(.ant-form-item) {
   margin-bottom: 12px;

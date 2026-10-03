@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3'
 
+import { isNil } from 'es-toolkit'
 import { computed } from 'vue'
 
 import type { MarkdownEditorToolbarKey } from '../types'
@@ -158,13 +159,13 @@ function runAction(action: ToolbarAction) {
 
 function readTextStyle(name: 'fontSize' | 'fontFamily' | 'color' | 'backgroundColor'): string {
   const editor = props.editor
-  if (!editor) return ''
+  if (isNil(editor)) return ''
   return (editor.getAttributes('textStyle')[name] as string | undefined) ?? ''
 }
 
 const currentHeader = computed(() => {
   const editor = props.editor
-  if (!editor) return 'paragraph'
+  if (isNil(editor)) return 'paragraph'
 
   const level = HEADING_LEVELS.find((value) => editor.isActive('heading', { level: value }))
   return level ? String(level) : 'paragraph'

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from 'vue'
+import { useFocus } from '@vueuse/core'
+import { ref } from 'vue'
 
 const props = defineProps<{
-  /** 已有链接时回填，便于修改 */
   initialUrl?: string
 }>()
 
@@ -11,18 +11,15 @@ const emit = defineEmits<{ confirm: [url: string]; cancel: [] }>()
 const url = ref(props.initialUrl ?? '')
 const inputRef = ref<HTMLInputElement | null>(null)
 
+// useFocus：挂载时自动 focus，组件卸载时自动 blur，无需 nextTick
+useFocus(inputRef, { initialValue: true })
+
 function confirm() {
   emit('confirm', url.value.trim())
 }
-
-onMounted(async () => {
-  await nextTick()
-  inputRef.value?.focus()
-})
 </script>
 
 <template>
-  <!-- 阻止冒泡，避免点击输入框时被下拉容器直接关闭 -->
   <div class="w-64 p-2" @click.stop>
     <input
       ref="inputRef"

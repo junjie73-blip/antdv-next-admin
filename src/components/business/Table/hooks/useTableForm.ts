@@ -2,6 +2,8 @@ import type { ComputedRef, Ref } from 'vue'
 
 import { computed, ref, unref, watch } from 'vue'
 
+import dayjs from '~/utils/dayjs'
+
 import type { FormActionType, FormProps, FormSchema } from '../../Form/types'
 import type { BasicTableProps, Recordable } from '../types'
 
@@ -31,37 +33,23 @@ interface UseTableFormReturn {
  * 将时间范围字段拆分为开始和结束字段
  */
 function handleRangeTimeValue(values: Recordable, fieldMapToTime?: [string, [string, string], string?][]): Recordable {
-  if (!fieldMapToTime || !Array.isArray(fieldMapToTime)) {
-    return values
-  }
-
+  if (!fieldMapToTime || !Array.isArray(fieldMapToTime)) return values
   const result = { ...values }
 
-  fieldMapToTime.forEach(([field, [startKey, endKey], format = 'YYYY-MM-DD']) => {
+  for (const [field, [startKey, endKey], format = 'YYYY-MM-DD'] of fieldMapToTime) {
     const value = result[field]
     if (value && Array.isArray(value) && value.length === 2) {
       const [start, end] = value
-
-      // 处理 dayjs 对象或 Date 对象
-      const formatValue = (v: any): string | null => {
+      const fmt = (v: any): string | null => {
         if (!v) return null
-        if (v instanceof Date) {
-          return formatDate(v, format)
-        }
-        if (typeof v === 'object' && 'format' in v && typeof v.format === 'function') {
-          return v.format(format)
-        }
-        return String(v)
+        const d = dayjs.isDayjs(v) ? v : dayjs(v)
+        return d.isValid() ? d.format(format) : String(v)
       }
-
-      result[startKey] = formatValue(start)
-      result[endKey] = formatValue(end)
-
-      // 删除原始字段
+      result[startKey] = fmt(start)
+      result[endKey] = fmt(end)
       delete result[field]
     }
-  })
-
+  }
   return result
 }
 

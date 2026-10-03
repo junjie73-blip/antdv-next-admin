@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { FormInstance } from 'antdv-next'
 
+import { breakpointsTailwind, useBreakpoints } from '@vueuse/core'
 import { computed, onMounted, provide, reactive, ref, unref, useAttrs, watch } from 'vue'
 
 import IconifyIcon from '~/components/common/Icon/IconifyIcon.vue'
@@ -14,6 +15,7 @@ import { deepMerge, formatDateFields, handleRangeValue } from './helper'
 defineOptions({
   name: 'BasicForm',
 })
+
 const props = withDefaults(defineProps<FormProps>(), {
   showActionButtonGroup: true,
   showResetButton: true,
@@ -33,6 +35,23 @@ const emit = defineEmits<{
 
 const attrs = useAttrs()
 
+// ============================================================
+// 响应式断点（Tailwind 约定）
+//   < 640px  → 1 列
+//   < 768px  → 2 列
+//   < 1280px → 3 列
+//   ≥ 1280px → 4 列
+// 若外部显式传 grid.cols，则优先用外部配置
+// ============================================================
+const breakpoints = useBreakpoints(breakpointsTailwind)
+
+const responsiveCols = computed(() => {
+  if (breakpoints.smaller('sm').value) return 1
+  if (breakpoints.smaller('md').value) return 2
+  if (breakpoints.smaller('xl').value) return 3
+  return 4
+})
+
 // ============ 表单状态 ============
 const formModel = reactive<Recordable>({})
 const schemaRef = ref<FormSchema[]>([])
@@ -40,9 +59,12 @@ const formRef = ref<FormInstance>()
 const propsRef = ref<Partial<FormProps>>({})
 const isAdvanced = ref(false)
 
-// ============ 合并 props ============
+// ============ 合并 props（schemas 不参与合并） ============
 const getProps = computed(() => {
-  return deepMerge({ ...props }, { ...unref(propsRef), schemas: unref(schemaRef) }) as FormProps
+  const merged = deepMerge({ ...props }, { ...unref(propsRef) }) as FormProps
+  // schemas 永远以 schemaRef 为准，绕开任何合并逻辑
+  merged.schemas = unref(schemaRef)
+  return merged
 })
 
 // ============ 透传 a-form 原生属性 ============
@@ -51,11 +73,21 @@ const aFormAttrs = computed(() => {
   return rest
 })
 
-// ============ 计算每列的 span ============
-const getGridColSpan = computed(() => {
-  const grid = getProps.value.grid
-  if (!grid?.cols || grid.cols < 1 || grid.cols > 4) return null
-  return Math.floor(24 / grid.cols)
+// ============ 实际生效的列数 ============
+const effectiveCols = computed(() => {
+  const configured = getProps.value.grid?.cols
+  if (configured != null && configured >= 1 && configured <= 4) return configured
+  return responsiveCols.value
+})
+
+// ============ 每个字段的默认 span ============
+const gridColSpan = computed(() => Math.floor(24 / effectiveCols.value))
+
+// ============ 把布局信息 provide 给 FormItem ============
+provide('formGridContext', {
+  cols: effectiveCols,
+  span: gridColSpan,
+  gutter: computed(() => getProps.value.grid?.gutter ?? 24),
 })
 
 // ============ 折叠行数 ============
@@ -64,12 +96,14 @@ const alwaysShowLines = computed(() => getProps.value.alwaysShowLines ?? 3)
 // ============ 核心：按行分组 ============
 const allRows = computed<FormSchema[][]>(() => {
   const schemas = unref(schemaRef) || []
-  const defaultSpan = getGridColSpan.value ?? 24
+  const defaultSpan = gridColSpan.value
   const rows: FormSchema[][] = []
   let currentRow: FormSchema[] = []
   let currentSpan = 0
 
   for (const schema of schemas) {
+    // ★ 跳过空值元素
+    if (!schema) continue
     if (!schema.field && schema.component !== 'Divider') continue
 
     // Divider 独占一行
@@ -102,27 +136,37 @@ const needCollapse = computed(() => {
   return !!getProps.value.showAdvancedButton && allRows.value.length > alwaysShowLines.value
 })
 
-// ============ 当前显示的所有 schemas（含 Divider） ============
+// ============ 当前显示的 schemas（含 Divider） ============
 const displaySchemas = computed<FormSchema[]>(() => {
   const rows = allRows.value
   let visibleRows = rows
   if (needCollapse.value && !unref(isAdvanced)) {
     visibleRows = rows.slice(0, alwaysShowLines.value)
   }
-  const flat = visibleRows.flat()
-  const cols = getGridColSpan.value
-  if (cols === null) return flat
-  return flat.map((schema) => ({
-    ...schema,
-    colProps: {
-      span: cols,
-      ...schema.colProps,
-    },
-  }))
+
+  // ★ flat 后再过滤一遍空值
+  const flat = visibleRows.flat().filter((s): s is FormSchema => !!s)
+  const defaultSpan = gridColSpan.value
+
+  return flat.map((schema) => {
+    if (schema.component === 'Divider') return schema
+    return {
+      ...schema,
+      colProps: {
+        span: defaultSpan,
+        ...schema.colProps,
+      },
+    }
+  })
 })
 
-const displayFields = computed(() => displaySchemas.value.filter((s) => s.component !== 'Divider'))
-const displayDividers = computed(() => displaySchemas.value.filter((s) => s.component === 'Divider'))
+const displayFields = computed(() =>
+  displaySchemas.value.filter((s): s is FormSchema => !!s && s.component !== 'Divider'),
+)
+
+const displayDividers = computed(() =>
+  displaySchemas.value.filter((s): s is FormSchema => !!s && s.component === 'Divider'),
+)
 
 // ============ 布局 ============
 const getRowProps = computed(() => {
@@ -142,8 +186,8 @@ const getLabelCol = computed(() => {
 })
 
 const getWrapperCol = computed(() => {
-  const gridCols = getProps.value.grid?.cols
-  if (gridCols && gridCols <= 1) {
+  const gridCols = effectiveCols.value
+  if (gridCols <= 1) {
     if (getProps.value.labelWidth) {
       return { style: { flex: 1, maxWidth: '100%' } }
     }
@@ -178,6 +222,7 @@ function setFormModel(key: string, value: any) {
 function initFormModel() {
   const schemas = unref(schemaRef) || []
   schemas.forEach((schema) => {
+    if (!schema) return
     if (schema.field && schema.defaultValue !== undefined) {
       formModel[schema.field] = schema.defaultValue
     }
@@ -209,14 +254,9 @@ async function handleSubmit() {
       let processed = { ...values }
       const schemas = getProps.value.schemas || []
       processed = formatDateFields(processed, schemas)
-      const fieldMapToTime = getProps.value.fieldMapToTime
-      if (fieldMapToTime) {
-        processed = handleRangeValue(processed, fieldMapToTime)
-      }
 
-      // 优先透传给原生 onFinish，其次调用 submitFunc，最后 emit
-      if (getProps.value.onFinish) {
-        getProps.value.onFinish(processed)
+      if (aFormAttrs.value.onFinish) {
+        aFormAttrs.value.onFinish?.(processed)
       } else if (getProps.value.submitFunc) {
         await getProps.value.submitFunc()
       } else {
@@ -224,7 +264,6 @@ async function handleSubmit() {
       }
     }
   } catch (error) {
-    // 校验失败，交给 a-form 自身的 finishFailed
     console.error('Form submit error:', error)
   }
 }
@@ -249,7 +288,7 @@ function toggleAdvanced() {
 async function resetFields() {
   await formRef.value?.resetFields?.()
   Object.keys(formModel).forEach((key) => {
-    const schema = unref(schemaRef)?.find((s) => s.field === key)
+    const schema = unref(schemaRef)?.find((s) => s && s.field === key)
     formModel[key] = schema?.defaultValue !== undefined ? schema.defaultValue : undefined
   })
 }
@@ -280,23 +319,23 @@ async function scrollToField(name: NamePath, options?: ScrollIntoViewOptions) {
 async function updateSchema(data: Partial<FormSchema> | Partial<FormSchema>[]) {
   const updateData = Array.isArray(data) ? data : [data]
   updateData.forEach((item) => {
-    if (item.field) {
-      const index = schemaRef.value.findIndex((s) => s.field === item.field)
-      if (index !== -1 && schemaRef.value[index]) {
-        schemaRef.value[index] = deepMerge(schemaRef.value[index], item) as FormSchema
-      }
+    if (!item || !item.field) return
+    const index = schemaRef.value.findIndex((s) => s && s.field === item.field)
+    if (index !== -1 && schemaRef.value[index]) {
+      schemaRef.value[index] = deepMerge(schemaRef.value[index], item) as FormSchema
     }
   })
 }
 
 async function removeSchemaByField(field: string | string[]) {
   const fields = Array.isArray(field) ? field : [field]
-  schemaRef.value = schemaRef.value.filter((s) => !fields.includes(s.field))
+  schemaRef.value = schemaRef.value.filter((s) => s && !fields.includes(s.field))
 }
 
 async function appendSchemaByField(schema: FormSchema, prefixField?: string, first?: boolean) {
+  if (!schema) return
   if (prefixField) {
-    const index = schemaRef.value.findIndex((s) => s.field === prefixField)
+    const index = schemaRef.value.findIndex((s) => s && s.field === prefixField)
     if (index !== -1) {
       schemaRef.value.splice(first ? index : index + 1, 0, schema)
     }
@@ -307,9 +346,11 @@ async function appendSchemaByField(schema: FormSchema, prefixField?: string, fir
 }
 
 async function setProps(newProps: Partial<FormProps>) {
-  propsRef.value = deepMerge(unref(propsRef) || {}, newProps)
-  if (newProps.schemas) {
-    schemaRef.value = newProps.schemas
+  // schemas 单独处理，绝不进入 propsRef，避免合并时数组被拼接
+  const { schemas, ...rest } = newProps
+  propsRef.value = deepMerge(unref(propsRef) || {}, rest)
+  if (schemas) {
+    schemaRef.value = schemas
     initFormModel()
   }
 }
@@ -335,6 +376,8 @@ const formActionType: FormActionType = {
   getForm,
 }
 
+// 去掉 deep: true，避免深层监听引起重复触发
+// 外部若需原地修改 schema，请改用 setProps / updateSchema
 watch(
   () => props.schemas,
   (schemas) => {
@@ -343,7 +386,7 @@ watch(
       initFormModel()
     }
   },
-  { immediate: true, deep: true },
+  { immediate: true },
 )
 
 onMounted(() => {
@@ -362,6 +405,7 @@ defineExpose(formActionType)
     :wrapper-col="getWrapperCol"
     :disabled="getProps.disabled"
     :size="getProps.size as any"
+    :colon="false"
     v-bind="aFormAttrs"
     @finish="handleSubmit"
   >
@@ -380,7 +424,7 @@ defineExpose(formActionType)
         </FormItem>
       </template>
 
-      <!-- 分割线（随展开/收缩一起显示） -->
+      <!-- 分割线 -->
       <template v-for="(schema, index) in displayDividers" :key="`divider-${index}`">
         <a-col :span="24">
           <a-divider v-bind="schema.componentProps">

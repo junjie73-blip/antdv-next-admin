@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { range } from 'es-toolkit'
 import { computed, ref } from 'vue'
 
 const props = withDefaults(
@@ -13,13 +14,9 @@ const emit = defineEmits<{ select: [rows: number, cols: number] }>()
 
 const hovered = ref({ rows: 0, cols: 0 })
 
-const cells = computed(() =>
-  Array.from({ length: props.rows * props.cols }, (_, index) => ({
-    key: index,
-    row: Math.floor(index / props.cols) + 1,
-    col: (index % props.cols) + 1,
-  })),
-)
+// es-toolkit range：直接生成 1..n 的序号数组
+const rowRange = computed(() => range(1, props.rows + 1))
+const colRange = computed(() => range(1, props.cols + 1))
 
 function isHighlighted(row: number, col: number) {
   return row <= hovered.value.rows && col <= hovered.value.cols
@@ -37,15 +34,17 @@ function reset() {
     </div>
 
     <div class="grid gap-0.5" :style="{ gridTemplateColumns: `repeat(${cols}, 14px)` }">
-      <button
-        v-for="cell in cells"
-        :key="cell.key"
-        type="button"
-        class="h-3.5 w-3.5 rounded-sm border border-gray-300 dark:border-gray-600"
-        :class="isHighlighted(cell.row, cell.col) && 'border-blue-500 bg-blue-100 dark:bg-blue-500/30'"
-        @mouseenter="hovered = { rows: cell.row, cols: cell.col }"
-        @click="emit('select', cell.row, cell.col)"
-      />
+      <template v-for="row in rowRange" :key="row">
+        <button
+          v-for="col in colRange"
+          :key="`${row}-${col}`"
+          type="button"
+          class="h-3.5 w-3.5 rounded-sm border border-gray-300 dark:border-gray-600"
+          :class="isHighlighted(row, col) && 'border-blue-500 bg-blue-100 dark:bg-blue-500/30'"
+          @mouseenter="hovered = { rows: row, cols: col }"
+          @click="emit('select', row, col)"
+        />
+      </template>
     </div>
   </div>
 </template>

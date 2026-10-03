@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx'
 
-import { usePrint } from '~/utils/print'
+import { usePrint } from '~/composables/print'
 
 import type { DeptTreeNode, FlatDeptNode, UserRecord } from './types'
 

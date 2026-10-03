@@ -2,30 +2,24 @@
 import type { TreeSelectProps } from 'antdv-next'
 import type { DataNode } from 'antdv-next/dist/tree/index'
 
-import { onMounted, ref } from 'vue'
+import { watchDebounced } from '@vueuse/core'
+import { ref } from 'vue'
 
+import { useRequest } from '~/composables'
 import { http } from '~/utils'
+
 interface Props extends /* @vue-ignore */ TreeSelectProps {
   api: string
 }
+
 const { api, ...props } = defineProps<Props>()
-const treeData = ref<DataNode[]>([])
-async function getTreeData() {
-  const { data: res } = await http
-    .Get<{ data: DataNode[] }>(api, {
-      cacheFor: null,
-    })
-    .send(true)
-  console.log(res, 'res')
-  treeData.value = res
-}
-onMounted(() => {
-  getTreeData()
+const { refresh, data } = useRequest(api, {
+  immediate: false,
 })
+
+watchDebounced(api, () => refresh(), { immediate: true, debounce: 200 })
 </script>
 
 <template>
-  <a-tree-select v-bind="props" :tree-data />
+  <a-tree-select v-bind="props" :tree-data="data" />
 </template>
-
-<style scoped></style>

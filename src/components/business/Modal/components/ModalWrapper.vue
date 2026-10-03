@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useWindowSize } from '@vueuse/core'
 import { computed } from 'vue'
 
 import { cn } from '~/utils/cn'
@@ -19,18 +20,17 @@ const props = defineProps({
   },
 })
 
-// 计算 wrapper 样式
+// useWindowSize：视口高度响应式，窗口缩放自动更新
+const { height: windowHeight } = useWindowSize()
+
 const wrapperStyle = computed(() => {
   if (!props.useWrapper) return {}
 
   if (props.height) {
-    return {
-      height: `${props.height}px`,
-    }
+    return { height: `${props.height}px` }
   }
 
-  // 视口高度 - 顶部间距 - 底部间距 - footerOffset
-  const maxHeight = window.innerHeight - 200 - props.footerOffset
+  const maxHeight = windowHeight.value - 200 - props.footerOffset
 
   return {
     maxHeight: `${maxHeight}px`,
@@ -38,15 +38,11 @@ const wrapperStyle = computed(() => {
   }
 })
 
-// 内容区域样式：不再使用原生 overflow，由 Scrollbar 接管滚动
-const bodyStyle = computed(() => ({
-  maxHeight: '100%',
-}))
+const bodyStyle = computed(() => ({ maxHeight: '100%' }))
 </script>
 
 <template>
   <div :class="cn('modal-wrapper', 'relative')" :style="wrapperStyle">
-    <!-- Loading 遮罩 -->
     <div
       v-if="loading"
       :class="cn('absolute inset-0 z-10 flex items-center justify-center', 'bg-white/80 backdrop-blur-sm')"
@@ -57,7 +53,6 @@ const bodyStyle = computed(() => ({
       </div>
     </div>
 
-    <!-- 内容区域：使用 Scrollbar 替代系统滚动条 -->
     <Scrollbar :class="cn('modal-body', 'p-6')" :style="bodyStyle">
       <slot />
     </Scrollbar>

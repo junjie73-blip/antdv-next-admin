@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { VNodeChild } from 'vue'
 
-import { Descriptions, type DescriptionsProps } from 'antdv-next'
-import { Image } from 'antdv-next'
+import { Descriptions, Image, type DescriptionsProps } from 'antdv-next'
 import dayjs from 'dayjs'
+import { isArray, isNil, isString } from 'es-toolkit'
 import { computed, h, useSlots } from 'vue'
 
 import { cn } from '~/utils/cn'
@@ -22,142 +22,97 @@ const props = withDefaults(defineProps<DescriptionProps>(), {
 
 const slots = useSlots()
 
-// ========== 数据源 ==========
 const dataRef = computed(() => props.data || {})
-
-// ========== 过滤 schema ==========
 const filteredSchema = computed(() => (props.schema || []).filter((item) => item.show !== false))
 
-// ========== 取值 ==========
-function getFieldValue(item: DescriptionItem): any {
+function getFieldValue(item: DescriptionItem): unknown {
   const value = item.value !== undefined ? item.value : dataRef.value[item.field]
-  if (value === undefined || value === null || value === '') {
-    return props.emptyText
-  }
+  if (isNil(value) || value === '') return props.emptyText
   return value
 }
 
-/** 标签 */
 function renderLabel(item: DescriptionItem): VNodeChild {
   const slotName = `${item.field}-label`
-  if (slots[slotName]) {
-    return slots[slotName]!({ item, data: dataRef.value })
-  }
-  if (item.renderLabel) {
-    return item.renderLabel(item.label || item.field, dataRef.value)
-  }
+  if (slots[slotName]) return slots[slotName]!({ item, data: dataRef.value })
+  if (item.renderLabel) return item.renderLabel(item.label || item.field, dataRef.value)
   return item.label || item.field
 }
 
-/** 单张图片 */
-function renderImage(value: any, size = 60): VNodeChild {
-  if (!value || value === props.emptyText) return h('span', props.emptyText)
-  const url = typeof value === 'string' ? value : value.url
-  return h(Image, {
-    src: url,
-    width: size,
-    preview: true,
-  })
+/** 提取 URL：支持字符串 / { url } / 数组 */
+function pickUrl(v: unknown): string {
+  if (isString(v)) return v
+  if (v && typeof v === 'object' && 'url' in v) return (v as { url: string }).url
+  return ''
 }
 
-/** 多张图片 */
-function renderImages(value: any, size = 60): VNodeChild {
-  if (!value || value === props.emptyText) return h('span', props.emptyText)
-  const list: string[] = Array.isArray(value)
-    ? value.map((v: any) => (typeof v === 'string' ? v : v.url))
-    : String(value).split(',').filter(Boolean)
+function renderImage(value: unknown, size = 60): VNodeChild {
+  if (isNil(value) || value === props.emptyText) return h('span', props.emptyText)
+  return h(Image, { src: pickUrl(value), width: size, preview: true })
+}
+
+function renderImages(value: unknown, size = 60): VNodeChild {
+  if (isNil(value) || value === props.emptyText) return h('span', props.emptyText)
+  const list: string[] = isArray(value) ? value.map(pickUrl) : String(value).split(',').filter(Boolean)
   return h(
     'div',
     {},
-    {
-      default: () =>
-        list.map((url, i) =>
-          h(Image, {
-            key: i,
-            src: url,
-            width: size,
-            height: size,
-          }),
-        ),
-    },
+    list.map((url, i) => h(Image, { key: i, src: url, width: size, height: size })),
   )
 }
 
-/** 主内容渲染 */
 function renderValue(item: DescriptionItem): VNodeChild {
   const slotName = item.field
   const value = getFieldValue(item)
 
-  // 1. slot 优先
-  if (slots[slotName]) {
-    return slots[slotName]!({ item, data: dataRef.value, value })
-  }
+  if (slots[slotName]) return slots[slotName]!({ item, data: dataRef.value, value })
 
-  // 2. 自定义 render 优先
   if (item.render) {
     const result = item.render(value, dataRef.value)
-    if (typeof result === 'string' || typeof result === 'number') {
-      return h('span', result)
-    }
-    return result
+    return isString(result) || typeof result === 'number' ? h('span', result) : result
   }
 
-  // 3. 按 type 分发
   switch (item.type) {
     case 'dict': {
-      if (!item.dictType) return h('span', value)
-      // 值是数组或逗号分隔时，用 getDictLabels
-      const isMulti = Array.isArray(value) || String(value).includes(',')
-      const label = isMulti ? getDictLabels(item.dictType, value) : getDictLabel(item.dictType, value)
+      if (!item.dictType) return h('span', value as string)
+      const isMulti = isArray(value) || String(value).includes(',')
+      const label = isMulti ? getDictLabels(item.dictType, value as never) : getDictLabel(item.dictType, value as never)
       return h('span', label)
     }
-
     case 'image':
       return renderImage(value, item.imageSize || 60)
-
     case 'images':
       return renderImages(value, item.imageSize || 60)
-
     case 'date':
-      return h('span', value === props.emptyText ? value : dayjs(value).format(item.dateFormat || 'YYYY-MM-DD'))
-
+      return h(
+        'span',
+        value === props.emptyText ? value : dayjs(value as string).format(item.dateFormat || 'YYYY-MM-DD'),
+      )
     case 'datetime':
       return h(
         'span',
-        value === props.emptyText ? value : dayjs(value).format(item.dateFormat || 'YYYY-MM-DD HH:mm:ss'),
+        value === props.emptyText ? value : dayjs(value as string).format(item.dateFormat || 'YYYY-MM-DD HH:mm:ss'),
       )
-
     case 'tag':
-      return h('span', value)
-
     case 'text':
     default:
-      if (typeof value === 'string' || typeof value === 'number') {
-        return h('span', value)
-      }
-      return value
+      return isString(value) || typeof value === 'number' ? h('span', value) : (value as VNodeChild)
   }
 }
 
-// ========== 转成 a-descriptions 的 items 格式 ==========
-const items = computed<DescriptionsProps['items']>(() => {
-  return filteredSchema.value.map((item) => ({
-    key: item.field,
-    label: renderLabel(item),
-    content: renderValue(item),
-    span: item.span || 1,
-    labelStyle: item.labelStyle,
-    contentStyle: item.contentStyle,
-  })) as DescriptionsProps['items']
-})
+const items = computed<DescriptionsProps['items']>(
+  () =>
+    filteredSchema.value.map((item) => ({
+      key: item.field,
+      label: renderLabel(item),
+      content: renderValue(item),
+      span: item.span || 1,
+      labelStyle: item.labelStyle,
+      contentStyle: item.contentStyle,
+    })) as DescriptionsProps['items'],
+)
 
-// ========== size 映射（antdv-next 只接受 default / middle / small） ==========
-const antSize = computed<'default' | 'middle' | 'small'>(() => {
-  if (props.size === 'small') return 'small'
-  return 'default'
-})
+const antSize = computed<'default' | 'middle' | 'small'>(() => (props.size === 'small' ? 'small' : 'default'))
 
-// ========== 实例方法 ==========
 const instance: DescriptionInstance = {
   getData: () => props.data,
   setData: () => {
@@ -169,12 +124,10 @@ defineExpose(instance)
 
 <template>
   <div :class="cn('description-wrapper', className)" :style="style">
-    <!-- 加载中 -->
     <div v-if="loading" class="description-loading flex items-center justify-center py-8">
       <div class="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900 dark:border-gray-100" />
     </div>
 
-    <!-- 描述列表 -->
     <Descriptions
       v-else
       :title="title"

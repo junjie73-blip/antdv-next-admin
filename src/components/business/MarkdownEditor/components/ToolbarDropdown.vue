@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onClickOutside } from '@vueuse/core'
+import { ref } from 'vue'
 
 const props = defineProps<{
   title: string
-  /** 触发按钮上的文字，与 wangEditor 的文字型下拉保持一致 */
   label?: string
   icon?: string
-  /** 触发按钮底部展示的颜色条，用于文字色 / 背景色 */
   swatch?: string
   active?: boolean
   disabled?: boolean
@@ -25,14 +24,10 @@ function close() {
   open.value = false
 }
 
-function closeOnOutside(event: MouseEvent) {
-  if (!open.value) return
-  if (rootRef.value?.contains(event.target as Node)) return
-  open.value = false
-}
-
-onMounted(() => document.addEventListener('mousedown', closeOnOutside))
-onBeforeUnmount(() => document.removeEventListener('mousedown', closeOnOutside))
+// onClickOutside：自动挂载/清理 document 监听，语义更清晰
+onClickOutside(rootRef, () => {
+  if (open.value) open.value = false
+})
 </script>
 
 <template>

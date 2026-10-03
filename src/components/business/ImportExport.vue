@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { DownloadOutlined, UploadOutlined } from '@antdv-next/icons'
 import { message, Modal } from 'antdv-next'
+import { isError, isNil } from 'es-toolkit'
 import { h, ref } from 'vue'
 
 import { http } from '~/utils'
@@ -8,35 +9,20 @@ import { generateTemplate, type TemplateColumn } from '~/utils/template'
 import { submitExport } from '~/views/system/export/api'
 
 interface Props {
-  /** 模块路径，如 "/user"（自动调 `${module}/export` 和 `${module}/import`） */
   module: string
-  /** 导出文件名前缀，默认取 module 的最后一段 */
   filename?: string
-  /** 导入的字段名（默认 "file"） */
   fieldName?: string
-  /** 接受的文件类型 */
   accept?: string
-  /** 文件大小限制（MB） */
   maxSizeMB?: number
-  /** 导出的额外查询参数（用于筛选） */
   exportParams?: Record<string, any>
-  /** 是否禁用导出 */
   disableExport?: boolean
-  /** 是否禁用导入 */
   disableImport?: boolean
-  /** 导出按钮文案 */
   exportText?: string
-  /** 导入按钮文案 */
   importText?: string
-  /** 导入成功的回调 */
   onImportSuccess?: (result: ImportResult) => void
-  /** 导出成功的回调 */
   onExportSuccess?: () => void
-  /** 导入失败时的自定义处理（返回 true 表示已处理，不弹默认 Modal） */
   onImportError?: (result: ImportResult) => boolean | void
-  /** 导入模板 */
   importTemplate?: TemplateColumn[]
-  // 权限
   permissions: string[]
   importProps?: Record<string, any>
   exportProps?: Record<string, any>
@@ -66,21 +52,20 @@ const emit = defineEmits<{
 
 const exporting = ref(false)
 const importing = ref(false)
-// 导出
-// ============================================================
+
 async function handleExport() {
   if (exporting.value) return
   exporting.value = true
-  const params = {
-    ...props.exportParams,
-  }
-  if ((params?.ids as string[])?.length <= 0) {
+  const params: Record<string, any> = { ...props.exportParams }
+
+  const ids = params?.ids
+  if (Array.isArray(ids) && ids.length <= 0) {
     message.error('请选择导出数据')
     exporting.value = false
     return
-  } else {
-    params.ids = params.ids.join(',')
   }
+  if (Array.isArray(ids)) params.ids = ids.join(',')
+
   try {
     const {
       data: { taskId },
@@ -91,8 +76,9 @@ async function handleExport() {
     })
     message.success(`导出任务已提交（ID: ${taskId.slice(0, 8)}），可在「导出中心」查看进度`)
     props.onExportSuccess?.()
-  } catch (e: any) {
-    const err = e instanceof Error ? e : new Error(String(e))
+  } catch (e) {
+    // es-toolkit isError 替代 instanceof Error
+    const err = isError(e) ? e : new Error(String(e))
     message.error(err.message || '导出失败')
     emit('exportError', err)
   } finally {
@@ -100,30 +86,24 @@ async function handleExport() {
   }
 }
 
-// ============================================================
-// 导入
-// ============================================================
 function handleBeforeUpload(file: File): boolean {
   if (!props.importTemplate) {
     message.error('请先配置导入模板')
     return false
   }
 
-  // 1) 类型校验
   const isValidType = props.accept.split(',').some((ext) => file.name.toLowerCase().endsWith(ext.trim().toLowerCase()))
   if (!isValidType) {
     message.error(`仅支持 ${props.accept} 格式文件`)
     return false
   }
 
-  // 2) 大小校验
   const sizeMB = file.size / 1024 / 1024
   if (sizeMB > props.maxSizeMB) {
     message.error(`文件大小不能超过 ${props.maxSizeMB}MB`)
     return false
   }
 
-  // 3) 手动触发上传（返回 false 阻止默认行为）
   void uploadFile(file)
   return false
 }
@@ -141,8 +121,8 @@ async function uploadFile(file: File) {
 
     handleImportResult(result)
     props.onImportSuccess?.(result)
-  } catch (e: any) {
-    const err = e instanceof Error ? e : new Error(String(e))
+  } catch (e) {
+    const err = isError(e) ? e : new Error(String(e))
     message.error(err.message || '导入失败')
     emit('importError', err)
   } finally {
@@ -153,21 +133,16 @@ async function uploadFile(file: File) {
 function handleImportResult(result: ImportResult) {
   const { successCount = 0, failCount = 0, errors = [] } = result
 
-  // 全部成功
   if (failCount === 0) {
     message.success(`导入成功 ${successCount} 条`)
     return
   }
 
-  // 部分失败 → 弹窗展示详情
   const MAX_SHOW = 20
   const shownErrors = errors.slice(0, MAX_SHOW)
   const moreText = errors.length > MAX_SHOW ? `\n...还有 ${errors.length - MAX_SHOW} 条错误未显示` : ''
 
-  // 允许自定义处理
-  if (props.onImportError?.(result)) {
-    return
-  }
+  if (props.onImportError?.(result)) return
 
   Modal.info({
     title: '导入结果',
@@ -188,6 +163,7 @@ function handleImportResult(result: ImportResult) {
     okText: '知道了',
   })
 }
+
 function downloadTemplate() {
   generateTemplate(props.filename ?? props.module.split('/').pop() + '导入模板', props.importTemplate!)
 }
@@ -195,10 +171,8 @@ function downloadTemplate() {
 
 <template>
   <a-space>
-    <a-button :loading="exporting" :disabled="disableExport" @click="handleExport" v-permission="permissions[1]">
-      <template #icon>
-        <DownloadOutlined />
-      </template>
+    <a-button :loading="exporting" :disabled="disableExport" v-permission="permissions[1]" @click="handleExport">
+      <template #icon><DownloadOutlined /></template>
       {{ exportText }}
     </a-button>
 
@@ -210,16 +184,12 @@ function downloadTemplate() {
       :multiple="false"
     >
       <a-button :loading="importing" :disabled="disableImport" v-permission="permissions[0]">
-        <template #icon>
-          <UploadOutlined />
-        </template>
+        <template #icon><UploadOutlined /></template>
         {{ importText }}
       </a-button>
     </a-upload>
     <a-button type="primary" @click="downloadTemplate">
-      <template #icon>
-        <UploadOutlined />
-      </template>
+      <template #icon><UploadOutlined /></template>
       导入模板
     </a-button>
   </a-space>

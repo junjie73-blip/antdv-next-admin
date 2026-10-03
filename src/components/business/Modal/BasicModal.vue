@@ -39,7 +39,7 @@ const emit = defineEmits<{
 const slots = useSlots()
 
 // ARIA 无障碍 ID（用于关联标题和内容）— 使用 useId 确保服务端渲染安全
-const modalId = `modal-${Math.random().toString(36).slice(2, 9)}`
+const modalId = useId()
 const modalTitleId = `${modalId}-title`
 const modalContentId = `${modalId}-content`
 
@@ -114,14 +114,11 @@ const innerMethods: ModalInnerMethods = {
   },
 }
 
-// 注册
-onMounted(() => {
-  // 延迟注册，确保父组件已准备好接收
-  setTimeout(() => {
-    emit('register', modalMethods)
-  }, 0)
-})
+const { start: scheduleRegister } = useTimeoutFn(() => emit('register', modalMethods), 0, { immediate: false })
 
+onMounted(() => {
+  scheduleRegister()
+})
 // 监听 visible 变化
 watch(
   () => props.open,

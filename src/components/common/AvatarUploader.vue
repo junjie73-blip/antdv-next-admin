@@ -6,14 +6,12 @@ import 'vue-cropper/dist/index.css'
 import { VueCropper } from 'vue-cropper'
 
 import { uploadFile } from '~/api'
+import { useFileReader } from '~/composables/useFileReader'
 
 interface Props {
   modelValue?: string
-  /** 上传尺寸限制，MB */
   maxSizeMb?: number
-  /** 输出尺寸（px），默认 256x256 */
   outputSize?: number
-  /** 圆形预览 */
   round?: boolean
   size?: number
 }
@@ -33,8 +31,9 @@ const emit = defineEmits<{
 
 const visible = ref(false)
 const uploading = ref(false)
-const imgSrc = ref('')
 const cropperRef = ref<InstanceType<typeof VueCropper> | null>(null)
+
+const { result: imgSrc, read: readFile } = useFileReader()
 
 const previewStyle = computed(() => ({
   width: `${props.size}px`,
@@ -42,7 +41,6 @@ const previewStyle = computed(() => ({
   borderRadius: props.round ? '50%' : '8px',
 }))
 
-// 打开裁剪
 function beforeUpload(file: File): boolean {
   const isImage = /^image\/(jpeg|png|webp|gif)$/.test(file.type)
   if (!isImage) {
@@ -54,19 +52,17 @@ function beforeUpload(file: File): boolean {
     return false
   }
 
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    imgSrc.value = String(e.target?.result ?? '')
+  // useFileReader 读取为 DataURL
+  readFile(file).then(() => {
     visible.value = true
     nextTick(() => {
       cropperRef.value?.refresh?.()
     })
-  }
-  reader.readAsDataURL(file)
-  return false // 阻止 a-upload 默认上传
+  })
+
+  return false
 }
 
-// 确认裁剪 → 上传
 async function handleConfirm() {
   if (!cropperRef.value) return
   uploading.value = true
@@ -78,9 +74,7 @@ async function handleConfirm() {
       })
     })
 
-    const file = new File([blob], `avatar_${Date.now()}.png`, {
-      type: 'image/png',
-    })
+    const file = new File([blob], `avatar_${Date.now()}.png`, { type: 'image/png' })
     const res: any = await uploadFile(file)
     const url = res?.data?.url || res?.url
     if (!url) throw new Error('上传接口未返回 url')
@@ -97,20 +91,18 @@ async function handleConfirm() {
 }
 
 watch(visible, (v) => {
-  if (!v) imgSrc.value = ''
+  if (!v) imgSrc.value = null
 })
 </script>
 
 <template>
   <div class="flex items-center gap-4">
-    <!-- 头像预览 -->
     <a-avatar :size="size" :src="modelValue" :style="previewStyle" class="bg-slate-100 dark:bg-slate-800">
       <template v-if="!modelValue">
         <Icon icon="carbon:user-avatar" class="text-3xl text-gray-400" />
       </template>
     </a-avatar>
 
-    <!-- 上传按钮 -->
     <a-upload
       :show-upload-list="false"
       accept="image/jpeg,image/png,image/webp,image/gif"
@@ -122,7 +114,6 @@ watch(visible, (v) => {
       </a-button>
     </a-upload>
 
-    <!-- 裁剪弹窗 -->
     <a-modal
       v-model:open="visible"
       title="裁剪头像"
