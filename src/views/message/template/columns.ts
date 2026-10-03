@@ -42,6 +42,13 @@ export const templateColumns: BasicColumn[] = [
     align: 'center',
   },
   {
+    title: '编辑模式',
+    dataIndex: 'editorType',
+    key: 'editorType',
+    width: 110,
+    align: 'center',
+  },
+  {
     title: '状态',
     dataIndex: 'status',
     key: 'status',

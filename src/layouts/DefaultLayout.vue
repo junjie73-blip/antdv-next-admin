@@ -11,6 +11,8 @@ import { useWatermark } from '~/composables/web/useWatermark'
 import { useDictStore } from '~/stores'
 import { useAppStore } from '~/stores/modules/app'
 import { useRouteStore } from '~/stores/modules/route'
+import { useUserStore } from '~/stores/modules/user'
+import { cache, showLoginWelcome } from '~/utils'
 import { cn } from '~/utils/cn'
 import { transformMenuConfigToItems } from '~/utils/helpers/menu'
 
@@ -19,11 +21,10 @@ import LayoutHeader from './components/LayoutHeader.vue'
 import LayoutSidebar from './components/LayoutSidebar.vue'
 import LayoutTabs from './components/LayoutTabs.vue'
 import { useLayout } from './composables/useLayout'
-
 defineOptions({
   name: 'DefaultLayout',
 })
-
+const WELCOME_FLAG = 'app_welcome_shown'
 const router = useRouter()
 const appStore = useAppStore()
 const routeStore = useRouteStore()
@@ -31,6 +32,7 @@ const { collapsed, checkMobile, toggleCollapsed } = useLayout()
 const route = useRoute()
 const dictStore = useDictStore()
 const routeStroe = useRouteStore()
+const userStore = useUserStore()
 // 路由切换 loading 状态管理（增强版：集成性能监控）
 const {
   isLoading: isRouteLoading,
@@ -151,6 +153,9 @@ onMounted(() => {
   dictStore.fetchAllDicts()
   routeStroe.initBackendRoutes()
   window.addEventListener('resize', handleResize)
+  if (cache.getItem(WELCOME_FLAG)) return
+  cache.setItem(WELCOME_FLAG, '1')
+  showLoginWelcome({ username: userStore.userInfo?.realname ?? userStore.userInfo?.username })
 })
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)

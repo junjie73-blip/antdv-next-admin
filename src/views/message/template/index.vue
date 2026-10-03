@@ -16,7 +16,8 @@ import { templateActionColumn, templateColumns, templatePagination, templateRowK
 import TemplateEditor from './components/TemplateEditor.vue'
 import TemplatePreviewModal from './components/TemplatePreviewModal.vue'
 import TemplateTestModal from './components/TemplateTestModal.vue'
-import { CHANNEL_MAP, TEMPLATE_STATUS_MAP } from './constants'
+import TemplateVariableTable from './components/TemplateVariableTable.vue'
+import { CHANNEL_MAP, EDITOR_TYPE_MAP, TEMPLATE_STATUS_MAP } from './constants'
 import { searchSchemas, useTemplateFormSchemas } from './schemas'
 
 defineOptions({ name: 'MessageTemplate' })
@@ -66,38 +67,25 @@ const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<T
     channelType: 'email',
     title: '',
     content: '',
-    contentFormat: 'markdown',
     params: [],
     remark: '',
     status: '1',
+    editorType: 'richtext',
+    contentFormat: 'html',
   }),
-  getFormValues: (record) => ({
-    templateCode: record.templateCode,
-    templateName: record.templateName,
-    channelType: record.channelType,
-    title: record.title ?? '',
-    content: record.content,
-    contentFormat: (record as any).contentFormat ?? 'markdown',
-    params: (record.params ?? []) as never,
-    remark: record.remark ?? '',
-    status: record.status,
-  }),
+  getFormValues: (record) => record,
   onCreate: async (values) => {
     await createTemplate({
       ...values,
       content: values.content ?? '',
-      contentFormat: values.contentFormat ?? 'markdown',
+      contentFormat: values.editorType !== 'richtext' ? values.editorType : 'html',
       params: values.params ?? [],
     })
   },
   onUpdate: async (id, values) => {
-    // ⭐ 更新时不允许改编码
-    const { templateCode: _ignore, ...rest } = values as any
     await updateTemplate(id, {
-      ...rest,
-      content: rest.content ?? '',
-      contentFormat: rest.contentFormat ?? 'markdown',
-      params: rest.params ?? [],
+      ...values,
+      contentFormat: values.editorType !== 'richtext' ? values.editorType : 'html',
     })
   },
   onDelete: async (record) => {
@@ -166,7 +154,6 @@ function getActions(record: TemplateRecord): ActionItem[] {
         </a-button>
       </template>
 
-      <!-- ⭐ 渠道 -->
       <template #cell-channelType="{ record }">
         <a-tag :color="CHANNEL_MAP[record.channelType]?.color || 'default'">
           <Icon :icon="CHANNEL_MAP[record.channelType]?.icon || 'carbon:channel'" class="mr-0.5 inline" />
@@ -174,7 +161,6 @@ function getActions(record: TemplateRecord): ActionItem[] {
         </a-tag>
       </template>
 
-      <!-- ⭐ 变量数 -->
       <template #cell-params="{ record }">
         <a-tag :color="(record.params?.length ?? 0) > 0 ? 'blue' : 'default'">
           {{ (record.params ?? []).length }}
@@ -188,7 +174,12 @@ function getActions(record: TemplateRecord): ActionItem[] {
         </a-tag>
       </template>
 
-      <!-- ⭐ 时间 -->
+      <template #cell-editorType="{ record }">
+        <a-tag :color="EDITOR_TYPE_MAP[record.editorType]?.color || 'default'">
+          {{ EDITOR_TYPE_MAP[record.editorType]?.label || record.editorType }}
+        </a-tag>
+      </template>
+
       <template #cell-updatedAt="{ record }">
         <span class="text-xs text-slate-500">
           {{ record.updatedAt ? dayjs(record.updatedAt).format('YYYY-MM-DD HH:mm') : '—' }}
@@ -210,13 +201,14 @@ function getActions(record: TemplateRecord): ActionItem[] {
       >
         <template #templateEditor="{ model }">
           <TemplateEditor
-            :content="model.content"
-            :content-format="model.contentFormat ?? 'markdown'"
-            :params="model.params ?? []"
-            @update:content="(v) => formMethods.setFieldsValue({ content: v })"
-            @update:content-format="(v) => formMethods.setFieldsValue({ contentFormat: v })"
-            @update:params="(v) => formMethods.setFieldsValue({ params: v })"
+            v-model:content="model.content"
+            v-model:content-format="model.contentFormat"
+            v-model:params="model.params"
+            v-model:editor-type="model.editorType"
           />
+        </template>
+        <template #params="{ model }">
+          <TemplateVariableTable v-model:params="model.params" :content="model.content" :title="model.title" />
         </template>
       </BasicForm>
     </BasicDrawer>

@@ -29,10 +29,10 @@ export interface ScrollbarProps {
   always?: boolean
   minSize?: number
   scrollHeight?: number
-  /** 视口相关的最大高度，例如 calc(100vh - 200px)；父级无高度时必填 */
   maxHeight?: string | number
-  /** 最外层根容器附加 class */
   rootClass?: string | (string | undefined)[]
+  /** ⭐ 停止滚动后隐藏滚动条的延迟（ms），默认 800 */
+  hideDelay?: number
 }
 
 export type ScrollbarWrapRef = Ref<HTMLElement | undefined>

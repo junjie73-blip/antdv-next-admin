@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import { http } from '@/utils'
+import { http } from '~/composables'
 
 const props = defineProps<{ idA: string; idB: string }>()
 

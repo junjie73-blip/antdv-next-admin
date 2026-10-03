@@ -88,6 +88,9 @@ body {
 .ps__thumb-x {
   @apply hidden;
 }
+/* ============================================================
+ * 隐藏原生滚动条
+ * ============================================================ */
 .scrollbar__wrap--hidden-default {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -96,19 +99,47 @@ body {
   display: none;
 }
 
+/* ============================================================
+ * 轨道（.scrollbar__bar）
+ * ============================================================
+ * - 绝对定位，悬浮在滚动内容之上
+ * - 默认透明，由 barVisibleClass 动态切换 opacity-100 / opacity-0
+ * - rounded-full 让轨道两端呈半圆，与 thumb 视觉一致
+ * ============================================================ */
 .scrollbar__bar {
-  @apply rounded-ant-DEFAULT absolute z-1 bg-transparent select-none;
+  @apply absolute z-1 select-none rounded-full;
 }
+
+/* 垂直轨道：右侧竖向，宽 8px，上下留 4px 内边距 */
 .scrollbar__bar.is-vertical {
-  @apply top-0.5 right-0.5 bottom-0.5 w-1.5;
+  @apply top-1 right-1 bottom-1 w-2;
 }
+
+/* 水平轨道：底部横向，高 8px，左右留 4px 内边距 */
 .scrollbar__bar.is-horizontal {
-  @apply top-0.5 bottom-0.5 left-0.5 h-1.5;
+  @apply right-1 bottom-1 left-1 h-2;
 }
 .scrollbar__thumb {
-  border-radius: inherit;
-  @apply relative block h-0 w-0 cursor-pointer bg-zinc-300 transition-[background-color] duration-300;
+  @apply relative block h-full w-full cursor-pointer rounded-full
+         bg-zinc-400/50
+         transition-[background-color] duration-200
+         hover:bg-zinc-500/70
+         active:bg-zinc-600/80
+         /* 深色模式 */
+         dark:bg-zinc-500/40
+         dark:hover:bg-zinc-400/60
+         dark:active:bg-zinc-300/70;
 }
-.scrollbar__thumb:hover {
-  @apply bg-zinc-500;
+.scrollbar__bar.is-vertical {
+  @apply top-1 right-1 bottom-1 w-1.5 transition-[width] duration-200;
+}
+.scrollbar__bar.is-vertical:hover {
+  @apply w-2.5;
+}
+
+.scrollbar__bar.is-horizontal {
+  @apply right-1 bottom-1 left-1 h-1.5 transition-[height] duration-200;
+}
+.scrollbar__bar.is-horizontal:hover {
+  @apply h-2.5;
 }

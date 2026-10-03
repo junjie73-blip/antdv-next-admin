@@ -1,6 +1,6 @@
-import type { CacheGroupInfo, CacheInfo, CacheKeyInfo, CacheKeyValue } from '~/views/monitor/cache/types'
+import type { CacheGroupInfo, CacheInfo, CacheKeyInfo, CacheKeyValue } from '~/views/monitor/runtime/cache/types'
 
-import { http } from '~/utils'
+import { http } from '~/composables'
 
 /* ============================================================
  * 缓存操作日志
@@ -39,17 +39,17 @@ export function getCacheInfo() {
 
 /** 缓存组列表 */
 export function getCacheGroups() {
-  return http.Get<CacheGroupInfo[]>('/monitor/cache/groups').send(true)
+  return http.Get<CacheGroupInfo[]>('/monitor/cache/groups')
 }
 
 /** 组内 key 列表 */
 export function getCacheKeys(params: { prefix: string }) {
-  return http.Get<CacheKeyInfo[]>('/monitor/cache/keys', { params }).send(true)
+  return http.Get<CacheKeyInfo[]>('/monitor/cache/keys', { params })
 }
 
 /** key 值 */
 export function getCacheValue(params: { key: string }) {
-  return http.Get<CacheKeyValue>('/monitor/cache/value', { params }).send(true)
+  return http.Get<CacheKeyValue>('/monitor/cache/value', { params })
 }
 
 /** 删除单个 key */

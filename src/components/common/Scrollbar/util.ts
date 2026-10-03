@@ -1,3 +1,5 @@
+import { isNil } from 'es-toolkit'
+
 import type { BarMap, BarMapItem } from './types'
 
 export const BAR_MAP: BarMap = {
@@ -30,7 +32,9 @@ export interface ThumbStyleInput {
 }
 
 export function renderThumbStyle({ move = 0, size = '0', bar }: ThumbStyleInput): Record<string, string> {
-  const translate = `translate${bar.axis}(${move}%)`
+  // isNil 兜底 move（虽然默认参数已兜底，但显式更稳）
+  const offset = isNil(move) ? 0 : move
+  const translate = `translate${bar.axis}(${offset}%)`
   return {
     [bar.size]: size,
     transform: translate,

@@ -5,20 +5,12 @@ import { useRouter } from 'vue-router'
 import type { UserInfo } from '#/user'
 
 import { getPermissions, getProfile } from '~/api'
-import {
-  PERMISSIONS_KEY,
-  REFRESH_TOKEN_EXPIRE,
-  REFRESH_TOKEN_KEY,
-  TOKEN_EXPIRE,
-  TOKEN_KEY,
-  USER_INFO_KEY,
-} from '~/config/constants'
+// ⭐ 新的统一入口
+import { http, requestCache, resetLogoutFlag } from '~/composables'
+import { PERMISSIONS_KEY, REFRESH_TOKEN_KEY, TOKEN_KEY, USER_INFO_KEY } from '~/config/constants'
 import { cache } from '~/utils/cache'
-import { http } from '~/utils/request'
-import { resetLogoutFlag } from '~/utils/request/alova'
 
 export const useUserStore = defineStore('user', () => {
-  // ✅ 同步从 cache 读，读到什么就是什么
   const token = ref<string | null>(cache.getItem(TOKEN_KEY) || null)
   const refreshToken = ref<string | null>(cache.getItem(REFRESH_TOKEN_KEY) || null)
   const userInfo = ref<UserInfo | null>(cache.getItem(USER_INFO_KEY) || null)
@@ -33,14 +25,15 @@ export const useUserStore = defineStore('user', () => {
   const phone = computed(() => userInfo.value?.phone || '')
   const roles = computed(() => userInfo.value?.roles || [])
 
-  /** ✅ 修正：有 info 就用 info，不再重新请求；同时写 ref + cache */
   const setUserInfo = (info: UserInfo) => {
     userInfo.value = info
     cache.setItem(USER_INFO_KEY, info)
   }
+
   async function loadPermissions() {
     try {
-      const list = await getPermissions()
+      // ⭐ getPermissions 内部也换成 request，见下文 ~/api
+      const { data: list } = await getPermissions()
       permissions.value = list || []
       cache.setItem(PERMISSIONS_KEY, permissions.value)
     } catch (e) {
@@ -48,8 +41,10 @@ export const useUserStore = defineStore('user', () => {
       permissions.value = []
     }
   }
+
   const login = async (username: string, password: string, tenantCode: string, captcha: any) => {
     try {
+      // ⭐ 与原 http.Post 语义一致，只是底层换成 executeRequest
       const response = await http.Post<any>('/auth/login', {
         username,
         password,
@@ -60,6 +55,7 @@ export const useUserStore = defineStore('user', () => {
       if (response.code === 200) {
         const { user, accessToken, refreshToken: rt } = response.data
         resetLogoutFlag()
+
         const mockUserInfo: UserInfo = {
           userId: user.userId,
           username: user.username,
@@ -70,7 +66,6 @@ export const useUserStore = defineStore('user', () => {
           phone: user.phone || '',
         }
 
-        // ✅ 先写缓存（同步落盘），再写 ref
         cache.setItem(TOKEN_KEY, accessToken)
         cache.setItem(REFRESH_TOKEN_KEY, rt)
         cache.setItem(USER_INFO_KEY, mockUserInfo)
@@ -81,6 +76,7 @@ export const useUserStore = defineStore('user', () => {
         const res = await getProfile()
         await loadPermissions()
         setUserInfo(res)
+        requestCache.clear()
         return { success: true }
       }
 
@@ -93,6 +89,7 @@ export const useUserStore = defineStore('user', () => {
       return { success: false, message: '登录异常，请重试' }
     }
   }
+
   let logoutPromise: Promise<void> | null = null
   async function logout() {
     if (logoutPromise) return logoutPromise
@@ -100,11 +97,10 @@ export const useUserStore = defineStore('user', () => {
     logoutPromise = (async () => {
       try {
         if (token.value) {
-          // 只在还有 token 时才调接口
-          await http.Post('/auth/logout', {}, { meta: { token: true } })
+          await http.Post('/auth/logout', {})
         }
       } catch {
-        // 忽略登出接口错误，本地状态照清
+        // 忽略登出接口错误
       } finally {
         token.value = ''
         refreshToken.value = ''
@@ -112,8 +108,8 @@ export const useUserStore = defineStore('user', () => {
         logoutPromise = null
         permissions.value = []
         cache.clear()
+        requestCache.clear()
         router.replace('/login')
-        window.location.reload()
       }
     })()
 
@@ -127,14 +123,13 @@ export const useUserStore = defineStore('user', () => {
 
   const hasRole = (role: string) => roles.value.includes(role)
 
-  /** ✅ 刷新场景兜底：token 有但 userInfo 丢了 → 重新拉一次 */
   async function fetchCurrentUser() {
+    // ⭐ http.Get 保持调用形式
     const res: any = await http.Get('/auth/profile')
     const profile = res?.data ?? res
     userInfo.value = profile
     cache.setItem(USER_INFO_KEY, profile)
     await loadPermissions()
-
     return profile
   }
 

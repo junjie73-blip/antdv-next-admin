@@ -1,32 +1,53 @@
+import { isNil, isPromise } from 'es-toolkit'
+
 import type { CacheInstance, CacheItem, CacheOptions } from './types'
 
 import { decryptValueSync, encryptValueSync, shouldEncrypt } from './encrypt'
 import { createStorage } from './storage'
 
 export { localStorageAdapter, memoryStorageAdapter, sessionStorageAdapter } from './storage'
-export type { CacheInstance, CacheItem, CacheOptions, CacheStorage, StorageType } from './types'
+export type {
+  CacheEntry,
+  CacheInstance,
+  CacheItem,
+  CacheOptions,
+  CacheStorage,
+  StorageType,
+  UseCacheOptions,
+  UseCacheReturn,
+} from './types'
 
-const DEFAULT_PREFIX = import.meta.env.VITE_APP_TITLE || 'app_cache'
+/** 默认键前缀 */
+const DEFAULT_PREFIX: string = (import.meta.env.VITE_APP_TITLE as string | undefined) || 'app_cache'
 
-function getDefaultPrefix(): string {
-  return DEFAULT_PREFIX
-}
-
+/**
+ * 创建缓存实例
+ *
+ * @param options - 缓存配置
+ * @returns 缓存实例
+ *
+ * @example
+ * ```ts
+ * const userCache = createCache<UserInfo>({ type: 'local', prefix: 'user' })
+ * userCache.setItem('profile', { ... }, 3600)
+ * const profile = userCache.getItem('profile')
+ * ```
+ */
 export function createCache<T = unknown>(options: CacheOptions = {}): CacheInstance<T> {
-  const { type = 'local', prefix = getDefaultPrefix(), encrypt = true } = options
+  const { type = 'local', prefix = DEFAULT_PREFIX, encrypt = true } = options
 
   const storage = createStorage(type)
   const shouldUseEncrypt = encrypt && shouldEncrypt()
 
-  const buildKey = (key: string) => `${prefix}_${key}`
+  const buildKey = (key: string): string => `${prefix}_${key}`
 
-  // ✅ 同步序列化：改用 encryptValueSync
+  /** 序列化：JSON → 可选 SM4 加密 */
   const serialize = (item: CacheItem<T>): string => {
     const json = JSON.stringify(item)
     return shouldUseEncrypt ? encryptValueSync(json, prefix) : json
   }
 
-  // ✅ 同步反序列化
+  /** 反序列化：可选 SM4 解密 → JSON，失败返回 null */
   const deserialize = (data: string): CacheItem<T> | null => {
     try {
       const json = shouldUseEncrypt ? decryptValueSync(data, prefix) : data
@@ -36,10 +57,10 @@ export function createCache<T = unknown>(options: CacheOptions = {}): CacheInsta
     }
   }
 
-  /** 同步读原始字符串（local/session/memory 都是同步实现） */
+  /** 读取原始字符串（同步适配器专用，异步适配器返回 null） */
   const readRaw = (key: string): string | null => {
     const data = storage.getItem(buildKey(key))
-    if (data instanceof Promise) return null
+    if (isPromise(data)) return null
     return data
   }
 
@@ -47,13 +68,12 @@ export function createCache<T = unknown>(options: CacheOptions = {}): CacheInsta
     storage.removeItem(buildKey(key))
   }
 
-  // ✅ 同步 getItem
   const getItem = (key: string): T | null => {
     const data = readRaw(key)
     if (!data) return null
 
     const item = deserialize(data)
-    if (!item) return null
+    if (isNil(item)) return null
 
     if (item.expire > 0 && Date.now() > item.expire) {
       removeItem(key)
@@ -63,14 +83,13 @@ export function createCache<T = unknown>(options: CacheOptions = {}): CacheInsta
     return item.value
   }
 
-  // ✅ 同步 setItem
   const setItem = (key: string, value: T, expire?: number): void => {
     const now = Date.now()
-    // 兼容旧字段 time / 新字段 createTime
-    const item: CacheItem<T> & { time?: number } = {
+    const item: CacheItem<T> = {
       value,
-      expire: expire ? now + expire * 1000 : 0,
+      expire: expire && expire > 0 ? now + expire * 1000 : 0,
       createTime: now,
+      // 兼容旧字段
       time: now,
     }
     storage.setItem(buildKey(key), serialize(item))
@@ -80,24 +99,23 @@ export function createCache<T = unknown>(options: CacheOptions = {}): CacheInsta
 
   const clear = (): void => {
     const allKeys = storage.keys()
-    if (allKeys instanceof Promise) return
-    allKeys.forEach((k) => {
-      if (k.startsWith(prefix)) storage.removeItem(k)
-    })
+    if (isPromise(allKeys)) return
+    for (const key of allKeys) {
+      if (key.startsWith(prefix)) storage.removeItem(key)
+    }
   }
 
   const keys = (): string[] => {
     const allKeys = storage.keys()
-    if (allKeys instanceof Promise) return []
-    return allKeys.filter((k) => k.startsWith(prefix))
+    if (isPromise(allKeys)) return []
+    return allKeys.filter((key) => key.startsWith(prefix))
   }
 
   const getExpire = (key: string): number | null => {
     const data = readRaw(key)
     if (!data) return null
     const item = deserialize(data)
-    if (!item) return null
-    if (item.expire === 0) return null
+    if (isNil(item) || item.expire === 0) return null
     return Math.max(0, Math.floor((item.expire - Date.now()) / 1000))
   }
 
@@ -105,7 +123,7 @@ export function createCache<T = unknown>(options: CacheOptions = {}): CacheInsta
     const data = readRaw(key)
     if (!data) return false
     const item = deserialize(data)
-    if (!item) return false
+    if (isNil(item)) return false
     item.expire = Date.now() + expire * 1000
     storage.setItem(buildKey(key), serialize(item))
     return true
@@ -115,9 +133,9 @@ export function createCache<T = unknown>(options: CacheOptions = {}): CacheInsta
     const data = readRaw(key)
     if (!data) return false
     const item = deserialize(data)
-    if (!item) return false
+    if (isNil(item)) return false
     if (item.expire > 0) {
-      item.expire = Date.now() + (expire || 3600) * 1000
+      item.expire = Date.now() + (expire ?? 3600) * 1000
       storage.setItem(buildKey(key), serialize(item))
     }
     return true
@@ -136,10 +154,12 @@ export function createCache<T = unknown>(options: CacheOptions = {}): CacheInsta
   }
 }
 
-export const cache = createCache()
+/** 默认缓存实例 */
+export const cache: CacheInstance = createCache()
 
+/** 兼容旧 API 的 localStorage 封装 */
 export const localStorageCacheStorage = {
-  getItem: (key: string) => cache.getItem(key),
-  setItem: (key: string, value: string) => cache.setItem(key, value),
-  removeItem: (key: string) => cache.removeItem(key),
+  getItem: (key: string): unknown => cache.getItem(key),
+  setItem: (key: string, value: string): void => cache.setItem(key, value),
+  removeItem: (key: string): void => cache.removeItem(key),
 }

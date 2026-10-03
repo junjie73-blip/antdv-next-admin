@@ -128,6 +128,7 @@ function handleValueChange(value: any) {
   if (!props.schema) return
   props.setFormModel(props.schema.field, value)
 }
+const bodyContainer = () => document.body
 </script>
 
 <template>
@@ -137,7 +138,12 @@ function handleValueChange(value: any) {
         <template #label>
           <span class="inline-flex flex-wrap items-center break-all whitespace-normal">
             {{ schema.label }}
-            <a-tooltip v-if="schema.helpMessage" placement="top">
+            <a-tooltip
+              v-if="schema.helpMessage"
+              placement="top"
+              :get-popup-container="bodyContainer"
+              :overlay-style="{ maxWidth: '280px', wordBreak: 'break-word' }"
+            >
               <template #title>
                 <span>{{ getHelpMessage }}</span>
               </template>

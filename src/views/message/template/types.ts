@@ -1,5 +1,5 @@
 export type ChannelType = 'email' | 'sms' | 'webhook' | 'wechat_work' | 'dingtalk'
-
+export type EditorType = 'markdown' | 'richtext' | 'html'
 export interface TemplateParam {
   name: string
   label: string
@@ -21,6 +21,8 @@ export interface TemplateRecord {
   status: string
   createdAt: string
   updatedAt: string
+  editorType: EditorType
+  contentFormat: string
 }
 
 export interface TemplateFormValues {
@@ -32,6 +34,7 @@ export interface TemplateFormValues {
   params: TemplateParam[]
   remark?: string
   status: string
+  editorType: EditorType
 }
 
 export interface TemplateActionContext {

@@ -26,7 +26,7 @@ const searchFormSchemas = useExportSearchSchemas()
 
 // ========== 操作 ==========
 async function handleDownload(record: ExportTask) {
-  const data = await getExportDownloadUrl(record.taskId)
+  const { data } = await getExportDownloadUrl(record.taskId)
   downloadFile(data.url, data.fileName ?? 'export')
 }
 

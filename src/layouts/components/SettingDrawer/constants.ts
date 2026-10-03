@@ -14,7 +14,7 @@ export type SettingSection = 'appearance' | 'layout' | 'common'
 
 export const SECTION_OPTIONS: SegmentedProps['options'] = [
   { value: 'appearance', label: '外观', icon: h(Icon, { icon: 'carbon:color-palette' }) },
-  { value: 'layout', label: '布局', icon: h(Icon, { icon: 'carbon:layout' }) },
+  { value: 'layout', label: '布局', icon: h(Icon, { icon: 'carbon:grid' }) },
   { value: 'common', label: '通用', icon: h(Icon, { icon: 'carbon:settings-adjust' }) },
 ]
 

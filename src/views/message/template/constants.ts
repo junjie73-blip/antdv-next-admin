@@ -23,3 +23,32 @@ export const PARAM_TYPE_OPTIONS = [
 ]
 
 export const containerClassName = 'space-y-4'
+export const EDITOR_TYPE_OPTIONS = [
+  {
+    label: '可视化编辑',
+    value: 'richtext',
+    icon: 'carbon:edit',
+    tip: '富文本，所见即所得',
+    color: 'blue',
+  },
+  {
+    label: 'Markdown',
+    value: 'markdown',
+    icon: 'carbon:markdown',
+    tip: 'Markdown 源文本',
+    color: 'green',
+  },
+  { label: 'HTML', value: 'html', icon: 'carbon:code', tip: 'HTML 源码', color: 'orange' },
+] as const
+
+export const EDITOR_TYPE_MAP = Object.fromEntries(EDITOR_TYPE_OPTIONS.map((o) => [o.value, o])) as Record<
+  string,
+  { label: string; value: string; icon: string; tip: string; color: string }
+>
+
+/** editorType → contentFormat 映射 */
+export const EDITOR_FORMAT_MAP: Record<string, 'markdown' | 'html' | 'text'> = {
+  markdown: 'markdown',
+  richtext: 'html',
+  html: 'html',
+}

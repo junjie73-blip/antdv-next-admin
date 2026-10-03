@@ -10,10 +10,10 @@ import VuePdfEmbed, { GlobalWorkerOptions } from 'vue-pdf-embed/dist/index.essen
 import { PerfectScrollbarPlugin } from 'vue3-perfect-scrollbar'
 
 import App from './App.vue'
+import { setupEcharts } from './composables/echarts/setup.js'
 import { escapeDirective, safeHtmlDirective, vPermission } from './directives'
 import i18n from './locales'
 import { setupRouter } from './router'
-import { initSecuritySystem } from './utils/securityInit'
 import 'virtual:svg-icons-register'
 
 import './assets/styles/global.css'
@@ -25,11 +25,12 @@ import 'bpmn-js/dist/assets/bpmn-js.css'
 import 'bpmn-js/dist/assets/bpmn-font/css/bpmn.css'
 
 import './assets/styles/panel.css'
+import { initSecuritySystem } from './utils/securityInit'
 // 按需导入 form-create 组件
 formCreate.use(install)
 const app = createApp(App)
 const pinia = createPinia()
-
+setupEcharts()
 if (import.meta.env.PROD) {
   Sentry.init({
     app,

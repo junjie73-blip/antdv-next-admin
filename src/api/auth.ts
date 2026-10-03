@@ -1,7 +1,6 @@
 import type { UserInfo } from '#/user'
 
-import { get, post, put } from '~/api/request'
-import { http } from '~/utils'
+import { http } from '~/composables'
 
 // ============================================================
 // 类型
@@ -138,22 +137,22 @@ export interface AbnormalStats {
 
 /** 查询注销状态 */
 export function getCancelStatus() {
-  return http.Get<{ data: CancelStatus }>('/auth/cancel-account/status').send(true)
+  return http.Get<{ data: CancelStatus }>('/auth/cancel-account/status')
 }
 
 /** 提交注销申请 */
 export function submitCancelAccount(data: { password: string; reason?: string }) {
-  return http.Post<{ data: { effectiveAt: string; bufferDays: number } }>('/auth/cancel-account', data).send(true)
+  return http.Post<{ data: { effectiveAt: string; bufferDays: number } }>('/auth/cancel-account', data)
 }
 // ============================================================
 // 登录 / 登出 / 注册
 // ============================================================
 export function login(params: LoginParams): Promise<LoginResponse> {
-  return post<LoginResponse>('/auth/login', params as unknown as Record<string, unknown>)
+  return http.Post<LoginResponse>('/auth/login', params as unknown as Record<string, unknown>)
 }
 
 export function logout(): Promise<null> {
-  return http.Post('/auth/logout', {}, { meta: { token: true, silent: true } })
+  return http.Post('/auth/logout', {})
 }
 
 export function register(data: {
@@ -168,7 +167,7 @@ export function register(data: {
 }
 
 export function refreshToken(refreshToken: string) {
-  return post<{ token: string; refreshToken?: string }>('/auth/refresh', {
+  return http.Post<{ token: string; refreshToken?: string }>('/auth/refresh', {
     refreshToken,
   })
 }
@@ -178,7 +177,7 @@ export function refreshToken(refreshToken: string) {
 // ============================================================
 /** ✅ 修正：/auth/profile（原为 /auth/user-info） */
 export function getProfile(): Promise<UserInfo> {
-  return get<UserInfo>('/auth/profile')
+  return http.Get<UserInfo>('/auth/profile')
 }
 /** 兼容旧名 */
 export const getUserInfo = getProfile
@@ -201,19 +200,19 @@ export function forgotPassword(data: ForgotPasswordParams) {
 // 菜单 / 权限
 // ============================================================
 export function getMenus(): Promise<any> {
-  return get<any>('/auth/menus')
+  return http.Get<any>('/auth/menus')
 }
-
-export function getPermissions(): Promise<string[]> {
-  return get<string[]>('/auth/permissions')
+/** ✅ 修正：/auth/permissions（原为 /auth/roles） */
+export function getPermissions(): Promise<{ data: string[] }> {
+  return http.Get<{ data: string[] }>('/auth/permissions')
 }
 
 export function getPasswordPolicy(): Promise<PasswordPolicy> {
-  return get<PasswordPolicy>('/auth/password-policy')
+  return http.Get<PasswordPolicy>('/auth/password-policy')
 }
 
 export function getCaptcha(): Promise<CaptchaData> {
-  return get<CaptchaData>('/auth/captcha')
+  return http.Get<CaptchaData>('/auth/captcha')
 }
 
 // ============================================================
@@ -221,7 +220,7 @@ export function getCaptcha(): Promise<CaptchaData> {
 // ============================================================
 /** 获取当前用户可访问的租户列表（登录页 / 切换租户） */
 export function getMyTenants(): Promise<AccessibleTenant[]> {
-  return get<AccessibleTenant[]>('/auth/tenants')
+  return http.Get<AccessibleTenant[]>('/auth/tenants')
 }
 
 export function switchTenant(tenantId: string) {
@@ -230,16 +229,16 @@ export function switchTenant(tenantId: string) {
 
 // 租户列表
 export function getAuthTenantList(): Promise<AccessibleTenant[]> {
-  return get<AccessibleTenant[]>('/tenant/options')
+  return http.Get<AccessibleTenant[]>('/tenant/options')
 }
 /** 发送邮箱验证码 */
 export function sendEmailCode(data: SendEmailCodeParams) {
-  return http.Post<{ data: { expiresIn: number } }>('/auth/email/send-code', data).send(true)
+  return http.Post<{ data: { expiresIn: number } }>('/auth/email/send-code', data)
 }
 
 /** 验证并绑定邮箱 */
 export function verifyEmail(data: VerifyEmailParams) {
-  return http.Post<{ data: null }>('/auth/email/verify', data).send(true)
+  return http.Post<{ data: null }>('/auth/email/verify', data)
 }
 
 export function getMyDevices() {
@@ -254,20 +253,14 @@ export function kickMyDevice(deviceId: string) {
  * ⭐ 我的异常登录（个人中心）
  * ============================================================ */
 export function getMyAbnormalLogins(params: AbnormalLoginListParams) {
-  return http.Get<{ list: AbnormalLoginItem[]; total: number }>('/login-security/my/abnormal', {
-    params,
-  })
+  return http.Get<{ list: AbnormalLoginItem[]; total: number }>('/login-security/my/abnormal', params)
 }
 
 /* ============================================================
  * 我的全部登录记录（等价 /auth/my/login-logs）
  * ============================================================ */
 export function getMyLoginLogs(params: AbnormalLoginListParams) {
-  return http
-    .Get<{ list: AbnormalLoginItem[]; total: number }>('/login-security/my/logs', {
-      params,
-    })
-    .send(true)
+  return http.Get<{ list: AbnormalLoginItem[]; total: number }>('/login-security/my/logs', params)
 }
 
 /* ============================================================
@@ -279,15 +272,11 @@ export function getAbnormalList(
     abnormalType?: string
   },
 ) {
-  return http
-    .Get<{ list: AbnormalLoginItem[]; total: number }>('/login-security/abnormal/list', {
-      params,
-    })
-    .send(true)
+  return http.Get<{ list: AbnormalLoginItem[]; total: number }>('/login-security/abnormal/list', params)
 }
 
 export function getAbnormalStats() {
-  return http.Get<AbnormalStats>('/login-security/abnormal/stats').send(true)
+  return http.Get<AbnormalStats>('/login-security/abnormal/stats')
 }
 export type NotifyChannel = 'in_app' | 'email' | 'sms' | 'webhook'
 export type NotifyEvent = 'notice' | 'todo' | 'workflow' | 'announcement' | 'system' | '*'

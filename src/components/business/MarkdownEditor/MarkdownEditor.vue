@@ -483,8 +483,8 @@ const toolbarClassName = computed(() =>
       <span v-if="maxLength" class="text-gray-400 dark:text-gray-500"> / {{ maxLength }} 上限 </span>
     </div>
 
-    <input ref="imageInputRef" type="file" :accept="imageAccept" class="hidden" @change="handleImageChange" />
-    <input ref="videoInputRef" type="file" :accept="videoAccept" class="hidden" @change="handleVideoChange" />
+    <input ref="imageInputRef" type="file" hidden :accept="imageAccept" class="hidden" @change="handleImageChange" />
+    <input ref="videoInputRef" type="file" hidden :accept="videoAccept" class="hidden" @change="handleVideoChange" />
   </div>
 </template>
 

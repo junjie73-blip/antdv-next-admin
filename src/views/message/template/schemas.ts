@@ -4,7 +4,7 @@ import { computed } from 'vue'
 
 import type { FormSchema } from '~/components/business/Form'
 
-import { CHANNEL_OPTIONS, TEMPLATE_STATUS_MAP } from './constants'
+import { CHANNEL_OPTIONS, EDITOR_TYPE_OPTIONS, TEMPLATE_STATUS_MAP } from './constants'
 
 export const searchSchemas: FormSchema[] = [
   {
@@ -76,6 +76,19 @@ export function useTemplateFormSchemas(isEditing: Ref<boolean>) {
       },
     },
     {
+      field: 'editorType',
+      label: '编辑模式',
+      component: 'RadioGroup',
+      defaultValue: 'richtext',
+      colProps: { span: 12 },
+      componentProps: {
+        optionType: 'button',
+        buttonStyle: 'solid',
+        options: EDITOR_TYPE_OPTIONS.map((o) => ({ label: o.label, value: o.value })),
+      },
+      helpMessage: '可视化：所见即所得；Markdown / HTML：源码编辑',
+    },
+    {
       field: 'status',
       label: '状态',
       component: 'RadioGroup',
@@ -106,6 +119,15 @@ export function useTemplateFormSchemas(isEditing: Ref<boolean>) {
       slot: 'templateEditor',
       colProps: { span: 24 },
       required: true,
+    },
+    {
+      field: 'params',
+      label: '变量定义',
+      slot: 'params',
+      component: 'InputTextArea',
+      colProps: { span: 24 },
+      componentProps: { placeholder: '模板变量定义', rows: 2, maxlength: 512 },
+      helpMessage: '变量定义，如「${appName}」',
     },
     {
       field: 'remark',

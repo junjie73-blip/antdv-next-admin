@@ -1,6 +1,6 @@
-import { unrefElement, useEventListener } from '@vueuse/core'
-import { clamp } from 'es-toolkit'
-import { computed, defineComponent, h, inject, onBeforeUnmount, ref } from 'vue'
+import { unrefElement, useEventListener, tryOnScopeDispose } from '@vueuse/core'
+import { clamp, isNil } from 'es-toolkit'
+import { computed, defineComponent, h, inject, ref } from 'vue'
 
 import type { ScrollbarWrapRef } from './types'
 
@@ -58,7 +58,8 @@ export default defineComponent({
       if (!trackEl || !thumbEl) return
 
       const prevPage = barStore[bar.value.axis]
-      if (!prevPage) return
+      // isNil 替代 `!prevPage`，避免 0 值被误判
+      if (isNil(prevPage) || prevPage === 0) return
 
       const trackRect = trackEl.getBoundingClientRect()
       const pointer = getPointer(e)
@@ -120,11 +121,12 @@ export default defineComponent({
       scrollTo(percentage)
     }
 
-    // VueUse 会在组件卸载时自动移除监听，无需手动 off
+    // useEventListener：VueUse 会在组件卸载时自动移除监听，无需手动 off
     useEventListener(document, 'mousemove', mouseMoveDocumentHandler)
     useEventListener(document, 'mouseup', mouseUpDocumentHandler)
 
-    onBeforeUnmount(() => {
+    // tryOnScopeDispose：effect scope 销毁时也会触发（比 onBeforeUnmount 更全面）
+    tryOnScopeDispose(() => {
       document.onselectstart = null
     })
 
