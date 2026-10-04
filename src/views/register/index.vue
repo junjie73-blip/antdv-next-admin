@@ -10,8 +10,8 @@ import { useRouter } from 'vue-router'
 
 import logoIconUrl from '~/assets/images/logo.png'
 import { useAuthStyles } from '~/components/common/Auth/composables/useAuthStyles'
-import { useAppStore } from '~/stores'
 import { request } from '~/composables'
+import { useAppStore } from '~/stores'
 
 defineOptions({ name: 'Register' })
 

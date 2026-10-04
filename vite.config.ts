@@ -43,8 +43,8 @@ export default defineConfig(({ mode }) => {
           chunkFileNames: 'js/[name]-[hash].js',
           assetFileNames: 'assets/[name]-[hash].[ext]',
           entryFileNames: 'js/[name]-[hash].js',
-          experimentalMinChunkSize: 20 * 1024,
           codeSplitting: {
+            minSize: 20 * 1024,
             ...createChunkGroups(),
           },
           minify: {

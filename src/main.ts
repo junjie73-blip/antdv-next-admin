@@ -9,7 +9,6 @@ import { loadingFadeOut } from 'virtual:app-loading'
 import { createApp } from 'vue'
 import VuePdfEmbed, { GlobalWorkerOptions } from 'vue-pdf-embed/dist/index.essential.mjs'
 import { PerfectScrollbarPlugin } from 'vue3-perfect-scrollbar'
-import '~console/theme-detect'
 
 import App from './App.vue'
 import { setupEcharts } from './composables/echarts/setup.js'

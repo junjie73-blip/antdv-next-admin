@@ -6,10 +6,10 @@ import { getMenuButtons } from '~/api'
 import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
 import { BasicForm, useForm } from '~/components/business/Form'
 import { type ActionItem, BasicTable, TableAction, useTable } from '~/components/business/Table'
+import { request } from '~/composables'
 import { useCRUD } from '~/composables/useCRUD'
 import { DictType } from '~/enums/dict'
 import { useDictStore } from '~/stores'
-import { request } from '~/composables'
 
 import type { PermissionRecord } from './types'
 

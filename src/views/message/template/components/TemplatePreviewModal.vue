@@ -46,11 +46,11 @@ const paramList = computed(() => {
 
   // 已定义的模板参数（保持原顺序）
   const result: Array<{ name: string; label: string; type: string; required?: boolean }> = fromParams.map((p) => ({
-      name: p.name,
-      label: p.label ?? p.name,
-      type: p.type ?? 'string',
-      required: p.required,
-    }))
+    name: p.name,
+    label: p.label ?? p.name,
+    type: p.type ?? 'string',
+    required: p.required,
+  }))
 
   // 未定义但使用了的变量（补到列表）
   for (const name of usedVars) {

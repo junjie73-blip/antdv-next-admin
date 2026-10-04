@@ -8,11 +8,11 @@ import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
 import { BasicForm, useForm } from '~/components/business/Form'
 import { type ActionItem, BasicTable, TableAction, useTable } from '~/components/business/Table'
 import IconPicker from '~/components/common/Icon/IconPicker.vue'
+import { request } from '~/composables'
 import { useCRUD } from '~/composables/useCRUD'
 import { DictType } from '~/enums/dict'
 import { SYSTEM_PERMS } from '~/enums/permissions'
 import { useDictStore } from '~/stores'
-import { request } from '~/composables'
 
 import type { MenuRecord, MicroAppConfig } from './types'
 
