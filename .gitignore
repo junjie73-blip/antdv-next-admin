@@ -43,3 +43,5 @@ playwright-report/
 */cache/*
 *prototype/*
 dev-list
+.sync-cache
+sync-upstream.json
