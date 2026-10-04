@@ -25,7 +25,7 @@ const props = withDefaults(defineProps<ModalProps>(), {
   wrapperFooterOffset: 0,
   zIndex: 1000,
   mask: true,
-  destroyOnHidden: false,
+  destroyOnHidden: true,
 })
 
 const emit = defineEmits<{

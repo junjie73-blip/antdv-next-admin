@@ -8,7 +8,7 @@ import { cn } from '~/utils/cn'
 import type { ChunkUploadInstance, ChunkUploadProps, ChunkUploadTask } from './types'
 
 import { useChunkUploader } from './composables/useChunkUploader'
-import { STATUS_COLOR } from './constants'
+import { classifyUploadError, STATUS_COLOR } from './constants'
 import { formatBytes, formatDuration } from './utils'
 
 defineOptions({ name: 'ChunkUpload' })
@@ -21,7 +21,9 @@ const props = withDefaults(defineProps<ChunkUploadProps>(), {
   resume: true,
   multiple: true,
 })
-
+const bandwidthLimit = defineModel<number>('limit', {
+  default: 0,
+})
 const emit = defineEmits<{
   success: [task: ChunkUploadTask]
   error: [task: ChunkUploadTask]
@@ -33,6 +35,7 @@ const emit = defineEmits<{
 // 核心
 // ============================================================
 const uploader = useChunkUploader({
+  bandwidth: bandwidthLimit.value,
   chunkSize: props.chunkSize,
   concurrency: props.concurrency,
   maxRetry: props.maxRetry,
@@ -51,6 +54,17 @@ const uploader = useChunkUploader({
   },
 })
 
+function getErrorHint(task: ChunkUploadTask): string {
+  if (task.error) return task.error
+  if (task.errorCode) {
+    const info = classifyUploadError({ message: task.errorCode })
+    return info.message
+  }
+  return '上传失败'
+}
+function canRetry(task: ChunkUploadTask): boolean {
+  return task.status === 'error' && task.errorRetryable !== false
+}
 function notifyCompleteIfAllDone() {
   const all = uploader.getTasks()
   const allSettled = all.every((t) => t.status === 'success' || t.status === 'error' || t.status === 'canceled')
@@ -214,7 +228,6 @@ const hasPaused = computed(() => tasks.value.some((t) => t.status === 'paused'))
         <span>选择文件</span>
         <input type="file" class="hidden" :multiple="multiple" :accept="accept" @change="handleSelectFiles" />
       </label>
-
       <div class="flex flex-wrap items-center gap-2">
         <button
           v-if="hasWaiting"
@@ -334,15 +347,29 @@ const hasPaused = computed(() => tasks.value.some((t) => t.status === 'paused'))
             >
               <Icon icon="carbon:play" />
             </button>
-            <button
+            <div
               v-if="task.status === 'error'"
-              type="button"
-              class="text-ant-primary rounded p-1 hover:bg-blue-50 dark:hover:bg-blue-950"
-              title="重试"
-              @click="handleRetry(task.uid)"
+              class="mt-2 flex items-center justify-between rounded-md bg-red-50 px-2.5 py-1.5 text-xs dark:bg-red-950/30"
             >
-              <Icon icon="carbon:renew" />
-            </button>
+              <div class="flex items-center gap-1.5 text-red-600 dark:text-red-400">
+                <Icon icon="carbon:warning-alt" class="shrink-0" />
+                <span>{{ getErrorHint(task) }}</span>
+                <span
+                  v-if="task.retryCount > 0"
+                  class="rounded bg-red-100 px-1.5 py-0.5 text-[10px] dark:bg-red-900/40"
+                >
+                  已重试 {{ task.retryCount }} 次
+                </span>
+              </div>
+              <button
+                v-if="canRetry(task)"
+                type="button"
+                class="shrink-0 rounded px-2 py-0.5 text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/40"
+                @click="handleRetry(task.uid)"
+              >
+                重试
+              </button>
+            </div>
             <button
               type="button"
               class="rounded p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -358,6 +385,21 @@ const hasPaused = computed(() => tasks.value.some((t) => t.status === 'paused'))
         <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
           <!-- 合并中：脉动动画（无具体进度） -->
           <div v-if="task.status === 'merging'" class="h-full w-full animate-pulse rounded-full bg-purple-500" />
+          <div v-else-if="task.status === 'success'" class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+            <span class="text-green-600 dark:text-green-400">✓ 已上传并入库</span>
+            <a
+              v-if="task.result?.url"
+              :href="task.result.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-ant-primary hover:text-blue-600 dark:text-blue-400"
+            >
+              查看文件
+            </a>
+            <span v-if="task.hash" class="text-gray-400 dark:text-gray-500" :title="task.hash">
+              MD5: {{ task.hash.slice(0, 8) }}...
+            </span>
+          </div>
           <!-- 其他状态：按百分比 -->
           <div
             v-else
@@ -365,7 +407,6 @@ const hasPaused = computed(() => tasks.value.some((t) => t.status === 'paused'))
               cn(
                 'h-full rounded-full transition-all duration-300',
                 task.status === 'error' && 'bg-red-500',
-                task.status === 'success' && 'bg-green-500',
                 task.status === 'paused' && 'bg-amber-500',
                 task.status === 'hashing' && 'bg-purple-500',
                 task.status === 'uploading' && 'bg-blue-500',
@@ -378,10 +419,27 @@ const hasPaused = computed(() => tasks.value.some((t) => t.status === 'paused'))
             }"
           />
         </div>
+        <div v-if="task.status === 'uploading' && task.retryCount > 0" class="mt-1 text-xs text-amber-500">
+          重试第 {{ task.retryCount }} 轮…
+        </div>
 
         <!-- 错误提示 -->
-        <div v-if="task.error && task.status === 'error'" class="mt-1 text-xs text-red-500 dark:text-red-400">
-          {{ task.error }}
+        <div
+          v-if="task.status === 'error'"
+          class="mt-2 flex items-center justify-between rounded-md bg-red-50 px-2.5 py-1.5 text-xs dark:bg-red-950/30"
+        >
+          <div class="flex items-center gap-1.5 text-red-600 dark:text-red-400">
+            <Icon icon="carbon:warning-alt" class="shrink-0" />
+            <span>{{ task.error || '上传失败' }}</span>
+          </div>
+          <button
+            v-if="task.errorRetryable !== false"
+            type="button"
+            class="shrink-0 rounded px-2 py-0.5 text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/40"
+            @click="handleRetry(task.uid)"
+          >
+            重试
+          </button>
         </div>
 
         <!-- 成功提示：显示文件信息 -->
@@ -396,6 +454,9 @@ const hasPaused = computed(() => tasks.value.some((t) => t.status === 'paused'))
           >
             查看文件
           </a>
+          <span v-if="task.hash" class="text-gray-400 dark:text-gray-500" :title="task.hash">
+            MD5: {{ task.hash.slice(0, 8) }}...
+          </span>
         </div>
       </div>
     </div>

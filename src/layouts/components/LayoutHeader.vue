@@ -314,13 +314,14 @@ eventBus.on(WS_EVENTS.FORCE_LOGOUT, () => {
 })
 
 eventBus.on(WS_EVENTS.UPLOAD_MERGE, (data: any) => {
+  console.log('UPLOAD_MERGE', data)
   if (data.status === 'completed') {
     notification.success({
       title: '文件上传合并成功',
       description: `文件 ${data.fileName} 已成功上传合并`,
       placement: 'bottomRight',
     })
-  } else {
+  } else if (data.status === 'failed') {
     notification.error({
       title: '文件上传合并失败',
       description: `文件 ${data.filename} 已合并失败，失败原因：${data.errorMsg}`,

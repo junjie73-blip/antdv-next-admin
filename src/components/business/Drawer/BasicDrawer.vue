@@ -21,7 +21,7 @@ const props = withDefaults(defineProps<DrawerProps>(), {
   keyboard: true,
   closable: true,
   mask: true,
-  destroyOnHidden: false,
+  destroyOnHidden: true,
   zIndex: 1000,
 })
 

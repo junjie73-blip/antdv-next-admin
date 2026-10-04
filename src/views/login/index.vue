@@ -142,7 +142,7 @@ async function handleLogin() {
     if (result.success) {
       cache.setItem('last_tenant_code', formState.tenantCode)
       message.success('登录成功')
-      const redirect = (route.query.redirect as string) || '/dashboard'
+      const redirect = (route.query.redirect as string) || '/dashboard/analysis'
       router.push(redirect)
     } else {
       message.error(result.message || '登录失败')

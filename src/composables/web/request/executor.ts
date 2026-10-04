@@ -1,6 +1,6 @@
 import { RequestError } from './error'
-// composables/useRequest/executor.ts
 import { createFetcher } from './fetcher'
+import { combineSignals, createTimeoutSignal } from './timeout'
 import { buildUrl } from './url'
 
 export interface ExecuteOptions {
@@ -107,7 +107,7 @@ function evictIfNeeded() {
   // Map 保持插入顺序；用 lastAccess 排序找最旧的
   const entries = [...cacheStore.entries()].sort((a, b) => a[1].lastAccess - b[1].lastAccess)
   const removeCount = cacheStore.size - MAX_CACHE_SIZE
-  for (let i = 0; i < removeCount; i++) cacheStore.delete(entries[i][0])
+  for (let i = 0; i < removeCount; i++) cacheStore.delete(entries[i]![0])
 }
 
 function isRetryable(err: unknown): boolean {
@@ -120,12 +120,15 @@ function isRetryable(err: unknown): boolean {
 }
 
 async function doOnce<T>(method: string, url: string, body: any, opts: ExecuteOptions): Promise<T> {
+  const { timeout = 30000, signal: externalSignal } = opts
+  const timeoutCtl = createTimeoutSignal(timeout)
+  const combined = combineSignals([externalSignal, timeoutCtl.signal])
   const requestInit: RequestInit = {
     method,
     body: body !== undefined ? JSON.stringify(body) : undefined,
-    signal: opts.signal,
+    signal: combined.signal,
   }
-  const useFetchOptions = { timeout: opts.timeout ?? 30000 }
+  const useFetchOptions = {}
   const fetcher = getFetcher()
 
   let res: any
@@ -145,6 +148,13 @@ async function doOnce<T>(method: string, url: string, body: any, opts: ExecuteOp
 
   if (res.error?.value) {
     const e = res.error.value
+    if (timeoutCtl.didTimeout()) {
+      throw new RequestError('请求超时，请稍后重试', {
+        status: 408,
+        statusText: 'Request Timeout',
+        code: 408,
+      })
+    }
     throw e instanceof RequestError
       ? e
       : new RequestError((e as any)?.message || '请求失败', {

@@ -1,5 +1,7 @@
 import type { UploadFile, UploadProps as AntUploadProps } from 'antdv-next'
 
+import type { UploadErrorCode } from './constants'
+
 /* ============================================================
  * 基础 Upload
  * ============================================================ */
@@ -90,6 +92,10 @@ export interface ChunkUploadTask {
     filename?: string
   }
   hashProgress: number
+  errorCode?: UploadErrorCode
+  errorRetryable?: boolean
+  lastRetryAt?: number
+  fileId?: string
 }
 
 export interface ChunkUploadProps {
@@ -102,6 +108,7 @@ export interface ChunkUploadProps {
   maxCount?: number
   accept?: string
   multiple?: boolean
+  bandwidth?: number
 }
 
 export interface ChunkUploadInstance {
@@ -114,4 +121,9 @@ export interface ChunkUploadInstance {
   retry: (uid: string) => void
   clear: () => void
   getTasks: () => ChunkUploadTask[]
+}
+export interface ChunkCheckResult {
+  uploadedChunks: number[]
+  uploadedBytes?: number
+  uploaded?: boolean
 }

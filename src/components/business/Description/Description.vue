@@ -3,7 +3,8 @@ import type { VNodeChild } from 'vue'
 
 import { Descriptions, Image, type DescriptionsProps } from 'antdv-next'
 import dayjs from 'dayjs'
-import { isArray, isNil, isString } from 'es-toolkit'
+import { isNil, isString } from 'es-toolkit'
+import { isArray } from 'es-toolkit/compat'
 import { computed, h, useSlots } from 'vue'
 
 import { cn } from '~/utils/cn'

@@ -107,7 +107,7 @@ body {
  * - rounded-full 让轨道两端呈半圆，与 thumb 视觉一致
  * ============================================================ */
 .scrollbar__bar {
-  @apply absolute z-1 select-none rounded-full;
+  @apply absolute z-1 rounded-full select-none;
 }
 
 /* 垂直轨道：右侧竖向，宽 8px，上下留 4px 内边距 */

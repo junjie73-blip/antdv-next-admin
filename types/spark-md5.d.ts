@@ -1,5 +1,6 @@
 declare module 'spark-md5' {
   export default class SparkMD5 {
+    ArrayBuffer: () => any
     static hash(data: string): string
     append(data: globalThis.ArrayBuffer): void
     end(): string

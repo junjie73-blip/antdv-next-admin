@@ -212,7 +212,7 @@ export function getPasswordPolicy(): Promise<PasswordPolicy> {
 }
 
 export function getCaptcha(): Promise<CaptchaData> {
-  return http.Get<CaptchaData>('/auth/captcha')
+  return http.Get('/auth/captcha').then((res) => res.data)
 }
 
 // ============================================================
@@ -229,7 +229,7 @@ export function switchTenant(tenantId: string) {
 
 // 租户列表
 export function getAuthTenantList(): Promise<AccessibleTenant[]> {
-  return http.Get<AccessibleTenant[]>('/tenant/options')
+  return http.Get('/tenant/options').then((res) => res.data)
 }
 /** 发送邮箱验证码 */
 export function sendEmailCode(data: SendEmailCodeParams) {

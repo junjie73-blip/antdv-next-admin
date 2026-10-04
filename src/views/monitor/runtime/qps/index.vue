@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import 'echarts-wordcloud'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import ECharts from '~/components/common/ECharts/index.vue'
