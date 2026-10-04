@@ -4,8 +4,8 @@ import { markRaw, ref } from 'vue'
 import type { AppRouteRecordRaw } from '#/app-router'
 import type { BackendMenu, MenuConfig, MicroAppConfig } from '#/menu'
 
+import { request } from '~/composables'
 import { DefaultLayout } from '~/layouts'
-import { http } from '~/utils/request'
 
 const modules = import.meta.glob('/src/views/**/*.vue')
 
@@ -116,7 +116,7 @@ function generateBlankRoutesFromBackendMenus(backendMenus: BackendMenu[]): Inter
 }
 
 async function fetchBackendMenus(): Promise<BackendMenu[]> {
-  const response = await http.Get<{
+  const response = await request.get<{
     code: number
     data: BackendMenu[]
     message: string

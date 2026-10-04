@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 export type BackendType = 'local' | 'minio' | 'oss' | 'cos' | 's3'
 
@@ -35,31 +35,29 @@ export interface StorageBackendCreateParams {
 export type StorageBackendUpdateParams = Partial<Omit<StorageBackendCreateParams, 'backendType'>>
 
 export function getStorageBackendList(params: StorageBackendListParams) {
-  return http.Get<{ list: StorageBackendRecord[]; total: number }>('/storage-backend/list', {
-    params,
-  })
+  return request.get<{ list: StorageBackendRecord[]; total: number }>('/storage-backend/list', params)
 }
 
 export function getStorageBackendDetail(id: string) {
-  return http.Get<StorageBackendRecord>(`/storage-backend/${id}`)
+  return request.get<StorageBackendRecord>(`/storage-backend/${id}`)
 }
 
 export function createStorageBackend(data: StorageBackendCreateParams) {
-  return http.Post<{ backendId: string }>('/storage-backend', data)
+  return request.post<{ backendId: string }>('/storage-backend', data)
 }
 
 export function updateStorageBackend(id: string, data: StorageBackendUpdateParams) {
-  return http.Put(`/storage-backend/${id}`, data)
+  return request.put(`/storage-backend/${id}`, data)
 }
 
 export function deleteStorageBackend(id: string) {
-  return http.Delete(`/storage-backend/${id}`)
+  return request.delete(`/storage-backend/${id}`)
 }
 
 export function activateStorageBackend(backendId: string) {
-  return http.Post('/storage-backend/activate', { backendId })
+  return request.post('/storage-backend/activate', { backendId })
 }
 
 export function checkStorageBackend(id: string) {
-  return http.Post(`/storage-backend/${id}/check`)
+  return request.post(`/storage-backend/${id}/check`)
 }

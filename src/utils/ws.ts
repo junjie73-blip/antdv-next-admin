@@ -2,11 +2,11 @@ import { Icon } from '@iconify/vue'
 import { notification } from 'antdv-next'
 import { h, ref, watch } from 'vue'
 
+import { forceLogout } from '~/composables/web/request/fetcher'
 import { useWebSocket as useWebSocketComposable } from '~/composables/web/websocket'
 import { useUserStore } from '~/stores/modules/user'
 
 import { eventBus } from './event'
-import { forceLogout } from './request/alova'
 
 // ==================== 类型 ====================
 export interface NotificationItem {

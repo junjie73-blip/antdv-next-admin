@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 import { del, get, post, put } from './request'
 
@@ -27,7 +27,7 @@ export function deleteDict(id: string) {
 }
 
 export function batchRemoveDictType(ids: string[]) {
-  return http.Post('/dict-type/batch-remove', { ids })
+  return request.post('/dict-type/batch-remove', { ids })
 }
 
 // ============================================================
@@ -59,7 +59,7 @@ export function deleteDictItem(id: string) {
 }
 
 export function batchRemoveDictData(ids: string[]) {
-  return http.Post('/dict-data/batch-remove', { ids })
+  return request.post('/dict-data/batch-remove', { ids })
 }
 
 export function getDictTree(params?: Record<string, unknown>) {

@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 // ============================================================
 // IP 白黑名单
@@ -6,21 +6,21 @@ import { http } from '~/utils'
 // ============================================================
 
 export function getIpRuleList(params: any) {
-  return http.Get('/ip-rule/list', { params })
+  return request.get('/ip-rule/list', params)
 }
 
 export function createIpRule(data: any) {
-  return http.Post('/ip-rule', data)
+  return request.post('/ip-rule', data)
 }
 
 export function updateIpRule(id: string, data: any) {
-  return http.Put(`/ip-rule/${id}`, data)
+  return request.put(`/ip-rule/${id}`, data)
 }
 
 export function deleteIpRule(id: string) {
-  return http.Delete(`/ip-rule/${id}`)
+  return request.delete(`/ip-rule/${id}`)
 }
 
 export function checkIpRule(ip: string) {
-  return http.Post('/ip-rule/check', { ip })
+  return request.post('/ip-rule/check', { ip })
 }

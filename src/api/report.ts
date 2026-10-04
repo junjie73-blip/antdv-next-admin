@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 interface PageResult<T> {
   list: T[]
@@ -9,51 +9,51 @@ export type ExportType = 'excel' | 'pdf' | 'html' | 'csv'
 
 /* ============ 报表 ============ */
 export function getReportList(params: { keyword?: string; category?: string; pageNum?: number; pageSize?: number }) {
-  return http.Get<any>('/report/list', { params })
+  return request.get<any>('/report/list', params)
 }
 
 export function getReportDetail(idOrCode: string) {
-  return http.Get<any>(`/report/${idOrCode}`)
+  return request.get<any>(`/report/${idOrCode}`)
 }
 
 export function executeReport(code: string, params: Record<string, any>) {
-  return http.Post<any>(`/report/${code}/execute`, { params, useCache: true })
+  return request.post<any>(`/report/${code}/execute`, { params, useCache: true })
 }
 
 export function exportReport(code: string, type: ExportType, params: Record<string, any>, isAsync = false) {
-  return http.Post<any>(`/report/${code}/export/${type}`, {
+  return request.post<any>(`/report/${code}/export/${type}`, {
     params,
     async: isAsync,
   })
 }
 
 export function toggleReportFavorite(id: string) {
-  return http.Post<{ isFavorite: boolean }>(`/report/${id}/favorite`)
+  return request.post<{ isFavorite: boolean }>(`/report/${id}/favorite`)
 }
 
 /* ============ 数据集 ============ */
 export function getDatasetList(params: { keyword?: string; category?: string; pageNum?: number; pageSize?: number }) {
-  return http.Get<PageResult<any>>('/report/dataset/list', { params })
+  return request.get<PageResult<any>>('/report/dataset/list', params)
 }
 
 export function getDatasetDetail(id: string) {
-  return http.Get<any>(`/report/dataset/${id}`)
+  return request.get<any>(`/report/dataset/${id}`)
 }
 
 export function createDataset(data: any) {
-  return http.Post<any>('/report/dataset', data)
+  return request.post<any>('/report/dataset', data)
 }
 
 export function updateDataset(id: string, data: any) {
-  return http.Post<any>(`/report/dataset/${id}`, data)
+  return request.post<any>(`/report/dataset/${id}`, data)
 }
 
 export function deleteDataset(id: string) {
-  return http.Delete<void>(`/report/dataset/${id}`)
+  return request.delete<void>(`/report/dataset/${id}`)
 }
 
 export function testDataset(id: string, data: { params: Record<string, any>; limit?: number }) {
-  return http.Post<{
+  return request.post<{
     rows: any[]
     rowCount: number
     duration: number
@@ -64,13 +64,13 @@ export function testDataset(id: string, data: { params: Record<string, any>; lim
 
 /* ============ 导出任务 ============ */
 export function getExportTaskList(params: { status?: string; pageNum?: number; pageSize?: number }) {
-  return http.Get<PageResult<any>>('/report/export-task/list', { params })
+  return request.get<PageResult<any>>('/report/export-task/list', params)
 }
 
 export function cancelExportTask(id: string) {
-  return http.Post<void>(`/report/export-task/${id}/cancel`)
+  return request.post<void>(`/report/export-task/${id}/cancel`)
 }
 
 export function retryExportTask(id: string) {
-  return http.Post<void>(`/report/export-task/${id}/retry`)
+  return request.post<void>(`/report/export-task/${id}/retry`)
 }

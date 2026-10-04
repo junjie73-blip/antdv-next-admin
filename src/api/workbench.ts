@@ -1,7 +1,7 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 // ============================================================
 // 工作台
 // ============================================================
 
-export const getWorkbenchSummary = (): any => http.Get('/workbench/summary')
+export const getWorkbenchSummary = (): any => request.get('/workbench/summary')

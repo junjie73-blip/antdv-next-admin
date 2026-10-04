@@ -41,7 +41,7 @@ export function useDataSource(options: UseDataSourceOptions): UseDataSourceRetur
 
   /** 请求序号：只有最新一次请求才能落地 */
   let requestId = 0
-  /** ⭐ 用 AbortController 替代 alova 的 lastMethod.abort() */
+  /** 用 AbortController 取消过期请求，避免旧响应覆盖新数据 */
   let abortController: AbortController | null = null
 
   const getRowKeyValue = (record: Recordable): string => {

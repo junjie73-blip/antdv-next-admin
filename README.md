@@ -29,7 +29,7 @@
 | 样式     | Tailwind CSS v4 | ^4.3.3  |
 | 状态     | Pinia 3         | ^3.0.4  |
 | 路由     | Vue Router 4    | ^4.6.4  |
-| 请求     | Alova 3         | ^3.5.4  |
+| 请求     | 自研 request 层 | 内置    |
 | 国际化   | vue-i18n        | ^11.4.8 |
 | 富文本   | Tiptap 3        | ^3.31.3 |
 | 图表     | ECharts         | ^6.1.0  |
@@ -118,7 +118,7 @@ admin/
 │   │   ├── crypto/           #   aes / hash / jwt
 │   │   ├── event/            #   mitt 事件总线
 │   │   ├── helpers/menu/     #   菜单树处理
-│   │   ├── request/          #   Alova 客户端（alova.ts / constant.ts / interface.ts）
+│   │   ├── request/          #   请求常量（AUTHORIZATION_KEY）
 │   │   ├── token/            #   Token 管理
 │   │   ├── excel.ts          #   Excel 导出
 │   │   ├── print.ts          #   打印
@@ -218,7 +218,7 @@ onUnmounted(() => off());
 
 WS 地址形如 `/ws?token=xxx&type=notice`，token 变化自动重连，登出自动断开。
 
-### 请求（Alova）
+### 请求（自研 request 层）
 
 **推荐用法**（在 `src/api/*.ts` 中封装，组件只 import 函数）：
 
@@ -234,7 +234,7 @@ export function updateUser(id: string, data: Record<string, unknown>) {
 }
 ```
 
-**自动处理**（`src/utils/request/alova.ts`）：
+**自动处理**（`src/composables/web/request/`）：
 
 - 401 → 用 refresh token 刷新，刷新失败跳登录
 - 4xx → 展示后端 message；5xx → 统一提示
@@ -336,7 +336,7 @@ userStore.hasPermission("user:create");
 | ----------------------------------------- | ------------------------------------------- |
 | `src/stores/modules/user.ts`              | 登录、登出、token 管理、用户信息、权限判断  |
 | `src/utils/ws.ts`                         | WebSocket 单例 + 事件总线（`useWebSocket`） |
-| `src/utils/request/alova.ts`              | HTTP 客户端、401 刷新、错误处理             |
+| `src/composables/web/request/`            | HTTP 客户端、401 刷新、错误处理             |
 | `src/api/request.ts`                      | `get / post / put / del` 接口封装           |
 | `src/router/guards.ts`                    | 路由守卫（登录校验、动态路由注入）          |
 | `src/settings/theme.ts`                   | 主题 token 生成（`getThemeConfig`）         |

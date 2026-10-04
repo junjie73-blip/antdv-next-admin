@@ -1,6 +1,6 @@
 import { message } from 'antdv-next'
 
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 /* ============================================================
  * 上传接口
@@ -87,7 +87,7 @@ export async function uploadFile(options: UploadFileOptions): Promise<UploadResu
     }
   }
 
-  const res = (await http.Post(server, formData)) as ApiResponse<UploadResult> | UploadResult
+  const res = (await request.post(server, formData)) as ApiResponse<UploadResult> | UploadResult
 
   const payload = (res as ApiResponse<UploadResult>)?.data ?? (res as UploadResult)
 

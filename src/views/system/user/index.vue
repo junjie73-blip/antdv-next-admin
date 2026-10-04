@@ -22,7 +22,7 @@ import { useCRUD } from '~/composables/useCRUD'
 import { DictType } from '~/enums/dict'
 import { SYSTEM_PERMS } from '~/enums/permissions'
 import { useDictStore } from '~/stores'
-import { http } from '~/utils'
+import { request } from '~/composables'
 import { cn } from '~/utils/cn'
 
 import type { DeptTreeNode, FlatDeptNode, RoleOption, UserRecord } from './types'
@@ -249,7 +249,7 @@ async function customUpload({ file, onSuccess, onError }: any) {
 
   uploadLoading.value = true
   try {
-    const res = (await http.Post('/upload/file', formData)) as any
+    const res = (await request.post('/upload/file', formData)) as any
     const url = res?.data?.url || res?.url
     formMethods.setFieldsValue({ avatar: url })
     message.success('头像上传成功')

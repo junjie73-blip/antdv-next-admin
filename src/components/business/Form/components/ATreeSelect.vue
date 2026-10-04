@@ -6,7 +6,6 @@ import { watchDebounced } from '@vueuse/core'
 import { ref } from 'vue'
 
 import { useRequest } from '~/composables'
-import { http } from '~/utils'
 
 interface Props extends /* @vue-ignore */ TreeSelectProps {
   api: string

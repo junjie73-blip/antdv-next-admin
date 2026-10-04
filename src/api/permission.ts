@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 // ============================================================
 // 权限管理
@@ -6,25 +6,25 @@ import { http } from '~/utils'
 // ============================================================
 
 export function getPermissionList(params?: Record<string, any>) {
-  return http.Get('/permission/list', { params }).send(true)
+  return request.get('/permission/list', params)
 }
 
 export function getPermissionDetail(id: string) {
-  return http.Get(`/permission/${id}`)
+  return request.get(`/permission/${id}`)
 }
 
 export function createPermission(data: Record<string, any>) {
-  return http.Post('/permission', data)
+  return request.post('/permission', data)
 }
 
 export function updatePermission(id: string, data: Record<string, any>) {
-  return http.Put(`/permission/${id}`, data)
+  return request.put(`/permission/${id}`, data)
 }
 
 export function deletePermission(id: string) {
-  return http.Delete(`/permission/${id}`)
+  return request.delete(`/permission/${id}`)
 }
 // 获取全部权限
 export function getAllPermissions() {
-  return http.Get('/permission/all')
+  return request.get('/permission/all')
 }

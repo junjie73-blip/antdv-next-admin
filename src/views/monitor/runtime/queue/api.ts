@@ -1,5 +1,5 @@
 // api/monitor-queue.ts
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 /* ============================================================
  * 类型
@@ -49,38 +49,36 @@ export interface QueueJobListParams {
 }
 
 export function getQueueOverview() {
-  return http.Get<QueueOverview[]>('/monitor/queue/overview')
+  return request.get<QueueOverview[]>('/monitor/queue/overview')
 }
 
 export function getQueueJobs(queueName: string, params: QueueJobListParams) {
-  return http.Get<{ list: JobRecord[]; total: number }>(`/monitor/queue/${queueName}/jobs`, {
-    params,
-  })
+  return request.get<{ list: JobRecord[]; total: number }>(`/monitor/queue/${queueName}/jobs`, params)
 }
 
 export function getQueueJobDetail(queueName: string, jobId: string) {
-  return http.Get<JobRecord>(`/monitor/queue/${queueName}/job/${jobId}`)
+  return request.get<JobRecord>(`/monitor/queue/${queueName}/job/${jobId}`)
 }
 
 export function retryQueueJob(queueName: string, jobId: string) {
-  return http.Post(`/monitor/queue/${queueName}/job/${jobId}/retry`)
+  return request.post(`/monitor/queue/${queueName}/job/${jobId}/retry`)
 }
 
 export function removeQueueJob(queueName: string, jobId: string) {
-  return http.Post(`/monitor/queue/${queueName}/job/${jobId}/remove`)
+  return request.post(`/monitor/queue/${queueName}/job/${jobId}/remove`)
 }
 
 export function pauseQueue(queueName: string) {
-  return http.Post(`/monitor/queue/${queueName}/pause`)
+  return request.post(`/monitor/queue/${queueName}/pause`)
 }
 
 export function resumeQueue(queueName: string) {
-  return http.Post(`/monitor/queue/${queueName}/resume`)
+  return request.post(`/monitor/queue/${queueName}/resume`)
 }
 
 export function cleanQueue(
   queueName: string,
   data: { status: 'completed' | 'failed' | 'delayed' | 'wait'; limit?: number },
 ) {
-  return http.Post<{ removed: number }>(`/monitor/queue/${queueName}/clean`, data)
+  return request.post<{ removed: number }>(`/monitor/queue/${queueName}/clean`, data)
 }

@@ -12,7 +12,7 @@ import { useCRUD } from '~/composables/useCRUD'
 import { DictType } from '~/enums/dict'
 import { SYSTEM_PERMS } from '~/enums/permissions'
 import { useDictStore } from '~/stores'
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 import type { MenuRecord, MicroAppConfig } from './types'
 
@@ -47,11 +47,7 @@ const drawerFormSchemas = useMenuFormSchemas(statusOptions)
 
 // ========== 表格 API ==========
 async function fetchMenuTree() {
-  return await http
-    .Get('/menu/tree', {
-      cacheFor: null,
-    })
-    .send(true)
+  return await request.get('/menu/tree', undefined, { cache: false })
 }
 function flatToMicroApp(values: Record<string, any>): MicroAppConfig | null {
   const { microAppName, microAppUrl, microAppBaseroute, microAppKeepAlive } = values
@@ -112,7 +108,7 @@ const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<M
       ...stripFlatMicroAppFields(values),
       microApp,
     }
-    await http.Post('/menu', payload)
+    await request.post('/menu', payload)
   },
   onUpdate: async (id, values) => {
     const microApp = flatToMicroApp(values)
@@ -120,10 +116,10 @@ const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<M
       ...stripFlatMicroAppFields(values),
       microApp,
     }
-    await http.Put(`/menu/${id}`, payload)
+    await request.put(`/menu/${id}`, payload)
   },
   onDelete: async (record) => {
-    await http.Delete(`/menu/${record.menuId}`)
+    await request.delete(`/menu/${record.menuId}`)
   },
   messages: {
     createSuccess: '菜单创建成功',

@@ -1,4 +1,4 @@
-import { http } from '~/composables'
+import { request } from '~/composables'
 /* ============================================================
  * 类型
  * ============================================================ */
@@ -57,7 +57,7 @@ export interface RevertChainNode {
  * 接口
  * ============================================================ */
 export function getOrgOverview(): Promise<OrgOverview> {
-  return http.get<OrgOverview>('/system/org-history/dashboard/overview').then(
+  return request.get<OrgOverview>('/system/org-history/dashboard/overview').then(
     (r) =>
       r?.data ??
       r ?? {
@@ -70,19 +70,19 @@ export function getOrgOverview(): Promise<OrgOverview> {
 }
 
 export function getOrgDailyTrend(days = 30): Promise<OrgTrend> {
-  return http
+  return request
     .get<OrgTrend>('/system/org-history/dashboard/daily-trend', { days })
     .then((r) => r?.data ?? r ?? { dates: [], scopes: [], series: [] })
 }
 
 export function getOrgDeptTransfer(days = 30): Promise<DeptTransferHeat[]> {
-  return http
+  return request
     .get<DeptTransferHeat[]>('/system/org-history/dashboard/dept-heatmap', { days })
     .then((r) => r?.data ?? r ?? [])
 }
 
 export function getOrgTopOperators(days = 30, limit = 10): Promise<TopOperator[]> {
-  return http
+  return request
     .get<TopOperator[]>('/system/org-history/dashboard/top-operators', { days, limit })
     .then((r) => r?.data ?? r ?? [])
 }
@@ -91,7 +91,7 @@ export function getOrgDeptTimeMatrix(
   days = 30,
   metric: 'total' | 'assign' | 'revoke' = 'total',
 ): Promise<DeptTimeMatrix> {
-  return http
+  return request
     .get<DeptTimeMatrix>('/system/org-history/dashboard/dept-time-matrix', {
       days,
       metric,
@@ -100,7 +100,7 @@ export function getOrgDeptTimeMatrix(
 }
 
 export function getOrgRecentChanges(limit = 20): Promise<any[]> {
-  return http
+  return request
     .get<any[]>('/system/org-history/list', {
       pageNum: 1,
       pageSize: limit,
@@ -109,7 +109,7 @@ export function getOrgRecentChanges(limit = 20): Promise<any[]> {
 }
 
 export function getRevertChain(historyId: string): Promise<{ chain: RevertChainNode[] }> {
-  return http
+  return request
     .get<{ chain: RevertChainNode[] }>(`/system/org-history/${historyId}/revert-chain`)
     .then((r) => r?.data ?? r ?? { chain: [] })
 }

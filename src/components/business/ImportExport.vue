@@ -4,7 +4,7 @@ import { message, Modal } from 'antdv-next'
 import { isError, isNil } from 'es-toolkit'
 import { h, ref } from 'vue'
 
-import { http } from '~/utils'
+import { request } from '~/composables'
 import { generateTemplate, type TemplateColumn } from '~/utils/template'
 import { submitExport } from '~/views/system/export/api'
 
@@ -116,7 +116,7 @@ async function uploadFile(file: File) {
     const formData = new FormData()
     formData.append(props.fieldName, file)
 
-    const res: any = await http.Post(`${props.module}/import`, formData)
+    const res: any = await request.post(`${props.module}/import`, formData)
     const result: ImportResult = res?.data ?? res
 
     handleImportResult(result)

@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 /* ============================================================
  * 类型（对齐 OpenAPI FieldMaskCreate / FieldMaskUpdate）
@@ -46,21 +46,21 @@ export type FieldMaskUpdateParams = Partial<FieldMaskCreateParams>
  * CRUD
  * ============================================================ */
 export function getFieldMaskList(params: FieldMaskListParams) {
-  return http.Get<{ list: FieldMaskRecord[]; total: number }>('/field-mask/list', { params })
+  return request.get<{ list: FieldMaskRecord[]; total: number }>('/field-mask/list', params)
 }
 
 export function getFieldMaskDetail(id: string) {
-  return http.Get<FieldMaskRecord>(`/field-mask/${id}`)
+  return request.get<FieldMaskRecord>(`/field-mask/${id}`)
 }
 
 export function createFieldMask(data: FieldMaskCreateParams) {
-  return http.Post('/field-mask', data)
+  return request.post('/field-mask', data)
 }
 
 export function updateFieldMask(id: string, data: FieldMaskUpdateParams) {
-  return http.Put(`/field-mask/${id}`, data)
+  return request.put(`/field-mask/${id}`, data)
 }
 
 export function deleteFieldMask(id: string) {
-  return http.Delete(`/field-mask/${id}`)
+  return request.delete(`/field-mask/${id}`)
 }

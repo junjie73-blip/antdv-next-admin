@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 export type TemplateCategory = 'backend' | 'frontend' | 'sql'
 
@@ -52,27 +52,25 @@ export interface GenTemplateUpdateParams {
  * CRUD
  * ============================================================ */
 export function getGenTemplateList(params: GenTemplateListParams) {
-  return http.Get<{ list: GenTemplateRecord[]; total: number }>('/generator/template/list', {
-    params,
-  })
+  return request.get<{ list: GenTemplateRecord[]; total: number }>('/generator/template/list', params)
 }
 
 export function getGenTemplateDetail(id: string) {
-  return http.Get<GenTemplateDetail>(`/generator/template/${id}`)
+  return request.get<GenTemplateDetail>(`/generator/template/${id}`)
 }
 
 export function createGenTemplate(data: GenTemplateCreateParams) {
-  return http.Post<{ templateId: string }>('/generator/template', data)
+  return request.post<{ templateId: string }>('/generator/template', data)
 }
 
 export function updateGenTemplate(id: string, data: GenTemplateUpdateParams) {
-  return http.Put(`/generator/template/${id}`, data)
+  return request.put(`/generator/template/${id}`, data)
 }
 
 export function deleteGenTemplate(id: string) {
-  return http.Delete(`/generator/template/${id}`)
+  return request.delete(`/generator/template/${id}`)
 }
 
 export function rollbackGenTemplate(id: string, version: number) {
-  return http.Post(`/generator/template/${id}/rollback`, { version })
+  return request.post(`/generator/template/${id}/rollback`, { version })
 }

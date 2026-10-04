@@ -1,8 +1,8 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 export function getQpsSummary(windowSeconds = 300) {
-  return http.Get('/monitor/qps/summary', { params: { windowSeconds } }).send(true)
+  return request.get('/monitor/qps/summary', { windowSeconds })
 }
 export function getQpsHistory(minutes = 5) {
-  return http.Get('/monitor/qps/history', { params: { minutes } }).send(true)
+  return request.get('/monitor/qps/history', { minutes })
 }

@@ -1,5 +1,4 @@
-import { put } from '~/api/request'
-import { http } from '~/composables'
+import { request } from '~/composables'
 
 /* ============================================================
  * 类型（严格对齐后端）
@@ -91,7 +90,7 @@ export interface IsolationSummary {
 
 /** 大屏 - 概览（首选） */
 export function getIsolationOverview(): Promise<IsolationOverview> {
-  return http.get<IsolationOverview>('/system/tenant-isolation/dashboard/overview').then(
+  return request.get<IsolationOverview>('/system/tenant-isolation/dashboard/overview').then(
     (r) =>
       r?.data ??
       r ?? {
@@ -108,13 +107,13 @@ export function getIsolationOverview(): Promise<IsolationOverview> {
 
 /** 概览（备用） */
 export function getIsolationSummary(): Promise<IsolationSummary> {
-  return http
+  return request
     .get<IsolationSummary>('/system/tenant-isolation/summary')
     .then((r) => r?.data ?? r ?? { pending: [], runs: [] })
 }
 
 export function getIsolationTrend(days = 30): Promise<IsolationTrend> {
-  return http
+  return request
     .get<IsolationTrend>('/system/tenant-isolation/dashboard/trend', {
       days,
     })
@@ -132,17 +131,17 @@ export function getIsolationTrend(days = 30): Promise<IsolationTrend> {
 }
 
 export function getIsolationRuleDistribution(): Promise<RuleDistribution[]> {
-  return http
+  return request
     .get<RuleDistribution[]>('/system/tenant-isolation/dashboard/rule-distribution')
     .then((r) => r?.data ?? r ?? [])
 }
 
 export function getIsolationTableHeatmap(): Promise<TableHeat[]> {
-  return http.get<TableHeat[]>('/system/tenant-isolation/dashboard/table-heatmap').then((r) => r?.data ?? r ?? [])
+  return request.get<TableHeat[]>('/system/tenant-isolation/dashboard/table-heatmap').then((r) => r?.data ?? r ?? [])
 }
 
 export function getIsolationRecentRuns(limit = 10): Promise<IsolationRun[]> {
-  return http
+  return request
     .get<IsolationRun[]>('/system/tenant-isolation/dashboard/recent-runs', { limit })
     .then((r) => r?.data ?? r ?? [])
 }
@@ -154,7 +153,7 @@ export function getIsolationViolations(params: {
   resolved?: number
   ruleCode?: string
 }): Promise<IsolationViolationListResult> {
-  return http.get<IsolationViolationListResult>('/system/tenant-isolation/list', params).then((r) => {
+  return request.get<IsolationViolationListResult>('/system/tenant-isolation/list', params).then((r) => {
     const payload = r?.data ?? r
     return {
       list: payload?.list ?? [],
@@ -164,11 +163,11 @@ export function getIsolationViolations(params: {
 }
 
 export function triggerIsolationScan(): Promise<{ runId?: string }> {
-  return http.post<{ runId?: string }>('/system/tenant-isolation/scan').then((r) => r?.data ?? r ?? {})
+  return request.post<{ runId?: string }>('/system/tenant-isolation/scan').then((r) => r?.data ?? r ?? {})
 }
 
 export function resolveIsolationViolation(id: string): Promise<void> {
-  return http.put(`/system/tenant-isolation/${id}/resolve`)
+  return request.put(`/system/tenant-isolation/${id}/resolve`)
 }
 
 export const tenantIsolationApi = {

@@ -5,9 +5,11 @@ import * as Sentry from '@sentry/vue'
 import { MotionPlugin } from '@vueuse/motion'
 import PdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import { createPinia } from 'pinia'
+import { loadingFadeOut } from 'virtual:app-loading'
 import { createApp } from 'vue'
 import VuePdfEmbed, { GlobalWorkerOptions } from 'vue-pdf-embed/dist/index.essential.mjs'
 import { PerfectScrollbarPlugin } from 'vue3-perfect-scrollbar'
+import '~console/theme-detect'
 
 import App from './App.vue'
 import { setupEcharts } from './composables/echarts/setup.js'
@@ -81,3 +83,6 @@ app.directive('permission', vPermission)
 app.component('PdfViewer', VuePdfEmbed)
 GlobalWorkerOptions.workerSrc = PdfWorker
 app.mount('#app')
+requestAnimationFrame(() => {
+  loadingFadeOut()
+})

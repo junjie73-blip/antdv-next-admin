@@ -14,7 +14,7 @@ import {
   getRoleUsers,
   getUserAllOptions,
 } from '~/api'
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 import type { RoleRecord } from '../types'
 
@@ -134,13 +134,7 @@ function onDeptCheck(checkedKeys: any) {
 
 async function loadPermissionTree() {
   try {
-    const res = (await http
-      .Get('/menu/tree', {
-        params: {
-          menuType: [1, 2, 3],
-        },
-      })
-      .send(true)) as any
+    const res = (await request.get('/menu/tree', { menuType: [1, 2, 3] })) as any
     menuTreeData.value = res.data
   } catch (e) {
     console.error('加载菜单树失败', e)

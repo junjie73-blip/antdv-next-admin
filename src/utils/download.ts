@@ -188,13 +188,13 @@ export async function saveResponse(response: Response, fallbackFilename = 'downl
 /**
  * 通过请求函数获取二进制数据并下载
  *
- * @param request - 返回二进制数据的异步函数（通常是 alova / axios 的请求）
+ * @param request - 返回二进制数据的异步函数（通常是 `request.get` 且 `responseType: 'blob'`）
  * @param filename - 保存的文件名
  *
  * @example
  * ```ts
  * downloadBlob(
- *   () => http.Get('/export/users', { responseType: 'blob' }),
+ *   () => request.get('/export/users', undefined, { responseType: 'blob' }),
  *   '用户列表.xlsx',
  * )
  * ```

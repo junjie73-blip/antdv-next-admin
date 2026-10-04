@@ -1,17 +1,17 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 // ============================================================
 // 待办事项
 // ============================================================
 
-export const getTodoList = (params: any): any => http.Get('/todo/list', { params }).send(true)
+export const getTodoList = (params: any): any => request.get('/todo/list', params)
 
-export const getTodoStats = (): any => http.Get('/todo/stats').send(true)
+export const getTodoStats = (): any => request.get('/todo/stats')
 
-export const createTodo = (data: any) => http.Post('/todo', data)
+export const createTodo = (data: any) => request.post('/todo', data)
 
-export const updateTodo = (id: string, data: any) => http.Put(`/todo/${id}`, data)
+export const updateTodo = (id: string, data: any) => request.put(`/todo/${id}`, data)
 
-export const deleteTodo = (id: string) => http.Delete(`/todo/${id}`)
+export const deleteTodo = (id: string) => request.delete(`/todo/${id}`)
 
-export const completeTodo = (id: string) => http.Put(`/todo/${id}/complete`)
+export const completeTodo = (id: string) => request.put(`/todo/${id}/complete`)

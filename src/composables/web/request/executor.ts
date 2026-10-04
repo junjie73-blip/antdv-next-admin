@@ -1,5 +1,5 @@
-import { RequestError } from './error'
-import { createFetcher } from './fetcher'
+import { ErrorCode, RequestError } from './error'
+import { createFetcher, forceLogout, isAuthEndpoint, isLoggingOutNow, refreshAccessToken } from './fetcher'
 import { combineSignals, createTimeoutSignal } from './timeout'
 import { buildUrl } from './url'
 
@@ -16,6 +16,8 @@ export interface ExecuteOptions {
   timeout?: number
   responseType?: 'json' | 'blob' | 'arrayBuffer' | 'text'
   signal?: AbortSignal
+  /** DELETE 等少数场景需要携带请求体（后端从 req.body 读取），由 request.delete 透传 */
+  body?: any
 }
 
 interface CacheEntry {
@@ -119,13 +121,31 @@ function isRetryable(err: unknown): boolean {
   return err instanceof TypeError
 }
 
+/** 判断是否已是 fetch 可直接消费的 BodyInit（FormData / Blob / URLSearchParams / 二进制 / 流） */
+function isBodyInit(body: unknown): boolean {
+  if (typeof body === 'string') return true
+  if (typeof FormData !== 'undefined' && body instanceof FormData) return true
+  if (typeof URLSearchParams !== 'undefined' && body instanceof URLSearchParams) return true
+  if (typeof Blob !== 'undefined' && body instanceof Blob) return true
+  if (typeof ArrayBuffer !== 'undefined' && (body instanceof ArrayBuffer || ArrayBuffer.isView(body))) return true
+  if (typeof ReadableStream !== 'undefined' && body instanceof ReadableStream) return true
+  return false
+}
+
+/** 只对普通对象做 JSON 序列化：统一 stringify 会把 FormData 打成 "{}"，导致上传内容丢失 */
+function normalizeBody(body: unknown): BodyInit | undefined {
+  if (body === undefined || body === null) return undefined
+  if (isBodyInit(body)) return body as BodyInit
+  return JSON.stringify(body)
+}
+
 async function doOnce<T>(method: string, url: string, body: any, opts: ExecuteOptions): Promise<T> {
   const { timeout = 30000, signal: externalSignal } = opts
   const timeoutCtl = createTimeoutSignal(timeout)
   const combined = combineSignals([externalSignal, timeoutCtl.signal])
   const requestInit: RequestInit = {
     method,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: normalizeBody(body),
     signal: combined.signal,
   }
   const useFetchOptions = {}
@@ -179,6 +199,32 @@ async function withRetry<T>(fn: () => Promise<T>, retries: number, retryDelay: n
   throw lastErr
 }
 
+/**
+ * 收到 401 时先尝试刷新令牌并重放一次；
+ * 认证接口自身、已在登出流程中、或已重放过的情况直接抛出，避免死循环。
+ */
+async function doOnceWithAuthReplay<T>(
+  method: string,
+  url: string,
+  body: any,
+  opts: ExecuteOptions,
+  retried = false,
+): Promise<T> {
+  try {
+    return await doOnce<T>(method, url, body, opts)
+  } catch (err) {
+    const unauthorized = err instanceof RequestError && (err.status === 401 || err.code === ErrorCode.UNAUTHORIZED)
+    if (!unauthorized || retried || isAuthEndpoint(url) || isLoggingOutNow()) throw err
+    try {
+      await refreshAccessToken()
+    } catch {
+      forceLogout()
+      throw err
+    }
+    return await doOnceWithAuthReplay<T>(method, url, body, opts, true)
+  }
+}
+
 // ============================================================
 // 主入口
 // ============================================================
@@ -198,14 +244,15 @@ export async function executeRequest<T = any>(
     cacheOnly = false,
     staleWhileRevalidate = false,
     dedupe = true,
-    retries = 3,
-    retryDelay = 300,
   } = opts
 
   const finalMethod = method.toUpperCase()
   const finalUrl = params ? buildUrl(url, params) : url
-  const cacheKey = customKey ?? `${finalMethod}:${finalUrl}:${JSON.stringify(body ?? '')}`
+  // 流式 body（FormData/Blob/流）无法稳定序列化成 key，用占位符并关闭并发去重
+  const streamBody = isBodyInit(body) && typeof body !== 'string'
+  const cacheKey = customKey ?? `${finalMethod}:${finalUrl}:${streamBody ? '[stream]' : JSON.stringify(body ?? '')}`
   const canCache = enableCache && finalMethod === 'GET'
+  const canDedupe = dedupe && !streamBody
 
   // ---------- 1) 缓存读 ----------
   if (canCache && !forceRefresh) {
@@ -217,7 +264,7 @@ export async function executeRequest<T = any>(
       // ⭐ SWR：立即返回旧值，后台静默刷新
       if (staleWhileRevalidate) {
         // 不 await，静默后台更新
-        void runRequest<T>(finalMethod, url, body, opts, cacheKey, cacheTime).catch(() => {
+        void runRequest<T>(finalMethod, finalUrl, body, opts, cacheKey, cacheTime).catch(() => {
           /* 后台失败静默 */
         })
       }
@@ -230,18 +277,18 @@ export async function executeRequest<T = any>(
   }
 
   // ---------- 2) 去重 ----------
-  if (dedupe && pendingStore.has(cacheKey)) {
+  if (canDedupe && pendingStore.has(cacheKey)) {
     return pendingStore.get(cacheKey)!
   }
 
   // ---------- 3) 执行 ----------
-  const promise = runRequest<T>(finalMethod, url, body, opts, cacheKey, cacheTime)
-  if (dedupe) pendingStore.set(cacheKey, promise)
+  const promise = runRequest<T>(finalMethod, finalUrl, body, opts, cacheKey, cacheTime)
+  if (canDedupe) pendingStore.set(cacheKey, promise)
 
   try {
     return await promise
   } finally {
-    if (dedupe) pendingStore.delete(cacheKey)
+    if (canDedupe) pendingStore.delete(cacheKey)
   }
 }
 
@@ -257,7 +304,7 @@ function runRequest<T>(
   const { cache: enableCache = false, retries = 3, retryDelay = 300 } = opts
   const canCache = enableCache && method === 'GET'
 
-  return withRetry(() => doOnce<T>(method, url, body, opts), retries, retryDelay).then((result) => {
+  return withRetry(() => doOnceWithAuthReplay<T>(method, url, body, opts), retries, retryDelay).then((result) => {
     if (canCache) {
       cacheStore.set(cacheKey, {
         data: result,

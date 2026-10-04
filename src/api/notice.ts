@@ -1,6 +1,6 @@
 import type { FetchParams } from '~/components/business/Table'
 
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 import { del, get, post, put } from './request'
 
@@ -40,7 +40,7 @@ export function exportNotices(params?: Record<string, unknown>) {
   return get<any>('/notice/export', params)
 }
 export function batchDelete(ids: string[]) {
-  return http.Post<void>('/notice/batch-delete', { ids })
+  return request.post<void>('/notice/batch-delete', { ids })
 }
 // ============================================================
 // 我的消息
@@ -75,5 +75,5 @@ export function getWfNotificationList(params: {
   pageNum?: number
   pageSize?: number
 }) {
-  return http.Get('/workflow/notification/list', { params })
+  return request.get('/workflow/notification/list', params)
 }

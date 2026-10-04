@@ -1,6 +1,6 @@
 import type { FetchParams } from '~/components/business/Table'
 
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 import { del, get, post, put } from './request'
 
@@ -33,12 +33,12 @@ export function getRoleMenusTree(id: string, params?: any) {
   return get<any[]>(`/role/${id}/menus/tree`, params)
 }
 export function assignRoleMenus(id: string, menuIds: string[]) {
-  return http.Put(`/role/${id}/menus`, { menuIds })
+  return request.put(`/role/${id}/menus`, { menuIds })
 }
 
 // ---------- 角色-权限 ----------
 export function assignRolePermissions(id: string, permIds: string[]) {
-  return http.Put(`/role/${id}/permissions`, { permIds })
+  return request.put(`/role/${id}/permissions`, { permIds })
 }
 
 // ---------- 角色-用户 ----------
@@ -46,7 +46,7 @@ export function getRoleUsers(id: string) {
   return get<any[]>(`/role/${id}/users`)
 }
 export function assignRoleUsers(id: string, userIds: string[]) {
-  return http.Put(`/role/${id}/users`, { userIds })
+  return request.put(`/role/${id}/users`, { userIds })
 }
 
 // ---------- 角色-数据权限部门 ----------
@@ -54,7 +54,7 @@ export function getRoleDepts(id: string) {
   return get<string[]>(`/role/${id}/depts`)
 }
 export function assignRoleDepts(id: string, deptIds: string[]) {
-  return http.Put(`/role/${id}/depts`, { deptIds })
+  return request.put(`/role/${id}/depts`, { deptIds })
 }
 
 // ---------- 导入导出 ----------

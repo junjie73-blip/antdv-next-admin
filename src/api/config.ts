@@ -1,29 +1,29 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 // ============================================================
 // 系统配置
 // ============================================================
 
 export function getSettingsList(params: any) {
-  return http.Get('/config/list', { params }).send(true)
+  return request.get('/config/list', params)
 }
 
 export function getSettingByKey(key: string) {
-  return http.Get(`/config/value/${key}`)
+  return request.get(`/config/value/${key}`)
 }
 
 export function addSetting(data: any) {
-  return http.Post('/config', data)
+  return request.post('/config', data)
 }
 
 export function updateSetting(id: string, data: any) {
-  return http.Put(`/config/${id}`, data)
+  return request.put(`/config/${id}`, data)
 }
 
 export function deleteSetting(id: string) {
-  return http.Delete(`/config/${id}`)
+  return request.delete(`/config/${id}`)
 }
 
 export function batchDeleteSetting(ids: string[]) {
-  return http.Post('/config/batch-delete', { ids })
+  return request.post('/config/batch-delete', { ids })
 }

@@ -1,39 +1,39 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 // ============================================================
 // 定时任务
 // ============================================================
 
 export function getJobList(params: any) {
-  return http.Get('/job/list', { params })
+  return request.get('/job/list', params)
 }
 
 export function createJob(data: any) {
-  return http.Post('/job', data)
+  return request.post('/job', data)
 }
 
 export function updateJob(id: string, data: any) {
-  return http.Put(`/job/${id}`, data)
+  return request.put(`/job/${id}`, data)
 }
 
 export function deleteJob(id: string) {
-  return http.Delete(`/job/${id}`)
+  return request.delete(`/job/${id}`)
 }
 
 /** 启停任务 —— body 是 { status: "0"|"1" } */
 export function toggleJobStatus(id: string, status: string) {
-  return http.Put(`/job/${id}/status`, { status })
+  return request.put(`/job/${id}/status`, { status })
 }
 
 export function runJobOnce(id: string) {
-  return http.Post(`/job/${id}/run`)
+  return request.post(`/job/${id}/run`)
 }
 
 export function pauseJob(id: string) {
-  return http.Put(`/job/${id}/pause`)
+  return request.put(`/job/${id}/pause`)
 }
 
 export function resumeJob(id: string) {
-  return http.Put(`/job/${id}/resume`)
+  return request.put(`/job/${id}/resume`)
 }
 
 // ============================================================
@@ -41,9 +41,9 @@ export function resumeJob(id: string) {
 // ============================================================
 
 export function getJobLogList(params: any) {
-  return http.Get('/job-log/list', { params })
+  return request.get('/job-log/list', params)
 }
 
 export function clearJobLog(jobId?: string) {
-  return http.Delete('/job-log/clear', { params: { jobId } })
+  return request.delete('/job-log/clear', { jobId })
 }

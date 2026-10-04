@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import { http } from '~/composables'
+import { request } from '~/composables'
 
 const props = defineProps<{ idA: string; idB: string }>()
 
 const diff = ref<any>(null)
 
 async function load() {
-  diff.value = await http.Post(`/system/org-snapshot/${props.idA}/diff/${props.idB}`)
+  diff.value = await request.post(`/system/org-snapshot/${props.idA}/diff/${props.idB}`)
 }
 
 const sections = computed(() => {

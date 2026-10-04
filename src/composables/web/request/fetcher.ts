@@ -29,7 +29,7 @@ let csrfInitialized = false
 let refreshPromise: Promise<string> | null = null
 let isLoggingOut = false
 
-function isAuthEndpoint(url?: string) {
+export function isAuthEndpoint(url?: string) {
   return !!url && AUTH_ENDPOINTS.some((p) => url.includes(p))
 }
 
@@ -101,6 +101,16 @@ function getRefreshPromise(baseUrl: string): Promise<string> {
     })
   }
   return refreshPromise
+}
+
+/** 供 executor 在收到响应式 401 后主动刷新；baseUrl 与 createFetcher 默认值保持一致 */
+export function refreshAccessToken(): Promise<string> {
+  return getRefreshPromise(import.meta.env.VITE_APP_BASE_API ?? '')
+}
+
+/** 刷新期间可能已触发 forceLogout，用于避免重复刷新与重放 */
+export function isLoggingOutNow(): boolean {
+  return isLoggingOut
 }
 
 export interface CreateFetcherOptions {

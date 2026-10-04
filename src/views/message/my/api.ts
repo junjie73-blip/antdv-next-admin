@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 export type MessageBizType = 'notice' | 'todo' | 'workflow' | 'system' | 'announcement'
 
@@ -33,41 +33,37 @@ export interface UnreadSummary {
 }
 
 export function getMyMessageList(params: MessageListParams) {
-  return http.Get<{ list: MessageRecord[]; total: number }>('/message/my', { params })
+  return request.get<{ list: MessageRecord[]; total: number }>('/message/my', params)
 }
 
 export function getUnreadMessageCount(bizType?: MessageBizType) {
-  return http.Get<{ count: number }>('/message/unread-count', {
-    params: bizType ? { bizType } : {},
-  })
+  return request.get<{ count: number }>('/message/unread-count', bizType ? { bizType } : {})
 }
 
 export function getUnreadSummary() {
-  return http.Get<UnreadSummary>('/message/unread-summary')
+  return request.get<UnreadSummary>('/message/unread-summary')
 }
 
 export function markMessageRead(messageId: string) {
-  return http.Put(`/message/${messageId}/read`)
+  return request.put(`/message/${messageId}/read`)
 }
 
 export function markMessagesReadBatch(messageIds: string[]) {
-  return http.Put<{ updated: number }>('/message/read-batch', { messageIds })
+  return request.put<{ updated: number }>('/message/read-batch', { messageIds })
 }
 
 export function markAllMessagesRead(bizType?: MessageBizType) {
-  return http.Put<{ updated: number }>('/message/read-all', {
-    ...(bizType ? { bizType } : {}),
-  })
+  return request.put<{ updated: number }>('/message/read-all', bizType ? { bizType } : {})
 }
 
 export function deleteMessage(messageId: string) {
-  return http.Delete(`/message/${messageId}`)
+  return request.delete(`/message/${messageId}`)
 }
 
 export function deleteMessagesBatch(messageIds: string[]) {
-  return http.Post<{ deleted: number }>('/message/batch-delete', { messageIds })
+  return request.post<{ deleted: number }>('/message/batch-delete', { messageIds })
 }
 
 export function clearReadMessages() {
-  return http.Delete<{ deleted: number }>('/message/clear-read')
+  return request.delete<{ deleted: number }>('/message/clear-read')
 }

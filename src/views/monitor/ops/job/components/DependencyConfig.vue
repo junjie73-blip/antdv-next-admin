@@ -2,7 +2,7 @@
 import { message } from 'antdv-next'
 import { ref, watch } from 'vue'
 
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 const props = defineProps<{ jobId: string }>()
 const emit = defineEmits<{ updated: [] }>()
@@ -16,9 +16,7 @@ const form = ref({
 })
 
 async function loadOptions() {
-  const res: any = await http.Get('/job/list', {
-    params: { pageSize: 100 },
-  })
+  const res: any = await request.get('/job/list', { pageSize: 100 })
   const list = res?.data?.list ?? res?.list ?? []
   jobOptions.value = list
     .filter((j: any) => j.jobId !== props.jobId)
@@ -26,7 +24,7 @@ async function loadOptions() {
 }
 
 async function loadCurrent() {
-  const res: any = await http.Get(`/job/${props.jobId}`)
+  const res: any = await request.get(`/job/${props.jobId}`)
   const data = res?.data ?? res
   form.value = {
     dependencyJobIds: data.dependencyJobIds ?? [],
@@ -38,7 +36,7 @@ async function loadCurrent() {
 async function handleSave() {
   loading.value = true
   try {
-    await http.Put(`/job/${props.jobId}/dependencies`, form.value)
+    await request.put(`/job/${props.jobId}/dependencies`, form.value)
     message.success('依赖配置已保存')
     emit('updated')
   } catch (e: any) {

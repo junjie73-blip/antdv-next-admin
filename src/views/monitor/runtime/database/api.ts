@@ -1,17 +1,17 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 export function getDbInfo() {
-  return http.Get('/monitor/database/info').send(true)
+  return request.get('/monitor/database/info')
 }
 export function getSlowQueries(limit = 20) {
-  return http.Get('/monitor/database/slow-queries', { params: { limit } }).send(true)
+  return request.get('/monitor/database/slow-queries', { limit })
 }
 export function getTableStats(limit = 30) {
-  return http.Get('/monitor/database/tables', { params: { limit } }).send(true)
+  return request.get('/monitor/database/tables', { limit })
 }
 export function getIndexStats(limit = 20) {
-  return http.Get('/monitor/database/indexes', { params: { limit } }).send(true)
+  return request.get('/monitor/database/indexes', { limit })
 }
 export function getBloatTables() {
-  return http.Get('/monitor/database/bloat').send(true)
+  return request.get('/monitor/database/bloat')
 }

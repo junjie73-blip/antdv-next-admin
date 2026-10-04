@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 import { del, get, post } from './request'
 
@@ -45,7 +45,7 @@ export function getUserAllOptions() {
 
 /** 重置用户密码 —— PUT /user/{id}/password */
 export function resetUserPassword(id: string, password: string) {
-  return http.Put(`/user/${id}/password`, { password })
+  return request.put(`/user/${id}/password`, { password })
 }
 
 // ---------- 用户-角色 ----------
@@ -53,7 +53,7 @@ export function getUserRoles(id: string) {
   return get<any[]>(`/user/${id}/roles`)
 }
 export function updateUserRoles(id: string, roleIds: string[]) {
-  return http.Put(`/user/${id}/roles`, { roleIds })
+  return request.put(`/user/${id}/roles`, { roleIds })
 }
 
 // ---------- 用户-部门 ----------
@@ -61,7 +61,7 @@ export function getUserDepts(id: string) {
   return get<any[]>(`/user/${id}/depts`)
 }
 export function updateUserDepts(id: string, deptIds: string[]) {
-  return http.Put(`/user/${id}/depts`, { deptIds })
+  return request.put(`/user/${id}/depts`, { deptIds })
 }
 
 // ---------- 敏感信息 ----------
@@ -76,7 +76,5 @@ export function exportUsers(params?: Record<string, unknown>) {
 export function importUsers(file: File) {
   const fd = new FormData()
   fd.append('file', file)
-  return http.Post('/user/import', fd, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+  return request.post('/user/import', fd)
 }

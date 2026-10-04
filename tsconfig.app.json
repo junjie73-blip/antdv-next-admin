@@ -1,6 +1,6 @@
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
-  "include": ["types/**/*.d.ts", "src/**/*", "src/**/*.vue"],
+  "include": ["types/**/*.d.ts", "src/**/*", "src/**/*.vue","build/**/*.ts"],
   "exclude": ["src/**/__tests__/*"],
   "compilerOptions": {
     // Extra safety for array and object lookups, but may have false positives.
@@ -14,7 +14,8 @@
     "types": [
       "vite/client",
       "vite-plugin-pwa/client",
-      "vite-plugin-pwa/vue"
+      "vite-plugin-pwa/vue",
+      "unplugin-turbo-console/client"
     ],
     "baseUrl": ".",
     // `vue-tsc --build` produces a .tsbuildinfo file for incremental type-checking.

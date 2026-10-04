@@ -109,7 +109,7 @@ export function getUserList(params) {
 }
 ```
 
-组件里只 import 函数，不直接 `http.Get`。
+组件里只 import 函数，不直接 `request.get`。
 
 ### 5.2 路径约定（与后端一致）
 
@@ -125,7 +125,7 @@ export function getUserList(params) {
 
 ### 5.3 错误处理
 
-alova 已统一处理：
+请求层已统一处理：
 - 401 → 自动刷新，失败跳登录
 - 4xx → 弹后端 message
 - 5xx → 弹"服务器繁忙"

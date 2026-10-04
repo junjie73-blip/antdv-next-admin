@@ -16,14 +16,14 @@
 
 #nprogress .bar {
   @apply fixed top-0 left-0 z-[9999] h-[3px] w-full;
-  background: linear-gradient(90deg, var(--ant-primary-color, #1677ff) 0%, var(--ant-primary-color, #1677ff) 100%);
+  background: linear-gradient(90deg, var(--ant-color-primary, #1677ff) 0%, var(--ant-color-primary, #1677ff) 100%);
 }
 
 #nprogress .peg {
   @apply absolute right-0 block h-full w-[100px] opacity-100;
   box-shadow:
-    0 0 10px var(--ant-primary-color, #1677ff),
-    0 0 5px var(--ant-primary-color, #1677ff);
+    0 0 10px var(--ant-color-primary, #1677ff),
+    0 0 5px var(--ant-color-primary, #1677ff);
   transform: rotate(3deg) translate(0, -4px);
 }
 

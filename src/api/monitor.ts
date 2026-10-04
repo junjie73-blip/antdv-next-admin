@@ -1,12 +1,12 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 // ============================================================
 // 服务监控
 // ============================================================
 
 export function getServerInfo() {
-  return http.Get('/monitor/server/info')
+  return request.get('/monitor/server/info')
 }
 export function getServerSnapshot() {
-  return http.Get('/monitor/server/snapshot').send(true)
+  return request.get('/monitor/server/snapshot')
 }

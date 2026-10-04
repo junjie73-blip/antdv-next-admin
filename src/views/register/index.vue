@@ -11,7 +11,7 @@ import { useRouter } from 'vue-router'
 import logoIconUrl from '~/assets/images/logo.png'
 import { useAuthStyles } from '~/components/common/Auth/composables/useAuthStyles'
 import { useAppStore } from '~/stores'
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 defineOptions({ name: 'Register' })
 
@@ -101,7 +101,7 @@ async function handleRegister() {
     await formRef.value?.validate()
     loading.value = true
 
-    await http.Post('/auth/register', {
+    await request.post('/auth/register', {
       tenantName: formState.tenantName,
       tenantCode: formState.tenantCode,
       username: formState.username,

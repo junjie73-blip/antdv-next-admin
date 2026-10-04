@@ -1,6 +1,6 @@
 import type { CacheGroupInfo, CacheInfo, CacheKeyInfo, CacheKeyValue } from '~/views/monitor/runtime/cache/types'
 
-import { http } from '~/composables'
+import { request } from '~/composables'
 
 /* ============================================================
  * 缓存操作日志
@@ -28,45 +28,39 @@ export interface CacheOperationListParams {
 }
 
 export function getCacheOperations(params: CacheOperationListParams = {}) {
-  return http.Get<{ list: CacheOperationLog[]; total: number }>('/monitor/cache/operations', {
-    params,
-  })
+  return request.get<{ list: CacheOperationLog[]; total: number }>('/monitor/cache/operations', params)
 }
 /** Redis 概览 */
 export function getCacheInfo() {
-  return http.Get<CacheInfo>('/monitor/cache/info')
+  return request.get<CacheInfo>('/monitor/cache/info')
 }
 
 /** 缓存组列表 */
 export function getCacheGroups() {
-  return http.Get<CacheGroupInfo[]>('/monitor/cache/groups')
+  return request.get<CacheGroupInfo[]>('/monitor/cache/groups')
 }
 
 /** 组内 key 列表 */
 export function getCacheKeys(params: { prefix: string }) {
-  return http.Get<CacheKeyInfo[]>('/monitor/cache/keys', { params })
+  return request.get<CacheKeyInfo[]>('/monitor/cache/keys', params)
 }
 
 /** key 值 */
 export function getCacheValue(params: { key: string }) {
-  return http.Get<CacheKeyValue>('/monitor/cache/value', { params })
+  return request.get<CacheKeyValue>('/monitor/cache/value', params)
 }
 
 /** 删除单个 key */
 export function deleteCacheKey(key: string) {
-  return http.Delete('/monitor/cache/key', {
-    params: { key },
-  })
+  return request.delete('/monitor/cache/key', { key })
 }
 
 /** 清空某个缓存组 */
 export function clearCacheGroup(prefix: string) {
-  return http.Delete('/monitor/cache/group', {
-    params: { prefix },
-  })
+  return request.delete('/monitor/cache/group', { prefix })
 }
 
 /** 清空所有缓存 */
 export function clearCacheAll() {
-  return http.Delete('/monitor/cache/all')
+  return request.delete('/monitor/cache/all')
 }

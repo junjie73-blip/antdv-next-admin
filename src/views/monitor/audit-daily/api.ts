@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 import type { Overview, TopOperation, TrendData } from './types'
 
@@ -9,25 +9,25 @@ export interface QueryParams {
 }
 
 export function getOverview(params: QueryParams) {
-  return http.Get<{ data: Overview }>('/monitor/audit-daily/overview', { params }).send(true)
+  return request.get<{ data: Overview }>('/monitor/audit-daily/overview', params)
 }
 
 export function getTrend(params: QueryParams) {
-  return http.Get<{ data: TrendData }>('/monitor/audit-daily/trend', { params }).send(true)
+  return request.get<{ data: TrendData }>('/monitor/audit-daily/trend', params)
 }
 
 export function getTopOperations(params: QueryParams & { limit?: number }) {
-  return http.Get<{ data: TopOperation[] }>('/monitor/audit-daily/top-operations', { params }).send(true)
+  return request.get<{ data: TopOperation[] }>('/monitor/audit-daily/top-operations', params)
 }
 
 export function getOperationList() {
-  return http.Get<{ data: string[] }>('/monitor/audit-daily/operations').send(true)
+  return request.get<{ data: string[] }>('/monitor/audit-daily/operations')
 }
 
 export function triggerAggregate(data: { date?: string }) {
-  return http.Post('/monitor/audit-daily/aggregate', data).send(true)
+  return request.post('/monitor/audit-daily/aggregate', data)
 }
 
 export function triggerClean() {
-  return http.Post('/monitor/audit-daily/clean').send(true)
+  return request.post('/monitor/audit-daily/clean')
 }

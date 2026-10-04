@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 import { get } from './request'
 
@@ -7,11 +7,11 @@ import { get } from './request'
 // ============================================================
 
 export function getTenantList(params: any) {
-  return http.Get('/tenant/list', { params }).send(true)
+  return request.get('/tenant/list', params)
 }
 
 export function getTenantDetail(id: string) {
-  return http.Get(`/tenant/${id}`)
+  return request.get(`/tenant/${id}`)
 }
 
 /** 租户下拉选项 */
@@ -20,21 +20,21 @@ export function getTenantOptions() {
 }
 
 export function createTenant(data: any) {
-  return http.Post('/tenant/save', data)
+  return request.post('/tenant/save', data)
 }
 
 export function updateTenant(id: string, data: any) {
-  return http.Post(`/tenant/update/${id}`, data)
+  return request.post(`/tenant/update/${id}`, data)
 }
 
 export function deleteTenant(id: string) {
-  return http.Get(`/tenant/remove/${id}`)
+  return request.get(`/tenant/remove/${id}`)
 }
 
 export function batchDeleteTenant(ids: string[]) {
-  return http.Post('/tenant/batch-delete', { ids })
+  return request.post('/tenant/batch-delete', { ids })
 }
 
 export function exportTenants(params?: Record<string, unknown>) {
-  return http.Get('/tenant/export', { params })
+  return request.get('/tenant/export', params)
 }

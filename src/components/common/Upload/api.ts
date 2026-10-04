@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 /* ============================================================
  * 类型
@@ -40,7 +40,7 @@ export function uploadSingleFile(file: File, extraData?: Record<string, unknown>
     }
   }
 
-  return http.Post<{ code: number; data: UploadedFileResult; message?: string }>('/upload/file', formData, {
+  return request.post<{ code: number; data: UploadedFileResult; message?: string }>('/upload/file', formData, {
     timeout: 5 * 60 * 1000,
   })
 }
@@ -54,11 +54,12 @@ export function checkChunks(
   size: number,
   totalChunks?: number,
 ): Promise<ChunkCheckResult> {
-  return http
-    .Get<{ code: number; data: ChunkCheckResult }>('/upload/check', {
-      params: { uploadId, filename, size, totalChunks },
-      timeout: 10 * 1000,
-    })
+  return request
+    .get<{ code: number; data: ChunkCheckResult }>(
+      '/upload/check',
+      { uploadId, filename, size, totalChunks },
+      { timeout: 10 * 1000 },
+    )
     .then((res) => res.data)
 }
 
@@ -70,8 +71,8 @@ export function checkInstant(input: {
   fileSize: number
   filename: string
 }): Promise<InstantCheckResult> {
-  return http
-    .Post<{ code: number; data: InstantCheckResult }>('/upload/check', input, { timeout: 10 * 1000 })
+  return request
+    .post<{ code: number; data: InstantCheckResult }>('/upload/check', input, { timeout: 10 * 1000 })
     .then((res) => res.data)
 }
 
@@ -93,9 +94,9 @@ export function uploadChunk(params: {
   formData.append('totalChunks', String(total))
   formData.append('file', chunk, `${filename}.part${index}`)
 
-  return http.Post<{ code: number; message?: string }>('/upload/chunk', formData, {
+  return request.post<{ code: number; message?: string }>('/upload/chunk', formData, {
     timeout: 60 * 1000,
-    retry: 0,
+    retries: 0,
   })
 }
 
@@ -110,8 +111,8 @@ export function mergeChunks(params: {
   mimeType?: string
   fileHash?: string
 }): Promise<ChunkMergeResult> {
-  return http
-    .Post<{ code: number; data: ChunkMergeResult; message?: string }>('/upload/merge', params, {
+  return request
+    .post<{ code: number; data: ChunkMergeResult; message?: string }>('/upload/merge', params, {
       timeout: 50 * 60 * 1000,
     })
     .then((res) => res.data)
@@ -121,14 +122,11 @@ export function mergeChunks(params: {
  * 删除物理文件
  * ============================================================ */
 export function deletePhysicalFile(url: string): Promise<void> {
-  return http.Post<{ code: number; message?: string }>('/upload/delete', { url })
+  return request.post<{ code: number; message?: string }>('/upload/delete', { url })
 }
 
 export const getMergeStatus = (taskId: string) => {
-  return http
-    .Get<{ code: number; data: any; message?: string }>('/upload/merge/status', {
-      params: { taskId },
-    })
-    .send(true)
+  return request
+    .get<{ code: number; data: any; message?: string }>('/upload/merge/status', { taskId })
     .then((res) => res.data)
 }

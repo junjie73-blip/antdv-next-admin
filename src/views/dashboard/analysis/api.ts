@@ -1,4 +1,4 @@
-import { http } from '~/composables'
+import { request } from '~/composables'
 
 /* ============================================================
  * 类型
@@ -56,41 +56,41 @@ export interface ModuleRankItem {
  * 接口（与后端 OpenAPI 一一对应）
  * ============================================================ */
 export function getAnalysisKpi(): Promise<KpiItem[]> {
-  return http.get<KpiItem[]>('/dashboard/kpi').then((r) => r?.data ?? r ?? [])
+  return request.get<KpiItem[]>('/dashboard/kpi').then((r) => r?.data ?? r ?? [])
 }
 
 export function getAnalysisActivityTrend(range: 'today' | '7d' | '30d' = '7d'): Promise<ActivityTrendData> {
-  return http
+  return request
     .get<ActivityTrendData>('/dashboard/activity-trend', { range })
     .then((r) => r?.data ?? r ?? { categories: [], pv: [], uv: [], apiCalls: [] })
 }
 
 export function getAnalysisTrafficDistribution(): Promise<TrafficDistribution[]> {
-  return http.get<TrafficDistribution[]>('/dashboard/traffic-distribution').then((r) => r?.data ?? r ?? [])
+  return request.get<TrafficDistribution[]>('/dashboard/traffic-distribution').then((r) => r?.data ?? r ?? [])
 }
 
 export function getAnalysisSystemHealth(): Promise<SystemHealth> {
-  return http.get<SystemHealth>('/dashboard/system-health').then((r) => r?.data ?? r ?? { health: 0 })
+  return request.get<SystemHealth>('/dashboard/system-health').then((r) => r?.data ?? r ?? { health: 0 })
 }
 
 export function getAnalysisResourceUsage(): Promise<ResourceUsageData> {
-  return http
+  return request
     .get<ResourceUsageData>('/dashboard/resource-usage')
     .then((r) => r?.data ?? r ?? { indicators: [], current: [], peak: [] })
 }
 
 export function getAnalysisErrorRate(): Promise<ErrorRateData> {
-  return http
+  return request
     .get<ErrorRateData>('/dashboard/error-rate')
     .then((r) => r?.data ?? r ?? { hours: [], errorRates: [], errors4xx: [], errors5xx: [] })
 }
 
 export function getAnalysisUserJourney(): Promise<JourneyStage[]> {
-  return http.get<JourneyStage[]>('/dashboard/user-journey').then((r) => r?.data ?? r ?? [])
+  return request.get<JourneyStage[]>('/dashboard/user-journey').then((r) => r?.data ?? r ?? [])
 }
 
 export function getAnalysisModuleRank(): Promise<ModuleRankItem[]> {
-  return http.get<ModuleRankItem[]>('/dashboard/module-rank').then((r) => r?.data ?? r ?? [])
+  return request.get<ModuleRankItem[]>('/dashboard/module-rank').then((r) => r?.data ?? r ?? [])
 }
 
 export const analysisApi = {

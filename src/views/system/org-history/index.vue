@@ -63,7 +63,7 @@ async function handleRevert(record: OrgHistoryEvent) {
     message.success('撤销成功')
     tableMethods.value?.reload()
   } catch {
-    /* alova 已统一处理错误提示 */
+    /* 请求层已统一处理错误提示 */
   }
 }
 

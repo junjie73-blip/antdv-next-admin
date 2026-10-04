@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 export type ArchiveTable =
   | 'sys_audit_log'
@@ -48,21 +48,21 @@ export interface ArchiveTriggerResult {
 }
 
 export function getArchivePolicyList() {
-  return http.Get<ArchivePolicyRecord[]>('/archive-policy/list')
+  return request.get<ArchivePolicyRecord[]>('/archive-policy/list')
 }
 
 export function getArchivePolicyByTable(tableName: ArchiveTable) {
-  return http.Get<ArchivePolicyRecord>(`/archive-policy/table/${tableName}`)
+  return request.get<ArchivePolicyRecord>(`/archive-policy/table/${tableName}`)
 }
 
 export function updateArchivePolicy(tableName: ArchiveTable, data: ArchivePolicyUpdateParams) {
-  return http.Put(`/archive-policy/table/${tableName}`, data)
+  return request.put(`/archive-policy/table/${tableName}`, data)
 }
 
 export function triggerArchive(data: { tableName: ArchiveTable; dryRun: boolean }) {
-  return http.Post<ArchiveTriggerResult>('/archive-policy/trigger', data)
+  return request.post<ArchiveTriggerResult>('/archive-policy/trigger', data)
 }
 
 export function getArchiveLogs(params?: { pageNum?: number; pageSize?: number }) {
-  return http.Get<{ list: any[]; total: number }>('/archive-policy/logs', { params })
+  return request.get<{ list: any[]; total: number }>('/archive-policy/logs', params)
 }

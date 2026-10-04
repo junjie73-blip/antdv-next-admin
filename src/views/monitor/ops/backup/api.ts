@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 import type {
   BackupDownloadInfo,
@@ -13,27 +13,23 @@ import type {
  * 备份记录
  * ============================================================ */
 
-export const listBackups = (params: BackupListParams) => http.Get<BackupListResult>('/system/backup/list', { params })
+export const listBackups = (params: BackupListParams) => request.get<BackupListResult>('/system/backup/list', params)
 
 export const triggerBackup = (data: BackupTriggerParams) =>
-  http.Post<BackupTriggerResult>('/system/backup/trigger', data)
+  request.post<BackupTriggerResult>('/system/backup/trigger', data)
 
 export const getDownloadUrl = (backupId: string) =>
-  http.Get<BackupDownloadInfo>(`/system/backup/${backupId}/download`).then((res) => res.data)
+  request.get<BackupDownloadInfo>(`/system/backup/${backupId}/download`).then((res) => res.data)
 
-export const deleteBackup = (backupId: string) => http.Delete(`/system/backup/${backupId}`)
+export const deleteBackup = (backupId: string) => request.delete(`/system/backup/${backupId}`)
 
 /* ============================================================
  * 备份策略
  * ============================================================ */
 
-export const listPolicies = () =>
-  http
-    .Get<BackupPolicy[]>('/system/backup/policies')
-    .send(true)
-    .then((res) => res.data)
+export const listPolicies = () => request.get<BackupPolicy[]>('/system/backup/policies').then((res) => res.data)
 
 export const savePolicy = (data: Partial<BackupPolicy> & { name: string; cron: string }) =>
-  http.Put('/system/backup/policies', data)
+  request.put('/system/backup/policies', data)
 
-export const deletePolicy = (id: string) => http.Delete(`/system/backup/policies/${id}`)
+export const deletePolicy = (id: string) => request.delete(`/system/backup/policies/${id}`)

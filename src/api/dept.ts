@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 import { del, get, post, put } from './request'
 
@@ -35,5 +35,5 @@ export function getDeptUsers(id: string) {
   return get<any[]>(`/dept/${id}/users`)
 }
 export function updateDeptUsers(id: string, userIds: string[]) {
-  return http.Put(`/dept/${id}/users`, { userIds })
+  return request.put(`/dept/${id}/users`, { userIds })
 }

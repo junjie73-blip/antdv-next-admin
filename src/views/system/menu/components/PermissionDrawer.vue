@@ -9,7 +9,7 @@ import { type ActionItem, BasicTable, TableAction, useTable } from '~/components
 import { useCRUD } from '~/composables/useCRUD'
 import { DictType } from '~/enums/dict'
 import { useDictStore } from '~/stores'
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 import type { PermissionRecord } from './types'
 
@@ -80,13 +80,13 @@ const { isEditing, handleAdd, handleEdit, handleDelete, handleSave } = useCRUD<P
     status: record.status,
   }),
   onCreate: async (values) => {
-    await http.Post('/menu', { ...values, parentId: props.menu.menuId, menuType: 3 })
+    await request.post('/menu', { ...values, parentId: props.menu.menuId, menuType: 3 })
   },
   onUpdate: async (id, values) => {
-    await http.Put(`/menu/${id}`, { ...values, parentId: props.menu.menuId, menuType: 3 })
+    await request.put(`/menu/${id}`, { ...values, parentId: props.menu.menuId, menuType: 3 })
   },
   onDelete: async (record) => {
-    await http.Delete(`/menu/${record.menuId}`)
+    await request.delete(`/menu/${record.menuId}`)
   },
   messages: {
     createSuccess: '按钮创建成功',

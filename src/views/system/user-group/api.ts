@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 /* ============================================================
  * 类型
@@ -60,39 +60,40 @@ export type UserGroupUpdateParams = Partial<Omit<UserGroupCreateParams, 'groupCo
  * 用户组 CRUD
  * ============================================================ */
 export function getUserGroupList(params: UserGroupListParams) {
-  return http.Get<{ list: UserGroupRecord[]; total: number }>('/user-group/list', { params })
+  return request.get<{ list: UserGroupRecord[]; total: number }>('/user-group/list', params)
 }
 
 export function getUserGroupOptions() {
-  return http.Get<{ label: string; value: string; code: string }[]>('/user-group/options')
+  return request.get<{ label: string; value: string; code: string }[]>('/user-group/options')
 }
 
 export function getUserGroupDetail(groupId: string) {
-  return http.Get<UserGroupDetail>(`/user-group/${groupId}`)
+  return request.get<UserGroupDetail>(`/user-group/${groupId}`)
 }
 
 export function createUserGroup(data: UserGroupCreateParams) {
-  return http.Post<{ groupId: string }>('/user-group', data)
+  return request.post<{ groupId: string }>('/user-group', data)
 }
 
 export function updateUserGroup(groupId: string, data: UserGroupUpdateParams) {
-  return http.Put(`/user-group/${groupId}`, data)
+  return request.put(`/user-group/${groupId}`, data)
 }
 
 export function deleteUserGroup(groupId: string) {
-  return http.Delete(`/user-group/${groupId}`)
+  return request.delete(`/user-group/${groupId}`)
 }
 
 /* ============================================================
  * 成员管理
  * ============================================================ */
 export function addGroupMembers(groupId: string, userIds: string[]) {
-  return http.Post<{ added: number }>(`/user-group/${groupId}/members`, { userIds })
+  return request.post<{ added: number }>(`/user-group/${groupId}/members`, { userIds })
 }
 
 export function removeGroupMembers(groupId: string, userIds: string[]) {
-  return http.Delete<{ removed: number }>(`/user-group/${groupId}/members`, {
-    data: { userIds },
+  // 后端 @Delete("/:id/members") 从 req.body 取 userIds，因此走 opts.body 而非 query
+  return request.delete<{ removed: number }>(`/user-group/${groupId}/members`, undefined, {
+    body: { userIds },
   })
 }
 
@@ -100,5 +101,5 @@ export function removeGroupMembers(groupId: string, userIds: string[]) {
  * 角色绑定
  * ============================================================ */
 export function assignGroupRoles(groupId: string, roleIds: string[]) {
-  return http.Put<{ added: number; removed: number }>(`/user-group/${groupId}/roles`, { roleIds })
+  return request.put<{ added: number; removed: number }>(`/user-group/${groupId}/roles`, { roleIds })
 }

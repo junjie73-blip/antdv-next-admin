@@ -1,4 +1,4 @@
-import { http } from '~/utils/request'
+import { request } from '~/composables'
 
 export interface R<T = unknown> {
   code: number
@@ -16,20 +16,17 @@ export interface RL<T = unknown> {
 }
 
 export function get<T = unknown>(url: string, params?: Record<string, unknown>) {
-  return http
-    .Get<R<T>>(url, { params })
-    .send(true)
-    .then((res) => res.data)
+  return request.get<R<T>>(url, params).then((res) => res.data)
 }
 
 export function post<T = unknown>(url: string, data?: Record<string, unknown>) {
-  return http.Post<R<T>>(url, data).then((res) => res.data)
+  return request.post<R<T>>(url, data).then((res) => res.data)
 }
 
 export function put<T = unknown>(url: string, data?: Record<string, unknown>) {
-  return http.Put<R<T>>(url, data).then((res) => res.data)
+  return request.put<R<T>>(url, data).then((res) => res.data)
 }
 
 export function del<T = unknown>(url: string, params?: Record<string, unknown>) {
-  return http.Delete<R<T>>(url, { params }).then((res) => res.data)
+  return request.delete<R<T>>(url, params).then((res) => res.data)
 }

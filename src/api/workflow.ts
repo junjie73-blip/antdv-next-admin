@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 export interface PageResult<T> {
   list: T[]
@@ -33,7 +33,7 @@ export interface CenterTodoQuery {
 }
 
 export function getCenterTodoList(params: CenterTodoQuery) {
-  return http.Get<PageResult<TodoItem>>('/workflow/center/todo', { params })
+  return request.get<PageResult<TodoItem>>('/workflow/center/todo', params)
 }
 
 export function centerComplete(data: {
@@ -44,7 +44,7 @@ export function centerComplete(data: {
   reasonType?: string
   formData?: Record<string, any>
 }) {
-  return http.Post<void>('/workflow/center/complete', data)
+  return request.post<void>('/workflow/center/complete', data)
 }
 
 export function centerBatchComplete(data: {
@@ -52,7 +52,7 @@ export function centerBatchComplete(data: {
   action: 'approve' | 'reject'
   comment?: string
 }) {
-  return http.Post<{ success: number; failed: number; errors: any[] }>('/workflow/center/batch-complete', data)
+  return request.post<{ success: number; failed: number; errors: any[] }>('/workflow/center/batch-complete', data)
 }
 
 export interface FlowDetail {
@@ -82,16 +82,16 @@ export interface FlowDetail {
 }
 
 export function getCenterDetail(source: TodoSource, id: string) {
-  return http.Get<FlowDetail>(`/workflow/center/detail/${source}/${id}`).send(true)
+  return request.get<FlowDetail>(`/workflow/center/detail/${source}/${id}`)
 }
 
 /* ============ 已办 / 我发起的 ============ */
 export function getDoneList(params: { keyword?: string; pageNum?: number; pageSize?: number }) {
-  return http.Get<PageResult<TodoItem>>('/workflow/center/done', { params }).send(true)
+  return request.get<PageResult<TodoItem>>('/workflow/center/done', params)
 }
 
 export function getInitiatedList(params: { keyword?: string; status?: string; pageNum?: number; pageSize?: number }) {
-  return http.Get<PageResult<TodoItem>>('/workflow/center/initiated', { params }).send(true)
+  return request.get<PageResult<TodoItem>>('/workflow/center/initiated', params)
 }
 
 /* ============ 流程定义 ============ */
@@ -102,31 +102,31 @@ export function getDefinitionList(params: {
   pageNum?: number
   pageSize?: number
 }) {
-  return http.Get<PageResult<any>>('/workflow/definition/list', { params }).send(true)
+  return request.get<PageResult<any>>('/workflow/definition/list', params)
 }
 
 export function getDefinitionDetail(id: string) {
-  return http.Get<any>(`/workflow/definition/${id}`).send(true)
+  return request.get<any>(`/workflow/definition/${id}`)
 }
 
 export function createDefinition(data: any) {
-  return http.Post<any>('/workflow/definition', data)
+  return request.post<any>('/workflow/definition', data)
 }
 
 export function updateDefinition(id: string, data: any) {
-  return http.Post<any>(`/workflow/definition/${id}`, data)
+  return request.post<any>(`/workflow/definition/${id}`, data)
 }
 
 export function publishDefinition(id: string) {
-  return http.Post<void>(`/workflow/definition/${id}/publish`)
+  return request.post<void>(`/workflow/definition/${id}/publish`)
 }
 
 export function newVersionDefinition(id: string) {
-  return http.Post<any>(`/workflow/definition/${id}/new-version`)
+  return request.post<any>(`/workflow/definition/${id}/new-version`)
 }
 
 export function deleteDefinition(id: string) {
-  return http.Delete<void>(`/workflow/definition/${id}`)
+  return request.delete<void>(`/workflow/definition/${id}`)
 }
 
 /* ============ 审批日志 ============ */
@@ -151,7 +151,7 @@ export function getApprovalLogs(params: {
   pageNum?: number
   pageSize?: number
 }) {
-  return http.Get<PageResult<ApprovalLogRecord>>('/approval/log/list', { params })
+  return request.get<PageResult<ApprovalLogRecord>>('/approval/log/list', params)
 }
 
 /* ============================================================
@@ -183,27 +183,27 @@ export interface WfCcListParams {
 
 /** 我的抄送列表 */
 export function getMyCcList(params: WfCcListParams) {
-  return http.Get<{ list: WfCcItem[]; total: number }>('/workflow/cc/my', { params })
+  return request.get<{ list: WfCcItem[]; total: number }>('/workflow/cc/my', params)
 }
 
 /** 未读抄送数 */
 export function getUnreadCcCount() {
-  return http.Get<{ count: number }>('/workflow/cc/unread-count')
+  return request.get<{ count: number }>('/workflow/cc/unread-count')
 }
 
 /** 标记单条已读 */
 export function markCcRead(ccId: string) {
-  return http.Put(`/workflow/cc/${ccId}/read`)
+  return request.put(`/workflow/cc/${ccId}/read`)
 }
 
 /** 批量标记已读 */
 export function markCcReadBatch(ccIds: string[]) {
-  return http.Put('/workflow/cc/read-batch', { ccIds })
+  return request.put('/workflow/cc/read-batch', { ccIds })
 }
 
 /** 全部标记已读 */
 export function markCcReadAll() {
-  return http.Put('/workflow/cc/read-all')
+  return request.put('/workflow/cc/read-all')
 }
 
 /* ============================================================
@@ -239,37 +239,37 @@ export interface WfTransferLog {
 
 /** 加签 */
 export function addSign(taskId: string, params: WfAddSignParams) {
-  return http.Post(`/workflow/task/${taskId}/add-sign`, params)
+  return request.post(`/workflow/task/${taskId}/add-sign`, params)
 }
 
 /** 转办 */
 export function transferTask(taskId: string, params: WfTransferParams) {
-  return http.Post(`/workflow/task/${taskId}/transfer`, params)
+  return request.post(`/workflow/task/${taskId}/transfer`, params)
 }
 
 /** 加签/转办历史 */
 export function getTransferHistory(taskId: string) {
-  return http.Get<WfTransferLog[]>(`/workflow/task/${taskId}/transfer-history`)
+  return request.get<WfTransferLog[]>(`/workflow/task/${taskId}/transfer-history`)
 }
 
 /** 回退到上一节点 */
 export function rollbackTask(taskId: string, params: WfRollbackParams) {
-  return http.Post(`/workflow/task/${taskId}/rollback`, params)
+  return request.post(`/workflow/task/${taskId}/rollback`, params)
 }
 
 /* ============================================================
  * 实例操作（挂起 / 恢复 / 终止）
  * ============================================================ */
 export function suspendInstance(instanceId: string) {
-  return http.Post(`/workflow/instance/${instanceId}/suspend`)
+  return request.post(`/workflow/instance/${instanceId}/suspend`)
 }
 
 export function resumeInstance(instanceId: string) {
-  return http.Post(`/workflow/instance/${instanceId}/resume`)
+  return request.post(`/workflow/instance/${instanceId}/resume`)
 }
 
 export function terminateInstance(instanceId: string, reason: string) {
-  return http.Post(`/workflow/instance/${instanceId}/terminate`, { reason })
+  return request.post(`/workflow/instance/${instanceId}/terminate`, { reason })
 }
 
 /* ============================================================
@@ -306,53 +306,51 @@ export interface WfDelegateListParams {
 
 /** 我创建的委托 */
 export function getMyDelegates(params: WfDelegateListParams) {
-  return http.Get<{ list: WfDelegateItem[]; total: number }>('/workflow/delegate/mine', { params })
+  return request.get<{ list: WfDelegateItem[]; total: number }>('/workflow/delegate/mine', params)
 }
 
 /** 我代理的委托 */
 export function getActingDelegates(params: WfDelegateListParams) {
-  return http.Get<{ list: WfDelegateItem[]; total: number }>('/workflow/delegate/acting', {
-    params,
-  })
+  return request.get<{ list: WfDelegateItem[]; total: number }>('/workflow/delegate/acting', params)
 }
 
 /** 全部委托（管理员） */
 export function getAllDelegates(params: WfDelegateListParams) {
-  return http.Get<{ list: WfDelegateItem[]; total: number }>('/workflow/delegate/list', { params })
+  return request.get<{ list: WfDelegateItem[]; total: number }>('/workflow/delegate/list', params)
 }
 
 export function createDelegate(params: WfDelegateCreateParams) {
-  return http.Post('/workflow/delegate', params)
+  return request.post('/workflow/delegate', params)
 }
 
 export function updateDelegate(delegateId: string, params: Partial<WfDelegateCreateParams> & { enabled?: number }) {
-  return http.Put(`/workflow/delegate/${delegateId}`, params)
+  return request.put(`/workflow/delegate/${delegateId}`, params)
 }
 
 export function deleteDelegate(delegateId: string) {
-  return http.Delete(`/workflow/delegate/${delegateId}`)
+  return request.delete(`/workflow/delegate/${delegateId}`)
 }
 
 /** 立即撤销 */
 export function revokeDelegate(delegateId: string) {
-  return http.Post(`/workflow/delegate/${delegateId}/revoke`)
+  return request.post(`/workflow/delegate/${delegateId}/revoke`)
 }
 
 /** 委托生效日志 */
 export function getDelegateLogs(delegateId: string) {
-  return http.Get(`/workflow/delegate/${delegateId}/logs`)
+  return request.get(`/workflow/delegate/${delegateId}/logs`)
 }
 
 /* ============================================================
  * 定义编辑器辅助
  * ============================================================ */
 export function validateDefinition(definition: unknown) {
-  return http.Post<{ valid: boolean; error?: string; variables?: string[]; functions?: string[] }>(
+  return request.post<{ valid: boolean; error?: string; variables?: string[]; functions?: string[] }>(
     '/workflow/definition/validate',
     { definition },
   )
 }
 
 export function importBpmnXml(xml: string) {
-  return http.Post<{ defKey: string; defName: string; xml: string }>('/workflow/definition/import-xml', { xml })
+  return request.post<{ defKey: string; defName: string; xml: string }>('/workflow/definition/import-xml', { xml })
 }

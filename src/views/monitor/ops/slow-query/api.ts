@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 export type SlowQueryStatus = 'open' | 'resolved' | 'ignored'
 
@@ -46,17 +46,17 @@ export interface SlowQueryStats {
 }
 
 export function getSlowQueryList(params: SlowQueryListParams) {
-  return http.Get<{ list: SlowQueryRecord[]; total: number }>('/monitor/slow-query/list', { params }).send(true)
+  return request.get<{ list: SlowQueryRecord[]; total: number }>('/monitor/slow-query/list', params)
 }
 
 export function getSlowQueryStats() {
-  return http.Get<SlowQueryStats>('/monitor/slow-query/stats').send(true)
+  return request.get<SlowQueryStats>('/monitor/slow-query/stats')
 }
 
 export function getSlowQueryDetail(id: string) {
-  return http.Get<SlowQueryRecord>(`/monitor/slow-query/${id}`).send(true)
+  return request.get<SlowQueryRecord>(`/monitor/slow-query/${id}`)
 }
 
 export function reviewSlowQuery(id: string, data: { status: 'resolved' | 'ignored'; note?: string }) {
-  return http.Put(`/monitor/slow-query/${id}/review`, data).send(true)
+  return request.put(`/monitor/slow-query/${id}/review`, data)
 }

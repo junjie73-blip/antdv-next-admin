@@ -3,7 +3,7 @@ import { Icon } from '@iconify/vue'
 import { message, Select } from 'antdv-next'
 import { ref, watch } from 'vue'
 
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 interface Props {
   roleId?: string
@@ -24,7 +24,7 @@ const userOptions = ref<Array<{ label: string; value: string }>>([])
 
 async function loadUsers() {
   try {
-    const res: any = await http.Get('/user/all/options').send(true)
+    const res: any = await request.get('/user/all/options')
     const list = Array.isArray(res) ? res : (res?.data ?? [])
     userOptions.value = list.map((u: any) => ({
       label: u.realName || u.username,
@@ -39,7 +39,7 @@ async function loadPreview() {
   if (!props.roleId || !sampleUserId.value) return
   loading.value = true
   try {
-    const res: any = await http.Post(`/role/${props.roleId}/data-scope-preview`, {
+    const res: any = await request.post(`/role/${props.roleId}/data-scope-preview`, {
       sampleUserId: sampleUserId.value,
     })
     preview.value = res?.data ?? res

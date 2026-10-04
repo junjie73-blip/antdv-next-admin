@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 import type { ExportTask } from './types'
 
@@ -17,17 +17,17 @@ export interface SubmitExportPayload {
   columns?: string[]
 }
 
-export const listExportTypes = () => http.Get<ExportTypeOption[]>(`${BASE}/types`)
+export const listExportTypes = () => request.get<ExportTypeOption[]>(`${BASE}/types`)
 
-export const submitExport = (data: SubmitExportPayload) => http.Post<{ taskId: string }>(`${BASE}/submit`, data)
+export const submitExport = (data: SubmitExportPayload) => request.post<{ taskId: string }>(`${BASE}/submit`, data)
 
-export const listExports = (params: any) => http.Get(`${BASE}/list`, params).send(true)
+export const listExports = (params: any) => request.get(`${BASE}/list`, params)
 
-export const getExport = (id: string) => http.Get<ExportTask>(`${BASE}/${id}`)
+export const getExport = (id: string) => request.get<ExportTask>(`${BASE}/${id}`)
 
 export const getExportDownloadUrl = (id: string) =>
-  http.Get<{ url: string; fileName: string }>(`${BASE}/${id}/download`).send(true)
+  request.get<{ url: string; fileName: string }>(`${BASE}/${id}/download`)
 
-export const cancelExport = (id: string) => http.Post(`${BASE}/${id}/cancel`).send(true)
+export const cancelExport = (id: string) => request.post(`${BASE}/${id}/cancel`)
 
-export const deleteExport = (id: string) => http.Delete(`${BASE}/${id}`).send(true)
+export const deleteExport = (id: string) => request.delete(`${BASE}/${id}`)

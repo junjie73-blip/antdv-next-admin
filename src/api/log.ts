@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 import { get } from './request'
 
@@ -39,15 +39,15 @@ export function exportLoginLog(params?: Record<string, unknown>) {
 // ============================================================
 
 export function getOnlineList() {
-  return http.Get('/online/list')
+  return request.get('/online/list')
 }
 
 export function kickOnline(userId: string) {
-  return http.Delete(`/online/${userId}`)
+  return request.delete(`/online/${userId}`)
 }
 
 export function kickAllOnline() {
-  return http.Post('/online/kick-all')
+  return request.post('/online/kick-all')
 }
 
 /** 兼容旧名 */

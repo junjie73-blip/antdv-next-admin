@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 /* ============================================================
  * 密码策略
@@ -14,10 +14,10 @@ export interface PasswordPolicy {
 }
 
 export function getPasswordPolicy() {
-  return http.Get<{ data: PasswordPolicy }>('/settings/password-policy').send(true)
+  return request.get<{ data: PasswordPolicy }>('/settings/password-policy')
 }
 export function updatePasswordPolicy(data: PasswordPolicy) {
-  return http.Put('/settings/password-policy', data).send(true)
+  return request.put('/settings/password-policy', data)
 }
 
 /* ============================================================
@@ -34,10 +34,10 @@ export interface SiteInfo {
 }
 
 export function getSiteInfo() {
-  return http.Get<{ data: SiteInfo }>('/settings/site-info').send(true)
+  return request.get<{ data: SiteInfo }>('/settings/site-info')
 }
 export function updateSiteInfo(data: SiteInfo) {
-  return http.Put('/settings/site-info', data).send(true)
+  return request.put('/settings/site-info', data)
 }
 
 /* ============================================================
@@ -81,8 +81,8 @@ export interface UploadConfig {
 }
 
 export function getUploadConfig() {
-  return http.Get<{ data: UploadConfig }>('/settings/upload-config').send(true)
+  return request.get<{ data: UploadConfig }>('/settings/upload-config')
 }
 export function updateUploadConfig(data: UploadConfig) {
-  return http.Put('/settings/upload-config', data).send(true)
+  return request.put('/settings/upload-config', data)
 }

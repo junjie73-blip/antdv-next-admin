@@ -6,7 +6,7 @@ import type { UserInfo } from '#/user'
 
 import { getPermissions, getProfile } from '~/api'
 // ⭐ 新的统一入口
-import { http, requestCache, resetLogoutFlag } from '~/composables'
+import { request, requestCache, resetLogoutFlag } from '~/composables'
 import { PERMISSIONS_KEY, REFRESH_TOKEN_KEY, TOKEN_KEY, USER_INFO_KEY } from '~/config/constants'
 import { cache } from '~/utils/cache'
 
@@ -44,8 +44,7 @@ export const useUserStore = defineStore('user', () => {
 
   const login = async (username: string, password: string, tenantCode: string, captcha: any) => {
     try {
-      // ⭐ 与原 http.Post 语义一致，只是底层换成 executeRequest
-      const response = await http.Post<any>('/auth/login', {
+      const response = await request.post<any>('/auth/login', {
         username,
         password,
         tenantCode,
@@ -97,7 +96,7 @@ export const useUserStore = defineStore('user', () => {
     logoutPromise = (async () => {
       try {
         if (token.value) {
-          await http.Post('/auth/logout', {})
+          await request.post('/auth/logout', {})
         }
       } catch {
         // 忽略登出接口错误
@@ -124,8 +123,8 @@ export const useUserStore = defineStore('user', () => {
   const hasRole = (role: string) => roles.value.includes(role)
 
   async function fetchCurrentUser() {
-    // ⭐ http.Get 保持调用形式
-    const res: any = await http.Get('/auth/profile')
+    // ⭐ 保持调用形式：request.get 同样返回完整 envelope
+    const res: any = await request.get('/auth/profile')
     const profile = res?.data ?? res
     userInfo.value = profile
     cache.setItem(USER_INFO_KEY, profile)

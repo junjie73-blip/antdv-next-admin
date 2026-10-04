@@ -1,4 +1,4 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 import type { ExportStats, ExportTaskRecord, ExportTrendItem } from './types'
 
@@ -14,33 +14,29 @@ export function getExportTaskList(params: {
   pageNum?: number
   pageSize?: number
 }) {
-  return http.Get<PageResult<ExportTaskRecord>>('/report/export-task/list', {
-    params,
-  })
+  return request.get<PageResult<ExportTaskRecord>>('/report/export-task/list', params)
 }
 
 export function getExportTaskDetail(id: string) {
-  return http.Get<ExportTaskRecord>(`/report/export-task/${id}`)
+  return request.get<ExportTaskRecord>(`/report/export-task/${id}`)
 }
 
 export function getExportTaskStats() {
-  return http.Get<any>('/report/export-task/stats')
+  return request.get<any>('/report/export-task/stats')
 }
 
 export function getExportTaskTrend(days = 7) {
-  return http.Get<any>('/report/export-task/trend', {
-    params: { days },
-  })
+  return request.get<any>('/report/export-task/trend', { days })
 }
 
 export function cancelExportTask(id: string) {
-  return http.Post<void>(`/report/export-task/${id}/cancel`)
+  return request.post<void>(`/report/export-task/${id}/cancel`)
 }
 
 export function retryExportTask(id: string) {
-  return http.Post<void>(`/report/export-task/${id}/retry`)
+  return request.post<void>(`/report/export-task/${id}/retry`)
 }
 
 export function deleteExportTask(id: string) {
-  return http.Delete<void>(`/report/export-task/${id}`)
+  return request.delete<void>(`/report/export-task/${id}`)
 }
