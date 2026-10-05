@@ -1,12 +1,12 @@
 import { createFetch } from '@vueuse/core'
 import { notification } from 'antdv-next'
 
+import { AUTHORIZATION_KEY } from '~/composables/constant'
 import { TOKEN_KEY, REFRESH_TOKEN_KEY } from '~/config/constants'
 import { useUserStore } from '~/stores/modules/user'
 import { cache } from '~/utils'
 import { getCsrfToken, config as csrfConfig, initCsrfProtection } from '~/utils/csrf'
 import { isTokenExpired } from '~/utils/jwt'
-import { AUTHORIZATION_KEY } from '~/utils/request/constant'
 
 import type { ApiResponse } from './types'
 

@@ -3,9 +3,9 @@ import { computed, ref } from 'vue'
 
 import type { UserInfo } from '#/user'
 
+import { http } from '~/composables'
 import { cache } from '~/utils/cache'
 import { decryptToken, encryptToken } from '~/utils/cache/tokenCrypto'
-import { http } from '~/utils/request'
 
 const TOKEN_KEY = 'auth_token'
 const USER_INFO_KEY = 'user_info'

@@ -56,8 +56,8 @@ export function useVisibleWidgets(): WidgetMeta[] {
 
   return Object.values(WIDGET_MAP).filter((meta) => {
     switch (meta.key) {
-      case 'notice':
-        return appStore.widgetNotice
+      // case 'notice':
+      //   return appStore.widgetNotice
       case 'fullscreen':
         return appStore.widgetFullscreen
       case 'theme':

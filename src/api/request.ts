@@ -1,4 +1,4 @@
-import { http } from '~/utils/request'
+import { http } from '~/composables'
 
 export interface R<T = unknown> {
   code: number

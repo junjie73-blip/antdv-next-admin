@@ -4,9 +4,9 @@ import { markRaw, ref } from 'vue'
 import type { AppRouteRecordRaw } from '#/app-router'
 import type { BackendMenu, MenuConfig } from '#/menu'
 
+import { http } from '~/composables'
 import { DefaultLayout } from '~/layouts'
 import { frontendMenus } from '~/router/menus'
-import { http } from '~/utils/request'
 
 const modules = import.meta.glob('/src/views/**/*.vue')
 
