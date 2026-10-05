@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import { useDebounceFn } from '@vueuse/core'
+import { useDebounceFn, useEventListener } from '@vueuse/core'
 import { Tree } from 'antdv-next'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 
@@ -37,17 +37,43 @@ const selectedKey = ref<string>('')
 const currentTreeKey = ref('')
 const panelRef = ref<HTMLElement>()
 const basicTableRef = ref<TableActionType>()
+const expandedKeys = ref<string[]>([])
 
 function handleRegister(instance: TableActionType) {
   basicTableRef.value = instance
 }
 
-const filteredTreeData = computed(() => {
-  if (!searchValue.value.trim()) return props.treeData
-  return filterTree(props.treeData, searchValue.value.trim())
-})
+// ============ 树数据过滤 ============
+function getAllKeys(nodes: TreeDataNode[]): string[] {
+  const keys: string[] = []
+  const walk = (list: TreeDataNode[]) => {
+    for (const node of list) {
+      keys.push(node.key)
+      if (node.children?.length) walk(node.children)
+    }
+  }
+  walk(nodes)
+  return keys
+}
 
-const expandedKeys = ref<string[]>([])
+function filterTree(nodes: TreeDataNode[], keyword: string): TreeDataNode[] {
+  const lower = keyword.toLowerCase()
+  return nodes.reduce<TreeDataNode[]>((acc, node) => {
+    const titleMatch = node.title.toLowerCase().includes(lower)
+    const filteredChildren = node.children?.length ? filterTree(node.children, keyword) : []
+    if (titleMatch || filteredChildren.length > 0) {
+      acc.push({
+        ...node,
+        children: filteredChildren.length > 0 ? filteredChildren : node.children,
+      })
+    }
+    return acc
+  }, [])
+}
+
+const filteredTreeData = computed(() =>
+  searchValue.value.trim() ? filterTree(props.treeData, searchValue.value.trim()) : props.treeData,
+)
 
 watch(
   () => props.treeData,
@@ -59,49 +85,18 @@ watch(
   { immediate: true },
 )
 
-function getAllKeys(nodes: TreeDataNode[]): string[] {
-  const keys: string[] = []
-  function walk(list: TreeDataNode[]) {
-    for (const node of list) {
-      keys.push(node.key)
-      if (node.children?.length) walk(node.children)
-    }
-  }
-  walk(nodes)
-  return keys
-}
-
-function filterTree(nodes: TreeDataNode[], keyword: string): TreeDataNode[] {
-  const result: TreeDataNode[] = []
-  for (const node of nodes) {
-    const titleMatch = node.title.toLowerCase().includes(keyword.toLowerCase())
-    const filteredChildren = node.children?.length ? filterTree(node.children, keyword) : []
-
-    if (titleMatch || filteredChildren.length > 0) {
-      result.push({
-        ...node,
-        children: filteredChildren.length > 0 ? filteredChildren : node.children,
-      })
-    }
-  }
-  return result
-}
-
+// ============ 搜索（useDebounceFn） ============
 const debouncedSearch = useDebounceFn((val: string) => {
   searchValue.value = val
-  if (val.trim()) {
-    expandedKeys.value = getAllKeys(filteredTreeData.value)
-  } else {
-    expandedKeys.value = getAllKeys(props.treeData)
-  }
+  expandedKeys.value = getAllKeys(val.trim() ? filteredTreeData.value : props.treeData)
 }, 300)
 
-async function handleTreeSelect(_selectedKeys: any[], info: { node: any }) {
-  const key = info.node?.key as string
+async function handleTreeSelect(_selectedKeys: unknown[], info: { node: { key: string } }) {
+  const key = info.node?.key
   if (!key) return
   selectedKey.value = key
   currentTreeKey.value = key
-  emit('treeSelect', key, info.node)
+  emit('treeSelect', key, info.node as TreeDataNode)
   await basicTableRef.value?.reload()
 }
 
@@ -113,36 +108,36 @@ function wrappedApi(params: FetchParams): Promise<Recordable> {
   }) as unknown as Promise<Recordable>
 }
 
+// ============ 拖拽（useEventListener 自动清理） ============
+function handleDragMove(e: MouseEvent) {
+  if (!isDragging.value || !panelRef.value) return
+  const rect = panelRef.value.getBoundingClientRect()
+  panelWidth.value = Math.max(props.treeMinWidth, Math.min(props.treeMaxWidth, e.clientX - rect.left))
+}
+
 function handleDragStart(e: MouseEvent) {
   isDragging.value = true
-  document.addEventListener('mousemove', handleDragMove)
-  document.addEventListener('mouseup', handleDragEnd)
   document.body.style.cursor = 'col-resize'
   document.body.style.userSelect = 'none'
   e.preventDefault()
 }
 
-function handleDragMove(e: MouseEvent) {
-  if (!isDragging.value || !panelRef.value) return
-  const rect = panelRef.value.getBoundingClientRect()
-  let newWidth = e.clientX - rect.left
-  newWidth = Math.max(props.treeMinWidth, Math.min(props.treeMaxWidth, newWidth))
-  panelWidth.value = newWidth
-}
-
 function handleDragEnd() {
   isDragging.value = false
-  document.removeEventListener('mousemove', handleDragMove)
-  document.removeEventListener('mouseup', handleDragEnd)
   document.body.style.cursor = ''
   document.body.style.userSelect = ''
 }
 
+useEventListener(document, 'mousemove', handleDragMove)
+useEventListener(document, 'mouseup', handleDragEnd)
+
 onBeforeUnmount(() => {
-  document.removeEventListener('mousemove', handleDragMove)
-  document.removeEventListener('mouseup', handleDragEnd)
+  // 恢复 body 样式（useEventListener 会自动解绑事件）
+  document.body.style.cursor = ''
+  document.body.style.userSelect = ''
 })
 
+// ============ 样式类名 ============
 const containerClassName = cn(
   'flex h-full rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden',
 )
@@ -154,18 +149,13 @@ const treePanelClassName = computed(() =>
   ),
 )
 
-const treePanelStyle = computed(() => ({
-  width: `${panelWidth.value}px`,
-}))
+const treePanelStyle = computed(() => ({ width: `${panelWidth.value}px` }))
 
 const treeHeaderClassName = cn(
   'flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex-shrink-0',
 )
-
 const treeHeaderTitleClassName = cn('text-sm font-medium text-gray-700 dark:text-gray-300')
-
 const treeBodyClassName = cn('flex-1 min-h-0 overflow-hidden p-2')
-
 const treeSearchClassName = cn('mb-2')
 
 const resizeHandleClassName = computed(() =>
@@ -177,19 +167,13 @@ const resizeHandleClassName = computed(() =>
 )
 
 const tablePanelClassName = cn('flex-1 flex flex-col min-w-0 overflow-hidden h-full')
-
 const tableHeaderClassName = cn(
   'flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex-shrink-0',
 )
-
 const tableHeaderTitleClassName = cn('text-sm font-medium text-gray-700 dark:text-gray-300')
-
 const tableBodyClassName = cn('flex-1 overflow-hidden')
-
 const emptyClassName = cn('flex flex-col items-center justify-center py-16', 'text-gray-400 dark:text-gray-500')
-
 const placeholderClassName = cn('flex flex-col items-center justify-center h-full', 'text-gray-400 dark:text-gray-500')
-
 const nothingSelectedClassName = cn('text-sm text-gray-400 dark:text-gray-500')
 </script>
 
@@ -222,11 +206,7 @@ const nothingSelectedClassName = cn('text-sm text-gray-400 dark:text-gray-500')
             :field-names="{ key: 'key', title: 'title', children: 'children' }"
             block-node
             @select="handleTreeSelect"
-            @expand="
-              (keys: string[]) => {
-                expandedKeys = keys
-              }
-            "
+            @expand="(keys: string[]) => (expandedKeys = keys)"
           />
 
           <div v-else :class="emptyClassName">

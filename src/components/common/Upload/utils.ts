@@ -11,7 +11,6 @@ import {
 /* ============================================================
  * 格式化
  * ============================================================ */
-
 export function formatBytes(bytes: number, decimals = 1): string {
   if (!bytes || bytes <= 0) return '0 B'
   const units = ['B', 'KB', 'MB', 'GB', 'TB']
@@ -37,7 +36,6 @@ export function genUid(): string {
 /* ============================================================
  * 断点续传本地存储
  * ============================================================ */
-
 interface ResumeRecord {
   hash: string
   filename: string
@@ -91,7 +89,6 @@ export function clearResume(hash: string): void {
 /* ============================================================
  * 重试 / 分片
  * ============================================================ */
-
 export function backoffDelay(attempt: number): number {
   return RETRY_BACKOFF_BASE * 2 ** (attempt - 1) + Math.random() * 500
 }
@@ -110,35 +107,29 @@ export function sliceFile(file: File, chunkSize: number): Blob[] {
   }
   return chunks
 }
+
 export function hashToUuid(hash: string): string {
-  // 兜底：长度不足时用 0 补齐
   const h = hash.padEnd(32, '0').slice(0, 32)
-
-  // variant 位（第 17 位）按 RFC 4122 设为 8/9/a/b 之一
   const variantChar = ((parseInt(h[16]!, 16) & 0x3) | 0x8).toString(16)
-
-  return [
-    h.slice(0, 8),
-    h.slice(8, 12),
-    '4' + h.slice(13, 16), // version 4
-    variantChar + h.slice(17, 20),
-    h.slice(20, 32),
-  ].join('-')
+  return [h.slice(0, 8), h.slice(8, 12), '4' + h.slice(13, 16), variantChar + h.slice(17, 20), h.slice(20, 32)].join(
+    '-',
+  )
 }
 
 /**
- * 按文件大小自动计算分片大小
- *
- * 策略：
- *  - 目标分片数 ~ 200，理想大小 = fileSize / 200
- *  - 在预设阶梯里找到 >= 理想值的最小值
- *  - 落在 [MIN, MAX] 区间
+ * ⭐ 按文件大小自动计算分片大小（优先小分片，保证弱网成功率）
  */
 export function calcChunkSize(fileSize: number): number {
   if (fileSize <= CHUNK_SIZE_MIN) return fileSize
 
-  const ideal = Math.ceil(fileSize / CHUNK_TARGET_COUNT)
+  // 分级策略
+  if (fileSize < 10 * 1024 * 1024) return 1 * 1024 * 1024
+  if (fileSize < 50 * 1024 * 1024) return 1 * 1024 * 1024
+  if (fileSize < 100 * 1024 * 1024) return 2 * 1024 * 1024
+  if (fileSize < 500 * 1024 * 1024) return 2 * 1024 * 1024
 
+  // 超大文件按目标分片数计算
+  const ideal = Math.ceil(fileSize / CHUNK_TARGET_COUNT)
   if (ideal <= CHUNK_SIZE_MIN) return CHUNK_SIZE_MIN
   if (ideal >= CHUNK_SIZE_MAX) return CHUNK_SIZE_MAX
 

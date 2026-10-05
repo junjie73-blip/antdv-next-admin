@@ -1,30 +1,12 @@
 <script setup lang="ts">
-/**
- * ErrorBoundary - Vue 3 错误边界组件
- *
- * 用于捕获子组件树中的 JavaScript 错误，
- * 并显示友好的错误 UI，防止白屏崩溃。
- *
- * 使用方式：
- * ```vue
- * <ErrorBoundary @fallback="customFallback">
- *   <YourComponent />
- * </ErrorBoundary>
- * ```
- */
-
-import type { VNode } from 'vue'
-
-import { onErrorCaptured, ref } from 'vue'
+import { isError, isString } from 'es-toolkit'
+import { onErrorCaptured, ref, type VNode } from 'vue'
 
 import { cn } from '~/utils/cn'
 
 interface Props {
-  /** 自定义 fallback 渲染函数 */
   fallback?: (error: Error, reset: () => void) => VNode
-  /** 是否在捕获错误后重置（允许再次尝试） */
   resetOnError?: boolean
-  /** 错误时显示的最大堆栈深度 */
   maxStackDepth?: number
 }
 
@@ -41,14 +23,11 @@ const emit = defineEmits<{
 const error = ref<Error | null>(null)
 const errorId = ref(0)
 
-// 捕获子组件错误
 onErrorCaptured((err: unknown, instance, info) => {
-  // 阻止错误继续向上传播
+  // isError 替代 instanceof
   let errorObj: Error
-
-  if (err instanceof Error) {
+  if (isError(err)) {
     errorObj = err
-    // 追加组件信息
     errorObj.message = `[${info}] ${errorObj.message}`
   } else {
     errorObj = new Error(String(err))
@@ -58,7 +37,6 @@ onErrorCaptured((err: unknown, instance, info) => {
   error.value = errorObj
   emit('error', errorObj)
 
-  // 控制台输出详细错误信息（仅开发环境）
   if (import.meta.env.DEV) {
     console.group('🚨 ErrorBoundary 捕获到错误')
     console.error('错误对象:', errorObj)
@@ -78,12 +56,9 @@ function resetError() {
 }
 
 function handleRetry() {
-  if (props.resetOnError) {
-    resetError()
-  }
+  if (props.resetOnError) resetError()
 }
 
-/** 默认的 Fallback UI */
 const defaultFallbackClassName = cn(
   'flex flex-col items-center justify-center',
   'min-h-[200px] p-6',
@@ -109,34 +84,20 @@ const detailsClassName = cn(
   'text-xs text-gray-600 dark:text-gray-400',
 )
 
-// 开发环境检测
 const isDev = import.meta.env.DEV
 </script>
 
 <template>
-  <!-- 错误状态：显示 fallback -->
   <div v-if="error" :class="defaultFallbackClassName">
-    <!-- 使用自定义 fallback -->
     <component :is="() => props.fallback?.(error!, resetError)" v-if="props.fallback" />
 
-    <!-- 默认 fallback UI -->
     <template v-else>
-      <!-- 错误图标 -->
       <div class="mb-4 text-6xl">⚠️</div>
-
-      <!-- 错误标题 -->
       <h3 :class="titleClassName">出错了</h3>
-
-      <!-- 错误消息 -->
-      <p :class="messageClassName">
-        {{ error.message || '发生了未知错误' }}
-      </p>
-
-      <!-- 重试按钮 -->
+      <p :class="messageClassName">{{ error.message || '发生了未知错误' }}</p>
       <button v-if="resetOnError" :class="retryButtonClassName" @click="handleRetry">🔄 重试</button>
 
-      <!-- 错误详情（开发环境） -->
-      <details v-if="isDev && error.stack" :class="detailsClassName">
+      <details v-if="isDev && isString(error.stack)" :class="detailsClassName">
         <summary class="mb-1 cursor-pointer font-medium">调用栈详情</summary>
         <PerfectScrollbar class="max-h-32">
           <pre class="break-all whitespace-pre-wrap">{{ error.stack }}</pre>
@@ -145,13 +106,10 @@ const isDev = import.meta.env.DEV
     </template>
   </div>
 
-  <!-- 正常状态：渲染子组件 -->
   <Suspense v-else>
     <template #default>
       <slot :key="errorId" />
     </template>
-
-    <!-- 异步组件加载中的 fallback -->
     <template #fallback>
       <slot name="loading">
         <div class="flex items-center justify-center p-8">

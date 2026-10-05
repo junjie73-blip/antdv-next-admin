@@ -21,7 +21,7 @@ export type {
 }
 
 export const DEFAULT_SETTING: AppSetting = {
-  theme: 'light',
+  theme: 'auto',
   themeStyle: 'default',
   componentSize: 'medium',
   layout: 'vertical',
@@ -47,7 +47,7 @@ export const DEFAULT_SETTING: AppSetting = {
   hideBreadcrumbWhenOnlyOne: true,
   showBreadcrumbIcon: true,
   /* ---------- 小部件 ---------- */
-  widgetNotice: false,
+  widgetNotice: true,
   widgetFullscreen: true,
   widgetTheme: true,
   widgetTimezone: false,
@@ -62,7 +62,6 @@ export const DEFAULT_SETTING: AppSetting = {
   showProgressBar: true,
   showLoading: true,
   locale: 'zh-CN',
-  routeMode: 'frontend' as RouteMode,
 }
 
 export * from './theme'

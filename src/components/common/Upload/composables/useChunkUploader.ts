@@ -1,8 +1,9 @@
+import { delay } from 'es-toolkit'
 import { ref, type Ref } from 'vue'
 
 import type { ChunkUploadTask, UploadStatus } from '../types'
 
-import { checkChunks, mergeChunks, uploadChunk as uploadChunkApi } from '../api'
+import { checkChunks, checkInstant, getMergeStatus, mergeChunks, uploadChunk as uploadChunkApi } from '../api'
 import {
   CHUNK_SIZE_MAX,
   CHUNK_SIZE_MIN,
@@ -10,6 +11,7 @@ import {
   DEFAULT_CONCURRENCY,
   DEFAULT_MAX_RETRY,
   SPEED_WINDOW_MS,
+  classifyUploadError,
 } from '../constants'
 import {
   backoffDelay,
@@ -22,28 +24,18 @@ import {
   sleep,
   sliceFile,
 } from '../utils'
+import { createBandwidthLimiter } from './useBandwidth'
 import { computeFileHash } from './useHashWorker'
-
-/* ============================================================
- * Hook
- * ============================================================ */
 
 interface UseChunkUploaderOptions {
   chunkSize?: number
   concurrency?: number
   maxRetry?: number
-
-  /** 任务状态变化 */
   onUpdate?: (task: ChunkUploadTask) => void
-
-  /** 分片全部上传完，开始合并（用于提示用户"可以关闭窗口"） */
   onMergeStart?: (task: ChunkUploadTask) => void
-
-  /** 上传成功（仅分片上传成功，合并成功由 WS 侧处理） */
   onSuccess?: (task: ChunkUploadTask) => void
-
-  /** 上传失败 */
-  onError?: (task: ChunkUploadTask) => void
+  onError?: (task: ChunkUploadTask, info: { code: string; message: string; retryable: boolean }) => void
+  bandwidth?: number
 }
 
 export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
@@ -56,14 +48,10 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
     onSuccess,
     onError,
   } = options
-
+  const limiter = createBandwidthLimiter(options.bandwidth ?? 0)
   const tasks = ref(new Map<string, ChunkUploadTask>())
   const aborters = new Map<string, AbortController>()
   const speedWindow = new Map<string, Array<{ t: number; loaded: number }>>()
-
-  /* ============================================================
-   * 通用
-   * ============================================================ */
 
   function notify(task: ChunkUploadTask): void {
     onUpdate?.(task)
@@ -96,10 +84,6 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
     }
   }
 
-  /* ============================================================
-   * 1. hash（worker）
-   * ============================================================ */
-
   function computeHash(task: ChunkUploadTask, signal: AbortSignal): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       const hashTask = computeFileHash(
@@ -126,15 +110,9 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
         { once: true },
       )
 
-      hashTask.promise.catch(() => {
-        /* 由 abort 统一处理 */
-      })
+      hashTask.promise.catch(() => {})
     })
   }
-
-  /* ============================================================
-   * 2. 单分片上传（含重试）
-   * ============================================================ */
 
   async function uploadChunkWithRetry(
     task: ChunkUploadTask,
@@ -143,10 +121,12 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
     signal: AbortSignal,
   ): Promise<void> {
     let attempt = 0
+
     while (attempt <= maxRetry) {
       if (signal.aborted) throw new DOMException('Aborted', 'AbortError')
 
       try {
+        await limiter.record(chunk.size)
         await uploadChunkApi({
           uploadId: task.uploadId!,
           index,
@@ -162,21 +142,33 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
         notify(task)
         return
       } catch (err) {
-        if ((err as Error).name === 'AbortError') throw err
+        const info = classifyUploadError(err)
+        if (info.code === 'ABORTED') throw err
+
         attempt++
-        if (attempt > maxRetry) {
-          throw new Error(`分片 ${index} 失败：${(err as Error).message}`)
+
+        // 不可重试 → 立即失败
+        if (!info.retryable) {
+          const e = new Error(info.message)
+          ;(e as any).code = info.code
+          throw e
         }
+
+        if (attempt > maxRetry) {
+          const e = new Error(`分片 ${index} 重试 ${maxRetry} 次后失败：${info.message}`)
+          ;(e as any).code = info.code
+          throw e
+        }
+
         task.retryCount++
+        task.lastRetryAt = Date.now()
         notify(task)
-        await sleep(backoffDelay(attempt))
+
+        const delay = info.retryDelayMs ?? backoffDelay(attempt)
+        await sleep(delay * 1000)
       }
     }
   }
-
-  /* ============================================================
-   * 3. 并发池
-   * ============================================================ */
 
   async function runWithConcurrency<T>(items: T[], limit: number, worker: (item: T) => Promise<void>): Promise<void> {
     let cursor = 0
@@ -188,10 +180,6 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
     })
     await Promise.all(runners)
   }
-
-  /* ============================================================
-   * 4. 主流程
-   * ============================================================ */
 
   async function startTask(task: ChunkUploadTask): Promise<void> {
     if (task.status === 'uploading' || task.status === 'hashing' || task.status === 'merging') {
@@ -213,25 +201,50 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
         task.uploadId = hashToUuid(task.hash)
       }
 
-      /* ---------- 2. 断点检查 ---------- */
+      /* ---------- 2. 检查已上传分片 ---------- */
       setStatus(task, 'uploading')
-      const checkData = await checkChunks(task.uploadId, task.filename, task.size)
-      const remoteUploaded = new Set(checkData.uploadedChunks)
-
-      // 秒传
-      if (task.totalChunks > 0 && remoteUploaded.size >= task.totalChunks) {
+      const instant = await checkInstant({
+        fileHash: task.hash,
+        fileSize: task.size,
+        filename: task.filename,
+      })
+      if (instant.hit) {
+        task.fileId = instant.fileId
+        task.result = {
+          fileId: instant.fileId,
+          url: instant.url,
+          size: instant.size,
+          filename: instant.filename,
+        }
         task.loaded = task.total
-        task.uploadedChunks = new Set(Array.from({ length: task.totalChunks }, (_, i) => i))
         setStatus(task, 'success')
-        clearResume(task.hash!)
         onSuccess?.(task)
         return
       }
-
-      /* ---------- 3. 合并本地 + 远端分片 ---------- */
       const chunkBlobs = sliceFile(task.file, task.chunkSize)
       task.totalChunks = chunkBlobs.length
 
+      const checkData = await checkChunks(
+        task.uploadId,
+        task.filename,
+        task.size,
+        task.totalChunks, // ⭐ 传 totalChunks 让服务端限制查询
+      )
+      const remoteUploaded = new Set(checkData.uploadedChunks ?? [])
+
+      // 秒传：所有分片都在
+      if (task.totalChunks > 0 && remoteUploaded.size >= task.totalChunks) {
+        task.loaded = task.total
+        task.uploadedChunks = new Set(Array.from({ length: task.totalChunks }, (_, i) => i))
+        setStatus(task, 'merging')
+        task.mergeStartedAt = Date.now()
+
+        // 直接合并（缺本地分片，走远程合并）
+        await doMerge(task)
+        return
+      }
+
+      /* ---------- 3. 合并本地 + 远端 ---------- */
       const localUploaded = loadResume(task.hash!) ?? new Set<number>()
       const merged = new Set<number>([...remoteUploaded, ...localUploaded])
       task.uploadedChunks = merged
@@ -257,45 +270,16 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
       })
 
       /* ---------- 5. 合并 ---------- */
-      setStatus(task, 'merging')
-      task.mergeStartedAt = Date.now()
-
-      const mergeResult = await mergeChunks({
-        uploadId: task.uploadId,
-        filename: task.filename,
-        size: task.size,
-        totalChunks: task.totalChunks,
-        mimeType: task.mimeType,
-      })
-
-      task.taskId = mergeResult.taskId
-      task.mergeStatus = mergeResult.status
-
-      // ⭐ merge 成功返回 → 分片已交付后端，清理本地断点
-      clearResume(task.hash!)
-      task.uploadedChunks.clear()
-      task.loaded = task.total
-      task.retryCount = 0
-
-      notify(task)
-
-      // 通知 UI：分片上传完成，已进入合并阶段
-      onMergeStart?.(task)
-
-      // 后端同步完成（罕见）
-      if (mergeResult.status === 'completed') {
-        task.mergeStatus = 'completed'
-        setStatus(task, 'success')
-        onSuccess?.(task)
-      }
-
-      // 异步完成：hook 到此结束，后续由 ws.ts 处理
+      await doMerge(task)
     } catch (err) {
-      if ((err as Error).name === 'AbortError') {
+      const info = classifyUploadError(err)
+      if (info.code === 'ABORTED') {
         setStatus(task, 'paused')
       } else {
-        setStatus(task, 'error', (err as Error).message || '上传失败')
-        onError?.(task)
+        task.errorCode = info.code as any
+        task.errorRetryable = info.retryable
+        setStatus(task, 'error', info.message)
+        onError?.(task, info)
       }
     } finally {
       aborters.delete(task.uid)
@@ -303,6 +287,83 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
     }
   }
 
+  async function doMerge(task: ChunkUploadTask): Promise<void> {
+    setStatus(task, 'merging')
+    task.mergeStartedAt = Date.now()
+
+    const mergeResult = await mergeChunks({
+      uploadId: task.uploadId!,
+      filename: task.filename,
+      size: task.size,
+      totalChunks: task.totalChunks,
+      mimeType: task.mimeType,
+      fileHash: task.hash!,
+    })
+
+    task.taskId = mergeResult.taskId
+    task.mergeStatus = mergeResult.status
+
+    clearResume(task.hash!)
+    task.uploadedChunks.clear()
+    task.loaded = task.total
+    task.retryCount = 0
+    notify(task)
+
+    onMergeStart?.(task)
+
+    if (mergeResult.status === 'completed') {
+      task.mergeStatus = 'completed'
+      setStatus(task, 'success')
+      onSuccess?.(task)
+      return
+    }
+
+    // ⭐ 轮询（10 分钟超时）
+    await pollMergeStatus(task)
+  }
+  async function pollMergeStatus(task: ChunkUploadTask): Promise<void> {
+    const MAX_WAIT_MS = 10 * 60 * 1000
+    const INTERVAL_MS = 2000
+    const startedAt = Date.now()
+    let consecutiveErrors = 0
+
+    while (Date.now() - startedAt < MAX_WAIT_MS) {
+      await sleep(INTERVAL_MS)
+      if (task.status === 'canceled') return
+      await delay(2000 * consecutiveErrors)
+
+      try {
+        const res = await getMergeStatus(task.taskId!)
+        consecutiveErrors++
+
+        task.mergeStatus = res.status as any
+        notify(task)
+
+        if (res.status === 'completed') {
+          task.result = {
+            fileId: res.fileId ?? undefined,
+            url: res.url ?? undefined,
+            size: res.size ?? undefined,
+            filename: task.filename,
+          }
+          setStatus(task, 'success')
+          onSuccess?.(task)
+          return
+        }
+
+        if (res.status === 'failed') {
+          throw new Error(res.errorMsg ?? '合并失败')
+        }
+      } catch (err) {
+        consecutiveErrors++
+        if (consecutiveErrors >= 5) {
+          throw new Error(`查询合并状态失败：${(err as Error).message}`)
+        }
+      }
+    }
+
+    throw new Error('合并超时（10 分钟），请刷新页面查看结果')
+  }
   /* ============================================================
    * 对外 API
    * ============================================================ */
@@ -321,7 +382,7 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
         status: 'waiting',
         loaded: 0,
         total: file.size,
-        chunkSize,
+        chunkSize: effectiveChunkSize,
         totalChunks,
         uploadedChunks: new Set(),
         speed: 0,
@@ -385,7 +446,13 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
 
   function retry(uid: string): void {
     const t = tasks.value.get(uid)
-    if (t && t.status === 'error') void startTask(t)
+    if (t && t.status === 'error') {
+      // 重置错误状态
+      t.error = undefined
+      t.errorCode = undefined
+      t.errorRetryable = undefined
+      void startTask(t)
+    }
   }
 
   function clear(): void {
@@ -396,12 +463,14 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
   function getTasks(): ChunkUploadTask[] {
     return Array.from(tasks.value.values())
   }
+
   function resolveChunkSize(fileSize: number): number {
     if (chunkSize && chunkSize > 0) {
       return Math.min(CHUNK_SIZE_MAX, Math.max(CHUNK_SIZE_MIN, chunkSize))
     }
     return calcChunkSize(fileSize)
   }
+
   return {
     tasks: tasks as Ref<Map<string, ChunkUploadTask>>,
     addFiles,
@@ -413,6 +482,8 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
     retry,
     clear,
     getTasks,
+    setBandwidth: (bps: number) => limiter.setLimit(bps),
+    getBandwidth: () => limiter.bytesPerSecond,
   }
 }
 

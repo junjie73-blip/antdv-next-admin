@@ -1,19 +1,26 @@
+// useDataSource.ts
 import { useTimeoutFn } from '@vueuse/core'
 import { message } from 'antdv-next'
 import { cloneDeep, isFunction, isPlainObject } from 'es-toolkit'
 import { ref, unref, watch } from 'vue'
 
-import { isAlovaMethod, resolveErrorMessage, unwrap } from '~/composables/useRequest'
+import { resolveErrorMessage } from '~/composables'
 
 import type { FetchParams, FetchSetting, Recordable, UseDataSourceOptions, UseDataSourceReturn } from '../types'
-
-// ⭐ 复用 useAppRequest 里的工具
 
 const DEFAULT_FETCH_SETTING: FetchSetting = {
   pageField: 'pageNum',
   sizeField: 'pageSize',
   listField: 'list',
   totalField: 'total',
+}
+
+/** 解构后端响应外层包装（保持与原 unwrap 语义一致） */
+function getRawData(raw: any): any {
+  if (raw && typeof raw === 'object' && 'data' in raw && raw.data !== undefined) {
+    return raw.data
+  }
+  return raw
 }
 
 export function useDataSource(options: UseDataSourceOptions): UseDataSourceReturn {
@@ -29,26 +36,17 @@ export function useDataSource(options: UseDataSourceOptions): UseDataSourceRetur
     loading,
   } = options
 
-  // ============================================================
-  // State
-  // ============================================================
   const dataSourceRef = ref<Recordable[]>([])
   const rawDataSourceRef = ref<Recordable[]>([])
 
-  // ⭐ 保存最后一次请求的 alova Method，用于 abort
-  let lastMethod: any = null
-
-  // ⭐ 防止并发覆盖：记录请求 ID
+  /** 请求序号：只有最新一次请求才能落地 */
   let requestId = 0
-
-  // ============================================================
-  // 工具
-  // ============================================================
+  /** 用 AbortController 取消过期请求，避免旧响应覆盖新数据 */
+  let abortController: AbortController | null = null
 
   const getRowKeyValue = (record: Recordable): string => {
     const key = unref(rowKey)
-    if (isFunction(key)) return key(record)
-    return record[key!] as string
+    return isFunction(key) ? key(record) : (record[key] as string)
   }
 
   const buildFetchParams = (opt?: FetchParams): FetchParams => {
@@ -68,64 +66,50 @@ export function useDataSource(options: UseDataSourceOptions): UseDataSourceRetur
       Object.assign(mergedParams, searchData)
     }
 
-    // 分页参数
     if (pagination) {
       const paginationInfo = pagination.getPagination()
       if (paginationInfo && isPlainObject(paginationInfo)) {
-        const recordableParams = mergedParams as Recordable
-        recordableParams[pageField!] = paginationInfo.current || 1
-        recordableParams[sizeField!] = paginationInfo.pageSize || 10
+        const p = mergedParams as Recordable
+        p[pageField!] = paginationInfo.current || 1
+        p[sizeField!] = paginationInfo.pageSize || 10
       }
     }
 
     return mergedParams
   }
 
-  /** ⭐ 处理响应：用 unwrap 统一解构 */
   const processResponse = (raw: any) => {
-    const res = unwrap(raw)
-
+    const res = getRawData(raw)
     const setting = { ...DEFAULT_FETCH_SETTING, ...fetchSetting }
     const { listField, totalField } = setting
 
-    // 提取 list
     let data: Recordable[] = []
-    if (listField && listField in res) {
-      data = res[listField] as Recordable[]
-    } else if ('data' in res && Array.isArray(res.data)) {
-      data = res.data as Recordable[]
-    } else if ('records' in res && Array.isArray(res.records)) {
-      data = res.records as Recordable[]
-    } else if (Array.isArray(res)) {
-      data = res
-    }
+    if (listField && res[listField]) data = res[listField] as Recordable[]
+    else if (Array.isArray(res.data)) data = res.data as Recordable[]
+    else if (Array.isArray(res.records)) data = res.records as Recordable[]
+    else if (Array.isArray(res)) data = res
 
-    if (afterFetch && isFunction(afterFetch)) {
-      data = afterFetch(data)
-    }
+    if (isFunction(afterFetch)) data = afterFetch(data)
 
-    // 提取 total
     let total = 0
-    if (totalField && totalField in res) {
-      total = res[totalField] as number
-    } else if ('totalCount' in res) {
-      total = res.totalCount as number
-    } else if ('total' in res) {
-      total = res.total as number
-    }
+    if (totalField && res[totalField] !== undefined) total = res[totalField] as number
+    else if (res.totalCount !== undefined) total = res.totalCount as number
+    else if (res.total !== undefined) total = res.total as number
 
     return { list: data, total }
   }
 
-  // ============================================================
-  // 核心：fetch
-  // ============================================================
+  const applyData = (list: Recordable[], total: number) => {
+    dataSourceRef.value = list
+    rawDataSourceRef.value = cloneDeep(list)
+    if (pagination && total > 0) pagination.setPagination({ total })
+  }
 
   const fetch = async (opt?: FetchParams): Promise<void> => {
     const apiFn = unref(api)
 
-    // 无 API：直接用 dataSource（本地数据模式）
-    if (!apiFn || !isFunction(apiFn)) {
+    // 无 API → 本地数据模式
+    if (!isFunction(apiFn)) {
       const sourceData = unref(dataSource)
       if (sourceData) {
         dataSourceRef.value = sourceData
@@ -134,67 +118,41 @@ export function useDataSource(options: UseDataSourceOptions): UseDataSourceRetur
       return
     }
 
-    // ⭐ 请求 ID：防止并发响应互相覆盖
     const currentRequestId = ++requestId
+    // ⭐ 取消上一次未完成的请求
+    abortController?.abort()
+    abortController = new AbortController()
 
     loading?.setLoading(true)
 
     try {
-      // 1) 构建参数
       let fetchParams = buildFetchParams(opt)
 
-      // 2) beforeFetch 钩子
-      if (beforeFetch && isFunction(beforeFetch)) {
+      if (isFunction(beforeFetch)) {
         const result = beforeFetch(fetchParams)
         if (result === false) return
         fetchParams = result
       }
 
-      // 3) 执行请求
-      // ⭐ apiFn 可能返回：
-      //    - alova Method（有 .send()）
-      //    - Promise（已经 .send() 过的）
-      const methodOrPromise = apiFn(fetchParams)
+      // ⭐ 统一按 Promise 处理；apiFn 内部建议走新的 useRequest / http
+      const raw = await apiFn(fetchParams)
 
-      // ⭐ 如果是 alova Method，保存引用 + 调用 .send()
-      if (isAlovaMethod(methodOrPromise)) {
-        lastMethod = methodOrPromise
-        const raw = await methodOrPromise.send()
-        if (currentRequestId !== requestId) return // 已被更新的请求覆盖，丢弃
-        const { list, total } = processResponse(raw)
-        applyData(list, total)
-      } else {
-        // Promise 直接 await
-        const raw = await methodOrPromise
-        if (currentRequestId !== requestId) return
-        const { list, total } = processResponse(raw)
-        applyData(list, total)
-      }
+      if (currentRequestId !== requestId) return
+      const { list, total } = processResponse(raw)
+      applyData(list, total)
     } catch (error: any) {
-      // ⭐ 用统一错误处理
+      // ⭐ 用户主动取消不弹提示
+      if (error?.name === 'AbortError') return
       const msg = resolveErrorMessage(error, '数据加载失败')
       console.error('[useDataSource] fetch error:', error)
       message.error(msg)
-      // 保留旧数据，不清空
     } finally {
-      // ⭐ 只有当前请求才能关 loading
-      if (currentRequestId === requestId) {
-        loading?.setLoading(false)
-      }
-    }
-  }
-
-  /** 应用数据 */
-  const applyData = (list: Recordable[], total: number) => {
-    dataSourceRef.value = list
-    rawDataSourceRef.value = cloneDeep(list)
-    if (pagination && total > 0) {
-      pagination.setPagination({ total })
+      if (currentRequestId === requestId) loading?.setLoading(false)
     }
   }
 
   // ============================================================
-  // 增删改查（本地操作）
+  // 本地数据操作（增删改查）
   // ============================================================
 
   const setTableData = (data: Recordable[]) => {
@@ -212,7 +170,7 @@ export function useDataSource(options: UseDataSourceOptions): UseDataSourceRetur
   const deleteTableDataRecord = (key: string | string[]) => {
     const keys = Array.isArray(key) ? key : [key]
     const keySet = new Set(keys)
-    dataSourceRef.value = dataSourceRef.value.filter((record) => !keySet.has(getRowKeyValue(record)))
+    dataSourceRef.value = dataSourceRef.value.filter((r) => !keySet.has(getRowKeyValue(r)))
     rawDataSourceRef.value = cloneDeep(dataSourceRef.value)
   }
 
@@ -224,24 +182,13 @@ export function useDataSource(options: UseDataSourceOptions): UseDataSourceRetur
     }
   }
 
-  const findTableDataRecord = (key: string): Recordable | undefined => {
-    return dataSourceRef.value.find((record) => getRowKeyValue(record) === key)
-  }
+  const findTableDataRecord = (key: string): Recordable | undefined =>
+    dataSourceRef.value.find((record) => getRowKeyValue(record) === key)
 
-  // ============================================================
-  // ⭐ 暴露 alova 能力
-  // ============================================================
-
-  /**
-   * 中止最后一次请求
-   * 用于：快速切换 tab / 快速连续刷新
-   */
+  // ⭐ 取消当前请求
   const abort = () => {
-    if (lastMethod && isAlovaMethod(lastMethod)) {
-      try {
-        lastMethod.abort()
-      } catch {}
-    }
+    abortController?.abort()
+    abortController = null
   }
 
   // ============================================================
@@ -251,18 +198,13 @@ export function useDataSource(options: UseDataSourceOptions): UseDataSourceRetur
   watch(
     () => unref(dataSource),
     (newData) => {
-      const apiFn = unref(api)
-      if (!apiFn && newData) {
+      if (!unref(api) && newData) {
         dataSourceRef.value = newData
         rawDataSourceRef.value = cloneDeep(newData)
       }
     },
     { immediate: true, deep: true },
   )
-
-  // ============================================================
-  // 立即执行
-  // ============================================================
 
   if (immediate) {
     useTimeoutFn(() => {
@@ -275,9 +217,7 @@ export function useDataSource(options: UseDataSourceOptions): UseDataSourceRetur
     rawDataSourceRef,
     fetch,
     reload: async (opt?: FetchParams) => {
-      if (pagination) {
-        pagination.setPagination({ current: 1 })
-      }
+      if (pagination) pagination.setPagination({ current: 1 })
       await fetch({ ...opt, pageNum: 1 })
     },
     setTableData,
@@ -285,6 +225,6 @@ export function useDataSource(options: UseDataSourceOptions): UseDataSourceRetur
     deleteTableDataRecord,
     updateTableDataRecord,
     findTableDataRecord,
-    abort, // ⭐ 新增
+    abort,
   }
 }

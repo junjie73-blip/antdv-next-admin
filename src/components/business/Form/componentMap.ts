@@ -24,7 +24,7 @@ import {
 } from 'antdv-next'
 
 import { MarkdownEditor } from '../MarkdownEditor'
-import ASelect from './components/ASelect.vue'
+import ASelect from './components/ApiSelect.vue'
 import ATreeSelect from './components/ATreeSelect.vue'
 
 export type ComponentType =

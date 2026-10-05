@@ -1,9 +1,8 @@
-import { http } from '~/utils'
+import { request } from '~/composables'
 
 /* ============================================================
  * 类型
  * ============================================================ */
-
 export interface UploadedFileResult {
   fileId: string
   filename: string
@@ -13,30 +12,25 @@ export interface UploadedFileResult {
 }
 
 export interface ChunkCheckResult {
-  /** 是否秒传 */
+  uploadedChunks: number[]
+  uploadedBytes?: number
   uploaded?: boolean
-  /** 已上传的分片索引 */
-  uploadedChunks?: number[]
-  /** 秒传时返回的文件记录 */
-  result?: UploadedFileResult
 }
 
 export interface ChunkMergeResult {
   taskId: string
-  /** 合并状态 */
   status: 'pending' | 'merging' | 'uploading' | 'completed' | 'failed'
 }
 
-/** 进度回调 */
+export type InstantCheckResult =
+  | { hit: true; fileId: string; url: string; size: number; filename: string }
+  | { hit: false }
+
 export type ProgressCallback = (loaded: number, total: number) => void
 
 /* ============================================================
  * 小文件上传
- * ============================================================
- * 说明：
- *  - 走系统 http，自动带认证头 / 租户头 / 请求签名
- *  - 支持上传进度
- */
+ * ============================================================ */
 export function uploadSingleFile(file: File, extraData?: Record<string, unknown>): Promise<UploadedFileResult> {
   const formData = new FormData()
   formData.append('file', file)
@@ -46,29 +40,45 @@ export function uploadSingleFile(file: File, extraData?: Record<string, unknown>
     }
   }
 
-  return http.Post<{ code: number; data: UploadedFileResult; message?: string }>('/upload/file', formData)
-}
-
-/* ============================================================
- * 检查已上传分片
- * ============================================================
- * 说明：
- *  - GET 请求，query 参数 uploadId = hash
- *  - 响应 data.uploaded = true 表示秒传
- */
-export function checkChunks(uploadId: string, filename: string, size: number): Promise<ChunkCheckResult> {
-  return http.Get<{ code: number; data: ChunkCheckResult; message?: string }>('/upload/check', {
-    params: { uploadId, filename, size },
+  return request.post<{ code: number; data: UploadedFileResult; message?: string }>('/upload/file', formData, {
+    timeout: 5 * 60 * 1000,
   })
 }
 
 /* ============================================================
- * 上传单个分片
- * ============================================================
- * 说明：
- *  - POST multipart，字段：uploadId / index / total / chunk
- *  - 单分片内不细化进度，分片是"原子上传"，完成后靠累计更新进度
- */
+ * ⭐ 分片续传检查（GET）
+ * ============================================================ */
+export function checkChunks(
+  uploadId: string,
+  filename: string,
+  size: number,
+  totalChunks?: number,
+): Promise<ChunkCheckResult> {
+  return request
+    .get<{ code: number; data: ChunkCheckResult }>(
+      '/upload/check',
+      { uploadId, filename, size, totalChunks },
+      { timeout: 10 * 1000 },
+    )
+    .then((res) => res.data)
+}
+
+/* ============================================================
+ * ⭐ 秒传检查（POST）
+ * ============================================================ */
+export function checkInstant(input: {
+  fileHash: string
+  fileSize: number
+  filename: string
+}): Promise<InstantCheckResult> {
+  return request
+    .post<{ code: number; data: InstantCheckResult }>('/upload/check', input, { timeout: 10 * 1000 })
+    .then((res) => res.data)
+}
+
+/* ============================================================
+ * ⭐ 上传单个分片（60s 超时）
+ * ============================================================ */
 export function uploadChunk(params: {
   uploadId: string
   index: number
@@ -84,35 +94,39 @@ export function uploadChunk(params: {
   formData.append('totalChunks', String(total))
   formData.append('file', chunk, `${filename}.part${index}`)
 
-  return http.Post<{ code: number; message?: string }>('/upload/chunk', formData)
+  return request.post<{ code: number; message?: string }>('/upload/chunk', formData, {
+    timeout: 60 * 1000,
+    retries: 0,
+  })
 }
 
 /* ============================================================
  * 合并分片
- * ============================================================
- * 说明：
- *  - 后端合并时同步写 sys_file
- *  - 响应 data.result 是最终文件记录
- */
+ * ============================================================ */
 export function mergeChunks(params: {
   uploadId: string
   filename: string
   size: number
   totalChunks: number
   mimeType?: string
+  fileHash?: string
 }): Promise<ChunkMergeResult> {
-  return http.Post<{
-    code: number
-    data: ChunkMergeResult
-    message?: string
-  }>('/upload/merge', params, {
-    timeout: 50 * 60 * 60,
-  })
+  return request
+    .post<{ code: number; data: ChunkMergeResult; message?: string }>('/upload/merge', params, {
+      timeout: 50 * 60 * 1000,
+    })
+    .then((res) => res.data)
 }
 
 /* ============================================================
- * 删除物理文件（可选）
+ * 删除物理文件
  * ============================================================ */
 export function deletePhysicalFile(url: string): Promise<void> {
-  return http.Post<{ code: number; message?: string }>('/upload/delete', { url })
+  return request.post<{ code: number; message?: string }>('/upload/delete', { url })
+}
+
+export const getMergeStatus = (taskId: string) => {
+  return request
+    .get<{ code: number; data: any; message?: string }>('/upload/merge/status', { taskId })
+    .then((res) => res.data)
 }

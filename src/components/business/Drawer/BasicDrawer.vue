@@ -21,7 +21,7 @@ const props = withDefaults(defineProps<DrawerProps>(), {
   keyboard: true,
   closable: true,
   mask: true,
-  destroyOnHidden: false,
+  destroyOnHidden: true,
   zIndex: 1000,
 })
 
@@ -36,7 +36,7 @@ const emit = defineEmits<{
 const slots = useSlots()
 
 // ARIA 无障碍 ID（用于关联标题和内容）
-const drawerId = `drawer-${Math.random().toString(36).slice(2, 9)}`
+const drawerId = useId()
 const drawerTitleId = `${drawerId}-title`
 
 // 状态
@@ -68,7 +68,9 @@ const wrapClassName = computed(() => {
   return ['basic-drawer', props.wrapClassName].filter(Boolean).join(' ')
 })
 
-const drawerBodyClassName = cn('drawer-body relative h-full min-h-0', { 'p-4': props.useWrapper })
+const drawerBodyClassName = cn('drawer-body relative h-full min-h-0 overflow-hidden!', {
+  'p-4': props.useWrapper,
+})
 
 const drawerStyles = computed<AntDrawerProps['styles']>(() => ({
   header: {
@@ -127,13 +129,12 @@ defineExpose({
   ...drawerMethods,
   _innerMethods,
 })
-onMounted(() => {
-  // 延迟注册，确保父组件已准备好接收
-  setTimeout(() => {
-    emit('register', drawerMethods)
-  }, 0)
+const { start: scheduleRegister } = useTimeoutFn(() => emit('register', drawerMethods), 0, {
+  immediate: false,
 })
-
+onMounted(() => {
+  scheduleRegister()
+})
 // 监听 open 变化
 watch(
   () => props.open,
@@ -228,10 +229,10 @@ const footerClassName = cn(
         </div>
       </div>
 
-      <!-- 内容：使用 Scrollbar 替代系统滚动条 -->
-      <Scrollbar class="h-max" height="785">
+      <!-- 内容：使用 PerfectScrollbar 替代系统滚动条 -->
+      <PerfectScrollbar class="h-full">
         <slot />
-      </Scrollbar>
+      </PerfectScrollbar>
     </div>
 
     <!-- 底部按钮 -->

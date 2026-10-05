@@ -1,7 +1,7 @@
-import type { Recordable } from '~/components/business/Table'
+import { isNil } from 'es-toolkit'
 
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-import type { BarMap } from './types'
+import type { BarMap, BarMapItem } from './types'
+
 export const BAR_MAP: BarMap = {
   vertical: {
     offset: 'offsetHeight',
@@ -25,29 +25,20 @@ export const BAR_MAP: BarMap = {
   },
 }
 
-export function renderThumbStyle({ move, size, bar }: any) {
-  const style = {} as any
-  const translate = `translate${bar.axis}(${move}%)`
-
-  style[bar.size] = size
-  style.transform = translate
-  style.msTransform = translate
-  style.webkitTransform = translate
-
-  return style
+export interface ThumbStyleInput {
+  move?: number
+  size?: string
+  bar: BarMapItem
 }
 
-function extend<T, K>(to: T, _from: K): T & K {
-  // @ts-ignore
-  return Object.assign(to, _from)
-}
-
-export function toObject<T>(arr: Array<T>): Recordable<T> {
-  const res = {}
-  for (let i = 0; i < arr.length; i++) {
-    if (arr[i]) {
-      extend(res, arr[i])
-    }
+export function renderThumbStyle({ move = 0, size = '0', bar }: ThumbStyleInput): Record<string, string> {
+  // isNil 兜底 move（虽然默认参数已兜底，但显式更稳）
+  const offset = isNil(move) ? 0 : move
+  const translate = `translate${bar.axis}(${offset}%)`
+  return {
+    [bar.size]: size,
+    transform: translate,
+    msTransform: translate,
+    webkitTransform: translate,
   }
-  return res
 }

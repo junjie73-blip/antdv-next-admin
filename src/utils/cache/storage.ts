@@ -1,50 +1,67 @@
 import type { CacheStorage, StorageType } from './types'
 
+/** 内存存储实例（模块级单例，避免 createStorage('memory') 每次调用都新建 Map） */
+const memoryStore = new Map<string, string>()
+
+/**
+ * 创建内存存储适配器
+ */
+function createMemoryStorage(): CacheStorage {
+  return {
+    getItem: (key: string): string | null => memoryStore.get(key) ?? null,
+    setItem: (key: string, value: string): void => {
+      memoryStore.set(key, value)
+    },
+    removeItem: (key: string): void => {
+      memoryStore.delete(key)
+    },
+    clear: (): void => {
+      memoryStore.clear()
+    },
+    keys: (): string[] => Array.from(memoryStore.keys()),
+  }
+}
+
+/**
+ * 创建 localStorage 适配器
+ */
+function createLocalStorage(): CacheStorage {
+  return {
+    getItem: (key: string): string | null => localStorage.getItem(key),
+    setItem: (key: string, value: string): void => localStorage.setItem(key, value),
+    removeItem: (key: string): void => localStorage.removeItem(key),
+    clear: (): void => localStorage.clear(),
+    keys: (): string[] => Object.keys(localStorage),
+  }
+}
+
+/**
+ * 创建 sessionStorage 适配器
+ */
+function createSessionStorage(): CacheStorage {
+  return {
+    getItem: (key: string): string | null => sessionStorage.getItem(key),
+    setItem: (key: string, value: string): void => sessionStorage.setItem(key, value),
+    removeItem: (key: string): void => sessionStorage.removeItem(key),
+    clear: (): void => sessionStorage.clear(),
+    keys: (): string[] => Object.keys(sessionStorage),
+  }
+}
+
+/**
+ * 创建存储适配器
+ */
 export function createStorage(type: StorageType): CacheStorage {
   switch (type) {
     case 'local':
-      return {
-        getItem: (key: string) => localStorage.getItem(key),
-        setItem: (key: string, value: string) => localStorage.setItem(key, value),
-        removeItem: (key: string) => localStorage.removeItem(key),
-        clear: () => {
-          localStorage.clear()
-        },
-        keys: () => Object.keys(localStorage),
-      }
+      return createLocalStorage()
     case 'session':
-      return {
-        getItem: (key: string) => sessionStorage.getItem(key),
-        setItem: (key: string, value: string) => sessionStorage.setItem(key, value),
-        removeItem: (key: string) => sessionStorage.removeItem(key),
-        clear: () => {
-          sessionStorage.clear()
-        },
-        keys: () => Object.keys(sessionStorage),
-      }
+      return createSessionStorage()
     case 'memory':
       return createMemoryStorage()
   }
 }
 
-function createMemoryStorage(): CacheStorage {
-  const store = new Map<string, string>()
-
-  return {
-    getItem: (key: string) => store.get(key) || null,
-    setItem: (key: string, value: string) => {
-      store.set(key, value)
-    },
-    removeItem: (key: string) => {
-      store.delete(key)
-    },
-    clear: () => {
-      store.clear()
-    },
-    keys: () => Array.from(store.keys()),
-  }
-}
-
-export const localStorageAdapter = createStorage('local')
-export const sessionStorageAdapter = createStorage('session')
-export const memoryStorageAdapter = createStorage('memory')
+export const localStorageAdapter: CacheStorage = createStorage('local')
+export const sessionStorageAdapter: CacheStorage = createStorage('session')
+export const memoryStorageAdapter: CacheStorage = createStorage('memory')

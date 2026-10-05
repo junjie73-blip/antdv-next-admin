@@ -9,7 +9,6 @@ export function useForm(props?: Partial<FormProps>): UseFormReturnType {
   const formProps = ref<Partial<FormProps>>(props || {})
 
   function register(instance: FormActionType) {
-    console.log(instance, 'instance')
     if (instance) {
       formRef.value = instance
       instance.setProps(unref(formProps))
@@ -103,7 +102,12 @@ export function useForm(props?: Partial<FormProps>): UseFormReturnType {
       if (instance) {
         await instance.setProps(newProps)
       }
-      formProps.value = deepMerge(formProps.value || {}, newProps)
+      // 本地缓存：schemas 不参与合并，避免数组被拼接
+      const { schemas, ...rest } = newProps
+      formProps.value = deepMerge(formProps.value || {}, rest)
+      if (schemas) {
+        formProps.value.schemas = schemas
+      }
     },
 
     getForm: () => {

@@ -240,7 +240,11 @@ export function useCRUD<RecordType = Record<string, any>, FormValues = Record<st
     try {
       const values = await formMethods.validate()
       if (!values) return
-
+      Object.keys(values).forEach((key) => {
+        if (values[key] === '') {
+          delete values[key]
+        }
+      })
       loading.value = true
       if (isEditing.value && currentRecord.value) {
         if (!onUpdate) throw new Error('未配置更新 API')

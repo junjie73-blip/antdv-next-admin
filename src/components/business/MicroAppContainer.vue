@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useEventListener, useTimeoutFn } from '@vueuse/core'
+import { computed, ref } from 'vue'
 
 import { cn } from '~/utils/cn'
 
@@ -25,7 +26,6 @@ const emit = defineEmits<{
   (e: 'error', error: Error): void
 }>()
 
-// 状态
 const loading = ref(true)
 const hasError = ref(false)
 const errorMessage = ref('')
@@ -56,8 +56,6 @@ function handleUnmount() {
 }
 
 function handleError(event: Event) {
-  const target = event.target as HTMLElement
-  // micro-app 的 data 属性可能包含错误信息
   const detail = (event as CustomEvent).detail
   loading.value = false
   hasError.value = true
@@ -71,60 +69,52 @@ function handleRetry() {
   retryCount.value++
 }
 
-onMounted(() => {
-  // 监听 micro-app 生命周期事件
-  window.addEventListener(`beforeload-${props.name}`, handleBeforeLoad)
-  window.addEventListener(`mounted-${props.name}`, handleMounted)
-  window.addEventListener(`unmount-${props.name}`, handleUnmount)
-  window.addEventListener(`error-${props.name}`, handleError)
+// useEventListener：支持数组，一次注册多个事件
+useEventListener(window, `beforeload-${props.name}`, handleBeforeLoad)
+useEventListener(window, `mounted-${props.name}`, handleMounted)
+useEventListener(window, `unmount-${props.name}`, handleUnmount)
+useEventListener(window, `error-${props.name}`, handleError)
 
-  // 如果没有 URL，直接标记为加载完成（占位模式）
-  if (!props.url) {
-    setTimeout(() => {
-      loading.value = false
-    }, 800)
-  }
-})
+// useTimeoutFn：无 URL 时占位延迟；组件卸载自动取消
+const { start: startPlaceholderTimer } = useTimeoutFn(
+  () => {
+    loading.value = false
+  },
+  800,
+  { immediate: false },
+)
 
-onUnmounted(() => {
-  window.removeEventListener(`beforeload-${props.name}`, handleBeforeLoad)
-  window.removeEventListener(`mounted-${props.name}`, handleMounted)
-  window.removeEventListener(`unmount-${props.name}`, handleUnmount)
-  window.removeEventListener(`error-${props.name}`, handleError)
-})
+if (!props.url) {
+  startPlaceholderTimer()
+}
 </script>
 
 <template>
   <div :class="containerClassName">
-    <!-- 加载状态 -->
     <div v-if="loading" :class="overlayClassName">
       <a-spin size="large" />
       <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">正在加载子应用...</p>
       <p v-if="retryCount > 0" class="mt-1 text-xs text-gray-400 dark:text-gray-500">第 {{ retryCount }} 次重试</p>
     </div>
 
-    <!-- 错误状态 -->
     <div v-if="hasError && !loading" :class="overlayClassName">
       <div class="max-w-sm px-4 text-center">
         <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
           <span class="i-carbon-error text-3xl text-red-500" />
         </div>
         <h4 class="mb-2 text-base font-semibold text-gray-900 dark:text-white">子应用加载失败</h4>
-        <p class="mb-1 text-sm text-gray-500 dark:text-gray-400">
-          {{ errorMessage }}
-        </p>
+        <p class="mb-1 text-sm text-gray-500 dark:text-gray-400">{{ errorMessage }}</p>
         <p v-if="url" class="mb-5 font-mono text-xs break-all text-gray-400 dark:text-gray-500">
           {{ url }}
         </p>
 
         <div class="flex justify-center gap-3">
-          <a-button type="primary" @click="handleRetry"> 重试加载 </a-button>
-          <a-button @click="hasError = false"> 关闭提示 </a-button>
+          <a-button type="primary" @click="handleRetry">重试加载</a-button>
+          <a-button @click="hasError = false">关闭提示</a-button>
         </div>
       </div>
     </div>
 
-    <!-- 无 URL 占位状态 -->
     <div
       v-if="!url && !loading"
       class="flex h-full flex-col items-center justify-center text-gray-400 dark:text-gray-500"
@@ -134,7 +124,6 @@ onUnmounted(() => {
       <p class="mt-1 text-xs opacity-60">请在微前端管理中设置访问 URL</p>
     </div>
 
-    <!-- 微应用容器 -->
     <micro-app
       v-show="!hasError && url"
       :name="props.name"

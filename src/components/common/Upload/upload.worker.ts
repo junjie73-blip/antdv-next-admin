@@ -29,10 +29,7 @@ interface CancelMessage {
 }
 
 type WorkerMessage = InitMessage | ChunkMessage | CancelMessage
-
-let spark: SparkMD5.ArrayBuffer | null = null
-let fileName = ''
-let fileSize = 0
+let spark: SparkMD5['ArrayBuffer'] | null = null
 let totalChunks = 0
 let receivedChunks = 0
 let canceled = false
@@ -52,11 +49,7 @@ function reportProgress(force = false): void {
   })
 }
 
-function appendMeta(): void {
-  if (!spark) return
-  const meta = new TextEncoder().encode(`${fileName}:${fileSize}:`)
-  spark.append(meta.buffer as ArrayBuffer)
-}
+// ⭐ 删除 appendMeta 函数
 
 async function finalize(): Promise<void> {
   if (finished) return
@@ -80,8 +73,6 @@ async function finalize(): Promise<void> {
     spark = null
     receivedChunks = 0
     totalChunks = 0
-    fileName = ''
-    fileSize = 0
   }
 }
 
@@ -90,25 +81,21 @@ globalThis.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 
   if (msg.type === 'init') {
     spark = new SparkMD5.ArrayBuffer()
-    fileName = msg.fileName
-    fileSize = msg.fileSize
     totalChunks = msg.totalChunks
     receivedChunks = 0
     canceled = false
     finished = false
     lastReport = 0
 
-    appendMeta()
+    // ⭐ 不再 appendMeta，直接开始
     globalThis.postMessage({ type: 'ready' })
     return
   }
 
   if (msg.type === 'chunk') {
     if (!spark || canceled || finished) return
-
     spark.append(msg.buffer)
     receivedChunks++
-
     reportProgress()
 
     if (receivedChunks === totalChunks) {

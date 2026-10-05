@@ -9,4 +9,8 @@ export type {
   MarkdownEditorMode,
   MarkdownEditorProps,
   MarkdownEditorTheme,
+  MarkdownEditorToolbarConfig,
+  MarkdownEditorToolbarKey,
+  UploadResponse,
+  VideoUploadConfig,
 } from './types'
