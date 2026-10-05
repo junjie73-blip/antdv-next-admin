@@ -29,7 +29,8 @@ const emit = defineEmits<{
 const easingFunctions = {
   easeOutExpo: (t: number) => (t === 1 ? 1 : 1 - 2 ** (-10 * t)),
   linear: (t: number) => t,
-  easeInOutCubic: (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2),
+  easeInOutCubic: (t: number) =>
+    t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2,
 } as const
 
 // ============ 状态 ============
@@ -39,7 +40,10 @@ const startTimestamp = ref<number | null>(null)
 // ============ 格式化 ============
 function formatNumber(num: number): string {
   const [integerPart, decimalPart] = num.toFixed(props.decimals).split('.')
-  const formatted = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, props.separator)
+  const formatted = integerPart.replace(
+    /\B(?=(\d{3})+(?!\d))/g,
+    props.separator,
+  )
   const decimalStr = decimalPart ? props.decimal + decimalPart : ''
   return `${props.prefix}${formatted}${decimalStr}${props.suffix}`
 }
@@ -50,10 +54,16 @@ const displayValue = computed(() => formatNumber(currentValue.value))
 const { pause, resume, isActive } = useRafFn(
   ({ timestamp }) => {
     if (startTimestamp.value === null) startTimestamp.value = timestamp
-    const progress = Math.min((timestamp - startTimestamp.value) / props.duration, 1)
-    const eased = props.useEasing ? easingFunctions[props.easingFn](progress) : progress
+    const progress = Math.min(
+      (timestamp - startTimestamp.value) / props.duration,
+      1,
+    )
+    const eased = props.useEasing
+      ? easingFunctions[props.easingFn](progress)
+      : progress
 
-    currentValue.value = props.startVal + (props.endVal - props.startVal) * eased
+    currentValue.value =
+      props.startVal + (props.endVal - props.startVal) * eased
     emit('change', currentValue.value)
 
     if (progress >= 1) {

@@ -45,11 +45,24 @@ const bodyStyle = computed(() => ({ maxHeight: '100%' }))
   <div :class="cn('modal-wrapper', 'relative')" :style="wrapperStyle">
     <div
       v-if="loading"
-      :class="cn('absolute inset-0 z-10 flex items-center justify-center', 'bg-white/80 backdrop-blur-sm')"
+      :class="
+        cn(
+          'absolute inset-0 z-10 flex items-center justify-center',
+          'bg-white/80 backdrop-blur-sm',
+        )
+      "
     >
       <div :class="cn('flex flex-col items-center gap-2')">
-        <div :class="cn('h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent')" />
-        <span v-if="loadingTip" :class="cn('text-sm text-gray-600')">{{ loadingTip }}</span>
+        <div
+          :class="
+            cn(
+              'h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent',
+            )
+          "
+        />
+        <span v-if="loadingTip" :class="cn('text-sm text-gray-600')">{{
+          loadingTip
+        }}</span>
       </div>
     </div>
 

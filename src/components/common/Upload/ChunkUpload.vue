@@ -5,7 +5,11 @@ import { computed } from 'vue'
 
 import { cn } from '~/utils/cn'
 
-import type { ChunkUploadInstance, ChunkUploadProps, ChunkUploadTask } from './types'
+import type {
+  ChunkUploadInstance,
+  ChunkUploadProps,
+  ChunkUploadTask,
+} from './types'
 
 import { useChunkUploader } from './composables/useChunkUploader'
 import { classifyUploadError, STATUS_COLOR } from './constants'
@@ -67,7 +71,10 @@ function canRetry(task: ChunkUploadTask): boolean {
 }
 function notifyCompleteIfAllDone() {
   const all = uploader.getTasks()
-  const allSettled = all.every((t) => t.status === 'success' || t.status === 'error' || t.status === 'canceled')
+  const allSettled = all.every(
+    (t) =>
+      t.status === 'success' || t.status === 'error' || t.status === 'canceled',
+  )
   if (allSettled && all.some((t) => t.status === 'success')) {
     emit('complete', all)
   }
@@ -141,7 +148,9 @@ function getStatusText(task: ChunkUploadTask): string {
 }
 
 /** 合并阶段细分文案 */
-function getMergeStatusText(status?: 'pending' | 'merging' | 'uploading' | 'completed' | 'failed'): string {
+function getMergeStatusText(
+  status?: 'pending' | 'merging' | 'uploading' | 'completed' | 'failed',
+): string {
   switch (status) {
     case 'pending':
       return '准备合并'
@@ -212,8 +221,14 @@ defineExpose(instance)
 // ============================================================
 // 按钮可见性
 // ============================================================
-const hasWaiting = computed(() => tasks.value.some((t) => t.status === 'waiting'))
-const hasActive = computed(() => tasks.value.some((t) => ['uploading', 'hashing', 'merging'].includes(t.status)))
+const hasWaiting = computed(() =>
+  tasks.value.some((t) => t.status === 'waiting'),
+)
+const hasActive = computed(() =>
+  tasks.value.some((t) =>
+    ['uploading', 'hashing', 'merging'].includes(t.status),
+  ),
+)
 const hasPaused = computed(() => tasks.value.some((t) => t.status === 'paused'))
 </script>
 
@@ -226,7 +241,13 @@ const hasPaused = computed(() => tasks.value.some((t) => t.status === 'paused'))
       >
         <Icon icon="carbon:upload" />
         <span>选择文件</span>
-        <input type="file" class="hidden" :multiple="multiple" :accept="accept" @change="handleSelectFiles" />
+        <input
+          type="file"
+          class="hidden"
+          :multiple="multiple"
+          :accept="accept"
+          @change="handleSelectFiles"
+        />
       </label>
       <div class="flex flex-wrap items-center gap-2">
         <button
@@ -282,19 +303,33 @@ const hasPaused = computed(() => tasks.value.some((t) => t.status === 'paused'))
       >
         <div class="flex items-start justify-between gap-3">
           <div class="flex min-w-0 flex-1 items-start gap-2">
-            <Icon icon="carbon:document" class="mt-0.5 shrink-0 text-base text-gray-400 dark:text-gray-500" />
+            <Icon
+              icon="carbon:document"
+              class="mt-0.5 shrink-0 text-base text-gray-400 dark:text-gray-500"
+            />
             <div class="min-w-0 flex-1">
-              <div class="truncate text-sm font-medium text-gray-800 dark:text-gray-100" :title="task.filename">
+              <div
+                class="truncate text-sm font-medium text-gray-800 dark:text-gray-100"
+                :title="task.filename"
+              >
                 {{ task.filename }}
               </div>
-              <div class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+              <div
+                class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
+              >
                 <span class="text-gray-500 dark:text-gray-400">
                   {{ formatBytes(task.loaded) }} / {{ formatBytes(task.total) }}
                 </span>
-                <span v-if="task.status !== 'merging'" class="text-gray-400 dark:text-gray-500">
+                <span
+                  v-if="task.status !== 'merging'"
+                  class="text-gray-400 dark:text-gray-500"
+                >
                   {{ getPercent(task) }}%
                 </span>
-                <a-tag :color="getStatusColor(task)" class="!m-0 !text-[10px] !leading-4">
+                <a-tag
+                  :color="getStatusColor(task)"
+                  class="!m-0 !text-[10px] !leading-4"
+                >
                   {{ getStatusText(task) }}
                 </a-tag>
 
@@ -302,14 +337,24 @@ const hasPaused = computed(() => tasks.value.some((t) => t.status === 'paused'))
                   {{ formatBytes(task.chunkSize) }} × {{ task.totalChunks }} 片
                 </span>
 
-                <span v-if="task.status === 'hashing'" class="text-purple-500 dark:text-purple-400">
+                <span
+                  v-if="task.status === 'hashing'"
+                  class="text-purple-500 dark:text-purple-400"
+                >
                   hash {{ task.hashProgress }}%
                 </span>
 
-                <span v-if="task.status === 'uploading' && task.speed > 0" class="text-gray-500 dark:text-gray-400">
-                  {{ formatBytes(task.speed) }}/s · 剩余 {{ formatDuration(task.remaining) }}
+                <span
+                  v-if="task.status === 'uploading' && task.speed > 0"
+                  class="text-gray-500 dark:text-gray-400"
+                >
+                  {{ formatBytes(task.speed) }}/s · 剩余
+                  {{ formatDuration(task.remaining) }}
                 </span>
-                <span v-if="task.retryCount > 0 && task.status === 'uploading'" class="text-amber-500">
+                <span
+                  v-if="task.retryCount > 0 && task.status === 'uploading'"
+                  class="text-amber-500"
+                >
                   重试 {{ task.retryCount }} 次
                 </span>
               </div>
@@ -351,7 +396,9 @@ const hasPaused = computed(() => tasks.value.some((t) => t.status === 'paused'))
               v-if="task.status === 'error'"
               class="mt-2 flex items-center justify-between rounded-md bg-red-50 px-2.5 py-1.5 text-xs dark:bg-red-950/30"
             >
-              <div class="flex items-center gap-1.5 text-red-600 dark:text-red-400">
+              <div
+                class="flex items-center gap-1.5 text-red-600 dark:text-red-400"
+              >
                 <Icon icon="carbon:warning-alt" class="shrink-0" />
                 <span>{{ getErrorHint(task) }}</span>
                 <span
@@ -382,11 +429,21 @@ const hasPaused = computed(() => tasks.value.some((t) => t.status === 'paused'))
         </div>
 
         <!-- 进度条 -->
-        <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+        <div
+          class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800"
+        >
           <!-- 合并中：脉动动画（无具体进度） -->
-          <div v-if="task.status === 'merging'" class="h-full w-full animate-pulse rounded-full bg-purple-500" />
-          <div v-else-if="task.status === 'success'" class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-            <span class="text-green-600 dark:text-green-400">✓ 已上传并入库</span>
+          <div
+            v-if="task.status === 'merging'"
+            class="h-full w-full animate-pulse rounded-full bg-purple-500"
+          />
+          <div
+            v-else-if="task.status === 'success'"
+            class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
+          >
+            <span class="text-green-600 dark:text-green-400"
+              >✓ 已上传并入库</span
+            >
             <a
               v-if="task.result?.url"
               :href="task.result.url"
@@ -396,7 +453,11 @@ const hasPaused = computed(() => tasks.value.some((t) => t.status === 'paused'))
             >
               查看文件
             </a>
-            <span v-if="task.hash" class="text-gray-400 dark:text-gray-500" :title="task.hash">
+            <span
+              v-if="task.hash"
+              class="text-gray-400 dark:text-gray-500"
+              :title="task.hash"
+            >
               MD5: {{ task.hash.slice(0, 8) }}...
             </span>
           </div>
@@ -419,7 +480,10 @@ const hasPaused = computed(() => tasks.value.some((t) => t.status === 'paused'))
             }"
           />
         </div>
-        <div v-if="task.status === 'uploading' && task.retryCount > 0" class="mt-1 text-xs text-amber-500">
+        <div
+          v-if="task.status === 'uploading' && task.retryCount > 0"
+          class="mt-1 text-xs text-amber-500"
+        >
           重试第 {{ task.retryCount }} 轮…
         </div>
 
@@ -443,7 +507,10 @@ const hasPaused = computed(() => tasks.value.some((t) => t.status === 'paused'))
         </div>
 
         <!-- 成功提示：显示文件信息 -->
-        <div v-if="task.status === 'success'" class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+        <div
+          v-if="task.status === 'success'"
+          class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
+        >
           <span class="text-green-600 dark:text-green-400">已上传并入库</span>
           <a
             v-if="task.result?.url"
@@ -454,7 +521,11 @@ const hasPaused = computed(() => tasks.value.some((t) => t.status === 'paused'))
           >
             查看文件
           </a>
-          <span v-if="task.hash" class="text-gray-400 dark:text-gray-500" :title="task.hash">
+          <span
+            v-if="task.hash"
+            class="text-gray-400 dark:text-gray-500"
+            :title="task.hash"
+          >
             MD5: {{ task.hash.slice(0, 8) }}...
           </span>
         </div>

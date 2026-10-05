@@ -49,7 +49,10 @@ const imgStyle = computed(() => ({
         )
       "
     />
-    <span v-if="simpleShow && imgList && imgList.length > 1" :class="cn('text-sm text-gray-400 dark:text-gray-500')">
+    <span
+      v-if="simpleShow && imgList && imgList.length > 1"
+      :class="cn('text-sm text-gray-400 dark:text-gray-500')"
+    >
       +{{ imgList.length - 1 }}
     </span>
   </Space>

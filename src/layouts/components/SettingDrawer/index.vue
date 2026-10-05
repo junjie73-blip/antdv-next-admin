@@ -46,8 +46,14 @@ function handleClose() {
             <Icon icon="carbon:settings" class="text-ant-primary text-lg" />
           </div>
           <div>
-            <div class="text-[15px] font-semibold text-slate-800 dark:text-slate-100">主题配置</div>
-            <div class="mt-0.5 text-[11px] text-slate-400">定制你的工作空间</div>
+            <div
+              class="text-[15px] font-semibold text-slate-800 dark:text-slate-100"
+            >
+              主题配置
+            </div>
+            <div class="mt-0.5 text-[11px] text-slate-400">
+              定制你的工作空间
+            </div>
           </div>
         </div>
         <button
@@ -62,7 +68,12 @@ function handleClose() {
     <div :class="drawerBodyClassName">
       <div :class="drawerContentClassName">
         <div class="shrink-0 p-4">
-          <Segmented v-model:value="activeSection" :options="SECTION_OPTIONS" :styles="sectionStyles" block />
+          <Segmented
+            v-model:value="activeSection"
+            :options="SECTION_OPTIONS"
+            :styles="sectionStyles"
+            block
+          />
         </div>
 
         <!-- 面板（滚动） -->
@@ -99,7 +110,9 @@ function handleClose() {
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06) !important;
 }
 
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
   :global(.setting-drawer .ant-drawer-content) {
     background: #fff;
   }

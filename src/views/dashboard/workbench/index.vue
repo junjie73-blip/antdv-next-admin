@@ -33,7 +33,11 @@ const quickActions = [
 ]
 
 const recentActivities = [
-  { action: '管理员修改了角色「超级管理员」的权限', time: '10分钟前', type: 'permission' },
+  {
+    action: '管理员修改了角色「超级管理员」的权限',
+    time: '10分钟前',
+    type: 'permission',
+  },
   { action: '用户「张伟」从北京登录系统', time: '25分钟前', type: 'login' },
   { action: '检测到3条新的安全告警', time: '1小时前', type: 'alert' },
   { action: '数据字典「用户状态」已更新', time: '2小时前', type: 'dict' },
@@ -45,10 +49,34 @@ const cardClassName = cn(
 )
 
 const statCards = [
-  { label: '总用户数', value: 1286, icon: 'carbon:user-multiple', change: '+12%', up: true },
-  { label: '今日访问', value: 4921, icon: 'carbon:view', change: '+8.2%', up: true },
-  { label: '活跃会话', value: 186, icon: 'carbon:activity', change: '-3.1%', up: false },
-  { label: '告警数量', value: 3, icon: 'carbon:warning-alt', change: '-25%', up: true },
+  {
+    label: '总用户数',
+    value: 1286,
+    icon: 'carbon:user-multiple',
+    change: '+12%',
+    up: true,
+  },
+  {
+    label: '今日访问',
+    value: 4921,
+    icon: 'carbon:view',
+    change: '+8.2%',
+    up: true,
+  },
+  {
+    label: '活跃会话',
+    value: 186,
+    icon: 'carbon:activity',
+    change: '-3.1%',
+    up: false,
+  },
+  {
+    label: '告警数量',
+    value: 3,
+    icon: 'carbon:warning-alt',
+    change: '-25%',
+    up: true,
+  },
 ]
 </script>
 
@@ -74,21 +102,32 @@ const statCards = [
     <div class="grid grid-cols-4 gap-4">
       <div v-for="stat in statCards" :key="stat.label" :class="cardClassName">
         <div class="flex items-start gap-4">
-          <div class="bg-ant-primary/10 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg">
+          <div
+            class="bg-ant-primary/10 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg"
+          >
             <Icon :icon="stat.icon" :width="22" class="text-ant-primary" />
           </div>
           <div class="min-w-0 flex-1">
-            <p class="text-2xl leading-tight font-bold tracking-tight text-gray-800 tabular-nums dark:text-white">
+            <p
+              class="text-2xl leading-tight font-bold tracking-tight text-gray-800 tabular-nums dark:text-white"
+            >
               {{ stat.value }}
             </p>
             <p class="mt-1 text-sm text-gray-400 dark:text-gray-500">
               {{ stat.label }}
             </p>
             <p
-              :class="stat.up ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'"
+              :class="
+                stat.up
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-red-600 dark:text-red-400'
+              "
               class="mt-1.5 flex items-center gap-0.5 text-xs font-semibold"
             >
-              <Icon :icon="stat.up ? 'carbon:arrow-up' : 'carbon:arrow-down'" :width="12" />
+              <Icon
+                :icon="stat.up ? 'carbon:arrow-up' : 'carbon:arrow-down'"
+                :width="12"
+              />
               {{ stat.change }}
             </p>
           </div>
@@ -100,14 +139,21 @@ const statCards = [
     <div class="grid grid-cols-2 gap-4">
       <!-- 快捷操作 -->
       <div :class="cardClassName">
-        <h3 class="mb-4 text-base font-semibold text-gray-800 dark:text-gray-200">快捷操作</h3>
+        <h3
+          class="mb-4 text-base font-semibold text-gray-800 dark:text-gray-200"
+        >
+          快捷操作
+        </h3>
         <div class="grid grid-cols-2 gap-3">
           <div
             v-for="action in quickActions"
             :key="action.title"
             class="group flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
           >
-            <div :class="action.color" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
+            <div
+              :class="action.color"
+              class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+            >
               <Icon :icon="action.icon" :width="18" />
             </div>
             <div class="min-w-0">
@@ -126,9 +172,17 @@ const statCards = [
 
       <!-- 最近动态 -->
       <div :class="cardClassName">
-        <h3 class="mb-4 text-base font-semibold text-gray-800 dark:text-gray-200">最近动态</h3>
+        <h3
+          class="mb-4 text-base font-semibold text-gray-800 dark:text-gray-200"
+        >
+          最近动态
+        </h3>
         <div class="space-y-3">
-          <div v-for="(activity, i) in recentActivities" :key="i" class="flex items-start gap-3 text-sm">
+          <div
+            v-for="(activity, i) in recentActivities"
+            :key="i"
+            class="flex items-start gap-3 text-sm"
+          >
             <span
               class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full"
               :class="

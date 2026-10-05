@@ -66,9 +66,16 @@ const defaultFallbackClassName = cn(
   'rounded-lg border border-red-200 dark:border-red-800',
 )
 
-const titleClassName = cn('text-lg font-semibold text-red-700 dark:text-red-400', 'mb-2')
+const titleClassName = cn(
+  'text-lg font-semibold text-red-700 dark:text-red-400',
+  'mb-2',
+)
 
-const messageClassName = cn('text-sm text-red-600 dark:text-red-300', 'mb-4 text-center max-w-md', 'break-all')
+const messageClassName = cn(
+  'text-sm text-red-600 dark:text-red-300',
+  'mb-4 text-center max-w-md',
+  'break-all',
+)
 
 const retryButtonClassName = cn(
   'px-4 py-2',
@@ -89,13 +96,22 @@ const isDev = import.meta.env.DEV
 
 <template>
   <div v-if="error" :class="defaultFallbackClassName">
-    <component :is="() => props.fallback?.(error!, resetError)" v-if="props.fallback" />
+    <component
+      :is="() => props.fallback?.(error!, resetError)"
+      v-if="props.fallback"
+    />
 
     <template v-else>
       <div class="mb-4 text-6xl">⚠️</div>
       <h3 :class="titleClassName">出错了</h3>
       <p :class="messageClassName">{{ error.message || '发生了未知错误' }}</p>
-      <button v-if="resetOnError" :class="retryButtonClassName" @click="handleRetry">🔄 重试</button>
+      <button
+        v-if="resetOnError"
+        :class="retryButtonClassName"
+        @click="handleRetry"
+      >
+        🔄 重试
+      </button>
 
       <details v-if="isDev && isString(error.stack)" :class="detailsClassName">
         <summary class="mb-1 cursor-pointer font-medium">调用栈详情</summary>
@@ -113,7 +129,9 @@ const isDev = import.meta.env.DEV
     <template #fallback>
       <slot name="loading">
         <div class="flex items-center justify-center p-8">
-          <div class="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
+          <div
+            class="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"
+          />
         </div>
       </slot>
     </template>

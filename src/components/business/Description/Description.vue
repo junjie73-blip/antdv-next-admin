@@ -10,7 +10,11 @@ import { computed, h, useSlots } from 'vue'
 import { cn } from '~/utils/cn'
 import { getDictLabel, getDictLabels } from '~/utils/dict'
 
-import type { DescriptionInstance, DescriptionItem, DescriptionProps } from './types'
+import type {
+  DescriptionInstance,
+  DescriptionItem,
+  DescriptionProps,
+} from './types'
 
 const props = withDefaults(defineProps<DescriptionProps>(), {
   column: 3,
@@ -24,10 +28,13 @@ const props = withDefaults(defineProps<DescriptionProps>(), {
 const slots = useSlots()
 
 const dataRef = computed(() => props.data || {})
-const filteredSchema = computed(() => (props.schema || []).filter((item) => item.show !== false))
+const filteredSchema = computed(() =>
+  (props.schema || []).filter((item) => item.show !== false),
+)
 
 function getFieldValue(item: DescriptionItem): unknown {
-  const value = item.value !== undefined ? item.value : dataRef.value[item.field]
+  const value =
+    item.value !== undefined ? item.value : dataRef.value[item.field]
   if (isNil(value) || value === '') return props.emptyText
   return value
 }
@@ -35,29 +42,37 @@ function getFieldValue(item: DescriptionItem): unknown {
 function renderLabel(item: DescriptionItem): VNodeChild {
   const slotName = `${item.field}-label`
   if (slots[slotName]) return slots[slotName]!({ item, data: dataRef.value })
-  if (item.renderLabel) return item.renderLabel(item.label || item.field, dataRef.value)
+  if (item.renderLabel)
+    return item.renderLabel(item.label || item.field, dataRef.value)
   return item.label || item.field
 }
 
 /** 提取 URL：支持字符串 / { url } / 数组 */
 function pickUrl(v: unknown): string {
   if (isString(v)) return v
-  if (v && typeof v === 'object' && 'url' in v) return (v as { url: string }).url
+  if (v && typeof v === 'object' && 'url' in v)
+    return (v as { url: string }).url
   return ''
 }
 
 function renderImage(value: unknown, size = 60): VNodeChild {
-  if (isNil(value) || value === props.emptyText) return h('span', props.emptyText)
+  if (isNil(value) || value === props.emptyText)
+    return h('span', props.emptyText)
   return h(Image, { src: pickUrl(value), width: size, preview: true })
 }
 
 function renderImages(value: unknown, size = 60): VNodeChild {
-  if (isNil(value) || value === props.emptyText) return h('span', props.emptyText)
-  const list: string[] = isArray(value) ? value.map(pickUrl) : String(value).split(',').filter(Boolean)
+  if (isNil(value) || value === props.emptyText)
+    return h('span', props.emptyText)
+  const list: string[] = isArray(value)
+    ? value.map(pickUrl)
+    : String(value).split(',').filter(Boolean)
   return h(
     'div',
     {},
-    list.map((url, i) => h(Image, { key: i, src: url, width: size, height: size })),
+    list.map((url, i) =>
+      h(Image, { key: i, src: url, width: size, height: size }),
+    ),
   )
 }
 
@@ -65,18 +80,23 @@ function renderValue(item: DescriptionItem): VNodeChild {
   const slotName = item.field
   const value = getFieldValue(item)
 
-  if (slots[slotName]) return slots[slotName]!({ item, data: dataRef.value, value })
+  if (slots[slotName])
+    return slots[slotName]!({ item, data: dataRef.value, value })
 
   if (item.render) {
     const result = item.render(value, dataRef.value)
-    return isString(result) || typeof result === 'number' ? h('span', result) : result
+    return isString(result) || typeof result === 'number'
+      ? h('span', result)
+      : result
   }
 
   switch (item.type) {
     case 'dict': {
       if (!item.dictType) return h('span', value as string)
       const isMulti = isArray(value) || String(value).includes(',')
-      const label = isMulti ? getDictLabels(item.dictType, value as never) : getDictLabel(item.dictType, value as never)
+      const label = isMulti
+        ? getDictLabels(item.dictType, value as never)
+        : getDictLabel(item.dictType, value as never)
       return h('span', label)
     }
     case 'image':
@@ -86,17 +106,25 @@ function renderValue(item: DescriptionItem): VNodeChild {
     case 'date':
       return h(
         'span',
-        value === props.emptyText ? value : dayjs(value as string).format(item.dateFormat || 'YYYY-MM-DD'),
+        value === props.emptyText
+          ? value
+          : dayjs(value as string).format(item.dateFormat || 'YYYY-MM-DD'),
       )
     case 'datetime':
       return h(
         'span',
-        value === props.emptyText ? value : dayjs(value as string).format(item.dateFormat || 'YYYY-MM-DD HH:mm:ss'),
+        value === props.emptyText
+          ? value
+          : dayjs(value as string).format(
+              item.dateFormat || 'YYYY-MM-DD HH:mm:ss',
+            ),
       )
     case 'tag':
     case 'text':
     default:
-      return isString(value) || typeof value === 'number' ? h('span', value) : (value as VNodeChild)
+      return isString(value) || typeof value === 'number'
+        ? h('span', value)
+        : (value as VNodeChild)
   }
 }
 
@@ -112,7 +140,9 @@ const items = computed<DescriptionsProps['items']>(
     })) as DescriptionsProps['items'],
 )
 
-const antSize = computed<'default' | 'middle' | 'small'>(() => (props.size === 'small' ? 'small' : 'default'))
+const antSize = computed<'default' | 'middle' | 'small'>(() =>
+  props.size === 'small' ? 'small' : 'default',
+)
 
 const instance: DescriptionInstance = {
   getData: () => props.data,
@@ -125,8 +155,13 @@ defineExpose(instance)
 
 <template>
   <div :class="cn('description-wrapper', className)" :style="style">
-    <div v-if="loading" class="description-loading flex items-center justify-center py-8">
-      <div class="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900 dark:border-gray-100" />
+    <div
+      v-if="loading"
+      class="description-loading flex items-center justify-center py-8"
+    >
+      <div
+        class="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900 dark:border-gray-100"
+      />
     </div>
 
     <Descriptions

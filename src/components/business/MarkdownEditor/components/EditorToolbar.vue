@@ -6,7 +6,14 @@ import { computed } from 'vue'
 
 import type { MarkdownEditorToolbarKey } from '../types'
 
-import { BACKGROUND_COLORS, FONT_FAMILIES, FONT_SIZES, HEADER_OPTIONS, LINE_HEIGHTS, TEXT_COLORS } from '../constants'
+import {
+  BACKGROUND_COLORS,
+  FONT_FAMILIES,
+  FONT_SIZES,
+  HEADER_OPTIONS,
+  LINE_HEIGHTS,
+  TEXT_COLORS,
+} from '../constants'
 import ColorPanel from './ColorPanel.vue'
 import LinkPanel from './LinkPanel.vue'
 import TableGridPicker from './TableGridPicker.vue'
@@ -83,7 +90,8 @@ const ACTIONS: Partial<Record<MarkdownEditorToolbarKey, ToolbarAction>> = {
     icon: 'carbon:list-checked',
     title: '待办',
     active: (editor) => editor.isActive('todo'),
-    run: (editor) => editor.chain().focus().toggleNode('todo', 'paragraph').run(),
+    run: (editor) =>
+      editor.chain().focus().toggleNode('todo', 'paragraph').run(),
   },
   justifyLeft: {
     icon: 'carbon:text-align-left',
@@ -143,7 +151,11 @@ const items = computed<ToolbarItem[]>(() =>
       key,
       action,
       active: editor ? (action.active?.(editor) ?? false) : false,
-      disabled: Boolean(props.disabled || !editor || (action.enabled && !action.enabled(editor))),
+      disabled: Boolean(
+        props.disabled ||
+        !editor ||
+        (action.enabled && !action.enabled(editor)),
+      ),
     }
   }),
 )
@@ -157,7 +169,9 @@ function runAction(action: ToolbarAction) {
  * 下拉项当前值
  * ============================================================ */
 
-function readTextStyle(name: 'fontSize' | 'fontFamily' | 'color' | 'backgroundColor'): string {
+function readTextStyle(
+  name: 'fontSize' | 'fontFamily' | 'color' | 'backgroundColor',
+): string {
   const editor = props.editor
   if (isNil(editor)) return ''
   return (editor.getAttributes('textStyle')[name] as string | undefined) ?? ''
@@ -167,12 +181,16 @@ const currentHeader = computed(() => {
   const editor = props.editor
   if (isNil(editor)) return 'paragraph'
 
-  const level = HEADING_LEVELS.find((value) => editor.isActive('heading', { level: value }))
+  const level = HEADING_LEVELS.find((value) =>
+    editor.isActive('heading', { level: value }),
+  )
   return level ? String(level) : 'paragraph'
 })
 
 const currentHeaderLabel = computed(
-  () => HEADER_OPTIONS.find((option) => option.value === currentHeader.value)?.label ?? '正文',
+  () =>
+    HEADER_OPTIONS.find((option) => option.value === currentHeader.value)
+      ?.label ?? '正文',
 )
 
 const currentFontSize = computed(() => readTextStyle('fontSize'))
@@ -181,16 +199,22 @@ const currentColor = computed(() => readTextStyle('color'))
 const currentBackgroundColor = computed(() => readTextStyle('backgroundColor'))
 
 const fontSizeLabel = computed(
-  () => FONT_SIZES.find((option) => option.value === currentFontSize.value)?.label ?? '默认字号',
+  () =>
+    FONT_SIZES.find((option) => option.value === currentFontSize.value)
+      ?.label ?? '默认字号',
 )
 const fontFamilyLabel = computed(
-  () => FONT_FAMILIES.find((option) => option.value === currentFontFamily.value)?.label ?? '默认字体',
+  () =>
+    FONT_FAMILIES.find((option) => option.value === currentFontFamily.value)
+      ?.label ?? '默认字体',
 )
 
 const currentLineHeight = computed(() => {
   const editor = props.editor
   if (!editor) return ''
-  const attrs = editor.isActive('heading') ? editor.getAttributes('heading') : editor.getAttributes('paragraph')
+  const attrs = editor.isActive('heading')
+    ? editor.getAttributes('heading')
+    : editor.getAttributes('paragraph')
   return (attrs.lineHeight as string | undefined) ?? ''
 })
 
@@ -278,7 +302,11 @@ function applyLink(url: string) {
     editor
       .chain()
       .focus()
-      .insertContent({ type: 'text', text: url, marks: [{ type: 'link', attrs: { href: url } }] })
+      .insertContent({
+        type: 'text',
+        text: url,
+        marks: [{ type: 'link', attrs: { href: url } }],
+      })
       .run()
     return
   }
@@ -287,14 +315,21 @@ function applyLink(url: string) {
 }
 
 function insertTable(rows: number, cols: number) {
-  props.editor?.chain().focus().insertTable({ rows, cols, withHeaderRow: true }).run()
+  props.editor
+    ?.chain()
+    .focus()
+    .insertTable({ rows, cols, withHeaderRow: true })
+    .run()
 }
 </script>
 
 <template>
   <div class="flex flex-wrap items-center gap-0.5 px-2 py-1">
     <template v-for="(item, index) in items" :key="`${item.key}-${index}`">
-      <span v-if="item.key === '|'" class="mx-1 h-4 w-px self-center bg-gray-200 dark:bg-gray-700" />
+      <span
+        v-if="item.key === '|'"
+        class="mx-1 h-4 w-px self-center bg-gray-200 dark:bg-gray-700"
+      />
 
       <!-- 纯图标按钮 -->
       <ToolbarButton
@@ -313,10 +348,19 @@ function insertTable(rows: number, cols: number) {
         :label="currentHeaderLabel"
         :disabled="disabled"
       >
-        <ToolbarOptionPanel :options="HEADER_OPTIONS" :current="currentHeader" @select="applyHeader" />
+        <ToolbarOptionPanel
+          :options="HEADER_OPTIONS"
+          :current="currentHeader"
+          @select="applyHeader"
+        />
       </ToolbarDropdown>
 
-      <ToolbarDropdown v-else-if="item.key === 'fontSize'" title="字号" :label="fontSizeLabel" :disabled="disabled">
+      <ToolbarDropdown
+        v-else-if="item.key === 'fontSize'"
+        title="字号"
+        :label="fontSizeLabel"
+        :disabled="disabled"
+      >
         <ToolbarOptionPanel
           :options="FONT_SIZES"
           :current="currentFontSize"
@@ -325,7 +369,12 @@ function insertTable(rows: number, cols: number) {
         />
       </ToolbarDropdown>
 
-      <ToolbarDropdown v-else-if="item.key === 'fontFamily'" title="字体" :label="fontFamilyLabel" :disabled="disabled">
+      <ToolbarDropdown
+        v-else-if="item.key === 'fontFamily'"
+        title="字体"
+        :label="fontFamilyLabel"
+        :disabled="disabled"
+      >
         <ToolbarOptionPanel
           :options="FONT_FAMILIES"
           :current="currentFontFamily"
@@ -334,8 +383,17 @@ function insertTable(rows: number, cols: number) {
         />
       </ToolbarDropdown>
 
-      <ToolbarDropdown v-else-if="item.key === 'lineHeight'" title="行高" label="行高" :disabled="disabled">
-        <ToolbarOptionPanel :options="LINE_HEIGHTS" :current="currentLineHeight" @select="applyLineHeight" />
+      <ToolbarDropdown
+        v-else-if="item.key === 'lineHeight'"
+        title="行高"
+        label="行高"
+        :disabled="disabled"
+      >
+        <ToolbarOptionPanel
+          :options="LINE_HEIGHTS"
+          :current="currentLineHeight"
+          @select="applyLineHeight"
+        />
       </ToolbarDropdown>
 
       <ToolbarDropdown
@@ -345,7 +403,12 @@ function insertTable(rows: number, cols: number) {
         :swatch="currentColor"
         :disabled="disabled"
       >
-        <ColorPanel :colors="TEXT_COLORS" :current="currentColor" clearable @select="applyColor" />
+        <ColorPanel
+          :colors="TEXT_COLORS"
+          :current="currentColor"
+          clearable
+          @select="applyColor"
+        />
       </ToolbarDropdown>
 
       <ToolbarDropdown
@@ -384,7 +447,12 @@ function insertTable(rows: number, cols: number) {
         </template>
       </ToolbarDropdown>
 
-      <ToolbarDropdown v-else-if="item.key === 'insertTable'" title="插入表格" icon="carbon:table" :disabled="disabled">
+      <ToolbarDropdown
+        v-else-if="item.key === 'insertTable'"
+        title="插入表格"
+        icon="carbon:table"
+        :disabled="disabled"
+      >
         <TableGridPicker @select="insertTable" />
       </ToolbarDropdown>
 

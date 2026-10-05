@@ -8,7 +8,14 @@ import { computed, ref, useTemplateRef } from 'vue'
 import type { FormSchema } from '~/components/business/Form'
 import type { BasicColumn } from '~/components/business/Table'
 
-import { createFolder, deleteFile, getFileList, getFileTree, renameFile, uploadFile } from '~/api/system'
+import {
+  createFolder,
+  deleteFile,
+  getFileList,
+  getFileTree,
+  renameFile,
+  uploadFile,
+} from '~/api/system'
 import { BasicForm, useForm } from '~/components/business/Form'
 import { BasicModal, useModal } from '~/components/business/Modal'
 import { BasicTable, useTable } from '~/components/business/Table'
@@ -39,8 +46,15 @@ const leftPanelClassName = cn('w-[240px] shrink-0')
 const rightPanelClassName = cn('flex-1 min-w-0')
 const cardClassName = cn('shadow-sm')
 const treeCardClassName = cn('shadow-sm h-full')
-const breadcrumbClassName = cn('flex items-center gap-2 text-sm mb-4 text-gray-500 dark:text-gray-400')
-const actionClassName = cn('flex', 'items-center', 'justify-center', 'whitespace-nowrap')
+const breadcrumbClassName = cn(
+  'flex items-center gap-2 text-sm mb-4 text-gray-500 dark:text-gray-400',
+)
+const actionClassName = cn(
+  'flex',
+  'items-center',
+  'justify-center',
+  'whitespace-nowrap',
+)
 const btnClassName = cn('!px-0.5')
 const dividerClassName = cn('mx-0')
 
@@ -313,7 +327,9 @@ function handleBatchDelete() {
           // 继续处理其他文件
         }
       }
-      message.success(`成功删除 ${successCount}/${selectedRows.value.length} 个项目`)
+      message.success(
+        `成功删除 ${successCount}/${selectedRows.value.length} 个项目`,
+      )
       tableMethods.value?.reload()
       loadFileTree()
     },
@@ -336,7 +352,9 @@ const currentStats = computed(() => {
   const rows = (tableMethods.value?.getDataSource?.() || []) as FileRecord[]
   const folders = rows.filter((r) => r.isFolder).length
   const files = rows.length - folders
-  const totalSize = rows.filter((r) => !r.isFolder).reduce((sum, r) => sum + r.size, 0)
+  const totalSize = rows
+    .filter((r) => !r.isFolder)
+    .reduce((sum, r) => sum + r.size, 0)
 
   function formatSize(bytes: number): string {
     if (bytes === 0) return '0 B'
@@ -346,17 +364,40 @@ const currentStats = computed(() => {
     return `${(bytes / k ** i).toFixed(1)} ${units[i]}`
   }
 
-  return { folders, files, totalSize: formatSize(totalSize), totalCount: rows.length }
+  return {
+    folders,
+    files,
+    totalSize: formatSize(totalSize),
+    totalCount: rows.length,
+  }
 })
 
 // ========== 表格列配置 ==========
 const columns: BasicColumn[] = [
-  { title: '#', key: 'index', width: 60, align: 'center', customRender: ({ index }) => index + 1 },
+  {
+    title: '#',
+    key: 'index',
+    width: 60,
+    align: 'center',
+    customRender: ({ index }) => index + 1,
+  },
   { title: '名称', dataIndex: 'name', key: 'name', width: 260 },
-  { title: '大小', dataIndex: 'sizeDisplay', key: 'sizeDisplay', width: 90, align: 'center' },
+  {
+    title: '大小',
+    dataIndex: 'sizeDisplay',
+    key: 'sizeDisplay',
+    width: 90,
+    align: 'center',
+  },
   { title: '类型', dataIndex: 'type', key: 'type', width: 80, align: 'center' },
   { title: '修改时间', dataIndex: 'updatedAt', key: 'updatedAt', width: 170 },
-  { title: '上传者', dataIndex: 'uploader', key: 'uploader', width: 100, align: 'center' },
+  {
+    title: '上传者',
+    dataIndex: 'uploader',
+    key: 'uploader',
+    width: 100,
+    align: 'center',
+  },
 ]
 </script>
 
@@ -389,9 +430,11 @@ const columns: BasicColumn[] = [
         <div :class="breadcrumbClassName">
           <span>当前位置：</span>
           <template v-for="(item, index) in currentPath" :key="item.key">
-            <a class="cursor-pointer transition-colors hover:text-blue-500" @click="handleNavigateToFolder(item)">{{
-              item.title
-            }}</a>
+            <a
+              class="cursor-pointer transition-colors hover:text-blue-500"
+              @click="handleNavigateToFolder(item)"
+              >{{ item.title }}</a
+            >
             <span v-if="index < currentPath.length - 1" class="mx-1">/</span>
           </template>
         </div>
@@ -408,12 +451,16 @@ const columns: BasicColumn[] = [
           <span>|</span>
           <span>
             文件夹：
-            <span class="font-medium text-orange-500">{{ currentStats.folders }}</span>
+            <span class="font-medium text-orange-500">{{
+              currentStats.folders
+            }}</span>
           </span>
           <span>|</span>
           <span>
             文件：
-            <span class="font-medium text-blue-500">{{ currentStats.files }}</span>
+            <span class="font-medium text-blue-500">{{
+              currentStats.files
+            }}</span>
           </span>
           <span>|</span>
           <span>
@@ -430,7 +477,10 @@ const columns: BasicColumn[] = [
           :use-search-form="true"
           :form-config="{ schemas: searchFormSchemas, labelWidth: 70 }"
           :row-selection="{ type: 'checkbox', onChange: handleSelectionChange }"
-          :pagination="{ showSizeChanger: true, pageSizeOptions: ['20', '50', '100'] }"
+          :pagination="{
+            showSizeChanger: true,
+            pageSizeOptions: ['20', '50', '100'],
+          }"
           :action-column="{ width: 280, title: '操作', fixed: 'right' }"
           @register="tableRegister"
         >
@@ -467,21 +517,32 @@ const columns: BasicColumn[] = [
                 }"
                 class="shrink-0"
               />
-              <span class="cursor-pointer truncate transition-colors hover:text-blue-500" :title="record.name">{{
-                record.name
-              }}</span>
+              <span
+                class="cursor-pointer truncate transition-colors hover:text-blue-500"
+                :title="record.name"
+                >{{ record.name }}</span
+              >
             </div>
           </template>
 
           <template #action="{ record }">
             <div :class="actionClassName">
-              <a-button v-if="!record.isFolder" type="link" :class="btnClassName" @click="() => handleDownload(record)">
+              <a-button
+                v-if="!record.isFolder"
+                type="link"
+                :class="btnClassName"
+                @click="() => handleDownload(record)"
+              >
                 <template #icon>
                   <Icon icon="ant-design:download-outlined" />
                 </template>
                 下载
               </a-button>
-              <a-button type="link" :class="btnClassName" @click="() => handleRename(record)">
+              <a-button
+                type="link"
+                :class="btnClassName"
+                @click="() => handleRename(record)"
+              >
                 <template #icon>
                   <Icon icon="ant-design:edit-outlined" />
                 </template>
@@ -522,9 +583,18 @@ const columns: BasicColumn[] = [
     </BasicModal>
 
     <!-- 上传弹窗 -->
-    <BasicModal title="上传文件" :width="520" :show-footer="false" @register="uploadModalRegister">
+    <BasicModal
+      title="上传文件"
+      :width="520"
+      :show-footer="false"
+      @register="uploadModalRegister"
+    >
       <div class="space-y-4">
-        <a-alert message="选择要上传的文件，支持多文件同时上传" type="info" show-icon />
+        <a-alert
+          message="选择要上传的文件，支持多文件同时上传"
+          type="info"
+          show-icon
+        />
 
         <a-upload-dragger
           name="file"
@@ -544,14 +614,21 @@ const columns: BasicColumn[] = [
           }"
         >
           <p class="ant-upload-drag-icon">
-            <Icon icon="carbon:cloud-upload" style="font-size: 48px; color: #1677ff" />
+            <Icon
+              icon="carbon:cloud-upload"
+              style="font-size: 48px; color: #1677ff"
+            />
           </p>
           <p class="ant-upload-text">点击或拖拽文件到此区域上传</p>
-          <p class="ant-upload-hint">支持单个或批量上传，最大支持 10 个文件，单个文件不超过 100MB</p>
+          <p class="ant-upload-hint">
+            支持单个或批量上传，最大支持 10 个文件，单个文件不超过 100MB
+          </p>
         </a-upload-dragger>
 
         <div class="border-t border-gray-200 pt-3 dark:border-gray-700">
-          <a-button type="primary" block @click="handleSimulateUpload()"> 模拟上传（测试用） </a-button>
+          <a-button type="primary" block @click="handleSimulateUpload()">
+            模拟上传（测试用）
+          </a-button>
         </div>
       </div>
     </BasicModal>

@@ -33,14 +33,20 @@ function reset() {
       {{ hovered.rows ? `${hovered.rows} × ${hovered.cols}` : '插入表格' }}
     </div>
 
-    <div class="grid gap-0.5" :style="{ gridTemplateColumns: `repeat(${cols}, 14px)` }">
+    <div
+      class="grid gap-0.5"
+      :style="{ gridTemplateColumns: `repeat(${cols}, 14px)` }"
+    >
       <template v-for="row in rowRange" :key="row">
         <button
           v-for="col in colRange"
           :key="`${row}-${col}`"
           type="button"
           class="h-3.5 w-3.5 rounded-sm border border-gray-300 dark:border-gray-600"
-          :class="isHighlighted(row, col) && 'border-blue-500 bg-blue-100 dark:bg-blue-500/30'"
+          :class="
+            isHighlighted(row, col) &&
+            'border-blue-500 bg-blue-100 dark:bg-blue-500/30'
+          "
           @mouseenter="hovered = { rows: row, cols: col }"
           @click="emit('select', row, col)"
         />

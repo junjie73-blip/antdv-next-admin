@@ -43,12 +43,20 @@ const containerClassName = computed(() =>
     leave-from-class="opacity-100"
     leave-to-class="opacity-0"
   >
-    <div v-if="loading" :class="containerClassName" role="status" aria-live="polite" :aria-label="text">
+    <div
+      v-if="loading"
+      :class="containerClassName"
+      role="status"
+      aria-live="polite"
+      :aria-label="text"
+    >
       <!-- ⭐ 使用 antdv Spin -->
       <a-spin size="large" />
 
       <!-- 提示文本 -->
-      <span :class="cn('text-xs', isDark ? 'text-slate-400' : 'text-slate-500')">
+      <span
+        :class="cn('text-xs', isDark ? 'text-slate-400' : 'text-slate-500')"
+      >
         {{ text }}
       </span>
     </div>

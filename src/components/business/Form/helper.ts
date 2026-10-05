@@ -58,7 +58,11 @@ const PLACEHOLDER_TEMPLATES: Record<string, (label: string) => string> = {
   TimeRangePicker: (label) => `请选择${label}范围`,
 }
 
-export function setComponentProps(schema: FormSchema | undefined, formModel: Recordable, _formActionType: any) {
+export function setComponentProps(
+  schema: FormSchema | undefined,
+  formModel: Recordable,
+  _formActionType: any,
+) {
   if (!schema) return {}
 
   const { component, componentProps = {}, label } = schema
@@ -74,21 +78,34 @@ export function setComponentProps(schema: FormSchema | undefined, formModel: Rec
 
   const result: Record<string, any> = { ...componentProps }
 
-  if (component && PLACEHOLDER_COMPONENTS.includes(component as any) && !result.placeholder && label) {
+  if (
+    component &&
+    PLACEHOLDER_COMPONENTS.includes(component as any) &&
+    !result.placeholder &&
+    label
+  ) {
     const template = PLACEHOLDER_TEMPLATES[component]
     if (template) {
       result.placeholder = template(label)
     }
   }
 
-  if (component && CLEARABLE_COMPONENTS.includes(component as any) && result.allowClear === undefined) {
+  if (
+    component &&
+    CLEARABLE_COMPONENTS.includes(component as any) &&
+    result.allowClear === undefined
+  ) {
     result.allowClear = true
   }
 
   return result
 }
 
-export function getShow(schema: FormSchema | undefined, formModel: Recordable, _formActionType: any) {
+export function getShow(
+  schema: FormSchema | undefined,
+  formModel: Recordable,
+  _formActionType: any,
+) {
   // schema 为空 → 视为不渲染
   if (!schema) return { show: false, ifShow: false }
 
@@ -99,7 +116,12 @@ export function getShow(schema: FormSchema | undefined, formModel: Recordable, _
     : (show ?? true)
 
   const ifShowResult = isFunction(ifShow)
-    ? ifShow({ schema, values: formModel, model: formModel, field: schema.field })
+    ? ifShow({
+        schema,
+        values: formModel,
+        model: formModel,
+        field: schema.field,
+      })
     : (ifShow ?? true)
 
   return { show: showResult, ifShow: ifShowResult }
@@ -149,7 +171,9 @@ export function getDynamicRules(
   const validRules: Rule[] = Array.isArray(rules)
     ? rules.filter((rule) => {
         if (rule.pattern != null && !(rule.pattern instanceof RegExp)) {
-          console.warn(`[Form] 字段 "${schema.field}" 的规则包含无效 pattern，已跳过`)
+          console.warn(
+            `[Form] 字段 "${schema.field}" 的规则包含无效 pattern，已跳过`,
+          )
           return false
         }
         return true
@@ -222,13 +246,20 @@ interface DayjsLike {
 function isDayjsOrDate(value: unknown): value is DayjsLike | Date {
   if (value === null || value === undefined) return false
   if (value instanceof Date) return true
-  if (typeof value === 'object' && 'format' in value && typeof (value as DayjsLike).format === 'function') {
+  if (
+    typeof value === 'object' &&
+    'format' in value &&
+    typeof (value as DayjsLike).format === 'function'
+  ) {
     return true
   }
   return false
 }
 
-export function formatDateFields(values: Recordable, schemas: FormSchema[]): Recordable {
+export function formatDateFields(
+  values: Recordable,
+  schemas: FormSchema[],
+): Recordable {
   const result = { ...values }
 
   schemas.forEach((schema) => {
@@ -242,7 +273,10 @@ export function formatDateFields(values: Recordable, schemas: FormSchema[]): Rec
     let formatStr = 'YYYY-MM-DD HH:mm:ss'
 
     if (typeof componentProps === 'object' && componentProps !== null) {
-      formatStr = (componentProps as any).valueFormat || (componentProps as any).format || formatStr
+      formatStr =
+        (componentProps as any).valueFormat ||
+        (componentProps as any).format ||
+        formatStr
     }
 
     if (component === 'RangePicker' || component === 'TimeRangePicker') {
@@ -280,7 +314,10 @@ function isPlainObject(v: unknown): v is Record<string, any> {
   return proto === Object.prototype || proto === null
 }
 
-export function deepMerge<T extends Record<string, any>>(target: T, source: Partial<T> | undefined): T {
+export function deepMerge<T extends Record<string, any>>(
+  target: T,
+  source: Partial<T> | undefined,
+): T {
   if (!source) return { ...target }
 
   const result: any = Array.isArray(target) ? [...target] : { ...target }

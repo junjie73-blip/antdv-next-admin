@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { HOME_PATH, LOGIN_PATH } from '~/config/constants'
 import { useUserStore } from '~/stores/modules/user'
 import { cn } from '~/utils/cn'
 
@@ -18,9 +19,9 @@ const containerClassName = computed(() =>
 
 function handleBack() {
   if (userStore.isLoggedIn) {
-    router.push('/dashboard')
+    router.push(HOME_PATH)
   } else {
-    router.push('/login')
+    router.push(LOGIN_PATH)
   }
 }
 </script>
@@ -28,10 +29,18 @@ function handleBack() {
 <template>
   <div :class="containerClassName">
     <div class="text-center">
-      <h1 class="mb-4 text-9xl font-bold text-gray-300 dark:text-gray-600">503</h1>
-      <h2 class="mb-4 text-2xl font-semibold text-gray-700 dark:text-gray-300">服务不可用</h2>
-      <p class="mb-8 text-gray-500 dark:text-gray-400">抱歉，服务暂时不可用，请稍后再试</p>
-      <a-button type="primary" size="large" @click="handleBack"> 返回首页 </a-button>
+      <h1 class="mb-4 text-9xl font-bold text-gray-300 dark:text-gray-600">
+        503
+      </h1>
+      <h2 class="mb-4 text-2xl font-semibold text-gray-700 dark:text-gray-300">
+        服务不可用
+      </h2>
+      <p class="mb-8 text-gray-500 dark:text-gray-400">
+        抱歉，服务暂时不可用，请稍后再试
+      </p>
+      <a-button type="primary" size="large" @click="handleBack">
+        返回首页
+      </a-button>
     </div>
   </div>
 </template>

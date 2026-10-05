@@ -32,6 +32,7 @@ export default defineConfig(({ mode }) => {
       port: envConfig.VITE_PORT,
       host: '0.0.0.0',
       cors: true,
+      hot: true,
       proxy: createProxy(envConfig.VITE_PROXY),
     },
     plugins: createPlugins(mode),

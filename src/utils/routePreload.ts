@@ -34,7 +34,9 @@ let preloadCount = 0
  * @param to - 目标路由（路径或路由对象）
  * @returns Promise 是否成功预加载
  */
-export async function preloadRoute(to: string | RouteLocationRaw): Promise<boolean> {
+export async function preloadRoute(
+  to: string | RouteLocationRaw,
+): Promise<boolean> {
   // 解析路径
   const path = typeof to === 'string' ? to : (to as any).path || ''
 

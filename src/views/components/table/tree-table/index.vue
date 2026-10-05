@@ -8,7 +8,9 @@ import { TreeTable } from '~/components/business/TreeTable'
 import { cn } from '~/utils/cn'
 
 const containerClassName = cn('h-full flex flex-col')
-const pageHeaderClassName = cn('text-lg font-bold text-gray-800 dark:text-white flex-shrink-0')
+const pageHeaderClassName = cn(
+  'text-lg font-bold text-gray-800 dark:text-white flex-shrink-0',
+)
 const cardClassName = cn('flex-1 min-h-0')
 
 const orgTree: TreeDataNode[] = [
@@ -218,7 +220,11 @@ const columns: BasicColumn[] = [
 
 const currentDept = ref('')
 
-async function fetchTableData(params: { treeKey: string; page: number; pageSize: number }) {
+async function fetchTableData(params: {
+  treeKey: string
+  page: number
+  pageSize: number
+}) {
   currentDept.value = params.treeKey
 
   await new Promise((resolve) => setTimeout(resolve, 300))
@@ -243,7 +249,12 @@ function handleTreeSelect(key: string, node: TreeDataNode) {
   <div :class="containerClassName">
     <div :class="pageHeaderClassName">TreeTable 树表格组件</div>
 
-    <a-card variant="borderless" title="组织架构 - 员工管理" class="rounded-xl" :class="cardClassName">
+    <a-card
+      variant="borderless"
+      title="组织架构 - 员工管理"
+      class="rounded-xl"
+      :class="cardClassName"
+    >
       <TreeTable
         tree-title="组织架构"
         :tree-data="orgTree"

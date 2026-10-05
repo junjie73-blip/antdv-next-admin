@@ -1,6 +1,13 @@
 import type { PropType } from 'vue'
 
-import { Button, DatePicker, Input, InputNumber, Select, Switch } from 'antdv-next'
+import {
+  Button,
+  DatePicker,
+  Input,
+  InputNumber,
+  Select,
+  Switch,
+} from 'antdv-next'
 import { computed, defineComponent, nextTick, ref, watch } from 'vue'
 
 import { IconifyIcon as Icon } from '~/components/common/Icon'
@@ -131,11 +138,32 @@ export default defineComponent({
             />
           )
         case 'Select':
-          return <Select ref={inputRef} value={editValue.value} onChange={handleChange} {...componentProps} />
+          return (
+            <Select
+              ref={inputRef}
+              value={editValue.value}
+              onChange={handleChange}
+              {...componentProps}
+            />
+          )
         case 'DatePicker':
-          return <DatePicker ref={inputRef} value={editValue.value} onChange={handleChange} {...componentProps} />
+          return (
+            <DatePicker
+              ref={inputRef}
+              value={editValue.value}
+              onChange={handleChange}
+              {...componentProps}
+            />
+          )
         case 'Switch':
-          return <Switch ref={inputRef} checked={editValue.value} onChange={handleChange} {...componentProps} />
+          return (
+            <Switch
+              ref={inputRef}
+              checked={editValue.value}
+              onChange={handleChange}
+              {...componentProps}
+            />
+          )
         default:
           return (
             <Input

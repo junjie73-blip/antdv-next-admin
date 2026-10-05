@@ -21,11 +21,16 @@ dayjs.locale('zh-CN')
 
 const antdLocale = shallowRef<any>()
 
-const getPopupContainer = (triggerNode?: HTMLElement | undefined): HTMLElement =>
-  triggerNode?.parentElement || document.body
+const getPopupContainer = (
+  triggerNode?: HTMLElement | undefined,
+): HTMLElement => triggerNode?.parentElement || document.body
 
 const themeConfig = computed(() =>
-  getThemeConfig(appStore.themeStyle, appStore.themeMode === 'dark', appStore.appSetting),
+  getThemeConfig(
+    appStore.themeStyle,
+    appStore.themeMode === 'dark',
+    appStore.appSetting,
+  ),
 )
 
 const DAYJS_LOCALE_MAP: Record<string, string> = {

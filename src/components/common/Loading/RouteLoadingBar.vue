@@ -97,7 +97,8 @@ const containerStyle = computed(() => ({
 const barStyle = computed(() => ({
   width: `${progress.value}%`,
   backgroundColor: barColor.value,
-  transitionDuration: isComplete.value || isError.value ? '200ms' : `${props.duration}ms`,
+  transitionDuration:
+    isComplete.value || isError.value ? '200ms' : `${props.duration}ms`,
   boxShadow: `0 0 10px ${barColor.value}40, 0 0 5px ${barColor.value}20`,
 }))
 
@@ -229,13 +230,22 @@ defineExpose({
     :aria-valuenow="progress"
     aria-valuemin="0"
     aria-valuemax="100"
-    :aria-label="isError ? '加载失败' : isLoading ? `页面加载中 ${Math.round(progress)}%` : '加载完成'"
+    :aria-label="
+      isError
+        ? '加载失败'
+        : isLoading
+          ? `页面加载中 ${Math.round(progress)}%`
+          : '加载完成'
+    "
   >
     <!-- 主进度条 -->
     <div :class="barClassName" :style="barStyle" />
 
     <!-- 光晕 -->
-    <div class="absolute inset-0 opacity-30 blur-sm" :style="{ backgroundColor: barColor }" />
+    <div
+      class="absolute inset-0 opacity-30 blur-sm"
+      :style="{ backgroundColor: barColor }"
+    />
 
     <!-- 百分比文字 -->
     <Transition
@@ -264,7 +274,10 @@ defineExpose({
       leave-from-class="opacity-100 translate-y-0"
       leave-to-class="opacity-0 -translate-y-1"
     >
-      <div v-if="(cancellable && isLoading) || isError" class="absolute top-full right-2 mt-2 flex items-center gap-2">
+      <div
+        v-if="(cancellable && isLoading) || isError"
+        class="absolute top-full right-2 mt-2 flex items-center gap-2"
+      >
         <!-- 取消 -->
         <button
           v-if="cancellable && isLoading && !isError"
@@ -273,8 +286,18 @@ defineExpose({
           class="flex items-center gap-1 rounded bg-white/90 px-2 py-1 text-xs shadow-sm transition-colors hover:bg-slate-100 dark:bg-slate-800/90 dark:hover:bg-slate-700"
           @click="handleCancel"
         >
-          <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          <svg
+            class="h-3 w-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
           取消
         </button>
@@ -288,7 +311,12 @@ defineExpose({
             class="flex items-center gap-1 rounded bg-red-50 px-2 py-1 text-xs text-red-600 transition-colors hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"
             @click="handleRetry"
           >
-            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              class="h-3 w-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"

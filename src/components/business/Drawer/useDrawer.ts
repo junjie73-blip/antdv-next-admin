@@ -22,7 +22,9 @@ export function useDrawer(): UseDrawerReturnType {
       await delay(50)
     }
 
-    throw new Error('[useDrawer] Drawer instance not found. Please check if the Drawer component is registered.')
+    throw new Error(
+      '[useDrawer] Drawer instance not found. Please check if the Drawer component is registered.',
+    )
   }
 
   const methods: DrawerMethods = {

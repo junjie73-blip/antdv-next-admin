@@ -114,7 +114,11 @@ const innerMethods: ModalInnerMethods = {
   },
 }
 
-const { start: scheduleRegister } = useTimeoutFn(() => emit('register', modalMethods), 0, { immediate: false })
+const { start: scheduleRegister } = useTimeoutFn(
+  () => emit('register', modalMethods),
+  0,
+  { immediate: false },
+)
 
 onMounted(() => {
   scheduleRegister()
@@ -148,14 +152,18 @@ function handleVisibleChange(visible: boolean) {
 
 <script lang="ts">
 // 在 script 中定义类名变量，遵循项目规范
-const headerClassName = cn('modal-header flex items-center justify-between px-6 py-4 border-b border-gray-200')
+const headerClassName = cn(
+  'modal-header flex items-center justify-between px-6 py-4 border-b border-gray-200',
+)
 
 const closeBtnClassName = cn(
   'p-1 text-gray-400 hover:text-gray-600 transition-colors',
   'cursor-pointer hover:bg-gray-100 rounded',
 )
 
-const footerClassName = cn('modal-footer flex items-center justify-center gap-3 px-6 py-4 border-t border-gray-200')
+const footerClassName = cn(
+  'modal-footer flex items-center justify-center gap-3 px-6 py-4 border-t border-gray-200',
+)
 </script>
 
 <template>
@@ -183,7 +191,9 @@ const footerClassName = cn('modal-footer flex items-center justify-center gap-3 
     <template #title>
       <div :id="modalTitleId" :class="headerClassName">
         <div :class="cn('flex items-center gap-2')">
-          <span :class="cn('text-lg font-medium text-gray-900')">{{ title }}</span>
+          <span :class="cn('text-lg font-medium text-gray-900')">{{
+            title
+          }}</span>
           <slot name="titleTip" />
         </div>
         <div :class="cn('flex items-center gap-2')">
@@ -216,9 +226,16 @@ const footerClassName = cn('modal-footer flex items-center justify-center gap-3 
     </ModalWrapper>
 
     <!-- 底部按钮 -->
-    <div v-if="showFooter && !slots.footer && (showCancelBtn || showOkBtn)" :class="footerClassName">
+    <div
+      v-if="showFooter && !slots.footer && (showCancelBtn || showOkBtn)"
+      :class="footerClassName"
+    >
       <slot name="insertFooter" />
-      <Button v-if="showCancelBtn" v-bind="cancelButtonProps" @click="handleCancel">
+      <Button
+        v-if="showCancelBtn"
+        v-bind="cancelButtonProps"
+        @click="handleCancel"
+      >
         <template #icon>
           <Icon icon="ant-design:close-outlined" />
         </template>
@@ -239,7 +256,10 @@ const footerClassName = cn('modal-footer flex items-center justify-center gap-3 
       </Button>
       <slot name="appendFooter" />
     </div>
-    <div v-else-if="slots.footer" :class="cn('modal-footer border-t border-gray-200 px-6 py-4')">
+    <div
+      v-else-if="slots.footer"
+      :class="cn('modal-footer border-t border-gray-200 px-6 py-4')"
+    >
       <slot name="footer" />
     </div>
   </Modal>

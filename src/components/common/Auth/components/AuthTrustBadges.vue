@@ -30,8 +30,19 @@ const { trustBadgeClassName } = useAuthStyles()
 </script>
 
 <template>
-  <div :class="cn('mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2', className)">
-    <span v-for="badge in badges" :key="badge.text" :class="trustBadgeClassName">
+  <div
+    :class="
+      cn(
+        'mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2',
+        className,
+      )
+    "
+  >
+    <span
+      v-for="badge in badges"
+      :key="badge.text"
+      :class="trustBadgeClassName"
+    >
       <Icon :icon="badge.icon" class="h-3 w-3" />
       {{ badge.text }}
     </span>

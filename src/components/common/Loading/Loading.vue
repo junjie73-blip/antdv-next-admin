@@ -48,10 +48,22 @@ const wrapperClassName = computed(() => {
     props.size === 'small' && 'loading-small',
     props.size === 'large' && 'loading-large',
     // 主题背景色（仅当没有自定义背景时）
-    !props.background && !props.absolute && props.theme === 'light' && 'bg-white/80',
-    !props.background && !props.absolute && props.theme === 'dark' && 'bg-black/70 text-white',
-    !props.background && props.absolute && props.theme === 'light' && 'bg-white/60',
-    !props.background && props.absolute && props.theme === 'dark' && 'bg-black/50 text-white',
+    !props.background &&
+      !props.absolute &&
+      props.theme === 'light' &&
+      'bg-white/80',
+    !props.background &&
+      !props.absolute &&
+      props.theme === 'dark' &&
+      'bg-black/70 text-white',
+    !props.background &&
+      props.absolute &&
+      props.theme === 'light' &&
+      'bg-white/60',
+    !props.background &&
+      props.absolute &&
+      props.theme === 'dark' &&
+      'bg-black/50 text-white',
   )
 })
 

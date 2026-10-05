@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import type { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor'
+import type {
+  IDomEditor,
+  IEditorConfig,
+  IToolbarConfig,
+} from '@wangeditor/editor'
 
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import { computed, ref, shallowRef, watch } from 'vue'
@@ -25,7 +29,10 @@ const editorConfig = computed((): Partial<IEditorConfig> => ({
       fieldName: 'file',
       maxFileSize: 5 * 1024 * 1024,
       allowedFileTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
-      async customUpload(file: File, insertFn: (url: string, alt: string, href: string) => void) {
+      async customUpload(
+        file: File,
+        insertFn: (url: string, alt: string, href: string) => void,
+      ) {
         const reader = new FileReader()
         reader.onload = (e) => {
           const url = e.target?.result as string
@@ -35,7 +42,10 @@ const editorConfig = computed((): Partial<IEditorConfig> => ({
       },
     },
     uploadVideo: {
-      async customUpload(file: File, insertFn: (url: string, poster: string) => void) {
+      async customUpload(
+        file: File,
+        insertFn: (url: string, poster: string) => void,
+      ) {
         const url = URL.createObjectURL(file)
         insertFn(url, '')
         message.warning('视频文件较大，建议使用视频链接代替')
@@ -69,7 +79,12 @@ watch(
 <template>
   <div :class="containerClassName">
     <a-card :class="toolbarCardClassName" :styles="{ body: { padding: '0' } }">
-      <Toolbar :editor="editorRef" :default-config="toolbarConfig" mode="default" class="!border-0" />
+      <Toolbar
+        :editor="editorRef"
+        :default-config="toolbarConfig"
+        mode="default"
+        class="!border-0"
+      />
     </a-card>
 
     <a-card :class="editorCardClassName" :styles="{ body: { padding: '0' } }">

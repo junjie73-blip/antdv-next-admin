@@ -13,7 +13,9 @@ const props = defineProps<{
 const emit = defineEmits<{ select: [value: string] }>()
 
 /** 归一化当前色值：null/undefined 处理为空串 */
-const normalizedCurrent = computed(() => (isString(props.current) ? props.current.toLowerCase() : ''))
+const normalizedCurrent = computed(() =>
+  isString(props.current) ? props.current.toLowerCase() : '',
+)
 
 function isActive(color: string) {
   return color.toLowerCase() === normalizedCurrent.value
@@ -39,7 +41,10 @@ function isActive(color: string) {
       />
     </div>
 
-    <div v-if="clearable" class="mt-2 border-t border-gray-100 pt-1 dark:border-gray-700">
+    <div
+      v-if="clearable"
+      class="mt-2 border-t border-gray-100 pt-1 dark:border-gray-700"
+    >
       <button
         type="button"
         class="w-full rounded px-2 py-1 text-left text-xs text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"

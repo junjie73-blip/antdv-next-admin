@@ -34,7 +34,10 @@ export interface UploadProps extends Omit<AntUploadProps, 'onChange'> {
   /** 后端接收的字段名，默认 "file" */
   name?: string
   /** 上传前钩子 */
-  beforeUpload?: (file: UploadFile, fileList: UploadFile[]) => boolean | Promise<boolean>
+  beforeUpload?: (
+    file: UploadFile,
+    fileList: UploadFile[],
+  ) => boolean | Promise<boolean>
   /** 文件变化回调 */
   onChange?: (fileList: UploadFile[]) => void
   /** 上传成功回调 */
@@ -56,7 +59,15 @@ export interface UploadInstance {
  * 大文件分片上传
  * ============================================================ */
 
-export type UploadStatus = 'waiting' | 'hashing' | 'uploading' | 'paused' | 'merging' | 'success' | 'error' | 'canceled'
+export type UploadStatus =
+  | 'waiting'
+  | 'hashing'
+  | 'uploading'
+  | 'paused'
+  | 'merging'
+  | 'success'
+  | 'error'
+  | 'canceled'
 
 export interface ChunkUploadTask {
   uid: string

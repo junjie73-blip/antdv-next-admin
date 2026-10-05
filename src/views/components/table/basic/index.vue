@@ -109,7 +109,14 @@ const basicData = [
 
 const basicColumns: BasicColumn[] = [
   { title: 'Name', dataIndex: 'name', key: 'name', sorter: true, width: 120 },
-  { title: 'Age', dataIndex: 'age', key: 'age', sorter: true, width: 80, align: 'center' },
+  {
+    title: 'Age',
+    dataIndex: 'age',
+    key: 'age',
+    sorter: true,
+    width: 80,
+    align: 'center',
+  },
   {
     title: 'Department',
     dataIndex: 'department',
@@ -123,7 +130,13 @@ const basicColumns: BasicColumn[] = [
     ],
     onFilter: (value, record) => record.department === value,
   },
-  { title: 'Status', dataIndex: 'status', key: 'status', width: 100, align: 'center' },
+  {
+    title: 'Status',
+    dataIndex: 'status',
+    key: 'status',
+    width: 100,
+    align: 'center',
+  },
   { title: 'Email', dataIndex: 'email', key: 'email', ellipsis: true },
   {
     title: 'Salary',
@@ -233,8 +246,20 @@ const paginationData = [
 const paginationColumns: BasicColumn[] = [
   { title: 'Order ID', dataIndex: 'id', key: 'id', width: 120 },
   { title: 'Customer', dataIndex: 'customer', key: 'customer' },
-  { title: 'Amount', dataIndex: 'amount', key: 'amount', width: 120, align: 'right' },
-  { title: 'Status', dataIndex: 'status', key: 'status', width: 120, align: 'center' },
+  {
+    title: 'Amount',
+    dataIndex: 'amount',
+    key: 'amount',
+    width: 120,
+    align: 'right',
+  },
+  {
+    title: 'Status',
+    dataIndex: 'status',
+    key: 'status',
+    width: 120,
+    align: 'center',
+  },
   { title: 'Date', dataIndex: 'date', key: 'date', width: 130 },
 ]
 
@@ -286,8 +311,20 @@ const treeData = [
 
 const treeColumns: BasicColumn[] = [
   { title: 'Name', dataIndex: 'name', key: 'name' },
-  { title: 'Type', dataIndex: 'type', key: 'type', width: 120, align: 'center' },
-  { title: 'Members', dataIndex: 'memberCount', key: 'memberCount', width: 100, align: 'center' },
+  {
+    title: 'Type',
+    dataIndex: 'type',
+    key: 'type',
+    width: 120,
+    align: 'center',
+  },
+  {
+    title: 'Members',
+    dataIndex: 'memberCount',
+    key: 'memberCount',
+    width: 100,
+    align: 'center',
+  },
 ]
 
 const [registerTree] = useTable({
@@ -315,10 +352,18 @@ const [registerLoading] = useTable({
   <div :class="containerClassName">
     <a-card title="Basic Table" variant="borderless">
       <div :class="toolbarClassName">
-        <span :class="descriptionClassName">Sorting, filtering, loading, and selection support</span>
+        <span :class="descriptionClassName"
+          >Sorting, filtering, loading, and selection support</span
+        >
         <a-space>
-          <a-button type="primary" size="small" @click="handleBasicRefresh"> Refresh </a-button>
-          <a-button size="small" :disabled="basicSelectedKeys.length === 0" @click="handleBulkAction">
+          <a-button type="primary" size="small" @click="handleBasicRefresh">
+            Refresh
+          </a-button>
+          <a-button
+            size="small"
+            :disabled="basicSelectedKeys.length === 0"
+            @click="handleBulkAction"
+          >
             Bulk Action
           </a-button>
         </a-space>
@@ -330,7 +375,9 @@ const [registerLoading] = useTable({
           </a-tag>
         </template>
         <template #cell-salary="{ record }">
-          <span :class="monoClassName">¥{{ record?.salary?.toLocaleString() ?? '-' }}</span>
+          <span :class="monoClassName"
+            >¥{{ record?.salary?.toLocaleString() ?? '-' }}</span
+          >
         </template>
       </BasicTable>
     </a-card>
@@ -343,7 +390,9 @@ const [registerLoading] = useTable({
           </a-tag>
         </template>
         <template #cell-amount="{ record }">
-          <span :class="monoClassName">¥{{ record?.amount?.toLocaleString() ?? '-' }}</span>
+          <span :class="monoClassName"
+            >¥{{ record?.amount?.toLocaleString() ?? '-' }}</span
+          >
         </template>
       </BasicTable>
     </a-card>

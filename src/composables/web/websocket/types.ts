@@ -30,7 +30,9 @@ export interface WebSocketEventCallback<T = unknown> {
 }
 
 export interface WebSocketEventHandlers {
-  [WebSocketEventType.Message]?: WebSocketEventCallback<string | ArrayBuffer | Blob>
+  [WebSocketEventType.Message]?: WebSocketEventCallback<
+    string | ArrayBuffer | Blob
+  >
   [WebSocketEventType.Open]?: WebSocketEventCallback<Event>
   [WebSocketEventType.Close]?: WebSocketEventCallback<CloseEvent>
   [WebSocketEventType.Error]?: WebSocketEventCallback<Event>

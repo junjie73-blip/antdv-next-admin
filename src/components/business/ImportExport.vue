@@ -74,7 +74,9 @@ async function handleExport() {
       exportFormat: props.exportProps?.exportFormat ?? 'xlsx',
       queryParams: params,
     })
-    message.success(`导出任务已提交（ID: ${taskId.slice(0, 8)}），可在「导出中心」查看进度`)
+    message.success(
+      `导出任务已提交（ID: ${taskId.slice(0, 8)}），可在「导出中心」查看进度`,
+    )
     props.onExportSuccess?.()
   } catch (e) {
     // es-toolkit isError 替代 instanceof Error
@@ -92,7 +94,9 @@ function handleBeforeUpload(file: File): boolean {
     return false
   }
 
-  const isValidType = props.accept.split(',').some((ext) => file.name.toLowerCase().endsWith(ext.trim().toLowerCase()))
+  const isValidType = props.accept
+    .split(',')
+    .some((ext) => file.name.toLowerCase().endsWith(ext.trim().toLowerCase()))
   if (!isValidType) {
     message.error(`仅支持 ${props.accept} 格式文件`)
     return false
@@ -140,7 +144,10 @@ function handleImportResult(result: ImportResult) {
 
   const MAX_SHOW = 20
   const shownErrors = errors.slice(0, MAX_SHOW)
-  const moreText = errors.length > MAX_SHOW ? `\n...还有 ${errors.length - MAX_SHOW} 条错误未显示` : ''
+  const moreText =
+    errors.length > MAX_SHOW
+      ? `\n...还有 ${errors.length - MAX_SHOW} 条错误未显示`
+      : ''
 
   if (props.onImportError?.(result)) return
 
@@ -149,14 +156,25 @@ function handleImportResult(result: ImportResult) {
     width: 640,
     content: () =>
       h('div', [
-        h('p', { class: 'mb-3 text-sm' }, `成功 ${successCount} 条，失败 ${failCount} 条`),
+        h(
+          'p',
+          { class: 'mb-3 text-sm' },
+          `成功 ${successCount} 条，失败 ${failCount} 条`,
+        ),
         errors.length > 0 &&
           h(
             'div',
             {
-              class: 'max-h-[400px] overflow-y-auto bg-red-50 dark:bg-red-900/20 p-3 rounded text-xs',
+              class:
+                'max-h-[400px] overflow-y-auto bg-red-50 dark:bg-red-900/20 p-3 rounded text-xs',
             },
-            shownErrors.map((err, i) => h('div', { key: i, class: 'mb-1 text-red-600 dark:text-red-400' }, err)),
+            shownErrors.map((err, i) =>
+              h(
+                'div',
+                { key: i, class: 'mb-1 text-red-600 dark:text-red-400' },
+                err,
+              ),
+            ),
           ),
         moreText && h('p', { class: 'mt-2 text-xs text-stone-500' }, moreText),
       ]),
@@ -165,13 +183,21 @@ function handleImportResult(result: ImportResult) {
 }
 
 function downloadTemplate() {
-  generateTemplate(props.filename ?? props.module.split('/').pop() + '导入模板', props.importTemplate!)
+  generateTemplate(
+    props.filename ?? props.module.split('/').pop() + '导入模板',
+    props.importTemplate!,
+  )
 }
 </script>
 
 <template>
   <a-space>
-    <a-button :loading="exporting" :disabled="disableExport" v-permission="permissions[1]" @click="handleExport">
+    <a-button
+      :loading="exporting"
+      :disabled="disableExport"
+      v-permission="permissions[1]"
+      @click="handleExport"
+    >
       <template #icon><DownloadOutlined /></template>
       {{ exportText }}
     </a-button>
@@ -183,7 +209,11 @@ function downloadTemplate() {
       :before-upload="handleBeforeUpload"
       :multiple="false"
     >
-      <a-button :loading="importing" :disabled="disableImport" v-permission="permissions[0]">
+      <a-button
+        :loading="importing"
+        :disabled="disableImport"
+        v-permission="permissions[0]"
+      >
         <template #icon><UploadOutlined /></template>
         {{ importText }}
       </a-button>

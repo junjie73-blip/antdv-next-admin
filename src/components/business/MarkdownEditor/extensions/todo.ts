@@ -5,7 +5,9 @@ import TodoNodeView from '../components/TodoNodeView.vue'
 const TODO_TAG = 'div[data-w-e-type="todo"]'
 
 function readChecked(element: HTMLElement): boolean {
-  const input = element.querySelector<HTMLInputElement>('input[type="checkbox"]')
+  const input = element.querySelector<HTMLInputElement>(
+    'input[type="checkbox"]',
+  )
   return input ? input.hasAttribute('checked') : false
 }
 
@@ -40,7 +42,12 @@ export const Todo = Node.create({
   renderHTML({ node, HTMLAttributes }) {
     const checkbox: Record<string, string> = { type: 'checkbox', disabled: '' }
     if (node.attrs.checked) checkbox.checked = ''
-    return ['div', mergeAttributes({ 'data-w-e-type': 'todo' }, HTMLAttributes), ['input', checkbox], ['span', 0]]
+    return [
+      'div',
+      mergeAttributes({ 'data-w-e-type': 'todo' }, HTMLAttributes),
+      ['input', checkbox],
+      ['span', 0],
+    ]
   },
 
   addKeyboardShortcuts() {

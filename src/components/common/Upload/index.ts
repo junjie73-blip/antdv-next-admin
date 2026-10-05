@@ -27,8 +27,19 @@ export type { HashTask } from './composables/useHashWorker'
 // ============================================================
 // API（供外部直接调用）
 // ============================================================
-export { checkChunks, deletePhysicalFile, mergeChunks, uploadChunk, uploadSingleFile } from './api'
-export type { ChunkCheckResult, ChunkMergeResult, ProgressCallback, UploadedFileResult } from './api'
+export {
+  checkChunks,
+  deletePhysicalFile,
+  mergeChunks,
+  uploadChunk,
+  uploadSingleFile,
+} from './api'
+export type {
+  ChunkCheckResult,
+  ChunkMergeResult,
+  ProgressCallback,
+  UploadedFileResult,
+} from './api'
 
 // ============================================================
 // 工具

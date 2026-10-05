@@ -1,4 +1,9 @@
-import type { ColProps, FormInstance, FormItemProps, RuleObject } from 'antdv-next'
+import type {
+  ColProps,
+  FormInstance,
+  FormItemProps,
+  RuleObject,
+} from 'antdv-next'
 import type { Component, VNode } from 'vue'
 
 import type { AntdvComponents, ComponentType } from './componentMap'
@@ -6,7 +11,9 @@ import type { AntdvComponents, ComponentType } from './componentMap'
 export type Recordable<T = any> = Record<string, T>
 
 // 提取组件的 Props 类型
-type ExtractComponentProps<T> = T extends abstract new (props: infer P) => any ? P : never
+type ExtractComponentProps<T> = T extends abstract new (props: infer P) => any
+  ? P
+  : never
 
 // 根据 ComponentType 映射到对应的 Props 类型
 export interface ComponentPropsMap {
@@ -90,9 +97,13 @@ interface BaseFormSchema {
 }
 
 // 泛型 FormSchema，根据 component 类型自动推断 componentProps
-export interface FormSchema<T extends ComponentType = ComponentType> extends BaseFormSchema {
+export interface FormSchema<
+  T extends ComponentType = ComponentType,
+> extends BaseFormSchema {
   component?: T
-  componentProps?: Partial<ComponentPropsMap[T]> | ((params: RenderCallbackParams<T>) => Partial<ComponentPropsMap[T]>)
+  componentProps?:
+    | Partial<ComponentPropsMap[T]>
+    | ((params: RenderCallbackParams<T>) => Partial<ComponentPropsMap[T]>)
 }
 
 export interface FormGridProps {
@@ -145,18 +156,30 @@ export interface FormActionType {
   validateFields: (nameList?: NamePath[]) => Promise<any>
   submit: () => Promise<void>
   clearValidate: (name?: string | string[]) => Promise<void>
-  scrollToField: (name: NamePath, options?: ScrollIntoViewOptions) => Promise<void>
+  scrollToField: (
+    name: NamePath,
+    options?: ScrollIntoViewOptions,
+  ) => Promise<void>
 
-  updateSchema: (data: Partial<FormSchema> | Partial<FormSchema>[]) => Promise<void>
+  updateSchema: (
+    data: Partial<FormSchema> | Partial<FormSchema>[],
+  ) => Promise<void>
   removeSchemaByField: (field: string | string[]) => Promise<void>
-  appendSchemaByField: (schema: FormSchema, prefixField?: string, first?: boolean) => Promise<void>
+  appendSchemaByField: (
+    schema: FormSchema,
+    prefixField?: string,
+    first?: boolean,
+  ) => Promise<void>
 
   setProps: (formProps: Partial<FormProps>) => Promise<void>
 
   getForm: () => FormInstance | null
 }
 
-export type UseFormReturnType = [register: (instance: FormActionType) => void, methods: FormActionType]
+export type UseFormReturnType = [
+  register: (instance: FormActionType) => void,
+  methods: FormActionType,
+]
 
 export interface ComponentMapType {
   [key: string]: Component

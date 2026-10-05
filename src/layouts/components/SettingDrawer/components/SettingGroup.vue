@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 
-import { groupBoxClassName, groupIconClassName, groupTitleClassName } from '../constants'
+import {
+  groupBoxClassName,
+  groupIconClassName,
+  groupTitleClassName,
+} from '../constants'
 
 defineOptions({ name: 'SettingGroup' })
 

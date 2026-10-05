@@ -13,9 +13,17 @@ export const POPUP_CONTAINER = () => document.body
 export type SettingSection = 'appearance' | 'layout' | 'common'
 
 export const SECTION_OPTIONS: SegmentedProps['options'] = [
-  { value: 'appearance', label: '外观', icon: h(Icon, { icon: 'carbon:color-palette' }) },
+  {
+    value: 'appearance',
+    label: '外观',
+    icon: h(Icon, { icon: 'carbon:color-palette' }),
+  },
   { value: 'layout', label: '布局', icon: h(Icon, { icon: 'carbon:layout' }) },
-  { value: 'common', label: '通用', icon: h(Icon, { icon: 'carbon:settings-adjust' }) },
+  {
+    value: 'common',
+    label: '通用',
+    icon: h(Icon, { icon: 'carbon:settings-adjust' }),
+  },
 ]
 
 /* ============================================================
@@ -88,13 +96,48 @@ export const NOTIFICATION_POSITION_OPTIONS = [
  * 时区
  * ============================================================ */
 export const TIMEZONE_OPTIONS = [
-  { value: 'Asia/Shanghai', label: '中国标准时间 (UTC+8)', offset: 'UTC+8', city: '上海' },
-  { value: 'Asia/Tokyo', label: '日本标准时间 (UTC+9)', offset: 'UTC+9', city: '东京' },
-  { value: 'Asia/Singapore', label: '新加坡时间 (UTC+8)', offset: 'UTC+8', city: '新加坡' },
-  { value: 'Europe/London', label: '伦敦时间 (UTC+0)', offset: 'UTC+0', city: '伦敦' },
-  { value: 'Europe/Paris', label: '巴黎时间 (UTC+1)', offset: 'UTC+1', city: '巴黎' },
-  { value: 'America/New_York', label: '纽约时间 (UTC-5)', offset: 'UTC-5', city: '纽约' },
-  { value: 'America/Los_Angeles', label: '洛杉矶时间 (UTC-8)', offset: 'UTC-8', city: '洛杉矶' },
+  {
+    value: 'Asia/Shanghai',
+    label: '中国标准时间 (UTC+8)',
+    offset: 'UTC+8',
+    city: '上海',
+  },
+  {
+    value: 'Asia/Tokyo',
+    label: '日本标准时间 (UTC+9)',
+    offset: 'UTC+9',
+    city: '东京',
+  },
+  {
+    value: 'Asia/Singapore',
+    label: '新加坡时间 (UTC+8)',
+    offset: 'UTC+8',
+    city: '新加坡',
+  },
+  {
+    value: 'Europe/London',
+    label: '伦敦时间 (UTC+0)',
+    offset: 'UTC+0',
+    city: '伦敦',
+  },
+  {
+    value: 'Europe/Paris',
+    label: '巴黎时间 (UTC+1)',
+    offset: 'UTC+1',
+    city: '巴黎',
+  },
+  {
+    value: 'America/New_York',
+    label: '纽约时间 (UTC-5)',
+    offset: 'UTC-5',
+    city: '纽约',
+  },
+  {
+    value: 'America/Los_Angeles',
+    label: '洛杉矶时间 (UTC-8)',
+    offset: 'UTC-8',
+    city: '洛杉矶',
+  },
   { value: 'UTC', label: '协调世界时 (UTC)' },
 ]
 
@@ -113,9 +156,14 @@ export const sectionStyles: SegmentedProps['styles'] = {
   label: { fontSize: '12px', fontWeight: 500 },
 }
 
-export const drawerBodyClassName = cn('flex flex-col h-full', 'bg-white dark:bg-slate-950')
+export const drawerBodyClassName = cn(
+  'flex flex-col h-full',
+  'bg-white dark:bg-slate-950',
+)
 
-export const drawerHeaderClassName = cn('flex shrink-0 items-center justify-between gap-2')
+export const drawerHeaderClassName = cn(
+  'flex shrink-0 items-center justify-between gap-2',
+)
 
 export const drawerContentClassName = cn('min-h-0 flex-1 overflow-hidden')
 
@@ -142,9 +190,13 @@ export const itemRowClassName = cn(
   'dark:bg-slate-800 dark:outline-slate-700',
 )
 
-export const itemLabelClassName = cn('text-[13px] font-medium text-slate-700 dark:text-slate-200')
+export const itemLabelClassName = cn(
+  'text-[13px] font-medium text-slate-700 dark:text-slate-200',
+)
 
-export const itemDescClassName = cn('mt-0.5 text-[11px] text-slate-400 dark:text-slate-500')
+export const itemDescClassName = cn(
+  'mt-0.5 text-[11px] text-slate-400 dark:text-slate-500',
+)
 
 export const groupTitleClassName = cn(
   'relative mb-3 flex w-fit items-center gap-2 pb-2',

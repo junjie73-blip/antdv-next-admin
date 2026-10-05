@@ -36,7 +36,8 @@ const iconSize = computed(() => {
 
 const iconStyle = computed(() => ({
   color: props.color,
-  fontSize: typeof iconSize.value === 'number' ? `${iconSize.value}px` : iconSize.value,
+  fontSize:
+    typeof iconSize.value === 'number' ? `${iconSize.value}px` : iconSize.value,
 }))
 </script>
 

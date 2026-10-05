@@ -47,7 +47,11 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 // 骨架屏基础样式（带动画）
-const skeletonBaseClassName = cn('animate-pulse', 'bg-gray-200 dark:bg-gray-700', 'rounded')
+const skeletonBaseClassName = cn(
+  'animate-pulse',
+  'bg-gray-200 dark:bg-gray-700',
+  'rounded',
+)
 
 // 表头单元格样式
 const headerCellClassName = cn(skeletonBaseClassName, 'h-10 px-4')
@@ -64,14 +68,27 @@ function getCellClassName(isAction?: boolean) {
 <template>
   <!-- 加载中：显示表格骨架屏 -->
   <div v-if="loading" :class="cn('w-full', props.class)">
-    <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+    <div
+      class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
+    >
       <!-- 表头 -->
       <div
         v-if="showHeader"
-        :class="cn('flex border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800')"
+        :class="
+          cn(
+            'flex border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800',
+          )
+        "
       >
-        <div v-for="col in columns" :key="`header-${col}`" :class="cn(headerCellClassName, 'flex-1')" />
-        <div v-if="showActions" :class="cn(headerCellClassName, 'w-24 shrink-0')" />
+        <div
+          v-for="col in columns"
+          :key="`header-${col}`"
+          :class="cn(headerCellClassName, 'flex-1')"
+        />
+        <div
+          v-if="showActions"
+          :class="cn(headerCellClassName, 'w-24 shrink-0')"
+        />
       </div>
 
       <!-- 数据行 -->
@@ -83,12 +100,21 @@ function getCellClassName(isAction?: boolean) {
             cn(
               'flex items-center',
               row !== rows && 'border-b border-gray-100 dark:border-gray-800',
-              row % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50/50 dark:bg-gray-900/50',
+              row % 2 === 0
+                ? 'bg-white dark:bg-gray-900'
+                : 'bg-gray-50/50 dark:bg-gray-900/50',
             )
           "
         >
-          <div v-for="col in columns" :key="`cell-${row}-${col}`" :class="cn('flex-1 px-4', getCellClassName())" />
-          <div v-if="showActions" :class="cn('w-24 shrink-0 px-4', getCellClassName(true))" />
+          <div
+            v-for="col in columns"
+            :key="`cell-${row}-${col}`"
+            :class="cn('flex-1 px-4', getCellClassName())"
+          />
+          <div
+            v-if="showActions"
+            :class="cn('w-24 shrink-0 px-4', getCellClassName(true))"
+          />
         </div>
       </div>
     </div>

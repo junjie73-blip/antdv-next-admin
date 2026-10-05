@@ -31,7 +31,9 @@ const hasError = ref(false)
 const errorMessage = ref('')
 const retryCount = ref(0)
 
-const containerClassName = computed(() => cn('micro-app-container relative', 'w-full h-full', props.className))
+const containerClassName = computed(() =>
+  cn('micro-app-container relative', 'w-full h-full', props.className),
+)
 
 const overlayClassName = cn(
   'absolute inset-0 z-10 flex flex-col items-center justify-center',
@@ -93,18 +95,34 @@ if (!props.url) {
   <div :class="containerClassName">
     <div v-if="loading" :class="overlayClassName">
       <a-spin size="large" />
-      <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">正在加载子应用...</p>
-      <p v-if="retryCount > 0" class="mt-1 text-xs text-gray-400 dark:text-gray-500">第 {{ retryCount }} 次重试</p>
+      <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+        正在加载子应用...
+      </p>
+      <p
+        v-if="retryCount > 0"
+        class="mt-1 text-xs text-gray-400 dark:text-gray-500"
+      >
+        第 {{ retryCount }} 次重试
+      </p>
     </div>
 
     <div v-if="hasError && !loading" :class="overlayClassName">
       <div class="max-w-sm px-4 text-center">
-        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
+        <div
+          class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30"
+        >
           <span class="i-carbon-error text-3xl text-red-500" />
         </div>
-        <h4 class="mb-2 text-base font-semibold text-gray-900 dark:text-white">子应用加载失败</h4>
-        <p class="mb-1 text-sm text-gray-500 dark:text-gray-400">{{ errorMessage }}</p>
-        <p v-if="url" class="mb-5 font-mono text-xs break-all text-gray-400 dark:text-gray-500">
+        <h4 class="mb-2 text-base font-semibold text-gray-900 dark:text-white">
+          子应用加载失败
+        </h4>
+        <p class="mb-1 text-sm text-gray-500 dark:text-gray-400">
+          {{ errorMessage }}
+        </p>
+        <p
+          v-if="url"
+          class="mb-5 font-mono text-xs break-all text-gray-400 dark:text-gray-500"
+        >
           {{ url }}
         </p>
 

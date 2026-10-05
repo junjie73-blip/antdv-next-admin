@@ -18,7 +18,8 @@ const listenerMap = new WeakMap<Element, Set<() => void>>()
 const observerMap = new WeakMap<Element, ResizeObserver>()
 
 /** 浏览器是否支持原生 ResizeObserver */
-const hasNativeResizeObserver = typeof window !== 'undefined' && typeof window.ResizeObserver === 'function'
+const hasNativeResizeObserver =
+  typeof window !== 'undefined' && typeof window.ResizeObserver === 'function'
 
 /**
  * 触发某个元素上注册的所有回调

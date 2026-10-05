@@ -28,8 +28,16 @@ const suffixClassName = cn('text-sm text-blue-300/60')
 
 <template>
   <div :class="containerClassName">
-    <span v-if="prefix" class="mr-0.5 text-sm text-blue-300/50">{{ prefix }}</span>
-    <CountTo :end-val="value" :class="valueClassName" :duration="duration" :decimals="0" separator="," />
+    <span v-if="prefix" class="mr-0.5 text-sm text-blue-300/50">{{
+      prefix
+    }}</span>
+    <CountTo
+      :end-val="value"
+      :class="valueClassName"
+      :duration="duration"
+      :decimals="0"
+      separator=","
+    />
     <span :class="suffixClassName">{{ suffix }}</span>
   </div>
 </template>

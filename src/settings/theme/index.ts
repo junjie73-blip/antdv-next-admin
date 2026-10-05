@@ -34,14 +34,20 @@ export function getAntdTheme(
       ...(isDark ? darkToken : lightToken),
       /* 用户运行时覆盖 */
       ...(overrides.primaryColor && { colorPrimary: overrides.primaryColor }),
-      ...(overrides.borderRadius !== undefined && { borderRadius: overrides.borderRadius }),
+      ...(overrides.borderRadius !== undefined && {
+        borderRadius: overrides.borderRadius,
+      }),
       ...(overrides.fontSize !== undefined && { fontSize: overrides.fontSize }),
     },
     components: isDark ? darkComponents : lightComponents,
   }
 }
 
-function getThemeConfig(style: ThemeStyle, isDark: boolean, appSetting: AppSetting): ThemeConfig {
+function getThemeConfig(
+  style: ThemeStyle,
+  isDark: boolean,
+  appSetting: AppSetting,
+): ThemeConfig {
   return getAntdTheme(appSetting.theme, isDark, {
     fontSize: appSetting?.fontSize || 16,
     borderRadius: appSetting?.borderRadius * 8,

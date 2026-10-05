@@ -20,7 +20,14 @@ const tableData = ref([
     status: '在职',
     email: 'zhangsan@example.com',
   },
-  { id: 2, name: '李四', age: 32, department: '产品部', status: '在职', email: 'lisi@example.com' },
+  {
+    id: 2,
+    name: '李四',
+    age: 32,
+    department: '产品部',
+    status: '在职',
+    email: 'lisi@example.com',
+  },
   {
     id: 3,
     name: '王五',
@@ -83,7 +90,15 @@ function handleRefresh() {
     <a-card title="基础表格">
       <BasicTable @register="registerBasic">
         <template #cell-status="{ record }">
-          <a-tag :color="record?.status === '在职' ? 'green' : record?.status === '休假' ? 'blue' : 'default'">
+          <a-tag
+            :color="
+              record?.status === '在职'
+                ? 'green'
+                : record?.status === '休假'
+                  ? 'blue'
+                  : 'default'
+            "
+          >
             {{ record?.status }}
           </a-tag>
         </template>
@@ -95,7 +110,12 @@ function handleRefresh() {
     </a-card>
 
     <a-card title="骨架屏加载动画">
-      <a-alert message="点击下方按钮查看加载状态" type="info" show-icon :class="infoClassName" />
+      <a-alert
+        message="点击下方按钮查看加载状态"
+        type="info"
+        show-icon
+        :class="infoClassName"
+      />
 
       <a-skeleton :loading="loading" active :paragraph="{ rows: 5 }">
         <div :class="skeletonContentClassName">
@@ -104,14 +124,22 @@ function handleRefresh() {
       </a-skeleton>
 
       <div :class="toolbarClassName">
-        <a-button :type="loading ? 'default' : 'primary'" @click="loading = !loading">
+        <a-button
+          :type="loading ? 'default' : 'primary'"
+          @click="loading = !loading"
+        >
           {{ loading ? '停止加载' : '开始加载' }}
         </a-button>
       </div>
     </a-card>
 
     <a-card title="行动画效果">
-      <a-alert message="添加/删除行时会有平滑的过渡动画效果" type="success" show-icon :class="infoClassName" />
+      <a-alert
+        message="添加/删除行时会有平滑的过渡动画效果"
+        type="success"
+        show-icon
+        :class="infoClassName"
+      />
 
       <BasicTable @register="registerAnimated" />
     </a-card>

@@ -41,7 +41,11 @@ const appStore = useAppStore()
     <!-- ============================================================ -->
     <SettingGroup title="水印" icon="carbon:watermark">
       <SettingItem label="显示全局水印" desc="覆盖整个管理后台页面">
-        <Switch :checked="appStore.enableWatermark" size="small" @change="appStore.toggles.enableWatermark" />
+        <Switch
+          :checked="appStore.enableWatermark"
+          size="small"
+          @change="appStore.toggles.enableWatermark"
+        />
       </SettingItem>
 
       <SettingItem v-if="appStore.enableWatermark" label="水印内容">
@@ -50,7 +54,9 @@ const appStore = useAppStore()
           placeholder="请输入"
           size="small"
           class="!w-40"
-          @update:value="(v: string) => appStore.updateSetting({ watermarkContent: v })"
+          @update:value="
+            (v: string) => appStore.updateSetting({ watermarkContent: v })
+          "
         />
       </SettingItem>
     </SettingGroup>
@@ -60,15 +66,27 @@ const appStore = useAppStore()
     <!-- ============================================================ -->
     <SettingGroup title="交互效果" icon="carbon:magic-wand">
       <SettingItem label="水波纹效果" desc="按钮点击涟漪反馈">
-        <Switch :checked="appStore.enableWaterRipple" size="small" @change="appStore.toggles.enableWaterRipple" />
+        <Switch
+          :checked="appStore.enableWaterRipple"
+          size="small"
+          @change="appStore.toggles.enableWaterRipple"
+        />
       </SettingItem>
 
       <SettingItem label="页面切换进度条" desc="顶部 NProgress 进度条">
-        <Switch :checked="appStore.showProgressBar" size="small" @change="appStore.toggles.showProgressBar" />
+        <Switch
+          :checked="appStore.showProgressBar"
+          size="small"
+          @change="appStore.toggles.showProgressBar"
+        />
       </SettingItem>
 
       <SettingItem label="页面切换 Loading" desc="路由跳转加载动画">
-        <Switch :checked="appStore.showLoading" size="small" @change="appStore.toggles.showLoading" />
+        <Switch
+          :checked="appStore.showLoading"
+          size="small"
+          @change="appStore.toggles.showLoading"
+        />
       </SettingItem>
     </SettingGroup>
 
@@ -83,7 +101,10 @@ const appStore = useAppStore()
           size="small"
           class="!w-40"
           :get-popup-container="POPUP_CONTAINER"
-          @change="(v: string) => appStore.updateSetting({ transitionEffect: v as never })"
+          @change="
+            (v: string) =>
+              appStore.updateSetting({ transitionEffect: v as never })
+          "
         />
       </SettingItem>
     </SettingGroup>

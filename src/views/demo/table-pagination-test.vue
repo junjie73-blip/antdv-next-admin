@@ -166,8 +166,11 @@ async function testDataChange() {
 function testPaginationSize() {
   currentTest.value = '分页器尺寸测试'
   console.log('=== 测试场景 5：分页器尺寸 ===')
-  console.log('检查分页器是否使用 middle 尺寸，而不是被 ConfigProvider 覆盖为 small')
-  testResult.value = '请检查分页器的 class，应该包含 ant-pagination-middle，而不是 ant-pagination-small'
+  console.log(
+    '检查分页器是否使用 middle 尺寸，而不是被 ConfigProvider 覆盖为 small',
+  )
+  testResult.value =
+    '请检查分页器的 class，应该包含 ant-pagination-middle，而不是 ant-pagination-small'
 }
 </script>
 
@@ -184,7 +187,9 @@ function testPaginationSize() {
       />
 
       <Space class="mb-4">
-        <Button type="primary" @click="testNormalPagination"> 测试正常分页 </Button>
+        <Button type="primary" @click="testNormalPagination">
+          测试正常分页
+        </Button>
         <Button @click="testChangePageSize"> 测试切换每页条数 </Button>
         <Button @click="testQuickPageChange"> 测试快速切换页码 </Button>
         <Button @click="testDataChange"> 测试数据量变化 </Button>

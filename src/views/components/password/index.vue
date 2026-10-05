@@ -13,23 +13,37 @@ const relativeClass = cn('relative')
 // ==================== Strength Indicator Styles ====================
 const suffixRowClass = cn('flex items-center gap-2')
 const strengthBadgeClass = cn('text-xs px-2 py-0.5 rounded font-medium')
-const strengthBarOuterClass = cn('h-2 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700')
+const strengthBarOuterClass = cn(
+  'h-2 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700',
+)
 const strengthBarInnerClass = cn('h-full flex gap-1')
-const strengthSegmentClass = cn('flex-1 rounded-full transition-all duration-300')
+const strengthSegmentClass = cn(
+  'flex-1 rounded-full transition-all duration-300',
+)
 const strengthInfoRowClass = cn('flex justify-between items-center text-sm')
 const strengthInfoLabelClass = cn('text-gray-600 dark:text-gray-400')
 const strengthInfoRightClass = cn('flex items-center gap-2')
 const strengthPercentClass = cn('text-gray-400')
-const tipsContainerClass = cn('p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-2')
+const tipsContainerClass = cn(
+  'p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-2',
+)
 const tipsTitleClass = cn('font-medium text-sm flex items-center gap-2')
 const tipsListClass = cn('space-y-1.5')
-const tipsItemSuccessClass = cn('flex items-center gap-2 text-sm text-green-600 dark:text-green-400')
-const tipsItemFailClass = cn('flex items-center gap-2 text-sm text-orange-600 dark:text-orange-400')
+const tipsItemSuccessClass = cn(
+  'flex items-center gap-2 text-sm text-green-600 dark:text-green-400',
+)
+const tipsItemFailClass = cn(
+  'flex items-center gap-2 text-sm text-orange-600 dark:text-orange-400',
+)
 const tipsIconClass = cn('flex-shrink-0')
 
 // ==================== Visibility Toggle Styles ====================
-const toggleBtnClass = cn('p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors')
-const toggleIconClass = cn('text-gray-400 hover:text-blue-500 transition-colors')
+const toggleBtnClass = cn(
+  'p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors',
+)
+const toggleIconClass = cn(
+  'text-gray-400 hover:text-blue-500 transition-colors',
+)
 const visibilityInfoClass = cn(
   'flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm text-blue-700 dark:text-blue-300',
 )
@@ -45,7 +59,9 @@ const resultCardClass = cn(
 const resultCardInnerClass = cn('flex items-start justify-between gap-2')
 const resultCardCodeWrapClass = cn('flex-1 min-w-0')
 const resultLabelClass = cn('text-xs text-green-600 dark:text-green-400 mb-1')
-const resultCodeClass = cn('block p-3 bg-white dark:bg-gray-800 rounded text-lg break-all font-mono select-all')
+const resultCodeClass = cn(
+  'block p-3 bg-white dark:bg-gray-800 rounded text-lg break-all font-mono select-all',
+)
 const resultMetaClass = cn('text-xs text-gray-500 mt-2')
 
 // ==================== Password History Styles ====================
@@ -56,7 +72,9 @@ const historyItemClass = cn(
 const historyItemLeftClass = cn('flex items-center gap-3 flex-1 min-w-0')
 const historyCodeClass = cn('font-mono text-sm truncate')
 const historyLenClass = cn('text-xs text-gray-500 flex-shrink-0')
-const historyActionsClass = cn('flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity')
+const historyActionsClass = cn(
+  'flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity',
+)
 const historyFooterClass = cn('flex justify-end pt-2')
 const historyEmptyClass = cn('text-center py-8 text-gray-500')
 
@@ -71,8 +89,12 @@ const policyCheckCardWideClass = cn(
 )
 const policyResultClass = cn('p-4 rounded-lg')
 const policyResultInnerClass = cn('flex items-start gap-2')
-const policySuccessClass = cn('bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800')
-const policyFailClass = cn('bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800')
+const policySuccessClass = cn(
+  'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800',
+)
+const policyFailClass = cn(
+  'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800',
+)
 
 // ==================== Combined Dashboard Styles ====================
 const dashboardActionsClass = cn('flex gap-2 flex-wrap')
@@ -82,7 +104,9 @@ const statusCardSuccessClass = cn('bg-green-50 dark:bg-green-900/20')
 const statusCardFailClass = cn('bg-red-50 dark:bg-red-900/20')
 const statusCardNeutralClass = cn('bg-gray-50 dark:bg-gray-800')
 const statusCardWarningClass = cn('bg-orange-50 dark:bg-orange-900/20')
-const dashboardHistoryTitleClass = cn('text-sm font-medium mb-2 flex items-center gap-2')
+const dashboardHistoryTitleClass = cn(
+  'text-sm font-medium mb-2 flex items-center gap-2',
+)
 const dashboardHistoryTagsClass = cn('flex gap-2 flex-wrap')
 const passwordStrengthClass = cn('space-y-2')
 const iconGrayClass = cn('text-gray-400')
@@ -108,7 +132,16 @@ interface StrengthResult {
 
 const passwordStrength = computed<StrengthResult>(() => {
   const pwd = password.value
-  if (!pwd) return { level: 0, text: '', color: '', bgColor: '', textColor: '', percent: 0, segments: [] }
+  if (!pwd)
+    return {
+      level: 0,
+      text: '',
+      color: '',
+      bgColor: '',
+      textColor: '',
+      percent: 0,
+      segments: [],
+    }
 
   let score = 0
   if (pwd.length >= 8) score++
@@ -355,7 +388,9 @@ const policyValidation = computed<PolicyValidationResult>(() => {
   if (/[^a-z\d]/i.test(pwd)) typeCount++
 
   if (typeCount < policyConfig.value.minUniqueTypes) {
-    errors.push(`至少需要 ${policyConfig.value.minUniqueTypes} 种不同的字符类型`)
+    errors.push(
+      `至少需要 ${policyConfig.value.minUniqueTypes} 种不同的字符类型`,
+    )
   }
 
   return {
@@ -367,7 +402,10 @@ const policyValidation = computed<PolicyValidationResult>(() => {
 // ==================== Combined Dashboard ====================
 const overallValid = computed(() => {
   if (!password.value) return null
-  return (passwordStrength.value?.level ?? 0) >= 2 && policyValidation.value.valid === true
+  return (
+    (passwordStrength.value?.level ?? 0) >= 2 &&
+    policyValidation.value.valid === true
+  )
 })
 </script>
 
@@ -409,7 +447,9 @@ const overallValid = computed(() => {
                 v-for="(segment, index) in passwordStrength.segments"
                 :key="index"
                 :class="strengthSegmentClass"
-                :style="{ backgroundColor: segment.active ? segment.color : '#e5e7eb' }"
+                :style="{
+                  backgroundColor: segment.active ? segment.color : '#e5e7eb',
+                }"
               />
             </div>
           </div>
@@ -429,10 +469,14 @@ const overallValid = computed(() => {
                 "
                 :class="`text-${passwordStrength.color}`"
               />
-              <span :style="{ color: passwordStrength.textColor }" class="font-medium">{{
-                passwordStrength.text
-              }}</span>
-              <span :class="strengthPercentClass">{{ passwordStrength.percent }}%</span>
+              <span
+                :style="{ color: passwordStrength.textColor }"
+                class="font-medium"
+                >{{ passwordStrength.text }}</span
+              >
+              <span :class="strengthPercentClass"
+                >{{ passwordStrength.percent }}%</span
+              >
             </div>
           </div>
         </div>
@@ -448,7 +492,10 @@ const overallValid = computed(() => {
               :key="index"
               :class="tip.done ? tipsItemSuccessClass : tipsItemFailClass"
             >
-              <Icon :icon="tip.done ? 'carbon:checkmark-filled' : 'carbon:close'" :class="tipsIconClass" />
+              <Icon
+                :icon="tip.done ? 'carbon:checkmark-filled' : 'carbon:close'"
+                :class="tipsIconClass"
+              />
               {{ tip.text }}
             </li>
           </ul>
@@ -472,8 +519,14 @@ const overallValid = computed(() => {
               <Icon icon="carbon:locked" :class="iconGrayClass" />
             </template>
             <template #suffix>
-              <button :class="toggleBtnClass" @click="showPassword = !showPassword">
-                <Icon :icon="showPassword ? 'carbon:view-off' : 'carbon:view'" :class="toggleIconClass" />
+              <button
+                :class="toggleBtnClass"
+                @click="showPassword = !showPassword"
+              >
+                <Icon
+                  :icon="showPassword ? 'carbon:view-off' : 'carbon:view'"
+                  :class="toggleIconClass"
+                />
               </button>
             </template>
           </a-input>
@@ -491,8 +544,15 @@ const overallValid = computed(() => {
       <div :class="passwordCardClass">
         <div :class="generatorGridClass">
           <div>
-            <label :class="generatorLabelClass">长度: {{ generatorOptions.length }}</label>
-            <a-slider v-model:value="generatorOptions.length" :min="8" :max="64" :step="1" />
+            <label :class="generatorLabelClass"
+              >长度: {{ generatorOptions.length }}</label
+            >
+            <a-slider
+              v-model:value="generatorOptions.length"
+              :min="8"
+              :max="64"
+              :step="1"
+            />
           </div>
           <div :class="generatorCheckItemClass">
             <label :class="generatorCheckLabelClass">
@@ -526,7 +586,12 @@ const overallValid = computed(() => {
           </div>
         </div>
 
-        <a-button type="primary" block size="large" @click="generateRandomPassword">
+        <a-button
+          type="primary"
+          block
+          size="large"
+          @click="generateRandomPassword"
+        >
           <template #icon>
             <Icon icon="carbon:renew" />
           </template>
@@ -540,7 +605,9 @@ const overallValid = computed(() => {
               <code :class="resultCodeClass">
                 {{ generatedPassword }}
               </code>
-              <p :class="resultMetaClass">长度: {{ generatedPassword.length }} 字符</p>
+              <p :class="resultMetaClass">
+                长度: {{ generatedPassword.length }} 字符
+              </p>
             </div>
             <a-button type="link" @click="copyGeneratedPassword">
               <template #icon>
@@ -555,7 +622,9 @@ const overallValid = computed(() => {
 
     <!-- ==================== 4. 密码历史 ==================== -->
     <a-card title="密码历史">
-      <p :class="cardDescClass">自动保存最近使用的密码（最多 {{ MAX_HISTORY }} 条）。</p>
+      <p :class="cardDescClass">
+        自动保存最近使用的密码（最多 {{ MAX_HISTORY }} 条）。
+      </p>
       <div :class="passwordCardClass">
         <div v-if="passwordHistory.length > 0" :class="historyListClass">
           <div
@@ -566,20 +635,31 @@ const overallValid = computed(() => {
           >
             <div :class="historyItemLeftClass">
               <Icon icon="carbon:time" :class="iconGrayClass" />
-              <code :class="historyCodeClass">{{ pwd.replace(/./g, '*') }}</code>
+              <code :class="historyCodeClass">{{
+                pwd.replace(/./g, '*')
+              }}</code>
               <span :class="historyLenClass">{{ pwd.length }} 字符</span>
             </div>
             <div :class="historyActionsClass">
               <a-tooltip title="使用此密码">
-                <Icon icon="carbon:checkmark" class="cursor-pointer text-green-500" />
+                <Icon
+                  icon="carbon:checkmark"
+                  class="cursor-pointer text-green-500"
+                />
               </a-tooltip>
               <a-tooltip title="复制到剪贴板">
-                <Icon icon="carbon:copy" class="cursor-pointer text-blue-500" @click.stop="copyHistoryPassword(pwd)" />
+                <Icon
+                  icon="carbon:copy"
+                  class="cursor-pointer text-blue-500"
+                  @click.stop="copyHistoryPassword(pwd)"
+                />
               </a-tooltip>
             </div>
           </div>
           <div :class="historyFooterClass">
-            <a-button danger size="small" @click="clearHistory"> 清空历史 </a-button>
+            <a-button danger size="small" @click="clearHistory">
+              清空历史
+            </a-button>
           </div>
         </div>
         <div v-else :class="historyEmptyClass">
@@ -596,12 +676,26 @@ const overallValid = computed(() => {
       <div :class="passwordCardClass">
         <div :class="policyGridClass">
           <div>
-            <label :class="generatorLabelClass">最小长度: {{ policyConfig.minLength }}</label>
-            <a-slider v-model:value="policyConfig.minLength" :min="6" :max="20" :step="1" />
+            <label :class="generatorLabelClass"
+              >最小长度: {{ policyConfig.minLength }}</label
+            >
+            <a-slider
+              v-model:value="policyConfig.minLength"
+              :min="6"
+              :max="20"
+              :step="1"
+            />
           </div>
           <div>
-            <label :class="generatorLabelClass">最大长度: {{ policyConfig.maxLength }}</label>
-            <a-slider v-model:value="policyConfig.maxLength" :min="16" :max="128" :step="1" />
+            <label :class="generatorLabelClass"
+              >最大长度: {{ policyConfig.maxLength }}</label
+            >
+            <a-slider
+              v-model:value="policyConfig.maxLength"
+              :min="16"
+              :max="128"
+              :step="1"
+            />
           </div>
         </div>
 
@@ -624,30 +718,52 @@ const overallValid = computed(() => {
           </label>
           <label :class="policyCheckCardWideClass">
             <a-checkbox v-model:value="policyConfig.minUniqueTypes" />
-            <span class="text-sm">最少 {{ policyConfig.minUniqueTypes }} 种字符类型</span>
+            <span class="text-sm"
+              >最少 {{ policyConfig.minUniqueTypes }} 种字符类型</span
+            >
           </label>
         </div>
 
         <div
           v-if="password"
-          :class="[policyResultClass, policyValidation.valid === true ? policySuccessClass : policyFailClass]"
+          :class="[
+            policyResultClass,
+            policyValidation.valid === true
+              ? policySuccessClass
+              : policyFailClass,
+          ]"
         >
           <div :class="policyResultInnerClass">
             <Icon
-              :icon="policyValidation.valid ? 'carbon:checkmark-filled' : 'carbon:close-filled'"
-              :class="policyValidation.valid ? 'text-green-500' : 'text-red-500'"
+              :icon="
+                policyValidation.valid
+                  ? 'carbon:checkmark-filled'
+                  : 'carbon:close-filled'
+              "
+              :class="
+                policyValidation.valid ? 'text-green-500' : 'text-red-500'
+              "
               class="mt-0.5 text-xl"
             />
             <div class="flex-1">
               <h4
                 class="font-medium"
                 :class="
-                  policyValidation.valid ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'
+                  policyValidation.valid
+                    ? 'text-green-700 dark:text-green-300'
+                    : 'text-red-700 dark:text-red-300'
                 "
               >
-                {{ policyValidation.valid ? '策略要求已满足！' : '策略要求未满足' }}
+                {{
+                  policyValidation.valid ? '策略要求已满足！' : '策略要求未满足'
+                }}
               </h4>
-              <ul v-if="!policyValidation.valid && policyValidation.errors.length > 0" class="mt-2 space-y-1">
+              <ul
+                v-if="
+                  !policyValidation.valid && policyValidation.errors.length > 0
+                "
+                class="mt-2 space-y-1"
+              >
                 <li
                   v-for="(error, index) in policyValidation.errors"
                   :key="index"
@@ -674,7 +790,13 @@ const overallValid = computed(() => {
             allow-clear
             size="large"
             :type="showPassword ? 'text' : 'password'"
-            :status="overallValid === false ? 'error' : overallValid === true ? undefined : undefined"
+            :status="
+              overallValid === false
+                ? 'error'
+                : overallValid === true
+                  ? undefined
+                  : undefined
+            "
           >
             <template #prefix>
               <Icon icon="carbon:password" :class="iconGrayClass" />
@@ -691,7 +813,10 @@ const overallValid = computed(() => {
                 >
                   {{ passwordStrength.text }}
                 </span>
-                <button :class="toggleBtnClass" @click="showPassword = !showPassword">
+                <button
+                  :class="toggleBtnClass"
+                  @click="showPassword = !showPassword"
+                >
                   <Icon
                     :icon="showPassword ? 'carbon:view-off' : 'carbon:view'"
                     class="text-gray-400 hover:text-blue-500"
@@ -708,7 +833,9 @@ const overallValid = computed(() => {
               v-for="(segment, index) in passwordStrength.segments"
               :key="index"
               :class="strengthSegmentClass"
-              :style="{ backgroundColor: segment.active ? segment.color : '#e5e7eb' }"
+              :style="{
+                backgroundColor: segment.active ? segment.color : '#e5e7eb',
+              }"
             />
           </div>
         </div>
@@ -797,10 +924,15 @@ const overallValid = computed(() => {
           >
             <Icon
               :icon="
-                overallValid === null ? 'carbon:help' : overallValid ? 'carbon:checkmark-filled' : 'carbon:warning-alt'
+                overallValid === null
+                  ? 'carbon:help'
+                  : overallValid
+                    ? 'carbon:checkmark-filled'
+                    : 'carbon:warning-alt'
               "
               :class="{
-                'text-green-500': overallValid === true || overallValid === null,
+                'text-green-500':
+                  overallValid === true || overallValid === null,
                 'text-orange-500': overallValid === false,
               }"
               class="text-xl"

@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import type { UploadFile, UploadProps as AntUploadProps, UploadRequestOption } from 'antdv-next'
+import type {
+  UploadFile,
+  UploadProps as AntUploadProps,
+  UploadRequestOption,
+} from 'antdv-next'
 
 import { Icon } from '@iconify/vue'
 import { Button, message, Upload as AntUpload } from 'antdv-next'
@@ -141,7 +145,11 @@ defineExpose<UploadInstance>({
 
 <template>
   <div :class="cn('upload-wrapper', props.className)">
-    <AntUpload v-model:file-list="fileList" v-bind="uploadProps" @change="handleChange">
+    <AntUpload
+      v-model:file-list="fileList"
+      v-bind="uploadProps"
+      @change="handleChange"
+    >
       <Button v-if="!readonly" :disabled="disabled">
         <template #icon>
           <Icon icon="carbon:upload" />

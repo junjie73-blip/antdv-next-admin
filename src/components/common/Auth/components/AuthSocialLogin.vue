@@ -37,7 +37,10 @@ const { socialButtonClassName, socialIconClassName } = useAuthStyles()
       :title="`使用 ${item.label} 登录`"
       @click="emit('click', item.key)"
     >
-      <Icon :icon="item.icon" :class="cn(socialIconClassName, item.iconClassName)" />
+      <Icon
+        :icon="item.icon"
+        :class="cn(socialIconClassName, item.iconClassName)"
+      />
     </button>
   </div>
 </template>

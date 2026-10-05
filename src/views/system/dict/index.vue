@@ -56,21 +56,32 @@ const typeItemClassName = (active: boolean) =>
     'border-b border-gray-100 dark:border-gray-800',
     'transition-colors duration-200',
     'hover:bg-gray-50 dark:hover:bg-gray-800',
-    active && 'bg-blue-50 dark:bg-blue-900/20 border-l-[3px] border-l-[var(--ant-color-primary)]',
+    active &&
+      'bg-blue-50 dark:bg-blue-900/20 border-l-[3px] border-l-[var(--ant-color-primary)]',
   )
-const typeItemNameClassName = cn('text-sm font-medium text-gray-800 dark:text-gray-200 truncate')
+const typeItemNameClassName = cn(
+  'text-sm font-medium text-gray-800 dark:text-gray-200 truncate',
+)
 const typeItemCodeClassName = cn('text-xs text-gray-400 mt-0.5 truncate')
-const typeItemActionsClassName = cn('flex items-center gap-1 flex-shrink-0 ml-2')
+const typeItemActionsClassName = cn(
+  'flex items-center gap-1 flex-shrink-0 ml-2',
+)
 const typeItemBtnClassName = cn('!p-0.5 !min-w-0')
-const emptyClassName = cn('flex flex-col items-center justify-center py-10 text-gray-400')
+const emptyClassName = cn(
+  'flex flex-col items-center justify-center py-10 text-gray-400',
+)
 const emptyIconClassName = cn('text-4xl mb-3 opacity-30')
 const emptyTitleClassName = cn('text-sm font-medium')
 const emptyDescClassName = cn('text-xs mt-1')
-const cardFooterClassName = cn('flex justify-start px-4 py-3 border-t border-gray-100 dark:border-gray-800')
+const cardFooterClassName = cn(
+  'flex justify-start px-4 py-3 border-t border-gray-100 dark:border-gray-800',
+)
 const cardHeaderClassName = cn(
   'flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800',
 )
-const cardTitleClassName = cn('text-sm font-semibold text-gray-800 dark:text-gray-200')
+const cardTitleClassName = cn(
+  'text-sm font-semibold text-gray-800 dark:text-gray-200',
+)
 const actionClassName = cn('flex', 'items-center', 'justify-center')
 const btnClassName = cn('!px-0.5')
 const dividerClassName = cn('mx-0')
@@ -88,7 +99,9 @@ const statusLabelMap: Record<number, string> = {
 
 const dictStore = useDictStore()
 
-const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
+const statusOptions = computed(() =>
+  dictStore.getOptions(DictType.NORMAL_DISABLE),
+)
 
 const isEditing = ref(false)
 const isEditingItem = ref(false)
@@ -286,8 +299,14 @@ async function handleSave() {
 
     modalMethods.closeModal()
     await loadDictTypes()
-    if (selectedType.value && isEditing.value && currentRecord.value?.id === selectedType.value.id) {
-      const updated = dictTypes.value.find((t) => t.id === selectedType.value!.id)
+    if (
+      selectedType.value &&
+      isEditing.value &&
+      currentRecord.value?.id === selectedType.value.id
+    ) {
+      const updated = dictTypes.value.find(
+        (t) => t.id === selectedType.value!.id,
+      )
       if (updated) {
         selectedType.value = updated
       }
@@ -367,7 +386,9 @@ async function handleDeleteItem(item: DictItemRecord) {
 function handleExport() {
   const dataToExport = selectedType.value ? dictItems.value : dictTypes.value
   exportToExcel({
-    filename: selectedType.value ? `字典项_${selectedType.value.typeName}` : '字典列表',
+    filename: selectedType.value
+      ? `字典项_${selectedType.value.typeName}`
+      : '字典列表',
     sheetName: '数据字典',
     columns: selectedType.value
       ? [
@@ -393,9 +414,21 @@ function handleExport() {
 
 const itemColumns: BasicColumn[] = [
   { title: '字典标签', dataIndex: 'dictLabel', key: 'dictLabel', width: 130 },
-  { title: '字典键值', dataIndex: 'dictValue', key: 'dictValue', width: 100, align: 'center' },
+  {
+    title: '字典键值',
+    dataIndex: 'dictValue',
+    key: 'dictValue',
+    width: 100,
+    align: 'center',
+  },
   { title: '排序', dataIndex: 'sort', key: 'sort', width: 80, align: 'center' },
-  { title: '状态', dataIndex: 'status', key: 'status', width: 80, align: 'center' },
+  {
+    title: '状态',
+    dataIndex: 'status',
+    key: 'status',
+    width: 80,
+    align: 'center',
+  },
   { title: '备注', dataIndex: 'remark', key: 'remark', ellipsis: true },
 ]
 
@@ -410,7 +443,12 @@ loadDictTypes()
   <div :class="containerClassName">
     <!-- 左侧：字典类型列表 -->
     <div :class="leftPanelClassName">
-      <div :class="cardClassName + ' rounded-lg border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900'">
+      <div
+        :class="
+          cardClassName +
+          ' rounded-lg border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900'
+        "
+      >
         <div :class="cardHeaderClassName">
           <span :class="cardTitleClassName">字典类型</span>
         </div>
@@ -436,16 +474,33 @@ loadDictTypes()
               <div :class="typeItemCodeClassName">{{ item.typeCode }}</div>
             </div>
             <div :class="typeItemActionsClassName">
-              <a-tag :color="statusColorMap[item.status] || 'default'" class="!px-1 !py-0 !text-[10px] !leading-4">
+              <a-tag
+                :color="statusColorMap[item.status] || 'default'"
+                class="!px-1 !py-0 !text-[10px] !leading-4"
+              >
                 {{ statusLabelMap[item.status] || '未知' }}
               </a-tag>
-              <a-button type="text" size="small" :class="typeItemBtnClassName" @click.stop="handleEdit(item)">
+              <a-button
+                type="text"
+                size="small"
+                :class="typeItemBtnClassName"
+                @click.stop="handleEdit(item)"
+              >
                 <template #icon>
                   <Icon icon="ant-design:edit-outlined" class="text-xs" />
                 </template>
               </a-button>
-              <a-popconfirm :title="`确定要删除字典「${item.typeName}」吗？`" @confirm="handleDelete(item)">
-                <a-button type="text" danger size="small" :class="typeItemBtnClassName" @click.stop>
+              <a-popconfirm
+                :title="`确定要删除字典「${item.typeName}」吗？`"
+                @confirm="handleDelete(item)"
+              >
+                <a-button
+                  type="text"
+                  danger
+                  size="small"
+                  :class="typeItemBtnClassName"
+                  @click.stop
+                >
                   <template #icon>
                     <Icon icon="ant-design:delete-outlined" class="text-xs" />
                   </template>
@@ -469,7 +524,12 @@ loadDictTypes()
 
     <!-- 右侧：字典项 -->
     <div :class="rightPanelClassName">
-      <div :class="cardClassName + ' rounded-lg border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900'">
+      <div
+        :class="
+          cardClassName +
+          ' rounded-lg border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900'
+        "
+      >
         <div :class="cardHeaderClassName">
           <span :class="cardTitleClassName">
             {{ selectedType ? `${selectedType.typeName} - 字典项` : '字典项' }}
@@ -481,7 +541,12 @@ loadDictTypes()
               </template>
               导出
             </a-button>
-            <a-button type="primary" size="small" :disabled="!selectedType" @click="handleAddItem">
+            <a-button
+              type="primary"
+              size="small"
+              :disabled="!selectedType"
+              @click="handleAddItem"
+            >
               <template #icon>
                 <Icon icon="ant-design:plus-outlined" />
               </template>
@@ -497,7 +562,9 @@ loadDictTypes()
               <Icon icon="carbon:book" />
             </div>
             <div :class="emptyTitleClassName">请选择字典类型</div>
-            <div :class="emptyDescClassName">从左侧列表中选择一个字典类型，查看其字典项</div>
+            <div :class="emptyDescClassName">
+              从左侧列表中选择一个字典类型，查看其字典项
+            </div>
           </div>
 
           <BasicTable
@@ -507,7 +574,10 @@ loadDictTypes()
             :immediate="true"
             :use-search-form="false"
             :show-table-setting="false"
-            :pagination="{ showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }"
+            :pagination="{
+              showSizeChanger: true,
+              pageSizeOptions: ['10', '20', '50'],
+            }"
             :action-column="{ width: 180, title: '操作', fixed: 'right' }"
             size="small"
             @register="itemTableRegister"
@@ -515,7 +585,13 @@ loadDictTypes()
             <template #cell-status="{ record }">
               <a-tag :color="statusColorMap[record.status] || 'default'">
                 <span :class="tagClassName">
-                  <Icon :icon="record.status === 1 ? 'carbon:checkmark-outline' : 'carbon:close-outline'" />
+                  <Icon
+                    :icon="
+                      record.status === 1
+                        ? 'carbon:checkmark-outline'
+                        : 'carbon:close-outline'
+                    "
+                  />
                   {{ statusLabelMap[record.status] || '未知' }}
                 </span>
               </a-tag>
@@ -523,7 +599,12 @@ loadDictTypes()
 
             <template #action="{ record }">
               <div :class="actionClassName">
-                <a-button type="link" :class="btnClassName" size="small" @click="() => handleEditItem(record)">
+                <a-button
+                  type="link"
+                  :class="btnClassName"
+                  size="small"
+                  @click="() => handleEditItem(record)"
+                >
                   编辑
                 </a-button>
                 <a-divider type="vertical" :class="dividerClassName" />
@@ -531,7 +612,14 @@ loadDictTypes()
                   :title="`确定要删除字典项「${record.dictLabel}」吗？`"
                   @confirm="() => handleDeleteItem(record)"
                 >
-                  <a-button type="link" danger :class="btnClassName" size="small"> 删除 </a-button>
+                  <a-button
+                    type="link"
+                    danger
+                    :class="btnClassName"
+                    size="small"
+                  >
+                    删除
+                  </a-button>
                 </a-popconfirm>
               </div>
             </template>

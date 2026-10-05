@@ -9,14 +9,18 @@ const containerClassName = cn('space-y-6')
 
 // 页面标题区域
 const pageHeaderClassName = cn('mb-2')
-const pageTitleClassName = cn('text-2xl font-bold text-gray-800 dark:text-gray-100')
+const pageTitleClassName = cn(
+  'text-2xl font-bold text-gray-800 dark:text-gray-100',
+)
 const pageDescClassName = cn('text-gray-500 dark:text-gray-400 mt-1')
 
 // 卡片 extra 提示文字
 const cardExtraClassName = cn('text-sm text-gray-400')
 
 // 基础用法 - 数字展示区域
-const numberCardClassName = cn('flex flex-col items-center p-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg')
+const numberCardClassName = cn(
+  'flex flex-col items-center p-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg',
+)
 const numberLabelClassName = cn('text-sm text-gray-500 mb-2')
 const numberValueClassName = cn('text-3xl font-bold')
 
@@ -44,8 +48,12 @@ const easingCardClassName = cn('p-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg')
 const easingHeaderClassName = cn('flex justify-between items-center mb-3')
 const easingNameClassName = cn('font-medium text-gray-700 dark:text-gray-300')
 const easingDescClassName = cn('text-sm text-gray-400')
-const easingDisplayClassName = cn('h-16 flex items-center bg-white dark:bg-gray-900 rounded p-2')
-const easingValueClassName = cn('text-xl font-mono font-bold w-full text-center')
+const easingDisplayClassName = cn(
+  'h-16 flex items-center bg-white dark:bg-gray-900 rounded p-2',
+)
+const easingValueClassName = cn(
+  'text-xl font-mono font-bold w-full text-center',
+)
 
 // 数据看板面板
 interface DashboardItem {
@@ -65,7 +73,8 @@ const dashboardData: DashboardItem[] = [
     prefix: '',
     suffix: '人',
     icon: '👥',
-    bgColor: 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30',
+    bgColor:
+      'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30',
     textColor: 'text-blue-600',
   },
   {
@@ -74,7 +83,8 @@ const dashboardData: DashboardItem[] = [
     prefix: '',
     suffix: '',
     icon: '📈',
-    bgColor: 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30',
+    bgColor:
+      'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30',
     textColor: 'text-green-600',
   },
   {
@@ -83,7 +93,8 @@ const dashboardData: DashboardItem[] = [
     prefix: '¥',
     suffix: '',
     icon: '💰',
-    bgColor: 'bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/30 dark:to-yellow-800/30',
+    bgColor:
+      'bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/30 dark:to-yellow-800/30',
     textColor: 'text-yellow-600',
   },
   {
@@ -92,14 +103,20 @@ const dashboardData: DashboardItem[] = [
     prefix: '',
     suffix: '%',
     icon: '🎯',
-    bgColor: 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30',
+    bgColor:
+      'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30',
     textColor: 'text-purple-600',
   },
 ]
 
-const dashboardGridClassName = cn('grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6')
+const dashboardGridClassName = cn(
+  'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6',
+)
 function dashboardCardClassName(bgColor: string) {
-  return cn('rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow', bgColor)
+  return cn(
+    'rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow',
+    bgColor,
+  )
 }
 const dashboardTitleClassName = cn('text-sm font-medium')
 const dashboardValueClassName = cn('text-3xl font-bold')
@@ -156,7 +173,12 @@ function resetDynamicCounter() {
       </template>
       <div :class="numberCardClassName">
         <span :class="numberLabelClassName">当前年份</span>
-        <CountTo :start-val="0" :end-val="2024" :duration="2000" :class="cn(numberValueClassName, 'text-blue-600')" />
+        <CountTo
+          :start-val="0"
+          :end-val="2024"
+          :duration="2000"
+          :class="cn(numberValueClassName, 'text-blue-600')"
+        />
       </div>
     </a-card>
 
@@ -252,7 +274,12 @@ function resetDynamicCounter() {
           "
         >
           <span :class="numberLabelClassName">人数 (人)</span>
-          <CountTo :start-val="0" :end-val="12580" suffix="人" :class="cn(numberValueClassName, 'text-blue-600')" />
+          <CountTo
+            :start-val="0"
+            :end-val="12580"
+            suffix="人"
+            :class="cn(numberValueClassName, 'text-blue-600')"
+          />
         </div>
         <div
           :class="
@@ -281,7 +308,12 @@ function resetDynamicCounter() {
       <div :class="separatorGridClassName">
         <div :class="numberCardClassName">
           <span :class="numberLabelClassName">万级数字</span>
-          <CountTo :start-val="0" :end-val="12345" separator="," :class="cn(numberValueClassName, 'text-blue-600')" />
+          <CountTo
+            :start-val="0"
+            :end-val="12345"
+            separator=","
+            :class="cn(numberValueClassName, 'text-blue-600')"
+          />
         </div>
         <div :class="numberCardClassName">
           <span :class="numberLabelClassName">百万级数字</span>
@@ -310,25 +342,67 @@ function resetDynamicCounter() {
         <span :class="cardExtraClassName">支持正数和负数的动画效果</span>
       </template>
       <div :class="decimalGridClassName">
-        <div :class="signCardClassName('border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20')">
+        <div
+          :class="
+            signCardClassName(
+              'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20',
+            )
+          "
+        >
           <span :class="signLabelClassName">正增长 📈</span>
-          <CountTo :start-val="0" :end-val="5678" :class="cn(numberValueClassName, 'text-green-600')" />
+          <CountTo
+            :start-val="0"
+            :end-val="5678"
+            :class="cn(numberValueClassName, 'text-green-600')"
+          />
           <span :class="cn(signChangeClassName, 'text-green-500')">+12.5%</span>
         </div>
-        <div :class="signCardClassName('border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20')">
+        <div
+          :class="
+            signCardClassName(
+              'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20',
+            )
+          "
+        >
           <span :class="signLabelClassName">负增长 📉</span>
-          <CountTo :start-val="0" :end-val="-2345" :class="cn(numberValueClassName, 'text-red-600')" />
+          <CountTo
+            :start-val="0"
+            :end-val="-2345"
+            :class="cn(numberValueClassName, 'text-red-600')"
+          />
           <span :class="cn(signChangeClassName, 'text-red-500')">-8.3%</span>
         </div>
-        <div :class="signCardClassName('border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20')">
+        <div
+          :class="
+            signCardClassName(
+              'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20',
+            )
+          "
+        >
           <span :class="signLabelClassName">大额正数 💪</span>
-          <CountTo :start-val="0" :end-val="99999" :class="cn(numberValueClassName, 'text-blue-600')" />
+          <CountTo
+            :start-val="0"
+            :end-val="99999"
+            :class="cn(numberValueClassName, 'text-blue-600')"
+          />
           <span :class="cn(signChangeClassName, 'text-blue-500')">+156.8%</span>
         </div>
-        <div :class="signCardClassName('border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20')">
+        <div
+          :class="
+            signCardClassName(
+              'border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20',
+            )
+          "
+        >
           <span :class="signLabelClassName">亏损 ⚠️</span>
-          <CountTo :start-val="0" :end-val="-8888" :class="cn(numberValueClassName, 'text-orange-600')" />
-          <span :class="cn(signChangeClassName, 'text-orange-500')">-23.4%</span>
+          <CountTo
+            :start-val="0"
+            :end-val="-8888"
+            :class="cn(numberValueClassName, 'text-orange-600')"
+          />
+          <span :class="cn(signChangeClassName, 'text-orange-500')"
+            >-23.4%</span
+          >
         </div>
       </div>
     </a-card>
@@ -360,7 +434,9 @@ function resetDynamicCounter() {
         <!-- easeInOutCubic - 三次缓入缓出 -->
         <div :class="easingCardClassName">
           <div :class="easingHeaderClassName">
-            <span :class="easingNameClassName">easeInOutCubic (三次缓入缓出)</span>
+            <span :class="easingNameClassName"
+              >easeInOutCubic (三次缓入缓出)</span
+            >
             <span :class="easingDescClassName">慢→快→慢，自然流畅</span>
           </div>
           <div :class="easingDisplayClassName">
@@ -418,7 +494,11 @@ function resetDynamicCounter() {
         <span :class="cardExtraClassName">模拟真实业务场景的数据展示</span>
       </template>
       <div :class="dashboardGridClassName">
-        <div v-for="(item, index) in dashboardData" :key="index" :class="dashboardCardClassName(item.bgColor)">
+        <div
+          v-for="(item, index) in dashboardData"
+          :key="index"
+          :class="dashboardCardClassName(item.bgColor)"
+        >
           <div class="mb-4 flex items-center justify-between">
             <span class="text-3xl">{{ item.icon }}</span>
             <span :class="cn(dashboardTitleClassName, item.textColor)">
@@ -429,7 +509,9 @@ function resetDynamicCounter() {
             <CountTo
               :start-val="0"
               :end-val="item.value"
-              :decimals="item.title === '总收入' || item.title === '转化率' ? 2 : 0"
+              :decimals="
+                item.title === '总收入' || item.title === '转化率' ? 2 : 0
+              "
               :prefix="item.prefix"
               :suffix="item.suffix"
               separator=","
@@ -442,7 +524,8 @@ function resetDynamicCounter() {
               {{ index % 2 === 0 ? '↑' : '↓' }}
             </span>
             <span :class="index % 2 === 0 ? 'text-green-500' : 'text-red-500'">
-              {{ index % 2 === 0 ? '+' : '-' }}{{ Math.floor(Math.random() * 20 + 5) }}%
+              {{ index % 2 === 0 ? '+' : '-'
+              }}{{ Math.floor(Math.random() * 20 + 5) }}%
             </span>
             <span :class="trendTextClassName">较上月</span>
           </div>
@@ -453,7 +536,9 @@ function resetDynamicCounter() {
     <!-- 8. 动态更新 -->
     <a-card title="动态更新目标值" variant="borderless">
       <template #extra>
-        <span :class="cardExtraClassName">点击按钮改变目标值，动画自动重播</span>
+        <span :class="cardExtraClassName"
+          >点击按钮改变目标值，动画自动重播</span
+        >
       </template>
       <div :class="dynamicContainerClassName">
         <div class="mb-6">
@@ -468,10 +553,17 @@ function resetDynamicCounter() {
           />
         </div>
         <div :class="buttonGroupClassName">
-          <a-button type="primary" size="large" @click="updateDynamicValue"> 🎲 随机生成新数值 </a-button>
-          <a-button size="large" @click="resetDynamicCounter"> 🔄 重播动画 </a-button>
+          <a-button type="primary" size="large" @click="updateDynamicValue">
+            🎲 随机生成新数值
+          </a-button>
+          <a-button size="large" @click="resetDynamicCounter">
+            🔄 重播动画
+          </a-button>
         </div>
-        <p :class="dynamicTipClassName">点击「随机生成」会改变目标值，CountTo 会检测到 endVal 变化并自动重新播放动画</p>
+        <p :class="dynamicTipClassName">
+          点击「随机生成」会改变目标值，CountTo 会检测到 endVal
+          变化并自动重新播放动画
+        </p>
       </div>
     </a-card>
   </div>

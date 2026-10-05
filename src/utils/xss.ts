@@ -45,7 +45,14 @@ export type EscapeType = 'html' | 'url' | 'js' | 'css' | 'attr'
 const DEFAULT_OPTIONS: Required<XssFilterOptions> = {
   allowHtml: false,
   allowedTags: [],
-  forbiddenAttrs: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur'],
+  forbiddenAttrs: [
+    'onerror',
+    'onload',
+    'onclick',
+    'onmouseover',
+    'onfocus',
+    'onblur',
+  ],
   stripScript: true,
   stripEventHandlers: true,
   maxLength: 10000,
@@ -132,7 +139,10 @@ export function escapeHtml(str: string): string {
     '=': '&#x3D;',
   }
 
-  return String(str).replace(/[&<>"'`=/]/g, (char) => htmlEscapeMap[char] ?? char)
+  return String(str).replace(
+    /[&<>"'`=/]/g,
+    (char) => htmlEscapeMap[char] ?? char,
+  )
 }
 
 /**
@@ -180,7 +190,10 @@ export function escapeJs(str: string): string {
 
   // 先转义反斜杠，再转义其他字符
   let escaped = String(str).replace(/\\/, '\\\\')
-  escaped = escaped.replace(/['"\n\r\t\0\u2028\u2029]/g, (char) => jsEscapeMap[char] ?? char)
+  escaped = escaped.replace(
+    /['"\n\r\t\0\u2028\u2029]/g,
+    (char) => jsEscapeMap[char] ?? char,
+  )
 
   return escaped
 }
@@ -201,7 +214,10 @@ export function escapeCss(value: string): string {
     .replace(/-moz-binding\s*:/gi, '')
 
   // 编码特殊字符
-  return sanitized.replace(/[^\w\-\s#%.!]/g, (match) => `\\${match.charCodeAt(0).toString(16).padStart(2, '0')}`)
+  return sanitized.replace(
+    /[^\w\-\s#%.!]/g,
+    (match) => `\\${match.charCodeAt(0).toString(16).padStart(2, '0')}`,
+  )
 }
 
 /**
@@ -220,7 +236,10 @@ export function escapeAttr(value: string): string {
  * @param context - 转义的上下文环境
  * @returns 转义后的安全字符串
  */
-export function smartEscape(value: string, context: EscapeType = 'html'): string {
+export function smartEscape(
+  value: string,
+  context: EscapeType = 'html',
+): string {
   switch (context) {
     case 'html':
       return escapeHtml(value)
@@ -246,7 +265,10 @@ export function smartEscape(value: string, context: EscapeType = 'html'): string
  * @param options - 过滤选项
  * @returns 安全的字符串
  */
-export function sanitizeInput(input: string, options: XssFilterOptions = {}): string {
+export function sanitizeInput(
+  input: string,
+  options: XssFilterOptions = {},
+): string {
   if (!input) return ''
 
   const opts = { ...DEFAULT_OPTIONS, ...options }
@@ -309,7 +331,10 @@ export function sanitizeUrl(url: string, allowRelative = false): string {
  * 当前使用内置的 sanitizeInput 进行清理。
  * 如需更强的 HTML 清理能力，可安装 dompurify：pnpm add dompurify
  */
-export async function purifyHtml(dirty: string, options?: XssFilterOptions): Promise<string> {
+export async function purifyHtml(
+  dirty: string,
+  options?: XssFilterOptions,
+): Promise<string> {
   const opts = { ...DEFAULT_OPTIONS, ...options }
 
   // 配置 DOMPurify
@@ -386,7 +411,8 @@ export const escapeDirective = {
 }
 // 抽离公共逻辑
 function updateSafeHtml(el: HTMLElement, binding: SafeHtmlBinding) {
-  const rawValue = typeof binding.value === 'string' ? binding.value : binding.value.content
+  const rawValue =
+    typeof binding.value === 'string' ? binding.value : binding.value.content
   const options = typeof binding.value === 'object' ? binding.value : {}
 
   // 对于 v-safe-html 指令，默认允许基础的富文本标签

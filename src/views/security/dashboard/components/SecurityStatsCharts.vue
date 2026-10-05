@@ -12,7 +12,9 @@ const appStore = useAppStore()
 const isDark = computed(() => appStore.themeMode === 'dark')
 
 const containerClassName = cn('rounded-xl p-5')
-const sectionTitleClassName = cn('text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3')
+const sectionTitleClassName = cn(
+  'text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3',
+)
 
 // 图表 DOM 引用
 const pieRef = ref<HTMLDivElement>()
@@ -41,7 +43,11 @@ function borderColor() {
 }
 
 /** 安全初始化图表 */
-function safeInit(name: string, refEl: ref<HTMLDivElement | undefined>, initFn: (el: HTMLDivElement) => void) {
+function safeInit(
+  name: string,
+  refEl: ref<HTMLDivElement | undefined>,
+  initFn: (el: HTMLDivElement) => void,
+) {
   const el = refEl.value
   if (!el || charts.has(name)) return
 
@@ -81,7 +87,9 @@ function initPieChart(el: HTMLDivElement) {
   instance.setOption({
     tooltip: {
       trigger: 'item',
-      backgroundColor: isDark.value ? 'rgba(31,41,55,0.96)' : 'rgba(255,255,255,0.96)',
+      backgroundColor: isDark.value
+        ? 'rgba(31,41,55,0.96)'
+        : 'rgba(255,255,255,0.96)',
       borderColor: borderColor(),
       textStyle: { color: textColor(), fontSize: 12 },
       formatter: '{b}: {c} ({d}%)',
@@ -109,15 +117,28 @@ function initPieChart(el: HTMLDivElement) {
         },
         label: { show: false },
         emphasis: {
-          label: { show: true, fontSize: 13, fontWeight: 'bold', color: textColor() },
+          label: {
+            show: true,
+            fontSize: 13,
+            fontWeight: 'bold',
+            color: textColor(),
+          },
           scaleSize: 6,
         },
         data: [
           { value: 45, name: 'XSS攻击', itemStyle: { color: PALETTE.danger } },
           { value: 28, name: 'SQL注入', itemStyle: { color: PALETTE.primary } },
-          { value: 35, name: 'CSRF攻击', itemStyle: { color: PALETTE.warning } },
+          {
+            value: 35,
+            name: 'CSRF攻击',
+            itemStyle: { color: PALETTE.warning },
+          },
           { value: 52, name: '暴力破解', itemStyle: { color: PALETTE.info } },
-          { value: 68, name: '扫描探测', itemStyle: { color: PALETTE.success } },
+          {
+            value: 68,
+            name: '扫描探测',
+            itemStyle: { color: PALETTE.success },
+          },
         ],
         animationDuration: 1200,
       },
@@ -131,12 +152,20 @@ function initBarChart(el: HTMLDivElement) {
   instance.setOption({
     tooltip: {
       trigger: 'axis',
-      backgroundColor: isDark.value ? 'rgba(31,41,55,0.96)' : 'rgba(255,255,255,0.96)',
+      backgroundColor: isDark.value
+        ? 'rgba(31,41,55,0.96)'
+        : 'rgba(255,255,255,0.96)',
       borderColor: borderColor(),
       textStyle: { color: textColor(), fontSize: 12 },
       axisPointer: { type: 'shadow' },
     },
-    grid: { left: '3%', right: '4%', top: '8%', bottom: '12%', containLabel: true },
+    grid: {
+      left: '3%',
+      right: '4%',
+      top: '8%',
+      bottom: '12%',
+      containLabel: true,
+    },
     xAxis: {
       type: 'category',
       data: ['北京', '上海', '广州', '深圳', '杭州', '成都', '海外'],
@@ -147,7 +176,9 @@ function initBarChart(el: HTMLDivElement) {
     yAxis: {
       type: 'value',
       axisLabel: { color: subTextColor(), fontSize: 11 },
-      splitLine: { lineStyle: { color: borderColor(), type: 'dashed', opacity: 0.5 } },
+      splitLine: {
+        lineStyle: { color: borderColor(), type: 'dashed', opacity: 0.5 },
+      },
     },
     series: [
       {
@@ -237,7 +268,9 @@ function initLineChart(el: HTMLDivElement) {
   instance.setOption({
     tooltip: {
       trigger: 'axis',
-      backgroundColor: isDark.value ? 'rgba(31,41,55,0.96)' : 'rgba(255,255,255,0.96)',
+      backgroundColor: isDark.value
+        ? 'rgba(31,41,55,0.96)'
+        : 'rgba(255,255,255,0.96)',
       borderColor: borderColor(),
       textStyle: { color: textColor(), fontSize: 12 },
     },
@@ -249,7 +282,13 @@ function initLineChart(el: HTMLDivElement) {
       itemHeight: 3,
       itemGap: 20,
     },
-    grid: { left: '3%', right: '4%', top: '8%', bottom: '18%', containLabel: true },
+    grid: {
+      left: '3%',
+      right: '4%',
+      top: '8%',
+      bottom: '18%',
+      containLabel: true,
+    },
     xAxis: {
       type: 'category',
       boundaryGap: false,
@@ -263,13 +302,19 @@ function initLineChart(el: HTMLDivElement) {
         name: '事件数',
         nameTextStyle: { color: subTextColor(), fontSize: 10 },
         axisLabel: { color: subTextColor(), fontSize: 10 },
-        splitLine: { lineStyle: { color: borderColor(), type: 'dashed', opacity: 0.5 } },
+        splitLine: {
+          lineStyle: { color: borderColor(), type: 'dashed', opacity: 0.5 },
+        },
       },
       {
         type: 'value',
         name: '响应ms',
         nameTextStyle: { color: subTextColor(), fontSize: 10 },
-        axisLabel: { color: subTextColor(), fontSize: 10, formatter: (v: number) => `${v}ms` },
+        axisLabel: {
+          color: subTextColor(),
+          fontSize: 10,
+          formatter: (v: number) => `${v}ms`,
+        },
         splitLine: { show: false },
       },
     ],
@@ -279,7 +324,9 @@ function initLineChart(el: HTMLDivElement) {
         type: 'line',
         smooth: true,
         symbol: 'none',
-        data: Array.from({ length: 14 }, () => Math.floor(Math.random() * 30 + 10)),
+        data: Array.from({ length: 14 }, () =>
+          Math.floor(Math.random() * 30 + 10),
+        ),
         lineStyle: { color: PALETTE.danger, width: 2 },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
@@ -294,7 +341,9 @@ function initLineChart(el: HTMLDivElement) {
         smooth: true,
         symbol: 'none',
         yAxisIndex: 1,
-        data: Array.from({ length: 14 }, () => Math.floor(Math.random() * 400 + 80)),
+        data: Array.from({ length: 14 }, () =>
+          Math.floor(Math.random() * 400 + 80),
+        ),
         lineStyle: { color: PALETTE.primary, width: 2, type: 'dashed' },
       },
     ],
@@ -341,20 +390,41 @@ onBeforeUnmount(disposeAll)
     <!-- 威胁类型分布 + 攻击来源 -->
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <!-- 饼图：威胁分布 -->
-      <div :class="cn(containerClassName, 'border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900')">
+      <div
+        :class="
+          cn(
+            containerClassName,
+            'border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900',
+          )
+        "
+      >
         <h4 :class="sectionTitleClassName">威胁类型分布</h4>
         <div ref="pieRef" style="height: 260px" />
       </div>
 
       <!-- 柱状图：攻击来源地区 -->
-      <div :class="cn(containerClassName, 'border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900')">
+      <div
+        :class="
+          cn(
+            containerClassName,
+            'border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900',
+          )
+        "
+      >
         <h4 :class="sectionTitleClassName">攻击来源地区 TOP7</h4>
         <div ref="barRef" style="height: 260px" />
       </div>
     </div>
 
     <!-- 趋势图：每日事件 + 响应时间（全宽） -->
-    <div :class="cn(containerClassName, 'border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900')">
+    <div
+      :class="
+        cn(
+          containerClassName,
+          'border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900',
+        )
+      "
+    >
       <h4 :class="sectionTitleClassName">事件趋势 & 响应时间</h4>
       <div ref="lineRef" style="height: 280px" />
     </div>

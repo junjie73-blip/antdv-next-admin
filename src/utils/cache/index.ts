@@ -5,7 +5,11 @@ import type { CacheInstance, CacheItem, CacheOptions } from './types'
 import { decryptValueSync, encryptValueSync, shouldEncrypt } from './encrypt'
 import { createStorage } from './storage'
 
-export { localStorageAdapter, memoryStorageAdapter, sessionStorageAdapter } from './storage'
+export {
+  localStorageAdapter,
+  memoryStorageAdapter,
+  sessionStorageAdapter,
+} from './storage'
 export type {
   CacheEntry,
   CacheInstance,
@@ -18,7 +22,8 @@ export type {
 } from './types'
 
 /** 默认键前缀 */
-const DEFAULT_PREFIX: string = (import.meta.env.VITE_APP_TITLE as string | undefined) || 'app_cache'
+const DEFAULT_PREFIX: string =
+  (import.meta.env.VITE_APP_TITLE as string | undefined) || 'app_cache'
 
 /**
  * 创建缓存实例
@@ -33,7 +38,9 @@ const DEFAULT_PREFIX: string = (import.meta.env.VITE_APP_TITLE as string | undef
  * const profile = userCache.getItem('profile')
  * ```
  */
-export function createCache<T = unknown>(options: CacheOptions = {}): CacheInstance<T> {
+export function createCache<T = unknown>(
+  options: CacheOptions = {},
+): CacheInstance<T> {
   const { type = 'local', prefix = DEFAULT_PREFIX, encrypt = true } = options
 
   const storage = createStorage(type)

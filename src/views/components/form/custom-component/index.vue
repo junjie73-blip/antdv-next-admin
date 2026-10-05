@@ -30,7 +30,14 @@ function removeTag(index: number) {
   formData.value.tags = formData.value.tags.filter((_, i) => i !== index)
 }
 
-const colorPresets = ['#1677ff', '#52c41a', '#faad14', '#ff4d4f', '#722ed1', '#13c2c2']
+const colorPresets = [
+  '#1677ff',
+  '#52c41a',
+  '#faad14',
+  '#ff4d4f',
+  '#722ed1',
+  '#13c2c2',
+]
 
 function handleSubmit() {
   message.success('Form submitted successfully')
@@ -55,7 +62,11 @@ function handleSubmit() {
               v-for="preset in colorPresets"
               :key="preset"
               class="h-6 w-6 cursor-pointer rounded-full border-2 transition-transform hover:scale-110"
-              :class="formData.color === preset ? 'border-gray-800 dark:border-white' : 'border-transparent'"
+              :class="
+                formData.color === preset
+                  ? 'border-gray-800 dark:border-white'
+                  : 'border-transparent'
+              "
               :style="{ backgroundColor: preset }"
               @click="formData.color = preset"
             />
@@ -73,7 +84,12 @@ function handleSubmit() {
             <a-button size="small" @click="addTag"> Add </a-button>
           </a-space>
           <div class="mt-2 flex flex-wrap gap-1">
-            <a-tag v-for="(tag, index) in formData.tags" :key="index" closable @close="removeTag(index)">
+            <a-tag
+              v-for="(tag, index) in formData.tags"
+              :key="index"
+              closable
+              @close="removeTag(index)"
+            >
               {{ tag }}
             </a-tag>
           </div>
@@ -91,7 +107,10 @@ function handleSubmit() {
 
         <a-form-item label="Switch">
           <a-switch v-model:checked="formData.switchValue" />
-          <span class="ml-2" :class="formData.switchValue ? 'text-green-600' : 'text-gray-400'">
+          <span
+            class="ml-2"
+            :class="formData.switchValue ? 'text-green-600' : 'text-gray-400'"
+          >
             {{ formData.switchValue ? 'Enabled' : 'Disabled' }}
           </span>
         </a-form-item>

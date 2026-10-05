@@ -2,12 +2,27 @@
 import type { FormInstance } from 'antdv-next'
 
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core'
-import { computed, onMounted, provide, reactive, ref, unref, useAttrs, watch } from 'vue'
+import {
+  computed,
+  onMounted,
+  provide,
+  reactive,
+  ref,
+  unref,
+  useAttrs,
+  watch,
+} from 'vue'
 
 import IconifyIcon from '~/components/common/Icon/IconifyIcon.vue'
 import { cn } from '~/utils/cn'
 
-import type { FormActionType, FormProps, FormSchema, NamePath, Recordable } from './types'
+import type {
+  FormActionType,
+  FormProps,
+  FormSchema,
+  NamePath,
+  Recordable,
+} from './types'
 
 import FormItem from './components/FormItem.vue'
 import { deepMerge, formatDateFields, handleRangeValue } from './helper'
@@ -76,7 +91,8 @@ const aFormAttrs = computed(() => {
 // ============ 实际生效的列数 ============
 const effectiveCols = computed(() => {
   const configured = getProps.value.grid?.cols
-  if (configured != null && configured >= 1 && configured <= 4) return configured
+  if (configured != null && configured >= 1 && configured <= 4)
+    return configured
   return responsiveCols.value
 })
 
@@ -133,7 +149,10 @@ const allRows = computed<FormSchema[][]>(() => {
 
 // ============ 是否需要折叠 ============
 const needCollapse = computed(() => {
-  return !!getProps.value.showAdvancedButton && allRows.value.length > alwaysShowLines.value
+  return (
+    !!getProps.value.showAdvancedButton &&
+    allRows.value.length > alwaysShowLines.value
+  )
 })
 
 // ============ 当前显示的 schemas（含 Divider） ============
@@ -161,11 +180,15 @@ const displaySchemas = computed<FormSchema[]>(() => {
 })
 
 const displayFields = computed(() =>
-  displaySchemas.value.filter((s): s is FormSchema => !!s && s.component !== 'Divider'),
+  displaySchemas.value.filter(
+    (s): s is FormSchema => !!s && s.component !== 'Divider',
+  ),
 )
 
 const displayDividers = computed(() =>
-  displaySchemas.value.filter((s): s is FormSchema => !!s && s.component === 'Divider'),
+  displaySchemas.value.filter(
+    (s): s is FormSchema => !!s && s.component === 'Divider',
+  ),
 )
 
 // ============ 布局 ============
@@ -289,7 +312,8 @@ async function resetFields() {
   await formRef.value?.resetFields?.()
   Object.keys(formModel).forEach((key) => {
     const schema = unref(schemaRef)?.find((s) => s && s.field === key)
-    formModel[key] = schema?.defaultValue !== undefined ? schema.defaultValue : undefined
+    formModel[key] =
+      schema?.defaultValue !== undefined ? schema.defaultValue : undefined
   })
 }
 
@@ -322,17 +346,26 @@ async function updateSchema(data: Partial<FormSchema> | Partial<FormSchema>[]) {
     if (!item || !item.field) return
     const index = schemaRef.value.findIndex((s) => s && s.field === item.field)
     if (index !== -1 && schemaRef.value[index]) {
-      schemaRef.value[index] = deepMerge(schemaRef.value[index], item) as FormSchema
+      schemaRef.value[index] = deepMerge(
+        schemaRef.value[index],
+        item,
+      ) as FormSchema
     }
   })
 }
 
 async function removeSchemaByField(field: string | string[]) {
   const fields = Array.isArray(field) ? field : [field]
-  schemaRef.value = schemaRef.value.filter((s) => s && !fields.includes(s.field))
+  schemaRef.value = schemaRef.value.filter(
+    (s) => s && !fields.includes(s.field),
+  )
 }
 
-async function appendSchemaByField(schema: FormSchema, prefixField?: string, first?: boolean) {
+async function appendSchemaByField(
+  schema: FormSchema,
+  prefixField?: string,
+  first?: boolean,
+) {
   if (!schema) return
   if (prefixField) {
     const index = schemaRef.value.findIndex((s) => s && s.field === prefixField)
@@ -418,14 +451,21 @@ defineExpose(formActionType)
           :form-action-type="formActionType"
           :set-form-model="setFormModel"
         >
-          <template v-for="(_, slotName) in $slots" :key="slotName" #[slotName]="slotProps">
+          <template
+            v-for="(_, slotName) in $slots"
+            :key="slotName"
+            #[slotName]="slotProps"
+          >
             <slot :name="slotName" v-bind="slotProps" />
           </template>
         </FormItem>
       </template>
 
       <!-- 分割线 -->
-      <template v-for="(schema, index) in displayDividers" :key="`divider-${index}`">
+      <template
+        v-for="(schema, index) in displayDividers"
+        :key="`divider-${index}`"
+      >
         <a-col :span="24">
           <a-divider v-bind="schema.componentProps">
             {{ schema.label }}
@@ -441,7 +481,11 @@ defineExpose(formActionType)
       >
         <div class="flex flex-wrap gap-2">
           <slot name="submitBefore" />
-          <a-button v-if="getProps.showSubmitButton" type="primary" html-type="submit">
+          <a-button
+            v-if="getProps.showSubmitButton"
+            type="primary"
+            html-type="submit"
+          >
             <template v-if="getSubmitButtonOptions.preIcon" #icon>
               <IconifyIcon :icon="getSubmitButtonOptions.preIcon" />
             </template>

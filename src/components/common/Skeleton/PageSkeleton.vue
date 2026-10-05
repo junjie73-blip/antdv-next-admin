@@ -49,7 +49,11 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 // 骨架屏基础样式
-const skeletonBaseClassName = cn('animate-pulse', 'bg-gray-200 dark:bg-gray-700', 'rounded')
+const skeletonBaseClassName = cn(
+  'animate-pulse',
+  'bg-gray-200 dark:bg-gray-700',
+  'rounded',
+)
 
 // 标题骨架样式
 const titleClassName = cn(skeletonBaseClassName, 'h-8 w-48 mb-6')
@@ -84,7 +88,11 @@ function getRowClassName(width: string) {
       <div :class="cn('flex gap-6', showSidebar && 'flex-row')">
         <!-- 主要内容 -->
         <div :class="cn('flex-1 space-y-3', showSidebar && 'w-0')">
-          <div v-for="i in rows" :key="i" :class="getRowClassName(i === rows ? 'w-3/4' : 'w-full')" />
+          <div
+            v-for="i in rows"
+            :key="i"
+            :class="getRowClassName(i === rows ? 'w-3/4' : 'w-full')"
+          />
         </div>
 
         <!-- 侧边栏 -->
@@ -96,11 +104,19 @@ function getRowClassName(width: string) {
     </div>
 
     <!-- ========== 卡片类型骨架屏 ========== -->
-    <div v-else-if="variant === 'card'" class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div
+      v-else-if="variant === 'card'"
+      class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
+    >
       <div
         v-for="i in 6"
         :key="i"
-        :class="cn('rounded-lg border border-gray-200 p-4 dark:border-gray-700', skeletonBaseClassName)"
+        :class="
+          cn(
+            'rounded-lg border border-gray-200 p-4 dark:border-gray-700',
+            skeletonBaseClassName,
+          )
+        "
       >
         <div :class="cn(skeletonBaseClassName, 'mb-3 h-5 w-2/3')" />
         <div :class="cn(skeletonBaseClassName, 'mb-2 h-4 w-full')" />
@@ -123,7 +139,9 @@ function getRowClassName(width: string) {
     <!-- ========== 详情类型骨架屏 ========== -->
     <div v-else-if="variant === 'detail'" class="max-w-4xl space-y-6">
       <!-- 头部信息 -->
-      <div class="flex items-center gap-4 border-b border-gray-200 pb-4 dark:border-gray-700">
+      <div
+        class="flex items-center gap-4 border-b border-gray-200 pb-4 dark:border-gray-700"
+      >
         <div :class="cn(skeletonBaseClassName, 'h-16 w-16 rounded-full')" />
         <div class="flex-1 space-y-2">
           <div :class="cn(skeletonBaseClassName, 'h-6 w-48')" />

@@ -1,4 +1,11 @@
-export type WidgetKey = 'notice' | 'fullscreen' | 'theme' | 'timezone' | 'logout' | 'search' | 'preferences'
+export type WidgetKey =
+  | 'notice'
+  | 'fullscreen'
+  | 'theme'
+  | 'timezone'
+  | 'logout'
+  | 'search'
+  | 'preferences'
 
 export interface WidgetMeta {
   key: WidgetKey

@@ -43,14 +43,21 @@ interface UserRecord {
 const containerClassName = cn('space-y-4')
 const cardClassName = cn('shadow-sm')
 const tagClassName = cn('inline-flex items-center gap-1')
-const actionClassName = cn('flex', 'items-center', 'justify-center', 'whitespace-nowrap')
+const actionClassName = cn(
+  'flex',
+  'items-center',
+  'justify-center',
+  'whitespace-nowrap',
+)
 const btnClassName = cn('!px-0.5')
 const dividerClassName = cn('mx-0')
 
 // ========== 状态映射 ==========
 const dictStore = useDictStore()
 
-const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
+const statusOptions = computed(() =>
+  dictStore.getOptions(DictType.NORMAL_DISABLE),
+)
 
 const statusColorMap: Record<number, string> = {
   1: 'green',
@@ -95,7 +102,10 @@ for (let i = 1; i <= 30; i++) {
     username: `user_${String(i).padStart(3, '0')}`,
     nickname: faker.person.fullName(),
     avatar: undefined,
-    deptName: ['技术部', '产品部', '市场部', '运营部'][faker.number.int({ min: 0, max: 3 })] || '未分配',
+    deptName:
+      ['技术部', '产品部', '市场部', '运营部'][
+        faker.number.int({ min: 0, max: 3 })
+      ] || '未分配',
   })
 }
 
@@ -187,7 +197,11 @@ const modalFormSchemas: FormSchema[] = [
     component: 'InputNumber',
     colProps: { span: 12 },
     defaultValue: 0,
-    componentProps: { min: 0, placeholder: '数字越小越靠前', style: { width: '100%' } },
+    componentProps: {
+      min: 0,
+      placeholder: '数字越小越靠前',
+      style: { width: '100%' },
+    },
   },
   {
     field: 'status',
@@ -223,14 +237,20 @@ const availableUsers = computed(() => {
   let list = [...userPool.value]
   if (assignSearchKeyword.value) {
     const kw = assignSearchKeyword.value.toLowerCase()
-    list = list.filter((u) => u.nickname.toLowerCase().includes(kw) || u.username.toLowerCase().includes(kw))
+    list = list.filter(
+      (u) =>
+        u.nickname.toLowerCase().includes(kw) ||
+        u.username.toLowerCase().includes(kw),
+    )
   }
   return list
 })
 
 const _assignedUsers = computed(() => {
   if (!assignPostRecord.value) return []
-  return userPool.value.filter((u) => assignPostRecord.value!.userIds.includes(u.id))
+  return userPool.value.filter((u) =>
+    assignPostRecord.value!.userIds.includes(u.id),
+  )
 })
 
 const _unassignedUsers = computed(() => {
@@ -264,8 +284,12 @@ function _handleToggleAssignUser(user: UserRecord) {
 async function handleSaveAssign() {
   if (!assignPostRecord.value) return
   try {
-    await updatePost(assignPostRecord.value.id, { userIds: selectedAssignUserIds.value })
-    message.success(`已为「${assignPostRecord.value.name}」分配 ${selectedAssignUserIds.value.length} 名用户`)
+    await updatePost(assignPostRecord.value.id, {
+      userIds: selectedAssignUserIds.value,
+    })
+    message.success(
+      `已为「${assignPostRecord.value.name}」分配 ${selectedAssignUserIds.value.length} 名用户`,
+    )
     assignModalMethods.closeModal()
     tableMethods.value?.reload()
   } catch (e: any) {
@@ -317,7 +341,9 @@ async function handleDelete(record: PostRecord) {
 async function handleToggleStatus(record: PostRecord) {
   try {
     await updatePost(record.id, { status: record.status === 1 ? 0 : 1 })
-    message.success(`已${record.status === 1 ? '停用' : '启用'}：${record.name}`)
+    message.success(
+      `已${record.status === 1 ? '停用' : '启用'}：${record.name}`,
+    )
     tableMethods.value?.reload()
   } catch (e: any) {
     message.error(e?.message || '操作失败')
@@ -353,12 +379,48 @@ async function handleSave() {
 const columns: BasicColumn[] = [
   { title: 'ID', dataIndex: 'id', key: 'id', width: 70, align: 'center' },
   { title: '岗位名称', dataIndex: 'name', key: 'name', width: 160 },
-  { title: '岗位编码', dataIndex: 'code', key: 'code', width: 180, align: 'center' },
-  { title: '所属部门', dataIndex: 'deptName', key: 'deptName', width: 120, align: 'center' },
-  { title: '排序号', dataIndex: 'sortOrder', key: 'sortOrder', width: 80, align: 'center' },
-  { title: '状态', dataIndex: 'status', key: 'status', width: 80, align: 'center' },
-  { title: '关联用户数', dataIndex: 'userCount', key: 'userCount', width: 100, align: 'center' },
-  { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 170, align: 'center' },
+  {
+    title: '岗位编码',
+    dataIndex: 'code',
+    key: 'code',
+    width: 180,
+    align: 'center',
+  },
+  {
+    title: '所属部门',
+    dataIndex: 'deptName',
+    key: 'deptName',
+    width: 120,
+    align: 'center',
+  },
+  {
+    title: '排序号',
+    dataIndex: 'sortOrder',
+    key: 'sortOrder',
+    width: 80,
+    align: 'center',
+  },
+  {
+    title: '状态',
+    dataIndex: 'status',
+    key: 'status',
+    width: 80,
+    align: 'center',
+  },
+  {
+    title: '关联用户数',
+    dataIndex: 'userCount',
+    key: 'userCount',
+    width: 100,
+    align: 'center',
+  },
+  {
+    title: '创建时间',
+    dataIndex: 'createdAt',
+    key: 'createdAt',
+    width: 170,
+    align: 'center',
+  },
   { title: '备注', dataIndex: 'remark', key: 'remark', ellipsis: true },
 ]
 </script>
@@ -373,7 +435,10 @@ const columns: BasicColumn[] = [
         :immediate="true"
         :use-search-form="true"
         :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
-        :pagination="{ showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }"
+        :pagination="{
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '20', '50'],
+        }"
         :scroll="{ x: 1400 }"
         :action-column="{ width: 280, title: '操作', fixed: 'right' }"
         @register="tableRegister"
@@ -390,26 +455,43 @@ const columns: BasicColumn[] = [
         <template #cell-status="{ record }">
           <a-tag :color="statusColorMap[record.status] || 'default'">
             <span :class="tagClassName">
-              <Icon :icon="record.status === 1 ? 'carbon:checkmark-outline' : 'carbon:close-outline'" />
+              <Icon
+                :icon="
+                  record.status === 1
+                    ? 'carbon:checkmark-outline'
+                    : 'carbon:close-outline'
+                "
+              />
               {{ statusLabelMap[record.status] || '未知' }}
             </span>
           </a-tag>
         </template>
 
         <template #cell-userCount="{ record }">
-          <a-badge :count="record.userCount" :number-style="{ backgroundColor: '#1677ff' }" />
+          <a-badge
+            :count="record.userCount"
+            :number-style="{ backgroundColor: '#1677ff' }"
+          />
         </template>
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <a-button type="link" :class="btnClassName" @click="() => handleOpenAssign(record)">
+            <a-button
+              type="link"
+              :class="btnClassName"
+              @click="() => handleOpenAssign(record)"
+            >
               <template #icon>
                 <Icon icon="ant-design:user-switch-outlined" />
               </template>
               分配用户
             </a-button>
             <a-divider type="vertical" :class="dividerClassName" />
-            <a-button type="link" :class="btnClassName" @click="() => handleEdit(record)">
+            <a-button
+              type="link"
+              :class="btnClassName"
+              @click="() => handleEdit(record)"
+            >
               <template #icon>
                 <Icon icon="ant-design:edit-outlined" />
               </template>
@@ -420,11 +502,22 @@ const columns: BasicColumn[] = [
               :title="`确定要「${record.status === 1 ? '停用' : '启用'}」岗位「${record.name}」吗？`"
               @confirm="() => handleToggleStatus(record)"
             >
-              <a-button v-if="record.status === 1" type="link" :class="btnClassName"> 停用 </a-button>
-              <a-button v-else type="link" :class="btnClassName"> 启用 </a-button>
+              <a-button
+                v-if="record.status === 1"
+                type="link"
+                :class="btnClassName"
+              >
+                停用
+              </a-button>
+              <a-button v-else type="link" :class="btnClassName">
+                启用
+              </a-button>
             </a-popconfirm>
             <a-divider type="vertical" :class="dividerClassName" />
-            <a-popconfirm :title="`确定要删除岗位「${record.name}」吗？`" @confirm="() => handleDelete(record)">
+            <a-popconfirm
+              :title="`确定要删除岗位「${record.name}」吗？`"
+              @confirm="() => handleDelete(record)"
+            >
               <a-button type="link" danger :class="btnClassName">
                 <template #icon>
                   <Icon icon="ant-design:delete-outlined" />
@@ -438,7 +531,12 @@ const columns: BasicColumn[] = [
     </a-card>
 
     <!-- 新增/编辑抽屉 -->
-    <BasicDrawer :title="isEditing ? '编辑岗位' : '新增岗位'" :width="560" @register="drawerRegister" @ok="handleSave">
+    <BasicDrawer
+      :title="isEditing ? '编辑岗位' : '新增岗位'"
+      :width="560"
+      @register="drawerRegister"
+      @ok="handleSave"
+    >
       <BasicForm
         :schemas="modalFormSchemas"
         :label-width="90"
@@ -457,22 +555,38 @@ const columns: BasicColumn[] = [
     >
       <div class="space-y-4">
         <!-- 岗位信息提示 -->
-        <a-alert message="选择要分配到该岗位的用户，支持多选" type="info" show-icon />
+        <a-alert
+          message="选择要分配到该岗位的用户，支持多选"
+          type="info"
+          show-icon
+        />
 
-        <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+        <div
+          class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400"
+        >
           <span
-            >岗位编码：<a-tag color="blue">{{ assignPostRecord?.code }}</a-tag></span
+            >岗位编码：<a-tag color="blue">{{
+              assignPostRecord?.code
+            }}</a-tag></span
           >
           <span
-            >所属部门：<a-tag color="cyan">{{ assignPostRecord?.deptName }}</a-tag></span
+            >所属部门：<a-tag color="cyan">{{
+              assignPostRecord?.deptName
+            }}</a-tag></span
           >
           <span
-            >已选：<a-tag color="orange">{{ selectedAssignUserIds.length }} 人</a-tag></span
+            >已选：<a-tag color="orange"
+              >{{ selectedAssignUserIds.length }} 人</a-tag
+            ></span
           >
         </div>
 
         <!-- 搜索框 -->
-        <a-input v-model:value="assignSearchKeyword" placeholder="搜索用户名/昵称..." allow-clear>
+        <a-input
+          v-model:value="assignSearchKeyword"
+          placeholder="搜索用户名/昵称..."
+          allow-clear
+        >
           <template #prefix>
             <Icon icon="ant-design:search-outlined" class="text-gray-400" />
           </template>

@@ -26,7 +26,9 @@ const headerClassName = cn(
   'flex items-center gap-2 px-4 py-2.5 border-b border-blue-500/15',
   'bg-gradient-to-r from-blue-600/8 to-transparent',
 )
-const headerTitleClassName = cn('text-sm font-medium text-blue-200/90 tracking-wide')
+const headerTitleClassName = cn(
+  'text-sm font-medium text-blue-200/90 tracking-wide',
+)
 </script>
 
 <template>
@@ -45,9 +47,21 @@ const headerTitleClassName = cn('text-sm font-medium text-blue-200/90 tracking-w
     </div>
 
     <!-- 装饰角标 -->
-    <span v-if="glow" class="absolute top-0 left-0 h-3 w-3 rounded-tl border-t border-l border-blue-400/40" />
-    <span v-if="glow" class="absolute top-0 right-0 h-3 w-3 rounded-tr border-t border-r border-blue-400/40" />
-    <span v-if="glow" class="absolute bottom-0 left-0 h-3 w-3 rounded-bl border-b border-l border-blue-400/40" />
-    <span v-if="glow" class="absolute right-0 bottom-0 h-3 w-3 rounded-br border-r border-b border-blue-400/40" />
+    <span
+      v-if="glow"
+      class="absolute top-0 left-0 h-3 w-3 rounded-tl border-t border-l border-blue-400/40"
+    />
+    <span
+      v-if="glow"
+      class="absolute top-0 right-0 h-3 w-3 rounded-tr border-t border-r border-blue-400/40"
+    />
+    <span
+      v-if="glow"
+      class="absolute bottom-0 left-0 h-3 w-3 rounded-bl border-b border-l border-blue-400/40"
+    />
+    <span
+      v-if="glow"
+      class="absolute right-0 bottom-0 h-3 w-3 rounded-br border-r border-b border-blue-400/40"
+    />
   </div>
 </template>

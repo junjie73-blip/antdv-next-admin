@@ -60,7 +60,11 @@ const getSetting = computed(() => {
 const configurableColumns = computed(() => {
   return localColumns.value.filter((col) => {
     const key = col.key || col.dataIndex
-    return key !== 'ant-table-selection-column' && key !== 'index' && key !== 'action'
+    return (
+      key !== 'ant-table-selection-column' &&
+      key !== 'index' &&
+      key !== 'action'
+    )
   })
 })
 
@@ -69,9 +73,14 @@ function isColumnVisible(col: BasicColumn): boolean {
 }
 
 function toggleColumnVisible(col: BasicColumn, checked: boolean) {
-  const index = localColumns.value.findIndex((c) => c.key === col.key || c.dataIndex === col.dataIndex)
+  const index = localColumns.value.findIndex(
+    (c) => c.key === col.key || c.dataIndex === col.dataIndex,
+  )
   if (index > -1) {
-    localColumns.value[index] = { ...localColumns.value[index], ifShow: checked }
+    localColumns.value[index] = {
+      ...localColumns.value[index],
+      ifShow: checked,
+    }
     emit('update:columns', cloneDeep(localColumns.value))
   }
 }
@@ -83,7 +92,11 @@ function handleReset() {
 function handleSelectAll(checked: boolean) {
   localColumns.value = localColumns.value.map((col) => {
     const key = col.key || col.dataIndex
-    if (key !== 'ant-table-selection-column' && key !== 'index' && key !== 'action') {
+    if (
+      key !== 'ant-table-selection-column' &&
+      key !== 'index' &&
+      key !== 'action'
+    ) {
       return { ...col, ifShow: checked }
     }
     return col
@@ -96,7 +109,9 @@ const isAllSelected = computed(() => {
 })
 
 const isIndeterminate = computed(() => {
-  const visibleCount = configurableColumns.value.filter((col) => isColumnVisible(col)).length
+  const visibleCount = configurableColumns.value.filter((col) =>
+    isColumnVisible(col),
+  ).length
   return visibleCount > 0 && visibleCount < configurableColumns.value.length
 })
 </script>
@@ -125,7 +140,11 @@ const isIndeterminate = computed(() => {
             <Button type="link" @click="handleReset"> 重置 </Button>
           </div>
 
-          <div :class="cn('mb-2 border-b border-gray-100 pb-2 dark:border-gray-700')">
+          <div
+            :class="
+              cn('mb-2 border-b border-gray-100 pb-2 dark:border-gray-700')
+            "
+          >
             <Checkbox
               :checked="isAllSelected"
               :indeterminate="isIndeterminate"
@@ -142,14 +161,20 @@ const isIndeterminate = computed(() => {
                 :key="String(col.key || col.dataIndex || idx)"
                 :class="cn('flex items-center justify-between py-1')"
               >
-                <Checkbox :checked="isColumnVisible(col)" @change="(e) => toggleColumnVisible(col, e.target.checked)">
+                <Checkbox
+                  :checked="isColumnVisible(col)"
+                  @change="(e) => toggleColumnVisible(col, e.target.checked)"
+                >
                   <span :class="cn('text-sm')">{{ col.title }}</span>
                 </Checkbox>
               </div>
             </div>
           </PerfectScrollbar>
 
-          <div v-if="configurableColumns.length === 0" :class="cn('py-4 text-center text-gray-400 dark:text-gray-500')">
+          <div
+            v-if="configurableColumns.length === 0"
+            :class="cn('py-4 text-center text-gray-400 dark:text-gray-500')"
+          >
             暂无可用列
           </div>
         </div>
@@ -163,10 +188,19 @@ const isIndeterminate = computed(() => {
       </Tooltip>
     </Popover>
 
-    <Tooltip v-if="getSetting.fullScreen" :title="isFullscreen ? '退出全屏' : '全屏'">
+    <Tooltip
+      v-if="getSetting.fullScreen"
+      :title="isFullscreen ? '退出全屏' : '全屏'"
+    >
       <Button type="text" @click="toggleFullscreen">
         <template #icon>
-          <Icon :icon="isFullscreen ? 'ant-design:fullscreen-exit-outlined' : 'ant-design:fullscreen-outlined'" />
+          <Icon
+            :icon="
+              isFullscreen
+                ? 'ant-design:fullscreen-exit-outlined'
+                : 'ant-design:fullscreen-outlined'
+            "
+          />
         </template>
       </Button>
     </Tooltip>

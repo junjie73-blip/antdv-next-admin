@@ -53,10 +53,15 @@ export interface UploadErrorInfo {
 export function classifyUploadError(err: unknown): UploadErrorInfo {
   const anyErr = err as any
   const msg = String(anyErr?.message ?? anyErr ?? '').toLowerCase()
-  const status = anyErr?.status ?? anyErr?.statusCode ?? anyErr?.response?.status
+  const status =
+    anyErr?.status ?? anyErr?.statusCode ?? anyErr?.response?.status
 
   if (anyErr?.name === 'AbortError' || anyErr?.code === 'ERR_CANCELED') {
-    return { code: UploadErrorCode.ABORTED, message: '已取消', retryable: false }
+    return {
+      code: UploadErrorCode.ABORTED,
+      message: '已取消',
+      retryable: false,
+    }
   }
 
   if (msg.includes('timeout') || msg.includes('etimedout')) {

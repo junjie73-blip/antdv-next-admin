@@ -73,7 +73,9 @@ export const useDictStore = defineStore('dict', () => {
       const map: Record<string, DictItem[]> = {}
       for (const dict of list) {
         if (dict.status === 1 && dict.items) {
-          map[dict.typeCode] = dict.items.filter((item) => item.status === 1).sort((a, b) => a.sort - b.sort)
+          map[dict.typeCode] = dict.items
+            .filter((item) => item.status === 1)
+            .sort((a, b) => a.sort - b.sort)
         }
       }
 
@@ -91,7 +93,9 @@ export const useDictStore = defineStore('dict', () => {
    * @param typeCode 字典编码，如 'sys_user_sex'
    * @returns 下拉选项数组，格式为 [{ label, value }, ...]
    */
-  function getOptions(typeCode: string): { label: string; value: string | number }[] {
+  function getOptions(
+    typeCode: string,
+  ): { label: string; value: string | number }[] {
     const items = dictMap.value[typeCode] || []
     return items.map((item) => ({
       label: item.dictLabel,

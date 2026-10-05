@@ -7,7 +7,11 @@ import { onMounted, onUnmounted } from 'vue'
  * 保持设计稿（1920x1080）比例在不同分辨率下完整显示。
  * 适用于数据可视化大屏场景。
  */
-export function useScreenAdapter(designWidth = 1920, designHeight = 1080, targetId = 'screen-content') {
+export function useScreenAdapter(
+  designWidth = 1920,
+  designHeight = 1080,
+  targetId = 'screen-content',
+) {
   const resizeObserver: ResizeObserver | null = null
 
   function adapt() {

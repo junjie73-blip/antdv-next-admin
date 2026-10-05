@@ -75,7 +75,9 @@ export interface UploadFileOptions {
 /**
  * 上传文件（走系统 http 封装，自动带 token / 租户头）
  */
-export async function uploadFile(options: UploadFileOptions): Promise<UploadResult> {
+export async function uploadFile(
+  options: UploadFileOptions,
+): Promise<UploadResult> {
   const { file, server = '/upload/file', fieldName = 'file', meta } = options
 
   const formData = new FormData()
@@ -87,9 +89,12 @@ export async function uploadFile(options: UploadFileOptions): Promise<UploadResu
     }
   }
 
-  const res = (await request.post(server, formData)) as ApiResponse<UploadResult> | UploadResult
+  const res = (await request.post(server, formData)) as
+    | ApiResponse<UploadResult>
+    | UploadResult
 
-  const payload = (res as ApiResponse<UploadResult>)?.data ?? (res as UploadResult)
+  const payload =
+    (res as ApiResponse<UploadResult>)?.data ?? (res as UploadResult)
 
   if (!payload?.url) {
     throw new Error('上传响应缺少 url')

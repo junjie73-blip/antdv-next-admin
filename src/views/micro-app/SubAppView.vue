@@ -62,14 +62,24 @@ watch(
   { immediate: true },
 )
 
-const containerClassName = computed(() => cn('micro-app-wrapper', 'w-full h-full', props.className))
+const containerClassName = computed(() =>
+  cn('micro-app-wrapper', 'w-full h-full', props.className),
+)
 
 const loadingClassName = computed(() =>
-  cn('absolute inset-0 flex items-center justify-center', 'bg-white/80 dark:bg-gray-900/80', 'z-10'),
+  cn(
+    'absolute inset-0 flex items-center justify-center',
+    'bg-white/80 dark:bg-gray-900/80',
+    'z-10',
+  ),
 )
 
 const errorClassName = computed(() =>
-  cn('absolute inset-0 flex flex-col items-center justify-center', 'bg-white dark:bg-gray-800', 'z-20'),
+  cn(
+    'absolute inset-0 flex flex-col items-center justify-center',
+    'bg-white dark:bg-gray-800',
+    'z-20',
+  ),
 )
 
 const token = computed(() => userStore.token)
@@ -130,7 +140,9 @@ function retry() {
   hasError.value = false
   isLoading.value = true
   if (useIframe.value && microAppRef.value) {
-    const iframeEl = microAppRef.value.querySelector('iframe') as HTMLIFrameElement
+    const iframeEl = microAppRef.value.querySelector(
+      'iframe',
+    ) as HTMLIFrameElement
     if (iframeEl) {
       // 强制刷新 iframe
       const src = iframeEl.src
@@ -154,7 +166,12 @@ watch(token, () => {
 })
 
 onMounted(() => {
-  console.log('[SubAppView] mounted, useIframe:', useIframe.value, 'microAppConfig:', microAppConfig.value)
+  console.log(
+    '[SubAppView] mounted, useIframe:',
+    useIframe.value,
+    'microAppConfig:',
+    microAppConfig.value,
+  )
   if (!useIframe.value) {
     microAppRef.value?.addEventListener('mounted', handleMounted)
     microAppRef.value?.addEventListener('error', handleError)
@@ -166,10 +183,14 @@ onMounted(() => {
 onActivated(() => {
   if (useIframe.value) {
     // iframe 模式：检测 contentWindow 是否被清空，必要时重新加载
-    const iframeEl = microAppRef.value?.querySelector('iframe') as HTMLIFrameElement | null
+    const iframeEl = microAppRef.value?.querySelector(
+      'iframe',
+    ) as HTMLIFrameElement | null
     if (
       iframeEl &&
-      (!iframeEl.contentWindow || !iframeEl.contentDocument || iframeEl.contentDocument.readyState === 'uninitialized')
+      (!iframeEl.contentWindow ||
+        !iframeEl.contentDocument ||
+        iframeEl.contentDocument.readyState === 'uninitialized')
     ) {
       console.log('[SubAppView] iframe contentWindow lost, reloading...')
       hasError.value = false
@@ -236,21 +257,40 @@ onUnmounted(() => {
 
     <!-- micro-app 库未加载的提示 -->
     <div v-else class="flex h-full flex-col items-center justify-center gap-4">
-      <svg class="h-16 w-16 text-yellow-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg
+        class="h-16 w-16 text-yellow-500"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
         <path d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      <p class="text-center text-gray-500">微前端库未加载，当前以 iframe 模式显示</p>
+      <p class="text-center text-gray-500">
+        微前端库未加载，当前以 iframe 模式显示
+      </p>
     </div>
 
     <!-- 加载态 -->
-    <div v-if="isLoading && (isMicroAppReady || useIframe)" :class="loadingClassName">
+    <div
+      v-if="isLoading && (isMicroAppReady || useIframe)"
+      :class="loadingClassName"
+    >
       <a-spin size="large" />
-      <p class="mt-2 text-sm text-gray-500">正在加载 {{ microAppConfig.title }}...</p>
+      <p class="mt-2 text-sm text-gray-500">
+        正在加载 {{ microAppConfig.title }}...
+      </p>
     </div>
 
     <!-- 错误态 -->
     <div v-if="hasError" :class="errorClassName">
-      <svg class="mb-4 h-16 w-16 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg
+        class="mb-4 h-16 w-16 text-red-500"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
         <circle cx="12" cy="12" r="10" />
         <line x1="15" y1="9" x2="9" y2="15" />
         <line x1="9" y1="9" x2="15" y2="15" />
@@ -264,30 +304,48 @@ onUnmounted(() => {
   </div>
 
   <!-- 无配置时：显示详细调试信息 -->
-  <div v-else class="flex h-full flex-col items-center justify-center gap-3 p-6" style="min-height: 300px">
-    <svg class="h-12 w-12 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <div
+    v-else
+    class="flex h-full flex-col items-center justify-center gap-3 p-6"
+    style="min-height: 300px"
+  >
+    <svg
+      class="h-12 w-12 text-orange-400"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+    >
       <path d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
     <p class="font-medium text-gray-600">微前端配置不存在</p>
     <!-- 调试信息面板 -->
-    <PerfectScrollbar class="mt-2 w-full max-w-lg rounded-lg bg-orange-50 p-4 text-left text-xs dark:bg-gray-800">
-      <p class="mb-2 font-semibold text-orange-600 dark:text-orange-400">调试信息：</p>
-      <pre class="break-all whitespace-pre-wrap text-gray-700 dark:text-gray-300">{{
-        JSON.stringify(
-          {
-            currentPath: route.path,
-            routeName: route.name,
-            metaKeys: route.meta ? Object.keys(route.meta) : [],
-            hasMicroApp: !!route.meta?.microApp,
-            microAppValue: (route.meta as any)?.microApp,
-            fullPath: route.fullPath,
-          },
-          null,
-          2,
-        )
-      }}</pre>
+    <PerfectScrollbar
+      class="mt-2 w-full max-w-lg rounded-lg bg-orange-50 p-4 text-left text-xs dark:bg-gray-800"
+    >
+      <p class="mb-2 font-semibold text-orange-600 dark:text-orange-400">
+        调试信息：
+      </p>
+      <pre
+        class="break-all whitespace-pre-wrap text-gray-700 dark:text-gray-300"
+        >{{
+          JSON.stringify(
+            {
+              currentPath: route.path,
+              routeName: route.name,
+              metaKeys: route.meta ? Object.keys(route.meta) : [],
+              hasMicroApp: !!route.meta?.microApp,
+              microAppValue: (route.meta as any)?.microApp,
+              fullPath: route.fullPath,
+            },
+            null,
+            2,
+          )
+        }}</pre>
     </PerfectScrollbar>
-    <p class="mt-2 text-center text-xs text-gray-400">请检查路由配置中是否包含 microApp 字段</p>
+    <p class="mt-2 text-center text-xs text-gray-400">
+      请检查路由配置中是否包含 microApp 字段
+    </p>
   </div>
 </template>
 

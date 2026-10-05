@@ -4,4 +4,4 @@ export { default as LayoutSidebar } from './components/LayoutSidebar.vue'
 export { default as LayoutTabs } from './components/LayoutTabs.vue'
 export * from './composables/useLayout'
 
-export { default as DefaultLayout } from './DefaultLayout.vue'
+export { default as DefaultLayout } from './index.vue/index.js'

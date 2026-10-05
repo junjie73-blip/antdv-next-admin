@@ -58,12 +58,18 @@ export function usePasswordPolicy() {
   function validate(value: string): { ok: boolean; message?: string } {
     const p = policy.value
     if (!value) return { ok: false, message: '请输入密码' }
-    if (value.length < p.minLength) return { ok: false, message: `密码至少 ${p.minLength} 位` }
-    if (value.length > p.maxLength) return { ok: false, message: `密码不能超过 ${p.maxLength} 位` }
-    if (p.requireUppercase && !/[A-Z]/.test(value)) return { ok: false, message: '密码需包含大写字母' }
-    if (p.requireLowercase && !/[a-z]/.test(value)) return { ok: false, message: '密码需包含小写字母' }
-    if (p.requireNumber && !/\d/.test(value)) return { ok: false, message: '密码需包含数字' }
-    if (p.requireSymbol && !/[^A-Za-z0-9]/.test(value)) return { ok: false, message: '密码需包含特殊字符' }
+    if (value.length < p.minLength)
+      return { ok: false, message: `密码至少 ${p.minLength} 位` }
+    if (value.length > p.maxLength)
+      return { ok: false, message: `密码不能超过 ${p.maxLength} 位` }
+    if (p.requireUppercase && !/[A-Z]/.test(value))
+      return { ok: false, message: '密码需包含大写字母' }
+    if (p.requireLowercase && !/[a-z]/.test(value))
+      return { ok: false, message: '密码需包含小写字母' }
+    if (p.requireNumber && !/\d/.test(value))
+      return { ok: false, message: '密码需包含数字' }
+    if (p.requireSymbol && !/[^A-Za-z0-9]/.test(value))
+      return { ok: false, message: '密码需包含特殊字符' }
     return { ok: true }
   }
 

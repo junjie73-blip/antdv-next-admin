@@ -4,7 +4,15 @@ import type { Ref } from 'vue'
 import { useEventListener } from '@vueuse/core'
 import * as echarts from 'echarts'
 import { isPlainObject } from 'es-toolkit'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue'
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  useTemplateRef,
+  watch,
+} from 'vue'
 
 import { getScreenMonitorData } from '~/api/screen'
 
@@ -31,7 +39,9 @@ const overview = ref({
   networkOut: 42.1,
 })
 
-const trendData = ref<{ time: string; pv: number; uv: number; requests: number }[]>([])
+const trendData = ref<
+  { time: string; pv: number; uv: number; requests: number }[]
+>([])
 const regionData = ref<{ name: string; value: number; users: number }[]>([])
 const services = ref<any[]>([])
 const alerts = ref<any[]>([])
@@ -39,7 +49,9 @@ const alerts = ref<any[]>([])
 // 计算属性：简化模板中的复杂表达式
 const roundedNetworkIn = computed(() => Math.round(overview.value.networkIn))
 const roundedNetworkOut = computed(() => Math.round(overview.value.networkOut))
-const formattedAlerts = computed(() => alerts.value.map((a) => `[${(a.level || '').toUpperCase()}] ${a.message}`))
+const formattedAlerts = computed(() =>
+  alerts.value.map((a) => `[${(a.level || '').toUpperCase()}] ${a.message}`),
+)
 
 // 请求类型分布数据
 const requestTypes = ref([
@@ -51,20 +63,71 @@ const requestTypes = ref([
 
 // 实时事件数据（可动态增长）
 const realtimeEvents = ref([
-  { time: '10:52:31', type: 'login', msg: '用户 张伟 从北京登录', level: 'info' },
-  { time: '10:51:18', type: 'alert', msg: 'CPU 使用率超过阈值 (78%)', level: 'warning' },
-  { time: '10:50:05', type: 'api', msg: 'API /user/list 响应时间 1.2s', level: 'warning' },
-  { time: '10:48:42', type: 'security', msg: '检测到异常登录尝试 (47.96.12.33)', level: 'error' },
-  { time: '10:47:15', type: 'success', msg: '数据库备份任务完成', level: 'success' },
-  { time: '10:45:33', type: 'api', msg: 'API /order/create 调用成功', level: 'info' },
-  { time: '10:44:01', type: 'login', msg: '用户 李娜 从上海登录', level: 'info' },
-  { time: '10:42:28', type: 'alert', msg: '内存使用率达到 85%', level: 'warning' },
+  {
+    time: '10:52:31',
+    type: 'login',
+    msg: '用户 张伟 从北京登录',
+    level: 'info',
+  },
+  {
+    time: '10:51:18',
+    type: 'alert',
+    msg: 'CPU 使用率超过阈值 (78%)',
+    level: 'warning',
+  },
+  {
+    time: '10:50:05',
+    type: 'api',
+    msg: 'API /user/list 响应时间 1.2s',
+    level: 'warning',
+  },
+  {
+    time: '10:48:42',
+    type: 'security',
+    msg: '检测到异常登录尝试 (47.96.12.33)',
+    level: 'error',
+  },
+  {
+    time: '10:47:15',
+    type: 'success',
+    msg: '数据库备份任务完成',
+    level: 'success',
+  },
+  {
+    time: '10:45:33',
+    type: 'api',
+    msg: 'API /order/create 调用成功',
+    level: 'info',
+  },
+  {
+    time: '10:44:01',
+    type: 'login',
+    msg: '用户 李娜 从上海登录',
+    level: 'info',
+  },
+  {
+    time: '10:42:28',
+    type: 'alert',
+    msg: '内存使用率达到 85%',
+    level: 'warning',
+  },
 ])
 
 // 在线用户数据
 const onlineUsers = ref(
   Array.from({ length: 50 }, (_, i) => ({
-    name: ['张伟', '李娜', '王芳', '刘洋', '陈静', '杨帆', '赵敏', '黄磊', '周杰', '吴昊'][i % 10],
+    name: [
+      '张伟',
+      '李娜',
+      '王芳',
+      '刘洋',
+      '陈静',
+      '杨帆',
+      '赵敏',
+      '黄磊',
+      '周杰',
+      '吴昊',
+    ][i % 10],
     ip: `192.168.${10 + (i % 20)}.${20 + ((i * 3) % 250)}`,
     status: Math.random() > 0.1 ? 'online' : 'away',
   })),
@@ -75,9 +138,14 @@ const latencyData = ref<Array<{ time: string; avg: number; p99: number }>>([])
 
 // 延迟统计指标（用于底部填充展示）
 const latencyStats = computed(() => {
-  if (latencyData.value.length === 0) return { avg: '--', p99: '--', availability: '99.9' }
-  const avgVal = Math.round(latencyData.value.reduce((s, d) => s + d.avg, 0) / latencyData.value.length)
-  const p99Val = Math.round(latencyData.value.reduce((s, d) => s + d.p99, 0) / latencyData.value.length)
+  if (latencyData.value.length === 0)
+    return { avg: '--', p99: '--', availability: '99.9' }
+  const avgVal = Math.round(
+    latencyData.value.reduce((s, d) => s + d.avg, 0) / latencyData.value.length,
+  )
+  const p99Val = Math.round(
+    latencyData.value.reduce((s, d) => s + d.p99, 0) / latencyData.value.length,
+  )
   // 模拟可用率（基于 P99 阈值估算）
   const availability = p99Val > 200 ? '99.5' : p99Val > 150 ? '99.7' : '99.9'
   return { avg: avgVal, p99: p99Val, availability }
@@ -94,15 +162,31 @@ const attackSources = ref([
 
 // 安全告警实时数据
 const securityAlerts = ref([
-  { time: '10:53:01', level: 'critical', msg: '检测到 SQL 注入攻击尝试，来源 IP: 45.33.78.12' },
+  {
+    time: '10:53:01',
+    level: 'critical',
+    msg: '检测到 SQL 注入攻击尝试，来源 IP: 45.33.78.12',
+  },
   {
     time: '10:52:45',
     level: 'high',
     msg: '暴力破解登录失败已达 50 次，已自动封禁 IP: 91.102.44.7',
   },
-  { time: '10:52:18', level: 'medium', msg: '异常文件上传行为检测：/upload/shell.jsp' },
-  { time: '10:51:55', level: 'high', msg: 'XSS 攻击拦截：&lt;script&gt;alert(1)&lt;/script&gt;' },
-  { time: '10:51:30', level: 'low', msg: '可疑目录扫描：/admin, /backup, /.git' },
+  {
+    time: '10:52:18',
+    level: 'medium',
+    msg: '异常文件上传行为检测：/upload/shell.jsp',
+  },
+  {
+    time: '10:51:55',
+    level: 'high',
+    msg: 'XSS 攻击拦截：&lt;script&gt;alert(1)&lt;/script&gt;',
+  },
+  {
+    time: '10:51:30',
+    level: 'low',
+    msg: '可疑目录扫描：/admin, /backup, /.git',
+  },
 ])
 
 // ======================== 图表实例管理 ========================
@@ -117,7 +201,11 @@ const attackSourceRef = useTemplateRef<HTMLDivElement>('attackSourceRef')
 const charts = new Map<string, echarts.ECharts>()
 
 /** 安全等待 DOM 尺寸就绪后执行回调 */
-function whenReady(name: string, refEl: Ref<HTMLDivElement | undefined>, cb: (el: HTMLDivElement) => void) {
+function whenReady(
+  name: string,
+  refEl: Ref<HTMLDivElement | undefined>,
+  cb: (el: HTMLDivElement) => void,
+) {
   const el = refEl.value
   if (!el || charts.has(name)) return
   if (el.offsetWidth > 0 && el.offsetHeight > 0) {
@@ -215,7 +303,11 @@ function buildPVOption(data: typeof trendData.value) {
         axisLabel: { color: '#64748b', fontSize: 10 },
         splitLine: { lineStyle: { color: '#1e293b', type: 'dashed' } },
       },
-      { type: 'value', axisLabel: { color: '#64748b', fontSize: 10 }, splitLine: { show: false } },
+      {
+        type: 'value',
+        axisLabel: { color: '#64748b', fontSize: 10 },
+        splitLine: { show: false },
+      },
     ],
     series: [
       {
@@ -261,7 +353,17 @@ function buildPVOption(data: typeof trendData.value) {
 
 /** 地区分布柱状图 */
 function buildRegionOption(data: typeof regionData.value) {
-  const colors = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#a855f7', '#ec4899', '#06b6d4', '#84cc16', '#6366f1']
+  const colors = [
+    '#3b82f6',
+    '#22c55e',
+    '#f59e0b',
+    '#ef4444',
+    '#a855f7',
+    '#ec4899',
+    '#06b6d4',
+    '#84cc16',
+    '#6366f1',
+  ]
   return {
     grid: { left: 60, right: 20, top: 20, bottom: 30 },
     tooltip: {
@@ -327,8 +429,16 @@ function buildGaugeOption(cpu: number, mem: number) {
           },
         },
         pointer: { length: '55%', width: 4, itemStyle: { color: 'auto' } },
-        axisTick: { distance: -16, length: 6, lineStyle: { color: '#334155', width: 1 } },
-        splitLine: { distance: -18, length: 14, lineStyle: { color: '#334155', width: 2 } },
+        axisTick: {
+          distance: -16,
+          length: 6,
+          lineStyle: { color: '#334155', width: 1 },
+        },
+        splitLine: {
+          distance: -18,
+          length: 14,
+          lineStyle: { color: '#334155', width: 2 },
+        },
         axisLabel: { distance: -22, color: '#64748b', fontSize: 9 },
         detail: {
           valueAnimation: true,
@@ -361,8 +471,16 @@ function buildGaugeOption(cpu: number, mem: number) {
           },
         },
         pointer: { length: '55%', width: 4, itemStyle: { color: 'auto' } },
-        axisTick: { distance: -16, length: 6, lineStyle: { color: '#334155', width: 1 } },
-        splitLine: { distance: -18, length: 14, lineStyle: { color: '#334155', width: 2 } },
+        axisTick: {
+          distance: -16,
+          length: 6,
+          lineStyle: { color: '#334155', width: 1 },
+        },
+        splitLine: {
+          distance: -18,
+          length: 14,
+          lineStyle: { color: '#334155', width: 2 },
+        },
         axisLabel: { distance: -22, color: '#64748b', fontSize: 9 },
         detail: {
           valueAnimation: true,
@@ -387,7 +505,8 @@ function buildHeatmapOption() {
   const data: number[][][] = []
   for (let d = 0; d < 7; d++) {
     for (let h = 0; h < 24; h++) {
-      const base = d < 5 ? (h >= 9 && h <= 18 ? 80 : 20) : h >= 19 && h <= 23 ? 70 : 15
+      const base =
+        d < 5 ? (h >= 9 && h <= 18 ? 80 : 20) : h >= 19 && h <= 23 ? 70 : 15
       data.push([h, d, base + Math.floor(Math.random() * 40)])
     }
   }
@@ -421,7 +540,9 @@ function buildHeatmapOption() {
       orient: 'horizontal',
       left: 'center',
       bottom: 0,
-      inRange: { color: ['#0f172a', '#1e3a5f', '#2563eb', '#3b82f6', '#93c5fd'] },
+      inRange: {
+        color: ['#0f172a', '#1e3a5f', '#2563eb', '#3b82f6', '#93c5fd'],
+      },
       textStyle: { color: '#64748b', fontSize: 10 },
     },
     series: [
@@ -429,7 +550,9 @@ function buildHeatmapOption() {
         type: 'heatmap',
         data,
         label: { show: false },
-        emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.5)' } },
+        emphasis: {
+          itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.5)' },
+        },
       },
     ],
     animationDuration: 1500,
@@ -465,7 +588,12 @@ function buildPieOption() {
         itemStyle: { borderRadius: 6, borderColor: '#0a0e27', borderWidth: 2 },
         label: { show: false },
         emphasis: {
-          label: { show: true, fontSize: 13, fontWeight: 'bold', color: '#e2e8f0' },
+          label: {
+            show: true,
+            fontSize: 13,
+            fontWeight: 'bold',
+            color: '#e2e8f0',
+          },
           scaleSize: 8,
         },
         data: requestTypes.value.map((t) => ({
@@ -542,12 +670,20 @@ function buildLatencyOption(data: typeof latencyData.value) {
 function buildAttackSourceOption() {
   const sorted = [...attackSources.value].sort((a, b) => b.value - a.value)
   return {
-    grid: { left: '2%', right: '8%', top: '3%', bottom: '1%', containLabel: true },
+    grid: {
+      left: '2%',
+      right: '8%',
+      top: '3%',
+      bottom: '1%',
+      containLabel: true,
+    },
     xAxis: {
       type: 'value',
       max: 3500,
       axisLabel: { color: '#64748b', fontSize: 9 },
-      splitLine: { lineStyle: { color: '#1e293b', type: 'dashed', opacity: 0.5 } },
+      splitLine: {
+        lineStyle: { color: '#1e293b', type: 'dashed', opacity: 0.5 },
+      },
     },
     yAxis: {
       type: 'category',
@@ -571,7 +707,13 @@ function buildAttackSourceOption() {
           },
         })),
         barWidth: 14,
-        label: { show: true, position: 'right', color: '#e2e8f0', fontSize: 10, formatter: '{c}' },
+        label: {
+          show: true,
+          position: 'right',
+          color: '#e2e8f0',
+          fontSize: 10,
+          formatter: '{c}',
+        },
         animationDuration: 1000,
         animationEasing: 'cubicOut',
       },
@@ -585,16 +727,21 @@ function updateAllCharts() {
   if (pv && trendData.value.length) pv.setOption(buildPVOption(trendData.value))
 
   const region = charts.get('region')
-  if (region && regionData.value.length) region.setOption(buildRegionOption(regionData.value))
+  if (region && regionData.value.length)
+    region.setOption(buildRegionOption(regionData.value))
 
   const gauge = charts.get('gauge')
-  if (gauge) gauge.setOption(buildGaugeOption(overview.value.cpuUsage, overview.value.memUsage))
+  if (gauge)
+    gauge.setOption(
+      buildGaugeOption(overview.value.cpuUsage, overview.value.memUsage),
+    )
 
   const pie = charts.get('pie')
   if (pie) pie.setOption(buildPieOption())
 
   const latency = charts.get('latency')
-  if (latency && latencyData.value.length) latency.setOption(buildLatencyOption(latencyData.value))
+  if (latency && latencyData.value.length)
+    latency.setOption(buildLatencyOption(latencyData.value))
 
   const attack = charts.get('attack')
   if (attack) attack.setOption(buildAttackSourceOption())
@@ -683,22 +830,35 @@ onMounted(async () => {
     overview.value.todayVisits += Math.floor(Math.random() * 20)
     overview.value.totalRequests += Math.floor(Math.random() * 500)
     overview.value.cpuUsage = Number(
-      Math.max(10, Math.min(95, overview.value.cpuUsage + (Math.random() - 0.5) * 5)).toFixed(1),
+      Math.max(
+        10,
+        Math.min(95, overview.value.cpuUsage + (Math.random() - 0.5) * 5),
+      ).toFixed(1),
     )
     overview.value.memUsage = Number(
-      Math.max(30, Math.min(90, overview.value.memUsage + (Math.random() - 0.5) * 3)).toFixed(1),
+      Math.max(
+        30,
+        Math.min(90, overview.value.memUsage + (Math.random() - 0.5) * 3),
+      ).toFixed(1),
     )
     // 更新延迟数据
     if (latencyData.value.length > 0) {
       const last = latencyData.value[latencyData.value.length - 1]!
       latencyData.value.push({
         time: last.time,
-        avg: Math.max(20, Math.min(150, last.avg + Math.floor(Math.random() * 20 - 10))),
-        p99: Math.max(80, Math.min(300, last.p99 + Math.floor(Math.random() * 40 - 20))),
+        avg: Math.max(
+          20,
+          Math.min(150, last.avg + Math.floor(Math.random() * 20 - 10)),
+        ),
+        p99: Math.max(
+          80,
+          Math.min(300, last.p99 + Math.floor(Math.random() * 40 - 20)),
+        ),
       })
       if (latencyData.value.length > 24) latencyData.value.shift()
       const latencyChart = charts.get('latency')
-      if (latencyChart) latencyChart.setOption(buildLatencyOption(latencyData.value))
+      if (latencyChart)
+        latencyChart.setOption(buildLatencyOption(latencyData.value))
     }
     // 模拟新事件
     if (Math.random() > 0.6) {
@@ -716,8 +876,12 @@ onMounted(async () => {
         },
         { type: 'success', msg: '定时任务执行完成', level: 'success' },
       ]
-      const evt = eventTemplates[Math.floor(Math.random() * eventTemplates.length)]!
-      realtimeEvents.value.unshift({ time: new Date().toLocaleTimeString('zh-CN'), ...evt })
+      const evt =
+        eventTemplates[Math.floor(Math.random() * eventTemplates.length)]!
+      realtimeEvents.value.unshift({
+        time: new Date().toLocaleTimeString('zh-CN'),
+        ...evt,
+      })
       if (realtimeEvents.value.length > 50) realtimeEvents.value.pop()
     }
     // 模拟安全告警动态更新
@@ -740,8 +904,12 @@ onMounted(async () => {
           msg: `安全提醒：${['弱密码检测', '证书即将过期', '未加密传输', '登录地点变更'][Math.floor(Math.random() * 4)]}`,
         },
       ]
-      const sa = alertTemplates[Math.floor(Math.random() * alertTemplates.length)]!
-      securityAlerts.value.unshift({ time: new Date().toLocaleTimeString('zh-CN'), ...sa })
+      const sa =
+        alertTemplates[Math.floor(Math.random() * alertTemplates.length)]!
+      securityAlerts.value.unshift({
+        time: new Date().toLocaleTimeString('zh-CN'),
+        ...sa,
+      })
       if (securityAlerts.value.length > 15) securityAlerts.value.pop()
     }
     // 更新攻击来源数据
@@ -796,7 +964,11 @@ onBeforeUnmount(() => {
 
 // ======================== 工具函数 ========================
 function serviceStatusColor(status: string): string {
-  return status === 'healthy' ? 'text-emerald-400' : status === 'warning' ? 'text-yellow-400' : 'text-red-400'
+  return status === 'healthy'
+    ? 'text-emerald-400'
+    : status === 'warning'
+      ? 'text-yellow-400'
+      : 'text-red-400'
 }
 
 function eventLevelColor(level: string): string {
@@ -842,13 +1014,18 @@ function securityAlertLevelText(level: string): string {
 
 <template>
   <!-- 大屏容器 -->
-  <PerfectScrollbar id="screen-container" class="h-screen w-screen bg-[#0a0e27] text-white">
+  <PerfectScrollbar
+    id="screen-container"
+    class="h-screen w-screen bg-[#0a0e27] text-white"
+  >
     <div id="screen-content" class="flex h-full flex-col">
       <!-- 头部 -->
       <ScreenHeader title="系统实时监控大屏" />
 
       <!-- 主体内容 -->
-      <div class="grid min-h-0 flex-1 grid-cols-12 grid-rows-[1fr_auto] gap-3 p-3">
+      <div
+        class="grid min-h-0 flex-1 grid-cols-12 grid-rows-[1fr_auto] gap-3 p-3"
+      >
         <!-- 三列主区域 -->
         <div class="col-span-12 row-start-1 grid min-h-0 grid-cols-12 gap-3">
           <!-- 左侧栏 -->
@@ -857,24 +1034,36 @@ function securityAlertLevelText(level: string): string {
             <div class="grid shrink-0 grid-cols-2 gap-3">
               <ScreenCard>
                 <RealtimeNumber :value="overview.onlineUsers" suffix="人" />
-                <span class="mt-1 block text-[10px] text-blue-300/50">在线用户</span>
+                <span class="mt-1 block text-[10px] text-blue-300/50"
+                  >在线用户</span
+                >
               </ScreenCard>
               <ScreenCard>
                 <RealtimeNumber :value="overview.todayVisits" />
-                <span class="mt-1 block text-[10px] text-blue-300/50">今日访问(PV)</span>
+                <span class="mt-1 block text-[10px] text-blue-300/50"
+                  >今日访问(PV)</span
+                >
               </ScreenCard>
               <ScreenCard>
                 <RealtimeNumber :value="overview.alertCount" />
-                <span class="mt-1 block text-[10px] text-blue-300/50">告警数</span>
+                <span class="mt-1 block text-[10px] text-blue-300/50"
+                  >告警数</span
+                >
               </ScreenCard>
               <ScreenCard>
                 <RealtimeNumber :value="roundedNetworkIn" suffix="MB/s" />
-                <span class="mt-1 block text-[10px] text-blue-300/50">网络入流量</span>
+                <span class="mt-1 block text-[10px] text-blue-300/50"
+                  >网络入流量</span
+                >
               </ScreenCard>
             </div>
 
             <!-- 在线用户列表 -->
-            <ScreenCard title="在线用户" class="flex min-h-0 flex-1 flex-col" body-class="flex-1 min-h-0">
+            <ScreenCard
+              title="在线用户"
+              class="flex min-h-0 flex-1 flex-col"
+              body-class="flex-1 min-h-0"
+            >
               <PerfectScrollbar :options="psOptions" class="relative h-full">
                 <div class="space-y-2 pr-1">
                   <div
@@ -888,12 +1077,20 @@ function securityAlertLevelText(level: string): string {
                       {{ user.name[0] }}
                     </div>
                     <div class="min-w-0 flex-1">
-                      <div class="truncate text-xs text-blue-100/80">{{ user.name }}</div>
-                      <div class="font-mono text-[10px] text-blue-300/40">{{ user.ip }}</div>
+                      <div class="truncate text-xs text-blue-100/80">
+                        {{ user.name }}
+                      </div>
+                      <div class="font-mono text-[10px] text-blue-300/40">
+                        {{ user.ip }}
+                      </div>
                     </div>
                     <span
                       class="h-1.5 w-1.5 shrink-0 rounded-full"
-                      :class="user.status === 'online' ? 'bg-emerald-400' : 'bg-gray-500'"
+                      :class="
+                        user.status === 'online'
+                          ? 'bg-emerald-400'
+                          : 'bg-gray-500'
+                      "
                     />
                   </div>
                 </div>
@@ -904,47 +1101,80 @@ function securityAlertLevelText(level: string): string {
           <!-- 中间区域 -->
           <div class="col-span-6 flex h-full min-h-0 flex-col gap-3">
             <!-- PV/UV 趋势图（主图） -->
-            <ScreenCard class="flex min-h-0 flex-[2] flex-col" body-class="flex-1 min-h-0">
+            <ScreenCard
+              class="flex min-h-0 flex-[2] flex-col"
+              body-class="flex-1 min-h-0"
+            >
               <div ref="pvChartRef" class="h-full min-h-[200px] w-full" />
             </ScreenCard>
 
             <!-- 第二行：热力图 + 请求类型饼图 -->
             <div class="grid min-h-0 flex-1 grid-cols-2 gap-3">
-              <ScreenCard title="用户活跃时段" class="flex min-h-0 flex-col" body-class="flex-1 min-h-0">
+              <ScreenCard
+                title="用户活跃时段"
+                class="flex min-h-0 flex-col"
+                body-class="flex-1 min-h-0"
+              >
                 <div ref="heatmapRef" class="h-full min-h-[140px] w-full" />
               </ScreenCard>
-              <ScreenCard title="请求类型分布" class="flex min-h-0 flex-col" body-class="flex-1 min-h-0">
+              <ScreenCard
+                title="请求类型分布"
+                class="flex min-h-0 flex-col"
+                body-class="flex-1 min-h-0"
+              >
                 <div ref="pieChartRef" class="h-full min-h-[140px] w-full" />
               </ScreenCard>
             </div>
 
             <!-- 第三行：网络延迟趋势 + 实时事件流 -->
             <div class="grid min-h-0 flex-1 grid-cols-2 gap-3">
-              <ScreenCard title="网络延迟趋势" class="flex min-h-0 flex-col" body-class="flex-1 min-h-0">
-                <div ref="latencyChartRef" class="h-full min-h-[120px] w-full" />
+              <ScreenCard
+                title="网络延迟趋势"
+                class="flex min-h-0 flex-col"
+                body-class="flex-1 min-h-0"
+              >
+                <div
+                  ref="latencyChartRef"
+                  class="h-full min-h-[120px] w-full"
+                />
                 <!-- 统计指标 -->
                 <div class="mt-2 flex items-center gap-3 px-1 text-[11px]">
                   <div class="flex items-center gap-1.5">
                     <span class="h-0.5 w-2 rounded bg-cyan-400" />
                     <span class="text-slate-400">平均</span>
-                    <span class="font-mono font-medium text-cyan-300">{{ latencyStats.avg }}ms</span>
+                    <span class="font-mono font-medium text-cyan-300"
+                      >{{ latencyStats.avg }}ms</span
+                    >
                   </div>
                   <div class="flex items-center gap-1.5">
-                    <span class="h-0.5 w-2 rounded bg-rose-400" style="border-style: dashed" />
+                    <span
+                      class="h-0.5 w-2 rounded bg-rose-400"
+                      style="border-style: dashed"
+                    />
                     <span class="text-slate-400">P99</span>
-                    <span class="font-mono font-medium text-rose-300">{{ latencyStats.p99 }}ms</span>
+                    <span class="font-mono font-medium text-rose-300"
+                      >{{ latencyStats.p99 }}ms</span
+                    >
                   </div>
                   <div class="ml-auto flex items-center gap-1.5">
                     <span class="text-slate-500">可用率</span>
                     <span
                       class="font-mono font-medium"
-                      :class="[latencyStats.availability >= 99.9 ? 'text-emerald-400' : 'text-amber-400']"
+                      :class="[
+                        latencyStats.availability >= 99.9
+                          ? 'text-emerald-400'
+                          : 'text-amber-400',
+                      ]"
                       >{{ latencyStats.availability }}%</span
                     >
                   </div>
                 </div>
               </ScreenCard>
-              <ScreenCard title="实时事件流" class="flex min-h-0 flex-col overflow-hidden" body-class="flex-1 min-h-0">
+              <ScreenCard
+                title="实时事件流"
+                class="flex min-h-0 flex-col overflow-hidden"
+                body-class="flex-1 min-h-0"
+              >
                 <PerfectScrollbar :options="psOptions" class="relative h-full">
                   <div class="space-y-1.5 pr-1">
                     <div
@@ -952,10 +1182,21 @@ function securityAlertLevelText(level: string): string {
                       :key="idx"
                       class="flex items-start gap-2 rounded bg-blue-900/15 px-2 py-1.5 text-[11px] transition-colors hover:bg-blue-800/25"
                     >
-                      <span :class="eventLevelColor(evt.level)" class="mt-1.5 h-1 w-1 shrink-0 rounded-full" />
-                      <span class="shrink-0 font-mono text-blue-300/40">{{ evt.time }}</span>
-                      <span :class="eventLevelText(evt.level)" class="shrink-0">{{ evt.type.toUpperCase() }}</span>
-                      <span class="truncate text-blue-100/70">{{ evt.msg }}</span>
+                      <span
+                        :class="eventLevelColor(evt.level)"
+                        class="mt-1.5 h-1 w-1 shrink-0 rounded-full"
+                      />
+                      <span class="shrink-0 font-mono text-blue-300/40">{{
+                        evt.time
+                      }}</span>
+                      <span
+                        :class="eventLevelText(evt.level)"
+                        class="shrink-0"
+                        >{{ evt.type.toUpperCase() }}</span
+                      >
+                      <span class="truncate text-blue-100/70">{{
+                        evt.msg
+                      }}</span>
                     </div>
                   </div>
                 </PerfectScrollbar>
@@ -969,17 +1210,27 @@ function securityAlertLevelText(level: string): string {
             <ScreenCard class="shrink-0">
               <div class="py-1 text-center">
                 <RealtimeNumber :value="overview.totalRequests" />
-                <span class="mt-1 block text-[10px] text-blue-300/50">总请求数</span>
+                <span class="mt-1 block text-[10px] text-blue-300/50"
+                  >总请求数</span
+                >
               </div>
             </ScreenCard>
 
             <!-- 资源使用率 -->
-            <ScreenCard title="资源使用率" class="flex min-h-0 flex-1 flex-col" body-class="flex-1 min-h-0">
+            <ScreenCard
+              title="资源使用率"
+              class="flex min-h-0 flex-1 flex-col"
+              body-class="flex-1 min-h-0"
+            >
               <div ref="gaugeRef" class="h-full min-h-[140px] w-full" />
             </ScreenCard>
 
             <!-- 地区分布 -->
-            <ScreenCard title="地区用户分布 TOP9" class="flex min-h-0 flex-[1.5] flex-col" body-class="flex-1 min-h-0">
+            <ScreenCard
+              title="地区用户分布 TOP9"
+              class="flex min-h-0 flex-[1.5] flex-col"
+              body-class="flex-1 min-h-0"
+            >
               <div ref="regionBarRef" class="h-full min-h-[160px] w-full" />
             </ScreenCard>
 
@@ -998,10 +1249,17 @@ function securityAlertLevelText(level: string): string {
                       :key="svc.name"
                       class="flex items-center justify-between rounded bg-blue-900/20 px-2 py-1"
                     >
-                      <span class="text-xs text-blue-100/80">{{ svc.name }}</span>
+                      <span class="text-xs text-blue-100/80">{{
+                        svc.name
+                      }}</span>
                       <div class="flex items-center gap-2">
-                        <span class="text-[10px] text-blue-300/50">{{ svc.uptime }}</span>
-                        <span :class="serviceStatusColor(svc.status)" class="flex items-center gap-1 text-[10px]">
+                        <span class="text-[10px] text-blue-300/50">{{
+                          svc.uptime
+                        }}</span>
+                        <span
+                          :class="serviceStatusColor(svc.status)"
+                          class="flex items-center gap-1 text-[10px]"
+                        >
                           <span
                             class="inline-block h-1.5 w-1.5 rounded-full"
                             :class="
@@ -1012,7 +1270,13 @@ function securityAlertLevelText(level: string): string {
                                   : 'bg-red-400'
                             "
                           />
-                          {{ svc.status === 'healthy' ? '正常' : svc.status === 'warning' ? '警告' : '异常' }}
+                          {{
+                            svc.status === 'healthy'
+                              ? '正常'
+                              : svc.status === 'warning'
+                                ? '警告'
+                                : '异常'
+                          }}
                         </span>
                       </div>
                     </div>
@@ -1020,7 +1284,9 @@ function securityAlertLevelText(level: string): string {
                 </PerfectScrollbar>
               </div>
               <!-- 最近告警 -->
-              <div class="min-h-0 flex-[2] overflow-hidden border-t border-blue-500/15 pt-2">
+              <div
+                class="min-h-0 flex-[2] overflow-hidden border-t border-blue-500/15 pt-2"
+              >
                 <div class="mb-1 text-[10px] text-blue-300/50">最近告警</div>
                 <MarqueeNotice :items="formattedAlerts" />
               </div>
@@ -1029,10 +1295,16 @@ function securityAlertLevelText(level: string): string {
         </div>
 
         <!-- 安全威胁态势（底部行） -->
-        <div class="col-span-12 row-start-2 grid h-[180px] shrink-0 grid-cols-12 gap-3 overflow-hidden">
+        <div
+          class="col-span-12 row-start-2 grid h-[180px] shrink-0 grid-cols-12 gap-3 overflow-hidden"
+        >
           <!-- 攻击来源 TOP5 -->
           <div class="col-span-5 h-full overflow-hidden">
-            <ScreenCard title="攻击来源 TOP5" class="flex h-full flex-col" body-class="flex-1 min-h-0 p-2">
+            <ScreenCard
+              title="攻击来源 TOP5"
+              class="flex h-full flex-col"
+              body-class="flex-1 min-h-0 p-2"
+            >
               <div ref="attackSourceRef" class="h-full min-h-0 w-full" />
             </ScreenCard>
           </div>
@@ -1050,14 +1322,21 @@ function securityAlertLevelText(level: string): string {
                     :key="idx"
                     class="flex items-start gap-2 rounded bg-red-900/10 px-2 py-1 text-[11px] transition-colors hover:bg-red-900/20"
                   >
-                    <span :class="securityAlertLevelColor(alert.level)" class="mt-1.5 h-1 w-1 shrink-0 rounded-full" />
-                    <span class="shrink-0 font-mono text-blue-300/40">{{ alert.time }}</span>
+                    <span
+                      :class="securityAlertLevelColor(alert.level)"
+                      class="mt-1.5 h-1 w-1 shrink-0 rounded-full"
+                    />
+                    <span class="shrink-0 font-mono text-blue-300/40">{{
+                      alert.time
+                    }}</span>
                     <span
                       :class="securityAlertLevelText(alert.level)"
                       class="shrink-0 text-[9px] font-bold uppercase"
                       >{{ alert.level }}</span
                     >
-                    <span class="truncate text-red-100/70">{{ alert.msg }}</span>
+                    <span class="truncate text-red-100/70">{{
+                      alert.msg
+                    }}</span>
                   </div>
                 </div>
               </PerfectScrollbar>
@@ -1071,10 +1350,18 @@ function securityAlertLevelText(level: string): string {
         class="flex h-6 items-center justify-center border-t border-blue-500/10 bg-blue-950/80 text-[10px] text-blue-300/30"
       >
         <span
-          >数据刷新于 {{ new Date().toLocaleString('zh-CN') }} &nbsp;|&nbsp; Antdv Next Admin Security Monitor
-          &nbsp;|&nbsp; v1.0.0</span
+          >数据刷新于 {{ new Date().toLocaleString('zh-CN') }} &nbsp;|&nbsp;
+          Antdv Next Admin Security Monitor &nbsp;|&nbsp; v1.0.0</span
         >
       </div>
     </div>
   </PerfectScrollbar>
 </template>
+<route lang="json">
+{
+  "name": "ScreenMonitor",
+  "meta": {
+    "title": "监控大屏"
+  }
+}
+</route>

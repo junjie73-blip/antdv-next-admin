@@ -24,7 +24,9 @@ export interface ResponsiveMaxHeightOptions {
  * 按窗口高度动态计算滚动容器 max-height。
  * 支持传入 Ref / Getter，父级 maxHeight 变化时会自动重算。
  */
-export function useResponsiveMaxHeight(options: ResponsiveMaxHeightOptions = {}) {
+export function useResponsiveMaxHeight(
+  options: ResponsiveMaxHeightOptions = {},
+) {
   // useWindowSize 自带 rAF 节流
   const { height: windowHeight } = useWindowSize()
 

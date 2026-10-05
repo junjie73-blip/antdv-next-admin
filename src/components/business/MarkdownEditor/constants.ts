@@ -70,7 +70,19 @@ export const FONT_FAMILIES: ToolbarOption[] = [
 
 export const FONT_SIZES: ToolbarOption[] = [
   { label: '默认字号', value: '' },
-  ...['12px', '13px', '14px', '15px', '16px', '18px', '20px', '24px', '28px', '32px', '36px'].map((size) => ({
+  ...[
+    '12px',
+    '13px',
+    '14px',
+    '15px',
+    '16px',
+    '18px',
+    '20px',
+    '24px',
+    '28px',
+    '32px',
+    '36px',
+  ].map((size) => ({
     label: size,
     value: size,
   })),
@@ -79,7 +91,10 @@ export const FONT_SIZES: ToolbarOption[] = [
 /** wangEditor 只在行高属于该白名单时才解析，保持一致避免格式错乱 */
 export const LINE_HEIGHTS: ToolbarOption[] = [
   { label: '默认行高', value: '' },
-  ...['1', '1.15', '1.5', '2', '2.5', '3'].map((value) => ({ label: value, value })),
+  ...['1', '1.15', '1.5', '2', '2.5', '3'].map((value) => ({
+    label: value,
+    value,
+  })),
 ]
 
 const COLOR_PALETTE = [

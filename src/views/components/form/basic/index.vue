@@ -169,24 +169,27 @@ const schemas: FormSchema[] = [
   },
 ]
 
-const [register, { validate, resetFields, setFieldsValue, getFieldsValue }] = useForm({
-  schemas,
-  labelWidth: 100,
-  showActionButtonGroup: true,
-  showResetButton: true,
-  showSubmitButton: true,
-  showAdvancedButton: true,
-  alwaysShowLines: 2,
-  fieldMapToTime: [['timeRange', ['startTime', 'endTime'], 'YYYY-MM-DD HH:mm:ss']],
-  submitButtonOptions: {
-    text: '查询',
-    preIcon: 'carbon:search',
-  },
-  resetButtonOptions: {
-    text: '重置',
-    preIcon: 'carbon:restart',
-  },
-})
+const [register, { validate, resetFields, setFieldsValue, getFieldsValue }] =
+  useForm({
+    schemas,
+    labelWidth: 100,
+    showActionButtonGroup: true,
+    showResetButton: true,
+    showSubmitButton: true,
+    showAdvancedButton: true,
+    alwaysShowLines: 2,
+    fieldMapToTime: [
+      ['timeRange', ['startTime', 'endTime'], 'YYYY-MM-DD HH:mm:ss'],
+    ],
+    submitButtonOptions: {
+      text: '查询',
+      preIcon: 'carbon:search',
+    },
+    resetButtonOptions: {
+      text: '重置',
+      preIcon: 'carbon:restart',
+    },
+  })
 
 const formResult = ref<Record<string, any>>({})
 

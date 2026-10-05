@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { Editor, EditorContent } from '@tiptap/vue-3'
 import { message } from 'antdv-next'
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  shallowRef,
+  watch,
+} from 'vue'
 
 import { cn } from '~/utils/cn'
 
@@ -142,7 +149,11 @@ const maxHeightCss = computed(() => toCssSize(props.maxHeight) ?? '500px')
 const contentStyle = computed(() => {
   if (isFullScreen.value) return { flex: '1 1 0%' }
   if (fixedHeight.value) return { flex: '0 0 auto', height: fixedHeight.value }
-  return { flex: '1 1 auto', minHeight: minHeightCss.value, maxHeight: maxHeightCss.value }
+  return {
+    flex: '1 1 auto',
+    minHeight: minHeightCss.value,
+    maxHeight: maxHeightCss.value,
+  }
 })
 
 function toggleFullScreen(): void {
@@ -153,9 +164,20 @@ function toggleFullScreen(): void {
  * 上传
  * ============================================================ */
 
-const DEFAULT_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp']
+const DEFAULT_IMAGE_TYPES = [
+  'image/png',
+  'image/jpeg',
+  'image/jpg',
+  'image/gif',
+  'image/webp',
+]
 
-const DEFAULT_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime']
+const DEFAULT_VIDEO_TYPES = [
+  'video/mp4',
+  'video/webm',
+  'video/ogg',
+  'video/quicktime',
+]
 
 const imageUploadConfig = computed<ImageUploadConfig>(() => ({
   maxFileSize: 5,
@@ -169,15 +191,22 @@ const videoUploadConfig = computed<VideoUploadConfig>(() => ({
   ...props.videoUpload,
 }))
 
-const imageAccept = computed(() => (imageUploadConfig.value.allowedFileTypes ?? DEFAULT_IMAGE_TYPES).join(','))
+const imageAccept = computed(() =>
+  (imageUploadConfig.value.allowedFileTypes ?? DEFAULT_IMAGE_TYPES).join(','),
+)
 
-const videoAccept = computed(() => (videoUploadConfig.value.allowedFileTypes ?? DEFAULT_VIDEO_TYPES).join(','))
+const videoAccept = computed(() =>
+  (videoUploadConfig.value.allowedFileTypes ?? DEFAULT_VIDEO_TYPES).join(','),
+)
 
 function insertImageNode(url: string, alt = '', href = ''): void {
   editorRef.value
     ?.chain()
     .focus()
-    .insertContent({ type: 'image', attrs: { src: url, alt: alt || null, dataHref: href || null } })
+    .insertContent({
+      type: 'image',
+      attrs: { src: url, alt: alt || null, dataHref: href || null },
+    })
     .run()
 }
 
@@ -185,7 +214,10 @@ function insertVideoNode(url: string, poster = ''): void {
   editorRef.value
     ?.chain()
     .focus()
-    .insertContent({ type: 'video', attrs: { src: url, poster: poster || null } })
+    .insertContent({
+      type: 'video',
+      attrs: { src: url, poster: poster || null },
+    })
     .run()
 }
 
@@ -317,7 +349,9 @@ const toolbarKeys = computed<MarkdownEditorToolbarKey[]>(() => {
  * 编辑器实例
  * ============================================================ */
 
-const isLocked = computed(() => props.readonly || props.disabled || props.mode === 'preview')
+const isLocked = computed(
+  () => props.readonly || props.disabled || props.mode === 'preview',
+)
 
 /**
  * 超过 maxLength 时拦截输入
@@ -351,7 +385,8 @@ editorRef.value = new Editor({
       return exceedsMaxLength(currentTextLength() + text.length)
     },
     handleDrop: (_view, event) => {
-      const text = (event as DragEvent).dataTransfer?.getData('text/plain') ?? ''
+      const text =
+        (event as DragEvent).dataTransfer?.getData('text/plain') ?? ''
       return exceedsMaxLength(currentTextLength() + text.length)
     },
   },
@@ -420,9 +455,12 @@ const instance: MarkdownEditorInstance = {
   blur: () => editorRef.value?.commands.blur(),
   undo: () => editorRef.value?.commands.undo(),
   redo: () => editorRef.value?.commands.redo(),
-  insertText: (text: string) => editorRef.value?.chain().focus().insertContent(escapeHtml(text)).run(),
-  insertHtml: (html: string) => editorRef.value?.chain().focus().insertContent(html).run(),
-  insertImage: (url: string, alt = '', href = '') => insertImageNode(url, alt, href),
+  insertText: (text: string) =>
+    editorRef.value?.chain().focus().insertContent(escapeHtml(text)).run(),
+  insertHtml: (html: string) =>
+    editorRef.value?.chain().focus().insertContent(html).run(),
+  insertImage: (url: string, alt = '', href = '') =>
+    insertImageNode(url, alt, href),
   insertVideo: (url: string, poster = '') => insertVideoNode(url, poster),
   selectAll: () => editorRef.value?.commands.selectAll(),
   getStats: () => ({
@@ -450,7 +488,10 @@ const containerClassName = computed(() =>
 )
 
 const toolbarClassName = computed(() =>
-  cn('shrink-0 border-b border-gray-200 dark:border-gray-700', props.compact && 'compact-toolbar'),
+  cn(
+    'shrink-0 border-b border-gray-200 dark:border-gray-700',
+    props.compact && 'compact-toolbar',
+  ),
 )
 </script>
 
@@ -480,11 +521,27 @@ const toolbarClassName = computed(() =>
       class="flex shrink-0 items-center justify-end gap-2 border-t border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800/60 dark:text-gray-400"
     >
       <span>{{ textLength }} 字</span>
-      <span v-if="maxLength" class="text-gray-400 dark:text-gray-500"> / {{ maxLength }} 上限 </span>
+      <span v-if="maxLength" class="text-gray-400 dark:text-gray-500">
+        / {{ maxLength }} 上限
+      </span>
     </div>
 
-    <input ref="imageInputRef" type="file" hidden :accept="imageAccept" class="hidden" @change="handleImageChange" />
-    <input ref="videoInputRef" type="file" hidden :accept="videoAccept" class="hidden" @change="handleVideoChange" />
+    <input
+      ref="imageInputRef"
+      type="file"
+      hidden
+      :accept="imageAccept"
+      class="hidden"
+      @change="handleImageChange"
+    />
+    <input
+      ref="videoInputRef"
+      type="file"
+      hidden
+      :accept="videoAccept"
+      class="hidden"
+      @change="handleVideoChange"
+    />
   </div>
 </template>
 

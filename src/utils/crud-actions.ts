@@ -17,7 +17,15 @@ export function createCrudActions<T extends Record<string, unknown>>(
   options: CrudActionOptions<T>,
   permissions?: Record<string, string | string[]>,
 ): ActionItem[] {
-  const { onEdit, onDelete, onView, extra, deleteTitle = '确认删除', deleteContent, deleteLabel = '删除' } = options
+  const {
+    onEdit,
+    onDelete,
+    onView,
+    extra,
+    deleteTitle = '确认删除',
+    deleteContent,
+    deleteLabel = '删除',
+  } = options
 
   const actions: ActionItem[] = []
 

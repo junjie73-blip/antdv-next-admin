@@ -80,7 +80,10 @@ export interface ImageUploadConfig extends UploadCallbacks {
   /** 允许的 MIME，默认 png/jpeg/gif/webp */
   allowedFileTypes?: string[]
   /** 自定义上传（不传则走内置 http 上传） */
-  customUpload?: (file: File, insertFn: (url: string, alt?: string, href?: string) => void) => void
+  customUpload?: (
+    file: File,
+    insertFn: (url: string, alt?: string, href?: string) => void,
+  ) => void
 }
 
 /**
@@ -98,7 +101,10 @@ export interface VideoUploadConfig extends UploadCallbacks {
   /** 允许的 MIME，默认 mp4/webm/ogg */
   allowedFileTypes?: string[]
   /** 自定义上传 */
-  customUpload?: (file: File, insertFn: (url: string, poster?: string) => void) => void
+  customUpload?: (
+    file: File,
+    insertFn: (url: string, poster?: string) => void,
+  ) => void
 }
 
 /**

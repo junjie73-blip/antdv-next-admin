@@ -4,7 +4,11 @@ import { Badge, message, Popover, Spin } from 'antdv-next'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { getMyNoticeList, markAllNoticeRead, markNoticeRead } from '~/api/notice.js'
+import {
+  getMyNoticeList,
+  markAllNoticeRead,
+  markNoticeRead,
+} from '~/api/notice.js'
 import { type NotificationItem, useWebSocket } from '~/utils/ws'
 
 import NoticeItem from './components/NoticeItem.vue'
@@ -32,7 +36,9 @@ async function loadList() {
   loading.value = true
   try {
     const res = await getMyNoticeList({ pageNum: 1, pageSize: 5 })
-    list.value = ((res as { data?: { list?: NotificationItem[] } })?.data?.list ?? []).map(transformNotice)
+    list.value = (
+      (res as { data?: { list?: NotificationItem[] } })?.data?.list ?? []
+    ).map(transformNotice)
     unreadCount.value = list.value.filter((i) => i.isRead === 0).length
   } finally {
     loading.value = false
@@ -80,8 +86,12 @@ async function handleRead(item: NotificationItem) {
 
   try {
     await markNoticeRead(item.noticeId)
-    list.value = list.value.map((n) => (n.noticeId === item.noticeId ? { ...n, isRead: 1 } : n))
-    list.value = list.value.map((n) => (n.noticeId === item.noticeId ? { ...n, isRead: 1 } : n))
+    list.value = list.value.map((n) =>
+      n.noticeId === item.noticeId ? { ...n, isRead: 1 } : n,
+    )
+    list.value = list.value.map((n) =>
+      n.noticeId === item.noticeId ? { ...n, isRead: 1 } : n,
+    )
     unreadCount.value = Math.max(0, unreadCount.value - 1)
   } catch (err) {
     // 回滚
@@ -117,7 +127,9 @@ async function handleMarkAllRead() {
   markingAll.value = true
 
   // 记录旧的未读 id 列表
-  const unreadIds = list.value.filter((i) => i.isRead === 0).map((i) => i.noticeId)
+  const unreadIds = list.value
+    .filter((i) => i.isRead === 0)
+    .map((i) => i.noticeId)
 
   // 乐观更新
   list.value.forEach((item) => {
@@ -189,7 +201,11 @@ defineExpose({ loadList })
           class="flex shrink-0 items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-800"
         >
           <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 通知 </span>
+            <span
+              class="text-sm font-semibold text-slate-700 dark:text-slate-200"
+            >
+              通知
+            </span>
             <span
               v-if="unreadCount > 0"
               class="rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] leading-none font-medium text-white"
@@ -213,21 +229,38 @@ defineExpose({ loadList })
         <!-- 列表 -->
         <div class="max-h-[420px] min-h-[140px] overflow-y-auto p-2">
           <Spin :spinning="loading">
-            <div v-if="!loading && list.length === 0" class="flex flex-col items-center justify-center gap-2 py-12">
-              <div class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
-                <Icon icon="carbon:notification-off" class="text-xl text-slate-400 dark:text-slate-500" />
+            <div
+              v-if="!loading && list.length === 0"
+              class="flex flex-col items-center justify-center gap-2 py-12"
+            >
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800"
+              >
+                <Icon
+                  icon="carbon:notification-off"
+                  class="text-xl text-slate-400 dark:text-slate-500"
+                />
               </div>
-              <span class="text-xs text-slate-400 dark:text-slate-500"> 暂无通知 </span>
+              <span class="text-xs text-slate-400 dark:text-slate-500">
+                暂无通知
+              </span>
             </div>
 
             <div v-else class="space-y-1">
-              <NoticeItem v-for="item in list" :key="item.noticeId" :item="item" @click="handleClick" />
+              <NoticeItem
+                v-for="item in list"
+                :key="item.noticeId"
+                :item="item"
+                @click="handleClick"
+              />
             </div>
           </Spin>
         </div>
 
         <!-- 底部 -->
-        <div class="flex shrink-0 items-center justify-center border-t border-slate-100 py-2.5 dark:border-slate-800">
+        <div
+          class="flex shrink-0 items-center justify-center border-t border-slate-100 py-2.5 dark:border-slate-800"
+        >
           <button
             type="button"
             class="text-ant-primary text-xs transition-colors hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"

@@ -4,7 +4,11 @@ import { useStorage } from '@vueuse/core'
 import { isNil } from 'es-toolkit'
 import { computed } from 'vue'
 
-import type { CacheInstance, UseCacheOptions, UseCacheReturn } from '../utils/cache/types'
+import type {
+  CacheInstance,
+  UseCacheOptions,
+  UseCacheReturn,
+} from '../utils/cache/types'
 
 import { cache } from '../utils/cache/index'
 
@@ -30,7 +34,10 @@ const DEFAULT_EXPIRE = 0
  * console.log(value.value)       // 读取缓存
  * ```
  */
-export function useCache<T = unknown>(key: string, options: UseCacheOptions = {}): UseCacheReturn<T> {
+export function useCache<T = unknown>(
+  key: string,
+  options: UseCacheOptions = {},
+): UseCacheReturn<T> {
   const { defaultValue = null, expire = DEFAULT_EXPIRE, deep = true } = options
 
   // 使用 cache 单例读写，保持一致的加密/前缀策略
@@ -57,12 +64,16 @@ export function useCache<T = unknown>(key: string, options: UseCacheOptions = {}
   const hasCache = cacheInstance.hasItem(key)
 
   // 初始值：优先从缓存取，否则用默认值
-  const initialValue: T | null = hasCache ? cacheInstance.getItem(key) : (defaultValue as T | null)
+  const initialValue: T | null = hasCache
+    ? cacheInstance.getItem(key)
+    : (defaultValue as T | null)
 
   // 使用 useStorage 提供响应式包装（跨标签页同步）
   const storageRef: RemovableRef<string> = useStorage(
     key,
-    hasCache ? JSON.stringify({ value: initialValue }) : serializer.write(initialValue as T),
+    hasCache
+      ? JSON.stringify({ value: initialValue })
+      : serializer.write(initialValue as T),
     // 使用 localStorage，useStorage 会自动注入监听
     typeof window !== 'undefined' ? window.localStorage : undefined,
     {

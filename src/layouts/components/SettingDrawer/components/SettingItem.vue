@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 
-import { itemDescClassName, itemLabelClassName, itemRowClassName } from '../constants'
+import {
+  itemDescClassName,
+  itemLabelClassName,
+  itemRowClassName,
+} from '../constants'
 
 defineOptions({ name: 'SettingItem' })
 

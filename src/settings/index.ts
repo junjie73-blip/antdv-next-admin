@@ -62,6 +62,7 @@ export const DEFAULT_SETTING: AppSetting = {
   showProgressBar: true,
   showLoading: true,
   locale: 'zh-CN',
+  routeMode: 'frontend',
 }
 
 export * from './theme'

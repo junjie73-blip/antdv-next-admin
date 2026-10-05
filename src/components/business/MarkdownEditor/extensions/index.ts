@@ -1,6 +1,11 @@
 import type { Extensions } from '@tiptap/vue-3'
 
-import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table'
+import {
+  Table,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from '@tiptap/extension-table'
 import TextAlign from '@tiptap/extension-text-align'
 import { TextStyleKit } from '@tiptap/extension-text-style'
 import { Placeholder } from '@tiptap/extensions'
@@ -23,7 +28,9 @@ export interface EditorExtensionOptions {
  *  - 行高用自研的 BlockStyle（块级），不使用内置 LineHeight（行内 textStyle）
  *  - 待办 / 视频为 wangEditor 私有格式，用自定义节点保证存量数据可解析
  */
-export function createEditorExtensions(options: EditorExtensionOptions): Extensions {
+export function createEditorExtensions(
+  options: EditorExtensionOptions,
+): Extensions {
   return [
     StarterKit.configure({
       heading: { levels: [1, 2, 3, 4, 5] },

@@ -6,7 +6,12 @@ import type { BasicColumn, UseColumnsOptions, UseColumnsReturn } from '../types'
 const isArray = Array.isArray
 
 export function useColumns(options: UseColumnsOptions): UseColumnsReturn {
-  const { columns, showIndexColumn = false, indexColumnProps = {}, actionColumn } = options
+  const {
+    columns,
+    showIndexColumn = false,
+    indexColumnProps = {},
+    actionColumn,
+  } = options
 
   const columnsRef = ref<BasicColumn[]>([])
   const cacheColumnsRef = ref<BasicColumn[]>([])
@@ -48,7 +53,9 @@ export function useColumns(options: UseColumnsOptions): UseColumnsReturn {
   const initColumns = () => {
     const rawColumns = unref(columns)
     if (!isArray(rawColumns)) return
-    const processed = processColumns(cloneDeep(toRaw(rawColumns) as BasicColumn[]))
+    const processed = processColumns(
+      cloneDeep(toRaw(rawColumns) as BasicColumn[]),
+    )
     columnsRef.value = processed
     cacheColumnsRef.value = processed
   }
@@ -62,7 +69,9 @@ export function useColumns(options: UseColumnsOptions): UseColumnsReturn {
         const k = (c.key || c.dataIndex) as string
         if (k) map.set(k, c)
       }
-      columnsRef.value = keys.map((k) => map.get(k)).filter(Boolean) as BasicColumn[]
+      columnsRef.value = keys
+        .map((k) => map.get(k))
+        .filter(Boolean) as BasicColumn[]
     } else {
       columnsRef.value = columnList as BasicColumn[]
     }
@@ -75,14 +84,24 @@ export function useColumns(options: UseColumnsOptions): UseColumnsReturn {
   }
 
   const updateColumn = (column: Partial<BasicColumn>, key: string) => {
-    const i = columnsRef.value.findIndex((col) => col.key === key || col.dataIndex === key)
+    const i = columnsRef.value.findIndex(
+      (col) => col.key === key || col.dataIndex === key,
+    )
     if (i > -1) columnsRef.value[i] = { ...columnsRef.value[i], ...column }
   }
 
-  watch([() => unref(columns), () => unref(showIndexColumn), () => unref(actionColumn)], initColumns, {
-    immediate: true,
-    deep: true,
-  })
+  watch(
+    [
+      () => unref(columns),
+      () => unref(showIndexColumn),
+      () => unref(actionColumn),
+    ],
+    initColumns,
+    {
+      immediate: true,
+      deep: true,
+    },
+  )
 
   return {
     columnsRef,

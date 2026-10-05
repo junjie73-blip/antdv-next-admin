@@ -38,7 +38,13 @@ export interface ExportOptions {
  * ```
  */
 export function exportToExcel(options: ExportOptions) {
-  const { filename, columns, data, sheetName = 'Sheet1', autoWidth = true } = options
+  const {
+    filename,
+    columns,
+    data,
+    sheetName = 'Sheet1',
+    autoWidth = true,
+  } = options
 
   if (!data || data.length === 0) {
     message.warning('没有可导出的数据')
@@ -64,7 +70,12 @@ export function exportToExcel(options: ExportOptions) {
   // 自动调整列宽
   if (autoWidth) {
     const colWidths = columns.map((col, idx) => ({
-      wch: col.width || Math.max(headers[idx]?.length || 10, ...data.map((item) => String(item[col.key] ?? '').length)),
+      wch:
+        col.width ||
+        Math.max(
+          headers[idx]?.length || 10,
+          ...data.map((item) => String(item[col.key] ?? '').length),
+        ),
     }))
     ws['!cols'] = colWidths
   } else if (columns.some((col) => col.width)) {

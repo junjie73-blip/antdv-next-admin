@@ -9,8 +9,14 @@ function normalizeLength(value: string | null | undefined): string | null {
   return matched ? `${matched[1]}px` : null
 }
 
-function readLength(element: HTMLElement, prop: 'width' | 'height'): string | null {
-  return normalizeLength(element.style[prop]) ?? normalizeLength(element.getAttribute(prop))
+function readLength(
+  element: HTMLElement,
+  prop: 'width' | 'height',
+): string | null {
+  return (
+    normalizeLength(element.style[prop]) ??
+    normalizeLength(element.getAttribute(prop))
+  )
 }
 
 /**
@@ -26,17 +32,20 @@ export const EditorImage = Image.extend({
       width: {
         default: null,
         parseHTML: (element) => readLength(element as HTMLElement, 'width'),
-        renderHTML: (attributes) => (attributes.width ? { style: `width: ${attributes.width}` } : {}),
+        renderHTML: (attributes) =>
+          attributes.width ? { style: `width: ${attributes.width}` } : {},
       },
       height: {
         default: null,
         parseHTML: (element) => readLength(element as HTMLElement, 'height'),
-        renderHTML: (attributes) => (attributes.height ? { style: `height: ${attributes.height}` } : {}),
+        renderHTML: (attributes) =>
+          attributes.height ? { style: `height: ${attributes.height}` } : {},
       },
       dataHref: {
         default: null,
         parseHTML: (element) => element.getAttribute('data-href'),
-        renderHTML: (attributes) => (attributes.dataHref ? { 'data-href': attributes.dataHref } : {}),
+        renderHTML: (attributes) =>
+          attributes.dataHref ? { 'data-href': attributes.dataHref } : {},
       },
     }
   },

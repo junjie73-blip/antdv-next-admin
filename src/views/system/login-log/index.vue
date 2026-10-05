@@ -10,9 +10,9 @@ import { getLoginLogList, getLoginLogStats } from '~/api/system'
 import { Description as DetailDescription } from '~/components/business/Description'
 import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
 import { BasicTable, useTable } from '~/components/business/Table'
+import { usePrint } from '~/composables/print'
 import { cn } from '~/utils/cn'
 import { exportToExcel } from '~/utils/excel'
-import { usePrint } from '~/utils/print'
 
 defineOptions({ name: 'SystemLoginLog' })
 
@@ -129,7 +129,9 @@ const detailSchemas: DescriptionItem[] = [
     field: 'status',
     label: '登录状态',
     render: (value) => (
-      <a-tag color={value === 'success' ? 'green' : 'red'}>{value === 'success' ? '成功' : '失败'}</a-tag>
+      <a-tag color={value === 'success' ? 'green' : 'red'}>
+        {value === 'success' ? '成功' : '失败'}
+      </a-tag>
     ),
   },
   { field: 'message', label: '登录消息' },
@@ -179,7 +181,8 @@ function handleDelete(record: LoginLogRecord | any) {
 }
 
 function handleBatchDelete() {
-  const selectedRows = (tableMethods.value?.getSelectRows?.() || []) as LoginLogRecord[]
+  const selectedRows = (tableMethods.value?.getSelectRows?.() ||
+    []) as LoginLogRecord[]
   if (selectedRows.length === 0) {
     message.warning('请先选择要删除的日志')
     return
@@ -189,7 +192,8 @@ function handleBatchDelete() {
 }
 
 function handleExport() {
-  const selectedRows = (tableMethods.value?.getSelectRows?.() || []) as LoginLogRecord[]
+  const selectedRows = (tableMethods.value?.getSelectRows?.() ||
+    []) as LoginLogRecord[]
   const dataToExport = selectedRows.length > 0 ? selectedRows : []
 
   exportToExcel({
@@ -228,9 +232,21 @@ function handleClear() {
 }
 
 const columns: BasicColumn[] = [
-  { title: '#', key: 'index', width: 60, align: 'center', customRender: ({ index }) => index + 1 },
+  {
+    title: '#',
+    key: 'index',
+    width: 60,
+    align: 'center',
+    customRender: ({ index }) => index + 1,
+  },
   { title: 'ID', dataIndex: 'id', key: 'id', width: 70, align: 'center' },
-  { title: '用户名', dataIndex: 'username', key: 'username', width: 110, align: 'center' },
+  {
+    title: '用户名',
+    dataIndex: 'username',
+    key: 'username',
+    width: 110,
+    align: 'center',
+  },
   {
     title: '登录账号',
     dataIndex: 'loginAccount',
@@ -239,11 +255,35 @@ const columns: BasicColumn[] = [
     align: 'center',
   },
   { title: '登录IP', dataIndex: 'ip', key: 'ip', width: 140, align: 'center' },
-  { title: '登录地点', dataIndex: 'location', key: 'location', width: 130, ellipsis: true },
-  { title: '浏览器', dataIndex: 'browser', key: 'browser', width: 150, ellipsis: true },
+  {
+    title: '登录地点',
+    dataIndex: 'location',
+    key: 'location',
+    width: 130,
+    ellipsis: true,
+  },
+  {
+    title: '浏览器',
+    dataIndex: 'browser',
+    key: 'browser',
+    width: 150,
+    ellipsis: true,
+  },
   { title: '操作系统', dataIndex: 'os', key: 'os', width: 140, ellipsis: true },
-  { title: '登录状态', dataIndex: 'status', key: 'status', width: 90, align: 'center' },
-  { title: '登录消息', dataIndex: 'message', key: 'message', width: 200, ellipsis: true },
+  {
+    title: '登录状态',
+    dataIndex: 'status',
+    key: 'status',
+    width: 90,
+    align: 'center',
+  },
+  {
+    title: '登录消息',
+    dataIndex: 'message',
+    key: 'message',
+    width: 200,
+    ellipsis: true,
+  },
   { title: '登录时间', dataIndex: 'loginTime', key: 'loginTime', width: 170 },
 ]
 </script>
@@ -269,12 +309,20 @@ const columns: BasicColumn[] = [
       <a-card :class="cardClassName" size="small">
         <a-statistic title="本月登录次数" :value="monthLoginCount" suffix="次">
           <template #prefix>
-            <Icon icon="carbon:chart-line-data" class="mr-1 text-lg text-orange-500" />
+            <Icon
+              icon="carbon:chart-line-data"
+              class="mr-1 text-lg text-orange-500"
+            />
           </template>
         </a-statistic>
       </a-card>
       <a-card :class="[cardClassName, failCardClassName]" size="small">
-        <a-statistic title="今日失败次数" :value="todayFailCount" suffix="次" :value-style="{ color: '#cf1322' }">
+        <a-statistic
+          title="今日失败次数"
+          :value="todayFailCount"
+          suffix="次"
+          :value-style="{ color: '#cf1322' }"
+        >
           <template #prefix>
             <Icon icon="carbon:error" class="mr-1 text-lg text-red-500" />
           </template>
@@ -292,7 +340,10 @@ const columns: BasicColumn[] = [
         :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
         :action-column="{ width: 180, title: '操作', fixed: 'right' }"
         :row-selection="{ type: 'checkbox' }"
-        :pagination="{ showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }"
+        :pagination="{
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '20', '50'],
+        }"
         :scroll="{ x: 1600 }"
         @register="tableRegister"
       >
@@ -315,7 +366,10 @@ const columns: BasicColumn[] = [
             </template>
             批量删除
           </a-button>
-          <a-popconfirm title="确定要清空所有登录日志吗？此操作不可恢复！" @confirm="handleClear">
+          <a-popconfirm
+            title="确定要清空所有登录日志吗？此操作不可恢复！"
+            @confirm="handleClear"
+          >
             <a-button danger>
               <template #icon>
                 <Icon icon="carbon:trash-can" />
@@ -328,7 +382,13 @@ const columns: BasicColumn[] = [
         <template #cell-status="{ record }">
           <a-tag :color="record.status === 'success' ? 'green' : 'red'">
             <span :class="tagClassName">
-              <Icon :icon="record.status === 'success' ? 'carbon:checkmark-outline' : 'carbon:close-outline'" />
+              <Icon
+                :icon="
+                  record.status === 'success'
+                    ? 'carbon:checkmark-outline'
+                    : 'carbon:close-outline'
+                "
+              />
               {{ record.status === 'success' ? '成功' : '失败' }}
             </span>
           </a-tag>
@@ -336,14 +396,21 @@ const columns: BasicColumn[] = [
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <a-button type="link" :class="btnClassName" @click="() => handleView(record)">
+            <a-button
+              type="link"
+              :class="btnClassName"
+              @click="() => handleView(record)"
+            >
               <template #icon>
                 <Icon icon="ant-design:eye-outlined" />
               </template>
               详情
             </a-button>
             <a-divider type="vertical" :class="dividerClassName" />
-            <a-popconfirm :title="`确定要删除日志 #${record.id} 吗？`" @confirm="() => handleDelete(record)">
+            <a-popconfirm
+              :title="`确定要删除日志 #${record.id} 吗？`"
+              @confirm="() => handleDelete(record)"
+            >
               <a-button type="link" danger :class="btnClassName">
                 <template #icon>
                   <Icon icon="ant-design:delete-outlined" />
@@ -357,11 +424,26 @@ const columns: BasicColumn[] = [
     </a-card>
 
     <!-- 详情抽屉 -->
-    <BasicDrawer title="登录日志详情" :width="640" :show-footer="false" @register="drawerRegister">
-      <DetailDescription v-if="viewingRecord" :data="viewingRecord" :schema="detailSchemas" :column="1" bordered />
+    <BasicDrawer
+      title="登录日志详情"
+      :width="640"
+      :show-footer="false"
+      @register="drawerRegister"
+    >
+      <DetailDescription
+        v-if="viewingRecord"
+        :data="viewingRecord"
+        :schema="detailSchemas"
+        :column="1"
+        bordered
+      />
 
       <div class="mt-6 border-t border-gray-200 pt-4 dark:border-gray-700">
-        <a-alert message="提示：如发现异常登录记录，请及时修改密码并联系安全管理人员" type="warning" show-icon />
+        <a-alert
+          message="提示：如发现异常登录记录，请及时修改密码并联系安全管理人员"
+          type="warning"
+          show-icon
+        />
       </div>
     </BasicDrawer>
   </div>

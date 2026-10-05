@@ -5,7 +5,11 @@ import { AUTHORIZATION_KEY } from '~/composables/constant'
 import { TOKEN_KEY, REFRESH_TOKEN_KEY } from '~/config/constants'
 import { useUserStore } from '~/stores/modules/user'
 import { cache } from '~/utils'
-import { getCsrfToken, config as csrfConfig, initCsrfProtection } from '~/utils/csrf'
+import {
+  getCsrfToken,
+  config as csrfConfig,
+  initCsrfProtection,
+} from '~/utils/csrf'
 import { isTokenExpired } from '~/utils/jwt'
 
 import type { ApiResponse } from './types'
@@ -59,7 +63,8 @@ export function resetLogoutFlag(): void {
 
 async function doRefreshToken(baseUrl: string): Promise<string> {
   const userStore = useUserStore()
-  const refreshTokenValue = userStore.refreshToken || cache.getItem(REFRESH_TOKEN_KEY)
+  const refreshTokenValue =
+    userStore.refreshToken || cache.getItem(REFRESH_TOKEN_KEY)
   if (!refreshTokenValue) throw new Error('缺少 refresh token')
 
   const headers: Record<string, string> = {
@@ -82,7 +87,10 @@ async function doRefreshToken(baseUrl: string): Promise<string> {
     accessToken: string
     refreshToken?: string
   }>
-  if (!res.ok || (payload.code !== undefined && payload.code !== ErrorCode.SUCCESS)) {
+  if (
+    !res.ok ||
+    (payload.code !== undefined && payload.code !== ErrorCode.SUCCESS)
+  ) {
     throw new Error(payload.message || `刷新令牌失败 (${res.status})`)
   }
   const newAccess = payload.data?.accessToken
@@ -123,7 +131,11 @@ export function createFetcher(opts: CreateFetcherOptions = {}) {
   const defaultTimeout = opts.timeout ?? 30000
 
   if (!csrfInitialized) {
-    initCsrfProtection({ headerName: 'X-CSRF-Token', doubleSubmit: true, autoRotate: true })
+    initCsrfProtection({
+      headerName: 'X-CSRF-Token',
+      doubleSubmit: true,
+      autoRotate: true,
+    })
     csrfInitialized = true
   }
 
@@ -145,7 +157,8 @@ export function createFetcher(opts: CreateFetcherOptions = {}) {
         if (!isAuth) {
           const userStore = useUserStore()
           const accessToken = userStore.token || cache.getItem(TOKEN_KEY)
-          const refreshToken = userStore.refreshToken || cache.getItem(REFRESH_TOKEN_KEY)
+          const refreshToken =
+            userStore.refreshToken || cache.getItem(REFRESH_TOKEN_KEY)
 
           if (!accessToken) {
             if (refreshToken) {
@@ -160,7 +173,10 @@ export function createFetcher(opts: CreateFetcherOptions = {}) {
               }
             } else {
               forceLogout()
-              throw new RequestError('未登录', { status: 401, code: ErrorCode.UNAUTHORIZED })
+              throw new RequestError('未登录', {
+                status: 401,
+                code: ErrorCode.UNAUTHORIZED,
+              })
             }
           } else if (isTokenExpired(accessToken, 60) && refreshToken) {
             try {
@@ -198,12 +214,15 @@ export function createFetcher(opts: CreateFetcherOptions = {}) {
           ...fetchOptions.headers,
           'Content-Type': isFormData
             ? undefined
-            : (fetchOptions.headers as any)?.['Content-Type'] || 'application/json; charset=utf-8',
+            : (fetchOptions.headers as any)?.['Content-Type'] ||
+              'application/json; charset=utf-8',
           'X-Content-Type-Options': 'nosniff',
           'X-Frame-Options': 'DENY',
           'X-XSS-Protection': '1; mode=block',
           'Referrer-Policy': 'strict-origin-when-cross-origin',
-          ...(STATE_CHANGING.has(method) ? { 'Cache-Control': 'no-store, no-cache, must-revalidate' } : {}),
+          ...(STATE_CHANGING.has(method)
+            ? { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
+            : {}),
         }
 
         return { options: fetchOptions }
@@ -228,14 +247,19 @@ export function createFetcher(opts: CreateFetcherOptions = {}) {
         }
 
         const bodyCode: number | undefined =
-          payload && typeof payload === 'object' && 'code' in payload ? (payload as ApiResponse).code : undefined
+          payload && typeof payload === 'object' && 'code' in payload
+            ? (payload as ApiResponse).code
+            : undefined
 
         if (bodyCode !== undefined && bodyCode !== ErrorCode.SUCCESS) {
-          const err = new RequestError(resolveErrorMessage(payload, '请求失败', response.status, bodyCode), {
-            data: payload,
-            status: response.status,
-            code: bodyCode,
-          })
+          const err = new RequestError(
+            resolveErrorMessage(payload, '请求失败', response.status, bodyCode),
+            {
+              data: payload,
+              status: response.status,
+              code: bodyCode,
+            },
+          )
           err.handled = true // ⭐ 避免 onFetchError 重复弹 toast
           throw err
         }
@@ -251,10 +275,17 @@ export function createFetcher(opts: CreateFetcherOptions = {}) {
         }
 
         const status = response?.status ?? 0
-        const err = new RequestError(resolveErrorMessage(null, (error as any)?.message || '请求失败', status), {
-          status,
-          code: status,
-        })
+        const err = new RequestError(
+          resolveErrorMessage(
+            null,
+            (error as any)?.message || '请求失败',
+            status,
+          ),
+          {
+            status,
+            code: status,
+          },
+        )
         reportRequestError(err)
         throw err
       },
@@ -262,14 +293,22 @@ export function createFetcher(opts: CreateFetcherOptions = {}) {
   })
 }
 
-export function resolveErrorMessage(data: unknown, fallback: string, status?: number, code?: number): string {
+export function resolveErrorMessage(
+  data: unknown,
+  fallback: string,
+  status?: number,
+  code?: number,
+): string {
   if (isServerFailure(status ?? 0, code)) {
-    if (data && typeof data === 'object' && 'message' in data) return String((data as any).message)
+    if (data && typeof data === 'object' && 'message' in data)
+      return String((data as any).message)
     return '服务器繁忙，请稍后重试'
   }
   if (typeof data === 'object' && data !== null) {
-    if ('message' in data && typeof (data as any).message === 'string') return (data as any).message
-    if ('msg' in data && typeof (data as any).msg === 'string') return (data as any).msg
+    if ('message' in data && typeof (data as any).message === 'string')
+      return (data as any).message
+    if ('msg' in data && typeof (data as any).msg === 'string')
+      return (data as any).msg
   }
   return fallback
 }
@@ -285,6 +324,11 @@ async function reportRequestError(error: RequestError) {
   }
   notification.error({
     title: '请求错误',
-    description: resolveErrorMessage(error.data, error.message, error.status, error.code),
+    description: resolveErrorMessage(
+      error.data,
+      error.message,
+      error.status,
+      error.code,
+    ),
   })
 }

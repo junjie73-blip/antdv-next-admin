@@ -26,7 +26,8 @@ export class MemoryCache {
     // 先清理同 key 的旧定时器和值
     this.delete(key)
 
-    const expireAt = expire && expire > 0 ? Date.now() + expire * 1000 : undefined
+    const expireAt =
+      expire && expire > 0 ? Date.now() + expire * 1000 : undefined
 
     this.store.set(key, { value, expire: expireAt })
 

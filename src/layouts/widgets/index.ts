@@ -29,12 +29,12 @@ export const WIDGET_MAP: Record<WidgetKey, WidgetMeta> = {
     icon: 'carbon:time',
     component: () => import('./WidgetTimezone.vue'),
   },
-  notice: {
-    key: 'notice',
-    title: '通知',
-    icon: 'carbon:notification',
-    component: () => import('./WidgetNotice.vue'),
-  },
+  // notice: {
+  //   key: 'notice',
+  //   title: '通知',
+  //   icon: 'carbon:notification',
+  //   component: () => import('./WidgetNotice.vue'),
+  // },
 
   preferences: {
     key: 'preferences',

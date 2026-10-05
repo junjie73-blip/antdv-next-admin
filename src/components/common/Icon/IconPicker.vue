@@ -51,7 +51,10 @@ const COLLECTIONS: CollectionMeta[] = [
  * - 每个 icons.json 会被 Vite 打包成独立的 chunk
  * - 只在切换到该分类时加载，不切就不下载
  */
-const COLLECTION_LOADERS: Record<Prefix, () => Promise<{ default: { icons: Record<string, unknown> } }>> = {
+const COLLECTION_LOADERS: Record<
+  Prefix,
+  () => Promise<{ default: { icons: Record<string, unknown> } }>
+> = {
   lucide: () => import('@iconify-json/lucide/icons.json') as any,
   mdi: () => import('@iconify-json/mdi/icons.json') as any,
   'ant-design': () => import('@iconify-json/ant-design/icons.json') as any,
@@ -199,7 +202,12 @@ const prefixOptions = COLLECTIONS.map((c) => ({
       <div class="w-[560px]">
         <!-- 工具栏：分类下拉 + 搜索，同一行更紧凑 -->
         <div class="mb-3 flex items-center gap-2">
-          <a-select v-model:value="selectedPrefix" :options="prefixOptions" size="small" style="width: 150px" />
+          <a-select
+            v-model:value="selectedPrefix"
+            :options="prefixOptions"
+            size="small"
+            style="width: 150px"
+          />
           <a-input
             v-model:value="searchValue"
             :placeholder="`在 ${COLLECTIONS.find((c) => c.prefix === selectedPrefix)?.name ?? ''} 中搜索...`"
@@ -214,7 +222,10 @@ const prefixOptions = COLLECTIONS.map((c) => ({
         </div>
 
         <!-- 图标网格：固定高度 + 原生滚动 -->
-        <div class="overflow-x-hidden overflow-y-auto pr-1" :style="{ height: `${SCROLLER_HEIGHT}px` }">
+        <div
+          class="overflow-x-hidden overflow-y-auto pr-1"
+          :style="{ height: `${SCROLLER_HEIGHT}px` }"
+        >
           <div v-if="loading" class="flex h-full items-center justify-center">
             <a-spin size="large" />
           </div>
@@ -226,8 +237,18 @@ const prefixOptions = COLLECTIONS.map((c) => ({
           />
 
           <div v-else class="grid grid-cols-12 gap-1">
-            <a-tooltip v-for="icon in pagedIcons" :key="icon" :title="icon" placement="top" :mouse-enter-delay="0.3">
-              <button type="button" :class="iconBtnClass(icon)" @click="handleSelect(icon)">
+            <a-tooltip
+              v-for="icon in pagedIcons"
+              :key="icon"
+              :title="icon"
+              placement="top"
+              :mouse-enter-delay="0.3"
+            >
+              <button
+                type="button"
+                :class="iconBtnClass(icon)"
+                @click="handleSelect(icon)"
+              >
                 <Icon :icon="icon" :width="18" />
               </button>
             </a-tooltip>
@@ -272,7 +293,12 @@ const prefixOptions = COLLECTIONS.map((c) => ({
           class="cursor-pointer text-gray-400 transition-colors hover:text-gray-600"
           @click="handleClear"
         />
-        <Icon v-else icon="lucide:chevron-down" :width="14" class="text-gray-400" />
+        <Icon
+          v-else
+          icon="lucide:chevron-down"
+          :width="14"
+          class="text-gray-400"
+        />
       </template>
     </a-input>
   </a-popover>

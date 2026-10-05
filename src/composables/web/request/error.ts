@@ -11,7 +11,9 @@ export const ErrorCode = {
   HTTP_GATEWAY_TIMEOUT: 504,
 } as const
 
-const SERVER_ERROR_STATUS = new Set([500, 501, 502, 503, 504, 505, 507, 508, 510, 511])
+const SERVER_ERROR_STATUS = new Set([
+  500, 501, 502, 503, 504, 505, 507, 508, 510, 511,
+])
 
 export function isServerErrorCode(code?: number): boolean {
   return code !== undefined && code >= 500000 && code < 600000

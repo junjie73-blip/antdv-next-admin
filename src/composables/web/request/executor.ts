@@ -1,5 +1,11 @@
 import { ErrorCode, RequestError } from './error'
-import { createFetcher, forceLogout, isAuthEndpoint, isLoggingOutNow, refreshAccessToken } from './fetcher'
+import {
+  createFetcher,
+  forceLogout,
+  isAuthEndpoint,
+  isLoggingOutNow,
+  refreshAccessToken,
+} from './fetcher'
 import { combineSignals, createTimeoutSignal } from './timeout'
 import { buildUrl } from './url'
 
@@ -86,7 +92,11 @@ export const requestCache = {
 
   /** 手动写缓存 */
   set: (key: string, data: any, cacheTime = 5 * 60 * 1000) => {
-    cacheStore.set(key, { data, expireAt: Date.now() + cacheTime, lastAccess: Date.now() })
+    cacheStore.set(key, {
+      data,
+      expireAt: Date.now() + cacheTime,
+      lastAccess: Date.now(),
+    })
     evictIfNeeded()
   },
 
@@ -107,7 +117,9 @@ function cleanExpiredCache() {
 function evictIfNeeded() {
   if (cacheStore.size <= MAX_CACHE_SIZE) return
   // Map 保持插入顺序；用 lastAccess 排序找最旧的
-  const entries = [...cacheStore.entries()].sort((a, b) => a[1].lastAccess - b[1].lastAccess)
+  const entries = [...cacheStore.entries()].sort(
+    (a, b) => a[1].lastAccess - b[1].lastAccess,
+  )
   const removeCount = cacheStore.size - MAX_CACHE_SIZE
   for (let i = 0; i < removeCount; i++) cacheStore.delete(entries[i]![0])
 }
@@ -125,10 +137,16 @@ function isRetryable(err: unknown): boolean {
 function isBodyInit(body: unknown): boolean {
   if (typeof body === 'string') return true
   if (typeof FormData !== 'undefined' && body instanceof FormData) return true
-  if (typeof URLSearchParams !== 'undefined' && body instanceof URLSearchParams) return true
+  if (typeof URLSearchParams !== 'undefined' && body instanceof URLSearchParams)
+    return true
   if (typeof Blob !== 'undefined' && body instanceof Blob) return true
-  if (typeof ArrayBuffer !== 'undefined' && (body instanceof ArrayBuffer || ArrayBuffer.isView(body))) return true
-  if (typeof ReadableStream !== 'undefined' && body instanceof ReadableStream) return true
+  if (
+    typeof ArrayBuffer !== 'undefined' &&
+    (body instanceof ArrayBuffer || ArrayBuffer.isView(body))
+  )
+    return true
+  if (typeof ReadableStream !== 'undefined' && body instanceof ReadableStream)
+    return true
   return false
 }
 
@@ -139,7 +157,12 @@ function normalizeBody(body: unknown): BodyInit | undefined {
   return JSON.stringify(body)
 }
 
-async function doOnce<T>(method: string, url: string, body: any, opts: ExecuteOptions): Promise<T> {
+async function doOnce<T>(
+  method: string,
+  url: string,
+  body: any,
+  opts: ExecuteOptions,
+): Promise<T> {
   const { timeout = 30000, signal: externalSignal } = opts
   const timeoutCtl = createTimeoutSignal(timeout)
   const combined = combineSignals([externalSignal, timeoutCtl.signal])
@@ -185,7 +208,11 @@ async function doOnce<T>(method: string, url: string, body: any, opts: ExecuteOp
   return res.data?.value as T
 }
 
-async function withRetry<T>(fn: () => Promise<T>, retries: number, retryDelay: number): Promise<T> {
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  retries: number,
+  retryDelay: number,
+): Promise<T> {
   let lastErr: unknown
   for (let i = 0; i <= retries; i++) {
     try {
@@ -193,7 +220,12 @@ async function withRetry<T>(fn: () => Promise<T>, retries: number, retryDelay: n
     } catch (err) {
       lastErr = err
       if (i === retries || !isRetryable(err)) throw err
-      await new Promise<void>((r) => setTimeout(r, Math.min(retryDelay * 2 ** i + Math.random() * 200, 10000)))
+      await new Promise<void>((r) =>
+        setTimeout(
+          r,
+          Math.min(retryDelay * 2 ** i + Math.random() * 200, 10000),
+        ),
+      )
     }
   }
   throw lastErr
@@ -213,8 +245,11 @@ async function doOnceWithAuthReplay<T>(
   try {
     return await doOnce<T>(method, url, body, opts)
   } catch (err) {
-    const unauthorized = err instanceof RequestError && (err.status === 401 || err.code === ErrorCode.UNAUTHORIZED)
-    if (!unauthorized || retried || isAuthEndpoint(url) || isLoggingOutNow()) throw err
+    const unauthorized =
+      err instanceof RequestError &&
+      (err.status === 401 || err.code === ErrorCode.UNAUTHORIZED)
+    if (!unauthorized || retried || isAuthEndpoint(url) || isLoggingOutNow())
+      throw err
     try {
       await refreshAccessToken()
     } catch {
@@ -250,7 +285,9 @@ export async function executeRequest<T = any>(
   const finalUrl = params ? buildUrl(url, params) : url
   // 流式 body（FormData/Blob/流）无法稳定序列化成 key，用占位符并关闭并发去重
   const streamBody = isBodyInit(body) && typeof body !== 'string'
-  const cacheKey = customKey ?? `${finalMethod}:${finalUrl}:${streamBody ? '[stream]' : JSON.stringify(body ?? '')}`
+  const cacheKey =
+    customKey ??
+    `${finalMethod}:${finalUrl}:${streamBody ? '[stream]' : JSON.stringify(body ?? '')}`
   const canCache = enableCache && finalMethod === 'GET'
   const canDedupe = dedupe && !streamBody
 
@@ -264,7 +301,14 @@ export async function executeRequest<T = any>(
       // ⭐ SWR：立即返回旧值，后台静默刷新
       if (staleWhileRevalidate) {
         // 不 await，静默后台更新
-        void runRequest<T>(finalMethod, finalUrl, body, opts, cacheKey, cacheTime).catch(() => {
+        void runRequest<T>(
+          finalMethod,
+          finalUrl,
+          body,
+          opts,
+          cacheKey,
+          cacheTime,
+        ).catch(() => {
           /* 后台失败静默 */
         })
       }
@@ -282,7 +326,14 @@ export async function executeRequest<T = any>(
   }
 
   // ---------- 3) 执行 ----------
-  const promise = runRequest<T>(finalMethod, finalUrl, body, opts, cacheKey, cacheTime)
+  const promise = runRequest<T>(
+    finalMethod,
+    finalUrl,
+    body,
+    opts,
+    cacheKey,
+    cacheTime,
+  )
   if (canDedupe) pendingStore.set(cacheKey, promise)
 
   try {
@@ -304,7 +355,11 @@ function runRequest<T>(
   const { cache: enableCache = false, retries = 3, retryDelay = 300 } = opts
   const canCache = enableCache && method === 'GET'
 
-  return withRetry(() => doOnceWithAuthReplay<T>(method, url, body, opts), retries, retryDelay).then((result) => {
+  return withRetry(
+    () => doOnceWithAuthReplay<T>(method, url, body, opts),
+    retries,
+    retryDelay,
+  ).then((result) => {
     if (canCache) {
       cacheStore.set(cacheKey, {
         data: result,

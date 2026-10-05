@@ -4,7 +4,10 @@ export class SSEEventManager {
   private eventHandlers: Map<SSEEventType, Set<SSEEventCallback>> = new Map()
   private namedEventHandlers: Map<string, Set<SSEEventCallback>> = new Map()
 
-  on<T = unknown>(eventType: SSEEventType | string, callback: SSEEventCallback<T>): () => void {
+  on<T = unknown>(
+    eventType: SSEEventType | string,
+    callback: SSEEventCallback<T>,
+  ): () => void {
     if (eventType.startsWith('event:')) {
       const eventName = eventType.replace('event:', '')
       return this.onNamedEvent(eventName, callback as SSEEventCallback)
@@ -25,7 +28,10 @@ export class SSEEventManager {
     }
   }
 
-  onNamedEvent<T = unknown>(eventName: string, callback: SSEEventCallback<T>): () => void {
+  onNamedEvent<T = unknown>(
+    eventName: string,
+    callback: SSEEventCallback<T>,
+  ): () => void {
     if (!this.namedEventHandlers.has(eventName)) {
       this.namedEventHandlers.set(eventName, new Set())
     }
@@ -41,7 +47,10 @@ export class SSEEventManager {
     }
   }
 
-  once<T = unknown>(eventType: SSEEventType | string, callback: SSEEventCallback<T>): () => void {
+  once<T = unknown>(
+    eventType: SSEEventType | string,
+    callback: SSEEventCallback<T>,
+  ): () => void {
     const wrappedCallback = (data: T) => {
       callback(data)
       this.off(eventType, wrappedCallback as SSEEventCallback)

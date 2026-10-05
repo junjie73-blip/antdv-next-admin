@@ -23,7 +23,9 @@ export function useModal(): UseModalReturnType {
       await delay(50)
     }
 
-    throw new Error('[useModal] Modal instance not found. Please check if the Modal component is registered.')
+    throw new Error(
+      '[useModal] Modal instance not found. Please check if the Modal component is registered.',
+    )
   }
 
   const methods: ModalMethods = {

@@ -28,7 +28,8 @@ function createMemoryStorage(): CacheStorage {
 function createLocalStorage(): CacheStorage {
   return {
     getItem: (key: string): string | null => localStorage.getItem(key),
-    setItem: (key: string, value: string): void => localStorage.setItem(key, value),
+    setItem: (key: string, value: string): void =>
+      localStorage.setItem(key, value),
     removeItem: (key: string): void => localStorage.removeItem(key),
     clear: (): void => localStorage.clear(),
     keys: (): string[] => Object.keys(localStorage),
@@ -41,7 +42,8 @@ function createLocalStorage(): CacheStorage {
 function createSessionStorage(): CacheStorage {
   return {
     getItem: (key: string): string | null => sessionStorage.getItem(key),
-    setItem: (key: string, value: string): void => sessionStorage.setItem(key, value),
+    setItem: (key: string, value: string): void =>
+      sessionStorage.setItem(key, value),
     removeItem: (key: string): void => sessionStorage.removeItem(key),
     clear: (): void => sessionStorage.clear(),
     keys: (): string[] => Object.keys(sessionStorage),

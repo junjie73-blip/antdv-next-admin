@@ -1,9 +1,16 @@
 <script setup lang="ts">
-import { CloseCircleOutlined, CloseOutlined, ReloadOutlined, SettingOutlined } from '@antdv-next/icons'
+import {
+  CloseCircleOutlined,
+  CloseOutlined,
+  ReloadOutlined,
+  SettingOutlined,
+} from '@antdv-next/icons'
 import { Icon } from '@iconify/vue'
 import { Dropdown } from 'antdv-next'
 import { computed, h, nextTick, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+
+import type { MenuConfig } from '#/menu'
 
 import { useAppStore } from '~/stores/modules/app'
 import { useRouteStore } from '~/stores/modules/route'
@@ -19,7 +26,9 @@ defineOptions({
 })
 
 interface TabItem {
+  /** ★ 用路由 name 作为 tab 唯一 key */
   key: string
+  /** 显示标题 */
   title: string
   icon?: string
   closable: boolean
@@ -30,69 +39,110 @@ const router = useRouter()
 const appStore = useAppStore()
 const routeStore = useRouteStore()
 
-/** 从路由或菜单中获取图标 */
-function getRouteIcon(path: string): string | undefined {
-  // 优先从当前路由 meta 取
-  const currentRoute = router.resolve(path)
-  if (currentRoute?.meta?.icon) return currentRoute.meta.icon as string
-  // 回退到菜单配置中查找（匹配路径前缀）
-  for (const menu of routeStore.menus) {
-    if (path.startsWith(menu.path) && menu.icon) return menu.icon
-    if (menu.children) {
-      for (const child of menu.children) {
-        if (path === `${menu.path}/${child.path}` && child.icon) return child.icon
-        // 子菜单没 icon 时继承父级
-        if (path === `${menu.path}/${child.path}` && menu.icon) return menu.icon
-      }
+/** 从菜单树里按 name 递归查找节点 */
+function findMenuByName(
+  list: MenuConfig[],
+  name: string,
+): MenuConfig | undefined {
+  for (const m of list) {
+    if (m.name === name) return m
+    if (m.children?.length) {
+      const found = findMenuByName(m.children, name)
+      if (found) return found
     }
   }
   return undefined
 }
 
-/** 递归查找第一个菜单的最内层叶子节点 */
-function findFirstLeafMenu(menus: any[], parentPath = ''): { path: string; title: string; icon?: string } | null {
-  if (!menus.length) return null
-  const first = menus[0]
-  // 拼接完整路径（子级 path 可能是相对路径如 'echarts'）
-  const fullPath = first.path.startsWith('/') ? first.path : `${parentPath}/${first.path}`.replace(/\/+/g, '/')
-  // 没有子级 → 自身就是叶子节点
-  if (!first.children?.length) {
-    return { path: fullPath, title: first.title || first.name, icon: first.icon }
+/** 获取路由图标：优先 meta，再回退菜单 */
+function getRouteIcon(name: string): string | undefined {
+  try {
+    const r = router.resolve({ name })
+    if (r?.meta?.icon) return r.meta.icon as string
+  } catch {
+    // 无对应路由，忽略
   }
-  // 有子级 → 继续往下递归，传递当前路径作为父级
-  return findFirstLeafMenu(first.children, fullPath)
+  return findMenuByName(routeStore.menus, name)?.icon
 }
 
-const leafMenu = findFirstLeafMenu(routeStore.menus)
-const tabs = ref<TabItem[]>([
-  leafMenu
-    ? { key: leafMenu.path, title: leafMenu.title, icon: leafMenu.icon, closable: false }
-    : { key: '/dashboard', title: '仪表盘', closable: false },
-])
+/** 获取路由标题：优先 meta，再回退菜单 */
+function getRouteTitle(name: string, fallback = ''): string {
+  try {
+    const r = router.resolve({ name })
+    if (r?.meta?.title) return r.meta.title as string
+  } catch {
+    // 忽略
+  }
+  return findMenuByName(routeStore.menus, name)?.title ?? fallback
+}
 
-/** 首页标签 key（用于判断不可关闭） */
-const homeTabKey = computed(() => tabs.value[0]?.key ?? '/dashboard')
+/** 递归找菜单树第一个叶子节点（用于首页 tab） */
+function findFirstLeafMenu(list: MenuConfig[]): MenuConfig | null {
+  if (!list?.length) return null
+  const first = list[0]
+  if (!first) return null
+  if (!first.children?.length) return first
+  return findFirstLeafMenu(first.children)
+}
 
-const activeKey = ref(route.path)
+/** 首页 tab（不可关闭） */
+const homeTab = computed<TabItem>(() => {
+  const leaf = findFirstLeafMenu(routeStore.menus)
+  if (leaf?.name) {
+    return {
+      key: leaf.name,
+      title: leaf.title || getRouteTitle(leaf.name),
+      icon: leaf.icon ?? getRouteIcon(leaf.name),
+      closable: false,
+    }
+  }
+  // 兜底：写死默认首页
+  return {
+    key: 'Analysis',
+    title: '分析面板',
+    icon: 'carbon:data-vis-4',
+    closable: false,
+  }
+})
+
+/** 首页 tab key，用于判断 tab 是否可关闭 */
+const homeTabKey = computed(() => homeTab.value.key)
+
+const tabs = ref<TabItem[]>([homeTab.value])
+const activeKey = ref<string>('')
+
+/** 菜单变化时，更新首页 tab */
+watch(
+  () => homeTab.value,
+  (newHome) => {
+    if (tabs.value[0]) {
+      tabs.value[0] = newHome
+    } else {
+      tabs.value.unshift(newHome)
+    }
+  },
+)
 
 /** 滚动容器引用 */
 const scrollContainerRef = useTemplateRef('scrollContainerRef')
 
+/** 路由变化 → 同步 tabs */
 watch(
-  () => route.path,
-  (path) => {
-    activeKey.value = path
-    const exists = tabs.value.some((tab) => tab.key === path)
-    if (!exists && route.meta?.title) {
+  () => route.name,
+  (name) => {
+    if (!name) return
+    const key = name as string
+    activeKey.value = key
+
+    const exists = tabs.value.some((t) => t.key === key)
+    if (!exists) {
       tabs.value.push({
-        key: path,
-        title: route.meta.title as string,
-        icon: getRouteIcon(path),
-        closable: path !== homeTabKey.value,
+        key,
+        title: getRouteTitle(key, (route.meta?.title as string) || key),
+        icon: getRouteIcon(key),
+        closable: key !== homeTabKey.value,
       })
-      nextTick(() => {
-        scrollToLastTab()
-      })
+      nextTick(() => scrollToLastTab())
     }
   },
   { immediate: true },
@@ -104,9 +154,12 @@ function scrollToLastTab() {
     const el = scrollContainerRef.value as any
     const ps = el.$ps
     if (ps?.element) {
-      const lastTab = ps.element.querySelector('[class*="shrink-0"]:last-child') as HTMLElement
+      const lastTab = ps.element.querySelector(
+        '[class*="shrink-0"]:last-child',
+      ) as HTMLElement
       if (lastTab) {
-        ps.element.scrollLeft = lastTab.offsetLeft + lastTab.offsetWidth - ps.element.clientWidth + 16
+        ps.element.scrollLeft =
+          lastTab.offsetLeft + lastTab.offsetWidth - ps.element.clientWidth + 16
         ps.update()
       }
     }
@@ -118,8 +171,12 @@ const isGeekStyle = computed(() => appStore.themeStyle === 'geek')
 const tabsClassName = computed(() =>
   cn(
     'h-10 px-2 flex items-center flex-shrink-0',
-    isGeekStyle.value ? 'bg-[#0a0a0a] border-[#1a1a1a]' : 'bg-white dark:bg-gray-800',
-    isGeekStyle.value ? 'border-b border-[#1a1a1a]' : 'border-b border-gray-200 dark:border-gray-700',
+    isGeekStyle.value
+      ? 'bg-[#0a0a0a] border-[#1a1a1a]'
+      : 'bg-white dark:bg-gray-800',
+    isGeekStyle.value
+      ? 'border-b border-[#1a1a1a]'
+      : 'border-b border-gray-200 dark:border-gray-700',
   ),
 )
 
@@ -135,14 +192,14 @@ function tabItemClassName(key: string) {
   )
 }
 
+/** ★ 点击 tab：用 name 跳转 */
 function handleTabClick(key: string) {
-  router.push(key)
-}
-
-function _handleTabEdit(targetKey: any, action: 'add' | 'remove') {
-  if (action === 'remove' && typeof targetKey === 'string') {
-    removeTab(targetKey)
+  if (key === route.name) return
+  if (!router.hasRoute(key)) {
+    console.warn('[tabs] 无对应路由 name:', key)
+    return
   }
+  router.push({ name: key })
 }
 
 function removeTab(targetKey: string) {
@@ -155,26 +212,35 @@ function removeTab(targetKey: string) {
     const newTab = tabs.value[index] || tabs.value[index - 1]
     if (newTab) {
       activeKey.value = newTab.key
-      router.push(newTab.key)
+      if (router.hasRoute(newTab.key)) {
+        router.push({ name: newTab.key })
+      }
     }
   }
 }
 
 function refreshCurrent() {
-  router.replace({ path: `/redirect${route.path}` })
+  // 用 name 走 /redirect
+  if (route.name) {
+    router.replace({ path: `/redirect${route.path}` })
+  }
 }
 
 function closeAll() {
   tabs.value = tabs.value.filter((tab) => !tab.closable)
-  const homeTab = tabs.value[0]
-  if (homeTab) {
-    activeKey.value = homeTab.key
-    router.push(homeTab.key)
+  const home = tabs.value[0]
+  if (home) {
+    activeKey.value = home.key
+    if (router.hasRoute(home.key)) {
+      router.push({ name: home.key })
+    }
   }
 }
 
 function closeOther() {
-  tabs.value = tabs.value.filter((tab) => tab.key === activeKey.value || !tab.closable)
+  tabs.value = tabs.value.filter(
+    (tab) => tab.key === activeKey.value || !tab.closable,
+  )
 }
 
 const dropdownItems = [
@@ -228,19 +294,32 @@ function onMouseUp() {
   document.removeEventListener('mouseup', onMouseUp)
 }
 </script>
-
 <template>
   <div v-if="appStore.showTabs" :class="tabsClassName">
     <PerfectScrollbar
       ref="scrollContainerRef"
       class="min-w-0 flex-1 cursor-grab select-none"
-      :options="{ suppressScrollX: false, suppressScrollY: true, wheelPropagation: false }"
+      :options="{
+        suppressScrollX: false,
+        suppressScrollY: true,
+        wheelPropagation: false,
+      }"
       :class="{ grabbing: isDragging }"
       @mousedown.prevent="onMouseDown"
     >
       <div class="inline-flex h-full items-center gap-1">
-        <div v-for="tab in tabs" :key="tab.key" :class="tabItemClassName(tab.key)" @click="handleTabClick(tab.key)">
-          <Icon v-if="props.showIcon && tab.icon" :icon="tab.icon" :width="14" :height="14" />
+        <div
+          v-for="tab in tabs"
+          :key="tab.key"
+          :class="tabItemClassName(tab.key)"
+          @click="handleTabClick(tab.key)"
+        >
+          <Icon
+            v-if="props.showIcon && tab.icon"
+            :icon="tab.icon"
+            :width="14"
+            :height="14"
+          />
           <span>{{ tab.title }}</span>
           <CloseOutlined
             v-if="tab.closable"

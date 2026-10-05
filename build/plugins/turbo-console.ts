@@ -1,14 +1,10 @@
 import type { PluginOption } from 'vite'
 
-import TurboConsole from 'unplugin-turbo-console/vite'
+import { vitePlugin } from 'unplugin-console-highlight'
 
 export function createTurboConsolePlugin(): PluginOption {
-  return TurboConsole({
+  return vitePlugin({
     prefix: '👇👇👇👇👇',
     suffix: '👆👆👆👆👆',
-    highlight: {
-      extendedPathFileNames: ['index'],
-      themeDetect: true,
-    },
   })
 }

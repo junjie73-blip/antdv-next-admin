@@ -2,7 +2,12 @@ import type { EChartsOption } from 'echarts'
 import type { ECharts } from 'echarts/core'
 import type { Ref } from 'vue'
 
-import { tryOnBeforeUnmount, tryOnMounted, useDebounceFn, useThrottleFn } from '@vueuse/core'
+import {
+  tryOnBeforeUnmount,
+  tryOnMounted,
+  useDebounceFn,
+  useThrottleFn,
+} from '@vueuse/core'
 import * as echarts from 'echarts/core'
 import { attempt } from 'es-toolkit'
 import { isNil } from 'es-toolkit/predicate'
@@ -151,7 +156,9 @@ export function useEcharts<T = unknown>(
       return true
     }
 
-    const [err, instance] = attempt(() => echarts.init(el, isDarkRef.value ? 'dark' : undefined, { renderer }))
+    const [err, instance] = attempt(() =>
+      echarts.init(el, isDarkRef.value ? 'dark' : undefined, { renderer }),
+    )
 
     if (err || !instance) {
       log('init failed', err)
@@ -161,7 +168,11 @@ export function useEcharts<T = unknown>(
 
     chart.value = instance
     isReady.value = true
-    log('init success', { w: el.clientWidth, h: el.clientHeight, dark: isDarkRef.value })
+    log('init success', {
+      w: el.clientWidth,
+      h: el.clientHeight,
+      dark: isDarkRef.value,
+    })
 
     if (applyInitial && initialOption) instance.setOption(initialOption)
     while (pendingOptions.length > 0) {
@@ -220,7 +231,10 @@ export function useEcharts<T = unknown>(
   }
 
   function showLoading() {
-    chart.value?.showLoading('default', { text: '加载中', maskColor: 'transparent' })
+    chart.value?.showLoading('default', {
+      text: '加载中',
+      maskColor: 'transparent',
+    })
   }
 
   function hideLoading() {

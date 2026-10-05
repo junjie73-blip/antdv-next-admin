@@ -154,7 +154,11 @@ export function deleteFile(id: number) {
 
 /** 新建文件夹 */
 export function createFolder(data: Record<string, unknown>, parentId?: number) {
-  return post<any>('/system/file/folder', data, parentId ? { parentId } : undefined)
+  return post<any>(
+    '/system/file/folder',
+    data,
+    parentId ? { parentId } : undefined,
+  )
 }
 
 /** 重命名文件 */

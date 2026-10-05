@@ -55,12 +55,54 @@ interface CronField {
 }
 
 const fields: CronField[] = [
-  { key: 'second', label: '秒', min: 0, max: 59, allowEvery: true, defaultValue: '0' },
-  { key: 'minute', label: '分', min: 0, max: 59, allowEvery: true, defaultValue: '0' },
-  { key: 'hour', label: '时', min: 0, max: 23, allowEvery: true, defaultValue: '0' },
-  { key: 'day', label: '日', min: 1, max: 31, allowEvery: true, defaultValue: '*' },
-  { key: 'month', label: '月', min: 1, max: 12, allowEvery: true, defaultValue: '*' },
-  { key: 'week', label: '周', min: 0, max: 6, allowEvery: true, defaultValue: '*' },
+  {
+    key: 'second',
+    label: '秒',
+    min: 0,
+    max: 59,
+    allowEvery: true,
+    defaultValue: '0',
+  },
+  {
+    key: 'minute',
+    label: '分',
+    min: 0,
+    max: 59,
+    allowEvery: true,
+    defaultValue: '0',
+  },
+  {
+    key: 'hour',
+    label: '时',
+    min: 0,
+    max: 23,
+    allowEvery: true,
+    defaultValue: '0',
+  },
+  {
+    key: 'day',
+    label: '日',
+    min: 1,
+    max: 31,
+    allowEvery: true,
+    defaultValue: '*',
+  },
+  {
+    key: 'month',
+    label: '月',
+    min: 1,
+    max: 12,
+    allowEvery: true,
+    defaultValue: '*',
+  },
+  {
+    key: 'week',
+    label: '周',
+    min: 0,
+    max: 6,
+    allowEvery: true,
+    defaultValue: '*',
+  },
 ]
 
 // 各字段的当前值
@@ -126,7 +168,9 @@ const generatedCron = computed(() => {
 
 // ========== 字段选项（下拉） ==========
 function getFieldOptions(field: CronField) {
-  const opts: { label: string; value: string }[] = [{ label: '每 ' + field.label, value: '*' }]
+  const opts: { label: string; value: string }[] = [
+    { label: '每 ' + field.label, value: '*' },
+  ]
   // 单值
   for (let i = field.min; i <= field.max; i++) {
     opts.push({
@@ -208,7 +252,9 @@ function handleInputChange(e: Event) {
         :class="
           cn(
             'rounded px-3 py-1 text-xs transition-colors',
-            mode === 'preset' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
+            mode === 'preset'
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
           )
         "
         :disabled="disabled"
@@ -221,7 +267,9 @@ function handleInputChange(e: Event) {
         :class="
           cn(
             'rounded px-3 py-1 text-xs transition-colors',
-            mode === 'custom' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
+            mode === 'custom'
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
           )
         "
         :disabled="disabled"

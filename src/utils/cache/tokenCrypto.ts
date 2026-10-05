@@ -41,10 +41,18 @@ async function getDeviceFingerprint(): Promise<string> {
  */
 async function getEncryptionKey(): Promise<Uint8Array> {
   const fingerprint = await getDeviceFingerprint()
-  const keyMaterial = new TextEncoder().encode(TOKEN_ENCRYPTION_KEY + fingerprint)
+  const keyMaterial = new TextEncoder().encode(
+    TOKEN_ENCRYPTION_KEY + fingerprint,
+  )
 
   // 使用 PBKDF2 派生密钥
-  const key = await crypto.subtle.importKey('raw', keyMaterial, 'PBKDF2', false, ['deriveBits'])
+  const key = await crypto.subtle.importKey(
+    'raw',
+    keyMaterial,
+    'PBKDF2',
+    false,
+    ['deriveBits'],
+  )
 
   const derivedBits = await crypto.subtle.deriveBits(
     {
@@ -82,7 +90,9 @@ export async function encryptToken(data: string): Promise<string> {
       .encrypt(key)
   } catch (error) {
     console.error('[TokenCrypto] 加密失败:', error)
-    throw new Error(`Token 加密失败: ${error instanceof Error ? error.message : '未知错误'}`)
+    throw new Error(
+      `Token 加密失败: ${error instanceof Error ? error.message : '未知错误'}`,
+    )
   }
 }
 
@@ -92,7 +102,9 @@ export async function encryptToken(data: string): Promise<string> {
  * @param encryptedData - 加密后的字符串
  * @returns 解密后的原始数据，如果解密失败返回 null
  */
-export async function decryptToken(encryptedData: string): Promise<string | null> {
+export async function decryptToken(
+  encryptedData: string,
+): Promise<string | null> {
   if (!crypto || !crypto.subtle) {
     console.warn('[TokenCrypto] Web Crypto API 不可用，返回原始数据')
     return encryptedData

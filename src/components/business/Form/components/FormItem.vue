@@ -9,7 +9,12 @@ import IconifyIcon from '~/components/common/Icon/IconifyIcon.vue'
 import type { FormSchema, Recordable, RenderCallbackParams } from '../types'
 
 import { getComponent } from '../componentMap'
-import { getDynamicDisabled, getDynamicRules, getShow, setComponentProps } from '../helper'
+import {
+  getDynamicDisabled,
+  getDynamicRules,
+  getShow,
+  setComponentProps,
+} from '../helper'
 
 interface Props {
   schema: FormSchema
@@ -39,17 +44,29 @@ const getShowState = computed(() => {
 
 const getDisabled = computed(() => {
   if (!props.schema) return false
-  return getDynamicDisabled(props.schema, unref(props.formModel), props.formActionType)
+  return getDynamicDisabled(
+    props.schema,
+    unref(props.formModel),
+    props.formActionType,
+  )
 })
 
 const getComponentPropsValue = computed(() => {
   if (!props.schema) return {}
-  return setComponentProps(props.schema, unref(props.formModel), props.formActionType)
+  return setComponentProps(
+    props.schema,
+    unref(props.formModel),
+    props.formActionType,
+  )
 })
 
 const getRulesValue = computed((): RuleObject[] | undefined => {
   if (!props.schema) return undefined
-  const rules = getDynamicRules(props.schema, unref(props.formModel), props.formActionType)
+  const rules = getDynamicRules(
+    props.schema,
+    unref(props.formModel),
+    props.formActionType,
+  )
   if (!rules) return undefined
   return rules as RuleObject[]
 })
@@ -99,7 +116,8 @@ const mergedItemProps = computed(() => {
   const gutterPx = Array.isArray(gutterRaw) ? gutterRaw[0] : (gutterRaw ?? 24)
 
   const existingStyle: Record<string, any> = {}
-  const existingWrapperCol = typeof base.wrapperCol === 'object' ? base.wrapperCol : {}
+  const existingWrapperCol =
+    typeof base.wrapperCol === 'object' ? base.wrapperCol : {}
   return {
     ...base,
     style: {
@@ -134,9 +152,15 @@ const bodyContainer = () => document.body
 <template>
   <template v-if="schema && getShowState.ifShow">
     <a-col v-show="getShowState.show" v-bind="getColProps">
-      <a-form-item v-bind="mergedItemProps" :name="schema.field" :rules="getRulesValue">
+      <a-form-item
+        v-bind="mergedItemProps"
+        :name="schema.field"
+        :rules="getRulesValue"
+      >
         <template #label>
-          <span class="inline-flex flex-wrap items-center break-all whitespace-normal">
+          <span
+            class="inline-flex flex-wrap items-center break-all whitespace-normal"
+          >
             {{ schema.label }}
             <a-tooltip
               v-if="schema.helpMessage"
@@ -168,7 +192,9 @@ const bodyContainer = () => document.body
             @update:value="handleValueChange"
           >
             <template v-if="getSuffixValue" #suffix>
-              <span class="ml-2 text-gray-500 dark:text-gray-400">{{ getSuffixValue }}</span>
+              <span class="ml-2 text-gray-500 dark:text-gray-400">{{
+                getSuffixValue
+              }}</span>
             </template>
           </component>
         </template>

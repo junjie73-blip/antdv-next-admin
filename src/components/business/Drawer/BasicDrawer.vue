@@ -68,9 +68,12 @@ const wrapClassName = computed(() => {
   return ['basic-drawer', props.wrapClassName].filter(Boolean).join(' ')
 })
 
-const drawerBodyClassName = cn('drawer-body relative h-full min-h-0 overflow-hidden!', {
-  'p-4': props.useWrapper,
-})
+const drawerBodyClassName = cn(
+  'drawer-body relative h-full min-h-0 overflow-hidden!',
+  {
+    'p-4': props.useWrapper,
+  },
+)
 
 const drawerStyles = computed<AntDrawerProps['styles']>(() => ({
   header: {
@@ -129,9 +132,13 @@ defineExpose({
   ...drawerMethods,
   _innerMethods,
 })
-const { start: scheduleRegister } = useTimeoutFn(() => emit('register', drawerMethods), 0, {
-  immediate: false,
-})
+const { start: scheduleRegister } = useTimeoutFn(
+  () => emit('register', drawerMethods),
+  0,
+  {
+    immediate: false,
+  },
+)
 onMounted(() => {
   scheduleRegister()
 })
@@ -158,7 +165,9 @@ function handleCancel(e?: MouseEvent) {
 
 <script lang="ts">
 // 在 script 中定义类名变量，遵循项目规范
-const headerClassName = cn('drawer-header flex items-center justify-between px-6 py-4 border-b border-gray-200')
+const headerClassName = cn(
+  'drawer-header flex items-center justify-between px-6 py-4 border-b border-gray-200',
+)
 
 const closeBtnClassName = cn(
   'p-1 text-gray-400 hover:text-gray-600 transition-colors',
@@ -198,7 +207,9 @@ const footerClassName = cn(
     <template #title>
       <div :id="drawerTitleId" :class="headerClassName">
         <div :class="cn('flex items-center gap-2')">
-          <span :class="cn('text-lg font-medium text-gray-900')">{{ title }}</span>
+          <span :class="cn('text-lg font-medium text-gray-900')">{{
+            title
+          }}</span>
           <slot name="titleTip" />
         </div>
         <div :class="cn('flex items-center gap-2')">
@@ -217,15 +228,33 @@ const footerClassName = cn(
     </template>
 
     <!-- 内容区域 -->
-    <div :class="drawerBodyClassName" role="region" :aria-label="title || '抽屉内容'" :aria-labelledby="drawerTitleId">
+    <div
+      :class="drawerBodyClassName"
+      role="region"
+      :aria-label="title || '抽屉内容'"
+      :aria-labelledby="drawerTitleId"
+    >
       <!-- Loading 遮罩 -->
       <div
         v-if="loadingRef"
-        :class="cn('absolute inset-0 z-10 flex items-center justify-center', 'bg-white/80 backdrop-blur-sm')"
+        :class="
+          cn(
+            'absolute inset-0 z-10 flex items-center justify-center',
+            'bg-white/80 backdrop-blur-sm',
+          )
+        "
       >
         <div :class="cn('flex flex-col items-center gap-2')">
-          <div :class="cn('h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent')" />
-          <span v-if="loadingTip" :class="cn('text-sm text-gray-600')">{{ loadingTip }}</span>
+          <div
+            :class="
+              cn(
+                'h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent',
+              )
+            "
+          />
+          <span v-if="loadingTip" :class="cn('text-sm text-gray-600')">{{
+            loadingTip
+          }}</span>
         </div>
       </div>
 
@@ -237,9 +266,16 @@ const footerClassName = cn(
 
     <!-- 底部按钮 -->
     <template #footer>
-      <div v-if="showFooter && !slots.footer && (showCancelBtn || showOkBtn)" :class="footerClassName">
+      <div
+        v-if="showFooter && !slots.footer && (showCancelBtn || showOkBtn)"
+        :class="footerClassName"
+      >
         <slot name="insertFooter" />
-        <Button v-if="showCancelBtn" v-bind="cancelButtonProps" @click="handleCancel">
+        <Button
+          v-if="showCancelBtn"
+          v-bind="cancelButtonProps"
+          @click="handleCancel"
+        >
           <template #icon>
             <Icon icon="ant-design:close-outlined" />
           </template>

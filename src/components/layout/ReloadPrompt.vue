@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import { useDocumentVisibility, useIntervalFn, useTimestamp, useTimeoutFn } from '@vueuse/core'
+import {
+  useDocumentVisibility,
+  useIntervalFn,
+  useTimestamp,
+  useTimeoutFn,
+} from '@vueuse/core'
 import { useRegisterSW } from 'virtual:pwa-register/vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -95,18 +100,22 @@ const countdownProgress = computed(() => {
 /* ============================================================
  * 倒计时（用 useTimestamp 计算剩余秒数）
  * ============================================================ */
-const { pause: stopCountdownInterval, resume: startCountdownInterval } = useIntervalFn(
-  () => {
-    const remaining = Math.max(0, Math.ceil((endTime.value - timestamp.value) / 1000))
-    countdown.value = remaining
-    if (remaining <= 0) {
-      stopCountdownInterval()
-      void handleUpdate()
-    }
-  },
-  500,
-  { immediate: false },
-)
+const { pause: stopCountdownInterval, resume: startCountdownInterval } =
+  useIntervalFn(
+    () => {
+      const remaining = Math.max(
+        0,
+        Math.ceil((endTime.value - timestamp.value) / 1000),
+      )
+      countdown.value = remaining
+      if (remaining <= 0) {
+        stopCountdownInterval()
+        void handleUpdate()
+      }
+    },
+    500,
+    { immediate: false },
+  )
 
 function startCountdown() {
   if (AUTO_COUNTDOWN <= 0 || autoUpdateCancelled.value) return
@@ -220,11 +229,15 @@ tryOnScopeDispose(stopCountdown)
         </div>
 
         <div class="min-w-0 flex-1">
-          <h3 class="text-sm leading-5 font-semibold text-slate-800 dark:text-slate-100">
+          <h3
+            class="text-sm leading-5 font-semibold text-slate-800 dark:text-slate-100"
+          >
             {{ isUpdate ? '发现新版本' : '离线可用' }}
           </h3>
 
-          <p class="mt-1 text-[12.5px] leading-relaxed text-slate-500 dark:text-slate-400">
+          <p
+            class="mt-1 text-[12.5px] leading-relaxed text-slate-500 dark:text-slate-400"
+          >
             {{
               isUpdate
                 ? autoUpdateCancelled

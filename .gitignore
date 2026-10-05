@@ -43,3 +43,5 @@ playwright-report/
 */cache/*
 *prototype/*
 dev-list
+# Mock 运行时本地配置（开关 / 延迟 / 失败率），不入库
+mock/.runtime.json

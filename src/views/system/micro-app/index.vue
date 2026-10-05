@@ -28,7 +28,9 @@ const filteredApps = computed(() => {
       app.title.includes(searchKeyword.value) ||
       app.name.includes(searchKeyword.value) ||
       (app.owner && app.owner.includes(searchKeyword.value))
-    const matchStatus = statusFilter.value === 'all' || (statusFilter.value === 'running' ? app.active : !app.active)
+    const matchStatus =
+      statusFilter.value === 'all' ||
+      (statusFilter.value === 'running' ? app.active : !app.active)
     return matchKeyword && matchStatus
   })
 })
@@ -50,9 +52,15 @@ function getStatusTagClass(active: boolean) {
 
 function getLoaderBadgeClass(loader?: string) {
   if (loader === 'iframe') {
-    return cn('px-2 py-0.5 rounded text-xs', 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400')
+    return cn(
+      'px-2 py-0.5 rounded text-xs',
+      'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+    )
   }
-  return cn('px-2 py-0.5 rounded text-xs', 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400')
+  return cn(
+    'px-2 py-0.5 rounded text-xs',
+    'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  )
 }
 
 // 操作函数
@@ -82,7 +90,9 @@ function _handleResetFilters() {
 function handleRefreshIframe() {
   if (!currentApp.value) return
   iframeLoaded.value[currentApp.value.name] = false
-  const iframeEl = document.querySelector(`iframe[data-app="${currentApp.value.name}"]`) as HTMLIFrameElement
+  const iframeEl = document.querySelector(
+    `iframe[data-app="${currentApp.value.name}"]`,
+  ) as HTMLIFrameElement
   if (iframeEl) {
     // 强制刷新 iframe
     const src = iframeEl.src
@@ -141,8 +151,12 @@ watch(
     <!-- 页面标题 -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-xl font-bold text-gray-900 dark:text-white">微前端管理</h1>
-        <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">子应用注册与预览（iframe 嵌套模式）</p>
+        <h1 class="text-xl font-bold text-gray-900 dark:text-white">
+          微前端管理
+        </h1>
+        <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+          子应用注册与预览（iframe 嵌套模式）
+        </p>
       </div>
       <a-button v-if="currentApp" @click="handleRefreshIframe">
         <Icon icon="carbon:refresh" class="mr-1" />
@@ -191,7 +205,12 @@ watch(
 
         <!-- 搜索筛选 -->
         <div class="flex flex-col gap-2">
-          <a-input v-model:value="searchKeyword" placeholder="搜索子应用..." size="small" allow-clear>
+          <a-input
+            v-model:value="searchKeyword"
+            placeholder="搜索子应用..."
+            size="small"
+            allow-clear
+          >
             <template #prefix>
               <span class="i-carbon-search text-xs text-gray-400" />
             </template>
@@ -224,19 +243,34 @@ watch(
               <div class="mb-1.5 flex items-center gap-2">
                 <div
                   class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-sm"
-                  :class="app.active ? 'bg-gradient-to-br from-blue-500 to-indigo-600' : 'bg-gray-100 dark:bg-gray-700'"
+                  :class="
+                    app.active
+                      ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                      : 'bg-gray-100 dark:bg-gray-700'
+                  "
                 >
-                  <span v-if="app.icon" :class="[app.icon, app.active ? 'text-white' : 'text-gray-500']" />
+                  <span
+                    v-if="app.icon"
+                    :class="[
+                      app.icon,
+                      app.active ? 'text-white' : 'text-gray-500',
+                    ]"
+                  />
                 </div>
                 <div class="min-w-0 flex-1">
-                  <p class="truncate text-sm font-medium text-gray-900 dark:text-white">
+                  <p
+                    class="truncate text-sm font-medium text-gray-900 dark:text-white"
+                  >
                     {{ app.title }}
                   </p>
                   <p class="truncate text-[10px] text-gray-400">
                     {{ app.name }}
                   </p>
                 </div>
-                <span :class="getStatusTagClass(!!app.active)" class="shrink-0 px-1.5 py-0.5 text-[10px]">
+                <span
+                  :class="getStatusTagClass(!!app.active)"
+                  class="shrink-0 px-1.5 py-0.5 text-[10px]"
+                >
                   {{ app.active ? '运行' : '停止' }}
                 </span>
               </div>
@@ -244,12 +278,17 @@ watch(
               <!-- 元信息 -->
               <div class="flex items-center gap-2 text-[10px] text-gray-500">
                 <span>v{{ app.version ?? '-' }}</span>
-                <span :class="getLoaderBadgeClass(app.loader)">{{ app.loader === 'iframe' ? 'iframe' : 'WC' }}</span>
+                <span :class="getLoaderBadgeClass(app.loader)">{{
+                  app.loader === 'iframe' ? 'iframe' : 'WC'
+                }}</span>
               </div>
             </div>
 
             <!-- 空状态 -->
-            <div v-if="filteredApps.length === 0" class="flex flex-col items-center justify-center py-8 text-gray-400">
+            <div
+              v-if="filteredApps.length === 0"
+              class="flex flex-col items-center justify-center py-8 text-gray-400"
+            >
               <span class="i-carbon-application mb-2 text-3xl opacity-30" />
               <p class="text-xs">无匹配的子应用</p>
             </div>
@@ -270,12 +309,17 @@ watch(
             <div
               class="flex h-8 w-8 items-center justify-center rounded-lg"
               :class="
-                currentApp.active ? 'bg-gradient-to-br from-blue-500 to-indigo-600' : 'bg-gray-100 dark:bg-gray-700'
+                currentApp.active
+                  ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                  : 'bg-gray-100 dark:bg-gray-700'
               "
             >
               <span
                 v-if="currentApp.icon"
-                :class="[currentApp.icon, currentApp.active ? 'text-white' : 'text-gray-500']"
+                :class="[
+                  currentApp.icon,
+                  currentApp.active ? 'text-white' : 'text-gray-500',
+                ]"
                 class="text-base"
               />
             </div>
@@ -310,7 +354,9 @@ watch(
             class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900"
           >
             <a-spin size="large" />
-            <p class="mt-2 text-xs text-gray-500">正在加载子应用 {{ currentApp?.title }}...</p>
+            <p class="mt-2 text-xs text-gray-500">
+              正在加载子应用 {{ currentApp?.title }}...
+            </p>
           </div>
 
           <!-- iframe 嵌入子应用 -->
@@ -328,7 +374,10 @@ watch(
           />
 
           <!-- 无选中状态 -->
-          <div v-if="!currentApp" class="flex h-full flex-col items-center justify-center text-gray-400">
+          <div
+            v-if="!currentApp"
+            class="flex h-full flex-col items-center justify-center text-gray-400"
+          >
             <span class="i-carbon-application mb-3 text-5xl opacity-20" />
             <p class="text-sm">选择左侧子应用开始预览</p>
             <p class="mt-1 text-xs opacity-60">支持 iframe 嵌套模式</p>

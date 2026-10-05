@@ -102,4 +102,7 @@ export const analyticsCardClassName = cn(
   'dark:border-slate-800 dark:bg-slate-900',
 )
 
-export const sectionTitleClassName = cn('text-base font-semibold', 'text-slate-800 dark:text-slate-200')
+export const sectionTitleClassName = cn(
+  'text-base font-semibold',
+  'text-slate-800 dark:text-slate-200',
+)

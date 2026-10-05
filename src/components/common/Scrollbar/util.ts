@@ -31,7 +31,11 @@ export interface ThumbStyleInput {
   bar: BarMapItem
 }
 
-export function renderThumbStyle({ move = 0, size = '0', bar }: ThumbStyleInput): Record<string, string> {
+export function renderThumbStyle({
+  move = 0,
+  size = '0',
+  bar,
+}: ThumbStyleInput): Record<string, string> {
   // isNil 兜底 move（虽然默认参数已兜底，但显式更稳）
   const offset = isNil(move) ? 0 : move
   const translate = `translate${bar.axis}(${offset}%)`

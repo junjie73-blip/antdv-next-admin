@@ -7,7 +7,11 @@ import { computed, ref, watch, type Ref } from 'vue'
  * @param visible 弹窗显示状态
  * @param fullscreen 全屏状态
  */
-export function useDragMove(draggable: Ref<boolean>, visible: Ref<boolean>, fullscreen: Ref<boolean>) {
+export function useDragMove(
+  draggable: Ref<boolean>,
+  visible: Ref<boolean>,
+  fullscreen: Ref<boolean>,
+) {
   const offsetX = ref(0)
   const offsetY = ref(0)
   const isDragging = ref(false)

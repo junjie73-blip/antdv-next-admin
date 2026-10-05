@@ -49,7 +49,10 @@ export interface PermissionCheckOptions {
 }
 
 export interface PermissionDirectiveBinding {
-  value: string | string[] | { permission: string | string[]; mode?: PermissionMode }
+  value:
+    | string
+    | string[]
+    | { permission: string | string[]; mode?: PermissionMode }
   arg?: string
   modifiers?: Record<string, boolean>
 }
@@ -67,8 +70,14 @@ export interface UsePermissionReturn {
   hasAnyRole: (roles: string[]) => boolean
   hasAllRoles: (roles: string[]) => boolean
   isAdmin: () => boolean
-  checkPermission: (perms: string | string[], opts?: { mode?: 'any' | 'all' }) => boolean // ⭐ 新增
-  checkRole: (roles: string | string[], opts?: { mode?: 'any' | 'all' }) => boolean // ⭐ 新增
+  checkPermission: (
+    perms: string | string[],
+    opts?: { mode?: 'any' | 'all' },
+  ) => boolean // ⭐ 新增
+  checkRole: (
+    roles: string | string[],
+    opts?: { mode?: 'any' | 'all' },
+  ) => boolean // ⭐ 新增
   permissions: readonly string[]
   roles: readonly string[]
 }

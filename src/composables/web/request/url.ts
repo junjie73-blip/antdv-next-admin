@@ -9,7 +9,9 @@ export function buildUrl(url: string, params?: Record<string, any>): string {
   const parts: string[] = []
   for (const key of keys) {
     if (isNil(params[key])) continue
-    parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(params[key]))}`)
+    parts.push(
+      `${encodeURIComponent(key)}=${encodeURIComponent(String(params[key]))}`,
+    )
   }
 
   const query = parts.join('&')

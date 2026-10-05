@@ -67,7 +67,9 @@ const statusLabelMap: Record<number, string> = {
 
 const dictStore = useDictStore()
 
-const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
+const statusOptions = computed(() =>
+  dictStore.getOptions(DictType.NORMAL_DISABLE),
+)
 
 function convertFrontendMenusToRecords(
   menus: MenuConfig[],
@@ -95,7 +97,11 @@ function convertFrontendMenusToRecords(
     result.push(record)
 
     if (menu.children && menu.children.length > 0) {
-      const { records: childRecords, nextId } = convertFrontendMenusToRecords(menu.children, record.id, currentId)
+      const { records: childRecords, nextId } = convertFrontendMenusToRecords(
+        menu.children,
+        record.id,
+        currentId,
+      )
       result.push(...childRecords)
       currentId = nextId
     }
@@ -118,7 +124,11 @@ function flattenMenuTree(tree: MenuRecord[]): MenuRecord[] {
   return result
 }
 
-const { records: initialRecords } = convertFrontendMenusToRecords(frontendMenus, null, 1)
+const { records: initialRecords } = convertFrontendMenusToRecords(
+  frontendMenus,
+  null,
+  1,
+)
 const allData = ref<MenuRecord[]>(rebuildTree(initialRecords))
 
 function rebuildTree(flat: MenuRecord[]): MenuRecord[] {
@@ -280,7 +290,9 @@ const drawerFormSchemas: FormSchema[] = [
     field: 'linkUrl',
     label: '链接地址',
     component: 'Input',
-    componentProps: { placeholder: '外部或微前端链接地址，如 https://crm.example.com' },
+    componentProps: {
+      placeholder: '外部或微前端链接地址，如 https://crm.example.com',
+    },
     ifShow: ({ model }) => {
       return (model as any).menuType === 'L'
     },
@@ -325,7 +337,11 @@ async function mockApi(params: Record<string, any>) {
 
   if (keyword) {
     const kw = String(keyword).toLowerCase()
-    filtered = filtered.filter((i) => i.menuName.toLowerCase().includes(kw) || i.perms.toLowerCase().includes(kw))
+    filtered = filtered.filter(
+      (i) =>
+        i.menuName.toLowerCase().includes(kw) ||
+        i.perms.toLowerCase().includes(kw),
+    )
   }
 
   if (menuType) {
@@ -508,16 +524,64 @@ function handleIconSelect(icon: string) {
 }
 
 const columns: BasicColumn[] = [
-  { title: '#', key: 'index', width: 60, align: 'center', customRender: ({ index }) => index + 1 },
+  {
+    title: '#',
+    key: 'index',
+    width: 60,
+    align: 'center',
+    customRender: ({ index }) => index + 1,
+  },
   { title: '菜单名称', dataIndex: 'menuName', key: 'menuName', width: 200 },
   { title: '图标', dataIndex: 'icon', key: 'icon', width: 70, align: 'center' },
-  { title: '排序', dataIndex: 'orderNum', key: 'orderNum', width: 70, align: 'center' },
-  { title: '权限标识', dataIndex: 'perms', key: 'perms', width: 180, ellipsis: true },
-  { title: '路由地址', dataIndex: 'path', key: 'path', width: 160, ellipsis: true },
-  { title: '组件路径', dataIndex: 'component', key: 'component', width: 180, ellipsis: true },
-  { title: '类型', dataIndex: 'menuType', key: 'menuType', width: 80, align: 'center' },
-  { title: '状态', dataIndex: 'status', key: 'status', width: 80, align: 'center' },
-  { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 170, align: 'center' },
+  {
+    title: '排序',
+    dataIndex: 'orderNum',
+    key: 'orderNum',
+    width: 70,
+    align: 'center',
+  },
+  {
+    title: '权限标识',
+    dataIndex: 'perms',
+    key: 'perms',
+    width: 180,
+    ellipsis: true,
+  },
+  {
+    title: '路由地址',
+    dataIndex: 'path',
+    key: 'path',
+    width: 160,
+    ellipsis: true,
+  },
+  {
+    title: '组件路径',
+    dataIndex: 'component',
+    key: 'component',
+    width: 180,
+    ellipsis: true,
+  },
+  {
+    title: '类型',
+    dataIndex: 'menuType',
+    key: 'menuType',
+    width: 80,
+    align: 'center',
+  },
+  {
+    title: '状态',
+    dataIndex: 'status',
+    key: 'status',
+    width: 80,
+    align: 'center',
+  },
+  {
+    title: '创建时间',
+    dataIndex: 'createdAt',
+    key: 'createdAt',
+    width: 170,
+    align: 'center',
+  },
 ]
 </script>
 
@@ -574,7 +638,13 @@ const columns: BasicColumn[] = [
         <template #cell-status="{ record }">
           <a-tag :color="statusColorMap[record.status] || 'default'">
             <span :class="tagClassName">
-              <Icon :icon="record.status === 1 ? 'carbon:checkmark-outline' : 'carbon:close-outline'" />
+              <Icon
+                :icon="
+                  record.status === 1
+                    ? 'carbon:checkmark-outline'
+                    : 'carbon:close-outline'
+                "
+              />
               {{ statusLabelMap[record.status] || '未知' }}
             </span>
           </a-tag>
@@ -582,20 +652,33 @@ const columns: BasicColumn[] = [
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <a-button type="link" :class="btnClassName" @click="() => handleAddChild(record)">
+            <a-button
+              type="link"
+              :class="btnClassName"
+              @click="() => handleAddChild(record)"
+            >
               <template #icon>
                 <Icon icon="ant-design:plus-circle-outlined" />
               </template>
               新增
             </a-button>
-            <a-button type="link" :class="btnClassName" @click="() => handleEdit(record)">
+            <a-button
+              type="link"
+              :class="btnClassName"
+              @click="() => handleEdit(record)"
+            >
               <template #icon>
                 <Icon icon="ant-design:edit-outlined" />
               </template>
               编辑
             </a-button>
             <a-divider type="vertical" :class="dividerClassName" />
-            <a-button type="link" danger :class="btnClassName" @click="() => handleDelete(record)">
+            <a-button
+              type="link"
+              danger
+              :class="btnClassName"
+              @click="() => handleDelete(record)"
+            >
               <template #icon>
                 <Icon icon="ant-design:delete-outlined" />
               </template>
@@ -606,7 +689,12 @@ const columns: BasicColumn[] = [
       </BasicTable>
     </a-card>
 
-    <BasicDrawer :title="isEditing ? '编辑菜单' : '新增菜单'" :width="640" @register="drawerRegister" @ok="handleSave">
+    <BasicDrawer
+      :title="isEditing ? '编辑菜单' : '新增菜单'"
+      :width="640"
+      @register="drawerRegister"
+      @ok="handleSave"
+    >
       <BasicForm
         :schemas="drawerFormSchemas"
         :label-width="80"

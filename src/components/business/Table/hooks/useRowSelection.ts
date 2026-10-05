@@ -1,14 +1,26 @@
 import { isBoolean, isFunction } from 'es-toolkit'
 import { computed, reactive, unref, watch } from 'vue'
 
-import type { Recordable, TableRowSelection, UseRowSelectionOptions, UseRowSelectionReturn } from '../types'
+import type {
+  Recordable,
+  TableRowSelection,
+  UseRowSelectionOptions,
+  UseRowSelectionReturn,
+} from '../types'
 
 /**
  * 行选择管理 Hook
  * 为什么需要：统一管理表格行选择的状态和逻辑
  */
-export function useRowSelection(options: UseRowSelectionOptions): UseRowSelectionReturn {
-  const { rowSelection, dataSourceRef, rowKey = 'id', clearSelectOnPageChange = false } = options
+export function useRowSelection(
+  options: UseRowSelectionOptions,
+): UseRowSelectionReturn {
+  const {
+    rowSelection,
+    dataSourceRef,
+    rowKey = 'id',
+    clearSelectOnPageChange = false,
+  } = options
 
   // 选中的行 keys（用 reactive 保持引用稳定，避免每次渲染新数组）
   const state = reactive({

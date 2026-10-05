@@ -24,13 +24,22 @@ const formState = reactive({
 })
 
 const containerClassName = computed(() =>
-  cn('min-h-screen flex', 'bg-gradient-to-br from-stone-100 via-slate-50 to-gray-50'),
+  cn(
+    'min-h-screen flex',
+    'bg-gradient-to-br from-stone-100 via-slate-50 to-gray-50',
+  ),
 )
 
-const leftPanelClassName = computed(() => cn('hidden lg:flex lg:w-1/2 xl:w-3/5', 'relative overflow-hidden'))
+const leftPanelClassName = computed(() =>
+  cn('hidden lg:flex lg:w-1/2 xl:w-3/5', 'relative overflow-hidden'),
+)
 
 const leftGlassClassName = computed(() =>
-  cn('absolute inset-0', 'bg-gradient-to-br from-white/60 via-slate-100/40 to-gray-100/50', 'backdrop-blur-xl'),
+  cn(
+    'absolute inset-0',
+    'bg-gradient-to-br from-white/60 via-slate-100/40 to-gray-100/50',
+    'backdrop-blur-xl',
+  ),
 )
 
 const rightPanelClassName = computed(() =>
@@ -75,7 +84,11 @@ const rules: Record<string, Rule[]> = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { min: 3, max: 20, message: '用户名长度为3-20个字符', trigger: 'blur' },
-    { pattern: /^\w+$/, message: '用户名只能包含字母、数字和下划线', trigger: 'blur' },
+    {
+      pattern: /^\w+$/,
+      message: '用户名只能包含字母、数字和下划线',
+      trigger: 'blur',
+    },
   ],
   email: [
     { required: true, message: '请输入邮箱', trigger: 'blur' },
@@ -124,7 +137,10 @@ function handleBackToLogin() {
 }
 
 function _handleSendCode() {
-  if (!formState.email || !/^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/.test(formState.email)) {
+  if (
+    !formState.email ||
+    !/^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/.test(formState.email)
+  ) {
     message.error('请输入正确的邮箱')
     return
   }
@@ -150,15 +166,33 @@ function _handleSendCode() {
       <div class="absolute inset-0">
         <div
           class="absolute top-1/4 right-1/4 h-[500px] w-[500px] rounded-full blur-[100px]"
-          style="background: color-mix(in srgb, var(--ant-color-primary) 15%, transparent)"
+          style="
+            background: color-mix(
+              in srgb,
+              var(--ant-color-primary) 15%,
+              transparent
+            );
+          "
         />
         <div
           class="absolute bottom-1/4 left-1/4 h-[400px] w-[400px] rounded-full blur-[80px]"
-          style="background: color-mix(in srgb, var(--ant-color-primary) 10%, transparent)"
+          style="
+            background: color-mix(
+              in srgb,
+              var(--ant-color-primary) 10%,
+              transparent
+            );
+          "
         />
         <div
           class="absolute top-1/2 right-1/3 h-[300px] w-[300px] rounded-full blur-[60px]"
-          style="background: color-mix(in srgb, var(--ant-color-primary) 8%, transparent)"
+          style="
+            background: color-mix(
+              in srgb,
+              var(--ant-color-primary) 8%,
+              transparent
+            );
+          "
         />
       </div>
 
@@ -178,11 +212,20 @@ function _handleSendCode() {
               class="flex h-9 w-9 items-center justify-center rounded-lg shadow-md"
               style="
                 background: var(--ant-color-primary);
-                box-shadow: 0 4px 12px color-mix(in srgb, var(--ant-color-primary) 30%, transparent);
+                box-shadow: 0 4px 12px
+                  color-mix(in srgb, var(--ant-color-primary) 30%, transparent);
               "
             >
-              <svg class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+              <svg
+                class="h-5 w-5 text-white"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+                />
               </svg>
             </div>
             <span class="text-xl font-semibold text-stone-800">Antdv Next</span>
@@ -190,7 +233,9 @@ function _handleSendCode() {
         </div>
 
         <!-- 标题 -->
-        <h1 class="mb-6 text-4xl leading-tight font-bold text-stone-800 xl:text-5xl">
+        <h1
+          class="mb-6 text-4xl leading-tight font-bold text-stone-800 xl:text-5xl"
+        >
           开启您的<br />
           <span style="color: var(--ant-color-primary)"> 高效之旅 </span>
         </h1>
@@ -282,7 +327,13 @@ function _handleSendCode() {
         </div>
 
         <!-- 表单 -->
-        <a-form ref="formRef" :model="formState" :rules="rules" layout="vertical" @finish="handleRegister">
+        <a-form
+          ref="formRef"
+          :model="formState"
+          :rules="rules"
+          layout="vertical"
+          @finish="handleRegister"
+        >
           <a-form-item name="username">
             <a-input
               v-model:value="formState.username"
@@ -345,11 +396,19 @@ function _handleSendCode() {
               class="[&_.ant-checkbox-inner]:!border-slate-300 [&_.ant-checkbox-inner]:!bg-white [&_.ant-checkbox-wrapper]:!text-stone-500"
             >
               我已阅读并同意
-              <a-button type="link" size="small" class="!p-0 !text-stone-400 hover:!text-stone-600">
+              <a-button
+                type="link"
+                size="small"
+                class="!p-0 !text-stone-400 hover:!text-stone-600"
+              >
                 《用户协议》
               </a-button>
               和
-              <a-button type="link" size="small" class="!p-0 !text-stone-400 hover:!text-stone-600">
+              <a-button
+                type="link"
+                size="small"
+                class="!p-0 !text-stone-400 hover:!text-stone-600"
+              >
                 《隐私政策》
               </a-button>
             </a-checkbox>
@@ -372,7 +431,12 @@ function _handleSendCode() {
         <!-- 登录链接 -->
         <div class="text-center">
           <span class="text-stone-500">已有账户？</span>
-          <a-button type="link" class="!ml-1 !p-0" style="color: var(--ant-color-primary)" @click="handleBackToLogin">
+          <a-button
+            type="link"
+            class="!ml-1 !p-0"
+            style="color: var(--ant-color-primary)"
+            @click="handleBackToLogin"
+          >
             立即登录
           </a-button>
         </div>
@@ -384,6 +448,10 @@ function _handleSendCode() {
 <style scoped>
 [class*='group']:hover .w-11 {
   background-color: color-mix(in srgb, var(--ant-color-primary) 5%, white);
-  border-color: color-mix(in srgb, var(--ant-color-primary) 20%, rgb(203 213 225));
+  border-color: color-mix(
+    in srgb,
+    var(--ant-color-primary) 20%,
+    rgb(203 213 225)
+  );
 }
 </style>

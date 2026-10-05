@@ -13,7 +13,9 @@ const emit = defineEmits<{ close: [] }>()
 
 const appStore = useAppStore()
 const userStore = useUserStore()
-const { copy } = useClipboard({ source: JSON.stringify(appStore.appSetting, null, 2) })
+const { copy } = useClipboard({
+  source: JSON.stringify(appStore.appSetting, null, 2),
+})
 const btnClass = cn(
   'flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg',
   'text-xs font-medium',
@@ -75,7 +77,13 @@ function handleClearAndLogout() {
 
     <button
       type="button"
-      :class="cn(btnClass, 'bg-rose-500 text-white outline-rose-500', 'hover:bg-rose-600 hover:outline-rose-600')"
+      :class="
+        cn(
+          btnClass,
+          'bg-rose-500 text-white outline-rose-500',
+          'hover:bg-rose-600 hover:outline-rose-600',
+        )
+      "
       @click="handleClearAndLogout"
     >
       <Icon icon="carbon:logout" class="text-sm" />

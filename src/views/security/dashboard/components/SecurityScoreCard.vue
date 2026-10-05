@@ -146,14 +146,28 @@ watch(isDark, () => {
 </script>
 
 <template>
-  <div :class="cn(containerClassName, 'border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900')">
+  <div
+    :class="
+      cn(
+        containerClassName,
+        'border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900',
+      )
+    "
+  >
     <!-- 标题 -->
     <div class="mb-4 flex items-center justify-between">
       <div>
-        <h3 class="text-base font-semibold text-gray-800 dark:text-white">安全评分</h3>
+        <h3 class="text-base font-semibold text-gray-800 dark:text-white">
+          安全评分
+        </h3>
         <p class="mt-0.5 text-xs text-gray-400">基于多维度安全指标综合评估</p>
       </div>
-      <a-tag :color="totalScore >= 80 ? 'green' : totalScore >= 60 ? 'orange' : 'red'" class="text-xs">
+      <a-tag
+        :color="
+          totalScore >= 80 ? 'green' : totalScore >= 60 ? 'orange' : 'red'
+        "
+        class="text-xs"
+      >
         {{ getScoreLabel(totalScore) }}
       </a-tag>
     </div>
@@ -162,9 +176,21 @@ watch(isDark, () => {
     <div class="mb-5 flex items-center gap-6">
       <!-- 圆形进度 -->
       <div class="relative shrink-0">
-        <svg :width="120" :height="120" viewBox="0 0 120 120" class="-rotate-90">
+        <svg
+          :width="120"
+          :height="120"
+          viewBox="0 0 120 120"
+          class="-rotate-90"
+        >
           <!-- 背景圆 -->
-          <circle cx="60" cy="60" r="50" fill="none" :stroke="isDark ? '#374151' : '#e5e7eb'" stroke-width="10" />
+          <circle
+            cx="60"
+            cy="60"
+            r="50"
+            fill="none"
+            :stroke="isDark ? '#374151' : '#e5e7eb'"
+            stroke-width="10"
+          />
           <!-- 进度圆 -->
           <circle
             cx="60"
@@ -178,8 +204,14 @@ watch(isDark, () => {
             class="transition-all duration-1000 ease-out"
           />
         </svg>
-        <div class="absolute inset-0 flex rotate-0 flex-col items-center justify-center">
-          <CountTo :end-val="totalScore" :class="cn(scoreValueClassName, getScoreColor(totalScore))" :duration="1500" />
+        <div
+          class="absolute inset-0 flex rotate-0 flex-col items-center justify-center"
+        >
+          <CountTo
+            :end-val="totalScore"
+            :class="cn(scoreValueClassName, getScoreColor(totalScore))"
+            :duration="1500"
+          />
           <span class="-mt-1 text-[10px] text-gray-400">/ 100</span>
         </div>
       </div>
@@ -192,11 +224,25 @@ watch(isDark, () => {
 
     <!-- 维度列表 -->
     <div class="grid grid-cols-2 gap-2.5">
-      <div v-for="dim in dimensions" :key="dim.name" :class="cn(dimensionCardClassName, getStatusBg(dim.status))">
-        <span class="text-sm text-gray-600 dark:text-gray-300">{{ dim.name }}</span>
+      <div
+        v-for="dim in dimensions"
+        :key="dim.name"
+        :class="cn(dimensionCardClassName, getStatusBg(dim.status))"
+      >
+        <span class="text-sm text-gray-600 dark:text-gray-300">{{
+          dim.name
+        }}</span>
         <div class="flex items-center gap-2">
-          <span :class="cn('text-lg font-bold tabular-nums', getScoreColor(dim.score))">{{ dim.score }}</span>
-          <div class="h-1.5 w-1.5 rounded-full" :style="{ backgroundColor: getStatusColor(dim.status) }" />
+          <span
+            :class="
+              cn('text-lg font-bold tabular-nums', getScoreColor(dim.score))
+            "
+            >{{ dim.score }}</span
+          >
+          <div
+            class="h-1.5 w-1.5 rounded-full"
+            :style="{ backgroundColor: getStatusColor(dim.status) }"
+          />
         </div>
       </div>
     </div>

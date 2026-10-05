@@ -39,7 +39,11 @@ function confirm() {
       >
         取消
       </button>
-      <button type="button" class="rounded bg-blue-500 px-2 py-1 text-xs text-white hover:bg-blue-600" @click="confirm">
+      <button
+        type="button"
+        class="rounded bg-blue-500 px-2 py-1 text-xs text-white hover:bg-blue-600"
+        @click="confirm"
+      >
         确定
       </button>
     </div>

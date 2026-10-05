@@ -30,7 +30,12 @@ interface RoleRecord {
 const containerClassName = cn('space-y-4')
 const cardClassName = cn('shadow-sm')
 const tagClassName = cn('inline-flex items-center gap-1')
-const actionClassName = cn('flex', 'items-center', 'justify-center', 'whitespace-nowrap')
+const actionClassName = cn(
+  'flex',
+  'items-center',
+  'justify-center',
+  'whitespace-nowrap',
+)
 const btnClassName = cn('!px-0.5')
 const dividerClassName = cn('mx-0')
 
@@ -45,7 +50,9 @@ const statusLabelMap: Record<number, string> = {
 
 const dictStore = useDictStore()
 
-const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
+const statusOptions = computed(() =>
+  dictStore.getOptions(DictType.NORMAL_DISABLE),
+)
 
 // 动态菜单权限树 — 从菜单配置生成
 interface MenuTreeNode {
@@ -157,7 +164,11 @@ const drawerFormSchemas: FormSchema[] = [
     component: 'InputNumber',
     colProps: { span: 12 },
     defaultValue: 0,
-    componentProps: { min: 0, placeholder: '数字越小越靠前', style: { width: '100%' } },
+    componentProps: {
+      min: 0,
+      placeholder: '数字越小越靠前',
+      style: { width: '100%' },
+    },
   },
   {
     field: 'status',
@@ -247,7 +258,9 @@ async function handleDelete(record: RoleRecord) {
 async function handleToggleStatus(record: RoleRecord) {
   try {
     await updateRole(record.id, { status: record.status === 1 ? 0 : 1 })
-    message.success(`已${record.status === 1 ? '停用' : '启用'}：${record.name}`)
+    message.success(
+      `已${record.status === 1 ? '停用' : '启用'}：${record.name}`,
+    )
     tableMethods.value?.reload()
   } catch (e: any) {
     message.error(e?.message || '操作失败')
@@ -269,7 +282,10 @@ function handleExport() {
       { header: '状态', key: 'status', width: 8 },
       { header: '创建时间', key: 'createdAt', width: 20 },
     ],
-    data: dataToExport.map((i) => ({ ...i, status: i.status === 1 ? '正常' : '停用' })),
+    data: dataToExport.map((i) => ({
+      ...i,
+      status: i.status === 1 ? '正常' : '停用',
+    })),
   })
 }
 
@@ -299,13 +315,30 @@ async function handleSave() {
 }
 
 const columns: BasicColumn[] = [
-  { title: '#', key: 'index', width: 60, align: 'center', customRender: ({ index }) => index + 1 },
+  {
+    title: '#',
+    key: 'index',
+    width: 60,
+    align: 'center',
+    customRender: ({ index }) => index + 1,
+  },
   { title: 'ID', dataIndex: 'id', key: 'id', width: 70, align: 'center' },
   { title: '角色名称', dataIndex: 'name', key: 'name', width: 140 },
   { title: '角色编码', dataIndex: 'code', key: 'code', width: 150 },
-  { title: '描述', dataIndex: 'description', key: 'description', ellipsis: true },
+  {
+    title: '描述',
+    dataIndex: 'description',
+    key: 'description',
+    ellipsis: true,
+  },
   { title: '排序', dataIndex: 'sort', key: 'sort', width: 70, align: 'center' },
-  { title: '状态', dataIndex: 'status', key: 'status', width: 80, align: 'center' },
+  {
+    title: '状态',
+    dataIndex: 'status',
+    key: 'status',
+    width: 80,
+    align: 'center',
+  },
   { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 170 },
 ]
 </script>
@@ -319,7 +352,10 @@ const columns: BasicColumn[] = [
         :immediate="true"
         :use-search-form="true"
         :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
-        :pagination="{ showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }"
+        :pagination="{
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '20', '50'],
+        }"
         :action-column="{ width: 280, title: '操作', fixed: 'right' }"
         @register="tableRegister"
       >
@@ -341,7 +377,13 @@ const columns: BasicColumn[] = [
         <template #cell-status="{ record }">
           <a-tag :color="statusColorMap[record.status] || 'default'">
             <span :class="tagClassName">
-              <Icon :icon="record.status === 1 ? 'carbon:checkmark-outline' : 'carbon:close-outline'" />
+              <Icon
+                :icon="
+                  record.status === 1
+                    ? 'carbon:checkmark-outline'
+                    : 'carbon:close-outline'
+                "
+              />
               {{ statusLabelMap[record.status] || '未知' }}
             </span>
           </a-tag>
@@ -349,14 +391,22 @@ const columns: BasicColumn[] = [
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <a-button type="link" :class="btnClassName" @click="() => handlePermission(record)">
+            <a-button
+              type="link"
+              :class="btnClassName"
+              @click="() => handlePermission(record)"
+            >
               <template #icon>
                 <Icon icon="ant-design:safety-certificate-outlined" />
               </template>
               权限
             </a-button>
             <a-divider type="vertical" :class="dividerClassName" />
-            <a-button type="link" :class="btnClassName" @click="() => handleEdit(record)">
+            <a-button
+              type="link"
+              :class="btnClassName"
+              @click="() => handleEdit(record)"
+            >
               <template #icon>
                 <Icon icon="ant-design:edit-outlined" />
               </template>
@@ -367,11 +417,22 @@ const columns: BasicColumn[] = [
               :title="`确定要「${record.status === 1 ? '停用' : '启用'}」角色「${record.name}」吗？`"
               @confirm="() => handleToggleStatus(record)"
             >
-              <a-button v-if="record.status === 1" type="link" :class="btnClassName"> 停用 </a-button>
-              <a-button v-else type="link" :class="btnClassName"> 启用 </a-button>
+              <a-button
+                v-if="record.status === 1"
+                type="link"
+                :class="btnClassName"
+              >
+                停用
+              </a-button>
+              <a-button v-else type="link" :class="btnClassName">
+                启用
+              </a-button>
             </a-popconfirm>
             <a-divider type="vertical" :class="dividerClassName" />
-            <a-popconfirm :title="`确定要删除角色「${record.name}」吗？`" @confirm="() => handleDelete(record)">
+            <a-popconfirm
+              :title="`确定要删除角色「${record.name}」吗？`"
+              @confirm="() => handleDelete(record)"
+            >
               <a-button type="link" danger :class="btnClassName">
                 <template #icon>
                   <Icon icon="ant-design:delete-outlined" />
@@ -385,7 +446,12 @@ const columns: BasicColumn[] = [
     </a-card>
 
     <!-- 新增/编辑抽屉 -->
-    <BasicDrawer :title="isEditing ? '编辑角色' : '新增角色'" :width="520" @register="drawerRegister" @ok="handleSave">
+    <BasicDrawer
+      :title="isEditing ? '编辑角色' : '新增角色'"
+      :width="520"
+      @register="drawerRegister"
+      @ok="handleSave"
+    >
       <BasicForm
         :schemas="drawerFormSchemas"
         :label-width="80"
@@ -396,16 +462,26 @@ const columns: BasicColumn[] = [
     </BasicDrawer>
 
     <!-- 权限分配抽屉 -->
-    <BasicDrawer :title="`权限分配 - ${currentRecord?.name || ''}`" :width="480" @register="permDrawerRegister">
+    <BasicDrawer
+      :title="`权限分配 - ${currentRecord?.name || ''}`"
+      :width="480"
+      @register="permDrawerRegister"
+    >
       <div class="space-y-4">
-        <a-alert message="选择该角色可以访问的菜单和按钮权限" type="info" show-icon />
+        <a-alert
+          message="选择该角色可以访问的菜单和按钮权限"
+          type="info"
+          show-icon
+        />
         <div class="text-sm text-gray-500 dark:text-gray-400">
           角色编码：<a-tag color="blue">
             {{ currentRecord?.code }}
           </a-tag>
         </div>
         <div class="text-sm text-gray-500 dark:text-gray-400">
-          角色描述：<span class="text-gray-700 dark:text-gray-300">{{ currentRecord?.description }}</span>
+          角色描述：<span class="text-gray-700 dark:text-gray-300">{{
+            currentRecord?.description
+          }}</span>
         </div>
 
         <a-tree

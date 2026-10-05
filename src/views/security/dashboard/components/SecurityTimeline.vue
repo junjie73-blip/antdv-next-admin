@@ -3,7 +3,11 @@ import { Icon } from '@iconify/vue'
 import dayjs from 'dayjs'
 import { computed, onMounted, ref } from 'vue'
 
-import type { SecurityEvent, SecurityEventLevel, SecurityEventType } from '~/api/security'
+import type {
+  SecurityEvent,
+  SecurityEventLevel,
+  SecurityEventType,
+} from '~/api/security'
 
 import { getSecurityEvents } from '~/api/security'
 import { cn } from '~/utils/cn'
@@ -13,7 +17,9 @@ defineOptions({ name: 'SecurityTimeline' })
 // 样式类名
 const containerClassName = cn('rounded-xl p-5')
 const filterBarClassName = cn('flex items-center gap-2 flex-wrap mb-4')
-const tagClassName = cn('cursor-pointer transition-all duration-200 text-xs px-2.5 py-1 rounded-full border')
+const tagClassName = cn(
+  'cursor-pointer transition-all duration-200 text-xs px-2.5 py-1 rounded-full border',
+)
 
 const events = ref<SecurityEvent[]>([])
 const loading = ref(false)
@@ -52,8 +58,10 @@ const statusOptions = [
 const filteredEvents = computed(() => {
   return events.value.filter((e) => {
     if (activeType.value !== 'all' && e.type !== activeType.value) return false
-    if (activeLevel.value !== 'all' && e.level !== activeLevel.value) return false
-    if (activeStatus.value !== 'all' && e.status !== activeStatus.value) return false
+    if (activeLevel.value !== 'all' && e.level !== activeLevel.value)
+      return false
+    if (activeStatus.value !== 'all' && e.status !== activeStatus.value)
+      return false
     return true
   })
 })
@@ -129,14 +137,26 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div :class="cn(containerClassName, 'border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900')">
+  <div
+    :class="
+      cn(
+        containerClassName,
+        'border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900',
+      )
+    "
+  >
     <!-- 标题 -->
     <div class="mb-4 flex items-center justify-between">
       <div>
-        <h3 class="text-base font-semibold text-gray-800 dark:text-white">安全事件时间线</h3>
+        <h3 class="text-base font-semibold text-gray-800 dark:text-white">
+          安全事件时间线
+        </h3>
         <p class="mt-0.5 text-xs text-gray-400">近期安全事件追踪</p>
       </div>
-      <a-badge :count="filteredEvents.filter((e) => e.status === 'pending').length" :offset="[2, 0]">
+      <a-badge
+        :count="filteredEvents.filter((e) => e.status === 'pending').length"
+        :offset="[2, 0]"
+      >
         <span class="text-xs text-gray-400">待处理</span>
       </a-badge>
     </div>
@@ -183,7 +203,13 @@ onMounted(async () => {
           v-for="opt in statusOptions"
           :key="opt.value"
           :class="tagClassName"
-          :color="activeStatus === opt.value ? (opt.value === 'pending' ? 'red' : 'green') : undefined"
+          :color="
+            activeStatus === opt.value
+              ? opt.value === 'pending'
+                ? 'red'
+                : 'green'
+              : undefined
+          "
           @click="activeStatus = opt.value"
         >
           {{ opt.label }}
@@ -195,7 +221,11 @@ onMounted(async () => {
     <PerfectScrollbar class="max-h-[420px] pr-1">
       <a-spin :spinning="loading">
         <a-timeline v-if="filteredEvents.length > 0" mode="left" class="mt-2">
-          <a-timeline-item v-for="event in filteredEvents" :key="event.id" :color="getTimelineColor(event.level)">
+          <a-timeline-item
+            v-for="event in filteredEvents"
+            :key="event.id"
+            :color="getTimelineColor(event.level)"
+          >
             <div
               class="group -ml-4 flex items-start gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
             >
@@ -214,35 +244,66 @@ onMounted(async () => {
                   )
                 "
               >
-                <Icon :icon="getTypeIcon(event.type)" :width="16" :height="16" />
+                <Icon
+                  :icon="getTypeIcon(event.type)"
+                  :width="16"
+                  :height="16"
+                />
               </div>
 
               <!-- 内容 -->
               <div class="min-w-0 flex-1">
                 <div class="mb-1 flex flex-wrap items-center gap-2">
-                  <span class="text-sm font-medium text-gray-800 dark:text-gray-200">{{ event.title }}</span>
-                  <a-tag :color="getLevelTagColor(event.level)" size="small" class="text-[10px]">
+                  <span
+                    class="text-sm font-medium text-gray-800 dark:text-gray-200"
+                    >{{ event.title }}</span
+                  >
+                  <a-tag
+                    :color="getLevelTagColor(event.level)"
+                    size="small"
+                    class="text-[10px]"
+                  >
                     {{ getLevelLabel(event.level) }}
                   </a-tag>
-                  <a-tag :color="getTypeTagColor(event.type)" size="small" class="text-[10px]">
+                  <a-tag
+                    :color="getTypeTagColor(event.type)"
+                    size="small"
+                    class="text-[10px]"
+                  >
                     {{ typeOptions.find((t) => t.value === event.type)?.label }}
                   </a-tag>
-                  <a-tag v-if="event.status === 'pending'" color="error" size="small" class="text-[10px]">
+                  <a-tag
+                    v-if="event.status === 'pending'"
+                    color="error"
+                    size="small"
+                    class="text-[10px]"
+                  >
                     待处理
                   </a-tag>
-                  <a-tag v-else-if="event.status === 'handled'" color="success" size="small" class="text-[10px]">
+                  <a-tag
+                    v-else-if="event.status === 'handled'"
+                    color="success"
+                    size="small"
+                    class="text-[10px]"
+                  >
                     已处理
                   </a-tag>
                 </div>
-                <p class="line-clamp-1 text-xs text-gray-500 dark:text-gray-400">
+                <p
+                  class="line-clamp-1 text-xs text-gray-500 dark:text-gray-400"
+                >
                   {{ event.description }}
                 </p>
-                <div class="mt-1.5 flex items-center gap-3 text-[11px] text-gray-400">
+                <div
+                  class="mt-1.5 flex items-center gap-3 text-[11px] text-gray-400"
+                >
                   <span class="flex items-center gap-1">
                     <Icon icon="carbon:location" :width="12" :height="12" />
                     {{ event.sourceIp }} · {{ event.location }}
                   </span>
-                  <span>{{ dayjs(event.createdAt).format('MM-DD HH:mm:ss') }}</span>
+                  <span>{{
+                    dayjs(event.createdAt).format('MM-DD HH:mm:ss')
+                  }}</span>
                 </div>
               </div>
             </div>

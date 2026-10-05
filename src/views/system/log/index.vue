@@ -49,7 +49,9 @@ interface LoginLogRecord {
 
 // 样式变量
 const containerClassName = cn('space-y-4')
-const cardClassName = cn('shadow-sm rounded-lg border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900')
+const cardClassName = cn(
+  'shadow-sm rounded-lg border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900',
+)
 const filterBarClassName = cn(
   'flex items-center gap-3 flex-wrap px-6 py-4 border-b border-gray-100 dark:border-gray-800',
 )
@@ -91,7 +93,10 @@ const operTypeColorMap: Record<string, string> = {
 const statusColorMap: Record<number, string> = { 0: 'green', 1: 'red' }
 const statusLabelMap: Record<number, string> = { 0: '成功', 1: '失败' }
 
-const operatorTypeLabelMap: Record<number, string> = { 1: '后台用户', 2: '手机端用户' }
+const operatorTypeLabelMap: Record<number, string> = {
+  1: '后台用户',
+  2: '手机端用户',
+}
 
 // 操作日志
 const viewingRecord = ref<OperLogRecord | null>(null)
@@ -127,7 +132,11 @@ const searchFormSchemas: FormSchema[] = [
     field: 'operType',
     label: '操作类型',
     component: 'Select',
-    componentProps: { placeholder: '选择操作类型', allowClear: true, options: operTypeOptions },
+    componentProps: {
+      placeholder: '选择操作类型',
+      allowClear: true,
+      options: operTypeOptions,
+    },
     colProps: { span: 6 },
   },
   {
@@ -209,7 +218,11 @@ const detailSchemas: DescriptionItem[] = [
   {
     field: 'operType',
     label: '操作类型',
-    render: (value) => <a-tag color={operTypeColorMap[value as string] || 'default'}>{value}</a-tag>,
+    render: (value) => (
+      <a-tag color={operTypeColorMap[value as string] || 'default'}>
+        {value}
+      </a-tag>
+    ),
   },
   { field: 'title', label: '操作模块' },
   {
@@ -237,7 +250,9 @@ const detailSchemas: DescriptionItem[] = [
   {
     field: 'operatorType',
     label: '操作类别',
-    render: (value) => <span>{operatorTypeLabelMap[value as number] || '未知'}</span>,
+    render: (value) => (
+      <span>{operatorTypeLabelMap[value as number] || '未知'}</span>
+    ),
   },
   {
     field: 'operUrl',
@@ -285,7 +300,9 @@ const detailSchemas: DescriptionItem[] = [
     field: 'status',
     label: '操作状态',
     render: (value) => (
-      <a-tag color={statusColorMap[value as number] || 'default'}>{statusLabelMap[value as number] || '未知'}</a-tag>
+      <a-tag color={statusColorMap[value as number] || 'default'}>
+        {statusLabelMap[value as number] || '未知'}
+      </a-tag>
     ),
   },
   {
@@ -347,7 +364,8 @@ async function handleDelete(record: OperLogRecord) {
 }
 
 async function handleBatchDelete() {
-  const selectedRows = (tableMethods.value?.getSelectRows?.() || []) as OperLogRecord[]
+  const selectedRows = (tableMethods.value?.getSelectRows?.() ||
+    []) as OperLogRecord[]
   if (selectedRows.length === 0) {
     message.warning('请先选择要删除的日志')
     return
@@ -362,9 +380,12 @@ async function handleBatchDelete() {
 }
 
 function handleExport() {
-  const selectedRows = (tableMethods.value?.getSelectRows?.() || []) as OperLogRecord[]
+  const selectedRows = (tableMethods.value?.getSelectRows?.() ||
+    []) as OperLogRecord[]
   const dataToExport =
-    selectedRows.length > 0 ? selectedRows : ((tableMethods.value?.getDataSource?.() || []) as OperLogRecord[])
+    selectedRows.length > 0
+      ? selectedRows
+      : ((tableMethods.value?.getDataSource?.() || []) as OperLogRecord[])
   exportToExcel({
     filename: '系统日志',
     sheetName: '系统日志',
@@ -381,7 +402,10 @@ function handleExport() {
       { header: '消耗时间(ms)', key: 'costTime', width: 12 },
       { header: '操作时间', key: 'operTime', width: 20 },
     ],
-    data: dataToExport.map((i) => ({ ...i, status: i.status === 0 ? '成功' : '失败' })),
+    data: dataToExport.map((i) => ({
+      ...i,
+      status: i.status === 0 ? '成功' : '失败',
+    })),
   })
 }
 
@@ -392,21 +416,69 @@ function handleClear() {
 
 // 操作日志列
 const columns: BasicColumn[] = [
-  { title: '#', key: 'index', width: 60, align: 'center', customRender: ({ index }) => index + 1 },
+  {
+    title: '#',
+    key: 'index',
+    width: 60,
+    align: 'center',
+    customRender: ({ index }) => index + 1,
+  },
   { title: '操作模块', dataIndex: 'title', key: 'title', width: 120 },
-  { title: '操作类型', dataIndex: 'operType', key: 'operType', width: 90, align: 'center' },
-  { title: '操作人员', dataIndex: 'operName', key: 'operName', width: 100, align: 'center' },
-  { title: 'IP地址', dataIndex: 'operIp', key: 'operIp', width: 140, ellipsis: true },
-  { title: '状态', dataIndex: 'status', key: 'status', width: 80, align: 'center' },
-  { title: '耗时(ms)', dataIndex: 'costTime', key: 'costTime', width: 90, align: 'center' },
+  {
+    title: '操作类型',
+    dataIndex: 'operType',
+    key: 'operType',
+    width: 90,
+    align: 'center',
+  },
+  {
+    title: '操作人员',
+    dataIndex: 'operName',
+    key: 'operName',
+    width: 100,
+    align: 'center',
+  },
+  {
+    title: 'IP地址',
+    dataIndex: 'operIp',
+    key: 'operIp',
+    width: 140,
+    ellipsis: true,
+  },
+  {
+    title: '状态',
+    dataIndex: 'status',
+    key: 'status',
+    width: 80,
+    align: 'center',
+  },
+  {
+    title: '耗时(ms)',
+    dataIndex: 'costTime',
+    key: 'costTime',
+    width: 90,
+    align: 'center',
+  },
   { title: '操作时间', dataIndex: 'operTime', key: 'operTime', width: 165 },
 ]
 
 // 登录日志列
 const loginColumns: BasicColumn[] = [
-  { title: '#', key: 'index', width: 60, align: 'center', customRender: ({ index }) => index + 1 },
+  {
+    title: '#',
+    key: 'index',
+    width: 60,
+    align: 'center',
+    customRender: ({ index }) => index + 1,
+  },
   { title: '用户名', dataIndex: 'userName', key: 'userName', width: 100 },
-  { title: 'IP地址', dataIndex: 'ipaddr', key: 'ipaddr', width: 140, ellipsis: true },
+  {
+    title: 'IP地址',
+    dataIndex: 'ipaddr',
+    key: 'ipaddr',
+    width: 140,
+    ellipsis: true,
+  },
   {
     title: '登录地点',
     dataIndex: 'loginLocation',
@@ -414,9 +486,21 @@ const loginColumns: BasicColumn[] = [
     width: 150,
     ellipsis: true,
   },
-  { title: '浏览器', dataIndex: 'browser', key: 'browser', width: 120, ellipsis: true },
+  {
+    title: '浏览器',
+    dataIndex: 'browser',
+    key: 'browser',
+    width: 120,
+    ellipsis: true,
+  },
   { title: '操作系统', dataIndex: 'os', key: 'os', width: 120, ellipsis: true },
-  { title: '状态', dataIndex: 'status', key: 'status', width: 80, align: 'center' },
+  {
+    title: '状态',
+    dataIndex: 'status',
+    key: 'status',
+    width: 80,
+    align: 'center',
+  },
   { title: '登录时间', dataIndex: 'loginTime', key: 'loginTime', width: 165 },
   { title: '备注', dataIndex: 'msg', key: 'msg', width: 120, ellipsis: true },
 ]
@@ -447,7 +531,10 @@ const loginColumns: BasicColumn[] = [
           :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
           :action-column="{ width: 160, title: '操作', fixed: 'right' }"
           :row-selection="{ type: 'checkbox' }"
-          :pagination="{ showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }"
+          :pagination="{
+            showSizeChanger: true,
+            pageSizeOptions: ['10', '20', '50'],
+          }"
           :scroll="{ x: 1300 }"
           @register="tableRegister"
         >
@@ -457,10 +544,15 @@ const loginColumns: BasicColumn[] = [
               导出
             </a-button>
             <a-button danger @click="handleBatchDelete">
-              <template #icon><Icon icon="ant-design:delete-outlined" /></template>
+              <template #icon
+                ><Icon icon="ant-design:delete-outlined"
+              /></template>
               批量删除
             </a-button>
-            <a-popconfirm title="确定要清空所有系统日志吗？此操作不可恢复！" @confirm="handleClear">
+            <a-popconfirm
+              title="确定要清空所有系统日志吗？此操作不可恢复！"
+              @confirm="handleClear"
+            >
               <a-button danger>
                 <template #icon><Icon icon="carbon:trash-can" /></template>
                 清空
@@ -477,7 +569,13 @@ const loginColumns: BasicColumn[] = [
           <template #cell-status="{ record }">
             <a-tag :color="statusColorMap[record.status] || 'default'">
               <span class="inline-flex items-center gap-1">
-                <Icon :icon="record.status === 0 ? 'carbon:checkmark-outline' : 'carbon:close-outline'" />
+                <Icon
+                  :icon="
+                    record.status === 0
+                      ? 'carbon:checkmark-outline'
+                      : 'carbon:close-outline'
+                  "
+                />
                 {{ statusLabelMap[record.status] || '未知' }}
               </span>
             </a-tag>
@@ -486,7 +584,10 @@ const loginColumns: BasicColumn[] = [
           <template #cell-costTime="{ record }">
             <span
               :style="{
-                color: record.costTime > 500 ? 'var(--color-warning, #d97706)' : 'inherit',
+                color:
+                  record.costTime > 500
+                    ? 'var(--color-warning, #d97706)'
+                    : 'inherit',
                 fontWeight: record.costTime > 500 ? '500' : 'normal',
               }"
             >
@@ -496,14 +597,25 @@ const loginColumns: BasicColumn[] = [
 
           <template #action="{ record }">
             <div :class="actionClassName">
-              <a-button type="link" :class="btnClassName" @click="() => handleView(record)">
-                <template #icon><Icon icon="ant-design:eye-outlined" /></template>
+              <a-button
+                type="link"
+                :class="btnClassName"
+                @click="() => handleView(record)"
+              >
+                <template #icon
+                  ><Icon icon="ant-design:eye-outlined"
+                /></template>
                 详情
               </a-button>
               <a-divider type="vertical" :class="dividerClassName" />
-              <a-popconfirm :title="`确定要删除日志 #${record.id} 吗？`" @confirm="() => handleDelete(record)">
+              <a-popconfirm
+                :title="`确定要删除日志 #${record.id} 吗？`"
+                @confirm="() => handleDelete(record)"
+              >
                 <a-button type="link" danger :class="btnClassName">
-                  <template #icon><Icon icon="ant-design:delete-outlined" /></template>
+                  <template #icon
+                    ><Icon icon="ant-design:delete-outlined"
+                  /></template>
                   删除
                 </a-button>
               </a-popconfirm>
@@ -522,7 +634,10 @@ const loginColumns: BasicColumn[] = [
           :form-config="{ schemas: loginSearchFormSchemas, labelWidth: 80 }"
           :action-column="{ width: 0, title: '操作', fixed: 'right' }"
           :show-table-setting="false"
-          :pagination="{ showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }"
+          :pagination="{
+            showSizeChanger: true,
+            pageSizeOptions: ['10', '20', '50'],
+          }"
           :scroll="{ x: 1200 }"
           @register="loginTableRegister"
         >
@@ -537,17 +652,33 @@ const loginColumns: BasicColumn[] = [
       <!-- 错误日志 -->
       <template v-if="activeTab === 2">
         <div class="py-20 text-center">
-          <Icon icon="carbon:checkmark-outline" class="mb-4 text-6xl text-gray-300 dark:text-gray-600" />
-          <div class="mb-2 text-lg font-semibold text-gray-500 dark:text-gray-400">暂无错误日志</div>
-          <div class="text-sm text-gray-400">系统运行正常，当前没有错误日志记录</div>
+          <Icon
+            icon="carbon:checkmark-outline"
+            class="mb-4 text-6xl text-gray-300 dark:text-gray-600"
+          />
+          <div
+            class="mb-2 text-lg font-semibold text-gray-500 dark:text-gray-400"
+          >
+            暂无错误日志
+          </div>
+          <div class="text-sm text-gray-400">
+            系统运行正常，当前没有错误日志记录
+          </div>
         </div>
       </template>
     </div>
 
     <!-- 日志详情抽屉 -->
-    <BasicDrawer title="操作日志详情" :width="640" :show-footer="false" @register="drawerRegister">
+    <BasicDrawer
+      title="操作日志详情"
+      :width="640"
+      :show-footer="false"
+      @register="drawerRegister"
+    >
       <div v-if="viewingRecord" class="relative pl-6">
-        <div class="absolute top-0 bottom-0 left-[7px] w-[2px] bg-gray-200 dark:bg-gray-700" />
+        <div
+          class="absolute top-0 bottom-0 left-[7px] w-[2px] bg-gray-200 dark:bg-gray-700"
+        />
         <div class="space-y-6">
           <div class="relative pb-6">
             <div
@@ -569,7 +700,10 @@ const loginColumns: BasicColumn[] = [
             />
             <div class="mb-1 text-xs text-gray-400">操作类型</div>
             <div class="text-sm">
-              <a-tag :color="operTypeColorMap[viewingRecord.operType] || 'default'">{{ viewingRecord.operType }}</a-tag>
+              <a-tag
+                :color="operTypeColorMap[viewingRecord.operType] || 'default'"
+                >{{ viewingRecord.operType }}</a-tag
+              >
             </div>
           </div>
           <div class="relative pb-6">
@@ -578,7 +712,9 @@ const loginColumns: BasicColumn[] = [
             />
             <div class="mb-1 text-xs text-gray-400">操作人员</div>
             <div class="text-sm">
-              <span class="text-ant-primary font-medium">{{ viewingRecord.operName }}</span>
+              <span class="text-ant-primary font-medium">{{
+                viewingRecord.operName
+              }}</span>
             </div>
           </div>
           <div class="relative pb-6">
@@ -587,9 +723,10 @@ const loginColumns: BasicColumn[] = [
             />
             <div class="mb-1 text-xs text-gray-400">请求URL</div>
             <div class="text-sm">
-              <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800">{{
-                viewingRecord.operUrl
-              }}</code>
+              <code
+                class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800"
+                >{{ viewingRecord.operUrl }}</code
+              >
             </div>
           </div>
           <div class="relative pb-6">
@@ -598,15 +735,20 @@ const loginColumns: BasicColumn[] = [
             />
             <div class="mb-1 text-xs text-gray-400">IP地址</div>
             <div class="text-sm">
-              <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800">{{
-                viewingRecord.operIp
-              }}</code>
+              <code
+                class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800"
+                >{{ viewingRecord.operIp }}</code
+              >
             </div>
           </div>
           <div class="relative pb-6">
             <div
               class="absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
-              :class="viewingRecord.status === 0 ? 'border-green-500' : 'border-red-500'"
+              :class="
+                viewingRecord.status === 0
+                  ? 'border-green-500'
+                  : 'border-red-500'
+              "
             />
             <div class="mb-1 text-xs text-gray-400">执行状态</div>
             <div class="text-sm">
@@ -628,7 +770,9 @@ const loginColumns: BasicColumn[] = [
           class="mt-4 rounded-md border-l-[3px] border-red-500 bg-red-50 p-3 dark:bg-red-900/20"
         >
           <div class="mb-1 text-sm font-semibold text-red-500">错误信息</div>
-          <div class="text-sm text-gray-600 dark:text-gray-400">{{ viewingRecord.errorMsg }}</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">
+            {{ viewingRecord.errorMsg }}
+          </div>
         </div>
       </div>
     </BasicDrawer>

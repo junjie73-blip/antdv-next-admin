@@ -4,7 +4,11 @@ import { useDebounceFn, useEventListener } from '@vueuse/core'
 import { Tree } from 'antdv-next'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 
-import type { FetchParams, Recordable, TableActionType } from '~/components/business/Table/types'
+import type {
+  FetchParams,
+  Recordable,
+  TableActionType,
+} from '~/components/business/Table/types'
 
 import { BasicTable } from '~/components/business/Table'
 import { cn } from '~/utils/cn'
@@ -60,11 +64,14 @@ function filterTree(nodes: TreeDataNode[], keyword: string): TreeDataNode[] {
   const lower = keyword.toLowerCase()
   return nodes.reduce<TreeDataNode[]>((acc, node) => {
     const titleMatch = node.title.toLowerCase().includes(lower)
-    const filteredChildren = node.children?.length ? filterTree(node.children, keyword) : []
+    const filteredChildren = node.children?.length
+      ? filterTree(node.children, keyword)
+      : []
     if (titleMatch || filteredChildren.length > 0) {
       acc.push({
         ...node,
-        children: filteredChildren.length > 0 ? filteredChildren : node.children,
+        children:
+          filteredChildren.length > 0 ? filteredChildren : node.children,
       })
     }
     return acc
@@ -72,7 +79,9 @@ function filterTree(nodes: TreeDataNode[], keyword: string): TreeDataNode[] {
 }
 
 const filteredTreeData = computed(() =>
-  searchValue.value.trim() ? filterTree(props.treeData, searchValue.value.trim()) : props.treeData,
+  searchValue.value.trim()
+    ? filterTree(props.treeData, searchValue.value.trim())
+    : props.treeData,
 )
 
 watch(
@@ -88,10 +97,15 @@ watch(
 // ============ 搜索（useDebounceFn） ============
 const debouncedSearch = useDebounceFn((val: string) => {
   searchValue.value = val
-  expandedKeys.value = getAllKeys(val.trim() ? filteredTreeData.value : props.treeData)
+  expandedKeys.value = getAllKeys(
+    val.trim() ? filteredTreeData.value : props.treeData,
+  )
 }, 300)
 
-async function handleTreeSelect(_selectedKeys: unknown[], info: { node: { key: string } }) {
+async function handleTreeSelect(
+  _selectedKeys: unknown[],
+  info: { node: { key: string } },
+) {
   const key = info.node?.key
   if (!key) return
   selectedKey.value = key
@@ -112,7 +126,10 @@ function wrappedApi(params: FetchParams): Promise<Recordable> {
 function handleDragMove(e: MouseEvent) {
   if (!isDragging.value || !panelRef.value) return
   const rect = panelRef.value.getBoundingClientRect()
-  panelWidth.value = Math.max(props.treeMinWidth, Math.min(props.treeMaxWidth, e.clientX - rect.left))
+  panelWidth.value = Math.max(
+    props.treeMinWidth,
+    Math.min(props.treeMaxWidth, e.clientX - rect.left),
+  )
 }
 
 function handleDragStart(e: MouseEvent) {
@@ -154,7 +171,9 @@ const treePanelStyle = computed(() => ({ width: `${panelWidth.value}px` }))
 const treeHeaderClassName = cn(
   'flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex-shrink-0',
 )
-const treeHeaderTitleClassName = cn('text-sm font-medium text-gray-700 dark:text-gray-300')
+const treeHeaderTitleClassName = cn(
+  'text-sm font-medium text-gray-700 dark:text-gray-300',
+)
 const treeBodyClassName = cn('flex-1 min-h-0 overflow-hidden p-2')
 const treeSearchClassName = cn('mb-2')
 
@@ -166,14 +185,24 @@ const resizeHandleClassName = computed(() =>
   ),
 )
 
-const tablePanelClassName = cn('flex-1 flex flex-col min-w-0 overflow-hidden h-full')
+const tablePanelClassName = cn(
+  'flex-1 flex flex-col min-w-0 overflow-hidden h-full',
+)
 const tableHeaderClassName = cn(
   'flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex-shrink-0',
 )
-const tableHeaderTitleClassName = cn('text-sm font-medium text-gray-700 dark:text-gray-300')
+const tableHeaderTitleClassName = cn(
+  'text-sm font-medium text-gray-700 dark:text-gray-300',
+)
 const tableBodyClassName = cn('flex-1 overflow-hidden')
-const emptyClassName = cn('flex flex-col items-center justify-center py-16', 'text-gray-400 dark:text-gray-500')
-const placeholderClassName = cn('flex flex-col items-center justify-center h-full', 'text-gray-400 dark:text-gray-500')
+const emptyClassName = cn(
+  'flex flex-col items-center justify-center py-16',
+  'text-gray-400 dark:text-gray-500',
+)
+const placeholderClassName = cn(
+  'flex flex-col items-center justify-center h-full',
+  'text-gray-400 dark:text-gray-500',
+)
 const nothingSelectedClassName = cn('text-sm text-gray-400 dark:text-gray-500')
 </script>
 

@@ -37,8 +37,18 @@ export interface UseRequestConfig<T = unknown> extends ExecuteOptions {
   onFinally?: () => void
 }
 
-export function useRequest<T = unknown>(url: string | (() => string), config: UseRequestConfig<T> = {}) {
-  const { immediate = true, initialData, debounce = 0, throttle = 0, updateDataOnError = false, ...execOpts } = config
+export function useRequest<T = unknown>(
+  url: string | (() => string),
+  config: UseRequestConfig<T> = {},
+) {
+  const {
+    immediate = true,
+    initialData,
+    debounce = 0,
+    throttle = 0,
+    updateDataOnError = false,
+    ...execOpts
+  } = config
 
   const data = shallowRef<T | undefined>(initialData)
   const loading = ref(false)
@@ -64,7 +74,8 @@ export function useRequest<T = unknown>(url: string | (() => string), config: Us
     abortController?.abort()
     abortController = new AbortController()
     const upper = method.toUpperCase()
-    const isQueryMethod = upper === 'GET' || upper === 'HEAD' || upper === 'DELETE'
+    const isQueryMethod =
+      upper === 'GET' || upper === 'HEAD' || upper === 'DELETE'
     try {
       // ⭐ 统一走 executor
       const result = await executeRequest<T>(
@@ -80,7 +91,10 @@ export function useRequest<T = unknown>(url: string | (() => string), config: Us
       config.onSuccess?.(result)
       return result
     } catch (err: any) {
-      const re = err instanceof RequestError ? err : new RequestError(err?.message || '请求失败', { status: 0 })
+      const re =
+        err instanceof RequestError
+          ? err
+          : new RequestError(err?.message || '请求失败', { status: 0 })
       if (!updateDataOnError) data.value = undefined
       error.value = re
       status.value = 'error'
@@ -96,8 +110,10 @@ export function useRequest<T = unknown>(url: string | (() => string), config: Us
   }
 
   const rawSend = (method: string, body?: any) => run(method, body)
-  const debouncedSend = debounce > 0 ? useDebounceFn(rawSend, debounce) : rawSend
-  const throttledSend = throttle > 0 ? useThrottleFn(rawSend, throttle) : rawSend
+  const debouncedSend =
+    debounce > 0 ? useDebounceFn(rawSend, debounce) : rawSend
+  const throttledSend =
+    throttle > 0 ? useThrottleFn(rawSend, throttle) : rawSend
 
   const send = (method = 'GET', body?: any) => {
     if (throttle > 0) return (throttledSend as any)(method, body)

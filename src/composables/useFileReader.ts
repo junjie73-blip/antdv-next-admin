@@ -11,7 +11,13 @@ export function useFileReader() {
    * @param readAs - 读取方式，默认 'readAsDataURL'（适合图片预览）
    * @returns Promise<string | ArrayBuffer> - 读取结果
    */
-  const read = (file: File, readAs: 'readAsDataURL' | 'readAsText' | 'readAsArrayBuffer' = 'readAsDataURL') => {
+  const read = (
+    file: File,
+    readAs:
+      | 'readAsDataURL'
+      | 'readAsText'
+      | 'readAsArrayBuffer' = 'readAsDataURL',
+  ) => {
     return new Promise<string | ArrayBuffer>((resolve, reject) => {
       isLoading.value = true
       error.value = null

@@ -39,7 +39,13 @@ export interface UseWebSocketOptions {
 export type WsStatusString = 'OPEN' | 'CONNECTING' | 'CLOSED'
 
 export function useWebSocket(options: UseWebSocketOptions) {
-  const { url: urlGetter, protocols, autoConnect = false, heartbeat, reconnect } = options
+  const {
+    url: urlGetter,
+    protocols,
+    autoConnect = false,
+    heartbeat,
+    reconnect,
+  } = options
 
   // ==================== 管理器 ====================
   const stateManager = new WebSocketStateManager()
@@ -49,7 +55,8 @@ export function useWebSocket(options: UseWebSocketOptions) {
     enabled: !!reconnect,
     interval: reconnect?.interval ?? DEFAULT_RECONNECT_CONFIG.interval,
     maxAttempts: reconnect?.retries ?? DEFAULT_RECONNECT_CONFIG.maxAttempts,
-    delayMultiplier: reconnect?.delayMultiplier ?? DEFAULT_RECONNECT_CONFIG.delayMultiplier,
+    delayMultiplier:
+      reconnect?.delayMultiplier ?? DEFAULT_RECONNECT_CONFIG.delayMultiplier,
     maxDelay: reconnect?.maxDelay ?? DEFAULT_RECONNECT_CONFIG.maxDelay,
   })
 
@@ -82,7 +89,9 @@ export function useWebSocket(options: UseWebSocketOptions) {
   let manuallyClosed = false
 
   // ==================== 核心操作 ====================
-  function sendRaw(msg: string | ArrayBufferLike | Blob | ArrayBufferView): void {
+  function sendRaw(
+    msg: string | ArrayBufferLike | Blob | ArrayBufferView,
+  ): void {
     const socket = stateManager.getWebSocket()
     if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(msg as any)
@@ -107,7 +116,10 @@ export function useWebSocket(options: UseWebSocketOptions) {
     socket.onclose = null
 
     try {
-      if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
+      if (
+        socket.readyState === WebSocket.OPEN ||
+        socket.readyState === WebSocket.CONNECTING
+      ) {
         socket.close(1000, 'client cleanup')
       }
     } catch {
@@ -128,7 +140,11 @@ export function useWebSocket(options: UseWebSocketOptions) {
     manuallyClosed = false
 
     const current = stateManager.getWebSocket()
-    if (current && (current.readyState === WebSocket.OPEN || current.readyState === WebSocket.CONNECTING)) {
+    if (
+      current &&
+      (current.readyState === WebSocket.OPEN ||
+        current.readyState === WebSocket.CONNECTING)
+    ) {
       return
     }
 
@@ -151,7 +167,9 @@ export function useWebSocket(options: UseWebSocketOptions) {
     // 创建原生 WebSocket
     let socket: WebSocket
     try {
-      socket = protocols ? new WebSocket(urlStr, protocols) : new WebSocket(urlStr)
+      socket = protocols
+        ? new WebSocket(urlStr, protocols)
+        : new WebSocket(urlStr)
     } catch (err) {
       console.error('[WS] new WebSocket failed', err)
       stateManager.setState(WebSocketState.Error)
@@ -170,7 +188,10 @@ export function useWebSocket(options: UseWebSocketOptions) {
       reconnectManager.reset()
 
       stateManager.setState(WebSocketState.Connected)
-      eventManager.emit(WebSocketEventType.StateChange, WebSocketState.Connected)
+      eventManager.emit(
+        WebSocketEventType.StateChange,
+        WebSocketState.Connected,
+      )
       eventManager.emit(WebSocketEventType.Open, ev)
 
       if (heartbeat) {
@@ -186,7 +207,8 @@ export function useWebSocket(options: UseWebSocketOptions) {
       // 心跳 pong 拦截
       if (heartbeat?.pongMessage) {
         try {
-          const parsed = typeof ev.data === 'string' ? JSON.parse(ev.data) : ev.data
+          const parsed =
+            typeof ev.data === 'string' ? JSON.parse(ev.data) : ev.data
           if (parsed === heartbeat.pongMessage) {
             heartbeatManager.onPong()
             return
@@ -212,7 +234,10 @@ export function useWebSocket(options: UseWebSocketOptions) {
       heartbeatManager.stop()
 
       stateManager.setState(WebSocketState.Disconnected)
-      eventManager.emit(WebSocketEventType.StateChange, WebSocketState.Disconnected)
+      eventManager.emit(
+        WebSocketEventType.StateChange,
+        WebSocketState.Disconnected,
+      )
       eventManager.emit(WebSocketEventType.Close, ev)
 
       ws.value = null
@@ -239,7 +264,10 @@ export function useWebSocket(options: UseWebSocketOptions) {
     stopAllTimers()
     cleanupSocket()
     stateManager.setState(WebSocketState.Disconnected)
-    eventManager.emit(WebSocketEventType.StateChange, WebSocketState.Disconnected)
+    eventManager.emit(
+      WebSocketEventType.StateChange,
+      WebSocketState.Disconnected,
+    )
   }
 
   // ==================== 心跳超时 → 关闭（触发自动重连） ====================
@@ -293,7 +321,10 @@ export function useWebSocket(options: UseWebSocketOptions) {
     eventManager.off(eventType as WebSocketEventType, callback as any)
   }
 
-  function emit<T = unknown>(eventType: 'open' | 'close' | 'error' | 'message' | 'stateChange', payload?: T): void {
+  function emit<T = unknown>(
+    eventType: 'open' | 'close' | 'error' | 'message' | 'stateChange',
+    payload?: T,
+  ): void {
     eventManager.emit(eventType as WebSocketEventType, payload as any)
   }
 

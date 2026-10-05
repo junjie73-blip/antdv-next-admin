@@ -19,7 +19,9 @@ export const BlockStyle = Extension.create({
             default: null,
             parseHTML: (element) => element.style.lineHeight || null,
             renderHTML: (attributes) =>
-              attributes.lineHeight ? { style: `line-height: ${attributes.lineHeight}` } : {},
+              attributes.lineHeight
+                ? { style: `line-height: ${attributes.lineHeight}` }
+                : {},
           },
         },
       },

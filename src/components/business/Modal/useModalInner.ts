@@ -2,7 +2,12 @@ import type { Ref } from 'vue'
 
 import { onUnmounted, ref } from 'vue'
 
-import type { CallbackFn, ModalInnerMethods, Nullable, UseModalInnerReturnType } from './types'
+import type {
+  CallbackFn,
+  ModalInnerMethods,
+  Nullable,
+  UseModalInnerReturnType,
+} from './types'
 
 /**
  * useModalInner - 用于弹窗组件内部控制自身
@@ -12,7 +17,9 @@ import type { CallbackFn, ModalInnerMethods, Nullable, UseModalInnerReturnType }
  *   console.log('接收数据：', data)
  * })
  */
-export function useModalInner<T = any>(callback?: CallbackFn<T>): UseModalInnerReturnType {
+export function useModalInner<T = any>(
+  callback?: CallbackFn<T>,
+): UseModalInnerReturnType {
   const modalInstance: Ref<Nullable<ModalInnerMethods>> = ref(null)
   const dataRef: Ref<T | null> = ref(null)
 

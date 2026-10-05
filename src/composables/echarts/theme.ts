@@ -17,10 +17,16 @@ export function tooltipBg(isDark: boolean) {
 }
 
 export function gradient(colors: [string, string], vertical = true) {
-  return new echarts.graphic.LinearGradient(0, 0, vertical ? 0 : 1, vertical ? 1 : 0, [
-    { offset: 0, color: colors[0] },
-    { offset: 1, color: colors[1] },
-  ])
+  return new echarts.graphic.LinearGradient(
+    0,
+    0,
+    vertical ? 0 : 1,
+    vertical ? 1 : 0,
+    [
+      { offset: 0, color: colors[0] },
+      { offset: 1, color: colors[1] },
+    ],
+  )
 }
 
 export function echartsTheme(isDark: boolean): string | undefined {

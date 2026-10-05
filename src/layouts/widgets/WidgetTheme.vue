@@ -13,7 +13,9 @@ const { switchThemeWithAnimation, isDarkNow } = useThemeTransition()
 
 const isDark = computed(() => isDarkNow(appStore.themeMode))
 /** 图标：暗色时显示太阳（点击切亮色），亮色时显示月亮 */
-const icon = computed(() => (isDarkNow(appStore.themeMode) ? 'carbon:sun' : 'carbon:moon'))
+const icon = computed(() =>
+  isDarkNow(appStore.themeMode) ? 'carbon:sun' : 'carbon:moon',
+)
 const title = computed(() => (isDark.value ? '切换到浅色' : '切换到深色'))
 
 function handleClick(e: MouseEvent) {

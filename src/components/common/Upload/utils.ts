@@ -15,7 +15,10 @@ export function formatBytes(bytes: number, decimals = 1): string {
   if (!bytes || bytes <= 0) return '0 B'
   const units = ['B', 'KB', 'MB', 'GB', 'TB']
   const k = 1024
-  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), units.length - 1)
+  const i = Math.min(
+    Math.floor(Math.log(bytes) / Math.log(k)),
+    units.length - 1,
+  )
   return `${(bytes / k ** i).toFixed(decimals)} ${units[i]}`
 }
 
@@ -63,7 +66,12 @@ export function loadResume(hash: string): Set<number> | null {
   }
 }
 
-export function saveResume(hash: string, filename: string, size: number, uploadedChunks: Set<number>): void {
+export function saveResume(
+  hash: string,
+  filename: string,
+  size: number,
+  uploadedChunks: Set<number>,
+): void {
   try {
     const rec: ResumeRecord = {
       hash,
@@ -111,9 +119,13 @@ export function sliceFile(file: File, chunkSize: number): Blob[] {
 export function hashToUuid(hash: string): string {
   const h = hash.padEnd(32, '0').slice(0, 32)
   const variantChar = ((parseInt(h[16]!, 16) & 0x3) | 0x8).toString(16)
-  return [h.slice(0, 8), h.slice(8, 12), '4' + h.slice(13, 16), variantChar + h.slice(17, 20), h.slice(20, 32)].join(
-    '-',
-  )
+  return [
+    h.slice(0, 8),
+    h.slice(8, 12),
+    '4' + h.slice(13, 16),
+    variantChar + h.slice(17, 20),
+    h.slice(20, 32),
+  ].join('-')
 }
 
 /**

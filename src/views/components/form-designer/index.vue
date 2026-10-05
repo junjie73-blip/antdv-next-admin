@@ -26,7 +26,10 @@ const designerConfig = {
   autoActive: true,
 }
 
-const containerClassName = cn('h-[calc(100vh-88px)]', 'bg-gray-100 dark:bg-gray-900')
+const containerClassName = cn(
+  'h-[calc(100vh-88px)]',
+  'bg-gray-100 dark:bg-gray-900',
+)
 </script>
 
 <template>

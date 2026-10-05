@@ -39,7 +39,10 @@ export function useThemeTransition() {
    *  - light → dark：new（暗色）从 [0, R] 扩散
    *  - dark  → light：old（暗色）从 [R, 0] 收缩
    */
-  async function switchThemeWithAnimation(target: 'light' | 'dark', event?: MouseEvent): Promise<void> {
+  async function switchThemeWithAnimation(
+    target: 'light' | 'dark',
+    event?: MouseEvent,
+  ): Promise<void> {
     /* ---------- 1. 渲染色没变：只更新 store ---------- */
     if (isDarkNow(appStore.themeMode) === (target === 'dark')) {
       appStore.updateSetting({ theme: target })
@@ -49,7 +52,10 @@ export function useThemeTransition() {
     /* ---------- 2. 计算扩散中心与半径 ---------- */
     const x = event?.clientX ?? window.innerWidth / 2
     const y = event?.clientY ?? window.innerHeight / 2
-    const endRadius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y))
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y),
+    )
 
     /* ---------- 3. 不支持 View Transition → 直接切 ---------- */
     if (typeof document.startViewTransition !== 'function') {
@@ -70,7 +76,10 @@ export function useThemeTransition() {
     /* ---------- 5. clipPath 动画 ---------- */
     const isSwitchingToDark = target === 'dark'
     console.log(isSwitchingToDark, target)
-    const clipPath = [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`]
+    const clipPath = [
+      `circle(0px at ${x}px ${y}px)`,
+      `circle(${endRadius}px at ${x}px ${y}px)`,
+    ]
 
     document.documentElement.animate(
       {
@@ -96,7 +105,9 @@ export function useThemeTransition() {
 
   /** 便捷：取反当前主题 */
   async function toggleThemeWithAnimation(event?: MouseEvent): Promise<void> {
-    const target: 'light' | 'dark' = isDarkNow(appStore.themeMode) ? 'light' : 'dark'
+    const target: 'light' | 'dark' = isDarkNow(appStore.themeMode)
+      ? 'light'
+      : 'dark'
     return switchThemeWithAnimation(target, event)
   }
 

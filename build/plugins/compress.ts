@@ -1,13 +1,10 @@
 import type { PluginOption } from 'vite'
 
-import viteCompressPlugin from 'vite-plugin-compression'
+import { compression, defineAlgorithm } from 'vite-plugin-compression2'
 
-export function createCompressPlugin(compressType: string): PluginOption {
-  return viteCompressPlugin({
-    deleteOriginFile: false,
-    verbose: true,
-    disable: false,
+export function createCompressPlugin(): PluginOption {
+  return compression({
+    algorithms: ['gzip', 'brotliCompress', defineAlgorithm('gzip')],
     threshold: 10240,
-    ext: compressType === 'brotli' ? '.br' : '.gz',
   })
 }

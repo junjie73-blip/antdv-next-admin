@@ -83,7 +83,9 @@ const MINIO_PROXY_PREFIX = '/minio-api'
 function rewriteMinioUrl(url: string): string {
   if (!url.startsWith(MINIO_PROXY_PREFIX)) return url
 
-  const realHost = (import.meta.env.VITE_MINIO_PUBLIC_URL as string | undefined)?.replace(/\/+$/, '')
+  const realHost = (
+    import.meta.env.VITE_MINIO_PUBLIC_URL as string | undefined
+  )?.replace(/\/+$/, '')
   if (!realHost) return url
 
   return `${realHost}${url.slice(MINIO_PROXY_PREFIX.length)}`
@@ -96,8 +98,12 @@ function rewriteMinioUrl(url: string): string {
  *  - RFC 5987：`filename*=UTF-8''%E6%96%87%E4%BB%B6.xlsx`
  *  - 普通：`filename="文件.xlsx"`
  */
-export function extractFilenameFromHeaders(headers: Headers, fallback: string): string {
-  const disposition = headers.get('content-disposition') ?? headers.get('Content-Disposition')
+export function extractFilenameFromHeaders(
+  headers: Headers,
+  fallback: string,
+): string {
+  const disposition =
+    headers.get('content-disposition') ?? headers.get('Content-Disposition')
   if (!disposition) return fallback
 
   // 优先 RFC 5987 格式
@@ -118,7 +124,10 @@ export function extractFilenameFromHeaders(headers: Headers, fallback: string): 
 /**
  * 从 URL 推断文件名
  */
-export function guessFilenameFromUrl(url: string, fallback = 'download'): string {
+export function guessFilenameFromUrl(
+  url: string,
+  fallback = 'download',
+): string {
   try {
     const pathname = new URL(url, window.location.origin).pathname
     const last = pathname.split('/').filter(Boolean).pop()
@@ -168,12 +177,17 @@ export function saveBlob(blob: Blob, filename: string): void {
  *
  * 自动从 Content-Disposition 解析文件名（若未显式传入）。
  */
-export async function saveResponse(response: Response, fallbackFilename = 'download'): Promise<DownloadResult> {
+export async function saveResponse(
+  response: Response,
+  fallbackFilename = 'download',
+): Promise<DownloadResult> {
   if (!response.ok) {
     throw new Error(`下载失败：${response.status} ${response.statusText}`)
   }
 
-  const filename = extractFilenameFromHeaders(response.headers, fallbackFilename) || fallbackFilename
+  const filename =
+    extractFilenameFromHeaders(response.headers, fallbackFilename) ||
+    fallbackFilename
   const blob = await response.blob()
 
   saveBlob(blob, filename)
@@ -199,7 +213,10 @@ export async function saveResponse(response: Response, fallbackFilename = 'downl
  * )
  * ```
  */
-export async function downloadBlob(request: () => Promise<unknown>, filename: string): Promise<void> {
+export async function downloadBlob(
+  request: () => Promise<unknown>,
+  filename: string,
+): Promise<void> {
   const res = await request()
 
   // 兼容三种返回：Blob / ArrayBuffer / 其他可转 Blob 的数据
@@ -228,7 +245,10 @@ export async function downloadBlob(request: () => Promise<unknown>, filename: st
  * await downloadFile('/minio-api/antdv/exports/report-2024.xlsx', '报表.xlsx')
  * ```
  */
-export async function downloadFile(url: string, filename: string): Promise<void> {
+export async function downloadFile(
+  url: string,
+  filename: string,
+): Promise<void> {
   console.log(url, filename, 'ccc')
   const realUrl = rewriteMinioUrl(url)
   const response = await fetch(realUrl)
@@ -289,7 +309,9 @@ export async function downloadFromUrl(
       throw new Error(`下载失败：${response.status} ${response.statusText}`)
     }
 
-    const finalFilename = extractFilenameFromHeaders(response.headers, fallbackFilename) || fallbackFilename
+    const finalFilename =
+      extractFilenameFromHeaders(response.headers, fallbackFilename) ||
+      fallbackFilename
 
     const blob = await readResponseWithProgress(response, onProgress)
     saveBlob(blob, finalFilename)
@@ -426,7 +448,8 @@ async function readResponseWithProgress(
     })
   }
 
-  const mimeType = response.headers.get('content-type') ?? 'application/octet-stream'
+  const mimeType =
+    response.headers.get('content-type') ?? 'application/octet-stream'
   return new Blob(chunks as BlobPart[], { type: mimeType })
 }
 
@@ -470,7 +493,11 @@ export function downloadText(text: string, filename: string): void {
  * downloadBase64('iVBOR...', 'avatar.png', 'image/png')
  * ```
  */
-export function downloadBase64(base64: string, filename: string, mimeType = 'application/octet-stream'): void {
+export function downloadBase64(
+  base64: string,
+  filename: string,
+  mimeType = 'application/octet-stream',
+): void {
   // 支持 data URL 与纯 base64 串
   let pureBase64 = base64
   let finalMime = mimeType
@@ -523,7 +550,13 @@ export async function downloadMultiple(
   items: BatchDownloadItem[],
   options: BatchDownloadOptions = {},
 ): Promise<DownloadResult[]> {
-  const { concurrency = 3, onProgress, onFileComplete, onAllComplete, delayBetween = 200 } = options
+  const {
+    concurrency = 3,
+    onProgress,
+    onFileComplete,
+    onAllComplete,
+    delayBetween = 200,
+  } = options
 
   // oxlint-disable-next-line unicorn/no-new-array
   const results: DownloadResult[] = new Array(items.length)
@@ -539,7 +572,9 @@ export async function downloadMultiple(
       try {
         const result = await downloadFromUrl(item.url, item.filename, {
           ...item.options,
-          onProgress: onProgress ? (progress) => onProgress(index, progress) : item.options?.onProgress,
+          onProgress: onProgress
+            ? (progress) => onProgress(index, progress)
+            : item.options?.onProgress,
         })
         results[index] = result
         onFileComplete?.(index, result)
@@ -561,7 +596,10 @@ export async function downloadMultiple(
     }
   }
 
-  const workers = Array.from({ length: Math.min(concurrency, items.length) }, () => worker())
+  const workers = Array.from(
+    { length: Math.min(concurrency, items.length) },
+    () => worker(),
+  )
   await Promise.all(workers)
 
   onAllComplete?.(results)

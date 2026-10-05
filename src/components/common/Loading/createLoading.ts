@@ -41,7 +41,9 @@ import { useLoading } from './useLoading'
  *   }
  * )
  */
-export function createLoading(options: CreateLoadingOptions = {}): LoadingInstance {
+export function createLoading(
+  options: CreateLoadingOptions = {},
+): LoadingInstance {
   const { onClose, ...rest } = options
 
   // 使用 useLoading 创建实例，默认全屏模式

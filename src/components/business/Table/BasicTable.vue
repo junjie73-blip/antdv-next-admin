@@ -1,11 +1,27 @@
 <script setup lang="ts">
 import { Table } from 'antdv-next'
-import { computed, defineComponent, h, isVNode, nextTick, onMounted, ref, unref, watch } from 'vue'
+import {
+  computed,
+  defineComponent,
+  h,
+  isVNode,
+  nextTick,
+  onMounted,
+  ref,
+  unref,
+  watch,
+} from 'vue'
 
 import { BasicForm } from '~/components/business/Form'
 import { cn } from '~/utils/cn'
 
-import type { BasicColumn, BasicTableProps, Recordable, TableActionType, TableRowSelection } from './types'
+import type {
+  BasicColumn,
+  BasicTableProps,
+  Recordable,
+  TableActionType,
+  TableRowSelection,
+} from './types'
 
 import TableAction from './components/TableAction.vue'
 import TableEditableCell from './components/TableEditableCell'
@@ -45,11 +61,31 @@ const emit = defineEmits<{
   (e: 'row-db-click', record: any, index: number, event: Event): void
   (e: 'register', instance: TableActionType): void
   (e: 'header-edit', column: BasicColumn): void
-  (e: 'cell-save', payload: { record: Recordable; dataIndex: string | string[]; value: any; column: BasicColumn }): void
-  (e: 'cell-cancel', payload: { record: Recordable; dataIndex: string | string[]; column: BasicColumn }): void
+  (
+    e: 'cell-save',
+    payload: {
+      record: Recordable
+      dataIndex: string | string[]
+      value: any
+      column: BasicColumn
+    },
+  ): void
+  (
+    e: 'cell-cancel',
+    payload: {
+      record: Recordable
+      dataIndex: string | string[]
+      column: BasicColumn
+    },
+  ): void
   (
     e: 'cell-change',
-    payload: { record: Recordable; dataIndex: string | string[]; value: any; column: BasicColumn },
+    payload: {
+      record: Recordable
+      dataIndex: string | string[]
+      value: any
+      column: BasicColumn
+    },
   ): void
 }>()
 
@@ -76,9 +112,13 @@ const getMergedProps = computed((): BasicTableProps => {
 
 // ⭐ 高频访问的 props 缓存（减少模板中重复 getMergedProps.value.X）
 const mergedColumns = computed(() => getMergedProps.value.columns || [])
-const mergedRowKey = computed(() => (getMergedProps.value.rowKey as string) || 'id')
+const mergedRowKey = computed(
+  () => (getMergedProps.value.rowKey as string) || 'id',
+)
 const mergedIsTree = computed(() => getMergedProps.value.isTree)
-const mergedChildrenField = computed(() => getMergedProps.value.childrenColumnName || 'children')
+const mergedChildrenField = computed(
+  () => getMergedProps.value.childrenColumnName || 'children',
+)
 const mergedSize = computed(() => getMergedProps.value.size || 'middle')
 const mergedScroll = computed(() => getMergedProps.value.scroll)
 const mergedShowHeader = computed(() => getMergedProps.value.showHeader ?? true)
@@ -92,7 +132,9 @@ const mergedTitle = computed(() => getMergedProps.value.title)
 const mergedCaption = computed(() => getMergedProps.value.caption)
 const mergedFooter = computed(() => getMergedProps.value.footer)
 const mergedSummary = computed(() => getMergedProps.value.summary)
-const mergedShowSorterTooltip = computed(() => getMergedProps.value.showSorterTooltip)
+const mergedShowSorterTooltip = computed(
+  () => getMergedProps.value.showSorterTooltip,
+)
 const mergedSortDirections = computed(() => getMergedProps.value.sortDirections)
 const mergedEmptyText = computed(() => getMergedProps.value.emptyText)
 const mergedActionColumn = computed(() => getMergedProps.value.actionColumn)
@@ -109,7 +151,9 @@ const pagination = usePagination({
 
 const columns = useColumns({
   columns: computed(() => getMergedProps.value.columns || []),
-  showIndexColumn: computed(() => getMergedProps.value.showIndexColumn ?? false),
+  showIndexColumn: computed(
+    () => getMergedProps.value.showIndexColumn ?? false,
+  ),
   indexColumnProps: props.indexColumnProps,
   actionColumn: computed(() => getMergedProps.value.actionColumn),
 })
@@ -129,7 +173,10 @@ const dataSource = useDataSource({
   },
   loading: { setLoading },
   fields: computed(
-    () => getMergedProps.value.columns?.filter((item) => item.dataIndex).map((item) => item.dataIndex) || [],
+    () =>
+      getMergedProps.value.columns
+        ?.filter((item) => item.dataIndex)
+        .map((item) => item.dataIndex) || [],
   ),
 })
 
@@ -242,12 +289,20 @@ const getPagination = computed(() => {
   }
 })
 
-const tableContainerClassName = computed(() => cn('basic-table', 'w-full', getMergedProps.value.canResize && 'h-full'))
+const tableContainerClassName = computed(() =>
+  cn('basic-table', 'w-full', getMergedProps.value.canResize && 'h-full'),
+)
 
 const showTableSetting = computed(() => getMergedProps.value.showTableSetting)
 
 const tableSettingConfig = computed(() => {
-  return getMergedProps.value.tableSetting || { redo: true, setting: true, fullScreen: true }
+  return (
+    getMergedProps.value.tableSetting || {
+      redo: true,
+      setting: true,
+      fullScreen: true,
+    }
+  )
 })
 
 const showSearchForm = computed(() => {
@@ -292,14 +347,23 @@ function getActions(record: Recordable): any[] {
   return actionColumn.actions(record)
 }
 
-function handleFormatCell(format: any, text: any, record: Recordable, index: number): string {
+function handleFormatCell(
+  format: any,
+  text: any,
+  record: Recordable,
+  index: number,
+): string {
   if (!format) return text
   return formatCellValue(format, text, record, index)
 }
 
-function getOriginalColumn(columnKey: string | number): BasicColumn | undefined {
+function getOriginalColumn(
+  columnKey: string | number,
+): BasicColumn | undefined {
   const cols = columns.getColumns()
-  return cols.find((col) => col.key === columnKey || col.dataIndex === columnKey)
+  return cols.find(
+    (col) => col.key === columnKey || col.dataIndex === columnKey,
+  )
 }
 
 /**
@@ -324,7 +388,12 @@ const RenderVNode = defineComponent({
  * 优先级：customRender > format > edit > image > default
  * 注意：这里不再处理 `cell-*` 插槽，插槽在模板里优先拦截
  */
-function renderCellContent(column: any, text: any, record: Recordable, index: number): any {
+function renderCellContent(
+  column: any,
+  text: any,
+  record: Recordable,
+  index: number,
+): any {
   const origCol = getOriginalColumn(column.key)
 
   // 1. customRender 优先
@@ -334,7 +403,12 @@ function renderCellContent(column: any, text: any, record: Recordable, index: nu
 
   // 2. 格式化（format 是字符串模板或函数）
   if (origCol?.format) {
-    const formattedContent = handleFormatCell(origCol.format, text, record, index)
+    const formattedContent = handleFormatCell(
+      origCol.format,
+      text,
+      record,
+      index,
+    )
     return h('span', { innerHTML: formattedContent })
   }
 
@@ -364,7 +438,11 @@ function renderCellContent(column: any, text: any, record: Recordable, index: nu
   return isVNode(text) ? h(() => text) : h('span', text)
 }
 
-async function handleTableChange(paginationInfo: any, filters: any, sorter: any) {
+async function handleTableChange(
+  paginationInfo: any,
+  filters: any,
+  sorter: any,
+) {
   if (paginationInfo) {
     pagination.setPagination({
       current: paginationInfo.current,
@@ -400,7 +478,11 @@ function handleCellSave(payload: {
   emit('cell-save', payload)
 }
 
-function handleCellCancel(payload: { record: Recordable; dataIndex: string | string[]; column: BasicColumn }) {
+function handleCellCancel(payload: {
+  record: Recordable
+  dataIndex: string | string[]
+  column: BasicColumn
+}) {
   emit('cell-cancel', payload)
 }
 
@@ -429,7 +511,8 @@ const tableActionType: TableActionType = {
   setColumns: columns.setColumns,
   getColumns: columns.getColumns,
   updateColumn: columns.updateColumn,
-  getVisibleColumns: () => columns.getColumns().filter((col) => col.ifShow !== false),
+  getVisibleColumns: () =>
+    columns.getColumns().filter((col) => col.ifShow !== false),
   getCacheColumns: columns.getCacheColumns,
 
   // 行操作
@@ -446,7 +529,9 @@ const tableActionType: TableActionType = {
   },
   collapseRows: (keys: string[]) => {
     const keySet = new Set(keys)
-    expandedRowKeysRef.value = expandedRowKeysRef.value.filter((key) => !keySet.has(key))
+    expandedRowKeysRef.value = expandedRowKeysRef.value.filter(
+      (key) => !keySet.has(key),
+    )
   },
   scrollTo: (pos: { left?: number; top?: number }) => {
     const el = tableRef.value?.$el as HTMLElement | undefined
@@ -470,7 +555,8 @@ const tableActionType: TableActionType = {
 
   // 表单操作
   getFormValues: () => (tableForm.getForm() as any)?.getFieldsValue?.() ?? {},
-  setFormValues: (values: Recordable) => (tableForm.getForm() as any)?.setFieldsValue?.(values),
+  setFormValues: (values: Recordable) =>
+    (tableForm.getForm() as any)?.setFieldsValue?.(values),
   resetForm: () => (tableForm.getForm() as any)?.resetFields?.(),
   submitForm: async () => (tableForm.getForm() as any)?.submit?.(),
   validateForm: async () => (tableForm.getForm() as any)?.validate?.() ?? {},
@@ -503,13 +589,22 @@ defineExpose(tableActionType)
   <div :class="tableContainerClassName">
     <!-- 搜索表单 -->
     <div v-if="showSearchForm" class="mb-2">
-      <BasicForm v-bind="tableForm.getFormProps" @register="tableForm.registerForm" />
+      <BasicForm
+        v-bind="tableForm.getFormProps"
+        @register="tableForm.registerForm"
+      />
     </div>
 
-    <div v-if="showSearchForm" class="mb-2 border-t border-gray-200 dark:border-gray-700" />
+    <div
+      v-if="showSearchForm"
+      class="mb-2 border-t border-gray-200 dark:border-gray-700"
+    />
 
     <!-- 工具栏 -->
-    <div v-if="showTableSetting || $slots.toolbar" class="mb-4 flex items-center justify-between">
+    <div
+      v-if="showTableSetting || $slots.toolbar"
+      class="mb-4 flex items-center justify-between"
+    >
       <div class="flex flex-wrap items-center gap-2">
         <slot name="toolbar" />
       </div>
@@ -590,13 +685,22 @@ defineExpose(tableActionType)
         <!-- 操作列 -->
         <template v-else-if="column.key === 'action'">
           <slot name="action" :record="record" :index="index" :column="column">
-            <TableAction :actions="getActions(record)" :max-show-count="mergedActionColumn?.maxShowCount || 4" />
+            <TableAction
+              :actions="getActions(record)"
+              :max-show-count="mergedActionColumn?.maxShowCount || 4"
+            />
           </slot>
         </template>
 
         <!-- 序号列 -->
         <template v-else-if="column.key === 'index'">
-          <slot name="index" :column="column" :record="record" :text="text" :index="index">
+          <slot
+            name="index"
+            :column="column"
+            :record="record"
+            :text="text"
+            :index="index"
+          >
             {{ index + 1 }}
           </slot>
         </template>
@@ -615,7 +719,10 @@ defineExpose(tableActionType)
 
           <!-- 2. `cell-${dataIndex}` 插槽 -->
           <slot
-            v-else-if="typeof column.dataIndex === 'string' && $slots[`cell-${column.dataIndex}`]"
+            v-else-if="
+              typeof column.dataIndex === 'string' &&
+              $slots[`cell-${column.dataIndex}`]
+            "
             :name="`cell-${column.dataIndex}`"
             :column="column"
             :record="record"
@@ -625,7 +732,9 @@ defineExpose(tableActionType)
 
           <!-- 3. dataIndex 直接命名的插槽（兼容老写法） -->
           <slot
-            v-else-if="typeof column.dataIndex === 'string' && $slots[column.dataIndex]"
+            v-else-if="
+              typeof column.dataIndex === 'string' && $slots[column.dataIndex]
+            "
             :name="column.dataIndex"
             :column="column"
             :record="record"
@@ -634,7 +743,10 @@ defineExpose(tableActionType)
           />
 
           <!-- 4. 统一走 renderCellContent（customRender / format / edit / 图片 / 默认） -->
-          <RenderVNode v-else :vnode="renderCellContent(column, text, record, index)" />
+          <RenderVNode
+            v-else
+            :vnode="renderCellContent(column, text, record, index)"
+          />
         </template>
       </template>
 
@@ -643,8 +755,23 @@ defineExpose(tableActionType)
         v-if="getMergedProps.expandedRowRender || $slots.expandedRowRender"
         #expandedRowRender="{ record, index, indent, expanded }"
       >
-        <slot name="expandedRowRender" :record="record" :index="index" :indent="indent" :expanded="expanded">
-          <RenderVNode :vnode="getMergedProps.expandedRowRender?.(record, index, indent, expanded)" />
+        <slot
+          name="expandedRowRender"
+          :record="record"
+          :index="index"
+          :indent="indent"
+          :expanded="expanded"
+        >
+          <RenderVNode
+            :vnode="
+              getMergedProps.expandedRowRender?.(
+                record,
+                index,
+                indent,
+                expanded,
+              )
+            "
+          />
         </slot>
       </template>
 

@@ -2,7 +2,12 @@ import type { App, Directive } from 'vue'
 
 import { createApp } from 'vue'
 
-import type { LoadingDirectiveBinding, LoadingProps, LoadingSize, LoadingTheme } from './types'
+import type {
+  LoadingDirectiveBinding,
+  LoadingProps,
+  LoadingSize,
+  LoadingTheme,
+} from './types'
 
 import Loading from './Loading.vue'
 
@@ -84,14 +89,20 @@ function getLoadingState(el: HTMLElement): LoadingState | undefined {
 /**
  * 设置 loading 状态
  */
-function setLoadingState(el: HTMLElement, state: LoadingState | undefined): void {
+function setLoadingState(
+  el: HTMLElement,
+  state: LoadingState | undefined,
+): void {
   ;(el as HTMLElement & { _loadingState?: LoadingState })._loadingState = state
 }
 
 /**
  * 创建 loading 实例
  */
-function createLoadingInstance(el: HTMLElement, binding: LoadingDirectiveBinding): void {
+function createLoadingInstance(
+  el: HTMLElement,
+  binding: LoadingDirectiveBinding,
+): void {
   // 如果已存在，先移除
   const existingState = getLoadingState(el)
   if (existingState) {

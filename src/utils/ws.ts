@@ -43,9 +43,17 @@ export interface UploadMergeMessage {
   errorMsg?: string
 }
 
-export type WsConnState = 'idle' | 'connecting' | 'connected' | 'reconnecting' | 'closed'
+export type WsConnState =
+  | 'idle'
+  | 'connecting'
+  | 'connected'
+  | 'reconnecting'
+  | 'closed'
 
-export const noticeTypeConfig: Record<number, { label: string; icon: string; color: string; gradient: string }> = {
+export const noticeTypeConfig: Record<
+  number,
+  { label: string; icon: string; color: string; gradient: string }
+> = {
   1: {
     label: '通知',
     icon: 'carbon:notification',
@@ -138,7 +146,11 @@ function handleMessage(raw: unknown): void {
   /* ============================================================
    * 通知推送（notice:push / workflow:notify 统一入口）
    * ============================================================ */
-  if (data.type === 'notice:push' || data.type === 'workflow:notify' || data.type === 'report:notify') {
+  if (
+    data.type === 'notice:push' ||
+    data.type === 'workflow:notify' ||
+    data.type === 'report:notify'
+  ) {
     const notice = transformNotice(data.data)
     sharedNotice.value = notice
     eventBus.emit(WS_EVENTS.NOTICE, notice)
@@ -147,7 +159,8 @@ function handleMessage(raw: unknown): void {
       title: `新${noticeTypeConfig[notice.noticeType]?.label || '通知'}`,
       description: notice.title,
       icon: h(Icon, {
-        icon: noticeTypeConfig[notice.noticeType]?.icon || 'carbon:notification',
+        icon:
+          noticeTypeConfig[notice.noticeType]?.icon || 'carbon:notification',
         style: { color: '#108ee9' },
       }),
       placement: 'bottomRight',

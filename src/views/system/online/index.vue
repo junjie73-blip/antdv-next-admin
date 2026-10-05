@@ -1,5 +1,4 @@
 <script setup lang="tsx">
-import { Icon } from '@iconify/vue'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { onMounted, onUnmounted, ref } from 'vue'
@@ -12,9 +11,9 @@ import { forceLogout, getOnlineUserList } from '~/api/system'
 import { Description as DetailDescription } from '~/components/business/Description'
 import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
 import { BasicTable, useTable } from '~/components/business/Table'
+import { usePrint } from '~/composables/print'
 import { cn } from '~/utils/cn'
 import { exportToExcel } from '~/utils/excel'
-import { usePrint } from '~/utils/print'
 
 defineOptions({ name: 'SystemOnline' })
 
@@ -100,7 +99,9 @@ const detailSchemas: DescriptionItem[] = [
     field: 'status',
     label: '在线状态',
     render: (value) => (
-      <a-tag color={(value as number) === 0 ? 'green' : 'default'}>{(value as number) === 0 ? '在线' : '离线'}</a-tag>
+      <a-tag color={(value as number) === 0 ? 'green' : 'default'}>
+        {(value as number) === 0 ? '在线' : '离线'}
+      </a-tag>
     ),
   },
 ]
@@ -136,7 +137,8 @@ async function handleForceLogout(record: OnlineUserRecord | any) {
 }
 
 async function handleBatchForceLogout() {
-  const selectedRows = (tableMethods.value?.getSelectRows?.() || []) as OnlineUserRecord[]
+  const selectedRows = (tableMethods.value?.getSelectRows?.() ||
+    []) as OnlineUserRecord[]
   if (selectedRows.length === 0) {
     message.warning('请先选择要强退的用户')
     return
@@ -152,7 +154,9 @@ async function handleBatchForceLogout() {
   try {
     await Promise.all(canKick.map((r) => forceLogout(r.tokenId)))
     const kickedNames = canKick.map((r) => r.nickname)
-    message.success(`已强制退出 ${kickedNames.length} 个会话：${kickedNames.join('、')}`)
+    message.success(
+      `已强制退出 ${kickedNames.length} 个会话：${kickedNames.join('、')}`,
+    )
     tableMethods.value?.reload()
   } catch {
     message.error('批量强制退出失败')
@@ -160,7 +164,8 @@ async function handleBatchForceLogout() {
 }
 
 function handleExport() {
-  const tableData = (tableMethods.value?.getDataSource?.() || []) as OnlineUserRecord[]
+  const tableData = (tableMethods.value?.getDataSource?.() ||
+    []) as OnlineUserRecord[]
   exportToExcel({
     filename: '在线用户',
     sheetName: '在线用户',
@@ -175,7 +180,10 @@ function handleExport() {
       { header: '登录时间', key: 'loginTime', width: 20 },
       { header: '状态', key: 'status', width: 8 },
     ],
-    data: tableData.map((i) => ({ ...i, status: i.status === 0 ? '在线' : '离线' })),
+    data: tableData.map((i) => ({
+      ...i,
+      status: i.status === 0 ? '在线' : '离线',
+    })),
   })
 }
 
@@ -215,15 +223,57 @@ onUnmounted(() => {
 })
 
 const columns: BasicColumn[] = [
-  { title: '#', key: 'index', width: 60, align: 'center', customRender: ({ index }) => index + 1 },
-  { title: '会话标识', dataIndex: 'tokenId', key: 'tokenId', width: 180, ellipsis: true },
-  { title: '用户名', dataIndex: 'username', key: 'username', width: 110, align: 'center' },
-  { title: '昵称', dataIndex: 'nickname', key: 'nickname', width: 110, align: 'center' },
+  {
+    title: '#',
+    key: 'index',
+    width: 60,
+    align: 'center',
+    customRender: ({ index }) => index + 1,
+  },
+  {
+    title: '会话标识',
+    dataIndex: 'tokenId',
+    key: 'tokenId',
+    width: 180,
+    ellipsis: true,
+  },
+  {
+    title: '用户名',
+    dataIndex: 'username',
+    key: 'username',
+    width: 110,
+    align: 'center',
+  },
+  {
+    title: '昵称',
+    dataIndex: 'nickname',
+    key: 'nickname',
+    width: 110,
+    align: 'center',
+  },
   { title: 'IP 地址', dataIndex: 'ip', key: 'ip', width: 140, align: 'center' },
-  { title: '登录地点', dataIndex: 'location', key: 'location', width: 130, ellipsis: true },
-  { title: '浏览器', dataIndex: 'browser', key: 'browser', width: 160, ellipsis: true },
+  {
+    title: '登录地点',
+    dataIndex: 'location',
+    key: 'location',
+    width: 130,
+    ellipsis: true,
+  },
+  {
+    title: '浏览器',
+    dataIndex: 'browser',
+    key: 'browser',
+    width: 160,
+    ellipsis: true,
+  },
   { title: '操作系统', dataIndex: 'os', key: 'os', width: 130, ellipsis: true },
-  { title: '登录时间', dataIndex: 'loginTime', key: 'loginTime', width: 170, align: 'center' },
+  {
+    title: '登录时间',
+    dataIndex: 'loginTime',
+    key: 'loginTime',
+    width: 170,
+    align: 'center',
+  },
   {
     title: '状态',
     dataIndex: 'status',
@@ -241,7 +291,10 @@ const columns: BasicColumn[] = [
       <a-card :class="cardClassName" size="small">
         <a-statistic title="当前在线" :value="onlineCount" suffix="人">
           <template #prefix>
-            <Icon icon="carbon:user-online" class="mr-1 text-lg text-green-500" />
+            <Icon
+              icon="carbon:user-online"
+              class="mr-1 text-lg text-green-500"
+            />
           </template>
         </a-statistic>
       </a-card>
@@ -255,7 +308,10 @@ const columns: BasicColumn[] = [
       <a-card :class="cardClassName" size="small">
         <a-statistic title="峰值在线" :value="15" suffix="人">
           <template #prefix>
-            <Icon icon="carbon:chart-line-data" class="mr-1 text-lg text-orange-500" />
+            <Icon
+              icon="carbon:chart-line-data"
+              class="mr-1 text-lg text-orange-500"
+            />
           </template>
         </a-statistic>
       </a-card>
@@ -277,7 +333,10 @@ const columns: BasicColumn[] = [
         :form-config="{ schemas: searchFormSchemas, labelWidth: 80 }"
         :action-column="{ width: 180, title: '操作', fixed: 'right' }"
         :row-selection="{ type: 'checkbox' }"
-        :pagination="{ showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }"
+        :pagination="{
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '20', '50'],
+        }"
         :scroll="{ x: 1500 }"
         @register="tableRegister"
       >
@@ -305,7 +364,13 @@ const columns: BasicColumn[] = [
         <template #cell-status="{ record }">
           <a-tag :color="record.status === 0 ? 'green' : 'default'">
             <span :class="tagClassName">
-              <Icon :icon="record.status === 0 ? 'carbon:dot-mark' : 'carbon:close-outline'" />
+              <Icon
+                :icon="
+                  record.status === 0
+                    ? 'carbon:dot-mark'
+                    : 'carbon:close-outline'
+                "
+              />
               {{ record.status === 0 ? '在线' : '离线' }}
             </span>
           </a-tag>
@@ -313,7 +378,11 @@ const columns: BasicColumn[] = [
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <a-button type="link" :class="btnClassName" @click="() => handleView(record)">
+            <a-button
+              type="link"
+              :class="btnClassName"
+              @click="() => handleView(record)"
+            >
               <template #icon>
                 <Icon icon="ant-design:eye-outlined" />
               </template>
@@ -324,7 +393,12 @@ const columns: BasicColumn[] = [
               :title="`确定要强制退出用户「${record.nickname}」吗？`"
               @confirm="() => handleForceLogout(record)"
             >
-              <a-button v-if="record.username !== 'admin'" type="link" danger :class="btnClassName">
+              <a-button
+                v-if="record.username !== 'admin'"
+                type="link"
+                danger
+                :class="btnClassName"
+              >
                 <template #icon>
                   <Icon icon="carbon:logout" />
                 </template>
@@ -338,11 +412,26 @@ const columns: BasicColumn[] = [
     </a-card>
 
     <!-- 用户详情抽屉 -->
-    <BasicDrawer title="在线用户详情" :width="520" :show-footer="false" @register="drawerRegister">
-      <DetailDescription v-if="viewingRecord" :data="viewingRecord" :schema="detailSchemas" :column="1" bordered />
+    <BasicDrawer
+      title="在线用户详情"
+      :width="520"
+      :show-footer="false"
+      @register="drawerRegister"
+    >
+      <DetailDescription
+        v-if="viewingRecord"
+        :data="viewingRecord"
+        :schema="detailSchemas"
+        :column="1"
+        bordered
+      />
 
       <div class="mt-6 border-t border-gray-200 pt-4 dark:border-gray-700">
-        <a-alert message="提示：该用户的会话信息将在下次请求时失效" type="info" show-icon />
+        <a-alert
+          message="提示：该用户的会话信息将在下次请求时失效"
+          type="info"
+          show-icon
+        />
       </div>
     </BasicDrawer>
   </div>

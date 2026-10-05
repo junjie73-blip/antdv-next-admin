@@ -58,7 +58,8 @@ const timelineData = ref([
 
 function getDotClassName(status: string) {
   return cn('w-3', 'h-3', 'rounded-full', 'mt-1.5', {
-    'bg-green-500': status === 'published' || status === 'completed' || status === 'resolved',
+    'bg-green-500':
+      status === 'published' || status === 'completed' || status === 'resolved',
     'bg-blue-500': status === 'pending' || status === 'reviewing',
   })
 }
@@ -141,7 +142,9 @@ const [registerRelative] = useTable({
           </a-tag>
         </template>
         <template #cell-time="{ record }">
-          <span>{{ record?.time ? new Date(record.time).toLocaleString('zh-CN') : '-' }}</span>
+          <span>{{
+            record?.time ? new Date(record.time).toLocaleString('zh-CN') : '-'
+          }}</span>
         </template>
       </BasicTable>
     </a-card>

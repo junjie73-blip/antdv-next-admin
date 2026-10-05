@@ -53,7 +53,9 @@ const dividerClassName = cn('mx-0')
 // ========== 状态映射 ==========
 const dictStore = useDictStore()
 
-const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
+const statusOptions = computed(() =>
+  dictStore.getOptions(DictType.NORMAL_DISABLE),
+)
 
 const statusColorMap: Record<number, string> = {
   1: 'green',
@@ -204,7 +206,11 @@ const modalFormSchemas: FormSchema[] = [
     component: 'InputNumber',
     defaultValue: 0,
     colProps: { span: 12 },
-    componentProps: { min: 0, placeholder: '数字越小越靠前', style: { width: '100%' } },
+    componentProps: {
+      min: 0,
+      placeholder: '数字越小越靠前',
+      style: { width: '100%' },
+    },
   },
   {
     field: 'status',
@@ -257,7 +263,10 @@ async function mockApi(params: Record<string, any>) {
 }
 
 // ========== 事件处理 ==========
-function handleDeptSelect(_selectedKeys: (string | number)[], info: { node: { id: number } }) {
+function handleDeptSelect(
+  _selectedKeys: (string | number)[],
+  info: { node: { id: number } },
+) {
   selectedDeptId.value = info.node.id
   tableMethods.value?.reload()
 }
@@ -367,16 +376,64 @@ async function handleSave() {
 
 // ========== 表格列配置 ==========
 const columns: BasicColumn[] = [
-  { title: '#', key: 'index', width: 60, align: 'center', customRender: ({ index }) => index + 1 },
+  {
+    title: '#',
+    key: 'index',
+    width: 60,
+    align: 'center',
+    customRender: ({ index }) => index + 1,
+  },
   { title: '部门名称', dataIndex: 'name', key: 'name', width: 160 },
-  { title: '部门编码', dataIndex: 'code', key: 'code', width: 140, align: 'center' },
-  { title: '负责人', dataIndex: 'leader', key: 'leader', width: 120, align: 'center' },
-  { title: '联系电话', dataIndex: 'phone', key: 'phone', width: 140, align: 'center' },
-  { title: '排序号', dataIndex: 'sortOrder', key: 'sortOrder', width: 80, align: 'center' },
-  { title: '状态', dataIndex: 'status', key: 'status', width: 80, align: 'center' },
-  { title: '人数', dataIndex: 'userCount', key: 'userCount', width: 70, align: 'center' },
+  {
+    title: '部门编码',
+    dataIndex: 'code',
+    key: 'code',
+    width: 140,
+    align: 'center',
+  },
+  {
+    title: '负责人',
+    dataIndex: 'leader',
+    key: 'leader',
+    width: 120,
+    align: 'center',
+  },
+  {
+    title: '联系电话',
+    dataIndex: 'phone',
+    key: 'phone',
+    width: 140,
+    align: 'center',
+  },
+  {
+    title: '排序号',
+    dataIndex: 'sortOrder',
+    key: 'sortOrder',
+    width: 80,
+    align: 'center',
+  },
+  {
+    title: '状态',
+    dataIndex: 'status',
+    key: 'status',
+    width: 80,
+    align: 'center',
+  },
+  {
+    title: '人数',
+    dataIndex: 'userCount',
+    key: 'userCount',
+    width: 70,
+    align: 'center',
+  },
   { title: '备注', dataIndex: 'remark', key: 'remark', ellipsis: true },
-  { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 170, align: 'center' },
+  {
+    title: '创建时间',
+    dataIndex: 'createdAt',
+    key: 'createdAt',
+    width: 170,
+    align: 'center',
+  },
 ]
 </script>
 
@@ -386,9 +443,18 @@ const columns: BasicColumn[] = [
     <div :class="leftPanelClassName">
       <a-card :class="treeCardClassName" title="部门架构" size="small">
         <template #extra>
-          <a-button type="link" size="small" :class="btnClassName" @click="handleToggleExpand">
+          <a-button
+            type="link"
+            size="small"
+            :class="btnClassName"
+            @click="handleToggleExpand"
+          >
             <template #icon>
-              <Icon :icon="isAllExpanded ? 'carbon:collapse-all' : 'carbon:expand-all'" />
+              <Icon
+                :icon="
+                  isAllExpanded ? 'carbon:collapse-all' : 'carbon:expand-all'
+                "
+              />
             </template>
             {{ isAllExpanded ? '折叠' : '展开' }}
           </a-button>
@@ -420,10 +486,14 @@ const columns: BasicColumn[] = [
               flatAllDepts.find((d) => d.id === selectedDeptId)?.name
             }}</span>
             <span class="mx-2">|</span>
-            直接子部门：<span :class="statNumClassName">{{ currentStat.deptCount }}</span>
+            直接子部门：<span :class="statNumClassName">{{
+              currentStat.deptCount
+            }}</span>
             个
             <span class="mx-2">|</span>
-            总人数：<span :class="statNumClassName">{{ currentStat.totalUsers }}</span>
+            总人数：<span :class="statNumClassName">{{
+              currentStat.totalUsers
+            }}</span>
             人
           </div>
         </div>
@@ -454,25 +524,42 @@ const columns: BasicColumn[] = [
           <template #cell-status="{ record }">
             <a-tag :color="statusColorMap[record.status] || 'default'">
               <span :class="statusTagClassName">
-                <Icon :icon="record.status === 1 ? 'carbon:checkmark-outline' : 'carbon:close-outline'" />
+                <Icon
+                  :icon="
+                    record.status === 1
+                      ? 'carbon:checkmark-outline'
+                      : 'carbon:close-outline'
+                  "
+                />
                 {{ statusLabelMap[record.status] || '未知' }}
               </span>
             </a-tag>
           </template>
 
           <template #cell-userCount="{ record }">
-            <a-badge :count="record.userCount" :number-style="{ backgroundColor: '#1677ff' }" />
+            <a-badge
+              :count="record.userCount"
+              :number-style="{ backgroundColor: '#1677ff' }"
+            />
           </template>
 
           <template #action="{ record }">
             <div :class="actionClassName">
-              <a-button type="link" :class="btnClassName" @click="() => handleAddChild(record)">
+              <a-button
+                type="link"
+                :class="btnClassName"
+                @click="() => handleAddChild(record)"
+              >
                 <template #icon>
                   <Icon icon="ant-design:plus-circle-outlined" />
                 </template>
                 新增
               </a-button>
-              <a-button type="link" :class="btnClassName" @click="() => handleEdit(record)">
+              <a-button
+                type="link"
+                :class="btnClassName"
+                @click="() => handleEdit(record)"
+              >
                 <template #icon>
                   <Icon icon="ant-design:edit-outlined" />
                 </template>
@@ -497,7 +584,12 @@ const columns: BasicColumn[] = [
     </div>
 
     <!-- 新增/编辑弹窗 -->
-    <BasicModal :title="isEditing ? '编辑部门' : '新增部门'" :width="640" @register="modalRegister" @ok="handleSave">
+    <BasicModal
+      :title="isEditing ? '编辑部门' : '新增部门'"
+      :width="640"
+      @register="modalRegister"
+      @ok="handleSave"
+    >
       <BasicForm
         :schemas="modalFormSchemas"
         :label-width="80"

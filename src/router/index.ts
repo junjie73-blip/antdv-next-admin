@@ -1,11 +1,11 @@
 import type { App } from 'vue'
 
+import { setupLayouts } from 'virtual:generated-layouts'
 import { createRouter, createWebHashHistory } from 'vue-router'
-
-import type { AppRouteRecordRaw } from '#/app-router'
+import { handleHotUpdate, routes } from 'vue-router/auto-routes'
 
 import { setupRouterGuards } from './guards'
-import { constantRoutes } from './routes'
+import { catchAllRoute, constantRoutes } from './routes'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -14,13 +14,15 @@ const router = createRouter({
     left: 0,
     top: 0,
   }),
-  routes: constantRoutes as AppRouteRecordRaw[],
+  routes: [...constantRoutes, ...setupLayouts(routes), catchAllRoute],
 })
 
 export function setupRouter(app: App) {
   setupRouterGuards(router)
   app.use(router)
+  if (import.meta.hot) {
+    handleHotUpdate(router)
+  }
   return router
 }
-
 export default router

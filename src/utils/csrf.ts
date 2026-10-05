@@ -131,7 +131,9 @@ async function simpleHash(str: string): Promise<string> {
  *
  * @param userConfig - 用户自定义配置
  */
-export async function initCsrfProtection(userConfig: CsrfConfig = {}): Promise<void> {
+export async function initCsrfProtection(
+  userConfig: CsrfConfig = {},
+): Promise<void> {
   config = { ...DEFAULT_CONFIG, ...userConfig }
 
   // 尝试从存储中恢复 Token
@@ -206,7 +208,10 @@ export async function getCsrfToken(): Promise<CsrfToken | null> {
  * @param shouldRotate - 验证后是否轮换 Token（默认 true）
  * @returns Token 是否有效
  */
-export async function validateCsrfToken(providedToken: string, shouldRotate = true): Promise<boolean> {
+export async function validateCsrfToken(
+  providedToken: string,
+  shouldRotate = true,
+): Promise<boolean> {
   if (!providedToken) {
     console.warn('[CSRF] ❌ 缺少 CSRF Token')
     return false
@@ -348,7 +353,8 @@ async function restoreToken(): Promise<void> {
     const stored = localStorageCacheStorage.getItem(config.tokenKey)
 
     if (stored) {
-      const parsed: CsrfToken = typeof stored === 'string' ? JSON.parse(stored) : stored
+      const parsed: CsrfToken =
+        typeof stored === 'string' ? JSON.parse(stored) : stored
 
       if (parsed && !isTokenExpired(parsed)) {
         currentToken.value = parsed
@@ -426,7 +432,10 @@ export function useCsrf(userConfig?: CsrfConfig) {
   /**
    * 验证并可选地刷新 Token
    */
-  async function verify(providedToken: string, rotate = true): Promise<boolean> {
+  async function verify(
+    providedToken: string,
+    rotate = true,
+  ): Promise<boolean> {
     return validateCsrfToken(providedToken, rotate)
   }
 

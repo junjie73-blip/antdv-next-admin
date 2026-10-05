@@ -20,7 +20,11 @@ export function usePermission(options: UsePermissionOptions = {}) {
     return true
   }
 
-  function checkArrayMatch(userList: string[], requiredList: string[], mode: 'some' | 'every'): boolean {
+  function checkArrayMatch(
+    userList: string[],
+    requiredList: string[],
+    mode: 'some' | 'every',
+  ): boolean {
     if (userList.length === 0) {
       return !strict.value
     }
@@ -62,11 +66,19 @@ export function usePermission(options: UsePermissionOptions = {}) {
   const isAdmin = (): boolean => {
     if (!checkAuth()) return false
 
-    return roles.value.includes(PermissionRole.SUPER) || roles.value.includes(PermissionRole.ADMIN)
+    return (
+      roles.value.includes(PermissionRole.SUPER) ||
+      roles.value.includes(PermissionRole.ADMIN)
+    )
   }
 
-  const checkPermission = (requiredPermissions: string | string[], options?: { mode?: 'any' | 'all' }): boolean => {
-    const perms = Array.isArray(requiredPermissions) ? requiredPermissions : [requiredPermissions]
+  const checkPermission = (
+    requiredPermissions: string | string[],
+    options?: { mode?: 'any' | 'all' },
+  ): boolean => {
+    const perms = Array.isArray(requiredPermissions)
+      ? requiredPermissions
+      : [requiredPermissions]
 
     if (options?.mode === 'any') {
       return hasAnyPermission(perms)
@@ -75,8 +87,13 @@ export function usePermission(options: UsePermissionOptions = {}) {
     return hasAllPermissions(perms)
   }
 
-  const checkRole = (requiredRoles: string | string[], options?: { mode?: 'any' | 'all' }): boolean => {
-    const roleList = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles]
+  const checkRole = (
+    requiredRoles: string | string[],
+    options?: { mode?: 'any' | 'all' },
+  ): boolean => {
+    const roleList = Array.isArray(requiredRoles)
+      ? requiredRoles
+      : [requiredRoles]
 
     if (options?.mode === 'any') {
       return hasAnyRole(roleList)

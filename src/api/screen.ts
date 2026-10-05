@@ -16,7 +16,15 @@ export function getScreenMonitorData() {
     }
     trend: { time: string; pv: number; uv: number; requests: number }[]
     regions: { name: string; value: number; users: number }[]
-    services: { name: string; status: 'healthy' | 'warning' | 'down'; uptime: string }[]
-    alerts: { level: 'critical' | 'high' | 'medium' | 'low'; message: string; time: string }[]
+    services: {
+      name: string
+      status: 'healthy' | 'warning' | 'down'
+      uptime: string
+    }[]
+    alerts: {
+      level: 'critical' | 'high' | 'medium' | 'low'
+      message: string
+      time: string
+    }[]
   }>('/screen/monitor')
 }

@@ -31,7 +31,9 @@ function getBaseKey(): string {
   }
 
   if (import.meta.env.DEV) {
-    console.warn('[encrypt] 使用开发默认密钥，生产环境请配置 VITE_CACHE_ENCRYPT_KEY')
+    console.warn(
+      '[encrypt] 使用开发默认密钥，生产环境请配置 VITE_CACHE_ENCRYPT_KEY',
+    )
     return DEV_FALLBACK_KEY
   }
 
@@ -108,7 +110,10 @@ function padKey(key: string): string {
  * @param key - 可选的自定义密钥（不推荐）
  * @returns SM4 加密后的十六进制字符串
  */
-export async function encryptValue(value: string, key?: string): Promise<string> {
+export async function encryptValue(
+  value: string,
+  key?: string,
+): Promise<string> {
   const finalKey = key ? padKey(key) : padKey(await getDerivedKey())
   return sm4.encrypt(value, finalKey)
 }
@@ -120,7 +125,10 @@ export async function encryptValue(value: string, key?: string): Promise<string>
  * @param key - 可选的自定义密钥（需与加密时一致）
  * @returns 解密后的明文
  */
-export async function decryptValue(value: string, key?: string): Promise<string> {
+export async function decryptValue(
+  value: string,
+  key?: string,
+): Promise<string> {
   const finalKey = key ? padKey(key) : padKey(await getDerivedKey())
   return sm4.decrypt(value, finalKey)
 }

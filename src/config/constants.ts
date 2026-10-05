@@ -6,3 +6,13 @@ export const USER_INFO_KEY = 'user_info'
 export const PERMISSIONS_KEY = 'user_permissions'
 export const TOKEN_EXPIRE = 7 * 60 * 60 // 秒
 export const REFRESH_TOKEN_EXPIRE = 3 * 3600
+export const WHITE_LIST = [
+  '/login',
+  '/register',
+  '/error/404',
+  '/error/403',
+  '/error/503',
+]
+
+export const HOME_PATH = '/dashboard/analysis'
+export const LOGIN_PATH = '/login'

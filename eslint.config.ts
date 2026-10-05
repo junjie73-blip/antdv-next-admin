@@ -1,10 +1,13 @@
-import pluginVitest from "@vitest/eslint-plugin";
-import { defineConfigWithVueTs, vueTsConfigs } from "@vue/eslint-config-typescript";
-import { globalIgnores } from "eslint/config";
-import skipFormatting from "eslint-config-prettier/flat";
-import pluginOxlint from "eslint-plugin-oxlint";
-import pluginPlaywright from "eslint-plugin-playwright";
-import pluginVue from "eslint-plugin-vue";
+import pluginVitest from '@vitest/eslint-plugin'
+import {
+  defineConfigWithVueTs,
+  vueTsConfigs,
+} from '@vue/eslint-config-typescript'
+import skipFormatting from 'eslint-config-prettier/flat'
+import pluginOxlint from 'eslint-plugin-oxlint'
+import pluginPlaywright from 'eslint-plugin-playwright'
+import pluginVue from 'eslint-plugin-vue'
+import { globalIgnores } from 'eslint/config'
 
 // To allow more languages other than `ts` in `.vue` files, uncomment the following lines:
 // import { configureVueProject } from '@vue/eslint-config-typescript'
@@ -13,45 +16,47 @@ import pluginVue from "eslint-plugin-vue";
 
 export default defineConfigWithVueTs(
   {
-    name: "app/files-to-lint",
-    files: ["**/*.{vue,ts,mts,tsx}"],
-    ignores: ["**/node_modules/**", "**/dist/**", "**/test/**"],
+    name: 'app/files-to-lint',
+    files: ['**/*.{vue,ts,mts,tsx}'],
+    ignores: ['**/node_modules/**', '**/dist/**', '**/test/**'],
   },
-  globalIgnores(["**/dist/**", "**/dist-ssr/**", "**/coverage/**"]),
+  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
 
-  ...pluginVue.configs["flat/essential"],
+  ...pluginVue.configs['flat/essential'],
   vueTsConfigs.recommended,
-
   {
-    ...pluginPlaywright.configs["flat/recommended"],
-    files: ["e2e/**/*.{test,spec}.{js,ts,jsx,tsx}"],
+    ...pluginPlaywright.configs['flat/recommended'],
+    files: ['e2e/**/*.{test,spec}.{js,ts,jsx,tsx}'],
   },
 
   {
     ...pluginVitest.configs.recommended,
-    files: ["src/**/__tests__/*"],
+    files: ['src/**/__tests__/*'],
   },
 
-  ...pluginOxlint.buildFromOxlintConfigFile(".oxlintrc.json"),
+  ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
 
   skipFormatting,
   {
-    files: ["**/*.{vue,ts,mts,tsx}"],
-    ignores: ["**/node_modules/**", "**/dist/**", "**/test/**"],
+    files: ['**/*.{vue,ts,mts,tsx}'],
+    ignores: ['**/node_modules/**', '**/dist/**', '**/test/**'],
     rules: {
-      "@typescript-eslint/no-explicit-any": "off",
-      "no-unused-vars": "off", // 关闭原生规则
-      "@typescript-eslint/no-unused-vars": [
-        "error",
+      '@typescript-eslint/no-explicit-any': 'off',
+      'no-unused-vars': 'off', // 关闭原生规则
+      '@typescript-eslint/no-unused-vars': [
+        'error',
         {
-          argsIgnorePattern: "^_",
-          destructuredArrayIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
-          caughtErrorsIgnorePattern: "^_",
+          argsIgnorePattern: '^_',
+          destructuredArrayIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
         },
       ],
-      "vue/multi-word-component-names": "off",
-      "vue/block-lang": "off",
+      'vue/multi-word-component-names': 'off',
+      'vue/block-lang': 'off',
+    },
+    settings: {
+      'import/core-modules': ['vue-router/auto-routes'],
     },
   },
-);
+)

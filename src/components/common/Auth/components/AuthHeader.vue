@@ -22,7 +22,9 @@ const { formHeaderBadgeClassName } = useAuthStyles()
       {{ badgeText }}
     </span>
 
-    <h2 class="mt-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+    <h2
+      class="mt-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50"
+    >
       {{ title }}
     </h2>
 

@@ -31,7 +31,12 @@ const props = withDefaults(
 
 const year = new Date().getFullYear()
 
-const { brandPanelClassName, brandGlowClassName, brandGridClassName, brandContentClassName } = useAuthStyles()
+const {
+  brandPanelClassName,
+  brandGlowClassName,
+  brandGridClassName,
+  brandContentClassName,
+} = useAuthStyles()
 
 const hasStats = computed(() => props.stats.length > 0)
 </script>
@@ -46,7 +51,9 @@ const hasStats = computed(() => props.stats.length > 0)
 
       <!-- 标题 -->
       <div class="mt-10">
-        <h1 class="text-3xl leading-snug font-bold tracking-tight whitespace-pre-line">
+        <h1
+          class="text-3xl leading-snug font-bold tracking-tight whitespace-pre-line"
+        >
           {{ headline }}
         </h1>
         <p class="mt-4 text-sm leading-relaxed text-white/80">

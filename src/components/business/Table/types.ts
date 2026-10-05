@@ -1,4 +1,7 @@
-import type { PaginationProps as AntPaginationProps, TableProps } from 'antdv-next'
+import type {
+  PaginationProps as AntPaginationProps,
+  TableProps,
+} from 'antdv-next'
 import type { ComputedRef, CSSProperties, Ref, VNode } from 'vue'
 
 import type { FormProps, FormSchema } from '../Form/types'
@@ -22,7 +25,12 @@ export interface TableRowEventHandlers {
 export interface TableExpandable {
   expandedRowKeys?: string[]
   defaultExpandedRowKeys?: string[]
-  expandedRowRender?: (record: Recordable, index: number, indent: number, expanded: boolean) => VNode
+  expandedRowRender?: (
+    record: Recordable,
+    index: number,
+    indent: number,
+    expanded: boolean,
+  ) => VNode
   expandIcon?: (props: {
     expanded: boolean
     record: Recordable
@@ -91,7 +99,11 @@ export interface BasicColumn {
   title?:
     | string
     | VNode
-    | ((options: { sortOrder: string | boolean; filters: Recordable; sortColumn: BasicColumn }) => VNode)
+    | ((options: {
+        sortOrder: string | boolean
+        filters: Recordable
+        sortColumn: BasicColumn
+      }) => VNode)
 
   /** 默认隐藏 */
   defaultHidden?: boolean
@@ -118,7 +130,9 @@ export interface BasicColumn {
   editValueMap?: (value: any) => string | number
 
   /** 单元格格式化处理 */
-  format?: string | ((text: any, record: Recordable, index: number) => string | VNode)
+  format?:
+    | string
+    | ((text: any, record: Recordable, index: number) => string | VNode)
 
   /** 自定义渲染函数（优先级高于 format） */
   customRender?: (options: {
@@ -147,7 +161,9 @@ export interface BasicColumn {
   ellipsis?: boolean | { showTitle?: boolean }
 
   /** 自定义单元格样式 */
-  cellStyle?: CSSProperties | ((record: Recordable, index: number) => CSSProperties)
+  cellStyle?:
+    | CSSProperties
+    | ((record: Recordable, index: number) => CSSProperties)
 
   /** 自定义表头样式 */
   headerStyle?: CSSProperties
@@ -159,13 +175,19 @@ export interface BasicColumn {
     | { compare: (a: Recordable, b: Recordable) => number; multiple: number }
 
   /** 筛选配置 */
-  filters?: { text: string; value: string; children?: { text: string; value: string }[] }[]
+  filters?: {
+    text: string
+    value: string
+    children?: { text: string; value: string }[]
+  }[]
 
   /** 筛选模式 */
   filterMode?: 'menu' | 'tree'
 
   /** 筛选搜索配置 */
-  filterSearch?: boolean | ((input: string, filter: { text: string; value: string }) => boolean)
+  filterSearch?:
+    | boolean
+    | ((input: string, filter: { text: string; value: string }) => boolean)
 
   /** 默认筛选值 */
   defaultFilteredValue?: string[]
@@ -306,10 +328,18 @@ export interface TableRowSelection {
   ) => void
 
   /** 单行选择回调 */
-  onSelect?: (record: Recordable, selected: boolean, selectedRows: Recordable[], nativeEvent: Event) => void
+  onSelect?: (
+    record: Recordable,
+    selected: boolean,
+    selectedRows: Recordable[],
+    nativeEvent: Event,
+  ) => void
 
   /** 获取 Checkbox 属性 */
-  getCheckboxProps?: (record: Recordable) => { disabled?: boolean; name?: string }
+  getCheckboxProps?: (record: Recordable) => {
+    disabled?: boolean
+    name?: string
+  }
 
   /** 获取标题 Checkbox 属性 */
   getTitleCheckboxProps?: () => { disabled?: boolean }
@@ -336,7 +366,12 @@ export interface TableRowSelection {
   preserveSelectedRowKeys?: boolean
 
   /** 自定义单元格渲染 */
-  renderCell?: (checked: boolean, record: Recordable, index: number, originNode: VNode) => VNode
+  renderCell?: (
+    checked: boolean,
+    record: Recordable,
+    index: number,
+    originNode: VNode,
+  ) => VNode
 
   /** 单元格属性 */
   onCell?: (record: Recordable, rowIndex: number) => Recordable
@@ -470,7 +505,12 @@ export interface BasicTableProps {
   rowKey?: string | ((record: any) => string)
 
   /** 展开行渲染 */
-  expandedRowRender?: (record: Recordable, index: number, indent: number, expanded: boolean) => VNode
+  expandedRowRender?: (
+    record: Recordable,
+    index: number,
+    indent: number,
+    expanded: boolean,
+  ) => VNode
 
   /** 展开图标 */
   expandIcon?: (props: {
@@ -585,7 +625,9 @@ export interface BasicTableProps {
   rowClassName?: string | ((record: Recordable, index: number) => string)
 
   /** 单元格类名 */
-  cellClassName?: string | ((record: Recordable, index: number, column: BasicColumn) => string)
+  cellClassName?:
+    | string
+    | ((record: Recordable, index: number, column: BasicColumn) => string)
 
   /** 行点击事件 */
   onRowClick?: (record: Recordable, index: number, event: Event) => void
@@ -603,7 +645,12 @@ export interface BasicTableProps {
   onRowMouseLeave?: (record: Recordable, index: number, event: Event) => void
 
   /** 表格改变回调 */
-  onChange?: (pagination: any, filters: any, sorter: any, extra: { currentDataSource: Recordable[] }) => void
+  onChange?: (
+    pagination: any,
+    filters: any,
+    sorter: any,
+    extra: { currentDataSource: Recordable[] },
+  ) => void
 
   /** 加载状态 */
   loading?: boolean
@@ -742,7 +789,11 @@ export interface TableActionType {
   updateFormSchema: (schema: Partial<FormSchema>, field: string) => void
 
   /** 追加表单 schema */
-  appendFormSchema: (schema: FormSchema, prefixField?: string, first?: boolean) => void
+  appendFormSchema: (
+    schema: FormSchema,
+    prefixField?: string,
+    first?: boolean,
+  ) => void
 
   /** 删除表单 schema */
   removeFormSchema: (field: string) => void
@@ -752,7 +803,10 @@ export interface TableActionType {
 
   // 数据操作
   /** 插入数据 */
-  insertTableDataRecord: (record: Recordable | Recordable[], index?: number) => void
+  insertTableDataRecord: (
+    record: Recordable | Recordable[],
+    index?: number,
+  ) => void
 
   /** 删除数据 */
   deleteTableDataRecord: (key: string | string[]) => void
@@ -808,7 +862,10 @@ export interface UseDataSourceOptions {
   beforeFetch?: (params: FetchParams) => FetchParams | false
   afterFetch?: (data: Recordable[]) => Recordable[]
   fetchSetting?: FetchSetting
-  rowKey?: string | ((record: Recordable) => string) | Ref<string | ((record: Recordable) => string) | undefined>
+  rowKey?:
+    | string
+    | ((record: Recordable) => string)
+    | Ref<string | ((record: Recordable) => string) | undefined>
   immediate?: boolean
   pagination?: {
     getPagination: () => AntPaginationProps | false
@@ -825,7 +882,10 @@ export interface UseDataSourceReturn {
   fetch: (opt?: FetchParams) => Promise<void>
   reload: (opt?: FetchParams) => Promise<void>
   setTableData: (data: Recordable[]) => void
-  insertTableDataRecord: (record: Recordable | Recordable[], index?: number) => void
+  insertTableDataRecord: (
+    record: Recordable | Recordable[],
+    index?: number,
+  ) => void
   deleteTableDataRecord: (key: string | string[]) => void
   updateTableDataRecord: (key: string, record: Recordable) => void
   findTableDataRecord: (key: string) => Recordable | undefined
@@ -834,9 +894,15 @@ export interface UseDataSourceReturn {
 
 /** useRowSelection 配置 */
 export interface UseRowSelectionOptions {
-  rowSelection?: TableRowSelection | boolean | Ref<TableRowSelection | boolean | undefined>
+  rowSelection?:
+    | TableRowSelection
+    | boolean
+    | Ref<TableRowSelection | boolean | undefined>
   dataSourceRef?: Ref<Recordable[]>
-  rowKey?: string | ((record: Recordable) => string) | Ref<string | ((record: Recordable) => string)>
+  rowKey?:
+    | string
+    | ((record: Recordable) => string)
+    | Ref<string | ((record: Recordable) => string)>
   clearSelectOnPageChange?: boolean
 }
 
@@ -853,7 +919,10 @@ export interface UseRowSelectionReturn {
 
 /** usePagination 配置 */
 export interface UsePaginationOptions {
-  pagination?: AntPaginationProps | boolean | Ref<AntPaginationProps | boolean | undefined>
+  pagination?:
+    | AntPaginationProps
+    | boolean
+    | Ref<AntPaginationProps | boolean | undefined>
   fetchSetting?: FetchSetting
 }
 
@@ -925,7 +994,12 @@ export interface TableExpandableConfig {
   fixed?: boolean | 'left' | 'right'
 
   /** 展开行渲染 */
-  expandedRowRender?: (record: Recordable, index: number, indent: number, expanded: boolean) => VNode
+  expandedRowRender?: (
+    record: Recordable,
+    index: number,
+    indent: number,
+    expanded: boolean,
+  ) => VNode
 
   /** 展开图标 */
   expandIcon?: (props: {

@@ -5,7 +5,9 @@ import { ref } from 'vue'
 import { cn } from '~/utils/cn'
 
 const containerClassName = cn('space-y-6')
-const copyButtonClassName = cn('ml-2 text-blue-600 hover:text-blue-800 cursor-pointer')
+const copyButtonClassName = cn(
+  'ml-2 text-blue-600 hover:text-blue-800 cursor-pointer',
+)
 
 const userInfo = ref({
   id: 'USR20240115001',
@@ -56,15 +58,39 @@ const orderItems = ref([
     price: 16999.0,
     quantity: 1,
   },
-  { id: 2, name: 'Apple Magic Mouse', spec: '黑色 / 无线充电', price: 699.0, quantity: 1 },
-  { id: 3, name: 'USB-C转接头', spec: '多端口 / 铝合金', price: 299.0, quantity: 2 },
+  {
+    id: 2,
+    name: 'Apple Magic Mouse',
+    spec: '黑色 / 无线充电',
+    price: 699.0,
+    quantity: 1,
+  },
+  {
+    id: 3,
+    name: 'USB-C转接头',
+    spec: '多端口 / 铝合金',
+    price: 299.0,
+    quantity: 2,
+  },
 ])
 
 const orderItemColumns = [
   { title: '商品名称', dataIndex: 'name', key: 'name' },
   { title: '规格', dataIndex: 'spec', key: 'spec' },
-  { title: '单价', dataIndex: 'price', key: 'price', width: 120, align: 'right' },
-  { title: '数量', dataIndex: 'quantity', key: 'quantity', width: 80, align: 'center' },
+  {
+    title: '单价',
+    dataIndex: 'price',
+    key: 'price',
+    width: 120,
+    align: 'right',
+  },
+  {
+    title: '数量',
+    dataIndex: 'quantity',
+    key: 'quantity',
+    width: 80,
+    align: 'center',
+  },
   { title: '小计', key: 'subtotal', width: 120 },
 ]
 
@@ -91,11 +117,17 @@ const columnCount = ref(2)
 <template>
   <div :class="containerClassName">
     <a-card title="基础用法">
-      <p class="mb-4 text-gray-600 dark:text-gray-400">最基础的用法，展示用户基本信息（标签 + 内容对齐）</p>
+      <p class="mb-4 text-gray-600 dark:text-gray-400">
+        最基础的用法，展示用户基本信息（标签 + 内容对齐）
+      </p>
       <a-descriptions :column="2" title="用户基本信息">
         <a-descriptions-item label="用户ID">
           {{ userInfo.id }}
-          <Icon icon="carbon:copy" :class="copyButtonClassName" @click="handleCopy(userInfo.id)" />
+          <Icon
+            icon="carbon:copy"
+            :class="copyButtonClassName"
+            @click="handleCopy(userInfo.id)"
+          />
         </a-descriptions-item>
         <a-descriptions-item label="用户名">
           {{ userInfo.username }}
@@ -106,7 +138,9 @@ const columnCount = ref(2)
         <a-descriptions-item label="性别">
           {{ userInfo.gender }}
         </a-descriptions-item>
-        <a-descriptions-item label="年龄"> {{ userInfo.age }} 岁 </a-descriptions-item>
+        <a-descriptions-item label="年龄">
+          {{ userInfo.age }} 岁
+        </a-descriptions-item>
         <a-descriptions-item label="生日">
           {{ userInfo.birthday }}
         </a-descriptions-item>
@@ -114,18 +148,28 @@ const columnCount = ref(2)
     </a-card>
 
     <a-card title="边框模式 (bordered)">
-      <p class="mb-4 text-gray-600 dark:text-gray-400">带边框的描述列表，视觉上更加清晰分明</p>
+      <p class="mb-4 text-gray-600 dark:text-gray-400">
+        带边框的描述列表，视觉上更加清晰分明
+      </p>
       <a-descriptions :column="3" bordered title="联系方式">
         <a-descriptions-item label="邮箱">
           <div class="flex items-center">
             <span>{{ userInfo.email }}</span>
-            <Icon icon="carbon:copy" :class="copyButtonClassName" @click="handleCopy(userInfo.email)" />
+            <Icon
+              icon="carbon:copy"
+              :class="copyButtonClassName"
+              @click="handleCopy(userInfo.email)"
+            />
           </div>
         </a-descriptions-item>
         <a-descriptions-item label="手机">
           <div class="flex items-center">
             <span>{{ userInfo.phone }}</span>
-            <Icon icon="carbon:copy" :class="copyButtonClassName" @click="handleCopy(userInfo.phone)" />
+            <Icon
+              icon="carbon:copy"
+              :class="copyButtonClassName"
+              @click="handleCopy(userInfo.phone)"
+            />
           </div>
         </a-descriptions-item>
         <a-descriptions-item label="地址">
@@ -150,18 +194,43 @@ const columnCount = ref(2)
           </a-tag>
         </a-descriptions-item>
         <a-descriptions-item label="状态">
-          <a-badge :status="userInfo.status === '在职' ? 'success' : 'default'" :text="userInfo.status" />
+          <a-badge
+            :status="userInfo.status === '在职' ? 'success' : 'default'"
+            :text="userInfo.status"
+          />
         </a-descriptions-item>
       </a-descriptions>
     </a-card>
 
     <a-card title="响应式列">
-      <p class="mb-4 text-gray-600 dark:text-gray-400">通过调整列数查看不同布局效果</p>
+      <p class="mb-4 text-gray-600 dark:text-gray-400">
+        通过调整列数查看不同布局效果
+      </p>
       <div class="mb-4 flex gap-2">
-        <a-button :type="columnCount === 1 ? 'primary' : 'default'" @click="columnCount = 1"> 1列 </a-button>
-        <a-button :type="columnCount === 2 ? 'primary' : 'default'" @click="columnCount = 2"> 2列 </a-button>
-        <a-button :type="columnCount === 3 ? 'primary' : 'default'" @click="columnCount = 3"> 3列 </a-button>
-        <a-button :type="columnCount === 4 ? 'primary' : 'default'" @click="columnCount = 4"> 4列 </a-button>
+        <a-button
+          :type="columnCount === 1 ? 'primary' : 'default'"
+          @click="columnCount = 1"
+        >
+          1列
+        </a-button>
+        <a-button
+          :type="columnCount === 2 ? 'primary' : 'default'"
+          @click="columnCount = 2"
+        >
+          2列
+        </a-button>
+        <a-button
+          :type="columnCount === 3 ? 'primary' : 'default'"
+          @click="columnCount = 3"
+        >
+          3列
+        </a-button>
+        <a-button
+          :type="columnCount === 4 ? 'primary' : 'default'"
+          @click="columnCount = 4"
+        >
+          4列
+        </a-button>
       </div>
       <a-descriptions :column="columnCount" bordered>
         <a-descriptions-item
@@ -185,7 +254,11 @@ const columnCount = ref(2)
           <template v-if="key.includes('金额')">
             <span
               :class="
-                key.includes('优惠') ? 'text-green-600' : key.includes('实付') ? 'font-semibold text-red-600' : ''
+                key.includes('优惠')
+                  ? 'text-green-600'
+                  : key.includes('实付')
+                    ? 'font-semibold text-red-600'
+                    : ''
               "
             >
               {{ value }}
@@ -212,7 +285,9 @@ const columnCount = ref(2)
     </a-card>
 
     <a-card title="自定义 Label 样式">
-      <p class="mb-4 text-gray-600 dark:text-gray-400">使用自定义渲染函数为 label 添加图标和颜色，提升可读性</p>
+      <p class="mb-4 text-gray-600 dark:text-gray-400">
+        使用自定义渲染函数为 label 添加图标和颜色，提升可读性
+      </p>
       <a-descriptions :column="2" bordered>
         <a-descriptions-item>
           <template #label>
@@ -292,7 +367,9 @@ const columnCount = ref(2)
     </a-card>
 
     <a-card title="嵌套分组详情 - 完整用户档案">
-      <p class="mb-4 text-gray-600 dark:text-gray-400">模拟完整的用户详情页，包含多个信息分组</p>
+      <p class="mb-4 text-gray-600 dark:text-gray-400">
+        模拟完整的用户详情页，包含多个信息分组
+      </p>
 
       <a-descriptions :column="3" bordered title="基本信息" class="mb-6">
         <a-descriptions-item label="姓名">
@@ -301,7 +378,9 @@ const columnCount = ref(2)
         <a-descriptions-item label="性别">
           {{ userInfo.gender }}
         </a-descriptions-item>
-        <a-descriptions-item label="年龄"> {{ userInfo.age }} 岁 </a-descriptions-item>
+        <a-descriptions-item label="年龄">
+          {{ userInfo.age }} 岁
+        </a-descriptions-item>
         <a-descriptions-item label="生日">
           {{ userInfo.birthday }}
         </a-descriptions-item>
@@ -313,11 +392,19 @@ const columnCount = ref(2)
       <a-descriptions :column="2" bordered title="联系方式" class="mb-6">
         <a-descriptions-item label="邮箱">
           {{ userInfo.email }}
-          <Icon icon="carbon:copy" :class="copyButtonClassName" @click="handleCopy(userInfo.email)" />
+          <Icon
+            icon="carbon:copy"
+            :class="copyButtonClassName"
+            @click="handleCopy(userInfo.email)"
+          />
         </a-descriptions-item>
         <a-descriptions-item label="手机">
           {{ userInfo.phone }}
-          <Icon icon="carbon:copy" :class="copyButtonClassName" @click="handleCopy(userInfo.phone)" />
+          <Icon
+            icon="carbon:copy"
+            :class="copyButtonClassName"
+            @click="handleCopy(userInfo.phone)"
+          />
         </a-descriptions-item>
         <a-descriptions-item label="地址" :span="2">
           {{ userInfo.address }}
@@ -339,7 +426,10 @@ const columnCount = ref(2)
           </a-tag>
         </a-descriptions-item>
         <a-descriptions-item label="状态">
-          <a-badge :status="userInfo.status === '在职' ? 'success' : 'default'" :text="userInfo.status" />
+          <a-badge
+            :status="userInfo.status === '在职' ? 'success' : 'default'"
+            :text="userInfo.status"
+          />
         </a-descriptions-item>
       </a-descriptions>
 
@@ -357,12 +447,18 @@ const columnCount = ref(2)
     </a-card>
 
     <a-card title="订单详情示例">
-      <p class="mb-4 text-gray-600 dark:text-gray-400">展示一个完整订单的详细信息，包含商品列表和物流信息</p>
+      <p class="mb-4 text-gray-600 dark:text-gray-400">
+        展示一个完整订单的详细信息，包含商品列表和物流信息
+      </p>
 
       <a-descriptions :column="3" bordered title="订单信息" class="mb-6">
         <a-descriptions-item label="订单编号">
           {{ orderInfo.orderId }}
-          <Icon icon="carbon:copy" :class="copyButtonClassName" @click="handleCopy(orderInfo.orderId)" />
+          <Icon
+            icon="carbon:copy"
+            :class="copyButtonClassName"
+            @click="handleCopy(orderInfo.orderId)"
+          />
         </a-descriptions-item>
         <a-descriptions-item label="订单状态">
           <a-tag color="success">
@@ -372,12 +468,18 @@ const columnCount = ref(2)
         <a-descriptions-item label="支付方式">
           {{ orderInfo.paymentMethod }}
         </a-descriptions-item>
-        <a-descriptions-item label="订单总额"> ¥{{ orderInfo.totalAmount.toFixed(2) }} </a-descriptions-item>
+        <a-descriptions-item label="订单总额">
+          ¥{{ orderInfo.totalAmount.toFixed(2) }}
+        </a-descriptions-item>
         <a-descriptions-item label="优惠金额">
-          <span class="text-green-600">-¥{{ orderInfo.discountAmount.toFixed(2) }}</span>
+          <span class="text-green-600"
+            >-¥{{ orderInfo.discountAmount.toFixed(2) }}</span
+          >
         </a-descriptions-item>
         <a-descriptions-item label="实付金额">
-          <span class="text-lg font-bold text-red-600">¥{{ orderInfo.payAmount.toFixed(2) }}</span>
+          <span class="text-lg font-bold text-red-600"
+            >¥{{ orderInfo.payAmount.toFixed(2) }}</span
+          >
         </a-descriptions-item>
       </a-descriptions>
 
@@ -385,11 +487,23 @@ const columnCount = ref(2)
         <Icon icon="carbon:shopping-cart" />
         商品清单
       </h4>
-      <a-table :data-source="orderItems" :pagination="false" row-key="id" size="small" :columns="orderItemColumns">
+      <a-table
+        :data-source="orderItems"
+        :pagination="false"
+        row-key="id"
+        size="small"
+        :columns="orderItemColumns"
+      >
         <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'price'"> ¥{{ record?.price?.toFixed(2) ?? '-' }} </template>
+          <template v-if="column.key === 'price'">
+            ¥{{ record?.price?.toFixed(2) ?? '-' }}
+          </template>
           <template v-else-if="column.key === 'subtotal'">
-            <span class="font-medium">¥{{ ((record?.price ?? 0) * (record?.quantity ?? 0)).toFixed(2) }}</span>
+            <span class="font-medium"
+              >¥{{
+                ((record?.price ?? 0) * (record?.quantity ?? 0)).toFixed(2)
+              }}</span
+            >
           </template>
         </template>
       </a-table>
@@ -410,7 +524,11 @@ const columnCount = ref(2)
         </a-descriptions-item>
         <a-descriptions-item label="快递单号">
           {{ orderInfo.expressNo }}
-          <Icon icon="carbon:copy" :class="copyButtonClassName" @click="handleCopy(orderInfo.expressNo)" />
+          <Icon
+            icon="carbon:copy"
+            :class="copyButtonClassName"
+            @click="handleCopy(orderInfo.expressNo)"
+          />
         </a-descriptions-item>
         <a-descriptions-item label="支付时间" :span="1">
           {{ orderInfo.payTime }}
@@ -428,11 +546,16 @@ const columnCount = ref(2)
     </a-card>
 
     <a-card title="可复制内容功能">
-      <p class="mb-4 text-gray-600 dark:text-gray-400">点击复制图标即可将内容复制到剪贴板</p>
+      <p class="mb-4 text-gray-600 dark:text-gray-400">
+        点击复制图标即可将内容复制到剪贴板
+      </p>
       <a-descriptions :column="2" bordered>
         <a-descriptions-item label="用户ID">
           <div class="flex min-w-[200px] items-center justify-between">
-            <code class="rounded bg-gray-100 px-2 py-1 text-sm dark:bg-gray-700">{{ userInfo.id }}</code>
+            <code
+              class="rounded bg-gray-100 px-2 py-1 text-sm dark:bg-gray-700"
+              >{{ userInfo.id }}</code
+            >
             <a-tooltip title="点击复制">
               <Icon
                 icon="carbon:copy"
@@ -456,7 +579,10 @@ const columnCount = ref(2)
         </a-descriptions-item>
         <a-descriptions-item label="订单编号">
           <div class="flex min-w-[200px] items-center justify-between">
-            <code class="rounded bg-gray-100 px-2 py-1 text-sm dark:bg-gray-700">{{ orderInfo.orderId }}</code>
+            <code
+              class="rounded bg-gray-100 px-2 py-1 text-sm dark:bg-gray-700"
+              >{{ orderInfo.orderId }}</code
+            >
             <a-tooltip title="点击复制">
               <Icon
                 icon="carbon:copy"

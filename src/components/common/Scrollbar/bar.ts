@@ -21,7 +21,9 @@ export default defineComponent({
     const track = ref<HTMLElement>()
     const wrap = inject<ScrollbarWrapRef>('scroll-bar-wrap')
 
-    const bar = computed(() => BAR_MAP[props.vertical ? 'vertical' : 'horizontal'])
+    const bar = computed(
+      () => BAR_MAP[props.vertical ? 'vertical' : 'horizontal'],
+    )
 
     /** 是否处于拖动状态 */
     const cursorDown = ref(false)
@@ -47,9 +49,11 @@ export default defineComponent({
       }
     }
 
-    const getPointer = (e: MouseEvent) => (props.vertical ? e.clientY : e.clientX)
+    const getPointer = (e: MouseEvent) =>
+      props.vertical ? e.clientY : e.clientX
 
-    const getTrackStart = (rect: DOMRect) => (props.vertical ? rect.top : rect.left)
+    const getTrackStart = (rect: DOMRect) =>
+      props.vertical ? rect.top : rect.left
 
     const mouseMoveDocumentHandler = (e: MouseEvent) => {
       if (!cursorDown.value) return
@@ -64,8 +68,12 @@ export default defineComponent({
       const trackRect = trackEl.getBoundingClientRect()
       const pointer = getPointer(e)
       const trackStart = getTrackStart(trackRect)
-      const trackSize = props.vertical ? trackEl.offsetHeight : trackEl.offsetWidth
-      const thumbSize = props.vertical ? thumbEl.offsetHeight : thumbEl.offsetWidth
+      const trackSize = props.vertical
+        ? trackEl.offsetHeight
+        : trackEl.offsetWidth
+      const thumbSize = props.vertical
+        ? thumbEl.offsetHeight
+        : thumbEl.offsetWidth
 
       const offset = (trackStart - pointer) * -1
       const thumbClickPosition = thumbSize - prevPage
@@ -99,7 +107,9 @@ export default defineComponent({
       const pointer = getPointer(e)
       const rect = thumbEl.getBoundingClientRect()
       const thumbStart = props.vertical ? rect.top : rect.left
-      const thumbSize = props.vertical ? thumbEl.offsetHeight : thumbEl.offsetWidth
+      const thumbSize = props.vertical
+        ? thumbEl.offsetHeight
+        : thumbEl.offsetWidth
 
       barStore[bar.value.axis] = thumbSize - (pointer - thumbStart)
     }
@@ -111,8 +121,12 @@ export default defineComponent({
       const trackRect = trackEl.getBoundingClientRect()
       const pointer = getPointer(e)
       const trackStart = getTrackStart(trackRect)
-      const trackSize = props.vertical ? trackEl.offsetHeight : trackEl.offsetWidth
-      const thumbSize = props.vertical ? thumbEl.offsetHeight : thumbEl.offsetWidth
+      const trackSize = props.vertical
+        ? trackEl.offsetHeight
+        : trackEl.offsetWidth
+      const thumbSize = props.vertical
+        ? thumbEl.offsetHeight
+        : thumbEl.offsetWidth
 
       const offset = Math.abs(trackStart - pointer)
       const thumbHalf = thumbSize / 2

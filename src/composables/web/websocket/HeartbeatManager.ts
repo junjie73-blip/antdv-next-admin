@@ -43,7 +43,10 @@ export class HeartbeatManager {
     }
 
     // ⭐ 支持函数形式，每次取最新值
-    const raw = typeof this.config.message === 'function' ? this.config.message() : this.config.message
+    const raw =
+      typeof this.config.message === 'function'
+        ? this.config.message()
+        : this.config.message
 
     const message = typeof raw === 'string' ? raw : JSON.stringify(raw)
 

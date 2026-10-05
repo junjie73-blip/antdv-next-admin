@@ -1,6 +1,12 @@
 import { ref, unref } from 'vue'
 
-import type { FormActionType, FormProps, FormSchema, NamePath, UseFormReturnType } from './types'
+import type {
+  FormActionType,
+  FormProps,
+  FormSchema,
+  NamePath,
+  UseFormReturnType,
+} from './types'
 
 import { deepMerge } from './helper'
 
@@ -90,7 +96,11 @@ export function useForm(props?: Partial<FormProps>): UseFormReturnType {
       }
     },
 
-    appendSchemaByField: async (schema: FormSchema, prefixField?: string, first?: boolean) => {
+    appendSchemaByField: async (
+      schema: FormSchema,
+      prefixField?: string,
+      first?: boolean,
+    ) => {
       const instance = getFormInstance()
       if (instance) {
         await instance.appendSchemaByField(schema, prefixField, first)

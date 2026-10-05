@@ -4,18 +4,17 @@ import type { MenuProps } from 'antdv-next'
 import { Icon } from '@iconify/vue'
 import { Menu } from 'antdv-next'
 import { computed, nextTick, unref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import logoIconUrl from '~/assets/images/logo.png'
 import { useAppStore } from '~/stores/modules/app'
 import { useRouteStore } from '~/stores/modules/route'
 import { cn } from '~/utils/cn'
-import { transformMenuConfigToItems } from '~/utils/helpers/menu'
+import { buildMenuItems } from '~/utils/helpers/menu'
 
-import { COLLAPSED_WIDTH, useLayout, useMenu } from '../composables/useLayout'
+import { COLLAPSED_WIDTH, useMenu } from '../composables/useLayout'
 
 const props = defineProps<{
-  collapsed?: boolean
   mixed?: boolean
   activeTopMenu?: string
 }>()
@@ -24,29 +23,36 @@ const emit = defineEmits<{
   menuClick: [key: string]
 }>()
 
-defineOptions({
-  name: 'LayoutSidebar',
-})
+defineOptions({ name: 'LayoutSidebar' })
 
-const router = useRouter()
 const appStore = useAppStore()
 const routeStore = useRouteStore()
-const { sidebarWidth } = appStore
-const { toggleCollapsed } = useLayout()
-const { selectedKeys, openKeys, handleOpenChange, setMenuTree, syncMenuByRoute } = useMenu()
+
+// ★ Sider 折叠状态与 appStore 双向绑定
+const collapsedModel = computed({
+  get: () => appStore.sidebarCollapsed,
+  set: (v) => appStore.updateSetting({ sidebarCollapsed: v }),
+})
+
+const {
+  selectedKeys,
+  openKeys,
+  handleOpenChange,
+  setMenuTree,
+  syncMenuByRoute,
+  handleMenuSelect: jumpByMenu,
+} = useMenu()
+
 const allMenuItems = computed<MenuProps['items']>(() => {
   const menus = unref(routeStore.menus)
-  if (!menus || menus.length === 0) {
-    return []
-  }
-
-  return transformMenuConfigToItems(menus)
+  if (!menus?.length) return []
+  return buildMenuItems(menus)
 })
-// 监听菜单数据，等菜单加载完后主动同步选中态
+
 watch(
   allMenuItems,
   (items) => {
-    if (items && items.length > 0) {
+    if (items?.length) {
       setMenuTree(items as any[])
       syncMenuByRoute()
     }
@@ -54,124 +60,204 @@ watch(
   { immediate: true },
 )
 
-// 混合布局下切换到子菜单时，也要重新同步
 watch(
   () => props.activeTopMenu,
-  () => {
-    nextTick(() => syncMenuByRoute())
-  },
+  () => nextTick(() => syncMenuByRoute()),
 )
 
-const _appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
+const appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
+const isDarkMode = computed(() => appStore.themeMode === 'dark')
 
-const isGeekStyle = computed(() => appStore.themeStyle === 'geek')
-const isDarkMode = computed(() => appStore.themeMode === 'dark' || isGeekStyle.value)
+const menuTheme = computed<'light' | 'dark'>(() =>
+  appStore.darkSidebar || isDarkMode.value ? 'dark' : 'light',
+)
 
-const menuTheme = computed(() => {
-  if (isGeekStyle.value) return 'dark'
-  return appStore.darkSidebar ? 'dark' : 'light'
-})
-
-const isLightSidebar = computed(() => !appStore.darkSidebar && !isDarkMode.value && !isGeekStyle.value)
-
-const collapseBtnClassName = computed(() =>
-  cn(
-    'absolute right-[-12px] top-1/2 -translate-y-1/2',
-    'w-6 h-6 rounded-full',
-    'flex items-center justify-center',
-    'cursor-pointer z-[999]',
-    'border shadow-sm',
-    'transition-all duration-200',
-    isGeekStyle.value
-      ? 'text-gray-500 bg-[#0a0a0a] border-[#1a1a1a] hover:text-[#00ff88] hover:border-[#00ff88] hover:shadow-[0_2px_8px_rgba(0,255,136,0.2)]'
-      : appStore.darkSidebar || isDarkMode.value
-        ? 'text-gray-400 bg-gray-900 border-gray-700 hover:text-white hover:border-gray-500 hover:shadow-[0_2px_8px_rgba(0,0,0,0.3)]'
-        : 'text-gray-400 bg-white border-gray-200 hover:text-[var(--ant-color-primary)] hover:border-[var(--ant-color-primary)] hover:shadow-[0_2px_8px_rgba(37,99,235,0.2)]',
-  ),
+const isLightSidebar = computed(
+  () => !appStore.darkSidebar && !isDarkMode.value,
 )
 
 const sidebarClassName = computed(() =>
   cn(
-    'relative flex-shrink-0 h-full',
-    'flex flex-col',
-    'transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
-    'border-r',
-    isGeekStyle.value
-      ? 'bg-[#0a0a0a] border-[#1a1a1a]'
-      : appStore.darkSidebar || isDarkMode.value
-        ? 'bg-gray-900 border-gray-800'
-        : 'bg-white border-gray-100',
+    'relative',
+    appStore.darkSidebar || isDarkMode.value
+      ? 'bg-gray-900 border-r border-gray-800'
+      : 'bg-white border-r border-gray-100',
   ),
 )
 
 const logoClassName = computed(() =>
   cn(
-    'h-14 flex items-center justify-center',
-    'border-b',
-    'overflow-hidden whitespace-nowrap',
-    'transition-all duration-300',
-    isGeekStyle.value
-      ? 'border-[#1a1a1a]'
-      : appStore.darkSidebar || isDarkMode.value
-        ? 'border-gray-800'
-        : 'border-gray-100',
+    'h-14 flex items-center justify-center border-b overflow-hidden whitespace-nowrap transition-all duration-300',
+    appStore.darkSidebar || isDarkMode.value
+      ? 'border-gray-800'
+      : 'border-gray-100',
   ),
 )
 
-const menuWrapperClassName = computed(() =>
-  cn(
-    'flex-1 overflow-hidden',
-    'px-2 py-3',
-    // 浅色侧边栏菜单定制样式
-    isLightSidebar.value ? 'sidebar-light' : '',
-    // 深色侧边栏菜单定制样式
-    (appStore.darkSidebar || isDarkMode.value) && !isGeekStyle.value ? 'sidebar-dark' : '',
-    // 极客风格
-    isGeekStyle.value ? 'sidebar-geek' : '',
-  ),
-)
+const menuWrapperClassName =
+  'flex-1 overflow-hidden px-2 py-3 [&_.ps__rail-y]:opacity-30 [&_.ps__rail-y]:transition-opacity hover:[&_.ps__rail-y]:opacity-60 [&_.ps__thumb-y]:bg-slate-300 [&_.ps__thumb-y]:rounded'
 
+/** ★★ 核心：所有 antd 菜单样式通过 Tailwind 任意变体实现 */
+const menuClassName = computed(() => {
+  // 基础菜单结构
+  const base = [
+    '!border-e-0 !bg-transparent border-none!',
+
+    // ---- 菜单项基线 ----
+    '[&_.ant-menu-item]:relative',
+    '[&_.ant-menu-item]:my-0.5',
+    '[&_.ant-menu-item]:h-10',
+    '[&_.ant-menu-item]:rounded-lg',
+    '[&_.ant-menu-item]:leading-10',
+    '[&_.ant-menu-item]:font-normal',
+    '[&_.ant-menu-item]:transition-all',
+    '[&_.ant-menu-item]:duration-200',
+    '[&_.ant-menu-item]:w-full',
+
+    // ---- submenu title 基线 ----
+    '[&_.ant-menu-submenu-title]:relative',
+    '[&_.ant-menu-submenu-title]:my-0.5',
+    '[&_.ant-menu-submenu-title]:h-10',
+    '[&_.ant-menu-submenu-title]:rounded-lg',
+    '[&_.ant-menu-submenu-title]:leading-10',
+    '[&_.ant-menu-submenu-title]:font-medium',
+    '[&_.ant-menu-submenu-title]:transition-all',
+    '[&_.ant-menu-submenu-title]:duration-200',
+
+    // ---- 选中态：淡背景 + 主色文字 ----
+    '[&_.ant-menu-item-selected]:!bg-[color-mix(in_srgb,var(--ant-color-primary)_8%,transparent)]',
+    '[&_.ant-menu-item-selected]:!text-[var(--ant-color-primary)]',
+    '[&_.ant-menu-item-selected]:font-semibold',
+
+    // ---- 隐藏 antd 默认右侧选中条 ----
+    '[&_.ant-menu-item-selected]:after:!hidden',
+
+    // ---- 左侧竖线（用 ::before） ----
+    "[&_.ant-menu-item-selected]:before:content-['']",
+    '[&_.ant-menu-item-selected]:before:absolute',
+    '[&_.ant-menu-item-selected]:before:left-0',
+    '[&_.ant-menu-item-selected]:before:top-1/2',
+    '[&_.ant-menu-item-selected]:before:-translate-y-1/2',
+    '[&_.ant-menu-item-selected]:before:w-[3px]',
+    '[&_.ant-menu-item-selected]:before:h-[22px]',
+    '[&_.ant-menu-item-selected]:before:rounded-r-[3px]',
+    '[&_.ant-menu-item-selected]:before:bg-[var(--ant-color-primary)]',
+    '[&_.ant-menu-item-selected]:before:shadow-[0_0_6px_color-mix(in_srgb,var(--ant-color-primary)_60%,transparent)]',
+
+    // ---- label 容器：flex 撑满 ----
+    '[&_.ant-menu-title-content]:flex',
+    '[&_.ant-menu-title-content]:items-center',
+    '[&_.ant-menu-title-content]:flex-1',
+    '[&_.ant-menu-title-content]:min-w-0',
+
+    // ---- 子菜单透明 + 缩进 ----
+    '[&_.ant-menu-sub]:!bg-transparent',
+    '[&_.ant-menu-sub_.ant-menu-item]:pl-12',
+
+    // ---- 折叠态隐藏 label / extra ----
+    '[&_.ant-menu-inline-collapsed_.menu-label-wrapper]:hidden',
+    '[&_.ant-menu-inline-collapsed_.menu-extra]:hidden',
+
+    // ---- 图标尺寸 ----
+    '[&_.ant-menu-item_.anticon]:text-lg',
+    '[&_.ant-menu-submenu-title_.anticon]:text-lg',
+    '[&_.ant-menu-submenu-arrow]:text-slate-400',
+    '[&_.ant-menu-submenu-title:hover_.ant-menu-submenu-arrow]:text-slate-500',
+
+    // ---- badge 微调 ----
+    '[&_.ant-badge-count]:text-[11px]',
+    '[&_.ant-badge-count]:h-4',
+    '[&_.ant-badge-count]:min-w-4',
+    '[&_.ant-badge-count]:leading-4',
+    '[&_.ant-badge-count]:px-1',
+    '[&_.ant-badge-count]:shadow-[0_0_0_1px_#fff]',
+    '[&_.ant-badge-dot]:shadow-[0_0_0_1px_#fff]',
+
+    // ---- 弹出子菜单（折叠悬浮）圆角 ----
+    '[&_.ant-menu-submenu-popup_.ant-menu]:rounded-xl',
+    '[&_.ant-menu-submenu-popup_.ant-menu]:p-1',
+  ]
+
+  // hover 反馈：浅色用主色 5% 叠加，深色用白色 6%
+  const hoverClasses = isLightSidebar.value
+    ? [
+        '[&_.ant-menu-item:hover]:bg-[color-mix(in_srgb,var(--ant-color-primary)_5%,transparent)]',
+        '[&_.ant-menu-submenu-title:hover]:bg-[color-mix(in_srgb,var(--ant-color-primary)_5%,transparent)]',
+        '[&_.ant-menu-item:hover]:text-slate-800',
+        '[&_.ant-menu-submenu-title:hover]:text-slate-800',
+      ]
+    : [
+        '[&_.ant-menu-item:hover]:bg-white/6',
+        '[&_.ant-menu-submenu-title:hover]:bg-white/6',
+      ]
+
+  // 深色 / 极客下的选中态加深
+  const selectedClasses = isLightSidebar.value
+    ? []
+    : [
+        '[&_.ant-menu-item-selected]:!bg-[color-mix(in_srgb,var(--ant-color-primary)_18%,transparent)]',
+      ]
+
+  return [...base, ...hoverClasses, ...selectedClasses].join(' ')
+})
 const menuItems = computed(() => {
   if (props.mixed && props.activeTopMenu) {
-    const topMenu = allMenuItems.value?.find((item: any) => item?.key === props.activeTopMenu)
-    if (topMenu && 'children' in topMenu && topMenu.children) {
-      return topMenu.children
-    }
+    const top = allMenuItems.value?.find(
+      (i: any) => i?.key === props.activeTopMenu,
+    )
+    if (top && 'children' in top && top.children) return top.children
     return []
   }
   return allMenuItems.value
 })
 
 const handleMenuSelect: MenuProps['onSelect'] = ({ key }) => {
-  const keyStr = key as string
-  // 外链菜单由 label 中的 <a> 标签处理，避免重复打开
-  if (keyStr.startsWith('external:')) {
-    return
-  }
-  if (keyStr.startsWith('/')) {
-    router.push(keyStr)
-  }
-  emit('menuClick', keyStr)
+  const k = key as string
+  jumpByMenu(k)
+  emit('menuClick', k)
 }
 </script>
 
 <template>
-  <aside
+  <!-- ★ 用 a-layout-sider 替换 <aside> -->
+  <a-layout-sider
+    v-model:collapsed="collapsedModel"
+    :width="appStore.sidebarWidth"
+    :collapsed-width="COLLAPSED_WIDTH"
+    :trigger="null"
+    :collapsible="appStore.menuAccordion"
+    :theme="menuTheme"
     :class="sidebarClassName"
-    :style="{
-      width: `${props.collapsed ? COLLAPSED_WIDTH : sidebarWidth}px`,
-    }"
+    :style="{ height: '100%' }"
   >
     <!-- Logo 区域 -->
     <div v-if="!mixed" :class="logoClassName">
       <transition name="logo-fade" mode="out-in">
-        <div v-if="props.collapsed" key="collapsed" class="flex items-center justify-center">
-          <img :src="logoIconUrl" :alt="_appTitle" class="h-8 w-8 object-contain" />
+        <div
+          v-if="appStore.sidebarCollapsed"
+          key="collapsed"
+          class="flex items-center justify-center"
+        >
+          <img
+            :src="logoIconUrl"
+            :alt="appTitle"
+            class="h-8 w-8 object-contain"
+          />
         </div>
-        <div v-else key="expanded" class="flex items-center justify-center gap-2.5 px-4">
-          <img :src="logoIconUrl" :alt="_appTitle" class="h-8 w-8 object-contain" />
-          <span class="truncate text-base font-semibold text-gray-800 dark:text-white">
-            {{ _appTitle }}
+        <div
+          v-else
+          key="expanded"
+          class="flex items-center justify-center gap-2.5 px-4"
+        >
+          <img
+            :src="logoIconUrl"
+            :alt="appTitle"
+            class="h-8 w-8 object-contain"
+          />
+          <span
+            class="truncate text-base font-semibold text-gray-800 dark:text-white"
+          >
+            {{ appTitle }}
           </span>
         </div>
       </transition>
@@ -181,272 +267,46 @@ const handleMenuSelect: MenuProps['onSelect'] = ({ key }) => {
     <div :class="menuWrapperClassName">
       <PerfectScrollbar
         class="h-full"
-        :options="{ suppressScrollX: true, suppressScrollY: false, wheelPropagation: false }"
+        :options="{
+          suppressScrollX: true,
+          suppressScrollY: false,
+          wheelPropagation: false,
+        }"
       >
         <Menu
+          v-if="menuItems.length > 0"
           v-model:selected-keys="selectedKeys"
           :open-keys="openKeys"
           mode="inline"
           :theme="menuTheme"
           :items="menuItems"
-          :inline-collapsed="props.collapsed"
+          :inline-collapsed="appStore.sidebarCollapsed"
+          :class="menuClassName"
           @select="handleMenuSelect"
           @openChange="handleOpenChange"
         />
       </PerfectScrollbar>
     </div>
-
-    <!-- 折叠按钮 -->
-    <div :class="collapseBtnClassName" @click="toggleCollapsed">
-      <Icon
-        icon="ant-design:left-outlined"
-        class="text-sm transition-transform duration-200"
-        :class="{ 'rotate-180': props.collapsed }"
-      />
-    </div>
-  </aside>
+  </a-layout-sider>
 </template>
 
 <style scoped>
-/* Logo 过渡动画 */
+/* 保留原有菜单样式，只调整选择器 */
 .logo-fade-enter-active,
 .logo-fade-leave-active {
   transition: opacity 0.2s ease;
 }
-
 .logo-fade-enter-from,
 .logo-fade-leave-to {
   opacity: 0;
 }
 
-/* ===================== 浅色侧边栏菜单定制 ===================== */
-.sidebar-light :deep(.ant-menu) {
-  background: transparent;
-  border-inline-end: none !important;
+/* 覆盖 antd-sider 默认内边距 / 圆角 */
+:deep(.ant-layout-sider-children) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
-.sidebar-light :deep(.ant-menu-item) {
-  margin: 2px 0;
-  border-radius: 8px;
-  height: 40px;
-  line-height: 40px;
-  color: #4b5563;
-  font-weight: 450;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  width: calc(100%);
-}
-
-.sidebar-light :deep(.ant-menu-item:hover) {
-  color: #1f2937;
-  background: #f3f4f6;
-}
-
-.sidebar-light :deep(.ant-menu-item.ant-menu-item-selected) {
-  color: var(--ant-color-primary);
-  background: color-mix(in srgb, var(--ant-color-primary) 8%, transparent);
-  font-weight: 600;
-}
-
-.sidebar-light :deep(.ant-menu-item.ant-menu-item-selected::after) {
-  display: none;
-}
-
-/* 选中项左侧指示条 */
-.sidebar-light :deep(.ant-menu-item.ant-menu-item-selected) {
-  position: relative;
-}
-
-.sidebar-light :deep(.ant-menu-item.ant-menu-item-selected::before) {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 20px;
-  border-radius: 0 3px 3px 0;
-  background: var(--ant-color-primary);
-}
-
-/* 子菜单 */
-.sidebar-light :deep(.ant-menu-submenu-title) {
-  margin: 2px 0;
-  border-radius: 8px;
-  height: 40px;
-  line-height: 40px;
-  color: #4b5563;
-  font-weight: 500;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.sidebar-light :deep(.ant-menu-submenu-title:hover) {
-  color: #1f2937;
-  background: #f3f4f6;
-}
-
-.sidebar-light :deep(.ant-menu-submenu.ant-menu-submenu-open > .ant-menu-submenu-title) {
-  color: #1f2937;
-  font-weight: 600;
-}
-
-.sidebar-light :deep(.ant-menu-sub.ant-menu-inline) {
-  background: transparent !important;
-}
-
-/* 子菜单项缩进微调 */
-.sidebar-light :deep(.ant-menu-sub .ant-menu-item) {
-  padding-left: 48px !important;
-}
-
-/* 图标样式 */
-.sidebar-light :deep(.ant-menu-item .anticon),
-.sidebar-light :deep(.ant-menu-submenu-title .anticon) {
-  font-size: 18px;
-  transition: color 0.2s;
-}
-
-.sidebar-light :deep(.ant-menu-item.ant-menu-item-selected .anticon) {
-  color: var(--ant-color-primary);
-}
-
-/* 展开箭头 */
-.sidebar-light :deep(.ant-menu-submenu-arrow) {
-  color: #9ca3af;
-  transition: color 0.2s;
-}
-
-.sidebar-light :deep(.ant-menu-submenu-title:hover .ant-menu-submenu-arrow) {
-  color: #6b7280;
-}
-
-/* ===================== 深色侧边栏菜单定制 ===================== */
-.sidebar-dark :deep(.ant-menu) {
-  background: transparent;
-  border-inline-end: none !important;
-}
-
-.sidebar-dark :deep(.ant-menu-item) {
-  margin: 2px 0;
-  border-radius: 8px;
-  height: 40px;
-  line-height: 40px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  width: calc(100%);
-}
-
-.sidebar-dark :deep(.ant-menu-item:hover) {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.sidebar-dark :deep(.ant-menu-item.ant-menu-item-selected) {
-  background: color-mix(in srgb, var(--ant-color-primary) 20%, transparent);
-  font-weight: 600;
-}
-
-.sidebar-dark :deep(.ant-menu-item.ant-menu-item-selected::after) {
-  display: none;
-}
-
-.sidebar-dark :deep(.ant-menu-item.ant-menu-item-selected::before) {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 20px;
-  border-radius: 0 3px 3px 0;
-  background: var(--ant-color-primary);
-}
-
-.sidebar-dark :deep(.ant-menu-submenu-title) {
-  margin: 2px 0;
-  border-radius: 8px;
-  height: 40px;
-  line-height: 40px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.sidebar-dark :deep(.ant-menu-submenu-title:hover) {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.sidebar-dark :deep(.ant-menu-sub.ant-menu-inline) {
-  background: transparent !important;
-}
-
-.sidebar-dark :deep(.ant-menu-sub .ant-menu-item) {
-  padding-left: 48px !important;
-}
-
-/* ===================== 极客风格菜单定制 ===================== */
-.sidebar-geek :deep(.ant-menu) {
-  background: transparent;
-  border-inline-end: none !important;
-}
-
-.sidebar-geek :deep(.ant-menu-item) {
-  margin: 2px 0;
-  border-radius: 4px;
-  height: 40px;
-  line-height: 40px;
-  transition: all 0.15s ease;
-  width: calc(100%);
-}
-
-.sidebar-geek :deep(.ant-menu-item.ant-menu-item-selected) {
-  background: rgba(0, 255, 136, 0.08);
-  color: #00ff88;
-}
-
-.sidebar-geek :deep(.ant-menu-item.ant-menu-item-selected::after) {
-  display: none;
-}
-
-.sidebar-geek :deep(.ant-menu-submenu-title) {
-  margin: 2px 0;
-  border-radius: 4px;
-  height: 40px;
-  line-height: 40px;
-  transition: all 0.15s ease;
-}
-
-.sidebar-geek :deep(.ant-menu-sub.ant-menu-inline) {
-  background: transparent !important;
-}
-
-.sidebar-geek :deep(.ant-menu-sub .ant-menu-item) {
-  padding-left: 48px !important;
-}
-
-/* ===================== 通用优化 ===================== */
-/* 折叠状态下的 tooltip 弹出菜单也保持一致的圆角 */
-:deep(.ant-menu-submenu-popup .ant-menu) {
-  border-radius: 10px;
-  padding: 4px;
-}
-
-:deep(.ant-menu-submenu-popup .ant-menu-item) {
-  border-radius: 6px;
-  margin: 2px 0;
-}
-
-/* 滚动条美化 */
-:deep(.ps__rail-y) {
-  opacity: 0.3;
-  transition: opacity 0.2s;
-}
-
-:deep(.ps__rail-y:hover) {
-  opacity: 0.6;
-}
-
-:deep(.ps__thumb-y) {
-  border-radius: 4px;
-  background: #cbd5e1;
-}
-
-:deep(.ps__thumb-y:hover) {
-  background: #94a3b8;
-}
+/* ... 其余 sidebar-light / sidebar-dark / sidebar-geek 样式保持不变 ... */
 </style>

@@ -29,6 +29,8 @@ const { brandPreviewClassName } = useAuthStyles()
       </div>
     </div>
 
-    <div class="mt-3 text-[11px] text-white/60">© {{ year }} {{ appTitle }} Team</div>
+    <div class="mt-3 text-[11px] text-white/60">
+      © {{ year }} {{ appTitle }} Team
+    </div>
   </div>
 </template>

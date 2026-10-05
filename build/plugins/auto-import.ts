@@ -3,10 +3,14 @@ import type { PluginOption } from 'vite'
 import { AntdvNextResolver } from '@antdv-next/auto-import-resolver'
 import iconifyOffline from '@tomjs/vite-plugin-iconify'
 import { join } from 'node:path'
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 import { envParse } from 'vite-plugin-env-parse'
-
+import { VueRouterAutoImports } from 'vue-router/unplugin'
 export function createAutoImportPlugins(): PluginOption[] {
   const root = process.cwd()
 
@@ -19,7 +23,7 @@ export function createAutoImportPlugins(): PluginOption[] {
         {
           'antdv-next': ['message', 'notification', 'Modal', 'Drawer'],
         },
-        'vue-router',
+        VueRouterAutoImports,
       ],
       dts: join(root, '/types/auto-imports.d.ts'),
     }),
@@ -34,7 +38,6 @@ export function createAutoImportPlugins(): PluginOption[] {
     iconifyOffline({
       local: ['carbon', 'ant-design', 'lucide', 'fa6-regular', 'mdi'],
     }),
-    // vite-plugin-env-parse 集成
     envParse({
       dtsPath: join(root, 'types/env.d.ts'),
       parseJson: true,

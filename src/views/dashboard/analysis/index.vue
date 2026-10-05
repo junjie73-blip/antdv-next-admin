@@ -33,7 +33,9 @@ const analyticsCardClassName = cn(
   'rounded-lg border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900',
   'shadow-sm transition-all duration-300 hover:shadow-md',
 )
-const sectionTitleClassName = cn('text-base font-semibold text-gray-800 dark:text-gray-200 mb-4')
+const sectionTitleClassName = cn(
+  'text-base font-semibold text-gray-800 dark:text-gray-200 mb-4',
+)
 
 // ═══════════════════════════════════════════
 // 📈 数据分析图表数据
@@ -87,15 +89,23 @@ const kpiList: KpiItem[] = [
 function kpiIconWrap(color: string): string {
   const map: Record<string, string> = {
     blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400',
-    emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400',
-    violet: 'bg-violet-50 text-violet-600 dark:bg-violet-900/40 dark:text-violet-400',
-    amber: 'bg-amber-50 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400',
+    emerald:
+      'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400',
+    violet:
+      'bg-violet-50 text-violet-600 dark:bg-violet-900/40 dark:text-violet-400',
+    amber:
+      'bg-amber-50 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400',
   }
-  return cn('w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0', map[color] || map.blue)
+  return cn(
+    'w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0',
+    map[color] || map.blue,
+  )
 }
 
 function kpiTrendColor(trend: number): string {
-  return trend >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+  return trend >= 0
+    ? 'text-emerald-600 dark:text-emerald-400'
+    : 'text-red-600 dark:text-red-400'
 }
 
 // ECharts 主题工具函数
@@ -122,17 +132,24 @@ function baseOption(extra: Record<string, any> = {}): Record<string, any> {
       backgroundColor: tooltipBg(),
       borderColor: borderColor(),
       textStyle: { color: textColor(), fontSize: 13 },
-      extraCssText: 'border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1);',
+      extraCssText:
+        'border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1);',
     },
     ...extra,
   }
 }
 
 function gradient(colors: [string, string], vertical = true) {
-  return new echarts.graphic.LinearGradient(0, 0, vertical ? 0 : 1, vertical ? 1 : 0, [
-    { offset: 0, color: colors[0] },
-    { offset: 1, color: colors[1] },
-  ])
+  return new echarts.graphic.LinearGradient(
+    0,
+    0,
+    vertical ? 0 : 1,
+    vertical ? 1 : 0,
+    [
+      { offset: 0, color: colors[0] },
+      { offset: 1, color: colors[1] },
+    ],
+  )
 }
 
 const PALETTE = {
@@ -152,9 +169,15 @@ function initMainTrend() {
   charts.set('mainTrend', instance)
 
   const days = Array.from({ length: 30 }, (_, i) => `${i + 1}日`)
-  const pv = Array.from({ length: 30 }, () => Math.floor(Math.random() * 5000 + 3000))
-  const uv = Array.from({ length: 30 }, () => Math.floor(Math.random() * 2000 + 800))
-  const apiCalls = Array.from({ length: 30 }, () => Math.floor(Math.random() * 80000 + 40000))
+  const pv = Array.from({ length: 30 }, () =>
+    Math.floor(Math.random() * 5000 + 3000),
+  )
+  const uv = Array.from({ length: 30 }, () =>
+    Math.floor(Math.random() * 2000 + 800),
+  )
+  const apiCalls = Array.from({ length: 30 }, () =>
+    Math.floor(Math.random() * 80000 + 40000),
+  )
 
   instance.setOption(
     baseOption({
@@ -167,7 +190,13 @@ function initMainTrend() {
         itemHeight: 3,
         itemGap: 20,
       },
-      grid: { left: '3%', right: '4%', top: '36px', bottom: '8%', containLabel: true },
+      grid: {
+        left: '3%',
+        right: '4%',
+        top: '36px',
+        bottom: '8%',
+        containLabel: true,
+      },
       xAxis: {
         type: 'category',
         data: days,
@@ -182,7 +211,9 @@ function initMainTrend() {
           name: '访问量',
           nameTextStyle: { color: subTextColor(), fontSize: 11 },
           axisLabel: { color: subTextColor(), fontSize: 11 },
-          splitLine: { lineStyle: { color: borderColor(), type: 'dashed', opacity: 0.5 } },
+          splitLine: {
+            lineStyle: { color: borderColor(), type: 'dashed', opacity: 0.5 },
+          },
           position: 'left',
         },
         {
@@ -206,7 +237,9 @@ function initMainTrend() {
           smooth: true,
           symbol: 'none',
           lineStyle: { color: PALETTE.primary, width: 2.5 },
-          areaStyle: { color: gradient(['rgba(22,119,255,0.18)', 'rgba(22,119,255,0.01)']) },
+          areaStyle: {
+            color: gradient(['rgba(22,119,255,0.18)', 'rgba(22,119,255,0.01)']),
+          },
           emphasis: { focus: 'series' },
         },
         {
@@ -216,7 +249,9 @@ function initMainTrend() {
           smooth: true,
           symbol: 'none',
           lineStyle: { color: PALETTE.success, width: 2 },
-          areaStyle: { color: gradient(['rgba(82,196,26,0.12)', 'rgba(82,196,26,0.01)']) },
+          areaStyle: {
+            color: gradient(['rgba(82,196,26,0.12)', 'rgba(82,196,26,0.01)']),
+          },
           emphasis: { focus: 'series' },
         },
         {
@@ -282,11 +317,23 @@ function initTrafficDist() {
           },
           label: { show: false },
           emphasis: {
-            label: { show: true, fontSize: 14, fontWeight: 'bold', color: textColor() },
+            label: {
+              show: true,
+              fontSize: 14,
+              fontWeight: 'bold',
+              color: textColor(),
+            },
             scaleSize: 8,
           },
           data,
-          color: [PALETTE.primary, PALETTE.success, PALETTE.warning, PALETTE.info, PALETTE.cyan, PALETTE.danger],
+          color: [
+            PALETTE.primary,
+            PALETTE.success,
+            PALETTE.warning,
+            PALETTE.info,
+            PALETTE.cyan,
+            PALETTE.danger,
+          ],
         },
       ],
     }),
@@ -411,9 +458,13 @@ function initActivityHeatmap() {
   const instance = echarts.init(el, isDark.value ? 'dark' : undefined)
   charts.set('activityHeatmap', instance)
 
-  const hours = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, '0')}:00`)
+  const hours = Array.from(
+    { length: 24 },
+    (_, i) => `${String(i).padStart(2, '0')}:00`,
+  )
   const errorRates = hours.map((_, i) => {
-    const baseError = i >= 9 && i <= 18 ? 0.8 + Math.random() * 1.5 : 0.1 + Math.random() * 0.4
+    const baseError =
+      i >= 9 && i <= 18 ? 0.8 + Math.random() * 1.5 : 0.1 + Math.random() * 0.4
     const spike = Math.random() > 0.9 ? 3 + Math.random() * 2 : 0
     return Number((baseError + spike).toFixed(2))
   })
@@ -430,7 +481,13 @@ function initActivityHeatmap() {
         top: 0,
         textStyle: { color: subTextColor(), fontSize: 10 },
       },
-      grid: { left: '3%', right: '4%', top: '32px', bottom: '10%', containLabel: true },
+      grid: {
+        left: '3%',
+        right: '4%',
+        top: '32px',
+        bottom: '10%',
+        containLabel: true,
+      },
       xAxis: {
         type: 'category',
         data: hours,
@@ -442,8 +499,14 @@ function initActivityHeatmap() {
         type: 'value',
         name: '错误率 (%)',
         nameTextStyle: { color: subTextColor(), fontSize: 10 },
-        axisLabel: { color: subTextColor(), fontSize: 9, formatter: '{value}%' },
-        splitLine: { lineStyle: { color: borderColor(), type: 'dashed', opacity: 0.4 } },
+        axisLabel: {
+          color: subTextColor(),
+          fontSize: 9,
+          formatter: '{value}%',
+        },
+        splitLine: {
+          lineStyle: { color: borderColor(), type: 'dashed', opacity: 0.4 },
+        },
       },
       series: [
         {
@@ -453,7 +516,9 @@ function initActivityHeatmap() {
           smooth: true,
           symbol: 'none',
           lineStyle: { color: PALETTE.danger, width: 2 },
-          areaStyle: { color: gradient(['rgba(255,77,79,0.15)', 'rgba(255,77,79,0.01)']) },
+          areaStyle: {
+            color: gradient(['rgba(255,77,79,0.15)', 'rgba(255,77,79,0.01)']),
+          },
         },
         {
           name: '4xx 客户端错误',
@@ -541,7 +606,16 @@ function initModuleRank() {
   const instance = echarts.init(el, isDark.value ? 'dark' : undefined)
   charts.set('moduleRank', instance)
 
-  const modules = ['用户管理', '角色权限', '菜单配置', '字典数据', '系统设置', '操作日志', '在线用户', '定时任务']
+  const modules = [
+    '用户管理',
+    '角色权限',
+    '菜单配置',
+    '字典数据',
+    '系统设置',
+    '操作日志',
+    '在线用户',
+    '定时任务',
+  ]
   let round = 0
 
   function update() {
@@ -554,16 +628,27 @@ function initModuleRank() {
     ]
     const current = baseData[round % baseData.length]!
     const sorted = modules
-      .map((name, i) => ({ name, value: current[i]! + Math.round(Math.random() * 30 - 15) }))
+      .map((name, i) => ({
+        name,
+        value: current[i]! + Math.round(Math.random() * 30 - 15),
+      }))
       .sort((a, b) => b.value - a.value)
 
     instance.setOption({
-      grid: { left: '2%', right: '8%', top: '2%', bottom: '2%', containLabel: true },
+      grid: {
+        left: '2%',
+        right: '8%',
+        top: '2%',
+        bottom: '2%',
+        containLabel: true,
+      },
       xAxis: {
         type: 'value',
         max: 600,
         axisLabel: { color: subTextColor(), fontSize: 10 },
-        splitLine: { lineStyle: { color: borderColor(), type: 'dashed', opacity: 0.4 } },
+        splitLine: {
+          lineStyle: { color: borderColor(), type: 'dashed', opacity: 0.4 },
+        },
       },
       yAxis: {
         type: 'category',
@@ -579,7 +664,10 @@ function initModuleRank() {
           data: sorted.map((d) => ({
             value: d.value,
             itemStyle: {
-              color: gradient([PALETTE.primary, 'rgba(22,119,255,0.25)'], false),
+              color: gradient(
+                [PALETTE.primary, 'rgba(22,119,255,0.25)'],
+                false,
+              ),
               borderRadius: [0, 4, 4, 0],
             },
           })),
@@ -653,7 +741,11 @@ function handleExportReport() {
   ctx.fillText('数据可视化报告', padding, padding + 32)
   ctx.fillStyle = isDark.value ? '#9ca3af' : '#6b7280'
   ctx.font = '14px -apple-system, "SF Pro Text", sans-serif'
-  ctx.fillText(`生成时间：${new Date().toLocaleString('zh-CN')}`, padding, padding + 58)
+  ctx.fillText(
+    `生成时间：${new Date().toLocaleString('zh-CN')}`,
+    padding,
+    padding + 58,
+  )
   ctx.fillStyle = isDark.value ? '#374151' : '#e5e7eb'
   ctx.fillRect(padding, padding + 70, canvas.width / 2 - padding * 2, 1)
 
@@ -677,7 +769,13 @@ function handleExportReport() {
         img.onload = () => {
           const ratio = (canvas.width / 2 - padding * 2) / img.width
           const drawH = img.height * ratio
-          ctx.drawImage(img, padding, offsetY, canvas.width / 2 - padding * 2, drawH)
+          ctx.drawImage(
+            img,
+            padding,
+            offsetY,
+            canvas.width / 2 - padding * 2,
+            drawH,
+          )
           offsetY += drawH + chartGap
           if (item === CHART_EXPORT_CONFIG[CHART_EXPORT_CONFIG.length - 1]) {
             triggerDownload()
@@ -699,7 +797,12 @@ function handleExportReport() {
 
     if (item !== CHART_EXPORT_CONFIG[CHART_EXPORT_CONFIG.length - 1]) {
       ctx.fillStyle = isDark.value ? '#374151' : '#e5e7eb'
-      ctx.fillRect(padding, offsetY - chartGap / 2, canvas.width / 2 - padding * 2, 1)
+      ctx.fillRect(
+        padding,
+        offsetY - chartGap / 2,
+        canvas.width / 2 - padding * 2,
+        1,
+      )
     }
   }
 
@@ -720,7 +823,11 @@ function handleExportReport() {
 
 // ========== 生命周期 ==========
 
-function safeInit(name: string, refEl: Ref<HTMLDivElement | undefined>, initFn: (el: HTMLDivElement) => void) {
+function safeInit(
+  name: string,
+  refEl: Ref<HTMLDivElement | undefined>,
+  initFn: (el: HTMLDivElement) => void,
+) {
   const el = refEl.value
   if (!el || charts.has(name)) return
 
@@ -791,11 +898,19 @@ onBeforeUnmount(() => {
     <!-- 页面标题 -->
     <div class="mb-2 flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">数据分析</h1>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">系统数据分析与可视化</p>
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
+          数据分析
+        </h1>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          系统数据分析与可视化
+        </p>
       </div>
       <a-space>
-        <a-segmented :options="['今日', '近7天', '近30天']" default-value="今日" size="small" />
+        <a-segmented
+          :options="['今日', '近7天', '近30天']"
+          default-value="今日"
+          size="small"
+        />
         <a-button size="small" @click="handleExportReport">
           <template #icon>
             <Icon icon="carbon:download" />
@@ -823,7 +938,9 @@ onBeforeUnmount(() => {
                 <Icon :icon="kpi.icon" :width="22" :height="22" />
               </div>
               <div class="min-w-0 flex-1">
-                <p class="text-2xl leading-tight font-bold tracking-tight text-gray-800 dark:text-white">
+                <p
+                  class="text-2xl leading-tight font-bold tracking-tight text-gray-800 dark:text-white"
+                >
                   {{ kpi.value }}
                 </p>
                 <p class="mt-1 text-sm text-gray-400 dark:text-gray-500">
@@ -831,15 +948,25 @@ onBeforeUnmount(() => {
                 </p>
                 <div class="mt-1.5 flex items-center gap-1">
                   <Icon
-                    :icon="kpi.trend >= 0 ? 'carbon:arrow-up' : 'carbon:arrow-down'"
+                    :icon="
+                      kpi.trend >= 0 ? 'carbon:arrow-up' : 'carbon:arrow-down'
+                    "
                     :width="12"
                     :height="12"
-                    :class="kpi.trend >= 0 ? 'text-emerald-500' : 'text-red-500'"
+                    :class="
+                      kpi.trend >= 0 ? 'text-emerald-500' : 'text-red-500'
+                    "
                   />
-                  <span :class="cn('text-xs font-semibold', kpiTrendColor(kpi.trend))">
+                  <span
+                    :class="
+                      cn('text-xs font-semibold', kpiTrendColor(kpi.trend))
+                    "
+                  >
                     {{ Math.abs(kpi.trend) }}%
                   </span>
-                  <span class="text-xs text-gray-400">{{ kpi.trendLabel }}</span>
+                  <span class="text-xs text-gray-400">{{
+                    kpi.trendLabel
+                  }}</span>
                 </div>
               </div>
             </div>
@@ -856,7 +983,12 @@ onBeforeUnmount(() => {
       >
         <div class="mb-4 flex items-center justify-between">
           <h3 :class="sectionTitleClassName">系统活动趋势</h3>
-          <a-radio-group size="small" button-style="solid" default-value="pv" class="origin-right scale-90">
+          <a-radio-group
+            size="small"
+            button-style="solid"
+            default-value="pv"
+            class="origin-right scale-90"
+          >
             <a-radio-button value="pv"> PV / UV </a-radio-button>
             <a-radio-button value="api"> API 调用 </a-radio-button>
           </a-radio-group>
@@ -867,13 +999,21 @@ onBeforeUnmount(() => {
       <!-- 第二行：分布 + 仪表盘 -->
       <a-row :gutter="[16, 16]" class="mt-6">
         <a-col :xs="24" :lg="12">
-          <a-card :class="analyticsCardClassName" variant="borderless" :styles="{ body: { padding: '20px 24px' } }">
+          <a-card
+            :class="analyticsCardClassName"
+            variant="borderless"
+            :styles="{ body: { padding: '20px 24px' } }"
+          >
             <h3 :class="sectionTitleClassName">流量来源分布</h3>
             <div ref="trafficDistRef" class="w-full" style="height: 320px" />
           </a-card>
         </a-col>
         <a-col :xs="24" :lg="12">
-          <a-card :class="analyticsCardClassName" variant="borderless" :styles="{ body: { padding: '20px 24px' } }">
+          <a-card
+            :class="analyticsCardClassName"
+            variant="borderless"
+            :styles="{ body: { padding: '20px 24px' } }"
+          >
             <h3 :class="sectionTitleClassName">系统健康度</h3>
             <div ref="systemHealthRef" class="w-full" style="height: 320px" />
           </a-card>
@@ -883,15 +1023,27 @@ onBeforeUnmount(() => {
       <!-- 第三行：雷达图 + 热力图 -->
       <a-row :gutter="[16, 16]">
         <a-col :xs="24" :lg="12">
-          <a-card :class="analyticsCardClassName" variant="borderless" :styles="{ body: { padding: '20px 24px' } }">
+          <a-card
+            :class="analyticsCardClassName"
+            variant="borderless"
+            :styles="{ body: { padding: '20px 24px' } }"
+          >
             <h3 :class="sectionTitleClassName">资源使用概况</h3>
             <div ref="resourceRadarRef" class="w-full" style="height: 320px" />
           </a-card>
         </a-col>
         <a-col :xs="24" :lg="12">
-          <a-card :class="analyticsCardClassName" variant="borderless" :styles="{ body: { padding: '20px 24px' } }">
+          <a-card
+            :class="analyticsCardClassName"
+            variant="borderless"
+            :styles="{ body: { padding: '20px 24px' } }"
+          >
             <h3 :class="sectionTitleClassName">API 错误率趋势</h3>
-            <div ref="activityHeatmapRef" class="w-full" style="height: 320px" />
+            <div
+              ref="activityHeatmapRef"
+              class="w-full"
+              style="height: 320px"
+            />
           </a-card>
         </a-col>
       </a-row>
@@ -902,26 +1054,54 @@ onBeforeUnmount(() => {
           <a-card
             :class="cn(analyticsCardClassName, 'h-full')"
             variant="borderless"
-            :styles="{ body: { padding: '20px 24px', display: 'flex', flexDirection: 'column' } }"
+            :styles="{
+              body: {
+                padding: '20px 24px',
+                display: 'flex',
+                flexDirection: 'column',
+              },
+            }"
           >
             <h3 :class="sectionTitleClassName">用户行为漏斗</h3>
-            <div ref="userJourneyRef" class="w-full flex-1" style="min-height: 280px" />
+            <div
+              ref="userJourneyRef"
+              class="w-full flex-1"
+              style="min-height: 280px"
+            />
           </a-card>
         </a-col>
         <a-col :xs="24" :lg="14" class="mb-2">
           <a-card
             :class="cn(analyticsCardClassName, 'h-full')"
             variant="borderless"
-            :styles="{ body: { padding: '20px 24px', display: 'flex', flexDirection: 'column' } }"
+            :styles="{
+              body: {
+                padding: '20px 24px',
+                display: 'flex',
+                flexDirection: 'column',
+              },
+            }"
           >
             <div class="mb-4 flex items-center justify-between">
               <h3 :class="sectionTitleClassName">模块使用热度</h3>
               <a-tag color="blue" class="text-[11px]"> 实时更新 </a-tag>
             </div>
-            <div ref="moduleRankRef" class="w-full flex-1" style="min-height: 280px" />
+            <div
+              ref="moduleRankRef"
+              class="w-full flex-1"
+              style="min-height: 280px"
+            />
           </a-card>
         </a-col>
       </a-row>
     </div>
   </div>
 </template>
+<route lang="json">
+{
+  "name": "Analysis",
+  "meta": {
+    "title": "系统分析"
+  }
+}
+</route>

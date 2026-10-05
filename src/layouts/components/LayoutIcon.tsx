@@ -19,7 +19,13 @@ interface Colors {
 // ============================================================
 // 纵向
 // ============================================================
-function VerticalIcon({ active, colors }: { active?: boolean; colors: Colors }) {
+function VerticalIcon({
+  active,
+  colors,
+}: {
+  active?: boolean
+  colors: Colors
+}) {
   const c = getColors(active, colors)
   return (
     <svg viewBox="0 0 48 36" class="h-auto w-full">
@@ -44,7 +50,13 @@ function VerticalIcon({ active, colors }: { active?: boolean; colors: Colors }) 
 // ============================================================
 // 横向
 // ============================================================
-function HorizontalIcon({ active, colors }: { active?: boolean; colors: Colors }) {
+function HorizontalIcon({
+  active,
+  colors,
+}: {
+  active?: boolean
+  colors: Colors
+}) {
   const c = getColors(active, colors)
   return (
     <svg viewBox="0 0 48 36" class="h-auto w-full">
@@ -129,7 +141,14 @@ function DoubleIcon({ active, colors }: { active?: boolean; colors: Colors }) {
       {/* 左窄栏 */}
       <rect x="0" y="0" width="6" height="36" rx="1" fill={c.bar} />
       <rect x="1.5" y="4" width="3" height="1.5" rx="0.5" fill={c.menuLine} />
-      <rect x="1.5" y="7" width="3" height="1.5" rx="0.5" fill={c.menuLineSoft} />
+      <rect
+        x="1.5"
+        y="7"
+        width="3"
+        height="1.5"
+        rx="0.5"
+        fill={c.menuLineSoft}
+      />
 
       {/* 中菜单栏 */}
       <rect x="6" y="0" width="12" height="36" fill={c.barSoft} />

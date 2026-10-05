@@ -45,7 +45,8 @@ function reportProgress(force = false): void {
     type: 'progress',
     received: receivedChunks,
     total: totalChunks,
-    percent: totalChunks > 0 ? Math.round((receivedChunks / totalChunks) * 100) : 0,
+    percent:
+      totalChunks > 0 ? Math.round((receivedChunks / totalChunks) * 100) : 0,
   })
 }
 

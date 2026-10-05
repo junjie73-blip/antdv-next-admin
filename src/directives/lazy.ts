@@ -38,8 +38,16 @@ const loadedImages = new Set<string>()
 /**
  * 创建 IntersectionObserver 实例
  */
-function createObserver(el: HTMLImageElement, options: LazyOptions): IntersectionObserver {
-  const { rootMargin = '100px', threshold = 0.1, fade = true, duration = 300 } = options
+function createObserver(
+  el: HTMLImageElement,
+  options: LazyOptions,
+): IntersectionObserver {
+  const {
+    rootMargin = '100px',
+    threshold = 0.1,
+    fade = true,
+    duration = 300,
+  } = options
 
   return new IntersectionObserver(
     (entries) => {
@@ -62,7 +70,12 @@ function createObserver(el: HTMLImageElement, options: LazyOptions): Intersectio
 /**
  * 加载图片
  */
-function loadImage(el: HTMLImageElement, options: LazyOptions, fade: boolean, duration: number): void {
+function loadImage(
+  el: HTMLImageElement,
+  options: LazyOptions,
+  fade: boolean,
+  duration: number,
+): void {
   const { src, placeholder, error } = options
 
   // 显示占位图
@@ -116,7 +129,10 @@ function loadImage(el: HTMLImageElement, options: LazyOptions, fade: boolean, du
  * 指令实现
  */
 const lazyDirective: Directive<HTMLImageElement, string | LazyOptions> = {
-  mounted(el: HTMLImageElement, binding: DirectiveBinding<string | LazyOptions>) {
+  mounted(
+    el: HTMLImageElement,
+    binding: DirectiveBinding<string | LazyOptions>,
+  ) {
     // 解析参数
     let options: LazyOptions
 
@@ -148,9 +164,13 @@ const lazyDirective: Directive<HTMLImageElement, string | LazyOptions> = {
     ;(el as any)._lazyObserver = observer
   },
 
-  updated(el: HTMLImageElement, binding: DirectiveBinding<string | LazyOptions>) {
+  updated(
+    el: HTMLImageElement,
+    binding: DirectiveBinding<string | LazyOptions>,
+  ) {
     // 如果 src 变化，重新观察
-    const newSrc = typeof binding.value === 'string' ? binding.value : binding.value?.src
+    const newSrc =
+      typeof binding.value === 'string' ? binding.value : binding.value?.src
     const oldSrc = el.dataset.src
 
     if (newSrc && newSrc !== oldSrc) {
@@ -164,7 +184,9 @@ const lazyDirective: Directive<HTMLImageElement, string | LazyOptions> = {
 
   unmounted(el: HTMLImageElement) {
     // 清理观察者
-    const observer = (el as any)._lazyObserver as IntersectionObserver | undefined
+    const observer = (el as any)._lazyObserver as
+      | IntersectionObserver
+      | undefined
     if (observer) {
       observer.disconnect()
       delete (el as any)._lazyObserver

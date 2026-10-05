@@ -31,7 +31,9 @@ export function resolveAccess(
   if (arg === 'role') {
     if (Array.isArray(value)) {
       if (value.length === 0) return true
-      return modifiers.all ? helpers.hasAllRoles(value) : helpers.hasAnyRole(value)
+      return modifiers.all
+        ? helpers.hasAllRoles(value)
+        : helpers.hasAnyRole(value)
     }
     return helpers.hasRole(String(value ?? ''))
   }
@@ -53,7 +55,9 @@ export function resolveAccess(
   /* ---------- 4. 数组 ---------- */
   if (Array.isArray(value)) {
     if (value.length === 0) return true
-    return modifiers.all ? helpers.hasAllPermissions(value) : helpers.hasAnyPermission(value)
+    return modifiers.all
+      ? helpers.hasAllPermissions(value)
+      : helpers.hasAnyPermission(value)
   }
 
   /* ---------- 5. 对象 ---------- */
@@ -71,7 +75,10 @@ export function resolveAccess(
  * 判断 binding 是否需要重新计算
  * 只在 value / arg 真正变化时才重跑
  */
-export function isBindingChanged(prev: DirectiveBinding<any> | null, next: DirectiveBinding<any>): boolean {
+export function isBindingChanged(
+  prev: DirectiveBinding<any> | null,
+  next: DirectiveBinding<any>,
+): boolean {
   if (!prev) return true
   if (prev.arg !== next.arg) return true
   return !isSameValue(prev.value, next.value)

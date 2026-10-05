@@ -3,7 +3,9 @@ import { mergeAttributes, Node } from '@tiptap/vue-3'
 const VIDEO_TAG = 'div[data-w-e-type="video"]'
 
 function readVideo(element: HTMLElement): HTMLVideoElement | null {
-  return element.tagName === 'VIDEO' ? (element as HTMLVideoElement) : element.querySelector('video')
+  return element.tagName === 'VIDEO'
+    ? (element as HTMLVideoElement)
+    : element.querySelector('video')
 }
 
 function readAttr(element: HTMLElement, name: string): string | null {
@@ -29,12 +31,25 @@ export const Video = Node.create({
         parseHTML: (element) => {
           const video = readVideo(element as HTMLElement)
           if (!video) return null
-          return video.getAttribute('src') ?? video.querySelector('source')?.getAttribute('src') ?? null
+          return (
+            video.getAttribute('src') ??
+            video.querySelector('source')?.getAttribute('src') ??
+            null
+          )
         },
       },
-      poster: { default: null, parseHTML: (element) => readAttr(element as HTMLElement, 'poster') },
-      width: { default: null, parseHTML: (element) => readAttr(element as HTMLElement, 'width') },
-      height: { default: null, parseHTML: (element) => readAttr(element as HTMLElement, 'height') },
+      poster: {
+        default: null,
+        parseHTML: (element) => readAttr(element as HTMLElement, 'poster'),
+      },
+      width: {
+        default: null,
+        parseHTML: (element) => readAttr(element as HTMLElement, 'width'),
+      },
+      height: {
+        default: null,
+        parseHTML: (element) => readAttr(element as HTMLElement, 'height'),
+      },
     }
   },
 
@@ -48,8 +63,15 @@ export const Video = Node.create({
     // 与 wangEditor 一致：地址放在 <source> 上，video 只承载展示属性
     return [
       'div',
-      mergeAttributes({ 'data-w-e-type': 'video', 'data-w-e-is-void': '' }, rest),
-      ['video', { controls: 'true', poster, width, height }, ['source', { src, type: 'video/mp4' }]],
+      mergeAttributes(
+        { 'data-w-e-type': 'video', 'data-w-e-is-void': '' },
+        rest,
+      ),
+      [
+        'video',
+        { controls: 'true', poster, width, height },
+        ['source', { src, type: 'video/mp4' }],
+      ],
     ]
   },
 })

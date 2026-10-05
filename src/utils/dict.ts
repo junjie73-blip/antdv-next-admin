@@ -15,7 +15,10 @@ export function getDictLabel(dictType: string, value: any): string {
 /**
  * 批量获取（多个值用逗号分隔时）
  */
-export function getDictLabels(dictType: string, value: string | string[]): string {
+export function getDictLabels(
+  dictType: string,
+  value: string | string[],
+): string {
   if (!value) return '-'
   const values = Array.isArray(value) ? value : String(value).split(',')
   return values.map((v) => getDictLabel(dictType, v)).join('、')

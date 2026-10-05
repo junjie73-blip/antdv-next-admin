@@ -6,7 +6,9 @@ import { MotionPlugin } from '@vueuse/motion'
 import PdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
-import VuePdfEmbed, { GlobalWorkerOptions } from 'vue-pdf-embed/dist/index.essential.mjs'
+import VuePdfEmbed, {
+  GlobalWorkerOptions,
+} from 'vue-pdf-embed/dist/index.essential.mjs'
 import { PerfectScrollbarPlugin } from 'vue3-perfect-scrollbar'
 
 import App from './App.vue'
@@ -24,7 +26,12 @@ import 'vue-pdf-embed/dist/styles/textLayer.css'
 formCreate.use(install)
 const app = createApp(App)
 const pinia = createPinia()
-
+app.use(pinia)
+app.use(i18n)
+app.use(formCreate)
+app.use(FcDesigner)
+app.use(PerfectScrollbarPlugin)
+app.use(MotionPlugin)
 if (import.meta.env.PROD) {
   Sentry.init({
     app,
@@ -35,7 +42,10 @@ if (import.meta.env.PROD) {
       // userInfo: false,
       // httpBodies: []
     },
-    integrations: [Sentry.browserTracingIntegration({ router: setupRouter(app) }), Sentry.replayIntegration()],
+    integrations: [
+      Sentry.browserTracingIntegration({ router: setupRouter(app) }),
+      Sentry.replayIntegration(),
+    ],
     // Tracing
     tracesSampleRate: 1.0, // Capture 100% of the transactions
     // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
@@ -48,12 +58,6 @@ if (import.meta.env.PROD) {
   setupRouter(app)
 }
 
-app.use(pinia)
-app.use(i18n)
-app.use(formCreate)
-app.use(FcDesigner)
-app.use(PerfectScrollbarPlugin)
-app.use(MotionPlugin)
 // ==================== 初始化安全防护系统 ====================
 // 在应用启动时立即初始化 CSRF Token 和安全配置
 initSecuritySystem({

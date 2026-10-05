@@ -1,9 +1,17 @@
-import type { WebSocketEventCallback, WebSocketEventHandlers, WebSocketEventType } from './types'
+import type {
+  WebSocketEventCallback,
+  WebSocketEventHandlers,
+  WebSocketEventType,
+} from './types'
 
 export class EventManager {
-  private eventHandlers: Map<WebSocketEventType, Set<WebSocketEventCallback>> = new Map()
+  private eventHandlers: Map<WebSocketEventType, Set<WebSocketEventCallback>> =
+    new Map()
 
-  on<T = unknown>(eventType: WebSocketEventType, callback: WebSocketEventCallback<T>): () => void {
+  on<T = unknown>(
+    eventType: WebSocketEventType,
+    callback: WebSocketEventCallback<T>,
+  ): () => void {
     if (!this.eventHandlers.has(eventType)) {
       this.eventHandlers.set(eventType, new Set())
     }
@@ -19,7 +27,10 @@ export class EventManager {
     }
   }
 
-  once<T = unknown>(eventType: WebSocketEventType, callback: WebSocketEventCallback<T>): () => void {
+  once<T = unknown>(
+    eventType: WebSocketEventType,
+    callback: WebSocketEventCallback<T>,
+  ): () => void {
     const wrappedCallback = (data: T) => {
       callback(data)
       this.off(eventType, wrappedCallback as WebSocketEventCallback)

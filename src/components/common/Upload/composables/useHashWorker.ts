@@ -1,7 +1,12 @@
 import UploadWorker from '../upload.worker?worker'
 
 interface HashWorkerCallbacks {
-  onProgress?: (received: number, total: number, percent: number, mimeType?: string) => void
+  onProgress?: (
+    received: number,
+    total: number,
+    percent: number,
+    mimeType?: string,
+  ) => void
   onComplete?: (hash: string) => void
   onError?: (message: string) => void
 }
@@ -16,7 +21,10 @@ export interface HashTask {
   promise: Promise<string>
 }
 
-export function computeFileHash(options: HashTaskOptions, callbacks?: HashWorkerCallbacks): HashTask {
+export function computeFileHash(
+  options: HashTaskOptions,
+  callbacks?: HashWorkerCallbacks,
+): HashTask {
   const { file, chunkSize } = options
 
   const worker = new UploadWorker()
@@ -34,7 +42,13 @@ export function computeFileHash(options: HashTaskOptions, callbacks?: HashWorker
   worker.onmessage = (e: MessageEvent) => {
     const msg = e.data as
       | { type: 'ready' }
-      | { type: 'progress'; received: number; total: number; percent: number; mimeType?: string }
+      | {
+          type: 'progress'
+          received: number
+          total: number
+          percent: number
+          mimeType?: string
+        }
       | { type: 'complete'; hash: string }
       | { type: 'error'; message: string }
       | { type: 'canceled' }
@@ -44,7 +58,12 @@ export function computeFileHash(options: HashTaskOptions, callbacks?: HashWorker
         void feedChunks()
         break
       case 'progress':
-        callbacks?.onProgress?.(msg.received, msg.total, msg.percent, msg.mimeType)
+        callbacks?.onProgress?.(
+          msg.received,
+          msg.total,
+          msg.percent,
+          msg.mimeType,
+        )
         break
       case 'complete':
         cleanup()

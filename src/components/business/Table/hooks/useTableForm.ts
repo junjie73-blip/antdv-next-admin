@@ -24,7 +24,10 @@ interface UseTableFormReturn {
   getForm: () => FormActionType | null
   getFormProps: ComputedRef<Partial<FormProps>>
   handleSearchInfoFn: (info: Recordable) => Recordable
-  replaceFormSchemaKey: (values: Recordable, schemas: FormSchema[]) => Recordable
+  replaceFormSchemaKey: (
+    values: Recordable,
+    schemas: FormSchema[],
+  ) => Recordable
   processFormSchema: (schemas: FormSchema[]) => FormSchema[]
 }
 
@@ -32,11 +35,18 @@ interface UseTableFormReturn {
  * 处理时间字段映射
  * 将时间范围字段拆分为开始和结束字段
  */
-function handleRangeTimeValue(values: Recordable, fieldMapToTime?: [string, [string, string], string?][]): Recordable {
+function handleRangeTimeValue(
+  values: Recordable,
+  fieldMapToTime?: [string, [string, string], string?][],
+): Recordable {
   if (!fieldMapToTime || !Array.isArray(fieldMapToTime)) return values
   const result = { ...values }
 
-  for (const [field, [startKey, endKey], format = 'YYYY-MM-DD'] of fieldMapToTime) {
+  for (const [
+    field,
+    [startKey, endKey],
+    format = 'YYYY-MM-DD',
+  ] of fieldMapToTime) {
     const value = result[field]
     if (value && Array.isArray(value) && value.length === 2) {
       const [start, end] = value
@@ -77,7 +87,10 @@ function formatDate(date: Date, format: string): string {
  * 处理表单字段名替换
  * 支持将表单字段名映射为 API 参数名
  */
-function replaceSchemaKey(values: Recordable, schemas: FormSchema[]): Recordable {
+function replaceSchemaKey(
+  values: Recordable,
+  schemas: FormSchema[],
+): Recordable {
   const result: Recordable = {}
 
   Object.keys(values).forEach((key) => {
@@ -98,7 +111,9 @@ function replaceSchemaKey(values: Recordable, schemas: FormSchema[]): Recordable
  * 处理搜索表单相关逻辑
  * 集成 BasicForm 组件，处理搜索参数转换和提交
  */
-export function useTableForm(options?: UseTableFormOptions): UseTableFormReturn {
+export function useTableForm(
+  options?: UseTableFormOptions,
+): UseTableFormReturn {
   const {
     propsRef,
     baseProps,
@@ -186,7 +201,8 @@ export function useTableForm(options?: UseTableFormOptions): UseTableFormReturn 
     let result = replaceSchemaKey(info, schemas)
 
     // 处理时间范围字段（优先从 options 获取，其次从 props 获取）
-    const fieldMapToTime = fieldMapToTimeOption || props.formConfig?.fieldMapToTime
+    const fieldMapToTime =
+      fieldMapToTimeOption || props.formConfig?.fieldMapToTime
     if (fieldMapToTime) {
       result = handleRangeTimeValue(result, fieldMapToTime)
     }
@@ -196,7 +212,10 @@ export function useTableForm(options?: UseTableFormOptions): UseTableFormReturn 
   /**
    * 替换表单 schema 中的 key
    */
-  const replaceFormSchemaKey = (values: Recordable, schemas: FormSchema[]): Recordable => {
+  const replaceFormSchemaKey = (
+    values: Recordable,
+    schemas: FormSchema[],
+  ): Recordable => {
     return replaceSchemaKey(values, schemas)
   }
 

@@ -74,9 +74,13 @@ const { start: scheduleHide, stop: cancelHide } = useTimeoutFn(
   { immediate: false },
 )
 
-const barVisible = computed(() => props.always || isScrolling.value || isHovering.value)
+const barVisible = computed(
+  () => props.always || isScrolling.value || isHovering.value,
+)
 
-const barVisibleClass = computed(() => (barVisible.value ? 'opacity-100' : 'opacity-0 pointer-events-none'))
+const barVisibleClass = computed(() =>
+  barVisible.value ? 'opacity-100' : 'opacity-0 pointer-events-none',
+)
 
 /* ============================================================
  * 根容器样式
@@ -158,7 +162,8 @@ const update = () => {
  * ============================================================ */
 useEventListener(wrap, 'scroll', handleScroll, { passive: true })
 
-const shouldObserveResize = () => customScrollbarEnabled.value && !props.noresize
+const shouldObserveResize = () =>
+  customScrollbarEnabled.value && !props.noresize
 
 useResizeObserver(wrap, () => {
   if (shouldObserveResize()) update()
@@ -201,7 +206,9 @@ const { pause: pauseRaf, resume: resumeRaf } = useRafFn(
   { immediate: false },
 )
 
-const { start: startDelayedUpdate } = useTimeoutFn(safeUpdate, 50, { immediate: false })
+const { start: startDelayedUpdate } = useTimeoutFn(safeUpdate, 50, {
+  immediate: false,
+})
 
 onMounted(() => {
   if (!customScrollbarEnabled.value) return
@@ -242,7 +249,10 @@ defineExpose({
 <template>
   <div
     ref="rootRef"
-    :class="['group/scrollbar relative flex min-h-0 flex-col overflow-hidden', rootClass ?? 'h-full']"
+    :class="[
+      'group/scrollbar relative flex min-h-0 flex-col overflow-hidden',
+      rootClass ?? 'h-full',
+    ]"
     :style="rootStyle"
   >
     <div
@@ -254,7 +264,12 @@ defineExpose({
       ]"
       :style="wrapStyle"
     >
-      <component :is="tag" ref="resize" :class="['scrollbar__view', viewClass]" :style="viewStyle">
+      <component
+        :is="tag"
+        ref="resize"
+        :class="['scrollbar__view', viewClass]"
+        :style="viewStyle"
+      >
         <slot />
       </component>
     </div>

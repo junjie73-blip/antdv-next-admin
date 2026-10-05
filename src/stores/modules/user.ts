@@ -15,7 +15,9 @@ export const useUserStore = defineStore('user', () => {
   // 初始化时先尝试从缓存读取（可能是旧格式明文）
   const storedToken = cache.getItem(TOKEN_KEY) as string | null
   const token = ref<string | null>(storedToken)
-  const userInfo = ref<UserInfo | null>(cache.getItem(USER_INFO_KEY) as UserInfo | null)
+  const userInfo = ref<UserInfo | null>(
+    cache.getItem(USER_INFO_KEY) as UserInfo | null,
+  )
 
   /**
    * 异步初始化 Token（解密）
@@ -92,7 +94,10 @@ export const useUserStore = defineStore('user', () => {
           await setToken(user.token)
         } catch (encryptError) {
           // 加密失败时降级为明文存储 + 控制台警告
-          console.warn('[UserStore] ⚠️ Token 加密失败，降级为明文存储:', encryptError)
+          console.warn(
+            '[UserStore] ⚠️ Token 加密失败，降级为明文存储:',
+            encryptError,
+          )
           token.value = user.token
           cache.setItem(TOKEN_KEY, user.token, TOKEN_EXPIRE)
         }

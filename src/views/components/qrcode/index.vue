@@ -6,7 +6,9 @@ import { onMounted, ref, useTemplateRef, watch } from 'vue'
 import { cn } from '~/utils/cn'
 
 const containerClassName = cn('space-y-6')
-const qrCardClassName = cn('flex flex-col items-center p-6 bg-white dark:bg-gray-800 rounded-lg')
+const qrCardClassName = cn(
+  'flex flex-col items-center p-6 bg-white dark:bg-gray-800 rounded-lg',
+)
 const qrCanvasContainer = cn('p-4 bg-gray-50 dark:bg-gray-700 rounded-lg')
 
 const basicText = ref('https://example.com')
@@ -53,14 +55,24 @@ async function generateLogoQR() {
         ctx.fillStyle = '#ffffff'
         ctx.fillRect(x - 4, y - 4, size + 8, size + 8)
         ctx.beginPath()
-        ctx.arc(logoQrCanvas.value.width / 2, logoQrCanvas.value.height / 2, size / 2, 0, Math.PI * 2)
+        ctx.arc(
+          logoQrCanvas.value.width / 2,
+          logoQrCanvas.value.height / 2,
+          size / 2,
+          0,
+          Math.PI * 2,
+        )
         ctx.fillStyle = '#1677ff'
         ctx.fill()
         ctx.fillStyle = '#ffffff'
         ctx.font = 'bold 16px Arial'
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
-        ctx.fillText('A', logoQrCanvas.value.width / 2, logoQrCanvas.value.height / 2)
+        ctx.fillText(
+          'A',
+          logoQrCanvas.value.width / 2,
+          logoQrCanvas.value.height / 2,
+        )
       }
     }
   } catch (error) {
@@ -119,9 +131,13 @@ function handleDownload() {
       message.success('SVG download success')
     })
   } else {
-    QRCode.toDataURL('Downloadable QR Code', { width: 200, margin: 2 }).then((url: string) => {
-      message.success(`Data URL generated, length: ${Math.round(url.length / 1024)}KB`)
-    })
+    QRCode.toDataURL('Downloadable QR Code', { width: 200, margin: 2 }).then(
+      (url: string) => {
+        message.success(
+          `Data URL generated, length: ${Math.round(url.length / 1024)}KB`,
+        )
+      },
+    )
   }
 }
 
@@ -240,9 +256,16 @@ function copyToClipboard(text: string) {
 <template>
   <div :class="containerClassName">
     <a-card title="Basic QR Code">
-      <p class="mb-4 text-gray-600 dark:text-gray-400">Enter text or URL to generate a QR code in real-time</p>
+      <p class="mb-4 text-gray-600 dark:text-gray-400">
+        Enter text or URL to generate a QR code in real-time
+      </p>
       <div class="mx-auto max-w-md space-y-4">
-        <a-input v-model:value="basicText" placeholder="Enter text or URL" allow-clear size="large" />
+        <a-input
+          v-model:value="basicText"
+          placeholder="Enter text or URL"
+          allow-clear
+          size="large"
+        />
         <div :class="qrCardClassName">
           <div :class="qrCanvasContainer">
             <canvas ref="basicQrCanvas" />
@@ -255,23 +278,38 @@ function copyToClipboard(text: string) {
     </a-card>
 
     <a-card title="QR Code with Logo">
-      <p class="mb-4 text-gray-600 dark:text-gray-400">Add a brand logo in the center of the QR code</p>
+      <p class="mb-4 text-gray-600 dark:text-gray-400">
+        Add a brand logo in the center of the QR code
+      </p>
       <div class="mx-auto max-w-md space-y-4">
         <div class="flex items-center gap-4">
-          <a-input v-model:value="logoText" placeholder="Enter content" allow-clear class="flex-1" />
-          <a-switch v-model:checked="showLogo" checked-children="Logo" un-checked-children="No Logo" />
+          <a-input
+            v-model:value="logoText"
+            placeholder="Enter content"
+            allow-clear
+            class="flex-1"
+          />
+          <a-switch
+            v-model:checked="showLogo"
+            checked-children="Logo"
+            un-checked-children="No Logo"
+          />
         </div>
         <div :class="qrCardClassName">
           <div :class="qrCanvasContainer">
             <canvas ref="logoQrCanvas" />
           </div>
-          <p class="mt-4 text-center text-sm text-gray-500">Tip: Use professional logo images in production</p>
+          <p class="mt-4 text-center text-sm text-gray-500">
+            Tip: Use professional logo images in production
+          </p>
         </div>
       </div>
     </a-card>
 
     <a-card title="Download QR Code">
-      <p class="mb-4 text-gray-600 dark:text-gray-400">Export in multiple formats: PNG, SVG, Data URL</p>
+      <p class="mb-4 text-gray-600 dark:text-gray-400">
+        Export in multiple formats: PNG, SVG, Data URL
+      </p>
       <div class="mx-auto max-w-md space-y-4">
         <div class="flex flex-wrap justify-center gap-2">
           <a-radio-group v-model:value="downloadFormat" button-style="solid">
@@ -293,10 +331,17 @@ function copyToClipboard(text: string) {
     </a-card>
 
     <a-card title="Scan Simulation">
-      <p class="mb-4 text-gray-600 dark:text-gray-400">Simulate scanning a QR code with a scanner or camera</p>
+      <p class="mb-4 text-gray-600 dark:text-gray-400">
+        Simulate scanning a QR code with a scanner or camera
+      </p>
       <div class="mx-auto max-w-lg space-y-4">
         <div class="flex justify-center">
-          <a-button type="primary" size="large" :loading="scanning" @click="simulateScan">
+          <a-button
+            type="primary"
+            size="large"
+            :loading="scanning"
+            @click="simulateScan"
+          >
             <template #icon>
               <Icon icon="carbon:scan" />
             </template>
@@ -308,10 +353,18 @@ function copyToClipboard(text: string) {
           class="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20"
         >
           <div class="flex items-start gap-2">
-            <Icon icon="carbon:checkmark-filled" class="mt-0.5 text-xl text-green-500" />
+            <Icon
+              icon="carbon:checkmark-filled"
+              class="mt-0.5 text-xl text-green-500"
+            />
             <div class="min-w-0 flex-1">
-              <p class="mb-1 font-medium text-green-700 dark:text-green-300">Scan Success</p>
-              <code class="block rounded bg-white p-2 text-sm break-all dark:bg-gray-800">{{ scanResult }}</code>
+              <p class="mb-1 font-medium text-green-700 dark:text-green-300">
+                Scan Success
+              </p>
+              <code
+                class="block rounded bg-white p-2 text-sm break-all dark:bg-gray-800"
+                >{{ scanResult }}</code
+              >
             </div>
           </div>
         </div>
@@ -330,7 +383,10 @@ function copyToClipboard(text: string) {
               >
                 <div class="flex items-start justify-between gap-2">
                   <code class="flex-1 break-all">{{ result }}</code>
-                  <Icon icon="carbon:copy" class="flex-shrink-0 text-gray-400 hover:text-blue-500" />
+                  <Icon
+                    icon="carbon:copy"
+                    class="flex-shrink-0 text-gray-400 hover:text-blue-500"
+                  />
                 </div>
               </div>
             </div>
@@ -341,10 +397,14 @@ function copyToClipboard(text: string) {
 
     <a-card title="Error Correction Levels">
       <p class="mb-4 text-gray-600 dark:text-gray-400">
-        Higher correction levels recover more data but produce more complex patterns
+        Higher correction levels recover more data but produce more complex
+        patterns
       </p>
       <div class="mb-4">
-        <a-radio-group v-model:value="errorCorrectionLevel" button-style="solid">
+        <a-radio-group
+          v-model:value="errorCorrectionLevel"
+          button-style="solid"
+        >
           <a-radio-button value="L"> L - Low </a-radio-button>
           <a-radio-button value="M"> M - Medium </a-radio-button>
           <a-radio-button value="Q"> Q - Quartile </a-radio-button>
@@ -352,8 +412,18 @@ function copyToClipboard(text: string) {
         </a-radio-group>
       </div>
       <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <div v-for="(level, key) in levelDescriptions" :key="key" :class="qrCardClassName" class="!p-4">
-          <canvas :ref="(el: any) => (levelCanvases[key as keyof typeof levelCanvases] = el)" />
+        <div
+          v-for="(level, key) in levelDescriptions"
+          :key="key"
+          :class="qrCardClassName"
+          class="!p-4"
+        >
+          <canvas
+            :ref="
+              (el: any) =>
+                (levelCanvases[key as keyof typeof levelCanvases] = el)
+            "
+          />
           <h5 class="mt-3 text-center font-medium">
             {{ level.name }}
           </h5>
@@ -365,37 +435,71 @@ function copyToClipboard(text: string) {
     </a-card>
 
     <a-card title="Size and Color Customization">
-      <p class="mb-4 text-gray-600 dark:text-gray-400">Customize the size, foreground and background colors</p>
+      <p class="mb-4 text-gray-600 dark:text-gray-400">
+        Customize the size, foreground and background colors
+      </p>
       <div class="mx-auto max-w-lg space-y-4">
         <div>
           <label class="mb-2 block text-sm font-medium">Content</label>
-          <a-input v-model:value="customText" placeholder="Enter content" allow-clear />
+          <a-input
+            v-model:value="customText"
+            placeholder="Enter content"
+            allow-clear
+          />
         </div>
         <div>
-          <label class="mb-2 block text-sm font-medium"> Size: {{ customSize }}px x {{ customSize }}px </label>
-          <a-slider v-model:value="customSize" :min="100" :max="400" :step="10" />
+          <label class="mb-2 block text-sm font-medium">
+            Size: {{ customSize }}px x {{ customSize }}px
+          </label>
+          <a-slider
+            v-model:value="customSize"
+            :min="100"
+            :max="400"
+            :step="10"
+          />
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="mb-2 block text-sm font-medium">Foreground</label>
-            <input v-model="customDarkColor" type="color" class="h-10 w-full cursor-pointer rounded" />
+            <input
+              v-model="customDarkColor"
+              type="color"
+              class="h-10 w-full cursor-pointer rounded"
+            />
           </div>
           <div>
             <label class="mb-2 block text-sm font-medium">Background</label>
-            <input v-model="customLightColor" type="color" class="h-10 w-full cursor-pointer rounded" />
+            <input
+              v-model="customLightColor"
+              type="color"
+              class="h-10 w-full cursor-pointer rounded"
+            />
           </div>
         </div>
         <div>
-          <label class="mb-2 block text-sm font-medium">Preset Color Schemes</label>
+          <label class="mb-2 block text-sm font-medium"
+            >Preset Color Schemes</label
+          >
           <div class="flex flex-wrap gap-2">
-            <a-button v-for="preset in colorPresets" :key="preset.name" size="small" @click="applyPreset(preset)">
-              <span class="mr-1 inline-block h-3 w-3 rounded-full" :style="{ backgroundColor: preset.dark }" />
+            <a-button
+              v-for="preset in colorPresets"
+              :key="preset.name"
+              size="small"
+              @click="applyPreset(preset)"
+            >
+              <span
+                class="mr-1 inline-block h-3 w-3 rounded-full"
+                :style="{ backgroundColor: preset.dark }"
+              />
               {{ preset.name }}
             </a-button>
           </div>
         </div>
         <div :class="qrCardClassName">
-          <div :class="qrCanvasContainer" :style="{ backgroundColor: customLightColor }">
+          <div
+            :class="qrCanvasContainer"
+            :style="{ backgroundColor: customLightColor }"
+          >
             <canvas ref="customQrCanvas" />
           </div>
         </div>

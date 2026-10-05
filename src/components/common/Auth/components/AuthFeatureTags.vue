@@ -22,7 +22,11 @@ const { brandFeatureClassName } = useAuthStyles()
 
 <template>
   <div :class="cn('flex flex-wrap gap-2', className)">
-    <span v-for="feature in features" :key="feature.text" :class="brandFeatureClassName">
+    <span
+      v-for="feature in features"
+      :key="feature.text"
+      :class="brandFeatureClassName"
+    >
       <Icon :icon="feature.icon" class="h-3.5 w-3.5" />
       {{ feature.text }}
     </span>

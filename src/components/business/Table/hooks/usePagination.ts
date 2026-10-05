@@ -26,13 +26,17 @@ const DEFAULT_PAGINATION_CONFIG: AntPaginationProps = {
  * 分页管理 Hook
  * 为什么需要：统一管理表格分页状态和逻辑
  */
-export function usePagination(options: UsePaginationOptions): UsePaginationReturn {
+export function usePagination(
+  options: UsePaginationOptions,
+): UsePaginationReturn {
   const { pagination } = options
 
   // 是否显示分页
   const showPaginationRef = ref(true)
   // 分页配置
-  const paginationRef = ref<AntPaginationProps | false>({ ...DEFAULT_PAGINATION_CONFIG })
+  const paginationRef = ref<AntPaginationProps | false>({
+    ...DEFAULT_PAGINATION_CONFIG,
+  })
 
   /**
    * 获取分页配置

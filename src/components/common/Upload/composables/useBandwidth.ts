@@ -14,7 +14,10 @@ export interface BandwidthLimiter {
  * - 每次上传前调 `await limiter.record(chunkSize)` 等令牌
  * - 不传 bytesPerSecond 或 <= 0 → 不限速
  */
-export function createBandwidthLimiter(bytesPerSecond: number = 0, burstSize?: number): BandwidthLimiter {
+export function createBandwidthLimiter(
+  bytesPerSecond: number = 0,
+  burstSize?: number,
+): BandwidthLimiter {
   let bps = Math.max(0, bytesPerSecond)
   const burst = burstSize ?? bps
   let tokens = burst

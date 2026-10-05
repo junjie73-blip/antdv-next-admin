@@ -88,7 +88,10 @@ export function nowTz(): dayjs.Dayjs {
 /**
  * 解析为指定时区的时间
  */
-export function parseTz(value: string | number | Date, format?: string): dayjs.Dayjs {
+export function parseTz(
+  value: string | number | Date,
+  format?: string,
+): dayjs.Dayjs {
   if (format) {
     return dayjs.tz(value, format, currentTimezone)
   }

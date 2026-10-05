@@ -1,3 +1,5 @@
+import type { BadgeProps } from 'antdv-next'
+
 export interface MicroAppConfig {
   name: string
   url: string
@@ -10,26 +12,25 @@ export interface MicroAppConfig {
 }
 
 export interface MenuConfig {
-  path: string
-  name: string
+  name?: string
+  path: string // 一定是完整 path，由 store 从路由反查补全
+  title: string // 已归一化到 title
   icon?: string
-  component?: string
-  permission?: string[]
   hidden?: boolean
-  menuName?: string
-  title?: string
-  microApp?: MicroAppConfig
-  /** 是否为外链，点击后在新窗口打开 */
   isExternal?: boolean
-  /** 布局类型，blank 表示不使用默认布局，独立全屏渲染 */
-  layout?: 'blank'
+  keepAlive?: boolean
   children?: MenuConfig[]
+  meta?: Record<string, unknown>
+  disabled?: boolean
+  extra?: string | number | boolean
+  badge?: BadgeProps
 }
 
 export interface BackendMenu {
   menuId: string
   parentId: string | null
   menuName: string
+  name?: string
   menuType: number // 1-目录 2-菜单 3-按钮
   icon?: string
   path?: string
@@ -38,6 +39,10 @@ export interface BackendMenu {
   sortOrder: number
   status: string // '0' 禁用 '1' 启用
   children?: BackendMenu[]
+  hidden?: boolean
+  isExternal?: boolean
+  layout?: 'default' | 'blank'
+  keepAlive?: boolean
 }
 
 export interface MenuState {

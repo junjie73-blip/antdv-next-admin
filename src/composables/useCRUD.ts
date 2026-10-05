@@ -22,7 +22,10 @@ interface CRUDMessages {
   importFailed?: string
 }
 
-interface UseCRUDOptions<RecordType = Record<string, any>, FormValues = Record<string, any>> {
+interface UseCRUDOptions<
+  RecordType = Record<string, any>,
+  FormValues = Record<string, any>,
+> {
   /** 容器类型 */
   containerType?: ContainerType
   /** Modal 方法（containerType 为 modal 时使用） */
@@ -30,7 +33,10 @@ interface UseCRUDOptions<RecordType = Record<string, any>, FormValues = Record<s
   /** Drawer 方法（containerType 为 drawer 时使用） */
   drawerMethods?: Pick<DrawerMethods, 'openDrawer' | 'closeDrawer'>
   /** Form 方法 */
-  formMethods: Pick<FormActionType, 'setFieldsValue' | 'clearValidate' | 'validate' | 'resetFields'>
+  formMethods: Pick<
+    FormActionType,
+    'setFieldsValue' | 'clearValidate' | 'validate' | 'resetFields'
+  >
   /** Table 方法 */
   tableMethods?: { value: TableActionType | null }
   /** 主键字段名（用于编辑和删除） */
@@ -44,7 +50,10 @@ interface UseCRUDOptions<RecordType = Record<string, any>, FormValues = Record<s
   /** 批量删除 API（若不提供则逐个调用 onDelete） */
   onBatchDelete?: (records: RecordType[]) => Promise<any>
   /** 导出 API（可选） */
-  onExport?: (params?: { selectedRows?: RecordType[]; queryParams?: Record<string, any> }) => Promise<any>
+  onExport?: (params?: {
+    selectedRows?: RecordType[]
+    queryParams?: Record<string, any>
+  }) => Promise<any>
   /** 导入 API（可选），接收上传的 File 对象 */
   onImport?: (file: File) => Promise<any>
   /** 从记录提取表单值（编辑时） */
@@ -56,7 +65,10 @@ interface UseCRUDOptions<RecordType = Record<string, any>, FormValues = Record<s
   /** 新增前钩子 */
   beforeCreate?: (values: FormValues) => boolean | Promise<boolean>
   /** 编辑前钩子 */
-  beforeUpdate?: (record: RecordType, values: FormValues) => boolean | Promise<boolean>
+  beforeUpdate?: (
+    record: RecordType,
+    values: FormValues,
+  ) => boolean | Promise<boolean>
   /**
    * 删除前钩子
    * 说明：确认逻辑（如 Modal.confirm）请在此钩子内自行处理，
@@ -84,9 +96,10 @@ const DEFAULT_MESSAGES = {
   importFailed: '导入失败',
 } satisfies CRUDMessages
 
-export function useCRUD<RecordType = Record<string, any>, FormValues = Record<string, any>>(
-  options: UseCRUDOptions<RecordType, FormValues>,
-) {
+export function useCRUD<
+  RecordType = Record<string, any>,
+  FormValues = Record<string, any>,
+>(options: UseCRUDOptions<RecordType, FormValues>) {
   const {
     containerType = 'modal',
     modalMethods,
@@ -143,7 +156,8 @@ export function useCRUD<RecordType = Record<string, any>, FormValues = Record<st
 
   // ========== 新增 ==========
   async function handleAdd(initialValues?: Partial<FormValues>) {
-    if (beforeCreate && !(await beforeCreate(initialValues as FormValues))) return
+    if (beforeCreate && !(await beforeCreate(initialValues as FormValues)))
+      return
     isEditing.value = false
     currentRecord.value = null
     const empty = getEmptyValues ? getEmptyValues() : {}
@@ -155,8 +169,15 @@ export function useCRUD<RecordType = Record<string, any>, FormValues = Record<st
   }
 
   // ========== 编辑 ==========
-  async function handleEdit(record: RecordType, initialValues?: Partial<FormValues>) {
-    if (beforeUpdate && !(await beforeUpdate(record, initialValues as FormValues))) return
+  async function handleEdit(
+    record: RecordType,
+    initialValues?: Partial<FormValues>,
+  ) {
+    if (
+      beforeUpdate &&
+      !(await beforeUpdate(record, initialValues as FormValues))
+    )
+      return
     currentRecord.value = record
     isEditing.value = true
     await openContainer()
@@ -173,7 +194,9 @@ export function useCRUD<RecordType = Record<string, any>, FormValues = Record<st
 
     currentRecord.value = detailRecord
 
-    await formMethods.setFieldsValue(getFormValues ? getFormValues(detailRecord) : (detailRecord as any))
+    await formMethods.setFieldsValue(
+      getFormValues ? getFormValues(detailRecord) : (detailRecord as any),
+    )
   }
 
   // ========== 删除 ==========
@@ -197,7 +220,8 @@ export function useCRUD<RecordType = Record<string, any>, FormValues = Record<st
 
   // ========== 批量删除 ==========
   async function handleBatchDelete(records?: RecordType[]) {
-    const selected = records ?? (tableMethods?.value?.getSelectRows?.() as RecordType[])
+    const selected =
+      records ?? (tableMethods?.value?.getSelectRows?.() as RecordType[])
     if (!selected || selected.length === 0) {
       message.warning('请先选择要删除的数据')
       return
@@ -275,7 +299,9 @@ export function useCRUD<RecordType = Record<string, any>, FormValues = Record<st
     }
     loading.value = true
     try {
-      const selectedRows = exportSelected ? (tableMethods?.value?.getSelectRows?.() as RecordType[]) : undefined
+      const selectedRows = exportSelected
+        ? (tableMethods?.value?.getSelectRows?.() as RecordType[])
+        : undefined
       await onExport({ selectedRows })
       message.success(msgs.exportSuccess)
     } catch (e: any) {

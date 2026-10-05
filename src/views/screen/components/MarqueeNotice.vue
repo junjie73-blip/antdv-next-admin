@@ -18,7 +18,10 @@ const props = withDefaults(
 
 defineOptions({ name: 'MarqueeNotice' })
 
-const containerClassName = cn('overflow-hidden whitespace-nowrap cursor-pointer', 'hover:pause')
+const containerClassName = cn(
+  'overflow-hidden whitespace-nowrap cursor-pointer',
+  'hover:pause',
+)
 
 const contentRef = ref<HTMLDivElement>()
 let animationId: number | null = null
@@ -54,7 +57,11 @@ onUnmounted(() => {
   <div :class="containerClassName">
     <div ref="contentRef" class="inline-flex">
       <!-- 双份内容实现无缝循环 -->
-      <div v-for="(item, i) in [...items, ...items]" :key="i" class="flex-shrink-0 px-6 py-1.5">
+      <div
+        v-for="(item, i) in [...items, ...items]"
+        :key="i"
+        class="flex-shrink-0 px-6 py-1.5"
+      >
         <span class="flex items-center gap-1.5 text-xs text-blue-200/70">
           <span class="h-1 w-1 shrink-0 rounded-full bg-yellow-400" />
           {{ item }}

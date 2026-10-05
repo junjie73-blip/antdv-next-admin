@@ -24,7 +24,9 @@ const containerClassName = cn(
   'bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-purple-600/10',
   'border-b border-blue-500/20',
 )
-const titleClassName = cn('text-xl font-bold tracking-wider text-white flex items-center gap-2')
+const titleClassName = cn(
+  'text-xl font-bold tracking-wider text-white flex items-center gap-2',
+)
 const timeClassName = cn('text-sm text-blue-200/80 font-mono tabular-nums')
 const actionBtnClassName = cn(
   'inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded text-xs border transition-all duration-200 cursor-pointer',
@@ -69,7 +71,9 @@ onBeforeUnmount(() => {
     <div :class="titleClassName">
       <span class="h-6 w-1.5 rounded-full bg-blue-400" />
       {{ title }}
-      <span class="ml-2 text-[10px] tracking-widest text-blue-300/50">SECURITY MONITOR</span>
+      <span class="ml-2 text-[10px] tracking-widest text-blue-300/50"
+        >SECURITY MONITOR</span
+      >
     </div>
 
     <!-- 中间：时间 -->

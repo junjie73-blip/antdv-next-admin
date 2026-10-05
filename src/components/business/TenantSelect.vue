@@ -106,7 +106,11 @@ defineExpose({
     </template>
 
     <template #notFoundContent>
-      <a-empty :image="false" description="暂无租户数据" class="!py-4 !text-xs !text-stone-400" />
+      <a-empty
+        :image="false"
+        description="暂无租户数据"
+        class="!py-4 !text-xs !text-stone-400"
+      />
     </template>
   </Select>
 </template>

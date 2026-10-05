@@ -8,7 +8,9 @@ import WidgetButton from './components/WidgetButton.vue'
 defineOptions({ name: 'WidgetFullscreen' })
 
 const { isFullscreen, toggle } = useFullscreen()
-const icon = computed(() => (isFullscreen.value ? 'carbon:minimize' : 'carbon:maximize'))
+const icon = computed(() =>
+  isFullscreen.value ? 'carbon:minimize' : 'carbon:maximize',
+)
 </script>
 
 <template>

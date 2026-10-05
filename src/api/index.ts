@@ -27,7 +27,10 @@ interface UserInfoResponse {
 }
 
 export function login(params: LoginParams): Promise<LoginResponse> {
-  return post<LoginResponse>('/auth/login', params as unknown as Record<string, unknown>)
+  return post<LoginResponse>(
+    '/auth/login',
+    params as unknown as Record<string, unknown>,
+  )
 }
 
 export function logout(): Promise<null> {

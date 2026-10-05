@@ -8,7 +8,10 @@ import { cn } from '~/utils/cn'
 
 const userStore = useUserStore()
 const router = useRouter()
-const switchAccountTab = inject<((tab: 'center' | 'settings') => void) | null>('switchAccountTab', null)
+const switchAccountTab = inject<((tab: 'center' | 'settings') => void) | null>(
+  'switchAccountTab',
+  null,
+)
 
 const activeTab = ref('basic')
 
@@ -58,19 +61,36 @@ const securityInfo = {
       time: '2小时前',
       icon: 'carbon:phone',
     },
-    { device: 'Windows PC - Edge', location: 'Beijing, CN', time: '3天前', icon: 'carbon:desktop' },
+    {
+      device: 'Windows PC - Edge',
+      location: 'Beijing, CN',
+      time: '3天前',
+      icon: 'carbon:desktop',
+    },
   ],
 }
 
 const activityLogs = [
-  { action: '登录成功', time: '2026-05-21 09:30:00', color: 'text-green-600 dark:text-green-400' },
+  {
+    action: '登录成功',
+    time: '2026-05-21 09:30:00',
+    color: 'text-green-600 dark:text-green-400',
+  },
   {
     action: '更新个人资料',
     time: '2026-05-20 14:22:00',
     color: 'text-blue-600 dark:text-blue-400',
   },
-  { action: '修改密码', time: '2026-05-18 11:05:00', color: 'text-amber-600 dark:text-amber-400' },
-  { action: '登录成功', time: '2026-05-18 09:15:00', color: 'text-green-600 dark:text-green-400' },
+  {
+    action: '修改密码',
+    time: '2026-05-18 11:05:00',
+    color: 'text-amber-600 dark:text-amber-400',
+  },
+  {
+    action: '登录成功',
+    time: '2026-05-18 09:15:00',
+    color: 'text-green-600 dark:text-green-400',
+  },
   {
     action: '导出报告数据',
     time: '2026-05-17 16:45:00',
@@ -92,24 +112,34 @@ const avatarWrapperClassName = cn(
 
 const avatarImgClassName = cn('w-full h-full object-cover')
 
-const statItemClassName = cn('flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400')
+const statItemClassName = cn(
+  'flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400',
+)
 
 const securityHeaderClassName = cn('flex items-center justify-between')
 
-const passwordStrengthBarClassName = cn('h-2 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden')
+const passwordStrengthBarClassName = cn(
+  'h-2 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden',
+)
 
-const passwordStrengthFillClassName = cn('h-full rounded-full transition-all duration-500 bg-green-500')
+const passwordStrengthFillClassName = cn(
+  'h-full rounded-full transition-all duration-500 bg-green-500',
+)
 
 const twoFactorBadgeClassName = cn(
   'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium',
   'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
 )
 
-const cardClassName = cn('rounded-xl border border-gray-100 dark:border-gray-800')
+const cardClassName = cn(
+  'rounded-xl border border-gray-100 dark:border-gray-800',
+)
 
 const teamInfoItemClassName = cn('flex items-center gap-3')
 
-const teamInfoLabelClassName = cn('text-sm text-gray-500 dark:text-gray-400 min-w-12')
+const teamInfoLabelClassName = cn(
+  'text-sm text-gray-500 dark:text-gray-400 min-w-12',
+)
 
 const teamInfoValueClassName = cn('text-sm text-gray-800 dark:text-gray-200')
 
@@ -174,7 +204,9 @@ function handleDeleteDevice(device: LoginDevice) {
       cancelText: '取消',
       centered: true,
       onOk: () => {
-        const idx = securityInfo.loginDevices.findIndex((d) => d.device === device.device)
+        const idx = securityInfo.loginDevices.findIndex(
+          (d) => d.device === device.device,
+        )
         if (idx > -1) securityInfo.loginDevices.splice(idx, 1)
         swipedDeviceId.value = null
         userStore.logout()
@@ -195,7 +227,9 @@ function handleDeleteDevice(device: LoginDevice) {
     cancelText: '取消',
     centered: true,
     onOk: () => {
-      const idx = securityInfo.loginDevices.findIndex((d) => d.device === device.device)
+      const idx = securityInfo.loginDevices.findIndex(
+        (d) => d.device === device.device,
+      )
       if (idx > -1) {
         securityInfo.loginDevices.splice(idx, 1)
         message.success(`已移除设备：${device.device}`)
@@ -215,7 +249,11 @@ function handleDeleteDevice(device: LoginDevice) {
       <div class="flex items-start gap-6">
         <div :class="avatarWrapperClassName">
           <template v-if="hasAvatar">
-            <img :src="userStore.avatar" :alt="userStore.nickname" :class="avatarImgClassName" />
+            <img
+              :src="userStore.avatar"
+              :alt="userStore.nickname"
+              :class="avatarImgClassName"
+            />
           </template>
           <template v-else>
             <Icon icon="carbon:user-avatar-filled" width="42" height="42" />
@@ -270,10 +308,18 @@ function handleDeleteDevice(device: LoginDevice) {
             <a-descriptions-item label="手机号">
               {{ userStore.phone }}
             </a-descriptions-item>
-            <a-descriptions-item label="性别" :span="2"> 未设置 </a-descriptions-item>
-            <a-descriptions-item label="生日" :span="2"> 未设置 </a-descriptions-item>
-            <a-descriptions-item label="地址" :span="2"> 未设置 </a-descriptions-item>
-            <a-descriptions-item label="个人简介" :span="2"> 未设置 </a-descriptions-item>
+            <a-descriptions-item label="性别" :span="2">
+              未设置
+            </a-descriptions-item>
+            <a-descriptions-item label="生日" :span="2">
+              未设置
+            </a-descriptions-item>
+            <a-descriptions-item label="地址" :span="2">
+              未设置
+            </a-descriptions-item>
+            <a-descriptions-item label="个人简介" :span="2">
+              未设置
+            </a-descriptions-item>
           </a-descriptions>
         </a-tab-pane>
 
@@ -281,32 +327,47 @@ function handleDeleteDevice(device: LoginDevice) {
           <div class="space-y-6">
             <div class="space-y-2">
               <div :class="securityHeaderClassName">
-                <span class="font-medium text-gray-700 dark:text-gray-300">密码强度</span>
-                <span class="text-sm text-green-600 dark:text-green-400">{{ securityInfo.passwordStrength }}%</span>
+                <span class="font-medium text-gray-700 dark:text-gray-300"
+                  >密码强度</span
+                >
+                <span class="text-sm text-green-600 dark:text-green-400"
+                  >{{ securityInfo.passwordStrength }}%</span
+                >
               </div>
               <div :class="passwordStrengthBarClassName">
-                <div :class="passwordStrengthFillClassName" :style="{ width: `${securityInfo.passwordStrength}%` }" />
+                <div
+                  :class="passwordStrengthFillClassName"
+                  :style="{ width: `${securityInfo.passwordStrength}%` }"
+                />
               </div>
-              <a-button size="small" @click="switchAccountTab?.('settings')"> 前往修改 </a-button>
+              <a-button size="small" @click="switchAccountTab?.('settings')">
+                前往修改
+              </a-button>
             </div>
 
             <a-divider />
 
             <div class="space-y-2">
               <div :class="securityHeaderClassName">
-                <span class="font-medium text-gray-700 dark:text-gray-300">双因素认证</span>
+                <span class="font-medium text-gray-700 dark:text-gray-300"
+                  >双因素认证</span
+                >
                 <span :class="twoFactorBadgeClassName">
                   <Icon icon="carbon:checkmark-filled" width="14" height="14" />
                   已启用
                 </span>
               </div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">您的账户已受双因素认证保护。</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                您的账户已受双因素认证保护。
+              </p>
             </div>
 
             <a-divider />
 
             <div class="space-y-3">
-              <span class="font-medium text-gray-700 dark:text-gray-300">登录设备</span>
+              <span class="font-medium text-gray-700 dark:text-gray-300"
+                >登录设备</span
+              >
               <div
                 v-for="device in securityInfo.loginDevices"
                 :key="device.device"
@@ -315,13 +376,20 @@ function handleDeleteDevice(device: LoginDevice) {
                   'cursor-grabbing': draggingDeviceId === device.device,
                   'cursor-grab': !draggingDeviceId,
                 }"
-                @mousedown="(e: MouseEvent) => handleSwipeStart(e, device.device)"
+                @mousedown="
+                  (e: MouseEvent) => handleSwipeStart(e, device.device)
+                "
               >
                 <div
                   class="flex items-center justify-between rounded-lg border border-gray-100 p-3 transition-transform duration-200 dark:border-gray-800"
-                  :class="{ 'translate-x-[-80px]': swipedDeviceId === device.device }"
+                  :class="{
+                    'translate-x-[-80px]': swipedDeviceId === device.device,
+                  }"
                   :style="{
-                    transform: swipedDeviceId === device.device ? `translateX(-${swipeCurrentX.value}px)` : undefined,
+                    transform:
+                      swipedDeviceId === device.device
+                        ? `translateX(-${swipeCurrentX.value}px)`
+                        : undefined,
                   }"
                 >
                   <div class="flex items-center gap-3">
@@ -339,7 +407,9 @@ function handleDeleteDevice(device: LoginDevice) {
                       </p>
                     </div>
                   </div>
-                  <span class="shrink-0 text-xs text-gray-400">{{ device.time }}</span>
+                  <span class="shrink-0 text-xs text-gray-400">{{
+                    device.time
+                  }}</span>
                 </div>
                 <!-- 右滑显示的删除按钮 -->
                 <div
@@ -348,7 +418,11 @@ function handleDeleteDevice(device: LoginDevice) {
                   @click.stop="handleDeleteDevice(device)"
                 >
                   <div class="flex flex-col items-center gap-0.5 text-white">
-                    <Icon icon="ant-design:delete-outlined" width="18" height="18" />
+                    <Icon
+                      icon="ant-design:delete-outlined"
+                      width="18"
+                      height="18"
+                    />
                     <span class="text-xs">删除</span>
                   </div>
                 </div>
@@ -361,7 +435,9 @@ function handleDeleteDevice(device: LoginDevice) {
           <a-timeline>
             <a-timeline-item v-for="log in activityLogs" :key="log.time">
               <template #dot>
-                <div class="h-2.5 w-2.5 rounded-full bg-blue-500 ring-4 ring-blue-100 dark:ring-blue-900/30" />
+                <div
+                  class="h-2.5 w-2.5 rounded-full bg-blue-500 ring-4 ring-blue-100 dark:ring-blue-900/30"
+                />
               </template>
               <div class="ml-1">
                 <p :class="getActivityColorClass(log.color)">

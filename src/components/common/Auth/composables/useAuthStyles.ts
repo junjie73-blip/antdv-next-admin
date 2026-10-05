@@ -19,7 +19,9 @@ export function useAuthStyles() {
   /* ============================================================
    * 背景层
    * ============================================================ */
-  const bgLayerClassName = cn('absolute inset-0 z-0 overflow-hidden pointer-events-none')
+  const bgLayerClassName = cn(
+    'absolute inset-0 z-0 overflow-hidden pointer-events-none',
+  )
 
   /* ---------- 1. 基础渐变底（新增） ---------- */
   const bgGradientClassName = cn(
@@ -186,7 +188,10 @@ export function useAuthStyles() {
     'bg-[size:40px_40px]',
   )
 
-  const brandContentClassName = cn('relative z-10 w-full max-w-[340px] mx-auto', 'flex flex-col gap-8')
+  const brandContentClassName = cn(
+    'relative z-10 w-full max-w-[340px] mx-auto',
+    'flex flex-col gap-8',
+  )
 
   const brandLogoClassName = cn(
     'inline-flex items-center gap-3',
@@ -197,7 +202,10 @@ export function useAuthStyles() {
     'self-start',
   )
 
-  const brandLogoIconClassName = cn('w-9 h-9 rounded-lg flex items-center justify-center', 'bg-white/20 text-white')
+  const brandLogoIconClassName = cn(
+    'w-9 h-9 rounded-lg flex items-center justify-center',
+    'bg-white/20 text-white',
+  )
 
   const brandFeatureClassName = cn(
     'inline-flex items-center gap-2',
@@ -270,9 +278,14 @@ export function useAuthStyles() {
     'dark:hover:border-white/[0.15] dark:hover:bg-slate-700/60',
   )
 
-  const socialIconClassName = cn('text-lg transition-transform duration-200 group-hover:scale-110')
+  const socialIconClassName = cn(
+    'text-lg transition-transform duration-200 group-hover:scale-110',
+  )
 
-  const trustBadgeClassName = cn('inline-flex items-center gap-1.5', 'text-[11px] text-slate-400 dark:text-slate-500')
+  const trustBadgeClassName = cn(
+    'inline-flex items-center gap-1.5',
+    'text-[11px] text-slate-400 dark:text-slate-500',
+  )
 
   return {
     // 容器

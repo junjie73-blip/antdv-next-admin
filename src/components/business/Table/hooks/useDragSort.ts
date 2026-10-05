@@ -23,11 +23,20 @@ export interface UseDragSortReturn {
 }
 
 export function useDragSort(options: UseDragSortOptions): UseDragSortReturn {
-  const { dataSource, enabled, handle, animation = 150, disabled, onDragEnd, canDrop } = options
+  const {
+    dataSource,
+    enabled,
+    handle,
+    animation = 150,
+    disabled,
+    onDragEnd,
+    canDrop,
+  } = options
 
   let sortableInstance: Sortable | null = null
 
-  const isDisabled = (record: Recordable): boolean => (isFunction(disabled) ? disabled(record) : (disabled ?? false))
+  const isDisabled = (record: Recordable): boolean =>
+    isFunction(disabled) ? disabled(record) : (disabled ?? false)
 
   const initSortable = (el: HTMLElement) => {
     if (!enabled || sortableInstance) return
@@ -45,8 +54,10 @@ export function useDragSort(options: UseDragSortOptions): UseDragSortReturn {
       },
       onMove: (evt) => {
         if (!canDrop) return true
-        const dragIndex = (evt as any).draggedRowIndex ?? (evt as any).oldIndex ?? 0
-        const dropIndex = (evt as any).relatedRowIndex ?? (evt as any).newIndex ?? 0
+        const dragIndex =
+          (evt as any).draggedRowIndex ?? (evt as any).oldIndex ?? 0
+        const dropIndex =
+          (evt as any).relatedRowIndex ?? (evt as any).newIndex ?? 0
         const dragRecord = dataSource.value[dragIndex]
         const dropRecord = dataSource.value[dropIndex]
         if (!dragRecord || !dropRecord) return false
@@ -54,7 +65,8 @@ export function useDragSort(options: UseDragSortOptions): UseDragSortReturn {
       },
       onEnd: (evt) => {
         const { oldIndex, newIndex } = evt
-        if (oldIndex === newIndex || oldIndex == null || newIndex == null) return
+        if (oldIndex === newIndex || oldIndex == null || newIndex == null)
+          return
 
         const oldData = [...dataSource.value]
         const newData = [...dataSource.value]

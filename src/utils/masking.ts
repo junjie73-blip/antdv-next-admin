@@ -83,7 +83,11 @@ export function maskGeneric(str: string, keepStart = 2, keepEnd = 2): string {
 /** 预置脱敏规则库 */
 export const MASKING_RULES: MaskingRule[] = [
   { name: '手机号', pattern: /^1\d{10}$/, maskFn: maskPhone },
-  { name: '邮箱', pattern: /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/, maskFn: maskEmail },
+  {
+    name: '邮箱',
+    pattern: /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/,
+    maskFn: maskEmail,
+  },
   { name: '身份证号', pattern: /^\d{17}[\dX]$/i, maskFn: maskIdCard },
   { name: '银行卡号', pattern: /^\d{13,19}$/, maskFn: maskBankCard },
 ]

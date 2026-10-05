@@ -153,7 +153,12 @@ const renderedHtml = computed(() => {
 
 const textareaRef = useTemplateRef<HTMLTextAreaElement>('textareaRef')
 
-function insertMarkdown(before: string, after = '', placeholder = '', keepSelection = false) {
+function insertMarkdown(
+  before: string,
+  after = '',
+  placeholder = '',
+  keepSelection = false,
+) {
   const textarea = textareaRef.value
   if (!textarea) return
 
@@ -161,9 +166,14 @@ function insertMarkdown(before: string, after = '', placeholder = '', keepSelect
   const end = textarea.selectionEnd
   const selectedText = markdownContent.value.substring(start, end)
 
-  const replacement = keepSelection ? `${before}${selectedText}${after}` : `${before}${placeholder}${after}`
+  const replacement = keepSelection
+    ? `${before}${selectedText}${after}`
+    : `${before}${placeholder}${after}`
 
-  markdownContent.value = markdownContent.value.substring(0, start) + replacement + markdownContent.value.substring(end)
+  markdownContent.value =
+    markdownContent.value.substring(0, start) +
+    replacement +
+    markdownContent.value.substring(end)
 
   void nextTick(() => {
     textarea.focus()
@@ -215,7 +225,9 @@ function insertTable() {
 
   const start = textarea.selectionStart
   markdownContent.value =
-    markdownContent.value.substring(0, start) + tableTemplate + markdownContent.value.substring(start)
+    markdownContent.value.substring(0, start) +
+    tableTemplate +
+    markdownContent.value.substring(start)
 
   void nextTick(() => {
     textarea.focus()
@@ -235,7 +247,10 @@ function insertCodeBlock() {
   if (!textarea) return
 
   const start = textarea.selectionStart
-  markdownContent.value = markdownContent.value.substring(0, start) + template + markdownContent.value.substring(start)
+  markdownContent.value =
+    markdownContent.value.substring(0, start) +
+    template +
+    markdownContent.value.substring(start)
 
   void nextTick(() => {
     textarea.focus()
@@ -250,7 +265,10 @@ function insertTaskList() {
   if (!textarea) return
 
   const start = textarea.selectionStart
-  markdownContent.value = markdownContent.value.substring(0, start) + template + markdownContent.value.substring(start)
+  markdownContent.value =
+    markdownContent.value.substring(0, start) +
+    template +
+    markdownContent.value.substring(start)
 
   void nextTick(() => {
     textarea.focus()
@@ -308,7 +326,11 @@ const toolbarGroups = [
         icon: 'carbon:list-numbered',
         action: () => insertMarkdown('\n1. ', '', '列表项', false),
       },
-      { label: '任务列表', icon: 'carbon:checkbox-checked', action: insertTaskList },
+      {
+        label: '任务列表',
+        icon: 'carbon:checkbox-checked',
+        action: insertTaskList,
+      },
     ],
   },
   {
@@ -361,7 +383,10 @@ const toolbarButtonBaseClassName = cn(
   'text-xs',
 )
 
-const toolbarDividerClassName = cn('w-px h-4 mx-0.5', 'bg-gray-300 dark:bg-gray-600')
+const toolbarDividerClassName = cn(
+  'w-px h-4 mx-0.5',
+  'bg-gray-300 dark:bg-gray-600',
+)
 
 const textareaClassName = cn(
   'flex-1 w-full p-4',
@@ -409,11 +434,20 @@ const previewContentClassName = cn(
   '[&_pre_code]:bg-transparent [&_pre_code]:p-0',
 )
 
-const pageTitleClassName = cn('text-2xl font-bold', 'text-gray-800 dark:text-gray-100', 'mb-1')
+const pageTitleClassName = cn(
+  'text-2xl font-bold',
+  'text-gray-800 dark:text-gray-100',
+  'mb-1',
+)
 
-const pageSubtitleClassName = cn('text-sm text-gray-500 dark:text-gray-400', 'mb-4')
+const pageSubtitleClassName = cn(
+  'text-sm text-gray-500 dark:text-gray-400',
+  'mb-4',
+)
 
-const mainContainerClassName = cn('flex flex-1 gap-4 h-[calc(100vh-140px)] min-h-[500px]')
+const mainContainerClassName = cn(
+  'flex flex-1 gap-4 h-[calc(100vh-140px)] min-h-[500px]',
+)
 
 const copyBtnClassName = cn(
   'inline-flex items-center gap-1',
@@ -444,7 +478,9 @@ const rendererToggleClassName = cn(
     <div class="mb-1 flex items-center justify-between">
       <div>
         <h1 :class="pageTitleClassName">Markdown 编辑器</h1>
-        <p :class="pageSubtitleClassName">基于 marked + highlight.js + markdown-it 的实时预览 Markdown 编辑器</p>
+        <p :class="pageSubtitleClassName">
+          基于 marked + highlight.js + markdown-it 的实时预览 Markdown 编辑器
+        </p>
       </div>
     </div>
 
@@ -503,7 +539,11 @@ const rendererToggleClassName = cn(
               placement="top"
               :mouse-enter-delay="0.3"
             >
-              <button type="button" :class="toolbarButtonBaseClassName" @click="btn.action()">
+              <button
+                type="button"
+                :class="toolbarButtonBaseClassName"
+                @click="btn.action()"
+              >
                 <Icon :icon="btn.icon" :width="14" />
               </button>
             </a-tooltip>
@@ -528,8 +568,14 @@ const rendererToggleClassName = cn(
             <span>预览区</span>
           </div>
           <div class="flex items-center gap-2">
-            <span :class="wordCountClassName">{{ markdownContent.length }} 字</span>
-            <button type="button" :class="copyBtnClassName" @click="copy(renderedHtml)">
+            <span :class="wordCountClassName"
+              >{{ markdownContent.length }} 字</span
+            >
+            <button
+              type="button"
+              :class="copyBtnClassName"
+              @click="copy(renderedHtml)"
+            >
               <icon-carbon-copy class="text-xs" />
               {{ copied ? '已复制' : '复制HTML' }}
             </button>
@@ -537,12 +583,20 @@ const rendererToggleClassName = cn(
         </div>
 
         <!-- 预览内容（使用安全指令：保留合法HTML标签，过滤script和事件处理器） -->
-        <PerfectScrollbar v-if="renderedHtml" :class="previewScrollbarClassName">
-          <div v-safe-html="{ content: renderedHtml, allowHtml: true }" :class="previewContentClassName" />
+        <PerfectScrollbar
+          v-if="renderedHtml"
+          :class="previewScrollbarClassName"
+        >
+          <div
+            v-safe-html="{ content: renderedHtml, allowHtml: true }"
+            :class="previewContentClassName"
+          />
         </PerfectScrollbar>
         <div v-else :class="emptyPreviewClassName">
           <div class="text-center">
-            <icon-carbon-document-blank class="mx-auto mb-2 text-4xl opacity-30" />
+            <icon-carbon-document-blank
+              class="mx-auto mb-2 text-4xl opacity-30"
+            />
             <p>在左侧输入 Markdown 内容后，此处将实时预览渲染结果</p>
           </div>
         </div>

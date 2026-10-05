@@ -3,7 +3,14 @@ import type { BreadcrumbProps, MenuProps } from 'antdv-next'
 
 import { Icon } from '@iconify/vue'
 import { Dropdown, Menu, notification } from 'antdv-next'
-import { computed, defineAsyncComponent, h, onMounted, onUnmounted, ref } from 'vue'
+import {
+  computed,
+  defineAsyncComponent,
+  h,
+  onMounted,
+  onUnmounted,
+  ref,
+} from 'vue'
 import { useRouter } from 'vue-router'
 
 import { useAppStore } from '~/stores/modules/app'
@@ -46,7 +53,9 @@ const appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
 const visibleWidgets = computed(() => useVisibleWidgets())
 // ========== 获取通知列表（头部小弹窗） ==========
 const isGeekStyle = computed(() => appStore.themeStyle === 'geek')
-const isDarkMode = computed(() => appStore.themeMode === 'dark' || isGeekStyle.value)
+const isDarkMode = computed(
+  () => appStore.themeMode === 'dark' || isGeekStyle.value,
+)
 
 const headerClassName = computed(() =>
   cn(
@@ -71,7 +80,8 @@ const horizontalMenuItems = computed<MenuProps['items']>(() => {
   const isHorizontal = appStore.layout === 'horizontal'
   return (routeStore.menus || []).map((menu) => ({
     key: menu.path,
-    icon: () => h(Icon, { icon: menu.icon || 'carbon:folder', class: 'text-lg' }),
+    icon: () =>
+      h(Icon, { icon: menu.icon || 'carbon:folder', class: 'text-lg' }),
     label: menu.title,
     children:
       isHorizontal && menu.children?.length
@@ -128,16 +138,23 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <header :class="headerClassName">
+  <a-layout-header :class="headerClassName">
     <div class="flex flex-1 items-center gap-4">
       <!-- 垂直布局：面包屑 -->
       <template v-if="!horizontal && !mixed">
-        <a-breadcrumb v-if="appStore.showBreadcrumb" class="hidden items-center md:flex" :items="breadcrumbItems">
+        <a-breadcrumb
+          v-if="appStore.showBreadcrumb"
+          class="hidden items-center md:flex"
+          :items="breadcrumbItems"
+        >
           <template #separator>
             <Icon icon="carbon:chevron-right" class="text-xs opacity-50" />
           </template>
           <template #titleRender="{ item, index }">
-            <span class="inline-flex cursor-pointer items-center gap-1.5" @click="handleBreadcrumbClick(item.path!)">
+            <span
+              class="inline-flex cursor-pointer items-center gap-1.5"
+              @click="handleBreadcrumbClick(item.path!)"
+            >
               <Icon
                 :icon="
                   index === 0 ? 'carbon:home' : breadcrumbs[index - 1]?.icon as string || 'carbon:folder'
@@ -170,9 +187,18 @@ onUnmounted(() => {
 
       <!-- 混合布局：Logo + 水平菜单 -->
       <template v-else-if="mixed">
-        <div class="flex items-center gap-2 border-r border-gray-200 pr-4 dark:border-gray-700">
-          <Icon icon="carbon:cube" class="text-2xl" :class="isGeekStyle ? 'text-[#00ff88]' : 'text-ant-primary'" />
-          <span class="font-bold" :class="isGeekStyle ? 'text-[#00ff88]' : 'text-ant-primary'">
+        <div
+          class="flex items-center gap-2 border-r border-gray-200 pr-4 dark:border-gray-700"
+        >
+          <Icon
+            icon="carbon:cube"
+            class="text-2xl"
+            :class="isGeekStyle ? 'text-[#00ff88]' : 'text-ant-primary'"
+          />
+          <span
+            class="font-bold"
+            :class="isGeekStyle ? 'text-[#00ff88]' : 'text-ant-primary'"
+          >
             {{ appTitle }}
           </span>
         </div>
@@ -210,14 +236,19 @@ onUnmounted(() => {
           />
         </div>
       </div>
-      <Dropdown :menu="{ items: userDropdownItems, onClick: handleUserMenuClick }" placement="bottomRight">
+      <Dropdown
+        :menu="{ items: userDropdownItems, onClick: handleUserMenuClick }"
+        placement="bottomRight"
+      >
         <div
           class="flex cursor-pointer items-center gap-2 rounded-xl py-0.5 pr-2 pl-1 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
         >
           <a-avatar :size="28" :src="userStore.avatar" class="bg-ant-primary">
             {{ userStore.username?.charAt(0)?.toUpperCase() || 'U' }}
           </a-avatar>
-          <span class="hidden text-sm text-gray-700 sm:inline dark:text-gray-200">
+          <span
+            class="hidden text-sm text-gray-700 sm:inline dark:text-gray-200"
+          >
             {{ userStore.username || '用户' }}
           </span>
           <Icon icon="carbon:chevron-down" class="text-xs text-gray-400" />
@@ -227,7 +258,7 @@ onUnmounted(() => {
 
     <SettingDrawer v-model:visible="showSetting" />
     <AccountDrawer ref="accountDrawerRef" />
-  </header>
+  </a-layout-header>
 </template>
 
 <style scoped>

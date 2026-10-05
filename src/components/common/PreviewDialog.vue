@@ -120,11 +120,24 @@ watch(
     :body-style="{ height: '75vh' }"
     @cancel="handleClosed"
   >
-    <a-spin :spinning="loading" class="w-full" wrapper-class-name="h-full" classes="h-full">
+    <a-spin
+      :spinning="loading"
+      class="w-full"
+      wrapper-class-name="h-full"
+      classes="h-full"
+    >
       <PerfectScrollbar class="h-full">
         <div class="h-full">
-          <div v-if="category === 'image'" class="flex items-center justify-center">
-            <a-image :src="previewUrl" :preview="true" class="max-w-full" :style="{ maxHeight: '70vh' }" />
+          <div
+            v-if="category === 'image'"
+            class="flex items-center justify-center"
+          >
+            <a-image
+              :src="previewUrl"
+              :preview="true"
+              class="max-w-full"
+              :style="{ maxHeight: '70vh' }"
+            />
           </div>
 
           <PdfViewer
@@ -173,9 +186,14 @@ watch(
             />
           </div>
 
-          <div v-else-if="category === 'audio'" class="flex h-full flex-col items-center justify-center gap-4 py-12">
+          <div
+            v-else-if="category === 'audio'"
+            class="flex h-full flex-col items-center justify-center gap-4 py-12"
+          >
             <div class="text-6xl text-gray-300">🎵</div>
-            <p class="max-w-full truncate text-gray-600" :title="fileName">{{ fileName }}</p>
+            <p class="max-w-full truncate text-gray-600" :title="fileName">
+              {{ fileName }}
+            </p>
             <audio
               ref="audioRef"
               :src="previewUrl"

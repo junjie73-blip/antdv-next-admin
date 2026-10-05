@@ -28,7 +28,11 @@ const stateMap = new WeakMap<HTMLElement, ElementState>()
  * 核心：应用权限结果到 DOM
  * ============================================================ */
 
-function applyToElement(el: HTMLElement, hasAccess: boolean, state: ElementState): void {
+function applyToElement(
+  el: HTMLElement,
+  hasAccess: boolean,
+  state: ElementState,
+): void {
   const { disabledMode } = state
 
   if (disabledMode) {
@@ -125,7 +129,11 @@ export const vPermission: Directive<HTMLElement, PermissionDirectiveBinding> = {
  * 执行权限判断
  * ============================================================ */
 
-function performCheck(el: HTMLElement, binding: DirectiveBinding<any>, state: ElementState): void {
+function performCheck(
+  el: HTMLElement,
+  binding: DirectiveBinding<any>,
+  state: ElementState,
+): void {
   const helpers = usePermission()
 
   const hasAccess = resolveAccess(binding, {

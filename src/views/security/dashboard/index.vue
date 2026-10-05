@@ -19,14 +19,27 @@ const headerClassName = cn('flex items-center justify-between mb-2')
     <!-- 页面标题 -->
     <div :class="headerClassName">
       <div>
-        <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-white">
-          <Icon icon="carbon:security" :width="24" :height="24" class="text-ant-primary" />
+        <h1
+          class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-white"
+        >
+          <Icon
+            icon="carbon:security"
+            :width="24"
+            :height="24"
+            class="text-ant-primary"
+          />
           安全审计仪表盘
         </h1>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">实时安全态势感知与威胁分析中心</p>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          实时安全态势感知与威胁分析中心
+        </p>
       </div>
       <a-space>
-        <a-segmented :options="['今日', '近7天', '近30天']" default-value="今日" size="small" />
+        <a-segmented
+          :options="['今日', '近7天', '近30天']"
+          default-value="今日"
+          size="small"
+        />
         <a-button size="small">
           <template #icon>
             <Icon icon="carbon:download" />

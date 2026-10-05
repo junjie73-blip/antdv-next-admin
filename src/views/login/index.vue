@@ -2,7 +2,12 @@
 import type { FormInstance } from 'antdv-next'
 import type { Rule } from 'antdv-next/dist/form/types'
 
-import { LockOutlined, MailOutlined, MobileOutlined, UserOutlined } from '@antdv-next/icons'
+import {
+  LockOutlined,
+  MailOutlined,
+  MobileOutlined,
+  UserOutlined,
+} from '@antdv-next/icons'
 import { Icon } from '@iconify/vue'
 import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -74,7 +79,9 @@ const mobileRules: Record<string, Rule[]> = {
   ],
 }
 
-const currentRules = computed(() => (loginType.value === 'account' ? accountRules : mobileRules))
+const currentRules = computed(() =>
+  loginType.value === 'account' ? accountRules : mobileRules,
+)
 
 async function handleLogin() {
   try {
@@ -134,8 +141,16 @@ function handleSendCode() {
         <div class="mb-12">
           <div :class="logoContainerClassName">
             <div :class="logoIconClassName" :style="logoIconStyle">
-              <svg class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+              <svg
+                class="h-5 w-5 text-white"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+                />
               </svg>
             </div>
             <span class="text-xl font-semibold text-stone-800">Antdv Next</span>
@@ -143,20 +158,27 @@ function handleSendCode() {
         </div>
 
         <!-- 标题 -->
-        <h1 class="mb-6 text-4xl leading-tight font-bold text-stone-800 xl:text-5xl">
+        <h1
+          class="mb-6 text-4xl leading-tight font-bold text-stone-800 xl:text-5xl"
+        >
           构建现代化<br />
           <span :style="titleHighlightStyle">管理系统</span>
         </h1>
 
         <p class="mb-12 max-w-lg text-lg leading-relaxed text-stone-600">
-          基于 Vue 3 + TypeScript + Ant Design Vue 构建的企业级后台管理解决方案，助您快速开发高质量管理系统。
+          基于 Vue 3 + TypeScript + Ant Design Vue
+          构建的企业级后台管理解决方案，助您快速开发高质量管理系统。
         </p>
 
         <!-- 特性列表 -->
         <div class="space-y-5">
           <div class="group flex items-center gap-4">
             <div :class="featureIconClassName">
-              <Icon icon="carbon:flash" class="h-5 w-5" :style="featureIconStyle" />
+              <Icon
+                icon="carbon:flash"
+                class="h-5 w-5"
+                :style="featureIconStyle"
+              />
             </div>
             <div>
               <h3 class="font-medium text-stone-800">极速开发</h3>
@@ -166,7 +188,11 @@ function handleSendCode() {
 
           <div class="group flex items-center gap-4">
             <div :class="featureIconClassName">
-              <Icon icon="carbon:shield-checkmark" class="h-5 w-5" :style="featureIconStyle" />
+              <Icon
+                icon="carbon:shield-checkmark"
+                class="h-5 w-5"
+                :style="featureIconStyle"
+              />
             </div>
             <div>
               <h3 class="font-medium text-stone-800">安全可靠</h3>
@@ -176,7 +202,11 @@ function handleSendCode() {
 
           <div class="group flex items-center gap-4">
             <div :class="featureIconClassName">
-              <Icon icon="carbon:settings-adjust" class="h-5 w-5" :style="featureIconStyle" />
+              <Icon
+                icon="carbon:settings-adjust"
+                class="h-5 w-5"
+                :style="featureIconStyle"
+              />
             </div>
             <div>
               <h3 class="font-medium text-stone-800">灵活配置</h3>
@@ -195,8 +225,16 @@ function handleSendCode() {
           <div
             class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--ant-color-primary)] shadow-[var(--ant-color-primary)]/20 shadow-lg"
           >
-            <svg class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+            <svg
+              class="h-6 w-6 text-white"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+              />
             </svg>
           </div>
           <h2 class="text-xl font-semibold text-stone-800">
@@ -211,7 +249,9 @@ function handleSendCode() {
               :class="
                 cn(
                   loginTypeBtnBaseClassName,
-                  loginType === 'account' ? 'bg-white shadow-sm' : 'text-stone-500 hover:text-stone-700',
+                  loginType === 'account'
+                    ? 'bg-white shadow-sm'
+                    : 'text-stone-500 hover:text-stone-700',
                 )
               "
               :style="loginType === 'account' ? loginTypeActiveBtnStyle : {}"
@@ -223,7 +263,9 @@ function handleSendCode() {
               :class="
                 cn(
                   loginTypeBtnBaseClassName,
-                  loginType === 'mobile' ? 'bg-white shadow-sm' : 'text-stone-500 hover:text-stone-700',
+                  loginType === 'mobile'
+                    ? 'bg-white shadow-sm'
+                    : 'text-stone-500 hover:text-stone-700',
                 )
               "
               :style="loginType === 'mobile' ? loginTypeActiveBtnStyle : {}"
@@ -235,7 +277,13 @@ function handleSendCode() {
         </div>
 
         <!-- 表单 -->
-        <a-form ref="formRef" :model="formState" :rules="currentRules" layout="vertical" @finish="handleLogin">
+        <a-form
+          ref="formRef"
+          :model="formState"
+          :rules="currentRules"
+          layout="vertical"
+          @finish="handleLogin"
+        >
           <template v-if="loginType === 'account'">
             <a-form-item name="username">
               <a-input
@@ -312,7 +360,13 @@ function handleSendCode() {
                   <MailOutlined class="text-stone-400" />
                 </template>
                 <template #suffix>
-                  <a-button type="link" size="small" class="!p-0" :style="sendCodeBtnStyle" @click="handleSendCode">
+                  <a-button
+                    type="link"
+                    size="small"
+                    class="!p-0"
+                    :style="sendCodeBtnStyle"
+                    @click="handleSendCode"
+                  >
                     发送验证码
                   </a-button>
                 </template>
@@ -341,6 +395,10 @@ function handleSendCode() {
 <style scoped>
 [class*='group']:hover .w-11 {
   background-color: color-mix(in srgb, var(--ant-color-primary) 5%, white);
-  border-color: color-mix(in srgb, var(--ant-color-primary) 20%, rgb(203 213 225));
+  border-color: color-mix(
+    in srgb,
+    var(--ant-color-primary) 20%,
+    rgb(203 213 225)
+  );
 }
 </style>

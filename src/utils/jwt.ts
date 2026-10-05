@@ -94,7 +94,10 @@ export function parseJwt(token: string | null | undefined): JwtPayload | null {
  * @param offsetSeconds 提前量（秒），默认 60
  * @returns true = 已过期 / 快过期 / 无法解析
  */
-export function isTokenExpired(token: string | null | undefined, offsetSeconds = 60): boolean {
+export function isTokenExpired(
+  token: string | null | undefined,
+  offsetSeconds = 60,
+): boolean {
   if (!token) return true
 
   const payload = parseJwt(token)
@@ -115,7 +118,9 @@ export function isTokenExpired(token: string | null | undefined, offsetSeconds =
 /**
  * 剩余有效秒数
  */
-export function getTokenRemainingSeconds(token: string | null | undefined): number {
+export function getTokenRemainingSeconds(
+  token: string | null | undefined,
+): number {
   if (!token) return 0
 
   const payload = parseJwt(token)

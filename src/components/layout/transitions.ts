@@ -21,38 +21,62 @@ export function getTransitionVariants(effect: TransitionEffect): MotionVariant {
     case 'slide-right':
       return {
         initial: { opacity: 0, x: 40 },
-        enter: { opacity: 1, x: 0, transition: { duration: COMMON_DURATION, ease: COMMON_EASE } },
+        enter: {
+          opacity: 1,
+          x: 0,
+          transition: { duration: COMMON_DURATION, ease: COMMON_EASE },
+        },
       }
 
     case 'slide-left':
       return {
         initial: { opacity: 0, x: -40 },
-        enter: { opacity: 1, x: 0, transition: { duration: COMMON_DURATION, ease: COMMON_EASE } },
+        enter: {
+          opacity: 1,
+          x: 0,
+          transition: { duration: COMMON_DURATION, ease: COMMON_EASE },
+        },
       }
 
     case 'slide-up':
       return {
         initial: { opacity: 0, y: 32 },
-        enter: { opacity: 1, y: 0, transition: { duration: COMMON_DURATION, ease: COMMON_EASE } },
+        enter: {
+          opacity: 1,
+          y: 0,
+          transition: { duration: COMMON_DURATION, ease: COMMON_EASE },
+        },
       }
 
     case 'slide-down':
       return {
         initial: { opacity: 0, y: -32 },
-        enter: { opacity: 1, y: 0, transition: { duration: COMMON_DURATION, ease: COMMON_EASE } },
+        enter: {
+          opacity: 1,
+          y: 0,
+          transition: { duration: COMMON_DURATION, ease: COMMON_EASE },
+        },
       }
 
     case 'zoom':
     case 'scale':
       return {
         initial: { opacity: 0, scale: 0.96 },
-        enter: { opacity: 1, scale: 1, transition: { duration: 260, ease: COMMON_EASE } },
+        enter: {
+          opacity: 1,
+          scale: 1,
+          transition: { duration: 260, ease: COMMON_EASE },
+        },
       }
 
     case 'fade-slide':
       return {
         initial: { opacity: 0, y: 16 },
-        enter: { opacity: 1, y: 0, transition: { duration: 300, ease: COMMON_EASE } },
+        enter: {
+          opacity: 1,
+          y: 0,
+          transition: { duration: 300, ease: COMMON_EASE },
+        },
       }
 
     case 'flip':

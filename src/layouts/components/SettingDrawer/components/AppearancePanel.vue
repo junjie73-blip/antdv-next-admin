@@ -9,7 +9,12 @@ import ThemeToggle from '~/layouts/widgets/ThemeToggle.vue'
 import { useAppStore } from '~/stores/modules/app'
 import { cn } from '~/utils/index.js'
 
-import { BORDER_RADIUS_OPTIONS, PRIMARY_COLORS, sectionStyles, THEME_MODE_OPTIONS } from '../constants'
+import {
+  BORDER_RADIUS_OPTIONS,
+  PRIMARY_COLORS,
+  sectionStyles,
+  THEME_MODE_OPTIONS,
+} from '../constants'
 import SettingGroup from './SettingGroup.vue'
 import SettingItem from './SettingItem.vue'
 
@@ -52,12 +57,24 @@ const handleChangeColor = (color: Color) => {
         @change="handleThemeModeChange"
       />
 
-      <SettingItem label="侧边栏反转色" desc="侧栏与内容区对比配色" class="mt-4">
-        <a-switch :checked="appStore.darkSidebar" size="small" @change="appStore.toggles.darkSidebar" />
+      <SettingItem
+        label="侧边栏反转色"
+        desc="侧栏与内容区对比配色"
+        class="mt-4"
+      >
+        <a-switch
+          :checked="appStore.darkSidebar"
+          size="small"
+          @change="appStore.toggles.darkSidebar"
+        />
       </SettingItem>
 
       <SettingItem label="顶栏反转色" desc="顶栏与内容区对比配色">
-        <a-switch :checked="appStore.darkHeader" size="small" @change="appStore.toggles.darkHeader" />
+        <a-switch
+          :checked="appStore.darkHeader"
+          size="small"
+          @change="appStore.toggles.darkHeader"
+        />
       </SettingItem>
     </SettingGroup>
 
@@ -90,7 +107,9 @@ const handleChangeColor = (color: Color) => {
             :class="
               cn(
                 'text-[11px] leading-none',
-                isColorActive(opt.value) ? 'text-ant-primary font-medium' : 'text-slate-500 dark:text-slate-400',
+                isColorActive(opt.value)
+                  ? 'text-ant-primary font-medium'
+                  : 'text-slate-500 dark:text-slate-400',
               )
             "
           >
@@ -126,14 +145,19 @@ const handleChangeColor = (color: Color) => {
               v-else
               class="flex h-8 w-12 items-center justify-center rounded-md bg-slate-100 transition-transform duration-200 group-hover:scale-105 dark:bg-slate-700"
             >
-              <Icon icon="carbon:color-palette" class="text-base text-slate-500 dark:text-slate-400" />
+              <Icon
+                icon="carbon:color-palette"
+                class="text-base text-slate-500 dark:text-slate-400"
+              />
             </div>
 
             <span
               :class="
                 cn(
                   'text-[11px] leading-none',
-                  !isPresetColor ? 'text-ant-primary font-medium' : 'text-slate-500 dark:text-slate-400',
+                  !isPresetColor
+                    ? 'text-ant-primary font-medium'
+                    : 'text-slate-500 dark:text-slate-400',
                 )
               "
             >
@@ -149,10 +173,18 @@ const handleChangeColor = (color: Color) => {
     <!-- ============================================================ -->
     <SettingGroup title="圆角与字号" icon="carbon:ruler">
       <!-- ⭐ 圆角：上下布局 -->
-      <div class="rounded-xl bg-white p-3 outline outline-1 outline-slate-200 dark:bg-slate-800 dark:outline-slate-700">
+      <div
+        class="rounded-xl bg-white p-3 outline outline-1 outline-slate-200 dark:bg-slate-800 dark:outline-slate-700"
+      >
         <div class="mb-2.5">
-          <div class="text-[13px] font-medium text-slate-700 dark:text-slate-200">圆角大小</div>
-          <div class="mt-0.5 text-[11px] text-slate-400 dark:text-slate-500">全局组件圆角倍率</div>
+          <div
+            class="text-[13px] font-medium text-slate-700 dark:text-slate-200"
+          >
+            圆角大小
+          </div>
+          <div class="mt-0.5 text-[11px] text-slate-400 dark:text-slate-500">
+            全局组件圆角倍率
+          </div>
         </div>
 
         <div class="grid grid-cols-5 gap-1.5">
@@ -182,18 +214,29 @@ const handleChangeColor = (color: Color) => {
           :step="1"
           size="small"
           class="!w-24"
-          @change="(v: number | null) => v !== null && appStore.updateSetting({ fontSize: v })"
+          @change="
+            (v: number | null) =>
+              v !== null && appStore.updateSetting({ fontSize: v })
+          "
         />
       </SettingItem>
     </SettingGroup>
 
     <SettingGroup title="其他设置" icon="carbon:settings-adjust">
       <SettingItem label="色弱模式" desc="适配色弱阅读">
-        <a-switch :checked="appStore.colorWeak" size="small" @change="appStore.toggles.colorWeak" />
+        <a-switch
+          :checked="appStore.colorWeak"
+          size="small"
+          @change="appStore.toggles.colorWeak"
+        />
       </SettingItem>
 
       <SettingItem label="灰色模式" desc="整体灰度显示">
-        <a-switch :checked="appStore.grayMode" size="small" @change="appStore.toggles.grayMode" />
+        <a-switch
+          :checked="appStore.grayMode"
+          size="small"
+          @change="appStore.toggles.grayMode"
+        />
       </SettingItem>
     </SettingGroup>
   </div>

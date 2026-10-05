@@ -12,12 +12,12 @@ import { createCompressPlugin } from './compress'
 import { createImageminPlugin } from './imagemin'
 import { createLegacyPlugin } from './legacy'
 import { createMetadataPlugin } from './metadata'
+import { createMockPlugin } from './mock'
 import { createPwaPlugin } from './pwa'
 import { createSvgIconsPlugin } from './svg-icons'
 import { createTurboConsolePlugin } from './turbo-console'
 import { createVisualizerPlugin } from './visualizer'
 import { createVuePlugins } from './vue'
-
 export function createPlugins(mode: string): PluginOption[] {
   const isProd = mode === 'production'
   const envConfig = loadEnv(mode)
@@ -48,24 +48,23 @@ export function createPlugins(mode: string): PluginOption[] {
 
   // 开发环境专属插件
   if (envConfig.VITE_DEVTOOLS) {
-    // 注意：实际项目中此处应使用 import 或动态 import，这里为保持单文件独立，使用 require 或放在 vue.ts 中
-    // 已在 vue.ts 中处理
     plugins.push(viteVueDevTools())
   }
 
   // 条件插件
+  if (envConfig.VITE_MOCK) plugins.push(createMockPlugin(mode))
   if (envConfig.VITE_ARCHIVER) plugins.push(createArchiverPlugin())
   if (isProd) plugins.push(createMetadataPlugin())
   if (envConfig.VITE_VISUALIZER) plugins.push(createVisualizerPlugin())
   if (envConfig.VITE_PWA) plugins.push(createPwaPlugin(envConfig))
-  if (envConfig.VITE_COMPRESS && envConfig.VITE_COMPRESS !== 'none') {
-    plugins.push(createCompressPlugin(envConfig.VITE_COMPRESS))
+  if (envConfig.VITE_COMPRESS) {
+    plugins.push(createCompressPlugin())
   }
   if (envConfig.VITE_LEGACY) plugins.push(createLegacyPlugin(envConfig))
   if (envConfig.VITE_TURBO_CONSOLE) plugins.push(createTurboConsolePlugin())
 
   // 自研 Loading 插件（按需启用，默认启用）
-  if (envConfig.VITE_INJECT_APP_LOADING !== false) {
+  if (envConfig.VITE_INJECT_APP_LOADING) {
     plugins.push(
       vitePluginAppLoading({
         autoTheme: true,

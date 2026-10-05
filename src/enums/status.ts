@@ -41,10 +41,18 @@ export function statusOptions(map: Record<string, StatusConfig>) {
 /**
  * 状态文本/颜色读取（带兜底）
  */
-export function getStatusLabel(map: Record<string, StatusConfig>, value: string, fallback = '未知'): string {
+export function getStatusLabel(
+  map: Record<string, StatusConfig>,
+  value: string,
+  fallback = '未知',
+): string {
   return map[value]?.label ?? fallback
 }
 
-export function getStatusColor(map: Record<string, StatusConfig>, value: string, fallback = 'default'): string {
+export function getStatusColor(
+  map: Record<string, StatusConfig>,
+  value: string,
+  fallback = 'default',
+): string {
   return map[value]?.color ?? fallback
 }

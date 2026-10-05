@@ -16,9 +16,9 @@ const icp = computed(() => appStore.copyrightIcp)
 </script>
 
 <template>
-  <footer
+  <a-layout-footer
     v-if="showFooter"
-    class="flex shrink-0 flex-wrap items-center justify-center gap-x-3 gap-y-1 border-t border-slate-100 bg-white px-4 py-3 text-xs text-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-500"
+    class="flex shrink-0 flex-wrap items-center justify-center gap-x-3 gap-y-1 border-t border-slate-100 px-4 py-3 text-xs text-slate-400 dark:border-slate-800 dark:text-slate-500"
   >
     <template v-if="showCopyright">
       <span class="flex items-center gap-1">
@@ -51,5 +51,5 @@ const icp = computed(() => appStore.copyrightIcp)
         <span>All Rights Reserved</span>
       </span>
     </template>
-  </footer>
+  </a-layout-footer>
 </template>

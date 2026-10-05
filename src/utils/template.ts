@@ -27,7 +27,11 @@ export interface TemplateColumn {
  * ]);
  * ```
  */
-export function generateTemplate(filename: string, columns: TemplateColumn[], sheetName = 'Sheet1'): void {
+export function generateTemplate(
+  filename: string,
+  columns: TemplateColumn[],
+  sheetName = 'Sheet1',
+): void {
   // 表头
   const headers = columns.map((c) => c.header)
   // 示例行（非必填也带示例，便于用户理解）

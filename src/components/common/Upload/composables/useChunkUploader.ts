@@ -3,7 +3,13 @@ import { ref, type Ref } from 'vue'
 
 import type { ChunkUploadTask, UploadStatus } from '../types'
 
-import { checkChunks, checkInstant, getMergeStatus, mergeChunks, uploadChunk as uploadChunkApi } from '../api'
+import {
+  checkChunks,
+  checkInstant,
+  getMergeStatus,
+  mergeChunks,
+  uploadChunk as uploadChunkApi,
+} from '../api'
 import {
   CHUNK_SIZE_MAX,
   CHUNK_SIZE_MIN,
@@ -34,7 +40,10 @@ interface UseChunkUploaderOptions {
   onUpdate?: (task: ChunkUploadTask) => void
   onMergeStart?: (task: ChunkUploadTask) => void
   onSuccess?: (task: ChunkUploadTask) => void
-  onError?: (task: ChunkUploadTask, info: { code: string; message: string; retryable: boolean }) => void
+  onError?: (
+    task: ChunkUploadTask,
+    info: { code: string; message: string; retryable: boolean },
+  ) => void
   bandwidth?: number
 }
 
@@ -57,7 +66,11 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
     onUpdate?.(task)
   }
 
-  function setStatus(task: ChunkUploadTask, status: UploadStatus, error?: string): void {
+  function setStatus(
+    task: ChunkUploadTask,
+    status: UploadStatus,
+    error?: string,
+  ): void {
     task.status = status
     if (error !== undefined) task.error = error
     tasks.value.set(task.uid, task)
@@ -77,14 +90,18 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
       const dt = (last.t - first.t) / 1000
       const dl = last.loaded - first.loaded
       task.speed = dt > 0 ? dl / dt : 0
-      task.remaining = task.speed > 0 ? (task.total - task.loaded) / task.speed : 0
+      task.remaining =
+        task.speed > 0 ? (task.total - task.loaded) / task.speed : 0
     } else {
       task.speed = 0
       task.remaining = 0
     }
   }
 
-  function computeHash(task: ChunkUploadTask, signal: AbortSignal): Promise<string> {
+  function computeHash(
+    task: ChunkUploadTask,
+    signal: AbortSignal,
+  ): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       const hashTask = computeFileHash(
         { file: task.file, chunkSize: task.chunkSize },
@@ -155,7 +172,9 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
         }
 
         if (attempt > maxRetry) {
-          const e = new Error(`分片 ${index} 重试 ${maxRetry} 次后失败：${info.message}`)
+          const e = new Error(
+            `分片 ${index} 重试 ${maxRetry} 次后失败：${info.message}`,
+          )
           ;(e as any).code = info.code
           throw e
         }
@@ -170,19 +189,30 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
     }
   }
 
-  async function runWithConcurrency<T>(items: T[], limit: number, worker: (item: T) => Promise<void>): Promise<void> {
+  async function runWithConcurrency<T>(
+    items: T[],
+    limit: number,
+    worker: (item: T) => Promise<void>,
+  ): Promise<void> {
     let cursor = 0
-    const runners = Array.from({ length: Math.min(limit, items.length) }, async () => {
-      while (cursor < items.length) {
-        const idx = cursor++
-        await worker(items[idx]!)
-      }
-    })
+    const runners = Array.from(
+      { length: Math.min(limit, items.length) },
+      async () => {
+        while (cursor < items.length) {
+          const idx = cursor++
+          await worker(items[idx]!)
+        }
+      },
+    )
     await Promise.all(runners)
   }
 
   async function startTask(task: ChunkUploadTask): Promise<void> {
-    if (task.status === 'uploading' || task.status === 'hashing' || task.status === 'merging') {
+    if (
+      task.status === 'uploading' ||
+      task.status === 'hashing' ||
+      task.status === 'merging'
+    ) {
       return
     }
 
@@ -235,7 +265,9 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
       // 秒传：所有分片都在
       if (task.totalChunks > 0 && remoteUploaded.size >= task.totalChunks) {
         task.loaded = task.total
-        task.uploadedChunks = new Set(Array.from({ length: task.totalChunks }, (_, i) => i))
+        task.uploadedChunks = new Set(
+          Array.from({ length: task.totalChunks }, (_, i) => i),
+        )
         setStatus(task, 'merging')
         task.mergeStartedAt = Date.now()
 
@@ -262,12 +294,16 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
         if (!merged.has(i)) pending.push({ index: i, blob: chunkBlobs[i]! })
       }
 
-      await runWithConcurrency(pending, concurrency, async ({ index, blob }) => {
-        if (aborter.signal.aborted) {
-          throw new DOMException('Aborted', 'AbortError')
-        }
-        await uploadChunkWithRetry(task, blob, index, aborter.signal)
-      })
+      await runWithConcurrency(
+        pending,
+        concurrency,
+        async ({ index, blob }) => {
+          if (aborter.signal.aborted) {
+            throw new DOMException('Aborted', 'AbortError')
+          }
+          await uploadChunkWithRetry(task, blob, index, aborter.signal)
+        },
+      )
 
       /* ---------- 5. 合并 ---------- */
       await doMerge(task)
@@ -413,7 +449,11 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
       ? ([tasks.value.get(uid)].filter(Boolean) as ChunkUploadTask[])
       : Array.from(tasks.value.values())
     for (const t of targets) {
-      if (t.status === 'uploading' || t.status === 'hashing' || t.status === 'merging') {
+      if (
+        t.status === 'uploading' ||
+        t.status === 'hashing' ||
+        t.status === 'merging'
+      ) {
         aborters.get(t.uid)?.abort()
       }
     }

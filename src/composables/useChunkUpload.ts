@@ -6,7 +6,12 @@ export interface ChunkInfo {
   progress: number
 }
 
-export type UploadStatus = 'idle' | 'uploading' | 'paused' | 'completed' | 'error'
+export type UploadStatus =
+  | 'idle'
+  | 'uploading'
+  | 'paused'
+  | 'completed'
+  | 'error'
 
 export interface ChunkUploadOptions {
   chunkSize?: number
@@ -29,7 +34,11 @@ const DEFAULT_CONCURRENT = 3
  *     { type: 'error', index: number, message: string }        // 单片失败
  */
 export function useChunkUpload(options: ChunkUploadOptions = {}) {
-  const { chunkSize = DEFAULT_CHUNK_SIZE, concurrent = DEFAULT_CONCURRENT, workerUrl } = options
+  const {
+    chunkSize = DEFAULT_CHUNK_SIZE,
+    concurrent = DEFAULT_CONCURRENT,
+    workerUrl,
+  } = options
 
   const chunks = ref<ChunkInfo[]>([])
   const status = ref<UploadStatus>('idle')
@@ -44,11 +53,15 @@ export function useChunkUpload(options: ChunkUploadOptions = {}) {
   const currentFile = shallowRef<File | null>(null)
 
   /** 每个 chunk 的 pending resolve/reject，key 是 index */
-  const pendingChunks = new Map<number, { resolve: () => void; reject: (e: Error) => void }>()
+  const pendingChunks = new Map<
+    number,
+    { resolve: () => void; reject: (e: Error) => void }
+  >()
 
   function getWorker(): Worker {
     if (!worker.value) {
-      const url = workerUrl || new URL('~/workers/upload.worker.ts', import.meta.url).href
+      const url =
+        workerUrl || new URL('~/workers/upload.worker.ts', import.meta.url).href
       worker.value = new Worker(url, { type: 'module' })
       // ⭐ 只在创建时挂一次，整个生命周期内不变
       worker.value.addEventListener('message', handleWorkerMessage)
@@ -58,7 +71,13 @@ export function useChunkUpload(options: ChunkUploadOptions = {}) {
 
   /** 统一的 worker 消息派发 */
   function handleWorkerMessage(e: MessageEvent) {
-    const { type, index, progress: chunkProgress, hash: chunkHash, message } = e.data ?? {}
+    const {
+      type,
+      index,
+      progress: chunkProgress,
+      hash: chunkHash,
+      message,
+    } = e.data ?? {}
 
     if (type === 'progress') {
       if (typeof index === 'number' && chunks.value[index]) {
@@ -142,7 +161,12 @@ export function useChunkUpload(options: ChunkUploadOptions = {}) {
   }
 
   /** 单 chunk 处理：等待 worker 回 chunk-done */
-  function processOneChunk(w: Worker, file: File, idx: number, total: number): Promise<void> {
+  function processOneChunk(
+    w: Worker,
+    file: File,
+    idx: number,
+    total: number,
+  ): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       if (cancelledFlag.value) {
         reject(new Error('cancelled'))
@@ -261,7 +285,10 @@ export function useChunkUpload(options: ChunkUploadOptions = {}) {
               inflightSet.delete(idx)
               activeCount--
 
-              if (cancelledFlag.value || err?.message === 'paused-or-cancelled') {
+              if (
+                cancelledFlag.value ||
+                err?.message === 'paused-or-cancelled'
+              ) {
                 // 暂停/取消：不推进，等待 resume
                 return
               }

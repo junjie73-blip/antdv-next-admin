@@ -16,7 +16,14 @@ export type DescriptionLayout = 'horizontal' | 'vertical'
  * Description 组件边框样式
  */
 export type DescriptionBordered = boolean | 'bordered' | 'none'
-export type DescriptionFieldType = 'text' | 'dict' | 'image' | 'images' | 'date' | 'datetime' | 'tag'
+export type DescriptionFieldType =
+  | 'text'
+  | 'dict'
+  | 'image'
+  | 'images'
+  | 'date'
+  | 'datetime'
+  | 'tag'
 /**
  * DescriptionItem 配置项
  */

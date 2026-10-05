@@ -14,7 +14,9 @@ const emit = defineEmits<{ select: [value: string] }>()
 
 function previewStyle(value: string): Record<string, string> | undefined {
   if (!value || !props.preview) return undefined
-  return props.preview === 'fontFamily' ? { fontFamily: value } : { fontSize: value }
+  return props.preview === 'fontFamily'
+    ? { fontFamily: value }
+    : { fontSize: value }
 }
 </script>
 
@@ -28,7 +30,11 @@ function previewStyle(value: string): Record<string, string> | undefined {
         @click="emit('select', item.value)"
       >
         <span :style="previewStyle(item.value)">{{ item.label }}</span>
-        <Icon v-if="item.value === current" icon="carbon:checkmark" class="text-sm" />
+        <Icon
+          v-if="item.value === current"
+          icon="carbon:checkmark"
+          class="text-sm"
+        />
       </button>
     </li>
   </ul>

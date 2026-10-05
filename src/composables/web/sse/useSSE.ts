@@ -1,6 +1,11 @@
 import { computed, onUnmounted, readonly, ref } from 'vue'
 
-import type { SSEEventCallback, SSEEventHandlers, SSEEventType, SSEOptions } from './types'
+import type {
+  SSEEventCallback,
+  SSEEventHandlers,
+  SSEEventType,
+  SSEOptions,
+} from './types'
 
 import { DEFAULT_SSE_OPTIONS } from './constants'
 import { SSEEventManager } from './SSEEventManager'
@@ -68,7 +73,10 @@ export function useSSE(options: SSEOptions) {
         eventManager.emit('stateChange' as any, 'error' as any)
         eventManager.emit('error' as any, event)
 
-        if (reconnectManager.isEnabled() && !reconnectManager.hasReachedMaxAttempts()) {
+        if (
+          reconnectManager.isEnabled() &&
+          !reconnectManager.hasReachedMaxAttempts()
+        ) {
           reconnectManager.start()
         } else {
           disconnect()
@@ -99,15 +107,24 @@ export function useSSE(options: SSEOptions) {
     }
   }
 
-  const on = <T = unknown>(eventType: SSEEventType | string, callback: SSEEventCallback<T>) => {
+  const on = <T = unknown>(
+    eventType: SSEEventType | string,
+    callback: SSEEventCallback<T>,
+  ) => {
     return eventManager.on(eventType, callback)
   }
 
-  const once = <T = unknown>(eventType: SSEEventType | string, callback: SSEEventCallback<T>) => {
+  const once = <T = unknown>(
+    eventType: SSEEventType | string,
+    callback: SSEEventCallback<T>,
+  ) => {
     return eventManager.once(eventType, callback)
   }
 
-  const off = (eventType: SSEEventType | string, callback?: SSEEventCallback) => {
+  const off = (
+    eventType: SSEEventType | string,
+    callback?: SSEEventCallback,
+  ) => {
     eventManager.off(eventType, callback)
   }
 

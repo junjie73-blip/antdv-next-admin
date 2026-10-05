@@ -74,7 +74,9 @@ async function handleConfirm() {
       })
     })
 
-    const file = new File([blob], `avatar_${Date.now()}.png`, { type: 'image/png' })
+    const file = new File([blob], `avatar_${Date.now()}.png`, {
+      type: 'image/png',
+    })
     const res: any = await uploadFile(file)
     const url = res?.data?.url || res?.url
     if (!url) throw new Error('上传接口未返回 url')
@@ -97,7 +99,12 @@ watch(visible, (v) => {
 
 <template>
   <div class="flex items-center gap-4">
-    <a-avatar :size="size" :src="modelValue" :style="previewStyle" class="bg-slate-100 dark:bg-slate-800">
+    <a-avatar
+      :size="size"
+      :src="modelValue"
+      :style="previewStyle"
+      class="bg-slate-100 dark:bg-slate-800"
+    >
       <template v-if="!modelValue">
         <Icon icon="carbon:user-avatar" class="text-3xl text-gray-400" />
       </template>
@@ -143,7 +150,10 @@ watch(visible, (v) => {
           />
         </div>
         <div class="text-xs text-gray-500">
-          拖动/缩放选择裁剪区域，将按 1:1 输出 {{ outputSize }}x{{ outputSize }} PNG
+          拖动/缩放选择裁剪区域，将按 1:1 输出 {{ outputSize }}x{{
+            outputSize
+          }}
+          PNG
         </div>
       </div>
     </a-modal>

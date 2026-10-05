@@ -1,4 +1,11 @@
-import { cloneDeep, debounce, isFunction, isPlainObject, merge, throttle } from 'es-toolkit'
+import {
+  cloneDeep,
+  debounce,
+  isFunction,
+  isPlainObject,
+  merge,
+  throttle,
+} from 'es-toolkit'
 
 import dayjs from '~/utils/dayjs'
 
@@ -43,7 +50,10 @@ const ANT_TABLE_COLUMN_KEYS = new Set([
   'rowSpan',
 ])
 
-export function deepMerge<T extends object = object>(target: T, source: Partial<T>): T {
+export function deepMerge<T extends object = object>(
+  target: T,
+  source: Partial<T>,
+): T {
   if (!source || typeof source !== 'object') return target
   return merge(cloneDeep(target), source) as T
 }
@@ -83,7 +93,10 @@ export function isImageList(value: unknown): value is string[] {
 }
 
 // ⭐ 直接用 dayjs，删除手写补零
-export function formatDate(value: unknown, format = 'YYYY-MM-DD HH:mm:ss'): string {
+export function formatDate(
+  value: unknown,
+  format = 'YYYY-MM-DD HH:mm:ss',
+): string {
   if (!value) return ''
   const d = dayjs(value as string | number | Date)
   return d.isValid() ? d.format(format) : String(value)
@@ -101,15 +114,26 @@ export function formatNumber(
   return `${prefix}${formatted}${suffix}`
 }
 
-export const formatCurrency = (value: unknown, currency = '¥', decimals = 2): string =>
-  formatNumber(value, { decimals, prefix: currency })
+export const formatCurrency = (
+  value: unknown,
+  currency = '¥',
+  decimals = 2,
+): string => formatNumber(value, { decimals, prefix: currency })
 
-export const formatPercent = (value: unknown, decimals = 2): string => formatNumber(value, { decimals, suffix: '%' })
+export const formatPercent = (value: unknown, decimals = 2): string =>
+  formatNumber(value, { decimals, suffix: '%' })
 
-export const truncateText = (text: string, maxLength: number, suffix = '...'): string =>
+export const truncateText = (
+  text: string,
+  maxLength: number,
+  suffix = '...',
+): string =>
   !text || text.length <= maxLength ? text : text.slice(0, maxLength) + suffix
 
-export function getColumnValue(record: Recordable, dataIndex: string | string[]): any {
+export function getColumnValue(
+  record: Recordable,
+  dataIndex: string | string[],
+): any {
   if (!record) return undefined
   const keys = isArray(dataIndex) ? dataIndex : (dataIndex as string).split('.')
   let value: any = record
@@ -120,7 +144,11 @@ export function getColumnValue(record: Recordable, dataIndex: string | string[])
   return value
 }
 
-export function setColumnValue(record: Recordable, dataIndex: string | string[], value: any): void {
+export function setColumnValue(
+  record: Recordable,
+  dataIndex: string | string[],
+  value: any,
+): void {
   const keys = isArray(dataIndex) ? dataIndex : (dataIndex as string).split('.')
   let target: any = record
   for (let i = 0; i < keys.length - 1; i++) {
@@ -138,7 +166,10 @@ export const filterVisibleColumns = (columns: BasicColumn[]): BasicColumn[] =>
     return true
   })
 
-export function sortColumns(columns: BasicColumn[], order: string[]): BasicColumn[] {
+export function sortColumns(
+  columns: BasicColumn[],
+  order: string[],
+): BasicColumn[] {
   const map = new Map(columns.map((col) => [col.key || col.dataIndex, col]))
   const sorted: BasicColumn[] = []
   for (const key of order) {
@@ -154,7 +185,10 @@ export function sortColumns(columns: BasicColumn[], order: string[]): BasicColum
 
 export function getTotalColumnWidth(columns: BasicColumn[]): number {
   return columns.reduce((total, col) => {
-    const w = typeof col.width === 'number' ? col.width : Number.parseInt(col.width as string) || 0
+    const w =
+      typeof col.width === 'number'
+        ? col.width
+        : Number.parseInt(col.width as string) || 0
     return total + w
   }, 0)
 }

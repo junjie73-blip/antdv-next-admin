@@ -6,7 +6,13 @@ import { ref, unref, watch } from 'vue'
 
 import { resolveErrorMessage } from '~/composables'
 
-import type { FetchParams, FetchSetting, Recordable, UseDataSourceOptions, UseDataSourceReturn } from '../types'
+import type {
+  FetchParams,
+  FetchSetting,
+  Recordable,
+  UseDataSourceOptions,
+  UseDataSourceReturn,
+} from '../types'
 
 const DEFAULT_FETCH_SETTING: FetchSetting = {
   pageField: 'pageNum',
@@ -17,13 +23,20 @@ const DEFAULT_FETCH_SETTING: FetchSetting = {
 
 /** 解构后端响应外层包装（保持与原 unwrap 语义一致） */
 function getRawData(raw: any): any {
-  if (raw && typeof raw === 'object' && 'data' in raw && raw.data !== undefined) {
+  if (
+    raw &&
+    typeof raw === 'object' &&
+    'data' in raw &&
+    raw.data !== undefined
+  ) {
     return raw.data
   }
   return raw
 }
 
-export function useDataSource(options: UseDataSourceOptions): UseDataSourceReturn {
+export function useDataSource(
+  options: UseDataSourceOptions,
+): UseDataSourceReturn {
   const {
     api,
     dataSource,
@@ -92,7 +105,8 @@ export function useDataSource(options: UseDataSourceOptions): UseDataSourceRetur
     if (isFunction(afterFetch)) data = afterFetch(data)
 
     let total = 0
-    if (totalField && res[totalField] !== undefined) total = res[totalField] as number
+    if (totalField && res[totalField] !== undefined)
+      total = res[totalField] as number
     else if (res.totalCount !== undefined) total = res.totalCount as number
     else if (res.total !== undefined) total = res.total as number
 
@@ -160,7 +174,10 @@ export function useDataSource(options: UseDataSourceOptions): UseDataSourceRetur
     rawDataSourceRef.value = cloneDeep(data)
   }
 
-  const insertTableDataRecord = (record: Recordable | Recordable[], index?: number) => {
+  const insertTableDataRecord = (
+    record: Recordable | Recordable[],
+    index?: number,
+  ) => {
     const records = Array.isArray(record) ? record : [record]
     const insertIndex = index ?? dataSourceRef.value.length
     dataSourceRef.value.splice(insertIndex, 0, ...records)
@@ -170,12 +187,16 @@ export function useDataSource(options: UseDataSourceOptions): UseDataSourceRetur
   const deleteTableDataRecord = (key: string | string[]) => {
     const keys = Array.isArray(key) ? key : [key]
     const keySet = new Set(keys)
-    dataSourceRef.value = dataSourceRef.value.filter((r) => !keySet.has(getRowKeyValue(r)))
+    dataSourceRef.value = dataSourceRef.value.filter(
+      (r) => !keySet.has(getRowKeyValue(r)),
+    )
     rawDataSourceRef.value = cloneDeep(dataSourceRef.value)
   }
 
   const updateTableDataRecord = (key: string, record: Recordable) => {
-    const index = dataSourceRef.value.findIndex((item) => getRowKeyValue(item) === key)
+    const index = dataSourceRef.value.findIndex(
+      (item) => getRowKeyValue(item) === key,
+    )
     if (index > -1) {
       dataSourceRef.value[index] = { ...dataSourceRef.value[index], ...record }
       rawDataSourceRef.value = cloneDeep(dataSourceRef.value)

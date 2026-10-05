@@ -125,26 +125,37 @@ export function showLoginWelcome(options: LoginWelcomeOptions = {}): void {
         class:
           'flex flex-wrap items-baseline gap-x-1.5 text-[15px] font-semibold leading-snug text-gray-900 dark:text-gray-100',
       },
-      [h('span', config.title), h('span', { class: 'text-ant-primary' }, displayName)],
+      [
+        h('span', config.title),
+        h('span', { class: 'text-ant-primary' }, displayName),
+      ],
     ),
 
     // ⭐ 通知正文：欢迎语 + 时间胶囊
     description: h('div', { class: 'space-y-2 pt-0.5' }, [
-      h('p', { class: 'text-sm leading-relaxed text-gray-500 dark:text-gray-400' }, config.message),
+      h(
+        'p',
+        { class: 'text-sm leading-relaxed text-gray-500 dark:text-gray-400' },
+        config.message,
+      ),
       h(
         'div',
         {
           class:
             'inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-500 dark:bg-gray-800 dark:text-gray-400',
         },
-        [h(Icon, { icon: 'carbon:time', class: 'text-xs' }), h('span', timeText)],
+        [
+          h(Icon, { icon: 'carbon:time', class: 'text-xs' }),
+          h('span', timeText),
+        ],
       ),
     ]),
 
     icon: h(
       'div',
       {
-        class: 'flex h-10 w-10 items-center justify-center rounded-xl bg-ant-primary/10 ring-1 ring-ant-primary/20',
+        class:
+          'flex h-10 w-10 items-center justify-center rounded-xl bg-ant-primary/10 ring-1 ring-ant-primary/20',
       },
       [
         h(Icon, {

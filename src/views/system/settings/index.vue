@@ -6,7 +6,12 @@ import type { DescriptionItem } from '~/components/business/Description'
 import type { FormSchema } from '~/components/business/Form'
 import type { BasicColumn } from '~/components/business/Table'
 
-import { addSetting, deleteSetting, getSettingsList, updateSetting } from '~/api/system'
+import {
+  addSetting,
+  deleteSetting,
+  getSettingsList,
+  updateSetting,
+} from '~/api/system'
 import { Description as DetailDescription } from '~/components/business/Description'
 import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
 import { BasicForm, useForm } from '~/components/business/Form'
@@ -33,7 +38,9 @@ interface SystemConfig {
 
 const dictStore = useDictStore()
 
-const statusOptions = computed(() => dictStore.getOptions(DictType.NORMAL_DISABLE))
+const statusOptions = computed(() =>
+  dictStore.getOptions(DictType.NORMAL_DISABLE),
+)
 
 const containerClassName = cn('space-y-4')
 const cardClassName = cn('shadow-sm')
@@ -88,20 +95,28 @@ const detailSchemas: DescriptionItem[] = [
     field: 'type',
     label: '配置类型',
     render: (_: string, record: any) => (
-      <a-tag color={typeColorMap[record.type] || 'default'}>{typeLabelMap[record.type] || record.type}</a-tag>
+      <a-tag color={typeColorMap[record.type] || 'default'}>
+        {typeLabelMap[record.type] || record.type}
+      </a-tag>
     ),
   },
   {
     field: 'group',
     label: '所属分组',
-    render: (_: string, record: any) => <a-tag color={groupColorMap[record.group] || 'default'}>{record.group}</a-tag>,
+    render: (_: string, record: any) => (
+      <a-tag color={groupColorMap[record.group] || 'default'}>
+        {record.group}
+      </a-tag>
+    ),
   },
   { field: 'description', label: '描述信息' },
   {
     field: 'enabled',
     label: '启用状态',
     render: (_: any, record: any) => (
-      <a-tag color={record.enabled ? 'green' : 'red'}>{record.enabled ? '已启用' : '已禁用'}</a-tag>
+      <a-tag color={record.enabled ? 'green' : 'red'}>
+        {record.enabled ? '已启用' : '已禁用'}
+      </a-tag>
     ),
   },
   { field: 'createdAt', label: '创建时间' },
@@ -210,7 +225,11 @@ const modalFormSchemas: FormSchema[] = [
     component: 'InputNumber',
     colProps: { span: 12 },
     defaultValue: 0,
-    componentProps: { min: 0, placeholder: '数字越小越靠前', style: { width: '100%' } },
+    componentProps: {
+      min: 0,
+      placeholder: '数字越小越靠前',
+      style: { width: '100%' },
+    },
   },
   {
     field: 'enabled',
@@ -325,14 +344,43 @@ function handleApply(record: SystemConfig) {
 }
 
 const columns: BasicColumn[] = [
-  { title: '#', key: 'index', width: 60, align: 'center', customRender: ({ index }) => index + 1 },
+  {
+    title: '#',
+    key: 'index',
+    width: 60,
+    align: 'center',
+    customRender: ({ index }) => index + 1,
+  },
   { title: '配置键', dataIndex: 'key', key: 'key', width: 180, ellipsis: true },
   { title: '名称', dataIndex: 'name', key: 'name', width: 160 },
-  { title: '配置值', dataIndex: 'value', key: 'value', width: 200, ellipsis: true },
+  {
+    title: '配置值',
+    dataIndex: 'value',
+    key: 'value',
+    width: 200,
+    ellipsis: true,
+  },
   { title: '类型', dataIndex: 'type', key: 'type', width: 80, align: 'center' },
-  { title: '分组', dataIndex: 'group', key: 'group', width: 110, align: 'center' },
-  { title: '状态', dataIndex: 'enabled', key: 'enabled', width: 70, align: 'center' },
-  { title: '描述', dataIndex: 'description', key: 'description', ellipsis: true },
+  {
+    title: '分组',
+    dataIndex: 'group',
+    key: 'group',
+    width: 110,
+    align: 'center',
+  },
+  {
+    title: '状态',
+    dataIndex: 'enabled',
+    key: 'enabled',
+    width: 70,
+    align: 'center',
+  },
+  {
+    title: '描述',
+    dataIndex: 'description',
+    key: 'description',
+    ellipsis: true,
+  },
   { title: '更新时间', dataIndex: 'updatedAt', key: 'updatedAt', width: 170 },
 ]
 </script>
@@ -369,7 +417,10 @@ const columns: BasicColumn[] = [
             class="flex! w-full items-center justify-between whitespace-nowrap"
           >
             <template #icon>
-              <Icon v-if="groupIconMap[record.group]" :icon="groupIconMap[record.group]!" />
+              <Icon
+                v-if="groupIconMap[record.group]"
+                :icon="groupIconMap[record.group]!"
+              />
             </template>
             {{ record.group }}
           </a-tag>
@@ -389,28 +440,45 @@ const columns: BasicColumn[] = [
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <a-button type="link" :class="btnClassName" @click="() => handleApply(record)">
+            <a-button
+              type="link"
+              :class="btnClassName"
+              @click="() => handleApply(record)"
+            >
               <template #icon>
                 <Icon icon="carbon:restart" />
               </template>
               应用
             </a-button>
             <a-divider type="vertical" :class="dividerClassName" />
-            <a-button type="link" :class="btnClassName" @click="() => handleView(record)">
+            <a-button
+              type="link"
+              :class="btnClassName"
+              @click="() => handleView(record)"
+            >
               <template #icon>
                 <Icon icon="ant-design:eye-outlined" />
               </template>
               查看
             </a-button>
             <a-divider type="vertical" :class="dividerClassName" />
-            <a-button type="link" :class="btnClassName" @click="() => handleEdit(record)">
+            <a-button
+              type="link"
+              :class="btnClassName"
+              @click="() => handleEdit(record)"
+            >
               <template #icon>
                 <Icon icon="ant-design:edit-outlined" />
               </template>
               编辑
             </a-button>
             <a-divider type="vertical" :class="dividerClassName" />
-            <a-button type="link" danger :class="btnClassName" @click="() => handleDelete(record)">
+            <a-button
+              type="link"
+              danger
+              :class="btnClassName"
+              @click="() => handleDelete(record)"
+            >
               <template #icon>
                 <Icon icon="ant-design:delete-outlined" />
               </template>
@@ -421,7 +489,12 @@ const columns: BasicColumn[] = [
       </BasicTable>
     </a-card>
 
-    <BasicModal :title="isEditing ? '编辑设置' : '新增设置'" :width="640" @register="modalRegister" @ok="handleSave">
+    <BasicModal
+      :title="isEditing ? '编辑设置' : '新增设置'"
+      :width="640"
+      @register="modalRegister"
+      @ok="handleSave"
+    >
       <BasicForm
         :schemas="modalFormSchemas"
         :label-width="80"
@@ -431,8 +504,18 @@ const columns: BasicColumn[] = [
       />
     </BasicModal>
 
-    <BasicDrawer :title="`详情设置 - ${viewingRecord?.name || ''}`" :size="520" @register="drawerRegister">
-      <DetailDescription v-if="viewingRecord" :data="viewingRecord" :schema="detailSchemas" :column="1" bordered />
+    <BasicDrawer
+      :title="`详情设置 - ${viewingRecord?.name || ''}`"
+      :size="520"
+      @register="drawerRegister"
+    >
+      <DetailDescription
+        v-if="viewingRecord"
+        :data="viewingRecord"
+        :schema="detailSchemas"
+        :column="1"
+        bordered
+      />
     </BasicDrawer>
   </div>
 </template>

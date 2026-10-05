@@ -18,7 +18,7 @@ export const lightComponents = {
     headerColor: slate[800],
     headerHeight: 64,
     headerPadding: '0 24px',
-    footerBg: slate[50],
+    footerBg: white,
     footerPadding: '16px 24px',
     siderBg: white,
     triggerBg: white,
