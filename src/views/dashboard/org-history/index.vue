@@ -74,20 +74,20 @@ useIntervalFn(overview.refresh, 60_000)
 /* ========== 时间轴 ========== */
 const changeTimeline = computed(() =>
   recent.data.value.map((e) => ({
-    id: e.history_id,
+    id: e.historyId,
     title: e.summary ?? '—',
-    time: e.created_at,
-    tag: e.change_type,
+    time: e.createdAt,
+    tag: e.changeType,
     tagColor:
-      e.change_type === 'create'
+      e.changeType === 'create'
         ? 'green'
-        : e.change_type === 'delete'
+        : e.changeType === 'delete'
           ? 'red'
-          : e.change_type === 'transfer' || e.change_type === 'move'
+          : e.changeType === 'transfer' || e.changeType === 'move'
             ? 'purple'
             : 'blue',
     desc: e.scope ?? undefined,
-    operator: e.operator_name ?? '系统',
+    operator: e.operatorName ?? '系统',
   })),
 )
 </script>

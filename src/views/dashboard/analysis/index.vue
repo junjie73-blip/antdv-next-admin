@@ -2,9 +2,14 @@
 import { useIntervalFn } from '@vueuse/core'
 import { onMounted, ref, watch } from 'vue'
 
-import { ChartCard, ChartRenderer, KpiCard, PageHeader, TimeRangeSwitch } from '../components'
+import { ChartRenderer } from '../components'
 import { useAnalysisData, useDashboardTheme } from '../composables'
 import { analysisApi } from './api'
+import ScreenHeader from './components/ScreenHeader.vue'
+import ScreenKpiCard from './components/ScreenKpiCard.vue'
+import ScreenLayout from './components/ScreenLayout.vue'
+import ScreenPanel from './components/ScreenPanel.vue'
+import ScreenRangeSwitch, { type TimeRange } from './components/ScreenRangeSwitch.vue'
 import { useErrorRateOption } from './options/useErrorRateOption'
 import { useMainTrendOption } from './options/useMainTrendOption'
 import { useModuleRankOption } from './options/useModuleRankOption'
@@ -15,14 +20,10 @@ import { useUserJourneyOption } from './options/useUserJourneyOption'
 
 defineOptions({ name: 'AnalysisDashboard' })
 
-type TimeRange = 'today' | '7d' | '30d'
-
 const { isDark } = useDashboardTheme()
 const range = ref<TimeRange>('7d')
 
-/* ============================================================
- * 数据源（8 个，与后端接口一一对应）
- * ============================================================ */
+/* 数据源 */
 const kpi = useAnalysisData(() => analysisApi.getKpi(), [])
 const trend = useAnalysisData(() => analysisApi.getActivityTrend(range.value), {
   categories: [],
@@ -31,9 +32,7 @@ const trend = useAnalysisData(() => analysisApi.getActivityTrend(range.value), {
   apiCalls: [],
 })
 const traffic = useAnalysisData(() => analysisApi.getTrafficDistribution(), [])
-const health = useAnalysisData(() => analysisApi.getSystemHealth(), {
-  health: 0,
-})
+const health = useAnalysisData(() => analysisApi.getSystemHealth(), { health: 0 })
 const resource = useAnalysisData(() => analysisApi.getResourceUsage(), {
   indicators: [],
   current: [],
@@ -48,9 +47,7 @@ const errorRate = useAnalysisData(() => analysisApi.getErrorRate(), {
 const journey = useAnalysisData(() => analysisApi.getUserJourney(), [])
 const moduleRank = useAnalysisData(() => analysisApi.getModuleRank(), [])
 
-/* ============================================================
- * Option（7 个；KPI 卡片不用 option）
- * ============================================================ */
+/* Option */
 const mainTrendOption = useMainTrendOption(trend.data, isDark)
 const trafficOption = useTrafficPieOption(traffic.data, isDark)
 const healthOption = useSystemHealthOption(health.data, isDark)
@@ -59,9 +56,7 @@ const errorOption = useErrorRateOption(errorRate.data, isDark)
 const journeyOption = useUserJourneyOption(journey.data, isDark)
 const moduleOption = useModuleRankOption(moduleRank.data, isDark)
 
-/* ============================================================
- * 加载
- * ============================================================ */
+/* 加载 */
 async function loadAll() {
   await Promise.allSettled([
     kpi.refresh(),
@@ -76,84 +71,96 @@ async function loadAll() {
 }
 
 onMounted(loadAll)
-
-/* 时间范围变化 → 仅刷新趋势 */
 watch(range, () => trend.refresh())
-
-/* 模块排行：15s 自动刷新 */
 useIntervalFn(moduleRank.refresh, 15_000)
 </script>
 
 <template>
-  <PerfectScrollbar class="h-full">
-    <PageHeader title="数据分析" subtitle="实时数据可视化与洞察">
+  <ScreenLayout>
+    <ScreenHeader title="数据分析大屏" subtitle="ANALYTICS MONITOR">
       <template #actions>
-        <TimeRangeSwitch v-model:value="range" />
+        <!-- ⭐ 用大屏风格的切换器替代 a-radio-group -->
+        <ScreenRangeSwitch v-model="range" />
       </template>
-    </PageHeader>
+    </ScreenHeader>
 
-    <!-- ============================================================
-         第一行：KPI 卡片
-         ============================================================ -->
-    <a-row :gutter="[16, 16]" class="mb-4">
-      <a-col v-for="item in kpi.data.value" :key="item.title" :xs="24" :sm="12" :lg="6">
-        <KpiCard :item="item" />
-      </a-col>
-    </a-row>
+    <main class="screen-main">
+      <!-- KPI -->
+      <section class="kpi-row">
+        <ScreenKpiCard v-for="item in kpi.data.value" :key="item.title" :item="item" />
+      </section>
 
-    <!-- ============================================================
-         第二行：主趋势（全宽）
-         ============================================================ -->
-    <ChartCard title="系统活动趋势" :loading="trend.loading.value" class="mb-4!">
-      <ChartRenderer :option="mainTrendOption" :dark="isDark" :containerHeight="480" kind="line" />
-    </ChartCard>
+      <!-- 三列 -->
+      <section class="grid-row">
+        <div class="col">
+          <ScreenPanel title="流量来源分布" :loading="traffic.loading.value" class="grow">
+            <ChartRenderer :option="trafficOption" :dark="isDark" kind="pie" />
+          </ScreenPanel>
+          <ScreenPanel title="用户行为漏斗" :loading="journey.loading.value" class="grow">
+            <ChartRenderer :option="journeyOption" :dark="isDark" kind="funnel" />
+          </ScreenPanel>
+        </div>
 
-    <!-- ============================================================
-         第三行：流量分布 + 系统健康度
-         ============================================================ -->
-    <a-row :gutter="[16, 16]" class="mb-4">
-      <a-col :xs="24" :lg="12">
-        <ChartCard title="流量来源分布" :loading="traffic.loading.value">
-          <ChartRenderer :option="trafficOption" :dark="isDark" kind="pie" />
-        </ChartCard>
-      </a-col>
-      <a-col :xs="24" :lg="12">
-        <ChartCard title="系统健康度" :loading="health.loading.value">
-          <ChartRenderer :option="healthOption" :dark="isDark" kind="gauge" />
-        </ChartCard>
-      </a-col>
-    </a-row>
+        <div class="col">
+          <ScreenPanel title="系统活动趋势" :loading="trend.loading.value" class="grow">
+            <ChartRenderer :option="mainTrendOption" :dark="isDark" kind="line" />
+          </ScreenPanel>
+          <ScreenPanel title="API 错误率趋势" :loading="errorRate.loading.value" class="grow">
+            <ChartRenderer :option="errorOption" :dark="isDark" kind="line" />
+          </ScreenPanel>
+        </div>
 
-    <!-- ============================================================
-         第四行：资源使用 + API 错误率
-         ============================================================ -->
-    <a-row :gutter="[16, 16]" class="mb-4">
-      <a-col :xs="24" :lg="12">
-        <ChartCard title="资源使用概况" :loading="resource.loading.value">
-          <ChartRenderer :option="resourceOption" :dark="isDark" :containerHeight="320" kind="radar" />
-        </ChartCard>
-      </a-col>
-      <a-col :xs="24" :lg="12">
-        <ChartCard title="API 错误率趋势" :loading="errorRate.loading.value">
-          <ChartRenderer :option="errorOption" :dark="isDark" :containerHeight="320" kind="line" />
-        </ChartCard>
-      </a-col>
-    </a-row>
-
-    <!-- ============================================================
-         第五行：用户漏斗 + 模块热度
-         ============================================================ -->
-    <a-row :gutter="[16, 16]">
-      <a-col :xs="24" :lg="10">
-        <ChartCard title="用户行为漏斗" :loading="journey.loading.value">
-          <ChartRenderer :option="journeyOption" :dark="isDark" :containerHeight="320" kind="funnel" />
-        </ChartCard>
-      </a-col>
-      <a-col :xs="24" :lg="14">
-        <ChartCard title="模块使用热度" :loading="moduleRank.loading.value" action="tag" tag-text="15s 自动刷新">
-          <ChartRenderer :option="moduleOption" :dark="isDark" :containerHeight="320" kind="bar" />
-        </ChartCard>
-      </a-col>
-    </a-row>
-  </PerfectScrollbar>
+        <div class="col">
+          <ScreenPanel title="系统健康度" :loading="health.loading.value" class="grow">
+            <ChartRenderer :option="healthOption" :dark="isDark" kind="gauge" />
+          </ScreenPanel>
+          <ScreenPanel title="资源使用概况" :loading="resource.loading.value" class="grow">
+            <ChartRenderer :option="resourceOption" :dark="isDark" kind="radar" />
+          </ScreenPanel>
+          <ScreenPanel title="模块使用热度" :loading="moduleRank.loading.value" class="grow">
+            <template #extra>15s 自动刷新</template>
+            <ChartRenderer :option="moduleOption" :dark="isDark" kind="bar" />
+          </ScreenPanel>
+        </div>
+      </section>
+    </main>
+  </ScreenLayout>
 </template>
+
+<style scoped>
+.screen-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 16px 16px;
+  overflow: hidden;
+}
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.grid-row {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1fr;
+  gap: 12px;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.grow {
+  flex: 1;
+  min-height: 0;
+}
+</style>

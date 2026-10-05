@@ -177,7 +177,7 @@ export function refreshToken(refreshToken: string) {
 // ============================================================
 /** ✅ 修正：/auth/profile（原为 /auth/user-info） */
 export function getProfile(): Promise<UserInfo> {
-  return request.get<UserInfo>('/auth/profile')
+  return request.get<UserInfo>('/auth/profile').then((res) => res.data)
 }
 /** 兼容旧名 */
 export const getUserInfo = getProfile

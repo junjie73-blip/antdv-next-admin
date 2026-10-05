@@ -290,7 +290,12 @@ export function useEcharts<T = unknown>(
     })
     tryOnBeforeUnmount(unregister)
   }
-
+  onMounted(() => {
+    addEventListener('resize', resizeFn)
+  })
+  onUnmounted(() => {
+    removeEventListener('resize', resizeFn)
+  })
   return {
     containerRef,
     chart,
