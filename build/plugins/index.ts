@@ -61,7 +61,7 @@ export function createPlugins(mode: string): PluginOption[] {
   if (envConfig.VITE_COMPRESS && envConfig.VITE_COMPRESS !== 'none') {
     plugins.push(createCompressPlugin(envConfig.VITE_COMPRESS))
   }
-  if (envConfig.VITE_LEGACY) plugins.push(createLegacyPlugin(envConfig))
+  // if (envConfig.VITE_LEGACY) plugins.push(createLegacyPlugin(envConfig))
   if (envConfig.VITE_TURBO_CONSOLE) plugins.push(createTurboConsolePlugin())
 
   // 自研 Loading 插件（按需启用，默认启用）
