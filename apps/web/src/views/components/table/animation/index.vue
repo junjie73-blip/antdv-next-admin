@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import type { BasicColumn } from '~/components/business/Table';
 
-import type { BasicColumn } from '~/components/business/Table'
+import { ref } from 'vue';
 
-import { BasicTable, useTable } from '~/components/business/Table'
-import { cn } from '~/utils/cn'
+import { BasicTable, useTable } from '~/components/business/Table';
+import { cn } from '~/utils/cn';
 
-const containerClassName = cn('space-y-6')
-const toolbarClassName = cn('mt-4', 'flex', 'gap-2')
-const infoClassName = cn('mb-4')
-const skeletonContentClassName = cn('p-4', 'bg-gray-50', 'rounded')
+const containerClassName = cn('space-y-6');
+const toolbarClassName = cn('mt-4', 'flex', 'gap-2');
+const infoClassName = cn('mb-4');
+const skeletonContentClassName = cn('p-4', 'bg-gray-50', 'rounded-sm');
 
 const tableData = ref([
   {
@@ -52,7 +52,7 @@ const tableData = ref([
     status: '离职',
     email: 'qianqi@example.com',
   },
-])
+]);
 
 const animationColumns: BasicColumn[] = [
   { title: '姓名', dataIndex: 'name', key: 'name' },
@@ -60,28 +60,28 @@ const animationColumns: BasicColumn[] = [
   { title: '部门', dataIndex: 'department', key: 'department' },
   { title: '状态', dataIndex: 'status', key: 'status' },
   { title: '邮箱', dataIndex: 'email', key: 'email' },
-]
+];
 
-const loading = ref(false)
+const loading = ref(false);
 
 const [registerBasic, basicTableRef] = useTable({
   columns: animationColumns,
   dataSource: tableData.value,
   loading: false,
   rowKey: 'id',
-})
+});
 
 const [registerAnimated] = useTable({
   columns: animationColumns,
   dataSource: tableData.value,
   rowKey: 'id',
-})
+});
 
 function handleRefresh() {
-  basicTableRef.value?.setLoading(true)
+  basicTableRef.value?.setLoading(true);
   setTimeout(() => {
-    basicTableRef.value?.setLoading(false)
-  }, 2000)
+    basicTableRef.value?.setLoading(false);
+  }, 2000);
 }
 </script>
 

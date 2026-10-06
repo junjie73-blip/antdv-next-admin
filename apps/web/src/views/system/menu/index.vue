@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { computed, ref } from 'vue'
-
-import type { MenuConfig } from '@antdv-admin/types'
+import type { MenuConfig } from '@antdv/types'
 import type { FormSchema } from '~/components/business/Form'
 import type { BasicColumn } from '~/components/business/Table'
 
+import { computed, ref } from 'vue'
+
+import { Icon } from '@iconify/vue'
 import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
 import { BasicForm, useForm } from '~/components/business/Form'
 import { BasicTable, useTable } from '~/components/business/Table'
@@ -25,8 +25,8 @@ interface MenuRecord {
   perms: string
   path: string
   component: string
-  menuType: 'M' | 'C' | 'F' | 'L' | 'MICRO'
-  parentId: number | null
+  menuType: 'C' | 'F' | 'L' | 'M' | 'MICRO'
+  parentId: null | number
   status: number
   linkUrl?: string
   microAppConfig?: MicroAppConfig
@@ -38,7 +38,7 @@ const containerClassName = cn('space-y-4')
 const cardClassName = cn('shadow-sm')
 const tagClassName = cn('inline-flex items-center gap-1')
 const actionClassName = cn('flex', 'items-center', 'justify-center')
-const btnClassName = cn('!px-0.5')
+const btnClassName = cn('px-0.5!')
 const dividerClassName = cn('mx-0')
 
 const menuTypeColorMap: Record<string, string> = {
@@ -73,12 +73,12 @@ const statusOptions = computed(() =>
 
 function convertFrontendMenusToRecords(
   menus: MenuConfig[],
-  parentId: number | null,
+  parentId: null | number,
   startId: number,
 ): { records: MenuRecord[]; nextId: number } {
   const result: MenuRecord[] = []
   let currentId = startId
-  const now = new Date().toISOString().replace('T', ' ').substring(0, 19)
+  const now = new Date().toISOString().replace('T', ' ').slice(0, 19)
 
   for (const menu of menus) {
     const record: MenuRecord = {
@@ -473,12 +473,12 @@ async function handleSave() {
     return
   }
 
-  const now = new Date().toISOString().replace('T', ' ').substring(0, 19)
+  const now = new Date().toISOString().replace('T', ' ').slice(0, 19)
   const flat = flattenMenuTree(allData.value)
 
   if (isEditing.value && currentRecord.value) {
     const idx = flat.findIndex((i) => i.id === currentRecord.value!.id)
-    if (idx > -1) {
+    if (idx !== -1) {
       flat[idx] = {
         ...flat[idx]!,
         parentId: values.parentId ?? null,
@@ -705,7 +705,7 @@ const columns: BasicColumn[] = [
         <template #iconPicker="{ model, field }">
           <IconPicker
             :model-value="model[field] || ''"
-            @update:modelValue="
+            @update:model-value="
               (val: string) => {
                 formMethods.setFieldsValue({ [field]: val })
               }

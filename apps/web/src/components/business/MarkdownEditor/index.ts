@@ -1,5 +1,5 @@
 // 导出组件
-export { default as MarkdownEditor } from './MarkdownEditor.vue'
+export { default as MarkdownEditor } from './MarkdownEditor.vue';
 
 // 导出类型
 export type {
@@ -13,4 +13,4 @@ export type {
   MarkdownEditorToolbarKey,
   UploadResponse,
   VideoUploadConfig,
-} from './types'
+} from './types';

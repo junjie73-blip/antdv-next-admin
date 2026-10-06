@@ -1,7 +1,7 @@
 <script setup lang="tsx">
-import { computed, ref, watch } from 'vue'
+import type { MicroAppItem } from '@antdv/types'
 
-import type { MicroAppItem } from '@antdv-admin/types'
+import { computed, ref, watch } from 'vue'
 
 import { getAllMicroApps, microAppConfig } from '~/config/micro-app'
 import { cn } from '~/utils/cn'
@@ -13,7 +13,7 @@ const searchKeyword = ref('')
 const statusFilter = ref<string>('all')
 const activeAppKey = ref<string>('')
 const iframeLoaded = ref<Record<string, boolean>>({})
-const iframeLoading = ref<string | null>(null)
+const iframeLoading = ref<null | string>(null)
 
 // 当前选中的子应用
 const currentApp = computed(() => {
@@ -37,13 +37,13 @@ const filteredApps = computed(() => {
 
 // 样式类名
 const statCardClassName = cn(
-  'p-4 rounded-lg border bg-white dark:bg-gray-800',
-  'border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow',
+  'rounded-lg border bg-white p-4 dark:bg-gray-800',
+  'border-gray-200 transition-shadow hover:shadow-md dark:border-gray-700',
 )
 
 function getStatusTagClass(active: boolean) {
   return cn(
-    'px-2.5 py-1 rounded-full text-xs font-medium',
+    'rounded-full px-2.5 py-1 text-xs font-medium',
     active
       ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
       : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
@@ -53,12 +53,12 @@ function getStatusTagClass(active: boolean) {
 function getLoaderBadgeClass(loader?: string) {
   if (loader === 'iframe') {
     return cn(
-      'px-2 py-0.5 rounded text-xs',
+      'rounded px-2 py-0.5 text-xs',
       'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
     )
   }
   return cn(
-    'px-2 py-0.5 rounded text-xs',
+    'rounded px-2 py-0.5 text-xs',
     'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
   )
 }
@@ -169,7 +169,7 @@ watch(
       v-if="!isEnabled"
       class="rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-800 dark:bg-yellow-900/20"
     >
-      <span class="i-carbon-warning-alt mr-2 text-yellow-500" />
+      <span class="i-carbon-warning-alt mr-2 text-yellow-500"></span>
       <span class="text-sm text-yellow-800 dark:text-yellow-200">
         微前端功能未启用，请在 .env 中设置 VITE_MICRO_APP=true
       </span>
@@ -212,7 +212,7 @@ watch(
             allow-clear
           >
             <template #prefix>
-              <span class="i-carbon-search text-xs text-gray-400" />
+              <span class="i-carbon-search text-xs text-gray-400"></span>
             </template>
           </a-input>
           <a-select v-model:value="statusFilter" size="small" class="w-full">
@@ -255,7 +255,7 @@ watch(
                       app.icon,
                       app.active ? 'text-white' : 'text-gray-500',
                     ]"
-                  />
+                  ></span>
                 </div>
                 <div class="min-w-0 flex-1">
                   <p
@@ -289,7 +289,7 @@ watch(
               v-if="filteredApps.length === 0"
               class="flex flex-col items-center justify-center py-8 text-gray-400"
             >
-              <span class="i-carbon-application mb-2 text-3xl opacity-30" />
+              <span class="i-carbon-application mb-2 text-3xl opacity-30"></span>
               <p class="text-xs">无匹配的子应用</p>
             </div>
           </div>
@@ -321,7 +321,7 @@ watch(
                   currentApp.active ? 'text-white' : 'text-gray-500',
                 ]"
                 class="text-base"
-              />
+              ></span>
             </div>
             <div>
               <p class="text-sm font-semibold text-gray-900 dark:text-white">
@@ -371,14 +371,14 @@ watch(
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
             @load="handleIframeLoad(currentApp!.name)"
             @error="handleIframeError(currentApp!.name)"
-          />
+          ></iframe>
 
           <!-- 无选中状态 -->
           <div
             v-if="!currentApp"
             class="flex h-full flex-col items-center justify-center text-gray-400"
           >
-            <span class="i-carbon-application mb-3 text-5xl opacity-20" />
+            <span class="i-carbon-application mb-3 text-5xl opacity-20"></span>
             <p class="text-sm">选择左侧子应用开始预览</p>
             <p class="mt-1 text-xs opacity-60">支持 iframe 嵌套模式</p>
           </div>

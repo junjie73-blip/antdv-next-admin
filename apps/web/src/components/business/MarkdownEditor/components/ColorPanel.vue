@@ -1,24 +1,24 @@
 <script setup lang="ts">
-import { isString } from 'es-toolkit'
-import { computed } from 'vue'
+import { computed } from 'vue';
 
-import { cn } from '~/utils/cn'
+import { isString } from 'es-toolkit';
+import { cn } from '~/utils/cn';
 
 const props = defineProps<{
-  colors: string[]
-  current?: string
-  clearable?: boolean
-}>()
+  colors: string[];
+  current?: string;
+  clearable?: boolean;
+}>();
 
-const emit = defineEmits<{ select: [value: string] }>()
+const emit = defineEmits<{ select: [value: string] }>();
 
 /** 归一化当前色值：null/undefined 处理为空串 */
 const normalizedCurrent = computed(() =>
   isString(props.current) ? props.current.toLowerCase() : '',
-)
+);
 
 function isActive(color: string) {
-  return color.toLowerCase() === normalizedCurrent.value
+  return color.toLowerCase() === normalizedCurrent.value;
 }
 </script>
 
@@ -38,7 +38,7 @@ function isActive(color: string) {
         "
         :style="{ backgroundColor: color }"
         @click="emit('select', color)"
-      />
+      ></button>
     </div>
 
     <div

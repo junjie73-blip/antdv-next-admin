@@ -13,27 +13,27 @@
  * <img v-lazy src="..." error="error.jpg" />
  */
 
-import type { Directive, DirectiveBinding } from 'vue'
+import type { Directive, DirectiveBinding } from 'vue';
 
 interface LazyOptions {
   /** 图片 URL */
-  src: string
+  src: string;
   /** 占位图 URL（可选） */
-  placeholder?: string
+  placeholder?: string;
   /** 错误回退图 URL（可选） */
-  error?: string
+  error?: string;
   /** 是否启用渐显效果（默认 true） */
-  fade?: boolean
+  fade?: boolean;
   /** 渐显时长 ms（默认 300） */
-  duration?: number
+  duration?: number;
   /** 根边距（默认 100px） */
-  rootMargin?: string
+  rootMargin?: string;
   /** 可见度阈值（默认 0.1） */
-  threshold?: number
+  threshold?: number;
 }
 
 // 缓存已加载的图片 URL（避免重复请求）
-const loadedImages = new Set<string>()
+const loadedImages = new Set<string>();
 
 /**
  * 创建 IntersectionObserver 实例
@@ -47,24 +47,24 @@ function createObserver(
     threshold = 0.1,
     fade = true,
     duration = 300,
-  } = options
+  } = options;
 
   return new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
         // 元素进入视口
         if (entry.isIntersecting) {
-          loadImage(el, options, fade, duration)
+          loadImage(el, options, fade, duration);
           // 停止观察（图片只需加载一次）
-          observer.unobserve(el)
+          observer.unobserve(el);
         }
-      })
+      });
     },
     {
       rootMargin,
       threshold,
     },
-  )
+  );
 }
 
 /**
@@ -76,109 +76,109 @@ function loadImage(
   fade: boolean,
   duration: number,
 ): void {
-  const { src, placeholder, error } = options
+  const { src, placeholder, error } = options;
 
   // 显示占位图
   if (placeholder && !el.src) {
-    el.src = placeholder
+    el.src = placeholder;
   }
 
   // 如果已经加载过，直接设置
   if (loadedImages.has(src)) {
-    el.src = src
-    return
+    el.src = src;
+    return;
   }
 
   // 创建临时 Image 对象预加载
-  const img = new Image()
+  const img = new Image();
 
   img.onload = () => {
     // 标记为已加载
-    loadedImages.add(src)
+    loadedImages.add(src);
 
     // 设置真实图片
     if (fade) {
       // 渐显效果：先透明，再淡入
-      el.style.opacity = '0'
-      el.style.transition = `opacity ${duration}ms ease-in-out`
-      el.src = src
+      el.style.opacity = '0';
+      el.style.transition = `opacity ${duration}ms ease-in-out`;
+      el.src = src;
 
       // 触发重排后开始动画
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          el.style.opacity = '1'
-        })
-      })
+          el.style.opacity = '1';
+        });
+      });
     } else {
-      el.src = src
+      el.src = src;
     }
-  }
+  };
 
   img.onerror = () => {
-    console.warn(`[v-lazy] 图片加载失败: ${src}`)
+    console.warn(`[v-lazy] 图片加载失败: ${src}`);
     // 设置错误回退图
     if (error) {
-      el.src = error
+      el.src = error;
     }
-  }
+  };
 
-  img.src = src
+  img.src = src;
 }
 
 /**
  * 指令实现
  */
-const lazyDirective: Directive<HTMLImageElement, string | LazyOptions> = {
+const lazyDirective: Directive<HTMLImageElement, LazyOptions | string> = {
   mounted(
     el: HTMLImageElement,
-    binding: DirectiveBinding<string | LazyOptions>,
+    binding: DirectiveBinding<LazyOptions | string>,
   ) {
     // 解析参数
-    let options: LazyOptions
+    let options: LazyOptions;
 
     if (typeof binding.value === 'string') {
-      options = { src: binding.value }
+      options = { src: binding.value };
     } else {
-      options = binding.value
+      options = binding.value;
     }
 
     // 验证参数
     if (!options.src) {
-      console.warn('[v-lazy] 缺少必需的 src 参数')
-      return
+      console.warn('[v-lazy] 缺少必需的 src 参数');
+      return;
     }
 
     // 初始状态
-    el.dataset.src = options.src
+    el.dataset.src = options.src;
 
     // 设置默认样式
     if (options.fade !== false) {
-      el.style.transition = 'opacity 300ms ease-in-out'
+      el.style.transition = 'opacity 300ms ease-in-out';
     }
 
     // 创建观察者
-    const observer = createObserver(el, options)
-    observer.observe(el)
+    const observer = createObserver(el, options);
+    observer.observe(el);
 
     // 存储观察者引用（用于卸载时清理）
-    ;(el as any)._lazyObserver = observer
+    (el as any)._lazyObserver = observer;
   },
 
   updated(
     el: HTMLImageElement,
-    binding: DirectiveBinding<string | LazyOptions>,
+    binding: DirectiveBinding<LazyOptions | string>,
   ) {
     // 如果 src 变化，重新观察
     const newSrc =
-      typeof binding.value === 'string' ? binding.value : binding.value?.src
-    const oldSrc = el.dataset.src
+      typeof binding.value === 'string' ? binding.value : binding.value?.src;
+    const oldSrc = el.dataset.src;
 
     if (newSrc && newSrc !== oldSrc) {
       // 清理旧观察者
-      unmounted(el)
+      unmounted(el);
 
       // 重新绑定
-      mounted(el, binding as any)
+      mounted(el, binding as any);
     }
   },
 
@@ -186,14 +186,14 @@ const lazyDirective: Directive<HTMLImageElement, string | LazyOptions> = {
     // 清理观察者
     const observer = (el as any)._lazyObserver as
       | IntersectionObserver
-      | undefined
+      | undefined;
     if (observer) {
-      observer.disconnect()
-      delete (el as any)._lazyObserver
+      observer.disconnect();
+      delete (el as any)._lazyObserver;
     }
   },
-}
+};
 
 // 导出类型和指令
-export { type LazyOptions }
-export default lazyDirective
+export { type LazyOptions };
+export default lazyDirective;

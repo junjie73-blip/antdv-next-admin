@@ -1,23 +1,23 @@
 <script setup lang="ts">
-import { ShopOutlined } from '@antdv-next/icons'
-import { useVModel } from '@vueuse/core'
-import { Select } from 'antdv-next'
-import { computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue';
 
-import { useTenantStore } from '~/stores/modules/tenant'
+import { ShopOutlined } from '@antdv-next/icons';
+import { useVModel } from '@vueuse/core';
+import { Select } from 'antdv-next';
+import { useTenantStore } from '~/stores/modules/tenant';
 
 interface Props {
-  modelValue?: string
-  valueType?: 'code' | 'id'
-  placeholder?: string
-  disabled?: boolean
-  allowClear?: boolean
-  size?: 'small' | 'middle' | 'large'
-  onlyEnabled?: boolean
-  immediate?: boolean
-  showSearch?: boolean
-  class?: string
-  dropdownClass?: string
+  modelValue?: string;
+  valueType?: 'code' | 'id';
+  placeholder?: string;
+  disabled?: boolean;
+  allowClear?: boolean;
+  size?: 'large' | 'middle' | 'small';
+  onlyEnabled?: boolean;
+  immediate?: boolean;
+  showSearch?: boolean;
+  class?: string;
+  dropdownClass?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -29,17 +29,17 @@ const props = withDefaults(defineProps<Props>(), {
   onlyEnabled: true,
   immediate: true,
   showSearch: true,
-})
+});
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string | undefined]
-  change: [value: string | undefined, option: any]
-}>()
+  'update:modelValue': [value: string | undefined];
+  change: [value: string | undefined, option: any];
+}>();
 
-const tenantStore = useTenantStore()
+const tenantStore = useTenantStore();
 
 // useVModel：标准 v-model 双向绑定
-const innerValue = useVModel(props, 'modelValue', emit, { passive: true })
+const innerValue = useVModel(props, 'modelValue', emit, { passive: true });
 
 const selectOptions = computed(() =>
   tenantStore.options.map((t) => ({
@@ -48,11 +48,11 @@ const selectOptions = computed(() =>
     code: t.tenantCode,
     tenantId: t.tenantId,
   })),
-)
+);
 
 function filterOption(input: string, option: any): boolean {
-  if (!input) return true
-  const keyword = input.toLowerCase()
+  if (!input) return true;
+  const keyword = input.toLowerCase();
   return (
     String(option.label || '')
       .toLowerCase()
@@ -60,23 +60,23 @@ function filterOption(input: string, option: any): boolean {
     String(option.code || '')
       .toLowerCase()
       .includes(keyword)
-  )
+  );
 }
 
 function handleChange(value: string | undefined) {
-  const option = selectOptions.value.find((o) => o.value === value)
-  emit('change', value, option)
+  const option = selectOptions.value.find((o) => o.value === value);
+  emit('change', value, option);
 }
 
 onMounted(() => {
   if (props.immediate) {
-    tenantStore.load().catch(() => {})
+    tenantStore.load().catch(() => {});
   }
-})
+});
 
 defineExpose({
   refresh: () => tenantStore.load(true),
-})
+});
 </script>
 
 <template>

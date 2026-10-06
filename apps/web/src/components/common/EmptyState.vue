@@ -1,16 +1,16 @@
 <script setup lang="ts">
 withDefaults(
   defineProps<{
-    title?: string
-    description?: string
-    icon?: string
+    title?: string;
+    description?: string;
+    icon?: string;
   }>(),
   {
     title: '暂无数据',
     description: '',
     icon: 'ant-design:inbox-outlined',
   },
-)
+);
 </script>
 
 <template>
@@ -24,6 +24,6 @@ withDefaults(
     <p v-if="description" class="mt-1 text-sm text-gray-500">
       {{ description }}
     </p>
-    <slot />
+    <slot></slot>
   </div>
 </template>

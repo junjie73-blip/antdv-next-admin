@@ -1,5 +1,4 @@
-import { execa, getPackages } from '@antdv-admin/node-utils';
-
+import { execa, getPackages } from '@antdv/node-utils';
 import { cancel, isCancel, select } from '@clack/prompts';
 
 interface RunOptions {

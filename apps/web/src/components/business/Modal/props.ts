@@ -1,4 +1,4 @@
-import type { ModalProps } from './types'
+import type { ModalProps } from './types';
 
 /**
  * Modal 组件默认 Props
@@ -6,22 +6,22 @@ import type { ModalProps } from './types'
 export const defaultModalProps: Required<
   Pick<
     ModalProps,
-    | 'draggable'
+    | 'cancelText'
     | 'canFullscreen'
+    | 'centered'
+    | 'closable'
     | 'defaultFullscreen'
-    | 'useWrapper'
+    | 'destroyOnClose'
+    | 'draggable'
+    | 'keyboard'
+    | 'mask'
+    | 'maskClosable'
+    | 'okText'
     | 'showCancelBtn'
     | 'showOkBtn'
-    | 'cancelText'
-    | 'okText'
-    | 'maskClosable'
-    | 'keyboard'
-    | 'closable'
-    | 'centered'
+    | 'useWrapper'
     | 'wrapperFooterOffset'
     | 'zIndex'
-    | 'mask'
-    | 'destroyOnClose'
   >
 > = {
   draggable: true,
@@ -40,11 +40,11 @@ export const defaultModalProps: Required<
   zIndex: 1000,
   mask: true,
   destroyOnClose: false,
-}
+};
 
 /**
  * 获取默认 Props
  */
 export function getDefaultModalProps(): typeof defaultModalProps {
-  return { ...defaultModalProps }
+  return { ...defaultModalProps };
 }

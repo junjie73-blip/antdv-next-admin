@@ -1,22 +1,22 @@
-import { Image } from '@tiptap/extension-image'
+import { Image } from '@tiptap/extension-image';
 
-const LENGTH_RE = /^(\d+(?:\.\d+)?)(px)?$/
+const LENGTH_RE = /^(\d+(?:\.\d+)?)(px)?$/;
 
 /** wangEditor 把尺寸写成 `style="width: 100px;height: 50px"`，统一归一化成 px */
-function normalizeLength(value: string | null | undefined): string | null {
-  if (!value) return null
-  const matched = LENGTH_RE.exec(value.trim())
-  return matched ? `${matched[1]}px` : null
+function normalizeLength(value: null | string | undefined): null | string {
+  if (!value) return null;
+  const matched = LENGTH_RE.exec(value.trim());
+  return matched ? `${matched[1]}px` : null;
 }
 
 function readLength(
   element: HTMLElement,
-  prop: 'width' | 'height',
-): string | null {
+  prop: 'height' | 'width',
+): null | string {
   return (
     normalizeLength(element.style[prop]) ??
     normalizeLength(element.getAttribute(prop))
-  )
+  );
 }
 
 /**
@@ -43,14 +43,14 @@ export const EditorImage = Image.extend({
       },
       dataHref: {
         default: null,
-        parseHTML: (element) => element.getAttribute('data-href'),
+        parseHTML: (element) => element.dataset.href,
         renderHTML: (attributes) =>
           attributes.dataHref ? { 'data-href': attributes.dataHref } : {},
       },
-    }
+    };
   },
 }).configure({
   inline: true,
   allowBase64: true,
   resize: false,
-})
+});

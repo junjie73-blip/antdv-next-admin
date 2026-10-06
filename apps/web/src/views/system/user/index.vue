@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { computed, onMounted, ref } from 'vue'
-import * as XLSX from 'xlsx'
-
 import type { FormSchema } from '~/components/business/Form'
 import type { BasicColumn } from '~/components/business/Table'
 
+import { computed, onMounted, ref } from 'vue'
+
+import { Icon } from '@iconify/vue'
+import * as XLSX from 'xlsx'
 import {
   addUser,
   deleteUser,
@@ -46,12 +46,12 @@ interface DeptNode {
 
 const containerClassName = cn('flex gap-4')
 const leftPanelClassName = cn('w-[240px] shrink-0')
-const rightPanelClassName = cn('flex-1 min-w-0')
+const rightPanelClassName = cn('min-w-0 flex-1')
 const cardClassName = cn('shadow-sm')
-const treeCardClassName = cn('shadow-sm h-full')
+const treeCardClassName = cn('h-full shadow-sm')
 const statusTagClassName = cn('inline-flex items-center gap-1')
 const actionClassName = cn('flex', 'items-center', 'justify-center')
-const btnClassName = cn('!px-0.5')
+const btnClassName = cn('px-0.5!')
 const dividerClassName = cn('mx-0')
 
 const statusColorMap: Record<number, string> = {
@@ -103,15 +103,15 @@ onMounted(async () => {
       label: item.label,
       value: item.value,
     }))
-  } catch (e) {
-    console.error('获取基础数据失败', e)
+  } catch (error) {
+    console.error('获取基础数据失败', error)
   }
 })
 
 // ========== 状态管理 ==========
-const selectedDeptId = ref<number | null>(null)
+const selectedDeptId = ref<null | number>(null)
 const isEditing = ref(false)
-const currentRecord = ref<UserRecord | null>(null)
+const currentRecord = ref<null | UserRecord>(null)
 const treeExpandedKeys = ref<number[]>([1])
 
 const [modalRegister, modalMethods] = useModal()
@@ -242,7 +242,7 @@ const modalFormSchemas: FormSchema[] = [
 ]
 
 function handleDeptSelect(
-  _selectedKeys: (string | number)[],
+  _selectedKeys: (number | string)[],
   info: { node: { id: number } },
 ) {
   selectedDeptId.value = info.node.id
@@ -296,8 +296,8 @@ async function handleDelete(record: UserRecord) {
     await deleteUser(record.id)
     message.success(`已删除用户：${record.nickname}`)
     tableMethods.value?.reload()
-  } catch (e: any) {
-    message.error(e?.message || '删除失败')
+  } catch (error: any) {
+    message.error(error?.message || '删除失败')
   }
 }
 
@@ -367,8 +367,8 @@ async function handleSave() {
 
     modalMethods.closeModal()
     tableMethods.value?.reload()
-  } catch (e: any) {
-    message.error(e?.message || '保存失败')
+  } catch (error: any) {
+    message.error(error?.message || '保存失败')
   }
 }
 
@@ -452,7 +452,7 @@ const columns: BasicColumn[] = [
           "
           block-node
           @select="handleDeptSelect"
-          @update:expandedKeys="
+          @update:expanded-keys="
             (keys: number[]) => {
               treeExpandedKeys = keys
             }

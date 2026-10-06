@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { computed, onMounted, ref, useTemplateRef } from 'vue'
-
 import type { FormSchema } from '~/components/business/Form'
 import type { BasicColumn } from '~/components/business/Table'
 
+import { computed, onMounted, ref, useTemplateRef } from 'vue'
+
+import { Icon } from '@iconify/vue'
 import { addDept, deleteDept, getDeptTree, updateDept } from '~/api/system'
 import { BasicForm, useForm } from '~/components/business/Form'
 import { BasicModal, useModal } from '~/components/business/Modal'
@@ -39,15 +39,15 @@ interface DeptTreeNode {
 // ========== 样式类名 ==========
 const containerClassName = cn('flex gap-4')
 const leftPanelClassName = cn('w-[280px] shrink-0')
-const rightPanelClassName = cn('flex-1 min-w-0')
+const rightPanelClassName = cn('min-w-0 flex-1')
 const cardClassName = cn('shadow-sm')
-const treeCardClassName = cn('shadow-sm h-full')
-const headerClassName = cn('flex items-center justify-between mb-4')
+const treeCardClassName = cn('h-full shadow-sm')
+const headerClassName = cn('mb-4 flex items-center justify-between')
 const statClassName = cn('text-sm text-gray-500')
 const statNumClassName = cn('text-lg font-bold text-blue-600')
 const statusTagClassName = cn('inline-flex items-center gap-1')
 const actionClassName = cn('flex', 'items-center', 'justify-center')
-const btnClassName = cn('!px-0.5')
+const btnClassName = cn('px-0.5!')
 const dividerClassName = cn('mx-0')
 
 // ========== 状态映射 ==========
@@ -87,8 +87,8 @@ async function initDeptTree() {
     const data = Array.isArray(res) ? res : (res?.data ?? res ?? [])
     allData.value = data
     deptTreeData.value = data.map(convertToTreeNode)
-  } catch (e) {
-    console.error('获取部门树失败', e)
+  } catch (error) {
+    console.error('获取部门树失败', error)
   }
 }
 
@@ -264,7 +264,7 @@ async function mockApi(params: Record<string, any>) {
 
 // ========== 事件处理 ==========
 function handleDeptSelect(
-  _selectedKeys: (string | number)[],
+  _selectedKeys: (number | string)[],
   info: { node: { id: number } },
 ) {
   selectedDeptId.value = info.node.id
@@ -331,8 +331,8 @@ async function handleDelete(record: DeptRecord) {
     const data = Array.isArray(res) ? res : (res?.data ?? res ?? [])
     allData.value = data
     tableMethods.value?.reload()
-  } catch (e: any) {
-    message.error(e?.message || '删除失败')
+  } catch (error: any) {
+    message.error(error?.message || '删除失败')
   }
 }
 
@@ -369,8 +369,8 @@ async function handleSave() {
 
     modalMethods.closeModal()
     tableMethods.value?.reload()
-  } catch (e: any) {
-    message.error(e?.message || '保存失败')
+  } catch (error: any) {
+    message.error(error?.message || '保存失败')
   }
 }
 
@@ -466,7 +466,7 @@ const columns: BasicColumn[] = [
           :default-selected-keys="[selectedDeptId]"
           block-node
           @select="handleDeptSelect"
-          @update:expandedKeys="
+          @update:expanded-keys="
             (keys: number[]) => {
               treeExpandedKeys = keys
             }

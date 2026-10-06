@@ -2,7 +2,7 @@ import type { CAC } from 'cac';
 
 import { availableParallelism, freemem } from 'node:os';
 
-import { colors, execa } from '@antdv-admin/node-utils';
+import { colors, execa } from '@antdv/node-utils';
 
 interface LintCommandOptions {
   /**

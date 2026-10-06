@@ -1,54 +1,54 @@
-import { Icon } from '@iconify/vue'
-import { notification } from 'antdv-next'
-import { h, ref, watch } from 'vue'
+import { h, ref, watch } from 'vue';
 
-import { forceLogout } from '~/composables/web/request/fetcher'
-import { useWebSocket as useWebSocketComposable } from '~/composables/web/websocket'
-import { useUserStore } from '~/stores/modules/user'
+import { Icon } from '@iconify/vue';
+import { notification } from 'antdv-next';
+import { forceLogout } from '~/composables/web/request/fetcher';
+import { useWebSocket as useWebSocketComposable } from '~/composables/web/websocket';
+import { useUserStore } from '~/stores/modules/user';
 
-import { eventBus } from './event'
+import { eventBus } from './event';
 
 // ==================== 类型 ====================
 export interface NotificationItem {
-  noticeId: string
-  title: string
-  content: string
-  noticeType: number
-  status: string
-  publishTime?: string | null
-  createdAt: string
-  isRead: 0 | 1
-  priority: number
+  noticeId: string;
+  title: string;
+  content: string;
+  noticeType: number;
+  status: string;
+  publishTime?: null | string;
+  createdAt: string;
+  isRead: 0 | 1;
+  priority: number;
   /** 消息来源：notice | workflow | report | system */
-  source?: 'notice' | 'workflow' | 'report' | 'system'
+  source?: 'notice' | 'report' | 'system' | 'workflow';
   /** 工作流通知：跳转参数 */
-  bizType?: string | null
-  bizId?: string | null
-  bizSource?: string | null
+  bizType?: null | string;
+  bizId?: null | string;
+  bizSource?: null | string;
 }
 
 /** ⭐ 撤回消息载荷 */
 export interface RevokePayload {
-  noticeId: string
-  at?: number
+  noticeId: string;
+  at?: number;
 }
 
 export interface UploadMergeMessage {
-  taskId: string
-  status: 'pending' | 'merging' | 'uploading' | 'completed' | 'failed'
-  fileId?: string
-  url?: string
-  size?: number
-  filename?: string
-  errorMsg?: string
+  taskId: string;
+  status: 'completed' | 'failed' | 'merging' | 'pending' | 'uploading';
+  fileId?: string;
+  url?: string;
+  size?: number;
+  filename?: string;
+  errorMsg?: string;
 }
 
 export type WsConnState =
-  | 'idle'
-  | 'connecting'
-  | 'connected'
-  | 'reconnecting'
   | 'closed'
+  | 'connected'
+  | 'connecting'
+  | 'idle'
+  | 'reconnecting';
 
 export const noticeTypeConfig: Record<
   number,
@@ -72,7 +72,7 @@ export const noticeTypeConfig: Record<
     color: 'orange',
     gradient: 'from-amber-500 to-yellow-500',
   },
-}
+};
 
 export const WS_EVENTS = {
   NOTICE: 'ws:notice',
@@ -83,28 +83,28 @@ export const WS_EVENTS = {
   REVOKE: 'ws:revoke',
   STATUS_CHANGE: 'ws:status-change',
   UPLOAD_MERGE: 'ws:upload-merge',
-} as const
+} as const;
 
 // ==================== 全局单例 ====================
-type WsSocket = ReturnType<typeof useWebSocketComposable>
+type WsSocket = ReturnType<typeof useWebSocketComposable>;
 
-let socketApi: WsSocket | null = null
-let currentToken: string | null = null
-let currentUrl = ''
+let socketApi: null | WsSocket = null;
+let currentToken: null | string = null;
+let currentUrl = '';
 
-const sharedNotice = ref<NotificationItem | null>(null)
-const sharedStatus = ref<WsConnState>('idle')
+const sharedNotice = ref<NotificationItem | null>(null);
+const sharedStatus = ref<WsConnState>('idle');
 
 // ==================== 工具 ====================
 function buildWsUrl(token: string): string {
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  return `${protocol}//${window.location.host}/ws?token=${encodeURIComponent(token)}&type=notice`
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${protocol}//${window.location.host}/ws?token=${encodeURIComponent(token)}&type=notice`;
 }
 
 function setStatus(s: WsConnState): void {
-  if (sharedStatus.value === s) return
-  sharedStatus.value = s
-  eventBus.emit(WS_EVENTS.STATUS_CHANGE, s)
+  if (sharedStatus.value === s) return;
+  sharedStatus.value = s;
+  eventBus.emit(WS_EVENTS.STATUS_CHANGE, s);
 }
 
 function transformNotice(item: any): NotificationItem {
@@ -122,25 +122,25 @@ function transformNotice(item: any): NotificationItem {
     bizType: item.bizType ?? item.biz_type ?? null,
     bizId: item.bizId ?? item.biz_id ?? null,
     bizSource: item.bizSource ?? item.biz_source ?? null,
-  }
+  };
 }
 
 /**
  * ⭐ 从撤回载荷中提取 noticeId（兼容多种结构）
  */
-function extractRevokeId(payload: any): string | null {
-  if (!payload) return null
-  if (typeof payload === 'string') return payload
-  return payload.noticeId ?? payload.notice_id ?? null
+function extractRevokeId(payload: any): null | string {
+  if (!payload) return null;
+  if (typeof payload === 'string') return payload;
+  return payload.noticeId ?? payload.notice_id ?? null;
 }
 
 function handleMessage(raw: unknown): void {
-  let data: any
+  let data: any;
   try {
-    data = typeof raw === 'string' ? JSON.parse(raw) : raw
-  } catch (err) {
-    console.warn('[WS] 消息解析失败', err)
-    return
+    data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  } catch (error) {
+    console.warn('[WS] 消息解析失败', error);
+    return;
   }
 
   /* ============================================================
@@ -151,9 +151,9 @@ function handleMessage(raw: unknown): void {
     data.type === 'workflow:notify' ||
     data.type === 'report:notify'
   ) {
-    const notice = transformNotice(data.data)
-    sharedNotice.value = notice
-    eventBus.emit(WS_EVENTS.NOTICE, notice)
+    const notice = transformNotice(data.data);
+    sharedNotice.value = notice;
+    eventBus.emit(WS_EVENTS.NOTICE, notice);
 
     notification.open({
       title: `新${noticeTypeConfig[notice.noticeType]?.label || '通知'}`,
@@ -165,8 +165,8 @@ function handleMessage(raw: unknown): void {
       }),
       placement: 'bottomRight',
       duration: 3,
-    })
-    return
+    });
+    return;
   }
 
   /* ============================================================
@@ -177,79 +177,79 @@ function handleMessage(raw: unknown): void {
    *  2. 广播给所有订阅方（useNotice 会移除列表项）
    */
   if (data.type === 'notice:revoke') {
-    const noticeId = extractRevokeId(data.data)
+    const noticeId = extractRevokeId(data.data);
     if (!noticeId) {
-      console.warn('[WS] notice:revoke 缺少 noticeId', data.data)
-      return
+      console.warn('[WS] notice:revoke 缺少 noticeId', data.data);
+      return;
     }
 
     // 撤回的是当前展示的共享通知 → 清空
     if (sharedNotice.value?.noticeId === noticeId) {
-      sharedNotice.value = null
+      sharedNotice.value = null;
     }
 
     const payload: RevokePayload = {
       noticeId,
       at: data.data?.at ?? data.timestamp ?? Date.now(),
-    }
+    };
 
-    eventBus.emit(WS_EVENTS.REVOKE, payload)
-    return
+    eventBus.emit(WS_EVENTS.REVOKE, payload);
+    return;
   }
 
   /* ============================================================
    * 强制下线
    * ============================================================ */
   if (data.type === 'force-logout') {
-    const reason = data.data?.reason || '您已被管理员强制下线'
+    const reason = data.data?.reason || '您已被管理员强制下线';
     notification.warning({
       title: '会话已失效',
       description: reason,
       placement: 'bottomRight',
       duration: 5,
-    })
-    eventBus.emit(WS_EVENTS.FORCE_LOGOUT, data.data)
-    forceLogout()
-    return
+    });
+    eventBus.emit(WS_EVENTS.FORCE_LOGOUT, data.data);
+    forceLogout();
+    return;
   }
 
   /* ============================================================
    * 文件上传合并
    * ============================================================ */
   if (data.type === 'upload:merge') {
-    const payload = data.data as UploadMergeMessage
+    const payload = data.data as UploadMergeMessage;
     if (!payload?.taskId) {
-      console.warn('[WS] upload:merge 缺少 taskId', payload)
-      return
+      console.warn('[WS] upload:merge 缺少 taskId', payload);
+      return;
     }
-    eventBus.emit(WS_EVENTS.UPLOAD_MERGE, payload)
-    return
+    eventBus.emit(WS_EVENTS.UPLOAD_MERGE, payload);
+    return;
   }
 
   /* ============================================================
    * 连接确认
    * ============================================================ */
   if (data.type === 'connected') {
-    console.log('[WS] connected:', data.data)
+    console.log('[WS] connected:', data.data);
   }
 }
 
 // ==================== 连接管理 ====================
 function destroySocket(): void {
-  if (!socketApi) return
+  if (!socketApi) return;
   try {
-    socketApi.disconnect()
+    socketApi.disconnect();
   } catch {
     /* ignore */
   }
-  socketApi = null
+  socketApi = null;
 }
 
 function createSocket(token: string): void {
-  destroySocket()
+  destroySocket();
 
-  currentToken = token
-  currentUrl = buildWsUrl(token)
+  currentToken = token;
+  currentUrl = buildWsUrl(token);
 
   socketApi = useWebSocketComposable({
     url: () => currentUrl,
@@ -258,74 +258,74 @@ function createSocket(token: string): void {
       retries: -1,
       interval: 2000,
       delayMultiplier: 2,
-      maxDelay: 30000,
+      maxDelay: 30_000,
     },
-  })
+  });
 
-  socketApi.on('message', handleMessage)
+  socketApi.on('message', handleMessage);
 
   socketApi.on('open', () => {
-    setStatus('connected')
-    eventBus.emit(WS_EVENTS.OPEN)
-    console.log('[WS] open')
-  })
+    setStatus('connected');
+    eventBus.emit(WS_EVENTS.OPEN);
+    console.log('[WS] open');
+  });
 
   socketApi.on('close', () => {
     if (currentToken === token) {
-      setStatus('reconnecting')
+      setStatus('reconnecting');
     } else {
-      setStatus('closed')
+      setStatus('closed');
     }
-    eventBus.emit(WS_EVENTS.CLOSE)
-  })
+    eventBus.emit(WS_EVENTS.CLOSE);
+  });
 
   socketApi.on('error', (err) => {
-    console.warn('[WS] error', err)
-    eventBus.emit(WS_EVENTS.ERROR, err)
-  })
+    console.warn('[WS] error', err);
+    eventBus.emit(WS_EVENTS.ERROR, err);
+  });
 
-  socketApi.connect()
+  socketApi.connect();
 }
 
 function ensureSocket(token: string): void {
   if (!token) {
-    destroySocket()
-    currentToken = null
-    currentUrl = ''
-    setStatus('idle')
-    return
+    destroySocket();
+    currentToken = null;
+    currentUrl = '';
+    setStatus('idle');
+    return;
   }
 
   if (socketApi && currentToken === token && socketApi.isConnected.value) {
-    return
+    return;
   }
 
   if (socketApi && currentToken === token && !socketApi.isConnected.value) {
     try {
-      socketApi.connect()
-      return
+      socketApi.connect();
+      return;
     } catch {
       /* fallthrough to recreate */
     }
   }
 
-  createSocket(token)
+  createSocket(token);
 }
 
 // ==================== 全局注册（一次） ====================
-let watchRegistered = false
+let watchRegistered = false;
 
 export function useWebSocket() {
-  const userStore = useUserStore()
+  const userStore = useUserStore();
 
   if (!watchRegistered) {
-    watchRegistered = true
+    watchRegistered = true;
 
     watch(
       () => userStore.token,
       (token) => ensureSocket(token || ''),
       { immediate: true },
-    )
+    );
   }
 
   return {
@@ -336,8 +336,8 @@ export function useWebSocket() {
     status: sharedStatus,
 
     onNotice(fn: (n: NotificationItem) => void) {
-      eventBus.on(WS_EVENTS.NOTICE, fn)
-      return () => eventBus.off(WS_EVENTS.NOTICE, fn)
+      eventBus.on(WS_EVENTS.NOTICE, fn);
+      return () => eventBus.off(WS_EVENTS.NOTICE, fn);
     },
 
     /* ============================================================
@@ -350,38 +350,38 @@ export function useWebSocket() {
      *   onUnmounted(off);
      */
     onRevoke(fn: (payload: RevokePayload) => void) {
-      eventBus.on(WS_EVENTS.REVOKE, fn)
-      return () => eventBus.off(WS_EVENTS.REVOKE, fn)
+      eventBus.on(WS_EVENTS.REVOKE, fn);
+      return () => eventBus.off(WS_EVENTS.REVOKE, fn);
     },
 
     onForceLogout(fn: (data?: any) => void) {
-      eventBus.on(WS_EVENTS.FORCE_LOGOUT, fn)
-      return () => eventBus.off(WS_EVENTS.FORCE_LOGOUT, fn)
+      eventBus.on(WS_EVENTS.FORCE_LOGOUT, fn);
+      return () => eventBus.off(WS_EVENTS.FORCE_LOGOUT, fn);
     },
 
     onStatusChange(fn: (s: WsConnState) => void) {
-      eventBus.on(WS_EVENTS.STATUS_CHANGE, fn)
-      return () => eventBus.off(WS_EVENTS.STATUS_CHANGE, fn)
+      eventBus.on(WS_EVENTS.STATUS_CHANGE, fn);
+      return () => eventBus.off(WS_EVENTS.STATUS_CHANGE, fn);
     },
 
     onUploadMerge(fn: (data: UploadMergeMessage) => void) {
-      eventBus.on(WS_EVENTS.UPLOAD_MERGE, fn)
-      return () => eventBus.off(WS_EVENTS.UPLOAD_MERGE, fn)
+      eventBus.on(WS_EVENTS.UPLOAD_MERGE, fn);
+      return () => eventBus.off(WS_EVENTS.UPLOAD_MERGE, fn);
     },
 
     /** 手动重连 */
     reconnect() {
-      if (!currentToken) return
-      destroySocket()
-      createSocket(currentToken)
+      if (!currentToken) return;
+      destroySocket();
+      createSocket(currentToken);
     },
 
     /** 手动断开（登出） */
     disconnect() {
-      destroySocket()
-      currentToken = null
-      currentUrl = ''
-      setStatus('idle')
+      destroySocket();
+      currentToken = null;
+      currentUrl = '';
+      setStatus('idle');
     },
-  }
+  };
 }

@@ -53,4 +53,4 @@ export const COLOR_LIST = [
     description: '夜色深处的幽紫雷霆，吞噬傲慢与恐惧',
     color: '#9b30ff',
   },
-]
+];

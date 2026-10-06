@@ -1,5 +1,5 @@
 {
-  "name": "@antdv-admin/oxlint-config",
+  "name": "@antdv/oxlint-config",
   "version": "0.0.0",
   "private": true,
   "homepage": "https://github.com/junjie73-blip/antdv-next-admin",
@@ -27,11 +27,11 @@
     }
   },
   "dependencies": {
+    "@antdv/tsconfig": "workspace:*",
     "@eslint-community/eslint-plugin-eslint-comments": "catalog:",
     "eslint-plugin-better-tailwindcss": "catalog:",
     "eslint-plugin-command": "catalog:",
     "oxlint": "catalog:",
-    "tsdown": "catalog:",
-    "@antdv-admin/tsconfig": "workspace:*"
+    "tsdown": "catalog:"
   }
 }

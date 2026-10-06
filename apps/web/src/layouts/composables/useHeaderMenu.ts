@@ -1,11 +1,11 @@
-import type { MenuProps } from 'antdv-next'
+import type { MenuProps } from 'antdv-next';
 
-import { computed } from 'vue'
+import { computed } from 'vue';
 
-import { useAppStore } from '~/stores/modules/app'
-import { buildMenuItems, menuKeyOf } from '~/utils/helpers/menu'
+import { useAppStore } from '~/stores/modules/app';
+import { buildMenuItems, menuKeyOf } from '~/utils/helpers/menu';
 
-import { useMenuTree } from './useMenuTree'
+import { useMenuTree } from './useMenuTree';
 
 /**
  * 顶部横向导航状态。
@@ -20,45 +20,42 @@ import { useMenuTree } from './useMenuTree'
  * 于是一级菜单的 key 全是 undefined —— 点一个、亮一串。现在 key 统一走 `menuKeyOf`。
  */
 export function useHeaderMenu() {
-  const appStore = useAppStore()
-  const {
-    topMenus,
-    activeTopKey,
-    activeLeafKey,
-    hasSubMenus,
-    openMenuByKey,
-  } = useMenuTree()
+  const appStore = useAppStore();
+  const { topMenus, activeTopKey, activeLeafKey, hasSubMenus, openMenuByKey } =
+    useMenuTree();
 
-  const isMixed = computed(() => appStore.layout === 'mixed')
+  const isMixed = computed(() => appStore.layout === 'mixed');
 
   const menuItems = computed<MenuProps['items']>(() =>
     buildMenuItems(topMenus.value, {
       withChildren: !isMixed.value,
       maxDepth: isMixed.value ? 1 : Infinity,
     }),
-  )
+  );
 
   /** 单选：受控 selectedKeys，杜绝「多项同时选中」 */
   const selectedKeys = computed<string[]>(() => {
-    const key = isMixed.value ? activeTopKey.value : (activeLeafKey.value ?? activeTopKey.value)
-    return key ? [key] : []
-  })
+    const key = isMixed.value
+      ? activeTopKey.value
+      : (activeLeafKey.value ?? activeTopKey.value);
+    return key ? [key] : [];
+  });
 
   /** 当前选中项在横向栏里的位置，用于自动滚入可视区 */
   const activeIndex = computed(() => {
-    const key = selectedKeys.value[0]
-    if (!key) return -1
-    const index = menuItems.value?.findIndex((item) => item?.key === key) ?? -1
-    if (index >= 0) return index
+    const key = selectedKeys.value[0];
+    if (!key) return -1;
+    const index = menuItems.value?.findIndex((item) => item?.key === key) ?? -1;
+    if (index >= 0) return index;
     // 水平布局下选中的是叶子，横向栏上高亮的是它的祖先一级菜单
-    const topKey = activeTopKey.value
+    const topKey = activeTopKey.value;
     return topKey
       ? (menuItems.value?.findIndex((item) => item?.key === topKey) ?? -1)
-      : -1
-  })
+      : -1;
+  });
 
   function handleSelect(info: { key: string }) {
-    openMenuByKey(info.key)
+    openMenuByKey(info.key);
   }
 
   return {
@@ -70,5 +67,5 @@ export function useHeaderMenu() {
     activeIndex,
     handleSelect,
     menuKeyOf,
-  }
+  };
 }

@@ -1,11 +1,11 @@
-import type { BackendMenu } from '@antdv-admin/types'
+import type { BackendMenu } from '@antdv/types';
 
-import { get } from '~/api/request'
+import { get } from '~/api/request';
 
 interface MenuResponse {
-  list: BackendMenu[]
+  list: BackendMenu[];
 }
 
 export function getMenus(): Promise<MenuResponse> {
-  return get<MenuResponse>('/menus')
+  return get<MenuResponse>('/menus');
 }

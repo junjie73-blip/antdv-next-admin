@@ -1,5 +1,5 @@
 {
-  "name": "@antdv-admin/oxfmt-config",
+  "name": "@antdv/oxfmt-config",
   "version": "0.0.0",
   "private": true,
   "homepage": "https://github.com/junjie73-blip/antdv-next-admin",
@@ -27,8 +27,8 @@
     }
   },
   "dependencies": {
+    "@antdv/tsconfig": "workspace:*",
     "oxfmt": "catalog:",
-    "tsdown": "catalog:",
-    "@antdv-admin/tsconfig": "workspace:*"
+    "tsdown": "catalog:"
   }
 }

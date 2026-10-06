@@ -1,29 +1,30 @@
 <script setup lang="ts">
-import { range } from 'es-toolkit'
-import { computed, ref } from 'vue'
+import { computed, ref } from 'vue';
+
+import { range } from 'es-toolkit';
 
 const props = withDefaults(
   defineProps<{
-    rows?: number
-    cols?: number
+    rows?: number;
+    cols?: number;
   }>(),
   { rows: 6, cols: 6 },
-)
+);
 
-const emit = defineEmits<{ select: [rows: number, cols: number] }>()
+const emit = defineEmits<{ select: [rows: number, cols: number] }>();
 
-const hovered = ref({ rows: 0, cols: 0 })
+const hovered = ref({ rows: 0, cols: 0 });
 
 // es-toolkit range：直接生成 1..n 的序号数组
-const rowRange = computed(() => range(1, props.rows + 1))
-const colRange = computed(() => range(1, props.cols + 1))
+const rowRange = computed(() => range(1, props.rows + 1));
+const colRange = computed(() => range(1, props.cols + 1));
 
 function isHighlighted(row: number, col: number) {
-  return row <= hovered.value.rows && col <= hovered.value.cols
+  return row <= hovered.value.rows && col <= hovered.value.cols;
 }
 
 function reset() {
-  hovered.value = { rows: 0, cols: 0 }
+  hovered.value = { rows: 0, cols: 0 };
 }
 </script>
 
@@ -49,7 +50,7 @@ function reset() {
           "
           @mouseenter="hovered = { rows: row, cols: col }"
           @click="emit('select', row, col)"
-        />
+        ></button>
       </template>
     </div>
   </div>

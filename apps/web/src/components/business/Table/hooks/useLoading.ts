@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref } from 'vue';
 
 /**
  * Loading 状态管理 Hook
@@ -6,35 +6,35 @@ import { ref } from 'vue'
  */
 export function useLoading(initialValue = false) {
   // 加载状态
-  const loadingRef = ref(initialValue)
+  const loadingRef = ref(initialValue);
 
   /**
    * 设置加载状态
    */
   const setLoading = (value: boolean) => {
-    loadingRef.value = value
-  }
+    loadingRef.value = value;
+  };
 
   /**
    * 开始加载
    */
   const startLoading = () => {
-    loadingRef.value = true
-  }
+    loadingRef.value = true;
+  };
 
   /**
    * 结束加载
    */
   const stopLoading = () => {
-    loadingRef.value = false
-  }
+    loadingRef.value = false;
+  };
 
   return {
     loadingRef,
     setLoading,
     startLoading,
     stopLoading,
-  }
+  };
 }
 
-export type UseLoadingReturn = ReturnType<typeof useLoading>
+export type UseLoadingReturn = ReturnType<typeof useLoading>;

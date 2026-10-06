@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import type { FormSchema } from '~/components/business/Form';
 
-import type { FormSchema } from '~/components/business/Form'
+import { ref } from 'vue';
 
-import { BasicForm, useForm } from '~/components/business/Form'
-import { cn } from '~/utils/cn'
+import { BasicForm, useForm } from '~/components/business/Form';
+import { cn } from '~/utils/cn';
 
-const containerClassName = cn('space-y-6')
+const containerClassName = cn('space-y-6');
 
 const schemas: FormSchema[] = [
   {
@@ -167,7 +167,7 @@ const schemas: FormSchema[] = [
       style: { width: '100%' },
     },
   },
-]
+];
 
 const [register, { validate, resetFields, setFieldsValue, getFieldsValue }] =
   useForm({
@@ -189,28 +189,28 @@ const [register, { validate, resetFields, setFieldsValue, getFieldsValue }] =
       text: '重置',
       preIcon: 'carbon:restart',
     },
-  })
+  });
 
-const formResult = ref<Record<string, any>>({})
+const formResult = ref<Record<string, any>>({});
 
 async function handleSubmit(values: Record<string, any>) {
-  console.log('查询数据:', values)
-  formResult.value = values
+  console.log('查询数据:', values);
+  formResult.value = values;
 }
 
 async function handleValidate() {
   try {
-    const values = await validate()
-    console.log('验证通过:', values)
-    formResult.value = values
+    const values = await validate();
+    console.log('验证通过:', values);
+    formResult.value = values;
   } catch (error) {
-    console.error('验证失败:', error)
+    console.error('验证失败:', error);
   }
 }
 
 function handleReset() {
-  resetFields()
-  formResult.value = {}
+  resetFields();
+  formResult.value = {};
 }
 
 function handleSetValues() {
@@ -220,13 +220,13 @@ function handleSetValues() {
     age: 25,
     gender: 'female',
     status: 'pending',
-  })
+  });
 }
 
 function handleGetValues() {
-  const values = getFieldsValue()
-  console.log('当前表单', values)
-  formResult.value = values
+  const values = getFieldsValue();
+  console.log('当前表单', values);
+  formResult.value = values;
 }
 </script>
 

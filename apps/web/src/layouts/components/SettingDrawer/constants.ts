@@ -1,16 +1,16 @@
-import type { SegmentedProps } from 'antdv-next'
+import type { SegmentedProps } from 'antdv-next';
 
-import { Icon } from '@iconify/vue'
-import { h } from 'vue'
+import { h } from 'vue';
 
-import { cn } from '~/utils/cn'
+import { Icon } from '@iconify/vue';
+import { cn } from '~/utils/cn';
 
-export const POPUP_CONTAINER = () => document.body
+export const POPUP_CONTAINER = () => document.body;
 
 /* ============================================================
  * 分类 Segmented
  * ============================================================ */
-export type SettingSection = 'appearance' | 'layout' | 'common'
+export type SettingSection = 'appearance' | 'common' | 'layout';
 
 export const SECTION_OPTIONS: SegmentedProps['options'] = [
   {
@@ -24,7 +24,7 @@ export const SECTION_OPTIONS: SegmentedProps['options'] = [
     label: '通用',
     icon: h(Icon, { icon: 'carbon:settings-adjust' }),
   },
-]
+];
 
 /* ============================================================
  * 主题模式
@@ -33,7 +33,7 @@ export const THEME_MODE_OPTIONS: SegmentedProps['options'] = [
   { value: 'light', label: '明亮', icon: h(Icon, { icon: 'carbon:sun' }) },
   { value: 'dark', label: '黑暗', icon: h(Icon, { icon: 'carbon:moon' }) },
   { value: 'auto', label: '自动', icon: h(Icon, { icon: 'carbon:laptop' }) },
-]
+];
 
 /* ============================================================
  * 圆角倍率
@@ -44,7 +44,7 @@ export const BORDER_RADIUS_OPTIONS = [
   { value: 0.5, label: '0.5' },
   { value: 0.75, label: '0.75' },
   { value: 1, label: '1' },
-]
+];
 
 /* ============================================================
  * 主题色
@@ -64,7 +64,7 @@ export const PRIMARY_COLORS = [
   { value: '#2F54EB', label: '中性色' },
   { value: '#1F2937', label: '石板灰' },
   { value: '#374151', label: '中灰色' },
-]
+];
 
 /* ============================================================
  * 页面切换动画
@@ -80,7 +80,7 @@ export const TRANSITION_OPTIONS = [
   { value: 'fade-slide', label: '淡入滑动' },
   { value: 'scale', label: '缩放淡入' },
   { value: 'flip', label: '翻转' },
-]
+];
 
 /* ============================================================
  * 通知位置
@@ -90,7 +90,7 @@ export const NOTIFICATION_POSITION_OPTIONS = [
   { value: 'topRight', label: '右上' },
   { value: 'bottomLeft', label: '左下' },
   { value: 'bottomRight', label: '右下' },
-]
+];
 
 /* ============================================================
  * 时区
@@ -139,7 +139,7 @@ export const TIMEZONE_OPTIONS = [
     city: '洛杉矶',
   },
   { value: 'UTC', label: '协调世界时 (UTC)' },
-]
+];
 
 /* ============================================================
  * 通用样式
@@ -154,32 +154,32 @@ export const sectionStyles: SegmentedProps['styles'] = {
   item: { borderRadius: '8px', transition: 'all 200ms ease' },
   icon: { fontSize: '14px' },
   label: { fontSize: '12px', fontWeight: 500 },
-}
+};
 
 export const drawerBodyClassName = cn(
-  'flex flex-col h-full',
+  'flex h-full flex-col',
   'bg-white dark:bg-slate-950',
-)
+);
 
 export const drawerHeaderClassName = cn(
   'flex shrink-0 items-center justify-between gap-2',
-)
+);
 
-export const drawerContentClassName = cn('min-h-0 flex-1 overflow-hidden')
+export const drawerContentClassName = cn('min-h-0 flex-1 overflow-hidden');
 
-export const panelWrapperClassName = cn('p-5 space-y-6')
+export const panelWrapperClassName = cn('space-y-6 p-5');
 
 export const groupIconClassName = cn(
-  'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg',
-  'bg-gradient-to-br from-blue-500/15 to-indigo-500/15',
+  'flex size-7 shrink-0 items-center justify-center rounded-lg',
+  'bg-linear-to-br from-blue-500/15 to-indigo-500/15',
   'text-ant-primary text-[15px]',
-)
+);
 
 export const groupBoxClassName = cn(
-  'rounded-2xl p-3 space-y-2',
+  'space-y-2 rounded-2xl p-3',
   'bg-slate-50/80 dark:bg-slate-900/40',
   'outline outline-1 outline-slate-200/70 dark:outline-slate-700/50',
-)
+);
 
 export const itemRowClassName = cn(
   'flex w-full items-center justify-between gap-3',
@@ -188,23 +188,23 @@ export const itemRowClassName = cn(
   'transition-all duration-200',
   'hover:outline-ant-primary/40 hover:shadow-sm',
   'dark:bg-slate-800 dark:outline-slate-700',
-)
+);
 
 export const itemLabelClassName = cn(
   'text-[13px] font-medium text-slate-700 dark:text-slate-200',
-)
+);
 
 export const itemDescClassName = cn(
   'mt-0.5 text-[11px] text-slate-400 dark:text-slate-500',
-)
+);
 
 export const groupTitleClassName = cn(
   'relative mb-3 flex w-fit items-center gap-2 pb-2',
   'text-[13px] font-semibold text-slate-700 dark:text-slate-200',
-  'after:absolute after:bottom-0 after:left-9 after:right-0',
+  'after:absolute after:right-0 after:bottom-0 after:left-9',
   'after:h-[2px] after:rounded-full',
-  'after:bg-gradient-to-r after:from-ant-primary after:to-ant-primary/20',
+  'after:from-ant-primary after:to-ant-primary/20 after:bg-linear-to-r',
   'after:origin-left after:scale-x-0',
   'after:transition-transform after:duration-300 after:ease-out',
   'hover:after:scale-x-100',
-)
+);

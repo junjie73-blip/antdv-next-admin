@@ -1,100 +1,99 @@
 <script setup lang="ts">
-import { VideoPlayer } from '@videojs-player/vue'
-import { message } from 'antdv-next'
-import { isError } from 'es-toolkit'
-import MarkdownIt from 'markdown-it'
-import { computed, defineAsyncComponent, ref, watch } from 'vue'
-import 'video.js/dist/video-js.css'
-import '@vue-office/docx/lib/index.css'
-import '@vue-office/excel/lib/index.css'
+import { computed, defineAsyncComponent, ref, watch } from 'vue';
 
-import { downloadFile, previewFile } from '~/api'
-import { getFileCategory } from '~/utils/file-category'
+import { VideoPlayer } from '@videojs-player/vue';
+import { message } from 'antdv-next';
+import { isError } from 'es-toolkit';
+import MarkdownIt from 'markdown-it';
+import { downloadFile, previewFile } from '~/api';
+import { getFileCategory } from '~/utils/file-category';
 
-const VueDocx = defineAsyncComponent(() => import('@vue-office/docx'))
-const VuePptx = defineAsyncComponent(() => import('@vue-office/pptx'))
-const VueExcel = defineAsyncComponent(() => import('@vue-office/excel'))
-
-const md = new MarkdownIt({ html: true, linkify: true, breaks: true })
+import 'video.js/dist/video-js.css';
+import '@vue-office/docx/lib/index.css';
+import '@vue-office/excel/lib/index.css';
 
 const props = defineProps<{
-  modelValue: boolean
-  fileId?: string
-  url?: string
-  fileName: string
-  mimeType?: string
-  category?: string
-}>()
-
+  modelValue: boolean;
+  fileId?: string;
+  url?: string;
+  fileName: string;
+  mimeType?: string;
+  category?: string;
+}>();
 const emit = defineEmits<{
-  (e: 'update:modelValue', v: boolean): void
-}>()
+  (e: 'update:modelValue', v: boolean): void;
+}>();
+const VueDocx = defineAsyncComponent(() => import('@vue-office/docx'));
+const VuePptx = defineAsyncComponent(() => import('@vue-office/pptx'));
+const VueExcel = defineAsyncComponent(() => import('@vue-office/excel'));
+
+const md = new MarkdownIt({ html: true, linkify: true, breaks: true });
 
 const visible = computed({
   get: () => props.modelValue,
   set: (v) => emit('update:modelValue', v),
-})
+});
 
-const loading = ref(false)
-const previewUrl = ref('')
-const textContent = ref('')
-const audioRef = ref<HTMLAudioElement | null>(null)
+const loading = ref(false);
+const previewUrl = ref('');
+const textContent = ref('');
+const audioRef = ref<HTMLAudioElement | null>(null);
 
-const renderedMarkdown = computed(() => md.render(textContent.value || ''))
-const category = computed(() => getFileCategory(props.fileName))
+const renderedMarkdown = computed(() => md.render(textContent.value || ''));
+const category = computed(() => getFileCategory(props.fileName));
 
 function buildParams() {
-  const params: Record<string, string> = {}
-  if (props.fileId) params.fileId = props.fileId
-  return params
+  const params: Record<string, string> = {};
+  if (props.fileId) params.fileId = props.fileId;
+  return params;
 }
 
 async function loadPreview() {
-  if (!props.fileId) return
-  loading.value = true
+  if (!props.fileId) return;
+  loading.value = true;
   try {
-    const res: any = await previewFile(buildParams())
-    previewUrl.value = res.url ?? res.data?.url
+    const res: any = await previewFile(buildParams());
+    previewUrl.value = res.url ?? res.data?.url;
 
     if (category.value === 'text' || category.value === 'markdown') {
-      const r = await fetch(previewUrl.value)
-      textContent.value = await r.text()
+      const r = await fetch(previewUrl.value);
+      textContent.value = await r.text();
     }
-  } catch (e) {
+  } catch (error) {
     // isError 收窄类型
-    const msg = isError(e) ? e.message : String(e)
-    message.error('加载预览失败：' + msg)
-    visible.value = false
+    const msg = isError(error) ? error.message : String(error);
+    message.error(`加载预览失败：${msg}`);
+    visible.value = false;
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 function onRendered() {
-  loading.value = false
+  loading.value = false;
 }
 
 function onError(err: unknown) {
-  console.log('[preview] error', err)
-  message.error('文件渲染失败')
-  loading.value = false
+  console.log('[preview] error', err);
+  message.error('文件渲染失败');
+  loading.value = false;
 }
 
 async function handleDownload() {
-  const params = { ...buildParams(), fileName: props.fileName }
-  const res: any = await downloadFile(params)
-  const url = res.url ?? res.data?.url
-  window.open(url, '_blank')
+  const params = { ...buildParams(), fileName: props.fileName };
+  const res: any = await downloadFile(params);
+  const url = res.url ?? res.data?.url;
+  window.open(url, '_blank');
 }
 
 function handleClosed() {
-  previewUrl.value = ''
-  textContent.value = ''
+  previewUrl.value = '';
+  textContent.value = '';
 }
 
 function onVideoMounted(player: any) {
   try {
-    player.volume(0.6)
+    player.volume(0.6);
   } catch {
     // ignore
   }
@@ -103,10 +102,10 @@ function onVideoMounted(player: any) {
 watch(
   () => [props.modelValue, props.fileId, props.url] as const,
   ([open]) => {
-    if (open) loadPreview()
+    if (open) loadPreview();
   },
   { immediate: true },
-)
+);
 </script>
 
 <template>
@@ -211,7 +210,7 @@ watch(
             v-else-if="category === 'markdown'"
             class="markdown-body max-h-[70vh] overflow-auto rounded bg-gray-50 p-4"
             v-safe-html="renderedMarkdown"
-          />
+          ></div>
 
           <pre
             v-else-if="category === 'text'"

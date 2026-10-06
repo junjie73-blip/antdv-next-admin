@@ -1,22 +1,9 @@
 {
-  "name": "@antdv-admin/node-utils",
+  "name": "@antdv/node-utils",
   "version": "0.4.0",
+  "description": "Node 侧共享工具：fs / path / git / hash / date / formatter / workspace 解析与终端日志",
   "private": true,
   "type": "module",
-  "description": "Node 侧共享工具：fs / path / git / hash / date / formatter / workspace 解析与终端日志",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.mts",
-      "default": "./dist/index.mjs"
-    },
-    "./package.json": "./package.json"
-  },
-  "files": [
-    "dist"
-  ],
-  "main": "./dist/index.mjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.mts",
   "scripts": {
     "build": "tsdown",
     "clean": "rimraf dist .turbo",
@@ -25,6 +12,19 @@
     "stub": "node ./scripts/build.mjs",
     "test:unit": "vitest run",
     "type-check": "tsc --noEmit -p tsconfig.build.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json"
   },
   "dependencies": {
     "@changesets/git": "catalog:",
@@ -38,7 +38,7 @@
     "pkg-types": "catalog:"
   },
   "devDependencies": {
-    "@antdv-admin/tsconfig": "workspace:*",
+    "@antdv/tsconfig": "workspace:*",
     "@types/node": "catalog:",
     "rimraf": "catalog:",
     "tsdown": "catalog:",

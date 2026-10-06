@@ -1,56 +1,56 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { reactive, ref } from 'vue'
+import { reactive, ref } from 'vue';
 
-import { BasicModal, useModal } from '~/components/business/Modal'
-import { useAppStore } from '~/stores/modules/app'
-import { useUserStore } from '~/stores/modules/user'
-import { cn } from '~/utils/cn'
+import { Icon } from '@iconify/vue';
+import { BasicModal, useModal } from '~/components/business/Modal';
+import { useAppStore } from '~/stores/modules/app';
+import { useUserStore } from '~/stores/modules/user';
+import { cn } from '~/utils/cn';
 
-const appStore = useAppStore()
-const userStore = useUserStore()
+const appStore = useAppStore();
+const userStore = useUserStore();
 
-const containerClassName = cn('space-y-6')
+const containerClassName = cn('space-y-6');
 const cardClassName = cn(
   'rounded-xl border border-gray-100 dark:border-gray-800',
-)
+);
 const sectionTitleClassName = cn(
-  'text-lg font-bold text-gray-800 dark:text-white mb-4',
-)
+  'mb-4 text-lg font-bold text-gray-800 dark:text-white',
+);
 
 const dangerCardClassName = cn(
   'rounded-xl border-2 border-red-200 dark:border-red-900',
   'bg-red-50/50 dark:bg-red-950/20',
-)
+);
 
 const dangerTitleClassName = cn(
-  'text-lg font-bold text-red-600 dark:text-red-400 mb-2',
-)
-const dangerDescClassName = cn('text-sm text-red-500 dark:text-red-400 mb-4')
+  'mb-2 text-lg font-bold text-red-600 dark:text-red-400',
+);
+const dangerDescClassName = cn('mb-4 text-sm text-red-500 dark:text-red-400');
 
 const profileForm = reactive({
   name: userStore.nickname || userStore.username || '',
   email: userStore.email || '',
   phone: userStore.phone || '',
-})
+});
 
-const profileLoading = ref(false)
+const profileLoading = ref(false);
 
 function handleProfileSave() {
-  profileLoading.value = true
+  profileLoading.value = true;
   setTimeout(() => {
-    profileLoading.value = false
-    message.success('个人信息更新成功')
-  }, 800)
+    profileLoading.value = false;
+    message.success('个人信息更新成功');
+  }, 800);
 }
 
 const passwordForm = reactive({
   oldPassword: '',
   newPassword: '',
   confirmPassword: '',
-})
+});
 
-const passwordLoading = ref(false)
+const passwordLoading = ref(false);
 
 function handlePasswordSave() {
   if (
@@ -58,55 +58,55 @@ function handlePasswordSave() {
     !passwordForm.newPassword ||
     !passwordForm.confirmPassword
   ) {
-    message.warning('请填写完整的密码信息')
-    return
+    message.warning('请填写完整的密码信息');
+    return;
   }
   if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-    message.error('两次输入的新密码不一致')
-    return
+    message.error('两次输入的新密码不一致');
+    return;
   }
   if (passwordForm.newPassword.length < 8) {
-    message.error('密码长度不能少于 8 位')
-    return
+    message.error('密码长度不能少于 8 位');
+    return;
   }
-  passwordLoading.value = true
+  passwordLoading.value = true;
   setTimeout(() => {
-    passwordLoading.value = false
-    passwordForm.oldPassword = ''
-    passwordForm.newPassword = ''
-    passwordForm.confirmPassword = ''
-    message.success('密码修改成功')
-  }, 800)
+    passwordLoading.value = false;
+    passwordForm.oldPassword = '';
+    passwordForm.newPassword = '';
+    passwordForm.confirmPassword = '';
+    message.success('密码修改成功');
+  }, 800);
 }
 
 const notificationSettings = reactive({
   email: true,
   sms: false,
   push: true,
-})
+});
 
 function handleNotificationChange() {
-  message.success('通知偏好已更新')
+  message.success('通知偏好已更新');
 }
 
-const [registerDangerModal, dangerModalMethods] = useModal()
-const dangerLoading = ref(false)
+const [registerDangerModal, dangerModalMethods] = useModal();
+const dangerLoading = ref(false);
 
 function handleDeleteAccount() {
-  dangerLoading.value = true
+  dangerLoading.value = true;
   setTimeout(() => {
-    dangerLoading.value = false
-    dangerModalMethods?.closeModal()
-    message.success('账号已删除')
-  }, 1500)
+    dangerLoading.value = false;
+    dangerModalMethods?.closeModal();
+    message.success('账号已删除');
+  }, 1500);
 }
 
-const isDarkMode = ref(appStore.themeMode === 'dark')
+const isDarkMode = ref(appStore.themeMode === 'dark');
 
 function handleThemeToggle() {
-  appStore.toggleTheme()
-  isDarkMode.value = appStore.themeMode === 'dark'
-  message.success(`已切换至${isDarkMode.value ? '深色' : '浅色'}主题`)
+  appStore.toggleTheme();
+  isDarkMode.value = appStore.themeMode === 'dark';
+  message.success(`已切换至${isDarkMode.value ? '深色' : '浅色'}主题`);
 }
 </script>
 

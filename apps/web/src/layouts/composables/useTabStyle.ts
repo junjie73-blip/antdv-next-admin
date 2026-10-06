@@ -1,9 +1,9 @@
-import type { TabStyle } from '@antdv-admin/types'
+import type { TabStyle } from '@antdv/types';
 
-import { computed } from 'vue'
+import { computed } from 'vue';
 
-import { useAppStore } from '~/stores/modules/app'
-import { cn } from '~/utils/cn'
+import { useAppStore } from '~/stores/modules/app';
+import { cn } from '~/utils/cn';
 
 /**
  * 标签页视觉风格的唯一定义处。
@@ -13,22 +13,21 @@ import { cn } from '~/utils/cn'
  */
 interface TabStyleClasses {
   /** 单个标签 */
-  item: string
+  item: string;
   /** 选中态标签（追加在 item 之后，靠后面的类覆盖前面的） */
-  active: string
+  active: string;
   /** 标签容器（排列与分隔方式随风格变化） */
-  list: string
+  list: string;
   /** 关闭按钮 */
-  close: string
+  close: string;
   /** 是否显示标签间分隔线 */
-  divider: boolean
+  divider: boolean;
 }
 
 const STYLE_MAP: Record<TabStyle, TabStyleClasses> = {
   card: {
     item: 'gap-1.5 rounded-md border border-transparent px-3 py-1.5',
-    active:
-      'bg-ant-primary border-ant-primary text-white shadow-sm',
+    active: 'bg-ant-primary border-ant-primary text-white shadow-sm',
     list: 'gap-1.5',
     close: 'hover:bg-white/20 rounded-full p-0.5',
     divider: false,
@@ -54,49 +53,50 @@ const STYLE_MAP: Record<TabStyle, TabStyleClasses> = {
     close: 'hover:text-red-500 rounded-full p-0.5',
     divider: true,
   },
-}
+};
 
 /** 未选中态：风格之间只有文字色差异，统一放这里避免四处复制 */
 const IDLE_ITEM =
-  'text-gray-600 hover:text-ant-primary dark:text-gray-300 dark:hover:text-ant-primary'
+  'text-gray-600 hover:text-ant-primary dark:text-gray-300 dark:hover:text-ant-primary';
 
 const IDLE_BG: Record<TabStyle, string> = {
   card: 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600',
   line: '',
   plain: '',
-  rounded: 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600',
-}
+  rounded:
+    'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600',
+};
 
 export const TAB_STYLE_OPTIONS: { label: string; value: TabStyle }[] = [
   { label: '卡片', value: 'card' },
   { label: '胶囊', value: 'rounded' },
   { label: '下划线', value: 'line' },
   { label: '纯文本', value: 'plain' },
-]
+];
 
 export function useTabStyle() {
-  const appStore = useAppStore()
+  const appStore = useAppStore();
 
-  const style = computed<TabStyle>(() => appStore.tabStyle ?? 'card')
-  const classes = computed(() => STYLE_MAP[style.value])
+  const style = computed<TabStyle>(() => appStore.tabStyle ?? 'card');
+  const classes = computed(() => STYLE_MAP[style.value]);
 
   /** 供 SettingDrawer 与单测直接使用：纯函数，不依赖组件实例 */
   function itemClass(active: boolean) {
     const base =
-      'flex shrink-0 cursor-pointer items-center whitespace-nowrap text-sm transition-colors duration-200'
+      'flex shrink-0 cursor-pointer items-center whitespace-nowrap text-sm transition-colors duration-200';
     return cn(
       base,
       classes.value.item,
       active ? classes.value.active : cn(IDLE_ITEM, IDLE_BG[style.value]),
-    )
+    );
   }
 
   function listClass() {
-    return cn('inline-flex h-full items-center', classes.value.list)
+    return cn('inline-flex h-full items-center', classes.value.list);
   }
 
   function closeClass() {
-    return cn('ml-0.5 text-xs', classes.value.close)
+    return cn('ml-0.5 text-xs', classes.value.close);
   }
 
   return {
@@ -105,7 +105,7 @@ export function useTabStyle() {
     itemClass,
     listClass,
     style,
-  }
+  };
 }
 
-export type { TabStyleClasses }
+export type { TabStyleClasses };

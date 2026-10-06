@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref } from 'vue';
 
-import { useDrawer } from '~/components/business/Drawer'
-import { cn } from '~/utils/cn'
+import { useDrawer } from '~/components/business/Drawer';
+import { cn } from '~/utils/cn';
 
-const containerClassName = cn('space-y-6')
+const containerClassName = cn('space-y-6');
 
 const treeData = ref([
   {
@@ -20,25 +20,25 @@ const treeData = ref([
     ],
   },
   { key: '2', title: 'Root Node 2' },
-])
+]);
 
-const selectedTreeNode = ref<any>(null)
-const activeTab = ref('info')
+const selectedTreeNode = ref<any>(null);
+const activeTab = ref('info');
 
 function onTreeSelect(_selectedKeys: string[], info: any) {
-  selectedTreeNode.value = info.node
-  message.info(`Selected: ${info.node.title}`)
+  selectedTreeNode.value = info.node;
+  message.info(`Selected: ${info.node.title}`);
 }
 
-const [registerBasicDrawer, basicDrawerMethods] = useDrawer()
-const [registerLargeDrawer, largeDrawerMethods] = useDrawer()
-const [registerNoFooterDrawer, noFooterDrawerMethods] = useDrawer()
+const [registerBasicDrawer, basicDrawerMethods] = useDrawer();
+const [registerLargeDrawer, largeDrawerMethods] = useDrawer();
+const [registerNoFooterDrawer, noFooterDrawerMethods] = useDrawer();
 
-const drawerForm = ref({ name: '', remark: '' })
+const drawerForm = ref({ name: '', remark: '' });
 
 function handleDrawerSubmit() {
-  message.success(`Drawer submitted: ${JSON.stringify(drawerForm.value)}`)
-  basicDrawerMethods?.closeDrawer()
+  message.success(`Drawer submitted: ${JSON.stringify(drawerForm.value)}`);
+  basicDrawerMethods?.closeDrawer();
 }
 </script>
 

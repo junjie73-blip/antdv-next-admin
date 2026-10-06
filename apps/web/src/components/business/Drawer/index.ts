@@ -1,5 +1,5 @@
 // 主组件
-export { default as BasicDrawer } from './BasicDrawer.vue'
+export { default as BasicDrawer } from './BasicDrawer.vue';
 
 // 类型
 export type {
@@ -13,8 +13,8 @@ export type {
   RegisterFn,
   UseDrawerInnerReturnType,
   UseDrawerReturnType,
-} from './types'
+} from './types';
 
 // Hooks
-export { useDrawer } from './useDrawer'
-export { useDrawer as useDrawerInner } from './useDrawer'
+export { useDrawer } from './useDrawer';
+export { useDrawer as useDrawerInner } from './useDrawer';

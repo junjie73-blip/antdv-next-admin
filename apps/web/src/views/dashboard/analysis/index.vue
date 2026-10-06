@@ -1,41 +1,41 @@
 <script setup lang="ts">
-import type { Ref } from 'vue'
+import type { Ref } from 'vue';
 
-import { Icon } from '@iconify/vue'
-import { useEventListener } from '@vueuse/core'
-import { message } from 'antdv-next'
-import * as echarts from 'echarts'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 
-import { useAppStore } from '~/stores/modules/app'
-import { cn } from '~/utils/cn'
+import { Icon } from '@iconify/vue';
+import { useEventListener } from '@vueuse/core';
+import { message } from 'antdv-next';
+import * as echarts from 'echarts';
+import { useAppStore } from '~/stores/modules/app';
+import { cn } from '~/utils/cn';
 
-defineOptions({ name: 'DashboardAnalysis' })
-const appStore = useAppStore()
+defineOptions({ name: 'DashboardAnalysis' });
+const appStore = useAppStore();
 
 // ========== 主题相关 ==========
-const isDark = computed(() => appStore.themeMode === 'dark')
+const isDark = computed(() => appStore.themeMode === 'dark');
 
 // ========== 图表实例管理 ==========
-const charts = new Map<string, echarts.ECharts>()
+const charts = new Map<string, echarts.ECharts>();
 
 // ECharts DOM 引用
-const mainTrendRef = ref<HTMLDivElement>()
-const trafficDistRef = ref<HTMLDivElement>()
-const systemHealthRef = ref<HTMLDivElement>()
-const resourceRadarRef = ref<HTMLDivElement>()
-const activityHeatmapRef = ref<HTMLDivElement>()
-const userJourneyRef = ref<HTMLDivElement>()
-const moduleRankRef = ref<HTMLDivElement>()
+const mainTrendRef = ref<HTMLDivElement>();
+const trafficDistRef = ref<HTMLDivElement>();
+const systemHealthRef = ref<HTMLDivElement>();
+const resourceRadarRef = ref<HTMLDivElement>();
+const activityHeatmapRef = ref<HTMLDivElement>();
+const userJourneyRef = ref<HTMLDivElement>();
+const moduleRankRef = ref<HTMLDivElement>();
 
 // ========== 样式类名（数据分析） ==========
 const analyticsCardClassName = cn(
-  'rounded-lg border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900',
+  'rounded-lg border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900',
   'shadow-sm transition-all duration-300 hover:shadow-md',
-)
+);
 const sectionTitleClassName = cn(
-  'text-base font-semibold text-gray-800 dark:text-gray-200 mb-4',
-)
+  'mb-4 text-base font-semibold text-gray-800 dark:text-gray-200',
+);
 
 // ═══════════════════════════════════════════
 // 📈 数据分析图表数据
@@ -43,12 +43,12 @@ const sectionTitleClassName = cn(
 
 // KPI 统计卡片
 interface KpiItem {
-  title: string
-  value: string
-  icon: string
-  color: string
-  trend: number
-  trendLabel: string
+  title: string;
+  value: string;
+  icon: string;
+  color: string;
+  trend: number;
+  trendLabel: string;
 }
 
 const kpiList: KpiItem[] = [
@@ -84,7 +84,7 @@ const kpiList: KpiItem[] = [
     trend: -5.1,
     trendLabel: '较昨日',
   },
-]
+];
 
 function kpiIconWrap(color: string): string {
   const map: Record<string, string> = {
@@ -95,34 +95,34 @@ function kpiIconWrap(color: string): string {
       'bg-violet-50 text-violet-600 dark:bg-violet-900/40 dark:text-violet-400',
     amber:
       'bg-amber-50 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400',
-  }
+  };
   return cn(
-    'w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0',
+    'flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg',
     map[color] || map.blue,
-  )
+  );
 }
 
 function kpiTrendColor(trend: number): string {
   return trend >= 0
     ? 'text-emerald-600 dark:text-emerald-400'
-    : 'text-red-600 dark:text-red-400'
+    : 'text-red-600 dark:text-red-400';
 }
 
 // ECharts 主题工具函数
 function textColor() {
-  return isDark.value ? '#d1d5db' : '#374151'
+  return isDark.value ? '#d1d5db' : '#374151';
 }
 function subTextColor() {
-  return isDark.value ? '#6b7280' : '#9ca3af'
+  return isDark.value ? '#6b7280' : '#9ca3af';
 }
 function borderColor() {
-  return isDark.value ? '#374151' : '#e5e7eb'
+  return isDark.value ? '#374151' : '#e5e7eb';
 }
 function axisLineColor() {
-  return isDark.value ? '#4b5563' : '#d1d5db'
+  return isDark.value ? '#4b5563' : '#d1d5db';
 }
 function tooltipBg() {
-  return isDark.value ? 'rgba(31,41,55,0.96)' : 'rgba(255,255,255,0.96)'
+  return isDark.value ? 'rgba(31,41,55,0.96)' : 'rgba(255,255,255,0.96)';
 }
 
 function baseOption(extra: Record<string, any> = {}): Record<string, any> {
@@ -136,7 +136,7 @@ function baseOption(extra: Record<string, any> = {}): Record<string, any> {
         'border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1);',
     },
     ...extra,
-  }
+  };
 }
 
 function gradient(colors: [string, string], vertical = true) {
@@ -149,7 +149,7 @@ function gradient(colors: [string, string], vertical = true) {
       { offset: 0, color: colors[0] },
       { offset: 1, color: colors[1] },
     ],
-  )
+  );
 }
 
 const PALETTE = {
@@ -159,25 +159,25 @@ const PALETTE = {
   danger: '#ff4d4f',
   info: '#722ed1',
   cyan: '#13c2c2',
-}
+};
 
 // Chart 1: 系统活动趋势（主图）
 function initMainTrend() {
-  const el = mainTrendRef.value
-  if (!el) return
-  const instance = echarts.init(el, isDark.value ? 'dark' : undefined)
-  charts.set('mainTrend', instance)
+  const el = mainTrendRef.value;
+  if (!el) return;
+  const instance = echarts.init(el, isDark.value ? 'dark' : undefined);
+  charts.set('mainTrend', instance);
 
-  const days = Array.from({ length: 30 }, (_, i) => `${i + 1}日`)
+  const days = Array.from({ length: 30 }, (_, i) => `${i + 1}日`);
   const pv = Array.from({ length: 30 }, () =>
     Math.floor(Math.random() * 5000 + 3000),
-  )
+  );
   const uv = Array.from({ length: 30 }, () =>
     Math.floor(Math.random() * 2000 + 800),
-  )
+  );
   const apiCalls = Array.from({ length: 30 }, () =>
-    Math.floor(Math.random() * 80000 + 40000),
-  )
+    Math.floor(Math.random() * 80_000 + 40_000),
+  );
 
   instance.setOption(
     baseOption({
@@ -271,15 +271,15 @@ function initMainTrend() {
       animationDuration: 1200,
       animationEasing: 'cubicOut',
     }),
-  )
+  );
 }
 
 // Chart 2: 流量来源分布
 function initTrafficDist() {
-  const el = trafficDistRef.value
-  if (!el) return
-  const instance = echarts.init(el, isDark.value ? 'dark' : undefined)
-  charts.set('trafficDist', instance)
+  const el = trafficDistRef.value;
+  if (!el) return;
+  const instance = echarts.init(el, isDark.value ? 'dark' : undefined);
+  charts.set('trafficDist', instance);
 
   const data = [
     { value: 3842, name: '直接访问' },
@@ -288,7 +288,7 @@ function initTrafficDist() {
     { value: 1240, name: '社交媒体' },
     { value: 860, name: '邮件推广' },
     { value: 520, name: '其他渠道' },
-  ]
+  ];
 
   instance.setOption(
     baseOption({
@@ -337,15 +337,15 @@ function initTrafficDist() {
         },
       ],
     }),
-  )
+  );
 }
 
 // Chart 3: 系统健康仪表盘
 function initSystemHealth() {
-  const el = systemHealthRef.value
-  if (!el) return
-  const instance = echarts.init(el, isDark.value ? 'dark' : undefined)
-  charts.set('systemHealth', instance)
+  const el = systemHealthRef.value;
+  if (!el) return;
+  const instance = echarts.init(el, isDark.value ? 'dark' : undefined);
+  charts.set('systemHealth', instance);
 
   instance.setOption(
     baseOption({
@@ -385,15 +385,15 @@ function initSystemHealth() {
         },
       ],
     }),
-  )
+  );
 }
 
 // Chart 4: 资源使用雷达图
 function initResourceRadar() {
-  const el = resourceRadarRef.value
-  if (!el) return
-  const instance = echarts.init(el, isDark.value ? 'dark' : undefined)
-  charts.set('resourceRadar', instance)
+  const el = resourceRadarRef.value;
+  if (!el) return;
+  const instance = echarts.init(el, isDark.value ? 'dark' : undefined);
+  charts.set('resourceRadar', instance);
 
   const indicators = [
     { name: 'CPU', max: 100 },
@@ -402,7 +402,7 @@ function initResourceRadar() {
     { name: '网络', max: 100 },
     { name: '数据库', max: 100 },
     { name: '缓存', max: 100 },
-  ]
+  ];
 
   instance.setOption(
     baseOption({
@@ -448,31 +448,31 @@ function initResourceRadar() {
         },
       ],
     }),
-  )
+  );
 }
 
 // Chart 5: API 错误率趋势
 function initActivityHeatmap() {
-  const el = activityHeatmapRef.value
-  if (!el) return
-  const instance = echarts.init(el, isDark.value ? 'dark' : undefined)
-  charts.set('activityHeatmap', instance)
+  const el = activityHeatmapRef.value;
+  if (!el) return;
+  const instance = echarts.init(el, isDark.value ? 'dark' : undefined);
+  charts.set('activityHeatmap', instance);
 
   const hours = Array.from(
     { length: 24 },
     (_, i) => `${String(i).padStart(2, '0')}:00`,
-  )
+  );
   const errorRates = hours.map((_, i) => {
     const baseError =
-      i >= 9 && i <= 18 ? 0.8 + Math.random() * 1.5 : 0.1 + Math.random() * 0.4
-    const spike = Math.random() > 0.9 ? 3 + Math.random() * 2 : 0
-    return Number((baseError + spike).toFixed(2))
-  })
-  const errors4xx = hours.map(() => Number((Math.random() * 0.8).toFixed(2)))
+      i >= 9 && i <= 18 ? 0.8 + Math.random() * 1.5 : 0.1 + Math.random() * 0.4;
+    const spike = Math.random() > 0.9 ? 3 + Math.random() * 2 : 0;
+    return Number((baseError + spike).toFixed(2));
+  });
+  const errors4xx = hours.map(() => Number((Math.random() * 0.8).toFixed(2)));
   const errors5xx = hours.map((v, i) => {
-    const val = errorRates[i]! - errors4xx[i]!
-    return Number(Math.max(0, val).toFixed(2))
-  })
+    const val = errorRates[i]! - errors4xx[i]!;
+    return Number(Math.max(0, val).toFixed(2));
+  });
 
   instance.setOption(
     baseOption({
@@ -537,31 +537,31 @@ function initActivityHeatmap() {
       ],
       animationDuration: 1200,
     }),
-  )
+  );
 }
 
 // Chart 6: 用户行为漏斗
 function initUserJourney() {
-  const el = userJourneyRef.value
-  if (!el) return
-  const instance = echarts.init(el, isDark.value ? 'dark' : undefined)
-  charts.set('userJourney', instance)
+  const el = userJourneyRef.value;
+  if (!el) return;
+  const instance = echarts.init(el, isDark.value ? 'dark' : undefined);
+  charts.set('userJourney', instance);
 
   const stages = [
-    { value: 10000, name: '页面浏览' },
+    { value: 10_000, name: '页面浏览' },
     { value: 7200, name: '功能交互' },
     { value: 4800, name: '数据查询' },
     { value: 2600, name: '业务操作' },
     { value: 1400, name: '任务完成' },
-  ]
-  const total = stages[0]?.value ?? 10000
+  ];
+  const total = stages[0]?.value ?? 10_000;
 
   instance.setOption(
     baseOption({
       tooltip: {
         formatter: (params: any) => {
-          const rate = (((params.value ?? 0) / total) * 100).toFixed(1)
-          return `<b>${params.name}</b><br/>人数: ${params.value}<br/>转化率: ${rate}%`
+          const rate = (((params.value ?? 0) / total) * 100).toFixed(1);
+          return `<b>${params.name}</b><br/>人数: ${params.value}<br/>转化率: ${rate}%`;
         },
       },
       series: [
@@ -594,17 +594,17 @@ function initUserJourney() {
         },
       ],
     }),
-  )
+  );
 }
 
 // Chart 7: 模块使用排行（动态）
-let moduleRankTimer: ReturnType<typeof setInterval> | null = null
+let moduleRankTimer: null | ReturnType<typeof setInterval> = null;
 
 function initModuleRank() {
-  const el = moduleRankRef.value
-  if (!el) return
-  const instance = echarts.init(el, isDark.value ? 'dark' : undefined)
-  charts.set('moduleRank', instance)
+  const el = moduleRankRef.value;
+  if (!el) return;
+  const instance = echarts.init(el, isDark.value ? 'dark' : undefined);
+  charts.set('moduleRank', instance);
 
   const modules = [
     '用户管理',
@@ -615,8 +615,8 @@ function initModuleRank() {
     '操作日志',
     '在线用户',
     '定时任务',
-  ]
-  let round = 0
+  ];
+  let round = 0;
 
   function update() {
     const baseData = [
@@ -625,14 +625,14 @@ function initModuleRank() {
       [480, 430, 310, 360, 330, 290, 260, 230],
       [510, 460, 340, 380, 350, 310, 280, 250],
       [530, 480, 360, 400, 370, 330, 300, 270],
-    ]
-    const current = baseData[round % baseData.length]!
+    ];
+    const current = baseData[round % baseData.length]!;
     const sorted = modules
       .map((name, i) => ({
         name,
         value: current[i]! + Math.round(Math.random() * 30 - 15),
       }))
-      .sort((a, b) => b.value - a.value)
+      .sort((a, b) => b.value - a.value);
 
     instance.setOption({
       grid: {
@@ -683,13 +683,13 @@ function initModuleRank() {
           animationEasing: 'cubicInOut',
         },
       ],
-    })
-    round++
+    });
+    round++;
   }
 
-  instance.setOption(baseOption({}))
-  update()
-  moduleRankTimer = setInterval(update, 3500)
+  instance.setOption(baseOption({}));
+  update();
+  moduleRankTimer = setInterval(update, 3500);
 }
 
 // 导出报告
@@ -701,123 +701,123 @@ const CHART_EXPORT_CONFIG: { name: string; key: string }[] = [
   { name: '用户活跃时段', key: 'activityHeatmap' },
   { name: '用户行为漏斗', key: 'userJourney' },
   { name: '模块使用热度', key: 'moduleRank' },
-]
+];
 
 function handleExportReport() {
   if (charts.size === 0) {
-    message.warning('图表尚未加载完成，请稍后再试')
-    return
+    message.warning('图表尚未加载完成，请稍后再试');
+    return;
   }
 
-  const canvas = document.createElement('canvas')
-  const ctx = canvas.getContext('2d')!
-  const padding = 40
-  const chartGap = 30
-  const labelHeight = 36
-  const headerHeight = 100
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d')!;
+  const padding = 40;
+  const chartGap = 30;
+  const labelHeight = 36;
+  const headerHeight = 100;
 
-  let totalHeight = padding + headerHeight + padding
+  let totalHeight = padding + headerHeight + padding;
   for (const item of CHART_EXPORT_CONFIG) {
-    totalHeight += labelHeight + chartGap
-    const instance = charts.get(item.key)
+    totalHeight += labelHeight + chartGap;
+    const instance = charts.get(item.key);
     if (instance) {
-      const el = instance.getDom()
-      totalHeight += Math.max(Number(el.offsetHeight) || 400, 400)
+      const el = instance.getDom();
+      totalHeight += Math.max(Number(el.offsetHeight) || 400, 400);
     } else {
-      totalHeight += 400
+      totalHeight += 400;
     }
   }
-  totalHeight += padding
+  totalHeight += padding;
 
-  canvas.width = 1400
-  canvas.height = totalHeight * 2
-  ctx.scale(2, 2)
+  canvas.width = 1400;
+  canvas.height = totalHeight * 2;
+  ctx.scale(2, 2);
 
-  ctx.fillStyle = isDark.value ? '#111827' : '#ffffff'
-  ctx.fillRect(0, 0, canvas.width / 2, totalHeight)
+  ctx.fillStyle = isDark.value ? '#111827' : '#ffffff';
+  ctx.fillRect(0, 0, canvas.width / 2, totalHeight);
 
-  ctx.fillStyle = isDark.value ? '#f9fafb' : '#111827'
-  ctx.font = 'bold 28px -apple-system, "SF Pro Text", sans-serif'
-  ctx.fillText('数据可视化报告', padding, padding + 32)
-  ctx.fillStyle = isDark.value ? '#9ca3af' : '#6b7280'
-  ctx.font = '14px -apple-system, "SF Pro Text", sans-serif'
+  ctx.fillStyle = isDark.value ? '#f9fafb' : '#111827';
+  ctx.font = 'bold 28px -apple-system, "SF Pro Text", sans-serif';
+  ctx.fillText('数据可视化报告', padding, padding + 32);
+  ctx.fillStyle = isDark.value ? '#9ca3af' : '#6b7280';
+  ctx.font = '14px -apple-system, "SF Pro Text", sans-serif';
   ctx.fillText(
     `生成时间：${new Date().toLocaleString('zh-CN')}`,
     padding,
     padding + 58,
-  )
-  ctx.fillStyle = isDark.value ? '#374151' : '#e5e7eb'
-  ctx.fillRect(padding, padding + 70, canvas.width / 2 - padding * 2, 1)
+  );
+  ctx.fillStyle = isDark.value ? '#374151' : '#e5e7eb';
+  ctx.fillRect(padding, padding + 70, canvas.width / 2 - padding * 2, 1);
 
-  let offsetY = padding + headerHeight + padding
+  let offsetY = padding + headerHeight + padding;
 
   for (const item of CHART_EXPORT_CONFIG) {
-    ctx.fillStyle = isDark.value ? '#d1d5db' : '#374151'
-    ctx.font = 'bold 16px -apple-system, "SF Pro Text", sans-serif'
-    ctx.fillText(item.name, padding, offsetY + 24)
-    offsetY += labelHeight
+    ctx.fillStyle = isDark.value ? '#d1d5db' : '#374151';
+    ctx.font = 'bold 16px -apple-system, "SF Pro Text", sans-serif';
+    ctx.fillText(item.name, padding, offsetY + 24);
+    offsetY += labelHeight;
 
-    const instance = charts.get(item.key)
+    const instance = charts.get(item.key);
     if (instance) {
       try {
         const dataUrl = instance.getDataURL({
           type: 'png',
           pixelRatio: 2,
           backgroundColor: isDark.value ? '#1f2937' : '#ffffff',
-        })
-        const img = new Image()
+        });
+        const img = new Image();
         img.onload = () => {
-          const ratio = (canvas.width / 2 - padding * 2) / img.width
-          const drawH = img.height * ratio
+          const ratio = (canvas.width / 2 - padding * 2) / img.width;
+          const drawH = img.height * ratio;
           ctx.drawImage(
             img,
             padding,
             offsetY,
             canvas.width / 2 - padding * 2,
             drawH,
-          )
-          offsetY += drawH + chartGap
+          );
+          offsetY += drawH + chartGap;
           if (item === CHART_EXPORT_CONFIG[CHART_EXPORT_CONFIG.length - 1]) {
-            triggerDownload()
+            triggerDownload();
           }
-        }
+        };
         img.onerror = () => {
-          offsetY += 300 + chartGap
-          checkLast()
-        }
-        img.src = dataUrl
+          offsetY += 300 + chartGap;
+          checkLast();
+        };
+        img.src = dataUrl;
       } catch {
-        offsetY += 300 + chartGap
-        checkLast()
+        offsetY += 300 + chartGap;
+        checkLast();
       }
     } else {
-      offsetY += 300 + chartGap
-      checkLast()
+      offsetY += 300 + chartGap;
+      checkLast();
     }
 
     if (item !== CHART_EXPORT_CONFIG[CHART_EXPORT_CONFIG.length - 1]) {
-      ctx.fillStyle = isDark.value ? '#374151' : '#e5e7eb'
+      ctx.fillStyle = isDark.value ? '#374151' : '#e5e7eb';
       ctx.fillRect(
         padding,
         offsetY - chartGap / 2,
         canvas.width / 2 - padding * 2,
         1,
-      )
+      );
     }
   }
 
-  let doneCount = 0
+  let doneCount = 0;
   function checkLast() {
-    doneCount++
-    if (doneCount >= CHART_EXPORT_CONFIG.length) triggerDownload()
+    doneCount++;
+    if (doneCount >= CHART_EXPORT_CONFIG.length) triggerDownload();
   }
 
   function triggerDownload() {
-    const link = document.createElement('a')
-    link.download = `数据可视化报告_${new Date().toISOString().slice(0, 10)}.png`
-    link.href = canvas.toDataURL('image/png', 1.0)
-    link.click()
-    message.success('报告导出成功！')
+    const link = document.createElement('a');
+    link.download = `数据可视化报告_${new Date().toISOString().slice(0, 10)}.png`;
+    link.href = canvas.toDataURL('image/png', 1);
+    link.click();
+    message.success('报告导出成功！');
   }
 }
 
@@ -828,69 +828,69 @@ function safeInit(
   refEl: Ref<HTMLDivElement | undefined>,
   initFn: (el: HTMLDivElement) => void,
 ) {
-  const el = refEl.value
-  if (!el || charts.has(name)) return
+  const el = refEl.value;
+  if (!el || charts.has(name)) return;
 
   if (el.offsetWidth > 0 && el.offsetHeight > 0) {
-    initFn(el)
-    return
+    initFn(el);
+    return;
   }
 
-  let cleaned = false
+  let cleaned = false;
   const observer = new ResizeObserver((entries) => {
-    if (cleaned) return
+    if (cleaned) return;
     for (const entry of entries) {
       if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
-        cleaned = true
-        observer.disconnect()
-        const target = refEl.value
+        cleaned = true;
+        observer.disconnect();
+        const target = refEl.value;
         if (target && !charts.has(name)) {
-          initFn(target)
+          initFn(target);
         }
-        break
+        break;
       }
     }
-  })
-  observer.observe(el)
+  });
+  observer.observe(el);
 
   setTimeout(() => {
     if (!cleaned && !charts.has(name)) {
-      cleaned = true
-      observer.disconnect()
-      const target = refEl.value
-      if (target) initFn(target)
+      cleaned = true;
+      observer.disconnect();
+      const target = refEl.value;
+      if (target) initFn(target);
     }
-  }, 3000)
+  }, 3000);
 }
 
 function initAllCharts() {
-  safeInit('mainTrend', mainTrendRef, () => initMainTrend())
-  safeInit('trafficDist', trafficDistRef, () => initTrafficDist())
-  safeInit('systemHealth', systemHealthRef, () => initSystemHealth())
-  safeInit('resourceRadar', resourceRadarRef, () => initResourceRadar())
-  safeInit('activityHeatmap', activityHeatmapRef, () => initActivityHeatmap())
-  safeInit('userJourney', userJourneyRef, () => initUserJourney())
-  safeInit('moduleRank', moduleRankRef, () => initModuleRank())
+  safeInit('mainTrend', mainTrendRef, () => initMainTrend());
+  safeInit('trafficDist', trafficDistRef, () => initTrafficDist());
+  safeInit('systemHealth', systemHealthRef, () => initSystemHealth());
+  safeInit('resourceRadar', resourceRadarRef, () => initResourceRadar());
+  safeInit('activityHeatmap', activityHeatmapRef, () => initActivityHeatmap());
+  safeInit('userJourney', userJourneyRef, () => initUserJourney());
+  safeInit('moduleRank', moduleRankRef, () => initModuleRank());
 }
 
 function disposeAll() {
-  charts.forEach((c) => c.dispose())
-  charts.clear()
+  charts.forEach((c) => c.dispose());
+  charts.clear();
 }
 
-useEventListener(window, 'resize', () => charts.forEach((c) => c.resize()))
+useEventListener(window, 'resize', () => charts.forEach((c) => c.resize()));
 
 onMounted(() => {
-  nextTick(() => initAllCharts())
-})
+  nextTick(() => initAllCharts());
+});
 
 onBeforeUnmount(() => {
   if (moduleRankTimer) {
-    clearInterval(moduleRankTimer)
-    moduleRankTimer = null
+    clearInterval(moduleRankTimer);
+    moduleRankTimer = null;
   }
-  disposeAll()
-})
+  disposeAll();
+});
 </script>
 
 <template>
@@ -993,7 +993,7 @@ onBeforeUnmount(() => {
             <a-radio-button value="api"> API 调用 </a-radio-button>
           </a-radio-group>
         </div>
-        <div ref="mainTrendRef" class="w-full" style="height: 380px" />
+        <div ref="mainTrendRef" class="w-full" style="height: 380px"></div>
       </a-card>
 
       <!-- 第二行：分布 + 仪表盘 -->
@@ -1005,7 +1005,7 @@ onBeforeUnmount(() => {
             :styles="{ body: { padding: '20px 24px' } }"
           >
             <h3 :class="sectionTitleClassName">流量来源分布</h3>
-            <div ref="trafficDistRef" class="w-full" style="height: 320px" />
+            <div ref="trafficDistRef" class="w-full" style="height: 320px"></div>
           </a-card>
         </a-col>
         <a-col :xs="24" :lg="12">
@@ -1015,7 +1015,7 @@ onBeforeUnmount(() => {
             :styles="{ body: { padding: '20px 24px' } }"
           >
             <h3 :class="sectionTitleClassName">系统健康度</h3>
-            <div ref="systemHealthRef" class="w-full" style="height: 320px" />
+            <div ref="systemHealthRef" class="w-full" style="height: 320px"></div>
           </a-card>
         </a-col>
       </a-row>
@@ -1029,7 +1029,7 @@ onBeforeUnmount(() => {
             :styles="{ body: { padding: '20px 24px' } }"
           >
             <h3 :class="sectionTitleClassName">资源使用概况</h3>
-            <div ref="resourceRadarRef" class="w-full" style="height: 320px" />
+            <div ref="resourceRadarRef" class="w-full" style="height: 320px"></div>
           </a-card>
         </a-col>
         <a-col :xs="24" :lg="12">
@@ -1043,7 +1043,7 @@ onBeforeUnmount(() => {
               ref="activityHeatmapRef"
               class="w-full"
               style="height: 320px"
-            />
+            ></div>
           </a-card>
         </a-col>
       </a-row>
@@ -1067,7 +1067,7 @@ onBeforeUnmount(() => {
               ref="userJourneyRef"
               class="w-full flex-1"
               style="min-height: 280px"
-            />
+            ></div>
           </a-card>
         </a-col>
         <a-col :xs="24" :lg="14" class="mb-2">
@@ -1090,7 +1090,7 @@ onBeforeUnmount(() => {
               ref="moduleRankRef"
               class="w-full flex-1"
               style="min-height: 280px"
-            />
+            ></div>
           </a-card>
         </a-col>
       </a-row>

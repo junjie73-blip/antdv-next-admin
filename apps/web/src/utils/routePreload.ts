@@ -13,20 +13,21 @@
  * - 路由变化前提前加载下一个可能的页面
  */
 
-import type { RouteLocationRaw } from 'vue-router'
+import type { RouteLocationRaw } from 'vue-router';
 
-import { tryOnScopeDispose } from '@vueuse/core'
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+
+import { tryOnScopeDispose } from '@vueuse/core';
 
 // 预加载缓存（已预加载的路由路径）
-const preloadedRoutes = new Set<string>()
+const preloadedRoutes = new Set<string>();
 
 // 最大预加载数量（防止内存溢出）
-const MAX_PRELOAD_COUNT = 5
+const MAX_PRELOAD_COUNT = 5;
 
 // 当前预加载数量
-let preloadCount = 0
+let preloadCount = 0;
 
 /**
  * 预加载路由组件
@@ -35,37 +36,37 @@ let preloadCount = 0
  * @returns Promise 是否成功预加载
  */
 export async function preloadRoute(
-  to: string | RouteLocationRaw,
+  to: RouteLocationRaw | string,
 ): Promise<boolean> {
   // 解析路径
-  const path = typeof to === 'string' ? to : (to as any).path || ''
+  const path = typeof to === 'string' ? to : (to as any).path || '';
 
   if (!path) {
-    console.warn('[RoutePreload] 无效的目标路径')
-    return false
+    console.warn('[RoutePreload] 无效的目标路径');
+    return false;
   }
 
   // 已预加载过，跳过
   if (preloadedRoutes.has(path)) {
-    return true
+    return true;
   }
 
   // 超过最大数量，清理最早的
   if (preloadCount >= MAX_PRELOAD_COUNT) {
-    const firstPath = preloadedRoutes.values().next().value
+    const firstPath = preloadedRoutes.values().next().value;
     if (firstPath) {
-      preloadedRoutes.delete(firstPath)
-      preloadCount--
-      console.log(`[RoutePreload] 清理缓存: ${firstPath}`)
+      preloadedRoutes.delete(firstPath);
+      preloadCount--;
+      console.log(`[RoutePreload] 清理缓存: ${firstPath}`);
     }
   }
 
   try {
     // 动态导入组件（触发 Webpack/Vite 的代码分割）
-    const router = useRouter()
+    const router = useRouter();
 
     // 尝试匹配路由并获取组件
-    const matched = router.resolve(path).matched
+    const matched = router.resolve(path).matched;
 
     if (matched.length > 0) {
       // 预加载所有匹配的路由组件
@@ -76,28 +77,28 @@ export async function preloadRoute(
           Object.values(components).map((component: any) => {
             // 如果是动态导入函数，调用它来触发加载
             if (typeof component === 'function') {
-              return component()
+              return component();
             }
-            return null
+            return null;
           }),
         )
-        .filter(Boolean)
+        .filter(Boolean);
 
-      await Promise.all(loadPromises)
+      await Promise.all(loadPromises);
 
       // 标记为已预加载
-      preloadedRoutes.add(path)
-      preloadCount++
+      preloadedRoutes.add(path);
+      preloadCount++;
 
-      console.log(`[RoutePreload] ✅ 成功预加载: ${path}`)
-      return true
+      console.log(`[RoutePreload] ✅ 成功预加载: ${path}`);
+      return true;
     } else {
-      console.warn(`[RoutePreload] 未找到匹配路由: ${path}`)
-      return false
+      console.warn(`[RoutePreload] 未找到匹配路由: ${path}`);
+      return false;
     }
   } catch (error) {
-    console.error(`[RoutePreload] ❌ 预加载失败: ${path}`, error)
-    return false
+    console.error(`[RoutePreload] ❌ 预加载失败: ${path}`, error);
+    return false;
   }
 }
 
@@ -108,15 +109,15 @@ export async function preloadRoute(
  */
 export async function preloadRoutes(routes: string[]): Promise<void> {
   // 限制并发数
-  const CONCURRENT_LIMIT = 2
-  const chunks: string[][] = []
+  const CONCURRENT_LIMIT = 2;
+  const chunks: string[][] = [];
 
   for (let i = 0; i < routes.length; i += CONCURRENT_LIMIT) {
-    chunks.push(routes.slice(i, i + CONCURRENT_LIMIT))
+    chunks.push(routes.slice(i, i + CONCURRENT_LIMIT));
   }
 
   for (const chunk of chunks) {
-    await Promise.allSettled(chunk.map((route) => preloadRoute(route)))
+    await Promise.allSettled(chunk.map((route) => preloadRoute(route)));
   }
 }
 
@@ -127,28 +128,28 @@ export async function preloadRoutes(routes: string[]): Promise<void> {
  * 可用于侧边栏菜单等场景
  */
 export function useRoutePreloader() {
-  const router = useRouter()
+  const router = useRouter();
 
   // 预加载状态
-  const isPreloading = ref(false)
-  const preloadedPaths = ref<string[]>([])
+  const isPreloading = ref(false);
+  const preloadedPaths = ref<string[]>([]);
 
   /**
    * 预加载指定路径
    */
   async function prefetch(path: string): Promise<boolean> {
-    isPreloading.value = true
+    isPreloading.value = true;
 
     try {
-      const success = await preloadRoute(path)
+      const success = await preloadRoute(path);
 
       if (success) {
-        preloadedPaths.value.push(path)
+        preloadedPaths.value.push(path);
       }
 
-      return success
+      return success;
     } finally {
-      isPreloading.value = false
+      isPreloading.value = false;
     }
   }
 
@@ -157,21 +158,21 @@ export function useRoutePreloader() {
    * 基于当前路径推断用户可能访问的相邻页面
    */
   async function predictAndPreload(): Promise<void> {
-    const currentPath = router.currentRoute.value.path
+    const currentPath = router.currentRoute.value.path;
 
     // 定义常见的相邻路径映射
     const adjacencyMap: Record<string, string[]> = {
       '/dashboard/analysis': ['/system/user'],
       '/system/user': ['/system/role'],
       '/system/role': ['/system/user', '/system/menu'],
-    }
+    };
 
     // 获取候选路径
-    const candidates = adjacencyMap[currentPath] || []
+    const candidates = adjacencyMap[currentPath] || [];
 
     if (candidates.length > 0) {
       // 只预加载第一个候选（最可能的）
-      await prefetch(candidates[0])
+      await prefetch(candidates[0]);
     }
   }
 
@@ -180,26 +181,26 @@ export function useRoutePreloader() {
    */
   function idlePreload(): void {
     if ('requestIdleCallback' in window) {
-      ;(window as any).requestIdleCallback(
+      (window as any).requestIdleCallback(
         () => {
-          predictAndPreload()
+          predictAndPreload();
         },
         { timeout: 3000 },
-      )
+      );
     } else {
-      setTimeout(predictAndPreload, 2000)
+      setTimeout(predictAndPreload, 2000);
     }
   }
 
   // 清理函数
   function cleanup() {
-    preloadedRoutes.clear()
-    preloadCount = 0
-    preloadedPaths.value = []
+    preloadedRoutes.clear();
+    preloadCount = 0;
+    preloadedPaths.value = [];
   }
 
   // 组件卸载时自动清理
-  tryOnScopeDispose(cleanup)
+  tryOnScopeDispose(cleanup);
 
   return {
     // 状态
@@ -211,5 +212,5 @@ export function useRoutePreloader() {
     predictAndPreload,
     idlePreload,
     cleanup,
-  }
+  };
 }

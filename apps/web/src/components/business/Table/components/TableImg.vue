@@ -1,35 +1,35 @@
 <script setup lang="ts">
-import { Image, Space } from 'antdv-next'
-import { computed } from 'vue'
+import { computed } from 'vue';
 
-import { cn } from '~/utils/cn'
+import { Image, Space } from 'antdv-next';
+import { cn } from '~/utils/cn';
 
 const props = withDefaults(
   defineProps<{
-    imgList?: string[]
-    size?: number
-    margin?: number
-    simpleShow?: boolean
+    imgList?: string[];
+    size?: number;
+    margin?: number;
+    simpleShow?: boolean;
   }>(),
   {
     size: 40,
     margin: 8,
     simpleShow: false,
   },
-)
+);
 
 const showImgList = computed(() => {
   if (props.simpleShow && props.imgList && props.imgList.length > 0) {
-    return [props.imgList[0]]
+    return [props.imgList[0]];
   }
-  return props.imgList || []
-})
+  return props.imgList || [];
+});
 
 const imgStyle = computed(() => ({
   width: `${props.size}px`,
   height: `${props.size}px`,
   objectFit: 'cover' as const,
-}))
+}));
 </script>
 
 <template>

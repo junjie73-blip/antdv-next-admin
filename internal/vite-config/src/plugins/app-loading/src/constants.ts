@@ -1,4 +1,4 @@
-import type { AppLoadingOptions } from './types'
+import type { AppLoadingOptions } from './types';
 
 export const DEFAULT_OPTIONS: Required<AppLoadingOptions> = {
   /* ==================== 基础配置 ==================== */
@@ -36,7 +36,13 @@ export const DEFAULT_OPTIONS: Required<AppLoadingOptions> = {
   autoTheme: true,
 
   // 默认扫描常见样式扩展名（不含 node_modules / dist）
-  cssVariableSources: ['src/**/*.css', 'src/**/*.scss', 'src/**/*.less', 'src/**/*.sass', 'src/**/*.styl'],
+  cssVariableSources: [
+    'src/**/*.css',
+    'src/**/*.scss',
+    'src/**/*.less',
+    'src/**/*.sass',
+    'src/**/*.styl',
+  ],
 
   // 默认提取所有 CSS 变量
   cssVariablePrefix: '--',
@@ -55,4 +61,4 @@ export const DEFAULT_OPTIONS: Required<AppLoadingOptions> = {
   // 默认不加 !important，保证应用样式加载后能覆盖内联值
   themeImportant: false,
   htmlVariables: {},
-}
+};

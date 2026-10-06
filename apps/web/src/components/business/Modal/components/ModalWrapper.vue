@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useWindowSize } from '@vueuse/core'
-import { computed } from 'vue'
+import { computed } from 'vue';
 
-import { cn } from '~/utils/cn'
+import { useWindowSize } from '@vueuse/core';
+import { cn } from '~/utils/cn';
 
 const props = defineProps({
   loading: Boolean,
@@ -18,27 +18,27 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
-})
+});
 
 // useWindowSize：视口高度响应式，窗口缩放自动更新
-const { height: windowHeight } = useWindowSize()
+const { height: windowHeight } = useWindowSize();
 
 const wrapperStyle = computed(() => {
-  if (!props.useWrapper) return {}
+  if (!props.useWrapper) return {};
 
   if (props.height) {
-    return { height: `${props.height}px` }
+    return { height: `${props.height}px` };
   }
 
-  const maxHeight = windowHeight.value - 200 - props.footerOffset
+  const maxHeight = windowHeight.value - 200 - props.footerOffset;
 
   return {
     maxHeight: `${maxHeight}px`,
     minHeight: props.minHeight ? `${props.minHeight}px` : '200px',
-  }
-})
+  };
+});
 
-const bodyStyle = computed(() => ({ maxHeight: '100%' }))
+const bodyStyle = computed(() => ({ maxHeight: '100%' }));
 </script>
 
 <template>
@@ -59,7 +59,7 @@ const bodyStyle = computed(() => ({ maxHeight: '100%' }))
               'h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent',
             )
           "
-        />
+        ></div>
         <span v-if="loadingTip" :class="cn('text-sm text-gray-600')">{{
           loadingTip
         }}</span>
@@ -67,7 +67,7 @@ const bodyStyle = computed(() => ({ maxHeight: '100%' }))
     </div>
 
     <Scrollbar :class="cn('modal-body', 'p-6')" :style="bodyStyle">
-      <slot />
+      <slot></slot>
     </Scrollbar>
   </div>
 </template>

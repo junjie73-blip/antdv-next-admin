@@ -1,123 +1,125 @@
 <script setup lang="ts">
-import type { RuleObject } from 'antdv-next'
+import type { RuleObject } from 'antdv-next';
 
-import { isFunction } from 'es-toolkit'
-import { computed, inject, unref, type ComputedRef } from 'vue'
+import type { ComputedRef } from 'vue';
 
-import IconifyIcon from '~/components/common/Icon/IconifyIcon.vue'
+import type { FormSchema, Recordable, RenderCallbackParams } from '../types';
 
-import type { FormSchema, Recordable, RenderCallbackParams } from '../types'
+import { computed, inject, unref } from 'vue';
 
-import { getComponent } from '../componentMap'
+import { isFunction } from 'es-toolkit';
+import IconifyIcon from '~/components/common/Icon/IconifyIcon.vue';
+
+import { getComponent } from '../componentMap';
 import {
   getDynamicDisabled,
   getDynamicRules,
   getShow,
   setComponentProps,
-} from '../helper'
+} from '../helper';
 
 interface Props {
-  schema: FormSchema
-  formModel: Recordable
-  formActionType: any
-  setFormModel: (key: string, value: any) => void
+  schema: FormSchema;
+  formModel: Recordable;
+  formActionType: any;
+  setFormModel: (key: string, value: any) => void;
 }
 
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 
 type GridContext =
-  | {
-      cols?: ComputedRef<number>
-      span?: ComputedRef<number>
-      gutter?: ComputedRef<number | [number, number]>
-    }
-  | undefined
   | null
+  | undefined
+  | {
+      cols?: ComputedRef<number>;
+      span?: ComputedRef<number>;
+      gutter?: ComputedRef<[number, number] | number>;
+    };
 
-const gridConfig = inject<GridContext>('formGridContext', null)
+const gridConfig = inject<GridContext>('formGridContext', null);
 
 // ★ 所有依赖 schema 的 computed 都加空值兜底
 const getShowState = computed(() => {
-  if (!props.schema) return { show: false, ifShow: false }
-  return getShow(props.schema, unref(props.formModel), props.formActionType)
-})
+  if (!props.schema) return { show: false, ifShow: false };
+  return getShow(props.schema, unref(props.formModel), props.formActionType);
+});
 
 const getDisabled = computed(() => {
-  if (!props.schema) return false
+  if (!props.schema) return false;
   return getDynamicDisabled(
     props.schema,
     unref(props.formModel),
     props.formActionType,
-  )
-})
+  );
+});
 
 const getComponentPropsValue = computed(() => {
-  if (!props.schema) return {}
+  if (!props.schema) return {};
   return setComponentProps(
     props.schema,
     unref(props.formModel),
     props.formActionType,
-  )
-})
+  );
+});
 
 const getRulesValue = computed((): RuleObject[] | undefined => {
-  if (!props.schema) return undefined
+  if (!props.schema) return undefined;
   const rules = getDynamicRules(
     props.schema,
     unref(props.formModel),
     props.formActionType,
-  )
-  if (!rules) return undefined
-  return rules as RuleObject[]
-})
+  );
+  if (!rules) return undefined;
+  return rules as RuleObject[];
+});
 
 const getComponentInstance = computed(() => {
-  if (!props.schema?.component) return null
-  return getComponent(props.schema.component)
-})
+  if (!props.schema?.component) return null;
+  return getComponent(props.schema.component);
+});
 
 const getSuffixValue = computed(() => {
-  if (!props.schema) return null
-  const { suffix } = props.schema
-  if (!suffix) return null
+  if (!props.schema) return null;
+  const { suffix } = props.schema;
+  if (!suffix) return null;
 
-  const values = unref(props.formModel) || {}
+  const values = unref(props.formModel) || {};
   const params: RenderCallbackParams = {
     schema: props.schema,
     values,
     model: props.formModel,
     field: props.schema.field,
-  }
+  };
 
   if (isFunction(suffix)) {
-    return suffix(params)
+    return suffix(params);
   }
-  return suffix
-})
+  return suffix;
+});
 
 const getColProps = computed(() => {
-  const defaultSpan = unref(gridConfig?.span) ?? 24
+  const defaultSpan = unref(gridConfig?.span) ?? 24;
   return {
     span: defaultSpan,
     ...props.schema?.colProps,
-  }
-})
+  };
+});
 
 const mergedItemProps = computed(() => {
-  const base = { ...props.schema?.itemProps }
-  const cols = unref(gridConfig?.cols)
-  if (!cols || cols <= 1) return base
+  const base = { ...props.schema?.itemProps };
+  const cols = unref(gridConfig?.cols);
+  if (!cols || cols <= 1) return base;
 
-  const span = props.schema?.colProps?.span ?? unref(gridConfig?.span) ?? 24
-  const isFullRow = span === 24 || props.schema?.fullRowAlign
-  if (!isFullRow) return base
+  const span = props.schema?.colProps?.span ?? unref(gridConfig?.span) ?? 24;
+  const isFullRow = span === 24 || props.schema?.fullRowAlign;
+  if (!isFullRow) return base;
 
-  const gutterRaw = unref(gridConfig?.gutter)
-  const gutterPx = Array.isArray(gutterRaw) ? gutterRaw[0] : (gutterRaw ?? 24)
+  const gutterRaw = unref(gridConfig?.gutter);
+  const gutterPx = Array.isArray(gutterRaw) ? gutterRaw[0] : (gutterRaw ?? 24);
 
-  const existingStyle: Record<string, any> = {}
+  const existingStyle: Record<string, any> = {};
   const existingWrapperCol =
-    typeof base.wrapperCol === 'object' ? base.wrapperCol : {}
+    typeof base.wrapperCol === 'object' ? base.wrapperCol : {};
   return {
     ...base,
     style: {
@@ -131,22 +133,22 @@ const mergedItemProps = computed(() => {
         ...(existingWrapperCol as any)?.style,
       },
     },
-  }
-})
+  };
+});
 
 const getHelpMessage = computed(() => {
-  const { helpMessage } = props.schema ?? {}
+  const { helpMessage } = props.schema ?? {};
   if (Array.isArray(helpMessage)) {
-    return helpMessage.join('\n')
+    return helpMessage.join('\n');
   }
-  return helpMessage
-})
+  return helpMessage;
+});
 
 function handleValueChange(value: any) {
-  if (!props.schema) return
-  props.setFormModel(props.schema.field, value)
+  if (!props.schema) return;
+  props.setFormModel(props.schema.field, value);
 }
-const bodyContainer = () => document.body
+const bodyContainer = () => document.body;
 </script>
 
 <template>
@@ -180,7 +182,7 @@ const bodyContainer = () => document.body
         </template>
 
         <template v-if="schema.slot">
-          <slot :name="schema.slot" :model="formModel" :field="schema.field" />
+          <slot :name="schema.slot" :model="formModel" :field="schema.field"></slot>
         </template>
 
         <template v-else-if="getComponentInstance">

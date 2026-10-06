@@ -1,22 +1,22 @@
 export type FileCategory =
-  | 'image'
-  | 'video'
-  | 'audio'
-  | 'pdf'
-  | 'word'
-  | 'excel'
-  | 'pptx'
-  | 'markdown'
-  | 'text'
   | 'archive'
+  | 'audio'
+  | 'excel'
+  | 'image'
+  | 'markdown'
   | 'other'
+  | 'pdf'
+  | 'pptx'
+  | 'text'
+  | 'video'
+  | 'word';
 
 /** 取小写扩展名（含点），无扩展名返回空串 */
 export function getExt(filename: string): string {
-  if (!filename) return ''
-  const idx = filename.lastIndexOf('.')
-  if (idx < 0 || idx === filename.length - 1) return ''
-  return filename.slice(idx).toLowerCase()
+  if (!filename) return '';
+  const idx = filename.lastIndexOf('.');
+  if (idx === -1 || idx === filename.length - 1) return '';
+  return filename.slice(idx).toLowerCase();
 }
 
 /** 后缀 → 分类映射表 */
@@ -93,9 +93,9 @@ const EXT_MAP: Record<string, FileCategory> = {
   '.tgz': 'archive',
   '.bz2': 'archive',
   '.xz': 'archive',
-}
+};
 
 export function getFileCategory(filename: string): FileCategory {
-  const ext = getExt(filename)
-  return EXT_MAP[ext] ?? 'other'
+  const ext = getExt(filename);
+  return EXT_MAP[ext] ?? 'other';
 }

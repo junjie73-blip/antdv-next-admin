@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import type { FormInstance } from 'antdv-next'
-import type { Rule } from 'antdv-next/dist/form/types'
+import type { FormInstance } from 'antdv-next';
+import type { Rule } from 'antdv-next/dist/form/types';
 
-import { LockOutlined, MailOutlined, UserOutlined } from '@antdv-next/icons'
-import { computed, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
-import { cn } from '~/utils/cn'
+import { LockOutlined, MailOutlined, UserOutlined } from '@antdv-next/icons';
+import { cn } from '~/utils/cn';
 
-const router = useRouter()
+const router = useRouter();
 
-const formRef = ref<FormInstance>()
-const loading = ref(false)
-const countdown = ref(0)
+const formRef = ref<FormInstance>();
+const loading = ref(false);
+const countdown = ref(0);
 
 const formState = reactive({
   username: '',
@@ -21,35 +21,35 @@ const formState = reactive({
   confirmPassword: '',
   code: '',
   agreement: false,
-})
+});
 
 const containerClassName = computed(() =>
   cn(
-    'min-h-screen flex',
-    'bg-gradient-to-br from-stone-100 via-slate-50 to-gray-50',
+    'flex min-h-screen',
+    'bg-linear-to-br from-stone-100 via-slate-50 to-gray-50',
   ),
-)
+);
 
 const leftPanelClassName = computed(() =>
   cn('hidden lg:flex lg:w-1/2 xl:w-3/5', 'relative overflow-hidden'),
-)
+);
 
 const leftGlassClassName = computed(() =>
   cn(
     'absolute inset-0',
-    'bg-gradient-to-br from-white/60 via-slate-100/40 to-gray-100/50',
+    'bg-linear-to-br from-white/60 via-slate-100/40 to-gray-100/50',
     'backdrop-blur-xl',
   ),
-)
+);
 
 const rightPanelClassName = computed(() =>
   cn(
     'w-full lg:w-1/2 xl:w-2/5',
     'flex items-center justify-center',
     'p-8 lg:p-12',
-    'bg-gradient-to-br from-white/80 to-slate-50/60',
+    'bg-linear-to-br from-white/80 to-slate-50/60',
   ),
-)
+);
 
 const glassCardClassName = computed(() =>
   cn(
@@ -59,26 +59,26 @@ const glassCardClassName = computed(() =>
     'rounded-2xl shadow-xl shadow-slate-900/5',
     'p-8 lg:p-10',
   ),
-)
+);
 
 const inputClassName = computed(() =>
   cn(
-    '[&_.ant-input]:!bg-white/80',
-    '[&_.ant-input]:!border-slate-200',
-    '[&_.ant-input]:!text-stone-700',
+    '[&_.ant-input]:bg-white/80!',
+    '[&_.ant-input]:border-slate-200!',
+    '[&_.ant-input]:text-stone-700!',
     '[&_.ant-input]:placeholder:text-stone-400',
-    '[&_.ant-input]:hover:!border-slate-400',
-    '[&_.ant-input]:focus:!border-[var(--ant-color-primary)]',
-    '[&_.ant-input]:focus:!shadow-[0_0_0_2px_color-mix(in_srgb,var(--ant-color-primary)_20%,transparent)]',
-    '[&_.ant-input-affix-wrapper]:!bg-white/80',
-    '[&_.ant-input-affix-wrapper]:!border-slate-200',
-    '[&_.ant-input-affix-wrapper]:hover:!border-slate-400',
-    '[&_.ant-input-affix-wrapper-focused]:!border-[var(--ant-color-primary)]',
-    '[&_.ant-input-affix-wrapper-focused]:!shadow-[0_0_0_2px_color-mix(in_srgb,var(--ant-color-primary)_20%,transparent)]',
-    '[&_.ant-input-affix-wrapper_input]:!bg-transparent',
-    '[&_.ant-input-affix-wrapper_input]:!text-stone-700',
+    '[&_.ant-input]:hover:border-slate-400!',
+    '[&_.ant-input]:focus:border-(--ant-color-primary)!',
+    '[&_.ant-input]:focus:shadow-[0_0_0_2px_color-mix(in_srgb,var(--ant-color-primary)_20%,transparent)]!',
+    '[&_.ant-input-affix-wrapper]:bg-white/80!',
+    '[&_.ant-input-affix-wrapper]:border-slate-200!',
+    '[&_.ant-input-affix-wrapper]:hover:border-slate-400!',
+    '[&_.ant-input-affix-wrapper-focused]:border-(--ant-color-primary)!',
+    '[&_.ant-input-affix-wrapper-focused]:shadow-[0_0_0_2px_color-mix(in_srgb,var(--ant-color-primary)_20%,transparent)]!',
+    '[&_.ant-input-affix-wrapper_input]:bg-transparent!',
+    '[&_.ant-input-affix-wrapper_input]:text-stone-700!',
   ),
-)
+);
 
 const rules: Record<string, Rule[]> = {
   username: [
@@ -103,9 +103,9 @@ const rules: Record<string, Rule[]> = {
     {
       validator: (_rule, value) => {
         if (value && value !== formState.password) {
-          return Promise.reject(new Error('两次密码输入不一致'))
+          return Promise.reject(new Error('两次密码输入不一致'));
         }
-        return Promise.resolve()
+        return Promise.resolve();
       },
       trigger: 'blur',
     },
@@ -114,26 +114,26 @@ const rules: Record<string, Rule[]> = {
     { required: true, message: '请输入验证码', trigger: 'blur' },
     { len: 6, message: '验证码为6位', trigger: 'blur' },
   ],
-}
+};
 
 async function handleRegister() {
   try {
-    await formRef.value?.validate()
-    loading.value = true
+    await formRef.value?.validate();
+    loading.value = true;
 
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    message.success('注册成功，请登录')
-    router.push('/login')
+    message.success('注册成功，请登录');
+    router.push('/login');
   } catch {
-    message.error('注册失败，请检查输入')
+    message.error('注册失败，请检查输入');
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 function handleBackToLogin() {
-  router.push('/login')
+  router.push('/login');
 }
 
 function _handleSendCode() {
@@ -141,17 +141,17 @@ function _handleSendCode() {
     !formState.email ||
     !/^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/.test(formState.email)
   ) {
-    message.error('请输入正确的邮箱')
-    return
+    message.error('请输入正确的邮箱');
+    return;
   }
-  countdown.value = 60
+  countdown.value = 60;
   const timer = setInterval(() => {
-    countdown.value--
+    countdown.value--;
     if (countdown.value <= 0) {
-      clearInterval(timer)
+      clearInterval(timer);
     }
-  }, 1000)
-  message.success('验证码已发送')
+  }, 1000);
+  message.success('验证码已发送');
 }
 </script>
 
@@ -160,7 +160,7 @@ function _handleSendCode() {
     <!-- 左侧面板 -->
     <div :class="leftPanelClassName">
       <!-- 玻璃背景 -->
-      <div :class="leftGlassClassName" />
+      <div :class="leftGlassClassName"></div>
 
       <!-- 装饰性背景 -->
       <div class="absolute inset-0">
@@ -173,7 +173,7 @@ function _handleSendCode() {
               transparent
             );
           "
-        />
+        ></div>
         <div
           class="absolute bottom-1/4 left-1/4 h-[400px] w-[400px] rounded-full blur-[80px]"
           style="
@@ -183,7 +183,7 @@ function _handleSendCode() {
               transparent
             );
           "
-        />
+        ></div>
         <div
           class="absolute top-1/2 right-1/3 h-[300px] w-[300px] rounded-full blur-[60px]"
           style="
@@ -193,13 +193,13 @@ function _handleSendCode() {
               transparent
             );
           "
-        />
+        ></div>
       </div>
 
       <!-- 网格背景 -->
       <div
         class="absolute inset-0 bg-[linear-gradient(rgba(100,100,100,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(100,100,100,0.03)_1px,transparent_1px)] bg-[size:48px_48px]"
-      />
+      ></div>
 
       <!-- 内容 -->
       <div class="relative z-10 flex flex-col justify-center px-12 xl:px-20">

@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import dayjs from 'dayjs'
-import { computed, onMounted, ref } from 'vue'
-
 import type {
   SecurityEvent,
   SecurityEventLevel,
   SecurityEventType,
 } from '~/api/security'
 
+import { computed, onMounted, ref } from 'vue'
+
+import { Icon } from '@iconify/vue'
+import dayjs from 'dayjs'
 import { getSecurityEvents } from '~/api/security'
 import { cn } from '~/utils/cn'
 
@@ -16,9 +16,9 @@ defineOptions({ name: 'SecurityTimeline' })
 
 // 样式类名
 const containerClassName = cn('rounded-xl p-5')
-const filterBarClassName = cn('flex items-center gap-2 flex-wrap mb-4')
+const filterBarClassName = cn('mb-4 flex flex-wrap items-center gap-2')
 const tagClassName = cn(
-  'cursor-pointer transition-all duration-200 text-xs px-2.5 py-1 rounded-full border',
+  'cursor-pointer rounded-full border px-2.5 py-1 text-xs transition-all duration-200',
 )
 
 const events = ref<SecurityEvent[]>([])
@@ -256,8 +256,7 @@ onMounted(async () => {
                 <div class="mb-1 flex flex-wrap items-center gap-2">
                   <span
                     class="text-sm font-medium text-gray-800 dark:text-gray-200"
-                    >{{ event.title }}</span
-                  >
+                    >{{ event.title }}</span>
                   <a-tag
                     :color="getLevelTagColor(event.level)"
                     size="small"

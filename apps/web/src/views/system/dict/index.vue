@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { computed, ref } from 'vue'
-
 import type { FormSchema } from '~/components/business/Form'
 import type { BasicColumn } from '~/components/business/Table'
 
+import { computed, ref } from 'vue'
+
+import { Icon } from '@iconify/vue'
 import {
   addDict,
   addDictItem,
@@ -47,43 +47,43 @@ interface DictTypeRecord {
 
 const containerClassName = cn('flex gap-4')
 const leftPanelClassName = cn('w-[280px] shrink-0')
-const rightPanelClassName = cn('flex-1 min-w-0')
+const rightPanelClassName = cn('min-w-0 flex-1')
 const cardClassName = cn('shadow-sm')
 const typeItemClassName = (active: boolean) =>
   cn(
     'flex items-center justify-between',
-    'px-4 py-3 cursor-pointer',
+    'cursor-pointer px-4 py-3',
     'border-b border-gray-100 dark:border-gray-800',
     'transition-colors duration-200',
     'hover:bg-gray-50 dark:hover:bg-gray-800',
     active &&
-      'bg-blue-50 dark:bg-blue-900/20 border-l-[3px] border-l-[var(--ant-color-primary)]',
+      'border-l-[3px] border-l-(--ant-color-primary) bg-blue-50 dark:bg-blue-900/20',
   )
 const typeItemNameClassName = cn(
-  'text-sm font-medium text-gray-800 dark:text-gray-200 truncate',
+  'truncate text-sm font-medium text-gray-800 dark:text-gray-200',
 )
-const typeItemCodeClassName = cn('text-xs text-gray-400 mt-0.5 truncate')
+const typeItemCodeClassName = cn('mt-0.5 truncate text-xs text-gray-400')
 const typeItemActionsClassName = cn(
-  'flex items-center gap-1 flex-shrink-0 ml-2',
+  'ml-2 flex shrink-0 items-center gap-1',
 )
-const typeItemBtnClassName = cn('!p-0.5 !min-w-0')
+const typeItemBtnClassName = cn('min-w-0! p-0.5!')
 const emptyClassName = cn(
   'flex flex-col items-center justify-center py-10 text-gray-400',
 )
-const emptyIconClassName = cn('text-4xl mb-3 opacity-30')
+const emptyIconClassName = cn('mb-3 text-4xl opacity-30')
 const emptyTitleClassName = cn('text-sm font-medium')
-const emptyDescClassName = cn('text-xs mt-1')
+const emptyDescClassName = cn('mt-1 text-xs')
 const cardFooterClassName = cn(
-  'flex justify-start px-4 py-3 border-t border-gray-100 dark:border-gray-800',
+  'flex justify-start border-t border-gray-100 px-4 py-3 dark:border-gray-800',
 )
 const cardHeaderClassName = cn(
-  'flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800',
+  'flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-800',
 )
 const cardTitleClassName = cn(
   'text-sm font-semibold text-gray-800 dark:text-gray-200',
 )
 const actionClassName = cn('flex', 'items-center', 'justify-center')
-const btnClassName = cn('!px-0.5')
+const btnClassName = cn('px-0.5!')
 const dividerClassName = cn('mx-0')
 const tagClassName = cn('inline-flex items-center gap-1')
 
@@ -445,8 +445,8 @@ loadDictTypes()
     <div :class="leftPanelClassName">
       <div
         :class="
-          cardClassName +
-          ' rounded-lg border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900'
+          `${cardClassName 
+          } rounded-lg border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900`
         "
       >
         <div :class="cardHeaderClassName">
@@ -526,8 +526,8 @@ loadDictTypes()
     <div :class="rightPanelClassName">
       <div
         :class="
-          cardClassName +
-          ' rounded-lg border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900'
+          `${cardClassName 
+          } rounded-lg border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900`
         "
       >
         <div :class="cardHeaderClassName">

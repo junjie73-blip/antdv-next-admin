@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Spin } from 'antdv-next'
-import { computed } from 'vue'
+import type { LoadingProps } from './types';
 
-import { cn } from '~/utils/cn'
+import { computed } from 'vue';
 
-import type { LoadingProps } from './types'
+import { Spin } from 'antdv-next';
+import { cn } from '~/utils/cn';
 
 /**
  * Loading 加载组件
@@ -16,19 +16,19 @@ const props = withDefaults(defineProps<LoadingProps>(), {
   absolute: false,
   loading: false,
   theme: 'light',
-})
+});
 
 /**
  * 计算样式
  * 优先使用自定义背景色，否则使用主题色
  */
 const getStyle = computed(() => {
-  const style: Record<string, string> = {}
+  const style: Record<string, string> = {};
   if (props.background) {
-    style.backgroundColor = props.background
+    style.backgroundColor = props.background;
   }
-  return style
-})
+  return style;
+});
 
 /**
  * 计算类名
@@ -39,11 +39,11 @@ const wrapperClassName = computed(() => {
   return cn(
     'loading-wrapper',
     'flex flex-col items-center justify-center',
-    'z-[9999] transition-all duration-300',
+    'z-9999 transition-all duration-300',
     // 全屏模式
-    !props.absolute && 'fixed inset-0 w-screen h-screen',
+    !props.absolute && 'fixed inset-0 h-screen w-screen',
     // 绝对定位模式（容器内）
-    props.absolute && 'absolute inset-0 w-full h-full',
+    props.absolute && 'absolute inset-0 size-full ',
     // 尺寸
     props.size === 'small' && 'loading-small',
     props.size === 'large' && 'loading-large',
@@ -64,21 +64,21 @@ const wrapperClassName = computed(() => {
       props.absolute &&
       props.theme === 'dark' &&
       'bg-black/50 text-white',
-  )
-})
+  );
+});
 
 /**
  * Spin 尺寸映射
  * 将 LoadingSize 映射到 Spin 组件的 size
  */
 const spinSize = computed(() => {
-  const sizeMap: Record<string, 'small' | 'default' | 'large'> = {
+  const sizeMap: Record<string, 'default' | 'large' | 'small'> = {
     small: 'small',
     default: 'default',
     large: 'large',
-  }
-  return sizeMap[props.size] || 'default'
-})
+  };
+  return sizeMap[props.size] || 'default';
+});
 </script>
 
 <template>

@@ -2,7 +2,7 @@ import type { PluginOption } from 'vite';
 
 import type { PrintPluginOptions } from '../typing';
 
-import { colors } from '@antdv-admin/node-utils';
+import { colors } from '@antdv/node-utils';
 
 export const vitePrintPlugin = (
   options: PrintPluginOptions = {},

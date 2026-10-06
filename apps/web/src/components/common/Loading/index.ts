@@ -3,13 +3,13 @@ export {
   createContainerLoading,
   createFullscreenLoading,
   createLoading,
-} from './createLoading'
+} from './createLoading';
 
 // 导出指令
-export { default as vLoading } from './directive'
+export { default as vLoading } from './directive';
 
 // 导出组件
-export { default as Loading } from './Loading.vue'
+export { default as Loading } from './Loading.vue';
 
 // 导出类型定义
 export type {
@@ -22,7 +22,7 @@ export type {
   LoadingSize,
   LoadingTheme,
   UseLoadingOptions,
-} from './types'
+} from './types';
 
 // 导出组合式函数
-export { useLoading } from './useLoading'
+export { useLoading } from './useLoading';

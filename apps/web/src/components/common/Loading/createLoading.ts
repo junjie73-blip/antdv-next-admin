@@ -1,6 +1,6 @@
-import type { CreateLoadingOptions, LoadingInstance } from './types'
+import type { CreateLoadingOptions, LoadingInstance } from './types';
 
-import { useLoading } from './useLoading'
+import { useLoading } from './useLoading';
 
 /**
  * createLoading - 函数式创建 loading
@@ -44,22 +44,22 @@ import { useLoading } from './useLoading'
 export function createLoading(
   options: CreateLoadingOptions = {},
 ): LoadingInstance {
-  const { onClose, ...rest } = options
+  const { onClose, ...rest } = options;
 
   // 使用 useLoading 创建实例，默认全屏模式
   const instance = useLoading({
     ...rest,
     body: true,
-  })
+  });
 
   // 包装 close 方法，触发回调
-  const originalClose = instance.close
+  const originalClose = instance.close;
   instance.close = () => {
-    originalClose()
-    onClose?.()
-  }
+    originalClose();
+    onClose?.();
+  };
 
-  return instance
+  return instance;
 }
 
 /**
@@ -67,13 +67,13 @@ export function createLoading(
  */
 export function createFullscreenLoading(
   tip?: string,
-  options: Omit<CreateLoadingOptions, 'tip' | 'body'> = {},
+  options: Omit<CreateLoadingOptions, 'body' | 'tip'> = {},
 ): LoadingInstance {
   return createLoading({
     tip,
     body: true,
     ...options,
-  })
+  });
 }
 
 /**
@@ -82,12 +82,12 @@ export function createFullscreenLoading(
 export function createContainerLoading(
   target: HTMLElement | string,
   tip?: string,
-  options: Omit<CreateLoadingOptions, 'target' | 'tip' | 'body'> = {},
+  options: Omit<CreateLoadingOptions, 'body' | 'target' | 'tip'> = {},
 ): LoadingInstance {
   return createLoading({
     target,
     tip,
     body: false,
     ...options,
-  })
+  });
 }

@@ -1,9 +1,10 @@
-import { faker } from '@faker-js/faker/locale/zh_CN'
-import { envelope } from '../../utils/response'
-import { defineMockRoute } from '../../utils/runtime'
+import { faker } from '@faker-js/faker/locale/zh_CN';
+
+import { envelope } from '../../utils/response';
+import { defineMockRoute } from '../../utils/runtime';
 
 // 与 legacy screen.fake.ts 一致：模块加载即定种，数据在每次请求时按同一序列推进
-faker.seed(100)
+faker.seed(100);
 
 const REGIONS = [
   { name: '北京', value: 3200, users: 85 },
@@ -15,7 +16,7 @@ const REGIONS = [
   { name: '武汉', value: 900, users: 22 },
   { name: '南京', value: 800, users: 20 },
   { name: '其他', value: 3500, users: 90 },
-]
+];
 
 const SERVICES = [
   { name: 'API 网关', status: 'healthy', uptime: '99.9%' },
@@ -24,7 +25,7 @@ const SERVICES = [
   { name: '支付服务', status: 'healthy', uptime: '99.95%' },
   { name: '消息队列', status: 'healthy', uptime: '99.7%' },
   { name: '缓存服务', status: 'down', uptime: '-' },
-]
+];
 
 const ALERT_MESSAGES = [
   '检测到来自 47.96.12.33 的异常登录尝试',
@@ -33,39 +34,55 @@ const ALERT_MESSAGES = [
   'SSL 证书将在 15 天后过期',
   '新版本 v2.3.1 可用于更新',
   '定时备份任务执行成功',
-]
+];
 
-const LEVELS = ['critical', 'high', 'medium', 'low'] as const
+const LEVELS = ['critical', 'high', 'medium', 'low'] as const;
 
 export default defineMockRoute({
   handler() {
-    return envelope(200, {
-      overview: {
-        onlineUsers: faker.number.int({ min: 80, max: 300 }),
-        todayVisits: faker.number.int({ min: 2000, max: 8000 }),
-        totalRequests: faker.number.int({ min: 50000, max: 200000 }),
-        alertCount: faker.number.int({ min: 0, max: 8 }),
-        cpuUsage: faker.number.float({ min: 20, max: 75, fractionDigits: 1 }),
-        memUsage: faker.number.float({ min: 40, max: 85, fractionDigits: 1 }),
-        diskUsage: faker.number.float({ min: 30, max: 70, fractionDigits: 1 }),
-        networkIn: faker.number.float({ min: 10, max: 200, fractionDigits: 1 }),
-        networkOut: faker.number.float({ min: 5, max: 150, fractionDigits: 1 }),
+    return envelope(
+      200,
+      {
+        overview: {
+          onlineUsers: faker.number.int({ min: 80, max: 300 }),
+          todayVisits: faker.number.int({ min: 2000, max: 8000 }),
+          totalRequests: faker.number.int({ min: 50_000, max: 200_000 }),
+          alertCount: faker.number.int({ min: 0, max: 8 }),
+          cpuUsage: faker.number.float({ min: 20, max: 75, fractionDigits: 1 }),
+          memUsage: faker.number.float({ min: 40, max: 85, fractionDigits: 1 }),
+          diskUsage: faker.number.float({
+            min: 30,
+            max: 70,
+            fractionDigits: 1,
+          }),
+          networkIn: faker.number.float({
+            min: 10,
+            max: 200,
+            fractionDigits: 1,
+          }),
+          networkOut: faker.number.float({
+            min: 5,
+            max: 150,
+            fractionDigits: 1,
+          }),
+        },
+        trend: Array.from({ length: 24 }, (_, i) => ({
+          time: `${String(i).padStart(2, '0')}:00`,
+          pv: faker.number.int({ min: 200, max: 1500 }),
+          uv: faker.number.int({ min: 50, max: 400 }),
+          requests: faker.number.int({ min: 1000, max: 8000 }),
+        })),
+        regions: REGIONS,
+        services: SERVICES,
+        alerts: Array.from({ length: 6 }, (_, i) => ({
+          level: LEVELS[i % 4]!,
+          message: ALERT_MESSAGES[i]!,
+          time: faker.date.recent({ days: 0.1 }).toLocaleTimeString('zh-CN'),
+        })),
       },
-      trend: Array.from({ length: 24 }, (_, i) => ({
-        time: `${String(i).padStart(2, '0')}:00`,
-        pv: faker.number.int({ min: 200, max: 1500 }),
-        uv: faker.number.int({ min: 50, max: 400 }),
-        requests: faker.number.int({ min: 1000, max: 8000 }),
-      })),
-      regions: REGIONS,
-      services: SERVICES,
-      alerts: Array.from({ length: 6 }, (_, i) => ({
-        level: LEVELS[i % 4]!,
-        message: ALERT_MESSAGES[i]!,
-        time: faker.date.recent({ days: 0.1 }).toLocaleTimeString('zh-CN'),
-      })),
-    }, 'success')
+      'success',
+    );
   },
   method: 'GET',
   path: '/screen/monitor',
-})
+});

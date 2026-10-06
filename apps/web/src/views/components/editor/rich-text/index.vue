@@ -3,22 +3,23 @@ import type {
   IDomEditor,
   IEditorConfig,
   IToolbarConfig,
-} from '@wangeditor/editor'
+} from '@wangeditor/editor';
 
-import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
-import { computed, ref, shallowRef, watch } from 'vue'
+import { computed, ref, shallowRef, watch } from 'vue';
 
-import { cn } from '~/utils/cn'
-import '@wangeditor/editor/dist/css/style.css'
+import { Editor, Toolbar } from '@wangeditor/editor-for-vue';
+import { cn } from '~/utils/cn';
 
-defineOptions({ name: 'EditorRichText' })
+import '@wangeditor/editor/dist/css/style.css';
 
-const editorRef = shallowRef<IDomEditor | null>(null)
-const editorHtml = ref('')
+defineOptions({ name: 'EditorRichText' });
 
-const containerClassName = cn('space-y-4')
-const toolbarCardClassName = cn('shadow-sm', 'sticky', 'top-0', 'z-10')
-const editorCardClassName = cn('shadow-sm')
+const editorRef = shallowRef<IDomEditor | null>(null);
+const editorHtml = ref('');
+
+const containerClassName = cn('space-y-4');
+const toolbarCardClassName = cn('shadow-sm', 'sticky', 'top-0', 'z-10');
+const editorCardClassName = cn('shadow-sm');
 
 const editorConfig = computed((): Partial<IEditorConfig> => ({
   placeholder: '请输入内容...',
@@ -33,12 +34,12 @@ const editorConfig = computed((): Partial<IEditorConfig> => ({
         file: File,
         insertFn: (url: string, alt: string, href: string) => void,
       ) {
-        const reader = new FileReader()
+        const reader = new FileReader();
         reader.onload = (e) => {
-          const url = e.target?.result as string
-          insertFn(url, file.name, url)
-        }
-        reader.readAsDataURL(file)
+          const url = e.target?.result as string;
+          insertFn(url, file.name, url);
+        };
+        reader.readAsDataURL(file);
       },
     },
     uploadVideo: {
@@ -46,34 +47,34 @@ const editorConfig = computed((): Partial<IEditorConfig> => ({
         file: File,
         insertFn: (url: string, poster: string) => void,
       ) {
-        const url = URL.createObjectURL(file)
-        insertFn(url, '')
-        message.warning('视频文件较大，建议使用视频链接代替')
+        const url = URL.createObjectURL(file);
+        insertFn(url, '');
+        message.warning('视频文件较大，建议使用视频链接代替');
       },
     },
   },
-}))
+}));
 
 const toolbarConfig: Partial<IToolbarConfig> = {
   excludeKeys: ['group-more-style', 'fullScreen'],
-}
+};
 
 function handleCreated(editor: IDomEditor) {
-  editorRef.value = editor
+  editorRef.value = editor;
 }
 
 function handleChange(editor: IDomEditor) {
-  editorHtml.value = editor.getHtml()
+  editorHtml.value = editor.getHtml();
 }
 
 watch(
   () => editorRef.value,
   () => {
     if (editorRef.value && editorHtml.value) {
-      editorRef.value.setHtml(editorHtml.value)
+      editorRef.value.setHtml(editorHtml.value);
     }
   },
-)
+);
 </script>
 
 <template>
@@ -92,8 +93,8 @@ watch(
         :default-config="editorConfig"
         :style="{ height: '600px' }"
         class="overflow-hidden"
-        @onCreated="handleCreated"
-        @onChange="handleChange"
+        @on-created="handleCreated"
+        @on-change="handleChange"
       />
     </a-card>
   </div>

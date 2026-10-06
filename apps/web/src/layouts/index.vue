@@ -1,36 +1,30 @@
 <script setup lang="ts">
-import {
-  computed,
-  markRaw,
-  onMounted,
-  onUnmounted,
-  useTemplateRef,
-} from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, markRaw, onMounted, onUnmounted, useTemplateRef } from 'vue';
+import { useRouter } from 'vue-router';
 
-import PageLoading from '~/components/common/Loading/PageLoading.vue'
-import RouteLoadingBar from '~/components/common/Loading/RouteLoadingBar.vue'
-import { useRouteLoading } from '~/composables/useRouteLoading'
-import { useWatermark } from '~/composables/web/useWatermark'
-import { useDictStore } from '~/stores'
-import { useAppStore } from '~/stores/modules/app'
-import { cn } from '~/utils/cn'
+import PageLoading from '~/components/common/Loading/PageLoading.vue';
+import RouteLoadingBar from '~/components/common/Loading/RouteLoadingBar.vue';
+import { useRouteLoading } from '~/composables/useRouteLoading';
+import { useWatermark } from '~/composables/web/useWatermark';
+import { useDictStore } from '~/stores';
+import { useAppStore } from '~/stores/modules/app';
+import { cn } from '~/utils/cn';
 
-import LayoutFooter from './components/LayoutFooter.vue'
-import LayoutHeader from './components/LayoutHeader.vue'
-import LayoutSidebar from './components/LayoutSidebar.vue'
-import LayoutTabs from './components/LayoutTabs.vue'
-import { useMenuTree } from './composables/useMenuTree'
-import { useLayout } from './composables/useLayout.js'
+import LayoutFooter from './components/LayoutFooter.vue';
+import LayoutHeader from './components/LayoutHeader.vue';
+import LayoutSidebar from './components/LayoutSidebar.vue';
+import LayoutTabs from './components/LayoutTabs.vue';
+import { useLayout } from './composables/useLayout.js';
+import { useMenuTree } from './composables/useMenuTree';
 
 defineOptions({
   name: 'DefaultLayout',
-})
+});
 
-const router = useRouter()
-const appStore = useAppStore()
-const { checkMobile } = useLayout()
-const dictStore = useDictStore()
+const router = useRouter();
+const appStore = useAppStore();
+const { checkMobile } = useLayout();
+const dictStore = useDictStore();
 // 路由切换 loading 状态管理（增强版：集成性能监控）
 const {
   isLoading: isRouteLoading,
@@ -39,79 +33,81 @@ const {
 } = useRouteLoading({
   minDuration: 400,
   auto: true,
-})
+});
 
 const cachedRoutes = computed(() =>
   router
     .getRoutes()
     .filter((route) => route.meta?.keepAlive)
     .map((route) => route.name as string),
-)
+);
 
 /**
  * 混合布局下侧边栏要不要出现，由「当前路由所属一级菜单有没有子节点」推导，
  * 而不是记住用户上一次点了哪个一级菜单（旧实现写死了 '/system'）。
  */
-const { hasSubMenus } = useMenuTree()
+const { hasSubMenus } = useMenuTree();
 
 function handleResize() {
-  checkMobile()
+  checkMobile();
 }
 
 onMounted(() => {
-  checkMobile()
-  window.addEventListener('resize', handleResize)
-})
+  checkMobile();
+  window.addEventListener('resize', handleResize);
+});
 
 onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
-})
+  window.removeEventListener('resize', handleResize);
+});
 
-const isVertical = computed(() => appStore.layout === 'vertical')
-const isHorizontal = computed(() => appStore.layout === 'horizontal')
-const isMixed = computed(() => appStore.layout === 'mixed')
-const isGeekStyle = computed(() => appStore.themeStyle === 'geek')
+const isVertical = computed(() => appStore.layout === 'vertical');
+const isHorizontal = computed(() => appStore.layout === 'horizontal');
+const isMixed = computed(() => appStore.layout === 'mixed');
+const isGeekStyle = computed(() => appStore.themeStyle === 'geek');
 
-const showSidebar = computed(() => isVertical.value || (isMixed.value && hasSubMenus.value))
+const showSidebar = computed(
+  () => isVertical.value || (isMixed.value && hasSubMenus.value),
+);
 
 const layoutClassName = computed(() =>
   cn(
-    'h-screen flex flex-col gap-4 overflow-hidden',
+    'flex h-screen flex-col gap-4 overflow-hidden',
     isGeekStyle.value ? 'bg-[#0a0a0a]' : 'bg-gray-50 dark:bg-gray-900',
   ),
-)
+);
 
 const contentClassName = computed(() =>
   cn(
-    'p-4  flex-1  box-border',
+    'box-border flex-1 p-4',
     isGeekStyle.value ? 'bg-[#0a0a0a]' : 'bg-gray-50 dark:bg-gray-900',
   ),
-)
+);
 
 // 主内容区滚动容器引用（供路由切换时回到顶部）
-const scrollbarRef = useTemplateRef('mainScrollbar')
+const scrollbarRef = useTemplateRef('mainScrollbar');
 
 /** 滚动到顶部 */
 function scrollToTop() {
-  const el = scrollbarRef.value?.$el as HTMLElement | undefined
+  const el = scrollbarRef.value?.$el as HTMLElement | undefined;
   if (el) {
-    el.scrollTo({ top: 0, left: 0 })
+    el.scrollTo({ top: 0, left: 0 });
   }
 }
 
 // 挂载到 window 供路由守卫调用
 onMounted(() => {
-  ;(window as any).__layoutScrollToTop = scrollToTop
-  dictStore.fetchAllDicts()
-})
+  (window as any).__layoutScrollToTop = scrollToTop;
+  dictStore.fetchAllDicts();
+});
 onUnmounted(() => {
-  delete (window as any).__layoutScrollToTop
-})
+  delete (window as any).__layoutScrollToTop;
+});
 
 useWatermark({
   content: computed(() => appStore.watermarkContent),
   enabled: computed(() => appStore.enableWatermark),
-})
+});
 </script>
 
 <template>
@@ -171,8 +167,9 @@ useWatermark({
                 <keep-alive :include="cachedRoutes">
                   <component :is="markRaw(Component)" :key="route.path" />
                 </keep-alive>
-              </template> </router-view
-          ></PageTransition>
+              </template>
+</router-view>
+</PageTransition>
         </a-layout-content>
 
         <LayoutFooter v-if="appStore.showFooter" />

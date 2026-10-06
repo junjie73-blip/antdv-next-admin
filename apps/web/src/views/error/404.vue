@@ -1,27 +1,27 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
 
-import { HOME_PATH, LOGIN_PATH } from '~/config/constants'
-import { useUserStore } from '~/stores/modules/user'
-import { cn } from '~/utils/cn'
+import { HOME_PATH, LOGIN_PATH } from '~/config/constants';
+import { useUserStore } from '~/stores/modules/user';
+import { cn } from '~/utils/cn';
 
-const router = useRouter()
-const userStore = useUserStore()
+const router = useRouter();
+const userStore = useUserStore();
 
 const containerClassName = computed(() =>
   cn(
-    'min-h-screen flex flex-col items-center justify-center',
-    'bg-gradient-to-br from-gray-100 to-gray-200',
+    'flex min-h-screen flex-col items-center justify-center',
+    'bg-linear-to-br from-gray-100 to-gray-200',
     'dark:from-gray-800 dark:to-gray-900',
   ),
-)
+);
 
 function handleBack() {
   if (userStore.isLoggedIn) {
-    router.push(HOME_PATH)
+    router.push(HOME_PATH);
   } else {
-    router.push(LOGIN_PATH)
+    router.push(LOGIN_PATH);
   }
 }
 </script>

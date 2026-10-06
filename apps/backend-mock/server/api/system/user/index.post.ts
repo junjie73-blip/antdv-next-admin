@@ -1,13 +1,19 @@
-import { faker } from '@faker-js/faker/locale/zh_CN'
-import dayjs from 'dayjs'
-import { success } from '../../../utils/response'
-import { defineMockRoute } from '../../../utils/runtime'
-import { DEPT_LIST, nextUserId, ROLE_OPTIONS, USER_DB } from '../../../utils/db/user'
+import { faker } from '@faker-js/faker/locale/zh_CN';
+import dayjs from 'dayjs';
+
+import {
+  DEPT_LIST,
+  nextUserId,
+  ROLE_OPTIONS,
+  USER_DB,
+} from '../../../utils/db/user';
+import { success } from '../../../utils/response';
+import { defineMockRoute } from '../../../utils/runtime';
 
 export default defineMockRoute({
   handler({ data }) {
-    const dept = DEPT_LIST.find(d => d.id === data.deptId)
-    const role = ROLE_OPTIONS.find(r => r.value === data.roleId)
+    const dept = DEPT_LIST.find((d) => d.id === data.deptId);
+    const role = ROLE_OPTIONS.find((r) => r.value === data.roleId);
 
     const newUser = {
       id: nextUserId(),
@@ -24,12 +30,12 @@ export default defineMockRoute({
       remark: String(data.remark || ''),
       createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
       updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-    }
+    };
 
-    USER_DB.push(newUser)
+    USER_DB.push(newUser);
 
-    return success(newUser, '新增用户成功')
+    return success(newUser, '新增用户成功');
   },
   method: 'POST',
   path: '/system/user',
-})
+});

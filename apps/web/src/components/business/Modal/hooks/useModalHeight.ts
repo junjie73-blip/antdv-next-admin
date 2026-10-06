@@ -1,5 +1,8 @@
-import { useWindowSize } from '@vueuse/core'
-import { computed, type ComputedRef, type Ref } from 'vue'
+import type { ComputedRef, Ref } from 'vue';
+
+import { computed } from 'vue';
+
+import { useWindowSize } from '@vueuse/core';
 
 /**
  * 弹窗自适应高度逻辑
@@ -11,18 +14,18 @@ export function useModalHeight(
   _visible: Ref<boolean>,
 ) {
   // useWindowSize 自动跟随窗口变化并清理监听
-  const { height: windowHeight } = useWindowSize()
+  const { height: windowHeight } = useWindowSize();
 
   const getWrapperHeight: ComputedRef<Record<string, string>> = computed(() => {
     if (height.value) {
-      return { height: `${height.value}px` }
+      return { height: `${height.value}px` };
     }
-    const maxHeight = windowHeight.value - 120 - footerOffset.value
+    const maxHeight = windowHeight.value - 120 - footerOffset.value;
     return {
       maxHeight: `${maxHeight}px`,
       minHeight: minHeight.value ? `${minHeight.value}px` : '200px',
-    }
-  })
+    };
+  });
 
-  return { getWrapperHeight }
+  return { getWrapperHeight };
 }

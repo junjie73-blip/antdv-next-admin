@@ -14,41 +14,41 @@ export enum WebSocketEventType {
 }
 
 export interface WebSocketOptions {
-  url: string
-  protocols?: string | string[]
-  heartbeatInterval?: number
-  heartbeatTimeout?: number
-  reconnectEnabled?: boolean
-  reconnectInterval?: number
-  maxReconnectAttempts?: number
-  reconnectDelayMultiplier?: number
-  maxReconnectDelay?: number
+  url: string;
+  protocols?: string | string[];
+  heartbeatInterval?: number;
+  heartbeatTimeout?: number;
+  reconnectEnabled?: boolean;
+  reconnectInterval?: number;
+  maxReconnectAttempts?: number;
+  reconnectDelayMultiplier?: number;
+  maxReconnectDelay?: number;
 }
 
 export interface WebSocketEventCallback<T = unknown> {
-  (data: T): void
+  (data: T): void;
 }
 
 export interface WebSocketEventHandlers {
   [WebSocketEventType.Message]?: WebSocketEventCallback<
-    string | ArrayBuffer | Blob
-  >
-  [WebSocketEventType.Open]?: WebSocketEventCallback<Event>
-  [WebSocketEventType.Close]?: WebSocketEventCallback<CloseEvent>
-  [WebSocketEventType.Error]?: WebSocketEventCallback<Event>
-  [WebSocketEventType.StateChange]?: WebSocketEventCallback<WebSocketState>
+    ArrayBuffer | Blob | string
+  >;
+  [WebSocketEventType.Open]?: WebSocketEventCallback<Event>;
+  [WebSocketEventType.Close]?: WebSocketEventCallback<CloseEvent>;
+  [WebSocketEventType.Error]?: WebSocketEventCallback<Event>;
+  [WebSocketEventType.StateChange]?: WebSocketEventCallback<WebSocketState>;
 }
 
 export interface HeartbeatConfig {
-  interval: number
-  timeout: number
-  message: string | object | (() => string | object)
+  interval: number;
+  timeout: number;
+  message: (() => object | string) | object | string;
 }
 
 export interface ReconnectConfig {
-  enabled: boolean
-  interval: number
-  maxAttempts: number
-  delayMultiplier: number
-  maxDelay: number
+  enabled: boolean;
+  interval: number;
+  maxAttempts: number;
+  delayMultiplier: number;
+  maxDelay: number;
 }

@@ -1,44 +1,47 @@
-import { createEventHook, useDebounceFn, useThrottleFn } from '@vueuse/core'
-import { onScopeDispose, ref, shallowRef } from 'vue'
+import type { ExecuteOptions } from './executor';
 
-import { RequestError } from './error'
-import { executeRequest, requestCache, type ExecuteOptions } from './executor'
+import { onScopeDispose, ref, shallowRef } from 'vue';
+
+import { createEventHook, useDebounceFn, useThrottleFn } from '@vueuse/core';
+
+import { RequestError } from './error';
+import { executeRequest, requestCache } from './executor';
 
 export interface UseRequestConfig<T = unknown> extends ExecuteOptions {
   /** 是否立即发起请求，默认 true */
-  immediate?: boolean
+  immediate?: boolean;
   /** 初始 data 值 */
-  initialData?: T
+  initialData?: T;
   /** 是否开启 GET 缓存 */
-  cache?: boolean
+  cache?: boolean;
   /** 缓存过期时间（ms），默认 5 分钟 */
-  cacheTime?: number
+  cacheTime?: number;
   /** 是否开启请求去重（同一请求进行中时复用 Promise） */
-  dedupe?: boolean
+  dedupe?: boolean;
   /** 失败重试次数，默认 3 */
-  retries?: number
+  retries?: number;
   /** 重试基础延迟（ms），默认 300 */
-  retryDelay?: number
+  retryDelay?: number;
   /** 防抖等待时间（ms），0 表示不防抖 */
-  debounce?: number
+  debounce?: number;
   /** 节流等待时间（ms），0 表示不节流 */
-  throttle?: number
+  throttle?: number;
   /** 请求超时（ms） */
-  timeout?: number
+  timeout?: number;
   /** 响应类型：json（默认）/ blob / arrayBuffer / text */
-  responseType?: 'json' | 'blob' | 'arrayBuffer' | 'text'
+  responseType?: 'arrayBuffer' | 'blob' | 'json' | 'text';
   /** 是否在错误时也更新 data（用于保留旧数据） */
-  updateDataOnError?: boolean
+  updateDataOnError?: boolean;
   /** 成功回调 */
-  onSuccess?: (data: T) => void
+  onSuccess?: (data: T) => void;
   /** 错误回调 */
-  onError?: (error: RequestError) => void
+  onError?: (error: RequestError) => void;
   /** 完成回调（无论成功失败） */
-  onFinally?: () => void
+  onFinally?: () => void;
 }
 
 export function useRequest<T = unknown>(
-  url: string | (() => string),
+  url: (() => string) | string,
   config: UseRequestConfig<T> = {},
 ) {
   const {
@@ -48,34 +51,34 @@ export function useRequest<T = unknown>(
     throttle = 0,
     updateDataOnError = false,
     ...execOpts
-  } = config
+  } = config;
 
-  const data = shallowRef<T | undefined>(initialData)
-  const loading = ref(false)
-  const error = shallowRef<RequestError | null>(null)
-  const status = ref<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const data = shallowRef<T | undefined>(initialData);
+  const loading = ref(false);
+  const error = shallowRef<null | RequestError>(null);
+  const status = ref<'error' | 'idle' | 'loading' | 'success'>('idle');
 
-  const onSuccessHook = createEventHook<T>()
-  const onErrorHook = createEventHook<RequestError>()
-  const onFinallyHook = createEventHook<void>()
+  const onSuccessHook = createEventHook<T>();
+  const onErrorHook = createEventHook<RequestError>();
+  const onFinallyHook = createEventHook<void>();
 
-  let abortController: AbortController | null = null
-  let lastMethod = 'GET'
-  let lastBody: any = undefined
+  let abortController: AbortController | null = null;
+  let lastMethod = 'GET';
+  let lastBody: any;
 
-  const resolveUrl = () => (typeof url === 'function' ? url() : url)
+  const resolveUrl = () => (typeof url === 'function' ? url() : url);
 
   async function run(method: string, arg?: any): Promise<T> {
-    lastMethod = method
-    lastBody = arg
-    loading.value = true
-    status.value = 'loading'
-    error.value = null
-    abortController?.abort()
-    abortController = new AbortController()
-    const upper = method.toUpperCase()
+    lastMethod = method;
+    lastBody = arg;
+    loading.value = true;
+    status.value = 'loading';
+    error.value = null;
+    abortController?.abort();
+    abortController = new AbortController();
+    const upper = method.toUpperCase();
     const isQueryMethod =
-      upper === 'GET' || upper === 'HEAD' || upper === 'DELETE'
+      upper === 'GET' || upper === 'HEAD' || upper === 'DELETE';
     try {
       // ⭐ 统一走 executor
       const result = await executeRequest<T>(
@@ -84,69 +87,69 @@ export function useRequest<T = unknown>(
         isQueryMethod ? undefined : arg, // GET 时 arg 是 params，不当 body
         { ...execOpts, signal: abortController.signal },
         isQueryMethod ? arg : undefined,
-      )
-      data.value = result
-      status.value = 'success'
-      onSuccessHook.trigger(result)
-      config.onSuccess?.(result)
-      return result
-    } catch (err: any) {
+      );
+      data.value = result;
+      status.value = 'success';
+      onSuccessHook.trigger(result);
+      config.onSuccess?.(result);
+      return result;
+    } catch (error: any) {
       const re =
-        err instanceof RequestError
-          ? err
-          : new RequestError(err?.message || '请求失败', { status: 0 })
-      if (!updateDataOnError) data.value = undefined
-      error.value = re
-      status.value = 'error'
-      onErrorHook.trigger(re)
-      config.onError?.(re)
-      throw re
+        error instanceof RequestError
+          ? error
+          : new RequestError(error?.message || '请求失败', { status: 0 });
+      if (!updateDataOnError) data.value = undefined;
+      error.value = re;
+      status.value = 'error';
+      onErrorHook.trigger(re);
+      config.onError?.(re);
+      throw re;
     } finally {
-      loading.value = false
-      abortController = null
-      onFinallyHook.trigger()
-      config.onFinally?.()
+      loading.value = false;
+      abortController = null;
+      onFinallyHook.trigger();
+      config.onFinally?.();
     }
   }
 
-  const rawSend = (method: string, body?: any) => run(method, body)
+  const rawSend = (method: string, body?: any) => run(method, body);
   const debouncedSend =
-    debounce > 0 ? useDebounceFn(rawSend, debounce) : rawSend
+    debounce > 0 ? useDebounceFn(rawSend, debounce) : rawSend;
   const throttledSend =
-    throttle > 0 ? useThrottleFn(rawSend, throttle) : rawSend
+    throttle > 0 ? useThrottleFn(rawSend, throttle) : rawSend;
 
   const send = (method = 'GET', body?: any) => {
-    if (throttle > 0) return (throttledSend as any)(method, body)
-    if (debounce > 0) return (debouncedSend as any)(method, body)
-    return rawSend(method, body)
-  }
+    if (throttle > 0) return (throttledSend as any)(method, body);
+    if (debounce > 0) return (debouncedSend as any)(method, body);
+    return rawSend(method, body);
+  };
 
   const abort = () => {
-    abortController?.abort()
-    abortController = null
-    loading.value = false
-  }
-  const refresh = () => send(lastMethod, lastBody)
+    abortController?.abort();
+    abortController = null;
+    loading.value = false;
+  };
+  const refresh = () => send(lastMethod, lastBody);
 
-  if (immediate) void send('GET')
-  onScopeDispose(abort)
+  if (immediate) void send('GET');
+  onScopeDispose(abort);
   async function forceRefresh(): Promise<T> {
     const result = await executeRequest<T>(lastMethod, resolveUrl(), lastBody, {
       ...execOpts,
       forceRefresh: true, // ⭐ 关键
       signal: abortController?.signal,
-    })
-    data.value = result
-    status.value = 'success'
-    onSuccessHook.trigger(result)
-    return result
+    });
+    data.value = result;
+    status.value = 'success';
+    onSuccessHook.trigger(result);
+    return result;
   }
 
   /**
    * ⭐ 手动失效本接口的缓存（下次请求会重新拉）
    */
   function invalidate() {
-    requestCache.clearByUrl(resolveUrl())
+    requestCache.clearByUrl(resolveUrl());
   }
 
   return {
@@ -167,5 +170,5 @@ export function useRequest<T = unknown>(
     onFinally: onFinallyHook.on,
     forceRefresh,
     invalidate,
-  }
+  };
 }

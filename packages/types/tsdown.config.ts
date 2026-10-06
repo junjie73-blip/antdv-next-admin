@@ -1,4 +1,4 @@
-import { defineConfig } from 'tsdown'
+import { defineConfig } from 'tsdown';
 
 /**
  * 纯类型包也走 rolldown 产出 d.ts：
@@ -11,4 +11,4 @@ export default defineConfig({
   entry: ['src/index.ts'],
   format: ['esm'],
   target: 'es2022',
-})
+});

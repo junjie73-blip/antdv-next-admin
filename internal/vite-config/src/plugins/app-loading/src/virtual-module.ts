@@ -1,7 +1,15 @@
-import type { AppLoadingOptions } from './types'
+import type { AppLoadingOptions } from './types';
 
-export function resolveVirtualModule(options: Required<AppLoadingOptions>): string {
-  const { containerSelector, fadeDuration, fadeProperty, autoRemove, autoRemoveDelay } = options
+export function resolveVirtualModule(
+  options: Required<AppLoadingOptions>,
+): string {
+  const {
+    containerSelector,
+    fadeDuration,
+    fadeProperty,
+    autoRemove,
+    autoRemoveDelay,
+  } = options;
 
   return `
 const CONTAINER_SELECTOR = ${JSON.stringify(containerSelector)};
@@ -64,5 +72,5 @@ if (typeof document !== 'undefined') {
 
 // 默认导出 fadeOut 作为快捷方式
 export default loadingFadeOut;
-`
+`;
 }

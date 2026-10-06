@@ -1,9 +1,22 @@
 {
-  "name": "@antdv-admin/types",
+  "name": "@antdv/types",
   "version": "0.4.0",
+  "description": "Monorepo 共享类型契约（布局设置、菜单、标签页、Mock 信封）",
   "private": true,
   "type": "module",
-  "description": "Monorepo 共享类型契约（布局设置、菜单、标签页、Mock 信封）",
+  "scripts": {
+    "build": "tsdown",
+    "clean": "rimraf dist .turbo",
+    "dev": "tsdown --watch",
+    "type-check": "tsc --noEmit"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
@@ -11,29 +24,16 @@
     },
     "./package.json": "./package.json"
   },
-  "files": [
-    "dist"
-  ],
-  "main": "./dist/index.mjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.mts",
-  "sideEffects": false,
-  "scripts": {
-    "build": "tsdown",
-    "clean": "rimraf dist .turbo",
-    "dev": "tsdown --watch",
-    "type-check": "tsc --noEmit"
-  },
-  "devDependencies": {
-    "@antdv-admin/tsconfig": "workspace:*",
-    "antdv-next": "catalog:",
-    "tsdown": "catalog:",
-    "typescript": "catalog:",
-    "vue-router": "catalog:",
-    "rimraf": "catalog:"
-  },
   "peerDependencies": {
     "antdv-next": "catalog:",
+    "vue-router": "catalog:"
+  },
+  "devDependencies": {
+    "@antdv/tsconfig": "workspace:*",
+    "antdv-next": "catalog:",
+    "rimraf": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
     "vue-router": "catalog:"
   }
 }

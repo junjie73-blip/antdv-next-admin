@@ -1,101 +1,102 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { computed, onMounted, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
+
+import { Icon } from '@iconify/vue';
 import {
   useDocumentVisibility,
   useIntervalFn,
-  useTimestamp,
   useTimeoutFn,
-} from '@vueuse/core'
-import { useRegisterSW } from 'virtual:pwa-register/vue'
-import { computed, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+  useTimestamp,
+} from '@vueuse/core';
+import { useRegisterSW } from 'virtual:pwa-register/vue';
 
-defineOptions({ name: 'ReloadPrompt' })
+defineOptions({ name: 'ReloadPrompt' });
 
-const AUTO_COUNTDOWN = 10
-const POLL_INTERVAL = 5 * 60 * 1000
-const ROUTE_CHECK_THROTTLE = 30_000
-const VISIBILITY_CHECK_DELAY = 1000
+const AUTO_COUNTDOWN = 10;
+const POLL_INTERVAL = 5 * 60 * 1000;
+const ROUTE_CHECK_THROTTLE = 30_000;
+const VISIBILITY_CHECK_DELAY = 1000;
 
-const router = useRouter()
-const visibility = useDocumentVisibility()
+const router = useRouter();
+const visibility = useDocumentVisibility();
 
 /* ============================================================
  * PWA 注册
  * ============================================================ */
-let swRegistration: ServiceWorkerRegistration | undefined
+let swRegistration: ServiceWorkerRegistration | undefined;
 
 const { offlineReady, needRefresh, updateServiceWorker } = useRegisterSW({
   onRegisteredSW(swUrl, registration) {
-    console.log('[PWA] Service Worker registered:', swUrl)
-    if (!registration || !import.meta.env.PROD) return
-    swRegistration = registration
+    console.log('[PWA] Service Worker registered:', swUrl);
+    if (!registration || !import.meta.env.PROD) return;
+    swRegistration = registration;
 
     // useIntervalFn：自动挂载/卸载 interval
     const { pause: stopPolling, resume: startPolling } = useIntervalFn(
       () => {
-        registration.update().catch(() => {})
+        registration.update().catch(() => {});
       },
       POLL_INTERVAL,
       { immediate: false },
-    )
+    );
 
     // useTimeoutFn：页面可见时的延迟检查
     const { start: startVisibilityCheck } = useTimeoutFn(
       () => {
-        registration.update().catch(() => {})
-        startPolling()
+        registration.update().catch(() => {});
+        startPolling();
       },
       VISIBILITY_CHECK_DELAY,
       { immediate: false },
-    )
+    );
 
     // 监听可见性：可见恢复轮询，不可见暂停
     watch(visibility, (v) => {
-      if (v === 'visible') startVisibilityCheck()
-      else stopPolling()
-    })
+      if (v === 'visible') startVisibilityCheck();
+      else stopPolling();
+    });
 
     // 路由切换检查（节流）
-    let lastRouteCheck = 0
+    let lastRouteCheck = 0;
     const removeRouterHook = router.afterEach(() => {
-      const now = Date.now()
-      if (now - lastRouteCheck < ROUTE_CHECK_THROTTLE) return
-      lastRouteCheck = now
-      registration.update().catch(() => {})
-    })
+      const now = Date.now();
+      if (now - lastRouteCheck < ROUTE_CHECK_THROTTLE) return;
+      lastRouteCheck = now;
+      registration.update().catch(() => {});
+    });
 
     // 组件 scope 销毁时清理
     tryOnScopeDispose(() => {
-      stopPolling()
-      removeRouterHook()
-    })
+      stopPolling();
+      removeRouterHook();
+    });
 
-    startPolling()
+    startPolling();
   },
   onRegisterError(error: unknown) {
-    console.error('[PWA] Service Worker registration failed:', error)
+    console.error('[PWA] Service Worker registration failed:', error);
   },
-})
+});
 
 /* ============================================================
  * 状态
  * ============================================================ */
-const updating = ref(false)
-const autoUpdateCancelled = ref(false)
-const countdown = ref(0)
+const updating = ref(false);
+const autoUpdateCancelled = ref(false);
+const countdown = ref(0);
 
 // useTimestamp：响应式毫秒时间戳，用来驱动倒计时
-const endTime = ref(0)
-const timestamp = useTimestamp({ interval: 500 })
+const endTime = ref(0);
+const timestamp = useTimestamp({ interval: 500 });
 
-const visible = computed(() => offlineReady.value || needRefresh.value)
-const isUpdate = computed(() => needRefresh.value)
+const visible = computed(() => offlineReady.value || needRefresh.value);
+const isUpdate = computed(() => needRefresh.value);
 
 const countdownProgress = computed(() => {
-  if (!isUpdate.value || countdown.value === 0) return 0
-  return ((AUTO_COUNTDOWN - countdown.value) / AUTO_COUNTDOWN) * 100
-})
+  if (!isUpdate.value || countdown.value === 0) return 0;
+  return ((AUTO_COUNTDOWN - countdown.value) / AUTO_COUNTDOWN) * 100;
+});
 
 /* ============================================================
  * 倒计时（用 useTimestamp 计算剩余秒数）
@@ -106,80 +107,80 @@ const { pause: stopCountdownInterval, resume: startCountdownInterval } =
       const remaining = Math.max(
         0,
         Math.ceil((endTime.value - timestamp.value) / 1000),
-      )
-      countdown.value = remaining
+      );
+      countdown.value = remaining;
       if (remaining <= 0) {
-        stopCountdownInterval()
-        void handleUpdate()
+        stopCountdownInterval();
+        void handleUpdate();
       }
     },
     500,
     { immediate: false },
-  )
+  );
 
 function startCountdown() {
-  if (AUTO_COUNTDOWN <= 0 || autoUpdateCancelled.value) return
-  countdown.value = AUTO_COUNTDOWN
-  endTime.value = Date.now() + AUTO_COUNTDOWN * 1000
-  startCountdownInterval()
+  if (AUTO_COUNTDOWN <= 0 || autoUpdateCancelled.value) return;
+  countdown.value = AUTO_COUNTDOWN;
+  endTime.value = Date.now() + AUTO_COUNTDOWN * 1000;
+  startCountdownInterval();
 }
 
 function stopCountdown() {
-  stopCountdownInterval()
-  countdown.value = 0
+  stopCountdownInterval();
+  countdown.value = 0;
 }
 
 watch(
   () => needRefresh.value,
   (need) => {
     if (need) {
-      autoUpdateCancelled.value = false
-      startCountdown()
+      autoUpdateCancelled.value = false;
+      startCountdown();
     } else {
-      stopCountdown()
+      stopCountdown();
     }
   },
   { immediate: true },
-)
+);
 
 /* ============================================================
  * 操作
  * ============================================================ */
 async function handleUpdate() {
-  stopCountdown()
-  updating.value = true
+  stopCountdown();
+  updating.value = true;
   try {
-    await updateServiceWorker(true)
-  } catch (e) {
-    console.error('[PWA] update failed:', e)
-    updating.value = false
+    await updateServiceWorker(true);
+  } catch (error) {
+    console.error('[PWA] update failed:', error);
+    updating.value = false;
   }
 }
 
 function handleLater() {
-  stopCountdown()
-  autoUpdateCancelled.value = true
+  stopCountdown();
+  autoUpdateCancelled.value = true;
 }
 
 function close() {
-  stopCountdown()
-  offlineReady.value = false
-  needRefresh.value = false
+  stopCountdown();
+  offlineReady.value = false;
+  needRefresh.value = false;
 }
 
 /* ============================================================
  * 开发调试
  * ============================================================ */
 onMounted(() => {
-  ;(window as any).__pwaCheckUpdate = async () => {
-    const reg = swRegistration ?? (await navigator.serviceWorker.ready)
-    await reg.update()
-    console.log('[PWA] Manual update check triggered')
-  }
-})
+  (window as any).__pwaCheckUpdate = async () => {
+    const reg = swRegistration ?? (await navigator.serviceWorker.ready);
+    await reg.update();
+    console.log('[PWA] Manual update check triggered');
+  };
+});
 
 // 顶层清理：组件卸载时取消倒计时
-tryOnScopeDispose(stopCountdown)
+tryOnScopeDispose(stopCountdown);
 </script>
 
 <template>
@@ -204,7 +205,7 @@ tryOnScopeDispose(stopCountdown)
             ? 'bg-gradient-to-r from-transparent via-blue-500/80 to-transparent'
             : 'bg-gradient-to-r from-transparent via-emerald-500/80 to-transparent'
         "
-      />
+      ></div>
 
       <div class="flex items-start gap-3 p-4 pr-3">
         <div class="relative shrink-0">
@@ -225,7 +226,7 @@ tryOnScopeDispose(stopCountdown)
           <span
             v-if="isUpdate"
             class="pointer-events-none absolute inset-0 animate-[ping_2.5s_ease-out_infinite] rounded-2xl bg-blue-400/20"
-          />
+          ></span>
         </div>
 
         <div class="min-w-0 flex-1">
@@ -306,7 +307,7 @@ tryOnScopeDispose(stopCountdown)
         <div
           class="bg-ant-primary h-full transition-[width] duration-1000 ease-linear"
           :style="{ width: `${countdownProgress}%` }"
-        />
+        ></div>
       </div>
     </div>
   </Transition>

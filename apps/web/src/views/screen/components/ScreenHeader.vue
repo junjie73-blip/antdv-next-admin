@@ -1,79 +1,77 @@
 <script setup lang="ts">
-import dayjs from 'dayjs'
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 
-import { cn } from '~/utils/cn'
+import dayjs from 'dayjs';
+import { cn } from '~/utils/cn';
+
+defineOptions({ name: 'ScreenHeader' });
 
 const props = withDefaults(
   defineProps<{
     /** 大屏标题 */
-    title?: string
+    title?: string;
     /** 是否显示全屏按钮 */
-    showFullscreen?: boolean
+    showFullscreen?: boolean;
   }>(),
   {
     title: '数据监控中心',
     showFullscreen: true,
   },
-)
-
-defineOptions({ name: 'ScreenHeader' })
+);
 
 const containerClassName = cn(
-  'flex items-center justify-between h-14 px-6 select-none',
-  'bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-purple-600/10',
+  'flex h-14 items-center justify-between px-6 select-none',
+  'bg-linear-to-r from-blue-600/10 via-indigo-600/10 to-purple-600/10',
   'border-b border-blue-500/20',
-)
+);
 const titleClassName = cn(
-  'text-xl font-bold tracking-wider text-white flex items-center gap-2',
-)
-const timeClassName = cn('text-sm text-blue-200/80 font-mono tabular-nums')
+  'flex items-center gap-2 text-xl font-bold tracking-wider text-white',
+);
+const timeClassName = cn('font-mono text-sm text-blue-200/80 tabular-nums');
 const actionBtnClassName = cn(
-  'inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded text-xs border transition-all duration-200 cursor-pointer',
-  'text-blue-300/70 border-blue-500/30 hover:text-blue-100 hover:border-blue-400/60 hover:bg-blue-500/10',
-)
+  'inline-flex cursor-pointer items-center justify-center gap-1.5 rounded border px-3 py-1 text-xs transition-all duration-200',
+  'border-blue-500/30 text-blue-300/70 hover:border-blue-400/60 hover:bg-blue-500/10 hover:text-blue-100',
+);
 
-const currentTime = ref('')
-const isFullscreen = ref(false)
-let timer: ReturnType<typeof setInterval> | null = null
+const currentTime = ref('');
+const isFullscreen = ref(false);
+let timer: null | ReturnType<typeof setInterval> = null;
 
 function updateTime() {
-  currentTime.value = dayjs().format('YYYY-MM-DD HH:mm:ss dddd')
+  currentTime.value = dayjs().format('YYYY-MM-DD HH:mm:ss dddd');
 }
 
 function toggleFullscreen() {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen()
-    isFullscreen.value = true
+  if (document.fullscreenElement) {
+    document.exitFullscreen();
+    isFullscreen.value = false;
   } else {
-    document.exitFullscreen()
-    isFullscreen.value = false
+    document.documentElement.requestFullscreen();
+    isFullscreen.value = true;
   }
 }
 
 onMounted(() => {
-  updateTime()
-  timer = setInterval(updateTime, 1000)
+  updateTime();
+  timer = setInterval(updateTime, 1000);
   document.addEventListener('fullscreenchange', () => {
-    isFullscreen.value = !!document.fullscreenElement
-  })
-})
+    isFullscreen.value = !!document.fullscreenElement;
+  });
+});
 
 onBeforeUnmount(() => {
-  if (timer) clearInterval(timer)
-  document.removeEventListener('fullscreenchange', () => {})
-})
+  if (timer) clearInterval(timer);
+  document.removeEventListener('fullscreenchange', () => {});
+});
 </script>
 
 <template>
   <div :class="containerClassName">
     <!-- 左侧：标题 -->
     <div :class="titleClassName">
-      <span class="h-6 w-1.5 rounded-full bg-blue-400" />
+      <span class="h-6 w-1.5 rounded-full bg-blue-400"></span>
       {{ title }}
-      <span class="ml-2 text-[10px] tracking-widest text-blue-300/50"
-        >SECURITY MONITOR</span
-      >
+      <span class="ml-2 text-[10px] tracking-widest text-blue-300/50">SECURITY MONITOR</span>
     </div>
 
     <!-- 中间：时间 -->

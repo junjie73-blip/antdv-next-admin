@@ -9,16 +9,17 @@
  * defineMockRoute 自身仍会在模块加载时注册（幂等），本表只负责"提前"与"补全 duplicates"。
  */
 
-import type { MockMethod } from '@antdv-admin/types'
-import type { RouteManifestItem } from './store'
+import type { MockMethod } from '@antdv/types';
 
-import { keyOf, methodOf, moduleOf } from './route-meta'
+import type { RouteManifestItem } from './store';
+
+import { keyOf, methodOf, moduleOf } from './route-meta';
 
 interface SourceRoute {
-  method: MockMethod
+  method: MockMethod;
   /** 分组覆盖：仅用于 legacy 中跨文件重复注册的接口（见 GET /system/user/options） */
-  module?: string
-  path: string
+  module?: string;
+  path: string;
 }
 
 /** 与 legacy mock 文件逐一对应；顺序 = 文件名（auth → user），决定 duplicates 归属 */
@@ -101,16 +102,16 @@ const SOURCE_ROUTES: SourceRoute[] = [
   { method: 'PUT', path: '/system/user/:id' },
   { method: 'DELETE', path: '/system/user/:id' },
   { method: 'GET', path: '/system/user/options' },
-]
+];
 
 /** 把紧凑表展开成 store 需要的 RouteManifestItem[] */
 export function buildSourceManifest(): RouteManifestItem[] {
-  return SOURCE_ROUTES.map(route => ({
+  return SOURCE_ROUTES.map((route) => ({
     duplicates: [],
     key: keyOf(route.method, route.path),
     method: methodOf(route.method),
     module: route.module ?? moduleOf(route.path),
     path: route.path,
     source: 'source',
-  }))
+  }));
 }

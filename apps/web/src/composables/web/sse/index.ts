@@ -1,6 +1,6 @@
-export * from './constants'
-export { SSEEventManager } from './SSEEventManager'
-export { SSEReconnectManager } from './SSEReconnectManager'
-export { SSEStateManager } from './SSEStateManager'
-export * from './types'
-export { useSSE } from './useSSE'
+export * from './constants';
+export { SSEEventManager } from './SSEEventManager';
+export { SSEReconnectManager } from './SSEReconnectManager';
+export { SSEStateManager } from './SSEStateManager';
+export * from './types';
+export { useSSE } from './useSSE';

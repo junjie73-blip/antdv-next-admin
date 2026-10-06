@@ -1,91 +1,93 @@
-import { theme } from 'antdv-next'
-import { defineStore } from 'pinia'
-import { ref, toRef, watch } from 'vue'
+import type { AppSetting } from '~/settings';
 
-import { type AppSetting, DEFAULT_SETTING } from '~/settings'
-import { cache } from '~/utils'
-import { setTimezone } from '~/utils/dayjs'
+import { ref, toRef, watch } from 'vue';
+
+import { theme } from 'antdv-next';
+import { defineStore } from 'pinia';
+import { DEFAULT_SETTING } from '~/settings';
+import { cache } from '~/utils';
+import { setTimezone } from '~/utils/dayjs';
 
 export const useAppStore = defineStore('app', () => {
-  const { token } = theme.useToken()
+  const { token } = theme.useToken();
 
   // 旧版本缓存里没有的新字段（如 tabStyle）需要以默认值兜底，
   // 直接取缓存会得到 undefined，模板里的受控组件因此显示异常。
-  const cached = cache.getItem('appSetting') as Partial<AppSetting> | null
+  const cached = cache.getItem('appSetting') as null | Partial<AppSetting>;
   const appSetting = ref<AppSetting>({
     ...DEFAULT_SETTING,
-    ...(cached ?? {}),
-  })
+    ...cached,
+  });
   /* ---------- 主题 ---------- */
-  const themeMode = toRef(() => appSetting.value.theme)
-  const themeStyle = toRef(() => appSetting.value.themeStyle)
-  const primaryColor = toRef(() => appSetting.value.primaryColor)
-  const borderRadius = toRef(() => appSetting.value.borderRadius)
-  const fontSize = toRef(() => appSetting.value.fontSize)
-  const darkSidebar = toRef(() => appSetting.value.darkSidebar)
-  const darkHeader = toRef(() => appSetting.value.darkHeader)
-  const colorWeak = toRef(() => appSetting.value.colorWeak)
-  const grayMode = toRef(() => appSetting.value.grayMode)
+  const themeMode = toRef(() => appSetting.value.theme);
+  const themeStyle = toRef(() => appSetting.value.themeStyle);
+  const primaryColor = toRef(() => appSetting.value.primaryColor);
+  const borderRadius = toRef(() => appSetting.value.borderRadius);
+  const fontSize = toRef(() => appSetting.value.fontSize);
+  const darkSidebar = toRef(() => appSetting.value.darkSidebar);
+  const darkHeader = toRef(() => appSetting.value.darkHeader);
+  const colorWeak = toRef(() => appSetting.value.colorWeak);
+  const grayMode = toRef(() => appSetting.value.grayMode);
 
   /* ---------- 布局 ---------- */
-  const layout = toRef(() => appSetting.value.layout)
-  const sidebarCollapsed = toRef(() => appSetting.value.sidebarCollapsed)
-  const sidebarWidth = toRef(() => appSetting.value.sidebarWidth)
-  const menuAccordion = toRef(() => appSetting.value.menuAccordion)
-  const headerMenuScroll = toRef(() => appSetting.value.headerMenuScroll)
-  const showTabs = toRef(() => appSetting.value.showTabs)
-  const tabShowIcon = toRef(() => appSetting.value.tabShowIcon)
-  const tabStyle = toRef(() => appSetting.value.tabStyle)
-  const tabDragSort = toRef(() => appSetting.value.tabDragSort)
-  const tabContextMenu = toRef(() => appSetting.value.tabContextMenu)
-  const showBreadcrumb = toRef(() => appSetting.value.showBreadcrumb)
+  const layout = toRef(() => appSetting.value.layout);
+  const sidebarCollapsed = toRef(() => appSetting.value.sidebarCollapsed);
+  const sidebarWidth = toRef(() => appSetting.value.sidebarWidth);
+  const menuAccordion = toRef(() => appSetting.value.menuAccordion);
+  const headerMenuScroll = toRef(() => appSetting.value.headerMenuScroll);
+  const showTabs = toRef(() => appSetting.value.showTabs);
+  const tabShowIcon = toRef(() => appSetting.value.tabShowIcon);
+  const tabStyle = toRef(() => appSetting.value.tabStyle);
+  const tabDragSort = toRef(() => appSetting.value.tabDragSort);
+  const tabContextMenu = toRef(() => appSetting.value.tabContextMenu);
+  const showBreadcrumb = toRef(() => appSetting.value.showBreadcrumb);
   const hideBreadcrumbWhenOnlyOne = toRef(
     () => appSetting.value.hideBreadcrumbWhenOnlyOne,
-  )
-  const showBreadcrumbIcon = toRef(() => appSetting.value.showBreadcrumbIcon)
+  );
+  const showBreadcrumbIcon = toRef(() => appSetting.value.showBreadcrumbIcon);
 
   /* ---------- 小部件 ---------- */
-  const widgetNotice = toRef(() => appSetting.value.widgetNotice)
-  const widgetFullscreen = toRef(() => appSetting.value.widgetFullscreen)
-  const widgetTheme = toRef(() => appSetting.value.widgetTheme)
-  const widgetTimezone = toRef(() => appSetting.value.widgetTimezone)
-  const widgetLogout = toRef(() => appSetting.value.widgetLogout)
-  const widgetSearch = toRef(() => appSetting.value.widgetSearch)
-  const widgetPreferences = toRef(() => appSetting.value.widgetPreferences)
+  const widgetNotice = toRef(() => appSetting.value.widgetNotice);
+  const widgetFullscreen = toRef(() => appSetting.value.widgetFullscreen);
+  const widgetTheme = toRef(() => appSetting.value.widgetTheme);
+  const widgetTimezone = toRef(() => appSetting.value.widgetTimezone);
+  const widgetLogout = toRef(() => appSetting.value.widgetLogout);
+  const widgetSearch = toRef(() => appSetting.value.widgetSearch);
+  const widgetPreferences = toRef(() => appSetting.value.widgetPreferences);
 
   /* ---------- 底栏 ---------- */
-  const showFooter = toRef(() => appSetting.value.showFooter)
-  const showCopyright = toRef(() => appSetting.value.showCopyright)
-  const copyrightCompany = toRef(() => appSetting.value.copyrightCompany)
-  const copyrightIcp = toRef(() => appSetting.value.copyrightIcp)
+  const showFooter = toRef(() => appSetting.value.showFooter);
+  const showCopyright = toRef(() => appSetting.value.showCopyright);
+  const copyrightCompany = toRef(() => appSetting.value.copyrightCompany);
+  const copyrightIcp = toRef(() => appSetting.value.copyrightIcp);
 
   /* ---------- 通用 ---------- */
-  const timezone = toRef(() => appSetting.value.timezone)
-  const enableWatermark = toRef(() => appSetting.value.enableWatermark)
-  const watermarkContent = toRef(() => appSetting.value.watermarkContent)
-  const enableWaterRipple = toRef(() => appSetting.value.enableWaterRipple)
+  const timezone = toRef(() => appSetting.value.timezone);
+  const enableWatermark = toRef(() => appSetting.value.enableWatermark);
+  const watermarkContent = toRef(() => appSetting.value.watermarkContent);
+  const enableWaterRipple = toRef(() => appSetting.value.enableWaterRipple);
   const notificationPosition = toRef(
     () => appSetting.value.notificationPosition,
-  )
-  const transitionEffect = toRef(() => appSetting.value.transitionEffect)
-  const showProgressBar = toRef(() => appSetting.value.showProgressBar)
-  const showLoading = toRef(() => appSetting.value.showLoading)
-  const locale = toRef(() => appSetting.value.locale)
-  const componentSize = toRef(() => appSetting.value.componentSize)
+  );
+  const transitionEffect = toRef(() => appSetting.value.transitionEffect);
+  const showProgressBar = toRef(() => appSetting.value.showProgressBar);
+  const showLoading = toRef(() => appSetting.value.showLoading);
+  const locale = toRef(() => appSetting.value.locale);
+  const componentSize = toRef(() => appSetting.value.componentSize);
 
   /* ============================================================
    * 方法
    * ============================================================ */
 
   const updateSetting = (setting: Partial<AppSetting>) => {
-    appSetting.value = { ...appSetting.value, ...setting }
-    cache.setItem('appSetting', appSetting.value)
-  }
+    appSetting.value = { ...appSetting.value, ...setting };
+    cache.setItem('appSetting', appSetting.value);
+  };
 
   const resetSetting = () => {
-    appSetting.value = { ...DEFAULT_SETTING }
-    cache.setItem('appSetting', DEFAULT_SETTING)
-  }
+    appSetting.value = { ...DEFAULT_SETTING };
+    cache.setItem('appSetting', DEFAULT_SETTING);
+  };
 
   /** 批量开关 */
   const toggles = {
@@ -148,16 +150,16 @@ export const useAppStore = defineStore('app', () => {
       updateSetting({ showLoading: !appSetting.value.showLoading }),
     timezone: () => updateSetting({ timezone: appSetting.value.timezone }),
     locale: () => updateSetting({ locale: appSetting.value.locale }),
-  }
+  };
   watch(
     timezone,
     (tz) => {
       if (tz) {
-        setTimezone(tz)
+        setTimezone(tz);
       }
     },
     { immediate: true },
-  )
+  );
   return {
     appSetting,
     token,
@@ -212,5 +214,5 @@ export const useAppStore = defineStore('app', () => {
     updateSetting,
     resetSetting,
     toggles,
-  }
-})
+  };
+});

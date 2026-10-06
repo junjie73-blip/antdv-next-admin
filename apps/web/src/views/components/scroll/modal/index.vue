@@ -1,55 +1,55 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref } from 'vue';
 
-import { useModal } from '~/components/business/Modal'
-import { cn } from '~/utils/cn'
+import { useModal } from '~/components/business/Modal';
+import { cn } from '~/utils/cn';
 
-const [registerBasicModal, basicModalMethods] = useModal()
-const [registerLargeModal, largeModalMethods] = useModal()
-const [registerNoFooterModal, noFooterModalMethods] = useModal()
-const [registerAsyncModal, asyncModalMethods] = useModal()
-const [_registerContentModal, _contentModalMethods] = useModal()
+const [registerBasicModal, basicModalMethods] = useModal();
+const [registerLargeModal, largeModalMethods] = useModal();
+const [registerNoFooterModal, noFooterModalMethods] = useModal();
+const [registerAsyncModal, asyncModalMethods] = useModal();
+const [_registerContentModal, _contentModalMethods] = useModal();
 
-const containerClassName = cn('space-y-6')
+const containerClassName = cn('space-y-6');
 
-const formData = ref({ name: '', email: '', description: '' })
-const submittedData = ref('')
+const formData = ref({ name: '', email: '', description: '' });
+const submittedData = ref('');
 
 function handleSubmit() {
-  submittedData.value = JSON.stringify(formData.value, null, 2)
-  message.success('基础弹窗已提交')
-  basicModalMethods?.closeModal()
+  submittedData.value = JSON.stringify(formData.value, null, 2);
+  message.success('基础弹窗已提交');
+  basicModalMethods?.closeModal();
 }
 
-const asyncLoading = ref(false)
-const asyncResult = ref('')
+const asyncLoading = ref(false);
+const asyncResult = ref('');
 
 function simulateAsyncLoad() {
-  asyncLoading.value = true
-  asyncResult.value = ''
-  asyncModalMethods?.openModal()
+  asyncLoading.value = true;
+  asyncResult.value = '';
+  asyncModalMethods?.openModal();
   setTimeout(() => {
-    asyncResult.value = `数据加载成功于 ${new Date().toLocaleTimeString()}`
-    asyncLoading.value = false
-    message.success('异步数据加载完成')
-  }, 1500)
+    asyncResult.value = `数据加载成功于 ${new Date().toLocaleTimeString()}`;
+    asyncLoading.value = false;
+    message.success('异步数据加载完成');
+  }, 1500);
 }
 
-const contentModalVisible = ref(false)
+const contentModalVisible = ref(false);
 const contentData = ref({
   id: 1,
   title: '动态内容弹窗',
   description: '点击下方按钮加载更多信息',
-})
+});
 
 function switchContent() {
-  contentModalVisible.value = true
+  contentModalVisible.value = true;
   contentData.value = {
     id: Date.now(),
     title: `更新于 ${new Date().toLocaleTimeString()}`,
     description: '内容已动态更新',
-  }
-  message.info('内容已更新')
+  };
+  message.info('内容已更新');
 }
 </script>
 

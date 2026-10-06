@@ -1,6 +1,6 @@
-import { isNil } from 'es-toolkit'
+import type { BarMap, BarMapItem } from './types';
 
-import type { BarMap, BarMapItem } from './types'
+import { isNil } from 'es-toolkit';
 
 export const BAR_MAP: BarMap = {
   vertical: {
@@ -23,12 +23,12 @@ export const BAR_MAP: BarMap = {
     client: 'clientX',
     direction: 'left',
   },
-}
+};
 
 export interface ThumbStyleInput {
-  move?: number
-  size?: string
-  bar: BarMapItem
+  move?: number;
+  size?: string;
+  bar: BarMapItem;
 }
 
 export function renderThumbStyle({
@@ -37,12 +37,12 @@ export function renderThumbStyle({
   bar,
 }: ThumbStyleInput): Record<string, string> {
   // isNil 兜底 move（虽然默认参数已兜底，但显式更稳）
-  const offset = isNil(move) ? 0 : move
-  const translate = `translate${bar.axis}(${offset}%)`
+  const offset = isNil(move) ? 0 : move;
+  const translate = `translate${bar.axis}(${offset}%)`;
   return {
     [bar.size]: size,
     transform: translate,
     msTransform: translate,
     webkitTransform: translate,
-  }
+  };
 }

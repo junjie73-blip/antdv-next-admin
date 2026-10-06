@@ -3,32 +3,6 @@
   "version": "0.4.0",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.12.4",
-  "engines": {
-    "node": ">=22.0.0"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@vue-office/docx",
-      "@vue-office/excel",
-      "@vue-office/pdf",
-      "@vue-office/pptx"
-    ],
-    "ignoredBuiltDependencies": [
-      "core-js",
-      "core-js-pure",
-      "cwebp-bin",
-      "es5-ext",
-      "esbuild",
-      "gifsicle",
-      "jpegtran-bin",
-      "lefthook",
-      "mozjpeg",
-      "optipng-bin",
-      "pngquant-bin",
-      "vue-demi"
-    ]
-  },
   "scripts": {
     "bootstrap": "pnpm install",
     "build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 turbo build",
@@ -43,6 +17,7 @@
     "clean": "node ./scripts/clean.mjs",
     "commit": "czg",
     "dev": "turbo-run dev",
+    "dev:web": "pnpm --filter @antdv/web run dev",
     "format": "vsh lint --format",
     "lint": "vsh lint",
     "postinstall": "pnpm -r run --if-present stub",
@@ -60,19 +35,22 @@
     "sync-upstream": " sync-upstream"
   },
   "devDependencies": {
+    "@antdv/commitlint-config": "workspace:*",
+    "@antdv/eslint-config": "workspace:*",
+    "@antdv/oxfmt-config": "workspace:*",
+    "@antdv/oxlint-config": "workspace:*",
+    "@antdv/stylelint-config": "workspace:*",
+    "@antdv/turbo-run": "workspace:*",
+    "@antdv/vite-config": "workspace:*",
+    "@antdv/vsh": "workspace:*",
     "@changesets/cli": "catalog:",
     "@commitlint/cli": "catalog:",
     "@types/node": "catalog:",
     "@vitest/eslint-plugin": "catalog:",
     "@vue/eslint-config-typescript": "catalog:",
+    "cross-env": "catalog:",
     "cz-git": "catalog:",
     "eslint": "catalog:",
-    "@antdv-admin/commitlint-config": "workspace:*",
-    "@antdv-admin/eslint-config": "workspace:*",
-    "@antdv-admin/oxfmt-config": "workspace:*",
-    "@antdv-admin/oxlint-config": "workspace:*",
-    "@antdv-admin/stylelint-config": "workspace:*",
-    "cross-env": "catalog:",
     "happy-dom": "catalog:",
     "is-ci": "catalog:",
     "lefthook": "catalog:",
@@ -81,12 +59,13 @@
     "oxlint-tsgolint": "catalog:",
     "playwright": "catalog:",
     "rimraf": "catalog:",
-    "tailwindcss": "catalog:",
     "rolldown": "catalog:",
+    "tailwindcss": "catalog:",
     "turbo": "catalog:",
-    "typescript": "catalog:",
-    "@antdv-admin/turbo-run": "workspace:*",
-    "@antdv-admin/vite-config": "workspace:*",
-    "@antdv-admin/vsh": "workspace:*"
-  }
+    "typescript": "catalog:"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "packageManager": "pnpm@10.12.4"
 }

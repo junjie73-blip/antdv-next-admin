@@ -1,4 +1,4 @@
-import type { BasicColumn } from '~/components/business/Table'
+import type { BasicColumn } from '~/components/business/Table';
 
 /** 接口清单列：状态、命中与运行时配置均由单元格插槽渲染 */
 export const routeColumns: BasicColumn[] = [
@@ -65,7 +65,7 @@ export const routeColumns: BasicColumn[] = [
     width: 165,
     align: 'center',
   },
-]
+];
 
 /** 命中日志列 */
 export const logColumns: BasicColumn[] = [
@@ -106,4 +106,4 @@ export const logColumns: BasicColumn[] = [
     width: 120,
     align: 'center',
   },
-]
+];

@@ -1,15 +1,15 @@
-import { mergeAttributes, Node } from '@tiptap/vue-3'
+import { mergeAttributes, Node } from '@tiptap/vue-3';
 
-const VIDEO_TAG = 'div[data-w-e-type="video"]'
+const VIDEO_TAG = 'div[data-w-e-type="video"]';
 
 function readVideo(element: HTMLElement): HTMLVideoElement | null {
   return element.tagName === 'VIDEO'
     ? (element as HTMLVideoElement)
-    : element.querySelector('video')
+    : element.querySelector('video');
 }
 
-function readAttr(element: HTMLElement, name: string): string | null {
-  return readVideo(element)?.getAttribute(name) ?? null
+function readAttr(element: HTMLElement, name: string): null | string {
+  return readVideo(element)?.getAttribute(name) ?? null;
 }
 
 /**
@@ -29,13 +29,13 @@ export const Video = Node.create({
       src: {
         default: null,
         parseHTML: (element) => {
-          const video = readVideo(element as HTMLElement)
-          if (!video) return null
+          const video = readVideo(element as HTMLElement);
+          if (!video) return null;
           return (
             video.getAttribute('src') ??
             video.querySelector('source')?.getAttribute('src') ??
             null
-          )
+          );
         },
       },
       poster: {
@@ -50,15 +50,15 @@ export const Video = Node.create({
         default: null,
         parseHTML: (element) => readAttr(element as HTMLElement, 'height'),
       },
-    }
+    };
   },
 
   parseHTML() {
-    return [{ tag: VIDEO_TAG }, { tag: 'video' }]
+    return [{ tag: VIDEO_TAG }, { tag: 'video' }];
   },
 
   renderHTML({ HTMLAttributes }) {
-    const { src, poster, width, height, ...rest } = HTMLAttributes
+    const { src, poster, width, height, ...rest } = HTMLAttributes;
 
     // 与 wangEditor 一致：地址放在 <source> 上，video 只承载展示属性
     return [
@@ -72,6 +72,6 @@ export const Video = Node.create({
         { controls: 'true', poster, width, height },
         ['source', { src, type: 'video/mp4' }],
       ],
-    ]
+    ];
   },
-})
+});

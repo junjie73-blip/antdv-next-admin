@@ -1,4 +1,4 @@
-import { cn } from '~/utils'
+import { cn } from '~/utils';
 
 /* ============================================================
  * 调色板
@@ -12,7 +12,7 @@ export const PALETTE = {
   cyan: '#13c2c2',
   rose: '#f43f5e',
   emerald: '#10b981',
-} as const
+} as const;
 
 export const PALETTE_LIST = [
   PALETTE.primary,
@@ -21,7 +21,7 @@ export const PALETTE_LIST = [
   PALETTE.danger,
   PALETTE.info,
   PALETTE.cyan,
-] as const
+] as const;
 
 /* ============================================================
  * 严重级别配色
@@ -30,7 +30,7 @@ export const SEVERITY_COLOR: Record<string, string> = {
   critical: '#dc2626',
   warning: '#f59e0b',
   info: '#3b82f6',
-}
+};
 
 /* ============================================================
  * 变更范围配色
@@ -42,7 +42,7 @@ export const SCOPE_COLOR: Record<string, string> = {
   user_role: '#8b5cf6',
   position: '#06b6d4',
   other: '#94a3b8',
-}
+};
 
 export const SCOPE_LABEL: Record<string, string> = {
   dept_tree: '部门调整',
@@ -51,7 +51,7 @@ export const SCOPE_LABEL: Record<string, string> = {
   user_role: '角色变更',
   position: '岗位',
   other: '其他',
-}
+};
 
 /* ============================================================
  * KPI 颜色映射
@@ -81,7 +81,7 @@ export const KPI_COLOR_MAP: Record<string, { beam: string; wrap: string }> = {
     beam: PALETTE.cyan,
     wrap: 'bg-cyan-50 text-cyan-500 dark:bg-cyan-500/15 dark:text-cyan-400',
   },
-}
+};
 
 /* ============================================================
  * 时间范围选项
@@ -90,7 +90,7 @@ export const TIME_RANGE_OPTIONS = [
   { label: '今日', value: 'today' as const },
   { label: '近7天', value: '7d' as const },
   { label: '近30天', value: '30d' as const },
-]
+];
 
 /* ============================================================
  * 样式类名
@@ -100,9 +100,9 @@ export const analyticsCardClassName = cn(
   'border border-slate-100 bg-white',
   'transition-all duration-300 hover:shadow-lg',
   'dark:border-slate-800 dark:bg-slate-900',
-)
+);
 
 export const sectionTitleClassName = cn(
   'text-base font-semibold',
   'text-slate-800 dark:text-slate-200',
-)
+);

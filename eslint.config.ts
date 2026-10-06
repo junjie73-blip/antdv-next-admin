@@ -1,3 +1,3 @@
-import { defineConfig } from '@antdv-admin/eslint-config';
+import { defineConfig } from '@antdv/eslint-config';
 
 export default defineConfig();

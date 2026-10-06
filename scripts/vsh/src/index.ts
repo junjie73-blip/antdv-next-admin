@@ -1,5 +1,4 @@
-import { colors, consola } from '@antdv-admin/node-utils';
-
+import { colors, consola } from '@antdv/node-utils';
 import { cac } from 'cac';
 
 import { version } from '../package.json';

@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { Icon } from '@iconify/vue';
 
 import {
   itemDescClassName,
   itemLabelClassName,
   itemRowClassName,
-} from '../constants'
+} from '../constants';
 
-defineOptions({ name: 'SettingItem' })
+defineOptions({ name: 'SettingItem' });
 
 defineProps<{
-  label: string
-  desc?: string
+  label: string;
+  desc?: string;
   /** 是否显示 tooltip 图标 */
-  tooltip?: string
-}>()
+  tooltip?: string;
+}>();
 </script>
 
 <template>
@@ -29,7 +29,7 @@ defineProps<{
       <div v-if="desc" :class="itemDescClassName">{{ desc }}</div>
     </div>
     <div class="shrink-0">
-      <slot />
+      <slot></slot>
     </div>
   </div>
 </template>

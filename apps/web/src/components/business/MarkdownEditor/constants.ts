@@ -1,4 +1,4 @@
-import type { MarkdownEditorToolbarKey } from './types'
+import type { MarkdownEditorToolbarKey } from './types';
 
 /* ============================================================
  * 工具栏按键
@@ -36,15 +36,15 @@ export const DEFAULT_TOOLBAR_KEYS: MarkdownEditorToolbarKey[] = [
   'redo',
   '|',
   'fullScreen',
-]
+];
 
 /* ============================================================
  * 下拉选项
  * ============================================================ */
 
 export interface ToolbarOption {
-  label: string
-  value: string
+  label: string;
+  value: string;
 }
 
 /** 块级样式：正文 + 标题 1~5（与 wangEditor headerSelect 一致） */
@@ -55,7 +55,7 @@ export const HEADER_OPTIONS: ToolbarOption[] = [
   { label: '标题 3', value: '3' },
   { label: '标题 4', value: '4' },
   { label: '标题 5', value: '5' },
-]
+];
 
 export const FONT_FAMILIES: ToolbarOption[] = [
   { label: '默认字体', value: '' },
@@ -66,7 +66,7 @@ export const FONT_FAMILIES: ToolbarOption[] = [
   { label: 'Arial', value: 'Arial' },
   { label: 'Tahoma', value: 'Tahoma' },
   { label: 'Verdana', value: 'Verdana' },
-]
+];
 
 export const FONT_SIZES: ToolbarOption[] = [
   { label: '默认字号', value: '' },
@@ -86,7 +86,7 @@ export const FONT_SIZES: ToolbarOption[] = [
     label: size,
     value: size,
   })),
-]
+];
 
 /** wangEditor 只在行高属于该白名单时才解析，保持一致避免格式错乱 */
 export const LINE_HEIGHTS: ToolbarOption[] = [
@@ -95,7 +95,7 @@ export const LINE_HEIGHTS: ToolbarOption[] = [
     label: value,
     value,
   })),
-]
+];
 
 const COLOR_PALETTE = [
   '#000000',
@@ -118,8 +118,8 @@ const COLOR_PALETTE = [
   '#2f54eb',
   '#722ed1',
   '#eb2f96',
-]
+];
 
-export const TEXT_COLORS: string[] = COLOR_PALETTE
+export const TEXT_COLORS: string[] = COLOR_PALETTE;
 
-export const BACKGROUND_COLORS: string[] = COLOR_PALETTE
+export const BACKGROUND_COLORS: string[] = COLOR_PALETTE;

@@ -1,18 +1,20 @@
-import type { PluginOption } from 'vite'
+import type { PluginOption } from 'vite';
 
-import { AntdvNextResolver } from '@antdv-next/auto-import-resolver'
-import iconifyOffline from '@tomjs/vite-plugin-iconify'
-import { join } from 'node:path'
+import { join } from 'node:path';
+
+import { VueRouterAutoImports } from 'vue-router/unplugin';
+
+import { AntdvNextResolver } from '@antdv-next/auto-import-resolver';
+import iconifyOffline from '@tomjs/vite-plugin-iconify';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import AutoImport from 'unplugin-auto-import/vite'
-import Components from 'unplugin-vue-components/vite'
+import AutoImport from 'unplugin-auto-import/vite';
+import Components from 'unplugin-vue-components/vite';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import { envParse } from 'vite-plugin-env-parse'
-import { VueRouterAutoImports } from 'vue-router/unplugin'
+import { envParse } from 'vite-plugin-env-parse';
 export function createAutoImportPlugins(): PluginOption[] {
-  const root = process.cwd()
+  const root = process.cwd();
 
   return [
     AutoImport({
@@ -43,5 +45,5 @@ export function createAutoImportPlugins(): PluginOption[] {
       parseJson: true,
       // exclude: ["VITE_APP_TITLE"], // 根据实际情况排除不需要解析的变量
     }),
-  ]
+  ];
 }

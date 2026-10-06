@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import * as echarts from 'echarts'
 import { computed, onMounted, ref } from 'vue'
 // 监听暗色模式变化
 import { watch } from 'vue'
 
+import * as echarts from 'echarts'
 import { getSecurityScore } from '~/api/security'
 import { CountTo } from '~/components/business/CountTo'
 import { useAppStore } from '~/stores/modules/app'
@@ -26,9 +26,9 @@ const trendData = ref<{ date: string; score: number }[]>([])
 
 // 样式类名
 const containerClassName = cn('rounded-xl p-5')
-const scoreValueClassName = cn('text-5xl font-black tabular-nums leading-none')
+const scoreValueClassName = cn('text-5xl leading-none font-black tabular-nums')
 const dimensionCardClassName = cn(
-  'rounded-lg p-3 flex items-center justify-between transition-all duration-200 hover:scale-[1.02]',
+  'flex items-center justify-between rounded-lg p-3 transition-all duration-200 hover:scale-[1.02]',
 )
 
 /** 状态颜色映射 */
@@ -218,7 +218,7 @@ watch(isDark, () => {
 
       <!-- 趋势图 -->
       <div class="h-[120px] flex-1">
-        <div ref="chartRef" class="h-full w-full" />
+        <div ref="chartRef" class="h-full w-full"></div>
       </div>
     </div>
 
@@ -237,12 +237,11 @@ watch(isDark, () => {
             :class="
               cn('text-lg font-bold tabular-nums', getScoreColor(dim.score))
             "
-            >{{ dim.score }}</span
-          >
+            >{{ dim.score }}</span>
           <div
             class="h-1.5 w-1.5 rounded-full"
             :style="{ backgroundColor: getStatusColor(dim.status) }"
-          />
+          ></div>
         </div>
       </div>
     </div>

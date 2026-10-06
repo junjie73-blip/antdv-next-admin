@@ -1,11 +1,11 @@
 <script setup lang="tsx">
-import { Icon } from '@iconify/vue'
-import { ref } from 'vue'
-
 import type { DescriptionItem } from '~/components/business/Description'
 import type { FormSchema } from '~/components/business/Form'
 import type { BasicColumn } from '~/components/business/Table'
 
+import { ref } from 'vue'
+
+import { Icon } from '@iconify/vue'
 import { getLoginLogList, getLoginLogStats } from '~/api/system'
 import { Description as DetailDescription } from '~/components/business/Description'
 import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
@@ -24,7 +24,7 @@ interface LoginLogRecord {
   location: string
   browser: string
   os: string
-  status: 'success' | 'fail'
+  status: 'fail' | 'success'
   message: string
   loginTime: string
   duration: number
@@ -36,7 +36,7 @@ const cardClassName = cn('shadow-sm')
 const statsGridClassName = cn('grid', 'grid-cols-4', 'gap-4')
 const tagClassName = cn('inline-flex', 'items-center', 'gap-1')
 const actionClassName = cn('flex', 'items-center', 'justify-center')
-const btnClassName = cn('!px-0.5')
+const btnClassName = cn('px-0.5!')
 const dividerClassName = cn('mx-0')
 const failCardClassName = cn('border-red-200', 'dark:border-red-900')
 
@@ -60,8 +60,8 @@ async function loadStats() {
     weekLoginCount.value = data.weekCount || 0
     monthLoginCount.value = data.monthCount || 0
     todayFailCount.value = data.todayFailCount || 0
-  } catch (e) {
-    console.error('获取统计失败', e)
+  } catch (error) {
+    console.error('获取统计失败', error)
   }
 }
 
@@ -150,10 +150,10 @@ const detailSchemas: DescriptionItem[] = [
     label: 'User-Agent',
     render: (value) => (
       <a-typography-paragraph
+        code
         copyable={{ text: value as string }}
         ellipsis={{ rows: 3, expandable: true, symbol: '展开' }}
         style={{ margin: 0, maxWidth: 480 }}
-        code
       >
         {(value as string) || '-'}
       </a-typography-paragraph>
@@ -169,12 +169,12 @@ async function mockApi(params: Record<string, any>) {
   return { items: data?.list || [], total: data?.total || 0 }
 }
 
-function handleView(record: LoginLogRecord | any) {
+function handleView(record: any | LoginLogRecord) {
   viewingRecord.value = record as LoginLogRecord
   drawerMethods.openDrawer()
 }
 
-function handleDelete(record: LoginLogRecord | any) {
+function handleDelete(record: any | LoginLogRecord) {
   // Mock 环境下仅做前端删除反馈，实际应调用 delete API
   message.success(`已删除日志 #${record.id}`)
   tableMethods.value?.reload()

@@ -1,36 +1,36 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import type { BasicColumn } from '~/components/business/Table';
 
-import type { BasicColumn } from '~/components/business/Table'
+import { ref } from 'vue';
 
-import { BasicTable, useTable } from '~/components/business/Table'
-import { cn } from '~/utils/cn'
+import { BasicTable, useTable } from '~/components/business/Table';
+import { cn } from '~/utils/cn';
 
-const containerClassName = cn('space-y-6')
-const toolbarClassName = cn('mb-4', 'flex', 'justify-between', 'items-center')
-const descriptionClassName = cn('text-sm', 'text-gray-500')
-const monoClassName = cn('font-mono')
-const labelClassName = cn('text-sm', 'text-gray-500', 'mb-2')
-const fullWidthStyle = { width: '100%' }
+const containerClassName = cn('space-y-6');
+const toolbarClassName = cn('mb-4', 'flex', 'justify-between', 'items-center');
+const descriptionClassName = cn('text-sm', 'text-gray-500');
+const monoClassName = cn('font-mono');
+const labelClassName = cn('text-sm', 'text-gray-500', 'mb-2');
+const fullWidthStyle = { width: '100%' };
 
 const statusColorMap: Record<string, string> = {
   active: 'green',
   leave: 'blue',
   resigned: 'default',
-}
+};
 
 const orderStatusColorMap: Record<string, string> = {
   completed: 'green',
   processing: 'blue',
   pending: 'orange',
   cancelled: 'red',
-}
+};
 
 const typeColorMap: Record<string, string> = {
   company: 'purple',
   department: 'blue',
   team: 'green',
-}
+};
 
 const basicData = [
   {
@@ -40,7 +40,7 @@ const basicData = [
     department: 'Engineering',
     status: 'active',
     email: 'zhangsan@example.com',
-    salary: 18000,
+    salary: 18_000,
   },
   {
     key: 2,
@@ -49,7 +49,7 @@ const basicData = [
     department: 'Product',
     status: 'active',
     email: 'lisi@example.com',
-    salary: 22000,
+    salary: 22_000,
   },
   {
     key: 3,
@@ -58,7 +58,7 @@ const basicData = [
     department: 'Design',
     status: 'leave',
     email: 'wangwu@example.com',
-    salary: 15000,
+    salary: 15_000,
   },
   {
     key: 4,
@@ -67,7 +67,7 @@ const basicData = [
     department: 'Marketing',
     status: 'active',
     email: 'zhaoliu@example.com',
-    salary: 25000,
+    salary: 25_000,
   },
   {
     key: 5,
@@ -76,7 +76,7 @@ const basicData = [
     department: 'Engineering',
     status: 'resigned',
     email: 'qianqi@example.com',
-    salary: 20000,
+    salary: 20_000,
   },
   {
     key: 6,
@@ -85,7 +85,7 @@ const basicData = [
     department: 'Operations',
     status: 'active',
     email: 'sunba@example.com',
-    salary: 17000,
+    salary: 17_000,
   },
   {
     key: 7,
@@ -94,7 +94,7 @@ const basicData = [
     department: 'Engineering',
     status: 'active',
     email: 'zhoujiu@example.com',
-    salary: 19000,
+    salary: 19_000,
   },
   {
     key: 8,
@@ -103,9 +103,9 @@ const basicData = [
     department: 'Product',
     status: 'leave',
     email: 'wushi@example.com',
-    salary: 21000,
+    salary: 21_000,
   },
-]
+];
 
 const basicColumns: BasicColumn[] = [
   { title: 'Name', dataIndex: 'name', key: 'name', sorter: true, width: 120 },
@@ -146,34 +146,34 @@ const basicColumns: BasicColumn[] = [
     width: 120,
     align: 'right',
   },
-]
+];
 
-const basicSelectedKeys = ref<(string | number)[]>([])
+const basicSelectedKeys = ref<(number | string)[]>([]);
 
 const [registerBasic, basicTableRef] = useTable({
   columns: basicColumns,
   dataSource: basicData,
   rowSelection: {
     onChange: (keys) => {
-      basicSelectedKeys.value = keys
+      basicSelectedKeys.value = keys;
     },
   },
   bordered: true,
   rowKey: 'key',
   size: 'middle',
-})
+});
 
 function handleBasicRefresh() {
-  basicTableRef.value?.setLoading(true)
+  basicTableRef.value?.setLoading(true);
   setTimeout(() => {
-    basicTableRef.value?.setLoading(false)
-    message.success('Refreshed')
-  }, 1500)
+    basicTableRef.value?.setLoading(false);
+    message.success('Refreshed');
+  }, 1500);
 }
 
 function handleBulkAction() {
-  const rows = basicTableRef.value?.getSelectRows() || []
-  message.info(`Selected ${rows.length} records`)
+  const rows = basicTableRef.value?.getSelectRows() || [];
+  message.info(`Selected ${rows.length} records`);
 }
 
 const paginationData = [
@@ -241,7 +241,7 @@ const paginationData = [
     status: 'completed',
     date: '2024-01-19',
   },
-]
+];
 
 const paginationColumns: BasicColumn[] = [
   { title: 'Order ID', dataIndex: 'id', key: 'id', width: 120 },
@@ -261,16 +261,16 @@ const paginationColumns: BasicColumn[] = [
     align: 'center',
   },
   { title: 'Date', dataIndex: 'date', key: 'date', width: 130 },
-]
+];
 
 function paginationMockApi(params: { page?: number; pageSize?: number }) {
-  const { page = 1, pageSize = 3 } = params
-  const start = (page - 1) * pageSize
-  const end = start + pageSize
+  const { page = 1, pageSize = 3 } = params;
+  const start = (page - 1) * pageSize;
+  const end = start + pageSize;
   return Promise.resolve({
     items: paginationData.slice(start, end),
     total: paginationData.length,
-  })
+  });
 }
 
 const [registerPagination] = useTable({
@@ -282,7 +282,7 @@ const [registerPagination] = useTable({
     showTotal: (total: number) => `Total ${total} records`,
   },
   rowKey: 'key',
-})
+});
 
 const treeData = [
   {
@@ -307,7 +307,7 @@ const treeData = [
       },
     ],
   },
-]
+];
 
 const treeColumns: BasicColumn[] = [
   { title: 'Name', dataIndex: 'name', key: 'name' },
@@ -325,36 +325,34 @@ const treeColumns: BasicColumn[] = [
     width: 100,
     align: 'center',
   },
-]
+];
 
 const [registerTree] = useTable({
   columns: treeColumns,
   dataSource: treeData,
   defaultExpandAllRows: true,
   rowKey: 'key',
-})
+});
 
 const [registerEmpty] = useTable({
   columns: basicColumns,
   dataSource: [],
   rowKey: 'key',
-})
+});
 
 const [registerLoading] = useTable({
   columns: basicColumns,
   dataSource: [],
   loading: true,
   rowKey: 'key',
-})
+});
 </script>
 
 <template>
   <div :class="containerClassName">
     <a-card title="Basic Table" variant="borderless">
       <div :class="toolbarClassName">
-        <span :class="descriptionClassName"
-          >Sorting, filtering, loading, and selection support</span
-        >
+        <span :class="descriptionClassName">Sorting, filtering, loading, and selection support</span>
         <a-space>
           <a-button type="primary" size="small" @click="handleBasicRefresh">
             Refresh
@@ -375,9 +373,7 @@ const [registerLoading] = useTable({
           </a-tag>
         </template>
         <template #cell-salary="{ record }">
-          <span :class="monoClassName"
-            >¥{{ record?.salary?.toLocaleString() ?? '-' }}</span
-          >
+          <span :class="monoClassName">¥{{ record?.salary?.toLocaleString() ?? '-' }}</span>
         </template>
       </BasicTable>
     </a-card>
@@ -390,9 +386,7 @@ const [registerLoading] = useTable({
           </a-tag>
         </template>
         <template #cell-amount="{ record }">
-          <span :class="monoClassName"
-            >¥{{ record?.amount?.toLocaleString() ?? '-' }}</span
-          >
+          <span :class="monoClassName">¥{{ record?.amount?.toLocaleString() ?? '-' }}</span>
         </template>
       </BasicTable>
     </a-card>

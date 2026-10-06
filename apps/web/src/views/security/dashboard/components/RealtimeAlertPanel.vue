@@ -1,24 +1,24 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { onMounted, ref } from 'vue'
+import type { AlertItem, SecurityEventLevel } from '~/api/security';
 
-import type { AlertItem, SecurityEventLevel } from '~/api/security'
+import { onMounted, ref } from 'vue';
 
-import { getAlertList, handleAlert } from '~/api/security'
-import { cn } from '~/utils/cn'
+import { Icon } from '@iconify/vue';
+import { getAlertList, handleAlert } from '~/api/security';
+import { cn } from '~/utils/cn';
 
-defineOptions({ name: 'RealtimeAlertPanel' })
+defineOptions({ name: 'RealtimeAlertPanel' });
 
-const containerClassName = cn('rounded-xl p-5')
+const containerClassName = cn('rounded-xl p-5');
 const alertCardClassName = cn(
-  'flex items-start gap-3 p-3 rounded-lg border transition-all duration-200 hover:shadow-sm cursor-pointer',
-)
+  'flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-all duration-200 hover:shadow-sm',
+);
 const iconWrapClassName = cn(
-  'w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5',
-)
+  'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+);
 
-const alerts = ref<AlertItem[]>([])
-const loading = ref(false)
+const alerts = ref<AlertItem[]>([]);
+const loading = ref(false);
 
 /** 级别配置 */
 function getLevelConfig(level: SecurityEventLevel) {
@@ -50,51 +50,56 @@ function getLevelConfig(level: SecurityEventLevel) {
       icon: 'carbon:checkmark',
       label: '低危',
     },
-  }
-  return map[level] || map.low
+  };
+  return map[level] || map.low;
 }
 
 /** 是否为高优先级（严重或高危） */
 function isHighPriority(level: SecurityEventLevel): boolean {
-  return level === 'critical' || level === 'high'
+  return level === 'critical' || level === 'high';
 }
 
 /** 处置操作 */
 async function onHandle(alertId: string, action: string) {
   try {
-    await handleAlert(alertId, action)
+    await handleAlert(alertId, action);
     // 从列表中移除
-    alerts.value = alerts.value.filter((a) => a.id !== alertId)
-  } catch (e: any) {
-    console.error('处置失败', e)
+    alerts.value = alerts.value.filter((a) => a.id !== alertId);
+  } catch (error: any) {
+    console.error('处置失败', error);
   }
 }
 
 onMounted(async () => {
-  loading.value = true
+  loading.value = true;
   try {
-    const res = await getAlertList()
+    const res = await getAlertList();
     // 兼容多种返回格式：{ list: [] } | 直接数组 | { data: { list: [] } }
-    const rawData = res?.data ?? res
-    const listData = rawData?.list ?? (Array.isArray(rawData) ? rawData : [])
-    alerts.value = Array.isArray(listData) ? listData : []
+    const rawData = res?.data ?? res;
+    const listData = rawData?.list ?? (Array.isArray(rawData) ? rawData : []);
+    alerts.value = Array.isArray(listData) ? listData : [];
   } catch {
-    alerts.value = []
+    alerts.value = [];
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 
   // 模拟实时推送：每15秒可能新增一条告警
   setInterval(() => {
     if (Math.random() > 0.6) {
       // 60% 概率新增
-      const levels: SecurityEventLevel[] = ['critical', 'high', 'medium', 'low']
+      const levels: SecurityEventLevel[] = [
+        'critical',
+        'high',
+        'medium',
+        'low',
+      ];
       const messages = [
         '检测到异常登录尝试',
         '敏感接口调用频率异常',
         '发现新的可疑IP访问',
         '用户权限变更通知',
-      ]
+      ];
       const newAlert: AlertItem = {
         id: `alert-${Date.now()}`,
         level: levels[Math.floor(Math.random() * levels.length)]!,
@@ -102,11 +107,11 @@ onMounted(async () => {
         source: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
         timestamp: new Date().toISOString(),
         actions: ['查看详情', '忽略'],
-      }
-      alerts.value = [newAlert, ...alerts.value].slice(0, 10)
+      };
+      alerts.value = [newAlert, ...alerts.value].slice(0, 10);
     }
-  }, 15000)
-})
+  }, 15_000);
+});
 </script>
 
 <template>
@@ -128,10 +133,10 @@ onMounted(async () => {
         <span class="relative flex h-2.5 w-2.5">
           <span
             class="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"
-          />
+          ></span>
           <span
             class="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500"
-          />
+          ></span>
         </span>
         <span class="text-xs text-red-400">LIVE</span>
       </div>
@@ -172,8 +177,7 @@ onMounted(async () => {
               <div class="mb-0.5 flex items-center gap-2">
                 <span
                   class="truncate text-sm font-medium text-gray-800 dark:text-gray-200"
-                  >{{ alert.message }}</span
-                >
+                  >{{ alert.message }}</span>
                 <a-tag
                   :color="
                     alert.level === 'critical'

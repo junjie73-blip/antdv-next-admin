@@ -1,4 +1,6 @@
-import { executeRequest, type ExecuteOptions } from './executor'
+import type { ExecuteOptions } from './executor';
+
+import { executeRequest } from './executor';
 
 export const request = {
   get: <T = any>(
@@ -22,7 +24,7 @@ export const request = {
 
   patch: <T = any>(url: string, body?: any, opts?: ExecuteOptions) =>
     executeRequest<T>('PATCH', url, body, opts),
-}
+};
 
 export const http = {
   Get: request.get,
@@ -35,6 +37,6 @@ export const http = {
   put: request.put,
   patch: request.patch,
   delete: request.delete,
-}
+};
 
-export { requestCache } from './executor'
+export { requestCache } from './executor';

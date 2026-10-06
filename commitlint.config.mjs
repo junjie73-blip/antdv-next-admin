@@ -1,4 +1,4 @@
-import { defineConfig } from 'cz-git'
+import { defineConfig } from 'cz-git';
 
 export default defineConfig({
   rules: {
@@ -7,15 +7,15 @@ export default defineConfig({
   prompt: {
     alias: { fd: 'docs: fix typos' },
     messages: {
-      type: 'Select the type of change that you\'re committing:',
+      type: "Select the type of change that you're committing:",
       scope: 'Denote the SCOPE of this change (optional):',
       customScope: 'Denote the SCOPE of this change:',
       subject: 'Write a SHORT, IMPERATIVE tense description of the change:\n',
       body: 'Provide a LONGER description of the change (optional). Use "|" to break new line:\n',
       breaking:
-				'List any BREAKING CHANGES (optional). Use "|" to break new line:\n',
+        'List any BREAKING CHANGES (optional). Use "|" to break new line:\n',
       footerPrefixSelect:
-				'Select the ISSUES type of changeList by this change (optional):',
+        'Select the ISSUES type of changeList by this change (optional):',
       customFooterPrefix: 'Input ISSUES prefix:',
       footer: 'List any ISSUES by this change. E.g.: #31, #34:\n',
       generatingByAI: 'Generating your AI commit subject...',
@@ -62,7 +62,7 @@ export default defineConfig({
       },
       {
         value: 'chore',
-        name: 'chore:    Other changes that don\'t modify src or test files',
+        name: "chore:    Other changes that don't modify src or test files",
         emoji: ':hammer:',
       },
       {
@@ -103,4 +103,4 @@ export default defineConfig({
     defaultScope: '',
     defaultSubject: '',
   },
-})
+});

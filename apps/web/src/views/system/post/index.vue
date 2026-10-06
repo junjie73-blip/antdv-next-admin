@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { faker } from '@faker-js/faker/locale/zh_CN'
-import { Icon } from '@iconify/vue'
-import { computed, ref, useTemplateRef } from 'vue'
-
 import type { FormSchema } from '~/components/business/Form'
 import type { BasicColumn } from '~/components/business/Table'
 
+import { computed, ref, useTemplateRef } from 'vue'
+
+import { faker } from '@faker-js/faker/locale/zh_CN'
+import { Icon } from '@iconify/vue'
 import { addPost, deletePost, getPostList, updatePost } from '~/api/system'
 import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
 import { BasicForm, useForm } from '~/components/business/Form'
@@ -49,7 +49,7 @@ const actionClassName = cn(
   'justify-center',
   'whitespace-nowrap',
 )
-const btnClassName = cn('!px-0.5')
+const btnClassName = cn('px-0.5!')
 const dividerClassName = cn('mx-0')
 
 // ========== 状态映射 ==========
@@ -111,8 +111,8 @@ for (let i = 1; i <= 30; i++) {
 
 // ========== 状态管理 ==========
 const isEditing = ref(false)
-const currentRecord = ref<PostRecord | null>(null)
-const assignPostRecord = ref<PostRecord | null>(null)
+const currentRecord = ref<null | PostRecord>(null)
+const assignPostRecord = ref<null | PostRecord>(null)
 const assignSearchKeyword = ref('')
 const selectedAssignUserIds = ref<number[]>([])
 
@@ -274,10 +274,10 @@ function handleOpenAssign(record: PostRecord) {
 
 function _handleToggleAssignUser(user: UserRecord) {
   const idx = selectedAssignUserIds.value.indexOf(user.id)
-  if (idx > -1) {
-    selectedAssignUserIds.value.splice(idx, 1)
-  } else {
+  if (idx === -1) {
     selectedAssignUserIds.value.push(user.id)
+  } else {
+    selectedAssignUserIds.value.splice(idx, 1)
   }
 }
 
@@ -292,8 +292,8 @@ async function handleSaveAssign() {
     )
     assignModalMethods.closeModal()
     tableMethods.value?.reload()
-  } catch (e: any) {
-    message.error(e?.message || '保存失败')
+  } catch (error: any) {
+    message.error(error?.message || '保存失败')
   }
 }
 
@@ -333,8 +333,8 @@ async function handleDelete(record: PostRecord) {
     await deletePost(record.id)
     message.success(`已删除岗位：${record.name}`)
     tableMethods.value?.reload()
-  } catch (e: any) {
-    message.error(e?.message || '删除失败')
+  } catch (error: any) {
+    message.error(error?.message || '删除失败')
   }
 }
 
@@ -345,8 +345,8 @@ async function handleToggleStatus(record: PostRecord) {
       `已${record.status === 1 ? '停用' : '启用'}：${record.name}`,
     )
     tableMethods.value?.reload()
-  } catch (e: any) {
-    message.error(e?.message || '操作失败')
+  } catch (error: any) {
+    message.error(error?.message || '操作失败')
   }
 }
 
@@ -370,8 +370,8 @@ async function handleSave() {
 
     drawerMethods.closeDrawer()
     tableMethods.value?.reload()
-  } catch (e: any) {
-    message.error(e?.message || '保存失败')
+  } catch (error: any) {
+    message.error(error?.message || '保存失败')
   }
 }
 
@@ -564,21 +564,13 @@ const columns: BasicColumn[] = [
         <div
           class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400"
         >
-          <span
-            >岗位编码：<a-tag color="blue">{{
+          <span>岗位编码：<a-tag color="blue">{{
               assignPostRecord?.code
-            }}</a-tag></span
-          >
-          <span
-            >所属部门：<a-tag color="cyan">{{
+            }}</a-tag></span>
+          <span>所属部门：<a-tag color="cyan">{{
               assignPostRecord?.deptName
-            }}</a-tag></span
-          >
-          <span
-            >已选：<a-tag color="orange"
-              >{{ selectedAssignUserIds.length }} 人</a-tag
-            ></span
-          >
+            }}</a-tag></span>
+          <span>已选：<a-tag color="orange">{{ selectedAssignUserIds.length }} 人</a-tag></span>
         </div>
 
         <!-- 搜索框 -->

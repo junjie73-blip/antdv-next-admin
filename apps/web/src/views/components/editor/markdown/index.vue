@@ -1,28 +1,27 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { useClipboard } from '@vueuse/core'
-import hljs from 'highlight.js'
-import MarkdownIt from 'markdown-it'
-import { Marked } from 'marked'
-import { markedHighlight } from 'marked-highlight'
+import { Icon } from '@iconify/vue';
+import { useClipboard } from '@vueuse/core';
+import hljs from 'highlight.js';
+import MarkdownIt from 'markdown-it';
+import { Marked } from 'marked';
+import { markedHighlight } from 'marked-highlight';
+import { cn } from '~/utils/cn';
 
-import { cn } from '~/utils/cn'
+import 'highlight.js/styles/github-dark.css';
 
-import 'highlight.js/styles/github-dark.css'
-
-const { copy, copied } = useClipboard()
+const { copy, copied } = useClipboard();
 
 const markedInstance = new Marked(
   markedHighlight({
     langPrefix: 'hljs language-',
     highlight(code: string, lang: string) {
       if (lang && hljs.getLanguage(lang)) {
-        return hljs.highlight(code, { language: lang }).value
+        return hljs.highlight(code, { language: lang }).value;
       }
-      return hljs.highlightAuto(code).value
+      return hljs.highlightAuto(code).value;
     },
   }),
-)
+);
 
 const md = new MarkdownIt({
   html: true,
@@ -30,13 +29,13 @@ const md = new MarkdownIt({
   typographer: true,
   highlight(code: string, lang: string): string {
     if (lang && hljs.getLanguage(lang)) {
-      return `<pre class="hljs"><code class="hljs language-${lang}">${hljs.highlight(code, { language: lang }).value}</code></pre>`
+      return `<pre class="hljs"><code class="hljs language-${lang}">${hljs.highlight(code, { language: lang }).value}</code></pre>`;
     }
-    return `<pre class="hljs"><code class="hljs">${hljs.highlightAuto(code).value}</code></pre>`
+    return `<pre class="hljs"><code class="hljs">${hljs.highlightAuto(code).value}</code></pre>`;
   },
-})
+});
 
-const renderer = ref<'marked' | 'markdown-it'>('marked')
+const renderer = ref<'markdown-it' | 'marked'>('marked');
 
 const defaultMarkdown = `# Markdown 编辑器演示
 
@@ -139,19 +138,19 @@ $$
 ---
 
 > 💡 **提示**：试试点击工具栏按钮来插入不同格式的 Markdown 语法！
-`
+`;
 
-const markdownContent = ref(defaultMarkdown)
+const markdownContent = ref(defaultMarkdown);
 
 const renderedHtml = computed(() => {
-  if (!markdownContent.value) return ''
+  if (!markdownContent.value) return '';
   if (renderer.value === 'marked') {
-    return markedInstance.parse(markdownContent.value) as string
+    return markedInstance.parse(markdownContent.value) as string;
   }
-  return md.render(markdownContent.value)
-})
+  return md.render(markdownContent.value);
+});
 
-const textareaRef = useTemplateRef<HTMLTextAreaElement>('textareaRef')
+const textareaRef = useTemplateRef<HTMLTextAreaElement>('textareaRef');
 
 function insertMarkdown(
   before: string,
@@ -159,122 +158,122 @@ function insertMarkdown(
   placeholder = '',
   keepSelection = false,
 ) {
-  const textarea = textareaRef.value
-  if (!textarea) return
+  const textarea = textareaRef.value;
+  if (!textarea) return;
 
-  const start = textarea.selectionStart
-  const end = textarea.selectionEnd
-  const selectedText = markdownContent.value.substring(start, end)
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const selectedText = markdownContent.value.substring(start, end);
 
   const replacement = keepSelection
     ? `${before}${selectedText}${after}`
-    : `${before}${placeholder}${after}`
+    : `${before}${placeholder}${after}`;
 
   markdownContent.value =
     markdownContent.value.substring(0, start) +
     replacement +
-    markdownContent.value.substring(end)
+    markdownContent.value.substring(end);
 
   void nextTick(() => {
-    textarea.focus()
+    textarea.focus();
     if (keepSelection) {
-      const newCursorEnd = start + replacement.length
-      textarea.setSelectionRange(newCursorEnd, newCursorEnd)
+      const newCursorEnd = start + replacement.length;
+      textarea.setSelectionRange(newCursorEnd, newCursorEnd);
     } else {
-      const cursorPos = start + before.length + placeholder.length
-      textarea.setSelectionRange(cursorPos, cursorPos)
+      const cursorPos = start + before.length + placeholder.length;
+      textarea.setSelectionRange(cursorPos, cursorPos);
     }
-  })
+  });
 }
 
 function insertLink() {
-  const textarea = textareaRef.value
-  if (!textarea) return
+  const textarea = textareaRef.value;
+  if (!textarea) return;
 
-  const start = textarea.selectionStart
-  const end = textarea.selectionEnd
-  const selectedText = markdownContent.value.substring(start, end)
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const selectedText = markdownContent.value.substring(start, end);
 
   if (selectedText) {
-    insertMarkdown('[', '](url)', selectedText, true)
+    insertMarkdown('[', '](url)', selectedText, true);
   } else {
-    insertMarkdown('[', '](url)', '链接文本')
+    insertMarkdown('[', '](url)', '链接文本');
   }
 }
 
 function insertImage() {
-  const textarea = textareaRef.value
-  if (!textarea) return
+  const textarea = textareaRef.value;
+  if (!textarea) return;
 
-  const start = textarea.selectionStart
-  const end = textarea.selectionEnd
-  const selectedText = markdownContent.value.substring(start, end)
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const selectedText = markdownContent.value.substring(start, end);
 
   if (selectedText) {
-    insertMarkdown('![', '](url)', selectedText, true)
+    insertMarkdown('![', '](url)', selectedText, true);
   } else {
-    insertMarkdown('![', '](url)', '图片描述')
+    insertMarkdown('![', '](url)', '图片描述');
   }
 }
 
 function insertTable() {
   const tableTemplate =
-    '\n| 列1   | 列2   | 列3   |\n| ----- | ----- | ----- |\n| 内容1 | 内容2 | 内容3 |\n| 内容4 | 内容5 | 内容6 |\n'
-  const textarea = textareaRef.value
-  if (!textarea) return
+    '\n| 列1   | 列2   | 列3   |\n| ----- | ----- | ----- |\n| 内容1 | 内容2 | 内容3 |\n| 内容4 | 内容5 | 内容6 |\n';
+  const textarea = textareaRef.value;
+  if (!textarea) return;
 
-  const start = textarea.selectionStart
+  const start = textarea.selectionStart;
   markdownContent.value =
     markdownContent.value.substring(0, start) +
     tableTemplate +
-    markdownContent.value.substring(start)
+    markdownContent.value.substring(start);
 
   void nextTick(() => {
-    textarea.focus()
-    const cursorPos = start + 2
-    textarea.setSelectionRange(cursorPos, cursorPos)
-  })
+    textarea.focus();
+    const cursorPos = start + 2;
+    textarea.setSelectionRange(cursorPos, cursorPos);
+  });
 }
 
 function insertHeading(level: number) {
-  const prefix = `${'#'.repeat(level)} `
-  insertMarkdown(prefix, '', '标题文字')
+  const prefix = `${'#'.repeat(level)} `;
+  insertMarkdown(prefix, '', '标题文字');
 }
 
 function insertCodeBlock() {
-  const template = '\n```\n\n```\n'
-  const textarea = textareaRef.value
-  if (!textarea) return
+  const template = '\n```\n\n```\n';
+  const textarea = textareaRef.value;
+  if (!textarea) return;
 
-  const start = textarea.selectionStart
+  const start = textarea.selectionStart;
   markdownContent.value =
     markdownContent.value.substring(0, start) +
     template +
-    markdownContent.value.substring(start)
+    markdownContent.value.substring(start);
 
   void nextTick(() => {
-    textarea.focus()
-    const cursorPos = start + 5
-    textarea.setSelectionRange(cursorPos, cursorPos)
-  })
+    textarea.focus();
+    const cursorPos = start + 5;
+    textarea.setSelectionRange(cursorPos, cursorPos);
+  });
 }
 
 function insertTaskList() {
-  const template = '\n- [ ] 待办事项1\n- [ ] 待办事项2\n- [ ] 待办事项3\n'
-  const textarea = textareaRef.value
-  if (!textarea) return
+  const template = '\n- [ ] 待办事项1\n- [ ] 待办事项2\n- [ ] 待办事项3\n';
+  const textarea = textareaRef.value;
+  if (!textarea) return;
 
-  const start = textarea.selectionStart
+  const start = textarea.selectionStart;
   markdownContent.value =
     markdownContent.value.substring(0, start) +
     template +
-    markdownContent.value.substring(start)
+    markdownContent.value.substring(start);
 
   void nextTick(() => {
-    textarea.focus()
-    const cursorPos = start + 7
-    textarea.setSelectionRange(cursorPos, cursorPos)
-  })
+    textarea.focus();
+    const cursorPos = start + 7;
+    textarea.setSelectionRange(cursorPos, cursorPos);
+  });
 }
 
 const toolbarGroups = [
@@ -350,12 +349,12 @@ const toolbarGroups = [
       },
     ],
   },
-]
+];
 
 const editorPaneClassName = cn(
-  'flex-1 flex flex-col min-w-0',
-  'border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden',
-)
+  'flex min-w-0 flex-1 flex-col',
+  'overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700',
+);
 
 const editorTitleClassName = cn(
   'px-4 py-2.5',
@@ -364,39 +363,39 @@ const editorTitleClassName = cn(
   'text-gray-700 dark:text-gray-200',
   'border-b border-gray-200 dark:border-gray-700',
   'flex items-center gap-2',
-)
+);
 
 const toolbarContainerClassName = cn(
   'flex flex-wrap items-center gap-1',
   'px-2 py-1.5',
   'bg-gray-50/50 dark:bg-gray-800/50',
   'border-b border-gray-200 dark:border-gray-700',
-)
+);
 
 const toolbarButtonBaseClassName = cn(
   'inline-flex items-center justify-center',
-  'w-7 h-7 rounded',
+  'h-7 w-7 rounded',
   'text-gray-600 dark:text-gray-400',
   'hover:bg-gray-200 dark:hover:bg-gray-700',
   'hover:text-gray-800 dark:hover:text-gray-200',
   'transition-colors duration-150',
   'text-xs',
-)
+);
 
 const toolbarDividerClassName = cn(
-  'w-px h-4 mx-0.5',
+  'mx-0.5 h-4 w-px',
   'bg-gray-300 dark:bg-gray-600',
-)
+);
 
 const textareaClassName = cn(
-  'flex-1 w-full p-4',
-  'text-sm leading-relaxed',
+  'w-full flex-1 p-4',
+  'text-sm/relaxed ',
   'bg-white dark:bg-gray-900',
   'text-gray-800 dark:text-gray-200',
   'placeholder-gray-400 dark:placeholder-gray-500',
-  'resize-none outline-none border-none',
+  'resize-none border-none outline-none',
   'font-mono',
-)
+);
 
 const previewTitleClassName = cn(
   'px-4 py-2.5',
@@ -405,72 +404,72 @@ const previewTitleClassName = cn(
   'text-gray-700 dark:text-gray-200',
   'border-b border-gray-200 dark:border-gray-700',
   'flex items-center justify-between',
-)
+);
 
-const previewScrollbarClassName = cn('flex-1')
+const previewScrollbarClassName = cn('flex-1');
 
 const previewContentClassName = cn(
   'p-4',
-  'prose prose-sm dark:prose-invert max-w-none',
-  'prose-headings:text-gray-800 dark:prose-headings:text-gray-100',
-  'prose-p:text-gray-700 dark:prose-p:text-gray-300',
-  'prose-a:text-blue-500 dark:prose-a:text-blue-400',
-  'prose-code:text-pink-500 dark:prose-code:text-pink-400',
-  'prose-code:bg-gray-100 dark:prose-code:bg-gray-800',
-  'prose-code:px-1 prose-code:py-0.5 prose-code:rounded',
-  'prose-pre:bg-gray-900 dark:prose-pre:bg-gray-950',
+  'dark:prose-invert prose prose-sm max-w-none',
+  'dark:prose-headings:text-gray-100 prose-headings:text-gray-800',
+  'dark:prose-p:text-gray-300 prose-p:text-gray-700',
+  'dark:prose-a:text-blue-400 prose-a:text-blue-500',
+  'dark:prose-code:text-pink-400 prose-code:text-pink-500',
+  'dark:prose-code:bg-gray-800 prose-code:bg-gray-100',
+  'prose-code:px-1 prose-code:py-0.5 prose-code:rounded-sm',
+  'dark:prose-pre:bg-gray-950 prose-pre:bg-gray-900',
   'prose-pre:border prose-pre:border-gray-700',
   'prose-table:border-collapse',
-  'prose-th:border prose-th:border-gray-300 dark:prose-th:border-gray-600',
+  'dark:prose-th:border-gray-600 prose-th:border prose-th:border-gray-300',
   'prose-th:px-4 prose-th:py-2',
-  'prose-th:bg-gray-50 dark:prose-th:bg-gray-800',
-  'prose-td:border prose-td:border-gray-300 dark:prose-td:border-gray-600',
+  'dark:prose-th:bg-gray-800 prose-th:bg-gray-50',
+  'dark:prose-td:border-gray-600 prose-td:border prose-td:border-gray-300',
   'prose-td:px-4 prose-td:py-2',
   'prose-img:rounded-lg prose-img:shadow-md',
-  'prose-blockquote:border-l-4 prose-blockquote:border-blue-500',
-  'prose-blockquote:bg-blue-50/50 dark:prose-blockquote:bg-blue-950/30',
+  'prose-blockquote:border-blue-500 prose-blockquote:border-l-4',
+  'dark:prose-blockquote:bg-blue-950/30 prose-blockquote:bg-blue-50/50',
   'prose-blockquote:px-4 prose-blockquote:py-2',
-  '[&_pre]:rounded-lg [&_pre]:overflow-x-auto',
+  '[&_pre]:overflow-x-auto [&_pre]:rounded-lg',
   '[&_pre_code]:bg-transparent [&_pre_code]:p-0',
-)
+);
 
 const pageTitleClassName = cn(
   'text-2xl font-bold',
   'text-gray-800 dark:text-gray-100',
   'mb-1',
-)
+);
 
 const pageSubtitleClassName = cn(
   'text-sm text-gray-500 dark:text-gray-400',
   'mb-4',
-)
+);
 
 const mainContainerClassName = cn(
-  'flex flex-1 gap-4 h-[calc(100vh-140px)] min-h-[500px]',
-)
+  'flex h-[calc(100vh-140px)] min-h-[500px] flex-1 gap-4',
+);
 
 const copyBtnClassName = cn(
   'inline-flex items-center gap-1',
-  'px-2 py-0.5 text-xs rounded',
+  'rounded px-2 py-0.5 text-xs',
   'text-gray-500 dark:text-gray-400',
   'hover:bg-gray-200 dark:hover:bg-gray-700',
   'transition-colors duration-150',
-)
+);
 
 const emptyPreviewClassName = cn(
-  'flex items-center justify-center h-full',
+  'flex h-full items-center justify-center',
   'text-gray-400 dark:text-gray-500',
   'text-sm',
-)
+);
 
-const wordCountClassName = cn('text-xs text-gray-400 dark:text-gray-500')
+const wordCountClassName = cn('text-xs text-gray-400 dark:text-gray-500');
 
 const rendererToggleClassName = cn(
   'inline-flex items-center',
   'text-xs',
   'bg-gray-100 dark:bg-gray-800',
   'rounded-lg p-0.5',
-)
+);
 </script>
 
 <template>
@@ -531,7 +530,7 @@ const rendererToggleClassName = cn(
         <!-- 工具栏 -->
         <div :class="toolbarContainerClassName">
           <template v-for="(group, idx) in toolbarGroups" :key="idx">
-            <span v-if="idx > 0" :class="toolbarDividerClassName" />
+            <span v-if="idx > 0" :class="toolbarDividerClassName"></span>
             <a-tooltip
               v-for="btn in group.buttons"
               :key="btn.label"
@@ -557,7 +556,7 @@ const rendererToggleClassName = cn(
           :class="textareaClassName"
           placeholder="在此输入 Markdown 内容..."
           spellcheck="false"
-        />
+        ></textarea>
       </div>
 
       <!-- 右侧预览面板 -->
@@ -568,9 +567,7 @@ const rendererToggleClassName = cn(
             <span>预览区</span>
           </div>
           <div class="flex items-center gap-2">
-            <span :class="wordCountClassName"
-              >{{ markdownContent.length }} 字</span
-            >
+            <span :class="wordCountClassName">{{ markdownContent.length }} 字</span>
             <button
               type="button"
               :class="copyBtnClassName"
@@ -590,7 +587,7 @@ const rendererToggleClassName = cn(
           <div
             v-safe-html="{ content: renderedHtml, allowHtml: true }"
             :class="previewContentClassName"
-          />
+          ></div>
         </PerfectScrollbar>
         <div v-else :class="emptyPreviewClassName">
           <div class="text-center">

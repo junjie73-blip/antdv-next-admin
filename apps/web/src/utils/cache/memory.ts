@@ -8,14 +8,66 @@
 
 /** 存储项 */
 interface MemoryItem {
-  value: string
+  value: string;
   /** 过期时间戳（毫秒），不设置表示永不过期 */
-  expire?: number
+  expire?: number;
 }
 
 export class MemoryCache {
-  private store = new Map<string, MemoryItem>()
-  private timers = new Map<string, ReturnType<typeof setTimeout>>()
+  private store = new Map<string, MemoryItem>();
+  private timers = new Map<string, ReturnType<typeof setTimeout>>();
+
+  /**
+   * 清空所有值，清理全部定时器
+   */
+  clear(): void {
+    for (const timer of this.timers.values()) {
+      clearTimeout(timer);
+    }
+    this.timers.clear();
+    this.store.clear();
+  }
+
+  /**
+   * 删除值并清理对应定时器
+   */
+  delete(key: string): void {
+    const timer = this.timers.get(key);
+    if (timer) {
+      clearTimeout(timer);
+      this.timers.delete(key);
+    }
+    this.store.delete(key);
+  }
+
+  /**
+   * 读取值，过期自动清理
+   */
+  get(key: string): null | string {
+    const item = this.store.get(key);
+    if (!item) return null;
+
+    if (item.expire !== undefined && Date.now() > item.expire) {
+      this.delete(key);
+      return null;
+    }
+
+    return item.value;
+  }
+
+  /**
+   * 判断 key 是否存在且未过期
+   */
+  has(key: string): boolean {
+    return this.get(key) !== null;
+  }
+
+  /**
+   * 列出所有 key
+   */
+  keys(): string[] {
+    return [...this.store.keys()];
+  }
 
   /**
    * 写入值
@@ -24,72 +76,20 @@ export class MemoryCache {
    */
   set(key: string, value: string, expire?: number): void {
     // 先清理同 key 的旧定时器和值
-    this.delete(key)
+    this.delete(key);
 
     const expireAt =
-      expire && expire > 0 ? Date.now() + expire * 1000 : undefined
+      expire && expire > 0 ? Date.now() + expire * 1000 : undefined;
 
-    this.store.set(key, { value, expire: expireAt })
+    this.store.set(key, { value, expire: expireAt });
 
     if (expireAt !== undefined) {
       const timer = setTimeout(() => {
-        this.delete(key)
-      }, expire! * 1000)
-      this.timers.set(key, timer)
+        this.delete(key);
+      }, expire! * 1000);
+      this.timers.set(key, timer);
     }
-  }
-
-  /**
-   * 读取值，过期自动清理
-   */
-  get(key: string): string | null {
-    const item = this.store.get(key)
-    if (!item) return null
-
-    if (item.expire !== undefined && Date.now() > item.expire) {
-      this.delete(key)
-      return null
-    }
-
-    return item.value
-  }
-
-  /**
-   * 删除值并清理对应定时器
-   */
-  delete(key: string): void {
-    const timer = this.timers.get(key)
-    if (timer) {
-      clearTimeout(timer)
-      this.timers.delete(key)
-    }
-    this.store.delete(key)
-  }
-
-  /**
-   * 判断 key 是否存在且未过期
-   */
-  has(key: string): boolean {
-    return this.get(key) !== null
-  }
-
-  /**
-   * 清空所有值，清理全部定时器
-   */
-  clear(): void {
-    for (const timer of this.timers.values()) {
-      clearTimeout(timer)
-    }
-    this.timers.clear()
-    this.store.clear()
-  }
-
-  /**
-   * 列出所有 key
-   */
-  keys(): string[] {
-    return Array.from(this.store.keys())
   }
 }
 
-export const memoryCache = new MemoryCache()
+export const memoryCache = new MemoryCache();

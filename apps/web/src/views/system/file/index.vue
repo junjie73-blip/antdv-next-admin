@@ -1,13 +1,12 @@
 <script setup lang="tsx">
 import type { TreeData } from 'antdv-next/es/tree'
-
-import { Icon } from '@iconify/vue'
-import { Modal as AntModal } from 'antdv-next'
-import { computed, ref, useTemplateRef } from 'vue'
-
 import type { FormSchema } from '~/components/business/Form'
 import type { BasicColumn } from '~/components/business/Table'
 
+import { computed, ref, useTemplateRef } from 'vue'
+
+import { Icon } from '@iconify/vue'
+import { Modal as AntModal } from 'antdv-next'
 import {
   createFolder,
   deleteFile,
@@ -32,7 +31,7 @@ interface FileRecord {
   sizeDisplay: string
   mimeType: string
   path: string
-  parentId: number | null
+  parentId: null | number
   uploader: string
   uploaderId: number
   createdAt: string
@@ -43,11 +42,11 @@ interface FileRecord {
 // ========== 样式类名 ==========
 const containerClassName = cn('flex gap-4')
 const leftPanelClassName = cn('w-[240px] shrink-0')
-const rightPanelClassName = cn('flex-1 min-w-0')
+const rightPanelClassName = cn('min-w-0 flex-1')
 const cardClassName = cn('shadow-sm')
-const treeCardClassName = cn('shadow-sm h-full')
+const treeCardClassName = cn('h-full shadow-sm')
 const breadcrumbClassName = cn(
-  'flex items-center gap-2 text-sm mb-4 text-gray-500 dark:text-gray-400',
+  'mb-4 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400',
 )
 const actionClassName = cn(
   'flex',
@@ -55,7 +54,7 @@ const actionClassName = cn(
   'justify-center',
   'whitespace-nowrap',
 )
-const btnClassName = cn('!px-0.5')
+const btnClassName = cn('px-0.5!')
 const dividerClassName = cn('mx-0')
 
 // ========== 文件类型图标映射 ==========
@@ -97,11 +96,11 @@ const fileTypeOptions = [
 ]
 
 // ========== 状态管理 ==========
-const currentParentId = ref<number | null>(null)
+const currentParentId = ref<null | number>(null)
 const currentPath = ref<TreeData[]>([{ title: '根目录', key: '__root__' }])
 const isEditing = ref(false)
 const currentRecord = ref<FileRecord | null>(null)
-const selectedRowKeys = ref<(string | number)[]>([])
+const selectedRowKeys = ref<(number | string)[]>([])
 const selectedRows = ref<FileRecord[]>([])
 const fileTreeData = ref<any[]>([])
 
@@ -116,8 +115,8 @@ async function loadFileTree() {
   try {
     const res = await getFileTree()
     fileTreeData.value = res.data || []
-  } catch (e) {
-    console.error('获取文件树失败', e)
+  } catch (error) {
+    console.error('获取文件树失败', error)
   }
 }
 
@@ -187,10 +186,10 @@ function handleNavigateToFolder(node: any) {
     currentPath.value = [{ title: '根目录', key: '__root__' }]
   } else {
     const pathIndex = currentPath.value.findIndex((p) => p.key === node.key)
-    if (pathIndex > -1) {
-      currentPath.value = currentPath.value.slice(0, pathIndex + 1)
-    } else {
+    if (pathIndex === -1) {
       currentPath.value.push(node)
+    } else {
+      currentPath.value = currentPath.value.slice(0, pathIndex + 1)
     }
   }
 
@@ -237,8 +236,8 @@ async function handleSaveFolderOrRename() {
     modalMethods.closeModal()
     tableMethods.value?.reload()
     loadFileTree()
-  } catch (e: any) {
-    message.error(e?.message || '操作失败')
+  } catch (error: any) {
+    message.error(error?.message || '操作失败')
   }
 }
 
@@ -264,8 +263,8 @@ async function handleSimulateUpload(fileList?: any[]) {
       uploadModalMethods.closeModal()
       tableMethods.value?.reload()
       loadFileTree()
-    } catch (e: any) {
-      message.error(e?.message || '上传失败')
+    } catch (error: any) {
+      message.error(error?.message || '上传失败')
     }
     return
   }
@@ -294,14 +293,14 @@ async function handleSimulateUpload(fileList?: any[]) {
   loadFileTree()
 }
 
-async function handleDelete(record: FileRecord | any) {
+async function handleDelete(record: any | FileRecord) {
   try {
     await deleteFile(record.id)
     message.success(`已删除：${record.name}`)
     tableMethods.value?.reload()
     loadFileTree()
-  } catch (e: any) {
-    message.error(e?.message || '删除失败')
+  } catch (error: any) {
+    message.error(error?.message || '删除失败')
   }
 }
 
@@ -342,7 +341,7 @@ function handleDownload(record: FileRecord) {
 }
 
 // ========== 表格事件回调 ==========
-function handleSelectionChange(keys: (string | number)[], rows: FileRecord[]) {
+function handleSelectionChange(keys: (number | string)[], rows: FileRecord[]) {
   selectedRowKeys.value = keys
   selectedRows.value = rows
 }
@@ -433,8 +432,7 @@ const columns: BasicColumn[] = [
             <a
               class="cursor-pointer transition-colors hover:text-blue-500"
               @click="handleNavigateToFolder(item)"
-              >{{ item.title }}</a
-            >
+              >{{ item.title }}</a>
             <span v-if="index < currentPath.length - 1" class="mx-1">/</span>
           </template>
         </div>
@@ -520,8 +518,7 @@ const columns: BasicColumn[] = [
               <span
                 class="cursor-pointer truncate transition-colors hover:text-blue-500"
                 :title="record.name"
-                >{{ record.name }}</span
-              >
+                >{{ record.name }}</span>
             </div>
           </template>
 

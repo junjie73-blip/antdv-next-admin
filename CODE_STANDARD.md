@@ -68,7 +68,7 @@ defineEmits<{
 ### 4.1 定义
 
 ```ts
-export const useUserStore = defineStore("user", () => {
+export const useUserStore = defineStore('user', () => {
   const token = ref<string | null>(null);
   // ...
   return { token, login, logout };
@@ -105,7 +105,7 @@ export const useUserStore = defineStore("user", () => {
 ```ts
 // api/system.ts
 export function getUserList(params) {
-  return get<{ list: any[]; total: number }>("/user/list", params);
+  return get<{ list: any[]; total: number }>('/user/list', params);
 }
 ```
 
@@ -126,6 +126,7 @@ export function getUserList(params) {
 ### 5.3 错误处理
 
 alova 已统一处理：
+
 - 401 → 自动刷新，失败跳登录
 - 4xx → 弹后端 message
 - 5xx → 弹"服务器繁忙"
@@ -144,16 +145,14 @@ const off = ws.onNotice((notice) => { ... });
 onUnmounted(() => off());
 ```
 
-❌ 不要自己 `new WebSocket`。
-❌ 不要在多个组件里各自调 `useWebSocket`。
-❌ 不要把监听器挂在 `socket.on("message")` 上多次。
+❌ 不要自己 `new WebSocket`。❌ 不要在多个组件里各自调 `useWebSocket`。❌ 不要把监听器挂在 `socket.on("message")` 上多次。
 
 **消息类型**：
 
 ```ts
-type: "notice"          // 站内通知
-type: "force-logout"    // 强制下线（短横线）
-type: "connected"       // 连接确认
+type: 'notice'; // 站内通知
+type: 'force-logout'; // 强制下线（短横线）
+type: 'connected'; // 连接确认
 ```
 
 ---
@@ -171,8 +170,8 @@ type: "connected"       // 连接确认
 
 ```ts
 // constants.ts
-export const containerClassName = cn("space-y-4");
-export const cardClassName = cn("shadow-sm", "rounded-lg");
+export const containerClassName = cn('space-y-4');
+export const cardClassName = cn('shadow-sm', 'rounded-lg');
 ```
 
 模板里引用：
@@ -212,7 +211,6 @@ async function fetchApi(params: Record<string, any>) {
     <template #action="{ record }"> ... </template>
   </BasicTable>
 </template>
-
 ```
 
 - `columns.ts` 定义列
@@ -222,6 +220,7 @@ async function fetchApi(params: Record<string, any>) {
 - `api.ts` 定义 API 函数
 - `constants.ts` 定义常量值
 - `types.ts` 定义类型
+
 ---
 
 ## 9. CRUD（useCRUD）
@@ -315,15 +314,15 @@ export function useUserFormSchemas(
 ): ComputedRef<FormSchema[]> {
   return computed<FormSchema[]>(() => [
     {
-      field: "password",
-      label: "密码",
-      component: "InputPassword",
-      ifShow: () => !isEditing.value,   // ← 用函数，不用布尔
+      field: 'password',
+      label: '密码',
+      component: 'InputPassword',
+      ifShow: () => !isEditing.value, // ← 用函数，不用布尔
     },
     {
-      field: "status",
-      label: "状态",
-      component: "RadioGroup",
+      field: 'status',
+      label: '状态',
+      component: 'RadioGroup',
       componentProps: () => ({ options: statusOptions.value }),
     },
   ]);
@@ -344,18 +343,21 @@ export interface UserActionContext {
   onDelete: (record: UserRecord) => void | Promise<void>;
 }
 
-export function getUserActions(record: UserRecord, ctx: UserActionContext): ActionItem[] {
+export function getUserActions(
+  record: UserRecord,
+  ctx: UserActionContext,
+): ActionItem[] {
   return [
     {
-      label: "编辑",
-      icon: "ant-design:edit-outlined",
+      label: '编辑',
+      icon: 'ant-design:edit-outlined',
       onClick: () => ctx.onEdit(record),
     },
     {
-      label: "删除",
+      label: '删除',
       danger: true,
       popConfirm: {
-        title: "删除用户",
+        title: '删除用户',
         content: `确定删除「${record.username}」吗？`,
         confirm: () => ctx.onDelete(record),
       },
@@ -462,7 +464,10 @@ function parse(data: unknown): User {
 
 ```ts
 // ✅ 正确
-function pick<T extends object, K extends keyof T>(obj: T, keys: K[]): Pick<T, K> {
+function pick<T extends object, K extends keyof T>(
+  obj: T,
+  keys: K[],
+): Pick<T, K> {
   // ...
 }
 ```
@@ -470,7 +475,7 @@ function pick<T extends object, K extends keyof T>(obj: T, keys: K[]): Pick<T, K
 ### 19.3 类型导入
 
 ```ts
-import type { UserRecord } from "./types";
+import type { UserRecord } from './types';
 ```
 
 ---

@@ -1,5 +1,6 @@
-import { defineFakeRoute } from 'vite-plugin-fake-server/client'
-import { withRuntime } from './_runtime'
+import { defineFakeRoute } from 'vite-plugin-fake-server/client';
+
+import { withRuntime } from './_runtime';
 
 export default defineFakeRoute(
   withRuntime([
@@ -11,7 +12,7 @@ export default defineFakeRoute(
           code: 200,
           data: null,
           message: '退出成功',
-        }
+        };
       },
     },
     {
@@ -30,8 +31,8 @@ export default defineFakeRoute(
             },
           },
           message: '获取用户信息成功',
-        }
+        };
       },
     },
   ]),
-)
+);

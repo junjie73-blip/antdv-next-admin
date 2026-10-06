@@ -1,4 +1,4 @@
-import type { MicroAppItem, MicroAppRegistry } from '@antdv-admin/types'
+import type { MicroAppItem, MicroAppRegistry } from '@antdv/types';
 
 export const microAppConfig: MicroAppRegistry = {
   enabled: import.meta.env.VITE_MICRO_APP === true,
@@ -86,12 +86,12 @@ export const microAppConfig: MicroAppRegistry = {
       loader: 'webcomponent',
     },
   ],
-}
+};
 
 export function getMicroAppByName(name: string): MicroAppItem | undefined {
-  return microAppConfig.apps.find((app) => app.name === name)
+  return microAppConfig.apps.find((app) => app.name === name);
 }
 
 export function getAllMicroApps(): MicroAppItem[] {
-  return microAppConfig.apps
+  return microAppConfig.apps;
 }

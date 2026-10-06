@@ -1,11 +1,11 @@
 <script setup lang="tsx">
-import { Icon } from '@iconify/vue'
-import { computed, ref } from 'vue'
-
 import type { DescriptionItem } from '~/components/business/Description'
 import type { FormSchema } from '~/components/business/Form'
 import type { BasicColumn } from '~/components/business/Table'
 
+import { computed, ref } from 'vue'
+
+import { Icon } from '@iconify/vue'
 import {
   addSetting,
   deleteSetting,
@@ -28,7 +28,7 @@ interface SystemConfig {
   key: string
   name: string
   value: string
-  type: 'text' | 'number' | 'boolean' | 'json'
+  type: 'boolean' | 'json' | 'number' | 'text'
   group: string
   description: string
   enabled: boolean
@@ -46,7 +46,7 @@ const containerClassName = cn('space-y-4')
 const cardClassName = cn('shadow-sm')
 const valueCellClassName = cn('truncate', 'block', 'max-w-[180px]')
 const actionClassName = cn('flex', 'items-center', 'justify-center')
-const btnClassName = cn('!px-0.5')
+const btnClassName = cn('px-0.5!')
 const dividerClassName = cn('mx-0')
 
 const groupColorMap: Record<string, string> = {
@@ -124,8 +124,8 @@ const detailSchemas: DescriptionItem[] = [
 ]
 
 const isEditing = ref(false)
-const currentRecord = ref<SystemConfig | null>(null)
-const viewingRecord = ref<SystemConfig | null>(null)
+const currentRecord = ref<null | SystemConfig>(null)
+const viewingRecord = ref<null | SystemConfig>(null)
 
 const [modalRegister, modalMethods] = useModal()
 const [drawerRegister, drawerMethods] = useDrawer()

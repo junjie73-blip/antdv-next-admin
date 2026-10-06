@@ -3,8 +3,8 @@ export const DEFAULT_RECONNECT_CONFIG = {
   interval: 1000,
   maxAttempts: 5,
   delayMultiplier: 2,
-  maxDelay: 30000,
-}
+  maxDelay: 30_000,
+};
 
 export const DEFAULT_SSE_OPTIONS = {
   reconnectEnabled: DEFAULT_RECONNECT_CONFIG.enabled,
@@ -13,4 +13,4 @@ export const DEFAULT_SSE_OPTIONS = {
   reconnectDelayMultiplier: DEFAULT_RECONNECT_CONFIG.delayMultiplier,
   maxReconnectDelay: DEFAULT_RECONNECT_CONFIG.maxDelay,
   withCredentials: false,
-}
+};

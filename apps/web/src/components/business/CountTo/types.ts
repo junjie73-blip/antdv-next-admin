@@ -6,75 +6,75 @@ export interface CountToProps {
    * 起始值
    * @default 0
    */
-  startVal?: number
+  startVal?: number;
 
   /**
    * 结束值
    * @default 0
    */
-  endVal?: number
+  endVal?: number;
 
   /**
    * 动画持续时间（毫秒）
    * @default 2000
    */
-  duration?: number
+  duration?: number;
 
   /**
    * 自动播放
    * @default true
    */
-  autoplay?: boolean
+  autoplay?: boolean;
 
   /**
    * 小数位数
    * @default 0
    */
-  decimals?: number
+  decimals?: number;
 
   /**
    * 小数点符号
    * @default '.'
    */
-  decimal?: string
+  decimal?: string;
 
   /**
    * 千分位分隔符
    * @default ','
    */
-  separator?: string
+  separator?: string;
 
   /**
    * 前缀
    */
-  prefix?: string
+  prefix?: string;
 
   /**
    * 后缀
    */
-  suffix?: string
+  suffix?: string;
 
   /**
    * 是否使用缓动函数
    * @default true
    */
-  useEasing?: boolean
+  useEasing?: boolean;
 
   /**
    * 缓动函数类型
    * @default 'easeOutExpo'
    */
-  easingFn?: 'easeOutExpo' | 'linear' | 'easeInOutCubic'
+  easingFn?: 'easeInOutCubic' | 'easeOutExpo' | 'linear';
 
   /**
    * 自定义类名
    */
-  className?: string
+  className?: string;
 
   /**
    * 自定义样式
    */
-  style?: Record<string, string>
+  style?: Record<string, string>;
 }
 
 /**
@@ -84,22 +84,22 @@ export interface CountToInstance {
   /**
    * 开始动画
    */
-  start: () => void
+  start: () => void;
 
   /**
    * 暂停动画
    */
-  pause: () => void
+  pause: () => void;
 
   /**
    * 重置动画
    */
-  reset: () => void
+  reset: () => void;
 
   /**
    * 获取当前值
    */
-  getCurrentValue: () => number
+  getCurrentValue: () => number;
 }
 
 /**
@@ -109,10 +109,10 @@ export interface CountToEvents {
   /**
    * 动画结束事件
    */
-  (e: 'finished'): void
+  (e: 'finished'): void;
 
   /**
    * 值变化事件
    */
-  (e: 'change', value: number): void
+  (e: 'change', value: number): void;
 }

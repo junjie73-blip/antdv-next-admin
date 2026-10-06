@@ -1,50 +1,53 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import type { AuthStat } from './AuthBrandStats.vue';
+import type { AuthFeature } from './AuthFeatureTags.vue';
 
-import { useAuthStyles } from '../composables/useAuthStyles'
-import AuthBrandLogo from './AuthBrandLogo.vue'
-import AuthBrandPreview from './AuthBrandPreview.vue'
-import AuthBrandStats, { type AuthStat } from './AuthBrandStats.vue'
-import AuthFeatureTags, { type AuthFeature } from './AuthFeatureTags.vue'
+import { computed } from 'vue';
 
-defineOptions({ name: 'AuthBrandPanel' })
+import { useAuthStyles } from '../composables/useAuthStyles';
+import AuthBrandLogo from './AuthBrandLogo.vue';
+import AuthBrandPreview from './AuthBrandPreview.vue';
+import AuthBrandStats from './AuthBrandStats.vue';
+import AuthFeatureTags from './AuthFeatureTags.vue';
+
+defineOptions({ name: 'AuthBrandPanel' });
 
 const props = withDefaults(
   defineProps<{
     /** 应用标题 */
-    appTitle: string
+    appTitle: string;
     /** Logo 地址 */
-    logo: string
+    logo: string;
     /** 主标题（用 \n 换行） */
-    headline: string
+    headline: string;
     /** 副标题 */
-    subhead: string
+    subhead: string;
     /** 特性胶囊 */
-    features: AuthFeature[]
+    features: AuthFeature[];
     /** 数据指标（可选） */
-    stats?: AuthStat[]
+    stats?: AuthStat[];
   }>(),
   {
     stats: () => [],
   },
-)
+);
 
-const year = new Date().getFullYear()
+const year = new Date().getFullYear();
 
 const {
   brandPanelClassName,
   brandGlowClassName,
   brandGridClassName,
   brandContentClassName,
-} = useAuthStyles()
+} = useAuthStyles();
 
-const hasStats = computed(() => props.stats.length > 0)
+const hasStats = computed(() => props.stats.length > 0);
 </script>
 
 <template>
   <div :class="brandPanelClassName">
-    <div :class="brandGlowClassName" />
-    <div :class="brandGridClassName" />
+    <div :class="brandGlowClassName"></div>
+    <div :class="brandGridClassName"></div>
 
     <div :class="brandContentClassName">
       <AuthBrandLogo :title="appTitle" :logo="logo" />

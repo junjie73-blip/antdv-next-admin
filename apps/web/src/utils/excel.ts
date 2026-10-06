@@ -1,25 +1,24 @@
-import { message } from 'antdv-next'
-import * as XLSX from 'xlsx'
-
-import dayjs from '~/utils/dayjs'
+import { message } from 'antdv-next';
+import * as XLSX from 'xlsx';
+import dayjs from '~/utils/dayjs';
 
 export interface ExportColumn {
-  header: string
-  key: string
-  width?: number
+  header: string;
+  key: string;
+  width?: number;
 }
 
 export interface ExportOptions {
   /** 文件名（不含扩展名） */
-  filename: string
+  filename: string;
   /** 列配置 */
-  columns: ExportColumn[]
+  columns: ExportColumn[];
   /** 数据源 */
-  data: Record<string, any>[]
+  data: Record<string, any>[];
   /** Sheet 名称，默认 'Sheet1' */
-  sheetName?: string
+  sheetName?: string;
   /** 是否自动调整列宽 */
-  autoWidth?: boolean
+  autoWidth?: boolean;
 }
 
 /**
@@ -44,28 +43,28 @@ export function exportToExcel(options: ExportOptions) {
     data,
     sheetName = 'Sheet1',
     autoWidth = true,
-  } = options
+  } = options;
 
   if (!data || data.length === 0) {
-    message.warning('没有可导出的数据')
-    return
+    message.warning('没有可导出的数据');
+    return;
   }
 
   // 构建表头行和数据行
-  const headers = columns.map((col) => col.header)
+  const headers = columns.map((col) => col.header);
   const rows = data.map((item) =>
     columns.map((col) => {
-      const value = item[col.key]
+      const value = item[col.key];
       // 处理特殊值
-      if (value === null || value === undefined) return ''
-      if (typeof value === 'object') return JSON.stringify(value)
-      return value
+      if (value === null || value === undefined) return '';
+      if (typeof value === 'object') return JSON.stringify(value);
+      return value;
     }),
-  )
+  );
 
   // 创建工作表
-  const wsData = [headers, ...rows]
-  const ws = XLSX.utils.aoa_to_sheet(wsData)
+  const wsData = [headers, ...rows];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
 
   // 自动调整列宽
   if (autoWidth) {
@@ -76,22 +75,22 @@ export function exportToExcel(options: ExportOptions) {
           headers[idx]?.length || 10,
           ...data.map((item) => String(item[col.key] ?? '').length),
         ),
-    }))
-    ws['!cols'] = colWidths
+    }));
+    ws['!cols'] = colWidths;
   } else if (columns.some((col) => col.width)) {
     // 使用指定的列宽
-    ws['!cols'] = columns.map((col) => ({ wch: col.width || 12 }))
+    ws['!cols'] = columns.map((col) => ({ wch: col.width || 12 }));
   }
 
   // 创建工作簿
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, sheetName)
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
 
   // 生成文件名（带时间戳）
-  const timestamp = dayjs().format('YYYYMMDD_HHmmss')
-  const finalFilename = `${filename}_${timestamp}.xlsx`
+  const timestamp = dayjs().format('YYYYMMDD_HHmmss');
+  const finalFilename = `${filename}_${timestamp}.xlsx`;
 
   // 触发下载
-  XLSX.writeFile(wb, finalFilename)
-  message.success(`成功导出 ${data.length} 条数据`)
+  XLSX.writeFile(wb, finalFilename);
+  message.success(`成功导出 ${data.length} 条数据`);
 }

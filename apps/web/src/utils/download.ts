@@ -1,4 +1,4 @@
-import { isBlob, isFunction, isNil, isString } from 'es-toolkit'
+import { isBlob, isFunction, isNil, isString } from 'es-toolkit';
 
 /* ============================================================
  * 类型定义
@@ -7,61 +7,61 @@ import { isBlob, isFunction, isNil, isString } from 'es-toolkit'
 /** 进度回调参数 */
 export interface DownloadProgress {
   /** 已加载字节数 */
-  loaded: number
+  loaded: number;
   /** 总字节数（可能为 0，服务端未返回 content-length） */
-  total: number
+  total: number;
   /** 百分比（0-100），total 为 0 时返回 0 */
-  percent: number
+  percent: number;
 }
 
 /** 通用下载选项 */
 export interface DownloadOptions {
   /** 进度回调 */
-  onProgress?: (progress: DownloadProgress) => void
+  onProgress?: (progress: DownloadProgress) => void;
   /** 取消信号（配合 AbortController） */
-  signal?: AbortSignal
+  signal?: AbortSignal;
   /** MIME 类型 */
-  mimeType?: string
+  mimeType?: string;
   /** 文件名推断失败时的 fallback */
-  fallbackFilename?: string
+  fallbackFilename?: string;
 }
 
 /** URL 下载选项 */
 export interface UrlDownloadOptions extends DownloadOptions {
   /** 请求方法 */
-  method?: 'GET' | 'POST'
+  method?: 'GET' | 'POST';
   /** 请求头 */
-  headers?: Record<string, string>
+  headers?: Record<string, string>;
   /** 请求体 */
-  body?: BodyInit
+  body?: BodyInit;
   /** 是否重写 minio 代理 URL（默认 true） */
-  rewriteMinioUrl?: boolean
+  rewriteMinioUrl?: boolean;
   /** 凭证模式 */
-  credentials?: RequestCredentials
+  credentials?: RequestCredentials;
 }
 
 /** 下载结果 */
 export interface DownloadResult {
-  success: boolean
-  filename: string
+  success: boolean;
+  filename: string;
   /** 文件大小（字节） */
-  size?: number
+  size?: number;
   /** 错误信息（失败时） */
-  error?: Error
+  error?: Error;
 }
 
 /** 批量下载选项 */
 export interface BatchDownloadOptions {
   /** 并发数，默认 3 */
-  concurrency?: number
+  concurrency?: number;
   /** 单个文件进度 */
-  onProgress?: (index: number, progress: DownloadProgress) => void
+  onProgress?: (index: number, progress: DownloadProgress) => void;
   /** 单个文件完成 */
-  onFileComplete?: (index: number, result: DownloadResult) => void
+  onFileComplete?: (index: number, result: DownloadResult) => void;
   /** 全部完成 */
-  onAllComplete?: (results: DownloadResult[]) => void
+  onAllComplete?: (results: DownloadResult[]) => void;
   /** 单个文件之间的延迟（毫秒），默认 200 */
-  delayBetween?: number
+  delayBetween?: number;
 }
 
 /* ============================================================
@@ -69,7 +69,7 @@ export interface BatchDownloadOptions {
  * ============================================================ */
 
 /** MinIO 代理前缀 */
-const MINIO_PROXY_PREFIX = '/minio-api'
+const MINIO_PROXY_PREFIX = '/minio-api';
 
 /**
  * 将 minio 代理 URL 重写为真实地址
@@ -81,14 +81,14 @@ const MINIO_PROXY_PREFIX = '/minio-api'
  * 若未配置或 URL 不以代理前缀开头，则原样返回。
  */
 function rewriteMinioUrl(url: string): string {
-  if (!url.startsWith(MINIO_PROXY_PREFIX)) return url
+  if (!url.startsWith(MINIO_PROXY_PREFIX)) return url;
 
   const realHost = (
     import.meta.env.VITE_MINIO_PUBLIC_URL as string | undefined
-  )?.replace(/\/+$/, '')
-  if (!realHost) return url
+  )?.replace(/\/+$/, '');
+  if (!realHost) return url;
 
-  return `${realHost}${url.slice(MINIO_PROXY_PREFIX.length)}`
+  return `${realHost}${url.slice(MINIO_PROXY_PREFIX.length)}`;
 }
 
 /**
@@ -103,22 +103,22 @@ export function extractFilenameFromHeaders(
   fallback: string,
 ): string {
   const disposition =
-    headers.get('content-disposition') ?? headers.get('Content-Disposition')
-  if (!disposition) return fallback
+    headers.get('content-disposition') ?? headers.get('Content-Disposition');
+  if (!disposition) return fallback;
 
   // 优先 RFC 5987 格式
-  const utf8Match = /filename\*=UTF-8''([^;]+)/i.exec(disposition)
+  const utf8Match = /filename\*=UTF-8''([^;]+)/i.exec(disposition);
   if (utf8Match?.[1]) {
     try {
-      return decodeURIComponent(utf8Match[1].trim())
+      return decodeURIComponent(utf8Match[1].trim());
     } catch {
       /* 忽略解析失败，降级到普通格式 */
     }
   }
 
   // 普通格式
-  const match = /filename="?([^";]+)"?/i.exec(disposition)
-  return match?.[1]?.trim() ?? fallback
+  const match = /filename="?([^";]+)"?/i.exec(disposition);
+  return match?.[1]?.trim() ?? fallback;
 }
 
 /**
@@ -129,12 +129,12 @@ export function guessFilenameFromUrl(
   fallback = 'download',
 ): string {
   try {
-    const pathname = new URL(url, window.location.origin).pathname
-    const last = pathname.split('/').filter(Boolean).pop()
-    if (!last) return fallback
-    return decodeURIComponent(last)
+    const pathname = new URL(url, window.location.origin).pathname;
+    const last = pathname.split('/').filter(Boolean).pop();
+    if (!last) return fallback;
+    return decodeURIComponent(last);
   } catch {
-    return fallback
+    return fallback;
   }
 }
 
@@ -157,19 +157,19 @@ export function guessFilenameFromUrl(
  * ```
  */
 export function saveBlob(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.rel = 'noopener'
-  a.style.display = 'none'
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.rel = 'noopener';
+  a.style.display = 'none';
 
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
+  document.body.append(a);
+  a.click();
+  document.body.removeChild(a);
 
   // 延迟 revoke：部分浏览器（Safari）读取 URL 是异步的
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 /**
@@ -182,17 +182,17 @@ export async function saveResponse(
   fallbackFilename = 'download',
 ): Promise<DownloadResult> {
   if (!response.ok) {
-    throw new Error(`下载失败：${response.status} ${response.statusText}`)
+    throw new Error(`下载失败：${response.status} ${response.statusText}`);
   }
 
   const filename =
     extractFilenameFromHeaders(response.headers, fallbackFilename) ||
-    fallbackFilename
-  const blob = await response.blob()
+    fallbackFilename;
+  const blob = await response.blob();
 
-  saveBlob(blob, filename)
+  saveBlob(blob, filename);
 
-  return { success: true, filename, size: blob.size }
+  return { success: true, filename, size: blob.size };
 }
 
 /* ============================================================
@@ -217,16 +217,16 @@ export async function downloadBlob(
   request: () => Promise<unknown>,
   filename: string,
 ): Promise<void> {
-  const res = await request()
+  const res = await request();
 
   // 兼容三种返回：Blob / ArrayBuffer / 其他可转 Blob 的数据
   const blob = isBlob(res)
     ? res
     : new Blob([res as BlobPart], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      })
+      });
 
-  saveBlob(blob, filename)
+  saveBlob(blob, filename);
 }
 
 /**
@@ -249,10 +249,10 @@ export async function downloadFile(
   url: string,
   filename: string,
 ): Promise<void> {
-  console.log(url, filename, 'ccc')
-  const realUrl = rewriteMinioUrl(url)
-  const response = await fetch(realUrl)
-  const result = await saveResponse(response, filename)
+  console.log(url, filename, 'ccc');
+  const realUrl = rewriteMinioUrl(url);
+  const response = await fetch(realUrl);
+  const result = await saveResponse(response, filename);
 
   // 如果服务端指定了文件名且调用方未显式命名，以服务端为准
   if (!filename && result.filename) {
@@ -292,9 +292,9 @@ export async function downloadFromUrl(
     fallbackFilename = filename,
     onProgress,
     signal,
-  } = options
+  } = options;
 
-  const realUrl = shouldRewrite ? rewriteMinioUrl(url) : url
+  const realUrl = shouldRewrite ? rewriteMinioUrl(url) : url;
 
   try {
     const response = await fetch(realUrl, {
@@ -303,25 +303,25 @@ export async function downloadFromUrl(
       body,
       credentials,
       signal,
-    })
+    });
 
     if (!response.ok) {
-      throw new Error(`下载失败：${response.status} ${response.statusText}`)
+      throw new Error(`下载失败：${response.status} ${response.statusText}`);
     }
 
     const finalFilename =
       extractFilenameFromHeaders(response.headers, fallbackFilename) ||
-      fallbackFilename
+      fallbackFilename;
 
-    const blob = await readResponseWithProgress(response, onProgress)
-    saveBlob(blob, finalFilename)
+    const blob = await readResponseWithProgress(response, onProgress);
+    saveBlob(blob, finalFilename);
 
-    return { success: true, filename: finalFilename, size: blob.size }
+    return { success: true, filename: finalFilename, size: blob.size };
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
-      return { success: false, filename, error: new Error('下载已取消') }
+      return { success: false, filename, error: new Error('下载已取消') };
     }
-    throw error
+    throw error;
   }
 }
 
@@ -345,9 +345,9 @@ export async function downloadStream(
     mimeType = 'application/octet-stream',
     onProgress,
     signal,
-  } = options
+  } = options;
 
-  const realUrl = shouldRewrite ? rewriteMinioUrl(url) : url
+  const realUrl = shouldRewrite ? rewriteMinioUrl(url) : url;
 
   try {
     const response = await fetch(realUrl, {
@@ -356,47 +356,50 @@ export async function downloadStream(
       body,
       credentials,
       signal,
-    })
+    });
 
     if (!response.ok) {
-      throw new Error(`下载失败：${response.status} ${response.statusText}`)
+      throw new Error(`下载失败：${response.status} ${response.statusText}`);
     }
 
-    const finalFilename = extractFilenameFromHeaders(response.headers, filename)
-    const contentLength = Number(response.headers.get('content-length') ?? 0)
+    const finalFilename = extractFilenameFromHeaders(
+      response.headers,
+      filename,
+    );
+    const contentLength = Number(response.headers.get('content-length') ?? 0);
 
     // 降级：浏览器/服务端不支持流
     if (!response.body) {
-      const blob = await response.blob()
-      saveBlob(blob, finalFilename)
-      return { success: true, filename: finalFilename, size: blob.size }
+      const blob = await response.blob();
+      saveBlob(blob, finalFilename);
+      return { success: true, filename: finalFilename, size: blob.size };
     }
 
-    const reader = response.body.getReader()
-    const chunks: Uint8Array[] = []
-    let loaded = 0
+    const reader = response.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let loaded = 0;
 
     while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      chunks.push(value)
-      loaded += value.byteLength
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      loaded += value.byteLength;
       onProgress?.({
         loaded,
         total: contentLength,
         percent: contentLength > 0 ? (loaded / contentLength) * 100 : 0,
-      })
+      });
     }
 
-    const blob = new Blob(chunks as BlobPart[], { type: mimeType })
-    saveBlob(blob, finalFilename)
+    const blob = new Blob(chunks as BlobPart[], { type: mimeType });
+    saveBlob(blob, finalFilename);
 
-    return { success: true, filename: finalFilename, size: blob.size }
+    return { success: true, filename: finalFilename, size: blob.size };
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
-      return { success: false, filename, error: new Error('下载已取消') }
+      return { success: false, filename, error: new Error('下载已取消') };
     }
-    throw error
+    throw error;
   }
 }
 
@@ -415,7 +418,7 @@ export async function downloadWithAuth(
   filename: string,
   options: UrlDownloadOptions = {},
 ): Promise<DownloadResult> {
-  return downloadFromUrl(url, filename, options)
+  return downloadFromUrl(url, filename, options);
 }
 
 /**
@@ -428,29 +431,29 @@ async function readResponseWithProgress(
   onProgress?: (progress: DownloadProgress) => void,
 ): Promise<Blob> {
   if (!onProgress || !response.body) {
-    return response.blob()
+    return response.blob();
   }
 
-  const contentLength = Number(response.headers.get('content-length') ?? 0)
-  const reader = response.body.getReader()
-  const chunks: Uint8Array[] = []
-  let loaded = 0
+  const contentLength = Number(response.headers.get('content-length') ?? 0);
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let loaded = 0;
 
   while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    chunks.push(value)
-    loaded += value.byteLength
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    loaded += value.byteLength;
     onProgress({
       loaded,
       total: contentLength,
       percent: contentLength > 0 ? (loaded / contentLength) * 100 : 0,
-    })
+    });
   }
 
   const mimeType =
-    response.headers.get('content-type') ?? 'application/octet-stream'
-  return new Blob(chunks as BlobPart[], { type: mimeType })
+    response.headers.get('content-type') ?? 'application/octet-stream';
+  return new Blob(chunks as BlobPart[], { type: mimeType });
 }
 
 /* ============================================================
@@ -466,19 +469,19 @@ async function readResponseWithProgress(
  * ```
  */
 export function downloadJson(data: unknown, filename: string): void {
-  const json = JSON.stringify(data, null, 2)
-  const blob = new Blob([json], { type: 'application/json;charset=utf-8' })
-  const finalName = filename.endsWith('.json') ? filename : `${filename}.json`
-  saveBlob(blob, finalName)
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+  const finalName = filename.endsWith('.json') ? filename : `${filename}.json`;
+  saveBlob(blob, finalName);
 }
 
 /**
  * 导出纯文本为 .txt 文件
  */
 export function downloadText(text: string, filename: string): void {
-  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
-  const finalName = filename.endsWith('.txt') ? filename : `${filename}.txt`
-  saveBlob(blob, finalName)
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const finalName = filename.endsWith('.txt') ? filename : `${filename}.txt`;
+  saveBlob(blob, finalName);
 }
 
 /**
@@ -499,23 +502,23 @@ export function downloadBase64(
   mimeType = 'application/octet-stream',
 ): void {
   // 支持 data URL 与纯 base64 串
-  let pureBase64 = base64
-  let finalMime = mimeType
+  let pureBase64 = base64;
+  let finalMime = mimeType;
 
-  const dataUrlMatch = /^data:([^;]+);base64,(.+)$/.exec(base64)
+  const dataUrlMatch = /^data:([^;]+);base64,(.+)$/.exec(base64);
   if (dataUrlMatch) {
-    finalMime = dataUrlMatch[1]!
-    pureBase64 = dataUrlMatch[2]!
+    finalMime = dataUrlMatch[1]!;
+    pureBase64 = dataUrlMatch[2]!;
   }
 
-  const binary = atob(pureBase64)
-  const bytes = new Uint8Array(binary.length)
+  const binary = atob(pureBase64);
+  const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i)
+    bytes[i] = binary.charCodeAt(i);
   }
 
-  const blob = new Blob([bytes], { type: finalMime })
-  saveBlob(blob, filename)
+  const blob = new Blob([bytes], { type: finalMime });
+  saveBlob(blob, filename);
 }
 
 /* ============================================================
@@ -524,9 +527,9 @@ export function downloadBase64(
 
 /** 批量下载项 */
 export interface BatchDownloadItem {
-  url: string
-  filename: string
-  options?: UrlDownloadOptions
+  url: string;
+  filename: string;
+  options?: UrlDownloadOptions;
 }
 
 /**
@@ -556,42 +559,42 @@ export async function downloadMultiple(
     onFileComplete,
     onAllComplete,
     delayBetween = 200,
-  } = options
+  } = options;
 
   // oxlint-disable-next-line unicorn/no-new-array
-  const results: DownloadResult[] = new Array(items.length)
-  let cursor = 0
+  const results: DownloadResult[] = new Array(items.length);
+  let cursor = 0;
 
   /** 单个 worker：从队列里不断取任务 */
   async function worker(): Promise<void> {
     while (true) {
-      const index = cursor++
-      if (index >= items.length) return
+      const index = cursor++;
+      if (index >= items.length) return;
 
-      const item = items[index]!
+      const item = items[index]!;
       try {
         const result = await downloadFromUrl(item.url, item.filename, {
           ...item.options,
           onProgress: onProgress
             ? (progress) => onProgress(index, progress)
             : item.options?.onProgress,
-        })
-        results[index] = result
-        onFileComplete?.(index, result)
+        });
+        results[index] = result;
+        onFileComplete?.(index, result);
       } catch (error) {
-        const err = error instanceof Error ? error : new Error(String(error))
+        const err = error instanceof Error ? error : new Error(String(error));
         const result: DownloadResult = {
           success: false,
           filename: item.filename,
           error: err,
-        }
-        results[index] = result
-        onFileComplete?.(index, result)
+        };
+        results[index] = result;
+        onFileComplete?.(index, result);
       }
 
       // 文件之间的间隔
       if (delayBetween > 0 && cursor < items.length) {
-        await new Promise((resolve) => setTimeout(resolve, delayBetween))
+        await new Promise((resolve) => setTimeout(resolve, delayBetween));
       }
     }
   }
@@ -599,11 +602,11 @@ export async function downloadMultiple(
   const workers = Array.from(
     { length: Math.min(concurrency, items.length) },
     () => worker(),
-  )
-  await Promise.all(workers)
+  );
+  await Promise.all(workers);
 
-  onAllComplete?.(results)
-  return results
+  onAllComplete?.(results);
+  return results;
 }
 
 /* ============================================================
@@ -613,10 +616,10 @@ export async function downloadMultiple(
 /**
  * @deprecated 请使用 `downloadFromUrl`，功能一致且更完善
  */
-export { downloadFromUrl as downloadFileAdvanced }
+export { downloadFromUrl as downloadFileAdvanced };
 
 /* ============================================================
  * 类型守卫
  * ============================================================ */
 
-export { isBlob, isFunction, isNil, isString }
+export { isBlob, isFunction, isNil, isString };

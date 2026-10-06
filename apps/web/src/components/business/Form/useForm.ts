@@ -1,98 +1,98 @@
-import { ref, unref } from 'vue'
-
 import type {
   FormActionType,
   FormProps,
   FormSchema,
   NamePath,
   UseFormReturnType,
-} from './types'
+} from './types';
 
-import { deepMerge } from './helper'
+import { ref, unref } from 'vue';
+
+import { deepMerge } from './helper';
 
 export function useForm(props?: Partial<FormProps>): UseFormReturnType {
-  const formRef = ref<FormActionType | null>(null)
-  const formProps = ref<Partial<FormProps>>(props || {})
+  const formRef = ref<FormActionType | null>(null);
+  const formProps = ref<Partial<FormProps>>(props || {});
 
   function register(instance: FormActionType) {
     if (instance) {
-      formRef.value = instance
-      instance.setProps(unref(formProps))
+      formRef.value = instance;
+      instance.setProps(unref(formProps));
     }
   }
 
   function getFormInstance(): FormActionType | null {
-    return unref(formRef)
+    return unref(formRef);
   }
 
   const methods: FormActionType = {
     getFieldsValue: () => {
-      const instance = getFormInstance()
-      return instance?.getFieldsValue() || {}
+      const instance = getFormInstance();
+      return instance?.getFieldsValue() || {};
     },
 
     setFieldsValue: async <T>(values: T) => {
-      const instance = getFormInstance()
+      const instance = getFormInstance();
       if (instance) {
-        await instance.setFieldsValue(values)
+        await instance.setFieldsValue(values);
       }
     },
 
     resetFields: async () => {
-      const instance = getFormInstance()
+      const instance = getFormInstance();
       if (instance) {
-        await instance.resetFields()
+        await instance.resetFields();
       }
     },
 
     validate: async (nameList?: NamePath[]) => {
-      const instance = getFormInstance()
+      const instance = getFormInstance();
       if (instance) {
-        return instance.validate(nameList)
+        return instance.validate(nameList);
       }
-      return {}
+      return {};
     },
 
     validateFields: async (nameList?: NamePath[]) => {
-      const instance = getFormInstance()
+      const instance = getFormInstance();
       if (instance) {
-        return instance.validateFields(nameList)
+        return instance.validateFields(nameList);
       }
-      return {}
+      return {};
     },
 
     submit: async () => {
-      const instance = getFormInstance()
+      const instance = getFormInstance();
       if (instance) {
-        await instance.submit()
+        await instance.submit();
       }
     },
 
     clearValidate: async (name?: string | string[]) => {
-      const instance = getFormInstance()
+      const instance = getFormInstance();
       if (instance) {
-        await instance.clearValidate(name)
+        await instance.clearValidate(name);
       }
     },
 
     scrollToField: async (name: NamePath, options?: ScrollIntoViewOptions) => {
-      const instance = getFormInstance()
+      const instance = getFormInstance();
       if (instance) {
-        await instance.scrollToField(name, options)
+        await instance.scrollToField(name, options);
       }
     },
 
     updateSchema: async (data: Partial<FormSchema> | Partial<FormSchema>[]) => {
-      const instance = getFormInstance()
+      const instance = getFormInstance();
       if (instance) {
-        await instance.updateSchema(data)
+        await instance.updateSchema(data);
       }
     },
 
     removeSchemaByField: async (field: string | string[]) => {
-      const instance = getFormInstance()
+      const instance = getFormInstance();
       if (instance) {
-        await instance.removeSchemaByField(field)
+        await instance.removeSchemaByField(field);
       }
     },
 
@@ -101,30 +101,30 @@ export function useForm(props?: Partial<FormProps>): UseFormReturnType {
       prefixField?: string,
       first?: boolean,
     ) => {
-      const instance = getFormInstance()
+      const instance = getFormInstance();
       if (instance) {
-        await instance.appendSchemaByField(schema, prefixField, first)
+        await instance.appendSchemaByField(schema, prefixField, first);
       }
     },
 
     setProps: async (newProps: Partial<FormProps>) => {
-      const instance = getFormInstance()
+      const instance = getFormInstance();
       if (instance) {
-        await instance.setProps(newProps)
+        await instance.setProps(newProps);
       }
       // 本地缓存：schemas 不参与合并，避免数组被拼接
-      const { schemas, ...rest } = newProps
-      formProps.value = deepMerge(formProps.value || {}, rest)
+      const { schemas, ...rest } = newProps;
+      formProps.value = deepMerge(formProps.value || {}, rest);
       if (schemas) {
-        formProps.value.schemas = schemas
+        formProps.value.schemas = schemas;
       }
     },
 
     getForm: () => {
-      const instance = getFormInstance()
-      return instance?.getForm() || null
+      const instance = getFormInstance();
+      return instance?.getForm() || null;
     },
-  }
+  };
 
-  return [register, methods]
+  return [register, methods];
 }

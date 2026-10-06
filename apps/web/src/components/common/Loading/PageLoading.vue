@@ -1,26 +1,26 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed } from 'vue';
 
-import { useAppStore } from '~/stores/modules/app'
-import { cn } from '~/utils/cn'
+import { useAppStore } from '~/stores/modules/app';
+import { cn } from '~/utils/cn';
 
-defineOptions({ name: 'PageLoading' })
+defineOptions({ name: 'PageLoading' });
 
 withDefaults(
   defineProps<{
     /** 是否显示 */
-    loading?: boolean
+    loading?: boolean;
     /** 加载提示文本 */
-    text?: string
+    text?: string;
   }>(),
   {
     loading: false,
     text: '页面加载中...',
   },
-)
+);
 
-const appStore = useAppStore()
-const isDark = computed(() => appStore.themeMode === 'dark')
+const appStore = useAppStore();
+const isDark = computed(() => appStore.themeMode === 'dark');
 
 /* ============================================================
  * 容器类名
@@ -31,7 +31,7 @@ const containerClassName = computed(() =>
     'backdrop-blur-sm',
     isDark.value ? 'bg-slate-950/70' : 'bg-white/70',
   ),
-)
+);
 </script>
 
 <template>

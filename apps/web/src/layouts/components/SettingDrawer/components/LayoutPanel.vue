@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import { Input } from 'antdv-next'
+import { Input } from 'antdv-next';
+import { LAYOUT_OPTIONS, LayoutIcon } from '~/layouts/components/LayoutIcon';
+import { useAppStore } from '~/stores/modules/app';
 
-import { LAYOUT_OPTIONS, LayoutIcon } from '~/layouts/components/LayoutIcon'
-import { useAppStore } from '~/stores/modules/app'
+import SettingGroup from './SettingGroup.vue';
+import SettingItem from './SettingItem.vue';
 
-import SettingGroup from './SettingGroup.vue'
-import SettingItem from './SettingItem.vue'
+defineOptions({ name: 'LayoutPanel' });
 
-defineOptions({ name: 'LayoutPanel' })
-
-const appStore = useAppStore()
+const appStore = useAppStore();
 </script>
 
 <template>

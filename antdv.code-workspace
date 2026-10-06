@@ -1,0 +1,56 @@
+{
+  "folders": [
+    {
+      "name": "@antdv/backend-mock",
+      "path": "apps/backend-mock"
+    },
+    {
+      "name": "@antdv/web",
+      "path": "apps/web"
+    },
+    {
+      "name": "@antdv/commitlint-config",
+      "path": "internal/lint-configs/commitlint-config"
+    },
+    {
+      "name": "@antdv/eslint-config",
+      "path": "internal/lint-configs/eslint-config"
+    },
+    {
+      "name": "@antdv/oxfmt-config",
+      "path": "internal/lint-configs/oxfmt-config"
+    },
+    {
+      "name": "@antdv/oxlint-config",
+      "path": "internal/lint-configs/oxlint-config"
+    },
+    {
+      "name": "@antdv/stylelint-config",
+      "path": "internal/lint-configs/stylelint-config"
+    },
+    {
+      "name": "@antdv/node-utils",
+      "path": "internal/node-utils"
+    },
+    {
+      "name": "@antdv/tsconfig",
+      "path": "internal/tsconfig"
+    },
+    {
+      "name": "@antdv/vite-config",
+      "path": "internal/vite-config"
+    },
+    {
+      "name": "@antdv/types",
+      "path": "packages/types"
+    },
+    {
+      "name": "@antdv/turbo-run",
+      "path": "scripts/turbo-run"
+    },
+    {
+      "name": "@antdv/vsh",
+      "path": "scripts/vsh"
+    }
+  ]
+}

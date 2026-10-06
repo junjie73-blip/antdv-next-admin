@@ -8,21 +8,26 @@
  * 3. 恢复生成接口的清单条目：定义持久化在 store 里，重启后仍需出现在面板中。
  */
 
-import { defineNitroPlugin, useRuntimeConfig } from '#imports'
-import { generatedFileOf, moduleOf, splitKey } from '../utils/route-meta'
-import { buildSourceManifest } from '../utils/registry'
-import { listGenerated, registerManifest, setPersistFile } from '../utils/store'
+import { defineNitroPlugin, useRuntimeConfig } from '#imports';
+
+import { buildSourceManifest } from '../utils/registry';
+import { generatedFileOf, moduleOf, splitKey } from '../utils/route-meta';
+import {
+  listGenerated,
+  registerManifest,
+  setPersistFile,
+} from '../utils/store';
 
 export default defineNitroPlugin(() => {
   // 先定路径再碰 store，避免首次 getStore() 读到错误的持久化文件
-  setPersistFile(String(useRuntimeConfig().stateFile ?? '.mock-state.json'))
+  setPersistFile(String(useRuntimeConfig().stateFile ?? '.mock-state.json'));
 
-  registerManifest(buildSourceManifest())
+  registerManifest(buildSourceManifest());
 
-  const generated = listGenerated()
+  const generated = listGenerated();
   registerManifest(
     generated.map((item) => {
-      const { method, path } = splitKey(item.key)
+      const { method, path } = splitKey(item.key);
       return {
         duplicates: [],
         file: generatedFileOf(item.id),
@@ -32,7 +37,7 @@ export default defineNitroPlugin(() => {
         path,
         source: 'generated' as const,
         title: item.title,
-      }
+      };
     }),
-  )
-})
+  );
+});

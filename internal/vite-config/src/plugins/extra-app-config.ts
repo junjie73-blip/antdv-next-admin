@@ -4,7 +4,7 @@ import {
   colors,
   generatorContentHash,
   readPackageJSON,
-} from '@antdv-admin/node-utils';
+} from '@antdv/node-utils';
 
 import { loadEnv } from '../utils/env';
 
@@ -73,7 +73,7 @@ async function viteExtraAppConfigPlugin({
 }
 
 async function getConfigSource(mode: string) {
-  const config =  loadEnv(mode);
+  const config = loadEnv(mode);
   const windowVariable = `window.${ADV_ADMIN_PRO_APP_CONF}`;
   // 确保变量不会被修改
   let source = `${windowVariable}=${JSON.stringify(config)};`;

@@ -1,8 +1,8 @@
-import type { Ref } from 'vue'
+import type { Ref } from 'vue';
 
-import { ref } from 'vue'
+import type { BasicTableProps, TableActionType } from './types';
 
-import type { BasicTableProps, TableActionType } from './types'
+import { ref } from 'vue';
 
 /**
  * useTable Hook
@@ -23,19 +23,19 @@ import type { BasicTableProps, TableActionType } from './types'
  */
 export function useTable(
   props?: Partial<BasicTableProps>,
-): [(instance: TableActionType) => void, Ref<TableActionType | null>] {
+): [(instance: TableActionType) => void, Ref<null | TableActionType>] {
   // 表格实例引用
-  const tableRef = ref<TableActionType | null>(null)
+  const tableRef = ref<null | TableActionType>(null);
 
   // 注册方法
   function register(instance: TableActionType) {
-    tableRef.value = instance
+    tableRef.value = instance;
 
     // 如果传入了初始 props，设置到表格实例
     if (props) {
-      instance.setProps(props)
+      instance.setProps(props);
     }
   }
 
-  return [register, tableRef]
+  return [register, tableRef];
 }

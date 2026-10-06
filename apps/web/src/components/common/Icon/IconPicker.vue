@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { Icon, loadIcons } from '@iconify/vue'
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
+
+import { Icon, loadIcons } from '@iconify/vue';
 
 interface Props {
-  currentIcon?: string
-  placeholder?: string
-  disabled?: boolean
-  size?: 'small' | 'middle' | 'large'
-  allowClear?: boolean
+  currentIcon?: string;
+  placeholder?: string;
+  disabled?: boolean;
+  size?: 'large' | 'middle' | 'small';
+  allowClear?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -16,26 +17,26 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   size: 'middle',
   allowClear: true,
-})
-
-/** v-model 简化：直接读写，无需手动 emit update:modelValue */
-const modelValue = defineModel<string>({ default: '' })
+});
 
 const emit = defineEmits<{
-  change: [value: string]
-  select: [value: string]
-}>()
+  change: [value: string];
+  select: [value: string];
+}>();
 
-const PAGE_SIZE = 108
-const SCROLLER_HEIGHT = 360
+/** v-model 简化：直接读写，无需手动 emit update:modelValue */
+const modelValue = defineModel<string>({ default: '' });
 
-type Prefix = 'lucide' | 'mdi' | 'ant-design' | 'fa6-regular' | 'carbon'
+const PAGE_SIZE = 108;
+const SCROLLER_HEIGHT = 360;
+
+type Prefix = 'ant-design' | 'carbon' | 'fa6-regular' | 'lucide' | 'mdi';
 
 interface CollectionMeta {
-  prefix: Prefix
-  name: string
+  prefix: Prefix;
+  name: string;
   /** 说明性描述，仅显示在 select option 里 */
-  hint: string
+  hint: string;
 }
 
 const COLLECTIONS: CollectionMeta[] = [
@@ -44,7 +45,7 @@ const COLLECTIONS: CollectionMeta[] = [
   { prefix: 'ant-design', name: 'Ant Design', hint: 'Antd' },
   { prefix: 'fa6-regular', name: 'Font Awesome', hint: 'FA Regular' },
   { prefix: 'carbon', name: 'Carbon', hint: 'Carbon Icons' },
-]
+];
 
 /**
  * 图标集 lazily loader
@@ -60,19 +61,19 @@ const COLLECTION_LOADERS: Record<
   'ant-design': () => import('@iconify-json/ant-design/icons.json') as any,
   'fa6-regular': () => import('@iconify-json/fa6-regular/icons.json') as any,
   carbon: () => import('@iconify-json/carbon/icons.json') as any,
-}
+};
 
-const visible = ref(false)
-const searchValue = ref('')
-const selectedPrefix = ref<Prefix>('lucide')
-const currentPage = ref(1)
-const loading = ref(false)
+const visible = ref(false);
+const searchValue = ref('');
+const selectedPrefix = ref<Prefix>('lucide');
+const currentPage = ref(1);
+const loading = ref(false);
 
 /** 已加载的图标名（按 prefix 分组缓存） */
-const iconNamesMap = ref<Record<string, string[]>>({})
-const loadingPrefixes = new Set<Prefix>()
+const iconNamesMap = ref<Record<string, string[]>>({});
+const loadingPrefixes = new Set<Prefix>();
 
-const selectedIcon = computed(() => modelValue.value || props.currentIcon)
+const selectedIcon = computed(() => modelValue.value || props.currentIcon);
 
 /**
  * 加载某个分类的图标名列表
@@ -80,18 +81,18 @@ const selectedIcon = computed(() => modelValue.value || props.currentIcon)
  * - 加载中不重复请求
  */
 async function loadCollection(prefix: Prefix): Promise<void> {
-  if (iconNamesMap.value[prefix] || loadingPrefixes.has(prefix)) return
-  loadingPrefixes.add(prefix)
+  if (iconNamesMap.value[prefix] || loadingPrefixes.has(prefix)) return;
+  loadingPrefixes.add(prefix);
   try {
-    const mod = await COLLECTION_LOADERS[prefix]()
-    const icons = mod.default?.icons ?? {}
-    const names = Object.keys(icons)
-    iconNamesMap.value = { ...iconNamesMap.value, [prefix]: names }
-  } catch (e) {
-    console.error(`[IconPicker] 加载图标集 "${prefix}" 失败:`, e)
-    iconNamesMap.value = { ...iconNamesMap.value, [prefix]: [] }
+    const mod = await COLLECTION_LOADERS[prefix]();
+    const icons = mod.default?.icons ?? {};
+    const names = Object.keys(icons);
+    iconNamesMap.value = { ...iconNamesMap.value, [prefix]: names };
+  } catch (error) {
+    console.error(`[IconPicker] 加载图标集 "${prefix}" 失败:`, error);
+    iconNamesMap.value = { ...iconNamesMap.value, [prefix]: [] };
   } finally {
-    loadingPrefixes.delete(prefix)
+    loadingPrefixes.delete(prefix);
   }
 }
 
@@ -100,94 +101,94 @@ async function loadCollection(prefix: Prefix): Promise<void> {
  * 搜索只在当前分类内进行，不跨分类
  */
 const currentIcons = computed(() => {
-  const names = iconNamesMap.value[selectedPrefix.value] ?? []
-  const q = searchValue.value.trim().toLowerCase()
-  const filtered = q ? names.filter((n) => n.toLowerCase().includes(q)) : names
-  return filtered.map((n) => `${selectedPrefix.value}:${n}`)
-})
+  const names = iconNamesMap.value[selectedPrefix.value] ?? [];
+  const q = searchValue.value.trim().toLowerCase();
+  const filtered = q ? names.filter((n) => n.toLowerCase().includes(q)) : names;
+  return filtered.map((n) => `${selectedPrefix.value}:${n}`);
+});
 
 const pagedIcons = computed(() => {
-  const start = (currentPage.value - 1) * PAGE_SIZE
-  return currentIcons.value.slice(start, start + PAGE_SIZE)
-})
+  const start = (currentPage.value - 1) * PAGE_SIZE;
+  return currentIcons.value.slice(start, start + PAGE_SIZE);
+});
 
-const totalCount = computed(() => currentIcons.value.length)
+const totalCount = computed(() => currentIcons.value.length);
 
 /**
  * 预加载当前页图标的 SVG（Iconify 内部有缓存，翻页不会重复请求）
  * 用 50ms 防抖，避免快速翻页时对每一页都发请求
  */
-let preloadTimer: ReturnType<typeof setTimeout> | null = null
+let preloadTimer: null | ReturnType<typeof setTimeout> = null;
 function schedulePreload(icons: string[]) {
-  if (preloadTimer) clearTimeout(preloadTimer)
+  if (preloadTimer) clearTimeout(preloadTimer);
   preloadTimer = setTimeout(() => {
-    if (icons.length) {
-      loadIcons(icons)
+    if (icons.length > 0) {
+      loadIcons(icons);
     }
-  }, 50)
+  }, 50);
 }
 
-watch(pagedIcons, (icons) => schedulePreload(icons))
+watch(pagedIcons, (icons) => schedulePreload(icons));
 
 // 切换分类：重置搜索/页码，并加载该分类
 watch(selectedPrefix, async (prefix) => {
-  searchValue.value = ''
-  currentPage.value = 1
+  searchValue.value = '';
+  currentPage.value = 1;
   if (!iconNamesMap.value[prefix]) {
-    loading.value = true
-    await loadCollection(prefix)
-    loading.value = false
+    loading.value = true;
+    await loadCollection(prefix);
+    loading.value = false;
   }
-})
+});
 
 // 搜索时回到第 1 页
 watch(searchValue, () => {
-  currentPage.value = 1
-})
+  currentPage.value = 1;
+});
 
 // 首次打开时加载默认分类
 watch(visible, async (val) => {
-  if (!val) return
-  const prefix = selectedPrefix.value
+  if (!val) return;
+  const prefix = selectedPrefix.value;
   if (!iconNamesMap.value[prefix]) {
-    loading.value = true
-    await loadCollection(prefix)
-    loading.value = false
+    loading.value = true;
+    await loadCollection(prefix);
+    loading.value = false;
   }
-})
+});
 
 onBeforeUnmount(() => {
-  if (preloadTimer) clearTimeout(preloadTimer)
-})
+  if (preloadTimer) clearTimeout(preloadTimer);
+});
 
 function handleSelect(icon: string) {
-  modelValue.value = icon
-  emit('change', icon)
-  emit('select', icon)
-  visible.value = false
+  modelValue.value = icon;
+  emit('change', icon);
+  emit('select', icon);
+  visible.value = false;
 }
 
 function handleClear(e: MouseEvent) {
-  e.stopPropagation()
-  modelValue.value = ''
-  emit('change', '')
+  e.stopPropagation();
+  modelValue.value = '';
+  emit('change', '');
 }
 
 function iconBtnClass(icon: string) {
-  const isActive = selectedIcon.value === icon
+  const isActive = selectedIcon.value === icon;
   return [
     'flex items-center justify-center w-9 h-9 rounded-md',
     'transition-colors duration-100 cursor-pointer',
     isActive
       ? 'bg-blue-500 text-white hover:bg-blue-500'
       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white',
-  ]
+  ];
 }
 
 const prefixOptions = COLLECTIONS.map((c) => ({
   label: c.name,
   value: c.prefix,
-}))
+}));
 </script>
 
 <template>

@@ -1,151 +1,151 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref } from 'vue';
 
-import { cn } from '~/utils/cn'
+import { cn } from '~/utils/cn';
 
 // ==================== 类型定义 ====================
 interface Product {
-  id: number
-  name: string
-  description: string
-  price: number
-  image: string
-  tag: string
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  tag: string;
 }
 
 interface StatCard {
-  title: string
-  value: string | number
-  icon: string
-  trend: 'up' | 'down'
-  trendValue: string
-  color: string
+  title: string;
+  value: number | string;
+  icon: string;
+  trend: 'down' | 'up';
+  trendValue: string;
+  color: string;
 }
 
 // ==================== 样式类名（全部在 script 中定义） ====================
-const containerClassName = cn('space-y-6')
+const containerClassName = cn('space-y-6');
 const grid3ColClassName = cn(
-  'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5',
-)
+  'grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3',
+);
 const grid4ColClassName = cn(
-  'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5',
-)
+  'grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4',
+);
 
 // 基础卡片内部样式
 const cardCoverClassName = cn(
-  'h-40 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-400',
+  'h-40 rounded-lg bg-linear-to-br from-blue-500 to-cyan-400',
   'mb-4 flex items-center justify-center',
-)
+);
 const cardTitleClassName = cn(
-  'text-base font-semibold text-gray-800 dark:text-gray-100 mb-2 line-clamp-1',
-)
+  'mb-2 line-clamp-1 text-base font-semibold text-gray-800 dark:text-gray-100',
+);
 const cardDescClassName = cn(
-  'text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2',
-)
+  'mb-4 line-clamp-2 text-sm text-gray-500 dark:text-gray-400',
+);
 const cardFooterClassName = cn(
   'flex items-center justify-between pt-3',
   'border-t border-gray-100 dark:border-gray-800',
-)
-const priceClassName = cn('text-lg font-bold text-red-500')
+);
+const priceClassName = cn('text-lg font-bold text-red-500');
 const tagClassName = cn(
-  'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
+  'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
   'bg-blue-50 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
-)
+);
 
 // 统计卡片样式
 const statCardClassName = cn(
-  'rounded-xl border border-gray-200 dark:border-gray-700 p-5',
-  'bg-white dark:bg-gray-800/50 transition-all duration-200',
-  'hover:shadow-md hover:border-transparent',
-)
-const statIconClassName = cn('text-2xl')
+  'rounded-xl border border-gray-200 p-5 dark:border-gray-700',
+  'bg-white transition-all duration-200 dark:bg-gray-800/50',
+  'hover:border-transparent hover:shadow-md',
+);
+const statIconClassName = cn('text-2xl');
 const statValueClassName = cn(
-  'text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1',
-)
-const statLabelClassName = cn('text-sm text-gray-500 dark:text-gray-400')
+  'mb-1 text-2xl font-bold text-gray-800 dark:text-gray-100',
+);
+const statLabelClassName = cn('text-sm text-gray-500 dark:text-gray-400');
 const trendUpClassName = cn(
-  'inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full',
+  'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
   'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400',
-)
+);
 const trendDownClassName = cn(
-  'inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full',
+  'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
   'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400',
-)
+);
 
 // 悬停效果卡片样式
 const hoverCardClassName = cn(
-  'rounded-xl border border-gray-200 dark:border-gray-700 p-5',
-  'bg-white dark:bg-gray-800/50 transition-all duration-300 ease-in-out',
-  'hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/10 hover:scale-[1.02]',
+  'rounded-xl border border-gray-200 p-5 dark:border-gray-700',
+  'bg-white transition-all duration-300 ease-in-out dark:bg-gray-800/50',
+  'hover:-translate-y-1 hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/10',
   'cursor-pointer',
-)
+);
 const hoverCoverClassName = cn(
-  'h-24 rounded-lg bg-gradient-to-br from-purple-500 to-pink-400 mb-3',
-)
+  'mb-3 h-24 rounded-lg bg-gradient-to-br from-purple-500 to-pink-400',
+);
 const hoverTitleClassName = cn(
-  'font-semibold text-gray-800 dark:text-gray-100 mb-1',
-)
+  'mb-1 font-semibold text-gray-800 dark:text-gray-100',
+);
 const hoverDescClassName = cn(
-  'text-xs text-gray-500 dark:text-gray-400 line-clamp-1',
-)
+  'line-clamp-1 text-xs text-gray-500 dark:text-gray-400',
+);
 
 // 筛选区域样式
-const filterSectionClassName = cn('mb-5 space-y-3')
-const categoryGroupClassName = cn('flex flex-wrap gap-2')
+const filterSectionClassName = cn('mb-5 space-y-3');
+const categoryGroupClassName = cn('flex flex-wrap gap-2');
 
 // 筛选结果卡片样式（横向布局）
 const filterCardCoverClassName = cn(
-  'w-16 h-16 rounded-lg bg-gradient-to-br shrink-0',
-)
+  'h-16 w-16 shrink-0 rounded-lg bg-gradient-to-br',
+);
 const filterCardTitleClassName = cn(
-  'font-semibold text-sm text-gray-800 dark:text-gray-100 truncate',
-)
+  'truncate text-sm font-semibold text-gray-800 dark:text-gray-100',
+);
 const filterCardDescClassName = cn(
-  'text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-2',
-)
+  'mb-2 line-clamp-2 text-xs text-gray-500 dark:text-gray-400',
+);
 const filterCardMetaClassName = cn(
   'flex items-center gap-3 text-xs text-gray-400',
-)
+);
 
 // 加载更多区域样式
 const loadMoreInfoClassName = cn(
-  'text-sm text-gray-500 dark:text-gray-400 mb-4',
-)
-const loadMoreCenterClassName = cn('mt-5 text-center')
-const loadMoreDoneClassName = cn('mt-5 text-center text-sm text-gray-400')
+  'mb-4 text-sm text-gray-500 dark:text-gray-400',
+);
+const loadMoreCenterClassName = cn('mt-5 text-center');
+const loadMoreDoneClassName = cn('mt-5 text-center text-sm text-gray-400');
 const loadMoreCoverClassName = cn(
-  'h-28 rounded-lg bg-gradient-to-br from-green-500 to-emerald-400',
+  'h-28 rounded-lg bg-linear-to-br from-green-500 to-emerald-400',
   'mb-3 flex items-center justify-center',
-)
-const loadMoreIndexClassName = cn('text-white/90 font-semibold')
-const loadMoreMetaClassName = cn('text-xs text-gray-500 dark:text-gray-400')
+);
+const loadMoreIndexClassName = cn('font-semibold text-white/90');
+const loadMoreMetaClassName = cn('text-xs text-gray-500 dark:text-gray-400');
 
 // 瀑布流布局样式
 const masonryClassName = cn(
-  'columns-1 md:columns-2 lg:columns-3 gap-5 space-y-5',
-)
+  'columns-1 gap-5 space-y-5 md:columns-2 lg:columns-3',
+);
 const masonryItemClassName = cn(
-  'break-inside-avoid mb-5 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden',
-  'bg-white dark:bg-gray-800/50 transition-shadow duration-200 hover:shadow-lg',
-)
-const masonryCoverBaseClassName = cn('bg-gradient-to-br flex items-end p-4')
+  'mb-5 break-inside-avoid overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700',
+  'bg-white transition-shadow duration-200 hover:shadow-lg dark:bg-gray-800/50',
+);
+const masonryCoverBaseClassName = cn('flex items-end bg-gradient-to-br p-4');
 const masonryCategoryBadgeClassName = cn(
-  'text-white/90 text-sm font-medium backdrop-blur-sm bg-black/20 px-2 py-1 rounded',
-)
-const masonryContentClassName = cn('p-4')
+  'rounded bg-black/20 px-2 py-1 text-sm font-medium text-white/90 backdrop-blur-sm',
+);
+const masonryContentClassName = cn('p-4');
 const masonryTitleClassName = cn(
-  'font-semibold text-gray-800 dark:text-gray-100 mb-2',
-)
+  'mb-2 font-semibold text-gray-800 dark:text-gray-100',
+);
 const masonryDescClassName = cn(
-  'text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-3',
-)
+  'mb-3 text-sm leading-relaxed text-gray-500 dark:text-gray-400',
+);
 const masonryFooterClassName = cn(
   'flex items-center justify-between text-xs text-gray-400',
-)
-const masonryMetaGroupClassName = cn('flex items-center gap-3')
+);
+const masonryMetaGroupClassName = cn('flex items-center gap-3');
 
 // 提示文字样式
-const sectionTipClassName = cn('text-sm text-gray-500 dark:text-gray-400 mb-4')
+const sectionTipClassName = cn('mb-4 text-sm text-gray-500 dark:text-gray-400');
 
 // ==================== 模拟数据 ====================
 
@@ -232,7 +232,7 @@ const productList = ref<Product[]>([
     image: '',
     tag: '推荐',
   },
-])
+]);
 
 /** 统计卡片数据 */
 const statCards = ref<StatCard[]>([
@@ -268,7 +268,7 @@ const statCards = ref<StatCard[]>([
     trendValue: '-3.2%',
     color: 'text-orange-600',
   },
-])
+]);
 
 /** 产品封面渐变色映射 */
 const coverGradients = [
@@ -281,49 +281,49 @@ const coverGradients = [
   'from-teal-500 to-cyan-400',
   'from-amber-500 to-orange-400',
   'from-fuchsia-500 to-pink-400',
-]
+];
 
 function getCoverGradient(index: number): string {
-  return coverGradients[index % coverGradients.length]
+  return coverGradients[index % coverGradients.length];
 }
 
 // ==================== 可筛选列表逻辑 ====================
-const searchQuery = ref('')
-const activeCategory = ref<string>('全部')
+const searchQuery = ref('');
+const activeCategory = ref<string>('全部');
 const categoryList = computed(() => {
-  const tags = new Set(productList.value.map((item) => item.tag))
-  return ['全部', ...tags]
-})
+  const tags = new Set(productList.value.map((item) => item.tag));
+  return ['全部', ...tags];
+});
 
 const filteredProducts = computed(() => {
-  let result = productList.value
+  let result = productList.value;
   if (activeCategory.value !== '全部') {
-    result = result.filter((item) => item.tag === activeCategory.value)
+    result = result.filter((item) => item.tag === activeCategory.value);
   }
   if (searchQuery.value.trim()) {
-    const query = searchQuery.value.toLowerCase()
+    const query = searchQuery.value.toLowerCase();
     result = result.filter(
       (item) =>
         item.name.toLowerCase().includes(query) ||
         item.description.toLowerCase().includes(query),
-    )
+    );
   }
-  return result
-})
+  return result;
+});
 
 // ==================== 加载更多逻辑 ====================
-const displayCount = ref(6)
-const LOAD_MORE_STEP = 3
+const displayCount = ref(6);
+const LOAD_MORE_STEP = 3;
 const displayedProducts = computed(() =>
   productList.value.slice(0, displayCount.value),
-)
-const hasMore = computed(() => displayCount.value < productList.value.length)
+);
+const hasMore = computed(() => displayCount.value < productList.value.length);
 
 function handleLoadMore() {
   displayCount.value = Math.min(
     displayCount.value + LOAD_MORE_STEP,
     productList.value.length,
-  )
+  );
 }
 </script>
 
@@ -415,7 +415,7 @@ function handleLoadMore() {
                 `bg-gradient-to-br ${getCoverGradient(index + 2)}`,
               )
             "
-          />
+          ></div>
           <h4 :class="hoverTitleClassName">
             {{ product.name }}
           </h4>
@@ -465,7 +465,7 @@ function handleLoadMore() {
                     `bg-gradient-to-br ${getCoverGradient(index)}`,
                   )
                 "
-              />
+              ></div>
               <div class="min-w-0 flex-1">
                 <div class="mb-1 flex items-center gap-2">
                   <h4 :class="filterCardTitleClassName">
@@ -507,9 +507,7 @@ function handleLoadMore() {
               )
             "
           >
-            <span :class="loadMoreIndexClassName"
-              >#{{ String(product.id).padStart(2, '0') }}</span
-            >
+            <span :class="loadMoreIndexClassName">#{{ String(product.id).padStart(2, '0') }}</span>
           </div>
           <h4 :class="hoverTitleClassName">
             {{ product.name }}

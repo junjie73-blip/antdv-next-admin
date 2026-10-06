@@ -1,90 +1,84 @@
 <script setup lang="tsx">
-import type { BreadcrumbProps, MenuProps } from 'antdv-next'
+import type { BreadcrumbProps, MenuProps } from 'antdv-next';
 
-import { Icon } from '@iconify/vue'
-import { Dropdown, notification } from 'antdv-next'
-import {
-  computed,
-  defineAsyncComponent,
-  h,
-  onUnmounted,
-  ref,
-} from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, defineAsyncComponent, h, onUnmounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
-import { useAppStore } from '~/stores/modules/app'
-import { useUserStore } from '~/stores/modules/user'
-import { eventBus } from '~/utils'
-import { cn } from '~/utils/cn'
+import { Icon } from '@iconify/vue';
+import { Dropdown } from 'antdv-next';
+import { useAppStore } from '~/stores/modules/app';
+import { useUserStore } from '~/stores/modules/user';
+import { eventBus } from '~/utils';
+import { cn } from '~/utils/cn';
 
-import { useBreadcrumb } from '../composables/useLayout'
-import { useHeaderMenu } from '../composables/useHeaderMenu'
-import { useVisibleWidgets } from '../widgets'
-import AccountDrawer from './AccountDrawer.vue'
-import HeaderMenu from './HeaderMenu.vue'
-import SettingDrawer from './SettingDrawer/index.vue'
-
-const props = defineProps<{
-  /** 显示侧边栏折叠触发按钮（水平布局没有侧边栏，故不显示） */
-  showCollapseTrigger?: boolean
-}>()
+import { useHeaderMenu } from '../composables/useHeaderMenu';
+import { useBreadcrumb } from '../composables/useLayout';
+import { useVisibleWidgets } from '../widgets';
+import AccountDrawer from './AccountDrawer.vue';
+import HeaderMenu from './HeaderMenu.vue';
+import SettingDrawer from './SettingDrawer/index.vue';
 
 defineOptions({
   name: 'LayoutHeader',
-})
+});
 
-const router = useRouter()
-const appStore = useAppStore()
-const userStore = useUserStore()
-const { breadcrumbs } = useBreadcrumb()
-const unreadCount = ref(0)
-const showSetting = ref(false)
-const showNotification = ref(false)
-const accountDrawerRef = ref<InstanceType<typeof AccountDrawer> | null>(null)
-const appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
-const visibleWidgets = computed(() => useVisibleWidgets())
+const props = defineProps<{
+  /** 显示侧边栏折叠触发按钮（水平布局没有侧边栏，故不显示） */
+  showCollapseTrigger?: boolean;
+}>();
+
+const router = useRouter();
+const appStore = useAppStore();
+const userStore = useUserStore();
+const { breadcrumbs } = useBreadcrumb();
+const unreadCount = ref(0);
+const showSetting = ref(false);
+const showNotification = ref(false);
+const accountDrawerRef = ref<InstanceType<typeof AccountDrawer> | null>(null);
+const appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin';
+const visibleWidgets = computed(() => useVisibleWidgets());
 // ========== 获取通知列表（头部小弹窗） ==========
-const isGeekStyle = computed(() => appStore.themeStyle === 'geek')
+const isGeekStyle = computed(() => appStore.themeStyle === 'geek');
 const isDarkMode = computed(
   () => appStore.themeMode === 'dark' || isGeekStyle.value,
-)
+);
 /** 顶部导航栏的主题跟随整体配色 */
-const menuTheme = computed<'light' | 'dark'>(() =>
+const menuTheme = computed<'dark' | 'light'>(() =>
   appStore.darkHeader || isDarkMode.value ? 'dark' : 'light',
-)
+);
 
-const isHorizontal = computed(() => appStore.layout === 'horizontal')
-const isMixed = computed(() => appStore.layout === 'mixed')
+const isHorizontal = computed(() => appStore.layout === 'horizontal');
+const isMixed = computed(() => appStore.layout === 'mixed');
 
-const { menuItems, selectedKeys, activeIndex, handleSelect } = useHeaderMenu()
+const { menuItems, selectedKeys, activeIndex, handleSelect } = useHeaderMenu();
 
 /** HeaderMenu 只回传 key，导航逻辑在 composable 里统一处理 */
 function onHeaderSelect(key: string) {
-  handleSelect({ key })
+  handleSelect({ key });
 }
 
 const headerClassName = computed(() =>
   cn(
-    'h-14 px-6 flex items-center justify-between',
-    'border-b shadow-sm flex-shrink-0',
+    'flex h-14 items-center justify-between px-6',
+    'flex-shrink-0 border-b shadow-sm',
     isGeekStyle.value
-      ? 'bg-[#0a0a0a] border-[#1a1a1a] text-[#00ff88]'
+      ? 'border-[#1a1a1a] bg-[#0a0a0a] text-[#00ff88]'
       : isDarkMode.value
-        ? 'bg-gray-800 border-gray-700 text-white'
-        : 'bg-white border-gray-200 text-gray-800',
+        ? 'border-gray-700 bg-gray-800 text-white'
+        : 'border-gray-200 bg-white text-gray-800',
   ),
-)
+);
 
 const breadcrumbItems = computed<BreadcrumbProps['items']>(() => {
   return breadcrumbs.value.map((item) => ({
     title: item.title,
     path: item.path,
-  }))
-})
+  }));
+});
 
 const triggerClassName = computed(() =>
   cn(
-    'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+    'flex size-8  shrink-0 items-center justify-center rounded-lg',
     'transition-colors duration-200',
     isGeekStyle.value
       ? 'text-[#00ff88] hover:bg-[#00ff88]/10'
@@ -92,7 +86,7 @@ const triggerClassName = computed(() =>
         ? 'text-gray-300 hover:bg-gray-700'
         : 'text-gray-500 hover:bg-gray-100',
   ),
-)
+);
 
 const userDropdownItems: MenuProps['items'] = [
   {
@@ -105,30 +99,30 @@ const userDropdownItems: MenuProps['items'] = [
     label: '文档中心',
     icon: () => h(Icon, { icon: 'carbon:book' }),
   },
-]
+];
 /** 需要额外事件的组件 */
 function handleWidgetEvent(key: string) {
-  if (key === 'preferences') showSetting.value = true
-  if (key === 'search') showNotification.value = true
+  if (key === 'preferences') showSetting.value = true;
+  if (key === 'search') showNotification.value = true;
 }
 function handleUserMenuClick({ key }: { key: string }) {
   if (key === 'profile') {
-    accountDrawerRef.value?.open('center')
+    accountDrawerRef.value?.open('center');
   } else if (key === 'docs') {
-    window.open('https://junjie73-blip.github.io/antdv-next-admin/', '_blank')
+    window.open('https://junjie73-blip.github.io/antdv-next-admin/', '_blank');
   }
 }
 
 function handleBreadcrumbClick(path: string) {
-  router.push(path)
+  router.push(path);
 }
 
-const timer = ref<NodeJS.Timeout>()
+const timer = ref<NodeJS.Timeout>();
 
 onUnmounted(() => {
-  clearInterval(timer.value)
-  eventBus.clear()
-})
+  clearInterval(timer.value);
+  eventBus.clear();
+});
 </script>
 
 <template>
@@ -184,9 +178,7 @@ onUnmounted(() => {
         <div
           class="flex shrink-0 items-center gap-2"
           :class="
-            isMixed
-              ? 'border-r border-gray-200 pr-4 dark:border-gray-700'
-              : ''
+            isMixed ? 'border-r border-gray-200 pr-4 dark:border-gray-700' : ''
           "
         >
           <Icon

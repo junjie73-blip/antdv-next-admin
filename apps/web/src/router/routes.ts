@@ -1,4 +1,4 @@
-import type { AppRouteRecordRaw } from '@antdv-admin/types'
+import type { AppRouteRecordRaw } from '@antdv/types';
 export const constantRoutes: AppRouteRecordRaw[] = [
   {
     path: '/',
@@ -28,7 +28,7 @@ export const constantRoutes: AppRouteRecordRaw[] = [
       layout: 'blank',
     },
   },
-]
+];
 
 export const catchAllRoute: AppRouteRecordRaw = {
   path: '/:pathMatch(.*)*',
@@ -39,4 +39,4 @@ export const catchAllRoute: AppRouteRecordRaw = {
     hidden: true,
     layout: 'blank',
   },
-}
+};

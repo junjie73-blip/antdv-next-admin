@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import type { Editor } from '@tiptap/vue-3'
+import type { Editor } from '@tiptap/vue-3';
 
-import { isNil } from 'es-toolkit'
-import { computed } from 'vue'
+import type { MarkdownEditorToolbarKey } from '../types';
 
-import type { MarkdownEditorToolbarKey } from '../types'
+import { computed } from 'vue';
+
+import { isNil } from 'es-toolkit';
 
 import {
   BACKGROUND_COLORS,
@@ -13,40 +14,40 @@ import {
   HEADER_OPTIONS,
   LINE_HEIGHTS,
   TEXT_COLORS,
-} from '../constants'
-import ColorPanel from './ColorPanel.vue'
-import LinkPanel from './LinkPanel.vue'
-import TableGridPicker from './TableGridPicker.vue'
-import ToolbarButton from './ToolbarButton.vue'
-import ToolbarDropdown from './ToolbarDropdown.vue'
-import ToolbarOptionPanel from './ToolbarOptionPanel.vue'
+} from '../constants';
+import ColorPanel from './ColorPanel.vue';
+import LinkPanel from './LinkPanel.vue';
+import TableGridPicker from './TableGridPicker.vue';
+import ToolbarButton from './ToolbarButton.vue';
+import ToolbarDropdown from './ToolbarDropdown.vue';
+import ToolbarOptionPanel from './ToolbarOptionPanel.vue';
 
 const props = defineProps<{
-  editor?: Editor
-  keys: MarkdownEditorToolbarKey[]
-  disabled?: boolean
-  fullScreen?: boolean
-}>()
+  editor?: Editor;
+  keys: MarkdownEditorToolbarKey[];
+  disabled?: boolean;
+  fullScreen?: boolean;
+}>();
 
 const emit = defineEmits<{
-  uploadImage: []
-  uploadVideo: []
-  toggleFullScreen: []
-}>()
+  uploadImage: [];
+  uploadVideo: [];
+  toggleFullScreen: [];
+}>();
 
-const HEADING_LEVELS = [1, 2, 3, 4, 5] as const
-type HeadingLevel = (typeof HEADING_LEVELS)[number]
+const HEADING_LEVELS = [1, 2, 3, 4, 5] as const;
+type HeadingLevel = (typeof HEADING_LEVELS)[number];
 
 /* ============================================================
  * 纯图标按钮
  * ============================================================ */
 
 interface ToolbarAction {
-  icon: string
-  title: string
-  active?: (editor: Editor) => boolean
-  enabled?: (editor: Editor) => boolean
-  run: (editor: Editor) => void
+  icon: string;
+  title: string;
+  active?: (editor: Editor) => boolean;
+  enabled?: (editor: Editor) => boolean;
+  run: (editor: Editor) => void;
 }
 
 const ACTIONS: Partial<Record<MarkdownEditorToolbarKey, ToolbarAction>> = {
@@ -129,24 +130,24 @@ const ACTIONS: Partial<Record<MarkdownEditorToolbarKey, ToolbarAction>> = {
     enabled: (editor) => editor.can().redo(),
     run: (editor) => editor.chain().focus().redo().run(),
   },
-}
+};
 
 interface ToolbarItem {
-  key: MarkdownEditorToolbarKey
-  action: ToolbarAction | null
-  active: boolean
-  disabled: boolean
+  key: MarkdownEditorToolbarKey;
+  action: null | ToolbarAction;
+  active: boolean;
+  disabled: boolean;
 }
 
 const items = computed<ToolbarItem[]>(() =>
   props.keys.map((key) => {
-    const action = ACTIONS[key]
+    const action = ACTIONS[key];
 
     if (!action) {
-      return { key, action: null, active: false, disabled: false }
+      return { key, action: null, active: false, disabled: false };
     }
 
-    const editor = props.editor
+    const editor = props.editor;
     return {
       key,
       action,
@@ -156,13 +157,13 @@ const items = computed<ToolbarItem[]>(() =>
         !editor ||
         (action.enabled && !action.enabled(editor)),
       ),
-    }
+    };
   }),
-)
+);
 
 function runAction(action: ToolbarAction) {
-  if (!props.editor) return
-  action.run(props.editor)
+  if (!props.editor) return;
+  action.run(props.editor);
 }
 
 /* ============================================================
@@ -170,131 +171,131 @@ function runAction(action: ToolbarAction) {
  * ============================================================ */
 
 function readTextStyle(
-  name: 'fontSize' | 'fontFamily' | 'color' | 'backgroundColor',
+  name: 'backgroundColor' | 'color' | 'fontFamily' | 'fontSize',
 ): string {
-  const editor = props.editor
-  if (isNil(editor)) return ''
-  return (editor.getAttributes('textStyle')[name] as string | undefined) ?? ''
+  const editor = props.editor;
+  if (isNil(editor)) return '';
+  return (editor.getAttributes('textStyle')[name] as string | undefined) ?? '';
 }
 
 const currentHeader = computed(() => {
-  const editor = props.editor
-  if (isNil(editor)) return 'paragraph'
+  const editor = props.editor;
+  if (isNil(editor)) return 'paragraph';
 
   const level = HEADING_LEVELS.find((value) =>
     editor.isActive('heading', { level: value }),
-  )
-  return level ? String(level) : 'paragraph'
-})
+  );
+  return level ? String(level) : 'paragraph';
+});
 
 const currentHeaderLabel = computed(
   () =>
     HEADER_OPTIONS.find((option) => option.value === currentHeader.value)
       ?.label ?? '正文',
-)
+);
 
-const currentFontSize = computed(() => readTextStyle('fontSize'))
-const currentFontFamily = computed(() => readTextStyle('fontFamily'))
-const currentColor = computed(() => readTextStyle('color'))
-const currentBackgroundColor = computed(() => readTextStyle('backgroundColor'))
+const currentFontSize = computed(() => readTextStyle('fontSize'));
+const currentFontFamily = computed(() => readTextStyle('fontFamily'));
+const currentColor = computed(() => readTextStyle('color'));
+const currentBackgroundColor = computed(() => readTextStyle('backgroundColor'));
 
 const fontSizeLabel = computed(
   () =>
     FONT_SIZES.find((option) => option.value === currentFontSize.value)
       ?.label ?? '默认字号',
-)
+);
 const fontFamilyLabel = computed(
   () =>
     FONT_FAMILIES.find((option) => option.value === currentFontFamily.value)
       ?.label ?? '默认字体',
-)
+);
 
 const currentLineHeight = computed(() => {
-  const editor = props.editor
-  if (!editor) return ''
+  const editor = props.editor;
+  if (!editor) return '';
   const attrs = editor.isActive('heading')
     ? editor.getAttributes('heading')
-    : editor.getAttributes('paragraph')
-  return (attrs.lineHeight as string | undefined) ?? ''
-})
+    : editor.getAttributes('paragraph');
+  return (attrs.lineHeight as string | undefined) ?? '';
+});
 
-const linkActive = computed(() => props.editor?.isActive('link') ?? false)
+const linkActive = computed(() => props.editor?.isActive('link') ?? false);
 const currentHref = computed(() => {
-  const editor = props.editor
-  if (!editor) return ''
-  return (editor.getAttributes('link').href as string | undefined) ?? ''
-})
+  const editor = props.editor;
+  if (!editor) return '';
+  return (editor.getAttributes('link').href as string | undefined) ?? '';
+});
 
 /* ============================================================
  * 下拉项命令
  * ============================================================ */
 
 function applyHeader(value: string) {
-  const editor = props.editor
-  if (!editor) return
+  const editor = props.editor;
+  if (!editor) return;
 
   if (value === 'paragraph') {
-    editor.chain().focus().setParagraph().run()
-    return
+    editor.chain().focus().setParagraph().run();
+    return;
   }
   editor
     .chain()
     .focus()
     .setHeading({ level: Number(value) as HeadingLevel })
-    .run()
+    .run();
 }
 
 function applyFontSize(value: string) {
-  const editor = props.editor
-  if (!editor) return
+  const editor = props.editor;
+  if (!editor) return;
 
-  if (value) editor.chain().focus().setFontSize(value).run()
-  else editor.chain().focus().unsetFontSize().run()
+  if (value) editor.chain().focus().setFontSize(value).run();
+  else editor.chain().focus().unsetFontSize().run();
 }
 
 function applyFontFamily(value: string) {
-  const editor = props.editor
-  if (!editor) return
+  const editor = props.editor;
+  if (!editor) return;
 
-  if (value) editor.chain().focus().setFontFamily(value).run()
-  else editor.chain().focus().unsetFontFamily().run()
+  if (value) editor.chain().focus().setFontFamily(value).run();
+  else editor.chain().focus().unsetFontFamily().run();
 }
 
 function applyColor(value: string) {
-  const editor = props.editor
-  if (!editor) return
+  const editor = props.editor;
+  if (!editor) return;
 
-  if (value) editor.chain().focus().setColor(value).run()
-  else editor.chain().focus().unsetColor().run()
+  if (value) editor.chain().focus().setColor(value).run();
+  else editor.chain().focus().unsetColor().run();
 }
 
 function applyBackgroundColor(value: string) {
-  const editor = props.editor
-  if (!editor) return
+  const editor = props.editor;
+  if (!editor) return;
 
-  if (value) editor.chain().focus().setBackgroundColor(value).run()
-  else editor.chain().focus().unsetBackgroundColor().run()
+  if (value) editor.chain().focus().setBackgroundColor(value).run();
+  else editor.chain().focus().unsetBackgroundColor().run();
 }
 
 function applyLineHeight(value: string) {
-  const editor = props.editor
-  if (!editor) return
+  const editor = props.editor;
+  if (!editor) return;
 
-  const type = editor.isActive('heading') ? 'heading' : 'paragraph'
+  const type = editor.isActive('heading') ? 'heading' : 'paragraph';
   editor
     .chain()
     .focus()
     .updateAttributes(type, { lineHeight: value || null })
-    .run()
+    .run();
 }
 
 function applyLink(url: string) {
-  const editor = props.editor
-  if (!editor) return
+  const editor = props.editor;
+  if (!editor) return;
 
   if (!url) {
-    editor.chain().focus().extendMarkRange('link').unsetLink().run()
-    return
+    editor.chain().focus().extendMarkRange('link').unsetLink().run();
+    return;
   }
 
   // 无选区时按 wangEditor 的行为，直接把地址作为链接文本插入
@@ -307,11 +308,11 @@ function applyLink(url: string) {
         text: url,
         marks: [{ type: 'link', attrs: { href: url } }],
       })
-      .run()
-    return
+      .run();
+    return;
   }
 
-  editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
+  editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
 }
 
 function insertTable(rows: number, cols: number) {
@@ -319,7 +320,7 @@ function insertTable(rows: number, cols: number) {
     ?.chain()
     .focus()
     .insertTable({ rows, cols, withHeaderRow: true })
-    .run()
+    .run();
 }
 </script>
 
@@ -329,7 +330,7 @@ function insertTable(rows: number, cols: number) {
       <span
         v-if="item.key === '|'"
         class="mx-1 h-4 w-px self-center bg-gray-200 dark:bg-gray-700"
-      />
+      ></span>
 
       <!-- 纯图标按钮 -->
       <ToolbarButton
@@ -439,8 +440,8 @@ function insertTable(rows: number, cols: number) {
             @cancel="close"
             @confirm="
               (url) => {
-                applyLink(url)
-                close()
+                applyLink(url);
+                close();
               }
             "
           />

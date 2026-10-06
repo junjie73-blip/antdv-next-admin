@@ -1,12 +1,12 @@
 <script setup lang="tsx">
-import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
-import { onMounted, onUnmounted, ref } from 'vue'
-
 import type { DescriptionItem } from '~/components/business/Description'
 import type { FormSchema } from '~/components/business/Form'
 import type { BasicColumn } from '~/components/business/Table'
 
+import { onMounted, onUnmounted, ref } from 'vue'
+
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import { forceLogout, getOnlineUserList } from '~/api/system'
 import { Description as DetailDescription } from '~/components/business/Description'
 import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
@@ -36,13 +36,13 @@ const containerClassName = cn('space-y-4')
 const cardClassName = cn('shadow-sm')
 const tagClassName = cn('inline-flex items-center gap-1')
 const actionClassName = cn('flex', 'items-center', 'justify-center')
-const btnClassName = cn('!px-0.5')
+const btnClassName = cn('px-0.5!')
 const dividerClassName = cn('mx-0')
 
-const viewingRecord = ref<OnlineUserRecord | null>(null)
+const viewingRecord = ref<null | OnlineUserRecord>(null)
 const onlineCount = ref(0)
 
-let refreshTimer: ReturnType<typeof setInterval> | null = null
+let refreshTimer: null | ReturnType<typeof setInterval> = null
 
 const [drawerRegister, drawerMethods] = useDrawer()
 const [tableRegister, tableMethods] = useTable()
@@ -114,12 +114,12 @@ async function mockApi(params: Record<string, any>) {
   return { items, total: data?.total || 0 }
 }
 
-function handleView(record: OnlineUserRecord | any) {
+function handleView(record: any | OnlineUserRecord) {
   viewingRecord.value = record as OnlineUserRecord
   drawerMethods.openDrawer()
 }
 
-async function handleForceLogout(record: OnlineUserRecord | any) {
+async function handleForceLogout(record: any | OnlineUserRecord) {
   const rec = record as OnlineUserRecord
   // 不能踢出自己
   if (rec.username === 'admin') {
@@ -203,7 +203,7 @@ function startAutoRefresh() {
   stopAutoRefresh()
   refreshTimer = setInterval(() => {
     tableMethods.value?.reload()
-  }, 30000) // 每30秒刷新一次
+  }, 30_000) // 每30秒刷新一次
 }
 
 function stopAutoRefresh() {

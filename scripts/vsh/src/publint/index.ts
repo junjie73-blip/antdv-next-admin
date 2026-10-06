@@ -14,8 +14,7 @@ import {
   outputJSON,
   readJSON,
   UNICODE,
-} from '@antdv-admin/node-utils';
-
+} from '@antdv/node-utils';
 import { publint } from 'publint';
 import { formatMessage } from 'publint/utils';
 
@@ -177,10 +176,10 @@ async function runPublint(files: string[], { check }: PubLintCommandOptions) {
           cache?.[file]?.hash === hash
             ? (cache?.[file]?.result ?? [])
             : await publint({
-              level: 'suggestion',
-              pkgDir: dirname(file),
-              strict: true,
-            });
+                level: 'suggestion',
+                pkgDir: dirname(file),
+                strict: true,
+              });
 
         cache[file] = {
           hash,

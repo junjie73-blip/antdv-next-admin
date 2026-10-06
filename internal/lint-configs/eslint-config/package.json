@@ -1,5 +1,5 @@
 {
-  "name": "@antdv-admin/eslint-config",
+  "name": "@antdv/eslint-config",
   "version": "0.0.0",
   "private": true,
   "homepage": "https://github.com/junjie73-blip/antdv-next-admin",
@@ -27,9 +27,10 @@
     }
   },
   "dependencies": {
+    "@antdv/oxlint-config": "workspace:*",
+    "@antdv/tsconfig": "workspace:*",
     "@eslint/js": "catalog:",
     "@typescript-eslint/parser": "catalog:",
-    "@antdv-admin/oxlint-config": "workspace:*",
     "eslint": "catalog:",
     "eslint-plugin-jsonc": "catalog:",
     "eslint-plugin-n": "catalog:",
@@ -39,9 +40,8 @@
     "eslint-plugin-vue": "catalog:",
     "eslint-plugin-yml": "catalog:",
     "globals": "catalog:",
+    "tsdown": "catalog:",
     "vue-eslint-parser": "catalog:",
-    "yaml-eslint-parser": "catalog:",
-    "@antdv-admin/tsconfig": "workspace:*",
-    "tsdown": "catalog:"
+    "yaml-eslint-parser": "catalog:"
   }
 }

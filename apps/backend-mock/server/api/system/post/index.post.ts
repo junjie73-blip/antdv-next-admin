@@ -1,9 +1,10 @@
-import dayjs from 'dayjs'
-import { success } from '../../../utils/response'
-import { defineMockRoute } from '../../../utils/runtime'
-import { DEPT_MAP, nextPostId, POST_DB } from '../../../utils/db/post'
-import type { PostRecord } from '../../../utils/db/post'
+import type { PostRecord } from '../../../utils/db/post';
 
+import dayjs from 'dayjs';
+
+import { DEPT_MAP, nextPostId, POST_DB } from '../../../utils/db/post';
+import { success } from '../../../utils/response';
+import { defineMockRoute } from '../../../utils/runtime';
 
 export default defineMockRoute({
   handler({ data }) {
@@ -19,12 +20,12 @@ export default defineMockRoute({
       createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
       userCount: 0,
       userIds: [],
-    }
+    };
 
-    POST_DB.push(newPost)
+    POST_DB.push(newPost);
 
-    return success(newPost, '新增岗位成功')
+    return success(newPost, '新增岗位成功');
   },
   method: 'POST',
   path: '/system/post',
-})
+});

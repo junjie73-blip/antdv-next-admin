@@ -1,23 +1,22 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { Icon } from '@iconify/vue';
+import { cn } from '~/utils/cn';
 
-import { cn } from '~/utils/cn'
+import { useAuthStyles } from '../composables/useAuthStyles';
 
-import { useAuthStyles } from '../composables/useAuthStyles'
-
-defineOptions({ name: 'AuthFeatureTags' })
-
-export interface AuthFeature {
-  icon: string
-  text: string
-}
+defineOptions({ name: 'AuthFeatureTags' });
 
 defineProps<{
-  features: AuthFeature[]
-  className?: string
-}>()
+  features: AuthFeature[];
+  className?: string;
+}>();
 
-const { brandFeatureClassName } = useAuthStyles()
+export interface AuthFeature {
+  icon: string;
+  text: string;
+}
+
+const { brandFeatureClassName } = useAuthStyles();
 </script>
 
 <template>

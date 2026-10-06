@@ -1,54 +1,54 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref } from 'vue';
 
-import { cn } from '~/utils/cn'
+import { cn } from '~/utils/cn';
 
 // ==================== 类型定义 ====================
 interface TreeNode {
-  key: string
-  title: string
-  icon?: string
-  children?: TreeNode[]
-  isLeaf?: boolean
+  key: string;
+  title: string;
+  icon?: string;
+  children?: TreeNode[];
+  isLeaf?: boolean;
 }
 
 // ==================== 样式定义 ====================
-const containerClassName = cn('space-y-6')
+const containerClassName = cn('space-y-6');
 
-const infoBoxClassName = cn('mb-4 p-3 rounded-lg text-sm')
+const infoBoxClassName = cn('mb-4 rounded-lg p-3 text-sm');
 
 const blueInfoClassName = cn(
   ...infoBoxClassName.split(' '),
-  'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
-)
+  'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
+);
 
 const yellowInfoClassName = cn(
   ...infoBoxClassName.split(' '),
-  'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400',
-)
+  'bg-yellow-50 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400',
+);
 
 const greenInfoClassName = cn(
   ...infoBoxClassName.split(' '),
-  'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400',
-)
+  'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400',
+);
 
 const purpleInfoClassName = cn(
   ...infoBoxClassName.split(' '),
-  'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
-)
+  'bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400',
+);
 
 const virtualScrollContainerClassName = cn(
-  'mb-4 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden',
-)
+  'mb-4 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700',
+);
 
 // 操作按钮相关样式
 const actionNodeClassName = cn(
-  'flex items-center justify-between group w-full pr-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded px-1 -mx-1',
-)
+  'group -mx-1 flex w-full items-center justify-between rounded px-1 pr-2 hover:bg-gray-100 dark:hover:bg-gray-700/50',
+);
 
 const actionButtonsClassName = cn(
-  'flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity',
-)
+  'flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100',
+);
 
 // ==================== 1. 基础用法 - 文件目录结构 ====================
 const basicTreeData = ref<TreeNode[]>([
@@ -82,7 +82,7 @@ const basicTreeData = ref<TreeNode[]>([
       { key: 'vite.config.ts', title: 'vite.config.ts' },
     ],
   },
-])
+]);
 
 // ==================== 2. 可勾选的树 ====================
 const checkableTreeData = ref<TreeNode[]>([
@@ -117,24 +117,24 @@ const checkableTreeData = ref<TreeNode[]>([
       { key: 'user-7', title: '吴九' },
     ],
   },
-])
+]);
 
-const checkedKeys = ref<string[]>([])
-const halfCheckedKeys = ref<string[]>([])
+const checkedKeys = ref<string[]>([]);
+const halfCheckedKeys = ref<string[]>([]);
 
 function handleCheck(
   keys: string[] | { checked: string[]; halfChecked: string[] },
 ) {
   if (Array.isArray(keys)) {
-    checkedKeys.value = keys
+    checkedKeys.value = keys;
   } else {
-    checkedKeys.value = keys.checked
-    halfCheckedKeys.value = keys.halfChecked
+    checkedKeys.value = keys.checked;
+    halfCheckedKeys.value = keys.halfChecked;
   }
 }
 
 // ==================== 3. 搜索过滤树 ====================
-const searchValue = ref('')
+const searchValue = ref('');
 const searchableTreeData = ref<TreeNode[]>([
   {
     key: 'search-1',
@@ -172,7 +172,7 @@ const searchableTreeData = ref<TreeNode[]>([
     title: '深圳分公司',
     children: [{ key: 'search-3-1', title: '南山区创新中心' }],
   },
-])
+]);
 
 // ==================== 4. 异步加载数据 ====================
 const asyncTreeData = ref<TreeNode[]>([
@@ -191,24 +191,24 @@ const asyncTreeData = ref<TreeNode[]>([
     title: '一级节点 3（叶子节点）',
     isLeaf: true,
   },
-])
+]);
 
-function findNode(nodes: TreeNode[], key: string): TreeNode | null {
+function findNode(nodes: TreeNode[], key: string): null | TreeNode {
   for (const node of nodes) {
-    if (node.key === key) return node
+    if (node.key === key) return node;
     if (node.children) {
-      const found = findNode(node.children, key)
-      if (found) return found
+      const found = findNode(node.children, key);
+      if (found) return found;
     }
   }
-  return null
+  return null;
 }
 
 async function onLoadData(treeNode: any) {
   return new Promise<void>((resolve) => {
     setTimeout(() => {
-      const nodeKey = treeNode.dataRef.key
-      const node = findNode(asyncTreeData.value, nodeKey)
+      const nodeKey = treeNode.dataRef.key;
+      const node = findNode(asyncTreeData.value, nodeKey);
       if (node && !node.children) {
         node.children = [
           { key: `${nodeKey}-1`, title: `子节点 ${nodeKey}-1`, isLeaf: true },
@@ -218,12 +218,12 @@ async function onLoadData(treeNode: any) {
             title: `子节点 ${nodeKey}-3（叶子）`,
             isLeaf: true,
           },
-        ]
-        asyncTreeData.value = [...asyncTreeData.value]
+        ];
+        asyncTreeData.value = [...asyncTreeData.value];
       }
-      resolve()
-    }, 500)
-  })
+      resolve();
+    }, 500);
+  });
 }
 
 // ==================== 5. 拖拽排序树 ====================
@@ -240,25 +240,25 @@ const draggableTreeData = ref<TreeNode[]>([
       { key: 'drag-1-6', title: '部署上线' },
     ],
   },
-])
+]);
 
 function onDrop(info: any) {
-  const dragKeys = info.dragNodesKeys || []
-  const dropKey = info.node?.key
+  const dragKeys = info.dragNodesKeys || [];
+  const dropKey = info.node?.key;
 
   // 构建新顺序提示信息
   const newOrder =
     draggableTreeData.value[0]?.children
       ?.map((item, index) => `${index + 1}. ${item.title}`)
-      .join('\n') || ''
+      .join('\n') || '';
 
   message.info(
     `拖拽完成！\n\n拖拽节点: ${dragKeys.join(', ') || '未知'}\n目标位置: ${dropKey || '末尾'}\n\n新顺序:\n${newOrder}`,
-  )
+  );
 }
 
 function allowDrop(): boolean {
-  return true
+  return true;
 }
 
 // ==================== 6. 带操作按钮的树 ====================
@@ -294,18 +294,18 @@ const actionTreeData = ref<TreeNode[]>([
       },
     ],
   },
-])
+]);
 
 function handleAddChild(nodeKey: string) {
-  message.info(`添加子节点到: ${nodeKey}`)
+  message.info(`添加子节点到: ${nodeKey}`);
 }
 
 function handleEdit(nodeKey: string, title: string) {
-  message.info(`编辑节点:\nKey: ${nodeKey}\nTitle: ${title}`)
+  message.info(`编辑节点:\nKey: ${nodeKey}\nTitle: ${title}`);
 }
 
 function handleDelete(nodeKey: string) {
-  message.warning(`删除节点: ${nodeKey}`)
+  message.warning(`删除节点: ${nodeKey}`);
 }
 
 // ==================== 7. 连接线样式树 ====================
@@ -342,42 +342,42 @@ const lineTreeData = ref<TreeNode[]>([
       },
     ],
   },
-])
+]);
 
 // ==================== 8. 虚拟滚动树（大数据量） ====================
-const virtualExpandedKeys = ref<string[]>(['virtual-root'])
+const virtualExpandedKeys = ref<string[]>(['virtual-root']);
 
 function generateLargeTreeData(): TreeNode[] {
-  const data: TreeNode[] = []
+  const data: TreeNode[] = [];
   const rootNode: TreeNode = {
     key: 'virtual-root',
     title: '根节点（包含 1000+ 子节点）',
     children: [],
-  }
+  };
 
   for (let i = 1; i <= 100; i++) {
     const groupNode: TreeNode = {
       key: `group-${i}`,
       title: `分组 ${i}`,
       children: [],
-    }
+    };
 
     for (let j = 1; j <= 10; j++) {
       groupNode.children!.push({
         key: `node-${i}-${j}`,
         title: `节点 ${i}-${j}（第 ${(i - 1) * 10 + j} 个）`,
         isLeaf: true,
-      })
+      });
     }
 
-    rootNode.children!.push(groupNode)
+    rootNode.children!.push(groupNode);
   }
 
-  data.push(rootNode)
-  return data
+  data.push(rootNode);
+  return data;
 }
 
-const virtualTreeData = ref<TreeNode[]>(generateLargeTreeData())
+const virtualTreeData = ref<TreeNode[]>(generateLargeTreeData());
 </script>
 
 <template>
@@ -562,9 +562,7 @@ const virtualTreeData = ref<TreeNode[]>(generateLargeTreeData())
     <!-- 7. 连接线样式 -->
     <a-card title="连接线样式" variant="borderless">
       <template #extra>
-        <span class="text-sm text-gray-400"
-          >使用 showLine 属性显示树形连接线</span
-        >
+        <span class="text-sm text-gray-400">使用 showLine 属性显示树形连接线</span>
       </template>
       <a-tree
         :tree-data="lineTreeData"

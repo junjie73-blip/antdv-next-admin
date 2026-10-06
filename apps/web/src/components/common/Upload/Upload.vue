@@ -1,21 +1,21 @@
 <script setup lang="ts">
 import type {
-  UploadFile,
   UploadProps as AntUploadProps,
+  UploadFile,
   UploadRequestOption,
-} from 'antdv-next'
+} from 'antdv-next';
 
-import { Icon } from '@iconify/vue'
-import { Button, message, Upload as AntUpload } from 'antdv-next'
-import { computed, ref, watch } from 'vue'
+import type { UploadInstance, UploadProps } from './types';
 
-import { cn } from '~/utils/cn'
+import { computed, ref, watch } from 'vue';
 
-import type { UploadInstance, UploadProps } from './types'
+import { Icon } from '@iconify/vue';
+import { Upload as AntUpload, Button, message } from 'antdv-next';
+import { cn } from '~/utils/cn';
 
-import { uploadSingleFile } from './api'
+import { uploadSingleFile } from './api';
 
-defineOptions({ name: 'Upload' })
+defineOptions({ name: 'Upload' });
 
 const props = withDefaults(defineProps<UploadProps>(), {
   multiple: false,
@@ -25,25 +25,25 @@ const props = withDefaults(defineProps<UploadProps>(), {
   disabled: false,
   readonly: false,
   name: 'file',
-})
+});
 
 const emit = defineEmits<{
-  'update:value': [fileList: UploadFile[]]
-  change: [fileList: UploadFile[]]
-  success: [response: unknown, file: UploadFile]
-  error: [error: Error, file: UploadFile]
-}>()
+  'update:value': [fileList: UploadFile[]];
+  change: [fileList: UploadFile[]];
+  success: [response: unknown, file: UploadFile];
+  error: [error: Error, file: UploadFile];
+}>();
 
 // 文件列表
-const fileList = ref<UploadFile[]>(props.value ?? [])
+const fileList = ref<UploadFile[]>(props.value ?? []);
 
 watch(
   () => props.value,
   (nv) => {
-    if (nv && nv !== fileList.value) fileList.value = nv
+    if (nv && nv !== fileList.value) fileList.value = nv;
   },
   { deep: true },
-)
+);
 
 /**
  * 自定义上传：走系统 http 封装
@@ -51,18 +51,18 @@ watch(
  * - 支持进度上报
  */
 function handleCustomRequest(options: UploadRequestOption) {
-  const file = options.file as unknown as File
-  const extra = props.data ?? {}
+  const file = options.file as unknown as File;
+  const extra = props.data ?? {};
 
   uploadSingleFile(file, extra)
     .then((res) => {
-      message.success('上传成功')
-      options.onSuccess?.(res)
+      message.success('上传成功');
+      options.onSuccess?.(res);
     })
-    .catch((err) => {
-      message.error(err.message || '上传失败')
-      options.onError?.(err)
-    })
+    .catch((error) => {
+      message.error(error.message || '上传失败');
+      options.onError?.(error);
+    });
 }
 
 /**
@@ -72,37 +72,37 @@ function handleCustomRequest(options: UploadRequestOption) {
 const handleChange: AntUploadProps['onChange'] = (info) => {
   fileList.value = info.fileList.map((f) => {
     if (f.status === 'done' && f.response) {
-      return { ...f, originFileObj: undefined } as UploadFile
+      return { ...f, originFileObj: undefined } as UploadFile;
     }
-    return f
-  })
-  emit('update:value', fileList.value)
-  emit('change', fileList.value)
+    return f;
+  });
+  emit('update:value', fileList.value);
+  emit('change', fileList.value);
 
   if (info.file.status === 'done') {
-    emit('success', info.file.response, info.file)
+    emit('success', info.file.response, info.file);
   } else if (info.file.status === 'error') {
-    emit('error', new Error(info.file.error?.message || '上传失败'), info.file)
+    emit('error', new Error(info.file.error?.message || '上传失败'), info.file);
   }
-}
+};
 
 /**
  * 上传前校验
  */
 const handleBeforeUpload: AntUploadProps['beforeUpload'] = (file, list) => {
   if (props.maxSize && file.size > props.maxSize * 1024 * 1024) {
-    message.warning(`文件大小不能超过 ${props.maxSize}MB`)
-    return false
+    message.warning(`文件大小不能超过 ${props.maxSize}MB`);
+    return false;
   }
   if (props.maxCount && fileList.value.length + list.length > props.maxCount) {
-    message.warning(`最多只能上传 ${props.maxCount} 个文件`)
-    return false
+    message.warning(`最多只能上传 ${props.maxCount} 个文件`);
+    return false;
   }
   if (props.beforeUpload) {
-    return props.beforeUpload(file as UploadFile, list as UploadFile[])
+    return props.beforeUpload(file as UploadFile, list as UploadFile[]);
   }
-  return true
-}
+  return true;
+};
 
 /**
  * 组装上传配置
@@ -119,20 +119,20 @@ const uploadProps = computed((): AntUploadProps => {
     beforeUpload: handleBeforeUpload,
     customRequest: handleCustomRequest,
     onRemove: props.onRemove,
-  }
-})
+  };
+});
 
 // 实例方法
 function getFileList() {
-  return fileList.value
+  return fileList.value;
 }
 function setFileList(list: UploadFile[]) {
-  fileList.value = list
-  emit('update:value', list)
+  fileList.value = list;
+  emit('update:value', list);
 }
 function clear() {
-  fileList.value = []
-  emit('update:value', [])
+  fileList.value = [];
+  emit('update:value', []);
 }
 
 defineExpose<UploadInstance>({
@@ -140,7 +140,7 @@ defineExpose<UploadInstance>({
   setFileList,
   clear,
   upload: () => {},
-})
+});
 </script>
 
 <template>

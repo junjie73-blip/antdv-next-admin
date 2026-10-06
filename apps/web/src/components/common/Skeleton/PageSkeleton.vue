@@ -20,23 +20,23 @@
  * ```
  */
 
-import { cn } from '~/utils/cn'
+import { cn } from '~/utils/cn';
 
 interface Props {
   /** 是否显示骨架屏 */
-  loading?: boolean
+  loading?: boolean;
   /** 骨架屏类型 */
-  variant?: 'page' | 'card' | 'form' | 'detail'
+  variant?: 'card' | 'detail' | 'form' | 'page';
   /** 显示动画行数（仅 page 类型） */
-  rows?: number
+  rows?: number;
   /** 是否显示标题骨架 */
-  showTitle?: boolean
+  showTitle?: boolean;
   /** 是否显示操作按钮骨架 */
-  showActions?: boolean
+  showActions?: boolean;
   /** 是否显示侧边栏（用于有侧栏的页面） */
-  showSidebar?: boolean
+  showSidebar?: boolean;
   /** 自定义类名 */
-  class?: string
+  class?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -46,24 +46,24 @@ const props = withDefaults(defineProps<Props>(), {
   showTitle: true,
   showActions: true,
   showSidebar: false,
-})
+});
 
 // 骨架屏基础样式
 const skeletonBaseClassName = cn(
   'animate-pulse',
   'bg-gray-200 dark:bg-gray-700',
-  'rounded',
-)
+  'rounded-sm',
+);
 
 // 标题骨架样式
-const titleClassName = cn(skeletonBaseClassName, 'h-8 w-48 mb-6')
+const titleClassName = cn(skeletonBaseClassName, 'mb-6 h-8 w-48');
 
 // 操作按钮骨架样式
-const actionClassName = cn(skeletonBaseClassName, 'h-9 w-20')
+const actionClassName = cn(skeletonBaseClassName, 'h-9 w-20');
 
 // 文本行骨架样式
 function getRowClassName(width: string) {
-  return cn(skeletonBaseClassName, 'h-4 mb-3', width)
+  return cn(skeletonBaseClassName, 'mb-3 h-4', width);
 }
 </script>
 
@@ -73,14 +73,14 @@ function getRowClassName(width: string) {
     <!-- ========== 页面类型骨架屏 ========== -->
     <div v-if="variant === 'page'" class="space-y-4">
       <!-- 标题区域 -->
-      <div v-if="showTitle" :class="titleClassName" />
+      <div v-if="showTitle" :class="titleClassName"></div>
 
       <!-- 操作按钮区域 -->
       <div v-if="showActions" class="mb-4 flex items-center gap-3">
-        <div :class="actionClassName" />
-        <div :class="actionClassName" />
+        <div :class="actionClassName"></div>
+        <div :class="actionClassName"></div>
         <div class="ml-auto flex gap-2">
-          <div :class="cn(skeletonBaseClassName, 'h-9 w-32')" />
+          <div :class="cn(skeletonBaseClassName, 'h-9 w-32')"></div>
         </div>
       </div>
 
@@ -92,13 +92,13 @@ function getRowClassName(width: string) {
             v-for="i in rows"
             :key="i"
             :class="getRowClassName(i === rows ? 'w-3/4' : 'w-full')"
-          />
+          ></div>
         </div>
 
         <!-- 侧边栏 -->
         <div v-if="showSidebar" class="w-64 shrink-0 space-y-3">
-          <div :class="cn(skeletonBaseClassName, 'h-40 w-full')" />
-          <div :class="cn(skeletonBaseClassName, 'h-32 w-full')" />
+          <div :class="cn(skeletonBaseClassName, 'h-40 w-full')"></div>
+          <div :class="cn(skeletonBaseClassName, 'h-32 w-full')"></div>
         </div>
       </div>
     </div>
@@ -118,21 +118,21 @@ function getRowClassName(width: string) {
           )
         "
       >
-        <div :class="cn(skeletonBaseClassName, 'mb-3 h-5 w-2/3')" />
-        <div :class="cn(skeletonBaseClassName, 'mb-2 h-4 w-full')" />
-        <div :class="cn(skeletonBaseClassName, 'h-4 w-4/5')" />
+        <div :class="cn(skeletonBaseClassName, 'mb-3 h-5 w-2/3')"></div>
+        <div :class="cn(skeletonBaseClassName, 'mb-2 h-4 w-full')"></div>
+        <div :class="cn(skeletonBaseClassName, 'h-4 w-4/5')"></div>
       </div>
     </div>
 
     <!-- ========== 表单类型骨架屏 ========== -->
     <div v-else-if="variant === 'form'" class="max-w-2xl space-y-6">
       <div v-for="i in 4" :key="i" class="flex items-center gap-4">
-        <div :class="cn(skeletonBaseClassName, 'h-4 w-24 shrink-0')" />
-        <div :class="cn(skeletonBaseClassName, 'h-10 flex-1')" />
+        <div :class="cn(skeletonBaseClassName, 'h-4 w-24 shrink-0')"></div>
+        <div :class="cn(skeletonBaseClassName, 'h-10 flex-1')"></div>
       </div>
       <div class="flex justify-end gap-3 pt-4">
-        <div :class="actionClassName" />
-        <div :class="cn(actionClassName, 'w-24')" />
+        <div :class="actionClassName"></div>
+        <div :class="cn(actionClassName, 'w-24')"></div>
       </div>
     </div>
 
@@ -142,23 +142,23 @@ function getRowClassName(width: string) {
       <div
         class="flex items-center gap-4 border-b border-gray-200 pb-4 dark:border-gray-700"
       >
-        <div :class="cn(skeletonBaseClassName, 'h-16 w-16 rounded-full')" />
+        <div :class="cn(skeletonBaseClassName, 'h-16 w-16 rounded-full')"></div>
         <div class="flex-1 space-y-2">
-          <div :class="cn(skeletonBaseClassName, 'h-6 w-48')" />
-          <div :class="cn(skeletonBaseClassName, 'h-4 w-64')" />
+          <div :class="cn(skeletonBaseClassName, 'h-6 w-48')"></div>
+          <div :class="cn(skeletonBaseClassName, 'h-4 w-64')"></div>
         </div>
       </div>
 
       <!-- 详情字段 -->
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div v-for="i in 6" :key="i" class="space-y-1">
-          <div :class="cn(skeletonBaseClassName, 'h-3 w-20')" />
-          <div :class="cn(skeletonBaseClassName, 'h-5 w-full')" />
+          <div :class="cn(skeletonBaseClassName, 'h-3 w-20')"></div>
+          <div :class="cn(skeletonBaseClassName, 'h-5 w-full')"></div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- 加载完成：显示实际内容 -->
-  <slot v-else />
+  <slot v-else></slot>
 </template>

@@ -1,6 +1,6 @@
-import { palette } from '../palette'
+import { palette } from '../palette';
 
-const { slate, blue, emerald, amber, rose, sky, white, black } = palette
+const { slate, blue, emerald, amber, rose, sky, white, black } = palette;
 
 /**
  * Dark 主题 Token
@@ -198,4 +198,4 @@ export const darkToken = {
   layoutLightSiderBg: slate[900],
   layoutLightTriggerBg: slate[800],
   layoutLightTriggerColor: slate[300],
-} as const
+} as const;

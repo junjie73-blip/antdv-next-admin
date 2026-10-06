@@ -1,11 +1,11 @@
 <script setup lang="tsx">
+import type { BasicColumn } from '~/components/business/Table'
+
+import { computed, onMounted, ref } from 'vue'
+
 import { Icon } from '@iconify/vue'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import { computed, onMounted, ref } from 'vue'
-
-import type { BasicColumn } from '~/components/business/Table'
-
 import {
   deleteNotice,
   getNoticeList,
@@ -83,7 +83,7 @@ const [modalRegister, modalMethods] = useModal()
 const [formRegister, formMethods] = useForm()
 
 const isEditingNotice = ref(false)
-const editingNoticeId = ref<number | null>(null)
+const editingNoticeId = ref<null | number>(null)
 
 /** 新增/编辑消息表单 */
 const noticeFormSchemas: FormSchema[] = [
@@ -171,7 +171,7 @@ function handleTabChange(key: string) {
   tableMethods.value?.reload()
 }
 
-function handleView(record: NoticeRecord | any) {
+function handleView(record: any | NoticeRecord) {
   viewingNotice.value = record as NoticeRecord
   showDetailDrawer.value = true
 
@@ -182,7 +182,7 @@ function handleView(record: NoticeRecord | any) {
   }
 }
 
-async function handleMarkRead(record: NoticeRecord | any) {
+async function handleMarkRead(record: any | NoticeRecord) {
   const rec = record as NoticeRecord
   try {
     await markNoticeRead(rec.id)
@@ -212,7 +212,7 @@ async function handleMarkAllRead() {
   }
 }
 
-async function handleDelete(record: NoticeRecord | any) {
+async function handleDelete(record: any | NoticeRecord) {
   const rec = record as NoticeRecord
   try {
     await deleteNotice(rec.id)
@@ -255,8 +255,8 @@ async function handleSaveNotice() {
     modalMethods.closeModal()
     await loadAllData()
     tableMethods.value?.reload()
-  } catch (e: any) {
-    message.error(e?.message || '保存失败')
+  } catch (error: any) {
+    message.error(error?.message || '保存失败')
   }
 }
 
@@ -277,7 +277,7 @@ const columns: BasicColumn[] = [
     customRender: ({ record }: any) => (
       <div class="flex items-center gap-2">
         {record.status === 0 && (
-          <span class="h-2 w-2 flex-shrink-0 rounded-full bg-blue-500" />
+          <span class="size-2 shrink-0 rounded-full bg-blue-500" />
         )}
         <span
           class={

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { computed, ref } from 'vue'
-
 import type { FormSchema } from '~/components/business/Form'
 import type { BasicColumn } from '~/components/business/Table'
 
+import { computed, ref } from 'vue'
+
+import { Icon } from '@iconify/vue'
 import { addRole, deleteRole, getRoleList, updateRole } from '~/api/system'
 import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
 import { BasicForm, useForm } from '~/components/business/Form'
@@ -36,7 +36,7 @@ const actionClassName = cn(
   'justify-center',
   'whitespace-nowrap',
 )
-const btnClassName = cn('!px-0.5')
+const btnClassName = cn('px-0.5!')
 const dividerClassName = cn('mx-0')
 
 const statusColorMap: Record<number, string> = {
@@ -110,7 +110,7 @@ function buildMenuTree(menus: typeof menuSourceData): MenuTreeNode[] {
 const permissionTreeData = computed(() => buildMenuTree(menuSourceData))
 
 const isEditing = ref(false)
-const currentRecord = ref<RoleRecord | null>(null)
+const currentRecord = ref<null | RoleRecord>(null)
 
 const [drawerRegister, drawerMethods] = useDrawer()
 const [permDrawerRegister, permDrawerMethods] = useDrawer()
@@ -202,8 +202,8 @@ async function mockApi(params: Record<string, any>) {
     const result = { items: data?.list || [], total: data?.total || 0 }
     console.log('[Role] result:', result)
     return result
-  } catch (e) {
-    console.error('[Role] mockApi error:', e)
+  } catch (error) {
+    console.error('[Role] mockApi error:', error)
     return { items: [], total: 0 }
   }
 }
@@ -250,8 +250,8 @@ async function handleDelete(record: RoleRecord) {
     await deleteRole(record.id)
     message.success(`已删除角色：${record.name}`)
     tableMethods.value?.reload()
-  } catch (e: any) {
-    message.error(e?.message || '删除失败')
+  } catch (error: any) {
+    message.error(error?.message || '删除失败')
   }
 }
 
@@ -262,8 +262,8 @@ async function handleToggleStatus(record: RoleRecord) {
       `已${record.status === 1 ? '停用' : '启用'}：${record.name}`,
     )
     tableMethods.value?.reload()
-  } catch (e: any) {
-    message.error(e?.message || '操作失败')
+  } catch (error: any) {
+    message.error(error?.message || '操作失败')
   }
 }
 
@@ -309,8 +309,8 @@ async function handleSave() {
 
     drawerMethods.closeDrawer()
     tableMethods.value?.reload()
-  } catch (e: any) {
-    message.error(e?.message || '保存失败')
+  } catch (error: any) {
+    message.error(error?.message || '保存失败')
   }
 }
 

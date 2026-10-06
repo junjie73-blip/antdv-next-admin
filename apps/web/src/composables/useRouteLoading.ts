@@ -1,3 +1,6 @@
+import { computed, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+
 /**
  * useRouteLoading - 路由切换 Loading 状态管理
  *
@@ -9,59 +12,57 @@
  *
  * 注：路由性能监控已由 src/monitor 统一管理，无需在此重复初始化
  */
-import { tryOnScopeDispose } from '@vueuse/core'
-import { computed, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { tryOnScopeDispose } from '@vueuse/core';
 
 export interface RouteLoadingOptions {
   /** 最小显示时间 (ms)，防止闪烁 */
-  minDuration?: number
+  minDuration?: number;
   /** 是否启用自动模式（监听路由变化） */
-  auto?: boolean
+  auto?: boolean;
 }
 
 export function useRouteLoading(options: RouteLoadingOptions = {}) {
-  const { minDuration = 300, auto = true } = options
+  const { minDuration = 300, auto = true } = options;
 
-  const router = useRouter()
-  const route = useRoute()
+  const router = useRouter();
+  const route = useRoute();
 
   // 状态
-  const isLoading = ref(false)
-  const isComplete = ref(false)
-  const isError = ref(false)
-  const startTime = ref(0)
+  const isLoading = ref(false);
+  const isComplete = ref(false);
+  const isError = ref(false);
+  const startTime = ref(0);
 
   // 定时器
-  let completeTimer: ReturnType<typeof setTimeout> | null = null
+  let completeTimer: null | ReturnType<typeof setTimeout> = null;
 
   /**
    * 开始加载
    */
   function start() {
-    if (isLoading.value && !isComplete.value) return
+    if (isLoading.value && !isComplete.value) return;
 
-    isLoading.value = isComplete.value = isError.value = false
-    startTime.value = Date.now()
+    isLoading.value = isComplete.value = isError.value = false;
+    startTime.value = Date.now();
 
     requestAnimationFrame(() => {
-      isLoading.value = true
-      isComplete.value = false
-    })
+      isLoading.value = true;
+      isComplete.value = false;
+    });
   }
 
   /**
    * 完成加载（成功）
    */
   function complete() {
-    completeInternal(false)
+    completeInternal(false);
   }
 
   /**
    * 完成加载（失败）
    */
   function error() {
-    completeInternal(true)
+    completeInternal(true);
   }
 
   /**
@@ -69,53 +70,53 @@ export function useRouteLoading(options: RouteLoadingOptions = {}) {
    */
   function completeInternal(error: boolean) {
     if (!isLoading.value) {
-      return
+      return;
     }
 
-    const elapsed = Date.now() - startTime.value
-    const remaining = Math.max(0, minDuration - elapsed)
+    const elapsed = Date.now() - startTime.value;
+    const remaining = Math.max(0, minDuration - elapsed);
 
     if (completeTimer) {
-      clearTimeout(completeTimer)
+      clearTimeout(completeTimer);
     }
 
     completeTimer = setTimeout(() => {
-      isComplete.value = !error
-      isError.value = error
+      isComplete.value = !error;
+      isError.value = error;
 
       setTimeout(
         () => {
-          isLoading.value = false
-          isComplete.value = false
-          isError.value = false
+          isLoading.value = false;
+          isComplete.value = false;
+          isError.value = false;
         },
         error ? 500 : 200,
-      )
-    }, remaining)
+      );
+    }, remaining);
   }
 
   /**
    * 取消加载
    */
   function cancel() {
-    if (!isLoading.value) return
+    if (!isLoading.value) return;
 
-    reset()
+    reset();
   }
 
   /**
    * 手动触发完整的加载-完成流程
    */
   async function withLoading<T>(fn: () => Promise<T>): Promise<T> {
-    start()
+    start();
     try {
-      const result = await fn()
-      return result
-    } catch (e) {
-      error()
-      throw e
+      const result = await fn();
+      return result;
+    } catch (error) {
+      error();
+      throw error;
     } finally {
-      complete()
+      complete();
     }
   }
 
@@ -124,62 +125,62 @@ export function useRouteLoading(options: RouteLoadingOptions = {}) {
    */
   function reset() {
     if (completeTimer) {
-      clearTimeout(completeTimer)
-      completeTimer = null
+      clearTimeout(completeTimer);
+      completeTimer = null;
     }
-    isLoading.value = false
-    isComplete.value = false
-    isError.value = false
-    startTime.value = 0
+    isLoading.value = false;
+    isComplete.value = false;
+    isError.value = false;
+    startTime.value = 0;
   }
 
   // 计算属性
   const progress = computed(() => {
-    if (!isLoading.value) return 0
-    if (isComplete.value || isError.value) return 100
+    if (!isLoading.value) return 0;
+    if (isComplete.value || isError.value) return 100;
 
-    const elapsed = Date.now() - startTime.value
-    return Math.min(90, 10 + (elapsed / (minDuration * 3)) * 80)
-  })
+    const elapsed = Date.now() - startTime.value;
+    return Math.min(90, 10 + (elapsed / (minDuration * 3)) * 80);
+  });
 
   // 当前耗时
   const elapsed = computed(() => {
-    if (!startTime.value) return 0
-    return Date.now() - startTime.value
-  })
+    if (!startTime.value) return 0;
+    return Date.now() - startTime.value;
+  });
 
   // 是否慢加载
   const isSlow = computed(() => {
-    return elapsed.value > 3000 && isLoading.value
-  })
+    return elapsed.value > 3000 && isLoading.value;
+  });
 
   // 自动模式：监听路由变化
   if (auto) {
     watch(
       () => route.path,
       async () => {
-        start()
-        await new Promise((resolve) => setTimeout(resolve, minDuration))
-        complete()
+        start();
+        await new Promise((resolve) => setTimeout(resolve, minDuration));
+        complete();
       },
-    )
+    );
 
     router.beforeEach((_to, _from, next) => {
-      start()
-      next()
-    })
+      start();
+      next();
+    });
 
     router.afterEach((to) => {
       setTimeout(() => {
-        complete()
-      }, minDuration / 2)
-    })
+        complete();
+      }, minDuration / 2);
+    });
   }
 
   // 清理定时器
   tryOnScopeDispose(() => {
-    reset()
-  })
+    reset();
+  });
 
   return {
     // 状态
@@ -197,5 +198,5 @@ export function useRouteLoading(options: RouteLoadingOptions = {}) {
     cancel,
     withLoading,
     reset,
-  }
+  };
 }

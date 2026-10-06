@@ -1,6 +1,6 @@
-import type { PluginOption } from 'vite'
+import type { PluginOption } from 'vite';
 
-import { VitePWA } from 'vite-plugin-pwa'
+import { VitePWA } from 'vite-plugin-pwa';
 
 export function createPwaPlugin(envConfig: Record<string, any>): PluginOption {
   return VitePWA({
@@ -13,10 +13,27 @@ export function createPwaPlugin(envConfig: Record<string, any>): PluginOption {
       description: '基于 Vue 3 + Antdv Next 的现代化后台管理系统',
       icons: [
         { src: 'pwa-icons/pwa-64x64.png', type: 'image/png', sizes: '64x64' },
-        { src: 'pwa-icons/pwa-192x192.png', type: 'image/png', sizes: '192x192' },
-        { src: 'pwa-icons/pwa-512x512.png', type: 'image/png', sizes: '512x512' },
-        { src: 'pwa-icons/maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-        { src: 'pwa-icons/apple-touch-icon-180x180.png', type: 'image/png', sizes: '180x180 180x180' },
+        {
+          src: 'pwa-icons/pwa-192x192.png',
+          type: 'image/png',
+          sizes: '192x192',
+        },
+        {
+          src: 'pwa-icons/pwa-512x512.png',
+          type: 'image/png',
+          sizes: '512x512',
+        },
+        {
+          src: 'pwa-icons/maskable-icon-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'maskable',
+        },
+        {
+          src: 'pwa-icons/apple-touch-icon-180x180.png',
+          type: 'image/png',
+          sizes: '180x180 180x180',
+        },
       ],
     },
     workbox: {
@@ -35,5 +52,5 @@ export function createPwaPlugin(envConfig: Record<string, any>): PluginOption {
     },
     includeAssets: ['favicon.ico', 'pwa-icons/*.png'],
     devOptions: { enabled: true },
-  })
+  });
 }

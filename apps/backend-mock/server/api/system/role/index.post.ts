@@ -1,8 +1,10 @@
-import dayjs from 'dayjs'
-import { success } from '../../../utils/response'
-import { defineMockRoute } from '../../../utils/runtime'
-import { nextRoleId, ROLE_DB } from '../../../utils/db/role'
-import type { RoleItem } from '../../../utils/db/role'
+import type { RoleItem } from '../../../utils/db/role';
+
+import dayjs from 'dayjs';
+
+import { nextRoleId, ROLE_DB } from '../../../utils/db/role';
+import { success } from '../../../utils/response';
+import { defineMockRoute } from '../../../utils/runtime';
 
 export default defineMockRoute({
   handler({ data }) {
@@ -15,12 +17,12 @@ export default defineMockRoute({
       status: Number(data.status ?? 1),
       menuIds: [],
       createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-    }
+    };
 
-    ROLE_DB.push(newRole)
+    ROLE_DB.push(newRole);
 
-    return success(newRole, '新增角色成功')
+    return success(newRole, '新增角色成功');
   },
   method: 'POST',
   path: '/system/role',
-})
+});

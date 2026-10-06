@@ -27,57 +27,57 @@ export enum PermissionRole {
 }
 
 export interface Permission {
-  id: string
-  name: string
-  code: string
-  description?: string
-  resource: PermissionResource
-  actions: PermissionAction[]
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  resource: PermissionResource;
+  actions: PermissionAction[];
 }
 
 export interface Role {
-  id: string
-  name: string
-  code: string
-  description?: string
-  permissions: string[]
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  permissions: string[];
 }
 
 export interface PermissionCheckOptions {
-  mode?: PermissionMode
-  strict?: boolean
+  mode?: PermissionMode;
+  strict?: boolean;
 }
 
 export interface PermissionDirectiveBinding {
   value:
     | string
     | string[]
-    | { permission: string | string[]; mode?: PermissionMode }
-  arg?: string
-  modifiers?: Record<string, boolean>
+    | { permission: string | string[]; mode?: PermissionMode };
+  arg?: string;
+  modifiers?: Record<string, boolean>;
 }
 
 export interface UsePermissionOptions {
-  mode?: PermissionMode
-  strict?: boolean
+  mode?: PermissionMode;
+  strict?: boolean;
 }
 
 export interface UsePermissionReturn {
-  hasPermission: (permission: string) => boolean
-  hasAnyPermission: (permissions: string[]) => boolean
-  hasAllPermissions: (permissions: string[]) => boolean
-  hasRole: (role: string) => boolean
-  hasAnyRole: (roles: string[]) => boolean
-  hasAllRoles: (roles: string[]) => boolean
-  isAdmin: () => boolean
+  hasPermission: (permission: string) => boolean;
+  hasAnyPermission: (permissions: string[]) => boolean;
+  hasAllPermissions: (permissions: string[]) => boolean;
+  hasRole: (role: string) => boolean;
+  hasAnyRole: (roles: string[]) => boolean;
+  hasAllRoles: (roles: string[]) => boolean;
+  isAdmin: () => boolean;
   checkPermission: (
     perms: string | string[],
-    opts?: { mode?: 'any' | 'all' },
-  ) => boolean // ⭐ 新增
+    opts?: { mode?: 'all' | 'any' },
+  ) => boolean; // ⭐ 新增
   checkRole: (
     roles: string | string[],
-    opts?: { mode?: 'any' | 'all' },
-  ) => boolean // ⭐ 新增
-  permissions: readonly string[]
-  roles: readonly string[]
+    opts?: { mode?: 'all' | 'any' },
+  ) => boolean; // ⭐ 新增
+  permissions: readonly string[];
+  roles: readonly string[];
 }

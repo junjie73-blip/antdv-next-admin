@@ -1,6 +1,6 @@
-import { palette } from '../palette'
+import { palette } from '../palette';
 
-const { white, slate, blue, rose } = palette
+const { white, slate, blue, rose } = palette;
 
 /**
  * ☀️ Light 主题 · 组件级 Token
@@ -452,4 +452,4 @@ export const lightComponents = {
     titleMarginBottom: '0.5em',
     titleMarginTop: '1.2em',
   },
-} as const
+} as const;

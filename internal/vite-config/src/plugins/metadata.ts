@@ -5,8 +5,7 @@ import {
   findMonorepoRoot,
   getPackages,
   readPackageJSON,
-} from '@antdv-admin/node-utils';
-
+} from '@antdv/node-utils';
 import { readWorkspaceManifest } from '@pnpm/workspace.read-manifest';
 
 function resolvePackageVersion(

@@ -1,38 +1,39 @@
-import postcss from 'postcss'
-import { glob } from 'tinyglobby'
-
-import { readTextFileSync } from '@antdv-admin/node-utils'
+import { readTextFileSync } from '@antdv/node-utils';
+import postcss from 'postcss';
+import { glob } from 'tinyglobby';
 
 export interface CssVariableScanOptions {
-  root: string
-  sources: string[]
-  prefix?: string
-  exclude?: RegExp[]
+  root: string;
+  sources: string[];
+  prefix?: string;
+  exclude?: RegExp[];
 }
 
 /**
  * 从项目中扫描 CSS 变量
  */
-export async function scanCssVariables(opts: CssVariableScanOptions): Promise<Record<string, string>> {
+export async function scanCssVariables(
+  opts: CssVariableScanOptions,
+): Promise<Record<string, string>> {
   const files = await glob(opts.sources, {
     cwd: opts.root,
     absolute: true,
     ignore: ['**/node_modules/**', '**/dist/**', '**/*.min.css'],
-  })
+  });
 
-  const result: Record<string, string> = {}
+  const result: Record<string, string> = {};
   for (const file of files) {
     // glob 之后文件可能已被删除 / 无读取权限，读不到就跳过而不是中断构建
-    const content = readTextFileSync(file)
-    if (!content) continue
-    const vars = parseCssVariables(content)
+    const content = readTextFileSync(file);
+    if (!content) continue;
+    const vars = parseCssVariables(content);
     for (const [k, v] of Object.entries(vars)) {
-      if (opts.prefix && !k.startsWith(opts.prefix)) continue
-      if (opts.exclude?.some((re) => re.test(k))) continue
-      result[k] = v
+      if (opts.prefix && !k.startsWith(opts.prefix)) continue;
+      if (opts.exclude?.some((re) => re.test(k))) continue;
+      result[k] = v;
     }
   }
-  return result
+  return result;
 }
 
 /**
@@ -42,25 +43,25 @@ export async function scanCssVariables(opts: CssVariableScanOptions): Promise<Re
  */
 function parseCssVariables(css: string): Record<string, string> {
   try {
-    const root = postcss.parse(css)
-    const vars: Record<string, string> = {}
+    const root = postcss.parse(css);
+    const vars: Record<string, string> = {};
     root.walkDecls((decl) => {
       if (decl.prop.startsWith('--')) {
-        vars[decl.prop] = decl.value
+        vars[decl.prop] = decl.value;
       }
-    })
-    return vars
+    });
+    return vars;
   } catch {
     // 回退到正则，兼容 SCSS/LESS 原始文本
-    const vars: Record<string, string> = {}
-    const regex = /(--[\w-]+)\s*:\s*([^;}\n]+?)\s*(?:;|(?=}))/g
-    let match: RegExpExecArray | null
+    const vars: Record<string, string> = {};
+    const regex = /(--[\w-]+)\s*:\s*([^;}\n]+?)\s*(?:;|(?=}))/g;
+    let match: null | RegExpExecArray;
     while ((match = regex.exec(css)) !== null) {
       // noUncheckedIndexedAccess 下解构结果仍可能为 undefined，先收窄再写表
-      const [key, value] = match
-      if (key === undefined || value === undefined) continue
-      vars[key] = value.trim()
+      const [key, value] = match;
+      if (key === undefined || value === undefined) continue;
+      vars[key] = value.trim();
     }
-    return vars
+    return vars;
   }
 }

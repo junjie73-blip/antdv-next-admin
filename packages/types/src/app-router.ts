@@ -1,23 +1,23 @@
-import type { RouteRecordRaw } from 'vue-router'
+import type { RouteRecordRaw } from 'vue-router';
 
 export type RouteMeta = {
-  title: string
-  icon?: string
-  hidden?: boolean
-  keepAlive?: boolean
-  requiresAuth?: boolean
-  roles?: string[]
-  permissions?: string[]
-  layout?: 'default' | 'blank'
-}
+  title: string;
+  icon?: string;
+  hidden?: boolean;
+  keepAlive?: boolean;
+  requiresAuth?: boolean;
+  roles?: string[];
+  permissions?: string[];
+  layout?: 'blank' | 'default';
+};
 
 export type AppRouteRecordRaw = RouteRecordRaw & {
-  meta?: RouteMeta
-  children?: AppRouteRecordRaw[]
-}
+  meta?: RouteMeta;
+  children?: AppRouteRecordRaw[];
+};
 
 export interface RouteLocation {
-  path: string
-  name?: string
-  meta?: RouteMeta
+  path: string;
+  name?: string;
+  meta?: RouteMeta;
 }

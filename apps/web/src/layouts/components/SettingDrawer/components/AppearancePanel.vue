@@ -1,49 +1,49 @@
 <script setup lang="ts">
-import type { Color, ColorPickerProps } from 'antdv-next'
+import type { Color, ColorPickerProps } from 'antdv-next';
 
-import { ColorPicker } from 'antdv-next'
-import { computed, ref } from 'vue'
+import { computed, ref } from 'vue';
 
-import { useThemeTransition } from '~/composables/web/useThemeTransition'
-import ThemeToggle from '~/layouts/widgets/ThemeToggle.vue'
-import { useAppStore } from '~/stores/modules/app'
-import { cn } from '~/utils/index.js'
+import { ColorPicker } from 'antdv-next';
+import { useThemeTransition } from '~/composables/web/useThemeTransition';
+import ThemeToggle from '~/layouts/widgets/ThemeToggle.vue';
+import { useAppStore } from '~/stores/modules/app';
+import { cn } from '~/utils/index.js';
 
 import {
   BORDER_RADIUS_OPTIONS,
   PRIMARY_COLORS,
   sectionStyles,
   THEME_MODE_OPTIONS,
-} from '../constants'
-import SettingGroup from './SettingGroup.vue'
-import SettingItem from './SettingItem.vue'
+} from '../constants';
+import SettingGroup from './SettingGroup.vue';
+import SettingItem from './SettingItem.vue';
 
-defineOptions({ name: 'AppearancePanel' })
-const appStore = useAppStore()
-const { toggleThemeWithAnimation } = useThemeTransition()
+defineOptions({ name: 'AppearancePanel' });
+const appStore = useAppStore();
+const { toggleThemeWithAnimation } = useThemeTransition();
 const color_presets = computed<ColorPickerProps['presets']>(() => [
   { label: '推荐', colors: PRIMARY_COLORS.map((c) => c.value) },
-])
-const customColor = ref(appStore.primaryColor || '#1677ff')
+]);
+const customColor = ref(appStore.primaryColor || '#1677ff');
 function isColorActive(color: string): boolean {
-  return appStore.primaryColor?.toLowerCase() === color.toLowerCase()
+  return appStore.primaryColor?.toLowerCase() === color.toLowerCase();
 }
 
 const isPresetColor = computed(() => {
-  const cur = appStore.primaryColor?.toLowerCase()
-  if (!cur) return false
-  return PRIMARY_COLORS.some((c) => c.value.toLowerCase() === cur)
-})
+  const cur = appStore.primaryColor?.toLowerCase();
+  if (!cur) return false;
+  return PRIMARY_COLORS.some((c) => c.value.toLowerCase() === cur);
+});
 function handleColorSelect(color: string) {
-  appStore.updateSetting({ primaryColor: color })
+  appStore.updateSetting({ primaryColor: color });
 }
-function handleThemeModeChange(mode: string | number, event?: MouseEvent) {
-  if (mode === appStore.themeMode) return
-  toggleThemeWithAnimation(event)
+function handleThemeModeChange(mode: number | string, event?: MouseEvent) {
+  if (mode === appStore.themeMode) return;
+  toggleThemeWithAnimation(event);
 }
 const handleChangeColor = (color: Color) => {
-  appStore.updateSetting({ primaryColor: color.toRgbString() })
-}
+  appStore.updateSetting({ primaryColor: color.toRgbString() });
+};
 </script>
 
 <template>
@@ -100,7 +100,7 @@ const handleChangeColor = (color: Color) => {
           <div
             class="h-8 w-12 rounded-md transition-transform duration-200 group-hover:scale-105"
             :style="{ backgroundColor: opt.value }"
-          />
+          ></div>
 
           <!-- 名称 -->
           <span
@@ -140,7 +140,7 @@ const handleChangeColor = (color: Color) => {
               v-if="!isPresetColor"
               class="h-8 w-12 rounded-md transition-transform duration-200 group-hover:scale-105"
               :style="{ backgroundColor: appStore.primaryColor }"
-            />
+            ></div>
             <div
               v-else
               class="flex h-8 w-12 items-center justify-center rounded-md bg-slate-100 transition-transform duration-200 group-hover:scale-105 dark:bg-slate-700"

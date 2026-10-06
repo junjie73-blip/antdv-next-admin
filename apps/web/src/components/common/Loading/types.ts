@@ -1,14 +1,14 @@
-import type { ComponentPublicInstance, DirectiveBinding } from 'vue'
+import type { ComponentPublicInstance, DirectiveBinding } from 'vue';
 
 /**
  * Loading 组件尺寸类型
  */
-export type LoadingSize = 'default' | 'small' | 'large'
+export type LoadingSize = 'default' | 'large' | 'small';
 
 /**
  * Loading 组件主题类型
  */
-export type LoadingTheme = 'dark' | 'light'
+export type LoadingTheme = 'dark' | 'light';
 
 /**
  * Loading 组件属性配置
@@ -17,37 +17,37 @@ export interface LoadingProps {
   /**
    * 加载提示文本
    */
-  tip?: string
+  tip?: string;
 
   /**
    * 尺寸大小
    * @default 'default'
    */
-  size?: LoadingSize
+  size?: LoadingSize;
 
   /**
    * 是否使用绝对定位（容器内）
    * @default false - false 时为全屏模式
    */
-  absolute?: boolean
+  absolute?: boolean;
 
   /**
    * 加载状态
    * @default false
    */
-  loading?: boolean
+  loading?: boolean;
 
   /**
    * 自定义背景色
    */
-  background?: string
+  background?: string;
 
   /**
    * 主题色
    * @default 'light'
    * @description 当 background 存在时优先使用 background
    */
-  theme?: LoadingTheme
+  theme?: LoadingTheme;
 }
 
 /**
@@ -57,22 +57,22 @@ export interface LoadingInstance {
   /**
    * 关闭 loading
    */
-  close: () => void
+  close: () => void;
 
   /**
    * 打开 loading
    */
-  open: () => void
+  open: () => void;
 
   /**
    * 动态修改提示文本
    */
-  setTip: (tip: string) => void
+  setTip: (tip: string) => void;
 
   /**
    * 动态修改加载状态
    */
-  setLoading: (loading: boolean) => void
+  setLoading: (loading: boolean) => void;
 }
 
 /**
@@ -82,18 +82,18 @@ export interface UseLoadingOptions extends LoadingProps {
   /**
    * 目标容器（CSS 选择器或元素）
    */
-  target?: HTMLElement | string
+  target?: HTMLElement | string;
 
   /**
    * 是否挂载到 body
    * @default true - 全屏时默认为 true
    */
-  body?: boolean
+  body?: boolean;
 
   /**
    * 包装器类名
    */
-  wrapClass?: string
+  wrapClass?: string;
 }
 
 /**
@@ -103,7 +103,7 @@ export interface CreateLoadingOptions extends UseLoadingOptions {
   /**
    * 关闭回调
    */
-  onClose?: () => void
+  onClose?: () => void;
 }
 
 /**
@@ -113,7 +113,7 @@ export interface LoadingDirectiveBinding {
   /**
    * 是否显示 loading
    */
-  value: boolean
+  value: boolean;
 
   /**
    * 修饰符
@@ -122,18 +122,18 @@ export interface LoadingDirectiveBinding {
     /**
      * 挂载到 body
      */
-    body?: boolean
+    body?: boolean;
 
     /**
      * 全屏模式
      */
-    fullscreen?: boolean
-  }
+    fullscreen?: boolean;
+  };
 
   /**
    * 参数：提示文本
    */
-  arg?: string
+  arg?: string;
 }
 
 /**
@@ -144,13 +144,13 @@ declare global {
     /**
      * Loading 组件实例
      */
-    _loadingInstance?: ComponentPublicInstance<LoadingProps>
+    _loadingInstance?: ComponentPublicInstance<LoadingProps>;
 
     /**
      * Loading 元素容器
      */
-    _loadingEl?: HTMLDivElement
+    _loadingEl?: HTMLDivElement;
   }
 }
 
-export type { ComponentPublicInstance, DirectiveBinding }
+export type { ComponentPublicInstance, DirectiveBinding };

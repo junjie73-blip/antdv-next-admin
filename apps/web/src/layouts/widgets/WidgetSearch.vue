@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { useMagicKeys, whenever } from '@vueuse/core'
+import { Icon } from '@iconify/vue';
+import { useMagicKeys, whenever } from '@vueuse/core';
 
-import WidgetButton from './components/WidgetButton.vue'
+import WidgetButton from './components/WidgetButton.vue';
 
-defineOptions({ name: 'WidgetSearch' })
+defineOptions({ name: 'WidgetSearch' });
 
-const emit = defineEmits<{ open: [] }>()
+const emit = defineEmits<{ open: [] }>();
 
-const { meta_k, ctrl_k } = useMagicKeys()
+const { meta_k, ctrl_k } = useMagicKeys();
 
 whenever(
   () => meta_k!.value || ctrl_k!.value,
   (e) => {
-    e?.preventDefault?.()
-    emit('open')
+    e?.preventDefault?.();
+    emit('open');
   },
-)
+);
 </script>
 
 <template>

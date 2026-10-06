@@ -1,21 +1,22 @@
 <script setup lang="ts">
-import { useFocus } from '@vueuse/core'
-import { ref } from 'vue'
+import { ref } from 'vue';
+
+import { useFocus } from '@vueuse/core';
 
 const props = defineProps<{
-  initialUrl?: string
-}>()
+  initialUrl?: string;
+}>();
 
-const emit = defineEmits<{ confirm: [url: string]; cancel: [] }>()
+const emit = defineEmits<{ confirm: [url: string]; cancel: [] }>();
 
-const url = ref(props.initialUrl ?? '')
-const inputRef = ref<HTMLInputElement | null>(null)
+const url = ref(props.initialUrl ?? '');
+const inputRef = ref<HTMLInputElement | null>(null);
 
 // useFocus：挂载时自动 focus，组件卸载时自动 blur，无需 nextTick
-useFocus(inputRef, { initialValue: true })
+useFocus(inputRef, { initialValue: true });
 
 function confirm() {
-  emit('confirm', url.value.trim())
+  emit('confirm', url.value.trim());
 }
 </script>
 

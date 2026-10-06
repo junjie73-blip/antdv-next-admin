@@ -1,36 +1,36 @@
 <script setup lang="ts">
-import type { TabItem } from '@antdv-admin/types'
+import type { TabItem } from '@antdv/types';
 
-import { computed } from 'vue'
-import { VueDraggable } from 'vue-draggable-plus'
+import { computed } from 'vue';
+import { VueDraggable } from 'vue-draggable-plus';
 
-import TabItemView from './TabItem.vue'
+import TabItemView from './TabItem.vue';
 
-defineOptions({ name: 'TabList' })
+defineOptions({ name: 'TabList' });
 
 const props = withDefaults(
   defineProps<{
-    activeKey: string
+    activeKey: string;
     /** 固定标签数量：它们永远排在最前，不允许被拖到它们前面 */
-    affixCount: number
-    closeClass: string
+    affixCount: number;
+    closeClass: string;
     /** 允许拖拽排序（设置项 tabDragSort） */
-    draggable: boolean
-    itemClass: string
-    listClass: string
-    showIcon: boolean
-    tabs: TabItem[]
+    draggable: boolean;
+    itemClass: string;
+    listClass: string;
+    showIcon: boolean;
+    tabs: TabItem[];
   }>(),
   { draggable: true },
-)
+);
 
 const emit = defineEmits<{
-  activate: [key: string]
-  close: [key: string]
-  contextmenu: [event: MouseEvent, key: string]
+  activate: [key: string];
+  close: [key: string];
+  contextmenu: [event: MouseEvent, key: string];
   /** 拖拽结束后的完整新顺序，由上层写回 store（store 是唯一数据源） */
-  reorder: [tabs: TabItem[]]
-}>()
+  reorder: [tabs: TabItem[]];
+}>();
 
 /**
  * v-model 直接接到 sortable 的结果上。
@@ -40,14 +40,14 @@ const emit = defineEmits<{
 const list = computed<TabItem[]>({
   get: () => props.tabs,
   set: (next) => emit('reorder', next),
-})
+});
 
-function onMove(event: { draggedIndex: number, relatedIndex: number }) {
+function onMove(event: { draggedIndex: number; relatedIndex: number }) {
   // 固定标签（首页）既不能被拖动，也不能被插到前面
   return (
     event.draggedIndex >= props.affixCount &&
     event.relatedIndex >= props.affixCount
-  )
+  );
 }
 </script>
 

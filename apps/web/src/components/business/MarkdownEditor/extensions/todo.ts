@@ -1,14 +1,14 @@
-import { mergeAttributes, Node, VueNodeViewRenderer } from '@tiptap/vue-3'
+import { mergeAttributes, Node, VueNodeViewRenderer } from '@tiptap/vue-3';
 
-import TodoNodeView from '../components/TodoNodeView.vue'
+import TodoNodeView from '../components/TodoNodeView.vue';
 
-const TODO_TAG = 'div[data-w-e-type="todo"]'
+const TODO_TAG = 'div[data-w-e-type="todo"]';
 
 function readChecked(element: HTMLElement): boolean {
   const input = element.querySelector<HTMLInputElement>(
     'input[type="checkbox"]',
-  )
-  return input ? input.hasAttribute('checked') : false
+  );
+  return input ? input.hasAttribute('checked') : false;
 }
 
 /**
@@ -32,35 +32,35 @@ export const Todo = Node.create({
         // 复选框由 renderHTML / NodeView 单独渲染，不作为根元素属性
         renderHTML: () => ({}),
       },
-    }
+    };
   },
 
   parseHTML() {
-    return [{ tag: TODO_TAG }]
+    return [{ tag: TODO_TAG }];
   },
 
   renderHTML({ node, HTMLAttributes }) {
-    const checkbox: Record<string, string> = { type: 'checkbox', disabled: '' }
-    if (node.attrs.checked) checkbox.checked = ''
+    const checkbox: Record<string, string> = { type: 'checkbox', disabled: '' };
+    if (node.attrs.checked) checkbox.checked = '';
     return [
       'div',
       mergeAttributes({ 'data-w-e-type': 'todo' }, HTMLAttributes),
       ['input', checkbox],
       ['span', 0],
-    ]
+    ];
   },
 
   addKeyboardShortcuts() {
     return {
       // 待办内回车继续生成下一条待办，与 wangEditor 的手感一致
       Enter: () => {
-        if (!this.editor.isActive(this.name)) return false
-        return this.editor.chain().splitBlock().setNode(this.name).run()
+        if (!this.editor.isActive(this.name)) return false;
+        return this.editor.chain().splitBlock().setNode(this.name).run();
       },
-    }
+    };
   },
 
   addNodeView() {
-    return VueNodeViewRenderer(TodoNodeView)
+    return VueNodeViewRenderer(TodoNodeView);
   },
-})
+});

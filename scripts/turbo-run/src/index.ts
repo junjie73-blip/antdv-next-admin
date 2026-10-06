@@ -1,5 +1,4 @@
-import { consola } from '@antdv-admin/node-utils';
-
+import { consola } from '@antdv/node-utils';
 import { cac } from 'cac';
 
 import { run } from './run';

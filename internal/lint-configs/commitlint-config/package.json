@@ -1,5 +1,5 @@
 {
-  "name": "@antdv-admin/commitlint-config",
+  "name": "@antdv/commitlint-config",
   "version": "0.0.0",
   "private": true,
   "homepage": "https://github.com/junjie73-blip/antdv-next-admin",
@@ -24,9 +24,9 @@
     }
   },
   "dependencies": {
+    "@antdv/node-utils": "workspace:*",
     "@commitlint/cli": "catalog:",
     "@commitlint/config-conventional": "catalog:",
-    "@antdv-admin/node-utils": "workspace:*",
     "commitlint-plugin-function-rules": "catalog:",
     "cz-git": "catalog:",
     "czg": "catalog:"

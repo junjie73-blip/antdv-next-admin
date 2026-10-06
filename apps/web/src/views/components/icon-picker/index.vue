@@ -1,39 +1,39 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { ref } from 'vue'
+import { ref } from 'vue';
 
-import { IconPicker } from '~/components/common/Icon'
-import { cn } from '~/utils/cn'
+import { Icon } from '@iconify/vue';
+import { IconPicker } from '~/components/common/Icon';
+import { cn } from '~/utils/cn';
 
-const containerClassName = cn('space-y-6')
-const twinContainerClassName = cn('grid grid-cols-2 gap-4')
+const containerClassName = cn('space-y-6');
+const twinContainerClassName = cn('grid grid-cols-2 gap-4');
 const infoBoxClassName = cn(
-  'flex items-center gap-2 mt-4 p-3 rounded-lg',
+  'mt-4 flex items-center gap-2 rounded-lg p-3',
   'bg-blue-50 dark:bg-blue-900/20',
   'border border-blue-200 dark:border-blue-800',
-)
-const infoIconClassName = cn('text-blue-500 text-lg flex-shrink-0')
+);
+const infoIconClassName = cn('flex-shrink-0 text-lg text-blue-500');
 const infoTextClassName = cn(
-  'text-sm text-blue-700 dark:text-blue-300 font-mono',
-)
+  'font-mono text-sm text-blue-700 dark:text-blue-300',
+);
 
-const selectedIcon = ref('')
-const defaultIcon = ref('carbon:star-filled')
-const disabledValue = ref('carbon:lock-locked')
+const selectedIcon = ref('');
+const defaultIcon = ref('carbon:star-filled');
+const disabledValue = ref('carbon:lock-locked');
 
-const leftIcon = ref('')
-const rightIcon = ref('')
+const leftIcon = ref('');
+const rightIcon = ref('');
 
 function handleBasicChange(value: string) {
-  message.success(`已选择图标：${value || '(已清除)'}`)
+  message.success(`已选择图标：${value || '(已清除)'}`);
 }
 
 function handleLeftChange(value: string) {
-  message.info(`左侧图标变更为：${value || '(已清除)'}`)
+  message.info(`左侧图标变更为：${value || '(已清除)'}`);
 }
 
 function handleRightChange(value: string) {
-  message.info(`右侧图标变更为：${value || '(已清除)'}`)
+  message.info(`右侧图标变更为：${value || '(已清除)'}`);
 }
 </script>
 

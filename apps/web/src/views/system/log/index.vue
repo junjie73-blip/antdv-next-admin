@@ -1,11 +1,11 @@
 <script setup lang="tsx">
-import { Icon } from '@iconify/vue'
-import { computed, ref } from 'vue'
-
 import type { DescriptionItem } from '~/components/business/Description'
 import type { FormSchema } from '~/components/business/Form'
 import type { BasicColumn } from '~/components/business/Table'
 
+import { ref } from 'vue'
+
+import { Icon } from '@iconify/vue'
 import { deleteOperLog, getOperLogList } from '~/api/system'
 import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
 import { BasicTable, useTable } from '~/components/business/Table'
@@ -27,7 +27,7 @@ interface OperLogRecord {
   operIp: string
   operLocation: string
   operParam: string
-  jsonResult: string | null
+  jsonResult: null | string
   status: number
   errorMsg: string
   operTime: string
@@ -50,14 +50,14 @@ interface LoginLogRecord {
 // 样式变量
 const containerClassName = cn('space-y-4')
 const cardClassName = cn(
-  'shadow-sm rounded-lg border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900',
+  'rounded-lg border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900',
 )
 const filterBarClassName = cn(
-  'flex items-center gap-3 flex-wrap px-6 py-4 border-b border-gray-100 dark:border-gray-800',
+  'flex flex-wrap items-center gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-800',
 )
 const dividerClassName = cn('mx-0')
 const actionClassName = cn('flex items-center justify-center')
-const btnClassName = cn('!px-0.5')
+const btnClassName = cn('px-0.5!')
 
 // 标签页
 const activeTab = ref(0)
@@ -69,10 +69,10 @@ const tabItems = [
 
 const tabClassName = (active: boolean) =>
   cn(
-    'px-5 py-3 text-sm font-medium cursor-pointer border-b-2 transition-colors duration-150 bg-transparent border-t-0 border-l-0 border-r-0 font-[inherit]',
+    'cursor-pointer border-t-0 border-x-0 border-b-2  bg-transparent px-5 py-3 font-[inherit] text-sm font-medium transition-colors duration-150',
     active
-      ? 'text-ant-primary border-ant-primary'
-      : 'text-gray-500 border-transparent hover:text-gray-700 dark:hover:text-gray-300',
+      ? 'border-ant-primary text-ant-primary'
+      : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
   )
 
 // 操作类型映射
@@ -99,7 +99,7 @@ const operatorTypeLabelMap: Record<number, string> = {
 }
 
 // 操作日志
-const viewingRecord = ref<OperLogRecord | null>(null)
+const viewingRecord = ref<null | OperLogRecord>(null)
 const [drawerRegister, drawerMethods] = useDrawer()
 const [tableRegister, tableMethods] = useTable()
 
@@ -270,10 +270,10 @@ const detailSchemas: DescriptionItem[] = [
     label: '请求参数',
     render: (value) => (
       <a-typography-paragraph
+        code
         copyable={{ text: value as string }}
         ellipsis={{ rows: 2, expandable: true, symbol: '展开' }}
         style={{ margin: 0, maxWidth: 400 }}
-        code
       >
         {(value as string) || '-'}
       </a-typography-paragraph>
@@ -285,10 +285,10 @@ const detailSchemas: DescriptionItem[] = [
     render: (value) =>
       value ? (
         <a-typography-paragraph
+          code
           copyable={{ text: value as string }}
           ellipsis={{ rows: 2, expandable: true, symbol: '展开' }}
           style={{ margin: 0, maxWidth: 400 }}
-          code
         >
           {value as string}
         </a-typography-paragraph>
@@ -311,9 +311,9 @@ const detailSchemas: DescriptionItem[] = [
     render: (value) =>
       (value as string) ? (
         <a-typography-paragraph
-          type="danger"
           ellipsis={{ rows: 2, expandable: true, symbol: '展开' }}
           style={{ margin: 0, maxWidth: 400 }}
+          type="danger"
         >
           {value as string}
         </a-typography-paragraph>
@@ -544,9 +544,9 @@ const loginColumns: BasicColumn[] = [
               导出
             </a-button>
             <a-button danger @click="handleBatchDelete">
-              <template #icon
-                ><Icon icon="ant-design:delete-outlined"
-              /></template>
+              <template #icon>
+<Icon icon="ant-design:delete-outlined" />
+</template>
               批量删除
             </a-button>
             <a-popconfirm
@@ -602,9 +602,9 @@ const loginColumns: BasicColumn[] = [
                 :class="btnClassName"
                 @click="() => handleView(record)"
               >
-                <template #icon
-                  ><Icon icon="ant-design:eye-outlined"
-                /></template>
+                <template #icon>
+<Icon icon="ant-design:eye-outlined" />
+</template>
                 详情
               </a-button>
               <a-divider type="vertical" :class="dividerClassName" />
@@ -613,9 +613,9 @@ const loginColumns: BasicColumn[] = [
                 @confirm="() => handleDelete(record)"
               >
                 <a-button type="link" danger :class="btnClassName">
-                  <template #icon
-                    ><Icon icon="ant-design:delete-outlined"
-                  /></template>
+                  <template #icon>
+<Icon icon="ant-design:delete-outlined" />
+</template>
                   删除
                 </a-button>
               </a-popconfirm>
@@ -678,38 +678,39 @@ const loginColumns: BasicColumn[] = [
       <div v-if="viewingRecord" class="relative pl-6">
         <div
           class="absolute top-0 bottom-0 left-[7px] w-[2px] bg-gray-200 dark:bg-gray-700"
-        />
+        ></div>
         <div class="space-y-6">
           <div class="relative pb-6">
             <div
               class="absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 border-green-500 bg-white dark:bg-gray-900"
-            />
+            ></div>
             <div class="mb-1 text-xs text-gray-400">操作时间</div>
             <div class="text-sm">{{ viewingRecord.operTime }}</div>
           </div>
           <div class="relative pb-6">
             <div
               class="border-ant-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
-            />
+            ></div>
             <div class="mb-1 text-xs text-gray-400">操作模块</div>
             <div class="text-sm">{{ viewingRecord.title }}</div>
           </div>
           <div class="relative pb-6">
             <div
               class="border-ant-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
-            />
+            ></div>
             <div class="mb-1 text-xs text-gray-400">操作类型</div>
             <div class="text-sm">
               <a-tag
                 :color="operTypeColorMap[viewingRecord.operType] || 'default'"
-                >{{ viewingRecord.operType }}</a-tag
-              >
+                >
+{{ viewingRecord.operType }}
+</a-tag>
             </div>
           </div>
           <div class="relative pb-6">
             <div
               class="border-ant-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
-            />
+            ></div>
             <div class="mb-1 text-xs text-gray-400">操作人员</div>
             <div class="text-sm">
               <span class="text-ant-primary font-medium">{{
@@ -720,25 +721,23 @@ const loginColumns: BasicColumn[] = [
           <div class="relative pb-6">
             <div
               class="border-ant-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
-            />
+            ></div>
             <div class="mb-1 text-xs text-gray-400">请求URL</div>
             <div class="text-sm">
               <code
                 class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800"
-                >{{ viewingRecord.operUrl }}</code
-              >
+                >{{ viewingRecord.operUrl }}</code>
             </div>
           </div>
           <div class="relative pb-6">
             <div
               class="border-ant-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
-            />
+            ></div>
             <div class="mb-1 text-xs text-gray-400">IP地址</div>
             <div class="text-sm">
               <code
                 class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800"
-                >{{ viewingRecord.operIp }}</code
-              >
+                >{{ viewingRecord.operIp }}</code>
             </div>
           </div>
           <div class="relative pb-6">
@@ -749,7 +748,7 @@ const loginColumns: BasicColumn[] = [
                   ? 'border-green-500'
                   : 'border-red-500'
               "
-            />
+            ></div>
             <div class="mb-1 text-xs text-gray-400">执行状态</div>
             <div class="text-sm">
               <a-tag :color="statusColorMap[viewingRecord.status] || 'default'">
@@ -760,7 +759,7 @@ const loginColumns: BasicColumn[] = [
           <div class="relative">
             <div
               class="border-ant-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
-            />
+            ></div>
             <div class="mb-1 text-xs text-gray-400">耗时</div>
             <div class="text-sm">{{ viewingRecord.costTime }}ms</div>
           </div>

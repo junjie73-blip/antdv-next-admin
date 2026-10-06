@@ -11,7 +11,7 @@ import {
   gitAdd,
   outputJSON,
   toPosixPath,
-} from '@antdv-admin/node-utils';
+} from '@antdv/node-utils';
 
 const CODE_WORKSPACE_FILE = join('vben-admin.code-workspace');
 

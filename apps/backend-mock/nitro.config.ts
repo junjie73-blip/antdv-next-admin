@@ -1,4 +1,4 @@
-import { defineNitroConfig } from 'nitropack/config'
+import { defineNitroConfig } from 'nitropack/config';
 
 /**
  * Mock 服务（Nitro）
@@ -24,4 +24,4 @@ export default defineNitroConfig({
   },
   srcDir: 'server',
   typescript: { strict: true },
-})
+});

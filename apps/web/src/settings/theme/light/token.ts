@@ -1,6 +1,6 @@
-import { palette } from '../palette'
+import { palette } from '../palette';
 
-const { slate, blue, emerald, amber, rose, sky, white } = palette
+const { slate, blue, emerald, amber, rose, sky, white } = palette;
 
 /**
  * Light 主题 Token
@@ -200,6 +200,6 @@ export const lightToken = {
   layoutLightSiderBg: white,
   layoutLightTriggerBg: slate[100],
   layoutLightTriggerColor: slate[600],
-} as const
+} as const;
 
-export type AntToken = typeof lightToken
+export type AntToken = typeof lightToken;

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import * as echarts from 'echarts'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
+import * as echarts from 'echarts'
 import { getSecurityStats } from '~/api/security'
 import { useAppStore } from '~/stores/modules/app'
 import { cn } from '~/utils/cn'
@@ -13,7 +13,7 @@ const isDark = computed(() => appStore.themeMode === 'dark')
 
 const containerClassName = cn('rounded-xl p-5')
 const sectionTitleClassName = cn(
-  'text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3',
+  'mb-3 text-sm font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400',
 )
 
 // 图表 DOM 引用
@@ -399,7 +399,7 @@ onBeforeUnmount(disposeAll)
         "
       >
         <h4 :class="sectionTitleClassName">威胁类型分布</h4>
-        <div ref="pieRef" style="height: 260px" />
+        <div ref="pieRef" style="height: 260px"></div>
       </div>
 
       <!-- 柱状图：攻击来源地区 -->
@@ -412,7 +412,7 @@ onBeforeUnmount(disposeAll)
         "
       >
         <h4 :class="sectionTitleClassName">攻击来源地区 TOP7</h4>
-        <div ref="barRef" style="height: 260px" />
+        <div ref="barRef" style="height: 260px"></div>
       </div>
     </div>
 
@@ -426,7 +426,7 @@ onBeforeUnmount(disposeAll)
       "
     >
       <h4 :class="sectionTitleClassName">事件趋势 & 响应时间</h4>
-      <div ref="lineRef" style="height: 280px" />
+      <div ref="lineRef" style="height: 280px"></div>
     </div>
   </div>
 </template>

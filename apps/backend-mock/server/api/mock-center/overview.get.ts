@@ -6,31 +6,40 @@
  * 生产构建里整个 server/api/mock-center 目录随业务 mock 一起排除，不存在这些实现。
  */
 
-import { defineEventHandler } from '#imports'
-import { envelope } from '../../utils/response'
-import { toRouteView } from '../../utils/panel'
-import { getStore, listManifest } from '../../utils/store'
+import { defineEventHandler } from '#imports';
+
+import { toRouteView } from '../../utils/panel';
+import { envelope } from '../../utils/response';
+import { getStore, listManifest } from '../../utils/store';
 
 export default defineEventHandler(() => {
-  const store = getStore()
-  const views = listManifest().map(toRouteView)
-  const totals = views.reduce((acc, item) => {
-    acc.hits += item.count
-    acc.errors += item.errors
-    acc.totalMs += item.avgMs * item.count
-    return acc
-  }, { errors: 0, hits: 0, totalMs: 0 })
-
-  return envelope(200, {
-    counts: {
-      avgMs: totals.hits > 0 ? Math.round(totals.totalMs / totals.hits) : 0,
-      disabled: views.filter(item => item.effective.disabled === true).length,
-      errors: totals.errors,
-      generated: Object.keys(store.generated).length,
-      hits: totals.hits,
-      overridden: views.filter(item => item.overridden).length,
-      total: views.length,
+  const store = getStore();
+  const views = listManifest().map(toRouteView);
+  const totals = views.reduce(
+    (acc, item) => {
+      acc.hits += item.count;
+      acc.errors += item.errors;
+      acc.totalMs += item.avgMs * item.count;
+      return acc;
     },
-    global: store.global,
-  }, '获取 Mock 概览成功')
-})
+    { errors: 0, hits: 0, totalMs: 0 },
+  );
+
+  return envelope(
+    200,
+    {
+      counts: {
+        avgMs: totals.hits > 0 ? Math.round(totals.totalMs / totals.hits) : 0,
+        disabled: views.filter((item) => item.effective.disabled === true)
+          .length,
+        errors: totals.errors,
+        generated: Object.keys(store.generated).length,
+        hits: totals.hits,
+        overridden: views.filter((item) => item.overridden).length,
+        total: views.length,
+      },
+      global: store.global,
+    },
+    '获取 Mock 概览成功',
+  );
+});

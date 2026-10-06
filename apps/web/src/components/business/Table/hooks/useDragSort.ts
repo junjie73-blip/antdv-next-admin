@@ -1,25 +1,26 @@
-import type { Ref } from 'vue'
+import type { Ref } from 'vue';
 
-import { isFunction } from 'es-toolkit'
-import Sortable from 'sortablejs'
-import { onUnmounted } from 'vue'
+import type { Recordable } from '../types';
 
-import type { Recordable } from '../types'
+import { onUnmounted } from 'vue';
+
+import { isFunction } from 'es-toolkit';
+import Sortable from 'sortablejs';
 
 export interface UseDragSortOptions {
-  dataSource: Ref<Recordable[]>
-  enabled: boolean
-  rowKey: string | ((record: Recordable) => string)
-  handle?: string
-  animation?: number
-  disabled?: boolean | ((record: Recordable) => boolean)
-  onDragEnd?: (newData: Recordable[], oldData: Recordable[]) => void
-  canDrop?: (dragRecord: Recordable, dropRecord: Recordable) => boolean
+  dataSource: Ref<Recordable[]>;
+  enabled: boolean;
+  rowKey: ((record: Recordable) => string) | string;
+  handle?: string;
+  animation?: number;
+  disabled?: ((record: Recordable) => boolean) | boolean;
+  onDragEnd?: (newData: Recordable[], oldData: Recordable[]) => void;
+  canDrop?: (dragRecord: Recordable, dropRecord: Recordable) => boolean;
 }
 
 export interface UseDragSortReturn {
-  initSortable: (el: HTMLElement) => void
-  destroySortable: () => void
+  initSortable: (el: HTMLElement) => void;
+  destroySortable: () => void;
 }
 
 export function useDragSort(options: UseDragSortOptions): UseDragSortReturn {
@@ -31,60 +32,60 @@ export function useDragSort(options: UseDragSortOptions): UseDragSortReturn {
     disabled,
     onDragEnd,
     canDrop,
-  } = options
+  } = options;
 
-  let sortableInstance: Sortable | null = null
+  let sortableInstance: null | Sortable = null;
 
   const isDisabled = (record: Recordable): boolean =>
-    isFunction(disabled) ? disabled(record) : (disabled ?? false)
+    isFunction(disabled) ? disabled(record) : (disabled ?? false);
 
   const initSortable = (el: HTMLElement) => {
-    if (!enabled || sortableInstance) return
+    if (!enabled || sortableInstance) return;
 
     sortableInstance = new Sortable(el, {
       handle,
       animation,
       disabled: !enabled,
       onStart: (evt) => {
-        const record = dataSource.value[evt.oldIndex!]
+        const record = dataSource.value[evt.oldIndex!];
         if (record && isDisabled(record)) {
-          evt.preventDefault()
-          return false
+          evt.preventDefault();
+          return false;
         }
       },
       onMove: (evt) => {
-        if (!canDrop) return true
+        if (!canDrop) return true;
         const dragIndex =
-          (evt as any).draggedRowIndex ?? (evt as any).oldIndex ?? 0
+          (evt as any).draggedRowIndex ?? (evt as any).oldIndex ?? 0;
         const dropIndex =
-          (evt as any).relatedRowIndex ?? (evt as any).newIndex ?? 0
-        const dragRecord = dataSource.value[dragIndex]
-        const dropRecord = dataSource.value[dropIndex]
-        if (!dragRecord || !dropRecord) return false
-        return canDrop(dragRecord, dropRecord)
+          (evt as any).relatedRowIndex ?? (evt as any).newIndex ?? 0;
+        const dragRecord = dataSource.value[dragIndex];
+        const dropRecord = dataSource.value[dropIndex];
+        if (!dragRecord || !dropRecord) return false;
+        return canDrop(dragRecord, dropRecord);
       },
       onEnd: (evt) => {
-        const { oldIndex, newIndex } = evt
+        const { oldIndex, newIndex } = evt;
         if (oldIndex === newIndex || oldIndex == null || newIndex == null)
-          return
+          return;
 
-        const oldData = [...dataSource.value]
-        const newData = [...dataSource.value]
-        const [movedItem] = newData.splice(oldIndex, 1)
-        if (movedItem) newData.splice(newIndex, 0, movedItem)
+        const oldData = [...dataSource.value];
+        const newData = [...dataSource.value];
+        const [movedItem] = newData.splice(oldIndex, 1);
+        if (movedItem) newData.splice(newIndex, 0, movedItem);
 
-        dataSource.value = newData
-        onDragEnd?.(newData, oldData)
+        dataSource.value = newData;
+        onDragEnd?.(newData, oldData);
       },
-    })
-  }
+    });
+  };
 
   const destroySortable = () => {
-    sortableInstance?.destroy()
-    sortableInstance = null
-  }
+    sortableInstance?.destroy();
+    sortableInstance = null;
+  };
 
-  onUnmounted(destroySortable)
+  onUnmounted(destroySortable);
 
-  return { initSortable, destroySortable }
+  return { initSortable, destroySortable };
 }

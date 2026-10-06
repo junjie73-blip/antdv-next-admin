@@ -1,6 +1,7 @@
-import { faker } from '@faker-js/faker'
-import { success } from '../../utils/response'
-import { defineMockRoute } from '../../utils/runtime'
+import { faker } from '@faker-js/faker';
+
+import { success } from '../../utils/response';
+import { defineMockRoute } from '../../utils/runtime';
 
 /**
  * 表格演示数据：legacy 用未固定种子的默认（英文）faker 实例，
@@ -16,19 +17,19 @@ function generateTableData() {
     phone: faker.phone.number(),
     status: faker.helpers.arrayElement(['success', 'processing', 'error']),
     createdAt: faker.date.past().toISOString(),
-  }
+  };
 }
 
 export default defineMockRoute({
   handler({ query }) {
-    const page = Number(query.page) || 1
-    const pageSize = Number(query.pageSize) || 10
-    const total = 100
+    const page = Number(query.page) || 1;
+    const pageSize = Number(query.pageSize) || 10;
+    const total = 100;
 
-    const list = Array.from({ length: pageSize }, () => generateTableData())
+    const list = Array.from({ length: pageSize }, () => generateTableData());
 
-    return success({ list, page, pageSize, total }, '获取表格数据成功')
+    return success({ list, page, pageSize, total }, '获取表格数据成功');
   },
   method: 'GET',
   path: '/table/list',
-})
+});

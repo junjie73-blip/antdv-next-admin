@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Alert, Button, Card, Space } from 'antdv-next'
-import { ref } from 'vue'
+import type { BasicColumn } from '~/components/business/Table';
 
-import type { BasicColumn } from '~/components/business/Table'
+import { ref } from 'vue';
 
-import { BasicTable, useTable } from '~/components/business/Table'
+import { Alert, Button, Card, Space } from 'antdv-next';
+import { BasicTable, useTable } from '~/components/business/Table';
 
 /**
  * 表格分页测试页面
@@ -13,9 +13,9 @@ import { BasicTable, useTable } from '~/components/business/Table'
 
 // 模拟数据生成
 function generateData(page: number, pageSize: number, total: number) {
-  const start = (page - 1) * pageSize
-  const end = Math.min(start + pageSize, total)
-  const data = []
+  const start = (page - 1) * pageSize;
+  const end = Math.min(start + pageSize, total);
+  const data = [];
 
   for (let i = start; i < end; i++) {
     data.push({
@@ -24,10 +24,10 @@ function generateData(page: number, pageSize: number, total: number) {
       age: 20 + (i % 50),
       email: `user${i + 1}@example.com`,
       address: `地址 ${i + 1}`,
-    })
+    });
   }
 
-  return data
+  return data;
 }
 
 // 列配置
@@ -61,32 +61,32 @@ const columns: BasicColumn[] = [
     dataIndex: 'address',
     key: 'address',
   },
-]
+];
 
 // 当前测试场景
-const currentTest = ref('')
-const testResult = ref('')
+const currentTest = ref('');
+const testResult = ref('');
 
 // 模拟 API 请求
 function mockApi(params: any) {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const { page = 1, pageSize = 10 } = params
-      const total = 100 // 模拟总数据量
-      const data = generateData(page, pageSize, total)
+      const { page = 1, pageSize = 10 } = params;
+      const total = 100; // 模拟总数据量
+      const data = generateData(page, pageSize, total);
 
-      console.log('[Mock API] 请求参数:', params)
-      console.log('[Mock API] 返回数据条数:', data.length)
-      console.log('[Mock API] 当前页数据:', data.map((d) => d.id).join(', '))
+      console.log('[Mock API] 请求参数:', params);
+      console.log('[Mock API] 返回数据条数:', data.length);
+      console.log('[Mock API] 当前页数据:', data.map((d) => d.id).join(', '));
 
       resolve({
         items: data,
         total,
         page,
         pageSize,
-      })
-    }, 500)
-  })
+      });
+    }, 500);
+  });
 }
 
 // 使用 useTable
@@ -100,77 +100,77 @@ const [registerTable, { reload, setPagination, getPaginationRef }] = useTable({
     showTotal: (total: number) => `共 ${total} 条`,
   },
   rowKey: 'id',
-})
+});
 
 // 测试场景 1：正常分页
 async function testNormalPagination() {
-  currentTest.value = '正常分页测试'
-  testResult.value = '正在测试...'
-  console.log('=== 测试场景 1：正常分页 ===')
+  currentTest.value = '正常分页测试';
+  testResult.value = '正在测试...';
+  console.log('=== 测试场景 1：正常分页 ===');
 
-  await reload()
+  await reload();
 
-  const pagination = getPaginationRef()
-  testResult.value = `当前页: ${pagination?.current}, 每页条数: ${pagination?.pageSize}, 总条数: ${pagination?.total}`
-  console.log('分页信息:', pagination)
+  const pagination = getPaginationRef();
+  testResult.value = `当前页: ${pagination?.current}, 每页条数: ${pagination?.pageSize}, 总条数: ${pagination?.total}`;
+  console.log('分页信息:', pagination);
 }
 
 // 测试场景 2：切换每页条数
 async function testChangePageSize() {
-  currentTest.value = '切换每页条数测试'
-  testResult.value = '正在测试...'
-  console.log('=== 测试场景 2：切换每页条数 ===')
+  currentTest.value = '切换每页条数测试';
+  testResult.value = '正在测试...';
+  console.log('=== 测试场景 2：切换每页条数 ===');
 
   // 先切换到第 2 页
-  setPagination({ current: 2, pageSize: 20 })
-  await reload()
+  setPagination({ current: 2, pageSize: 20 });
+  await reload();
 
-  const pagination = getPaginationRef()
-  testResult.value = `切换后 - 当前页: ${pagination?.current}, 每页条数: ${pagination?.pageSize}, 总条数: ${pagination?.total}`
-  console.log('分页信息:', pagination)
+  const pagination = getPaginationRef();
+  testResult.value = `切换后 - 当前页: ${pagination?.current}, 每页条数: ${pagination?.pageSize}, 总条数: ${pagination?.total}`;
+  console.log('分页信息:', pagination);
 }
 
 // 测试场景 3：快速切换页码
 async function testQuickPageChange() {
-  currentTest.value = '快速切换页码测试'
-  testResult.value = '正在测试...'
-  console.log('=== 测试场景 3：快速切换页码 ===')
+  currentTest.value = '快速切换页码测试';
+  testResult.value = '正在测试...';
+  console.log('=== 测试场景 3：快速切换页码 ===');
 
   // 快速切换到第 5 页
-  setPagination({ current: 5 })
-  await reload()
+  setPagination({ current: 5 });
+  await reload();
 
-  const pagination = getPaginationRef()
-  testResult.value = `快速切换后 - 当前页: ${pagination?.current}, 每页条数: ${pagination?.pageSize}`
-  console.log('分页信息:', pagination)
+  const pagination = getPaginationRef();
+  testResult.value = `快速切换后 - 当前页: ${pagination?.current}, 每页条数: ${pagination?.pageSize}`;
+  console.log('分页信息:', pagination);
 }
 
 // 测试场景 4：数据量变化（模拟总数据变化）
-let mockTotal = 100
+let mockTotal = 100;
 async function testDataChange() {
-  currentTest.value = '数据量变化测试'
-  testResult.value = '正在测试...'
-  console.log('=== 测试场景 4：数据量变化 ===')
+  currentTest.value = '数据量变化测试';
+  testResult.value = '正在测试...';
+  console.log('=== 测试场景 4：数据量变化 ===');
 
   // 模拟数据量变化
-  mockTotal = mockTotal === 100 ? 50 : 100
+  mockTotal = mockTotal === 100 ? 50 : 100;
 
-  await reload()
+  await reload();
 
-  const pagination = getPaginationRef()
-  testResult.value = `数据量变化后 - 总条数: ${pagination?.total}, 当前页: ${pagination?.current}`
-  console.log('分页信息:', pagination)
+  const pagination = getPaginationRef();
+  testResult.value = `数据量变化后 - 总条数: ${pagination?.total}, 当前页: ${pagination?.current}`;
+  console.log('分页信息:', pagination);
 }
 
 // 测试场景 5：分页器尺寸测试
 function testPaginationSize() {
-  currentTest.value = '分页器尺寸测试'
-  console.log('=== 测试场景 5：分页器尺寸 ===')
+  currentTest.value = '分页器尺寸测试';
+  console.log('=== 测试场景 5：分页器尺寸 ===');
   console.log(
     '检查分页器是否使用 middle 尺寸，而不是被 ConfigProvider 覆盖为 small',
-  )
+  );
   testResult.value =
-    '请检查分页器的 class，应该包含 ant-pagination-middle，而不是 ant-pagination-small'
+    '请检查分页器的 class，应该包含 ant-pagination-middle，而不是 ant-pagination-small';
 }
 </script>
 

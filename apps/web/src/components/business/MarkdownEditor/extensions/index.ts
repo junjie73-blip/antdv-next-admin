@@ -1,23 +1,23 @@
-import type { Extensions } from '@tiptap/vue-3'
+import type { Extensions } from '@tiptap/vue-3';
 
 import {
   Table,
   TableCell,
   TableHeader,
   TableRow,
-} from '@tiptap/extension-table'
-import TextAlign from '@tiptap/extension-text-align'
-import { TextStyleKit } from '@tiptap/extension-text-style'
-import { Placeholder } from '@tiptap/extensions'
-import StarterKit from '@tiptap/starter-kit'
+} from '@tiptap/extension-table';
+import TextAlign from '@tiptap/extension-text-align';
+import { TextStyleKit } from '@tiptap/extension-text-style';
+import { Placeholder } from '@tiptap/extensions';
+import StarterKit from '@tiptap/starter-kit';
 
-import { BlockStyle } from './block-style'
-import { EditorImage } from './image'
-import { Todo } from './todo'
-import { Video } from './video'
+import { BlockStyle } from './block-style';
+import { EditorImage } from './image';
+import { Todo } from './todo';
+import { Video } from './video';
 
 export interface EditorExtensionOptions {
-  placeholder: string
+  placeholder: string;
 }
 
 /**
@@ -55,5 +55,5 @@ export function createEditorExtensions(
     Video,
     EditorImage,
     Placeholder.configure({ placeholder: options.placeholder }),
-  ]
+  ];
 }

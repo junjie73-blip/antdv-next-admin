@@ -1,8 +1,8 @@
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath } from 'node:url';
 
-import { configDefaults, defineConfig, mergeConfig } from 'vitest/config'
+import { configDefaults, defineConfig, mergeConfig } from 'vitest/config';
 
-import viteConfig from './vite.config'
+import viteConfig from './vite.config';
 
 export default mergeConfig(
   viteConfig,
@@ -13,4 +13,4 @@ export default mergeConfig(
       root: fileURLToPath(new URL('./', import.meta.url)),
     },
   }),
-)
+);

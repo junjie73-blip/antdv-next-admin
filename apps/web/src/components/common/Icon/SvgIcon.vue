@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed } from 'vue';
 
 interface Props {
-  name: string
-  prefix?: string
-  size?: number | string
-  color?: string
-  className?: string
+  name: string;
+  prefix?: string;
+  size?: number | string;
+  color?: string;
+  className?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -14,18 +14,18 @@ const props = withDefaults(defineProps<Props>(), {
   size: 16,
   color: 'currentColor',
   className: '',
-})
+});
 
-const symbolId = computed(() => `#${props.prefix}-${props.name}`)
+const symbolId = computed(() => `#${props.prefix}-${props.name}`);
 
 const sizeValue = computed(() => {
   if (typeof props.size === 'number') {
-    return `${props.size}px`
+    return `${props.size}px`;
   }
-  return props.size
-})
+  return props.size;
+});
 
-const svgClassName = computed(() => `svg-icon ${props.className}`.trim())
+const svgClassName = computed(() => `svg-icon ${props.className}`.trim());
 </script>
 
 <template>

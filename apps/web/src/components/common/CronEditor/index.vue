@@ -1,32 +1,32 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import cronstrue from 'cronstrue'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue';
 
-import { cn } from '~/utils/cn'
+import { Icon } from '@iconify/vue';
+import cronstrue from 'cronstrue';
+import { cn } from '~/utils/cn';
 
-import 'cronstrue/locales/zh_CN'
+import 'cronstrue/locales/zh_CN';
 
-defineOptions({ name: 'CronEditor' })
+defineOptions({ name: 'CronEditor' });
 
 const props = withDefaults(
   defineProps<{
-    modelValue?: string
-    disabled?: boolean
+    modelValue?: string;
+    disabled?: boolean;
   }>(),
   {
     modelValue: '',
     disabled: false,
   },
-)
+);
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void
-  (e: 'change', value: string): void
-}>()
+  (e: 'update:modelValue', value: string): void;
+  (e: 'change', value: string): void;
+}>();
 
 // ========== 模式：preset 预设 / custom 自定义 ==========
-const mode = ref<'preset' | 'custom'>('preset')
+const mode = ref<'custom' | 'preset'>('preset');
 
 // ========== 预设选项 ==========
 const presets = [
@@ -42,16 +42,16 @@ const presets = [
   { label: '每周一 0 点', value: '0 0 0 * * 1' },
   { label: '每月 1 号 0 点', value: '0 0 0 1 * *' },
   { label: '每年 1 月 1 日', value: '0 0 0 1 1 *' },
-]
+];
 
 // ========== 自定义模式的字段 ==========
 interface CronField {
-  key: string
-  label: string
-  min: number
-  max: number
-  allowEvery: boolean
-  defaultValue: string
+  key: string;
+  label: string;
+  min: number;
+  max: number;
+  allowEvery: boolean;
+  defaultValue: string;
 }
 
 const fields: CronField[] = [
@@ -103,7 +103,7 @@ const fields: CronField[] = [
     allowEvery: true,
     defaultValue: '*',
   },
-]
+];
 
 // 各字段的当前值
 const fieldValues = ref<Record<string, string>>({
@@ -113,11 +113,11 @@ const fieldValues = ref<Record<string, string>>({
   day: '*',
   month: '*',
   week: '*',
-})
+});
 
 // ========== 解析现有的 cron 表达式到 fieldValues ==========
 function parseCron(expr: string) {
-  const parts = (expr || '').trim().split(/\s+/)
+  const parts = (expr || '').trim().split(/\s+/);
   if (parts.length === 5) {
     // 5 位：分 时 日 月 周 → 补一个秒
     fieldValues.value = {
@@ -127,7 +127,7 @@ function parseCron(expr: string) {
       day: parts[2],
       month: parts[3],
       week: parts[4],
-    }
+    };
   } else if (parts.length === 6) {
     fieldValues.value = {
       second: parts[0],
@@ -136,7 +136,7 @@ function parseCron(expr: string) {
       day: parts[3],
       month: parts[4],
       week: parts[5],
-    }
+    };
   } else {
     // 默认
     fieldValues.value = {
@@ -146,7 +146,7 @@ function parseCron(expr: string) {
       day: '*',
       month: '*',
       week: '*',
-    }
+    };
   }
 }
 
@@ -155,37 +155,37 @@ watch(
   () => props.modelValue,
   (val) => {
     if (mode.value === 'custom') {
-      parseCron(val)
+      parseCron(val);
     }
   },
   { immediate: true },
-)
+);
 
 // ========== 生成 cron 表达式 ==========
 const generatedCron = computed(() => {
-  return fields.map((f) => fieldValues.value[f.key] || '*').join(' ')
-})
+  return fields.map((f) => fieldValues.value[f.key] || '*').join(' ');
+});
 
 // ========== 字段选项（下拉） ==========
 function getFieldOptions(field: CronField) {
   const opts: { label: string; value: string }[] = [
-    { label: '每 ' + field.label, value: '*' },
-  ]
+    { label: `每 ${field.label}`, value: '*' },
+  ];
   // 单值
   for (let i = field.min; i <= field.max; i++) {
     opts.push({
       label: `${field.label} ${i}`,
       value: String(i),
-    })
+    });
   }
   // 常用间隔
   if (field.key === 'minute' || field.key === 'second') {
     opts.push(
-      { label: '每 5 ' + field.label, value: '*/5' },
-      { label: '每 10 ' + field.label, value: '*/10' },
-      { label: '每 15 ' + field.label, value: '*/15' },
-      { label: '每 30 ' + field.label, value: '*/30' },
-    )
+      { label: `每 5 ${field.label}`, value: '*/5' },
+      { label: `每 10 ${field.label}`, value: '*/10' },
+      { label: `每 15 ${field.label}`, value: '*/15' },
+      { label: `每 30 ${field.label}`, value: '*/30' },
+    );
   }
   if (field.key === 'hour') {
     opts.push(
@@ -193,53 +193,53 @@ function getFieldOptions(field: CronField) {
       { label: '每 4 小时', value: '*/4' },
       { label: '每 6 小时', value: '*/6' },
       { label: '每 12 小时', value: '*/12' },
-    )
+    );
   }
-  return opts
+  return opts;
 }
 
 // ========== 预览 ==========
 const cronDescription = computed(() => {
   try {
-    return cronstrue.toString(generatedCron.value, { locale: 'zh_CN' })
+    return cronstrue.toString(generatedCron.value, { locale: 'zh_CN' });
   } catch {
-    return '表达式无效'
+    return '表达式无效';
   }
-})
+});
 
 // ========== 模式切换 ==========
-function switchMode(m: 'preset' | 'custom') {
-  mode.value = m
+function switchMode(m: 'custom' | 'preset') {
+  mode.value = m;
   if (m === 'custom') {
-    parseCron(props.modelValue)
+    parseCron(props.modelValue);
   } else {
     // 切到预设时，如果当前值不在预设里，选第一个
-    const isMatch = presets.some((p) => p.value === props.modelValue)
+    const isMatch = presets.some((p) => p.value === props.modelValue);
     if (!isMatch) {
-      emit('update:modelValue', presets[0].value)
-      emit('change', presets[0].value)
+      emit('update:modelValue', presets[0].value);
+      emit('change', presets[0].value);
     }
   }
 }
 
 // ========== 选择预设 ==========
 function handlePresetSelect(value: string) {
-  emit('update:modelValue', value)
-  emit('change', value)
+  emit('update:modelValue', value);
+  emit('change', value);
 }
 
 // ========== 自定义字段变更 ==========
 function handleFieldChange() {
-  const cron = generatedCron.value
-  emit('update:modelValue', cron)
-  emit('change', cron)
+  const cron = generatedCron.value;
+  emit('update:modelValue', cron);
+  emit('change', cron);
 }
 
 // ========== 手动输入 ==========
 function handleInputChange(e: Event) {
-  const value = (e.target as HTMLInputElement).value
-  emit('update:modelValue', value)
-  emit('change', value)
+  const value = (e.target as HTMLInputElement).value;
+  emit('update:modelValue', value);
+  emit('change', value);
 }
 </script>
 

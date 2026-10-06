@@ -1,93 +1,93 @@
 <script setup lang="ts">
-import { useEventListener, useTimeoutFn } from '@vueuse/core'
-import { computed, ref } from 'vue'
+import { computed, ref } from 'vue';
 
-import { cn } from '~/utils/cn'
+import { useEventListener, useTimeoutFn } from '@vueuse/core';
+import { cn } from '~/utils/cn';
 
 interface Props {
-  name: string
-  url?: string
-  className?: string
-  baseroute?: string
-  keepAlive?: boolean
-  disableMemoryRouter?: boolean
-  disablePatchRequest?: boolean
+  name: string;
+  url?: string;
+  className?: string;
+  baseroute?: string;
+  keepAlive?: boolean;
+  disableMemoryRouter?: boolean;
+  disablePatchRequest?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   disableMemoryRouter: true,
   disablePatchRequest: false,
-})
+});
 
 const emit = defineEmits<{
-  (e: 'beforeload'): void
-  (e: 'mounted'): void
-  (e: 'unmount'): void
-  (e: 'error', error: Error): void
-}>()
+  (e: 'beforeload'): void;
+  (e: 'mounted'): void;
+  (e: 'unmount'): void;
+  (e: 'error', error: Error): void;
+}>();
 
-const loading = ref(true)
-const hasError = ref(false)
-const errorMessage = ref('')
-const retryCount = ref(0)
+const loading = ref(true);
+const hasError = ref(false);
+const errorMessage = ref('');
+const retryCount = ref(0);
 
 const containerClassName = computed(() =>
-  cn('micro-app-container relative', 'w-full h-full', props.className),
-)
+  cn('micro-app-container relative', 'size-full ', props.className),
+);
 
 const overlayClassName = cn(
   'absolute inset-0 z-10 flex flex-col items-center justify-center',
-  'bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-lg',
-)
+  'rounded-lg bg-white/80 backdrop-blur-sm dark:bg-gray-900/80',
+);
 
 function handleBeforeLoad() {
-  loading.value = true
-  hasError.value = false
-  errorMessage.value = ''
-  emit('beforeload')
+  loading.value = true;
+  hasError.value = false;
+  errorMessage.value = '';
+  emit('beforeload');
 }
 
 function handleMounted() {
-  loading.value = false
-  hasError.value = false
-  emit('mounted')
+  loading.value = false;
+  hasError.value = false;
+  emit('mounted');
 }
 
 function handleUnmount() {
-  emit('unmount')
+  emit('unmount');
 }
 
 function handleError(event: Event) {
-  const detail = (event as CustomEvent).detail
-  loading.value = false
-  hasError.value = true
-  errorMessage.value = detail?.message || `子应用 ${props.name} 加载失败`
-  emit('error', new Error(errorMessage.value))
+  const detail = (event as CustomEvent).detail;
+  loading.value = false;
+  hasError.value = true;
+  errorMessage.value = detail?.message || `子应用 ${props.name} 加载失败`;
+  emit('error', new Error(errorMessage.value));
 }
 
 function handleRetry() {
-  hasError.value = false
-  loading.value = true
-  retryCount.value++
+  hasError.value = false;
+  loading.value = true;
+  retryCount.value++;
 }
 
 // useEventListener：支持数组，一次注册多个事件
-useEventListener(window, `beforeload-${props.name}`, handleBeforeLoad)
-useEventListener(window, `mounted-${props.name}`, handleMounted)
-useEventListener(window, `unmount-${props.name}`, handleUnmount)
-useEventListener(window, `error-${props.name}`, handleError)
+useEventListener(window, `beforeload-${props.name}`, handleBeforeLoad);
+useEventListener(window, `mounted-${props.name}`, handleMounted);
+useEventListener(window, `unmount-${props.name}`, handleUnmount);
+useEventListener(window, `error-${props.name}`, handleError);
 
 // useTimeoutFn：无 URL 时占位延迟；组件卸载自动取消
 const { start: startPlaceholderTimer } = useTimeoutFn(
   () => {
-    loading.value = false
+    loading.value = false;
   },
   800,
   { immediate: false },
-)
+);
 
 if (!props.url) {
-  startPlaceholderTimer()
+  startPlaceholderTimer();
 }
 </script>
 
@@ -111,7 +111,7 @@ if (!props.url) {
         <div
           class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30"
         >
-          <span class="i-carbon-error text-3xl text-red-500" />
+          <span class="i-carbon-error text-3xl text-red-500"></span>
         </div>
         <h4 class="mb-2 text-base font-semibold text-gray-900 dark:text-white">
           子应用加载失败
@@ -137,7 +137,7 @@ if (!props.url) {
       v-if="!url && !loading"
       class="flex h-full flex-col items-center justify-center text-gray-400 dark:text-gray-500"
     >
-      <span class="i-carbon-application mb-4 text-6xl opacity-30" />
+      <span class="i-carbon-application mb-4 text-6xl opacity-30"></span>
       <p class="text-sm">未配置应用地址</p>
       <p class="mt-1 text-xs opacity-60">请在微前端管理中设置访问 URL</p>
     </div>

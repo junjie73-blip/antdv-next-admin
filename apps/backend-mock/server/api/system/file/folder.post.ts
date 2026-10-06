@@ -1,15 +1,17 @@
-import dayjs from 'dayjs'
-import { success } from '../../../utils/response'
-import { defineMockRoute } from '../../../utils/runtime'
-import { FILE_DB, nextFileId, UPLOADERS } from '../../../utils/db/file'
-import type { FileRecord } from '../../../utils/db/file'
+import type { FileRecord } from '../../../utils/db/file';
+
+import dayjs from 'dayjs';
+
+import { FILE_DB, nextFileId, UPLOADERS } from '../../../utils/db/file';
+import { success } from '../../../utils/response';
+import { defineMockRoute } from '../../../utils/runtime';
 
 export default defineMockRoute({
   handler({ data, query }) {
     // legacy 从查询串取 parentId（而非请求体），保持同名参数来源不变
-    const parentId = query.parentId ? Number(query.parentId) : null
-    const now = dayjs().format('YYYY-MM-DD HH:mm:ss')
-    const uploader = UPLOADERS[0]!
+    const parentId = query.parentId ? Number(query.parentId) : null;
+    const now = dayjs().format('YYYY-MM-DD HH:mm:ss');
+    const uploader = UPLOADERS[0]!;
 
     const newFolder: FileRecord = {
       id: nextFileId(),
@@ -26,12 +28,12 @@ export default defineMockRoute({
       createdAt: now,
       updatedAt: now,
       isFolder: true,
-    }
+    };
 
-    FILE_DB.push(newFolder)
+    FILE_DB.push(newFolder);
 
-    return success(newFolder, '文件夹创建成功')
+    return success(newFolder, '文件夹创建成功');
   },
   method: 'POST',
   path: '/system/file/folder',
-})
+});

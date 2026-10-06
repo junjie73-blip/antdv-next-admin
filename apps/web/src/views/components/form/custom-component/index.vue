@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref } from 'vue';
 
-import { cn } from '~/utils/cn'
+import { cn } from '~/utils/cn';
 
-const containerClassName = cn('space-y-6')
+const containerClassName = cn('space-y-6');
 
-const cardTitle = ref('Custom component example')
+const cardTitle = ref('Custom component example');
 
 const formData = ref({
   username: '',
@@ -15,19 +15,19 @@ const formData = ref({
   sliderValue: 50,
   switchValue: false,
   rateValue: 3,
-})
+});
 
-const tagInputValue = ref('')
+const tagInputValue = ref('');
 
 function addTag() {
   if (tagInputValue.value.trim()) {
-    formData.value.tags = [...formData.value.tags, tagInputValue.value.trim()]
-    tagInputValue.value = ''
+    formData.value.tags = [...formData.value.tags, tagInputValue.value.trim()];
+    tagInputValue.value = '';
   }
 }
 
 function removeTag(index: number) {
-  formData.value.tags = formData.value.tags.filter((_, i) => i !== index)
+  formData.value.tags = formData.value.tags.filter((_, i) => i !== index);
 }
 
 const colorPresets = [
@@ -37,10 +37,10 @@ const colorPresets = [
   '#ff4d4f',
   '#722ed1',
   '#13c2c2',
-]
+];
 
 function handleSubmit() {
-  message.success('Form submitted successfully')
+  message.success('Form submitted successfully');
 }
 </script>
 
@@ -69,7 +69,7 @@ function handleSubmit() {
               "
               :style="{ backgroundColor: preset }"
               @click="formData.color = preset"
-            />
+            ></button>
           </div>
         </a-form-item>
 
@@ -79,7 +79,7 @@ function handleSubmit() {
               v-model:value="tagInputValue"
               placeholder="Enter tag and press Add"
               style="width: 200px"
-              @pressEnter="addTag"
+              @press-enter="addTag"
             />
             <a-button size="small" @click="addTag"> Add </a-button>
           </a-space>

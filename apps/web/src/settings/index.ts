@@ -7,7 +7,7 @@ import type {
   ThemeMode,
   ThemeStyle,
   TransitionEffect,
-} from '@antdv-admin/types'
+} from '@antdv/types';
 
 export type {
   AppSetting,
@@ -18,7 +18,7 @@ export type {
   ThemeMode,
   ThemeStyle,
   TransitionEffect,
-}
+};
 
 export const DEFAULT_SETTING: AppSetting = {
   theme: 'auto',
@@ -67,6 +67,6 @@ export const DEFAULT_SETTING: AppSetting = {
   showLoading: true,
   locale: 'zh-CN',
   routeMode: 'frontend',
-}
+};
 
-export * from './theme'
+export * from './theme';

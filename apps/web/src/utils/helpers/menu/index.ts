@@ -1,13 +1,14 @@
-import type { MenuProps } from 'antdv-next'
-import type { Router } from 'vue-router'
+import type { MenuConfig, MenuKey } from '@antdv/types';
+import type { MenuProps } from 'antdv-next';
 
-import type { MenuConfig, MenuKey } from '@antdv-admin/types'
+import type { Router } from 'vue-router';
 
-import { Icon } from '@iconify/vue'
-import { Badge } from 'antdv-next'
-import { h } from 'vue'
+import { h } from 'vue';
 
-type AntdMenuItem = NonNullable<MenuProps['items']>[number]
+import { Icon } from '@iconify/vue';
+import { Badge } from 'antdv-next';
+
+type AntdMenuItem = NonNullable<MenuProps['items']>[number];
 
 /* ============================================================
  * key 体系
@@ -23,17 +24,17 @@ type AntdMenuItem = NonNullable<MenuProps['items']>[number]
 
 /** 菜单/标签页统一 key */
 export function menuKeyOf(menu: MenuConfig): MenuKey {
-  return menu.name ?? menu.path ?? menu.title
+  return menu.name ?? menu.path ?? menu.title;
 }
 
 /** 是否叶子节点（没有可见子节点） */
 export function isLeafMenu(menu: MenuConfig): boolean {
-  return !visibleMenus(menu.children).length
+  return visibleMenus(menu.children).length === 0;
 }
 
 /** 过滤隐藏节点，保持原始顺序 */
 export function visibleMenus(list?: MenuConfig[]): MenuConfig[] {
-  return (list ?? []).filter((m) => m && !m.hidden)
+  return (list ?? []).filter((m) => m && !m.hidden);
 }
 
 /** 深度优先遍历，返回祖先链（含自身）；找不到返回 [] */
@@ -43,21 +44,21 @@ export function findMenuChain(
   parents: MenuConfig[] = [],
 ): MenuConfig[] {
   for (const menu of visibleMenus(list)) {
-    const chain = [...parents, menu]
-    if (predicate(menu)) return chain
+    const chain = [...parents, menu];
+    if (predicate(menu)) return chain;
 
-    const found = findMenuChain(menu.children, predicate, chain)
-    if (found.length) return found
+    const found = findMenuChain(menu.children, predicate, chain);
+    if (found.length > 0) return found;
   }
-  return []
+  return [];
 }
 
 export function findMenuByKey(
   list: MenuConfig[],
   key?: MenuKey,
 ): MenuConfig | undefined {
-  if (!key) return undefined
-  return findMenuChain(list, (m) => menuKeyOf(m) === key).pop()
+  if (!key) return undefined;
+  return findMenuChain(list, (m) => menuKeyOf(m) === key).pop();
 }
 
 /** 按 name 查（菜单 name 与路由 name 同源） */
@@ -65,8 +66,8 @@ export function findMenuByName(
   list: MenuConfig[],
   name?: string,
 ): MenuConfig | undefined {
-  if (!name) return undefined
-  return findMenuChain(list, (m) => m.name === name).pop()
+  if (!name) return undefined;
+  return findMenuChain(list, (m) => m.name === name).pop();
 }
 
 /** 按完整 path 查 */
@@ -74,8 +75,8 @@ export function findMenuByPath(
   list: MenuConfig[],
   path?: string,
 ): MenuConfig | undefined {
-  if (!path) return undefined
-  return findMenuChain(list, (m) => m.path === path).pop()
+  if (!path) return undefined;
+  return findMenuChain(list, (m) => m.path === path).pop();
 }
 
 /**
@@ -87,31 +88,31 @@ export function findTopLevelMenu(
   matcher: (menu: MenuConfig) => boolean,
 ): MenuConfig | undefined {
   for (const menu of visibleMenus(list)) {
-    if (matcher(menu)) return menu
-    if (findMenuChain(menu.children, matcher).length) return menu
+    if (matcher(menu)) return menu;
+    if (findMenuChain(menu.children, matcher).length > 0) return menu;
   }
-  return undefined
+  return undefined;
 }
 
 /** 第一个可见叶子（用于一级目录点击后跳转、以及固定首页标签） */
 export function firstLeafMenu(menu?: MenuConfig): MenuConfig | undefined {
-  if (!menu) return undefined
-  if (isLeafMenu(menu)) return menu
-  const [first] = visibleMenus(menu.children)
-  return firstLeafMenu(first)
+  if (!menu) return undefined;
+  if (isLeafMenu(menu)) return menu;
+  const [first] = visibleMenus(menu.children);
+  return firstLeafMenu(first);
 }
 
 /** 全部叶子节点，顺序与菜单一致 */
 export function flattenLeafMenus(list: MenuConfig[]): MenuConfig[] {
-  const out: MenuConfig[] = []
+  const out: MenuConfig[] = [];
   const walk = (nodes: MenuConfig[]) => {
     for (const node of visibleMenus(nodes)) {
-      if (isLeafMenu(node)) out.push(node)
-      walk(node.children ?? [])
+      if (isLeafMenu(node)) out.push(node);
+      walk(node.children ?? []);
     }
-  }
-  walk(list)
-  return out
+  };
+  walk(list);
+  return out;
 }
 
 /**
@@ -126,15 +127,16 @@ export function attachMenuPaths(
   router: Router,
 ): MenuConfig[] {
   return visibleMenus(list).map((menu) => {
-    const next: MenuConfig = { ...menu }
+    const next: MenuConfig = { ...menu };
 
     if (!next.path && next.name && router.hasRoute(next.name)) {
       // 路由表用了 `RouteRecordRaw` 的字面量联合类型，name 是宽 string，需要断言
-      next.path = router.resolve({ name: next.name } as never).path
+      next.path = router.resolve({ name: next.name } as never).path;
     }
-    if (next.children?.length) next.children = attachMenuPaths(next.children, router)
-    return next
-  })
+    if (next.children?.length)
+      next.children = attachMenuPaths(next.children, router);
+    return next;
+  });
 }
 
 /* ============================================================
@@ -149,22 +151,22 @@ function renderExternalLabel(title: string, href: string) {
       target: '_blank',
       rel: 'noopener noreferrer',
       onClick: (e: MouseEvent) => {
-        e.preventDefault()
-        e.stopPropagation()
-        window.open(href, '_blank', 'noopener,noreferrer')
+        e.preventDefault();
+        e.stopPropagation();
+        window.open(href, '_blank', 'noopener,noreferrer');
       },
     },
     title,
-  )
+  );
 }
 
 /** 构造菜单 label：标题 + Badge + 右侧 extra */
 function renderLabel(m: MenuConfig) {
   const labelText =
-    m.isExternal && m.path ? renderExternalLabel(m.title, m.path) : m.title
+    m.isExternal && m.path ? renderExternalLabel(m.title, m.path) : m.title;
 
   // 没有 badge 也没有 extra → 直接返回纯文本，避免多余 DOM
-  if (!m.badge && !m.extra) return labelText
+  if (!m.badge && !m.extra) return labelText;
 
   return h(
     'span',
@@ -226,7 +228,7 @@ function renderLabel(m: MenuConfig) {
           )
         : null,
     ],
-  )
+  );
 }
 
 function renderBadge(badge: NonNullable<MenuConfig['badge']>) {
@@ -237,7 +239,7 @@ function renderBadge(badge: NonNullable<MenuConfig['badge']>) {
     overflowCount: badge.overflowCount ?? 99,
     size: 'small',
     offset: [2, -2],
-  })
+  });
 }
 
 export interface BuildMenuItemsOptions {
@@ -245,16 +247,16 @@ export interface BuildMenuItemsOptions {
    * 只保留指定层级的子树深度：混合布局的一级导航传 1（目录不展开子项，
    * 子项交给侧边栏），水平布局传 Infinity（二级用浮层）。
    */
-  maxDepth?: number
+  maxDepth?: number;
   /** 是否渲染子节点 */
-  withChildren?: boolean
+  withChildren?: boolean;
 }
 
 export function buildMenuItems(
   menus: MenuConfig[],
   options: BuildMenuItemsOptions = {},
 ): AntdMenuItem[] {
-  const { maxDepth = Infinity, withChildren = true } = options
+  const { maxDepth = Infinity, withChildren = true } = options;
 
   const walk = (list: MenuConfig[], depth: number): AntdMenuItem[] =>
     visibleMenus(list).map((m) => {
@@ -262,31 +264,32 @@ export function buildMenuItems(
         key: menuKeyOf(m),
         label: renderLabel(m),
         disabled: m.disabled,
-      }
+      };
 
       // 闭包内属性窄化会失效，先把 icon 取成局部常量
-      const icon = m.icon
-      if (icon) item.icon = () => h(Icon, { class: 'text-lg', icon })
+      const icon = m.icon;
+      if (icon) item.icon = () => h(Icon, { class: 'text-lg', icon });
 
-      const children = withChildren && depth < maxDepth ? m.children : undefined
-      if (children?.length) item.children = walk(children, depth + 1)
-      return item as AntdMenuItem
-    })
+      const children =
+        withChildren && depth < maxDepth ? m.children : undefined;
+      if (children?.length) item.children = walk(children, depth + 1);
+      return item as AntdMenuItem;
+    });
 
-  return walk(menus, 1)
+  return walk(menus, 1);
 }
 
 /** 收集所有可展开父级 key（用于 openKeys 初始化与「展开全部/收起全部」） */
 export function collectSubmenuKeys(menus: MenuConfig[]): MenuKey[] {
-  const out: MenuKey[] = []
+  const out: MenuKey[] = [];
   const walk = (list: MenuConfig[]) => {
     for (const menu of visibleMenus(list)) {
-      if (!isLeafMenu(menu)) out.push(menuKeyOf(menu))
-      walk(menu.children ?? [])
+      if (!isLeafMenu(menu)) out.push(menuKeyOf(menu));
+      walk(menu.children ?? []);
     }
-  }
-  walk(menus)
-  return out
+  };
+  walk(menus);
+  return out;
 }
 
 /** 某 key 对应的祖先 key 链（不含自身），用于展开定位 */
@@ -294,7 +297,7 @@ export function findAncestorKeys(
   menus: MenuConfig[],
   key?: MenuKey,
 ): MenuKey[] {
-  if (!key) return []
-  const chain = findMenuChain(menus, (m) => menuKeyOf(m) === key)
-  return chain.slice(0, -1).map((m) => menuKeyOf(m))
+  if (!key) return [];
+  const chain = findMenuChain(menus, (m) => menuKeyOf(m) === key);
+  return chain.slice(0, -1).map((m) => menuKeyOf(m));
 }

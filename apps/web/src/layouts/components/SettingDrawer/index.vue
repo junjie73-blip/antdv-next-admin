@@ -1,30 +1,32 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { Segmented } from 'antdv-next'
-import { ref } from 'vue'
+import type { SettingSection } from './constants';
 
-import AppearancePanel from './components/AppearancePanel.vue'
-import CommonPanel from './components/CommonPanel.vue'
-import LayoutPanel from './components/LayoutPanel.vue'
-import SettingFooter from './components/SettingFooter.vue'
+import { ref } from 'vue';
+
+import { Icon } from '@iconify/vue';
+import { Segmented } from 'antdv-next';
+
+import AppearancePanel from './components/AppearancePanel.vue';
+import CommonPanel from './components/CommonPanel.vue';
+import LayoutPanel from './components/LayoutPanel.vue';
+import SettingFooter from './components/SettingFooter.vue';
 import {
   drawerBodyClassName,
   drawerContentClassName,
   drawerHeaderClassName,
   SECTION_OPTIONS,
   sectionStyles,
-  type SettingSection,
-} from './constants'
+} from './constants';
 
-defineOptions({ name: 'SettingDrawer' })
+defineOptions({ name: 'SettingDrawer' });
 
-const visible = defineModel<boolean>('visible', { default: false })
+const visible = defineModel<boolean>('visible', { default: false });
 
-const activeSection = ref<SettingSection>('appearance')
+const activeSection = ref<SettingSection>('appearance');
 
 function handleClose() {
-  activeSection.value = 'appearance'
-  visible.value = false
+  activeSection.value = 'appearance';
+  visible.value = false;
 }
 </script>
 

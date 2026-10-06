@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import type { BasicColumn } from '~/components/business/Table/types';
+import type { TreeDataNode } from '~/components/business/TreeTable';
 
-import type { BasicColumn } from '~/components/business/Table/types'
-import type { TreeDataNode } from '~/components/business/TreeTable'
+import { ref } from 'vue';
 
-import { TreeTable } from '~/components/business/TreeTable'
-import { cn } from '~/utils/cn'
+import { TreeTable } from '~/components/business/TreeTable';
+import { cn } from '~/utils/cn';
 
-const containerClassName = cn('h-full flex flex-col')
+const containerClassName = cn('flex h-full flex-col');
 const pageHeaderClassName = cn(
-  'text-lg font-bold text-gray-800 dark:text-white flex-shrink-0',
-)
-const cardClassName = cn('flex-1 min-h-0')
+  'flex-shrink-0 text-lg font-bold text-gray-800 dark:text-white',
+);
+const cardClassName = cn('min-h-0 flex-1');
 
 const orgTree: TreeDataNode[] = [
   {
@@ -47,7 +47,7 @@ const orgTree: TreeDataNode[] = [
       { key: 'dept-1-5', title: '人事部' },
     ],
   },
-]
+];
 
 const mockEmployees: Record<string, Array<Record<string, any>>> = {
   'dept-1-1-1': [
@@ -208,7 +208,7 @@ const mockEmployees: Record<string, Array<Record<string, any>>> = {
   'dept-1-2': [],
   'dept-1-3': [],
   'dept-1': [],
-}
+};
 
 const columns: BasicColumn[] = [
   { title: '姓名', dataIndex: 'name', key: 'name', width: 120 },
@@ -216,32 +216,32 @@ const columns: BasicColumn[] = [
   { title: '邮箱', dataIndex: 'email', key: 'email', width: 220 },
   { title: '入职日期', dataIndex: 'joinDate', key: 'joinDate', width: 120 },
   { title: '状态', dataIndex: 'status', key: 'status', width: 100 },
-]
+];
 
-const currentDept = ref('')
+const currentDept = ref('');
 
 async function fetchTableData(params: {
-  treeKey: string
-  page: number
-  pageSize: number
+  treeKey: string;
+  page: number;
+  pageSize: number;
 }) {
-  currentDept.value = params.treeKey
+  currentDept.value = params.treeKey;
 
-  await new Promise((resolve) => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300));
 
-  const allData = mockEmployees[params.treeKey] || []
-  const start = (params.page - 1) * params.pageSize
-  const end = start + params.pageSize
-  const list = allData.slice(start, end)
+  const allData = mockEmployees[params.treeKey] || [];
+  const start = (params.page - 1) * params.pageSize;
+  const end = start + params.pageSize;
+  const list = allData.slice(start, end);
 
   return {
     list,
     total: allData.length,
-  }
+  };
 }
 
 function handleTreeSelect(key: string, node: TreeDataNode) {
-  message.info(`已选择: ${node.title}`)
+  message.info(`已选择: ${node.title}`);
 }
 </script>
 
@@ -263,7 +263,7 @@ function handleTreeSelect(key: string, node: TreeDataNode) {
         :table-api="fetchTableData"
         table-row-key="id"
         :tree-width="280"
-        @treeSelect="handleTreeSelect"
+        @tree-select="handleTreeSelect"
       />
     </a-card>
   </div>

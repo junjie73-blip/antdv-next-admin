@@ -1,13 +1,23 @@
 {
-  "$schema": "https://json.schemastore.org/changeset",
-  "baseBranch": "main",
-  "changelog": "@changesets/cli/changelog",
-  "access": "public",
+  "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
+  "changelog": [
+    "@changesets/changelog-github",
+    {
+      "repo": "junjie73-blip/antdv-next-admin"
+    }
+  ],
+  "commit": false,
+  "fixed": [["@antdv/*", "@antdv/*"]],
+  "snapshot": {
+    "prereleaseTemplate": "{tag}-{datetime}"
+  },
   "privatePackages": {
     "version": true,
     "tag": true
   },
-  "fixed": [],
   "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
   "ignore": []
 }

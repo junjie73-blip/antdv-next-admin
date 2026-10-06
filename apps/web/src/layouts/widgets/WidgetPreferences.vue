@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { Icon } from '@iconify/vue';
 
-import WidgetButton from './components/WidgetButton.vue'
+import WidgetButton from './components/WidgetButton.vue';
 
-defineOptions({ name: 'WidgetPreferences' })
+defineOptions({ name: 'WidgetPreferences' });
 
-const emit = defineEmits<{ open: [] }>()
+const emit = defineEmits<{ open: [] }>();
 </script>
 
 <template>

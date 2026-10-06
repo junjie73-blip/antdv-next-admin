@@ -1,6 +1,8 @@
-import type { MockContext } from './_runtime'
-import { defineFakeRoute } from 'vite-plugin-fake-server/client'
-import { withRuntime } from './_runtime'
+import type { MockContext } from './_runtime';
+
+import { defineFakeRoute } from 'vite-plugin-fake-server/client';
+
+import { withRuntime } from './_runtime';
 
 export default defineFakeRoute(
   withRuntime([
@@ -9,16 +11,20 @@ export default defineFakeRoute(
       url: '/auth/login',
       response({ data }: MockContext) {
         const payload =
-          typeof data === 'object' && data !== null ? (data as Record<string, unknown>) : {}
-        const username = typeof payload.username === 'string' ? payload.username : ''
-        const password = typeof payload.password === 'string' ? payload.password : ''
+          typeof data === 'object' && data !== null
+            ? (data as Record<string, unknown>)
+            : {};
+        const username =
+          typeof payload.username === 'string' ? payload.username : '';
+        const password =
+          typeof payload.password === 'string' ? payload.password : '';
 
         if (username !== 'admin' || password !== 'admin123') {
           return {
             code: 400,
             data: null,
             message: '用户名或密码错误',
-          }
+          };
         }
 
         return {
@@ -38,8 +44,8 @@ export default defineFakeRoute(
             },
           },
           message: '登录成功',
-        }
+        };
       },
     },
   ]),
-)
+);

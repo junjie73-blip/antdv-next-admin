@@ -1,49 +1,49 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { computed, inject, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, inject, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
-import { useUserStore } from '~/stores/modules/user'
-import { cn } from '~/utils/cn'
+import { Icon } from '@iconify/vue';
+import { useUserStore } from '~/stores/modules/user';
+import { cn } from '~/utils/cn';
 
-const userStore = useUserStore()
-const router = useRouter()
+const userStore = useUserStore();
+const router = useRouter();
 const switchAccountTab = inject<((tab: 'center' | 'settings') => void) | null>(
   'switchAccountTab',
   null,
-)
+);
 
-const activeTab = ref('basic')
+const activeTab = ref('basic');
 
 // 滑动删除相关
-const swipedDeviceId = ref<string | null>(null)
-const swipeStartX = ref(0)
-const swipeCurrentX = ref(0)
+const swipedDeviceId = ref<null | string>(null);
+const swipeStartX = ref(0);
+const swipeCurrentX = ref(0);
 
 interface LoginDevice {
-  device: string
-  location: string
-  time: string
-  icon: string
+  device: string;
+  location: string;
+  time: string;
+  icon: string;
 }
 
-const containerClassName = cn('space-y-6')
+const containerClassName = cn('space-y-6');
 
 const displayRole = computed(() => {
-  const roles = userStore.roles
+  const roles = userStore.roles;
   if (Array.isArray(roles) && roles.length > 0) {
-    return roles.join('、')
+    return roles.join('、');
   }
-  return '未分配'
-})
+  return '未分配';
+});
 
 const _displayPermissions = computed(() => {
-  const perms = userStore.permissions
+  const perms = userStore.permissions;
   if (Array.isArray(perms) && perms.length > 0) {
-    return perms.join('、')
+    return perms.join('、');
   }
-  return '无'
-})
+  return '无';
+});
 
 const securityInfo = {
   passwordStrength: 85,
@@ -68,7 +68,7 @@ const securityInfo = {
       icon: 'carbon:desktop',
     },
   ],
-}
+};
 
 const activityLogs = [
   {
@@ -96,104 +96,104 @@ const activityLogs = [
     time: '2026-05-17 16:45:00',
     color: 'text-purple-600 dark:text-purple-400',
   },
-]
+];
 
 const userCardClassName = computed(() =>
   cn(
     'rounded-xl border border-gray-100 dark:border-gray-800',
-    'bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/30 dark:to-indigo-950/30',
+    'bg-linear-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/30 dark:to-indigo-950/30',
   ),
-)
+);
 
 const avatarWrapperClassName = cn(
-  'w-20 h-20 rounded-full flex items-center justify-center overflow-hidden',
+  'flex h-20 w-20 items-center justify-center overflow-hidden rounded-full',
   'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400',
-)
+);
 
-const avatarImgClassName = cn('w-full h-full object-cover')
+const avatarImgClassName = cn('h-full w-full object-cover');
 
 const statItemClassName = cn(
   'flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400',
-)
+);
 
-const securityHeaderClassName = cn('flex items-center justify-between')
+const securityHeaderClassName = cn('flex items-center justify-between');
 
 const passwordStrengthBarClassName = cn(
-  'h-2 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden',
-)
+  'h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700',
+);
 
 const passwordStrengthFillClassName = cn(
-  'h-full rounded-full transition-all duration-500 bg-green-500',
-)
+  'h-full rounded-full bg-green-500 transition-all duration-500',
+);
 
 const twoFactorBadgeClassName = cn(
-  'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium',
+  'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium',
   'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-)
+);
 
 const cardClassName = cn(
   'rounded-xl border border-gray-100 dark:border-gray-800',
-)
+);
 
-const teamInfoItemClassName = cn('flex items-center gap-3')
+const teamInfoItemClassName = cn('flex items-center gap-3');
 
 const teamInfoLabelClassName = cn(
-  'text-sm text-gray-500 dark:text-gray-400 min-w-12',
-)
+  'min-w-12 text-sm text-gray-500 dark:text-gray-400',
+);
 
-const teamInfoValueClassName = cn('text-sm text-gray-800 dark:text-gray-200')
+const teamInfoValueClassName = cn('text-sm text-gray-800 dark:text-gray-200');
 
-const permissionTagClassName = cn('mr-1 mb-1')
+const permissionTagClassName = cn('mr-1 mb-1');
 
 const hasAvatar = computed(() => {
-  const info = userStore.userInfo
+  const info = userStore.userInfo;
   return (
     info !== null &&
     typeof info === 'object' &&
     typeof (info as any).avatar === 'string' &&
     (info as any).avatar.length > 0
-  )
-})
+  );
+});
 
 function getActivityColorClass(color: string) {
-  return cn('font-medium', color)
+  return cn('font-medium', color);
 }
 
 // 滑动删除事件（仅电脑端鼠标，全局监听防止丢失）
-const draggingDeviceId = ref<string | null>(null)
+const draggingDeviceId = ref<null | string>(null);
 
 function handleSwipeStart(e: MouseEvent, deviceId: string) {
-  e.preventDefault()
-  swipeStartX.value = e.clientX
-  draggingDeviceId.value = deviceId
-  swipedDeviceId.value = null
-  swipeCurrentX.value = 0
+  e.preventDefault();
+  swipeStartX.value = e.clientX;
+  draggingDeviceId.value = deviceId;
+  swipedDeviceId.value = null;
+  swipeCurrentX.value = 0;
   // 全局监听：防止鼠标移出元素后丢失事件
-  document.addEventListener('mousemove', handleGlobalMouseMove)
-  document.addEventListener('mouseup', handleGlobalMouseUp)
+  document.addEventListener('mousemove', handleGlobalMouseMove);
+  document.addEventListener('mouseup', handleGlobalMouseUp);
 }
 
 function handleGlobalMouseMove(e: MouseEvent) {
-  if (draggingDeviceId.value === null) return
-  const delta = e.clientX - swipeStartX.value
+  if (draggingDeviceId.value === null) return;
+  const delta = e.clientX - swipeStartX.value;
   if (delta > 20) {
-    swipedDeviceId.value = draggingDeviceId.value!
-    swipeCurrentX.value = Math.min(delta, 120)
+    swipedDeviceId.value = draggingDeviceId.value!;
+    swipeCurrentX.value = Math.min(delta, 120);
   } else {
-    swipedDeviceId.value = null
-    swipeCurrentX.value = 0
+    swipedDeviceId.value = null;
+    swipeCurrentX.value = 0;
   }
 }
 
 function handleGlobalMouseUp() {
-  document.removeEventListener('mousemove', handleGlobalMouseMove)
-  document.removeEventListener('mouseup', handleGlobalMouseUp)
-  draggingDeviceId.value = null
-  swipeCurrentX.value = 0
+  document.removeEventListener('mousemove', handleGlobalMouseMove);
+  document.removeEventListener('mouseup', handleGlobalMouseUp);
+  draggingDeviceId.value = null;
+  swipeCurrentX.value = 0;
 }
 
 function handleDeleteDevice(device: LoginDevice) {
-  const isCurrent = device.time === '当前会话'
+  const isCurrent = device.time === '当前会话';
 
   if (isCurrent) {
     Modal.confirm({
@@ -206,17 +206,17 @@ function handleDeleteDevice(device: LoginDevice) {
       onOk: () => {
         const idx = securityInfo.loginDevices.findIndex(
           (d) => d.device === device.device,
-        )
-        if (idx > -1) securityInfo.loginDevices.splice(idx, 1)
-        swipedDeviceId.value = null
-        userStore.logout()
-        router.push('/login')
+        );
+        if (idx !== -1) securityInfo.loginDevices.splice(idx, 1);
+        swipedDeviceId.value = null;
+        userStore.logout();
+        router.push('/login');
       },
       onCancel: () => {
-        swipedDeviceId.value = null
+        swipedDeviceId.value = null;
       },
-    })
-    return
+    });
+    return;
   }
 
   Modal.confirm({
@@ -229,17 +229,17 @@ function handleDeleteDevice(device: LoginDevice) {
     onOk: () => {
       const idx = securityInfo.loginDevices.findIndex(
         (d) => d.device === device.device,
-      )
-      if (idx > -1) {
-        securityInfo.loginDevices.splice(idx, 1)
-        message.success(`已移除设备：${device.device}`)
+      );
+      if (idx !== -1) {
+        securityInfo.loginDevices.splice(idx, 1);
+        message.success(`已移除设备：${device.device}`);
       }
-      swipedDeviceId.value = null
+      swipedDeviceId.value = null;
     },
     onCancel: () => {
-      swipedDeviceId.value = null
+      swipedDeviceId.value = null;
     },
-  })
+  });
 }
 </script>
 
@@ -327,18 +327,14 @@ function handleDeleteDevice(device: LoginDevice) {
           <div class="space-y-6">
             <div class="space-y-2">
               <div :class="securityHeaderClassName">
-                <span class="font-medium text-gray-700 dark:text-gray-300"
-                  >密码强度</span
-                >
-                <span class="text-sm text-green-600 dark:text-green-400"
-                  >{{ securityInfo.passwordStrength }}%</span
-                >
+                <span class="font-medium text-gray-700 dark:text-gray-300">密码强度</span>
+                <span class="text-sm text-green-600 dark:text-green-400">{{ securityInfo.passwordStrength }}%</span>
               </div>
               <div :class="passwordStrengthBarClassName">
                 <div
                   :class="passwordStrengthFillClassName"
                   :style="{ width: `${securityInfo.passwordStrength}%` }"
-                />
+                ></div>
               </div>
               <a-button size="small" @click="switchAccountTab?.('settings')">
                 前往修改
@@ -349,9 +345,7 @@ function handleDeleteDevice(device: LoginDevice) {
 
             <div class="space-y-2">
               <div :class="securityHeaderClassName">
-                <span class="font-medium text-gray-700 dark:text-gray-300"
-                  >双因素认证</span
-                >
+                <span class="font-medium text-gray-700 dark:text-gray-300">双因素认证</span>
                 <span :class="twoFactorBadgeClassName">
                   <Icon icon="carbon:checkmark-filled" width="14" height="14" />
                   已启用
@@ -365,9 +359,7 @@ function handleDeleteDevice(device: LoginDevice) {
             <a-divider />
 
             <div class="space-y-3">
-              <span class="font-medium text-gray-700 dark:text-gray-300"
-                >登录设备</span
-              >
+              <span class="font-medium text-gray-700 dark:text-gray-300">登录设备</span>
               <div
                 v-for="device in securityInfo.loginDevices"
                 :key="device.device"
@@ -437,7 +429,7 @@ function handleDeleteDevice(device: LoginDevice) {
               <template #dot>
                 <div
                   class="h-2.5 w-2.5 rounded-full bg-blue-500 ring-4 ring-blue-100 dark:ring-blue-900/30"
-                />
+                ></div>
               </template>
               <div class="ml-1">
                 <p :class="getActivityColorClass(log.color)">

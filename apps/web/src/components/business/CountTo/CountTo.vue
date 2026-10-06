@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { useRafFn } from '@vueuse/core'
-import { computed, onMounted, ref, watch } from 'vue'
+import type { CountToInstance, CountToProps } from './types';
 
-import { cn } from '~/utils/cn'
+import { computed, onMounted, ref, watch } from 'vue';
 
-import type { CountToInstance, CountToProps } from './types'
+import { useRafFn } from '@vueuse/core';
+import { cn } from '~/utils/cn';
 
 const props = withDefaults(defineProps<CountToProps>(), {
   startVal: 0,
@@ -18,12 +18,12 @@ const props = withDefaults(defineProps<CountToProps>(), {
   suffix: '',
   useEasing: true,
   easingFn: 'easeOutExpo',
-})
+});
 
 const emit = defineEmits<{
-  (e: 'finished'): void
-  (e: 'change', value: number): void
-}>()
+  (e: 'finished'): void;
+  (e: 'change', value: number): void;
+}>();
 
 // ============ 缓动函数 ============
 const easingFunctions = {
@@ -31,66 +31,66 @@ const easingFunctions = {
   linear: (t: number) => t,
   easeInOutCubic: (t: number) =>
     t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2,
-} as const
+} as const;
 
 // ============ 状态 ============
-const currentValue = ref(props.startVal)
-const startTimestamp = ref<number | null>(null)
+const currentValue = ref(props.startVal);
+const startTimestamp = ref<null | number>(null);
 
 // ============ 格式化 ============
 function formatNumber(num: number): string {
-  const [integerPart, decimalPart] = num.toFixed(props.decimals).split('.')
-  const formatted = integerPart.replace(
+  const [integerPart, decimalPart] = num.toFixed(props.decimals).split('.');
+  const formatted = integerPart.replaceAll(
     /\B(?=(\d{3})+(?!\d))/g,
     props.separator,
-  )
-  const decimalStr = decimalPart ? props.decimal + decimalPart : ''
-  return `${props.prefix}${formatted}${decimalStr}${props.suffix}`
+  );
+  const decimalStr = decimalPart ? props.decimal + decimalPart : '';
+  return `${props.prefix}${formatted}${decimalStr}${props.suffix}`;
 }
 
-const displayValue = computed(() => formatNumber(currentValue.value))
+const displayValue = computed(() => formatNumber(currentValue.value));
 
 // ============ 动画：useRafFn 自动管理 RAF 生命周期 ============
 const { pause, resume, isActive } = useRafFn(
   ({ timestamp }) => {
-    if (startTimestamp.value === null) startTimestamp.value = timestamp
+    if (startTimestamp.value === null) startTimestamp.value = timestamp;
     const progress = Math.min(
       (timestamp - startTimestamp.value) / props.duration,
       1,
-    )
+    );
     const eased = props.useEasing
       ? easingFunctions[props.easingFn](progress)
-      : progress
+      : progress;
 
     currentValue.value =
-      props.startVal + (props.endVal - props.startVal) * eased
-    emit('change', currentValue.value)
+      props.startVal + (props.endVal - props.startVal) * eased;
+    emit('change', currentValue.value);
 
     if (progress >= 1) {
-      currentValue.value = props.endVal
-      pause()
-      emit('finished')
+      currentValue.value = props.endVal;
+      pause();
+      emit('finished');
     }
   },
   { immediate: false },
-)
+);
 
 // ============ 对外方法 ============
 function start() {
-  if (isActive.value) return
-  startTimestamp.value = null
-  currentValue.value = props.startVal
-  resume()
+  if (isActive.value) return;
+  startTimestamp.value = null;
+  currentValue.value = props.startVal;
+  resume();
 }
 
 function pauseAnimation() {
-  pause()
+  pause();
 }
 
 function reset() {
-  pause()
-  currentValue.value = props.startVal
-  startTimestamp.value = null
+  pause();
+  currentValue.value = props.startVal;
+  startTimestamp.value = null;
 }
 
 // ============ 生命周期 ============
@@ -98,15 +98,15 @@ watch(
   () => props.endVal,
   () => {
     if (props.autoplay) {
-      reset()
-      start()
+      reset();
+      start();
     }
   },
-)
+);
 
 onMounted(() => {
-  if (props.autoplay) start()
-})
+  if (props.autoplay) start();
+});
 
 // useRafFn 会在组件卸载时自动 pause，无需手动 onUnmounted
 
@@ -115,7 +115,7 @@ defineExpose<CountToInstance>({
   pause: pauseAnimation,
   reset,
   getCurrentValue: () => currentValue.value,
-})
+});
 </script>
 
 <template>

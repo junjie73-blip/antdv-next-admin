@@ -1,20 +1,21 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { computed } from 'vue'
+import { computed } from 'vue';
+
+import { Icon } from '@iconify/vue';
 
 interface Props {
-  icon: string
-  size?: number | string
-  color?: string
-  className?: string
-  inline?: boolean
-  width?: number | string
-  height?: number | string
-  horizontalFlip?: boolean
-  verticalFlip?: boolean
-  rotate?: number
-  mode?: 'svg' | 'style' | 'bg'
-  ssr?: boolean
+  icon: string;
+  size?: number | string;
+  color?: string;
+  className?: string;
+  inline?: boolean;
+  width?: number | string;
+  height?: number | string;
+  horizontalFlip?: boolean;
+  verticalFlip?: boolean;
+  rotate?: number;
+  mode?: 'bg' | 'style' | 'svg';
+  ssr?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -22,23 +23,23 @@ const props = withDefaults(defineProps<Props>(), {
   inline: false,
   mode: 'svg',
   ssr: false,
-})
+});
 
 const iconSize = computed(() => {
   if (props.width !== undefined || props.height !== undefined) {
     return {
       width: props.width ?? props.size,
       height: props.height ?? props.size,
-    }
+    };
   }
-  return props.size
-})
+  return props.size;
+});
 
 const iconStyle = computed(() => ({
   color: props.color,
   fontSize:
     typeof iconSize.value === 'number' ? `${iconSize.value}px` : iconSize.value,
-}))
+}));
 </script>
 
 <template>

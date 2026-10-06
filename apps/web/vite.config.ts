@@ -1,18 +1,19 @@
-import dayjs from 'dayjs'
-import { join } from 'node:path'
-import { defineConfig } from 'vite'
+import { join } from 'node:path';
 
 import {
   createChunkGroups,
   createPlugins,
   createServerProxy,
   loadEnv,
-} from '@antdv-admin/vite-config'
-import pkg from './package.json' with { type: 'json' }
+} from '@antdv/vite-config';
+import dayjs from 'dayjs';
+import { defineConfig } from 'vite';
 
-export default defineConfig(({ mode }) => {
-  const isProd = mode === 'production'
-  const envConfig = loadEnv(mode)
+import pkg from './package.json' with { type: 'json' };
+
+export default defineConfig(async ({ mode }) => {
+  const isProd = mode === 'production';
+  const envConfig = loadEnv(mode);
   const __APP_INFO__ = {
     pkg: {
       dependencies: pkg.dependencies,
@@ -21,7 +22,7 @@ export default defineConfig(({ mode }) => {
       version: pkg.version,
     },
     lastBuildTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-  }
+  };
   return {
     base: './',
     resolve: {
@@ -40,7 +41,7 @@ export default defineConfig(({ mode }) => {
       hot: true,
       proxy: createServerProxy(envConfig, envConfig.VITE_PROXY),
     },
-    plugins: createPlugins(mode),
+    plugins: await createPlugins(mode),
     build: {
       sourcemap: false,
       chunkSizeWarningLimit: 1000,
@@ -66,5 +67,5 @@ export default defineConfig(({ mode }) => {
       exclude: ['vue'],
       include: ['@vueuse', 'es-toolkit', 'antdv-next'],
     },
-  }
-})
+  };
+});

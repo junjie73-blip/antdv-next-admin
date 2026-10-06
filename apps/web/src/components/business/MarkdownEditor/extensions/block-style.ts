@@ -1,4 +1,4 @@
-import { Extension } from '@tiptap/vue-3'
+import { Extension } from '@tiptap/vue-3';
 
 /**
  * 块级行高
@@ -25,6 +25,6 @@ export const BlockStyle = Extension.create({
           },
         },
       },
-    ]
+    ];
   },
-})
+});

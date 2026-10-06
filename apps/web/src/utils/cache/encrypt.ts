@@ -6,17 +6,17 @@
  * 避免硬编码密钥带来的安全风险。
  */
 
-import { isString } from 'es-toolkit'
-import { sm4 } from 'sm-crypto'
+import { isString } from 'es-toolkit';
+import { sm4 } from 'sm-crypto';
 
 /** 开发环境默认密钥（生产环境应通过 VITE_CACHE_ENCRYPT_KEY 覆盖） */
-const DEV_FALLBACK_KEY = 'dev-only-cache-key-0123456789abcdef'
+const DEV_FALLBACK_KEY = 'dev-only-cache-key-0123456789abcdef';
 
 /** 最小密钥长度 */
-const MIN_KEY_LENGTH = 16
+const MIN_KEY_LENGTH = 16;
 
 /** SM4 要求的密钥长度（字符） */
-const SM4_KEY_LENGTH = 32
+const SM4_KEY_LENGTH = 32;
 
 /**
  * 从环境变量获取基础密钥
@@ -24,20 +24,20 @@ const SM4_KEY_LENGTH = 32
  * @throws 生产环境未配置 VITE_CACHE_ENCRYPT_KEY 时抛出
  */
 function getBaseKey(): string {
-  const envKey = import.meta.env.VITE_CACHE_ENCRYPT_KEY as string | undefined
+  const envKey = import.meta.env.VITE_CACHE_ENCRYPT_KEY as string | undefined;
 
   if (isString(envKey) && envKey.length >= MIN_KEY_LENGTH) {
-    return envKey
+    return envKey;
   }
 
   if (import.meta.env.DEV) {
     console.warn(
       '[encrypt] 使用开发默认密钥，生产环境请配置 VITE_CACHE_ENCRYPT_KEY',
-    )
-    return DEV_FALLBACK_KEY
+    );
+    return DEV_FALLBACK_KEY;
   }
 
-  throw new Error('生产环境必须配置 VITE_CACHE_ENCRYPT_KEY（至少 16 位）')
+  throw new Error('生产环境必须配置 VITE_CACHE_ENCRYPT_KEY（至少 16 位）');
 }
 
 /**
@@ -50,18 +50,18 @@ function collectFingerprintFactors(): string[] {
     String(screen.width),
     String(screen.height),
     String(new Date().getTimezoneOffset()),
-  ]
+  ];
 }
 
 /**
  * 将字节数组转换为十六进制字符串
  */
 function bytesToHex(bytes: Uint8Array): string {
-  let hex = ''
+  let hex = '';
   for (const byte of bytes) {
-    hex += byte.toString(16).padStart(2, '0')
+    hex += byte.toString(16).padStart(2, '0');
   }
-  return hex
+  return hex;
 }
 
 /**
@@ -70,27 +70,27 @@ function bytesToHex(bytes: Uint8Array): string {
  */
 async function deriveKey(baseKey: string): Promise<string> {
   try {
-    const fingerprint = collectFingerprintFactors().join('|')
-    const data = new TextEncoder().encode(`${baseKey}:${fingerprint}`)
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-    return bytesToHex(new Uint8Array(hashBuffer))
+    const fingerprint = collectFingerprintFactors().join('|');
+    const data = new TextEncoder().encode(`${baseKey}:${fingerprint}`);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return bytesToHex(new Uint8Array(hashBuffer));
   } catch {
     // Web API 不可用时降级为基础密钥
-    return baseKey
+    return baseKey;
   }
 }
 
 /** 密钥缓存（避免重复计算） */
-let derivedKeyCache: string | null = null
+let derivedKeyCache: null | string = null;
 
 /**
  * 获取或计算派生密钥
  */
 async function getDerivedKey(): Promise<string> {
   if (!derivedKeyCache) {
-    derivedKeyCache = await deriveKey(getBaseKey())
+    derivedKeyCache = await deriveKey(getBaseKey());
   }
-  return derivedKeyCache
+  return derivedKeyCache;
 }
 
 /**
@@ -98,9 +98,9 @@ async function getDerivedKey(): Promise<string> {
  */
 function padKey(key: string): string {
   if (key.length < SM4_KEY_LENGTH) {
-    return key.padEnd(SM4_KEY_LENGTH, '0')
+    return key.padEnd(SM4_KEY_LENGTH, '0');
   }
-  return key.slice(0, SM4_KEY_LENGTH)
+  return key.slice(0, SM4_KEY_LENGTH);
 }
 
 /**
@@ -114,8 +114,8 @@ export async function encryptValue(
   value: string,
   key?: string,
 ): Promise<string> {
-  const finalKey = key ? padKey(key) : padKey(await getDerivedKey())
-  return sm4.encrypt(value, finalKey)
+  const finalKey = key ? padKey(key) : padKey(await getDerivedKey());
+  return sm4.encrypt(value, finalKey);
 }
 
 /**
@@ -129,8 +129,8 @@ export async function decryptValue(
   value: string,
   key?: string,
 ): Promise<string> {
-  const finalKey = key ? padKey(key) : padKey(await getDerivedKey())
-  return sm4.decrypt(value, finalKey)
+  const finalKey = key ? padKey(key) : padKey(await getDerivedKey());
+  return sm4.decrypt(value, finalKey);
 }
 
 /**
@@ -139,7 +139,7 @@ export async function decryptValue(
  * @deprecated 建议使用异步版本的 `encryptValue`
  */
 export function encryptValueSync(value: string, key?: string): string {
-  return sm4.encrypt(value, padKey(key || getBaseKey()))
+  return sm4.encrypt(value, padKey(key || getBaseKey()));
 }
 
 /**
@@ -148,7 +148,7 @@ export function encryptValueSync(value: string, key?: string): string {
  * @deprecated 建议使用异步版本的 `decryptValue`
  */
 export function decryptValueSync(value: string, key?: string): string {
-  return sm4.decrypt(value, padKey(key || getBaseKey()))
+  return sm4.decrypt(value, padKey(key || getBaseKey()));
 }
 
 /**
@@ -156,12 +156,12 @@ export function decryptValueSync(value: string, key?: string): string {
  * 仅在生产环境启用
  */
 export function shouldEncrypt(): boolean {
-  return import.meta.env.PROD
+  return import.meta.env.PROD;
 }
 
 /**
  * 清空派生密钥缓存（一般仅用于测试）
  */
 export function resetDerivedKeyCache(): void {
-  derivedKeyCache = null
+  derivedKeyCache = null;
 }

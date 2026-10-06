@@ -14,7 +14,7 @@ import {
   PieChart,
   RadarChart,
   SankeyChart,
-} from 'echarts/charts'
+} from 'echarts/charts';
 import {
   AriaComponent,
   DataZoomComponent,
@@ -26,19 +26,19 @@ import {
   TitleComponent,
   TooltipComponent,
   VisualMapComponent,
-} from 'echarts/components'
-import * as echarts from 'echarts/core'
-import { CanvasRenderer } from 'echarts/renderers'
+} from 'echarts/components';
+import * as echarts from 'echarts/core';
+import { CanvasRenderer } from 'echarts/renderers';
 
-let installed = false
+let installed = false;
 
 /**
  * 安装 ECharts 核心 + 所有需要的图表/组件/渲染器。
  * 必须在任何 `echarts.init` 之前调用一次。
  */
 export function setupEcharts(): void {
-  if (installed) return
-  installed = true
+  if (installed) return;
+  installed = true;
 
   // 1. 核心图表 & 组件
   echarts.use([
@@ -66,5 +66,5 @@ export function setupEcharts(): void {
 
     // 渲染器
     CanvasRenderer,
-  ])
+  ]);
 }

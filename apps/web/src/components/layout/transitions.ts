@@ -1,24 +1,25 @@
-import type { TransitionEffect } from '~/settings'
+import type { TransitionEffect } from '~/settings';
 
 interface MotionVariant {
-  initial: Record<string, unknown>
-  enter: Record<string, unknown>
+  initial: Record<string, unknown>;
+  enter: Record<string, unknown>;
 }
 
-const COMMON_EASE = 'easeOut'
-const COMMON_DURATION = 280
+const COMMON_EASE = 'easeOut';
+const COMMON_DURATION = 280;
 
 export function getTransitionVariants(effect: TransitionEffect): MotionVariant {
   switch (effect) {
     case 'fade':
-    default:
+    default: {
       return {
         initial: { opacity: 0 },
         enter: { opacity: 1, transition: { duration: 240, ease: COMMON_EASE } },
-      }
+      };
+    }
 
     case 'slide':
-    case 'slide-right':
+    case 'slide-right': {
       return {
         initial: { opacity: 0, x: 40 },
         enter: {
@@ -26,9 +27,10 @@ export function getTransitionVariants(effect: TransitionEffect): MotionVariant {
           x: 0,
           transition: { duration: COMMON_DURATION, ease: COMMON_EASE },
         },
-      }
+      };
+    }
 
-    case 'slide-left':
+    case 'slide-left': {
       return {
         initial: { opacity: 0, x: -40 },
         enter: {
@@ -36,9 +38,10 @@ export function getTransitionVariants(effect: TransitionEffect): MotionVariant {
           x: 0,
           transition: { duration: COMMON_DURATION, ease: COMMON_EASE },
         },
-      }
+      };
+    }
 
-    case 'slide-up':
+    case 'slide-up': {
       return {
         initial: { opacity: 0, y: 32 },
         enter: {
@@ -46,9 +49,10 @@ export function getTransitionVariants(effect: TransitionEffect): MotionVariant {
           y: 0,
           transition: { duration: COMMON_DURATION, ease: COMMON_EASE },
         },
-      }
+      };
+    }
 
-    case 'slide-down':
+    case 'slide-down': {
       return {
         initial: { opacity: 0, y: -32 },
         enter: {
@@ -56,10 +60,11 @@ export function getTransitionVariants(effect: TransitionEffect): MotionVariant {
           y: 0,
           transition: { duration: COMMON_DURATION, ease: COMMON_EASE },
         },
-      }
+      };
+    }
 
     case 'zoom':
-    case 'scale':
+    case 'scale': {
       return {
         initial: { opacity: 0, scale: 0.96 },
         enter: {
@@ -67,9 +72,10 @@ export function getTransitionVariants(effect: TransitionEffect): MotionVariant {
           scale: 1,
           transition: { duration: 260, ease: COMMON_EASE },
         },
-      }
+      };
+    }
 
-    case 'fade-slide':
+    case 'fade-slide': {
       return {
         initial: { opacity: 0, y: 16 },
         enter: {
@@ -77,9 +83,10 @@ export function getTransitionVariants(effect: TransitionEffect): MotionVariant {
           y: 0,
           transition: { duration: 300, ease: COMMON_EASE },
         },
-      }
+      };
+    }
 
-    case 'flip':
+    case 'flip': {
       return {
         initial: { opacity: 0, rotateY: 45, perspective: 1000 },
         enter: {
@@ -88,11 +95,12 @@ export function getTransitionVariants(effect: TransitionEffect): MotionVariant {
           perspective: 1000,
           transition: { duration: 420, ease: COMMON_EASE },
         },
-      }
+      };
+    }
   }
 }
 
 export const NO_MOTION_VARIANT: MotionVariant = {
   initial: { opacity: 1 },
   enter: { opacity: 1 },
-}
+};

@@ -1,5 +1,5 @@
-export { createPlugins } from './plugins'
-export * from './optimize'
-export * from './constants'
-export * from './utils/env'
-export * from './utils/proxy'
+export * from './constants';
+export * from './optimize';
+export { createPlugins } from './plugins';
+export * from './utils/env';
+export * from './utils/proxy';

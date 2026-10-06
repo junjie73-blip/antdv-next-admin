@@ -1,5 +1,5 @@
 // 主组件
-export { default as BasicModal } from './BasicModal.vue'
+export { default as BasicModal } from './BasicModal.vue';
 
 // 类型
 export type {
@@ -12,8 +12,8 @@ export type {
   RegisterFn,
   UseModalInnerReturnType,
   UseModalReturnType,
-} from './types'
+} from './types';
 // Hooks
-export { useModal } from './useModal'
+export { useModal } from './useModal';
 
-export { useModalInner } from './useModalInner'
+export { useModalInner } from './useModalInner';

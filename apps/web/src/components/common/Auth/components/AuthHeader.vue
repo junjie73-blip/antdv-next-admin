@@ -1,24 +1,24 @@
 <script setup lang="ts">
-import { cn } from '~/utils/cn'
+import { cn } from '~/utils/cn';
 
-import { useAuthStyles } from '../composables/useAuthStyles'
+import { useAuthStyles } from '../composables/useAuthStyles';
 
-defineOptions({ name: 'AuthHeader' })
+defineOptions({ name: 'AuthHeader' });
 
 defineProps<{
-  badgeText: string
-  title: string
-  subtitle: string
-  className?: string
-}>()
+  badgeText: string;
+  title: string;
+  subtitle: string;
+  className?: string;
+}>();
 
-const { formHeaderBadgeClassName } = useAuthStyles()
+const { formHeaderBadgeClassName } = useAuthStyles();
 </script>
 
 <template>
   <div :class="cn('mb-8 text-center', className)">
     <span :class="formHeaderBadgeClassName">
-      <span class="h-1.5 w-1.5 rounded-full bg-blue-500" />
+      <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
       {{ badgeText }}
     </span>
 

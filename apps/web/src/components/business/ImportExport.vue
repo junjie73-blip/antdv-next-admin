@@ -1,38 +1,40 @@
 <script setup lang="ts">
-import { DownloadOutlined, UploadOutlined } from '@antdv-next/icons'
-import { message, Modal } from 'antdv-next'
-import { isError, isNil } from 'es-toolkit'
-import { h, ref } from 'vue'
+import type { TemplateColumn } from '~/utils/template';
 
-import { request } from '~/composables'
-import { generateTemplate, type TemplateColumn } from '~/utils/template'
-import { submitExport } from '~/views/system/export/api'
+import { h, ref } from 'vue';
+
+import { DownloadOutlined, UploadOutlined } from '@antdv-next/icons';
+import { message, Modal } from 'antdv-next';
+import { isError } from 'es-toolkit';
+import { request } from '~/composables';
+import { generateTemplate } from '~/utils/template';
+import { submitExport } from '~/views/system/export/api';
 
 interface Props {
-  module: string
-  filename?: string
-  fieldName?: string
-  accept?: string
-  maxSizeMB?: number
-  exportParams?: Record<string, any>
-  disableExport?: boolean
-  disableImport?: boolean
-  exportText?: string
-  importText?: string
-  onImportSuccess?: (result: ImportResult) => void
-  onExportSuccess?: () => void
-  onImportError?: (result: ImportResult) => boolean | void
-  importTemplate?: TemplateColumn[]
-  permissions: string[]
-  importProps?: Record<string, any>
-  exportProps?: Record<string, any>
+  module: string;
+  filename?: string;
+  fieldName?: string;
+  accept?: string;
+  maxSizeMB?: number;
+  exportParams?: Record<string, any>;
+  disableExport?: boolean;
+  disableImport?: boolean;
+  exportText?: string;
+  importText?: string;
+  onImportSuccess?: (result: ImportResult) => void;
+  onExportSuccess?: () => void;
+  onImportError?: (result: ImportResult) => boolean | void;
+  importTemplate?: TemplateColumn[];
+  permissions: string[];
+  importProps?: Record<string, any>;
+  exportProps?: Record<string, any>;
 }
 
 interface ImportResult {
-  successCount: number
-  failCount: number
-  errors: string[]
-  summary?: Record<string, any>
+  successCount: number;
+  failCount: number;
+  errors: string[];
+  summary?: Record<string, any>;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -43,28 +45,28 @@ const props = withDefaults(defineProps<Props>(), {
   disableImport: false,
   exportText: '导出',
   importText: '导入',
-})
+});
 
 const emit = defineEmits<{
-  exportError: [error: Error]
-  importError: [error: Error]
-}>()
+  exportError: [error: Error];
+  importError: [error: Error];
+}>();
 
-const exporting = ref(false)
-const importing = ref(false)
+const exporting = ref(false);
+const importing = ref(false);
 
 async function handleExport() {
-  if (exporting.value) return
-  exporting.value = true
-  const params: Record<string, any> = { ...props.exportParams }
+  if (exporting.value) return;
+  exporting.value = true;
+  const params: Record<string, any> = { ...props.exportParams };
 
-  const ids = params?.ids
+  const ids = params?.ids;
   if (Array.isArray(ids) && ids.length <= 0) {
-    message.error('请选择导出数据')
-    exporting.value = false
-    return
+    message.error('请选择导出数据');
+    exporting.value = false;
+    return;
   }
-  if (Array.isArray(ids)) params.ids = ids.join(',')
+  if (Array.isArray(ids)) params.ids = ids.join(',');
 
   try {
     const {
@@ -73,83 +75,83 @@ async function handleExport() {
       bizType: props.exportProps?.bizType,
       exportFormat: props.exportProps?.exportFormat ?? 'xlsx',
       queryParams: params,
-    })
+    });
     message.success(
       `导出任务已提交（ID: ${taskId.slice(0, 8)}），可在「导出中心」查看进度`,
-    )
-    props.onExportSuccess?.()
-  } catch (e) {
+    );
+    props.onExportSuccess?.();
+  } catch (error) {
     // es-toolkit isError 替代 instanceof Error
-    const err = isError(e) ? e : new Error(String(e))
-    message.error(err.message || '导出失败')
-    emit('exportError', err)
+    const err = isError(error) ? error : new Error(String(error));
+    message.error(err.message || '导出失败');
+    emit('exportError', err);
   } finally {
-    exporting.value = false
+    exporting.value = false;
   }
 }
 
 function handleBeforeUpload(file: File): boolean {
   if (!props.importTemplate) {
-    message.error('请先配置导入模板')
-    return false
+    message.error('请先配置导入模板');
+    return false;
   }
 
   const isValidType = props.accept
     .split(',')
-    .some((ext) => file.name.toLowerCase().endsWith(ext.trim().toLowerCase()))
+    .some((ext) => file.name.toLowerCase().endsWith(ext.trim().toLowerCase()));
   if (!isValidType) {
-    message.error(`仅支持 ${props.accept} 格式文件`)
-    return false
+    message.error(`仅支持 ${props.accept} 格式文件`);
+    return false;
   }
 
-  const sizeMB = file.size / 1024 / 1024
+  const sizeMB = file.size / 1024 / 1024;
   if (sizeMB > props.maxSizeMB) {
-    message.error(`文件大小不能超过 ${props.maxSizeMB}MB`)
-    return false
+    message.error(`文件大小不能超过 ${props.maxSizeMB}MB`);
+    return false;
   }
 
-  void uploadFile(file)
-  return false
+  void uploadFile(file);
+  return false;
 }
 
 async function uploadFile(file: File) {
-  if (importing.value) return
-  importing.value = true
+  if (importing.value) return;
+  importing.value = true;
 
   try {
-    const formData = new FormData()
-    formData.append(props.fieldName, file)
+    const formData = new FormData();
+    formData.append(props.fieldName, file);
 
-    const res: any = await request.post(`${props.module}/import`, formData)
-    const result: ImportResult = res?.data ?? res
+    const res: any = await request.post(`${props.module}/import`, formData);
+    const result: ImportResult = res?.data ?? res;
 
-    handleImportResult(result)
-    props.onImportSuccess?.(result)
-  } catch (e) {
-    const err = isError(e) ? e : new Error(String(e))
-    message.error(err.message || '导入失败')
-    emit('importError', err)
+    handleImportResult(result);
+    props.onImportSuccess?.(result);
+  } catch (error) {
+    const err = isError(error) ? error : new Error(String(error));
+    message.error(err.message || '导入失败');
+    emit('importError', err);
   } finally {
-    importing.value = false
+    importing.value = false;
   }
 }
 
 function handleImportResult(result: ImportResult) {
-  const { successCount = 0, failCount = 0, errors = [] } = result
+  const { successCount = 0, failCount = 0, errors = [] } = result;
 
   if (failCount === 0) {
-    message.success(`导入成功 ${successCount} 条`)
-    return
+    message.success(`导入成功 ${successCount} 条`);
+    return;
   }
 
-  const MAX_SHOW = 20
-  const shownErrors = errors.slice(0, MAX_SHOW)
+  const MAX_SHOW = 20;
+  const shownErrors = errors.slice(0, MAX_SHOW);
   const moreText =
     errors.length > MAX_SHOW
       ? `\n...还有 ${errors.length - MAX_SHOW} 条错误未显示`
-      : ''
+      : '';
 
-  if (props.onImportError?.(result)) return
+  if (props.onImportError?.(result)) return;
 
   Modal.info({
     title: '导入结果',
@@ -179,14 +181,14 @@ function handleImportResult(result: ImportResult) {
         moreText && h('p', { class: 'mt-2 text-xs text-stone-500' }, moreText),
       ]),
     okText: '知道了',
-  })
+  });
 }
 
 function downloadTemplate() {
   generateTemplate(
-    props.filename ?? props.module.split('/').pop() + '导入模板',
+    props.filename ?? `${props.module.split('/').pop()}导入模板`,
     props.importTemplate!,
-  )
+  );
 }
 </script>
 

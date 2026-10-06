@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { isNil } from 'es-toolkit'
-import { computed } from 'vue'
+import { computed } from 'vue';
 
-defineOptions({ name: 'StatusTag' })
+import { isNil } from 'es-toolkit';
+
+defineOptions({ name: 'StatusTag' });
 
 const props = defineProps<{
-  status: string
-  type?: 'workflow' | 'instance' | 'task' | 'export'
-}>()
+  status: string;
+  type?: 'export' | 'instance' | 'task' | 'workflow';
+}>();
 
 const MAP: Record<string, { label: string; color: string }> = {
   '0': { label: '处理中', color: 'processing' },
@@ -20,13 +21,13 @@ const MAP: Record<string, { label: string; color: string }> = {
   failed: { label: '失败', color: 'error' },
   cancelled: { label: '已取消', color: 'default' },
   timeout: { label: '已超时', color: 'error' },
-}
+};
 
 const config = computed(() => {
-  const found = MAP[props.status]
+  const found = MAP[props.status];
   // isNil 替代 `??`，防止 status 是空串时的兜底
-  return isNil(found) ? { label: props.status, color: 'default' } : found
-})
+  return isNil(found) ? { label: props.status, color: 'default' } : found;
+});
 </script>
 
 <template>

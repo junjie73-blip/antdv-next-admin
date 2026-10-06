@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { extname, join } from 'node:path';
 
-import { execa, getStagedFiles } from '@antdv-admin/node-utils';
+import { execa, getStagedFiles } from '@antdv/node-utils';
 
 const require = createRequire(import.meta.url);
 const circularScannerCli =

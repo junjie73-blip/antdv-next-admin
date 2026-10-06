@@ -1,120 +1,120 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import QRCode from 'qrcode'
-import { onMounted, ref, useTemplateRef, watch } from 'vue'
+import { onMounted, ref, useTemplateRef, watch } from 'vue';
 
-import { cn } from '~/utils/cn'
+import { Icon } from '@iconify/vue';
+import QRCode from 'qrcode';
+import { cn } from '~/utils/cn';
 
-const containerClassName = cn('space-y-6')
+const containerClassName = cn('space-y-6');
 const qrCardClassName = cn(
-  'flex flex-col items-center p-6 bg-white dark:bg-gray-800 rounded-lg',
-)
-const qrCanvasContainer = cn('p-4 bg-gray-50 dark:bg-gray-700 rounded-lg')
+  'flex flex-col items-center rounded-lg bg-white p-6 dark:bg-gray-800',
+);
+const qrCanvasContainer = cn('rounded-lg bg-gray-50 p-4 dark:bg-gray-700');
 
-const basicText = ref('https://example.com')
-const basicQrCanvas = useTemplateRef<HTMLCanvasElement>('basicQrCanvas')
+const basicText = ref('https://example.com');
+const basicQrCanvas = useTemplateRef<HTMLCanvasElement>('basicQrCanvas');
 
 async function generateBasicQR() {
-  if (!basicQrCanvas.value) return
+  if (!basicQrCanvas.value) return;
   try {
     await QRCode.toCanvas(basicQrCanvas.value, basicText.value, {
       width: 200,
       margin: 2,
       color: { dark: '#000000', light: '#ffffff' },
-    })
+    });
   } catch (error) {
-    console.error('QR generation failed', error)
+    console.error('QR generation failed', error);
   }
 }
 
 watch(basicText, () => {
-  generateBasicQR()
-})
+  generateBasicQR();
+});
 onMounted(() => {
-  generateBasicQR()
-})
+  generateBasicQR();
+});
 
-const logoText = ref('https://antdv-next.com')
-const logoQrCanvas = useTemplateRef<HTMLCanvasElement>('logoQrCanvas')
-const showLogo = ref(true)
+const logoText = ref('https://antdv-next.com');
+const logoQrCanvas = useTemplateRef<HTMLCanvasElement>('logoQrCanvas');
+const showLogo = ref(true);
 
 async function generateLogoQR() {
-  if (!logoQrCanvas.value) return
+  if (!logoQrCanvas.value) return;
   try {
     await QRCode.toCanvas(logoQrCanvas.value, logoText.value, {
       width: 200,
       margin: 2,
       color: { dark: '#1677ff', light: '#ffffff' },
-    })
+    });
     if (showLogo.value) {
-      const ctx = logoQrCanvas.value.getContext('2d')
+      const ctx = logoQrCanvas.value.getContext('2d');
       if (ctx) {
-        const size = 40
-        const x = (logoQrCanvas.value.width - size) / 2
-        const y = (logoQrCanvas.value.height - size) / 2
-        ctx.fillStyle = '#ffffff'
-        ctx.fillRect(x - 4, y - 4, size + 8, size + 8)
-        ctx.beginPath()
+        const size = 40;
+        const x = (logoQrCanvas.value.width - size) / 2;
+        const y = (logoQrCanvas.value.height - size) / 2;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(x - 4, y - 4, size + 8, size + 8);
+        ctx.beginPath();
         ctx.arc(
           logoQrCanvas.value.width / 2,
           logoQrCanvas.value.height / 2,
           size / 2,
           0,
           Math.PI * 2,
-        )
-        ctx.fillStyle = '#1677ff'
-        ctx.fill()
-        ctx.fillStyle = '#ffffff'
-        ctx.font = 'bold 16px Arial'
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
+        );
+        ctx.fillStyle = '#1677ff';
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         ctx.fillText(
           'A',
           logoQrCanvas.value.width / 2,
           logoQrCanvas.value.height / 2,
-        )
+        );
       }
     }
   } catch (error) {
-    console.error('Logo QR generation failed:', error)
+    console.error('Logo QR generation failed:', error);
   }
 }
 
 watch([logoText, showLogo], () => {
-  generateLogoQR()
-})
+  generateLogoQR();
+});
 onMounted(() => {
-  generateLogoQR()
-})
+  generateLogoQR();
+});
 
-const downloadFormat = ref<'png' | 'svg' | 'dataURL'>('png')
-const downloadQrCanvas = useTemplateRef<HTMLCanvasElement>('downloadQrCanvas')
+const downloadFormat = ref<'dataURL' | 'png' | 'svg'>('png');
+const downloadQrCanvas = useTemplateRef<HTMLCanvasElement>('downloadQrCanvas');
 
 async function generateDownloadQR() {
-  if (!downloadQrCanvas.value) return
+  if (!downloadQrCanvas.value) return;
   try {
     await QRCode.toCanvas(downloadQrCanvas.value, 'Downloadable QR Code', {
       width: 200,
       margin: 2,
       color: { dark: '#52c41a', light: '#f6ffed' },
-    })
+    });
   } catch (error) {
-    console.error('Download QR generation failed', error)
+    console.error('Download QR generation failed', error);
   }
 }
 
 onMounted(() => {
-  generateDownloadQR()
-})
+  generateDownloadQR();
+});
 
 function handleDownload() {
-  if (!downloadQrCanvas.value) return
+  if (!downloadQrCanvas.value) return;
   if (downloadFormat.value === 'png') {
-    const link = document.createElement('a')
-    link.download = 'qrcode.png'
-    link.href = downloadQrCanvas.value.toDataURL('image/png')
-    link.click()
-    message.success('PNG download success')
+    const link = document.createElement('a');
+    link.download = 'qrcode.png';
+    link.href = downloadQrCanvas.value.toDataURL('image/png');
+    link.click();
+    message.success('PNG download success');
   } else if (downloadFormat.value === 'svg') {
     QRCode.toString('Downloadable QR Code', {
       type: 'svg',
@@ -122,68 +122,68 @@ function handleDownload() {
       margin: 2,
       color: { dark: '#52c41a', light: '#f6ffed' },
     }).then((svg: string) => {
-      const blob = new Blob([svg], { type: 'image/svg+xml' })
-      const link = document.createElement('a')
-      link.download = 'qrcode.svg'
-      link.href = URL.createObjectURL(blob)
-      link.click()
-      URL.revokeObjectURL(link.href)
-      message.success('SVG download success')
-    })
+      const blob = new Blob([svg], { type: 'image/svg+xml' });
+      const link = document.createElement('a');
+      link.download = 'qrcode.svg';
+      link.href = URL.createObjectURL(blob);
+      link.click();
+      URL.revokeObjectURL(link.href);
+      message.success('SVG download success');
+    });
   } else {
     QRCode.toDataURL('Downloadable QR Code', { width: 200, margin: 2 }).then(
       (url: string) => {
         message.success(
           `Data URL generated, length: ${Math.round(url.length / 1024)}KB`,
-        )
+        );
       },
-    )
+    );
   }
 }
 
-const scanResult = ref('')
-const scanning = ref(false)
-const scanHistory = ref<string[]>([])
+const scanResult = ref('');
+const scanning = ref(false);
+const scanHistory = ref<string[]>([]);
 
 function simulateScan() {
-  scanning.value = true
-  scanResult.value = ''
+  scanning.value = true;
+  scanResult.value = '';
   setTimeout(() => {
     const results = [
       'https://www.example.com/product/12345',
       'WIFI:T:WPA;S:NetworkName;P:Password123;;',
       'BEGIN:VCARD\nVERSION:3.0\nFN:Zhang San\nTEL:13800138000\nEND:VCARD',
       'mailto:contact@example.com?subject=Hello',
-    ]
-    const randomResult = results[Math.floor(Math.random() * results.length)]
-    scanResult.value = randomResult
-    scanHistory.value.unshift(randomResult)
+    ];
+    const randomResult = results[Math.floor(Math.random() * results.length)];
+    scanResult.value = randomResult;
+    scanHistory.value.unshift(randomResult);
     if (scanHistory.value.length > 5) {
-      scanHistory.value.pop()
+      scanHistory.value.pop();
     }
-    scanning.value = false
-    message.success('Scan complete')
-  }, 1500)
+    scanning.value = false;
+    message.success('Scan complete');
+  }, 1500);
 }
 
-const errorCorrectionLevel = ref<'L' | 'M' | 'Q' | 'H'>('M')
+const errorCorrectionLevel = ref<'H' | 'L' | 'M' | 'Q'>('M');
 const levelCanvases = {
   L: useTemplateRef<HTMLCanvasElement>('qrLevelL'),
   M: useTemplateRef<HTMLCanvasElement>('qrLevelM'),
   Q: useTemplateRef<HTMLCanvasElement>('qrLevelQ'),
   H: useTemplateRef<HTMLCanvasElement>('qrLevelH'),
-}
+};
 
 const levelDescriptions = {
   L: { name: 'L (Low)', desc: '7% tolerance', percent: 7 },
   M: { name: 'M (Medium)', desc: '15% tolerance', percent: 15 },
   Q: { name: 'Q (Quartile)', desc: '25% tolerance', percent: 25 },
   H: { name: 'H (High)', desc: '30% tolerance', percent: 30 },
-}
+};
 
 async function generateErrorCorrectionQRs() {
   for (const [level, canvasRef] of Object.entries(levelCanvases)) {
-    const canvas = canvasRef.value
+    const canvas = canvasRef.value;
     if (canvas) {
       try {
         await QRCode.toCanvas(canvas, `Level: ${level}`, {
@@ -191,46 +191,46 @@ async function generateErrorCorrectionQRs() {
           margin: 2,
           errorCorrectionLevel: level as any,
           color: { dark: '#1890ff', light: '#e6f7ff' },
-        })
+        });
       } catch (error) {
-        console.error(`Level ${level} QR failed:`, error)
+        console.error(`Level ${level} QR failed:`, error);
       }
     }
   }
 }
 
 watch(errorCorrectionLevel, () => {
-  generateErrorCorrectionQRs()
-})
+  generateErrorCorrectionQRs();
+});
 onMounted(() => {
-  generateErrorCorrectionQRs()
-})
+  generateErrorCorrectionQRs();
+});
 
-const customSize = ref(200)
-const customDarkColor = ref('#1677ff')
-const customLightColor = ref('#ffffff')
-const customText = ref('Custom QR Code')
-const customQrCanvas = useTemplateRef<HTMLCanvasElement>('customQrCanvas')
+const customSize = ref(200);
+const customDarkColor = ref('#1677ff');
+const customLightColor = ref('#ffffff');
+const customText = ref('Custom QR Code');
+const customQrCanvas = useTemplateRef<HTMLCanvasElement>('customQrCanvas');
 
 async function generateCustomQR() {
-  if (!customQrCanvas.value) return
+  if (!customQrCanvas.value) return;
   try {
     await QRCode.toCanvas(customQrCanvas.value, customText.value, {
       width: customSize.value,
       margin: 2,
       color: { dark: customDarkColor.value, light: customLightColor.value },
-    })
+    });
   } catch (error) {
-    console.error('Custom QR generation failed:', error)
+    console.error('Custom QR generation failed:', error);
   }
 }
 
 watch([customSize, customDarkColor, customLightColor, customText], () => {
-  generateCustomQR()
-})
+  generateCustomQR();
+});
 onMounted(() => {
-  generateCustomQR()
-})
+  generateCustomQR();
+});
 
 const colorPresets = [
   { name: 'B&W', dark: '#000000', light: '#ffffff' },
@@ -239,17 +239,17 @@ const colorPresets = [
   { name: 'Red', dark: '#ff4d4f', light: '#fff2f0' },
   { name: 'Purple', dark: '#722ed1', light: '#f9f0ff' },
   { name: 'Orange', dark: '#fa8c16', light: '#fff7e6' },
-]
+];
 
 function applyPreset(preset: (typeof colorPresets)[0]) {
-  customDarkColor.value = preset.dark
-  customLightColor.value = preset.light
+  customDarkColor.value = preset.dark;
+  customLightColor.value = preset.light;
 }
 
 function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text).then(() => {
-    message.success('Copied to clipboard')
-  })
+    message.success('Copied to clipboard');
+  });
 }
 </script>
 
@@ -268,7 +268,7 @@ function copyToClipboard(text: string) {
         />
         <div :class="qrCardClassName">
           <div :class="qrCanvasContainer">
-            <canvas ref="basicQrCanvas" />
+            <canvas ref="basicQrCanvas"></canvas>
           </div>
           <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
             Scan to visit: {{ basicText || '(empty)' }}
@@ -297,7 +297,7 @@ function copyToClipboard(text: string) {
         </div>
         <div :class="qrCardClassName">
           <div :class="qrCanvasContainer">
-            <canvas ref="logoQrCanvas" />
+            <canvas ref="logoQrCanvas"></canvas>
           </div>
           <p class="mt-4 text-center text-sm text-gray-500">
             Tip: Use professional logo images in production
@@ -319,7 +319,7 @@ function copyToClipboard(text: string) {
           </a-radio-group>
         </div>
         <div :class="qrCardClassName">
-          <canvas ref="downloadQrCanvas" />
+          <canvas ref="downloadQrCanvas"></canvas>
           <a-button type="primary" class="mt-4" @click="handleDownload">
             <template #icon>
               <Icon icon="carbon:download" />
@@ -363,8 +363,7 @@ function copyToClipboard(text: string) {
               </p>
               <code
                 class="block rounded bg-white p-2 text-sm break-all dark:bg-gray-800"
-                >{{ scanResult }}</code
-              >
+                >{{ scanResult }}</code>
             </div>
           </div>
         </div>
@@ -423,7 +422,7 @@ function copyToClipboard(text: string) {
               (el: any) =>
                 (levelCanvases[key as keyof typeof levelCanvases] = el)
             "
-          />
+          ></canvas>
           <h5 class="mt-3 text-center font-medium">
             {{ level.name }}
           </h5>
@@ -477,9 +476,7 @@ function copyToClipboard(text: string) {
           </div>
         </div>
         <div>
-          <label class="mb-2 block text-sm font-medium"
-            >Preset Color Schemes</label
-          >
+          <label class="mb-2 block text-sm font-medium">Preset Color Schemes</label>
           <div class="flex flex-wrap gap-2">
             <a-button
               v-for="preset in colorPresets"
@@ -490,7 +487,7 @@ function copyToClipboard(text: string) {
               <span
                 class="mr-1 inline-block h-3 w-3 rounded-full"
                 :style="{ backgroundColor: preset.dark }"
-              />
+              ></span>
               {{ preset.name }}
             </a-button>
           </div>
@@ -500,7 +497,7 @@ function copyToClipboard(text: string) {
             :class="qrCanvasContainer"
             :style="{ backgroundColor: customLightColor }"
           >
-            <canvas ref="customQrCanvas" />
+            <canvas ref="customQrCanvas"></canvas>
           </div>
         </div>
       </div>

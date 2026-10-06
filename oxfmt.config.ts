@@ -1,4 +1,4 @@
-import { defineConfig } from '@antdv-admin/oxfmt-config';
+import { defineConfig } from '@antdv/oxfmt-config';
 
 export default defineConfig({
   ignorePatterns: [

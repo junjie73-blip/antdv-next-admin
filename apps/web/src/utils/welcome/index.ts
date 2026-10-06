@@ -1,32 +1,32 @@
-import { Icon } from '@iconify/vue'
-import { notification } from 'antdv-next'
-import { h } from 'vue'
+import { h } from 'vue';
 
-import dayjs from '~/utils/dayjs'
+import { Icon } from '@iconify/vue';
+import { notification } from 'antdv-next';
+import dayjs from '~/utils/dayjs';
 
 interface WelcomeConfig {
-  icon: string
-  title: string
-  message: string
-  iconColor: string
+  icon: string;
+  title: string;
+  message: string;
+  iconColor: string;
 }
 
-const MORNING_START = 6
-const NOON_START = 12
-const AFTERNOON_START = 14
-const EVENING_START = 18
-const NIGHT_START = 22
+const MORNING_START = 6;
+const NOON_START = 12;
+const AFTERNOON_START = 14;
+const EVENING_START = 18;
+const NIGHT_START = 22;
 
-type TimePeriod = 'morning' | 'noon' | 'afternoon' | 'evening' | 'night'
+type TimePeriod = 'afternoon' | 'evening' | 'morning' | 'night' | 'noon';
 
 function getTimePeriod(): TimePeriod {
-  const hour = dayjs().hour()
+  const hour = dayjs().hour();
 
-  if (hour >= MORNING_START && hour < NOON_START) return 'morning'
-  if (hour >= NOON_START && hour < AFTERNOON_START) return 'noon'
-  if (hour >= AFTERNOON_START && hour < EVENING_START) return 'afternoon'
-  if (hour >= EVENING_START && hour < NIGHT_START) return 'evening'
-  return 'night'
+  if (hour >= MORNING_START && hour < NOON_START) return 'morning';
+  if (hour >= NOON_START && hour < AFTERNOON_START) return 'noon';
+  if (hour >= AFTERNOON_START && hour < EVENING_START) return 'afternoon';
+  if (hour >= EVENING_START && hour < NIGHT_START) return 'evening';
+  return 'night';
 }
 
 const WELCOME_MESSAGES: Record<TimePeriod, WelcomeConfig> = {
@@ -60,21 +60,21 @@ const WELCOME_MESSAGES: Record<TimePeriod, WelcomeConfig> = {
     message: '注意休息，早点休息~',
     iconColor: '#8b5cf6',
   },
-}
+};
 
 export function getPersonalizedWelcome(username: string): WelcomeConfig {
-  const period = getTimePeriod()
-  const config = WELCOME_MESSAGES[period]
+  const period = getTimePeriod();
+  const config = WELCOME_MESSAGES[period];
 
   return {
     ...config,
     message: `${username}，${config.message}`,
-  }
+  };
 }
 
 export function getTimeGreeting(): string {
-  const period = getTimePeriod()
-  return WELCOME_MESSAGES[period].title
+  const period = getTimePeriod();
+  return WELCOME_MESSAGES[period].title;
 }
 
 /* ============================================================
@@ -83,13 +83,13 @@ export function getTimeGreeting(): string {
 
 export interface LoginWelcomeOptions {
   /** 用户名，为空时降级为"朋友" */
-  username?: string
+  username?: string;
   /** 自动关闭时长（秒），默认 5；传 0 表示不自动关闭 */
-  duration?: number
+  duration?: number;
   /** 通知位置，默认右上角 */
-  placement?: 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight'
+  placement?: 'bottomLeft' | 'bottomRight' | 'topLeft' | 'topRight';
   /** 点击通知时的回调（例如跳转个人中心） */
-  onClick?: () => void
+  onClick?: () => void;
 }
 
 /**
@@ -111,12 +111,17 @@ export interface LoginWelcomeOptions {
  * ```
  */
 export function showLoginWelcome(options: LoginWelcomeOptions = {}): void {
-  const { username, duration = 5, placement = 'bottomRight', onClick } = options
+  const {
+    username,
+    duration = 5,
+    placement = 'bottomRight',
+    onClick,
+  } = options;
 
-  const period = getTimePeriod()
-  const config = WELCOME_MESSAGES[period]
-  const displayName = username?.trim() || '朋友'
-  const timeText = dayjs().format('YYYY-MM-DD HH:mm')
+  const period = getTimePeriod();
+  const config = WELCOME_MESSAGES[period];
+  const displayName = username?.trim() || '朋友';
+  const timeText = dayjs().format('YYYY-MM-DD HH:mm');
 
   notification.open({
     title: h(
@@ -177,5 +182,5 @@ export function showLoginWelcome(options: LoginWelcomeOptions = {}): void {
       width: 'min(380px, calc(100vw - 32px))',
     },
     onClick,
-  })
+  });
 }

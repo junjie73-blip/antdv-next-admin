@@ -2,28 +2,28 @@
  * 部门内存库（legacy mock/dept.fake.ts 的数据层）
  */
 
-import { faker } from '@faker-js/faker/locale/zh_CN'
-import dayjs from 'dayjs'
+import { faker } from '@faker-js/faker/locale/zh_CN';
+import dayjs from 'dayjs';
 
-faker.seed(42)
+faker.seed(42);
 
 export interface DeptRecord {
-  children?: DeptRecord[]
-  code: string
-  createdAt: string
-  id: number
-  leader: string
-  name: string
-  parentId: number
-  phone: string
-  remark: string
-  sortOrder: number
-  status: 0 | 1
-  userCount: number
+  children?: DeptRecord[];
+  code: string;
+  createdAt: string;
+  id: number;
+  leader: string;
+  name: string;
+  parentId: number;
+  phone: string;
+  remark: string;
+  sortOrder: number;
+  status: 0 | 1;
+  userCount: number;
 }
 
 function generateDeptTree(): DeptRecord[] {
-  const baseDate = dayjs('2024-01-01')
+  const baseDate = dayjs('2024-01-01');
   const headquarters: DeptRecord = {
     id: 1,
     parentId: 0,
@@ -37,7 +37,7 @@ function generateDeptTree(): DeptRecord[] {
     createdAt: baseDate.format('YYYY-MM-DD HH:mm:ss'),
     userCount: faker.number.int({ min: 5, max: 15 }),
     children: [],
-  }
+  };
   const deptTemplates = [
     { name: '技术部', code: 'TECH', remark: '负责产品研发与技术架构' },
     { name: '产品部', code: 'PRODUCT', remark: '负责产品规划与设计' },
@@ -46,8 +46,11 @@ function generateDeptTree(): DeptRecord[] {
     { name: '财务部', code: 'FINANCE', remark: '负责财务管理与审计' },
     { name: '人事部', code: 'HR', remark: '负责人力资源与组织发展' },
     { name: '行政部', code: 'ADMIN', remark: '负责行政管理后勤保障' },
-  ]
-  const childDeptMap: Record<string, { name: string, code: string, remark: string }[]> = {
+  ];
+  const childDeptMap: Record<
+    string,
+    { name: string; code: string; remark: string }[]
+  > = {
     技术部: [
       { name: '前端组', code: 'FE', remark: '负责 Web 前端开发' },
       { name: '后端组', code: 'BE', remark: '负责服务端开发与架构' },
@@ -66,8 +69,8 @@ function generateDeptTree(): DeptRecord[] {
       { name: '内容运营组', code: 'CONTENT', remark: '负责内容生产与运营' },
       { name: '用户运营组', code: 'USER_OPS', remark: '负责用户生命周期管理' },
     ],
-  }
-  let idCounter = 2
+  };
+  let idCounter = 2;
   for (const tpl of deptTemplates) {
     const level2Dept: DeptRecord = {
       id: idCounter++,
@@ -79,12 +82,14 @@ function generateDeptTree(): DeptRecord[] {
       sortOrder: idCounter - 1,
       status: faker.datatype.boolean(0.85) ? 1 : 0,
       remark: tpl.remark,
-      createdAt: baseDate.add(faker.number.int({ min: 10, max: 60 }), 'day').format('YYYY-MM-DD HH:mm:ss'),
+      createdAt: baseDate
+        .add(faker.number.int({ min: 10, max: 60 }), 'day')
+        .format('YYYY-MM-DD HH:mm:ss'),
       userCount: faker.number.int({ min: 3, max: 20 }),
       children: [],
-    }
-    headquarters.children!.push(level2Dept)
-    const children = childDeptMap[tpl.name] || []
+    };
+    headquarters.children!.push(level2Dept);
+    const children = childDeptMap[tpl.name] || [];
     for (const childTpl of children) {
       const level3Dept: DeptRecord = {
         id: idCounter++,
@@ -96,33 +101,35 @@ function generateDeptTree(): DeptRecord[] {
         sortOrder: idCounter - 1,
         status: faker.datatype.boolean(0.9) ? 1 : 0,
         remark: childTpl.remark,
-        createdAt: baseDate.add(faker.number.int({ min: 30, max: 120 }), 'day').format('YYYY-MM-DD HH:mm:ss'),
+        createdAt: baseDate
+          .add(faker.number.int({ min: 30, max: 120 }), 'day')
+          .format('YYYY-MM-DD HH:mm:ss'),
         userCount: faker.number.int({ min: 1, max: 10 }),
-      }
-      level2Dept.children!.push(level3Dept)
+      };
+      level2Dept.children!.push(level3Dept);
     }
   }
-  return [headquarters]
+  return [headquarters];
 }
 
-export const DEPT_TREE = generateDeptTree()
-let autoIncrementId = 30
+export const DEPT_TREE = generateDeptTree();
+const autoIncrementId = 30;
 // 扁平化辅助函数
 function flattenDepts(nodes: DeptRecord[]): DeptRecord[] {
-  const result: DeptRecord[] = []
+  const result: DeptRecord[] = [];
   function walk(items: DeptRecord[]) {
     for (const item of items) {
-      result.push(item)
-      if (item.children && item.children.length > 0) walk(item.children)
+      result.push(item);
+      if (item.children && item.children.length > 0) walk(item.children);
     }
   }
-  walk(nodes)
-  return result
+  walk(nodes);
+  return result;
 }
 
-export const ALL_DEPTS_FLAT = flattenDepts(DEPT_TREE)
+export const ALL_DEPTS_FLAT = flattenDepts(DEPT_TREE);
 
 /** 新增部门自增 id */
 export function nextDeptId(): number {
-  return autoIncrementDeptId++
+  return autoIncrementDeptId++;
 }

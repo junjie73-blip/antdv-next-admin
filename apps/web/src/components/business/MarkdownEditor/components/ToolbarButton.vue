@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { Icon } from '@iconify/vue';
 
 defineProps<{
-  title: string
-  icon?: string
-  label?: string
-  active?: boolean
-  disabled?: boolean
-}>()
+  title: string;
+  icon?: string;
+  label?: string;
+  active?: boolean;
+  disabled?: boolean;
+}>();
 
-const emit = defineEmits<{ click: [] }>()
+const emit = defineEmits<{ click: [] }>();
 </script>
 
 <template>

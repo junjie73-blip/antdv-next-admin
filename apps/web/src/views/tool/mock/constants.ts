@@ -27,7 +27,7 @@ export const actionClassName = cn(
   'justify-center',
   'whitespace-nowrap',
 )
-export const btnClassName = cn('!px-0.5')
+export const btnClassName = cn('px-0.5!')
 export const dividerClassName = cn('mx-0')
 export const codeClassName = cn('font-mono', 'text-xs')
 export const previewClassName = cn(
@@ -69,7 +69,7 @@ export const SOURCE_COLOR_MAP: Record<string, string> = {
 }
 
 /** 运行时开关可选项，与 mock/store.ts 的取值范围保持一致 */
-export const DELAY_MAX = 30000
+export const DELAY_MAX = 30_000
 export const DELAY_PRESETS = [0, 200, 500, 1000, 3000]
 export const FAIL_RATE_PRESETS = [0, 10, 30, 50, 100]
 export const STATUS_OPTIONS = [500, 502, 503, 504, 429, 400].map((status) => ({
@@ -82,7 +82,7 @@ export const LOG_POLL_INTERVALS = [
   { label: '关闭', value: 0 },
   { label: '2s', value: 2000 },
   { label: '5s', value: 5000 },
-  { label: '10s', value: 10000 },
+  { label: '10s', value: 10_000 },
 ]
 
 export const LOG_LIMIT = 200

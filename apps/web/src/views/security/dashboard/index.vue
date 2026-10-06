@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-
 import { cn } from '~/utils/cn'
 
 import RealtimeAlertPanel from './components/RealtimeAlertPanel.vue'
@@ -10,8 +9,8 @@ import SecurityTimeline from './components/SecurityTimeline.vue'
 
 defineOptions({ name: 'SecurityDashboard' })
 
-const containerClassName = cn('p-5 space-y-4')
-const headerClassName = cn('flex items-center justify-between mb-2')
+const containerClassName = cn('space-y-4 p-5')
+const headerClassName = cn('mb-2 flex items-center justify-between')
 </script>
 
 <template>

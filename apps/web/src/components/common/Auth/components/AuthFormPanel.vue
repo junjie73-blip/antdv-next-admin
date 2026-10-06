@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { useAuthStyles } from '../composables/useAuthStyles'
+import { useAuthStyles } from '../composables/useAuthStyles';
 
-defineOptions({ name: 'AuthFormPanel' })
+defineOptions({ name: 'AuthFormPanel' });
 
 defineProps<{
-  appTitle: string
-  logo: string
-}>()
+  appTitle: string;
+  logo: string;
+}>();
 
-const { formPanelClassName, formWrapClassName } = useAuthStyles()
+const { formPanelClassName, formWrapClassName } = useAuthStyles();
 </script>
 
 <template>
@@ -28,7 +28,7 @@ const { formPanelClassName, formWrapClassName } = useAuthStyles()
         </span>
       </div>
 
-      <slot />
+      <slot></slot>
     </div>
   </div>
 </template>

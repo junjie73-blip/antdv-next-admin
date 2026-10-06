@@ -1,32 +1,31 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { Menu } from 'antdv-next'
-import { computed } from 'vue'
+import { computed } from 'vue';
 
-import logoIconUrl from '~/assets/images/logo.png'
-import { useAppStore } from '~/stores/modules/app'
-import { cn } from '~/utils/cn'
+import { Menu } from 'antdv-next';
+import logoIconUrl from '~/assets/images/logo.png';
+import { useAppStore } from '~/stores/modules/app';
+import { cn } from '~/utils/cn';
 
-import { COLLAPSED_WIDTH } from '../composables/useLayout'
-import { useSidebarMenu } from '../composables/useSidebarMenu'
+import { COLLAPSED_WIDTH } from '../composables/useLayout';
+import { useSidebarMenu } from '../composables/useSidebarMenu';
+
+defineOptions({ name: 'LayoutSidebar' });
 
 defineProps<{
-  mixed?: boolean
-}>()
+  mixed?: boolean;
+}>();
 
 const emit = defineEmits<{
-  menuClick: [key: string]
-}>()
+  menuClick: [key: string];
+}>();
 
-defineOptions({ name: 'LayoutSidebar' })
-
-const appStore = useAppStore()
+const appStore = useAppStore();
 
 // ★ Sider 折叠状态与 appStore 双向绑定
 const collapsedModel = computed({
   get: () => appStore.sidebarCollapsed,
   set: (v) => appStore.updateSetting({ sidebarCollapsed: v }),
-})
+});
 
 const {
   menuItems,
@@ -34,44 +33,44 @@ const {
   openKeys,
   handleOpenChange,
   handleSelect: jumpByMenu,
-} = useSidebarMenu()
+} = useSidebarMenu();
 
 function handleMenuSelect(info: { key: string }) {
-  jumpByMenu(info as never)
-  emit('menuClick', info.key)
+  jumpByMenu(info as never);
+  emit('menuClick', info.key);
 }
 
-const appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
-const isDarkMode = computed(() => appStore.themeMode === 'dark')
+const appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin';
+const isDarkMode = computed(() => appStore.themeMode === 'dark');
 
-const menuTheme = computed<'light' | 'dark'>(() =>
+const menuTheme = computed<'dark' | 'light'>(() =>
   appStore.darkSidebar || isDarkMode.value ? 'dark' : 'light',
-)
+);
 
 const isLightSidebar = computed(
   () => !appStore.darkSidebar && !isDarkMode.value,
-)
+);
 
 const sidebarClassName = computed(() =>
   cn(
     'relative',
     appStore.darkSidebar || isDarkMode.value
-      ? 'bg-gray-900 border-r border-gray-800'
-      : 'bg-white border-r border-gray-100',
+      ? 'border-r border-gray-800 bg-gray-900'
+      : 'border-r border-gray-100 bg-white',
   ),
-)
+);
 
 const logoClassName = computed(() =>
   cn(
-    'h-14 flex items-center justify-center border-b overflow-hidden whitespace-nowrap transition-all duration-300',
+    'flex h-14 items-center justify-center overflow-hidden border-b whitespace-nowrap transition-all duration-300',
     appStore.darkSidebar || isDarkMode.value
       ? 'border-gray-800'
       : 'border-gray-100',
   ),
-)
+);
 
 const menuWrapperClassName =
-  'flex-1 overflow-hidden px-2 py-3 [&_.ps__rail-y]:opacity-30 [&_.ps__rail-y]:transition-opacity hover:[&_.ps__rail-y]:opacity-60 [&_.ps__thumb-y]:bg-slate-300 [&_.ps__thumb-y]:rounded'
+  'flex-1 overflow-hidden px-2 py-3 [&_.ps__rail-y]:opacity-30 [&_.ps__rail-y]:transition-opacity hover:[&_.ps__rail-y]:opacity-60 [&_.ps__thumb-y]:bg-slate-300 [&_.ps__thumb-y]:rounded';
 
 /** ★★ 核心：所有 antd 菜单样式通过 Tailwind 任意变体实现 */
 const menuClassName = computed(() => {
@@ -152,7 +151,7 @@ const menuClassName = computed(() => {
     // ---- 弹出子菜单（折叠悬浮）圆角 ----
     '[&_.ant-menu-submenu-popup_.ant-menu]:rounded-xl',
     '[&_.ant-menu-submenu-popup_.ant-menu]:p-1',
-  ]
+  ];
 
   // hover 反馈：浅色用主色 5% 叠加，深色用白色 6%
   const hoverClasses = isLightSidebar.value
@@ -165,17 +164,17 @@ const menuClassName = computed(() => {
     : [
         '[&_.ant-menu-item:hover]:bg-white/6',
         '[&_.ant-menu-submenu-title:hover]:bg-white/6',
-      ]
+      ];
 
   // 深色 / 极客下的选中态加深
   const selectedClasses = isLightSidebar.value
     ? []
     : [
         '[&_.ant-menu-item-selected]:!bg-[color-mix(in_srgb,var(--ant-color-primary)_18%,transparent)]',
-      ]
+      ];
 
-  return [...base, ...hoverClasses, ...selectedClasses].join(' ')
-})
+  return [...base, ...hoverClasses, ...selectedClasses].join(' ');
+});
 </script>
 
 <template>

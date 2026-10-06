@@ -1,16 +1,16 @@
-import { nextTick } from 'vue'
+import type { ThemeMode } from '~/settings';
 
-import type { ThemeMode } from '~/settings'
+import { nextTick } from 'vue';
 
-import { useAppStore } from '~/stores/modules/app'
+import { useAppStore } from '~/stores/modules/app';
 
 /* ============================================================
  * 判断当前渲染效果是否为暗色
  * ============================================================ */
 export function isDarkNow(theme: ThemeMode): boolean {
-  if (theme === 'dark') return true
-  if (theme === 'light') return false
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
+  if (theme === 'dark') return true;
+  if (theme === 'light') return false;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
 }
 
 /* ============================================================
@@ -19,10 +19,10 @@ export function isDarkNow(theme: ThemeMode): boolean {
  * 关键：必须在 startViewTransition 的 callback 里同步执行，
  * 不能 await，否则快照捕获时机错乱，动画失效。
  */
-function applyThemeToDom(target: 'light' | 'dark'): void {
-  const html = document.documentElement
-  html.classList.toggle('dark', target === 'dark')
-  html.style.colorScheme = target
+function applyThemeToDom(target: 'dark' | 'light'): void {
+  const html = document.documentElement;
+  html.classList.toggle('dark', target === 'dark');
+  html.style.colorScheme = target;
 }
 
 /* ============================================================
@@ -30,7 +30,7 @@ function applyThemeToDom(target: 'light' | 'dark'): void {
  * ============================================================ */
 
 export function useThemeTransition() {
-  const appStore = useAppStore()
+  const appStore = useAppStore();
 
   /**
    * 切换到指定主题（带圆形扩散/收缩动画）
@@ -40,46 +40,46 @@ export function useThemeTransition() {
    *  - dark  → light：old（暗色）从 [R, 0] 收缩
    */
   async function switchThemeWithAnimation(
-    target: 'light' | 'dark',
+    target: 'dark' | 'light',
     event?: MouseEvent,
   ): Promise<void> {
     /* ---------- 1. 渲染色没变：只更新 store ---------- */
     if (isDarkNow(appStore.themeMode) === (target === 'dark')) {
-      appStore.updateSetting({ theme: target })
-      return
+      appStore.updateSetting({ theme: target });
+      return;
     }
 
     /* ---------- 2. 计算扩散中心与半径 ---------- */
-    const x = event?.clientX ?? window.innerWidth / 2
-    const y = event?.clientY ?? window.innerHeight / 2
+    const x = event?.clientX ?? window.innerWidth / 2;
+    const y = event?.clientY ?? window.innerHeight / 2;
     const endRadius = Math.hypot(
       Math.max(x, window.innerWidth - x),
       Math.max(y, window.innerHeight - y),
-    )
+    );
 
     /* ---------- 3. 不支持 View Transition → 直接切 ---------- */
     if (typeof document.startViewTransition !== 'function') {
-      applyThemeToDom(target)
-      appStore.updateSetting({ theme: target })
-      return
+      applyThemeToDom(target);
+      appStore.updateSetting({ theme: target });
+      return;
     }
 
     /* ---------- 4. ⭐ 启动过渡：回调同步改 DOM ---------- */
     const transition = document.startViewTransition(() => {
       // ⭐ 只调用 DOM 操作，不动 store
       // store 更新放在动画结束后，避免响应式干扰
-      applyThemeToDom(target)
-    })
+      applyThemeToDom(target);
+    });
 
-    await transition.ready
+    await transition.ready;
 
     /* ---------- 5. clipPath 动画 ---------- */
-    const isSwitchingToDark = target === 'dark'
-    console.log(isSwitchingToDark, target)
+    const isSwitchingToDark = target === 'dark';
+    console.log(isSwitchingToDark, target);
     const clipPath = [
       `circle(0px at ${x}px ${y}px)`,
       `circle(${endRadius}px at ${x}px ${y}px)`,
-    ]
+    ];
 
     document.documentElement.animate(
       {
@@ -94,26 +94,26 @@ export function useThemeTransition() {
           ? '::view-transition-new(root)' // 切暗：新快照扩散
           : '::view-transition-old(root)', // 切亮：旧快照收缩
       },
-    )
+    );
 
-    await transition.finished
+    await transition.finished;
 
     /* ---------- 6. ⭐ 动画结束后再同步 store ---------- */
-    await nextTick()
-    appStore.updateSetting({ theme: target })
+    await nextTick();
+    appStore.updateSetting({ theme: target });
   }
 
   /** 便捷：取反当前主题 */
   async function toggleThemeWithAnimation(event?: MouseEvent): Promise<void> {
-    const target: 'light' | 'dark' = isDarkNow(appStore.themeMode)
+    const target: 'dark' | 'light' = isDarkNow(appStore.themeMode)
       ? 'light'
-      : 'dark'
-    return switchThemeWithAnimation(target, event)
+      : 'dark';
+    return switchThemeWithAnimation(target, event);
   }
 
   return {
     switchThemeWithAnimation,
     toggleThemeWithAnimation,
     isDarkNow,
-  }
+  };
 }

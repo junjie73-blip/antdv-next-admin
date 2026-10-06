@@ -1,6 +1,6 @@
-import { defineFakeRoute } from 'vite-plugin-fake-server/client'
+import { defineFakeRoute } from 'vite-plugin-fake-server/client';
 
-import { withRuntime } from './_runtime'
+import { withRuntime } from './_runtime';
 
 export default defineFakeRoute(
   withRuntime([
@@ -105,8 +105,8 @@ export default defineFakeRoute(
             ],
           },
           message: '获取菜单成功',
-        }
+        };
       },
     },
   ]),
-)
+);

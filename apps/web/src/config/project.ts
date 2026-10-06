@@ -1,4 +1,4 @@
-import type { ProjectConfig } from '@antdv-admin/types'
+import type { ProjectConfig } from '@antdv/types';
 
 export const projectConfig: ProjectConfig = {
   projectName: import.meta.env.VITE_APP_TITLE,
@@ -23,4 +23,4 @@ export const projectConfig: ProjectConfig = {
     // After opening, the menu, modal, drawer will change the pop-up scroll bar to native
     native: false,
   },
-}
+};

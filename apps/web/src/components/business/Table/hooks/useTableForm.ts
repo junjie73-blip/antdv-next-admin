@@ -1,34 +1,34 @@
-import type { ComputedRef, Ref } from 'vue'
+import type { ComputedRef, Ref } from 'vue';
 
-import { computed, ref, unref, watch } from 'vue'
+import type { FormActionType, FormProps, FormSchema } from '../../Form/types';
+import type { BasicTableProps, Recordable } from '../types';
 
-import dayjs from '~/utils/dayjs'
+import { computed, unref, watch } from 'vue';
 
-import type { FormActionType, FormProps, FormSchema } from '../../Form/types'
-import type { BasicTableProps, Recordable } from '../types'
+import dayjs from '~/utils/dayjs';
 
-import { useForm } from '../../Form/useForm'
+import { useForm } from '../../Form/useForm';
 
 interface UseTableFormOptions {
-  propsRef?: Ref<BasicTableProps>
-  baseProps?: ComputedRef<BasicTableProps>
-  formConfig?: Partial<FormProps>
-  useSearchForm?: boolean
-  fieldMapToTime?: [string, [string, string], string?][]
-  fetch?: (opt?: { searchInfo?: Recordable }) => Promise<void>
-  getFormValues?: () => Recordable
+  propsRef?: Ref<BasicTableProps>;
+  baseProps?: ComputedRef<BasicTableProps>;
+  formConfig?: Partial<FormProps>;
+  useSearchForm?: boolean;
+  fieldMapToTime?: [string, [string, string], string?][];
+  fetch?: (opt?: { searchInfo?: Recordable }) => Promise<void>;
+  getFormValues?: () => Recordable;
 }
 
 interface UseTableFormReturn {
-  registerForm: (instance: FormActionType) => void
-  getForm: () => FormActionType | null
-  getFormProps: ComputedRef<Partial<FormProps>>
-  handleSearchInfoFn: (info: Recordable) => Recordable
+  registerForm: (instance: FormActionType) => void;
+  getForm: () => FormActionType | null;
+  getFormProps: ComputedRef<Partial<FormProps>>;
+  handleSearchInfoFn: (info: Recordable) => Recordable;
   replaceFormSchemaKey: (
     values: Recordable,
     schemas: FormSchema[],
-  ) => Recordable
-  processFormSchema: (schemas: FormSchema[]) => FormSchema[]
+  ) => Recordable;
+  processFormSchema: (schemas: FormSchema[]) => FormSchema[];
 }
 
 /**
@@ -39,40 +39,40 @@ function handleRangeTimeValue(
   values: Recordable,
   fieldMapToTime?: [string, [string, string], string?][],
 ): Recordable {
-  if (!fieldMapToTime || !Array.isArray(fieldMapToTime)) return values
-  const result = { ...values }
+  if (!fieldMapToTime || !Array.isArray(fieldMapToTime)) return values;
+  const result = { ...values };
 
   for (const [
     field,
     [startKey, endKey],
     format = 'YYYY-MM-DD',
   ] of fieldMapToTime) {
-    const value = result[field]
+    const value = result[field];
     if (value && Array.isArray(value) && value.length === 2) {
-      const [start, end] = value
-      const fmt = (v: any): string | null => {
-        if (!v) return null
-        const d = dayjs.isDayjs(v) ? v : dayjs(v)
-        return d.isValid() ? d.format(format) : String(v)
-      }
-      result[startKey] = fmt(start)
-      result[endKey] = fmt(end)
-      delete result[field]
+      const [start, end] = value;
+      const fmt = (v: any): null | string => {
+        if (!v) return null;
+        const d = dayjs.isDayjs(v) ? v : dayjs(v);
+        return d.isValid() ? d.format(format) : String(v);
+      };
+      result[startKey] = fmt(start);
+      result[endKey] = fmt(end);
+      delete result[field];
     }
   }
-  return result
+  return result;
 }
 
 /**
  * 格式化日期
  */
 function formatDate(date: Date, format: string): string {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  const seconds = String(date.getSeconds()).padStart(2, '0')
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
 
   return format
     .replace('YYYY', String(year))
@@ -80,7 +80,7 @@ function formatDate(date: Date, format: string): string {
     .replace('DD', day)
     .replace('HH', hours)
     .replace('mm', minutes)
-    .replace('ss', seconds)
+    .replace('ss', seconds);
 }
 
 /**
@@ -91,20 +91,20 @@ function replaceSchemaKey(
   values: Recordable,
   schemas: FormSchema[],
 ): Recordable {
-  const result: Recordable = {}
+  const result: Recordable = {};
 
   Object.keys(values).forEach((key) => {
-    const schema = schemas.find((s) => s.field === key)
-    const value = values[key]
+    const schema = schemas.find((s) => s.field === key);
+    const value = values[key];
 
     if (schema && value !== undefined && value !== null && value !== '') {
-      result[key] = value
+      result[key] = value;
     } else if (value !== undefined && value !== null && value !== '') {
-      result[key] = value
+      result[key] = value;
     }
-  })
+  });
 
-  return result
+  return result;
 }
 
 /**
@@ -122,7 +122,7 @@ export function useTableForm(
     fieldMapToTime: fieldMapToTimeOption,
     fetch: fetchOption,
     getFormValues: getFormValuesOption,
-  } = options || {}
+  } = options || {};
 
   // 表单实例
 
@@ -132,22 +132,22 @@ export function useTableForm(
    */
   const getProps = (): Partial<BasicTableProps> => {
     if (baseProps) {
-      return unref(baseProps) || {}
+      return unref(baseProps) || {};
     }
     if (propsRef) {
-      return unref(propsRef) || {}
+      return unref(propsRef) || {};
     }
-    return {}
-  }
+    return {};
+  };
 
   /**
    * 获取表单配置
    * 优先从 options 获取，其次从 props 获取
    */
   const getFormProps = computed<Partial<FormProps>>(() => {
-    const props = getProps()
-    const formConfig = formConfigOption || props.formConfig
-    const useSearchForm = useSearchFormOption ?? props.useSearchForm
+    const props = getProps();
+    const formConfig = formConfigOption || props.formConfig;
+    const useSearchForm = useSearchFormOption ?? props.useSearchForm;
 
     const defaultFormProps: Partial<FormProps> = {
       showActionButtonGroup: true,
@@ -157,57 +157,57 @@ export function useTableForm(
       autoSubmitOnEnter: true,
       showAdvancedButton: useSearchForm ?? false,
       ...formConfig,
-    }
+    };
 
     if (useSearchForm) {
-      defaultFormProps.submitFunc = handleSubmit
-      defaultFormProps.resetFunc = handleReset
+      defaultFormProps.submitFunc = handleSubmit;
+      defaultFormProps.resetFunc = handleReset;
     }
 
-    return defaultFormProps
-  })
+    return defaultFormProps;
+  });
 
   // 使用 useForm 获取表单方法，传入初始表单配置
-  const [registerForm, formMethods] = useForm(getFormProps.value)
+  const [registerForm, formMethods] = useForm(getFormProps.value);
 
   // 监听表单配置变化，实时同步到 useForm（解决初始化时序问题）
   watch(
     () => ({ ...unref(getFormProps) }),
     (newProps) => {
       if (newProps && Object.keys(newProps).length > 0 && formMethods) {
-        formMethods.setProps(newProps)
+        formMethods.setProps(newProps);
       }
     },
     { deep: true },
-  )
+  );
 
   /**
    * 获取表单 schemas
    */
   const getFormSchemas = (): FormSchema[] => {
-    const { formConfig } = getProps()
-    return formConfig?.schemas || []
-  }
+    const { formConfig } = getProps();
+    return formConfig?.schemas || [];
+  };
 
   /**
    * 处理搜索参数
    * 转换时间字段、处理字段映射等
    */
   const handleSearchInfoFn = (info: Recordable): Recordable => {
-    const props = getProps()
-    const schemas = getFormSchemas()
+    const props = getProps();
+    const schemas = getFormSchemas();
 
     // 处理字段映射
-    let result = replaceSchemaKey(info, schemas)
+    let result = replaceSchemaKey(info, schemas);
 
     // 处理时间范围字段（优先从 options 获取，其次从 props 获取）
     const fieldMapToTime =
-      fieldMapToTimeOption || props.formConfig?.fieldMapToTime
+      fieldMapToTimeOption || props.formConfig?.fieldMapToTime;
     if (fieldMapToTime) {
-      result = handleRangeTimeValue(result, fieldMapToTime)
+      result = handleRangeTimeValue(result, fieldMapToTime);
     }
-    return result
-  }
+    return result;
+  };
 
   /**
    * 替换表单 schema 中的 key
@@ -216,8 +216,8 @@ export function useTableForm(
     values: Recordable,
     schemas: FormSchema[],
   ): Recordable => {
-    return replaceSchemaKey(values, schemas)
-  }
+    return replaceSchemaKey(values, schemas);
+  };
 
   /**
    * 处理表单 schema
@@ -225,49 +225,49 @@ export function useTableForm(
    */
   const processFormSchema = (schemas: FormSchema[]): FormSchema[] => {
     return schemas.map((schema) => {
-      const newSchema = { ...schema }
+      const newSchema = { ...schema };
 
       // 处理动态禁用状态
       if (typeof newSchema.dynamicDisabled === 'function') {
-        const formValues = getFormValuesOption ? getFormValuesOption() : {}
+        const formValues = getFormValuesOption ? getFormValuesOption() : {};
         const params = {
           schema: newSchema,
           values: formValues,
           model: formValues,
           field: newSchema.field,
-        }
-        const disabled = newSchema.dynamicDisabled(params as any)
+        };
+        const disabled = newSchema.dynamicDisabled(params as any);
         newSchema.componentProps = {
           ...newSchema.componentProps,
           disabled,
-        }
+        };
       }
 
       // 处理动态规则
       if (typeof newSchema.dynamicRules === 'function') {
-        const formValues = getFormValuesOption ? getFormValuesOption() : {}
+        const formValues = getFormValuesOption ? getFormValuesOption() : {};
         const params = {
           schema: newSchema,
           values: formValues,
           model: formValues,
           field: newSchema.field,
-        }
-        newSchema.rules = newSchema.dynamicRules(params as any)
+        };
+        newSchema.rules = newSchema.dynamicRules(params as any);
       }
 
-      return newSchema
-    })
-  }
+      return newSchema;
+    });
+  };
 
   /**
    * 处理表单提交
    */
   async function handleSubmit(): Promise<void> {
-    const values = await formMethods.validate()
-    const searchInfo = handleSearchInfoFn(values)
+    const values = await formMethods.validate();
+    const searchInfo = handleSearchInfoFn(values);
 
     if (fetchOption) {
-      await fetchOption({ searchInfo })
+      await fetchOption({ searchInfo });
     }
   }
 
@@ -275,13 +275,13 @@ export function useTableForm(
    * 处理表单重置
    */
   async function handleReset(): Promise<void> {
-    await formMethods.resetFields()
+    await formMethods.resetFields();
 
-    const { submitOnReset } = unref(getFormProps)
+    const { submitOnReset } = unref(getFormProps);
     if (submitOnReset && fetchOption) {
-      const values = formMethods.getFieldsValue()
-      const searchInfo = handleSearchInfoFn(values)
-      await fetchOption({ searchInfo })
+      const values = formMethods.getFieldsValue();
+      const searchInfo = handleSearchInfoFn(values);
+      await fetchOption({ searchInfo });
     }
   }
 
@@ -289,19 +289,19 @@ export function useTableForm(
    * 获取表单实例
    */
   const getForm = (): FormActionType | null => {
-    return formMethods as FormActionType | null
-  }
+    return formMethods as FormActionType | null;
+  };
 
   // 监听表单配置变化，更新表单
   watch(
     () => getProps().formConfig,
     (newConfig) => {
       if (newConfig && formMethods) {
-        formMethods.setProps(newConfig)
+        formMethods.setProps(newConfig);
       }
     },
     { deep: true },
-  )
+  );
 
   return {
     registerForm: registerForm as (instance: FormActionType) => void,
@@ -310,5 +310,5 @@ export function useTableForm(
     handleSearchInfoFn,
     replaceFormSchemaKey,
     processFormSchema,
-  }
+  };
 }

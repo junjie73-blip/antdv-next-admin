@@ -1,4 +1,4 @@
-import type { TabStyle } from './app'
+import type { TabStyle } from './app';
 
 /**
  * 标签页条目。
@@ -8,19 +8,19 @@ import type { TabStyle } from './app'
  */
 export interface TabItem {
   /** 唯一 key，等于路由 name（缺失时回退 path） */
-  key: string
+  key: string;
   /** 完整路由 path，用于刷新与外链判断 */
-  path: string
-  title: string
-  icon?: string
+  path: string;
+  title: string;
+  icon?: string;
   /** 是否可关闭 */
-  closable: boolean
+  closable: boolean;
   /** 固定标签：不可关闭、不可被拖拽越过 */
-  affix?: boolean
+  affix?: boolean;
   /** 是否保持缓存：关闭时是否清理 keep-alive */
-  keepAlive?: boolean
+  keepAlive?: boolean;
   /** 外链地址 */
-  href?: string
+  href?: string;
 }
 
 /** 标签页操作集（右键菜单与右上角下拉共用） */
@@ -31,18 +31,18 @@ export type TabActionKey =
   | 'closeRight'
   | 'maximize'
   | 'refresh'
-  | 'reload'
+  | 'reload';
 
 export interface TabContextMenuPayload {
-  key: string
-  x: number
-  y: number
+  key: string;
+  x: number;
+  y: number;
 }
 
 export interface TabsState {
-  tabs: TabItem[]
-  activeKey: string
-  tabStyle: TabStyle
+  tabs: TabItem[];
+  activeKey: string;
+  tabStyle: TabStyle;
   /** 当前是否处于「放大当前标签页」状态 */
-  maximized: boolean
+  maximized: boolean;
 }

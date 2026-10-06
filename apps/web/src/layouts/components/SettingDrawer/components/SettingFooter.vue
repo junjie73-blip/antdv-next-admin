@@ -1,35 +1,34 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { useClipboard } from '@vueuse/core'
-import { message, Modal } from 'antdv-next'
+import { Icon } from '@iconify/vue';
+import { useClipboard } from '@vueuse/core';
+import { message, Modal } from 'antdv-next';
+import { useAppStore } from '~/stores/modules/app';
+import { useUserStore } from '~/stores/modules/user';
+import { cache } from '~/utils/cache';
+import { cn } from '~/utils/cn';
+defineOptions({ name: 'SettingFooter' });
 
-import { useAppStore } from '~/stores/modules/app'
-import { useUserStore } from '~/stores/modules/user'
-import { cache } from '~/utils/cache'
-import { cn } from '~/utils/cn'
-defineOptions({ name: 'SettingFooter' })
+const emit = defineEmits<{ close: [] }>();
 
-const emit = defineEmits<{ close: [] }>()
-
-const appStore = useAppStore()
-const userStore = useUserStore()
+const appStore = useAppStore();
+const userStore = useUserStore();
 const { copy } = useClipboard({
   source: JSON.stringify(appStore.appSetting, null, 2),
-})
+});
 const btnClass = cn(
   'flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg',
   'text-xs font-medium',
   'outline outline-1',
   'transition-all duration-200',
-)
+);
 
 /** 复制主题配置 */
 function handleCopy() {
   try {
-    copy(JSON.stringify(appStore.appSetting, null, 2))
-    message.success('主题配置已复制到剪贴板')
+    copy(JSON.stringify(appStore.appSetting, null, 2));
+    message.success('主题配置已复制到剪贴板');
   } catch {
-    message.error('复制失败，请检查浏览器权限')
+    message.error('复制失败，请检查浏览器权限');
   }
 }
 
@@ -43,17 +42,17 @@ function handleClearAndLogout() {
     cancelText: '取消',
     async onOk() {
       try {
-        cache.clear()
-        localStorage.clear()
-        sessionStorage.clear()
-        await userStore.logout()
-        emit('close')
-        message.success('已退出登录')
+        cache.clear();
+        localStorage.clear();
+        sessionStorage.clear();
+        await userStore.logout();
+        emit('close');
+        message.success('已退出登录');
       } catch {
-        message.error('退出失败')
+        message.error('退出失败');
       }
     },
-  })
+  });
 }
 </script>
 

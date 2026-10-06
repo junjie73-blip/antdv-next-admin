@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { Icon } from '@iconify/vue';
+import { cn } from '~/utils/cn';
 
-import { cn } from '~/utils/cn'
-
-defineOptions({ name: 'AuthBrandStats' })
-
-export interface AuthStat {
-  icon: string
-  value: string
-  label: string
-}
+defineOptions({ name: 'AuthBrandStats' });
 
 defineProps<{
-  stats: AuthStat[]
-  className?: string
-}>()
+  stats: AuthStat[];
+  className?: string;
+}>();
+
+export interface AuthStat {
+  icon: string;
+  value: string;
+  label: string;
+}
+
 </script>
 
 <template>

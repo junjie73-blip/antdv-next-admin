@@ -1,22 +1,22 @@
 {
-  "name": "@antdv-admin/web",
+  "name": "@antdv/web",
   "version": "0.4.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "rimraf dist && vite build",
-    "build-only": "run-p type-check \"build-only {@}\" --",
-    "dev": "vite",
-    "preview": "vite preview",
-    "test:unit": "vitest run",
-    "test:e2e": "playwright test",
-    "type-check": "vue-tsc --build"
+    "build": "pnpm vite build",
+    "build-only": "pnpm run-p -- type-check \"build-only {@}\" --",
+    "dev": "pnpm vite",
+    "preview": "pnpm vite preview",
+    "test:unit": "pnpm vitest run",
+    "test:e2e": "pnpm playwright test",
+    "type-check": "pnpm vue-tsc --build"
   },
   "dependencies": {
-    "@antdv-admin/types": "workspace:*",
     "@antdv-next/cssinjs": "catalog:",
     "@antdv-next/happy-work-theme": "catalog:",
     "@antdv-next/icons": "catalog:",
+    "@antdv/types": "workspace:*",
     "@codemirror/commands": "catalog:",
     "@codemirror/lang-javascript": "catalog:",
     "@codemirror/lang-sql": "catalog:",
@@ -105,9 +105,10 @@
     "xlsx": "catalog:"
   },
   "devDependencies": {
-    "@antdv-admin/vite-config": "workspace:*",
     "@antdv-next/auto-import-resolver": "catalog:",
     "@antdv-next/tailwind": "catalog:",
+    "@antdv/tsconfig": "workspace:*",
+    "@antdv/vite-config": "workspace:*",
     "@faker-js/faker": "catalog:",
     "@iconify-json/ant-design": "catalog:",
     "@iconify-json/fa6-regular": "catalog:",
@@ -166,7 +167,6 @@
     "vite-plugin-vue-layouts-next": "catalog:",
     "vitest": "catalog:",
     "vue-tsc": "catalog:",
-    "workbox-window": "catalog:",
-    "@antdv-admin/tsconfig": "workspace:*"
+    "workbox-window": "catalog:"
   }
 }

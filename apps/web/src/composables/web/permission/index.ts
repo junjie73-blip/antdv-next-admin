@@ -1,2 +1,2 @@
-export * from './types'
-export { usePermission } from './usePermission'
+export * from './types';
+export { usePermission } from './usePermission';

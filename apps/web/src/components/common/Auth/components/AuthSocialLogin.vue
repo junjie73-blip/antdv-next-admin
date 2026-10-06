@@ -1,30 +1,29 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { Icon } from '@iconify/vue';
+import { cn } from '~/utils/cn';
 
-import { cn } from '~/utils/cn'
+import { useAuthStyles } from '../composables/useAuthStyles';
 
-import { useAuthStyles } from '../composables/useAuthStyles'
-
-defineOptions({ name: 'AuthSocialLogin' })
-
-export interface SocialItem {
-  key: string
-  label: string
-  icon: string
-  /** Tailwind 颜色类，如 text-[#07C160] */
-  iconClassName: string
-}
+defineOptions({ name: 'AuthSocialLogin' });
 
 defineProps<{
-  items: SocialItem[]
-  className?: string
-}>()
+  items: SocialItem[];
+  className?: string;
+}>();
 
 const emit = defineEmits<{
-  click: [key: string]
-}>()
+  click: [key: string];
+}>();
 
-const { socialButtonClassName, socialIconClassName } = useAuthStyles()
+export interface SocialItem {
+  key: string;
+  label: string;
+  icon: string;
+  /** Tailwind 颜色类，如 text-[#07C160] */
+  iconClassName: string;
+}
+
+const { socialButtonClassName, socialIconClassName } = useAuthStyles();
 </script>
 
 <template>

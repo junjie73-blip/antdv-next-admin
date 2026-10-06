@@ -1,35 +1,36 @@
-import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref } from 'vue';
+
+import { defineStore } from 'pinia';
 
 interface UserInfo {
-  id: string
-  username: string
-  role: string
-  permissions: string[]
-  roles?: string[]
+  id: string;
+  username: string;
+  role: string;
+  permissions: string[];
+  roles?: string[];
 }
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref<string | null>(null)
-  const userInfo = ref<UserInfo | null>(null)
-  const roles = ref<string[]>([])
+  const token = ref<null | string>(null);
+  const userInfo = ref<null | UserInfo>(null);
+  const roles = ref<string[]>([]);
 
-  const isAuthenticated = computed(() => !!token.value)
+  const isAuthenticated = computed(() => !!token.value);
 
   const setToken = (newToken: string) => {
-    token.value = newToken
-  }
+    token.value = newToken;
+  };
 
   const setUserInfo = (info: UserInfo) => {
-    userInfo.value = info
-    roles.value = info.roles || []
-  }
+    userInfo.value = info;
+    roles.value = info.roles || [];
+  };
 
   const logout = () => {
-    token.value = null
-    userInfo.value = null
-    roles.value = []
-  }
+    token.value = null;
+    userInfo.value = null;
+    roles.value = [];
+  };
 
   return {
     token,
@@ -39,5 +40,5 @@ export const useAuthStore = defineStore('auth', () => {
     setToken,
     setUserInfo,
     logout,
-  }
-})
+  };
+});

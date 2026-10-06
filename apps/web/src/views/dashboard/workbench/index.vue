@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { Icon } from '@iconify/vue';
+import { cn } from '~/utils/cn';
 
-import { cn } from '~/utils/cn'
-
-defineOptions({ name: 'DashboardWorkbench' })
+defineOptions({ name: 'DashboardWorkbench' });
 
 const quickActions = [
   {
@@ -30,7 +29,7 @@ const quickActions = [
     desc: '实时数据监控',
     color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30',
   },
-]
+];
 
 const recentActivities = [
   {
@@ -42,11 +41,11 @@ const recentActivities = [
   { action: '检测到3条新的安全告警', time: '1小时前', type: 'alert' },
   { action: '数据字典「用户状态」已更新', time: '2小时前', type: 'dict' },
   { action: '系统备份任务执行完成', time: '3小时前', type: 'system' },
-]
+];
 
 const cardClassName = cn(
-  'rounded-lg p-5 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm',
-)
+  'rounded-lg border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900',
+);
 
 const statCards = [
   {
@@ -77,7 +76,7 @@ const statCards = [
     change: '-25%',
     up: true,
   },
-]
+];
 </script>
 
 <template>
@@ -194,7 +193,7 @@ const statCards = [
                       ? 'bg-orange-400'
                       : 'bg-gray-400'
               "
-            />
+            ></span>
             <div class="min-w-0 flex-1">
               <p class="truncate text-gray-600 dark:text-gray-400">
                 {{ activity.action }}

@@ -1,15 +1,15 @@
 export type WidgetKey =
-  | 'notice'
   | 'fullscreen'
-  | 'theme'
-  | 'timezone'
   | 'logout'
-  | 'search'
+  | 'notice'
   | 'preferences'
+  | 'search'
+  | 'theme'
+  | 'timezone';
 
 export interface WidgetMeta {
-  key: WidgetKey
-  title: string
-  icon: string
-  component: () => Promise<unknown>
+  key: WidgetKey;
+  title: string;
+  icon: string;
+  component: () => Promise<unknown>;
 }

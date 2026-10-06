@@ -1,20 +1,22 @@
 <script setup lang="ts">
-import type { VNodeChild } from 'vue'
+import type { DescriptionsProps } from 'antdv-next';
 
-import { Descriptions, Image, type DescriptionsProps } from 'antdv-next'
-import dayjs from 'dayjs'
-import { isNil, isString } from 'es-toolkit'
-import { isArray } from 'es-toolkit/compat'
-import { computed, h, useSlots } from 'vue'
-
-import { cn } from '~/utils/cn'
-import { getDictLabel, getDictLabels } from '~/utils/dict'
+import type { VNodeChild } from 'vue';
 
 import type {
   DescriptionInstance,
   DescriptionItem,
   DescriptionProps,
-} from './types'
+} from './types';
+
+import { computed, h, useSlots } from 'vue';
+
+import { Descriptions, Image } from 'antdv-next';
+import dayjs from 'dayjs';
+import { isNil, isString } from 'es-toolkit';
+import { isArray } from 'es-toolkit/compat';
+import { cn } from '~/utils/cn';
+import { getDictLabel, getDictLabels } from '~/utils/dict';
 
 const props = withDefaults(defineProps<DescriptionProps>(), {
   column: 3,
@@ -23,94 +25,97 @@ const props = withDefaults(defineProps<DescriptionProps>(), {
   colon: true,
   loading: false,
   emptyText: '-',
-})
+});
 
-const slots = useSlots()
+const slots = useSlots();
 
-const dataRef = computed(() => props.data || {})
+const dataRef = computed(() => props.data || {});
 const filteredSchema = computed(() =>
   (props.schema || []).filter((item) => item.show !== false),
-)
+);
 
 function getFieldValue(item: DescriptionItem): unknown {
   const value =
-    item.value !== undefined ? item.value : dataRef.value[item.field]
-  if (isNil(value) || value === '') return props.emptyText
-  return value
+    item.value === undefined ? dataRef.value[item.field] : item.value;
+  if (isNil(value) || value === '') return props.emptyText;
+  return value;
 }
 
 function renderLabel(item: DescriptionItem): VNodeChild {
-  const slotName = `${item.field}-label`
-  if (slots[slotName]) return slots[slotName]!({ item, data: dataRef.value })
+  const slotName = `${item.field}-label`;
+  if (slots[slotName]) return slots[slotName]!({ item, data: dataRef.value });
   if (item.renderLabel)
-    return item.renderLabel(item.label || item.field, dataRef.value)
-  return item.label || item.field
+    return item.renderLabel(item.label || item.field, dataRef.value);
+  return item.label || item.field;
 }
 
 /** 提取 URL：支持字符串 / { url } / 数组 */
 function pickUrl(v: unknown): string {
-  if (isString(v)) return v
+  if (isString(v)) return v;
   if (v && typeof v === 'object' && 'url' in v)
-    return (v as { url: string }).url
-  return ''
+    return (v as { url: string }).url;
+  return '';
 }
 
 function renderImage(value: unknown, size = 60): VNodeChild {
   if (isNil(value) || value === props.emptyText)
-    return h('span', props.emptyText)
-  return h(Image, { src: pickUrl(value), width: size, preview: true })
+    return h('span', props.emptyText);
+  return h(Image, { src: pickUrl(value), width: size, preview: true });
 }
 
 function renderImages(value: unknown, size = 60): VNodeChild {
   if (isNil(value) || value === props.emptyText)
-    return h('span', props.emptyText)
+    return h('span', props.emptyText);
   const list: string[] = isArray(value)
     ? value.map(pickUrl)
-    : String(value).split(',').filter(Boolean)
+    : String(value).split(',').filter(Boolean);
   return h(
     'div',
     {},
     list.map((url, i) =>
       h(Image, { key: i, src: url, width: size, height: size }),
     ),
-  )
+  );
 }
 
 function renderValue(item: DescriptionItem): VNodeChild {
-  const slotName = item.field
-  const value = getFieldValue(item)
+  const slotName = item.field;
+  const value = getFieldValue(item);
 
   if (slots[slotName])
-    return slots[slotName]!({ item, data: dataRef.value, value })
+    return slots[slotName]!({ item, data: dataRef.value, value });
 
   if (item.render) {
-    const result = item.render(value, dataRef.value)
+    const result = item.render(value, dataRef.value);
     return isString(result) || typeof result === 'number'
       ? h('span', result)
-      : result
+      : result;
   }
 
   switch (item.type) {
     case 'dict': {
-      if (!item.dictType) return h('span', value as string)
-      const isMulti = isArray(value) || String(value).includes(',')
+      if (!item.dictType) return h('span', value as string);
+      const isMulti = isArray(value) || String(value).includes(',');
       const label = isMulti
         ? getDictLabels(item.dictType, value as never)
-        : getDictLabel(item.dictType, value as never)
-      return h('span', label)
+        : getDictLabel(item.dictType, value as never);
+      return h('span', label);
     }
-    case 'image':
-      return renderImage(value, item.imageSize || 60)
-    case 'images':
-      return renderImages(value, item.imageSize || 60)
-    case 'date':
+    case 'image': {
+      return renderImage(value, item.imageSize || 60);
+    }
+    case 'images': {
+      return renderImages(value, item.imageSize || 60);
+    }
+    case 'date': {
       return h(
         'span',
         value === props.emptyText
           ? value
           : dayjs(value as string).format(item.dateFormat || 'YYYY-MM-DD'),
-      )
-    case 'datetime':
+      );
+    }
+    case 'datetime': {
       return h(
         'span',
         value === props.emptyText
@@ -118,13 +123,15 @@ function renderValue(item: DescriptionItem): VNodeChild {
           : dayjs(value as string).format(
               item.dateFormat || 'YYYY-MM-DD HH:mm:ss',
             ),
-      )
+      );
+    }
     case 'tag':
     case 'text':
-    default:
+    default: {
       return isString(value) || typeof value === 'number'
         ? h('span', value)
-        : (value as VNodeChild)
+        : (value as VNodeChild);
+    }
   }
 }
 
@@ -138,19 +145,19 @@ const items = computed<DescriptionsProps['items']>(
       labelStyle: item.labelStyle,
       contentStyle: item.contentStyle,
     })) as DescriptionsProps['items'],
-)
+);
 
 const antSize = computed<'default' | 'middle' | 'small'>(() =>
   props.size === 'small' ? 'small' : 'default',
-)
+);
 
 const instance: DescriptionInstance = {
   getData: () => props.data,
   setData: () => {
-    console.warn('[Description] setData 不支持在只读模式下使用')
+    console.warn('[Description] setData 不支持在只读模式下使用');
   },
-}
-defineExpose(instance)
+};
+defineExpose(instance);
 </script>
 
 <template>
@@ -161,7 +168,7 @@ defineExpose(instance)
     >
       <div
         class="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900 dark:border-gray-100"
-      />
+      ></div>
     </div>
 
     <Descriptions

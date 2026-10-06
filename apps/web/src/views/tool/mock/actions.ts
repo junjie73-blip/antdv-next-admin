@@ -1,27 +1,27 @@
-import type { MockRequestLog } from '~/api/mock'
-import type { ActionItem } from '~/components/business/Table'
+import type { MockRequestLog } from '~/api/mock';
+import type { ActionItem } from '~/components/business/Table';
 
-import type { MockRouteRow } from './types'
+import type { MockRouteRow } from './types';
 
 /**
  * 行操作副作用由 index.vue 注入，本文件保持无状态：
  * 不 import store、不发请求、不弹 message。
  */
 export interface RouteActionContext {
-  onDelete: (record: MockRouteRow) => void
-  onEdit: (record: MockRouteRow) => void
-  onFilterLogs: (record: MockRouteRow) => void
-  onRuntime: (record: MockRouteRow) => void
-  onToggleDisabled: (record: MockRouteRow, disabled: boolean) => void
+  onDelete: (record: MockRouteRow) => void;
+  onEdit: (record: MockRouteRow) => void;
+  onFilterLogs: (record: MockRouteRow) => void;
+  onRuntime: (record: MockRouteRow) => void;
+  onToggleDisabled: (record: MockRouteRow, disabled: boolean) => void;
 }
 
 export interface LogActionContext {
-  onDetail: (record: MockRequestLog) => void
-  onReplay: (record: MockRequestLog) => void
+  onDetail: (record: MockRequestLog) => void;
+  onReplay: (record: MockRequestLog) => void;
 }
 
 function isDisabledRoute(record: MockRouteRow): boolean {
-  return record.effective?.disabled === true
+  return record.effective?.disabled === true;
 }
 
 /** 接口清单行操作 */
@@ -29,8 +29,8 @@ export function getRouteActions(
   record: MockRouteRow,
   ctx: RouteActionContext,
 ): ActionItem[] {
-  const disabled = isDisabledRoute(record)
-  const generated = record.source === 'generated'
+  const disabled = isDisabledRoute(record);
+  const generated = record.source === 'generated';
 
   return [
     {
@@ -74,7 +74,7 @@ export function getRouteActions(
         confirm: () => ctx.onDelete(record),
       },
     },
-  ]
+  ];
 }
 
 /** 命中日志行操作 */
@@ -93,5 +93,5 @@ export function getLogActions(
       icon: 'ant-design:reload-outlined',
       onClick: () => ctx.onReplay(record),
     },
-  ]
+  ];
 }

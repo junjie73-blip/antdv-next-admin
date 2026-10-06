@@ -1,6 +1,6 @@
-import type { PluginOption } from 'vite'
+import type { PluginOption } from 'vite';
 
-import viteImagemin from 'vite-plugin-imagemin'
+import viteImagemin from 'vite-plugin-imagemin';
 
 export function createImageminPlugin(): PluginOption {
   return viteImagemin({
@@ -9,5 +9,5 @@ export function createImageminPlugin(): PluginOption {
     mozjpeg: { quality: 80 },
     pngquant: { quality: [0.8, 0.9] },
     webp: { quality: 80 },
-  })
+  });
 }

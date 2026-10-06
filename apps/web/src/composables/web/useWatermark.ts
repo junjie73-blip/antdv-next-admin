@@ -1,15 +1,16 @@
-import type { WatermarkOptions } from 'watermark-plus'
+import type { WatermarkOptions } from 'watermark-plus';
 
-import { onMounted, onUnmounted, ref, unref, watch } from 'vue'
-import Watermark from 'watermark-plus'
+import { onMounted, onUnmounted, ref, unref, watch } from 'vue';
+
+import Watermark from 'watermark-plus';
 
 export interface UseWatermarkOptions {
-  content?: unknown
-  enabled?: unknown
+  content?: unknown;
+  enabled?: unknown;
 }
 
 export function useWatermark(options: UseWatermarkOptions = {}) {
-  const watermarkInstance = ref<Watermark | null>(null)
+  const watermarkInstance = ref<null | Watermark>(null);
 
   const defaultOptions: Partial<WatermarkOptions> = {
     width: 200,
@@ -20,89 +21,89 @@ export function useWatermark(options: UseWatermarkOptions = {}) {
     fontWeight: 'normal',
     fontFamily: 'sans-serif',
     color: '#666666',
-  }
+  };
 
   function createWatermark(customContent?: string) {
     if (watermarkInstance.value) {
-      watermarkInstance.value.destroy()
+      watermarkInstance.value.destroy();
     }
 
-    const content = customContent || unref(options.content as any)
+    const content = customContent || unref(options.content as any);
 
     if (!content) {
-      return
+      return;
     }
 
     const mergedOptions: Partial<WatermarkOptions> = {
       ...defaultOptions,
       content,
-    }
+    };
 
-    watermarkInstance.value = new Watermark(mergedOptions)
-    watermarkInstance.value.create()
+    watermarkInstance.value = new Watermark(mergedOptions);
+    watermarkInstance.value.create();
   }
 
   function destroyWatermark() {
     if (watermarkInstance.value) {
-      watermarkInstance.value.destroy()
-      watermarkInstance.value = null
+      watermarkInstance.value.destroy();
+      watermarkInstance.value = null;
     }
   }
 
   function updateWatermark(content: string) {
-    destroyWatermark()
+    destroyWatermark();
     if (content) {
-      createWatermark(content)
+      createWatermark(content);
     }
   }
 
   function checkAndCreate() {
-    const enabled = unref(options.enabled as any)
-    const content = unref(options.content as any)
+    const enabled = unref(options.enabled as any);
+    const content = unref(options.content as any);
 
     if (enabled && content) {
-      createWatermark(content)
+      createWatermark(content);
     } else {
-      destroyWatermark()
+      destroyWatermark();
     }
   }
 
   onMounted(() => {
-    checkAndCreate()
-  })
+    checkAndCreate();
+  });
 
   onUnmounted(() => {
-    destroyWatermark()
-  })
+    destroyWatermark();
+  });
 
   watch(
     () => unref(options.content as any),
     (newContent) => {
-      const enabled = unref(options.enabled as any)
+      const enabled = unref(options.enabled as any);
       if (enabled && newContent) {
-        updateWatermark(newContent)
+        updateWatermark(newContent);
       } else {
-        destroyWatermark()
+        destroyWatermark();
       }
     },
-  )
+  );
 
   watch(
     () => unref(options.enabled as any),
     (newEnabled) => {
-      const content = unref(options.content as any)
+      const content = unref(options.content as any);
       if (newEnabled && content) {
-        createWatermark(content)
+        createWatermark(content);
       } else {
-        destroyWatermark()
+        destroyWatermark();
       }
     },
-  )
+  );
 
   return {
     watermarkInstance,
     createWatermark,
     destroyWatermark,
     updateWatermark,
-  }
+  };
 }

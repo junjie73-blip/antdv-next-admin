@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { cn } from '~/utils/cn'
+import { cn } from '~/utils/cn';
 
-defineOptions({ name: 'AuthFooterLink' })
+defineOptions({ name: 'AuthFooterLink' });
 
 defineProps<{
-  text: string
-  actionText: string
-  className?: string
-}>()
+  text: string;
+  actionText: string;
+  className?: string;
+}>();
 
 const emit = defineEmits<{
-  action: []
-}>()
+  action: [];
+}>();
 </script>
 
 <template>

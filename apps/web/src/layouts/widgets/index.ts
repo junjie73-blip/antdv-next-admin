@@ -1,8 +1,8 @@
-import { defineAsyncComponent } from 'vue'
+import type { WidgetKey, WidgetMeta } from './types';
 
-import { useAppStore } from '~/stores'
+import { defineAsyncComponent } from 'vue';
 
-import type { WidgetKey, WidgetMeta } from './types'
+import { useAppStore } from '~/stores';
 
 export const WIDGET_MAP: Record<WidgetKey, WidgetMeta> = {
   search: {
@@ -48,32 +48,39 @@ export const WIDGET_MAP: Record<WidgetKey, WidgetMeta> = {
     icon: 'carbon:logout',
     component: () => import('./WidgetLogout.vue'),
   },
-}
+};
 
 /** 根据 store 配置，返回要渲染的小部件列表 */
 export function useVisibleWidgets(): WidgetMeta[] {
-  const appStore = useAppStore()
+  const appStore = useAppStore();
 
   return Object.values(WIDGET_MAP).filter((meta) => {
     switch (meta.key) {
       // case 'notice':
       //   return appStore.widgetNotice
-      case 'fullscreen':
-        return appStore.widgetFullscreen
-      case 'theme':
-        return appStore.widgetTheme
-      case 'timezone':
-        return appStore.widgetTimezone
-      case 'logout':
-        return appStore.widgetLogout
-      case 'search':
-        return appStore.widgetSearch
-      case 'preferences':
-        return appStore.widgetPreferences
-      default:
-        return false
+      case 'fullscreen': {
+        return appStore.widgetFullscreen;
+      }
+      case 'theme': {
+        return appStore.widgetTheme;
+      }
+      case 'timezone': {
+        return appStore.widgetTimezone;
+      }
+      case 'logout': {
+        return appStore.widgetLogout;
+      }
+      case 'search': {
+        return appStore.widgetSearch;
+      }
+      case 'preferences': {
+        return appStore.widgetPreferences;
+      }
+      default: {
+        return false;
+      }
     }
-  })
+  });
 }
 
-export { defineAsyncComponent }
+export { defineAsyncComponent };

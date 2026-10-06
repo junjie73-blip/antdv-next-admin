@@ -1,33 +1,34 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { onClickOutside } from '@vueuse/core'
-import { ref } from 'vue'
+import { ref } from 'vue';
+
+import { Icon } from '@iconify/vue';
+import { onClickOutside } from '@vueuse/core';
 
 const props = defineProps<{
-  title: string
-  label?: string
-  icon?: string
-  swatch?: string
-  active?: boolean
-  disabled?: boolean
-}>()
+  title: string;
+  label?: string;
+  icon?: string;
+  swatch?: string;
+  active?: boolean;
+  disabled?: boolean;
+}>();
 
-const open = ref(false)
-const rootRef = ref<HTMLElement | null>(null)
+const open = ref(false);
+const rootRef = ref<HTMLElement | null>(null);
 
 function toggle() {
-  if (props.disabled) return
-  open.value = !open.value
+  if (props.disabled) return;
+  open.value = !open.value;
 }
 
 function close() {
-  open.value = false
+  open.value = false;
 }
 
 // onClickOutside：自动挂载/清理 document 监听，语义更清晰
 onClickOutside(rootRef, () => {
-  if (open.value) open.value = false
-})
+  if (open.value) open.value = false;
+});
 </script>
 
 <template>
@@ -51,7 +52,7 @@ onClickOutside(rootRef, () => {
         v-if="swatch"
         class="absolute -bottom-0.5 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full"
         :style="{ backgroundColor: swatch }"
-      />
+      ></span>
     </button>
 
     <div
@@ -60,7 +61,7 @@ onClickOutside(rootRef, () => {
       @mousedown.prevent
       @click="close"
     >
-      <slot :close="close" />
+      <slot :close="close"></slot>
     </div>
   </div>
 </template>

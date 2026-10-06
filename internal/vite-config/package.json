@@ -1,15 +1,14 @@
 {
-  "name": "@antdv-admin/vite-config",
+  "name": "@antdv/vite-config",
   "version": "0.4.0",
+  "description": "共享 Vite 配置：插件装配、分包策略、env 解析与 dev proxy（含 Nitro Mock 转发）",
   "private": true,
   "type": "module",
-  "description": "共享 Vite 配置：插件装配、分包策略、env 解析与 dev proxy（含 Nitro Mock 转发）",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.mts",
-      "default": "./dist/index.mjs"
-    },
-    "./package.json": "./package.json"
+  "scripts": {
+    "build": "tsdown",
+    "clean": "rimraf dist .turbo",
+    "dev": "tsdown --watch",
+    "type-check": "tsc --noEmit"
   },
   "files": [
     "dist"
@@ -17,21 +16,28 @@
   "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
-  "scripts": {
-    "build": "tsdown",
-    "clean": "rimraf dist .turbo",
-    "dev": "tsdown --watch",
-    "type-check": "tsc --noEmit"
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "vite": "catalog:",
+    "vue-router": "catalog:"
   },
   "dependencies": {
-    "@antdv-admin/node-utils": "workspace:*",
     "@antdv-next/auto-import-resolver": "catalog:",
+    "@intlify/unplugin-vue-i18n": "catalog:",
+    "@pnpm/workspace.read-manifest": "catalog:",
     "@tailwindcss/vite": "catalog:",
     "@tomjs/vite-plugin-iconify": "catalog:",
     "@vitejs/plugin-legacy": "catalog:",
     "@vitejs/plugin-vue": "catalog:",
     "@vitejs/plugin-vue-jsx": "catalog:",
     "archiver": "catalog:",
+    "dayjs": "catalog:",
     "postcss": "catalog:",
     "tinyglobby": "catalog:",
     "unplugin-auto-import": "catalog:",
@@ -48,22 +54,15 @@
     "vite-plugin-pwa": "catalog:",
     "vite-plugin-svg-icons": "catalog:",
     "vite-plugin-vue-devtools": "catalog:",
-    "vite-plugin-vue-layouts-next": "catalog:",
-    "@pnpm/workspace.read-manifest": "catalog:",
-    "@intlify/unplugin-vue-i18n": "catalog:",
-    "dayjs": "catalog:"
+    "vite-plugin-vue-layouts-next": "catalog:"
   },
   "devDependencies": {
-    "@antdv-admin/node-utils": "workspace:*",
-    "@antdv-admin/tsconfig": "workspace:*",
+    "@antdv/node-utils": "workspace:*",
+    "@antdv/tsconfig": "workspace:*",
     "@types/archiver": "catalog:",
     "rimraf": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",
-    "vite": "catalog:",
-    "vue-router": "catalog:"
-  },
-  "peerDependencies": {
     "vite": "catalog:",
     "vue-router": "catalog:"
   }

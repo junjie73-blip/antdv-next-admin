@@ -1,9 +1,9 @@
-import { ref, readonly } from 'vue'
+import { readonly, ref } from 'vue';
 
 export function useFileReader() {
-  const result = ref<string | ArrayBuffer | null>(null)
-  const isLoading = ref(false)
-  const error = ref<Error | null>(null)
+  const result = ref<ArrayBuffer | null | string>(null);
+  const isLoading = ref(false);
+  const error = ref<Error | null>(null);
 
   /**
    * 读取文件内容
@@ -14,39 +14,39 @@ export function useFileReader() {
   const read = (
     file: File,
     readAs:
+      | 'readAsArrayBuffer'
       | 'readAsDataURL'
-      | 'readAsText'
-      | 'readAsArrayBuffer' = 'readAsDataURL',
+      | 'readAsText' = 'readAsDataURL',
   ) => {
-    return new Promise<string | ArrayBuffer>((resolve, reject) => {
-      isLoading.value = true
-      error.value = null
+    return new Promise<ArrayBuffer | string>((resolve, reject) => {
+      isLoading.value = true;
+      error.value = null;
 
-      const reader = new FileReader()
+      const reader = new FileReader();
 
       reader.onload = (e) => {
-        const content = e.target?.result ?? null
-        result.value = content
-        isLoading.value = false
-        resolve(content as string | ArrayBuffer)
-      }
+        const content = e.target?.result ?? null;
+        result.value = content;
+        isLoading.value = false;
+        resolve(content as ArrayBuffer | string);
+      };
 
       reader.onerror = () => {
-        const err = new Error('文件读取失败')
-        error.value = err
-        isLoading.value = false
-        reject(err)
-      }
+        const err = new Error('文件读取失败');
+        error.value = err;
+        isLoading.value = false;
+        reject(err);
+      };
 
-      reader[readAs](file)
-    })
-  }
+      reader[readAs](file);
+    });
+  };
 
   const reset = () => {
-    result.value = null
-    error.value = null
-    isLoading.value = false
-  }
+    result.value = null;
+    error.value = null;
+    isLoading.value = false;
+  };
 
   return {
     result: readonly(result),
@@ -54,5 +54,5 @@ export function useFileReader() {
     error: readonly(error),
     read,
     reset,
-  }
+  };
 }

@@ -1,106 +1,106 @@
-import { computed, readonly, ref } from 'vue'
+import type { UsePermissionOptions } from './types';
 
-import { useUserStore } from '~/stores/modules/user'
+import { computed, readonly, ref } from 'vue';
 
-import type { UsePermissionOptions } from './types'
+import { useUserStore } from '~/stores/modules/user';
 
-import { PermissionRole } from './types'
+import { PermissionRole } from './types';
 
 export function usePermission(options: UsePermissionOptions = {}) {
-  const userStore = useUserStore()
-  const strict = ref(options.strict !== undefined ? options.strict : true)
+  const userStore = useUserStore();
+  const strict = ref(options.strict === undefined ? true : options.strict);
 
-  const permissions = computed(() => userStore.permissions)
-  const roles = computed(() => userStore.roles)
+  const permissions = computed(() => userStore.permissions);
+  const roles = computed(() => userStore.roles);
 
   function checkAuth(): boolean {
     if (!userStore.isLoggedIn) {
-      return false
+      return false;
     }
-    return true
+    return true;
   }
 
   function checkArrayMatch(
     userList: string[],
     requiredList: string[],
-    mode: 'some' | 'every',
+    mode: 'every' | 'some',
   ): boolean {
     if (userList.length === 0) {
-      return !strict.value
+      return !strict.value;
     }
     return mode === 'some'
       ? requiredList.some((item) => userList.includes(item))
-      : requiredList.every((item) => userList.includes(item))
+      : requiredList.every((item) => userList.includes(item));
   }
 
   const hasPermission = (permission: string): boolean => {
-    if (!checkAuth()) return false
-    return checkArrayMatch(permissions.value, [permission], 'some')
-  }
+    if (!checkAuth()) return false;
+    return checkArrayMatch(permissions.value, [permission], 'some');
+  };
 
   const hasAnyPermission = (requiredPermissions: string[]): boolean => {
-    if (!checkAuth()) return false
-    return checkArrayMatch(permissions.value, requiredPermissions, 'some')
-  }
+    if (!checkAuth()) return false;
+    return checkArrayMatch(permissions.value, requiredPermissions, 'some');
+  };
 
   const hasAllPermissions = (requiredPermissions: string[]): boolean => {
-    if (!checkAuth()) return false
-    return checkArrayMatch(permissions.value, requiredPermissions, 'every')
-  }
+    if (!checkAuth()) return false;
+    return checkArrayMatch(permissions.value, requiredPermissions, 'every');
+  };
 
   const hasRole = (role: string): boolean => {
-    if (!checkAuth()) return false
-    return checkArrayMatch(roles.value, [role], 'some')
-  }
+    if (!checkAuth()) return false;
+    return checkArrayMatch(roles.value, [role], 'some');
+  };
 
   const hasAnyRole = (requiredRoles: string[]): boolean => {
-    if (!checkAuth()) return false
-    return checkArrayMatch(roles.value, requiredRoles, 'some')
-  }
+    if (!checkAuth()) return false;
+    return checkArrayMatch(roles.value, requiredRoles, 'some');
+  };
 
   const hasAllRoles = (requiredRoles: string[]): boolean => {
-    if (!checkAuth()) return false
-    return checkArrayMatch(roles.value, requiredRoles, 'every')
-  }
+    if (!checkAuth()) return false;
+    return checkArrayMatch(roles.value, requiredRoles, 'every');
+  };
 
   const isAdmin = (): boolean => {
-    if (!checkAuth()) return false
+    if (!checkAuth()) return false;
 
     return (
       roles.value.includes(PermissionRole.SUPER) ||
       roles.value.includes(PermissionRole.ADMIN)
-    )
-  }
+    );
+  };
 
   const checkPermission = (
     requiredPermissions: string | string[],
-    options?: { mode?: 'any' | 'all' },
+    options?: { mode?: 'all' | 'any' },
   ): boolean => {
     const perms = Array.isArray(requiredPermissions)
       ? requiredPermissions
-      : [requiredPermissions]
+      : [requiredPermissions];
 
     if (options?.mode === 'any') {
-      return hasAnyPermission(perms)
+      return hasAnyPermission(perms);
     }
 
-    return hasAllPermissions(perms)
-  }
+    return hasAllPermissions(perms);
+  };
 
   const checkRole = (
     requiredRoles: string | string[],
-    options?: { mode?: 'any' | 'all' },
+    options?: { mode?: 'all' | 'any' },
   ): boolean => {
     const roleList = Array.isArray(requiredRoles)
       ? requiredRoles
-      : [requiredRoles]
+      : [requiredRoles];
 
     if (options?.mode === 'any') {
-      return hasAnyRole(roleList)
+      return hasAnyRole(roleList);
     }
 
-    return hasAllRoles(roleList)
-  }
+    return hasAllRoles(roleList);
+  };
 
   return {
     hasPermission,
@@ -114,5 +114,5 @@ export function usePermission(options: UsePermissionOptions = {}) {
     checkRole,
     permissions: readonly(permissions),
     roles: readonly(roles),
-  }
+  };
 }

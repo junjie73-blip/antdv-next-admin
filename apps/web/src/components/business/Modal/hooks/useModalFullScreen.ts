@@ -1,6 +1,6 @@
-import type { ComputedRef, Ref } from 'vue'
+import type { ComputedRef, Ref } from 'vue';
 
-import { computed } from 'vue'
+import { computed } from 'vue';
 
 /**
  * 弹窗全屏逻辑
@@ -15,9 +15,9 @@ export function useModalFullScreen(
    * 切换全屏
    */
   const toggleFullscreen = () => {
-    if (!canFullscreen) return
-    fullscreen.value = !fullscreen.value
-  }
+    if (!canFullscreen) return;
+    fullscreen.value = !fullscreen.value;
+  };
 
   /**
    * 获取包裹层类名
@@ -29,11 +29,11 @@ export function useModalFullScreen(
         'fullscreen-modal': fullscreen.value,
         'can-fullscreen': canFullscreen,
       },
-    ] as string[]
-  })
+    ] as string[];
+  });
 
   return {
     toggleFullscreen,
     getWrapClassName,
-  }
+  };
 }

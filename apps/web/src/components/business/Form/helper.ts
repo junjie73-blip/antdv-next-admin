@@ -1,7 +1,7 @@
-import dayjs from 'dayjs'
-import { isFunction } from 'es-toolkit'
+import type { FormSchema, Recordable, Rule } from './types';
 
-import type { FormSchema, Recordable, Rule } from './types'
+import dayjs from 'dayjs';
+import { isFunction } from 'es-toolkit';
 
 /** 需要自动添加 allowClear 的组件类型 */
 const CLEARABLE_COMPONENTS = [
@@ -18,7 +18,7 @@ const CLEARABLE_COMPONENTS = [
   'RangePicker',
   'WeekPicker',
   'TimeRangePicker',
-] as const
+] as const;
 
 /** 需要自动生成 placeholder 的组件类型 */
 const PLACEHOLDER_COMPONENTS = [
@@ -37,7 +37,7 @@ const PLACEHOLDER_COMPONENTS = [
   'RangePicker',
   'WeekPicker',
   'TimeRangePicker',
-] as const
+] as const;
 
 /** 组件默认 placeholder 模板 */
 const PLACEHOLDER_TEMPLATES: Record<string, (label: string) => string> = {
@@ -56,16 +56,16 @@ const PLACEHOLDER_TEMPLATES: Record<string, (label: string) => string> = {
   RangePicker: (label) => `请选择${label}范围`,
   WeekPicker: (label) => `请选择${label}`,
   TimeRangePicker: (label) => `请选择${label}范围`,
-}
+};
 
 export function setComponentProps(
   schema: FormSchema | undefined,
   formModel: Recordable,
   _formActionType: any,
 ) {
-  if (!schema) return {}
+  if (!schema) return {};
 
-  const { component, componentProps = {}, label } = schema
+  const { component, componentProps = {}, label } = schema;
 
   if (isFunction(componentProps)) {
     return componentProps({
@@ -73,10 +73,10 @@ export function setComponentProps(
       values: formModel,
       model: formModel,
       field: schema.field,
-    })
+    });
   }
 
-  const result: Record<string, any> = { ...componentProps }
+  const result: Record<string, any> = { ...componentProps };
 
   if (
     component &&
@@ -84,9 +84,9 @@ export function setComponentProps(
     !result.placeholder &&
     label
   ) {
-    const template = PLACEHOLDER_TEMPLATES[component]
+    const template = PLACEHOLDER_TEMPLATES[component];
     if (template) {
-      result.placeholder = template(label)
+      result.placeholder = template(label);
     }
   }
 
@@ -95,10 +95,10 @@ export function setComponentProps(
     CLEARABLE_COMPONENTS.includes(component as any) &&
     result.allowClear === undefined
   ) {
-    result.allowClear = true
+    result.allowClear = true;
   }
 
-  return result
+  return result;
 }
 
 export function getShow(
@@ -107,13 +107,13 @@ export function getShow(
   _formActionType: any,
 ) {
   // schema 为空 → 视为不渲染
-  if (!schema) return { show: false, ifShow: false }
+  if (!schema) return { show: false, ifShow: false };
 
-  const { show, ifShow } = schema
+  const { show, ifShow } = schema;
 
   const showResult = isFunction(show)
     ? show({ schema, values: formModel, model: formModel, field: schema.field })
-    : (show ?? true)
+    : (show ?? true);
 
   const ifShowResult = isFunction(ifShow)
     ? ifShow({
@@ -122,9 +122,9 @@ export function getShow(
         model: formModel,
         field: schema.field,
       })
-    : (ifShow ?? true)
+    : (ifShow ?? true);
 
-  return { show: showResult, ifShow: ifShowResult }
+  return { show: showResult, ifShow: ifShowResult };
 }
 
 export function getDynamicDisabled(
@@ -132,9 +132,9 @@ export function getDynamicDisabled(
   formModel: Recordable,
   _formActionType: any,
 ): boolean {
-  if (!schema) return false
+  if (!schema) return false;
 
-  const { dynamicDisabled } = schema
+  const { dynamicDisabled } = schema;
 
   if (isFunction(dynamicDisabled)) {
     return dynamicDisabled({
@@ -142,10 +142,10 @@ export function getDynamicDisabled(
       values: formModel,
       model: formModel,
       field: schema.field,
-    })
+    });
   }
 
-  return !!dynamicDisabled
+  return !!dynamicDisabled;
 }
 
 export function getDynamicRules(
@@ -153,9 +153,9 @@ export function getDynamicRules(
   formModel: Recordable,
   _formActionType: any,
 ): Rule[] | undefined {
-  if (!schema) return undefined
+  if (!schema) return undefined;
 
-  const { rules, required, dynamicRules, rulesMessageJoinLabel } = schema
+  const { rules, required, dynamicRules, rulesMessageJoinLabel } = schema;
 
   if (isFunction(dynamicRules)) {
     return dynamicRules({
@@ -163,71 +163,71 @@ export function getDynamicRules(
       values: formModel,
       model: formModel,
       field: schema.field,
-    })
+    });
   }
 
-  const label = schema.label || schema.field
+  const label = schema.label || schema.field;
 
   const validRules: Rule[] = Array.isArray(rules)
     ? rules.filter((rule) => {
         if (rule.pattern != null && !(rule.pattern instanceof RegExp)) {
           console.warn(
             `[Form] 字段 "${schema.field}" 的规则包含无效 pattern，已跳过`,
-          )
-          return false
+          );
+          return false;
         }
-        return true
+        return true;
       })
-    : []
+    : [];
 
   if (required) {
-    const hasRequired = validRules.some((r) => r.required)
+    const hasRequired = validRules.some((r) => r.required);
     if (!hasRequired) {
       validRules.unshift({
         required: true,
         message: rulesMessageJoinLabel ? `${label}不能为空` : '该项为必填项',
-      })
+      });
     }
   }
 
-  return validRules.length > 0 ? validRules : undefined
+  return validRules.length > 0 ? validRules : undefined;
 }
 
 export function handleRangeValue(
   values: Recordable,
   fieldMapToTime: [string, [string, string], string?][],
 ): Recordable {
-  const result = { ...values }
+  const result = { ...values };
 
   fieldMapToTime.forEach(([field, [startField, endField], format]) => {
-    const rangeValue = values[field]
+    const rangeValue = values[field];
     if (Array.isArray(rangeValue) && rangeValue.length === 2) {
-      const [start, end] = rangeValue
+      const [start, end] = rangeValue;
       if (format === 'timestamp') {
-        result[startField] = new Date(start).getTime() / 1000
-        result[endField] = new Date(end).getTime() / 1000
+        result[startField] = new Date(start).getTime() / 1000;
+        result[endField] = new Date(end).getTime() / 1000;
       } else if (format === 'timestampStartDay') {
-        const startDate = new Date(start)
-        startDate.setHours(0, 0, 0, 0)
-        const endDate = new Date(end)
-        endDate.setHours(0, 0, 0, 0)
-        result[startField] = startDate.getTime() / 1000
-        result[endField] = endDate.getTime() / 1000
+        const startDate = new Date(start);
+        startDate.setHours(0, 0, 0, 0);
+        const endDate = new Date(end);
+        endDate.setHours(0, 0, 0, 0);
+        result[startField] = startDate.getTime() / 1000;
+        result[endField] = endDate.getTime() / 1000;
       } else {
-        const fmt = format || 'YYYY-MM-DD'
-        const startDate = new Date(start)
-        const endDate = new Date(end)
-        result[startField] = formatDate(startDate, fmt)
-        result[endField] = formatDate(endDate, fmt)
+        const fmt = format || 'YYYY-MM-DD';
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        result[startField] = formatDate(startDate, fmt);
+        result[endField] = formatDate(endDate, fmt);
       }
-      delete result[field]
+      delete result[field];
     }
-  })
-  return result
+  });
+  return result;
 }
 
 function formatDate(date: Date, format: string): string {
-  return dayjs(date).format(format)
+  return dayjs(date).format(format);
 }
 
 const DATE_COMPONENTS = [
@@ -237,62 +237,62 @@ const DATE_COMPONENTS = [
   'WeekPicker',
   'TimePicker',
   'TimeRangePicker',
-] as const
+] as const;
 
 interface DayjsLike {
-  format: (format: string) => string
-  isValid?: () => boolean
+  format: (format: string) => string;
+  isValid?: () => boolean;
 }
-function isDayjsOrDate(value: unknown): value is DayjsLike | Date {
-  if (value === null || value === undefined) return false
-  if (value instanceof Date) return true
+function isDayjsOrDate(value: unknown): value is Date | DayjsLike {
+  if (value === null || value === undefined) return false;
+  if (value instanceof Date) return true;
   if (
     typeof value === 'object' &&
     'format' in value &&
     typeof (value as DayjsLike).format === 'function'
   ) {
-    return true
+    return true;
   }
-  return false
+  return false;
 }
 
 export function formatDateFields(
   values: Recordable,
   schemas: FormSchema[],
 ): Recordable {
-  const result = { ...values }
+  const result = { ...values };
 
   schemas.forEach((schema) => {
-    const { component, field } = schema
-    if (!component || !DATE_COMPONENTS.includes(component as any)) return
+    const { component, field } = schema;
+    if (!component || !DATE_COMPONENTS.includes(component as any)) return;
 
-    const value = result[field]
-    if (value === undefined || value === null) return
+    const value = result[field];
+    if (value === undefined || value === null) return;
 
-    const componentProps = schema.componentProps
-    let formatStr = 'YYYY-MM-DD HH:mm:ss'
+    const componentProps = schema.componentProps;
+    let formatStr = 'YYYY-MM-DD HH:mm:ss';
 
     if (typeof componentProps === 'object' && componentProps !== null) {
       formatStr =
         (componentProps as any).valueFormat ||
         (componentProps as any).format ||
-        formatStr
+        formatStr;
     }
 
     if (component === 'RangePicker' || component === 'TimeRangePicker') {
-      return
+      return;
     }
 
     if (isDayjsOrDate(value)) {
       if (value instanceof Date) {
-        result[field] = formatDate(value, formatStr)
+        result[field] = formatDate(value, formatStr);
       } else {
-        result[field] = value.format(formatStr)
+        result[field] = value.format(formatStr);
       }
     }
-  })
+  });
 
-  return result
+  return result;
 }
 
 /* ============================================================
@@ -307,53 +307,53 @@ export function formatDateFields(
  *  - 其它               → 目标优先
  * ============================================================ */
 function isPlainObject(v: unknown): v is Record<string, any> {
-  if (v === null || typeof v !== 'object') return false
-  if (Array.isArray(v)) return false
-  if (v instanceof Date) return false
-  const proto = Object.getPrototypeOf(v)
-  return proto === Object.prototype || proto === null
+  if (v === null || typeof v !== 'object') return false;
+  if (Array.isArray(v)) return false;
+  if (v instanceof Date) return false;
+  const proto = Object.getPrototypeOf(v);
+  return proto === Object.prototype || proto === null;
 }
 
 export function deepMerge<T extends Record<string, any>>(
   target: T,
   source: Partial<T> | undefined,
 ): T {
-  if (!source) return { ...target }
+  if (!source) return { ...target };
 
-  const result: any = Array.isArray(target) ? [...target] : { ...target }
+  const result: any = Array.isArray(target) ? [...target] : { ...target };
 
   for (const key of Object.keys(source)) {
-    const sourceVal = (source as any)[key]
-    const targetVal = result[key]
+    const sourceVal = (source as any)[key];
+    const targetVal = result[key];
 
     // 源值为 undefined → 忽略，保留目标
-    if (sourceVal === undefined) continue
+    if (sourceVal === undefined) continue;
 
     // 目标无该键 → 直接使用源值（浅拷贝防止引用外泄）
     if (targetVal === undefined) {
-      if (Array.isArray(sourceVal)) result[key] = [...sourceVal]
-      else if (isPlainObject(sourceVal)) result[key] = { ...sourceVal }
-      else result[key] = sourceVal
-      continue
+      if (Array.isArray(sourceVal)) result[key] = [...sourceVal];
+      else if (isPlainObject(sourceVal)) result[key] = { ...sourceVal };
+      else result[key] = sourceVal;
+      continue;
     }
 
     // 目标是数组 → 绝不与源拼接，保留目标
-    if (Array.isArray(targetVal)) continue
+    if (Array.isArray(targetVal)) continue;
 
     // 源是数组而目标不是 → 用源（拷贝）
     if (Array.isArray(sourceVal)) {
-      result[key] = [...sourceVal]
-      continue
+      result[key] = [...sourceVal];
+      continue;
     }
 
     // 都是纯对象 → 递归
     if (isPlainObject(targetVal) && isPlainObject(sourceVal)) {
-      result[key] = deepMerge(targetVal, sourceVal)
-      continue
+      result[key] = deepMerge(targetVal, sourceVal);
+      continue;
     }
 
     // 其它情况：目标优先
   }
 
-  return result
+  return result;
 }

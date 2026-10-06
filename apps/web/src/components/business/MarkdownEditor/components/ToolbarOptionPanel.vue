@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import type { ToolbarOption } from '../constants';
 
-import type { ToolbarOption } from '../constants'
+import { Icon } from '@iconify/vue';
 
 const props = defineProps<{
-  options: ToolbarOption[]
-  current?: string
+  options: ToolbarOption[];
+  current?: string;
   /** 选项内联预览，让字号 / 字体下拉所见即所得 */
-  preview?: 'fontFamily' | 'fontSize'
-}>()
+  preview?: 'fontFamily' | 'fontSize';
+}>();
 
-const emit = defineEmits<{ select: [value: string] }>()
+const emit = defineEmits<{ select: [value: string] }>();
 
 function previewStyle(value: string): Record<string, string> | undefined {
-  if (!value || !props.preview) return undefined
+  if (!value || !props.preview) return undefined;
   return props.preview === 'fontFamily'
     ? { fontFamily: value }
-    : { fontSize: value }
+    : { fontSize: value };
 }
 </script>
 

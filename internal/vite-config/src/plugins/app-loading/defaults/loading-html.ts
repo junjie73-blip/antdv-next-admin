@@ -186,4 +186,4 @@ export const DEFAULT_LOADING_HTML = `<!--
     }
   </style>
 </div>
-`
+`;

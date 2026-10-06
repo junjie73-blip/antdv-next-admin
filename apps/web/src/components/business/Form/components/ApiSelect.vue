@@ -1,21 +1,18 @@
 <script setup lang="ts">
-import type { SelectProps } from 'antdv-next'
-import type { DataNode } from 'antdv-next/dist/tree/index'
+import type { SelectProps } from 'antdv-next';
 
-import { watchDebounced } from '@vueuse/core'
-import { ref } from 'vue'
-
-import { useRequest } from '~/composables'
+import { watchDebounced } from '@vueuse/core';
+import { useRequest } from '~/composables';
 
 interface Props extends /* @vue-ignore */ SelectProps {
-  api: string
+  api: string;
 }
-const { api = '', ...props } = defineProps<Props>()
+const { api = '', ...props } = defineProps<Props>();
 const { refresh, data } = useRequest(api, {
   immediate: false,
-})
+});
 
-watchDebounced(api, () => refresh(), { immediate: true, debounce: 200 })
+watchDebounced(api, () => refresh(), { immediate: true, debounce: 200 });
 </script>
 
 <template>

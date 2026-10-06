@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { DrawerProps as AntDrawerProps } from 'antdv-next'
+import type { DrawerProps as AntDrawerProps } from 'antdv-next';
 
-import { Button, Drawer } from 'antdv-next'
-import { computed, onMounted, ref, useSlots, watch } from 'vue'
+import type { DrawerInnerMethods, DrawerMethods, DrawerProps } from './types';
 
-import { IconifyIcon as Icon } from '~/components/common/Icon'
-import { cn } from '~/utils/cn'
+import { computed, onMounted, ref, useSlots, watch } from 'vue';
 
-import type { DrawerInnerMethods, DrawerMethods, DrawerProps } from './types'
+import { Button, Drawer } from 'antdv-next';
+import { IconifyIcon as Icon } from '~/components/common/Icon';
+import { cn } from '~/utils/cn';
 
 const props = withDefaults(defineProps<DrawerProps>(), {
   placement: 'right',
@@ -23,57 +23,57 @@ const props = withDefaults(defineProps<DrawerProps>(), {
   mask: true,
   destroyOnHidden: true,
   zIndex: 1000,
-})
+});
 
 const emit = defineEmits<{
-  register: [instance: DrawerMethods]
-  ok: [e: MouseEvent]
-  cancel: [e: MouseEvent]
-  visibleChange: [visible: boolean]
-  'update:visible': [visible: boolean]
-}>()
+  register: [instance: DrawerMethods];
+  ok: [e: MouseEvent];
+  cancel: [e: MouseEvent];
+  visibleChange: [visible: boolean];
+  'update:visible': [visible: boolean];
+}>();
 
-const slots = useSlots()
+const slots = useSlots();
 
 // ARIA 无障碍 ID（用于关联标题和内容）
-const drawerId = useId()
-const drawerTitleId = `${drawerId}-title`
+const drawerId = useId();
+const drawerTitleId = `${drawerId}-title`;
 
 // 状态
-const visibleRef = ref(props.open || false)
-const okLoadingRef = ref(false)
-const loadingRef = ref(props.loading || false)
+const visibleRef = ref(props.open || false);
+const okLoadingRef = ref(false);
+const loadingRef = ref(props.loading || false);
 
 // 计算尺寸
 const getSize = computed(() => {
   if (props.placement === 'left' || props.placement === 'right') {
-    const size = props.size || props.width
+    const size = props.size || props.width;
     if (typeof size === 'string') {
-      return Number.parseInt(size, 10) || 520
+      return Number.parseInt(size, 10) || 520;
     }
-    return size || 520
+    return size || 520;
   }
   if (props.placement === 'top' || props.placement === 'bottom') {
-    const size = props.size || props.height
+    const size = props.size || props.height;
     if (typeof size === 'string') {
-      return Number.parseInt(size, 10) || 400
+      return Number.parseInt(size, 10) || 400;
     }
-    return size || 400
+    return size || 400;
   }
-  return undefined
-})
+  return undefined;
+});
 
 // 计算包裹层类名
 const wrapClassName = computed(() => {
-  return ['basic-drawer', props.wrapClassName].filter(Boolean).join(' ')
-})
+  return ['basic-drawer', props.wrapClassName].filter(Boolean).join(' ');
+});
 
 const drawerBodyClassName = cn(
   'drawer-body relative h-full min-h-0 overflow-hidden!',
   {
     'p-4': props.useWrapper,
   },
-)
+);
 
 const drawerStyles = computed<AntDrawerProps['styles']>(() => ({
   header: {
@@ -88,96 +88,96 @@ const drawerStyles = computed<AntDrawerProps['styles']>(() => ({
     padding: '0',
     borderTop: 'none',
   },
-}))
+}));
 
 // Drawer 方法
 const drawerMethods: DrawerMethods = {
   openDrawer: (visible = true, data?: any) => {
     if (visible) {
-      visibleRef.value = true
-      emit('visibleChange', true)
-      emit('update:visible', true)
+      visibleRef.value = true;
+      emit('visibleChange', true);
+      emit('update:visible', true);
     }
   },
   closeDrawer: async () => {
     if (props.closeFunc) {
-      const canClose = await props.closeFunc()
-      if (!canClose) return
+      const canClose = await props.closeFunc();
+      if (!canClose) return;
     }
-    visibleRef.value = false
-    okLoadingRef.value = false
-    loadingRef.value = false
-    emit('visibleChange', false)
-    emit('update:visible', false)
+    visibleRef.value = false;
+    okLoadingRef.value = false;
+    loadingRef.value = false;
+    emit('visibleChange', false);
+    emit('update:visible', false);
   },
   setDrawerProps: (newProps) => {
-    Object.assign(props, newProps)
+    Object.assign(props, newProps);
   },
   getVisible: () => visibleRef.value,
-}
+};
 
 // 内部方法（供 useDrawer composable 使用）
 const _innerMethods: DrawerInnerMethods = {
   ...drawerMethods,
   changeOkLoading: (loading) => {
-    okLoadingRef.value = loading
+    okLoadingRef.value = loading;
   },
   changeLoading: (loading) => {
-    loadingRef.value = loading
+    loadingRef.value = loading;
   },
-}
+};
 
 // 暴露内部方法供 composable 访问
 defineExpose({
   ...drawerMethods,
   _innerMethods,
-})
+});
 const { start: scheduleRegister } = useTimeoutFn(
   () => emit('register', drawerMethods),
   0,
   {
     immediate: false,
   },
-)
+);
 onMounted(() => {
-  scheduleRegister()
-})
+  scheduleRegister();
+});
 // 监听 open 变化
 watch(
   () => props.open,
   (val) => {
-    visibleRef.value = val || false
+    visibleRef.value = val || false;
   },
   { immediate: true },
-)
+);
 
 // 事件处理
 async function handleOk(e: MouseEvent) {
-  okLoadingRef.value = true
-  emit('ok', e)
+  okLoadingRef.value = true;
+  emit('ok', e);
 }
 
 function handleCancel(e?: MouseEvent) {
-  emit('cancel', e as MouseEvent)
-  drawerMethods.closeDrawer()
+  emit('cancel', e as MouseEvent);
+  drawerMethods.closeDrawer();
 }
 </script>
 
 <script lang="ts">
 // 在 script 中定义类名变量，遵循项目规范
 const headerClassName = cn(
-  'drawer-header flex items-center justify-between px-6 py-4 border-b border-gray-200',
-)
+  'drawer-header flex items-center justify-between border-b border-gray-200 px-6 py-4',
+);
 
 const closeBtnClassName = cn(
-  'p-1 text-gray-400 hover:text-gray-600 transition-colors',
-  'cursor-pointer hover:bg-gray-100 rounded',
-)
+  'p-1 text-gray-400 transition-colors hover:text-gray-600',
+  'cursor-pointer rounded-sm hover:bg-gray-100',
+);
 
 const footerClassName = cn(
   'flex items-center justify-center gap-3 px-4 py-3',
   'border-t border-gray-200 dark:border-gray-700',
-)
+);
 </script>
 
 <template>
@@ -210,7 +210,7 @@ const footerClassName = cn(
           <span :class="cn('text-lg font-medium text-gray-900')">{{
             title
           }}</span>
-          <slot name="titleTip" />
+          <slot name="titleTip"></slot>
         </div>
         <div :class="cn('flex items-center gap-2')">
           <!-- 关闭按钮 -->
@@ -251,7 +251,7 @@ const footerClassName = cn(
                 'h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent',
               )
             "
-          />
+          ></div>
           <span v-if="loadingTip" :class="cn('text-sm text-gray-600')">{{
             loadingTip
           }}</span>
@@ -260,7 +260,7 @@ const footerClassName = cn(
 
       <!-- 内容：使用 PerfectScrollbar 替代系统滚动条 -->
       <PerfectScrollbar class="h-full">
-        <slot />
+        <slot></slot>
       </PerfectScrollbar>
     </div>
 
@@ -270,7 +270,7 @@ const footerClassName = cn(
         v-if="showFooter && !slots.footer && (showCancelBtn || showOkBtn)"
         :class="footerClassName"
       >
-        <slot name="insertFooter" />
+        <slot name="insertFooter"></slot>
         <Button
           v-if="showCancelBtn"
           v-bind="cancelButtonProps"
@@ -281,7 +281,7 @@ const footerClassName = cn(
           </template>
           {{ cancelText }}
         </Button>
-        <slot name="centerFooter" />
+        <slot name="centerFooter"></slot>
         <Button
           v-if="showOkBtn"
           :type="okType || 'primary'"
@@ -294,10 +294,10 @@ const footerClassName = cn(
           </template>
           {{ okText }}
         </Button>
-        <slot name="appendFooter" />
+        <slot name="appendFooter"></slot>
       </div>
       <div v-else-if="slots.footer">
-        <slot name="footer" />
+        <slot name="footer"></slot>
       </div>
     </template>
   </Drawer>

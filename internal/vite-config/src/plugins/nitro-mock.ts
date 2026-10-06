@@ -2,15 +2,14 @@ import type { PluginOption } from 'vite';
 
 import type { NitroMockPluginOptions } from '../typing';
 
-import { colors, consola, getPackage } from '@antdv-admin/node-utils';
-
+import { colors, consola, getPackage } from '@antdv/node-utils';
 import getPort from 'get-port';
 import { build, createDevServer, createNitro, prepare } from 'nitropack';
 
 const hmrKeyRe = /^runtimeConfig\.|routeRules\./;
 
 export const viteNitroMockPlugin = ({
-  mockServerPackage = '@antdv-admin/backend-mock',
+  mockServerPackage = '@antdv/backend-mock',
   port = 5320,
   verbose = true,
 }: NitroMockPluginOptions = {}): PluginOption => {

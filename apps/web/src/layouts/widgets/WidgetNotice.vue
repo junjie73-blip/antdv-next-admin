@@ -1,47 +1,49 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { Badge, message, Popover, Spin } from 'antdv-next'
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import type { NotificationItem } from '~/utils/ws';
 
+import { computed, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
+
+import { Icon } from '@iconify/vue';
+import { Badge, message, Popover, Spin } from 'antdv-next';
 import {
   getMyNoticeList,
   markAllNoticeRead,
   markNoticeRead,
-} from '~/api/notice.js'
-import { type NotificationItem, useWebSocket } from '~/utils/ws'
+} from '~/api/notice.js';
+import { useWebSocket } from '~/utils/ws';
 
-import NoticeItem from './components/NoticeItem.vue'
-import WidgetButton from './components/WidgetButton.vue'
+import NoticeItem from './components/NoticeItem.vue';
+import WidgetButton from './components/WidgetButton.vue';
 
-defineOptions({ name: 'WidgetNotice' })
+defineOptions({ name: 'WidgetNotice' });
 
-const router = useRouter()
-const { onNotice } = useWebSocket()
+const router = useRouter();
+const { onNotice } = useWebSocket();
 
-const loading = ref(false)
-const list = ref<NotificationItem[]>([])
-const open = ref(false)
+const loading = ref(false);
+const list = ref<NotificationItem[]>([]);
+const open = ref(false);
 
 /** 防止重复请求 */
-const markingAll = ref(false)
+const markingAll = ref(false);
 
-const unreadCount = ref(0)
-const hasUnread = computed(() => unreadCount.value > 0)
+const unreadCount = ref(0);
+const hasUnread = computed(() => unreadCount.value > 0);
 
 /* ============================================================
  * 加载列表
  * ============================================================ */
 async function loadList() {
-  loading.value = true
+  loading.value = true;
   try {
-    const res = await getMyNoticeList({ pageNum: 1, pageSize: 5 })
+    const res = await getMyNoticeList({ pageNum: 1, pageSize: 5 });
     list.value = (
       (res as { data?: { list?: NotificationItem[] } })?.data?.list ?? []
-    ).map(transformNotice)
-    unreadCount.value = list.value.filter((i) => i.isRead === 0).length
+    ).map(transformNotice);
+    unreadCount.value = list.value.filter((i) => i.isRead === 0).length;
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 function transformNotice(item: any): NotificationItem {
@@ -55,17 +57,17 @@ function transformNotice(item: any): NotificationItem {
     publishTime: item.publishTime || item.publish_time || null, // 兼容
     createdAt: item.createdAt || item.created_at,
     isRead: item.isRead ?? item.is_read ?? false, // 兼容
-  }
+  };
 }
 /* ============================================================
  * WebSocket：实时接收新通知
  * ============================================================ */
 onNotice((item) => {
-  list.value.unshift(transformNotice(item))
-  if (list.value.length > 5) list.value.pop()
-})
+  list.value.unshift(transformNotice(item));
+  if (list.value.length > 5) list.value.pop();
+});
 
-onMounted(loadList)
+onMounted(loadList);
 
 /* ============================================================
  * ⭐ 单条已读
@@ -76,28 +78,28 @@ onMounted(loadList)
  *  3. 失败回滚
  */
 async function handleRead(item: NotificationItem) {
-  if (item.isRead === 1) return
+  if (item.isRead === 1) return;
 
   // 记录旧值，用于回滚
-  const oldValue = item.isRead
+  const oldValue = item.isRead;
 
   // 乐观更新
-  item.isRead = 1
+  item.isRead = 1;
 
   try {
-    await markNoticeRead(item.noticeId)
+    await markNoticeRead(item.noticeId);
     list.value = list.value.map((n) =>
       n.noticeId === item.noticeId ? { ...n, isRead: 1 } : n,
-    )
+    );
     list.value = list.value.map((n) =>
       n.noticeId === item.noticeId ? { ...n, isRead: 1 } : n,
-    )
-    unreadCount.value = Math.max(0, unreadCount.value - 1)
-  } catch (err) {
+    );
+    unreadCount.value = Math.max(0, unreadCount.value - 1);
+  } catch (error) {
     // 回滚
-    item.isRead = oldValue
-    message.error('标记已读失败')
-    throw err
+    item.isRead = oldValue;
+    message.error('标记已读失败');
+    throw error;
   }
 }
 
@@ -107,12 +109,12 @@ async function handleRead(item: NotificationItem) {
 async function handleClick(item: NotificationItem) {
   try {
     if (item.isRead === 0) {
-      await handleRead(item)
+      await handleRead(item);
     }
   } catch {
     // 已读失败也允许跳转，不阻塞用户
   }
-  open.value = false
+  open.value = false;
   // router.push(`/message/my/${item.noticeId}`);
 }
 
@@ -122,32 +124,32 @@ async function handleClick(item: NotificationItem) {
  * 策略：乐观更新所有未读项 → 调接口 → 失败回滚
  */
 async function handleMarkAllRead() {
-  if (!hasUnread.value || markingAll.value) return
+  if (!hasUnread.value || markingAll.value) return;
 
-  markingAll.value = true
+  markingAll.value = true;
 
   // 记录旧的未读 id 列表
   const unreadIds = list.value
     .filter((i) => i.isRead === 0)
-    .map((i) => i.noticeId)
+    .map((i) => i.noticeId);
 
   // 乐观更新
   list.value.forEach((item) => {
-    if (item.isRead === 0) item.isRead = 1
-  })
+    if (item.isRead === 0) item.isRead = 1;
+  });
 
   try {
-    await markAllNoticeRead()
-    message.success(`已全部标记为已读`)
-  } catch (_err) {
+    await markAllNoticeRead();
+    message.success(`已全部标记为已读`);
+  } catch {
     // 回滚
-    const unreadSet = new Set(unreadIds)
+    const unreadSet = new Set(unreadIds);
     list.value.forEach((item) => {
-      if (unreadSet.has(item.noticeId)) item.isRead = 0
-    })
-    message.error('操作失败，请重试')
+      if (unreadSet.has(item.noticeId)) item.isRead = 0;
+    });
+    message.error('操作失败，请重试');
   } finally {
-    markingAll.value = false
+    markingAll.value = false;
   }
 }
 
@@ -155,26 +157,26 @@ async function handleMarkAllRead() {
  * 查看全部
  * ============================================================ */
 function handleViewAll() {
-  open.value = false
-  router.push('/message/my')
+  open.value = false;
+  router.push('/message/my');
 }
 
 /* ============================================================
  * 打开变化：懒加载 + 可选自动刷新
  * ============================================================ */
 function handleOpenChange(v: boolean) {
-  open.value = v
+  open.value = v;
   if (v) {
     // 每次打开都刷新，保证数据最新
-    void loadList()
+    void loadList();
   }
 }
 
 const popoverStyles = {
   body: { padding: 0 },
-}
+};
 
-defineExpose({ loadList })
+defineExpose({ loadList });
 </script>
 
 <template>

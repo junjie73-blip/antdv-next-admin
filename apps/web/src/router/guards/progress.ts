@@ -1,18 +1,18 @@
-import type { Router } from 'vue-router'
+import type { Router } from 'vue-router';
 
-import NProgress from 'nprogress'
+import NProgress from 'nprogress';
 
-NProgress.configure({ showSpinner: false, trickleSpeed: 200, minimum: 0.1 })
+NProgress.configure({ showSpinner: false, trickleSpeed: 200, minimum: 0.1 });
 
 export function setupProgressGuard(router: Router) {
   router.beforeEach(() => {
-    NProgress.start()
-  })
+    NProgress.start();
+  });
   router.afterEach(() => {
-    NProgress.done()
-  })
+    NProgress.done();
+  });
   router.onError((error) => {
-    console.log(error)
-    NProgress.done()
-  })
+    console.log(error);
+    NProgress.done();
+  });
 }

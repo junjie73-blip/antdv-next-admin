@@ -1,7 +1,7 @@
-import type { Editor } from '@tiptap/vue-3'
+import type { Editor } from '@tiptap/vue-3';
 
-export type MarkdownEditorMode = 'edit' | 'preview' | 'split'
-export type MarkdownEditorTheme = 'light' | 'dark'
+export type MarkdownEditorMode = 'edit' | 'preview' | 'split';
+export type MarkdownEditorTheme = 'dark' | 'light';
 
 /**
  * 工具栏按键标识
@@ -10,59 +10,59 @@ export type MarkdownEditorTheme = 'light' | 'dark'
  * `|` 表示分组竖线。
  */
 export type MarkdownEditorToolbarKey =
-  | '|'
-  | 'headerSelect'
-  | 'bold'
-  | 'italic'
-  | 'underline'
-  | 'through'
-  | 'color'
   | 'bgColor'
-  | 'fontSize'
-  | 'fontFamily'
-  | 'lineHeight'
+  | 'bold'
   | 'bulletedList'
-  | 'numberedList'
-  | 'todo'
-  | 'justifyLeft'
-  | 'justifyCenter'
-  | 'justifyRight'
+  | 'codeBlock'
+  | 'color'
+  | 'fontFamily'
+  | 'fontSize'
+  | 'fullScreen'
+  | 'headerSelect'
   | 'insertLink'
+  | 'insertTable'
+  | 'italic'
+  | 'justifyCenter'
+  | 'justifyLeft'
+  | 'justifyRight'
+  | 'lineHeight'
+  | 'numberedList'
+  | 'redo'
+  | 'through'
+  | 'todo'
+  | 'underline'
+  | 'undo'
   | 'uploadImage'
   | 'uploadVideo'
-  | 'insertTable'
-  | 'codeBlock'
-  | 'undo'
-  | 'redo'
-  | 'fullScreen'
+  | '|';
 
 export interface MarkdownEditorToolbarConfig {
   /**
    * 完整自定义按键列表。
    * 与 wangEditor 一致：一旦配置，excludeKeys 不再生效。
    */
-  toolbarKeys?: MarkdownEditorToolbarKey[]
+  toolbarKeys?: MarkdownEditorToolbarKey[];
   /** 从默认按键中排除若干项 */
-  excludeKeys?: MarkdownEditorToolbarKey[]
+  excludeKeys?: MarkdownEditorToolbarKey[];
 }
 
 /** 上传响应（后端统一格式） */
 export interface UploadResponse {
-  fileId: string
-  filename: string
-  url: string
-  size: number
-  mimeType?: string
+  fileId: string;
+  filename: string;
+  url: string;
+  size: number;
+  mimeType?: string;
 }
 
 /** 上传回调 */
 export interface UploadCallbacks {
   /** 上传成功 */
-  onSuccess?: (file: File, response: UploadResponse) => void
+  onSuccess?: (file: File, response: UploadResponse) => void;
   /** 上传失败 */
-  onError?: (file: File, error: Error) => void
+  onError?: (file: File, error: Error) => void;
   /** 上传进度 */
-  onProgress?: (file: File, percent: number) => void
+  onProgress?: (file: File, percent: number) => void;
 }
 
 /**
@@ -70,20 +70,20 @@ export interface UploadCallbacks {
  */
 export interface ImageUploadConfig extends UploadCallbacks {
   /** 上传地址，默认走系统封装的上传接口 */
-  server?: string
+  server?: string;
   /** 上传字段名，默认 "file" */
-  fieldName?: string
+  fieldName?: string;
   /** 附加字段 */
-  meta?: Record<string, unknown>
+  meta?: Record<string, unknown>;
   /** 最大体积（MB），默认 5 */
-  maxFileSize?: number
+  maxFileSize?: number;
   /** 允许的 MIME，默认 png/jpeg/gif/webp */
-  allowedFileTypes?: string[]
+  allowedFileTypes?: string[];
   /** 自定义上传（不传则走内置 http 上传） */
   customUpload?: (
     file: File,
     insertFn: (url: string, alt?: string, href?: string) => void,
-  ) => void
+  ) => void;
 }
 
 /**
@@ -91,43 +91,43 @@ export interface ImageUploadConfig extends UploadCallbacks {
  */
 export interface VideoUploadConfig extends UploadCallbacks {
   /** 上传地址 */
-  server?: string
+  server?: string;
   /** 上传字段名，默认 "file" */
-  fieldName?: string
+  fieldName?: string;
   /** 附加字段 */
-  meta?: Record<string, unknown>
+  meta?: Record<string, unknown>;
   /** 最大体积（MB），默认 100 */
-  maxFileSize?: number
+  maxFileSize?: number;
   /** 允许的 MIME，默认 mp4/webm/ogg */
-  allowedFileTypes?: string[]
+  allowedFileTypes?: string[];
   /** 自定义上传 */
   customUpload?: (
     file: File,
     insertFn: (url: string, poster?: string) => void,
-  ) => void
+  ) => void;
 }
 
 /**
  * 编辑器 Props
  */
 export interface MarkdownEditorProps {
-  value?: string
-  minHeight?: number | string
-  maxHeight?: number | string
-  height?: number | string
-  mode?: MarkdownEditorMode
-  theme?: MarkdownEditorTheme
-  placeholder?: string
-  readonly?: boolean
-  disabled?: boolean
-  showToolbar?: boolean
-  toolbarConfig?: MarkdownEditorToolbarConfig
-  imageUpload?: ImageUploadConfig
-  videoUpload?: VideoUploadConfig
-  autoFocus?: boolean
-  maxLength?: number
-  showCount?: boolean
-  compact?: boolean
+  value?: string;
+  minHeight?: number | string;
+  maxHeight?: number | string;
+  height?: number | string;
+  mode?: MarkdownEditorMode;
+  theme?: MarkdownEditorTheme;
+  placeholder?: string;
+  readonly?: boolean;
+  disabled?: boolean;
+  showToolbar?: boolean;
+  toolbarConfig?: MarkdownEditorToolbarConfig;
+  imageUpload?: ImageUploadConfig;
+  videoUpload?: VideoUploadConfig;
+  autoFocus?: boolean;
+  maxLength?: number;
+  showCount?: boolean;
+  compact?: boolean;
 }
 
 /**
@@ -138,33 +138,33 @@ export interface MarkdownEditorProps {
  * `update:value` 供 `v-model:value` 使用。
  */
 export interface MarkdownEditorEvents {
-  'update:value': [value: string]
-  change: [html: string, text: string]
-  focus: [editor: Editor]
-  blur: [editor: Editor]
-  uploadSuccess: [file: File, response: UploadResponse]
-  uploadError: [file: File, error: Error]
-  maxLength: [currentLength: number, maxLength: number]
-  created: [editor: Editor]
-  destroyed: []
+  'update:value': [value: string];
+  change: [html: string, text: string];
+  focus: [editor: Editor];
+  blur: [editor: Editor];
+  uploadSuccess: [file: File, response: UploadResponse];
+  uploadError: [file: File, error: Error];
+  maxLength: [currentLength: number, maxLength: number];
+  created: [editor: Editor];
+  destroyed: [];
 }
 
 export interface MarkdownEditorInstance {
-  getEditor: () => Editor | null
-  getHtml: () => string
-  getMarkdown: () => string
-  getText: () => string
-  setHtml: (html: string) => void
-  setMarkdown: (markdown: string) => void
-  clear: () => void
-  focus: () => void
-  blur: () => void
-  undo: () => void
-  redo: () => void
-  insertText: (text: string) => void
-  insertHtml: (html: string) => void
-  insertImage: (url: string, alt?: string, href?: string) => void
-  insertVideo: (url: string, poster?: string) => void
-  selectAll: () => void
-  getStats: () => { textLength: number; htmlLength: number }
+  getEditor: () => Editor | null;
+  getHtml: () => string;
+  getMarkdown: () => string;
+  getText: () => string;
+  setHtml: (html: string) => void;
+  setMarkdown: (markdown: string) => void;
+  clear: () => void;
+  focus: () => void;
+  blur: () => void;
+  undo: () => void;
+  redo: () => void;
+  insertText: (text: string) => void;
+  insertHtml: (html: string) => void;
+  insertImage: (url: string, alt?: string, href?: string) => void;
+  insertVideo: (url: string, poster?: string) => void;
+  selectAll: () => void;
+  getStats: () => { textLength: number; htmlLength: number };
 }

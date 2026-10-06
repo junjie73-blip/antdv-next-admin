@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { useFullscreen } from '@vueuse/core'
-import { computed } from 'vue'
+import { computed } from 'vue';
 
-import WidgetButton from './components/WidgetButton.vue'
+import { Icon } from '@iconify/vue';
+import { useFullscreen } from '@vueuse/core';
 
-defineOptions({ name: 'WidgetFullscreen' })
+import WidgetButton from './components/WidgetButton.vue';
 
-const { isFullscreen, toggle } = useFullscreen()
+defineOptions({ name: 'WidgetFullscreen' });
+
+const { isFullscreen, toggle } = useFullscreen();
 const icon = computed(() =>
   isFullscreen.value ? 'carbon:minimize' : 'carbon:maximize',
-)
+);
 </script>
 
 <template>

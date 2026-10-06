@@ -1,9 +1,9 @@
+import type { MockTemplatePreset } from '~/api/mock'
+import type { FormSchema, Rule } from '~/components/business/Form'
+
 import type { ComputedRef, Ref } from 'vue'
 
 import { computed } from 'vue'
-
-import type { MockTemplatePreset } from '~/api/mock'
-import type { FormSchema, Rule } from '~/components/business/Form'
 
 import { FAIL_RATE_PRESETS, METHOD_OPTIONS } from './constants'
 
@@ -201,8 +201,8 @@ export function useRuntimeSchemas(): ComputedRef<FormSchema[]> {
       colProps: { span: 24 },
       ifShow: ({ values }) => values.useCustomDelay === true,
       componentProps: {
-        marks: { 0: '0', 500: '500', 1000: '1s', 3000: '3s', 10000: '10s' },
-        max: 10000,
+        marks: { 0: '0', 500: '500', 1000: '1s', 3000: '3s', 10_000: '10s' },
+        max: 10_000,
         step: 50,
       },
       suffix: 'ms',

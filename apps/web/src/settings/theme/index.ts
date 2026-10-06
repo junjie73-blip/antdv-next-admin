@@ -1,13 +1,14 @@
-import { theme, type ThemeConfig } from 'antdv-next'
+import type { AppSetting, ThemeStyle } from '@antdv/types';
+import type { ThemeConfig } from 'antdv-next';
 
-import type { AppSetting, ThemeStyle } from '@antdv-admin/types'
+import { theme } from 'antdv-next';
 
-import { darkComponents } from './dark/components'
-import { darkToken } from './dark/token'
-import { lightComponents } from './light/components'
-import { lightToken } from './light/token'
+import { darkComponents } from './dark/components';
+import { darkToken } from './dark/token';
+import { lightComponents } from './light/components';
+import { lightToken } from './light/token';
 
-export { palette } from './palette'
+export { palette } from './palette';
 
 /**
  * 按主题模式返回 ConfigProvider 的完整配置
@@ -17,16 +18,16 @@ export { palette } from './palette'
  * @param overrides 运行时覆盖（用户改主色、圆角、字号等）
  */
 export function getAntdTheme(
-  mode: 'light' | 'dark' | 'auto',
+  mode: 'auto' | 'dark' | 'light',
   isSystemDark = false,
   overrides: {
-    primaryColor?: string
-    borderRadius?: number
-    fontSize?: number
-    componentSize?: 'small' | 'middle' | 'large'
+    primaryColor?: string;
+    borderRadius?: number;
+    fontSize?: number;
+    componentSize?: 'large' | 'middle' | 'small';
   } = {},
 ): ThemeConfig {
-  const isDark = mode === 'dark' || (mode === 'auto' && isSystemDark)
+  const isDark = mode === 'dark' || (mode === 'auto' && isSystemDark);
 
   return {
     algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
@@ -40,7 +41,7 @@ export function getAntdTheme(
       ...(overrides.fontSize !== undefined && { fontSize: overrides.fontSize }),
     },
     components: isDark ? darkComponents : lightComponents,
-  }
+  };
 }
 
 function getThemeConfig(
@@ -52,7 +53,7 @@ function getThemeConfig(
     fontSize: appSetting?.fontSize || 16,
     borderRadius: appSetting?.borderRadius * 8,
     primaryColor: appSetting?.primaryColor,
-  })
+  });
 }
 
 function getLocaleModule(locale: string) {
@@ -62,9 +63,9 @@ function getLocaleModule(locale: string) {
     'ja-JP': () => import('antdv-next/locale/ja_JP'),
     'ko-KR': () => import('antdv-next/locale/ko_KR'),
     'zh-TW': () => import('antdv-next/locale/zh_TW'),
-  }
+  };
 
-  return localeMap[locale] || localeMap['zh-CN']
+  return localeMap[locale] || localeMap['zh-CN'];
 }
 
-export { getLocaleModule, getThemeConfig }
+export { getLocaleModule, getThemeConfig };

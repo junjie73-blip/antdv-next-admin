@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { ref } from 'vue'
+import { ref } from 'vue';
 
-import { cn } from '~/utils/cn'
+import { Icon } from '@iconify/vue';
+import { cn } from '~/utils/cn';
 
-const containerClassName = cn('space-y-6')
+const containerClassName = cn('space-y-6');
 const copyButtonClassName = cn(
-  'ml-2 text-blue-600 hover:text-blue-800 cursor-pointer',
-)
+  'ml-2 cursor-pointer text-blue-600 hover:text-blue-800',
+);
 
 const userInfo = ref({
   id: 'USR20240115001',
@@ -27,16 +27,16 @@ const userInfo = ref({
   updateTime: '2024-12-20 14:25:00',
   lastLoginTime: '2024-12-20 09:15:00',
   bio: '热爱技术，专注于前端开发领域，擅长 Vue、React 等主流框架，有丰富的项目经验',
-})
+});
 
 const orderInfo = ref({
   orderId: 'ORD20241220001',
   orderNo: 'DD20241220001234',
   customerName: '李四',
   customerPhone: '139****6666',
-  totalAmount: 2999.0,
-  discountAmount: 300.0,
-  payAmount: 2699.0,
+  totalAmount: 2999,
+  discountAmount: 300,
+  payAmount: 2699,
   paymentMethod: '微信支付',
   orderStatus: '已完成',
   payTime: '2024-12-18 16:30:00',
@@ -48,31 +48,31 @@ const orderInfo = ref({
   expressCompany: '顺丰速运',
   expressNo: 'SF1234567890123',
   remark: '请在工作日配送',
-})
+});
 
 const orderItems = ref([
   {
     id: 1,
     name: 'MacBook Pro 14英寸',
     spec: 'M3 Pro芯片 / 18GB内存 / 512GB存储',
-    price: 16999.0,
+    price: 16_999.0,
     quantity: 1,
   },
   {
     id: 2,
     name: 'Apple Magic Mouse',
     spec: '黑色 / 无线充电',
-    price: 699.0,
+    price: 699,
     quantity: 1,
   },
   {
     id: 3,
     name: 'USB-C转接头',
     spec: '多端口 / 铝合金',
-    price: 299.0,
+    price: 299,
     quantity: 2,
   },
-])
+]);
 
 const orderItemColumns = [
   { title: '商品名称', dataIndex: 'name', key: 'name' },
@@ -92,26 +92,26 @@ const orderItemColumns = [
     align: 'center',
   },
   { title: '小计', key: 'subtotal', width: 120 },
-]
+];
 
 function handleCopy(text: string) {
   navigator.clipboard
     .writeText(text)
     .then(() => {
-      message.success('已复制到剪贴板')
+      message.success('已复制到剪贴板');
     })
     .catch(() => {
-      const textarea = document.createElement('textarea')
-      textarea.value = text
-      document.body.appendChild(textarea)
-      textarea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textarea)
-      message.success('已复制到剪贴板')
-    })
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.append(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      message.success('已复制到剪贴板');
+    });
 }
 
-const columnCount = ref(2)
+const columnCount = ref(2);
 </script>
 
 <template>
@@ -472,14 +472,10 @@ const columnCount = ref(2)
           ¥{{ orderInfo.totalAmount.toFixed(2) }}
         </a-descriptions-item>
         <a-descriptions-item label="优惠金额">
-          <span class="text-green-600"
-            >-¥{{ orderInfo.discountAmount.toFixed(2) }}</span
-          >
+          <span class="text-green-600">-¥{{ orderInfo.discountAmount.toFixed(2) }}</span>
         </a-descriptions-item>
         <a-descriptions-item label="实付金额">
-          <span class="text-lg font-bold text-red-600"
-            >¥{{ orderInfo.payAmount.toFixed(2) }}</span
-          >
+          <span class="text-lg font-bold text-red-600">¥{{ orderInfo.payAmount.toFixed(2) }}</span>
         </a-descriptions-item>
       </a-descriptions>
 
@@ -499,11 +495,9 @@ const columnCount = ref(2)
             ¥{{ record?.price?.toFixed(2) ?? '-' }}
           </template>
           <template v-else-if="column.key === 'subtotal'">
-            <span class="font-medium"
-              >¥{{
+            <span class="font-medium">¥{{
                 ((record?.price ?? 0) * (record?.quantity ?? 0)).toFixed(2)
-              }}</span
-            >
+              }}</span>
           </template>
         </template>
       </a-table>
@@ -554,8 +548,7 @@ const columnCount = ref(2)
           <div class="flex min-w-[200px] items-center justify-between">
             <code
               class="rounded bg-gray-100 px-2 py-1 text-sm dark:bg-gray-700"
-              >{{ userInfo.id }}</code
-            >
+              >{{ userInfo.id }}</code>
             <a-tooltip title="点击复制">
               <Icon
                 icon="carbon:copy"
@@ -581,8 +574,7 @@ const columnCount = ref(2)
           <div class="flex min-w-[200px] items-center justify-between">
             <code
               class="rounded bg-gray-100 px-2 py-1 text-sm dark:bg-gray-700"
-              >{{ orderInfo.orderId }}</code
-            >
+              >{{ orderInfo.orderId }}</code>
             <a-tooltip title="点击复制">
               <Icon
                 icon="carbon:copy"

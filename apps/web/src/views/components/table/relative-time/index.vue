@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import type { BasicColumn } from '~/components/business/Table';
 
-import type { BasicColumn } from '~/components/business/Table'
+import { ref } from 'vue';
 
-import { BasicTable, useTable } from '~/components/business/Table'
-import { cn } from '~/utils/cn'
+import { BasicTable, useTable } from '~/components/business/Table';
+import { cn } from '~/utils/cn';
 
-const containerClassName = cn('space-y-6')
+const containerClassName = cn('space-y-6');
 
 const timelineData = ref([
   {
@@ -54,18 +54,18 @@ const timelineData = ref([
     category: '产品规划',
     status: 'reviewing',
   },
-])
+]);
 
 function getDotClassName(status: string) {
   return cn('w-3', 'h-3', 'rounded-full', 'mt-1.5', {
     'bg-green-500':
       status === 'published' || status === 'completed' || status === 'resolved',
     'bg-blue-500': status === 'pending' || status === 'reviewing',
-  })
+  });
 }
 
-const eventTitleClassName = cn('font-medium')
-const eventTimeClassName = cn('text-gray-500', 'text-sm')
+const eventTitleClassName = cn('font-medium');
+const eventTimeClassName = cn('text-gray-500', 'text-sm');
 
 const tableColumns: BasicColumn[] = [
   { title: '事件', dataIndex: 'event', key: 'event' },
@@ -73,7 +73,7 @@ const tableColumns: BasicColumn[] = [
   { title: '分类', dataIndex: 'category', key: 'category', width: 100 },
   { title: '状态', dataIndex: 'status', key: 'status', width: 100 },
   { title: '时间', dataIndex: 'time', key: 'time', width: 180 },
-]
+];
 
 const statusColorMap: Record<string, string> = {
   published: 'success',
@@ -81,13 +81,13 @@ const statusColorMap: Record<string, string> = {
   resolved: 'success',
   pending: 'processing',
   reviewing: 'warning',
-}
+};
 
 const [registerRelative] = useTable({
   columns: tableColumns,
   dataSource: timelineData.value,
   rowKey: 'id',
-})
+});
 </script>
 
 <template>
@@ -96,7 +96,7 @@ const [registerRelative] = useTable({
       <a-timeline>
         <a-timeline-item v-for="item in timelineData" :key="item.id">
           <template #dot>
-            <div :class="getDotClassName(item.status)" />
+            <div :class="getDotClassName(item.status)"></div>
           </template>
           <p :class="eventTitleClassName">
             {{ item.event }}

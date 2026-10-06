@@ -1,20 +1,19 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { Icon } from '@iconify/vue';
+import { localStorageCacheStorage } from '~/utils/cache';
+import { cn } from '~/utils/cn';
 
-import { localStorageCacheStorage } from '~/utils/cache'
-import { cn } from '~/utils/cn'
+defineOptions({ name: 'VueuseDemo' });
 
-defineOptions({ name: 'VueuseDemo' })
-
-const containerClassName = cn('space-y-6')
-const cardBodyClassName = cn('space-y-4')
-const labelClassName = cn('text-sm', 'text-gray-500', 'mb-2')
+const containerClassName = cn('space-y-6');
+const cardBodyClassName = cn('space-y-4');
+const labelClassName = cn('text-sm', 'text-gray-500', 'mb-2');
 const valueDisplayClassName = cn(
   'text-lg',
   'font-semibold',
   'text-blue-600',
   'dark:text-blue-400',
-)
+);
 const valueDisplayMonoClassName = cn(
   'font-mono',
   'text-sm',
@@ -22,23 +21,23 @@ const valueDisplayMonoClassName = cn(
   'dark:bg-gray-800',
   'px-2',
   'py-1',
-  'rounded',
-)
+  'rounded-sm',
+);
 const flexWrapItemsCenterGap8ClassName = cn(
   'flex',
   'flex-wrap',
   'items-center',
   'gap-8',
-)
+);
 const flexWrapItemsCenterGap4ClassName = cn(
   'flex',
   'flex-wrap',
   'items-center',
   'gap-4',
-)
-const flexColGap4ClassName = cn('flex', 'flex-col', 'gap-4')
-const flexColGap2ClassName = cn('flex', 'flex-col', 'gap-2')
-const textCenterPy12ClassName = cn('text-center', 'py-12')
+);
+const flexColGap4ClassName = cn('flex', 'flex-col', 'gap-4');
+const flexColGap2ClassName = cn('flex', 'flex-col', 'gap-2');
+const textCenterPy12ClassName = cn('text-center', 'py-12');
 const borderDashedClassName = cn(
   'border-2',
   'border-dashed',
@@ -46,7 +45,7 @@ const borderDashedClassName = cn(
   'dark:border-gray-600',
   'rounded-lg',
   'p-8',
-)
+);
 const fullscreenDemoClassName = cn(
   'border-2',
   'border-dashed',
@@ -58,132 +57,132 @@ const fullscreenDemoClassName = cn(
   'dark:bg-gray-900',
   'transition-all',
   'duration-300',
-)
-const onlineStatusClassName = cn('flex', 'items-center', 'gap-2')
-const onlineDotClassName = cn('w-3', 'h-3', 'rounded-full', 'bg-green-500')
-const offlineDotClassName = cn('w-3', 'h-3', 'rounded-full', 'bg-red-500')
-const mb0ClassName = cn('mb-0')
+);
+const onlineStatusClassName = cn('flex', 'items-center', 'gap-2');
+const onlineDotClassName = cn('w-3', 'h-3', 'rounded-full', 'bg-green-500');
+const offlineDotClassName = cn('w-3', 'h-3', 'rounded-full', 'bg-red-500');
+const mb0ClassName = cn('mb-0');
 
-const { x: mouseX, y: mouseY } = useMouse()
+const { x: mouseX, y: mouseY } = useMouse();
 
-const { width: windowWidth, height: windowHeight } = useWindowSize()
+const { width: windowWidth, height: windowHeight } = useWindowSize();
 
-const clipboardSource = ref('')
+const clipboardSource = ref('');
 const {
   copy: doCopy,
   copied: clipboardCopied,
   isSupported: clipboardSupported,
-} = useClipboard({ source: clipboardSource })
+} = useClipboard({ source: clipboardSource });
 
 const storageValue = useStorage(
   'vueuse-demo-localstorage',
   'Hello Storage!',
   localStorageCacheStorage,
-)
+);
 
-const [toggleValue, toggle] = useToggle(false)
+const [toggleValue, toggle] = useToggle(false);
 
-const debouncedInput = ref('')
-const debouncedOutput = ref('')
+const debouncedInput = ref('');
+const debouncedOutput = ref('');
 const debouncedUpdate = useDebounceFn((val: string) => {
-  debouncedOutput.value = val
-}, 500)
+  debouncedOutput.value = val;
+}, 500);
 
 watch(debouncedInput, (val) => {
-  debouncedUpdate(val)
-})
+  debouncedUpdate(val);
+});
 
-const throttleCounter = ref(0)
-const throttleInvokeCount = ref(0)
+const throttleCounter = ref(0);
+const throttleInvokeCount = ref(0);
 const throttledIncrement = useThrottleFn(() => {
-  throttleInvokeCount.value++
-}, 1000)
+  throttleInvokeCount.value++;
+}, 1000);
 
 function handleThrottleClick() {
-  throttleCounter.value++
-  throttledIncrement()
+  throttleCounter.value++;
+  throttledIncrement();
 }
 
-const intervalCounter = ref(0)
-const intervalPaused = ref(false)
+const intervalCounter = ref(0);
+const intervalPaused = ref(false);
 const {
   pause: intervalPause,
   resume: intervalResume,
   isActive: intervalActive,
 } = useIntervalFn(
   () => {
-    intervalCounter.value++
+    intervalCounter.value++;
   },
   1000,
   { immediate: false },
-)
+);
 
 function toggleInterval() {
   if (intervalPaused.value) {
-    intervalResume()
-    intervalPaused.value = false
+    intervalResume();
+    intervalPaused.value = false;
   } else {
-    intervalPause()
-    intervalPaused.value = true
+    intervalPause();
+    intervalPaused.value = true;
   }
 }
 
-const timeoutMessage = ref('')
-const timeoutTriggered = ref(false)
+const timeoutMessage = ref('');
+const timeoutTriggered = ref(false);
 const {
   start: startTimeout,
   stop: cancelTimeout,
   isPending: timeoutPending,
 } = useTimeoutFn(
   () => {
-    timeoutMessage.value = '🎉 3秒到了！超时回调已触发！'
-    timeoutTriggered.value = true
+    timeoutMessage.value = '🎉 3秒到了！超时回调已触发！';
+    timeoutTriggered.value = true;
   },
   3000,
   { immediate: false },
-)
+);
 
 function handleStartTimeout() {
-  timeoutMessage.value = '等待中...'
-  timeoutTriggered.value = false
-  startTimeout()
+  timeoutMessage.value = '等待中...';
+  timeoutTriggered.value = false;
+  startTimeout();
 }
 
 function handleCancelTimeout() {
-  cancelTimeout()
-  timeoutMessage.value = '已取消'
-  timeoutTriggered.value = false
+  cancelTimeout();
+  timeoutMessage.value = '已取消';
+  timeoutTriggered.value = false;
 }
 
-const lastKeyPressed = ref('')
-const lastKeyCode = ref('')
+const lastKeyPressed = ref('');
+const lastKeyCode = ref('');
 useEventListener(document, 'keydown', (e: KeyboardEvent) => {
-  lastKeyPressed.value = e.key
-  lastKeyCode.value = e.code
-})
+  lastKeyPressed.value = e.key;
+  lastKeyCode.value = e.code;
+});
 
-const now = useNow({ interval: 1000 })
+const now = useNow({ interval: 1000 });
 
 const typedStorageValue = useStorage<{ name: string; age: number }>(
   'vueuse-demo-typed-storage',
   { name: '张三', age: 25 },
   localStorageCacheStorage,
-)
+);
 
-const fullscreenTarget = useTemplateRef<HTMLDivElement>('fullscreenTarget')
+const fullscreenTarget = useTemplateRef<HTMLDivElement>('fullscreenTarget');
 const {
   isFullscreen: isFullscreenActive,
   enter: enterFullscreen,
   exit: exitFullscreen,
   isSupported: fullscreenSupported,
-} = useFullscreen(fullscreenTarget)
+} = useFullscreen(fullscreenTarget);
 
-const online = useOnline()
+const online = useOnline();
 
-const pageLeaveCount = ref(0)
+const pageLeaveCount = ref(0);
 usePageLeave(() => {
-  pageLeaveCount.value++
-})
+  pageLeaveCount.value++;
+});
 </script>
 
 <template>
@@ -589,7 +588,7 @@ usePageLeave(() => {
     <a-card title="useOnline - 在线状态" :class="mb0ClassName">
       <div :class="cardBodyClassName">
         <div :class="onlineStatusClassName">
-          <div :class="online ? onlineDotClassName : offlineDotClassName" />
+          <div :class="online ? onlineDotClassName : offlineDotClassName"></div>
           <span :class="valueDisplayClassName">
             {{ online ? '在线 🟢' : '离线 🔴' }}
           </span>

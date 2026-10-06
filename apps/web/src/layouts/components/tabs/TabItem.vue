@@ -1,31 +1,30 @@
 <script setup lang="ts">
-import type { TabItem } from '@antdv-admin/types'
+import type { TabItem } from '@antdv/types';
 
-import { CloseOutlined } from '@antdv-next/icons'
-import { Icon } from '@iconify/vue'
+import { CloseOutlined } from '@antdv-next/icons';
+import { Icon } from '@iconify/vue';
+import { cn } from '~/utils/cn';
 
-import { cn } from '~/utils/cn'
-
-defineOptions({ name: 'TabItem' })
+defineOptions({ name: 'TabItem' });
 
 const props = defineProps<{
   /** 选中态：影响样式与 scrollIntoView 定位 */
-  active: boolean
+  active: boolean;
   /** 可关闭：由 store 统一判定（固定标签、只剩一个时不可关） */
-  closable: boolean
+  closable: boolean;
   /** 关闭按钮样式，来自 useTabStyle */
-  closeClass: string
+  closeClass: string;
   /** 标签本体样式，来自 useTabStyle */
-  itemClass: string
-  showIcon: boolean
-  tab: TabItem
-}>()
+  itemClass: string;
+  showIcon: boolean;
+  tab: TabItem;
+}>();
 
 const emit = defineEmits<{
-  click: [key: string]
-  close: [key: string]
-  contextmenu: [event: MouseEvent, key: string]
-}>()
+  click: [key: string];
+  close: [key: string];
+  contextmenu: [event: MouseEvent, key: string];
+}>();
 </script>
 
 <template>

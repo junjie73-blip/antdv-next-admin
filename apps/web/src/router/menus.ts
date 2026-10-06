@@ -1,3 +1,3 @@
-import type { MenuConfig } from '@antdv-admin/types'
+import type { MenuConfig } from '@antdv/types';
 
-export const frontendMenus: MenuConfig[] = []
+export const frontendMenus: MenuConfig[] = [];

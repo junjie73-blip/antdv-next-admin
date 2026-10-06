@@ -1,17 +1,4 @@
 <script setup lang="ts">
-import { Editor, EditorContent } from '@tiptap/vue-3'
-import { message } from 'antdv-next'
-import {
-  computed,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-  shallowRef,
-  watch,
-} from 'vue'
-
-import { cn } from '~/utils/cn'
-
 import type {
   ImageUploadConfig,
   MarkdownEditorEvents,
@@ -19,14 +6,27 @@ import type {
   MarkdownEditorProps,
   MarkdownEditorToolbarKey,
   VideoUploadConfig,
-} from './types'
+} from './types';
 
-import EditorToolbar from './components/EditorToolbar.vue'
-import { DEFAULT_TOOLBAR_KEYS } from './constants'
-import { createEditorExtensions } from './extensions'
-import { uploadFile, validateFile } from './utils'
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  shallowRef,
+  watch,
+} from 'vue';
 
-defineOptions({ name: 'MarkdownEditor' })
+import { Editor, EditorContent } from '@tiptap/vue-3';
+import { message } from 'antdv-next';
+import { cn } from '~/utils/cn';
+
+import EditorToolbar from './components/EditorToolbar.vue';
+import { DEFAULT_TOOLBAR_KEYS } from './constants';
+import { createEditorExtensions } from './extensions';
+import { uploadFile, validateFile } from './utils';
+
+defineOptions({ name: 'MarkdownEditor' });
 
 const props = withDefaults(defineProps<MarkdownEditorProps>(), {
   value: '',
@@ -42,49 +42,52 @@ const props = withDefaults(defineProps<MarkdownEditorProps>(), {
   autoFocus: false,
   showCount: true,
   compact: false,
-})
+});
 
-const emit = defineEmits<MarkdownEditorEvents>()
+const emit = defineEmits<MarkdownEditorEvents>();
 
 /* ============================================================
  * 状态
  * ============================================================ */
 
-const editorRef = shallowRef<Editor | undefined>()
-const textLength = ref(0)
-const htmlLength = ref(0)
-const isFullScreen = ref(false)
+const editorRef = shallowRef<Editor | undefined>();
+const textLength = ref(0);
+const htmlLength = ref(0);
+const isFullScreen = ref(false);
 
-const imageInputRef = ref<HTMLInputElement | null>(null)
-const videoInputRef = ref<HTMLInputElement | null>(null)
+const imageInputRef = ref<HTMLInputElement | null>(null);
+const videoInputRef = ref<HTMLInputElement | null>(null);
 
-let isInternalUpdate = false
-let internalUpdateTimer: ReturnType<typeof setTimeout> | null = null
+let isInternalUpdate = false;
+let internalUpdateTimer: null | ReturnType<typeof setTimeout> = null;
 
 /* ============================================================
  * 内容工具
  * ============================================================ */
 
-function isEmptyContent(html: string | null | undefined): boolean {
-  if (!html) return true
+function isEmptyContent(html: null | string | undefined): boolean {
+  if (!html) return true;
   const text = html
-    .replace(/<[^>]*>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .trim()
-  return text === ''
+    .replaceAll(/<[^>]*>/g, '')
+    .replaceAll('&nbsp;', ' ')
+    .trim();
+  return text === '';
 }
 
-function normalizeHtml(v: string | null | undefined): string {
-  return v == null ? '' : String(v)
+function normalizeHtml(v: null | string | undefined): string {
+  return v == null ? '' : String(v);
 }
 
 function isSameContent(a: string, b: string): boolean {
-  if (isEmptyContent(a) && isEmptyContent(b)) return true
-  return a === b
+  if (isEmptyContent(a) && isEmptyContent(b)) return true;
+  return a === b;
 }
 
 function escapeHtml(text: string): string {
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  return text
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
 }
 
 /**
@@ -94,40 +97,40 @@ function escapeHtml(text: string): string {
  * 若不屏蔽会触发一次多余的重解析（光标丢失）。
  */
 function markInternalUpdate(): void {
-  isInternalUpdate = true
-  if (internalUpdateTimer) clearTimeout(internalUpdateTimer)
+  isInternalUpdate = true;
+  if (internalUpdateTimer) clearTimeout(internalUpdateTimer);
   internalUpdateTimer = setTimeout(() => {
-    isInternalUpdate = false
-    internalUpdateTimer = null
-  }, 200)
+    isInternalUpdate = false;
+    internalUpdateTimer = null;
+  }, 200);
 }
 
 function updateStats(): void {
-  const editor = editorRef.value
-  if (!editor) return
-  textLength.value = editor.getText().length
-  htmlLength.value = editor.getHTML().length
+  const editor = editorRef.value;
+  if (!editor) return;
+  textLength.value = editor.getText().length;
+  htmlLength.value = editor.getHTML().length;
 }
 
 /** 编辑器内容变化后统一回写 model、抛事件、刷新统计 */
 function syncFromEditor(editor: Editor): void {
-  const html = editor.getHTML()
-  const text = editor.getText()
+  const html = editor.getHTML();
+  const text = editor.getText();
 
-  markInternalUpdate()
-  emit('update:value', html)
-  emit('change', html, text)
+  markInternalUpdate();
+  emit('update:value', html);
+  emit('change', html, text);
 
-  textLength.value = text.length
-  htmlLength.value = html.length
+  textLength.value = text.length;
+  htmlLength.value = html.length;
 }
 
 function replaceContent(html: string): void {
-  const editor = editorRef.value
-  if (!editor) return
-  markInternalUpdate()
-  editor.commands.setContent(html, { emitUpdate: false })
-  syncFromEditor(editor)
+  const editor = editorRef.value;
+  if (!editor) return;
+  markInternalUpdate();
+  editor.commands.setContent(html, { emitUpdate: false });
+  syncFromEditor(editor);
 }
 
 /* ============================================================
@@ -135,29 +138,29 @@ function replaceContent(html: string): void {
  * ============================================================ */
 
 function toCssSize(v: number | string | undefined): string | undefined {
-  if (v === undefined) return undefined
-  return typeof v === 'number' ? `${v}px` : v
+  if (v === undefined) return undefined;
+  return typeof v === 'number' ? `${v}px` : v;
 }
 
-const fixedHeight = computed(() => toCssSize(props.height))
-const minHeightCss = computed(() => toCssSize(props.minHeight) ?? '160px')
-const maxHeightCss = computed(() => toCssSize(props.maxHeight) ?? '500px')
+const fixedHeight = computed(() => toCssSize(props.height));
+const minHeightCss = computed(() => toCssSize(props.minHeight) ?? '160px');
+const maxHeightCss = computed(() => toCssSize(props.maxHeight) ?? '500px');
 
 /**
  * 内容区高度用 flex 表达而不是单纯 height，容器被父级约束时才能撑满
  */
 const contentStyle = computed(() => {
-  if (isFullScreen.value) return { flex: '1 1 0%' }
-  if (fixedHeight.value) return { flex: '0 0 auto', height: fixedHeight.value }
+  if (isFullScreen.value) return { flex: '1 1 0%' };
+  if (fixedHeight.value) return { flex: '0 0 auto', height: fixedHeight.value };
   return {
     flex: '1 1 auto',
     minHeight: minHeightCss.value,
     maxHeight: maxHeightCss.value,
-  }
-})
+  };
+});
 
 function toggleFullScreen(): void {
-  isFullScreen.value = !isFullScreen.value
+  isFullScreen.value = !isFullScreen.value;
 }
 
 /* ============================================================
@@ -170,34 +173,34 @@ const DEFAULT_IMAGE_TYPES = [
   'image/jpg',
   'image/gif',
   'image/webp',
-]
+];
 
 const DEFAULT_VIDEO_TYPES = [
   'video/mp4',
   'video/webm',
   'video/ogg',
   'video/quicktime',
-]
+];
 
 const imageUploadConfig = computed<ImageUploadConfig>(() => ({
   maxFileSize: 5,
   allowedFileTypes: DEFAULT_IMAGE_TYPES,
   ...props.imageUpload,
-}))
+}));
 
 const videoUploadConfig = computed<VideoUploadConfig>(() => ({
   maxFileSize: 100,
   allowedFileTypes: DEFAULT_VIDEO_TYPES,
   ...props.videoUpload,
-}))
+}));
 
 const imageAccept = computed(() =>
   (imageUploadConfig.value.allowedFileTypes ?? DEFAULT_IMAGE_TYPES).join(','),
-)
+);
 
 const videoAccept = computed(() =>
   (videoUploadConfig.value.allowedFileTypes ?? DEFAULT_VIDEO_TYPES).join(','),
-)
+);
 
 function insertImageNode(url: string, alt = '', href = ''): void {
   editorRef.value
@@ -207,7 +210,7 @@ function insertImageNode(url: string, alt = '', href = ''): void {
       type: 'image',
       attrs: { src: url, alt: alt || null, dataHref: href || null },
     })
-    .run()
+    .run();
 }
 
 function insertVideoNode(url: string, poster = ''): void {
@@ -218,11 +221,11 @@ function insertVideoNode(url: string, poster = ''): void {
       type: 'video',
       attrs: { src: url, poster: poster || null },
     })
-    .run()
+    .run();
 }
 
 async function uploadImageByHttp(file: File): Promise<void> {
-  const cfg = imageUploadConfig.value
+  const cfg = imageUploadConfig.value;
 
   try {
     const result = await uploadFile({
@@ -230,22 +233,22 @@ async function uploadImageByHttp(file: File): Promise<void> {
       server: cfg.server,
       fieldName: cfg.fieldName,
       meta: cfg.meta,
-    })
+    });
 
-    insertImageNode(result.url, result.filename, result.url)
+    insertImageNode(result.url, result.filename, result.url);
 
-    cfg.onSuccess?.(file, result)
-    emit('uploadSuccess', file, result)
-  } catch (err) {
-    const error = err instanceof Error ? err : new Error(String(err))
-    message.error(`图片上传失败：${error.message}`)
-    cfg.onError?.(file, error)
-    emit('uploadError', file, error)
+    cfg.onSuccess?.(file, result);
+    emit('uploadSuccess', file, result);
+  } catch (error) {
+    const error = error instanceof Error ? error : new Error(String(error));
+    message.error(`图片上传失败：${error.message}`);
+    cfg.onError?.(file, error);
+    emit('uploadError', file, error);
   }
 }
 
 async function uploadVideoByHttp(file: File): Promise<void> {
-  const cfg = videoUploadConfig.value
+  const cfg = videoUploadConfig.value;
 
   try {
     const result = await uploadFile({
@@ -253,43 +256,43 @@ async function uploadVideoByHttp(file: File): Promise<void> {
       server: cfg.server,
       fieldName: cfg.fieldName,
       meta: cfg.meta,
-    })
+    });
 
-    insertVideoNode(result.url)
+    insertVideoNode(result.url);
 
-    cfg.onSuccess?.(file, result)
-    emit('uploadSuccess', file, result)
-  } catch (err) {
-    const error = err instanceof Error ? err : new Error(String(err))
-    message.error(`视频上传失败：${error.message}`)
-    cfg.onError?.(file, error)
-    emit('uploadError', file, error)
+    cfg.onSuccess?.(file, result);
+    emit('uploadSuccess', file, result);
+  } catch (error) {
+    const error = error instanceof Error ? error : new Error(String(error));
+    message.error(`视频上传失败：${error.message}`);
+    cfg.onError?.(file, error);
+    emit('uploadError', file, error);
   }
 }
 
 /** 取文件并复位 input，保证同一文件可重复选择 */
 function takeSelectedFile(event: Event): File | null {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0] ?? null
-  input.value = ''
-  return file
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0] ?? null;
+  input.value = '';
+  return file;
 }
 
 function openImagePicker(): void {
-  if (props.disabled || props.readonly) return
-  imageInputRef.value?.click()
+  if (props.disabled || props.readonly) return;
+  imageInputRef.value?.click();
 }
 
 function openVideoPicker(): void {
-  if (props.disabled || props.readonly) return
-  videoInputRef.value?.click()
+  if (props.disabled || props.readonly) return;
+  videoInputRef.value?.click();
 }
 
 function handleImageChange(event: Event): void {
-  const file = takeSelectedFile(event)
-  if (!file) return
+  const file = takeSelectedFile(event);
+  if (!file) return;
 
-  const cfg = imageUploadConfig.value
+  const cfg = imageUploadConfig.value;
   // 自定义上传同样先走体积 / 格式校验，与 wangEditor 的菜单配置语义一致
   if (
     !validateFile(file, {
@@ -298,22 +301,22 @@ function handleImageChange(event: Event): void {
       label: '图片',
     })
   ) {
-    return
+    return;
   }
 
   if (cfg.customUpload) {
-    cfg.customUpload(file, insertImageNode)
-    return
+    cfg.customUpload(file, insertImageNode);
+    return;
   }
 
-  void uploadImageByHttp(file)
+  void uploadImageByHttp(file);
 }
 
 function handleVideoChange(event: Event): void {
-  const file = takeSelectedFile(event)
-  if (!file) return
+  const file = takeSelectedFile(event);
+  if (!file) return;
 
-  const cfg = videoUploadConfig.value
+  const cfg = videoUploadConfig.value;
   if (
     !validateFile(file, {
       maxSizeMB: cfg.maxFileSize,
@@ -321,15 +324,15 @@ function handleVideoChange(event: Event): void {
       label: '视频',
     })
   ) {
-    return
+    return;
   }
 
   if (cfg.customUpload) {
-    cfg.customUpload(file, insertVideoNode)
-    return
+    cfg.customUpload(file, insertVideoNode);
+    return;
   }
 
-  void uploadVideoByHttp(file)
+  void uploadVideoByHttp(file);
 }
 
 /* ============================================================
@@ -337,13 +340,13 @@ function handleVideoChange(event: Event): void {
  * ============================================================ */
 
 const toolbarKeys = computed<MarkdownEditorToolbarKey[]>(() => {
-  const cfg = props.toolbarConfig
+  const cfg = props.toolbarConfig;
   // 与 wangEditor 一致：配了 toolbarKeys 就不再理会 excludeKeys
-  if (cfg?.toolbarKeys?.length) return cfg.toolbarKeys
+  if (cfg?.toolbarKeys?.length) return cfg.toolbarKeys;
 
-  const excluded = new Set(cfg?.excludeKeys ?? [])
-  return DEFAULT_TOOLBAR_KEYS.filter((key) => !excluded.has(key))
-})
+  const excluded = new Set(cfg?.excludeKeys ?? []);
+  return DEFAULT_TOOLBAR_KEYS.filter((key) => !excluded.has(key));
+});
 
 /* ============================================================
  * 编辑器实例
@@ -351,7 +354,7 @@ const toolbarKeys = computed<MarkdownEditorToolbarKey[]>(() => {
 
 const isLocked = computed(
   () => props.readonly || props.disabled || props.mode === 'preview',
-)
+);
 
 /**
  * 超过 maxLength 时拦截输入
@@ -359,14 +362,14 @@ const isLocked = computed(
  * 不用 CharacterCount 扩展：它只在事务结束后统计，无法阻止本次输入落库。
  */
 function exceedsMaxLength(nextLength: number): boolean {
-  const limit = props.maxLength
-  if (!limit || nextLength <= limit) return false
-  emit('maxLength', nextLength, limit)
-  return true
+  const limit = props.maxLength;
+  if (!limit || nextLength <= limit) return false;
+  emit('maxLength', nextLength, limit);
+  return true;
 }
 
 function currentTextLength(): number {
-  return editorRef.value?.getText().length ?? 0
+  return editorRef.value?.getText().length ?? 0;
 }
 
 editorRef.value = new Editor({
@@ -377,58 +380,58 @@ editorRef.value = new Editor({
   editorProps: {
     attributes: { class: 'md-content' },
     handleTextInput: (view, from, to, text) => {
-      const removed = view.state.doc.textBetween(from, to, '', '').length
-      return exceedsMaxLength(currentTextLength() - removed + text.length)
+      const removed = view.state.doc.textBetween(from, to, '', '').length;
+      return exceedsMaxLength(currentTextLength() - removed + text.length);
     },
     handlePaste: (_view, event) => {
-      const text = event.clipboardData?.getData('text/plain') ?? ''
-      return exceedsMaxLength(currentTextLength() + text.length)
+      const text = event.clipboardData?.getData('text/plain') ?? '';
+      return exceedsMaxLength(currentTextLength() + text.length);
     },
     handleDrop: (_view, event) => {
       const text =
-        (event as DragEvent).dataTransfer?.getData('text/plain') ?? ''
-      return exceedsMaxLength(currentTextLength() + text.length)
+        (event as DragEvent).dataTransfer?.getData('text/plain') ?? '';
+      return exceedsMaxLength(currentTextLength() + text.length);
     },
   },
   // 回调给的是 core 的 Editor 基类，运行时实例其实是 vue-3 的 Editor 子类
   onUpdate: ({ editor }) => syncFromEditor(editor as Editor),
   onFocus: ({ editor }) => emit('focus', editor as Editor),
   onBlur: ({ editor }) => emit('blur', editor as Editor),
-})
+});
 
 onMounted(() => {
-  const editor = editorRef.value
-  if (editor) emit('created', editor)
-})
+  const editor = editorRef.value;
+  if (editor) emit('created', editor);
+});
 
 watch(
   () => props.value,
   (newValue) => {
-    if (isInternalUpdate) return
-    const editor = editorRef.value
-    if (!editor) return
+    if (isInternalUpdate) return;
+    const editor = editorRef.value;
+    if (!editor) return;
 
-    const next = normalizeHtml(newValue)
-    if (isSameContent(next, editor.getHTML())) return
+    const next = normalizeHtml(newValue);
+    if (isSameContent(next, editor.getHTML())) return;
 
-    editor.commands.setContent(next, { emitUpdate: false })
-    updateStats()
+    editor.commands.setContent(next, { emitUpdate: false });
+    updateStats();
   },
-)
+);
 
 watch(isLocked, (locked) => {
-  editorRef.value?.setEditable(!locked)
-})
+  editorRef.value?.setEditable(!locked);
+});
 
 onBeforeUnmount(() => {
   if (internalUpdateTimer) {
-    clearTimeout(internalUpdateTimer)
-    internalUpdateTimer = null
+    clearTimeout(internalUpdateTimer);
+    internalUpdateTimer = null;
   }
-  editorRef.value?.destroy()
-  editorRef.value = undefined
-  emit('destroyed')
-})
+  editorRef.value?.destroy();
+  editorRef.value = undefined;
+  emit('destroyed');
+});
 
 /* ============================================================
  * 实例方法
@@ -443,13 +446,13 @@ const instance: MarkdownEditorInstance = {
   setHtml: (html: string) => replaceContent(normalizeHtml(html)),
   setMarkdown: (html: string) => replaceContent(normalizeHtml(html)),
   clear: () => {
-    const editor = editorRef.value
-    if (!editor) return
-    markInternalUpdate()
-    editor.commands.setContent('', { emitUpdate: false })
-    emit('update:value', '')
-    emit('change', '', '')
-    updateStats()
+    const editor = editorRef.value;
+    if (!editor) return;
+    markInternalUpdate();
+    editor.commands.setContent('', { emitUpdate: false });
+    emit('update:value', '');
+    emit('change', '', '');
+    updateStats();
   },
   focus: () => editorRef.value?.commands.focus(),
   blur: () => editorRef.value?.commands.blur(),
@@ -467,9 +470,9 @@ const instance: MarkdownEditorInstance = {
     textLength: textLength.value,
     htmlLength: htmlLength.value,
   }),
-}
+};
 
-defineExpose(instance)
+defineExpose(instance);
 
 /* ============================================================
  * 类名
@@ -485,14 +488,14 @@ const containerClassName = computed(() =>
     props.compact && 'markdown-editor-compact',
     isFullScreen.value && 'markdown-editor-fullscreen',
   ),
-)
+);
 
 const toolbarClassName = computed(() =>
   cn(
     'shrink-0 border-b border-gray-200 dark:border-gray-700',
     props.compact && 'compact-toolbar',
   ),
-)
+);
 </script>
 
 <template>

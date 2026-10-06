@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { Input, Segmented, Select, Switch } from 'antdv-next'
-
-import { useAppStore } from '~/stores/modules/app'
+import { Input, Segmented, Select, Switch } from 'antdv-next';
+import { useAppStore } from '~/stores/modules/app';
 
 import {
   NOTIFICATION_POSITION_OPTIONS,
@@ -9,13 +8,13 @@ import {
   sectionStyles,
   TIMEZONE_OPTIONS,
   TRANSITION_OPTIONS,
-} from '../constants'
-import SettingGroup from './SettingGroup.vue'
-import SettingItem from './SettingItem.vue'
+} from '../constants';
+import SettingGroup from './SettingGroup.vue';
+import SettingItem from './SettingItem.vue';
 
-defineOptions({ name: 'CommonPanel' })
+defineOptions({ name: 'CommonPanel' });
 
-const appStore = useAppStore()
+const appStore = useAppStore();
 </script>
 
 <template>

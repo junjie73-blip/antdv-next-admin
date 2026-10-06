@@ -1,26 +1,26 @@
 <script setup lang="ts">
-import type { FormInstance } from 'antdv-next'
-import type { Rule } from 'antdv-next/dist/form/types'
+import type { FormInstance } from 'antdv-next';
+import type { Rule } from 'antdv-next/dist/form/types';
+
+import { computed, reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 import {
   LockOutlined,
   MailOutlined,
   MobileOutlined,
   UserOutlined,
-} from '@antdv-next/icons'
-import { Icon } from '@iconify/vue'
-import { computed, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+} from '@antdv-next/icons';
+import { Icon } from '@iconify/vue';
+import { useUserStore } from '~/stores/modules/user';
+import { cn } from '~/utils/cn';
 
-import { useUserStore } from '~/stores/modules/user'
-import { cn } from '~/utils/cn'
+import { useLoginStyles } from './composables/useLoginStyles';
 
-import { useLoginStyles } from './composables/useLoginStyles'
-
-const router = useRouter()
-const route = useRoute()
-const userStore = useUserStore()
-const _appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin'
+const router = useRouter();
+const route = useRoute();
+const userStore = useUserStore();
+const _appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin';
 
 const {
   containerClassName,
@@ -46,11 +46,11 @@ const {
   loginTypeBtnBaseClassName,
   loginTypeActiveBtnStyle,
   sendCodeBtnStyle,
-} = useLoginStyles()
+} = useLoginStyles();
 
-const formRef = ref<FormInstance>()
-const loading = ref(false)
-const loginType = ref<'account' | 'mobile'>('account')
+const formRef = ref<FormInstance>();
+const loading = ref(false);
+const loginType = ref<'account' | 'mobile'>('account');
 
 const formState = reactive({
   username: '',
@@ -58,7 +58,7 @@ const formState = reactive({
   mobile: '',
   code: '',
   remember: true,
-})
+});
 
 const accountRules: Record<string, Rule[]> = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
@@ -66,7 +66,7 @@ const accountRules: Record<string, Rule[]> = {
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, message: '密码至少6位', trigger: 'blur' },
   ],
-}
+};
 
 const mobileRules: Record<string, Rule[]> = {
   mobile: [
@@ -77,44 +77,47 @@ const mobileRules: Record<string, Rule[]> = {
     { required: true, message: '请输入验证码', trigger: 'blur' },
     { len: 6, message: '验证码为6位', trigger: 'blur' },
   ],
-}
+};
 
 const currentRules = computed(() =>
   loginType.value === 'account' ? accountRules : mobileRules,
-)
+);
 
 async function handleLogin() {
   try {
-    await formRef.value?.validate()
-    loading.value = true
+    await formRef.value?.validate();
+    loading.value = true;
 
-    const result = await userStore.login(formState.username, formState.password)
+    const result = await userStore.login(
+      formState.username,
+      formState.password,
+    );
 
     if (result.success) {
-      message.success('登录成功')
+      message.success('登录成功');
       // 优先跳转到重定向路径（如从其他页面被拦截到登录页），否则默认到仪表盘
-      const redirect = (route.query.redirect as string) || '/dashboard'
-      router.push(redirect)
+      const redirect = (route.query.redirect as string) || '/dashboard';
+      router.push(redirect);
     } else {
-      message.error(result.message || '登录失败')
+      message.error(result.message || '登录失败');
     }
   } catch {
-    message.error('请检查输入')
+    message.error('请检查输入');
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 function handleForgotPassword() {
-  message.info('请联系管理员重置密码')
+  message.info('请联系管理员重置密码');
 }
 
 function handleSendCode() {
   if (!formState.mobile || !/^1[3-9]\d{9}$/.test(formState.mobile)) {
-    message.error('请输入正确的手机号')
-    return
+    message.error('请输入正确的手机号');
+    return;
   }
-  message.success('验证码已发送')
+  message.success('验证码已发送');
 }
 </script>
 
@@ -123,17 +126,17 @@ function handleSendCode() {
     <!-- 左侧面板 -->
     <div :class="leftPanelClassName">
       <!-- 玻璃背景 -->
-      <div :class="leftGlassClassName" />
+      <div :class="leftGlassClassName"></div>
 
       <!-- 装饰性背景 -->
       <div class="absolute inset-0">
-        <div :class="decorBlob1ClassName" :style="decorBlob1Style" />
-        <div :class="decorBlob2ClassName" :style="decorBlob2Style" />
-        <div :class="decorBlob3ClassName" :style="decorBlob3Style" />
+        <div :class="decorBlob1ClassName" :style="decorBlob1Style"></div>
+        <div :class="decorBlob2ClassName" :style="decorBlob2Style"></div>
+        <div :class="decorBlob3ClassName" :style="decorBlob3Style"></div>
       </div>
 
       <!-- 网格背景 -->
-      <div :class="gridBgClassName" />
+      <div :class="gridBgClassName"></div>
 
       <!-- 内容 -->
       <div class="relative z-10 flex flex-col justify-center px-12 xl:px-20">

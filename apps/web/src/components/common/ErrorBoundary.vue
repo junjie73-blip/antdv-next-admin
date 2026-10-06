@@ -1,62 +1,64 @@
 <script setup lang="ts">
-import { isError, isString } from 'es-toolkit'
-import { onErrorCaptured, ref, type VNode } from 'vue'
+import type { VNode } from 'vue';
 
-import { cn } from '~/utils/cn'
+import { onErrorCaptured, ref } from 'vue';
+
+import { isError, isString } from 'es-toolkit';
+import { cn } from '~/utils/cn';
 
 interface Props {
-  fallback?: (error: Error, reset: () => void) => VNode
-  resetOnError?: boolean
-  maxStackDepth?: number
+  fallback?: (error: Error, reset: () => void) => VNode;
+  resetOnError?: boolean;
+  maxStackDepth?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   resetOnError: true,
   maxStackDepth: 5,
-})
+});
 
 const emit = defineEmits<{
-  error: [error: Error]
-  reset: []
-}>()
+  error: [error: Error];
+  reset: [];
+}>();
 
-const error = ref<Error | null>(null)
-const errorId = ref(0)
+const error = ref<Error | null>(null);
+const errorId = ref(0);
 
 onErrorCaptured((err: unknown, instance, info) => {
   // isError 替代 instanceof
-  let errorObj: Error
+  let errorObj: Error;
   if (isError(err)) {
-    errorObj = err
-    errorObj.message = `[${info}] ${errorObj.message}`
+    errorObj = err;
+    errorObj.message = `[${info}] ${errorObj.message}`;
   } else {
-    errorObj = new Error(String(err))
-    errorObj.name = 'UnknownError'
+    errorObj = new Error(String(err));
+    errorObj.name = 'UnknownError';
   }
 
-  error.value = errorObj
-  emit('error', errorObj)
+  error.value = errorObj;
+  emit('error', errorObj);
 
   if (import.meta.env.DEV) {
-    console.group('🚨 ErrorBoundary 捕获到错误')
-    console.error('错误对象:', errorObj)
-    console.error('组件实例:', instance)
-    console.error('错误来源:', info)
-    console.trace('调用栈')
-    console.groupEnd()
+    console.group('🚨 ErrorBoundary 捕获到错误');
+    console.error('错误对象:', errorObj);
+    console.error('组件实例:', instance);
+    console.error('错误来源:', info);
+    console.trace('调用栈');
+    console.groupEnd();
   }
 
-  return false
-})
+  return false;
+});
 
 function resetError() {
-  error.value = null
-  errorId.value++
-  emit('reset')
+  error.value = null;
+  errorId.value++;
+  emit('reset');
 }
 
 function handleRetry() {
-  if (props.resetOnError) resetError()
+  if (props.resetOnError) resetError();
 }
 
 const defaultFallbackClassName = cn(
@@ -64,34 +66,34 @@ const defaultFallbackClassName = cn(
   'min-h-[200px] p-6',
   'bg-red-50 dark:bg-red-900/10',
   'rounded-lg border border-red-200 dark:border-red-800',
-)
+);
 
 const titleClassName = cn(
   'text-lg font-semibold text-red-700 dark:text-red-400',
   'mb-2',
-)
+);
 
 const messageClassName = cn(
   'text-sm text-red-600 dark:text-red-300',
-  'mb-4 text-center max-w-md',
+  'mb-4 max-w-md text-center',
   'break-all',
-)
+);
 
 const retryButtonClassName = cn(
   'px-4 py-2',
-  'bg-red-600 hover:bg-red-700 text-white rounded-md',
+  'rounded-md bg-red-600 text-white hover:bg-red-700',
   'transition-colors duration-200',
-  'focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2',
+  'focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none',
   'cursor-pointer',
-)
+);
 
 const detailsClassName = cn(
-  'mt-4 p-3 w-full max-w-lg',
-  'bg-white dark:bg-gray-800 rounded border border-red-200 dark:border-red-700',
+  'mt-4 w-full max-w-lg p-3',
+  'rounded border border-red-200 bg-white dark:border-red-700 dark:bg-gray-800',
   'text-xs text-gray-600 dark:text-gray-400',
-)
+);
 
-const isDev = import.meta.env.DEV
+const isDev = import.meta.env.DEV;
 </script>
 
 <template>
@@ -124,14 +126,14 @@ const isDev = import.meta.env.DEV
 
   <Suspense v-else>
     <template #default>
-      <slot :key="errorId" />
+      <slot :key="errorId"></slot>
     </template>
     <template #fallback>
       <slot name="loading">
         <div class="flex items-center justify-center p-8">
           <div
             class="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"
-          />
+          ></div>
         </div>
       </slot>
     </template>

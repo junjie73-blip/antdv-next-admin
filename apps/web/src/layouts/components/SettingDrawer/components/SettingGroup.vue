@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { Icon } from '@iconify/vue';
 
 import {
   groupBoxClassName,
   groupIconClassName,
   groupTitleClassName,
-} from '../constants'
+} from '../constants';
 
-defineOptions({ name: 'SettingGroup' })
+defineOptions({ name: 'SettingGroup' });
 
 defineProps<{
-  title: string
-  icon: string
-}>()
+  title: string;
+  icon: string;
+}>();
 </script>
 
 <template>
@@ -24,7 +24,7 @@ defineProps<{
       <span>{{ title }}</span>
     </div>
     <div :class="groupBoxClassName">
-      <slot />
+      <slot></slot>
     </div>
   </section>
 </template>

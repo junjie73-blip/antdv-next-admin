@@ -1,75 +1,75 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref } from 'vue';
 
-import { CountTo } from '~/components/business/CountTo'
-import { cn } from '~/utils/cn'
+import { CountTo } from '~/components/business/CountTo';
+import { cn } from '~/utils/cn';
 
 // 容器类名
-const containerClassName = cn('space-y-6')
+const containerClassName = cn('space-y-6');
 
 // 页面标题区域
-const pageHeaderClassName = cn('mb-2')
+const pageHeaderClassName = cn('mb-2');
 const pageTitleClassName = cn(
   'text-2xl font-bold text-gray-800 dark:text-gray-100',
-)
-const pageDescClassName = cn('text-gray-500 dark:text-gray-400 mt-1')
+);
+const pageDescClassName = cn('mt-1 text-gray-500 dark:text-gray-400');
 
 // 卡片 extra 提示文字
-const cardExtraClassName = cn('text-sm text-gray-400')
+const cardExtraClassName = cn('text-sm text-gray-400');
 
 // 基础用法 - 数字展示区域
 const numberCardClassName = cn(
-  'flex flex-col items-center p-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg',
-)
-const numberLabelClassName = cn('text-sm text-gray-500 mb-2')
-const numberValueClassName = cn('text-3xl font-bold')
+  'flex flex-col items-center rounded-lg bg-gray-50 p-6 dark:bg-gray-800/50',
+);
+const numberLabelClassName = cn('mb-2 text-sm text-gray-500');
+const numberValueClassName = cn('text-3xl font-bold');
 
 // 小数精度展示
-const decimalGridClassName = cn('grid grid-cols-1 md:grid-cols-4 gap-6')
+const decimalGridClassName = cn('grid grid-cols-1 gap-6 md:grid-cols-4');
 
 // 前缀后缀 - 渐变背景卡片
 function prefixCardClassName(color: string) {
-  return cn('flex flex-col items-center p-6 rounded-lg border', color)
+  return cn('flex flex-col items-center rounded-lg border p-6', color);
 }
 
 // 分隔符展示
-const separatorGridClassName = cn('grid grid-cols-1 md:grid-cols-3 gap-6')
+const separatorGridClassName = cn('grid grid-cols-1 gap-6 md:grid-cols-3');
 
 // 正负数展示
 function signCardClassName(color: string) {
-  return cn('flex flex-col items-center p-6 rounded-lg border', color)
+  return cn('flex flex-col items-center rounded-lg border p-6', color);
 }
-const signLabelClassName = cn('text-sm text-gray-500 mb-2')
-const signChangeClassName = cn('text-xs mt-1')
+const signLabelClassName = cn('mb-2 text-sm text-gray-500');
+const signChangeClassName = cn('mt-1 text-xs');
 
 // 缓动函数对比
-const easingContainerClassName = cn('space-y-6')
-const easingCardClassName = cn('p-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg')
-const easingHeaderClassName = cn('flex justify-between items-center mb-3')
-const easingNameClassName = cn('font-medium text-gray-700 dark:text-gray-300')
-const easingDescClassName = cn('text-sm text-gray-400')
+const easingContainerClassName = cn('space-y-6');
+const easingCardClassName = cn('rounded-lg bg-gray-50 p-6 dark:bg-gray-800/50');
+const easingHeaderClassName = cn('mb-3 flex items-center justify-between');
+const easingNameClassName = cn('font-medium text-gray-700 dark:text-gray-300');
+const easingDescClassName = cn('text-sm text-gray-400');
 const easingDisplayClassName = cn(
-  'h-16 flex items-center bg-white dark:bg-gray-900 rounded p-2',
-)
+  'flex h-16 items-center rounded bg-white p-2 dark:bg-gray-900',
+);
 const easingValueClassName = cn(
-  'text-xl font-mono font-bold w-full text-center',
-)
+  'w-full text-center font-mono text-xl font-bold',
+);
 
 // 数据看板面板
 interface DashboardItem {
-  title: string
-  value: number
-  prefix: string
-  suffix: string
-  icon: string
-  bgColor: string
-  textColor: string
+  title: string;
+  value: number;
+  prefix: string;
+  suffix: string;
+  icon: string;
+  bgColor: string;
+  textColor: string;
 }
 
 const dashboardData: DashboardItem[] = [
   {
     title: '总用户数',
-    value: 892156,
+    value: 892_156,
     prefix: '',
     suffix: '人',
     icon: '👥',
@@ -79,7 +79,7 @@ const dashboardData: DashboardItem[] = [
   },
   {
     title: '日活跃',
-    value: 128456,
+    value: 128_456,
     prefix: '',
     suffix: '',
     icon: '📈',
@@ -89,7 +89,7 @@ const dashboardData: DashboardItem[] = [
   },
   {
     title: '总收入',
-    value: 998888,
+    value: 998_888,
     prefix: '¥',
     suffix: '',
     icon: '💰',
@@ -107,42 +107,42 @@ const dashboardData: DashboardItem[] = [
       'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30',
     textColor: 'text-purple-600',
   },
-]
+];
 
 const dashboardGridClassName = cn(
-  'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6',
-)
+  'grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4',
+);
 function dashboardCardClassName(bgColor: string) {
   return cn(
-    'rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow',
+    'rounded-xl p-6 shadow-sm transition-shadow hover:shadow-md',
     bgColor,
-  )
+  );
 }
-const dashboardTitleClassName = cn('text-sm font-medium')
-const dashboardValueClassName = cn('text-3xl font-bold')
-const dashboardTrendClassName = cn('flex items-center gap-1 text-sm')
-const trendTextClassName = cn('ml-1 text-gray-400')
+const dashboardTitleClassName = cn('text-sm font-medium');
+const dashboardValueClassName = cn('text-3xl font-bold');
+const dashboardTrendClassName = cn('flex items-center gap-1 text-sm');
+const trendTextClassName = cn('ml-1 text-gray-400');
 
 // 动态更新演示
-const dynamicEndVal = ref(2024)
-const countToRef = ref()
+const dynamicEndVal = ref(2024);
+const countToRef = ref();
 
 const dynamicContainerClassName = cn(
-  'p-8 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20 rounded-lg text-center',
-)
-const dynamicLabelClassName = cn('text-sm text-gray-500 block mb-2')
+  'rounded-lg bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 p-8 text-center dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20',
+);
+const dynamicLabelClassName = cn('mb-2 block text-sm text-gray-500');
 const dynamicValueClassName = cn(
-  'text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent',
-)
-const buttonGroupClassName = cn('flex gap-4 justify-center')
-const dynamicTipClassName = cn('text-sm text-gray-400 mt-4')
+  'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-6xl font-bold text-transparent',
+);
+const buttonGroupClassName = cn('flex justify-center gap-4');
+const dynamicTipClassName = cn('mt-4 text-sm text-gray-400');
 
 /**
  * 更新动态目标值并重新播放动画
  */
 function updateDynamicValue() {
   // 生成随机数值：1000 ~ 9999
-  dynamicEndVal.value = Math.floor(Math.random() * 9000) + 1000
+  dynamicEndVal.value = Math.floor(Math.random() * 9000) + 1000;
 }
 
 /**
@@ -150,10 +150,10 @@ function updateDynamicValue() {
  */
 function resetDynamicCounter() {
   if (countToRef.value) {
-    countToRef.value.reset()
+    countToRef.value.reset();
     setTimeout(() => {
-      countToRef.value.start()
-    }, 100)
+      countToRef.value.start();
+    }, 100);
   }
 }
 </script>
@@ -400,9 +400,7 @@ function resetDynamicCounter() {
             :end-val="-8888"
             :class="cn(numberValueClassName, 'text-orange-600')"
           />
-          <span :class="cn(signChangeClassName, 'text-orange-500')"
-            >-23.4%</span
-          >
+          <span :class="cn(signChangeClassName, 'text-orange-500')">-23.4%</span>
         </div>
       </div>
     </a-card>
@@ -434,9 +432,7 @@ function resetDynamicCounter() {
         <!-- easeInOutCubic - 三次缓入缓出 -->
         <div :class="easingCardClassName">
           <div :class="easingHeaderClassName">
-            <span :class="easingNameClassName"
-              >easeInOutCubic (三次缓入缓出)</span
-            >
+            <span :class="easingNameClassName">easeInOutCubic (三次缓入缓出)</span>
             <span :class="easingDescClassName">慢→快→慢，自然流畅</span>
           </div>
           <div :class="easingDisplayClassName">
@@ -536,9 +532,7 @@ function resetDynamicCounter() {
     <!-- 8. 动态更新 -->
     <a-card title="动态更新目标值" variant="borderless">
       <template #extra>
-        <span :class="cardExtraClassName"
-          >点击按钮改变目标值，动画自动重播</span
-        >
+        <span :class="cardExtraClassName">点击按钮改变目标值，动画自动重播</span>
       </template>
       <div :class="dynamicContainerClassName">
         <div class="mb-6">

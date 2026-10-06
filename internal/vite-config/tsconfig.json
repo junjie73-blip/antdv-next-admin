@@ -1,5 +1,5 @@
 {
-  "extends": "@antdv-admin/tsconfig/node.json",
+  "extends": "@antdv/tsconfig/node.json",
   "compilerOptions": {
     "noEmit": true,
     "outDir": "dist"

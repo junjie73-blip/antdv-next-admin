@@ -351,4 +351,4 @@ export default {
     code503Title: '服务器错误',
     code503Desc: '抱歉，服务器出错了',
   },
-}
+};

@@ -1,19 +1,19 @@
 {
-  "name": "@antdv-admin/tsconfig",
+  "name": "@antdv/tsconfig",
   "version": "0.4.0",
+  "description": "Monorepo 共享 TypeScript 配置",
   "private": true,
   "type": "module",
-  "description": "Monorepo 共享 TypeScript 配置",
-  "exports": {
-    "./base.json": "./base.json",
-    "./node.json": "./node.json",
-    "./web.json": "./web.json"
-  },
   "files": [
     "base.json",
     "node.json",
     "web.json"
   ],
+  "exports": {
+    "./base.json": "./base.json",
+    "./node.json": "./node.json",
+    "./web.json": "./web.json"
+  },
   "devDependencies": {
     "@tsconfig/node24": "catalog:",
     "@vue/tsconfig": "catalog:"

@@ -1,4 +1,4 @@
-import { defineConfig } from 'tsdown'
+import { defineConfig } from 'tsdown';
 
 /**
  * tsdown（rolldown 的打包 CLI）产出单文件 ESM + d.ts。
@@ -14,4 +14,4 @@ export default defineConfig({
   format: ['esm'],
   platform: 'node',
   target: 'node22',
-})
+});

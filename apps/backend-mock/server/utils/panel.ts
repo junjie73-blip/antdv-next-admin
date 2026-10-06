@@ -5,16 +5,18 @@
  * 逻辑与 legacy mock-center.fake.ts 的 toRouteView 一致；抽出来给 overview 与 routes 共用。
  */
 
-import type { MockRouteItem } from '@antdv-admin/types'
-import type { RouteManifestItem } from './store'
-import { getStore } from './store'
+import type { MockRouteItem } from '@antdv/types';
 
-export type RouteView = MockRouteItem
+import type { RouteManifestItem } from './store';
+
+import { getStore } from './store';
+
+export type RouteView = MockRouteItem;
 
 export function toRouteView(item: RouteManifestItem): RouteView {
-  const store = getStore()
-  const runtime = store.routes[item.key] ?? {}
-  const stat = store.stats[item.key]
+  const store = getStore();
+  const runtime = store.routes[item.key] ?? {};
+  const stat = store.stats[item.key];
 
   return {
     ...item,
@@ -28,5 +30,5 @@ export function toRouteView(item: RouteManifestItem): RouteView {
     errors: stat?.errors ?? 0,
     lastAt: stat?.lastAt ?? '-',
     overridden: Object.keys(runtime).length > 0,
-  }
+  };
 }

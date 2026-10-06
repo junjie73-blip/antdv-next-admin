@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref } from 'vue';
 
-import { Scrollbar } from '~/components/common/Scrollbar'
-import { cn } from '~/utils/cn'
+import { Scrollbar } from '~/components/common/Scrollbar';
+import { cn } from '~/utils/cn';
 
-const containerClassName = cn('space-y-6')
-const scrollContentClassName = cn('p-4 rounded-lg bg-gray-50 dark:bg-gray-800')
+const containerClassName = cn('space-y-6');
+const scrollContentClassName = cn('rounded-lg bg-gray-50 p-4 dark:bg-gray-800');
 
 const basicItems = Array.from({ length: 30 }, (_, i) => ({
   id: i + 1,
   title: `Item ${i + 1}`,
   desc: `Description for item ${i + 1}`,
-}))
+}));
 
 const horizontalItems = [
   'Vue',
@@ -24,7 +24,7 @@ const horizontalItems = [
   'Nuxt',
   'Next.js',
   'Remix',
-]
+];
 
 const chatMessages = ref([
   { id: 1, text: 'Hello, how are you?', time: '10:30', self: false },
@@ -70,12 +70,12 @@ const chatMessages = ref([
     time: '10:37',
     self: true,
   },
-])
+]);
 
-const newMessage = ref('')
+const newMessage = ref('');
 
 function sendMessage() {
-  if (!newMessage.value.trim()) return
+  if (!newMessage.value.trim()) return;
   chatMessages.value.push({
     id: Date.now(),
     text: newMessage.value.trim(),
@@ -84,8 +84,8 @@ function sendMessage() {
       minute: '2-digit',
     }),
     self: true,
-  })
-  newMessage.value = ''
+  });
+  newMessage.value = '';
 }
 </script>
 
@@ -146,8 +146,7 @@ function sendMessage() {
             >
               <span
                 class="text-lg font-semibold text-gray-800 dark:text-gray-200"
-                >{{ item }}</span
-              >
+                >{{ item }}</span>
               <span class="mt-1 text-xs text-gray-400">#{{ index + 1 }}</span>
             </div>
           </div>
@@ -191,7 +190,7 @@ function sendMessage() {
             <a-input
               v-model:value="newMessage"
               placeholder="Type a message..."
-              @pressEnter="sendMessage"
+              @press-enter="sendMessage"
             />
             <a-button type="primary" @click="sendMessage"> Send </a-button>
           </div>

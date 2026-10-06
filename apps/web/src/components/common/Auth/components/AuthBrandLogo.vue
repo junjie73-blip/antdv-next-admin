@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { useAuthStyles } from '../composables/useAuthStyles'
+import { useAuthStyles } from '../composables/useAuthStyles';
 
-defineOptions({ name: 'AuthBrandLogo' })
+defineOptions({ name: 'AuthBrandLogo' });
 
 defineProps<{
-  title: string
-  logo: string
-}>()
+  title: string;
+  logo: string;
+}>();
 
-const { brandLogoClassName, brandLogoIconClassName } = useAuthStyles()
+const { brandLogoClassName, brandLogoIconClassName } = useAuthStyles();
 </script>
 
 <template>

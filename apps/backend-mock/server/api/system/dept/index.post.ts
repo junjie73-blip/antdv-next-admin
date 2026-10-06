@@ -1,8 +1,10 @@
-import dayjs from 'dayjs'
-import { success } from '../../../utils/response'
-import { defineMockRoute } from '../../../utils/runtime'
-import { nextDeptId } from '../../../utils/db/dept'
-import type { DeptRecord } from '../../../utils/db/dept'
+import type { DeptRecord } from '../../../utils/db/dept';
+
+import dayjs from 'dayjs';
+
+import { nextDeptId } from '../../../utils/db/dept';
+import { success } from '../../../utils/response';
+import { defineMockRoute } from '../../../utils/runtime';
 
 export default defineMockRoute({
   handler({ data }) {
@@ -19,10 +21,10 @@ export default defineMockRoute({
       createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
       userCount: 0,
       children: [],
-    }
+    };
 
-    return success(newDept, '新增部门成功')
+    return success(newDept, '新增部门成功');
   },
   method: 'POST',
   path: '/system/dept',
-})
+});

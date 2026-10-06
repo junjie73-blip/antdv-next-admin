@@ -1,5 +1,5 @@
 {
-  "name": "@antdv-admin/turbo-run",
+  "name": "@antdv/turbo-run",
   "version": "5.8.0",
   "private": true,
   "license": "MIT",
@@ -22,10 +22,10 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
+    "@antdv/node-utils": "workspace:*",
+    "@antdv/tsconfig": "workspace:*",
     "@clack/prompts": "catalog:",
-    "@antdv-admin/node-utils": "workspace:*",
     "cac": "catalog:",
-    "tsdown": "catalog:",
-    "@antdv-admin/tsconfig": "workspace:*"
+    "tsdown": "catalog:"
   }
 }

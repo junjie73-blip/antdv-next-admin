@@ -350,4 +350,4 @@ export default {
     code503Title: 'Server Error',
     code503Desc: 'Sorry, something went wrong on our end',
   },
-}
+};

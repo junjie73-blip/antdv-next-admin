@@ -1,4 +1,4 @@
-import { defineConfig } from 'tsdown'
+import { defineConfig } from 'tsdown';
 
 /**
  * 子包用 rolldown（tsdown 是它的打包 CLI）产出 dist + d.ts：
@@ -12,4 +12,4 @@ export default defineConfig({
   format: ['esm'],
   platform: 'node',
   target: 'node22',
-})
+});

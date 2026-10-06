@@ -1,14 +1,15 @@
-import type { PluginOption } from 'vite'
+import type { PluginOption } from 'vite';
 
-import tailwindcss from '@tailwindcss/vite'
-import viteVue from '@vitejs/plugin-vue'
-import viteVueJsx from '@vitejs/plugin-vue-jsx'
-import Inspect from 'vite-plugin-inspect'
-import { wrapPlugin } from 'vite-plugin-performance'
-import Layouts from 'vite-plugin-vue-layouts-next'
-import { getFileBasedRouteName } from 'vue-router/unplugin'
-import VueRouter from 'vue-router/vite'
+import { getFileBasedRouteName } from 'vue-router/unplugin';
+import VueRouter from 'vue-router/vite';
+
 import viteVueI18nPlugin from '@intlify/unplugin-vue-i18n/vite';
+import tailwindcss from '@tailwindcss/vite';
+import viteVue from '@vitejs/plugin-vue';
+import viteVueJsx from '@vitejs/plugin-vue-jsx';
+import Inspect from 'vite-plugin-inspect';
+import { wrapPlugin } from 'vite-plugin-performance';
+import Layouts from 'vite-plugin-vue-layouts-next';
 export function createVuePlugins(): PluginOption[] {
   const plugins: PluginOption[] = [
     VueRouter({
@@ -38,9 +39,9 @@ export function createVuePlugins(): PluginOption[] {
       fullInstall: true,
       runtimeOnly: true,
     }),
-  ]
+  ];
 
   // Vue DevTools 按需启用（从环境变量读取，此处由 index.ts 控制传入或在此处读取）
   // 为保持独立性，此处需结合环境变量判断，实际可提取到 index.ts 中
-  return plugins
+  return plugins;
 }

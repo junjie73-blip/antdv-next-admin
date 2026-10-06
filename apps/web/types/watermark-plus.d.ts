@@ -1,28 +1,28 @@
 declare module 'watermark-plus' {
   export interface WatermarkOptions {
-    content?: string
-    image?: string
-    tip?: string
-    imageWidth?: string | number
-    imageHeight?: string | number
-    fontWeight?: string | number
-    fontSize?: string | number
-    fontFamily?: string
-    color?: string
-    alpha?: string | number
-    width?: string | number
-    height?: string | number
-    maxWidth?: string | number
-    maxHeight?: string | number
-    rotate?: string | number
-    zIndex?: string | number
-    onSuccess?: () => void
-    onWatermarkNull?: () => void
+    content?: string;
+    image?: string;
+    tip?: string;
+    imageWidth?: number | string;
+    imageHeight?: number | string;
+    fontWeight?: number | string;
+    fontSize?: number | string;
+    fontFamily?: string;
+    color?: string;
+    alpha?: number | string;
+    width?: number | string;
+    height?: number | string;
+    maxWidth?: number | string;
+    maxHeight?: number | string;
+    rotate?: number | string;
+    zIndex?: number | string;
+    onSuccess?: () => void;
+    onWatermarkNull?: () => void;
   }
 
   export default class Watermark {
-    constructor(options?: Partial<WatermarkOptions>)
-    create(): void
-    destroy(): void
+    constructor(options?: Partial<WatermarkOptions>);
+    create(): void;
+    destroy(): void;
   }
 }

@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import type { Ref } from 'vue'
+import type { Ref } from 'vue';
 
-import { useEventListener } from '@vueuse/core'
-import * as echarts from 'echarts'
-import { isPlainObject } from 'es-toolkit'
 import {
   computed,
   nextTick,
@@ -12,54 +9,57 @@ import {
   ref,
   useTemplateRef,
   watch,
-} from 'vue'
+} from 'vue';
 
-import { getScreenMonitorData } from '~/api/screen'
+import { useEventListener } from '@vueuse/core';
+import * as echarts from 'echarts';
+import { isPlainObject } from 'es-toolkit';
+import { getScreenMonitorData } from '~/api/screen';
 
-import MarqueeNotice from '../components/MarqueeNotice.vue'
-import RealtimeNumber from '../components/RealtimeNumber.vue'
-import ScreenCard from '../components/ScreenCard.vue'
-import ScreenHeader from '../components/ScreenHeader.vue'
-import { useScreenAdapter } from '../composables/useScreenAdapter'
+import MarqueeNotice from '../components/MarqueeNotice.vue';
+import RealtimeNumber from '../components/RealtimeNumber.vue';
+import ScreenCard from '../components/ScreenCard.vue';
+import ScreenHeader from '../components/ScreenHeader.vue';
+import { useScreenAdapter } from '../composables/useScreenAdapter';
 
-defineOptions({ name: 'ScreenMonitor' })
+defineOptions({ name: 'ScreenMonitor' });
 
-useScreenAdapter(1920, 1080)
+useScreenAdapter(1920, 1080);
 
 // ======================== 数据层 ========================
 const overview = ref({
   onlineUsers: 186,
   todayVisits: 5234,
-  totalRequests: 128456,
+  totalRequests: 128_456,
   alertCount: 3,
   cpuUsage: 45.2,
   memUsage: 62.8,
   diskUsage: 55.3,
   networkIn: 86.4,
   networkOut: 42.1,
-})
+});
 
 const trendData = ref<
   { time: string; pv: number; uv: number; requests: number }[]
->([])
-const regionData = ref<{ name: string; value: number; users: number }[]>([])
-const services = ref<any[]>([])
-const alerts = ref<any[]>([])
+>([]);
+const regionData = ref<{ name: string; value: number; users: number }[]>([]);
+const services = ref<any[]>([]);
+const alerts = ref<any[]>([]);
 
 // 计算属性：简化模板中的复杂表达式
-const roundedNetworkIn = computed(() => Math.round(overview.value.networkIn))
-const roundedNetworkOut = computed(() => Math.round(overview.value.networkOut))
+const roundedNetworkIn = computed(() => Math.round(overview.value.networkIn));
+const roundedNetworkOut = computed(() => Math.round(overview.value.networkOut));
 const formattedAlerts = computed(() =>
   alerts.value.map((a) => `[${(a.level || '').toUpperCase()}] ${a.message}`),
-)
+);
 
 // 请求类型分布数据
 const requestTypes = ref([
-  { name: 'GET', value: 68520, color: '#3b82f6' },
-  { name: 'POST', value: 32150, color: '#22c55e' },
-  { name: 'PUT', value: 18230, color: '#f59e0b' },
+  { name: 'GET', value: 68_520, color: '#3b82f6' },
+  { name: 'POST', value: 32_150, color: '#22c55e' },
+  { name: 'PUT', value: 18_230, color: '#f59e0b' },
   { name: 'DELETE', value: 9556, color: '#ef4444' },
-])
+]);
 
 // 实时事件数据（可动态增长）
 const realtimeEvents = ref([
@@ -111,7 +111,7 @@ const realtimeEvents = ref([
     msg: '内存使用率达到 85%',
     level: 'warning',
   },
-])
+]);
 
 // 在线用户数据
 const onlineUsers = ref(
@@ -131,25 +131,25 @@ const onlineUsers = ref(
     ip: `192.168.${10 + (i % 20)}.${20 + ((i * 3) % 250)}`,
     status: Math.random() > 0.1 ? 'online' : 'away',
   })),
-)
+);
 
 // 网络延迟数据
-const latencyData = ref<Array<{ time: string; avg: number; p99: number }>>([])
+const latencyData = ref<Array<{ time: string; avg: number; p99: number }>>([]);
 
 // 延迟统计指标（用于底部填充展示）
 const latencyStats = computed(() => {
   if (latencyData.value.length === 0)
-    return { avg: '--', p99: '--', availability: '99.9' }
+    return { avg: '--', p99: '--', availability: '99.9' };
   const avgVal = Math.round(
     latencyData.value.reduce((s, d) => s + d.avg, 0) / latencyData.value.length,
-  )
+  );
   const p99Val = Math.round(
     latencyData.value.reduce((s, d) => s + d.p99, 0) / latencyData.value.length,
-  )
+  );
   // 模拟可用率（基于 P99 阈值估算）
-  const availability = p99Val > 200 ? '99.5' : p99Val > 150 ? '99.7' : '99.9'
-  return { avg: avgVal, p99: p99Val, availability }
-})
+  const availability = p99Val > 200 ? '99.5' : p99Val > 150 ? '99.7' : '99.9';
+  return { avg: avgVal, p99: p99Val, availability };
+});
 
 // 攻击来源 TOP5 数据
 const attackSources = ref([
@@ -158,7 +158,7 @@ const attackSources = ref([
   { name: '印度 (103.x.x.x)', value: 1456, color: '#f97316' },
   { name: '巴西 (177.x.x.x)', value: 892, color: '#eab308' },
   { name: '未知来源', value: 634, color: '#6b7280' },
-])
+]);
 
 // 安全告警实时数据
 const securityAlerts = ref([
@@ -187,18 +187,18 @@ const securityAlerts = ref([
     level: 'low',
     msg: '可疑目录扫描：/admin, /backup, /.git',
   },
-])
+]);
 
 // ======================== 图表实例管理 ========================
 // useTemplateRef 参数必须和模板 ref 属性值完全一致
-const pvChartRef = useTemplateRef<HTMLDivElement>('pvChartRef')
-const regionBarRef = useTemplateRef<HTMLDivElement>('regionBarRef')
-const gaugeRef = useTemplateRef<HTMLDivElement>('gaugeRef')
-const heatmapRef = useTemplateRef<HTMLDivElement>('heatmapRef')
-const pieChartRef = useTemplateRef<HTMLDivElement>('pieChartRef')
-const latencyChartRef = useTemplateRef<HTMLDivElement>('latencyChartRef')
-const attackSourceRef = useTemplateRef<HTMLDivElement>('attackSourceRef')
-const charts = new Map<string, echarts.ECharts>()
+const pvChartRef = useTemplateRef<HTMLDivElement>('pvChartRef');
+const regionBarRef = useTemplateRef<HTMLDivElement>('regionBarRef');
+const gaugeRef = useTemplateRef<HTMLDivElement>('gaugeRef');
+const heatmapRef = useTemplateRef<HTMLDivElement>('heatmapRef');
+const pieChartRef = useTemplateRef<HTMLDivElement>('pieChartRef');
+const latencyChartRef = useTemplateRef<HTMLDivElement>('latencyChartRef');
+const attackSourceRef = useTemplateRef<HTMLDivElement>('attackSourceRef');
+const charts = new Map<string, echarts.ECharts>();
 
 /** 安全等待 DOM 尺寸就绪后执行回调 */
 function whenReady(
@@ -206,34 +206,34 @@ function whenReady(
   refEl: Ref<HTMLDivElement | undefined>,
   cb: (el: HTMLDivElement) => void,
 ) {
-  const el = refEl.value
-  if (!el || charts.has(name)) return
+  const el = refEl.value;
+  if (!el || charts.has(name)) return;
   if (el.offsetWidth > 0 && el.offsetHeight > 0) {
-    cb(el)
-    return
+    cb(el);
+    return;
   }
-  let done = false
+  let done = false;
   const ob = new ResizeObserver((entries) => {
-    if (done) return
+    if (done) return;
     for (const e of entries) {
       if (e.contentRect.width > 0 && e.contentRect.height > 0) {
-        done = true
-        ob.disconnect()
-        const t = refEl.value
-        if (t && !charts.has(name)) cb(t)
-        break
+        done = true;
+        ob.disconnect();
+        const t = refEl.value;
+        if (t && !charts.has(name)) cb(t);
+        break;
       }
     }
-  })
-  ob.observe(el)
+  });
+  ob.observe(el);
   setTimeout(() => {
     if (!done && !charts.has(name)) {
-      done = true
-      ob.disconnect()
-      const t = refEl.value
-      if (t) cb(t)
+      done = true;
+      ob.disconnect();
+      const t = refEl.value;
+      if (t) cb(t);
     }
-  }, 3000)
+  }, 3000);
 }
 
 // ======================== 默认数据生成 =========================
@@ -241,14 +241,14 @@ function whenReady(
 /** 生成默认趋势数据，避免 API 异常时主图为空 */
 function generateDefaultTrendData() {
   return Array.from({ length: 24 }, (_, i) => {
-    const hour = String(i).padStart(2, '0')
+    const hour = String(i).padStart(2, '0');
     return {
       time: `${hour}:00`,
       pv: Math.floor(800 + Math.random() * 1200),
       uv: Math.floor(300 + Math.random() * 600),
       requests: Math.floor(2000 + Math.random() * 3000),
-    }
-  })
+    };
+  });
 }
 
 /** 生成默认地区分布数据，避免 API 异常时柱状图为空 */
@@ -263,14 +263,14 @@ function generateDefaultRegionData() {
     { name: '湖北', value: 3820, users: 1150 },
     { name: '山东', value: 3210, users: 980 },
     { name: '福建', value: 2580, users: 760 },
-  ]
+  ];
 }
 
 // ======================== 图表配置函数 =========================
 
 /** PV/UV 趋势图 */
 function buildPVOption(data: typeof trendData.value) {
-  const palette = { line: '#3b82f6', uv: '#22c55e', bar: '#f59e0b' }
+  const palette = { line: '#3b82f6', uv: '#22c55e', bar: '#f59e0b' };
   return {
     grid: { left: 50, right: 20, top: 25, bottom: 30 },
     tooltip: {
@@ -348,7 +348,7 @@ function buildPVOption(data: typeof trendData.value) {
       },
     ],
     animationDuration: 1500,
-  }
+  };
 }
 
 /** 地区分布柱状图 */
@@ -363,7 +363,7 @@ function buildRegionOption(data: typeof regionData.value) {
     '#06b6d4',
     '#84cc16',
     '#6366f1',
-  ]
+  ];
   return {
     grid: { left: 60, right: 20, top: 20, bottom: 30 },
     tooltip: {
@@ -392,17 +392,17 @@ function buildRegionOption(data: typeof regionData.value) {
         itemStyle: {
           borderRadius: [0, 4, 4, 0],
           color(params: any) {
-            const c = colors[params.dataIndex % colors.length]
+            const c = colors[params.dataIndex % colors.length];
             return new echarts.graphic.LinearGradient(0, 0, 1, 0, [
               { offset: 0, color: c },
               { offset: 1, color: `${c}33` },
-            ])
+            ]);
           },
         },
         animationDuration: 1200,
       },
     ],
-  }
+  };
 }
 
 /** CPU/内存仪表盘 */
@@ -495,19 +495,19 @@ function buildGaugeOption(cpu: number, mem: number) {
       },
     ],
     animationDuration: 1500,
-  }
+  };
 }
 
 /** 热力图 */
 function buildHeatmapOption() {
-  const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
-  const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`)
-  const data: number[][][] = []
+  const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+  const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+  const data: number[][][] = [];
   for (let d = 0; d < 7; d++) {
     for (let h = 0; h < 24; h++) {
       const base =
-        d < 5 ? (h >= 9 && h <= 18 ? 80 : 20) : h >= 19 && h <= 23 ? 70 : 15
-      data.push([h, d, base + Math.floor(Math.random() * 40)])
+        d < 5 ? (h >= 9 && h <= 18 ? 80 : 20) : h >= 19 && h <= 23 ? 70 : 15;
+      data.push([h, d, base + Math.floor(Math.random() * 40)]);
     }
   }
   return {
@@ -517,7 +517,7 @@ function buildHeatmapOption() {
       borderColor: '#334155',
       textStyle: { color: '#e2e8f0', fontSize: 12 },
       formatter(p: any) {
-        return `${hours[p.data[0]]}<br/>${days[p.data[1]]}<br/>活跃度: ${p.data[2]}`
+        return `${hours[p.data[0]]}<br/>${days[p.data[1]]}<br/>活跃度: ${p.data[2]}`;
       },
     },
     grid: { left: 50, right: 20, top: 10, bottom: 35 },
@@ -556,7 +556,7 @@ function buildHeatmapOption() {
       },
     ],
     animationDuration: 1500,
-  }
+  };
 }
 
 /** 请求类型分布饼图 */
@@ -604,7 +604,7 @@ function buildPieOption() {
         animationDuration: 1200,
       },
     ],
-  }
+  };
 }
 
 /** 网络延迟趋势 */
@@ -663,12 +663,12 @@ function buildLatencyOption(data: typeof latencyData.value) {
       },
     ],
     animationDuration: 1200,
-  }
+  };
 }
 
 /** 攻击来源 TOP5（横向柱状图，安全威胁态势） */
 function buildAttackSourceOption() {
-  const sorted = [...attackSources.value].sort((a, b) => b.value - a.value)
+  const sorted = [...attackSources.value].sort((a, b) => b.value - a.value);
   return {
     grid: {
       left: '2%',
@@ -718,132 +718,133 @@ function buildAttackSourceOption() {
         animationEasing: 'cubicOut',
       },
     ],
-  }
+  };
 }
 
 // ======================== 统一更新所有图表 ========================
 function updateAllCharts() {
-  const pv = charts.get('pv')
-  if (pv && trendData.value.length) pv.setOption(buildPVOption(trendData.value))
+  const pv = charts.get('pv');
+  if (pv && trendData.value.length > 0)
+    pv.setOption(buildPVOption(trendData.value));
 
-  const region = charts.get('region')
-  if (region && regionData.value.length)
-    region.setOption(buildRegionOption(regionData.value))
+  const region = charts.get('region');
+  if (region && regionData.value.length > 0)
+    region.setOption(buildRegionOption(regionData.value));
 
-  const gauge = charts.get('gauge')
+  const gauge = charts.get('gauge');
   if (gauge)
     gauge.setOption(
       buildGaugeOption(overview.value.cpuUsage, overview.value.memUsage),
-    )
+    );
 
-  const pie = charts.get('pie')
-  if (pie) pie.setOption(buildPieOption())
+  const pie = charts.get('pie');
+  if (pie) pie.setOption(buildPieOption());
 
-  const latency = charts.get('latency')
-  if (latency && latencyData.value.length)
-    latency.setOption(buildLatencyOption(latencyData.value))
+  const latency = charts.get('latency');
+  if (latency && latencyData.value.length > 0)
+    latency.setOption(buildLatencyOption(latencyData.value));
 
-  const attack = charts.get('attack')
-  if (attack) attack.setOption(buildAttackSourceOption())
+  const attack = charts.get('attack');
+  if (attack) attack.setOption(buildAttackSourceOption());
 }
 
 /** 完全销毁所有图表 */
 function disposeAll() {
-  charts.forEach((c) => c.dispose())
-  charts.clear()
+  charts.forEach((c) => c.dispose());
+  charts.clear();
 }
 
 // PerfectScrollbar 配置
-const psOptions = { wheelPropagation: true, suppressScrollX: true }
+const psOptions = { wheelPropagation: true, suppressScrollX: true };
 
 // 定时器引用（必须在顶层声明，以便同步清理）
-let refreshTimer: ReturnType<typeof setInterval> | null = null
+let refreshTimer: null | ReturnType<typeof setInterval> = null;
 
 // ======================== 生命周期 ========================
 onMounted(async () => {
   // 阶段1：创建所有图表实例
   initChartImmediately('pv', pvChartRef, (el) => {
-    charts.set('pv', echarts.init(el, 'dark'))
-  })
+    charts.set('pv', echarts.init(el, 'dark'));
+  });
   initChartImmediately('region', regionBarRef, (el) => {
-    charts.set('region', echarts.init(el, 'dark'))
-  })
+    charts.set('region', echarts.init(el, 'dark'));
+  });
   initChartImmediately('gauge', gaugeRef, (el) => {
-    charts.set('gauge', echarts.init(el, 'dark'))
-  })
+    charts.set('gauge', echarts.init(el, 'dark'));
+  });
   initChartImmediately('heatmap', heatmapRef, (el) => {
-    const instance = echarts.init(el, 'dark')
-    charts.set('heatmap', instance)
-    instance.setOption(buildHeatmapOption())
-  })
+    const instance = echarts.init(el, 'dark');
+    charts.set('heatmap', instance);
+    instance.setOption(buildHeatmapOption());
+  });
   initChartImmediately('pie', pieChartRef, (el) => {
-    charts.set('pie', echarts.init(el, 'dark'))
-  })
+    charts.set('pie', echarts.init(el, 'dark'));
+  });
   initChartImmediately('latency', latencyChartRef, (el) => {
-    charts.set('latency', echarts.init(el, 'dark'))
-  })
+    charts.set('latency', echarts.init(el, 'dark'));
+  });
   initChartImmediately('attack', attackSourceRef, (el) => {
-    charts.set('attack', echarts.init(el, 'dark'))
-  })
+    charts.set('attack', echarts.init(el, 'dark'));
+  });
 
   // 阶段2：加载数据
   try {
-    const res = await getScreenMonitorData()
-    const raw = (res as any)?.data ?? res
-    const data = (raw as any)?.data ?? raw
+    const res = await getScreenMonitorData();
+    const raw = (res as any)?.data ?? res;
+    const data = (raw as any)?.data ?? raw;
 
     if (isPlainObject(data) && 'overview' in data) {
-      overview.value = (data as any).overview ?? overview.value
-      trendData.value = (data as any).trend ?? []
-      regionData.value = (data as any).regions ?? []
-      services.value = (data as any).services ?? []
-      alerts.value = (data as any).alerts ?? []
+      overview.value = (data as any).overview ?? overview.value;
+      trendData.value = (data as any).trend ?? [];
+      regionData.value = (data as any).regions ?? [];
+      services.value = (data as any).services ?? [];
+      alerts.value = (data as any).alerts ?? [];
 
       // 生成网络延迟数据
       latencyData.value = trendData.value.slice(-12).map((d) => ({
         time: d.time,
         avg: Math.floor(30 + Math.random() * 80),
         p99: Math.floor(100 + Math.random() * 200),
-      }))
+      }));
     } else {
-      console.warn('[Monitor] API 返回格式异常:', { res, raw, data })
+      console.warn('[Monitor] API 返回格式异常:', { res, raw, data });
     }
 
-    await nextTick()
-    updateAllCharts()
-  } catch (err) {
-    console.warn('[Monitor] 数据加载失败，使用默认值:', err)
-    trendData.value = generateDefaultTrendData()
-    regionData.value = generateDefaultRegionData()
+    await nextTick();
+    updateAllCharts();
+  } catch (error) {
+    console.warn('[Monitor] 数据加载失败，使用默认值:', error);
+    trendData.value = generateDefaultTrendData();
+    regionData.value = generateDefaultRegionData();
     latencyData.value = Array.from({ length: 12 }, (_, i) => ({
       time: `${String(i * 2).padStart(2, '0')}:00`,
       avg: Math.floor(40 + Math.random() * 60),
       p99: Math.floor(120 + Math.random() * 150),
-    }))
-    await nextTick()
-    updateAllCharts()
+    }));
+    await nextTick();
+    updateAllCharts();
   }
 
   // 模拟实时刷新（保存 timer 引用到顶层变量）
   refreshTimer = setInterval(() => {
-    overview.value.onlineUsers += Math.floor(Math.random() * 10) - 4
-    overview.value.todayVisits += Math.floor(Math.random() * 20)
-    overview.value.totalRequests += Math.floor(Math.random() * 500)
+    overview.value.onlineUsers += Math.floor(Math.random() * 10) - 4;
+    overview.value.todayVisits += Math.floor(Math.random() * 20);
+    overview.value.totalRequests += Math.floor(Math.random() * 500);
     overview.value.cpuUsage = Number(
       Math.max(
         10,
         Math.min(95, overview.value.cpuUsage + (Math.random() - 0.5) * 5),
       ).toFixed(1),
-    )
+    );
     overview.value.memUsage = Number(
       Math.max(
         30,
         Math.min(90, overview.value.memUsage + (Math.random() - 0.5) * 3),
       ).toFixed(1),
-    )
+    );
     // 更新延迟数据
     if (latencyData.value.length > 0) {
-      const last = latencyData.value[latencyData.value.length - 1]!
+      const last = latencyData.value[latencyData.value.length - 1]!;
       latencyData.value.push({
         time: last.time,
         avg: Math.max(
@@ -854,11 +855,11 @@ onMounted(async () => {
           80,
           Math.min(300, last.p99 + Math.floor(Math.random() * 40 - 20)),
         ),
-      })
-      if (latencyData.value.length > 24) latencyData.value.shift()
-      const latencyChart = charts.get('latency')
+      });
+      if (latencyData.value.length > 24) latencyData.value.shift();
+      const latencyChart = charts.get('latency');
       if (latencyChart)
-        latencyChart.setOption(buildLatencyOption(latencyData.value))
+        latencyChart.setOption(buildLatencyOption(latencyData.value));
     }
     // 模拟新事件
     if (Math.random() > 0.6) {
@@ -875,14 +876,14 @@ onMounted(async () => {
           level: Math.random() > 0.5 ? 'warning' : 'error',
         },
         { type: 'success', msg: '定时任务执行完成', level: 'success' },
-      ]
+      ];
       const evt =
-        eventTemplates[Math.floor(Math.random() * eventTemplates.length)]!
+        eventTemplates[Math.floor(Math.random() * eventTemplates.length)]!;
       realtimeEvents.value.unshift({
         time: new Date().toLocaleTimeString('zh-CN'),
         ...evt,
-      })
-      if (realtimeEvents.value.length > 50) realtimeEvents.value.pop()
+      });
+      if (realtimeEvents.value.length > 50) realtimeEvents.value.pop();
     }
     // 模拟安全告警动态更新
     if (Math.random() > 0.5) {
@@ -903,64 +904,64 @@ onMounted(async () => {
           level: 'low' as const,
           msg: `安全提醒：${['弱密码检测', '证书即将过期', '未加密传输', '登录地点变更'][Math.floor(Math.random() * 4)]}`,
         },
-      ]
+      ];
       const sa =
-        alertTemplates[Math.floor(Math.random() * alertTemplates.length)]!
+        alertTemplates[Math.floor(Math.random() * alertTemplates.length)]!;
       securityAlerts.value.unshift({
         time: new Date().toLocaleTimeString('zh-CN'),
         ...sa,
-      })
-      if (securityAlerts.value.length > 15) securityAlerts.value.pop()
+      });
+      if (securityAlerts.value.length > 15) securityAlerts.value.pop();
     }
     // 更新攻击来源数据
     if (Math.random() > 0.7) {
       attackSources.value = attackSources.value.map((s) => ({
         ...s,
         value: Math.max(100, s.value + Math.floor(Math.random() * 200 - 80)),
-      }))
-      const attackChart = charts.get('attack')
-      if (attackChart) attackChart.setOption(buildAttackSourceOption())
+      }));
+      const attackChart = charts.get('attack');
+      if (attackChart) attackChart.setOption(buildAttackSourceOption());
     }
-  }, 5000)
+  }, 5000);
 
   // 适配完成后统一触发一次 resize，确保图表在 scale 变换后正确渲染
-  setTimeout(() => charts.forEach((c) => c.resize()), 300)
-})
+  setTimeout(() => charts.forEach((c) => c.resize()), 300);
+});
 
 function initChartImmediately(
   name: string,
   refEl: Ref<HTMLDivElement | undefined>,
   initFn: (el: HTMLDivElement) => void,
 ) {
-  const el = refEl.value
-  if (!el || charts.has(name)) return
+  const el = refEl.value;
+  if (!el || charts.has(name)) return;
   if (el.offsetWidth > 0 && el.offsetHeight > 0) {
-    initFn(el)
-    return
+    initFn(el);
+    return;
   }
-  whenReady(name, refEl, initFn)
+  whenReady(name, refEl, initFn);
 }
 
 watch(
   [() => overview.value.cpuUsage, () => overview.value.memUsage],
   () => {
-    updateAllCharts()
+    updateAllCharts();
   },
   { deep: true },
-)
+);
 
-useEventListener(window, 'resize', () => charts.forEach((c) => c.resize()))
+useEventListener(window, 'resize', () => charts.forEach((c) => c.resize()));
 
 // 关键：确保组件卸载时完全清理所有资源（同步注册）
 onBeforeUnmount(() => {
   // 清理定时器
   if (refreshTimer) {
-    clearInterval(refreshTimer)
-    refreshTimer = null
+    clearInterval(refreshTimer);
+    refreshTimer = null;
   }
   // 销毁所有 ECharts 实例并清理容器样式
-  disposeAll()
-})
+  disposeAll();
+});
 
 // ======================== 工具函数 ========================
 function serviceStatusColor(status: string): string {
@@ -968,7 +969,7 @@ function serviceStatusColor(status: string): string {
     ? 'text-emerald-400'
     : status === 'warning'
       ? 'text-yellow-400'
-      : 'text-red-400'
+      : 'text-red-400';
 }
 
 function eventLevelColor(level: string): string {
@@ -977,8 +978,8 @@ function eventLevelColor(level: string): string {
     warning: 'bg-yellow-500',
     error: 'bg-red-500',
     success: 'bg-emerald-500',
-  }
-  return map[level] || 'bg-gray-500'
+  };
+  return map[level] || 'bg-gray-500';
 }
 
 function eventLevelText(level: string): string {
@@ -987,8 +988,8 @@ function eventLevelText(level: string): string {
     warning: 'text-yellow-400',
     error: 'text-red-400',
     success: 'text-emerald-400',
-  }
-  return map[level] || 'text-gray-400'
+  };
+  return map[level] || 'text-gray-400';
 }
 
 function securityAlertLevelColor(level: string): string {
@@ -997,8 +998,8 @@ function securityAlertLevelColor(level: string): string {
     high: 'bg-orange-500',
     medium: 'bg-yellow-500',
     low: 'bg-blue-400',
-  }
-  return map[level] || 'bg-gray-500'
+  };
+  return map[level] || 'bg-gray-500';
 }
 
 function securityAlertLevelText(level: string): string {
@@ -1007,8 +1008,8 @@ function securityAlertLevelText(level: string): string {
     high: 'text-orange-400',
     medium: 'text-yellow-400',
     low: 'text-blue-300',
-  }
-  return map[level] || 'text-gray-400'
+  };
+  return map[level] || 'text-gray-400';
 }
 </script>
 
@@ -1034,27 +1035,19 @@ function securityAlertLevelText(level: string): string {
             <div class="grid shrink-0 grid-cols-2 gap-3">
               <ScreenCard>
                 <RealtimeNumber :value="overview.onlineUsers" suffix="人" />
-                <span class="mt-1 block text-[10px] text-blue-300/50"
-                  >在线用户</span
-                >
+                <span class="mt-1 block text-[10px] text-blue-300/50">在线用户</span>
               </ScreenCard>
               <ScreenCard>
                 <RealtimeNumber :value="overview.todayVisits" />
-                <span class="mt-1 block text-[10px] text-blue-300/50"
-                  >今日访问(PV)</span
-                >
+                <span class="mt-1 block text-[10px] text-blue-300/50">今日访问(PV)</span>
               </ScreenCard>
               <ScreenCard>
                 <RealtimeNumber :value="overview.alertCount" />
-                <span class="mt-1 block text-[10px] text-blue-300/50"
-                  >告警数</span
-                >
+                <span class="mt-1 block text-[10px] text-blue-300/50">告警数</span>
               </ScreenCard>
               <ScreenCard>
                 <RealtimeNumber :value="roundedNetworkIn" suffix="MB/s" />
-                <span class="mt-1 block text-[10px] text-blue-300/50"
-                  >网络入流量</span
-                >
+                <span class="mt-1 block text-[10px] text-blue-300/50">网络入流量</span>
               </ScreenCard>
             </div>
 
@@ -1091,7 +1084,7 @@ function securityAlertLevelText(level: string): string {
                           ? 'bg-emerald-400'
                           : 'bg-gray-500'
                       "
-                    />
+                    ></span>
                   </div>
                 </div>
               </PerfectScrollbar>
@@ -1105,7 +1098,7 @@ function securityAlertLevelText(level: string): string {
               class="flex min-h-0 flex-[2] flex-col"
               body-class="flex-1 min-h-0"
             >
-              <div ref="pvChartRef" class="h-full min-h-[200px] w-full" />
+              <div ref="pvChartRef" class="h-full min-h-[200px] w-full"></div>
             </ScreenCard>
 
             <!-- 第二行：热力图 + 请求类型饼图 -->
@@ -1115,14 +1108,14 @@ function securityAlertLevelText(level: string): string {
                 class="flex min-h-0 flex-col"
                 body-class="flex-1 min-h-0"
               >
-                <div ref="heatmapRef" class="h-full min-h-[140px] w-full" />
+                <div ref="heatmapRef" class="h-full min-h-[140px] w-full"></div>
               </ScreenCard>
               <ScreenCard
                 title="请求类型分布"
                 class="flex min-h-0 flex-col"
                 body-class="flex-1 min-h-0"
               >
-                <div ref="pieChartRef" class="h-full min-h-[140px] w-full" />
+                <div ref="pieChartRef" class="h-full min-h-[140px] w-full"></div>
               </ScreenCard>
             </div>
 
@@ -1136,25 +1129,21 @@ function securityAlertLevelText(level: string): string {
                 <div
                   ref="latencyChartRef"
                   class="h-full min-h-[120px] w-full"
-                />
+                ></div>
                 <!-- 统计指标 -->
                 <div class="mt-2 flex items-center gap-3 px-1 text-[11px]">
                   <div class="flex items-center gap-1.5">
-                    <span class="h-0.5 w-2 rounded bg-cyan-400" />
+                    <span class="h-0.5 w-2 rounded bg-cyan-400"></span>
                     <span class="text-slate-400">平均</span>
-                    <span class="font-mono font-medium text-cyan-300"
-                      >{{ latencyStats.avg }}ms</span
-                    >
+                    <span class="font-mono font-medium text-cyan-300">{{ latencyStats.avg }}ms</span>
                   </div>
                   <div class="flex items-center gap-1.5">
                     <span
                       class="h-0.5 w-2 rounded bg-rose-400"
                       style="border-style: dashed"
-                    />
+                    ></span>
                     <span class="text-slate-400">P99</span>
-                    <span class="font-mono font-medium text-rose-300"
-                      >{{ latencyStats.p99 }}ms</span
-                    >
+                    <span class="font-mono font-medium text-rose-300">{{ latencyStats.p99 }}ms</span>
                   </div>
                   <div class="ml-auto flex items-center gap-1.5">
                     <span class="text-slate-500">可用率</span>
@@ -1165,8 +1154,7 @@ function securityAlertLevelText(level: string): string {
                           ? 'text-emerald-400'
                           : 'text-amber-400',
                       ]"
-                      >{{ latencyStats.availability }}%</span
-                    >
+                      >{{ latencyStats.availability }}%</span>
                   </div>
                 </div>
               </ScreenCard>
@@ -1185,15 +1173,14 @@ function securityAlertLevelText(level: string): string {
                       <span
                         :class="eventLevelColor(evt.level)"
                         class="mt-1.5 h-1 w-1 shrink-0 rounded-full"
-                      />
+                      ></span>
                       <span class="shrink-0 font-mono text-blue-300/40">{{
                         evt.time
                       }}</span>
                       <span
                         :class="eventLevelText(evt.level)"
                         class="shrink-0"
-                        >{{ evt.type.toUpperCase() }}</span
-                      >
+                        >{{ evt.type.toUpperCase() }}</span>
                       <span class="truncate text-blue-100/70">{{
                         evt.msg
                       }}</span>
@@ -1210,9 +1197,7 @@ function securityAlertLevelText(level: string): string {
             <ScreenCard class="shrink-0">
               <div class="py-1 text-center">
                 <RealtimeNumber :value="overview.totalRequests" />
-                <span class="mt-1 block text-[10px] text-blue-300/50"
-                  >总请求数</span
-                >
+                <span class="mt-1 block text-[10px] text-blue-300/50">总请求数</span>
               </div>
             </ScreenCard>
 
@@ -1222,7 +1207,7 @@ function securityAlertLevelText(level: string): string {
               class="flex min-h-0 flex-1 flex-col"
               body-class="flex-1 min-h-0"
             >
-              <div ref="gaugeRef" class="h-full min-h-[140px] w-full" />
+              <div ref="gaugeRef" class="h-full min-h-[140px] w-full"></div>
             </ScreenCard>
 
             <!-- 地区分布 -->
@@ -1231,7 +1216,7 @@ function securityAlertLevelText(level: string): string {
               class="flex min-h-0 flex-[1.5] flex-col"
               body-class="flex-1 min-h-0"
             >
-              <div ref="regionBarRef" class="h-full min-h-[160px] w-full" />
+              <div ref="regionBarRef" class="h-full min-h-[160px] w-full"></div>
             </ScreenCard>
 
             <!-- 服务与告警 -->
@@ -1269,7 +1254,7 @@ function securityAlertLevelText(level: string): string {
                                   ? 'bg-yellow-400'
                                   : 'bg-red-400'
                             "
-                          />
+                          ></span>
                           {{
                             svc.status === 'healthy'
                               ? '正常'
@@ -1305,7 +1290,7 @@ function securityAlertLevelText(level: string): string {
               class="flex h-full flex-col"
               body-class="flex-1 min-h-0 p-2"
             >
-              <div ref="attackSourceRef" class="h-full min-h-0 w-full" />
+              <div ref="attackSourceRef" class="h-full min-h-0 w-full"></div>
             </ScreenCard>
           </div>
           <!-- 实时安全告警 -->
@@ -1325,15 +1310,14 @@ function securityAlertLevelText(level: string): string {
                     <span
                       :class="securityAlertLevelColor(alert.level)"
                       class="mt-1.5 h-1 w-1 shrink-0 rounded-full"
-                    />
+                    ></span>
                     <span class="shrink-0 font-mono text-blue-300/40">{{
                       alert.time
                     }}</span>
                     <span
                       :class="securityAlertLevelText(alert.level)"
                       class="shrink-0 text-[9px] font-bold uppercase"
-                      >{{ alert.level }}</span
-                    >
+                      >{{ alert.level }}</span>
                     <span class="truncate text-red-100/70">{{
                       alert.msg
                     }}</span>
@@ -1349,10 +1333,8 @@ function securityAlertLevelText(level: string): string {
       <div
         class="flex h-6 items-center justify-center border-t border-blue-500/10 bg-blue-950/80 text-[10px] text-blue-300/30"
       >
-        <span
-          >数据刷新于 {{ new Date().toLocaleString('zh-CN') }} &nbsp;|&nbsp;
-          Antdv Next Admin Security Monitor &nbsp;|&nbsp; v1.0.0</span
-        >
+        <span>数据刷新于 {{ new Date().toLocaleString('zh-CN') }} &nbsp;|&nbsp;
+          Antdv Next Admin Security Monitor &nbsp;|&nbsp; v1.0.0</span>
       </div>
     </div>
   </PerfectScrollbar>

@@ -1,6 +1,6 @@
-import { useResizeObserver } from '@vueuse/core'
-import { isNil } from 'es-toolkit'
-import { onScopeDispose } from 'vue'
+import { onScopeDispose } from 'vue';
+
+import { useResizeObserver } from '@vueuse/core';
 
 /* ============================================================
  * 命令式 API（模块级）
@@ -12,27 +12,27 @@ import { onScopeDispose } from 'vue'
  */
 
 /** 回调集合：element → Set<callback> */
-const listenerMap = new WeakMap<Element, Set<() => void>>()
+const listenerMap = new WeakMap<Element, Set<() => void>>();
 
 /** Observer 实例：element → ResizeObserver */
-const observerMap = new WeakMap<Element, ResizeObserver>()
+const observerMap = new WeakMap<Element, ResizeObserver>();
 
 /** 浏览器是否支持原生 ResizeObserver */
 const hasNativeResizeObserver =
-  typeof window !== 'undefined' && typeof window.ResizeObserver === 'function'
+  typeof window !== 'undefined' && typeof window.ResizeObserver === 'function';
 
 /**
  * 触发某个元素上注册的所有回调
  */
 function dispatchResize(element: Element): void {
-  const listeners = listenerMap.get(element)
-  if (!listeners || listeners.size === 0) return
+  const listeners = listenerMap.get(element);
+  if (!listeners || listeners.size === 0) return;
   for (const fn of listeners) {
     try {
-      fn()
+      fn();
     } catch (error) {
       // 单个回调抛错不影响其他回调
-      console.error('[resize] listener error:', error)
+      console.error('[resize] listener error:', error);
     }
   }
 }
@@ -41,16 +41,16 @@ function dispatchResize(element: Element): void {
  * 为元素创建 ResizeObserver（若尚未创建）
  */
 function ensureObserver(element: Element): void {
-  if (observerMap.has(element)) return
+  if (observerMap.has(element)) return;
 
   const observer = new ResizeObserver((entries) => {
     for (const entry of entries) {
-      dispatchResize(entry.target)
+      dispatchResize(entry.target);
     }
-  })
+  });
 
-  observer.observe(element)
-  observerMap.set(element, observer)
+  observer.observe(element);
+  observerMap.set(element, observer);
 }
 
 /**
@@ -69,17 +69,17 @@ function ensureObserver(element: Element): void {
  * ```
  */
 export function addResizeListener(element: Element, fn: () => void): void {
-  if (!hasNativeResizeObserver) return
-  if (!element) return
+  if (!hasNativeResizeObserver) return;
+  if (!element) return;
 
-  let listeners = listenerMap.get(element)
+  let listeners = listenerMap.get(element);
   if (!listeners) {
-    listeners = new Set()
-    listenerMap.set(element, listeners)
+    listeners = new Set();
+    listenerMap.set(element, listeners);
   }
 
-  listeners.add(fn)
-  ensureObserver(element)
+  listeners.add(fn);
+  ensureObserver(element);
 }
 
 /**
@@ -89,21 +89,21 @@ export function addResizeListener(element: Element, fn: () => void): void {
  * @param fn - 之前注册的回调
  */
 export function removeResizeListener(element: Element, fn: () => void): void {
-  if (!element) return
+  if (!element) return;
 
-  const listeners = listenerMap.get(element)
-  if (!listeners) return
+  const listeners = listenerMap.get(element);
+  if (!listeners) return;
 
-  listeners.delete(fn)
+  listeners.delete(fn);
 
   // 该元素没有监听者了 → 断开 observer
   if (listeners.size === 0) {
-    const observer = observerMap.get(element)
+    const observer = observerMap.get(element);
     if (observer) {
-      observer.disconnect()
-      observerMap.delete(element)
+      observer.disconnect();
+      observerMap.delete(element);
     }
-    listenerMap.delete(element)
+    listenerMap.delete(element);
   }
 }
 
@@ -114,8 +114,8 @@ export function removeResizeListener(element: Element, fn: () => void): void {
  * 注意：使用 `bubbles: false`（与原实现语义一致，只通知 window 直接监听者）。
  */
 export function triggerWindowResize(): void {
-  if (typeof window === 'undefined') return
-  window.dispatchEvent(new Event('resize'))
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new Event('resize'));
 }
 
 /* ============================================================
@@ -153,12 +153,12 @@ export function useResizeListener(
   callback: (entries: ResizeObserverEntry[]) => void,
   options: Parameters<typeof useResizeObserver>[2] = {},
 ): void {
-  useResizeObserver(target, callback, options)
+  useResizeObserver(target, callback, options);
 
   // useResizeObserver 内部已经通过 tryOnScopeDispose 自动清理，
   // 这里再加一层保险：确保组件/effect scope 销毁时不残留监听
   onScopeDispose(() => {
     // noop：useResizeObserver 已处理
     // 保留回调结构，便于将来扩展
-  })
+  });
 }

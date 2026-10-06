@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { useDebounceFn, useEventListener } from '@vueuse/core'
-import { Tree } from 'antdv-next'
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
-
 import type {
   FetchParams,
   Recordable,
   TableActionType,
-} from '~/components/business/Table/types'
+} from '~/components/business/Table/types';
 
-import { BasicTable } from '~/components/business/Table'
-import { cn } from '~/utils/cn'
+import type { TreeDataNode, TreeTableProps } from './types';
 
-import type { TreeDataNode, TreeTableProps } from './types'
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
+
+import { Icon } from '@iconify/vue';
+import { useDebounceFn, useEventListener } from '@vueuse/core';
+import { Tree } from 'antdv-next';
+import { BasicTable } from '~/components/business/Table';
+import { cn } from '~/utils/cn';
 
 const props = withDefaults(defineProps<TreeTableProps>(), {
   treeTitle: '目录',
@@ -28,90 +28,90 @@ const props = withDefaults(defineProps<TreeTableProps>(), {
   showSearch: true,
   treeEmptyText: '暂无数据',
   tableEmptyText: '暂无数据',
-})
+});
 
 const emit = defineEmits<{
-  treeSelect: [selectedKey: string, selectedNode: TreeDataNode]
-}>()
+  treeSelect: [selectedKey: string, selectedNode: TreeDataNode];
+}>();
 
-const panelWidth = ref(props.treeWidth)
-const isDragging = ref(false)
-const searchValue = ref('')
-const selectedKey = ref<string>('')
-const currentTreeKey = ref('')
-const panelRef = ref<HTMLElement>()
-const basicTableRef = ref<TableActionType>()
-const expandedKeys = ref<string[]>([])
+const panelWidth = ref(props.treeWidth);
+const isDragging = ref(false);
+const searchValue = ref('');
+const selectedKey = ref<string>('');
+const currentTreeKey = ref('');
+const panelRef = ref<HTMLElement>();
+const basicTableRef = ref<TableActionType>();
+const expandedKeys = ref<string[]>([]);
 
 function handleRegister(instance: TableActionType) {
-  basicTableRef.value = instance
+  basicTableRef.value = instance;
 }
 
 // ============ 树数据过滤 ============
 function getAllKeys(nodes: TreeDataNode[]): string[] {
-  const keys: string[] = []
+  const keys: string[] = [];
   const walk = (list: TreeDataNode[]) => {
     for (const node of list) {
-      keys.push(node.key)
-      if (node.children?.length) walk(node.children)
+      keys.push(node.key);
+      if (node.children?.length) walk(node.children);
     }
-  }
-  walk(nodes)
-  return keys
+  };
+  walk(nodes);
+  return keys;
 }
 
 function filterTree(nodes: TreeDataNode[], keyword: string): TreeDataNode[] {
-  const lower = keyword.toLowerCase()
+  const lower = keyword.toLowerCase();
   return nodes.reduce<TreeDataNode[]>((acc, node) => {
-    const titleMatch = node.title.toLowerCase().includes(lower)
+    const titleMatch = node.title.toLowerCase().includes(lower);
     const filteredChildren = node.children?.length
       ? filterTree(node.children, keyword)
-      : []
+      : [];
     if (titleMatch || filteredChildren.length > 0) {
       acc.push({
         ...node,
         children:
           filteredChildren.length > 0 ? filteredChildren : node.children,
-      })
+      });
     }
-    return acc
-  }, [])
+    return acc;
+  }, []);
 }
 
 const filteredTreeData = computed(() =>
   searchValue.value.trim()
     ? filterTree(props.treeData, searchValue.value.trim())
     : props.treeData,
-)
+);
 
 watch(
   () => props.treeData,
   () => {
     if (props.treeDefaultExpandAll) {
-      expandedKeys.value = getAllKeys(props.treeData)
+      expandedKeys.value = getAllKeys(props.treeData);
     }
   },
   { immediate: true },
-)
+);
 
 // ============ 搜索（useDebounceFn） ============
 const debouncedSearch = useDebounceFn((val: string) => {
-  searchValue.value = val
+  searchValue.value = val;
   expandedKeys.value = getAllKeys(
     val.trim() ? filteredTreeData.value : props.treeData,
-  )
-}, 300)
+  );
+}, 300);
 
 async function handleTreeSelect(
   _selectedKeys: unknown[],
   info: { node: { key: string } },
 ) {
-  const key = info.node?.key
-  if (!key) return
-  selectedKey.value = key
-  currentTreeKey.value = key
-  emit('treeSelect', key, info.node as TreeDataNode)
-  await basicTableRef.value?.reload()
+  const key = info.node?.key;
+  if (!key) return;
+  selectedKey.value = key;
+  currentTreeKey.value = key;
+  emit('treeSelect', key, info.node as TreeDataNode);
+  await basicTableRef.value?.reload();
 }
 
 function wrappedApi(params: FetchParams): Promise<Recordable> {
@@ -119,91 +119,91 @@ function wrappedApi(params: FetchParams): Promise<Recordable> {
     treeKey: currentTreeKey.value,
     page: params.page || 1,
     pageSize: params.pageSize || props.tablePageSize,
-  }) as unknown as Promise<Recordable>
+  }) as unknown as Promise<Recordable>;
 }
 
 // ============ 拖拽（useEventListener 自动清理） ============
 function handleDragMove(e: MouseEvent) {
-  if (!isDragging.value || !panelRef.value) return
-  const rect = panelRef.value.getBoundingClientRect()
+  if (!isDragging.value || !panelRef.value) return;
+  const rect = panelRef.value.getBoundingClientRect();
   panelWidth.value = Math.max(
     props.treeMinWidth,
     Math.min(props.treeMaxWidth, e.clientX - rect.left),
-  )
+  );
 }
 
 function handleDragStart(e: MouseEvent) {
-  isDragging.value = true
-  document.body.style.cursor = 'col-resize'
-  document.body.style.userSelect = 'none'
-  e.preventDefault()
+  isDragging.value = true;
+  document.body.style.cursor = 'col-resize';
+  document.body.style.userSelect = 'none';
+  e.preventDefault();
 }
 
 function handleDragEnd() {
-  isDragging.value = false
-  document.body.style.cursor = ''
-  document.body.style.userSelect = ''
+  isDragging.value = false;
+  document.body.style.cursor = '';
+  document.body.style.userSelect = '';
 }
 
-useEventListener(document, 'mousemove', handleDragMove)
-useEventListener(document, 'mouseup', handleDragEnd)
+useEventListener(document, 'mousemove', handleDragMove);
+useEventListener(document, 'mouseup', handleDragEnd);
 
 onBeforeUnmount(() => {
   // 恢复 body 样式（useEventListener 会自动解绑事件）
-  document.body.style.cursor = ''
-  document.body.style.userSelect = ''
-})
+  document.body.style.cursor = '';
+  document.body.style.userSelect = '';
+});
 
 // ============ 样式类名 ============
 const containerClassName = cn(
-  'flex h-full rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden',
-)
+  'flex h-full overflow-hidden rounded-xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900',
+);
 
 const treePanelClassName = computed(() =>
   cn(
-    'flex flex-col flex-shrink-0 h-full border-r border-gray-100 dark:border-gray-800',
+    'flex h-full shrink-0 flex-col border-r border-gray-100 dark:border-gray-800',
     isDragging.value && 'transition-none',
   ),
-)
+);
 
-const treePanelStyle = computed(() => ({ width: `${panelWidth.value}px` }))
+const treePanelStyle = computed(() => ({ width: `${panelWidth.value}px` }));
 
 const treeHeaderClassName = cn(
-  'flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex-shrink-0',
-)
+  'flex shrink-0 items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-800',
+);
 const treeHeaderTitleClassName = cn(
   'text-sm font-medium text-gray-700 dark:text-gray-300',
-)
-const treeBodyClassName = cn('flex-1 min-h-0 overflow-hidden p-2')
-const treeSearchClassName = cn('mb-2')
+);
+const treeBodyClassName = cn('min-h-0 flex-1 overflow-hidden p-2');
+const treeSearchClassName = cn('mb-2');
 
 const resizeHandleClassName = computed(() =>
   cn(
-    'w-1 cursor-col-resize flex-shrink-0',
-    'bg-transparent hover:bg-blue-400/30 transition-colors',
+    'w-1 shrink-0 cursor-col-resize',
+    'bg-transparent transition-colors hover:bg-blue-400/30',
     isDragging.value && 'bg-blue-500/30',
   ),
-)
+);
 
 const tablePanelClassName = cn(
-  'flex-1 flex flex-col min-w-0 overflow-hidden h-full',
-)
+  'flex h-full min-w-0 flex-1 flex-col overflow-hidden',
+);
 const tableHeaderClassName = cn(
-  'flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex-shrink-0',
-)
+  'flex shrink-0 items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-800',
+);
 const tableHeaderTitleClassName = cn(
   'text-sm font-medium text-gray-700 dark:text-gray-300',
-)
-const tableBodyClassName = cn('flex-1 overflow-hidden')
+);
+const tableBodyClassName = cn('flex-1 overflow-hidden');
 const emptyClassName = cn(
   'flex flex-col items-center justify-center py-16',
   'text-gray-400 dark:text-gray-500',
-)
+);
 const placeholderClassName = cn(
-  'flex flex-col items-center justify-center h-full',
+  'flex h-full flex-col items-center justify-center',
   'text-gray-400 dark:text-gray-500',
-)
-const nothingSelectedClassName = cn('text-sm text-gray-400 dark:text-gray-500')
+);
+const nothingSelectedClassName = cn('text-sm text-gray-400 dark:text-gray-500');
 </script>
 
 <template>
@@ -246,7 +246,7 @@ const nothingSelectedClassName = cn('text-sm text-gray-400 dark:text-gray-500')
       </div>
     </div>
 
-    <div :class="resizeHandleClassName" @mousedown="handleDragStart" />
+    <div :class="resizeHandleClassName" @mousedown="handleDragStart"></div>
 
     <div :class="tablePanelClassName">
       <div :class="tableHeaderClassName">

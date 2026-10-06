@@ -1,21 +1,15 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { Icon } from '@iconify/vue';
+import { cn } from '~/utils/cn';
 
-import { cn } from '~/utils/cn'
+import { useAuthStyles } from '../composables/useAuthStyles';
 
-import { useAuthStyles } from '../composables/useAuthStyles'
-
-defineOptions({ name: 'AuthTrustBadges' })
-
-export interface TrustBadge {
-  icon: string
-  text: string
-}
+defineOptions({ name: 'AuthTrustBadges' });
 
 withDefaults(
   defineProps<{
-    badges?: TrustBadge[]
-    className?: string
+    badges?: TrustBadge[];
+    className?: string;
   }>(),
   {
     badges: () => [
@@ -24,9 +18,14 @@ withDefaults(
       { icon: 'carbon:data-base', text: '数据隔离' },
     ],
   },
-)
+);
 
-const { trustBadgeClassName } = useAuthStyles()
+export interface TrustBadge {
+  icon: string;
+  text: string;
+}
+
+const { trustBadgeClassName } = useAuthStyles();
 </script>
 
 <template>

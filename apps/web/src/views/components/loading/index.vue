@@ -1,64 +1,68 @@
 <script setup lang="ts">
-import type { Ref } from 'vue'
+import type { Ref } from 'vue';
 
-import { ref, useTemplateRef } from 'vue'
+import { ref, useTemplateRef } from 'vue';
 
-import { createLoading, Loading, useLoading } from '~/components/common/Loading'
-import { cn } from '~/utils/cn'
+import {
+  createLoading,
+  Loading,
+  useLoading,
+} from '~/components/common/Loading';
+import { cn } from '~/utils/cn';
 
-const containerClassName = cn('space-y-6')
+const containerClassName = cn('space-y-6');
 
-const spinLoading = ref(true)
-const spinTip = ref('加载中...')
-const spinStyle = ref<'circle' | 'dot' | 'grid'>('circle')
+const spinLoading = ref(true);
+const spinTip = ref('加载中...');
+const spinStyle = ref<'circle' | 'dot' | 'grid'>('circle');
 
-const skeletonActive = ref(false)
+const skeletonActive = ref(false);
 
-const componentLoading = ref(false)
-const componentSize = ref<'default' | 'small' | 'large'>('default')
-const componentTheme = ref<'light' | 'dark'>('light')
+const componentLoading = ref(false);
+const componentSize = ref<'default' | 'large' | 'small'>('default');
+const componentTheme = ref<'dark' | 'light'>('light');
 
-const hookContainerRef = useTemplateRef<HTMLElement>()
+const hookContainerRef = useTemplateRef<HTMLElement>();
 const hookLoading = useLoading({
   target: () => hookContainerRef.value!,
   body: false,
   tip: 'Hook 控制加载...',
-})
+});
 
-const btnLoading1 = ref(false)
-const btnLoading2 = ref(false)
-const btnLoading3 = ref(false)
+const btnLoading1 = ref(false);
+const btnLoading2 = ref(false);
+const btnLoading3 = ref(false);
 
-let globalLoadingInstance: ReturnType<typeof createLoading> | null = null
+let globalLoadingInstance: null | ReturnType<typeof createLoading> = null;
 
 function simulateAsync(loadingRef: Ref<boolean>, duration = 2000) {
-  loadingRef.value = true
+  loadingRef.value = true;
   setTimeout(() => {
-    loadingRef.value = false
-  }, duration)
+    loadingRef.value = false;
+  }, duration);
 }
 
 function toggleSpinStyle(style: 'circle' | 'dot' | 'grid') {
-  spinStyle.value = style
+  spinStyle.value = style;
 }
 
 function triggerComponentLoading() {
-  componentLoading.value = true
+  componentLoading.value = true;
   setTimeout(() => {
-    componentLoading.value = false
-  }, 2500)
+    componentLoading.value = false;
+  }, 2500);
 }
 
 function triggerUseLoading() {
-  hookLoading.open()
+  hookLoading.open();
   setTimeout(() => {
-    hookLoading.close()
-  }, 2500)
+    hookLoading.close();
+  }, 2500);
 }
 
 function triggerBtnLoading(index: number) {
-  const refs = [btnLoading1, btnLoading2, btnLoading3]
-  simulateAsync(refs[index], 2000 + index * 500)
+  const refs = [btnLoading1, btnLoading2, btnLoading3];
+  simulateAsync(refs[index], 2000 + index * 500);
 }
 
 function triggerGlobalLoading() {
@@ -66,17 +70,17 @@ function triggerGlobalLoading() {
     tip: '正在处理请求，请稍候...',
     theme: 'dark',
     background: 'rgba(0, 0, 0, 0.6)',
-  })
-  globalLoadingInstance.open()
+  });
+  globalLoadingInstance.open();
 
   setTimeout(() => {
-    globalLoadingInstance?.setTip('即将完成...')
-  }, 1500)
+    globalLoadingInstance?.setTip('即将完成...');
+  }, 1500);
 
   setTimeout(() => {
-    globalLoadingInstance?.close()
-    globalLoadingInstance = null
-  }, 3000)
+    globalLoadingInstance?.close();
+    globalLoadingInstance = null;
+  }, 3000);
 }
 </script>
 
@@ -134,7 +138,7 @@ function triggerGlobalLoading() {
             <a-spin description="请稍候，数据同步中...">
               <div
                 class="h-[80px] w-[200px] rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20"
-              />
+              ></div>
             </a-spin>
             <a-input
               v-model:value="spinTip"
@@ -290,9 +294,7 @@ function triggerGlobalLoading() {
         </p>
 
         <div class="flex items-center gap-4">
-          <span class="text-sm font-medium text-gray-600 dark:text-gray-400"
-            >尺寸：</span
-          >
+          <span class="text-sm font-medium text-gray-600 dark:text-gray-400">尺寸：</span>
           <a-radio-group v-model:value="componentSize" option-type="button">
             <a-radio value="small"> Small </a-radio>
             <a-radio value="default"> Default </a-radio>
@@ -301,9 +303,7 @@ function triggerGlobalLoading() {
         </div>
 
         <div class="flex items-center gap-4">
-          <span class="text-sm font-medium text-gray-600 dark:text-gray-400"
-            >主题：</span
-          >
+          <span class="text-sm font-medium text-gray-600 dark:text-gray-400">主题：</span>
           <a-radio-group v-model:value="componentTheme" option-type="button">
             <a-radio value="light"> Light </a-radio>
             <a-radio value="dark"> Dark </a-radio>
@@ -347,8 +347,7 @@ function triggerGlobalLoading() {
           通过
           <code
             class="rounded bg-gray-100 px-1.5 py-0.5 text-xs dark:bg-gray-800"
-            >useLoading</code
-          >
+            >useLoading</code>
           组合式函数编程式控制加载状态，支持动态修改提示文字
         </p>
 
@@ -397,8 +396,7 @@ hookLoading.setTip('新提示文字') // 修改提示</pre>
           Antdv-next 按钮内置
           <code
             class="rounded bg-gray-100 px-1.5 py-0.5 text-xs dark:bg-gray-800"
-            >loading</code
-          >
+            >loading</code>
           属性，点击后自动进入加载态并禁用交互
         </p>
 
@@ -446,8 +444,7 @@ hookLoading.setTip('新提示文字') // 修改提示</pre>
           使用
           <code
             class="rounded bg-gray-100 px-1.5 py-0.5 text-xs dark:bg-gray-800"
-            >createLoading</code
-          >
+            >createLoading</code>
           创建全屏加载实例， 适用于路由跳转、API
           请求拦截器等场景。支持动态修改提示文字
         </p>

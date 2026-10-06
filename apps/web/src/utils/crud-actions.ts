@@ -1,15 +1,15 @@
-import { isFunction } from 'es-toolkit'
+import type { ActionItem } from '~/components/business/Table';
 
-import type { ActionItem } from '~/components/business/Table'
+import { isFunction } from 'es-toolkit';
 
 export interface CrudActionOptions<T> {
-  onEdit?: (record: T) => void
-  onDelete?: (record: T) => void | Promise<void>
-  onView?: (record: T) => void
-  extra?: (record: T) => ActionItem[]
-  deleteTitle?: string
-  deleteContent?: (record: T) => string
-  deleteLabel?: string
+  onEdit?: (record: T) => void;
+  onDelete?: (record: T) => Promise<void> | void;
+  onView?: (record: T) => void;
+  extra?: (record: T) => ActionItem[];
+  deleteTitle?: string;
+  deleteContent?: (record: T) => string;
+  deleteLabel?: string;
 }
 
 export function createCrudActions<T extends Record<string, unknown>>(
@@ -25,9 +25,9 @@ export function createCrudActions<T extends Record<string, unknown>>(
     deleteTitle = '确认删除',
     deleteContent,
     deleteLabel = '删除',
-  } = options
+  } = options;
 
-  const actions: ActionItem[] = []
+  const actions: ActionItem[] = [];
 
   if (isFunction(onView)) {
     actions.push({
@@ -35,7 +35,7 @@ export function createCrudActions<T extends Record<string, unknown>>(
       icon: 'ant-design:eye-outlined',
       auth: permissions?.detail,
       onClick: () => onView(record),
-    })
+    });
   }
 
   if (isFunction(onEdit)) {
@@ -44,11 +44,11 @@ export function createCrudActions<T extends Record<string, unknown>>(
       icon: 'ant-design:edit-outlined',
       auth: permissions?.update,
       onClick: () => onEdit(record),
-    })
+    });
   }
 
   if (isFunction(extra)) {
-    actions.push(...extra(record))
+    actions.push(...extra(record));
   }
 
   if (isFunction(onDelete)) {
@@ -62,8 +62,8 @@ export function createCrudActions<T extends Record<string, unknown>>(
         content: isFunction(deleteContent) ? deleteContent(record) : undefined,
         confirm: () => onDelete(record),
       },
-    })
+    });
   }
 
-  return actions
+  return actions;
 }

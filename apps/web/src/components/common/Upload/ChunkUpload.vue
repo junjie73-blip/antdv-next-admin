@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { message } from 'antdv-next'
-import { computed } from 'vue'
-
-import { cn } from '~/utils/cn'
-
 import type {
   ChunkUploadInstance,
   ChunkUploadProps,
   ChunkUploadTask,
-} from './types'
+} from './types';
 
-import { useChunkUploader } from './composables/useChunkUploader'
-import { classifyUploadError, STATUS_COLOR } from './constants'
-import { formatBytes, formatDuration } from './utils'
+import { computed } from 'vue';
 
-defineOptions({ name: 'ChunkUpload' })
+import { Icon } from '@iconify/vue';
+import { message } from 'antdv-next';
+import { cn } from '~/utils/cn';
+
+import { useChunkUploader } from './composables/useChunkUploader';
+import { classifyUploadError, STATUS_COLOR } from './constants';
+import { formatBytes, formatDuration } from './utils';
+
+defineOptions({ name: 'ChunkUpload' });
 
 const props = withDefaults(defineProps<ChunkUploadProps>(), {
   chunkSize: 0,
@@ -24,17 +24,16 @@ const props = withDefaults(defineProps<ChunkUploadProps>(), {
   autoStart: true,
   resume: true,
   multiple: true,
-})
+});
+const emit = defineEmits<{
+  success: [task: ChunkUploadTask];
+  error: [task: ChunkUploadTask];
+  change: [tasks: ChunkUploadTask[]];
+  complete: [tasks: ChunkUploadTask[]];
+}>();
 const bandwidthLimit = defineModel<number>('limit', {
   default: 0,
-})
-const emit = defineEmits<{
-  success: [task: ChunkUploadTask]
-  error: [task: ChunkUploadTask]
-  change: [tasks: ChunkUploadTask[]]
-  complete: [tasks: ChunkUploadTask[]]
-}>()
-
+});
 // ============================================================
 // 核心
 // ============================================================
@@ -45,161 +44,176 @@ const uploader = useChunkUploader({
   maxRetry: props.maxRetry,
 
   onUpdate: (task) => {
-    emit('change', uploader.getTasks())
+    emit('change', uploader.getTasks());
     if (task.status === 'success') {
-      emit('success', task)
-      notifyCompleteIfAllDone()
+      emit('success', task);
+      notifyCompleteIfAllDone();
     }
   },
 
   onError: (task) => emit('error', task),
   onMergeStart: (task) => {
-    message.success(`文件 ${task.filename} 已进入合并阶段`)
+    message.success(`文件 ${task.filename} 已进入合并阶段`);
   },
-})
+});
 
 function getErrorHint(task: ChunkUploadTask): string {
-  if (task.error) return task.error
+  if (task.error) return task.error;
   if (task.errorCode) {
-    const info = classifyUploadError({ message: task.errorCode })
-    return info.message
+    const info = classifyUploadError({ message: task.errorCode });
+    return info.message;
   }
-  return '上传失败'
+  return '上传失败';
 }
 function canRetry(task: ChunkUploadTask): boolean {
-  return task.status === 'error' && task.errorRetryable !== false
+  return task.status === 'error' && task.errorRetryable !== false;
 }
 function notifyCompleteIfAllDone() {
-  const all = uploader.getTasks()
+  const all = uploader.getTasks();
   const allSettled = all.every(
     (t) =>
       t.status === 'success' || t.status === 'error' || t.status === 'canceled',
-  )
+  );
   if (allSettled && all.some((t) => t.status === 'success')) {
-    emit('complete', all)
+    emit('complete', all);
   }
 }
 
-const tasks = computed(() => Array.from(uploader.tasks.value.values()))
+const tasks = computed(() => [...uploader.tasks.value.values()]);
 
 // ============================================================
 // 选择文件
 // ============================================================
 function handleSelectFiles(e: Event) {
-  const input = e.target as HTMLInputElement
-  const files = Array.from(input.files ?? [])
-  if (files.length === 0) return
+  const input = e.target as HTMLInputElement;
+  const files = [...(input.files ?? [])];
+  if (files.length === 0) return;
 
   if (props.maxCount && tasks.value.length + files.length > props.maxCount) {
-    message.warning(`最多同时上传 ${props.maxCount} 个文件`)
-    input.value = ''
-    return
+    message.warning(`最多同时上传 ${props.maxCount} 个文件`);
+    input.value = '';
+    return;
   }
 
-  const valid: File[] = []
+  const valid: File[] = [];
   for (const f of files) {
     if (props.maxSize && f.size > props.maxSize * 1024 * 1024) {
-      message.warning(`${f.name} 超过 ${props.maxSize}MB，已跳过`)
-      continue
+      message.warning(`${f.name} 超过 ${props.maxSize}MB，已跳过`);
+      continue;
     }
-    valid.push(f)
+    valid.push(f);
   }
 
   if (valid.length === 0) {
-    input.value = ''
-    return
+    input.value = '';
+    return;
   }
 
-  uploader.addFiles(valid)
-  if (props.autoStart) uploader.start()
-  input.value = ''
+  uploader.addFiles(valid);
+  if (props.autoStart) uploader.start();
+  input.value = '';
 }
 
 // ============================================================
 // 展示辅助
 // ============================================================
 function getPercent(task: ChunkUploadTask): number {
-  if (task.total === 0) return 0
-  return Math.min(100, Math.round((task.loaded / task.total) * 100))
+  if (task.total === 0) return 0;
+  return Math.min(100, Math.round((task.loaded / task.total) * 100));
 }
 
 /** 状态文案 */
 function getStatusText(task: ChunkUploadTask): string {
   switch (task.status) {
-    case 'waiting':
-      return '等待中'
-    case 'hashing':
-      return '计算中'
-    case 'uploading':
-      return '上传中'
-    case 'paused':
-      return '已暂停'
-    case 'merging':
-      return getMergeStatusText(task.mergeStatus)
-    case 'success':
-      return '已完成'
-    case 'error':
-      return '上传失败'
-    case 'canceled':
-      return '已取消'
-    default:
-      return task.status
+    case 'waiting': {
+      return '等待中';
+    }
+    case 'hashing': {
+      return '计算中';
+    }
+    case 'uploading': {
+      return '上传中';
+    }
+    case 'paused': {
+      return '已暂停';
+    }
+    case 'merging': {
+      return getMergeStatusText(task.mergeStatus);
+    }
+    case 'success': {
+      return '已完成';
+    }
+    case 'error': {
+      return '上传失败';
+    }
+    case 'canceled': {
+      return '已取消';
+    }
+    default: {
+      return task.status;
+    }
   }
 }
 
 /** 合并阶段细分文案 */
 function getMergeStatusText(
-  status?: 'pending' | 'merging' | 'uploading' | 'completed' | 'failed',
+  status?: 'completed' | 'failed' | 'merging' | 'pending' | 'uploading',
 ): string {
   switch (status) {
-    case 'pending':
-      return '准备合并'
-    case 'merging':
-      return '合并中'
-    case 'uploading':
-      return '上传中'
-    case 'completed':
-      return '已完成'
-    case 'failed':
-      return '合并失败'
-    default:
-      return '合并中'
+    case 'pending': {
+      return '准备合并';
+    }
+    case 'merging': {
+      return '合并中';
+    }
+    case 'uploading': {
+      return '上传中';
+    }
+    case 'completed': {
+      return '已完成';
+    }
+    case 'failed': {
+      return '合并失败';
+    }
+    default: {
+      return '合并中';
+    }
   }
 }
 
 function getStatusColor(task: ChunkUploadTask): string {
-  return STATUS_COLOR[task.status] ?? 'default'
+  return STATUS_COLOR[task.status] ?? 'default';
 }
 
 // ============================================================
 // 操作
 // ============================================================
 function handlePause(uid: string) {
-  uploader.pause(uid)
+  uploader.pause(uid);
 }
 function handleResume(uid: string) {
-  uploader.resume(uid)
+  uploader.resume(uid);
 }
 function handleRetry(uid: string) {
-  uploader.retry(uid)
+  uploader.retry(uid);
 }
 function handleRemove(uid: string) {
-  uploader.remove(uid)
+  uploader.remove(uid);
 }
 function handleStartOne(uid: string) {
-  uploader.start(uid)
+  uploader.start(uid);
 }
 function handleStartAll() {
-  uploader.start()
+  uploader.start();
 }
 function handlePauseAll() {
-  uploader.pause()
+  uploader.pause();
 }
 function handleResumeAll() {
-  uploader.resume()
+  uploader.resume();
 }
 function handleClear() {
-  uploader.clear()
+  uploader.clear();
 }
 
 // ============================================================
@@ -215,21 +229,23 @@ const instance: ChunkUploadInstance = {
   retry: (uid) => uploader.retry(uid),
   clear: () => uploader.clear(),
   getTasks: () => uploader.getTasks(),
-}
-defineExpose(instance)
+};
+defineExpose(instance);
 
 // ============================================================
 // 按钮可见性
 // ============================================================
 const hasWaiting = computed(() =>
   tasks.value.some((t) => t.status === 'waiting'),
-)
+);
 const hasActive = computed(() =>
   tasks.value.some((t) =>
-    ['uploading', 'hashing', 'merging'].includes(t.status),
+    ['hashing', 'merging', 'uploading'].includes(t.status),
   ),
-)
-const hasPaused = computed(() => tasks.value.some((t) => t.status === 'paused'))
+);
+const hasPaused = computed(() =>
+  tasks.value.some((t) => t.status === 'paused'),
+);
 </script>
 
 <template>
@@ -436,14 +452,12 @@ const hasPaused = computed(() => tasks.value.some((t) => t.status === 'paused'))
           <div
             v-if="task.status === 'merging'"
             class="h-full w-full animate-pulse rounded-full bg-purple-500"
-          />
+          ></div>
           <div
             v-else-if="task.status === 'success'"
             class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
           >
-            <span class="text-green-600 dark:text-green-400"
-              >✓ 已上传并入库</span
-            >
+            <span class="text-green-600 dark:text-green-400">✓ 已上传并入库</span>
             <a
               v-if="task.result?.url"
               :href="task.result.url"
@@ -478,7 +492,7 @@ const hasPaused = computed(() => tasks.value.some((t) => t.status === 'paused'))
             :style="{
               width: `${task.status === 'hashing' ? task.hashProgress : getPercent(task)}%`,
             }"
-          />
+          ></div>
         </div>
         <div
           v-if="task.status === 'uploading' && task.retryCount > 0"
