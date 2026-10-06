@@ -1,12 +1,12 @@
 {
-  "name": "@vben/oxfmt-config",
-  "version": "5.8.0",
+  "name": "@antdv-admin/oxfmt-config",
+  "version": "0.0.0",
   "private": true,
-  "homepage": "https://github.com/vbenjs/vue-vben-admin",
-  "bugs": "https://github.com/vbenjs/vue-vben-admin/issues",
+  "homepage": "https://github.com/junjie73-blip/antdv-next-admin",
+  "bugs": "https://github.com/junjie73-blip/antdv-next-admin/issues",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vbenjs/vue-vben-admin.git",
+    "url": "git+https://github.com/junjie73-blip/antdv-next-admin.git",
     "directory": "internal/lint-configs/oxfmt-config"
   },
   "license": "MIT",
@@ -27,6 +27,8 @@
     }
   },
   "dependencies": {
-    "oxfmt": "catalog:"
+    "oxfmt": "catalog:",
+    "tsdown": "catalog:",
+    "@antdv-admin/tsconfig": "workspace:*"
   }
 }

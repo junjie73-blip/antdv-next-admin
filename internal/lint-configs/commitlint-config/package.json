@@ -1,12 +1,12 @@
 {
-  "name": "@vben/commitlint-config",
-  "version": "5.8.0",
+  "name": "@antdv-admin/commitlint-config",
+  "version": "0.0.0",
   "private": true,
-  "homepage": "https://github.com/vbenjs/vue-vben-admin",
-  "bugs": "https://github.com/vbenjs/vue-vben-admin/issues",
+  "homepage": "https://github.com/junjie73-blip/antdv-next-admin",
+  "bugs": "https://github.com/junjie73-blip/antdv-next-admin/issues",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vbenjs/vue-vben-admin.git",
+    "url": "git+https://github.com/junjie73-blip/antdv-next-admin.git",
     "directory": "internal/lint-configs/commitlint-config"
   },
   "license": "MIT",
@@ -26,7 +26,7 @@
   "dependencies": {
     "@commitlint/cli": "catalog:",
     "@commitlint/config-conventional": "catalog:",
-    "@vben/node-utils": "workspace:*",
+    "@antdv-admin/node-utils": "workspace:*",
     "commitlint-plugin-function-rules": "catalog:",
     "cz-git": "catalog:",
     "czg": "catalog:"

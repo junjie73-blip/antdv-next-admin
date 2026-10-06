@@ -1,0 +1,29 @@
+{
+  "name": "@antdv-admin/backend-mock",
+  "version": "0.4.0",
+  "private": true,
+  "type": "module",
+  "description": "基于 Nitro 的 Mock 服务：业务接口 + 运行时控制面（供 Mock 数据中心面板消费）",
+  "scripts": {
+    "build": "nitro build",
+    "dev": "nitro dev",
+    "preview": "node .output/server/index.mjs",
+    "start": "node .output/server/index.mjs",
+    "test:unit": "vitest run",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@antdv-admin/types": "workspace:*",
+    "@faker-js/faker": "catalog:",
+    "dayjs": "catalog:",
+    "jose": "catalog:",
+    "mockjs": "catalog:",
+    "nitropack": "catalog:"
+  },
+  "devDependencies": {
+    "@antdv-admin/tsconfig": "workspace:*",
+    "@types/mockjs": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

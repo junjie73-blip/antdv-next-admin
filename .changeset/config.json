@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/changeset",
+  "baseBranch": "main",
+  "changelog": "@changesets/cli/changelog",
+  "access": "public",
+  "privatePackages": {
+    "version": true,
+    "tag": true
+  },
+  "fixed": [],
+  "linked": [],
+  "ignore": []
+}

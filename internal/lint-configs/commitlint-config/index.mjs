@@ -1,6 +1,6 @@
 import { execSync } from 'node:child_process';
 
-import { getPackagesSync } from '@vben/node-utils';
+import { getPackagesSync } from '@antdv-admin/node-utils';
 
 const { packages } = getPackagesSync();
 

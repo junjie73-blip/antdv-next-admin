@@ -1,0 +1,9 @@
+{
+  "extends": "@antdv-admin/tsconfig/node.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "outDir": "dist"
+  },
+  "include": ["src/**/*.ts", "tsdown.config.ts"],
+  "exclude": ["dist", "node_modules"]
+}

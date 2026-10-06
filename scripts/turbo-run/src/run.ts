@@ -1,4 +1,4 @@
-import { execa, getPackages } from '@vben/node-utils';
+import { execa, getPackages } from '@antdv-admin/node-utils';
 
 import { cancel, isCancel, select } from '@clack/prompts';
 

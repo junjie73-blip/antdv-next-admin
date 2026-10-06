@@ -1,4 +1,4 @@
-import { consola } from '@vben/node-utils';
+import { consola } from '@antdv-admin/node-utils';
 
 import { cac } from 'cac';
 

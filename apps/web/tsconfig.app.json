@@ -1,0 +1,27 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  // types/ 下是 vite 插件生成 + 手写的第三方模块声明（env.d.ts / auto-imports.d.ts 等），
+  // 不 include 进来就没有 ImportMetaEnv 与自动导入的全局类型。
+  "include": ["types/**/*.d.ts", "src/**/*", "src/**/*.vue"],
+  "exclude": ["src/**/__tests__/*"],
+  "compilerOptions": {
+    // Extra safety for array and object lookups, but may have false positives.
+    "noUncheckedIndexedAccess": true,
+    "allowImportingTsExtensions": false,
+    // Path mapping for cleaner imports.
+    // TS 6 起 `paths` 相对 tsconfig 解析，不再需要（也不允许）`baseUrl`。
+    "paths": {
+      "~/*": ["./src/*"],
+      "#/*": ["./types/*"]
+    },
+    "types": [
+      "vite/client",
+      "vite-plugin-pwa/client",
+      "vite-plugin-pwa/vue",
+      "vite-plugin-vue-layouts-next/client"
+    ],
+    // `vue-tsc --build` produces a .tsbuildinfo file for incremental type-checking.
+    // Specified here to keep it out of the root directory.
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo"
+  }
+}

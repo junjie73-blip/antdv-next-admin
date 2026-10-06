@@ -1,12 +1,12 @@
 {
-  "name": "@vben/eslint-config",
-  "version": "5.8.0",
+  "name": "@antdv-admin/eslint-config",
+  "version": "0.0.0",
   "private": true,
-  "homepage": "https://github.com/vbenjs/vue-vben-admin",
-  "bugs": "https://github.com/vbenjs/vue-vben-admin/issues",
+  "homepage": "https://github.com/junjie73-blip/antdv-next-admin",
+  "bugs": "https://github.com/junjie73-blip/antdv-next-admin/issues",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vbenjs/vue-vben-admin.git",
+    "url": "git+https://github.com/junjie73-blip/antdv-next-admin.git",
     "directory": "internal/lint-configs/eslint-config"
   },
   "license": "MIT",
@@ -29,7 +29,7 @@
   "dependencies": {
     "@eslint/js": "catalog:",
     "@typescript-eslint/parser": "catalog:",
-    "@vben/oxlint-config": "workspace:*",
+    "@antdv-admin/oxlint-config": "workspace:*",
     "eslint": "catalog:",
     "eslint-plugin-jsonc": "catalog:",
     "eslint-plugin-n": "catalog:",
@@ -40,6 +40,8 @@
     "eslint-plugin-yml": "catalog:",
     "globals": "catalog:",
     "vue-eslint-parser": "catalog:",
-    "yaml-eslint-parser": "catalog:"
+    "yaml-eslint-parser": "catalog:",
+    "@antdv-admin/tsconfig": "workspace:*",
+    "tsdown": "catalog:"
   }
 }

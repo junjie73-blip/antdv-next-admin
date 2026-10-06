@@ -1,5 +1,5 @@
 {
-  "name": "@vben/vsh",
+  "name": "@antdv-admin/vsh",
   "version": "5.8.0",
   "private": true,
   "license": "MIT",
@@ -22,10 +22,12 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@vben/node-utils": "workspace:*",
+    "@antdv-admin/node-utils": "workspace:*",
     "cac": "catalog:",
     "circular-dependency-scanner": "catalog:",
     "knip": "catalog:",
-    "publint": "catalog:"
+    "publint": "catalog:",
+    "tsdown": "catalog:",
+    "@antdv-admin/tsconfig": "workspace:*"
   }
 }

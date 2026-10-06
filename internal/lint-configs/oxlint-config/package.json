@@ -1,12 +1,12 @@
 {
-  "name": "@vben/oxlint-config",
-  "version": "5.8.0",
+  "name": "@antdv-admin/oxlint-config",
+  "version": "0.0.0",
   "private": true,
-  "homepage": "https://github.com/vbenjs/vue-vben-admin",
-  "bugs": "https://github.com/vbenjs/vue-vben-admin/issues",
+  "homepage": "https://github.com/junjie73-blip/antdv-next-admin",
+  "bugs": "https://github.com/junjie73-blip/antdv-next-admin/issues",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vbenjs/vue-vben-admin.git",
+    "url": "git+https://github.com/junjie73-blip/antdv-next-admin.git",
     "directory": "internal/lint-configs/oxlint-config"
   },
   "license": "MIT",
@@ -30,6 +30,8 @@
     "@eslint-community/eslint-plugin-eslint-comments": "catalog:",
     "eslint-plugin-better-tailwindcss": "catalog:",
     "eslint-plugin-command": "catalog:",
-    "oxlint": "catalog:"
+    "oxlint": "catalog:",
+    "tsdown": "catalog:",
+    "@antdv-admin/tsconfig": "workspace:*"
   }
 }

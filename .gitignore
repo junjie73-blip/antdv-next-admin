@@ -43,5 +43,12 @@ playwright-report/
 */cache/*
 *prototype/*
 dev-list
-# Mock 运行时本地配置（开关 / 延迟 / 失败率），不入库
+
+# Monorepo 构建产物与任务缓存
+.turbo
+apps/backend-mock/.nitro
+apps/backend-mock/.output
+
+# Mock 运行时本地配置（开关 / 延迟 / 失败率 / 面板生成接口），不入库
+apps/backend-mock/.mock-state.json
 mock/.runtime.json

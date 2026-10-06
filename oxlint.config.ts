@@ -1,14 +1,5 @@
-import { defineConfig } from "oxlint";
+import { oxlintConfig } from '@antdv-admin/oxlint-config';
 
-export default defineConfig({
-  plugins: ["eslint", "typescript", "unicorn", "oxc", "vue", "vitest", "import"],
-  env: {
-    browser: true,
-  },
-  categories: {
-    correctness: "error",
-  },
-  rules: {
-    "eslint/no-unused-vars": "error",
-  },
-});
+import { defineConfig } from 'oxlint';
+
+export default defineConfig(oxlintConfig);

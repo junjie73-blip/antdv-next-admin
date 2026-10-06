@@ -1,0 +1,11 @@
+{
+  "extends": "@antdv-admin/tsconfig/node.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "paths": {
+      "#imports": ["./.nitro/types/nitro-imports"]
+    }
+  },
+  "include": ["server/**/*.ts", "test/**/*.ts", "vitest.config.ts", "nitro.config.ts", ".nitro/types/*.d.ts"],
+  "exclude": ["legacy-mock", "node_modules"]
+}

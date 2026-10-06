@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
-import { execa } from '@vben/node-utils';
+import { execa } from '@antdv-admin/node-utils';
 
 const require = createRequire(import.meta.url);
 const knipMain = require.resolve('knip');

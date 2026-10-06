@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "//": "打包 / 类型检查只看 src，测试文件由 vitest 自己编译，避免 dist 里混入用例。",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.build.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts", "tsdown.config.ts"],
+  "exclude": ["dist", "node_modules", "__tests__", "vitest.config.ts"]
+}
