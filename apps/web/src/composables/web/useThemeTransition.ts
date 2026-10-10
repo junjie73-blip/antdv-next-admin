@@ -1,16 +1,18 @@
-import type { ThemeMode } from '~/settings';
+import type { AppSetting, ThemeMode } from '~/settings';
 
 import { nextTick } from 'vue';
 
+import { applyPreferencesToDom, createSystemDark, resolveThemeMode } from '~/settings';
 import { useAppStore } from '~/stores/modules/app';
+
+/** 系统深色偏好：只在浏览器里查一次，`auto` 模式用它解析 */
+const systemDark = createSystemDark();
 
 /* ============================================================
  * 判断当前渲染效果是否为暗色
  * ============================================================ */
 export function isDarkNow(theme: ThemeMode): boolean {
-  if (theme === 'dark') return true;
-  if (theme === 'light') return false;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  return resolveThemeMode(theme, systemDark.isDark()) === 'dark';
 }
 
 /* ============================================================
@@ -18,11 +20,12 @@ export function isDarkNow(theme: ThemeMode): boolean {
  * ============================================================
  * 关键：必须在 startViewTransition 的 callback 里同步执行，
  * 不能 await，否则快照捕获时机错乱，动画失效。
+ *
+ * DOM 写入复用 `@antdv/preferences` 的实现（class + CSS 变量 + colorScheme），
+ * 只是把 theme 临时替换成动画目标值——避免这里和偏好实例各写一套、互相覆盖。
  */
-function applyThemeToDom(target: 'dark' | 'light'): void {
-  const html = document.documentElement;
-  html.classList.toggle('dark', target === 'dark');
-  html.style.colorScheme = target;
+function applyThemeToDom(target: 'dark' | 'light', appSetting: AppSetting): void {
+  applyPreferencesToDom({ ...appSetting, theme: target });
 }
 
 /* ============================================================
@@ -59,7 +62,7 @@ export function useThemeTransition() {
 
     /* ---------- 3. 不支持 View Transition → 直接切 ---------- */
     if (typeof document.startViewTransition !== 'function') {
-      applyThemeToDom(target);
+      applyThemeToDom(target, appStore.appSetting);
       appStore.updateSetting({ theme: target });
       return;
     }
@@ -68,14 +71,13 @@ export function useThemeTransition() {
     const transition = document.startViewTransition(() => {
       // ⭐ 只调用 DOM 操作，不动 store
       // store 更新放在动画结束后，避免响应式干扰
-      applyThemeToDom(target);
+      applyThemeToDom(target, appStore.appSetting);
     });
 
     await transition.ready;
 
     /* ---------- 5. clipPath 动画 ---------- */
     const isSwitchingToDark = target === 'dark';
-    console.log(isSwitchingToDark, target);
     const clipPath = [
       `circle(0px at ${x}px ${y}px)`,
       `circle(${endRadius}px at ${x}px ${y}px)`,

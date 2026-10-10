@@ -116,6 +116,51 @@ export function detectXss(input: string): boolean {
   return false;
 }
 
+/**
+ * 白名单清理前的兜底剥离
+ *
+ * DOMPurify 依赖完整的 DOM 实现；在 SSR、测试环境（happy-dom/jsdom 对
+ * `<script>`  raw-text 解析不一致）或它自身降级时，`sanitize()` 可能原样保留
+ * 脚本标签。这里按 `stripScript` / `stripEventHandlers` 先把最危险的两类内容
+ * 摘掉，让「允许 HTML」这条路径在任何运行环境下都有下限保证。
+ */
+export function stripDangerousMarkup(
+  html: string,
+  opts: Required<XssFilterOptions>,
+): string {
+  let output = html;
+
+  if (opts.stripScript) {
+    // 成对删除：脚本/框架类标签的「文本内容」本身就是要执行的代码
+    output = output.replaceAll(/<script\b[\s\S]*?<\/script\s*>/gi, '');
+    output = output.replaceAll(/<iframe\b[\s\S]*?<\/iframe\s*>/gi, '');
+    output = output.replaceAll(/<(object|embed)\b[\s\S]*?<\/\1\s*>/gi, '');
+    output = output.replaceAll(/<applet\b[\s\S]*?<\/applet\s*>/gi, '');
+    // 兜底清扫：自闭合写法（<embed>）或未闭合的残标签
+    output = output.replaceAll(/<\/?(?:script|iframe|object|embed|applet)\b[^>]*>/gi, '');
+  }
+
+  if (opts.stripEventHandlers) {
+    // on*="..." / on*'...' / on*=unquoted（连同前导空格一起摘掉）
+    output = output.replaceAll(
+      /\s+on[a-z-]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi,
+      '',
+    );
+    output = output.replaceAll(/\s+srcdoc\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '');
+  }
+
+  return output;
+}
+
+/** DOMPurify 在当前运行环境是否真的可用 */
+function canUseDomPurify(): boolean {
+  return (
+    typeof DOMPurify !== 'undefined' &&
+    DOMPurify.isSupported === true &&
+    typeof DOMPurify.sanitize === 'function'
+  );
+}
+
 // ==================== 输出转义函数 ====================
 
 /**
@@ -189,7 +234,9 @@ export function escapeJs(str: string): string {
   };
 
   // 先转义反斜杠，再转义其他字符
-  let escaped = String(str).replace(/\\/, String.raw`\\`);
+  // 这里必须是全局替换：`replace(/\\/)` 只处理第一个反斜杠，
+  // 输入 `a\b\c` 会漏掉第二个，导致转义结果仍可被二次解析。
+  let escaped = String(str).replaceAll(/\\/g, String.raw`\\`);
   escaped = escaped.replaceAll(
     /['"\n\r\t\0\u2028\u2029]/g,
     (char) => jsEscapeMap[char] ?? char,
@@ -280,9 +327,9 @@ export function sanitizeInput(
   const opts = { ...DEFAULT_OPTIONS, ...options };
   let result = input.slice(0, opts.maxLength);
 
-  if (opts.allowHtml) {
-    // 替换原来不安全的正则匹配，直接使用 DOMPurify（注意：此处置同步调用）
-    result = DOMPurify.sanitize(result, {
+  if (opts.allowHtml && canUseDomPurify()) {
+    // 先做兜底剥离，再交给 DOMPurify 做完整白名单清理
+    result = DOMPurify.sanitize(stripDangerousMarkup(result, opts), {
       ALLOWED_TAGS: opts.allowedTags.length > 0 ? opts.allowedTags : undefined,
       FORBID_ATTR: opts.forbiddenAttrs,
       ALLOW_DATA_ATTR: false,
@@ -350,9 +397,9 @@ export async function purifyHtml(
     ALLOW_DATA_ATTR: false, // 防止 data-* 属性被利用
   };
 
-  // 如果允许 HTML，则通过 DOMPurify 清理；如果不允许，则退回 HTML 转义
-  if (opts.allowHtml) {
-    return DOMPurify.sanitize(dirty, domPurifyConfig);
+  // 如果允许 HTML 且 DOMPurify 可用，则深度清理；否则退回 HTML 转义
+  if (opts.allowHtml && canUseDomPurify()) {
+    return DOMPurify.sanitize(stripDangerousMarkup(dirty, opts), domPurifyConfig);
   } else {
     return escapeHtml(dirty);
   }
@@ -454,18 +501,23 @@ function updateSafeHtml(el: HTMLElement, binding: SafeHtmlBinding) {
   ];
 
   // 合并配置：默认允许 HTML 并注入基础白名单
-  const mergeOptions: XssFilterOptions = {
+  const mergeOptions: Required<XssFilterOptions> = {
+    ...DEFAULT_OPTIONS,
     allowHtml: true,
     allowedTags: defaultSafeTags,
     ...options, // 外部传入的配置优先级更高
   };
 
   // 执行清理并渲染（同步执行，DOMPurify 是同步的）
-  const safeHtml = DOMPurify.sanitize(rawValue, {
-    ALLOWED_TAGS: mergeOptions.allowedTags,
-    FORBID_ATTR: mergeOptions.forbiddenAttrs || DEFAULT_OPTIONS.forbiddenAttrs,
-    ALLOW_DATA_ATTR: false,
-  });
+  const sanitized = stripDangerousMarkup(rawValue, mergeOptions);
+  const safeHtml = canUseDomPurify()
+    ? DOMPurify.sanitize(sanitized, {
+        ALLOWED_TAGS: mergeOptions.allowedTags,
+        FORBID_ATTR:
+          mergeOptions.forbiddenAttrs || DEFAULT_OPTIONS.forbiddenAttrs,
+        ALLOW_DATA_ATTR: false,
+      })
+    : escapeHtml(sanitized);
 
   el.innerHTML = safeHtml;
 }

@@ -2,9 +2,9 @@
 import { computed, inject, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
+import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
 import { useUserStore } from '~/stores/modules/user';
-import { cn } from '~/utils/cn';
 
 const userStore = useUserStore();
 const router = useRouter();
@@ -65,7 +65,7 @@ const securityInfo = {
       device: 'Windows PC - Edge',
       location: 'Beijing, CN',
       time: '3天前',
-      icon: 'carbon:desktop',
+      icon: 'carbon:virtual-desktop',
     },
   ],
 };

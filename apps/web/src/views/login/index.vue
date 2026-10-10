@@ -11,9 +11,10 @@ import {
   MobileOutlined,
   UserOutlined,
 } from '@antdv-next/icons';
+import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
+import { HOME_PATH } from '~/config/constants';
 import { useUserStore } from '~/stores/modules/user';
-import { cn } from '~/utils/cn';
 
 import { useLoginStyles } from './composables/useLoginStyles';
 
@@ -95,8 +96,9 @@ async function handleLogin() {
 
     if (result.success) {
       message.success('登录成功');
-      // 优先跳转到重定向路径（如从其他页面被拦截到登录页），否则默认到仪表盘
-      const redirect = (route.query.redirect as string) || '/dashboard';
+      // 优先回到被拦截前的页面；没有则回首页常量。
+      // 不能写死 `/dashboard`：那是菜单目录，本身没有页面组件，跳过去是空白内容区。
+      const redirect = (route.query.redirect as string) || HOME_PATH;
       router.push(redirect);
     } else {
       message.error(result.message || '登录失败');
@@ -192,7 +194,7 @@ function handleSendCode() {
           <div class="group flex items-center gap-4">
             <div :class="featureIconClassName">
               <Icon
-                icon="carbon:shield-checkmark"
+                icon="carbon:document-security"
                 class="h-5 w-5"
                 :style="featureIconStyle"
               />

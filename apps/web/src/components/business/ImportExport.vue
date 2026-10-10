@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import type { TemplateColumn } from '~/utils/template';
+import type { TemplateColumn } from '@antdv/shared/template';
 
 import { h, ref } from 'vue';
 
 import { DownloadOutlined, UploadOutlined } from '@antdv-next/icons';
+import { generateTemplate } from '@antdv/shared/template';
+// 自动导入（unplugin-vue-components）只重写模板标签；这里的滚动区在 h() 渲染函数里，必须显式 import
+import { Scrollbar } from '@antdv/ui/scrollbar';
 import { message, Modal } from 'antdv-next';
 import { isError } from 'es-toolkit';
 import { request } from '~/composables';
-import { generateTemplate } from '~/utils/template';
 import { submitExport } from '~/views/system/export/api';
 
 interface Props {
@@ -164,19 +166,23 @@ function handleImportResult(result: ImportResult) {
           `成功 ${successCount} 条，失败 ${failCount} 条`,
         ),
         errors.length > 0 &&
+          // 原生纵向滚动容器换成 Scrollbar：max-h 移到 rootClass，
+          // padding 挪到 viewClass（真正滚动的元素在组件内部，挂内容侧才不丢边距）
           h(
-            'div',
+            Scrollbar,
             {
-              class:
-                'max-h-[400px] overflow-y-auto bg-red-50 dark:bg-red-900/20 p-3 rounded text-xs',
+              rootClass:
+                'max-h-[400px] rounded bg-red-50 text-xs dark:bg-red-900/20',
+              viewClass: 'p-3',
             },
-            shownErrors.map((err, i) =>
-              h(
-                'div',
-                { key: i, class: 'mb-1 text-red-600 dark:text-red-400' },
-                err,
+            () =>
+              shownErrors.map((err, i) =>
+                h(
+                  'div',
+                  { key: i, class: 'mb-1 text-red-600 dark:text-red-400' },
+                  err,
+                ),
               ),
-            ),
           ),
         moreText && h('p', { class: 'mt-2 text-xs text-stone-500' }, moreText),
       ]),

@@ -9,7 +9,7 @@ const emit = defineEmits<{ open: [] }>();
 </script>
 
 <template>
-  <WidgetButton @click="emit('open')">
+  <WidgetButton label="偏好设置" @click="emit('open')">
     <Icon icon="carbon:settings" class="text-lg" />
   </WidgetButton>
 </template>

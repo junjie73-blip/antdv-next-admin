@@ -9,8 +9,7 @@
 import { isString } from 'es-toolkit';
 import { sm4 } from 'sm-crypto';
 
-/** 开发环境默认密钥（生产环境应通过 VITE_CACHE_ENCRYPT_KEY 覆盖） */
-const DEV_FALLBACK_KEY = 'dev-only-cache-key-0123456789abcdef';
+import { getCacheEncryptKey, isProduction } from '../env';
 
 /** 最小密钥长度 */
 const MIN_KEY_LENGTH = 16;
@@ -19,25 +18,20 @@ const MIN_KEY_LENGTH = 16;
 const SM4_KEY_LENGTH = 32;
 
 /**
- * 从环境变量获取基础密钥
- *
- * @throws 生产环境未配置 VITE_CACHE_ENCRYPT_KEY 时抛出
+ * 取基础密钥。
+ * 真实来源是应用启动时 `configureSharedEnv({ cacheEncryptKey })` 注入的值：
+ * 包体是 dist ESM，读不到 Vite 的 import.meta.env 静态替换，
+ * 所以这里只信任显式配置（见 src/env.ts）。
  */
 function getBaseKey(): string {
-  const envKey = import.meta.env.VITE_CACHE_ENCRYPT_KEY as string | undefined;
-
+  const envKey = getCacheEncryptKey();
   if (isString(envKey) && envKey.length >= MIN_KEY_LENGTH) {
     return envKey;
   }
-
-  if (import.meta.env.DEV) {
-    console.warn(
-      '[encrypt] 使用开发默认密钥，生产环境请配置 VITE_CACHE_ENCRYPT_KEY',
-    );
-    return DEV_FALLBACK_KEY;
+  if (!isProduction()) {
+    console.warn('[encrypt] 使用开发默认密钥，生产环境请配置 cacheEncryptKey');
   }
-
-  throw new Error('生产环境必须配置 VITE_CACHE_ENCRYPT_KEY（至少 16 位）');
+  return envKey;
 }
 
 /**
@@ -156,7 +150,7 @@ export function decryptValueSync(value: string, key?: string): string {
  * 仅在生产环境启用
  */
 export function shouldEncrypt(): boolean {
-  return import.meta.env.PROD;
+  return isProduction();
 }
 
 /**

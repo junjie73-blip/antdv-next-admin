@@ -1,5 +1,6 @@
 import type { BasicColumn, Recordable } from './types';
 
+import dayjs from '@antdv/shared/dayjs';
 import {
   cloneDeep,
   debounce,
@@ -8,7 +9,6 @@ import {
   merge,
   throttle,
 } from 'es-toolkit';
-import dayjs from '~/utils/dayjs';
 
 export { debounce, throttle };
 

@@ -15,7 +15,7 @@
 
 import { ref } from 'vue';
 
-import { cache, localStorageCacheStorage } from '~/utils/cache';
+import { cache, localStorageCacheStorage } from './cache';
 
 // ==================== 类型定义 ====================
 
@@ -99,32 +99,6 @@ async function generateToken(): Promise<string> {
     .replaceAll('+', '-')
     .replaceAll('/', '_')
     .replace(/=+$/, '');
-}
-
-/**
- * 从字符串生成简单的 hash（用于 Cookie 值）
- *
- * @param str - 要 hash 的字符串
- * @returns Hex 编码的 hash 值
- */
-async function simpleHash(str: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(str);
-
-  if (crypto && crypto.subtle) {
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = [...new Uint8Array(hashBuffer)];
-    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  // 降级：简单 XOR hash
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  return Math.abs(hash).toString(16);
 }
 
 // ==================== Token 管理 ====================
@@ -277,13 +251,33 @@ export async function invalidateCsrfToken(): Promise<void> {
 // ==================== Double Submit Cookie 支持 ====================
 
 /**
+ * 拼 Double Submit Cookie 的属性串。
+ *
+ * 这里踩过一个只在 Firefox 上暴露的坑：原来写的是 `...; Secure; HttpOnly=false`。
+ * Cookie 属性是「出现即为真」的标记语法，没有 `=false` 这种写法 —— 浏览器看到
+ * `HttpOnly` 就当作 true，于是这个 cookie 被存成了 HttpOnly。
+ * 之后脚本再想覆盖同名 cookie 就会被拒绝：
+ * - Chromium 只在 DevTools 的 Security 面板里提示，控制台干净；
+ * - Firefox 会往 console 打一条 error，端到端基线立刻红。
+ *
+ * 另外 `Secure` 在 `http://localhost` 上的容忍度也不一致（Safari/WebKit 会直接丢弃），
+ * 所以只在真正的 https 下才带它。
+ */
+export function buildCookieAttributes(): string {
+  const attributes = ['path=/', 'SameSite=Lax'];
+  if (typeof window !== 'undefined' && window.location?.protocol === 'https:')
+    attributes.push('Secure');
+  return attributes.join('; ');
+}
+
+/**
  * 设置 CSRF Cookie（用于 Double Submit 方案）
  *
  * @param value - Cookie 值
  */
 function setCsrfCookie(value: string): void {
   try {
-    document.cookie = `${config.cookieName}=${value}; path=/; SameSite=Lax; Secure; HttpOnly=false`;
+    document.cookie = `${config.cookieName}=${encodeURIComponent(value)}; ${buildCookieAttributes()}`;
   } catch {
     console.warn('[CSRF] Cookie 设置失败');
   }
@@ -291,10 +285,12 @@ function setCsrfCookie(value: string): void {
 
 /**
  * 移除 CSRF Cookie
+ *
+ * 删除必须用「写入时同一套属性」，否则只是又写了个作用域不同的空值 cookie。
  */
 function removeCsrfCookie(): void {
   try {
-    document.cookie = `${config.cookieName}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+    document.cookie = `${config.cookieName}=; ${buildCookieAttributes()}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
   } catch {
     // 忽略错误
   }
@@ -310,7 +306,7 @@ export function getCsrfCookieValue(): null | string {
     const cookies = document.cookie.split(';');
     for (const cookie of cookies) {
       const [name, value] = cookie.trim().split('=');
-      if (name === config.cookieName) {
+      if (name === config.cookieName && value !== undefined) {
         return decodeURIComponent(value);
       }
     }

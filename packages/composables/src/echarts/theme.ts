@@ -1,3 +1,5 @@
+import type { LinearGradientObject } from 'echarts';
+
 import * as echarts from 'echarts/core';
 
 export function textColor(isDark: boolean) {
@@ -16,7 +18,18 @@ export function tooltipBg(isDark: boolean) {
   return isDark ? 'rgba(31,41,55,0.96)' : 'rgba(255,255,255,0.96)';
 }
 
-export function gradient(colors: [string, string], vertical = true) {
+/**
+ * 线性渐变色。
+ *
+ * 返回值显式标成 `LinearGradientObject` 而不是让 TS 去推 `echarts.graphic.LinearGradient`：
+ * 后者的 `colorStops` 用的是 echarts 内部没有导出的 `GradientColorStop`，
+ * 生成 .d.ts 时会报 TS4058（Return type ... cannot be named）。
+ * 而且调用方拿到的是 option 里能直接写的对象类型，比类类型更好用。
+ */
+export function gradient(
+  colors: [string, string],
+  vertical = true,
+): LinearGradientObject {
   return new echarts.graphic.LinearGradient(
     0,
     0,

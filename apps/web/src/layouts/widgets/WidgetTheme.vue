@@ -24,7 +24,7 @@ function handleClick(e: MouseEvent) {
 </script>
 
 <template>
-  <WidgetButton @click="(e: MouseEvent) => handleClick(e)" :title="title">
+  <WidgetButton :label="title" @click="(e: MouseEvent) => handleClick(e)">
     <Icon :icon="icon" class="text-lg" />
   </WidgetButton>
 </template>

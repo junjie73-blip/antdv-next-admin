@@ -1,0 +1,58 @@
+{
+  "name": "@antdv/preferences",
+  "version": "0.4.0",
+  "description": "用户偏好设置：默认值、持久化、CSS 变量落地、antdv-next 主题配置（明暗 token + 组件覆盖 + 色板），不含 pinia / store 依赖",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsdown",
+    "clean": "rimraf dist .turbo",
+    "dev": "tsdown --watch",
+    "test:unit": "vitest run",
+    "type-check": "tsc --noEmit"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./theme": {
+      "types": "./dist/theme/index.d.ts",
+      "default": "./dist/theme/index.js"
+    },
+    "./theme/light": {
+      "types": "./dist/theme/light/index.d.ts",
+      "default": "./dist/theme/light/index.js"
+    },
+    "./theme/dark": {
+      "types": "./dist/theme/dark/index.d.ts",
+      "default": "./dist/theme/dark/index.js"
+    },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@antdv/shared": "workspace:*",
+    "@antdv/types": "workspace:*",
+    "antdv-next": "catalog:",
+    "es-toolkit": "catalog:",
+    "vue": "catalog:"
+  },
+  "devDependencies": {
+    "@antdv/tsconfig": "workspace:*",
+    "happy-dom": "catalog:",
+    "rimraf": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -1,11 +1,11 @@
 <script setup lang="ts">
+import { cache } from '@antdv/shared/cache';
+import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
 import { useClipboard } from '@vueuse/core';
 import { message, Modal } from 'antdv-next';
 import { useAppStore } from '~/stores/modules/app';
 import { useUserStore } from '~/stores/modules/user';
-import { cache } from '~/utils/cache';
-import { cn } from '~/utils/cn';
 defineOptions({ name: 'SettingFooter' });
 
 const emit = defineEmits<{ close: [] }>();

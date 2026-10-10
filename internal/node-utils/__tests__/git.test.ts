@@ -8,6 +8,7 @@ import {
   headCommit,
   isDirty,
   isGitRepo,
+  isTransientSpawnError,
   recentCommits,
 } from '../src/git';
 import { findRepoRoot } from '../src/path';
@@ -16,6 +17,33 @@ describe('gitRun', () => {
   it('未知子命令返回 ok=false 且不抛异常', async () => {
     const { ok } = await gitRun(['not-a-real-command'], process.cwd());
     expect(ok).toBe(false);
+  });
+});
+
+/**
+ * 重试判据：把"子进程没起来"和"git 说了不"分开。
+ *
+ * 前者是并发跑单测时的真实故障（turbo 一次拉起十几个 vitest，每个都在 spawn git），
+ * 重试就能过去；后者是确定性答案，重试只是把同一句错误抄一遍。
+ * 混在一起的代价是一条 flaky 红会把真缺陷一起淹掉。
+ */
+describe('isTransientSpawnError', () => {
+  it('系统级资源错误可以重试', () => {
+    for (const code of ['EAGAIN', 'EMFILE', 'ENFILE', 'ENOBUFS', 'ERR_PROC_CREATE'])
+      expect(isTransientSpawnError({ code })).toBe(true);
+  });
+
+  it('已经有 exitCode 就是 git 给的答案，不重试', () => {
+    expect(isTransientSpawnError({ code: 'EAGAIN', exitCode: 128 })).toBe(false);
+    expect(isTransientSpawnError({ exitCode: 1 })).toBe(false);
+    // 退出码 0 但抛了错（异常本身不是"没起来"）也不重试
+    expect(isTransientSpawnError({ exitCode: 0 })).toBe(false);
+  });
+
+  it('认不出的错误一律不重试，避免把真故障洗成慢', () => {
+    expect(isTransientSpawnError({ code: 'ENOENT' })).toBe(false);
+    expect(isTransientSpawnError({})).toBe(false);
+    expect(isTransientSpawnError(undefined)).toBe(false);
   });
 });
 

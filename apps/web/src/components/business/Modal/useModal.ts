@@ -9,11 +9,14 @@ import { delay } from 'es-toolkit';
 export function useModal(): UseModalReturnType {
   const modalInstance: Ref<Nullable<ModalMethods>> = ref(null);
 
+  // 与 useDrawer 同理：卸载钩子只能在 setup 同期注册。
+  // `register` 是子组件 emit('register') 的回调，此刻 currentInstance 已经不可用。
+  onUnmounted(() => {
+    modalInstance.value = null;
+  });
+
   const register = (instance: ModalMethods) => {
     modalInstance.value = instance;
-    onUnmounted(() => {
-      modalInstance.value = null;
-    });
   };
 
   const waitForInstance = async (): Promise<ModalMethods> => {

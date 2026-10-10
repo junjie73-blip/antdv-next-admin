@@ -19,6 +19,11 @@ export interface MicroAppItem {
   healthUrl?: string;
   /** 加载方式：iframe / webcomponent */
   loader?: 'iframe' | 'webcomponent';
+  /**
+   * 预览 iframe 是否保留同源身份（sandbox 的 allow-same-origin）。
+   * 默认 false；打开后与 allow-scripts 组成"sandbox 可逃逸"组合，需要人工确认。
+   */
+  sameOrigin?: boolean;
 }
 
 /**

@@ -3,11 +3,11 @@ import type { RenderItem } from 'antdv-next/dist/menu/menu';
 
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 
+import { cn } from '@antdv/shared';
+import { nowTz } from '@antdv/shared/dayjs';
 import { Icon } from '@iconify/vue';
 import { Dropdown } from 'antdv-next';
 import { useAppStore } from '~/stores/modules/app';
-import { nowTz } from '~/utils/dayjs';
-import { cn } from '~/utils/index.js';
 
 import { TIMEZONE_OPTIONS } from '../components/SettingDrawer/constants.js';
 import WidgetButton from './components/WidgetButton.vue';
@@ -73,7 +73,7 @@ const btnClass = computed(() => (item: RenderItem) => {
     :overlay-style="{ padding: 0 }"
     :menu="{ items }"
   >
-    <WidgetButton>
+    <WidgetButton label="切换时区">
       <Icon icon="carbon:time" class="text-base" />
     </WidgetButton>
     <template #labelRender="item">

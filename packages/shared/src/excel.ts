@@ -1,6 +1,7 @@
 import { message } from 'antdv-next';
 import * as XLSX from 'xlsx';
-import dayjs from '~/utils/dayjs';
+
+import dayjs from './dayjs';
 
 export interface ExportColumn {
   header: string;

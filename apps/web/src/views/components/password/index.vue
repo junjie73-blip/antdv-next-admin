@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
 import { useDebounceFn } from '@vueuse/core';
-import { cn } from '~/utils/cn';
 
 const containerClass = cn('space-y-6');
 const cardDescClass = cn('mb-4 text-gray-600 dark:text-gray-400');

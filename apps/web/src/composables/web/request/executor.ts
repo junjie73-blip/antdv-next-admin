@@ -24,6 +24,16 @@ export interface ExecuteOptions {
   signal?: AbortSignal;
   /** DELETE 等少数场景需要携带请求体（后端从 req.body 读取），由 request.delete 透传 */
   body?: any;
+  /**
+   * 查询串参数。
+   *
+   * 和 `executeRequest` 的第 5 个位置参数（`request.get` / `request.delete` 走那条）
+   * 是同一件事的两个入口，这里补上是因为 **POST/PUT 也可能带查询参数**
+   * （新建文件夹的 `parentId` 就在 query 上），而它们的签名已经被
+   * `(url, body, opts)` 占满，只能从 opts 里透传。
+   * 两处都给时以位置参数为准。
+   */
+  params?: Record<string, any>;
 }
 
 interface CacheEntry {
@@ -286,7 +296,9 @@ export async function executeRequest<T = any>(
   } = opts;
 
   const finalMethod = method.toUpperCase();
-  const finalUrl = params ? buildUrl(url, params) : url;
+  /** 位置参数覆盖 `opts.params`；两边都没有就是不带查询串 */
+  const query = opts.params || params ? { ...opts.params, ...params } : undefined;
+  const finalUrl = buildUrl(url, query);
   // 流式 body（FormData/Blob/流）无法稳定序列化成 key，用占位符并关闭并发去重
   const streamBody = isBodyInit(body) && typeof body !== 'string';
   const cacheKey =

@@ -22,7 +22,7 @@ const icp = computed(() => appStore.copyrightIcp);
   >
     <template v-if="showCopyright">
       <span class="flex items-center gap-1">
-        <Icon icon="carbon:copyright" class="text-sm" />
+        <Icon icon="carbon:license" class="text-sm" />
         <span>{{ currentYear }}</span>
         <a
           href="https://github.com/"

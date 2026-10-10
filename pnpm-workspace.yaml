@@ -5,44 +5,26 @@ packages:
   - apps/*
   - scripts/*
 
-minimumReleaseAge: 0
-
-publicHoistPattern:
-  - lefthook
-  - eslint
-  - oxfmt
-  - oxlint
-  - stylelint
-  - '*postcss*'
-  - '@commitlint/*'
-  - czg
-
-strictPeerDependencies: false
+allowBuilds:
+  '@parcel/watcher': true
+  core-js: true
+  esbuild: true
+  lefthook: true
+  vue-demi: true
 
 autoInstallPeers: true
 
-dedupePeerDependents: true
-
-verifyDepsBeforeRun: false
-
-overrides:
-  '@ast-grep/napi': 'catalog:'
-  '@ctrl/tinycolor': 'catalog:'
-  clsx: 'catalog:'
-  pinia: 'catalog:'
-  vue: 'catalog:'
-
 catalog:
-  '@antdv-next/auto-import-resolver': ^1.1.1
-  '@antdv-next/cssinjs': ^1.0.6
+  '@antdv-next/auto-import-resolver': ^1.2.0
+  '@antdv-next/cssinjs': ^1.1.0
   '@antdv-next/happy-work-theme': ^1.0.1
   '@antdv-next/icons': ^1.1.2
-  '@antdv-next/tailwind': ^1.1.1
+  '@antdv-next/tailwind': ^1.1.2
   '@ast-grep/napi': ^0.45.2
   '@changesets/changelog-github': ^1.0.1
   '@changesets/cli': ^3.0.3
   '@changesets/git': ^4.0.1
-  '@clack/prompts': ^1.7.0
+  '@clack/prompts': ^1.8.1
   '@codemirror/commands': ^6.11.1
   '@codemirror/lang-javascript': ^6.2.5
   '@codemirror/lang-sql': ^6.10.0
@@ -51,43 +33,43 @@ catalog:
   '@commitlint/cli': ^20.5.3
   '@commitlint/config-conventional': ^20.5.3
   '@ctrl/tinycolor': ^4.2.0
-  '@eslint-community/eslint-plugin-eslint-comments': ^4.7.2
+  '@eslint-community/eslint-plugin-eslint-comments': ^4.8.1
   '@eslint/js': ^10.0.1
   '@faker-js/faker': ^10.6.0
   '@form-create/antd-designer': ^3.4.0
   '@form-create/antdv-next': ^3.3.3
   '@iconify-json/ant-design': ^1.2.9
-  '@iconify-json/carbon': ^1.2.27
+  '@iconify-json/carbon': ^1.2.28
   '@iconify-json/fa6-regular': ^1.2.4
-  '@iconify-json/lucide': ^1.2.131
+  '@iconify-json/lucide': ^1.2.140
   '@iconify-json/mdi': ^1.2.3
-  '@iconify/vue': ^5.0.1
+  '@iconify/vue': ^5.0.3
   '@intlify/core-base': ^11.4.10
-  '@intlify/unplugin-vue-i18n': ^11.2.4
+  '@intlify/unplugin-vue-i18n': ^11.2.5
   '@jspm/generator': ^2.16.3
   '@manypkg/get-packages': ^3.1.0
-  '@playwright/test': ^1.62.1
-  '@sentry/vue': ^10.74.0
+  '@playwright/test': ^1.63.0
+  '@sentry/vue': ^10.76.1
   '@tailwindcss/nesting': 0.0.0-insiders.565cd3e
   '@tailwindcss/typography': ^0.5.20
   '@tailwindcss/vite': ^4.3.3
   '@types/mockjs': ^1.0.10
   '@tiptap/core': ^3.31.4
-  '@tiptap/extension-document': ^3.31.3
-  '@tiptap/extension-highlight': ^3.31.3
-  '@tiptap/extension-image': ^3.31.3
-  '@tiptap/extension-link': ^3.31.3
-  '@tiptap/extension-list': ^3.31.3
-  '@tiptap/extension-table': ^3.31.3
-  '@tiptap/extension-text': ^3.31.3
-  '@tiptap/extension-text-align': ^3.31.3
-  '@tiptap/extension-text-style': ^3.31.3
-  '@tiptap/extension-underline': ^3.31.3
-  '@tiptap/extensions': ^3.31.3
-  '@tiptap/markdown': ^3.31.3
+  '@tiptap/extension-document': ^3.31.4
+  '@tiptap/extension-highlight': ^3.31.4
+  '@tiptap/extension-image': ^3.31.4
+  '@tiptap/extension-link': ^3.31.4
+  '@tiptap/extension-list': ^3.31.4
+  '@tiptap/extension-table': ^3.31.4
+  '@tiptap/extension-text': ^3.31.4
+  '@tiptap/extension-text-align': ^3.31.4
+  '@tiptap/extension-text-style': ^3.31.4
+  '@tiptap/extension-underline': ^3.31.4
+  '@tiptap/extensions': ^3.31.4
+  '@tiptap/markdown': ^3.31.4
   '@tiptap/pm': ^3.31.4
-  '@tiptap/starter-kit': ^3.31.3
-  '@tiptap/vue-3': ^3.31.3
+  '@tiptap/starter-kit': ^3.31.4
+  '@tiptap/vue-3': ^3.31.4
   '@tomjs/vite-plugin-iconify': ^1.5.1
   '@tsconfig/node24': ^24.0.5
   '@types/archiver': ^7.0.0
@@ -103,9 +85,9 @@ catalog:
   '@videojs-player/vue': ^1.0.0
   '@videojs/http-streaming': ^3.17.5
   '@vite-pwa/assets-generator': ^2.0.0
-  '@vitejs/devtools': ^0.7.2
+  '@vitejs/devtools': ^0.7.6
   '@vitejs/plugin-legacy': ^8.2.3
-  '@vitejs/plugin-vue': ^6.0.8
+  '@vitejs/plugin-vue': ^6.0.9
   '@vitejs/plugin-vue-jsx': ^5.1.6
   '@vitest/eslint-plugin': ^1.6.27
   '@vue-flow/background': ^1.3.2
@@ -120,51 +102,56 @@ catalog:
   '@vue/tsconfig': ^0.8.1
   '@vueuse/core': ^14.4.0
   '@vueuse/motion': ^3.0.3
-  antdv-next: ^1.5.4
+  antdv-next: ^1.6.0
   archiver: ^7.0.1
-  bpmn-js: ^18.30.1
+  bpmn-js: ^18.31.0
   bpmn-js-i18n-zh: ^1.3.0
   bpmn-js-properties-panel: ^5.65.1
   camunda-bpmn-moddle: ^8.0.2
-  '@stylistic/stylelint-plugin': ^5.2.1
+  '@stylistic/stylelint-plugin': ^5.3.1
   '@nolebase/vitepress-plugin-git-changelog': ^2.18.2
   '@pnpm/workspace.read-manifest': ^1000.3.1
   '@types/html-minifier-terser': ^7.0.2
   '@types/json-bigint': ^1.0.4
   '@vue/shared': ^3.5.40
-  '@vue/test-utils': ^2.4.11
+  '@vue/test-utils': ^2.5.1
   cac: ^7.0.0
   chalk: ^6.0.1
   cheerio: ^1.2.0
-  circular-dependency-scanner: ^3.0.1
+  circular-dependency-scanner: ^3.1.0
   class-variance-authority: ^0.7.1
   clsx: ^2.1.1
   codemirror: ^6.0.2
   commitlint-plugin-function-rules: ^5.0.1
-  cronstrue: ^3.25.0
+  cronstrue: ^3.30.0
   cz-git: ^1.14.0
   dayjs: ^1.11.23
   diff: ^9.0.0
-  dompurify: ^3.4.15
+  dompurify: ^3.4.16
   dotenv: ^17.4.2
   echarts: ^6.1.0
-  es-toolkit: ^1.51.0
+  es-toolkit: ^1.52.0
   eslint: ^10.12.0
   eslint-config-prettier: ^10.1.8
-  eslint-plugin-better-tailwindcss: ^4.7.0
+  eslint-plugin-better-tailwindcss: ^4.9.0
   eslint-plugin-command: ^3.5.3
   eslint-plugin-format: ^1.5.0
   eslint-plugin-oxlint: ^1.82.0
   eslint-plugin-playwright: ^2.11.0
-  execa: ^10.0.1
+  execa: ^10.1.0
   find-up: ^8.0.0
+  # backend-mock 的 handler 直接依赖 h3 类型（defineEventHandler / H3Event）。
+  # 只作为 nitropack 的传递依赖存在时，pnpm 的严格 node_modules 布局会让
+  # `.nitro/types/nitro-imports.d.ts` 里的 `from 'h3'` 重导出解析失败，
+  # 所有 handler 的 event 参数退化成 any（隐式 noImplicitAny 报错）。
+  h3: ^1.15.11
   highlight.js: ^11.12.0
   jiti: ^2.7.0
   jose: ^6.2.12
   jsdom: ^27.4.0
   lefthook: ^2.1.17
   lint-staged: ^16.4.0
-  markdown-it: ^14.3.0
+  markdown-it: ^14.3.2
   marked: ^17.0.6
   marked-highlight: ^2.2.4
   nitropack: ^2.13.4
@@ -178,7 +165,7 @@ catalog:
   pdfjs-dist: 6.3.289
   pinia: ^3.0.4
   pkg-types: ^2.3.3
-  postcss: ^8.5.28
+  postcss: ^8.5.29
   qrcode: ^1.5.4
   resize-observer-polyfill: ^1.5.1
   rimraf: ^6.1.3
@@ -187,7 +174,7 @@ catalog:
   spark-md5: ^3.0.2
   standard-version: ^9.5.0
   stylelint-config-html: ^1.1.0
-  tailwind-merge: ^3.6.0
+  tailwind-merge: ^3.7.0
   tailwindcss: ^4.3.3
   tsdown: ^0.23.0
   turbo: ^2.11.7
@@ -198,8 +185,8 @@ catalog:
   unplugin-console-highlight: ^0.0.4
   unplugin-turbo-console: ^2.3.3
   unplugin-vue-components: ^31.1.0
-  video.js: ^8.24.0
-  vite: ^8.2.2
+  video.js: ^8.24.1
+  vite: ^8.3.3
   vite-bundle-analyzer: ^1.3.9
   vite-plugin-cdn-import: ^1.0.1
   vite-plugin-compression: ^0.5.1
@@ -214,21 +201,22 @@ catalog:
   vite-plugin-performance: ^1.0.0
   vite-plugin-pwa: ^1.3.0
   vite-plugin-svg-icons: ^2.0.1
-  vite-plugin-vue-devtools: ^8.1.5
+  vite-plugin-vue-devtools: ^8.2.1
   vite-plugin-vue-layouts-next: ^3.2.0
   vitepress: ^1.6.4
   vitest: ^4.1.11
-  vue: ^3.5.42
+  # 精确锁定：`^3.5.42` 会让部分第三方 peer 树停在 3.5.42，
+  # 于是 `@vue/runtime-core` 出现两份类型，跨包传 Directive 直接类型打架。
+  vue: 3.5.43
   vue-codemirror: ^6.1.1
   vue-cropper: ^1.1.4
-  vue-demi: ^0.14.6
+  vue-demi: ^0.14.10
   vue-draggable-plus: ^0.6.1
   vue-eslint-parser: ^10.4.1
   vue-pdf-embed: ^2.1.6
   vue-router: ^5.3.1
-  vue-tsc: ^3.3.10
+  vue-tsc: ^3.3.12
   vue-virtual-scroller: ^3.0.5
-  vue3-perfect-scrollbar: ^2.0.0
   watermark-plus: ^1.6.1
   workbox-window: ^7.4.1
   xlsx: ^0.18.5
@@ -239,48 +227,44 @@ catalog:
   czg: ^1.14.0
   defu: ^6.1.7
   eslint-plugin-jsonc: ^3.4.2
-  eslint-plugin-n: ^18.2.2
-  eslint-plugin-perfectionist: ^5.10.0
-  eslint-plugin-pnpm: ^1.7.0
+  eslint-plugin-n: ^18.4.1
+  eslint-plugin-perfectionist: ^5.12.1
+  eslint-plugin-pnpm: ^1.9.1
   eslint-plugin-unused-imports: ^4.4.1
-  eslint-plugin-vue: ^10.10.0
-  eslint-plugin-yml: ^3.6.0
+  eslint-plugin-vue: ^10.11.1
+  eslint-plugin-yml: ^3.8.1
   get-port: ^7.2.0
-  globals: ^17.7.0
+  globals: ^17.13.0
   html-minifier-terser: ^7.2.0
   medium-zoom: ^1.1.0
   ora: ^9.4.1
   oxlint-tsgolint: ^0.25.0
-  publint: ^0.3.22
+  publint: ^0.3.25
   secure-ls: ^2.0.0
-  stylelint: ^17.14.1
-  stylelint-config-recess-order: ^7.7.0
+  stylelint: ^17.16.0
+  stylelint-config-recess-order: ^7.8.0
   stylelint-config-recommended: ^18.0.0
   stylelint-config-recommended-scss: ^17.0.1
   stylelint-config-recommended-vue: ^1.6.1
   stylelint-config-standard: ^40.0.0
   stylelint-order: ^8.1.1
-  stylelint-scss: ^7.2.0
+  stylelint-scss: ^7.3.0
   theme-colors: ^0.1.0
   unplugin-dts: ^1.0.3
   unplugin-vue: ^7.2.0
-  vue-i18n: ^11.4.10
+  vue-i18n: ^11.4.13
   vue-json-pretty: ^2.6.0
   yaml-eslint-parser: ^2.1.0
   happy-dom: ^20.14.5
   is-ci: ^4.1.0
   playwright: ^1.63.0
-  '@typescript-eslint/parser': ^8.68.0
+  '@typescript-eslint/parser': ^8.71.1
   postcss-html: ^1.8.1
   postcss-scss: ^4.0.9
-  knip: ^6.29.0
+  knip: ^6.40.0
 
-allowBuilds:
-  '@parcel/watcher': true
-  core-js: true
-  esbuild: true
-  lefthook: true
-  vue-demi: true
+dedupePeerDependents: true
+
 ignoredBuiltDependencies:
   - core-js
   - core-js-pure
@@ -294,8 +278,35 @@ ignoredBuiltDependencies:
   - optipng-bin
   - pngquant-bin
   - vue-demi
+
+minimumReleaseAge: 0
+
 onlyBuiltDependencies:
   - '@vue-office/docx'
   - '@vue-office/excel'
   - '@vue-office/pdf'
   - '@vue-office/pptx'
+
+overrides:
+  '@ast-grep/napi': 'catalog:'
+  '@ctrl/tinycolor': 'catalog:'
+  clsx: 'catalog:'
+  pinia: 'catalog:'
+  vue: 'catalog:'
+
+publicHoistPattern:
+  - lefthook
+  - eslint
+  - oxfmt
+  - oxlint
+  - stylelint
+  - '*postcss*'
+  - '@commitlint/*'
+  - czg
+
+strictPeerDependencies: false
+
+verifyDepsBeforeRun: false
+catalogs:
+  conflicts_vue_h3_5_43:
+    vue: ^3.5.43

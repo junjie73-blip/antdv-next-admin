@@ -5,7 +5,7 @@ import type { BasicTableProps, Recordable } from '../types';
 
 import { computed, unref, watch } from 'vue';
 
-import dayjs from '~/utils/dayjs';
+import dayjs from '@antdv/shared/dayjs';
 
 import { useForm } from '../../Form/useForm';
 
@@ -16,6 +16,8 @@ interface UseTableFormOptions {
   useSearchForm?: boolean;
   fieldMapToTime?: [string, [string, string], string?][];
   fetch?: (opt?: { searchInfo?: Recordable }) => Promise<void>;
+  /** 不同步取数，只把表格记住的搜索条件换掉（重置表单时用） */
+  setSearchInfo?: (info?: Recordable) => void;
   getFormValues?: () => Recordable;
 }
 
@@ -121,6 +123,7 @@ export function useTableForm(
     useSearchForm: useSearchFormOption,
     fieldMapToTime: fieldMapToTimeOption,
     fetch: fetchOption,
+    setSearchInfo: setSearchInfoOption,
     getFormValues: getFormValuesOption,
   } = options || {};
 
@@ -273,16 +276,24 @@ export function useTableForm(
 
   /**
    * 处理表单重置
+   *
+   * ⚠️ 不管 `submitOnReset` 是什么，表格记住的搜索条件都必须跟着清空。
+   * 以前只在 `submitOnReset` 为真时带上新条件取数，为假时连状态都不动 ——
+   * 于是"搜索 → 重置 → 保存某条记录触发 reload"会把用户明明已经清掉的 keyword
+   * 偷偷带回去，列表出现一堆和搜索框对不上的数据。
    */
   async function handleReset(): Promise<void> {
     await formMethods.resetFields();
 
     const { submitOnReset } = unref(getFormProps);
+    const values = formMethods.getFieldsValue();
+    const searchInfo = handleSearchInfoFn(values);
+
     if (submitOnReset && fetchOption) {
-      const values = formMethods.getFieldsValue();
-      const searchInfo = handleSearchInfoFn(values);
       await fetchOption({ searchInfo });
+      return;
     }
+    setSearchInfoOption?.(searchInfo);
   }
 
   /**

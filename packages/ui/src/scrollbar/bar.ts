@@ -12,9 +12,15 @@ import { clamp, isNil } from 'es-toolkit';
 import { BAR_MAP, renderThumbStyle } from './util';
 
 export default defineComponent({
-  name: 'Bar',
+  // 名字要和 Scrollbar.vue 里的用法一眼对得上，也满足 vue/multi-word-component-names
+  name: 'ScrollbarBar',
   props: {
     vertical: Boolean,
+    /**
+     * thumb 的百分比尺寸，由父组件算好后传进来。
+     * 这里刻意不给默认值：留空表示「还没量过」，父组件据此决定第一条渲染的轨道；
+     * 给 0 会被当成真实尺寸，渲染出一条宽度为 0 的 thumb 并误触发可见性判断。
+     */
     size: String,
     move: {
       type: Number,

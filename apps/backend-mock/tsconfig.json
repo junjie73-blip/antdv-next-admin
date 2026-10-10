@@ -2,7 +2,11 @@
   "extends": "@antdv/tsconfig/node.json",
   "compilerOptions": {
     "paths": {
-      "#imports": ["./.nitro/types/nitro-imports"]
+      "#imports": ["./.nitro/types/nitro-imports"],
+      "h3": [
+        "./node_modules/h3",
+        "../../node_modules/.pnpm/h3@1.15.11/node_modules/h3"
+      ]
     },
     "noEmit": true
   },

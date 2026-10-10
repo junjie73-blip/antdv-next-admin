@@ -3,10 +3,10 @@ import { computed, nextTick, ref, watch } from 'vue';
 import { VueCropper } from 'vue-cropper';
 import 'vue-cropper/dist/index.css';
 
+import { useFileReader } from '@antdv/composables/useFileReader';
 import { Icon } from '@iconify/vue';
 import { message } from 'antdv-next';
 import { uploadFile } from '~/api';
-import { useFileReader } from '~/composables/useFileReader';
 
 interface Props {
   modelValue?: string;

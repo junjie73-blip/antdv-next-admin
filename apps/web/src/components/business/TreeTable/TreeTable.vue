@@ -9,11 +9,11 @@ import type { TreeDataNode, TreeTableProps } from './types';
 
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
 import { useDebounceFn, useEventListener } from '@vueuse/core';
 import { Tree } from 'antdv-next';
 import { BasicTable } from '~/components/business/Table';
-import { cn } from '~/utils/cn';
 
 const props = withDefaults(defineProps<TreeTableProps>(), {
   treeTitle: '目录',
@@ -214,7 +214,7 @@ const nothingSelectedClassName = cn('text-sm text-gray-400 dark:text-gray-500');
       </div>
 
       <div :class="treeBodyClassName">
-        <PerfectScrollbar class="h-full">
+        <Scrollbar root-class="h-full">
           <div v-if="showSearch" :class="treeSearchClassName">
             <a-input
               :placeholder="treeSearchPlaceholder"
@@ -242,7 +242,7 @@ const nothingSelectedClassName = cn('text-sm text-gray-400 dark:text-gray-500');
             <Icon icon="carbon:search" class="mb-2 text-3xl" />
             <span class="text-sm">{{ treeEmptyText }}</span>
           </div>
-        </PerfectScrollbar>
+        </Scrollbar>
       </div>
     </div>
 

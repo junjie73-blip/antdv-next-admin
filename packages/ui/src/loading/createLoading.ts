@@ -8,7 +8,7 @@ import { useLoading } from './useLoading';
  *
  * @example
  * // 在路由守卫中使用
- * import { createLoading } from '~/components/Loading'
+ * import { createLoading } from '@antdv/ui/loading'
  *
  * const loading = createLoading({
  *   tip: '页面初始化...',
@@ -46,20 +46,18 @@ export function createLoading(
 ): LoadingInstance {
   const { onClose, ...rest } = options;
 
-  // 使用 useLoading 创建实例，默认全屏模式
-  const instance = useLoading({
-    ...rest,
-    body: true,
-  });
+  // 函数式调用点通常在组件外，不自动清理，由 close()/destroy() 负责。
+  // body 默认 true（全屏），但必须允许 createContainerLoading 显式传 false ——
+  // 早期版本写的是 `{ ...rest, body: true }`，把容器模式覆盖掉了。
+  const instance = useLoading({ body: true, ...rest });
 
-  // 包装 close 方法，触发回调
-  const originalClose = instance.close;
-  instance.close = () => {
-    originalClose();
-    onClose?.();
+  return {
+    ...instance,
+    close: () => {
+      instance.close();
+      onClose?.();
+    },
   };
-
-  return instance;
 }
 
 /**
@@ -69,25 +67,16 @@ export function createFullscreenLoading(
   tip?: string,
   options: Omit<CreateLoadingOptions, 'body' | 'tip'> = {},
 ): LoadingInstance {
-  return createLoading({
-    tip,
-    body: true,
-    ...options,
-  });
+  return createLoading({ ...options, tip });
 }
 
 /**
  * 创建容器内 loading 的快捷方法
  */
 export function createContainerLoading(
-  target: HTMLElement | string,
+  target: CreateLoadingOptions['target'],
   tip?: string,
   options: Omit<CreateLoadingOptions, 'body' | 'target' | 'tip'> = {},
 ): LoadingInstance {
-  return createLoading({
-    target,
-    tip,
-    body: false,
-    ...options,
-  });
+  return createLoading({ ...options, body: false, target, tip });
 }

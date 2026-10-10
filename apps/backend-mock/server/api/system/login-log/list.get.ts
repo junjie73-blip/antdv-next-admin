@@ -10,7 +10,7 @@ export default defineMockRoute({
     const ip = query.ip;
     const status = query.status;
     const dateRange = query.dateRange;
-    const page = Number(query.page) || 1;
+    const page = Number(query.pageNum ?? query.page) || 1;
     const pageSize = Number(query.pageSize) || 10;
 
     let filtered = [...LOGIN_LOG_DB];

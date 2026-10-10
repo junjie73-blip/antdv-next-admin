@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { CountTo } from '~/components/business/CountTo';
-import { cn } from '~/utils/cn';
 
 // 容器类名
 const containerClassName = cn('space-y-6');

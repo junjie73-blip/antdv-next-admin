@@ -5,6 +5,7 @@ import type { BasicColumn } from '~/components/business/Table'
 
 import { computed, ref, useTemplateRef } from 'vue'
 
+import { cn } from '@antdv/shared/cn'
 import { Icon } from '@iconify/vue'
 import { Modal as AntModal } from 'antdv-next'
 import {
@@ -18,7 +19,6 @@ import {
 import { BasicForm, useForm } from '~/components/business/Form'
 import { BasicModal, useModal } from '~/components/business/Modal'
 import { BasicTable, useTable } from '~/components/business/Table'
-import { cn } from '~/utils/cn'
 
 defineOptions({ name: 'SystemFile' })
 
@@ -65,8 +65,8 @@ function getFileIcon(record: FileRecord): string {
     image: 'carbon:image',
     document: 'carbon:document',
     video: 'carbon:video',
-    audio: 'carbon:sound-wave',
-    archive: 'carbon:document-archive',
+    audio: 'carbon:waveform',
+    archive: 'carbon:archive',
   }
   return iconMap[record.type] || 'carbon:document'
 }

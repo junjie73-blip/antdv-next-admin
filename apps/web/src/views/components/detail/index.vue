@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { cn } from '~/utils/cn';
 
 const containerClassName = cn('space-y-6');
 const copyButtonClassName = cn(
@@ -483,11 +483,17 @@ const columnCount = ref(2);
         <Icon icon="carbon:shopping-cart" />
         商品清单
       </h4>
+      <!--
+        全局 ConfigProvider 打开了 `virtual`，antd 因此要求每张表都有数值 `scroll.y`。
+        这里只有几行商品明细，显式关掉虚拟滚动，避免控制台报
+        "`scroll.y` in virtual table must be number"，渲染结果不变。
+      -->
       <a-table
         :data-source="orderItems"
         :pagination="false"
         row-key="id"
         size="small"
+        :virtual="false"
         :columns="orderItemColumns"
       >
         <template #bodyCell="{ column, record }">

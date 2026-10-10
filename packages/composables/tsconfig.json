@@ -1,0 +1,9 @@
+{
+  "extends": "@antdv/tsconfig/web.json",
+  "compilerOptions": {
+    // 包内不依赖 vite 的导入元类型，去掉 vite/client 免得把 vite 变成隐式依赖
+    "types": [],
+    "noEmit": true
+  },
+  "include": ["src/**/*.ts", "__tests__/**/*.ts"]
+}

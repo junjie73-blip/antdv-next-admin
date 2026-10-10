@@ -2,6 +2,8 @@ export function createChunkGroups() {
   return {
     groups: [
       {
+        // 函数式 name 拿不到静态名字，打包耗时报告里会显示成匿名；补一个 debugName
+        debugName: 'antdv-vendor',
         name(id: string) {
           if (id.includes('node_modules')) {
             if (id.includes('antdv-next')) return 'vendor-ui';

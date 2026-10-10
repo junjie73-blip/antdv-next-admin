@@ -176,6 +176,9 @@ function generateFileData(): FileRecord[] {
     folderMap[record.id] = { id: record.id, path: folder.path };
   }
   const fileTemplates: Record<FileType, string[]> = {
+    // FileType 含 folder，但文件夹记录由上方 rootFolders 单独生成，
+    // 这里给 folder 留空数组占位，保证 Record 全覆盖、新增文件类型时编译器能兜住漏项
+    folder: [],
     image: [
       '产品截图_{word}.png',
       'UI设计稿_v{digit}.fig',

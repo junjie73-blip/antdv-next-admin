@@ -3,8 +3,8 @@ import type { FormSchema } from '~/components/business/Form';
 
 import { ref } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { BasicForm, useForm } from '~/components/business/Form';
-import { cn } from '~/utils/cn';
 
 const containerClassName = cn('space-y-6');
 
@@ -246,9 +246,9 @@ function handleGetValues() {
     </a-card>
 
     <a-card title="表单数据">
-      <PerfectScrollbar class="rounded bg-gray-100 p-4 dark:bg-gray-800">
+      <Scrollbar root-class="rounded bg-gray-100 p-4 dark:bg-gray-800">
         <pre>{{ JSON.stringify(formResult, null, 2) }}</pre>
-      </PerfectScrollbar>
+      </Scrollbar>
     </a-card>
   </div>
 </template>

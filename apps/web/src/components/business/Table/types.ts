@@ -22,10 +22,19 @@ export interface TableRowEventHandlers {
   onMouseleave?: (event: MouseEvent) => void;
 }
 
+/**
+ * 行主键的真实类型。
+ *
+ * 业务表的主键有两种来源：数字（id）和字符串（如文件 path 当 rowKey），
+ * antd 内部用 `includes` 严格比较，所以"展开哪些行"这类 key 数组必须
+ * 和数据里的类型保持一致，不能在中间某层被 `String()` 掉。
+ */
+export type TableRowKey = number | string;
+
 /** 展开行配置 */
 export interface TableExpandable {
-  expandedRowKeys?: string[];
-  defaultExpandedRowKeys?: string[];
+  expandedRowKeys?: TableRowKey[];
+  defaultExpandedRowKeys?: TableRowKey[];
   expandedRowRender?: (
     record: Recordable,
     index: number,
@@ -39,7 +48,7 @@ export interface TableExpandable {
   }) => VNode;
   expandRowByClick?: boolean;
   onExpand?: (expanded: boolean, record: Recordable) => void;
-  onExpandedRowsChange?: (expandedRows: string[]) => void;
+  onExpandedRowsChange?: (expandedRows: TableRowKey[]) => void;
   defaultExpandAllRows?: boolean;
   indentSize?: number;
   expandIconColumnIndex?: number;
@@ -890,6 +899,8 @@ export interface UseDataSourceReturn {
   deleteTableDataRecord: (key: string | string[]) => void;
   updateTableDataRecord: (key: string, record: Recordable) => void;
   findTableDataRecord: (key: string) => Recordable | undefined;
+  /** 只同步记忆中的搜索条件（不取数），供「清空表单但不自动查询」时使用 */
+  setSearchInfo: (info?: Recordable) => void;
   abort: () => void;
 }
 

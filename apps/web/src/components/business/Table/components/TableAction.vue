@@ -5,11 +5,11 @@ import type { ActionItem } from '../types';
 
 import { computed, defineComponent, h, isVNode } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
+import { IconifyIcon as Icon } from '@antdv/ui/icon';
 import { Button, Divider, Dropdown, Popconfirm } from 'antdv-next';
 import { isFunction, isString } from 'es-toolkit';
-import { IconifyIcon as Icon } from '~/components/common/Icon';
 import { usePermission } from '~/composables';
-import { cn } from '~/utils/cn';
 
 type ButtonType = 'dashed' | 'default' | 'link' | 'primary' | 'text';
 

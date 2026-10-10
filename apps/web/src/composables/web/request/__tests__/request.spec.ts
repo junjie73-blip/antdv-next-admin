@@ -139,6 +139,46 @@ describe('uRL 与参数', () => {
 
     expect(firstCall().url).toBe('/user/list?page=1&keyword=a%20b');
   });
+
+  /**
+   * `api/request.ts` 的 post/put 会把查询串放进 `opts.params`（如新建文件夹的
+   * parentId），而 body 另有其物 —— 两者必须都能落到最终 URL 上。
+   */
+  it('P OST/PUT 通过 opts.params 带查询串，body 不受影响', async () => {
+    h.queue.push(ok({ code: 200, data: null }), ok({ code: 200, data: null }));
+
+    await request.post('/file/folder', { name: '报表' }, { params: { parentId: 7 } });
+    await request.put('/file/folder/1', { name: '改名' }, { params: { parentId: 9 } });
+
+    expect(h.calls.map((c) => c.url)).toEqual([
+      '/file/folder?parentId=7',
+      '/file/folder/1?parentId=9',
+    ]);
+    expect(JSON.parse(firstCall().init.body as string)).toEqual({ name: '报表' });
+  });
+
+  /** 位置参数是主写法，`opts.params` 作为补充；合并后字段都不丢，同名以位置参数为准 */
+  it('位置参数与 opts.params 合并且不互相覆盖丢字段', async () => {
+    h.queue.push(ok({ code: 200, data: null }));
+
+    await request.get('/user/list', { page: 2 }, { params: { keyword: 'x', page: 1 } });
+
+    const query = new URL(firstCall().url, 'http://x').searchParams;
+    expect([...query].sort()).toEqual(
+      [
+        ['keyword', 'x'],
+        ['page', '2'],
+      ].sort(),
+    );
+  });
+
+  it('不带任何参数时不会留一个光秃秃的问号', async () => {
+    h.queue.push(ok({ code: 200, data: null }));
+
+    await request.get('/user/list');
+
+    expect(firstCall().url).toBe('/user/list');
+  });
 });
 
 describe('重试', () => {

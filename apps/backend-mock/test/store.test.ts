@@ -1,4 +1,4 @@
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -31,6 +31,24 @@ function manifestItem(key: string, module: string) {
     module,
     path: key.replace(/^\[[A-Z]+\]/, ''),
     source: 'source' as const,
+  };
+}
+
+/**
+ * 生成接口夹具：`file` 是 `GeneratedRouteFile` 的必填字段
+ * （legacy 的 mock/generated/<id>.fake.ts 命名，Nitro 下仍由面板与接口清单展示），
+ * 手写省略它会让类型检查报缺字段，所以统一走这个构造函数。
+ */
+function generatedItem(
+  id: string,
+  key: string,
+  template: Record<string, unknown>,
+) {
+  return {
+    file: `mock/generated/${id}.fake.ts`,
+    id,
+    key,
+    template,
   };
 }
 
@@ -112,9 +130,7 @@ describe('接口清单注册', () => {
   it('生成接口覆盖同名条目，保留原 duplicates', () => {
     registerManifest([manifestItem('[GET]/demo/a', 'demo')]);
     registerManifest([manifestItem('[GET]/demo/a', 'other')]);
-    registerGenerated([
-      { id: 'demo-a', key: '[GET]/demo/a', template: { 'x|1-3': 1 } },
-    ]);
+    registerGenerated([generatedItem('demo-a', '[GET]/demo/a', { 'x|1-3': 1 })]);
     registerManifest([
       {
         ...manifestItem('[GET]/demo/a', 'demo'),
@@ -132,7 +148,7 @@ describe('接口清单注册', () => {
 
   it('删除生成接口连带清掉覆盖、统计与清单', () => {
     registerManifest([manifestItem('[GET]/demo/b', 'demo')]);
-    registerGenerated([{ id: 'demo-b', key: '[GET]/demo/b', template: {} }]);
+    registerGenerated([generatedItem('demo-b', '[GET]/demo/b', {})]);
     patchRouteRuntime('[GET]/demo/b', { delay: 50 });
     recordHit('[GET]/demo/b', 10, 200);
 
@@ -200,7 +216,7 @@ describe('持久化', () => {
   it('只落盘开关、单接口覆盖与生成接口定义', () => {
     patchGlobal({ defaultDelay: 500, enabled: false });
     patchRouteRuntime('[GET]/a', { delay: 20 });
-    registerGenerated([{ id: 'x', key: '[GET]/demo/x', template: { a: 1 } }]);
+    registerGenerated([generatedItem('x', '[GET]/demo/x', { a: 1 })]);
     recordHit('[GET]/a', 20, 200);
     persist(getStore());
 

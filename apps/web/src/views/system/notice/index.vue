@@ -3,6 +3,7 @@ import type { BasicColumn } from '~/components/business/Table'
 
 import { computed, onMounted, ref } from 'vue'
 
+import { cn } from '@antdv/shared/cn'
 import { Icon } from '@iconify/vue'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -16,7 +17,6 @@ import {
 import { BasicForm, useForm } from '~/components/business/Form'
 import { BasicModal, useModal } from '~/components/business/Modal'
 import { BasicTable, useTable } from '~/components/business/Table'
-import { cn } from '~/utils/cn'
 
 defineOptions({ name: 'SystemNotice' })
 
@@ -244,14 +244,41 @@ function handleAdd() {
   modalMethods.openModal()
 }
 
+/**
+ * 编辑消息。
+ *
+ * 弹窗标题一直是 `isEditingNotice ? '编辑消息' : '新增消息'`，但页面上没有任何入口
+ * 把 `isEditingNotice` 置为 true —— 那半截文案和 `editingNoticeId` 一起是死的。
+ * 补上按钮与回填，改标题/改优先级才有地方做。
+ */
+function handleEdit(record: any | NoticeRecord) {
+  const rec = record as NoticeRecord
+  isEditingNotice.value = true
+  editingNoticeId.value = rec.id
+  formMethods.setFieldsValue({
+    content: rec.content,
+    priority: rec.priority,
+    status: rec.status,
+    title: rec.title,
+    type: rec.type,
+  })
+  formMethods.clearValidate()
+  modalMethods.openModal()
+}
+
 /** 保存消息 */
 async function handleSaveNotice() {
   const values = await formMethods.validate()
   if (!values) return
 
   try {
-    await saveNotice(values)
-    message.success('消息保存成功')
+    // 编辑要带上主键，否则 `/system/notice/save` 只会当成新增
+    await saveNotice(
+      isEditingNotice.value && editingNoticeId.value !== null
+        ? { ...values, id: editingNoticeId.value }
+        : values,
+    )
+    message.success(isEditingNotice.value ? '消息已更新' : '消息保存成功')
     modalMethods.closeModal()
     await loadAllData()
     tableMethods.value?.reload()
@@ -347,7 +374,7 @@ const columns: BasicColumn[] = [
         <span class="inline-flex items-center gap-1">
           <Icon
             icon={
-              record.status === 0 ? 'carbon:new-filled' : 'carbon:checkmark'
+              record.status === 0 ? 'carbon:notification-new' : 'carbon:checkmark'
             }
           />
           {record.status === 0 ? '未读' : '已读'}
@@ -385,7 +412,7 @@ const columns: BasicColumn[] = [
       >
         <a-statistic title="系统公告" :value="systemCount" suffix="条">
           <template #prefix>
-            <Icon icon="carbon:megaphone" class="mr-1 text-lg text-green-500" />
+            <Icon icon="carbon:notification" class="mr-1 text-lg text-green-500" />
           </template>
         </a-statistic>
       </a-card>
@@ -446,7 +473,7 @@ const columns: BasicColumn[] = [
         :api="mockApi"
         :immediate="true"
         :use-search-form="false"
-        :action-column="{ width: 180, title: '操作', fixed: 'right' }"
+        :action-column="{ width: 240, title: '操作', fixed: 'right' }"
         :pagination="{
           showSizeChanger: true,
           pageSizeOptions: ['10', '20', '50'],
@@ -464,6 +491,17 @@ const columns: BasicColumn[] = [
                 <Icon icon="ant-design:eye-outlined" />
               </template>
               详情
+            </a-button>
+            <a-divider type="vertical" class="mx-0" />
+            <a-button
+              type="link"
+              class="!px-0.5"
+              @click="() => handleEdit(record)"
+            >
+              <template #icon>
+                <Icon icon="ant-design:edit-outlined" />
+              </template>
+              编辑
             </a-button>
             <a-divider type="vertical" class="mx-0" />
             <a-button
@@ -496,7 +534,7 @@ const columns: BasicColumn[] = [
     <!-- 消息详情抽屉 -->
     <a-drawer
       v-model:open="showDetailDrawer"
-      :width="560"
+      :size="560"
       :title="viewingNotice?.title || '消息详情'"
       placement="right"
       :closable="true"

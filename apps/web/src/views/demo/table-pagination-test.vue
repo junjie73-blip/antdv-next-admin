@@ -79,11 +79,13 @@ function mockApi(params: any) {
       console.log('[Mock API] 返回数据条数:', data.length);
       console.log('[Mock API] 当前页数据:', data.map((d) => d.id).join(', '));
 
+      // BasicTable 的取数约定是 `fetchSetting.listField = 'list'`（见 useDataSource），
+      // 这里返回 `items` 会让表格永远"No data"，分页测试也就无从测起。
       resolve({
-        items: data,
-        total,
+        list: data,
         page,
         pageSize,
+        total,
       });
     }, 500);
   });

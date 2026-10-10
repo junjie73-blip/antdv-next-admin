@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { cn } from '~/utils/cn';
 
 import { useAuthStyles } from '../composables/useAuthStyles';
 

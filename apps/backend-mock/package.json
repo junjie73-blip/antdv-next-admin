@@ -23,6 +23,7 @@
   "devDependencies": {
     "@antdv/tsconfig": "workspace:*",
     "@types/mockjs": "catalog:",
+    "h3": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

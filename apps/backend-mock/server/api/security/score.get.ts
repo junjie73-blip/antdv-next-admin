@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker/locale/zh_CN';
 
-import { envelope } from '../../../utils/response';
-import { defineMockRoute } from '../../../utils/runtime';
+import { envelope } from '../../utils/response';
+import { defineMockRoute } from '../../utils/runtime';
 
 export default defineMockRoute({
   handler: () =>

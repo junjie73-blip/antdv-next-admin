@@ -1,31 +1,74 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
+import {
+  LAYOUT_DRAWER_WIDTH,
+  LAYOUT_HEADER_ROW_STYLE,
+  LAYOUT_SIDEBAR_COLLAPSED_WIDTH,
+} from '@antdv/layouts';
+import { cn } from '@antdv/shared/cn';
+import { Icon } from '@iconify/vue';
 import { Menu } from 'antdv-next';
 import logoIconUrl from '~/assets/images/logo.png';
 import { useAppStore } from '~/stores/modules/app';
-import { cn } from '~/utils/cn';
 
-import { COLLAPSED_WIDTH } from '../composables/useLayout';
+import { useShell } from '../composables/useLayout';
 import { useSidebarMenu } from '../composables/useSidebarMenu';
 
 defineOptions({ name: 'LayoutSidebar' });
 
-defineProps<{
-  mixed?: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    /**
+     * 浮层模式（侧边导航形态 / 窄屏）：由抽屉负责定位与开合，
+     * 这里不再折叠、不加 Logo 之外的留白，宽度用固定的抽屉宽度。
+     */
+    overlay?: boolean;
+  }>(),
+  { overlay: false },
+);
 
 const emit = defineEmits<{
   menuClick: [key: string];
 }>();
 
-const appStore = useAppStore();
+/**
+ * 每一级菜单的缩进量（antd 默认 24px）。
+ *
+ * antd 是按层级**内联**写 `padding-left: level * inlineIndent` 的，
+ * 所以想改缩进只能从这个 prop 进去——类选择器打不过内联样式，
+ * 原来那条 `[&_.ant-menu-sub_.ant-menu-item]:pl-12` 就是这样变成死代码的：
+ * 它从来没生效过，深层级（组件示例 → 组件画廊 → 基础组件 → 卡片列表）
+ * 于是被 4 × 24 = 96px 的缩进推到只剩两三个字的宽度，看起来像"样式坏了"。
+ * 16px 一级时，四级仍留出约 130px 给标题。
+ */
+const SIDEBAR_INLINE_INDENT = 16;
 
-// ★ Sider 折叠状态与 appStore 双向绑定
+const appStore = useAppStore();
+const { blueprint, regions } = useShell();
+
+/** 浮层里永远展开；常驻形态才受折叠开关影响 */
+const collapsed = computed(
+  () => !props.overlay && appStore.sidebarCollapsed,
+);
+
+/** a-layout-sider 的 v-model 需要一个可写目标；写入即回写偏好 */
 const collapsedModel = computed({
-  get: () => appStore.sidebarCollapsed,
-  set: (v) => appStore.updateSetting({ sidebarCollapsed: v }),
+  get: () => collapsed.value,
+  set: (value: boolean) => appStore.updateSetting({ sidebarCollapsed: value }),
 });
+
+/** 图标栏形态下 Logo 在图标栏；顶栏带 Logo 的形态这里也不重复 */
+const showLogo = computed(
+  () =>
+    !props.overlay &&
+    !regions.navRailVisible.value &&
+    blueprint.value.headerLead !== 'logo',
+);
+
+const sidebarWidth = computed(() =>
+  props.overlay ? LAYOUT_DRAWER_WIDTH : appStore.sidebarWidth,
+);
 
 const {
   menuItems,
@@ -40,13 +83,17 @@ function handleMenuSelect(info: { key: string }) {
   emit('menuClick', info.key);
 }
 
+/** 折叠入口挪到侧栏底部：它的效果就在这一列上，按钮就该长在这一列 */
+function toggleCollapsed() {
+  appStore.toggles.sidebarCollapsed();
+}
+
 const appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin';
-const isDarkMode = computed(() => appStore.themeMode === 'dark');
+const isDarkMode = computed(() => appStore.resolvedTheme === 'dark');
 
 const menuTheme = computed<'dark' | 'light'>(() =>
   appStore.darkSidebar || isDarkMode.value ? 'dark' : 'light',
 );
-
 const isLightSidebar = computed(
   () => !appStore.darkSidebar && !isDarkMode.value,
 );
@@ -60,17 +107,33 @@ const sidebarClassName = computed(() =>
   ),
 );
 
+/** 底部折叠条：分隔线跟随侧栏配色，hover 反馈和菜单项用同一档强度 */
+const collapseBarClassName = computed(() =>
+  cn(
+    'flex h-10 shrink-0 cursor-pointer items-center justify-center border-t',
+    'transition-colors duration-200',
+    appStore.darkSidebar || isDarkMode.value
+      ? 'border-gray-800 text-gray-400 hover:bg-white/6 hover:text-gray-200'
+      : 'border-gray-100 text-gray-500 hover:bg-gray-100 hover:text-gray-700',
+  ),
+);
+
 const logoClassName = computed(() =>
   cn(
-    'flex h-14 items-center justify-center overflow-hidden border-b whitespace-nowrap transition-all duration-300',
+    // 高度不写 `h-14`：与顶栏同源，见 `LAYOUT_HEADER_ROW_STYLE`
+    'flex shrink-0 items-center justify-center overflow-hidden border-b whitespace-nowrap transition-all duration-300',
     appStore.darkSidebar || isDarkMode.value
       ? 'border-gray-800'
       : 'border-gray-100',
   ),
 );
 
-const menuWrapperClassName =
-  'flex-1 overflow-hidden px-2 py-3 [&_.ps__rail-y]:opacity-30 [&_.ps__rail-y]:transition-opacity hover:[&_.ps__rail-y]:opacity-60 [&_.ps__thumb-y]:bg-slate-300 [&_.ps__thumb-y]:rounded';
+/**
+ * 菜单区的滚动容器：`min-h-0 flex-1` 让封装的 Scrollbar 在这个列向 flex 里
+ * 拿满 Logo 之外的剩余高度（原先这里写 `overflow-hidden` + PerfectScrollbar，
+ * 现在滚动条与滚动行为统一由 `@antdv/ui` 的 Scrollbar 负责）。
+ */
+const menuScrollbarRootClass = 'min-h-0 flex-1 px-2 py-3';
 
 /** ★★ 核心：所有 antd 菜单样式通过 Tailwind 任意变体实现 */
 const menuClassName = computed(() => {
@@ -125,17 +188,20 @@ const menuClassName = computed(() => {
     '[&_.ant-menu-title-content]:flex-1',
     '[&_.ant-menu-title-content]:min-w-0',
 
-    // ---- 子菜单透明 + 缩进 ----
+    // ---- 子菜单透明 ----
+    // 缩进不在这里做：antd 用内联 padding-left 按层级排，类选择器顶不过它，
+    // 统一走 `:inline-indent`（见 SIDEBAR_INLINE_INDENT）。
     '[&_.ant-menu-sub]:!bg-transparent',
-    '[&_.ant-menu-sub_.ant-menu-item]:pl-12',
 
     // ---- 折叠态隐藏 label / extra ----
     '[&_.ant-menu-inline-collapsed_.menu-label-wrapper]:hidden',
     '[&_.ant-menu-inline-collapsed_.menu-extra]:hidden',
 
     // ---- 图标尺寸 ----
-    '[&_.ant-menu-item_.anticon]:text-lg',
-    '[&_.ant-menu-submenu-title_.anticon]:text-lg',
+    // antd 给每一项的图标元素加了 `.ant-menu-item-icon`，`@iconify/vue` 渲染的
+    // `<span>` 不是 `.anticon`，所以只写后者的话这条规则一直是空的。
+    '[&_.ant-menu-item_.ant-menu-item-icon]:text-lg',
+    '[&_.ant-menu-submenu-title_.ant-menu-item-icon]:text-lg',
     '[&_.ant-menu-submenu-arrow]:text-slate-400',
     '[&_.ant-menu-submenu-title:hover_.ant-menu-submenu-arrow]:text-slate-500',
 
@@ -178,22 +244,27 @@ const menuClassName = computed(() => {
 </script>
 
 <template>
-  <!-- ★ 用 a-layout-sider 替换 <aside> -->
   <a-layout-sider
     v-model:collapsed="collapsedModel"
-    :width="appStore.sidebarWidth"
-    :collapsed-width="COLLAPSED_WIDTH"
+    data-layout-region="sidebar"
+    :width="sidebarWidth"
+    :collapsed-width="LAYOUT_SIDEBAR_COLLAPSED_WIDTH"
     :trigger="null"
-    :collapsible="appStore.menuAccordion"
+    :collapsible="!overlay"
     :theme="menuTheme"
     :class="sidebarClassName"
     :style="{ height: '100%' }"
   >
     <!-- Logo 区域 -->
-    <div v-if="!mixed" :class="logoClassName">
+    <div
+      v-if="showLogo"
+      data-layout-logo="sidebar"
+      :class="logoClassName"
+      :style="LAYOUT_HEADER_ROW_STYLE"
+    >
       <transition name="logo-fade" mode="out-in">
         <div
-          v-if="appStore.sidebarCollapsed"
+          v-if="collapsed"
           key="collapsed"
           class="flex items-center justify-center"
         >
@@ -222,30 +293,47 @@ const menuClassName = computed(() => {
       </transition>
     </div>
 
-    <!-- 菜单区域 -->
-    <div :class="menuWrapperClassName">
-      <PerfectScrollbar
-        class="h-full"
-        :options="{
-          suppressScrollX: true,
-          suppressScrollY: false,
-          wheelPropagation: false,
-        }"
-      >
-        <Menu
-          v-if="menuItems && menuItems.length > 0"
-          :selected-keys="selectedKeys"
-          :open-keys="openKeys"
-          mode="inline"
-          :theme="menuTheme"
-          :items="menuItems"
-          :inline-collapsed="appStore.sidebarCollapsed"
-          :class="menuClassName"
-          @select="handleMenuSelect"
-          @open-change="handleOpenChange"
-        />
-      </PerfectScrollbar>
-    </div>
+    <!-- 菜单区域：滚动一律走封装组件，不留系统原生滚动条 -->
+    <Scrollbar
+      :root-class="menuScrollbarRootClass"
+      wrap-class="overflow-x-hidden"
+    >
+      <Menu
+        v-if="menuItems && menuItems.length > 0"
+        :selected-keys="selectedKeys"
+        :open-keys="openKeys"
+        mode="inline"
+        :theme="menuTheme"
+        :items="menuItems"
+        :inline-collapsed="collapsed"
+        :inline-indent="SIDEBAR_INLINE_INDENT"
+        :class="menuClassName"
+        @select="handleMenuSelect"
+        @open-change="handleOpenChange"
+      />
+    </Scrollbar>
+
+    <!--
+      折叠入口：贴着这一列的底边。
+      放在顶栏时，用户要点到右上角才收起"左边这一列"，动作和目标隔着整个屏幕；
+      Vben 系的惯例也是把它做在侧栏底部的一条横杠上。
+      浮层形态（抽屉 / 窄屏）不渲染——那里没有"折叠"可言，开合由抽屉负责。
+    -->
+    <button
+      v-if="!overlay"
+      data-layout-sidebar-collapse
+      type="button"
+      :class="collapseBarClassName"
+      :aria-label="collapsed ? '展开菜单' : '收起菜单'"
+      :aria-expanded="!collapsed"
+      :title="collapsed ? '展开菜单' : '收起菜单'"
+      @click="toggleCollapsed"
+    >
+      <Icon
+        :icon="collapsed ? 'carbon:side-panel-open' : 'carbon:side-panel-close'"
+        class="text-lg"
+      />
+    </button>
   </a-layout-sider>
 </template>
 

@@ -6,7 +6,8 @@ export interface BarMapItem {
   scrollSize: string;
   size: string;
   key: string;
-  axis: string;
+  /** CSS transform 的轴向：只能是对应坐标轴的字母，索引拖拽缓存时靠它保证类型安全 */
+  axis: 'X' | 'Y';
   client: string;
   direction: string;
 }

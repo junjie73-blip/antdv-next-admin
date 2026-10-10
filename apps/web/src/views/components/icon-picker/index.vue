@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
+import { IconPicker } from '@antdv/ui/icon';
 import { Icon } from '@iconify/vue';
-import { IconPicker } from '~/components/common/Icon';
-import { cn } from '~/utils/cn';
 
 const containerClassName = cn('space-y-6');
 const twinContainerClassName = cn('grid grid-cols-2 gap-4');
@@ -19,7 +19,7 @@ const infoTextClassName = cn(
 
 const selectedIcon = ref('');
 const defaultIcon = ref('carbon:star-filled');
-const disabledValue = ref('carbon:lock-locked');
+const disabledValue = ref('carbon:locked');
 
 const leftIcon = ref('');
 const rightIcon = ref('');

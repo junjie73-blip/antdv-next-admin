@@ -9,7 +9,7 @@ export default defineMockRoute({
     const name = query.name as string | undefined;
     const type = query.type as string | undefined;
     const parentId = query.parentId as string | undefined;
-    const page = Number(query.page) || 1;
+    const page = Number(query.pageNum ?? query.page) || 1;
     const pageSize = Number(query.pageSize) || 20;
 
     let filtered = [...FILE_DB];

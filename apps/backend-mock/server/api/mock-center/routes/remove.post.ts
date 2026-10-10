@@ -1,8 +1,8 @@
 import { defineEventHandler, readBody } from '#imports';
 
-import { isGeneratedId } from '../../utils/generated';
-import { bizError, envelope } from '../../utils/response';
-import { unregisterGenerated } from '../../utils/store';
+import { isGeneratedId } from '../../../utils/generated';
+import { bizError, envelope } from '../../../utils/response';
+import { unregisterGenerated } from '../../../utils/store';
 
 /**
  * 删除面板生成的自定义接口。

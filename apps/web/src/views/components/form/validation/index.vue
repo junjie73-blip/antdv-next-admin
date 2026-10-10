@@ -3,7 +3,7 @@ import type { FormProps } from 'antdv-next';
 
 import { computed, reactive, ref } from 'vue';
 
-import { cn } from '~/utils/cn';
+import { cn } from '@antdv/shared/cn';
 
 const containerClassName = cn('space-y-6');
 const codeBlockClassName = cn(
@@ -260,9 +260,10 @@ async function handleLinkedValidate() {
           </a-form>
         </a-col>
         <a-col :span="12" class="flex flex-col">
-          <PerfectScrollbar :class="codeBlockClassName">
+          <!-- rootClass 会替换组件默认的 h-full；codeBlockClassName 自带 h-full，照旧整体传入 -->
+          <Scrollbar :root-class="codeBlockClassName">
             <pre>{{ result }}</pre>
-          </PerfectScrollbar>
+          </Scrollbar>
         </a-col>
       </a-row>
     </a-card>
@@ -323,9 +324,9 @@ async function handleLinkedValidate() {
           </a-collapse-panel>
         </a-collapse>
       </a-form>
-      <PerfectScrollbar :class="codeBlockClassName" class="mt-4">
+      <Scrollbar :root-class="codeBlockClassName" class="mt-4">
         <pre>{{ progressiveResult }}</pre>
-      </PerfectScrollbar>
+      </Scrollbar>
     </a-card>
 
     <a-card title="联动验证（省/市/区）" variant="borderless">

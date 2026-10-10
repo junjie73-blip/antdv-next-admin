@@ -1,14 +1,20 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { useModal } from '~/components/business/Modal';
-import { cn } from '~/utils/cn';
 
 const [registerBasicModal, basicModalMethods] = useModal();
 const [registerLargeModal, largeModalMethods] = useModal();
 const [registerNoFooterModal, noFooterModalMethods] = useModal();
 const [registerAsyncModal, asyncModalMethods] = useModal();
-const [_registerContentModal, _contentModalMethods] = useModal();
+/**
+ * 这个弹窗用 `v-model:open` 直接控制显隐，不走 `useModal().openModal()`，
+ * 所以只有 register 回调要接上；方法句柄留着不用（前缀 `_` 是给 lint 看的）。
+ * 之前两个都写成了 `_` 前缀，模板里的 `@register="registerContentModal"`
+ * 便指向了一个不存在的变量，渲染时抛 "Property ... was accessed but is not defined"。
+ */
+const [registerContentModal, _contentModalMethods] = useModal();
 
 const containerClassName = cn('space-y-6');
 

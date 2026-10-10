@@ -10,7 +10,7 @@ export default defineMockRoute({
     const operType = query.operType;
     const status = query.status;
     const dateRange = query.dateRange;
-    const page = Number(query.page) || 1;
+    const page = Number(query.pageNum ?? query.page) || 1;
     const pageSize = Number(query.pageSize) || 10;
 
     let filtered = [...OPER_LOG_DB];

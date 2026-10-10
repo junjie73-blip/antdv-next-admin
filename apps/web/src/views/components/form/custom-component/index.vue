@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-import { cn } from '~/utils/cn';
+import { cn } from '@antdv/shared/cn';
 
 const containerClassName = cn('space-y-6');
 

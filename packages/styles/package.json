@@ -1,0 +1,36 @@
+{
+  "name": "@antdv/styles",
+  "version": "0.4.0",
+  "description": "全局样式子包：Tailwind v4 入口（层级顺序 / 插件 / dark 变体）、基础层、NProgress、无障碍与权限降级样式。边界：只写 CSS，不含任何组件逻辑；组件自身的样式随组件放在 @antdv/ui / @antdv/layouts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf .turbo",
+    "test:unit": "vitest run"
+  },
+  "files": [
+    "src"
+  ],
+  "main": "./src/index.css",
+  "exports": {
+    ".": "./src/index.css",
+    "./base.css": "./src/base.css",
+    "./index.css": "./src/index.css",
+    "./nprogress.css": "./src/nprogress.css",
+    "./package.json": "./package.json",
+    "./permission.css": "./src/permission.css",
+    "./a11y.css": "./src/a11y.css"
+  },
+  "dependencies": {
+    "@antdv-next/tailwind": "catalog:",
+    "@tailwindcss/nesting": "catalog:",
+    "@tailwindcss/typography": "catalog:",
+    "tailwindcss": "catalog:",
+    "tw-animate-css": "catalog:"
+  },
+  "devDependencies": {
+    "@antdv/tsconfig": "workspace:*",
+    "rimraf": "catalog:",
+    "vitest": "catalog:"
+  }
+}

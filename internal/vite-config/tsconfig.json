@@ -4,6 +4,6 @@
     "noEmit": true,
     "outDir": "dist"
   },
-  "include": ["src/**/*.ts", "tsdown.config.ts"],
+  "include": ["src/**/*.ts", "tsdown.config.ts", "__tests__/**/*.ts"],
   "exclude": ["dist", "node_modules"]
 }

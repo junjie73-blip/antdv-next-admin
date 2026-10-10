@@ -23,6 +23,13 @@ export function useModalInner<T = any>(
   const modalInstance: Ref<Nullable<ModalInnerMethods>> = ref(null);
   const dataRef: Ref<null | T> = ref(null);
 
+  // 卸载清理挂在调用方的 setup 上，理由同 useDrawer：
+  // register 是 BasicModal emit('register') 的回调，那时已经没有"当前实例"，
+  // 在回调里调 onUnmounted 只会告警，钩子也不会被任何实例接管。
+  onUnmounted(() => {
+    modalInstance.value = null;
+  });
+
   /**
    * 注册弹窗实例
    */
@@ -40,11 +47,6 @@ export function useModalInner<T = any>(
         originalOpenModal(visible, data);
       };
     }
-
-    // 监听组件卸载，清理实例
-    onUnmounted(() => {
-      modalInstance.value = null;
-    });
   };
 
   /**

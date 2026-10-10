@@ -14,7 +14,7 @@
 
 import type { GeneratedRouteFile } from '@antdv/types';
 
-import type { MockEvent, MockRouteInput } from '../utils/runtime';
+import type { MockRouteInput } from '../utils/runtime';
 
 import {
   defineEventHandler,
@@ -106,10 +106,7 @@ export default defineEventHandler(async (event) => {
     module: moduleOf(patternPath),
     path: patternPath,
   };
-  const context: MockRouteInput = await toRouteInput(
-    event as unknown as MockEvent,
-    patternPath,
-  );
+  const context: MockRouteInput = await toRouteInput(event, patternPath);
   // 中间件先于路由执行，event.context.params 尚未填充，用模式捕获值覆盖
   context.params = params;
 

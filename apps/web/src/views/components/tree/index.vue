@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-import { cn } from '~/utils/cn';
+import { cn } from '@antdv/shared/cn';
 
 // ==================== 类型定义 ====================
 interface TreeNode {
@@ -304,8 +304,57 @@ function handleEdit(nodeKey: string, title: string) {
   message.info(`编辑节点:\nKey: ${nodeKey}\nTitle: ${title}`);
 }
 
+/**
+ * 确认气泡挂到 body。
+ *
+ * 全局的 `getPopupContainer` 是"挂到触发元素的父级"，为的是下拉跟随滚动容器；
+ * 但树这块区域外面裹了自定义 Scrollbar（overflow 裁切），挂在里面的气泡会被切掉半截，
+ * 甚至被相邻节点压住。这一处单独交回 body。
+ */
+const popupToBody = () => document.body;
+
+/**
+ * 演示树上把节点真的摘掉。
+ *
+ * 以前这里只弹一句「删除节点: xxx」，节点原地不动。演示页最容易犯的错就是
+ * 按钮只给反馈不给结果 —— 看 demo 的人会以为 a-tree 不支持删除，
+ * 而真正接的时候又发现"咦，刚才那个按钮是假的"。
+ *
+ * 删除带子树，所以走二次确认：叶子和目录的文案分开说清楚会掉多少。
+ */
 function handleDelete(nodeKey: string) {
-  message.warning(`删除节点: ${nodeKey}`);
+  const target = findNode(actionTreeData.value, nodeKey);
+  const childCount = target ? countDescendants(target) : 0;
+
+  const removeFrom = (nodes: TreeNode[]): TreeNode[] =>
+    nodes
+      .filter((node) => node.key !== nodeKey)
+      .map((node) =>
+        node.children ? { ...node, children: removeFrom(node.children) } : node,
+      );
+
+  actionTreeData.value = removeFrom(actionTreeData.value);
+  message.success(
+    childCount > 0
+      ? `已删除「${target?.title ?? nodeKey}」及 ${childCount} 个子节点`
+      : `已删除「${target?.title ?? nodeKey}」`,
+  );
+}
+
+/**
+ * 子树里还有多少个节点（不含自己）。
+ *
+ * 删除会连带整棵子树一起消失，所以确认气泡和成功提示都要把这个数说出来，
+ * 不然"删一个目录"和"删一片"在界面上长得一模一样。
+ *
+ * 查找复用文件上方的 `findNode`（异步树那块已经在用），不再重复声明一个同名的。
+ */
+function countDescendants(node: TreeNode): number {
+  if (!node.children?.length) return 0;
+  return node.children.reduce(
+    (sum, child) => sum + 1 + countDescendants(child),
+    0,
+  );
 }
 
 // ==================== 7. 连接线样式树 ====================
@@ -514,27 +563,36 @@ const virtualTreeData = ref<TreeNode[]>(generateLargeTreeData());
                   </svg>
                 </template>
               </a-button>
-              <a-button
-                type="link"
-                size="small"
-                danger
-                @click.stop="handleDelete(key)"
+              <!-- 删除会连带子树，点击即生效太危险，统一走二次确认 -->
+              <a-popconfirm
+                :title="
+                  findNode(actionTreeData, String(key))?.children?.length
+                    ? `删除「${title}」会连带其下所有子节点，确定继续吗？`
+                    : `确定删除「${title}」吗？`
+                "
+                ok-text="删除"
+                ok-type="danger"
+                cancel-text="取消"
+                :get-popup-container="popupToBody"
+                @confirm="() => handleDelete(String(key))"
               >
-                <template #icon>
-                  <svg
-                    class="h-4 w-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <polyline points="3 6 5 6 21 6" />
-                    <path
-                      d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
-                    />
-                  </svg>
-                </template>
-              </a-button>
+                <a-button type="link" size="small" danger @click.stop>
+                  <template #icon>
+                    <svg
+                      class="h-4 w-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <polyline points="3 6 5 6 21 6" />
+                      <path
+                        d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
+                      />
+                    </svg>
+                  </template>
+                </a-button>
+              </a-popconfirm>
               <a-button
                 type="link"
                 size="small"

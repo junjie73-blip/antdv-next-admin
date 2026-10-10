@@ -1,7 +1,10 @@
 import type { MicroAppItem, MicroAppRegistry } from '@antdv/types';
 
+import { isEnvEnabled } from '@antdv/shared/env';
+
 export const microAppConfig: MicroAppRegistry = {
-  enabled: import.meta.env.VITE_MICRO_APP === true,
+  // env 值是字符串，写 `=== true` 会恒为 false：整个微前端模块看着能配、其实永远关着
+  enabled: isEnvEnabled(import.meta.env.VITE_MICRO_APP),
   apps: [
     {
       name: 'sub-app-example',

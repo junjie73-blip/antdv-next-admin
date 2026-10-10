@@ -1,17 +1,13 @@
-import type { RemovableRef } from '@vueuse/core';
-
 import type {
   CacheInstance,
   UseCacheOptions,
   UseCacheReturn,
-} from '../utils/cache/types';
+} from '@antdv/shared/cache';
 
-import { computed } from 'vue';
+import { customRef, onScopeDispose, ref, watch } from 'vue';
 
-import { useStorage } from '@vueuse/core';
+import { buildStorageKey, cache } from '@antdv/shared/cache';
 import { isNil } from 'es-toolkit';
-
-import { cache } from '../utils/cache/index';
 
 /** 默认过期时间（秒），0 表示永不过期 */
 const DEFAULT_EXPIRE = 0;
@@ -19,108 +15,154 @@ const DEFAULT_EXPIRE = 0;
 /**
  * 响应式缓存组合式函数
  *
- * 使用 vueuse 的 `useStorage` 提供响应式能力：
- *  - `value.value` 读取 → 自动从缓存取（含过期判断）
- *  - `value.value = xxx` → 自动写回缓存
- *  - 跨标签页同步（同一浏览器）
+ * 单一数据源是 `cache` 单例：前缀、过期、可选加密都由它负责，
+ * 这里只在其上面套一层 ref，让「读缓存」这件事能进模板和 watch。
  *
- * ⚠️ 与 `cache` 单例的区别：
- *  - `cache` 是纯同步 KV 存储，无响应式
- *  - `useCache` 基于 ref，适合在组件内使用
+ * ⚠️ 早期实现同时在裸 `localStorage` 上又叠了一层 `useStorage`，
+ * 于是同一个值有两份存储：`cache.setItem()` 写的是带前缀的 CacheItem 信封，
+ * `useStorage` 写的是 `{ value: … }` 裸 JSON，两边读写互相看不见，
+ * 过期时间只对其中一份生效，`hasItem()` 与 `value.value` 还会给出矛盾答案。现在删掉了那一层。
+ *
+ * 写回策略：
+ *  - `value.value = x` → 立刻落盘；`x` 为 null 时等价于删除该条目；
+ *  - `value.value.foo = 1` → 只有 `deep: true`（默认）时才会被捕获并落盘；
+ *  - 两条路径不会重复写盘：主动写入用 `internalWrite` 门卫挡住 watch（见下）。
+ *
+ * 跨标签页：监听 `storage` 事件后重读。注意该事件只在「其他」标签页触发，
+ * 本标签页不会自触发，因此不存在回环。
  *
  * @example
  * ```ts
- * const { value, removeItem, hasItem } = useCache<UserInfo>('user-info')
- * value.value = { name: 'Tom' }  // 写入缓存
- * console.log(value.value)       // 读取缓存
+ * const { value, removeItem, hasItem } = useCache<UserInfo>('user-info');
+ * value.value = { name: 'Tom' }; // 写入缓存
+ * console.log(value.value); // 读取缓存
  * ```
  */
 export function useCache<T = unknown>(
   key: string,
   options: UseCacheOptions = {},
 ): UseCacheReturn<T> {
-  const { defaultValue = null, expire = DEFAULT_EXPIRE, deep = true } = options;
+  const {
+    defaultValue = null,
+    expire = DEFAULT_EXPIRE,
+    deep = true,
+    immediate = false,
+  } = options;
 
-  // 使用 cache 单例读写，保持一致的加密/前缀策略
-  const cacheInstance = cache as CacheInstance<T>;
+  const instance = cache as CacheInstance<T>;
+  const fallbackValue = defaultValue as null | T;
 
-  /** 包装成 vueuse useStorage 能识别的 serializer */
-  const serializer = {
-    read: (raw: string): null | T => {
-      try {
-        const parsed = JSON.parse(raw) as { value?: T };
-        return parsed?.value ?? null;
-      } catch {
-        return null;
-      }
-    },
-    write: (value: null | T): string => {
-      return JSON.stringify({ value });
-    },
+  /** 读缓存；不存在或已过期时回落到默认值 */
+  const read = (): null | T => instance.getItem(key) ?? fallbackValue;
+
+  const source = ref<null | T>(read());
+
+  /**
+   * 主动写入的门卫。
+   *
+   * 嵌套改动要靠 `flush: 'sync'` 的 deep watch 才能即时落盘，而 `value.value = x`
+   * 本身也是一次对 source 的赋值——不加区分的话同一次赋值会写两遍盘
+   * （两遍 JSON 序列化 + 两遍 SM4 + 两次 localStorage）。
+   * 用同步 watch 是为了让这个门卫是确定的：回调一定发生在 `mark()` 内部，
+   * 不存在「flag 复位了，回调下一拍才来」的竞态。
+   */
+  let internalWrite = false;
+  const mark = (fn: () => void) => {
+    internalWrite = true;
+    try {
+      fn();
+    } finally {
+      internalWrite = false;
+    }
   };
 
-  /**
-   * 判断当前缓存项是否存在
-   */
-  const hasCache = cacheInstance.hasItem(key);
-
-  // 初始值：优先从缓存取，否则用默认值
-  const initialValue: null | T = hasCache
-    ? cacheInstance.getItem(key)
-    : (defaultValue as null | T);
-
-  // 使用 useStorage 提供响应式包装（跨标签页同步）
-  const storageRef: RemovableRef<string> = useStorage(
-    key,
-    hasCache
-      ? JSON.stringify({ value: initialValue })
-      : serializer.write(initialValue as T),
-    // 使用 localStorage，useStorage 会自动注入监听
-    typeof window === 'undefined' ? undefined : window.localStorage,
-    {
-      deep,
-      // 序列化器：useStorage 内部认为它存的是 string，所以读写时用它
-      serializer: {
-        read: (raw: string) => raw,
-        write: (value: string) => value,
-      },
-    },
-  );
-
-  /**
-   * 响应式值：读时反序列化 → T，写时序列化 → 落缓存
-   */
-  const value = computed<null | T>({
-    get: () => {
-      try {
-        return serializer.read(storageRef.value) as null | T;
-      } catch {
-        return (defaultValue as null | T) ?? null;
-      }
-    },
-    set: (next: null | T) => {
-      storageRef.value = serializer.write(next);
-      // 同时写回 cache 单例，保证 getExpire / hasItem 等 API 语义一致
+  /** 把值落到缓存并同步内部状态（null 视为删除） */
+  const apply = (next: null | T, targetExpire?: number) => {
+    mark(() => {
       if (isNil(next)) {
-        cacheInstance.removeItem(key);
+        instance.removeItem(key);
+        source.value = fallbackValue;
       } else {
-        cacheInstance.setItem(key, next as T, expire);
+        instance.setItem(key, next as T, targetExpire ?? expire);
+        source.value = next as null | T;
       }
+    });
+  };
+
+  const value = customRef<null | T>((track, trigger) => ({
+    get() {
+      track();
+      return source.value;
     },
-  });
+    set(next: null | T) {
+      apply(next);
+      trigger();
+    },
+  }));
+
+  if (deep) {
+    const stop = watch(
+      source,
+      () => {
+        if (internalWrite) return;
+        // 嵌套改动：source 里就是最新形状，整体重写一次
+        const current = source.value;
+        if (isNil(current)) instance.removeItem(key);
+        else instance.setItem(key, current as T, expire);
+      },
+      { deep: true, flush: 'sync' },
+    );
+    onScopeDispose(stop);
+  }
+
+  /** immediate：缓存里还没有值时，先把默认值写进去 */
+  if (immediate && instance.getItem(key) === null && !isNil(fallbackValue)) {
+    apply(fallbackValue);
+  }
+
+  /** 从缓存重读（别的标签页或绕过本 composable 直接写 cache 之后用） */
+  const refresh = () => mark(() => void (source.value = read()));
+
+  if (typeof window !== 'undefined') {
+    const onStorage = (event: StorageEvent) => {
+      // key === null 表示整份 localStorage 被清空
+      if (event.key === null || event.key === buildStorageKey(key)) refresh();
+    };
+    window.addEventListener('storage', onStorage);
+    onScopeDispose(() => window.removeEventListener('storage', onStorage));
+  }
 
   return {
     key,
     value,
-    // 透传 cache 单例的所有方法，保持 API 一致
-    getItem: cacheInstance.getItem,
-    setItem: cacheInstance.setItem,
-    removeItem: cacheInstance.removeItem,
-    hasItem: cacheInstance.hasItem,
-    clear: cacheInstance.clear,
-    keys: cacheInstance.keys,
-    getExpire: cacheInstance.getExpire,
-    setExpire: cacheInstance.setExpire,
-    touch: cacheInstance.touch,
-  };
+
+    getItem: (target: string) => instance.getItem(target),
+
+    setItem: (target: string, next: T, targetExpire?: number) => {
+      instance.setItem(target, next, targetExpire ?? expire);
+      if (target === key) mark(() => void (source.value = next));
+    },
+
+    removeItem: (target: string) => {
+      instance.removeItem(target);
+      if (target === key) mark(() => void (source.value = fallbackValue));
+    },
+
+    hasItem: (target: string) => instance.hasItem(target),
+
+    clear: () => {
+      instance.clear();
+      refresh();
+    },
+
+    keys: () => instance.keys(),
+
+    getExpire: (target: string) => instance.getExpire(target),
+
+    setExpire: (target: string, targetExpire: number) =>
+      instance.setExpire(target, targetExpire),
+
+    touch: (target: string, targetExpire?: number) =>
+      instance.touch(target, targetExpire),
+  } satisfies UseCacheReturn<T>;
 }

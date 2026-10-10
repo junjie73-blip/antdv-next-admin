@@ -2,7 +2,8 @@ import { h } from 'vue';
 
 import { Icon } from '@iconify/vue';
 import { notification } from 'antdv-next';
-import dayjs from '~/utils/dayjs';
+
+import dayjs from './dayjs';
 
 interface WelcomeConfig {
   icon: string;
@@ -105,7 +106,7 @@ export interface LoginWelcomeOptions {
  *
  * @example
  * ```ts
- * import { showLoginWelcome } from '~/utils/welcome'
+ * import { showLoginWelcome } from './welcome'
  * // 登录成功后调用
  * showLoginWelcome({ username: userStore.nickname ?? userStore.username })
  * ```

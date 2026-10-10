@@ -12,7 +12,7 @@ import {
   useThrottleFn,
 } from '@vueuse/core';
 import * as echarts from 'echarts/core';
-import { attempt } from 'es-toolkit';
+import { attempt, merge } from 'es-toolkit';
 import { isNil } from 'es-toolkit/predicate';
 
 /* ============================================================
@@ -114,6 +114,12 @@ export function useEcharts<T = unknown>(
   const pendingOptions: Array<{ option: EChartsOption; notMerge: boolean }> =
     [];
 
+  /**
+   * 最近一次生效的完整 option。
+   * setData 需要它：更新数据时必须带着其余配置一起重设，否则 notMerge 会把样式抹掉。
+   */
+  let lastOption: EChartsOption | null = null;
+
   /** ⭐ 关键修复：支持 getter / ref / boolean */
   const isDarkRef = computed(() => {
     if (isNil(isDark)) return false;
@@ -177,9 +183,15 @@ export function useEcharts<T = unknown>(
       dark: isDarkRef.value,
     });
 
-    if (applyInitial && initialOption) instance.setOption(initialOption);
+    if (applyInitial && initialOption) {
+      lastOption = merge({}, initialOption);
+      instance.setOption(initialOption);
+    }
     while (pendingOptions.length > 0) {
       const { option, notMerge } = pendingOptions.shift()!;
+      lastOption = notMerge
+        ? merge({}, option)
+        : merge(lastOption ?? {}, option);
       instance.setOption(option, notMerge);
     }
     return true;
@@ -215,6 +227,9 @@ export function useEcharts<T = unknown>(
 
   /* ---------- 公开 API ---------- */
   function setOption(option: EChartsOption, notMerge = false) {
+    // 无论图表是否就绪，都要记住这份 option（setData 依赖它做合并）
+    lastOption = notMerge ? merge({}, option) : merge(lastOption ?? {}, option);
+
     if (!chart.value) {
       log('setOption queued (chart not ready)');
       pendingOptions.push({ option, notMerge });
@@ -227,7 +242,24 @@ export function useEcharts<T = unknown>(
     }
   }
 
-  function setData(_patch: Partial<T>) {}
+  /**
+   * 只更新数据相关的配置项（series / dataset / xAxis.data 等）。
+   *
+   * ⚠️ 这里以前是 `function setData(_patch: Partial<T>) {}`：一个静默生效的空函数。
+   * 调用方以为刷新了图表，实际上一动不动，而且不报错——比报错更难查。
+   * 现在把 patch 深合并进最近一次 option 后整体重设，样式配置不会丢。
+   *
+   * 泛型 `T` 应当传「option 的形状」，例如 `useEcharts<LineOption>({ series: [...] })`。
+   */
+  function setData(patch: Partial<T>) {
+    // es-toolkit 的 merge 只有 (target, source) 两个参数，且会就地改 target，
+    // 所以先 merge 出一份底稿，再把 patch 并上去。
+    const base = merge({}, lastOption ?? {});
+    setOption(
+      merge(base, patch as Partial<EChartsOption>) as EChartsOption,
+      true,
+    );
+  }
 
   function resize() {
     resizeFn();
@@ -267,6 +299,7 @@ export function useEcharts<T = unknown>(
     if (!chart.value) return;
     log('theme changed, rebuilding chart');
     const backupOption = chart.value.getOption();
+    lastOption = merge({}, backupOption as EChartsOption);
     dispose();
     requestAnimationFrame(() => {
       init();

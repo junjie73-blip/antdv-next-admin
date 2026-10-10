@@ -4,8 +4,10 @@ import type { MicroAppConfig } from '@antdv/types';
 import { computed, onActivated, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
+import { cn } from '@antdv/shared/cn';
+import { buildIframeSandbox, canEscapeSandbox } from '@antdv/shared/iframe';
+import { microAppConfig as registry } from '~/config/micro-app';
 import { useUserStore } from '~/stores/modules/user';
-import { cn } from '~/utils/cn';
 
 interface Props {
   className?: string;
@@ -20,10 +22,40 @@ const microAppRef = ref<HTMLElement | null>(null);
 const isLoading = ref(true);
 const hasError = ref(false);
 
+/** 注册表里可预览的子应用，供 ?app=<name> 挑选 */
+const registryApps = registry.apps;
+
+/**
+ * 解析本页要加载哪个子应用，优先级：
+ * 1. 路由 meta.microApp —— 由菜单/路由显式声明，生产用法；
+ * 2. query `?app=<name>` —— 让人不改代码就能试注册表里的任意一个；
+ * 3. 注册表里第一个 running 的应用 —— 菜单直接点进来就有东西可看。
+ *
+ * 之前只有第 1 条，而菜单 `/micro-app/SubAppView` 并没有配 meta，
+ * 于是这个页面永远落在"配置不存在"的调试面板上，等于菜单里挂了个死页。
+ */
 const microAppConfig = computed<MicroAppConfig | undefined>(() => {
-  const meta = route.meta as any;
-  return meta?.microApp as MicroAppConfig | undefined;
+  const fromMeta = (route.meta as any)?.microApp as MicroAppConfig | undefined;
+  if (fromMeta?.url) return fromMeta;
+
+  const queryName = route.query.app;
+  const picked =
+    registryApps.find((a) => a.name === queryName) ??
+    registryApps.find((a) => a.active) ??
+    registryApps[0];
+  if (!picked) return undefined;
+
+  return {
+    baseroute: picked.baseroute ?? '',
+    keepAlive: true,
+    name: picked.name,
+    sameOrigin: picked.sameOrigin,
+    title: picked.title,
+    url: picked.url,
+  };
 });
+
+const isEnabled = computed(() => registry.enabled);
 
 // 判断是否为外部站点（使用 iframe 而非 micro-app）
 const isExternalUrl = computed(() => {
@@ -31,7 +63,7 @@ const isExternalUrl = computed(() => {
   return !!url && (url.startsWith('https://') || url.startsWith('http://'));
 });
 
-// micro-app 库是否可用
+// micro-app 库是否可用：SDK 是运行时才注册 <micro-app> 自定义元素的，加载与否决定走哪条嵌入路径
 const isMicroAppReady = computed(() => !!(window as any).microApp);
 
 // 外部站点用 iframe，内部微前端用 micro-app 组件
@@ -40,27 +72,16 @@ const useIframe = computed(() => isExternalUrl.value || !isMicroAppReady.value);
 // iframe 的稳定 key——只在 URL 变化时才重建 iframe
 const iframeKey = computed(() => microAppConfig.value?.url ?? 'empty');
 
-// 调试信息（帮助定位问题）
-const debugInfo = computed(() => ({
-  currentPath: route.path,
-  routeName: route.name,
-  hasMicroAppConfig: !!microAppConfig.value,
-  microAppConfig: microAppConfig.value,
-  isExternalUrl: isExternalUrl.value,
-  isMicroAppReady: isMicroAppReady.value,
-  useIframe: useIframe.value,
-  metaKeys: route.meta ? Object.keys(route.meta) : [],
-  allMeta: route.meta,
-}));
-
-// 开发环境打印调试信息
-watch(
-  debugInfo,
-  (info) => {
-    console.log('[SubAppView] Debug info:', JSON.stringify(info, null, 2));
-  },
-  { immediate: true },
+/**
+ * 嵌入框架的 sandbox。默认不含 allow-same-origin：
+ * 与 allow-scripts 同时开就是浏览器告警的"sandbox 可被逃逸"组合，
+ * 框架脚本能顺着同源身份访问顶层文档、读主应用 token。
+ * 只有同域部署、确需共享登录态的子应用才在配置里显式打开 sameOrigin。
+ */
+const sandbox = computed(() =>
+  buildIframeSandbox({ sameOrigin: microAppConfig.value?.sameOrigin }),
 );
+const sandboxEscapable = computed(() => canEscapeSandbox(sandbox.value));
 
 const containerClassName = computed(() =>
   cn('micro-app-wrapper', 'w-full h-full', props.className),
@@ -107,7 +128,6 @@ function sendDataToChild() {
 }
 
 function handleMounted() {
-  console.log('[SubAppView] micro-app mounted event received');
   isLoading.value = false;
   sendDataToChild();
 }
@@ -124,7 +144,6 @@ function handleUnmount() {
 }
 
 function handleIframeLoad() {
-  console.log('[SubAppView] iframe loaded successfully');
   isLoading.value = false;
   hasError.value = false;
 }
@@ -136,7 +155,6 @@ function handleIframeError() {
 }
 
 function retry() {
-  console.log('[SubAppView] retry clicked');
   hasError.value = false;
   isLoading.value = true;
   if (useIframe.value && microAppRef.value) {
@@ -166,12 +184,6 @@ watch(token, () => {
 });
 
 onMounted(() => {
-  console.log(
-    '[SubAppView] mounted, useIframe:',
-    useIframe.value,
-    'microAppConfig:',
-    microAppConfig.value,
-  );
   if (!useIframe.value) {
     microAppRef.value?.addEventListener('mounted', handleMounted);
     microAppRef.value?.addEventListener('error', handleError);
@@ -192,7 +204,6 @@ onActivated(() => {
         !iframeEl.contentDocument ||
         iframeEl.contentDocument.readyState === 'uninitialized')
     ) {
-      console.log('[SubAppView] iframe contentWindow lost, reloading...');
       hasError.value = false;
       isLoading.value = true;
       // 重新设置 src 触发重新加载
@@ -217,9 +228,43 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <!-- 有配置时：渲染嵌入内容 -->
-  <div v-if="microAppConfig" ref="microAppRef" :class="containerClassName">
-    <!-- 外部站点：使用 iframe 嵌入 -->
+  <!-- 功能未启用：只说明状态，不去"假装"嵌了个子应用 -->
+  <div
+    v-if="!isEnabled"
+    class="flex h-full flex-col items-center justify-center gap-2 p-6 text-center"
+    style="min-height: 300px"
+  >
+    <Icon icon="carbon:warning-alt" class="text-4xl text-yellow-500" />
+    <p class="font-medium text-gray-600 dark:text-gray-300">
+      微前端功能未启用
+    </p>
+    <p class="max-w-md text-xs text-gray-400">
+      在 <code>.env</code> 中设置
+      <code>VITE_MICRO_APP=true</code>
+      并重启，本页会按注册表加载子应用
+      <template v-if="microAppConfig">
+        （当前选中：{{ microAppConfig.title ?? microAppConfig.name }}）
+</template>
+    </p>
+  </div>
+
+  <!-- 注册表为空 / 菜单没配 meta：干净的空状态，不再打印调试 JSON -->
+  <div
+    v-else-if="!microAppConfig"
+    class="flex h-full flex-col items-center justify-center gap-2 p-6 text-center"
+    style="min-height: 300px"
+  >
+    <Icon icon="carbon:application" class="text-4xl text-gray-300" />
+    <p class="font-medium text-gray-600 dark:text-gray-300">未指定子应用</p>
+    <p class="max-w-md text-xs text-gray-400">
+      在菜单或路由的 <code>meta.microApp</code> 中声明 name / url，
+      或在 <code>src/config/micro-app.ts</code> 的注册表里登记一个子应用
+    </p>
+  </div>
+
+  <!-- 有目标时：渲染嵌入内容 -->
+  <div v-else ref="microAppRef" :class="containerClassName">
+    <!-- 外部站点 / SDK 未就绪：使用 iframe 嵌入 -->
     <iframe
       v-if="useIframe"
       :key="iframeKey"
@@ -228,14 +273,14 @@ onUnmounted(() => {
       style="width: 100%; height: 100%"
       frameborder="0"
       allow="clipboard-write; autoplay; fullscreen"
-      sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
+      :sandbox="sandbox"
       @load="handleIframeLoad"
       @error="handleIframeError"
     ></iframe>
 
-    <!-- 内部微前端：使用 micro-app 组件 -->
+    <!-- 内部微前端：使用 micro-app 自定义元素（由 SDK 在运行时注册） -->
     <micro-app
-      v-else-if="isMicroAppReady"
+      v-else
       :name="microAppConfig.name"
       :url="microAppConfig.url"
       :baseroute="microAppConfig.baseroute"
@@ -255,97 +300,32 @@ onUnmounted(() => {
       }"
     />
 
-    <!-- micro-app 库未加载的提示 -->
-    <div v-else class="flex h-full flex-col items-center justify-center gap-4">
-      <svg
-        class="h-16 w-16 text-yellow-500"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <path d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      <p class="text-center text-gray-500">
-        微前端库未加载，当前以 iframe 模式显示
+    <!-- 加载态 -->
+    <div v-if="isLoading" :class="loadingClassName">
+      <a-spin size="large" />
+      <p class="mt-2 text-sm text-gray-500">
+        正在加载 {{ microAppConfig.title ?? microAppConfig.name }}...
       </p>
     </div>
 
-    <!-- 加载态 -->
-    <div
-      v-if="isLoading && (isMicroAppReady || useIframe)"
-      :class="loadingClassName"
+    <!-- 打开了同源身份：把风险标出来，别让它藏在配置里 -->
+    <a-tag
+      v-if="sandboxEscapable"
+      color="orange"
+      class="absolute top-2 right-2 z-20"
     >
-      <a-spin size="large" />
-      <p class="mt-2 text-sm text-gray-500">
-        正在加载 {{ microAppConfig.title }}...
-      </p>
-    </div>
+      同源预览
+    </a-tag>
 
     <!-- 错误态 -->
     <div v-if="hasError" :class="errorClassName">
-      <svg
-        class="mb-4 h-16 w-16 text-red-500"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <circle cx="12" cy="12" r="10" />
-        <line x1="15" y1="9" x2="9" y2="15" />
-        <line x1="9" y1="9" x2="15" y2="15" />
-      </svg>
+      <Icon icon="carbon:cloud-offline" class="mb-4 text-5xl text-red-500" />
       <p class="mb-4 text-gray-600 dark:text-gray-400">子应用加载失败</p>
       <p class="mb-4 max-w-xs text-center text-xs break-all text-gray-400">
         {{ microAppConfig.url }}
       </p>
       <a-button type="primary" @click="retry"> 重试 </a-button>
     </div>
-  </div>
-
-  <!-- 无配置时：显示详细调试信息 -->
-  <div
-    v-else
-    class="flex h-full flex-col items-center justify-center gap-3 p-6"
-    style="min-height: 300px"
-  >
-    <svg
-      class="h-12 w-12 text-orange-400"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-    >
-      <path d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-    <p class="font-medium text-gray-600">微前端配置不存在</p>
-    <!-- 调试信息面板 -->
-    <PerfectScrollbar
-      class="mt-2 w-full max-w-lg rounded-lg bg-orange-50 p-4 text-left text-xs dark:bg-gray-800"
-    >
-      <p class="mb-2 font-semibold text-orange-600 dark:text-orange-400">
-        调试信息：
-      </p>
-      <pre
-        class="break-all whitespace-pre-wrap text-gray-700 dark:text-gray-300"
-        >{{
-          JSON.stringify(
-            {
-              currentPath: route.path,
-              routeName: route.name,
-              metaKeys: route.meta ? Object.keys(route.meta) : [],
-              hasMicroApp: !!route.meta?.microApp,
-              microAppValue: (route.meta as any)?.microApp,
-              fullPath: route.fullPath,
-            },
-            null,
-            2,
-          )
-        }}</pre>
-    </PerfectScrollbar>
-    <p class="mt-2 text-center text-xs text-gray-400">
-      请检查路由配置中是否包含 microApp 字段
-    </p>
   </div>
 </template>
 

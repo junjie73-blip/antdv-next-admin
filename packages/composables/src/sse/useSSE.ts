@@ -1,7 +1,6 @@
 import type {
   SSEEventCallback,
   SSEEventHandlers,
-  SSEEventType,
   SSEOptions,
 } from './types';
 
@@ -11,18 +10,27 @@ import { DEFAULT_SSE_OPTIONS } from './constants';
 import { SSEEventManager } from './SSEEventManager';
 import { SSEReconnectManager } from './SSEReconnectManager';
 import { SSEStateManager } from './SSEStateManager';
+// SSEState / SSEEventType 是枚举，运行时要用它的成员，所以必须是值导入
+import { SSEEventType, SSEState } from './types';
 
+/**
+ * SSE 客户端：EventSource + 受控重连。
+ *
+ * 与 `useWebSocket` 的差别只在传输层：EventSource 自己也会重连，
+ * 所以我们这套调度器在 onerror 里必须先 `clearEventSource()` 关掉旧连接，
+ * 否则浏览器原生重试和我们的重试会同时挂着两条，事件重复消费。
+ */
 export function useSSE(options: SSEOptions) {
   const finalOptions = { ...DEFAULT_SSE_OPTIONS, ...options };
 
   const stateManager = new SSEStateManager();
   const eventManager = new SSEEventManager();
   const reconnectManager = new SSEReconnectManager({
-    enabled: finalOptions.reconnectEnabled!,
-    interval: finalOptions.reconnectInterval!,
-    maxAttempts: finalOptions.maxReconnectAttempts!,
-    delayMultiplier: finalOptions.reconnectDelayMultiplier!,
-    maxDelay: finalOptions.maxReconnectDelay!,
+    enabled: finalOptions.reconnectEnabled ?? true,
+    interval: finalOptions.reconnectInterval ?? 1000,
+    maxAttempts: finalOptions.maxReconnectAttempts ?? 5,
+    delayMultiplier: finalOptions.reconnectDelayMultiplier ?? 2,
+    maxDelay: finalOptions.maxReconnectDelay ?? 30_000,
   });
 
   const readyState = readonly(stateManager.getStateRef());
@@ -32,9 +40,9 @@ export function useSSE(options: SSEOptions) {
   const disconnect = () => {
     reconnectManager.stop();
     stateManager.clearEventSource();
-    stateManager.setState('disconnected' as any);
-    eventManager.emit('stateChange' as any, 'disconnected' as any);
-    eventManager.emit('close' as any, new Event('close'));
+    stateManager.setState(SSEState.Disconnected);
+    eventManager.emit(SSEEventType.StateChange, SSEState.Disconnected);
+    eventManager.emit(SSEEventType.Close, new Event('close'));
   };
 
   const connect = () => {
@@ -42,12 +50,13 @@ export function useSSE(options: SSEOptions) {
       return;
     }
 
-    stateManager.setState('connecting' as any);
-    eventManager.emit('stateChange' as any, 'connecting' as any);
+    stateManager.setState(SSEState.Connecting);
+    eventManager.emit(SSEEventType.StateChange, SSEState.Connecting);
 
     try {
       let url = finalOptions.url;
 
+      // 断线续传：把上次收到的事件 id 带给服务端，避免漏消息
       if (lastEventId.value) {
         const separator = url.includes('?') ? '&' : '?';
         url = `${url}${separator}lastEventId=${encodeURIComponent(lastEventId.value)}`;
@@ -60,23 +69,26 @@ export function useSSE(options: SSEOptions) {
       stateManager.setEventSource(eventSource);
 
       eventSource.onopen = (event) => {
-        stateManager.setState('connected' as any);
-        eventManager.emit('stateChange' as any, 'connected' as any);
-        eventManager.emit('open' as any, event);
+        stateManager.setState(SSEState.Connected);
+        eventManager.emit(SSEEventType.StateChange, SSEState.Connected);
+        eventManager.emit(SSEEventType.Open, event);
 
         reconnectManager.reset();
         reconnectAttempts.value = 0;
       };
 
       eventSource.onerror = (event) => {
-        stateManager.setState('error' as any);
-        eventManager.emit('stateChange' as any, 'error' as any);
-        eventManager.emit('error' as any, event);
+        stateManager.setState(SSEState.Error);
+        eventManager.emit(SSEEventType.StateChange, SSEState.Error);
+        eventManager.emit(SSEEventType.Error, event);
 
         if (
           reconnectManager.isEnabled() &&
           !reconnectManager.hasReachedMaxAttempts()
         ) {
+          // 先断开旧连接再排重连：浏览器对 EventSource 有自带重试，
+          // 不关掉的话两条连接会同时收消息。
+          stateManager.clearEventSource();
           reconnectManager.start();
         } else {
           disconnect();
@@ -86,24 +98,25 @@ export function useSSE(options: SSEOptions) {
       eventSource.onmessage = (event) => {
         lastEventId.value = event.lastEventId;
 
+        // 心跳注释帧（data 为空串）只用于保活，不往业务事件里透
         if (event.data === '') {
           return;
         }
 
-        eventManager.emit('message' as any, event);
+        eventManager.emit(SSEEventType.Message, event);
 
         const eventData = event.data;
         try {
           const parsed = JSON.parse(eventData);
-          eventManager.emit('event:message' as any, parsed);
+          eventManager.emit('event:message', parsed);
         } catch {
-          eventManager.emit('event:message' as any, eventData);
+          eventManager.emit('event:message', eventData);
         }
       };
     } catch (error) {
-      stateManager.setState('error' as any);
-      eventManager.emit('stateChange' as any, 'error' as any);
-      eventManager.emit('error' as any, error as any);
+      stateManager.setState(SSEState.Error);
+      eventManager.emit(SSEEventType.StateChange, SSEState.Error);
+      eventManager.emit(SSEEventType.Error, error);
     }
   };
 
@@ -146,6 +159,7 @@ export function useSSE(options: SSEOptions) {
 
   reconnectManager.setMaxAttemptsReachedCallback(() => {
     console.warn('Max reconnect attempts reached');
+    disconnect();
   });
 
   onUnmounted(() => {

@@ -3,8 +3,8 @@ import type { LoadingProps } from './types';
 
 import { computed } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { Spin } from 'antdv-next';
-import { cn } from '~/utils/cn';
 
 /**
  * Loading 加载组件
@@ -69,15 +69,17 @@ const wrapperClassName = computed(() => {
 
 /**
  * Spin 尺寸映射
- * 将 LoadingSize 映射到 Spin 组件的 size
+ * 将本包的 LoadingSize 映射到 Spin 的 size。
+ * 注意中档叫 `medium` 而不是 `default`：传 'default' 会触发
+ * `[antd: Spin] size="default" is deprecated` 警告（控制台刷屏，且下个major会失效）。
  */
 const spinSize = computed(() => {
-  const sizeMap: Record<string, 'default' | 'large' | 'small'> = {
-    small: 'small',
-    default: 'default',
+  const sizeMap: Record<string, 'large' | 'medium' | 'small'> = {
     large: 'large',
+    medium: 'medium',
+    small: 'small',
   };
-  return sizeMap[props.size] || 'default';
+  return sizeMap[props.size === 'default' ? 'medium' : props.size] ?? 'medium';
 });
 </script>
 

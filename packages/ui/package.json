@@ -1,0 +1,49 @@
+{
+  "name": "@antdv/ui",
+  "version": "0.4.0",
+  "description": "通用 UI 组件子包：图标（Iconify / SVG 雪碧图 / 图标选择器）、加载（组件 + 函数式实例 + 指令）与滚动条（自绘 Scrollbar）。边界：不依赖 pinia、vue-router、业务 store 或应用配置，需要这些的薄壳留在应用里",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf .turbo",
+    "test:unit": "vitest run",
+    "type-check": "vue-tsc --noEmit"
+  },
+  "files": [
+    "src"
+  ],
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts",
+    "./icon": "./src/icon/index.ts",
+    "./loading": "./src/loading/index.ts",
+    "./package.json": "./package.json",
+    "./scrollbar": "./src/scrollbar/index.ts"
+  },
+  "dependencies": {
+    "@antdv/shared": "workspace:*",
+    "@iconify-json/ant-design": "catalog:",
+    "@iconify-json/carbon": "catalog:",
+    "@iconify-json/fa6-regular": "catalog:",
+    "@iconify-json/lucide": "catalog:",
+    "@iconify-json/mdi": "catalog:",
+    "@iconify/vue": "catalog:",
+    "@vueuse/core": "catalog:",
+    "antdv-next": "catalog:",
+    "es-toolkit": "catalog:",
+    "vue": "catalog:"
+  },
+  "devDependencies": {
+    "@antdv/tsconfig": "workspace:*",
+    "@vitejs/plugin-vue": "catalog:",
+    "@vue/test-utils": "catalog:",
+    "jsdom": "catalog:",
+    "rimraf": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}

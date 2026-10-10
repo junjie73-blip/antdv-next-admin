@@ -2,8 +2,8 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { onBeforeRouteUpdate, useRoute } from 'vue-router';
 
+import { cn } from '@antdv/shared/cn';
 import { useAppStore } from '~/stores/modules/app';
-import { cn } from '~/utils/cn';
 
 defineOptions({ name: 'RouteLoadingBar' });
 
@@ -63,7 +63,8 @@ const barColor = computed(() => {
   if (props.color) return props.color;
   if (isError.value) return '#ef4444';
   if (isSlowState.value) return '#f59e0b';
-  const isDark = appStore.themeMode === 'dark';
+  // 'auto' 模式下 themeMode 不等于 'dark'，这里必须用折叠后的实际明暗值
+  const isDark = appStore.resolvedTheme === 'dark';
   return isDark ? '#6366f1' : '#1677ff';
 });
 

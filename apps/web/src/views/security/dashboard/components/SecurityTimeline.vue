@@ -7,10 +7,10 @@ import type {
 
 import { computed, onMounted, ref } from 'vue'
 
+import { cn } from '@antdv/shared/cn'
 import { Icon } from '@iconify/vue'
 import dayjs from 'dayjs'
 import { getSecurityEvents } from '~/api/security'
-import { cn } from '~/utils/cn'
 
 defineOptions({ name: 'SecurityTimeline' })
 
@@ -105,7 +105,7 @@ function getTypeIcon(type: SecurityEventType): string {
     login_anomaly: 'carbon:user-identification',
     permission_change: 'carbon:locked',
     sensitive_operation: 'carbon:document-security',
-    attack_attempt: 'carbon:shield-check',
+    attack_attempt: 'carbon:shield-alert',
   }
   return map[type] || 'carbon:warning-alt'
 }
@@ -218,7 +218,7 @@ onMounted(async () => {
     </div>
 
     <!-- 时间线 -->
-    <PerfectScrollbar class="max-h-[420px] pr-1">
+    <Scrollbar root-class="max-h-[420px] pr-1">
       <a-spin :spinning="loading">
         <a-timeline v-if="filteredEvents.length > 0" mode="left" class="mt-2">
           <a-timeline-item
@@ -311,6 +311,6 @@ onMounted(async () => {
 
         <a-empty v-else description="暂无匹配的安全事件" class="py-8" />
       </a-spin>
-    </PerfectScrollbar>
+    </Scrollbar>
   </div>
 </template>

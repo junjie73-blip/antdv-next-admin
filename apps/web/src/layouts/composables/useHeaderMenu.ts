@@ -2,42 +2,40 @@ import type { MenuProps } from 'antdv-next';
 
 import { computed } from 'vue';
 
-import { useAppStore } from '~/stores/modules/app';
-import { buildMenuItems, menuKeyOf } from '~/utils/helpers/menu';
+import { buildMenuItems, menuKeyOf } from '@antdv/shared/menu';
 
-import { useMenuTree } from './useMenuTree';
+import { useShell } from './useLayout';
 
 /**
  * 顶部横向导航状态。
  *
- * 两种横向形态共用一个组件，差别只在「子级放在哪里」：
- * - horizontal：整棵树都在横向栏里，二级用浮层 → selectedKeys 用叶子 key，
- *   antd 会自动把祖先 submenu 标成 submenu-selected，因此永远只有一项是 item-selected；
- * - mixed：横向栏只放一级（withChildren: false），二级交给侧边栏
+ * 差异全部来自蓝图的 `headerNavDepth`：
+ * - 水平形态（Infinity）：整棵树都在横向栏里，二级用浮层
+ *   → selectedKeys 用叶子 key，antd 会把祖先 submenu 标成 submenu-selected，
+ *     因此永远只有一项是 item-selected；
+ * - 混合形态（1）：横向栏只放一级（withChildren: false），下级交给图标栏/侧边栏
  *   → selectedKeys 用一级 key。
  *
  * 旧实现把 key 写成 `menu.path`，而后端菜单大多没有 path，
  * 于是一级菜单的 key 全是 undefined —— 点一个、亮一串。现在 key 统一走 `menuKeyOf`。
  */
 export function useHeaderMenu() {
-  const appStore = useAppStore();
-  const { topMenus, activeTopKey, activeLeafKey, hasSubMenus, openMenuByKey } =
-    useMenuTree();
+  const { blueprint, regions, source } = useShell();
+  const { activeLeafKey, activeTopKey, openMenuByKey, topMenus } = source;
 
-  const isMixed = computed(() => appStore.layout === 'mixed');
-
-  const menuItems = computed<MenuProps['items']>(() =>
-    buildMenuItems(topMenus.value, {
-      withChildren: !isMixed.value,
-      maxDepth: isMixed.value ? 1 : Infinity,
-    }),
-  );
+  const menuItems = computed<MenuProps['items']>(() => {
+    const depth = blueprint.value.headerNavDepth;
+    return buildMenuItems(topMenus.value, {
+      maxDepth: depth,
+      withChildren: depth > 1,
+    });
+  });
 
   /** 单选：受控 selectedKeys，杜绝「多项同时选中」 */
   const selectedKeys = computed<string[]>(() => {
-    const key = isMixed.value
-      ? activeTopKey.value
-      : (activeLeafKey.value ?? activeTopKey.value);
+    const key = regions.navTracksLeaf.value
+      ? (activeLeafKey.value ?? activeTopKey.value)
+      : activeTopKey.value;
     return key ? [key] : [];
   });
 
@@ -47,7 +45,7 @@ export function useHeaderMenu() {
     if (!key) return -1;
     const index = menuItems.value?.findIndex((item) => item?.key === key) ?? -1;
     if (index >= 0) return index;
-    // 水平布局下选中的是叶子，横向栏上高亮的是它的祖先一级菜单
+    // 水平形态下选中的是叶子，横向栏上高亮的是它的祖先一级菜单
     const topKey = activeTopKey.value;
     return topKey
       ? (menuItems.value?.findIndex((item) => item?.key === topKey) ?? -1)
@@ -59,13 +57,11 @@ export function useHeaderMenu() {
   }
 
   return {
-    activeTopKey,
-    hasSubMenus,
-    isMixed,
-    menuItems,
-    selectedKeys,
     activeIndex,
+    activeTopKey,
     handleSelect,
+    menuItems,
     menuKeyOf,
+    selectedKeys,
   };
 }

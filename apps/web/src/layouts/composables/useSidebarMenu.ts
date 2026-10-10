@@ -3,43 +3,47 @@ import type { MenuProps } from 'antdv-next';
 import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
-import { useAppStore } from '~/stores/modules/app';
 import {
   buildMenuItems,
   findAncestorKeys,
   menuKeyOf,
-} from '~/utils/helpers/menu';
+} from '@antdv/shared/menu';
+import { useAppStore } from '~/stores/modules/app';
 
-import { useMenuTree } from './useMenuTree';
+import { useShell } from './useLayout';
 
 /**
  * 侧边栏菜单状态。
  *
- * 数据源随布局切换：
- * - vertical：整棵菜单树（一级为目录，二级/三级在内部展开）
- * - mixed：只渲染当前选中一级菜单的子节点，即「二级菜单」
+ * 数据源不再由组件自己判断 `layout === 'mixed'`，而是问蓝图：
+ * - vertical / side-nav：整棵菜单树
+ * - two-column / mixed-vertical：当前一级菜单的子树
+ * - mixed-two-column：当前图标栏选中项的子树（三级及以下）
  *
- * 选中态与展开态都由路由推导（key 走 `menuKeyOf`），因此导航栏点击一级菜单、
- * 侧边栏点击二级菜单、标签页、面包屑四者的高亮永远一致，不依赖任何本地记录。
+ * 选中态与展开态都由路由纯推导（key 走 `menuKeyOf`），因此导航栏、图标栏、
+ * 侧边栏、标签页、面包屑五者的高亮永远一致，不依赖任何本地记录。
  */
 export function useSidebarMenu() {
   const route = useRoute();
   const appStore = useAppStore();
-  const { menus, activeTopChildren, activeLeafKey, openMenuByKey } =
-    useMenuTree();
+  const { regions, source } = useShell();
+  const { openMenuByKey } = source;
 
-  const isMixed = computed(() => appStore.layout === 'mixed');
-
-  const sourceMenus = computed(() =>
-    isMixed.value ? activeTopChildren.value : menus.value,
-  );
+  /** 当前形态下侧边栏该渲染的那一批菜单 */
+  const sourceMenus = regions.sidebarMenus;
 
   const menuItems = computed<MenuProps['items']>(() =>
-    buildMenuItems(sourceMenus.value),
+    /**
+     * `keepIconSlot`：这一列里"有没有图标"不该影响文字起点。
+     * 后端菜单偶有缺图标的节点（新增页面还没配图），不补槽位就会出现
+     * 一列文字左边缘参差、深层级像是坏了的样子。
+     */
+    buildMenuItems(sourceMenus.value, { keepIconSlot: true }),
   );
 
   const selectedKeys = computed(() => {
-    const key = activeLeafKey.value ?? (route.name as string | undefined);
+    const key =
+      source.activeLeafKey.value ?? (route.name as string | undefined);
     return key ? [key] : [];
   });
 
@@ -86,14 +90,13 @@ export function useSidebarMenu() {
   );
 
   return {
-    isMixed,
     menuItems,
     openKeys,
     selectedKeys,
     sourceMenus,
     handleOpenChange,
     handleSelect,
-    syncOpenKeys,
     menuKeyOf,
+    syncOpenKeys,
   };
 }

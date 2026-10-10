@@ -1,0 +1,72 @@
+{
+  "name": "@antdv/shared",
+  "version": "0.4.0",
+  "description": "浏览器侧通用方法：缓存、加密、日期、下载、Excel、脱敏、XSS、事件总线、菜单辅助（不含 store/api 依赖）",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsdown",
+    "clean": "rimraf dist .turbo",
+    "dev": "tsdown --watch",
+    "test:unit": "vitest run",
+    "type-check": "tsc --noEmit"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "//exports": "子路径即模块：`@antdv/shared/cn` -> dist/cn.js（单文件模块走 \"./*\" 通配符），\ncache / crypto / event 是多文件目录模块，tsdown 产出 dist/<dir>/index.js，需要显式列出。",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./cache": {
+      "types": "./dist/cache/index.d.ts",
+      "default": "./dist/cache/index.js"
+    },
+    "./crypto": {
+      "types": "./dist/crypto/index.d.ts",
+      "default": "./dist/crypto/index.js"
+    },
+    "./event": {
+      "types": "./dist/event/index.d.ts",
+      "default": "./dist/event/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@antdv/types": "workspace:*",
+    "@iconify/vue": "catalog:",
+    "@vueuse/core": "catalog:",
+    "antdv-next": "catalog:",
+    "clsx": "catalog:",
+    "dayjs": "catalog:",
+    "dompurify": "catalog:",
+    "es-toolkit": "catalog:",
+    "jose": "catalog:",
+    "mitt": "catalog:",
+    "sm-crypto": "catalog:",
+    "spark-md5": "catalog:",
+    "tailwind-merge": "catalog:",
+    "vue": "catalog:",
+    "vue-router": "catalog:",
+    "xlsx": "catalog:"
+  },
+  "devDependencies": {
+    "@antdv/tsconfig": "workspace:*",
+    "@types/sm-crypto": "catalog:",
+    "@types/spark-md5": "catalog:",
+    "happy-dom": "catalog:",
+    "rimraf": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

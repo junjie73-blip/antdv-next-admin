@@ -1,0 +1,22 @@
+/*
+ * 无障碍 / 视觉模式：色弱、灰色模式。
+ *
+ * `@antdv/preferences` 的 applyPreferencesToDom 会做两件事：
+ *  1. 在 <html> 上开关 `.color-weak` / `.gray-mode`
+ *  2. 把最终滤镜链写进 `--app-filter`，同时写一份内联 `filter`
+ *
+ * 这里读同一个变量，是为了覆盖"JS 还没跑完首屏就渲染出来"的窗口期 ——
+ * 偏好从本地存储恢复后类名已经在了，内联样式还没写上。
+ * 两个 fallback 分别在只开一个模式时生效；两个都开时 `--app-filter` 一定存在，
+ * 拿到的是链式结果，不会出现"后写的规则覆盖前一条"。
+ *
+ * 滤镜值与 preferences/src/css-vars.ts 的常量保持一致（改一处要同步另一处）。
+ */
+
+html.color-weak {
+  filter: var(--app-filter, invert(80%) grayscale(100%));
+}
+
+html.gray-mode {
+  filter: var(--app-filter, grayscale(100%));
+}

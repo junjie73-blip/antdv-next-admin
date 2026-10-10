@@ -1,17 +1,17 @@
 import type { ApiResponse } from './types';
 
-import { createFetch } from '@vueuse/core';
-import { notification } from 'antdv-next';
-import { AUTHORIZATION_KEY } from '~/composables/constant';
-import { REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/config/constants';
-import { useUserStore } from '~/stores/modules/user';
-import { cache } from '~/utils';
+import { cache } from '@antdv/shared';
 import {
   config as csrfConfig,
   getCsrfToken,
   initCsrfProtection,
-} from '~/utils/csrf';
-import { isTokenExpired } from '~/utils/jwt';
+} from '@antdv/shared/csrf';
+import { isTokenExpired } from '@antdv/shared/jwt';
+import { createFetch } from '@vueuse/core';
+import { notification } from 'antdv-next';
+import { AUTHORIZATION_KEY } from '~/composables/constant';
+import { LOGIN_PATH, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/config/constants';
+import { useUserStore } from '~/stores/modules/user';
 
 import { ErrorCode, isServerFailure, RequestError } from './error';
 
@@ -36,21 +36,51 @@ export function isAuthEndpoint(url?: string) {
   return !!url && AUTH_ENDPOINTS.some((p) => url.includes(p));
 }
 
+/**
+ * hash 路由下的"当前站内路径"：`#/system/user?x=1` → `/system/user?x=1`。
+ *
+ * 不能读 `window.location.pathname` —— 本应用用 `createWebHashHistory`，pathname
+ * 永远是 `/`，站内路径全在 hash 里。
+ */
+function currentRoutePath(): string {
+  const hash = window.location.hash;
+  return hash.length > 1 ? hash.slice(1) : '/';
+}
+
+/** 是否已经在登录页（含带 redirect 参数的登录页） */
+function isOnLoginPath(path: string): boolean {
+  return (
+    path === LOGIN_PATH ||
+    path.startsWith(`${LOGIN_PATH}?`) ||
+    path.startsWith(`${LOGIN_PATH}/`)
+  );
+}
+
+/**
+ * 会话失效（401 / 无凭证 / 刷新失败）时的统一收尾。
+ *
+ * 两件事必须一起做，之前都做错了：
+ * 1. 清状态。旧写法在 store 外面手抄 `token = ''`（还带一层 `as any`），
+ *    漏掉用户信息、页面缓存、菜单授权与标签页 —— 换账号进来会带上一人的残影。
+ *    现在直接走 `useUserStore().logout()` 这个唯一出口。
+ * 2. 回登录页。本应用是 **hash 路由**（`createWebHashHistory`），登录页地址是
+ *    `/#/login`；`window.location.href = '/login?...'` 写的是 pathname，路由表里
+ *    没有这条真实路径，于是触发一次整页重载：正在跑的导航被打断
+ *    （e2e 里就是 "Execution context was destroyed"），拼上去的 redirect 也丢了。
+ *    改 hash 才是一次站内导航，由守卫接手重定向。
+ */
 export function forceLogout(redirect = true): void {
   if (isLoggingOut) return;
   isLoggingOut = true;
-  const userStore = useUserStore();
-  const s = userStore as any;
-  if (typeof s.resetToken === 'function') s.resetToken();
-  else if (typeof s.clearToken === 'function') s.clearToken();
-  else {
-    s.token = '';
-    s.refreshToken = '';
+  useUserStore().logout();
+
+  if (redirect) {
+    const current = currentRoutePath();
+    if (!isOnLoginPath(current)) {
+      window.location.hash = `#${LOGIN_PATH}?redirect=${encodeURIComponent(current)}`;
+    }
   }
 
-  if (redirect && window.location.pathname !== '/login') {
-    window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
-  }
   setTimeout(() => {
     isLoggingOut = false;
   }, 5000);

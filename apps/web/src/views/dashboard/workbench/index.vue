@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { cn } from '~/utils/cn';
 
 defineOptions({ name: 'DashboardWorkbench' });
 
@@ -12,7 +12,7 @@ const quickActions = [
     color: 'text-blue-500 bg-blue-50 dark:bg-blue-950/30',
   },
   {
-    icon: 'carbon:role',
+    icon: 'carbon:user-role',
     title: '角色权限',
     desc: '配置角色与权限',
     color: 'text-purple-500 bg-purple-50 dark:bg-purple-950/30',

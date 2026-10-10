@@ -1,213 +1,106 @@
-import type { App, Directive } from 'vue';
+import type { Directive, DirectiveBinding } from 'vue';
 
-import type {
-  LoadingDirectiveBinding,
-  LoadingProps,
-  LoadingSize,
-  LoadingTheme,
-} from './types';
+import type { OverlayInstance } from './overlay';
+import type { LoadingProps } from './types';
 
-import { createApp } from 'vue';
-
-import Loading from './Loading.vue';
+import { createOverlay } from './overlay';
 
 /**
  * v-loading 指令
  * 用于在元素上添加 loading 效果
  *
  * @example
- * // 基础用法
+ * // 基础用法（容器内绝对定位覆盖）
  * <div v-loading="isLoading">内容</div>
  *
  * @example
- * // 带提示文本
+ * // 提示文本：三种写法，优先级 属性 > 指令参数
  * <div v-loading="isLoading" loading-tip="加载中...">内容</div>
+ * <div v-loading:加载中="isLoading">内容</div>
  *
  * @example
- * // 自定义背景色
+ * // 自定义背景色 / 主题 / 尺寸
  * <div v-loading="isLoading" loading-background="rgba(0,0,0,0.5)">内容</div>
- *
- * @example
- * // 暗色主题
  * <div v-loading="isLoading" loading-theme="dark">内容</div>
- *
- * @example
- * // 自定义尺寸
  * <div v-loading="isLoading" loading-size="large">内容</div>
  *
  * @example
- * // 全屏模式（使用修饰符）
+ * // 全屏模式 / 挂到 body（修饰符）
  * <div v-loading.fullscreen="isLoading">内容</div>
- *
- * @example
- * // 挂载到 body（使用修饰符）
  * <div v-loading.body="isLoading">内容</div>
  */
 
-/**
- * 存储在元素上的 loading 状态
- */
-interface LoadingState {
-  app: App<Element>;
-  loadingEl: HTMLDivElement;
-}
+/** 属性名 → LoadingProps 字段，模板里写 `loading-xxx`，内部转成 camelCase */
+const ATTRIBUTE_PROPS = [
+  { attr: 'loading-background', key: 'background' },
+  { attr: 'loading-size', key: 'size' },
+  { attr: 'loading-theme', key: 'theme' },
+  { attr: 'loading-tip', key: 'tip' },
+] as const;
 
 /**
- * 从元素属性中读取 loading 配置
+ * 实例挂在 WeakMap 上而不是元素的私有属性上：
+ * 不污染 DOM、元素被回收时实例一起消失，也不需要在类型上给 HTMLElement 开洞。
  */
-function getLoadingPropsFromEl(el: HTMLElement): Partial<LoadingProps> {
-  const tip = el.getAttribute('loading-tip') || '';
-  const background = el.getAttribute('loading-background') || '';
-  const theme = (el.getAttribute('loading-theme') as LoadingTheme) || 'light';
-  const size = (el.getAttribute('loading-size') as LoadingSize) || 'default';
+const overlays = new WeakMap<HTMLElement, OverlayInstance>();
 
-  return {
-    tip,
-    background,
-    theme,
-    size,
-  };
-}
-
-/**
- * 确保容器有定位
- */
-function ensurePosition(el: HTMLElement): void {
-  const position = getComputedStyle(el).position;
-  if (position === 'static') {
-    el.style.position = 'relative';
+function getPropsFromAttributes(el: HTMLElement): Partial<LoadingProps> {
+  const props: Partial<LoadingProps> = {};
+  for (const { attr, key } of ATTRIBUTE_PROPS) {
+    const value = el.getAttribute(attr);
+    if (value) {
+      Object.assign(props, { [key]: value });
+    }
   }
+  return props;
+}
+
+/** 修饰符决定挂载位置：默认覆盖元素，`.body` / `.fullscreen` 挂到 body 全屏 */
+function isBodyMount(binding: DirectiveBinding<boolean>): boolean {
+  return Boolean(binding.modifiers?.body || binding.modifiers?.fullscreen);
 }
 
 /**
- * 获取或创建 loading 状态
+ * 取（或建）元素对应的覆盖层实例。
+ *
+ * 覆盖层是懒挂载的，所以这里即使 `binding.value` 为 false 也可以安全建实例 ——
+ * 不会有"先建一个隐藏的 loading，值变 true 时却不再更新"的老问题。
  */
-function getLoadingState(el: HTMLElement): LoadingState | undefined {
-  return (el as HTMLElement & { _loadingState?: LoadingState })._loadingState;
-}
-
-/**
- * 设置 loading 状态
- */
-function setLoadingState(
-  el: HTMLElement,
-  state: LoadingState | undefined,
-): void {
-  (el as HTMLElement & { _loadingState?: LoadingState })._loadingState = state;
-}
-
-/**
- * 创建 loading 实例
- */
-function createLoadingInstance(
-  el: HTMLElement,
-  binding: LoadingDirectiveBinding,
-): void {
-  // 如果已存在，先移除
-  const existingState = getLoadingState(el);
-  if (existingState) {
-    removeLoading(el);
+function ensureOverlay(el: HTMLElement, binding: DirectiveBinding<boolean>) {
+  const existing = overlays.get(el);
+  if (existing) {
+    return existing;
   }
 
-  // 读取配置
-  const props = getLoadingPropsFromEl(el);
-  const isFullscreen = binding.modifiers?.fullscreen || false;
-  const isBody = binding.modifiers?.body || isFullscreen;
-
-  // 确保容器定位（非 body 挂载时）
-  if (!isBody) {
-    ensurePosition(el);
-  }
-
-  // 创建容器元素
-  const loadingEl = document.createElement('div');
-  loadingEl.className = 'loading-directive-wrapper';
-
-  // 创建 Vue 应用实例
-  const app = createApp(Loading, {
-    ...props,
-    loading: binding.value,
-    absolute: !isBody,
+  const attributeProps = getPropsFromAttributes(el);
+  const overlay = createOverlay({
+    ...attributeProps,
+    body: isBodyMount(binding),
+    loading: Boolean(binding.value),
+    target: el,
+    tip: binding.arg ?? attributeProps.tip,
+    wrapClass: 'loading-directive-wrapper',
   });
-
-  // 挂载组件
-  app.mount(loadingEl);
-
-  // 存储状态
-  setLoadingState(el, { app, loadingEl });
-
-  // 添加到 DOM
-  if (isBody) {
-    document.body.append(loadingEl);
-  } else {
-    el.append(loadingEl);
-  }
+  overlays.set(el, overlay);
+  return overlay;
 }
 
-/**
- * 移除 loading
- */
-function removeLoading(el: HTMLElement): void {
-  const state = getLoadingState(el);
-  if (!state) return;
-
-  const { app, loadingEl } = state;
-
-  // 先设置 loading 为 false，触发关闭动画
-  // 获取组件实例并更新 loading 状态
-  // 延迟移除 DOM，等待动画结束
-  setTimeout(() => {
-    // 检查是否还在 DOM 中（可能已经被重新创建）
-    if (loadingEl.parentNode) {
-      loadingEl.remove();
-      app.unmount();
-    }
-    // 清理引用
-    if (getLoadingState(el) === state) {
-      setLoadingState(el, undefined);
-    }
-  }, 300);
-}
-
-/**
- * v-loading 指令定义
- */
 const loadingDirective: Directive<HTMLElement, boolean> = {
   mounted(el, binding) {
-    createLoadingInstance(el, binding as LoadingDirectiveBinding);
+    ensureOverlay(el, binding);
   },
 
   updated(el, binding) {
-    // 如果值没有变化，不处理
-    if (binding.value === binding.oldValue) {
-      return;
-    }
-
-    const state = getLoadingState(el);
-
-    if (binding.value) {
-      // 打开 loading
-      if (!state) {
-        createLoadingInstance(el, binding as LoadingDirectiveBinding);
-      }
-    } else {
-      // 关闭 loading
-      if (state) {
-        removeLoading(el);
-      }
+    const overlay = ensureOverlay(el, binding);
+    overlay.setVisible(Boolean(binding.value));
+    if (binding.arg) {
+      overlay.tip.value = binding.arg;
     }
   },
 
   unmounted(el) {
-    const state = getLoadingState(el);
-    if (state) {
-      const { app, loadingEl } = state;
-      if (loadingEl.parentNode) {
-        loadingEl.remove();
-      }
-      app.unmount();
-      setLoadingState(el, undefined);
-    }
+    overlays.get(el)?.destroy();
+    overlays.delete(el);
   },
 };
 

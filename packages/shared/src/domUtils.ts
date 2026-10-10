@@ -1,6 +1,5 @@
 import type { FunctionArgs } from '@vueuse/core';
 
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { upperFirst } from 'es-toolkit';
 
 export interface ViewportOffsetResult {
@@ -127,12 +126,23 @@ export function getViewportOffset(element: Element): ViewportOffsetResult {
   };
 }
 
-export function hackCss(attr: string, value: string) {
-  const prefix: string[] = ['webkit', 'Moz', 'ms', 'OT'];
+/** `user-select` → `UserSelect`（驼峰化后拼浏览器前缀才有意义） */
+function toPascalCase(attr: string): string {
+  return attr
+    .split('-')
+    .filter(Boolean)
+    .map((part) => upperFirst(part))
+    .join('');
+}
 
-  const styleObj: any = {};
+export function hackCss(attr: string, value: string) {
+  // 前缀大小写按 CSSOM/React 的写法：Webkit/Moz/ms/OT
+  const prefix: string[] = ['Webkit', 'Moz', 'ms', 'OT'];
+  const camel = toPascalCase(attr);
+
+  const styleObj: Record<string, string> = {};
   prefix.forEach((item) => {
-    styleObj[`${item}${upperFirst(attr)}`] = value;
+    styleObj[`${item}${camel}`] = value;
   });
   return {
     ...styleObj,

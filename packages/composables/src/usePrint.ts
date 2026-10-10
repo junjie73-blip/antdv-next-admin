@@ -1,4 +1,15 @@
+import { escapeHtml } from '@antdv/shared/xss';
 import { message } from 'antdv-next';
+
+/**
+ * 调用方传入的样式片段会被原样塞进 `<style>` 里。
+ * 只要把 `</style>` 转义掉就足够——正文仍是 CSS，不能整体 HTML 转义，
+ * 否则 `>` 之类选择器字符会被写坏。
+ */
+function sanitizeCssText(styles?: string): string {
+  if (!styles) return '';
+  return styles.replaceAll(/<\/style/gi, '&lt;/style');
+}
 
 export interface PrintOptions {
   /** 打印标题 */
@@ -9,9 +20,13 @@ export interface PrintOptions {
   onBeforePrint?: () => void;
   /** 打印后回调（用于恢复隐藏的元素） */
   onAfterPrint?: () => void;
-  /** 是否显示页眉，默认 true */
+  /** 是否显示页眉（标题），默认 true */
   showHeader?: boolean;
-  /** 是否显示页脚（日期），默认 true */
+  /**
+   * 是否显示页脚（打印时间），默认 true。
+   * 不做「第 X 页 / 共 Y 页」：页码只有浏览器打印引擎知道，
+   * 文档里静态写死的数字必然是错的，真需要页码请在打印对话框里勾选页眉页脚。
+   */
   showFooter?: boolean;
   /** 样式覆盖 */
   styles?: string;
@@ -41,12 +56,8 @@ export function usePrint(options: PrintOptions) {
   } = options;
 
   // 获取目标元素
-  let el: HTMLElement | null = null;
-  if (typeof target === 'string') {
-    el = document.querySelector(target);
-  } else {
-    el = target;
-  }
+  const el =
+    typeof target === 'string' ? document.querySelector(target) : target;
 
   if (!el) {
     message.error('未找到打印目标元素');
@@ -65,9 +76,14 @@ export function usePrint(options: PrintOptions) {
   iframe.style.left = '-9999px';
   document.body.append(iframe);
 
+  /** 从页面移除打印 iframe；重复调用安全 */
+  const removeIframe = () => {
+    if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+  };
+
   const doc = iframe.contentWindow?.document;
   if (!doc) {
-    document.body.removeChild(iframe);
+    removeIframe();
     message.error('创建打印窗口失败');
     return;
   }
@@ -93,18 +109,28 @@ export function usePrint(options: PrintOptions) {
     }
   `;
 
+  const printDate = new Date().toLocaleString();
+
   doc.open();
   doc.write(`
     <!DOCTYPE html>
     <html>
       <head>
-        <title>${title}</title>
-        <style>${defaultStyles} ${styles || ''}</style>
+        <title>${escapeHtml(title)}</title>
+        <style>${defaultStyles} ${sanitizeCssText(styles)}</style>
       </head>
       <body>
-        ${showHeader ? `<div class="print-header"><h1>${title}</h1><p>打印时间：${new Date().toLocaleString()}</p></div>` : ''}
+        ${
+          showHeader
+            ? `<div class="print-header"><h1>${escapeHtml(title)}</h1></div>`
+            : ''
+        }
         <div class="print-content">${printContent}</div>
-        ${showFooter ? '<div class="print-footer">第 &nbsp;/&nbsp; 页</div>' : ''}
+        ${
+          showFooter
+            ? `<div class="print-footer">打印时间：${escapeHtml(printDate)}</div>`
+            : ''
+        }
       </body>
     </html>
   `);
@@ -112,26 +138,34 @@ export function usePrint(options: PrintOptions) {
 
   // 等待内容渲染完成后触发打印
   const contentWindow = iframe.contentWindow;
-  if (contentWindow) {
-    contentWindow.onload = () => {
-      contentWindow.focus();
-      contentWindow.print();
-
-      // 清理
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-        onAfterPrint?.();
-      }, 1000);
-    };
-
-    // 处理取消打印的情况
-    contentWindow.addEventListener('afterprint', () => {
-      setTimeout(() => {
-        if (iframe.parentNode) {
-          document.body.removeChild(iframe);
-        }
-        onAfterPrint?.();
-      }, 100);
-    });
+  if (!contentWindow) {
+    removeIframe();
+    message.error('创建打印窗口失败');
+    return;
   }
+
+  /**
+   * 打印结束（确认或取消）后的收尾。
+   * 必须幂等：`onload` 的兜底定时器和 `afterprint` 事件在同一次打印里都会到达，
+   * 早期实现让 onAfterPrint 跑了两次，调用方「恢复被隐藏的按钮」这类回调就重复执行；
+   * 而且第二次 removeChild 会因为节点已经不在 body 上而抛 NotFoundError。
+   */
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    removeIframe();
+    onAfterPrint?.();
+  };
+
+  contentWindow.onload = () => {
+    contentWindow.focus();
+    contentWindow.print();
+    // 兜底：部分浏览器不触发 afterprint
+    setTimeout(finish, 1000);
+  };
+
+  contentWindow.addEventListener('afterprint', () => {
+    setTimeout(finish, 100);
+  });
 }

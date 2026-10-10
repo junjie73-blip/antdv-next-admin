@@ -5,9 +5,9 @@ import type { DrawerInnerMethods, DrawerMethods, DrawerProps } from './types';
 
 import { computed, onMounted, ref, useSlots, watch } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
+import { IconifyIcon as Icon } from '@antdv/ui/icon';
 import { Button, Drawer } from 'antdv-next';
-import { IconifyIcon as Icon } from '~/components/common/Icon';
-import { cn } from '~/utils/cn';
 
 const props = withDefaults(defineProps<DrawerProps>(), {
   placement: 'right',
@@ -258,10 +258,10 @@ const footerClassName = cn(
         </div>
       </div>
 
-      <!-- 内容：使用 PerfectScrollbar 替代系统滚动条 -->
-      <PerfectScrollbar class="h-full">
+      <!-- 内容：滚动一律走封装组件（@antdv/ui 的 Scrollbar），不留系统滚动条 -->
+      <Scrollbar root-class="h-full">
         <slot></slot>
-      </PerfectScrollbar>
+      </Scrollbar>
     </div>
 
     <!-- 底部按钮 -->

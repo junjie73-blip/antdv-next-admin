@@ -3,10 +3,10 @@ import type { UploadChangeParam, UploadFile, UploadProps } from 'antdv-next';
 
 import { computed, ref, useTemplateRef } from 'vue';
 
-import { Icon } from '@iconify/vue';
 // ===== 大文件切片上传 =====
-import { useChunkUpload } from '~/composables/useChunkUpload';
-import { cn } from '~/utils/cn';
+import { useChunkUpload } from '@antdv/composables/useChunkUpload';
+import { cn } from '@antdv/shared/cn';
+import { Icon } from '@iconify/vue';
 
 const containerClassName = cn('space-y-6');
 const descClassName = cn('mb-3 text-sm text-gray-500 dark:text-gray-400');
@@ -33,17 +33,62 @@ const handleImageBeforeUpload: UploadProps['beforeUpload'] = (file) => {
 const imagePreviewVisible = ref(false);
 const imagePreviewUrl = ref('');
 
-function handleImagePreview(file: UploadFile) {
-  imagePreviewUrl.value = file.url || file.response?.url || '';
+/**
+ * 预览地址的三个来源，按"用户此刻实际能看到的东西"排序。
+ *
+ * 以前只读 `file.url || file.response?.url`，于是图片墙点了半天没反应：
+ * - 刚选完的本地图片根本没有 `url`，antd 生成的是 blob `thumbUrl`；
+ * - 服务端返回挂在信封里，`file.response` 是整个响应体，地址在 `response.data.url`。
+ */
+function resolvePreviewUrl(file: UploadFile): string {
+  const response = file.response as
+    | undefined
+    | { data?: { url?: string }; url?: string };
+  return (
+    file.thumbUrl || file.url || response?.data?.url || response?.url || ''
+  );
+}
+
+/**
+ * 预览图片墙里的某一张。
+ *
+ * ⚠️ 必须吃掉原生事件：`listType="picture-card"` 时 antd 把缩略图渲染成
+ * `<a :href="file.url || file.thumbUrl" target="_blank">`，`@preview` 只是**额外**回调，
+ * 它自己不调 `preventDefault`。所以不拦的话，点一下就是"站内预览 + 新开一个标签页看同一张图"，
+ * 而地址是 data: URL 时还会被浏览器拦成一条无声的失败导航。
+ *
+ * 另外事件参数只在"点缩略图 / 点预览小眼睛"时才有；
+ * `itemRender` 之类的自定义入口可能不带事件，所以处处按可选处理。
+ */
+function handleImagePreview(file: UploadFile, event?: Event) {
+  event?.preventDefault();
+  const url = resolvePreviewUrl(file);
+  if (!url) {
+    message.warning('这张图片还没有可预览的地址');
+    return;
+  }
+  imagePreviewUrl.value = url;
   imagePreviewVisible.value = true;
 }
 
-function handleImageCancel() {
-  imagePreviewVisible.value = false;
+/** 预览层自己会关（点遮罩、按 Esc、点关闭），状态要跟着回来，否则第二次点同一张图没反应 */
+function handleImagePreviewVisibleChange(value: boolean) {
+  imagePreviewVisible.value = value;
 }
 
 const avatarFileList = ref<UploadFile[]>([]);
 const avatarLoading = ref(false);
+
+/**
+ * 头像预览地址：和图片墙共用同一个解析函数。
+ *
+ * 以前这里写的是 `file.url || file.response?.url`，而后端把地址放在信封里
+ * （`response.data.url`），`file.url` 又只有回填过的历史文件才有，
+ * 于是刚上传完头像会渲染成破图。
+ */
+const avatarPreviewSrc = computed(() =>
+  resolvePreviewUrl(avatarFileList.value[0] ?? ({} as UploadFile)),
+);
 
 const avatarUploaderClassName = cn(
   'flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:border-blue-500 dark:bg-gray-800',
@@ -474,11 +519,11 @@ function getFileIcon(fileName: string): string {
     docx: 'carbon:document',
     xls: 'carbon:table',
     xlsx: 'carbon:table',
-    zip: 'carbon:folder-archive',
-    rar: 'carbon:folder-archive',
-    mp4: 'carbon:video-fill',
-    mp3: 'carbon:sound',
-    txt: 'carbon:text-new',
+    zip: 'carbon:archive',
+    rar: 'carbon:archive',
+    mp4: 'carbon:video-filled',
+    mp3: 'carbon:music',
+    txt: 'carbon:document',
   };
   return iconMap[ext] || 'carbon:document';
 }
@@ -574,7 +619,7 @@ function handlePreviewClose() {
         :drag="true"
       >
         <p class="ant-upload-drag-icon">
-          <icon-inbox />
+          <Icon icon="ant-design:inbox-outlined" />
         </p>
         <p class="ant-upload-text">点击或拖拽文件到此区域上传</p>
         <p class="ant-upload-hint">
@@ -583,7 +628,7 @@ function handlePreviewClose() {
       </a-upload>
     </a-card>
 
-    <a-card title="图片墙" variant="borderless">
+    <a-card class="image-wall-card" title="图片墙" variant="borderless">
       <div :class="descClassName">
         图片墙效果，支持预览，仅 jpg/png/gif 格式，单张不超过 2MB
       </div>
@@ -595,14 +640,23 @@ function handlePreviewClose() {
         @preview="handleImagePreview"
       >
         <div>
-          <plus-outlined />
+          <Icon icon="ant-design:plus-outlined" />
           <div style="margin-top: 8px">上传</div>
         </div>
       </a-upload>
+      <!--
+        受控预览：只借 `a-image` 的大图预览层，本体藏起来。
+        以前这里常驻渲染且 `src` 初始为空字符串，卡片里就留了一个破图占位；
+        `:visible` / `@cancel` 也不是 1.6 的受控写法（预览根本打不开）。
+      -->
       <a-image
+        v-if="imagePreviewUrl"
         :src="imagePreviewUrl"
-        :visible="imagePreviewVisible"
-        @cancel="handleImageCancel"
+        :style="{ display: 'none' }"
+        :preview="{
+          visible: imagePreviewVisible,
+          onVisibleChange: handleImagePreviewVisibleChange,
+        }"
       />
     </a-card>
 
@@ -619,16 +673,22 @@ function handlePreviewClose() {
           list-type="picture"
           @change="handleAvatarChange"
         >
-          <div
-            v-if="avatarFileList.length === 0"
-            :class="avatarUploaderClassName"
-          >
-            <avatar-loading v-if="avatarLoading" />
-            <camera-outlined v-else class="text-2xl text-gray-400" />
+          <!--
+            占位与图片只看"有没有地址"，不看数组长度：
+            文件进了列表但还没有 thumbUrl/回填 url 的那一瞬，
+            按长度判断会两边都不渲染，头像框直接消失。
+          -->
+          <div v-if="!avatarPreviewSrc" :class="avatarUploaderClassName">
+            <Icon
+              v-if="avatarLoading"
+              class="animate-spin text-2xl text-gray-400"
+              icon="svg-spinners:180-ring-with-bg"
+            />
+            <Icon v-else class="text-2xl text-gray-400" icon="ant-design:camera-outlined" />
           </div>
           <img
             v-else
-            :src="avatarFileList[0]?.url || avatarFileList[0]?.response?.url"
+            :src="avatarPreviewSrc"
             alt="avatar"
             :class="avatarImageClassName"
           />
@@ -653,7 +713,7 @@ function handlePreviewClose() {
         :multiple="true"
       >
         <div :class="customUploadAreaClassName">
-          <cloud-upload-outlined :class="customIconClassName" />
+          <Icon :class="customIconClassName" icon="ant-design:cloud-upload-outlined" />
           <span :class="customTextClassName">点击或拖拽文件到此处上传</span>
           <span :class="customHintClassName">支持任意文件类型</span>
         </div>
@@ -670,7 +730,7 @@ function handlePreviewClose() {
         @change="handleStatusChange"
       >
         <a-button>
-          <upload-outlined />
+          <Icon icon="ant-design:upload-outlined" />
           选择文件
         </a-button>
       </a-upload>
@@ -703,7 +763,7 @@ function handlePreviewClose() {
         :multiple="true"
       >
         <a-button>
-          <file-text-outlined />
+          <Icon icon="ant-design:file-text-outlined" />
           选择文件（PDF/Word/图片）
         </a-button>
       </a-upload>
@@ -723,7 +783,7 @@ function handlePreviewClose() {
           :multiple="true"
         >
           <a-button>
-            <folder-open-outlined />
+            <Icon icon="ant-design:folder-open-outlined" />
             选择文件
           </a-button>
         </a-upload>
@@ -757,7 +817,7 @@ function handlePreviewClose() {
         @change="handleDragSortChange"
       >
         <div>
-          <plus-outlined />
+          <Icon icon="ant-design:plus-outlined" />
           <div style="margin-top: 8px">添加图片</div>
         </div>
       </a-upload>
@@ -819,10 +879,12 @@ function handlePreviewClose() {
         </a-button>
       </div>
 
+      <!-- 同 detail 页：全局 `virtual` 打开时，没有数值 `scroll.y` 的表要显式关掉虚拟滚动 -->
       <a-table
         :columns="largeFileColumns"
         :data-source="fileQueue"
         :pagination="false"
+        :virtual="false"
         row-key="id"
       >
         <template #bodyCell="{ column, record }">
@@ -944,9 +1006,12 @@ function handlePreviewClose() {
           style="height: 70vh"
         ></iframe>
         <!-- Word 预览（@vue-office/docx，需安装依赖） -->
-        <PerfectScrollbar
+        <!-- view-class="h-full"：Scrollbar 的 slot 容器 scrollbar__view 自身没有高度，
+             不显式撑满的话，内部 h-full 的占位内容会塌成 0 -->
+        <Scrollbar
           v-else-if="previewType === 'docx'"
-          class="w-full rounded bg-gray-50 p-4 dark:bg-gray-900"
+          root-class="w-full rounded bg-gray-50 p-4 dark:bg-gray-900"
+          view-class="h-full"
           style="height: 70vh"
         >
           <div class="flex h-full items-center justify-center text-gray-400">
@@ -962,11 +1027,12 @@ function handlePreviewClose() {
               </p>
             </div>
           </div>
-        </PerfectScrollbar>
-        <!-- Excel 预览（@vue-office/excel，需安装依赖） -->
-        <PerfectScrollbar
+        </Scrollbar>
+        <!-- Excel 预览（@vue-office/excel，需安装依赖）：view-class 同 Word 场景 -->
+        <Scrollbar
           v-else-if="previewType === 'excel'"
-          class="w-full rounded bg-gray-50 p-4 dark:bg-gray-900"
+          root-class="w-full rounded bg-gray-50 p-4 dark:bg-gray-900"
+          view-class="h-full"
           style="height: 70vh"
         >
           <div class="flex h-full items-center justify-center text-gray-400">
@@ -978,8 +1044,30 @@ function handlePreviewClose() {
               </p>
             </div>
           </div>
-        </PerfectScrollbar>
+        </Scrollbar>
       </a-modal>
     </a-card>
   </div>
 </template>
+
+<style scoped>
+/**
+ * 让图片墙的卡片整体可点。
+ *
+ * antd 的 `picture-card` 在卡片上压了两层**透明但吃点击**的东西：
+ * - `::before`：hover 时那层深色遮罩（`opacity` 从 0 到 1，元素一直在）；
+ * - `.ant-upload-list-item-actions`：眼睛/下载/删除三个图标，绝对定位且 `width: 100%`，
+ *    按 flexbox 的 abspos 规则被居中到卡片正中。
+ * 于是"点图片看大图"这条最自然的直觉落在图标上（正中间那颗还是下载），
+ * 用户点到的是下载或直接没反应。这里把两层本身设为穿透，只让图标自己接点击，
+ * 卡片空白处就交回给缩略图那颗 `<a>`，走 `@preview` 的站内预览。
+ */
+.image-wall-card :deep(.ant-upload-list-item::before),
+.image-wall-card :deep(.ant-upload-list-item-actions) {
+  pointer-events: none;
+}
+
+.image-wall-card :deep(.ant-upload-list-item-actions > *) {
+  pointer-events: auto;
+}
+</style>

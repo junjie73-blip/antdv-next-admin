@@ -1,0 +1,32 @@
+/*
+ * 全局样式入口。
+ *
+ * 层级顺序必须显式声明：`utilities` 排在最后，模板里写的工具类才能覆盖
+ * `components` 层的规则（自绘 Scrollbar、布局外壳都依赖这一点）。
+ *
+ * 分部按职责切分，各自可单独引用：
+ * - base.css       文档根 / 选中态 / 视图过渡 / 通用交互类
+ * - nprogress.css  顶部路由进度条
+ * - a11y.css       色弱 / 灰色模式（类名由 @antdv/preferences 开关）
+ * - permission.css 无权限降级（class 由 @antdv/directives 的 v-permission 打上）
+ * - scrollbar.css  第三方组件内部滚动区的系统滚动条兜底美化
+ *
+ * 组件自身的样式不放这里 —— 随组件走，见 @antdv/ui 的 Scrollbar.vue。
+ *
+ * 注意：CSS 规范只允许 @import 出现在普通规则之前，所以四个分部必须在这儿引完。
+ */
+@layer theme, base, antd, components, utilities;
+
+@import 'tailwindcss';
+@import '@antdv-next/tailwind/compat.css';
+@import 'tw-animate-css';
+@import './base.css';
+@import './nprogress.css';
+@import './a11y.css';
+@import './permission.css';
+@import './scrollbar.css';
+
+@plugin "@tailwindcss/typography";
+@plugin "@tailwindcss/nesting";
+
+@custom-variant dark (&:where(.dark, .dark *));

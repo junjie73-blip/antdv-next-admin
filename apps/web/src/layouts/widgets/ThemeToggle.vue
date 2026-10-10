@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
 import { useColorMode } from '@vueuse/core';
 import { useAppStore } from '~/stores/modules/app';
-import { cn } from '~/utils/cn';
 
 defineOptions({ name: 'ThemeToggle' });
 

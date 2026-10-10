@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { useDrawer } from '~/components/business/Drawer';
-import { cn } from '~/utils/cn';
 
 const containerClassName = cn('space-y-6');
 

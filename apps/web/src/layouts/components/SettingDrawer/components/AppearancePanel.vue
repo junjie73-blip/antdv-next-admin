@@ -3,11 +3,11 @@ import type { Color, ColorPickerProps } from 'antdv-next';
 
 import { computed, ref } from 'vue';
 
+import { cn } from '@antdv/shared';
 import { ColorPicker } from 'antdv-next';
 import { useThemeTransition } from '~/composables/web/useThemeTransition';
 import ThemeToggle from '~/layouts/widgets/ThemeToggle.vue';
 import { useAppStore } from '~/stores/modules/app';
-import { cn } from '~/utils/index.js';
 
 import {
   BORDER_RADIUS_OPTIONS,

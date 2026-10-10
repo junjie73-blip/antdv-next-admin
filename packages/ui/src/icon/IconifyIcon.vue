@@ -1,4 +1,8 @@
 <script setup lang="ts">
+// 组件库的可选透传属性刻意不写默认值：不传时才由 @iconify/vue 决定行为
+// （color 继承currentColor、width/height 回落到 size、rotate 视为未设置）。
+// 补一个 '' / 0 反而会把「未设置」变成「显式设为空值」，破坏这层语义。
+/* eslint-disable vue/require-default-prop */
 import { computed } from 'vue';
 
 import { Icon } from '@iconify/vue';

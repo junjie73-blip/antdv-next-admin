@@ -1,0 +1,62 @@
+/*
+ * 系统滚动条兜底美化。
+ *
+ * 项目里所有**自己写的**滚动区域一律用 `@antdv/ui` 的 `<Scrollbar>`（自绘条、
+ * 三引擎观感一致），这里只处理"不是我们能包的"那部分：
+ * antd 的表格滚动体（`.ant-table-body`）、下拉虚拟列表（`.rc-virtual-list-holder`）、
+ * `textarea`、富文本/代码块里的 `pre` 等 —— 它们的滚动元素在第三方组件内部，
+ * 换组件就得改别人的 DOM，代价远大于收益。
+ *
+ * 这些位置默认会露出操作系统那条 17px 的灰杠（Windows 尤其明显），
+ * 和自绘条并排出现就是"两套滚动条"。所以在 base 层统一压成细、圆角、跟主题的同色条，
+ * 让兜底区域的观感与 `<Scrollbar>` 对齐（滑块颜色取自 Scrollbar.vue 的 slate 系列）。
+ *
+ * 层级选 base：`.scrollbar__wrap--hidden-default`（类选择器）与任何工具类都能覆盖它，
+ * 自绘组件那层"藏掉原生条"的逻辑不会被这里反向顶掉。
+ */
+
+@layer base {
+  /* Firefox / Safari 17+：细条 + 半透明滑块（scrollbar-color 只认两个颜色值） */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(148 163 184 / 45%) transparent;
+  }
+
+  .dark * {
+    scrollbar-color: rgb(100 116 139 / 55%) transparent;
+  }
+
+  /* Chromium / WebKit */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: rgb(148 163 184 / 45%);
+    border-radius: 9999px;
+    /* 用透明边框把滑块"缩"出一点缝隙，视觉上和自绘条的 6px 轨道一致 */
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(148 163 184 / 70%);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background-color: rgb(100 116 139 / 55%);
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(100 116 139 / 75%);
+  }
+}

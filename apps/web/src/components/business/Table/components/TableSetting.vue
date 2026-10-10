@@ -3,10 +3,10 @@ import type { BasicColumn, TableSetting } from '../types';
 
 import { computed, ref, watch } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
+import { IconifyIcon as Icon } from '@antdv/ui/icon';
 import { Button, Checkbox, Popover, Tooltip } from 'antdv-next';
 import { cloneDeep } from 'es-toolkit';
-import { IconifyIcon as Icon } from '~/components/common/Icon';
-import { cn } from '~/utils/cn';
 
 const props = defineProps<{
   setting?: TableSetting;
@@ -154,7 +154,7 @@ const isIndeterminate = computed(() => {
             </Checkbox>
           </div>
 
-          <PerfectScrollbar :class="cn('max-h-64')">
+          <Scrollbar root-class="max-h-64">
             <div :class="cn('space-y-1')">
               <div
                 v-for="(col, idx) in configurableColumns"
@@ -169,7 +169,7 @@ const isIndeterminate = computed(() => {
                 </Checkbox>
               </div>
             </div>
-          </PerfectScrollbar>
+          </Scrollbar>
 
           <div
             v-if="configurableColumns.length === 0"

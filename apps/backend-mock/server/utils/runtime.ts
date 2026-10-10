@@ -12,6 +12,7 @@
  */
 
 import type { MockMethod } from '@antdv/types';
+import type { H3Event } from 'h3';
 
 import type { RouteManifestItem } from './store';
 
@@ -27,16 +28,6 @@ import {
 import { envelope } from './response';
 import { keyOf, methodOf, moduleOf, shouldInjectFailure } from './route-meta';
 import { pushLog, recordHit, registerManifest, resolveRuntime } from './store';
-
-/**
- * h3 事件的最小结构类型：只声明本层实际用到的字段，
- * 避免与 h3 具体版本的类型强耦合（defineEventHandler 注入的真实事件满足该结构）。
- */
-export interface MockEvent {
-  context: { params?: Record<string, string | string[] | undefined> };
-  method: string;
-  path: string;
-}
 
 /**
  * 处理器入参：与 legacy MockContext 对齐的便捷视图。
@@ -105,7 +96,8 @@ export async function executeWithRuntime(
   let status = 200;
   let code = 200;
   let skipped = false;
-  let body: unknown = null;
+  // 不给 `= null` 初值：每条 return 前都会赋值，占位初值反而掩盖「忘了赋值」
+  let body: unknown;
 
   try {
     if (!runtime.globalEnabled) {
@@ -177,13 +169,13 @@ export function defineMockRoute(definition: MockRouteDefinition) {
   };
   registerManifest([route]);
 
-  return defineEventHandler(async (event) => {
-    const context = await toRouteInput(
-      event as unknown as MockEvent,
-      definition.path,
-    );
+  return defineEventHandler(async (event: H3Event) => {
+    const context = await toRouteInput(event, definition.path);
+    // executeWithRuntime 只需要 key/method/module/path 四个字段做统计与日志；
+    // route 是清单条目（RouteManifestItem），其 method 按共享契约被放宽成 string，
+    // 这里回填本地窄化的 method（methodOf 保证是 MockMethod），避免把宽类型带进管道
     const outcome = await executeWithRuntime(
-      route,
+      { ...route, method },
       definition.handler,
       context,
     );
@@ -195,7 +187,7 @@ export function defineMockRoute(definition: MockRouteDefinition) {
 
 /** 从 h3 事件抽取处理器上下文；body 解析失败按无请求体处理（与 legacy 空串→空对象一致） */
 export async function toRouteInput(
-  event: MockEvent,
+  event: H3Event,
   path: string,
 ): Promise<MockRouteInput> {
   const rawBody = await readBody(event).catch(() => null);

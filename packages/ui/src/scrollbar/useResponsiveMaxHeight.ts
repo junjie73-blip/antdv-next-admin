@@ -1,7 +1,15 @@
-import { computed } from 'vue';
+import type { MaybeRefOrGetter } from 'vue';
+
+import { computed, toValue } from 'vue';
 
 import { useWindowSize } from '@vueuse/core';
 import { clamp } from 'es-toolkit';
+
+/**
+ * 注意这里显式 import `toValue` / `MaybeRefOrGetter`：
+ * 应用里靠 unplugin-auto-import 提供，包内不能依赖那种隐式全局，
+ * 否则换一种消费方式（不做自动导入的工程）就会运行时 `toValue is not defined`。
+ */
 
 export interface ResponsiveMaxHeightOptions {
   /** 基准分辨率高（CSS px） */

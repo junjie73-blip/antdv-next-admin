@@ -1,71 +1,16 @@
-import { join } from 'node:path';
+import { defineApplicationConfig } from '@antdv/vite-config';
 
-import {
-  createChunkGroups,
-  createPlugins,
-  createServerProxy,
-  loadEnv,
-} from '@antdv/vite-config';
-import dayjs from 'dayjs';
-import { defineConfig } from 'vite';
-
-import pkg from './package.json' with { type: 'json' };
-
-export default defineConfig(async ({ mode }) => {
-  const isProd = mode === 'production';
-  const envConfig = loadEnv(mode);
-  const __APP_INFO__ = {
-    pkg: {
-      dependencies: pkg.dependencies,
-      devDependencies: pkg.devDependencies,
-      name: pkg.name,
-      version: pkg.version,
-    },
-    lastBuildTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-  };
-  return {
-    base: './',
-    resolve: {
-      alias: {
-        '~': join(import.meta.dirname, './src'),
-        '#': join(import.meta.dirname, './types'),
-      },
-    },
-    define: {
-      __APP_INFO__: JSON.stringify(__APP_INFO__),
-    },
-    server: {
-      port: envConfig.VITE_PORT,
-      host: '0.0.0.0',
-      cors: true,
-      hot: true,
-      proxy: createServerProxy(envConfig, envConfig.VITE_PROXY),
-    },
-    plugins: await createPlugins(mode),
-    build: {
-      sourcemap: false,
-      chunkSizeWarningLimit: 1000,
-      rolldownOptions: {
-        output: {
-          chunkFileNames: 'js/[name]-[hash].js',
-          assetFileNames: 'assets/[name]-[hash].[ext]',
-          entryFileNames: 'js/[name]-[hash].js',
-          codeSplitting: {
-            minSize: 20 * 1024,
-            ...createChunkGroups(),
-          },
-          minify: {
-            compress: {
-              dropConsole: isProd,
-              dropDebuggerger: isProd,
-            },
-          },
-        },
-      },
-    },
-    optimizeDeps: {
-      exclude: ['vue'],
-      include: ['@vueuse', 'es-toolkit', 'antdv-next'],
-    },
-  };
+/**
+ * 应用侧只保留「这个项目独有」的东西，其余全在 `@antdv/vite-config`：
+ *
+ * - 别名（`~` → src、`#` → types）与 vue 单例 dedupe → common
+ * - 插件装配（vue/jsx、auto-import、svg-icons、PWA、压缩、Nitro Mock、app-loading…）→ application
+ * - dev server 端口与 `/api` → Nitro Mock 代理 → application + VITE_* 环境变量
+ * - 分包策略与 dropConsole/dropDebugger → application
+ * - `__APP_INFO__`（构建时间 + 依赖清单）→ application（读本目录 package.json）
+ *
+ * 需要偏离默认时走 `overrides`，最后一层深合并，不会顶掉共享插件。
+ */
+export default defineApplicationConfig({
+  base: './',
 });

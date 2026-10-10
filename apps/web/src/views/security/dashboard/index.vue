@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { cn } from '@antdv/shared/cn'
 import { Icon } from '@iconify/vue'
-import { cn } from '~/utils/cn'
 
 import RealtimeAlertPanel from './components/RealtimeAlertPanel.vue'
 import SecurityScoreCard from './components/SecurityScoreCard.vue'

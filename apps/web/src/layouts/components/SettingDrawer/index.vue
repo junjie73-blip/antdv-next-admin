@@ -5,6 +5,7 @@ import { ref } from 'vue';
 
 import { Icon } from '@iconify/vue';
 import { Segmented } from 'antdv-next';
+import { projectConfig } from '~/config/project';
 
 import AppearancePanel from './components/AppearancePanel.vue';
 import CommonPanel from './components/CommonPanel.vue';
@@ -22,6 +23,11 @@ defineOptions({ name: 'SettingDrawer' });
 
 const visible = defineModel<boolean>('visible', { default: false });
 
+/**
+ * 模板里那行 `root-class="setting-drawer"` 用的是 antdv-next 的命名（React 版 antd 叫
+ * `rootClassName`）。写错属性名不会报错，只会当成未知属性丢掉：抽屉根节点上永远等不到
+ * `.setting-drawer`，所有拿它做作用域的选择器（样式覆盖、e2e 定位）静默落空。
+ */
 const activeSection = ref<SettingSection>('appearance');
 
 function handleClose() {
@@ -34,10 +40,10 @@ function handleClose() {
   <a-drawer
     v-model:open="visible"
     placement="right"
-    :width="380"
+    :size="380"
     :closable="false"
-    :styles="{ body: { padding: 0 } }"
-    root-class-name="setting-drawer"
+    :styles="{ body: { padding: 0, overflow: 'hidden' } }"
+    root-class="setting-drawer"
   >
     <template #title>
       <div :class="drawerHeaderClassName">
@@ -78,8 +84,18 @@ function handleClose() {
           />
         </div>
 
-        <!-- 面板（滚动） -->
-        <Scrollbar class="h-full" height="720">
+        <!--
+          面板（滚动）：容器高度由上一层的 flex 分配，所以这里给 `min-h-0 flex-1`。
+          `rootClass` 传了就不会再套组件默认的 `h-full`——那正是"底部看不全"的元凶：
+          h-full = 100% 容器高，加上面切换条的高度就超出了容器。
+          另外组件没有 `height` 这个 prop，之前的 `height="720"` 只是个被忽略的属性，
+          想限制高度得用 `maxHeight`（且它会走 useResponsiveMaxHeight 的下限 712px，
+          比抽屉本身还高，等于没有）。这里让它自适应，交给 flex 计算。
+        -->
+        <Scrollbar
+          root-class="min-h-0 flex-1"
+          :native="projectConfig.scrollbar?.native ?? false"
+        >
           <div class="px-5 pt-1">
             <AppearancePanel v-if="activeSection === 'appearance'" />
             <LayoutPanel v-else-if="activeSection === 'layout'" />
@@ -93,33 +109,3 @@ function handleClose() {
     </template>
   </a-drawer>
 </template>
-
-<style scoped>
-/* 毛玻璃 */
-:global(.setting-drawer .ant-drawer-content) {
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-}
-
-:global(.dark .setting-drawer .ant-drawer-content) {
-  background: rgba(2, 6, 23, 0.96);
-}
-
-/* Segmented 选中态高亮 */
-:global(.ant-segmented-item-selected) {
-  color: var(--ant-color-primary, #1677ff) !important;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06) !important;
-}
-
-@supports not (
-  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
-) {
-  :global(.setting-drawer .ant-drawer-content) {
-    background: #fff;
-  }
-  :global(.dark .setting-drawer .ant-drawer-content) {
-    background: #020617;
-  }
-}
-</style>

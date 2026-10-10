@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { useWindowSize } from '@vueuse/core';
-import { cn } from '~/utils/cn';
+import { projectConfig } from '~/config/project';
 
 const props = defineProps({
   loading: Boolean,
@@ -66,7 +67,11 @@ const bodyStyle = computed(() => ({ maxHeight: '100%' }));
       </div>
     </div>
 
-    <Scrollbar :class="cn('modal-body', 'p-6')" :style="bodyStyle">
+    <Scrollbar
+      :class="cn('modal-body', 'p-6')"
+      :native="projectConfig.scrollbar?.native ?? false"
+      :style="bodyStyle"
+    >
       <slot></slot>
     </Scrollbar>
   </div>

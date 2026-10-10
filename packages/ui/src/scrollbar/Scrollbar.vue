@@ -13,7 +13,6 @@ import {
   useWindowSize,
 } from '@vueuse/core';
 import { clamp, isNumber } from 'es-toolkit';
-import { projectConfig } from '~/config/project';
 
 import Bar from './bar';
 import { useResponsiveMaxHeight } from './useResponsiveMaxHeight';
@@ -21,7 +20,12 @@ import { useResponsiveMaxHeight } from './useResponsiveMaxHeight';
 defineOptions({ name: 'Scrollbar' });
 
 const props = withDefaults(defineProps<ScrollbarProps>(), {
-  native: () => projectConfig.scrollbar?.native ?? false,
+  /**
+   * 是否用浏览器原生滚动条。
+   * 包里默认 false（自绘）；应用侧想把菜单/弹窗换成原生滚动条时，
+   * 由调用方把自己的项目配置传进来，包本身不去读 app 配置。
+   */
+  native: false,
   wrapStyle: '',
   wrapClass: '',
   viewClass: '',
@@ -85,9 +89,14 @@ const barVisibleClass = computed(() =>
 /* ============================================================
  * 根容器样式
  * ============================================================ */
+// 显式声明局部变量再返回：直接 `return {}` 会被 TS 推断成
+// `{ maxHeight?: undefined }`，与 `Record<string, string>` 不兼容。
 const rootStyle = computed<Record<string, string>>(() => {
-  if (props.maxHeight == null) return {};
-  return { maxHeight: responsiveMaxHeight.maxHeightPx.value };
+  const style: Record<string, string> = {};
+  if (props.maxHeight != null) {
+    style.maxHeight = responsiveMaxHeight.maxHeightPx.value;
+  }
+  return style;
 });
 
 /* ============================================================
@@ -222,14 +231,20 @@ onMounted(() => {
 /* ============================================================
  * 对外 API
  * ============================================================ */
+/**
+ * `isNumber(NaN)` 为 true（typeof NaN === 'number'），所以还要排除非有限值：
+ * 把 NaN 写进 scrollTop 会被浏览器静默变成 0，调用方以为"滚回去了"，排查很费劲。
+ */
+const isScrollValue = (value: number) => isNumber(value) && Number.isFinite(value);
+
 const setScrollTop = (value: number) => {
-  if (!isNumber(value)) return;
+  if (!isScrollValue(value)) return;
   const el = unrefElement(wrap);
   if (el) el.scrollTop = value;
 };
 
 const setScrollLeft = (value: number) => {
-  if (!isNumber(value)) return;
+  if (!isScrollValue(value)) return;
   const el = unrefElement(wrap);
   if (el) el.scrollLeft = value;
 };
@@ -292,8 +307,110 @@ defineExpose({
   </div>
 </template>
 
-<style scoped>
-.scrollbar__bar {
-  transition: opacity 300ms ease;
+<!--
+  样式随组件走：抽包之前这些规则在应用的 var.css 里，
+  组件一旦被别人直接引用就会变成一个"没有样式的空壳"。
+
+  这里刻意不写 `@apply`：Tailwind v4 只在"能解析到主题入口"的样式文件里展开工具类，
+  独立的 SFC style block 里没有 `@import 'tailwindcss'` / `@reference`，构建期会直接
+  报 `Cannot apply unknown utility class`。所以把原来工具类对应的声明展开成等价的原生
+  CSS —— 组件的样式也就不再依赖宿主的 Tailwind 配置。
+
+  写在 @layer components 里是为了保持和 Tailwind 工具类的原有优先级 ——
+  模板上的 `flex-1 / min-h-0` 属于 utilities 层，必须仍然能覆盖这里。
+-->
+<style>
+@layer components {
+  /* ---------- 容器 ---------- */
+  /* 对应 relative h-full overflow-hidden（保留给宿主按类名定制的钩子） */
+  .scrollbar {
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+  }
+
+  /* ---------- 滚动区 ---------- */
+  /* 对应 h-full overflow-auto；模板里的 flex-1 / min-h-0 属于 utilities 层，优先级更高 */
+  .scrollbar__wrap {
+    overflow: auto;
+    height: 100%;
+  }
+
+  .scrollbar__wrap--hidden-default {
+    scrollbar-width: none;
+  }
+
+  /* 对应 hidden h-0 w-0 opacity-0：隐藏原生滚动条 */
+  .scrollbar__wrap--hidden-default::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+    opacity: 0;
+  }
+
+  .scrollbar__view {
+    /* 默认无样式，给 slot 内容保留 */
+  }
+
+  /* ---------- 滑块 ---------- */
+  /* 对应 relative block h-0 w-0 cursor-pointer rounded-[inherit]
+     bg-slate-400/30 transition-colors duration-300 hover:bg-slate-400/50 */
+  .scrollbar__thumb {
+    position: relative;
+    display: block;
+    width: 0;
+    height: 0;
+    cursor: pointer;
+    border-radius: inherit;
+    background-color: rgb(148 163 184 / 0.3);
+    transition:
+      color 0.3s ease,
+      background-color 0.3s ease;
+  }
+
+  .scrollbar__thumb:hover {
+    background-color: rgb(148 163 184 / 0.5);
+  }
+
+  /* ---------- 轨道 ---------- */
+  /* 对应 absolute right-0.5 bottom-0.5 z-1 rounded */
+  .scrollbar__bar {
+    position: absolute;
+    z-index: 1;
+    right: 2px;
+    bottom: 2px;
+    border-radius: 0.25rem;
+    transition: opacity 0.3s ease;
+  }
+
+  /* 纵向轨道：对应 top-0.5 w-1.5 */
+  .scrollbar__bar.is-vertical {
+    top: 2px;
+    width: 6px;
+  }
+
+  .scrollbar__bar.is-vertical > div {
+    width: 100%;
+  }
+
+  /* 横向轨道：对应 left-0.5 h-1.5 */
+  .scrollbar__bar.is-horizontal {
+    left: 2px;
+    height: 6px;
+  }
+
+  .scrollbar__bar.is-horizontal > div {
+    height: 100%;
+  }
+
+  /* ---------- 暗色适配 ---------- */
+  /* 对应 bg-slate-500/35 hover:bg-slate-500/55 */
+  .dark .scrollbar__thumb {
+    background-color: rgb(100 116 139 / 0.35);
+  }
+
+  .dark .scrollbar__thumb:hover {
+    background-color: rgb(100 116 139 / 0.55);
+  }
 }
 </style>

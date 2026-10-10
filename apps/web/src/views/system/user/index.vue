@@ -4,6 +4,8 @@ import type { BasicColumn } from '~/components/business/Table'
 
 import { computed, onMounted, ref } from 'vue'
 
+import { usePrint } from '@antdv/composables/usePrint'
+import { cn } from '@antdv/shared/cn'
 import { Icon } from '@iconify/vue'
 import * as XLSX from 'xlsx'
 import {
@@ -17,10 +19,8 @@ import {
 import { BasicForm, useForm } from '~/components/business/Form'
 import { BasicModal, useModal } from '~/components/business/Modal'
 import { BasicTable, useTable } from '~/components/business/Table'
-import { usePrint } from '~/composables/print'
 import { DictType } from '~/enums/dict'
 import { useDictStore } from '~/stores'
-import { cn } from '~/utils/cn'
 defineOptions({ name: 'SystemUser' })
 
 interface UserRecord {
@@ -537,17 +537,25 @@ const columns: BasicColumn[] = [
                 编辑
               </a-button>
               <a-divider type="vertical" :class="dividerClassName" />
-              <a-button
-                type="link"
-                danger
-                :class="btnClassName"
-                @click="() => handleDelete(record)"
+              <!--
+                删除是不可逆操作，必须二次确认。以前点一下就直接 PUT 掉，
+                列表行高密集、删除又排在编辑旁边，误触一次就少一个用户，
+                连"删了谁"都没来得看清。和消息通知页保持同一套交互。
+              -->
+              <a-popconfirm
+                :title="`确定删除用户「${record.nickname}」吗？删除后不可恢复。`"
+                ok-text="删除"
+                ok-type="danger"
+                cancel-text="取消"
+                @confirm="() => handleDelete(record)"
               >
-                <template #icon>
-                  <Icon icon="ant-design:delete-outlined" />
-                </template>
-                删除
-              </a-button>
+                <a-button type="link" danger :class="btnClassName">
+                  <template #icon>
+                    <Icon icon="ant-design:delete-outlined" />
+                  </template>
+                  删除
+                </a-button>
+              </a-popconfirm>
             </div>
           </template>
         </BasicTable>

@@ -4,6 +4,7 @@ import type { BasicColumn, ComponentType, Recordable } from '../types';
 
 import { computed, defineComponent, nextTick, ref, watch } from 'vue';
 
+import { IconifyIcon as Icon } from '@antdv/ui/icon';
 import {
   Button,
   DatePicker,
@@ -12,7 +13,6 @@ import {
   Select,
   Switch,
 } from 'antdv-next';
-import { IconifyIcon as Icon } from '~/components/common/Icon';
 
 export default defineComponent({
   name: 'TableEditableCell',

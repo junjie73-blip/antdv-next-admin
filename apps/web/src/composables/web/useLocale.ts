@@ -1,7 +1,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import { localStorageCacheStorage } from '~/utils/cache';
+import { localStorageCacheStorage } from '@antdv/shared/cache';
 
 const LOCALE_KEY = 'locale';
 

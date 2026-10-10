@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { useEventListener, useTimeoutFn } from '@vueuse/core';
-import { cn } from '~/utils/cn';
 
 interface Props {
   name: string;

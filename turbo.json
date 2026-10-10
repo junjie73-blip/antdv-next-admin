@@ -28,6 +28,10 @@
     "test:unit": {
       "dependsOn": ["^build"]
     },
+    "test:e2e": {
+      "cache": false,
+      "dependsOn": ["^build"]
+    },
     "clean": {
       "cache": false
     }

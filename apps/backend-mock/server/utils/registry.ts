@@ -64,6 +64,8 @@ const SOURCE_ROUTES: SourceRoute[] = [
   { method: 'PUT', path: '/system/notice/read/:id' },
   { method: 'PUT', path: '/system/notice/read-all' },
   { method: 'DELETE', path: '/system/notice/:id' },
+  // 通知管理页的「新增/编辑消息」（legacy 没有这条，前端一直在调，Nitro 侧本次补齐）
+  { method: 'POST', path: '/system/notice/save' },
   // online.fake.ts
   { method: 'GET', path: '/system/online/list' },
   { method: 'DELETE', path: '/system/online/:tokenId' },
@@ -95,6 +97,9 @@ const SOURCE_ROUTES: SourceRoute[] = [
   // table.fake.ts
   { method: 'GET', path: '/table/list' },
   { method: 'GET', path: '/dashboard/stats' },
+  // 上传示例页（apps/web 里 8 个 `action` 的后端落点，Nitro 侧见 api/upload*）
+  { method: 'POST', path: '/upload' },
+  { method: 'POST', path: '/upload/:variant' },
   // user.fake.ts —— options 与 role.fake.ts 重复注册，缺省分组 system/user 会进入 duplicates
   { method: 'GET', path: '/system/user/list' },
   { method: 'GET', path: '/system/user/:id' },

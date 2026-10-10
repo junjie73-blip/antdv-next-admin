@@ -50,5 +50,7 @@ apps/backend-mock/.nitro
 apps/backend-mock/.output
 
 # Mock 运行时本地配置（开关 / 延迟 / 失败率 / 面板生成接口），不入库
-apps/backend-mock/.mock-state.json
+# 名字不带路径：Nitro mock 现在由 apps/web 的 dev 进程在进程内拉起，
+# persist 文件落在启动它的 cwd（apps/web/.mock-state.json），而不是 apps/backend-mock/。
+.mock-state.json
 mock/.runtime.json

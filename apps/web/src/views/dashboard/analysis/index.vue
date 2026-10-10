@@ -3,12 +3,12 @@ import type { Ref } from 'vue';
 
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
 import { useEventListener } from '@vueuse/core';
 import { message } from 'antdv-next';
 import * as echarts from 'echarts';
 import { useAppStore } from '~/stores/modules/app';
-import { cn } from '~/utils/cn';
 
 defineOptions({ name: 'DashboardAnalysis' });
 const appStore = useAppStore();
@@ -1101,7 +1101,7 @@ onBeforeUnmount(() => {
 {
   "name": "Analysis",
   "meta": {
-    "title": "系统分析"
+    "title": "分析面板"
   }
 }
 </route>

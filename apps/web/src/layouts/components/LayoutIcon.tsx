@@ -1,10 +1,18 @@
 import type { LayoutMode } from '@antdv/types';
 
+import { cn } from '@antdv/shared/cn';
 import { theme } from 'antdv-next';
-import { cn } from '~/utils/cn';
+
+/**
+ * 图示例子的种类。
+ *
+ * 7 个布局形态来自 `LayoutMode`；两个"内容宽度"（流式 / 定宽）与形态正交，
+ * 只在这套示意图里出现，所以用额外的字面量补上，而不是污染偏好类型。
+ */
+export type LayoutIconType = 'content-fixed' | 'content-full' | LayoutMode;
 
 interface LayoutIconProps {
-  type: LayoutMode;
+  type: LayoutIconType;
   active?: boolean;
   class?: string;
 }
@@ -193,6 +201,111 @@ function SplitIcon({ active, colors }: { active?: boolean; colors: Colors }) {
   );
 }
 
+// ============================================================
+// 混合双列（顶栏一级 + 图标栏二级 + 侧栏三级）
+// ============================================================
+function MixedTwoColumnIcon({
+  active,
+  colors,
+}: {
+  active?: boolean;
+  colors: Colors;
+}) {
+  const c = getColors(active, colors);
+  return (
+    <svg class="h-auto w-full" viewBox="0 0 48 36">
+      {/* 顶栏：一级导航 */}
+      <rect fill={c.bar} height="6" rx="1" width="48" x="0" y="0" />
+      <rect fill={c.menuLine} height="2" rx="0.5" width="4" x="3" y="2" />
+      <rect fill={c.menuLineSoft} height="2" rx="0.5" width="6" x="20" y="2" />
+      <rect fill={c.menuLineSoft} height="2" rx="0.5" width="6" x="28" y="2" />
+
+      {/* 图标栏：二级 */}
+      <rect fill={c.bar} height="30" width="6" x="0" y="6" />
+      <rect fill={c.menuLine} height="1.5" rx="0.5" width="3" x="1.5" y="10" />
+      <rect
+        fill={c.menuLineSoft}
+        height="1.5"
+        rx="0.5"
+        width="3"
+        x="1.5"
+        y="13"
+      />
+
+      {/* 侧栏：三级 */}
+      <rect fill={c.barSoft} height="30" width="10" x="6" y="6" />
+      <rect fill={c.accent} height="1.5" rx="0.5" width="6" x="8" y="10" />
+      <rect fill={c.accentSoft} height="1.5" rx="0.5" width="5" x="8" y="13" />
+
+      {/* 主内容 */}
+      <rect fill={c.surface} height="30" width="32" x="16" y="6" />
+      <rect fill={c.accent} height="2" rx="0.5" width="10" x="19" y="10" />
+    </svg>
+  );
+}
+
+// ============================================================
+// 内容全屏（外壳全部隐去，只剩内容）
+// ============================================================
+function FullContentIcon({
+  active,
+  colors,
+}: {
+  active?: boolean;
+  colors: Colors;
+}) {
+  const c = getColors(active, colors);
+  return (
+    <svg class="h-auto w-full" viewBox="0 0 48 36">
+      {/* 双层矩形模拟描边：外壳只剩一圈边界，中间全是内容 */}
+      <rect fill={c.accent} height="36" rx="1" width="48" x="0" y="0" />
+      <rect fill={c.surface} height="33" rx="1" width="45" x="1.5" y="1.5" />
+      <rect fill={c.accent} height="2" rx="0.5" width="14" x="4" y="6" />
+      <rect fill={c.accentSoft} height="2" rx="0.5" width="24" x="4" y="12" />
+      <rect fill={c.accentSoft} height="2" rx="0.5" width="20" x="4" y="16" />
+      <rect fill={c.accentSoft} height="2" rx="0.5" width="22" x="4" y="20" />
+    </svg>
+  );
+}
+
+// ============================================================
+// 内容区宽度：流式 / 定宽
+// ============================================================
+function ContentWidthIcon({
+  active,
+  colors,
+  fixed,
+}: {
+  active?: boolean;
+  colors: Colors;
+  fixed?: boolean;
+}) {
+  const c = getColors(active, colors);
+  return (
+    <svg class="h-auto w-full" viewBox="0 0 48 36">
+      <rect fill={c.barSoft} height="36" rx="1" width="48" x="0" y="0" />
+      {/* 定宽时两侧留白，流式时铺满 */}
+      <rect
+        fill={c.surface}
+        height="36"
+        rx="1"
+        width={fixed ? 28 : 48}
+        x={fixed ? 10 : 0}
+        y="0"
+      />
+      <rect fill={c.accent} height="2" rx="0.5" width="12" x={fixed ? 13 : 3} y="6" />
+      <rect fill={c.accentSoft} height="2" rx="0.5" width="18" x={fixed ? 13 : 3} y="12" />
+      <rect fill={c.accentSoft} height="2" rx="0.5" width="14" x={fixed ? 13 : 3} y="16" />
+      {fixed && (
+        <rect fill={c.barSoft} height="36" rx="1" width="8" x="40" y="0" />
+      )}
+      {fixed && (
+        <rect fill={c.barSoft} height="36" rx="1" width="8" x="0" y="0" />
+      )}
+    </svg>
+  );
+}
+
 function getColors(active: boolean | undefined, c: Colors) {
   return {
     bar: active ? c.primary : c.primaryBg,
@@ -223,29 +336,40 @@ export function LayoutIcon(props: LayoutIconProps) {
 
   const renderIcon = () => {
     switch (type) {
-      case 'vertical': {
-        return <VerticalIcon active={active} colors={colors} />;
+      /* ---------- 内容区宽度 ---------- */
+      case 'content-fixed': {
+        return <ContentWidthIcon active={active} colors={colors} fixed />;
+      }
+      case 'content-full': {
+        return <ContentWidthIcon active={active} colors={colors} />;
+      }
+      /* ---------- 布局形态 ---------- */
+      case 'full-content': {
+        return <FullContentIcon active={active} colors={colors} />;
       }
       case 'horizontal': {
         return <HorizontalIcon active={active} colors={colors} />;
       }
-      case 'mixed': {
+      case 'mixed-two-column': {
+        return <MixedTwoColumnIcon active={active} colors={colors} />;
+      }
+      case 'mixed-vertical': {
         return <MixedIcon active={active} colors={colors} />;
       }
+      case 'side-nav': {
+        return <SplitIcon active={active} colors={colors} />;
+      }
+      case 'two-column': {
+        return <DoubleIcon active={active} colors={colors} />;
+      }
+      case 'vertical': {
+        return <VerticalIcon active={active} colors={colors} />;
+      }
       default: {
-        return null;
+        return <ClassicIcon active={active} colors={colors} />;
       }
     }
   };
 
   return <div class={containerClassName}>{renderIcon()}</div>;
 }
-
-export const LAYOUT_OPTIONS: { value: LayoutMode; label: string }[] = [
-  { value: 'vertical', label: '纵向' },
-  // { value: "split", label: "分栏" },
-  // { value: "double", label: "双栏" },
-  // { value: "classic", label: "经典" },
-  { value: 'mixed', label: '混合' },
-  { value: 'horizontal', label: '横向' },
-];

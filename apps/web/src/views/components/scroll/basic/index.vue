@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-import { Scrollbar } from '~/components/common/Scrollbar';
-import { cn } from '~/utils/cn';
+import { cn } from '@antdv/shared/cn';
+import { Scrollbar } from '@antdv/ui/scrollbar';
 
 const containerClassName = cn('space-y-6');
 const scrollContentClassName = cn('rounded-lg bg-gray-50 p-4 dark:bg-gray-800');

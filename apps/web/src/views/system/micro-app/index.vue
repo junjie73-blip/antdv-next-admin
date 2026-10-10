@@ -3,8 +3,9 @@ import type { MicroAppItem } from '@antdv/types'
 
 import { computed, ref, watch } from 'vue'
 
+import { cn } from '@antdv/shared/cn'
+import { buildIframeSandbox, canEscapeSandbox } from '@antdv/shared/iframe'
 import { getAllMicroApps, microAppConfig } from '~/config/micro-app'
-import { cn } from '~/utils/cn'
 
 // 状态
 const apps = ref<MicroAppItem[]>(getAllMicroApps())
@@ -103,36 +104,32 @@ function handleRefreshIframe() {
   }
 }
 
-// 获取子应用预览 URL（使用主应用自身页面作为演示）
-function getAppPreviewUrl(app: MicroAppItem): string {
-  // 如果配置了 url 且是外部地址，直接使用
-  if (app.url?.startsWith('http')) {
-    // 演示模式：将外部地址映射到本应用的对应页面
-    const routeMap: Record<string, string> = {
-      'sub-app-example': '/#/dashboard',
-      'crm-system': '/#/system/user',
-      'data-bi': '/#/dashboard/echarts',
-      'workflow-engine': '/#/system/role',
-      'file-manager': '/#/system/dict',
-      'message-center': '/#/system/notice',
-    }
-    const mappedRoute = routeMap[app.name]
-    if (mappedRoute) {
-      return window.location.origin + mappedRoute
-    }
-  }
-  // 默认：映射到系统内的演示页面
-  const demoRoutes: Record<string, string> = {
-    'sub-app-example': '/#/dashboard',
-    'crm-system': '/#/system/user',
-    'data-bi': '/#/dashboard/echarts',
-    'workflow-engine': '/#/system/role',
-    'file-manager': '/#/system/dict',
-    'message-center': '/#/system/notice',
-  }
-  const route = demoRoutes[app.name] || '/#/dashboard'
-  return window.location.origin + route
+// 获取子应用预览 URL
+function previewUrl(app: MicroAppItem): string {
+  return app.url ?? ''
 }
+
+/**
+ * 预览 iframe 的 sandbox。
+ *
+ * 不再硬编码 `allow-scripts allow-same-origin`：那两个同时给就是浏览器告警的
+ * "sandbox 可被逃逸"组合（框架脚本能顺着同源身份爬到顶层文档读主应用 token）。
+ * 默认不给同源身份，只有注册表里显式 `sameOrigin: true` 的同域子应用才打开，
+ * 打开后由 `previewEscapable` 在界面上标出来，让人看见这个决定。
+ */
+function sandboxFor(app: MicroAppItem): string {
+  return buildIframeSandbox({ sameOrigin: app.sameOrigin })
+}
+
+const previewSandbox = computed(() =>
+  currentApp.value ? sandboxFor(currentApp.value) : '',
+)
+const previewEscapable = computed(() => canEscapeSandbox(previewSandbox.value))
+
+/** 「同源预览」标签的提示文案 */
+const sandboxWarningTitle =
+  '该子应用注册时打开了 sameOrigin：iframe 同时拥有 allow-scripts 与 allow-same-origin，' +
+  '其脚本可以顺着同源身份访问顶层文档。仅对同域部署、确需共享登录态的子应用开放。'
 
 // 初始选中第一个
 watch(
@@ -158,8 +155,8 @@ watch(
           子应用注册与预览（iframe 嵌套模式）
         </p>
       </div>
-      <a-button v-if="currentApp" @click="handleRefreshIframe">
-        <Icon icon="carbon:refresh" class="mr-1" />
+      <a-button v-if="isEnabled && currentApp" @click="handleRefreshIframe">
+        <Icon icon="carbon:restart" class="mr-1" />
         刷新预览
       </a-button>
     </div>
@@ -223,7 +220,7 @@ watch(
         </div>
 
         <!-- 应用列表 -->
-        <PerfectScrollbar class="min-h-0 flex-1">
+        <Scrollbar root-class="min-h-0 flex-1">
           <div class="space-y-2">
             <div
               v-for="app in filteredApps"
@@ -293,7 +290,7 @@ watch(
               <p class="text-xs">无匹配的子应用</p>
             </div>
           </div>
-        </PerfectScrollbar>
+        </Scrollbar>
       </div>
 
       <!-- 右侧：iframe 预览区域 -->
@@ -328,11 +325,15 @@ watch(
                 {{ currentApp.title }}
               </p>
               <p class="text-[10px] text-gray-500">
-                {{ getAppPreviewUrl(currentApp) }}
+                {{ previewUrl(currentApp) }}
               </p>
             </div>
           </div>
           <div class="flex items-center gap-2">
+            <!-- 打开同源身份意味着 sandbox 可被逃逸，必须让人在界面上看到 -->
+            <a-tooltip v-if="previewEscapable" :title="sandboxWarningTitle">
+              <a-tag color="orange">同源预览</a-tag>
+            </a-tooltip>
             <span :class="getStatusTagClass(!!currentApp.active)">
               {{ currentApp.active ? '运行中' : '已停止' }}
             </span>
@@ -348,40 +349,60 @@ watch(
 
         <!-- iframe 容器 -->
         <div class="relative flex-1 bg-white dark:bg-gray-800">
-          <!-- 加载态 -->
+          <!--
+            未启用时不做"假预览"。
+            过去这里会把子应用 URL 映射到本站页面（/#/dashboard 之类）来"演示"嵌入效果，
+            代价是同源 + 可脚本的 iframe，等于把主应用会话暴露给一个自己套自己的框架，
+            也让注册表看起来"跑通了"，其实一个真子应用都没接进来。
+          -->
           <div
-            v-if="!iframeLoaded[currentApp!.name]"
-            class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900"
+            v-if="!isEnabled"
+            class="flex h-full flex-col items-center justify-center gap-1 px-6 text-center text-gray-400"
           >
-            <a-spin size="large" />
-            <p class="mt-2 text-xs text-gray-500">
-              正在加载子应用 {{ currentApp?.title }}...
+            <span class="i-carbon-document-blurred mb-2 text-5xl opacity-20"></span>
+            <p class="text-sm">预览未启用</p>
+            <p class="mt-1 max-w-md text-xs opacity-70">
+              设置 VITE_MICRO_APP=true 并重启后，这里会按注册表里的 URL 加载子应用
             </p>
           </div>
 
-          <!-- iframe 嵌入子应用 -->
-          <iframe
-            v-if="currentApp"
-            :data-app="currentApp.name"
-            :src="getAppPreviewUrl(currentApp)"
-            class="h-full w-full border-0"
-            :style="{ minHeight: '500px' }"
-            frameborder="0"
-            allow="clipboard-write; autoplay; fullscreen"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
-            @load="handleIframeLoad(currentApp!.name)"
-            @error="handleIframeError(currentApp!.name)"
-          ></iframe>
+          <template v-else>
+            <!-- 加载态 -->
+            <div
+              v-if="currentApp && !iframeLoaded[currentApp.name]"
+              class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900"
+            >
+              <a-spin size="large" />
+              <p class="mt-2 text-xs text-gray-500">
+                正在加载子应用 {{ currentApp.title }}...
+              </p>
+            </div>
 
-          <!-- 无选中状态 -->
-          <div
-            v-if="!currentApp"
-            class="flex h-full flex-col items-center justify-center text-gray-400"
-          >
-            <span class="i-carbon-application mb-3 text-5xl opacity-20"></span>
-            <p class="text-sm">选择左侧子应用开始预览</p>
-            <p class="mt-1 text-xs opacity-60">支持 iframe 嵌套模式</p>
-          </div>
+            <!-- iframe 嵌入子应用 -->
+            <iframe
+              v-if="currentApp"
+              :key="currentApp.name"
+              :data-app="currentApp.name"
+              :src="previewUrl(currentApp)"
+              class="h-full w-full border-0"
+              :style="{ minHeight: '500px' }"
+              frameborder="0"
+              allow="clipboard-write; autoplay; fullscreen"
+              :sandbox="previewSandbox"
+              @load="handleIframeLoad(currentApp.name)"
+              @error="handleIframeError(currentApp.name)"
+            ></iframe>
+
+            <!-- 无选中状态 -->
+            <div
+              v-if="!currentApp"
+              class="flex h-full flex-col items-center justify-center text-gray-400"
+            >
+              <span class="i-carbon-application mb-3 text-5xl opacity-20"></span>
+              <p class="text-sm">选择左侧子应用开始预览</p>
+              <p class="mt-1 text-xs opacity-60">支持 iframe 嵌套模式</p>
+            </div>
+          </template>
         </div>
       </div>
     </div>

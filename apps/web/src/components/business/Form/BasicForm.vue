@@ -11,6 +11,7 @@ import type {
 
 import {
   computed,
+  onBeforeUnmount,
   onMounted,
   provide,
   reactive,
@@ -20,9 +21,9 @@ import {
   watch,
 } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
+import { IconifyIcon } from '@antdv/ui/icon';
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
-import IconifyIcon from '~/components/common/Icon/IconifyIcon.vue';
-import { cn } from '~/utils/cn';
 
 import FormItem from './components/FormItem.vue';
 import { deepMerge, formatDateFields, handleRangeValue } from './helper';
@@ -394,6 +395,15 @@ function getForm(): FormInstance | null {
   return formRef.value || null;
 }
 
+/**
+ * 是否还挂在组件树上。
+ *
+ * `useForm` 侧的 `formRef` 指的是这个 `formActionType` 对象本身，组件卸载后它依然是个非空引用，
+ * 于是"表单还没挂载时先 `setFieldsValue` 再 `openModal`"这条常见写法会静默写在死对象上。
+ * 这里把真实的挂载状态暴露出去，让 `useForm` 能够把它改成待写入队列。
+ */
+const isMountedRef = ref(false);
+
 // ============ 暴露给外部的 API ============
 const formActionType: FormActionType = {
   getFieldsValue,
@@ -409,6 +419,7 @@ const formActionType: FormActionType = {
   appendSchemaByField,
   setProps,
   getForm,
+  isMounted: () => isMountedRef.value,
 };
 
 // 去掉 deep: true，避免深层监听引起重复触发
@@ -425,7 +436,12 @@ watch(
 );
 
 onMounted(() => {
+  isMountedRef.value = true;
   emit('register', formActionType);
+});
+
+onBeforeUnmount(() => {
+  isMountedRef.value = false;
 });
 
 defineExpose(formActionType);

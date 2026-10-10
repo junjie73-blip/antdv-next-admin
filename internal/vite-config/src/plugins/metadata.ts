@@ -11,9 +11,12 @@ import { readWorkspaceManifest } from '@pnpm/workspace.read-manifest';
 function resolvePackageVersion(
   pkgsMeta: Record<string, string>,
   name: string,
-  value: string,
+  /** package.json 的 version 字段类型上是 unknown（允许 `npm:`、`catalog:` 等协议） */
+  value: unknown,
   catalog: Record<string, string>,
-) {
+): string | undefined {
+  if (typeof value !== 'string') return undefined;
+
   if (value.includes('catalog:')) {
     return catalog[name];
   }

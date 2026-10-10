@@ -2,10 +2,14 @@ import type { UserInfo } from '@antdv/types';
 
 import { computed, ref } from 'vue';
 
+import { cache, decryptToken, encryptToken } from '@antdv/shared/cache';
 import { defineStore } from 'pinia';
 import { http } from '~/composables';
-import { cache } from '~/utils/cache';
-import { decryptToken, encryptToken } from '~/utils/cache/tokenCrypto';
+// 只取纯函数（不依赖组件上下文），避免把布局层 composables 整体拉进 store
+import { resetPageCache } from '~/layouts/composables/usePageCache';
+
+import { useRouteStore } from './route';
+import { useTabsStore } from './tabs';
 
 const TOKEN_KEY = 'auth_token';
 const USER_INFO_KEY = 'user_info';
@@ -124,6 +128,25 @@ export const useUserStore = defineStore('user', () => {
     userInfo.value = null;
     cache.removeItem(TOKEN_KEY);
     cache.removeItem(USER_INFO_KEY);
+    /**
+     * 页面缓存里存的是上一个账号的组件实例（表单草稿、表格分页、图表数据都在里面），
+     * 不清掉就会出现"换个账号进来，页面还是上一个人的状态"。
+     */
+    resetPageCache();
+    /**
+     * 会话态的另外两半也必须一起清，否则退出→登录（同一个页面会话，没有整页刷新）
+     * 会把上一个账号的"授权"和"打开的页面"带进来：
+     *
+     * - 路由 store：`isLoaded` 仍是 true，守卫看到它就跳过 `loadRoutes()`，
+     *   于是菜单和 `allowedNames/allowedPaths` 还是上一个人的。菜单看着对、
+     *   权限判的却是别人的，换个权限更小的账号进来会直接 403 错乱。
+     *   `resetRoutes()` 把 `isLoaded` 打回 false，下次导航自然重新拉菜单。
+     * - 标签页 store：残留的 tab 指向新账号未必有权的页面，点进去就是空白或 403。
+     *
+     * `./route`、`./tabs` 都不引用 `./user`，所以顶层静态 import 不会成环。
+     */
+    useRouteStore().resetRoutes();
+    useTabsStore().reset();
   };
 
   const hasPermission = (permission: string) => {

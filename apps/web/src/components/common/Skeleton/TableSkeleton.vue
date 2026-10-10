@@ -18,7 +18,7 @@
  * ```
  */
 
-import { cn } from '~/utils/cn';
+import { cn } from '@antdv/shared/cn';
 
 interface Props {
   /** 是否显示骨架屏 */

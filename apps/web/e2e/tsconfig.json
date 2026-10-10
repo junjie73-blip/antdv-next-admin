@@ -1,4 +1,17 @@
 {
   "extends": "@tsconfig/node24/tsconfig.json",
+  "compilerOptions": {
+    // 用例里会在 page.evaluate 中写浏览器代码，node 预设不带 DOM 类型
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    /*
+     * node 预设的 moduleResolution 是 nodenext：相对导入必须带 `.js` 后缀。
+     * Playwright 自己用 esbuild 转译用例，不吃这条规则，仓库里所有 spec 也都写着
+     * `from './utils/app'`；照 nodenext 检查会让每一行导入都报 TS2835，
+     * 顺带把 `region()` 之类推断成 any，回调参数全变成 implicit any。
+     * 所以这里换成 bundler 语义，让这份配置真的能用来检查 e2e。
+     */
+    "module": "ESNext",
+    "moduleResolution": "Bundler"
+  },
   "include": ["./**/*"]
 }

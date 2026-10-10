@@ -82,7 +82,9 @@ function initUserDB() {
       username: faker.internet.username().toLowerCase(),
       nickname: faker.person.fullName(),
       email: faker.internet.email().toLowerCase(),
-      phone: faker.phone.number('1##########'),
+      // faker 的 phone.number 只接受 { style } 选项对象，不吃 mockjs 的 '#' 占位串；
+      // 用 "1 + 10 位随机数字" 保持与 legacy 相同的 11 位大陆手机号形态
+      phone: `1${faker.string.numeric(10)}`,
       gender: faker.helpers.arrayElement([0, 1, 2]),
       avatar: faker.image.avatar(),
       status: faker.datatype.boolean(0.85) ? 1 : 0,

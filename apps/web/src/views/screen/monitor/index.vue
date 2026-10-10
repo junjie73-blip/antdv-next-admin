@@ -200,12 +200,32 @@ const latencyChartRef = useTemplateRef<HTMLDivElement>('latencyChartRef');
 const attackSourceRef = useTemplateRef<HTMLDivElement>('attackSourceRef');
 const charts = new Map<string, echarts.ECharts>();
 
+/**
+ * 卸载标志与"还没等到容器有尺寸"的那批待兑现资源。
+ *
+ * 大屏有 7 张图，容器在 Scrollbar / scale 适配下首屏可能是 0×0，于是走 `whenReady`
+ * 的异步分支：一个 ResizeObserver + 一个 3s 兜底 setTimeout。这两样过去**没人登记**，
+ * 用户在 3 秒内离开大屏（点别的菜单、测试里连着跳页）时：
+ * `disposeAll()` 已经把 map 清空了，兜底回调随后又把图表 `init` 回一个已经脱离文档的
+ * DOM 节点上，新实例既不在 map 里也再没人 dispose ——
+ * 每个泄漏的 ECharts 实例都自带一条 zrender 的 rAF 动画循环，7 个一起在大屏之外
+ * 继续空转，表现就是"离开大屏以后整机变慢"。
+ *
+ * 实测（Playwright WebKit，同一会话内）：`/screen/monitor` 之后紧接 `/system/user`
+ * 的导航从 1.3s 涨到 25s，正好越过 e2e 的等待预算，产出无法复现的假红。
+ * 根因是这个泄漏，不是引擎慢 —— 所以修产品，不靠加超时兜。
+ */
+let unmounted = false;
+const pendingObservers = new Set<ResizeObserver>();
+const pendingTimers = new Set<ReturnType<typeof setTimeout>>();
+
 /** 安全等待 DOM 尺寸就绪后执行回调 */
 function whenReady(
   name: string,
   refEl: Ref<HTMLDivElement | undefined>,
   cb: (el: HTMLDivElement) => void,
 ) {
+  if (unmounted) return;
   const el = refEl.value;
   if (!el || charts.has(name)) return;
   if (el.offsetWidth > 0 && el.offsetHeight > 0) {
@@ -213,27 +233,46 @@ function whenReady(
     return;
   }
   let done = false;
-  const ob = new ResizeObserver((entries) => {
+  /**
+   * 先声明句柄袋，再声明用到它们的函数 —— 否则 `settle()` 里读 `ob` / `timer`
+   * 是"在定义之前引用"，运行时靠闭包侥幸不炸，静态检查直接判错。
+   */
+  const handle: { ob?: ResizeObserver; timer?: ReturnType<typeof setTimeout> } = {};
+  /** 兑现一次就销账：observer 断开 + 兜底定时器清掉，不留悬挂句柄 */
+  const settle = () => {
+    done = true;
+    if (handle.ob) {
+      handle.ob.disconnect();
+      pendingObservers.delete(handle.ob);
+    }
+    if (handle.timer) {
+      clearTimeout(handle.timer);
+      pendingTimers.delete(handle.timer);
+    }
+  };
+  const init = () => {
+    const t = refEl.value;
+    if (unmounted || !t || charts.has(name)) return;
+    cb(t);
+  };
+  handle.ob = new ResizeObserver((entries) => {
     if (done) return;
     for (const e of entries) {
       if (e.contentRect.width > 0 && e.contentRect.height > 0) {
-        done = true;
-        ob.disconnect();
-        const t = refEl.value;
-        if (t && !charts.has(name)) cb(t);
+        settle();
+        init();
         break;
       }
     }
   });
-  ob.observe(el);
-  setTimeout(() => {
-    if (!done && !charts.has(name)) {
-      done = true;
-      ob.disconnect();
-      const t = refEl.value;
-      if (t) cb(t);
-    }
+  handle.ob.observe(el);
+  pendingObservers.add(handle.ob);
+  handle.timer = setTimeout(() => {
+    if (done) return;
+    settle();
+    init();
   }, 3000);
+  pendingTimers.add(handle.timer);
 }
 
 // ======================== 默认数据生成 =========================
@@ -754,9 +793,6 @@ function disposeAll() {
   charts.clear();
 }
 
-// PerfectScrollbar 配置
-const psOptions = { wheelPropagation: true, suppressScrollX: true };
-
 // 定时器引用（必须在顶层声明，以便同步清理）
 let refreshTimer: null | ReturnType<typeof setInterval> = null;
 
@@ -934,7 +970,7 @@ function initChartImmediately(
   initFn: (el: HTMLDivElement) => void,
 ) {
   const el = refEl.value;
-  if (!el || charts.has(name)) return;
+  if (unmounted || !el || charts.has(name)) return;
   if (el.offsetWidth > 0 && el.offsetHeight > 0) {
     initFn(el);
     return;
@@ -954,11 +990,18 @@ useEventListener(window, 'resize', () => charts.forEach((c) => c.resize()));
 
 // 关键：确保组件卸载时完全清理所有资源（同步注册）
 onBeforeUnmount(() => {
+  // 先立标志：之后所有"等 DOM 尺寸就绪"的回调都必须作废，不能再 init 新实例
+  unmounted = true;
   // 清理定时器
   if (refreshTimer) {
     clearInterval(refreshTimer);
     refreshTimer = null;
   }
+  // 摘掉还没兑现的 ResizeObserver / 兜底 setTimeout（大屏→别的页 变慢的根因）
+  for (const ob of pendingObservers) ob.disconnect();
+  pendingObservers.clear();
+  for (const timer of pendingTimers) clearTimeout(timer);
+  pendingTimers.clear();
   // 销毁所有 ECharts 实例并清理容器样式
   disposeAll();
 });
@@ -1015,9 +1058,12 @@ function securityAlertLevelText(level: string): string {
 
 <template>
   <!-- 大屏容器 -->
-  <PerfectScrollbar
+  <!-- view-class="h-full"：Scrollbar 的 slot 容器 scrollbar__view 自身没有高度，
+       不撑满的话 #screen-content 的 h-full 会失效、整屏网格塌成 0 -->
+  <Scrollbar
     id="screen-container"
-    class="h-screen w-screen bg-[#0a0e27] text-white"
+    root-class="h-screen w-screen bg-[#0a0e27] text-white"
+    view-class="h-full"
   >
     <div id="screen-content" class="flex h-full flex-col">
       <!-- 头部 -->
@@ -1057,7 +1103,12 @@ function securityAlertLevelText(level: string): string {
               class="flex min-h-0 flex-1 flex-col"
               body-class="flex-1 min-h-0"
             >
-              <PerfectScrollbar :options="psOptions" class="relative h-full">
+              <!-- 原第三方滚动组件的 :options 没有等价实现：suppressScrollX 由
+                   wrap-class="overflow-x-hidden" 承担，wheelPropagation 只能舍弃 -->
+              <Scrollbar
+                root-class="relative h-full"
+                wrap-class="overflow-x-hidden"
+              >
                 <div class="space-y-2 pr-1">
                   <div
                     v-for="(user, idx) in onlineUsers"
@@ -1087,7 +1138,7 @@ function securityAlertLevelText(level: string): string {
                     ></span>
                   </div>
                 </div>
-              </PerfectScrollbar>
+              </Scrollbar>
             </ScreenCard>
           </div>
 
@@ -1163,7 +1214,10 @@ function securityAlertLevelText(level: string): string {
                 class="flex min-h-0 flex-col overflow-hidden"
                 body-class="flex-1 min-h-0"
               >
-                <PerfectScrollbar :options="psOptions" class="relative h-full">
+                <Scrollbar
+                  root-class="relative h-full"
+                  wrap-class="overflow-x-hidden"
+                >
                   <div class="space-y-1.5 pr-1">
                     <div
                       v-for="(evt, idx) in realtimeEvents"
@@ -1186,7 +1240,7 @@ function securityAlertLevelText(level: string): string {
                       }}</span>
                     </div>
                   </div>
-                </PerfectScrollbar>
+                </Scrollbar>
               </ScreenCard>
             </div>
           </div>
@@ -1227,7 +1281,7 @@ function securityAlertLevelText(level: string): string {
             >
               <!-- 服务健康状态 -->
               <div class="relative min-h-0 flex-[3] overflow-hidden">
-                <PerfectScrollbar class="relative h-full">
+                <Scrollbar root-class="relative h-full">
                   <div class="space-y-1.5 pr-1">
                     <div
                       v-for="svc in services"
@@ -1266,7 +1320,7 @@ function securityAlertLevelText(level: string): string {
                       </div>
                     </div>
                   </div>
-                </PerfectScrollbar>
+                </Scrollbar>
               </div>
               <!-- 最近告警 -->
               <div
@@ -1300,7 +1354,10 @@ function securityAlertLevelText(level: string): string {
               class="flex h-full flex-col overflow-hidden"
               body-class="flex-1 min-h-0 p-2"
             >
-              <PerfectScrollbar :options="psOptions" class="relative h-full">
+              <Scrollbar
+                root-class="relative h-full"
+                wrap-class="overflow-x-hidden"
+              >
                 <div class="space-y-1 pr-1">
                   <div
                     v-for="(alert, idx) in securityAlerts.slice(0, 3)"
@@ -1323,7 +1380,7 @@ function securityAlertLevelText(level: string): string {
                     }}</span>
                   </div>
                 </div>
-              </PerfectScrollbar>
+              </Scrollbar>
             </ScreenCard>
           </div>
         </div>
@@ -1337,13 +1394,13 @@ function securityAlertLevelText(level: string): string {
           Antdv Next Admin Security Monitor &nbsp;|&nbsp; v1.0.0</span>
       </div>
     </div>
-  </PerfectScrollbar>
+  </Scrollbar>
 </template>
 <route lang="json">
 {
   "name": "ScreenMonitor",
   "meta": {
-    "title": "监控大屏"
+    "title": "实时监控大屏"
   }
 }
 </route>

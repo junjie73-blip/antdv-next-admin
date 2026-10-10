@@ -3,6 +3,8 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
 import { Icon, loadIcons } from '@iconify/vue';
 
+import Scrollbar from '../scrollbar/Scrollbar.vue';
+
 interface Props {
   currentIcon?: string;
   placeholder?: string;
@@ -222,11 +224,16 @@ const prefixOptions = COLLECTIONS.map((c) => ({
           </a-input>
         </div>
 
-        <!-- 图标网格：固定高度 + 原生滚动 -->
-        <div
-          class="overflow-x-hidden overflow-y-auto pr-1"
-          :style="{ height: `${SCROLLER_HEIGHT}px` }"
-        >
+        <!--
+          图标网格：固定高度，滚动交给同包的 Scrollbar（组件库内部也不留系统滚动条）。
+          `min-h-full` 让"加载中/空态"仍然垂直居中，同时不限制网格把内容撑高。
+        -->
+        <div class="pr-1" :style="{ height: `${SCROLLER_HEIGHT}px` }">
+          <Scrollbar
+            root-class="h-full"
+            wrap-class="overflow-x-hidden"
+            view-class="min-h-full"
+          >
           <div v-if="loading" class="flex h-full items-center justify-center">
             <a-spin size="large" />
           </div>
@@ -254,6 +261,7 @@ const prefixOptions = COLLECTIONS.map((c) => ({
               </button>
             </a-tooltip>
           </div>
+          </Scrollbar>
         </div>
 
         <!-- 底部分页：仅超过一页时显示 -->

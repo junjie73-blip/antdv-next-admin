@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
 import QRCode from 'qrcode';
-import { cn } from '~/utils/cn';
 
 const containerClassName = cn('space-y-6');
 const qrCardClassName = cn(
@@ -372,7 +372,7 @@ function copyToClipboard(text: string) {
             <Icon icon="carbon:time" />
             Scan History
           </h4>
-          <PerfectScrollbar class="max-h-48">
+          <Scrollbar root-class="max-h-48">
             <div class="space-y-2">
               <div
                 v-for="(result, index) in scanHistory"
@@ -389,7 +389,7 @@ function copyToClipboard(text: string) {
                 </div>
               </div>
             </div>
-          </PerfectScrollbar>
+          </Scrollbar>
         </div>
       </div>
     </a-card>

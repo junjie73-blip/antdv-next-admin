@@ -7,9 +7,9 @@ import type {
 
 import { computed } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
 import { message } from 'antdv-next';
-import { cn } from '~/utils/cn';
 
 import { useChunkUploader } from './composables/useChunkUploader';
 import { classifyUploadError, STATUS_COLOR } from './constants';

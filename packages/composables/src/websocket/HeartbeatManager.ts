@@ -2,7 +2,7 @@ import type { HeartbeatConfig } from './types';
 
 export class HeartbeatManager {
   private config: HeartbeatConfig;
-  private heartbeatTimer: null | ReturnType<typeof setInterval> = null;
+  private heartbeatTimer: null | ReturnType<typeof setTimeout> = null;
   private isRunning = false;
   private onSend: (message: string) => void;
   private onTimeout?: () => void;
@@ -99,9 +99,13 @@ export class HeartbeatManager {
     }
 
     this.timeoutTimer = setTimeout(() => {
-      if (this.onTimeout) {
-        this.onTimeout();
-      }
+      this.timeoutTimer = null;
+      this.onTimeout?.();
     }, this.config.timeout);
+
+    // ⭐ 排下一次 ping。
+    // 少了这行，心跳在整个连接生命周期里只发一次，
+    // 长时间空闲的连接会被服务端的 idle 超时踢掉，而客户端还以为一切正常。
+    this.scheduleHeartbeat();
   }
 }

@@ -12,8 +12,14 @@ import { defineNitroConfig } from 'nitropack/config';
  */
 export default defineNitroConfig({
   compatibilityDate: '2025-06-01',
-  devServer: { port: Number(process.env.PORT ?? 5320) },
-  nitroTypesPath: '.nitro/types/types.d.ts',
+  // 端口不写在配置里：nitropack 2.13 的 `devServer` 只接受 `watch` 一类字段，
+  // `port` 不在类型里（写上去会静默失效）。独立跑 `pnpm --filter @antdv/backend-mock dev`
+  // 时用环境变量 PORT / NITRO_PORT 指定，默认 5320。
+  // dev 场景不用管：apps/web 的 vite 插件（internal/vite-config 的 nitro-mock）
+  // 拿到端口后走 createDevServer(...).listen(port) 编程式监听，5320 由插件侧传入。
+  //
+  // 类型产物路径同理没有 `nitroTypesPath` 这个选项（2.13 固定在 `<buildDir>/types` 下），
+  // 而 tsconfig 是按 `.nitro/types/*.d.ts` 通配引入的，所以不需要显式指定文件名。
   preset: 'node-server',
   routeRules: {
     '/**': { cors: true },

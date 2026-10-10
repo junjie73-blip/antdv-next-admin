@@ -3,8 +3,8 @@ import type { BasicColumn } from '~/components/business/Table';
 
 import { ref } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { BasicTable, useTable } from '~/components/business/Table';
-import { cn } from '~/utils/cn';
 
 const containerClassName = cn('space-y-6');
 const toolbarClassName = cn('mb-4', 'flex', 'justify-between', 'items-center');

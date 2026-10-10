@@ -1,9 +1,9 @@
 import { computed, ref } from 'vue';
 
+import { localStorageCacheStorage } from '@antdv/shared/cache';
 import { defineStore } from 'pinia';
 import { getDictList } from '~/api/system';
 import { CacheKey } from '~/enums/cache';
-import { localStorageCacheStorage } from '~/utils/cache';
 
 /** 单个字典项 */
 export interface DictItem {

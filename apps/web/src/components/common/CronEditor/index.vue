@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
 import cronstrue from 'cronstrue';
-import { cn } from '~/utils/cn';
 
 import 'cronstrue/locales/zh_CN';
 

@@ -3,11 +3,11 @@ import { computed, onMounted, ref } from 'vue'
 // 监听暗色模式变化
 import { watch } from 'vue'
 
+import { cn } from '@antdv/shared/cn'
 import * as echarts from 'echarts'
 import { getSecurityScore } from '~/api/security'
 import { CountTo } from '~/components/business/CountTo'
 import { useAppStore } from '~/stores/modules/app'
-import { cn } from '~/utils/cn'
 
 defineOptions({ name: 'SecurityScoreCard' })
 

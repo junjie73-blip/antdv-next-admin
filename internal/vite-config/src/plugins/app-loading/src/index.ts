@@ -6,6 +6,7 @@ import { join } from 'node:path';
 
 import { pathExistsSync, readTextFileSync } from '@antdv/node-utils';
 
+import { isEnvEnabled } from '../../../utils/env';
 import { DEFAULT_LOADING_HTML } from '../defaults/loading-html';
 import { DEFAULT_OPTIONS } from './constants';
 import { scanCssVariables } from './css-variables';
@@ -112,21 +113,27 @@ function loadLoadingHtml(options: Required<AppLoadingOptions>): string {
 function resolveOptions(
   userOptions: AppLoadingOptions,
 ): Required<AppLoadingOptions> {
-  const env = (import.meta as any).env ?? {};
+  /**
+   * 插件跑在 Node 侧（vite 配置阶段），环境变量的来源和浏览器里不一样：
+   * `import.meta.env` 只有 vite 自己打包 `vite.config.ts` 时才会注入，
+   * 从依赖包产物里读通常是 undefined；`.env` 的值实际落在 `process.env`（字符串）。
+   * 所以两处都取，并统一用 isEnvEnabled 判定 —— 写 `=== 'true'` 在
+   * 值已经被 parseLoadedEnv 转成布尔的调用链上恒为 false。
+   */
+  const env: Record<string, unknown> = {
+    ...(process.env ?? {}),
+    ...(((import.meta as any).env ?? {})),
+  };
+  const readSwitch = (key: string): boolean | undefined =>
+    env[key] == null ? undefined : isEnvEnabled(env[key]);
 
   const envDefaults: Partial<AppLoadingOptions> = {
     fadeDuration:
       env.VITE_APP_LOADING_DURATION == null
         ? undefined
         : Number(env.VITE_APP_LOADING_DURATION),
-    devEnabled:
-      env.VITE_APP_LOADING_DEV == null
-        ? undefined
-        : env.VITE_APP_LOADING_DEV === 'true',
-    buildEnabled:
-      env.VITE_APP_LOADING_BUILD == null
-        ? undefined
-        : env.VITE_APP_LOADING_BUILD === 'true',
+    devEnabled: readSwitch('VITE_APP_LOADING_DEV'),
+    buildEnabled: readSwitch('VITE_APP_LOADING_BUILD'),
   };
 
   // 优先级：userOptions > env > DEFAULT_OPTIONS

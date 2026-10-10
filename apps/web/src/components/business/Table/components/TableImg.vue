@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { Image, Space } from 'antdv-next';
-import { cn } from '~/utils/cn';
 
 const props = withDefaults(
   defineProps<{

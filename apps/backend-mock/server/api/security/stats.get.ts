@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker/locale/zh_CN';
 
-import { envelope } from '../../../utils/response';
-import { defineMockRoute } from '../../../utils/runtime';
+import { envelope } from '../../utils/response';
+import { defineMockRoute } from '../../utils/runtime';
 
 /**
  * 安全态势统计：legacy 每次请求即时取值（种子在 security 数据层模块加载时固定），

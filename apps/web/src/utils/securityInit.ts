@@ -6,7 +6,7 @@
  * - 安全配置加载
  */
 
-import { initCsrfProtection } from './csrf';
+import { initCsrfProtection } from '@antdv/shared/csrf';
 
 /**
  * 初始化应用的安全防护系统

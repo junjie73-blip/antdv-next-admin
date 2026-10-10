@@ -4,6 +4,7 @@ import type {
   BasicTableProps,
   Recordable,
   TableActionType,
+  TableRowKey,
   TableRowSelection,
 } from './types';
 
@@ -19,9 +20,9 @@ import {
   watch,
 } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { Table } from 'antdv-next';
 import { BasicForm } from '~/components/business/Form';
-import { cn } from '~/utils/cn';
 
 import TableAction from './components/TableAction.vue';
 import TableEditableCell from './components/TableEditableCell';
@@ -97,7 +98,8 @@ const propsRef = ref<Partial<BasicTableProps>>({});
 const tableRef = ref<InstanceType<typeof Table>>();
 
 // 展开行的 key 列表（统一由 getExpandable 管理）
-const expandedRowKeysRef = ref<string[]>([]);
+/** 类型跟着数据源走（数字 id / 字符串 key 都可能），见 `collectExpandableKeys` */
+const expandedRowKeysRef = ref<TableRowKey[]>([]);
 
 // ============================================
 // Computed
@@ -121,6 +123,19 @@ const mergedChildrenField = computed(
 );
 const mergedSize = computed(() => getMergedProps.value.size || 'middle');
 const mergedScroll = computed(() => getMergedProps.value.scroll);
+/**
+ * `App.vue` 的 ConfigProvider 开了全局 `virtual`，于是 antd 要求每张表的
+ * `scroll.y` 必须是数值；而业务页常见的 `:scroll="{ x: 1400 }"` 会把默认的 y 顶掉，
+ * 结果每张表都在控制台报 "`scroll.y` in virtual table must be number"。
+ *
+ * 这里按"有没有数值 y"决定是否虚拟滚动：没有数值 y 时虚拟滚动本来就不生效，
+ * 显式传 false 只是把告警消掉，渲染结果与之前完全一致。
+ */
+const mergedVirtual = computed(() => {
+  const { scroll, virtual } = getMergedProps.value;
+  if (virtual !== undefined) return virtual;
+  return typeof scroll?.y === 'number';
+});
 const mergedShowHeader = computed(
   () => getMergedProps.value.showHeader ?? true,
 );
@@ -130,7 +145,15 @@ const mergedSticky = computed(() => getMergedProps.value.sticky);
 const mergedLocale = computed(() => getMergedProps.value.locale);
 const mergedRowClassName = computed(() => getMergedProps.value.rowClassName);
 const mergedOnHeaderRow = computed(() => getMergedProps.value.onHeaderRow);
-const mergedTitle = computed(() => getMergedProps.value.title);
+/**
+ * antd 的 `title` 只接受渲染函数（`() => VNode`），而库内类型允许字符串 / VNode。
+ * 直接把字符串透传下去会触发 "Expected Function, got String"，这里统一包一层。
+ */
+const mergedTitle = computed(() => {
+  const title = getMergedProps.value.title;
+  if (typeof title === 'function') return title;
+  return title ? () => title : undefined;
+});
 const mergedCaption = computed(() => getMergedProps.value.caption);
 const mergedFooter = computed(() => getMergedProps.value.footer);
 const mergedSummary = computed(() => getMergedProps.value.summary);
@@ -194,6 +217,7 @@ const tableForm = useTableForm({
   baseProps: getMergedProps,
   propsRef,
   fetch: dataSource.fetch,
+  setSearchInfo: dataSource.setSearchInfo,
 });
 
 // ============================================
@@ -204,16 +228,25 @@ const getColumns = computed(() => convertColumns(columns.getColumns()));
 
 const getDataSource = computed(() => unref(dataSource.dataSourceRef));
 
-// 递归收集所有可展开的 key（支持多级子节点）
-function collectExpandableKeys(list: Recordable[]): string[] {
-  const keys: string[] = [];
+/**
+ * 递归收集所有可展开的 key（支持多级子节点）。
+ *
+ * ⚠️ 这里**不做 `String()` 归一**：antd 的比较是 `expandedRowKeys.includes(rowKey)`，
+ * 而 `rowKey` 取的是 `record[idKey]` 本体。业务表的主键几乎都是数字（菜单/部门的 id），
+ * 一旦转成字符串，`['1'].includes(1)` 恒为 false —— 表现是"树表首屏全是折叠状态、
+ * 手动点一下才展开"，而且因为 `expandedRowKeys` 是非 undefined 的数组，
+ * 同批传下去的 `defaultExpandAllRows: true` 也会被 antd 当成受控值忽略掉。
+ * 数字表键就交数字，字符串表键交字符串，跟着数据源走才对齐。
+ */
+function collectExpandableKeys(list: Recordable[]): TableRowKey[] {
+  const keys: TableRowKey[] = [];
   const childrenField = mergedChildrenField.value;
   const rowKey = mergedRowKey.value;
   const walk = (arr: Recordable[]) => {
     for (const item of arr) {
       const children = item?.[childrenField];
       if (Array.isArray(children) && children.length > 0) {
-        keys.push(String(item[rowKey]));
+        keys.push(item[rowKey] as TableRowKey);
         walk(children);
       }
     }
@@ -224,6 +257,10 @@ function collectExpandableKeys(list: Recordable[]): string[] {
 
 // 树形数据就绪后自动展开所有节点
 // ⭐ flush: 'post' 避免在渲染前同步触发，减少一次多余渲染
+// ⭐ immediate: 静态 `dataSource` + `isTree` 的表没有取数环节，
+//   `useDataSource` 在 setup 阶段就把数据同步写进了 dataSourceRef ——
+//   非 immediate 的 watcher 看不到"注册之前就已经发生的那次变化"，
+//   于是这类表首屏一行子项都不展开（子项只能靠手点箭头看见）。
 watch(
   getDataSource,
   (data) => {
@@ -231,7 +268,7 @@ watch(
       expandedRowKeysRef.value = collectExpandableKeys(data);
     }
   },
-  { flush: 'post' },
+  { flush: 'post', immediate: true },
 );
 
 // ============================================
@@ -257,7 +294,7 @@ const getExpandable = computed(() => {
       childrenColumnName: mergedChildrenField.value,
       defaultExpandAllRows: getMergedProps.value.defaultExpandAllRows ?? true,
       expandedRowKeys: expandedRowKeysRef.value,
-      onExpandedRowsChange: (keys: string[]) => {
+      onExpandedRowsChange: (keys: TableRowKey[]) => {
         expandedRowKeysRef.value = keys;
       },
       ...userExpandable,
@@ -269,7 +306,7 @@ const getExpandable = computed(() => {
     return {
       expandedRowRender: getMergedProps.value.expandedRowRender,
       expandedRowKeys: expandedRowKeysRef.value,
-      onExpandedRowsChange: (keys: string[]) => {
+      onExpandedRowsChange: (keys: TableRowKey[]) => {
         expandedRowKeysRef.value = keys;
       },
       ...userExpandable,
@@ -526,12 +563,12 @@ const tableActionType: TableActionType = {
   collapseAll: () => {
     expandedRowKeysRef.value = [];
   },
-  expandRows: (keys: string[]) => {
+  expandRows: (keys: TableRowKey[]) => {
     const currentKeys = new Set(expandedRowKeysRef.value);
     keys.forEach((key) => currentKeys.add(key));
     expandedRowKeysRef.value = [...currentKeys];
   },
-  collapseRows: (keys: string[]) => {
+  collapseRows: (keys: TableRowKey[]) => {
     const keySet = new Set(keys);
     expandedRowKeysRef.value = expandedRowKeysRef.value.filter(
       (key) => !keySet.has(key),
@@ -641,6 +678,7 @@ defineExpose(tableActionType);
       :size="mergedSize"
       :expandable="getExpandable"
       :scroll="mergedScroll"
+      :virtual="mergedVirtual"
       :title="mergedTitle"
       :caption="mergedCaption"
       :footer="mergedFooter"

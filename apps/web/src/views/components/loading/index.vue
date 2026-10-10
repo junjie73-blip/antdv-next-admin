@@ -3,12 +3,12 @@ import type { Ref } from 'vue';
 
 import { ref, useTemplateRef } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import {
   createLoading,
   Loading,
   useLoading,
-} from '~/components/common/Loading';
-import { cn } from '~/utils/cn';
+} from '@antdv/ui/loading';
 
 const containerClassName = cn('space-y-6');
 
@@ -86,7 +86,7 @@ function triggerGlobalLoading() {
 
 <template>
   <div :class="containerClassName">
-    <a-card :variant="borderless" title="Spin 加载器">
+    <a-card variant="borderless" title="Spin 加载器">
       <div :class="cn('space-y-8')">
         <div>
           <h4
@@ -213,7 +213,7 @@ function triggerGlobalLoading() {
       </div>
     </a-card>
 
-    <a-card :variant="borderless" title="Skeleton 骨架屏">
+    <a-card variant="borderless" title="Skeleton 骨架屏">
       <div :class="cn('space-y-8')">
         <div>
           <h4
@@ -246,7 +246,17 @@ function triggerGlobalLoading() {
           >
             表格骨架
           </h4>
-          <a-skeleton-table :columns="5" :rows="4" />
+          <!--
+            `a-skeleton-table` 在 antdv-next 里不存在（Skeleton 只有
+            Avatar / Element / Input / Image 等子组件），未注册标签渲染成空元素，
+            这块示例实际上什么都没显示。用 Skeleton 的多行段落占位还原表格观感。
+          -->
+          <a-skeleton
+            active
+            :avatar="false"
+            :paragraph="{ rows: 4, width: ['18%', '30%', '22%', '26%'] }"
+            :title="false"
+          />
         </div>
 
         <div>
@@ -286,7 +296,7 @@ function triggerGlobalLoading() {
       </div>
     </a-card>
 
-    <a-card :variant="borderless" title="Loading 组件 (项目封装)">
+    <a-card variant="borderless" title="Loading 组件 (项目封装)">
       <div :class="cn('space-y-6')">
         <p class="text-sm text-gray-500 dark:text-gray-400">
           项目封装的 Loading
@@ -341,7 +351,7 @@ function triggerGlobalLoading() {
       </div>
     </a-card>
 
-    <a-card :variant="borderless" title="useLoading Hook">
+    <a-card variant="borderless" title="useLoading Hook">
       <div :class="cn('space-y-4')">
         <p class="text-sm text-gray-500 dark:text-gray-400">
           通过
@@ -390,7 +400,7 @@ hookLoading.setTip('新提示文字') // 修改提示</pre>
       </div>
     </a-card>
 
-    <a-card :variant="borderless" title="按钮加载态">
+    <a-card variant="borderless" title="按钮加载态">
       <div :class="cn('space-y-6')">
         <p class="text-sm text-gray-500 dark:text-gray-400">
           Antdv-next 按钮内置
@@ -438,7 +448,7 @@ hookLoading.setTip('新提示文字') // 修改提示</pre>
       </div>
     </a-card>
 
-    <a-card :variant="borderless" title="全局加载遮罩">
+    <a-card variant="borderless" title="全局加载遮罩">
       <div :class="cn('space-y-4')">
         <p class="text-sm text-gray-500 dark:text-gray-400">
           使用

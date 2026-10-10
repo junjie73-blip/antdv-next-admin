@@ -4,6 +4,7 @@ import type { BasicColumn } from '~/components/business/Table'
 
 import { computed, onMounted, ref, useTemplateRef } from 'vue'
 
+import { cn } from '@antdv/shared/cn'
 import { Icon } from '@iconify/vue'
 import { addDept, deleteDept, getDeptTree, updateDept } from '~/api/system'
 import { BasicForm, useForm } from '~/components/business/Form'
@@ -11,7 +12,6 @@ import { BasicModal, useModal } from '~/components/business/Modal'
 import { BasicTable, useTable } from '~/components/business/Table'
 import { DictType } from '~/enums/dict'
 import { useDictStore } from '~/stores'
-import { cn } from '~/utils/cn'
 
 defineOptions({ name: 'SystemDept' })
 
@@ -80,20 +80,64 @@ function convertToTreeNode(dept: DeptRecord): DeptTreeNode {
 }
 
 // 初始化部门树数据
-async function initDeptTree() {
+/**
+ * 共享的加载 promise —— 表格的 `immediate` 首屏取数**早于**这里 fetch 完成，
+ * 直接读 `allData` 拿到的是空数组，表现是"页面打开就空表，点一下左侧树才有数据"
+ * （巡检时 /system/dept 正是这个现象）。
+ * 所以取数侧一律先 `await ensureDeptTree()`，把"谁先到"这件事收敛成"都等同一次请求"。
+ */
+let deptTreeLoading: Promise<void> | null = null
+
+function ensureDeptTree(): Promise<void> {
+  deptTreeLoading ??= initDeptTree().then((ok) => {
+    // 失败不留缓存的 promise：下次进来还能重试，否则整页永远读的是空数据
+    if (!ok) deptTreeLoading = null
+  })
+  return deptTreeLoading
+}
+
+/**
+ * 增删改之后强制重取：共享 promise 已经 fulfilled，再 `ensure` 只会拿到旧数据。
+ * 先清缓存再走 `ensureDeptTree`，让"重取"和"首屏取"是同一条代码路径。
+ */
+function reloadDeptTree(): Promise<void> {
+  deptTreeLoading = null
+  return ensureDeptTree()
+}
+
+async function initDeptTree(): Promise<boolean> {
   try {
     const res = await getDeptTree()
-    // 兼容 mock 返回完整响应或已解包的数据
-    const data = Array.isArray(res) ? res : (res?.data ?? res ?? [])
-    allData.value = data
-    deptTreeData.value = data.map(convertToTreeNode)
+    /**
+     * `api/request.get` 只解掉外层响应壳，交回来的是 `{ code, data, message }`
+     * 这个 envelope；mock 也出现过直接给数组本体的写法，所以两种都兼容
+     * （和用户管理/角色管理那几页 `res?.data ?? res` 是同一套约定）。
+     * 少这一步就是把 `{code:200,...}` 当数组去 `.map`，页面静默空树。
+     */
+    const raw = res?.data ?? res
+    const list = Array.isArray(raw) ? (raw as DeptRecord[]) : []
+    allData.value = list
+    deptTreeData.value = list.map(convertToTreeNode)
+    /**
+     * 展开 keys 要在**数据到手之后**重新赋值，不能只靠 `ref([1])` 的初值。
+     *
+     * `expanded-keys` 是受控属性，而 antd Tree 只在"这个 prop 换了引用"时才把它
+     * 写进内部展开态：装配时数据还是空数组，初值 `[1]` 落在一棵空树上，
+     * 之后数据来了 prop 引用没变 → 根节点永远折着，整棵树只剩「总公司」一行。
+     * 这里赋一个新数组（而不是原地 push），既触发同步，也让首屏就把根节点的
+     * 子部门露出来 —— 右侧表格展示的正是"选中部门的直接子部门"，树折着等于
+     * 把表格的数据来源藏起来了。
+     */
+    treeExpandedKeys.value = list.map((dept) => dept.id)
+    return true
   } catch (error) {
     console.error('获取部门树失败', error)
+    return false
   }
 }
 
 onMounted(() => {
-  initDeptTree()
+  ensureDeptTree()
 })
 
 // 扁平化部门列表
@@ -116,10 +160,6 @@ function getChildrenOnly(deptId: number): DeptRecord[] {
   const target = flatAllDepts.value.find((d) => d.id === deptId)
   if (!target || !target.children || target.children.length === 0) return []
   return target.children
-}
-
-function _getTotalUserCount(deptId: number): number {
-  return getDeptAndChildren(deptId).reduce((sum, d) => sum + d.userCount, 0)
 }
 
 // ========== 状态管理 ==========
@@ -171,7 +211,8 @@ const modalFormSchemas: FormSchema[] = [
       treeDefaultExpandAll: true,
       showSearch: true,
       treeNodeFilterProp: 'name',
-      dropdownStyle: { maxHeight: '400px', overflow: 'auto' },
+      // 这版 antdv-next 用语义化 `styles.popup.root`，`dropdownStyle` 已废弃（控制台会警告）
+      styles: { popup: { root: { maxHeight: '400px', overflow: 'auto' } } },
     },
   },
   {
@@ -235,6 +276,8 @@ const modalFormSchemas: FormSchema[] = [
 
 // ========== API 适配层 — 树形表格不分页 ==========
 async function mockApi(params: Record<string, any>) {
+  // 先等树到位再取数：首屏 `immediate` 比 onMounted 的 fetch 更早，不等就是空表
+  await ensureDeptTree()
   const { keyword } = params
   // 获取选中部门的直接子部门（保持树形结构）
   const target = flatAllDepts.value.find((d) => d.id === selectedDeptId.value)
@@ -263,11 +306,17 @@ async function mockApi(params: Record<string, any>) {
 }
 
 // ========== 事件处理 ==========
+/**
+ * `a-tree` 的 `@select` 回调签名由 antd 定义（`selectedKeys: Key[]`、
+ * `info.node: EventDataNode<DataNode>`），这里只关心被点的那条部门 id。
+ * `node` 收成宽类型而不是自造 `{ id: number }`：后者会让模板上的事件绑定
+ * 因为"实参类型对不上形参"而过不了 type-check。
+ */
 function handleDeptSelect(
   _selectedKeys: (number | string)[],
-  info: { node: { id: number } },
+  info: { node: Record<string, any> },
 ) {
-  selectedDeptId.value = info.node.id
+  selectedDeptId.value = Number(info.node.id)
   tableMethods.value?.reload()
 }
 
@@ -326,10 +375,8 @@ async function handleDelete(record: DeptRecord) {
   try {
     await deleteDept(record.id)
     message.success(`已删除部门「${record.name}」及其子部门`)
-    // 刷新树形数据
-    const res = await getDeptTree()
-    const data = Array.isArray(res) ? res : (res?.data ?? res ?? [])
-    allData.value = data
+    // 刷新树形数据：走 reloadDeptTree，左侧树和表格读的是同一份 allData
+    await reloadDeptTree()
     tableMethods.value?.reload()
   } catch (error: any) {
     message.error(error?.message || '删除失败')
@@ -364,8 +411,8 @@ async function handleSave() {
       message.success(`已新增部门：${values.name}`)
     }
 
-    // 刷新树形数据
-    await initDeptTree()
+    // 刷新树形数据：必须走 reload，`ensureDeptTree` 拿到的是已缓存的旧 promise
+    await reloadDeptTree()
 
     modalMethods.closeModal()
     tableMethods.value?.reload()
@@ -467,8 +514,8 @@ const columns: BasicColumn[] = [
           block-node
           @select="handleDeptSelect"
           @update:expanded-keys="
-            (keys: number[]) => {
-              treeExpandedKeys = keys
+            (keys) => {
+              treeExpandedKeys = keys.map(Number)
             }
           "
         />
@@ -548,7 +595,7 @@ const columns: BasicColumn[] = [
               <a-button
                 type="link"
                 :class="btnClassName"
-                @click="() => handleAddChild(record)"
+                @click="() => handleAddChild(record as DeptRecord)"
               >
                 <template #icon>
                   <Icon icon="ant-design:plus-circle-outlined" />
@@ -558,7 +605,7 @@ const columns: BasicColumn[] = [
               <a-button
                 type="link"
                 :class="btnClassName"
-                @click="() => handleEdit(record)"
+                @click="() => handleEdit(record as DeptRecord)"
               >
                 <template #icon>
                   <Icon icon="ant-design:edit-outlined" />
@@ -568,7 +615,7 @@ const columns: BasicColumn[] = [
               <a-divider type="vertical" :class="dividerClassName" />
               <a-popconfirm
                 :title="`确定要删除部门「${record.name}」吗？子部门也将一并删除。`"
-                @confirm="() => handleDelete(record)"
+                @confirm="() => handleDelete(record as DeptRecord)"
               >
                 <a-button type="link" danger :class="btnClassName">
                   <template #icon>

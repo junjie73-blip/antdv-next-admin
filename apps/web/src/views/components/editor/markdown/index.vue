@@ -1,11 +1,11 @@
 <script setup lang="ts">
+import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
 import { useClipboard } from '@vueuse/core';
 import hljs from 'highlight.js';
 import MarkdownIt from 'markdown-it';
 import { Marked } from 'marked';
 import { markedHighlight } from 'marked-highlight';
-import { cn } from '~/utils/cn';
 
 import 'highlight.js/styles/github-dark.css';
 
@@ -344,7 +344,7 @@ const toolbarGroups = [
       { label: '图片', icon: 'carbon:image', action: insertImage },
       {
         label: '分割线',
-        icon: 'carbon:horizontal-rule',
+        icon: 'carbon:horizontal-line-solid',
         action: () => insertMarkdown('\n\n---\n\n', '', '', false),
       },
     ],
@@ -429,7 +429,8 @@ const previewContentClassName = cn(
   'prose-blockquote:border-blue-500 prose-blockquote:border-l-4',
   'dark:prose-blockquote:bg-blue-950/30 prose-blockquote:bg-blue-50/50',
   'prose-blockquote:px-4 prose-blockquote:py-2',
-  '[&_pre]:overflow-x-auto [&_pre]:rounded-lg',
+  // 原代码块的浏览器横向滚动类已移除：横向溢出改由外层 Scrollbar 的 wrap 统一滚动
+  '[&_pre]:rounded-lg',
   '[&_pre_code]:bg-transparent [&_pre_code]:p-0',
 );
 
@@ -523,7 +524,7 @@ const rendererToggleClassName = cn(
       <!-- 左侧编辑面板 -->
       <div :class="editorPaneClassName">
         <div :class="editorTitleClassName">
-          <icon-carbon-edit class="text-base" />
+          <Icon class="text-base" icon="carbon:edit" />
           <span>编辑区</span>
         </div>
 
@@ -563,7 +564,7 @@ const rendererToggleClassName = cn(
       <div :class="editorPaneClassName">
         <div :class="previewTitleClassName">
           <div class="flex items-center gap-2">
-            <icon-carbon-preview class="text-base" />
+            <Icon class="text-base" icon="carbon:thumbnail-preview" />
             <span>预览区</span>
           </div>
           <div class="flex items-center gap-2">
@@ -573,26 +574,24 @@ const rendererToggleClassName = cn(
               :class="copyBtnClassName"
               @click="copy(renderedHtml)"
             >
-              <icon-carbon-copy class="text-xs" />
+              <Icon class="text-xs" icon="carbon:copy" />
               {{ copied ? '已复制' : '复制HTML' }}
             </button>
           </div>
         </div>
 
         <!-- 预览内容（使用安全指令：保留合法HTML标签，过滤script和事件处理器） -->
-        <PerfectScrollbar
-          v-if="renderedHtml"
-          :class="previewScrollbarClassName"
-        >
+        <Scrollbar v-if="renderedHtml" :root-class="previewScrollbarClassName">
           <div
             v-safe-html="{ content: renderedHtml, allowHtml: true }"
             :class="previewContentClassName"
           ></div>
-        </PerfectScrollbar>
+        </Scrollbar>
         <div v-else :class="emptyPreviewClassName">
           <div class="text-center">
-            <icon-carbon-document-blank
+            <Icon
               class="mx-auto mb-2 text-4xl opacity-30"
+              icon="carbon:document-blank"
             />
             <p>在左侧输入 Markdown 内容后，此处将实时预览渲染结果</p>
           </div>

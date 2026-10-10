@@ -30,7 +30,9 @@ function generateDeptTree(): DeptRecord[] {
     name: '总公司',
     code: 'HQ',
     leader: faker.person.fullName(),
-    phone: faker.phone.number('138########'),
+    // faker 的 phone.number 只接受 { style } 选项对象，不认 mockjs 的 `#` 占位符；
+    // 用 "138" 前缀 + 8 位随机数字拼出与原意图一致的大陆手机号
+    phone: `138${faker.string.numeric(8)}`,
     sortOrder: 1,
     status: 1,
     remark: '公司总部，负责整体战略规划与决策',
@@ -78,7 +80,9 @@ function generateDeptTree(): DeptRecord[] {
       name: tpl.name,
       code: tpl.code,
       leader: faker.person.fullName(),
-      phone: faker.phone.number('138########'),
+      // faker 的 phone.number 参数是 { style } 选项对象，不吃 mockjs 的 '#' 占位串；
+      // 直接拼 "138 + 8 位数字" 保持与 legacy 相同的手机号形态
+      phone: `138${faker.string.numeric(8)}`,
       sortOrder: idCounter - 1,
       status: faker.datatype.boolean(0.85) ? 1 : 0,
       remark: tpl.remark,
@@ -97,7 +101,8 @@ function generateDeptTree(): DeptRecord[] {
         name: childTpl.name,
         code: `${tpl.code}_${childTpl.code}`,
         leader: faker.person.fullName(),
-        phone: faker.phone.number('138########'),
+        // 同上：faker 不支持 mockjs 占位串，用固定前缀 + 随机数字拼接
+        phone: `138${faker.string.numeric(8)}`,
         sortOrder: idCounter - 1,
         status: faker.datatype.boolean(0.9) ? 1 : 0,
         remark: childTpl.remark,
@@ -113,7 +118,9 @@ function generateDeptTree(): DeptRecord[] {
 }
 
 export const DEPT_TREE = generateDeptTree();
-const autoIncrementId = 30;
+// 种子数据最多用到 id 29（1 + 7 个二级 + 11 个三级），自增从 30 起；
+// 需要自增所以必须是有符号变量 let，命名为 nextDeptId 的实现服务
+let autoIncrementDeptId = 30;
 // 扁平化辅助函数
 function flattenDepts(nodes: DeptRecord[]): DeptRecord[] {
   const result: DeptRecord[] = [];

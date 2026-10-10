@@ -3,8 +3,8 @@ import type { VNode } from 'vue';
 
 import { onErrorCaptured, ref } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { isError, isString } from 'es-toolkit';
-import { cn } from '~/utils/cn';
 
 interface Props {
   fallback?: (error: Error, reset: () => void) => VNode;
@@ -117,9 +117,9 @@ const isDev = import.meta.env.DEV;
 
       <details v-if="isDev && isString(error.stack)" :class="detailsClassName">
         <summary class="mb-1 cursor-pointer font-medium">调用栈详情</summary>
-        <PerfectScrollbar class="max-h-32">
+        <Scrollbar root-class="max-h-32">
           <pre class="break-all whitespace-pre-wrap">{{ error.stack }}</pre>
-        </PerfectScrollbar>
+        </Scrollbar>
       </details>
     </template>
   </div>

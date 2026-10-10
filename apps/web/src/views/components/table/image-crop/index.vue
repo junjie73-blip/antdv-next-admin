@@ -2,8 +2,8 @@
 import { computed, ref, useTemplateRef } from 'vue';
 import { VueCropper } from 'vue-cropper';
 
+import { cn } from '@antdv/shared/cn';
 import { isString } from 'es-toolkit';
-import { cn } from '~/utils/cn';
 
 type AspectRatioKey = '1:1' | '4:3' | '16:9' | 'free';
 

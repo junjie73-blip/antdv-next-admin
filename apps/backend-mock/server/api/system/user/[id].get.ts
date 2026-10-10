@@ -1,6 +1,6 @@
-import { USER_DB } from '../../../../utils/db/user';
-import { bizError, success } from '../../../../utils/response';
-import { defineMockRoute } from '../../../../utils/runtime';
+import { USER_DB } from '../../../utils/db/user';
+import { bizError, success } from '../../../utils/response';
+import { defineMockRoute } from '../../../utils/runtime';
 
 export default defineMockRoute({
   handler({ params }) {

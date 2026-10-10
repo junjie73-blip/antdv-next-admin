@@ -9,7 +9,7 @@ export default defineMockRoute({
     const keyword = query.keyword;
     const type = query.type;
     const status = query.status;
-    const page = Number(query.page) || 1;
+    const page = Number(query.pageNum ?? query.page) || 1;
     const pageSize = Number(query.pageSize) || 10;
 
     let filtered = [...NOTICE_DB];

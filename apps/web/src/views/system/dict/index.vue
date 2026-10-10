@@ -4,6 +4,8 @@ import type { BasicColumn } from '~/components/business/Table'
 
 import { computed, ref } from 'vue'
 
+import { cn } from '@antdv/shared/cn'
+import { exportToExcel } from '@antdv/shared/excel'
 import { Icon } from '@iconify/vue'
 import {
   addDict,
@@ -20,8 +22,6 @@ import { BasicModal, useModal } from '~/components/business/Modal'
 import { BasicTable, useTable } from '~/components/business/Table'
 import { DictType } from '~/enums/dict'
 import { useDictStore } from '~/stores'
-import { cn } from '~/utils/cn'
-import { exportToExcel } from '~/utils/excel'
 
 defineOptions({ name: 'SystemDict' })
 
@@ -453,8 +453,8 @@ loadDictTypes()
           <span :class="cardTitleClassName">字典类型</span>
         </div>
 
-        <!-- 类型列表 -->
-        <div class="max-h-[500px] overflow-y-auto">
+        <!-- 类型列表：滚动交给 Scrollbar，max-h 挪到 root-class，滚动条由组件内部 wrap 提供 -->
+        <Scrollbar root-class="max-h-[500px]">
           <div v-if="dictTypes.length === 0" :class="emptyClassName">
             <div :class="emptyIconClassName">
               <Icon icon="carbon:book" />
@@ -508,7 +508,7 @@ loadDictTypes()
               </a-popconfirm>
             </div>
           </div>
-        </div>
+        </Scrollbar>
 
         <!-- 底部新增按钮 -->
         <div :class="cardFooterClassName">

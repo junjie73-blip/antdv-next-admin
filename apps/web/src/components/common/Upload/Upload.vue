@@ -9,9 +9,9 @@ import type { UploadInstance, UploadProps } from './types';
 
 import { computed, ref, watch } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
 import { Upload as AntUpload, Button, message } from 'antdv-next';
-import { cn } from '~/utils/cn';
 
 import { uploadSingleFile } from './api';
 

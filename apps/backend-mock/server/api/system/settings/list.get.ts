@@ -7,7 +7,7 @@ export default defineMockRoute({
     const keyword = query.keyword;
     const type = query.type;
     const enabled = query.enabled;
-    const page = Number(query.page) || 1;
+    const page = Number(query.pageNum ?? query.page) || 1;
     const pageSize = Number(query.pageSize) || 10;
 
     let filtered = [...SETTINGS_DB];

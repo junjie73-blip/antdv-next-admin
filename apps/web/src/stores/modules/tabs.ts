@@ -2,7 +2,7 @@ import type { TabItem } from '@antdv/types';
 
 import { computed, ref, watch } from 'vue';
 
-import { cache } from '~/utils';
+import { cache } from '@antdv/shared';
 
 /**
  * 标签页状态中心。
@@ -170,12 +170,58 @@ export const useTabsStore = defineStore('tabs', () => {
     return true;
   }
 
+  /**
+   * 拖拽排序结果写回（拖拽库给出的是「完整新顺序」）。
+   *
+   * 只接受标签集合不变的数组：异步路由注册或关闭操作与拖拽同时发生时，
+   * 宁可丢弃这一次排序，也不能把标签弄丢或写出重复项。
+   */
+  function syncOrder(next: TabItem[]): boolean {
+    if (next.length !== tabs.value.length) return false;
+
+    const byKey = new Map(tabs.value.map((tab) => [tab.key, tab]));
+    if (next.some((tab) => !byKey.has(tab.key))) return false;
+
+    // 固定标签（首页）必须仍在最前面，且相对顺序不变
+    const affixKeys = (list: TabItem[]) =>
+      list
+        .filter((tab) => tab.affix)
+        .map((tab) => tab.key)
+        .join('|');
+    if (affixKeys(next) !== affixKeys(tabs.value)) return false;
+
+    tabs.value = next.map((tab) => byKey.get(tab.key) ?? tab);
+    return true;
+  }
+
   /** 放大 / 还原：再次放大同一个标签即为还原 */
   function toggleMaximize(key?: string): boolean {
     const target = key ?? activeKey.value;
     if (!target) return false;
     maximizedKey.value = maximizedKey.value === target ? '' : target;
     return isMaximized.value;
+  }
+
+  /**
+   * 固定 / 取消固定标签。
+   *
+   * 与 ensureHome / syncOrder 共用同一条不变量：固定标签永远排在数组最前、
+   * 相对顺序不变，所以新固定的标签并入固定区末尾，取消固定的落回固定区之后。
+   * 首页是固定区的锚点（ensureHome 认「第一个 affix 即首页」），且永远位于下标 0，
+   * 取消它会让首页身份漂移到别的标签上，因此首页不允许取消固定。
+   */
+  function toggleAffix(key: string): boolean {
+    const index = tabIndex(key);
+    if (index === -1) return false;
+    const tab = tabs.value[index];
+    if (!tab) return false;
+    if (tab.affix && index === 0) return false;
+
+    // 先摘出再改标记，插入点用「摘出后」的固定区长度计算，天然落在区界上
+    tabs.value.splice(index, 1);
+    tab.affix = !tab.affix;
+    tabs.value.splice(affixCount.value, 0, tab);
+    return true;
   }
 
   function restore() {
@@ -208,7 +254,9 @@ export const useTabsStore = defineStore('tabs', () => {
     reset,
     restore,
     setActive,
+    syncOrder,
     tabs,
+    toggleAffix,
     toggleMaximize,
   };
 });

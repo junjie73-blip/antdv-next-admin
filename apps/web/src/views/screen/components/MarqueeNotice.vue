@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
 
-import { cn } from '~/utils/cn';
+import { cn } from '@antdv/shared/cn';
 
 defineOptions({ name: 'MarqueeNotice' });
 

@@ -7,8 +7,8 @@ import type { FormSchema, Recordable, RenderCallbackParams } from '../types';
 
 import { computed, inject, unref } from 'vue';
 
+import { IconifyIcon } from '@antdv/ui/icon';
 import { isFunction } from 'es-toolkit';
-import IconifyIcon from '~/components/common/Icon/IconifyIcon.vue';
 
 import { getComponent } from '../componentMap';
 import {

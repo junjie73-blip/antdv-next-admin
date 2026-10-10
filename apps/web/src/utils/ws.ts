@@ -1,12 +1,11 @@
 import { h, ref, watch } from 'vue';
 
+import { useWebSocket as useWebSocketComposable } from '@antdv/composables/websocket';
+import { eventBus } from '@antdv/shared/event';
 import { Icon } from '@iconify/vue';
 import { notification } from 'antdv-next';
 import { forceLogout } from '~/composables/web/request/fetcher';
-import { useWebSocket as useWebSocketComposable } from '~/composables/web/websocket';
 import { useUserStore } from '~/stores/modules/user';
-
-import { eventBus } from './event';
 
 // ==================== 类型 ====================
 export interface NotificationItem {
@@ -62,7 +61,7 @@ export const noticeTypeConfig: Record<
   },
   2: {
     label: '公告',
-    icon: 'carbon:megaphone',
+    icon: 'carbon:notification',
     color: 'green',
     gradient: 'from-green-500 to-emerald-500',
   },
@@ -96,9 +95,21 @@ const sharedNotice = ref<NotificationItem | null>(null);
 const sharedStatus = ref<WsConnState>('idle');
 
 // ==================== 工具 ====================
-function buildWsUrl(token: string): string {
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  return `${protocol}//${window.location.host}/ws?token=${encodeURIComponent(token)}&type=notice`;
+/**
+ * 实时推送端点解析。
+ *
+ * ⚠️ 默认**不连接**：mock（Nitro）里没有 `/ws` 处理器，而重连策略是 `retries: -1`
+ * （无限重试、退避到 30s）。一旦在无后端环境下发起连接，浏览器会周期性报
+ * `WebSocket connection to ... failed`，污染控制台、拖累 e2e，还会白烧 CPU。
+ *
+ * 接真实后端时在 `.env` 里给 `VITE_WS_URL`（例如 `ws://localhost:8080/ws`）即可打开；
+ * 未配置时 `useWebSocket()` 依然可以安全调用——事件订阅照常挂上，只是不会收到推送。
+ */
+function resolveWsUrl(token: string): string {
+  const base = import.meta.env.VITE_WS_URL;
+  if (!base) return '';
+  const separator = String(base).includes('?') ? '&' : '?';
+  return `${base}${separator}token=${encodeURIComponent(token)}&type=notice`;
 }
 
 function setStatus(s: WsConnState): void {
@@ -249,7 +260,7 @@ function createSocket(token: string): void {
   destroySocket();
 
   currentToken = token;
-  currentUrl = buildWsUrl(token);
+  currentUrl = resolveWsUrl(token);
 
   socketApi = useWebSocketComposable({
     url: () => currentUrl,
@@ -289,6 +300,15 @@ function createSocket(token: string): void {
 
 function ensureSocket(token: string): void {
   if (!token) {
+    destroySocket();
+    currentToken = null;
+    currentUrl = '';
+    setStatus('idle');
+    return;
+  }
+
+  // 没配 VITE_WS_URL 就不发起连接（原因见 resolveWsUrl 注释）
+  if (!resolveWsUrl(token)) {
     destroySocket();
     currentToken = null;
     currentUrl = '';

@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { localStorageCacheStorage } from '@antdv/shared/cache';
+import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { localStorageCacheStorage } from '~/utils/cache';
-import { cn } from '~/utils/cn';
 
 defineOptions({ name: 'VueuseDemo' });
 

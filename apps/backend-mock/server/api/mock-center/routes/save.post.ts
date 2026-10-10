@@ -3,8 +3,8 @@ import { defineEventHandler, readBody } from '#imports';
 import {
   saveGeneratedDefinition,
   validateDefinition,
-} from '../../utils/generated';
-import { bizError, envelope } from '../../utils/response';
+} from '../../../utils/generated';
+import { bizError, envelope } from '../../../utils/response';
 
 /**
  * 保存面板生成的自定义接口。

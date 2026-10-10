@@ -25,11 +25,14 @@ export interface TabItem {
 
 /** 标签页操作集（右键菜单与右上角下拉共用） */
 export type TabActionKey =
+  | 'affix'
+  | 'close'
   | 'closeAll'
   | 'closeLeft'
   | 'closeOther'
   | 'closeRight'
   | 'maximize'
+  | 'openInNewWindow'
   | 'refresh'
   | 'reload';
 

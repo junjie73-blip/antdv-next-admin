@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { useAppStore } from '~/stores/modules/app';
-import { cn } from '~/utils/cn';
 
 defineOptions({ name: 'PageLoading' });
 
@@ -20,7 +20,8 @@ withDefaults(
 );
 
 const appStore = useAppStore();
-const isDark = computed(() => appStore.themeMode === 'dark');
+/** `themeMode` 可能是 'auto'，判断"现在到底是黑还是白"要用折叠后的 resolvedTheme */
+const isDark = computed(() => appStore.resolvedTheme === 'dark');
 
 /* ============================================================
  * 容器类名

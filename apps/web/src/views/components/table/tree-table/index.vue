@@ -4,8 +4,8 @@ import type { TreeDataNode } from '~/components/business/TreeTable';
 
 import { ref } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { TreeTable } from '~/components/business/TreeTable';
-import { cn } from '~/utils/cn';
 
 const containerClassName = cn('flex h-full flex-col');
 const pageHeaderClassName = cn(

@@ -2,8 +2,8 @@
 import type { TabItem } from '@antdv/types';
 
 import { CloseOutlined } from '@antdv-next/icons';
+import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { cn } from '~/utils/cn';
 
 defineOptions({ name: 'TabItem' });
 
@@ -31,7 +31,7 @@ const emit = defineEmits<{
   <div
     :class="cn('tab-item select-none', props.itemClass)"
     :data-active="props.active"
-    :data-tab-key="props.tab.key"
+    :data-scroll-key="props.tab.key"
     @click="emit('click', props.tab.key)"
     @contextmenu.prevent="emit('contextmenu', $event, props.tab.key)"
   >

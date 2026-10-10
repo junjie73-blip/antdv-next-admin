@@ -10,13 +10,24 @@ import viteVueJsx from '@vitejs/plugin-vue-jsx';
 import Inspect from 'vite-plugin-inspect';
 import { wrapPlugin } from 'vite-plugin-performance';
 import Layouts from 'vite-plugin-vue-layouts-next';
+
+import { createIsCustomElement } from './custom-elements';
+
 export function createVuePlugins(): PluginOption[] {
   const plugins: PluginOption[] = [
     VueRouter({
       routesFolder: ['src/views'],
       dts: './types/router.d.ts',
       exclude: [
-        '**/components/*',
+        // 只排除**页面目录内部**的 components/（页面私有组件，
+        // 如 views/screen/components 与 views/security/dashboard/components）。
+        //
+        // 这里原本形如「双星 + 斜杠 + /components/ + 星」的模式，而 `**/` 能匹配"零层目录"，
+        // 于是把 views/components 下那 26 个组件示例页一起排除了 —— 表现是
+        // 路由表里根本没有这些路径，访问全部命中兜底 /error/404。
+        // 中间多要求一段目录（星号 + 斜杠 + components）之后，
+        // 私有组件继续被排除，示例页恢复成真实路由。
+        '**/*/components/*',
         'account/**/*',
         'login/**/*',
         'register/**/*',
@@ -24,7 +35,15 @@ export function createVuePlugins(): PluginOption[] {
       extensions: ['.vue', '.tsx'],
       getRouteName: (routeNode) => getFileBasedRouteName(routeNode),
     }),
-    viteVue(),
+    viteVue({
+      template: {
+        compilerOptions: {
+          // `<micro-app>` 这类由 SDK 在运行时注册的标签，交给浏览器当原生元素处理，
+          // 不然每次渲染都会刷 "Failed to resolve component"（见 custom-elements.ts）
+          isCustomElement: createIsCustomElement(),
+        },
+      },
+    }),
     viteVueJsx(),
     tailwindcss(),
     wrapPlugin(Inspect(), { threshold: 50 }),

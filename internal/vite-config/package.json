@@ -8,6 +8,7 @@
     "build": "tsdown",
     "clean": "rimraf dist .turbo",
     "dev": "tsdown --watch",
+    "test:unit": "vitest run",
     "type-check": "tsc --noEmit"
   },
   "files": [
@@ -29,6 +30,7 @@
   },
   "dependencies": {
     "@antdv-next/auto-import-resolver": "catalog:",
+    "@antdv/node-utils": "workspace:*",
     "@intlify/unplugin-vue-i18n": "catalog:",
     "@pnpm/workspace.read-manifest": "catalog:",
     "@tailwindcss/vite": "catalog:",
@@ -38,6 +40,7 @@
     "@vitejs/plugin-vue-jsx": "catalog:",
     "archiver": "catalog:",
     "dayjs": "catalog:",
+    "nitropack": "catalog:",
     "postcss": "catalog:",
     "tinyglobby": "catalog:",
     "unplugin-auto-import": "catalog:",
@@ -57,13 +60,13 @@
     "vite-plugin-vue-layouts-next": "catalog:"
   },
   "devDependencies": {
-    "@antdv/node-utils": "workspace:*",
     "@antdv/tsconfig": "workspace:*",
     "@types/archiver": "catalog:",
     "rimraf": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
+    "vitest": "catalog:",
     "vue-router": "catalog:"
   }
 }

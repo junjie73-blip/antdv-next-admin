@@ -178,6 +178,15 @@ export interface FormActionType {
   setProps: (formProps: Partial<FormProps>) => Promise<void>;
 
   getForm: () => FormInstance | null;
+
+  /**
+   * 实例当前是否还挂在组件树上。
+   *
+   * `useForm` 只拿得到上一次 `register` 传过来的对象引用，组件卸载后这个引用并不会变空，
+   * 在它身上写值等于写进一具尸体（详见 `useForm.ts` 里的待写入队列）。
+   * 所以由组件自己维护挂载标记，`useForm` 用它判断"现在写进去有没有人看得见"。
+   */
+  isMounted?: () => boolean;
 }
 
 export type UseFormReturnType = [

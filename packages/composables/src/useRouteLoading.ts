@@ -1,5 +1,5 @@
-import { computed, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 /**
  * useRouteLoading - 路由切换 Loading 状态管理
@@ -25,7 +25,6 @@ export function useRouteLoading(options: RouteLoadingOptions = {}) {
   const { minDuration = 300, auto = true } = options;
 
   const router = useRouter();
-  const route = useRoute();
 
   // 状态
   const isLoading = ref(false);
@@ -38,17 +37,19 @@ export function useRouteLoading(options: RouteLoadingOptions = {}) {
 
   /**
    * 开始加载
+   *
+   * 状态同步置位，不等 requestAnimationFrame：
+   * `completeInternal()` 第一件事就是 `if (!isLoading.value) return`，
+   * 而 `withLoading(async () => …)` 里 await 只让出微任务，rAF 还没跑，
+   * 于是快结束的调用会走进"还没开始"的分支——loading 条永远挂在那儿。
    */
   function start() {
     if (isLoading.value && !isComplete.value) return;
 
-    isLoading.value = isComplete.value = isError.value = false;
+    isError.value = false;
+    isComplete.value = false;
+    isLoading.value = true;
     startTime.value = Date.now();
-
-    requestAnimationFrame(() => {
-      isLoading.value = true;
-      isComplete.value = false;
-    });
   }
 
   /**
@@ -61,7 +62,7 @@ export function useRouteLoading(options: RouteLoadingOptions = {}) {
   /**
    * 完成加载（失败）
    */
-  function error() {
+  function fail() {
     completeInternal(true);
   }
 
@@ -106,17 +107,22 @@ export function useRouteLoading(options: RouteLoadingOptions = {}) {
 
   /**
    * 手动触发完整的加载-完成流程
+   *
+   * 注意 catch 的形参名：这里叫 `raw` 而不是随手写 `error`——
+   * 本文件里 `error()` 是"标记加载失败"的方法，
+   * 一旦 catch 形参叫 error，`error()` 就成了调用一个 unknown，
+   * 失败路径不但没标记失败，还会抛出 TypeError。
    */
   async function withLoading<T>(fn: () => Promise<T>): Promise<T> {
     start();
     try {
       const result = await fn();
-      return result;
-    } catch (error) {
-      error();
-      throw error;
-    } finally {
       complete();
+      return result;
+    } catch (raw) {
+      // 失败路径不能再走 finally 的 complete()：那会把 isError 冲掉
+      fail();
+      throw raw;
     }
   }
 
@@ -154,23 +160,19 @@ export function useRouteLoading(options: RouteLoadingOptions = {}) {
     return elapsed.value > 3000 && isLoading.value;
   });
 
-  // 自动模式：监听路由变化
+  // 自动模式：只挂一对守卫
+  //
+  // 两条纪律（都是踩过的坑）：
+  // 1. 不要再加 `watch(() => route.path)`：它和 beforeEach/afterEach 是同一件事
+  //    的两套触发源，会各自 start/complete，快导航时把进度条切成"闪两下"；
+  // 2. 守卫一律用返回值而不是 `next()`：vue-router 5 已废弃 next 回调
+  //    （每次导航都告警一次），且箭头函数直出库的链式返回值会被当成导航结果。
   if (auto) {
-    watch(
-      () => route.path,
-      async () => {
-        start();
-        await new Promise((resolve) => setTimeout(resolve, minDuration));
-        complete();
-      },
-    );
-
-    router.beforeEach((_to, _from, next) => {
+    router.beforeEach(() => {
       start();
-      next();
     });
 
-    router.afterEach((to) => {
+    router.afterEach(() => {
       setTimeout(() => {
         complete();
       }, minDuration / 2);
@@ -194,7 +196,7 @@ export function useRouteLoading(options: RouteLoadingOptions = {}) {
     // 方法
     start,
     complete,
-    error,
+    error: fail,
     cancel,
     withLoading,
     reset,

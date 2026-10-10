@@ -1,89 +1,9 @@
-import type { ReconnectConfig } from './types';
-
-export class ReconnectManager {
-  private config: ReconnectConfig;
-  private currentAttempt = 0;
-  private onMaxAttemptsReached?: () => void;
-  private onReconnect?: () => void;
-  private reconnectTimer: null | ReturnType<typeof setTimeout> = null;
-
-  constructor(config: ReconnectConfig) {
-    this.config = config;
-  }
-
-  getCurrentAttempt(): number {
-    return this.currentAttempt;
-  }
-
-  getMaxAttempts(): number {
-    return this.config.maxAttempts;
-  }
-
-  getNextDelay(): number {
-    return this.calculateDelay();
-  }
-
-  hasReachedMaxAttempts(): boolean {
-    return this.currentAttempt >= this.config.maxAttempts;
-  }
-
-  isEnabled(): boolean {
-    return this.config.enabled;
-  }
-
-  reset(): void {
-    this.stop();
-    this.currentAttempt = 0;
-  }
-
-  setMaxAttemptsReachedCallback(callback: () => void): void {
-    this.onMaxAttemptsReached = callback;
-  }
-
-  setReconnectCallback(callback: () => void): void {
-    this.onReconnect = callback;
-  }
-
-  start(): void {
-    if (!this.config.enabled) {
-      return;
-    }
-
-    // ⭐ maxAttempts <= 0 表示无限重试
-    if (this.hasReachedMaxAttempts()) {
-      if (this.onMaxAttemptsReached) {
-        this.onMaxAttemptsReached();
-      }
-      return;
-    }
-
-    const delay = this.calculateDelay();
-
-    this.reconnectTimer = setTimeout(() => {
-      this.currentAttempt++;
-      if (this.onReconnect) {
-        this.onReconnect();
-      }
-    }, delay);
-  }
-
-  stop(): boolean {
-    if (this.config.maxAttempts <= 0) return false;
-    return this.currentAttempt >= this.config.maxAttempts;
-  }
-
-  updateConfig(config: Partial<ReconnectConfig>): void {
-    this.config = { ...this.config, ...config };
-    this.reset();
-  }
-
-  private calculateDelay(): number {
-    const baseDelay = this.config.interval;
-    const multiplier = this.config.delayMultiplier;
-    const maxDelay = this.config.maxDelay;
-
-    const exponentialDelay = baseDelay * multiplier ** this.currentAttempt;
-
-    return Math.min(exponentialDelay, maxDelay);
-  }
-}
+/**
+ * WebSocket 侧的重连管理器。
+ *
+ * 实现放在 `../internal/reconnect`，与 SSE 共用同一份退避逻辑；
+ * 这里只保留本目录习惯使用的名字，`useWebSocket.ts` 的 `./ReconnectManager`
+ * 导入路径不必改。
+ */
+export { ReconnectScheduler as ReconnectManager } from '../internal/reconnect';
+export type { ReconnectSchedulerConfig } from '../internal/reconnect';

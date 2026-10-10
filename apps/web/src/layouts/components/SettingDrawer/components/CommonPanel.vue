@@ -38,7 +38,7 @@ const appStore = useAppStore();
     <!-- ============================================================ -->
     <!-- 水印                                                            -->
     <!-- ============================================================ -->
-    <SettingGroup title="水印" icon="carbon:watermark">
+    <SettingGroup title="水印" icon="carbon:stamp">
       <SettingItem label="显示全局水印" desc="覆盖整个管理后台页面">
         <Switch
           :checked="appStore.enableWatermark"
@@ -92,7 +92,7 @@ const appStore = useAppStore();
     <!-- ============================================================ -->
     <!-- 页面切换动画                                                    -->
     <!-- ============================================================ -->
-    <SettingGroup title="页面切换动画" icon="carbon:animation">
+    <SettingGroup title="页面切换动画" icon="carbon:flash">
       <SettingItem label="动画类型" desc="基于 VueUse Motion 库实现">
         <Select
           :value="appStore.transitionEffect"

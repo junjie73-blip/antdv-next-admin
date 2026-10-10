@@ -1,0 +1,63 @@
+{
+  "name": "@antdv/composables",
+  "version": "0.4.0",
+  "description": "浏览器侧组合式函数：缓存、文件读取、分片上传、打印、路由 Loading、水印、ECharts、SSE、WebSocket（不依赖 store/api/路由实例）",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsdown",
+    "clean": "rimraf dist .turbo",
+    "dev": "tsdown --watch",
+    "test:unit": "vitest run",
+    "type-check": "tsc --noEmit"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "//exports": "单文件模块走 \"./*\" 通配符（@antdv/composables/useCache -> dist/useCache.js）；\n echarts / sse / websocket 是多文件目录模块，tsdown 产出 dist/<dir>/index.js，需要显式列出。\n 重型模块（echarts 全量图表注册、水印库）刻意留独立入口，避免 barrel 把依赖拖进每个页面。",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./echarts": {
+      "types": "./dist/echarts/index.d.ts",
+      "default": "./dist/echarts/index.js"
+    },
+    "./sse": {
+      "types": "./dist/sse/index.d.ts",
+      "default": "./dist/sse/index.js"
+    },
+    "./websocket": {
+      "types": "./dist/websocket/index.d.ts",
+      "default": "./dist/websocket/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@antdv/shared": "workspace:*",
+    "@antdv/types": "workspace:*",
+    "@vueuse/core": "catalog:",
+    "antdv-next": "catalog:",
+    "echarts": "catalog:",
+    "es-toolkit": "catalog:",
+    "vue": "catalog:",
+    "vue-router": "catalog:",
+    "watermark-plus": "catalog:"
+  },
+  "devDependencies": {
+    "@antdv/tsconfig": "workspace:*",
+    "happy-dom": "catalog:",
+    "rimraf": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
+import { Icon } from '@iconify/vue';
 import dayjs from 'dayjs';
-import { cn } from '~/utils/cn';
 
 // 容器样式
 const containerClassName = cn('space-y-6');
@@ -115,6 +116,7 @@ const checkboxValues = ref<string[]>(['apple']);
 const checkAll = ref(false);
 const isIndeterminate = ref(true);
 const buttonCheckboxValues = ref<string[]>([]);
+const frameworkOptions = ['React', 'Vue', 'Angular', 'Svelte'];
 
 // Switch 相关状态
 const switchValue = ref(false);
@@ -157,7 +159,7 @@ function handleCheckedChange(values: string[]) {
 <template>
   <div :class="containerClassName">
     <!-- 1. Button 按钮 -->
-    <a-card title="Button 按钮" :variant="borderless">
+    <a-card title="Button 按钮" variant="borderless">
       <div :class="cn('space-y-6')">
         <!-- 按钮类型 -->
         <div>
@@ -210,13 +212,13 @@ function handleCheckedChange(values: string[]) {
           <div :class="buttonGroupClassName">
             <a-button type="primary">
               <template #icon>
-                <icon-ant-design-search-outlined />
+                <Icon icon="ant-design:search-outlined" />
               </template>
               搜索
             </a-button>
             <a-button type="primary" shape="circle">
               <template #icon>
-                <icon-ant-design-plus-outlined />
+                <Icon icon="ant-design:plus-outlined" />
               </template>
             </a-button>
           </div>
@@ -225,7 +227,7 @@ function handleCheckedChange(values: string[]) {
     </a-card>
 
     <!-- 2. Input 输入框 -->
-    <a-card title="Input 输入框" :variant="borderless">
+    <a-card title="Input 输入框" variant="borderless">
       <div :class="gridCols2ClassName">
         <!-- 基础输入 -->
         <div>
@@ -299,7 +301,7 @@ function handleCheckedChange(values: string[]) {
     </a-card>
 
     <!-- 3. Select 选择器 -->
-    <a-card title="Select 选择器" :variant="borderless">
+    <a-card title="Select 选择器" variant="borderless">
       <div :class="gridCols2ClassName">
         <!-- 基础选择 -->
         <div>
@@ -387,7 +389,7 @@ function handleCheckedChange(values: string[]) {
     </a-card>
 
     <!-- 4. Radio 单选框 -->
-    <a-card title="Radio 单选框" :variant="borderless">
+    <a-card title="Radio 单选框" variant="borderless">
       <div :class="cn('space-y-6')">
         <!-- 基础单选组 -->
         <div>
@@ -433,7 +435,7 @@ function handleCheckedChange(values: string[]) {
     </a-card>
 
     <!-- 5. Checkbox 复选框 -->
-    <a-card title="Checkbox 复选框" :variant="borderless">
+    <a-card title="Checkbox 复选框" variant="borderless">
       <div :class="cn('space-y-6')">
         <!-- 基础复选 + 全选 -->
         <div>
@@ -457,17 +459,22 @@ function handleCheckedChange(values: string[]) {
           </div>
         </div>
 
-        <!-- 按钮样式复选 -->
+        <!--
+          按钮样式复选：antdv-next 的 CheckboxGroup 没有 React 版的
+          `optionType="button"` / `Checkbox.Button`，写成 `a-checkbox-button`
+          只会得到一个"组件未注册"的空标签，界面上少一整排选项。
+          这里退回库里真实存在的 CheckboxGroup + Checkbox 写法，多选语义不变。
+        -->
         <div>
           <div :class="labelMb3ClassName">按钮样式复选</div>
-          <a-checkbox-group
-            v-model:value="buttonCheckboxValues"
-            option-type="button"
-          >
-            <a-checkbox-button value="react"> React </a-checkbox-button>
-            <a-checkbox-button value="vue"> Vue </a-checkbox-button>
-            <a-checkbox-button value="angular"> Angular </a-checkbox-button>
-            <a-checkbox-button value="svelte"> Svelte </a-checkbox-button>
+          <a-checkbox-group v-model:value="buttonCheckboxValues">
+            <a-checkbox
+              v-for="item in frameworkOptions"
+              :key="item"
+              :value="item"
+            >
+              {{ item }}
+            </a-checkbox>
           </a-checkbox-group>
         </div>
 
@@ -484,7 +491,7 @@ function handleCheckedChange(values: string[]) {
     </a-card>
 
     <!-- 6. Switch 开关 -->
-    <a-card title="Switch 开关" :variant="borderless">
+    <a-card title="Switch 开关" variant="borderless">
       <div :class="cn('space-y-6')">
         <div :class="flexWrapItemsCenterGap8ClassName">
           <!-- 基础开关 -->
@@ -535,7 +542,7 @@ function handleCheckedChange(values: string[]) {
     </a-card>
 
     <!-- 7. Slider 滑块 -->
-    <a-card title="Slider 滑块" :variant="borderless">
+    <a-card title="Slider 滑块" variant="borderless">
       <div :class="cn('space-y-6')">
         <!-- 基础滑块 + 带输入框 -->
         <div :class="gridCols2ClassName">
@@ -548,7 +555,18 @@ function handleCheckedChange(values: string[]) {
             <div :class="labelMb3ClassName">
               带输入框 ({{ inputSliderValue }})
             </div>
-            <a-slider-input v-model:value="inputSliderValue" />
+            <!--
+              antdv-next 没有 `a-slider-input` 这个组件（那是 React 版示例里的组合写法），
+              未注册的标签只会渲染成空元素。这里按官方推荐用 Slider + InputNumber 组合。
+            -->
+            <div :class="flexItemsCenterGap4ClassName">
+              <a-slider v-model:value="inputSliderValue" class="flex-1" />
+              <a-input-number
+                v-model:value="inputSliderValue"
+                :max="100"
+                :min="0"
+              />
+            </div>
           </div>
         </div>
 
@@ -558,7 +576,8 @@ function handleCheckedChange(values: string[]) {
             <div :class="labelMb3ClassName">
               范围选择 ({{ rangeSliderValue[0] }} - {{ rangeSliderValue[1] }})
             </div>
-            <a-range-slider v-model:value="rangeSliderValue" />
+            <!-- 双滑块是 Slider 的 `range` 模式，不存在独立的 `a-range-slider` -->
+            <a-slider v-model:value="rangeSliderValue" range />
           </div>
 
           <div>
@@ -594,7 +613,7 @@ function handleCheckedChange(values: string[]) {
     </a-card>
 
     <!-- 8. Rate 评分 -->
-    <a-card title="Rate 评分" :variant="borderless">
+    <a-card title="Rate 评分" variant="borderless">
       <div :class="flexWrapItemsCenterGap12ClassName">
         <!-- 基础评分 -->
         <div>
@@ -636,7 +655,7 @@ function handleCheckedChange(values: string[]) {
     </a-card>
 
     <!-- 9. DatePicker 日期选择器 -->
-    <a-card title="DatePicker 日期选择器" :variant="borderless">
+    <a-card title="DatePicker 日期选择器" variant="borderless">
       <div :class="gridCols3ClassName">
         <!-- 日期选择 -->
         <div>
@@ -675,7 +694,7 @@ function handleCheckedChange(values: string[]) {
     </a-card>
 
     <!-- 10. Typography 排版 -->
-    <a-card title="Typography 排版" :variant="borderless">
+    <a-card title="Typography 排版" variant="borderless">
       <div :class="cn('space-y-6')">
         <!-- 标题 -->
         <div>

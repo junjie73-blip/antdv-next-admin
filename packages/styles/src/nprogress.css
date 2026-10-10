@@ -1,0 +1,25 @@
+/*
+ * NProgress 顶部进度条：路由切换时的加载进度（进度条配色跟随 antd 主色变量）。
+ * 引用方：@antdv/composables/useRouteLoading（它只管 start/done，样式归这里）。
+ */
+
+#nprogress {
+  @apply pointer-events-none;
+}
+
+#nprogress .bar {
+  @apply fixed top-0 left-0 z-[9999] h-[3px] w-full;
+  background: linear-gradient(
+    90deg,
+    var(--ant-primary-color, #1677ff) 0%,
+    var(--ant-primary-color, #1677ff) 100%
+  );
+}
+
+#nprogress .peg {
+  @apply absolute right-0 block h-full w-[100px] opacity-100;
+  box-shadow:
+    0 0 10px var(--ant-primary-color, #1677ff),
+    0 0 5px var(--ant-primary-color, #1677ff);
+  transform: rotate(3deg) translate(0, -4px);
+}

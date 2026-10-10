@@ -2,8 +2,8 @@ import type { SegmentedProps } from 'antdv-next';
 
 import { h } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { cn } from '~/utils/cn';
 
 export const POPUP_CONTAINER = () => document.body;
 
@@ -18,7 +18,7 @@ export const SECTION_OPTIONS: SegmentedProps['options'] = [
     label: '外观',
     icon: h(Icon, { icon: 'carbon:color-palette' }),
   },
-  { value: 'layout', label: '布局', icon: h(Icon, { icon: 'carbon:layout' }) },
+  { value: 'layout', label: '布局', icon: h(Icon, { icon: 'carbon:grid' }) },
   {
     value: 'common',
     label: '通用',
@@ -165,7 +165,16 @@ export const drawerHeaderClassName = cn(
   'flex shrink-0 items-center justify-between gap-2',
 );
 
-export const drawerContentClassName = cn('min-h-0 flex-1 overflow-hidden');
+/**
+ * 内容列：分类切换条（固定高度）+ 面板滚动区（吃掉剩下的高度）。
+ *
+ * 这里必须是 flex 列：早先是普通块级容器，面板滚动区写死 `h-full`，
+ * 于是"切换条的高度 + 100% 容器高度"一起撑出去，被 `overflow-hidden` 裁掉——
+ * 表现就是抽屉底部那块永远看不到，滚动到底也差一截。
+ */
+export const drawerContentClassName = cn(
+  'flex min-h-0 flex-1 flex-col overflow-hidden',
+);
 
 export const panelWrapperClassName = cn('space-y-6 p-5');
 

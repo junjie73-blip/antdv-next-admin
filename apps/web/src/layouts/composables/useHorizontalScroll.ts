@@ -74,10 +74,11 @@ export function useHorizontalScroll(
   /** 刚完成一次拖拽：用于吞掉紧随其后的 click */
   const justDragged = ref(false);
 
-  let startX = 0;
-  let startScrollLeft = 0;
-  let moved = 0;
+  /** 指针按下时的起点，尚未越过阈值前只叫「预备」，不算拖拽 */
+  let pending: undefined | { pointerId: number; startX: number; startScrollLeft: number };
   let observer: ResizeObserver | undefined;
+  /** 复位 justDragged 的那一帧，卸载时要取消，避免组件销毁后再写 ref */
+  let dragRaf: number | undefined;
 
   function el() {
     return containerRef.value ?? undefined;
@@ -158,39 +159,79 @@ export function useHorizontalScroll(
     scrollTo(node.scrollLeft + delta, 'auto');
   }
 
+  /**
+   * 指针按下：只做「预备」，**不**调用 setPointerCapture。
+   *
+   * 这是这里踩过的最大的一个坑：pointer capture 会把后续 `pointerup` 以及由它合成的
+   * `click` 的 target 改写成「捕获元素」（也就是滚动容器本身）。antd Menu 的 onClick
+   * 绑在每个 `<li>` 上，事件传播路径里一旦不再有 `<li>` 参与，点击就直接失效 ——
+   * 表现是「用鼠标点一级导航没反应，但 `el.click()` 有效」，而且只在菜单真的溢出时出现
+   * （没溢出时下面的 guard 会提前 return，不进入拖拽流程）。
+   * 所以捕获推迟到确认越过阈值之后，见 onWindowPointerMove。
+   */
   function onPointerDown(event: PointerEvent) {
     if (!draggable || event.button !== 0) return;
     const node = el();
     if (!node || node.scrollWidth <= node.clientWidth) return;
-    isDragging.value = true;
-    justDragged.value = false;
-    moved = 0;
-    startX = event.pageX;
-    startScrollLeft = node.scrollLeft;
-    node.setPointerCapture?.(event.pointerId);
+    pending = {
+      pointerId: event.pointerId,
+      startX: event.pageX,
+      startScrollLeft: node.scrollLeft,
+    };
+    isDragging.value = false;
+    // 绑在 window 上：指针滑出容器后仍能继续跟手，松开也能收尾（不会卡在拖拽态）
+    window.addEventListener('pointermove', onWindowPointerMove);
+    window.addEventListener('pointerup', onWindowPointerUp);
+    window.addEventListener('pointercancel', onWindowPointerUp);
   }
 
-  function onPointerMove(event: PointerEvent) {
-    if (!isDragging.value) return;
+  function onWindowPointerMove(event: PointerEvent) {
+    if (!pending) return;
     const node = el();
     if (!node) return;
-    moved = Math.abs(event.pageX - startX);
-    if (moved < DRAG_THRESHOLD) return;
-    node.scrollLeft = Math.max(0, startScrollLeft - (event.pageX - startX));
+    const distance = Math.abs(event.pageX - pending.startX);
+    if (distance < DRAG_THRESHOLD) return;
+    if (!isDragging.value) {
+      isDragging.value = true;
+      // 已经确认是拖拽，此时吃掉紧随其后的 click 反而是想要的（见 onClickCapture）
+      try {
+        node.setPointerCapture?.(event.pointerId);
+      } catch {
+        // 指针已释放 / id 不合法：不影响拖拽，忽略
+      }
+    }
+    node.scrollLeft = Math.max(0, pending.startScrollLeft - (event.pageX - pending.startX));
     update();
   }
 
-  function onPointerUp(event: PointerEvent) {
+  /** 把拖拽期间挂在 window 上的三个监听摘掉（幂等） */
+  function detachWindowListeners() {
+    window.removeEventListener('pointermove', onWindowPointerMove);
+    window.removeEventListener('pointerup', onWindowPointerUp);
+    window.removeEventListener('pointercancel', onWindowPointerUp);
+  }
+
+  function onWindowPointerUp(event: PointerEvent) {
+    detachWindowListeners();
     const node = el();
-    if (isDragging.value && moved >= DRAG_THRESHOLD) {
+    if (isDragging.value) {
       justDragged.value = true;
-      // 下一帧清除，给 click 事件留出被拦截的时机
-      requestAnimationFrame(() => {
+      // 下一帧清除，给紧随其后的 click 留出被拦截的时机（click 在 pointerup 之后、下一帧之前派发）
+      if (dragRaf !== undefined) cancelAnimationFrame(dragRaf);
+      dragRaf = requestAnimationFrame(() => {
+        dragRaf = undefined;
         justDragged.value = false;
       });
+      try {
+        if (node?.hasPointerCapture?.(event.pointerId)) {
+          node.releasePointerCapture(event.pointerId);
+        }
+      } catch {
+        // 释放失败不影响状态复位
+      }
     }
     isDragging.value = false;
-    node?.releasePointerCapture?.(event.pointerId);
+    pending = undefined;
   }
 
   /** 绑在容器上的 click 捕获：拖拽后的那一次 click 直接丢弃 */
@@ -217,6 +258,13 @@ export function useHorizontalScroll(
 
   onBeforeUnmount(() => {
     window.removeEventListener('resize', handleResize);
+    // 拖拽中途卸载（切布局 / 路由销毁顶栏）时，window 上的监听必须摘掉，
+    // 否则闭包会一直引用已卸载的 ref 并阻止容器被回收
+    detachWindowListeners();
+    if (dragRaf !== undefined) cancelAnimationFrame(dragRaf);
+    dragRaf = undefined;
+    pending = undefined;
+    isDragging.value = false;
     observer?.disconnect();
     observer = undefined;
   });
@@ -233,8 +281,6 @@ export function useHorizontalScroll(
     scrollElIntoView,
     onWheel,
     onPointerDown,
-    onPointerMove,
-    onPointerUp,
     onClickCapture,
   };
 }

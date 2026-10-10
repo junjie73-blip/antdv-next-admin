@@ -5,7 +5,7 @@ import { defineMockRoute } from '../../../utils/runtime';
 export default defineMockRoute({
   handler({ query }) {
     const keyword = query.keyword;
-    const page = Number(query.page) || 1;
+    const page = Number(query.pageNum ?? query.page) || 1;
     const pageSize = Number(query.pageSize) || 10;
 
     let filtered = [...DICT_TYPE_DB];

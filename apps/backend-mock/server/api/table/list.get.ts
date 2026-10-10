@@ -22,7 +22,7 @@ function generateTableData() {
 
 export default defineMockRoute({
   handler({ query }) {
-    const page = Number(query.page) || 1;
+    const page = Number(query.pageNum ?? query.page) || 1;
     const pageSize = Number(query.pageSize) || 10;
     const total = 100;
 

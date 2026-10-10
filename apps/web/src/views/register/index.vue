@@ -6,7 +6,7 @@ import { computed, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { LockOutlined, MailOutlined, UserOutlined } from '@antdv-next/icons';
-import { cn } from '~/utils/cn';
+import { cn } from '@antdv/shared/cn';
 
 const router = useRouter();
 

@@ -1,0 +1,102 @@
+/*
+ * 基础层：文档根尺寸、选中态、视图过渡、通用交互类。
+ *
+ * 这些规则刻意保持"无层级"（不写 @layer），与抽包前在应用 global.css 里的行为一致 ——
+ * 无层级规则优先级高于全部 @layer，`html/body` 的尺寸约束不会被工具类意外盖掉。
+ */
+
+::selection {
+  @apply bg-ant-primary text-white;
+}
+
+html,
+body {
+  @apply h-full overflow-hidden;
+}
+
+#app {
+  @apply h-full;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+/* 视图过渡（主题切换动画）：禁用默认交叉淡入，交给下面的 z-index 控制前后景 */
+::view-transition-new(root),
+::view-transition-old(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 9999;
+}
+
+::view-transition-new(root) {
+  z-index: 1;
+}
+
+.dark::view-transition-old(root) {
+  z-index: 1;
+}
+
+.dark::view-transition-new(root) {
+  z-index: 9999;
+}
+
+::view-transition {
+  pointer-events: none;
+}
+
+/* 顶栏图标按钮 */
+.icon {
+  @apply flex h-8 w-8 cursor-pointer items-center justify-center rounded-2xl p-1! px-2 transition-all hover:bg-zinc-100 dark:hover:bg-gray-600;
+}
+
+/* 布局/标签页风格的"外框选中"卡片 */
+.outline-box {
+  @apply outline-ant-border not-[.outline-box-active]:after:hover:outline-ant-primary relative cursor-pointer rounded-lg p-1 outline-1 outline-solid after:absolute after:top-1/2 after:left-1/2 after:z-20 after:h-0 after:w-px after:opacity-0 after:outline-2 after:outline-transparent after:transition-all after:duration-300 after:ease-in-out after:content-[""] after:outline-solid not-[.outline-box-active]:after:hover:top-0 not-[.outline-box-active]:after:hover:left-0 not-[.outline-box-active]:after:hover:h-full not-[.outline-box-active]:after:hover:w-full not-[.outline-box-active]:after:hover:p-1 not-[.outline-box-active]:after:hover:opacity-100;
+}
+
+.outline-box-active {
+  @apply outline-ant-primary outline-2 after:hidden;
+}
+
+/*
+ * 可点元素的光标。
+ *
+ * 浏览器**不会**给 `<button>` 指针光标（UA 样式里它是 `default`），而本项目大量
+ * 手写的可点"盒子" —— 设置面板的主题/布局/圆角卡片、通知面板里的按钮、
+ * Markdown 工具栏、分片上传的操作键 —— 清一色是 `<button type="button">`。
+ * 逐个补 `cursor-pointer` 既容易漏，也管不住新写的页面，所以在样式层一次接上：
+ * "能 hover 的盒子就该有光标"是用户的原话，也是这类盒子最像"死掉了"的瞬间。
+ *
+ * 禁用态一起给 `not-allowed`：这些地方普遍只写了 `disabled:opacity-50`，
+ * 颜色灰了、光标却还是能点的样子，是最容易被误读成"页面卡住"的一种。
+ * 无权限的按钮由 `v-permission` 写 `disabled` 属性（见 permission.css），
+ * 因此会走 `:disabled` 这一支，不会被上面的规则误判成可点。
+ */
+button:not(:disabled) {
+  @apply cursor-pointer;
+}
+
+button:disabled {
+  @apply cursor-not-allowed;
+}
+
+/*
+ * 勾选框/单选框/下拉框同样是 UA 默认光标。antd 的 hover 反馈做在这些元素
+ * **外层**的盒子上，光标却归元素自己，不接上就会出现"盒子亮了、鼠标还是箭头"。
+ */
+input[type='checkbox'],
+input[type='radio'],
+select {
+  @apply cursor-pointer;
+}
+
+input[type='checkbox']:disabled,
+input[type='radio']:disabled,
+select:disabled {
+  @apply cursor-not-allowed;
+}

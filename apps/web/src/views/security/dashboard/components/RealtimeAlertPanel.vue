@@ -3,9 +3,9 @@ import type { AlertItem, SecurityEventLevel } from '~/api/security';
 
 import { onMounted, ref } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
 import { getAlertList, handleAlert } from '~/api/security';
-import { cn } from '~/utils/cn';
 
 defineOptions({ name: 'RealtimeAlertPanel' });
 
@@ -147,7 +147,7 @@ onMounted(async () => {
 
     <!-- 告警列表 -->
     <a-spin :spinning="loading">
-      <PerfectScrollbar v-if="alerts.length > 0" class="max-h-[240px] pr-1">
+      <Scrollbar v-if="alerts.length > 0" root-class="max-h-[240px] pr-1">
         <div class="space-y-2.5">
           <div
             v-for="alert in alerts"
@@ -220,7 +220,7 @@ onMounted(async () => {
             </div>
           </div>
         </div>
-      </PerfectScrollbar>
+      </Scrollbar>
 
       <a-empty v-else description="暂无告警信息" class="py-8" />
     </a-spin>

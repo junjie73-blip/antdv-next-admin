@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-import { cn } from '~/utils/cn';
+import { cn } from '@antdv/shared/cn';
 
 // ==================== 类型定义 ====================
 interface Product {
@@ -335,7 +335,7 @@ function handleLoadMore() {
         <a-card
           v-for="(product, index) in productList.slice(0, 3)"
           :key="product.id"
-          :variant="bordered"
+          variant="outlined"
           hoverable
         >
           <!-- 封面区域 -->
@@ -368,7 +368,7 @@ function handleLoadMore() {
     </a-card>
 
     <!-- ========== 2. 数据看板卡片 ========== -->
-    <a-card title="数据看板" :variant="borderless">
+    <a-card title="数据看板" variant="borderless">
       <div :class="grid4ColClassName">
         <div
           v-for="stat in statCards"
@@ -398,7 +398,7 @@ function handleLoadMore() {
     </a-card>
 
     <!-- ========== 3. 悬停效果卡片 ========== -->
-    <a-card title="悬停效果" :variant="borderless">
+    <a-card title="悬停效果" variant="borderless">
       <p :class="sectionTipClassName">
         鼠标悬停在卡片上查看动画效果：阴影加深 + 轻微上浮 + 缩放
       </p>
@@ -427,7 +427,7 @@ function handleLoadMore() {
     </a-card>
 
     <!-- ========== 4. 可筛选列表 ========== -->
-    <a-card title="可筛选列表" :variant="borderless">
+    <a-card title="可筛选列表" variant="borderless">
       <!-- 搜索框和分类标签 -->
       <div :class="filterSectionClassName">
         <a-input-search
@@ -454,7 +454,7 @@ function handleLoadMore() {
           <a-card
             v-for="(product, index) in filteredProducts.slice(0, 6)"
             :key="product.id"
-            :variant="bordered"
+            variant="outlined"
             size="small"
           >
             <div class="flex items-start gap-3">
@@ -489,7 +489,7 @@ function handleLoadMore() {
     </a-card>
 
     <!-- ========== 5. 加载更多 ========== -->
-    <a-card title="加载更多" :variant="borderless">
+    <a-card title="加载更多" variant="borderless">
       <p :class="loadMoreInfoClassName">
         当前显示 {{ displayCount }} / {{ productList.length }} 条
       </p>
@@ -497,7 +497,7 @@ function handleLoadMore() {
         <a-card
           v-for="(product, index) in displayedProducts"
           :key="product.id"
-          :variant="bordered"
+          variant="outlined"
         >
           <div
             :class="
@@ -529,7 +529,7 @@ function handleLoadMore() {
     </a-card>
 
     <!-- ========== 6. 瀑布流布局 ========== -->
-    <a-card title="瀑布流布局 (CSS Columns)" :variant="borderless">
+    <a-card title="瀑布流布局 (CSS Columns)" variant="borderless">
       <p :class="sectionTipClassName">
         使用 CSS columns 实现瀑布流效果，卡片高度不同
       </p>

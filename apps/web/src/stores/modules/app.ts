@@ -1,156 +1,128 @@
-import type { AppSetting } from '~/settings';
+import type { AppSetting, PreferencesInstance } from '@antdv/preferences';
 
-import { ref, toRef, watch } from 'vue';
+import type { Ref } from 'vue';
 
+import { computed, toRef, watch } from 'vue';
+
+import { setTimezone } from '@antdv/shared/dayjs';
 import { theme } from 'antdv-next';
 import { defineStore } from 'pinia';
-import { DEFAULT_SETTING } from '~/settings';
-import { cache } from '~/utils';
-import { setTimezone } from '~/utils/dayjs';
+import { createToggles, getPreferences } from '~/settings';
 
+/**
+ * 应用状态 = 偏好设置（`@antdv/preferences`）+ 本 store 的派生视图。
+ *
+ * 合并/持久化/CSS 落地都在包里，这里只负责：
+ * 1. 把偏好字段摊成模板好用的响应式 ref；
+ * 2. 保留历史 API（`updateSetting` / `resetSetting` / `toggles`），
+ *    避免 SettingDrawer、Layout 等十几处调用点一起改。
+ */
 export const useAppStore = defineStore('app', () => {
   const { token } = theme.useToken();
+  const preferences: PreferencesInstance = getPreferences();
 
-  // 旧版本缓存里没有的新字段（如 tabStyle）需要以默认值兜底，
-  // 直接取缓存会得到 undefined，模板里的受控组件因此显示异常。
-  const cached = cache.getItem('appSetting') as null | Partial<AppSetting>;
-  const appSetting = ref<AppSetting>({
-    ...DEFAULT_SETTING,
-    ...cached,
-  });
+  /** 当前偏好快照，只读：写入一律走 `updateSetting` / `toggles`，否则不会落盘 */
+  const appSetting = computed<AppSetting>(() => preferences.preferences.value);
+
+  /** 单项派生：`pick('theme')` 而不是手写 `() => appSetting.value.theme`，键名不会写错 */
+  const pick = <K extends keyof AppSetting>(key: K): Ref<AppSetting[K]> =>
+    toRef(() => appSetting.value[key]);
+
   /* ---------- 主题 ---------- */
-  const themeMode = toRef(() => appSetting.value.theme);
-  const themeStyle = toRef(() => appSetting.value.themeStyle);
-  const primaryColor = toRef(() => appSetting.value.primaryColor);
-  const borderRadius = toRef(() => appSetting.value.borderRadius);
-  const fontSize = toRef(() => appSetting.value.fontSize);
-  const darkSidebar = toRef(() => appSetting.value.darkSidebar);
-  const darkHeader = toRef(() => appSetting.value.darkHeader);
-  const colorWeak = toRef(() => appSetting.value.colorWeak);
-  const grayMode = toRef(() => appSetting.value.grayMode);
+  const themeMode = pick('theme');
+  const themeStyle = pick('themeStyle');
+  const primaryColor = pick('primaryColor');
+  const borderRadius = pick('borderRadius');
+  const fontSize = pick('fontSize');
+  const darkSidebar = pick('darkSidebar');
+  const darkHeader = pick('darkHeader');
+  const colorWeak = pick('colorWeak');
+  const grayMode = pick('grayMode');
+  /** `auto` 已折叠后的明暗值：判断"现在到底是黑还是白"用它，别用 themeMode */
+  const resolvedTheme = computed(() => preferences.resolvedTheme.value);
+  /**
+   * 系统深色偏好。
+   * 单独摊平出来是因为 pinia 会解包 store 返回值里的 ref：
+   * 直接写 `appStore.preferences.isSystemDark.value` 会拿到 boolean 上找 `.value`。
+   */
+  const isSystemDark = computed(() => preferences.isSystemDark.value);
 
   /* ---------- 布局 ---------- */
-  const layout = toRef(() => appSetting.value.layout);
-  const sidebarCollapsed = toRef(() => appSetting.value.sidebarCollapsed);
-  const sidebarWidth = toRef(() => appSetting.value.sidebarWidth);
-  const menuAccordion = toRef(() => appSetting.value.menuAccordion);
-  const headerMenuScroll = toRef(() => appSetting.value.headerMenuScroll);
-  const showTabs = toRef(() => appSetting.value.showTabs);
-  const tabShowIcon = toRef(() => appSetting.value.tabShowIcon);
-  const tabStyle = toRef(() => appSetting.value.tabStyle);
-  const tabDragSort = toRef(() => appSetting.value.tabDragSort);
-  const tabContextMenu = toRef(() => appSetting.value.tabContextMenu);
-  const showBreadcrumb = toRef(() => appSetting.value.showBreadcrumb);
-  const hideBreadcrumbWhenOnlyOne = toRef(
-    () => appSetting.value.hideBreadcrumbWhenOnlyOne,
-  );
-  const showBreadcrumbIcon = toRef(() => appSetting.value.showBreadcrumbIcon);
+  const layout = pick('layout');
+  const contentMode = pick('contentMode');
+  const contentWidth = pick('contentWidth');
+  const sidebarCollapsed = pick('sidebarCollapsed');
+  const sidebarWidth = pick('sidebarWidth');
+  const railWidth = pick('railWidth');
+  /** 侧边导航形态下抽屉的开合（inline 形态忽略） */
+  const sidebarOverlayOpen = pick('sidebarOverlayOpen');
+  const menuAccordion = pick('menuAccordion');
+  const headerMenuScroll = pick('headerMenuScroll');
+  const showTabs = pick('showTabs');
+  const tabShowIcon = pick('tabShowIcon');
+  const tabStyle = pick('tabStyle');
+  const tabDragSort = pick('tabDragSort');
+  const tabContextMenu = pick('tabContextMenu');
+  const showBreadcrumb = pick('showBreadcrumb');
+  const hideBreadcrumbWhenOnlyOne = pick('hideBreadcrumbWhenOnlyOne');
+  const showBreadcrumbIcon = pick('showBreadcrumbIcon');
 
   /* ---------- 小部件 ---------- */
-  const widgetNotice = toRef(() => appSetting.value.widgetNotice);
-  const widgetFullscreen = toRef(() => appSetting.value.widgetFullscreen);
-  const widgetTheme = toRef(() => appSetting.value.widgetTheme);
-  const widgetTimezone = toRef(() => appSetting.value.widgetTimezone);
-  const widgetLogout = toRef(() => appSetting.value.widgetLogout);
-  const widgetSearch = toRef(() => appSetting.value.widgetSearch);
-  const widgetPreferences = toRef(() => appSetting.value.widgetPreferences);
+  const widgetNotice = pick('widgetNotice');
+  const widgetFullscreen = pick('widgetFullscreen');
+  const widgetTheme = pick('widgetTheme');
+  const widgetTimezone = pick('widgetTimezone');
+  const widgetLogout = pick('widgetLogout');
+  const widgetSearch = pick('widgetSearch');
+  const widgetPreferences = pick('widgetPreferences');
 
   /* ---------- 底栏 ---------- */
-  const showFooter = toRef(() => appSetting.value.showFooter);
-  const showCopyright = toRef(() => appSetting.value.showCopyright);
-  const copyrightCompany = toRef(() => appSetting.value.copyrightCompany);
-  const copyrightIcp = toRef(() => appSetting.value.copyrightIcp);
+  const showFooter = pick('showFooter');
+  const showCopyright = pick('showCopyright');
+  const copyrightCompany = pick('copyrightCompany');
+  const copyrightIcp = pick('copyrightIcp');
 
   /* ---------- 通用 ---------- */
-  const timezone = toRef(() => appSetting.value.timezone);
-  const enableWatermark = toRef(() => appSetting.value.enableWatermark);
-  const watermarkContent = toRef(() => appSetting.value.watermarkContent);
-  const enableWaterRipple = toRef(() => appSetting.value.enableWaterRipple);
-  const notificationPosition = toRef(
-    () => appSetting.value.notificationPosition,
-  );
-  const transitionEffect = toRef(() => appSetting.value.transitionEffect);
-  const showProgressBar = toRef(() => appSetting.value.showProgressBar);
-  const showLoading = toRef(() => appSetting.value.showLoading);
-  const locale = toRef(() => appSetting.value.locale);
-  const componentSize = toRef(() => appSetting.value.componentSize);
+  const componentSize = pick('componentSize');
+  const timezone = pick('timezone');
+  const enableWatermark = pick('enableWatermark');
+  const watermarkContent = pick('watermarkContent');
+  const enableWaterRipple = pick('enableWaterRipple');
+  const notificationPosition = pick('notificationPosition');
+  const transitionEffect = pick('transitionEffect');
+  const showProgressBar = pick('showProgressBar');
+  const showLoading = pick('showLoading');
+  const locale = pick('locale');
 
   /* ============================================================
-   * 方法
+   * 方法：全部转发给偏好实例，持久化与 DOM 应用在包内完成
    * ============================================================ */
+  const updateSetting = (setting: Partial<AppSetting>) =>
+    preferences.patch(setting);
 
-  const updateSetting = (setting: Partial<AppSetting>) => {
-    appSetting.value = { ...appSetting.value, ...setting };
-    cache.setItem('appSetting', appSetting.value);
-  };
+  const resetSetting = () => preferences.reset();
 
-  const resetSetting = () => {
-    appSetting.value = { ...DEFAULT_SETTING };
-    cache.setItem('appSetting', DEFAULT_SETTING);
-  };
+  /** 导入配置（整体覆盖，未提供的键回到项目默认值） */
+  const replaceSetting = (setting: Partial<AppSetting>) =>
+    preferences.replace(setting);
 
-  /** 批量开关 */
-  const toggles = {
-    darkSidebar: () =>
-      updateSetting({ darkSidebar: !appSetting.value.darkSidebar }),
-    darkHeader: () =>
-      updateSetting({ darkHeader: !appSetting.value.darkHeader }),
-    colorWeak: () => updateSetting({ colorWeak: !appSetting.value.colorWeak }),
-    grayMode: () => updateSetting({ grayMode: !appSetting.value.grayMode }),
-    sidebarCollapsed: () =>
-      updateSetting({ sidebarCollapsed: !appSetting.value.sidebarCollapsed }),
-    menuAccordion: () =>
-      updateSetting({ menuAccordion: !appSetting.value.menuAccordion }),
-    headerMenuScroll: () =>
-      updateSetting({
-        headerMenuScroll: !appSetting.value.headerMenuScroll,
-      }),
-    showTabs: () => updateSetting({ showTabs: !appSetting.value.showTabs }),
-    tabShowIcon: () =>
-      updateSetting({ tabShowIcon: !appSetting.value.tabShowIcon }),
-    tabDragSort: () =>
-      updateSetting({ tabDragSort: !appSetting.value.tabDragSort }),
-    tabContextMenu: () =>
-      updateSetting({ tabContextMenu: !appSetting.value.tabContextMenu }),
-    showBreadcrumb: () =>
-      updateSetting({ showBreadcrumb: !appSetting.value.showBreadcrumb }),
-    hideBreadcrumbWhenOnlyOne: () =>
-      updateSetting({
-        hideBreadcrumbWhenOnlyOne: !appSetting.value.hideBreadcrumbWhenOnlyOne,
-      }),
-    showBreadcrumbIcon: () =>
-      updateSetting({
-        showBreadcrumbIcon: !appSetting.value.showBreadcrumbIcon,
-      }),
-    widgetNotice: () =>
-      updateSetting({ widgetNotice: !appSetting.value.widgetNotice }),
-    widgetFullscreen: () =>
-      updateSetting({ widgetFullscreen: !appSetting.value.widgetFullscreen }),
-    widgetTheme: () =>
-      updateSetting({ widgetTheme: !appSetting.value.widgetTheme }),
-    widgetTimezone: () =>
-      updateSetting({ widgetTimezone: !appSetting.value.widgetTimezone }),
-    widgetLogout: () =>
-      updateSetting({ widgetLogout: !appSetting.value.widgetLogout }),
-    widgetSearch: () =>
-      updateSetting({ widgetSearch: !appSetting.value.widgetSearch }),
-    widgetPreferences: () =>
-      updateSetting({ widgetPreferences: !appSetting.value.widgetPreferences }),
-    showFooter: () =>
-      updateSetting({ showFooter: !appSetting.value.showFooter }),
-    showCopyright: () =>
-      updateSetting({ showCopyright: !appSetting.value.showCopyright }),
-    enableWatermark: () =>
-      updateSetting({ enableWatermark: !appSetting.value.enableWatermark }),
-    enableWaterRipple: () =>
-      updateSetting({ enableWaterRipple: !appSetting.value.enableWaterRipple }),
-    showProgressBar: () =>
-      updateSetting({ showProgressBar: !appSetting.value.showProgressBar }),
-    showLoading: () =>
-      updateSetting({ showLoading: !appSetting.value.showLoading }),
-    timezone: () => updateSetting({ timezone: appSetting.value.timezone }),
-    locale: () => updateSetting({ locale: appSetting.value.locale }),
-  };
+  /**
+   * 明暗切换。
+   * 从"当前实际渲染的是黑还是白"出发，而不是比较 `theme` 字面量：
+   * 默认值是 `auto`，用 `theme === 'dark' ? 'light' : 'dark'` 判断的话，
+   * 系统深色下点一下"切到暗色"毫无反应——用户看到的是按钮坏了。
+   */
+  const toggleTheme = () =>
+    preferences.patch({
+      theme: preferences.resolvedTheme.value === 'dark' ? 'light' : 'dark',
+    });
+
+  /**
+   * 布尔开关集合。
+   * 以前是手写的 30 个箭头函数，新增偏好时容易漏；现在由包按默认值类型生成。
+   */
+  const toggles = createToggles(preferences);
+
   watch(
     timezone,
     (tz) => {
@@ -160,8 +132,12 @@ export const useAppStore = defineStore('app', () => {
     },
     { immediate: true },
   );
+
   return {
     appSetting,
+    preferences,
+    isSystemDark,
+    resolvedTheme,
     token,
 
     themeMode,
@@ -175,8 +151,12 @@ export const useAppStore = defineStore('app', () => {
     grayMode,
 
     layout,
+    contentMode,
+    contentWidth,
     sidebarCollapsed,
     sidebarWidth,
+    railWidth,
+    sidebarOverlayOpen,
     menuAccordion,
     headerMenuScroll,
     showTabs,
@@ -213,6 +193,8 @@ export const useAppStore = defineStore('app', () => {
 
     updateSetting,
     resetSetting,
+    replaceSetting,
+    toggleTheme,
     toggles,
   };
 });

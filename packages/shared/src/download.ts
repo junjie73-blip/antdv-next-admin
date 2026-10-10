@@ -1,5 +1,7 @@
 import { isBlob, isFunction, isNil, isString } from 'es-toolkit';
 
+import { getMinioPublicUrl } from './env';
+
 /* ============================================================
  * 类型定义
  * ============================================================ */
@@ -83,9 +85,7 @@ const MINIO_PROXY_PREFIX = '/minio-api';
 function rewriteMinioUrl(url: string): string {
   if (!url.startsWith(MINIO_PROXY_PREFIX)) return url;
 
-  const realHost = (
-    import.meta.env.VITE_MINIO_PUBLIC_URL as string | undefined
-  )?.replace(/\/+$/, '');
+  const realHost = getMinioPublicUrl()?.replace(/\/+$/, '');
   if (!realHost) return url;
 
   return `${realHost}${url.slice(MINIO_PROXY_PREFIX.length)}`;

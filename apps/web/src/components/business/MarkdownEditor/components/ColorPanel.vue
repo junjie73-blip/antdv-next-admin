@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { isString } from 'es-toolkit';
-import { cn } from '~/utils/cn';
 
 const props = defineProps<{
   colors: string[];

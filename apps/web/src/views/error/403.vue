@@ -2,9 +2,9 @@
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 
+import { cn } from '@antdv/shared/cn';
 import { HOME_PATH, LOGIN_PATH } from '~/config/constants';
 import { useUserStore } from '~/stores/modules/user';
-import { cn } from '~/utils/cn';
 
 const router = useRouter();
 const userStore = useUserStore();

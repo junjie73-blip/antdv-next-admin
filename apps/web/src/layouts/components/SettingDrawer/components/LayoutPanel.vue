@@ -1,6 +1,19 @@
 <script setup lang="ts">
-import { Input } from 'antdv-next';
-import { LAYOUT_OPTIONS, LayoutIcon } from '~/layouts/components/LayoutIcon';
+import type { TabStyle } from '@antdv/types';
+
+import {
+  CONTENT_MAX_WIDTH,
+  CONTENT_MIN_WIDTH,
+  CONTENT_MODE_OPTIONS,
+  LAYOUT_MODE_OPTIONS,
+  LAYOUT_SIDEBAR_MAX_WIDTH,
+  LAYOUT_SIDEBAR_MIN_WIDTH,
+  showsHeaderNav,
+  showsNavRail,
+} from '@antdv/layouts';
+import { Input, Segmented } from 'antdv-next';
+import { LayoutIcon } from '~/layouts/components/LayoutIcon';
+import { TAB_STYLE_OPTIONS } from '~/layouts/composables/useTabStyle';
 import { useAppStore } from '~/stores/modules/app';
 
 import SettingGroup from './SettingGroup.vue';
@@ -9,17 +22,23 @@ import SettingItem from './SettingItem.vue';
 defineOptions({ name: 'LayoutPanel' });
 
 const appStore = useAppStore();
+
+/** Segmented 的 `value` 只能是 string | number，偏好里的联合类型在这里收窄一次 */
+const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
+  label: item.label,
+  value: item.value as string,
+}));
 </script>
 
 <template>
   <div class="space-y-6">
     <!-- ============================================================ -->
-    <!-- 布局样式                                                        -->
+    <!-- 布局形态：7 种，全部来自 @antdv/layouts 的 LAYOUT_MODE_OPTIONS     -->
     <!-- ============================================================ -->
-    <SettingGroup title="布局样式" icon="carbon:layout">
-      <div class="grid grid-cols-2 gap-3">
+    <SettingGroup title="布局" icon="carbon:grid">
+      <div class="grid grid-cols-3 gap-3">
         <button
-          v-for="item in LAYOUT_OPTIONS"
+          v-for="item in LAYOUT_MODE_OPTIONS"
           :key="item.value"
           type="button"
           class="relative flex flex-col items-center gap-2 rounded-xl p-2 outline outline-1 transition-all duration-200"
@@ -28,6 +47,7 @@ const appStore = useAppStore();
               ? 'bg-ant-primary/5 outline-ant-primary outline-2'
               : 'hover:outline-ant-primary/40 bg-white outline-slate-200 dark:bg-slate-800 dark:outline-slate-700'
           "
+          :title="item.description"
           @click="appStore.updateSetting({ layout: item.value })"
         >
           <LayoutIcon
@@ -55,12 +75,65 @@ const appStore = useAppStore();
     </SettingGroup>
 
     <!-- ============================================================ -->
-    <!-- 顶部导航栏（水平 / 混合布局）                                    -->
+    <!-- 内容区宽度：与布局形态正交，7 种形态都能配流式或定宽                   -->
+    <!-- ============================================================ -->
+    <SettingGroup title="内容" icon="carbon:align-box-middle-left">
+      <div class="grid grid-cols-2 gap-3">
+        <button
+          v-for="item in CONTENT_MODE_OPTIONS"
+          :key="item.value"
+          type="button"
+          class="flex flex-col items-center gap-1 rounded-xl p-2 outline outline-1 transition-all duration-200"
+          :class="
+            appStore.contentMode === item.value
+              ? 'bg-ant-primary/5 outline-ant-primary outline-2'
+              : 'hover:outline-ant-primary/40 bg-white outline-slate-200 dark:bg-slate-800 dark:outline-slate-700'
+          "
+          :title="item.description"
+          @click="appStore.updateSetting({ contentMode: item.value })"
+        >
+          <LayoutIcon
+            :type="item.value === 'fixed' ? 'content-fixed' : 'content-full'"
+            :active="appStore.contentMode === item.value"
+          />
+          <span
+            class="text-[11px] font-medium"
+            :class="
+              appStore.contentMode === item.value
+                ? 'text-ant-primary'
+                : 'text-slate-500 dark:text-slate-400'
+            "
+          >
+            {{ item.label }}
+          </span>
+        </button>
+      </div>
+
+      <SettingItem
+        v-if="appStore.contentMode === 'fixed'"
+        label="定宽宽度"
+        :desc="`${CONTENT_MIN_WIDTH} - ${CONTENT_MAX_WIDTH} px，超出后居中留白`"
+      >
+        <a-slider
+          :value="appStore.contentWidth"
+          :min="CONTENT_MIN_WIDTH"
+          :max="CONTENT_MAX_WIDTH"
+          :step="20"
+          class="!w-32 !m-0"
+          @change="
+            (v: number) => appStore.updateSetting({ contentWidth: v })
+          "
+        />
+      </SettingItem>
+    </SettingGroup>
+
+    <!-- ============================================================ -->
+    <!-- 顶部导航栏（顶栏承载一级菜单的形态）                              -->
     <!-- ============================================================ -->
     <SettingGroup
-      v-if="appStore.layout !== 'vertical'"
+      v-if="showsHeaderNav(appStore.layout)"
       title="顶部导航栏"
-      icon="carbon:header"
+      icon="carbon:border-top"
     >
       <SettingItem
         label="溢出横向滚动"
@@ -78,6 +151,10 @@ const appStore = useAppStore();
     <!-- 侧边栏                                                          -->
     <!-- ============================================================ -->
     <SettingGroup title="侧边栏" icon="carbon:side-panel-close">
+      <!--
+        侧边导航现在是"常驻侧栏"形态，折叠开关对它有效；
+        窄屏下它会被 useShell 升级成浮层抽屉，那时折叠由抽屉自己管。
+      -->
       <SettingItem label="折叠菜单栏" desc="侧栏仅保留图标">
         <a-switch
           :checked="appStore.sidebarCollapsed"
@@ -94,11 +171,14 @@ const appStore = useAppStore();
         />
       </SettingItem>
 
-      <SettingItem label="菜单栏宽度" desc="180 - 280 px">
+      <SettingItem
+        label="菜单栏宽度"
+        :desc="`${LAYOUT_SIDEBAR_MIN_WIDTH} - ${LAYOUT_SIDEBAR_MAX_WIDTH} px`"
+      >
         <a-input-number
           :value="appStore.sidebarWidth"
-          :min="180"
-          :max="280"
+          :min="LAYOUT_SIDEBAR_MIN_WIDTH"
+          :max="LAYOUT_SIDEBAR_MAX_WIDTH"
           :step="10"
           size="small"
           class="!w-24"
@@ -108,12 +188,30 @@ const appStore = useAppStore();
           "
         />
       </SettingItem>
+
+      <SettingItem
+        v-if="showsNavRail(appStore.layout)"
+        label="图标栏宽度"
+        desc="双列形态第一列的宽度"
+      >
+        <a-input-number
+          :value="appStore.railWidth"
+          :min="48"
+          :max="96"
+          :step="4"
+          size="small"
+          class="!w-24"
+          @change="
+            (v: number | null) => v !== null && appStore.updateSetting({ railWidth: v })
+          "
+        />
+      </SettingItem>
     </SettingGroup>
 
     <!-- ============================================================ -->
     <!-- 标签页                                                          -->
     <!-- ============================================================ -->
-    <SettingGroup title="标签页" icon="carbon:tabs">
+    <SettingGroup title="标签页" icon="carbon:bookmark">
       <SettingItem label="显示标签页" desc="主内容区顶部多标签导航">
         <a-switch
           :checked="appStore.showTabs"
@@ -127,6 +225,41 @@ const appStore = useAppStore();
           :checked="appStore.tabShowIcon"
           size="small"
           @change="appStore.toggles.tabShowIcon"
+        />
+      </SettingItem>
+
+      <!--
+        风格/拖拽/右键这三项早有偏好字段与渲染逻辑（useTabStyle、TabList 的 draggable、
+        LayoutTabs 的 openContextMenu），但抽屉里没有入口，等于功能只在代码里存在、
+        用户在界面上永远切不到。这里补上开关，行为不改，只是把已有的能力接出来。
+      -->
+      <SettingItem
+        label="标签风格"
+        desc="卡片带底色、谷歌是浏览器标签、胶囊圆角、下划线仅指示条、纯文本用分隔线"
+        stacked
+      >
+        <Segmented
+          block
+          size="small"
+          :options="tabStyleOptions"
+          :value="appStore.tabStyle"
+          @change="(v: string | number) => appStore.updateSetting({ tabStyle: v as TabStyle })"
+        />
+      </SettingItem>
+
+      <SettingItem label="拖拽排序" desc="按住标签左右拖动调整顺序，固定标签始终排在最前">
+        <a-switch
+          :checked="appStore.tabDragSort"
+          size="small"
+          @change="appStore.toggles.tabDragSort"
+        />
+      </SettingItem>
+
+      <SettingItem label="右键菜单" desc="在标签上右键呼出关闭/固定/放大等操作">
+        <a-switch
+          :checked="appStore.tabContextMenu"
+          size="small"
+          @change="appStore.toggles.tabContextMenu"
         />
       </SettingItem>
     </SettingGroup>
@@ -163,7 +296,7 @@ const appStore = useAppStore();
     <!-- ============================================================ -->
     <!-- 小部件                                                          -->
     <!-- ============================================================ -->
-    <SettingGroup title="小部件" icon="carbon:widget">
+    <SettingGroup title="小部件" icon="carbon:application">
       <SettingItem label="通知小部件">
         <a-switch
           :checked="appStore.widgetNotice"

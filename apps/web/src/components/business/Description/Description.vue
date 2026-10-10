@@ -11,11 +11,11 @@ import type {
 
 import { computed, h, useSlots } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { Descriptions, Image } from 'antdv-next';
 import dayjs from 'dayjs';
 import { isNil, isString } from 'es-toolkit';
 import { isArray } from 'es-toolkit/compat';
-import { cn } from '~/utils/cn';
 import { getDictLabel, getDictLabels } from '~/utils/dict';
 
 const props = withDefaults(defineProps<DescriptionProps>(), {

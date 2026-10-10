@@ -14,13 +14,15 @@ import type {
   ParamValueZeroOrMore,
   ParamValueZeroOrOne,
 } from 'vue-router'
-import type { _ExtractParamParserType } from 'vue-router/experimental';
+import type {
+  _ExtractParamParserType,
+} from 'vue-router/experimental'
 
 declare module 'vue-router' {
   interface TypesConfig {
-    _ParamParsers: {};
-    RouteNamedMap: import('vue-router/auto-routes').RouteNamedMap;
-    _RouteFileInfoMap: import('vue-router/auto-routes')._RouteFileInfoMap;
+    _ParamParsers: {}
+    RouteNamedMap: import('vue-router/auto-routes').RouteNamedMap
+    _RouteFileInfoMap: import('vue-router/auto-routes')._RouteFileInfoMap
   }
 }
 
@@ -34,183 +36,372 @@ declare module 'vue-router/auto-routes' {
       '/account/center',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/account/settings/': RouteRecordInfo<
       '/account/settings/',
       '/account/settings',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
-    Analysis: RouteRecordInfo<
+      | never
+    >,
+    '/components/basic/': RouteRecordInfo<
+      '/components/basic/',
+      '/components/basic',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/card-list/': RouteRecordInfo<
+      '/components/card-list/',
+      '/components/card-list',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/detail/': RouteRecordInfo<
+      '/components/detail/',
+      '/components/detail',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/editor/markdown/': RouteRecordInfo<
+      '/components/editor/markdown/',
+      '/components/editor/markdown',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/editor/rich-text/': RouteRecordInfo<
+      '/components/editor/rich-text/',
+      '/components/editor/rich-text',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/form/basic/': RouteRecordInfo<
+      '/components/form/basic/',
+      '/components/form/basic',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/form/custom-component/': RouteRecordInfo<
+      '/components/form/custom-component/',
+      '/components/form/custom-component',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/form/validation/': RouteRecordInfo<
+      '/components/form/validation/',
+      '/components/form/validation',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/form-designer/': RouteRecordInfo<
+      '/components/form-designer/',
+      '/components/form-designer',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/icon-picker/': RouteRecordInfo<
+      '/components/icon-picker/',
+      '/components/icon-picker',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/loading/': RouteRecordInfo<
+      '/components/loading/',
+      '/components/loading',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/password/': RouteRecordInfo<
+      '/components/password/',
+      '/components/password',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/qrcode/': RouteRecordInfo<
+      '/components/qrcode/',
+      '/components/qrcode',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/scroll/basic/': RouteRecordInfo<
+      '/components/scroll/basic/',
+      '/components/scroll/basic',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/scroll/drawer/': RouteRecordInfo<
+      '/components/scroll/drawer/',
+      '/components/scroll/drawer',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/scroll/modal/': RouteRecordInfo<
+      '/components/scroll/modal/',
+      '/components/scroll/modal',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/table/animation/': RouteRecordInfo<
+      '/components/table/animation/',
+      '/components/table/animation',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/table/basic/': RouteRecordInfo<
+      '/components/table/basic/',
+      '/components/table/basic',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/table/count-to/': RouteRecordInfo<
+      '/components/table/count-to/',
+      '/components/table/count-to',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/table/image-crop/': RouteRecordInfo<
+      '/components/table/image-crop/',
+      '/components/table/image-crop',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/table/relative-time/': RouteRecordInfo<
+      '/components/table/relative-time/',
+      '/components/table/relative-time',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/table/tree-table/': RouteRecordInfo<
+      '/components/table/tree-table/',
+      '/components/table/tree-table',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/tree/': RouteRecordInfo<
+      '/components/tree/',
+      '/components/tree',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/upload/': RouteRecordInfo<
+      '/components/upload/',
+      '/components/upload',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/video/': RouteRecordInfo<
+      '/components/video/',
+      '/components/video',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/vueuse/': RouteRecordInfo<
+      '/components/vueuse/',
+      '/components/vueuse',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    'Analysis': RouteRecordInfo<
       'Analysis',
       '/dashboard/analysis',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/dashboard/workbench/': RouteRecordInfo<
       '/dashboard/workbench/',
       '/dashboard/workbench',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/demo/table-pagination-test': RouteRecordInfo<
       '/demo/table-pagination-test',
       '/demo/table-pagination-test',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/error/403': RouteRecordInfo<
       '/error/403',
       '/error/403',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/error/404': RouteRecordInfo<
       '/error/404',
       '/error/404',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/error/503': RouteRecordInfo<
       '/error/503',
       '/error/503',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/login/': RouteRecordInfo<
       '/login/',
       '/login',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/micro-app/SubAppView': RouteRecordInfo<
       '/micro-app/SubAppView',
       '/micro-app/SubAppView',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
+    '/redirect/': RouteRecordInfo<
+      '/redirect/',
+      '/redirect',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/register/': RouteRecordInfo<
       '/register/',
       '/register',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
-    ScreenMonitor: RouteRecordInfo<
+      | never
+    >,
+    'ScreenMonitor': RouteRecordInfo<
       'ScreenMonitor',
       '/screen/monitor',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/security/dashboard/': RouteRecordInfo<
       '/security/dashboard/',
       '/security/dashboard',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/system/dept/': RouteRecordInfo<
       '/system/dept/',
       '/system/dept',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/system/dict/': RouteRecordInfo<
       '/system/dict/',
       '/system/dict',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/system/file/': RouteRecordInfo<
       '/system/file/',
       '/system/file',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/system/log/': RouteRecordInfo<
       '/system/log/',
       '/system/log',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/system/login-log/': RouteRecordInfo<
       '/system/login-log/',
       '/system/login-log',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/system/menu/': RouteRecordInfo<
       '/system/menu/',
       '/system/menu',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/system/micro-app/': RouteRecordInfo<
       '/system/micro-app/',
       '/system/micro-app',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/system/notice/': RouteRecordInfo<
       '/system/notice/',
       '/system/notice',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/system/online/': RouteRecordInfo<
       '/system/online/',
       '/system/online',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/system/post/': RouteRecordInfo<
       '/system/post/',
       '/system/post',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/system/role/': RouteRecordInfo<
       '/system/role/',
       '/system/role',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/system/settings/': RouteRecordInfo<
       '/system/settings/',
       '/system/settings',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/system/user/': RouteRecordInfo<
       '/system/user/',
       '/system/user',
       Record<never, never>,
       Record<never, never>,
-      never
-    >;
+      | never
+    >,
   }
 
   /**
@@ -225,135 +416,429 @@ declare module 'vue-router/auto-routes' {
    */
   export interface _RouteFileInfoMap {
     'src/views/account/center/index.vue': {
-      routes: '/account/center/';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/account/center/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/account/settings/index.vue': {
-      routes: '/account/settings/';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/account/settings/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/basic/index.vue': {
+      routes:
+        | '/components/basic/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/card-list/index.vue': {
+      routes:
+        | '/components/card-list/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/detail/index.vue': {
+      routes:
+        | '/components/detail/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/editor/markdown/index.vue': {
+      routes:
+        | '/components/editor/markdown/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/editor/rich-text/index.vue': {
+      routes:
+        | '/components/editor/rich-text/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/form/basic/index.vue': {
+      routes:
+        | '/components/form/basic/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/form/custom-component/index.vue': {
+      routes:
+        | '/components/form/custom-component/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/form/validation/index.vue': {
+      routes:
+        | '/components/form/validation/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/form-designer/index.vue': {
+      routes:
+        | '/components/form-designer/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/icon-picker/index.vue': {
+      routes:
+        | '/components/icon-picker/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/loading/index.vue': {
+      routes:
+        | '/components/loading/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/password/index.vue': {
+      routes:
+        | '/components/password/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/qrcode/index.vue': {
+      routes:
+        | '/components/qrcode/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/scroll/basic/index.vue': {
+      routes:
+        | '/components/scroll/basic/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/scroll/drawer/index.vue': {
+      routes:
+        | '/components/scroll/drawer/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/scroll/modal/index.vue': {
+      routes:
+        | '/components/scroll/modal/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/table/animation/index.vue': {
+      routes:
+        | '/components/table/animation/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/table/basic/index.vue': {
+      routes:
+        | '/components/table/basic/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/table/count-to/index.vue': {
+      routes:
+        | '/components/table/count-to/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/table/image-crop/index.vue': {
+      routes:
+        | '/components/table/image-crop/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/table/relative-time/index.vue': {
+      routes:
+        | '/components/table/relative-time/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/table/tree-table/index.vue': {
+      routes:
+        | '/components/table/tree-table/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/tree/index.vue': {
+      routes:
+        | '/components/tree/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/upload/index.vue': {
+      routes:
+        | '/components/upload/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/video/index.vue': {
+      routes:
+        | '/components/video/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/vueuse/index.vue': {
+      routes:
+        | '/components/vueuse/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/dashboard/analysis/index.vue': {
-      routes: 'Analysis';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | 'Analysis'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/dashboard/workbench/index.vue': {
-      routes: '/dashboard/workbench/';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/dashboard/workbench/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/demo/table-pagination-test.vue': {
-      routes: '/demo/table-pagination-test';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/demo/table-pagination-test'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/error/403.vue': {
-      routes: '/error/403';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/error/403'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/error/404.vue': {
-      routes: '/error/404';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/error/404'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/error/503.vue': {
-      routes: '/error/503';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/error/503'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/login/index.vue': {
-      routes: '/login/';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/login/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/micro-app/SubAppView.vue': {
-      routes: '/micro-app/SubAppView';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/micro-app/SubAppView'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/redirect/index.vue': {
+      routes:
+        | '/redirect/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/register/index.vue': {
-      routes: '/register/';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/register/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/screen/monitor/index.vue': {
-      routes: 'ScreenMonitor';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | 'ScreenMonitor'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/security/dashboard/index.vue': {
-      routes: '/security/dashboard/';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/security/dashboard/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/system/dept/index.vue': {
-      routes: '/system/dept/';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/system/dept/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/system/dict/index.vue': {
-      routes: '/system/dict/';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/system/dict/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/system/file/index.vue': {
-      routes: '/system/file/';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/system/file/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/system/log/index.vue': {
-      routes: '/system/log/';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/system/log/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/system/login-log/index.vue': {
-      routes: '/system/login-log/';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/system/login-log/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/system/menu/index.vue': {
-      routes: '/system/menu/';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/system/menu/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/system/micro-app/index.vue': {
-      routes: '/system/micro-app/';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/system/micro-app/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/system/notice/index.vue': {
-      routes: '/system/notice/';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/system/notice/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/system/online/index.vue': {
-      routes: '/system/online/';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/system/online/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/system/post/index.vue': {
-      routes: '/system/post/';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/system/post/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/system/role/index.vue': {
-      routes: '/system/role/';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/system/role/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/system/settings/index.vue': {
-      routes: '/system/settings/';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/system/settings/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/system/user/index.vue': {
-      routes: '/system/user/';
-      views: never;
-      pathParamNames: never;
-    };
+      routes:
+        | '/system/user/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
   }
 
   /**
@@ -365,7 +850,7 @@ declare module 'vue-router/auto-routes' {
   export type _RouteNamesForFilePath<FilePath extends string> =
     _RouteFileInfoMap extends Record<FilePath, infer Info>
       ? Info['routes']
-      : keyof RouteNamedMap;
+      : keyof RouteNamedMap
 }
 
-export {};
+export {}

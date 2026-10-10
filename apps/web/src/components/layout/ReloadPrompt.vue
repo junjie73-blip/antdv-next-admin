@@ -218,7 +218,7 @@ tryOnScopeDispose(stopCountdown);
             "
           >
             <Icon
-              :icon="isUpdate ? 'carbon:update-now' : 'carbon:cloud-ok'"
+              :icon="isUpdate ? 'carbon:update-now' : 'carbon:checkmark-outline'"
               class="text-lg"
               :class="isUpdate && 'animate-[spin_3s_linear_infinite]'"
             />

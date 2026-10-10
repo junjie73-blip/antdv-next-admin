@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 
+import { FullscreenExitOutlined, FullscreenOutlined } from '@antdv-next/icons';
+import { cn } from '@antdv/shared/cn';
 import dayjs from 'dayjs';
-import { cn } from '~/utils/cn';
 
 defineOptions({ name: 'ScreenHeader' });
 
 const props = withDefaults(
   defineProps<{
-    /** 大屏标题 */
-    title?: string;
     /** 是否显示全屏按钮 */
     showFullscreen?: boolean;
+    /** 大屏标题 */
+    title?: string;
   }>(),
   {
     title: '数据监控中心',
@@ -42,26 +43,34 @@ function updateTime() {
 }
 
 function toggleFullscreen() {
-  if (document.fullscreenElement) {
-    document.exitFullscreen();
-    isFullscreen.value = false;
-  } else {
-    document.documentElement.requestFullscreen();
-    isFullscreen.value = true;
-  }
+  // requestFullscreen / exitFullscreen 都返回 Promise：
+  // 用户手势之外调用、或浏览器策略禁止时会被 reject，不接住就是未处理拒绝。
+  const target = document.fullscreenElement
+    ? document.exitFullscreen()
+    : document.documentElement.requestFullscreen();
+  target?.catch(() => {
+    // 大屏可能被 iframe 或浏览器策略禁止全屏，静默失败即可
+  });
+}
+
+/**
+ * fullscreenchange 的回调必须是同一个引用，否则 removeEventListener 移不掉。
+ * 之前写成两个不同的匿名箭头函数，等于给 document 挂了个永不解绑的监听器——
+ * 大屏页反复进出会累积，回调里读的还是已卸载组件的 ref。
+ */
+function handleFullscreenChange() {
+  isFullscreen.value = !!document.fullscreenElement;
 }
 
 onMounted(() => {
   updateTime();
   timer = setInterval(updateTime, 1000);
-  document.addEventListener('fullscreenchange', () => {
-    isFullscreen.value = !!document.fullscreenElement;
-  });
+  document.addEventListener('fullscreenchange', handleFullscreenChange);
 });
 
 onBeforeUnmount(() => {
   if (timer) clearInterval(timer);
-  document.removeEventListener('fullscreenchange', () => {});
+  document.removeEventListener('fullscreenchange', handleFullscreenChange);
 });
 </script>
 
@@ -83,14 +92,15 @@ onBeforeUnmount(() => {
 
     <!-- 右侧：操作按钮 -->
     <div v-if="showFullscreen" class="flex items-center gap-3">
-      <button :class="actionBtnClassName" @click="toggleFullscreen">
-        <FullscreenOutlined v-if="!isFullscreen" class="text-xs" />
-        <FullscreenExitOutlined v-else class="text-xs" />
+      <button
+        type="button"
+        :class="actionBtnClassName"
+        :aria-label="isFullscreen ? '退出全屏' : '全屏'"
+        @click="toggleFullscreen"
+      >
+        <FullscreenExitOutlined v-if="isFullscreen" class="text-xs" />
+        <FullscreenOutlined v-else class="text-xs" />
         {{ isFullscreen ? '退出全屏' : '全屏' }}
-      </button>
-      <button :class="actionBtnClassName">
-        <SettingOutlined class="text-xs" />
-        设置
       </button>
     </div>
   </div>

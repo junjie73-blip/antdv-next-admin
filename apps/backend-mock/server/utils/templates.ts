@@ -19,14 +19,16 @@ export const PRESET_TEMPLATES: MockTemplatePreset[] = [
     template: {
       'list|10': [
         {
-          'id|+': 1,
+          'id|+1': 1,
           email: '@email',
           name: '@cname',
           'status|1': [0, 1],
           createTime: '@datetime("yyyy-MM-dd HH:mm:ss")',
         },
       ],
-      'total|+100': 100,
+      // mockjs 的自增规则只有 `|+1` 生效，且只在数组重复规则里累加；
+      // 标量位置写 `|+100` 会被整条忽略，这里直接给固定总数
+      total: 100,
     },
     key: '[GET]/demo/page-list',
     title: '演示分页列表',
@@ -61,7 +63,7 @@ export const PRESET_TEMPLATES: MockTemplatePreset[] = [
     template: {
       'rows|20': [
         {
-          'id|+': 1,
+          'id|+1': 1,
           name: '@cname',
           phone: '@integer(13000000000, 13999999999)',
           address: '@county(true)',

@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import { computed, shallowRef, watch, watchEffect } from 'vue';
+import { computed, shallowRef, watch } from 'vue';
 
 import { autoPrefixTransformer, px2remTransformer } from '@antdv-next/cssinjs';
 import { HappyProvider } from '@antdv-next/happy-work-theme';
-// eslint-disable-next-line import/order
+import dayjs from '@antdv/shared/dayjs';
 import { ConfigProvider, StyleProvider } from 'antdv-next';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { getThemeConfig } from '~/settings';
+import { getThemeConfig, loadLocale } from '~/settings';
 import { useAppStore } from '~/stores/modules/app';
-import dayjs from '~/utils/dayjs';
 
 import 'dayjs/locale/zh-cn';
 import 'dayjs/locale/zh-tw';
@@ -22,16 +21,31 @@ dayjs.locale('zh-CN');
 
 const antdLocale = shallowRef<any>();
 
-const getPopupContainer = (
-  triggerNode?: HTMLElement | undefined,
-): HTMLElement => triggerNode?.parentElement || document.body;
+/**
+ * 弹层挂载点。
+ *
+ * 默认挂在触点的父节点上，是为了让下拉/气泡在**内层滚动容器**里跟着内容一起滚
+ * （挂 body 的话滚动时会被留在原地）。但这一条在表格固定列上是反效果：
+ * 固定列的 `<td class="ant-table-cell-fix-end">` 是 `position: sticky` 且自带 z-index，
+ * sticky 一律形成层叠上下文 —— 弹层挂进去以后，它的 `z-index: 1060` 只在这个上下文里比大小，
+ * 于是被隔壁那一格的 sticky 阴影（`...-fix-end-shadow-show`）整块盖住。
+ * 表现："删除"的二次确认弹出来了，但「确定」点不下去，鼠标实际点到的是表格单元格。
+ * 落点在固定列里时退回 body：弹层脱离这个上下文，位置照样算得对，代价是
+ * "开着弹层滚表格"这种罕见操作下面板不跟着走，比"按钮点不动"轻得多。
+ */
+const getPopupContainer = (triggerNode?: HTMLElement): HTMLElement => {
+  if (
+    triggerNode?.closest(
+      '.ant-table-cell-fix, .ant-table-cell-fix-start, .ant-table-cell-fix-end',
+    )
+  ) {
+    return document.body;
+  }
+  return triggerNode?.parentElement || document.body;
+};
 
 const themeConfig = computed(() =>
-  getThemeConfig(
-    appStore.themeStyle,
-    appStore.themeMode === 'dark',
-    appStore.appSetting,
-  ),
+  getThemeConfig(appStore.appSetting, appStore.isSystemDark),
 );
 
 const DAYJS_LOCALE_MAP: Record<string, string> = {
@@ -43,36 +57,14 @@ const DAYJS_LOCALE_MAP: Record<string, string> = {
 watch(
   () => appStore.locale,
   async (locale) => {
-    // 1) 切 dayjs
+    // 1) 切 dayjs（日期格式化跟着语言走）
     dayjs.locale(DAYJS_LOCALE_MAP[locale] || 'zh-cn');
-
-    // 2) 切 antd locale
-    const localeModules: Record<string, () => Promise<{ default: any }>> = {
-      'zh-CN': () => import('antdv-next/locale/zh_CN'),
-      'zh-TW': () => import('antdv-next/locale/zh_TW'),
-      'en-US': () => import('antdv-next/locale/en_US'),
-    };
-
-    const loader = localeModules[locale] || localeModules['zh-CN'];
-    if (loader) {
-      const module = await loader();
-      antdLocale.value = module.default;
-    }
-  },
-  { immediate: true },
-);
-
-watchEffect(() => {
-  const html = document.documentElement;
-  html.classList.toggle('dark', appStore.themeMode === 'dark');
-  html.classList.toggle('color-weak', appStore.colorWeak);
-  html.classList.toggle('gray-mode', appStore.grayMode);
-});
-
-watch(
-  () => appStore.primaryColor,
-  (color) => {
-    document.documentElement.style.setProperty('--ant-color-primary', color);
+    // 2) 切 antd locale：语言包按需动态 import，失败时由包内部回落默认语言
+    //    这一行以前是注释掉的，于是 `antdLocale` 恒为 undefined，ConfigProvider 用英文兜底：
+    //    整站中文的界面里，凡是 antd 自带文案的地方都是英文 ——
+    //    Popconfirm 的「Cancel / OK」、Upload 图片墙的 title="Preview file / Download file / Delete file"、
+    //    Table 的空状态与"暂无数据"、Pagination 的页码文案。切换到中文才露出来，属于全站性缺陷。
+    antdLocale.value = await loadLocale(locale);
   },
   { immediate: true },
 );

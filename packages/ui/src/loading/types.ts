@@ -1,4 +1,4 @@
-import type { ComponentPublicInstance, DirectiveBinding } from 'vue';
+import type { MaybeRefOrGetter } from 'vue';
 
 /**
  * Loading 组件尺寸类型
@@ -51,13 +51,21 @@ export interface LoadingProps {
 }
 
 /**
- * Loading 组件实例方法
+ * Loading 实例方法
+ *
+ * 语义约定：`open/close/setLoading` 控制显隐，`close` 会等淡出动画结束后自动清理 DOM；
+ * `destroy` 是强制清理（不等动画），用于路由守卫中断、组件卸载等确定不再显示的场景。
  */
 export interface LoadingInstance {
   /**
-   * 关闭 loading
+   * 关闭 loading（等待淡出动画后移除 DOM）
    */
   close: () => void;
+
+  /**
+   * 强制移除 loading DOM，不等动画，也不触发 `onClose`
+   */
+  destroy: () => void;
 
   /**
    * 打开 loading
@@ -80,9 +88,12 @@ export interface LoadingInstance {
  */
 export interface UseLoadingOptions extends LoadingProps {
   /**
-   * 目标容器（CSS 选择器或元素）
+   * 目标容器（CSS 选择器、元素、ref 或 getter）
+   *
+   * 容器是延迟解析的：只在第一次真正需要显示时才查找，
+   * 因此在 `setup` 里对着还没挂载的 `useTemplateRef()` 写 getter 是安全的。
    */
-  target?: HTMLElement | string;
+  target?: MaybeRefOrGetter<HTMLElement | string | undefined>;
 
   /**
    * 是否挂载到 body
@@ -135,22 +146,3 @@ export interface LoadingDirectiveBinding {
    */
   arg?: string;
 }
-
-/**
- * 扩展 HTMLElement 类型，用于存储 loading 实例
- */
-declare global {
-  interface HTMLElement {
-    /**
-     * Loading 组件实例
-     */
-    _loadingInstance?: ComponentPublicInstance<LoadingProps>;
-
-    /**
-     * Loading 元素容器
-     */
-    _loadingEl?: HTMLDivElement;
-  }
-}
-
-export type { ComponentPublicInstance, DirectiveBinding };

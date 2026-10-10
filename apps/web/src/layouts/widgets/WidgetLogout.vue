@@ -25,7 +25,8 @@ function handleLogout() {
 </script>
 
 <template>
-  <WidgetButton @click="handleLogout">
+  <!-- data-testid 保留给已有用例；aria-label 由 WidgetButton 统一给出（图标按钮要有可读名字） -->
+  <WidgetButton label="退出登录" data-testid="logout-widget" @click="handleLogout">
     <Icon icon="carbon:logout" class="text-lg" />
   </WidgetButton>
 </template>

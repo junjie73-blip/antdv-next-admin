@@ -5,6 +5,7 @@ import type { BasicColumn } from '~/components/business/Table'
 
 import { computed, ref } from 'vue'
 
+import { cn } from '@antdv/shared/cn'
 import { Icon } from '@iconify/vue'
 import {
   addSetting,
@@ -19,7 +20,6 @@ import { BasicModal, useModal } from '~/components/business/Modal'
 import { BasicTable, useTable } from '~/components/business/Table'
 import { DictType } from '~/enums/dict'
 import { useDictStore } from '~/stores'
-import { cn } from '~/utils/cn'
 
 defineOptions({ name: 'SystemSettings' })
 

@@ -17,9 +17,9 @@ import {
   watch,
 } from 'vue';
 
+import { cn } from '@antdv/shared/cn';
 import { Editor, EditorContent } from '@tiptap/vue-3';
 import { message } from 'antdv-next';
-import { cn } from '~/utils/cn';
 
 import EditorToolbar from './components/EditorToolbar.vue';
 import { DEFAULT_TOOLBAR_KEYS } from './constants';
@@ -53,6 +53,11 @@ const emit = defineEmits<MarkdownEditorEvents>();
 const editorRef = shallowRef<Editor | undefined>();
 const textLength = ref(0);
 const htmlLength = ref(0);
+/**
+ * 当前 HTML 快照，只给 `mode="split"` 的预览栏用。
+ * 不复用 `props.value`：分屏要跟着输入实时刷新，而父组件不一定要双向绑定。
+ */
+const currentHtml = ref(normalizeHtml(props.value));
 const isFullScreen = ref(false);
 
 const imageInputRef = ref<HTMLInputElement | null>(null);
@@ -91,6 +96,18 @@ function escapeHtml(text: string): string {
 }
 
 /**
+ * 把 HTML/纯文本压成可比较的纯文本：去标签、去实体、折空白。
+ * 用于判断"外部传回来的 value 和我们刚抛出去的文本是否等价"。
+ */
+function normalizeText(source: string): string {
+  return source
+    .replaceAll(/<[^>]*>/g, ' ')
+    .replaceAll(/&[a-z]+;/gi, ' ')
+    .replaceAll(/\s+/g, ' ')
+    .trim();
+}
+
+/**
  * 外部写入内容后短时间内忽略 value 的回落
  *
  * 父组件收到 update:value 后可能再传回一个等价但字符串不同的值，
@@ -110,6 +127,7 @@ function updateStats(): void {
   if (!editor) return;
   textLength.value = editor.getText().length;
   htmlLength.value = editor.getHTML().length;
+  currentHtml.value = editor.getHTML();
 }
 
 /** 编辑器内容变化后统一回写 model、抛事件、刷新统计 */
@@ -123,6 +141,7 @@ function syncFromEditor(editor: Editor): void {
 
   textLength.value = text.length;
   htmlLength.value = html.length;
+  currentHtml.value = html;
 }
 
 function replaceContent(html: string): void {
@@ -162,6 +181,24 @@ const contentStyle = computed(() => {
 function toggleFullScreen(): void {
   isFullScreen.value = !isFullScreen.value;
 }
+
+/**
+ * `mode="split"` 的预览栏样式。
+ *
+ * 分屏时两栏都改成"按剩余空间分配"（`flex: 1 1 0%`），不再用固定 `height`：
+ * 固定高度下两栏会把 `overflow-hidden` 的容器撑爆，预览栏直接被裁掉。
+ */
+const editorPaneStyle = computed<Record<string, string>>(() =>
+  props.mode === 'split'
+    ? { flex: '1 1 0%', minHeight: minHeightCss.value }
+    : contentStyle.value,
+);
+
+const previewPaneStyle = computed<Record<string, string>>(() => ({
+  flex: '1 1 0%',
+  maxHeight: maxHeightCss.value,
+  minHeight: minHeightCss.value,
+}));
 
 /* ============================================================
  * 上传
@@ -239,8 +276,8 @@ async function uploadImageByHttp(file: File): Promise<void> {
 
     cfg.onSuccess?.(file, result);
     emit('uploadSuccess', file, result);
-  } catch (error) {
-    const error = error instanceof Error ? error : new Error(String(error));
+  } catch (raw) {
+    const error = raw instanceof Error ? raw : new Error(String(raw));
     message.error(`图片上传失败：${error.message}`);
     cfg.onError?.(file, error);
     emit('uploadError', file, error);
@@ -262,8 +299,8 @@ async function uploadVideoByHttp(file: File): Promise<void> {
 
     cfg.onSuccess?.(file, result);
     emit('uploadSuccess', file, result);
-  } catch (error) {
-    const error = error instanceof Error ? error : new Error(String(error));
+  } catch (raw) {
+    const error = raw instanceof Error ? raw : new Error(String(raw));
     message.error(`视频上传失败：${error.message}`);
     cfg.onError?.(file, error);
     emit('uploadError', file, error);
@@ -401,18 +438,37 @@ editorRef.value = new Editor({
 
 onMounted(() => {
   const editor = editorRef.value;
-  if (editor) emit('created', editor);
+  if (!editor) return;
+  /**
+   * 初值不会触发 `onUpdate`（tiptap 只在用户改动时抛），所以这里补一次统计，
+   * 否则"带初值打开"的字数一直显示 0 字。
+   */
+  updateStats();
+  emit('created', editor);
 });
 
 watch(
   () => props.value,
   (newValue) => {
-    if (isInternalUpdate) return;
     const editor = editorRef.value;
     if (!editor) return;
 
     const next = normalizeHtml(newValue);
     if (isSameContent(next, editor.getHTML())) return;
+
+    /**
+     * 屏蔽期（刚抛过 `update:value`）里不能无条件 return。
+     *
+     * 这条守卫的本意是挡住"父组件把我们抛出的 HTML 原样传回来"的回声 ——
+     * 那种情况下重新 setContent 只会让光标跳到文首。但无条件的 return 把
+     * **真·外部改写**也一起吞了：挂载后 200ms 内换一整篇内容会被静默丢弃，
+     * 表现就是"带初值的编辑器打开是空的"（富文本示例页就是这么露馅的）。
+     *
+     * 所以按文本判定：与我们刚抛出去的文本等价 → 回声，跳过；
+     * 不等价 → 是外部换了内容，必须落地。
+     */
+    if (isInternalUpdate && normalizeText(next) === normalizeText(editor.getText()))
+      return;
 
     editor.commands.setContent(next, { emitUpdate: false });
     updateStats();
@@ -513,10 +569,35 @@ const toolbarClassName = computed(() =>
       @toggle-full-screen="toggleFullScreen"
     />
 
-    <!-- 编辑器内容：滚动容器由本组件提供，ProseMirror 只负责排版 -->
-    <div class="min-h-0 overflow-auto" :style="contentStyle">
+    <!--
+      编辑器内容：滚动容器由本组件提供，ProseMirror 只负责排版。
+      高度策略（全屏 flex / 固定 height / min+max 自适应）原样落在 Scrollbar 的根节点上：
+      内联 style 会覆盖组件自己的 rootStyle，而 `root-class="min-h-0"` 顶掉了默认的
+      `h-full`，避免"高度由内容决定 + maxHeight"时百分比高度把编辑区撑到 0。
+    -->
+    <Scrollbar
+      :style="editorPaneStyle"
+      root-class="min-h-0"
+      wrap-class="overflow-x-hidden"
+      data-editor-scroll
+    >
       <EditorContent :editor="editorRef" />
-    </div>
+    </Scrollbar>
+
+    <!--
+      分屏预览：把当前 HTML 渲染出来，随输入实时刷新。
+      走 `v-safe-html` 而不是 `v-html` —— 编辑器允许用户粘贴任意标签，
+      脚本注入必须由 XSS 指令先过一遍（与全站富文本渲染口径一致）。
+    -->
+    <Scrollbar
+      v-if="mode === 'split'"
+      :style="previewPaneStyle"
+      class="border-t border-gray-200 dark:border-gray-700"
+      data-preview-scroll
+      root-class="min-h-0"
+    >
+      <div class="md-content p-3 text-sm" v-safe-html="currentHtml" />
+    </Scrollbar>
 
     <!-- 字数统计 -->
     <div

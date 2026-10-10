@@ -1,0 +1,24 @@
+/*
+ * 无权限降级样式。
+ *
+ * `@antdv/directives` 的 v-permission 只负责"打标记"：判定不通过时给元素
+ * 叠加 `permission-disabled`（`.disabled` 修饰符）或直接 display:none（默认）。
+ * 视觉长什么样归样式层，所以这条规则放在这里，指令包里不写 CSS。
+ *
+ * 写在 @layer components 里：模板上的工具类（utilities 层）仍然能覆盖它，
+ * 例如某个按钮想"无权限也保持 100% 不透明"，加 `opacity-100` 就够了。
+ */
+@layer components {
+  .permission-disabled {
+    @apply cursor-not-allowed opacity-50 saturate-50 select-none;
+    /* 指令已经写了 disabled 属性，但 span / div 这类非表单元素不认 disabled，
+       这里统一挡掉交互，避免出现"看着是灰的却还能点" */
+    pointer-events: none;
+  }
+
+  /* 逃生舱：某些纯展示容器希望"看着降级但还能交互"，
+     模板上叠加这个类即可，不必改指令的判定逻辑 */
+  .permission-disabled--passthrough {
+    pointer-events: auto;
+  }
+}
