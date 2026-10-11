@@ -231,7 +231,7 @@ onUnmounted(() => {
   <!-- 功能未启用：只说明状态，不去"假装"嵌了个子应用 -->
   <div
     v-if="!isEnabled"
-    class="flex h-full flex-col items-center justify-center gap-2 p-6 text-center"
+    class="flex h-full flex-col items-center justify-center gap-2 text-center"
     style="min-height: 300px"
   >
     <Icon icon="carbon:warning-alt" class="text-4xl text-yellow-500" />
@@ -251,7 +251,7 @@ onUnmounted(() => {
   <!-- 注册表为空 / 菜单没配 meta：干净的空状态，不再打印调试 JSON -->
   <div
     v-else-if="!microAppConfig"
-    class="flex h-full flex-col items-center justify-center gap-2 p-6 text-center"
+    class="flex h-full flex-col items-center justify-center gap-2 text-center"
     style="min-height: 300px"
   >
     <Icon icon="carbon:application" class="text-4xl text-gray-300" />

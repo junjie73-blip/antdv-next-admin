@@ -38,13 +38,6 @@ const list: BackendMenu[] = [
         keepAlive: true,
       },
       {
-        menuName: '工作台',
-        name: 'Workbench',
-        icon: 'carbon:idea',
-        path: '/dashboard/workbench',
-        keepAlive: true,
-      },
-      {
         menuName: '实时监控大屏',
         name: 'ScreenMonitor',
         icon: 'carbon:chart-line-data',
@@ -191,6 +184,12 @@ const list: BackendMenu[] = [
         icon: 'carbon:catalog',
         path: '',
         children: [
+          {
+            menuName: '示例总览',
+            name: 'DemoComponentsOverview',
+            icon: 'carbon:catalog',
+            path: '/components/overview',
+          },
           {
             menuName: '基础组件',
             name: 'DemoGalleryBasic',
@@ -376,6 +375,33 @@ const list: BackendMenu[] = [
                 name: 'DemoVueUse',
                 icon: 'carbon:tools',
                 path: '/components/vueuse',
+              },
+            ],
+          },
+          // 反馈、数据展示、指令：按 vben 的示例分类补的三页，只用本项目已有的依赖。
+          {
+            menuName: '反馈与工具',
+            name: 'DemoGalleryFeedback',
+            icon: 'carbon:notification',
+            path: '',
+            children: [
+              {
+                menuName: '反馈与交互',
+                name: 'DemoComponentsFeedback',
+                icon: 'carbon:notification-new',
+                path: '/components/feedback',
+              },
+              {
+                menuName: '数据展示',
+                name: 'DemoComponentsDataDisplay',
+                icon: 'carbon:data-2',
+                path: '/components/data-display',
+              },
+              {
+                menuName: '自定义指令',
+                name: 'DemoComponentsDirective',
+                icon: 'carbon:terminal',
+                path: '/components/directive',
               },
             ],
           },

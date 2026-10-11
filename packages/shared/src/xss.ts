@@ -445,7 +445,7 @@ export const safeHtmlDirective = {
 };
 
 /**
- * v-escape 指令 — 自动转义文本内容
+ * v-escape 指令 — 把内容当纯文本渲染，按语境做安全转换
  *
  * 使用方式：
  * <span v-escape="userInput"></span>
@@ -453,15 +453,25 @@ export const safeHtmlDirective = {
  */
 export const escapeDirective = {
   mounted(el: HTMLElement, binding: EscapeBinding): void {
-    const context = binding.arg || 'html';
-    el.textContent = smartEscape(binding.value, context);
+    renderEscaped(el, binding);
   },
 
   updated(el: HTMLElement, binding: EscapeBinding): void {
-    const context = binding.arg || 'html';
-    el.textContent = smartEscape(binding.value, context);
+    renderEscaped(el, binding);
   },
 };
+
+/**
+ * `textContent` 本身就不会把内容解析成 HTML，所以 html 语境下再跑一遍
+ * `escapeHtml` 只会让用户看见 `&lt;script&gt;` 这种实体噪音——原文里本来就没有这些字符。
+ * 其余语境（url / js / css / attr）的转义是**语义变换**（伪协议换成 `#unsafe-url`），
+ * 结果仍然要作为文字显示，所以照旧走 `smartEscape`。
+ */
+function renderEscaped(el: HTMLElement, binding: EscapeBinding) {
+  const context = binding.arg || 'html';
+  el.textContent =
+    context === 'html' ? binding.value : smartEscape(binding.value, context);
+}
 // 抽离公共逻辑
 function updateSafeHtml(el: HTMLElement, binding: SafeHtmlBinding) {
   const rawValue =

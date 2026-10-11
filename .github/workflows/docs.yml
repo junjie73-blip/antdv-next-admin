@@ -1,0 +1,77 @@
+# 文档站：构建 + 发布到 GitHub Pages。
+# 这里刻意不跑 lint / type-check / e2e —— 那些守的是应用代码（见 ci.yml）。
+# 文档唯一的闸门是 VitePress 自带的死链检查，构建红了就不发布。
+#
+# 前置条件（只做一次）：Settings → Pages → Build and deployment → Source = GitHub Actions。
+# 没设这一步，deploy job 会报 "Pages either do not exist or are disabled"。
+name: Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs.yml'
+      # 依赖树变了也要重建，否则 lockfile 与产物可能不同步
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs.yml'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+  workflow_dispatch:
+
+# 同一分支的下一次推送覆盖当前发布
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    name: 构建文档
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Pages 项目站挂在 /<仓库名>/ 下；绑自定义域名或用户站时把它改成 /
+      VITEPRESS_BASE: /${{ github.event.repository.name }}/
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      # 只装 docs 和它的依赖：文档站不碰 echarts / tiptap / video.js 那些重依赖
+      - name: Install
+        run: pnpm install --frozen-lockfile --filter @antdv/docs...
+
+      - name: Build
+        run: pnpm --filter @antdv/docs build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/.vitepress/dist
+
+  deploy:
+    name: 发布到 Pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # PR 只构建验证，不动线上站点
+    if: github.event_name != 'pull_request'
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

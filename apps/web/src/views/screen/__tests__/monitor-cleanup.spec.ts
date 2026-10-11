@@ -1,4 +1,5 @@
 import { flushPromises, mount } from '@vue/test-utils';
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import Monitor from '../monitor/index.vue';
@@ -79,13 +80,14 @@ vi.mock('~/api/screen', () => ({
 const observers: Array<{
   cb: (entries: any[]) => void;
   disconnected: boolean;
-  observed: boolean;
+  observed: number;
 }> = [];
 
 class RecordingObserver {
   cb: (entries: any[]) => void;
   disconnected = false;
-  observed = false;
+  /** observe 被调了几次（0/1 表示已断开，2 表示卸载后又复用了同一个实例） */
+  observed = 0;
 
   constructor(cb: (entries: any[]) => void) {
     this.cb = cb;
@@ -94,11 +96,11 @@ class RecordingObserver {
 
   disconnect() {
     this.disconnected = true;
-    this.observed = false;
+    this.observed = 0;
   }
   observe() {
     // 关键：不立刻回调整寸，模拟"容器迟迟没有尺寸"，把兜底 setTimeout 那条路走满
-    this.observed = true;
+    this.observed += 1;
   }
   takeRecords() {
     return [];
@@ -145,6 +147,13 @@ function giveSize() {
 function setOptionCalls() {
   return echartsStub.instances.reduce(
     (sum, instance) => sum + instance.setOption.mock.calls.length,
+    0,
+  );
+}
+
+function resizeCalls() {
+  return echartsStub.instances.reduce(
+    (sum, instance) => sum + instance.resize.mock.calls.length,
     0,
   );
 }
@@ -214,6 +223,45 @@ describe('大屏监控页的资源清理', () => {
     // 卸载之后再推进定时器，实例总数不该变（没有"复活"的漏网实例）
     vi.advanceTimersByTime(10_000);
     expect(echartsStub.instances).toHaveLength(created);
+  });
+
+  it('容器变宽变高时图表跟着 resize（侧栏折叠、全屏、scale 重算都是这种）', async () => {
+    /**
+     * jsdom 里所有盒子都是 0×0，而常驻观察器的回调刻意跳过 0 尺寸
+     * （容器被 `display:none` 藏起来时 resize 只会把画布糊成一片）。
+     * 这条用例要验的正是"有尺寸的容器变了 → 图跟着变"，所以先把尺寸补上，
+     * 顺带让 `initChartImmediately` 走同步建图分支（真实浏览器首帧就是这样）。
+     */
+    for (const prop of ['clientHeight', 'clientWidth', 'offsetHeight', 'offsetWidth'] as const) {
+      Object.defineProperty(HTMLElement.prototype, prop, {
+        configurable: true,
+        value: 320,
+      });
+    }
+
+    try {
+      const wrapper = mountMonitor();
+      await flushPromises();
+
+      const created = echartsStub.instances.length;
+      expect(created).toBeGreaterThan(0);
+
+      const before = resizeCalls();
+      for (const observer of observers) observer.cb([]);
+      await flushPromises();
+      // 只验行为：容器尺寸变了必须有图跟着 resize。
+      // 不去数观察器个数 —— 页面里 Scrollbar / 适配钩子也在挂 ResizeObserver，
+      // 按个数断言会把别人的资源算进来，一改就碎。
+      expect(resizeCalls()).toBeGreaterThan(before);
+
+      // 视口没变、只有容器变 —— window resize 监听帮不上忙，卸载时必须全断开
+      await wrapper.unmount();
+      expect(observers.filter((observer) => !observer.disconnected)).toEqual([]);
+    } finally {
+      for (const prop of ['clientHeight', 'clientWidth', 'offsetHeight', 'offsetWidth'] as const) {
+        delete (HTMLElement.prototype as any)[prop];
+      }
+    }
   });
 
   it('离开大屏后刷新数据的循环也停了', async () => {

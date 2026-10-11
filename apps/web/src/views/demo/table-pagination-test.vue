@@ -177,7 +177,7 @@ function testPaginationSize() {
 </script>
 
 <template>
-  <div class="p-6">
+  <div>
     <Card title="表格分页测试">
       <Alert
         v-if="currentTest"

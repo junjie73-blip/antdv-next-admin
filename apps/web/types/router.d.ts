@@ -59,9 +59,23 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/components/data-display/': RouteRecordInfo<
+      '/components/data-display/',
+      '/components/data-display',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/components/detail/': RouteRecordInfo<
       '/components/detail/',
       '/components/detail',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/directive/': RouteRecordInfo<
+      '/components/directive/',
+      '/components/directive',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -76,6 +90,13 @@ declare module 'vue-router/auto-routes' {
     '/components/editor/rich-text/': RouteRecordInfo<
       '/components/editor/rich-text/',
       '/components/editor/rich-text',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/feedback/': RouteRecordInfo<
+      '/components/feedback/',
+      '/components/feedback',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -118,6 +139,13 @@ declare module 'vue-router/auto-routes' {
     '/components/loading/': RouteRecordInfo<
       '/components/loading/',
       '/components/loading',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/overview/': RouteRecordInfo<
+      '/components/overview/',
+      '/components/overview',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -230,13 +258,6 @@ declare module 'vue-router/auto-routes' {
     'Analysis': RouteRecordInfo<
       'Analysis',
       '/dashboard/analysis',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/dashboard/workbench/': RouteRecordInfo<
-      '/dashboard/workbench/',
-      '/dashboard/workbench',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -447,9 +468,25 @@ declare module 'vue-router/auto-routes' {
       pathParamNames:
         | never
     }
+    'src/views/components/data-display/index.vue': {
+      routes:
+        | '/components/data-display/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/components/detail/index.vue': {
       routes:
         | '/components/detail/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/directive/index.vue': {
+      routes:
+        | '/components/directive/'
       views:
         | never
       pathParamNames:
@@ -466,6 +503,14 @@ declare module 'vue-router/auto-routes' {
     'src/views/components/editor/rich-text/index.vue': {
       routes:
         | '/components/editor/rich-text/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/feedback/index.vue': {
+      routes:
+        | '/components/feedback/'
       views:
         | never
       pathParamNames:
@@ -514,6 +559,14 @@ declare module 'vue-router/auto-routes' {
     'src/views/components/loading/index.vue': {
       routes:
         | '/components/loading/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/overview/index.vue': {
+      routes:
+        | '/components/overview/'
       views:
         | never
       pathParamNames:
@@ -642,14 +695,6 @@ declare module 'vue-router/auto-routes' {
     'src/views/dashboard/analysis/index.vue': {
       routes:
         | 'Analysis'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
-    'src/views/dashboard/workbench/index.vue': {
-      routes:
-        | '/dashboard/workbench/'
       views:
         | never
       pathParamNames:

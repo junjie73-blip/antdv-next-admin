@@ -33,6 +33,7 @@ interface ImportMetaEnv {
    * 接真实后端时填完整地址，例如 ws://localhost:8080/ws，token 由前端自动附加。
    */
   readonly VITE_WS_URL: string
+  readonly VITE_WRITE_DTS: boolean
 }
 
 interface ImportMeta {

@@ -69,7 +69,6 @@ export default {
   menu: {
     dashboard: '仪表盘',
     echarts: 'ECharts 仪表盘',
-    workplace: '工作台',
     personalCenter: '个人中心',
     profile: '个人信息',
     accountSettings: '账户设置',

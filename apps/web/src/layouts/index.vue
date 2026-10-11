@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { LayoutMode } from '@antdv/layouts';
+import type { ScrollbarType } from '@antdv/ui/scrollbar';
 
 import { computed, markRaw, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -8,7 +9,6 @@ import { useRouteLoading } from '@antdv/composables/useRouteLoading';
 import { useWatermark } from '@antdv/composables/useWatermark';
 import { LAYOUT_DRAWER_WIDTH } from '@antdv/layouts';
 import { cn } from '@antdv/shared/cn';
-import type { ScrollbarType } from '@antdv/ui/scrollbar';
 import { Drawer } from 'antdv-next';
 import PageLoading from '~/components/common/Loading/PageLoading.vue';
 import RouteLoadingBar from '~/components/common/Loading/RouteLoadingBar.vue';
@@ -232,11 +232,13 @@ useWatermark({
             出现时机都由操作系统决定，Windows 上那条 17px 的灰杠既压内容也对不上主题。
             `root-class="min-h-0 flex-1"` 让它在这个列向 flex 里拿满剩余高度，
             内边距挂在 view 上（见 contentClassName 的注释）。
+            「内容全屏 / 标签页放大」时不留这圈内边距：那种形态是沉浸视角，
+            四周留 16px 会把深色大屏围出一圈白边，等于全屏没全成。
           -->
           <Scrollbar
             ref="mainScrollbar"
             root-class="min-h-0 flex-1"
-            view-class="p-4"
+            :view-class="shellHidden ? '' : 'p-4'"
           >
             <PageTransition>
               <router-view v-slot="{ Component, route }">

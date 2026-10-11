@@ -284,14 +284,23 @@ describe('Vue 指令', () => {
     expect(el2.innerHTML).toContain('ok');
   });
 
-  it('v-escape 写入 textContent，默认按 HTML 上下文转义', () => {
+  it('v-escape 用 textContent 落文本：html 语境不再二次转义，其余语境按语义变换', () => {
     const el = document.createElement('span');
     escapeDirective.mounted(el, { arg: undefined, value: '<b>x</b>' });
-    expect(el.textContent).toBe('&lt;b&gt;x&lt;&#x2F;b&gt;');
+    /**
+     * `textContent` 赋值本身就不会被解析成 HTML，先 `escapeHtml` 再写进去只会
+     * 让用户看到 `&lt;b&gt;` —— 原文里根本没有这些字符。
+     */
+    expect(el.textContent).toBe('<b>x</b>');
+    expect(el.innerHTML).toBe('&lt;b&gt;x&lt;/b&gt;');
     expect(el.querySelector('b')).toBeNull();
 
     const js = document.createElement('span');
     escapeDirective.updated(js, { arg: 'js', value: `"q"` });
     expect(js.textContent).toBe(escapeJs('"q"'));
+
+    const url = document.createElement('span');
+    escapeDirective.mounted(url, { arg: 'url', value: 'javascript:alert(1)' });
+    expect(url.textContent).toBe('#unsafe-url');
   });
 });

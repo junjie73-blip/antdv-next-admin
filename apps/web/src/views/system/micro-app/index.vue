@@ -144,7 +144,7 @@ watch(
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-4 p-4">
+  <div class="flex h-full flex-col gap-4">
     <!-- 页面标题 -->
     <div class="flex items-center justify-between">
       <div>

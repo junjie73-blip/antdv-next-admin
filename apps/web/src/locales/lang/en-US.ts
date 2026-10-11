@@ -69,7 +69,6 @@ export default {
   menu: {
     dashboard: 'Dashboard',
     echarts: 'ECharts Dashboard',
-    workplace: 'Workplace',
     personalCenter: 'Personal Center',
     profile: 'Profile',
     accountSettings: 'Account Settings',

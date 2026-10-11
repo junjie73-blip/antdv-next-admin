@@ -50,8 +50,9 @@ function snapshot(
  * 模板：
  * - `v-permission="'user:add'"` 单权限
  * - `v-permission="['a','b']"` 任一命中；`v-permission.all="['a','b']"` 全部命中
- * - `v-permission.role="'admin'"` / `v-permission.admin` 走角色与管理员通道
- * - `v-permission.disabled="'user:add'"` 无权限时置灰而不是隐藏
+ * - `v-permission:role="'admin'"` / `v-permission:admin` 走角色与管理员通道
+ *   （`role`/`admin` 是**参数 arg**，不是修饰符；写成 `.role` 判定不认）
+ * - `v-permission.disabled="'user:add'"` 无权限时置灰而不是隐藏（这条才是修饰符）
  */
 export function createPermissionDirective(
   options: PermissionDirectiveOptions,

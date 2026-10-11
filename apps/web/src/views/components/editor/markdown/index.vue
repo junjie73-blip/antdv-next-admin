@@ -474,7 +474,7 @@ const rendererToggleClassName = cn(
 </script>
 
 <template>
-  <div class="flex h-full flex-col p-4">
+  <div class="flex h-full flex-col">
     <div class="mb-1 flex items-center justify-between">
       <div>
         <h1 :class="pageTitleClassName">Markdown 编辑器</h1>

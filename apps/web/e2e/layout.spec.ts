@@ -254,8 +254,9 @@ test.describe('布局形态', () => {
     await go(page, '/system/user');
     await expect(region(page, 'sidebar').getByText('用户管理')).toBeVisible();
 
-    await go(page, '/dashboard/workbench');
-    await expect(region(page, 'sidebar').getByText('工作台')).toBeVisible();
+    await go(page, '/dashboard/analysis');
+    await expect(region(page, 'sidebar').getByText('分析面板')).toBeVisible();
+    await expect(region(page, 'sidebar').getByText('用户管理')).toBeHidden();
     await expect(region(page, 'sidebar').getByText('用户管理')).toHaveCount(0);
   });
 

@@ -100,3 +100,46 @@ input[type='radio']:disabled,
 select:disabled {
   @apply cursor-not-allowed;
 }
+
+/*
+ * 拖拽/点击上传的整块区域。
+ *
+ * antd 给 `.ant-btn` 之类都安排了光标，唯独漏了上传触发区：`.ant-upload` 里包的是
+ * 一个 `<span>`（不是 button），点它等于打开文件选择框，光标却一直是箭头 ——
+ * 用户只会以为这块地方没接上。禁用态（`ant-upload-disabled`）跟着给 not-allowed。
+ */
+.ant-upload:not(.ant-upload-disabled) {
+  @apply cursor-pointer;
+}
+
+.ant-upload.ant-upload-disabled {
+  @apply cursor-not-allowed;
+}
+
+/*
+ * 带 ARIA role 的自定义控件。
+ *
+ * `role="radio"` / `role="switch"` 这类属性就是在宣布"我这儿能点"，可评分组件
+ * （`.ant-rate-star > div[role='radio']`）之类只把光标写在了外层 `<li>` 上，
+ * 鼠标真正停在的那个 div 算出来是 `default` —— 于是"评分点亮了、光标没变"。
+ * 按 role 接一次，比逐个组件打补丁稳：以后新引的无障碍控件天生就带光标。
+ */
+[role='button']:not([disabled]),
+[role='checkbox']:not([aria-disabled='true']),
+[role='radio']:not([aria-disabled='true']),
+[role='switch']:not([aria-disabled='true']),
+[role='tab']:not([aria-disabled='true']),
+[role='menuitem']:not([aria-disabled='true']),
+[role='option']:not([aria-disabled='true']),
+[role='combobox']:not([aria-disabled='true']) {
+  @apply cursor-pointer;
+}
+
+[role='button'][disabled],
+[role='checkbox'][aria-disabled='true'],
+[role='radio'][aria-disabled='true'],
+[role='switch'][aria-disabled='true'],
+[role='tab'][aria-disabled='true'],
+[role='option'][aria-disabled='true'] {
+  @apply cursor-not-allowed;
+}

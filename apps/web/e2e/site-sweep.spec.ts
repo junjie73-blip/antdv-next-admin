@@ -4,7 +4,13 @@ import process from 'node:process';
 
 import { expect, test } from '@playwright/test';
 
-import { HOME_PATH, signIn, watchErrors } from './utils/app';
+import {
+  go,
+  HOME_PATH,
+  navigate,
+  signIn,
+  watchErrors,
+} from './utils/app';
 
 /**
  * 全站页面巡检：把菜单里每一个叶子页面都走一遍，只问三个问题 ——
@@ -23,6 +29,39 @@ interface LeafMenu {
   keepAlive: boolean;
   path: string;
   title: string;
+}
+
+/**
+ * 落到了兜底错误页？（在浏览器里执行，所以必须是纯函数、不引用外部变量）
+ *
+ * 菜单里指向一个没注册的路由时，守卫/通配路由会跳到 403/404 —— 那仍然是一段
+ * "渲染成功、控制台干净"的 HTML，只靠 errors + html 长度发现不了。
+ * 巡检必须能抓到这种"链接是死的、页面却像是好的"的问题，所以按文案特征判定。
+ *
+ * 刻意**跳过 `a-card` 里的文字**：示例页（`/components/feedback`）把 404/403 的
+ * `a-result` 当素材摆在卡片里，整段 innerText 会把它一起读进来，把好页面误报成
+ * 兜底页（第一版就是这么红的）。真的兜底页是裸的 h1/p，不在卡里。
+ */
+function hasFallbackMarker(region: Element): boolean {
+  const markers = ['页面不存在', '您没有权限访问此页面', '服务暂不可用'];
+  const collect = (node: Node): string => {
+    if (
+      node.nodeType === Node.ELEMENT_NODE &&
+      (node as Element).closest('.ant-card')
+    ) {
+      return '';
+    }
+    if (node.nodeType === Node.TEXT_NODE) return node.textContent ?? '';
+    return [...node.childNodes].map(collect).join(' ');
+  };
+  return markers.some((marker) => collect(region).includes(marker));
+}
+
+/** 内容区定位器（巡检与下面的判定共用同一种"页面主体"口径） */
+function contentRegion(page: Page) {
+  return page
+    .locator('main, [data-layout-region="content"], .layout-content')
+    .first();
 }
 
 interface SweepRow {
@@ -111,7 +150,7 @@ async function collectLeaves(page: Page): Promise<LeafMenu[]> {
 }
 
 test.describe('全站页面巡检', () => {
-  test('每个菜单叶子页面都能打开，且没有本站错误 / 接口非 2xx', async ({ page }) => {
+  test('每个菜单叶子页面都能打开，且没有本站错误 / 接口非 2xx', async ({ page }, testInfo) => {
     await signIn(page);
 
     const leaves = await collectLeaves(page);
@@ -120,16 +159,24 @@ test.describe('全站页面巡检', () => {
 
     /**
      * 巡检是一条用例串完 21 页的"循环型"用例，超时预算必须按页数算，不能沿用配置里的
-     * 单页基准（全局 90s / WebKit 150s）。
+     * 单页基准（全局 90s / WebKit 240s）。
      *
      * 原先 21 × (导航 + 沉降 + 读 DOM) 全靠那个固定上限兜着：Chromium 5 分钟、Firefox
      * 9 分钟的整跑里它都擦着边过，而本机 WebKit 慢 3-5 倍时就直接被判成超时红 ——
      * 单跑立刻绿，说明红的是计时器不是页面。
      *
-     * 所以这里显式声明"每页预算"，默认 15s（比每页 20s 的激活等待略紧，够看出真退化），
-     * 需要更严用 `E2E_SWEEP_PAGE_BUDGET` 覆盖；页面数变多时预算自动跟着长。
+     * 所以这里显式声明"每页预算"，默认 15s，需要更严用 `E2E_SWEEP_PAGE_BUDGET` 覆盖；
+     * 页面数变多时预算自动跟着长。
+     *
+     * WebKit 单独放宽一档（25s/页、激活等待 60s）：三引擎整跑时它曾把 `/system/user`
+     * 判红 —— 现场快照停在上一个页面（实时监控大屏，本身还在跑定时器），标签页始终
+     * 没冒出来，也就是导航还在路上而不是页面坏了；把这一条单独重跑立刻绿。
+     * 巡检是"每页都能打开"的存在性检查，不是性能闸门，所以只给这个引擎放宽；
+     * Chromium / Firefox 保持 20s，真卡住仍然立刻红。
      */
-    const perPageBudget = Number(process.env.E2E_SWEEP_PAGE_BUDGET ?? 15_000);
+    const isWebkit = testInfo.project.name === 'webkit';
+    const perPageBudget = Number(process.env.E2E_SWEEP_PAGE_BUDGET ?? (isWebkit ? 25_000 : 15_000));
+    const activateTimeout = isWebkit ? 60_000 : 20_000;
     test.setTimeout(Math.max(150_000, leaves.length * perPageBudget + 60_000));
 
     const rows: SweepRow[] = [];
@@ -144,7 +191,7 @@ test.describe('全站页面巡检', () => {
       await expect(page.locator(`.tab-item[data-scroll-key="${leaf.path}"]`)).toHaveAttribute(
         'data-active',
         'true',
-        { timeout: 20_000 },
+        { timeout: activateTimeout },
       );
       /**
        * 每页留出一点沉降时间：路由异步块、接口失败提示都在"导航完成"信号之后再冒出来。
@@ -154,29 +201,13 @@ test.describe('全站页面巡检', () => {
       await page.waitForTimeout(500);
 
       // 页面主体真的挂载了：内容区里要有可见元素，不能只剩 loading
-      const render = await page
-        .locator('main, [data-layout-region="content"], .layout-content')
-        .first()
+      const render = await contentRegion(page)
         .innerHTML()
         .then((html) => `${html.length}`)
         .catch(() => 'NO-CONTENT-REGION');
 
-      /**
-       * 落到了兜底错误页？
-       *
-       * 菜单里指向一个没注册的路由时，守卫/通配路由会跳到 403/404 —— 那仍然是一段
-       * "渲染成功、控制台干净"的 HTML，只靠 errors + html 长度发现不了。
-       * 巡检必须能抓到这种"链接是死的、页面却像是好的"的问题，所以按文案特征判定。
-       */
-      const landedOnErrorPage = await page
-        .locator('main, [data-layout-region="content"], .layout-content')
-        .first()
-        .innerText()
-        .then((text) =>
-          ['页面不存在', '您没有权限访问此页面', '服务暂不可用'].some((marker) =>
-            text.includes(marker),
-          ),
-        )
+      const landedOnErrorPage = await contentRegion(page)
+        .evaluate(hasFallbackMarker)
         .catch(() => false);
 
       // 应用级错误提示（接口 5xx / 权限不足都会以 toast 呈现，用户看得见）
@@ -280,5 +311,28 @@ test.describe('全站页面巡检', () => {
         ),
       );
     }
+  });
+
+  /**
+   * 兜底页判定的正反两例 —— 上面那条巡检靠它抓"链接是死的、页面却像是好的"，
+   * 而它自己也得有人守着：
+   *  - 假阴：判定失效，死链接混进绿；
+   *  - 假阳：`/components/feedback` 里那张当素材用的 404 `a-result` 会把好页面判成兜底页
+   *    （巡检第一跑就是被它红的），所以"跳过卡片"这半边也要钉住。
+   */
+  test('兜底页判定：死链接要认得出，示例页的 404 卡不能误判', async ({ page }) => {
+    await signIn(page);
+
+    await navigate(page, '/components/this-page-does-not-exist');
+    // 兜底页不进标签页（`hidden` + 不在菜单里），所以按地址判落地，不能用 expectActivePath
+    await expect(page).toHaveURL(/#\/error\/404/);
+    expect(await contentRegion(page).evaluate(hasFallbackMarker)).toBe(true);
+
+    await go(page, '/components/feedback');
+    // 素材就摆在内容区里，靠文案区分不了，只有"是否在 `a-card` 内"能分清
+    await expect(
+      page.locator('main').getByText('这个页面不存在。'),
+    ).toBeVisible();
+    expect(await contentRegion(page).evaluate(hasFallbackMarker)).toBe(false);
   });
 });

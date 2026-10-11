@@ -3,6 +3,8 @@ packages:
   - internal/lint-configs/*
   - packages/*
   - apps/*
+  # 文档站与 apps 齐平：它不参与应用构建，独立部署（GitHub Pages），所以不藏在 apps/ 里
+  - docs
   - scripts/*
 
 allowBuilds:

@@ -2,6 +2,7 @@
 import type { Ref } from 'vue';
 
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { RouterLink } from 'vue-router';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
@@ -48,25 +49,41 @@ interface KpiItem {
   icon: string;
   color: string;
   trend: number;
-  trendLabel: string;
+  /** 对比口径（如「较昨日」）；省略时只显示涨跌百分比 */
+  trendLabel?: string;
 }
 
+// 原「工作台」的总用户数/活跃会话/告警数量在此并入；
+// 两边的「今日访问」是同一个指标，只保留一条，避免同页重复。
 const kpiList: KpiItem[] = [
+  {
+    title: '总用户数',
+    value: '1,286',
+    icon: 'carbon:user-multiple',
+    color: 'blue',
+    trend: 12,
+  },
   {
     title: '今日访问',
     value: '12,847',
     icon: 'carbon:view',
-    color: 'blue',
+    color: 'emerald',
     trend: 12.5,
     trendLabel: '较昨日',
   },
   {
-    title: '活跃用户',
-    value: '1,286',
-    icon: 'carbon:user-multiple',
-    color: 'emerald',
-    trend: -3.2,
-    trendLabel: '较昨日',
+    title: '活跃会话',
+    value: '186',
+    icon: 'carbon:activity',
+    color: 'cyan',
+    trend: -3.1,
+  },
+  {
+    title: '告警数量',
+    value: '3',
+    icon: 'carbon:warning-alt',
+    color: 'red',
+    trend: -25,
   },
   {
     title: 'API 调用',
@@ -95,6 +112,8 @@ function kpiIconWrap(color: string): string {
       'bg-violet-50 text-violet-600 dark:bg-violet-900/40 dark:text-violet-400',
     amber:
       'bg-amber-50 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400',
+    cyan: 'bg-cyan-50 text-cyan-600 dark:bg-cyan-900/40 dark:text-cyan-400',
+    red: 'bg-red-50 text-red-600 dark:bg-red-900/40 dark:text-red-400',
   };
   return cn(
     'flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg',
@@ -107,6 +126,81 @@ function kpiTrendColor(trend: number): string {
     ? 'text-emerald-600 dark:text-emerald-400'
     : 'text-red-600 dark:text-red-400';
 }
+
+// ═══════════════════════════════════════════
+// 🗂 工作台并入：快捷操作 / 最近动态
+// ═══════════════════════════════════════════
+
+// 原工作台的快捷操作是四个 `cursor-pointer` 却不可点的 div —— 光标在撒谎。
+// 并进来时全部换成真实路由跳转；「安全审计」从来没有对应页面，
+// 用可访问的「系统日志」替代（后端菜单里 name=MonitorLog，hidden 但仍放行）。
+interface QuickAction {
+  icon: string;
+  title: string;
+  desc: string;
+  path: string;
+  color: string;
+}
+
+const quickActions: QuickAction[] = [
+  {
+    icon: 'carbon:user-multiple',
+    title: '用户管理',
+    desc: '管理系统用户',
+    path: '/system/user',
+    color: 'text-ant-primary bg-ant-primary/10',
+  },
+  {
+    icon: 'carbon:user-role',
+    title: '角色权限',
+    desc: '配置角色与权限',
+    path: '/system/role',
+    color: 'text-violet-600 bg-violet-50 dark:text-violet-400 dark:bg-violet-900/40',
+  },
+  {
+    icon: 'carbon:document-security',
+    title: '系统日志',
+    desc: '查看操作审计',
+    path: '/system/log',
+    color: 'text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-900/40',
+  },
+  {
+    icon: 'carbon:chart-line-data',
+    title: '监控大屏',
+    desc: '实时数据监控',
+    path: '/screen/monitor',
+    color:
+      'text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-900/40',
+  },
+];
+
+const recentActivities = [
+  {
+    action: '管理员修改了角色「超级管理员」的权限',
+    time: '10分钟前',
+    type: 'permission',
+  },
+  { action: '用户「张伟」从北京登录系统', time: '25分钟前', type: 'login' },
+  { action: '检测到3条新的安全告警', time: '1小时前', type: 'alert' },
+  { action: '数据字典「用户状态」已更新', time: '2小时前', type: 'dict' },
+  { action: '系统备份任务执行完成', time: '3小时前', type: 'system' },
+];
+
+function activityDotColor(type: string): string {
+  const map: Record<string, string> = {
+    alert: 'bg-red-400',
+    login: 'bg-ant-primary',
+    permission: 'bg-amber-400',
+  };
+  return map[type] || 'bg-gray-400 dark:bg-gray-600';
+}
+
+const todayLabel = new Date().toLocaleDateString('zh-CN', {
+  day: 'numeric',
+  month: 'long',
+  weekday: 'long',
+  year: 'numeric',
+});
 
 // ECharts 主题工具函数
 function textColor() {
@@ -899,10 +993,10 @@ onBeforeUnmount(() => {
     <div class="mb-2 flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
-          数据分析
+          分析面板
         </h1>
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          系统数据分析与可视化
+          系统数据分析与可视化 · {{ todayLabel }}
         </p>
       </div>
       <a-space>
@@ -922,13 +1016,13 @@ onBeforeUnmount(() => {
 
     <!-- 数据分析内容 -->
     <div class="space-y-8">
-      <!-- KPI 统计卡片区 -->
-      <a-row :gutter="[16, 16]">
-        <a-col v-for="kpi in kpiList" :key="kpi.title" :xs="12" :sm="6">
+      <!-- KPI 统计卡片区：6 张卡按 1/2/3 列铺开，正好整除，不留半空行 -->
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div v-for="kpi in kpiList" :key="kpi.title">
           <div
             :class="
               cn(
-                'cursor-pointer rounded-lg border border-gray-100 bg-white p-5 dark:border-gray-800 dark:bg-gray-900',
+                'h-full rounded-lg border border-gray-100 bg-white p-5 dark:border-gray-800 dark:bg-gray-900',
                 'transition-all duration-300 hover:shadow-md',
               )
             "
@@ -964,15 +1058,15 @@ onBeforeUnmount(() => {
                   >
                     {{ Math.abs(kpi.trend) }}%
                   </span>
-                  <span class="text-xs text-gray-400">{{
+                  <span v-if="kpi.trendLabel" class="text-xs text-gray-400">{{
                     kpi.trendLabel
                   }}</span>
                 </div>
               </div>
             </div>
           </div>
-        </a-col>
-      </a-row>
+        </div>
+      </div>
 
       <!-- 主趋势图：全宽 -->
       <a-card
@@ -1049,7 +1143,7 @@ onBeforeUnmount(() => {
       </a-row>
 
       <!-- 第四行：漏斗 + 排行榜 -->
-      <a-row :gutter="[16, 16]" class="mb-12 items-stretch">
+      <a-row :gutter="[16, 16]" class="items-stretch">
         <a-col :xs="24" :lg="10" class="mb-2">
           <a-card
             :class="cn(analyticsCardClassName, 'h-full')"
@@ -1091,6 +1185,76 @@ onBeforeUnmount(() => {
               class="w-full flex-1"
               style="min-height: 280px"
             ></div>
+          </a-card>
+        </a-col>
+      </a-row>
+
+      <!-- 第五行：快捷操作 + 最近动态（原工作台内容并入） -->
+      <a-row :gutter="[16, 16]" class="items-stretch">
+        <a-col :xs="24" :lg="12">
+          <a-card
+            :class="analyticsCardClassName"
+            variant="borderless"
+            :styles="{ body: { padding: '20px 24px' } }"
+          >
+            <h3 :class="sectionTitleClassName">快捷操作</h3>
+            <div class="grid grid-cols-2 gap-3">
+              <RouterLink
+                v-for="action in quickActions"
+                :key="action.title"
+                :to="action.path"
+                class="group flex items-center gap-3 rounded-lg p-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
+              >
+                <span
+                  :class="
+                    cn(
+                      'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
+                      action.color,
+                    )
+                  "
+                >
+                  <Icon :icon="action.icon" :width="18" :height="18" />
+                </span>
+                <span class="min-w-0">
+                  <span
+                    class="block text-sm font-medium text-gray-700 transition-colors group-hover:text-ant-primary dark:text-gray-300"
+                    >{{ action.title }}</span>
+                  <span class="mt-0.5 block text-[11px] text-gray-400">{{
+                    action.desc
+                  }}</span>
+                </span>
+              </RouterLink>
+            </div>
+          </a-card>
+        </a-col>
+        <a-col :xs="24" :lg="12">
+          <a-card
+            :class="analyticsCardClassName"
+            variant="borderless"
+            :styles="{ body: { padding: '20px 24px' } }"
+          >
+            <h3 :class="sectionTitleClassName">最近动态</h3>
+            <ul class="space-y-3">
+              <li
+                v-for="(activity, i) in recentActivities"
+                :key="i"
+                class="flex items-start gap-3 text-sm"
+              >
+                <span
+                  :class="
+                    cn('mt-2 h-1.5 w-1.5 shrink-0 rounded-full', activityDotColor(activity.type))
+                  "
+                ></span>
+                <span class="min-w-0 flex-1">
+                  <span
+                    class="block truncate text-gray-600 dark:text-gray-400"
+                    >{{ activity.action }}</span>
+                  <span class="mt-0.5 block text-[11px] text-gray-400">{{
+                    activity.time
+                  }}</span>
+                </span>
+              </li>
+            </ul>
           </a-card>
         </a-col>
       </a-row>

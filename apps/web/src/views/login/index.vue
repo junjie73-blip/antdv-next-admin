@@ -25,29 +25,49 @@ const _appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin';
 
 const {
   containerClassName,
-  leftPanelClassName,
-  leftGlassClassName,
-  rightPanelClassName,
-  glassCardClassName,
-  inputClassName,
-  decorBlob1ClassName,
-  decorBlob1Style,
-  decorBlob2ClassName,
-  decorBlob2Style,
-  decorBlob3ClassName,
-  decorBlob3Style,
-  gridBgClassName,
-  logoContainerClassName,
-  logoIconClassName,
-  logoIconStyle,
-  titleHighlightStyle,
+  decorClassName,
+  blob1ClassName,
+  blob2ClassName,
+  blob3ClassName,
+  gridClassName,
+  brandClassName,
+  brandLogoRowClassName,
+  brandLogoIconClassName,
+  brandLogoTextClassName,
+  brandTitleClassName,
+  brandDescClassName,
   featureIconClassName,
-  featureIconStyle,
-  loginTypeContainerClassName,
-  loginTypeBtnBaseClassName,
-  loginTypeActiveBtnStyle,
-  sendCodeBtnStyle,
+  featureTitleClassName,
+  featureDescClassName,
+  panelClassName,
+  cardClassName,
+  mobileLogoRowClassName,
+  segContainerClassName,
+  segBtnClassName,
+  segActiveClassName,
+  segIdleClassName,
+  inputClassName,
+  submitButtonClassName,
+  hintClassName,
 } = useLoginStyles();
+
+const FEATURES = [
+  {
+    icon: 'carbon:flash',
+    title: '极速开发',
+    desc: '开箱即用的组件与模板',
+  },
+  {
+    icon: 'carbon:document-security',
+    title: '安全可靠',
+    desc: '完善的权限管理体系',
+  },
+  {
+    icon: 'carbon:settings-adjust',
+    title: '灵活配置',
+    desc: '高度可定制的主题系统',
+  },
+];
 
 const formRef = ref<FormInstance>();
 const loading = ref(false);
@@ -124,164 +144,97 @@ function handleSendCode() {
 </script>
 
 <template>
-  <div :class="containerClassName">
-    <!-- 左侧面板 -->
-    <div :class="leftPanelClassName">
-      <!-- 玻璃背景 -->
-      <div :class="leftGlassClassName"></div>
-
-      <!-- 装饰性背景 -->
-      <div class="absolute inset-0">
-        <div :class="decorBlob1ClassName" :style="decorBlob1Style"></div>
-        <div :class="decorBlob2ClassName" :style="decorBlob2Style"></div>
-        <div :class="decorBlob3ClassName" :style="decorBlob3Style"></div>
-      </div>
-
-      <!-- 网格背景 -->
-      <div :class="gridBgClassName"></div>
-
-      <!-- 内容 -->
-      <div class="relative z-10 flex flex-col justify-center px-12 xl:px-20">
-        <!-- Logo -->
-        <div class="mb-12">
-          <div :class="logoContainerClassName">
-            <div :class="logoIconClassName" :style="logoIconStyle">
-              <svg
-                class="h-5 w-5 text-white"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-                />
-              </svg>
-            </div>
-            <span class="text-xl font-semibold text-stone-800">Antdv Next</span>
-          </div>
-        </div>
-
-        <!-- 标题 -->
-        <h1
-          class="mb-6 text-4xl leading-tight font-bold text-stone-800 xl:text-5xl"
-        >
-          构建现代化<br />
-          <span :style="titleHighlightStyle">管理系统</span>
-        </h1>
-
-        <p class="mb-12 max-w-lg text-lg leading-relaxed text-stone-600">
-          基于 Vue 3 + TypeScript + Ant Design Vue
-          构建的企业级后台管理解决方案，助您快速开发高质量管理系统。
-        </p>
-
-        <!-- 特性列表 -->
-        <div class="space-y-5">
-          <div class="group flex items-center gap-4">
-            <div :class="featureIconClassName">
-              <Icon
-                icon="carbon:flash"
-                class="h-5 w-5"
-                :style="featureIconStyle"
-              />
-            </div>
-            <div>
-              <h3 class="font-medium text-stone-800">极速开发</h3>
-              <p class="text-sm text-stone-500">开箱即用的组件与模板</p>
-            </div>
-          </div>
-
-          <div class="group flex items-center gap-4">
-            <div :class="featureIconClassName">
-              <Icon
-                icon="carbon:document-security"
-                class="h-5 w-5"
-                :style="featureIconStyle"
-              />
-            </div>
-            <div>
-              <h3 class="font-medium text-stone-800">安全可靠</h3>
-              <p class="text-sm text-stone-500">完善的权限管理体系</p>
-            </div>
-          </div>
-
-          <div class="group flex items-center gap-4">
-            <div :class="featureIconClassName">
-              <Icon
-                icon="carbon:settings-adjust"
-                class="h-5 w-5"
-                :style="featureIconStyle"
-              />
-            </div>
-            <div>
-              <h3 class="font-medium text-stone-800">灵活配置</h3>
-              <p class="text-sm text-stone-500">高度可定制的主题系统</p>
-            </div>
-          </div>
-        </div>
-      </div>
+  <div :class="containerClassName" data-auth="page">
+    <div :class="decorClassName">
+      <div :class="blob1ClassName"></div>
+      <div :class="blob2ClassName"></div>
+      <div :class="blob3ClassName"></div>
+      <div :class="gridClassName"></div>
     </div>
 
-    <!-- 右侧登录面板 -->
-    <div :class="rightPanelClassName">
-      <div :class="glassCardClassName">
-        <!-- 标题 -->
-        <div class="mb-8 text-center">
-          <div
-            class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--ant-color-primary)] shadow-[var(--ant-color-primary)]/20 shadow-lg"
+    <!-- 品牌区：窄屏整块隐藏，只留表单里的紧凑 logo -->
+    <section :class="brandClassName" data-auth="brand">
+      <div :class="brandLogoRowClassName">
+        <div :class="brandLogoIconClassName">
+          <svg
+            class="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
           >
+            <path
+              d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+            />
+          </svg>
+        </div>
+        <span :class="brandLogoTextClassName">{{ _appTitle }}</span>
+      </div>
+
+      <h1 :class="brandTitleClassName">
+        构建现代化<br />
+        <span class="text-ant-primary">管理系统</span>
+      </h1>
+
+      <p :class="brandDescClassName">
+        基于 Vue 3 + TypeScript + Ant Design Vue
+        构建的企业级后台管理解决方案，助您快速开发高质量管理系统。
+      </p>
+
+      <ul class="space-y-4">
+        <li v-for="item in FEATURES" :key="item.title" class="group flex items-center gap-3.5">
+          <div :class="featureIconClassName">
+            <Icon :icon="item.icon" class="h-5 w-5" />
+          </div>
+          <div>
+            <h3 :class="featureTitleClassName">{{ item.title }}</h3>
+            <p :class="featureDescClassName">{{ item.desc }}</p>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- 表单区 -->
+    <main :class="panelClassName">
+      <div :class="cardClassName" data-auth="card">
+        <div :class="mobileLogoRowClassName" data-auth="mobile-brand">
+          <div :class="brandLogoIconClassName">
             <svg
-              class="h-6 w-6 text-white"
+              class="h-5 w-5"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
+              aria-hidden="true"
             >
-              <path
-                d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-              />
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
             </svg>
           </div>
-          <h2 class="text-xl font-semibold text-stone-800">
-            {{ _appTitle }}
-          </h2>
+          <span :class="brandLogoTextClassName">{{ _appTitle }}</span>
         </div>
 
-        <!-- 登录类型切换 -->
-        <div class="mb-6">
-          <div :class="loginTypeContainerClassName">
-            <button
-              :class="
-                cn(
-                  loginTypeBtnBaseClassName,
-                  loginType === 'account'
-                    ? 'bg-white shadow-sm'
-                    : 'text-stone-500 hover:text-stone-700',
-                )
-              "
-              :style="loginType === 'account' ? loginTypeActiveBtnStyle : {}"
-              @click="loginType = 'account'"
-            >
-              账号登录
-            </button>
-            <button
-              :class="
-                cn(
-                  loginTypeBtnBaseClassName,
-                  loginType === 'mobile'
-                    ? 'bg-white shadow-sm'
-                    : 'text-stone-500 hover:text-stone-700',
-                )
-              "
-              :style="loginType === 'mobile' ? loginTypeActiveBtnStyle : {}"
-              @click="loginType = 'mobile'"
-            >
-              手机登录
-            </button>
-          </div>
+        <div :class="segContainerClassName" role="tablist" aria-label="登录方式">
+          <button
+            type="button"
+            role="tab"
+            :aria-selected="loginType === 'account'"
+            :class="cn(segBtnClassName, loginType === 'account' ? segActiveClassName : segIdleClassName)"
+            @click="loginType = 'account'"
+          >
+            账号登录
+          </button>
+          <button
+            type="button"
+            role="tab"
+            :aria-selected="loginType === 'mobile'"
+            :class="cn(segBtnClassName, loginType === 'mobile' ? segActiveClassName : segIdleClassName)"
+            @click="loginType = 'mobile'"
+          >
+            手机登录
+          </button>
         </div>
 
-        <!-- 表单 -->
         <a-form
           ref="formRef"
           :model="formState"
@@ -299,7 +252,7 @@ function handleSendCode() {
                 allow-clear
               >
                 <template #prefix>
-                  <UserOutlined class="text-stone-400" />
+                  <UserOutlined />
                 </template>
               </a-input>
             </a-form-item>
@@ -313,25 +266,15 @@ function handleSendCode() {
                 allow-clear
               >
                 <template #prefix>
-                  <LockOutlined class="text-stone-400" />
+                  <LockOutlined />
                 </template>
               </a-input-password>
             </a-form-item>
 
             <a-form-item>
               <div class="flex items-center justify-between">
-                <a-checkbox
-                  v-model:checked="formState.remember"
-                  class="[&_.ant-checkbox-inner]:!border-slate-300 [&_.ant-checkbox-inner]:!bg-white [&_.ant-checkbox-wrapper]:!text-stone-500"
-                >
-                  记住我
-                </a-checkbox>
-                <a-button
-                  type="link"
-                  size="small"
-                  class="!p-0 !text-stone-500 hover:!text-stone-700"
-                  @click="handleForgotPassword"
-                >
+                <a-checkbox v-model:checked="formState.remember">记住我</a-checkbox>
+                <a-button type="link" size="small" class="!h-auto !px-0" @click="handleForgotPassword">
                   忘记密码？
                 </a-button>
               </div>
@@ -348,7 +291,7 @@ function handleSendCode() {
                 allow-clear
               >
                 <template #prefix>
-                  <MobileOutlined class="text-stone-400" />
+                  <MobileOutlined />
                 </template>
               </a-input>
             </a-form-item>
@@ -362,14 +305,14 @@ function handleSendCode() {
                 allow-clear
               >
                 <template #prefix>
-                  <MailOutlined class="text-stone-400" />
+                  <MailOutlined />
                 </template>
                 <template #suffix>
                   <a-button
                     type="link"
                     size="small"
-                    class="!p-0"
-                    :style="sendCodeBtnStyle"
+                    class="!h-auto !px-0"
+                    data-auth="send-code"
                     @click="handleSendCode"
                   >
                     发送验证码
@@ -379,31 +322,23 @@ function handleSendCode() {
             </a-form-item>
           </template>
 
-          <a-form-item class="mt-8">
+          <a-form-item class="mt-6">
             <a-button
               type="primary"
               html-type="submit"
               size="large"
               block
               :loading="loading"
-              class="!h-11 !border-0 !shadow-lg"
+              :class="submitButtonClassName"
+              data-auth="submit"
             >
               登录
             </a-button>
           </a-form-item>
         </a-form>
+
+        <p :class="hintClassName">演示账号：admin / admin123</p>
       </div>
-    </div>
+    </main>
   </div>
 </template>
-
-<style scoped>
-[class*='group']:hover .w-11 {
-  background-color: color-mix(in srgb, var(--ant-color-primary) 5%, white);
-  border-color: color-mix(
-    in srgb,
-    var(--ant-color-primary) 20%,
-    rgb(203 213 225)
-  );
-}
-</style>

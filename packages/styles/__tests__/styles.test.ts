@@ -73,6 +73,20 @@ describe('@antdv/styles —— 分部职责', () => {
     expect(base).not.toContain('.ps__');
   });
 
+  it('光标：能点的盒子一律 pointer，禁用的给 not-allowed（浏览器不会自己给 button 指针）', () => {
+    // `<button>` 在 UA 样式里是 default 光标，而本项目可点的盒子大多是手写 button，
+    // 所以规则必须住在样式层：写在模板上一定会漏掉新页面
+    expect(base).toMatch(/button:not\(:disabled\)\s*\{\s*@apply cursor-pointer;/u);
+    expect(base).toMatch(/button:disabled\s*\{\s*@apply cursor-not-allowed;/u);
+    // 勾选框/单选框/下拉框同样是 UA 默认光标
+    expect(base).toMatch(/input\[type='checkbox'\],\s*input\[type='radio'\],\s*select\s*\{/u);
+    // 带 ARIA role 的自定义控件（评分、开关等）：role 本身就是在宣布"这里能点"
+    expect(base).toContain("[role='radio']:not([aria-disabled='true'])");
+    expect(base).toContain("[role='button'][disabled]");
+    // antd 唯独漏了上传触发区（里面包的是 span，不是 button）
+    expect(base).toContain('.ant-upload:not(.ant-upload-disabled)');
+  });
+
   it('scrollbar：第三方滚动区兜底，且必须写在 base 层', () => {
     // 包不住的滚动元素（antd 表格体、虚拟列表、textarea、pre）统一压成细圆角条
     expect(scrollbar).toContain('@layer base');

@@ -219,6 +219,34 @@ let unmounted = false;
 const pendingObservers = new Set<ResizeObserver>();
 const pendingTimers = new Set<ReturnType<typeof setTimeout>>();
 
+/**
+ * 常驻的容器尺寸观察器：容器一变宽变高，图表就跟着 `resize()`。
+ *
+ * 只有 `window` 的 resize 监听是不够的 —— 侧栏折叠、标签页切换回来、
+ * `useScreenAdapter` 重算 scale，这些都只改**容器**尺寸而不动视口，
+ * 于是图表画布停在旧宽高上：轴标签被截断、右侧留白、整张图看起来糊在一块。
+ * 用户诉求「实时监控大屏的 echart 需要自动 resize」指的就是这一类。
+ *
+ * 和 `whenReady` 那个"等首帧尺寸"的一次性观察器分开登记，卸载时一起断开。
+ */
+const sizeObservers = new Set<ResizeObserver>();
+
+function observeChartSize(name: string, el: HTMLElement) {
+  if (unmounted || typeof ResizeObserver === 'undefined') return;
+  const observer = new ResizeObserver(() => {
+    const instance = charts.get(name);
+    // 容器被隐藏（display:none）时尺寸是 0，此时 resize 只会把画布糊成一片
+    if (instance && el.clientWidth > 0 && el.clientHeight > 0) instance.resize();
+  });
+  observer.observe(el);
+  sizeObservers.add(observer);
+}
+
+function stopObservingChartSize() {
+  for (const observer of sizeObservers) observer.disconnect();
+  sizeObservers.clear();
+}
+
 /** 安全等待 DOM 尺寸就绪后执行回调 */
 function whenReady(
   name: string,
@@ -973,9 +1001,13 @@ function initChartImmediately(
   if (unmounted || !el || charts.has(name)) return;
   if (el.offsetWidth > 0 && el.offsetHeight > 0) {
     initFn(el);
+    observeChartSize(name, el);
     return;
   }
-  whenReady(name, refEl, initFn);
+  whenReady(name, refEl, (target) => {
+    initFn(target);
+    observeChartSize(name, target);
+  });
 }
 
 watch(
@@ -1002,6 +1034,8 @@ onBeforeUnmount(() => {
   pendingObservers.clear();
   for (const timer of pendingTimers) clearTimeout(timer);
   pendingTimers.clear();
+  // 断开常驻的容器尺寸观察器（否则它们会一直 observe 已卸载的容器）
+  stopObservingChartSize();
   // 销毁所有 ECharts 实例并清理容器样式
   disposeAll();
 });
@@ -1058,11 +1092,15 @@ function securityAlertLevelText(level: string): string {
 
 <template>
   <!-- 大屏容器 -->
-  <!-- view-class="h-full"：Scrollbar 的 slot 容器 scrollbar__view 自身没有高度，
+  <!-- 宽度 `w-full`（不是 w-screen/h-screen）：这页是后台内容区里的一页，
+       按视口硬撑会把右侧整列裁到外壳之外。容器高度由 `useScreenAdapter` 量出内容区
+       可见高度后写死，它作为 <Scrollbar> 自带 overflow-hidden，正好裁掉
+       transform 不改变布局占位而多出来的 1920x1080 盒子。
+       view-class="h-full"：Scrollbar 的 slot 容器 scrollbar__view 自身没有高度，
        不撑满的话 #screen-content 的 h-full 会失效、整屏网格塌成 0 -->
   <Scrollbar
     id="screen-container"
-    root-class="h-screen w-screen bg-[#0a0e27] text-white"
+    root-class="w-full bg-[#0a0e27] text-white"
     view-class="h-full"
   >
     <div id="screen-content" class="flex h-full flex-col">
