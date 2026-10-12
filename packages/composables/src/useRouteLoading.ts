@@ -119,10 +119,10 @@ export function useRouteLoading(options: RouteLoadingOptions = {}) {
       const result = await fn();
       complete();
       return result;
-    } catch (raw) {
+    } catch (error) {
       // 失败路径不能再走 finally 的 complete()：那会把 isError 冲掉
       fail();
-      throw raw;
+      throw error;
     }
   }
 

@@ -24,8 +24,20 @@ import { expect } from '@playwright/test';
 /** 与 `apps/web/src/config/constants.ts` 保持一致，别在断言里再写一遍字面量 */
 export const HOME_PATH = '/dashboard/analysis';
 
-/** Nitro mock 只认这一组账号（`apps/backend-mock/server/api/auth/login.post.ts`） */
-export const ACCOUNT = { password: 'admin123', username: 'admin' };
+/** Nitro mock 的账号表在 `apps/backend-mock/server/utils/accounts.ts`，两组凭据都要用到 */
+export interface E2eAccount {
+  password: string;
+  username: string;
+}
+
+/** 超管：`permissions: ['*']`，菜单不裁剪 */
+export const ACCOUNT: E2eAccount = { password: 'admin123', username: 'admin' };
+
+/** 受限账号：只给一部分页面，越界应落到 403 */
+export const LIMITED_ACCOUNT: E2eAccount = {
+  password: 'custom123',
+  username: 'custom',
+};
 
 /**
  * 收集"真·错误"。
@@ -193,7 +205,9 @@ export function watchErrors(page: Page): PageErrors {
     const url = response.url();
     if (!/\/api\//.test(url)) return;
     if (response.status() < 400) return;
-    bucket.badResponses.push(`${response.status()} ${url.replace(/^https?:\/\/[^/]+/, '')}`);
+    bucket.badResponses.push(
+      `${response.status()} ${url.replace(/^https?:\/\/[^/]+/, '')}`,
+    );
   };
 
   page.on('pageerror', onPageError);
@@ -212,9 +226,9 @@ export function watchErrors(page: Page): PageErrors {
 }
 
 /** 填账号密码 */
-export async function fillAccount(page: Page) {
-  await page.getByPlaceholder('请输入用户名').fill(ACCOUNT.username);
-  await page.getByPlaceholder('请输入密码').fill(ACCOUNT.password);
+export async function fillAccount(page: Page, account: E2eAccount = ACCOUNT) {
+  await page.getByPlaceholder('请输入用户名').fill(account.username);
+  await page.getByPlaceholder('请输入密码').fill(account.password);
 }
 
 /**
@@ -228,9 +242,9 @@ export async function submitLogin(page: Page) {
 }
 
 /** 登录：拿到布局外壳（标签栏出现）才算成功，否则后续点击会打在 loading 上 */
-export async function signIn(page: Page) {
+export async function signIn(page: Page, account: E2eAccount = ACCOUNT) {
   await page.goto('/#/login');
-  await fillAccount(page);
+  await fillAccount(page, account);
   await submitLogin(page);
   await expectTabBar(page);
 }
@@ -283,7 +297,11 @@ export async function go(page: Page, path: string, activateTimeout?: number) {
    * 整跑时固定产出 2-3 条无法复现的假红（layout / tabs / ops-sweep 都中过同一个
    * `/system/user`）。只放宽最后那次等待，判定条件一个没动：真坏了照样红，只是多等十秒。
    */
-  const attempts: Array<number | undefined> = [4000, 4000, activateTimeout ?? 20_000];
+  const attempts: Array<number | undefined> = [
+    4000,
+    4000,
+    activateTimeout ?? 20_000,
+  ];
 
   for (const [index, timeout] of attempts.entries()) {
     if (!hashAt(page, path)) await navigate(page, path);
@@ -299,7 +317,8 @@ export async function go(page: Page, path: string, activateTimeout?: number) {
 
 /** 当前 hash 是否就是目标 path（忽略 query 与结尾斜杠） */
 function hashAt(page: Page, path: string) {
-  const strip = (value: string) => value.split('?')[0]?.replace(/\/+$/, '') || '/';
+  const strip = (value: string) =>
+    value.split('?')[0]?.replace(/\/+$/, '') || '/';
   return strip(new URL(page.url()).hash.replace(/^#/, '')) === strip(path);
 }
 
@@ -375,23 +394,77 @@ export async function setPreference(
   partial: Record<string, unknown>,
 ) {
   await page.evaluate((patch) => {
-    const host = document.querySelector('#app') as (Element & {
-      __vue_app__?: {
-        config?: { globalProperties?: { $pinia?: { _s?: Map<string, unknown> } } };
-      };
-    }) | null;
+    const host = document.querySelector('#app') as
+      | (Element & {
+          __vue_app__?: {
+            config?: {
+              globalProperties?: { $pinia?: { _s?: Map<string, unknown> } };
+            };
+          };
+        })
+      | null;
     const store = host?.__vue_app__?.config?.globalProperties?.$pinia?._s?.get(
       'app',
-    ) as undefined | {
-      updateSetting?: (value: Record<string, unknown>) => void;
-    };
-    if (!store?.updateSetting) throw new Error('pinia app store 不可用，无法切换偏好');
+    ) as
+      | undefined
+      | {
+          updateSetting?: (value: Record<string, unknown>) => void;
+        };
+    if (!store?.updateSetting)
+      throw new Error('pinia app store 不可用，无法切换偏好');
     store.updateSetting(patch);
   }, partial);
 }
 
 export function setLayout(page: Page, layout: string) {
   return setPreference(page, { layout });
+}
+
+/** 守卫判 403 用的那两份集合，加上当前账号的身份信息 */
+export interface AccessState {
+  allowedNames: string[];
+  allowedPaths: string[];
+  /** 菜单是否已经拉过（`isLoaded === true` 时守卫不会再请求 /menus） */
+  isLoaded: boolean;
+  permissions: string[];
+  roles: string[];
+  username: string;
+}
+
+/**
+ * 读前端算出来的授权集（`stores/modules/route.ts` 的 allowedNames/allowedPaths）。
+ *
+ * 为什么直接读 store 而不是只看导航：本项目的权限来源就是这份集合（菜单即权限），
+ * 而导航只是它的一个消费方 —— 侧栏少一项可能是渲染问题，也可能是授权问题，
+ * 用例要断言的是后者。取不到 store 就抛错，避免"权限没生效但用例照样绿"。
+ *
+ * Set 跨不过 evaluate 的序列化边界，所以在页面里先摊成数组。
+ */
+export async function readAccess(page: Page): Promise<AccessState> {
+  return page.evaluate(() => {
+    const host = document.querySelector('#app') as
+      | (Element & {
+          __vue_app__?: {
+            config?: {
+              globalProperties?: { $pinia?: { _s?: Map<string, any> } };
+            };
+          };
+        })
+      | null;
+    const stores = host?.__vue_app__?.config?.globalProperties?.$pinia?._s;
+    const route = stores?.get('route');
+    const user = stores?.get('user');
+    if (!route || !user) throw new Error('pinia route/user store 不可用');
+
+    return {
+      allowedNames: [...route.allowedNames],
+      allowedPaths: [...route.allowedPaths],
+      isLoaded: route.isLoaded,
+      permissions: user.userInfo?.permissions ?? [],
+      roles: user.userInfo?.roles ?? [],
+      username: user.userInfo?.username ?? '',
+    } as AccessState;
+  });
 }
 
 /**

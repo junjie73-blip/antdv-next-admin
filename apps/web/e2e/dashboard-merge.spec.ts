@@ -35,7 +35,10 @@ test.describe('仪表盘合并', () => {
      * dev 下第一次进 `/system/user` 要现场编译整棵子树，WebKit 冷跑实测超过 10s，
      * 会把"跳转成功、只是慢"读成假红。`go()` 的幂等重设 + 最后一次 20s 正好治这个。
      */
-    await page.getByRole('link', { name: /用户管理/ }).first().click();
+    await page
+      .getByRole('link', { name: /用户管理/ })
+      .first()
+      .click();
     await go(page, '/system/user');
 
     await go(page, '/dashboard/analysis');

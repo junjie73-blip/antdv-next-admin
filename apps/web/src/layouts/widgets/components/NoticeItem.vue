@@ -2,6 +2,7 @@
 import type { BellNotice } from '../notice';
 
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
@@ -27,30 +28,47 @@ const emit = defineEmits<{
   viewAll: [];
 }>();
 
-/** 优先级样式 */
+const { t } = useI18n({ useScope: 'global' });
+
+/** 优先级样式：labelKey 在渲染时才翻成文案，切语言才跟得上 */
 const PRIORITY_CONFIG: Record<
   number,
-  { bg: string; color: string; label: string }
+  { bg: string; color: string; labelKey: string }
 > = {
-  0: { label: '普通', color: '#64748B', bg: 'rgba(100,116,139,0.12)' },
-  1: { label: '重要', color: '#EA580C', bg: 'rgba(234,88,12,0.12)' },
-  2: { label: '紧急', color: '#DC2626', bg: 'rgba(220,38,38,0.12)' },
+  0: {
+    labelKey: 'notice.priorityNormal',
+    color: '#64748B',
+    bg: 'rgba(100,116,139,0.12)',
+  },
+  1: {
+    labelKey: 'notice.priorityImportant',
+    color: '#EA580C',
+    bg: 'rgba(234,88,12,0.12)',
+  },
+  2: {
+    labelKey: 'notice.priorityUrgent',
+    color: '#DC2626',
+    bg: 'rgba(220,38,38,0.12)',
+  },
 };
 
 const priority = computed(
   () => PRIORITY_CONFIG[props.item.priority ?? 0] ?? PRIORITY_CONFIG[0]!,
 );
+const priorityLabel = computed(() => t(priority.value.labelKey));
 const isUnread = computed(() => !props.item.read);
 const isUrgent = computed(() => (props.item.priority ?? 0) >= 2);
-const typeLabel = computed(
-  () => NOTICE_TYPE_LABELS[props.item.type] ?? '通知',
+const typeLabel = computed(() =>
+  t(NOTICE_TYPE_LABELS[props.item.type] ?? 'notice.typeNotice'),
 );
 
 const relativeTime = computed(() =>
   props.item.sendTime ? dayjs(props.item.sendTime).fromNow() : '',
 );
 const absoluteTime = computed(() =>
-  props.item.sendTime ? dayjs(props.item.sendTime).format('YYYY-MM-DD HH:mm') : '',
+  props.item.sendTime
+    ? dayjs(props.item.sendTime).format('YYYY-MM-DD HH:mm')
+    : '',
 );
 
 const rootClass = computed(() =>
@@ -113,7 +131,7 @@ function handleViewAll() {
         class="shrink-0 rounded px-1.5 py-px text-[10px] leading-none font-medium"
         :style="{ backgroundColor: priority.bg, color: priority.color }"
       >
-        {{ priority.label }}
+        {{ priorityLabel }}
       </span>
 
       <span
@@ -132,7 +150,7 @@ function handleViewAll() {
           )
         "
       >
-        {{ item.content || '暂无详情' }}
+        {{ item.content || t('notice.noDetail') }}
       </span>
       <span
         v-if="!expanded"
@@ -148,7 +166,7 @@ function handleViewAll() {
       class="mt-1 flex items-center justify-between gap-2 border-t border-slate-100 pt-1.5 text-[11px] text-slate-400 dark:border-slate-800 dark:text-slate-500"
     >
       <span class="truncate">
-        {{ item.sender || '系统' }} · {{ absoluteTime }}
+        {{ item.sender || t('notice.senderSystem') }} · {{ absoluteTime }}
       </span>
       <button
         type="button"

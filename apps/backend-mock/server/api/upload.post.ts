@@ -11,8 +11,7 @@ import { uploadSuccess } from '../utils/upload';
  * 真实上传由后端承担，mock 只需要把「成功长什么样」演出来，见 utils/upload.ts。
  */
 export default defineMockRoute({
-  handler: () =>
-    uploadSuccess('upload', dayjs().format('YYYY-MM-DD HH:mm:ss')),
+  handler: () => uploadSuccess('upload', dayjs().format('YYYY-MM-DD HH:mm:ss')),
   method: 'POST',
   path: '/upload',
   title: '文件上传（基础）',

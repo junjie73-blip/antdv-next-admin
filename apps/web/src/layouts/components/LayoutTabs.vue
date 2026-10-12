@@ -5,6 +5,7 @@ import type { ScrollbarType } from '@antdv/ui/scrollbar';
 import type { TabActionContext } from './tabs/constants';
 
 import { computed, ref, useTemplateRef, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
@@ -22,6 +23,7 @@ defineOptions({ name: 'LayoutTabs' });
 defineProps<{ showIcon?: boolean }>();
 
 const appStore = useAppStore();
+const { t } = useI18n({ useScope: 'global' });
 const tabsApi = useTabs();
 const { barClass, closeClass, itemClass, listClass } = useTabStyle();
 
@@ -87,7 +89,7 @@ const actionContext = computed<TabActionContext>(() => {
     closeableLeft:
       index <= 0 ? 0 : list.slice(0, index).filter((tab) => !tab.affix).length,
     closeableRight:
-      index < 0
+      index === -1
         ? 0
         : list.slice(index + 1).filter((tab) => !tab.affix).length,
     // 首页判定与 store 的 ensureHome 对齐：第一个固定标签即首页，永远排在最前
@@ -163,8 +165,8 @@ function openContextMenu(event: MouseEvent, key: string) {
       v-show="scroller.canScrollLeft.value"
       type="button"
       class="shrink-0 self-center rounded p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
-      aria-label="向左滚动标签栏"
-      title="单击逐步滚动，双击滚到最左"
+      :aria-label="t('shell.scrollTabsLeft')"
+      :title="t('shell.scrollHintLeft')"
       @click="scroller.scrollByStep(-1)"
       @dblclick="scroller.scrollToEnd(-1)"
     >
@@ -206,8 +208,8 @@ function openContextMenu(event: MouseEvent, key: string) {
       v-show="scroller.canScrollRight.value"
       type="button"
       class="shrink-0 self-center rounded p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
-      aria-label="向右滚动标签栏"
-      title="单击逐步滚动，双击滚到最右"
+      :aria-label="t('shell.scrollTabsRight')"
+      :title="t('shell.scrollHintRight')"
       @click="scroller.scrollByStep(1)"
       @dblclick="scroller.scrollToEnd(1)"
     >

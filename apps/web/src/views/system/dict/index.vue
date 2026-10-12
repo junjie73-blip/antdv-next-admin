@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { FormSchema } from '~/components/business/Form'
-import type { BasicColumn } from '~/components/business/Table'
+import type { FormSchema } from '~/components/business/Form';
+import type { BasicColumn } from '~/components/business/Table';
 
-import { computed, ref } from 'vue'
+import { computed, ref } from 'vue';
 
-import { cn } from '@antdv/shared/cn'
-import { exportToExcel } from '@antdv/shared/excel'
-import { Icon } from '@iconify/vue'
+import { cn } from '@antdv/shared/cn';
+import { exportToExcel } from '@antdv/shared/excel';
+import { Icon } from '@iconify/vue';
 import {
   addDict,
   addDictItem,
@@ -16,39 +16,39 @@ import {
   getDictList,
   updateDict,
   updateDictItem,
-} from '~/api/system'
-import { BasicForm, useForm } from '~/components/business/Form'
-import { BasicModal, useModal } from '~/components/business/Modal'
-import { BasicTable, useTable } from '~/components/business/Table'
-import { DictType } from '~/enums/dict'
-import { useDictStore } from '~/stores'
+} from '~/api/system';
+import { BasicForm, useForm } from '~/components/business/Form';
+import { BasicModal, useModal } from '~/components/business/Modal';
+import { BasicTable, useTable } from '~/components/business/Table';
+import { DictType } from '~/enums/dict';
+import { useDictStore } from '~/stores';
 
-defineOptions({ name: 'SystemDict' })
+defineOptions({ name: 'SystemDict' });
 
 interface DictItemRecord {
-  id: number
-  dictType: string
-  dictLabel: string
-  dictValue: string
-  cssClass: string
-  sort: number
-  status: number
-  remark: string
+  id: number;
+  dictType: string;
+  dictLabel: string;
+  dictValue: string;
+  cssClass: string;
+  sort: number;
+  status: number;
+  remark: string;
 }
 
 interface DictTypeRecord {
-  id: number
-  typeName: string
-  typeCode: string
-  status: number
-  remark: string
-  items: DictItemRecord[]
+  id: number;
+  typeName: string;
+  typeCode: string;
+  status: number;
+  remark: string;
+  items: DictItemRecord[];
 }
 
-const containerClassName = cn('flex gap-4')
-const leftPanelClassName = cn('w-[280px] shrink-0')
-const rightPanelClassName = cn('min-w-0 flex-1')
-const cardClassName = cn('shadow-sm')
+const containerClassName = cn('flex gap-4');
+const leftPanelClassName = cn('w-[280px] shrink-0');
+const rightPanelClassName = cn('min-w-0 flex-1');
+const cardClassName = cn('shadow-sm');
 const typeItemClassName = (active: boolean) =>
   cn(
     'flex items-center justify-between',
@@ -58,64 +58,62 @@ const typeItemClassName = (active: boolean) =>
     'hover:bg-gray-50 dark:hover:bg-gray-800',
     active &&
       'border-l-[3px] border-l-(--ant-color-primary) bg-blue-50 dark:bg-blue-900/20',
-  )
+  );
 const typeItemNameClassName = cn(
   'truncate text-sm font-medium text-gray-800 dark:text-gray-200',
-)
-const typeItemCodeClassName = cn('mt-0.5 truncate text-xs text-gray-400')
-const typeItemActionsClassName = cn(
-  'ml-2 flex shrink-0 items-center gap-1',
-)
-const typeItemBtnClassName = cn('min-w-0! p-0.5!')
+);
+const typeItemCodeClassName = cn('mt-0.5 truncate text-xs text-gray-400');
+const typeItemActionsClassName = cn('ml-2 flex shrink-0 items-center gap-1');
+const typeItemBtnClassName = cn('min-w-0! p-0.5!');
 const emptyClassName = cn(
   'flex flex-col items-center justify-center py-10 text-gray-400',
-)
-const emptyIconClassName = cn('mb-3 text-4xl opacity-30')
-const emptyTitleClassName = cn('text-sm font-medium')
-const emptyDescClassName = cn('mt-1 text-xs')
+);
+const emptyIconClassName = cn('mb-3 text-4xl opacity-30');
+const emptyTitleClassName = cn('text-sm font-medium');
+const emptyDescClassName = cn('mt-1 text-xs');
 const cardFooterClassName = cn(
   'flex justify-start border-t border-gray-100 px-4 py-3 dark:border-gray-800',
-)
+);
 const cardHeaderClassName = cn(
   'flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-800',
-)
+);
 const cardTitleClassName = cn(
   'text-sm font-semibold text-gray-800 dark:text-gray-200',
-)
-const actionClassName = cn('flex', 'items-center', 'justify-center')
-const btnClassName = cn('px-0.5!')
-const dividerClassName = cn('mx-0')
-const tagClassName = cn('inline-flex items-center gap-1')
+);
+const actionClassName = cn('flex', 'items-center', 'justify-center');
+const btnClassName = cn('px-0.5!');
+const dividerClassName = cn('mx-0');
+const tagClassName = cn('inline-flex items-center gap-1');
 
 const statusColorMap: Record<number, string> = {
   1: 'green',
   0: 'red',
-}
+};
 
 const statusLabelMap: Record<number, string> = {
   1: '正常',
   0: '停用',
-}
+};
 
-const dictStore = useDictStore()
+const dictStore = useDictStore();
 
 const statusOptions = computed(() =>
   dictStore.getOptions(DictType.NORMAL_DISABLE),
-)
+);
 
-const isEditing = ref(false)
-const isEditingItem = ref(false)
-const currentRecord = ref<DictTypeRecord | null>(null)
-const currentItemRecord = ref<DictItemRecord | null>(null)
-const selectedType = ref<DictTypeRecord | null>(null)
-const dictTypes = ref<DictTypeRecord[]>([])
-const dictItems = ref<DictItemRecord[]>([])
+const isEditing = ref(false);
+const isEditingItem = ref(false);
+const currentRecord = ref<DictTypeRecord | null>(null);
+const currentItemRecord = ref<DictItemRecord | null>(null);
+const selectedType = ref<DictTypeRecord | null>(null);
+const dictTypes = ref<DictTypeRecord[]>([]);
+const dictItems = ref<DictItemRecord[]>([]);
 
-const [modalRegister, modalMethods] = useModal()
-const [itemModalRegister, itemModalMethods] = useModal()
-const [formRegister, formMethods] = useForm()
-const [itemFormRegister, itemFormMethods] = useForm()
-const [itemTableRegister, itemTableMethods] = useTable()
+const [modalRegister, modalMethods] = useModal();
+const [itemModalRegister, itemModalMethods] = useModal();
+const [formRegister, formMethods] = useForm();
+const [itemFormRegister, itemFormMethods] = useForm();
+const [itemTableRegister, itemTableMethods] = useTable();
 
 const modalFormSchemas: FormSchema[] = [
   {
@@ -163,7 +161,7 @@ const modalFormSchemas: FormSchema[] = [
     colProps: { span: 24 },
     componentProps: { placeholder: '请输入备注信息...', rows: 3 },
   },
-]
+];
 
 const itemFormSchemas: FormSchema[] = [
   {
@@ -210,95 +208,95 @@ const itemFormSchemas: FormSchema[] = [
     colProps: { span: 24 },
     componentProps: { placeholder: '请输入备注...', rows: 3 },
   },
-]
+];
 
 async function loadDictTypes() {
   try {
-    const res = await getDictList({})
-    const data = res?.data ?? res
-    dictTypes.value = data?.list || []
+    const res = await getDictList({});
+    const data = res?.data ?? res;
+    dictTypes.value = data?.list || [];
   } catch {
-    message.error('加载字典类型失败')
+    message.error('加载字典类型失败');
   }
 }
 
 async function loadDictItems(typeId: number) {
   try {
-    const res = await getDictItems(typeId)
-    const items = Array.isArray(res) ? res : (res?.data ?? res ?? [])
-    dictItems.value = items
+    const res = await getDictItems(typeId);
+    const items = Array.isArray(res) ? res : (res?.data ?? res ?? []);
+    dictItems.value = items;
   } catch {
-    message.error('加载字典项失败')
+    message.error('加载字典项失败');
   }
 }
 
 function selectType(type: DictTypeRecord) {
-  selectedType.value = type
-  loadDictItems(type.id)
+  selectedType.value = type;
+  loadDictItems(type.id);
 }
 
 function handleAdd() {
-  isEditing.value = false
-  currentRecord.value = null
+  isEditing.value = false;
+  currentRecord.value = null;
   formMethods.setFieldsValue({
     typeName: '',
     typeCode: '',
     sort: 0,
     status: 0,
     remark: '',
-  })
-  formMethods.clearValidate()
-  modalMethods.openModal()
+  });
+  formMethods.clearValidate();
+  modalMethods.openModal();
 }
 
 function handleEdit(record: DictTypeRecord) {
-  isEditing.value = true
-  currentRecord.value = record
+  isEditing.value = true;
+  currentRecord.value = record;
   formMethods.setFieldsValue({
     typeName: record.typeName,
     typeCode: record.typeCode,
     sort: record.sort ?? 0,
     status: record.status,
     remark: record.remark,
-  })
-  formMethods.clearValidate()
-  modalMethods.openModal()
+  });
+  formMethods.clearValidate();
+  modalMethods.openModal();
 }
 
 async function handleDelete(record: DictTypeRecord) {
   try {
-    await deleteDict(record.id)
-    message.success(`已删除字典：${record.typeName}`)
+    await deleteDict(record.id);
+    message.success(`已删除字典：${record.typeName}`);
     if (selectedType.value?.id === record.id) {
-      selectedType.value = null
-      dictItems.value = []
+      selectedType.value = null;
+      dictItems.value = [];
     }
-    await loadDictTypes()
+    await loadDictTypes();
   } catch {
-    message.error('删除失败')
+    message.error('删除失败');
   }
 }
 
 async function handleSave() {
-  const values = await formMethods.validate()
-  if (!values) return
+  const values = await formMethods.validate();
+  if (!values) return;
 
   if (!values.typeName || !values.typeCode) {
-    message.warning('请填写字典名称和编码')
-    return
+    message.warning('请填写字典名称和编码');
+    return;
   }
 
   try {
     if (isEditing.value && currentRecord.value) {
-      await updateDict(currentRecord.value.id, values)
-      message.success(`已更新字典：${values.typeName}`)
+      await updateDict(currentRecord.value.id, values);
+      message.success(`已更新字典：${values.typeName}`);
     } else {
-      await addDict(values)
-      message.success(`已新增字典：${values.typeName}`)
+      await addDict(values);
+      message.success(`已新增字典：${values.typeName}`);
     }
 
-    modalMethods.closeModal()
-    await loadDictTypes()
+    modalMethods.closeModal();
+    await loadDictTypes();
     if (
       selectedType.value &&
       isEditing.value &&
@@ -306,85 +304,85 @@ async function handleSave() {
     ) {
       const updated = dictTypes.value.find(
         (t) => t.id === selectedType.value!.id,
-      )
+      );
       if (updated) {
-        selectedType.value = updated
+        selectedType.value = updated;
       }
     }
   } catch {
-    message.error('保存失败')
+    message.error('保存失败');
   }
 }
 
 function handleAddItem() {
-  isEditingItem.value = false
-  currentItemRecord.value = null
+  isEditingItem.value = false;
+  currentItemRecord.value = null;
   itemFormMethods.setFieldsValue({
     dictLabel: '',
     dictValue: '',
     sort: 0,
     status: 0,
     remark: '',
-  })
-  itemFormMethods.clearValidate()
-  itemModalMethods.openModal()
+  });
+  itemFormMethods.clearValidate();
+  itemModalMethods.openModal();
 }
 
 function handleEditItem(item: DictItemRecord) {
-  isEditingItem.value = true
-  currentItemRecord.value = item
+  isEditingItem.value = true;
+  currentItemRecord.value = item;
   itemFormMethods.setFieldsValue({
     dictLabel: item.dictLabel,
     dictValue: item.dictValue,
     sort: item.sort,
     status: item.status,
     remark: item.remark,
-  })
-  itemFormMethods.clearValidate()
-  itemModalMethods.openModal()
+  });
+  itemFormMethods.clearValidate();
+  itemModalMethods.openModal();
 }
 
 async function handleSaveItem() {
-  const values = await itemFormMethods.validate()
-  if (!values) return
+  const values = await itemFormMethods.validate();
+  if (!values) return;
 
   if (!values.dictLabel || !values.dictValue) {
-    message.warning('请填写字典标签和键值')
-    return
+    message.warning('请填写字典标签和键值');
+    return;
   }
 
   try {
     if (isEditingItem.value && currentItemRecord.value) {
-      await updateDictItem(currentItemRecord.value.id, values)
-      message.success(`已更新字典项：${values.dictLabel}`)
+      await updateDictItem(currentItemRecord.value.id, values);
+      message.success(`已更新字典项：${values.dictLabel}`);
     } else {
-      await addDictItem({ ...values, dictTypeId: selectedType.value!.id })
-      message.success(`已新增字典项：${values.dictLabel}`)
+      await addDictItem({ ...values, dictTypeId: selectedType.value!.id });
+      message.success(`已新增字典项：${values.dictLabel}`);
     }
 
-    itemModalMethods.closeModal()
+    itemModalMethods.closeModal();
     if (selectedType.value) {
-      loadDictItems(selectedType.value.id)
+      loadDictItems(selectedType.value.id);
     }
   } catch {
-    message.error('保存失败')
+    message.error('保存失败');
   }
 }
 
 async function handleDeleteItem(item: DictItemRecord) {
   try {
-    await deleteDictItem(item.id)
-    message.success(`已删除字典项：${item.dictLabel}`)
+    await deleteDictItem(item.id);
+    message.success(`已删除字典项：${item.dictLabel}`);
     if (selectedType.value) {
-      loadDictItems(selectedType.value.id)
+      loadDictItems(selectedType.value.id);
     }
   } catch {
-    message.error('删除失败')
+    message.error('删除失败');
   }
 }
 
 function handleExport() {
-  const dataToExport = selectedType.value ? dictItems.value : dictTypes.value
+  const dataToExport = selectedType.value ? dictItems.value : dictTypes.value;
   exportToExcel({
     filename: selectedType.value
       ? `字典项_${selectedType.value.typeName}`
@@ -409,7 +407,7 @@ function handleExport() {
       ...i,
       status: i.status === 1 ? '正常' : '停用',
     })),
-  })
+  });
 }
 
 const itemColumns: BasicColumn[] = [
@@ -430,13 +428,13 @@ const itemColumns: BasicColumn[] = [
     align: 'center',
   },
   { title: '备注', dataIndex: 'remark', key: 'remark', ellipsis: true },
-]
+];
 
 async function mockItemApi() {
-  return { items: dictItems.value, total: dictItems.value.length }
+  return { items: dictItems.value, total: dictItems.value.length };
 }
 
-loadDictTypes()
+loadDictTypes();
 </script>
 
 <template>
@@ -444,10 +442,9 @@ loadDictTypes()
     <!-- 左侧：字典类型列表 -->
     <div :class="leftPanelClassName">
       <div
-        :class="
-          `${cardClassName 
-          } rounded-lg border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900`
-        "
+        :class="`${
+          cardClassName
+        } rounded-lg border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900`"
       >
         <div :class="cardHeaderClassName">
           <span :class="cardTitleClassName">字典类型</span>
@@ -525,10 +522,9 @@ loadDictTypes()
     <!-- 右侧：字典项 -->
     <div :class="rightPanelClassName">
       <div
-        :class="
-          `${cardClassName 
-          } rounded-lg border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900`
-        "
+        :class="`${
+          cardClassName
+        } rounded-lg border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900`"
       >
         <div :class="cardHeaderClassName">
           <span :class="cardTitleClassName">

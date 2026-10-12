@@ -16,7 +16,9 @@ const MENUS: MenuConfig[] = [
     title: '仪表盘',
     // 页面自己在 `<route>` 里写的是「系统分析」，菜单写的是「分析面板」：
     // 两边都有名字时以菜单为准，面包屑才和侧栏说同一句话。
-    children: [{ name: 'analysis', path: '/dashboard/analysis', title: '分析面板' }],
+    children: [
+      { name: 'analysis', path: '/dashboard/analysis', title: '分析面板' },
+    ],
   },
   {
     name: 'system',
@@ -28,7 +30,12 @@ const MENUS: MenuConfig[] = [
         path: '/system/user-manage',
         title: '用户管理',
         children: [
-          { icon: 'user', name: 'user-list', path: '/system/user', title: '用户列表' },
+          {
+            icon: 'user',
+            name: 'user-list',
+            path: '/system/user',
+            title: '用户列表',
+          },
         ],
       },
       // 导航里不出现，但从地址栏/标签页进得来：面包屑与一级归属都要认得它

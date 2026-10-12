@@ -118,7 +118,9 @@ describe('usePrint', () => {
   it('打印内容取自目标元素的 innerHTML', () => {
     mountTarget('print-area');
     call();
-    expect(harness.html()).toContain('<div class="print-content"><p>正文</p></div>');
+    expect(harness.html()).toContain(
+      '<div class="print-content"><p>正文</p></div>',
+    );
   });
 
   it('标题做 HTML 转义，避免把用户数据拼成标签', () => {

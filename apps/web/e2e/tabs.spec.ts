@@ -2,7 +2,14 @@ import type { Locator, Page } from '@playwright/test';
 
 import { expect, test } from '@playwright/test';
 
-import { go, HOME_PATH, navigate, setPreference, signIn, tab } from './utils/app';
+import {
+  go,
+  HOME_PATH,
+  navigate,
+  setPreference,
+  signIn,
+  tab,
+} from './utils/app';
 
 /**
  * 标签页的浏览器级行为。
@@ -33,7 +40,7 @@ async function openThree(page: Page) {
 function tabOrder(page: Page): Promise<string[]> {
   return page
     .locator('.tab-item')
-    .evaluateAll((list) => list.map((el) => el.getAttribute('data-scroll-key') ?? ''));
+    .evaluateAll((list) => list.map((el) => el.dataset.scrollKey ?? ''));
 }
 
 /**
@@ -74,7 +81,9 @@ test.describe('标签页交互', () => {
     await openThree(page);
 
     const menu = await rightClickTab(page, ROLE);
-    await expect(menu.getByRole('menuitem', { name: /关闭其他/ })).toBeVisible();
+    await expect(
+      menu.getByRole('menuitem', { name: /关闭其他/ }),
+    ).toBeVisible();
     await menu.getByRole('menuitem', { name: /关闭其他/ }).click();
 
     await expect(page.locator('.tab-item')).toHaveCount(2);
@@ -112,7 +121,9 @@ test.describe('标签页交互', () => {
     await expect(tab(page, HOME_PATH)).toHaveAttribute('data-active', 'true');
   });
 
-  test('放大当前标签页收起导航外壳，标签栏留着并给出还原入口', async ({ page }) => {
+  test('放大当前标签页收起导航外壳，标签栏留着并给出还原入口', async ({
+    page,
+  }) => {
     await go(page, USER);
 
     const menu = await rightClickTab(page, USER);
@@ -133,13 +144,17 @@ test.describe('标签页交互', () => {
 
     // 放大态下右键同一标签，菜单文案跟着变成「还原当前页」
     const menu2 = await rightClickTab(page, USER);
-    await expect(menu2.getByRole('menuitem', { name: '还原当前页' })).toBeVisible();
+    await expect(
+      menu2.getByRole('menuitem', { name: '还原当前页' }),
+    ).toBeVisible();
     await page.keyboard.press('Escape');
 
     await restore.click();
     await expect(page.locator('.ant-layout-header')).toBeVisible();
     await expect(page.locator('[data-layout-region="sidebar"]')).toBeVisible();
-    await expect(page.getByRole('button', { name: '还原标签页' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: '还原标签页' })).toHaveCount(
+      0,
+    );
   });
 
   test('固定标签后不可关闭，且并到固定区末尾', async ({ page }) => {
@@ -164,8 +179,12 @@ test.describe('标签页交互', () => {
 
   test('首页那一格不给「取消固定」，避免首页身份漂移', async ({ page }) => {
     const menu = await rightClickTab(page, HOME_PATH);
-    await expect(menu.getByRole('menuitem', { name: /取消固定|固定标签页/ })).toBeDisabled();
-    await expect(menu.getByRole('menuitem', { name: '关闭当前' })).toBeDisabled();
+    await expect(
+      menu.getByRole('menuitem', { name: /取消固定|固定标签页/ }),
+    ).toBeDisabled();
+    await expect(
+      menu.getByRole('menuitem', { name: '关闭当前' }),
+    ).toBeDisabled();
   });
 
   test('点标签外部与按 Escape 都能关掉右键菜单', async ({ page }) => {
@@ -180,7 +199,9 @@ test.describe('标签页交互', () => {
     await expect(contextMenu(page)).toHaveCount(0);
   });
 
-  test('拖拽排序：顺序写回 store，固定首页留在最前，激活态不被打断', async ({ page }) => {
+  test('拖拽排序：顺序写回 store，固定首页留在最前，激活态不被打断', async ({
+    page,
+  }) => {
     await openThree(page);
     await navigate(page, USER);
     await expectActive(page, USER);
@@ -209,7 +230,9 @@ test.describe('标签页交互', () => {
     // 开关再打开，同一个动作就该生效了 —— 证明上面那次"没动"是被开关拦的，不是拖拽本身坏了
     await setPreference(page, { tabDragSort: true });
     await dragTab(page, DEPT, USER);
-    await expect.poll(() => tabOrder(page)).toEqual([HOME_PATH, DEPT, USER, ROLE]);
+    await expect
+      .poll(() => tabOrder(page))
+      .toEqual([HOME_PATH, DEPT, USER, ROLE]);
   });
 
   test('设置抽屉里的标签风格能真的改掉外观', async ({ page }) => {
@@ -262,7 +285,9 @@ test.describe('标签页交互', () => {
     await expect(tab(page, DEPT)).toHaveAttribute('data-active', 'true');
   });
 
-  test('关掉标签后焦点交给邻居，不会出现"没有任何标签是激活的"', async ({ page }) => {
+  test('关掉标签后焦点交给邻居，不会出现"没有任何标签是激活的"', async ({
+    page,
+  }) => {
     await openThree(page);
     await navigate(page, DEPT);
     await expectActive(page, DEPT);

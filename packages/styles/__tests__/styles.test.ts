@@ -11,7 +11,10 @@ import { fileURLToPath } from 'node:url';
  */
 
 const read = (file: string) =>
-  readFileSync(fileURLToPath(new URL(`../src/${file}`, import.meta.url)), 'utf8');
+  readFileSync(
+    fileURLToPath(new URL(`../src/${file}`, import.meta.url)),
+    'utf8',
+  );
 
 const index = read('index.css');
 const base = read('base.css');
@@ -25,10 +28,12 @@ describe('@antdv/styles —— 入口', () => {
     // 顺序错了会出现"组件里的 components 规则盖掉模板 utilities"这类难查问题
     const layerDecl = /@layer\s+([^;]+);/u.exec(index)?.[1]?.trim();
     expect(layerDecl).toBe('theme, base, antd, components, utilities');
-    expect(index.indexOf('@layer theme')).toBeLessThan(index.indexOf("@import 'tailwindcss'"));
+    expect(index.indexOf('@layer theme')).toBeLessThan(
+      index.indexOf("@import 'tailwindcss'"),
+    );
   });
 
-  it('Tailwind 本体 + antdv-next 兼容层 + 动画库都要在入口里', () => {
+  it('tailwind 本体 + antdv-next 兼容层 + 动画库都要在入口里', () => {
     expect(index).toContain("@import 'tailwindcss'");
     expect(index).toContain("@import '@antdv-next/tailwind/compat.css'");
     expect(index).toContain("@import 'tw-animate-css'");
@@ -41,7 +46,13 @@ describe('@antdv/styles —— 入口', () => {
   });
 
   it('五个分部都在入口里被引入，且 @import 全部出现在 @plugin 之前', () => {
-    for (const part of ['base', 'nprogress', 'a11y', 'permission', 'scrollbar']) {
+    for (const part of [
+      'base',
+      'nprogress',
+      'a11y',
+      'permission',
+      'scrollbar',
+    ]) {
       expect(index).toContain(`@import './${part}.css'`);
     }
     // CSS 规范：@import 必须早于普通规则；Tailwind 的 @plugin 也按位置解析，
@@ -68,7 +79,9 @@ describe('@antdv/styles —— 分部职责', () => {
       expect(base).toContain(selector);
     }
     // overflow-hidden 是"页面自身不滚、滚动交给 Scrollbar"的前提
-    expect(base).toMatch(/html,\s*body\s*\{[^@]*@apply h-full overflow-hidden/u);
+    expect(base).toMatch(
+      /html,\s*body\s*\{[^@]*@apply h-full overflow-hidden/u,
+    );
     // perfect-scrollbar 已经下线，别再留它的死规则
     expect(base).not.toContain('.ps__');
   });
@@ -76,10 +89,14 @@ describe('@antdv/styles —— 分部职责', () => {
   it('光标：能点的盒子一律 pointer，禁用的给 not-allowed（浏览器不会自己给 button 指针）', () => {
     // `<button>` 在 UA 样式里是 default 光标，而本项目可点的盒子大多是手写 button，
     // 所以规则必须住在样式层：写在模板上一定会漏掉新页面
-    expect(base).toMatch(/button:not\(:disabled\)\s*\{\s*@apply cursor-pointer;/u);
+    expect(base).toMatch(
+      /button:not\(:disabled\)\s*\{\s*@apply cursor-pointer;/u,
+    );
     expect(base).toMatch(/button:disabled\s*\{\s*@apply cursor-not-allowed;/u);
     // 勾选框/单选框/下拉框同样是 UA 默认光标
-    expect(base).toMatch(/input\[type='checkbox'\],\s*input\[type='radio'\],\s*select\s*\{/u);
+    expect(base).toMatch(
+      /input\[type='checkbox'\],\s*input\[type='radio'\],\s*select\s*\{/u,
+    );
     // 带 ARIA role 的自定义控件（评分、开关等）：role 本身就是在宣布"这里能点"
     expect(base).toContain("[role='radio']:not([aria-disabled='true'])");
     expect(base).toContain("[role='button'][disabled]");
@@ -95,7 +112,9 @@ describe('@antdv/styles —— 分部职责', () => {
     expect(scrollbar).toContain('::-webkit-scrollbar-thumb');
     expect(scrollbar).toContain('.dark ::-webkit-scrollbar-thumb');
     // 轨道透明，避免在深色卡片上留下一条灰槽
-    expect(scrollbar).toMatch(/::-webkit-scrollbar-track\s*\{[^}]*background:\s*transparent/u);
+    expect(scrollbar).toMatch(
+      /::-webkit-scrollbar-track\s*\{[^}]*background:\s*transparent/u,
+    );
     // 层级是这条规则能被 `.scrollbar__wrap--hidden-default` 反向覆盖的前提
     expect(base).not.toContain('::-webkit-scrollbar');
   });
@@ -103,7 +122,9 @@ describe('@antdv/styles —— 分部职责', () => {
   it('nprogress：进度条配色读 antd 主色变量，不写死蓝色', () => {
     expect(nprogress).toContain('#nprogress .bar');
     expect(nprogress).toContain('var(--ant-primary-color, #1677ff)');
-    expect(nprogress).toMatch(/@apply fixed top-0 left-0 z-\[9999\] h-\[3px\] w-full/u);
+    expect(nprogress).toMatch(
+      /@apply fixed top-0 left-0 z-\[9999\] h-\[3px\] w-full/u,
+    );
   });
 
   it('a11y：色弱/灰色模式消费 preferences 写的 --app-filter', () => {

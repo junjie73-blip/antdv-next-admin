@@ -12,7 +12,7 @@ const infoBoxClassName = cn(
   'bg-blue-50 dark:bg-blue-900/20',
   'border border-blue-200 dark:border-blue-800',
 );
-const infoIconClassName = cn('flex-shrink-0 text-lg text-blue-500');
+const infoIconClassName = cn('shrink-0 text-lg text-blue-500');
 const infoTextClassName = cn(
   'font-mono text-sm text-blue-700 dark:text-blue-300',
 );

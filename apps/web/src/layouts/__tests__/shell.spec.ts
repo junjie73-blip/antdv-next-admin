@@ -115,7 +115,10 @@ async function setupShell(options: SetupOptions = {}) {
 }
 
 /** 只比对用例显式声明的字段，其余字段留给整体快照在失败时打印 */
-function expectRegions(regions: LayoutRegionFlags, expected: Record<string, unknown>) {
+function expectRegions(
+  regions: LayoutRegionFlags,
+  expected: Record<string, unknown>,
+) {
   const actual: Record<string, unknown> = {
     chromeless: regions.chromeless.value,
     footerVisible: regions.footerVisible.value,
@@ -136,7 +139,10 @@ function expectRegions(regions: LayoutRegionFlags, expected: Record<string, unkn
   }
 }
 
-const REGION_MATRIX: Array<{ expected: Record<string, unknown>; mode: LayoutMode }> = [
+const REGION_MATRIX: Array<{
+  expected: Record<string, unknown>;
+  mode: LayoutMode;
+}> = [
   {
     mode: 'vertical',
     expected: {
@@ -290,7 +296,10 @@ describe('useShell —— 七种布局形态的区域开关', () => {
   });
 
   it('标签页放大等价于临时内容全屏：外壳区域全收，标签栏保留', async () => {
-    const { regions } = await setupShell({ layout: 'two-column', maximized: true });
+    const { regions } = await setupShell({
+      layout: 'two-column',
+      maximized: true,
+    });
     expectRegions(regions, {
       chromeless: false,
       footerVisible: false,
@@ -305,7 +314,10 @@ describe('useShell —— 七种布局形态的区域开关', () => {
     const withChildren = await setupShell({ layout: 'mixed-vertical' });
     expect(withChildren.regions.sidebarVisible.value).toBe(true);
 
-    const leafOnly = await setupShell({ layout: 'mixed-vertical', routeName: 'about' });
+    const leafOnly = await setupShell({
+      layout: 'mixed-vertical',
+      routeName: 'about',
+    });
     expect(leafOnly.regions.sidebarVisible.value).toBe(false);
     expect(leafOnly.regions.headerNavVisible.value).toBe(true);
   });
@@ -327,7 +339,9 @@ describe('useShell —— 七种布局形态的区域开关', () => {
       { hidden: true, name: 'secret', title: '隐藏项' },
     ] as MenuConfig[];
     await nextTick();
-    expect(regions.sidebarMenus.value.map((menu) => menu.title)).toEqual(TOP_TITLES);
+    expect(regions.sidebarMenus.value.map((menu) => menu.title)).toEqual(
+      TOP_TITLES,
+    );
   });
 });
 

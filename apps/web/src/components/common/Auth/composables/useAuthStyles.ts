@@ -35,28 +35,28 @@ export function useAuthStyles() {
   /* ---------- 2. 流动光斑（保留） ---------- */
   const blob1ClassName = cn(
     'absolute rounded-full blur-[120px]',
-    '-top-40 -left-40 h-[640px] w-[640px]',
+    '-top-40 -left-40 size-[640px]',
     'bg-blue-400/40 dark:bg-blue-500/18',
     'animate-pulse [animation-duration:12s]',
   );
 
   const blob2ClassName = cn(
     'absolute rounded-full blur-[120px]',
-    '-top-32 -right-40 h-[560px] w-[560px]',
+    '-top-32 -right-40 size-[560px]',
     'bg-violet-400/35 dark:bg-violet-500/15',
     'animate-pulse [animation-delay:2s] [animation-duration:14s]',
   );
 
   const blob3ClassName = cn(
     'absolute rounded-full blur-[120px]',
-    '-bottom-40 -left-32 h-[520px] w-[520px]',
+    '-bottom-40 -left-32 size-[520px]',
     'bg-cyan-300/30 dark:bg-cyan-500/12',
     'animate-pulse [animation-delay:4s] [animation-duration:10s]',
   );
 
   const blob4ClassName = cn(
     'absolute rounded-full blur-[120px]',
-    '-right-40 -bottom-40 h-[600px] w-[600px]',
+    '-right-40 -bottom-40 size-[600px]',
     'bg-indigo-400/30 dark:bg-indigo-500/15',
     'animate-pulse [animation-delay:1s] [animation-duration:16s]',
   );
@@ -86,21 +86,21 @@ export function useAuthStyles() {
   const ring1ClassName = cn(
     'absolute rounded-full border',
     // 右上角
-    '-top-32 -right-32 h-[420px] w-[420px]',
+    '-top-32 -right-32 size-[420px]',
     'border-slate-300/40 dark:border-slate-600/20',
   );
 
   const ring2ClassName = cn(
     'absolute rounded-full border',
     // 右上角，更大
-    '-top-52 -right-52 h-[620px] w-[620px]',
+    '-top-52 -right-52 size-[620px]',
     'border-slate-300/30 dark:border-slate-600/15',
   );
 
   const ring3ClassName = cn(
     'absolute rounded-full border',
     // 左下角
-    '-bottom-40 -left-40 h-[520px] w-[520px]',
+    '-bottom-40 -left-40 size-[520px]',
     'border-slate-300/30 dark:border-slate-600/15',
   );
 
@@ -152,7 +152,7 @@ export function useAuthStyles() {
    * ============================================================ */
   const cardClassName = cn(
     'relative w-full max-w-[980px]',
-    'border border-solid border-white/60 dark:border-white/[0.08]',
+    'border border-solid border-white/60 dark:border-white/8',
     'grid grid-cols-1 lg:grid-cols-5',
     'overflow-hidden rounded-2xl',
     'bg-white/40 dark:bg-slate-900/40',
@@ -177,7 +177,7 @@ export function useAuthStyles() {
   );
 
   const brandGlowClassName = cn(
-    'absolute -top-20 -right-20 h-[320px] w-[320px] rounded-full',
+    'absolute -top-20 -right-20 size-[320px] rounded-full',
     'pointer-events-none bg-white/20 blur-[80px]',
     'animate-pulse [animation-duration:12s]',
   );
@@ -203,7 +203,7 @@ export function useAuthStyles() {
   );
 
   const brandLogoIconClassName = cn(
-    'flex h-9 w-9 items-center justify-center rounded-lg',
+    'flex size-9 items-center justify-center rounded-lg',
     'bg-white/20 text-white',
   );
 

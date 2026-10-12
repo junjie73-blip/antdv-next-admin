@@ -4,7 +4,11 @@ import type { ComputedRef } from 'vue';
 
 import { computed } from 'vue';
 
-import { findMenuChain, menuKeyOf, normalizeMenuPath } from '@antdv/shared/menu';
+import {
+  findMenuChain,
+  menuKeyOf,
+  normalizeMenuPath,
+} from '@antdv/shared/menu';
 
 /**
  * 面包屑。
@@ -26,7 +30,7 @@ import { findMenuChain, menuKeyOf, normalizeMenuPath } from '@antdv/shared/menu'
 
 export interface BreadcrumbRouteLike {
   matched?: Array<{
-    meta?: { icon?: unknown, title?: unknown };
+    meta?: { icon?: unknown; title?: unknown };
     path?: string;
     redirect?: unknown;
   }>;
@@ -146,12 +150,9 @@ export function shouldShowBreadcrumb(
  * 但高亮只能落在真的渲染得出来的那一级上。
  */
 export function activeTopMenuKey(menus: MenuConfig[], path: string) {
-  const chain = findMenuChain(
-    menus,
-    (menu) => menu.path === path,
-    [],
-    { includeHidden: true },
-  );
+  const chain = findMenuChain(menus, (menu) => menu.path === path, [], {
+    includeHidden: true,
+  });
   const top = chain.find((menu) => !menu.hidden);
   return top ? menuKeyOf(top) : undefined;
 }

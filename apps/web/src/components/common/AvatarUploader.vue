@@ -6,7 +6,7 @@ import 'vue-cropper/dist/index.css';
 import { useFileReader } from '@antdv/composables/useFileReader';
 import { Icon } from '@iconify/vue';
 import { message } from 'antdv-next';
-import { uploadFile } from '~/api';
+import { http } from '~/composables';
 
 interface Props {
   modelValue?: string;
@@ -77,8 +77,17 @@ async function handleConfirm() {
     const file = new File([blob], `avatar_${Date.now()}.png`, {
       type: 'image/png',
     });
-    const res: any = await uploadFile(file);
-    const url = res?.data?.url || res?.url;
+    // 走真实文件上传（multipart）而不是 `~/api/system` 的 `uploadFile`：
+    // 后者是文件管理页的**元数据登记**接口，POST 的是 JSON 描述、返回的记录里没有 url，
+    // 用它上传头像永远拿不到可回填的地址。
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await http.Post<{
+      code: number;
+      data: { url: string };
+      message?: string;
+    }>('/upload/avatar', formData);
+    const url = res?.data?.url;
     if (!url) throw new Error('上传接口未返回 url');
 
     emit('update:modelValue', url);

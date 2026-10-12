@@ -14,12 +14,15 @@ import {
  * 运行时断言做不到这件事（类型信息早就擦除了）。
  */
 type Expect<T extends true> = T;
-type MissingDefaults = Exclude<keyof AppSetting, keyof typeof DEFAULT_PREFERENCES>;
+type MissingDefaults = Exclude<
+  keyof AppSetting,
+  keyof typeof DEFAULT_PREFERENCES
+>;
 export type ExhaustiveDefaults = Expect<
   [MissingDefaults] extends [never] ? true : false
 >;
 
-describe('DEFAULT_PREFERENCES', () => {
+describe('dEFAULT_PREFERENCES', () => {
   it('每个字段都有值，不存在声明了却没赋值的项', () => {
     expect(Object.keys(DEFAULT_PREFERENCES).length).toBeGreaterThan(40);
     for (const value of Object.values(DEFAULT_PREFERENCES)) {
@@ -79,7 +82,9 @@ describe('pickKnownPreferences', () => {
   it('空值与非法入参返回空对象', () => {
     expect(pickKnownPreferences(null)).toEqual({});
     expect(pickKnownPreferences(undefined)).toEqual({});
-    expect(pickKnownPreferences('nope' as unknown as Partial<AppSetting>)).toEqual({});
+    expect(
+      pickKnownPreferences('nope' as unknown as Partial<AppSetting>),
+    ).toEqual({});
   });
 
   it('可以指定 schema（应用侧覆盖了默认值时按其键集合过滤）', () => {

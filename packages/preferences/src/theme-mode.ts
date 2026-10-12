@@ -45,7 +45,9 @@ export function createSystemDark(options: SystemDarkOptions = {}): SystemDark {
 
   const matchFn =
     options.matchMedia ??
-    (typeof window === 'undefined' ? undefined : window.matchMedia?.bind(window));
+    (typeof window === 'undefined'
+      ? undefined
+      : window.matchMedia?.bind(window));
 
   // SSR 或不支持 matchMedia 的老浏览器：不抛错，降级成"永远浅色"
   const media = matchFn ? matchFn(DARK_QUERY) : null;

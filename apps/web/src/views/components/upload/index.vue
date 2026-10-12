@@ -7,6 +7,47 @@ import { computed, ref, useTemplateRef } from 'vue';
 import { useChunkUpload } from '@antdv/composables/useChunkUpload';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
+import { http } from '~/composables';
+
+/**
+ * 上传示例统一走应用请求层（`http.Post` → fetch），而不是 `action` 直连 XHR。
+ *
+ * 两个非改不可的理由：
+ * 1. `action` 里的 `/api/...` 是硬编码前缀，可前缀只在 `.env.development` 里配
+ *    （`VITE_APP_BASE_API`），生产构建拿不到它，产物里发出去的就是 `/api/upload`；
+ * 2. 包内浏览器 mock 劫持的是 `globalThis.fetch`，XHR 从它旁边绕过去 ——
+ *    生产部署没有 Node 后端，点一次上传就是一次货真价实的 404。
+ *
+ * 换成 `customRequest` 后，dev（vite proxy → Nitro）与生产（浏览器内 mock）
+ * 打到的是同一个接口、同一种信封，`file.response.data.url` 两边都拿得到。
+ */
+function uploadRequest(variant: string) {
+  return (options: any) => {
+    const { file, onError, onProgress, onSuccess } = options;
+    const formData = new FormData();
+    formData.append('file', file as File);
+    return http
+      .Post<{
+        code: number;
+        data: {
+          fileId: string;
+          storedPath: string;
+          uploadedAt: string;
+          url: string;
+          variant: string;
+        };
+        message: string;
+      }>(variant ? `/upload/${variant}` : '/upload', formData)
+      .then((res) => {
+        onProgress({ percent: 100 }, res);
+        onSuccess(res, file);
+        return res;
+      })
+      .catch((error: unknown) => {
+        onError(error as Error);
+      });
+  };
+}
 
 const containerClassName = cn('space-y-6');
 const descClassName = cn('mb-3 text-sm text-gray-500 dark:text-gray-400');
@@ -91,10 +132,10 @@ const avatarPreviewSrc = computed(() =>
 );
 
 const avatarUploaderClassName = cn(
-  'flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:border-blue-500 dark:bg-gray-800',
+  'flex size-24 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:border-blue-500 dark:bg-gray-800',
 );
 
-const avatarImageClassName = cn('h-full w-full object-cover');
+const avatarImageClassName = cn('size-full object-cover');
 
 const avatarInfoClassName = cn('flex-1');
 const avatarTitleClassName = cn(
@@ -141,7 +182,7 @@ const customUploadAreaClassName = cn(
   'flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 transition-all duration-200 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20',
 );
 
-const customIconClassName = cn('mb-2 h-12 w-12 text-gray-400');
+const customIconClassName = cn('mb-2 size-12 text-gray-400');
 const customTextClassName = cn('text-sm text-gray-500 dark:text-gray-400');
 const customHintClassName = cn('mt-1 text-xs text-gray-400');
 
@@ -172,12 +213,12 @@ const statusLegendClassName = cn(
 const statusGridClassName = cn('grid grid-cols-1 gap-4 text-sm md:grid-cols-3');
 const statusItemClassName = cn('flex items-center gap-2');
 const statusDotUploadingClassName = cn(
-  'h-3 w-3 animate-pulse rounded-full bg-blue-500',
+  'size-3 animate-pulse rounded-full bg-blue-500',
 );
 const statusTextUploadingClassName = cn('text-blue-600 dark:text-blue-400');
-const statusDotErrorClassName = cn('h-3 w-3 rounded-full bg-red-500');
+const statusDotErrorClassName = cn('size-3 rounded-full bg-red-500');
 const statusTextErrorClassName = cn('text-red-600 dark:text-red-400');
-const statusDotDoneClassName = cn('h-3 w-3 rounded-full bg-green-500');
+const statusDotDoneClassName = cn('size-3 rounded-full bg-green-500');
 const statusTextDoneClassName = cn('text-green-600 dark:text-green-400');
 
 const handleStatusChange: UploadProps['onChange'] = (
@@ -214,7 +255,7 @@ const handleValidateBeforeUpload: UploadProps['beforeUpload'] = (file) => {
 };
 
 const validateTipClassName = cn(
-  'mt-3 rounded border border-yellow-200 bg-yellow-50 p-3 text-xs text-yellow-700 dark:border-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+  'mt-3 rounded-sm border border-yellow-200 bg-yellow-50 p-3 text-xs text-yellow-700 dark:border-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
 );
 
 const manualFileList = ref<UploadFile[]>([]);
@@ -249,40 +290,38 @@ function handleManualClear() {
   message.info('已清空文件列表');
 }
 
-const dragSortFileList = ref<UploadFile[]>([
-  {
-    uid: '-1',
-    name: 'image1.png',
-    status: 'done',
-    url: 'https://via.placeholder.com/150?text=Image+1',
-  },
-  {
-    uid: '-2',
-    name: 'image2.png',
-    status: 'done',
-    url: 'https://via.placeholder.com/150?text=Image+2',
-  },
-  {
-    uid: '-3',
-    name: 'image3.png',
-    status: 'done',
-    url: 'https://via.placeholder.com/150?text=Image+3',
-  },
-  {
-    uid: '-4',
-    name: 'image4.png',
-    status: 'done',
-    url: 'https://via.placeholder.com/150?text=Image+4',
-  },
-]);
+// ===== 自研 AvatarUploader（组件示例：头像上传） =====
+/**
+ * 页面本地的头像地址，喂给本仓库自研的 `AvatarUploader`。
+ *
+ * 该组件内部把裁剪结果以 multipart 发到 `POST /upload/avatar`（真实文件上传通道，
+ * 与 `~/api/system` 那个只登记元数据的 `uploadFile` 不是一条路），
+ * 裁剪确认后把返回的 url 通过 `update:modelValue` / `uploaded` 回抛，
+ * 这里只负责展示地址和提供「重置」。
+ */
+const inhouseAvatarUrl = ref('');
+/** 与 AvatarUploader 的 outputSize 保持一致，用于展示裁剪输出尺寸 */
+const inhouseAvatarOutputSize = 256;
+const inhouseAvatarSize = 88;
 
-const dragTipClassName = cn('mt-3 text-xs text-gray-400 dark:text-gray-500');
+const inhouseAvatarDescClassName = cn(
+  'mb-3 text-sm text-gray-500 dark:text-gray-400',
+);
+const inhouseAvatarRowClassName = cn('flex items-center gap-4');
+const inhouseAvatarInfoClassName = cn(
+  'mt-4 space-y-1 text-sm text-gray-500 dark:text-gray-400',
+);
+const inhouseAvatarUrlClassName = cn(
+  'rounded-sm bg-gray-50 px-2 py-1 font-mono text-xs break-all text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+);
 
-function handleDragSortChange(info: UploadChangeParam) {
-  const { fileList } = info;
-  if (Array.isArray(fileList)) {
-    dragSortFileList.value = fileList as UploadFile[];
-  }
+function handleInhouseAvatarUploaded(url: string) {
+  inhouseAvatarUrl.value = url;
+}
+
+function handleInhouseAvatarReset() {
+  inhouseAvatarUrl.value = '';
+  message.info('已重置头像');
 }
 
 const largeFileCardDescClassName = cn(
@@ -614,8 +653,8 @@ function handlePreviewClose() {
       </div>
       <a-upload
         v-model:file-list="basicFileList"
+        :custom-request="uploadRequest('')"
         :multiple="true"
-        action="/api/upload"
         :drag="true"
       >
         <p class="ant-upload-drag-icon">
@@ -635,7 +674,7 @@ function handlePreviewClose() {
       <a-upload
         v-model:file-list="imageFileList"
         v-bind="imageUploadProps"
-        action="/api/upload/image"
+        :custom-request="uploadRequest('image')"
         :before-upload="handleImageBeforeUpload"
         @preview="handleImagePreview"
       >
@@ -667,7 +706,7 @@ function handlePreviewClose() {
       <div class="flex items-start gap-6">
         <a-upload
           v-model:file-list="avatarFileList"
-          action="/api/upload/avatar"
+          :custom-request="uploadRequest('avatar')"
           :show-upload-list="false"
           :before-upload="handleAvatarBeforeUpload"
           list-type="picture"
@@ -684,7 +723,11 @@ function handlePreviewClose() {
               class="animate-spin text-2xl text-gray-400"
               icon="svg-spinners:180-ring-with-bg"
             />
-            <Icon v-else class="text-2xl text-gray-400" icon="ant-design:camera-outlined" />
+            <Icon
+              v-else
+              class="text-2xl text-gray-400"
+              icon="ant-design:camera-outlined"
+            />
           </div>
           <img
             v-else
@@ -708,12 +751,15 @@ function handlePreviewClose() {
       <div :class="descClassName">带图标的自定义上传区域，支持拖拽</div>
       <a-upload
         v-model:file-list="customFileList"
-        action="/api/upload/custom"
+        :custom-request="uploadRequest('custom')"
         :drag="true"
         :multiple="true"
       >
         <div :class="customUploadAreaClassName">
-          <Icon :class="customIconClassName" icon="ant-design:cloud-upload-outlined" />
+          <Icon
+            :class="customIconClassName"
+            icon="ant-design:cloud-upload-outlined"
+          />
           <span :class="customTextClassName">点击或拖拽文件到此处上传</span>
           <span :class="customHintClassName">支持任意文件类型</span>
         </div>
@@ -726,7 +772,7 @@ function handlePreviewClose() {
       </div>
       <a-upload
         v-model:file-list="statusFileList"
-        action="/api/upload/status"
+        :custom-request="uploadRequest('status')"
         @change="handleStatusChange"
       >
         <a-button>
@@ -758,7 +804,7 @@ function handlePreviewClose() {
       </div>
       <a-upload
         v-model:file-list="validateFileList"
-        action="/api/upload/validate"
+        :custom-request="uploadRequest('validate')"
         :before-upload="handleValidateBeforeUpload"
         :multiple="true"
       >
@@ -778,7 +824,7 @@ function handlePreviewClose() {
         <a-upload
           ref="manualUploadRef"
           v-model:file-list="manualFileList"
-          action="/api/upload/manual"
+          :custom-request="uploadRequest('manual')"
           :auto-upload="false"
           :multiple="true"
         >
@@ -807,22 +853,45 @@ function handlePreviewClose() {
       </div>
     </a-card>
 
-    <a-card title="拖拽排序" variant="borderless">
-      <div :class="descClassName">上传后的图片列表可通过拖拽调整顺序</div>
-      <a-upload
-        v-model:file-list="dragSortFileList"
-        action="/api/upload/drag-sort"
-        list-type="picture-card"
-        :draggable="true"
-        @change="handleDragSortChange"
-      >
-        <div>
-          <Icon icon="ant-design:plus-outlined" />
-          <div style="margin-top: 8px">添加图片</div>
-        </div>
-      </a-upload>
-      <div :class="dragTipClassName">
-        提示：鼠标悬停在图片上可看到操作按钮，拖拽图标可调整顺序
+    <a-card title="头像上传（自研组件）" variant="borderless">
+      <div :class="inhouseAvatarDescClassName">
+        基于本仓库自研的
+        <code class="font-mono text-xs">AvatarUploader</code>
+        组件，选择图片后可 1:1 裁剪，确认后以 multipart 发到
+        <code class="font-mono text-xs">POST /upload/avatar</code>
+        上传并回填地址（示例返回一张内联 SVG 占位图，mock 不落盘）。
+      </div>
+      <div :class="inhouseAvatarRowClassName">
+        <AvatarUploader
+          v-model="inhouseAvatarUrl"
+          :max-size-mb="5"
+          :output-size="inhouseAvatarOutputSize"
+          :size="inhouseAvatarSize"
+          round
+          @uploaded="handleInhouseAvatarUploaded"
+        />
+        <a-button
+          :disabled="!inhouseAvatarUrl"
+          @click="handleInhouseAvatarReset"
+        >
+          重置
+        </a-button>
+      </div>
+      <div :class="inhouseAvatarInfoClassName">
+        <template v-if="inhouseAvatarUrl">
+          <div>
+            当前地址：<span :class="inhouseAvatarUrlClassName">{{
+              inhouseAvatarUrl
+            }}</span>
+          </div>
+          <div>
+            裁剪输出尺寸：{{ inhouseAvatarOutputSize }}×{{
+              inhouseAvatarOutputSize
+            }}
+            PNG
+          </div>
+        </template>
+        <div v-else>尚未上传头像，选择图片并确认后地址会显示在这里。</div>
       </div>
     </a-card>
 

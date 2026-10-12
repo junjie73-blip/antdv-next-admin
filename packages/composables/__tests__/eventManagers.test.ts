@@ -5,7 +5,7 @@ import { SSEEventType } from '../src/sse/types';
 import { EventManager } from '../src/websocket/EventManager';
 import { WebSocketEventType } from '../src/websocket/types';
 
-describe('WebSocket EventManager', () => {
+describe('webSocket EventManager', () => {
   it('on 注册、emit 派发、返回的函数取消订阅', () => {
     const manager = new EventManager();
     const spy = vi.fn();
@@ -119,7 +119,7 @@ describe('WebSocket EventManager', () => {
   });
 });
 
-describe('SSE EventManager', () => {
+describe('sSE EventManager', () => {
   it('event: 前缀走命名事件通道，与普通类型互不干扰', () => {
     const manager = new SSEEventManager();
     const typed = vi.fn();

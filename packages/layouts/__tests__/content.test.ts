@@ -40,9 +40,9 @@ describe('内容区宽度', () => {
 
   it('窄屏定宽时实际宽度受视口约束（两侧留缝）', () => {
     // 视口 900 < 定宽 1200：内容区按视口减两侧留白
-    expect(
-      effectiveContentWidth(900, { mode: 'fixed', width: 1200 }),
-    ).toBe(868);
+    expect(effectiveContentWidth(900, { mode: 'fixed', width: 1200 })).toBe(
+      868,
+    );
     // 视口 2000 > 定宽：按定宽
     expect(effectiveContentWidth(2000, { mode: 'fixed', width: 1200 })).toBe(
       1200,

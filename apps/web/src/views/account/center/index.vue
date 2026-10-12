@@ -106,11 +106,11 @@ const userCardClassName = computed(() =>
 );
 
 const avatarWrapperClassName = cn(
-  'flex h-20 w-20 items-center justify-center overflow-hidden rounded-full',
+  'flex size-20 items-center justify-center overflow-hidden rounded-full',
   'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400',
 );
 
-const avatarImgClassName = cn('h-full w-full object-cover');
+const avatarImgClassName = cn('size-full object-cover');
 
 const statItemClassName = cn(
   'flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400',

@@ -1,6 +1,10 @@
 import type { TabActionContext } from '../components/tabs/constants';
 
-import { buildTabActions, isActionDisabled, TAB_ACTIONS } from '../components/tabs/constants';
+import {
+  buildTabActions,
+  isActionDisabled,
+  TAB_ACTIONS,
+} from '../components/tabs/constants';
 
 /**
  * 标签页右键菜单动作集的纯数据测试。
@@ -34,35 +38,56 @@ const MENU_ORDER = [
   'closeAll',
 ] as const;
 
-describe('TAB_ACTIONS —— 菜单结构与文案', () => {
+describe('tAB_ACTIONS —— 菜单结构与文案', () => {
   it('顺序与截图一致：单标签操作在前，批量关闭在后，中间一条分隔线', () => {
     expect(TAB_ACTIONS.map((action) => action.key)).toEqual([...MENU_ORDER]);
   });
 
   it('buildTabActions 保持同样的顺序，分隔线渲染成 divider 项', () => {
     const items = buildTabActions(makeCtx());
-    expect(items.map((item) => (item.divider ? 'divider' : item.key))).toEqual([...MENU_ORDER]);
-    expect(items.find((item) => item.divider)).toMatchObject({ disabled: true, label: '' });
+    expect(items.map((item) => (item.divider ? 'divider' : item.key))).toEqual([
+      ...MENU_ORDER,
+    ]);
+    expect(items.find((item) => item.divider)).toMatchObject({
+      disabled: true,
+      label: '',
+    });
   });
 
   it('固定态切换与放大态会改变 label', () => {
     const items = buildTabActions(makeCtx({ affixed: true, maximized: true }));
     expect(items.find((item) => item.key === 'affix')?.label).toBe('取消固定');
-    expect(items.find((item) => item.key === 'maximize')?.label).toBe('还原当前页');
+    expect(items.find((item) => item.key === 'maximize')?.label).toBe(
+      '还原当前页',
+    );
 
     const normal = buildTabActions(makeCtx());
-    expect(normal.find((item) => item.key === 'affix')?.label).toBe('固定标签页');
-    expect(normal.find((item) => item.key === 'maximize')?.label).toBe('放大当前页');
+    expect(normal.find((item) => item.key === 'affix')?.label).toBe(
+      '固定标签页',
+    );
+    expect(normal.find((item) => item.key === 'maximize')?.label).toBe(
+      '放大当前页',
+    );
   });
 
   it('批量关闭项把可关闭数量带进 label，数量为 0 时省略括号', () => {
-    const items = buildTabActions(makeCtx({ closeableLeft: 1, closeableRight: 2, others: 3 }));
-    expect(items.find((item) => item.key === 'closeOther')?.label).toBe('关闭其他（3）');
-    expect(items.find((item) => item.key === 'closeLeft')?.label).toBe('关闭左侧（1）');
-    expect(items.find((item) => item.key === 'closeRight')?.label).toBe('关闭右侧（2）');
+    const items = buildTabActions(
+      makeCtx({ closeableLeft: 1, closeableRight: 2, others: 3 }),
+    );
+    expect(items.find((item) => item.key === 'closeOther')?.label).toBe(
+      '关闭其他（3）',
+    );
+    expect(items.find((item) => item.key === 'closeLeft')?.label).toBe(
+      '关闭左侧（1）',
+    );
+    expect(items.find((item) => item.key === 'closeRight')?.label).toBe(
+      '关闭右侧（2）',
+    );
 
     const empty = buildTabActions(makeCtx());
-    expect(empty.find((item) => item.key === 'closeAll')?.label).toBe('关闭全部');
+    expect(empty.find((item) => item.key === 'closeAll')?.label).toBe(
+      '关闭全部',
+    );
   });
 });
 
@@ -81,7 +106,13 @@ describe('isActionDisabled —— 禁用规则', () => {
 
   it('普通标签的 affix / close / maximize / refresh / openInNewWindow 都可用', () => {
     const ctx = makeCtx();
-    for (const key of ['affix', 'close', 'maximize', 'refresh', 'openInNewWindow'] as const) {
+    for (const key of [
+      'affix',
+      'close',
+      'maximize',
+      'refresh',
+      'openInNewWindow',
+    ] as const) {
       expect(isActionDisabled(key, ctx), key).toBe(false);
     }
   });
@@ -100,7 +131,9 @@ describe('isActionDisabled —— 禁用规则', () => {
 
   it('关闭全部只在「三个方向都数不出可关闭标签」时禁用', () => {
     expect(isActionDisabled('closeAll', makeCtx())).toBe(true);
-    expect(isActionDisabled('closeAll', makeCtx({ closeableRight: 1 }))).toBe(false);
+    expect(isActionDisabled('closeAll', makeCtx({ closeableRight: 1 }))).toBe(
+      false,
+    );
     expect(isActionDisabled('closeAll', makeCtx({ others: 1 }))).toBe(false);
   });
 });

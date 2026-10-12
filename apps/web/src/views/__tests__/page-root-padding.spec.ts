@@ -22,9 +22,11 @@ import { describe, expect, it } from 'vitest';
  */
 
 /** 页面根容器上不允许出现的内边距工具类（含变体前缀与任意值） */
-const PADDING_CLASS = /(?:^|[^\w-])(?:p|px|py|pt|pb|pl|pr)-(?:\d|\[[^\]]*\]|px)(?![\w-])/;
+const PADDING_CLASS =
+  /(?:^|[^\w-])(?:p|px|py|pt|pb|pl|pr)-(?:\d|\[[^\]]*\]|px)(?![\w-])/;
 /** 也不允许直接写行内 padding */
-const INLINE_PADDING = /padding(?:-top|-right|-bottom|-left|-inline|-block)?\s*:/;
+const INLINE_PADDING =
+  /padding(?:-top|-right|-bottom|-left|-inline|-block)?\s*:/;
 
 const VIEWS = join(process.cwd(), 'src/views');
 const LAYOUT = join(process.cwd(), 'src/layouts/index.vue');
@@ -34,7 +36,10 @@ function isPrivateComponent(relativePath: string) {
   const segments = relativePath.split(sep);
   // 第一段就是 components/ 的是"组件示例页"目录（views/components/**），算页面；
   // 口径对齐 vite-config 里 VueRouter 的 `**/*/components/*` 排除规则
-  return segments.slice(1).includes('components') || segments.slice(1).includes('widgets');
+  return (
+    segments.slice(1).includes('components') ||
+    segments.slice(1).includes('widgets')
+  );
 }
 
 function viewFiles(dir: string = VIEWS): string[] {
@@ -79,7 +84,10 @@ function templateBody(source: string): string {
     depth -= 1;
     cursor = nextClose;
   }
-  return source.slice(open + '<template>'.length, source.lastIndexOf('</template>'));
+  return source.slice(
+    open + '<template>'.length,
+    source.lastIndexOf('</template>'),
+  );
 }
 
 const VOID_TAGS = new Set([
@@ -130,7 +138,10 @@ function rootTags(template: string): string[] {
       if (char === '"' || char === "'") quote = char;
       else if (char === '>') break;
     }
-    const raw = template.slice(lt + 1, gt).replace(/\s+/g, ' ').trim();
+    const raw = template
+      .slice(lt + 1, gt)
+      .replaceAll(/\s+/g, ' ')
+      .trim();
     const name = /^([\w.-]+)/.exec(raw)?.[1] ?? '';
     const selfClosing = raw.endsWith('/');
     if (depth === 0 && name) tags.push(raw);
@@ -163,9 +174,9 @@ function rootClassText(tag: string, source: string): string {
        * 这种**别的元素**的 padding 会被算到根容器头上，首轮就误报了 20 多个页面。
        * 顶格（行首非空白）才是同级的下一条语句。
        */
-      const definition = new RegExp(`(?:const|let)\\s+${name}\\b[\\s\\S]*?(?=\\n\\S|\\s*$)`).exec(
-        source,
-      );
+      const definition = new RegExp(
+        `(?:const|let)\\s+${name}\\b[\\s\\S]*?(?=\\n\\S|\\s*$)`,
+      ).exec(source);
       if (definition) parts.push(definition[0]);
     }
   }
@@ -184,7 +195,9 @@ describe('路由页面的根容器不重复加内边距', () => {
   it('扫到了足够多的页面（防止目录口径变化把断言跑成空转）', () => {
     const files = viewFiles();
     expect(files.length).toBeGreaterThanOrEqual(40);
-    expect(files.some((file) => file.endsWith(join('system', 'user', 'index.vue')))).toBe(true);
+    expect(
+      files.some((file) => file.endsWith(join('system', 'user', 'index.vue'))),
+    ).toBe(true);
   });
 
   it('每个路由页面的根容器都没有 p-*/px-*/py-* 或行内 padding', () => {
@@ -196,10 +209,13 @@ describe('路由页面的根容器不重复加内边距', () => {
       if (!template) continue;
       for (const tag of rootTags(template)) {
         const classText = rootClassText(tag, source);
-        if (PADDING_CLASS.test(` ${classText} `) || INLINE_PADDING.test(classText)) {
+        if (
+          PADDING_CLASS.test(` ${classText} `) ||
+          INLINE_PADDING.test(classText)
+        ) {
           offenders.push(
             `${relative(process.cwd(), file)}  ::  ${tag.slice(0, 140)}\n        类名: ${classText
-              .replace(/\s+/g, ' ')
+              .replaceAll(/\s+/g, ' ')
               .slice(0, 200)}`,
           );
         }
@@ -212,8 +228,10 @@ describe('路由页面的根容器不重复加内边距', () => {
 
   it('已知被修掉的四个页面保持无内边距', () => {
     for (const rel of [
-      'src/views/components/editor/markdown/index.vue',
-      'src/views/demo/table-pagination-test.vue',
+      // 编辑器页（合并成一个之后）：h-full 布局，根容器多一档内边距就会被高度链放大
+      'src/views/components/editor/index.vue',
+      // 原 `/demo/table-pagination-test`（排障用的临时页，已删）换成同样"表格 + 分页"的示例页
+      'src/views/components/table/basic/index.vue',
       'src/views/micro-app/SubAppView.vue',
       'src/views/system/micro-app/index.vue',
     ]) {

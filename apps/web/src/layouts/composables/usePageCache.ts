@@ -41,7 +41,11 @@ const heldNodes = new Map<string, Component | VNode>();
 
 /** 递归收集菜单里声明了 keepAlive 的叶子路径 */
 function collectKeepAlivePaths(
-  list: { children?: undefined | { keepAlive?: boolean }[]; keepAlive?: boolean; path?: string }[],
+  list: {
+    children?: undefined | { keepAlive?: boolean }[];
+    keepAlive?: boolean;
+    path?: string;
+  }[],
   acc: Set<string> = new Set(),
 ): Set<string> {
   for (const item of list) {
@@ -96,7 +100,10 @@ export function usePageCache() {
    * 把 RouterView 给出的页面包装成"名字=缓存代号"的组件。
    * 不可缓存的页面原样返回，保持与改动前一致的渲染路径。
    */
-  function wrap(path: string | undefined, node: Component | null | undefined | VNode) {
+  function wrap(
+    path: string | undefined,
+    node: Component | null | undefined | VNode,
+  ) {
     if (!node) return null;
     if (!path || !isCacheable(path)) return markRaw(node);
 
@@ -124,7 +131,11 @@ export function usePageCache() {
              * `parentComponent.ctx.deactivate is not a function`。
              */
             if (isVNode(held)) {
-              return h(held.type as Component, { ...(held.props ?? {}) }, held.children as never);
+              return h(
+                held.type as Component,
+                { ...held.props },
+                held.children as never,
+              );
             }
             return h(held as Component);
           },
@@ -159,7 +170,10 @@ export function usePageCache() {
     const oldName = cacheName(key, generations.value[key] ?? 0);
     wrappers.delete(oldName);
     heldNodes.delete(oldName);
-    generations.value = { ...generations.value, [key]: (generations.value[key] ?? 0) + 1 };
+    generations.value = {
+      ...generations.value,
+      [key]: (generations.value[key] ?? 0) + 1,
+    };
   }
 
   /** 退出登录 / 重置会话时清空，避免把上一个账号的页面实例留给下一个账号 */

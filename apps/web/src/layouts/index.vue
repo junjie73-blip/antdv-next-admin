@@ -2,7 +2,16 @@
 import type { LayoutMode } from '@antdv/layouts';
 import type { ScrollbarType } from '@antdv/ui/scrollbar';
 
-import { computed, markRaw, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
+import {
+  computed,
+  markRaw,
+  onMounted,
+  onUnmounted,
+  ref,
+  useTemplateRef,
+  watch,
+} from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 import { useRouteLoading } from '@antdv/composables/useRouteLoading';
@@ -30,6 +39,7 @@ defineOptions({
 });
 
 const router = useRouter();
+const { t } = useI18n({ useScope: 'global' });
 const appStore = useAppStore();
 const dictStore = useDictStore();
 const tabsStore = useTabsStore();
@@ -203,7 +213,9 @@ useWatermark({
       <!-- 主内容列 -->
       <a-layout class="flex min-w-0 flex-1 flex-col overflow-hidden">
         <!-- 顶栏嵌在内容列：垂直 / 双列（左侧栏占满整高，Logo 在侧栏顶部） -->
-        <LayoutHeader v-if="headerVisible && !headerNavInFlow && !shellHidden" />
+        <LayoutHeader
+          v-if="headerVisible && !headerNavInFlow && !shellHidden"
+        />
 
         <!--
           Logo 系形态（水平 / 侧边导航 / 混合）的顶栏被品牌位与横向导航占满，
@@ -215,7 +227,10 @@ useWatermark({
           variant="content"
         />
 
-        <LayoutTabs v-if="tabsVisible" :show-icon="appStore.tabShowIcon !== false" />
+        <LayoutTabs
+          v-if="tabsVisible"
+          :show-icon="appStore.tabShowIcon !== false"
+        />
 
         <a-layout-content
           :class="contentClassName"
@@ -242,24 +257,30 @@ useWatermark({
           >
             <PageTransition>
               <router-view v-slot="{ Component, route }">
-              <!-- 微前端页面：禁用 out-in 模式，避免 iframe/微应用被 transition 销毁 -->
-              <template v-if="route.meta?.microApp">
-                <keep-alive :include="cachedRoutes">
-                  <component :is="pageCache.wrap(route.path, Component)" :key="pageCache.keyOf(route.path)" />
-                </keep-alive>
-              </template>
-              <!-- 全屏大屏页面：禁用 transition + keepAlive，避免 ECharts 资源泄漏影响其他页面 -->
-              <template v-else-if="route.meta?.noTransition">
-                <component :is="rawComponent(Component)" :key="route.path" />
-              </template>
-              <!-- 普通页面：按标签页与菜单声明决定是否缓存，不使用 Transition 避免渲染冲突 -->
-              <template v-else>
-                <keep-alive :include="cachedRoutes">
-                  <component :is="pageCache.wrap(route.path, Component)" :key="pageCache.keyOf(route.path)" />
-                </keep-alive>
-              </template>
-            </router-view>
-          </PageTransition>
+                <!-- 微前端页面：禁用 out-in 模式，避免 iframe/微应用被 transition 销毁 -->
+                <template v-if="route.meta?.microApp">
+                  <keep-alive :include="cachedRoutes">
+                    <component
+                      :is="pageCache.wrap(route.path, Component)"
+                      :key="pageCache.keyOf(route.path)"
+                    />
+                  </keep-alive>
+                </template>
+                <!-- 全屏大屏页面：禁用 transition + keepAlive，避免 ECharts 资源泄漏影响其他页面 -->
+                <template v-else-if="route.meta?.noTransition">
+                  <component :is="rawComponent(Component)" :key="route.path" />
+                </template>
+                <!-- 普通页面：按标签页与菜单声明决定是否缓存，不使用 Transition 避免渲染冲突 -->
+                <template v-else>
+                  <keep-alive :include="cachedRoutes">
+                    <component
+                      :is="pageCache.wrap(route.path, Component)"
+                      :key="pageCache.keyOf(route.path)"
+                    />
+                  </keep-alive>
+                </template>
+              </router-view>
+            </PageTransition>
           </Scrollbar>
         </a-layout-content>
 
@@ -286,11 +307,15 @@ useWatermark({
       v-if="shellHidden"
       type="button"
       class="fixed right-6 bottom-6 z-50 flex items-center gap-1.5 rounded-full bg-ant-primary px-4 py-2 text-sm text-white shadow-lg transition-opacity hover:opacity-90"
-      :aria-label="maximized ? '还原标签页' : '退出内容全屏'"
+      :aria-label="
+        maximized ? t('shell.restoreTabs') : t('shell.exitFullContent')
+      "
       @click="maximized ? tabsStore.restore() : exitFullContent()"
     >
       <Icon :icon="maximized ? 'carbon:fit-to-screen' : 'carbon:exit'" />
-      <span>{{ maximized ? '还原标签页' : '退出内容全屏' }}</span>
+      <span>{{
+        maximized ? t('shell.restoreTabs') : t('shell.exitFullContent')
+      }}</span>
     </button>
   </a-layout>
 </template>

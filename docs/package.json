@@ -1,8 +1,13 @@
 {
   "name": "@antdv/docs",
   "version": "0.0.0",
-  "description": "站点文档（VitePress，中英双语）：架构、约定、开发与部署。独立走 GitHub Actions 部署到 Pages，不参与应用构建",
+  "description": "站点文档（VitePress，默认中文，中英双语）：开发、功能、组件示例与工程化。独立走 GitHub Actions 部署到 Pages，不参与应用构建",
   "private": true,
+  "homepage": "https://junjie73-blip.github.io/antdv-next-admin/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/junjie73-blip/antdv-next-admin.git"
+  },
   "type": "module",
   "scripts": {
     "build": "vitepress build",

@@ -119,7 +119,9 @@ describe('插件可用性', () => {
     expect(dayjs('2026-01-01').quarter()).toBe(1);
     expect(dayjs('2026-01-01').week()).toBeGreaterThan(0);
     expect(dayjs('2026-01-02').isSameOrAfter('2026-01-01')).toBe(true);
-    expect(dayjs('2026-01-02').isBetween('2026-01-01', '2026-01-03')).toBe(true);
+    expect(dayjs('2026-01-02').isBetween('2026-01-01', '2026-01-03')).toBe(
+      true,
+    );
   });
 
   it('中文 locale 生效', () => {

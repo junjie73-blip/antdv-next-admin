@@ -116,8 +116,10 @@ export async function createPlugins(
   if (isApp) {
     // Mock 不再由 Vite 插件承担：VITE_MOCK=true 时由 dev proxy 把 /api 转发到
     // apps/backend-mock（Nitro）服务，见 utils/proxy.ts
-    if (isEnvEnabled(envConfig.VITE_ARCHIVER)) plugins.push(createArchiverPlugin());
-    if (isEnvEnabled(envConfig.VITE_PWA)) plugins.push(createPwaPlugin(envConfig));
+    if (isEnvEnabled(envConfig.VITE_ARCHIVER))
+      plugins.push(createArchiverPlugin());
+    if (isEnvEnabled(envConfig.VITE_PWA))
+      plugins.push(createPwaPlugin(envConfig));
     if (isEnvEnabled(envConfig.VITE_COMPRESS))
       plugins.push(createCompressPlugin());
     if (isEnvEnabled(envConfig.VITE_EXTRA_APP)) {
@@ -129,9 +131,7 @@ export async function createPlugins(
       // 端口来自环境变量推导（VITE_MOCK_PORT → VITE_MOCK_SERVER → 默认），
       // 判定条件与 utils/proxy.ts 的 createMockProxy 保持一致，
       // 否则会出现"代理开着但内嵌 mock 没起"或反过来的半开状态。
-      plugins.push(
-        viteNitroMockPlugin({ port: resolveMockPort(envConfig) }),
-      );
+      plugins.push(viteNitroMockPlugin({ port: resolveMockPort(envConfig) }));
     }
     if (isEnvEnabled(envConfig.VITE_PRINT)) plugins.push(vitePrintPlugin());
 
@@ -172,8 +172,7 @@ export async function createPlugins(
         themeSelector: ':root',
         themeImportant: false,
         // 消失动画配置
-        fadeDuration:
-          Number(envConfig.VITE_APP_LOADING_DURATION) || undefined,
+        fadeDuration: Number(envConfig.VITE_APP_LOADING_DURATION) || undefined,
         fadeProperty: 'opacity',
         autoRemove: false,
         // `?? true`：没配就是默认开启，和插件的 DEFAULT_OPTIONS 一致。

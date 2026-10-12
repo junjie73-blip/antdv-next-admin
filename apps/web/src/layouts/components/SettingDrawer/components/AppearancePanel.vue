@@ -2,6 +2,7 @@
 import type { Color, ColorPickerProps } from 'antdv-next';
 
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { cn } from '@antdv/shared';
 import { ColorPicker } from 'antdv-next';
@@ -20,9 +21,13 @@ import SettingItem from './SettingItem.vue';
 
 defineOptions({ name: 'AppearancePanel' });
 const appStore = useAppStore();
+const { t } = useI18n({ useScope: 'global' });
 const { toggleThemeWithAnimation } = useThemeTransition();
 const color_presets = computed<ColorPickerProps['presets']>(() => [
-  { label: '推荐', colors: PRIMARY_COLORS.map((c) => c.value) },
+  {
+    label: t('preferences.recommended'),
+    colors: PRIMARY_COLORS.map((c) => c.value),
+  },
 ]);
 const customColor = ref(appStore.primaryColor || '#1677ff');
 function isColorActive(color: string): boolean {
@@ -48,7 +53,7 @@ const handleChangeColor = (color: Color) => {
 
 <template>
   <div class="space-y-6">
-    <SettingGroup title="主题模式" icon="carbon:contrast">
+    <SettingGroup :title="t('preferences.themeMode')" icon="carbon:contrast">
       <ThemeToggle
         :value="appStore.themeMode"
         :options="THEME_MODE_OPTIONS"
@@ -58,8 +63,8 @@ const handleChangeColor = (color: Color) => {
       />
 
       <SettingItem
-        label="侧边栏反转色"
-        desc="侧栏与内容区对比配色"
+        :label="t('preferences.darkSidebar')"
+        :desc="t('preferences.darkSidebarDesc')"
         class="mt-4"
       >
         <a-switch
@@ -69,7 +74,10 @@ const handleChangeColor = (color: Color) => {
         />
       </SettingItem>
 
-      <SettingItem label="顶栏反转色" desc="顶栏与内容区对比配色">
+      <SettingItem
+        :label="t('preferences.darkHeader')"
+        :desc="t('preferences.darkHeaderDesc')"
+      >
         <a-switch
           :checked="appStore.darkHeader"
           size="small"
@@ -78,7 +86,10 @@ const handleChangeColor = (color: Color) => {
       </SettingItem>
     </SettingGroup>
 
-    <SettingGroup title="主题色" icon="carbon:color-palette">
+    <SettingGroup
+      :title="t('preferences.primaryColor')"
+      icon="carbon:color-palette"
+    >
       <div class="grid grid-cols-3 gap-2.5">
         <!-- 预设色 -->
         <button
@@ -161,7 +172,7 @@ const handleChangeColor = (color: Color) => {
                 )
               "
             >
-              自定义
+              {{ t('preferences.custom') }}
             </span>
           </button>
         </ColorPicker>
@@ -171,7 +182,7 @@ const handleChangeColor = (color: Color) => {
     <!-- ============================================================ -->
     <!-- 圆角 + 字号                                                    -->
     <!-- ============================================================ -->
-    <SettingGroup title="圆角与字号" icon="carbon:ruler">
+    <SettingGroup :title="t('preferences.radiusAndFont')" icon="carbon:ruler">
       <!-- ⭐ 圆角：上下布局 -->
       <div
         class="rounded-xl bg-white p-3 outline outline-1 outline-slate-200 dark:bg-slate-800 dark:outline-slate-700"
@@ -180,10 +191,10 @@ const handleChangeColor = (color: Color) => {
           <div
             class="text-[13px] font-medium text-slate-700 dark:text-slate-200"
           >
-            圆角大小
+            {{ t('preferences.borderRadius') }}
           </div>
           <div class="mt-0.5 text-[11px] text-slate-400 dark:text-slate-500">
-            全局组件圆角倍率
+            {{ t('preferences.borderRadiusDesc') }}
           </div>
         </div>
 
@@ -206,7 +217,10 @@ const handleChangeColor = (color: Color) => {
       </div>
 
       <!-- 字号：保持左右布局 -->
-      <SettingItem label="字体大小" desc="基础字号（px）">
+      <SettingItem
+        :label="t('preferences.fontSize')"
+        :desc="t('preferences.fontSizeDesc')"
+      >
         <a-input-number
           :value="appStore.fontSize"
           :min="12"
@@ -222,8 +236,11 @@ const handleChangeColor = (color: Color) => {
       </SettingItem>
     </SettingGroup>
 
-    <SettingGroup title="其他设置" icon="carbon:settings-adjust">
-      <SettingItem label="色弱模式" desc="适配色弱阅读">
+    <SettingGroup :title="t('preferences.other')" icon="carbon:settings-adjust">
+      <SettingItem
+        :label="t('preferences.colorWeak')"
+        :desc="t('preferences.colorWeakDesc')"
+      >
         <a-switch
           :checked="appStore.colorWeak"
           size="small"
@@ -231,7 +248,10 @@ const handleChangeColor = (color: Color) => {
         />
       </SettingItem>
 
-      <SettingItem label="灰色模式" desc="整体灰度显示">
+      <SettingItem
+        :label="t('preferences.grayMode')"
+        :desc="t('preferences.grayModeDesc')"
+      >
         <a-switch
           :checked="appStore.grayMode"
           size="small"

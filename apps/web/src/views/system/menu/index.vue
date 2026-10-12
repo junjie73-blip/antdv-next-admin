@@ -1,78 +1,78 @@
 <script setup lang="ts">
-import type { BackendMenu, MenuConfig, MicroAppConfig } from '@antdv/types'
-import type { FormSchema } from '~/components/business/Form'
-import type { BasicColumn } from '~/components/business/Table'
+import type { BackendMenu, MenuConfig, MicroAppConfig } from '@antdv/types';
+import type { FormSchema } from '~/components/business/Form';
+import type { BasicColumn } from '~/components/business/Table';
 
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue';
 
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/cn';
 import { IconPicker } from '@antdv/ui/icon';
-import { Icon } from '@iconify/vue'
-import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
-import { BasicForm, useForm } from '~/components/business/Form'
-import { BasicTable, useTable } from '~/components/business/Table'
-import { DictType } from '~/enums/dict'
-import { useDictStore, useRouteStore } from '~/stores'
+import { Icon } from '@iconify/vue';
+import { BasicDrawer, useDrawer } from '~/components/business/Drawer';
+import { BasicForm, useForm } from '~/components/business/Form';
+import { BasicTable, useTable } from '~/components/business/Table';
+import { DictType } from '~/enums/dict';
+import { useDictStore, useRouteStore } from '~/stores';
 
-defineOptions({ name: 'SystemMenu' })
+defineOptions({ name: 'SystemMenu' });
 
 interface MenuRecord {
-  id: number
+  id: number;
   /** 回到源数据的锚点：菜单是"权限来源"，本页的改动要能写回这一棵树 */
-  sourceName?: string
-  menuName: string
-  icon: string
-  orderNum: number
-  perms: string
-  path: string
-  component: string
-  menuType: 'C' | 'F' | 'L' | 'M' | 'MICRO'
-  parentId: null | number
-  status: number
+  sourceName?: string;
+  menuName: string;
+  icon: string;
+  orderNum: number;
+  perms: string;
+  path: string;
+  component: string;
+  menuType: 'C' | 'F' | 'L' | 'M' | 'MICRO';
+  parentId: null | number;
+  status: number;
   /** 是否出现在导航里。`hidden` 只影响导航，不影响访问权限（菜单即权限）。 */
-  hidden?: boolean
-  linkUrl?: string
-  microAppConfig?: MicroAppConfig
-  children?: MenuRecord[]
-  createdAt: string
+  hidden?: boolean;
+  linkUrl?: string;
+  microAppConfig?: MicroAppConfig;
+  children?: MenuRecord[];
+  createdAt: string;
 }
 
-const containerClassName = cn('space-y-4')
-const cardClassName = cn('shadow-sm')
-const tagClassName = cn('inline-flex items-center gap-1')
-const actionClassName = cn('flex', 'items-center', 'justify-center')
-const btnClassName = cn('px-0.5!')
-const dividerClassName = cn('mx-0')
+const containerClassName = cn('space-y-4');
+const cardClassName = cn('shadow-sm');
+const tagClassName = cn('inline-flex items-center gap-1');
+const actionClassName = cn('flex', 'items-center', 'justify-center');
+const btnClassName = cn('px-0.5!');
+const dividerClassName = cn('mx-0');
 
 const menuTypeColorMap: Record<string, string> = {
   M: 'blue',
   C: 'green',
   F: 'orange',
   L: 'purple',
-}
+};
 
 const menuTypeLabelMap: Record<string, string> = {
   M: '目录',
   C: '菜单',
   F: '按钮',
   L: '链接',
-}
+};
 
 const statusColorMap: Record<number, string> = {
   1: 'green',
   0: 'red',
-}
+};
 
 const statusLabelMap: Record<number, string> = {
   1: '正常',
   0: '停用',
-}
+};
 
-const dictStore = useDictStore()
+const dictStore = useDictStore();
 
 const statusOptions = computed(() =>
   dictStore.getOptions(DictType.NORMAL_DISABLE),
-)
+);
 
 /**
  * 后端菜单树 → 表格记录。
@@ -93,14 +93,15 @@ function convertBackendMenus(
   parentId: null | number,
   startId: number,
 ): { records: MenuRecord[]; nextId: number } {
-  const result: MenuRecord[] = []
-  let currentId = startId
-  const now = new Date().toISOString().replace('T', ' ').slice(0, 19)
+  const result: MenuRecord[] = [];
+  let currentId = startId;
+  const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
 
   for (const [index, menu] of list.entries()) {
-    const children = menu.children?.filter(Boolean) ?? []
+    const children = menu.children?.filter(Boolean) ?? [];
     // 后端只给 name 时（或目录写成空串）用派生树补出来的完整 path
-    const path = menu.path || (menu.name ? resolvedPaths.get(menu.name) : '') || ''
+    const path =
+      menu.path || (menu.name ? resolvedPaths.get(menu.name) : '') || '';
     const record: MenuRecord = {
       id: currentId++,
       sourceName: menu.name,
@@ -114,15 +115,15 @@ function convertBackendMenus(
       menuType: menu.isExternal
         ? 'L'
         : (MENU_TYPE_BY_CODE[menu.menuType ?? 0] ??
-          (children.length ? 'M' : 'C')),
+          (children.length > 0 ? 'M' : 'C')),
       parentId,
       // 「状态」是菜单本身的启停（'0' 停用）；导航显隐是另一回事，看 hidden
       status: menu.status === '0' ? 0 : 1,
       hidden: menu.hidden === true,
       linkUrl: menu.isExternal ? path : '',
       createdAt: now,
-    }
-    result.push(record)
+    };
+    result.push(record);
 
     if (children.length > 0) {
       const { records: childRecords, nextId } = convertBackendMenus(
@@ -130,13 +131,13 @@ function convertBackendMenus(
         resolvedPaths,
         record.id,
         currentId,
-      )
-      result.push(...childRecords)
-      currentId = nextId
+      );
+      result.push(...childRecords);
+      currentId = nextId;
     }
   }
 
-  return { records: result, nextId: currentId }
+  return { records: result, nextId: currentId };
 }
 
 /** `BackendMenu.menuType` 是数字编码（1-目录 2-菜单 3-按钮） */
@@ -144,7 +145,7 @@ const MENU_TYPE_BY_CODE: Record<number, MenuRecord['menuType']> = {
   1: 'M',
   2: 'C',
   3: 'F',
-}
+};
 
 /** 派生树摊平成 `{ name: 完整 path }`，供源树补写路由地址 */
 function collectResolvedPaths(
@@ -152,13 +153,13 @@ function collectResolvedPaths(
   out = new Map<string, string>(),
 ): Map<string, string> {
   for (const menu of list) {
-    if (menu.name && menu.path) out.set(menu.name, menu.path)
-    if (menu.children?.length) collectResolvedPaths(menu.children, out)
+    if (menu.name && menu.path) out.set(menu.name, menu.path);
+    if (menu.children?.length) collectResolvedPaths(menu.children, out);
   }
-  return out
+  return out;
 }
 
-const routeStore = useRouteStore()
+const routeStore = useRouteStore();
 
 /**
  * 菜单是异步拉的（守卫里 `initRoutes` 才把树落到 store），本页又可能被
@@ -174,10 +175,10 @@ function buildRecords(): MenuRecord[] {
       null,
       1,
     ).records,
-  )
+  );
 }
 
-const allData = ref<MenuRecord[]>(buildRecords())
+const allData = ref<MenuRecord[]>(buildRecords());
 
 /**
  * `recompute()` 每次都会重新赋值 `menus`（新数组身份），源树 `backendMenus`
@@ -186,83 +187,83 @@ const allData = ref<MenuRecord[]>(buildRecords())
 watch(
   () => routeStore.menus,
   () => {
-    allData.value = buildRecords()
-    tableMethods.value?.reload()
+    allData.value = buildRecords();
+    tableMethods.value?.reload();
   },
-)
+);
 
 function flattenMenuTree(tree: MenuRecord[]): MenuRecord[] {
-  const result: MenuRecord[] = []
+  const result: MenuRecord[] = [];
   function walk(nodes: MenuRecord[]) {
     for (const node of nodes) {
-      result.push(node)
+      result.push(node);
       if (node.children && node.children.length > 0) {
-        walk(node.children)
+        walk(node.children);
       }
     }
   }
-  walk(tree)
-  return result
+  walk(tree);
+  return result;
 }
 
 function rebuildTree(flat: MenuRecord[]): MenuRecord[] {
-  const map = new Map<number, MenuRecord>()
-  const roots: MenuRecord[] = []
+  const map = new Map<number, MenuRecord>();
+  const roots: MenuRecord[] = [];
 
   for (const item of flat) {
-    map.set(item.id, { ...item, children: [] })
+    map.set(item.id, { ...item, children: [] });
   }
 
   for (const item of flat) {
-    const node = map.get(item.id)!
+    const node = map.get(item.id)!;
     if (item.parentId === null) {
-      roots.push(node)
+      roots.push(node);
     } else {
-      const parent = map.get(item.parentId)
+      const parent = map.get(item.parentId);
       if (parent) {
-        parent.children = parent.children || []
-        parent.children.push(node)
+        parent.children = parent.children || [];
+        parent.children.push(node);
       }
     }
   }
 
-  return roots
+  return roots;
 }
 
-const isEditing = ref(false)
-const currentRecord = ref<MenuRecord | null>(null)
+const isEditing = ref(false);
+const currentRecord = ref<MenuRecord | null>(null);
 
-const [drawerRegister, drawerMethods] = useDrawer()
-const [tableRegister, tableMethods] = useTable()
-const [formRegister, formMethods] = useForm()
+const [drawerRegister, drawerMethods] = useDrawer();
+const [tableRegister, tableMethods] = useTable();
+const [formRegister, formMethods] = useForm();
 
 function getParentTreeOptions(): any[] {
-  const flat = flattenMenuTree(allData.value)
-  const filtered = flat.filter((i) => i.menuType === 'M' || i.menuType === 'C')
+  const flat = flattenMenuTree(allData.value);
+  const filtered = flat.filter((i) => i.menuType === 'M' || i.menuType === 'C');
 
-  const map = new Map<number, any>()
+  const map = new Map<number, any>();
   for (const item of filtered) {
     map.set(item.id, {
       label: item.menuName,
       value: item.id,
-    })
+    });
   }
 
-  const roots: any[] = []
+  const roots: any[] = [];
   for (const item of filtered) {
-    const node = map.get(item.id)!
+    const node = map.get(item.id)!;
     if (item.parentId === null) {
-      roots.push(node)
+      roots.push(node);
     } else {
-      const parent = map.get(item.parentId)
+      const parent = map.get(item.parentId);
       if (parent) {
-        parent.children = parent.children || []
-        parent.children.push(node)
+        parent.children = parent.children || [];
+        parent.children.push(node);
       }
     }
   }
 
-  return roots
+  return roots;
 }
 
 const searchFormSchemas: FormSchema[] = [
@@ -292,7 +293,7 @@ const searchFormSchemas: FormSchema[] = [
     },
     colProps: { span: 8 },
   },
-]
+];
 
 const drawerFormSchemas: FormSchema[] = [
   {
@@ -336,8 +337,8 @@ const drawerFormSchemas: FormSchema[] = [
     slot: 'iconPicker',
     componentProps: { placeholder: '点击选择图标', readonly: true },
     dynamicDisabled: ({ model }) => {
-      const mt = (model as any).menuType || 'M'
-      return mt === 'F'
+      const mt = (model as any).menuType || 'M';
+      return mt === 'F';
     },
   },
   {
@@ -346,8 +347,8 @@ const drawerFormSchemas: FormSchema[] = [
     component: 'Input',
     componentProps: { placeholder: '例如：/system/user' },
     dynamicDisabled: ({ model }) => {
-      const mt = (model as any).menuType || 'M'
-      return mt === 'F'
+      const mt = (model as any).menuType || 'M';
+      return mt === 'F';
     },
   },
   {
@@ -356,8 +357,8 @@ const drawerFormSchemas: FormSchema[] = [
     component: 'Input',
     componentProps: { placeholder: '例如：system/user/index' },
     dynamicDisabled: ({ model }) => {
-      const mt = (model as any).menuType || 'M'
-      return mt !== 'C'
+      const mt = (model as any).menuType || 'M';
+      return mt !== 'C';
     },
   },
   {
@@ -368,7 +369,7 @@ const drawerFormSchemas: FormSchema[] = [
       placeholder: '外部或微前端链接地址，如 https://crm.example.com',
     },
     ifShow: ({ model }) => {
-      return (model as any).menuType === 'L'
+      return (model as any).menuType === 'L';
     },
   },
   {
@@ -377,8 +378,8 @@ const drawerFormSchemas: FormSchema[] = [
     component: 'Input',
     componentProps: { placeholder: '例如：system:user:list' },
     dynamicDisabled: ({ model }) => {
-      const mt = (model as any).menuType || 'M'
-      return mt === 'M' || mt === 'L'
+      const mt = (model as any).menuType || 'M';
+      return mt === 'M' || mt === 'L';
     },
   },
   {
@@ -402,7 +403,7 @@ const drawerFormSchemas: FormSchema[] = [
       options: statusOptions.value,
     }),
   },
-]
+];
 
 /**
  * 命中项的祖先链一并留下。
@@ -412,50 +413,53 @@ const drawerFormSchemas: FormSchema[] = [
  * 它的父级「系统管理」被关键词过滤掉了，整条链自己把自己筛没了。
  * 表格是层级视图而不是平铺列表，搜索必须把祖先补回来才看得见结果。
  */
-function withAncestors(flat: MenuRecord[], matched: MenuRecord[]): MenuRecord[] {
-  if (matched.length === 0 || matched.length === flat.length) return matched
+function withAncestors(
+  flat: MenuRecord[],
+  matched: MenuRecord[],
+): MenuRecord[] {
+  if (matched.length === 0 || matched.length === flat.length) return matched;
 
-  const byId = new Map(flat.map((item) => [item.id, item]))
-  const keep = new Set(matched.map((item) => item.id))
+  const byId = new Map(flat.map((item) => [item.id, item]));
+  const keep = new Set(matched.map((item) => item.id));
 
   for (const item of matched) {
-    let parent = item.parentId == null ? undefined : byId.get(item.parentId)
+    let parent = item.parentId == null ? undefined : byId.get(item.parentId);
     // 向上补链；遇到已经在集合里的祖先就停，天然防环
     while (parent && !keep.has(parent.id)) {
-      keep.add(parent.id)
-      parent = parent.parentId == null ? undefined : byId.get(parent.parentId)
+      keep.add(parent.id);
+      parent = parent.parentId == null ? undefined : byId.get(parent.parentId);
     }
   }
 
   // 按原表顺序输出，保证层级重建后的父子次序与折叠态稳定
-  return flat.filter((item) => keep.has(item.id))
+  return flat.filter((item) => keep.has(item.id));
 }
 
 async function mockApi(params: Record<string, any>) {
-  const { keyword, menuType } = params
-  const flat = flattenMenuTree(allData.value)
-  let filtered = [...flat]
+  const { keyword, menuType } = params;
+  const flat = flattenMenuTree(allData.value);
+  let filtered = [...flat];
 
   if (keyword) {
-    const kw = String(keyword).toLowerCase()
+    const kw = String(keyword).toLowerCase();
     filtered = filtered.filter(
       (i) =>
         i.menuName.toLowerCase().includes(kw) ||
         i.perms.toLowerCase().includes(kw),
-    )
+    );
   }
 
   if (menuType) {
-    filtered = filtered.filter((i) => i.menuType === menuType)
+    filtered = filtered.filter((i) => i.menuType === menuType);
   }
 
-  const tree = rebuildTree(withAncestors(flat, filtered))
-  return { items: tree, total: tree.length }
+  const tree = rebuildTree(withAncestors(flat, filtered));
+  return { items: tree, total: tree.length };
 }
 
 function handleAdd() {
-  isEditing.value = false
-  currentRecord.value = null
+  isEditing.value = false;
+  currentRecord.value = null;
   formMethods.setFieldsValue({
     parentId: undefined,
     menuType: 'C',
@@ -467,15 +471,15 @@ function handleAdd() {
     orderNum: 0,
     status: 0,
     linkUrl: '',
-  })
-  formMethods.clearValidate()
-  drawerMethods.openDrawer()
+  });
+  formMethods.clearValidate();
+  drawerMethods.openDrawer();
 }
 
 function handleAddChild(record: MenuRecord) {
-  isEditing.value = false
-  currentRecord.value = null
-  const childType = record.menuType === 'M' ? 'C' : 'F'
+  isEditing.value = false;
+  currentRecord.value = null;
+  const childType = record.menuType === 'M' ? 'C' : 'F';
   formMethods.setFieldsValue({
     parentId: record.id,
     menuType: childType,
@@ -487,14 +491,14 @@ function handleAddChild(record: MenuRecord) {
     orderNum: 0,
     status: 0,
     linkUrl: '',
-  })
-  formMethods.clearValidate()
-  drawerMethods.openDrawer()
+  });
+  formMethods.clearValidate();
+  drawerMethods.openDrawer();
 }
 
 function handleEdit(record: MenuRecord) {
-  isEditing.value = true
-  currentRecord.value = record
+  isEditing.value = true;
+  currentRecord.value = record;
   formMethods.setFieldsValue({
     parentId: record.parentId ?? undefined,
     menuType: record.menuType,
@@ -506,18 +510,18 @@ function handleEdit(record: MenuRecord) {
     orderNum: record.orderNum,
     status: record.status,
     linkUrl: (record as any).linkUrl || '',
-  })
-  formMethods.clearValidate()
-  drawerMethods.openDrawer()
+  });
+  formMethods.clearValidate();
+  drawerMethods.openDrawer();
 }
 
 /** 一个菜单节点底下挂了多少子孙（目录 → 菜单 → 按钮是三层） */
 function countDescendants(node: MenuRecord): number {
-  if (!node.children?.length) return 0
+  if (!node.children?.length) return 0;
   return node.children.reduce(
     (sum, child) => sum + 1 + countDescendants(child),
     0,
-  )
+  );
 }
 
 /**
@@ -527,86 +531,86 @@ function countDescendants(node: MenuRecord): number {
  * 用户以为删掉的是手上这一行，实际少了十几项。把数量摊开说清楚。
  */
 function deleteConfirmTitle(record: MenuRecord): string {
-  const childCount = countDescendants(record)
+  const childCount = countDescendants(record);
   return childCount > 0
     ? `确定删除菜单「${record.menuName}」及其 ${childCount} 个子项吗？删除后不可恢复。`
-    : `确定删除菜单「${record.menuName}」吗？删除后不可恢复。`
+    : `确定删除菜单「${record.menuName}」吗？删除后不可恢复。`;
 }
 
 function handleDelete(record: MenuRecord) {
-  const flat = flattenMenuTree(allData.value)
-  const idsToDelete = new Set<number>()
+  const flat = flattenMenuTree(allData.value);
+  const idsToDelete = new Set<number>();
 
   function collectIds(node: MenuRecord) {
-    idsToDelete.add(node.id)
+    idsToDelete.add(node.id);
     if (node.children) {
       for (const child of node.children) {
-        collectIds(child)
+        collectIds(child);
       }
     }
   }
 
-  const target = flat.find((i) => i.id === record.id)
+  const target = flat.find((i) => i.id === record.id);
   if (target) {
-    collectIds(target)
+    collectIds(target);
   }
 
-  const remaining = flat.filter((i) => !idsToDelete.has(i.id))
-  allData.value = rebuildTree(remaining)
+  const remaining = flat.filter((i) => !idsToDelete.has(i.id));
+  allData.value = rebuildTree(remaining);
   // 说清楚到底删了多少：只报一个菜单名，用户会以为刚才那一行就是全部
-  const deleted = Math.max(idsToDelete.size - 1, 0)
+  const deleted = Math.max(idsToDelete.size - 1, 0);
   message.success(
     deleted > 0
       ? `已删除菜单「${record.menuName}」及 ${deleted} 个子项`
       : `已删除菜单「${record.menuName}」`,
-  )
-  tableMethods.value?.reload()
+  );
+  tableMethods.value?.reload();
 }
 
 async function handleSave() {
-  const values = await formMethods.validate()
+  const values = await formMethods.validate();
   if (!values) {
-    return
+    return;
   }
 
   if (values.menuType === 'M') {
-    values.component = ''
-    values.perms = ''
-    values.linkUrl = ''
+    values.component = '';
+    values.perms = '';
+    values.linkUrl = '';
   } else if (values.menuType === 'F') {
-    values.path = ''
-    values.component = ''
-    values.linkUrl = ''
+    values.path = '';
+    values.component = '';
+    values.linkUrl = '';
   } else if (values.menuType === 'L') {
-    values.component = ''
-    values.perms = ''
+    values.component = '';
+    values.perms = '';
   }
 
   if (!values.menuName) {
-    message.warning('请填写菜单名称')
-    return
+    message.warning('请填写菜单名称');
+    return;
   }
 
   if (values.menuType === 'M' && !values.path) {
-    message.warning('目录类型必须填写路由地址')
-    return
+    message.warning('目录类型必须填写路由地址');
+    return;
   }
 
   if (values.menuType === 'C' && (!values.path || !values.component)) {
-    message.warning('菜单类型必须填写路由地址和组件路径')
-    return
+    message.warning('菜单类型必须填写路由地址和组件路径');
+    return;
   }
 
   if (values.menuType === 'L' && !values.linkUrl) {
-    message.warning('链接类型必须填写链接地址')
-    return
+    message.warning('链接类型必须填写链接地址');
+    return;
   }
 
-  const now = new Date().toISOString().replace('T', ' ').slice(0, 19)
-  const flat = flattenMenuTree(allData.value)
+  const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
+  const flat = flattenMenuTree(allData.value);
 
   if (isEditing.value && currentRecord.value) {
-    const idx = flat.findIndex((i) => i.id === currentRecord.value!.id)
+    const idx = flat.findIndex((i) => i.id === currentRecord.value!.id);
     if (idx !== -1) {
       flat[idx] = {
         ...flat[idx]!,
@@ -620,12 +624,12 @@ async function handleSave() {
         orderNum: values.orderNum,
         status: values.status,
         linkUrl: values.linkUrl || '',
-      }
+      };
     }
-    allData.value = rebuildTree(flat)
-    message.success(`已更新菜单：${values.menuName}`)
+    allData.value = rebuildTree(flat);
+    message.success(`已更新菜单：${values.menuName}`);
   } else {
-    const newId = Math.max(...flat.map((i) => i.id), 0) + 1
+    const newId = Math.max(...flat.map((i) => i.id), 0) + 1;
     flat.push({
       id: newId,
       parentId: values.parentId ?? null,
@@ -639,17 +643,17 @@ async function handleSave() {
       status: values.status,
       linkUrl: values.linkUrl || '',
       createdAt: now,
-    })
-    allData.value = rebuildTree(flat)
-    message.success(`已新增菜单：${values.menuName}`)
+    });
+    allData.value = rebuildTree(flat);
+    message.success(`已新增菜单：${values.menuName}`);
   }
 
-  drawerMethods.closeDrawer()
-  tableMethods.value?.reload()
+  drawerMethods.closeDrawer();
+  tableMethods.value?.reload();
 }
 
 function handleIconSelect(icon: string) {
-  formMethods.setFieldsValue({ icon })
+  formMethods.setFieldsValue({ icon });
 }
 
 /**
@@ -664,20 +668,20 @@ function handleIconSelect(icon: string) {
  * 跟着把新 hidden 铺回行里；这里只负责把结论说给用户听。
  */
 function handleToggleNav(record: MenuRecord, checked: boolean) {
-  const name = record.sourceName
+  const name = record.sourceName;
   if (!name) {
-    message.warning('该菜单缺少 name，无法定位源数据')
-    return
+    message.warning('该菜单缺少 name，无法定位源数据');
+    return;
   }
   if (!routeStore.setMenuHidden(name, !checked)) {
-    message.error('菜单数据已变化，请刷新后重试')
-    return
+    message.error('菜单数据已变化，请刷新后重试');
+    return;
   }
   message.success(
     checked
       ? `已把「${record.menuName}」加入导航`
       : `已从导航隐藏「${record.menuName}」（页面仍可直达）`,
-  )
+  );
 }
 
 const columns: BasicColumn[] = [
@@ -746,7 +750,7 @@ const columns: BasicColumn[] = [
     width: 170,
     align: 'center',
   },
-]
+];
 </script>
 
 <template>
@@ -894,7 +898,7 @@ const columns: BasicColumn[] = [
             :model-value="model[field] || ''"
             @update:model-value="
               (val: string) => {
-                formMethods.setFieldsValue({ [field]: val })
+                formMethods.setFieldsValue({ [field]: val });
               }
             "
             @select="handleIconSelect"

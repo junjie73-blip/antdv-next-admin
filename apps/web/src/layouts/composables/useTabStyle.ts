@@ -3,6 +3,7 @@ import type { TabStyle } from '@antdv/types';
 import { computed } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
+import i18n from '~/locales';
 import { useAppStore } from '~/stores/modules/app';
 
 /**
@@ -91,12 +92,26 @@ const IDLE_BG: Record<TabStyle, string> = {
     'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600',
 };
 
+/**
+ * 风格名用 getter：模块加载时就把字符串固化下来的话，切语言后选项仍是中文。
+ * 读 `.label` 的那一刻才取文案，消费方（SettingDrawer 的标签风格项）只要在
+ * computed 里读，locale 就成了那个 computed 的依赖，切换时自动重算。
+ */
+function styleOption(value: TabStyle, labelKey: string) {
+  return {
+    get label() {
+      return i18n.global.t(labelKey);
+    },
+    value,
+  };
+}
+
 export const TAB_STYLE_OPTIONS: { label: string; value: TabStyle }[] = [
-  { label: '卡片', value: 'card' },
-  { label: '谷歌', value: 'chrome' },
-  { label: '胶囊', value: 'rounded' },
-  { label: '下划线', value: 'line' },
-  { label: '纯文本', value: 'plain' },
+  styleOption('card', 'tabs.styleCard'),
+  styleOption('chrome', 'tabs.styleChrome'),
+  styleOption('rounded', 'tabs.styleRounded'),
+  styleOption('line', 'tabs.styleLine'),
+  styleOption('plain', 'tabs.stylePlain'),
 ];
 
 export function useTabStyle() {

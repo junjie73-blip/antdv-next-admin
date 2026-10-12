@@ -34,7 +34,9 @@ test.describe('大屏图表自适应', () => {
     /** 容器与画布一起量，量的是同一个节点 */
     const measure = () =>
       host.evaluate((element) => {
-        const canvas = element.querySelector('canvas') as HTMLCanvasElement | null;
+        const canvas = element.querySelector(
+          'canvas',
+        ) as HTMLCanvasElement | null;
         return {
           canvas: Number.parseFloat(canvas?.style.width || '0') || -1,
           host: element.clientWidth,
@@ -43,7 +45,9 @@ test.describe('大屏图表自适应', () => {
 
     // 画布还没出现时 canvas 是 -1，先等这张图画出来
     await expect
-      .poll(() => measure().then((result) => result.canvas), { timeout: 40_000 })
+      .poll(() => measure().then((result) => result.canvas), {
+        timeout: 40_000,
+      })
       .toBeGreaterThan(0);
 
     const initial = await measure();

@@ -1,4 +1,8 @@
-import type { LazyDirectiveOptions, LazyObserver, LazyObserverEntry } from '../src/lazy';
+import type {
+  LazyDirectiveOptions,
+  LazyObserver,
+  LazyObserverEntry,
+} from '../src/lazy';
 
 import { describe, expect, it, vi } from 'vitest';
 
@@ -60,11 +64,21 @@ function createHarness(options: Partial<LazyDirectiveOptions> = {}) {
 type Directive = ReturnType<typeof createLazyDirective>;
 
 function mount(directive: Directive, el: HTMLImageElement, value: never) {
-  directive.mounted?.(el, fakeBinding(value) as never, null as never, null as never);
+  directive.mounted?.(
+    el,
+    fakeBinding(value) as never,
+    null as never,
+    null as never,
+  );
 }
 
 function update(directive: Directive, el: HTMLImageElement, value: never) {
-  directive.updated?.(el, fakeBinding(value) as never, null as never, null as never);
+  directive.updated?.(
+    el,
+    fakeBinding(value) as never,
+    null as never,
+    null as never,
+  );
 }
 
 function unmount(directive: Directive, el: HTMLImageElement) {
@@ -273,7 +287,9 @@ describe('v-lazy 懒加载', () => {
     const el = createImage();
     mount(fadeOn.directive, el, 'https://cdn/e.png' as never);
     fadeOn.intersect(el);
-    await vi.waitFor(() => expect(el.getAttribute('src')).toBe('https://cdn/e.png'));
+    await vi.waitFor(() =>
+      expect(el.getAttribute('src')).toBe('https://cdn/e.png'),
+    );
     expect(el.style.transition).toContain('opacity');
 
     const noFadeDirective = createLazyDirective({
@@ -282,8 +298,14 @@ describe('v-lazy 懒加载', () => {
       preload: async () => true,
     });
     const plain = createImage();
-    mount(noFadeDirective, plain, { duration: 0, fade: false, src: 'https://cdn/f.png' } as never);
-    await vi.waitFor(() => expect(plain.getAttribute('src')).toBe('https://cdn/f.png'));
+    mount(noFadeDirective, plain, {
+      duration: 0,
+      fade: false,
+      src: 'https://cdn/f.png',
+    } as never);
+    await vi.waitFor(() =>
+      expect(plain.getAttribute('src')).toBe('https://cdn/f.png'),
+    );
     expect(plain.style.transition).toBe('');
 
     clearBody();

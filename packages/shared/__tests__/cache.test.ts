@@ -177,7 +177,9 @@ describe('配置注入时机', () => {
 
     configureSharedEnv({ production: true });
     store.setItem('secret', 'Bearer abc');
-    expect(localStorage.getItem(`${PREFIX}_secret`)).not.toContain('Bearer abc');
+    expect(localStorage.getItem(`${PREFIX}_secret`)).not.toContain(
+      'Bearer abc',
+    );
     expect(store.getItem('secret')).toBe('Bearer abc');
   });
 });

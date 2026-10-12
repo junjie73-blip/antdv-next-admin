@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import type { ScrollbarType } from '@antdv/ui/scrollbar';
 import type { MenuProps } from 'antdv-next';
 
-import type { ScrollbarType } from '@antdv/ui/scrollbar';
-
 import { computed, useTemplateRef, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { LAYOUT_HEADER_ROW_STYLE } from '@antdv/layouts';
 import { cn } from '@antdv/shared/cn';
@@ -36,6 +36,8 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{ select: [key: string] }>();
+
+const { t } = useI18n({ useScope: 'global' });
 
 /**
  * 横向滚动那一层由封装的 Scrollbar 提供，滚动元素是它内部的 `.scrollbar__wrap`
@@ -112,7 +114,7 @@ watch(
 
 const arrowClassName = computed(() =>
   cn(
-    'z-10 flex size-7  shrink-0 items-center justify-center rounded-full',
+    'z-10 flex size-7 shrink-0 items-center justify-center rounded-full',
     'border transition-colors duration-200',
     props.theme === 'dark'
       ? 'border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700'
@@ -122,12 +124,15 @@ const arrowClassName = computed(() =>
 </script>
 
 <template>
-  <div data-layout-region="header-nav" class="flex min-w-0 flex-1 items-center gap-1">
+  <div
+    data-layout-region="header-nav"
+    class="flex min-w-0 flex-1 items-center gap-1"
+  >
     <button
       v-if="showLeftEdge"
       type="button"
-      aria-label="向左滚动菜单"
-      title="单击逐步滚动，双击滚到最左"
+      :aria-label="t('shell.scrollMenuLeft')"
+      :title="t('shell.scrollHintLeft')"
       :class="arrowClassName"
       @click="scroller.scrollByStep(-1)"
       @dblclick="scroller.scrollToEnd(-1)"
@@ -135,10 +140,7 @@ const arrowClassName = computed(() =>
       <Icon icon="carbon:chevron-left" />
     </button>
 
-    <div
-      class="relative min-w-0 flex-1"
-      :style="LAYOUT_HEADER_ROW_STYLE"
-    >
+    <div class="relative min-w-0 flex-1" :style="LAYOUT_HEADER_ROW_STYLE">
       <!--
         滚动条走封装组件：原先这里是"原生滚动条 + 把它藏起来"，
         藏是藏住了，但触摸板上并没有任何"还能往右滚"的视觉反馈，
@@ -179,8 +181,8 @@ const arrowClassName = computed(() =>
     <button
       v-if="showRightEdge"
       type="button"
-      aria-label="向右滚动菜单"
-      title="单击逐步滚动，双击滚到最右"
+      :aria-label="t('shell.scrollMenuRight')"
+      :title="t('shell.scrollHintRight')"
       :class="arrowClassName"
       @click="scroller.scrollByStep(1)"
       @dblclick="scroller.scrollToEnd(1)"

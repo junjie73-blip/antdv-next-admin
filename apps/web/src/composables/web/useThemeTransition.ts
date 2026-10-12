@@ -2,7 +2,11 @@ import type { AppSetting, ThemeMode } from '~/settings';
 
 import { nextTick } from 'vue';
 
-import { applyPreferencesToDom, createSystemDark, resolveThemeMode } from '~/settings';
+import {
+  applyPreferencesToDom,
+  createSystemDark,
+  resolveThemeMode,
+} from '~/settings';
 import { useAppStore } from '~/stores/modules/app';
 
 /** 系统深色偏好：只在浏览器里查一次，`auto` 模式用它解析 */
@@ -24,7 +28,10 @@ export function isDarkNow(theme: ThemeMode): boolean {
  * DOM 写入复用 `@antdv/preferences` 的实现（class + CSS 变量 + colorScheme），
  * 只是把 theme 临时替换成动画目标值——避免这里和偏好实例各写一套、互相覆盖。
  */
-function applyThemeToDom(target: 'dark' | 'light', appSetting: AppSetting): void {
+function applyThemeToDom(
+  target: 'dark' | 'light',
+  appSetting: AppSetting,
+): void {
   applyPreferencesToDom({ ...appSetting, theme: target });
 }
 

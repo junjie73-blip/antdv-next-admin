@@ -1,17 +1,17 @@
 ---
-"@antdv/shared": minor
-"@antdv/preferences": minor
-"@antdv/composables": minor
-"@antdv/ui": minor
-"@antdv/layouts": minor
-"@antdv/router": minor
-"@antdv/directives": minor
-"@antdv/styles": minor
-"@antdv/types": minor
-"@antdv/node-utils": minor
-"@antdv/vite-config": minor
-"@antdv/backend-mock": minor
-"@antdv/web": minor
+'@antdv/shared': minor
+'@antdv/preferences': minor
+'@antdv/composables': minor
+'@antdv/ui': minor
+'@antdv/layouts': minor
+'@antdv/router': minor
+'@antdv/directives': minor
+'@antdv/styles': minor
+'@antdv/types': minor
+'@antdv/node-utils': minor
+'@antdv/vite-config': minor
+'@antdv/backend-mock': minor
+'@antdv/web': minor
 ---
 
 架构升级：把可复用能力从应用层抽成独立子包，重排 monorepo。

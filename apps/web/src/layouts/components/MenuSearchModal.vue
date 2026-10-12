@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 import { Scrollbar } from '@antdv/ui/scrollbar';
 import { Icon } from '@iconify/vue';
 import { Modal } from 'antdv-next';
-import { useRouteStore } from '~/stores/modules/route';
 
 import { flattenMenus, matchEntries } from '../composables/useMenuSearch';
+import { useLocalizedMenus } from '../composables/useMenuTree';
 
 defineOptions({ name: 'MenuSearchModal' });
 
@@ -15,11 +16,11 @@ const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
 
 const router = useRouter();
-const routeStore = useRouteStore();
-
-// 直接读 store 里的菜单树，而不是再发一次 `/api/menus`：
-// store 的 `menus` 已经过了权限裁剪和 `hidden` 覆盖，搜到的永远是"现在真能去的页面"。
-const entries = computed(() => flattenMenus(routeStore.menus ?? []));
+const { t } = useI18n({ useScope: 'global' });
+// 读当前语言下的菜单树，而不是再发一次 `/api/menus`：
+// store 的树已经过了权限裁剪和 `hidden` 覆盖，搜到的永远是"现在真能去的页面"。
+const menus = useLocalizedMenus();
+const entries = computed(() => flattenMenus(menus.value));
 
 const keyword = ref('');
 const activeIndex = ref(0);
@@ -90,8 +91,9 @@ function onKeydown(event: KeyboardEvent) {
       close();
       break;
     }
-    default:
+    default: {
       break;
+    }
   }
 }
 
@@ -110,15 +112,17 @@ const itemClassName =
     @update:open="(value: boolean) => (value ? null : close())"
   >
     <div>
-      <div class="flex items-center gap-2 border-b border-gray-100 pb-3 dark:border-gray-800">
+      <div
+        class="flex items-center gap-2 border-b border-gray-100 pb-3 dark:border-gray-800"
+      >
         <Icon class="shrink-0 text-base text-gray-400" icon="carbon:search" />
         <input
           ref="inputRef"
           v-model="keyword"
-          aria-label="搜索菜单"
+          :aria-label="t('header.searchMenu')"
           class="w-full bg-transparent text-base outline-none placeholder:text-gray-400"
           data-testid="menu-search-input"
-          placeholder="搜索页面，↑ ↓ 选择，Enter 打开"
+          :placeholder="t('header.searchPlaceholder')"
           type="text"
           @keydown="onKeydown"
         />
@@ -130,7 +134,7 @@ const itemClassName =
           class="py-10 text-center text-sm text-gray-400"
           data-testid="menu-search-empty"
         >
-          没有匹配的页面
+          {{ t('header.searchEmpty') }}
         </p>
         <template v-else>
           <!--
@@ -153,12 +157,17 @@ const itemClassName =
             @click="go(index)"
             @mouseenter="activeIndex = index"
           >
-            <Icon class="shrink-0 text-base" :icon="item.icon || 'carbon:document'" />
+            <Icon
+              class="shrink-0 text-base"
+              :icon="item.icon || 'carbon:document'"
+            />
             <span class="truncate">{{ item.title }}</span>
             <span v-if="item.hidden" class="shrink-0 text-xs text-gray-400">
-              不在导航
+              {{ t('header.notInNav') }}
             </span>
-            <span class="ml-auto max-w-[45%] shrink-0 truncate text-xs text-gray-400">
+            <span
+              class="ml-auto max-w-[45%] shrink-0 truncate text-xs text-gray-400"
+            >
               {{ item.breadcrumb || item.path }}
             </span>
           </button>

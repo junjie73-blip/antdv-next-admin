@@ -5,12 +5,7 @@ import type { PermissionDirectiveValue } from '../src/permission';
 import { describe, expect, it, vi } from 'vitest';
 
 import { createPermissionDirective } from '../src/permission';
-import {
-  clearBody,
-  createElement,
-  fakeBinding,
-  makeCheckers,
-} from './helpers';
+import { clearBody, createElement, fakeBinding, makeCheckers } from './helpers';
 
 type Directive = ObjectDirective<HTMLElement, PermissionDirectiveValue>;
 

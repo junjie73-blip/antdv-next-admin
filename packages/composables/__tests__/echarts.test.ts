@@ -72,7 +72,7 @@ describe('echarts/theme 明暗取色', () => {
 });
 
 describe('echarts/constants 设计令牌', () => {
-  it('PALETTE_LIST 是 PALETTE 的子集，不引入新色值', () => {
+  it('pALETTE_LIST 是 PALETTE 的子集，不引入新色值', () => {
     PALETTE_LIST.forEach((color) => {
       expect(Object.values(PALETTE)).toContain(color);
     });
@@ -80,12 +80,14 @@ describe('echarts/constants 设计令牌', () => {
   });
 
   it('变更范围的色值与文案一一对应', () => {
-    expect(Object.keys(SCOPE_COLOR).sort()).toEqual(Object.keys(SCOPE_LABEL).sort());
+    expect(Object.keys(SCOPE_COLOR).sort()).toEqual(
+      Object.keys(SCOPE_LABEL).sort(),
+    );
     expect(SCOPE_LABEL.dept_tree).toBe('部门调整');
     expect(SEVERITY_COLOR.critical).toBe('#dc2626');
   });
 
-  it('KPI 颜色映射的 beam 复用 PALETTE，wrap 是 Tailwind 类串', () => {
+  it('kPI 颜色映射的 beam 复用 PALETTE，wrap 是 Tailwind 类串', () => {
     Object.entries(KPI_COLOR_MAP).forEach(([name, entry]) => {
       expect(Object.values(PALETTE)).toContain(entry.beam);
       expect(entry.wrap).toContain('dark:');
@@ -142,7 +144,10 @@ describe('useEcharts 未就绪时的安全性', () => {
     await nextTick();
 
     expect(result.chart.value).toBeNull();
-    expect(spy).not.toHaveBeenCalledWith('[useEcharts] init failed', expect.anything());
+    expect(spy).not.toHaveBeenCalledWith(
+      '[useEcharts] init failed',
+      expect.anything(),
+    );
     spy.mockRestore();
     unmount();
     el.remove();

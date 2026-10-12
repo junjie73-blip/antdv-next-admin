@@ -2,7 +2,12 @@ import type { Locator, Page } from '@playwright/test';
 
 import { expect, test } from '@playwright/test';
 
-import { closePreferenceDrawer, go, openPreferenceDrawer, signIn } from './utils/app';
+import {
+  closePreferenceDrawer,
+  go,
+  openPreferenceDrawer,
+  signIn,
+} from './utils/app';
 
 /**
  * 光标即"这里能不能点"的唯一即时答案。
@@ -33,14 +38,19 @@ const POINTER_TARGETS: Array<[string, string]> = [
   ['/system/user', '.ant-pagination-item'],
   ['/system/user', '.ant-menu-submenu-title'],
   ['/components/upload', '.ant-upload-select'],
-  ['/components/tree', '.ant-tree-node-content-wrapper'],
-  ['/components/basic', '.ant-switch:not(.ant-switch-disabled)'],
-  ['/components/basic', '.ant-radio-button-wrapper'],
+  // 树节点：原先挂在「组件示例 → 树形控件」那页，那页演示的是裸 antd，已随示例节收敛删掉，
+  // 换成真实的树形业务页（部门管理的部门树）
+  ['/system/dept', '.ant-tree-node-content-wrapper'],
+  // 开关：拖拽排序示例页的「整表冻结」开关
+  ['/components/table/drag-sort', '.ant-switch:not(.ant-switch-disabled)'],
+  // 单选按钮组：分析面板的时间范围切换
+  ['/dashboard/analysis', '.ant-radio-button-wrapper'],
   /*
    * 评分组件：外层 `<li>` 一直是 pointer，漏的是鼠标真正停在的那个 `role="radio"` 的 div。
    * 这条是"按 ARIA role 接光标"那条样式规则的现场证据。
+   * 落在基础表单示例页——它把 `Rate` 当成 BasicForm 的 schema 字段在用。
    */
-  ['/components/basic', '.ant-rate-star div[role="radio"]'],
+  ['/components/form/basic', '.ant-rate-star div[role="radio"]'],
 ];
 
 /**
@@ -48,11 +58,7 @@ const POINTER_TARGETS: Array<[string, string]> = [
  * 给它们指针光标是在撒谎，所以扫描放行；但必须留名 —— 以后谁让这类盒子真的可点了，
  * 就要么从这里删掉、要么补上 click，不能靠"扫描本来就看不见它"糊过去。
  */
-const DECORATIVE_HOVER_ALLOWLIST = [
-  // card-list 的 KPI 卡与瀑布流卡：hover 抬升只是层次感，点了没有事
-  'div|rounded-xl border border-gray-200 p-5',
-  'div|mb-5 break-inside-avoid overflow-hidden rounded-xl',
-];
+const DECORATIVE_HOVER_ALLOWLIST: string[] = [];
 
 /**
  * 全站兜底扫描：可见的 `<button>` / `<a>` / `[role=button|tab|...]` /
@@ -100,14 +106,16 @@ const SWEEP = String.raw`
 `;
 
 async function sweep(page: Page) {
-  return page.evaluate(`(${SWEEP})(${JSON.stringify(DECORATIVE_HOVER_ALLOWLIST)})`);
+  return page.evaluate(
+    `(${SWEEP})(${JSON.stringify(DECORATIVE_HOVER_ALLOWLIST)})`,
+  );
 }
 
 /**
  * 导航等待上限。
  *
  * 这两条用例都要连着走 4-5 个路由，而 dev server 是**按需编译**的：某个引擎第一次
- * 进 `/components/editor/rich-text` 得现编 MarkdownEditor 那一整棵依赖树。
+ * 进 `/components/editor` 得现编 MarkdownEditor 那一整棵依赖树。
  * 三引擎整跑时（前面的引擎已经把 Vite 的编译缓存挤掉过一轮）WebKit 会顶到 `go()`
  * 默认的 20s 上，表现是"标签页没亮起来"这种纯计时失败 —— 单跑立刻绿。
  * 只放宽这一处的等待，不动全局 expect 超时：光标真坏了仍然立刻红。
@@ -127,7 +135,9 @@ test.describe('可交互元素的光标', () => {
       // 先确认这个可点件真的在页面上：选择器写错了要红，不能空过
       await expect(target, `${path} 上找不到 ${selector}`).toBeVisible();
       await expect
-        .poll(() => cursorOf(target), { message: `${path} 上 ${selector} 没有可点光标` })
+        .poll(() => cursorOf(target), {
+          message: `${path} 上 ${selector} 没有可点光标`,
+        })
         .toBe('pointer');
     }
   });
@@ -142,7 +152,9 @@ test.describe('可交互元素的光标', () => {
     expect(await cursorOf(disabled)).toBe('not-allowed');
 
     // 反证：同页面的可用按钮必须是指针，否则上一条只是因为整页都写了 not-allowed 而"通过"
-    expect(await cursorOf(page.locator('button:not(:disabled)').first())).toBe('pointer');
+    expect(await cursorOf(page.locator('button:not(:disabled)').first())).toBe(
+      'pointer',
+    );
   });
 
   test('设置抽屉里的色块、磁贴与所有按钮都是指针', async ({ page }) => {
@@ -153,7 +165,10 @@ test.describe('可交互元素的光标', () => {
       const drawer = await openPreferenceDrawer(page, section);
       // 抽屉里所有可点的 button：主题色块、圆角倍率、布局磁贴、标签风格、关闭键
       const buttons = await drawer.locator('button:not(:disabled)').all();
-      expect(buttons.length, `${section} 面板里一个可点按钮都没有？`).toBeGreaterThan(0);
+      expect(
+        buttons.length,
+        `${section} 面板里一个可点按钮都没有？`,
+      ).toBeGreaterThan(0);
       for (const [index, button] of buttons.entries()) {
         expect(
           await cursorOf(button),
@@ -163,9 +178,10 @@ test.describe('可交互元素的光标', () => {
       // 分段选择器（标签风格、布局模式）也是"能 hover 的盒子"
       const segmented = drawer.locator('.ant-segmented-item').first();
       if (await segmented.count()) {
-        expect(await cursorOf(segmented), `${section} 面板的分段选项没有指针光标`).toBe(
-          'pointer',
-        );
+        expect(
+          await cursorOf(segmented),
+          `${section} 面板的分段选项没有指针光标`,
+        ).toBe('pointer');
       }
       await closePreferenceDrawer(page);
     }
@@ -175,10 +191,10 @@ test.describe('可交互元素的光标', () => {
     await signIn(page);
     for (const path of [
       '/system/user',
-      '/components/basic',
+      '/components/overview',
       '/components/upload',
-      '/components/card-list',
-      '/components/editor/rich-text',
+      '/components/loading',
+      '/components/editor',
     ]) {
       await go(page, path, NAV_TIMEOUT);
       const offenders = await sweep(page);

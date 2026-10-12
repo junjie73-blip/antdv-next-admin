@@ -35,11 +35,7 @@ function segmented(drawer: Locator, optionText: string) {
 }
 
 /** 分段控件里点某个选项 */
-async function pickSegment(
-  drawer: Locator,
-  anchor: string,
-  option: string,
-) {
+async function pickSegment(drawer: Locator, anchor: string, option: string) {
   const bar = segmented(drawer, anchor);
   await bar.locator('.ant-segmented-item').filter({ hasText: option }).click();
   await expect(bar.locator('.ant-segmented-item-selected')).toContainText(
@@ -115,9 +111,10 @@ test.describe('偏好抽屉的滚动区', () => {
     expect(controlBox!.y, '控件应在标题下一行').toBeGreaterThanOrEqual(
       labelBox!.y + labelBox!.height,
     );
-    expect(controlBox!.x, '控件应与标题左对齐，而不是吊在右侧').toBeLessThanOrEqual(
-      labelBox!.x + 8,
-    );
+    expect(
+      controlBox!.x,
+      '控件应与标题左对齐，而不是吊在右侧',
+    ).toBeLessThanOrEqual(labelBox!.x + 8);
     expect
       .soft(controlBox!.width, '铺满后不该被滚动区横向截断')
       .toBeLessThanOrEqual(viewBox!.width);

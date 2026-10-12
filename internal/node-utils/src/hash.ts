@@ -32,10 +32,7 @@ function stableStringify(value: unknown): string {
   return serialized === undefined ? 'null' : serialized;
 }
 
-function hashString(
-  content: string,
-  options: HashOptions = {},
-): string {
+function hashString(content: string, options: HashOptions = {}): string {
   const { algorithm = 'sha256', encoding = 'utf8' } = options;
   return createHash(algorithm).update(content, encoding).digest('hex');
 }

@@ -80,7 +80,11 @@ const activeClassName =
 </script>
 
 <template>
-  <aside data-layout-region="nav-rail" :class="railClassName" :style="{ width: `${width}px` }">
+  <aside
+    data-layout-region="nav-rail"
+    :class="railClassName"
+    :style="{ width: `${width}px` }"
+  >
     <!-- Logo：图标栏形态下品牌位放在这里，主栏不再重复占高 -->
     <div
       data-layout-logo="rail"
@@ -91,10 +95,7 @@ const activeClassName =
     </div>
 
     <!-- 图标列表：纵向溢出同样用封装组件，不留系统滚动条 -->
-    <Scrollbar
-      root-class="min-h-0 flex-1 py-2"
-      wrap-class="overflow-x-hidden"
-    >
+    <Scrollbar root-class="min-h-0 flex-1 py-2" wrap-class="overflow-x-hidden">
       <Tooltip
         v-for="menu in menus"
         :key="keyOf(menu)"

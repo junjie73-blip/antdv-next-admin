@@ -14,7 +14,6 @@ export interface AuthStat {
   value: string;
   label: string;
 }
-
 </script>
 
 <template>

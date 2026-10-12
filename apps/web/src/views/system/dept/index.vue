@@ -1,82 +1,82 @@
 <script setup lang="ts">
-import type { FormSchema } from '~/components/business/Form'
-import type { BasicColumn } from '~/components/business/Table'
+import type { FormSchema } from '~/components/business/Form';
+import type { BasicColumn } from '~/components/business/Table';
 
-import { computed, onMounted, ref, useTemplateRef } from 'vue'
+import { computed, onMounted, ref, useTemplateRef } from 'vue';
 
-import { cn } from '@antdv/shared/cn'
-import { Icon } from '@iconify/vue'
-import { addDept, deleteDept, getDeptTree, updateDept } from '~/api/system'
-import { BasicForm, useForm } from '~/components/business/Form'
-import { BasicModal, useModal } from '~/components/business/Modal'
-import { BasicTable, useTable } from '~/components/business/Table'
-import { DictType } from '~/enums/dict'
-import { useDictStore } from '~/stores'
+import { cn } from '@antdv/shared/cn';
+import { Icon } from '@iconify/vue';
+import { addDept, deleteDept, getDeptTree, updateDept } from '~/api/system';
+import { BasicForm, useForm } from '~/components/business/Form';
+import { BasicModal, useModal } from '~/components/business/Modal';
+import { BasicTable, useTable } from '~/components/business/Table';
+import { DictType } from '~/enums/dict';
+import { useDictStore } from '~/stores';
 
-defineOptions({ name: 'SystemDept' })
+defineOptions({ name: 'SystemDept' });
 
 interface DeptRecord {
-  id: number
-  parentId: number
-  name: string
-  code: string
-  leader: string
-  phone: string
-  sortOrder: number
-  status: 0 | 1
-  remark: string
-  createdAt: string
-  children?: DeptRecord[]
-  userCount: number
+  id: number;
+  parentId: number;
+  name: string;
+  code: string;
+  leader: string;
+  phone: string;
+  sortOrder: number;
+  status: 0 | 1;
+  remark: string;
+  createdAt: string;
+  children?: DeptRecord[];
+  userCount: number;
 }
 
 interface DeptTreeNode {
-  id: number
-  name: string
-  children?: DeptTreeNode[]
+  id: number;
+  name: string;
+  children?: DeptTreeNode[];
 }
 
 // ========== 样式类名 ==========
-const containerClassName = cn('flex gap-4')
-const leftPanelClassName = cn('w-[280px] shrink-0')
-const rightPanelClassName = cn('min-w-0 flex-1')
-const cardClassName = cn('shadow-sm')
-const treeCardClassName = cn('h-full shadow-sm')
-const headerClassName = cn('mb-4 flex items-center justify-between')
-const statClassName = cn('text-sm text-gray-500')
-const statNumClassName = cn('text-lg font-bold text-blue-600')
-const statusTagClassName = cn('inline-flex items-center gap-1')
-const actionClassName = cn('flex', 'items-center', 'justify-center')
-const btnClassName = cn('px-0.5!')
-const dividerClassName = cn('mx-0')
+const containerClassName = cn('flex gap-4');
+const leftPanelClassName = cn('w-[280px] shrink-0');
+const rightPanelClassName = cn('min-w-0 flex-1');
+const cardClassName = cn('shadow-sm');
+const treeCardClassName = cn('h-full shadow-sm');
+const headerClassName = cn('mb-4 flex items-center justify-between');
+const statClassName = cn('text-sm text-gray-500');
+const statNumClassName = cn('text-lg font-bold text-blue-600');
+const statusTagClassName = cn('inline-flex items-center gap-1');
+const actionClassName = cn('flex', 'items-center', 'justify-center');
+const btnClassName = cn('px-0.5!');
+const dividerClassName = cn('mx-0');
 
 // ========== 状态映射 ==========
-const dictStore = useDictStore()
+const dictStore = useDictStore();
 
 const statusOptions = computed(() =>
   dictStore.getOptions(DictType.NORMAL_DISABLE),
-)
+);
 
 const statusColorMap: Record<number, string> = {
   1: 'green',
   0: 'red',
-}
+};
 const statusLabelMap: Record<number, string> = {
   1: '正常',
   0: '停用',
-}
+};
 
 // 从 API 获取部门树数据
-const allData = ref<DeptRecord[]>([])
-const deptTreeData = ref<DeptTreeNode[]>([])
+const allData = ref<DeptRecord[]>([]);
+const deptTreeData = ref<DeptTreeNode[]>([]);
 
 // 将 DeptRecord 转换为 TreeSelect 需要的格式
 function convertToTreeNode(dept: DeptRecord): DeptTreeNode {
-  const node: DeptTreeNode = { id: dept.id, name: dept.name }
+  const node: DeptTreeNode = { id: dept.id, name: dept.name };
   if (dept.children && dept.children.length > 0) {
-    node.children = dept.children.map(convertToTreeNode)
+    node.children = dept.children.map(convertToTreeNode);
   }
-  return node
+  return node;
 }
 
 // 初始化部门树数据
@@ -86,14 +86,14 @@ function convertToTreeNode(dept: DeptRecord): DeptTreeNode {
  * （巡检时 /system/dept 正是这个现象）。
  * 所以取数侧一律先 `await ensureDeptTree()`，把"谁先到"这件事收敛成"都等同一次请求"。
  */
-let deptTreeLoading: Promise<void> | null = null
+let deptTreeLoading: null | Promise<void> = null;
 
 function ensureDeptTree(): Promise<void> {
   deptTreeLoading ??= initDeptTree().then((ok) => {
     // 失败不留缓存的 promise：下次进来还能重试，否则整页永远读的是空数据
-    if (!ok) deptTreeLoading = null
-  })
-  return deptTreeLoading
+    if (!ok) deptTreeLoading = null;
+  });
+  return deptTreeLoading;
 }
 
 /**
@@ -101,23 +101,23 @@ function ensureDeptTree(): Promise<void> {
  * 先清缓存再走 `ensureDeptTree`，让"重取"和"首屏取"是同一条代码路径。
  */
 function reloadDeptTree(): Promise<void> {
-  deptTreeLoading = null
-  return ensureDeptTree()
+  deptTreeLoading = null;
+  return ensureDeptTree();
 }
 
 async function initDeptTree(): Promise<boolean> {
   try {
-    const res = await getDeptTree()
+    const res = await getDeptTree();
     /**
      * `api/request.get` 只解掉外层响应壳，交回来的是 `{ code, data, message }`
      * 这个 envelope；mock 也出现过直接给数组本体的写法，所以两种都兼容
      * （和用户管理/角色管理那几页 `res?.data ?? res` 是同一套约定）。
      * 少这一步就是把 `{code:200,...}` 当数组去 `.map`，页面静默空树。
      */
-    const raw = res?.data ?? res
-    const list = Array.isArray(raw) ? (raw as DeptRecord[]) : []
-    allData.value = list
-    deptTreeData.value = list.map(convertToTreeNode)
+    const raw = res?.data ?? res;
+    const list = Array.isArray(raw) ? (raw as DeptRecord[]) : [];
+    allData.value = list;
+    deptTreeData.value = list.map(convertToTreeNode);
     /**
      * 展开 keys 要在**数据到手之后**重新赋值，不能只靠 `ref([1])` 的初值。
      *
@@ -128,60 +128,60 @@ async function initDeptTree(): Promise<boolean> {
      * 子部门露出来 —— 右侧表格展示的正是"选中部门的直接子部门"，树折着等于
      * 把表格的数据来源藏起来了。
      */
-    treeExpandedKeys.value = list.map((dept) => dept.id)
-    return true
+    treeExpandedKeys.value = list.map((dept) => dept.id);
+    return true;
   } catch (error) {
-    console.error('获取部门树失败', error)
-    return false
+    console.error('获取部门树失败', error);
+    return false;
   }
 }
 
 onMounted(() => {
-  ensureDeptTree()
-})
+  ensureDeptTree();
+});
 
 // 扁平化部门列表
 function flattenDepts(nodes: DeptRecord[]): DeptRecord[] {
-  const result: DeptRecord[] = []
+  const result: DeptRecord[] = [];
   function walk(items: DeptRecord[]) {
     for (const item of items) {
-      result.push(item)
-      if (item.children && item.children.length > 0) walk(item.children)
+      result.push(item);
+      if (item.children && item.children.length > 0) walk(item.children);
     }
   }
-  walk(nodes)
-  return result
+  walk(nodes);
+  return result;
 }
 
-const flatAllDepts = computed(() => flattenDepts(allData.value))
+const flatAllDepts = computed(() => flattenDepts(allData.value));
 
 // 获取选中部门的直接子部门（保持树形结构）
 function getChildrenOnly(deptId: number): DeptRecord[] {
-  const target = flatAllDepts.value.find((d) => d.id === deptId)
-  if (!target || !target.children || target.children.length === 0) return []
-  return target.children
+  const target = flatAllDepts.value.find((d) => d.id === deptId);
+  if (!target || !target.children || target.children.length === 0) return [];
+  return target.children;
 }
 
 // ========== 状态管理 ==========
-const selectedDeptId = ref<number>(1)
-const treeExpandedKeys = ref<number[]>([1])
-const isEditing = ref(false)
-const currentRecord = ref<DeptRecord | null>(null)
-const isAllExpanded = ref(false)
+const selectedDeptId = ref<number>(1);
+const treeExpandedKeys = ref<number[]>([1]);
+const isEditing = ref(false);
+const currentRecord = ref<DeptRecord | null>(null);
+const isAllExpanded = ref(false);
 
-const tableRef = useTemplateRef<InstanceType<typeof BasicTable>>('tableRef')
+const tableRef = useTemplateRef<InstanceType<typeof BasicTable>>('tableRef');
 
-const [modalRegister, modalMethods] = useModal()
-const [tableRegister, tableMethods] = useTable()
-const [formRegister, formMethods] = useForm()
+const [modalRegister, modalMethods] = useModal();
+const [tableRegister, tableMethods] = useTable();
+const [formRegister, formMethods] = useForm();
 
 const currentStat = computed(() => {
-  const depts = getChildrenOnly(selectedDeptId.value)
+  const depts = getChildrenOnly(selectedDeptId.value);
   return {
     deptCount: depts.length,
     totalUsers: depts.reduce((sum, d) => sum + d.userCount, 0),
-  }
-})
+  };
+});
 
 // ========== 搜索表单配置 ==========
 const searchFormSchemas: FormSchema[] = [
@@ -195,7 +195,7 @@ const searchFormSchemas: FormSchema[] = [
     },
     colProps: { span: 6 },
   },
-]
+];
 
 // ========== 弹窗表单配置 ==========
 const modalFormSchemas: FormSchema[] = [
@@ -272,37 +272,37 @@ const modalFormSchemas: FormSchema[] = [
     colProps: { span: 24 },
     componentProps: { placeholder: '请输入备注信息...', rows: 3 },
   },
-]
+];
 
 // ========== API 适配层 — 树形表格不分页 ==========
 async function mockApi(params: Record<string, any>) {
   // 先等树到位再取数：首屏 `immediate` 比 onMounted 的 fetch 更早，不等就是空表
-  await ensureDeptTree()
-  const { keyword } = params
+  await ensureDeptTree();
+  const { keyword } = params;
   // 获取选中部门的直接子部门（保持树形结构）
-  const target = flatAllDepts.value.find((d) => d.id === selectedDeptId.value)
-  let items = target?.children || []
+  const target = flatAllDepts.value.find((d) => d.id === selectedDeptId.value);
+  let items = target?.children || [];
 
   if (keyword) {
-    const kw = String(keyword).toLowerCase()
+    const kw = String(keyword).toLowerCase();
     // 过滤时需要递归搜索子树
     function filterTree(nodes: DeptRecord[]): DeptRecord[] {
       return nodes.reduce((acc, node) => {
         if (node.name.toLowerCase().includes(kw)) {
-          acc.push(node)
+          acc.push(node);
         } else if (node.children?.length) {
-          const filtered = filterTree(node.children)
+          const filtered = filterTree(node.children);
           if (filtered.length > 0) {
-            acc.push({ ...node, children: filtered })
+            acc.push({ ...node, children: filtered });
           }
         }
-        return acc
-      }, [] as DeptRecord[])
+        return acc;
+      }, [] as DeptRecord[]);
     }
-    items = filterTree(items)
+    items = filterTree(items);
   }
 
-  return { items, total: items.length }
+  return { items, total: items.length };
 }
 
 // ========== 事件处理 ==========
@@ -316,13 +316,13 @@ function handleDeptSelect(
   _selectedKeys: (number | string)[],
   info: { node: Record<string, any> },
 ) {
-  selectedDeptId.value = Number(info.node.id)
-  tableMethods.value?.reload()
+  selectedDeptId.value = Number(info.node.id);
+  tableMethods.value?.reload();
 }
 
 function handleAdd() {
-  isEditing.value = false
-  currentRecord.value = null
+  isEditing.value = false;
+  currentRecord.value = null;
   formMethods.setFieldsValue({
     parentId: selectedDeptId.value,
     name: '',
@@ -332,14 +332,14 @@ function handleAdd() {
     sortOrder: 0,
     status: 0,
     remark: '',
-  })
-  formMethods.clearValidate()
-  modalMethods.openModal()
+  });
+  formMethods.clearValidate();
+  modalMethods.openModal();
 }
 
 function handleAddChild(record: DeptRecord) {
-  isEditing.value = false
-  currentRecord.value = null
+  isEditing.value = false;
+  currentRecord.value = null;
   formMethods.setFieldsValue({
     parentId: record.id,
     name: '',
@@ -349,14 +349,14 @@ function handleAddChild(record: DeptRecord) {
     sortOrder: 0,
     status: 0,
     remark: '',
-  })
-  formMethods.clearValidate()
-  modalMethods.openModal()
+  });
+  formMethods.clearValidate();
+  modalMethods.openModal();
 }
 
 function handleEdit(record: DeptRecord) {
-  isEditing.value = true
-  currentRecord.value = record
+  isEditing.value = true;
+  currentRecord.value = record;
   formMethods.setFieldsValue({
     parentId: record.parentId === 0 ? undefined : record.parentId,
     name: record.name,
@@ -366,58 +366,58 @@ function handleEdit(record: DeptRecord) {
     sortOrder: record.sortOrder,
     status: record.status,
     remark: record.remark,
-  })
-  formMethods.clearValidate()
-  modalMethods.openModal()
+  });
+  formMethods.clearValidate();
+  modalMethods.openModal();
 }
 
 async function handleDelete(record: DeptRecord) {
   try {
-    await deleteDept(record.id)
-    message.success(`已删除部门「${record.name}」及其子部门`)
+    await deleteDept(record.id);
+    message.success(`已删除部门「${record.name}」及其子部门`);
     // 刷新树形数据：走 reloadDeptTree，左侧树和表格读的是同一份 allData
-    await reloadDeptTree()
-    tableMethods.value?.reload()
+    await reloadDeptTree();
+    tableMethods.value?.reload();
   } catch (error: any) {
-    message.error(error?.message || '删除失败')
+    message.error(error?.message || '删除失败');
   }
 }
 
 function handleToggleExpand() {
-  isAllExpanded.value = !isAllExpanded.value
+  isAllExpanded.value = !isAllExpanded.value;
   if (isAllExpanded.value) {
-    const allIds = flatAllDepts.value.map((d) => d.id)
-    treeExpandedKeys.value = allIds
+    const allIds = flatAllDepts.value.map((d) => d.id);
+    treeExpandedKeys.value = allIds;
   } else {
-    treeExpandedKeys.value = [allData.value[0]?.id ?? 1]
+    treeExpandedKeys.value = [allData.value[0]?.id ?? 1];
   }
 }
 
 async function handleSave() {
-  const values = await formMethods.validate()
-  if (!values) return
+  const values = await formMethods.validate();
+  if (!values) return;
 
   if (!values.name || !values.code) {
-    message.warning('请填写部门名称和编码')
-    return
+    message.warning('请填写部门名称和编码');
+    return;
   }
 
   try {
     if (isEditing.value && currentRecord.value) {
-      await updateDept(currentRecord.value.id, values)
-      message.success(`已更新部门：${values.name}`)
+      await updateDept(currentRecord.value.id, values);
+      message.success(`已更新部门：${values.name}`);
     } else {
-      await addDept(values)
-      message.success(`已新增部门：${values.name}`)
+      await addDept(values);
+      message.success(`已新增部门：${values.name}`);
     }
 
     // 刷新树形数据：必须走 reload，`ensureDeptTree` 拿到的是已缓存的旧 promise
-    await reloadDeptTree()
+    await reloadDeptTree();
 
-    modalMethods.closeModal()
-    tableMethods.value?.reload()
+    modalMethods.closeModal();
+    tableMethods.value?.reload();
   } catch (error: any) {
-    message.error(error?.message || '保存失败')
+    message.error(error?.message || '保存失败');
   }
 }
 
@@ -481,7 +481,7 @@ const columns: BasicColumn[] = [
     width: 170,
     align: 'center',
   },
-]
+];
 </script>
 
 <template>
@@ -515,7 +515,7 @@ const columns: BasicColumn[] = [
           @select="handleDeptSelect"
           @update:expanded-keys="
             (keys) => {
-              treeExpandedKeys = keys.map(Number)
+              treeExpandedKeys = keys.map(Number);
             }
           "
         />

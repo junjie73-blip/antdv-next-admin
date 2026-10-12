@@ -147,10 +147,6 @@ const items = computed<DescriptionsProps['items']>(
     })) as DescriptionsProps['items'],
 );
 
-const antSize = computed<'default' | 'middle' | 'small'>(() =>
-  props.size === 'small' ? 'small' : 'default',
-);
-
 const instance: DescriptionInstance = {
   getData: () => props.data,
   setData: () => {
@@ -176,7 +172,7 @@ defineExpose(instance);
       :title="title"
       :items="items"
       :column="column"
-      :size="antSize"
+      :size="size"
       :layout="layout"
       :bordered="bordered"
       :colon="colon"

@@ -13,9 +13,7 @@ function makeToken(payload: Record<string, unknown>): string {
   const encode = (value: unknown) => {
     const json = JSON.stringify(value);
     const bytes = new TextEncoder().encode(json);
-    const binary = [...bytes]
-      .map((byte) => String.fromCharCode(byte))
-      .join('');
+    const binary = [...bytes].map((byte) => String.fromCharCode(byte)).join('');
     return btoa(binary)
       .replaceAll('+', '-')
       .replaceAll('/', '_')

@@ -2,6 +2,7 @@
 import type { TabActionContext, TabActionItem } from './constants';
 
 import { computed, h } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { SettingOutlined } from '@antdv-next/icons';
 import { Icon } from '@iconify/vue';
@@ -19,6 +20,8 @@ const emit = defineEmits<{
   action: [key: string];
 }>();
 
+const { t } = useI18n({ useScope: 'global' });
+
 const items = computed<TabActionItem[]>(() => buildTabActions(props.context));
 
 /**
@@ -28,7 +31,8 @@ const items = computed<TabActionItem[]>(() => buildTabActions(props.context));
 const menuItems = computed(() =>
   items.value.map((item, index) => {
     // 分隔线要渲染成 antd 的 divider 项，而不是一个空的禁用条目
-    if (item.divider) return { key: `divider-${index}`, type: 'divider' as const };
+    if (item.divider)
+      return { key: `divider-${index}`, type: 'divider' as const };
 
     // 闭包里读 item.icon 会丢掉三元判断带来的窄化，先取成局部常量
     const icon = item.icon;
@@ -52,7 +56,7 @@ function onClick({ key }: { key: number | string }) {
     placement="bottomRight"
     :trigger="['click']"
   >
-    <a-tooltip title="标签页操作">
+    <a-tooltip :title="t('shell.tabActions')">
       <!--
         只有图标的按钮必须有可访问名字：读屏用户走到这里要知道按的是"标签页操作"，
         e2e 也不必再用 class 去猜它（tooltip 只在悬停时出现，不构成 accessible name）。
@@ -61,7 +65,7 @@ function onClick({ key }: { key: number | string }) {
         type="text"
         size="small"
         class="shrink-0 self-center"
-        aria-label="标签页操作"
+        :aria-label="t('shell.tabActions')"
       >
         <template #icon>
           <SettingOutlined />

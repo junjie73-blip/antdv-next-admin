@@ -37,12 +37,14 @@ async function paddingOf(page: Page) {
 }
 
 const PAGES = [
-  // 原来根容器写 p-4 的编辑器页（h-full 布局，padding 一变高度链就跟着变，最容易看出问题）
-  '/components/editor/markdown',
+  // 原来根容器写 p-4 的编辑器页（现在是 Markdown/富文本合并后的那一页；
+  // h-full 布局，padding 一变高度链就跟着变，最容易看出问题）
+  '/components/editor',
   // 原来写 p-5 的计算属性页（源码扫描扫不到字面量，靠这条兜住）
   '/security/dashboard',
-  // 原来写 p-6 的测试页
-  '/demo/table-pagination-test',
+  // 原来写 p-6 的测试页已经删掉了（`/demo/table-pagination-test` 是排障时临时建的，
+  // 不是一个组件），换成同样"根容器套着带分页的表格"的示例页，量的是同一条高度链
+  '/components/table/basic',
   // 本来就是"干净页"的基线，确认改动没把别人带坏
   '/system/user',
 ];
@@ -55,7 +57,9 @@ test.describe('路由页面不重复加内边距', () => {
       await go(page, path);
 
       await expect
-        .poll(async () => (await paddingOf(page)).view?.top ?? '', { timeout: 30_000 })
+        .poll(async () => (await paddingOf(page)).view?.top ?? '', {
+          timeout: 30_000,
+        })
         .toBe('16px');
 
       const { pageRoot, view } = await paddingOf(page);

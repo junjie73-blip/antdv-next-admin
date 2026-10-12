@@ -84,7 +84,7 @@ const sandbox = computed(() =>
 const sandboxEscapable = computed(() => canEscapeSandbox(sandbox.value));
 
 const containerClassName = computed(() =>
-  cn('micro-app-wrapper', 'w-full h-full', props.className),
+  cn('micro-app-wrapper', 'size-full ', props.className),
 );
 
 const loadingClassName = computed(() =>
@@ -235,16 +235,14 @@ onUnmounted(() => {
     style="min-height: 300px"
   >
     <Icon icon="carbon:warning-alt" class="text-4xl text-yellow-500" />
-    <p class="font-medium text-gray-600 dark:text-gray-300">
-      微前端功能未启用
-    </p>
+    <p class="font-medium text-gray-600 dark:text-gray-300">微前端功能未启用</p>
     <p class="max-w-md text-xs text-gray-400">
       在 <code>.env</code> 中设置
       <code>VITE_MICRO_APP=true</code>
       并重启，本页会按注册表加载子应用
       <template v-if="microAppConfig">
         （当前选中：{{ microAppConfig.title ?? microAppConfig.name }}）
-</template>
+      </template>
     </p>
   </div>
 
@@ -257,8 +255,8 @@ onUnmounted(() => {
     <Icon icon="carbon:application" class="text-4xl text-gray-300" />
     <p class="font-medium text-gray-600 dark:text-gray-300">未指定子应用</p>
     <p class="max-w-md text-xs text-gray-400">
-      在菜单或路由的 <code>meta.microApp</code> 中声明 name / url，
-      或在 <code>src/config/micro-app.ts</code> 的注册表里登记一个子应用
+      在菜单或路由的 <code>meta.microApp</code> 中声明 name / url， 或在
+      <code>src/config/micro-app.ts</code> 的注册表里登记一个子应用
     </p>
   </div>
 

@@ -2,6 +2,7 @@
 import type { SettingSection } from './constants';
 
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { Icon } from '@iconify/vue';
 import { Segmented } from 'antdv-next';
@@ -20,6 +21,8 @@ import {
 } from './constants';
 
 defineOptions({ name: 'SettingDrawer' });
+
+const { t } = useI18n({ useScope: 'global' });
 
 const visible = defineModel<boolean>('visible', { default: false });
 
@@ -57,10 +60,10 @@ function handleClose() {
             <div
               class="text-[15px] font-semibold text-slate-800 dark:text-slate-100"
             >
-              主题配置
+              {{ t('preferences.title') }}
             </div>
             <div class="mt-0.5 text-[11px] text-slate-400">
-              定制你的工作空间
+              {{ t('preferences.subtitle') }}
             </div>
           </div>
         </div>

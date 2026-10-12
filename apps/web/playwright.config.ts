@@ -73,7 +73,11 @@ export default defineConfig({
        * 注意这里只放宽**整条用例的总时长**，各步的 actionTimeout(45s) 与 expect(10s)
        * 一个没动 —— 功能真坏了仍然立刻红，不会靠墙钟兜住。
        */
-      use: { ...devices['Desktop Safari'], actionTimeout: 45_000, timeout: 240_000 },
+      use: {
+        ...devices['Desktop Safari'],
+        actionTimeout: 45_000,
+        timeout: 240_000,
+      },
     },
   ],
   webServer: {

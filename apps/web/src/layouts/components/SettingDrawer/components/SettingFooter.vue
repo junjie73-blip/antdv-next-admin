@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
 import { cache } from '@antdv/shared/cache';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
@@ -12,6 +14,7 @@ const emit = defineEmits<{ close: [] }>();
 
 const appStore = useAppStore();
 const userStore = useUserStore();
+const { t } = useI18n({ useScope: 'global' });
 const { copy } = useClipboard({
   source: JSON.stringify(appStore.appSetting, null, 2),
 });
@@ -26,20 +29,20 @@ const btnClass = cn(
 function handleCopy() {
   try {
     copy(JSON.stringify(appStore.appSetting, null, 2));
-    message.success('主题配置已复制到剪贴板');
+    message.success(t('preferences.configCopied'));
   } catch {
-    message.error('复制失败，请检查浏览器权限');
+    message.error(t('preferences.copyFailed'));
   }
 }
 
 /** 清除缓存 & 退出登录 */
 function handleClearAndLogout() {
   Modal.confirm({
-    title: '清除缓存并退出登录',
-    content: '将清除本地缓存并退出当前账号，确定继续吗？',
+    title: t('preferences.clearAndLogoutTitle'),
+    content: t('preferences.clearAndLogoutConfirm'),
     okType: 'danger',
-    okText: '确定退出',
-    cancelText: '取消',
+    okText: t('preferences.confirmLogout'),
+    cancelText: t('common.cancel'),
     async onOk() {
       try {
         cache.clear();
@@ -47,9 +50,9 @@ function handleClearAndLogout() {
         sessionStorage.clear();
         await userStore.logout();
         emit('close');
-        message.success('已退出登录');
+        message.success(t('preferences.signedOut'));
       } catch {
-        message.error('退出失败');
+        message.error(t('preferences.logoutFailed'));
       }
     },
   });
@@ -71,7 +74,7 @@ function handleClearAndLogout() {
       @click="handleCopy"
     >
       <Icon icon="carbon:copy" class="text-sm" />
-      复制配置
+      {{ t('preferences.copyConfig') }}
     </button>
 
     <button
@@ -86,7 +89,7 @@ function handleClearAndLogout() {
       @click="handleClearAndLogout"
     >
       <Icon icon="carbon:logout" class="text-sm" />
-      清缓存并退出
+      {{ t('preferences.clearAndLogout') }}
     </button>
   </div>
 </template>

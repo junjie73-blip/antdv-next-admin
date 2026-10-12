@@ -1,12 +1,18 @@
 import type { MenuConfig, TabItem } from '@antdv/types';
 
 import { computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
-import { findMenuByPath, normalizeMenuPath, visibleMenus } from '@antdv/shared/menu';
+import {
+  findMenuByPath,
+  normalizeMenuPath,
+  visibleMenus,
+} from '@antdv/shared/menu';
 import { useRouteStore } from '~/stores/modules/route';
 import { useTabsStore } from '~/stores/modules/tabs';
 
+import { useLocalizedMenus } from './useMenuTree';
 import { usePageCache } from './usePageCache';
 
 /**
@@ -34,10 +40,13 @@ function findFirstLeaf(list: MenuConfig[]): MenuConfig | undefined {
 export function useTabs() {
   const route = useRoute();
   const router = useRouter();
+  const { t } = useI18n({ useScope: 'global' });
   const tabsStore = useTabsStore();
   const routeStore = useRouteStore();
   /** 单例缓存状态：刷新时要用它推进缓存代号（见 `usePageCache`） */
   const pageCache = usePageCache();
+  /** 菜单的翻译层：与导航、面包屑、Ctrl+K 同一个标题来源 */
+  const localizedMenus = useLocalizedMenus();
 
   /**
    * 按 path 反查菜单元信息（标题 / 图标）；菜单还没加载时返回 undefined。
@@ -79,7 +88,8 @@ export function useTabs() {
       icon: 'carbon:data-vis-4',
       key: '/dashboard/analysis',
       path: '/dashboard/analysis',
-      title: '分析面板',
+      // 菜单还没到的那一小段窗口期用的兜底：写死中文会让英文会话开局就露一个中文标签
+      title: t('menu.Analysis'),
     };
   });
 
@@ -109,7 +119,21 @@ export function useTabs() {
     { immediate: true },
   );
 
-  const tabs = computed(() => tabsStore.tabs);
+  /**
+   * 渲染用的标签列表：标题按当前语言从菜单翻译层取，取不到才沿用 store 里的原文。
+   *
+   * store 存的必须是后端原文 —— 它是持久化的那份状态，语言是运行时偏好，
+   * 把译文写回 store 会让英文标题在切回中文后仍留在缓存里。
+   * 拖拽排序把这份映射结果传回 `syncOrder` 也没关系：那里按 key 回查 store 的原件。
+   */
+  const tabs = computed(() =>
+    tabsStore.tabs.map((tab) => {
+      const title = findMenuByPath(localizedMenus.value, tab.key, {
+        includeHidden: true,
+      })?.title;
+      return title && title !== tab.title ? { ...tab, title } : tab;
+    }),
+  );
   const activeKey = computed(() => tabsStore.activeKey);
 
   /**

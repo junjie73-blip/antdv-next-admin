@@ -1,27 +1,27 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-import { cn } from '@antdv/shared/cn'
-import * as echarts from 'echarts'
-import { getSecurityStats } from '~/api/security'
-import { useAppStore } from '~/stores/modules/app'
+import { cn } from '@antdv/shared/cn';
+import * as echarts from 'echarts';
+import { getSecurityStats } from '~/api/security';
+import { useAppStore } from '~/stores/modules/app';
 
-defineOptions({ name: 'SecurityStatsCharts' })
+defineOptions({ name: 'SecurityStatsCharts' });
 
-const appStore = useAppStore()
-const isDark = computed(() => appStore.themeMode === 'dark')
+const appStore = useAppStore();
+const isDark = computed(() => appStore.themeMode === 'dark');
 
-const containerClassName = cn('rounded-xl p-5')
+const containerClassName = cn('rounded-xl p-5');
 const sectionTitleClassName = cn(
   'mb-3 text-sm font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400',
-)
+);
 
 // 图表 DOM 引用
-const pieRef = ref<HTMLDivElement>()
-const barRef = ref<HTMLDivElement>()
-const lineRef = ref<HTMLDivElement>()
+const pieRef = ref<HTMLDivElement>();
+const barRef = ref<HTMLDivElement>();
+const lineRef = ref<HTMLDivElement>();
 
-const charts = new Map<string, echarts.ECharts>()
+const charts = new Map<string, echarts.ECharts>();
 
 // 主题色
 const PALETTE = {
@@ -30,16 +30,16 @@ const PALETTE = {
   warning: '#faad14',
   danger: '#ff4d4f',
   info: '#722ed1',
-}
+};
 
 function textColor() {
-  return isDark.value ? '#d1d5db' : '#374151'
+  return isDark.value ? '#d1d5db' : '#374151';
 }
 function subTextColor() {
-  return isDark.value ? '#6b7280' : '#9ca3af'
+  return isDark.value ? '#6b7280' : '#9ca3af';
 }
 function borderColor() {
-  return isDark.value ? '#374151' : '#e5e7eb'
+  return isDark.value ? '#374151' : '#e5e7eb';
 }
 
 /** 安全初始化图表 */
@@ -48,42 +48,42 @@ function safeInit(
   refEl: ref<HTMLDivElement | undefined>,
   initFn: (el: HTMLDivElement) => void,
 ) {
-  const el = refEl.value
-  if (!el || charts.has(name)) return
+  const el = refEl.value;
+  if (!el || charts.has(name)) return;
 
   if (el.offsetWidth > 0 && el.offsetHeight > 0) {
-    initFn(el)
-    return
+    initFn(el);
+    return;
   }
 
-  let cleaned = false
+  let cleaned = false;
   const observer = new ResizeObserver((entries) => {
-    if (cleaned) return
+    if (cleaned) return;
     for (const entry of entries) {
       if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
-        cleaned = true
-        observer.disconnect()
-        const target = refEl.value
-        if (target && !charts.has(name)) initFn(target)
-        break
+        cleaned = true;
+        observer.disconnect();
+        const target = refEl.value;
+        if (target && !charts.has(name)) initFn(target);
+        break;
       }
     }
-  })
-  observer.observe(el)
+  });
+  observer.observe(el);
 
   setTimeout(() => {
     if (!cleaned && !charts.has(name)) {
-      cleaned = true
-      observer.disconnect()
-      const target = refEl.value
-      if (target) initFn(target)
+      cleaned = true;
+      observer.disconnect();
+      const target = refEl.value;
+      if (target) initFn(target);
     }
-  }, 3000)
+  }, 3000);
 }
 
 function initPieChart(el: HTMLDivElement) {
-  const instance = echarts.init(el, isDark.value ? 'dark' : undefined)
-  charts.set('pie', instance)
+  const instance = echarts.init(el, isDark.value ? 'dark' : undefined);
+  charts.set('pie', instance);
   instance.setOption({
     tooltip: {
       trigger: 'item',
@@ -143,12 +143,12 @@ function initPieChart(el: HTMLDivElement) {
         animationDuration: 1200,
       },
     ],
-  })
+  });
 }
 
 function initBarChart(el: HTMLDivElement) {
-  const instance = echarts.init(el, isDark.value ? 'dark' : undefined)
-  charts.set('bar', instance)
+  const instance = echarts.init(el, isDark.value ? 'dark' : undefined);
+  charts.set('bar', instance);
   instance.setOption({
     tooltip: {
       trigger: 'axis',
@@ -259,12 +259,12 @@ function initBarChart(el: HTMLDivElement) {
         animationDuration: 1000,
       },
     ],
-  })
+  });
 }
 
 function initLineChart(el: HTMLDivElement) {
-  const instance = echarts.init(el, isDark.value ? 'dark' : undefined)
-  charts.set('line', instance)
+  const instance = echarts.init(el, isDark.value ? 'dark' : undefined);
+  charts.set('line', instance);
   instance.setOption({
     tooltip: {
       trigger: 'axis',
@@ -348,41 +348,41 @@ function initLineChart(el: HTMLDivElement) {
       },
     ],
     animationDuration: 1200,
-  })
+  });
 }
 
 onMounted(async () => {
   try {
-    await getSecurityStats()
+    await getSecurityStats();
   } catch {
     /* 使用默认数据 */
   }
 
   // 延迟初始化确保容器已渲染
   setTimeout(() => {
-    safeInit('pie', pieRef, initPieChart)
-    safeInit('bar', barRef, initBarChart)
-    safeInit('line', lineRef, initLineChart)
-  }, 100)
-})
+    safeInit('pie', pieRef, initPieChart);
+    safeInit('bar', barRef, initBarChart);
+    safeInit('line', lineRef, initLineChart);
+  }, 100);
+});
 
 watch(isDark, () => {
-  charts.forEach((c) => c.dispose())
-  charts.clear()
+  charts.forEach((c) => c.dispose());
+  charts.clear();
   setTimeout(() => {
-    safeInit('pie', pieRef, initPieChart)
-    safeInit('bar', barRef, initBarChart)
-    safeInit('line', lineRef, initLineChart)
-  }, 50)
-})
+    safeInit('pie', pieRef, initPieChart);
+    safeInit('bar', barRef, initBarChart);
+    safeInit('line', lineRef, initLineChart);
+  }, 50);
+});
 
-useEventListener(window, 'resize', () => charts.forEach((c) => c.resize()))
+useEventListener(window, 'resize', () => charts.forEach((c) => c.resize()));
 
 function disposeAll() {
-  charts.forEach((c) => c.dispose())
-  charts.clear()
+  charts.forEach((c) => c.dispose());
+  charts.clear();
 }
-onBeforeUnmount(disposeAll)
+onBeforeUnmount(disposeAll);
 </script>
 
 <template>

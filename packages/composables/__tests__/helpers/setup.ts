@@ -57,7 +57,8 @@ export function fakeFile(size: number, name = 'fake.bin'): File {
     const from = start ?? 0;
     const to = end ?? size;
     return {
-      arrayBuffer: () => Promise.resolve(new ArrayBuffer(Math.max(0, to - from))),
+      arrayBuffer: () =>
+        Promise.resolve(new ArrayBuffer(Math.max(0, to - from))),
       size: Math.max(0, to - from),
     };
   };

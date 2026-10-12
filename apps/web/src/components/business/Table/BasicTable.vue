@@ -32,6 +32,7 @@ import TableSetting from './components/TableSetting.vue';
 import { convertColumns, formatCellValue, isImageList } from './helper';
 import { useColumns } from './hooks/useColumns';
 import { useDataSource } from './hooks/useDataSource';
+import { useDragSort } from './hooks/useDragSort';
 import { useLoading } from './hooks/useLoading';
 import { usePagination } from './hooks/usePagination';
 import { useRowSelection } from './hooks/useRowSelection';
@@ -219,6 +220,57 @@ const tableForm = useTableForm({
   fetch: dataSource.fetch,
   setSearchInfo: dataSource.setSearchInfo,
 });
+
+// ============================================
+// 拖拽排序（dragSort / dragSortConfig）
+// ============================================
+
+const dragSortCtl = useDragSort({
+  dataSource: dataSource.dataSourceRef,
+  get enabled() {
+    return getMergedProps.value.dragSort === true;
+  },
+  get handle() {
+    return getMergedProps.value.dragSortConfig?.handle;
+  },
+  get animation() {
+    return getMergedProps.value.dragSortConfig?.animation;
+  },
+  get disabled() {
+    return getMergedProps.value.dragSortConfig?.disabled;
+  },
+  get canDrop() {
+    return getMergedProps.value.dragSortConfig?.canDrop;
+  },
+  onDragEnd: (newData, oldData) => {
+    // 钩子只写回 dataSourceRef，这里补一份 rawDataSourceRef，
+    // 否则「重置数据」会把拖好的顺序退回拖之前的那份快照。
+    dataSource.setTableData(newData);
+    getMergedProps.value.dragSortConfig?.onDragEnd?.(newData, oldData);
+  },
+});
+
+/**
+ * Sortable 绑的是 `<tbody>` 节点本身，行是后来才有的（`api` 表首屏为空）也不影响，
+ * 所以只需要在挂载后绑一次；`dragSort` 中途被关掉就解绑。
+ */
+async function syncDragSort() {
+  if (!getMergedProps.value.dragSort) {
+    dragSortCtl.destroySortable();
+    return;
+  }
+  await nextTick();
+  const tbody = tableRef.value?.$el?.querySelector?.('.ant-table-tbody');
+  if (tbody) dragSortCtl.initSortable(tbody as HTMLElement);
+}
+
+watch(
+  () => getMergedProps.value.dragSort,
+  () => {
+    dragSortCtl.destroySortable();
+    void syncDragSort();
+  },
+);
 
 // ============================================
 // 列 / 数据
@@ -621,6 +673,7 @@ const tableActionType: TableActionType = {
 
 onMounted(() => {
   emit('register', tableActionType);
+  void syncDragSort();
 });
 
 defineExpose(tableActionType);

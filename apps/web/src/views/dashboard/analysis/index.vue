@@ -116,7 +116,7 @@ function kpiIconWrap(color: string): string {
     red: 'bg-red-50 text-red-600 dark:bg-red-900/40 dark:text-red-400',
   };
   return cn(
-    'flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg',
+    'flex size-11 shrink-0 items-center justify-center rounded-lg',
     map[color] || map.blue,
   );
 }
@@ -155,14 +155,16 @@ const quickActions: QuickAction[] = [
     title: '角色权限',
     desc: '配置角色与权限',
     path: '/system/role',
-    color: 'text-violet-600 bg-violet-50 dark:text-violet-400 dark:bg-violet-900/40',
+    color:
+      'text-violet-600 bg-violet-50 dark:text-violet-400 dark:bg-violet-900/40',
   },
   {
     icon: 'carbon:document-security',
     title: '系统日志',
     desc: '查看操作审计',
     path: '/system/log',
-    color: 'text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-900/40',
+    color:
+      'text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-900/40',
   },
   {
     icon: 'carbon:chart-line-data',
@@ -1099,7 +1101,11 @@ onBeforeUnmount(() => {
             :styles="{ body: { padding: '20px 24px' } }"
           >
             <h3 :class="sectionTitleClassName">流量来源分布</h3>
-            <div ref="trafficDistRef" class="w-full" style="height: 320px"></div>
+            <div
+              ref="trafficDistRef"
+              class="w-full"
+              style="height: 320px"
+            ></div>
           </a-card>
         </a-col>
         <a-col :xs="24" :lg="12">
@@ -1109,7 +1115,11 @@ onBeforeUnmount(() => {
             :styles="{ body: { padding: '20px 24px' } }"
           >
             <h3 :class="sectionTitleClassName">系统健康度</h3>
-            <div ref="systemHealthRef" class="w-full" style="height: 320px"></div>
+            <div
+              ref="systemHealthRef"
+              class="w-full"
+              style="height: 320px"
+            ></div>
           </a-card>
         </a-col>
       </a-row>
@@ -1123,7 +1133,11 @@ onBeforeUnmount(() => {
             :styles="{ body: { padding: '20px 24px' } }"
           >
             <h3 :class="sectionTitleClassName">资源使用概况</h3>
-            <div ref="resourceRadarRef" class="w-full" style="height: 320px"></div>
+            <div
+              ref="resourceRadarRef"
+              class="w-full"
+              style="height: 320px"
+            ></div>
           </a-card>
         </a-col>
         <a-col :xs="24" :lg="12">
@@ -1242,7 +1256,10 @@ onBeforeUnmount(() => {
               >
                 <span
                   :class="
-                    cn('mt-2 h-1.5 w-1.5 shrink-0 rounded-full', activityDotColor(activity.type))
+                    cn(
+                      'mt-2 h-1.5 w-1.5 shrink-0 rounded-full',
+                      activityDotColor(activity.type),
+                    )
                   "
                 ></span>
                 <span class="min-w-0 flex-1">

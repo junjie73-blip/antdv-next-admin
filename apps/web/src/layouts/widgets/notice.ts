@@ -13,6 +13,7 @@
  *
  * 所以映射只在这里做一次，组件只做展示，未读判定也只有一个出口。
  */
+import i18n from '~/locales';
 
 export interface BellNotice {
   content: string;
@@ -29,10 +30,14 @@ export interface BellNotice {
   title: string;
 }
 
+/**
+ * 类型编号 → 文案 **key**（不是文案）：常量表在模块加载时求值，
+ * 直接存字符串就会在切语言后还是中文，所以由消费点（NoticeItem）现取现翻。
+ */
 export const NOTICE_TYPE_LABELS: Record<number, string> = {
-  1: '通知',
-  2: '公告',
-  3: '提醒',
+  1: 'notice.typeNotice',
+  2: 'notice.typeAnnouncement',
+  3: 'notice.typeRemind',
 };
 
 function toId(value: unknown): number {
@@ -56,10 +61,11 @@ export function mapNotice(raw: Record<string, unknown>): BellNotice {
     id: toId(raw.id ?? raw.noticeId),
     priority: toPriority(raw),
     // `isRead`（布尔）与 `status`（0/1）都接受：前者是历史契约，后者是现在的 mock 契约
-    read: raw.status === undefined ? Boolean(raw.isRead) : Number(raw.status) === 1,
+    read:
+      raw.status === undefined ? Boolean(raw.isRead) : Number(raw.status) === 1,
     sender: String(raw.sender ?? ''),
     sendTime: String(raw.sendTime ?? raw.publishTime ?? raw.createdAt ?? ''),
-    title: String(raw.title ?? '(无标题)'),
+    title: String(raw.title ?? i18n.global.t('notice.untitled')),
     type: toType(raw),
   };
 }
@@ -80,8 +86,9 @@ export function mapNoticeList(payload: unknown): BellNotice[] {
 
   if (!Array.isArray(source)) return [];
   return source
-    .filter((item): item is Record<string, unknown> =>
-      Boolean(item) && typeof item === 'object',
+    .filter(
+      (item): item is Record<string, unknown> =>
+        Boolean(item) && typeof item === 'object',
     )
     .map((item) => mapNotice(item));
 }

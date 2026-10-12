@@ -141,7 +141,9 @@ describe('useSSE', () => {
 
     await vi.advanceTimersByTimeAsync(1000);
     expect(FakeEventSource.instances).toHaveLength(2);
-    expect(FakeEventSource.instances[1]!.url).toBe('/api/events?lastEventId=evt-42');
+    expect(FakeEventSource.instances[1]!.url).toBe(
+      '/api/events?lastEventId=evt-42',
+    );
     expect(result.reconnectAttempts.value).toBe(1);
     unmount();
   });
@@ -203,7 +205,9 @@ describe('useSSE', () => {
       useSSE({ ...options, withCredentials: true }),
     );
     result.connect();
-    expect(FakeEventSource.instances[0]!.init).toEqual({ withCredentials: true });
+    expect(FakeEventSource.instances[0]!.init).toEqual({
+      withCredentials: true,
+    });
     unmount();
   });
 

@@ -1,89 +1,89 @@
 <script setup lang="tsx">
-import type { BasicColumn } from '~/components/business/Table'
+import type { BasicColumn } from '~/components/business/Table';
 
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue';
 
-import { cn } from '@antdv/shared/cn'
-import { Icon } from '@iconify/vue'
-import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
+import { cn } from '@antdv/shared/cn';
+import { Icon } from '@iconify/vue';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import {
   deleteNotice,
   getNoticeList,
   markAllNoticeRead,
   markNoticeRead,
   saveNotice,
-} from '~/api/system'
-import { BasicForm, useForm } from '~/components/business/Form'
-import { BasicModal, useModal } from '~/components/business/Modal'
-import { BasicTable, useTable } from '~/components/business/Table'
+} from '~/api/system';
+import { BasicForm, useForm } from '~/components/business/Form';
+import { BasicModal, useModal } from '~/components/business/Modal';
+import { BasicTable, useTable } from '~/components/business/Table';
 
-defineOptions({ name: 'SystemNotice' })
+defineOptions({ name: 'SystemNotice' });
 
-dayjs.extend(relativeTime)
+dayjs.extend(relativeTime);
 
 interface NoticeRecord {
-  id: number
-  title: string
-  content: string
-  type: number // 1-系统公告 2-通知消息 3-待办提醒
-  status: number // 0-未读 1-已读
-  priority: number // 0-普通 1-重要 2-紧急
-  sender: string
-  sendTime: string
-  readTime?: string
+  id: number;
+  title: string;
+  content: string;
+  type: number; // 1-系统公告 2-通知消息 3-待办提醒
+  status: number; // 0-未读 1-已读
+  priority: number; // 0-普通 1-重要 2-紧急
+  sender: string;
+  sendTime: string;
+  readTime?: string;
 }
 
-const containerClassName = cn('space-y-4')
-const cardClassName = cn('shadow-sm')
+const containerClassName = cn('space-y-4');
+const cardClassName = cn('shadow-sm');
 
 // Mock 数据 — 消息通知
-const allData = ref<NoticeRecord[]>([])
-const activeTabKey = ref<string>('all')
-const viewingNotice = ref<NoticeRecord | null>(null)
-const showDetailDrawer = ref(false)
+const allData = ref<NoticeRecord[]>([]);
+const activeTabKey = ref<string>('all');
+const viewingNotice = ref<NoticeRecord | null>(null);
+const showDetailDrawer = ref(false);
 
 // 统计数据
 const unreadCount = computed(
   () => allData.value.filter((n) => n.status === 0).length,
-)
+);
 const systemCount = computed(
   () => allData.value.filter((n) => n.type === 1).length,
-)
+);
 const noticeCount = computed(
   () => allData.value.filter((n) => n.type === 2).length,
-)
+);
 const todoCount = computed(
   () => allData.value.filter((n) => n.type === 3).length,
-)
+);
 
 // 类型映射
 const typeMap: Record<number, { label: string; color: string }> = {
   1: { label: '公告', color: 'blue' },
   2: { label: '通知', color: 'green' },
   3: { label: '待办', color: 'orange' },
-}
+};
 const priorityMap: Record<number, { label: string; color: string }> = {
   0: { label: '普通', color: 'default' },
   1: { label: '重要', color: 'orange' },
   2: { label: '紧急', color: 'red' },
-}
+};
 
 // Tab 切换过滤
 const filteredData = computed(() => {
-  if (activeTabKey.value === 'all') return allData.value
+  if (activeTabKey.value === 'all') return allData.value;
   if (activeTabKey.value === 'unread')
-    return allData.value.filter((n) => n.status === 0)
-  const typeNum = Number(activeTabKey.value)
-  return allData.value.filter((n) => n.type === typeNum)
-})
+    return allData.value.filter((n) => n.status === 0);
+  const typeNum = Number(activeTabKey.value);
+  return allData.value.filter((n) => n.type === typeNum);
+});
 
-const [tableRegister, tableMethods] = useTable()
-const [modalRegister, modalMethods] = useModal()
-const [formRegister, formMethods] = useForm()
+const [tableRegister, tableMethods] = useTable();
+const [modalRegister, modalMethods] = useModal();
+const [formRegister, formMethods] = useForm();
 
-const isEditingNotice = ref(false)
-const editingNoticeId = ref<null | number>(null)
+const isEditingNotice = ref(false);
+const editingNoticeId = ref<null | number>(null);
 
 /** 新增/编辑消息表单 */
 const noticeFormSchemas: FormSchema[] = [
@@ -144,104 +144,106 @@ const noticeFormSchemas: FormSchema[] = [
     colProps: { span: 24 },
     componentProps: { placeholder: '请输入消息内容...', rows: 5 },
   },
-]
+];
 
 // 加载全部数据用于统计和 Tab 过滤
 async function loadAllData() {
   try {
-    const res = await getNoticeList({ pageSize: 1000 })
-    const data = res?.data ?? res
-    allData.value = data?.list || []
+    const res = await getNoticeList({ pageSize: 1000 });
+    const data = res?.data ?? res;
+    allData.value = data?.list || [];
   } catch {
-    allData.value = []
+    allData.value = [];
   }
 }
 
 async function mockApi(params: Record<string, any>) {
-  const { page = 1, pageSize = 10 } = params
-  const data = [...filteredData.value]
-  data.sort((a, b) => dayjs(b.sendTime).valueOf() - dayjs(a.sendTime).valueOf())
-  const total = data.length
-  const startIdx = (Number(page) - 1) * Number(pageSize)
-  return { items: data.slice(startIdx, startIdx + Number(pageSize)), total }
+  const { page = 1, pageSize = 10 } = params;
+  const data = [...filteredData.value];
+  data.sort(
+    (a, b) => dayjs(b.sendTime).valueOf() - dayjs(a.sendTime).valueOf(),
+  );
+  const total = data.length;
+  const startIdx = (Number(page) - 1) * Number(pageSize);
+  return { items: data.slice(startIdx, startIdx + Number(pageSize)), total };
 }
 
 function handleTabChange(key: string) {
-  activeTabKey.value = key
-  tableMethods.value?.reload()
+  activeTabKey.value = key;
+  tableMethods.value?.reload();
 }
 
 function handleView(record: any | NoticeRecord) {
-  viewingNotice.value = record as NoticeRecord
-  showDetailDrawer.value = true
+  viewingNotice.value = record as NoticeRecord;
+  showDetailDrawer.value = true;
 
   // 自动标记已读
   if ((record as NoticeRecord).status === 0) {
-    ;(record as NoticeRecord).status = 1
-    ;(record as NoticeRecord).readTime = dayjs().format('YYYY-MM-DD HH:mm:ss')
+    (record as NoticeRecord).status = 1;
+    (record as NoticeRecord).readTime = dayjs().format('YYYY-MM-DD HH:mm:ss');
   }
 }
 
 async function handleMarkRead(record: any | NoticeRecord) {
-  const rec = record as NoticeRecord
+  const rec = record as NoticeRecord;
   try {
-    await markNoticeRead(rec.id)
-    rec.status = 1
-    rec.readTime = dayjs().format('YYYY-MM-DD HH:mm:ss')
-    message.success(`「${rec.title}」已标记为已读`)
-    tableMethods.value?.reload()
-    await loadAllData()
+    await markNoticeRead(rec.id);
+    rec.status = 1;
+    rec.readTime = dayjs().format('YYYY-MM-DD HH:mm:ss');
+    message.success(`「${rec.title}」已标记为已读`);
+    tableMethods.value?.reload();
+    await loadAllData();
   } catch {
-    message.error('操作失败')
+    message.error('操作失败');
   }
 }
 
 async function handleMarkAllRead() {
-  const unreadItems = allData.value.filter((n) => n.status === 0)
+  const unreadItems = allData.value.filter((n) => n.status === 0);
   if (unreadItems.length === 0) {
-    message.info('没有未读消息')
-    return
+    message.info('没有未读消息');
+    return;
   }
   try {
-    await markAllNoticeRead()
-    message.success(`已将 ${unreadItems.length} 条消息标记为已读`)
-    await loadAllData()
-    tableMethods.value?.reload()
+    await markAllNoticeRead();
+    message.success(`已将 ${unreadItems.length} 条消息标记为已读`);
+    await loadAllData();
+    tableMethods.value?.reload();
   } catch {
-    message.error('操作失败')
+    message.error('操作失败');
   }
 }
 
 async function handleDelete(record: any | NoticeRecord) {
-  const rec = record as NoticeRecord
+  const rec = record as NoticeRecord;
   try {
-    await deleteNotice(rec.id)
-    message.success(`已删除消息「${rec.title}」`)
-    await loadAllData()
-    tableMethods.value?.reload()
+    await deleteNotice(rec.id);
+    message.success(`已删除消息「${rec.title}」`);
+    await loadAllData();
+    tableMethods.value?.reload();
   } catch {
-    message.error('删除失败')
+    message.error('删除失败');
   }
 }
 
 onMounted(async () => {
-  await loadAllData()
-  tableMethods.value?.reload()
-})
+  await loadAllData();
+  tableMethods.value?.reload();
+});
 
 /** 新增消息 */
 function handleAdd() {
-  isEditingNotice.value = false
-  editingNoticeId.value = null
+  isEditingNotice.value = false;
+  editingNoticeId.value = null;
   formMethods.setFieldsValue({
     title: '',
     type: 2,
     priority: 0,
     status: 0,
     content: '',
-  })
-  formMethods.clearValidate()
-  modalMethods.openModal()
+  });
+  formMethods.clearValidate();
+  modalMethods.openModal();
 }
 
 /**
@@ -252,24 +254,24 @@ function handleAdd() {
  * 补上按钮与回填，改标题/改优先级才有地方做。
  */
 function handleEdit(record: any | NoticeRecord) {
-  const rec = record as NoticeRecord
-  isEditingNotice.value = true
-  editingNoticeId.value = rec.id
+  const rec = record as NoticeRecord;
+  isEditingNotice.value = true;
+  editingNoticeId.value = rec.id;
   formMethods.setFieldsValue({
     content: rec.content,
     priority: rec.priority,
     status: rec.status,
     title: rec.title,
     type: rec.type,
-  })
-  formMethods.clearValidate()
-  modalMethods.openModal()
+  });
+  formMethods.clearValidate();
+  modalMethods.openModal();
 }
 
 /** 保存消息 */
 async function handleSaveNotice() {
-  const values = await formMethods.validate()
-  if (!values) return
+  const values = await formMethods.validate();
+  if (!values) return;
 
   try {
     // 编辑要带上主键，否则 `/system/notice/save` 只会当成新增
@@ -277,13 +279,13 @@ async function handleSaveNotice() {
       isEditingNotice.value && editingNoticeId.value !== null
         ? { ...values, id: editingNoticeId.value }
         : values,
-    )
-    message.success(isEditingNotice.value ? '消息已更新' : '消息保存成功')
-    modalMethods.closeModal()
-    await loadAllData()
-    tableMethods.value?.reload()
+    );
+    message.success(isEditingNotice.value ? '消息已更新' : '消息保存成功');
+    modalMethods.closeModal();
+    await loadAllData();
+    tableMethods.value?.reload();
   } catch (error: any) {
-    message.error(error?.message || '保存失败')
+    message.error(error?.message || '保存失败');
   }
 }
 
@@ -374,7 +376,9 @@ const columns: BasicColumn[] = [
         <span class="inline-flex items-center gap-1">
           <Icon
             icon={
-              record.status === 0 ? 'carbon:notification-new' : 'carbon:checkmark'
+              record.status === 0
+                ? 'carbon:notification-new'
+                : 'carbon:checkmark'
             }
           />
           {record.status === 0 ? '未读' : '已读'}
@@ -382,7 +386,7 @@ const columns: BasicColumn[] = [
       </a-tag>
     ),
   },
-]
+];
 </script>
 
 <template>
@@ -412,7 +416,10 @@ const columns: BasicColumn[] = [
       >
         <a-statistic title="系统公告" :value="systemCount" suffix="条">
           <template #prefix>
-            <Icon icon="carbon:notification" class="mr-1 text-lg text-green-500" />
+            <Icon
+              icon="carbon:notification"
+              class="mr-1 text-lg text-green-500"
+            />
           </template>
         </a-statistic>
       </a-card>
@@ -589,8 +596,8 @@ const columns: BasicColumn[] = [
             type="primary"
             @click="
               () => {
-                handleMarkRead(viewingNotice)
-                showDetailDrawer = false
+                handleMarkRead(viewingNotice);
+                showDetailDrawer = false;
               }
             "
           >

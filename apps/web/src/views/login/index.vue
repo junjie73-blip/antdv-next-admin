@@ -164,9 +164,7 @@ function handleSendCode() {
             stroke-width="2"
             aria-hidden="true"
           >
-            <path
-              d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-            />
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
           </svg>
         </div>
         <span :class="brandLogoTextClassName">{{ _appTitle }}</span>
@@ -183,7 +181,11 @@ function handleSendCode() {
       </p>
 
       <ul class="space-y-4">
-        <li v-for="item in FEATURES" :key="item.title" class="group flex items-center gap-3.5">
+        <li
+          v-for="item in FEATURES"
+          :key="item.title"
+          class="group flex items-center gap-3.5"
+        >
           <div :class="featureIconClassName">
             <Icon :icon="item.icon" class="h-5 w-5" />
           </div>
@@ -208,18 +210,29 @@ function handleSendCode() {
               stroke-width="2"
               aria-hidden="true"
             >
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+              <path
+                d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+              />
             </svg>
           </div>
           <span :class="brandLogoTextClassName">{{ _appTitle }}</span>
         </div>
 
-        <div :class="segContainerClassName" role="tablist" aria-label="登录方式">
+        <div
+          :class="segContainerClassName"
+          role="tablist"
+          aria-label="登录方式"
+        >
           <button
             type="button"
             role="tab"
             :aria-selected="loginType === 'account'"
-            :class="cn(segBtnClassName, loginType === 'account' ? segActiveClassName : segIdleClassName)"
+            :class="
+              cn(
+                segBtnClassName,
+                loginType === 'account' ? segActiveClassName : segIdleClassName,
+              )
+            "
             @click="loginType = 'account'"
           >
             账号登录
@@ -228,7 +241,12 @@ function handleSendCode() {
             type="button"
             role="tab"
             :aria-selected="loginType === 'mobile'"
-            :class="cn(segBtnClassName, loginType === 'mobile' ? segActiveClassName : segIdleClassName)"
+            :class="
+              cn(
+                segBtnClassName,
+                loginType === 'mobile' ? segActiveClassName : segIdleClassName,
+              )
+            "
             @click="loginType = 'mobile'"
           >
             手机登录
@@ -273,8 +291,15 @@ function handleSendCode() {
 
             <a-form-item>
               <div class="flex items-center justify-between">
-                <a-checkbox v-model:checked="formState.remember">记住我</a-checkbox>
-                <a-button type="link" size="small" class="!h-auto !px-0" @click="handleForgotPassword">
+                <a-checkbox v-model:checked="formState.remember">
+                  记住我
+                </a-checkbox>
+                <a-button
+                  type="link"
+                  size="small"
+                  class="!h-auto !px-0"
+                  @click="handleForgotPassword"
+                >
                   忘记密码？
                 </a-button>
               </div>
@@ -337,7 +362,10 @@ function handleSendCode() {
           </a-form-item>
         </a-form>
 
-        <p :class="hintClassName">演示账号：admin / admin123</p>
+        <p :class="hintClassName">
+          演示账号：admin / admin123（全部页面）· custom /
+          custom123（只给一部分页面，越界跳 403）
+        </p>
       </div>
     </main>
   </div>

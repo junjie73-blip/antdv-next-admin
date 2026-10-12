@@ -1,8 +1,4 @@
-import type {
-  SSEEventCallback,
-  SSEEventHandlers,
-  SSEOptions,
-} from './types';
+import type { SSEEventCallback, SSEEventHandlers, SSEOptions } from './types';
 
 import { computed, onUnmounted, readonly, ref } from 'vue';
 

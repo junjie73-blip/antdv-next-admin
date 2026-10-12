@@ -236,12 +236,18 @@ export function useCRUD<
     }
 
     loading.value = true;
-    try {
-      Modal.confirm({
-        title: '批量删除',
-        content: `确定删除选中的 ${selected.length} 项吗？`,
-        okType: 'danger',
-        async onOk() {
+    /**
+     * 确认框的 `onOk` 是异步的，它的 reject 到不了外层 `try`（外层只管"弹不弹得出"），
+     * 失败提示必须写在 `onOk` 内部 —— 否则批量删除炸了就是一句 console 警告，
+     * 用户看到的仍是"点了没反应"。
+     */
+    Modal.confirm({
+      title: '批量删除',
+      // 文案可覆盖，条数由 composable 补上：调用方写死数量迟早和实际选中的对不上
+      content: `${msgs.batchDeleteConfirm}（${selected.length} 条）`,
+      okType: 'danger',
+      async onOk() {
+        try {
           if (onBatchDelete) {
             await onBatchDelete(selected);
           } else if (onDelete) {
@@ -253,13 +259,16 @@ export function useCRUD<
             `${msgs.batchDeleteSuccess}（${selected.length} 条）`,
           );
           refreshTable();
-        },
-      });
-    } catch (error: any) {
-      message.error(error?.message || msgs.deleteFailed);
-    } finally {
-      loading.value = false;
-    }
+        } catch (error: any) {
+          message.error(error?.message || msgs.deleteFailed);
+        } finally {
+          loading.value = false;
+        }
+      },
+      onCancel() {
+        loading.value = false;
+      },
+    });
   }
 
   // ========== 保存 ==========

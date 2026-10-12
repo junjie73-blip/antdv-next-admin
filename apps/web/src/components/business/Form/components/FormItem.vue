@@ -182,7 +182,11 @@ const bodyContainer = () => document.body;
         </template>
 
         <template v-if="schema.slot">
-          <slot :name="schema.slot" :model="formModel" :field="schema.field"></slot>
+          <slot
+            :name="schema.slot"
+            :model="formModel"
+            :field="schema.field"
+          ></slot>
         </template>
 
         <template v-else-if="getComponentInstance">

@@ -66,7 +66,9 @@ describe('showLoginWelcome', () => {
   afterEach(() => {
     vi.clearAllTimers();
     vi.useRealTimers();
-    document.body.querySelectorAll('.welcome-notification').forEach((n) => n.remove());
+    document.body
+      .querySelectorAll('.welcome-notification')
+      .forEach((n) => n.remove());
   });
 
   it('渲染欢迎通知且不抛异常，用户名缺省为「朋友」', () => {
@@ -78,7 +80,12 @@ describe('showLoginWelcome', () => {
   it('透传 duration / placement / onClick', () => {
     const onClick = vi.fn();
     expect(() =>
-      showLoginWelcome({ duration: 0, onClick, placement: 'topLeft', username: '王五' }),
+      showLoginWelcome({
+        duration: 0,
+        onClick,
+        placement: 'topLeft',
+        username: '王五',
+      }),
     ).not.toThrow();
   });
 });

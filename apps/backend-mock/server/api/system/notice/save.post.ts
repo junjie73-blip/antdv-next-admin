@@ -44,7 +44,8 @@ export default defineMockRoute({
     }
 
     /** 新增：id 取当前最大值 +1，内存库按插入顺序即可 */
-    const nextId = NOTICE_DB.reduce((max, item) => Math.max(max, item.id), 0) + 1;
+    const nextId =
+      NOTICE_DB.reduce((max, item) => Math.max(max, item.id), 0) + 1;
     const created = {
       content,
       id: nextId,

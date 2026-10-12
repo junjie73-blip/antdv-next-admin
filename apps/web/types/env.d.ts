@@ -18,22 +18,29 @@ declare module '*.vue' {
  */
 interface ImportMetaEnv {
   // Auto generate by env-parse
-  readonly VITE_APP_TITLE: string
+  readonly VITE_APP_TITLE: string;
   /**
    * 微前端：需要子应用真的跑在注册表配的端口上（见 src/config/micro-app.ts）再打开，
    * 否则「微前端」菜单页会去连不通的地址。用 isEnvEnabled 判断，不要写 === true。
    */
-  readonly VITE_MICRO_APP: boolean
-  readonly VITE_MOCK: boolean
-  readonly VITE_NAMESPACE: string
+  readonly VITE_MICRO_APP: boolean;
+  /**
+   * Mock：VITE_MOCK=true 时 dev server 把 /api 透传到 apps/backend-mock（Nitro）
+   */
+  readonly VITE_MOCK: boolean;
+  readonly VITE_NAMESPACE: string;
   /**
    * 实时通知推送（顶栏铃铛）的 WebSocket 端点，见 src/utils/ws.ts。
    * 留空 = 不连接：mock（Nitro）没有 /ws 处理器，而重连是无限的，
    * 在没有后端的情况下发起连接只会把控制台与端到端用例淹掉。
    * 接真实后端时填完整地址，例如 ws://localhost:8080/ws，token 由前端自动附加。
    */
-  readonly VITE_WS_URL: string
-  readonly VITE_WRITE_DTS: boolean
+  readonly VITE_WS_URL: string;
+  readonly VITE_APP_BASE_API: string;
+  readonly VITE_DEVTOOLS: boolean;
+  readonly VITE_INJECT_APP_LOADING: boolean;
+  readonly VITE_MOCK_SERVER: string;
+  readonly VITE_PORT: number;
 }
 
 interface ImportMeta {

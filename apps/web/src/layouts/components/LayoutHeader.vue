@@ -2,6 +2,7 @@
 import type { MenuProps } from 'antdv-next';
 
 import { computed, h, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { LAYOUT_HEADER_ROW_STYLE } from '@antdv/layouts';
 import { eventBus } from '@antdv/shared';
@@ -35,6 +36,7 @@ defineOptions({
  */
 const appStore = useAppStore();
 const userStore = useUserStore();
+const { t } = useI18n({ useScope: 'global' });
 const { blueprint, overlaySidebar, regions } = useShell();
 const showSetting = ref(false);
 /** 顶栏搜索按钮与 Ctrl+K 都开这同一个弹层（以前指向一个从没渲染过的 `showNotification`，按了没反应） */
@@ -89,12 +91,16 @@ const headerLead = computed(() => blueprint.value.headerLead);
 
 /** 按钮图标要反映"点了会变成什么"：浮层看抽屉开合，常驻看折叠态 */
 const sidebarOpen = computed(() =>
-  overlaySidebar.value ? appStore.sidebarOverlayOpen : !appStore.sidebarCollapsed,
+  overlaySidebar.value
+    ? appStore.sidebarOverlayOpen
+    : !appStore.sidebarCollapsed,
 );
 
 function toggleSidebar(): void {
   if (overlaySidebar.value) {
-    appStore.updateSetting({ sidebarOverlayOpen: !appStore.sidebarOverlayOpen });
+    appStore.updateSetting({
+      sidebarOverlayOpen: !appStore.sidebarOverlayOpen,
+    });
     return;
   }
   appStore.toggles.sidebarCollapsed();
@@ -115,7 +121,7 @@ const headerClassName = computed(() =>
     // 高度不在这里写：`h-14` 会被 antd 的 `.ant-layout-header{height:64px}` 顶掉，
     // 统一由 `LAYOUT_HEADER_ROW_STYLE` 以 inline style 给出（见 @antdv/layouts 注释）。
     'flex min-w-0 items-center justify-between px-6',
-    'flex-shrink-0 border-b shadow-sm',
+    'shrink-0 border-b shadow-sm',
     isGeekStyle.value
       ? 'border-[#1a1a1a] bg-[#0a0a0a] text-[#00ff88]'
       : isDarkMode.value
@@ -126,7 +132,7 @@ const headerClassName = computed(() =>
 
 const triggerClassName = computed(() =>
   cn(
-    'flex size-8  shrink-0 items-center justify-center rounded-lg',
+    'flex size-8 shrink-0 items-center justify-center rounded-lg',
     'transition-colors duration-200',
     isGeekStyle.value
       ? 'text-[#00ff88] hover:bg-[#00ff88]/10'
@@ -143,24 +149,24 @@ const triggerClassName = computed(() =>
  * 导航不再占一格，但抽屉里要能直达两个页面，所以这里按 tab 分别给项：
  * `profile` → 个人主页，`settings` → 账户设置，都由 AccountDrawer 承载。
  */
-const userDropdownItems: MenuProps['items'] = [
+const userDropdownItems = computed<MenuProps['items']>(() => [
   {
     key: 'profile',
-    label: '个人中心',
+    label: t('header.profile'),
     icon: () => h(Icon, { icon: 'carbon:user-avatar' }),
   },
   {
     key: 'settings',
-    label: '账户设置',
+    label: t('header.accountSettings'),
     icon: () => h(Icon, { icon: 'carbon:settings' }),
   },
   { type: 'divider' },
   {
     key: 'docs',
-    label: '文档中心',
+    label: t('header.docs'),
     icon: () => h(Icon, { icon: 'carbon:book' }),
   },
-];
+]);
 /** 需要额外事件的组件 */
 function handleWidgetEvent(key: string) {
   if (key === 'preferences') showSetting.value = true;
@@ -194,14 +200,14 @@ onUnmounted(() => {
         v-if="showSidebarTrigger"
         type="button"
         class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-black/6 dark:hover:bg-white/10"
-        :aria-label="sidebarOpen ? '收起菜单' : '展开菜单'"
+        :aria-label="
+          sidebarOpen ? t('header.collapseMenu') : t('header.expandMenu')
+        "
         @click="toggleSidebar"
       >
         <Icon
           :icon="
-            sidebarOpen
-              ? 'carbon:side-panel-close'
-              : 'carbon:side-panel-open'
+            sidebarOpen ? 'carbon:side-panel-close' : 'carbon:side-panel-open'
           "
           class="text-lg"
         />
@@ -282,7 +288,7 @@ onUnmounted(() => {
           <span
             class="hidden text-sm text-gray-700 sm:inline dark:text-gray-200"
           >
-            {{ userStore.username || '用户' }}
+            {{ userStore.username || t('shell.user') }}
           </span>
           <Icon icon="carbon:chevron-down" class="text-xs text-gray-400" />
         </div>

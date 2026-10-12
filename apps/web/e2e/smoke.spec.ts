@@ -53,7 +53,9 @@ test.describe('应用冒烟', () => {
     expect(errors.errors).toEqual([]);
   });
 
-  test('菜单选中态唯一：每个菜单根节点下最多一个 selected', async ({ page }) => {
+  test('菜单选中态唯一：每个菜单根节点下最多一个 selected', async ({
+    page,
+  }) => {
     await signIn(page);
     await go(page, '/system/role');
 

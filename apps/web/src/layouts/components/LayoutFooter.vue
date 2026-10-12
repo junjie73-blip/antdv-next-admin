@@ -25,7 +25,7 @@ const icp = computed(() => appStore.copyrightIcp);
         <Icon icon="carbon:license" class="text-sm" />
         <span>{{ currentYear }}</span>
         <a
-          href="https://github.com/"
+          href="https://github.com/junjie73-blip/antdv-next-admin"
           target="_blank"
           rel="noopener noreferrer"
           class="hover:text-ant-primary font-medium text-slate-600 transition-colors dark:text-slate-300 dark:hover:text-blue-400"

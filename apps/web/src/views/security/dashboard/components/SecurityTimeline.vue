@@ -3,31 +3,31 @@ import type {
   SecurityEvent,
   SecurityEventLevel,
   SecurityEventType,
-} from '~/api/security'
+} from '~/api/security';
 
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue';
 
-import { cn } from '@antdv/shared/cn'
-import { Icon } from '@iconify/vue'
-import dayjs from 'dayjs'
-import { getSecurityEvents } from '~/api/security'
+import { cn } from '@antdv/shared/cn';
+import { Icon } from '@iconify/vue';
+import dayjs from 'dayjs';
+import { getSecurityEvents } from '~/api/security';
 
-defineOptions({ name: 'SecurityTimeline' })
+defineOptions({ name: 'SecurityTimeline' });
 
 // 样式类名
-const containerClassName = cn('rounded-xl p-5')
-const filterBarClassName = cn('mb-4 flex flex-wrap items-center gap-2')
+const containerClassName = cn('rounded-xl p-5');
+const filterBarClassName = cn('mb-4 flex flex-wrap items-center gap-2');
 const tagClassName = cn(
   'cursor-pointer rounded-full border px-2.5 py-1 text-xs transition-all duration-200',
-)
+);
 
-const events = ref<SecurityEvent[]>([])
-const loading = ref(false)
+const events = ref<SecurityEvent[]>([]);
+const loading = ref(false);
 
 // 筛选状态
-const activeType = ref<string>('all')
-const activeLevel = ref<string>('all')
-const activeStatus = ref<string>('all')
+const activeType = ref<string>('all');
+const activeLevel = ref<string>('all');
+const activeStatus = ref<string>('all');
 
 /** 事件类型选项 */
 const typeOptions = [
@@ -36,7 +36,7 @@ const typeOptions = [
   { value: 'permission_change', label: '权限变更' },
   { value: 'sensitive_operation', label: '敏感操作' },
   { value: 'attack_attempt', label: '攻击尝试' },
-]
+];
 
 /** 级别选项 */
 const levelOptions = [
@@ -45,26 +45,26 @@ const levelOptions = [
   { value: 'high', label: '高危' },
   { value: 'medium', label: '中危' },
   { value: 'low', label: '低危' },
-]
+];
 
 /** 状态选项 */
 const statusOptions = [
   { value: 'all', label: '全部状态' },
   { value: 'pending', label: '待处理' },
   { value: 'handled', label: '已处理' },
-]
+];
 
 /** 过滤后的事件列表 */
 const filteredEvents = computed(() => {
   return events.value.filter((e) => {
-    if (activeType.value !== 'all' && e.type !== activeType.value) return false
+    if (activeType.value !== 'all' && e.type !== activeType.value) return false;
     if (activeLevel.value !== 'all' && e.level !== activeLevel.value)
-      return false
+      return false;
     if (activeStatus.value !== 'all' && e.status !== activeStatus.value)
-      return false
-    return true
-  })
-})
+      return false;
+    return true;
+  });
+});
 
 /** 时间线颜色 */
 function getTimelineColor(level: SecurityEventLevel): string {
@@ -73,8 +73,8 @@ function getTimelineColor(level: SecurityEventLevel): string {
     high: '#fa8c16',
     medium: '#1677ff',
     low: '#d9d9d9',
-  }
-  return map[level] || map.low
+  };
+  return map[level] || map.low;
 }
 
 /** 级别标签颜色 */
@@ -84,8 +84,8 @@ function getLevelTagColor(level: SecurityEventLevel): string {
     high: 'warning',
     medium: 'processing',
     low: 'default',
-  }
-  return map[level] || map.low
+  };
+  return map[level] || map.low;
 }
 
 /** 级别文字 */
@@ -95,8 +95,8 @@ function getLevelLabel(level: SecurityEventLevel): string {
     high: '高危',
     medium: '中危',
     low: '低危',
-  }
-  return map[level] || level
+  };
+  return map[level] || level;
 }
 
 /** 类型图标 */
@@ -106,8 +106,8 @@ function getTypeIcon(type: SecurityEventType): string {
     permission_change: 'carbon:locked',
     sensitive_operation: 'carbon:document-security',
     attack_attempt: 'carbon:shield-alert',
-  }
-  return map[type] || 'carbon:warning-alt'
+  };
+  return map[type] || 'carbon:warning-alt';
 }
 
 /** 类型标签颜色 */
@@ -117,23 +117,23 @@ function getTypeTagColor(type: SecurityEventType): string {
     permission_change: 'orange',
     sensitive_operation: 'blue',
     attack_attempt: 'magenta',
-  }
-  return map[type] || 'default'
+  };
+  return map[type] || 'default';
 }
 
 onMounted(async () => {
-  loading.value = true
+  loading.value = true;
   try {
-    const res = await getSecurityEvents({ page: 1, pageSize: 15 })
+    const res = await getSecurityEvents({ page: 1, pageSize: 15 });
     // 兼容直接返回 { list } 或包装为 { data: { list } }
-    const data = res && 'list' in res ? res : (res?.data ?? res)
-    events.value = data?.list || []
+    const data = res && 'list' in res ? res : (res?.data ?? res);
+    events.value = data?.list || [];
   } catch {
-    events.value = []
+    events.value = [];
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-})
+});
 </script>
 
 <template>

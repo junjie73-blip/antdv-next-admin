@@ -44,7 +44,9 @@ function joinPosix(...parts: string[]): string {
  */
 function normalizePosix(pathname: string): string {
   const posixPath = toPosixPath(pathname);
-  return isAbsolutePath(posixPath) ? posixPath : toPosixPath(resolve(posixPath));
+  return isAbsolutePath(posixPath)
+    ? posixPath
+    : toPosixPath(resolve(posixPath));
 }
 
 /**
@@ -80,7 +82,10 @@ function extname(pathname: string): string {
 async function findRepoRoot(
   cwd: string = process.cwd(),
 ): Promise<string | undefined> {
-  const anchor = await findUp(REPO_ANCHORS, { cwd: resolve(cwd), type: 'file' });
+  const anchor = await findUp(REPO_ANCHORS, {
+    cwd: resolve(cwd),
+    type: 'file',
+  });
   return anchor === undefined ? undefined : posix.dirname(toPosixPath(anchor));
 }
 

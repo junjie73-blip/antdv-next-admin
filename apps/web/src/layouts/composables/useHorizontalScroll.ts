@@ -75,7 +75,9 @@ export function useHorizontalScroll(
   const justDragged = ref(false);
 
   /** 指针按下时的起点，尚未越过阈值前只叫「预备」，不算拖拽 */
-  let pending: undefined | { pointerId: number; startX: number; startScrollLeft: number };
+  let pending:
+    | undefined
+    | { pointerId: number; startX: number; startScrollLeft: number };
   let observer: ResizeObserver | undefined;
   /** 复位 justDragged 的那一帧，卸载时要取消，避免组件销毁后再写 ref */
   let dragRaf: number | undefined;
@@ -200,7 +202,10 @@ export function useHorizontalScroll(
         // 指针已释放 / id 不合法：不影响拖拽，忽略
       }
     }
-    node.scrollLeft = Math.max(0, pending.startScrollLeft - (event.pageX - pending.startX));
+    node.scrollLeft = Math.max(
+      0,
+      pending.startScrollLeft - (event.pageX - pending.startX),
+    );
     update();
   }
 

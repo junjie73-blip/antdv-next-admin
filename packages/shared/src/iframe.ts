@@ -114,9 +114,7 @@ export function buildIframeSandbox(options: IframeSandboxOptions = {}): string {
   }
 
   // 规范内的关键字按固定顺序输出；`extra` 里超出规范的排在末尾（sort 稳定，保持传入顺序）
-  return merged
-    .sort((a, b) => rank(a) - rank(b))
-    .join(' ');
+  return merged.sort((a, b) => rank(a) - rank(b)).join(' ');
 
   function rank(flag: string): number {
     if (!known.has(flag)) return SANDBOX_FLAGS.length + merged.indexOf(flag);

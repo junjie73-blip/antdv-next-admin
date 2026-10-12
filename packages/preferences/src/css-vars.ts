@@ -98,14 +98,15 @@ function setCssVar(target: HTMLElement, name: string, value: string): void {
 
 /** 移除偏好写下的 class 与变量（登出、卸载或测试收尾时用） */
 export function clearPreferencesFromDom(
-  options: Pick<
-    ApplyPreferencesToDomOptions,
-    'darkClass' | 'target'
-  > = {},
+  options: Pick<ApplyPreferencesToDomOptions, 'darkClass' | 'target'> = {},
 ): void {
   if (typeof document === 'undefined') return;
   const target = options.target ?? document.documentElement;
-  target.classList.remove('color-weak', 'gray-mode', options.darkClass ?? 'dark');
+  target.classList.remove(
+    'color-weak',
+    'gray-mode',
+    options.darkClass ?? 'dark',
+  );
   target.style.filter = '';
   target.style.colorScheme = '';
   for (const name of [

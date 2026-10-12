@@ -2,6 +2,7 @@ import type { Component } from 'vue';
 
 export type WidgetKey =
   | 'fullscreen'
+  | 'locale-switcher'
   | 'logout'
   | 'notice'
   | 'preferences'
@@ -11,7 +12,6 @@ export type WidgetKey =
 
 export interface WidgetMeta {
   key: WidgetKey;
-  title: string;
   icon: string;
   /**
    * 已经 `defineAsyncComponent` 包好的**稳定引用**。

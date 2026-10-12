@@ -17,7 +17,7 @@ function makeScheduler(overrides: Partial<ReconnectSchedulerConfig> = {}) {
   });
 }
 
-describe('ReconnectScheduler', () => {
+describe('reconnectScheduler', () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -189,7 +189,7 @@ describe('ReconnectScheduler', () => {
 });
 
 describe('重连管理器的两个别名共用同一实现', () => {
-  it('WebSocket 与 SSE 拿到的是同一个类', () => {
+  it('webSocket 与 SSE 拿到的是同一个类', () => {
     // 两侧曾经各有一份实现，同一处逻辑各自出过 bug，现在收敛为一个构造器。
     expect(ReconnectManager).toBe(SSEReconnectManager);
     expect(ReconnectManager).toBe(ReconnectScheduler);

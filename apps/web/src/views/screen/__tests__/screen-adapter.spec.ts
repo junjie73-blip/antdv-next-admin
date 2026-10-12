@@ -117,12 +117,18 @@ beforeEach(() => {
     </div>`;
   wrap = document.querySelector('.scrollbar__wrap') as HTMLElement;
   view = document.querySelector('.scrollbar__view') as HTMLElement;
-  container = document.getElementById('screen-container') as HTMLElement;
-  content = document.getElementById('screen-content') as HTMLElement;
+  container = document.querySelector('#screen-container') as HTMLElement;
+  content = document.querySelector('#screen-content') as HTMLElement;
 
   // 故意把视口撑到 4K：任何还在按 window 算的实现都会立刻露馅
-  Object.defineProperty(window, 'innerWidth', { configurable: true, value: 3840 });
-  Object.defineProperty(window, 'innerHeight', { configurable: true, value: 2160 });
+  Object.defineProperty(window, 'innerWidth', {
+    configurable: true,
+    value: 3840,
+  });
+  Object.defineProperty(window, 'innerHeight', {
+    configurable: true,
+    value: 2160,
+  });
   Object.defineProperty(window, 'ResizeObserver', {
     configurable: true,
     value: FakeObserver,

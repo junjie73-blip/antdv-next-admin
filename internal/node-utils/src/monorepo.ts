@@ -43,7 +43,10 @@ function parseCatalog(yamlText: string): Record<string, string> {
     if (!trimmed || trimmed.startsWith('#')) continue;
     const separator = trimmed.indexOf(':');
     if (separator === -1) continue;
-    const key = trimmed.slice(0, separator).trim().replaceAll(/^["']|["']$/g, '');
+    const key = trimmed
+      .slice(0, separator)
+      .trim()
+      .replaceAll(/^["']|["']$/g, '');
     // 去掉行尾注释，值本身不含 '#'（版本号/范围里不会出现）
     const value = trimmed
       .slice(separator + 1)
@@ -83,7 +86,9 @@ export interface WorkspaceConfig {
 }
 
 /** 读根 pnpm-workspace.yaml：catalog 版本表 + 包通配符 */
-function readWorkspaceConfig(root: string = findRepoRootSync() ?? process.cwd()): WorkspaceConfig {
+function readWorkspaceConfig(
+  root: string = findRepoRootSync() ?? process.cwd(),
+): WorkspaceConfig {
   const file = existsSync(join(root, 'pnpm-workspace.yaml'))
     ? join(root, 'pnpm-workspace.yaml')
     : join(root, 'pnpm-workspace.yml');
@@ -142,7 +147,9 @@ function packageOfPath(
   root: string,
   relativePath: string,
 ): undefined | WorkspacePackage {
-  const target = toPosixPath(join(toPosixPath(root), toPosixPath(relativePath)));
+  const target = toPosixPath(
+    join(toPosixPath(root), toPosixPath(relativePath)),
+  );
   let best: undefined | WorkspacePackage;
   for (const pkg of packages) {
     if (target !== pkg.dir && !target.startsWith(`${pkg.dir}/`)) continue;
@@ -228,7 +235,9 @@ async function getPackages() {
  */
 async function getPackage(pkgName: string) {
   const { packages } = await getPackages();
-  return packages.find((pkg: manypkg.Package) => pkg.packageJson.name === pkgName);
+  return packages.find(
+    (pkg: manypkg.Package) => pkg.packageJson.name === pkgName,
+  );
 }
 
 export {

@@ -1,51 +1,51 @@
 <script setup lang="tsx">
-import type { DescriptionItem } from '~/components/business/Description'
-import type { FormSchema } from '~/components/business/Form'
-import type { BasicColumn } from '~/components/business/Table'
+import type { DescriptionItem } from '~/components/business/Description';
+import type { FormSchema } from '~/components/business/Form';
+import type { BasicColumn } from '~/components/business/Table';
 
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue';
 
-import { usePrint } from '@antdv/composables/usePrint'
-import { cn } from '@antdv/shared/cn'
-import { exportToExcel } from '@antdv/shared/excel'
-import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
-import { forceLogout, getOnlineUserList } from '~/api/system'
-import { Description as DetailDescription } from '~/components/business/Description'
-import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
-import { BasicTable, useTable } from '~/components/business/Table'
+import { usePrint } from '@antdv/composables/usePrint';
+import { cn } from '@antdv/shared/cn';
+import { exportToExcel } from '@antdv/shared/excel';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import { forceLogout, getOnlineUserList } from '~/api/system';
+import { Description as DetailDescription } from '~/components/business/Description';
+import { BasicDrawer, useDrawer } from '~/components/business/Drawer';
+import { BasicTable, useTable } from '~/components/business/Table';
 
-defineOptions({ name: 'SystemOnline' })
+defineOptions({ name: 'SystemOnline' });
 
-dayjs.extend(relativeTime)
+dayjs.extend(relativeTime);
 
 interface OnlineUserRecord {
-  tokenId: string
-  sessionId: string
-  username: string
-  nickname: string
-  ip: string
-  location: string
-  browser: string
-  os: string
-  loginTime: string
-  status: number
+  tokenId: string;
+  sessionId: string;
+  username: string;
+  nickname: string;
+  ip: string;
+  location: string;
+  browser: string;
+  os: string;
+  loginTime: string;
+  status: number;
 }
 
-const containerClassName = cn('space-y-4')
-const cardClassName = cn('shadow-sm')
-const tagClassName = cn('inline-flex items-center gap-1')
-const actionClassName = cn('flex', 'items-center', 'justify-center')
-const btnClassName = cn('px-0.5!')
-const dividerClassName = cn('mx-0')
+const containerClassName = cn('space-y-4');
+const cardClassName = cn('shadow-sm');
+const tagClassName = cn('inline-flex items-center gap-1');
+const actionClassName = cn('flex', 'items-center', 'justify-center');
+const btnClassName = cn('px-0.5!');
+const dividerClassName = cn('mx-0');
 
-const viewingRecord = ref<null | OnlineUserRecord>(null)
-const onlineCount = ref(0)
+const viewingRecord = ref<null | OnlineUserRecord>(null);
+const onlineCount = ref(0);
 
-let refreshTimer: null | ReturnType<typeof setInterval> = null
+let refreshTimer: null | ReturnType<typeof setInterval> = null;
 
-const [drawerRegister, drawerMethods] = useDrawer()
-const [tableRegister, tableMethods] = useTable()
+const [drawerRegister, drawerMethods] = useDrawer();
+const [tableRegister, tableMethods] = useTable();
 
 const searchFormSchemas: FormSchema[] = [
   {
@@ -72,7 +72,7 @@ const searchFormSchemas: FormSchema[] = [
     },
     colProps: { span: 6 },
   },
-]
+];
 
 const detailSchemas: DescriptionItem[] = [
   { field: 'tokenId', label: '会话标识' },
@@ -104,68 +104,68 @@ const detailSchemas: DescriptionItem[] = [
       </a-tag>
     ),
   },
-]
+];
 
 async function mockApi(params: Record<string, any>) {
-  const res = await getOnlineUserList(params)
-  const data = res?.data ?? res
-  const items = data?.list || []
-  onlineCount.value = data?.total || items.length
-  return { items, total: data?.total || 0 }
+  const res = await getOnlineUserList(params);
+  const data = res?.data ?? res;
+  const items = data?.list || [];
+  onlineCount.value = data?.total || items.length;
+  return { items, total: data?.total || 0 };
 }
 
 function handleView(record: any | OnlineUserRecord) {
-  viewingRecord.value = record as OnlineUserRecord
-  drawerMethods.openDrawer()
+  viewingRecord.value = record as OnlineUserRecord;
+  drawerMethods.openDrawer();
 }
 
 async function handleForceLogout(record: any | OnlineUserRecord) {
-  const rec = record as OnlineUserRecord
+  const rec = record as OnlineUserRecord;
   // 不能踢出自己
   if (rec.username === 'admin') {
-    message.warning('不能强制退出当前登录用户')
-    return
+    message.warning('不能强制退出当前登录用户');
+    return;
   }
 
   try {
-    await forceLogout(rec.tokenId)
-    message.success(`已强制退出用户「${rec.nickname}」`)
-    tableMethods.value?.reload()
+    await forceLogout(rec.tokenId);
+    message.success(`已强制退出用户「${rec.nickname}」`);
+    tableMethods.value?.reload();
   } catch {
-    message.error('强制退出失败')
+    message.error('强制退出失败');
   }
 }
 
 async function handleBatchForceLogout() {
   const selectedRows = (tableMethods.value?.getSelectRows?.() ||
-    []) as OnlineUserRecord[]
+    []) as OnlineUserRecord[];
   if (selectedRows.length === 0) {
-    message.warning('请先选择要强退的用户')
-    return
+    message.warning('请先选择要强退的用户');
+    return;
   }
 
   // 过滤掉 admin 用户
-  const canKick = selectedRows.filter((r) => r.username !== 'admin')
+  const canKick = selectedRows.filter((r) => r.username !== 'admin');
   if (canKick.length === 0) {
-    message.warning('选中的用户包含当前登录用户，无法全部强退')
-    return
+    message.warning('选中的用户包含当前登录用户，无法全部强退');
+    return;
   }
 
   try {
-    await Promise.all(canKick.map((r) => forceLogout(r.tokenId)))
-    const kickedNames = canKick.map((r) => r.nickname)
+    await Promise.all(canKick.map((r) => forceLogout(r.tokenId)));
+    const kickedNames = canKick.map((r) => r.nickname);
     message.success(
       `已强制退出 ${kickedNames.length} 个会话：${kickedNames.join('、')}`,
-    )
-    tableMethods.value?.reload()
+    );
+    tableMethods.value?.reload();
   } catch {
-    message.error('批量强制退出失败')
+    message.error('批量强制退出失败');
   }
 }
 
 function handleExport() {
   const tableData = (tableMethods.value?.getDataSource?.() ||
-    []) as OnlineUserRecord[]
+    []) as OnlineUserRecord[];
   exportToExcel({
     filename: '在线用户',
     sheetName: '在线用户',
@@ -184,14 +184,14 @@ function handleExport() {
       ...i,
       status: i.status === 0 ? '在线' : '离线',
     })),
-  })
+  });
 }
 
 function handlePrint() {
   usePrint({
     title: '在线用户',
     target: '.ant-card-body',
-  })
+  });
 }
 
 function updateOnlineCount() {
@@ -200,27 +200,27 @@ function updateOnlineCount() {
 
 // 模拟实时刷新在线列表
 function startAutoRefresh() {
-  stopAutoRefresh()
+  stopAutoRefresh();
   refreshTimer = setInterval(() => {
-    tableMethods.value?.reload()
-  }, 30_000) // 每30秒刷新一次
+    tableMethods.value?.reload();
+  }, 30_000); // 每30秒刷新一次
 }
 
 function stopAutoRefresh() {
   if (refreshTimer) {
-    clearInterval(refreshTimer)
-    refreshTimer = null
+    clearInterval(refreshTimer);
+    refreshTimer = null;
   }
 }
 
 onMounted(() => {
-  updateOnlineCount()
-  startAutoRefresh()
-})
+  updateOnlineCount();
+  startAutoRefresh();
+});
 
 onUnmounted(() => {
-  stopAutoRefresh()
-})
+  stopAutoRefresh();
+});
 
 const columns: BasicColumn[] = [
   {
@@ -281,7 +281,7 @@ const columns: BasicColumn[] = [
     width: 80,
     align: 'center',
   },
-]
+];
 </script>
 
 <template>

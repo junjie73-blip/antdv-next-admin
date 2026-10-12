@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { cn } from '@antdv/shared/cn'
-import { Icon } from '@iconify/vue'
+import { cn } from '@antdv/shared/cn';
+import { Icon } from '@iconify/vue';
 
-import RealtimeAlertPanel from './components/RealtimeAlertPanel.vue'
-import SecurityScoreCard from './components/SecurityScoreCard.vue'
-import SecurityStatsCharts from './components/SecurityStatsCharts.vue'
-import SecurityTimeline from './components/SecurityTimeline.vue'
+import RealtimeAlertPanel from './components/RealtimeAlertPanel.vue';
+import SecurityScoreCard from './components/SecurityScoreCard.vue';
+import SecurityStatsCharts from './components/SecurityStatsCharts.vue';
+import SecurityTimeline from './components/SecurityTimeline.vue';
 
-defineOptions({ name: 'SecurityDashboard' })
+defineOptions({ name: 'SecurityDashboard' });
 
-const containerClassName = cn('space-y-4')
-const headerClassName = cn('mb-2 flex items-center justify-between')
+const containerClassName = cn('space-y-4');
+const headerClassName = cn('mb-2 flex items-center justify-between');
 </script>
 
 <template>

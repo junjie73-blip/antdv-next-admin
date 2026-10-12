@@ -1,77 +1,66 @@
-# 文档站：构建 + 发布到 GitHub Pages。
-# 这里刻意不跑 lint / type-check / e2e —— 那些守的是应用代码（见 ci.yml）。
-# 文档唯一的闸门是 VitePress 自带的死链检查，构建红了就不发布。
+# 构建 VitePress 站点并将其部署到 GitHub Pages 的示例工作流程
 #
-# 前置条件（只做一次）：Settings → Pages → Build and deployment → Source = GitHub Actions。
-# 没设这一步，deploy job 会报 "Pages either do not exist or are disabled"。
-name: Docs
+name: Deploy VitePress site to Pages
 
 on:
+  # 在针对 `main` 分支的推送上运行。如果你
+  # 使用 `master` 分支作为默认分支，请将其更改为 `master`
   push:
     branches: [main]
-    paths:
-      - 'docs/**'
-      - '.github/workflows/docs.yml'
-      # 依赖树变了也要重建，否则 lockfile 与产物可能不同步
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-  pull_request:
-    paths:
-      - 'docs/**'
-      - '.github/workflows/docs.yml'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
+
+  # 允许你从 Actions 选项卡手动运行此工作流程
   workflow_dispatch:
 
-# 同一分支的下一次推送覆盖当前发布
-concurrency:
-  group: docs-${{ github.ref }}
-  cancel-in-progress: true
-
+# 设置 GITHUB_TOKEN 的权限，以允许部署到 GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# 只允许同时进行一次部署，跳过正在运行和最新队列之间的运行队列
+# 但是，不要取消正在进行的运行，因为我们希望允许这些生产部署完成
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
+  # 构建工作
   build:
-    name: 构建文档
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      # Pages 项目站挂在 /<仓库名>/ 下；绑自定义域名或用户站时把它改成 /
-      VITEPRESS_BASE: /${{ github.event.repository.name }}/
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v5
         with:
-          node-version-file: .node-version
-          cache: pnpm
-
-      # 只装 docs 和它的依赖：文档站不碰 echarts / tiptap / video.js 那些重依赖
-      - name: Install
-        run: pnpm install --frozen-lockfile --filter @antdv/docs...
-
-      - name: Build
-        run: pnpm --filter @antdv/docs build
-
-      - uses: actions/upload-pages-artifact@v3
+          fetch-depth: 0 # 如果未启用 lastUpdated，则不需要
+      # - uses: pnpm/action-setup@v4 # 如果使用 pnpm，请取消此区域注释
+      #   with:
+      #     version: 9
+      # - uses: oven-sh/setup-bun@v1 # 如果使用 Bun，请取消注释
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm # 或 pnpm / yarn
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      - name: Install dependencies
+        run: pnpm install # 或 pnpm install / yarn install / bun install
+      - name: Build with VitePress
+        run: pnpm docs:build # 或 pnpm docs:build / yarn docs:build / bun run docs:build
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
           path: docs/.vitepress/dist
 
+  # 部署工作
   deploy:
-    name: 发布到 Pages
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    # PR 只构建验证，不动线上站点
-    if: github.event_name != 'pull_request'
-    needs: build
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    name: Deploy
     steps:
-      - id: deployment
+      - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4

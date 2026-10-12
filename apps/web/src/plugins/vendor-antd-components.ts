@@ -103,7 +103,10 @@ const VENDOR_COMPONENTS: Record<string, Component> = {
  */
 const FormItemRest = defineComponent({
   name: 'AFormItemRest',
-  setup: (_props, { slots }) => () => slots.default?.(),
+  setup:
+    (_props, { slots }) =>
+    () =>
+      slots.default?.(),
 });
 
 export function registerVendorAntdComponents(app: App): void {

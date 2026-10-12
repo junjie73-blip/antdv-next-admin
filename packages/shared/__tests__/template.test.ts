@@ -4,8 +4,12 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { generateTemplate } from '../src/template';
 
-const writes = vi.hoisted(() => [] as { filename: string; workbook: unknown }[]);
-const sheets = vi.hoisted(() => [] as { rows: unknown[][]; sheetName: string }[]);
+const writes = vi.hoisted(
+  () => [] as { filename: string; workbook: unknown }[],
+);
+const sheets = vi.hoisted(
+  () => [] as { rows: unknown[][]; sheetName: string }[],
+);
 
 /**
  * xlsx 只做「组装 + 写盘」，真正要验证的是我们喂给它的数据结构，
@@ -59,10 +63,7 @@ describe('generateTemplate', () => {
   });
 
   it('列宽缺省为 18 字符', () => {
-    generateTemplate('C 表', [
-      { header: 'a', width: 8 },
-      { header: 'b' },
-    ]);
+    generateTemplate('C 表', [{ header: 'a', width: 8 }, { header: 'b' }]);
     const wb = writes.at(-1)!.workbook as {
       Sheets: Record<string, { '!cols'?: { wch: number }[] }>;
     };

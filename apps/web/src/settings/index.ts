@@ -66,7 +66,9 @@ export const DEFAULT_SETTING: AppSetting = APP_DEFAULTS;
  * 会因为类型不匹配而丢掉这个键，用户升级后布局凭空回到默认的"垂直"。
  * 迁移只发生在读取阶段，下一次落盘写的就是新值。
  */
-function migratePreferences(cached: Record<string, unknown>): Record<string, unknown> {
+function migratePreferences(
+  cached: Record<string, unknown>,
+): Record<string, unknown> {
   if (typeof cached.layout !== 'string') return cached;
   return { ...cached, layout: normalizeLayoutMode(cached.layout) };
 }

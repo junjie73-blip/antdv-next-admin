@@ -16,7 +16,7 @@ function fakeMediaQueryList(initial = false) {
     media: '(prefers-color-scheme: dark)',
     removeEventListener: (_type: string, callback: () => void) => {
       const index = listeners.indexOf(callback);
-      if (index >= 0) listeners.splice(index, 1);
+      if (index !== -1) listeners.splice(index, 1);
     },
     setMatches(next: boolean) {
       matches = next;

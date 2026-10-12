@@ -67,7 +67,10 @@ function onMove(event: {
 }
 
 /** 找不到节点时返回 -1，任何 affixCount>0 的比较都会把它判成「不允许」 */
-function indexOfChild(container: HTMLElement | null | undefined, node: HTMLElement | null | undefined): number {
+function indexOfChild(
+  container: HTMLElement | null | undefined,
+  node: HTMLElement | null | undefined,
+): number {
   if (!container || !node) return -1;
   return [...container.children].indexOf(node);
 }

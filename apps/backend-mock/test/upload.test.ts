@@ -45,7 +45,11 @@ describe('上传结果构造', () => {
 
   it('storedPath 带变体，便于面板与日志区分场景', () => {
     resetUploadSeq();
-    const result = buildUploadResult('avatar', '2026-10-09 10:00:00', 'fixed-id');
+    const result = buildUploadResult(
+      'avatar',
+      '2026-10-09 10:00:00',
+      'fixed-id',
+    );
     expect(result.storedPath).toBe('/uploads/avatar/fixed-id');
     expect(result.fileId).toBe('fixed-id');
   });
@@ -54,7 +58,9 @@ describe('上传结果构造', () => {
     const url = previewDataUrl('seed', '头像');
     expect(url).toContain('%E5%A4%B4%E5%83%8F');
     // `#` 在 data URL 里会被当成 fragment，必须被编码掉
-    expect(url.slice('data:image/svg+xml;charset=utf-8,'.length)).not.toContain('#');
+    expect(url.slice('data:image/svg+xml;charset=utf-8,'.length)).not.toContain(
+      '#',
+    );
   });
 
   it('标签里的 SVG/XML 特殊字符被剥离，不给出注入面', () => {

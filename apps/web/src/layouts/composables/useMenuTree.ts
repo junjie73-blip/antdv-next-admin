@@ -1,9 +1,27 @@
 import type { MenuTreeSource } from '@antdv/layouts';
 
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 import { createMenuTreeSource } from '@antdv/layouts';
+import { localizeMenus } from '~/locales/menu';
 import { useRouteStore } from '~/stores/modules/route';
+
+/**
+ * 当前语言下的菜单树。
+ *
+ * 要给用户看菜单标题的地方都从这里取（导航、面包屑、Ctrl+K 搜索面板），
+ * 翻译做在这一处就全都跟着语言走，不必每个组件各翻一遍。
+ */
+export function useLocalizedMenus() {
+  const routeStore = useRouteStore();
+  const { t, te } = useI18n({ useScope: 'global' });
+
+  return computed(() =>
+    localizeMenus(routeStore.menus, (key) => (te(key) ? t(key) : undefined)),
+  );
+}
 
 /**
  * 应用侧的菜单树状态源 —— 逻辑本体在 `@antdv/layouts` 里，这里只做依赖注入。
@@ -17,10 +35,10 @@ import { useRouteStore } from '~/stores/modules/route';
 export function useMenuTree(): MenuTreeSource {
   const route = useRoute();
   const router = useRouter();
-  const routeStore = useRouteStore();
+  const menus = useLocalizedMenus();
 
   return createMenuTreeSource({
-    menus: () => routeStore.menus,
+    menus: () => menus.value,
     route: () => ({ name: route.name, path: route.path }),
     router,
   });

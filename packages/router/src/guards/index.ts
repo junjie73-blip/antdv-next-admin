@@ -20,7 +20,10 @@ export interface RouterGuardConfig {
   /** 标题走 afterEach，放在最后 */
   title?: TitleGuardDependencies;
   /** 导航日志口子（应用自己决定用 console 还是上报） */
-  onNavigate?: (to: RouteLocationNormalized, from: RouteLocationNormalized) => void;
+  onNavigate?: (
+    to: RouteLocationNormalized,
+    from: RouteLocationNormalized,
+  ) => void;
   onError?: (error: Error) => void;
   errorHandler?: (error: Error) => void;
 }

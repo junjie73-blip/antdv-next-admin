@@ -24,18 +24,24 @@ export const useUserStore = defineStore('user', () => {
   );
 
   /**
-   * 异步初始化 Token（解密）
-   * 需要在应用启动后调用
+   * 把缓存里的凭证还原成可用的 token（解密）。
+   *
+   * `setToken` 落盘的是 JWE 密文，而 store 建好时的同步初始化只能直接读缓存，
+   * 于是刷新后 `token` 里躺着一串密文：`isLoggedIn` 看着是"已登录"，请求头却是
+   * `Bearer <JWE>` —— 后端认不出，等于每次刷新都掉一次登录态。
+   * 必须在挂载（也就是路由守卫第一次取菜单）之前 await 这一步。
+   *
+   * 解密失败（设备指纹变了、值被改过）就当作没登录，宁可回登录页也不要
+   * 带着一个永远 401 的凭证继续跑。
    */
   async function initToken() {
     const stored = cache.getItem(TOKEN_KEY) as null | string;
-    if (stored) {
-      try {
-        token.value = await decryptToken(stored);
-      } catch {
-        // 解密失败，可能不是加密格式，直接使用
-        token.value = stored;
-      }
+    if (!stored) return;
+    try {
+      token.value = await decryptToken(stored);
+    } catch {
+      // 不是加密格式（旧版本明文），按原样用
+      token.value = stored;
     }
   }
 
@@ -60,6 +66,27 @@ export const useUserStore = defineStore('user', () => {
     cache.setItem(USER_INFO_KEY, info);
   };
 
+  /**
+   * 会话态里"由当前账号推导出来"的三样东西。
+   *
+   * 换账号时必须整体作废，不能只清凭证：
+   *
+   * - 页面缓存里存的是上一个账号的组件实例（表单草稿、表格分页、图表数据都在里面），
+   *   不清掉就会出现"换个账号进来，页面还是上一个人的状态"。
+   * - 路由 store：`isLoaded` 仍是 true，守卫看到它就跳过 `loadRoutes()`，
+   *   于是菜单和 `allowedNames/allowedPaths` 还是上一个人的。菜单看着对、
+   *   权限判的却是别人的 —— 本应用是"菜单即权限"，带着别人的授权集接着跑
+   *   等于越权。`resetRoutes()` 把 `isLoaded` 打回 false，下次导航重新拉菜单。
+   * - 标签页 store：残留的 tab 指向新账号未必有权的页面，点进去就是空白或 403。
+   *
+   * `./route`、`./tabs` 都不引用 `./user`，所以顶层静态 import 不会成环。
+   */
+  const clearDerivedSession = () => {
+    resetPageCache();
+    useRouteStore().resetRoutes();
+    useTabsStore().reset();
+  };
+
   const login = async (username: string, password: string) => {
     try {
       const response = await http.Post<{
@@ -82,6 +109,15 @@ export const useUserStore = defineStore('user', () => {
 
       if (response.code === 200) {
         const { user } = response.data;
+        /**
+         * 先作废上一个账号的派生授权，再写入新会话。
+         *
+         * 登录页可以在"已经登录"的状态下被直接打开（手动改 hash、后退），
+         * 这时路由 store 里还挂着旧账号的 `allowedNames/allowedPaths` 与
+         * `isLoaded === true`；不重置的话守卫会跳过重新拉菜单，
+         * 新账号拿着一份别人的授权集 —— 权限更小时是 403 错乱，权限更大时是越权。
+         */
+        clearDerivedSession();
         const mockUserInfo: UserInfo = {
           id: typeof user.id === 'string' ? Number(user.id) : user.id,
           username: user.username,
@@ -89,8 +125,9 @@ export const useUserStore = defineStore('user', () => {
           avatar: user.avatar || '',
           email: user.email || '',
           phone: user.phone || '',
-          roles: user.roles ?? ['admin'],
-          permissions: user.permissions ?? ['*'],
+          // 后端没给就当没有：兜底成 admin / '*' 等于"接口一坏就升超管"
+          roles: user.roles ?? [],
+          permissions: user.permissions ?? [],
         };
 
         // 安全存储 Token（加密可能失败，需要降级处理）
@@ -128,25 +165,7 @@ export const useUserStore = defineStore('user', () => {
     userInfo.value = null;
     cache.removeItem(TOKEN_KEY);
     cache.removeItem(USER_INFO_KEY);
-    /**
-     * 页面缓存里存的是上一个账号的组件实例（表单草稿、表格分页、图表数据都在里面），
-     * 不清掉就会出现"换个账号进来，页面还是上一个人的状态"。
-     */
-    resetPageCache();
-    /**
-     * 会话态的另外两半也必须一起清，否则退出→登录（同一个页面会话，没有整页刷新）
-     * 会把上一个账号的"授权"和"打开的页面"带进来：
-     *
-     * - 路由 store：`isLoaded` 仍是 true，守卫看到它就跳过 `loadRoutes()`，
-     *   于是菜单和 `allowedNames/allowedPaths` 还是上一个人的。菜单看着对、
-     *   权限判的却是别人的，换个权限更小的账号进来会直接 403 错乱。
-     *   `resetRoutes()` 把 `isLoaded` 打回 false，下次导航自然重新拉菜单。
-     * - 标签页 store：残留的 tab 指向新账号未必有权的页面，点进去就是空白或 403。
-     *
-     * `./route`、`./tabs` 都不引用 `./user`，所以顶层静态 import 不会成环。
-     */
-    useRouteStore().resetRoutes();
-    useTabsStore().reset();
+    clearDerivedSession();
   };
 
   const hasPermission = (permission: string) => {

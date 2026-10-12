@@ -45,9 +45,9 @@ describe('useTabStyle —— 风格选项表', () => {
       'line',
       'plain',
     ]);
-    expect(TAB_STYLE_OPTIONS.find((item) => item.value === 'chrome')?.label).toBe(
-      '谷歌',
-    );
+    expect(
+      TAB_STYLE_OPTIONS.find((item) => item.value === 'chrome')?.label,
+    ).toBe('谷歌');
   });
 
   it.each(ALL_STYLES)('%s 输出的类名串合法（bar 允许为空串）', (style) => {

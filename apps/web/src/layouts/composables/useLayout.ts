@@ -1,4 +1,8 @@
-import type { BreadcrumbItem, LayoutRegionFlags, MenuTreeSource } from '@antdv/layouts';
+import type {
+  BreadcrumbItem,
+  LayoutRegionFlags,
+  MenuTreeSource,
+} from '@antdv/layouts';
 
 import type { ComputedRef } from 'vue';
 
@@ -80,7 +84,8 @@ export function useLayout() {
 
   const collapsed = computed({
     get: () => appStore.sidebarCollapsed,
-    set: (value: boolean) => appStore.updateSetting({ sidebarCollapsed: value }),
+    set: (value: boolean) =>
+      appStore.updateSetting({ sidebarCollapsed: value }),
   });
 
   const sidebarWidth = computed(() => appStore.sidebarWidth);

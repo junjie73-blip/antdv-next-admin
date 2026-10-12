@@ -75,7 +75,8 @@ export function createCache<T = unknown>(
   const resolvePrefix = (): string => options.prefix ?? getCachePrefix();
   const useEncrypt = (): boolean => encrypt && shouldEncrypt();
 
-  const buildKey = (key: string): string => buildStorageKey(key, resolvePrefix());
+  const buildKey = (key: string): string =>
+    buildStorageKey(key, resolvePrefix());
 
   /** 序列化：JSON → 可选 SM4 加密 */
   const serialize = (item: CacheItem<T>, prefix: string): string => {

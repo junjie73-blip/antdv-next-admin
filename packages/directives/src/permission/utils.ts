@@ -97,8 +97,7 @@ export function resolveAccess(
   }
 
   const { mode, permissions, roles } = extract(value, arg);
-  const effectiveMode: PermissionMode =
-    mode ?? (modifiers.all ? 'all' : 'any');
+  const effectiveMode: PermissionMode = mode ?? (modifiers.all ? 'all' : 'any');
 
   if (roles.length === 0 && permissions.length === 0) return true;
 

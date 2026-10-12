@@ -48,7 +48,15 @@ describe('isEnvEnabled', () => {
   });
 
   it('其余一律为假：未定义、空串、false、乱填都不能当成开启', () => {
-    for (const raw of [undefined, '', 'false', '0', 'no', 'null', 'undefined']) {
+    for (const raw of [
+      undefined,
+      '',
+      'false',
+      '0',
+      'no',
+      'null',
+      'undefined',
+    ]) {
       expect(isEnvEnabled(raw)).toBe(false);
     }
   });

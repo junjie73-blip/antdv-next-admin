@@ -28,7 +28,9 @@ export interface ApplicationOptions {
 }
 
 /** 分包策略：把体积大且低频变化的依赖切成独立 vendor chunk，命中长期缓存 */
-export function createApplicationBuildConfig(isProd: boolean): UserConfig['build'] {
+export function createApplicationBuildConfig(
+  isProd: boolean,
+): UserConfig['build'] {
   return {
     chunkSizeWarningLimit: 1000,
     rolldownOptions: {
@@ -88,9 +90,7 @@ export function defineApplicationConfig(options: ApplicationOptions = {}) {
         ...(options.appInfo === false
           ? {}
           : {
-              __APP_INFO__: JSON.stringify(
-                createAppInfo(root, new Date()),
-              ),
+              __APP_INFO__: JSON.stringify(createAppInfo(root, new Date())),
             }),
         ...options.define,
       },

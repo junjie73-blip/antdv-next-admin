@@ -56,7 +56,11 @@ describe('tabs store —— toggleAffix', () => {
 
     // 固定前缀不变量与 syncOrder 的校验口径一致
     expect(
-      store.syncOrder([tab('a'), tab('b'), HOME].map((item) => store.tabs.find((t) => t.key === item.key)!)),
+      store.syncOrder(
+        [tab('a'), tab('b'), HOME].map((item) =>
+          store.tabs.find((t) => t.key === item.key)!,
+        ),
+      ),
     ).toBe(false);
   });
 

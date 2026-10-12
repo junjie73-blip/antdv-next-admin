@@ -15,8 +15,10 @@ defineOptions({ name: 'WidgetButton' });
 const props = defineProps<{
   /** 弹层当前是否展开：用于给按钮一个"按下"的持久态 */
   active?: boolean;
-  /** 按钮名称（中文短语），同时作为 aria-label 与 tooltip */
+  /** 按钮名称，同时作为 aria-label 与 tooltip */
   label?: string;
+  /** 图标右侧的文字（语言切换这类需要常驻显示当前值的控件用） */
+  text?: string;
 }>();
 
 const appStore = useAppStore();
@@ -32,14 +34,14 @@ const buttonClass = computed(() =>
       ? 'text-slate-300 hover:bg-white/10 hover:text-white'
       : 'dark:hover:text-ant-primary hover:text-ant-primary text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800',
     // 展开态：与 hover 同源但常驻，让用户看得出"这个弹层是哪个按钮开的"
-    props.active && 'bg-slate-100 text-ant-primary dark:bg-slate-800',
+    props.active && 'text-ant-primary bg-slate-100 dark:bg-slate-800',
   ),
 );
 
 /** 图标容器：负责旋转 */
 const iconWrapperClass = computed(() =>
   cn(
-    'flex size-full  items-center justify-center',
+    'flex size-full items-center justify-center',
     'transform-gpu',
     'ease-spring-rotate transition-[rotate] duration-500',
     'group-hover:rotate-360',
@@ -58,6 +60,9 @@ const iconWrapperClass = computed(() =>
   >
     <span :class="iconWrapperClass">
       <slot></slot>
+    </span>
+    <span v-if="props.text" class="shrink-0 text-xs font-medium">
+      {{ props.text }}
     </span>
   </button>
 </template>

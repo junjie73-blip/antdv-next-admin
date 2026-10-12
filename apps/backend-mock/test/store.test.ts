@@ -130,7 +130,9 @@ describe('接口清单注册', () => {
   it('生成接口覆盖同名条目，保留原 duplicates', () => {
     registerManifest([manifestItem('[GET]/demo/a', 'demo')]);
     registerManifest([manifestItem('[GET]/demo/a', 'other')]);
-    registerGenerated([generatedItem('demo-a', '[GET]/demo/a', { 'x|1-3': 1 })]);
+    registerGenerated([
+      generatedItem('demo-a', '[GET]/demo/a', { 'x|1-3': 1 }),
+    ]);
     registerManifest([
       {
         ...manifestItem('[GET]/demo/a', 'demo'),

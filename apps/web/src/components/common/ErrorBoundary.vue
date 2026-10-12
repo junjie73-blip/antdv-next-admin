@@ -89,7 +89,7 @@ const retryButtonClassName = cn(
 
 const detailsClassName = cn(
   'mt-4 w-full max-w-lg p-3',
-  'rounded border border-red-200 bg-white dark:border-red-700 dark:bg-gray-800',
+  'rounded-sm border border-red-200 bg-white dark:border-red-700 dark:bg-gray-800',
   'text-xs text-gray-600 dark:text-gray-400',
 );
 

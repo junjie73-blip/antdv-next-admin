@@ -67,9 +67,6 @@ export function fakeRouter(): RecordedRouter {
  * `next` 传空函数：这两个守卫都是"返回值式"写法（不混用 next），
  * 断言返回值比断言 next 调用更能说明重定向目标。
  */
-export function runGuard(
-  guard: NavigationGuard,
-  to: RouteLocationNormalized,
-) {
+export function runGuard(guard: NavigationGuard, to: RouteLocationNormalized) {
   return guard(to, fakeTo({ path: '/from' }), () => {});
 }

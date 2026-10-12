@@ -1,25 +1,25 @@
 <script setup lang="tsx">
-import type { MicroAppItem } from '@antdv/types'
+import type { MicroAppItem } from '@antdv/types';
 
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue';
 
-import { cn } from '@antdv/shared/cn'
-import { buildIframeSandbox, canEscapeSandbox } from '@antdv/shared/iframe'
-import { getAllMicroApps, microAppConfig } from '~/config/micro-app'
+import { cn } from '@antdv/shared/cn';
+import { buildIframeSandbox, canEscapeSandbox } from '@antdv/shared/iframe';
+import { getAllMicroApps, microAppConfig } from '~/config/micro-app';
 
 // 状态
-const apps = ref<MicroAppItem[]>(getAllMicroApps())
-const isEnabled = computed(() => microAppConfig.enabled)
-const searchKeyword = ref('')
-const statusFilter = ref<string>('all')
-const activeAppKey = ref<string>('')
-const iframeLoaded = ref<Record<string, boolean>>({})
-const iframeLoading = ref<null | string>(null)
+const apps = ref<MicroAppItem[]>(getAllMicroApps());
+const isEnabled = computed(() => microAppConfig.enabled);
+const searchKeyword = ref('');
+const statusFilter = ref<string>('all');
+const activeAppKey = ref<string>('');
+const iframeLoaded = ref<Record<string, boolean>>({});
+const iframeLoading = ref<null | string>(null);
 
 // 当前选中的子应用
 const currentApp = computed(() => {
-  return apps.value.find((app) => app.name === activeAppKey.value) || null
-})
+  return apps.value.find((app) => app.name === activeAppKey.value) || null;
+});
 
 // 筛选后的列表
 const filteredApps = computed(() => {
@@ -28,19 +28,19 @@ const filteredApps = computed(() => {
       !searchKeyword.value ||
       app.title.includes(searchKeyword.value) ||
       app.name.includes(searchKeyword.value) ||
-      (app.owner && app.owner.includes(searchKeyword.value))
+      (app.owner && app.owner.includes(searchKeyword.value));
     const matchStatus =
       statusFilter.value === 'all' ||
-      (statusFilter.value === 'running' ? app.active : !app.active)
-    return matchKeyword && matchStatus
-  })
-})
+      (statusFilter.value === 'running' ? app.active : !app.active);
+    return matchKeyword && matchStatus;
+  });
+});
 
 // 样式类名
 const statCardClassName = cn(
   'rounded-lg border bg-white p-4 dark:bg-gray-800',
   'border-gray-200 transition-shadow hover:shadow-md dark:border-gray-700',
-)
+);
 
 function getStatusTagClass(active: boolean) {
   return cn(
@@ -48,65 +48,65 @@ function getStatusTagClass(active: boolean) {
     active
       ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
       : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
-  )
+  );
 }
 
 function getLoaderBadgeClass(loader?: string) {
   if (loader === 'iframe') {
     return cn(
-      'rounded px-2 py-0.5 text-xs',
+      'rounded-sm px-2 py-0.5 text-xs',
       'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-    )
+    );
   }
   return cn(
-    'rounded px-2 py-0.5 text-xs',
+    'rounded-sm px-2 py-0.5 text-xs',
     'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  )
+  );
 }
 
 // 操作函数
 function handleToggleStatus(app: MicroAppItem) {
-  app.active = !app.active
+  app.active = !app.active;
 }
 
 function handleSelectApp(app: MicroAppItem) {
-  activeAppKey.value = app.name
+  activeAppKey.value = app.name;
 }
 
 function handleIframeLoad(name: string) {
-  iframeLoaded.value[name] = true
-  iframeLoading.value = null
+  iframeLoaded.value[name] = true;
+  iframeLoading.value = null;
 }
 
 function handleIframeError(name: string) {
-  iframeLoaded.value[name] = false
-  iframeLoading.value = null
+  iframeLoaded.value[name] = false;
+  iframeLoading.value = null;
 }
 
 function _handleResetFilters() {
-  searchKeyword.value = ''
-  statusFilter.value = 'all'
+  searchKeyword.value = '';
+  statusFilter.value = 'all';
 }
 
 function handleRefreshIframe() {
-  if (!currentApp.value) return
-  iframeLoaded.value[currentApp.value.name] = false
+  if (!currentApp.value) return;
+  iframeLoaded.value[currentApp.value.name] = false;
   const iframeEl = document.querySelector(
     `iframe[data-app="${currentApp.value.name}"]`,
-  ) as HTMLIFrameElement
+  ) as HTMLIFrameElement;
   if (iframeEl) {
     // 强制刷新 iframe
-    const src = iframeEl.src
-    iframeEl.src = 'about:blank'
+    const src = iframeEl.src;
+    iframeEl.src = 'about:blank';
     setTimeout(() => {
-      iframeEl.src = src
-    }, 50)
+      iframeEl.src = src;
+    }, 50);
   }
 }
 
 // 获取子应用预览 URL
 function previewUrl(app: MicroAppItem): string {
-  return app.url ?? ''
+  return app.url ?? '';
 }
 
 /**
@@ -118,29 +118,29 @@ function previewUrl(app: MicroAppItem): string {
  * 打开后由 `previewEscapable` 在界面上标出来，让人看见这个决定。
  */
 function sandboxFor(app: MicroAppItem): string {
-  return buildIframeSandbox({ sameOrigin: app.sameOrigin })
+  return buildIframeSandbox({ sameOrigin: app.sameOrigin });
 }
 
 const previewSandbox = computed(() =>
   currentApp.value ? sandboxFor(currentApp.value) : '',
-)
-const previewEscapable = computed(() => canEscapeSandbox(previewSandbox.value))
+);
+const previewEscapable = computed(() => canEscapeSandbox(previewSandbox.value));
 
 /** 「同源预览」标签的提示文案 */
 const sandboxWarningTitle =
   '该子应用注册时打开了 sameOrigin：iframe 同时拥有 allow-scripts 与 allow-same-origin，' +
-  '其脚本可以顺着同源身份访问顶层文档。仅对同域部署、确需共享登录态的子应用开放。'
+  '其脚本可以顺着同源身份访问顶层文档。仅对同域部署、确需共享登录态的子应用开放。';
 
 // 初始选中第一个
 watch(
   () => filteredApps.value,
   (list) => {
     if (list.length > 0 && !activeAppKey.value) {
-      handleSelectApp(list[0])
+      handleSelectApp(list[0]);
     }
   },
   { immediate: true },
-)
+);
 </script>
 
 <template>
@@ -286,7 +286,9 @@ watch(
               v-if="filteredApps.length === 0"
               class="flex flex-col items-center justify-center py-8 text-gray-400"
             >
-              <span class="i-carbon-application mb-2 text-3xl opacity-30"></span>
+              <span
+                class="i-carbon-application mb-2 text-3xl opacity-30"
+              ></span>
               <p class="text-xs">无匹配的子应用</p>
             </div>
           </div>
@@ -359,10 +361,13 @@ watch(
             v-if="!isEnabled"
             class="flex h-full flex-col items-center justify-center gap-1 px-6 text-center text-gray-400"
           >
-            <span class="i-carbon-document-blurred mb-2 text-5xl opacity-20"></span>
+            <span
+              class="i-carbon-document-blurred mb-2 text-5xl opacity-20"
+            ></span>
             <p class="text-sm">预览未启用</p>
             <p class="mt-1 max-w-md text-xs opacity-70">
-              设置 VITE_MICRO_APP=true 并重启后，这里会按注册表里的 URL 加载子应用
+              设置 VITE_MICRO_APP=true 并重启后，这里会按注册表里的 URL
+              加载子应用
             </p>
           </div>
 
@@ -398,7 +403,9 @@ watch(
               v-if="!currentApp"
               class="flex h-full flex-col items-center justify-center text-gray-400"
             >
-              <span class="i-carbon-application mb-3 text-5xl opacity-20"></span>
+              <span
+                class="i-carbon-application mb-3 text-5xl opacity-20"
+              ></span>
               <p class="text-sm">选择左侧子应用开始预览</p>
               <p class="mt-1 text-xs opacity-60">支持 iframe 嵌套模式</p>
             </div>

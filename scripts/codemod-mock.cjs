@@ -1,4 +1,3 @@
- 
 // 一次性 codemod：mock/<模块>/index.ts（defineMock 键映射）→ mock/<模块>.fake.ts（插件原生 FakeRoute 数组）
 // 运行后自删，不入库。
 const fs = require('node:fs');
@@ -6,7 +5,7 @@ const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, 'mock');
 const OPEN = 'export default defineMock({';
-const KEY_RE = /^  '(\[(\w+)\])?(\/[^']*)'\s*(.*)$/;
+const KEY_RE = /^ {2}'(\[(\w+)\])?(\/[^']*)'\s*(.*)$/;
 const RUNTIME_NAMES = [
   'MOCK_METHODS',
   'defineGeneratedMock',
@@ -63,7 +62,7 @@ function splitChunks(name, lines) {
 
 function trimBlanks(lines) {
   const out = [...lines];
-  while (out.length && out[out.length - 1].trim() === '') out.pop();
+  while (out.length > 0 && out[out.length - 1].trim() === '') out.pop();
   return out;
 }
 
@@ -127,8 +126,8 @@ function transform(name, text) {
     );
 
   const lines = afterOpen.slice(0, end).split('\n');
-  while (lines.length && lines[0].trim() === '') lines.shift();
-  while (lines.length && lines[lines.length - 1].trim() === '') lines.pop();
+  while (lines.length > 0 && lines[0].trim() === '') lines.shift();
+  while (lines.length > 0 && lines[lines.length - 1].trim() === '') lines.pop();
 
   const chunks = splitChunks(name, lines);
   const routes = chunks.map((chunk) => renderRoute(name, chunk));
@@ -161,7 +160,7 @@ function transform(name, text) {
 
   const allImports = [
     ...imports,
-    usedTypes.length
+    usedTypes.length > 0
       ? `import type { ${usedTypes.sort().join(', ')} } from './_runtime'`
       : '',
     "import { defineFakeRoute } from 'vite-plugin-fake-server/client'",
@@ -236,7 +235,7 @@ function sortImports(lines) {
     const spec = specifier(unit);
     if (/^import type\b/.test(unit)) return 0;
     if (spec.startsWith('vite-plugin-fake-server')) return 1;
-    if (/^node:/.test(spec)) return 2;
+    if (spec.startsWith('node:')) return 2;
     if (spec.startsWith('./') || spec.startsWith('../')) return 4;
     return 3;
   };

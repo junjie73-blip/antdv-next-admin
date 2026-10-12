@@ -27,8 +27,7 @@ const WEB_UPLOAD_PAGE = path.join(
 );
 
 /** `src/api` 里的调用形态固定：`get<T>('/path'` / `put<T>(\`/path/${id}\`)` */
-const API_CALL =
-  /\b(get|post|put|del)(?:<[^>]*>)?\s*\(\s*(['`])([^'`\n]+)\2/g;
+const API_CALL = /\b(get|post|put|del)(?:<[^>]*>)?\s*\(\s*(['`])([^'`\n]+)\2/g;
 
 /** 文件约定路由的方法后缀与动态段：`[id].delete.ts` → `/:id` DELETE */
 const ROUTE_SUFFIX = /\.(get|post|put|delete|patch)\.ts$/;
@@ -47,7 +46,7 @@ function walk(dir: string, acc: string[] = []): string[] {
 function normalizeCall(raw: string): string {
   return `/${raw
     .replace(/^\/+/, '')
-    .replace(/\$\{[^}]*\}/g, ':x')
+    .replaceAll(/\$\{[^}]*\}/g, ':x')
     .replace(/\/+$/, '')}`;
 }
 
@@ -57,7 +56,10 @@ function collectCalls(): Array<{ method: string; path: string }> {
     (f) => f.endsWith('.ts') && !f.includes('__tests__'),
   )) {
     for (const match of fs.readFileSync(file, 'utf8').matchAll(API_CALL)) {
-      calls.push({ method: ALIAS[match[1]!] ?? match[1]!, path: normalizeCall(match[3]!) });
+      calls.push({
+        method: ALIAS[match[1]!] ?? match[1]!,
+        path: normalizeCall(match[3]!),
+      });
     }
   }
   // 页面模板里的上传地址：`action="/api/upload/xxx"`，前缀 `/api` 由代理剥掉
@@ -85,14 +87,19 @@ function collectRoutes(): Array<{ method: string; path: string }> {
     });
 }
 
-function matches(routes: Array<{ method: string; path: string }>, call: { method: string; path: string }) {
+function matches(
+  routes: Array<{ method: string; path: string }>,
+  call: { method: string; path: string },
+) {
   const segments = call.path.split('/').filter(Boolean);
   return routes.some((route) => {
     if (route.method !== call.method) return false;
     const own = route.path.split('/').filter(Boolean);
     if (own.length !== segments.length) return false;
     // 两侧的动态段都归一成 `:x`：`:x` 命中任意一段
-    return own.every((segment, index) => segment === ':x' || segment === segments[index]);
+    return own.every(
+      (segment, index) => segment === ':x' || segment === segments[index],
+    );
   });
 }
 
@@ -119,11 +126,19 @@ describe('前端调用与 mock 路由对账', () => {
    * 真正会咬人的是写漏的那一半。
    */
   it('对账结果可复现：同一路径不同方法不会互相顶掉', () => {
-    expect(matches(routes, { method: 'get', path: '/system/user/list' })).toBe(true);
-    expect(matches(routes, { method: 'delete', path: '/system/user/1' })).toBe(true);
-    expect(matches(routes, { method: 'get', path: '/system/user/1' })).toBe(true);
+    expect(matches(routes, { method: 'get', path: '/system/user/list' })).toBe(
+      true,
+    );
+    expect(matches(routes, { method: 'delete', path: '/system/user/1' })).toBe(
+      true,
+    );
+    expect(matches(routes, { method: 'get', path: '/system/user/1' })).toBe(
+      true,
+    );
     // 方法拼错 / 路径不存在都要判负
-    expect(matches(routes, { method: 'post', path: '/system/user/list' })).toBe(false);
+    expect(matches(routes, { method: 'post', path: '/system/user/list' })).toBe(
+      false,
+    );
     expect(matches(routes, { method: 'get', path: '/nope' })).toBe(false);
   });
 });
@@ -157,7 +172,7 @@ describe('列表接口的分页参数与前端发的名字一致', () => {
   it('每个分页 handler 都认 pageNum', () => {
     const offenders = paginated
       .filter((file) => !/query\.pageNum/.test(fs.readFileSync(file, 'utf8')))
-      .map((file) => path.relative(MOCK_API_DIR, file).replace(/\\/g, '/'));
+      .map((file) => path.relative(MOCK_API_DIR, file).replaceAll('\\', '/'));
 
     expect(
       offenders,

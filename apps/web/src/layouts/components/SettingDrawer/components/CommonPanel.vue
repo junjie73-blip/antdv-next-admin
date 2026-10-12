@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
 import { Input, Segmented, Select, Switch } from 'antdv-next';
 import { useAppStore } from '~/stores/modules/app';
 
@@ -15,6 +17,7 @@ import SettingItem from './SettingItem.vue';
 defineOptions({ name: 'CommonPanel' });
 
 const appStore = useAppStore();
+const { t } = useI18n({ useScope: 'global' });
 </script>
 
 <template>
@@ -22,8 +25,11 @@ const appStore = useAppStore();
     <!-- ============================================================ -->
     <!-- 时区                                                            -->
     <!-- ============================================================ -->
-    <SettingGroup title="时区" icon="carbon:time">
-      <SettingItem label="系统时区" desc="影响时间显示">
+    <SettingGroup :title="t('preferences.timezone')" icon="carbon:time">
+      <SettingItem
+        :label="t('preferences.systemTimezone')"
+        :desc="t('preferences.systemTimezoneDesc')"
+      >
         <Select
           :value="appStore.timezone"
           :options="TIMEZONE_OPTIONS"
@@ -38,8 +44,11 @@ const appStore = useAppStore();
     <!-- ============================================================ -->
     <!-- 水印                                                            -->
     <!-- ============================================================ -->
-    <SettingGroup title="水印" icon="carbon:stamp">
-      <SettingItem label="显示全局水印" desc="覆盖整个管理后台页面">
+    <SettingGroup :title="t('preferences.watermark')" icon="carbon:stamp">
+      <SettingItem
+        :label="t('preferences.showWatermark')"
+        :desc="t('preferences.showWatermarkDesc')"
+      >
         <Switch
           :checked="appStore.enableWatermark"
           size="small"
@@ -47,10 +56,13 @@ const appStore = useAppStore();
         />
       </SettingItem>
 
-      <SettingItem v-if="appStore.enableWatermark" label="水印内容">
+      <SettingItem
+        v-if="appStore.enableWatermark"
+        :label="t('preferences.watermarkContent')"
+      >
         <Input
           :value="appStore.watermarkContent"
-          placeholder="请输入"
+          :placeholder="t('preferences.pleaseInput')"
           size="small"
           class="!w-40"
           @update:value="
@@ -63,8 +75,14 @@ const appStore = useAppStore();
     <!-- ============================================================ -->
     <!-- 交互效果                                                        -->
     <!-- ============================================================ -->
-    <SettingGroup title="交互效果" icon="carbon:magic-wand">
-      <SettingItem label="水波纹效果" desc="按钮点击涟漪反馈">
+    <SettingGroup
+      :title="t('preferences.interaction')"
+      icon="carbon:magic-wand"
+    >
+      <SettingItem
+        :label="t('preferences.waterRipple')"
+        :desc="t('preferences.waterRippleDesc')"
+      >
         <Switch
           :checked="appStore.enableWaterRipple"
           size="small"
@@ -72,7 +90,10 @@ const appStore = useAppStore();
         />
       </SettingItem>
 
-      <SettingItem label="页面切换进度条" desc="顶部 NProgress 进度条">
+      <SettingItem
+        :label="t('preferences.progressBar')"
+        :desc="t('preferences.progressBarDesc')"
+      >
         <Switch
           :checked="appStore.showProgressBar"
           size="small"
@@ -80,7 +101,10 @@ const appStore = useAppStore();
         />
       </SettingItem>
 
-      <SettingItem label="页面切换 Loading" desc="路由跳转加载动画">
+      <SettingItem
+        :label="t('preferences.routeLoading')"
+        :desc="t('preferences.routeLoadingDesc')"
+      >
         <Switch
           :checked="appStore.showLoading"
           size="small"
@@ -92,8 +116,11 @@ const appStore = useAppStore();
     <!-- ============================================================ -->
     <!-- 页面切换动画                                                    -->
     <!-- ============================================================ -->
-    <SettingGroup title="页面切换动画" icon="carbon:flash">
-      <SettingItem label="动画类型" desc="基于 VueUse Motion 库实现">
+    <SettingGroup :title="t('preferences.transition')" icon="carbon:flash">
+      <SettingItem
+        :label="t('preferences.transitionType')"
+        :desc="t('preferences.transitionTypeDesc')"
+      >
         <Select
           :value="appStore.transitionEffect"
           :options="TRANSITION_OPTIONS"
@@ -111,8 +138,11 @@ const appStore = useAppStore();
     <!-- ============================================================ -->
     <!-- 消息通知                                                        -->
     <!-- ============================================================ -->
-    <SettingGroup title="消息通知" icon="carbon:notification">
-      <SettingItem label="通知位置" desc="全局消息弹出位置">
+    <SettingGroup :title="t('notice.title')" icon="carbon:notification">
+      <SettingItem
+        :label="t('preferences.notificationPosition')"
+        :desc="t('preferences.notificationPositionDesc')"
+      >
         <Segmented
           :value="appStore.notificationPosition"
           :options="NOTIFICATION_POSITION_OPTIONS"

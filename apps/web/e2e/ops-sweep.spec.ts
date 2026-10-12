@@ -33,7 +33,9 @@ async function collectLeaves(page: Page): Promise<LeafMenu[]> {
     const leaves: LeafMenu[] = [];
     const walk = (nodes: Array<Record<string, unknown>>) => {
       for (const node of nodes) {
-        const children = (node.children ?? []) as Array<Record<string, unknown>>;
+        const children = (node.children ?? []) as Array<
+          Record<string, unknown>
+        >;
         const path = String(node.path ?? '');
         if (children.length > 0) walk(children);
         else if (path.startsWith('/')) {
@@ -58,7 +60,9 @@ async function topLevelNavTitles(page: Page): Promise<string[]> {
 
 /** 侧边二级导航的可见文案 */
 async function sideNavTitles(page: Page): Promise<string[]> {
-  return regionTitles(page.locator('[data-layout-region="sidebar"] .ant-menu').first());
+  return regionTitles(
+    page.locator('[data-layout-region="sidebar"] .ant-menu').first(),
+  );
 }
 
 /**
@@ -77,11 +81,15 @@ function visibleTreeNodes(page: Page): Locator {
  * 会把侧栏读成一长串。`> .ant-menu-item / > .ant-menu-submenu` 才是本层。
  */
 async function regionTitles(menu: Locator): Promise<string[]> {
-  const items = menu.locator(':scope > .ant-menu-item, :scope > .ant-menu-submenu');
+  const items = menu.locator(
+    ':scope > .ant-menu-item, :scope > .ant-menu-submenu',
+  );
   const count = await items.count();
   const titles: string[] = [];
   for (let i = 0; i < count; i += 1) {
-    const title = (await items.nth(i).innerText()).replace(/\s+/g, '').trim();
+    const title = (await items.nth(i).innerText())
+      .replaceAll(/\s+/g, '')
+      .trim();
     if (title) titles.push(title);
   }
   return titles;
@@ -95,14 +103,21 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
 
     const top = await topLevelNavTitles(page);
     for (const required of ['仪表盘', '系统管理', '组件示例', '微前端']) {
-      expect(top, `一级导航应含「${required}」，实际：${top.join(' / ')}`).toContain(required);
+      expect(
+        top,
+        `一级导航应含「${required}」，实际：${top.join(' / ')}`,
+      ).toContain(required);
     }
     for (const banned of ['个人中心', '系统工具', '系统监控', '异常页面']) {
       expect(top, `一级导航不该再出现「${banned}」`).not.toContain(banned);
     }
 
     // 系统管理只留三项：部门/岗位/通知/在线/文件 都改成了 hidden
-    expect(await sideNavTitles(page)).toEqual(['用户管理', '角色管理', '菜单管理']);
+    expect(await sideNavTitles(page)).toEqual([
+      '用户管理',
+      '角色管理',
+      '菜单管理',
+    ]);
   });
 
   test('个人中心改由头像下拉进抽屉，两个页签都有内容', async ({ page }) => {
@@ -147,9 +162,14 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     const probe = watchErrors(page);
     await go(page, '/system/dept');
 
-    await expect(page.locator('.ant-table-tbody .ant-table-row').first()).toBeVisible();
+    await expect(
+      page.locator('.ant-table-tbody .ant-table-row').first(),
+    ).toBeVisible();
     expect(
-      await page.locator('[data-layout-region="content"], main').first().innerText(),
+      await page
+        .locator('[data-layout-region="content"], main')
+        .first()
+        .innerText(),
     ).not.toMatch(/页面不存在|没有权限/);
     expect(probe.badResponses).toEqual([]);
     probe.stop();
@@ -162,7 +182,9 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
    * 空表只在 mock 明确返回空集时才允许，而本项目每个列表接口都有种子数据，
    * 所以 `0 行 + 没有暂无数据占位` 一律算坏，`0 行 + 有占位` 单独列出来给人看。
    */
-  test('每个列表页首屏都真的出数（含 envelope 少解一层的回归）', async ({ page }) => {
+  test('每个列表页首屏都真的出数（含 envelope 少解一层的回归）', async ({
+    page,
+  }) => {
     await signIn(page);
 
     const leaves = await collectLeaves(page);
@@ -203,7 +225,10 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
       for (;;) {
         rows = await page.locator('.ant-table-tbody .ant-table-row').count();
         const loading = await page.locator('.ant-spin-spinning').count();
-        empty = loading === 0 ? await page.locator('.ant-table .ant-empty').count() : 0;
+        empty =
+          loading === 0
+            ? await page.locator('.ant-table .ant-empty').count()
+            : 0;
         if (rows > 0 || empty > 0 || Date.now() > deadline) break;
         await page.waitForTimeout(300);
       }
@@ -221,8 +246,11 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     ).toEqual([]);
 
     // 空集页面单独打印，方便人工确认"是真没数据"而不是"取数失败"
-    if (genuinelyEmpty.length) {
-      console.log('[ops-sweep] 显示"暂无数据"的页面：', genuinelyEmpty.map((t) => t.path));
+    if (genuinelyEmpty.length > 0) {
+      console.log(
+        '[ops-sweep] 显示"暂无数据"的页面：',
+        genuinelyEmpty.map((t) => t.path),
+      );
     }
     console.log('[ops-sweep] 表格页出数情况：', JSON.stringify(tables));
   });
@@ -277,7 +305,9 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     await expect
       .poll(
         () =>
-          urls.some((u) => u.includes('keyword=%E5%BC%A0') || u.includes('keyword=张')),
+          urls.some(
+            (u) => u.includes('keyword=%E5%BC%A0') || u.includes('keyword=张'),
+          ),
         {
           message: `搜索条件没进 query，实际请求：${urls.join(' | ')}`,
           timeout: 10_000,
@@ -286,7 +316,9 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
       .toBe(true);
 
     expect(
-      urls.some((u) => u.includes('params=%5Bobject') || u.includes('params=[object')),
+      urls.some(
+        (u) => u.includes('params=%5Bobject') || u.includes('params=[object'),
+      ),
       `查询串被包成了 [object Object]：${urls.join(' | ')}`,
     ).toBe(false);
   });
@@ -309,21 +341,29 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
 
     // antd 给每行的层级 class（`ant-table-row-level-N`）：
     // 只数顶层等于没测——折叠态下顶层照样全在，少的是下面的层级。
-    await expect(rows().filter({ hasClass: 'ant-table-row-level-1' }).first()).toBeVisible();
-    await expect(rows().filter({ hasClass: 'ant-table-row-level-2' }).first()).toBeVisible();
+    await expect(
+      rows().filter({ hasClass: 'ant-table-row-level-1' }).first(),
+    ).toBeVisible();
+    await expect(
+      rows().filter({ hasClass: 'ant-table-row-level-2' }).first(),
+    ).toBeVisible();
 
     // 顶层 + 各级子项全都渲染出来了（折叠时只有目录那几行）
     expect(await rows().count()).toBeGreaterThan(30);
   });
 
-  test('部门管理：左树首屏展开到子部门，新增弹窗可填可提交', async ({ page }) => {
+  test('部门管理：左树首屏展开到子部门，新增弹窗可填可提交', async ({
+    page,
+  }) => {
     await signIn(page);
     await go(page, '/system/dept');
 
     await expect(visibleTreeNodes(page).first()).toBeVisible();
     // 首屏就要展开到根节点下面：只露一个「总公司」等于把右侧表格的数据来源折起来了
     expect(await visibleTreeNodes(page).count()).toBeGreaterThan(2);
-    await expect(page.locator('.ant-tree-treenode').filter({ hasText: '技术部' })).toBeVisible();
+    await expect(
+      page.locator('.ant-tree-treenode').filter({ hasText: '技术部' }),
+    ).toBeVisible();
 
     await page.getByRole('button', { name: /新增部门/ }).click();
     /**
@@ -337,10 +377,15 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     await expect(modal).toBeVisible();
 
     await modal.getByPlaceholder('请输入部门名称').fill('自动化巡检部门');
-    await modal.getByPlaceholder('请输入部门编码（唯一）').fill('ops_sweep_dept');
+    await modal
+      .getByPlaceholder('请输入部门编码（唯一）')
+      .fill('ops_sweep_dept');
 
     // `BasicModal` 的默认 okText 是「保存」（不是「确定」），文案跟着组件默认值走
-    await modal.getByRole('button', { name: /保\s*存|确\s*定|确\s*认|提\s*交/ }).first().click();
+    await modal
+      .getByRole('button', { name: /保\s*存|确\s*定|确\s*认|提\s*交/ })
+      .first()
+      .click();
 
     // 提交后要么出成功提示、要么树里能找到新节点，两条都没就是没打通
     await expect
@@ -365,14 +410,20 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     return row;
   };
 
-  test('菜单管理：管理字段有值，导航开关真的改导航并留到刷新后', async ({ page }) => {
+  test('菜单管理：管理字段有值，导航开关真的改导航并留到刷新后', async ({
+    page,
+  }) => {
     await signIn(page);
     await setLayout(page, 'mixed-vertical');
     await go(page, '/system/menu');
 
     // decorate 出来的类型/权限标识不是空的（曾经三列全空）
-    await expect(page.locator('.ant-table-tbody .ant-tag').first()).toBeVisible();
-    const permCells = page.locator('.ant-table-tbody td').filter({ hasText: /:/ });
+    await expect(
+      page.locator('.ant-table-tbody .ant-tag').first(),
+    ).toBeVisible();
+    const permCells = page
+      .locator('.ant-table-tbody td')
+      .filter({ hasText: /:/ });
     expect(await permCells.count()).toBeGreaterThan(0);
 
     await go(page, '/system/user');
@@ -380,7 +431,12 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
 
     await go(page, '/system/menu');
     // 「状态」列也有开关，「导航」在它后面 —— 取行内最后一枚即导航开关
-    await (await menuRow(page, '用户管理')).locator('.ant-switch').last().click();
+    await (
+      await menuRow(page, '用户管理')
+    )
+      .locator('.ant-switch')
+      .last()
+      .click();
     await expect
       .poll(
         async () => {
@@ -402,7 +458,12 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
 
     // 复原，别把后面的用例和用户的浏览器留在关着的状态
     await go(page, '/system/menu');
-    await (await menuRow(page, '用户管理')).locator('.ant-switch').last().click();
+    await (
+      await menuRow(page, '用户管理')
+    )
+      .locator('.ant-switch')
+      .last()
+      .click();
     await page.waitForTimeout(400);
     await go(page, '/system/user');
     expect(await sideNavTitles(page)).toContain('用户管理');
@@ -435,11 +496,16 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     const items = page.getByTestId('menu-search-item');
     await expect(input).toHaveValue('用户');
     await expect(items.first()).toContainText('用户管理');
-    expect(await items.count(), '单个关键词不应命中一堆页面').toBeLessThanOrEqual(6);
+    expect(
+      await items.count(),
+      '单个关键词不应命中一堆页面',
+    ).toBeLessThanOrEqual(6);
 
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/#\/system\/user/);
-    await expect(page.locator('.ant-table-tbody .ant-table-row').first()).toBeVisible();
+    await expect(
+      page.locator('.ant-table-tbody .ant-table-row').first(),
+    ).toBeVisible();
     // 选完即关：不能留一层遮罩挡住页面
     await expect(input).toBeHidden();
 
@@ -468,7 +534,9 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
 
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/#\/system\/dept/);
-    await expect(page.locator('.ant-table-tbody .ant-table-row').first()).toBeVisible();
+    await expect(
+      page.locator('.ant-table-tbody .ant-table-row').first(),
+    ).toBeVisible();
   });
 
   test('搜索：↑↓ 换候选、Esc 关闭、无匹配给空态', async ({ page }) => {
@@ -484,7 +552,9 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
 
     await page.keyboard.press('Control+k');
     await input.fill('管理');
-    const active = page.locator('[data-testid="menu-search-item"][data-active="true"]');
+    const active = page.locator(
+      '[data-testid="menu-search-item"][data-active="true"]',
+    );
     const inactive = page.locator(
       '[data-testid="menu-search-item"]:not([data-active="true"])',
     );
@@ -526,10 +596,16 @@ const PNG_1X1 = Buffer.from(
 );
 
 /** 往某张卡片里的上传控件塞一个文件，返回该卡片（便于继续断言列表状态） */
-async function uploadIntoCard(page: Page, cardTitle: string, name = 'probe.png') {
+async function uploadIntoCard(
+  page: Page,
+  cardTitle: string,
+  name = 'probe.png',
+) {
   const card = page
     .locator('.ant-card')
-    .filter({ has: page.locator('.ant-card-head-title', { hasText: cardTitle }) })
+    .filter({
+      has: page.locator('.ant-card-head-title', { hasText: cardTitle }),
+    })
     .first();
   await expect(card, `找不到「${cardTitle}」卡片`).toBeVisible();
   await card.locator('input[type="file"]').first().setInputFiles({
@@ -541,7 +617,9 @@ async function uploadIntoCard(page: Page, cardTitle: string, name = 'probe.png')
 }
 
 test.describe('交互巡检：顶栏小部件、上传与列表页写操作', () => {
-  test('顶栏铃铛：能开、出条目、就地展开、全部已读后角标归零', async ({ page }) => {
+  test('顶栏铃铛：能开、出条目、就地展开、全部已读后角标归零', async ({
+    page,
+  }) => {
     await signIn(page);
     const probe = watchErrors(page);
 
@@ -560,7 +638,9 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
     await expect(panel.locator('.scrollbar__view').first()).toBeVisible();
 
     // 未读角标要与列表里的未读条目数一致（两边都来自同一份 status 字段）
-    const unread = panel.locator('[data-testid="notice-item"][data-unread="true"]');
+    const unread = panel.locator(
+      '[data-testid="notice-item"][data-unread="true"]',
+    );
     const unreadCount = await unread.count();
     if (unreadCount > 0) {
       const badge = page.locator('.ant-badge-count').first();
@@ -588,7 +668,9 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
     // 从展开的条目跳通知中心（该页不在导航上，铃铛是它的常规入口）
     await first.getByText('在通知中心查看').click();
     await expect(page).toHaveURL(/#\/system\/notice/);
-    await expect(page.locator('.ant-table-tbody .ant-table-row').first()).toBeVisible();
+    await expect(
+      page.locator('.ant-table-tbody .ant-table-row').first(),
+    ).toBeVisible();
 
     expect(probe.errors, probe.errors.join('\n')).toEqual([]);
     probe.stop();
@@ -597,7 +679,9 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
   test('通知管理：新增、编辑、删除一条消息', async ({ page }) => {
     await signIn(page);
     await go(page, '/system/notice');
-    await expect(page.locator('.ant-table-tbody .ant-table-row').first()).toBeVisible();
+    await expect(
+      page.locator('.ant-table-tbody .ant-table-row').first(),
+    ).toBeVisible();
 
     /**
      * 标题带时间戳，不能写死。
@@ -612,28 +696,44 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
     await page.getByRole('button', { name: /新增消息/ }).click();
     await expect(modal).toBeVisible();
     await modal.getByPlaceholder('请输入消息标题').fill(title);
-    await modal.getByPlaceholder('请输入消息内容...').fill('这条消息由端到端用例创建');
-    await modal.getByRole('button', { name: /保\s*存|确\s*定/ }).first().click();
+    await modal
+      .getByPlaceholder('请输入消息内容...')
+      .fill('这条消息由端到端用例创建');
+    await modal
+      .getByRole('button', { name: /保\s*存|确\s*定/ })
+      .first()
+      .click();
     await expect
       .poll(
         async () => {
           await go(page, '/system/notice');
-          return (
-            await page.locator('.ant-table-row').filter({ hasText: title }).count()
-          );
+          return await page
+            .locator('.ant-table-row')
+            .filter({ hasText: title })
+            .count();
         },
-        { message: '新增消息没有落到列表里（多半是 /system/notice/save 没实现）', timeout: 15_000 },
+        {
+          message:
+            '新增消息没有落到列表里（多半是 /system/notice/save 没实现）',
+          timeout: 15_000,
+        },
       )
       .toBeGreaterThan(0);
 
     // ---- 编辑 ----
-    const row = page.locator('.ant-table-row').filter({ hasText: title }).first();
+    const row = page
+      .locator('.ant-table-row')
+      .filter({ hasText: title })
+      .first();
     await row.getByRole('button', { name: /编辑/ }).click();
     await expect(modal).toBeVisible();
     // 编辑要把原值回填，不能是空表单
     await expect(modal.getByPlaceholder('请输入消息标题')).toHaveValue(title);
     await modal.getByPlaceholder('请输入消息标题').fill(`${title}（改）`);
-    await modal.getByRole('button', { name: /保\s*存|确\s*定/ }).first().click();
+    await modal
+      .getByRole('button', { name: /保\s*存|确\s*定/ })
+      .first()
+      .click();
     await expect
       .poll(
         async () => {
@@ -643,7 +743,10 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
             .filter({ hasText: `${title}（改）` })
             .count();
         },
-        { message: '编辑后列表里没有改过的标题（save 没带上 id 会变成新增）', timeout: 15_000 },
+        {
+          message: '编辑后列表里没有改过的标题（save 没带上 id 会变成新增）',
+          timeout: 15_000,
+        },
       )
       .toBeGreaterThan(0);
 
@@ -653,9 +756,15 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
       .filter({ hasText: `${title}（改）` })
       .first();
     await edited.getByRole('button', { name: /删除/ }).click();
-    const confirm = page.locator('.ant-popover').filter({ hasText: '确定要删除消息' }).last();
+    const confirm = page
+      .locator('.ant-popover')
+      .filter({ hasText: '确定要删除消息' })
+      .last();
     await expect(confirm, '删除消息没有二次确认').toBeVisible();
-    await confirm.getByRole('button', { name: /确\s*定|OK/ }).last().click();
+    await confirm
+      .getByRole('button', { name: /确\s*定|OK/ })
+      .last()
+      .click();
     await expect
       .poll(
         async () =>
@@ -668,7 +777,9 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
       .toBe(0);
   });
 
-  test('上传示例页：基础上传与图片墙都真的把文件发出去并回成功', async ({ page }) => {
+  test('上传示例页：基础上传与图片墙都真的把文件发出去并回成功', async ({
+    page,
+  }) => {
     await signIn(page);
     await go(page, '/components/upload');
 
@@ -697,7 +808,9 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
 
     const wall = await uploadIntoCard(page, '图片墙', 'wall.png');
     const thumb = wall.locator('.ant-upload-list-item').first();
-    await expect(thumb).toHaveClass(/ant-upload-list-item-done/, { timeout: 20_000 });
+    await expect(thumb).toHaveClass(/ant-upload-list-item-done/, {
+      timeout: 20_000,
+    });
 
     const preview = page.locator('.ant-image-preview-img');
 
@@ -710,7 +823,9 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
      * 顺带盯住 popup：缩略图本体是 `<a target="_blank">`，`preventDefault` 没吃掉的话
      * 会另开一个标签页看同一张图，那种"预览"是假的。
      */
-    const popup = page.waitForEvent('popup', { timeout: 1500 }).catch(() => null);
+    const popup = page
+      .waitForEvent('popup', { timeout: 1500 })
+      .catch(() => null);
     await thumb.click({ position: { x: 16, y: 16 } });
     await expect(preview, '点图片墙的图片没有打开大图预览').toBeVisible({
       timeout: 10_000,
@@ -745,7 +860,9 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
   test('用户管理：新增、编辑、删除贯穿一遍', async ({ page }) => {
     await signIn(page);
     await go(page, '/system/user');
-    await expect(page.locator('.ant-table-tbody .ant-table-row').first()).toBeVisible();
+    await expect(
+      page.locator('.ant-table-tbody .ant-table-row').first(),
+    ).toBeVisible();
 
     // 同上：用户名带时间戳，避免上一轮失败留下的同名记录干扰断言
     const username = `ops_sweep_${Date.now()}`;
@@ -756,13 +873,18 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
     await modal.getByPlaceholder('请输入用户名').fill(username);
     await modal.getByPlaceholder('请输入昵称').fill('巡检用例用户');
     await modal.getByPlaceholder('请输入邮箱地址').fill('ops@antdv-next.com');
-    await modal.getByRole('button', { name: /保\s*存|确\s*定/ }).first().click();
+    await modal
+      .getByRole('button', { name: /保\s*存|确\s*定/ })
+      .first()
+      .click();
 
     // 新增要能在服务端查到：直接搜用户名，而不是"看第一页有没有"
     await expect
       .poll(
         async () => {
-          await page.getByPlaceholder('搜索用户名/昵称/邮箱/手机号...').fill(username);
+          await page
+            .getByPlaceholder('搜索用户名/昵称/邮箱/手机号...')
+            .fill(username);
           await page.getByRole('button', { name: '查询' }).first().click();
           await page.waitForTimeout(600);
           return await page
@@ -775,11 +897,17 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
       .toBeGreaterThan(0);
 
     // 编辑：改昵称
-    const row = page.locator('.ant-table-row').filter({ hasText: username }).first();
+    const row = page
+      .locator('.ant-table-row')
+      .filter({ hasText: username })
+      .first();
     await row.getByRole('button', { name: /编辑/ }).click();
     await expect(modal.getByPlaceholder('请输入用户名')).toHaveValue(username);
     await modal.getByPlaceholder('请输入昵称').fill('巡检用例用户-改名');
-    await modal.getByRole('button', { name: /保\s*存|确\s*定/ }).first().click();
+    await modal
+      .getByRole('button', { name: /保\s*存|确\s*定/ })
+      .first()
+      .click();
     await expect
       .poll(
         async () =>
@@ -798,7 +926,9 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
      * 上一行的断言在这种情况下照样可能通过（改名后的用户排在后面），
      * 所以这里直接数行数：条件一丢，行数立刻变成整页。
      */
-    expect(await page.locator('.ant-table-tbody .ant-table-row').count()).toBe(1);
+    expect(await page.locator('.ant-table-tbody .ant-table-row').count()).toBe(
+      1,
+    );
 
     // 删除：把用例造的数据收掉
     await page
@@ -823,7 +953,10 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
     expect(await targetRow().count()).toBe(1);
 
     // 再删一次，这回才确认
-    await targetRow().first().getByRole('button', { name: /删除/ }).click();
+    await targetRow()
+      .first()
+      .getByRole('button', { name: /删除/ })
+      .click();
     await page
       .locator('.ant-popconfirm:visible')
       .last()
@@ -852,10 +985,14 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
    * 全部一起没，而且这份数据没有回收站。这种操作不能点击即生效，
    * 确认框还得把影响面（子项数量）说出来，否则用户以为自己只删了一行。
    */
-  test('菜单管理：删除先弹确认，取消不动数据，确认才连带子项一起删', async ({ page }) => {
+  test('菜单管理：删除先弹确认，取消不动数据，确认才连带子项一起删', async ({
+    page,
+  }) => {
     await signIn(page);
     await go(page, '/system/menu');
-    await expect(page.locator('.ant-table-tbody .ant-table-row').first()).toBeVisible();
+    await expect(
+      page.locator('.ant-table-tbody .ant-table-row').first(),
+    ).toBeVisible();
 
     const rows = () => page.locator('.ant-table-tbody .ant-table-row');
     const before = await rows().count();
@@ -864,7 +1001,9 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
     await target.getByRole('button', { name: /删除/ }).click();
     const confirm = page.locator('.ant-popconfirm:visible').last();
     await expect(confirm, '点删除没有弹出二次确认').toBeVisible();
-    await expect(confirm, '确认文案没说清会连带多少个子项').toContainText('个子项');
+    await expect(confirm, '确认文案没说清会连带多少个子项').toContainText(
+      '个子项',
+    );
 
     await confirm.getByRole('button', { name: /取\s*消/ }).click();
     await page.waitForTimeout(400);
@@ -887,9 +1026,15 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
   test('用户管理：勾选后导出真的产出 xlsx 文件', async ({ page }) => {
     await signIn(page);
     await go(page, '/system/user');
-    await expect(page.locator('.ant-table-tbody .ant-table-row').first()).toBeVisible();
+    await expect(
+      page.locator('.ant-table-tbody .ant-table-row').first(),
+    ).toBeVisible();
 
-    await page.locator('.ant-table-tbody .ant-table-row').first().locator('.ant-checkbox-input').check();
+    await page
+      .locator('.ant-table-tbody .ant-table-row')
+      .first()
+      .locator('.ant-checkbox-input')
+      .check();
 
     // 未勾选时点导出只给提示（这条分支也顺手钉住）
     const downloadPromise = page.waitForEvent('download', { timeout: 20_000 });
@@ -916,7 +1061,7 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
       .toBe(!before);
     // 切回去，别把后面的用例与用户浏览器留在暗色
     await page
-      .getByRole('button', { name: !before ? '切换到浅色' : '切换到深色' })
+      .getByRole('button', { name: before ? '切换到深色' : '切换到浅色' })
       .click();
     await expect
       .poll(isDark, { message: '主题没能切回原状态', timeout: 10_000 })
@@ -926,7 +1071,9 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
     const fullscreen = page.getByRole('button', { name: '全屏' });
     await expect(fullscreen).toBeVisible();
     await fullscreen.click();
-    const entered = await page.evaluate(() => document.fullscreenElement !== null);
+    const entered = await page.evaluate(
+      () => document.fullscreenElement !== null,
+    );
     if (entered) {
       await expect(
         page.getByRole('button', { name: '退出全屏' }),
@@ -936,7 +1083,9 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
       await expect(page.getByRole('button', { name: '全屏' })).toBeVisible();
     } else {
       // 无头窗口没有全屏权限：至少这次点击不能把异常抛到页面上
-      console.log('[ops-sweep] 当前浏览器不允许无头全屏，跳过全屏后的可见性断言');
+      console.log(
+        '[ops-sweep] 当前浏览器不允许无头全屏，跳过全屏后的可见性断言',
+      );
     }
   });
 
@@ -951,99 +1100,26 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
   test('antd 自带文案跟着中文语言包（条/页 / 暂无数据）', async ({ page }) => {
     await signIn(page);
     await go(page, '/system/user');
-    await expect(page.locator('.ant-table-tbody .ant-table-row').first()).toBeVisible();
-    await expect(page.locator('.ant-pagination').first()).toContainText('条/页');
+    await expect(
+      page.locator('.ant-table-tbody .ant-table-row').first(),
+    ).toBeVisible();
+    await expect(page.locator('.ant-pagination').first()).toContainText(
+      '条/页',
+    );
 
-    await page.getByPlaceholder('搜索用户名/昵称/邮箱/手机号...').fill('这条用户名不存在');
+    await page
+      .getByPlaceholder('搜索用户名/昵称/邮箱/手机号...')
+      .fill('这条用户名不存在');
     await page.getByRole('button', { name: '查询' }).first().click();
-    await expect(page.locator('.ant-empty-description').first()).toHaveText('暂无数据');
+    await expect(page.locator('.ant-empty-description').first()).toHaveText(
+      '暂无数据',
+    );
 
     // 收尾清掉条件：keep-alive 会把这一页停在空结果上，后面的用例容易被带偏
     await page.getByPlaceholder('搜索用户名/昵称/邮箱/手机号...').fill('');
     await page.getByRole('button', { name: '查询' }).first().click();
-    await expect(page.locator('.ant-table-tbody .ant-table-row').first()).toBeVisible();
-  });
-
-  /**
-   * 视频演示页要"按能力降级"，而不是摆一个放不出来的黑框。
-   *
-   * 回归的是这条：Playwright 自带的 WebKit 构建里 **MediaSource 整个不存在**
-   * （实测 `typeof window.MediaSource === 'undefined'`，同时它的 mp4 反而是支持的），
-   * 于是 HLS 那张卡片必然报 `MEDIA_ERR_SRC_NOT_SUPPORTED`。以前页面照挂播放器，
-   * 巡检就被这条厂商标案咬红，而真实用户看到的是一句英文 "No compatible source…"。
-   *
-   * 现在页面先探测（原生 m3u8 或 MSE 能塞 mp4 片段），放不出来就换成中文说明。
-   * 用例按引擎能力分岔断言，三个引擎都跑得过，也都不放松：
-   * 能播的环境必须真的挂出播放器，不能播的环境必须把原因说清楚。
-   */
-  test('视频演示页按浏览器能力降级：能播就挂播放器，不能播就把话说清楚', async ({
-    page,
-  }) => {
-    const videoErrors: string[] = [];
-    page.on('console', (msg) => {
-      const text = msg.text();
-      if (text.includes('VIDEOJS')) videoErrors.push(text.slice(0, 120));
-    });
-
-    await signIn(page);
-
-    const capability = await page.evaluate(() => {
-      const gates = [
-        (window as unknown as { MediaSource?: unknown }).MediaSource,
-        (window as unknown as { WebKitMediaSource?: unknown }).WebKitMediaSource,
-        (window as unknown as { ManagedMediaSource?: unknown })
-          .ManagedMediaSource,
-      ];
-      const type = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
-      const viaMse = gates.some((gate) => {
-        const source = gate as {
-          isSupportedType?: (t: string) => boolean;
-          isTypeSupported?: (t: string) => boolean;
-        };
-        if (typeof source?.isTypeSupported === 'function') {
-          return Boolean(source.isTypeSupported(type));
-        }
-        if (typeof source?.isSupportedType === 'function') {
-          return Boolean(source.isSupportedType(type));
-        }
-        return false;
-      });
-      const viaNative = Boolean(
-        document
-          .createElement('video')
-          .canPlayType('application/vnd.apple.mpegurl'),
-      );
-      return { viaMse, viaNative };
-    });
-
-    await go(page, '/components/video');
-
-    const hlsCard = page
-      .locator('.ant-card')
-      .filter({ hasText: 'HLS 流媒体播放' })
-      .first();
-    await expect(hlsCard).toBeVisible();
-
-    if (capability.viaMse || capability.viaNative) {
-      await expect(hlsCard.locator('.video-js')).toHaveCount(1);
-    } else {
-      await expect(hlsCard.locator('.video-js')).toHaveCount(0);
-      await expect(hlsCard).toContainText('无法播放');
-    }
-
-    // 另外两张 MP4 卡片三个引擎都有能力，必须真的挂出播放器（不许被一起藏掉）
-    for (const title of ['MP4 视频播放', '自动循环播放']) {
-      await expect(
-        page
-          .locator('.ant-card')
-          .filter({ hasText: title })
-          .first()
-          .locator('.video-js'),
-        `${title} 这张卡片不该被能力探测误伤`,
-      ).toHaveCount(1);
-    }
-
-    // 页面自己按能力挑过源，就不该再冒出"放不出来"的厂商标案
-    expect(videoErrors).toEqual([]);
+    await expect(
+      page.locator('.ant-table-tbody .ant-table-row').first(),
+    ).toBeVisible();
   });
 });

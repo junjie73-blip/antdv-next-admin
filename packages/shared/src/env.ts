@@ -29,7 +29,9 @@ const state: SharedEnv = {
   production: false,
 };
 
-export function configureSharedEnv(next: Partial<SharedEnv>): Readonly<SharedEnv> {
+export function configureSharedEnv(
+  next: Partial<SharedEnv>,
+): Readonly<SharedEnv> {
   if (next.cachePrefix !== undefined) state.cachePrefix = next.cachePrefix;
   if (next.cacheEncryptKey !== undefined) {
     state.cacheEncryptKey = next.cacheEncryptKey;
@@ -88,4 +90,3 @@ export function isEnvEnabled(value: unknown): boolean {
   if (typeof value !== 'string') return false;
   return ['1', 'on', 'true', 'yes'].includes(value.trim().toLowerCase());
 }
-

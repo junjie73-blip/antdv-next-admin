@@ -14,7 +14,7 @@ const alertCardClassName = cn(
   'flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-all duration-200 hover:shadow-sm',
 );
 const iconWrapClassName = cn(
-  'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+  'mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg',
 );
 
 const alerts = ref<AlertItem[]>([]);

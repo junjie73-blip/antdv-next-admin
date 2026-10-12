@@ -33,15 +33,18 @@ export function useLoginStyles() {
   );
 
   const blob1ClassName = computed(() =>
-    cn(blobClassName.value, '-top-24 -left-24 h-[380px] w-[380px] bg-ant-primary/20'),
+    cn(blobClassName.value, 'bg-ant-primary/20 -top-24 -left-24 size-[380px] '),
   );
 
   const blob2ClassName = computed(() =>
-    cn(blobClassName.value, 'top-1/2 -left-16 h-[300px] w-[300px] bg-ant-primary/12'),
+    cn(blobClassName.value, 'bg-ant-primary/12 top-1/2 -left-16 size-[300px] '),
   );
 
   const blob3ClassName = computed(() =>
-    cn(blobClassName.value, '-bottom-24 left-1/3 h-[320px] w-[320px] bg-ant-primary/8'),
+    cn(
+      blobClassName.value,
+      'bg-ant-primary/8 -bottom-24 left-1/3 size-[320px] ',
+    ),
   );
 
   const gridClassName = computed(() =>
@@ -67,8 +70,8 @@ export function useLoginStyles() {
 
   const brandLogoIconClassName = computed(() =>
     cn(
-      'flex h-10 w-10 items-center justify-center rounded-xl',
-      'bg-ant-primary text-white shadow-lg shadow-ant-primary/30',
+      'flex size-10 items-center justify-center rounded-xl',
+      'bg-ant-primary shadow-ant-primary/30 text-white shadow-lg',
     ),
   );
 
@@ -78,19 +81,21 @@ export function useLoginStyles() {
 
   const brandTitleClassName = computed(() =>
     cn(
-      'mb-5 text-3xl leading-tight font-bold text-slate-900',
+      'mb-5 text-3xl/tight font-bold text-slate-900',
       'xl:text-4xl dark:text-white',
     ),
   );
 
   const brandDescClassName = computed(() =>
-    cn('mb-10 max-w-md text-[15px] leading-relaxed text-slate-500 dark:text-slate-400'),
+    cn(
+      'mb-10 max-w-md text-[15px] leading-relaxed text-slate-500 dark:text-slate-400',
+    ),
   );
 
   const featureIconClassName = computed(() =>
     cn(
-      'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg',
-      'bg-ant-primary/10 text-ant-primary ring-1 ring-ant-primary/20',
+      'flex size-10 shrink-0 items-center justify-center rounded-lg',
+      'bg-ant-primary/10 ring-ant-primary/20 text-ant-primary ring-1',
       'transition-transform duration-200 group-hover:scale-110',
     ),
   );
@@ -138,8 +143,8 @@ export function useLoginStyles() {
 
   const segActiveClassName = computed(() =>
     cn(
-      'bg-white text-ant-primary shadow-sm',
-      'dark:bg-slate-700 dark:text-ant-primary',
+      'text-ant-primary bg-white shadow-sm',
+      'dark:text-ant-primary dark:bg-slate-700',
     ),
   );
 
@@ -159,7 +164,7 @@ export function useLoginStyles() {
   );
 
   const submitButtonClassName = computed(() =>
-    cn('!h-11 !rounded-lg !font-medium'),
+    cn('h-11! rounded-lg! font-medium!'),
   );
 
   const hintClassName = computed(() =>

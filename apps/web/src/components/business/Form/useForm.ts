@@ -71,7 +71,10 @@ export function useForm(props?: Partial<FormProps>): UseFormReturnType {
         return;
       }
       // 多次调用要累加而不是覆盖：后面的字段赢，符合"逐次灌值"的直觉
-      pendingValues = { ...pendingValues, ...(values as Record<string, unknown>) };
+      pendingValues = {
+        ...pendingValues,
+        ...(values as Record<string, unknown>),
+      };
     },
 
     resetFields: async () => {

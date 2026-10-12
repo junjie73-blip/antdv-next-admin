@@ -1,13 +1,13 @@
 <script setup lang="tsx">
-import type { TreeData } from 'antdv-next/es/tree'
-import type { FormSchema } from '~/components/business/Form'
-import type { BasicColumn } from '~/components/business/Table'
+import type { TreeData } from 'antdv-next/es/tree';
+import type { FormSchema } from '~/components/business/Form';
+import type { BasicColumn } from '~/components/business/Table';
 
-import { computed, ref, useTemplateRef } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue';
 
-import { cn } from '@antdv/shared/cn'
-import { Icon } from '@iconify/vue'
-import { Modal as AntModal } from 'antdv-next'
+import { cn } from '@antdv/shared/cn';
+import { Icon } from '@iconify/vue';
+import { Modal as AntModal } from 'antdv-next';
 import {
   createFolder,
   deleteFile,
@@ -15,51 +15,51 @@ import {
   getFileTree,
   renameFile,
   uploadFile,
-} from '~/api/system'
-import { BasicForm, useForm } from '~/components/business/Form'
-import { BasicModal, useModal } from '~/components/business/Modal'
-import { BasicTable, useTable } from '~/components/business/Table'
+} from '~/api/system';
+import { BasicForm, useForm } from '~/components/business/Form';
+import { BasicModal, useModal } from '~/components/business/Modal';
+import { BasicTable, useTable } from '~/components/business/Table';
 
-defineOptions({ name: 'SystemFile' })
+defineOptions({ name: 'SystemFile' });
 
 interface FileRecord {
-  id: number
-  name: string
-  type: string
-  extension: string
-  size: number
-  sizeDisplay: string
-  mimeType: string
-  path: string
-  parentId: null | number
-  uploader: string
-  uploaderId: number
-  createdAt: string
-  updatedAt: string
-  isFolder: boolean
+  id: number;
+  name: string;
+  type: string;
+  extension: string;
+  size: number;
+  sizeDisplay: string;
+  mimeType: string;
+  path: string;
+  parentId: null | number;
+  uploader: string;
+  uploaderId: number;
+  createdAt: string;
+  updatedAt: string;
+  isFolder: boolean;
 }
 
 // ========== 样式类名 ==========
-const containerClassName = cn('flex gap-4')
-const leftPanelClassName = cn('w-[240px] shrink-0')
-const rightPanelClassName = cn('min-w-0 flex-1')
-const cardClassName = cn('shadow-sm')
-const treeCardClassName = cn('h-full shadow-sm')
+const containerClassName = cn('flex gap-4');
+const leftPanelClassName = cn('w-[240px] shrink-0');
+const rightPanelClassName = cn('min-w-0 flex-1');
+const cardClassName = cn('shadow-sm');
+const treeCardClassName = cn('h-full shadow-sm');
 const breadcrumbClassName = cn(
   'mb-4 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400',
-)
+);
 const actionClassName = cn(
   'flex',
   'items-center',
   'justify-center',
   'whitespace-nowrap',
-)
-const btnClassName = cn('px-0.5!')
-const dividerClassName = cn('mx-0')
+);
+const btnClassName = cn('px-0.5!');
+const dividerClassName = cn('mx-0');
 
 // ========== 文件类型图标映射 ==========
 function getFileIcon(record: FileRecord): string {
-  if (record.isFolder) return 'carbon:folder'
+  if (record.isFolder) return 'carbon:folder';
 
   const iconMap: Record<string, string> = {
     image: 'carbon:image',
@@ -67,12 +67,12 @@ function getFileIcon(record: FileRecord): string {
     video: 'carbon:video',
     audio: 'carbon:waveform',
     archive: 'carbon:archive',
-  }
-  return iconMap[record.type] || 'carbon:document'
+  };
+  return iconMap[record.type] || 'carbon:document';
 }
 
 function getFileColor(record: FileRecord): string {
-  if (record.isFolder) return '#faad14'
+  if (record.isFolder) return '#faad14';
 
   const colorMap: Record<string, string> = {
     image: '#1677ff',
@@ -80,8 +80,8 @@ function getFileColor(record: FileRecord): string {
     video: '#eb2f96',
     audio: '#722ed1',
     archive: '#8c8c8c',
-  }
-  return colorMap[record.type] || '#8c8c8c'
+  };
+  return colorMap[record.type] || '#8c8c8c';
 }
 
 // ========== 文件类型筛选选项 ==========
@@ -93,34 +93,34 @@ const fileTypeOptions = [
   { label: '视频', value: 'video' },
   { label: '音频', value: 'audio' },
   { label: '压缩包', value: 'archive' },
-]
+];
 
 // ========== 状态管理 ==========
-const currentParentId = ref<null | number>(null)
-const currentPath = ref<TreeData[]>([{ title: '根目录', key: '__root__' }])
-const isEditing = ref(false)
-const currentRecord = ref<FileRecord | null>(null)
-const selectedRowKeys = ref<(number | string)[]>([])
-const selectedRows = ref<FileRecord[]>([])
-const fileTreeData = ref<any[]>([])
+const currentParentId = ref<null | number>(null);
+const currentPath = ref<TreeData[]>([{ title: '根目录', key: '__root__' }]);
+const isEditing = ref(false);
+const currentRecord = ref<FileRecord | null>(null);
+const selectedRowKeys = ref<(number | string)[]>([]);
+const selectedRows = ref<FileRecord[]>([]);
+const fileTreeData = ref<any[]>([]);
 
-const tableRef = useTemplateRef<InstanceType<typeof BasicTable>>('tableRef')
-const [modalRegister, modalMethods] = useModal()
-const [uploadModalRegister, uploadModalMethods] = useModal()
-const [tableRegister, tableMethods] = useTable()
-const [formRegister, formMethods] = useForm()
+const tableRef = useTemplateRef<InstanceType<typeof BasicTable>>('tableRef');
+const [modalRegister, modalMethods] = useModal();
+const [uploadModalRegister, uploadModalMethods] = useModal();
+const [tableRegister, tableMethods] = useTable();
+const [formRegister, formMethods] = useForm();
 
 // 加载文件树
 async function loadFileTree() {
   try {
-    const res = await getFileTree()
-    fileTreeData.value = res.data || []
+    const res = await getFileTree();
+    fileTreeData.value = res.data || [];
   } catch (error) {
-    console.error('获取文件树失败', error)
+    console.error('获取文件树失败', error);
   }
 }
 
-loadFileTree()
+loadFileTree();
 
 // ========== 搜索表单配置 ==========
 const searchFormSchemas: FormSchema[] = [
@@ -145,7 +145,7 @@ const searchFormSchemas: FormSchema[] = [
       allowClear: true,
     },
   },
-]
+];
 
 // ========== 弹窗表单配置 ==========
 const folderFormSchemas: FormSchema[] = [
@@ -156,7 +156,7 @@ const folderFormSchemas: FormSchema[] = [
     required: true,
     componentProps: { placeholder: '请输入文件夹名称' },
   },
-]
+];
 
 const renameFormSchemas: FormSchema[] = [
   {
@@ -167,86 +167,86 @@ const renameFormSchemas: FormSchema[] = [
     colProps: { span: 24 },
     componentProps: { placeholder: '请输入新的文件/文件夹名称' },
   },
-]
+];
 
 // ========== API 适配层 ==========
 async function mockApi(params: Record<string, any>) {
-  const res = await getFileList({ ...params, parentId: currentParentId.value })
+  const res = await getFileList({ ...params, parentId: currentParentId.value });
   // 兼容 mock 直接返回完整响应或已解包的数据
-  const data = res?.data ?? res
-  return { items: data?.list || [], total: data?.total || 0 }
+  const data = res?.data ?? res;
+  return { items: data?.list || [], total: data?.total || 0 };
 }
 
 // ========== 导航方法 ==========
 function handleNavigateToFolder(node: any) {
-  currentParentId.value = node.key === '__root__' ? null : node.key
+  currentParentId.value = node.key === '__root__' ? null : node.key;
 
   // 更新面包屑路径
   if (node.key === '__root__') {
-    currentPath.value = [{ title: '根目录', key: '__root__' }]
+    currentPath.value = [{ title: '根目录', key: '__root__' }];
   } else {
-    const pathIndex = currentPath.value.findIndex((p) => p.key === node.key)
+    const pathIndex = currentPath.value.findIndex((p) => p.key === node.key);
     if (pathIndex === -1) {
-      currentPath.value.push(node)
+      currentPath.value.push(node);
     } else {
-      currentPath.value = currentPath.value.slice(0, pathIndex + 1)
+      currentPath.value = currentPath.value.slice(0, pathIndex + 1);
     }
   }
 
-  tableMethods.value?.reload()
+  tableMethods.value?.reload();
 }
 
 // ========== CRUD 操作 ==========
 function handleCreateFolder() {
-  isEditing.value = false
-  currentRecord.value = null
-  formMethods.setFieldsValue({ name: '' })
-  formMethods.clearValidate()
-  modalMethods.openModal()
+  isEditing.value = false;
+  currentRecord.value = null;
+  formMethods.setFieldsValue({ name: '' });
+  formMethods.clearValidate();
+  modalMethods.openModal();
 }
 
 function handleRename(record: FileRecord) {
-  isEditing.value = true
-  currentRecord.value = record
-  formMethods.setFieldsValue({ name: record.name })
-  formMethods.clearValidate()
-  modalMethods.openModal()
+  isEditing.value = true;
+  currentRecord.value = record;
+  formMethods.setFieldsValue({ name: record.name });
+  formMethods.clearValidate();
+  modalMethods.openModal();
 }
 
 async function handleSaveFolderOrRename() {
-  const values = await formMethods.validate()
-  if (!values) return
+  const values = await formMethods.validate();
+  if (!values) return;
 
   if (!values.name) {
-    message.warning('请填写名称')
-    return
+    message.warning('请填写名称');
+    return;
   }
 
   try {
     if (isEditing.value && currentRecord.value) {
       // 重命名操作
-      await renameFile(currentRecord.value.id, values)
-      message.success(`已重命名为：${values.name}`)
+      await renameFile(currentRecord.value.id, values);
+      message.success(`已重命名为：${values.name}`);
     } else {
       // 新建文件夹
-      await createFolder(values, currentParentId.value ?? undefined)
-      message.success(`已创建文件夹：${values.name}`)
+      await createFolder(values, currentParentId.value ?? undefined);
+      message.success(`已创建文件夹：${values.name}`);
     }
 
-    modalMethods.closeModal()
-    tableMethods.value?.reload()
-    loadFileTree()
+    modalMethods.closeModal();
+    tableMethods.value?.reload();
+    loadFileTree();
   } catch (error: any) {
-    message.error(error?.message || '操作失败')
+    message.error(error?.message || '操作失败');
   }
 }
 
 function handleUpload() {
-  uploadModalMethods.openModal()
+  uploadModalMethods.openModal();
 }
 
 async function handleSimulateUpload(fileList?: any[]) {
-  const filesToUpload = fileList || []
+  const filesToUpload = fileList || [];
   if (filesToUpload.length === 0) {
     // 模拟上传一个随机文件
     try {
@@ -258,18 +258,18 @@ async function handleSimulateUpload(fileList?: any[]) {
         mimeType: 'text/plain',
         path: '/',
         parentId: currentParentId.value,
-      })
-      message.success('文件上传成功（模拟）')
-      uploadModalMethods.closeModal()
-      tableMethods.value?.reload()
-      loadFileTree()
+      });
+      message.success('文件上传成功（模拟）');
+      uploadModalMethods.closeModal();
+      tableMethods.value?.reload();
+      loadFileTree();
     } catch (error: any) {
-      message.error(error?.message || '上传失败')
+      message.error(error?.message || '上传失败');
     }
-    return
+    return;
   }
 
-  let successCount = 0
+  let successCount = 0;
   for (const file of filesToUpload) {
     try {
       await uploadFile({
@@ -280,34 +280,34 @@ async function handleSimulateUpload(fileList?: any[]) {
         mimeType: file.type || 'application/octet-stream',
         path: '/',
         parentId: currentParentId.value,
-      })
-      successCount++
+      });
+      successCount++;
     } catch {
       // 继续处理其他文件
     }
   }
 
-  message.success(`成功上传 ${successCount}/${filesToUpload.length} 个文件`)
-  uploadModalMethods.closeModal()
-  tableMethods.value?.reload()
-  loadFileTree()
+  message.success(`成功上传 ${successCount}/${filesToUpload.length} 个文件`);
+  uploadModalMethods.closeModal();
+  tableMethods.value?.reload();
+  loadFileTree();
 }
 
 async function handleDelete(record: any | FileRecord) {
   try {
-    await deleteFile(record.id)
-    message.success(`已删除：${record.name}`)
-    tableMethods.value?.reload()
-    loadFileTree()
+    await deleteFile(record.id);
+    message.success(`已删除：${record.name}`);
+    tableMethods.value?.reload();
+    loadFileTree();
   } catch (error: any) {
-    message.error(error?.message || '删除失败')
+    message.error(error?.message || '删除失败');
   }
 }
 
 function handleBatchDelete() {
   if (selectedRows.value.length === 0) {
-    message.warning('请先选择要删除的文件')
-    return
+    message.warning('请先选择要删除的文件');
+    return;
   }
 
   AntModal.confirm({
@@ -317,50 +317,50 @@ function handleBatchDelete() {
     cancelText: '取消',
     okType: 'danger',
     async onOk() {
-      let successCount = 0
+      let successCount = 0;
       for (const row of selectedRows.value) {
         try {
-          await deleteFile(row.id)
-          successCount++
+          await deleteFile(row.id);
+          successCount++;
         } catch {
           // 继续处理其他文件
         }
       }
       message.success(
         `成功删除 ${successCount}/${selectedRows.value.length} 个项目`,
-      )
-      tableMethods.value?.reload()
-      loadFileTree()
+      );
+      tableMethods.value?.reload();
+      loadFileTree();
     },
-  })
+  });
 }
 
 function handleDownload(record: FileRecord) {
   // Mock 环境下模拟下载
-  message.info(`开始下载：${record.name}`)
+  message.info(`开始下载：${record.name}`);
 }
 
 // ========== 表格事件回调 ==========
 function handleSelectionChange(keys: (number | string)[], rows: FileRecord[]) {
-  selectedRowKeys.value = keys
-  selectedRows.value = rows
+  selectedRowKeys.value = keys;
+  selectedRows.value = rows;
 }
 
 // ========== 计算属性 ==========
 const currentStats = computed(() => {
-  const rows = (tableMethods.value?.getDataSource?.() || []) as FileRecord[]
-  const folders = rows.filter((r) => r.isFolder).length
-  const files = rows.length - folders
+  const rows = (tableMethods.value?.getDataSource?.() || []) as FileRecord[];
+  const folders = rows.filter((r) => r.isFolder).length;
+  const files = rows.length - folders;
   const totalSize = rows
     .filter((r) => !r.isFolder)
-    .reduce((sum, r) => sum + r.size, 0)
+    .reduce((sum, r) => sum + r.size, 0);
 
   function formatSize(bytes: number): string {
-    if (bytes === 0) return '0 B'
-    const units = ['B', 'KB', 'MB', 'GB']
-    const k = 1024
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return `${(bytes / k ** i).toFixed(1)} ${units[i]}`
+    if (bytes === 0) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    const k = 1024;
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${(bytes / k ** i).toFixed(1)} ${units[i]}`;
   }
 
   return {
@@ -368,8 +368,8 @@ const currentStats = computed(() => {
     files,
     totalSize: formatSize(totalSize),
     totalCount: rows.length,
-  }
-})
+  };
+});
 
 // ========== 表格列配置 ==========
 const columns: BasicColumn[] = [
@@ -397,7 +397,7 @@ const columns: BasicColumn[] = [
     width: 100,
     align: 'center',
   },
-]
+];
 </script>
 
 <template>

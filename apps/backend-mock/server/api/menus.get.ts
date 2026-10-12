@@ -1,5 +1,6 @@
 import type { BackendMenu } from '@antdv/types';
 
+import { pickMenus, resolveAccount } from '../utils/accounts';
 import { success } from '../utils/response';
 import { defineMockRoute } from '../utils/runtime';
 
@@ -162,250 +163,187 @@ const list: BackendMenu[] = [
     icon: 'carbon:game-console',
     path: '',
     children: [
-      {
-        menuName: '分页表格',
-        name: 'DemoTablePagination',
-        icon: 'carbon:table',
-        path: '/demo/table-pagination-test',
-      },
-      // 组件画廊：views/components 下那 26 个示例页。
+      // 层级规则：**只有「表单」「表格」用三级**，其余一律二级叶子。
       //
-      // 它们一直存在，却被文件约定路由的 exclude 整片扫掉了
-      // （旧规则 `**` 斜杠开头的 components 通配，`**/` 能匹配零层目录），
-      // 于是路由表里根本没有这些路径，点进去全是兜底 /error/404 —— 白写的示例页。
-      // 现在排除条件收紧成"components 前面至少还有一段目录"，页面才成为真实路由；
-      // 这里再补上菜单记录，它们才同时具备：可点达、标签页标题、以及"菜单即权限"的放行。
+      // 原来这里套了「组件画廊 → 分类 → 页面」，侧栏要点开两层才看到内容，
+      // 手风琴一次只允许展开一个分类，"看看都有什么"只能一个个点。
+      // 分类信息没有丢：`views/components/overview` 的卡片墙读的就是这棵树的叶子。
       //
-      // 层级只套两组（组件画廊 → 分类 → 叶子会被侧栏手风琴压住），
-      // 这里用「画廊 → 分类 → 页面」三级，antd Menu 原生支持嵌套子菜单。
+      // 这一节只放**本项目自己写的组件**（`src/components/business|common`、`@antdv/ui`、
+      // `@antdv/directives`）。原来混在里面的纯 antd 展示页（通用 / 卡片列表 / 详情页 /
+      // 数据展示 / 反馈与交互 / 树形控件 / 视频播放 / VueUse / 二维码 / 密码强度）已经删掉 ——
+      // 示例页是给别人直接抄的模板，抄 antd 官方文档就够了，抄本仓库的包装器才有增量价值。
+      // 「分页表格」同样删掉：那是排障时临时建的测试页，不是一个组件。
+      //
+      // 表格组只留表格本身的事（基础 / 拖拽排序 / 树形 / 动效）；数字滚动、图片裁剪、
+      // 相对时间原先挂在表格下面，现在各自升成二级 —— 它们演示的是 CountTo、裁剪器、
+      // RelativeTime，跟表格没关系。Markdown 与富文本合并成「编辑器」一页（同一个包装器
+      // 的两种模式），抽屉内滚动/弹窗内滚动并进「弹窗与抽屉」。
       {
-        menuName: '组件画廊',
-        name: 'DemoGallery',
+        menuName: '示例总览',
+        name: 'DemoComponentsOverview',
         icon: 'carbon:catalog',
+        path: '/components/overview',
+      },
+      {
+        menuName: '表格',
+        name: 'DemoGalleryTable',
+        icon: 'carbon:table',
         path: '',
         children: [
           {
-            menuName: '示例总览',
-            name: 'DemoComponentsOverview',
-            icon: 'carbon:catalog',
-            path: '/components/overview',
+            menuName: '基础表格',
+            name: 'DemoTableBasic',
+            icon: 'carbon:table-built',
+            path: '/components/table/basic',
           },
           {
-            menuName: '基础组件',
-            name: 'DemoGalleryBasic',
-            icon: 'carbon:application',
-            path: '',
-            children: [
-              {
-                menuName: '通用',
-                name: 'DemoComponentsBasic',
-                icon: 'carbon:color-palette',
-                path: '/components/basic',
-              },
-              {
-                menuName: '卡片列表',
-                name: 'DemoCardList',
-                icon: 'carbon:show-data-cards',
-                path: '/components/card-list',
-              },
-              {
-                menuName: '详情页',
-                name: 'DemoDetail',
-                icon: 'carbon:information',
-                path: '/components/detail',
-              },
-              {
-                menuName: '加载状态',
-                name: 'DemoLoading',
-                icon: 'carbon:pending',
-                path: '/components/loading',
-              },
-              {
-                menuName: '图标选择器',
-                name: 'DemoIconPicker',
-                icon: 'carbon:run-view-icon',
-                path: '/components/icon-picker',
-              },
-              {
-                menuName: '二维码',
-                name: 'DemoQrcode',
-                icon: 'carbon:qr-code',
-                path: '/components/qrcode',
-              },
-              {
-                menuName: '密码强度',
-                name: 'DemoPassword',
-                icon: 'carbon:password',
-                path: '/components/password',
-              },
-              {
-                menuName: '滚动区域',
-                name: 'DemoScrollBasic',
-                icon: 'carbon:page-scroll',
-                path: '/components/scroll/basic',
-              },
-              {
-                menuName: '抽屉内滚动',
-                name: 'DemoScrollDrawer',
-                icon: 'carbon:side-panel-open',
-                path: '/components/scroll/drawer',
-              },
-              {
-                menuName: '弹窗内滚动',
-                name: 'DemoScrollModal',
-                icon: 'carbon:fit-to-height',
-                path: '/components/scroll/modal',
-              },
-            ],
+            menuName: '增删改查',
+            name: 'DemoTableCrud',
+            icon: 'carbon:task',
+            path: '/components/table/crud',
           },
           {
-            menuName: '表单',
-            name: 'DemoGalleryForm',
-            icon: 'carbon:checkbox-checked',
-            path: '',
-            children: [
-              {
-                menuName: '基础表单',
-                name: 'DemoFormBasic',
-                icon: 'carbon:align-box-bottom-left',
-                path: '/components/form/basic',
-              },
-              {
-                menuName: '自定义组件',
-                name: 'DemoFormCustom',
-                icon: 'carbon:apps',
-                path: '/components/form/custom-component',
-              },
-              {
-                menuName: '表单校验',
-                name: 'DemoFormValidation',
-                icon: 'carbon:checkmark-outline',
-                path: '/components/form/validation',
-              },
-              {
-                menuName: '表单设计器',
-                name: 'DemoFormDesigner',
-                icon: 'carbon:flow',
-                path: '/components/form-designer',
-              },
-            ],
+            menuName: '拖拽排序',
+            name: 'DemoTableDragSort',
+            icon: 'carbon:move',
+            path: '/components/table/drag-sort',
           },
           {
-            menuName: '表格',
-            name: 'DemoGalleryTable',
-            icon: 'carbon:table',
-            path: '',
-            children: [
-              {
-                menuName: '基础表格',
-                name: 'DemoTableBasic',
-                icon: 'carbon:table-built',
-                path: '/components/table/basic',
-              },
-              {
-                menuName: '表格动效',
-                name: 'DemoTableAnimation',
-                icon: 'carbon:flash',
-                path: '/components/table/animation',
-              },
-              {
-                menuName: '数字滚动',
-                name: 'DemoTableCountTo',
-                icon: 'carbon:list-numbered',
-                path: '/components/table/count-to',
-              },
-              {
-                menuName: '图片裁剪',
-                name: 'DemoTableImageCrop',
-                icon: 'carbon:crop',
-                path: '/components/table/image-crop',
-              },
-              {
-                menuName: '相对时间',
-                name: 'DemoTableRelativeTime',
-                icon: 'carbon:time',
-                path: '/components/table/relative-time',
-              },
-              {
-                menuName: '树形表格',
-                name: 'DemoTableTree',
-                icon: 'carbon:tree',
-                path: '/components/table/tree-table',
-              },
-            ],
+            menuName: '树形表格',
+            name: 'DemoTableTree',
+            icon: 'carbon:tree',
+            path: '/components/table/tree-table',
           },
           {
-            menuName: '树与媒体',
-            name: 'DemoGalleryMisc',
-            icon: 'carbon:layers',
-            path: '',
-            children: [
-              {
-                menuName: '树形控件',
-                name: 'DemoTree',
-                icon: 'carbon:tree',
-                path: '/components/tree',
-              },
-              {
-                menuName: '文件上传',
-                name: 'DemoUpload',
-                icon: 'carbon:upload',
-                path: '/components/upload',
-              },
-              {
-                menuName: '视频播放',
-                name: 'DemoVideo',
-                icon: 'carbon:video',
-                path: '/components/video',
-              },
-              {
-                menuName: 'Markdown 编辑器',
-                name: 'DemoEditorMarkdown',
-                icon: 'carbon:edit',
-                path: '/components/editor/markdown',
-              },
-              {
-                menuName: '富文本编辑器',
-                name: 'DemoEditorRichText',
-                icon: 'carbon:script',
-                path: '/components/editor/rich-text',
-              },
-              {
-                menuName: 'VueUse 示例',
-                name: 'DemoVueUse',
-                icon: 'carbon:tools',
-                path: '/components/vueuse',
-              },
-            ],
-          },
-          // 反馈、数据展示、指令：按 vben 的示例分类补的三页，只用本项目已有的依赖。
-          {
-            menuName: '反馈与工具',
-            name: 'DemoGalleryFeedback',
-            icon: 'carbon:notification',
-            path: '',
-            children: [
-              {
-                menuName: '反馈与交互',
-                name: 'DemoComponentsFeedback',
-                icon: 'carbon:notification-new',
-                path: '/components/feedback',
-              },
-              {
-                menuName: '数据展示',
-                name: 'DemoComponentsDataDisplay',
-                icon: 'carbon:data-2',
-                path: '/components/data-display',
-              },
-              {
-                menuName: '自定义指令',
-                name: 'DemoComponentsDirective',
-                icon: 'carbon:terminal',
-                path: '/components/directive',
-              },
-            ],
+            menuName: '表格动效',
+            name: 'DemoTableAnimation',
+            icon: 'carbon:flash',
+            path: '/components/table/animation',
           },
         ],
+      },
+      {
+        menuName: '表单',
+        name: 'DemoGalleryForm',
+        icon: 'carbon:checkbox-checked',
+        path: '',
+        children: [
+          {
+            menuName: '基础表单',
+            name: 'DemoFormBasic',
+            icon: 'carbon:align-box-bottom-left',
+            path: '/components/form/basic',
+          },
+          {
+            menuName: '分步表单',
+            name: 'DemoFormSteps',
+            icon: 'carbon:layers',
+            path: '/components/form/steps',
+          },
+          {
+            menuName: '表单校验',
+            name: 'DemoFormValidation',
+            icon: 'carbon:checkmark-outline',
+            path: '/components/form/validation',
+          },
+          {
+            menuName: '自定义组件',
+            name: 'DemoFormCustom',
+            icon: 'carbon:apps',
+            path: '/components/form/custom-component',
+          },
+          {
+            menuName: '表单设计器',
+            name: 'DemoFormDesigner',
+            icon: 'carbon:flow',
+            path: '/components/form-designer',
+          },
+        ],
+      },
+      {
+        menuName: '弹窗与抽屉',
+        name: 'DemoModalDrawer',
+        icon: 'carbon:side-panel-open',
+        path: '/components/modal-drawer',
+      },
+      {
+        menuName: '描述列表',
+        name: 'DemoDescription',
+        icon: 'carbon:category',
+        path: '/components/description',
+      },
+      {
+        menuName: '数字滚动',
+        name: 'DemoTableCountTo',
+        icon: 'carbon:list-numbered',
+        path: '/components/count-to',
+      },
+      {
+        menuName: '相对时间',
+        name: 'DemoTableRelativeTime',
+        icon: 'carbon:time',
+        path: '/components/relative-time',
+      },
+      {
+        menuName: '图片裁剪',
+        name: 'DemoTableImageCrop',
+        icon: 'carbon:crop',
+        path: '/components/image-crop',
+      },
+      {
+        menuName: '编辑器',
+        name: 'DemoEditor',
+        icon: 'carbon:edit',
+        path: '/components/editor',
+      },
+      {
+        menuName: '文件上传',
+        name: 'DemoUpload',
+        icon: 'carbon:upload',
+        path: '/components/upload',
+      },
+      {
+        menuName: 'Cron 表达式',
+        name: 'DemoCron',
+        icon: 'carbon:task-settings',
+        path: '/components/cron',
+      },
+      {
+        menuName: '图表',
+        name: 'DemoChart',
+        icon: 'carbon:data-vis-4',
+        path: '/components/chart',
+      },
+      {
+        menuName: '加载与骨架',
+        name: 'DemoLoading',
+        icon: 'carbon:pending',
+        path: '/components/loading',
+      },
+      {
+        menuName: '图标选择器',
+        name: 'DemoIconPicker',
+        icon: 'carbon:run-view-icon',
+        path: '/components/icon-picker',
+      },
+      {
+        menuName: '滚动区域',
+        name: 'DemoScrollBasic',
+        icon: 'carbon:page-scroll',
+        path: '/components/scroll/basic',
+      },
+      {
+        menuName: '自定义指令',
+        name: 'DemoComponentsDirective',
+        icon: 'carbon:terminal',
+        path: '/components/directive',
+      },
+      {
+        menuName: '拖拽布局',
+        name: 'DemoDragLayout',
+        icon: 'carbon:grid',
+        path: '/components/drag-layout',
       },
     ],
   },
@@ -497,12 +435,15 @@ const list: BackendMenu[] = [
  */
 function decorate(list: BackendMenu[]): BackendMenu[] {
   return list.map((menu, index) => {
-    const children = menu.children?.length ? decorate(menu.children) : undefined;
+    const children = menu.children?.length
+      ? decorate(menu.children)
+      : undefined;
     const isDir = !!children?.length;
     const local = normalizePathLike(menu.path);
     return {
       ...menu,
-      component: isDir || menu.isExternal || !local ? undefined : `${local}/index`,
+      component:
+        isDir || menu.isExternal || !local ? undefined : `${local}/index`,
       menuType: isDir ? 1 : 2,
       // `/system/user` → `system:user:list`（点号分段是权限标识的既有写法）
       permission:
@@ -522,11 +463,27 @@ function normalizePathLike(path?: string): string {
   return path.replace(/^\/+/, '').replace(/\/+$/, '');
 }
 
-const menuTree = decorate(list);
+/**
+ * 导出给测试校验「账号白名单里的 name 真的存在于树上」——
+ * 拼错一个 name 的表现是"custom 账号静默少一个页面"，很难靠肉眼发现。
+ */
+export const menuTree = decorate(list);
 
-/** legacy menu.fake.ts：路径就是 /menus（不在 system 下），菜单树为静态数据 */
+/**
+ * legacy menu.fake.ts：路径就是 /menus（不在 system 下）。
+ *
+ * 树本身是静态的，但**按 token 分账号裁剪后再返回**（裁剪规则见
+ * `server/utils/accounts.ts`）。这份菜单同时是权限来源，所以"返回什么"直接
+ * 决定了另一个人能进哪些页面 —— 不裁剪就等于所有账号都是超管。
+ */
 export default defineMockRoute({
-  handler: () => success({ list: menuTree }, '获取菜单成功'),
+  handler({ headers }) {
+    const account = resolveAccount(headers);
+    return success(
+      { list: pickMenus(menuTree, account.visibleMenus) },
+      '获取菜单成功',
+    );
+  },
   method: 'GET',
   path: '/menus',
 });

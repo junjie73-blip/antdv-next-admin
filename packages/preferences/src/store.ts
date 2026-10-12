@@ -100,8 +100,7 @@ export function createPreferences(
   options: PreferencesOptions = {},
 ): PreferencesInstance {
   const defaults = withDefaultPreferences(options.defaults);
-  const store =
-    options.cache ?? createCache<AppSetting>({ type: 'local' });
+  const store = options.cache ?? createCache<AppSetting>({ type: 'local' });
   const cacheKey = options.cacheKey ?? PREFERENCES_CACHE_KEY;
 
   const media = createSystemDark({ matchMedia: options.matchMedia });
@@ -196,7 +195,8 @@ export function createPreferences(
     pick: (key) => state.value[key],
     preferences,
     reload: () => commit(readMerged()),
-    replace: (next) => commit({ ...defaults, ...pickKnownPreferences(next, defaults) }),
+    replace: (next) =>
+      commit({ ...defaults, ...pickKnownPreferences(next, defaults) }),
     reset: () => commit({ ...defaults }),
     resolvedTheme,
     save: () => persist(state.value),

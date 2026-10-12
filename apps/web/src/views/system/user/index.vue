@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { FormSchema } from '~/components/business/Form'
-import type { BasicColumn } from '~/components/business/Table'
+import type { FormSchema } from '~/components/business/Form';
+import type { BasicColumn } from '~/components/business/Table';
 
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue';
 
-import { usePrint } from '@antdv/composables/usePrint'
-import { cn } from '@antdv/shared/cn'
-import { Icon } from '@iconify/vue'
-import * as XLSX from 'xlsx'
+import { usePrint } from '@antdv/composables/usePrint';
+import { cn } from '@antdv/shared/cn';
+import { Icon } from '@iconify/vue';
+import * as XLSX from 'xlsx';
 import {
   addUser,
   deleteUser,
@@ -15,108 +15,108 @@ import {
   getUserList,
   getUserOptions,
   updateUser,
-} from '~/api/system'
-import { BasicForm, useForm } from '~/components/business/Form'
-import { BasicModal, useModal } from '~/components/business/Modal'
-import { BasicTable, useTable } from '~/components/business/Table'
-import { DictType } from '~/enums/dict'
-import { useDictStore } from '~/stores'
-defineOptions({ name: 'SystemUser' })
+} from '~/api/system';
+import { BasicForm, useForm } from '~/components/business/Form';
+import { BasicModal, useModal } from '~/components/business/Modal';
+import { BasicTable, useTable } from '~/components/business/Table';
+import { DictType } from '~/enums/dict';
+import { useDictStore } from '~/stores';
+defineOptions({ name: 'SystemUser' });
 
 interface UserRecord {
-  id: number
-  username: string
-  nickname: string
-  email: string
-  phone: string
-  deptName: string
-  deptId: number
-  status: number
-  role: string
-  roleId: number
-  remark: string
-  createdAt: string
+  id: number;
+  username: string;
+  nickname: string;
+  email: string;
+  phone: string;
+  deptName: string;
+  deptId: number;
+  status: number;
+  role: string;
+  roleId: number;
+  remark: string;
+  createdAt: string;
 }
 
 interface DeptNode {
-  id: number
-  name: string
-  children?: DeptNode[]
+  id: number;
+  name: string;
+  children?: DeptNode[];
 }
 
-const containerClassName = cn('flex gap-4')
-const leftPanelClassName = cn('w-[240px] shrink-0')
-const rightPanelClassName = cn('min-w-0 flex-1')
-const cardClassName = cn('shadow-sm')
-const treeCardClassName = cn('h-full shadow-sm')
-const statusTagClassName = cn('inline-flex items-center gap-1')
-const actionClassName = cn('flex', 'items-center', 'justify-center')
-const btnClassName = cn('px-0.5!')
-const dividerClassName = cn('mx-0')
+const containerClassName = cn('flex gap-4');
+const leftPanelClassName = cn('w-[240px] shrink-0');
+const rightPanelClassName = cn('min-w-0 flex-1');
+const cardClassName = cn('shadow-sm');
+const treeCardClassName = cn('h-full shadow-sm');
+const statusTagClassName = cn('inline-flex items-center gap-1');
+const actionClassName = cn('flex', 'items-center', 'justify-center');
+const btnClassName = cn('px-0.5!');
+const dividerClassName = cn('mx-0');
 
 const statusColorMap: Record<number, string> = {
   1: 'green',
   0: 'red',
-}
+};
 
 const statusLabelMap: Record<number, string> = {
   1: '正常',
   0: '禁用',
-}
+};
 
-const dictStore = useDictStore()
+const dictStore = useDictStore();
 
 const statusOptions = computed(() =>
   dictStore.getOptions(DictType.NORMAL_DISABLE),
-)
+);
 
 // 从 API 获取部门和角色选项
-const mockDeptTree = ref<DeptNode[]>([])
-const allDeptNodes = ref<{ id: number; name: string }[]>([])
-const roleOptions = ref<{ label: string; value: number }[]>([])
+const mockDeptTree = ref<DeptNode[]>([]);
+const allDeptNodes = ref<{ id: number; name: string }[]>([]);
+const roleOptions = ref<{ label: string; value: number }[]>([]);
 
 onMounted(async () => {
   try {
     const [deptRes, optionRes] = await Promise.all([
       getDeptTree(),
       getUserOptions(),
-    ])
+    ]);
     // 兼容 mock 返回完整响应或已解包的数据
     const deptData = Array.isArray(deptRes)
       ? deptRes
-      : (deptRes?.data ?? deptRes ?? [])
+      : (deptRes?.data ?? deptRes ?? []);
     const optData = Array.isArray(optionRes)
       ? optionRes
-      : (optionRes?.data ?? optionRes ?? [])
-    mockDeptTree.value = deptData
+      : (optionRes?.data ?? optionRes ?? []);
+    mockDeptTree.value = deptData;
     // 扁平化部门树用于查找名称
     function flatten(nodes: DeptNode[]): { id: number; name: string }[] {
-      const result: { id: number; name: string }[] = []
+      const result: { id: number; name: string }[] = [];
       for (const node of nodes) {
-        result.push({ id: node.id, name: node.name })
-        if (node.children) result.push(...flatten(node.children))
+        result.push({ id: node.id, name: node.name });
+        if (node.children) result.push(...flatten(node.children));
       }
-      return result
+      return result;
     }
-    allDeptNodes.value = flatten(mockDeptTree.value)
+    allDeptNodes.value = flatten(mockDeptTree.value);
     roleOptions.value = optData.map((item: any) => ({
       label: item.label,
       value: item.value,
-    }))
+    }));
   } catch (error) {
-    console.error('获取基础数据失败', error)
+    console.error('获取基础数据失败', error);
   }
-})
+});
 
 // ========== 状态管理 ==========
-const selectedDeptId = ref<null | number>(null)
-const isEditing = ref(false)
-const currentRecord = ref<null | UserRecord>(null)
-const treeExpandedKeys = ref<number[]>([1])
+const selectedDeptId = ref<null | number>(null);
+const isEditing = ref(false);
+const currentRecord = ref<null | UserRecord>(null);
+const treeExpandedKeys = ref<number[]>([1]);
 
-const [modalRegister, modalMethods] = useModal()
-const [tableRegister, tableMethods] = useTable()
-const [formRegister, formMethods] = useForm()
+const [modalRegister, modalMethods] = useModal();
+const [tableRegister, tableMethods] = useTable();
+const [formRegister, formMethods] = useForm();
 
 // API 适配层 — 将 API 返回的 { list, total } 转换为 BasicTable 需要的 { items, total }
 async function mockApi(params: Record<string, any>) {
@@ -124,11 +124,11 @@ async function mockApi(params: Record<string, any>) {
   const requestParams = {
     ...params,
     ...(selectedDeptId.value !== null && { deptId: selectedDeptId.value }),
-  }
-  const res = await getUserList(requestParams)
+  };
+  const res = await getUserList(requestParams);
   // 兼容 mock 直接返回完整响应或已解包的数据
-  const data = res?.data ?? res
-  return { items: data?.list || [], total: data?.total || 0 }
+  const data = res?.data ?? res;
+  return { items: data?.list || [], total: data?.total || 0 };
 }
 
 const searchFormSchemas: FormSchema[] = [
@@ -153,7 +153,7 @@ const searchFormSchemas: FormSchema[] = [
     },
     colProps: { span: 6 },
   },
-]
+];
 
 const modalFormSchemas: FormSchema[] = [
   {
@@ -239,19 +239,19 @@ const modalFormSchemas: FormSchema[] = [
     colProps: { span: 24 },
     componentProps: { placeholder: '请输入备注', rows: 3 },
   },
-]
+];
 
 function handleDeptSelect(
   _selectedKeys: (number | string)[],
   info: { node: { id: number } },
 ) {
-  selectedDeptId.value = info.node.id
-  tableMethods.value?.reload()
+  selectedDeptId.value = info.node.id;
+  tableMethods.value?.reload();
 }
 
 function handleAdd() {
-  isEditing.value = false
-  currentRecord.value = null
+  isEditing.value = false;
+  currentRecord.value = null;
   formMethods.setFieldsValue({
     username: '',
     nickname: '',
@@ -263,18 +263,18 @@ function handleAdd() {
     status: 0,
     sortOrder: 0,
     remark: '',
-  })
-  formMethods.clearValidate()
-  modalMethods.openModal()
+  });
+  formMethods.clearValidate();
+  modalMethods.openModal();
 }
 
 function handleDetail(record: UserRecord) {
-  message.info(`查看用户详情：${record.nickname}`)
+  message.info(`查看用户详情：${record.nickname}`);
 }
 
 function handleEdit(record: UserRecord) {
-  isEditing.value = true
-  currentRecord.value = record
+  isEditing.value = true;
+  currentRecord.value = record;
   formMethods.setFieldsValue({
     username: record.username,
     nickname: record.nickname,
@@ -286,30 +286,30 @@ function handleEdit(record: UserRecord) {
     status: record.status,
     sortOrder: (record as any).sortOrder ?? 0,
     remark: record.remark,
-  })
-  formMethods.clearValidate()
-  modalMethods.openModal()
+  });
+  formMethods.clearValidate();
+  modalMethods.openModal();
 }
 
 async function handleDelete(record: UserRecord) {
   try {
-    await deleteUser(record.id)
-    message.success(`已删除用户：${record.nickname}`)
-    tableMethods.value?.reload()
+    await deleteUser(record.id);
+    message.success(`已删除用户：${record.nickname}`);
+    tableMethods.value?.reload();
   } catch (error: any) {
-    message.error(error?.message || '删除失败')
+    message.error(error?.message || '删除失败');
   }
 }
 
 function handleExport() {
-  const selectedRows = tableMethods.value?.getSelectRows?.() || []
+  const selectedRows = tableMethods.value?.getSelectRows?.() || [];
 
   if (selectedRows.length === 0) {
-    message.warning('请先选择要导出的用户')
-    return
+    message.warning('请先选择要导出的用户');
+    return;
   }
 
-  const headers = ['用户名', '昵称', '邮箱', '手机号', '部门', '角色', '状态']
+  const headers = ['用户名', '昵称', '邮箱', '手机号', '部门', '角色', '状态'];
   const rows = selectedRows.map((i: UserRecord) => [
     i.username,
     i.nickname,
@@ -318,9 +318,9 @@ function handleExport() {
     i.deptName,
     i.role,
     i.status === 1 ? '正常' : '禁用',
-  ])
+  ]);
 
-  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows])
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
   ws['!cols'] = [
     { wch: 12 },
     { wch: 12 },
@@ -329,46 +329,46 @@ function handleExport() {
     { wch: 10 },
     { wch: 12 },
     { wch: 8 },
-  ]
+  ];
 
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, '用户列表')
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '用户列表');
 
-  XLSX.writeFile(wb, `用户列表_${new Date().toISOString().slice(0, 10)}.xlsx`)
-  message.success(`成功导出 ${selectedRows.length} 条数据`)
+  XLSX.writeFile(wb, `用户列表_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  message.success(`成功导出 ${selectedRows.length} 条数据`);
 }
 
 function handlePrint() {
   usePrint({
     title: '用户列表',
     target: '.ant-card-body',
-  })
+  });
 }
 
 async function handleSave() {
-  const values = await formMethods.validate()
+  const values = await formMethods.validate();
   if (!values) {
-    return
+    return;
   }
 
   if (!values.username || !values.nickname) {
-    message.warning('请填写用户名和昵称')
-    return
+    message.warning('请填写用户名和昵称');
+    return;
   }
 
   try {
     if (isEditing.value && currentRecord.value) {
-      await updateUser(currentRecord.value.id, values)
-      message.success(`已更新用户：${values.nickname}`)
+      await updateUser(currentRecord.value.id, values);
+      message.success(`已更新用户：${values.nickname}`);
     } else {
-      await addUser(values)
-      message.success(`已新增用户：${values.nickname}`)
+      await addUser(values);
+      message.success(`已新增用户：${values.nickname}`);
     }
 
-    modalMethods.closeModal()
-    tableMethods.value?.reload()
+    modalMethods.closeModal();
+    tableMethods.value?.reload();
   } catch (error: any) {
-    message.error(error?.message || '保存失败')
+    message.error(error?.message || '保存失败');
   }
 }
 
@@ -436,7 +436,7 @@ const columns: BasicColumn[] = [
     width: 170,
     align: 'center',
   },
-]
+];
 </script>
 
 <template>
@@ -454,7 +454,7 @@ const columns: BasicColumn[] = [
           @select="handleDeptSelect"
           @update:expanded-keys="
             (keys: number[]) => {
-              treeExpandedKeys = keys
+              treeExpandedKeys = keys;
             }
           "
         />

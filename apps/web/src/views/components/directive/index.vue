@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import type { PermissionCheckContext, PermissionCheckers } from '@antdv/directives';
+import type {
+  PermissionCheckContext,
+  PermissionCheckers,
+} from '@antdv/directives';
 
 import { computed, onUnmounted, reactive, ref, watch } from 'vue';
 
@@ -30,7 +33,7 @@ const hintClassName = cn(
   'dark:text-gray-400',
 );
 const codeClassName = cn(
-  'rounded',
+  'rounded-sm',
   'bg-gray-100',
   'px-1.5',
   'py-0.5',
@@ -94,7 +97,8 @@ function recordCheck(context: PermissionCheckContext) {
 const vDemoPermission = createPermissionDirective({
   checkers: () => checkers.value,
   onCheck: recordCheck,
-  subscribe: (notify) => watch([grantedCodes, grantedRoles], notify, { deep: true }),
+  subscribe: (notify) =>
+    watch([grantedCodes, grantedRoles], notify, { deep: true }),
 });
 
 /* ---------------------------------------------------------------- 加载指令 */
@@ -161,7 +165,11 @@ function onLazyLoaded(item: LazyItem, event: Event) {
    * 只有换成目标图才算"加载成功"：占位图和失败回退图同样会触发 `load`，
    * 直接计数会把 6 张图报成 12 张已加载。
    */
-  if (!element.src.endsWith(item.src) || loadedTitles.value.includes(item.title)) return;
+  if (
+    !element.src.endsWith(item.src) ||
+    loadedTitles.value.includes(item.title)
+  )
+    return;
   loadedTitles.value = [...loadedTitles.value, item.title];
 }
 
@@ -214,17 +222,19 @@ const strictSafeHtml = {
     <a-card title="v-permission 权限指令" variant="borderless">
       <p :class="hintClassName">
         全局那条的判定来自
-        <code :class="codeClassName">usePermission()</code>（也就是当前登录用户的权限表）。
-        本页改用本地实例
-        <code :class="codeClassName">v-demo-permission</code>，勾选左边的权限就能看到隐藏 /
-        置灰 / 任一命中 / 全部命中四种行为，不会真的改动当前账号。
+        <code :class="codeClassName">usePermission()</code>（也就是当前登录用户的权限表）。 本页改用本地实例
+        <code :class="codeClassName">v-demo-permission</code>，勾选左边的权限就能看到隐藏 / 置灰 / 任一命中 /
+        全部命中四种行为，不会真的改动当前账号。
       </p>
 
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div class="space-y-3">
           <div>
             <div class="mb-2 text-sm font-medium">授予的权限码</div>
-            <a-checkbox-group v-model:value="grantedCodes" class="flex flex-col gap-1">
+            <a-checkbox-group
+              v-model:value="grantedCodes"
+              class="flex flex-col gap-1"
+            >
               <a-checkbox value="user:add">user:add</a-checkbox>
               <a-checkbox value="user:export">user:export</a-checkbox>
               <a-checkbox value="user:delete">user:delete</a-checkbox>
@@ -232,7 +242,10 @@ const strictSafeHtml = {
           </div>
           <div>
             <div class="mb-2 text-sm font-medium">授予的角色</div>
-            <a-checkbox-group v-model:value="grantedRoles" class="flex flex-col gap-1">
+            <a-checkbox-group
+              v-model:value="grantedRoles"
+              class="flex flex-col gap-1"
+            >
               <a-checkbox value="editor">editor</a-checkbox>
               <a-checkbox value="auditor">auditor</a-checkbox>
               <a-checkbox value="super">super（超管）</a-checkbox>
@@ -260,7 +273,9 @@ const strictSafeHtml = {
 
         <div class="space-y-2">
           <div :class="rowClassName">
-            <a-button v-demo-permission="'user:add'" type="primary">单权限码</a-button>
+            <a-button v-demo-permission="'user:add'" type="primary">
+              单权限码
+            </a-button>
             <span :class="hintClassName">没有 user:add 时整块不占位</span>
           </div>
           <div :class="rowClassName">
@@ -289,14 +304,18 @@ const strictSafeHtml = {
             </span>
           </div>
           <div :class="rowClassName">
-            <a-button v-demo-permission:admin danger type="primary">仅超管</a-button>
+            <a-button v-demo-permission:admin danger type="primary">
+              仅超管
+            </a-button>
             <span :class="hintClassName">
               <code :class="codeClassName">:admin</code> 走
               <code :class="codeClassName">isAdmin()</code>
             </span>
           </div>
           <div :class="rowClassName">
-            <a-button v-demo-permission.disabled="'user:export'">无权限时置灰</a-button>
+            <a-button v-demo-permission.disabled="'user:export'">
+              无权限时置灰
+            </a-button>
             <span :class="hintClassName">
               <code :class="codeClassName">.disabled</code>
               保留可见只禁用，降级样式来自
@@ -325,9 +344,9 @@ const strictSafeHtml = {
         <code :class="codeClassName">loading-tip</code>、
         <code :class="codeClassName">loading-theme</code>、
         <code :class="codeClassName">loading-size</code>、
-        <code :class="codeClassName">loading-background</code>；
-        加
-        <code :class="codeClassName">.fullscreen</code> 修饰符就挂到 body 盖住整页。
+        <code :class="codeClassName">loading-background</code>； 加
+        <code :class="codeClassName">.fullscreen</code> 修饰符就挂到 body
+        盖住整页。
       </p>
       <div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <div>
@@ -362,12 +381,16 @@ const strictSafeHtml = {
         </div>
       </div>
       <div :class="rowClassName" class="mt-3">
-        <a-button v-loading.fullscreen="loadingState.full" @click="flashLoading('full')">
+        <a-button
+          v-loading.fullscreen="loadingState.full"
+          @click="flashLoading('full')"
+        >
           整页遮罩
         </a-button>
         <span :class="hintClassName">
           路由切换时的全屏 loading 由
-          <code :class="codeClassName">createFullscreenLoading()</code> 做同一件事。
+          <code :class="codeClassName">createFullscreenLoading()</code>
+          做同一件事。
         </span>
       </div>
     </a-card>
@@ -377,15 +400,20 @@ const strictSafeHtml = {
         进视口（提前 100px）才发请求，带渐显；加载失败回退到
         <code :class="codeClassName">error</code>
         图。已换成目标图 {{ loadedTitles.length }} /
-        {{ lazyGallery.length }} 张（最后一张是坏地址，只会出现在回退图上）。滚动下面的框，
-        数字是逐步涨上来的；「重放」第二次会命中同 URL 的全局缓存，所以会一次到位。
+        {{ lazyGallery.length }}
+        张（最后一张是坏地址，只会出现在回退图上）。滚动下面的框，
+        数字是逐步涨上来的；「重放」第二次会命中同 URL
+        的全局缓存，所以会一次到位。
       </p>
       <div class="mb-2">
         <a-button @click="replayLazy">重放（重新挂载图片墙）</a-button>
       </div>
       <div :class="boxClassName">
         <Scrollbar root-class="max-h-64">
-          <div :key="lazyRun" class="grid grid-cols-2 gap-3 pr-2 md:grid-cols-3">
+          <div
+            :key="lazyRun"
+            class="grid grid-cols-2 gap-3 pr-2 md:grid-cols-3"
+          >
             <div v-for="item in lazyGallery" :key="item.src" class="space-y-1">
               <img
                 v-lazy="{
@@ -413,15 +441,13 @@ const strictSafeHtml = {
     <a-card title="v-safe-html 与 v-escape 防 XSS" variant="borderless">
       <p :class="hintClassName">
         富文本走
-        <code :class="codeClassName">v-safe-html</code>：先按兜底规则剥离 script / svg /
-        <code :class="codeClassName">on*</code> 处理器，再交 DOMPurify 按白名单清理。
-        纯文本走
-        <code :class="codeClassName">v-escape</code>，用
+        <code :class="codeClassName">v-safe-html</code>：先按兜底规则剥离 script
+        / svg / <code :class="codeClassName">on*</code> 处理器，再交 DOMPurify
+        按白名单清理。 纯文本走 <code :class="codeClassName">v-escape</code>，用
         <code :class="codeClassName">:url</code> /
         <code :class="codeClassName">:js</code> /
         <code :class="codeClassName">:css</code> 切换转义口径。
-        用户输入永远不要直接塞
-        <code :class="codeClassName">v-html</code>。
+        用户输入永远不要直接塞 <code :class="codeClassName">v-html</code>。
       </p>
       <div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <div class="space-y-2">
@@ -445,7 +471,9 @@ const strictSafeHtml = {
         </div>
       </div>
       <div class="mt-3 space-y-2">
-        <div class="text-sm font-medium">v-escape：整段当纯文本显示，不会被解析成 HTML</div>
+        <div class="text-sm font-medium">
+          v-escape：整段当纯文本显示，不会被解析成 HTML
+        </div>
         <div :class="boxClassName">
           <!-- `data-escape-box` 是给 e2e 的观测点：指令的输出落在 span 里，
                而说明文字里也写着 `#unsafe-url`，靠文本选会同时选中两处 -->
@@ -460,7 +488,11 @@ const strictSafeHtml = {
           <code :class="codeClassName">#unsafe-url</code>（控制台 warn 一次）
         </div>
         <div :class="rowClassName">
-          <span v-escape:url="unsafeUrl" :class="codeClassName" data-escape-box="url"></span>
+          <span
+            v-escape:url="unsafeUrl"
+            :class="codeClassName"
+            data-escape-box="url"
+          ></span>
           <a-button @click="unsafeUrl = 'https://example.com/report'">
             换成安全链接
           </a-button>

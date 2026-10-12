@@ -14,10 +14,11 @@ import { useLoginStyles } from '../composables/useLoginStyles';
 const styleSheet = useLoginStyles();
 
 /** 只写了浅色一侧的中性色：出现它就必须同时出现 `dark:` */
-const LIGHT_ONLY_NEUTRAL
-  = /\b(?:bg-white\b|bg-slate-[12]00\b|border-slate-[123]00\b|text-slate-[456789]00\b)/u;
+const LIGHT_ONLY_NEUTRAL =
+  /\b(?:bg-white\b|bg-slate-[12]00\b|border-slate-[123]00\b|text-slate-[456789]00\b)/u;
 
-const ACCENT_LITERAL = /(bg|text|border|ring|shadow|from|via|to)-(blue|indigo|violet|sky)-[0-9]|#1677ff/iu;
+const ACCENT_LITERAL =
+  /(bg|text|border|ring|shadow|from|via|to)-(blue|indigo|violet|sky)-[0-9]|#1677ff/iu;
 
 function entries() {
   return Object.entries(styleSheet).map(([name, computed]) => [

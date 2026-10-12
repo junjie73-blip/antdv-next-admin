@@ -60,7 +60,8 @@ function pickList(res: any, listField?: string): Recordable[] {
 
 /** 有些后端把 total 序列化成字符串（"50"），按数字用；其余脏值一律跳过 */
 function asCount(value: unknown): number | undefined {
-  if (typeof value === 'number') return Number.isFinite(value) ? value : undefined;
+  if (typeof value === 'number')
+    return Number.isFinite(value) ? value : undefined;
   if (typeof value === 'string' && value.trim() !== '') {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : undefined;

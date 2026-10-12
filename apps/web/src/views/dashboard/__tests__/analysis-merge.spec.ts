@@ -55,7 +55,7 @@ describe('分析面板（合并工作台后）', () => {
     expect(ANALYSIS_SOURCE).not.toContain('/dashboard/workbench');
   });
 
-  it('KPI 标题不重复（两边都有的「今日访问」只留一条）', () => {
+  it('kPI 标题不重复（两边都有的「今日访问」只留一条）', () => {
     const titles = [
       ...ANALYSIS_SOURCE.matchAll(/title:\s*'([^']*?)',\s*\n\s*value:/gu),
     ].map((m) => m[1]!);
@@ -65,17 +65,24 @@ describe('分析面板（合并工作台后）', () => {
   });
 
   it('合并进来的两块内容用真链接，而不是会骗人的 cursor-pointer', () => {
-    expect(ANALYSIS_SOURCE).toContain("import { RouterLink } from 'vue-router'");
+    expect(ANALYSIS_SOURCE).toContain(
+      "import { RouterLink } from 'vue-router'",
+    );
     // 快捷操作整段就是那个 v-for 的 RouterLink，直接按元素取，别用 indexOf 截字符串
-    const linkBlock = ANALYSIS_SOURCE.match(/<RouterLink[\s\S]*?<\/RouterLink>/u)?.[0];
+    const linkBlock = ANALYSIS_SOURCE.match(
+      /<RouterLink[\s\S]*?<\/RouterLink>/u,
+    )?.[0];
     expect(linkBlock, '模板里没有 RouterLink 快捷操作').toBeTruthy();
     expect(linkBlock).toContain(':to="action.path"');
     expect(linkBlock).not.toContain('cursor-pointer');
   });
 
   it('页面根容器自己不加 padding（内边距归布局的滚动容器管）', () => {
-    const template = ANALYSIS_SOURCE.slice(ANALYSIS_SOURCE.indexOf('<template>'));
-    const rootTag = template.match(/^<template>\s*\n?\s*<div[^>]*>/u)?.[0] ?? '';
+    const template = ANALYSIS_SOURCE.slice(
+      ANALYSIS_SOURCE.indexOf('<template>'),
+    );
+    const rootTag =
+      template.match(/^<template>\s*\n?\s*<div[^>]*>/u)?.[0] ?? '';
     expect(rootTag).not.toMatch(/\bp-[\w-]*/u);
   });
 });

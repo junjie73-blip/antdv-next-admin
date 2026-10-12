@@ -43,7 +43,7 @@ interface ScrollGutter {
  */
 async function nativeGutter(page: Page): Promise<number> {
   return page.evaluate((probeId) => {
-    const existing = document.getElementById(probeId);
+    const existing = document.querySelector(`#${probeId}`);
     if (existing) {
       const box = existing as HTMLElement;
       const width = box.offsetWidth - box.clientWidth;
@@ -104,9 +104,10 @@ async function wideScrollAreas(
       const canHorizontal = /auto|scroll/.test(style.overflowX);
       if (!canVertical && !canHorizontal) continue;
 
-      const vertical = canVertical && box.scrollHeight > box.clientHeight + 1
-        ? box.offsetWidth - box.clientWidth
-        : 0;
+      const vertical =
+        canVertical && box.scrollHeight > box.clientHeight + 1
+          ? box.offsetWidth - box.clientWidth
+          : 0;
       const horizontal =
         canHorizontal && box.scrollWidth > box.clientWidth + 1
           ? box.offsetHeight - box.clientHeight
@@ -121,7 +122,9 @@ async function wideScrollAreas(
 }
 
 test.describe('全站滚动条：用封装组件，不用系统内置', () => {
-  test('外壳三处滚动区都是 <Scrollbar>，并真的藏掉了原生条', async ({ page }) => {
+  test('外壳三处滚动区都是 <Scrollbar>，并真的藏掉了原生条', async ({
+    page,
+  }) => {
     await signIn(page);
     await setLayout(page, 'vertical');
     await go(page, '/system/user');
@@ -138,14 +141,14 @@ test.describe('全站滚动条：用封装组件，不用系统内置', () => {
     const shells = [
       {
         name: '侧栏菜单',
-        wrap: region(page, 'sidebar')
-          .locator('.scrollbar__wrap')
-          .first(),
+        wrap: region(page, 'sidebar').locator('.scrollbar__wrap').first(),
       },
       {
         name: '内容区',
         wrap: page
-          .locator('main .scrollbar__wrap, [data-layout-region="content"] .scrollbar__wrap')
+          .locator(
+            'main .scrollbar__wrap, [data-layout-region="content"] .scrollbar__wrap',
+          )
           .first(),
       },
       {
@@ -167,9 +170,7 @@ test.describe('全站滚动条：用封装组件，不用系统内置', () => {
      * 这是"封装组件真的在干活"的证据 —— 只有 wrap 没有 bar 就等于
      * 既藏了原生条又没给用户任何滚动指示。
      */
-    const contentWrap = page
-      .locator('main .scrollbar__wrap')
-      .first();
+    const contentWrap = page.locator('main .scrollbar__wrap').first();
     const overflows = await contentWrap.evaluate(
       (el) => el.scrollHeight > el.clientHeight + 1,
     );
@@ -193,7 +194,7 @@ test.describe('全站滚动条：用封装组件，不用系统内置', () => {
     const pages = [
       '/system/user',
       '/dashboard/analysis',
-      '/demo/table-pagination-test',
+      '/components/table/basic',
     ];
     const offenders: Array<{ page: string; items: unknown[] }> = [];
 

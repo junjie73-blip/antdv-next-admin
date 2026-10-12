@@ -1,4 +1,5 @@
 import type { BackendMenu } from '@antdv/types';
+
 import type { RouteRecordRaw } from 'vue-router';
 
 import { createPinia, setActivePinia } from 'pinia';
@@ -61,7 +62,13 @@ const SNAPSHOT = [
   { name: 'Error404', path: '/error/404' },
   { name: 'CatchAll', path: '/:pathMatch(.*)*' },
   // 显式免鉴权的框架页：不在菜单里，也不该被裁
-  { name: 'Redirect', path: '/redirect/:path(.*)', meta: { requiresAuth: false } },
+  {
+    name: 'Redirect',
+    path: '/redirect/:path(.*)',
+    meta: { requiresAuth: false },
+  },
+  // 不在内置名单里、只靠 `meta.requiresAuth: false` 豁免的应用页
+  { name: 'CustomBlank', path: '/custom/blank', meta: { requiresAuth: false } },
   // 布局壳：自己不在菜单里，孩子靠相对片段拼出 `/system/user`、`/system/dept`
   {
     children: [
@@ -148,13 +155,26 @@ function createFakeRouter(): FakeRouter {
   return router;
 }
 
+/**
+ * 可变菜单源：换账号 / 管理员改了菜单的场景，要在不重写整个 mock 的前提下
+ * 让 `initRoutes` 拿到不同的树，所以把数据放进盒子里，用例开跑前换内容。
+ */
+const { menuBox } = vi.hoisted(() => ({
+  menuBox: { menus: [] as unknown[] },
+}));
+
 vi.mock('~/composables', () => ({
   http: {
-    Get: async () => ({ data: { list: MENUS } }),
+    Get: async () => ({ data: { list: menuBox.menus } }),
   },
 }));
 
-async function load(router: FakeRouter, routes = SNAPSHOT) {
+async function load(
+  router: FakeRouter,
+  routes = SNAPSHOT,
+  menus: BackendMenu[] = MENUS,
+) {
+  menuBox.menus = menus;
   setActivePinia(createPinia());
   const store = useRouteStore();
   await store.initRoutes(router as never, routes);
@@ -186,8 +206,15 @@ describe('useRouteStore —— 按菜单同步路由注册表', () => {
     await load(router);
 
     // Login / Error404 不在菜单里，靠内置名单豁免；
-    // Redirect 靠 `meta.requiresAuth === false` 豁免 —— 两条判据都要生效
-    for (const name of ['Root', 'Login', 'Error404', 'CatchAll', 'Redirect']) {
+    // Redirect / CustomBlank 靠 `meta.requiresAuth === false` 豁免 —— 两条判据都要生效
+    for (const name of [
+      'Root',
+      'Login',
+      'Error404',
+      'CatchAll',
+      'Redirect',
+      'CustomBlank',
+    ]) {
       expect(router.registered.has(name)).toBe(true);
     }
   });
@@ -277,9 +304,10 @@ describe('useRouteStore —— 按菜单同步路由注册表', () => {
     expect(router.registered.has('OrphanPage')).toBe(false);
 
     // 再来一次装配：只给一条记录，若快照被覆盖，其余路由就"从全量表里消失了"
-    await store.initRoutes(router as never, [
-      { name: '/system/user/', path: 'user' },
-    ] as unknown as RouteRecordRaw[]);
+    await store.initRoutes(
+      router as never,
+      [{ name: '/system/user/', path: 'user' }] as unknown as RouteRecordRaw[],
+    );
     store.syncRoutes();
     expect(router.registered.has('Root')).toBe(true);
     expect(router.registered.has('/system/user/')).toBe(true);
@@ -295,5 +323,90 @@ describe('useRouteStore —— 按菜单同步路由注册表', () => {
     expect(store.isLoaded).toBe(false);
     expect(router.registered.has('OrphanPage')).toBe(true);
     expect(router.registered.has('Root')).toBe(true);
+  });
+});
+
+describe('useRouteStore —— 越权页与不存在页的分岔（403 / 404）', () => {
+  /**
+   * 通配兜底按这个判据分岔，理由很实在：注册表被菜单裁过之后，越权页面的路由
+   * **压根没注册**，导航只能落到 CatchAll。若一律报 404，等于把"没权限"说成
+   * "没这个功能"，人会去打错的地方找，而不是去找管理员开权限。
+   *
+   * 三条判据都要钉住，每一条都对应一类误报：
+   * - 授权来源是**全量树**（含 hidden），不是可见菜单；
+   * - 存在性来源是**全量快照**，不是裁过的注册表（否则永远得到"不存在"）；
+   * - 框架页不算"存在但未授权"，比较用拼接后的完整 path。
+   */
+  it('菜单收录的页面不报越权（hidden 的也算收录）', async () => {
+    const store = await load(createFakeRouter());
+
+    expect(store.canAccessPath('/system/user')).toBe(true);
+    expect(store.isUngrantedExistingPage('/system/user')).toBe(false);
+    // SystemDept 在菜单里是 hidden：不进导航，但它是"有权限的页"
+    expect(store.isUngrantedExistingPage('/system/dept')).toBe(false);
+    expect(store.isUngrantedExistingPage('/dashboard/analysis')).toBe(false);
+    // 结尾斜杠是约定路由的常态写法，归一化后同一个页面
+    expect(store.isUngrantedExistingPage('/system/user/')).toBe(false);
+  });
+
+  it('页面在快照里、菜单没收录 → 越权', async () => {
+    const store = await load(createFakeRouter());
+
+    expect(store.isUngrantedExistingPage('/orphan')).toBe(true);
+    // 嵌套子记录的绝对 path：比对要用拼接结果，不能被父级前缀绕过
+    expect(store.isUngrantedExistingPage('/dashboard/ghost')).toBe(true);
+  });
+
+  it('两处都没有 → 不是越权，交给 404', async () => {
+    const store = await load(createFakeRouter());
+
+    expect(
+      store.isUngrantedExistingPage('/components/this-page-does-not-exist'),
+    ).toBe(false);
+    expect(store.isUngrantedExistingPage('')).toBe(false);
+    expect(store.isUngrantedExistingPage(undefined)).toBe(false);
+  });
+
+  it('框架页不算"存在但未授权"', async () => {
+    const store = await load(createFakeRouter());
+
+    // 异常页与登录页都不在菜单里，把它们说成越权是胡说八道。
+    // 三条豁免判据各覆盖一种：内置 name（Error404）、内置 path（/login）、
+    // 显式 requiresAuth: false（CustomBlank）
+    for (const path of [
+      '/error/404',
+      '/error/403',
+      '/login',
+      '/register',
+      '/custom/blank',
+      '/redirect/system/user',
+    ]) {
+      expect(store.isUngrantedExistingPage(path)).toBe(false);
+    }
+  });
+
+  it('菜单还没加载时一律不判越权（缺数据时宁可说"找不到"）', async () => {
+    setActivePinia(createPinia());
+    const store = useRouteStore();
+    store.registerRouteSource(createFakeRouter() as never, SNAPSHOT);
+
+    expect(store.isLoaded).toBe(false);
+    expect(store.isUngrantedExistingPage('/orphan')).toBe(false);
+  });
+
+  it('换账号后判据跟着新授权集走，不被上一轮的缓存污染', async () => {
+    const store = await load(createFakeRouter());
+    expect(store.isUngrantedExistingPage('/orphan')).toBe(true);
+
+    // 模拟"管理员把 /orphan 加进了菜单，用户重新登录"：授权集变大，越权判定该消失
+    const withOrphan: BackendMenu[] = [
+      ...MENUS,
+      { menuName: '孤儿页', name: 'OrphanPage', path: '/orphan' },
+    ];
+    const reloaded = await load(createFakeRouter(), SNAPSHOT, withOrphan);
+
+    expect(reloaded.isUngrantedExistingPage('/orphan')).toBe(false);
+    // 没进菜单的仍然是越权 —— 存在性集合可以缓存（快照不可变），授权集却不能跟着缓存
+    expect(reloaded.isUngrantedExistingPage('/dashboard/ghost')).toBe(true);
   });
 });

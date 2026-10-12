@@ -235,7 +235,8 @@ onMounted(() => {
  * `isNumber(NaN)` 为 true（typeof NaN === 'number'），所以还要排除非有限值：
  * 把 NaN 写进 scrollTop 会被浏览器静默变成 0，调用方以为"滚回去了"，排查很费劲。
  */
-const isScrollValue = (value: number) => isNumber(value) && Number.isFinite(value);
+const isScrollValue = (value: number) =>
+  isNumber(value) && Number.isFinite(value);
 
 const setScrollTop = (value: number) => {
   if (!isScrollValue(value)) return;
@@ -266,23 +267,21 @@ defineExpose({
 <template>
   <div
     ref="rootRef"
-    class="group/scrollbar relative flex min-h-0 flex-col overflow-hidden" :class="[
-      rootClass ?? 'h-full',
-    ]"
+    class="group/scrollbar relative flex min-h-0 flex-col overflow-hidden"
+    :class="[rootClass ?? 'h-full']"
     :style="rootStyle"
   >
     <div
       ref="wrap"
-      class="scrollbar__wrap min-h-0 w-full flex-1 overflow-auto" :class="[
-        wrapClass,
-        native ? '' : 'scrollbar__wrap--hidden-default',
-      ]"
+      class="scrollbar__wrap min-h-0 w-full flex-1 overflow-auto"
+      :class="[wrapClass, native ? '' : 'scrollbar__wrap--hidden-default']"
       :style="wrapStyle"
     >
       <component
         :is="tag"
         ref="resize"
-        class="scrollbar__view" :class="[viewClass]"
+        class="scrollbar__view"
+        :class="[viewClass]"
         :style="viewStyle"
       >
         <slot></slot>
@@ -294,14 +293,16 @@ defineExpose({
         v-if="hasHorizontal"
         :move="moveX"
         :size="sizeWidth"
-        class="scrollbar__bar is-horizontal" :class="[barVisibleClass]"
+        class="scrollbar__bar is-horizontal"
+        :class="[barVisibleClass]"
       />
       <Bar
         v-if="hasVertical"
         vertical
         :move="moveY"
         :size="sizeHeight"
-        class="scrollbar__bar is-vertical" :class="[barVisibleClass]"
+        class="scrollbar__bar is-vertical"
+        :class="[barVisibleClass]"
       />
     </template>
   </div>

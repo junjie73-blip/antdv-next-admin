@@ -4,8 +4,28 @@ import { h } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
+import i18n from '~/locales';
 
 export const POPUP_CONTAINER = () => document.body;
+
+/**
+ * Segmented 选项：label 用 getter 现取现翻。
+ * 模块级常量在文件求值时就把字符串固化了，切语言后抽屉的分组名还是中文；
+ * 改成 getter 后，是"渲染选项的那个组件"读 label，locale 就成了它渲染依赖的一部分。
+ */
+function segmentedOption(
+  value: string,
+  labelKey: string,
+  iconName: string,
+): NonNullable<SegmentedProps['options']>[number] {
+  return {
+    icon: h(Icon, { icon: iconName }),
+    get label() {
+      return i18n.global.t(labelKey);
+    },
+    value,
+  };
+}
 
 /* ============================================================
  * 分类 Segmented
@@ -13,26 +33,22 @@ export const POPUP_CONTAINER = () => document.body;
 export type SettingSection = 'appearance' | 'common' | 'layout';
 
 export const SECTION_OPTIONS: SegmentedProps['options'] = [
-  {
-    value: 'appearance',
-    label: '外观',
-    icon: h(Icon, { icon: 'carbon:color-palette' }),
-  },
-  { value: 'layout', label: '布局', icon: h(Icon, { icon: 'carbon:grid' }) },
-  {
-    value: 'common',
-    label: '通用',
-    icon: h(Icon, { icon: 'carbon:settings-adjust' }),
-  },
+  segmentedOption(
+    'appearance',
+    'preferences.appearance',
+    'carbon:color-palette',
+  ),
+  segmentedOption('layout', 'preferences.layout', 'carbon:grid'),
+  segmentedOption('common', 'preferences.common', 'carbon:settings-adjust'),
 ];
 
 /* ============================================================
  * 主题模式
  * ============================================================ */
 export const THEME_MODE_OPTIONS: SegmentedProps['options'] = [
-  { value: 'light', label: '明亮', icon: h(Icon, { icon: 'carbon:sun' }) },
-  { value: 'dark', label: '黑暗', icon: h(Icon, { icon: 'carbon:moon' }) },
-  { value: 'auto', label: '自动', icon: h(Icon, { icon: 'carbon:laptop' }) },
+  segmentedOption('light', 'preferences.themeLight', 'carbon:sun'),
+  segmentedOption('dark', 'preferences.themeDark', 'carbon:moon'),
+  segmentedOption('auto', 'preferences.themeAuto', 'carbon:laptop'),
 ];
 
 /* ============================================================

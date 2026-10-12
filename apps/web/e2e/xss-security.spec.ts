@@ -42,8 +42,8 @@ test.describe('XSS 安全基线', () => {
           inlineHandlers: document.querySelectorAll(
             '[onclick],[onload],[onerror],[onmouseover]',
           ).length,
-          injectedScripts: document.querySelectorAll('script:not([src])')
-            .length,
+          injectedScripts:
+            document.querySelectorAll('script:not([src])').length,
           javascriptLinks: text('a[href^="javascript:"]').length,
           // 内容区里出现 <script> 标签通常意味着某处把未净化的 HTML 直接塞进了 DOM
           scriptTagsInContent: document.querySelectorAll(

@@ -2,6 +2,7 @@
 import type { RenderItem } from 'antdv-next/dist/menu/menu';
 
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { cn } from '@antdv/shared';
 import { nowTz } from '@antdv/shared/dayjs';
@@ -14,6 +15,7 @@ import WidgetButton from './components/WidgetButton.vue';
 
 defineOptions({ name: 'WidgetTimezone' });
 
+const { t } = useI18n({ useScope: 'global' });
 const appStore = useAppStore();
 
 /* ============================================================
@@ -73,7 +75,7 @@ const btnClass = computed(() => (item: RenderItem) => {
     :overlay-style="{ padding: 0 }"
     :menu="{ items }"
   >
-    <WidgetButton label="切换时区">
+    <WidgetButton :label="t('header.timezone')">
       <Icon icon="carbon:time" class="text-base" />
     </WidgetButton>
     <template #labelRender="item">

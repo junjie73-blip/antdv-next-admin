@@ -20,7 +20,9 @@ beforeEach(() => {
 
 describe('applyPreferencesToDom', () => {
   it('返回解析后的主题，auto 由系统偏好决定', () => {
-    expect(applyPreferencesToDom(prefs(), { isSystemDark: true, target: html })).toBe('dark');
+    expect(
+      applyPreferencesToDom(prefs(), { isSystemDark: true, target: html }),
+    ).toBe('dark');
     expect(html.classList.contains('dark')).toBe(true);
 
     expect(applyPreferencesToDom(prefs(), { target: html })).toBe('light');
@@ -84,7 +86,9 @@ describe('applyPreferencesToDom', () => {
       target: html,
     });
     // 两条滤镜串成一条链，而不是后者覆盖前者
-    expect(html.style.filter).toBe('invert(80%) grayscale(100%) grayscale(100%)');
+    expect(html.style.filter).toBe(
+      'invert(80%) grayscale(100%) grayscale(100%)',
+    );
     expect(html.style.getPropertyValue('--app-filter')).toBe(html.style.filter);
   });
 

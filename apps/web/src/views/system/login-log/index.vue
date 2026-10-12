@@ -1,71 +1,71 @@
 <script setup lang="tsx">
-import type { DescriptionItem } from '~/components/business/Description'
-import type { FormSchema } from '~/components/business/Form'
-import type { BasicColumn } from '~/components/business/Table'
+import type { DescriptionItem } from '~/components/business/Description';
+import type { FormSchema } from '~/components/business/Form';
+import type { BasicColumn } from '~/components/business/Table';
 
-import { ref } from 'vue'
+import { ref } from 'vue';
 
-import { usePrint } from '@antdv/composables/usePrint'
-import { cn } from '@antdv/shared/cn'
-import { exportToExcel } from '@antdv/shared/excel'
-import { Icon } from '@iconify/vue'
-import { getLoginLogList, getLoginLogStats } from '~/api/system'
-import { Description as DetailDescription } from '~/components/business/Description'
-import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
-import { BasicTable, useTable } from '~/components/business/Table'
+import { usePrint } from '@antdv/composables/usePrint';
+import { cn } from '@antdv/shared/cn';
+import { exportToExcel } from '@antdv/shared/excel';
+import { Icon } from '@iconify/vue';
+import { getLoginLogList, getLoginLogStats } from '~/api/system';
+import { Description as DetailDescription } from '~/components/business/Description';
+import { BasicDrawer, useDrawer } from '~/components/business/Drawer';
+import { BasicTable, useTable } from '~/components/business/Table';
 
-defineOptions({ name: 'SystemLoginLog' })
+defineOptions({ name: 'SystemLoginLog' });
 
 interface LoginLogRecord {
-  id: number
-  username: string
-  loginAccount: string
-  ip: string
-  location: string
-  browser: string
-  os: string
-  status: 'fail' | 'success'
-  message: string
-  loginTime: string
-  duration: number
-  userAgent: string
+  id: number;
+  username: string;
+  loginAccount: string;
+  ip: string;
+  location: string;
+  browser: string;
+  os: string;
+  status: 'fail' | 'success';
+  message: string;
+  loginTime: string;
+  duration: number;
+  userAgent: string;
 }
 
-const containerClassName = cn('space-y-4')
-const cardClassName = cn('shadow-sm')
-const statsGridClassName = cn('grid', 'grid-cols-4', 'gap-4')
-const tagClassName = cn('inline-flex', 'items-center', 'gap-1')
-const actionClassName = cn('flex', 'items-center', 'justify-center')
-const btnClassName = cn('px-0.5!')
-const dividerClassName = cn('mx-0')
-const failCardClassName = cn('border-red-200', 'dark:border-red-900')
+const containerClassName = cn('space-y-4');
+const cardClassName = cn('shadow-sm');
+const statsGridClassName = cn('grid', 'grid-cols-4', 'gap-4');
+const tagClassName = cn('inline-flex', 'items-center', 'gap-1');
+const actionClassName = cn('flex', 'items-center', 'justify-center');
+const btnClassName = cn('px-0.5!');
+const dividerClassName = cn('mx-0');
+const failCardClassName = cn('border-red-200', 'dark:border-red-900');
 
 // 统计数据 — 从 API 获取
-const todayLoginCount = ref(0)
-const weekLoginCount = ref(0)
-const monthLoginCount = ref(0)
-const todayFailCount = ref(0)
+const todayLoginCount = ref(0);
+const weekLoginCount = ref(0);
+const monthLoginCount = ref(0);
+const todayFailCount = ref(0);
 
-const viewingRecord = ref<LoginLogRecord | null>(null)
+const viewingRecord = ref<LoginLogRecord | null>(null);
 
-const [drawerRegister, drawerMethods] = useDrawer()
-const [tableRegister, tableMethods] = useTable()
+const [drawerRegister, drawerMethods] = useDrawer();
+const [tableRegister, tableMethods] = useTable();
 
 // 加载统计数据
 async function loadStats() {
   try {
-    const res = await getLoginLogStats()
-    const data = res.data || {}
-    todayLoginCount.value = data.todayCount || 0
-    weekLoginCount.value = data.weekCount || 0
-    monthLoginCount.value = data.monthCount || 0
-    todayFailCount.value = data.todayFailCount || 0
+    const res = await getLoginLogStats();
+    const data = res.data || {};
+    todayLoginCount.value = data.todayCount || 0;
+    weekLoginCount.value = data.weekCount || 0;
+    monthLoginCount.value = data.monthCount || 0;
+    todayFailCount.value = data.todayFailCount || 0;
   } catch (error) {
-    console.error('获取统计失败', error)
+    console.error('获取统计失败', error);
   }
 }
 
-loadStats()
+loadStats();
 
 const searchFormSchemas: FormSchema[] = [
   {
@@ -115,7 +115,7 @@ const searchFormSchemas: FormSchema[] = [
     },
     colProps: { span: 6 },
   },
-]
+];
 
 const detailSchemas: DescriptionItem[] = [
   { field: 'id', label: '日志编号' },
@@ -140,9 +140,9 @@ const detailSchemas: DescriptionItem[] = [
     field: 'duration',
     label: '登录耗时',
     render: (value) => {
-      const ms = value as number
-      const color = ms > 1000 ? 'red' : ms > 500 ? 'orange' : 'green'
-      return <a-tag color={color}>{ms} ms</a-tag>
+      const ms = value as number;
+      const color = ms > 1000 ? 'red' : ms > 500 ? 'orange' : 'green';
+      return <a-tag color={color}>{ms} ms</a-tag>;
     },
   },
   {
@@ -159,42 +159,42 @@ const detailSchemas: DescriptionItem[] = [
       </a-typography-paragraph>
     ),
   },
-]
+];
 
 // API 适配层
 async function mockApi(params: Record<string, any>) {
-  const res = await getLoginLogList(params)
+  const res = await getLoginLogList(params);
   // 兼容 mock 直接返回完整响应或已解包的数据
-  const data = res?.data ?? res
-  return { items: data?.list || [], total: data?.total || 0 }
+  const data = res?.data ?? res;
+  return { items: data?.list || [], total: data?.total || 0 };
 }
 
 function handleView(record: any | LoginLogRecord) {
-  viewingRecord.value = record as LoginLogRecord
-  drawerMethods.openDrawer()
+  viewingRecord.value = record as LoginLogRecord;
+  drawerMethods.openDrawer();
 }
 
 function handleDelete(record: any | LoginLogRecord) {
   // Mock 环境下仅做前端删除反馈，实际应调用 delete API
-  message.success(`已删除日志 #${record.id}`)
-  tableMethods.value?.reload()
+  message.success(`已删除日志 #${record.id}`);
+  tableMethods.value?.reload();
 }
 
 function handleBatchDelete() {
   const selectedRows = (tableMethods.value?.getSelectRows?.() ||
-    []) as LoginLogRecord[]
+    []) as LoginLogRecord[];
   if (selectedRows.length === 0) {
-    message.warning('请先选择要删除的日志')
-    return
+    message.warning('请先选择要删除的日志');
+    return;
   }
-  message.success(`批量删除 ${selectedRows.length} 条日志成功`)
-  tableMethods.value?.reload()
+  message.success(`批量删除 ${selectedRows.length} 条日志成功`);
+  tableMethods.value?.reload();
 }
 
 function handleExport() {
   const selectedRows = (tableMethods.value?.getSelectRows?.() ||
-    []) as LoginLogRecord[]
-  const dataToExport = selectedRows.length > 0 ? selectedRows : []
+    []) as LoginLogRecord[];
+  const dataToExport = selectedRows.length > 0 ? selectedRows : [];
 
   exportToExcel({
     filename: '登录日志',
@@ -216,19 +216,19 @@ function handleExport() {
       ...i,
       status: i.status === 'success' ? '成功' : '失败',
     })),
-  })
+  });
 }
 
 function handlePrint() {
   usePrint({
     title: '登录日志',
     target: '.ant-card-body',
-  })
+  });
 }
 
 function handleClear() {
-  message.success('日志清空成功')
-  tableMethods.value?.reload()
+  message.success('日志清空成功');
+  tableMethods.value?.reload();
 }
 
 const columns: BasicColumn[] = [
@@ -285,7 +285,7 @@ const columns: BasicColumn[] = [
     ellipsis: true,
   },
   { title: '登录时间', dataIndex: 'loginTime', key: 'loginTime', width: 170 },
-]
+];
 </script>
 
 <template>

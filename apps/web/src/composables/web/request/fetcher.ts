@@ -10,7 +10,7 @@ import { isTokenExpired } from '@antdv/shared/jwt';
 import { createFetch } from '@vueuse/core';
 import { notification } from 'antdv-next';
 import { AUTHORIZATION_KEY } from '~/composables/constant';
-import { LOGIN_PATH, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/config/constants';
+import { LOGIN_PATH, REFRESH_TOKEN_KEY } from '~/config/constants';
 import { useUserStore } from '~/stores/modules/user';
 
 import { ErrorCode, isServerFailure, RequestError } from './error';
@@ -98,7 +98,8 @@ async function doRefreshToken(baseUrl: string): Promise<string> {
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json; charset=utf-8',
-    [AUTHORIZATION_KEY]: `Bearer ${userStore.token || cache.getItem(TOKEN_KEY)}`,
+    // 只认 store 里的明文 token：缓存里存的是 JWE 密文，当凭证发出去必然 401
+    [AUTHORIZATION_KEY]: `Bearer ${userStore.token ?? ''}`,
   };
   try {
     const csrf = await getCsrfToken();
@@ -125,8 +126,9 @@ async function doRefreshToken(baseUrl: string): Promise<string> {
   const newAccess = payload.data?.accessToken;
   const newRefresh = payload.data?.refreshToken ?? refreshTokenValue;
   if (!newAccess) throw new Error('刷新接口未返回 accessToken');
-  userStore.setToken(newAccess, newRefresh);
-  cache.setItem(TOKEN_KEY, newAccess);
+  userStore.setToken(newAccess);
+  // accessToken 的持久化由 store 负责（它写的是密文）；这里再塞一次明文会把密文覆盖掉，
+  // 于是缓存里的值没法当凭证用。refreshToken 没有 store 字段，只能自己落盘。
   cache.setItem(REFRESH_TOKEN_KEY, newRefresh);
   return newAccess;
 }
@@ -185,7 +187,9 @@ export function createFetcher(opts: CreateFetcherOptions = {}) {
 
         if (!isAuth) {
           const userStore = useUserStore();
-          const accessToken = userStore.token || cache.getItem(TOKEN_KEY);
+          // store 是凭证的唯一来源：入口挂载前会 `initToken()` 把缓存里的密文解开，
+          // 直接回退去读缓存等于把 JWE 当凭证发出去（每次刷新都 401）
+          const accessToken = userStore.token;
           const refreshToken =
             userStore.refreshToken || cache.getItem(REFRESH_TOKEN_KEY);
 
@@ -215,7 +219,7 @@ export function createFetcher(opts: CreateFetcherOptions = {}) {
             }
           }
 
-          const finalToken = useUserStore().token || cache.getItem(TOKEN_KEY);
+          const finalToken = useUserStore().token;
           if (finalToken) {
             fetchOptions.headers = {
               ...fetchOptions.headers,

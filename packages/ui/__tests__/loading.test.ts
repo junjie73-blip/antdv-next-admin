@@ -72,7 +72,7 @@ afterEach(async () => {
   document.body.innerHTML = '';
 });
 
-describe('Loading 组件 —— 渲染与样式', () => {
+describe('loading 组件 —— 渲染与样式', () => {
   /**
    * 断言统一打在 `.loading-wrapper` 上：
    * @vue/test-utils 默认把内置 `Transition` stub 成 `<transition-stub>`，
@@ -154,7 +154,7 @@ describe('useLoading —— 命令式实例', () => {
     expect(overlayInBody()).toBeNull();
   });
 
-  it('REGRESSION：open / setTip / setLoading 都能改变已存在实例的视图', async () => {
+  it('rEGRESSION：open / setTip / setLoading 都能改变已存在实例的视图', async () => {
     const loading = track(useLoading());
 
     loading.open();
@@ -283,7 +283,9 @@ describe('createLoading —— 函数式快捷方法', () => {
     track(
       createLoading({ background: 'rgba(0, 0, 0, 0.6)', theme: 'dark' }),
     ).open();
-    expect(overlayInBody()?.getAttribute('style')).toContain('background-color');
+    expect(overlayInBody()?.getAttribute('style')).toContain(
+      'background-color',
+    );
   });
 
   it('createFullscreenLoading 挂 body、带 tip 且为 fixed 定位', () => {
@@ -292,7 +294,7 @@ describe('createLoading —— 函数式快捷方法', () => {
     expect(overlayInBody()?.className).toContain('fixed');
   });
 
-  it('REGRESSION：createContainerLoading 真的落在容器内而不是全屏', () => {
+  it('rEGRESSION：createContainerLoading 真的落在容器内而不是全屏', () => {
     const box = document.createElement('div');
     document.body.append(box);
 
@@ -334,7 +336,7 @@ describe('v-loading 指令', () => {
     };
   }
 
-  it('REGRESSION：初始 false、随后 true 也能显示', async () => {
+  it('rEGRESSION：初始 false、随后 true 也能显示', async () => {
     const { box, setVisible } = mountWithDirective({ initial: false });
     expect(overlayIn(box)).toBeNull();
 

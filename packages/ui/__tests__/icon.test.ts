@@ -23,7 +23,7 @@ function symbolId(wrapper: VueWrapper) {
  * 所以把这些规则钉死在这里，而不是靠肉眼回归。
  */
 
-describe('SvgIcon —— 本地 SVG 雪碧图', () => {
+describe('svgIcon —— 本地 SVG 雪碧图', () => {
   it('默认走 #icon-<name> 的 symbol id，16px 见方', () => {
     const wrapper = mount(SvgIcon, { props: { name: 'home' } });
     expect(symbolId(wrapper)).toBe('#icon-home');
@@ -46,7 +46,9 @@ describe('SvgIcon —— 本地 SVG 雪碧图', () => {
     ).toContain('width: 24px');
 
     expect(
-      mount(SvgIcon, { props: { name: 'a', size: '2rem' } }).attributes('style'),
+      mount(SvgIcon, { props: { name: 'a', size: '2rem' } }).attributes(
+        'style',
+      ),
     ).toContain('width: 2rem');
   });
 
@@ -65,7 +67,7 @@ describe('SvgIcon —— 本地 SVG 雪碧图', () => {
   });
 });
 
-describe('IconifyIcon —— Iconify 在线图标', () => {
+describe('iconifyIcon —— Iconify 在线图标', () => {
   /**
    * 从组件自身推出 props 类型，改字段名时测试会先红，而不是静默传错属性。
    * @iconify/vue 在 jsdom 里不一定拉得到图标数据，所以断言只看透传下去的属性。
@@ -85,7 +87,11 @@ describe('IconifyIcon —— Iconify 在线图标', () => {
   });
 
   it('宽高各自可覆盖，缺省的一边回退到 size', () => {
-    const passed = forwardedProps({ height: 32, icon: 'carbon:home', size: 20 });
+    const passed = forwardedProps({
+      height: 32,
+      icon: 'carbon:home',
+      size: 20,
+    });
     expect(passed.width).toBe(20);
     expect(passed.height).toBe(32);
   });

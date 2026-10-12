@@ -137,7 +137,10 @@ export function stripDangerousMarkup(
     output = output.replaceAll(/<(object|embed)\b[\s\S]*?<\/\1\s*>/gi, '');
     output = output.replaceAll(/<applet\b[\s\S]*?<\/applet\s*>/gi, '');
     // 兜底清扫：自闭合写法（<embed>）或未闭合的残标签
-    output = output.replaceAll(/<\/?(?:script|iframe|object|embed|applet)\b[^>]*>/gi, '');
+    output = output.replaceAll(
+      /<\/?(?:script|iframe|object|embed|applet)\b[^>]*>/gi,
+      '',
+    );
   }
 
   if (opts.stripEventHandlers) {
@@ -146,7 +149,10 @@ export function stripDangerousMarkup(
       /\s+on[a-z-]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi,
       '',
     );
-    output = output.replaceAll(/\s+srcdoc\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '');
+    output = output.replaceAll(
+      /\s+srcdoc\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi,
+      '',
+    );
   }
 
   return output;
@@ -155,7 +161,7 @@ export function stripDangerousMarkup(
 /** DOMPurify 在当前运行环境是否真的可用 */
 function canUseDomPurify(): boolean {
   return (
-    typeof DOMPurify !== 'undefined' &&
+    DOMPurify !== undefined &&
     DOMPurify.isSupported === true &&
     typeof DOMPurify.sanitize === 'function'
   );
@@ -236,7 +242,7 @@ export function escapeJs(str: string): string {
   // 先转义反斜杠，再转义其他字符
   // 这里必须是全局替换：`replace(/\\/)` 只处理第一个反斜杠，
   // 输入 `a\b\c` 会漏掉第二个，导致转义结果仍可被二次解析。
-  let escaped = String(str).replaceAll(/\\/g, String.raw`\\`);
+  let escaped = String(str).replaceAll('\\', String.raw`\\`);
   escaped = escaped.replaceAll(
     /['"\n\r\t\0\u2028\u2029]/g,
     (char) => jsEscapeMap[char] ?? char,
@@ -399,7 +405,10 @@ export async function purifyHtml(
 
   // 如果允许 HTML 且 DOMPurify 可用，则深度清理；否则退回 HTML 转义
   if (opts.allowHtml && canUseDomPurify()) {
-    return DOMPurify.sanitize(stripDangerousMarkup(dirty, opts), domPurifyConfig);
+    return DOMPurify.sanitize(
+      stripDangerousMarkup(dirty, opts),
+      domPurifyConfig,
+    );
   } else {
     return escapeHtml(dirty);
   }

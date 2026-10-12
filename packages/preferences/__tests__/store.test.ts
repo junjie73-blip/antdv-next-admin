@@ -26,7 +26,9 @@ function rawSaved(): null | { value: AppSetting } {
   return raw ? (JSON.parse(raw) as { value: AppSetting }) : null;
 }
 
-function make(options: Parameters<typeof createPreferences>[0] = {}): PreferencesInstance {
+function make(
+  options: Parameters<typeof createPreferences>[0] = {},
+): PreferencesInstance {
   return createPreferences({
     // 单测里不往真实 documentElement 上写，除非用例专门验证 DOM 落地
     applyToDom: false,
@@ -45,7 +47,7 @@ function fakeMediaQueryList(initial = false) {
     listenerCount: () => listeners.length,
     removeEventListener: (_type: string, callback: () => void) => {
       const index = listeners.indexOf(callback);
-      if (index >= 0) listeners.splice(index, 1);
+      if (index !== -1) listeners.splice(index, 1);
     },
     setMatches(next: boolean) {
       matches = next;
@@ -77,7 +79,10 @@ describe('createPreferences 读取与合并', () => {
   });
 
   it('旧缓存缺字段时逐项兜底', () => {
-    const store = createCache<Partial<AppSetting>>({ prefix: PREFIX, type: 'local' });
+    const store = createCache<Partial<AppSetting>>({
+      prefix: PREFIX,
+      type: 'local',
+    });
     store.setItem(PREFERENCES_CACHE_KEY, { primaryColor: '#f5222d' });
 
     const preferences = make();
@@ -97,7 +102,9 @@ describe('createPreferences 读取与合并', () => {
 
     const preferences = make();
     expect(preferences.get().showTabs).toBe(true);
-    expect(preferences.get().primaryColor).toBe(DEFAULT_PREFERENCES.primaryColor);
+    expect(preferences.get().primaryColor).toBe(
+      DEFAULT_PREFERENCES.primaryColor,
+    );
     expect('legacyField' in preferences.get()).toBe(false);
 
     preferences.patch({ fontSize: 16 });
@@ -121,7 +128,10 @@ describe('createPreferences 读取与合并', () => {
       throw new Error('quota exceeded');
     });
     const preferences = make({
-      cache: { getItem: () => null, setItem } as unknown as CacheInstance<AppSetting>,
+      cache: {
+        getItem: () => null,
+        setItem,
+      } as unknown as CacheInstance<AppSetting>,
     });
     expect(() => preferences.patch({ primaryColor: '#faad14' })).not.toThrow();
     expect(preferences.get().primaryColor).toBe('#faad14');
@@ -165,7 +175,9 @@ describe('createPreferences 写入', () => {
   });
 
   it('reset 回到默认并落盘', () => {
-    const preferences = make({ defaults: { copyrightIcp: '京ICP备00000000号' } });
+    const preferences = make({
+      defaults: { copyrightIcp: '京ICP备00000000号' },
+    });
     preferences.patch({ theme: 'dark' });
     preferences.reset();
     expect(preferences.get().theme).toBe('auto');
@@ -274,7 +286,9 @@ describe('createToggles', () => {
     const keys = booleanPreferenceKeys();
 
     expect(keys.length).toBeGreaterThan(20);
-    expect(keys.every((key) => typeof DEFAULT_PREFERENCES[key] === 'boolean')).toBe(true);
+    expect(
+      keys.every((key) => typeof DEFAULT_PREFERENCES[key] === 'boolean'),
+    ).toBe(true);
     expect(Object.keys(toggles)).toEqual(keys);
   });
 
@@ -289,7 +303,7 @@ describe('createToggles', () => {
   });
 });
 
-describe('DOM 落地', () => {
+describe('dOM 落地', () => {
   it('创建时即应用当前偏好', () => {
     make({ applyToDom: true, defaults: { primaryColor: '#fa541c' } });
     expect(html.style.getPropertyValue('--ant-color-primary')).toBe('#fa541c');

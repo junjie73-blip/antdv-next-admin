@@ -62,10 +62,9 @@ describe('resolveLibExternals', () => {
   });
 
   it('extra 追加在集合里，不会漏掉手写的外部依赖', () => {
-    const external = resolveLibExternals(
-      { dependencies: { vue: '^3.5.0' } },
-      ['dayjs'],
-    );
+    const external = resolveLibExternals({ dependencies: { vue: '^3.5.0' } }, [
+      'dayjs',
+    ]);
     expect(external).toEqual(['dayjs', 'vue']);
   });
 

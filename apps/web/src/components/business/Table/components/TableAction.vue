@@ -27,7 +27,7 @@ const props = withDefaults(defineProps<Props>(), {
   maxShowCount: 4,
   record: () => ({}),
 });
-const { hasPermission } = usePermission();
+const { hasAnyPermission, hasPermission } = usePermission();
 /**
  * VNode 渲染辅助组件
  * 用于把动态 VNode（如函数式 label）渲染到模板中
@@ -59,10 +59,10 @@ function getButtonSize(
   return action.size || undefined;
 }
 
+/** 数组语义是"任一命中即可"；旧写法把数组 join 成一个码，永远匹配不上 */
 function hasAuth(auth: ActionItem['auth']): boolean {
   if (!auth) return true;
-  // 可根据实际权限系统调整
-  return hasPermission(isString(auth) ? auth : auth.join(','));
+  return isString(auth) ? hasPermission(auth) : hasAnyPermission(auth);
 }
 
 function isShow(action: ActionItem, record: Record<string, any>): boolean {

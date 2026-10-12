@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { applyProgressGuard, createProgressGuards } from '../src/guards/progress';
+import {
+  applyProgressGuard,
+  createProgressGuards,
+} from '../src/guards/progress';
 import { createTitleAfterEach, formatRouteTitle } from '../src/guards/title';
 import { fakeRouter } from './helpers';
 
@@ -44,7 +47,9 @@ describe('createProgressGuards', () => {
       done: () => progress.done(),
       start: () => progress.start(),
     });
-    expect(beforeEachHandlers[0]?.({} as never, {} as never, () => {})).toBeUndefined();
+    expect(
+      beforeEachHandlers[0]?.({} as never, {} as never, () => {}),
+    ).toBeUndefined();
   });
 
   it('导航出错也要收尾，否则进度条永远停在半路', () => {
@@ -73,7 +78,11 @@ describe('createProgressGuards', () => {
 describe('createTitleAfterEach', () => {
   it('有 meta.title 时拼接站点名', () => {
     const setTitle = vi.fn();
-    const afterEach = createTitleAfterEach({ baseTitle: 'Acme', scrollToTop: false, setTitle });
+    const afterEach = createTitleAfterEach({
+      baseTitle: 'Acme',
+      scrollToTop: false,
+      setTitle,
+    });
 
     afterEach({ meta: { title: '用户管理' }, path: '/system/user' } as never);
     expect(setTitle).toHaveBeenCalledWith('用户管理 | Acme');
@@ -81,12 +90,19 @@ describe('createTitleAfterEach', () => {
 
   it('没有标题时用站点名，空字符串标题也算没有', () => {
     const setTitle = vi.fn();
-    const afterEach = createTitleAfterEach({ baseTitle: 'Acme', scrollToTop: false, setTitle });
+    const afterEach = createTitleAfterEach({
+      baseTitle: 'Acme',
+      scrollToTop: false,
+      setTitle,
+    });
 
     afterEach({ meta: {}, path: '/a' } as never);
     afterEach({ meta: { title: '' }, path: '/b' } as never);
 
-    expect(setTitle.mock.calls.map((call) => call[0])).toEqual(['Acme', 'Acme']);
+    expect(setTitle.mock.calls.map((call) => call[0])).toEqual([
+      'Acme',
+      'Acme',
+    ]);
   });
 
   it('formatTitle 可定制', () => {
@@ -105,7 +121,10 @@ describe('createTitleAfterEach', () => {
   it('默认写 document.title 并滚到顶部', () => {
     const scrollTo = vi.fn();
     const originalScrollTo = window.scrollTo;
-    Object.defineProperty(window, 'scrollTo', { configurable: true, value: scrollTo });
+    Object.defineProperty(window, 'scrollTo', {
+      configurable: true,
+      value: scrollTo,
+    });
     document.title = '初始';
 
     try {

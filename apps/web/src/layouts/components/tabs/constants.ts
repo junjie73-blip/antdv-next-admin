@@ -1,5 +1,7 @@
 import type { TabActionKey } from '@antdv/types';
 
+import i18n from '~/locales';
+
 /**
  * 标签页操作集元数据。
  *
@@ -12,6 +14,22 @@ export interface TabActionMeta {
   icon?: string;
   key: 'divider' | TabActionKey;
   label: (ctx: TabActionContext) => string;
+}
+
+/**
+ * 文案在 `label()` 被调用的那一刻才取（而不是模块顶部固化一份字符串），
+ * 因为 label 是在组件的 computed 里求值的：读到 locale 就把这个 computed
+ * 登记成了 locale 的依赖，切语言时菜单才会跟着重算。
+ */
+function text(key: string, named?: Record<string, number>): string {
+  return named ? i18n.global.t(key, named) : i18n.global.t(key);
+}
+
+/** 批量关闭项：有数量走带 `{count}` 的键，数量为 0 时不带括号 */
+function closeLabel(base: string, count: number): string {
+  return count > 0
+    ? text(`tabs.${base}Count`, { count })
+    : text(`tabs.${base}`);
 }
 
 export interface TabActionContext {
@@ -36,48 +54,48 @@ export const TAB_ACTIONS: TabActionMeta[] = [
   {
     icon: 'carbon:close',
     key: 'close',
-    label: () => '关闭当前',
+    label: () => text('tabs.closeCurrent'),
   },
   {
     icon: 'carbon:pin',
     key: 'affix',
-    label: (ctx) => (ctx.affixed ? '取消固定' : '固定标签页'),
+    label: (ctx) => text(ctx.affixed ? 'tabs.affixOff' : 'tabs.affix'),
   },
   {
     icon: 'carbon:maximize',
     key: 'maximize',
-    label: (ctx) => (ctx.maximized ? '还原当前页' : '放大当前页'),
+    label: (ctx) => text(ctx.maximized ? 'tabs.maximizeOff' : 'tabs.maximize'),
   },
   {
     icon: 'carbon:reset',
     key: 'refresh',
-    label: () => '刷新当前',
+    label: () => text('tabs.refreshCurrent'),
   },
   { divider: true, key: 'divider', label: () => '' },
   {
     icon: 'carbon:launch',
     key: 'openInNewWindow',
-    label: () => '在新窗口打开',
+    label: () => text('tabs.openInNewWindow'),
   },
   {
     icon: 'carbon:close-outline',
     key: 'closeOther',
-    label: (ctx) => `关闭其他${ctx.others > 0 ? `（${ctx.others}）` : ''}`,
+    label: (ctx) => closeLabel('closeOther', ctx.others),
   },
   {
     icon: 'carbon:arrow-left',
     key: 'closeLeft',
-    label: (ctx) => `关闭左侧${ctx.closeableLeft > 0 ? `（${ctx.closeableLeft}）` : ''}`,
+    label: (ctx) => closeLabel('closeLeft', ctx.closeableLeft),
   },
   {
     icon: 'carbon:arrow-right',
     key: 'closeRight',
-    label: (ctx) => `关闭右侧${ctx.closeableRight > 0 ? `（${ctx.closeableRight}）` : ''}`,
+    label: (ctx) => closeLabel('closeRight', ctx.closeableRight),
   },
   {
     icon: 'carbon:close-filled',
     key: 'closeAll',
-    label: () => '关闭全部',
+    label: () => text('tabs.closeAll'),
   },
 ];
 
@@ -92,7 +110,9 @@ export interface TabActionItem {
 
 export function buildTabActions(ctx: TabActionContext): TabActionItem[] {
   return TAB_ACTIONS.map((action) => ({
-    disabled: action.divider ? true : isActionDisabled(action.key as TabActionKey, ctx),
+    disabled: action.divider
+      ? true
+      : isActionDisabled(action.key as TabActionKey, ctx),
     divider: Boolean(action.divider),
     icon: action.icon,
     key: (action.key === 'divider' ? '' : action.key) as TabActionKey,
@@ -100,7 +120,10 @@ export function buildTabActions(ctx: TabActionContext): TabActionItem[] {
   }));
 }
 
-export function isActionDisabled(key: TabActionKey, ctx: TabActionContext): boolean {
+export function isActionDisabled(
+  key: TabActionKey,
+  ctx: TabActionContext,
+): boolean {
   switch (key) {
     // 首页是固定区的锚点，取消它会让「哪个是首页」的判断漂移
     case 'affix': {

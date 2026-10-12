@@ -60,6 +60,11 @@ defineEmits<{
 - 复用的逻辑抽到 `composables/`
 - 有副作用的返回值显式列出
 - 命名 `useXxx`
+- **必须显式 import**：`unplugin-auto-import` 没配 `dirs`，本仓库的 `use*` 一个都不自动导入；而 `usePermission` / `useWebSocket` 在 `@vueuse/core` 里同名，漏 import 不报错只会拿错函数
+- 生命周期钩子写在 hook 函数体顶层，不要藏进 `register` 之类的回调里（回调执行时已没有可用的 currentInstance）
+- 模块级共享状态（单例）必须在注释里写明；不自动清理的要说明由调用方负责
+- 配套单测放同目录 `__tests__/<name>.spec.ts`
+- 完整清单与逐个踩坑：`docs/zh/guide/in-depth/composables.md`
 
 ---
 
@@ -137,12 +142,14 @@ alova 已统一处理：
 
 ## 6. WebSocket
 
-**必须用单例** `useWs()`：
+**必须用单例** `useWebSocket()`（`apps/web/src/utils/ws.ts`，不是 `@antdv/composables/websocket` 那个底层实现，也不是 `@vueuse/core` 的同名函数 —— 本项目不配 auto-import，看清 import 来源）：
 
 ```ts
-const ws = useWs();
+import { useWebSocket } from '~/utils/ws';
+
+const ws = useWebSocket();
 const off = ws.onNotice((notice) => { ... });
-onUnmounted(() => off());
+onUnmounted(() => off());   // 订阅函数返回解订函数
 ```
 
 ❌ 不要自己 `new WebSocket`。❌ 不要在多个组件里各自调 `useWebSocket`。❌ 不要把监听器挂在 `socket.on("message")` 上多次。
@@ -188,7 +195,8 @@ export const cardClassName = cn('shadow-sm', 'rounded-lg');
 
 ```vue
 <script setup lang="ts">
-const [tableRegister, tableMethods] = useTable();
+// 第二个返回值是 Ref<TableActionType | null>，不是方法对象：调实例方法要 `tableRef.value?.reload()`
+const [tableRegister, tableRef] = useTable();
 
 async function fetchApi(params: Record<string, any>) {
   return await getUserList(params);
@@ -230,7 +238,7 @@ const { isEditing, handleAdd, handleEdit, handleSave, handleDelete } = useCRUD<U
   containerType: "modal",
   modalMethods,
   formMethods,
-  tableMethods,
+  tableMethods: tableRef, // useTable() 的那个 Ref
   idKey: "userId",
   getEmptyValues: () => ({ ...USER_EMPTY_VALUES }),
   getFormValues: (record) => ({ ... }),
@@ -245,7 +253,7 @@ const { isEditing, handleAdd, handleEdit, handleSave, handleDelete } = useCRUD<U
 });
 ```
 
-**删除确认由操作项的 `popConfirm` 负责**，关闭 `useCRUD` 内置 Modal.confirm，避免双重确认。
+**确认框分两条口径**：单条删除的确认由操作项的 `popConfirm` 负责，`handleDelete` 自己不弹（避免双重确认）；**批量删除保留 `useCRUD` 内置的那一次 `Modal.confirm`** —— 工具条按钮没有 popconfirm 载体，页面侧不要再补一层。
 
 ---
 
@@ -396,12 +404,12 @@ GET /user/export
 | 用户信息闪空         | `setUserInfo` 直接用参数，别请求 `/auth/profile` |
 | `userId` 是 NaN      | 保持 UUID 字符串，别 `Number()`                  |
 | 强制下线收不到       | WS 消息类型是 `force-logout`                     |
-| 每个页面都连 WS      | 用 `useWs()` 单例                                |
+| 每个页面都连 WS      | 用 `~/utils/ws` 的 `useWebSocket()` 单例         |
 | 登出后主题丢了       | `logout` 不 `reload`，只清 auth key              |
 | 路由注册顺序乱       | 具体路径放 `/:id` 前面                           |
 | 搜索字段被吃         | 后端 Zod `.strict()` 会拒绝未知字段              |
 | 字典选项不更新       | schema 用 `computed` 工厂函数                    |
-| 双重删除确认         | 关闭 `useCRUD` 内置 Modal.confirm                |
+| 双重删除确认         | 单条靠 `popConfirm`，批量只留内置那一次 confirm  |
 | 表格列宽错乱         | `scroll={{ x: ... }}` 或 `table-layout="fixed"`  |
 | 表头样式丢失         | 用 `#headerCell` 插槽，不要覆盖 cell 样式        |
 | `deptIds` 类型不匹配 | 前端 `Array`，后端也要 `Array`                   |

@@ -236,7 +236,8 @@ function observeChartSize(name: string, el: HTMLElement) {
   const observer = new ResizeObserver(() => {
     const instance = charts.get(name);
     // 容器被隐藏（display:none）时尺寸是 0，此时 resize 只会把画布糊成一片
-    if (instance && el.clientWidth > 0 && el.clientHeight > 0) instance.resize();
+    if (instance && el.clientWidth > 0 && el.clientHeight > 0)
+      instance.resize();
   });
   observer.observe(el);
   sizeObservers.add(observer);
@@ -265,7 +266,8 @@ function whenReady(
    * 先声明句柄袋，再声明用到它们的函数 —— 否则 `settle()` 里读 `ob` / `timer`
    * 是"在定义之前引用"，运行时靠闭包侥幸不炸，静态检查直接判错。
    */
-  const handle: { ob?: ResizeObserver; timer?: ReturnType<typeof setTimeout> } = {};
+  const handle: { ob?: ResizeObserver; timer?: ReturnType<typeof setTimeout> } =
+    {};
   /** 兑现一次就销账：observer 断开 + 兜底定时器清掉，不留悬挂句柄 */
   const settle = () => {
     done = true;
@@ -1204,7 +1206,10 @@ function securityAlertLevelText(level: string): string {
                 class="flex min-h-0 flex-col"
                 body-class="flex-1 min-h-0"
               >
-                <div ref="pieChartRef" class="h-full min-h-[140px] w-full"></div>
+                <div
+                  ref="pieChartRef"
+                  class="h-full min-h-[140px] w-full"
+                ></div>
               </ScreenCard>
             </div>
 

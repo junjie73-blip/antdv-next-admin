@@ -1,7 +1,4 @@
-import type {
-  DirectiveBinding,
-  ObjectDirective,
-} from 'vue';
+import type { DirectiveBinding, ObjectDirective } from 'vue';
 
 import type {
   PermissionBindingLike,
@@ -60,7 +57,9 @@ export function createPermissionDirective(
   const className = options.className ?? DEFAULT_PERMISSION_CLASS;
 
   const getCheckers = () =>
-    typeof options.checkers === 'function' ? options.checkers() : options.checkers;
+    typeof options.checkers === 'function'
+      ? options.checkers()
+      : options.checkers;
 
   function evaluate(
     el: HTMLElement,

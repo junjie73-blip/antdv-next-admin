@@ -156,7 +156,9 @@ describe('useRouteLoading', () => {
   it('自动模式：导航开始 start，导航结束后按 minDuration 收尾', async () => {
     const { api, scope } = setup({ minDuration: 200 });
 
-    guards.beforeEach.forEach((fn) => fn({ path: '/b' }, { path: '/a' }, () => {}));
+    guards.beforeEach.forEach((fn) =>
+      fn({ path: '/b' }, { path: '/a' }, () => {}),
+    );
     expect(api.isLoading.value).toBe(true);
 
     guards.afterEach.forEach((fn) => fn({ path: '/b' }, { path: '/a' }));

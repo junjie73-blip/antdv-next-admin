@@ -297,7 +297,8 @@ export async function executeRequest<T = any>(
 
   const finalMethod = method.toUpperCase();
   /** 位置参数覆盖 `opts.params`；两边都没有就是不带查询串 */
-  const query = opts.params || params ? { ...opts.params, ...params } : undefined;
+  const query =
+    opts.params || params ? { ...opts.params, ...params } : undefined;
   const finalUrl = buildUrl(url, query);
   // 流式 body（FormData/Blob/流）无法稳定序列化成 key，用占位符并关闭并发去重
   const streamBody = isBodyInit(body) && typeof body !== 'string';

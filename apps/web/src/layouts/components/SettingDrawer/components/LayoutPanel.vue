@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { TabStyle } from '@antdv/types';
 
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
 import {
   CONTENT_MAX_WIDTH,
   CONTENT_MIN_WIDTH,
@@ -22,12 +25,21 @@ import SettingItem from './SettingItem.vue';
 defineOptions({ name: 'LayoutPanel' });
 
 const appStore = useAppStore();
+const { t } = useI18n({ useScope: 'global' });
 
-/** Segmented 的 `value` 只能是 string | number，偏好里的联合类型在这里收窄一次 */
-const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
-  label: item.label,
-  value: item.value as string,
-}));
+/**
+ * 必须包在 computed 里：`TAB_STYLE_OPTIONS` 的 `label` 是 getter，
+ * 在 setup 里 map 一次就把文案固化成了字符串，切语言不跟着变；
+ * 放进 computed 后读 getter 的那次求值才挂上 locale 依赖。
+ *
+ * 另外 Segmented 的 `value` 只能是 string | number，偏好里的联合类型在这里收窄一次。
+ */
+const tabStyleOptions = computed(() =>
+  TAB_STYLE_OPTIONS.map((item) => ({
+    label: item.label,
+    value: item.value as string,
+  })),
+);
 </script>
 
 <template>
@@ -35,7 +47,7 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
     <!-- ============================================================ -->
     <!-- 布局形态：7 种，全部来自 @antdv/layouts 的 LAYOUT_MODE_OPTIONS     -->
     <!-- ============================================================ -->
-    <SettingGroup title="布局" icon="carbon:grid">
+    <SettingGroup :title="t('preferences.layout')" icon="carbon:grid">
       <div class="grid grid-cols-3 gap-3">
         <button
           v-for="item in LAYOUT_MODE_OPTIONS"
@@ -77,7 +89,10 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
     <!-- ============================================================ -->
     <!-- 内容区宽度：与布局形态正交，7 种形态都能配流式或定宽                   -->
     <!-- ============================================================ -->
-    <SettingGroup title="内容" icon="carbon:align-box-middle-left">
+    <SettingGroup
+      :title="t('preferences.content')"
+      icon="carbon:align-box-middle-left"
+    >
       <div class="grid grid-cols-2 gap-3">
         <button
           v-for="item in CONTENT_MODE_OPTIONS"
@@ -111,8 +126,13 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
 
       <SettingItem
         v-if="appStore.contentMode === 'fixed'"
-        label="定宽宽度"
-        :desc="`${CONTENT_MIN_WIDTH} - ${CONTENT_MAX_WIDTH} px，超出后居中留白`"
+        :label="t('preferences.fixedWidth')"
+        :desc="
+          t('preferences.fixedWidthDesc', {
+            max: CONTENT_MAX_WIDTH,
+            min: CONTENT_MIN_WIDTH,
+          })
+        "
       >
         <a-slider
           :value="appStore.contentWidth"
@@ -120,9 +140,7 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
           :max="CONTENT_MAX_WIDTH"
           :step="20"
           class="!w-32 !m-0"
-          @change="
-            (v: number) => appStore.updateSetting({ contentWidth: v })
-          "
+          @change="(v: number) => appStore.updateSetting({ contentWidth: v })"
         />
       </SettingItem>
     </SettingGroup>
@@ -132,12 +150,12 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
     <!-- ============================================================ -->
     <SettingGroup
       v-if="showsHeaderNav(appStore.layout)"
-      title="顶部导航栏"
+      :title="t('preferences.headerNav')"
       icon="carbon:border-top"
     >
       <SettingItem
-        label="溢出横向滚动"
-        desc="菜单过多时用滚动条/触摸滑动查看，而不是折叠进「···」"
+        :label="t('preferences.headerMenuScroll')"
+        :desc="t('preferences.headerMenuScrollDesc')"
       >
         <a-switch
           :checked="appStore.headerMenuScroll"
@@ -150,12 +168,18 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
     <!-- ============================================================ -->
     <!-- 侧边栏                                                          -->
     <!-- ============================================================ -->
-    <SettingGroup title="侧边栏" icon="carbon:side-panel-close">
+    <SettingGroup
+      :title="t('preferences.sidebar')"
+      icon="carbon:side-panel-close"
+    >
       <!--
         侧边导航现在是"常驻侧栏"形态，折叠开关对它有效；
         窄屏下它会被 useShell 升级成浮层抽屉，那时折叠由抽屉自己管。
       -->
-      <SettingItem label="折叠菜单栏" desc="侧栏仅保留图标">
+      <SettingItem
+        :label="t('preferences.sidebarCollapsed')"
+        :desc="t('preferences.sidebarCollapsedDesc')"
+      >
         <a-switch
           :checked="appStore.sidebarCollapsed"
           size="small"
@@ -163,7 +187,10 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
         />
       </SettingItem>
 
-      <SettingItem label="菜单手风琴" desc="仅展开一个子菜单">
+      <SettingItem
+        :label="t('preferences.menuAccordion')"
+        :desc="t('preferences.menuAccordionDesc')"
+      >
         <a-switch
           :checked="appStore.menuAccordion"
           size="small"
@@ -172,7 +199,7 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
       </SettingItem>
 
       <SettingItem
-        label="菜单栏宽度"
+        :label="t('preferences.sidebarWidth')"
         :desc="`${LAYOUT_SIDEBAR_MIN_WIDTH} - ${LAYOUT_SIDEBAR_MAX_WIDTH} px`"
       >
         <a-input-number
@@ -191,8 +218,8 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
 
       <SettingItem
         v-if="showsNavRail(appStore.layout)"
-        label="图标栏宽度"
-        desc="双列形态第一列的宽度"
+        :label="t('preferences.railWidth')"
+        :desc="t('preferences.railWidthDesc')"
       >
         <a-input-number
           :value="appStore.railWidth"
@@ -202,7 +229,8 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
           size="small"
           class="!w-24"
           @change="
-            (v: number | null) => v !== null && appStore.updateSetting({ railWidth: v })
+            (v: number | null) =>
+              v !== null && appStore.updateSetting({ railWidth: v })
           "
         />
       </SettingItem>
@@ -211,8 +239,11 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
     <!-- ============================================================ -->
     <!-- 标签页                                                          -->
     <!-- ============================================================ -->
-    <SettingGroup title="标签页" icon="carbon:bookmark">
-      <SettingItem label="显示标签页" desc="主内容区顶部多标签导航">
+    <SettingGroup :title="t('preferences.tabs')" icon="carbon:bookmark">
+      <SettingItem
+        :label="t('preferences.showTabs')"
+        :desc="t('preferences.showTabsDesc')"
+      >
         <a-switch
           :checked="appStore.showTabs"
           size="small"
@@ -220,7 +251,10 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
         />
       </SettingItem>
 
-      <SettingItem label="标签带图标" desc="标签页显示图标">
+      <SettingItem
+        :label="t('preferences.tabShowIcon')"
+        :desc="t('preferences.tabShowIconDesc')"
+      >
         <a-switch
           :checked="appStore.tabShowIcon"
           size="small"
@@ -234,8 +268,8 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
         用户在界面上永远切不到。这里补上开关，行为不改，只是把已有的能力接出来。
       -->
       <SettingItem
-        label="标签风格"
-        desc="卡片带底色、谷歌是浏览器标签、胶囊圆角、下划线仅指示条、纯文本用分隔线"
+        :label="t('preferences.tabStyle')"
+        :desc="t('preferences.tabStyleDesc')"
         stacked
       >
         <Segmented
@@ -243,11 +277,17 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
           size="small"
           :options="tabStyleOptions"
           :value="appStore.tabStyle"
-          @change="(v: string | number) => appStore.updateSetting({ tabStyle: v as TabStyle })"
+          @change="
+            (v: string | number) =>
+              appStore.updateSetting({ tabStyle: v as TabStyle })
+          "
         />
       </SettingItem>
 
-      <SettingItem label="拖拽排序" desc="按住标签左右拖动调整顺序，固定标签始终排在最前">
+      <SettingItem
+        :label="t('preferences.tabDragSort')"
+        :desc="t('preferences.tabDragSortDesc')"
+      >
         <a-switch
           :checked="appStore.tabDragSort"
           size="small"
@@ -255,7 +295,10 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
         />
       </SettingItem>
 
-      <SettingItem label="右键菜单" desc="在标签上右键呼出关闭/固定/放大等操作">
+      <SettingItem
+        :label="t('preferences.tabContextMenu')"
+        :desc="t('preferences.tabContextMenuDesc')"
+      >
         <a-switch
           :checked="appStore.tabContextMenu"
           size="small"
@@ -267,8 +310,8 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
     <!-- ============================================================ -->
     <!-- 面包屑                                                          -->
     <!-- ============================================================ -->
-    <SettingGroup title="面包屑" icon="carbon:gui">
-      <SettingItem label="开启面包屑">
+    <SettingGroup :title="t('preferences.breadcrumb')" icon="carbon:gui">
+      <SettingItem :label="t('preferences.showBreadcrumb')">
         <a-switch
           :checked="appStore.showBreadcrumb"
           size="small"
@@ -276,7 +319,10 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
         />
       </SettingItem>
 
-      <SettingItem label="仅一个时隐藏" desc="只有一级菜单时隐藏面包屑">
+      <SettingItem
+        :label="t('preferences.breadcrumbHideOnlyOne')"
+        :desc="t('preferences.breadcrumbHideOnlyOneDesc')"
+      >
         <a-switch
           :checked="appStore.hideBreadcrumbWhenOnlyOne"
           size="small"
@@ -284,7 +330,7 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
         />
       </SettingItem>
 
-      <SettingItem label="显示面包屑图标">
+      <SettingItem :label="t('preferences.showBreadcrumbIcon')">
         <a-switch
           :checked="appStore.showBreadcrumbIcon"
           size="small"
@@ -296,8 +342,8 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
     <!-- ============================================================ -->
     <!-- 小部件                                                          -->
     <!-- ============================================================ -->
-    <SettingGroup title="小部件" icon="carbon:application">
-      <SettingItem label="通知小部件">
+    <SettingGroup :title="t('preferences.widgets')" icon="carbon:application">
+      <SettingItem :label="t('preferences.widgetNotice')">
         <a-switch
           :checked="appStore.widgetNotice"
           size="small"
@@ -305,7 +351,7 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
         />
       </SettingItem>
 
-      <SettingItem label="全屏小部件">
+      <SettingItem :label="t('preferences.widgetFullscreen')">
         <a-switch
           :checked="appStore.widgetFullscreen"
           size="small"
@@ -313,7 +359,7 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
         />
       </SettingItem>
 
-      <SettingItem label="主题小部件">
+      <SettingItem :label="t('preferences.widgetTheme')">
         <a-switch
           :checked="appStore.widgetTheme"
           size="small"
@@ -321,7 +367,7 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
         />
       </SettingItem>
 
-      <SettingItem label="时区小部件">
+      <SettingItem :label="t('preferences.widgetTimezone')">
         <a-switch
           :checked="appStore.widgetTimezone"
           size="small"
@@ -329,7 +375,7 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
         />
       </SettingItem>
 
-      <SettingItem label="退出登录小部件">
+      <SettingItem :label="t('preferences.widgetLogout')">
         <a-switch
           :checked="appStore.widgetLogout"
           size="small"
@@ -337,7 +383,7 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
         />
       </SettingItem>
 
-      <SettingItem label="搜索菜单小部件">
+      <SettingItem :label="t('preferences.widgetSearch')">
         <a-switch
           :checked="appStore.widgetSearch"
           size="small"
@@ -345,7 +391,7 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
         />
       </SettingItem>
 
-      <SettingItem label="偏好设置小部件">
+      <SettingItem :label="t('preferences.widgetPreferences')">
         <a-switch
           :checked="appStore.widgetPreferences"
           size="small"
@@ -357,8 +403,11 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
     <!-- ============================================================ -->
     <!-- 底栏 + 版权                                                    -->
     <!-- ============================================================ -->
-    <SettingGroup title="底栏与版权" icon="carbon:text-align-center">
-      <SettingItem label="显示底栏">
+    <SettingGroup
+      :title="t('preferences.footerCopyright')"
+      icon="carbon:text-align-center"
+    >
+      <SettingItem :label="t('preferences.showFooter')">
         <a-switch
           :checked="appStore.showFooter"
           size="small"
@@ -366,7 +415,7 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
         />
       </SettingItem>
 
-      <SettingItem label="显示版权">
+      <SettingItem :label="t('preferences.showCopyright')">
         <a-switch
           :checked="appStore.showCopyright"
           size="small"
@@ -374,10 +423,10 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
         />
       </SettingItem>
 
-      <SettingItem label="公司名">
+      <SettingItem :label="t('preferences.copyrightCompany')">
         <Input
           :value="appStore.copyrightCompany"
-          placeholder="请输入公司名"
+          :placeholder="t('preferences.copyrightCompanyPlaceholder')"
           size="small"
           class="!w-32"
           @update:value="
@@ -386,10 +435,10 @@ const tabStyleOptions = TAB_STYLE_OPTIONS.map((item) => ({
         />
       </SettingItem>
 
-      <SettingItem label="备案信息">
+      <SettingItem :label="t('preferences.copyrightIcp')">
         <Input
           :value="appStore.copyrightIcp"
-          placeholder="如：京ICP备..."
+          :placeholder="t('preferences.copyrightIcpPlaceholder')"
           size="small"
           class="!w-32"
           @update:value="

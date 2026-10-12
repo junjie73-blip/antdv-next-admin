@@ -30,7 +30,12 @@ const MENUS: BackendMenu[] = [
     children: [
       { menuName: '用户管理', name: 'SystemUser', path: '/system/user' },
       // 导航里不再展示，但页面还在
-      { hidden: true, menuName: '部门管理', name: 'SystemDept', path: '/system/dept' },
+      {
+        hidden: true,
+        menuName: '部门管理',
+        name: 'SystemDept',
+        path: '/system/dept',
+      },
     ],
   },
   {
@@ -40,27 +45,48 @@ const MENUS: BackendMenu[] = [
     path: '/account',
     children: [
       { menuName: '个人主页', name: 'AccountCenter', path: '/account/center' },
-      { menuName: '账户设置', name: 'AccountSettings', path: '/account/settings' },
+      {
+        menuName: '账户设置',
+        name: 'AccountSettings',
+        path: '/account/settings',
+      },
     ],
   },
   // 外链只开新窗口，不该出现在站内授权集合里
-  { isExternal: true, menuName: '组件文档', name: 'ExternalDocs', path: 'https://antdv-next.com/' },
+  {
+    isExternal: true,
+    menuName: '组件文档',
+    name: 'ExternalDocs',
+    path: 'https://antdv-next.com/',
+  },
 ];
 
 /** `attachMenuPaths` 只用到这三个能力，喂一个按 path 命中的假路由表即可 */
 const fakeRouter = {
   getRoutes: () =>
-    ['/dashboard', '/dashboard/analysis', '/system', '/system/user', '/system/dept', '/account', '/account/center', '/account/settings'].map(
-      (path) => ({ path }),
-    ),
+    [
+      '/dashboard',
+      '/dashboard/analysis',
+      '/system',
+      '/system/user',
+      '/system/dept',
+      '/account',
+      '/account/center',
+      '/account/settings',
+    ].map((path) => ({ path })),
   hasRoute: (name: string) =>
-    ['Account', 'AccountCenter', 'AccountSettings', 'Analysis', 'Dashboard', 'SystemDept', 'SystemManage', 'SystemUser'].includes(
-      name,
-    ),
+    [
+      'Account',
+      'AccountCenter',
+      'AccountSettings',
+      'Analysis',
+      'Dashboard',
+      'SystemDept',
+      'SystemManage',
+      'SystemUser',
+    ].includes(name),
   resolve: (to: { name: string }) => ({
-    path: `/${to.name
-      .replace(/([a-z])([A-Z])/g, '$1/$2')
-      .toLowerCase()}`,
+    path: `/${to.name.replaceAll(/([a-z])([A-Z])/g, '$1/$2').toLowerCase()}`,
   }),
 };
 

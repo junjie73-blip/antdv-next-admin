@@ -17,14 +17,13 @@ const APP_ROOT = fileURLToPath(new URL('../../../apps/web', import.meta.url));
 function pluginNames(plugins: PluginOption[]): string[] {
   return plugins
     .flat(4)
-    .filter(
-      (plugin): plugin is { name: string } =>
-        Boolean(
-          plugin &&
-            typeof plugin === 'object' &&
-            'name' in plugin &&
-            (plugin as { name?: string }).name,
-        ),
+    .filter((plugin): plugin is { name: string } =>
+      Boolean(
+        plugin &&
+        typeof plugin === 'object' &&
+        'name' in plugin &&
+        (plugin as { name?: string }).name,
+      ),
     )
     .map((plugin) => plugin.name);
 }

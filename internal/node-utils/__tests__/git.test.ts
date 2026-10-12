@@ -29,12 +29,20 @@ describe('gitRun', () => {
  */
 describe('isTransientSpawnError', () => {
   it('系统级资源错误可以重试', () => {
-    for (const code of ['EAGAIN', 'EMFILE', 'ENFILE', 'ENOBUFS', 'ERR_PROC_CREATE'])
+    for (const code of [
+      'EAGAIN',
+      'EMFILE',
+      'ENFILE',
+      'ENOBUFS',
+      'ERR_PROC_CREATE',
+    ])
       expect(isTransientSpawnError({ code })).toBe(true);
   });
 
   it('已经有 exitCode 就是 git 给的答案，不重试', () => {
-    expect(isTransientSpawnError({ code: 'EAGAIN', exitCode: 128 })).toBe(false);
+    expect(isTransientSpawnError({ code: 'EAGAIN', exitCode: 128 })).toBe(
+      false,
+    );
     expect(isTransientSpawnError({ exitCode: 1 })).toBe(false);
     // 退出码 0 但抛了错（异常本身不是"没起来"）也不重试
     expect(isTransientSpawnError({ exitCode: 0 })).toBe(false);

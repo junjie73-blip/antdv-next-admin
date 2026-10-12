@@ -15,48 +15,50 @@ import { useAppStore } from '~/stores';
 const lazy = (loader: () => Promise<unknown>) =>
   defineAsyncComponent(loader as never);
 
+/**
+ * 按钮文案不在这里：每个小部件自己用 `t('header.*')` 取名
+ * （主题、全屏这类还要跟着状态换词），这里只登记"渲染哪一个、用哪个开关控制"。
+ */
 export const WIDGET_MAP: Record<WidgetKey, WidgetMeta> = {
   search: {
     key: 'search',
-    title: '搜索菜单',
     icon: 'carbon:search',
     component: lazy(() => import('./WidgetSearch.vue')),
   },
   fullscreen: {
     key: 'fullscreen',
-    title: '全屏',
     icon: 'ant-design:fullscreen-outlined',
     component: lazy(() => import('./WidgetFullscreen.vue')),
   },
   theme: {
     key: 'theme',
-    title: '主题',
     icon: 'carbon:contrast',
     component: lazy(() => import('./WidgetTheme.vue')),
   },
   timezone: {
     key: 'timezone',
-    title: '时区',
     icon: 'carbon:time',
     component: lazy(() => import('./WidgetTimezone.vue')),
   },
   notice: {
     key: 'notice',
-    title: '通知',
     icon: 'carbon:notification',
     component: lazy(() => import('./WidgetNotice.vue')),
   },
   preferences: {
     key: 'preferences',
-    title: '偏好设置',
     icon: 'carbon:settings',
     component: lazy(() => import('./WidgetPreferences.vue')),
   },
   logout: {
     key: 'logout',
-    title: '退出登录',
     icon: 'carbon:logout',
     component: lazy(() => import('./WidgetLogout.vue')),
+  },
+  'locale-switcher': {
+    key: 'locale-switcher',
+    icon: 'carbon:language',
+    component: lazy(() => import('./LocaleSwitcher.vue')),
   },
 };
 
@@ -64,7 +66,7 @@ export const WIDGET_MAP: Record<WidgetKey, WidgetMeta> = {
  * 每个小部件对应哪个偏好开关。
  *
  * 以前这段是一个 `switch (meta.key)` + `default: return false`：
- * 往 `WIDGET_MAP` 里加了条目却忘了配 case，编译器与 lint 都不吭声，
+ * 往 `WIDGET_MAP` 里加了条目却忘了配 case，编译器与 lint 都不说话，
  * 症状是"偏好设置里明明有开关，顶栏永远不出现"——通知铃铛正是这样哑掉的
  * （`widgetNotice` 默认 true，用户能拨动一个永远不生效的开关）。
  * 换成 `Record<WidgetKey, …>`，少一项就是类型错误。
@@ -80,6 +82,7 @@ const WIDGET_VISIBLE: Record<
   search: (store) => store.widgetSearch,
   theme: (store) => store.widgetTheme,
   timezone: (store) => store.widgetTimezone,
+  'locale-switcher': (store) => store.widgetLocaleSwitcher,
 };
 
 /** 根据 store 配置，返回要渲染的小部件列表（顺序 = `WIDGET_MAP` 的声明顺序） */

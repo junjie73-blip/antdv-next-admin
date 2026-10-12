@@ -19,10 +19,17 @@ import { createPinia } from 'pinia';
 import { loadingFadeOut } from 'virtual:app-loading';
 
 import App from './App.vue';
-import { escapeDirective, safeHtmlDirective, vLazy, vPermission } from './directives';
+import {
+  escapeDirective,
+  safeHtmlDirective,
+  vLazy,
+  vPermission,
+} from './directives';
 import i18n from './locales';
+import { installBrowserMockIfEnabled } from './mock/activate';
 import { registerVendorAntdComponents } from './plugins/vendor-antd-components';
 import { setupRouter } from './router';
+import { useUserStore } from './stores/modules/user';
 import { initSecuritySystem } from './utils/securityInit';
 
 import './bootstrap/env';
@@ -48,10 +55,12 @@ app.use(formCreate);
 app.use(FcDesigner);
 app.use(MotionPlugin);
 
-// 路由必须先装好：Sentry 的 browserTracingIntegration 要拿同一个 router 实例做路由追踪
-const router = setupRouter(app);
-
-if (import.meta.env.PROD) {
+/**
+ * Sentry 的 browserTracing 要拿**同一个 router 实例**做路由追踪，所以它跟路由安装
+ * 排在同一步里（见 `bootstrap`）。
+ */
+function initSentry(router: ReturnType<typeof setupRouter>) {
+  if (!import.meta.env.PROD) return;
   Sentry.init({
     app,
     dsn: import.meta.env.VITE_SENTRY_DSN,
@@ -95,10 +104,45 @@ app.directive('loading', vLoading);
 // ==================== 全局注册组件 ====================
 app.component('PdfViewer', VuePdfEmbed);
 GlobalWorkerOptions.workerSrc = PdfWorker;
-app.mount('#app');
+
+/** 挂载。前面的异步准备工作（mock、会话）都做完才能进来，见 `bootstrap` */
+function mountApp() {
+  app.mount('#app');
+  /**
+   * 首屏 Loading 遮罩挂在 `#app` 的兄弟位置，mount 只会替换 #app 的内容，碰不到它。
+   * 等首帧真正渲染出去再淡出，避免"遮罩没了、页面还是白的"那一瞬。
+   */
+  void nextTick(() => loadingFadeOut());
+}
 
 /**
- * 首屏 Loading 遮罩挂在 `#app` 的兄弟位置，mount 只会替换 #app 的内容，碰不到它。
- * 等首帧真正渲染出去再淡出，避免"遮罩没了、页面还是白的"那一瞬。
+ * 启动序列。三件事的顺序是硬约束：
+ *
+ * 1. 装浏览器内 mock —— 开关是 `VITE_MOCK`（走 `isEnvEnabled` 判定，见 `src/mock/activate.ts`），
+ *    关着时拦截器模块连下载都不会发生；晚一步守卫就已经在打真实网络了。
+ *    chunk 没拉下来（弱网、发版换 hash）也要继续往下走，宁可退回真实后端也别整页白屏。
+ * 2. 还原会话 —— `setToken` 落盘的是 JWE 密文，而 store 建好时只能同步读缓存，
+ *    所以刷新后 `token` 里是一串密文：`isLoggedIn` 为真，请求头却是 `Bearer <密文>`，
+ *    后端认不出人，表现成"每次刷新都要重登"，在按 token 分账号的 mock 上还会
+ *    回落到默认账号（换成权限更小的账号，刷一次页面拿到的是别人的菜单）。
+ * 3. 装路由 + 挂载。
+ *
+ * 1、2 必须**早于** `setupRouter`：`app.use(router)` 一执行，vue-router 的 install
+ * 就立刻发起首次导航（内部 `push(routerHistory.location)`），守卫在那一刻就去取
+ * `/menus` —— 等到 `app.mount` 之后再解密已经晚了。
  */
-void nextTick(() => loadingFadeOut());
+async function bootstrap() {
+  await installBrowserMockIfEnabled().catch((error: unknown) =>
+    console.error('[mock] 浏览器内 mock 装载失败', error),
+  );
+  await useUserStore()
+    .initToken()
+    .catch((error: unknown) =>
+      console.error('[bootstrap] 凭证还原失败，按未登录处理', error),
+    );
+
+  initSentry(setupRouter(app));
+  mountApp();
+}
+
+void bootstrap();

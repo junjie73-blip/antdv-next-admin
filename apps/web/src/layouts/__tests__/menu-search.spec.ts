@@ -91,9 +91,9 @@ describe('flattenMenus', () => {
     expect(entries.find((entry) => entry.path === '/profile')?.external).toBe(
       false,
     );
-    expect(
-      entries.find((entry) => entry.external)?.path,
-    ).toMatch(/^https:\/\//);
+    expect(entries.find((entry) => entry.external)?.path).toMatch(
+      /^https:\/\//,
+    );
   });
 
   it('空菜单返回空数组，不抛异常', () => {
@@ -125,9 +125,9 @@ describe('matchEntries', () => {
   });
 
   it('层级也参与匹配，所以「系统 部门」能找到导航里不显示的页面', () => {
-    expect(matchEntries(entries, '系统 部门').map((entry) => entry.path)).toEqual(
-      ['/system/dept'],
-    );
+    expect(
+      matchEntries(entries, '系统 部门').map((entry) => entry.path),
+    ).toEqual(['/system/dept']);
   });
 
   it('多段关键词是与的关系，任一段不命中就整体排除', () => {
@@ -155,9 +155,9 @@ describe('matchEntries', () => {
   });
 
   it('忽略大小写与首尾空格', () => {
-    expect(matchEntries(entries, '  Dashboard ').map((entry) => entry.path)).toEqual(
-      ['/dashboard'],
-    );
+    expect(
+      matchEntries(entries, '  Dashboard ').map((entry) => entry.path),
+    ).toEqual(['/dashboard']);
   });
 
   it('limit 截断候选数量', () => {

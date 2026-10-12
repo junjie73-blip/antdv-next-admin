@@ -121,8 +121,8 @@ function resolveOptions(
    * 值已经被 parseLoadedEnv 转成布尔的调用链上恒为 false。
    */
   const env: Record<string, unknown> = {
-    ...(process.env ?? {}),
-    ...(((import.meta as any).env ?? {})),
+    ...process.env,
+    ...(import.meta as any).env,
   };
   const readSwitch = (key: string): boolean | undefined =>
     env[key] == null ? undefined : isEnvEnabled(env[key]);

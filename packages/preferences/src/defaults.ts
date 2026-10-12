@@ -52,6 +52,7 @@ export const DEFAULT_PREFERENCES = {
   widgetLogout: true,
   widgetSearch: true,
   widgetPreferences: true,
+  widgetLocaleSwitcher: true,
 
   /* ---------- 底栏 ---------- */
   showFooter: true,

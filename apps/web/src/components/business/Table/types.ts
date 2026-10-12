@@ -252,7 +252,7 @@ export interface ActionItem {
   /** 点击事件 */
   onClick?: Fn<[Recordable, MouseEvent], void>;
 
-  /** 权限 */
+  /** 权限码；数组表示任一命中即可 */
   auth?: string | string[];
 
   /** 是否显示 */
@@ -614,7 +614,13 @@ export interface BasicTableProps {
   /** 表格底部 */
   footer?: (data: Recordable[]) => VNode;
 
-  /** 是否启用拖拽排序 */
+  /**
+   * 是否启用拖拽排序（`BasicTable` 挂载后把 Sortable 绑到 `<tbody>` 上）。
+   *
+   * 排完序只写回当前 `dataSource`，是否落库由 `dragSortConfig.onDragEnd` 决定。
+   * 前端分页（本地 `dataSource` + 分页开）时行下标只覆盖当前页，
+   * 需要「拖出的顺序就是全量顺序」请配 `pagination: false`，或走服务端分页。
+   */
   dragSort?: boolean;
 
   /** 拖拽排序配置 */

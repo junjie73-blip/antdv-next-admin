@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { CSP_UPGRADE_INSECURE, cspUpgradeInsecureRequests } from '../src/plugins/csp';
+import {
+  CSP_UPGRADE_INSECURE,
+  cspUpgradeInsecureRequests,
+} from '../src/plugins/csp';
 
 /**
  * 这条判断是"本地 Safari 白屏"的开关，所以按渲染结果测，不按实现细节测。

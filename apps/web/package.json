@@ -11,7 +11,8 @@
     "test:unit": "pnpm vitest run",
     "test:e2e": "pnpm playwright test",
     "test:e2e:install": "pnpm playwright install chromium firefox webkit",
-    "type-check": "vue-tsc --noEmit -p tsconfig.app.json && vue-tsc --noEmit -p tsconfig.vitest.json"
+    "type-check": "vue-tsc --noEmit -p tsconfig.app.json && vue-tsc --noEmit -p tsconfig.vitest.json",
+    "verify:prod-mock": "node scripts/verify-prod-mock.mjs"
   },
   "dependencies": {
     "@antdv-next/cssinjs": "catalog:",
@@ -72,7 +73,7 @@
     "bpmn-js-i18n-zh": "catalog:",
     "bpmn-js-properties-panel": "catalog:",
     "camunda-bpmn-moddle": "catalog:",
-    "clsx": "^2.1.1",
+    "clsx": "catalog:",
     "codemirror": "catalog:",
     "cronstrue": "catalog:",
     "dayjs": "catalog:",
@@ -90,7 +91,7 @@
     "nanoid": "catalog:",
     "nprogress": "catalog:",
     "pdfjs-dist": "catalog:",
-    "pinia": "^3.0.4",
+    "pinia": "catalog:",
     "qrcode": "catalog:",
     "resize-observer-polyfill": "catalog:",
     "sm-crypto": "catalog:",
@@ -100,7 +101,7 @@
     "tw-animate-css": "catalog:",
     "video.js": "catalog:",
     "vite-plugin-compression2": "catalog:",
-    "vue": "^3.5.43",
+    "vue": "catalog:conflicts_vue_h3_5_43",
     "vue-codemirror": "catalog:",
     "vue-cropper": "catalog:",
     "vue-demi": "catalog:",

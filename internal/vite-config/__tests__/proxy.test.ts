@@ -56,7 +56,7 @@ describe('createMockProxy', () => {
     expect(rule?.rewrite('/api/system/menu')).toBe('/api/system/menu');
   });
 
-  it('VITE_MOCK_SERVER 可覆盖目标', () => {
+  it('vITE_MOCK_SERVER 可覆盖目标', () => {
     const rule = createMockProxy({
       VITE_MOCK: 'true',
       VITE_MOCK_SERVER: 'http://mock.internal:8080',
@@ -77,7 +77,7 @@ describe('createServerProxy', () => {
     expect(proxy['/upload']?.target).toBe('http://upload.test');
   });
 
-  it('Mock 关掉时用户代理原样生效', () => {
+  it('mock 关掉时用户代理原样生效', () => {
     const proxy = createServerProxy({ VITE_MOCK: 'false' }, [
       ['/api', 'http://real-backend.test'],
     ]);
@@ -94,19 +94,21 @@ describe('resolveMockPort', () => {
    */
   it('变量缺省时回落到默认端口，不能把 NaN 交出去', () => {
     expect(resolveMockPort({})).toBe(MOCK_SERVER_PORT);
-    expect(resolveMockPort({ VITE_MOCK_PORT: undefined })).toBe(MOCK_SERVER_PORT);
+    expect(resolveMockPort({ VITE_MOCK_PORT: undefined })).toBe(
+      MOCK_SERVER_PORT,
+    );
     expect(resolveMockPort({ VITE_MOCK_PORT: 'abc' })).toBe(MOCK_SERVER_PORT);
   });
 
-  it('VITE_MOCK_PORT 优先，且接受字符串数字', () => {
+  it('vITE_MOCK_PORT 优先，且接受字符串数字', () => {
     expect(resolveMockPort({ VITE_MOCK_PORT: '6320' })).toBe(6320);
     expect(resolveMockPort({ VITE_MOCK_PORT: 6320 })).toBe(6320);
   });
 
   it('没写 VITE_MOCK_PORT 时从 VITE_MOCK_SERVER 取端口，代理与服务端口天然对齐', () => {
-    expect(
-      resolveMockPort({ VITE_MOCK_SERVER: 'http://localhost:5321' }),
-    ).toBe(5321);
+    expect(resolveMockPort({ VITE_MOCK_SERVER: 'http://localhost:5321' })).toBe(
+      5321,
+    );
     // 只写主机不写端口 → 用默认值，而不是解析出 0 / NaN
     expect(resolveMockPort({ VITE_MOCK_SERVER: 'http://mock.internal' })).toBe(
       MOCK_SERVER_PORT,

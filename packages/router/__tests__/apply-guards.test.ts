@@ -47,7 +47,14 @@ describe('applyRouterGuards', () => {
     const { afterEachHandlers, beforeEachHandlers, errorHandlers, router } =
       fakeRouter();
 
-    applyRouterGuards(router, { auth: { homePath: '/home', isLoggedIn: () => false, loginPath: '/login', whiteList: [] } });
+    applyRouterGuards(router, {
+      auth: {
+        homePath: '/home',
+        isLoggedIn: () => false,
+        loginPath: '/login',
+        whiteList: [],
+      },
+    });
 
     expect(beforeEachHandlers).toHaveLength(1);
     expect(afterEachHandlers).toHaveLength(0);

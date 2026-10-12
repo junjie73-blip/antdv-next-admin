@@ -26,9 +26,7 @@ describe('escapeHtml', () => {
     expect(escapeHtml('<script>alert(1)</script>')).toBe(
       '&lt;script&gt;alert(1)&lt;&#x2F;script&gt;',
     );
-    expect(escapeHtml(`a'b"c&d=e`)).toBe(
-      'a&#39;b&quot;c&amp;d&#x3D;e',
-    );
+    expect(escapeHtml(`a'b"c&d=e`)).toBe('a&#39;b&quot;c&amp;d&#x3D;e');
   });
 
   it('空值返回空串而不是 undefined', () => {
@@ -85,7 +83,9 @@ describe('escapeCss', () => {
     expect(escapeCss('background:url(javascript:1)')).not.toContain(
       'javascript:',
     );
-    expect(escapeCss('behavior:url(#default#time2)')).not.toContain('behavior:');
+    expect(escapeCss('behavior:url(#default#time2)')).not.toContain(
+      'behavior:',
+    );
   });
 
   it('保留安全字符', () => {
@@ -137,10 +137,13 @@ describe('sanitizeInput', () => {
   });
 
   it('allowHtml 时先剥离脚本与事件属性，再交给 DOMPurify', () => {
-    const out = sanitizeInput('<p onclick="evil()">ok</p><script>bad()</script>', {
-      allowHtml: true,
-      allowedTags: ['p'],
-    });
+    const out = sanitizeInput(
+      '<p onclick="evil()">ok</p><script>bad()</script>',
+      {
+        allowHtml: true,
+        allowedTags: ['p'],
+      },
+    );
     // 只断言「下限」：无论运行环境的 DOMPurify 是否完整可用，最危险的三类内容都不能出现。
     // 白名单标签是否保留属于 DOMPurify 自身行为，放到浏览器验证里覆盖。
     expect(out).not.toContain('bad()');
@@ -197,10 +200,13 @@ describe('purifyHtml', () => {
   });
 
   it('允许 HTML 时脚本与事件属性都不残留', async () => {
-    const out = await purifyHtml('<div onclick="evil()">a</div><script>bad()</script>', {
-      allowHtml: true,
-      allowedTags: ['div'],
-    });
+    const out = await purifyHtml(
+      '<div onclick="evil()">a</div><script>bad()</script>',
+      {
+        allowHtml: true,
+        allowedTags: ['div'],
+      },
+    );
     expect(out).not.toMatch(/<script/i);
     expect(out).not.toContain('bad()');
     expect(out).not.toContain('onclick');
@@ -220,9 +226,9 @@ describe('stripDangerousMarkup（DOMPurify 之外的下限保证）', () => {
   };
 
   it('剥离 script / iframe / object / embed 整块', () => {
-    expect(stripDangerousMarkup('<b>a</b><script>alert(1)</script>', opts)).toBe(
-      '<b>a</b>',
-    );
+    expect(
+      stripDangerousMarkup('<b>a</b><script>alert(1)</script>', opts),
+    ).toBe('<b>a</b>');
     expect(
       stripDangerousMarkup('<iframe src="//evil"></iframe>keep', opts),
     ).toBe('keep');
@@ -231,18 +237,21 @@ describe('stripDangerousMarkup（DOMPurify 之外的下限保证）', () => {
   });
 
   it('大小写与换行写法都要命中', () => {
+    expect(stripDangerousMarkup('<SCRIPT >a()</ScRiPt>', opts)).not.toContain(
+      'SCRIPT',
+    );
     expect(
-      stripDangerousMarkup('<SCRIPT >a()</ScRiPt>', opts),
-    ).not.toContain('SCRIPT');
-    expect(
-      stripDangerousMarkup('<script\n  type="text/javascript">x()</script>', opts),
+      stripDangerousMarkup(
+        '<script\n  type="text/javascript">x()</script>',
+        opts,
+      ),
     ).toBe('');
   });
 
   it('剥离 on* 事件属性（带引号与不带引号）', () => {
-    expect(stripDangerousMarkup('<img src="a.png" onerror=alert(1)>', opts)).toBe(
-      '<img src="a.png">',
-    );
+    expect(
+      stripDangerousMarkup('<img src="a.png" onerror=alert(1)>', opts),
+    ).toBe('<img src="a.png">');
     expect(stripDangerousMarkup("<a ONCLICK = 'evil()'>x</a>", opts)).toBe(
       '<a>x</a>',
     );
@@ -267,7 +276,7 @@ describe('stripDangerousMarkup（DOMPurify 之外的下限保证）', () => {
   });
 });
 
-describe('Vue 指令', () => {
+describe('vue 指令', () => {
   it('v-safe-html 渲染清理后的 HTML，字符串与对象两种写法都支持', () => {
     const el = document.createElement('div');
     safeHtmlDirective.mounted(el, {
@@ -278,7 +287,10 @@ describe('Vue 指令', () => {
 
     const el2 = document.createElement('div');
     safeHtmlDirective.updated(el2, {
-      value: { allowedTags: ['em'], content: '<em>ok</em><script>bad()</script>' },
+      value: {
+        allowedTags: ['em'],
+        content: '<em>ok</em><script>bad()</script>',
+      },
     });
     expect(el2.innerHTML).not.toContain('bad()');
     expect(el2.innerHTML).toContain('ok');

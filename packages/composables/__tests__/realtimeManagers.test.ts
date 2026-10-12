@@ -7,7 +7,11 @@ import { WebSocketState } from '../src/websocket/types';
 import { WebSocketStateManager } from '../src/websocket/WebSocketStateManager';
 
 function makeHeartbeat(
-  overrides: Partial<{ interval: number; message: string; timeout: number }> = {},
+  overrides: Partial<{
+    interval: number;
+    message: string;
+    timeout: number;
+  }> = {},
 ) {
   const onSend = vi.fn();
   const manager = new HeartbeatManager(
@@ -21,7 +25,7 @@ function makeHeartbeat(
   return { manager, onSend };
 }
 
-describe('HeartbeatManager', () => {
+describe('heartbeatManager', () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -131,7 +135,7 @@ describe('HeartbeatManager', () => {
   });
 });
 
-describe('WebSocketStateManager', () => {
+describe('webSocketStateManager', () => {
   it('初始为 disconnected，状态判据跟着变', () => {
     const manager = new WebSocketStateManager();
     expect(manager.getState()).toBe(WebSocketState.Disconnected);
@@ -178,7 +182,7 @@ describe('WebSocketStateManager', () => {
   });
 });
 
-describe('SSEStateManager', () => {
+describe('sSEStateManager', () => {
   it('状态迁移与判据', () => {
     const manager = new SSEStateManager();
     expect(manager.getState()).toBe(SSEState.Disconnected);

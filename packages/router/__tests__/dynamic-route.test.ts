@@ -67,7 +67,10 @@ describe('filterRoutes', () => {
 describe('createDynamicRouteGuard', () => {
   it('未登录访问受保护页：跳登录，且不去拉菜单', async () => {
     const deps = makeDeps({ isLoggedIn: () => false });
-    const result = await runGuard(createDynamicRouteGuard(deps), fakeTo({ path: '/system/user' }));
+    const result = await runGuard(
+      createDynamicRouteGuard(deps),
+      fakeTo({ path: '/system/user' }),
+    );
 
     expect(result).toEqual({
       path: '/login',
@@ -119,7 +122,10 @@ describe('createDynamicRouteGuard', () => {
     });
 
     expect(
-      await runGuard(createDynamicRouteGuard(deps), fakeTo({ name: 'User', path: '/system/user' })),
+      await runGuard(
+        createDynamicRouteGuard(deps),
+        fakeTo({ name: 'User', path: '/system/user' }),
+      ),
     ).toBe(true);
     expect(onError).toHaveBeenCalledWith(boom);
   });

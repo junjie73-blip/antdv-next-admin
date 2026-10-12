@@ -26,14 +26,18 @@ describe('getAntdTheme', () => {
   it('light 用亮色 token、亮色组件覆盖与 defaultAlgorithm', () => {
     const config = getAntdTheme('light');
     expect(config.algorithm).toBe(theme.defaultAlgorithm);
-    expect(config.token).toMatchObject({ colorPrimary: lightToken.colorPrimary });
+    expect(config.token).toMatchObject({
+      colorPrimary: lightToken.colorPrimary,
+    });
     expect(config.components).toEqual(lightComponents);
   });
 
   it('dark 用暗色 token 与 darkAlgorithm', () => {
     const config = getAntdTheme('dark');
     expect(config.algorithm).toBe(theme.darkAlgorithm);
-    expect(config.token).toMatchObject({ colorPrimary: darkToken.colorPrimary });
+    expect(config.token).toMatchObject({
+      colorPrimary: darkToken.colorPrimary,
+    });
     expect(config.components).toEqual(darkComponents);
   });
 
@@ -60,7 +64,10 @@ describe('getAntdTheme', () => {
 
   it('compact 风格叠加 compactAlgorithm', () => {
     const config = getAntdTheme('dark', false, {}, 'compact');
-    expect(config.algorithm).toEqual([theme.darkAlgorithm, theme.compactAlgorithm]);
+    expect(config.algorithm).toEqual([
+      theme.darkAlgorithm,
+      theme.compactAlgorithm,
+    ]);
   });
 
   it('未注册的风格安全回落到 default', () => {
@@ -79,7 +86,10 @@ describe('getAntdTheme', () => {
     registerThemePreset('glass', preset);
 
     const config = getAntdTheme('light', false, {}, 'glass');
-    expect(config.token).toMatchObject({ colorPrimary: '#722ed1', wireframe: true });
+    expect(config.token).toMatchObject({
+      colorPrimary: '#722ed1',
+      wireframe: true,
+    });
     expect(config.components).toMatchObject({ Button: { controlHeight: 44 } });
     // 预设之外的字段仍来自亮色 token
     expect((config.token as Record<string, unknown>).borderRadiusLG).toBe(
@@ -87,7 +97,12 @@ describe('getAntdTheme', () => {
     );
 
     // 用户覆盖排在预设之后：预设不能盖掉用户选的主色
-    const withOverride = getAntdTheme('light', false, { primaryColor: '#13c2c2' }, 'glass');
+    const withOverride = getAntdTheme(
+      'light',
+      false,
+      { primaryColor: '#13c2c2' },
+      'glass',
+    );
     expect(withOverride.token).toMatchObject({ colorPrimary: '#13c2c2' });
   });
 });
@@ -131,7 +146,9 @@ describe('主色派生链', () => {
   });
 
   it('组件常量里跟主色走的那批键也不钉死', () => {
-    const pinned: Array<[keyof (typeof darkComponents & typeof lightComponents), string]> = [
+    const pinned: Array<
+      [keyof (typeof darkComponents & typeof lightComponents), string]
+    > = [
       ['Menu', 'itemSelectedBg'],
       ['Menu', 'itemSelectedColor'],
       ['Menu', 'itemActiveBg'],
@@ -161,7 +178,9 @@ describe('主色派生链', () => {
 
   it('亮色：换主色后解析出的派生色全部跟着变，且链接色一起跟', () => {
     const base = theme.getDesignToken(getAntdTheme('light'));
-    const red = theme.getDesignToken(getAntdTheme('light', false, { primaryColor: '#f5222d' }));
+    const red = theme.getDesignToken(
+      getAntdTheme('light', false, { primaryColor: '#f5222d' }),
+    );
 
     expect(red.colorPrimary).toBe('#f5222d');
     // antd 把 colorLink 绑在自己的 #1677ff 上，不显式接主色就永远不跟主题
@@ -175,7 +194,9 @@ describe('主色派生链', () => {
   });
 
   it('亮色：派生结果与"只给种子色"的算法答案一致（说明没有半只手在钉）', () => {
-    const ours = theme.getDesignToken(getAntdTheme('light', false, { primaryColor: '#f5222d' }));
+    const ours = theme.getDesignToken(
+      getAntdTheme('light', false, { primaryColor: '#f5222d' }),
+    );
     const bare = theme.getDesignToken({
       token: { colorLink: '#f5222d', colorPrimary: '#f5222d' },
     });
@@ -185,7 +206,9 @@ describe('主色派生链', () => {
   });
 
   it('暗色同样跟随：主色换成红色后链接与选中底色不再是蓝', () => {
-    const red = theme.getDesignToken(getAntdTheme('dark', false, { primaryColor: '#f5222d' }));
+    const red = theme.getDesignToken(
+      getAntdTheme('dark', false, { primaryColor: '#f5222d' }),
+    );
     const blue = theme.getDesignToken(getAntdTheme('dark'));
 
     expect(red.colorLink).not.toBe(blue.colorLink);
@@ -201,7 +224,10 @@ describe('主色派生链', () => {
 
   it('整条偏好链路（getThemeConfig）也把 colorLink 带下去', () => {
     const config = getThemeConfig(prefs({ primaryColor: '#13c2c2' }));
-    expect(config.token).toMatchObject({ colorLink: '#13c2c2', colorPrimary: '#13c2c2' });
+    expect(config.token).toMatchObject({
+      colorLink: '#13c2c2',
+      colorPrimary: '#13c2c2',
+    });
   });
 });
 
@@ -209,21 +235,34 @@ describe('themeOverridesFrom', () => {
   it('圆角倍率乘基准 8px', () => {
     expect(themeOverridesFrom(prefs({ borderRadius: 1 })).borderRadius).toBe(8);
     expect(themeOverridesFrom(prefs({ borderRadius: 0 })).borderRadius).toBe(0);
-    expect(themeOverridesFrom(prefs({ borderRadius: 0.5 })).borderRadius).toBe(4);
+    expect(themeOverridesFrom(prefs({ borderRadius: 0.5 })).borderRadius).toBe(
+      4,
+    );
   });
 
   it('脏值回到 antd 基准，不让整棵组件树字号塌陷', () => {
     expect(themeOverridesFrom(prefs({ fontSize: 0 })).fontSize).toBe(16);
-    expect(themeOverridesFrom(prefs({ fontSize: Number.NaN })).fontSize).toBe(16);
-    expect(themeOverridesFrom(prefs({ borderRadius: Number.NaN })).borderRadius).toBe(8);
-    expect(themeOverridesFrom(prefs({ borderRadius: -1 })).borderRadius).toBe(8);
+    expect(themeOverridesFrom(prefs({ fontSize: Number.NaN })).fontSize).toBe(
+      16,
+    );
+    expect(
+      themeOverridesFrom(prefs({ borderRadius: Number.NaN })).borderRadius,
+    ).toBe(8);
+    expect(themeOverridesFrom(prefs({ borderRadius: -1 })).borderRadius).toBe(
+      8,
+    );
   });
 });
 
 describe('getThemeConfig', () => {
   it('偏好直接换算成 ConfigProvider 配置', () => {
     const config = getThemeConfig(
-      prefs({ borderRadius: 0.75, fontSize: 15, primaryColor: '#eb2f96', theme: 'dark' }),
+      prefs({
+        borderRadius: 0.75,
+        fontSize: 15,
+        primaryColor: '#eb2f96',
+        theme: 'dark',
+      }),
     );
     expect(config.algorithm).toBe(theme.darkAlgorithm);
     expect(config.token).toMatchObject({
@@ -235,8 +274,12 @@ describe('getThemeConfig', () => {
 
   it('auto + 系统深色会真的切到暗色算法', () => {
     const preferences = prefs({ theme: 'auto' });
-    expect(getThemeConfig(preferences, true).algorithm).toBe(theme.darkAlgorithm);
-    expect(getThemeConfig(preferences, false).algorithm).toBe(theme.defaultAlgorithm);
+    expect(getThemeConfig(preferences, true).algorithm).toBe(
+      theme.darkAlgorithm,
+    );
+    expect(getThemeConfig(preferences, false).algorithm).toBe(
+      theme.defaultAlgorithm,
+    );
   });
 });
 

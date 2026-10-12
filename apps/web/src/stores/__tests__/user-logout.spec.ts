@@ -48,7 +48,9 @@ function seedSession() {
   route.backendMenus = MENU;
   route.menus = [
     {
-      children: [{ name: 'SystemUser', path: '/system/user', title: '用户管理' }],
+      children: [
+        { name: 'SystemUser', path: '/system/user', title: '用户管理' },
+      ],
       name: 'System',
       path: '/system',
       title: '系统管理',
@@ -59,8 +61,18 @@ function seedSession() {
   route.isLoaded = true;
 
   tabs.tabs = [
-    { closable: false, key: '/dashboard/analysis', path: '/dashboard/analysis', title: '分析页' },
-    { closable: true, key: '/system/user', path: '/system/user', title: '用户管理' },
+    {
+      closable: false,
+      key: '/dashboard/analysis',
+      path: '/dashboard/analysis',
+      title: '分析页',
+    },
+    {
+      closable: true,
+      key: '/system/user',
+      path: '/system/user',
+      title: '用户管理',
+    },
   ] as never;
 
   return { route, tabs, user };

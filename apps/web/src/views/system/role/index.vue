@@ -1,64 +1,64 @@
 <script setup lang="ts">
-import type { FormSchema } from '~/components/business/Form'
-import type { BasicColumn } from '~/components/business/Table'
+import type { FormSchema } from '~/components/business/Form';
+import type { BasicColumn } from '~/components/business/Table';
 
-import { computed, ref } from 'vue'
+import { computed, ref } from 'vue';
 
-import { cn } from '@antdv/shared/cn'
-import { exportToExcel } from '@antdv/shared/excel'
-import { Icon } from '@iconify/vue'
-import { addRole, deleteRole, getRoleList, updateRole } from '~/api/system'
-import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
-import { BasicForm, useForm } from '~/components/business/Form'
-import { BasicTable, useTable } from '~/components/business/Table'
-import { DictType } from '~/enums/dict'
-import { useDictStore } from '~/stores'
+import { cn } from '@antdv/shared/cn';
+import { exportToExcel } from '@antdv/shared/excel';
+import { Icon } from '@iconify/vue';
+import { addRole, deleteRole, getRoleList, updateRole } from '~/api/system';
+import { BasicDrawer, useDrawer } from '~/components/business/Drawer';
+import { BasicForm, useForm } from '~/components/business/Form';
+import { BasicTable, useTable } from '~/components/business/Table';
+import { DictType } from '~/enums/dict';
+import { useDictStore } from '~/stores';
 
-defineOptions({ name: 'SystemRole' })
+defineOptions({ name: 'SystemRole' });
 
 interface RoleRecord {
-  id: number
-  name: string
-  code: string
-  description: string
-  sort: number
-  status: number
-  menuIds: number[]
-  createdAt: string
+  id: number;
+  name: string;
+  code: string;
+  description: string;
+  sort: number;
+  status: number;
+  menuIds: number[];
+  createdAt: string;
 }
 
-const containerClassName = cn('space-y-4')
-const cardClassName = cn('shadow-sm')
-const tagClassName = cn('inline-flex items-center gap-1')
+const containerClassName = cn('space-y-4');
+const cardClassName = cn('shadow-sm');
+const tagClassName = cn('inline-flex items-center gap-1');
 const actionClassName = cn(
   'flex',
   'items-center',
   'justify-center',
   'whitespace-nowrap',
-)
-const btnClassName = cn('px-0.5!')
-const dividerClassName = cn('mx-0')
+);
+const btnClassName = cn('px-0.5!');
+const dividerClassName = cn('mx-0');
 
 const statusColorMap: Record<number, string> = {
   1: 'green',
   0: 'red',
-}
+};
 const statusLabelMap: Record<number, string> = {
   1: '正常',
   0: '停用',
-}
+};
 
-const dictStore = useDictStore()
+const dictStore = useDictStore();
 
 const statusOptions = computed(() =>
   dictStore.getOptions(DictType.NORMAL_DISABLE),
-)
+);
 
 // 动态菜单权限树 — 从菜单配置生成
 interface MenuTreeNode {
-  title: string
-  key: string
-  children?: MenuTreeNode[]
+  title: string;
+  key: string;
+  children?: MenuTreeNode[];
 }
 
 const menuSourceData = [
@@ -94,7 +94,7 @@ const menuSourceData = [
     path: '/monitor',
     children: [{ id: 401, title: '系统日志', path: 'log' }],
   },
-]
+];
 
 function buildMenuTree(menus: typeof menuSourceData): MenuTreeNode[] {
   return menus.map((menu) => ({
@@ -104,18 +104,18 @@ function buildMenuTree(menus: typeof menuSourceData): MenuTreeNode[] {
       title: child.title,
       key: String(child.id),
     })),
-  }))
+  }));
 }
 
-const permissionTreeData = computed(() => buildMenuTree(menuSourceData))
+const permissionTreeData = computed(() => buildMenuTree(menuSourceData));
 
-const isEditing = ref(false)
-const currentRecord = ref<null | RoleRecord>(null)
+const isEditing = ref(false);
+const currentRecord = ref<null | RoleRecord>(null);
 
-const [drawerRegister, drawerMethods] = useDrawer()
-const [permDrawerRegister, permDrawerMethods] = useDrawer()
-const [tableRegister, tableMethods] = useTable()
-const [formRegister, formMethods] = useForm()
+const [drawerRegister, drawerMethods] = useDrawer();
+const [permDrawerRegister, permDrawerMethods] = useDrawer();
+const [tableRegister, tableMethods] = useTable();
+const [formRegister, formMethods] = useForm();
 
 const searchFormSchemas: FormSchema[] = [
   {
@@ -139,7 +139,7 @@ const searchFormSchemas: FormSchema[] = [
       options: statusOptions.value,
     },
   },
-]
+];
 
 const drawerFormSchemas: FormSchema[] = [
   {
@@ -189,87 +189,87 @@ const drawerFormSchemas: FormSchema[] = [
     colProps: { span: 24 },
     componentProps: { placeholder: '请输入角色描述...', rows: 3 },
   },
-]
+];
 
 // API 适配层
 async function mockApi(params: Record<string, any>) {
   try {
-    const res = await getRoleList(params)
-    console.log('[Role] raw response:', res)
+    const res = await getRoleList(params);
+    console.log('[Role] raw response:', res);
     // 兼容 mock 直接返回完整响应或已解包的数据
-    const data = res?.data ?? res
-    console.log('[Role] parsed data:', data)
-    const result = { items: data?.list || [], total: data?.total || 0 }
-    console.log('[Role] result:', result)
-    return result
+    const data = res?.data ?? res;
+    console.log('[Role] parsed data:', data);
+    const result = { items: data?.list || [], total: data?.total || 0 };
+    console.log('[Role] result:', result);
+    return result;
   } catch (error) {
-    console.error('[Role] mockApi error:', error)
-    return { items: [], total: 0 }
+    console.error('[Role] mockApi error:', error);
+    return { items: [], total: 0 };
   }
 }
 
 function handleAdd() {
-  isEditing.value = false
-  currentRecord.value = null
+  isEditing.value = false;
+  currentRecord.value = null;
   formMethods.setFieldsValue({
     name: '',
     code: '',
     description: '',
     sort: 0,
     status: 0,
-  })
-  formMethods.clearValidate()
-  drawerMethods.openDrawer()
+  });
+  formMethods.clearValidate();
+  drawerMethods.openDrawer();
 }
 
 function handleEdit(record: RoleRecord) {
-  isEditing.value = true
-  currentRecord.value = record
+  isEditing.value = true;
+  currentRecord.value = record;
   formMethods.setFieldsValue({
     name: record.name,
     code: record.code,
     description: record.description,
     sort: record.sort,
     status: record.status,
-  })
-  formMethods.clearValidate()
-  drawerMethods.openDrawer()
+  });
+  formMethods.clearValidate();
+  drawerMethods.openDrawer();
 }
 
 function handlePermission(record: RoleRecord) {
-  currentRecord.value = record
-  permDrawerMethods.openDrawer()
+  currentRecord.value = record;
+  permDrawerMethods.openDrawer();
 }
 
 async function handleDelete(record: RoleRecord) {
   if (record.code === 'super_admin') {
-    message.warning('超级管理员角色不允许删除')
-    return
+    message.warning('超级管理员角色不允许删除');
+    return;
   }
   try {
-    await deleteRole(record.id)
-    message.success(`已删除角色：${record.name}`)
-    tableMethods.value?.reload()
+    await deleteRole(record.id);
+    message.success(`已删除角色：${record.name}`);
+    tableMethods.value?.reload();
   } catch (error: any) {
-    message.error(error?.message || '删除失败')
+    message.error(error?.message || '删除失败');
   }
 }
 
 async function handleToggleStatus(record: RoleRecord) {
   try {
-    await updateRole(record.id, { status: record.status === 1 ? 0 : 1 })
+    await updateRole(record.id, { status: record.status === 1 ? 0 : 1 });
     message.success(
       `已${record.status === 1 ? '停用' : '启用'}：${record.name}`,
-    )
-    tableMethods.value?.reload()
+    );
+    tableMethods.value?.reload();
   } catch (error: any) {
-    message.error(error?.message || '操作失败')
+    message.error(error?.message || '操作失败');
   }
 }
 
 function handleExport() {
-  const selectedRows = (tableMethods.value?.getSelectRows?.() || []) as any[]
-  const dataToExport = selectedRows.length > 0 ? selectedRows : []
+  const selectedRows = (tableMethods.value?.getSelectRows?.() || []) as any[];
+  const dataToExport = selectedRows.length > 0 ? selectedRows : [];
   exportToExcel({
     filename: '角色列表',
     sheetName: '角色管理',
@@ -286,31 +286,31 @@ function handleExport() {
       ...i,
       status: i.status === 1 ? '正常' : '停用',
     })),
-  })
+  });
 }
 
 async function handleSave() {
-  const values = await formMethods.validate()
-  if (!values) return
+  const values = await formMethods.validate();
+  if (!values) return;
 
   if (!values.name || !values.code) {
-    message.warning('请填写角色名称和编码')
-    return
+    message.warning('请填写角色名称和编码');
+    return;
   }
 
   try {
     if (isEditing.value && currentRecord.value) {
-      await updateRole(currentRecord.value.id, values)
-      message.success(`已更新角色：${values.name}`)
+      await updateRole(currentRecord.value.id, values);
+      message.success(`已更新角色：${values.name}`);
     } else {
-      await addRole(values)
-      message.success(`已新增角色：${values.name}`)
+      await addRole(values);
+      message.success(`已新增角色：${values.name}`);
     }
 
-    drawerMethods.closeDrawer()
-    tableMethods.value?.reload()
+    drawerMethods.closeDrawer();
+    tableMethods.value?.reload();
   } catch (error: any) {
-    message.error(error?.message || '保存失败')
+    message.error(error?.message || '保存失败');
   }
 }
 
@@ -340,7 +340,7 @@ const columns: BasicColumn[] = [
     align: 'center',
   },
   { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 170 },
-]
+];
 </script>
 
 <template>
@@ -492,7 +492,7 @@ const columns: BasicColumn[] = [
           @check="
             (checkedKeys: any) => {
               if (currentRecord) {
-                currentRecord.menuIds = checkedKeys
+                currentRecord.menuIds = checkedKeys;
               }
             }
           "

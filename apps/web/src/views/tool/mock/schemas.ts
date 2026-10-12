@@ -1,49 +1,49 @@
-import type { MockTemplatePreset } from '~/api/mock'
-import type { FormSchema, Rule } from '~/components/business/Form'
+import type { MockTemplatePreset } from '~/api/mock';
+import type { FormSchema, Rule } from '~/components/business/Form';
 
-import type { ComputedRef, Ref } from 'vue'
+import type { ComputedRef, Ref } from 'vue';
 
-import { computed } from 'vue'
+import { computed } from 'vue';
 
-import { FAIL_RATE_PRESETS, METHOD_OPTIONS } from './constants'
+import { FAIL_RATE_PRESETS, METHOD_OPTIONS } from './constants';
 
 interface SelectOption {
-  label: string
-  value: string
+  label: string;
+  value: string;
 }
 
-const ID_PATTERN = /^[a-z][a-z0-9-]{1,63}$/
-const PATH_PATTERN = /^\/[A-Za-z0-9\-/:._]*$/
+const ID_PATTERN = /^[a-z][a-z0-9-]{1,63}$/;
+const PATH_PATTERN = /^\/[A-Za-z0-9\-/:._]*$/;
 
 /** 必填 + 正则：用 validator 而不是 pattern，提示语才能完全可控 */
 function patternRule(pattern: RegExp, message: string, required = true): Rule {
   return {
     required,
     validator: (_rule, value: unknown) => {
-      const text = typeof value === 'string' ? value.trim() : ''
-      if (!text) return Promise.reject(new Error('该项为必填'))
-      if (!pattern.test(text)) return Promise.reject(new Error(message))
-      return Promise.resolve()
+      const text = typeof value === 'string' ? value.trim() : '';
+      if (!text) return Promise.reject(new Error('该项为必填'));
+      if (!pattern.test(text)) return Promise.reject(new Error(message));
+      return Promise.resolve();
     },
-  }
+  };
 }
 
 /** 模板必须是合法 JSON，且顶层为对象或数组，与 mockjs 的渲染入口一致 */
 const templateRule: Rule = {
   required: true,
   validator: (_rule, value: unknown) => {
-    const text = typeof value === 'string' ? value.trim() : ''
-    if (!text) return Promise.reject(new Error('响应模板不能为空'))
+    const text = typeof value === 'string' ? value.trim() : '';
+    if (!text) return Promise.reject(new Error('响应模板不能为空'));
     try {
-      const parsed: unknown = JSON.parse(text)
+      const parsed: unknown = JSON.parse(text);
       if (parsed === null || typeof parsed !== 'object')
-        return Promise.reject(new Error('模板需为 JSON 对象或数组'))
-      return Promise.resolve()
+        return Promise.reject(new Error('模板需为 JSON 对象或数组'));
+      return Promise.resolve();
     } catch {
-      return Promise.reject(new Error('不是合法 JSON，请检查引号与逗号'))
+      return Promise.reject(new Error('不是合法 JSON，请检查引号与逗号'));
     }
   },
-}
+};
 
 /** 接口清单筛选表单 */
 export function useRouteSearchSchemas(
@@ -83,7 +83,7 @@ export function useRouteSearchSchemas(
         placeholder: '全部来源',
       }),
     },
-  ])
+  ]);
 }
 
 /**
@@ -174,7 +174,7 @@ export function useDefinitionSchemas(
       },
       dynamicRules: (): Rule[] => [templateRule],
     },
-  ])
+  ]);
 }
 
 /** 运行时配置抽屉：停用 / 延迟 / 失败注入 */
@@ -241,5 +241,5 @@ export function useRuntimeSchemas(): ComputedRef<FormSchema[]> {
         style: { width: '100%' },
       },
     },
-  ])
+  ]);
 }

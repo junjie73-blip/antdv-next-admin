@@ -1,53 +1,53 @@
 <script setup lang="tsx">
-import type { DescriptionItem } from '~/components/business/Description'
-import type { FormSchema } from '~/components/business/Form'
-import type { BasicColumn } from '~/components/business/Table'
+import type { DescriptionItem } from '~/components/business/Description';
+import type { FormSchema } from '~/components/business/Form';
+import type { BasicColumn } from '~/components/business/Table';
 
-import { computed, ref } from 'vue'
+import { computed, ref } from 'vue';
 
-import { cn } from '@antdv/shared/cn'
-import { Icon } from '@iconify/vue'
+import { cn } from '@antdv/shared/cn';
+import { Icon } from '@iconify/vue';
 import {
   addSetting,
   deleteSetting,
   getSettingsList,
   updateSetting,
-} from '~/api/system'
-import { Description as DetailDescription } from '~/components/business/Description'
-import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
-import { BasicForm, useForm } from '~/components/business/Form'
-import { BasicModal, useModal } from '~/components/business/Modal'
-import { BasicTable, useTable } from '~/components/business/Table'
-import { DictType } from '~/enums/dict'
-import { useDictStore } from '~/stores'
+} from '~/api/system';
+import { Description as DetailDescription } from '~/components/business/Description';
+import { BasicDrawer, useDrawer } from '~/components/business/Drawer';
+import { BasicForm, useForm } from '~/components/business/Form';
+import { BasicModal, useModal } from '~/components/business/Modal';
+import { BasicTable, useTable } from '~/components/business/Table';
+import { DictType } from '~/enums/dict';
+import { useDictStore } from '~/stores';
 
-defineOptions({ name: 'SystemSettings' })
+defineOptions({ name: 'SystemSettings' });
 
 interface SystemConfig {
-  id: number
-  key: string
-  name: string
-  value: string
-  type: 'boolean' | 'json' | 'number' | 'text'
-  group: string
-  description: string
-  enabled: boolean
-  createdAt: string
-  updatedAt: string
+  id: number;
+  key: string;
+  name: string;
+  value: string;
+  type: 'boolean' | 'json' | 'number' | 'text';
+  group: string;
+  description: string;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
-const dictStore = useDictStore()
+const dictStore = useDictStore();
 
 const statusOptions = computed(() =>
   dictStore.getOptions(DictType.NORMAL_DISABLE),
-)
+);
 
-const containerClassName = cn('space-y-4')
-const cardClassName = cn('shadow-sm')
-const valueCellClassName = cn('truncate', 'block', 'max-w-[180px]')
-const actionClassName = cn('flex', 'items-center', 'justify-center')
-const btnClassName = cn('px-0.5!')
-const dividerClassName = cn('mx-0')
+const containerClassName = cn('space-y-4');
+const cardClassName = cn('shadow-sm');
+const valueCellClassName = cn('truncate', 'block', 'max-w-[180px]');
+const actionClassName = cn('flex', 'items-center', 'justify-center');
+const btnClassName = cn('px-0.5!');
+const dividerClassName = cn('mx-0');
 
 const groupColorMap: Record<string, string> = {
   通用设置: 'blue',
@@ -57,7 +57,7 @@ const groupColorMap: Record<string, string> = {
   通知设置: 'orange',
   缓存设置: 'purple',
   主题设置: 'magenta',
-}
+};
 
 const groupIconMap: Record<string, string> = {
   通用设置: 'ant-design:setting-outlined',
@@ -67,21 +67,21 @@ const groupIconMap: Record<string, string> = {
   通知设置: 'ant-design:bell-outlined',
   缓存设置: 'ant-design:database-outlined',
   主题设置: 'ant-design:bg-colors-outlined',
-}
+};
 
 const typeColorMap: Record<string, string> = {
   text: 'blue',
   number: 'green',
   boolean: 'orange',
   json: 'purple',
-}
+};
 
 const typeLabelMap: Record<string, string> = {
   text: '文本',
   number: '数字',
   boolean: '布尔值',
   json: 'JSON',
-}
+};
 
 const detailSchemas: DescriptionItem[] = [
   {
@@ -121,16 +121,16 @@ const detailSchemas: DescriptionItem[] = [
   },
   { field: 'createdAt', label: '创建时间' },
   { field: 'updatedAt', label: '更新时间' },
-]
+];
 
-const isEditing = ref(false)
-const currentRecord = ref<null | SystemConfig>(null)
-const viewingRecord = ref<null | SystemConfig>(null)
+const isEditing = ref(false);
+const currentRecord = ref<null | SystemConfig>(null);
+const viewingRecord = ref<null | SystemConfig>(null);
 
-const [modalRegister, modalMethods] = useModal()
-const [drawerRegister, drawerMethods] = useDrawer()
-const [tableRegister, tableMethods] = useTable()
-const [formRegister, formMethods] = useForm()
+const [modalRegister, modalMethods] = useModal();
+const [drawerRegister, drawerMethods] = useDrawer();
+const [tableRegister, tableMethods] = useTable();
+const [formRegister, formMethods] = useForm();
 
 const searchFormSchemas: FormSchema[] = [
   {
@@ -170,7 +170,7 @@ const searchFormSchemas: FormSchema[] = [
       options: statusOptions.value,
     }),
   },
-]
+];
 
 const modalFormSchemas: FormSchema[] = [
   {
@@ -250,17 +250,17 @@ const modalFormSchemas: FormSchema[] = [
     colProps: { span: 24 },
     componentProps: { placeholder: '请输入配置描述...', rows: 3 },
   },
-]
+];
 
 async function mockApi(params: Record<string, any>) {
-  const res = await getSettingsList(params)
-  const data = res?.data ?? res
-  return { items: data?.list || [], total: data?.total || 0 }
+  const res = await getSettingsList(params);
+  const data = res?.data ?? res;
+  return { items: data?.list || [], total: data?.total || 0 };
 }
 
 function handleAdd() {
-  isEditing.value = false
-  currentRecord.value = null
+  isEditing.value = false;
+  currentRecord.value = null;
   formMethods.setFieldsValue({
     key: '',
     name: '',
@@ -270,14 +270,14 @@ function handleAdd() {
     description: '',
     sortOrder: 0,
     enabled: true,
-  })
-  formMethods.clearValidate()
-  modalMethods.openModal()
+  });
+  formMethods.clearValidate();
+  modalMethods.openModal();
 }
 
 function handleEdit(record: SystemConfig) {
-  isEditing.value = true
-  currentRecord.value = record
+  isEditing.value = true;
+  currentRecord.value = record;
   formMethods.setFieldsValue({
     key: record.key,
     name: record.name,
@@ -287,60 +287,60 @@ function handleEdit(record: SystemConfig) {
     description: record.description,
     sortOrder: (record as any).sortOrder ?? 0,
     enabled: record.enabled,
-  })
-  formMethods.clearValidate()
-  modalMethods.openModal()
+  });
+  formMethods.clearValidate();
+  modalMethods.openModal();
 }
 
 function handleView(record: SystemConfig) {
-  viewingRecord.value = record
-  drawerMethods.openDrawer()
+  viewingRecord.value = record;
+  drawerMethods.openDrawer();
 }
 
 async function handleDelete(record: SystemConfig) {
   try {
-    await deleteSetting(record.id)
-    message.success(`已删除配置：${record.name}`)
-    tableMethods.value?.reload()
+    await deleteSetting(record.id);
+    message.success(`已删除配置：${record.name}`);
+    tableMethods.value?.reload();
   } catch {
-    message.error('删除失败')
+    message.error('删除失败');
   }
 }
 
 async function handleSave() {
-  const values = await formMethods.validate()
+  const values = await formMethods.validate();
   if (!values) {
-    return
+    return;
   }
 
   try {
     if (isEditing.value && currentRecord.value) {
-      await updateSetting(currentRecord.value.id, values)
-      message.success(`已更新配置：${values.name}`)
+      await updateSetting(currentRecord.value.id, values);
+      message.success(`已更新配置：${values.name}`);
     } else {
-      await addSetting(values)
-      message.success(`已新增配置：${values.name}`)
+      await addSetting(values);
+      message.success(`已新增配置：${values.name}`);
     }
 
-    modalMethods.closeModal()
-    tableMethods.value?.reload()
+    modalMethods.closeModal();
+    tableMethods.value?.reload();
   } catch {
-    message.error('保存失败')
+    message.error('保存失败');
   }
 }
 
 async function handleToggleEnabled(record: SystemConfig, enabled: boolean) {
   try {
-    await updateSetting(record.id, { enabled })
-    message.success(`${enabled ? '已启用' : '已禁用'}：${record.name}`)
-    tableMethods.value?.reload()
+    await updateSetting(record.id, { enabled });
+    message.success(`${enabled ? '已启用' : '已禁用'}：${record.name}`);
+    tableMethods.value?.reload();
   } catch {
-    message.error('操作失败')
+    message.error('操作失败');
   }
 }
 
 function handleApply(record: SystemConfig) {
-  message.success(`已将「${record.name}」应用到系统`)
+  message.success(`已将「${record.name}」应用到系统`);
 }
 
 const columns: BasicColumn[] = [
@@ -382,7 +382,7 @@ const columns: BasicColumn[] = [
     ellipsis: true,
   },
   { title: '更新时间', dataIndex: 'updatedAt', key: 'updatedAt', width: 170 },
-]
+];
 </script>
 
 <template>

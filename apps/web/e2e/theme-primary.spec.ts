@@ -2,7 +2,12 @@ import type { Locator, Page } from '@playwright/test';
 
 import { expect, test } from '@playwright/test';
 
-import { closePreferenceDrawer, go, openPreferenceDrawer, signIn } from './utils/app';
+import {
+  closePreferenceDrawer,
+  go,
+  openPreferenceDrawer,
+  signIn,
+} from './utils/app';
 
 /**
  * 主题色要**真的生效**。
@@ -27,7 +32,9 @@ function colorOf(locator: Locator) {
 /** 写在 `html` 上的主色变量（Tailwind 的 `*-ant-primary` 系列读它） */
 function cssPrimary(page: Page) {
   return page.evaluate(() =>
-    getComputedStyle(document.documentElement).getPropertyValue('--ant-color-primary').trim(),
+    getComputedStyle(document.documentElement)
+      .getPropertyValue('--ant-color-primary')
+      .trim(),
   );
 }
 
@@ -45,7 +52,9 @@ function linkButton(page: Page) {
 }
 
 test.describe('主题色真的生效', () => {
-  test('换主色后，选中父级菜单、link 按钮与 CSS 变量一起跟过去', async ({ page }) => {
+  test('换主色后，选中父级菜单、link 按钮与 CSS 变量一起跟过去', async ({
+    page,
+  }) => {
     await signIn(page);
     await go(page, '/system/user');
 
@@ -56,7 +65,10 @@ test.describe('主题色真的生效', () => {
     await expect(selectedParent).toBeVisible();
     await expect(detailButton).toBeVisible();
 
-    const before = { link: await colorOf(detailButton), menu: await colorOf(selectedParent) };
+    const before = {
+      link: await colorOf(detailButton),
+      menu: await colorOf(selectedParent),
+    };
 
     const drawer = await openPreferenceDrawer(page, '外观');
     await drawer.getByRole('button', { name: '橙黄色' }).click();
@@ -69,9 +81,13 @@ test.describe('主题色真的生效', () => {
      * - link 按钮：`colorLink` → 主色（antd 默认把它绑在自己的 `#1677ff` 上，
      *   不显式接就永远不跟主题，这条正是用户点名的那个失效点）。
      */
-    await expect.poll(() => cssPrimary(page), { message: '主色变量没换' }).toBe(PICKED);
     await expect
-      .poll(() => colorOf(selectedParent), { message: '选中的父级菜单还是原色' })
+      .poll(() => cssPrimary(page), { message: '主色变量没换' })
+      .toBe(PICKED);
+    await expect
+      .poll(() => colorOf(selectedParent), {
+        message: '选中的父级菜单还是原色',
+      })
       .toBe(PICKED_RGB);
     await expect
       .poll(() => colorOf(detailButton), { message: 'link 按钮还是原色' })
@@ -94,6 +110,8 @@ test.describe('主题色真的生效', () => {
     await expect(linkButton(page)).toBeVisible();
 
     // #EB2F96 → rgb(235, 47, 150)
-    await expect.poll(() => colorOf(linkButton(page))).toBe('rgb(235, 47, 150)');
+    await expect
+      .poll(() => colorOf(linkButton(page)))
+      .toBe('rgb(235, 47, 150)');
   });
 });

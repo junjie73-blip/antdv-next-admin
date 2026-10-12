@@ -2,6 +2,10 @@
   "name": "antdv-next-admin",
   "version": "0.4.0",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/junjie73-blip/antdv-next-admin.git"
+  },
   "type": "module",
   "scripts": {
     "bootstrap": "pnpm install",
@@ -23,6 +27,7 @@
     "docs:preview": "pnpm --filter @antdv/docs preview",
     "format": "vsh lint --format",
     "lint": "vsh lint",
+    "mock:fixtures": "node ./scripts/generate-mock-fixtures.mjs",
     "postinstall": "pnpm -r run --if-present stub",
     "preinstall": "npx only-allow pnpm",
     "prepare": "is-ci || pnpm exec lefthook install",

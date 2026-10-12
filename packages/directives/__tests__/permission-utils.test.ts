@@ -45,7 +45,10 @@ describe('resolveAccess —— 声明式取值优先级', () => {
       resolveAccess(binding(list, undefined, { all: true }), granted),
     ).toBe(false);
     expect(
-      resolveAccess(binding(['user:add', 'user:edit'], undefined, { all: true }), granted),
+      resolveAccess(
+        binding(['user:add', 'user:edit'], undefined, { all: true }),
+        granted,
+      ),
     ).toBe(true);
   });
 
@@ -53,7 +56,10 @@ describe('resolveAccess —— 声明式取值优先级', () => {
     expect(resolveAccess(binding('editor', 'role'), granted)).toBe(true);
     expect(resolveAccess(binding('admin', 'role'), granted)).toBe(false);
     expect(
-      resolveAccess(binding(['admin', 'editor'], 'role', { all: true }), granted),
+      resolveAccess(
+        binding(['admin', 'editor'], 'role', { all: true }),
+        granted,
+      ),
     ).toBe(false);
     expect(resolveAccess(binding(undefined, 'admin'), adminOnly)).toBe(true);
     expect(resolveAccess(binding('whatever'), adminOnly)).toBe(false);
@@ -61,28 +67,37 @@ describe('resolveAccess —— 声明式取值优先级', () => {
 
   it('对象写法：role 与 permission 同时声明要都满足', () => {
     expect(
-      resolveAccess(binding({ permission: 'user:add', role: 'editor' }), granted),
+      resolveAccess(
+        binding({ permission: 'user:add', role: 'editor' }),
+        granted,
+      ),
     ).toBe(true);
     expect(
-      resolveAccess(binding({ permission: 'user:remove', role: 'editor' }), granted),
+      resolveAccess(
+        binding({ permission: 'user:remove', role: 'editor' }),
+        granted,
+      ),
     ).toBe(false);
     expect(
-      resolveAccess(binding({ permission: 'user:add', role: 'super' }), granted),
+      resolveAccess(
+        binding({ permission: 'user:add', role: 'super' }),
+        granted,
+      ),
     ).toBe(false);
   });
 
   it('对象里的 mode 优先于 `.all` 修饰符', () => {
     const value = { mode: 'any' as const, permission: ['user:add', 'nope'] };
-    expect(resolveAccess(binding(value, undefined, { all: true }), granted)).toBe(
-      true,
-    );
+    expect(
+      resolveAccess(binding(value, undefined, { all: true }), granted),
+    ).toBe(true);
   });
 
   it('修复：对象值不再被当成权限码字符串（旧实现永远判无权限）', () => {
     // 旧代码 `hasAnyPermission([value])` 拿对象去 includes，恒为 false
-    expect(
-      resolveAccess(binding({ permission: 'user:add' }), granted),
-    ).toBe(true);
+    expect(resolveAccess(binding({ permission: 'user:add' }), granted)).toBe(
+      true,
+    );
   });
 });
 
@@ -92,12 +107,9 @@ describe('isBindingChanged —— 只在声明真的变了时重算', () => {
   });
 
   it('引用变了但内容没变 → 不算变化', () => {
-    expect(
-      isBindingChanged(
-        { value: ['a', 'b'] },
-        binding(['a', 'b']),
-      ),
-    ).toBe(false);
+    expect(isBindingChanged({ value: ['a', 'b'] }, binding(['a', 'b']))).toBe(
+      false,
+    );
     expect(
       isBindingChanged(
         { value: { permission: 'a' } },
@@ -107,9 +119,9 @@ describe('isBindingChanged —— 只在声明真的变了时重算', () => {
   });
 
   it('arg 变化要重算（同一份值在 role / permission 通道下含义不同）', () => {
-    expect(isBindingChanged({ arg: 'role', value: 'admin' }, binding('admin'))).toBe(
-      true,
-    );
+    expect(
+      isBindingChanged({ arg: 'role', value: 'admin' }, binding('admin')),
+    ).toBe(true);
   });
 
   it('内容真的变了要重算', () => {
@@ -119,7 +131,9 @@ describe('isBindingChanged —— 只在声明真的变了时重算', () => {
 });
 
 describe('applyPermissionState —— 隐藏 / 禁用两种落地方式', () => {
-  function state(overrides: Partial<{ disabledMode: boolean; originalDisplay: string }> = {}) {
+  function state(
+    overrides: Partial<{ disabledMode: boolean; originalDisplay: string }> = {},
+  ) {
     return {
       disabledMode: false,
       originalDisplay: '',

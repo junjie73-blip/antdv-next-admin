@@ -64,7 +64,9 @@ function makeMenus(): MenuConfig[] {
       // 没有 name，只能回退到 title
       path: '',
       title: '监控',
-      children: [{ name: 'Online', path: '/monitor/online', title: '在线用户' }],
+      children: [
+        { name: 'Online', path: '/monitor/online', title: '在线用户' },
+      ],
     },
     { name: 'Hidden', path: '', title: '隐藏的顶级', hidden: true },
   ];
@@ -89,8 +91,15 @@ describe('visibleMenus / isLeafMenu', () => {
   const menus = makeMenus();
 
   it('过滤 hidden 且保持顺序', () => {
-    expect(menus.map((m) => m.title)).toEqual(['系统管理', '监控', '隐藏的顶级']);
-    expect(visibleMenus(menus).map((m) => m.title)).toEqual(['系统管理', '监控']);
+    expect(menus.map((m) => m.title)).toEqual([
+      '系统管理',
+      '监控',
+      '隐藏的顶级',
+    ]);
+    expect(visibleMenus(menus).map((m) => m.title)).toEqual([
+      '系统管理',
+      '监控',
+    ]);
     expect(visibleMenus(undefined)).toEqual([]);
   });
 
@@ -134,7 +143,10 @@ describe('查找与祖先链', () => {
   });
 
   it('findAncestorKeys 不含自身，用于 openKeys', () => {
-    expect(findAncestorKeys(menus, 'DictList')).toEqual(['System', 'DictGroup']);
+    expect(findAncestorKeys(menus, 'DictList')).toEqual([
+      'System',
+      'DictGroup',
+    ]);
     expect(findAncestorKeys(menus, 'System')).toEqual([]);
     expect(findAncestorKeys(menus)).toEqual([]);
   });
@@ -403,7 +415,9 @@ describe('attachMenuPaths：文件约定式路由下的路径解析', () => {
         name: 'Tool',
         path: '/system',
         title: '系统工具',
-        children: [{ name: 'ToolSettings', path: 'settings', title: '系统设置' }],
+        children: [
+          { name: 'ToolSettings', path: 'settings', title: '系统设置' },
+        ],
       },
     ];
     const [account, tool] = attachMenuPaths(menus, fileRouter);
@@ -485,7 +499,11 @@ describe('includeHidden：隐藏项留在树上，只有导航出口剔掉它', 
     expect(pruned.map((m) => m.title)).toEqual(['系统管理', '监控']);
 
     const full = attachMenuPaths(makeMenus(), router, { includeHidden: true });
-    expect(full.map((m) => m.title)).toEqual(['系统管理', '监控', '隐藏的顶级']);
+    expect(full.map((m) => m.title)).toEqual([
+      '系统管理',
+      '监控',
+      '隐藏的顶级',
+    ]);
     // 隐藏节点的 path 也要补全，否则权限表里只有 name、对不上路由
     expect(full[2]?.path).toBe('/resolved/Hidden');
     expect(full[0]?.children?.map((child) => child.name)).toEqual([
@@ -499,15 +517,17 @@ describe('includeHidden：隐藏项留在树上，只有导航出口剔掉它', 
     const full = attachMenuPaths(makeMenus(), router, { includeHidden: true });
 
     expect(findMenuByPath(full, '/system/role')).toBeUndefined();
-    expect(findMenuByPath(full, '/system/role/', { includeHidden: true })?.name).toBe(
-      'RoleList',
-    );
+    expect(
+      findMenuByPath(full, '/system/role/', { includeHidden: true })?.name,
+    ).toBe('RoleList');
     expect(findMenuByName(full, 'RoleList')).toBeUndefined();
-    expect(findMenuByName(full, 'RoleList', { includeHidden: true })?.title).toBe(
-      '角色管理',
-    );
+    expect(
+      findMenuByName(full, 'RoleList', { includeHidden: true })?.title,
+    ).toBe('角色管理');
     expect(findMenuByKey(full, 'RoleList')).toBeUndefined();
-    expect(findMenuByKey(full, 'RoleList', { includeHidden: true })).toBeDefined();
+    expect(
+      findMenuByKey(full, 'RoleList', { includeHidden: true }),
+    ).toBeDefined();
   });
 
   it('祖先链放行时能穿过隐藏节点', () => {
@@ -517,7 +537,9 @@ describe('includeHidden：隐藏项留在树上，只有导航出口剔掉它', 
         path: '/tool',
         title: '系统工具',
         hidden: true,
-        children: [{ name: 'DictList', path: '/system/dict', title: '字典管理' }],
+        children: [
+          { name: 'DictList', path: '/system/dict', title: '字典管理' },
+        ],
       },
     ];
     expect(
@@ -538,7 +560,7 @@ describe('includeHidden：隐藏项留在树上，只有导航出口剔掉它', 
      * 断言只关心 key 与 children，所以在这里一次性收窄成用得到的字段，
      * 避免每个用例都写一遍 `as never`。
      */
-    type RenderedItem = { children?: RenderedItem[], key?: string };
+    type RenderedItem = { children?: RenderedItem[]; key?: string };
     const items = buildMenuItems(full) as unknown as RenderedItem[];
     expect(items.map((item) => item.key)).toEqual(['System', '监控']);
     const system = items[0];
@@ -619,7 +641,12 @@ describe('collectMenuKeys', () => {
 
   it('外链的 path 不是本站路由，不参与裁剪判定', () => {
     const keys = collectMenuKeys([
-      { isExternal: true, name: 'Docs', path: 'https://antdv-next.com/', title: '文档' },
+      {
+        isExternal: true,
+        name: 'Docs',
+        path: 'https://antdv-next.com/',
+        title: '文档',
+      },
     ]);
     expect(keys.byName.has('Docs')).toBe(true);
     expect(keys.byPath.size).toBe(0);
@@ -633,14 +660,19 @@ describe('collectMenuKeys', () => {
     expect(keys.byPath.has('/system/user')).toBe(true);
     expect(keys.byPath.has('/system/dept')).toBe(true);
   });
-
 });
 
 describe('内置路由豁免名单', () => {
   it('按 name 认：框架生成的 Error404 而不是 error-404', () => {
     // 名单里是 `createRouter` 实际生成的 name；登录页不在其中，
     // 它靠 `meta.requiresAuth === false` 那条边界免裁剪（见 store 的 selfAllowed）
-    for (const name of ['Root', 'Redirect', 'Register', 'Error404', 'CatchAll']) {
+    for (const name of [
+      'Root',
+      'Redirect',
+      'Register',
+      'Error404',
+      'CatchAll',
+    ]) {
       expect(isBuiltinMenuName(name)).toBe(true);
     }
     expect(isBuiltinMenuName('error-404')).toBe(false);
@@ -650,7 +682,14 @@ describe('内置路由豁免名单', () => {
   });
 
   it('按 path 兜一层：改名或换大小写都不会漏掉异常页与登录页', () => {
-    for (const path of ['/error/403', '/error/404/', '/error/503', '/login', '/logout', '/register']) {
+    for (const path of [
+      '/error/403',
+      '/error/404/',
+      '/error/503',
+      '/login',
+      '/logout',
+      '/register',
+    ]) {
       expect(isBuiltinMenuPath(path)).toBe(true);
     }
     expect(isBuiltinMenuPath('/system/user')).toBe(false);

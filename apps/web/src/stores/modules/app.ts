@@ -75,6 +75,7 @@ export const useAppStore = defineStore('app', () => {
   const widgetLogout = pick('widgetLogout');
   const widgetSearch = pick('widgetSearch');
   const widgetPreferences = pick('widgetPreferences');
+  const widgetLocaleSwitcher = pick('widgetLocaleSwitcher');
 
   /* ---------- 底栏 ---------- */
   const showFooter = pick('showFooter');
@@ -172,6 +173,7 @@ export const useAppStore = defineStore('app', () => {
     widgetFullscreen,
     widgetTheme,
     widgetTimezone,
+    widgetLocaleSwitcher,
     widgetLogout,
     widgetSearch,
     widgetPreferences,

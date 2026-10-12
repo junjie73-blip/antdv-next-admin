@@ -158,7 +158,9 @@ export const LAYOUT_BLUEPRINTS: Record<LayoutMode, LayoutBlueprint> = {
 
 /** 取蓝图；传入未知值时退回垂直布局而不是抛错（缓存里的脏值不该白屏） */
 export function getBlueprint(mode?: unknown): LayoutBlueprint {
-  return LAYOUT_BLUEPRINTS[normalizeLayoutMode(mode)] ?? LAYOUT_BLUEPRINTS.vertical;
+  return (
+    LAYOUT_BLUEPRINTS[normalizeLayoutMode(mode)] ?? LAYOUT_BLUEPRINTS.vertical
+  );
 }
 
 export function isLayoutMode(value: unknown): value is LayoutMode {

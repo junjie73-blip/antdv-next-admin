@@ -1,5 +1,5 @@
 #!/usr/bin/env node
- 
+
 /**
  * stub 构建：只出 JS、跳过 d.ts 生成，用于本地联调。
  *

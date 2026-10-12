@@ -130,7 +130,8 @@ test.describe('标签页页面缓存', () => {
     await mark(page, USER);
 
     await page.getByTestId('logout-widget').click();
-    // antd 会在两个汉字的按钮里补一个空格（ accessible name 是 "退 出"），所以用 \s* 容忍
+    // 确认框主按钮是 `header.logoutOk`（两汉字，antd 会在中间补一个空格 → "退 出"），
+    // 与顶栏那个 aria-label="退出登录" 的入口按钮区分开，所以这里匹配到的是弹窗里的
     await page.getByRole('button', { name: /^退\s*出$/ }).click();
 
     // 退出后站内跳转会被守卫挡回登录页（此时 token 与缓存都已清）

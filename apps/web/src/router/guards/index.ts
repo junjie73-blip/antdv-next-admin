@@ -1,5 +1,6 @@
 import type { AppRouteRecordRaw } from '@antdv/types';
-import type { RouteRecordRaw, Router } from 'vue-router';
+
+import type { Router, RouteRecordRaw } from 'vue-router';
 
 import { applyRouterGuards } from '@antdv/router';
 import {
@@ -87,7 +88,9 @@ export function setupRouterGuards(
         const leaf = firstLeafMenu(findMenuByPath(store.menus, path));
         if (!leaf || leaf.isExternal) return undefined;
         const target = normalizeMenuPath(leaf.path);
-        return target && target !== normalizeMenuPath(path) ? target : undefined;
+        return target && target !== normalizeMenuPath(path)
+          ? target
+          : undefined;
       },
       onError: (error) => {
         console.error('[router] 菜单加载失败', error);

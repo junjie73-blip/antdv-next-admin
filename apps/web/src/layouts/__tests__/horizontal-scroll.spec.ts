@@ -27,19 +27,19 @@ describe('useHorizontalScroll —— 溢出计算', () => {
   });
 
   it('最左端只能向右滚，最右端只能向左滚', () => {
-    expect(computeOverflow(0, 1_000, 200)).toMatchObject({
+    expect(computeOverflow(0, 1000, 200)).toMatchObject({
       canScrollLeft: false,
       canScrollRight: true,
     });
-    expect(computeOverflow(800, 1_000, 200)).toMatchObject({
+    expect(computeOverflow(800, 1000, 200)).toMatchObject({
       canScrollLeft: true,
       canScrollRight: false,
     });
   });
 
   it('亚像素误差在容差内视为已到底（Safari / 缩放场景）', () => {
-    const state = computeOverflow(799, 1_000, 200);
-    expect(1_000 - 200 - 799).toBeLessThan(SCROLL_EPSILON * 2);
+    const state = computeOverflow(799, 1000, 200);
+    expect(1000 - 200 - 799).toBeLessThan(SCROLL_EPSILON * 2);
     expect(state.canScrollRight).toBe(false);
   });
 });
@@ -86,11 +86,21 @@ interface ScrollProbe {
  */
 function makeScrollable(
   node: HTMLElement,
-  opts: { clientWidth?: number; scrollLeft?: number; scrollWidth?: number } = {},
+  opts: {
+    clientWidth?: number;
+    scrollLeft?: number;
+    scrollWidth?: number;
+  } = {},
 ): ScrollProbe {
-  const { clientWidth = 200, scrollWidth = 1_000, scrollLeft = 0 } = opts;
-  Object.defineProperty(node, 'clientWidth', { configurable: true, value: clientWidth });
-  Object.defineProperty(node, 'scrollWidth', { configurable: true, value: scrollWidth });
+  const { clientWidth = 200, scrollWidth = 1000, scrollLeft = 0 } = opts;
+  Object.defineProperty(node, 'clientWidth', {
+    configurable: true,
+    value: clientWidth,
+  });
+  Object.defineProperty(node, 'scrollWidth', {
+    configurable: true,
+    value: scrollWidth,
+  });
 
   let current = scrollLeft;
   Object.defineProperty(node, 'scrollLeft', {
@@ -108,7 +118,8 @@ function makeScrollable(
 
   const setPointerCapture = vi.fn();
   const releasePointerCapture = vi.fn();
-  node.setPointerCapture = setPointerCapture as unknown as typeof node.setPointerCapture;
+  node.setPointerCapture =
+    setPointerCapture as unknown as typeof node.setPointerCapture;
   node.releasePointerCapture =
     releasePointerCapture as unknown as typeof node.releasePointerCapture;
   Object.defineProperty(node, 'hasPointerCapture', {
@@ -167,8 +178,14 @@ function firePointer(
     clientX: init.pageX ?? 0,
     button: init.button ?? 0,
   });
-  Object.defineProperty(event, 'pageX', { configurable: true, value: init.pageX ?? 0 });
-  Object.defineProperty(event, 'pointerId', { configurable: true, value: init.pointerId ?? 1 });
+  Object.defineProperty(event, 'pageX', {
+    configurable: true,
+    value: init.pageX ?? 0,
+  });
+  Object.defineProperty(event, 'pointerId', {
+    configurable: true,
+    value: init.pointerId ?? 1,
+  });
   target.dispatchEvent(event);
   return event;
 }
@@ -205,7 +222,10 @@ describe('useHorizontalScroll —— 拖拽与点击共存', () => {
     const probe = makeScrollable(container, { scrollLeft: 100 });
 
     firePointer(container, 'pointerdown', { pointerId: 7, pageX: 500 });
-    firePointer(window, 'pointermove', { pointerId: 7, pageX: 500 + DRAG_THRESHOLD });
+    firePointer(window, 'pointermove', {
+      pointerId: 7,
+      pageX: 500 + DRAG_THRESHOLD,
+    });
     expect(probe.setPointerCapture).toHaveBeenCalledTimes(1);
     expect(api().isDragging.value).toBe(true);
     // 指针右移 → 内容左移（scrollLeft 变小）
@@ -251,7 +271,10 @@ describe('useHorizontalScroll —— 拖拽与点击共存', () => {
 
   it('内容没溢出时不进入拖拽流程', () => {
     const { api, container, wrapper } = mountHost();
-    const probe = makeScrollable(container, { clientWidth: 800, scrollWidth: 800 });
+    const probe = makeScrollable(container, {
+      clientWidth: 800,
+      scrollWidth: 800,
+    });
 
     firePointer(container, 'pointerdown', { pageX: 500 });
     firePointer(window, 'pointermove', { pageX: 200 });
@@ -311,7 +334,10 @@ describe('useHorizontalScroll —— 溢出状态与箭头滚动', () => {
     expect(api().canScrollLeft.value).toBe(false);
 
     api().scrollByStep(1);
-    expect(probe.scrollTo).toHaveBeenCalledWith({ behavior: 'smooth', left: 120 });
+    expect(probe.scrollTo).toHaveBeenCalledWith({
+      behavior: 'smooth',
+      left: 120,
+    });
     expect(container.scrollLeft).toBe(120);
 
     api().update();
@@ -325,7 +351,7 @@ describe('useHorizontalScroll —— 溢出状态与箭头滚动', () => {
     makeScrollable(container, { scrollLeft: 400 });
 
     api().scrollToEnd(1);
-    expect(container.scrollLeft).toBe(1_000);
+    expect(container.scrollLeft).toBe(1000);
     api().scrollToEnd(-1);
     expect(container.scrollLeft).toBe(0);
 

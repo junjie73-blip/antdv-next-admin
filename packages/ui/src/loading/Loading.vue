@@ -43,7 +43,7 @@ const wrapperClassName = computed(() => {
     // 全屏模式
     !props.absolute && 'fixed inset-0 h-screen w-screen',
     // 绝对定位模式（容器内）
-    props.absolute && 'absolute inset-0 size-full ',
+    props.absolute && 'absolute inset-0 size-full',
     // 尺寸
     props.size === 'small' && 'loading-small',
     props.size === 'large' && 'loading-large',

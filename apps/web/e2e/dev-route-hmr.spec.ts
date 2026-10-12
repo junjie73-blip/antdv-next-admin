@@ -44,7 +44,11 @@ test.describe('开发态路由热更新', () => {
 
     const original = await readFile(PAGE_FILE, 'utf8');
     try {
-      await writeFile(PAGE_FILE, `${original}\n<!-- e2e：触发一次约定路由热更新 -->\n`, 'utf8');
+      await writeFile(
+        PAGE_FILE,
+        `${original}\n<!-- e2e：触发一次约定路由热更新 -->\n`,
+        'utf8',
+      );
 
       /**
        * 先证明"约定路由模块真的被热更新过"。
@@ -52,10 +56,13 @@ test.describe('开发态路由热更新', () => {
        * 后面的每条断言都只是在检查启动时的状态，坏掉也照样绿 —— 空跑的用例比没有用例更坏。
        */
       await expect
-        .poll(() => logs.some((text) => text.includes('vue-router/auto-routes')), {
-          message: '没观察到约定路由模块的热更新，下面的断言会是空跑',
-          timeout: 20_000,
-        })
+        .poll(
+          () => logs.some((text) => text.includes('vue-router/auto-routes')),
+          {
+            message: '没观察到约定路由模块的热更新，下面的断言会是空跑',
+            timeout: 20_000,
+          },
+        )
         .toBe(true);
 
       // 外壳还在，而且没有重复套第二层（多套一层会数出 2 个侧栏）
@@ -76,13 +83,17 @@ test.describe('开发态路由热更新', () => {
       await page.evaluate(() => {
         window.location.hash = '#/login';
       });
-      await expect(page, '/login 没匹配到，被兜底路由接管了').toHaveURL(/#\/dashboard/);
+      await expect(page, '/login 没匹配到，被兜底路由接管了').toHaveURL(
+        /#\/dashboard/,
+      );
 
       // 兜底 404 也还在：没有它，乱敲地址的表现是白屏而不是错误页
       await page.evaluate(() => {
         window.location.hash = '#/no-such-page-in-this-app';
       });
-      await expect(page, '404 兜底路由被热更新清掉了').toHaveURL(/#\/error\/404/);
+      await expect(page, '404 兜底路由被热更新清掉了').toHaveURL(
+        /#\/error\/404/,
+      );
     } finally {
       // 还原必须发生在任何断言失败之后仍然执行：留着那行注释，后面每一轮跑的都是被改过的树
       await writeFile(PAGE_FILE, original, 'utf8');

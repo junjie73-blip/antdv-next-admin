@@ -1,78 +1,78 @@
 <script setup lang="ts">
-import type { FormSchema } from '~/components/business/Form'
-import type { BasicColumn } from '~/components/business/Table'
+import type { FormSchema } from '~/components/business/Form';
+import type { BasicColumn } from '~/components/business/Table';
 
-import { computed, ref, useTemplateRef } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue';
 
-import { cn } from '@antdv/shared/cn'
-import { faker } from '@faker-js/faker/locale/zh_CN'
-import { Icon } from '@iconify/vue'
-import { addPost, deletePost, getPostList, updatePost } from '~/api/system'
-import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
-import { BasicForm, useForm } from '~/components/business/Form'
-import { BasicModal, useModal } from '~/components/business/Modal'
-import { BasicTable, useTable } from '~/components/business/Table'
-import { DictType } from '~/enums/dict'
-import { useDictStore } from '~/stores'
+import { cn } from '@antdv/shared/cn';
+import { faker } from '@faker-js/faker/locale/zh_CN';
+import { Icon } from '@iconify/vue';
+import { addPost, deletePost, getPostList, updatePost } from '~/api/system';
+import { BasicDrawer, useDrawer } from '~/components/business/Drawer';
+import { BasicForm, useForm } from '~/components/business/Form';
+import { BasicModal, useModal } from '~/components/business/Modal';
+import { BasicTable, useTable } from '~/components/business/Table';
+import { DictType } from '~/enums/dict';
+import { useDictStore } from '~/stores';
 
-defineOptions({ name: 'SystemPost' })
+defineOptions({ name: 'SystemPost' });
 
 interface PostRecord {
-  id: number
-  name: string
-  code: string
-  deptId: number
-  deptName: string
-  sortOrder: number
-  status: 0 | 1
-  remark: string
-  createdAt: string
-  userCount: number
-  userIds: number[]
+  id: number;
+  name: string;
+  code: string;
+  deptId: number;
+  deptName: string;
+  sortOrder: number;
+  status: 0 | 1;
+  remark: string;
+  createdAt: string;
+  userCount: number;
+  userIds: number[];
 }
 
 interface UserRecord {
-  id: number
-  username: string
-  nickname: string
-  avatar?: string
-  deptName: string
+  id: number;
+  username: string;
+  nickname: string;
+  avatar?: string;
+  deptName: string;
 }
 
 // ========== 样式类名 ==========
-const containerClassName = cn('space-y-4')
-const cardClassName = cn('shadow-sm')
-const tagClassName = cn('inline-flex items-center gap-1')
+const containerClassName = cn('space-y-4');
+const cardClassName = cn('shadow-sm');
+const tagClassName = cn('inline-flex items-center gap-1');
 const actionClassName = cn(
   'flex',
   'items-center',
   'justify-center',
   'whitespace-nowrap',
-)
-const btnClassName = cn('px-0.5!')
-const dividerClassName = cn('mx-0')
+);
+const btnClassName = cn('px-0.5!');
+const dividerClassName = cn('mx-0');
 
 // ========== 状态映射 ==========
-const dictStore = useDictStore()
+const dictStore = useDictStore();
 
 const statusOptions = computed(() =>
   dictStore.getOptions(DictType.NORMAL_DISABLE),
-)
+);
 
 const statusColorMap: Record<number, string> = {
   1: 'green',
   0: 'red',
-}
+};
 const statusLabelMap: Record<number, string> = {
   1: '正常',
   0: '停用',
-}
+};
 
 // 部门树结构（用于表单筛选）
 interface DeptTreeNode {
-  id: number
-  name: string
-  children?: DeptTreeNode[]
+  id: number;
+  name: string;
+  children?: DeptTreeNode[];
 }
 
 const deptTreeData: DeptTreeNode[] = [
@@ -89,11 +89,11 @@ const deptTreeData: DeptTreeNode[] = [
       { id: 8, name: '行政部' },
     ],
   },
-]
+];
 
 // 用户池 — 用于分配用户功能
-faker.seed(2024)
-const userPool = ref<UserRecord[]>([])
+faker.seed(2024);
+const userPool = ref<UserRecord[]>([]);
 
 // 初始化用户池
 for (let i = 1; i <= 30; i++) {
@@ -106,21 +106,21 @@ for (let i = 1; i <= 30; i++) {
       ['技术部', '产品部', '市场部', '运营部'][
         faker.number.int({ min: 0, max: 3 })
       ] || '未分配',
-  })
+  });
 }
 
 // ========== 状态管理 ==========
-const isEditing = ref(false)
-const currentRecord = ref<null | PostRecord>(null)
-const assignPostRecord = ref<null | PostRecord>(null)
-const assignSearchKeyword = ref('')
-const selectedAssignUserIds = ref<number[]>([])
+const isEditing = ref(false);
+const currentRecord = ref<null | PostRecord>(null);
+const assignPostRecord = ref<null | PostRecord>(null);
+const assignSearchKeyword = ref('');
+const selectedAssignUserIds = ref<number[]>([]);
 
-const tableRef = useTemplateRef<InstanceType<typeof BasicTable>>('tableRef')
-const [drawerRegister, drawerMethods] = useDrawer()
-const [assignModalRegister, assignModalMethods] = useModal()
-const [tableRegister, tableMethods] = useTable()
-const [formRegister, formMethods] = useForm()
+const tableRef = useTemplateRef<InstanceType<typeof BasicTable>>('tableRef');
+const [drawerRegister, drawerMethods] = useDrawer();
+const [assignModalRegister, assignModalMethods] = useModal();
+const [tableRegister, tableMethods] = useTable();
+const [formRegister, formMethods] = useForm();
 
 // ========== 搜索表单配置 ==========
 const searchFormSchemas: FormSchema[] = [
@@ -158,7 +158,7 @@ const searchFormSchemas: FormSchema[] = [
       options: statusOptions.value,
     }),
   },
-]
+];
 
 // ========== 弹窗表单配置 ==========
 const modalFormSchemas: FormSchema[] = [
@@ -222,85 +222,85 @@ const modalFormSchemas: FormSchema[] = [
     colProps: { span: 24 },
     componentProps: { placeholder: '请输入备注信息...', rows: 3 },
   },
-]
+];
 
 // ========== API 适配层 ==========
 async function mockApi(params: Record<string, any>) {
-  const res = await getPostList(params)
+  const res = await getPostList(params);
   // 兼容 mock 直接返回完整响应或已解包的数据
-  const data = res?.data ?? res
-  return { items: data?.list || [], total: data?.total || 0 }
+  const data = res?.data ?? res;
+  return { items: data?.list || [], total: data?.total || 0 };
 }
 
 // ========== 分配用户相关计算属性与方法 ==========
 const availableUsers = computed(() => {
-  let list = [...userPool.value]
+  let list = [...userPool.value];
   if (assignSearchKeyword.value) {
-    const kw = assignSearchKeyword.value.toLowerCase()
+    const kw = assignSearchKeyword.value.toLowerCase();
     list = list.filter(
       (u) =>
         u.nickname.toLowerCase().includes(kw) ||
         u.username.toLowerCase().includes(kw),
-    )
+    );
   }
-  return list
-})
+  return list;
+});
 
 const _assignedUsers = computed(() => {
-  if (!assignPostRecord.value) return []
+  if (!assignPostRecord.value) return [];
   return userPool.value.filter((u) =>
     assignPostRecord.value!.userIds.includes(u.id),
-  )
-})
+  );
+});
 
 const _unassignedUsers = computed(() => {
-  const assignedIds = new Set(selectedAssignUserIds.value)
-  return availableUsers.value.filter((u) => !assignedIds.has(u.id))
-})
+  const assignedIds = new Set(selectedAssignUserIds.value);
+  return availableUsers.value.filter((u) => !assignedIds.has(u.id));
+});
 
 const transferDataSource = computed(() =>
   userPool.value.map((u) => ({
     key: u.id,
     title: `${u.nickname} (${u.username})`,
   })),
-)
+);
 
 function handleOpenAssign(record: PostRecord) {
-  assignPostRecord.value = record
-  selectedAssignUserIds.value = [...record.userIds]
-  assignSearchKeyword.value = ''
-  assignModalMethods.openModal()
+  assignPostRecord.value = record;
+  selectedAssignUserIds.value = [...record.userIds];
+  assignSearchKeyword.value = '';
+  assignModalMethods.openModal();
 }
 
 function _handleToggleAssignUser(user: UserRecord) {
-  const idx = selectedAssignUserIds.value.indexOf(user.id)
+  const idx = selectedAssignUserIds.value.indexOf(user.id);
   if (idx === -1) {
-    selectedAssignUserIds.value.push(user.id)
+    selectedAssignUserIds.value.push(user.id);
   } else {
-    selectedAssignUserIds.value.splice(idx, 1)
+    selectedAssignUserIds.value.splice(idx, 1);
   }
 }
 
 async function handleSaveAssign() {
-  if (!assignPostRecord.value) return
+  if (!assignPostRecord.value) return;
   try {
     await updatePost(assignPostRecord.value.id, {
       userIds: selectedAssignUserIds.value,
-    })
+    });
     message.success(
       `已为「${assignPostRecord.value.name}」分配 ${selectedAssignUserIds.value.length} 名用户`,
-    )
-    assignModalMethods.closeModal()
-    tableMethods.value?.reload()
+    );
+    assignModalMethods.closeModal();
+    tableMethods.value?.reload();
   } catch (error: any) {
-    message.error(error?.message || '保存失败')
+    message.error(error?.message || '保存失败');
   }
 }
 
 // ========== CRUD 操作 ==========
 function handleAdd() {
-  isEditing.value = false
-  currentRecord.value = null
+  isEditing.value = false;
+  currentRecord.value = null;
   formMethods.setFieldsValue({
     name: '',
     code: '',
@@ -308,14 +308,14 @@ function handleAdd() {
     sortOrder: 0,
     status: 0,
     remark: '',
-  })
-  formMethods.clearValidate()
-  drawerMethods.openDrawer()
+  });
+  formMethods.clearValidate();
+  drawerMethods.openDrawer();
 }
 
 function handleEdit(record: PostRecord) {
-  isEditing.value = true
-  currentRecord.value = record
+  isEditing.value = true;
+  currentRecord.value = record;
   formMethods.setFieldsValue({
     name: record.name,
     code: record.code,
@@ -323,55 +323,55 @@ function handleEdit(record: PostRecord) {
     sortOrder: record.sortOrder,
     status: record.status,
     remark: record.remark,
-  })
-  formMethods.clearValidate()
-  drawerMethods.openDrawer()
+  });
+  formMethods.clearValidate();
+  drawerMethods.openDrawer();
 }
 
 async function handleDelete(record: PostRecord) {
   try {
-    await deletePost(record.id)
-    message.success(`已删除岗位：${record.name}`)
-    tableMethods.value?.reload()
+    await deletePost(record.id);
+    message.success(`已删除岗位：${record.name}`);
+    tableMethods.value?.reload();
   } catch (error: any) {
-    message.error(error?.message || '删除失败')
+    message.error(error?.message || '删除失败');
   }
 }
 
 async function handleToggleStatus(record: PostRecord) {
   try {
-    await updatePost(record.id, { status: record.status === 1 ? 0 : 1 })
+    await updatePost(record.id, { status: record.status === 1 ? 0 : 1 });
     message.success(
       `已${record.status === 1 ? '停用' : '启用'}：${record.name}`,
-    )
-    tableMethods.value?.reload()
+    );
+    tableMethods.value?.reload();
   } catch (error: any) {
-    message.error(error?.message || '操作失败')
+    message.error(error?.message || '操作失败');
   }
 }
 
 async function handleSave() {
-  const values = await formMethods.validate()
-  if (!values) return
+  const values = await formMethods.validate();
+  if (!values) return;
 
   if (!values.name || !values.code) {
-    message.warning('请填写岗位名称和编码')
-    return
+    message.warning('请填写岗位名称和编码');
+    return;
   }
 
   try {
     if (isEditing.value && currentRecord.value) {
-      await updatePost(currentRecord.value.id, values)
-      message.success(`已更新岗位：${values.name}`)
+      await updatePost(currentRecord.value.id, values);
+      message.success(`已更新岗位：${values.name}`);
     } else {
-      await addPost(values)
-      message.success(`已新增岗位：${values.name}`)
+      await addPost(values);
+      message.success(`已新增岗位：${values.name}`);
     }
 
-    drawerMethods.closeDrawer()
-    tableMethods.value?.reload()
+    drawerMethods.closeDrawer();
+    tableMethods.value?.reload();
   } catch (error: any) {
-    message.error(error?.message || '保存失败')
+    message.error(error?.message || '保存失败');
   }
 }
 
@@ -422,7 +422,7 @@ const columns: BasicColumn[] = [
     align: 'center',
   },
   { title: '备注', dataIndex: 'remark', key: 'remark', ellipsis: true },
-]
+];
 </script>
 
 <template>

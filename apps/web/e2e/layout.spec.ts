@@ -42,23 +42,48 @@ interface Regions {
 
 const CASES: Array<[string, Regions]> = [
   // sidebarSource: 'tree'，一棵完整树常驻；headerLead 'breadcrumb' 让 Logo 让位
-  ['vertical', { breadcrumb: 1, headerNav: 0, navRail: 0, sidebar: 1, tabs: true }],
+  [
+    'vertical',
+    { breadcrumb: 1, headerNav: 0, navRail: 0, sidebar: 1, tabs: true },
+  ],
   // navRailVisible + sidebarSource 'active-top'，顶栏leading 也是面包屑
-  ['two-column', { breadcrumb: 1, headerNav: 0, navRail: 1, sidebar: 1, tabs: true }],
+  [
+    'two-column',
+    { breadcrumb: 1, headerNav: 0, navRail: 1, sidebar: 1, tabs: true },
+  ],
   // headerNavVisible + sidebarSource 'none'：面包屑退到内容列第一行
-  ['horizontal', { breadcrumb: 1, headerNav: 1, navRail: 0, sidebar: 0, tabs: true }],
+  [
+    'horizontal',
+    { breadcrumb: 1, headerNav: 1, navRail: 0, sidebar: 0, tabs: true },
+  ],
   /*
    * 侧边导航：曾经的缺陷是蓝图写了 `sidebarPresentation: 'drawer'`，
    * 桌面端选了它之后菜单躲进默认收起的浮层里，看起来"什么都没出现"。
    * 修好后这一列必须常驻（sidebar 1）。
    */
-  ['side-nav', { breadcrumb: 1, headerNav: 0, navRail: 0, sidebar: 1, tabs: true }],
+  [
+    'side-nav',
+    { breadcrumb: 1, headerNav: 0, navRail: 0, sidebar: 1, tabs: true },
+  ],
   // headerNavDepth 1 + sidebarSource 'active-top'：两级同时在
-  ['mixed-vertical', { breadcrumb: 1, headerNav: 1, navRail: 0, sidebar: 1, tabs: true }],
-  // headerNav + rail(二级) + sidebar(三级)：mock 菜单只到二级，第三列必空 → 空列让位
-  ['mixed-two-column', { breadcrumb: 1, headerNav: 1, navRail: 1, sidebar: 0, tabs: true }],
+  [
+    'mixed-vertical',
+    { breadcrumb: 1, headerNav: 1, navRail: 0, sidebar: 1, tabs: true },
+  ],
+  /*
+   * headerNav + rail(二级) + sidebar(三级)。
+   * 用例落在 `/system/user`，链路只有两级，第三列必空 → 空列让位。
+   * （菜单里能填满第三列的只有「组件示例 → 表单 / 表格」这两支。）
+   */
+  [
+    'mixed-two-column',
+    { breadcrumb: 1, headerNav: 1, navRail: 1, sidebar: 0, tabs: true },
+  ],
   // chromeless：外壳全隐，标签栏也折叠
-  ['full-content', { breadcrumb: 0, headerNav: 0, navRail: 0, sidebar: 0, tabs: false }],
+  [
+    'full-content',
+    { breadcrumb: 0, headerNav: 0, navRail: 0, sidebar: 0, tabs: false },
+  ],
 ];
 
 test.describe('布局形态', () => {
@@ -116,7 +141,11 @@ test.describe('布局形态', () => {
       logo: '[data-layout-logo="sidebar"]',
       mode: 'vertical',
     },
-    { geometry: 'column-top', logo: '[data-layout-logo="rail"]', mode: 'two-column' },
+    {
+      geometry: 'column-top',
+      logo: '[data-layout-logo="rail"]',
+      mode: 'two-column',
+    },
     {
       geometry: 'under-header',
       logo: '[data-layout-logo="rail"]',
@@ -183,18 +212,20 @@ test.describe('布局形态', () => {
         ).toBeLessThanOrEqual(TOL);
       } else if (geometry === 'under-header') {
         const gap = box!.y - (headerBox!.y + headerBox!.height);
-        expect(gap, '图标栏的 Logo 应紧接顶栏下一行').toBeGreaterThanOrEqual(-TOL);
-        expect(gap, `Logo 掉到顶栏下 ${gap}px，超出外壳留白`).toBeLessThanOrEqual(
-          SHELL_GAP + TOL,
+        expect(gap, '图标栏的 Logo 应紧接顶栏下一行').toBeGreaterThanOrEqual(
+          -TOL,
         );
+        expect(
+          gap,
+          `Logo 掉到顶栏下 ${gap}px，超出外壳留白`,
+        ).toBeLessThanOrEqual(SHELL_GAP + TOL);
       } else {
         expect(box!.y, 'Logo 顶出顶栏了').toBeGreaterThanOrEqual(
           headerBox!.y - TOL,
         );
-        expect(
-          box!.y + box!.height,
-          'Logo 底出顶栏了',
-        ).toBeLessThanOrEqual(headerBox!.y + headerBox!.height + TOL);
+        expect(box!.y + box!.height, 'Logo 底出顶栏了').toBeLessThanOrEqual(
+          headerBox!.y + headerBox!.height + TOL,
+        );
       }
     });
   }
@@ -277,7 +308,9 @@ test.describe('布局形态', () => {
     await go(page, '/system/dept');
     // 一级高亮仍归「系统管理」，而不是退回第一项
     await expect(
-      region(page, 'header-nav').locator('.ant-menu-submenu-selected, .ant-menu-item-selected'),
+      region(page, 'header-nav').locator(
+        '.ant-menu-submenu-selected, .ant-menu-item-selected',
+      ),
     ).toContainText('系统管理');
     // 标签页拿到的是菜单标题而不是路径
     await expect(tab(page, '/system/dept')).toHaveText(/部门管理/);
@@ -319,32 +352,34 @@ test.describe('面包屑 · 首次进入', () => {
     expect(errors.errors).toEqual([]);
   });
 
-  test('刷新后仍然画出完整链（菜单是异步下发的，不能等第二次导航）', async ({ page }) => {
+  test('刷新后仍然画出完整链（菜单是异步下发的，不能等第二次导航）', async ({
+    page,
+  }) => {
     const errors = watchErrors(page);
     await signIn(page);
-    await go(page, '/components/basic');
+    await go(page, '/components/form/basic');
 
     /**
      * 刷新**之前**先把这一跳坐实：断言链已经画全 + `networkidle` 确认没有在飞的请求。
      *
      * 不等的话 `page.reload()` 会和页面自己的懒加载模块抢时间 —— dev 下第一次进
-     * `/components/basic` 要现场编译它和它牵出来的依赖（实测被掐断的是
+     * `/components/form/basic` 要现场编译它和它牵出来的依赖（实测被掐断的是
      * `@antdv/composables` 里 SSE 重连那个 chunk），Firefox 把这一下报成
      * `pageerror: error loading dynamically imported module`，用例就被自己的时序判红。
      * 这条用例要验的是"刷新之后菜单还在不在"，不是"刷新时恰好有谁在飞"。
      */
     await expect(
       region(page, 'breadcrumb').locator('.ant-breadcrumb-item'),
-    ).toHaveText(['组件示例', '组件画廊', '基础组件', '通用']);
+    ).toHaveText(['组件示例', '表单', '基础表单']);
     await page.waitForLoadState('networkidle');
 
     await page.reload();
     await expectTabBar(page);
 
-    // 三级页：菜单树到位后链应该是完整四级，而不是被 matched 砍成一级
+    // 三级页：菜单树到位后链应该是完整三级，而不是被 matched 砍成一级
     await expect(
       region(page, 'breadcrumb').locator('.ant-breadcrumb-item'),
-    ).toHaveText(['组件示例', '组件画廊', '基础组件', '通用']);
+    ).toHaveText(['组件示例', '表单', '基础表单']);
     expect(errors.errors).toEqual([]);
   });
 });
@@ -425,9 +460,11 @@ test.describe('面包屑', () => {
       const glyph = (el: Element | null | undefined): null | string =>
         el?.querySelector('svg')?.innerHTML ?? null;
 
-      const crumbs = [...document.querySelectorAll(
-        '[data-layout-region="breadcrumb"] .ant-breadcrumb-item',
-      )].map((el) => ({
+      const crumbs = [
+        ...document.querySelectorAll(
+          '[data-layout-region="breadcrumb"] .ant-breadcrumb-item',
+        ),
+      ].map((el) => ({
         glyph: glyph(el),
         title: (el.textContent ?? '').trim(),
       }));
@@ -464,7 +501,9 @@ test.describe('面包屑', () => {
     ).toBe(true);
   });
 
-  test('Logo 系形态：面包屑落到内容列第一行，不跟横向菜单抢顶栏', async ({ page }) => {
+  test('Logo 系形态：面包屑落到内容列第一行，不跟横向菜单抢顶栏', async ({
+    page,
+  }) => {
     for (const mode of ['horizontal', 'side-nav', 'mixed-vertical']) {
       await setLayout(page, mode);
       await expect(
@@ -555,9 +594,12 @@ test.describe('侧边菜单样式', () => {
    * 分工说明：当前种子数据里每一项都有图标，这条 e2e 只能证明"改完没把齐的地方弄歪"；
    * "没图标的那一项到底有没有拿到等宽空槽"由
    * `apps/web/test/menu-icon-slot.test.ts` 直接挂 antd `Menu` 数 DOM 来验。
+   *
+   * 落点选 `/components/form/basic` 而不是某个二级页：这里的"层"按 `.ant-menu-sub`
+   * 的嵌套数算，二级叶子全都只套一层，样本会退成一层、断言变成空跑。
    */
   test('同层菜单项的文字左边缘对齐（缺图标也占位）', async ({ page }) => {
-    await go(page, '/components/basic');
+    await go(page, '/components/form/basic');
 
     const byDepth = await region(page, 'sidebar').evaluate((el) => {
       const groups = new Map<number, Set<number>>();
@@ -580,7 +622,11 @@ test.describe('侧边菜单样式', () => {
         if (!groups.has(depth)) groups.set(depth, new Set());
         groups.get(depth)!.add(Math.round(rect.x));
       }
-      return [...groups].map(([depth, xs]) => ({ count: xs.size, depth, xs: [...xs] }));
+      return [...groups].map(([depth, xs]) => ({
+        count: xs.size,
+        depth,
+        xs: [...xs],
+      }));
     });
 
     // 深层页至少有"一级目录 + 二级子项"两层，否则这条断言是空跑
@@ -588,9 +634,10 @@ test.describe('侧边菜单样式', () => {
     for (const { count, depth, xs } of byDepth) {
       // 只有一项的那层比不出什么，样本太少就单独说明
       if (count < 2) continue;
-      expect(xs, `第 ${depth + 1} 层的文字左边缘对不齐：${xs.join(', ')}`).toHaveLength(
-        1,
-      );
+      expect(
+        xs,
+        `第 ${depth + 1} 层的文字左边缘对不齐：${xs.join(', ')}`,
+      ).toHaveLength(1);
     }
   });
 
@@ -646,9 +693,7 @@ test.describe('侧边菜单样式', () => {
     await page.setViewportSize({ height: 720, width: 640 });
     // 窄屏：外壳换成抽屉，侧栏不再常驻，顶栏入口回来负责开合
     await expect(region(page, 'sidebar')).toHaveCount(0);
-    await expect(
-      page.locator('[aria-label="展开菜单"]').first(),
-    ).toBeVisible();
+    await expect(page.locator('[aria-label="展开菜单"]').first()).toBeVisible();
     await expect(page.locator('[data-layout-sidebar-collapse]')).toHaveCount(0);
   });
 });
@@ -797,15 +842,13 @@ async function settledWidth(sidebar: Locator) {
   await expect
     .poll(
       () =>
-        sidebar
-          .boundingBox()
-          .then((box) => {
-            const width = box?.width ?? -1;
-            const stable = width > 0 && width === previous;
-            previous = width;
-            return stable;
-          }),
-      { message: '等待侧栏宽度动画停住', timeout: 5_000 },
+        sidebar.boundingBox().then((box) => {
+          const width = box?.width ?? -1;
+          const stable = width > 0 && width === previous;
+          previous = width;
+          return stable;
+        }),
+      { message: '等待侧栏宽度动画停住', timeout: 5000 },
     )
     .toBe(true);
   return previous;

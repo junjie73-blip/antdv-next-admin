@@ -2,15 +2,12 @@
 import type { BellNotice } from './notice';
 
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 import { Icon } from '@iconify/vue';
 import { Badge, message, Popover, Spin } from 'antdv-next';
-import {
-  getNoticeList,
-  markAllNoticeRead,
-  markNoticeRead,
-} from '~/api/system';
+import { getNoticeList, markAllNoticeRead, markNoticeRead } from '~/api/system';
 import { useWebSocket } from '~/utils/ws';
 
 import NoticeItem from './components/NoticeItem.vue';
@@ -35,6 +32,7 @@ defineOptions({ name: 'WidgetNotice' });
 const PREVIEW_LIMIT = 8;
 
 const router = useRouter();
+const { t } = useI18n({ useScope: 'global' });
 const { onNotice } = useWebSocket();
 
 const loading = ref(false);
@@ -90,7 +88,7 @@ async function markRead(item: BellNotice) {
     await markNoticeRead(item.id);
   } catch {
     item.read = false;
-    message.error('标记已读失败');
+    message.error(t('header.markReadFailed'));
   }
 }
 
@@ -112,12 +110,12 @@ async function handleMarkAllRead() {
 
   try {
     await markAllNoticeRead();
-    message.success('已全部标记为已读');
+    message.success(t('header.markedAllRead'));
   } catch {
     list.value.forEach((item) => {
       if (unreadIds.has(item.id)) item.read = false;
     });
-    message.error('操作失败，请重试');
+    message.error(t('header.operationFailed'));
   } finally {
     markingAll.value = false;
   }
@@ -131,9 +129,14 @@ function handleViewAll() {
 </script>
 
 <template>
-  <Popover v-model:open="open" placement="bottomRight" trigger="click" :arrow="false">
+  <Popover
+    v-model:open="open"
+    placement="bottomRight"
+    trigger="click"
+    :arrow="false"
+  >
     <!-- 触发按钮 -->
-    <WidgetButton :active="open" label="通知">
+    <WidgetButton :active="open" :label="t('header.notification')">
       <Badge :count="unreadCount" size="small" :offset="[0, 4]">
         <Icon icon="carbon:notification" class="text-base" />
       </Badge>
@@ -147,8 +150,10 @@ function handleViewAll() {
           class="flex shrink-0 items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-800"
         >
           <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">
-              通知
+            <span
+              class="text-sm font-semibold text-slate-700 dark:text-slate-200"
+            >
+              {{ t('header.notification') }}
             </span>
             <span
               v-if="unreadCount > 0"
@@ -166,7 +171,7 @@ function handleViewAll() {
             class="rounded px-2 py-1 text-[11px] text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
             @click="handleMarkAllRead"
           >
-            {{ markingAll ? '处理中...' : '全部已读' }}
+            {{ markingAll ? t('header.processing') : t('header.markAllRead') }}
           </button>
         </div>
 
@@ -186,7 +191,9 @@ function handleViewAll() {
                   class="text-xl text-slate-400 dark:text-slate-500"
                 />
               </div>
-              <span class="text-xs text-slate-400 dark:text-slate-500">暂无通知</span>
+              <span class="text-xs text-slate-400 dark:text-slate-500">{{
+                t('header.noNotification')
+              }}</span>
             </div>
 
             <div v-else class="space-y-1">
@@ -211,7 +218,7 @@ function handleViewAll() {
             class="text-ant-primary text-xs transition-colors hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
             @click="handleViewAll"
           >
-            查看全部通知 →
+            {{ t('header.viewAllNotification') }} →
           </button>
         </div>
       </div>

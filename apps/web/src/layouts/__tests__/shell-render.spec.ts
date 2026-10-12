@@ -24,11 +24,10 @@ const MENUS: MenuConfig[] = [
   {
     children: [
       {
-        children:
-          [
-            { name: 'user-list', title: '用户列表' },
-            { name: 'user-post', title: '岗位管理' },
-          ],
+        children: [
+          { name: 'user-list', title: '用户列表' },
+          { name: 'user-post', title: '岗位管理' },
+        ],
         name: 'user',
         title: '用户管理',
       },
@@ -43,8 +42,10 @@ const MENUS: MenuConfig[] = [
 const regionStub = (region: string) =>
   defineComponent({
     name: `Stub_${region}`,
-    setup: (_, { slots }) => () =>
-      h('div', { 'data-region': region }, slots.default?.()),
+    setup:
+      (_, { slots }) =>
+      () =>
+        h('div', { 'data-region': region }, slots.default?.()),
   });
 
 /**
@@ -68,7 +69,10 @@ const STUBS: Record<string, unknown> = {
   PageLoading: regionStub('page-loading'),
   PageTransition: defineComponent({
     name: 'StubPageTransition',
-    setup: (_, { slots }) => () => h('div', slots.default?.()),
+    setup:
+      (_, { slots }) =>
+      () =>
+        h('div', slots.default?.()),
   }),
   RouteLoadingBar: defineComponent({
     name: 'StubRouteLoadingBar',
@@ -162,7 +166,7 @@ function presentRegions(wrapper: {
  * 回收节点时报 "node to be removed is not a child of this node"。
  */
 afterEach(async () => {
-  while (mounted.length) mounted.pop()!.unmount();
+  while (mounted.length > 0) mounted.pop()!.unmount();
   await flushPromises();
   document.body.innerHTML = '';
 });
@@ -284,7 +288,10 @@ describe('布局外壳渲染 —— 各形态的区域构成', () => {
 
       appStore.updateSetting({ sidebarOverlayOpen: true });
       await flushPromises();
-      expect(drawerState()).toEqual({ hasDrawer: true, hasSidebarInBody: true });
+      expect(drawerState()).toEqual({
+        hasDrawer: true,
+        hasSidebarInBody: true,
+      });
 
       await router.push('/about');
       await flushPromises();

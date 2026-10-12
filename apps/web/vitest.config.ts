@@ -46,7 +46,10 @@ export default defineConfig(async () => {
   const resolved = ((await appViteConfig(env)) ?? {}) as UserConfig;
 
   return mergeConfig(
-    { ...resolved, plugins: prunePlugins((resolved.plugins ?? []) as PluginOption[]) },
+    {
+      ...resolved,
+      plugins: prunePlugins((resolved.plugins ?? []) as PluginOption[]),
+    },
     defineConfig({
       test: {
         environment: 'jsdom',

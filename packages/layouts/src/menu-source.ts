@@ -1,5 +1,4 @@
-import type { LayoutMode } from '@antdv/types';
-import type { MenuConfig, MenuKey } from '@antdv/types';
+import type { LayoutMode, MenuConfig, MenuKey } from '@antdv/types';
 
 import type { ComputedRef, Ref } from 'vue';
 
@@ -125,7 +124,9 @@ export function createMenuTreeSource(deps: MenuTreeDeps): MenuTreeSource {
     return last(
       findMenuChain(
         menus.value,
-        (menu) => !!menu.path && normalizeMenuPath(menu.path) === normalizeMenuPath(current.path),
+        (menu) =>
+          !!menu.path &&
+          normalizeMenuPath(menu.path) === normalizeMenuPath(current.path),
         [],
         options,
       ),
@@ -147,9 +148,7 @@ export function createMenuTreeSource(deps: MenuTreeDeps): MenuTreeSource {
   });
 
   const activeTopMenu = computed<MenuConfig | undefined>(
-    () =>
-      currentChain.value.find((menu) => !menu.hidden) ??
-      topMenus.value[0],
+    () => currentChain.value.find((menu) => !menu.hidden) ?? topMenus.value[0],
   );
 
   /** 一级导航的选中 key：路由不在菜单里时回退第一项，避免横向导航全灰 */
@@ -178,7 +177,9 @@ export function createMenuTreeSource(deps: MenuTreeDeps): MenuTreeSource {
     const children = activeTopChildren.value;
     if (children.length === 0) return undefined;
     const keys = new Set(children.map((child) => menuKeyOf(child)));
-    const inChain = currentChain.value.find((menu) => keys.has(menuKeyOf(menu)));
+    const inChain = currentChain.value.find((menu) =>
+      keys.has(menuKeyOf(menu)),
+    );
     return inChain ?? children[0];
   });
 
@@ -261,7 +262,9 @@ export function railMenusOf(
   railDepth: Ref<1 | 2>,
 ): ComputedRef<MenuConfig[]> {
   return computed(() =>
-    railDepth.value === 2 ? source.activeTopChildren.value : source.topMenus.value,
+    railDepth.value === 2
+      ? source.activeTopChildren.value
+      : source.topMenus.value,
   );
 }
 
@@ -330,7 +333,9 @@ export function useLayoutRegions(options: {
   const { maximized, mode, source } = options;
   const blueprint = computed(() => getBlueprint(mode.value));
   /** 标签页"放大当前页"等价于临时内容全屏 */
-  const collapsed = computed(() => blueprint.value.chromeless || !!maximized?.value);
+  const collapsed = computed(
+    () => blueprint.value.chromeless || !!maximized?.value,
+  );
 
   const sidebarMenus = sidebarMenusOf(
     source,

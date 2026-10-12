@@ -146,7 +146,10 @@ export interface MenuSearchOptions {
 }
 
 /** 遍历入口：默认剔掉隐藏节点，`includeHidden` 时只做基础的空值过滤 */
-function walkableMenus(list: MenuConfig[] | undefined, includeHidden?: boolean) {
+function walkableMenus(
+  list: MenuConfig[] | undefined,
+  includeHidden?: boolean,
+) {
   if (includeHidden) return (list ?? []).filter((m) => !!m);
   return visibleMenus(list);
 }

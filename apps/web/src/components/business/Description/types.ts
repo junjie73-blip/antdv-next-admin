@@ -5,7 +5,11 @@ import type { Recordable } from '../Form';
 /**
  * Description 组件尺寸
  */
-export type DescriptionSize = 'default' | 'large' | 'small';
+/**
+ * antdv-next 已经把 `size="default"` 判为废弃（控制台会提示改用 `large`），
+ * 所以这里不再提供 `'default'`：不传 = 组件默认，`large` 与不传渲染一致。
+ */
+export type DescriptionSize = 'large' | 'middle' | 'small';
 
 /**
  * Description 组件布局
@@ -113,8 +117,8 @@ export interface DescriptionProps {
   column?: number;
 
   /**
-   * 尺寸
-   * @default 'default'
+   * 尺寸；不传走 antdv-next 的默认档（宽松）。
+   * 注意没有 `'default'` —— 那个写法已被 antdv-next 判为废弃。
    */
   size?: DescriptionSize;
 

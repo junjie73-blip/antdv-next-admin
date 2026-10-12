@@ -33,7 +33,12 @@ function seededStores() {
   route.isLoaded = true;
   route.allowedPaths = new Set(['/system/user']);
   tabs.tabs = [
-    { closable: true, key: '/system/user', path: '/system/user', title: '用户管理' },
+    {
+      closable: true,
+      key: '/system/user',
+      path: '/system/user',
+      title: '用户管理',
+    },
   ] as never;
 
   return { route, tabs, user };

@@ -1,7 +1,7 @@
 ---
-"@antdv/types": minor
-"@antdv/layouts": patch
-"@antdv/web": patch
+'@antdv/types': minor
+'@antdv/layouts': patch
+'@antdv/web': patch
 ---
 
 fix: 修复偏好设置抽屉与多布局的五处体验缺陷

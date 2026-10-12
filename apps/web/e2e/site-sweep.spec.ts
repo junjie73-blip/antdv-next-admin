@@ -4,13 +4,7 @@ import process from 'node:process';
 
 import { expect, test } from '@playwright/test';
 
-import {
-  go,
-  HOME_PATH,
-  navigate,
-  signIn,
-  watchErrors,
-} from './utils/app';
+import { go, HOME_PATH, navigate, signIn, watchErrors } from './utils/app';
 
 /**
  * 全站页面巡检：把菜单里每一个叶子页面都走一遍，只问三个问题 ——
@@ -38,9 +32,9 @@ interface LeafMenu {
  * "渲染成功、控制台干净"的 HTML，只靠 errors + html 长度发现不了。
  * 巡检必须能抓到这种"链接是死的、页面却像是好的"的问题，所以按文案特征判定。
  *
- * 刻意**跳过 `a-card` 里的文字**：示例页（`/components/feedback`）把 404/403 的
- * `a-result` 当素材摆在卡片里，整段 innerText 会把它一起读进来，把好页面误报成
- * 兜底页（第一版就是这么红的）。真的兜底页是裸的 h1/p，不在卡里。
+ * 刻意**跳过 `a-card` 里的文字**：示例页会把 404/403 的 `a-result` 当素材摆在卡片里，
+ * 整段 innerText 会把它一起读进来，把好页面误报成兜底页（第一版就是这么红的）。
+ * 真的兜底页（`views/error/404.vue`）是裸的 h1/h2/p，不在卡里。
  */
 function hasFallbackMarker(region: Element): boolean {
   const markers = ['页面不存在', '您没有权限访问此页面', '服务暂不可用'];
@@ -97,9 +91,7 @@ interface SweepRow {
  *   本站自己的弹窗（BasicModal）已全部改用 `destroy-on-hidden`。
  */
 const VENDOR_CONSOLE_NOISE: Record<string, string[]> = {
-  '/components/form-designer': [
-    '[antd: Modal] `destroyOnClose` is deprecated',
-  ],
+  '/components/form-designer': ['[antd: Modal] `destroyOnClose` is deprecated'],
 };
 
 function splitVendorNoise(path: string, errors: string[]) {
@@ -123,7 +115,9 @@ async function collectLeaves(page: Page): Promise<LeafMenu[]> {
     const leaves: LeafMenu[] = [];
     const walk = (nodes: Array<Record<string, unknown>>) => {
       for (const node of nodes) {
-        const children = (node.children ?? []) as Array<Record<string, unknown>>;
+        const children = (node.children ?? []) as Array<
+          Record<string, unknown>
+        >;
         const path = String(node.path ?? '');
         if (children.length > 0) {
           walk(children);
@@ -150,7 +144,9 @@ async function collectLeaves(page: Page): Promise<LeafMenu[]> {
 }
 
 test.describe('全站页面巡检', () => {
-  test('每个菜单叶子页面都能打开，且没有本站错误 / 接口非 2xx', async ({ page }, testInfo) => {
+  test('每个菜单叶子页面都能打开，且没有本站错误 / 接口非 2xx', async ({
+    page,
+  }, testInfo) => {
     await signIn(page);
 
     const leaves = await collectLeaves(page);
@@ -175,7 +171,9 @@ test.describe('全站页面巡检', () => {
      * Chromium / Firefox 保持 20s，真卡住仍然立刻红。
      */
     const isWebkit = testInfo.project.name === 'webkit';
-    const perPageBudget = Number(process.env.E2E_SWEEP_PAGE_BUDGET ?? (isWebkit ? 25_000 : 15_000));
+    const perPageBudget = Number(
+      process.env.E2E_SWEEP_PAGE_BUDGET ?? (isWebkit ? 25_000 : 15_000),
+    );
     const activateTimeout = isWebkit ? 60_000 : 20_000;
     test.setTimeout(Math.max(150_000, leaves.length * perPageBudget + 60_000));
 
@@ -188,11 +186,9 @@ test.describe('全站页面巡检', () => {
       await page.evaluate((target) => {
         window.location.hash = `#${target}`;
       }, leaf.path);
-      await expect(page.locator(`.tab-item[data-scroll-key="${leaf.path}"]`)).toHaveAttribute(
-        'data-active',
-        'true',
-        { timeout: activateTimeout },
-      );
+      await expect(
+        page.locator(`.tab-item[data-scroll-key="${leaf.path}"]`),
+      ).toHaveAttribute('data-active', 'true', { timeout: activateTimeout });
       /**
        * 每页留出一点沉降时间：路由异步块、接口失败提示都在"导航完成"信号之后再冒出来。
        * 不留的话首屏 loading 还没换掉就去读 DOM，会把好页面读成"空白"（巡检第一次跑
@@ -282,13 +278,19 @@ test.describe('全站页面巡检', () => {
     ).toEqual([]);
 
     // 顺带确认首页还在（巡检没有把会话搞坏）
-    await expect(page.locator(`.tab-item[data-scroll-key="${HOME_PATH}"]`)).toBeVisible();
+    await expect(
+      page.locator(`.tab-item[data-scroll-key="${HOME_PATH}"]`),
+    ).toBeVisible();
 
     const warned = rows.filter((row) => row.warnings.length > 0);
     if (warned.length > 0) {
       console.log(
         '非致命 warning（antd deprecation / Vue 提示等，不参与判定）：',
-        JSON.stringify(warned.map((row) => ({ path: row.path, warnings: row.warnings })), null, 2),
+        JSON.stringify(
+          warned.map((row) => ({ path: row.path, warnings: row.warnings })),
+          null,
+          2,
+        ),
       );
     }
 
@@ -317,10 +319,12 @@ test.describe('全站页面巡检', () => {
    * 兜底页判定的正反两例 —— 上面那条巡检靠它抓"链接是死的、页面却像是好的"，
    * 而它自己也得有人守着：
    *  - 假阴：判定失效，死链接混进绿；
-   *  - 假阳：`/components/feedback` 里那张当素材用的 404 `a-result` 会把好页面判成兜底页
+   *  - 假阳：示例页把 404 的 `a-result` 当素材摆在卡片里时，会把好页面判成兜底页
    *    （巡检第一跑就是被它红的），所以"跳过卡片"这半边也要钉住。
    */
-  test('兜底页判定：死链接要认得出，示例页的 404 卡不能误判', async ({ page }) => {
+  test('兜底页判定：死链接要认得出，卡片里的 404 素材不能误判', async ({
+    page,
+  }) => {
     await signIn(page);
 
     await navigate(page, '/components/this-page-does-not-exist');
@@ -328,11 +332,15 @@ test.describe('全站页面巡检', () => {
     await expect(page).toHaveURL(/#\/error\/404/);
     expect(await contentRegion(page).evaluate(hasFallbackMarker)).toBe(true);
 
-    await go(page, '/components/feedback');
-    // 素材就摆在内容区里，靠文案区分不了，只有"是否在 `a-card` 内"能分清
-    await expect(
-      page.locator('main').getByText('这个页面不存在。'),
-    ).toBeVisible();
+    // 「跳过卡片」这半边不靠某个示例页养着：素材页曾经真的存在过（旧的
+    // `/components/feedback`），页面一删这条护栏就没人守了。自己造一段更稳。
+    await go(page, '/components/overview');
+    await contentRegion(page).evaluate((region) => {
+      const card = document.createElement('div');
+      card.className = 'ant-card';
+      card.textContent = '抱歉，您访问的页面不存在';
+      region.append(card);
+    });
     expect(await contentRegion(page).evaluate(hasFallbackMarker)).toBe(false);
   });
 });

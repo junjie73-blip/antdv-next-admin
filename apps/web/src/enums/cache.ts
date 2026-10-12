@@ -14,8 +14,6 @@ export enum CacheKey {
   PERMISSIONS = 'app_cache_permissions',
   /** 主题配置 */
   THEME = 'app_cache_theme',
-  /** 语言设置 */
-  LOCALE = 'app_cache_locale',
   /** 侧边栏状态 */
   SIDEBAR = 'app_cache_sidebar',
 }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
@@ -9,6 +10,7 @@ import { useAppStore } from '~/stores/modules/app';
 defineOptions({ name: 'ThemeToggle' });
 
 const appStore = useAppStore();
+const { t } = useI18n({ useScope: 'global' });
 
 const { store } = useColorMode({
   initialValue: appStore.themeMode,
@@ -38,10 +40,15 @@ watch(
 );
 
 /* ---------- 选项 ---------- */
+/* labelKey 而不是 label：模板里现取现翻，切语言时才会重渲染 */
 const options = [
-  { value: 'light' as const, label: '浅色', icon: 'carbon:sun' },
-  { value: 'dark' as const, label: '深色', icon: 'carbon:moon' },
-  { value: 'auto' as const, label: '跟随系统', icon: 'carbon:contrast' },
+  { value: 'light' as const, labelKey: 'theme.light', icon: 'carbon:sun' },
+  { value: 'dark' as const, labelKey: 'theme.dark', icon: 'carbon:moon' },
+  {
+    value: 'auto' as const,
+    labelKey: 'theme.auto',
+    icon: 'carbon:contrast',
+  },
 ];
 
 const current = computed(() => appStore.themeMode);
@@ -80,7 +87,7 @@ function handleChange(mode: 'auto' | 'dark' | 'light') {
       @click="handleChange(opt.value)"
     >
       <Icon :icon="opt.icon" class="text-xl" />
-      <span class="text-[11px] font-medium">{{ opt.label }}</span>
+      <span class="text-[11px] font-medium">{{ t(opt.labelKey) }}</span>
     </button>
   </div>
 </template>

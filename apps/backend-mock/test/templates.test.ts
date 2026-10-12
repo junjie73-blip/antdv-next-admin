@@ -46,7 +46,7 @@ describe('mockFromTemplate', () => {
   });
 });
 
-describe('PRESET_TEMPLATES', () => {
+describe('pRESET_TEMPLATES', () => {
   it('每个预置模板都能渲染，且结果里不残留 mockjs 规则符号', () => {
     for (const preset of PRESET_TEMPLATES) {
       const rendered = mockFromTemplate(preset.template);

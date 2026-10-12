@@ -61,7 +61,7 @@ const SOURCE: MenuConfig[] = [
   { isExternal: true, name: 'external-link', path: '', title: '外部文档' },
 ];
 
-type TestRoute = { name?: string, path: string };
+type TestRoute = { name?: string; path: string };
 
 interface TestSource extends MenuTreeSource {
   route: Ref<TestRoute>;
@@ -73,7 +73,7 @@ type PushFn = (to?: unknown) => unknown;
 
 function makeSource(
   routeValue: TestRoute = { name: 'user-list', path: '/system/user' },
-  options: { openExternal?: (url: string) => void, push?: PushFn } = {},
+  options: { openExternal?: (url: string) => void; push?: PushFn } = {},
 ): TestSource {
   const route = ref<TestRoute>(routeValue);
   const router = createFakeRouter(options.push);
@@ -100,7 +100,9 @@ describe('createMenuTreeSource', () => {
       '/system',
       'https://example.com/docs',
     ]);
-    expect(menus.value[1]?.children?.map((child) => [child.name, child.path])).toEqual([
+    expect(
+      menus.value[1]?.children?.map((child) => [child.name, child.path]),
+    ).toEqual([
       ['user', '/system/user-manage'],
       ['role', '/system/role'],
       ['dept', '/system/dept'],
@@ -229,9 +231,10 @@ describe('区域取数', () => {
      * 就逐层剔掉。`source.menus` 本身仍是全量树（权限、标签页、面包屑要靠它反查），
      * 两者的差别就是这个用例存在的原因。
      */
-    expect(
-      (tree.value[1]?.children ?? []).map((child) => child.name),
-    ).toEqual(['user', 'role']);
+    expect((tree.value[1]?.children ?? []).map((child) => child.name)).toEqual([
+      'user',
+      'role',
+    ]);
     expect(source.menus.value[1]?.children).toHaveLength(3);
 
     expect(
@@ -455,7 +458,11 @@ describe('导航动作', () => {
     const push = vi.fn(() => Promise.reject(new Error('duplicated')));
     const source = makeSource(undefined, { push });
     await expect(
-      source.openMenu({ name: 'role', path: '/system/role', title: '角色管理' }),
+      source.openMenu({
+        name: 'role',
+        path: '/system/role',
+        title: '角色管理',
+      }),
     ).resolves.toBeUndefined();
   });
 

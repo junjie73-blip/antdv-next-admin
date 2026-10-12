@@ -32,7 +32,7 @@ const errorMessage = ref('');
 const retryCount = ref(0);
 
 const containerClassName = computed(() =>
-  cn('micro-app-container relative', 'size-full ', props.className),
+  cn('micro-app-container relative', 'size-full', props.className),
 );
 
 const overlayClassName = cn(

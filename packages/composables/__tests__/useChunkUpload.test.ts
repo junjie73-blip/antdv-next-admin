@@ -64,7 +64,9 @@ describe('useChunkUpload · worker 模式', () => {
 
     // 并发 2：先派出 0、1，不会把 2 也提前发出去
     expect(worker.postMessage).toHaveLength(2);
-    expect(uploader.chunks.value.filter((c) => c.status === 'uploading')).toHaveLength(2);
+    expect(
+      uploader.chunks.value.filter((c) => c.status === 'uploading'),
+    ).toHaveLength(2);
 
     worker.send({ type: 'chunk-done', index: 0, hash: 'h0' });
     await flush();

@@ -55,7 +55,10 @@ describe('class 操作', () => {
 
   it('没有 classList 时退化为 className 字符串操作', () => {
     // 模拟老浏览器：classList 为 falsy
-    const legacy = { className: 'a b', classList: undefined } as unknown as Element;
+    const legacy = {
+      className: 'a b',
+      classList: undefined,
+    } as unknown as Element;
     expect(hasClass(legacy, 'a')).toBe(true);
     expect(hasClass(legacy, 'ab')).toBe(false);
     addClass(legacy, 'c');
@@ -135,7 +138,9 @@ describe('on / off / once', () => {
     const node = el();
     const spy = vi.fn();
     expect(() => on(node, '', spy)).not.toThrow();
-    expect(() => off(node, 'click', undefined as unknown as () => void)).not.toThrow();
+    expect(() =>
+      off(node, 'click', undefined as unknown as () => void),
+    ).not.toThrow();
   });
 
   it('once 只触发一次并自动解绑', () => {
@@ -163,7 +168,7 @@ describe('useRafThrottle', () => {
     const spy = vi.fn();
     const throttled = useRafThrottle(spy);
     const flush = () => {
-      const pending = frames.splice(0, frames.length);
+      const pending = frames.splice(0);
       for (const cb of pending) cb(0);
     };
 

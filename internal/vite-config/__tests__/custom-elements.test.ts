@@ -28,7 +28,14 @@ describe('createIsCustomElement', () => {
   });
 
   it('普通标签与组件标签仍然交给 Vue 解析，不能吞掉真实的注册错误', () => {
-    for (const tag of ['div', 'span', 'RouterView', 'AButton', 'Icon', 'micro']) {
+    for (const tag of [
+      'div',
+      'span',
+      'RouterView',
+      'AButton',
+      'Icon',
+      'micro',
+    ]) {
       expect(isCustomElement(tag)).toBe(false);
     }
   });

@@ -293,9 +293,30 @@ function ContentWidthIcon({
         x={fixed ? 10 : 0}
         y="0"
       />
-      <rect fill={c.accent} height="2" rx="0.5" width="12" x={fixed ? 13 : 3} y="6" />
-      <rect fill={c.accentSoft} height="2" rx="0.5" width="18" x={fixed ? 13 : 3} y="12" />
-      <rect fill={c.accentSoft} height="2" rx="0.5" width="14" x={fixed ? 13 : 3} y="16" />
+      <rect
+        fill={c.accent}
+        height="2"
+        rx="0.5"
+        width="12"
+        x={fixed ? 13 : 3}
+        y="6"
+      />
+      <rect
+        fill={c.accentSoft}
+        height="2"
+        rx="0.5"
+        width="18"
+        x={fixed ? 13 : 3}
+        y="12"
+      />
+      <rect
+        fill={c.accentSoft}
+        height="2"
+        rx="0.5"
+        width="14"
+        x={fixed ? 13 : 3}
+        y="16"
+      />
       {fixed && (
         <rect fill={c.barSoft} height="36" rx="1" width="8" x="40" y="0" />
       )}
@@ -324,7 +345,7 @@ function getColors(active: boolean | undefined, c: Colors) {
 export function LayoutIcon(props: LayoutIconProps) {
   const { token } = theme.useToken();
   const { type, active, class: className } = props;
-  const containerClassName = cn('aspect-[4/3] w-full', className);
+  const containerClassName = cn('aspect-4/3 w-full', className);
 
   // ⭐ 从 antdv 直接读 token，不依赖 CSS 变量
   const colors = {

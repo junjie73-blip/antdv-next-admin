@@ -55,7 +55,10 @@ const loadings = () => {
  * `immediate: false` 是必须的：hook 用 `useTimeoutFn` 调度首屏请求，
  * 测试里等它等于把断言交给真实定时器。这里显式 `await fetch()`。
  */
-async function fetchOnce(payload: unknown, options: Partial<UseDataSourceOptions> = {}) {
+async function fetchOnce(
+  payload: unknown,
+  options: Partial<UseDataSourceOptions> = {},
+) {
   const { loading, values } = loadings();
   const { calls, pagination } = paginationStub();
   const api = ref(async () => payload);
@@ -124,7 +127,11 @@ describe('useDataSource —— 响应形状嗅探', () => {
   });
 
   it('listField 指到的字段不是数组时继续往下找，而不是把脏值带下去', async () => {
-    const { result } = await fetchOnce({ list: null, items: rows(2), total: 2 });
+    const { result } = await fetchOnce({
+      list: null,
+      items: rows(2),
+      total: 2,
+    });
 
     expect(result.dataSourceRef.value).toHaveLength(2);
   });
@@ -176,10 +183,17 @@ describe('useDataSource —— 取数流程', () => {
   it('afterFetch 能改写嗅探出来的列表', async () => {
     const { result } = await fetchOnce(
       { items: rows(3), total: 3 },
-      { afterFetch: (data: Recordable[]) => data.map((r) => ({ ...r, name: 'x' })) },
+      {
+        afterFetch: (data: Recordable[]) =>
+          data.map((r) => ({ ...r, name: 'x' })),
+      },
     );
 
-    expect(result.dataSourceRef.value.map((r) => r.name)).toEqual(['x', 'x', 'x']);
+    expect(result.dataSourceRef.value.map((r) => r.name)).toEqual([
+      'x',
+      'x',
+      'x',
+    ]);
   });
 
   it('beforeFetch 返回 false 时不发请求', async () => {

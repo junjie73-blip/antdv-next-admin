@@ -72,6 +72,8 @@ export const useRouteStore = defineStore('route', () => {
    * 只存这一份不可变快照，注册与摘除全部以它为准比对，避免多处各自推导。
    */
   let routeSnapshot: RouteRecordRaw[] = [];
+  /** `collectExistingPagePaths` 的缓存：快照只在首次装配时写入，摊平一次就够 */
+  let existingPagePaths: Set<string> | undefined;
   /** 已经注册到 router 上的路由 name，用于算"该补哪些 / 该摘哪些" */
   const registeredNames = ref(new Set<string>());
 
@@ -188,7 +190,8 @@ export const useRouteStore = defineStore('route', () => {
    */
   function syncRouteRegistry() {
     const router = routerRef;
-    if (!router?.addRoute || !router.removeRoute || !routeSnapshot.length) return;
+    if (!router?.addRoute || !router.removeRoute || routeSnapshot.length === 0)
+      return;
     /**
      * 先把方法取成局部常量再用：`walk` 是递归闭包，TS 不会把"属性判过非空"
      * 带进闭包里，直接写 `router.addRoute(...)` 会一路报 possibly undefined。
@@ -203,13 +206,8 @@ export const useRouteStore = defineStore('route', () => {
 
     /** 这条记录本身是否被菜单命中，或属于不该被菜单管辖的框架路由 */
     const selfAllowed = (route: RouteRecordRaw, fullPath: string): boolean => {
+      if (isFrameworkRecord(route, fullPath)) return true;
       const name = route.name == null ? '' : String(route.name);
-      if (isBuiltinMenuName(name) || isBuiltinMenuPath(fullPath)) return true;
-      // 显式免鉴权 = 应用自己的静态页（登录/重定向/首页跳转），菜单管不着
-      if (
-        (route as { meta?: { requiresAuth?: boolean } }).meta?.requiresAuth === false
-      )
-        return true;
       if (name && keys.byName.has(name)) return true;
       return keys.byPath.has(fullPath);
     };
@@ -232,8 +230,10 @@ export const useRouteStore = defineStore('route', () => {
         const path = joinMenuPath(parentPath, route.path);
         // 先算孩子：本条不命中但有孩子命中时，父壳（目录/布局）必须留着
         const sizeBefore = nextRegistered.size;
-        if (route.children?.length) walk(route.children, path, name || parentName);
-        const keep = selfAllowed(route, path) || nextRegistered.size > sizeBefore;
+        if (route.children?.length)
+          walk(route.children, path, name || parentName);
+        const keep =
+          selfAllowed(route, path) || nextRegistered.size > sizeBefore;
 
         /**
          * path 重复：文件约定路由会把同一个 path 同时给到嵌套父记录和顶层记录，
@@ -281,14 +281,35 @@ export const useRouteStore = defineStore('route', () => {
   }
 
   /**
+   * 框架路由：不归菜单管辖的那批记录（登录 / 重定向 / 异常页 / 通配兜底 / 首页跳转）。
+   *
+   * 三条判据缺一不可，且**裁剪注册表与 403/404 分岔必须共用它**：
+   * 一处判定漏了，另一处就会把框架页说成"存在但没权限"，越权页与打错地址就混了。
+   * - 内置 name：异常页在约定路由里的文件名就是 `Error404`；
+   * - 内置 path：约定路由生成的 name 未必同源（`/error/404` 这类），按 path 再兜一层；
+   * - `meta.requiresAuth === false`：这是路由自己的声明，菜单数据不该覆盖它。
+   */
+  function isFrameworkRecord(route: RouteRecordRaw, fullPath: string) {
+    const name = route.name == null ? '' : String(route.name);
+    if (isBuiltinMenuName(name) || isBuiltinMenuPath(fullPath)) return true;
+    return (
+      (route as { meta?: { requiresAuth?: boolean } }).meta?.requiresAuth ===
+      false
+    );
+  }
+
+  /**
    * 装配守卫时调用：注入 router 与路由表全量快照。
    *
    * 快照只在**第一次**注入时留下，之后不再覆盖 —— 裁剪过的注册表不能再当"全量"，
    * 否则第二次同步时"该补回来的路由"已经从源头消失了，隐藏过的页面永远出不来。
    */
-  function registerRouteSource(router: MenuPathRouter, routes: RouteRecordRaw[]) {
+  function registerRouteSource(
+    router: MenuPathRouter,
+    routes: RouteRecordRaw[],
+  ) {
     routerRef = router;
-    if (!routeSnapshot.length) routeSnapshot = routes;
+    if (routeSnapshot.length === 0) routeSnapshot = routes;
   }
 
   /**
@@ -300,7 +321,10 @@ export const useRouteStore = defineStore('route', () => {
    * `includeHidden` 是给隐藏页的：它们的 path 也要参与授权与标签页反查，
    * 补全之后再交给渲染层，渲染层自己会把不可见的剔掉。
    */
-  async function initRoutes(router?: MenuPathRouter, routes?: RouteRecordRaw[]) {
+  async function initRoutes(
+    router?: MenuPathRouter,
+    routes?: RouteRecordRaw[],
+  ) {
     if (router) registerRouteSource(router, routes ?? []);
     if (loading.value) return;
     loading.value = true;
@@ -342,6 +366,50 @@ export const useRouteStore = defineStore('route', () => {
     return allowedPaths.value.has(normalizeMenuPath(path));
   }
 
+  /**
+   * 「这个地址在应用里真的有页面，只是当前账号没权限进」。
+   *
+   * 给通配兜底用的分岔判据。按菜单裁剪注册表之后，越权页面的路由**压根没注册**，
+   * vue-router 只能落到 `CatchAll` —— 于是它被带去 `/error/404`。可"这个页面存在、
+   * 你没权限"和"这个地址是手抖打错的"是两回事：前者人会去找管理员开权限，
+   * 后者才是真的找不到。统一报 404 等于把越权说成"没这个功能"。
+   *
+   * 判据取**全量快照**而不是当前注册表：注册表已经被这一轮的权限裁过，
+   * 拿它问"存不存在"永远得到"不存在"，正好把要判的事循环掉了。
+   */
+  function isUngrantedExistingPage(path?: string) {
+    if (!path || !isLoaded.value) return false;
+    const target = normalizeMenuPath(path);
+    if (!target || allowedPaths.value.has(target)) return false;
+    return collectExistingPagePaths().has(target);
+  }
+
+  /**
+   * 全量快照里"有页面的落点"（叶子记录）。缓存一次即可：`routeSnapshot` 只在首次
+   * 装配时写入，之后不再覆盖（见 `registerRouteSource`）。
+   *
+   * 判据是"叶子"而不是"有 component"：布局壳与目录都靠孩子活着，而约定路由生成的
+   * 页面记录在快照里未必带着 `component` 字段（取决于装配顺序），按字段筛会把好端端
+   * 的页面筛成"不存在"，越权访问就又变回 404 了。
+   *
+   * 框架页要剔掉：它们本来就"不在菜单里"，留在集合里等于说 `/error/404` 是个
+   * 需要开权限的业务页。
+   */
+  function collectExistingPagePaths() {
+    if (existingPagePaths) return existingPagePaths;
+    const paths = new Set<string>();
+    const walk = (list: RouteRecordRaw[], parentPath: string) => {
+      for (const route of list) {
+        const full = normalizeMenuPath(joinMenuPath(parentPath, route.path));
+        if (route.children?.length) walk(route.children, full);
+        else if (full && !isFrameworkRecord(route, full)) paths.add(full);
+      }
+    };
+    walk(routeSnapshot, '');
+    existingPagePaths = paths;
+    return paths;
+  }
+
   function resetRoutes() {
     backendMenus.value = [];
     menus.value = [];
@@ -366,6 +434,7 @@ export const useRouteStore = defineStore('route', () => {
     setMenuHidden,
     canAccess,
     canAccessPath,
+    isUngrantedExistingPage,
     resetRoutes,
   };
 });

@@ -234,33 +234,33 @@ const prefixOptions = COLLECTIONS.map((c) => ({
             wrap-class="overflow-x-hidden"
             view-class="min-h-full"
           >
-          <div v-if="loading" class="flex h-full items-center justify-center">
-            <a-spin size="large" />
-          </div>
+            <div v-if="loading" class="flex h-full items-center justify-center">
+              <a-spin size="large" />
+            </div>
 
-          <a-empty
-            v-else-if="currentIcons.length === 0"
-            :description="searchValue ? '没有匹配的图标' : '暂无图标'"
-            class="pt-24"
-          />
+            <a-empty
+              v-else-if="currentIcons.length === 0"
+              :description="searchValue ? '没有匹配的图标' : '暂无图标'"
+              class="pt-24"
+            />
 
-          <div v-else class="grid grid-cols-12 gap-1">
-            <a-tooltip
-              v-for="icon in pagedIcons"
-              :key="icon"
-              :title="icon"
-              placement="top"
-              :mouse-enter-delay="0.3"
-            >
-              <button
-                type="button"
-                :class="iconBtnClass(icon)"
-                @click="handleSelect(icon)"
+            <div v-else class="grid grid-cols-12 gap-1">
+              <a-tooltip
+                v-for="icon in pagedIcons"
+                :key="icon"
+                :title="icon"
+                placement="top"
+                :mouse-enter-delay="0.3"
               >
-                <Icon :icon="icon" :width="18" />
-              </button>
-            </a-tooltip>
-          </div>
+                <button
+                  type="button"
+                  :class="iconBtnClass(icon)"
+                  @click="handleSelect(icon)"
+                >
+                  <Icon :icon="icon" :width="18" />
+                </button>
+              </a-tooltip>
+            </div>
           </Scrollbar>
         </div>
 

@@ -30,7 +30,7 @@ const titleClassName = cn(
 );
 const timeClassName = cn('font-mono text-sm text-blue-200/80 tabular-nums');
 const actionBtnClassName = cn(
-  'inline-flex cursor-pointer items-center justify-center gap-1.5 rounded border px-3 py-1 text-xs transition-all duration-200',
+  'inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-sm border px-3 py-1 text-xs transition-all duration-200',
   'border-blue-500/30 text-blue-300/70 hover:border-blue-400/60 hover:bg-blue-500/10 hover:text-blue-100',
 );
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, provide, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
@@ -20,11 +21,17 @@ type AccountTab = 'center' | 'settings';
  * 抽屉顶部的 tab 条则负责来回切换，避免出现"进了账户设置就出不来"的死胡同。
  */
 const [registerDrawer, drawerMethods] = useDrawer();
+const { t } = useI18n({ useScope: 'global' });
 const activeTab = ref<AccountTab>('center');
 
-const TABS: Array<{ icon: string; key: AccountTab; label: string }> = [
-  { key: 'center', label: '个人主页', icon: 'carbon:user-profile' },
-  { key: 'settings', label: '账户设置', icon: 'carbon:settings' },
+/** 存文案 key 而不是文案：常量表在模块初始化时就固化了，切语言跟不上 */
+const TABS: Array<{ icon: string; key: AccountTab; labelKey: string }> = [
+  { key: 'center', labelKey: 'account.home', icon: 'carbon:user-profile' },
+  {
+    key: 'settings',
+    labelKey: 'header.accountSettings',
+    icon: 'carbon:settings',
+  },
 ];
 
 const currentComponent = computed(() =>
@@ -48,7 +55,7 @@ function close() {
 
 /** tab 条吸顶：抽屉内容整块滚动，切页签时不必先滚回顶部 */
 const tabBarClassName = cn(
-  'sticky top-0 z-10 -mx-1 mb-4 flex items-center gap-1 rounded-xl bg-white/90 px-1 py-1 backdrop-blur',
+  'sticky top-0 z-10 -mx-1 mb-4 flex items-center gap-1 rounded-xl bg-white/90 p-1 backdrop-blur-sm',
   'border border-gray-200/80 dark:border-gray-700',
 );
 
@@ -65,7 +72,7 @@ defineExpose({ open, close });
 
 <template>
   <BasicDrawer
-    title="个人中心"
+    :title="t('header.profile')"
     :size="720"
     :show-footer="false"
     :mask-closable="true"
@@ -73,7 +80,11 @@ defineExpose({ open, close });
     @register="registerDrawer"
   >
     <div data-account-drawer class="min-h-0">
-      <div role="tablist" :class="tabBarClassName" aria-label="个人中心页签">
+      <div
+        role="tablist"
+        :class="tabBarClassName"
+        :aria-label="t('account.tabList')"
+      >
         <button
           v-for="item in TABS"
           :key="item.key"
@@ -84,7 +95,7 @@ defineExpose({ open, close });
           @click="switchTab(item.key)"
         >
           <Icon :icon="item.icon" class="text-base" />
-          {{ item.label }}
+          {{ t(item.labelKey) }}
         </button>
       </div>
 

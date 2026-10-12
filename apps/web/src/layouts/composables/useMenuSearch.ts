@@ -76,13 +76,16 @@ export function matchEntries(
       // 标题前缀命中权重最高，其次标题包含，再往后是路径 / 层级
       const title = entry.title.toLowerCase();
       const first = tokens[0] ?? '';
-      const score = title.startsWith(first) ? 3 : (title.includes(first) ? 2 : 1);
+      const score = title.startsWith(first) ? 3 : title.includes(first) ? 2 : 1;
       return { entry, score };
     })
     .filter((hit): hit is { entry: SearchEntry; score: number } => !!hit);
 
   return scored
-    .sort((a, b) => b.score - a.score || Number(a.entry.hidden) - Number(b.entry.hidden))
+    .sort(
+      (a, b) =>
+        b.score - a.score || Number(a.entry.hidden) - Number(b.entry.hidden),
+    )
     .slice(0, limit)
     .map((hit) => hit.entry);
 }

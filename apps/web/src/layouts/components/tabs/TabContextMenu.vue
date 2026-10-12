@@ -4,6 +4,7 @@ import type { TabContextMenuPayload } from '@antdv/types';
 import type { TabActionContext, TabActionItem } from './constants';
 
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
@@ -23,6 +24,8 @@ const emit = defineEmits<{
   close: [];
 }>();
 
+const { t } = useI18n({ useScope: 'global' });
+
 const MENU_WIDTH = 176;
 // 菜单项补齐到 10 行（含分隔线）后原来写死的高度会低估，贴底时菜单仍会被裁掉
 const MENU_HEIGHT = 330;
@@ -36,8 +39,14 @@ const items = computed<TabActionItem[]>(() => buildTabActions(props.context));
 const style = computed(() => {
   const payload = props.payload;
   if (!payload) return {};
-  const left = Math.max(8, Math.min(payload.x, window.innerWidth - MENU_WIDTH - 8));
-  const top = Math.max(8, Math.min(payload.y, window.innerHeight - MENU_HEIGHT - 8));
+  const left = Math.max(
+    8,
+    Math.min(payload.x, window.innerWidth - MENU_WIDTH - 8),
+  );
+  const top = Math.max(
+    8,
+    Math.min(payload.y, window.innerHeight - MENU_HEIGHT - 8),
+  );
   return { left: `${left}px`, top: `${top}px` };
 });
 
@@ -95,10 +104,13 @@ function handleAction(key: string) {
       :style="style"
       class="fixed z-50 min-w-44 rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
       role="menu"
-      aria-label="标签页操作"
+      :aria-label="t('shell.tabActions')"
     >
       <template v-for="item in items" :key="`${item.key}-${item.label}`">
-        <div v-if="item.divider" class="my-1 h-px bg-gray-200 dark:bg-gray-700"></div>
+        <div
+          v-if="item.divider"
+          class="my-1 h-px bg-gray-200 dark:bg-gray-700"
+        ></div>
         <button
           v-else
           type="button"
@@ -108,7 +120,8 @@ function handleAction(key: string) {
             cn(
               'flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm',
               'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700',
-              item.disabled && 'cursor-not-allowed opacity-40 hover:bg-transparent',
+              item.disabled &&
+                'cursor-not-allowed opacity-40 hover:bg-transparent',
             )
           "
           @click="handleAction(item.key)"

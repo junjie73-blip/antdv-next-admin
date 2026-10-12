@@ -44,15 +44,16 @@ export function useScreenAdapter(
     const view = container.closest('.scrollbar__view') as HTMLElement | null;
     const style = view ? getComputedStyle(view) : null;
     const padY = style
-      ? Number.parseFloat(style.paddingTop) + Number.parseFloat(style.paddingBottom)
+      ? Number.parseFloat(style.paddingTop) +
+        Number.parseFloat(style.paddingBottom)
       : 0;
     const height = wrap ? wrap.clientHeight - padY : window.innerHeight;
     return { height: Math.max(0, height), width: container.clientWidth };
   }
 
   function adapt() {
-    const container = document.getElementById(containerId);
-    const contentEl = document.getElementById(contentId);
+    const container = document.querySelector(`#${containerId}`);
+    const contentEl = document.querySelector(`#${contentId}`);
     if (!container || !contentEl) return;
 
     const { height, width } = measure(container);
@@ -78,7 +79,7 @@ export function useScreenAdapter(
 
   onMounted(() => {
     adapt();
-    const container = document.getElementById(containerId);
+    const container = document.querySelector(`#${containerId}`);
     watched = container?.closest('.scrollbar__wrap') ?? null;
     if (container && watched && typeof ResizeObserver !== 'undefined') {
       observer = new ResizeObserver(adapt);
@@ -93,9 +94,9 @@ export function useScreenAdapter(
     observer = null;
     watched = null;
     // 清理缩放样式，避免污染其他页面
-    const container = document.getElementById(containerId);
+    const container = document.querySelector(`#${containerId}`);
     if (container) container.style.height = '';
-    const contentEl = document.getElementById(contentId);
+    const contentEl = document.querySelector(`#${contentId}`);
     if (contentEl) {
       contentEl.style.transform = '';
       contentEl.style.transformOrigin = '';

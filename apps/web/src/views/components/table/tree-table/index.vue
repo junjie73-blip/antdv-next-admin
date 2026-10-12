@@ -9,7 +9,7 @@ import { TreeTable } from '~/components/business/TreeTable';
 
 const containerClassName = cn('flex h-full flex-col');
 const pageHeaderClassName = cn(
-  'flex-shrink-0 text-lg font-bold text-gray-800 dark:text-white',
+  'shrink-0 text-lg font-bold text-gray-800 dark:text-white',
 );
 const cardClassName = cn('min-h-0 flex-1');
 

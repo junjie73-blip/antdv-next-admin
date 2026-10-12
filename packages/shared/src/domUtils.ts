@@ -176,7 +176,7 @@ export function off(
 export function once(el: HTMLElement, event: string, fn: EventListener): void {
   const listener = function (this: any, ...args: unknown[]) {
     if (fn) {
-      // @ts-ignore
+      // @ts-expect-error
       fn.apply(this, args);
     }
     off(el, event, listener);
@@ -186,12 +186,12 @@ export function once(el: HTMLElement, event: string, fn: EventListener): void {
 
 export function useRafThrottle<T extends FunctionArgs>(fn: T): T {
   let locked = false;
-  // @ts-ignore
+  // @ts-expect-error
   return function (...args: unknown[]) {
     if (locked) return;
     locked = true;
     window.requestAnimationFrame(() => {
-      // @ts-ignore
+      // @ts-expect-error
       fn.apply(this, args);
       locked = false;
     });

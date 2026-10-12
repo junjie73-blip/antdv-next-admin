@@ -276,8 +276,8 @@ async function uploadImageByHttp(file: File): Promise<void> {
 
     cfg.onSuccess?.(file, result);
     emit('uploadSuccess', file, result);
-  } catch (raw) {
-    const error = raw instanceof Error ? raw : new Error(String(raw));
+  } catch (error) {
+    const error = error instanceof Error ? error : new Error(String(error));
     message.error(`图片上传失败：${error.message}`);
     cfg.onError?.(file, error);
     emit('uploadError', file, error);
@@ -299,8 +299,8 @@ async function uploadVideoByHttp(file: File): Promise<void> {
 
     cfg.onSuccess?.(file, result);
     emit('uploadSuccess', file, result);
-  } catch (raw) {
-    const error = raw instanceof Error ? raw : new Error(String(raw));
+  } catch (error) {
+    const error = error instanceof Error ? error : new Error(String(error));
     message.error(`视频上传失败：${error.message}`);
     cfg.onError?.(file, error);
     emit('uploadError', file, error);
@@ -467,7 +467,10 @@ watch(
      * 所以按文本判定：与我们刚抛出去的文本等价 → 回声，跳过；
      * 不等价 → 是外部换了内容，必须落地。
      */
-    if (isInternalUpdate && normalizeText(next) === normalizeText(editor.getText()))
+    if (
+      isInternalUpdate &&
+      normalizeText(next) === normalizeText(editor.getText())
+    )
       return;
 
     editor.commands.setContent(next, { emitUpdate: false });
@@ -596,7 +599,7 @@ const toolbarClassName = computed(() =>
       data-preview-scroll
       root-class="min-h-0"
     >
-      <div class="md-content p-3 text-sm" v-safe-html="currentHtml" />
+      <div class="md-content p-3 text-sm" v-safe-html="currentHtml"></div>
     </Scrollbar>
 
     <!-- 字数统计 -->

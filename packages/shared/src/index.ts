@@ -13,12 +13,7 @@ export * from './cn';
  * root barrel 里显式列出 crypto 的运行时函数，JWT 类型统一以 `./jwt` 为准；
  * 需要 crypto 那一套类型时用子路径 `@antdv/shared/crypto`。
  */
-export {
-  decrypt,
-  decryptObject,
-  encrypt,
-  encryptObject,
-} from './crypto/aes';
+export { decrypt, decryptObject, encrypt, encryptObject } from './crypto/aes';
 export { hash, md5, md5File, sha256 } from './crypto/hash';
 export * from './csrf';
 export * from './dayjs';

@@ -1,3 +1,5 @@
+import { config } from '@vue/test-utils';
+
 /**
  * 单测环境垫片。
  *
@@ -6,6 +8,14 @@
  * 这里补一层最小可用实现，让组件能在测试里真正挂载，而不是因为环境缺东西而跳过。
  */
 import { beforeEach, vi } from 'vitest';
+import i18n from '~/locales';
+
+/**
+ * `useI18n()` 在没装插件的 app 上会直接抛 "Need to install with `app.use`"，
+ * 而布局/外壳组件现在都要取文案。测试环境补一份和 `main.ts` 同一个实例，
+ * 免得每个 spec 各自挂一遍、将来又是有的挂有的不挂。
+ */
+config.global.plugins.push(i18n);
 
 interface FakeMediaQueryList extends MediaQueryList {
   addListener: (callback: (e: MediaQueryListEvent) => void) => void;

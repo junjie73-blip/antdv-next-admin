@@ -10,16 +10,21 @@ import { useRouteStore } from '~/stores/modules/route';
 /**
  * 组件示例总览。
  *
- * 示例页有 30 多张，散在「组件画廊 → 分类 → 页面」三级菜单里，侧栏手风琴一次只
- * 展开一个分类，想"看看都有些什么"只能一个个点。这一页把同一棵树摊平成卡片墙，
+ * 示例页有 30 多张。侧栏只给「表单」「表格」留了三级，其余全是二级叶子，
+ * 一屏列不完，想"看看都有些什么"仍然得靠这一页：把同一棵树摊平成卡片墙，
  * 配一个关键字过滤，当作整个画廊的目录。
  *
  * 数据**不另写一份清单**：直接读路由 store 里已经归一化好的菜单树
  * （`useRouteStore().menus`）。菜单是这些页面唯一的"可达 + 有标题 + 有权限"来源，
  * 再抄一份就必然对不上 —— 新增示例页只要进菜单就会自动出现在这里。
+ *
+ * 分组同理，不引入第二套分类字段：有子菜单的节点（表单 / 表格）自成一组，
+ * 剩下的叶子归到画廊自己名下。侧栏怎么摊平都不影响这里的分组来源。
  */
 
-const GALLERY_NAME = 'DemoGallery';
+const GALLERY_NAME = 'Demo';
+/** 本页自己不进卡片墙 */
+const SELF_PATH = '/components/overview';
 
 const routeStore = useRouteStore();
 
@@ -94,7 +99,11 @@ function isPage(node: MenuConfig): boolean {
 
 function collectPages(nodes: MenuConfig[]): MenuConfig[] {
   return nodes.flatMap((node) =>
-    node.children?.length ? collectPages(node.children) : isPage(node) ? [node] : [],
+    node.children?.length
+      ? collectPages(node.children)
+      : isPage(node)
+        ? [node]
+        : [],
   );
 }
 
@@ -107,13 +116,20 @@ const groups = computed<GalleryGroup[]>(() => {
     node.title.toLowerCase().includes(text) ||
     node.path.toLowerCase().includes(text);
 
-  return (gallery.children ?? [])
-    .map((group) => ({
-      items: collectPages(group.children ?? []).filter(match),
-      key: group.name ?? group.path ?? group.title,
-      title: group.title,
-    }))
-    .filter((group) => group.items.length > 0);
+  const buckets = new Map<string, MenuConfig[]>();
+  const push = (title: string, nodes: MenuConfig[]) => {
+    const items = nodes.filter(match);
+    if (items.length > 0)
+      buckets.set(title, [...(buckets.get(title) ?? []), ...items]);
+  };
+
+  for (const node of gallery.children ?? []) {
+    if (node.children?.length) push(node.title, collectPages(node.children));
+    else if (isPage(node) && node.path !== SELF_PATH)
+      push(gallery.title, [node]);
+  }
+
+  return [...buckets].map(([title, items]) => ({ items, key: title, title }));
 });
 
 function findGallery(nodes: MenuConfig[]): MenuConfig | undefined {
@@ -151,11 +167,7 @@ const total = computed(() =>
 
     <a-empty v-if="total === 0" description="没有匹配的示例页" />
 
-    <section
-      v-for="group in groups"
-      :key="group.key"
-      :class="groupClassName"
-    >
+    <section v-for="group in groups" :key="group.key" :class="groupClassName">
       <h3 :class="groupTitleClassName">
         <Icon icon="carbon:folder-open" />
         <span>{{ group.title }}</span>

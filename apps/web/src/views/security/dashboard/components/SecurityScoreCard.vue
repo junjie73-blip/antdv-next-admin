@@ -1,35 +1,35 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue';
 // 监听暗色模式变化
-import { watch } from 'vue'
+import { watch } from 'vue';
 
-import { cn } from '@antdv/shared/cn'
-import * as echarts from 'echarts'
-import { getSecurityScore } from '~/api/security'
-import { CountTo } from '~/components/business/CountTo'
-import { useAppStore } from '~/stores/modules/app'
+import { cn } from '@antdv/shared/cn';
+import * as echarts from 'echarts';
+import { getSecurityScore } from '~/api/security';
+import { CountTo } from '~/components/business/CountTo';
+import { useAppStore } from '~/stores/modules/app';
 
-defineOptions({ name: 'SecurityScoreCard' })
+defineOptions({ name: 'SecurityScoreCard' });
 
-const appStore = useAppStore()
-const isDark = computed(() => appStore.themeMode === 'dark')
+const appStore = useAppStore();
+const isDark = computed(() => appStore.themeMode === 'dark');
 
 // 安全评分数据
-const totalScore = ref(86)
+const totalScore = ref(86);
 const dimensions = ref([
   { name: '身份认证', score: 92, status: 'excellent' as const },
   { name: '数据安全', score: 78, status: 'good' as const },
   { name: '访问控制', score: 85, status: 'good' as const },
   { name: '审计合规', score: 68, status: 'warning' as const },
-])
-const trendData = ref<{ date: string; score: number }[]>([])
+]);
+const trendData = ref<{ date: string; score: number }[]>([]);
 
 // 样式类名
-const containerClassName = cn('rounded-xl p-5')
-const scoreValueClassName = cn('text-5xl leading-none font-black tabular-nums')
+const containerClassName = cn('rounded-xl p-5');
+const scoreValueClassName = cn('text-5xl leading-none font-black tabular-nums');
 const dimensionCardClassName = cn(
   'flex items-center justify-between rounded-lg p-3 transition-all duration-200 hover:scale-[1.02]',
-)
+);
 
 /** 状态颜色映射 */
 function getStatusColor(status: string): string {
@@ -38,8 +38,8 @@ function getStatusColor(status: string): string {
     good: '#1677ff',
     warning: '#faad14',
     critical: '#ff4d4f',
-  }
-  return map[status] ?? map.good
+  };
+  return map[status] ?? map.good;
 }
 
 /** 状态背景色 */
@@ -49,42 +49,42 @@ function getStatusBg(status: string): string {
     good: 'bg-blue-50 dark:bg-blue-950/30',
     warning: 'bg-orange-50 dark:bg-orange-950/30',
     critical: 'bg-red-50 dark:bg-red-950/30',
-  }
-  return map[status] ?? map.good
+  };
+  return map[status] ?? map.good;
 }
 
 /** 评分等级文字 */
 function getScoreLabel(score: number): string {
-  if (score >= 90) return '优秀'
-  if (score >= 75) return '良好'
-  if (score >= 60) return '及格'
-  return '较差'
+  if (score >= 90) return '优秀';
+  if (score >= 75) return '良好';
+  if (score >= 60) return '及格';
+  return '较差';
 }
 
 /** 评分颜色 */
 function getScoreColor(score: number): string {
-  if (score >= 90) return 'text-emerald-500'
-  if (score >= 75) return 'text-blue-500'
-  if (score >= 60) return 'text-orange-500'
-  return 'text-red-500'
+  if (score >= 90) return 'text-emerald-500';
+  if (score >= 75) return 'text-blue-500';
+  if (score >= 60) return 'text-orange-500';
+  return 'text-red-500';
 }
 
 // 趋势图相关
-const chartRef = ref<HTMLDivElement>()
-let chartInstance: echarts.ECharts | null = null
+const chartRef = ref<HTMLDivElement>();
+let chartInstance: echarts.ECharts | null = null;
 
 function textColor() {
-  return isDark.value ? '#d1d5db' : '#374151'
+  return isDark.value ? '#d1d5db' : '#374151';
 }
 function subTextColor() {
-  return isDark.value ? '#6b7280' : '#9ca3af'
+  return isDark.value ? '#6b7280' : '#9ca3af';
 }
 
 function initTrendChart() {
-  const el = chartRef.value
-  if (!el || el.offsetWidth === 0) return
+  const el = chartRef.value;
+  if (!el || el.offsetWidth === 0) return;
 
-  chartInstance = echarts.init(el, isDark.value ? 'dark' : undefined)
+  chartInstance = echarts.init(el, isDark.value ? 'dark' : undefined);
   chartInstance.setOption({
     grid: { left: 0, right: 0, top: 8, bottom: 20 },
     xAxis: {
@@ -122,27 +122,27 @@ function initTrendChart() {
       },
     ],
     animationDuration: 1200,
-  })
+  });
 }
 
 onMounted(async () => {
   try {
-    const res = await getSecurityScore()
-    const data = res?.data ?? res
-    totalScore.value = data.totalScore
-    dimensions.value = data.dimensions
-    trendData.value = data.trend
+    const res = await getSecurityScore();
+    const data = res?.data ?? res;
+    totalScore.value = data.totalScore;
+    dimensions.value = data.dimensions;
+    trendData.value = data.trend;
   } catch {
     // 使用默认值
   }
-  initTrendChart()
-})
+  initTrendChart();
+});
 watch(isDark, () => {
   if (chartInstance) {
-    chartInstance.dispose()
-    initTrendChart()
+    chartInstance.dispose();
+    initTrendChart();
   }
-})
+});
 </script>
 
 <template>

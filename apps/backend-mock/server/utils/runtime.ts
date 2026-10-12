@@ -22,6 +22,7 @@ import {
   defineEventHandler,
   getQuery,
   readBody,
+  setResponseHeader,
   setResponseStatus,
 } from '#imports';
 
@@ -35,8 +36,9 @@ import { pushLog, recordHit, registerManifest, resolveRuntime } from './store';
  * - `params`：路由参数（`:id` 捕获值）
  * - `path`：注册时的路径，不含查询串，也不含 /api 前缀
  *
- * legacy 的 headers 字段没有任何业务 handler 消费，这里保留字段但恒为空对象，
- * 免去 h3 各版本 headers 载体差异（v1 node 原生对象 / v2 Headers）。
+ * `headers` 键名按 Node 入站头的约定是**小写**（同名多值用逗号并成字符串）。
+ * 按会话分数据的接口（`/menus`、`/auth/user-info`）要从 `authorization` 里认 token，
+ * 所以这里必须透传真实请求头 —— legacy 时代没有 handler 消费它，字段才恒为空对象。
  */
 export interface MockRouteInput {
   body: Record<string, unknown>;
@@ -179,6 +181,16 @@ export function defineMockRoute(definition: MockRouteDefinition) {
       definition.handler,
       context,
     );
+    /**
+     * 一律禁缓存，两条都是这服务自己的性质决定的：
+     * ① 写接口改的是进程内内存，列表必须立刻反映改动；
+     * ② 按会话分数据的接口（`/menus`、`/auth/user-info`）**同一个 URL 会因
+     *    `Authorization` 不同给出不同内容**。没有 `Vary` 时浏览器有权把上一个人的
+     *    响应直接发给下一个人 —— 实测表现是"用权限更小的账号登录，却拿到全量菜单"，
+     *    看着像裁剪逻辑坏了，其实是命中了缓存。
+     */
+    setResponseHeader(event, 'cache-control', 'no-store');
+    setResponseHeader(event, 'vary', 'Authorization');
     if (outcome.status !== undefined && outcome.status !== 200)
       setResponseStatus(event, outcome.status);
     return outcome.body;
@@ -196,7 +208,9 @@ export async function toRouteInput(
   return {
     body,
     data: body,
-    headers: {},
+    headers: normalizeValues(
+      event.node.req.headers as Record<string, string | string[] | undefined>,
+    ),
     params: normalizeValues(event.context.params ?? {}),
     path,
     query: getQuery(event) as Record<string, string | string[] | undefined>,

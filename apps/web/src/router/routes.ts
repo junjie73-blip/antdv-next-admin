@@ -1,5 +1,7 @@
 import type { AppRouteRecordRaw } from '@antdv/types';
 
+import { useRouteStore } from '~/stores/modules/route';
+
 /**
  * 静态路由：不参与"菜单即权限"的判断，所以统一标 `requiresAuth: false`，
  * 让动态菜单守卫放行（否则未登录页 / 兜底 404 会被判成无权限）。
@@ -55,10 +57,22 @@ export const constantRoutes: AppRouteRecordRaw[] = [
   },
 ];
 
+/**
+ * 通配兜底。**落点不是写死的 404**：
+ *
+ * 按菜单裁剪注册表之后，越权页面的路由压根没注册，导航只能落到这里 ——
+ * 可那是"没权限"，不是"没这个页面"。统一报 404 等于告诉用户"没这个功能"，
+ * 他会去打错的地方找，而不是去找管理员开权限。所以这里按全量快照分一次岔：
+ * 页面存在而未授权 → 403（与守卫 `forbiddenPath` 同一个落点，两种拦法表现一致）；
+ * 真的没这个地址 → 404。
+ */
 export const catchAllRoute: AppRouteRecordRaw = {
   path: '/:pathMatch(.*)*',
   name: 'CatchAll',
-  redirect: '/error/404',
+  redirect: (to) =>
+    useRouteStore().isUngrantedExistingPage(to.path)
+      ? '/error/403'
+      : '/error/404',
   meta: {
     title: '页面不存在',
     hidden: true,

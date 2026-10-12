@@ -52,7 +52,7 @@ export function pickPalette(seed: string): [string, string] {
 /** SVG 文本节点里不能出现尖括号与引号，标签也来自 URL，统一收敛一次 */
 function escapeSvgText(value: string, maxLength = 24): string {
   return value
-    .replace(/[<>&'"]/g, '')
+    .replaceAll(/[<>&'"]/g, '')
     .slice(0, maxLength)
     .trim();
 }

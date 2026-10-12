@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 import { expect, test } from '@playwright/test';
 
@@ -12,21 +12,38 @@ import {
 } from './utils/app';
 
 /**
- * 组件画廊新增的四页（总览 / 反馈 / 数据展示 / 指令）。
+ * 「组件示例」这一组的**交互契约**。
  *
- * `site-sweep.spec.ts` 已经会替我们跑一遍"打开不炸"，这里补的是**交互契约**：
- * 这四页都是给别人抄的模板，模板写错 API 的典型症状恰好是"页面照样渲染、点了没反应"
+ * `site-sweep.spec.ts` 已经替我们跑过一遍"打开不炸"，这里补的是"点了有没有反应"：
+ * 这些页都是给别人抄的模板，模板写错 API 的典型症状恰好是"页面照样渲染、点了没反应"
  * （Tabs 的 `@add` 就是这么个哑炮），只靠巡检看不出来。
  *
- * 另一条隐含断言：`<a-descriptions-item>` / `<a-collapse-panel>` / `<a-timeline-item>`
- * 这类**子组件写法**在 antdv-next 1.6 里到底还在不在。组件解析失败只出 warning，
- * 表现为"那块内容是空的"，所以这里直接断言里面的文字可见。
+ * 覆盖的是新页面里**只有浏览器能证伪**的那几条：
+ * - `BasicTable` 的 `dragSort` / `dragSortConfig`（真拖一行，看 `tbody` 和数据谁先动）；
+ * - `vue-draggable-plus` 的 `v-model` 与跨容器 `group`；
+ * - 分步表单的门禁与"来回切步骤值不丢"；
+ * - `useModal` / `useModalInner` 的数据通道与 `closeFunc` 拦截；
+ * - `<a-descriptions-item>` 这类**子组件写法**在 antdv-next 1.6 里到底还在不在
+ *   （解析失败只出 warning，表现是"那块内容是空的"，所以要数节点，不能只看标题）。
+ *
+ * 反过来说，这里也**如实钉住页面自己承认的哑炮**（`setModalProps` 改不动只读 props）：
+ * 那类结论一旦被"顺手修好"，用例该红，所以写成断言而不是注释。
  */
 
 const OVERVIEW = '/components/overview';
-const FEEDBACK = '/components/feedback';
-const DATA_DISPLAY = '/components/data-display';
+const DRAG_SORT = '/components/table/drag-sort';
+const DRAG_LAYOUT = '/components/drag-layout';
+const FORM_STEPS = '/components/form/steps';
+const MODAL_DRAWER = '/components/modal-drawer';
+const DESCRIPTION = '/components/description';
 const DIRECTIVE = '/components/directive';
+
+/**
+ * 菜单 Demo 段的叶子数（`apps/backend-mock/server/api/menus.get.ts`）：
+ * 总览 1 + 表格 5 + 表单 5（含 form-designer）+ 二级散页 14 = 25，
+ * 其中「示例总览」本页不进卡片墙（`SELF_PATH` 被过滤），所以墙上是 24 张卡。
+ */
+const OVERVIEW_CARD_COUNT = 24;
 
 /** 进页面并顺手把"控制台错误 / 接口 4xx"记进同一个桶 */
 async function open(page: Page, path: string) {
@@ -49,7 +66,20 @@ function overviewLink(page: Page, path: string) {
 
 /** 按卡片标题取那一块 `a-card` */
 function card(page: Page, title: string) {
-  return page.locator('.ant-card').filter({ has: page.getByText(title, { exact: true }) });
+  return page
+    .locator('.ant-card')
+    .filter({ has: page.getByText(title, { exact: true }) });
+}
+
+/**
+ * 同样按标题取卡，但只认标题那一行的**前缀**。
+ * 新页面里有 `动态切换（编辑态 / 只读态）`、`嵌套与关闭拦截（closeFunc + 抽屉上叠弹窗）`
+ * 这类带全角括号与代码片段的标题，整串抄进用例会因为一次排版改动就红。
+ */
+function cardByTitle(page: Page, prefix: string) {
+  return page
+    .locator('.ant-card')
+    .filter({ has: page.locator('.ant-card-head-title', { hasText: prefix }) });
 }
 
 /**
@@ -57,8 +87,148 @@ function card(page: Page, title: string) {
  * 所以这类名字一律用 `\s*` 容忍，不写死。三字以上不插。
  */
 function cjkButton(scope: Page | ReturnType<typeof card>, label: string) {
-  const pattern = new RegExp(`^${[...label].join('\\s*')}$`);
+  const pattern = new RegExp(`^${[...label].join(String.raw`\s*`)}$`);
   return scope.getByRole('button', { exact: true, name: pattern });
+}
+
+/**
+ * 跨容器互拖：把 `source` 拖进 `targetList` 这块容器的空白带。
+ *
+ * 不用一句 `dragTo` 了 —— 它只往落点**跳一次**再松手，只派发一次 pointermove。
+ * 整跑时这条路由是第一次进（dev 要现场编译整棵子树），入场动画 + 编译期补渲染会让
+ * 目标容器在"跳"完之后才停到最终位置：实测热跑 4/4 成、冷跑就出现两边计数原地不动的假红。
+ * 这里按人的动作来：先把两边滚进视口、等包围盒连续两次读数一致（布局真的停住了），
+ * 再走一串中间点，最后在容器底部空白处停两帧才松手 —— Sortable 需要看到
+ * 落点里持续进来的 `onMove` 才会把 ghost 插进目标列表。
+ */
+async function dragIntoList(page: Page, source: Locator, targetList: Locator) {
+  await targetList.scrollIntoViewIfNeeded();
+
+  const settledBox = async (locator: Locator) => {
+    let previous = await locator.boundingBox();
+    for (let i = 0; i < 20; i += 1) {
+      await page.waitForTimeout(120);
+      const next = await locator.boundingBox();
+      if (
+        previous &&
+        next &&
+        Math.abs(previous.x - next.x) < 1 &&
+        Math.abs(previous.y - next.y) < 1 &&
+        Math.abs(previous.height - next.height) < 1
+      ) {
+        return next;
+      }
+      previous = next;
+    }
+    throw new Error('落点/起点包围盒一直没停住');
+  };
+
+  const from = await settledBox(source);
+  const to = await settledBox(targetList);
+  const start = { x: from.x + from.width / 2, y: from.y + from.height / 2 };
+  // 底部空白带：`min-h-[112px]` 给出来的那截，正是页面文案说的"空容器要给高度"
+  const end = { x: to.x + 50, y: to.y + to.height - 10 };
+
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  for (let step = 1; step <= 10; step += 1) {
+    await page.mouse.move(
+      start.x + ((end.x - start.x) * step) / 10,
+      start.y + ((end.y - start.y) * step) / 10,
+    );
+    await page.waitForTimeout(30);
+  }
+  await page.waitForTimeout(150);
+  await page.mouse.move(end.x + 2, end.y);
+  await page.waitForTimeout(150);
+  await page.mouse.up();
+}
+
+/**
+ * 表格行只认 `tr[data-row-key]`。
+ *
+ * 这页刻意不给 `scroll.y`：antd 一旦做固定表头就往 `tbody` 里插一条隐藏的
+ * `ant-table-measure-row`，Sortable 给的 `oldIndex` 整体 +1（`useDragSort` 里
+ * 那个 `leadingOffset()` 就是为它准备的）。用例按同一个口径选行，
+ * 才不会把量尺行当数据行拖、或把它的下标算进断言。
+ */
+function tableRows(scope: Locator) {
+  return scope.locator('tbody tr[data-row-key]');
+}
+
+/** 每行第 n 格的文字（压平空白），当作"页面上此刻呈现的顺序" */
+function cellTexts(rows: Locator, cellIndex = 0) {
+  return rows.evaluateAll(
+    (els, cell) =>
+      els.map((el) =>
+        (el.querySelectorAll('td')[cell]?.textContent ?? '')
+          .replaceAll(/\s+/g, ' ')
+          .trim(),
+      ),
+    cellIndex,
+  );
+}
+
+/** `VueDraggable` / 顺序标签那一行的条目文字 */
+function itemTexts(items: Locator) {
+  return items.evaluateAll((els) =>
+    els.map((el) => (el.textContent ?? '').replaceAll(/\s+/g, ' ').trim()),
+  );
+}
+
+/**
+ * 按标题取那一个弹窗。
+ *
+ * 本页同时挂着 4 个 `BasicModal`，而且第 5 节的确认框是**叠在抽屉之上**开的，
+ * 所以必须按标题分家；`.ant-modal` 是带宽度内联样式的那层，量尺寸也读它。
+ */
+function antModal(page: Page, title: string) {
+  return page
+    .locator('.ant-modal')
+    .filter({ has: page.getByText(title, { exact: true }) });
+}
+
+/** 按标题取那一个抽屉（`.ant-drawer` 根节点同时带着 placement 类） */
+function antDrawer(page: Page, title: string) {
+  return page
+    .locator('.ant-drawer')
+    .filter({ has: page.getByText(title, { exact: true }) });
+}
+
+/**
+ * 弹窗还开着的时候点**页面卡片上**的按钮。
+ *
+ * antd 的 `.ant-modal-wrap` 是一整屏的遮罩层，卡片按钮全在它下面，正常 click 会被
+ * "subtree intercepts pointer events" 顶回来。这里要测的是页面自己那几个方法
+ * （`getVisible()` / `closeModal()` / `setModalProps()`）在被调下去之后做了什么，
+ * 不是"蒙层挡不挡得住鼠标"——那条路径由本页 X / 取消 / 蒙层几处用例覆盖。
+ * 所以直接派发 click 事件，跳过命中测试。
+ */
+async function clickPageButtonThroughMask(button: Locator) {
+  await button.evaluate((el) => (el as HTMLElement).click());
+}
+
+/**
+ * `/components/description` 目前稳定吐两类**本站**的 console error（antd 把废弃提示和
+ * 校验提示直接用 `console.error` 打出来，不是 warning，`watchErrors` 会把它们归进 `errors`）：
+ * 1. `size="default"` 已废弃 —— `src/components/business/Description/Description.vue:150-152`
+ *    把 `size` 的非 `small` 值一律映射成 `'default'`，antdv-next 1.6 只认 `'large'`。
+ * 2. 一行 `span` 之和 ≠ `column` —— `src/views/components/description/index.vue` 的 schema
+ *    里「配送备注」`span: 2`、「通信地址」`span: 3` 混在 `column: 3` 的表里凑不满整行。
+ *
+ * 这两条是缺陷，不是第三方噪音，所以不能塞进 `site-sweep.spec.ts` 那份
+ * `VENDOR_CONSOLE_NOISE` 白名单（那份只收 vendor 包）；这里按原文逐条过滤、
+ * 其余 error 依旧要求为空，两条缺陷已随本文件一起上报。
+ */
+const KNOWN_DESCRIPTION_ERRORS: RegExp[] = [
+  /\[antd: Descriptions\].*is deprecated/,
+  /Sum of column.*not match/,
+];
+
+function descriptionErrors(errors: string[]) {
+  return errors.filter(
+    (text) => !KNOWN_DESCRIPTION_ERRORS.some((pattern) => pattern.test(text)),
+  );
 }
 
 test.describe('组件示例总览页', () => {
@@ -72,9 +242,22 @@ test.describe('组件示例总览页', () => {
     // 清单不自己抄一份：卡片数就是菜单叶子数，新页面进菜单就会出现在这里
     const cards = overviewLinks(page);
     const totalCount = await cards.count();
-    expect(totalCount).toBeGreaterThan(20);
-    // 模板换行让 textContent 以空格开头，所以这里不能上 `^` 锚
-    await expect(page.getByText(/共 \d+ 个示例/)).toBeVisible();
+    expect(totalCount).toBe(OVERVIEW_CARD_COUNT);
+    // 页头那句「共 N 个示例」得和墙上的卡片对得上，否则说明分组统计漏了叶子
+    await expect(
+      page.getByText(`共 ${OVERVIEW_CARD_COUNT} 个示例`),
+    ).toBeVisible();
+
+    // 新页都在墙上：拖拽两条路（表格行 / 布局列表）、弹窗与抽屉、描述列表、分步表单
+    for (const path of [
+      DRAG_SORT,
+      DRAG_LAYOUT,
+      MODAL_DRAWER,
+      DESCRIPTION,
+      FORM_STEPS,
+    ]) {
+      await expect(overviewLink(page, path)).toBeVisible();
+    }
 
     await searchBox(page, '按名称或路径过滤').fill('指令');
     await expect(overviewLink(page, DIRECTIVE)).toBeVisible();
@@ -102,147 +285,1051 @@ test.describe('组件示例总览页', () => {
   });
 });
 
-test.describe('反馈与交互页', () => {
+test.describe('表格拖拽排序页', () => {
   test.beforeEach(async ({ page }) => {
     await signIn(page);
   });
 
-  test('message / modal / popconfirm 真的会出现并消失', async ({ page }) => {
-    const errors = await open(page, FEEDBACK);
+  test('整行拖拽：tbody 的行序与下方顺序标签一起变', async ({ page }) => {
+    const errors = await open(page, DRAG_SORT);
+    const box = card(page, '基础拖拽排序');
+    const rows = tableRows(box);
 
-    await cjkButton(card(page, 'Message 全局提示'), '成功').click();
-    // `.ant-message-notice-wrapper` 与里面的 `.ant-message-notice` 都带类型类，
-    // 只锁内层这一层，否则 toContainText 会因为命中两个节点而报 strict violation
-    await expect(
-      page.locator('.ant-message-notice').filter({ hasText: 'success 类型的全球提示' }),
-    ).toBeVisible();
+    await expect(rows).toHaveCount(6);
+    const initial = [
+      '首页改版',
+      '订单中心',
+      '商品库',
+      '库存同步',
+      '数据报表',
+      '系统设置',
+    ];
+    expect(await cellTexts(rows)).toEqual(initial);
+    await expect(box.getByText('已调整 0 次')).toBeVisible();
 
-    // 静态方法拿不到 ConfigProvider 上下文，这页必须走 useApp()：能渲染出带类型的节点即可
-    await card(page, 'Modal 确认框')
-      .getByRole('button', { name: '危险确认' })
-      .click();
-    const confirm = page.locator('.ant-modal-confirm');
-    await expect(confirm).toBeVisible();
-    await expect(confirm).toContainText('危险操作二次确认');
-    await confirm.getByRole('button', { name: '确定删除' }).click();
-    await expect(confirm).toBeHidden();
+    // 把第 1 行拖到第 3 行位置
+    await rows.nth(0).dragTo(rows.nth(2));
 
-    await card(page, 'Modal 确认框')
-      .getByRole('button', { name: '气泡确认' })
-      .click();
-    const pop = page.locator('.ant-popconfirm');
-    await expect(pop).toBeVisible();
-    await cjkButton(pop, '删除').click();
-    await expect(
-      page.locator('.ant-message-notice').filter({ hasText: '气泡确认通过' }),
-    ).toBeVisible();
-    await expect(pop.first()).toBeHidden();
+    const moved = [
+      '订单中心',
+      '商品库',
+      '首页改版',
+      '库存同步',
+      '数据报表',
+      '系统设置',
+    ];
+    await expect
+      .poll(() => cellTexts(rows), { message: '渲染出来的行序要真的换位' })
+      .toEqual(moved);
+    // 数据侧：顺序标签读的是 `basicList`（onDragEnd 写回的 ref），
+    // 只有 DOM 变了而标签没变，才说明 Sortable 的下标和数据源对不上
+    const tags = box.locator('.mt-3 .ant-tag');
+    await expect
+      .poll(() => itemTexts(tags), { message: '顺序标签要跟着数据源变' })
+      .toEqual([
+        '1. 订单中心',
+        '2. 商品库',
+        '3. 首页改版',
+        '4. 库存同步',
+        '5. 数据报表',
+        '6. 系统设置',
+      ]);
+    await expect(box.getByText('已调整 1 次')).toBeVisible();
 
     expect(errors.errors).toEqual([]);
     errors.stop();
   });
 
-  test('通知落点跟随偏好设置，进度条真的在跑', async ({ page }) => {
-    const errors = await open(page, FEEDBACK);
+  test('手柄变体只认 ⠿：从行文字上拖不动', async ({ page }) => {
+    const errors = await open(page, DRAG_SORT);
+    const box = card(page, '手柄拖拽');
+    const rows = tableRows(box);
+    const initial = [
+      '快捷入口',
+      '消息通知',
+      '常用报表',
+      '审批流模板',
+      '帮助文档',
+    ];
 
-    await card(page, 'Notification 通知')
-      .getByRole('button', { name: '成功通知' })
-      .click();
-    // 通知渲染在 body 末端的容器里，按标题文字找比抱类名稳（1.6 的类名结构换过）
-    await expect(page.getByText('success 通知')).toBeVisible();
+    await expect(rows).toHaveCount(5);
+    expect(await cellTexts(rows, 1)).toEqual(initial);
 
-    const run = card(page, 'Progress 进度条').getByRole('button', { name: '跑一次进度' });
-    await run.click();
-    // 按钮在跑的时候锁住，避免连点叠定时器
-    await expect(run).toBeDisabled();
-    // 1.6 的线形进度是 rail / track / indicator 三段，百分比写在根节点的
-    // `aria-valuenow` 上；老 API 的 `.ant-progress-bg` 这个类已经没有了
-    const bar = card(page, 'Progress 进度条').getByRole('progressbar').first();
+    // 抓把手 ⠿ 拖：换位
+    await rows
+      .nth(0)
+      .locator('.drag-handle')
+      .dragTo(rows.nth(2).locator('.drag-handle'));
     await expect
-      .poll(async () => Number(await bar.getAttribute('aria-valuenow')), {
-        message: '定时器每 200ms 加一档，值要真的在涨',
+      .poll(() => cellTexts(rows, 1), { message: '从把手拖要能换位' })
+      .toEqual(['消息通知', '常用报表', '快捷入口', '审批流模板', '帮助文档']);
+
+    // 从第二格（功能块文字）拖：`handle` 不匹配 → 一行都不该动
+    await rows
+      .nth(0)
+      .locator('td')
+      .nth(1)
+      .dragTo(rows.nth(2).locator('td').nth(1));
+    await expect
+      .poll(() => cellTexts(rows, 1), { message: '不是把手就不该起拖' })
+      .toEqual(['消息通知', '常用报表', '快捷入口', '审批流模板', '帮助文档']);
+
+    expect(errors.errors).toEqual([]);
+    errors.stop();
+  });
+
+  /**
+   * 「禁止某些行被拖动 / 禁止落点」那张卡的三条约束，现在**一条都拦不住** —— 这是组件缺陷，
+   * 所以这里用 `test.fail()` 把正确的契约留在用例里，而不是把断言放宽成"现在是什么就断言什么"。
+   *
+   * 根因两条，都在 `apps/web/src/components/business/Table/hooks/useDragSort.ts`：
+   * 1. `disabled`（布尔与函数两种形态）靠 `onStart` 里 `evt.preventDefault(); return false`
+   *    取消拖拽（该文件 69-76 行），可 sortablejs 1.15.7 派发用户回调时只是
+   *    `options.onStart.call(sortable, evt)`，**返回值与 preventDefault 一概不看**
+   *    （`node_modules/sortablejs/src/EventDispatcher.js:48-50`），拖拽照旧开始；
+   *    `onEnd`（同文件 95-114 行）也没有再查一遍 `disabled`，于是新顺序照样 splice 进数据源。
+   * 2. `canDrop` 读的是 `evt.draggedRowIndex / relatedRowIndex / oldIndex / newIndex`
+   *    （该文件 77-94 行），而 sortablejs 给 `onMove` 的事件对象上**这四个字段一个都没有**
+   *    （`node_modules/sortablejs/src/Sortable.js:1769-1795` 只设 to/from/dragged/related/…），
+   *    于是每次比较的都是数据源第 0 条和自己比，"不能越过锁定行"从不生效。
+   *
+   * 组件侧修好后，本用例会以 `Expected to fail, but passed` 变红 —— 那时删掉 `test.fail()` 即可。
+   * 页面侧的文案（"开关切成布尔形态一次性冻结整张表""任何行都无法越过它"）也要一起复核。
+   */
+  test('整表冻结 / 置顶行不可拖 / 落点不可越线：三条约束目前全部拦不住（已知缺陷）', async ({
+    page,
+  }) => {
+    test.fail();
+    test.info().annotations.push({
+      type: '缺陷',
+      description:
+        'apps/web/src/components/business/Table/hooks/useDragSort.ts:69-94 —— onStart 的取消在 sortablejs 1.15.7 里无效；onMove 拿到的事件没有下标字段',
+    });
+
+    const errors = await open(page, DRAG_SORT);
+    const box = cardByTitle(page, '禁止某些行被拖动');
+    const rows = tableRows(box);
+    const initial = [
+      '置顶公告',
+      '活动 Banner',
+      '新人指南',
+      '系统基线',
+      '版本说明',
+      '常见问题',
+    ];
+
+    await expect(rows).toHaveCount(6);
+    expect(await cellTexts(rows)).toEqual(initial);
+
+    // 对照组：不涉及 pinned / locked 的相邻拖拽，这张卡是真的绑上了 Sortable
+    await rows.nth(4).dragTo(rows.nth(5));
+    await expect
+      .poll(() => cellTexts(rows), { message: '普通相邻行要能换位' })
+      .toEqual([
+        '置顶公告',
+        '活动 Banner',
+        '新人指南',
+        '系统基线',
+        '常见问题',
+        '版本说明',
+      ]);
+
+    // 函数形态 `disabled`：置顶公告标着「置顶 · 不可拖动」，不该被拖走
+    await rows.nth(0).dragTo(rows.nth(1));
+    await expect
+      .poll(() => cellTexts(rows), { message: 'pinned 行不该起拖' })
+      .toEqual([
+        '置顶公告',
+        '活动 Banner',
+        '新人指南',
+        '系统基线',
+        '常见问题',
+        '版本说明',
+      ]);
+
+    // `canDrop`：版本说明要往前挪，路径上必须经过锁定的系统基线，不该让它过去
+    await rows.nth(4).dragTo(rows.nth(1));
+    await expect
+      .poll(() => cellTexts(rows), { message: '不能越过 locked 行' })
+      .toEqual([
+        '置顶公告',
+        '活动 Banner',
+        '新人指南',
+        '系统基线',
+        '常见问题',
+        '版本说明',
+      ]);
+
+    // 布尔形态 `disabled: true`：整表冻结后任何一行都拖不动
+    const freeze = box.locator('.ant-switch');
+    await freeze.click();
+    await expect(freeze).toHaveClass(/ant-switch-checked/);
+    await rows.nth(1).dragTo(rows.nth(2));
+    await expect
+      .poll(() => cellTexts(rows), { message: '整表冻结后行序不该动' })
+      .toEqual([
+        '置顶公告',
+        '活动 Banner',
+        '新人指南',
+        '系统基线',
+        '常见问题',
+        '版本说明',
+      ]);
+
+    expect(errors.errors).toEqual([]);
+    errors.stop();
+  });
+
+  test('保存顺序：初始就是脏的，点保存翻正，再拖一次又变脏', async ({
+    page,
+  }) => {
+    const errors = await open(page, DRAG_SORT);
+    const box = card(page, '保存顺序');
+    const rows = tableRows(box);
+    const cleanTag = box.getByText('顺序与已保存一致');
+    const dirtyTag = box.getByText('有未保存的改动');
+    const saveButton = cjkButton(box, '保存顺序');
+
+    await expect(rows).toHaveCount(5);
+
+    // 页面把 `savedOrder` 的初值留成空串，所以"没存过"本身就是脏态：
+    // 脏标在、按钮可点、那行状态还写着「尚未保存」——这才是模板要演示的起点
+    const initial = ['轮播图', '热门榜单', '最近更新', '编辑精选', '页脚导航'];
+    expect(await cellTexts(rows)).toEqual(initial);
+    await expect(dirtyTag).toBeVisible();
+    await expect(saveButton).toBeEnabled();
+    await expect(
+      box.getByText('最近一次保存（本地 ref）：尚未保存'),
+    ).toBeVisible();
+
+    // 存的是当前 id 序列：1..5 原样落进页面状态，脏标记与按钮一起翻正
+    await saveButton.click();
+    await expect(cleanTag).toBeVisible();
+    await expect(saveButton).toBeDisabled();
+    await expect(
+      box.getByText('最近一次保存（本地 ref）：1,2,3,4,5'),
+    ).toBeVisible();
+
+    // 拖一步：把首行挪到第 4 格 → id 序列变成 2,3,4,1,5，脏标回来
+    await rows.nth(0).dragTo(rows.nth(3));
+    await expect
+      .poll(() => cellTexts(rows), { message: '拖完行序要换位' })
+      .toEqual(['热门榜单', '最近更新', '编辑精选', '轮播图', '页脚导航']);
+    await expect(dirtyTag).toBeVisible();
+    await expect(saveButton).toBeEnabled();
+
+    await saveButton.click();
+    await expect(cleanTag).toBeVisible();
+    await expect(
+      box.getByText('最近一次保存（本地 ref）：2,3,4,1,5'),
+    ).toBeVisible();
+    await expect(
+      page
+        .locator('.ant-message-notice')
+        .filter({ hasText: '已保存 5 条顺序' })
+        .first(),
+    ).toBeVisible();
+
+    expect(errors.errors).toEqual([]);
+    expect(errors.badResponses).toEqual([]);
+    errors.stop();
+  });
+});
+
+test.describe('拖拽布局页', () => {
+  test.beforeEach(async ({ page }) => {
+    await signIn(page);
+  });
+
+  test('v-model 列表：拖动换序后顺序标签一起变', async ({ page }) => {
+    const errors = await open(page, DRAG_LAYOUT);
+    const box = card(page, '基础列表拖拽');
+    const rows = box.locator('.space-y-2 > div');
+
+    await expect(rows).toHaveCount(6);
+    const initial = [
+      '1. 待办审批',
+      '2. 数据看板',
+      '3. 客户列表',
+      '4. 工单中心',
+      '5. 消息中心',
+      '6. 系统设置',
+    ];
+    await expect
+      .poll(async () => itemTexts(box.locator('.mt-4 .ant-tag')))
+      .toEqual(initial);
+
+    await rows.nth(0).dragTo(rows.nth(2));
+
+    // 标签行读的就是 `v-model` 那份数组：DOM 与数据不一致时这里先红
+    await expect
+      .poll(async () => itemTexts(box.locator('.mt-4 .ant-tag')), {
+        message: 'VueDraggable 要在 update 里把数组 splice 好',
       })
-      .toBeGreaterThan(20);
+      .toEqual([
+        '1. 数据看板',
+        '2. 客户列表',
+        '3. 待办审批',
+        '4. 工单中心',
+        '5. 消息中心',
+        '6. 系统设置',
+      ]);
+    await expect
+      .poll(() => itemTexts(rows), { message: '渲染出来的行序也要同步' })
+      // 序号、名称、说明是三个紧挨着的 `<span>`，中间没有空白文本节点，
+      // 压平空白后拿到的是 `1数据看板GMV / 订单量 / 转化率`
+      // （只有说明文字自带的空格保留），照抄 DOM 拼出来的样子断言。
+      .toEqual([
+        '1数据看板GMV / 订单量 / 转化率',
+        '2客户列表带跟进状态与标签筛选',
+        '3待办审批按发起人聚合，默认在第一屏',
+        '4工单中心超时未处理置顶提醒',
+        '5消息中心站内信与推送开关',
+        '6系统设置仅管理员可见',
+      ]);
+
+    expect(errors.errors).toEqual([]);
+    errors.stop();
+  });
+
+  test('手柄变体只认 ⠿，从行文字上拖不动', async ({ page }) => {
+    const errors = await open(page, DRAG_LAYOUT);
+    const box = card(page, '手柄拖拽');
+    const rows = box.locator('.space-y-2 > div');
+    const names = async () =>
+      rows.evaluateAll((els) =>
+        els.map((el) =>
+          (el.querySelector('.font-medium')?.textContent ?? '').trim(),
+        ),
+      );
+
+    await expect(rows).toHaveCount(5);
+    const initial = [
+      '月度经营分析',
+      '渠道投放复盘',
+      '库存周报',
+      '客服质检抽样',
+      '大促作战地图',
+    ];
+    expect(await names()).toEqual(initial);
+
+    // 从 note 文字上拖：`handle: '.drag-grip'` 不匹配 → 不该换位
+    await rows
+      .nth(0)
+      .dragTo(rows.nth(2), { sourcePosition: { x: 300, y: 20 } });
+    await expect
+      .poll(names, { message: '不是把手就不该起拖' })
+      .toEqual(initial);
+
+    await rows
+      .nth(0)
+      .locator('.drag-grip')
+      .dragTo(rows.nth(2).locator('.drag-grip'));
+    await expect
+      .poll(names, { message: '抓把手要换位' })
+      .toEqual([
+        '渠道投放复盘',
+        '库存周报',
+        '月度经营分析',
+        '客服质检抽样',
+        '大促作战地图',
+      ]);
+
+    expect(errors.errors).toEqual([]);
+    errors.stop();
+  });
+
+  test('跨容器互拖：两个 v-model 的计数都真的变了', async ({ page }) => {
+    const errors = await open(page, DRAG_LAYOUT);
+    const box = card(page, '两个列表互拖');
+    // 两个面板靠 `border-dashed` 分家（待选 / 已选）
+    const panels = box.locator('.border-dashed');
+    const candidate = panels.nth(0);
+    const chosen = panels.nth(1);
+    const candidateItems = candidate.locator('.space-y-2 > div');
+    const chosenItems = chosen.locator('.space-y-2 > div');
+
+    await expect(candidateItems).toHaveCount(5);
+    await expect(chosenItems).toHaveCount(2);
+    await expect(box.getByText('5 项', { exact: true })).toBeVisible();
+    await expect(box.getByText('2 项', { exact: true })).toBeVisible();
+
+    /**
+     * 落点给**目标列表的容器**（`min-h-[112px]` 那块空白），而不是给某一条已选条目：
+     * 实测落在条目上时这条跨容器路径不落进去（`remove`/`add` 都不派发，两边计数原地不动），
+     * 而页面自己那段文案强调的恰好是"空容器要给高度，否则接不住落点"。
+     */
+    await dragIntoList(
+      page,
+      candidateItems.nth(0),
+      chosen.locator('.space-y-2'),
+    );
+
+    // 库按 remove / add 两个事件分别改两份数组，所以两边都要动一个
+    await expect
+      .poll(() => candidateItems.count(), { message: '源数组要少一条' })
+      .toBe(4);
+    await expect
+      .poll(() => chosenItems.count(), { message: '目标数组要多一条' })
+      .toBe(3);
+    // 搬过去的必须是那一条，且源数组里从此没有它（两份 v-model 各自都是准的）
+    await expect(chosenItems.filter({ hasText: '销售额趋势' })).toHaveCount(1);
+    await expect(candidateItems.filter({ hasText: '销售额趋势' })).toHaveCount(
+      0,
+    );
+    await expect(box.getByText('4 项', { exact: true })).toBeVisible();
+    await expect(box.getByText('3 项', { exact: true })).toBeVisible();
+
+    // 还原示例数据：回到 5 / 2，证明计数读的是那两份 ref 而不是 DOM 残影
+    await box.getByRole('button', { name: /还原示例数据/ }).click();
+    await expect(candidateItems).toHaveCount(5);
+    await expect(chosenItems).toHaveCount(2);
 
     expect(errors.errors).toEqual([]);
     errors.stop();
   });
 });
 
-test.describe('数据展示页', () => {
+test.describe('分步表单页', () => {
   test.beforeEach(async ({ page }) => {
     await signIn(page);
   });
 
-  test('子组件写法的三块内容真的渲染出来了', async ({ page }) => {
-    const errors = await open(page, DATA_DISPLAY);
+  /**
+   * 按标签取字段控件，**必须圈在卡片里**：这一页第 2 张卡也有「手机号 / 邮箱」同名字段，
+   * 从 page 上取会撞 strict mode。
+   *
+   * `BasicForm` 把 `a-form-item` 的标签写成 `<label for="字段名">`，控件自己的 `id`
+   * 就是字段名（`#realName`、`#idType`…），所以这里一律走 `getByLabel` —— 它同时覆盖
+   * Input / InputTextArea / Select 的输入节点，不必再按 `.ant-form-item` 的结构去拼 CSS
+   * （`filter({ has: box.locator('label') })` 那种写法会在子树里重新解析选择器，实测命中 0 个）。
+   */
+  function field(scope: Locator, label: string) {
+    return scope.getByLabel(label, { exact: true });
+  }
 
-    await expect(card(page, 'Descriptions 描述列表').getByText('SO-20261010-0042')).toBeVisible();
-    // 同一份数据渲染了两遍（默认 + alternate 模式），必须圈到卡片里再取第一个
+  test('「下一步」被必填拦住时原地停住，补全后才过去', async ({ page }) => {
+    const errors = await open(page, FORM_STEPS);
+    const box = card(page, '基础分步表单');
+    const meta = box.getByText(/页面已攒/);
+
+    await expect(meta).toContainText('第 1/3 步 · 页面已攒 0 个字段');
+
+    // 什么都不填直接下一步：门禁要挡住，步骤号不许动
+    await cjkButton(box, '下一步').click();
+    await expect(meta).toContainText('第 1/3 步 · 页面已攒 0 个字段');
+    await expect(cjkButton(box, '提交')).toHaveCount(0);
+    // 两个必填（真实姓名 / 证件类型）各出一条行内错误，文案是 Form 的默认必填语
+    const explains = box.locator('.ant-form-item-explain-error');
+    await expect(explains).toHaveCount(2);
+    expect(await explains.allTextContents()).toEqual([
+      '该项为必填项',
+      '该项为必填项',
+    ]);
+    // 页面还会把失败原因播报成一句 message（前缀是这一步的标题）
     await expect(
-      card(page, 'Timeline 时间线')
-        .locator('.ant-timeline-item-content')
-        .filter({ hasText: '2026-10-08 09:12 创建订单' })
-        .first(),
+      page
+        .locator('.ant-message-notice')
+        .filter({ hasText: '「基本信息」：该项为必填项' }),
     ).toBeVisible();
-    await expect(page.getByText('为什么菜单是唯一数据源')).toBeVisible();
-    // 折叠面板默认只展开第一项，第二项要点开才看到正文
-    await page.getByText('为什么示例页不写内边距').click();
-    await expect(page.getByText(/内边距归布局的滚动容器统一提供/)).toBeVisible();
 
-    // 解析失败的组件只会静默变成空节点，用数量把三道关都钉住
-    expect(await page.locator('.ant-descriptions-item-label').count()).toBeGreaterThanOrEqual(6);
-    expect(await page.locator('.ant-timeline-item').count()).toBeGreaterThanOrEqual(4);
-    expect(await page.locator('.ant-collapse-item').count()).toBe(3);
+    await field(box, '真实姓名').fill('张伟');
+    // 第 1 步只有一个 Select，选项面板挂在 body 上，不能圈在卡片里找
+    await expect(box.locator('.ant-select')).toHaveCount(1);
+    await box.locator('.ant-select').click();
+    await page
+      .locator('.ant-select-dropdown .ant-select-item-option')
+      .filter({ hasText: '身份证' })
+      .first()
+      .click();
+    await expect(explains).toHaveCount(0);
 
-    expect(errors.errors).toEqual([]);
+    await cjkButton(box, '下一步').click();
+    await expect(meta).toContainText('第 2/3 步 · 页面已攒 2 个字段');
+
+    // 第 2 步的手机号格式在本步就拦（不是必填拦住，是 pattern 规则）
+    await field(box, '手机号').fill('1234');
+    await cjkButton(box, '下一步').click();
+    await expect(meta).toContainText('第 2/3 步');
     expect(
-      errors.warnings.filter((text) => text.includes('Failed to resolve component')),
-    ).toEqual([]);
-    errors.stop();
-  });
-
-  test('editable-card 的增与删（1.6 只有 edit，没有 add 事件）', async ({ page }) => {
-    const errors = await open(page, DATA_DISPLAY);
-    const tabs = card(page, 'Tabs 标签页').locator('.ant-tabs').first();
-
-    const before = await tabs.locator('.ant-tabs-tab').count();
-    // editable-card 会把「+」渲染两份（常驻的一份 + 溢出收纳区的一份），取第一个
-    await tabs.locator('.ant-tabs-nav-add').first().click();
-    await expect(tabs.locator('.ant-tabs-tab').filter({ hasText: '新标签 4' })).toBeVisible();
-    expect(await tabs.locator('.ant-tabs-tab').count()).toBe(before + 1);
-    // 内容区：切换后旧面板只是 `ant-tabs-content-hidden`，还留在 DOM 里，
-    // 所以只断言当前激活的那块
-    const activePanel = tabs.locator('[role=tabpanel][aria-hidden=false]');
-    await expect(activePanel).toContainText('新标签 4');
-
-    await tabs.locator('.ant-tabs-tab-active .ant-tabs-tab-remove').first().click();
-    await expect(tabs.locator('.ant-tabs-tab').filter({ hasText: '新标签 4' })).toHaveCount(0);
-    expect(await tabs.locator('.ant-tabs-tab').count()).toBe(before);
-    await expect(activePanel).not.toContainText('新标签 4');
+      await box.locator('.ant-form-item-explain-error').allTextContents(),
+    ).toEqual(['11 位手机号，别带空格']);
 
     expect(errors.errors).toEqual([]);
     errors.stop();
   });
 
-  test('步骤条 v-model:current 与图片预览', async ({ page }) => {
-    const errors = await open(page, DATA_DISPLAY);
+  test('来回切步骤值不丢，提交后的摘要是全量字段', async ({ page }) => {
+    const errors = await open(page, FORM_STEPS);
+    const box = card(page, '基础分步表单');
+    const meta = box.getByText(/页面已攒/);
 
-    // 1.6 的 Timeline 就是拿 Steps 的 DOM 实现的（每个 `.ant-timeline-item` 同时挂着
-    // `ant-steps-item`），所以页级选择器会数到 12，必须圈在步骤条那张卡里
-    const steps = card(page, 'Steps 步骤条');
-    await expect(steps.locator('.ant-steps-item')).toHaveCount(4);
-    await steps.getByRole('button', { name: '下一步' }).click();
-    await expect(page.getByText('当前第 3 步')).toBeVisible();
-    await expect(steps.locator('.ant-steps-item-process')).toHaveCount(1);
+    // 第 1 步：三个字段都填（昵称选填，用来验证「已攒」计数确实数的是值）
+    await field(box, '真实姓名').fill('张伟');
+    await field(box, '昵称').fill('小张');
+    await box.locator('.ant-select').click();
+    await page
+      .locator('.ant-select-dropdown .ant-select-item-option')
+      .filter({ hasText: '护照' })
+      .first()
+      .click();
+    await cjkButton(box, '下一步').click();
+    await expect(meta).toContainText('第 2/3 步 · 页面已攒 3 个字段');
 
-    await card(page, 'Image 图片预览').locator('.ant-image img').first().click();
-    await expect(page.locator('.ant-image-preview-img')).toBeVisible();
-    await page.keyboard.press('Escape');
-    await expect(page.locator('.ant-image-preview-img')).toBeHidden();
+    await field(box, '手机号').fill('13800138000');
+    await field(box, '邮箱').fill('zhangsan@example.com');
 
+    // 倒退不校验，且把已经填的第 2 步值一起收进页面状态 → 计数涨到 5
+    await cjkButton(box, '上一步').click();
+    await expect(meta).toContainText('第 1/3 步 · 页面已攒 5 个字段');
+    await expect(field(box, '真实姓名')).toHaveValue('张伟');
+    await expect(field(box, '昵称')).toHaveValue('小张');
+
+    // 再往前：第 2 步的值也在（`setProps({ schemas })` 不动 formModel 的意思）
+    await cjkButton(box, '下一步').click();
+    await expect(meta).toContainText('第 2/3 步 · 页面已攒 5 个字段');
+    await expect(field(box, '手机号')).toHaveValue('13800138000');
+    await expect(field(box, '邮箱')).toHaveValue('zhangsan@example.com');
+
+    await field(box, '通讯地址').fill('北京市朝阳区建国路 88 号');
+    await cjkButton(box, '下一步').click();
+    await expect(meta).toContainText('第 3/3 步 · 页面已攒 6 个字段');
+
+    // 服务协议是 RadioGroup，不点则提交会被整表校验拦回第 3 步
+    await cjkButton(box, '提交').click();
+    await expect(meta).toContainText('第 3/3 步');
+    await expect(box.locator('.ant-result-success')).toHaveCount(0);
+    expect(
+      await box.locator('.ant-form-item-explain-error').allTextContents(),
+    ).toEqual(['需要先同意《用户服务协议》']);
+
+    await box
+      .locator('.ant-radio-wrapper')
+      .filter({ hasText: '我已阅读并同意' })
+      .click();
+    await cjkButton(box, '提交').click();
+
+    /**
+     * 结果页这一段同时是**子组件写法**的证据：`<a-result>` 里的摘要用的是
+     * `<a-descriptions><a-descriptions-item v-for>` 这种**内容式子标签**，
+     * 而不是业务组件 `Description` 的 `items` 配置。这类写法在 antdv-next 1.6 里
+     * 解析失败时只出一条 warning，节点静默变成空的 —— 所以这里逐格数标签与值。
+     */
+    const result = box.locator('.ant-result-success');
+    await expect(result).toBeVisible();
+    await expect(result).toContainText('分步表单已提交');
+    const labels = result.locator('.ant-descriptions-item-label');
+    const contents = result.locator('.ant-descriptions-item-content');
+    await expect(labels).toHaveCount(8);
+    expect(await labels.allTextContents()).toEqual([
+      '真实姓名',
+      '昵称',
+      '证件类型',
+      '手机号',
+      '邮箱',
+      '通讯地址',
+      '服务协议',
+      '备注',
+    ]);
+    // Select / RadioGroup 的中文标签是从 componentProps.options 反查出来的，
+    // 直接打印 value 会是 passport / agree；没填的备注落到「—」
+    expect(await contents.allTextContents()).toEqual([
+      '张伟',
+      '小张',
+      '护照',
+      '13800138000',
+      'zhangsan@example.com',
+      '北京市朝阳区建国路 88 号',
+      '我已阅读并同意《用户服务协议》',
+      '—',
+    ]);
+
+    // 重新填写：回到第 1 步空表，计数归零
+    await cjkButton(box, '重新填写').click();
+    await expect(meta).toContainText('第 1/3 步 · 页面已攒 0 个字段');
+    await expect(field(box, '真实姓名')).toHaveValue('');
+
+    expect(
+      errors.warnings.filter((text) =>
+        text.includes('Failed to resolve component'),
+      ),
+    ).toEqual([]);
     expect(errors.errors).toEqual([]);
     expect(errors.badResponses).toEqual([]);
+    errors.stop();
+  });
+});
+
+test.describe('弹窗与抽屉页', () => {
+  test.beforeEach(async ({ page }) => {
+    await signIn(page);
+  });
+
+  test('openModal(true, data) 把数据送进 useModalInner 回调，提交时整份回传', async ({
+    page,
+  }) => {
+    const errors = await open(page, MODAL_DRAWER);
+    const box = cardByTitle(page, '基础弹窗');
+
+    await box.getByRole('button', { name: /打开并传数据/ }).click();
+    const modal = antModal(page, '编辑用户信息');
+    await expect(modal).toBeVisible();
+    // 回调只跑一次，且收到的就是父页面那份对象
+    await expect(
+      modal.getByText(/useModalInner 回调第 1 次收到数据/),
+    ).toBeVisible();
+    await expect(
+      modal.getByText(/这段数据由父页面 openModal\(true, data\) 传入/),
+    ).toBeVisible();
+    await expect(modal.getByPlaceholder('请输入姓名')).toHaveValue('张三');
+    await expect(modal.getByText('数据 ID：', { exact: false })).toBeVisible();
+    // 函数属性不进 JSON：展示的是纯数据部分
+    await expect(modal.getByText('"onSubmit"')).toHaveCount(0);
+
+    // 改一个字段再提交，回传的要是当前值而不是初始值
+    await modal.getByPlaceholder('请输入部门').fill('平台组');
+    await cjkButton(modal, '提交').click();
+    await expect(modal).toBeHidden();
+
+    const back = box.locator('pre').nth(1);
+    await expect(back).toContainText('"department": "平台组"');
+    await expect(back).toContainText('"name": "张三"');
+    await expect(
+      page
+        .locator('.ant-message-notice')
+        .filter({ hasText: '弹窗已把表单回传到示例页' }),
+    ).toBeVisible();
+
+    expect(errors.errors).toEqual([]);
+    errors.stop();
+  });
+
+  test('取消、closeModal() 两条关得掉，getVisible() 说的是实话', async ({
+    page,
+  }) => {
+    const errors = await open(page, MODAL_DRAWER);
+    const box = cardByTitle(page, '基础弹窗');
+    const probe = box.locator('p').filter({ hasText: '方法返回值' });
+    const openButton = box.getByRole('button', { name: /打开并传数据/ });
+    const probeButton = box.getByRole('button', {
+      name: /getVisible\(\) 查询显隐/,
+    });
+    const closeButton = box.getByRole('button', {
+      name: /closeModal\(\) 关闭/,
+    });
+    const modal = antModal(page, '编辑用户信息');
+
+    await openButton.click();
+    await expect(modal).toBeVisible();
+    // 开着的时候读 getVisible()：蒙层挡住鼠标，见 `clickPageButtonThroughMask` 的说明
+    await clickPageButtonThroughMask(probeButton);
+    await expect(probe).toContainText('getVisible() = true');
+
+    // 内置底部的「取消」
+    await cjkButton(modal, '取消').click();
+    await expect(modal).toBeHidden();
+    await probeButton.click();
+    await expect(probe).toContainText('getVisible() = false');
+
+    // 父页面的 closeModal()：再开一次，用它关掉，页面同时播报一条 message
+    await openButton.click();
+    await expect(modal).toBeVisible();
+    await clickPageButtonThroughMask(closeButton);
+    await expect(modal).toBeHidden();
+    await expect(
+      page
+        .locator('.ant-message-notice')
+        .filter({ hasText: '已调用 useModal().closeModal()' }),
+    ).toBeVisible();
+    // 关掉之后 closeModal() 是幂等的：再点一次不报错、状态还是关
+    await closeButton.click();
+    await expect(modal).toBeHidden();
+    await probeButton.click();
+    await expect(probe).toContainText('getVisible() = false');
+
+    expect(errors.errors).toEqual([]);
+    errors.stop();
+  });
+
+  /**
+   * `setModalProps` 的哑炮回归位。
+   *
+   * BasicModal 的实现是 `Object.assign(props, …)`，而 `defineProps` 交出的是只读代理，
+   * 写入被静默丢弃。页面把这条结论如实打在日志里，用例把它钉住：
+   * 哪天有人"顺手修好"了 setModalProps，这里就该红，好让页面上的文案一起被改。
+   */
+  test('setModalProps 是哑炮：调用发出去了，标题、按钮、宽度一个都没变', async ({
+    page,
+  }) => {
+    const errors = await open(page, MODAL_DRAWER);
+    const box = cardByTitle(page, '基础弹窗');
+
+    await box.getByRole('button', { name: /打开并传数据/ }).click();
+    const modal = antModal(page, '编辑用户信息');
+    await expect(modal).toBeVisible();
+    await expect(modal).toHaveAttribute('style', /520px/);
+
+    // 弹窗开着的时候卡片上那几个按钮全在 `.ant-modal-wrap` 这层整屏遮罩下面，
+    // 本段要证的是「setModalProps 被调下去之后 props 有没有变」，
+    // 遮罩挡鼠标那条路径另有 X / 取消 / 蒙层三处用例覆盖，这里直接派发 click。
+    await clickPageButtonThroughMask(
+      box.getByRole('button', { name: /尝试改 props/ }),
+    );
+    await expect(
+      modal.getByText('编辑用户信息', { exact: true }),
+    ).toBeVisible();
+    await expect(modal.getByText('标题被 setModalProps 改掉')).toHaveCount(0);
+    await expect(cjkButton(modal, '提交')).toBeVisible();
+    await expect(modal.getByRole('button', { name: /确认修改/ })).toHaveCount(
+      0,
+    );
+    await expect(modal).toHaveAttribute('style', /520px/);
+
+    // 页面自己也承认没生效
+    await expect(box.getByText(/标题\/按钮\/宽度均无变化/)).toBeVisible();
+    await expect(
+      page
+        .locator('.ant-message-notice')
+        .filter({ hasText: '组件的 props 是只读的' }),
+    ).toBeVisible();
+    // getVisible() 仍然是真的
+    await clickPageButtonThroughMask(
+      box.getByRole('button', { name: /getVisible\(\) 查询显隐/ }),
+    );
+    await expect(
+      box.locator('p').filter({ hasText: '方法返回值' }),
+    ).toContainText('getVisible() = true');
+
+    expect(errors.errors).toEqual([]);
+    errors.stop();
+  });
+
+  test('三种方位的抽屉都能打开，footer 插槽的按钮把值写回页面', async ({
+    page,
+  }) => {
+    const errors = await open(page, MODAL_DRAWER);
+    const box = cardByTitle(page, '抽屉基础与位置');
+    const result = box
+      .locator('div')
+      .filter({ hasText: /^左侧抽屉|^右侧抽屉|^底部抽屉/ });
+
+    // 左：#footer 插槽替掉了内置按钮，「应用」写状态并关闭
+    await box.getByRole('button', { name: /左侧抽屉/ }).click();
+    const left = antDrawer(page, '左侧抽屉 · 布局密度');
+    await expect(left).toHaveClass(/ant-drawer-left|placement-left/);
+    await left
+      .locator('.ant-radio-wrapper')
+      .filter({ hasText: '紧凑' })
+      .click();
+    await left.getByRole('button', { name: /应用/ }).click();
+    await expect(left).toBeHidden();
+    await expect(
+      page.getByText(/左侧抽屉（:width="360"）→ 密度 = compact/),
+    ).toBeVisible();
+
+    // 左：取消不改页面状态（还是 compact）
+    await box.getByRole('button', { name: /左侧抽屉/ }).click();
+    await left
+      .locator('.ant-radio-wrapper')
+      .filter({ hasText: '宽松' })
+      .click();
+    await cjkButton(left, '取消').click();
+    await expect(left).toBeHidden();
+    await expect(page.getByText(/密度 = compact$/)).toBeVisible();
+    await expect(result).not.toContainText('宽松');
+
+    // 右：默认方位，footer 里的「全选」是插槽按钮，只有回写状态才会带出五个模块
+    await box.getByRole('button', { name: /右侧抽屉/ }).click();
+    const right = antDrawer(page, '右侧抽屉 · 模块选择');
+    await expect(right).toHaveClass(/ant-drawer-right|placement-right/);
+    await right.getByRole('button', { name: /全选/ }).click();
+    await expect(right.locator('.ant-checkbox-wrapper-checked')).toHaveCount(5);
+    await right.getByRole('button', { name: /完成/ }).click();
+    await expect(right).toBeHidden();
+    await expect(
+      page.getByText(
+        /右侧抽屉（:size="520"）→ 已选模块 = system、monitor、report、schedule、notice/,
+      ),
+    ).toBeVisible();
+
+    // 底：placement 决定取 height 而不是 width
+    await box.getByRole('button', { name: /底部抽屉/ }).click();
+    const bottom = antDrawer(page, '底部抽屉 · 过渡时长');
+    await expect(bottom).toHaveClass(/ant-drawer-bottom|placement-bottom/);
+    await bottom
+      .locator('.ant-radio-wrapper')
+      .filter({ hasText: '400ms' })
+      .click();
+    await bottom.getByRole('button', { name: /应用/ }).click();
+    await expect(bottom).toBeHidden();
+    await expect(
+      page.getByText(/底部抽屉（:height="280"）→ 过渡时长 = 400ms/),
+    ).toBeVisible();
+
+    expect(errors.errors).toEqual([]);
+    errors.stop();
+  });
+
+  test('closeFunc：草稿脏时底部、X、蒙层三条路都被拦下，放弃修改后放行', async ({
+    page,
+  }) => {
+    const errors = await open(page, MODAL_DRAWER);
+    const box = cardByTitle(page, '嵌套与关闭拦截');
+
+    await box.getByRole('button', { name: '打开可编辑抽屉' }).click();
+    const drawer = antDrawer(page, '草稿编辑（关闭前会过 closeFunc）');
+    await expect(drawer).toBeVisible();
+    await expect(box.getByText('内容已保存')).toBeVisible();
+
+    // 干净状态下直接关得掉，顺带证明 closeFunc 不是一律拦
+    await drawer.getByRole('button', { name: /关闭抽屉/ }).click();
+    await expect(drawer).toBeHidden();
+    await expect(
+      box.getByText('第 1 次关闭请求：内容干净，直接放行'),
+    ).toBeVisible();
+
+    // 改脏 → 底部「关闭抽屉」被拦，并叠出确认框
+    await box.getByRole('button', { name: '打开可编辑抽屉' }).click();
+    await expect(drawer).toBeVisible();
+    await drawer.locator('textarea').fill('又改了几个字');
+    await expect(box.getByText('有未保存修改')).toBeVisible();
+
+    const confirm = antModal(page, '关闭被拦截了');
+    await drawer.getByRole('button', { name: /关闭抽屉/ }).click();
+    await expect(drawer).toBeVisible();
+    await expect(confirm).toBeVisible();
+    await expect(box.getByText('拦截 1 次')).toBeVisible();
+    await cjkButton(confirm, '留在页面').click();
+    await expect(confirm).toBeHidden();
+    await expect(drawer).toBeVisible();
+
+    // X 与蒙层最后都走 closeDrawer()，所以同一条 closeFunc 一样拦得住
+    await drawer.locator('button[aria-label^="关闭"]').click();
+    await expect(drawer).toBeVisible();
+    await expect(confirm).toBeVisible();
+    await cjkButton(confirm, '留在页面').click();
+    await page.locator('.ant-drawer-mask').click();
+    await expect(drawer).toBeVisible();
+    await expect(confirm).toBeVisible();
+    await expect(box.getByText('拦截 3 次')).toBeVisible();
+
+    // 放弃修改：先把内容改回已保存值，关闭请求自然放行
+    await cjkButton(confirm, '放弃修改并关闭').click();
+    await expect(confirm).toBeHidden();
+    await expect(drawer).toBeHidden();
+    await expect(box.getByText('内容已保存')).toBeVisible();
+    await expect(box.getByText('草稿已保存，抽屉关闭')).toHaveCount(0);
+
+    expect(errors.errors).toEqual([]);
+    errors.stop();
+  });
+
+  test('抽屉内滚动：没读到底就点不动「同意并关闭」', async ({ page }) => {
+    const errors = await open(page, MODAL_DRAWER);
+    const box = cardByTitle(page, '抽屉内滚动');
+    const ok = cjkButton(box, '打开长内容抽屉');
+    await ok.click();
+
+    const drawer = antDrawer(page, '抽屉内滚动 · 协议确认');
+    await expect(drawer).toBeVisible();
+    // 内置底部的确认按钮由 okButtonProps 驱动：没勾同意就一直是禁用态
+    const footer = drawer.locator('.ant-drawer-footer');
+    await expect(
+      footer.getByRole('button', { name: /同意并关闭/ }),
+    ).toBeDisabled();
+
+    // 嵌套 Scrollbar 的滚动位置是 @scroll 事件写回页面状态的
+    const inner = drawer.locator('.scrollbar__wrap').nth(1);
+    await inner.evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+    });
+    await expect(drawer.getByText('已到底部')).toBeVisible();
+    await drawer.getByText('我已阅读完附加条款').click();
+    await expect(
+      footer.getByRole('button', { name: /同意并关闭/ }).first(),
+    ).toBeEnabled();
+
+    await footer.getByRole('button', { name: /同意并关闭/ }).click();
+    await expect(drawer).toBeHidden();
+    await expect(
+      box.getByText(/已阅读并同意（内部 Scrollbar 滚动位置 \d+px）/),
+    ).toBeVisible();
+
+    expect(errors.errors).toEqual([]);
+    errors.stop();
+  });
+});
+
+test.describe('描述列表页', () => {
+  test.beforeEach(async ({ page }) => {
+    await signIn(page);
+  });
+
+  test('子组件写法与三档取值都真的渲染出了内容', async ({ page }) => {
+    const errors = await open(page, DESCRIPTION);
+
+    const basic = card(page, '基础描述列表');
+    // 解析失败的组件只会静默变成空节点，所以按标签格数数：schema 写几条就该有几条
+    await expect(basic.locator('.ant-descriptions-item-label')).toHaveCount(9);
+    await expect(basic.getByText('用户基本信息')).toBeVisible();
+    await expect(basic.getByText('张伟')).toBeVisible();
+    // type: 'date' / 'datetime' 走 dayjs 格式化
+    await expect(basic.getByText('1996-05-15')).toBeVisible();
+    await expect(basic.getByText('2024-01-15 10:30:00')).toBeVisible();
+    // 空值落到 emptyText，而不是留一个空格子
+    await expect(basic.getByText('个人主页', { exact: true })).toBeVisible();
+    expect(
+      await basic
+        .locator('.ant-descriptions-item-content')
+        .filter({ hasText: /^-$/ })
+        .count(),
+    ).toBeGreaterThanOrEqual(1);
+
+    const renderBox = card(page, '值渲染与插槽');
+    await expect(renderBox.locator('.ant-descriptions-item-label')).toHaveCount(
+      6,
+    );
+    // type: image(1) + images(2) 一共三张可预览图，节点没解析出来就是 0
+    await expect(renderBox.locator('.ant-image')).toHaveCount(3);
+    // render 函数返回的 Tag
+    await expect(
+      renderBox.locator('.ant-tag').filter({ hasText: '在职' }),
+    ).toHaveCount(1);
+    // 具名插槽 #skills：四个技能标签
+    await expect(
+      renderBox.locator('.ant-tag').filter({ hasText: 'antdv-next' }),
+    ).toHaveCount(1);
+    // 标签插槽 #department-label 把「所属部门」换成了带图标的蓝字
+    await expect(renderBox.getByText('所属部门')).toBeVisible();
+    // 插槽 #email 包的是 a-typography-paragraph（子组件写法）
+    await expect(
+      renderBox
+        .locator('.ant-typography')
+        .filter({ hasText: 'zhangsan@example.com' }),
+    ).toHaveCount(1);
+
+    // 分组那张卡里两个 Description + a-divider，全靠子组件写法
+    // 标题必须点 `.ant-descriptions-title`：卡面提示语里也写了「基础信息」，
+    // 用纯文本选择器会同时命中说明段
+    const grouped = cardByTitle(page, '响应式列数与分组');
+    await expect(
+      grouped
+        .locator('.ant-descriptions-title')
+        .filter({ hasText: '基础信息' }),
+    ).toBeVisible();
+    await expect(
+      grouped
+        .locator('.ant-descriptions-title')
+        .filter({ hasText: '金额信息' }),
+    ).toBeVisible();
+    await expect(grouped.locator('.ant-descriptions-item-label')).toHaveCount(
+      13,
+    );
+    // render 里的 0 元运费换成「包邮」标签，实付金额走 contentStyle
+    await expect(
+      grouped.locator('.ant-tag').filter({ hasText: '包邮' }),
+    ).toHaveCount(1);
+    await expect(grouped.getByText('¥ 18116.91')).toBeVisible();
+    expect(await grouped.locator('.ant-divider').count()).toBe(1);
+
+    expect(
+      errors.warnings.filter((text) =>
+        text.includes('Failed to resolve component'),
+      ),
+    ).toEqual([]);
+    expect(descriptionErrors(errors.errors)).toEqual([]);
+    errors.stop();
+  });
+
+  test('show: false 真的少两行，脱敏开关改的是值不是行数', async ({ page }) => {
+    const errors = await open(page, DESCRIPTION);
+    const box = cardByTitle(page, '动态切换');
+    const labels = box.locator('.ant-descriptions-item-label');
+
+    await expect(labels).toHaveCount(7);
+    await expect(box.getByText('138****8888')).toBeVisible();
+    await expect(box.getByText('1101**********001X')).toBeVisible();
+
+    const sensitive = box.locator('.ant-switch').first();
+    await sensitive.click();
+    await expect(labels).toHaveCount(5);
+    // 只在标签格里查：卡面提示语原文就写着「身份证、发票抬头」，
+    // 拿整卡文本做 toHaveCount(0) 会被提示语顶掉
+    await expect(
+      box
+        .locator('.ant-descriptions-item-label')
+        .filter({ hasText: '身份证号' }),
+    ).toHaveCount(0);
+    await expect(
+      box
+        .locator('.ant-descriptions-item-label')
+        .filter({ hasText: '发票抬头' }),
+    ).toHaveCount(0);
+    await sensitive.click();
+    await expect(labels).toHaveCount(7);
+
+    // 脱敏关掉：还是 7 行，变的是格子里的值
+    await box.locator('.ant-switch').nth(1).click();
+    await expect(labels).toHaveCount(7);
+    await expect(box.getByText('13812348888')).toBeVisible();
+    await expect(box.getByText('11010119960515001X')).toBeVisible();
+
+    // 只读实例上只有 getData()
+    await box.getByRole('button', { name: /调用 getData\(\)/ }).click();
+    await expect(
+      page
+        .locator('.ant-message-notice')
+        .filter({ hasText: 'getData() 读到 7 个字段' }),
+    ).toBeVisible();
+
+    // 「模拟刷新详情」是 setTimeout 改 data，组件跟着响应
+    await box.getByRole('button', { name: /模拟刷新详情/ }).click();
+    await expect(box.getByText('2026-10-12 09:05:32')).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(box.getByText(/工作日 18:00 前送达/)).toBeVisible();
+
+    expect(descriptionErrors(errors.errors)).toEqual([]);
+    expect(errors.badResponses).toEqual([]);
+    errors.stop();
+  });
+
+  test('column 与 bordered 在页面这层算完再传进去，改的就渲染出来', async ({
+    page,
+  }) => {
+    const errors = await open(page, DESCRIPTION);
+    const box = cardByTitle(page, '响应式列数与分组');
+    const head = box.locator('.ant-descriptions-header');
+    await expect(head).toHaveCount(2);
+
+    await expect(box.getByText(/当前 column = \d/)).toBeVisible();
+    await box.getByText('1 列', { exact: true }).click();
+    await expect(box.getByText('当前 column = 1')).toBeVisible();
+    // 每行一项：基础信息组 6 项 → 那一个 Description 里就该有 6 个 row
+    const firstGroup = box
+      .locator('.ant-descriptions')
+      .first()
+      .locator('.ant-descriptions-row');
+    await expect(firstGroup).toHaveCount(6);
+    expect(
+      await box.locator('.ant-descriptions-row').count(),
+    ).toBeGreaterThanOrEqual(13);
+
+    await box.getByText('3 列', { exact: true }).click();
+    await expect(box.getByText('当前 column = 3')).toBeVisible();
+
+    // bordered 关掉后组件不再挂 `.ant-descriptions-bordered`
+    await box.locator('.ant-switch').first().click();
+    await expect(box.locator('.ant-descriptions-bordered')).toHaveCount(0);
+    await box.locator('.ant-switch').first().click();
+    await expect(box.locator('.ant-descriptions-bordered')).toHaveCount(2);
+
+    expect(
+      errors.warnings.filter((text) =>
+        text.includes('Failed to resolve component'),
+      ),
+    ).toEqual([]);
+    expect(descriptionErrors(errors.errors)).toEqual([]);
     errors.stop();
   });
 });
@@ -252,7 +1339,9 @@ test.describe('自定义指令页', () => {
     await signIn(page);
   });
 
-  test('v-demo-permission 四种判定，勾选权限后已渲染的按钮自己翻正', async ({ page }) => {
+  test('v-demo-permission 四种判定，勾选权限后已渲染的按钮自己翻正', async ({
+    page,
+  }) => {
     const errors = await open(page, DIRECTIVE);
 
     const box = card(page, 'v-permission 权限指令');
@@ -320,11 +1409,16 @@ test.describe('自定义指令页', () => {
     // `.fullscreen` 的容器挂在 body 上，但那层容器自身没有尺寸（可见性判定为 hidden），
     // 真正铺满视口的是里面的 `.loading-wrapper`，探针要往下走一层
     await box.getByRole('button', { name: '整页遮罩' }).click();
-    const fullScreen = page.locator('body > .loading-directive-wrapper .loading-wrapper');
+    const fullScreen = page.locator(
+      'body > .loading-directive-wrapper .loading-wrapper',
+    );
     await expect(fullScreen).toBeVisible();
-    await expect(page.locator('body > .loading-directive-wrapper')).toHaveCount(0, {
-      timeout: 8000,
-    });
+    await expect(page.locator('body > .loading-directive-wrapper')).toHaveCount(
+      0,
+      {
+        timeout: 8000,
+      },
+    );
 
     expect(errors.errors).toEqual([]);
     errors.stop();
@@ -386,7 +1480,9 @@ test.describe('自定义指令页', () => {
     errors.stop();
   });
 
-  test('v-escape 把脚本当纯文本，:url 把伪协议换成 #unsafe-url', async ({ page }) => {
+  test('v-escape 把脚本当纯文本，:url 把伪协议换成 #unsafe-url', async ({
+    page,
+  }) => {
     const errors = await open(page, DIRECTIVE);
     const box = card(page, 'v-safe-html 与 v-escape 防 XSS');
 
@@ -410,13 +1506,14 @@ test.describe('自定义指令页', () => {
   });
 
   test('四页之间来回切换不留脏状态', async ({ page }) => {
-    const errors = await open(page, DATA_DISPLAY);
-    for (const path of [OVERVIEW, FEEDBACK, DIRECTIVE, DATA_DISPLAY]) {
+    const errors = await open(page, DRAG_LAYOUT);
+    for (const path of [OVERVIEW, DRAG_SORT, MODAL_DRAWER, DRAG_LAYOUT]) {
       await go(page, path);
       await expectActivePath(page, path);
     }
-    // 回来时页面被 keep-alive 缓存，之前加的第 4 个页签还在
-    expect(await tab(page, DATA_DISPLAY).getAttribute('data-active')).toBe('true');
+    // 落点仍是最后打开的那一页：标签栏与路由两头对得上
+    await expect(tab(page, DRAG_LAYOUT)).toHaveAttribute('data-active', 'true');
+    await expectActivePath(page, DRAG_LAYOUT);
     expect(errors.errors).toEqual([]);
     errors.stop();
   });

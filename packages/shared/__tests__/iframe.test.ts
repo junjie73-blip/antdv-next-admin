@@ -45,8 +45,16 @@ describe('buildIframeSandbox', () => {
   });
 
   it('输出顺序稳定：同一配置换种写法得到同一字符串', () => {
-    const a = buildIframeSandbox({ downloads: true, modals: true, sameOrigin: true });
-    const b = buildIframeSandbox({ sameOrigin: true, modals: true, downloads: true });
+    const a = buildIframeSandbox({
+      downloads: true,
+      modals: true,
+      sameOrigin: true,
+    });
+    const b = buildIframeSandbox({
+      sameOrigin: true,
+      modals: true,
+      downloads: true,
+    });
     expect(a).toBe(b);
     // 规范内的关键字一律按 SANDBOX_FLAGS 的次序输出
     const ranks = a.split(' ').map((t) => SANDBOX_FLAGS.indexOf(t as never));

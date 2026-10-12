@@ -73,13 +73,15 @@ export function getAntdTheme(
   const preset = getThemePreset(style);
   const algorithm: ThemeAlgorithm =
     preset?.algorithm ??
-    (style === 'compact' ? [baseAlgorithm, theme.compactAlgorithm] : baseAlgorithm);
+    (style === 'compact'
+      ? [baseAlgorithm, theme.compactAlgorithm]
+      : baseAlgorithm);
 
   return {
     algorithm,
     token: {
       ...(isDark ? darkToken : lightToken),
-      ...(preset?.token ?? {}),
+      ...preset?.token,
       /* 用户运行时覆盖：顺序在后，优先级最高 */
       ...(overrides.primaryColor && {
         colorPrimary: overrides.primaryColor,
@@ -98,7 +100,7 @@ export function getAntdTheme(
     },
     components: {
       ...(isDark ? darkComponents : lightComponents),
-      ...(preset?.components ?? {}),
+      ...preset?.components,
     },
   };
 }

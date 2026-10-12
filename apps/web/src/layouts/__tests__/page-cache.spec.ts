@@ -34,18 +34,30 @@ function makeTab(path: string, overrides: Partial<TabItem> = {}): TabItem {
 /** 菜单：/system/user 与 /dashboard/analysis 声明缓存，/system/log 不缓存 */
 function setupStores(menuList?: MenuConfig[]) {
   const routeStore = useRouteStore();
-  routeStore.menus = menuList ?? [
-    {
-      children: [
-        { keepAlive: true, name: 'SystemUser', path: '/system/user', title: '用户管理' },
-        { name: 'SystemLog', path: '/system/log', title: '系统日志' },
-      ],
-      name: 'System',
-      path: '/system',
-      title: '系统管理',
-    },
-    { keepAlive: true, name: 'Analysis', path: '/dashboard/analysis', title: '分析面板' },
-  ] as unknown as MenuConfig[];
+  routeStore.menus =
+    menuList ??
+    ([
+      {
+        children: [
+          {
+            keepAlive: true,
+            name: 'SystemUser',
+            path: '/system/user',
+            title: '用户管理',
+          },
+          { name: 'SystemLog', path: '/system/log', title: '系统日志' },
+        ],
+        name: 'System',
+        path: '/system',
+        title: '系统管理',
+      },
+      {
+        keepAlive: true,
+        name: 'Analysis',
+        path: '/dashboard/analysis',
+        title: '分析面板',
+      },
+    ] as unknown as MenuConfig[]);
 
   const tabsStore = useTabsStore();
   return { routeStore, tabsStore };
@@ -113,8 +125,12 @@ describe('wrap —— 给可缓存页面套上"名字可控"的包装组件', ()
   it('页面换了新的 vnode，包装组件渲染的是最新那一份', () => {
     setupStores();
     const { wrap } = usePageCache();
-    const First = defineComponent({ render: () => h('div', { class: 'first' }) });
-    const Second = defineComponent({ render: () => h('div', { class: 'second' }) });
+    const First = defineComponent({
+      render: () => h('div', { class: 'first' }),
+    });
+    const Second = defineComponent({
+      render: () => h('div', { class: 'second' }),
+    });
 
     const cache = wrap('/system/user', First);
     const Host = defineComponent({ render: () => h(cache!) });
@@ -212,7 +228,9 @@ describe('resetPageCache —— 换账号不能留下上一个账号的页面实
   });
 
   it('菜单里没有 keepAlive 时一切照旧走不缓存分支', () => {
-    setupStores([{ name: 'Plain', path: '/plain', title: '普通页' }] as unknown as MenuConfig[]);
+    setupStores([
+      { name: 'Plain', path: '/plain', title: '普通页' },
+    ] as unknown as MenuConfig[]);
     const { include, isCacheable, wrap } = usePageCache();
     expect(isCacheable('/plain')).toBe(false);
     expect(wrap('/plain', Inner)).toBe(Inner);
@@ -248,13 +266,24 @@ describe('真机链路 —— 交给 Vue 的 KeepAlive 管缓存', () => {
     consoleError.mockRestore();
   });
 
-  function mountHost(api: ReturnType<typeof usePageCache>, initial: { node: unknown; path: string }) {
+  function mountHost(
+    api: ReturnType<typeof usePageCache>,
+    initial: { node: unknown; path: string },
+  ) {
     const current = ref(initial);
     const Host = defineComponent({
       render: () =>
-        h(KeepAlive, { include: api.include.value }, {
-          default: () => [h(api.wrap(current.value.path, current.value.node)!, { key: api.keyOf(current.value.path) })],
-        }),
+        h(
+          KeepAlive,
+          { include: api.include.value },
+          {
+            default: () => [
+              h(api.wrap(current.value.path, current.value.node)!, {
+                key: api.keyOf(current.value.path),
+              }),
+            ],
+          },
+        ),
     });
     return { current, wrapper: mount(Host) };
   }

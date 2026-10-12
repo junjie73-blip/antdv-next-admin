@@ -31,7 +31,10 @@ async function signInThenApply(page: Page, labels: string[]) {
   await signIn(page);
   await openPreferenceDrawer(page, '外观');
   for (const label of labels) {
-    await page.getByRole('button', { name: label, exact: true }).first().click();
+    await page
+      .getByRole('button', { name: label, exact: true })
+      .first()
+      .click();
     await page.waitForTimeout(300);
   }
   await closePreferenceDrawer(page);
@@ -77,9 +80,10 @@ test.describe('登录页的样式', () => {
       .poll(() => backgroundColor(auth(page, 'submit')))
       .not.toBe(defaultBlue);
     await expect
-      .poll(async () =>
-        (await backgroundColor(auth(page, 'submit')))
-        === (await textColor(auth(page, 'brand').locator('h1 span'))),
+      .poll(
+        async () =>
+          (await backgroundColor(auth(page, 'submit'))) ===
+          (await textColor(auth(page, 'brand').locator('h1 span'))),
       )
       .toBe(true);
 
@@ -106,8 +110,8 @@ test.describe('登录页的样式', () => {
     expect(
       await page.evaluate(
         () =>
-          document.documentElement.scrollWidth
-          <= document.documentElement.clientWidth,
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth,
       ),
       '390px 下登录页出现横向溢出',
     ).toBe(true);

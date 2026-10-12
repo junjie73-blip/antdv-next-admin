@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import {
   LAYOUT_DRAWER_WIDTH,
@@ -38,19 +39,18 @@ const emit = defineEmits<{
  * antd 是按层级**内联**写 `padding-left: level * inlineIndent` 的，
  * 所以想改缩进只能从这个 prop 进去——类选择器打不过内联样式，
  * 原来那条 `[&_.ant-menu-sub_.ant-menu-item]:pl-12` 就是这样变成死代码的：
- * 它从来没生效过，深层级（组件示例 → 组件画廊 → 基础组件 → 卡片列表）
- * 于是被 4 × 24 = 96px 的缩进推到只剩两三个字的宽度，看起来像"样式坏了"。
- * 16px 一级时，四级仍留出约 130px 给标题。
+ * 它从来没生效过，深层级（组件示例 → 表单 → 基础表单）
+ * 于是被 3 × 24 = 72px 的缩进推到只剩两三个字的宽度，看起来像"样式坏了"。
+ * 16px 一级时，三级仍留出约 150px 给标题。
  */
 const SIDEBAR_INLINE_INDENT = 16;
 
 const appStore = useAppStore();
+const { t } = useI18n({ useScope: 'global' });
 const { blueprint, regions } = useShell();
 
 /** 浮层里永远展开；常驻形态才受折叠开关影响 */
-const collapsed = computed(
-  () => !props.overlay && appStore.sidebarCollapsed,
-);
+const collapsed = computed(() => !props.overlay && appStore.sidebarCollapsed);
 
 /** a-layout-sider 的 v-model 需要一个可写目标；写入即回写偏好 */
 const collapsedModel = computed({
@@ -324,9 +324,11 @@ const menuClassName = computed(() => {
       data-layout-sidebar-collapse
       type="button"
       :class="collapseBarClassName"
-      :aria-label="collapsed ? '展开菜单' : '收起菜单'"
+      :aria-label="
+        collapsed ? t('header.expandMenu') : t('header.collapseMenu')
+      "
       :aria-expanded="!collapsed"
-      :title="collapsed ? '展开菜单' : '收起菜单'"
+      :title="collapsed ? t('header.expandMenu') : t('header.collapseMenu')"
       @click="toggleCollapsed"
     >
       <Icon

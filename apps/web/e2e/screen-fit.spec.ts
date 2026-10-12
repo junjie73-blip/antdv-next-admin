@@ -30,18 +30,24 @@ interface Fit {
 
 async function fit(page: Page): Promise<Fit> {
   return page.evaluate(() => {
-    const container = document.getElementById('screen-container') as HTMLElement;
-    const content = document.getElementById('screen-content') as HTMLElement;
+    const container = document.querySelector(
+      '#screen-container',
+    ) as HTMLElement;
+    const content = document.querySelector('#screen-content') as HTMLElement;
     const wrap = container.closest('.scrollbar__wrap') as HTMLElement;
-    const cols = [...document.querySelectorAll('#screen-content [class*="col-span-3"]')];
+    const cols = [
+      ...document.querySelectorAll('#screen-content [class*="col-span-3"]'),
+    ];
     const rightCard = cols.at(-1) as HTMLElement;
     return {
       overflowX: wrap.scrollWidth - wrap.clientWidth,
       rightOverflow: Math.round(
-        rightCard.getBoundingClientRect().right - container.getBoundingClientRect().right,
+        rightCard.getBoundingClientRect().right -
+          container.getBoundingClientRect().right,
       ),
       scale: Number.parseFloat(
-        getComputedStyle(content).transform.match(/matrix\(([\d.]+)/)?.[1] ?? '0',
+        getComputedStyle(content).transform.match(/matrix\(([\d.]+)/)?.[1] ??
+          '0',
       ),
       scaleIfContainer: container.clientWidth / 1920,
     };
@@ -54,7 +60,8 @@ async function expectScaled(page: Page) {
     .poll(
       async () =>
         page.evaluate(
-          () => document.getElementById('screen-content')?.style.transform ?? '',
+          () =>
+            document.querySelector('#screen-content')?.style.transform ?? '',
         ),
       { timeout: 40_000 },
     )
@@ -75,7 +82,9 @@ test.describe('大屏缩进内容区', () => {
     // 短板可能是高度（窄视口下按高算），所以只要求"不超过容器宽"
     expect(result.scale * 1920).toBeLessThanOrEqual(
       (await page.evaluate(
-        () => (document.getElementById('screen-container') as HTMLElement).clientWidth,
+        () =>
+          (document.querySelector('#screen-container') as HTMLElement)
+            .clientWidth,
       )) + 1,
     );
   });
@@ -97,7 +106,9 @@ test.describe('大屏缩进内容区', () => {
       const before = await fit(page);
       expect(before.scale * 1920).toBeLessThanOrEqual(
         (await page.evaluate(
-          () => (document.getElementById('screen-container') as HTMLElement).clientWidth,
+          () =>
+            (document.querySelector('#screen-container') as HTMLElement)
+              .clientWidth,
         )) + 1,
       );
 
@@ -134,7 +145,9 @@ test.describe('大屏缩进内容区', () => {
     await setLayout(page, 'full-content');
     const measure = () =>
       page.evaluate(() => {
-        const container = document.getElementById('screen-container') as HTMLElement;
+        const container = document.querySelector(
+          '#screen-container',
+        ) as HTMLElement;
         const view = container.closest('.scrollbar__view') as HTMLElement;
         const wrap = container.closest('.scrollbar__wrap') as HTMLElement;
         return {

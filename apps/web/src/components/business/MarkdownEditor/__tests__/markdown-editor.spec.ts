@@ -1,9 +1,9 @@
 import type { MarkdownEditorInstance } from '../types';
 
 import { flushPromises, mount } from '@vue/test-utils';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { safeHtmlDirective } from '@antdv/shared/xss';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import MarkdownEditor from '../MarkdownEditor.vue';
 
@@ -69,12 +69,21 @@ beforeEach(() => {
     }
     if (typeof target.getBoundingClientRect !== 'function') {
       target.getBoundingClientRect = () =>
-        ({ bottom: 0, height: 0, left: 0, right: 0, top: 0, width: 0, x: 0, y: 0 }) as DOMRect;
+        ({
+          bottom: 0,
+          height: 0,
+          left: 0,
+          right: 0,
+          top: 0,
+          width: 0,
+          x: 0,
+          y: 0,
+        }) as DOMRect;
     }
   }
 });
 
-describe('MarkdownEditor 与外部 value 的同步', () => {
+describe('markdownEditor 与外部 value 的同步', () => {
   it('初始 value 会渲染进编辑器，并且字数统计立刻反映初值', async () => {
     const wrapper = await mountEditor('<p>富文本示例内容</p>');
 

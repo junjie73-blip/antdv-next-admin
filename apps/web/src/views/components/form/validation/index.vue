@@ -1,372 +1,554 @@
 <script setup lang="ts">
-import type { FormProps } from 'antdv-next';
+import type {
+  FormActionType,
+  FormSchema,
+  Recordable,
+} from '~/components/business/Form';
 
-import { computed, reactive, ref } from 'vue';
+import { computed, ref } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
+import { message } from 'antdv-next';
+import { BasicForm, useForm } from '~/components/business/Form';
 
 const containerClassName = cn('space-y-6');
+const descClassName = cn('mb-4 text-sm/6 text-gray-600 dark:text-gray-300');
+const inlineCodeClassName = cn(
+  'rounded-sm bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800',
+);
+const toolbarClassName = cn('mt-4 flex flex-wrap items-center gap-2');
 const codeBlockClassName = cn(
-  'h-full rounded-lg border border-gray-200 bg-gray-50 p-4 font-mono text-sm dark:border-gray-700 dark:bg-gray-800',
+  'max-h-72 rounded-lg border border-gray-200 bg-gray-50 p-4 font-mono text-xs dark:border-gray-700 dark:bg-gray-800',
 );
 
-const formState = reactive({
-  username: '',
-  password: '',
-  confirmPassword: '',
-  email: '',
-  age: null as null | number,
-});
-const result = computed(() => JSON.stringify(formState, null, 2));
+/**
+ * `validate()` 失败时 antd 抛出的对象（只声明这一页要用的字段）。
+ */
+interface ValidateFailure {
+  errorFields?: { errors?: string[]; name?: (number | string)[] }[];
+  values?: Recordable;
+}
 
-const rules: Record<string, FormProps['rules']> = {
-  username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    {
-      min: 3,
-      max: 16,
-      message: '用户名长度必须在3-16个字符之间',
-      trigger: 'blur',
-    },
-  ],
-  password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码长度至少为6个字符', trigger: 'blur' },
-    {
-      validator: (_rule, value: string) => {
-        if (value && !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) {
-          return Promise.reject(
-            new Error('密码必须包含大写字母、小写字母和数字'),
-          );
-        }
-        return Promise.resolve();
-      },
-      trigger: 'blur',
-    },
-  ],
-  confirmPassword: [
-    { required: true, message: '请确认密码', trigger: 'blur' },
-    {
-      validator: (_rule, value: string) => {
-        if (value && value !== formState.password) {
-          return Promise.reject(new Error('两次输入的密码不一致'));
-        }
-        return Promise.resolve();
-      },
-      trigger: 'blur',
-    },
-  ],
-  email: [
-    { required: true, message: '请输入邮箱', trigger: 'blur' },
-    { type: 'email', message: '邮箱格式不正确', trigger: 'blur' },
-  ],
-  age: [
-    { type: 'number', message: '年龄必须为数字', trigger: 'blur' },
-    {
-      validator: (_rule, value: null | number) => {
-        if (value !== null && (value < 1 || value > 120)) {
-          return Promise.reject(new Error('年龄必须在1-120之间'));
-        }
-        return Promise.resolve();
-      },
-      trigger: 'blur',
-    },
-  ],
-};
+const [registerFormat, formatApi] = useForm();
+const [registerLength, lengthApi] = useForm();
+const [registerCross, crossApi] = useForm();
+const [registerTiming, timingApi] = useForm();
 
-const formRef = ref();
+const lastResult = ref<{
+  errors: string[];
+  ok: boolean;
+  values: Recordable;
+}>({ errors: [], ok: false, values: {} });
 
-async function handleValidate() {
+/**
+ * 四个表单共用同一套动作：`validate` / `clearValidate` / `resetFields`
+ * 都是 `FormActionType`（useForm 暴露的那组方法）上的真实方法。
+ */
+async function handleSubmit(api: FormActionType) {
   try {
-    await formRef.value?.validate();
-    message.success('验证通过');
-  } catch {
-    message.error('验证失败，请检查表单');
+    const values = await api.validate();
+    lastResult.value = { ok: true, values, errors: [] };
+    message.success('校验通过，这份数据可以提交');
+  } catch (error) {
+    const failure = (error ?? {}) as ValidateFailure;
+    const errors = (failure.errorFields ?? []).flatMap(
+      (field) => field.errors ?? [],
+    );
+    lastResult.value = { ok: false, values: failure.values ?? {}, errors };
+    message.error(`校验未通过：${errors[0] ?? '请检查表单'}`);
   }
 }
 
-async function handleReset() {
-  formRef.value?.resetFields();
-  message.info('表单已重置');
+function handleClear(api: FormActionType) {
+  api.clearValidate();
+  message.info('已清除校验状态（clearValidate）');
 }
 
-const progressiveFormState = reactive({
-  name: '',
-  email: '',
-  address: '',
-  phone: '',
-  company: '',
-  website: '',
-});
-const showAdvanced = ref(false);
-const collapseActiveKey = computed(() =>
-  showAdvanced.value ? ['advanced'] : [],
-);
-const progressiveResult = computed(() =>
-  JSON.stringify(progressiveFormState, null, 2),
-);
+function handleReset(api: FormActionType) {
+  api.resetFields();
+  lastResult.value = { ok: false, values: {}, errors: [] };
+  message.info('表单已重置（resetFields）');
+}
 
-const linkedFormState = reactive({
-  province: '',
-  city: '',
-  district: '',
-});
+// ============================================================
+// 1. 必填与格式
+// ============================================================
+const formatSchemas: FormSchema[] = [
+  {
+    field: 'account',
+    label: '用户名',
+    component: 'Input',
+    // 仓库自己只提供这一层「必填简写」：helper.ts 的 getDynamicRules 会把它展开成
+    // { required: true, message }，配合 rulesMessageJoinLabel 用 label 拼出文案
+    required: true,
+    rulesMessageJoinLabel: true,
+    defaultValue: '',
+    colProps: { span: 12 },
+    helpMessage: 'schema.required + rulesMessageJoinLabel，没有写一条规则',
+  },
+  {
+    field: 'email',
+    label: '邮箱',
+    component: 'Input',
+    required: true,
+    rulesMessageJoinLabel: true,
+    defaultValue: '',
+    colProps: { span: 12 },
+    // 格式校验：直接写 antd 原生规则字段，BasicForm 原样交给 a-form-item
+    rules: [{ type: 'email', message: '邮箱格式不正确' }],
+  },
+  {
+    field: 'mobile',
+    label: '手机号',
+    component: 'Input',
+    defaultValue: '',
+    colProps: { span: 12 },
+    // 没有手机号预设，所以是显式的 pattern 规则（helper 会拦下非 RegExp 的 pattern）
+    rules: [{ pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确' }],
+  },
+  {
+    field: 'website',
+    label: '公司网站',
+    component: 'Input',
+    defaultValue: '',
+    colProps: { span: 12 },
+    componentProps: { placeholder: 'https://example.com' },
+    rules: [{ type: 'url', message: '网站需是合法 URL（含协议头）' }],
+  },
+];
+
+// ============================================================
+// 2. 长度与数值区间
+// ============================================================
+const lengthSchemas: FormSchema[] = [
+  {
+    field: 'nickname',
+    label: '昵称',
+    component: 'Input',
+    required: true,
+    rulesMessageJoinLabel: true,
+    defaultValue: '',
+    colProps: { span: 12 },
+    componentProps: { maxlength: 16 },
+    // schema.suffix 是 BasicForm 的字段：渲染进输入框的 #suffix，这里用它做实时字数
+    suffix: ({ values }) => `${String(values.nickname ?? '').length}/16`,
+    rules: [{ min: 3, max: 16, message: '昵称长度需在 3-16 个字符之间' }],
+  },
+  {
+    field: 'age',
+    label: '年龄',
+    component: 'InputNumber',
+    defaultValue: null,
+    colProps: { span: 12 },
+    componentProps: { min: 1, max: 120, style: { width: '100%' } },
+    // type: 'number' 时 min/max 就是数值区间；InputNumber 的 min/max 只负责拦住输入
+    rules: [
+      { type: 'number', min: 1, max: 120, message: '年龄需在 1-120 之间' },
+    ],
+    helpMessage: '用 setFieldsValue 灌一个越界值，规则依然会拦下来',
+  },
+  {
+    field: 'bio',
+    label: '个人简介',
+    component: 'InputTextArea',
+    defaultValue: '',
+    colProps: { span: 24 },
+    // antd TextArea 自带的实时字数提示，通过 componentProps 透传
+    componentProps: { rows: 3, maxlength: 100, showCount: true },
+    rules: [
+      { min: 10, message: '简介至少 10 个字符' },
+      { max: 100, message: '简介不能超过 100 个字符' },
+    ],
+  },
+];
+
+// ============================================================
+// 3. 异步与跨字段校验
+// ============================================================
+/** 本地「已占用名单」：查重是 setTimeout 模拟，没有任何后端接口 */
+const OCCUPIED_NAMES = new Set(['admin', 'root', 'superuser', 'test']);
 
 const provinces = [
-  { value: 'beijing', label: '北京' },
-  { value: 'shanghai', label: '上海' },
-  { value: 'guangdong', label: '广东' },
-  { value: 'zhejiang', label: '浙江' },
+  { label: '北京', value: 'beijing' },
+  { label: '上海', value: 'shanghai' },
+  { label: '广东', value: 'guangdong' },
+  { label: '浙江', value: 'zhejiang' },
 ];
-const cities: Record<string, { value: string; label: string }[]> = {
-  beijing: [{ value: 'beijing', label: '北京市' }],
-  shanghai: [{ value: 'shanghai', label: '上海市' }],
+const cityMap: Record<string, { label: string; value: string }[]> = {
+  beijing: [{ label: '北京市', value: 'beijing-city' }],
+  shanghai: [{ label: '上海市', value: 'shanghai-city' }],
   guangdong: [
-    { value: 'guangzhou', label: '广州' },
-    { value: 'shenzhen', label: '深圳' },
+    { label: '广州', value: 'guangzhou' },
+    { label: '深圳', value: 'shenzhen' },
   ],
   zhejiang: [
-    { value: 'hangzhou', label: '杭州' },
-    { value: 'ningbo', label: '宁波' },
+    { label: '杭州', value: 'hangzhou' },
+    { label: '宁波', value: 'ningbo' },
   ],
 };
-const districts: Record<string, { value: string; label: string }[]> = {
-  beijing: [
-    { value: 'chaoyang', label: '朝阳' },
-    { value: 'haidian', label: '海淀' },
+const districtMap: Record<string, { label: string; value: string }[]> = {
+  'beijing-city': [
+    { label: '朝阳', value: 'chaoyang' },
+    { label: '海淀', value: 'haidian' },
   ],
-  shanghai: [
-    { value: 'pudong', label: '浦东' },
-    { value: 'jingan', label: '静安' },
+  'shanghai-city': [
+    { label: '浦东', value: 'pudong' },
+    { label: '静安', value: 'jingan' },
   ],
   guangzhou: [
-    { value: 'tianhe', label: '天河' },
-    { value: 'yuexiu', label: '越秀' },
+    { label: '天河', value: 'tianhe' },
+    { label: '越秀', value: 'yuexiu' },
   ],
   shenzhen: [
-    { value: 'nanshan', label: '南山' },
-    { value: 'futian', label: '福田' },
+    { label: '南山', value: 'nanshan' },
+    { label: '福田', value: 'futian' },
   ],
   hangzhou: [
-    { value: 'xihu', label: '西湖' },
-    { value: 'binjiang', label: '滨江' },
+    { label: '西湖', value: 'xihu' },
+    { label: '滨江', value: 'binjiang' },
   ],
   ningbo: [
-    { value: 'haishu', label: '海曙' },
-    { value: 'yinzhou', label: '鄞州' },
+    { label: '海曙', value: 'haishu' },
+    { label: '鄞州', value: 'yinzhou' },
   ],
 };
 
-const availableCities = computed(() => cities[linkedFormState.province] || []);
-const availableDistricts = computed(
-  () => districts[linkedFormState.city] || [],
-);
+const crossSchemas: FormSchema[] = [
+  {
+    field: 'username',
+    label: '用户名',
+    component: 'Input',
+    required: true,
+    rulesMessageJoinLabel: true,
+    defaultValue: '',
+    colProps: { span: 12 },
+    rules: [
+      { min: 3, max: 16, message: '用户名长度需在 3-16 个字符之间' },
+      {
+        // 异步规则：validator 返回 Promise，antd 会自己把它挂成 validating 状态
+        validator: (_rule, value) => {
+          const name = String(value ?? '');
+          if (name.length < 3) return Promise.resolve();
+          return new Promise<void>((resolve, reject) => {
+            window.setTimeout(() => {
+              if (OCCUPIED_NAMES.has(name)) {
+                reject(new Error(`用户名 ${name} 已被占用`));
+              } else {
+                resolve();
+              }
+            }, 600);
+          });
+        },
+      },
+    ],
+    helpMessage: 'setTimeout 600ms 模拟一次查重，名单是本页的本地数组',
+  },
+  {
+    field: 'password',
+    label: '密码',
+    component: 'InputPassword',
+    required: true,
+    rulesMessageJoinLabel: true,
+    defaultValue: '',
+    colProps: { span: 12 },
+    rules: [
+      { min: 6, message: '密码至少 6 个字符' },
+      {
+        // 仓库没有密码强度预设，这里是一条显式 validator
+        validator: (_rule, value) => {
+          const password = String(value ?? '');
+          if (password && !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+            return Promise.reject(
+              new Error('密码需同时包含大写字母、小写字母和数字'),
+            );
+          }
+          return Promise.resolve();
+        },
+      },
+    ],
+  },
+  {
+    field: 'confirmPassword',
+    label: '确认密码',
+    component: 'InputPassword',
+    defaultValue: '',
+    colProps: { span: 12 },
+    // dynamicRules 每次求值都拿得到整份 formModel，跨字段比较就用它。
+    // 注意：写了 dynamicRules 就整份接管规则，required 简写不再生效，必填要自己带上。
+    dynamicRules: ({ values }) => [
+      { required: true, message: '请确认密码' },
+      {
+        validator: (_rule, value) =>
+          value && value !== values.password
+            ? Promise.reject(new Error('两次输入的密码不一致'))
+            : Promise.resolve(),
+      },
+    ],
+  },
+  {
+    field: 'province',
+    label: '省份',
+    component: 'Select',
+    required: true,
+    rulesMessageJoinLabel: true,
+    defaultValue: '',
+    colProps: { span: 12 },
+    componentProps: { options: provinces },
+  },
+  {
+    field: 'city',
+    label: '城市',
+    component: 'Select',
+    defaultValue: '',
+    colProps: { span: 12 },
+    // componentProps 也能写成函数，读的就是同一份 formModel
+    componentProps: ({ values }) => ({
+      options: cityMap[values.province] ?? [],
+      disabled: !values.province,
+    }),
+    // 换省份不会自动清空已选城市，由这条跨字段规则判出「城市不属于省份」
+    dynamicRules: ({ values }) => [
+      { required: true, message: '请选择城市' },
+      {
+        validator: (_rule, value) => {
+          const allowed = cityMap[values.province] ?? [];
+          return value && !allowed.some((item) => item.value === value)
+            ? Promise.reject(new Error('城市不属于所选省份，请重新选择'))
+            : Promise.resolve();
+        },
+      },
+    ],
+  },
+  {
+    field: 'district',
+    label: '区县',
+    component: 'Select',
+    defaultValue: '',
+    colProps: { span: 12 },
+    componentProps: ({ values }) => ({
+      options: districtMap[values.city] ?? [],
+      disabled: !values.city,
+    }),
+    dynamicRules: ({ values }) => [
+      { required: true, message: '请选择区县' },
+      {
+        validator: (_rule, value) => {
+          const allowed = districtMap[values.city] ?? [];
+          return value && !allowed.some((item) => item.value === value)
+            ? Promise.reject(new Error('区县不属于所选城市，请重新选择'))
+            : Promise.resolve();
+        },
+      },
+    ],
+  },
+];
 
-function onProvinceChange() {
-  linkedFormState.city = '';
-  linkedFormState.district = '';
-}
-function onCityChange() {
-  linkedFormState.district = '';
-}
+// ============================================================
+// 4. 校验时机与结果
+// ============================================================
+const validateOnBlur = ref(false);
 
-async function handleLinkedValidate() {
-  if (!linkedFormState.province) {
-    message.warning('请选择省份');
-    return;
-  }
-  if (!linkedFormState.city) {
-    message.warning('请选择城市');
-    return;
-  }
-  if (!linkedFormState.district) {
-    message.warning('请选择区县');
-    return;
-  }
-  message.success(
-    `联动验证通过：${linkedFormState.province} / ${linkedFormState.city} / ${linkedFormState.district}`,
-  );
-}
+const timingSchemas = computed<FormSchema[]>(() => [
+  {
+    field: 'inviteCode',
+    label: '邀请码',
+    component: 'Input',
+    required: true,
+    rulesMessageJoinLabel: true,
+    colProps: { span: 12 },
+    // itemProps 是 schema 上的透传口子，整份 v-bind 给 a-form-item
+    itemProps: { validateTrigger: validateOnBlur.value ? 'blur' : 'change' },
+    rules: [{ min: 6, message: '邀请码至少 6 位' }],
+  },
+  {
+    field: 'score',
+    label: '考试分数',
+    component: 'InputNumber',
+    colProps: { span: 12 },
+    itemProps: { validateTrigger: validateOnBlur.value ? 'blur' : 'change' },
+    componentProps: { style: { width: '100%' } },
+    rules: [
+      { type: 'number', min: 0, max: 100, message: '分数需在 0-100 之间' },
+    ],
+  },
+  {
+    field: 'remark',
+    label: '备注',
+    component: 'InputTextArea',
+    colProps: { span: 24 },
+    itemProps: { validateTrigger: validateOnBlur.value ? 'blur' : 'change' },
+    // 规则级 trigger：这一条只在失焦时跑，哪怕上面的时机开关选了 change
+    rules: [
+      { max: 20, message: '备注不超过 20 个字符' },
+      {
+        pattern: /^[\dA-Za-z-]*$/,
+        message: '备注只允许字母、数字和连字符',
+        trigger: 'blur',
+      },
+    ],
+  },
+]);
 </script>
 
 <template>
   <div :class="containerClassName">
-    <a-card title="基础验证" variant="borderless">
-      <a-descriptions :column="1" size="small" class="mb-4">
-        <a-descriptions-item label="用户名">
-          必填，3-16个字符
-        </a-descriptions-item>
-        <a-descriptions-item label="密码">
-          必填，至少6个字符，需包含大小写字母和数字
-        </a-descriptions-item>
-        <a-descriptions-item label="确认密码">
-          必须与密码一致
-        </a-descriptions-item>
-        <a-descriptions-item label="邮箱"> 有效的邮箱格式 </a-descriptions-item>
-        <a-descriptions-item label="年龄">
-          数字，范围1-120
-        </a-descriptions-item>
-      </a-descriptions>
-
-      <a-row :gutter="24">
-        <a-col :span="12">
-          <a-form
-            ref="formRef"
-            :model="formState"
-            :rules="rules"
-            layout="vertical"
-          >
-            <a-form-item label="用户名" name="username">
-              <a-input
-                v-model:value="formState.username"
-                placeholder="请输入用户名"
-              />
-            </a-form-item>
-            <a-form-item label="密码" name="password">
-              <a-input-password
-                v-model:value="formState.password"
-                placeholder="请输入密码"
-              />
-            </a-form-item>
-            <a-form-item label="确认密码" name="confirmPassword">
-              <a-input-password
-                v-model:value="formState.confirmPassword"
-                placeholder="请再次输入密码"
-              />
-            </a-form-item>
-            <a-form-item label="邮箱" name="email">
-              <a-input
-                v-model:value="formState.email"
-                placeholder="请输入邮箱"
-              />
-            </a-form-item>
-            <a-form-item label="年龄" name="age">
-              <a-input-number
-                v-model:value="formState.age"
-                :min="1"
-                :max="120"
-                placeholder="请输入年龄"
-                style="width: 100%"
-              />
-            </a-form-item>
-            <a-form-item>
-              <a-space>
-                <a-button type="primary" @click="handleValidate">
-                  验证
-                </a-button>
-                <a-button @click="handleReset"> 重置 </a-button>
-              </a-space>
-            </a-form-item>
-          </a-form>
-        </a-col>
-        <a-col :span="12" class="flex flex-col">
-          <!-- rootClass 会替换组件默认的 h-full；codeBlockClassName 自带 h-full，照旧整体传入 -->
-          <Scrollbar :root-class="codeBlockClassName">
-            <pre>{{ result }}</pre>
-          </Scrollbar>
-        </a-col>
-      </a-row>
+    <a-card title="必填与格式" variant="borderless">
+      <p :class="descClassName">
+        这一页全部走本仓库的
+        <code :class="inlineCodeClassName">BasicForm</code>
+        ：规则写在 schema 上，由
+        <code :class="inlineCodeClassName">helper.ts</code> 的
+        <code :class="inlineCodeClassName">getDynamicRules</code>
+        算好后交给
+        <code :class="inlineCodeClassName">a-form-item</code>。仓库自带的只有
+        <code :class="inlineCodeClassName">required</code>
+        简写（<code :class="inlineCodeClassName">rulesMessageJoinLabel</code>
+        让文案拼上字段 label，得到「用户名不能为空」），并没有 email / 手机 /
+        URL 这类规则预设；格式校验用的是 antd 原生规则字段
+        <code :class="inlineCodeClassName">type</code>
+        / <code :class="inlineCodeClassName">pattern</code>，手机号这条是显式的
+        <code :class="inlineCodeClassName">pattern</code> 正则。
+      </p>
+      <BasicForm
+        :schemas="formatSchemas"
+        :label-width="90"
+        :grid="{ cols: 2 }"
+        :show-action-button-group="false"
+        @register="registerFormat"
+      />
+      <div :class="toolbarClassName">
+        <a-button type="primary" @click="handleSubmit(formatApi)">
+          校验
+        </a-button>
+        <a-button @click="handleClear(formatApi)"> 清除校验 </a-button>
+        <a-button @click="handleReset(formatApi)"> 重置 </a-button>
+      </div>
     </a-card>
 
-    <a-card title="渐进式验证" variant="borderless">
-      <a-form :model="progressiveFormState" layout="vertical">
-        <a-form-item label="姓名" name="name" :rules="[{ required: true }]">
-          <a-input
-            v-model:value="progressiveFormState.name"
-            placeholder="请输入姓名"
-          />
-        </a-form-item>
-        <a-form-item
-          label="邮箱"
-          name="email"
-          :rules="[{ required: true, type: 'email' }]"
-        >
-          <a-input
-            v-model:value="progressiveFormState.email"
-            placeholder="请输入邮箱"
-          />
-        </a-form-item>
-        <a-collapse :active-key="collapseActiveKey">
-          <template #expandIcon>
-            <a-button
-              type="link"
-              size="small"
-              @click="showAdvanced = !showAdvanced"
-            >
-              {{ showAdvanced ? '隐藏' : '显示' }}高级字段
-            </a-button>
-          </template>
-          <a-collapse-panel key="advanced" header="高级字段">
-            <a-form-item label="地址" name="address">
-              <a-input
-                v-model:value="progressiveFormState.address"
-                placeholder="请输入地址"
-              />
-            </a-form-item>
-            <a-form-item label="电话" name="phone">
-              <a-input
-                v-model:value="progressiveFormState.phone"
-                placeholder="请输入电话"
-              />
-            </a-form-item>
-            <a-form-item label="公司" name="company">
-              <a-input
-                v-model:value="progressiveFormState.company"
-                placeholder="请输入公司名称"
-              />
-            </a-form-item>
-            <a-form-item label="网站" name="website">
-              <a-input
-                v-model:value="progressiveFormState.website"
-                placeholder="请输入网站地址"
-              />
-            </a-form-item>
-          </a-collapse-panel>
-        </a-collapse>
-      </a-form>
-      <Scrollbar :root-class="codeBlockClassName" class="mt-4">
-        <pre>{{ progressiveResult }}</pre>
-      </Scrollbar>
+    <a-card title="长度与数值区间" variant="borderless">
+      <p :class="descClassName">
+        字符串长度用
+        <code :class="inlineCodeClassName">min</code>/<code
+          :class="inlineCodeClassName"
+          >max</code>， 数值区间写
+        <code :class="inlineCodeClassName">{ type: 'number', min, max }</code>
+        —— 同一对 <code :class="inlineCodeClassName">min/max</code> 在
+        <code :class="inlineCodeClassName">type: 'number'</code>
+        下按区间比，在字符串下按长度比。 实时字数有两种现成写法：
+        <code :class="inlineCodeClassName">componentProps: { showCount: true }</code>
+        是 antd TextArea 自带的能力，昵称那格用的是本仓库 schema 的
+        <code :class="inlineCodeClassName">suffix</code>
+        字段（函数形式，读的就是当前表单值）。注意
+        <code :class="inlineCodeClassName">maxlength</code>
+        已经把输入卡在 100，简介的
+        <code :class="inlineCodeClassName">max</code>
+        规则是在给 <code :class="inlineCodeClassName">setFieldsValue</code>
+        这类程序写入兜底。
+      </p>
+      <BasicForm
+        :schemas="lengthSchemas"
+        :label-width="90"
+        :grid="{ cols: 2 }"
+        :show-action-button-group="false"
+        @register="registerLength"
+      />
+      <div :class="toolbarClassName">
+        <a-button type="primary" @click="handleSubmit(lengthApi)">
+          校验
+        </a-button>
+        <a-button @click="handleClear(lengthApi)"> 清除校验 </a-button>
+        <a-button @click="handleReset(lengthApi)"> 重置 </a-button>
+      </div>
     </a-card>
 
-    <a-card title="联动验证（省/市/区）" variant="borderless">
-      <a-form
-        :model="linkedFormState"
-        layout="horizontal"
-        :label-col="{ span: 4 }"
-        :wrapper-col="{ span: 16 }"
-      >
-        <a-form-item label="省份" required>
-          <a-select
-            v-model:value="linkedFormState.province"
-            placeholder="请选择省份"
-            :options="provinces"
-            @change="onProvinceChange"
-          />
-        </a-form-item>
-        <a-form-item label="城市" required>
-          <a-select
-            v-model:value="linkedFormState.city"
-            placeholder="请选择城市"
-            :options="availableCities"
-            :disabled="!linkedFormState.province"
-            @change="onCityChange"
-          />
-        </a-form-item>
-        <a-form-item label="区县" required>
-          <a-select
-            v-model:value="linkedFormState.district"
-            placeholder="请选择区县"
-            :options="availableDistricts"
-            :disabled="!linkedFormState.city"
-          />
-        </a-form-item>
-        <a-form-item :wrapper-col="{ offset: 4 }">
-          <a-button type="primary" @click="handleLinkedValidate">
-            验证联动选择
-          </a-button>
-        </a-form-item>
-      </a-form>
+    <a-card title="异步与跨字段校验" variant="borderless">
+      <p :class="descClassName">
+        <code :class="inlineCodeClassName">validator</code>
+        返回 Promise 就是异步规则，antd 会自己维护 validating
+        状态。「用户名查重」是
+        <code :class="inlineCodeClassName">setTimeout(600ms)</code>
+        + 本页的本地数组
+        <code :class="inlineCodeClassName">OCCUPIED_NAMES</code>
+        （admin / root / superuser /
+        test）模拟的，<strong>没有后端接口</strong>，也没有发请求。 跨字段比较走
+        schema 的
+        <code :class="inlineCodeClassName">dynamicRules</code>：它是函数，每次求值都能拿到整份
+        <code :class="inlineCodeClassName">formModel</code>，确认密码因此能读到
+        password 的最新值；省 / 市 /
+        区同理——换省份不会自动清空已选城市，再次校验（或改动该字段）时
+        由规则判出「城市不属于所选省份」。
+        <code :class="inlineCodeClassName">dynamicRules</code>
+        会整份接管该字段的规则，<code :class="inlineCodeClassName">required</code>
+        简写不再起作用，必填得在函数里自己写。
+      </p>
+      <BasicForm
+        :schemas="crossSchemas"
+        :label-width="90"
+        :grid="{ cols: 2 }"
+        :show-action-button-group="false"
+        @register="registerCross"
+      />
+      <div :class="toolbarClassName">
+        <a-button type="primary" @click="handleSubmit(crossApi)">
+          校验
+        </a-button>
+        <a-button @click="handleClear(crossApi)"> 清除校验 </a-button>
+        <a-button @click="handleReset(crossApi)"> 重置 </a-button>
+      </div>
+    </a-card>
+
+    <a-card title="校验时机与结果" variant="borderless">
+      <p :class="descClassName">
+        触发时机不是 BasicForm 自己造的轮子：
+        <code :class="inlineCodeClassName">itemProps</code>
+        会被 FormItem 原样
+        <code :class="inlineCodeClassName">v-bind</code>
+        到 <code :class="inlineCodeClassName">a-form-item</code>，所以切到
+        <code :class="inlineCodeClassName">blur</code>
+        后，输入过程中不再逐字符报错。单条规则还能用
+        <code :class="inlineCodeClassName">trigger</code>
+        覆盖自己的时机（备注里的 pattern
+        规则就固定失焦才跑）。切换只影响后续触发，
+        已有的错误提示请用「清除校验」（<code :class="inlineCodeClassName">clearValidate</code>）去掉， 「重置」调的是
+        <code :class="inlineCodeClassName">resetFields</code>，会把值退回 schema
+        的 <code :class="inlineCodeClassName">defaultValue</code>。
+        <code :class="inlineCodeClassName">validate()</code>
+        成功时返回处理后的取值，失败时抛出的对象里带
+        <code :class="inlineCodeClassName">errorFields</code>。
+      </p>
+      <div class="mb-4 flex flex-wrap items-center gap-3">
+        <span class="text-sm">校验时机</span>
+        <a-switch
+          v-model:checked="validateOnBlur"
+          checked-children="blur"
+          un-checked-children="change"
+        />
+        <span class="text-sm text-gray-600 dark:text-gray-300">
+          {{ validateOnBlur ? '失焦（blur）时才校验' : '输入（change）即校验' }}
+        </span>
+      </div>
+      <BasicForm
+        :schemas="timingSchemas"
+        :label-width="90"
+        :grid="{ cols: 1 }"
+        :show-action-button-group="false"
+        @register="registerTiming"
+      />
+      <div :class="toolbarClassName">
+        <a-button type="primary" @click="handleSubmit(timingApi)">
+          提交
+        </a-button>
+        <a-button @click="handleClear(timingApi)"> 清除校验 </a-button>
+        <a-button @click="handleReset(timingApi)"> 重置 </a-button>
+      </div>
+      <div class="mt-4">
+        <div class="mb-2 text-sm text-gray-600 dark:text-gray-300">
+          最近一次校验结果
+        </div>
+        <Scrollbar :root-class="codeBlockClassName">
+          <pre>{{ JSON.stringify(lastResult, null, 2) }}</pre>
+        </Scrollbar>
+      </div>
     </a-card>
   </div>
 </template>

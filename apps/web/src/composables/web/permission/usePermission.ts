@@ -6,6 +6,9 @@ import { useUserStore } from '~/stores/modules/user';
 
 import { PermissionRole } from './types';
 
+/** 权限码通配哨兵：用户列表里出现它，任何要求都算满足 */
+const WILDCARD = '*';
+
 export function usePermission(options: UsePermissionOptions = {}) {
   const userStore = useUserStore();
   const strict = ref(options.strict === undefined ? true : options.strict);
@@ -20,11 +23,18 @@ export function usePermission(options: UsePermissionOptions = {}) {
     return true;
   }
 
+  /**
+   * 数组比对：`'*'` 是全通哨兵（后端给超管发 `permissions: ['*']`，就不必逐条列举），
+   * 剩下的才是 `some`/`every` 的字面量包含。用户列表为空时按 `strict` 决定成败。
+   */
   function checkArrayMatch(
     userList: string[],
     requiredList: string[],
     mode: 'every' | 'some',
   ): boolean {
+    if (userList.includes(WILDCARD)) {
+      return true;
+    }
     if (userList.length === 0) {
       return !strict.value;
     }

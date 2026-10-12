@@ -24,7 +24,11 @@ function stubMetrics(
   },
 ) {
   for (const [key, value] of Object.entries(metrics)) {
-    Object.defineProperty(el, key, { configurable: true, value, writable: true });
+    Object.defineProperty(el, key, {
+      configurable: true,
+      value,
+      writable: true,
+    });
   }
 }
 
@@ -41,7 +45,11 @@ describe('renderThumbStyle —— 滑块样式计算', () => {
   });
 
   it('横向：写 width 与 translateX', () => {
-    const style = renderThumbStyle({ bar: BAR_MAP.horizontal, move: 5, size: '40%' });
+    const style = renderThumbStyle({
+      bar: BAR_MAP.horizontal,
+      move: 5,
+      size: '40%',
+    });
     expect(style.width).toBe('40%');
     expect(style.transform).toBe('translateX(5%)');
     expect(style.height).toBeUndefined();
@@ -55,7 +63,7 @@ describe('renderThumbStyle —— 滑块样式计算', () => {
     });
   });
 
-  it('BAR_MAP 两个方向的 key 决定轨道类名（is-vertical / is-horizontal）', () => {
+  it('bAR_MAP 两个方向的 key 决定轨道类名（is-vertical / is-horizontal）', () => {
     expect(BAR_MAP.vertical.key).toBe('vertical');
     expect(BAR_MAP.horizontal.key).toBe('horizontal');
     expect(BAR_MAP.vertical.scroll).toBe('scrollTop');
@@ -98,9 +106,9 @@ describe('useResponsiveMaxHeight —— 按视口高度缩放', () => {
   });
 
   it('max 生效，避免大屏把容器撑到不可用', () => {
-    expect(setup({ max: 120, min: 0, referenceMaxHeight: 495 }).maxHeight.value).toBe(
-      120,
-    );
+    expect(
+      setup({ max: 120, min: 0, referenceMaxHeight: 495 }).maxHeight.value,
+    ).toBe(120);
   });
 
   it('referenceMaxHeight 支持 getter：跟着响应式来源重算', async () => {
@@ -123,12 +131,15 @@ describe('useResponsiveMaxHeight —— 按视口高度缩放', () => {
   });
 });
 
-describe('Scrollbar 组件', () => {
+describe('scrollbar 组件', () => {
   function mountScrollbar(
     props: Record<string, unknown> = {},
     content = '内容',
   ) {
-    return mount(Scrollbar, { props, slots: { default: () => h('p', content) } });
+    return mount(Scrollbar, {
+      props,
+      slots: { default: () => h('p', content) },
+    });
   }
 
   it('渲染根 / 滚动区 / 视图三层，slot 落在视图里', () => {
@@ -199,7 +210,9 @@ describe('Scrollbar 组件', () => {
     (wrapper.vm as unknown as { update: () => void }).update();
     await nextTick();
 
-    const vertical = wrapper.find('.scrollbar__bar.is-vertical .scrollbar__thumb');
+    const vertical = wrapper.find(
+      '.scrollbar__bar.is-vertical .scrollbar__thumb',
+    );
     expect(vertical.attributes('style')).toContain('height: 25%');
 
     // 100 / 1000 = 10% < minSize(20) → 抬到 20%，滑块不会细到点不到
@@ -243,7 +256,9 @@ describe('Scrollbar 组件', () => {
     });
     (auto.vm as unknown as { update: () => void }).update();
     await nextTick();
-    expect(auto.find('.scrollbar__bar').classes()).toContain('pointer-events-none');
+    expect(auto.find('.scrollbar__bar').classes()).toContain(
+      'pointer-events-none',
+    );
   });
 
   it('对外暴露 setScrollTop / setScrollLeft / scrollTo，宿主可以直接驱动滚动', () => {

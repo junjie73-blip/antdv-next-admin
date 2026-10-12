@@ -57,7 +57,9 @@ describe('useCache', () => {
   });
 
   it('缓存为空时读到默认值，且不会把默认值偷偷写进缓存', () => {
-    const { value } = run(() => useCache<string>('profile', { defaultValue: 'guest' }));
+    const { value } = run(() =>
+      useCache<string>('profile', { defaultValue: 'guest' }),
+    );
     expect(value.value).toBe('guest');
     expect(cache.hasItem('profile')).toBe(false);
   });
@@ -80,13 +82,15 @@ describe('useCache', () => {
     spy.mockRestore();
 
     expect(value.value).toEqual({ n: 1 });
-    expect(calls.filter(([key]) => key === buildStorageKey('counter'))).toHaveLength(
-      1,
-    );
+    expect(
+      calls.filter(([key]) => key === buildStorageKey('counter')),
+    ).toHaveLength(1);
   });
 
   it('写 null 等价于删除', () => {
-    const { value } = run(() => useCache<string>('token', { defaultValue: 'seed' }));
+    const { value } = run(() =>
+      useCache<string>('token', { defaultValue: 'seed' }),
+    );
     value.value = 'abc';
     expect(cache.hasItem('token')).toBe(true);
     value.value = null;
@@ -189,7 +193,9 @@ describe('useCache', () => {
 
       vi.advanceTimersByTime(1500);
       // 过期判定发生在读取时，所以要用 refresh 路径（重挂载）验证
-      const reloaded = run(() => useCache<string>('ttl', { defaultValue: 'gone' }));
+      const reloaded = run(() =>
+        useCache<string>('ttl', { defaultValue: 'gone' }),
+      );
       expect(reloaded.value.value).toBe('gone');
     } finally {
       vi.useRealTimers();

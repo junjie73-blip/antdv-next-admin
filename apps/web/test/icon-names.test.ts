@@ -23,10 +23,18 @@ import { describe, expect, it } from 'vitest';
 const require = createRequire(import.meta.url);
 
 /** 本文件在 apps/web/test/ 下，往上三层就是仓库根 */
-const REPO_ROOT = dirname(dirname(dirname(dirname(fileURLToPath(import.meta.url)))));
+const REPO_ROOT = dirname(
+  dirname(dirname(dirname(fileURLToPath(import.meta.url)))),
+);
 
 /** 参与对账的图标集：与 package.json 里装的 `@iconify-json/*` 保持一致 */
-const COLLECTIONS = ['ant-design', 'carbon', 'fa6-regular', 'lucide', 'mdi'] as const;
+const COLLECTIONS = [
+  'ant-design',
+  'carbon',
+  'fa6-regular',
+  'lucide',
+  'mdi',
+] as const;
 
 /**
  * 扫描范围：应用源码 + 共享包 + mock 的菜单种子数据。
@@ -34,11 +42,7 @@ const COLLECTIONS = ['ant-design', 'carbon', 'fa6-regular', 'lucide', 'mdi'] as 
  * 菜单图标是后端下发的，写错的地方在 `apps/backend-mock/server`，
  * 只扫前端等于把最大的一处漏掉。
  */
-const SCAN_ROOTS = [
-  'apps/backend-mock/server',
-  'apps/web/src',
-  'packages',
-];
+const SCAN_ROOTS = ['apps/backend-mock/server', 'apps/web/src', 'packages'];
 
 const SCAN_EXT = new Set(['.ts', '.tsx', '.vue']);
 /** dist / 缓存 / 依赖产物：都是别人生成过的，不该由本用例负责 */
@@ -67,22 +71,19 @@ async function walk(dir: string, out: string[] = []): Promise<string[]> {
     }
     const dot = entry.name.lastIndexOf('.');
     const ext = dot > 0 ? entry.name.slice(dot) : '';
-    if (SCAN_EXT.has(ext) && !entry.name.endsWith('.test.ts')) out.push(join(dir, entry.name));
+    if (SCAN_EXT.has(ext) && !entry.name.endsWith('.test.ts'))
+      out.push(join(dir, entry.name));
   }
   return out;
 }
 
 describe('源码里的 iconify 图标名必须真实存在', () => {
   /** 与下面那条同理：5 个集合的 JSON 解析在并发跑时会超出默认 5s */
-  it(
-    '每个集合都加载得到（少装了包会先在这里暴露，而不是渲染成空白）',
-    () => {
-      for (const name of COLLECTIONS) {
-        expect(loadCollection(name).size, name).toBeGreaterThan(0);
-      }
-    },
-    60_000,
-  );
+  it('每个集合都加载得到（少装了包会先在这里暴露，而不是渲染成空白）', () => {
+    for (const name of COLLECTIONS) {
+      expect(loadCollection(name).size, name).toBeGreaterThan(0);
+    }
+  }, 60_000);
 
   /**
    * 60s 而不是默认的 5s：这条用例要遍历整个仓库的源码文件（`SCAN_ROOTS` 三棵树）
@@ -91,40 +92,39 @@ describe('源码里的 iconify 图标名必须真实存在', () => {
    * 磁盘 I/O 排队就能把它顶过默认超时（实测红过一次）。
    * 只放宽时长，判定条件一个没动：名字对不上照样当场变红。
    */
-  it(
-    '没有任何一处引用了不存在的图标名',
-    async () => {
-      const sets = new Map(
-        COLLECTIONS.map((name) => [name, loadCollection(name)]),
-      );
-      const unknown: string[] = [];
-      let checked = 0;
+  it('没有任何一处引用了不存在的图标名', async () => {
+    const sets = new Map(
+      COLLECTIONS.map((name) => [name, loadCollection(name)]),
+    );
+    const unknown: string[] = [];
+    let checked = 0;
 
-      for (const root of SCAN_ROOTS) {
-        const files = await walk(join(REPO_ROOT, root));
-        for (const file of files) {
-          const text = await readFile(file, 'utf8');
-          for (const [, collection, icon] of text.matchAll(LITERAL)) {
-            checked += 1;
-            if (!sets.get(collection as (typeof COLLECTIONS)[number])?.has(icon)) {
-              const path = relative(REPO_ROOT, file).split(sep).join('/');
-              unknown.push(`${path}  ${collection}:${icon}`);
-            }
+    for (const root of SCAN_ROOTS) {
+      const files = await walk(join(REPO_ROOT, root));
+      for (const file of files) {
+        const text = await readFile(file, 'utf8');
+        for (const [, collection, icon] of text.matchAll(LITERAL)) {
+          checked += 1;
+          if (
+            !sets.get(collection as (typeof COLLECTIONS)[number])?.has(icon)
+          ) {
+            const path = relative(REPO_ROOT, file).split(sep).join('/');
+            unknown.push(`${path}  ${collection}:${icon}`);
           }
         }
       }
+    }
 
-      // 扫不到任何引用本身就是配置错了（路径/后缀写错），不能算通过
-      expect(checked, '一个图标引用都没扫到，多半是 SCAN_ROOTS 写错了').toBeGreaterThan(
-        100,
-      );
-      expect(
-        [...new Set(unknown)].sort(),
-        `这些图标名在对应的 @iconify-json 集合里不存在，界面上会渲染成空白格：\n${[
-          ...new Set(unknown),
-        ].join('\n')}`,
-      ).toEqual([]);
-    },
-    60_000,
-  );
+    // 扫不到任何引用本身就是配置错了（路径/后缀写错），不能算通过
+    expect(
+      checked,
+      '一个图标引用都没扫到，多半是 SCAN_ROOTS 写错了',
+    ).toBeGreaterThan(100);
+    expect(
+      [...new Set(unknown)].sort(),
+      `这些图标名在对应的 @iconify-json 集合里不存在，界面上会渲染成空白格：\n${[
+        ...new Set(unknown),
+      ].join('\n')}`,
+    ).toEqual([]);
+  }, 60_000);
 });

@@ -1,79 +1,79 @@
 <script setup lang="tsx">
-import type { DescriptionItem } from '~/components/business/Description'
-import type { FormSchema } from '~/components/business/Form'
-import type { BasicColumn } from '~/components/business/Table'
+import type { DescriptionItem } from '~/components/business/Description';
+import type { FormSchema } from '~/components/business/Form';
+import type { BasicColumn } from '~/components/business/Table';
 
-import { ref } from 'vue'
+import { ref } from 'vue';
 
-import { cn } from '@antdv/shared/cn'
-import { exportToExcel } from '@antdv/shared/excel'
-import { Icon } from '@iconify/vue'
-import { deleteOperLog, getOperLogList } from '~/api/system'
-import { BasicDrawer, useDrawer } from '~/components/business/Drawer'
-import { BasicTable, useTable } from '~/components/business/Table'
+import { cn } from '@antdv/shared/cn';
+import { exportToExcel } from '@antdv/shared/excel';
+import { Icon } from '@iconify/vue';
+import { deleteOperLog, getOperLogList } from '~/api/system';
+import { BasicDrawer, useDrawer } from '~/components/business/Drawer';
+import { BasicTable, useTable } from '~/components/business/Table';
 
-defineOptions({ name: 'SystemLog' })
+defineOptions({ name: 'SystemLog' });
 
 // 操作日志类型
 interface OperLogRecord {
-  id: number
-  operName: string
-  operType: string
-  title: string
-  method: string
-  requestMethod: string
-  operatorType: number
-  operUrl: string
-  operIp: string
-  operLocation: string
-  operParam: string
-  jsonResult: null | string
-  status: number
-  errorMsg: string
-  operTime: string
-  costTime: number
+  id: number;
+  operName: string;
+  operType: string;
+  title: string;
+  method: string;
+  requestMethod: string;
+  operatorType: number;
+  operUrl: string;
+  operIp: string;
+  operLocation: string;
+  operParam: string;
+  jsonResult: null | string;
+  status: number;
+  errorMsg: string;
+  operTime: string;
+  costTime: number;
 }
 
 // 登录日志类型
 interface LoginLogRecord {
-  id: number
-  userName: string
-  ipaddr: string
-  loginLocation: string
-  browser: string
-  os: string
-  status: number
-  msg: string
-  loginTime: string
+  id: number;
+  userName: string;
+  ipaddr: string;
+  loginLocation: string;
+  browser: string;
+  os: string;
+  status: number;
+  msg: string;
+  loginTime: string;
 }
 
 // 样式变量
-const containerClassName = cn('space-y-4')
+const containerClassName = cn('space-y-4');
 const cardClassName = cn(
   'rounded-lg border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900',
-)
+);
 const filterBarClassName = cn(
   'flex flex-wrap items-center gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-800',
-)
-const dividerClassName = cn('mx-0')
-const actionClassName = cn('flex items-center justify-center')
-const btnClassName = cn('px-0.5!')
+);
+const dividerClassName = cn('mx-0');
+const actionClassName = cn('flex items-center justify-center');
+const btnClassName = cn('px-0.5!');
 
 // 标签页
-const activeTab = ref(0)
+const activeTab = ref(0);
 const tabItems = [
   { key: 0, label: '操作日志' },
   { key: 1, label: '登录日志' },
   { key: 2, label: '错误日志' },
-]
+];
 
 const tabClassName = (active: boolean) =>
   cn(
-    'cursor-pointer border-t-0 border-x-0 border-b-2  bg-transparent px-5 py-3 font-[inherit] text-sm font-medium transition-colors duration-150',
+    'cursor-pointer border-x-0 border-t-0 border-b-2 bg-transparent px-5 py-3 font-[inherit] text-sm font-medium transition-colors duration-150',
     active
       ? 'border-ant-primary text-ant-primary'
       : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
-  )
+  );
 
 // 操作类型映射
 const operTypeColorMap: Record<string, string> = {
@@ -88,23 +88,23 @@ const operTypeColorMap: Record<string, string> = {
   强退: 'magenta',
   生成代码: 'geekblue',
   清空数据: 'volcano',
-}
+};
 
-const statusColorMap: Record<number, string> = { 0: 'green', 1: 'red' }
-const statusLabelMap: Record<number, string> = { 0: '成功', 1: '失败' }
+const statusColorMap: Record<number, string> = { 0: 'green', 1: 'red' };
+const statusLabelMap: Record<number, string> = { 0: '成功', 1: '失败' };
 
 const operatorTypeLabelMap: Record<number, string> = {
   1: '后台用户',
   2: '手机端用户',
-}
+};
 
 // 操作日志
-const viewingRecord = ref<null | OperLogRecord>(null)
-const [drawerRegister, drawerMethods] = useDrawer()
-const [tableRegister, tableMethods] = useTable()
+const viewingRecord = ref<null | OperLogRecord>(null);
+const [drawerRegister, drawerMethods] = useDrawer();
+const [tableRegister, tableMethods] = useTable();
 
 // 登录日志
-const [loginTableRegister, loginTableMethods] = useTable()
+const [loginTableRegister, loginTableMethods] = useTable();
 
 const operTypeOptions = [
   { label: '其他', value: '其他' },
@@ -118,7 +118,7 @@ const operTypeOptions = [
   { label: '强退', value: '强退' },
   { label: '生成代码', value: '生成代码' },
   { label: '清空数据', value: '清空数据' },
-]
+];
 
 const searchFormSchemas: FormSchema[] = [
   {
@@ -165,7 +165,7 @@ const searchFormSchemas: FormSchema[] = [
     },
     colProps: { span: 6 },
   },
-]
+];
 
 // 登录日志搜索表单
 const loginSearchFormSchemas: FormSchema[] = [
@@ -209,7 +209,7 @@ const loginSearchFormSchemas: FormSchema[] = [
     },
     colProps: { span: 6 },
   },
-]
+];
 
 // 操作日志详情 schema
 const detailSchemas: DescriptionItem[] = [
@@ -243,8 +243,8 @@ const detailSchemas: DescriptionItem[] = [
         POST: 'blue',
         PUT: 'orange',
         DELETE: 'red',
-      }
-      return <a-tag color={m[value as string] || 'default'}>{value}</a-tag>
+      };
+      return <a-tag color={m[value as string] || 'default'}>{value}</a-tag>;
     },
   },
   {
@@ -326,66 +326,66 @@ const detailSchemas: DescriptionItem[] = [
     field: 'costTime',
     label: '消耗时间',
     render: (value) => {
-      const ms = value as number
-      const color = ms > 1000 ? 'red' : ms > 500 ? 'orange' : 'green'
-      return <a-tag color={color}>{ms} ms</a-tag>
+      const ms = value as number;
+      const color = ms > 1000 ? 'red' : ms > 500 ? 'orange' : 'green';
+      return <a-tag color={color}>{ms} ms</a-tag>;
     },
   },
-]
+];
 
 // 操作日志 API
 async function mockApi(params: Record<string, any>) {
-  const res = await getOperLogList(params)
-  const data = res?.data ?? res
-  return { items: data?.list || [], total: data?.total || 0 }
+  const res = await getOperLogList(params);
+  const data = res?.data ?? res;
+  return { items: data?.list || [], total: data?.total || 0 };
 }
 
 // 登录日志 Mock API
 async function mockLoginApi(params: Record<string, any>) {
-  const { getLoginLogList } = await import('~/api/system')
-  const res = await getLoginLogList(params)
-  const data = res?.data ?? res
-  return { items: data?.list || [], total: data?.total || 0 }
+  const { getLoginLogList } = await import('~/api/system');
+  const res = await getLoginLogList(params);
+  const data = res?.data ?? res;
+  return { items: data?.list || [], total: data?.total || 0 };
 }
 
 function handleView(record: OperLogRecord) {
-  viewingRecord.value = record
-  drawerMethods.openDrawer()
+  viewingRecord.value = record;
+  drawerMethods.openDrawer();
 }
 
 async function handleDelete(record: OperLogRecord) {
   try {
-    await deleteOperLog(record.id)
-    message.success(`已删除日志 #${record.id}`)
-    tableMethods.value?.reload()
+    await deleteOperLog(record.id);
+    message.success(`已删除日志 #${record.id}`);
+    tableMethods.value?.reload();
   } catch {
-    message.error('删除失败')
+    message.error('删除失败');
   }
 }
 
 async function handleBatchDelete() {
   const selectedRows = (tableMethods.value?.getSelectRows?.() ||
-    []) as OperLogRecord[]
+    []) as OperLogRecord[];
   if (selectedRows.length === 0) {
-    message.warning('请先选择要删除的日志')
-    return
+    message.warning('请先选择要删除的日志');
+    return;
   }
   try {
-    await Promise.all(selectedRows.map((row) => deleteOperLog(row.id)))
-    message.success(`批量删除 ${selectedRows.length} 条日志成功`)
-    tableMethods.value?.reload()
+    await Promise.all(selectedRows.map((row) => deleteOperLog(row.id)));
+    message.success(`批量删除 ${selectedRows.length} 条日志成功`);
+    tableMethods.value?.reload();
   } catch {
-    message.error('批量删除失败')
+    message.error('批量删除失败');
   }
 }
 
 function handleExport() {
   const selectedRows = (tableMethods.value?.getSelectRows?.() ||
-    []) as OperLogRecord[]
+    []) as OperLogRecord[];
   const dataToExport =
     selectedRows.length > 0
       ? selectedRows
-      : ((tableMethods.value?.getDataSource?.() || []) as OperLogRecord[])
+      : ((tableMethods.value?.getDataSource?.() || []) as OperLogRecord[]);
   exportToExcel({
     filename: '系统日志',
     sheetName: '系统日志',
@@ -406,12 +406,12 @@ function handleExport() {
       ...i,
       status: i.status === 0 ? '成功' : '失败',
     })),
-  })
+  });
 }
 
 function handleClear() {
-  message.success('日志清空成功')
-  tableMethods.value?.reload()
+  message.success('日志清空成功');
+  tableMethods.value?.reload();
 }
 
 // 操作日志列
@@ -460,7 +460,7 @@ const columns: BasicColumn[] = [
     align: 'center',
   },
   { title: '操作时间', dataIndex: 'operTime', key: 'operTime', width: 165 },
-]
+];
 
 // 登录日志列
 const loginColumns: BasicColumn[] = [
@@ -503,7 +503,7 @@ const loginColumns: BasicColumn[] = [
   },
   { title: '登录时间', dataIndex: 'loginTime', key: 'loginTime', width: 165 },
   { title: '备注', dataIndex: 'msg', key: 'msg', width: 120, ellipsis: true },
-]
+];
 </script>
 
 <template>
@@ -545,8 +545,8 @@ const loginColumns: BasicColumn[] = [
             </a-button>
             <a-button danger @click="handleBatchDelete">
               <template #icon>
-<Icon icon="ant-design:delete-outlined" />
-</template>
+                <Icon icon="ant-design:delete-outlined" />
+              </template>
               批量删除
             </a-button>
             <a-popconfirm
@@ -603,8 +603,8 @@ const loginColumns: BasicColumn[] = [
                 @click="() => handleView(record)"
               >
                 <template #icon>
-<Icon icon="ant-design:eye-outlined" />
-</template>
+                  <Icon icon="ant-design:eye-outlined" />
+                </template>
                 详情
               </a-button>
               <a-divider type="vertical" :class="dividerClassName" />
@@ -614,8 +614,8 @@ const loginColumns: BasicColumn[] = [
               >
                 <a-button type="link" danger :class="btnClassName">
                   <template #icon>
-<Icon icon="ant-design:delete-outlined" />
-</template>
+                    <Icon icon="ant-design:delete-outlined" />
+                  </template>
                   删除
                 </a-button>
               </a-popconfirm>
@@ -702,9 +702,9 @@ const loginColumns: BasicColumn[] = [
             <div class="text-sm">
               <a-tag
                 :color="operTypeColorMap[viewingRecord.operType] || 'default'"
-                >
-{{ viewingRecord.operType }}
-</a-tag>
+              >
+                {{ viewingRecord.operType }}
+              </a-tag>
             </div>
           </div>
           <div class="relative pb-6">

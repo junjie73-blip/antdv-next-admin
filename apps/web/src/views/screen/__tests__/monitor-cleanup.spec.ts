@@ -232,7 +232,12 @@ describe('大屏监控页的资源清理', () => {
      * 这条用例要验的正是"有尺寸的容器变了 → 图跟着变"，所以先把尺寸补上，
      * 顺带让 `initChartImmediately` 走同步建图分支（真实浏览器首帧就是这样）。
      */
-    for (const prop of ['clientHeight', 'clientWidth', 'offsetHeight', 'offsetWidth'] as const) {
+    for (const prop of [
+      'clientHeight',
+      'clientWidth',
+      'offsetHeight',
+      'offsetWidth',
+    ] as const) {
       Object.defineProperty(HTMLElement.prototype, prop, {
         configurable: true,
         value: 320,
@@ -256,9 +261,16 @@ describe('大屏监控页的资源清理', () => {
 
       // 视口没变、只有容器变 —— window resize 监听帮不上忙，卸载时必须全断开
       await wrapper.unmount();
-      expect(observers.filter((observer) => !observer.disconnected)).toEqual([]);
+      expect(observers.filter((observer) => !observer.disconnected)).toEqual(
+        [],
+      );
     } finally {
-      for (const prop of ['clientHeight', 'clientWidth', 'offsetHeight', 'offsetWidth'] as const) {
+      for (const prop of [
+        'clientHeight',
+        'clientWidth',
+        'offsetHeight',
+        'offsetWidth',
+      ] as const) {
         delete (HTMLElement.prototype as any)[prop];
       }
     }

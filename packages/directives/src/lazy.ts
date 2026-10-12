@@ -166,9 +166,7 @@ export function createLazyDirective(
 
     return {
       duration:
-        fromBinding.duration ??
-        options.defaults?.duration ??
-        FALLBACK_DURATION,
+        fromBinding.duration ?? options.defaults?.duration ?? FALLBACK_DURATION,
       error: fromBinding.error ?? el.dataset.error ?? options.defaults?.error,
       fade: fromBinding.fade ?? options.defaults?.fade ?? true,
       placeholder:
@@ -252,8 +250,11 @@ export function createLazyDirective(
     const opts = resolve(el, value);
     if (!opts) return;
 
-    const state: LazyElementState =
-      existing ?? { observer: null, src: opts.src, token: 0 };
+    const state: LazyElementState = existing ?? {
+      observer: null,
+      src: opts.src,
+      token: 0,
+    };
     state.src = opts.src;
     el.dataset.src = opts.src;
 
@@ -270,7 +271,10 @@ export function createLazyDirective(
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) enter();
       },
-      { rootMargin: opts.rootMargin ?? FALLBACK_ROOT_MARGIN, threshold: opts.threshold ?? FALLBACK_THRESHOLD },
+      {
+        rootMargin: opts.rootMargin ?? FALLBACK_ROOT_MARGIN,
+        threshold: opts.threshold ?? FALLBACK_THRESHOLD,
+      },
     );
 
     // 环境不支持观察器：立即加载，功能降级但画面不空
@@ -290,7 +294,8 @@ export function createLazyDirective(
 
     updated(el, binding: DirectiveBinding<LazyBindingValue>) {
       const state = stateMap.get(el);
-      const next = typeof binding.value === 'string' ? binding.value : binding.value?.src;
+      const next =
+        typeof binding.value === 'string' ? binding.value : binding.value?.src;
       if (!next || next === state?.src) return;
 
       cleanup(el);

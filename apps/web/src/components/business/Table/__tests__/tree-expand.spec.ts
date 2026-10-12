@@ -29,7 +29,12 @@ const columns: BasicColumn[] = [
 const TREE = [
   {
     children: [
-      { children: [{ id: 31, name: '新增用户', path: '' }], id: 21, name: '用户管理', path: '/system/user' },
+      {
+        children: [{ id: 31, name: '新增用户', path: '' }],
+        id: 21,
+        name: '用户管理',
+        path: '/system/user',
+      },
     ],
     id: 11,
     name: '系统管理',
@@ -68,14 +73,18 @@ const rowKeys = (wrapper: ReturnType<typeof mount>) =>
     row.attributes('data-row-key'),
   );
 
-describe('BasicTable —— 树形表格首屏展开', () => {
+describe('basicTable —— 树形表格首屏展开', () => {
   it('数字主键：子行不用点箭头就在表体里（含第三层）', async () => {
     const wrapper = await renderTree(TREE);
 
     expect(rowKeys(wrapper)).toEqual(['11', '21', '31']);
     // 「展开」的 class 也是证据：只有真的受控命中，antd 才给 expanded
     expect(
-      wrapper.find('.ant-table-row[data-row-key="11"] .ant-table-row-expand-icon-expanded').exists(),
+      wrapper
+        .find(
+          '.ant-table-row[data-row-key="11"] .ant-table-row-expand-icon-expanded',
+        )
+        .exists(),
     ).toBe(true);
   });
 

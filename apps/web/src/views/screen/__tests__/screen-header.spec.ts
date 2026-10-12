@@ -17,7 +17,11 @@ const stash: Array<{
 }> = [];
 
 function define(target: any, key: string, value: unknown) {
-  stash.push({ descriptor: Reflect.getOwnPropertyDescriptor(target, key), key, target });
+  stash.push({
+    descriptor: Reflect.getOwnPropertyDescriptor(target, key),
+    key,
+    target,
+  });
   Object.defineProperty(target, key, {
     configurable: true,
     value,
@@ -29,12 +33,18 @@ function define(target: any, key: string, value: unknown) {
  * 组件走的是 `document.documentElement.requestFullscreen()` 和
  * `document.exitFullscreen()`，所以挂在具体对象上，不用管原型链。
  */
-function stubFullscreen(api: {
-  exitFullscreen?: () => Promise<void>;
-  requestFullscreen?: () => Promise<void>;
-} = {}) {
+function stubFullscreen(
+  api: {
+    exitFullscreen?: () => Promise<void>;
+    requestFullscreen?: () => Promise<void>;
+  } = {},
+) {
   if (api.requestFullscreen) {
-    define(document.documentElement, 'requestFullscreen', api.requestFullscreen);
+    define(
+      document.documentElement,
+      'requestFullscreen',
+      api.requestFullscreen,
+    );
   }
   if (api.exitFullscreen) {
     define(document, 'exitFullscreen', api.exitFullscreen);
@@ -61,7 +71,7 @@ function restoreFullscreen() {
  * 2. `fullscreenchange` 的监听必须能摘掉 —— 之前 add/remove 用的是两个不同的
  *    匿名函数，等于永久监听，反复进出大屏会在 document 上堆积回调。
  */
-describe('ScreenHeader', () => {
+describe('screenHeader', () => {
   let addSpy: ReturnType<typeof vi.spyOn>;
   let removeSpy: ReturnType<typeof vi.spyOn>;
   let handlers: Array<() => void>;
@@ -78,7 +88,7 @@ describe('ScreenHeader', () => {
       .mockImplementation((type: string, handler: any) => {
         if (type !== 'fullscreenchange') return;
         const index = handlers.indexOf(handler);
-        if (index >= 0) handlers.splice(index, 1);
+        if (index !== -1) handlers.splice(index, 1);
       });
   });
 
@@ -123,7 +133,9 @@ describe('ScreenHeader', () => {
 
     // 浏览器策略禁止全屏时返回 rejected promise：组件必须 catch 住，
     // 否则控制台多一条 Uncaught (in promise)，用户看不出发生了什么
-    requestFullscreen.mockImplementation(() => Promise.reject(new Error('not allowed')));
+    requestFullscreen.mockImplementation(() =>
+      Promise.reject(new Error('not allowed')),
+    );
     await wrapper.find('button').trigger('click');
     await flushPromises();
     expect(wrapper.find('button').exists()).toBe(true);

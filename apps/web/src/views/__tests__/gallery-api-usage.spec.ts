@@ -23,24 +23,33 @@ const SCAN_ROOTS = ['src/views', 'src/components', 'src/layouts'];
 const SRC = join(process.cwd(), 'src');
 
 /** 三条规则的出处与判据，报错信息里要能直接看到该改什么 */
-const RULES: Array<{ find: (text: string) => string[], hint: string, name: string }> = [
+const RULES: Array<{
+  find: (text: string) => string[];
+  hint: string;
+  name: string;
+}> = [
   {
     find: (text) =>
-      [...text.matchAll(/import\s*\{[^}]*\buseApp\b[^}]*\}\s*from\s*['"]antdv-next['"]/g)].map(
-        (m) => m[0],
-      ),
+      [
+        ...text.matchAll(
+          /import\s*\{[^}]*\buseApp\b[^}]*\}\s*from\s*['"]antdv-next['"]/g,
+        ),
+      ].map((m) => m[0]),
     hint: "改成 `import { App } from 'antdv-next'` + `App.useApp()`",
     name: '具名 useApp 不存在',
   },
   {
     find: (text) =>
-      [...text.matchAll(/v-[a-z-]+[.\w-]*?\.(?:role|admin)\b[^\n]*/g)].map((m) => m[0]),
+      [...text.matchAll(/v-[a-z-]+[.\w-]*?\.(?:role|admin)\b[^\n]*/g)].map(
+        (m) => m[0],
+      ),
     hint: '`role` / `admin` 是参数：`v-permission:role="\'auditor\'"`、`v-permission:admin`',
     name: '权限指令把 arg 写成了 modifier',
   },
   {
-    find: (text) => [...text.matchAll(/<a-tabs\b[^>]*?@add\b[^>]*?>/gs)].map((m) => m[0]),
-    hint: "1.6 只有 `@edit`：`@edit=\"(key, action) => ...\"`",
+    find: (text) =>
+      [...text.matchAll(/<a-tabs\b[^>]*?@add\b[^>]*?>/gs)].map((m) => m[0]),
+    hint: '1.6 只有 `@edit`：`@edit="(key, action) => ..."`',
     name: 'Tabs 绑了不存在的 @add',
   },
 ];
@@ -57,7 +66,7 @@ function vueFiles(dir: string, out: string[] = []): string[] {
   return out;
 }
 
-const FILES = SCAN_ROOTS.map((root) => vueFiles(join(process.cwd(), root))).flat();
+const FILES = SCAN_ROOTS.flatMap((root) => vueFiles(join(process.cwd(), root)));
 
 describe('示例与布局模板里不能出现静默失效的 API 写法', () => {
   it('扫描范围不能是空的（目录改名会先在这里暴露）', () => {
@@ -101,12 +110,17 @@ const { message } = App.useApp();
       const hits: string[] = [];
       for (const file of FILES) {
         // 统一成 LF：Windows checkout 出来是 CRLF，带 `.` 的正则会被 `\r` 影响行的语义
-        const text = readFileSync(file, 'utf8').replaceAll(/\r\n/g, '\n');
+        const text = readFileSync(file, 'utf8').replaceAll('\r\n', '\n');
         for (const matched of rule.find(text)) {
-          hits.push(`${relative(process.cwd(), file).replaceAll('\\', '/')}  ${matched.trim()}`);
+          hits.push(
+            `${relative(process.cwd(), file).replaceAll('\\', '/')}  ${matched.trim()}`,
+          );
         }
       }
-      expect(hits, `这些写法不报错但功能已废（${rule.hint}）：\n${hits.join('\n')}`).toEqual([]);
+      expect(
+        hits,
+        `这些写法不报错但功能已废（${rule.hint}）：\n${hits.join('\n')}`,
+      ).toEqual([]);
     });
 
     it(`${rule.name} —— 样例抓得到、正确写法不误伤`, () => {
