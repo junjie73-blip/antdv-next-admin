@@ -50,17 +50,20 @@ export default defineConfig({
      * 两条 icon 都要：`favicon.ico` 是 48×48 的 PNG-in-ICO，Safari 与部分
      * 国产浏览器内核解不了这种容器，只给它就会退回默认地球图标；补一条 PNG 才稳。
      */
-    ['link', { rel: 'icon', type: 'image/x-icon', href: `${base}favicon.ico` }],
+    [
+      'link',
+      { rel: 'icon', type: 'image/x-icon', href: `${base}/favicon.ico` },
+    ],
     [
       'link',
       {
         rel: 'icon',
         type: 'image/png',
         sizes: '64x64',
-        href: `${base}logo.png`,
+        href: `${base}/logo.png`,
       },
     ],
-    ['link', { rel: 'apple-touch-icon', href: `${base}apple-touch-icon.png` }],
+    ['link', { rel: 'apple-touch-icon', href: `${base}/apple-touch-icon.png` }],
     ['meta', { name: 'theme-color', content: '#1677ff' }],
   ],
 

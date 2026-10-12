@@ -84,7 +84,7 @@ const sandbox = computed(() =>
 const sandboxEscapable = computed(() => canEscapeSandbox(sandbox.value));
 
 const containerClassName = computed(() =>
-  cn('micro-app-wrapper', 'size-full ', props.className),
+  cn('micro-app-wrapper', 'size-full', props.className),
 );
 
 const loadingClassName = computed(() =>

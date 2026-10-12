@@ -173,32 +173,43 @@ catalog:
   execa: ^10.1.0
   find-up: ^8.0.0
   get-port: ^7.2.0
+  globals: ^17.13.0
   # backend-mock 的 handler 直接依赖 h3 类型（defineEventHandler / H3Event）。
   # 只作为 nitropack 的传递依赖存在时，pnpm 的严格 node_modules 布局会让
   # `.nitro/types/nitro-imports.d.ts` 里的 `from 'h3'` 重导出解析失败，
   # 所有 handler 的 event 参数退化成 any（隐式 noImplicitAny 报错）。
   h3: ^1.15.11
+  happy-dom: ^20.14.5
   highlight.js: ^11.12.0
+  html-minifier-terser: ^7.2.0
+  is-ci: ^4.1.0
   jiti: ^2.7.0
   jose: ^6.2.12
   jsdom: ^27.4.0
+  knip: ^6.40.0
+
   lefthook: ^2.1.17
   lint-staged: ^16.4.0
   markdown-it: ^14.3.2
   marked: ^17.0.6
   marked-highlight: ^2.2.4
-  nitropack: ^2.13.4
+  medium-zoom: ^1.1.0
   mitt: ^3.0.1
   mockjs: ^1.1.0
   nanoid: ^5.1.16
+  nitropack: ^2.13.4
   npm-run-all2: ^8.0.4
   nprogress: ^0.2.0
+  ora: ^9.4.1
   oxfmt: ^0.67.0
   oxlint: ^1.87.0
+  oxlint-tsgolint: ^0.25.0
   pdfjs-dist: 6.3.289
   pinia: ^3.0.4
   pkg-types: ^2.3.3
+  playwright: ^1.63.0
   postcss: ^8.5.29
+  publint: ^0.3.25
   qrcode: ^1.5.4
   resize-observer-polyfill: ^1.5.1
   rimraf: ^6.1.3
@@ -254,12 +265,6 @@ catalog:
   workbox-window: ^7.4.1
   xlsx: ^0.18.5
   rolldown: ^1.2.12
-  globals: ^17.13.0
-  html-minifier-terser: ^7.2.0
-  medium-zoom: ^1.1.0
-  ora: ^9.4.1
-  oxlint-tsgolint: ^0.25.0
-  publint: ^0.3.25
   secure-ls: ^2.0.0
   stylelint: ^17.16.0
   stylelint-config-recess-order: ^7.8.0
@@ -275,13 +280,8 @@ catalog:
   vue-i18n: ^11.4.13
   vue-json-pretty: ^2.6.0
   yaml-eslint-parser: ^2.1.0
-  happy-dom: ^20.14.5
-  is-ci: ^4.1.0
-  playwright: ^1.63.0
   postcss-html: ^1.8.1
   postcss-scss: ^4.0.9
-  knip: ^6.40.0
-
 catalogs:
   conflicts_vue_h3_5_43:
     vue: ^3.5.43

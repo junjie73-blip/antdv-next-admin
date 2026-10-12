@@ -277,10 +277,10 @@ async function uploadImageByHttp(file: File): Promise<void> {
     cfg.onSuccess?.(file, result);
     emit('uploadSuccess', file, result);
   } catch (error) {
-    const error = error instanceof Error ? error : new Error(String(error));
-    message.error(`图片上传失败：${error.message}`);
-    cfg.onError?.(file, error);
-    emit('uploadError', file, error);
+    const _error = error instanceof Error ? error : new Error(String(error));
+    message.error(`图片上传失败：${_error.message}`);
+    cfg.onError?.(file, _error);
+    emit('uploadError', file, _error);
   }
 }
 
@@ -300,10 +300,10 @@ async function uploadVideoByHttp(file: File): Promise<void> {
     cfg.onSuccess?.(file, result);
     emit('uploadSuccess', file, result);
   } catch (error) {
-    const error = error instanceof Error ? error : new Error(String(error));
-    message.error(`视频上传失败：${error.message}`);
-    cfg.onError?.(file, error);
-    emit('uploadError', file, error);
+    const _error = error instanceof Error ? error : new Error(String(error));
+    message.error(`视频上传失败：${_error.message}`);
+    cfg.onError?.(file, _error);
+    emit('uploadError', file, _error);
   }
 }
 

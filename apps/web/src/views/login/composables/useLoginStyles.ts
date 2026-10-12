@@ -33,17 +33,17 @@ export function useLoginStyles() {
   );
 
   const blob1ClassName = computed(() =>
-    cn(blobClassName.value, 'bg-ant-primary/20 -top-24 -left-24 size-[380px] '),
+    cn(blobClassName.value, 'bg-ant-primary/20 -top-24 -left-24 size-[380px]'),
   );
 
   const blob2ClassName = computed(() =>
-    cn(blobClassName.value, 'bg-ant-primary/12 top-1/2 -left-16 size-[300px] '),
+    cn(blobClassName.value, 'bg-ant-primary/12 top-1/2 -left-16 size-[300px]'),
   );
 
   const blob3ClassName = computed(() =>
     cn(
       blobClassName.value,
-      'bg-ant-primary/8 -bottom-24 left-1/3 size-[320px] ',
+      'bg-ant-primary/8 -bottom-24 left-1/3 size-[320px]',
     ),
   );
 

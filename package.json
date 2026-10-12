@@ -21,6 +21,7 @@
     "clean": "node ./scripts/clean.mjs",
     "commit": "czg",
     "dev": "turbo-run dev",
+    "build:web": "pnpm --filter @antdv/web run build",
     "dev:web": "pnpm --filter @antdv/web run dev",
     "docs:build": "pnpm --filter @antdv/docs build",
     "docs:dev": "pnpm --filter @antdv/docs dev",
