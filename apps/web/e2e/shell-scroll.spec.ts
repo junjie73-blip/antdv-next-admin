@@ -5,7 +5,7 @@ import { expect, test } from '@playwright/test';
 import { go, region, setLayout, signIn } from './utils/app';
 
 /**
- * 全站滚动条不变量：凡是我们写得着的滚动区域，一律用 `@antdv/ui` 的 `<Scrollbar>`，
+ * 全站滚动条不变量：凡是我们写得着的滚动区域，一律用 `@antdv/icons` 的 `<Scrollbar>`，
  * 不许露出操作系统那条滚动条。
  *
  * 这条需求是"观感"级别的，靠肉眼验收很容易漏（某处滚动条只在内容超长时才出现），

@@ -35,7 +35,7 @@ Enter animations live in `components/layout/PageTransition.vue`: `@vueuse/motion
 
 ## 3. Element-level masks
 
-The three tools from `@antdv/ui/loading` (the directive is registered globally in `main.ts`: `app.directive('loading', vLoading)`):
+The three tools from `@antdv/loading-ui` (the entry point takes `vLoading` at `main.ts:8` and registers it at `:113`: `app.directive('loading', vLoading)`):
 
 ```vue
 <!-- directive: config comes from attributes; the arg is the tip text -->
@@ -50,9 +50,9 @@ The three tools from `@antdv/ui/loading` (the directive is registered globally i
 <div v-loading.fullscreen="busy">…</div>
 ```
 
-- The attribute map sits in `packages/ui/src/loading/directive.ts`: `loading-tip / loading-theme(light|dark) / loading-size(default|small|large) / loading-background`; `binding.arg` wins over `loading-tip`.
+- The attribute map sits in `packages/ui-kit/loading-ui/src/directive.ts:34-39`: `loading-tip / loading-theme(light|dark) / loading-size(default|small|large) / loading-background`; `binding.arg` wins over `loading-tip`.
 - Functional API: `createLoading` / `createFullscreenLoading` / `createContainerLoading`, returning a `LoadingInstance` (`open` / `close` / `setTip` / `destroy`). `close` waits for the fade-out before cleaning the DOM; `destroy` rips it out immediately — use the latter when you know the overlay must die (interrupted navigation, unmounting). The demo page `views/components/loading/index.vue` shows disciplined timer cleanup.
-- The declarative `Loading` component and the `useLoading` composable ship in the same package; props in `packages/ui/src/loading/types.ts` (`absolute` distinguishes in-container from fullscreen).
+- The declarative `Loading` component and the `useLoading` composable ship in the same package; props in `packages/ui-kit/loading-ui/src/types.ts` (`absolute` distinguishes in-container from fullscreen). The spinner inside it is the `Spinner` from `@antdv/shadcn-ui` — antdv-next's `Spin` is no longer involved.
 
 ## 4. Component-internal and skeletons
 

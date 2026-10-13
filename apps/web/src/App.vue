@@ -3,7 +3,7 @@ import { computed } from 'vue';
 
 import { autoPrefixTransformer, px2remTransformer } from '@antdv-next/cssinjs';
 import { HappyProvider } from '@antdv-next/happy-work-theme';
-import { ConfigProvider, StyleProvider } from 'antdv-next';
+import { App as AApp, ConfigProvider, StyleProvider } from 'antdv-next';
 import { useLocaleSync } from '~/composables/web/useLocale';
 import { getThemeConfig } from '~/settings';
 import { useAppStore } from '~/stores/modules/app';
@@ -40,13 +40,13 @@ const themeConfig = computed(() =>
         :component-size="appStore.componentSize"
         virtual
       >
-        <a-app
+        <AApp
           :notification="{
             placement: appStore.notificationPosition,
           }"
         >
           <router-view />
-        </a-app>
+        </AApp>
       </ConfigProvider>
     </StyleProvider>
   </HappyProvider>

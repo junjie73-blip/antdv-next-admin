@@ -59,10 +59,10 @@ setLocale('en-US'); // 实际是 appStore.updateSetting({ locale })
 | --- | --- |
 | 切了语言，antd 组件文案不动 | 绕开 `useLocaleSync` 自己写了 `i18n.global.locale`，`ConfigProvider :locale` 没收到新对象 |
 | 日期中文不生效 | dayjs 的 locale 名是 `zh-cn`（小写短码），不是 BCP 47 的 `zh-CN`；映射在 `DAYJS_LOCALE_MAP` |
-| 某些文案在英文界面仍是中文 | 该键只存在于 `zh-CN.ts`；两个语言文件按键对齐是硬约束（见 [规范](/guide/project/protocol)） |
+| 某些文案在英文界面仍是中文 | 该键只存在于 `zh-CN.ts`；两个语言文件按键对齐是硬约束（见 [规范](/zh/guide/project/protocol)） |
 | 菜单里出现 `menu.XXX` 字面量 | 不会 —— `localizeMenus` 查不到 key 时回落原始标题，出现即说明有人改了回退逻辑 |
 
 ## 相关页面
 
-- 主题与 CSS 变量：[主题与偏好设置](/guide/in-depth/theme)
-- 时间格式化与时区：`useAppStore` 的 `timezone` 同样由偏好驱动（见 [状态管理](/guide/essentials/stores)）
+- 主题与 CSS 变量：[主题与偏好设置](/zh/guide/in-depth/theme)
+- 时间格式化与时区：`useAppStore` 的 `timezone` 同样由偏好驱动（见 [状态管理](/zh/guide/essentials/stores)）

@@ -28,15 +28,15 @@
 - `VITE_MICRO_APP=false`：子应用要真的跑在注册表配的端口上（`src/config/micro-app.ts`），否则「微前端」菜单页会去连不通的地址。
 - `VITE_WS_URL=`（空）：Nitro mock 没有 `/ws` 处理器，而重连是**无限**的 —— 在没有后端的情况下发起连接，只会把控制台和端到端用例淹掉。接真实后端时填完整地址（如 `ws://localhost:8080/ws`），token 由前端自动附加。
 
-`VITE_DEV_POLLING` 也在 `.env.development` 里注释着：仓库放在映射盘（本机是 `J:`）时 inotify 事件不送达，看起来该开。实测**开了也救不回来** —— 配置确实拿到了 `server.watch.usePolling`，用 chokidar 直接轮询同目录能收到 change，但 dev server 的模块图始终不失效（旧模块一直服务到重启）。白烧 CPU 换不到 HMR，所以保持注释，改完共享包按 [快速开始](/guide/introduction/quick-start#_3-改了共享包却没生效) 的流程重新构建 + 重启。:::
+`VITE_DEV_POLLING` 也在 `.env.development` 里注释着：仓库放在映射盘（本机是 `J:`）时 inotify 事件不送达，看起来该开。实测**开了也救不回来** —— 配置确实拿到了 `server.watch.usePolling`，用 chokidar 直接轮询同目录能收到 change，但 dev server 的模块图始终不失效（旧模块一直服务到重启）。白烧 CPU 换不到 HMR，所以保持注释，改完共享包按 [快速开始](/zh/guide/introduction/quick-start#_3-改了共享包却没生效) 的流程重新构建 + 重启。:::
 
 ## 编码规范
 
 细则在根目录 `CODE_STANDARD.md`（20 节：目录组织、命名、Vue 组件、Pinia、HTTP、WebSocket、样式、表格、CRUD、权限、安全、环境变量、表单 Schema 工厂、`actions.ts`、路由注册顺序、常见坑、组件复用、国际化、TypeScript、性能）。这里只提和目录/布局强相关的三条：
 
 1. **页面按 `views/<模块>/<页面>/index.vue` 摆放**，页面私有逻辑放同目录的 `actions.ts` / `columns.ts` / `schemas.ts`；`components/`、`widgets/` 子目录里的是 **私有组件，不是路由页面** —— 文件约定路由和"根容器不许加 padding"的守卫都用这个口径排除它们。
-2. **路由页面外层容器不写 padding**，内边距归布局管（见[布局、菜单与标签页](/guide/in-depth/layout#内容区内边距归布局管)）。
-3. **强调色只用 `*-ant-primary` / `var(--ant*)`**，不写死 `blue-*` 或 `#1677ff` （见[主题与偏好设置](/guide/in-depth/theme#用-tailwind-写主题色)）。
+2. **路由页面外层容器不写 padding**，内边距归布局管（见[布局、菜单与标签页](/zh/guide/in-depth/layout#内容区内边距归布局管)）。
+3. **强调色只用 `*-ant-primary` / `var(--ant*)`**，不写死 `blue-*` 或 `#1677ff` （见[主题与偏好设置](/zh/guide/in-depth/theme#用-tailwind-写主题色)）。
 
 跑检查：
 
@@ -47,7 +47,7 @@ pnpm check           # circular + dep + type + cspell 四件套
 pnpm publint         # 子包产物是否可发布
 ```
 
-`check:type` 目前**存量 253 条错误**（`components/business/**`、`api/mock.ts`、 `security/dashboard/**`、`form/validation` 等）。CI 里它以"继续但不阻断"的方式跑，理由与收敛计划见 [CI 与部署](/guide/essentials/deploy#type-check-为什么先设成非阻断)。
+`check:type` 目前**存量 253 条错误**（`components/business/**`、`api/mock.ts`、 `security/dashboard/**`、`form/validation` 等）。CI 里它以"继续但不阻断"的方式跑，理由与收敛计划见 [CI 与部署](/zh/guide/essentials/deploy#type-check-为什么先设成非阻断)。
 
 ## 提交信息
 
@@ -60,7 +60,7 @@ pnpm commit :f       # 别名直接预填 "docs: fix typos"
 
 其余硬约束：`header-max-length` 108、`body-leading-blank`（正文前必须空行）、 `footer-leading-blank`（警告级）、scope 可以为空，非空时必须落在允许列表里（`function-rules/scope-enum`）。**没有**任何规则把 breaking change 限制在 `feat` / `fix`，那只是交互提示里的措辞。
 
-::: warning 本地钩子目前是关的 `lefthook.yml` 里所有 hook 都被注释掉了（`prepare` 仍会执行 `lefthook install`，但没有实际拦截）。所以**别指望提交时自动跑 lint**，也别忘了 `pnpm exec lefthook run pre-commit` 现在等于什么都没做 ——真正的门禁在 CI 那侧，见 [CI 与部署](/guide/essentials/deploy)。:::
+::: warning 本地钩子目前是关的 `lefthook.yml` 里所有 hook 都被注释掉了（`prepare` 仍会执行 `lefthook install`，但没有实际拦截）。所以**别指望提交时自动跑 lint**，也别忘了 `pnpm exec lefthook run pre-commit` 现在等于什么都没做 ——真正的门禁在 CI 那侧，见 [CI 与部署](/zh/guide/essentials/deploy)。:::
 
 ## changeset
 
@@ -79,5 +79,5 @@ pnpm changeset
 - 示例要真的能交互（点了要出东西），不要放"示意一下"的死代码；
 - API 用错会被静态守卫抓（`views/__tests__/gallery-api-usage.spec.ts`）；
 - 组件解析失败在 Vue 里**只出 warning**，表现是"那块区域空着"，巡检看不出来 ——所以断言要落在"内容真的渲染出来"上；
-- 新增示例页只要进菜单，就会自动出现在[总览卡片墙](/guide/in-depth/layout)里（清单直接读菜单树，不抄第二份）；
+- 新增示例页只要进菜单，就会自动出现在[总览卡片墙](/zh/guide/in-depth/layout)里（清单直接读菜单树，不抄第二份）；
 - 菜单层级只允许到二级：`组件示例 → 页面`。**只有「表单」「表格」两支例外**，它们量大，用 `组件示例 → 分组 → 页面` 的三级形态。不要再往中间塞"画廊 / 分类"这类容器 ——容器一旦多于一层，侧栏要点开两次才看到内容，面包屑也会长到没地方显示。

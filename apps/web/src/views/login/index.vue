@@ -13,6 +13,7 @@ import {
 } from '@antdv-next/icons';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
+import { Button as AButton, Checkbox as ACheckbox, Form as AForm, FormItem as AFormItem, Input as AInput, InputPassword as AInputPassword, message } from 'antdv-next';
 import { HOME_PATH } from '~/config/constants';
 import { useUserStore } from '~/stores/modules/user';
 
@@ -253,7 +254,7 @@ function handleSendCode() {
           </button>
         </div>
 
-        <a-form
+        <AForm
           ref="formRef"
           :model="formState"
           :rules="currentRules"
@@ -261,8 +262,8 @@ function handleSendCode() {
           @finish="handleLogin"
         >
           <template v-if="loginType === 'account'">
-            <a-form-item name="username">
-              <a-input
+            <AFormItem name="username">
+              <AInput
                 v-model:value="formState.username"
                 size="large"
                 placeholder="请输入用户名"
@@ -272,11 +273,11 @@ function handleSendCode() {
                 <template #prefix>
                   <UserOutlined />
                 </template>
-              </a-input>
-            </a-form-item>
+              </AInput>
+            </AFormItem>
 
-            <a-form-item name="password">
-              <a-input-password
+            <AFormItem name="password">
+              <AInputPassword
                 v-model:value="formState.password"
                 size="large"
                 placeholder="请输入密码"
@@ -286,29 +287,29 @@ function handleSendCode() {
                 <template #prefix>
                   <LockOutlined />
                 </template>
-              </a-input-password>
-            </a-form-item>
+              </AInputPassword>
+            </AFormItem>
 
-            <a-form-item>
+            <AFormItem>
               <div class="flex items-center justify-between">
-                <a-checkbox v-model:checked="formState.remember">
+                <ACheckbox v-model:checked="formState.remember">
                   记住我
-                </a-checkbox>
-                <a-button
+                </ACheckbox>
+                <AButton
                   type="link"
                   size="small"
                   class="!h-auto !px-0"
                   @click="handleForgotPassword"
                 >
                   忘记密码？
-                </a-button>
+                </AButton>
               </div>
-            </a-form-item>
+            </AFormItem>
           </template>
 
           <template v-else>
-            <a-form-item name="mobile">
-              <a-input
+            <AFormItem name="mobile">
+              <AInput
                 v-model:value="formState.mobile"
                 size="large"
                 placeholder="请输入手机号"
@@ -318,11 +319,11 @@ function handleSendCode() {
                 <template #prefix>
                   <MobileOutlined />
                 </template>
-              </a-input>
-            </a-form-item>
+              </AInput>
+            </AFormItem>
 
-            <a-form-item name="code">
-              <a-input
+            <AFormItem name="code">
+              <AInput
                 v-model:value="formState.code"
                 size="large"
                 placeholder="请输入验证码"
@@ -333,7 +334,7 @@ function handleSendCode() {
                   <MailOutlined />
                 </template>
                 <template #suffix>
-                  <a-button
+                  <AButton
                     type="link"
                     size="small"
                     class="!h-auto !px-0"
@@ -341,14 +342,14 @@ function handleSendCode() {
                     @click="handleSendCode"
                   >
                     发送验证码
-                  </a-button>
+                  </AButton>
                 </template>
-              </a-input>
-            </a-form-item>
+              </AInput>
+            </AFormItem>
           </template>
 
-          <a-form-item class="mt-6">
-            <a-button
+          <AFormItem class="mt-6">
+            <AButton
               type="primary"
               html-type="submit"
               size="large"
@@ -358,9 +359,9 @@ function handleSendCode() {
               data-auth="submit"
             >
               登录
-            </a-button>
-          </a-form-item>
-        </a-form>
+            </AButton>
+          </AFormItem>
+        </AForm>
 
         <p :class="hintClassName">
           演示账号：admin / admin123（全部页面）· custom /

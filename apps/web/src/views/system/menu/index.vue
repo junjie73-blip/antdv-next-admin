@@ -5,9 +5,10 @@ import type { BasicColumn } from '~/components/business/Table';
 
 import { computed, ref, watch } from 'vue';
 
+import { IconPicker } from '@antdv/icons/icon';
 import { cn } from '@antdv/shared/cn';
-import { IconPicker } from '@antdv/ui/icon';
 import { Icon } from '@iconify/vue';
+import { Button as AButton, Card as ACard, Divider as ADivider, Popconfirm as APopconfirm, Switch as ASwitch, Tag as ATag, message } from 'antdv-next';
 import { BasicDrawer, useDrawer } from '~/components/business/Drawer';
 import { BasicForm, useForm } from '~/components/business/Form';
 import { BasicTable, useTable } from '~/components/business/Table';
@@ -755,7 +756,7 @@ const columns: BasicColumn[] = [
 
 <template>
   <div :class="containerClassName">
-    <a-card title="菜单管理" :class="cardClassName">
+    <ACard title="菜单管理" :class="cardClassName">
       <BasicTable
         :columns="columns"
         :api="mockApi"
@@ -770,12 +771,12 @@ const columns: BasicColumn[] = [
         @register="tableRegister"
       >
         <template #toolbar>
-          <a-button type="primary" @click="handleAdd">
+          <AButton type="primary" @click="handleAdd">
             <template #icon>
               <Icon icon="ant-design:plus-outlined" />
             </template>
             新增菜单
-          </a-button>
+          </AButton>
         </template>
         <template #cell-icon="{ record }">
           <div class="flex items-center justify-center">
@@ -785,7 +786,7 @@ const columns: BasicColumn[] = [
         </template>
 
         <template #cell-menuType="{ record }">
-          <a-tag :color="menuTypeColorMap[record.menuType] || 'default'">
+          <ATag :color="menuTypeColorMap[record.menuType] || 'default'">
             <span :class="tagClassName">
               <Icon
                 :icon="
@@ -800,11 +801,11 @@ const columns: BasicColumn[] = [
               />
               {{ menuTypeLabelMap[record.menuType] || record.menuType }}
             </span>
-          </a-tag>
+          </ATag>
         </template>
 
         <template #cell-status="{ record }">
-          <a-tag :color="statusColorMap[record.status] || 'default'">
+          <ATag :color="statusColorMap[record.status] || 'default'">
             <span :class="tagClassName">
               <Icon
                 :icon="
@@ -815,7 +816,7 @@ const columns: BasicColumn[] = [
               />
               {{ statusLabelMap[record.status] || '未知' }}
             </span>
-          </a-tag>
+          </ATag>
         </template>
 
         <!--
@@ -824,7 +825,7 @@ const columns: BasicColumn[] = [
           页面本身仍可直达，所以提示里写清楚，别让人以为是把页面下了线。
         -->
         <template #cell-hidden="{ record }">
-          <a-switch
+          <ASwitch
             :checked="!record.hidden"
             size="small"
             @change="
@@ -836,7 +837,7 @@ const columns: BasicColumn[] = [
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <a-button
+            <AButton
               type="link"
               :class="btnClassName"
               @click="() => handleAddChild(record as MenuRecord)"
@@ -845,8 +846,8 @@ const columns: BasicColumn[] = [
                 <Icon icon="ant-design:plus-circle-outlined" />
               </template>
               新增
-            </a-button>
-            <a-button
+            </AButton>
+            <AButton
               type="link"
               :class="btnClassName"
               @click="() => handleEdit(record as MenuRecord)"
@@ -855,30 +856,30 @@ const columns: BasicColumn[] = [
                 <Icon icon="ant-design:edit-outlined" />
               </template>
               编辑
-            </a-button>
-            <a-divider type="vertical" :class="dividerClassName" />
+            </AButton>
+            <ADivider type="vertical" :class="dividerClassName" />
             <!--
               删除是连带子树的，且没有回收站 —— 一刀下去可能十几项没了。
               这种操作不能点到就生效，必须有一次把影响面说清楚的确认。
             -->
-            <a-popconfirm
+            <APopconfirm
               :title="deleteConfirmTitle(record as MenuRecord)"
               ok-text="删除"
               ok-type="danger"
               cancel-text="取消"
               @confirm="() => handleDelete(record as MenuRecord)"
             >
-              <a-button type="link" danger :class="btnClassName">
+              <AButton type="link" danger :class="btnClassName">
                 <template #icon>
                   <Icon icon="ant-design:delete-outlined" />
                 </template>
                 删除
-              </a-button>
-            </a-popconfirm>
+              </AButton>
+            </APopconfirm>
           </div>
         </template>
       </BasicTable>
-    </a-card>
+    </ACard>
 
     <BasicDrawer
       :title="isEditing ? '编辑菜单' : '新增菜单'"

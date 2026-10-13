@@ -31,8 +31,12 @@ describe('cn', () => {
     expect(cn('text-base', 'text-sm')).toBe('text-sm');
   });
 
-  it('不同工具的类互不覆盖', () => {
-    expect(cn('m-2 p-2')).toBe('p-2 m-2');
+  it('不同工具组的类互不覆盖，且保持书写顺序', () => {
+    // margin 与 padding 是两个独立组，谁也不吃掉谁；cn 只做冲突剔除，不重排
+    expect(cn('m-2 p-2')).toBe('m-2 p-2');
+    expect(cn('m-2 p-2', 'p-4')).toBe('m-2 p-4');
+    // 只有同一维度的类才互相抵消，`mt-4` 只是补在 `m-2` 之后靠层叠生效
+    expect(cn('m-2 p-2', 'mt-4')).toBe('m-2 p-2 mt-4');
   });
 
   it('支持数组与嵌套数组', () => {

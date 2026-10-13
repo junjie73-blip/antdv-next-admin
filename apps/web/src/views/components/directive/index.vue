@@ -7,8 +7,9 @@ import type {
 import { computed, onUnmounted, reactive, ref, watch } from 'vue';
 
 import { createPermissionDirective } from '@antdv/directives';
+import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
-import { Scrollbar } from '@antdv/ui/scrollbar';
+import { Button as AButton, Card as ACard, Checkbox as ACheckbox, CheckboxGroup as ACheckboxGroup } from 'antdv-next';
 import audioUrl from '~/assets/images/audio.jpg';
 import excelUrl from '~/assets/images/excel.jpg';
 import imgUrl from '~/assets/images/img.jpg';
@@ -219,7 +220,7 @@ const strictSafeHtml = {
 
 <template>
   <div :class="containerClassName">
-    <a-card title="v-permission 权限指令" variant="borderless">
+    <ACard title="v-permission 权限指令" variant="borderless">
       <p :class="hintClassName">
         全局那条的判定来自
         <code :class="codeClassName">usePermission()</code>（也就是当前登录用户的权限表）。 本页改用本地实例
@@ -231,25 +232,25 @@ const strictSafeHtml = {
         <div class="space-y-3">
           <div>
             <div class="mb-2 text-sm font-medium">授予的权限码</div>
-            <a-checkbox-group
+            <ACheckboxGroup
               v-model:value="grantedCodes"
               class="flex flex-col gap-1"
             >
-              <a-checkbox value="user:add">user:add</a-checkbox>
-              <a-checkbox value="user:export">user:export</a-checkbox>
-              <a-checkbox value="user:delete">user:delete</a-checkbox>
-            </a-checkbox-group>
+              <ACheckbox value="user:add">user:add</ACheckbox>
+              <ACheckbox value="user:export">user:export</ACheckbox>
+              <ACheckbox value="user:delete">user:delete</ACheckbox>
+            </ACheckboxGroup>
           </div>
           <div>
             <div class="mb-2 text-sm font-medium">授予的角色</div>
-            <a-checkbox-group
+            <ACheckboxGroup
               v-model:value="grantedRoles"
               class="flex flex-col gap-1"
             >
-              <a-checkbox value="editor">editor</a-checkbox>
-              <a-checkbox value="auditor">auditor</a-checkbox>
-              <a-checkbox value="super">super（超管）</a-checkbox>
-            </a-checkbox-group>
+              <ACheckbox value="editor">editor</ACheckbox>
+              <ACheckbox value="auditor">auditor</ACheckbox>
+              <ACheckbox value="super">super（超管）</ACheckbox>
+            </ACheckboxGroup>
           </div>
           <div>
             <div class="mb-2 text-sm font-medium">判定轨迹</div>
@@ -273,30 +274,30 @@ const strictSafeHtml = {
 
         <div class="space-y-2">
           <div :class="rowClassName">
-            <a-button v-demo-permission="'user:add'" type="primary">
+            <AButton v-demo-permission="'user:add'" type="primary">
               单权限码
-            </a-button>
+            </AButton>
             <span :class="hintClassName">没有 user:add 时整块不占位</span>
           </div>
           <div :class="rowClassName">
-            <a-button v-demo-permission="['user:export', 'user:delete']">
+            <AButton v-demo-permission="['user:export', 'user:delete']">
               任一命中
-            </a-button>
+            </AButton>
             <span :class="hintClassName">
               <code :class="codeClassName">v-permission="['a','b']"</code>
               默认按 any 判定
             </span>
           </div>
           <div :class="rowClassName">
-            <a-button v-demo-permission.all="['user:export', 'user:delete']">
+            <AButton v-demo-permission.all="['user:export', 'user:delete']">
               全部命中
-            </a-button>
+            </AButton>
             <span :class="hintClassName">
               <code :class="codeClassName">.all</code> 改成 every
             </span>
           </div>
           <div :class="rowClassName">
-            <a-button v-demo-permission:role="'auditor'">按角色</a-button>
+            <AButton v-demo-permission:role="'auditor'">按角色</AButton>
             <span :class="hintClassName">
               <code :class="codeClassName">:role</code> 是指令的
               <strong>参数（arg）</strong>，字符串值因此按角色解释；写成
@@ -304,18 +305,18 @@ const strictSafeHtml = {
             </span>
           </div>
           <div :class="rowClassName">
-            <a-button v-demo-permission:admin danger type="primary">
+            <AButton v-demo-permission:admin danger type="primary">
               仅超管
-            </a-button>
+            </AButton>
             <span :class="hintClassName">
               <code :class="codeClassName">:admin</code> 走
               <code :class="codeClassName">isAdmin()</code>
             </span>
           </div>
           <div :class="rowClassName">
-            <a-button v-demo-permission.disabled="'user:export'">
+            <AButton v-demo-permission.disabled="'user:export'">
               无权限时置灰
-            </a-button>
+            </AButton>
             <span :class="hintClassName">
               <code :class="codeClassName">.disabled</code>
               保留可见只禁用，降级样式来自
@@ -323,7 +324,7 @@ const strictSafeHtml = {
             </span>
           </div>
           <div :class="rowClassName">
-            <a-button
+            <AButton
               v-demo-permission="{
                 mode: 'all',
                 permission: ['user:add'],
@@ -331,14 +332,14 @@ const strictSafeHtml = {
               }"
             >
               对象写法
-            </a-button>
+            </AButton>
             <span :class="hintClassName">权限与角色两组都要满足</span>
           </div>
         </div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="v-loading 元素级遮罩" variant="borderless">
+    <ACard title="v-loading 元素级遮罩" variant="borderless">
       <p :class="hintClassName">
         配置从属性读：
         <code :class="codeClassName">loading-tip</code>、
@@ -353,13 +354,13 @@ const strictSafeHtml = {
           <div v-loading="loadingState.box" :class="boxClassName">
             <p class="m-0 text-sm">默认浅色遮罩，2 秒后自动收起。</p>
           </div>
-          <a-button
+          <AButton
             :loading="loadingState.box"
             class="mt-2"
             @click="flashLoading('box')"
           >
             加载这块
-          </a-button>
+          </AButton>
         </div>
         <div>
           <div
@@ -371,31 +372,31 @@ const strictSafeHtml = {
           >
             <p class="m-0 text-sm">深色主题 + 大尺寸 + 自定义文案。</p>
           </div>
-          <a-button
+          <AButton
             :loading="loadingState.dark"
             class="mt-2"
             @click="flashLoading('dark')"
           >
             加载那块
-          </a-button>
+          </AButton>
         </div>
       </div>
       <div :class="rowClassName" class="mt-3">
-        <a-button
+        <AButton
           v-loading.fullscreen="loadingState.full"
           @click="flashLoading('full')"
         >
           整页遮罩
-        </a-button>
+        </AButton>
         <span :class="hintClassName">
           路由切换时的全屏 loading 由
           <code :class="codeClassName">createFullscreenLoading()</code>
           做同一件事。
         </span>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="v-lazy 图片懒加载" variant="borderless">
+    <ACard title="v-lazy 图片懒加载" variant="borderless">
       <p :class="hintClassName">
         进视口（提前 100px）才发请求，带渐显；加载失败回退到
         <code :class="codeClassName">error</code>
@@ -406,7 +407,7 @@ const strictSafeHtml = {
         的全局缓存，所以会一次到位。
       </p>
       <div class="mb-2">
-        <a-button @click="replayLazy">重放（重新挂载图片墙）</a-button>
+        <AButton @click="replayLazy">重放（重新挂载图片墙）</AButton>
       </div>
       <div :class="boxClassName">
         <Scrollbar root-class="max-h-64">
@@ -436,9 +437,9 @@ const strictSafeHtml = {
           </div>
         </Scrollbar>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="v-safe-html 与 v-escape 防 XSS" variant="borderless">
+    <ACard title="v-safe-html 与 v-escape 防 XSS" variant="borderless">
       <p :class="hintClassName">
         富文本走
         <code :class="codeClassName">v-safe-html</code>：先按兜底规则剥离 script
@@ -493,11 +494,11 @@ const strictSafeHtml = {
             :class="codeClassName"
             data-escape-box="url"
           ></span>
-          <a-button @click="unsafeUrl = 'https://example.com/report'">
+          <AButton @click="unsafeUrl = 'https://example.com/report'">
             换成安全链接
-          </a-button>
+          </AButton>
         </div>
       </div>
-    </a-card>
+    </ACard>
   </div>
 </template>

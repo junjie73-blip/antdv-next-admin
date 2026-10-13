@@ -8,6 +8,7 @@ import { ref } from 'vue';
 import { cn } from '@antdv/shared/cn';
 import { exportToExcel } from '@antdv/shared/excel';
 import { Icon } from '@iconify/vue';
+import { Button as AButton, Divider as ADivider, Popconfirm as APopconfirm, Tag as ATag, message } from 'antdv-next';
 import { deleteOperLog, getOperLogList } from '~/api/system';
 import { BasicDrawer, useDrawer } from '~/components/business/Drawer';
 import { BasicTable, useTable } from '~/components/business/Table';
@@ -539,35 +540,35 @@ const loginColumns: BasicColumn[] = [
           @register="tableRegister"
         >
           <template #toolbar>
-            <a-button @click="handleExport">
+            <AButton @click="handleExport">
               <template #icon><Icon icon="carbon:export" /></template>
               导出
-            </a-button>
-            <a-button danger @click="handleBatchDelete">
+            </AButton>
+            <AButton danger @click="handleBatchDelete">
               <template #icon>
                 <Icon icon="ant-design:delete-outlined" />
               </template>
               批量删除
-            </a-button>
-            <a-popconfirm
+            </AButton>
+            <APopconfirm
               title="确定要清空所有系统日志吗？此操作不可恢复！"
               @confirm="handleClear"
             >
-              <a-button danger>
+              <AButton danger>
                 <template #icon><Icon icon="carbon:trash-can" /></template>
                 清空
-              </a-button>
-            </a-popconfirm>
+              </AButton>
+            </APopconfirm>
           </template>
 
           <template #cell-operType="{ record }">
-            <a-tag :color="operTypeColorMap[record.operType] || 'default'">
+            <ATag :color="operTypeColorMap[record.operType] || 'default'">
               {{ record.operType }}
-            </a-tag>
+            </ATag>
           </template>
 
           <template #cell-status="{ record }">
-            <a-tag :color="statusColorMap[record.status] || 'default'">
+            <ATag :color="statusColorMap[record.status] || 'default'">
               <span class="inline-flex items-center gap-1">
                 <Icon
                   :icon="
@@ -578,7 +579,7 @@ const loginColumns: BasicColumn[] = [
                 />
                 {{ statusLabelMap[record.status] || '未知' }}
               </span>
-            </a-tag>
+            </ATag>
           </template>
 
           <template #cell-costTime="{ record }">
@@ -597,7 +598,7 @@ const loginColumns: BasicColumn[] = [
 
           <template #action="{ record }">
             <div :class="actionClassName">
-              <a-button
+              <AButton
                 type="link"
                 :class="btnClassName"
                 @click="() => handleView(record)"
@@ -606,19 +607,19 @@ const loginColumns: BasicColumn[] = [
                   <Icon icon="ant-design:eye-outlined" />
                 </template>
                 详情
-              </a-button>
-              <a-divider type="vertical" :class="dividerClassName" />
-              <a-popconfirm
+              </AButton>
+              <ADivider type="vertical" :class="dividerClassName" />
+              <APopconfirm
                 :title="`确定要删除日志 #${record.id} 吗？`"
                 @confirm="() => handleDelete(record)"
               >
-                <a-button type="link" danger :class="btnClassName">
+                <AButton type="link" danger :class="btnClassName">
                   <template #icon>
                     <Icon icon="ant-design:delete-outlined" />
                   </template>
                   删除
-                </a-button>
-              </a-popconfirm>
+                </AButton>
+              </APopconfirm>
             </div>
           </template>
         </BasicTable>
@@ -642,9 +643,9 @@ const loginColumns: BasicColumn[] = [
           @register="loginTableRegister"
         >
           <template #cell-status="{ record }">
-            <a-tag :color="record.status === 0 ? 'green' : 'red'">
+            <ATag :color="record.status === 0 ? 'green' : 'red'">
               {{ record.status === 0 ? '成功' : '失败' }}
-            </a-tag>
+            </ATag>
           </template>
         </BasicTable>
       </template>
@@ -700,11 +701,11 @@ const loginColumns: BasicColumn[] = [
             ></div>
             <div class="mb-1 text-xs text-gray-400">操作类型</div>
             <div class="text-sm">
-              <a-tag
+              <ATag
                 :color="operTypeColorMap[viewingRecord.operType] || 'default'"
               >
                 {{ viewingRecord.operType }}
-              </a-tag>
+              </ATag>
             </div>
           </div>
           <div class="relative pb-6">
@@ -751,9 +752,9 @@ const loginColumns: BasicColumn[] = [
             ></div>
             <div class="mb-1 text-xs text-gray-400">执行状态</div>
             <div class="text-sm">
-              <a-tag :color="statusColorMap[viewingRecord.status] || 'default'">
+              <ATag :color="statusColorMap[viewingRecord.status] || 'default'">
                 {{ statusLabelMap[viewingRecord.status] || '未知' }}
-              </a-tag>
+              </ATag>
             </div>
           </div>
           <div class="relative">

@@ -3,6 +3,7 @@ import { computed, ref, useTemplateRef } from 'vue';
 import { VueCropper } from 'vue-cropper';
 
 import { cn } from '@antdv/shared/cn';
+import { Card as ACard, Slider as ASlider, Switch as ASwitch } from 'antdv-next';
 import { isString } from 'es-toolkit';
 
 type AspectRatioKey = '1:1' | '4:3' | '16:9' | 'free';
@@ -169,7 +170,7 @@ function handleRealTime(data: { w: number; h: number; url: string }) {
 
 <template>
   <div :class="containerClassName">
-    <a-card variant="borderless" title="图片裁剪">
+    <ACard variant="borderless" title="图片裁剪">
       <p :class="cn('mb-4 text-gray-600 dark:text-gray-400')">
         上传图片后，使用下方工具进行裁剪操作，支持旋转、缩放、比例锁定等功能
       </p>
@@ -234,7 +235,7 @@ function handleRealTime(data: { w: number; h: number; url: string }) {
             <div :class="controlCardTitleClassName">缩放</div>
             <div :class="sliderRowClassName">
               <span :class="sliderLabelClassName">缩小</span>
-              <a-slider
+              <ASlider
                 :class="sliderClassName"
                 :min="-100"
                 :max="100"
@@ -277,7 +278,7 @@ function handleRealTime(data: { w: number; h: number; url: string }) {
             "
           >
             <span :class="cn('text-sm text-gray-600 dark:text-gray-400')">实时预览</span>
-            <a-switch v-model:checked="previewVisible" />
+            <ASwitch v-model:checked="previewVisible" />
           </div>
 
           <div :class="dividerClassName"></div>
@@ -305,6 +306,6 @@ function handleRealTime(data: { w: number; h: number; url: string }) {
           </div>
         </div>
       </div>
-    </a-card>
+    </ACard>
   </div>
 </template>

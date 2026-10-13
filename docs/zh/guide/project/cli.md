@@ -32,16 +32,16 @@ pnpm build:docker     # scripts/deploy/build-local-docker-image.sh
 pnpm --filter @antdv/web build            # 单包构建
 ```
 
-::: warning 体积分析走环境变量，不走 `build:analyze` 根 scripts 里的 `build:analyze` 指向的 turbo 任务在 `turbo.json` 里**没有定义**，会报找不到任务。实际可用的路径是：`VITE_VISUALIZER=true pnpm build` （`createVisualizerPlugin` 按该开关挂 `vite-bundle-analyzer`，见 [Vite Config](/guide/project/vite)）。:::
+::: warning 体积分析走环境变量，不走 `build:analyze` 根 scripts 里的 `build:analyze` 指向的 turbo 任务在 `turbo.json` 里**没有定义**，会报找不到任务。实际可用的路径是：`VITE_VISUALIZER=true pnpm build` （`createVisualizerPlugin` 按该开关挂 `vite-bundle-analyzer`，见 [Vite Config](/zh/guide/project/vite)）。:::
 
-turbo 任务图（`turbo.json`）：`build / dev / type-check / test:unit / test:e2e` 全部 `dependsOn ^build`（先构建依赖包再动本包）；`dev / test:e2e / clean` 不缓存； `build` 的 outputs 声明了 `dist / .output / .nitro / .vitepress/dist`。改了 `packages/*` 后浏览器读的是子包 `dist`，dev 缓存没失效时会"改了没反应"——重启 dev 是 [测试](/guide/project/testing)文末清单里的固定动作。
+turbo 任务图（`turbo.json`）：`build / dev / type-check / test:unit / test:e2e` 全部 `dependsOn ^build`（先构建依赖包再动本包）；`dev / test:e2e / clean` 不缓存； `build` 的 outputs 声明了 `dist / .output / .nitro / .vitepress/dist`。改了 `packages/*` 后浏览器读的是子包 `dist`，dev 缓存没失效时会"改了没反应"——重启 dev 是 [测试](/zh/guide/project/testing)文末清单里的固定动作。
 
 ## 质量与检查
 
 ```bash
 pnpm check            # check:circular && check:dep && check:type && check:cspell
 pnpm check:type       # turbo run type-check（apps/web 是两个 vue-tsc 项目：app + vitest）
-pnpm lint             # vsh lint（oxlint/oxfmt/eslint/stylelint 四连，见[规范](/guide/project/protocol)）
+pnpm lint             # vsh lint（oxlint/oxfmt/eslint/stylelint 四连，见[规范](/zh/guide/project/protocol)）
 pnpm format           # vsh lint --format
 pnpm publint          # vsh publint：发布前检查包导出面
 pnpm test:unit        # turbo run test:unit（21 个任务）
@@ -57,7 +57,7 @@ pnpm test:benchmark   # vitest bench --run
 | 产物 | 谁生成 | 备注 |
 | --- | --- | --- |
 | `apps/web/types/router.d.ts` | unplugin-vue-router（`routesFolder: src/views`） | 约定式路由类型 |
-| `apps/web/types/auto-imports.d.ts` / `components.d.ts` | unplugin-auto-import / vue-components | 入库文件；映射盘上偶发写失败带走进程时用 `VITE_WRITE_DTS=false` 跳过（见 [Vite Config](/guide/project/vite)） |
+| `apps/web/types/auto-imports.d.ts` / `components.d.ts` | unplugin-auto-import / vue-components | 入库文件；映射盘上偶发写失败带走进程时用 `VITE_WRITE_DTS=false` 跳过（见 [Vite Config](/zh/guide/project/vite)） |
 | `apps/web/types/env.d.ts` | `vite-plugin-env-parse` | 环境变量类型 |
 
 这些文件由 dev/build 顺带刷新，**不要手改**。
@@ -71,7 +71,7 @@ pnpm version          # changeset version && pnpm install --no-frozen-lockfile
 pnpm release          # build && changeset publish
 ```
 
-细节见 [Changeset](/guide/project/changeset)。
+细节见 [Changeset](/zh/guide/project/changeset)。
 
 ## 杂项
 
@@ -83,5 +83,5 @@ pnpm release          # build && changeset publish
 
 ## 相关页面
 
-- 环境变量的读取与开关语义：[Vite Config](/guide/project/vite)
-- 各条测试命令的取舍与口径：[测试](/guide/project/testing)
+- 环境变量的读取与开关语义：[Vite Config](/zh/guide/project/vite)
+- 各条测试命令的取舍与口径：[测试](/zh/guide/project/testing)

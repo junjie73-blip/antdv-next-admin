@@ -10,9 +10,9 @@
 | 应用级 | `apps/web/src/composables/` | `~/composables`（barrel）或具体文件深路径 | `useCRUD`、`usePermission`、`http` / `request` / `useRequest` / `requestCache`、`useLocale`、`useLocaleSync`、`useThemeTransition`、`useNotice`、`usePasswordPolicy` |
 | 库无关通用件 | `@antdv/composables` | 根入口 `@antdv/composables`，重件走子路径 | `useCache`、`useChunkUpload`、`useFileReader`、`usePrint`、`useRouteLoading`、`useWatermark`；`@antdv/composables/echarts`、`/sse`、`/websocket` |
 
-::: warning 本仓库的组合式函数一个都不自动导入 `unplugin-auto-import` 的 `imports` 只列了 `vue` / `@vueuse/core` / `pinia` / `vue-router` 和 antdv-next 的 `message`、`notification`、`Modal`、`Drawer`（`internal/vite-config/src/plugins/auto-import.ts:73-84`），**没有配 `dirs`**。所以 `useTable`、`http`、`usePermission` 都必须显式 `import`。
+::: warning 本仓库的组合式函数一个都不自动导入 `unplugin-auto-import` 的 `imports` 只列了 `vue` / `@vueuse/core` / `pinia` / `vue-router` 四项（`internal/vite-config/src/plugins/auto-import.ts:48-51`），**没有配 `dirs`**，antdv-next 的函数式 API 也早就不在里面了。所以 `useTable`、`http`、`usePermission`，以及 `message` / `notification` / `Modal` / `Drawer` 这一类必须显式 `import`。
 
-撞名比漏 import 更阴：`@vueuse/core` 自己就导出 `usePermission`（浏览器的 Permissions API）和 `useWebSocket`，这两个已经躺在 `apps/web/types/auto-imports.d.ts:236` 与 `:297` 里被自动导入了。少写一行 import 不会报错，只会拿到另一个函数的返回值 —— vueuse 的 `usePermission()` 返回的是 `{ permissions }` 一个 ref，压根没有 `hasPermission` 方法。
+撞名比漏 import 更阴：`@vueuse/core` 自己就导出 `usePermission`（浏览器的 Permissions API）和 `useWebSocket`，这两个已经躺在 `apps/web/types/auto-imports.d.ts:232` 与 `:293` 里被自动导入了。少写一行 import 不会报错，只会拿到另一个函数的返回值 —— vueuse 的 `usePermission()` 返回的是 `{ permissions }` 一个 ref，压根没有 `hasPermission` 方法。
 
 `@antdv/composables` 的 `echarts` / `sse` / `websocket` 故意**不进根 barrel**：它们要么拖进整个图表库注册表，要么带一堆管理器类，放进根入口会让 `import { usePrint }` 也付出一份图表的解析成本（`packages/composables/src/index.ts:1-12`，`exports` 映射见 `packages/composables/package.json:21-43`，其中 `"./*"` 通配让单文件模块可以直接按名引）。:::
 
@@ -266,7 +266,7 @@ const actions = (record: Recordable): ActionItem[] => [
 
 `ActionItem.popConfirm` 会渲染成 `Popconfirm`（`title` + `description`），`confirm`/`cancel` 收 `record` 与事件。工具条上的按钮没有 `auth` 载体，就用 `hasPermission` 算 `computed` 开关（示例页的 `canAdd` / `canBatchDelete`）。
 
-模板级声明用 `v-permission`，它的 arg/modifier 口径、和 store 解耦的注入方式都写在[权限、指令与光标](/guide/in-depth/access)。**同一份判定函数**是这两条通道共享的 —— 指令的 `checkers` 就是 `() => usePermission()`（`apps/web/src/directives/index.ts:21-33`）。
+模板级声明用 `v-permission`，它的 arg/modifier 口径、和 store 解耦的注入方式都写在[权限、指令与光标](/zh/guide/in-depth/access)。**同一份判定函数**是这两条通道共享的 —— 指令的 `checkers` 就是 `() => usePermission()`（`apps/web/src/directives/index.ts:21-33`）。
 
 ## 四、请求层：`http` / `useRequest` / `requestCache`
 
@@ -344,7 +344,7 @@ watchDebounced(api, () => refresh(), { immediate: true, debounce: 200 });
 
 `useLocale()`（`composables/web/useLocale.ts:64-81`）给模板用：`{ availableLocales, locale, setLocale, t }`。**写语言只有一条路** —— `setLocale` 改的是偏好（`appStore.updateSetting({ locale })`），效应由 `useLocaleSync` 统一展开；任何组件都不该再自己写 `i18n.global.locale`，两处各写一份迟早漂移（表现是"菜单变英文、分页器还是中文"）。
 
-`useLocaleSync()`（`:46-62`）是 locale 效应的唯一出口，`App.vue:13` 在根组件调一次，把返回的 `antdLocale` 交给 `ConfigProvider :locale`。它 `watch` 偏好并展开四件事：i18n 文案、`<html lang>`、dayjs locale（注意 dayjs 用小写短码 `zh-cn`，与偏好里的 BCP 47 不同源，`:22-25`）、antd 内置文案的按需动态 import。语言包名一律用本语言自称（`localeLabels`，`:16-19`）。消费方是 `layouts/components/LocaleSwitcher.vue:16`，口径详见[国际化](/guide/in-depth/internationalization)。
+`useLocaleSync()`（`:46-62`）是 locale 效应的唯一出口，`App.vue:13` 在根组件调一次，把返回的 `antdLocale` 交给 `ConfigProvider :locale`。它 `watch` 偏好并展开四件事：i18n 文案、`<html lang>`、dayjs locale（注意 dayjs 用小写短码 `zh-cn`，与偏好里的 BCP 47 不同源，`:22-25`）、antd 内置文案的按需动态 import。语言包名一律用本语言自称（`localeLabels`，`:16-19`）。消费方是 `layouts/components/LocaleSwitcher.vue:16`，口径详见[国际化](/zh/guide/in-depth/internationalization)。
 
 `useThemeTransition()`（`composables/web/useThemeTransition.ts:35-121`）负责带圆形扩散动画的主题切换：
 
@@ -431,7 +431,7 @@ WebSocket 这一侧的口径是：业务代码订**应用级单例** `useWebSock
 - [表格](/components/table) —— `BasicTable` / `useTable` 的 props、插槽、实例方法清单
 - [表单](/components/form) —— `useForm` / `FormSchema` 与 `componentMap`
 - [弹窗与抽屉](/components/modal-drawer) —— `useModal` / `useModalInner` / `useDrawer` 的容器 props
-- [权限、指令与光标](/guide/in-depth/access) —— 路由级裁剪、`v-permission`、兜底页 403/404
-- [服务端交互与接口约定](/guide/essentials/request) —— 信封约定与 `/api` 前缀
-- [国际化](/guide/in-depth/internationalization)、[主题](/guide/in-depth/theme)、[全局 loading](/guide/in-depth/loading)
+- [权限、指令与光标](/zh/guide/in-depth/access) —— 路由级裁剪、`v-permission`、兜底页 403/404
+- [服务端交互与接口约定](/zh/guide/essentials/request) —— 信封约定与 `/api` 前缀
+- [国际化](/zh/guide/in-depth/internationalization)、[主题](/zh/guide/in-depth/theme)、[全局 loading](/zh/guide/in-depth/loading)
 - [组合式函数（本文英文页）](/en/guide/in-depth/composables)

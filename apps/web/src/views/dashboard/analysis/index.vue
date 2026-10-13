@@ -7,7 +7,7 @@ import { RouterLink } from 'vue-router';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
 import { useEventListener } from '@vueuse/core';
-import { message } from 'antdv-next';
+import { Button as AButton, Card as ACard, Col as ACol, RadioButton as ARadioButton, RadioGroup as ARadioGroup, Row as ARow, Segmented as ASegmented, Space as ASpace, Tag as ATag, message } from 'antdv-next';
 import * as echarts from 'echarts';
 import { useAppStore } from '~/stores/modules/app';
 
@@ -1001,19 +1001,19 @@ onBeforeUnmount(() => {
           系统数据分析与可视化 · {{ todayLabel }}
         </p>
       </div>
-      <a-space>
-        <a-segmented
+      <ASpace>
+        <ASegmented
           :options="['今日', '近7天', '近30天']"
           default-value="今日"
           size="small"
         />
-        <a-button size="small" @click="handleExportReport">
+        <AButton size="small" @click="handleExportReport">
           <template #icon>
             <Icon icon="carbon:download" />
           </template>
           导出报告
-        </a-button>
-      </a-space>
+        </AButton>
+      </ASpace>
     </div>
 
     <!-- 数据分析内容 -->
@@ -1071,7 +1071,7 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- 主趋势图：全宽 -->
-      <a-card
+      <ACard
         :class="analyticsCardClassName"
         variant="borderless"
         :styles="{ body: { padding: '20px 24px' } }"
@@ -1079,23 +1079,23 @@ onBeforeUnmount(() => {
       >
         <div class="mb-4 flex items-center justify-between">
           <h3 :class="sectionTitleClassName">系统活动趋势</h3>
-          <a-radio-group
+          <ARadioGroup
             size="small"
             button-style="solid"
             default-value="pv"
             class="origin-right scale-90"
           >
-            <a-radio-button value="pv"> PV / UV </a-radio-button>
-            <a-radio-button value="api"> API 调用 </a-radio-button>
-          </a-radio-group>
+            <ARadioButton value="pv"> PV / UV </ARadioButton>
+            <ARadioButton value="api"> API 调用 </ARadioButton>
+          </ARadioGroup>
         </div>
         <div ref="mainTrendRef" class="w-full" style="height: 380px"></div>
-      </a-card>
+      </ACard>
 
       <!-- 第二行：分布 + 仪表盘 -->
-      <a-row :gutter="[16, 16]" class="mt-6">
-        <a-col :xs="24" :lg="12">
-          <a-card
+      <ARow :gutter="[16, 16]" class="mt-6">
+        <ACol :xs="24" :lg="12">
+          <ACard
             :class="analyticsCardClassName"
             variant="borderless"
             :styles="{ body: { padding: '20px 24px' } }"
@@ -1106,10 +1106,10 @@ onBeforeUnmount(() => {
               class="w-full"
               style="height: 320px"
             ></div>
-          </a-card>
-        </a-col>
-        <a-col :xs="24" :lg="12">
-          <a-card
+          </ACard>
+        </ACol>
+        <ACol :xs="24" :lg="12">
+          <ACard
             :class="analyticsCardClassName"
             variant="borderless"
             :styles="{ body: { padding: '20px 24px' } }"
@@ -1120,14 +1120,14 @@ onBeforeUnmount(() => {
               class="w-full"
               style="height: 320px"
             ></div>
-          </a-card>
-        </a-col>
-      </a-row>
+          </ACard>
+        </ACol>
+      </ARow>
 
       <!-- 第三行：雷达图 + 热力图 -->
-      <a-row :gutter="[16, 16]">
-        <a-col :xs="24" :lg="12">
-          <a-card
+      <ARow :gutter="[16, 16]">
+        <ACol :xs="24" :lg="12">
+          <ACard
             :class="analyticsCardClassName"
             variant="borderless"
             :styles="{ body: { padding: '20px 24px' } }"
@@ -1138,10 +1138,10 @@ onBeforeUnmount(() => {
               class="w-full"
               style="height: 320px"
             ></div>
-          </a-card>
-        </a-col>
-        <a-col :xs="24" :lg="12">
-          <a-card
+          </ACard>
+        </ACol>
+        <ACol :xs="24" :lg="12">
+          <ACard
             :class="analyticsCardClassName"
             variant="borderless"
             :styles="{ body: { padding: '20px 24px' } }"
@@ -1152,14 +1152,14 @@ onBeforeUnmount(() => {
               class="w-full"
               style="height: 320px"
             ></div>
-          </a-card>
-        </a-col>
-      </a-row>
+          </ACard>
+        </ACol>
+      </ARow>
 
       <!-- 第四行：漏斗 + 排行榜 -->
-      <a-row :gutter="[16, 16]" class="items-stretch">
-        <a-col :xs="24" :lg="10" class="mb-2">
-          <a-card
+      <ARow :gutter="[16, 16]" class="items-stretch">
+        <ACol :xs="24" :lg="10" class="mb-2">
+          <ACard
             :class="cn(analyticsCardClassName, 'h-full')"
             variant="borderless"
             :styles="{
@@ -1176,10 +1176,10 @@ onBeforeUnmount(() => {
               class="w-full flex-1"
               style="min-height: 280px"
             ></div>
-          </a-card>
-        </a-col>
-        <a-col :xs="24" :lg="14" class="mb-2">
-          <a-card
+          </ACard>
+        </ACol>
+        <ACol :xs="24" :lg="14" class="mb-2">
+          <ACard
             :class="cn(analyticsCardClassName, 'h-full')"
             variant="borderless"
             :styles="{
@@ -1192,21 +1192,21 @@ onBeforeUnmount(() => {
           >
             <div class="mb-4 flex items-center justify-between">
               <h3 :class="sectionTitleClassName">模块使用热度</h3>
-              <a-tag color="blue" class="text-[11px]"> 实时更新 </a-tag>
+              <ATag color="blue" class="text-[11px]"> 实时更新 </ATag>
             </div>
             <div
               ref="moduleRankRef"
               class="w-full flex-1"
               style="min-height: 280px"
             ></div>
-          </a-card>
-        </a-col>
-      </a-row>
+          </ACard>
+        </ACol>
+      </ARow>
 
       <!-- 第五行：快捷操作 + 最近动态（原工作台内容并入） -->
-      <a-row :gutter="[16, 16]" class="items-stretch">
-        <a-col :xs="24" :lg="12">
-          <a-card
+      <ARow :gutter="[16, 16]" class="items-stretch">
+        <ACol :xs="24" :lg="12">
+          <ACard
             :class="analyticsCardClassName"
             variant="borderless"
             :styles="{ body: { padding: '20px 24px' } }"
@@ -1239,10 +1239,10 @@ onBeforeUnmount(() => {
                 </span>
               </RouterLink>
             </div>
-          </a-card>
-        </a-col>
-        <a-col :xs="24" :lg="12">
-          <a-card
+          </ACard>
+        </ACol>
+        <ACol :xs="24" :lg="12">
+          <ACard
             :class="analyticsCardClassName"
             variant="borderless"
             :styles="{ body: { padding: '20px 24px' } }"
@@ -1272,9 +1272,9 @@ onBeforeUnmount(() => {
                 </span>
               </li>
             </ul>
-          </a-card>
-        </a-col>
-      </a-row>
+          </ACard>
+        </ACol>
+      </ARow>
     </div>
   </div>
 </template>

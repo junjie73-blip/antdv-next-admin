@@ -32,7 +32,7 @@ import { useWebSocket } from '@antdv/composables/websocket';
 | 模块（子路径） | 代表导出 | 消费者 | 单测 |
 | --- | --- | --- | --- |
 | `cache` | `cache`（`src/cache/index.ts:196`）、`createCache`（`:60`）、`buildStorageKey`（`:40`）、`encryptToken` / `decryptToken`（`src/cache/tokenCrypto.ts:77,106`） | `stores/modules/user.ts:5` | 有 |
-| `cn` | `cn()`（`src/cn.ts:6`） | 全仓 107 个文件，如 `layouts/components/LayoutNavRail.vue:48` | 有 |
+| `cn` | `cn()`（`src/cn.ts:6`） | 全仓 446 个文件，如 `packages/ui-kit/layout-ui/src/components/LayoutBreadcrumb.vue:14` | 有 |
 | `crypto` | `encrypt` / `decrypt` / `encryptObject` / `decryptObject`（`src/crypto/aes.ts:14,19,24,31`）、`md5` / `md5File` / `sha256` / `hash`（`src/crypto/hash.ts:3,7,32,40`） | **无调用点** | 无 |
 | `csrf` | `config`（`src/csrf.ts:67`）、`initCsrfProtection`（`:111`）、`getCsrfToken`（`:164`） | `composables/web/request/fetcher.ts:5-8`、`utils/securityInit.ts:9` | 有 |
 | `dayjs` | `dayjs`（`src/dayjs.ts:136`）、`setTimezone`（`:62`）、`nowTz`（`:116`） | `stores/modules/app.ts:7,130`、`layouts/widgets/WidgetTimezone.vue:8`、`composables/web/useLocale.ts:4` | 有 |
@@ -48,7 +48,7 @@ import { useWebSocket } from '@antdv/composables/websocket';
 | `menu` | `menuKeyOf`（`src/menu.ts:32`）、`attachMenuPaths`（`:258`）、`buildMenuItems`（`:561`）、`MenuPathRouter`（`:393`） | `stores/modules/route.ts:1-15`、`layouts/composables/useSidebarMenu.ts:10`、`packages/layouts/src/menu-source.ts:18` | 有 |
 | `template` | `generateTemplate`（`src/template.ts:30`） | `components/business/ImportExport.vue:7,194` | 有 |
 | `welcome` | `showLoginWelcome`（`src/welcome.ts:114`）、`getPersonalizedWelcome`（`:66`） | **无调用点** | 有 |
-| `xss` | `safeHtmlDirective`（`src/xss.ts:437`）、`escapeDirective`（`:454`）、`escapeHtml`（`:173`） | `directives/index.ts:17` → `main.ts:90,94`；`escapeHtml` 被 `packages/composables/src/usePrint.ts:1` | 有 |
+| `xss` | `safeHtmlDirective`（`src/xss.ts:437`）、`escapeDirective`（`:454`）、`escapeHtml`（`:173`） | `directives/index.ts:17` → `main.ts:103,107`；`escapeHtml` 被 `packages/composables/src/usePrint.ts:1` | 有 |
 
 ## `@antdv/composables` 清单
 
@@ -74,7 +74,7 @@ import { useWebSocket } from '@antdv/composables/websocket';
 | --- | --- | --- |
 | `apps/web/src/utils/dict.ts:7,18` | `getDictLabel` / `getDictLabels` | 在用（`components/business/Description/Description.vue:19`） |
 | `apps/web/src/utils/ws.ts:338` | `useWebSocket`、`WS_EVENTS`（`:76`）、`noticeTypeConfig`（`:52`） | 在用（`composables/useNotice.ts:11`、`layouts/widgets/WidgetNotice.vue:15`） |
-| `apps/web/src/utils/securityInit.ts:16` | `initSecuritySystem` | 在用（`main.ts:32,82`） |
+| `apps/web/src/utils/securityInit.ts:16` | `initSecuritySystem` | 在用（`main.ts:35,95`） |
 | `apps/web/src/utils/crud-actions.ts:15` | `createCrudActions` | **无调用点** |
 | `apps/web/src/utils/routePreload.ts:38,110,130` | `preloadRoute` / `preloadRoutes` / `useRoutePreloader` | **无调用点**（只被 `utils/index.ts:3` re-export） |
 | `apps/web/src/composables/index.ts:1-3` | `useCRUD`、`usePermission`、`web/request` 全家 | 请求层在用（`stores/modules/user.ts:7`、`route.ts:18` 取 `http`）；`usePermission` 从 `~/composables/web/permission` 直接引（`directives/index.ts:13`）；`useCRUD`（`useCRUD.ts:100`）**无调用点** |
@@ -117,7 +117,7 @@ export function cn(...inputs: ClassValue[]): string {
 }
 ```
 
-全仓 `from '@antdv/shared/cn'` 命中 **107 个文件**（`apps/web/src` 105 个，`packages/composables` 与 `packages/ui` 各 1 个），仓库里没有第二份 `cn` 实现，也没有别的类名合并库。`@antdv/shared` 因此依赖 `clsx` + `tailwind-merge` （`packages/shared/package.json:49,57`）；`apps/web` 也各自直依赖这两个包（`apps/web/package.json:75,99`），但**不要**在应用里直接 `import { twMerge }` 组类名 —— 冲突消解规则只有一份才谈得上口径。
+全仓 `from '@antdv/shared/cn'` 命中 **446 个文件**（`apps/web/src` 96 个，`packages` 350 个 —— 其中 `ui-kit/shadcn-ui` 314 个是 shadcn 生成的原子件，剩下 `form-ui` 14、`table-ui` 6、`popup-ui` 4、`tabs-ui` 4、`menu-ui` 3、`layout-ui` 2、`icons`、`loading-ui`、`composables` 各 1），仓库里没有第二份 `cn` 实现，也没有别的类名合并库。`@antdv/shared` 因此依赖 `clsx` + `tailwind-merge` （`packages/shared/package.json:49,57`）；`apps/web` 也各自直依赖这两个包（`apps/web/package.json:86,111`），但**不要**在应用里直接 `import { twMerge }` 组类名 —— 冲突消解规则只有一份才谈得上口径。
 
 命名规范同 `CODE_STANDARD.md` 第 2 节：Tailwind 优先，复杂/动态类名走 `cn()`。
 
@@ -130,7 +130,7 @@ pnpm --filter @antdv/shared build      # 或 @antdv/composables
 # 然后重启 dev：pnpm dev:web 只跑 vite，不会顺带构建子包
 ```
 
-`turbo` 的 `dev` / `build` 带 `dependsOn: ["^build"]`，所以 `pnpm dev`（走 `turbo-run`）与整仓 `build` 会先把上游包出 dist；但 `pnpm dev:web`（`package.json:20`）是 `pnpm --filter @antdv/web run dev`，**只起 vite**。包各自的 `dev` 脚本是 `tsdown --watch`（`packages/shared/package.json:10`），想要边改边生效就单独把它挂着。
+`turbo` 的 `dev` / `build` 带 `dependsOn: ["^build"]`，所以 `pnpm dev`（走 `turbo-run`）与整仓 `build` 会先把上游包出 dist；但 `pnpm dev:web`（`package.json:25`）是 `pnpm --filter @antdv/web run dev`，**只起 vite**。包各自的 `dev` 脚本是 `tsdown --watch`（`packages/shared/package.json:10`），想要边改边生效就单独把它挂着。
 
 ::: warning 症状是"改了没反应，也不报错" 表现：改 `packages/shared/src/**` → 保存 → 页面行为与类型都纹丝不动。原因是 Vite 的依赖缓存与 `optimizeDeps` 都指向 dist。先 `build` 再重启，别在应用侧绕开包自己抄一份实现。:::
 

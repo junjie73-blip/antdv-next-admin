@@ -53,7 +53,7 @@ Build side only (read inside `internal/vite-config`, invisible to the browser):
 | `VITE_PRINT` | off | custom dev startup banner | `:136` |
 | `VITE_INJECT_APP_LOADING` | off (both mode files set it to `true`) | injects the first-paint overlay; the plugin itself is **always registered**, see below | `:145` |
 | `VITE_APP_LOADING_DEV` / `_BUILD` / `_DURATION` / `_PATH` | the first two default to on when injection is enabled | dev/build injection, fade duration, custom overlay HTML | `:175-189` |
-| `VITE_WRITE_DTS` | on | turning it off skips rewriting the auto-import declaration files (a stability switch on mapped drives) | `:65-67` |
+| `VITE_WRITE_DTS` | on | turning it off skips rewriting the auto-import declaration files (a stability switch on mapped drives) | `:62-67` |
 | `VITE_DEV_POLLING` | off | sets `server.watch.usePolling`; the measured conclusion is in [Local development](/en/guide/essentials/development) | `config/application.ts:119-123` |
 | `VITE_MOCK_SERVER` / `VITE_MOCK_PORT` | `http://localhost:5320` / `5320` | proxy target and embedded Nitro port; both derive from the same variable on purpose | `utils/proxy.ts:40-90` |
 | `VITE_PROXY` | none | extra `[prefix, target][]` proxy entries; the mock proxy always wins | `config/application.ts:106` |

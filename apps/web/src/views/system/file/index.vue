@@ -7,7 +7,7 @@ import { computed, ref, useTemplateRef } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { Modal as AntModal } from 'antdv-next';
+import { Alert as AAlert, Button as AButton, Card as ACard, Divider as ADivider, Modal as AntModal, Popconfirm as APopconfirm, Tree as ATree, UploadDragger as AUploadDragger, message } from 'antdv-next';
 import {
   createFolder,
   deleteFile,
@@ -404,8 +404,8 @@ const columns: BasicColumn[] = [
   <div :class="containerClassName">
     <!-- 左侧文件树 -->
     <div :class="leftPanelClassName">
-      <a-card :class="treeCardClassName" title="文件结构" size="small">
-        <a-tree
+      <ACard :class="treeCardClassName" title="文件结构" size="small">
+        <ATree
           :tree-data="fileTreeData"
           default-expand-all
           block-node
@@ -419,12 +419,12 @@ const columns: BasicColumn[] = [
             }
           }"
         />
-      </a-card>
+      </ACard>
     </div>
 
     <!-- 右侧内容区 -->
     <div :class="rightPanelClassName">
-      <a-card title="文件列表" :class="cardClassName">
+      <ACard title="文件列表" :class="cardClassName">
         <!-- 面包屑导航 -->
         <div :class="breadcrumbClassName">
           <span>当前位置：</span>
@@ -483,26 +483,26 @@ const columns: BasicColumn[] = [
           @register="tableRegister"
         >
           <template #toolbar>
-            <a-button @click="handleCreateFolder">
+            <AButton @click="handleCreateFolder">
               <template #icon>
                 <Icon icon="ant-design:folder-add-outlined" />
               </template>
               新建文件夹
-            </a-button>
-            <a-button type="primary" @click="handleUpload">
+            </AButton>
+            <AButton type="primary" @click="handleUpload">
               <template #icon>
                 <Icon icon="ant-design:cloud-upload-outlined" />
               </template>
               上传文件
-            </a-button>
-            <a-button danger @click="handleBatchDelete">
+            </AButton>
+            <AButton danger @click="handleBatchDelete">
               <template #icon>
                 <Icon icon="ant-design:delete-outlined" />
               </template>
               批量删除 (
               {{ selectedRowKeys.length }}
               )
-            </a-button>
+            </AButton>
           </template>
 
           <template #cell-name="{ record }">
@@ -524,7 +524,7 @@ const columns: BasicColumn[] = [
 
           <template #action="{ record }">
             <div :class="actionClassName">
-              <a-button
+              <AButton
                 v-if="!record.isFolder"
                 type="link"
                 :class="btnClassName"
@@ -534,8 +534,8 @@ const columns: BasicColumn[] = [
                   <Icon icon="ant-design:download-outlined" />
                 </template>
                 下载
-              </a-button>
-              <a-button
+              </AButton>
+              <AButton
                 type="link"
                 :class="btnClassName"
                 @click="() => handleRename(record)"
@@ -544,23 +544,23 @@ const columns: BasicColumn[] = [
                   <Icon icon="ant-design:edit-outlined" />
                 </template>
                 重命名
-              </a-button>
-              <a-divider type="vertical" :class="dividerClassName" />
-              <a-popconfirm
+              </AButton>
+              <ADivider type="vertical" :class="dividerClassName" />
+              <APopconfirm
                 :title="`确定要删除「${record.name}」吗？${record.isFolder ? '文件夹内的所有内容也将被删除。' : ''}`"
                 @confirm="() => handleDelete(record)"
               >
-                <a-button type="link" danger :class="btnClassName">
+                <AButton type="link" danger :class="btnClassName">
                   <template #icon>
                     <Icon icon="ant-design:delete-outlined" />
                   </template>
                   删除
-                </a-button>
-              </a-popconfirm>
+                </AButton>
+              </APopconfirm>
             </div>
           </template>
         </BasicTable>
-      </a-card>
+      </ACard>
     </div>
 
     <!-- 新建文件夹 / 重命名弹窗 -->
@@ -587,13 +587,13 @@ const columns: BasicColumn[] = [
       @register="uploadModalRegister"
     >
       <div class="space-y-4">
-        <a-alert
+        <AAlert
           message="选择要上传的文件，支持多文件同时上传"
           type="info"
           show-icon
         />
 
-        <a-upload-dragger
+        <AUploadDragger
           name="file"
           multiple
           accept="*/*"
@@ -620,12 +620,12 @@ const columns: BasicColumn[] = [
           <p class="ant-upload-hint">
             支持单个或批量上传，最大支持 10 个文件，单个文件不超过 100MB
           </p>
-        </a-upload-dragger>
+        </AUploadDragger>
 
         <div class="border-t border-gray-200 pt-3 dark:border-gray-700">
-          <a-button type="primary" block @click="handleSimulateUpload()">
+          <AButton type="primary" block @click="handleSimulateUpload()">
             模拟上传（测试用）
-          </a-button>
+          </AButton>
         </div>
       </div>
     </BasicModal>

@@ -5,7 +5,7 @@ Styles have exactly **one path**: Tailwind CSS v4 + antdv-next tokens + a very t
 ## One file holds the global styles
 
 ```
-packages/styles/src/index.css      ← the only entry, imported once in apps/web/src/main.ts:34
+packages/styles/src/index.css      ← the only entry, imported once in apps/web/src/main.ts:43
   ├─ base.css            base resets, shared classes
   ├─ nprogress.css       progress bar
   ├─ a11y.css            accessibility (focus-visible, prefers-reduced-motion)
@@ -27,7 +27,7 @@ What matters is that **the layer order is declared explicitly** (`packages/style
 
 - `antd` is placed in the layer list, so overriding the component library's default styles **needs no `!important`**; the layer order is the precedence.
 - The `dark` variant is bound to the `.dark` class (written on `html` by the preferences), not to a media query — so under `theme: 'auto'` Tailwind and antd see the same result.
-- `apps/web` keeps no `global.css` of its own; the reason is in the comment at `main.ts:30-33`: global styles belong to `@antdv/styles`.
+- `apps/web` keeps no `global.css` of its own; the reason is in the comment at `main.ts:39-43`: global styles belong to `@antdv/styles`.
 
 Tailwind is wired in through `@tailwindcss/vite` (`internal/vite-config/src/plugins/vue.ts:48`), with the version taken from the catalog (`^4.3.3`).
 
@@ -62,7 +62,7 @@ The rules package exists (`internal/lint-configs/stylelint-config/index.mjs`: `s
 
 ### Iconify (the default choice)
 
-Five collections are bundled offline so the runtime never touches the network: `carbon`, `ant-design`, `lucide`, `fa6-regular`, `mdi` (`internal/vite-config/src/plugins/auto-import.ts:95-97`, dependencies in `apps/web/package.json:120-123`).
+Five collections are bundled offline so the runtime never touches the network: `carbon`, `ant-design`, `lucide`, `fa6-regular`, `mdi` (`internal/vite-config/src/plugins/auto-import.ts:55-57`, dependencies at `apps/web/package.json:46,131-134` and `packages/icons/package.json:28-32`).
 
 ```vue
 <script setup lang="ts">
@@ -75,24 +75,31 @@ import { Icon } from '@iconify/vue';
 <!-- apps/web/src/layouts/widgets/WidgetSearch.vue:2,17 -->
 ```
 
-`<Icon>` / `<IconifyIcon>` / `<SvgIcon>` are all in the auto-import resolver (`auto-import.ts:22-36,44-50`), so pages work without writing an import; an explicit import reads better. `IconifyIcon` is the `@antdv/ui` wrapper (`packages/ui/src/icon/IconifyIcon.vue:8,50-62`).
+`<Icon>` / `<IconifyIcon>` / `<SvgIcon>` all require an **explicit import** — the component resolvers were withdrawn (`auto-import.ts:12-25` records why), and a page that omits the import is left with an empty tag plus one runtime warning. `IconifyIcon` is the `@antdv/icons` wrapper (`packages/icons/src/icon/IconifyIcon.vue:8,50-62`).
 
 ::: tip Only these five prefixes are allowed A new collection means changing the catalog dependency and the offline list in `auto-import.ts` at the same time; otherwise the build passes while the production bundle **carries no data for those icons**, which shows up in production as empty squares. :::
 
 ### SVG sprite
 
-`vite-plugin-svg-icons` points at `apps/web/src/assets/icons` with `symbolId: 'icon-[name]'` (`internal/vite-config/src/plugins/svg-icons.ts:7-12`), registered in `plugins/index.ts:70`, active at runtime through the `import 'virtual:svg-icons-register'` in `main.ts:29`, and consumed by `packages/ui/src/icon/SvgIcon.vue:12-19,41` (`<use xlink:href="#icon-xxx">`).
+`vite-plugin-svg-icons` points at `apps/web/src/assets/icons` with `symbolId: 'icon-[name]'` (`internal/vite-config/src/plugins/svg-icons.ts:7-12`), registered in `plugins/index.ts:70`, active at runtime through the `import 'virtual:svg-icons-register'` in `main.ts:38`, and consumed by `packages/icons/src/icon/SvgIcon.vue` (`:41`, `<use xlink:href="#icon-xxx">`).
 
 **`src/assets/icons` is an empty directory right now**, meaning the sprite path is wired up but no custom icon uses it. Take this road only when you need brand artwork / multicolor icons (Iconify's multicolor support is poor).
 
 ### Icon picker and menu integration
 
-`IconPicker` searches with pagination across the five prefixes (`packages/ui/src/icon/IconPicker.vue:4,32-50`), and it is what the `icon` field of the menu management page uses (`views/system/menu/index.vue:333-336,892-893`). Places that consume `meta.icon`: the sidebar and the icon rail (`layouts/components/LayoutNavRail.vue:111`), tab pages (`composables/useTabs.ts:101`), the breadcrumb (`packages/layouts/src/breadcrumb.ts:38,107`). A small number of `@antdv-next/icons` are used directly (`layouts/components/tabs/TabActions.vue:6`).
+`IconPicker` searches with pagination across the five prefixes (`packages/icons/src/icon/IconPicker.vue:53-86`), and it is what the `icon` field of the menu management page uses (`views/system/menu/index.vue:8,898`). Places that consume `meta.icon`: the sidebar and the icon rail (`packages/ui-kit/layout-ui/src/components/LayoutNavRail.vue:93`), tab pages (`apps/web/src/layouts/composables/useTabs.ts`), the breadcrumb (`packages/layouts/src/breadcrumb.ts:42,62,111`). The tab action buttons moved to `@antdv/tabs-ui` and their icons go through `IconifyIcon` (`packages/ui-kit/tabs-ui/src/components/TabActions.vue:6`), no longer straight from `@antdv-next/icons`.
 
-## The shared UI package (@antdv/ui)
+## The shared UI packages (`@antdv/icons` + `@antdv/ui-kit/*`)
 
-`packages/ui/src/index.ts:45-47` exports only three blocks: `icon`, `loading`, `scrollbar`; there is also `createUiInstaller()`, which registers `IconPicker/IconifyIcon/Loading/Scrollbar/SvgIcon` and `v-loading` (`:16-43`).
+What used to be one `@antdv/ui` is now split by responsibility into independent sub-packages, each with its own barrel and its own dependencies — whoever needs it imports it:
 
-- The app **imports the subpaths directly** (`@antdv/ui/icon|loading|scrollbar`, 18 places, e.g. `main.ts:8`, `views/system/menu/index.vue:9`).
-- `createUiInstaller` is **never called** in the app — global availability comes from the auto-import resolver, not from the installer. It is only needed when another project reuses this package.
-- The loading capability covers `Loading.vue`, `useLoading`, `createContainerLoading` / `createFullscreenLoading` and the `vLoading` directive (`packages/ui/src/loading/index.ts:2-26`).
+| Package | Contents | Entry |
+| --- | --- | --- |
+| `@antdv/icons` | `IconifyIcon` / `IconPicker` / `SvgIcon`, plus `createIconInstaller()` | `packages/icons/src/index.ts` and the `./icon` subpath |
+| `@antdv/loading-ui` | `Loading.vue`, `useLoading`, `createContainerLoading` / `createFullscreenLoading` / `createLoading` and the `vLoading` directive | `packages/ui-kit/loading-ui/src/index.ts` |
+| `@antdv/scrollbar-ui` | `Scrollbar` plus the self-drawn `Bar`; styles travel with the component (no host Tailwind) | `packages/ui-kit/scrollbar-ui/src/index.ts` |
+| `@antdv/shadcn-ui` | the shadcn-vue atoms (`Popover` / `Dialog` / `Select` / `Input`…) that the three packages above are built on | `packages/ui-kit/shadcn-ui/src/index.ts` |
+| `@antdv/{form,table,popup,layout,menu,tabs}-ui` | forms / tables / modal & drawer / layout shell / menu / tabs | each `src/index.ts` |
+
+- The app **imports the named exports explicitly** (`import { Scrollbar } from '@antdv/scrollbar-ui'`, `import { vLoading } from '@antdv/loading-ui'` (`main.ts:8`), `import { IconPicker } from '@antdv/icons/icon'`), which keeps tree-shaking.
+- `createIconInstaller()` is **never called** in the app — it serves external consumers that want the icon components registered globally.

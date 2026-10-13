@@ -17,6 +17,7 @@ import {
   watch,
 } from 'vue';
 
+import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
 import { Editor, EditorContent } from '@tiptap/vue-3';
 import { message } from 'antdv-next';

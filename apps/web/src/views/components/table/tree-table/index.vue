@@ -5,6 +5,7 @@ import type { TreeDataNode } from '~/components/business/TreeTable';
 import { ref } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
+import { Card as ACard, message } from 'antdv-next';
 import { TreeTable } from '~/components/business/TreeTable';
 
 const containerClassName = cn('flex h-full flex-col');
@@ -249,7 +250,7 @@ function handleTreeSelect(key: string, node: TreeDataNode) {
   <div :class="containerClassName">
     <div :class="pageHeaderClassName">TreeTable 树表格组件</div>
 
-    <a-card
+    <ACard
       variant="borderless"
       title="组织架构 - 员工管理"
       class="rounded-xl"
@@ -265,6 +266,6 @@ function handleTreeSelect(key: string, node: TreeDataNode) {
         :tree-width="280"
         @tree-select="handleTreeSelect"
       />
-    </a-card>
+    </ACard>
   </div>
 </template>

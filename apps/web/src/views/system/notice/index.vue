@@ -5,6 +5,7 @@ import { computed, onMounted, ref } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
+import { Button as AButton, Card as ACard, Descriptions as ADescriptions, DescriptionsItem as ADescriptionsItem, Divider as ADivider, Drawer as ADrawer, Popconfirm as APopconfirm, Statistic as AStatistic, TabPane as ATabPane, Tabs as ATabs, Tag as ATag, message } from 'antdv-next';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import {
@@ -393,85 +394,85 @@ const columns: BasicColumn[] = [
   <div :class="containerClassName">
     <!-- 统计卡片 -->
     <div class="grid grid-cols-4 gap-4">
-      <a-card
+      <ACard
         :class="cardClassName"
         size="small"
         hoverable
         @click="handleTabChange('unread')"
       >
-        <a-statistic title="未读消息" :value="unreadCount" suffix="条">
+        <AStatistic title="未读消息" :value="unreadCount" suffix="条">
           <template #prefix>
             <Icon
               icon="carbon:notification-new"
               class="mr-1 text-lg text-blue-500"
             />
           </template>
-        </a-statistic>
-      </a-card>
-      <a-card
+        </AStatistic>
+      </ACard>
+      <ACard
         :class="cardClassName"
         size="small"
         hoverable
         @click="handleTabChange('1')"
       >
-        <a-statistic title="系统公告" :value="systemCount" suffix="条">
+        <AStatistic title="系统公告" :value="systemCount" suffix="条">
           <template #prefix>
             <Icon
               icon="carbon:notification"
               class="mr-1 text-lg text-green-500"
             />
           </template>
-        </a-statistic>
-      </a-card>
-      <a-card
+        </AStatistic>
+      </ACard>
+      <ACard
         :class="cardClassName"
         size="small"
         hoverable
         @click="handleTabChange('2')"
       >
-        <a-statistic title="通知消息" :value="noticeCount" suffix="条">
+        <AStatistic title="通知消息" :value="noticeCount" suffix="条">
           <template #prefix>
             <Icon icon="carbon:email" class="mr-1 text-lg text-orange-500" />
           </template>
-        </a-statistic>
-      </a-card>
-      <a-card
+        </AStatistic>
+      </ACard>
+      <ACard
         :class="cardClassName"
         size="small"
         hoverable
         @click="handleTabChange('3')"
       >
-        <a-statistic title="待办提醒" :value="todoCount" suffix="条">
+        <AStatistic title="待办提醒" :value="todoCount" suffix="条">
           <template #prefix>
             <Icon icon="carbon:task" class="mr-1 text-lg text-purple-500" />
           </template>
-        </a-statistic>
-      </a-card>
+        </AStatistic>
+      </ACard>
     </div>
 
     <!-- Tab 切换 + 工具栏 -->
-    <a-card :class="cardClassName">
+    <ACard :class="cardClassName">
       <div class="mb-4 flex items-center justify-between">
-        <a-tabs v-model:active-key="activeTabKey" @change="handleTabChange">
-          <a-tab-pane key="all" tab="全部消息" />
-          <a-tab-pane key="unread" tab="未读消息" />
-          <a-tab-pane key="1" tab="系统公告" />
-          <a-tab-pane key="2" tab="通知消息" />
-          <a-tab-pane key="3" tab="待办提醒" />
-        </a-tabs>
+        <ATabs v-model:active-key="activeTabKey" @change="handleTabChange">
+          <ATabPane key="all" tab="全部消息" />
+          <ATabPane key="unread" tab="未读消息" />
+          <ATabPane key="1" tab="系统公告" />
+          <ATabPane key="2" tab="通知消息" />
+          <ATabPane key="3" tab="待办提醒" />
+        </ATabs>
         <div class="flex gap-2">
-          <a-button type="primary" @click="handleAdd">
+          <AButton type="primary" @click="handleAdd">
             <template #icon>
               <Icon icon="ant-design:plus-outlined" />
             </template>
             新增消息
-          </a-button>
-          <a-button @click="handleMarkAllRead">
+          </AButton>
+          <AButton @click="handleMarkAllRead">
             <template #icon>
               <Icon icon="carbon:checkmark-outline" />
             </template>
             全部已读
-          </a-button>
+          </AButton>
         </div>
       </div>
 
@@ -489,7 +490,7 @@ const columns: BasicColumn[] = [
       >
         <template #action="{ record }">
           <div class="flex items-center justify-center gap-1">
-            <a-button
+            <AButton
               type="link"
               class="!px-0.5"
               @click="() => handleView(record)"
@@ -498,9 +499,9 @@ const columns: BasicColumn[] = [
                 <Icon icon="ant-design:eye-outlined" />
               </template>
               详情
-            </a-button>
-            <a-divider type="vertical" class="mx-0" />
-            <a-button
+            </AButton>
+            <ADivider type="vertical" class="mx-0" />
+            <AButton
               type="link"
               class="!px-0.5"
               @click="() => handleEdit(record)"
@@ -509,9 +510,9 @@ const columns: BasicColumn[] = [
                 <Icon icon="ant-design:edit-outlined" />
               </template>
               编辑
-            </a-button>
-            <a-divider type="vertical" class="mx-0" />
-            <a-button
+            </AButton>
+            <ADivider type="vertical" class="mx-0" />
+            <AButton
               v-if="record.status === 0"
               type="link"
               class="!px-0.5"
@@ -521,25 +522,25 @@ const columns: BasicColumn[] = [
                 <Icon icon="carbon:checkmark-outline" />
               </template>
               已读
-            </a-button>
-            <a-popconfirm
+            </AButton>
+            <APopconfirm
               :title="`确定要删除消息「${record.title}」吗？`"
               @confirm="() => handleDelete(record)"
             >
-              <a-button type="link" danger class="!px-0.5">
+              <AButton type="link" danger class="!px-0.5">
                 <template #icon>
                   <Icon icon="ant-design:delete-outlined" />
                 </template>
                 删除
-              </a-button>
-            </a-popconfirm>
+              </AButton>
+            </APopconfirm>
           </div>
         </template>
       </BasicTable>
-    </a-card>
+    </ACard>
 
     <!-- 消息详情抽屉 -->
-    <a-drawer
+    <ADrawer
       v-model:open="showDetailDrawer"
       :size="560"
       :title="viewingNotice?.title || '消息详情'"
@@ -550,31 +551,31 @@ const columns: BasicColumn[] = [
         <div class="space-y-4">
           <!-- 头部信息 -->
           <div class="flex flex-wrap gap-2">
-            <a-tag :color="typeMap[viewingNotice.type]?.color || 'default'">
+            <ATag :color="typeMap[viewingNotice.type]?.color || 'default'">
               {{ typeMap[viewingNotice.type]?.label }}
-            </a-tag>
-            <a-tag
+            </ATag>
+            <ATag
               :color="priorityMap[viewingNotice.priority]?.color || 'default'"
             >
               {{ priorityMap[viewingNotice.priority]?.label }}
-            </a-tag>
-            <a-tag :color="viewingNotice.status === 0 ? 'blue' : 'default'">
+            </ATag>
+            <ATag :color="viewingNotice.status === 0 ? 'blue' : 'default'">
               {{ viewingNotice.status === 0 ? '未读' : '已读' }}
-            </a-tag>
+            </ATag>
           </div>
 
           <!-- 元信息 -->
-          <a-descriptions :column="1" bordered size="small">
-            <a-descriptions-item label="发送人">
+          <ADescriptions :column="1" bordered size="small">
+            <ADescriptionsItem label="发送人">
               {{ viewingNotice.sender }}
-            </a-descriptions-item>
-            <a-descriptions-item label="发送时间">
+            </ADescriptionsItem>
+            <ADescriptionsItem label="发送时间">
               {{ viewingNotice.sendTime }}
-            </a-descriptions-item>
-            <a-descriptions-item v-if="viewingNotice.readTime" label="阅读时间">
+            </ADescriptionsItem>
+            <ADescriptionsItem v-if="viewingNotice.readTime" label="阅读时间">
               {{ viewingNotice.readTime }}
-            </a-descriptions-item>
-          </a-descriptions>
+            </ADescriptionsItem>
+          </ADescriptions>
 
           <!-- 内容区域 -->
           <div class="mt-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
@@ -590,8 +591,8 @@ const columns: BasicColumn[] = [
 
       <template #footer>
         <div class="flex justify-end gap-2">
-          <a-button @click="showDetailDrawer = false"> 关闭 </a-button>
-          <a-button
+          <AButton @click="showDetailDrawer = false"> 关闭 </AButton>
+          <AButton
             v-if="viewingNotice?.status === 0"
             type="primary"
             @click="
@@ -602,10 +603,10 @@ const columns: BasicColumn[] = [
             "
           >
             标记已读并关闭
-          </a-button>
+          </AButton>
         </div>
       </template>
-    </a-drawer>
+    </ADrawer>
 
     <!-- 新增/编辑消息弹窗 -->
     <BasicModal

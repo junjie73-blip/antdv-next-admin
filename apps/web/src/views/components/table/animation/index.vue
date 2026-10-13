@@ -4,6 +4,7 @@ import type { BasicColumn } from '~/components/business/Table';
 import { ref } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
+import { Alert as AAlert, Button as AButton, Card as ACard, Skeleton as ASkeleton, Tag as ATag } from 'antdv-next';
 import { BasicTable, useTable } from '~/components/business/Table';
 
 const containerClassName = cn('space-y-6');
@@ -87,10 +88,10 @@ function handleRefresh() {
 
 <template>
   <div :class="containerClassName">
-    <a-card title="基础表格">
+    <ACard title="基础表格">
       <BasicTable @register="registerBasic">
         <template #cell-status="{ record }">
-          <a-tag
+          <ATag
             :color="
               record?.status === '在职'
                 ? 'green'
@@ -100,41 +101,41 @@ function handleRefresh() {
             "
           >
             {{ record?.status }}
-          </a-tag>
+          </ATag>
         </template>
       </BasicTable>
 
       <div :class="toolbarClassName">
-        <a-button type="primary" @click="handleRefresh"> 刷新数据 </a-button>
+        <AButton type="primary" @click="handleRefresh"> 刷新数据 </AButton>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="骨架屏加载动画">
-      <a-alert
+    <ACard title="骨架屏加载动画">
+      <AAlert
         message="点击下方按钮查看加载状态"
         type="info"
         show-icon
         :class="infoClassName"
       />
 
-      <a-skeleton :loading="loading" active :paragraph="{ rows: 5 }">
+      <ASkeleton :loading="loading" active :paragraph="{ rows: 5 }">
         <div :class="skeletonContentClassName">
           <p>这是表格的实际内容，当 loading 为 true 时会显示骨架屏</p>
         </div>
-      </a-skeleton>
+      </ASkeleton>
 
       <div :class="toolbarClassName">
-        <a-button
+        <AButton
           :type="loading ? 'default' : 'primary'"
           @click="loading = !loading"
         >
           {{ loading ? '停止加载' : '开始加载' }}
-        </a-button>
+        </AButton>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="行动画效果">
-      <a-alert
+    <ACard title="行动画效果">
+      <AAlert
         message="添加/删除行时会有平滑的过渡动画效果"
         type="success"
         show-icon
@@ -142,6 +143,6 @@ function handleRefresh() {
       />
 
       <BasicTable @register="registerAnimated" />
-    </a-card>
+    </ACard>
   </div>
 </template>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
+import { Button as AButton, Segmented as ASegmented, Space as ASpace } from 'antdv-next';
 
 import RealtimeAlertPanel from './components/RealtimeAlertPanel.vue';
 import SecurityScoreCard from './components/SecurityScoreCard.vue';
@@ -33,19 +34,19 @@ const headerClassName = cn('mb-2 flex items-center justify-between');
           实时安全态势感知与威胁分析中心
         </p>
       </div>
-      <a-space>
-        <a-segmented
+      <ASpace>
+        <ASegmented
           :options="['今日', '近7天', '近30天']"
           default-value="今日"
           size="small"
         />
-        <a-button size="small">
+        <AButton size="small">
           <template #icon>
             <Icon icon="carbon:download" />
           </template>
           导出报告
-        </a-button>
-      </a-space>
+        </AButton>
+      </ASpace>
     </div>
 
     <!-- 第一行：评分卡 + 告警面板 -->

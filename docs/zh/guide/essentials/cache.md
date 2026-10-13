@@ -66,7 +66,7 @@ configureSharedEnv({
 | `xy-menu-hidden-overrides` | route store | **裸 `localStorage` + 裸 JSON**，不走 cache、没有前缀 | `stores/modules/route.ts:27,31,43` |
 | `chunk-upload:<hash>` | 上传组件 | **裸 `localStorage`**，自有 `updatedAt` 7 天过期 | `components/common/Upload/constants.ts:8-9`、`Upload/utils.ts:50-52,56-60` |
 
-`config/constants.ts` 里的 `TOKEN_EXPIRES_IN` / `REFRESH_TOKEN_EXPIRE` / `PERMISSIONS_KEY` 无任何引用（`TOKEN_EXPIRE` 的三处命中是 `user.ts:16` 自己的同名局部常量）。`VITE_NAMESPACE` 同样没人读，它不参与键拼接（见[配置](/guide/essentials/config)）。
+`config/constants.ts` 里的 `TOKEN_EXPIRES_IN` / `REFRESH_TOKEN_EXPIRE` / `PERMISSIONS_KEY` 无任何引用（`TOKEN_EXPIRE` 的三处命中是 `user.ts:16` 自己的同名局部常量）。`VITE_NAMESPACE` 同样没人读，它不参与键拼接（见[配置](/zh/guide/essentials/config)）。
 
 ## 加密：SM4 只在生产构建里，而且密钥不是你以为的那个
 
@@ -84,7 +84,7 @@ Token 的值另有机制，且不受 `shouldEncrypt` 影响：`encryptToken()` �
 
 ## store 侧怎么用，以及登出清理出口
 
-唯一聚合出口是 `useUserStore().logout()`（`stores/modules/user.ts:126-150`）：内存态置空 → `cache.removeItem(TOKEN_KEY)` + `cache.removeItem(USER_INFO_KEY)` → `resetPageCache()` （`layouts/composables/usePageCache.ts:59-63`）→ `useRouteStore().resetRoutes()` → `useTabsStore().reset()`。请求层的 `forceLogout()` 不自己清，就调它（`composables/web/request/fetcher.ts:72-87`）。新增需要清理的状态就加在这里。
+唯一聚合出口是 `useUserStore().logout()`（`stores/modules/user.ts:163-169`）：内存态置空 → `cache.removeItem(TOKEN_KEY)` + `cache.removeItem(USER_INFO_KEY)` → `resetPageCache()` （`layouts/composables/usePageCache.ts:63-67`）→ `useRouteStore().resetRoutes()` → `useTabsStore().reset()`。请求层的 `forceLogout()` 不自己清，就调它（`apps/web/src/composables/web/request/fetcher.ts:72-88`）。新增需要清理的状态就加在这里。
 
 | 读写点 | 位置 |
 | --- | --- |
@@ -121,12 +121,12 @@ Token 的值另有机制，且不受 `shouldEncrypt` 影响：`encryptToken()` �
 - 跨介质同理：dev 写的明文在 build 里解不开，换前缀后按新前缀的密钥也解不开 —— `cache.test.ts:106-118` 就是把"另一套前缀解密失败并降级为 `null`"这个行为钉住的用例。
 - Token 那条链的失效条件更微妙：设备指纹变了（浏览器升级、改时区、换屏幕/旋转、`navigator.language` 变化）→ 派生密钥变 → `decryptToken` 对 JWE 串返回 `null`（`tokenCrypto.ts:106-139`，只有不含 `.` 的旧明文才回退）。表现就是"没换密码却掉登录"。
 
-::: tip 加一份持久化状态之前先决定键放哪：跟应用生命周期走的就照 `dict.ts` —— `CacheKey` 加一项（顺手真的引用它）、在 `watch` 里 `cache.setItem`、并把它加进 `user.ts` 的 `logout()` 清理列表。只是界面外观的偏好不要自己开 key，走 `packages/preferences`（见 [状态管理](/guide/essentials/stores)）。裸 `localStorage` 只留给"跟缓存语义无关"的数据（菜单可见性覆盖、分片续传进度），并自己带上过期判定。:::
+::: tip 加一份持久化状态之前先决定键放哪：跟应用生命周期走的就照 `dict.ts` —— `CacheKey` 加一项（顺手真的引用它）、在 `watch` 里 `cache.setItem`、并把它加进 `user.ts` 的 `logout()` 清理列表。只是界面外观的偏好不要自己开 key，走 `packages/preferences`（见 [状态管理](/zh/guide/essentials/stores)）。裸 `localStorage` 只留给"跟缓存语义无关"的数据（菜单可见性覆盖、分片续传进度），并自己带上过期判定。:::
 
 ## 相关页面
 
-- [状态管理](/guide/essentials/stores) —— 六个 store 与持久化分工
-- [工具](/guide/essentials/utils) —— `cache` 在哪一层、怎么被复用
-- [配置](/guide/essentials/config) —— `VITE_APP_TITLE` / `VITE_CACHE_ENCRYPT_KEY` 的读取链
-- [基础概念](/guide/essentials/concepts) —— 包为什么不许读 `import.meta.env`
-- [常见问题](/guide/other/faq)
+- [状态管理](/zh/guide/essentials/stores) —— 六个 store 与持久化分工
+- [工具](/zh/guide/essentials/utils) —— `cache` 在哪一层、怎么被复用
+- [配置](/zh/guide/essentials/config) —— `VITE_APP_TITLE` / `VITE_CACHE_ENCRYPT_KEY` 的读取链
+- [基础概念](/zh/guide/essentials/concepts) —— 包为什么不许读 `import.meta.env`
+- [常见问题](/zh/guide/other/faq)

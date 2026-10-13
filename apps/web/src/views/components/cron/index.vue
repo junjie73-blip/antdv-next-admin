@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
-import { message } from 'antdv-next';
+import { Alert as AAlert, Button as AButton, Card as ACard, Input as AInput, Space as ASpace, message } from 'antdv-next';
 import cronstrue from 'cronstrue';
 import CronEditor from '~/components/common/CronEditor/index.vue';
 
@@ -155,7 +155,7 @@ const previewFields = computed<Array<[string, string]>>(() => {
 <template>
   <div :class="containerClassName">
     <!-- 1. 基础用法 -->
-    <a-card title="基础用法" variant="borderless">
+    <ACard title="基础用法" variant="borderless">
       <p :class="hintClassName">
         页面级的表达式字符串通过 <code>v-model</code> 双向绑定内置的
         <code>CronEditor</code> 组件；组件的
@@ -174,7 +174,7 @@ const previewFields = computed<Array<[string, string]>>(() => {
         <p v-if="basicCheck.text" :class="cn(descClassName, 'mt-2')">
           含义：<strong>{{ basicCheck.text }}</strong>
         </p>
-        <a-alert
+        <AAlert
           v-else
           type="error"
           show-icon
@@ -182,17 +182,17 @@ const previewFields = computed<Array<[string, string]>>(() => {
           :message="`表达式无效：${basicCheck.error}`"
         />
       </div>
-    </a-card>
+    </ACard>
 
     <!-- 2. 预设表达式 -->
-    <a-card title="预设表达式" variant="borderless">
+    <ACard title="预设表达式" variant="borderless">
       <p :class="hintClassName">
         点击下面的预设按钮会把对应表达式写入编辑器并刷新描述。所有预设都做了合法性校验——
         万一某个值无法被 <code>cronstrue</code> 解析，会捕获异常并弹出 warning
         提示，而不是抛出未处理错误。
       </p>
       <div :class="presetRowClassName">
-        <a-button
+        <AButton
           v-for="preset in presets"
           :key="preset.value"
           size="small"
@@ -200,7 +200,7 @@ const previewFields = computed<Array<[string, string]>>(() => {
           @click="applyPreset(preset)"
         >
           {{ preset.label }}
-        </a-button>
+        </AButton>
       </div>
       <CronEditor v-model="presetExpr" @change="onPresetChange" />
       <div :class="resultBoxClassName">
@@ -212,7 +212,7 @@ const previewFields = computed<Array<[string, string]>>(() => {
         <p v-if="presetCheck.text" :class="cn(descClassName, 'mt-2')">
           含义：<strong>{{ presetCheck.text }}</strong>
         </p>
-        <a-alert
+        <AAlert
           v-else
           type="error"
           show-icon
@@ -220,43 +220,43 @@ const previewFields = computed<Array<[string, string]>>(() => {
           :message="`表达式无效：${presetCheck.error}`"
         />
       </div>
-    </a-card>
+    </ACard>
 
     <!-- 3. 校验与回显 -->
-    <a-card title="校验与回显" variant="borderless">
+    <ACard title="校验与回显" variant="borderless">
       <p :class="hintClassName">
         编辑器自带的输入框是只读的，因此这里额外提供一个可手动输入的受控输入框演示校验与受控/非受控取值。
         「应用」只把<strong>合法</strong>草稿提交为生效值（受控），非法时可见地标红并给出错误；「重置」丢弃未提交的
         草稿，回到当前生效值（非受控编辑的回退）。试着输入
         <code>* * *</code> 这类非法表达式看看效果。
       </p>
-      <a-space direction="vertical" :size="12" class="w-full">
-        <a-input
+      <ASpace direction="vertical" :size="12" class="w-full">
+        <AInput
           v-model:value="draftExpr"
           :status="draftCheck.error ? 'error' : undefined"
           placeholder="手动输入 Cron 表达式，例如 0 30 4 * * *"
           class="font-mono"
         />
         <div>
-          <a-space>
-            <a-button type="primary" @click="applyDraft"> 应用 </a-button>
-            <a-button @click="resetDraft"> 重置 </a-button>
-          </a-space>
+          <ASpace>
+            <AButton type="primary" @click="applyDraft"> 应用 </AButton>
+            <AButton @click="resetDraft"> 重置 </AButton>
+          </ASpace>
         </div>
-        <a-alert
+        <AAlert
           v-if="draftCheck.error"
           type="error"
           show-icon
           :message="`草稿无效：${draftCheck.error}`"
           description="修正前不会写入生效值。"
         />
-        <a-alert
+        <AAlert
           v-else
           type="success"
           show-icon
           :message="`草稿可解析：${draftCheck.text}`"
         />
-      </a-space>
+      </ASpace>
       <div :class="resultBoxClassName">
         <div :class="descClassName">
           生效表达式：<span :class="exprCodeClassName">{{ appliedExpr }}</span>
@@ -268,11 +268,11 @@ const previewFields = computed<Array<[string, string]>>(() => {
           <CronEditor v-model="appliedExpr" @change="onAppliedChange" />
         </div>
       </div>
-    </a-card>
+    </ACard>
 
     <!-- 4. 描述预览 -->
-    <a-card title="描述预览" variant="borderless">
-      <a-alert
+    <ACard title="描述预览" variant="borderless">
+      <AAlert
         type="info"
         show-icon
         class="mb-4"
@@ -304,7 +304,7 @@ const previewFields = computed<Array<[string, string]>>(() => {
         <p v-if="previewCheck.text" :class="cn(descClassName, 'mt-2')">
           含义：<strong>{{ previewCheck.text }}</strong>
         </p>
-        <a-alert
+        <AAlert
           v-else
           type="error"
           show-icon
@@ -312,6 +312,6 @@ const previewFields = computed<Array<[string, string]>>(() => {
           :message="`表达式无效：${previewCheck.error}`"
         />
       </div>
-    </a-card>
+    </ACard>
   </div>
 </template>

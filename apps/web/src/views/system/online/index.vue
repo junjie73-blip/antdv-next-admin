@@ -8,6 +8,8 @@ import { onMounted, onUnmounted, ref } from 'vue';
 import { usePrint } from '@antdv/composables/usePrint';
 import { cn } from '@antdv/shared/cn';
 import { exportToExcel } from '@antdv/shared/excel';
+import { Icon } from '@iconify/vue';
+import { Alert as AAlert, Button as AButton, Card as ACard, Divider as ADivider, Popconfirm as APopconfirm, Statistic as AStatistic, Tag as ATag, message } from 'antdv-next';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { forceLogout, getOnlineUserList } from '~/api/system';
@@ -288,43 +290,43 @@ const columns: BasicColumn[] = [
   <div :class="containerClassName">
     <!-- 在线统计卡片 -->
     <div class="grid grid-cols-4 gap-4">
-      <a-card :class="cardClassName" size="small">
-        <a-statistic title="当前在线" :value="onlineCount" suffix="人">
+      <ACard :class="cardClassName" size="small">
+        <AStatistic title="当前在线" :value="onlineCount" suffix="人">
           <template #prefix>
             <Icon
               icon="carbon:user-online"
               class="mr-1 text-lg text-green-500"
             />
           </template>
-        </a-statistic>
-      </a-card>
-      <a-card :class="cardClassName" size="small">
-        <a-statistic title="今日登录" :value="28" suffix="人次">
+        </AStatistic>
+      </ACard>
+      <ACard :class="cardClassName" size="small">
+        <AStatistic title="今日登录" :value="28" suffix="人次">
           <template #prefix>
             <Icon icon="carbon:login" class="mr-1 text-lg text-blue-500" />
           </template>
-        </a-statistic>
-      </a-card>
-      <a-card :class="cardClassName" size="small">
-        <a-statistic title="峰值在线" :value="15" suffix="人">
+        </AStatistic>
+      </ACard>
+      <ACard :class="cardClassName" size="small">
+        <AStatistic title="峰值在线" :value="15" suffix="人">
           <template #prefix>
             <Icon
               icon="carbon:chart-line-data"
               class="mr-1 text-lg text-orange-500"
             />
           </template>
-        </a-statistic>
-      </a-card>
-      <a-card :class="cardClassName" size="small">
-        <a-statistic title="平均在线时长" value="2.5" suffix="小时">
+        </AStatistic>
+      </ACard>
+      <ACard :class="cardClassName" size="small">
+        <AStatistic title="平均在线时长" value="2.5" suffix="小时">
           <template #prefix>
             <Icon icon="carbon:time" class="mr-1 text-lg text-purple-500" />
           </template>
-        </a-statistic>
-      </a-card>
+        </AStatistic>
+      </ACard>
     </div>
 
-    <a-card title="在线用户" :class="cardClassName">
+    <ACard title="在线用户" :class="cardClassName">
       <BasicTable
         :columns="columns"
         :api="mockApi"
@@ -341,28 +343,28 @@ const columns: BasicColumn[] = [
         @register="tableRegister"
       >
         <template #toolbar>
-          <a-button @click="handleExport">
+          <AButton @click="handleExport">
             <template #icon>
               <Icon icon="carbon:export" />
             </template>
             导出
-          </a-button>
-          <a-button @click="handlePrint">
+          </AButton>
+          <AButton @click="handlePrint">
             <template #icon>
               <Icon icon="carbon:printer" />
             </template>
             打印
-          </a-button>
-          <a-button danger @click="handleBatchForceLogout">
+          </AButton>
+          <AButton danger @click="handleBatchForceLogout">
             <template #icon>
               <Icon icon="carbon:logout" />
             </template>
             批量强退
-          </a-button>
+          </AButton>
         </template>
 
         <template #cell-status="{ record }">
-          <a-tag :color="record.status === 0 ? 'green' : 'default'">
+          <ATag :color="record.status === 0 ? 'green' : 'default'">
             <span :class="tagClassName">
               <Icon
                 :icon="
@@ -373,12 +375,12 @@ const columns: BasicColumn[] = [
               />
               {{ record.status === 0 ? '在线' : '离线' }}
             </span>
-          </a-tag>
+          </ATag>
         </template>
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <a-button
+            <AButton
               type="link"
               :class="btnClassName"
               @click="() => handleView(record)"
@@ -387,13 +389,13 @@ const columns: BasicColumn[] = [
                 <Icon icon="ant-design:eye-outlined" />
               </template>
               详情
-            </a-button>
-            <a-divider type="vertical" :class="dividerClassName" />
-            <a-popconfirm
+            </AButton>
+            <ADivider type="vertical" :class="dividerClassName" />
+            <APopconfirm
               :title="`确定要强制退出用户「${record.nickname}」吗？`"
               @confirm="() => handleForceLogout(record)"
             >
-              <a-button
+              <AButton
                 v-if="record.username !== 'admin'"
                 type="link"
                 danger
@@ -403,13 +405,13 @@ const columns: BasicColumn[] = [
                   <Icon icon="carbon:logout" />
                 </template>
                 强退
-              </a-button>
+              </AButton>
               <span v-else class="text-xs text-gray-400"> 当前用户 </span>
-            </a-popconfirm>
+            </APopconfirm>
           </div>
         </template>
       </BasicTable>
-    </a-card>
+    </ACard>
 
     <!-- 用户详情抽屉 -->
     <BasicDrawer
@@ -427,7 +429,7 @@ const columns: BasicColumn[] = [
       />
 
       <div class="mt-6 border-t border-gray-200 pt-4 dark:border-gray-700">
-        <a-alert
+        <AAlert
           message="提示：该用户的会话信息将在下次请求时失效"
           type="info"
           show-icon

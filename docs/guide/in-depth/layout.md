@@ -68,4 +68,4 @@ full-content · horizontal · mixed-two-column · mixed-vertical · side-nav · 
 
 ## 滚动条
 
-全站内容滚动统一走 `@antdv/ui` 的自绘 `Scrollbar`，不用各页面自己写 `overflow: auto` + `::-webkit-scrollbar`：后者在 Firefox / Safari 上表现不一致，而 `Scrollbar` 是同一套 DOM 与样式，三引擎端到端才可能得到一样的结果。
+全站内容滚动统一走 `@antdv/scrollbar-ui` 的自绘 `Scrollbar`，不用各页面自己写 `overflow: auto` + `::-webkit-scrollbar`：后者在 Firefox / Safari 上表现不一致，而 `Scrollbar` 是同一套 DOM 与样式，三引擎端到端才可能得到一样的结果。

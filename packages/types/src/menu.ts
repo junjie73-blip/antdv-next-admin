@@ -32,7 +32,7 @@ export interface MicroAppConfig {
 
 /**
  * 菜单徽标配置。
- * `buildMenuItems` 会把它渲染成 antd Badge（text 数字徽标或 dot 圆点）。
+ * 渲染层（`@antdv/menu-ui` 的 `MenuBadge`）会把它画成徽标（text 数字徽标或 dot 圆点）。
  */
 export interface MenuBadge {
   text?: number | string;

@@ -1,0 +1,23 @@
+<script setup lang="ts">
+import type { HTMLAttributes } from "vue"
+
+import { cn } from '@antdv/shared/cn'
+
+const props = defineProps<{
+  class?: HTMLAttributes["class"]
+}>()
+</script>
+
+<template>
+  <td
+    data-slot="table-cell"
+    :class="
+      cn(
+        'p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 *:[[role=checkbox]]:translate-y-0.5',
+        props.class,
+      )
+    "
+  >
+    <slot></slot>
+  </td>
+</template>

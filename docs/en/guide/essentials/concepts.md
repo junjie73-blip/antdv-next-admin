@@ -20,13 +20,13 @@ The split is not "does this look like a library", it is **who consumes the artif
 | Shape | Packages | `main` points at | After editing `src` |
 | --- | --- | --- | --- |
 | dist-published | `@antdv/shared`, `composables`, `directives`, `layouts`, `preferences`, `router`, `types` | `./dist/index.js` (tsdown output) | run `pnpm --filter @antdv/shared build`, then restart dev |
-| source-published | `@antdv/ui`, `@antdv/styles` | `./src/index.ts` / `./src/index.css` | hot-reloads, there is no build step |
+| source-published | `@antdv/icons`, `@antdv/styles` and the nine `@antdv/ui-kit` packages (`shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` / `loading-ui` / `scrollbar-ui`) | `./src/index.ts` (`styles`: `./src/index.css`) | hot-reloads, there is no build step |
 
-Evidence: the `main` field of each `packages/*/package.json`, plus `packages/shared/tsdown.config.ts` (`entry: ['src/index.ts', 'src/*.ts', 'src/*/index.ts']`). The dist-published ones are the packages that have a `build` script; their `dev` script is `tsdown --watch`.
+Evidence: the `main` field of each `packages/*/package.json` and `packages/ui-kit/*/package.json`, plus `packages/shared/tsdown.config.ts` (`entry: ['src/index.ts', 'src/*.ts', 'src/*/index.ts']`). The dist-published ones are the packages that have a `build` script; their `dev` script is `tsdown --watch`.
 
 ::: warning You edited a dist-published package and nothing changed This is the most common "I clearly changed it" in this repository. Vite's dependency cache and `optimizeDeps` both point at `dist`, so `src` is simply not in the build graph. You edit, save, and see nothing — and get no error either. :::
 
-`@antdv/ui` being source-published has a cost: it has no `build` script at all (`packages/ui/package.json` only defines `clean` / `test:unit` / `type-check`), and its `<script setup>` blocks are compiled by the app's `@vitejs/plugin-vue`. So that package cannot be consumed outside a Vite build.
+Being source-published has a cost: those packages have no `build` script at all (`packages/icons/package.json` only defines `clean` / `test:unit` / `type-check`), and their `<script setup>` blocks are compiled by the app's `@vitejs/plugin-vue`. So they cannot be consumed outside a Vite build.
 
 ## Package boundaries: no stores, no env
 
@@ -58,13 +58,23 @@ There are exactly two aliases, and both sides must agree:
 
 If the two drift apart, Vite runs but `vue-tsc` errors (or the reverse), so the aliases are defined once inside `createAliases()`. The same function sets `resolve.dedupe: ['pinia', 'vue', 'vue-router']` — pnpm's peer resolution once left both `vue` 3.5.42 and 3.5.43 types in the tree (the catalog now pins `vue` to `3.5.43`), and two Vue runtimes make `inject` and the reactivity system blind to each other.
 
-Auto-import covers **framework APIs, not this repository's packages** (`internal/vite-config/src/plugins/auto-import.ts`):
+Auto-import covers **framework APIs — not this repository's packages and not antdv-next** (`internal/vite-config/src/plugins/auto-import.ts:48-54`):
 
-- `AutoImport`: `vue`, `@vueuse/core`, `pinia`, `VueRouterAutoImports`, plus the four functional entry points of `antdv-next` (`message`, `notification`, `Modal`, `Drawer`).
-- `Components`: `AntdvNextResolver` injects each component actually used (`resolveIcons: false`, icons have their own channel), `AntdvUiResolver` covers `IconifyIcon` / `IconPicker` / `Loading` / `Scrollbar` / `SvgIcon`, and `IconifyResolver` maps a bare `<Icon>` back to `@iconify/vue`.
+- `AutoImport` (`:48-51`): `vue`, `@vueuse/core`, `pinia`, `VueRouterAutoImports`. The four functional entry points of `antdv-next` (`message`, `notification`, `Modal`, `Drawer`) used to be listed here; they have been **removed** — import them yourself.
+- `Components` (`:52-54`): **no resolvers at all**. It used to carry three — `AntdvNextResolver` (`a-*`), `AntdvUiResolver` (the sub-package components) and `IconifyResolver` (bare `<Icon>`) — and all three channels are now closed. The plugin keeps only its built-in behaviour: scan the app's `src/components` directory so local components need no import.
 - The generated declarations `apps/web/types/auto-imports.d.ts` and `components.d.ts` are committed. Plugins rewrite them during the build, and on a Windows mapped drive that write occasionally fails with `UNKNOWN (errno -4094)` and takes the dev server down, hence the `VITE_WRITE_DTS=false` escape hatch (see the comments in the same file).
 
-Consequence: `import { cn } from '@antdv/shared/cn'` is something you **write yourself**; nothing from `@antdv/*` is auto-imported. Bare `<Modal>` and `useRoute()` are what auto-import handles.
+Consequence: components and component-library APIs are **always imported explicitly**, in 100+ app files:
+
+```ts
+import { Card as ACard, message } from 'antdv-next';
+import { Scrollbar } from '@antdv/scrollbar-ui';
+import { Icon } from '@iconify/vue';
+```
+
+`<script setup>` looks template bindings up by `capitalize(camelize(tag))`, so to keep writing `<ACard>` you alias the named export to `ACard` (`import { Card }` only pairs with `<Card>`). The `vue/component-name-in-template-casing` rule rewrites kebab tags to PascalCase, which lines up with exactly that.
+
+Bare `useRoute()` and `ref()` are what auto-import still handles; subpath imports such as `import { cn } from '@antdv/shared/cn'` you also write by hand.
 
 ## Naming and the page skeleton
 

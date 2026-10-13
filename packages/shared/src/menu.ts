@@ -1,14 +1,6 @@
 import type { MenuConfig, MenuKey } from '@antdv/types';
-import type { MenuProps } from 'antdv-next';
 
 import type { RouteRecordRaw } from 'vue-router';
-
-import { h } from 'vue';
-
-import { Icon } from '@iconify/vue';
-import { Badge } from 'antdv-next';
-
-type AntdMenuItem = NonNullable<MenuProps['items']>[number];
 
 /* ============================================================
  * key 体系
@@ -20,6 +12,10 @@ type AntdMenuItem = NonNullable<MenuProps['items']>[number];
  * 现在横向一级菜单、侧边二级菜单、标签页共用同一个 key：
  *   key = name ?? 补全后的 path ?? title
  * 并且 `path` 由路由表反查补全（`attachMenuPaths`），补全后再参与回退。
+ *
+ * 这里只描述「菜单数据是什么」，不描述「菜单怎么画」：
+ * 渲染事实（`MenuNode`、图标槽位、badge、外链 `<a>`）在 `@antdv/menu-ui`，
+ * 所以这个模块不再 import antdv-next 与 @iconify/vue。
  * ============================================================ */
 
 /**
@@ -45,7 +41,8 @@ export function isLeafMenu(menu: MenuConfig): boolean {
  *
  * 「隐藏」只表示**不在导航里出现**，不代表这个页面没权限 ——
  * 所以隐藏节点会一路留在菜单树里，供权限、标签页标题、面包屑反查使用；
- * 只有渲染导航（`buildMenuItems`）和"挑一个能点的项"（`firstLeafMenu`）才把它们剔掉。
+ * 只有渲染导航（`@antdv/menu-ui` 的 `toMenuNodes`）和"挑一个能点的项"（`firstLeafMenu`）
+ * 才把它们剔掉。
  * 需要连隐藏一起搜的地方显式传 `includeHidden`。
  */
 export function visibleMenus(list?: MenuConfig[]): MenuConfig[] {
@@ -434,163 +431,6 @@ function buildRouteIndex(router: MenuPathRouter): RouteIndex {
     },
     pathsBySegment: (segment) => bySegment.get(segment) ?? [],
   };
-}
-
-/* ============================================================
- * antd Menu items 构造
- * ============================================================ */
-
-function renderExternalLabel(title: string, href: string) {
-  return h(
-    'a',
-    {
-      href,
-      target: '_blank',
-      rel: 'noopener noreferrer',
-      onClick: (e: MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        window.open(href, '_blank', 'noopener,noreferrer');
-      },
-    },
-    title,
-  );
-}
-
-/** 构造菜单 label：标题 + Badge + 右侧 extra */
-function renderLabel(m: MenuConfig) {
-  const labelText =
-    m.isExternal && m.path ? renderExternalLabel(m.title, m.path) : m.title;
-
-  // 没有 badge 也没有 extra → 直接返回纯文本，避免多余 DOM
-  if (!m.badge && !m.extra) return labelText;
-
-  return h(
-    'span',
-    {
-      class:
-        'menu-label-wrapper flex w-full min-w-0 items-center justify-between gap-2',
-      style: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '8px',
-        width: '100%',
-        minWidth: 0,
-      },
-    },
-    [
-      // 左侧：标题 + Badge
-      h(
-        'span',
-        {
-          style: {
-            display: 'flex min-w-0 flex-1 items-center gap-1.5',
-            alignItems: 'center',
-            gap: '6px',
-            minWidth: 0,
-            flex: 1,
-            overflow: 'hidden',
-          },
-        },
-        [
-          h(
-            'span',
-            {
-              class: 'menu-label-text truncate',
-              style: {
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              },
-            },
-            [labelText],
-          ),
-          m.badge ? renderBadge(m.badge) : null,
-        ],
-      ),
-      // 右侧：extra
-      m.extra
-        ? h(
-            'span',
-            {
-              class:
-                'menu-extra shrink-0 text-[11px] text-slate-400 dark:text-slate-500',
-              style: {
-                flexShrink: 0,
-                fontSize: '11px',
-              },
-            },
-            m.extra,
-          )
-        : null,
-    ],
-  );
-}
-
-function renderBadge(badge: NonNullable<MenuConfig['badge']>) {
-  return h(Badge, {
-    count: badge.dot ? undefined : badge.text,
-    dot: badge.dot,
-    status: badge.status,
-    overflowCount: badge.overflowCount ?? 99,
-    size: 'small',
-    offset: [2, -2],
-  });
-}
-
-export interface BuildMenuItemsOptions {
-  /**
-   * 没有图标的菜单项也占一个图标位。
-   *
-   * 侧边栏（inline）是一列文字对齐的东西：只要有一项没图标，它的文字就会比
-   * 邻居更靠左，整列看起来"参差不齐"；深层级再叠上 antd 自己的 padding-left
-   * 更明显。传 true 时给缺图标的项补一个由 antd 托管尺寸的槽位
-   * （`.ant-menu-item-icon` 的 min-width 与它到标题的 margin 都来自 antd 的 token，
-   * 所以槽位和真图标完全等宽，不靠这里猜像素）。
-   *
-   * 顶栏的横向导航默认不开：那里没有图标就是不该留空白，宽度要留给文字。
-   */
-  keepIconSlot?: boolean;
-  /**
-   * 只保留指定层级的子树深度：混合布局的一级导航传 1（目录不展开子项，
-   * 子项交给侧边栏），水平布局传 Infinity（二级用浮层）。
-   */
-  maxDepth?: number;
-  /** 是否渲染子节点 */
-  withChildren?: boolean;
-}
-
-export function buildMenuItems(
-  menus: MenuConfig[],
-  options: BuildMenuItemsOptions = {},
-): AntdMenuItem[] {
-  const {
-    keepIconSlot = false,
-    maxDepth = Infinity,
-    withChildren = true,
-  } = options;
-
-  const walk = (list: MenuConfig[], depth: number): AntdMenuItem[] =>
-    visibleMenus(list).map((m) => {
-      const item: Record<string, unknown> = {
-        key: menuKeyOf(m),
-        label: renderLabel(m),
-        disabled: m.disabled,
-      };
-
-      // 闭包内属性窄化会失效，先把 icon 取成局部常量
-      const icon = m.icon;
-      if (icon) item.icon = () => h(Icon, { class: 'text-lg', icon });
-      else if (keepIconSlot) item.icon = () => h('span');
-
-      const children =
-        withChildren && depth < maxDepth ? m.children : undefined;
-      if (children?.length) item.children = walk(children, depth + 1);
-      return item as AntdMenuItem;
-    });
-
-  return walk(menus, 1);
 }
 
 /** 收集所有可展开父级 key（用于 openKeys 初始化与「展开全部/收起全部」） */

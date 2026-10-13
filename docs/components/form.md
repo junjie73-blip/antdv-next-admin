@@ -137,7 +137,7 @@ const [register, { validate, setFieldsValue, getFieldsValue }] = useForm({
 
 `component` 这个字符串**唯一的解析路径**是 `componentMap` 这张表：`getComponentInstance` → `getComponent(schema.component)`（`FormItem.vue:76-79` → `componentMap.ts:126-128`）。内置键就是 `ComponentType` 那 28 个（`componentMap.ts:30-58`，注册在 91-120）。
 
-::: tip 和 `types/components.d.ts` 没有关系 `apps/web/types/components.d.ts` 是 `unplugin-vue-components` 给**模板标签**用的自动导入产物，schema 解析完全不经过它。写 `component: 'AInput'` 或任何不在表里的名字，`getComponent` 返回 `undefined`，字段既不报错也不警告，直接退化成一行纯文本 <code v-pre>{{ formModel[field] }}</code>（`FormItem.vue:204-206`）。:::
+::: tip 和 `types/components.d.ts` 没有关系 `apps/web/types/components.d.ts` 是 `unplugin-vue-components` 扫 `src/components` 目录得到的**模板标签**产物（解析器撤掉后它只含本仓库的本地组件），schema 解析完全不经过它。写 `component: 'AInput'` 或任何不在表里的名字，`getComponent` 返回 `undefined`，字段既不报错也不警告，直接退化成一行纯文本 <code v-pre>{{ formModel[field] }}</code>（`FormItem.vue:204-206`）。:::
 
 几个容易误会的点：
 
@@ -206,10 +206,10 @@ const [register, { validate, setFieldsValue, getFieldsValue }] = useForm({
 
 ## 表单设计器不是 `BasicForm`
 
-`#/components/form-designer` 整页 39 行，只渲染一个第三方组件：`<fc-designer ref="designerRef" height="100%" :config="designerConfig" />`（`views/components/form-designer/index.vue:37`），来自 `@form-create/antd-designer`，在入口全局安装（`apps/web/src/main.ts:9,54`）。
+`#/components/form-designer` 整页 39 行，只渲染一个第三方组件：`<fc-designer ref="designerRef" height="100%" :config="designerConfig" />`（`views/components/form-designer/index.vue:37`），来自 `@form-create/antd-designer`，在入口全局安装（`apps/web/src/main.ts:11,46,63-64`）。
 
 - `designerConfig` 就是那 15 个开关（14 个 `show*` 加一个 `autoActive`，`form-designer/index.vue:11-27`），没有任何逻辑读取设计器的产出。
-- 它依赖 `registerVendorAntdComponents(app)`（`main.ts:49`）：`a-*` 平时靠编译期自动导入注入，而设计器的模板是发布前就编译好的，运行时才 `resolveComponent('a-layout-sider')`，缺这份全局注册就会「没报错但整块空白」（`plugins/vendor-antd-components.ts:44-58`）。
+- 它依赖 `registerVendorAntdComponents(app)`（`main.ts:53`）：本仓库的 `a-*` 全部走各文件自己的显式 import（`import { Card as ACard } from 'antdv-next'`），那是**局部绑定**；而设计器的模板是发布前就编译好的，运行时才 `resolveComponent('a-layout-sider')`，局部绑定帮不到它，缺这份全局注册就会「没报错但整块空白」（`plugins/vendor-antd-components.ts:44-58` 的注释、`main.ts:48-52`）。
 - 设计器产出的是 form-create 自己的 rule JSON（`type` / `field` / `title` / `validate`），**和本仓库的 `FormSchema`（`component` / `rules`，`Form/types.ts:61-111`）不是同一套字段名**，页面里也没有任何转换器或保存逻辑 —— 想接 `BasicForm` 得自己写映射。
 
 ## 相关页面 / Related

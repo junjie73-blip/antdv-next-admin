@@ -1,13 +1,13 @@
 # 常用功能
 
-一句话：**应用级复合组件在 `apps/web/src/components/business/`，库无关的基础件在 `@antdv/ui`，通用 hooks 在 `@antdv/composables`；`Basic*` 系列统一用 `[register, methods]` 的注册式写法驱动。**
+一句话：**应用级复合组件在 `apps/web/src/components/business/`，库无关的基础件在 `@antdv/icons` 与 `@antdv/ui-kit/*`，通用 hooks 在 `@antdv/composables`；`Basic*` 系列统一用 `[register, methods]` 的注册式写法驱动。**
 
 ## 三层拆分
 
 | 层 | 位置 | 放什么 |
 | --- | --- | --- |
 | 应用业务组件 | `apps/web/src/components/business/` | `BasicTable`/`TableAction`、`BasicForm`、`BasicModal`、`BasicDrawer`、`TreeTable`、`Description`、`CountTo`、`MarkdownEditor`、`ImportExport`、`TenantSelect`、`MicroAppContainer` |
-| 库无关基础件 | `packages/ui`（`@antdv/ui`） | `IconifyIcon`、`IconPicker`、`SvgIcon`、`Loading` + `v-loading`、`Scrollbar`，不依赖 antdv-next |
+| 库无关基础件 | `packages/icons`（`@antdv/icons`）+ `packages/ui-kit/*` | `IconifyIcon`、`IconPicker`、`SvgIcon` 在 `@antdv/icons`；`Loading` + `v-loading` 在 `@antdv/loading-ui`；`Scrollbar` 在 `@antdv/scrollbar-ui`；`shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` 各自一包。这批包一律不依赖 antdv-next，组件也不靠自动导入，宿主必须显式 import |
 | 通用组合式 | `packages/composables`（`@antdv/composables`） | 根入口只收轻量件：`useCache` / `useChunkUpload` / `useFileReader` / `usePrint` / `useRouteLoading` / `useWatermark`；`echarts` / `sse` / `websocket` 走子路径导入，避免 `import { usePrint }` 也付出一份图表库 |
 | 应用级 hooks | `apps/web/src/composables/` | `useCRUD`、`usePermission`、`http`（请求层出口） |
 
@@ -66,7 +66,7 @@ const [register, tableRef] = useTable({ api: fetchUsers, useSearchForm: true });
 - `CountTo`：数字滚动，props 在 `CountTo/types.ts`（`startVal` / `endVal` / `duration` / `autoplay` / `decimals`）。
 - `MarkdownEditor`：基于 tiptap 的编辑器封装，带 `ImageUploadConfig`（走 Minio 上传配置）。
 - `Description` / `TreeTable` / `ImportExport`：详情列表、树表格、导入导出，导出能力依赖 `@antdv/shared` 的 `excel.ts`。
-- 全局注册：`@antdv/ui` 提供 `createUiInstaller()`（`app.use` 即注册 `v-loading` 和裸写的图标组件）；应用侧更推荐显式 import，保留 tree-shaking。
+- 全局注册：`@antdv/icons` 提供 `createIconInstaller()`（`packages/icons/src/index.ts:13-31`），`@antdv/loading-ui` 的 barrel 具名导出 `vLoading`（`packages/ui-kit/loading-ui/src/index.ts:9`）；应用侧不用 installer，一律显式 import，保留 tree-shaking（组件 resolver 已从 `internal/vite-config` 撤掉，裸标签不会被注入）。
 
 ## 相关页面
 

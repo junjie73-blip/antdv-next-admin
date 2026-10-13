@@ -5,8 +5,9 @@ import type { DrawerInnerMethods, DrawerMethods, DrawerProps } from './types';
 
 import { computed, onMounted, ref, useSlots, watch } from 'vue';
 
+import { IconifyIcon as Icon } from '@antdv/icons/icon';
+import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
-import { IconifyIcon as Icon } from '@antdv/ui/icon';
 import { Button, Drawer } from 'antdv-next';
 
 const props = withDefaults(defineProps<DrawerProps>(), {
@@ -258,7 +259,7 @@ const footerClassName = cn(
         </div>
       </div>
 
-      <!-- 内容：滚动一律走封装组件（@antdv/ui 的 Scrollbar），不留系统滚动条 -->
+      <!-- 内容：滚动一律走封装组件（@antdv/scrollbar-ui），不留系统滚动条 -->
       <Scrollbar root-class="h-full">
         <slot></slot>
       </Scrollbar>

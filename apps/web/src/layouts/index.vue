@@ -1,45 +1,35 @@
 <script setup lang="ts">
+import type { LayoutShellRegions, LayoutTone } from '@antdv/layout-ui';
 import type { LayoutMode } from '@antdv/layouts';
-import type { ScrollbarType } from '@antdv/ui/scrollbar';
 
-import {
-  computed,
-  markRaw,
-  onMounted,
-  onUnmounted,
-  ref,
-  useTemplateRef,
-  watch,
-} from 'vue';
-import { useI18n } from 'vue-i18n';
+import { computed, markRaw, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { useRouteLoading } from '@antdv/composables/useRouteLoading';
 import { useWatermark } from '@antdv/composables/useWatermark';
-import { LAYOUT_DRAWER_WIDTH } from '@antdv/layouts';
-import { cn } from '@antdv/shared/cn';
-import { Drawer } from 'antdv-next';
+import { LayoutShell } from '@antdv/layout-ui';
+import { eventBus } from '@antdv/shared';
+import { isExternalPath } from '@antdv/shared/menu';
+import logoUrl from '~/assets/images/logo.png';
 import PageLoading from '~/components/common/Loading/PageLoading.vue';
 import RouteLoadingBar from '~/components/common/Loading/RouteLoadingBar.vue';
 import { useDictStore } from '~/stores';
 import { useAppStore } from '~/stores/modules/app';
 import { useTabsStore } from '~/stores/modules/tabs';
 
-import LayoutBreadcrumb from './components/LayoutBreadcrumb.vue';
-import LayoutFooter from './components/LayoutFooter.vue';
-import LayoutHeader from './components/LayoutHeader.vue';
-import LayoutNavRail from './components/LayoutNavRail.vue';
-import LayoutSidebar from './components/LayoutSidebar.vue';
+import HeaderUser from './components/HeaderUser.vue';
+import HeaderWidgets from './components/HeaderWidgets.vue';
 import LayoutTabs from './components/LayoutTabs.vue';
-import { useShell } from './composables/useLayout';
+import { useHeaderMenu } from './composables/useHeaderMenu';
+import { useBreadcrumb, useShell } from './composables/useLayout';
 import { usePageCache } from './composables/usePageCache';
+import { useSidebarMenu } from './composables/useSidebarMenu';
 
 defineOptions({
   name: 'DefaultLayout',
 });
 
 const router = useRouter();
-const { t } = useI18n({ useScope: 'global' });
 const appStore = useAppStore();
 const dictStore = useDictStore();
 const tabsStore = useTabsStore();
@@ -47,10 +37,14 @@ const tabsStore = useTabsStore();
 /**
  * 外壳的全部区域开关都来自 `useShell()`：
  * 形态差异（垂直 / 双列 / 水平 / 侧边导航 / 混合垂直 / 混合双列 / 内容全屏）
- * 收敛在 `@antdv/layouts` 的蓝图表里，这里只按开关渲染，不再写 `layout === 'xxx'`。
+ * 收敛在 `@antdv/layouts` 的蓝图表里，`@antdv/layout-ui` 只按开关渲染，
+ * 这里既不再写 `layout === 'xxx'`，也不再手搭 `a-layout` 嵌套。
  */
 const { blueprint, contentStyle, maximized, overlaySidebar, regions } =
   useShell();
+const sidebarMenu = useSidebarMenu();
+const headerNav = useHeaderMenu();
+const { breadcrumbs } = useBreadcrumb();
 
 /**
  * 页面缓存：include 与包装组件都出自 `usePageCache()`。
@@ -60,25 +54,77 @@ const { blueprint, contentStyle, maximized, overlaySidebar, regions } =
 const pageCache = usePageCache();
 const cachedRoutes = pageCache.include;
 
-/* 区域开关摊成顶层 ref：模板里 ref 会自动解包，嵌套在对象里的不会 */
-const chromeless = computed(() => regions.chromeless.value);
-const headerVisible = computed(() => regions.headerVisible.value);
-const headerNavInFlow = computed(() => blueprint.value.headerLead === 'logo');
-const navRailVisible = computed(
-  () => regions.navRailVisible.value && !overlaySidebar.value,
-);
-const sidebarVisible = computed(
-  () => regions.sidebarVisible.value && !overlaySidebar.value,
-);
-const tabsVisible = computed(
-  () => regions.tabsVisible.value && appStore.showTabs,
-);
-const footerVisible = computed(
-  () => regions.footerVisible.value && appStore.showFooter,
-);
+/**
+ * 交给壳的开关 = 蓝图区域开关 ∧ 用户偏好。
+ *
+ * `LayoutShellRegions` 要的是普通布尔（壳内不认 store），所以偏好在这里折进去：
+ * 标签栏与底栏各有自己的显隐开关，蓝图只回答"这种形态有没有这一行"。
+ */
+const shellRegions = computed<LayoutShellRegions>(() => ({
+  footerVisible: regions.footerVisible.value && appStore.showFooter,
+  headerLead: blueprint.value.headerLead,
+  headerNavVisible: regions.headerNavVisible.value,
+  headerVisible: regions.headerVisible.value,
+  navRailVisible: regions.navRailVisible.value,
+  overlaySidebar: overlaySidebar.value,
+  shellHidden: regions.chromeless.value || maximized.value,
+  sidebarVisible: regions.sidebarVisible.value,
+  tabsVisible: regions.tabsVisible.value && appStore.showTabs,
+}));
 
-/** 内容全屏 / 标签页放大：只留内容区，外加一个退出入口 */
-const shellHidden = computed(() => chromeless.value || maximized.value);
+/**
+ * 配色档位。`geek` 恒深色、`dark` 看当前实际明暗（`auto` 要按 resolvedTheme 判断，
+ * 直接比较 `theme` 字面量会在系统深色下失效），另两个是浅色模式下的「深色侧栏/顶栏」偏好。
+ */
+const tone = computed<LayoutTone>(() => ({
+  dark: appStore.resolvedTheme === 'dark',
+  geek: appStore.themeStyle === 'geek',
+  headerDark: appStore.darkHeader,
+  sidebarDark: appStore.darkSidebar,
+}));
+
+const sider = computed(() => ({
+  collapsed: appStore.sidebarCollapsed,
+  menus: sidebarMenu.menus.value,
+  openKeys: sidebarMenu.openKeys.value,
+  selectedKeys: sidebarMenu.selectedKeys.value,
+  width: appStore.sidebarWidth,
+}));
+
+const rail = computed(() => ({
+  activeKey: regions.railActiveKey.value,
+  menus: regions.railMenus.value,
+  width: appStore.railWidth,
+}));
+
+const footer = computed(() => ({
+  company: appStore.copyrightCompany || 'Antdv Admin',
+  icp: appStore.copyrightIcp,
+  showCopyright: appStore.showCopyright,
+}));
+
+/**
+ * 面包屑的 href 由这里生成，包内不 import vue-router。
+ *
+ * 不能图省事用 antd 面包屑的 `path`：它会把前面每一级拼到当前这一级
+ * （`#/system/system/user`），中键 / 右键"新标签页打开"全指向不存在的页面。
+ * `router.resolve` 则 hash 模式得到 `#/system/user`、history 模式得到 `/system/user`，
+ * 切换历史模式不用改这里。外链返回 `undefined`，由包内按原样交给浏览器
+ * （补 `target="_blank"`）。
+ */
+function resolveHref(path: string): string | undefined {
+  return isExternalPath(path) ? undefined : router.resolve(path).href;
+}
+
+const breadcrumb = computed(() => ({
+  enabled: appStore.showBreadcrumb,
+  hideWhenOnlyOne: appStore.hideBreadcrumbWhenOnlyOne,
+  items: breadcrumbs.value,
+  resolveHref,
+  showIcon: appStore.showBreadcrumbIcon,
+}));
+
+const appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Next Admin';
 
 /**
  * 记住"进入内容全屏之前"是哪种形态。
@@ -95,8 +141,24 @@ watch(
   { immediate: true },
 );
 
-function exitFullContent(): void {
+/** 右下角那颗退出按钮（壳里唯一入口）：放大态还原标签页，内容全屏还原布局 */
+function handleExit(): void {
+  if (maximized.value) {
+    tabsStore.restore();
+    return;
+  }
   appStore.updateSetting({ layout: previousLayout.value });
+}
+
+/** 顶栏左侧那颗按钮：浮层形态开合抽屉，常驻形态折叠这一列 */
+function toggleSidebar(): void {
+  if (overlaySidebar.value) {
+    appStore.updateSetting({
+      sidebarOverlayOpen: !appStore.sidebarOverlayOpen,
+    });
+    return;
+  }
+  appStore.toggles.sidebarCollapsed();
 }
 
 /**
@@ -113,39 +175,6 @@ watch(
   { immediate: true },
 );
 
-const isGeekStyle = computed(() => appStore.themeStyle === 'geek');
-
-const layoutClassName = computed(() =>
-  cn(
-    'flex h-screen flex-col gap-4 overflow-hidden',
-    isGeekStyle.value ? 'bg-[#0a0a0a]' : 'bg-gray-50 dark:bg-gray-900',
-  ),
-);
-
-const contentClassName = computed(() =>
-  cn(
-    // 内容区自己不滚动了：滚动交给封装的 <Scrollbar>（见模板），这里只做
-    // "列向 flex + 允许收缩"的容器，让 Scrollbar 的 flex-1 拿得到真实高度。
-    // 内边距也一并挪进 Scrollbar 的 view-class —— 挂在滚动元素上会让滚动条
-    // 被挤到 padding 外侧，且底部留白会被算进滚动高度。
-    'box-border flex min-h-0 flex-1 flex-col',
-    isGeekStyle.value ? 'bg-[#0a0a0a]' : 'bg-gray-50 dark:bg-gray-900',
-  ),
-);
-
-/** 主内容区的滚动容器（封装 Scrollbar 的实例，不是 DOM 元素） */
-const scrollbarRef = useTemplateRef<ScrollbarType>('mainScrollbar');
-
-/**
- * 滚动到顶部。
- *
- * 走组件暴露的 `scrollTo` 而不是直接摸 DOM：原生滚动条被 `scrollbar-width: none`
- * 藏起来之后，滚动的那个元素在组件内部（`.scrollbar__wrap`），外面拿不到也不该拿。
- */
-function scrollToTop() {
-  scrollbarRef.value?.scrollTo({ left: 0, top: 0 });
-}
-
 /**
  * `router-view` 插槽给出的 `Component` 在导航解析期间是 `undefined`
  * （异步 chunk、重定向、初始渲染都会命中）。
@@ -159,11 +188,18 @@ function rawComponent(component: unknown) {
 }
 
 onMounted(() => {
-  (window as any).__layoutScrollToTop = scrollToTop;
   dictStore.fetchAllDicts();
 });
+
+/**
+ * 全局事件总线在这里清，不放顶栏。
+ *
+ * 迁移前它挂在 `LayoutHeader` 的 `onUnmounted` 上，而顶栏在"进入内容全屏 /
+ * 标签页放大"时也会卸载 —— 于是切一次沉浸视角就把 WebSocket 通知的监听清空了，
+ * 回来再也收不到推送。外壳（也就是这一层）卸载才代表真的离开后台。
+ */
 onUnmounted(() => {
-  delete (window as any).__layoutScrollToTop;
+  eventBus.clear();
 });
 
 /* 路由切换 loading 状态管理（增强版：集成性能监控） */
@@ -192,130 +228,74 @@ useWatermark({
     @cancel="cancelRouteLoading"
   />
 
-  <a-layout :class="layoutClassName">
-    <!-- 顶栏横贯全宽：水平 / 混合 / 侧边导航（Logo 在顶栏，侧栏从下一行开始） -->
-    <LayoutHeader v-if="headerVisible && headerNavInFlow && !shellHidden" />
+  <LayoutShell
+    :breadcrumb="breadcrumb"
+    :content-style="contentStyle"
+    :footer="footer"
+    :logo="logoUrl"
+    :maximized="maximized"
+    :nav="headerNav.nav.value"
+    :overlay-open="appStore.sidebarOverlayOpen"
+    :regions="shellRegions"
+    :rail="rail"
+    :sider="sider"
+    :title="appTitle"
+    :tone="tone"
+    @exit="handleExit"
+    @navigate="sidebarMenu.openMenuByKey"
+    @toggle-collapse="appStore.toggles.sidebarCollapsed"
+    @toggle-sidebar="toggleSidebar"
+    @update:open-keys="sidebarMenu.setOpenKeys"
+    @update:overlay-open="
+      (v: boolean) => appStore.updateSetting({ sidebarOverlayOpen: v })
+    "
+  >
+    <template #tabs>
+      <LayoutTabs />
+    </template>
 
-    <!--
-      「图标栏 + 侧栏 + 内容列」这一整行必须是 a-layout，不能是 a-layout-content：
-      antd 的 LayoutSider 通过 inject 把自己登记给**最近一层 Layout provider**，
-      而 a-layout-content 不提供该上下文。写成 content 时侧栏会一路冒泡登记到最外层
-      `.ant-layout` 上，外层因此拿到 `ant-layout-has-sider`（flex-direction: row），
-      把我们的 `flex-col` 顶掉 —— 表现就是顶栏变成"左列"、侧栏和内容区被推到视口之外。
-    -->
-    <a-layout class="flex min-h-0 flex-1 overflow-hidden">
-      <!-- 图标栏：双列菜单放一级，混合双列放二级 -->
-      <LayoutNavRail v-if="navRailVisible" />
+    <template #tools>
+      <HeaderWidgets />
+    </template>
 
-      <!-- 常驻侧栏：数据源由蓝图决定（整棵树 / 当前一级子树 / 图标栏子树） -->
-      <LayoutSidebar v-if="sidebarVisible" />
+    <template #user>
+      <HeaderUser />
+    </template>
 
-      <!-- 主内容列 -->
-      <a-layout class="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <!-- 顶栏嵌在内容列：垂直 / 双列（左侧栏占满整高，Logo 在侧栏顶部） -->
-        <LayoutHeader
-          v-if="headerVisible && !headerNavInFlow && !shellHidden"
-        />
+    <!-- 加载态遮罩盖在内容之上、滚动之外：不随页面一起滚走 -->
+    <template #content-overlay>
+      <PageLoading
+        :loading="isRouteLoading"
+        variant="default"
+        :error="isSlow"
+      />
+    </template>
 
-        <!--
-          Logo 系形态（水平 / 侧边导航 / 混合）的顶栏被品牌位与横向导航占满，
-          面包屑没有落脚点 —— 但它必须能被 `showBreadcrumb` 开关点亮，
-          所以退到内容列的第一行，视觉上仍是"顶栏下面那条外壳"。
-        -->
-        <LayoutBreadcrumb
-          v-if="headerVisible && headerNavInFlow && !shellHidden"
-          variant="content"
-        />
-
-        <LayoutTabs
-          v-if="tabsVisible"
-          :show-icon="appStore.tabShowIcon !== false"
-        />
-
-        <a-layout-content
-          :class="contentClassName"
-          :style="contentStyle"
-          class="relative"
-        >
-          <PageLoading
-            :loading="isRouteLoading"
-            variant="default"
-            :error="isSlow"
-          />
-          <!--
-            内容区滚动一律走封装的 <Scrollbar>：浏览器原生滚动条的宽度、颜色、
-            出现时机都由操作系统决定，Windows 上那条 17px 的灰杠既压内容也对不上主题。
-            `root-class="min-h-0 flex-1"` 让它在这个列向 flex 里拿满剩余高度，
-            内边距挂在 view 上（见 contentClassName 的注释）。
-            「内容全屏 / 标签页放大」时不留这圈内边距：那种形态是沉浸视角，
-            四周留 16px 会把深色大屏围出一圈白边，等于全屏没全成。
-          -->
-          <Scrollbar
-            ref="mainScrollbar"
-            root-class="min-h-0 flex-1"
-            :view-class="shellHidden ? '' : 'p-4'"
-          >
-            <PageTransition>
-              <router-view v-slot="{ Component, route }">
-                <!-- 微前端页面：禁用 out-in 模式，避免 iframe/微应用被 transition 销毁 -->
-                <template v-if="route.meta?.microApp">
-                  <keep-alive :include="cachedRoutes">
-                    <component
-                      :is="pageCache.wrap(route.path, Component)"
-                      :key="pageCache.keyOf(route.path)"
-                    />
-                  </keep-alive>
-                </template>
-                <!-- 全屏大屏页面：禁用 transition + keepAlive，避免 ECharts 资源泄漏影响其他页面 -->
-                <template v-else-if="route.meta?.noTransition">
-                  <component :is="rawComponent(Component)" :key="route.path" />
-                </template>
-                <!-- 普通页面：按标签页与菜单声明决定是否缓存，不使用 Transition 避免渲染冲突 -->
-                <template v-else>
-                  <keep-alive :include="cachedRoutes">
-                    <component
-                      :is="pageCache.wrap(route.path, Component)"
-                      :key="pageCache.keyOf(route.path)"
-                    />
-                  </keep-alive>
-                </template>
-              </router-view>
-            </PageTransition>
-          </Scrollbar>
-        </a-layout-content>
-
-        <LayoutFooter v-if="footerVisible" />
-      </a-layout>
-    </a-layout>
-
-    <!-- 浮层菜单：窄屏（或蓝图声明为浮层的形态）下把常驻侧栏升级为抽屉 -->
-    <Drawer
-      v-if="overlaySidebar && !shellHidden"
-      :open="appStore.sidebarOverlayOpen"
-      placement="left"
-      :size="LAYOUT_DRAWER_WIDTH"
-      :has-header="false"
-      :closable="false"
-      :styles="{ body: { padding: 0, display: 'flex' } }"
-      @close="appStore.updateSetting({ sidebarOverlayOpen: false })"
-    >
-      <LayoutSidebar overlay />
-    </Drawer>
-
-    <!-- 隐藏外壳时唯一的退出入口：悬浮在右下角，避免用户「被困在」全屏页面里 -->
-    <button
-      v-if="shellHidden"
-      type="button"
-      class="fixed right-6 bottom-6 z-50 flex items-center gap-1.5 rounded-full bg-ant-primary px-4 py-2 text-sm text-white shadow-lg transition-opacity hover:opacity-90"
-      :aria-label="
-        maximized ? t('shell.restoreTabs') : t('shell.exitFullContent')
-      "
-      @click="maximized ? tabsStore.restore() : exitFullContent()"
-    >
-      <Icon :icon="maximized ? 'carbon:fit-to-screen' : 'carbon:exit'" />
-      <span>{{
-        maximized ? t('shell.restoreTabs') : t('shell.exitFullContent')
-      }}</span>
-    </button>
-  </a-layout>
+    <PageTransition>
+      <router-view v-slot="{ Component, route }">
+        <!-- 微前端页面：禁用 out-in 模式，避免 iframe/微应用被 transition 销毁 -->
+        <template v-if="route.meta?.microApp">
+          <keep-alive :include="cachedRoutes">
+            <component
+              :is="pageCache.wrap(route.path, Component)"
+              :key="pageCache.keyOf(route.path)"
+            />
+          </keep-alive>
+        </template>
+        <!-- 全屏大屏页面：禁用 transition + keepAlive，避免 ECharts 资源泄漏影响其他页面 -->
+        <template v-else-if="route.meta?.noTransition">
+          <component :is="rawComponent(Component)" :key="route.path" />
+        </template>
+        <!-- 普通页面：按标签页与菜单声明决定是否缓存，不使用 Transition 避免渲染冲突 -->
+        <template v-else>
+          <keep-alive :include="cachedRoutes">
+            <component
+              :is="pageCache.wrap(route.path, Component)"
+              :key="pageCache.keyOf(route.path)"
+            />
+          </keep-alive>
+        </template>
+      </router-view>
+    </PageTransition>
+  </LayoutShell>
 </template>

@@ -3,6 +3,7 @@ import { reactive, ref } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
+import { Button as AButton, Card as ACard, Divider as ADivider, Form as AForm, FormItem as AFormItem, Input as AInput, InputPassword as AInputPassword, Switch as ASwitch, message } from 'antdv-next';
 import { BasicModal, useModal } from '~/components/business/Modal';
 import { useAppStore } from '~/stores/modules/app';
 import { useUserStore } from '~/stores/modules/user';
@@ -112,69 +113,69 @@ function handleThemeToggle() {
 
 <template>
   <div :class="containerClassName">
-    <a-card variant="borderless" :class="cardClassName" title="个人资料">
+    <ACard variant="borderless" :class="cardClassName" title="个人资料">
       <div :class="sectionTitleClassName">基本信息</div>
-      <a-form :model="profileForm" layout="vertical" style="max-width: 560px">
-        <a-form-item label="姓名">
-          <a-input v-model:value="profileForm.name" placeholder="请输入姓名" />
-        </a-form-item>
-        <a-form-item label="邮箱地址">
-          <a-input
+      <AForm :model="profileForm" layout="vertical" style="max-width: 560px">
+        <AFormItem label="姓名">
+          <AInput v-model:value="profileForm.name" placeholder="请输入姓名" />
+        </AFormItem>
+        <AFormItem label="邮箱地址">
+          <AInput
             v-model:value="profileForm.email"
             placeholder="请输入邮箱地址"
           />
-        </a-form-item>
-        <a-form-item label="手机号码">
-          <a-input
+        </AFormItem>
+        <AFormItem label="手机号码">
+          <AInput
             v-model:value="profileForm.phone"
             placeholder="请输入手机号码"
           />
-        </a-form-item>
-        <a-form-item>
-          <a-button
+        </AFormItem>
+        <AFormItem>
+          <AButton
             type="primary"
             :loading="profileLoading"
             @click="handleProfileSave"
           >
             保存修改
-          </a-button>
-        </a-form-item>
-      </a-form>
-    </a-card>
+          </AButton>
+        </AFormItem>
+      </AForm>
+    </ACard>
 
-    <a-card variant="borderless" :class="cardClassName" title="修改密码">
-      <a-form :model="passwordForm" layout="vertical" style="max-width: 560px">
-        <a-form-item label="当前密码">
-          <a-input-password
+    <ACard variant="borderless" :class="cardClassName" title="修改密码">
+      <AForm :model="passwordForm" layout="vertical" style="max-width: 560px">
+        <AFormItem label="当前密码">
+          <AInputPassword
             v-model:value="passwordForm.oldPassword"
             placeholder="请输入当前密码"
           />
-        </a-form-item>
-        <a-form-item label="新密码">
-          <a-input-password
+        </AFormItem>
+        <AFormItem label="新密码">
+          <AInputPassword
             v-model:value="passwordForm.newPassword"
             placeholder="请输入新密码"
           />
-        </a-form-item>
-        <a-form-item label="确认新密码">
-          <a-input-password
+        </AFormItem>
+        <AFormItem label="确认新密码">
+          <AInputPassword
             v-model:value="passwordForm.confirmPassword"
             placeholder="请再次输入新密码"
           />
-        </a-form-item>
-        <a-form-item>
-          <a-button
+        </AFormItem>
+        <AFormItem>
+          <AButton
             type="primary"
             :loading="passwordLoading"
             @click="handlePasswordSave"
           >
             更新密码
-          </a-button>
-        </a-form-item>
-      </a-form>
-    </a-card>
+          </AButton>
+        </AFormItem>
+      </AForm>
+    </ACard>
 
-    <a-card variant="borderless" :class="cardClassName" title="通知设置">
+    <ACard variant="borderless" :class="cardClassName" title="通知设置">
       <div class="max-w-lg space-y-4">
         <div class="flex items-center justify-between">
           <div>
@@ -183,12 +184,12 @@ function handleThemeToggle() {
               通过邮件接收系统通知
             </p>
           </div>
-          <a-switch
+          <ASwitch
             v-model:checked="notificationSettings.email"
             @change="handleNotificationChange"
           />
         </div>
-        <a-divider />
+        <ADivider />
         <div class="flex items-center justify-between">
           <div>
             <p class="font-medium text-gray-800 dark:text-gray-200">短信通知</p>
@@ -196,12 +197,12 @@ function handleThemeToggle() {
               通过短信接收系统通知
             </p>
           </div>
-          <a-switch
+          <ASwitch
             v-model:checked="notificationSettings.sms"
             @change="handleNotificationChange"
           />
         </div>
-        <a-divider />
+        <ADivider />
         <div class="flex items-center justify-between">
           <div>
             <p class="font-medium text-gray-800 dark:text-gray-200">推送通知</p>
@@ -209,15 +210,15 @@ function handleThemeToggle() {
               在浏览器中接收推送通知
             </p>
           </div>
-          <a-switch
+          <ASwitch
             v-model:checked="notificationSettings.push"
             @change="handleNotificationChange"
           />
         </div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card variant="borderless" :class="cardClassName" title="主题设置">
+    <ACard variant="borderless" :class="cardClassName" title="主题设置">
       <div class="flex max-w-lg items-center justify-between">
         <div>
           <p class="font-medium text-gray-800 dark:text-gray-200">主题模式</p>
@@ -225,7 +226,7 @@ function handleThemeToggle() {
             当前：{{ isDarkMode ? '深色' : '浅色' }}
           </p>
         </div>
-        <a-button @click="handleThemeToggle">
+        <AButton @click="handleThemeToggle">
           <template #icon>
             <Icon
               :icon="isDarkMode ? 'carbon:sun' : 'carbon:moon'"
@@ -234,19 +235,19 @@ function handleThemeToggle() {
             />
           </template>
           切换为{{ isDarkMode ? '浅色' : '深色' }}
-        </a-button>
+        </AButton>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card variant="borderless" :class="dangerCardClassName">
+    <ACard variant="borderless" :class="dangerCardClassName">
       <div :class="dangerTitleClassName">危险操作</div>
       <p :class="dangerDescClassName">
         删除账号后，所有数据将永久丢失且不可恢复，请谨慎操作。
       </p>
-      <a-button danger @click="dangerModalMethods?.openModal()">
+      <AButton danger @click="dangerModalMethods?.openModal()">
         删除账号
-      </a-button>
-    </a-card>
+      </AButton>
+    </ACard>
 
     <BasicModal
       :register="registerDangerModal"

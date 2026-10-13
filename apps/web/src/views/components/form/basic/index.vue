@@ -3,7 +3,9 @@ import type { FormSchema } from '~/components/business/Form';
 
 import { ref } from 'vue';
 
+import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
+import { Button as AButton, Card as ACard } from 'antdv-next';
 import { BasicForm, useForm } from '~/components/business/Form';
 
 const containerClassName = cn('space-y-6');
@@ -232,23 +234,23 @@ function handleGetValues() {
 
 <template>
   <div :class="containerClassName">
-    <a-card title="基础表单">
+    <ACard title="基础表单">
       <div class="space-y-4">
         <div class="flex flex-wrap gap-2">
-          <a-button type="primary" @click="handleValidate"> 验证表单 </a-button>
-          <a-button @click="handleReset"> 重置表单 </a-button>
-          <a-button @click="handleSetValues"> 设置 </a-button>
-          <a-button @click="handleGetValues"> 获取 </a-button>
+          <AButton type="primary" @click="handleValidate"> 验证表单 </AButton>
+          <AButton @click="handleReset"> 重置表单 </AButton>
+          <AButton @click="handleSetValues"> 设置 </AButton>
+          <AButton @click="handleGetValues"> 获取 </AButton>
         </div>
 
         <BasicForm @register="register" @submit="handleSubmit" />
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="表单数据">
+    <ACard title="表单数据">
       <Scrollbar root-class="rounded bg-gray-100 p-4 dark:bg-gray-800">
         <pre>{{ JSON.stringify(formResult, null, 2) }}</pre>
       </Scrollbar>
-    </a-card>
+    </ACard>
   </div>
 </template>

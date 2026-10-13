@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 
-import { message } from 'antdv-next';
+import { Button as AButton, Col as ACol, Form as AForm, FormItem as AFormItem, Input as AInput, Row as ARow, TextArea as ATextarea, message } from 'antdv-next';
 import { BasicModal, useModalInner } from '~/components/business/Modal';
 
 /**
@@ -87,36 +87,36 @@ function handleReset() {
           >{{ receivedJson }}</pre>
       </div>
 
-      <a-form :model="form" layout="vertical">
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="姓名">
-              <a-input v-model:value="form.name" placeholder="请输入姓名" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="邮箱">
-              <a-input v-model:value="form.email" placeholder="请输入邮箱" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-form-item label="部门">
-          <a-input v-model:value="form.department" placeholder="请输入部门" />
-        </a-form-item>
-        <a-form-item label="备注">
-          <a-textarea
+      <AForm :model="form" layout="vertical">
+        <ARow :gutter="16">
+          <ACol :span="12">
+            <AFormItem label="姓名">
+              <AInput v-model:value="form.name" placeholder="请输入姓名" />
+            </AFormItem>
+          </ACol>
+          <ACol :span="12">
+            <AFormItem label="邮箱">
+              <AInput v-model:value="form.email" placeholder="请输入邮箱" />
+            </AFormItem>
+          </ACol>
+        </ARow>
+        <AFormItem label="部门">
+          <AInput v-model:value="form.department" placeholder="请输入部门" />
+        </AFormItem>
+        <AFormItem label="备注">
+          <ATextarea
             v-model:value="form.remark"
             :rows="3"
             placeholder="请输入备注"
           />
-        </a-form-item>
+        </AFormItem>
         <p class="text-xs text-gray-400">数据 ID：{{ form.id }}</p>
-      </a-form>
+      </AForm>
     </div>
 
     <!-- 内置底部按钮栏里的插槽：footer 用了 slot 就没有默认按钮，这里用 centerFooter -->
     <template #centerFooter>
-      <a-button @click="handleReset"> 重置 </a-button>
+      <AButton @click="handleReset"> 重置 </AButton>
     </template>
   </BasicModal>
 </template>

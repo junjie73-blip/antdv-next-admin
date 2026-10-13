@@ -9,7 +9,7 @@
 | 改了子包源码，页面没反应 | 应用消费的是子包 `dist`，不是源码 | `pnpm --filter <pkg> build`，然后**重启** dev（只重启不构建 = 还是旧的） |
 | `pnpm install` 被拦 | 根 `preinstall` 挂了 `only-allow pnpm` | `corepack prepare pnpm@10.12.4 --activate`；npm/yarn 装出来的 workspace 是假的 |
 | dev 改一个二级页面，顶栏侧栏全没了 | 自动路由 HMR 重铺**裸路由**，布局父记录丢了 | 已修（`apps/web/src/router/index.ts:46-73` 接管 `handleHotUpdate`）；若复现，先确认没绕过 `buildAppRoutes` |
-| 三个端口撞车 | 文档站 5200 / 应用 6080 / mock 5320 | mock 端口写死且两边各持一份，改它要同时改 `VITE_MOCK_SERVER` 与插件探测，见[Mock 服务（Nitro）](/guide/essentials/mock) |
+| 三个端口撞车 | 文档站 5200 / 应用 6080 / mock 5320 | mock 端口写死且两边各持一份，改它要同时改 `VITE_MOCK_SERVER` 与插件探测，见[Mock 服务（Nitro）](/zh/guide/essentials/mock) |
 | `pnpm check:cspell` 报错找不到命令 | 本工作区没装 cspell | 已知缺口，CI 也不跑它；不要为它加依赖 |
 
 ## 路由与菜单
@@ -17,7 +17,7 @@
 | 症状 | 原因 | 处理 |
 | --- | --- | --- |
 | 页面能直达，但侧栏看不到 | 侧栏读 `GET /menus`，**不是**从路由表递归的 | 后端加菜单项；本地可先在菜单管理页建 |
-| 菜单点了不跳转 | `attachMenuPaths` 在路由表里反查不到该 path | 菜单的 path 必须命中已生成的约定路由，见[路由与菜单](/guide/essentials/route) |
+| 菜单点了不跳转 | `attachMenuPaths` 在路由表里反查不到该 path | 菜单的 path 必须命中已生成的约定路由，见[路由与菜单](/zh/guide/essentials/route) |
 | 进页面被踢到 403 | 菜单里没有它 → 路由被 `removeRoute` 裁掉 | 这是"菜单即权限"的正常结果，不是 bug |
 | 公开页被重定向到登录 | 缺省即 `requiresAuth` | 显式写 `meta.requiresAuth: false` 并加进 `WHITE_LIST`（`apps/web/src/config/constants.ts:9-18`） |
 | 标签页"刷新当前"白屏 | `/redirect/:path(.*)` 被删了 | 它必须显式注册，约定路由只给精确的 `/redirect`（`router/routes.ts:46-55`） |
@@ -41,7 +41,7 @@
 | 换主色，菜单选中项不变 | 只写了一个变量名 | `--ant-color-primary` 与 `--ant-primary-color` **都要写**（`packages/preferences/src/css-vars.ts:47-93`） |
 | 深色下主色和自己设的不一样 | antdv-next 在 `.ant-app` 上重算主色 | 覆盖写在 `html` 的种子变量上；测试断言不要钉色值 |
 | 覆盖组件库样式要靠 `!important` | Tailwind 层顺序被改动 | `@layer theme, base, antd, components, utilities` 必须显式声明（`packages/styles/src/index.css:18-32`） |
-| 页面之间间距不一致 | 路由页面外层自己写了 padding | 内边距归布局管，见[开发规范与环境变量](/guide/essentials/development) |
+| 页面之间间距不一致 | 路由页面外层自己写了 padding | 内边距归布局管，见[开发规范与环境变量](/zh/guide/essentials/development) |
 | 生产包里图标是空白方块 | 用了离线列表外的 Iconify 前缀 | 新集合要同时加 catalog 依赖与 `auto-import.ts:95-97` 的离线列表 |
 
 ## 组件与交互
@@ -50,13 +50,13 @@
 | --- | --- | --- |
 | `notification` 弹不出来 | 用了静态方法 | `App.useApp()` 拿实例；标题字段是 `title` |
 | 表格固定列里的弹层被裁 | 固定列自己造了层叠上下文 | 把弹层 `z-index` 抬到固定列之上 |
-| 按钮级权限不生效 | 以为 `meta.permissions` 有用 | 没有任何守卫读它；用 `hasPermission` / 指令，见[权限、指令与光标](/guide/in-depth/access) |
+| 按钮级权限不生效 | 以为 `meta.permissions` 有用 | 没有任何守卫读它；用 `hasPermission` / 指令，见[权限、指令与光标](/zh/guide/in-depth/access) |
 
 ## 文档站
 
 | 症状 | 原因 | 处理 |
 | --- | --- | --- |
-| 侧栏、顶栏菜单、语言切换全是空的，正文正常 | `locales` 的键写成路径 `'/'`，内部拼成 `///` 永不匹配 | 键用裸语言码 `zh` / `en`，见[CI 与部署](/guide/essentials/deploy) |
+| 侧栏、顶栏菜单、语言切换全是空的，正文正常 | `locales` 的键写成路径 `'/'`，内部拼成 `///` 永不匹配 | 键用裸语言码 `zh` / `en`，见[CI 与部署](/zh/guide/essentials/deploy) |
 | 顶栏看不到语言切换 | 上游把它藏在小屏（<1280px） | 窄窗口在汉堡菜单里，不是坏链 |
 | 切语言后 `<html lang>` 没变 | VitePress 同页换 locale 不重载文档 | 验收断言按 URL 与标题，别按 `lang` |
 | HTML 在、样式全 404 | `VITEPRESS_BASE` 与实际挂载路径不符 | GitHub Pages 项目站是 `/<仓库名>/`；Git Bash 里还要 `MSYS_NO_PATHCONV=1` |
@@ -79,4 +79,4 @@
 | ESLint 里的 `@vben/*` 字面量 | import 边界规则仍写着上游包名（`custom-config.ts:61-118`），运行时已无 `@vben` 依赖 |
 | `docs/` 与 `apps/web/public/pwa-icons/` 的 logo | **拷贝**关系，不是引用；换 logo 要两边一起改 |
 
-::: tip 想清理按"死代码"的代价排序最划算的是：i18n 的外壳与菜单标题已经接上，剩下来的是业务页面文案（要么补 `useI18n`，要么承认中文就是这个界面的语言）；`auth` store 直接删（挂住它的只有 `stores/index.ts:2` 那句 `export *`）；`routeMode` / `VITE_NAMESPACE` 二选一——要么实现要么从 `.env` 与 `types/env.d.ts` 移除。清理完记得同步这份 FAQ；删的顺序与牵动面见[移除代码](/guide/other/remove-code)。:::
+::: tip 想清理按"死代码"的代价排序最划算的是：i18n 的外壳与菜单标题已经接上，剩下来的是业务页面文案（要么补 `useI18n`，要么承认中文就是这个界面的语言）；`auth` store 直接删（挂住它的只有 `stores/index.ts:2` 那句 `export *`）；`routeMode` / `VITE_NAMESPACE` 二选一——要么实现要么从 `.env` 与 `types/env.d.ts` 移除。清理完记得同步这份 FAQ；删的顺序与牵动面见[移除代码](/zh/guide/other/remove-code)。:::

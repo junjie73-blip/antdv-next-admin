@@ -10,9 +10,9 @@
 | 应用级 | `apps/web/src/composables/` | `~/composables`（barrel）或具体文件深路径 | `useCRUD`、`usePermission`、`http` / `request` / `useRequest` / `requestCache`、`useLocale`、`useLocaleSync`、`useThemeTransition`、`useNotice`、`usePasswordPolicy` |
 | 库无关通用件 | `@antdv/composables` | 根入口 `@antdv/composables`，重件走子路径 | `useCache`、`useChunkUpload`、`useFileReader`、`usePrint`、`useRouteLoading`、`useWatermark`；`@antdv/composables/echarts`、`/sse`、`/websocket` |
 
-::: warning 本仓库的组合式函数一个都不自动导入 `unplugin-auto-import` 的 `imports` 只列了 `vue` / `@vueuse/core` / `pinia` / `vue-router` 和 antdv-next 的 `message`、`notification`、`Modal`、`Drawer`（`internal/vite-config/src/plugins/auto-import.ts:73-84`），**没有配 `dirs`**。所以 `useTable`、`http`、`usePermission` 都必须显式 `import`。
+::: warning 本仓库的组合式函数一个都不自动导入 `unplugin-auto-import` 的 `imports` 只列了 `vue` / `@vueuse/core` / `pinia` / `vue-router` 四项（`internal/vite-config/src/plugins/auto-import.ts:48-51`），**没有配 `dirs`**，antdv-next 的函数式 API 也早就不在里面了。所以 `useTable`、`http`、`usePermission`，以及 `message` / `notification` / `Modal` / `Drawer` 这一类必须显式 `import`。
 
-撞名比漏 import 更阴：`@vueuse/core` 自己就导出 `usePermission`（浏览器的 Permissions API）和 `useWebSocket`，这两个已经躺在 `apps/web/types/auto-imports.d.ts:236` 与 `:297` 里被自动导入了。少写一行 import 不会报错，只会拿到另一个函数的返回值 —— vueuse 的 `usePermission()` 返回的是 `{ permissions }` 一个 ref，压根没有 `hasPermission` 方法。
+撞名比漏 import 更阴：`@vueuse/core` 自己就导出 `usePermission`（浏览器的 Permissions API）和 `useWebSocket`，这两个已经躺在 `apps/web/types/auto-imports.d.ts:232` 与 `:293` 里被自动导入了。少写一行 import 不会报错，只会拿到另一个函数的返回值 —— vueuse 的 `usePermission()` 返回的是 `{ permissions }` 一个 ref，压根没有 `hasPermission` 方法。
 
 `@antdv/composables` 的 `echarts` / `sse` / `websocket` 故意**不进根 barrel**：它们要么拖进整个图表库注册表，要么带一堆管理器类，放进根入口会让 `import { usePrint }` 也付出一份图表的解析成本（`packages/composables/src/index.ts:1-12`，`exports` 映射见 `packages/composables/package.json:21-43`，其中 `"./*"` 通配让单文件模块可以直接按名引）。:::
 

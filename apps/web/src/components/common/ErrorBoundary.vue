@@ -3,6 +3,7 @@ import type { VNode } from 'vue';
 
 import { onErrorCaptured, ref } from 'vue';
 
+import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
 import { isError, isString } from 'es-toolkit';
 

@@ -2,7 +2,7 @@
 
 一句话：**账号密码 → `userStore.login()` → token 加密进缓存 → 跳 `redirect` 或首页常量；登出必须把会话态四件套一次清干净。**
 
-登录页在 `apps/web/src/views/login/index.vue`，登录态在 `apps/web/src/stores/modules/user.ts`，拦截在路由守卫（见 [权限与菜单](/guide/in-depth/access)），凭证注入在请求层（见 [HTTP 请求](/guide/essentials/request)）。本页只讲这条链路本身。
+登录页在 `apps/web/src/views/login/index.vue`，登录态在 `apps/web/src/stores/modules/user.ts`，拦截在路由守卫（见 [权限与菜单](/zh/guide/in-depth/access)），凭证注入在请求层（见 [HTTP 请求](/zh/guide/essentials/request)）。本页只讲这条链路本身。
 
 ## 登录的完整链路
 
@@ -59,6 +59,6 @@
 
 ## 相关页面
 
-- 守卫与菜单裁剪的细节：[权限与菜单](/guide/in-depth/access)
-- 路由表怎么生成：[路由](/guide/essentials/route)
-- Mock 服务：[Mock 数据](/guide/essentials/mock)
+- 守卫与菜单裁剪的细节：[权限与菜单](/zh/guide/in-depth/access)
+- 路由表怎么生成：[路由](/zh/guide/essentials/route)
+- Mock 服务：[Mock 数据](/zh/guide/essentials/mock)

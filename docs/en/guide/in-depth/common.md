@@ -1,13 +1,13 @@
 # Reusable components
 
-In one sentence: **app-level composite components live in `apps/web/src/components/business/`, library-agnostic primitives in `@antdv/ui`, generic hooks in `@antdv/composables`; the `Basic*` family is driven by one `[register, methods]` convention.**
+In one sentence: **app-level composite components live in `apps/web/src/components/business/`, library-agnostic primitives in `@antdv/icons` and `@antdv/ui-kit/*`, generic hooks in `@antdv/composables`; the `Basic*` family is driven by one `[register, methods]` convention.**
 
 ## The three layers
 
 | Layer | Where | What lives there |
 | --- | --- | --- |
 | App business components | `apps/web/src/components/business/` | `BasicTable`/`TableAction`, `BasicForm`, `BasicModal`, `BasicDrawer`, `TreeTable`, `Description`, `CountTo`, `MarkdownEditor`, `ImportExport`, `TenantSelect`, `MicroAppContainer` |
-| Library-agnostic primitives | `packages/ui` (`@antdv/ui`) | `IconifyIcon`, `IconPicker`, `SvgIcon`, `Loading` + `v-loading`, `Scrollbar` — none of them depend on antdv-next |
+| Library-agnostic primitives | `packages/icons` (`@antdv/icons`) + `packages/ui-kit/*` | `IconifyIcon`, `IconPicker`, `SvgIcon` in `@antdv/icons`; `Loading` + `v-loading` in `@antdv/loading-ui`; `Scrollbar` in `@antdv/scrollbar-ui`; `shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` one package each. None of these depends on antdv-next, and none relies on auto-import — the host must import them explicitly |
 | Generic composables | `packages/composables` (`@antdv/composables`) | The root barrel only exports the light ones: `useCache` / `useChunkUpload` / `useFileReader` / `usePrint` / `useRouteLoading` / `useWatermark`; `echarts` / `sse` / `websocket` must be imported from subpaths so that `import { usePrint }` does not pay for a chart library |
 | App-level hooks | `apps/web/src/composables/` | `useCRUD`, `usePermission`, `http` (the request layer's exit) |
 
@@ -66,7 +66,7 @@ Confirmation has two separate rules — don't remember it as "all built-in confi
 - `CountTo`: animated number, props in `CountTo/types.ts` (`startVal` / `endVal` / `duration` / `autoplay` / `decimals`).
 - `MarkdownEditor`: a tiptap-based wrapper with an `ImageUploadConfig` hooking into the Minio upload settings.
 - `Description`, `TreeTable`, `ImportExport`: detail panes, tree tables, import/export.
-- Global registration: `@antdv/ui` exposes `createUiInstaller()` for the cases that need `v-loading` and icon components present without explicit imports; app code prefers explicit imports so tree-shaking works.
+- Global registration: `@antdv/icons` ships `createIconInstaller()` (`packages/icons/src/index.ts:13-31`) and the `@antdv/loading-ui` barrel re-exports the directive under the name `vLoading` (`packages/ui-kit/loading-ui/src/index.ts:9`); the app uses no installer and imports everything explicitly so tree-shaking survives (the component resolvers were withdrawn from `internal/vite-config`, so a bare tag is never injected).
 
 ## Related pages
 

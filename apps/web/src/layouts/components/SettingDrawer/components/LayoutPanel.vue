@@ -4,6 +4,7 @@ import type { TabStyle } from '@antdv/types';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import { LayoutIcon } from '@antdv/layout-ui';
 import {
   CONTENT_MAX_WIDTH,
   CONTENT_MIN_WIDTH,
@@ -14,9 +15,8 @@ import {
   showsHeaderNav,
   showsNavRail,
 } from '@antdv/layouts';
-import { Input, Segmented } from 'antdv-next';
-import { LayoutIcon } from '~/layouts/components/LayoutIcon';
-import { TAB_STYLE_OPTIONS } from '~/layouts/composables/useTabStyle';
+import { TAB_STYLE_OPTIONS } from '@antdv/tabs-ui';
+import { InputNumber as AInputNumber, Slider as ASlider, Switch as ASwitch, Input, Segmented, theme } from 'antdv-next';
 import { useAppStore } from '~/stores/modules/app';
 
 import SettingGroup from './SettingGroup.vue';
@@ -26,6 +26,22 @@ defineOptions({ name: 'LayoutPanel' });
 
 const appStore = useAppStore();
 const { t } = useI18n({ useScope: 'global' });
+
+/**
+ * 示意图的主色跟着主题走。
+ *
+ * `@antdv/layout-ui` 的 `LayoutIcon` 不 import 组件库（那份 `.tsx` 以前直接
+ * `theme.useToken()`，在 StyleProvider 之外一调用就抛错，也没法进单测），
+ * 改成外部注入四个主色派生值 —— 用户换了主色，示意图还得跟着变，所以这里
+ * 从 token 现取，而不是用包内的默认色板。
+ */
+const { token } = theme.useToken();
+const iconPalette = computed(() => ({
+  primary: token.value.colorPrimary,
+  primaryHover: token.value.colorPrimaryHover,
+  primaryBg: token.value.colorPrimaryBg,
+  primaryBorder: token.value.colorPrimaryBorder,
+}));
 
 /**
  * 必须包在 computed 里：`TAB_STYLE_OPTIONS` 的 `label` 是 getter，
@@ -65,6 +81,7 @@ const tabStyleOptions = computed(() =>
           <LayoutIcon
             :type="item.value"
             :active="appStore.layout === item.value"
+            :palette="iconPalette"
           />
           <span
             class="text-[11px] font-medium"
@@ -110,6 +127,7 @@ const tabStyleOptions = computed(() =>
           <LayoutIcon
             :type="item.value === 'fixed' ? 'content-fixed' : 'content-full'"
             :active="appStore.contentMode === item.value"
+            :palette="iconPalette"
           />
           <span
             class="text-[11px] font-medium"
@@ -134,7 +152,7 @@ const tabStyleOptions = computed(() =>
           })
         "
       >
-        <a-slider
+        <ASlider
           :value="appStore.contentWidth"
           :min="CONTENT_MIN_WIDTH"
           :max="CONTENT_MAX_WIDTH"
@@ -157,7 +175,7 @@ const tabStyleOptions = computed(() =>
         :label="t('preferences.headerMenuScroll')"
         :desc="t('preferences.headerMenuScrollDesc')"
       >
-        <a-switch
+        <ASwitch
           :checked="appStore.headerMenuScroll"
           size="small"
           @change="appStore.toggles.headerMenuScroll"
@@ -180,7 +198,7 @@ const tabStyleOptions = computed(() =>
         :label="t('preferences.sidebarCollapsed')"
         :desc="t('preferences.sidebarCollapsedDesc')"
       >
-        <a-switch
+        <ASwitch
           :checked="appStore.sidebarCollapsed"
           size="small"
           @change="appStore.toggles.sidebarCollapsed"
@@ -191,7 +209,7 @@ const tabStyleOptions = computed(() =>
         :label="t('preferences.menuAccordion')"
         :desc="t('preferences.menuAccordionDesc')"
       >
-        <a-switch
+        <ASwitch
           :checked="appStore.menuAccordion"
           size="small"
           @change="appStore.toggles.menuAccordion"
@@ -202,7 +220,7 @@ const tabStyleOptions = computed(() =>
         :label="t('preferences.sidebarWidth')"
         :desc="`${LAYOUT_SIDEBAR_MIN_WIDTH} - ${LAYOUT_SIDEBAR_MAX_WIDTH} px`"
       >
-        <a-input-number
+        <AInputNumber
           :value="appStore.sidebarWidth"
           :min="LAYOUT_SIDEBAR_MIN_WIDTH"
           :max="LAYOUT_SIDEBAR_MAX_WIDTH"
@@ -221,7 +239,7 @@ const tabStyleOptions = computed(() =>
         :label="t('preferences.railWidth')"
         :desc="t('preferences.railWidthDesc')"
       >
-        <a-input-number
+        <AInputNumber
           :value="appStore.railWidth"
           :min="48"
           :max="96"
@@ -244,7 +262,7 @@ const tabStyleOptions = computed(() =>
         :label="t('preferences.showTabs')"
         :desc="t('preferences.showTabsDesc')"
       >
-        <a-switch
+        <ASwitch
           :checked="appStore.showTabs"
           size="small"
           @change="appStore.toggles.showTabs"
@@ -255,7 +273,7 @@ const tabStyleOptions = computed(() =>
         :label="t('preferences.tabShowIcon')"
         :desc="t('preferences.tabShowIconDesc')"
       >
-        <a-switch
+        <ASwitch
           :checked="appStore.tabShowIcon"
           size="small"
           @change="appStore.toggles.tabShowIcon"
@@ -263,8 +281,8 @@ const tabStyleOptions = computed(() =>
       </SettingItem>
 
       <!--
-        风格/拖拽/右键这三项早有偏好字段与渲染逻辑（useTabStyle、TabList 的 draggable、
-        LayoutTabs 的 openContextMenu），但抽屉里没有入口，等于功能只在代码里存在、
+        风格/拖拽/右键这三项早有偏好字段与渲染逻辑（@antdv/tabs-ui 的 useTabStyle、
+        TabList 的 draggable、TabContextMenu），但抽屉里没有入口，等于功能只在代码里存在、
         用户在界面上永远切不到。这里补上开关，行为不改，只是把已有的能力接出来。
       -->
       <SettingItem
@@ -288,7 +306,7 @@ const tabStyleOptions = computed(() =>
         :label="t('preferences.tabDragSort')"
         :desc="t('preferences.tabDragSortDesc')"
       >
-        <a-switch
+        <ASwitch
           :checked="appStore.tabDragSort"
           size="small"
           @change="appStore.toggles.tabDragSort"
@@ -299,7 +317,7 @@ const tabStyleOptions = computed(() =>
         :label="t('preferences.tabContextMenu')"
         :desc="t('preferences.tabContextMenuDesc')"
       >
-        <a-switch
+        <ASwitch
           :checked="appStore.tabContextMenu"
           size="small"
           @change="appStore.toggles.tabContextMenu"
@@ -312,7 +330,7 @@ const tabStyleOptions = computed(() =>
     <!-- ============================================================ -->
     <SettingGroup :title="t('preferences.breadcrumb')" icon="carbon:gui">
       <SettingItem :label="t('preferences.showBreadcrumb')">
-        <a-switch
+        <ASwitch
           :checked="appStore.showBreadcrumb"
           size="small"
           @change="appStore.toggles.showBreadcrumb"
@@ -323,7 +341,7 @@ const tabStyleOptions = computed(() =>
         :label="t('preferences.breadcrumbHideOnlyOne')"
         :desc="t('preferences.breadcrumbHideOnlyOneDesc')"
       >
-        <a-switch
+        <ASwitch
           :checked="appStore.hideBreadcrumbWhenOnlyOne"
           size="small"
           @change="appStore.toggles.hideBreadcrumbWhenOnlyOne"
@@ -331,7 +349,7 @@ const tabStyleOptions = computed(() =>
       </SettingItem>
 
       <SettingItem :label="t('preferences.showBreadcrumbIcon')">
-        <a-switch
+        <ASwitch
           :checked="appStore.showBreadcrumbIcon"
           size="small"
           @change="appStore.toggles.showBreadcrumbIcon"
@@ -344,7 +362,7 @@ const tabStyleOptions = computed(() =>
     <!-- ============================================================ -->
     <SettingGroup :title="t('preferences.widgets')" icon="carbon:application">
       <SettingItem :label="t('preferences.widgetNotice')">
-        <a-switch
+        <ASwitch
           :checked="appStore.widgetNotice"
           size="small"
           @change="appStore.toggles.widgetNotice"
@@ -352,7 +370,7 @@ const tabStyleOptions = computed(() =>
       </SettingItem>
 
       <SettingItem :label="t('preferences.widgetFullscreen')">
-        <a-switch
+        <ASwitch
           :checked="appStore.widgetFullscreen"
           size="small"
           @change="appStore.toggles.widgetFullscreen"
@@ -360,7 +378,7 @@ const tabStyleOptions = computed(() =>
       </SettingItem>
 
       <SettingItem :label="t('preferences.widgetTheme')">
-        <a-switch
+        <ASwitch
           :checked="appStore.widgetTheme"
           size="small"
           @change="appStore.toggles.widgetTheme"
@@ -368,7 +386,7 @@ const tabStyleOptions = computed(() =>
       </SettingItem>
 
       <SettingItem :label="t('preferences.widgetTimezone')">
-        <a-switch
+        <ASwitch
           :checked="appStore.widgetTimezone"
           size="small"
           @change="appStore.toggles.widgetTimezone"
@@ -376,7 +394,7 @@ const tabStyleOptions = computed(() =>
       </SettingItem>
 
       <SettingItem :label="t('preferences.widgetLogout')">
-        <a-switch
+        <ASwitch
           :checked="appStore.widgetLogout"
           size="small"
           @change="appStore.toggles.widgetLogout"
@@ -384,7 +402,7 @@ const tabStyleOptions = computed(() =>
       </SettingItem>
 
       <SettingItem :label="t('preferences.widgetSearch')">
-        <a-switch
+        <ASwitch
           :checked="appStore.widgetSearch"
           size="small"
           @change="appStore.toggles.widgetSearch"
@@ -392,7 +410,7 @@ const tabStyleOptions = computed(() =>
       </SettingItem>
 
       <SettingItem :label="t('preferences.widgetPreferences')">
-        <a-switch
+        <ASwitch
           :checked="appStore.widgetPreferences"
           size="small"
           @change="appStore.toggles.widgetPreferences"
@@ -408,7 +426,7 @@ const tabStyleOptions = computed(() =>
       icon="carbon:text-align-center"
     >
       <SettingItem :label="t('preferences.showFooter')">
-        <a-switch
+        <ASwitch
           :checked="appStore.showFooter"
           size="small"
           @change="appStore.toggles.showFooter"
@@ -416,7 +434,7 @@ const tabStyleOptions = computed(() =>
       </SettingItem>
 
       <SettingItem :label="t('preferences.showCopyright')">
-        <a-switch
+        <ASwitch
           :checked="appStore.showCopyright"
           size="small"
           @change="appStore.toggles.showCopyright"

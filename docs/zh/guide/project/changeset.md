@@ -41,9 +41,9 @@ pnpm release     # pnpm run build && pnpm exec changeset publish
 
 - 现存条目正文是中文，按"新增/修复/迁移"分点，写的是**用户可感知的行为变化** （例：`theme-primary-follow-through.md`、`login-page-theme-aware.md`），不是文件清单。
 - 会进 `.changeset/*.md` 的拼写检查范围（`pnpm check` 的 `check:cspell` 扫它），生造词会被拦，术语尽量复用现有条目写法。
-- 改到 `packages/*` 的对外行为却没补 changeset，等于把该条 CHANGELOG 永久丢了 ——这是[测试](/guide/project/testing)文末清单里那条"值得记版本的改动补了changeset"的由来。
+- 改到 `packages/*` 的对外行为却没补 changeset，等于把该条 CHANGELOG 永久丢了 ——这是[测试](/zh/guide/project/testing)文末清单里那条"值得记版本的改动补了changeset"的由来。
 
 ## 相关页面
 
-- 全量脚本清单：[CLI](/guide/project/cli)
-- 发布与构建命令：[CLI](/guide/project/cli)
+- 全量脚本清单：[CLI](/zh/guide/project/cli)
+- 发布与构建命令：[CLI](/zh/guide/project/cli)

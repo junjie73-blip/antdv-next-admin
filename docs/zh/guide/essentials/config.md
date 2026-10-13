@@ -35,8 +35,8 @@ Vite 的合并顺序是 `.env` → `.env.[mode]` → `.env.local` → `.env.[mod
 | `VITE_APP_BASE_API` | `apps/web/src/composables/web/request/fetcher.ts` | 接口前缀，别在业务代码里写完整域名 |
 | `VITE_WS_URL` | `apps/web/src/utils/ws.ts` | 空 = 不连接（重连是无限的，没后端时只会刷屏） |
 | `VITE_MICRO_APP` | `apps/web/src/config/micro-app.ts` | 微前端总开关，用 `isEnvEnabled` 判定 |
-| `VITE_CACHE_ENCRYPT_KEY` | `apps/web/src/bootstrap/env.ts` → `configureSharedEnv` | 缓存加密密钥，长度要求见[缓存](/guide/essentials/cache) |
-| `VITE_MOCK` | 只在 Node 侧读（代理与插件），浏览器代码不判它 | dev 打开时 `/api` 转发到 Nitro；生产侧语义正在调整，见[数据 Mock](/guide/essentials/mock) |
+| `VITE_CACHE_ENCRYPT_KEY` | `apps/web/src/bootstrap/env.ts` → `configureSharedEnv` | 缓存加密密钥，长度要求见[缓存](/zh/guide/essentials/cache) |
+| `VITE_MOCK` | 只在 Node 侧读（代理与插件），浏览器代码不判它 | dev 打开时 `/api` 转发到 Nitro；生产侧语义正在调整，见[数据 Mock](/zh/guide/essentials/mock) |
 
 构建侧（只在 `internal/vite-config` 里读，浏览器拿不到）：
 
@@ -53,8 +53,8 @@ Vite 的合并顺序是 `.env` → `.env.[mode]` → `.env.local` → `.env.[mod
 | `VITE_PRINT` | 关 | 自定义 dev 启动横幅 | `:136` |
 | `VITE_INJECT_APP_LOADING` | 关（两个模式文件都写了 `true`） | 首屏遮罩注入（插件本体**永远注册**，见下） | `:145` |
 | `VITE_APP_LOADING_DEV` / `_BUILD` / `_DURATION` / `_PATH` | 前两个在未关注入时默认开 | 分别控制 dev/build 注入、淡出时长、自定义遮罩 HTML | `:175-189` |
-| `VITE_WRITE_DTS` | 开 | 关掉可跳过自动导入声明文件回写（映射盘上的稳定性开关） | `:65-67` |
-| `VITE_DEV_POLLING` | 关 | `server.watch.usePolling`；映射盘上的结论写在[本地开发](/guide/essentials/development) | `config/application.ts:119-123` |
+| `VITE_WRITE_DTS` | 开 | 关掉可跳过自动导入声明文件回写（映射盘上的稳定性开关） | `:62-67` |
+| `VITE_DEV_POLLING` | 关 | `server.watch.usePolling`；映射盘上的结论写在[本地开发](/zh/guide/essentials/development) | `config/application.ts:119-123` |
 | `VITE_MOCK_SERVER` / `VITE_MOCK_PORT` | `http://localhost:5320` / `5320` | dev 代理目标与内嵌 Nitro 端口，必须同源推导 | `utils/proxy.ts:40-90` |
 | `VITE_PROXY` | 无 | 额外代理表 `[prefix, target][]`，Mock 代理优先级更高 | `config/application.ts:106` |
 | `VITE_APP_BASE_URL` | 无 | 注入 `index.html` 的 `canonical` / `og:url` | `plugins/index.ts:88-92` |
@@ -65,7 +65,7 @@ Vite 的合并顺序是 `.env` → `.env.[mode]` → `.env.local` → `.env.[mod
 - `VITE_APP_VERSION`：`plugins/metadata.ts:104` 用 `define` 造出来的，应用代码里没有读它。
 - `VITE_MINIO_PUBLIC_URL`、`VITE_SENTRY_DSN`：代码里读（`bootstrap/env.ts`、`main.ts`），但三份 `.env` 都没写，运行时是 `undefined`。Sentry 只在 `import.meta.env.PROD` 分支初始化，DSN 为空即不实际上报；MinIO 直链没配时下载走代理前缀（`packages/shared/src/download.ts`）。:::
 
-`vite-plugin-iconify-offline`、`@vitejs/plugin-legacy`、`vite-plugin-cdn-import` 在 `apps/web/package.json` 的 devDependencies 里，但**没有任何 import**；图标离线由 `@tomjs/vite-plugin-iconify` 负责（见[图标](/guide/essentials/icons)）。加依赖前先搜一遍有没有人用。
+`vite-plugin-iconify-offline`、`@vitejs/plugin-legacy`、`vite-plugin-cdn-import` 在 `apps/web/package.json` 的 devDependencies 里，但**没有任何 import**；图标离线由 `@tomjs/vite-plugin-iconify` 负责（见[图标](/zh/guide/essentials/icons)）。加依赖前先搜一遍有没有人用。
 
 ## vite.config.ts 与合并顺序
 
@@ -122,7 +122,7 @@ export function getPreferences(): PreferencesInstance {
 - **默认值里不许有 `import.meta.env`**（`packages/preferences/src/defaults.ts:6-14`）：包体在 dist 里，拿不到静态替换，字段会静默变成空串。项目差异值只能由应用通过 `defaults` 注入。
 - **读取链是 缓存 → `migrate` → `pickKnownPreferences` → 与默认值合并** （`packages/preferences/src/store.ts:129-133`）。`pickKnownPreferences` 按类型丢脏值， `migrate` 处理"值合法但枚举已过时"（布局名 `mixed` → 新名字）；迁移只在读时做一次。
 
-全量键与分组（主题 / 布局 / 小部件 / 底栏 / 通用）在 `defaults.ts:16-70`，落盘键是 `appSetting` （`store.ts:21`，带缓存前缀）。怎么用它们驱动 DOM 与 antd 主题见[主题与偏好设置](/guide/in-depth/theme)， `appStore` 如何把它们展平见[状态管理](/guide/essentials/stores)。
+全量键与分组（主题 / 布局 / 小部件 / 底栏 / 通用）在 `defaults.ts:16-70`，落盘键是 `appSetting` （`store.ts:21`，带缓存前缀）。怎么用它们驱动 DOM 与 antd 主题见[主题与偏好设置](/zh/guide/in-depth/theme)， `appStore` 如何把它们展平见[状态管理](/zh/guide/essentials/stores)。
 
 ## 应用常量
 
@@ -130,7 +130,7 @@ export function getPreferences(): PreferencesInstance {
 | --- | --- | --- |
 | `src/config/constants.ts` | `TOKEN_KEY`、`USER_INFO_KEY`、`WHITE_LIST`、`HOME_PATH = '/dashboard/analysis'`、`LOGIN_PATH` | 守卫与登录流程读它，别在页面里写死路径 |
 | `src/config/project.ts` | `projectConfig`：`table.fetchSetting/sortSetting`、`pageSizeOptions`、`routeMap`、`scrollbar.native` | 目前只有 `scrollbar.native` 有消费者（`ModalWrapper.vue`、`SettingDrawer/index.vue`）；表格字段名来自 `useDataSource.ts:17` 的 `DEFAULT_FETCH_SETTING`，`routeMap` 无人读 |
-| `src/config/micro-app.ts` | 子应用注册表 + `enabled`（`VITE_MICRO_APP`） | 见[外部模块](/guide/essentials/external) |
+| `src/config/micro-app.ts` | 子应用注册表 + `enabled`（`VITE_MICRO_APP`） | 见[外部模块](/zh/guide/essentials/external) |
 | `src/config/color.ts` | `COLOR_LIST` 主题预设色 | 与偏好的 `primaryColor` 配合 |
 | `src/settings/index.ts` | 偏好适配层 | 上文 |
 

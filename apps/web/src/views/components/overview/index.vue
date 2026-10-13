@@ -5,6 +5,7 @@ import { computed, ref } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
+import { Empty as AEmpty, Input as AInput } from 'antdv-next';
 import { useRouteStore } from '~/stores/modules/route';
 
 /**
@@ -150,7 +151,7 @@ const total = computed(() =>
   <div :class="containerClassName">
     <div :class="headerClassName">
       <span :class="groupTitleClassName">组件示例总览</span>
-      <a-input
+      <AInput
         v-model:value="keyword"
         allow-clear
         class="w-60"
@@ -159,13 +160,13 @@ const total = computed(() =>
         <template #prefix>
           <Icon icon="carbon:search" />
         </template>
-      </a-input>
+      </AInput>
       <span :class="countClassName">
         共 {{ total }} 个示例{{ keyword.trim() ? '（已过滤）' : '' }}
       </span>
     </div>
 
-    <a-empty v-if="total === 0" description="没有匹配的示例页" />
+    <AEmpty v-if="total === 0" description="没有匹配的示例页" />
 
     <section v-for="group in groups" :key="group.key" :class="groupClassName">
       <h3 :class="groupTitleClassName">

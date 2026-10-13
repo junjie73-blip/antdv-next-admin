@@ -3,8 +3,11 @@ import type { MicroAppItem } from '@antdv/types';
 
 import { computed, ref, watch } from 'vue';
 
+import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
 import { buildIframeSandbox, canEscapeSandbox } from '@antdv/shared/iframe';
+import { Icon } from '@iconify/vue';
+import { Button as AButton, Input as AInput, Select as ASelect, SelectOption as ASelectOption, Spin as ASpin, Tag as ATag, Tooltip as ATooltip } from 'antdv-next';
 import { getAllMicroApps, microAppConfig } from '~/config/micro-app';
 
 // 状态
@@ -155,10 +158,10 @@ watch(
           子应用注册与预览（iframe 嵌套模式）
         </p>
       </div>
-      <a-button v-if="isEnabled && currentApp" @click="handleRefreshIframe">
+      <AButton v-if="isEnabled && currentApp" @click="handleRefreshIframe">
         <Icon icon="carbon:restart" class="mr-1" />
         刷新预览
-      </a-button>
+      </AButton>
     </div>
 
     <!-- 未启用提示 -->
@@ -202,7 +205,7 @@ watch(
 
         <!-- 搜索筛选 -->
         <div class="flex flex-col gap-2">
-          <a-input
+          <AInput
             v-model:value="searchKeyword"
             placeholder="搜索子应用..."
             size="small"
@@ -211,12 +214,12 @@ watch(
             <template #prefix>
               <span class="i-carbon-search text-xs text-gray-400"></span>
             </template>
-          </a-input>
-          <a-select v-model:value="statusFilter" size="small" class="w-full">
-            <a-select-option value="all"> 全部状态 </a-select-option>
-            <a-select-option value="running"> 运行中 </a-select-option>
-            <a-select-option value="stopped"> 已停止 </a-select-option>
-          </a-select>
+          </AInput>
+          <ASelect v-model:value="statusFilter" size="small" class="w-full">
+            <ASelectOption value="all"> 全部状态 </ASelectOption>
+            <ASelectOption value="running"> 运行中 </ASelectOption>
+            <ASelectOption value="stopped"> 已停止 </ASelectOption>
+          </ASelect>
         </div>
 
         <!-- 应用列表 -->
@@ -333,19 +336,19 @@ watch(
           </div>
           <div class="flex items-center gap-2">
             <!-- 打开同源身份意味着 sandbox 可被逃逸，必须让人在界面上看到 -->
-            <a-tooltip v-if="previewEscapable" :title="sandboxWarningTitle">
-              <a-tag color="orange">同源预览</a-tag>
-            </a-tooltip>
+            <ATooltip v-if="previewEscapable" :title="sandboxWarningTitle">
+              <ATag color="orange">同源预览</ATag>
+            </ATooltip>
             <span :class="getStatusTagClass(!!currentApp.active)">
               {{ currentApp.active ? '运行中' : '已停止' }}
             </span>
-            <a-button
+            <AButton
               :type="currentApp.active ? 'default' : 'primary'"
               size="small"
               @click="handleToggleStatus(currentApp!)"
             >
               {{ currentApp.active ? '停止' : '启动' }}
-            </a-button>
+            </AButton>
           </div>
         </div>
 
@@ -377,7 +380,7 @@ watch(
               v-if="currentApp && !iframeLoaded[currentApp.name]"
               class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900"
             >
-              <a-spin size="large" />
+              <ASpin size="large" />
               <p class="mt-2 text-xs text-gray-500">
                 正在加载子应用 {{ currentApp.title }}...
               </p>

@@ -6,6 +6,7 @@ import { computed, onMounted, ref, useTemplateRef } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
+import { Badge as ABadge, Button as AButton, Card as ACard, Divider as ADivider, Popconfirm as APopconfirm, Tag as ATag, Tree as ATree, message } from 'antdv-next';
 import { addDept, deleteDept, getDeptTree, updateDept } from '~/api/system';
 import { BasicForm, useForm } from '~/components/business/Form';
 import { BasicModal, useModal } from '~/components/business/Modal';
@@ -488,9 +489,9 @@ const columns: BasicColumn[] = [
   <div :class="containerClassName">
     <!-- 左侧部门树 -->
     <div :class="leftPanelClassName">
-      <a-card :class="treeCardClassName" title="部门架构" size="small">
+      <ACard :class="treeCardClassName" title="部门架构" size="small">
         <template #extra>
-          <a-button
+          <AButton
             type="link"
             size="small"
             :class="btnClassName"
@@ -504,9 +505,9 @@ const columns: BasicColumn[] = [
               />
             </template>
             {{ isAllExpanded ? '折叠' : '展开' }}
-          </a-button>
+          </AButton>
         </template>
-        <a-tree
+        <ATree
           :tree-data="deptTreeData"
           :field-names="{ children: 'children', title: 'name', key: 'id' }"
           :expanded-keys="treeExpandedKeys"
@@ -519,12 +520,12 @@ const columns: BasicColumn[] = [
             }
           "
         />
-      </a-card>
+      </ACard>
     </div>
 
     <!-- 右侧内容区 -->
     <div :class="rightPanelClassName">
-      <a-card title="部门列表" :class="cardClassName">
+      <ACard title="部门列表" :class="cardClassName">
         <!-- 统计信息 -->
         <div :class="headerClassName">
           <div :class="statClassName">
@@ -560,16 +561,16 @@ const columns: BasicColumn[] = [
           @register="tableRegister"
         >
           <template #toolbar>
-            <a-button type="primary" @click="handleAdd">
+            <AButton type="primary" @click="handleAdd">
               <template #icon>
                 <Icon icon="ant-design:plus-outlined" />
               </template>
               新增部门
-            </a-button>
+            </AButton>
           </template>
 
           <template #cell-status="{ record }">
-            <a-tag :color="statusColorMap[record.status] || 'default'">
+            <ATag :color="statusColorMap[record.status] || 'default'">
               <span :class="statusTagClassName">
                 <Icon
                   :icon="
@@ -580,11 +581,11 @@ const columns: BasicColumn[] = [
                 />
                 {{ statusLabelMap[record.status] || '未知' }}
               </span>
-            </a-tag>
+            </ATag>
           </template>
 
           <template #cell-userCount="{ record }">
-            <a-badge
+            <ABadge
               :count="record.userCount"
               :number-style="{ backgroundColor: '#1677ff' }"
             />
@@ -592,7 +593,7 @@ const columns: BasicColumn[] = [
 
           <template #action="{ record }">
             <div :class="actionClassName">
-              <a-button
+              <AButton
                 type="link"
                 :class="btnClassName"
                 @click="() => handleAddChild(record as DeptRecord)"
@@ -601,8 +602,8 @@ const columns: BasicColumn[] = [
                   <Icon icon="ant-design:plus-circle-outlined" />
                 </template>
                 新增
-              </a-button>
-              <a-button
+              </AButton>
+              <AButton
                 type="link"
                 :class="btnClassName"
                 @click="() => handleEdit(record as DeptRecord)"
@@ -611,23 +612,23 @@ const columns: BasicColumn[] = [
                   <Icon icon="ant-design:edit-outlined" />
                 </template>
                 编辑
-              </a-button>
-              <a-divider type="vertical" :class="dividerClassName" />
-              <a-popconfirm
+              </AButton>
+              <ADivider type="vertical" :class="dividerClassName" />
+              <APopconfirm
                 :title="`确定要删除部门「${record.name}」吗？子部门也将一并删除。`"
                 @confirm="() => handleDelete(record as DeptRecord)"
               >
-                <a-button type="link" danger :class="btnClassName">
+                <AButton type="link" danger :class="btnClassName">
                   <template #icon>
                     <Icon icon="ant-design:delete-outlined" />
                   </template>
                   删除
-                </a-button>
-              </a-popconfirm>
+                </AButton>
+              </APopconfirm>
             </div>
           </template>
         </BasicTable>
-      </a-card>
+      </ACard>
     </div>
 
     <!-- 新增/编辑弹窗 -->

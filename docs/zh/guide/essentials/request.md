@@ -84,7 +84,7 @@ export function updateUser(id: number, data: Record<string, unknown>) {
 
 ## Mock 侧的对应关系
 
-`apps/backend-mock/server/api/**` 的文件路径就是路由：`system/user/list.get.ts` → `GET /api/system/user/list`。每个 handler 用 `defineMockRoute({ method, path, handler })` 包一层，响应统一走 `success/bizError/httpError`（`server/utils/response.ts:10-34`）。详见[Mock 服务（Nitro）](/guide/essentials/mock)。
+`apps/backend-mock/server/api/**` 的文件路径就是路由：`system/user/list.get.ts` → `GET /api/system/user/list`。每个 handler 用 `defineMockRoute({ method, path, handler })` 包一层，响应统一走 `success/bizError/httpError`（`server/utils/response.ts:10-34`）。详见[Mock 服务（Nitro）](/zh/guide/essentials/mock)。
 
 - 联调时**改 mock 去对齐后端**，不要在前端写兼容两种字段口径的分支。
 - mock 账号 `admin` / `admin123`，返回 mock token 与 roles（`server/api/auth/login.post.ts:9-29`）。

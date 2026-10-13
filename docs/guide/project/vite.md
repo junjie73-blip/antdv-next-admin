@@ -12,7 +12,7 @@
 
 ## 插件清单（`src/plugins/index.ts`，`kind: 'application'`）
 
-**无条件**：`createVuePlugins()`（@vitejs/plugin-vue + jsx、unplugin-vue-router、 `@tailwindcss/vite`、vite-plugin-vue-layouts-next、@intlify/unplugin-vue-i18n、vite-plugin-inspect）→ `createAutoImportPlugins()`（unplugin-auto-import / unplugin-vue-components + `AntdvNextResolver`、iconify 离线集合、vite-plugin-env-parse）→ svg-icons、imagemin、dayjs。
+**无条件**：`createVuePlugins()`（@vitejs/plugin-vue + jsx、unplugin-vue-router、 `@tailwindcss/vite`、vite-plugin-vue-layouts-next、@intlify/unplugin-vue-i18n、vite-plugin-inspect）→ `createAutoImportPlugins()`（unplugin-auto-import 只喂 `vue` / `@vueuse/core` / `pinia` / `vue-router`，unplugin-vue-components 只扫本应用 `src/components`，**没有任何组件解析器**，另有 iconify 离线集合、vite-plugin-env-parse）→ svg-icons、imagemin、dayjs。
 
 **按产物形态**：application 才有 HTML 注入（vite-plugin-html）与首屏 Loading、PWA、archiver、metadata、extra-app-config、print、mock；library 形态只留编译链 + vite-plugin-dts（`kind` 的注释写了混用症状）。
 

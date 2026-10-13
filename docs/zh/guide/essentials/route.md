@@ -34,9 +34,9 @@ Router 本体：`createWebHashHistory()` + `strict: true` + 每次导航滚回�
 | `requiresAuth` | 鉴权守卫（`packages/router/src/meta.ts:12-19`） | 缺省即"要登录"，所以公开页要显式写 `false` |
 | `hidden` | 菜单渲染时剔除 | 只在渲染层剔，路由仍然可直达 |
 | `icon` | 侧栏 / 图标栏 / 标签页 / 面包屑 | Iconify 名，如 `carbon:dashboard` |
-| `keepAlive` | 页面缓存集合 | 与"标签页是否开着"共同决定缓存，见[布局、菜单与标签页](/guide/in-depth/layout) |
+| `keepAlive` | 页面缓存集合 | 与"标签页是否开着"共同决定缓存，见[布局、菜单与标签页](/zh/guide/in-depth/layout) |
 | `layout` | `'blank' \| 'default'` | 登录/注册/错误页用 `blank` |
-| `roles` / `permissions` | **没有消费者** | 按钮级权限另走指令，见[权限、指令与光标](/guide/in-depth/access) |
+| `roles` / `permissions` | **没有消费者** | 按钮级权限另走指令，见[权限、指令与光标](/zh/guide/in-depth/access) |
 
 另外应用侧还会读两个**没写进 `RouteMeta`** 的字段：`meta.microApp` （`apps/web/src/layouts/index.vue:246`）与 `meta.noTransition`（`:252`）。目前仓库里没有路由设置它们，用之前记得补类型。
 

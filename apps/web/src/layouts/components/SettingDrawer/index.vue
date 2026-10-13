@@ -4,8 +4,9 @@ import type { SettingSection } from './constants';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import { Scrollbar } from '@antdv/scrollbar-ui';
 import { Icon } from '@iconify/vue';
-import { Segmented } from 'antdv-next';
+import { Drawer as ADrawer, Segmented } from 'antdv-next';
 import { projectConfig } from '~/config/project';
 
 import AppearancePanel from './components/AppearancePanel.vue';
@@ -40,7 +41,7 @@ function handleClose() {
 </script>
 
 <template>
-  <a-drawer
+  <ADrawer
     v-model:open="visible"
     placement="right"
     :size="380"
@@ -110,5 +111,5 @@ function handleClose() {
     <template #footer>
       <SettingFooter @close="handleClose" />
     </template>
-  </a-drawer>
+  </ADrawer>
 </template>

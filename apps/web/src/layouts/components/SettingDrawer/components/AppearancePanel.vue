@@ -5,7 +5,8 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { cn } from '@antdv/shared';
-import { ColorPicker } from 'antdv-next';
+import { Icon } from '@iconify/vue';
+import { InputNumber as AInputNumber, Switch as ASwitch, ColorPicker } from 'antdv-next';
 import { useThemeTransition } from '~/composables/web/useThemeTransition';
 import ThemeToggle from '~/layouts/widgets/ThemeToggle.vue';
 import { useAppStore } from '~/stores/modules/app';
@@ -67,7 +68,7 @@ const handleChangeColor = (color: Color) => {
         :desc="t('preferences.darkSidebarDesc')"
         class="mt-4"
       >
-        <a-switch
+        <ASwitch
           :checked="appStore.darkSidebar"
           size="small"
           @change="appStore.toggles.darkSidebar"
@@ -78,7 +79,7 @@ const handleChangeColor = (color: Color) => {
         :label="t('preferences.darkHeader')"
         :desc="t('preferences.darkHeaderDesc')"
       >
-        <a-switch
+        <ASwitch
           :checked="appStore.darkHeader"
           size="small"
           @change="appStore.toggles.darkHeader"
@@ -221,7 +222,7 @@ const handleChangeColor = (color: Color) => {
         :label="t('preferences.fontSize')"
         :desc="t('preferences.fontSizeDesc')"
       >
-        <a-input-number
+        <AInputNumber
           :value="appStore.fontSize"
           :min="12"
           :max="18"
@@ -241,7 +242,7 @@ const handleChangeColor = (color: Color) => {
         :label="t('preferences.colorWeak')"
         :desc="t('preferences.colorWeakDesc')"
       >
-        <a-switch
+        <ASwitch
           :checked="appStore.colorWeak"
           size="small"
           @change="appStore.toggles.colorWeak"
@@ -252,7 +253,7 @@ const handleChangeColor = (color: Color) => {
         :label="t('preferences.grayMode')"
         :desc="t('preferences.grayModeDesc')"
       >
-        <a-switch
+        <ASwitch
           :checked="appStore.grayMode"
           size="small"
           @change="appStore.toggles.grayMode"

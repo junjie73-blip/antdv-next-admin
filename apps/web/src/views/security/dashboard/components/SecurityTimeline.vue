@@ -7,8 +7,10 @@ import type {
 
 import { computed, onMounted, ref } from 'vue';
 
+import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
+import { Badge as ABadge, Empty as AEmpty, Spin as ASpin, Tag as ATag, Timeline as ATimeline, TimelineItem as ATimelineItem } from 'antdv-next';
 import dayjs from 'dayjs';
 import { getSecurityEvents } from '~/api/security';
 
@@ -153,19 +155,19 @@ onMounted(async () => {
         </h3>
         <p class="mt-0.5 text-xs text-gray-400">近期安全事件追踪</p>
       </div>
-      <a-badge
+      <ABadge
         :count="filteredEvents.filter((e) => e.status === 'pending').length"
         :offset="[2, 0]"
       >
         <span class="text-xs text-gray-400">待处理</span>
-      </a-badge>
+      </ABadge>
     </div>
 
     <!-- 筛选栏 -->
     <div :class="filterBarClassName">
       <!-- 类型筛选 -->
       <div class="flex items-center gap-1">
-        <a-tag
+        <ATag
           v-for="opt in typeOptions"
           :key="opt.value"
           :class="tagClassName"
@@ -173,11 +175,11 @@ onMounted(async () => {
           @click="activeType = opt.value"
         >
           {{ opt.label }}
-        </a-tag>
+        </ATag>
       </div>
       <!-- 级别筛选 -->
       <div class="flex items-center gap-1">
-        <a-tag
+        <ATag
           v-for="opt in levelOptions"
           :key="opt.value"
           :class="tagClassName"
@@ -195,11 +197,11 @@ onMounted(async () => {
           @click="activeLevel = opt.value"
         >
           {{ opt.label }}
-        </a-tag>
+        </ATag>
       </div>
       <!-- 状态筛选 -->
       <div class="flex items-center gap-1">
-        <a-tag
+        <ATag
           v-for="opt in statusOptions"
           :key="opt.value"
           :class="tagClassName"
@@ -213,15 +215,15 @@ onMounted(async () => {
           @click="activeStatus = opt.value"
         >
           {{ opt.label }}
-        </a-tag>
+        </ATag>
       </div>
     </div>
 
     <!-- 时间线 -->
     <Scrollbar root-class="max-h-[420px] pr-1">
-      <a-spin :spinning="loading">
-        <a-timeline v-if="filteredEvents.length > 0" mode="left" class="mt-2">
-          <a-timeline-item
+      <ASpin :spinning="loading">
+        <ATimeline v-if="filteredEvents.length > 0" mode="left" class="mt-2">
+          <ATimelineItem
             v-for="event in filteredEvents"
             :key="event.id"
             :color="getTimelineColor(event.level)"
@@ -257,36 +259,36 @@ onMounted(async () => {
                   <span
                     class="text-sm font-medium text-gray-800 dark:text-gray-200"
                     >{{ event.title }}</span>
-                  <a-tag
+                  <ATag
                     :color="getLevelTagColor(event.level)"
                     size="small"
                     class="text-[10px]"
                   >
                     {{ getLevelLabel(event.level) }}
-                  </a-tag>
-                  <a-tag
+                  </ATag>
+                  <ATag
                     :color="getTypeTagColor(event.type)"
                     size="small"
                     class="text-[10px]"
                   >
                     {{ typeOptions.find((t) => t.value === event.type)?.label }}
-                  </a-tag>
-                  <a-tag
+                  </ATag>
+                  <ATag
                     v-if="event.status === 'pending'"
                     color="error"
                     size="small"
                     class="text-[10px]"
                   >
                     待处理
-                  </a-tag>
-                  <a-tag
+                  </ATag>
+                  <ATag
                     v-else-if="event.status === 'handled'"
                     color="success"
                     size="small"
                     class="text-[10px]"
                   >
                     已处理
-                  </a-tag>
+                  </ATag>
                 </div>
                 <p
                   class="line-clamp-1 text-xs text-gray-500 dark:text-gray-400"
@@ -306,11 +308,11 @@ onMounted(async () => {
                 </div>
               </div>
             </div>
-          </a-timeline-item>
-        </a-timeline>
+          </ATimelineItem>
+        </ATimeline>
 
-        <a-empty v-else description="暂无匹配的安全事件" class="py-8" />
-      </a-spin>
+        <AEmpty v-else description="暂无匹配的安全事件" class="py-8" />
+      </ASpin>
     </Scrollbar>
   </div>
 </template>

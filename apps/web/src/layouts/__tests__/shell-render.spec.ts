@@ -15,9 +15,13 @@ import DefaultLayout from '../index.vue';
 /**
  * 外壳模板的真机渲染测试。
  *
- * `shell.spec.ts` 验证"区域开关算得对不对"，这里验证"开关有没有真的接到模板上"：
- * 直接挂载 `layouts/index.vue`，按形态断言 DOM 里出现/缺席的区域，
- * 以及内容全屏与标签页放大态下那个「退出」入口。
+ * `shell.spec.ts` 验证"区域开关算得对不对"，`@antdv/layout-ui` 自己的用例验证
+ * "壳按开关画 DOM"，这里验证中间那一环：**应用的偏好有没有接到壳上**。
+ * 直接挂载 `layouts/index.vue`，按形态断言 DOM 里出现/缺席的区域、
+ * 面包屑落在哪一行，以及内容全屏与标签页放大态下那个「退出」入口。
+ *
+ * 区域组件全部走真实渲染（`data-layout-region` 是包给出的稳定契约），
+ * 只有带业务依赖的两块（小部件条、用户区）与路由视图相关的桩替掉。
  */
 
 const MENUS: MenuConfig[] = [
@@ -39,41 +43,30 @@ const MENUS: MenuConfig[] = [
   { name: 'about', title: '关于' },
 ];
 
-const regionStub = (region: string) =>
+const passthrough = (name: string) =>
   defineComponent({
-    name: `Stub_${region}`,
+    name,
     setup:
       (_, { slots }) =>
       () =>
-        h('div', { 'data-region': region }, slots.default?.()),
+        h('div', slots.default?.()),
   });
 
 /**
- * 外壳的子组件各有十几层依赖（图标、抽屉、滚动条、设置面板…），
- * 这里只关心"该形态下这一列渲染了没有"，所以全部换成占位桩；
- * 真身各自的渲染另有测试，混在一起只会让失败原因难以判断。
- * `Icon` 在应用里由 main.ts 全局注册，测试环境补一个桩免掉解析告警。
+ * 小部件条会拉起异步分包的按钮、偏好抽屉与搜索弹窗，用户区会拉起 antd 下拉与
+ * 账户抽屉：它们各自有用例，混在这里只会让失败原因难以判断。
+ * `Icon` 由 main.ts 全局注册，测试环境补一个桩免掉解析告警。
  */
 const STUBS: Record<string, unknown> = {
+  HeaderUser: passthrough('StubHeaderUser'),
+  HeaderWidgets: passthrough('StubHeaderWidgets'),
   Icon: defineComponent({
     name: 'StubIcon',
     props: { icon: { default: '', type: String } },
     setup: () => () => h('i', { 'data-icon': 'stub' }),
   }),
-  LayoutBreadcrumb: regionStub('breadcrumb'),
-  LayoutFooter: regionStub('footer'),
-  LayoutHeader: regionStub('header'),
-  LayoutNavRail: regionStub('nav-rail'),
-  LayoutSidebar: regionStub('sidebar'),
-  LayoutTabs: regionStub('tabs'),
-  PageLoading: regionStub('page-loading'),
-  PageTransition: defineComponent({
-    name: 'StubPageTransition',
-    setup:
-      (_, { slots }) =>
-      () =>
-        h('div', slots.default?.()),
-  }),
+  PageLoading: passthrough('StubPageLoading'),
+  PageTransition: passthrough('StubPageTransition'),
   RouteLoadingBar: defineComponent({
     name: 'StubRouteLoadingBar',
     setup: () => () => null,
@@ -137,32 +130,61 @@ async function mountLayout(options: { layout?: LayoutMode } = {}) {
 }
 
 /**
- * 抽屉的内容走 Teleport 挂到 body 上，不在 wrapper 的子树里，
- * 所以判断"菜单进没进抽屉"要直接查 document。
- * 常驻侧栏在该形态下不渲染，因此 body 里出现的 sidebar 只可能来自抽屉。
+ * 浮层侧栏走 Teleport，内容挂在 body 上而不在 wrapper 的子树里，
+ * 所以判断"菜单进没进浮层"要直接查 document。
+ * 常驻那一列在该形态下不渲染，因此 body 里出现的 sidebar 只可能来自浮层。
  */
-function drawerState() {
+function overlayState() {
   return {
-    hasDrawer: !!document.querySelector('[class*=drawer]'),
-    hasSidebarInBody: !!document.body.querySelector('[data-region=sidebar]'),
+    hasOverlay: !!document.querySelector('[data-layout-overlay]'),
+    hasSidebarInBody: !!document.body.querySelector(
+      '[data-layout-region="sidebar"]',
+    ),
   };
 }
+
+/**
+ * 区域 → 定位方式。
+ *
+ * 五个区域用 `@antdv/layout-ui` 给出的 `data-layout-region` 契约；
+ * 标签栏来自 `@antdv/tabs-ui`，它自己的稳定钩子是根节点上的 `.tab-bar`
+ * （标签栏容器没有语义化属性，靠 `.tab-list` 的父节点反查太脆）。
+ */
+const REGION_SELECTOR: Record<string, string> = {
+  breadcrumb: '[data-layout-region="breadcrumb"]',
+  footer: '[data-layout-region="footer"]',
+  header: '[data-layout-region="header"]',
+  'nav-rail': '[data-layout-region="nav-rail"]',
+  sidebar: '[data-layout-region="sidebar"]',
+  tabs: '.tab-bar',
+};
 
 function presentRegions(wrapper: {
   find: (selector: string) => { exists: () => boolean };
 }) {
-  return [
-    'header',
-    'nav-rail',
-    'sidebar',
-    'breadcrumb',
-    'tabs',
-    'footer',
-  ].filter((region) => wrapper.find(`[data-region="${region}"]`).exists());
+  return ['header', 'nav-rail', 'sidebar', 'tabs', 'footer'].filter((region) =>
+    wrapper.find(REGION_SELECTOR[region] as string).exists(),
+  );
+}
+
+/** 面包屑住在哪一行：顶栏里（垂直 / 双列），还是内容列第一行（Logo 系形态） */
+function breadcrumbRow(wrapper: {
+  find: (selector: string) => { exists: () => boolean };
+}) {
+  if (!wrapper.find(REGION_SELECTOR.breadcrumb as string).exists()) {
+    return 'none';
+  }
+  return wrapper
+    .find(
+      '[data-layout-region="header"] [data-layout-region="breadcrumb"]',
+    )
+    .exists()
+    ? 'header'
+    : 'content';
 }
 
 /**
- * 卸载在前、清 body 兜底：抽屉是 Teleport 出去的，直接 innerHTML='' 会让 Vue
+ * 卸载在前、清 body 兜底：浮层是 Teleport 出去的，直接 innerHTML='' 会让 Vue
  * 回收节点时报 "node to be removed is not a child of this node"。
  */
 afterEach(async () => {
@@ -172,7 +194,7 @@ afterEach(async () => {
 });
 
 describe('布局外壳渲染 —— 各形态的区域构成', () => {
-  it('垂直：顶栏 + 侧栏 + 标签页 + 底栏，没有图标栏', async () => {
+  it('垂直：顶栏 + 侧栏 + 标签页 + 底栏，没有图标栏，面包屑在顶栏里', async () => {
     const { wrapper } = await mountLayout({ layout: 'vertical' });
     expect(presentRegions(wrapper)).toEqual([
       'header',
@@ -180,6 +202,7 @@ describe('布局外壳渲染 —— 各形态的区域构成', () => {
       'tabs',
       'footer',
     ]);
+    expect(breadcrumbRow(wrapper)).toBe('header');
   });
 
   it('双列菜单：多一列图标栏，侧栏仍在', async () => {
@@ -191,16 +214,13 @@ describe('布局外壳渲染 —— 各形态的区域构成', () => {
       'tabs',
       'footer',
     ]);
+    expect(breadcrumbRow(wrapper)).toBe('header');
   });
 
   it('水平：只剩顶栏，侧栏与图标栏都不占位，面包屑退到内容列首行', async () => {
     const { wrapper } = await mountLayout({ layout: 'horizontal' });
-    expect(presentRegions(wrapper)).toEqual([
-      'header',
-      'breadcrumb',
-      'tabs',
-      'footer',
-    ]);
+    expect(presentRegions(wrapper)).toEqual(['header', 'tabs', 'footer']);
+    expect(breadcrumbRow(wrapper)).toBe('content');
   });
 
   it('混合双列：顶栏 + 图标栏 + 侧栏三列并存，面包屑同属顶栏外壳', async () => {
@@ -209,10 +229,10 @@ describe('布局外壳渲染 —— 各形态的区域构成', () => {
       'header',
       'nav-rail',
       'sidebar',
-      'breadcrumb',
       'tabs',
       'footer',
     ]);
+    expect(breadcrumbRow(wrapper)).toBe('content');
   });
 
   /**
@@ -224,19 +244,19 @@ describe('布局外壳渲染 —— 各形态的区域构成', () => {
     expect(presentRegions(wrapper)).toEqual([
       'header',
       'sidebar',
-      'breadcrumb',
       'tabs',
       'footer',
     ]);
-    expect(wrapper.find('[data-region=nav-rail]').exists()).toBe(false);
+    expect(wrapper.find('[data-layout-region="nav-rail"]').exists()).toBe(false);
     expect(appStore.sidebarOverlayOpen).toBe(false);
-    // 常驻栏在文档流里，不该同时再从抽屉门户长出一份
-    expect(drawerState().hasSidebarInBody).toBe(false);
+    // 常驻栏在文档流里，不该同时再从浮层门户长出一份
+    expect(overlayState().hasSidebarInBody).toBe(false);
   });
 
   it('内容全屏：只剩内容区与退出入口', async () => {
     const { wrapper } = await mountLayout({ layout: 'full-content' });
     expect(presentRegions(wrapper)).toEqual([]);
+    expect(breadcrumbRow(wrapper)).toBe('none');
     const exit = wrapper.get('button[aria-label="退出内容全屏"]');
     expect(exit.text()).toContain('退出内容全屏');
   });
@@ -247,8 +267,10 @@ describe('布局外壳渲染 —— 各形态的区域构成', () => {
     await flushPromises();
 
     expect(presentRegions(wrapper)).toEqual(['tabs']);
-    expect(wrapper.find('[data-region=header]').exists()).toBe(false);
-    expect(wrapper.find('button[aria-label="还原标签页"]').exists()).toBe(true);
+    expect(wrapper.find('[data-layout-region="header"]').exists()).toBe(false);
+    expect(
+      wrapper.find('button[aria-label="还原标签页"]').exists(),
+    ).toBe(true);
   });
 
   it('退出内容全屏会回到进入之前的形态，而不是重置成垂直', async () => {
@@ -268,7 +290,7 @@ describe('布局外壳渲染 —— 各形态的区域构成', () => {
    * 下一次挂载会重新注册 —— 所以想让它判定为窄屏，必须在 mount 之前换掉 matchMedia，
    * 并在用例结束后还原，免得把"窄屏"留给后面的用例。
    */
-  it('窄屏：常驻侧栏升级为抽屉，切路由后自动收起', async () => {
+  it('窄屏：常驻侧栏升级为浮层，切路由后自动收起', async () => {
     const original = window.matchMedia;
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
@@ -284,12 +306,14 @@ describe('布局外壳渲染 —— 各形态的区域构成', () => {
       const { appStore, router, wrapper } = await mountLayout({
         layout: 'vertical',
       });
-      expect(wrapper.find('[data-region=sidebar]').exists()).toBe(false);
+      expect(wrapper.find('[data-layout-region="sidebar"]').exists()).toBe(
+        false,
+      );
 
       appStore.updateSetting({ sidebarOverlayOpen: true });
       await flushPromises();
-      expect(drawerState()).toEqual({
-        hasDrawer: true,
+      expect(overlayState()).toEqual({
+        hasOverlay: true,
         hasSidebarInBody: true,
       });
 
@@ -305,16 +329,27 @@ describe('布局外壳渲染 —— 各形态的区域构成', () => {
     }
   });
 
+  /**
+   * 偏好里的显隐开关必须真的接到壳上：
+   * 蓝图只回答"这种形态有没有标签栏 / 底栏"，`showTabs` / `showFooter` 是用户权利。
+   */
+  it('关掉标签页与底栏偏好后，对应区域从 DOM 里消失', async () => {
+    const { appStore, wrapper } = await mountLayout({ layout: 'vertical' });
+    appStore.updateSetting({ showFooter: false, showTabs: false });
+    await flushPromises();
+
+    expect(presentRegions(wrapper)).toEqual(['header', 'sidebar']);
+  });
+
   it('定宽内容把 max-width 与居中绑到内容容器上', async () => {
     const { appStore, wrapper } = await mountLayout({ layout: 'vertical' });
     appStore.updateSetting({ contentMode: 'fixed', contentWidth: 1200 });
     await flushPromises();
 
-    const styled = wrapper
-      .findAll('.ant-layout-content')
-      .map((node) => node.attributes('style') ?? '')
-      .find((style) => style.includes('max-width'));
-    expect(styled).toContain('max-width: 1200px');
-    expect(styled).toContain('margin-inline: auto');
+    const style = wrapper
+      .find('[data-layout-region="content"]')
+      .attributes('style');
+    expect(style).toContain('max-width: 1200px');
+    expect(style).toContain('margin-inline: auto');
   });
 });

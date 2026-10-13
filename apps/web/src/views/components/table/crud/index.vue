@@ -18,6 +18,7 @@ import { computed, onMounted, ref } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
+import { Button as AButton, Card as ACard, Descriptions as ADescriptions, DescriptionsItem as ADescriptionsItem, Progress as AProgress, Tag as ATag } from 'antdv-next';
 import {
   addTask,
   deleteTask,
@@ -348,7 +349,7 @@ const canBatchDelete = computed(() => hasPermission('demo:task:remove'));
 
 <template>
   <div :class="containerClassName">
-    <a-card title="增删改查（useCRUD）" variant="borderless">
+    <ACard title="增删改查（useCRUD）" variant="borderless">
       <p :class="descriptionClassName">
         新增 / 编辑 / 删除 / 批量删除全部由
         <code class="font-mono">useCRUD</code>
@@ -374,7 +375,7 @@ const canBatchDelete = computed(() => hasPermission('demo:task:remove'));
       >
         <template #toolbar>
           <div :class="toolbarClassName">
-            <a-button
+            <AButton
               v-if="canAdd"
               type="primary"
               size="small"
@@ -384,8 +385,8 @@ const canBatchDelete = computed(() => hasPermission('demo:task:remove'));
                 <Icon icon="ant-design:plus-outlined" />
               </template>
               新增任务
-            </a-button>
-            <a-button
+            </AButton>
+            <AButton
               v-if="canBatchDelete"
               size="small"
               danger
@@ -398,27 +399,27 @@ const canBatchDelete = computed(() => hasPermission('demo:task:remove'));
               批量删除{{
                 selectedRows.length ? `（${selectedRows.length}）` : ''
               }}
-            </a-button>
+            </AButton>
           </div>
         </template>
 
         <template #cell-status="{ record }">
-          <a-tag :color="STATUS_COLOR[record.status as TaskStatus]">
+          <ATag :color="STATUS_COLOR[record.status as TaskStatus]">
             {{ STATUS_LABEL[record.status as TaskStatus] ?? record.status }}
-          </a-tag>
+          </ATag>
         </template>
         <template #cell-priority="{ record }">
-          <a-tag
+          <ATag
             :color="PRIORITY_COLOR[record.priority as TaskPriority]"
             :bordered="false"
           >
             {{
               PRIORITY_LABEL[record.priority as TaskPriority] ?? record.priority
             }}
-          </a-tag>
+          </ATag>
         </template>
         <template #cell-progress="{ record }">
-          <a-progress
+          <AProgress
             :percent="Number(record.progress) || 0"
             size="small"
             :status="Number(record.progress) >= 100 ? 'success' : 'normal'"
@@ -432,43 +433,43 @@ const canBatchDelete = computed(() => hasPermission('demo:task:remove'));
         <code class="font-mono">custom</code> 登录，它没有
         <code class="font-mono">demo:task:remove</code>，删除与批量删除都会消失。
       </p>
-    </a-card>
+    </ACard>
 
-    <a-card title="这个示例省掉了什么" variant="borderless">
-      <a-descriptions :column="1" bordered size="small">
-        <a-descriptions-item label="容器与表单实例">
+    <ACard title="这个示例省掉了什么" variant="borderless">
+      <ADescriptions :column="1" bordered size="small">
+        <ADescriptionsItem label="容器与表单实例">
           <code class="font-mono">useModal()</code> +
           <code class="font-mono">useForm()</code> 的返回值直接交给
           <code class="font-mono">useCRUD</code>，页面不再自己
           <code class="font-mono">openModal → nextTick → setFieldsValue</code>
           地排顺序。
-        </a-descriptions-item>
-        <a-descriptions-item label="编辑态标志">
+        </ADescriptionsItem>
+        <ADescriptionsItem label="编辑态标志">
           <code class="font-mono">isEditing</code> 由 composable 持有（当前是
           {{
             isEditing ? '编辑' : '新增'
           }}），弹窗标题、提交分支都读它，不必页面再存一份
           <code class="font-mono">currentRecord</code>。
-        </a-descriptions-item>
-        <a-descriptions-item label="保存流程">
+        </ADescriptionsItem>
+        <ADescriptionsItem label="保存流程">
           <code class="font-mono">handleSave</code> 一处搞定：校验 →
           去掉空字符串字段 → 按 <code class="font-mono">isEditing</code> 选
           create/update → 提示 → 关窗 →
           <code class="font-mono">reload()</code>。
-        </a-descriptions-item>
-        <a-descriptions-item label="删除与批量删除">
+        </ADescriptionsItem>
+        <ADescriptionsItem label="删除与批量删除">
           <code class="font-mono">onDelete</code> 单条、
           <code class="font-mono">onBatchDelete</code> 缺省逐条并发；
           批量前的确认框内置，未选中时给提示而不是静默返回。
-        </a-descriptions-item>
-        <a-descriptions-item label="留给你写的">
+        </ADescriptionsItem>
+        <ADescriptionsItem label="留给你写的">
           确认交互（这里用操作列的
           <code class="font-mono">popConfirm</code>）、字段映射
           <code class="font-mono">getFormValues</code>、以及业务规则钩子
           <code class="font-mono">beforeCreate / beforeUpdate / beforeDelete</code>。
-        </a-descriptions-item>
-      </a-descriptions>
-    </a-card>
+        </ADescriptionsItem>
+      </ADescriptions>
+    </ACard>
 
     <BasicModal
       :title="isEditing ? '编辑任务' : '新增任务'"

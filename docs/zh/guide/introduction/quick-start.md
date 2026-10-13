@@ -81,7 +81,7 @@ internal/           # 构建与规范：vite-config / node-utils / tsconfig / li
 .changeset/         # 版本与 CHANGELOG 的来源
 ```
 
-细节见 [目录说明](/guide/project/dir)。
+细节见 [目录说明](/zh/guide/project/dir)。
 
 ## 5. 第一次提交前
 
@@ -89,4 +89,4 @@ internal/           # 构建与规范：vite-config / node-utils / tsconfig / li
 pnpm lint && pnpm test:unit
 ```
 
-再按 [测试策略](/guide/project/testing) 跑一遍端到端。改动值得记版本的话，`pnpm changeset` 补一条，见 [开发规范与环境变量](/guide/essentials/development)。
+再按 [测试策略](/zh/guide/project/testing) 跑一遍端到端。改动值得记版本的话，`pnpm changeset` 补一条，见 [开发规范与环境变量](/zh/guide/essentials/development)。

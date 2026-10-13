@@ -11,7 +11,7 @@ import { computed, h, ref } from 'vue';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
-import { App, Tag } from 'antdv-next';
+import { Button as AButton, Card as ACard, Divider as ADivider, App, Segmented as ASegmented, Space as ASpace, Switch as ASwitch, Tag as ATag, TypographyParagraph as ATypographyParagraph, Tag } from 'antdv-next';
 import certUrl from '~/assets/images/img.jpg';
 import avatarUrl from '~/assets/images/logo.png';
 import { Description } from '~/components/business/Description';
@@ -278,7 +278,7 @@ const size = ref<DescriptionSize>('large');
 
 <template>
   <div :class="containerClassName">
-    <a-card title="基础描述列表" variant="borderless">
+    <ACard title="基础描述列表" variant="borderless">
       <p :class="hintClassName">
         由 <code>schema</code>（字段 + 标签 + 渲染方式）与
         <code>data</code>（字段值）两份配置驱动，
@@ -296,9 +296,9 @@ const size = ref<DescriptionSize>('large');
         :column="3"
         bordered
       />
-    </a-card>
+    </ACard>
 
-    <a-card title="值渲染与插槽" variant="borderless">
+    <ACard title="值渲染与插槽" variant="borderless">
       <p :class="hintClassName">
         取值的优先级是：<strong>具名插槽 <code>#字段名</code> → <code>render</code> 函数 →
           <code>type</code> 内置渲染 → 文本</strong>。 头像走 <code>type: 'image'</code>（<code>imageSize</code>
@@ -322,26 +322,26 @@ const size = ref<DescriptionSize>('large');
         </template>
 
         <template #email="{ value }">
-          <a-typography-paragraph
+          <ATypographyParagraph
             :copyable="{ text: String(value) }"
             code
             :style="{ marginBottom: 0 }"
           >
             {{ value }}
-          </a-typography-paragraph>
+          </ATypographyParagraph>
         </template>
 
         <template #skills="{ value }">
-          <a-space :size="4" wrap>
-            <a-tag v-for="skill in value" :key="skill" color="purple">
+          <ASpace :size="4" wrap>
+            <ATag v-for="skill in value" :key="skill" color="purple">
               {{ skill }}
-            </a-tag>
-          </a-space>
+            </ATag>
+          </ASpace>
         </template>
       </Description>
-    </a-card>
+    </ACard>
 
-    <a-card title="动态切换（编辑态 / 只读态）" variant="borderless">
+    <ACard title="动态切换（编辑态 / 只读态）" variant="borderless">
       <p :class="hintClassName">
         同一份 <code>schema</code> + <code>data</code> 全程响应式：<code>show: false</code>
         的项被组件过滤掉（身份证、发票抬头），把 <code>data</code> 换成脱敏后的
@@ -352,24 +352,24 @@ const size = ref<DescriptionSize>('large');
 
       <div :class="toolbarClassName">
         <span class="inline-flex items-center gap-2">
-          <a-switch v-model:checked="showSensitive" size="small" />
+          <ASwitch v-model:checked="showSensitive" size="small" />
           <span class="text-sm">显示敏感字段</span>
         </span>
         <span class="inline-flex items-center gap-2">
-          <a-switch v-model:checked="masked" size="small" />
+          <ASwitch v-model:checked="masked" size="small" />
           <span class="text-sm">手机号 / 身份证脱敏</span>
         </span>
-        <a-segmented
+        <ASegmented
           v-model:value="layout"
           :options="[
             { label: '水平', value: 'horizontal' },
             { label: '垂直', value: 'vertical' },
           ]"
         />
-        <a-button size="small" :loading="loading" @click="refreshOrder">
+        <AButton size="small" :loading="loading" @click="refreshOrder">
           模拟刷新详情
-        </a-button>
-        <a-button size="small" @click="printData"> 调用 getData() </a-button>
+        </AButton>
+        <AButton size="small" @click="printData"> 调用 getData() </AButton>
       </div>
 
       <Description
@@ -381,9 +381,9 @@ const size = ref<DescriptionSize>('large');
         :layout="layout"
         bordered
       />
-    </a-card>
+    </ACard>
 
-    <a-card title="响应式列数与分组" variant="borderless">
+    <ACard title="响应式列数与分组" variant="borderless">
       <p :class="hintClassName">
         一个业务详情页往往是多个分组的组合：下面用两个
         <code>Description</code>（基础信息 / 金额信息）各自带
@@ -397,7 +397,7 @@ const size = ref<DescriptionSize>('large');
       </p>
 
       <div :class="toolbarClassName">
-        <a-segmented
+        <ASegmented
           v-model:value="columnMode"
           :options="[
             { label: '自动(响应式)', value: 'auto' },
@@ -406,7 +406,7 @@ const size = ref<DescriptionSize>('large');
             { label: '3 列', value: '3' },
           ]"
         />
-        <a-segmented
+        <ASegmented
           v-model:value="size"
           :options="[
             { label: 'large', value: 'large' },
@@ -415,14 +415,14 @@ const size = ref<DescriptionSize>('large');
           ]"
         />
         <span class="inline-flex items-center gap-2">
-          <a-switch v-model:checked="bordered" size="small" />
+          <ASwitch v-model:checked="bordered" size="small" />
           <span class="text-sm">bordered</span>
         </span>
         <span class="inline-flex items-center gap-2">
-          <a-switch v-model:checked="colon" size="small" />
+          <ASwitch v-model:checked="colon" size="small" />
           <span class="text-sm">colon</span>
         </span>
-        <a-tag color="blue">当前 column = {{ column }}</a-tag>
+        <ATag color="blue">当前 column = {{ column }}</ATag>
       </div>
 
       <Description
@@ -435,7 +435,7 @@ const size = ref<DescriptionSize>('large');
         :colon="colon"
       />
 
-      <a-divider />
+      <ADivider />
 
       <Description
         title="金额信息"
@@ -446,6 +446,6 @@ const size = ref<DescriptionSize>('large');
         :bordered="bordered"
         :colon="colon"
       />
-    </a-card>
+    </ACard>
   </div>
 </template>

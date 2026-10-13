@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
+import { Button as AButton, Card as ACard, Descriptions as ADescriptions, DescriptionsItem as ADescriptionsItem, Divider as ADivider, Space as ASpace, TabPane as ATabPane, Tabs as ATabs, Tag as ATag, Timeline as ATimeline, TimelineItem as ATimelineItem, message, Modal } from 'antdv-next';
 import { useUserStore } from '~/stores/modules/user';
 
 const userStore = useUserStore();
@@ -245,7 +246,7 @@ function handleDeleteDevice(device: LoginDevice) {
 
 <template>
   <div :class="containerClassName">
-    <a-card variant="borderless" :class="userCardClassName">
+    <ACard variant="borderless" :class="userCardClassName">
       <div class="flex items-start gap-6">
         <div :class="avatarWrapperClassName">
           <template v-if="hasAvatar">
@@ -264,9 +265,9 @@ function handleDeleteDevice(device: LoginDevice) {
             <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
               {{ userStore.nickname || userStore.username }}
             </h1>
-            <a-tag color="blue">
+            <ATag color="blue">
               {{ displayRole }}
-            </a-tag>
+            </ATag>
           </div>
           <div class="mb-3 flex items-center gap-6">
             <span :class="statItemClassName">
@@ -284,46 +285,46 @@ function handleDeleteDevice(device: LoginDevice) {
           </div>
         </div>
         <div class="flex-shrink-0">
-          <a-space>
-            <a-button type="primary"> 编辑资料 </a-button>
-            <a-button>分享</a-button>
-          </a-space>
+          <ASpace>
+            <AButton type="primary"> 编辑资料 </AButton>
+            <AButton>分享</AButton>
+          </ASpace>
         </div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card variant="borderless" :class="cardClassName">
-      <a-tabs v-model:active-key="activeTab">
-        <a-tab-pane key="basic" tab="基本信息">
-          <a-descriptions :column="2" bordered size="middle">
-            <a-descriptions-item label="用户名">
+    <ACard variant="borderless" :class="cardClassName">
+      <ATabs v-model:active-key="activeTab">
+        <ATabPane key="basic" tab="基本信息">
+          <ADescriptions :column="2" bordered size="middle">
+            <ADescriptionsItem label="用户名">
               {{ userStore.username }}
-            </a-descriptions-item>
-            <a-descriptions-item label="昵称">
+            </ADescriptionsItem>
+            <ADescriptionsItem label="昵称">
               {{ userStore.nickname }}
-            </a-descriptions-item>
-            <a-descriptions-item label="邮箱">
+            </ADescriptionsItem>
+            <ADescriptionsItem label="邮箱">
               {{ userStore.email }}
-            </a-descriptions-item>
-            <a-descriptions-item label="手机号">
+            </ADescriptionsItem>
+            <ADescriptionsItem label="手机号">
               {{ userStore.phone }}
-            </a-descriptions-item>
-            <a-descriptions-item label="性别" :span="2">
+            </ADescriptionsItem>
+            <ADescriptionsItem label="性别" :span="2">
               未设置
-            </a-descriptions-item>
-            <a-descriptions-item label="生日" :span="2">
+            </ADescriptionsItem>
+            <ADescriptionsItem label="生日" :span="2">
               未设置
-            </a-descriptions-item>
-            <a-descriptions-item label="地址" :span="2">
+            </ADescriptionsItem>
+            <ADescriptionsItem label="地址" :span="2">
               未设置
-            </a-descriptions-item>
-            <a-descriptions-item label="个人简介" :span="2">
+            </ADescriptionsItem>
+            <ADescriptionsItem label="个人简介" :span="2">
               未设置
-            </a-descriptions-item>
-          </a-descriptions>
-        </a-tab-pane>
+            </ADescriptionsItem>
+          </ADescriptions>
+        </ATabPane>
 
-        <a-tab-pane key="security" tab="安全设置">
+        <ATabPane key="security" tab="安全设置">
           <div class="space-y-6">
             <div class="space-y-2">
               <div :class="securityHeaderClassName">
@@ -336,12 +337,12 @@ function handleDeleteDevice(device: LoginDevice) {
                   :style="{ width: `${securityInfo.passwordStrength}%` }"
                 ></div>
               </div>
-              <a-button size="small" @click="switchAccountTab?.('settings')">
+              <AButton size="small" @click="switchAccountTab?.('settings')">
                 前往修改
-              </a-button>
+              </AButton>
             </div>
 
-            <a-divider />
+            <ADivider />
 
             <div class="space-y-2">
               <div :class="securityHeaderClassName">
@@ -356,7 +357,7 @@ function handleDeleteDevice(device: LoginDevice) {
               </p>
             </div>
 
-            <a-divider />
+            <ADivider />
 
             <div class="space-y-3">
               <span class="font-medium text-gray-700 dark:text-gray-300">登录设备</span>
@@ -421,11 +422,11 @@ function handleDeleteDevice(device: LoginDevice) {
               </div>
             </div>
           </div>
-        </a-tab-pane>
+        </ATabPane>
 
-        <a-tab-pane key="activity" tab="活动日志">
-          <a-timeline>
-            <a-timeline-item v-for="log in activityLogs" :key="log.time">
+        <ATabPane key="activity" tab="活动日志">
+          <ATimeline>
+            <ATimelineItem v-for="log in activityLogs" :key="log.time">
               <template #dot>
                 <div
                   class="h-2.5 w-2.5 rounded-full bg-blue-500 ring-4 ring-blue-100 dark:ring-blue-900/30"
@@ -439,33 +440,33 @@ function handleDeleteDevice(device: LoginDevice) {
                   {{ log.time }}
                 </p>
               </div>
-            </a-timeline-item>
-          </a-timeline>
-        </a-tab-pane>
+            </ATimelineItem>
+          </ATimeline>
+        </ATabPane>
 
-        <a-tab-pane key="team" tab="团队信息">
+        <ATabPane key="team" tab="团队信息">
           <div class="space-y-4">
             <div :class="teamInfoItemClassName">
               <span :class="teamInfoLabelClassName">角色</span>
               <span :class="teamInfoValueClassName">{{ displayRole }}</span>
             </div>
-            <a-divider />
+            <ADivider />
             <div :class="teamInfoItemClassName">
               <span :class="teamInfoLabelClassName">权限</span>
               <div class="flex-1">
-                <a-tag
+                <ATag
                   v-for="perm in userStore.permissions"
                   :key="perm"
                   :class="permissionTagClassName"
                   :color="perm === '*' ? 'purple' : 'blue'"
                 >
                   {{ perm }}
-                </a-tag>
+                </ATag>
               </div>
             </div>
           </div>
-        </a-tab-pane>
-      </a-tabs>
-    </a-card>
+        </ATabPane>
+      </ATabs>
+    </ACard>
   </div>
 </template>

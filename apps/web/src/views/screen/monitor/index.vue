@@ -11,6 +11,7 @@ import {
   watch,
 } from 'vue';
 
+import { Scrollbar } from '@antdv/scrollbar-ui';
 import { useEventListener } from '@vueuse/core';
 import * as echarts from 'echarts';
 import { isPlainObject } from 'es-toolkit';

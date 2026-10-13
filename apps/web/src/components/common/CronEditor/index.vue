@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
+import { Input as AInput, Select as ASelect } from 'antdv-next';
 import cronstrue from 'cronstrue';
 
 import 'cronstrue/locales/zh_CN';
@@ -305,7 +306,7 @@ function handleInputChange(e: Event) {
       <div class="grid grid-cols-6 gap-2">
         <div v-for="f in fields" :key="f.key" class="flex flex-col gap-1">
           <label class="text-center text-xs text-gray-500">{{ f.label }}</label>
-          <a-select
+          <ASelect
             v-model:value="fieldValues[f.key]"
             size="small"
             :disabled="disabled"
@@ -320,7 +321,7 @@ function handleInputChange(e: Event) {
     <!-- 生成的表达式 + 描述 -->
     <div class="flex items-start gap-2">
       <div class="flex-1">
-        <a-input
+        <AInput
           :value="modelValue"
           :disabled="disabled"
           placeholder="Cron 表达式"

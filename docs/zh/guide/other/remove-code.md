@@ -56,17 +56,23 @@
 
 | 包 | apps/web 引用文件数 | 其他引用者 | 删它的真实成本 |
 | --- | --- | --- | --- |
-| `@antdv/shared` | 132 | `composables` / `layouts` / `preferences` / `ui` 都 import 它 | 基本等于重写应用 |
-| `@antdv/types` | 35 | `shared` / `layouts` / `preferences` / `composables` + `apps/backend-mock` | 类型面全域铺开 |
-| `@antdv/ui` | 25 | `internal/vite-config/src/plugins/auto-import.ts:22-35` 的 `UI_COMPONENTS` 集合**硬点名**这五个组件 | 必须先改构建工具，否则 `<IconifyIcon />`、`<Scrollbar />` 静默变空白 |
-| `@antdv/layouts` | 12 | 没有其他包 import 它；应用侧 `src/layouts/index.vue` 的外壳来自它 | 布局与菜单/面包屑/标签页一起没 |
-| `@antdv/preferences` | 5 | 没有其他包 import 它；`apps/web/src/settings/index.ts` 是它的适配层 | 主题链路断，见[主题与偏好设置](/guide/in-depth/theme) |
+| `@antdv/shared` | 124 | `composables` / `layouts` / `preferences` / `icons` / `loading-ui` / `popup-ui` / `table-ui` … 都 import 它（`cn()` 是全仓唯一的类名合并入口） | 基本等于重写应用 |
+| `@antdv/types` | 31 | `shared` / `layouts` / `preferences` / `composables` + `apps/backend-mock` | 类型面全域铺开 |
+| `@antdv/scrollbar-ui` | 24 | `icons`（`IconPicker` 的滚动区）与 `popup-ui` / `table-ui` / `menu-ui` 等 ui-kit 包 | 弹窗、抽屉、菜单、表格的内容区全都没有滚动条实现 |
+| `@antdv/icons` | 10 | `internal/vite-config` 的 iconify 离线列表只供数据，不 import 这个包；组件全靠各文件显式 import | 图标选择器与 `IconifyIcon` / `SvgIcon` 一起没 |
+| `@antdv/layout-ui` | 10 | `apps/web/src/layouts/index.vue` 的区域外壳；`layouts` 只提供蓝图与状态源 | 七种布局形态的 DOM 在这一层，删了壳就没地方挂 |
 | `@antdv/composables` | 7 | 仅应用引用 | 相对可删，但 echarts/sse/websocket 是三个子入口 |
-| `@antdv/router` | 1 | 守卫实现全在包里，`apps/web/src/router/guards/index.ts` 只做依赖注入 | 不是删一行依赖：403 裁剪、进度条、标题都要在应用里重写 |
+| `@antdv/layouts` | 7 | 没有其他包 import 它；应用侧 `src/layouts/index.vue` 的外壳来自它 | 布局与菜单/面包屑/标签页一起没 |
+| `@antdv/preferences` | 5 | 没有其他包 import 它；`apps/web/src/settings/index.ts` 是它的适配层 | 主题链路断，见[主题与偏好设置](/zh/guide/in-depth/theme) |
+| `@antdv/tabs-ui` | 5 | 应用侧 `useTabs` 与布局壳 | 标签栏、右键菜单、放大收起一起没 |
+| `@antdv/loading-ui` | 3 | `main.ts` 注册 `v-loading`；示例页与若干容器用它 | 指令 + `Loading` + `createLoading` 三件一起断，见[加载系统](/zh/guide/in-depth/loading) |
+| `@antdv/menu-ui` | 2 | 布局壳内的菜单树 | 侧栏/图标栏的菜单渲染断 |
 | `@antdv/directives` | 2 | `apps/web/src/directives/index.ts` 注入判定函数；模板里 `v-permission` / `v-lazy` 共 7 处 | 可删，权限降级样式在 `@antdv/styles/permission.css` |
+| `@antdv/router` | 1 | 守卫实现全在包里，`apps/web/src/router/guards/index.ts` 只做依赖注入 | 不是删一行依赖：403 裁剪、进度条、标题都要在应用里重写 |
 | `@antdv/styles` | 1（`main.ts`） | 没有其他包 import 它；`preferences/css-vars.ts` 与指令的禁用态只是按它的口径写 | Tailwind 层顺序一丢，覆盖组件库样式就要靠 `!important` |
+| `@antdv/shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` | 0（应用侧还没接） | 应用目前用的仍是自己 `src/components/business/**` 里的那套 `BasicForm` / `BasicTable` / `BasicModal`；这四个包先服务于 `icons` / `loading-ui` 等包的实现底座 | 现在删 `shadcn-ui` 会连带打死上面几个包；四个封装包暂时"可删但不该删"，等应用侧切过去再谈 |
 
-两个操作细节：除 `ui` 与 `styles` 之外，每个包都产出 `dist`（`main: ./dist/...`，`build: tsdown`）， `ui`/`styles` 直接发源码 —— 所以改完子包要 `pnpm --filter <pkg> build` **并重启 dev**；另外 `@antdv/router` 的 store 刻意不 import router（`route.ts` 的注释：`router → guards → store → router` 会闭环），裁剪能力靠装配处注入，这就是"看着像装饰、其实拆不动"的那类耦合。
+两个操作细节：除源码发布的那批（`icons` / `styles` / `ui-kit` 九个）之外，每个包都产出 `dist`（`main: ./dist/...`，`build: tsdown`）—— 改 dist 包要 `pnpm --filter <pkg> build` **并重启 dev**，改源码包保存即热更；另外 `@antdv/router` 的 store 刻意不 import router（`route.ts` 的注释：`router → guards → store → router` 会闭环），裁剪能力靠装配处注入，这就是"看着像装饰、其实拆不动"的那类耦合。
 
 ## 案例 D：删一个应用依赖
 
@@ -89,8 +95,8 @@ cd docs && pnpm exec vitepress build   # 文档里指向被删页面的死链
 ## 说句实话：这几处拆不动
 
 - 菜单是**静态种子 + 浏览器 localStorage 覆盖**，没有写接口。任何"删了菜单"的操作都要落到改文件；拨过开关的那台浏览器还会把 override 留在本地。
-- `internal/*` 与 `scripts/*` 不是装饰：`@antdv/vite-config` 装配了约定路由、布局插件、自动导入、Nitro mock 代理与分包策略，它自己又 import `@antdv/node-utils`。动它们等于动构建。
+- `internal/*` 与 `scripts/*` 不是装饰：`@antdv/vite-config` 装配了约定路由、布局插件、框架 API 的 auto-import 与两份 `.d.ts` 生成、iconify 离线集合、Nitro mock 代理与分包策略，它自己又 import `@antdv/node-utils`。动它们等于动构建。
 - i18n 已经接到菜单与外壳（10 个 `.vue` 用 `useI18n`，顶栏有 `LocaleSwitcher.vue`），但业务页面文案仍是硬编码中文。删语言包前先确认 `src/locales/__tests__/locale.spec.ts` 与 `useMenuTree`。
 - `docs/` 与 `apps` 齐平写在 `pnpm-workspace.yaml` 里：删掉它，中英切换的另一半就没了。
 
-相关页面：[路由与菜单](/guide/essentials/route)、[Mock 服务（Nitro）](/guide/essentials/mock)、 [测试策略](/guide/project/testing)、[项目更新](/guide/other/project-update)。
+相关页面：[路由与菜单](/zh/guide/essentials/route)、[Mock 服务（Nitro）](/zh/guide/essentials/mock)、 [测试策略](/zh/guide/project/testing)、[项目更新](/zh/guide/other/project-update)。

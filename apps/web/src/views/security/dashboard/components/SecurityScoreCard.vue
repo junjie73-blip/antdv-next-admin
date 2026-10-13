@@ -4,6 +4,7 @@ import { computed, onMounted, ref } from 'vue';
 import { watch } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
+import { Tag as ATag } from 'antdv-next';
 import * as echarts from 'echarts';
 import { getSecurityScore } from '~/api/security';
 import { CountTo } from '~/components/business/CountTo';
@@ -162,14 +163,14 @@ watch(isDark, () => {
         </h3>
         <p class="mt-0.5 text-xs text-gray-400">基于多维度安全指标综合评估</p>
       </div>
-      <a-tag
+      <ATag
         :color="
           totalScore >= 80 ? 'green' : totalScore >= 60 ? 'orange' : 'red'
         "
         class="text-xs"
       >
         {{ getScoreLabel(totalScore) }}
-      </a-tag>
+      </ATag>
     </div>
 
     <!-- 主分数 + 趋势图 -->

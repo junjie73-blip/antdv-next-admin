@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
+import { Tag as ATag } from 'antdv-next';
 import { isNil } from 'es-toolkit';
 
 defineOptions({ name: 'StatusTag' });
@@ -31,5 +32,5 @@ const config = computed(() => {
 </script>
 
 <template>
-  <a-tag :color="config.color">{{ config.label }}</a-tag>
+  <ATag :color="config.color">{{ config.label }}</ATag>
 </template>

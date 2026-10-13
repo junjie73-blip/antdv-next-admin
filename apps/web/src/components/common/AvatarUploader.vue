@@ -5,7 +5,7 @@ import 'vue-cropper/dist/index.css';
 
 import { useFileReader } from '@antdv/composables/useFileReader';
 import { Icon } from '@iconify/vue';
-import { message } from 'antdv-next';
+import { Avatar as AAvatar, Button as AButton, Modal as AModal, Upload as AUpload, message } from 'antdv-next';
 import { http } from '~/composables';
 
 interface Props {
@@ -108,7 +108,7 @@ watch(visible, (v) => {
 
 <template>
   <div class="flex items-center gap-4">
-    <a-avatar
+    <AAvatar
       :size="size"
       :src="modelValue"
       :style="previewStyle"
@@ -117,20 +117,20 @@ watch(visible, (v) => {
       <template v-if="!modelValue">
         <Icon icon="carbon:user-avatar" class="text-3xl text-gray-400" />
       </template>
-    </a-avatar>
+    </AAvatar>
 
-    <a-upload
+    <AUpload
       :show-upload-list="false"
       accept="image/jpeg,image/png,image/webp,image/gif"
       :before-upload="beforeUpload"
     >
-      <a-button>
+      <AButton>
         <template #icon><Icon icon="carbon:upload" /></template>
         {{ modelValue ? '更换头像' : '上传头像' }}
-      </a-button>
-    </a-upload>
+      </AButton>
+    </AUpload>
 
-    <a-modal
+    <AModal
       v-model:open="visible"
       title="裁剪头像"
       :width="480"
@@ -163,6 +163,6 @@ watch(visible, (v) => {
           PNG
         </div>
       </div>
-    </a-modal>
+    </AModal>
   </div>
 </template>

@@ -29,7 +29,6 @@
     "vue-router": "catalog:"
   },
   "dependencies": {
-    "@antdv-next/auto-import-resolver": "catalog:",
     "@antdv/node-utils": "workspace:*",
     "@intlify/unplugin-vue-i18n": "catalog:",
     "@pnpm/workspace.read-manifest": "catalog:",

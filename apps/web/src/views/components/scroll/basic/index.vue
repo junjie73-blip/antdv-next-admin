@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
+import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
-import { Scrollbar } from '@antdv/ui/scrollbar';
+import { Button as AButton, Card as ACard, Input as AInput } from 'antdv-next';
 
 const containerClassName = cn('space-y-6');
 const scrollContentClassName = cn('rounded-lg bg-gray-50 p-4 dark:bg-gray-800');
@@ -91,9 +92,9 @@ function sendMessage() {
 
 <template>
   <div :class="containerClassName">
-    <a-card title="Basic Scroll" variant="borderless">
+    <ACard title="Basic Scroll" variant="borderless">
       <div class="space-y-4">
-        <a-button
+        <AButton
           @click="
             basicItems.push({
               id: basicItems.length + 1,
@@ -103,7 +104,7 @@ function sendMessage() {
           "
         >
           Add Item
-        </a-button>
+        </AButton>
         <div
           class="h-80 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
           :class="scrollContentClassName"
@@ -131,9 +132,9 @@ function sendMessage() {
           </Scrollbar>
         </div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="Horizontal Scroll" variant="borderless">
+    <ACard title="Horizontal Scroll" variant="borderless">
       <div
         class="h-32 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
       >
@@ -152,9 +153,9 @@ function sendMessage() {
           </div>
         </Scrollbar>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="Chat Scroll" variant="borderless">
+    <ACard title="Chat Scroll" variant="borderless">
       <div class="space-y-3">
         <div
           class="flex h-80 flex-col overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
@@ -187,15 +188,15 @@ function sendMessage() {
           <div
             class="flex gap-2 border-t border-gray-200 p-3 dark:border-gray-700"
           >
-            <a-input
+            <AInput
               v-model:value="newMessage"
               placeholder="Type a message..."
               @press-enter="sendMessage"
             />
-            <a-button type="primary" @click="sendMessage"> Send </a-button>
+            <AButton type="primary" @click="sendMessage"> Send </AButton>
           </div>
         </div>
       </div>
-    </a-card>
+    </ACard>
   </div>
 </template>

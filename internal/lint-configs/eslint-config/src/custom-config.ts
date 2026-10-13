@@ -4,8 +4,10 @@ const restrictedImportIgnores = ['**/vite.config.mts'];
 
 const customConfig: Linter.Config[] = [
   // shadcn-ui 内部组件是自动生成的，不做太多限制
+  // 路径是本仓的实际位置（`npx shadcn-vue add` 落在 packages/ui-kit/shadcn-ui），
+  // 生成的 props 声明普遍不带 default，逐文件补默认值会在下次 `add` 时被冲掉。
   {
-    files: ['packages/@core/ui-kit/shadcn-ui/**/**'],
+    files: ['packages/ui-kit/shadcn-ui/**/**'],
     rules: {
       'vue/require-default-prop': 'off',
     },

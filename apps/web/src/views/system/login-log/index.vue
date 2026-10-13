@@ -9,6 +9,7 @@ import { usePrint } from '@antdv/composables/usePrint';
 import { cn } from '@antdv/shared/cn';
 import { exportToExcel } from '@antdv/shared/excel';
 import { Icon } from '@iconify/vue';
+import { Alert as AAlert, Button as AButton, Card as ACard, Divider as ADivider, Popconfirm as APopconfirm, Statistic as AStatistic, Tag as ATag, message } from 'antdv-next';
 import { getLoginLogList, getLoginLogStats } from '~/api/system';
 import { Description as DetailDescription } from '~/components/business/Description';
 import { BasicDrawer, useDrawer } from '~/components/business/Drawer';
@@ -292,32 +293,32 @@ const columns: BasicColumn[] = [
   <div :class="containerClassName">
     <!-- 统计卡片区域 -->
     <div :class="statsGridClassName">
-      <a-card :class="cardClassName" size="small">
-        <a-statistic title="今日登录次数" :value="todayLoginCount" suffix="次">
+      <ACard :class="cardClassName" size="small">
+        <AStatistic title="今日登录次数" :value="todayLoginCount" suffix="次">
           <template #prefix>
             <Icon icon="carbon:login" class="mr-1 text-lg text-blue-500" />
           </template>
-        </a-statistic>
-      </a-card>
-      <a-card :class="cardClassName" size="small">
-        <a-statistic title="本周登录次数" :value="weekLoginCount" suffix="次">
+        </AStatistic>
+      </ACard>
+      <ACard :class="cardClassName" size="small">
+        <AStatistic title="本周登录次数" :value="weekLoginCount" suffix="次">
           <template #prefix>
             <Icon icon="carbon:calendar" class="mr-1 text-lg text-green-500" />
           </template>
-        </a-statistic>
-      </a-card>
-      <a-card :class="cardClassName" size="small">
-        <a-statistic title="本月登录次数" :value="monthLoginCount" suffix="次">
+        </AStatistic>
+      </ACard>
+      <ACard :class="cardClassName" size="small">
+        <AStatistic title="本月登录次数" :value="monthLoginCount" suffix="次">
           <template #prefix>
             <Icon
               icon="carbon:chart-line-data"
               class="mr-1 text-lg text-orange-500"
             />
           </template>
-        </a-statistic>
-      </a-card>
-      <a-card :class="[cardClassName, failCardClassName]" size="small">
-        <a-statistic
+        </AStatistic>
+      </ACard>
+      <ACard :class="[cardClassName, failCardClassName]" size="small">
+        <AStatistic
           title="今日失败次数"
           :value="todayFailCount"
           suffix="次"
@@ -326,12 +327,12 @@ const columns: BasicColumn[] = [
           <template #prefix>
             <Icon icon="carbon:error" class="mr-1 text-lg text-red-500" />
           </template>
-        </a-statistic>
-      </a-card>
+        </AStatistic>
+      </ACard>
     </div>
 
     <!-- 表格区域 -->
-    <a-card title="登录日志" :class="cardClassName">
+    <ACard title="登录日志" :class="cardClassName">
       <BasicTable
         :columns="columns"
         :api="mockApi"
@@ -348,39 +349,39 @@ const columns: BasicColumn[] = [
         @register="tableRegister"
       >
         <template #toolbar>
-          <a-button @click="handleExport">
+          <AButton @click="handleExport">
             <template #icon>
               <Icon icon="carbon:export" />
             </template>
             导出
-          </a-button>
-          <a-button @click="handlePrint">
+          </AButton>
+          <AButton @click="handlePrint">
             <template #icon>
               <Icon icon="carbon:printer" />
             </template>
             打印
-          </a-button>
-          <a-button danger @click="handleBatchDelete">
+          </AButton>
+          <AButton danger @click="handleBatchDelete">
             <template #icon>
               <Icon icon="ant-design:delete-outlined" />
             </template>
             批量删除
-          </a-button>
-          <a-popconfirm
+          </AButton>
+          <APopconfirm
             title="确定要清空所有登录日志吗？此操作不可恢复！"
             @confirm="handleClear"
           >
-            <a-button danger>
+            <AButton danger>
               <template #icon>
                 <Icon icon="carbon:trash-can" />
               </template>
               清空
-            </a-button>
-          </a-popconfirm>
+            </AButton>
+          </APopconfirm>
         </template>
 
         <template #cell-status="{ record }">
-          <a-tag :color="record.status === 'success' ? 'green' : 'red'">
+          <ATag :color="record.status === 'success' ? 'green' : 'red'">
             <span :class="tagClassName">
               <Icon
                 :icon="
@@ -391,12 +392,12 @@ const columns: BasicColumn[] = [
               />
               {{ record.status === 'success' ? '成功' : '失败' }}
             </span>
-          </a-tag>
+          </ATag>
         </template>
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <a-button
+            <AButton
               type="link"
               :class="btnClassName"
               @click="() => handleView(record)"
@@ -405,23 +406,23 @@ const columns: BasicColumn[] = [
                 <Icon icon="ant-design:eye-outlined" />
               </template>
               详情
-            </a-button>
-            <a-divider type="vertical" :class="dividerClassName" />
-            <a-popconfirm
+            </AButton>
+            <ADivider type="vertical" :class="dividerClassName" />
+            <APopconfirm
               :title="`确定要删除日志 #${record.id} 吗？`"
               @confirm="() => handleDelete(record)"
             >
-              <a-button type="link" danger :class="btnClassName">
+              <AButton type="link" danger :class="btnClassName">
                 <template #icon>
                   <Icon icon="ant-design:delete-outlined" />
                 </template>
                 删除
-              </a-button>
-            </a-popconfirm>
+              </AButton>
+            </APopconfirm>
           </div>
         </template>
       </BasicTable>
-    </a-card>
+    </ACard>
 
     <!-- 详情抽屉 -->
     <BasicDrawer
@@ -439,7 +440,7 @@ const columns: BasicColumn[] = [
       />
 
       <div class="mt-6 border-t border-gray-200 pt-4 dark:border-gray-700">
-        <a-alert
+        <AAlert
           message="提示：如发现异常登录记录，请及时修改密码并联系安全管理人员"
           type="warning"
           show-icon

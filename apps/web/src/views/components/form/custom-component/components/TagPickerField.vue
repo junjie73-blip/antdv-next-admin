@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
+import { Button as AButton, Input as AInput, SpaceCompact as ASpaceCompact, Tag as ATag } from 'antdv-next';
 
 defineOptions({ name: 'TagPickerField' });
 
@@ -72,7 +73,7 @@ function clearAll() {
 <template>
   <div :class="wrapperClassName">
     <div v-if="tags.length > 0" :class="tagsClassName">
-      <a-tag
+      <ATag
         v-for="tag in tags"
         :key="tag"
         color="blue"
@@ -80,8 +81,8 @@ function clearAll() {
         @close="removeTag(tag)"
       >
         {{ tag }}
-      </a-tag>
-      <a-button
+      </ATag>
+      <AButton
         v-if="!disabled"
         type="link"
         size="small"
@@ -89,24 +90,24 @@ function clearAll() {
         @click="clearAll"
       >
         清空
-      </a-button>
+      </AButton>
     </div>
 
-    <a-space-compact block>
-      <a-input
+    <ASpaceCompact block>
+      <AInput
         v-model:value="draft"
         :disabled="disabled || reachedMax"
         :placeholder="placeholder"
         @press-enter="addTag()"
       />
-      <a-button :disabled="disabled || reachedMax" @click="addTag()">
+      <AButton :disabled="disabled || reachedMax" @click="addTag()">
         添加
-      </a-button>
-    </a-space-compact>
+      </AButton>
+    </ASpaceCompact>
 
     <div v-if="candidates.length > 0" :class="candidatesClassName">
       <span :class="hintClassName">候选：</span>
-      <a-tag
+      <ATag
         v-for="option in candidates"
         :key="option"
         class="cursor-pointer"
@@ -114,7 +115,7 @@ function clearAll() {
         @click="!disabled && addTag(option)"
       >
         {{ option }}
-      </a-tag>
+      </ATag>
     </div>
 
     <div :class="hintClassName">

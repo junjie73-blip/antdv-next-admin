@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import type { UploadChangeParam, UploadFile, UploadProps } from 'antdv-next';
+import type { TableProps, UploadChangeParam, UploadFile, UploadProps } from 'antdv-next';
 
 import { computed, ref, useTemplateRef } from 'vue';
 
 // ===== 大文件切片上传 =====
 import { useChunkUpload } from '@antdv/composables/useChunkUpload';
+import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
+import { Button as AButton, Card as ACard, Image as AImage, Modal as AModal, Table as ATable, Upload as AUpload, message } from 'antdv-next';
 import { http } from '~/composables';
 
 /**
@@ -374,7 +376,7 @@ interface FileQueueItem {
   file: File;
 }
 
-const largeFileColumns = [
+const largeFileColumns: TableProps['columns'] = [
   { title: '缩略图', key: 'thumbnail', width: 80, align: 'center' },
   { title: '文件名', dataIndex: 'fileName', key: 'fileName', ellipsis: true },
   { title: '大小', key: 'fileSize', width: 120 },
@@ -647,11 +649,11 @@ function handlePreviewClose() {
 
 <template>
   <div :class="containerClassName">
-    <a-card title="基础上传" variant="borderless">
+    <ACard title="基础上传" variant="borderless">
       <div :class="descClassName">
         点击或拖拽文件到此区域进行上传，支持多文件选择
       </div>
-      <a-upload
+      <AUpload
         v-model:file-list="basicFileList"
         :custom-request="uploadRequest('')"
         :multiple="true"
@@ -664,14 +666,14 @@ function handlePreviewClose() {
         <p class="ant-upload-hint">
           支持单个或批量上传，严禁上传公司数据或其他敏感信息
         </p>
-      </a-upload>
-    </a-card>
+      </AUpload>
+    </ACard>
 
-    <a-card class="image-wall-card" title="图片墙" variant="borderless">
+    <ACard class="image-wall-card" title="图片墙" variant="borderless">
       <div :class="descClassName">
         图片墙效果，支持预览，仅 jpg/png/gif 格式，单张不超过 2MB
       </div>
-      <a-upload
+      <AUpload
         v-model:file-list="imageFileList"
         v-bind="imageUploadProps"
         :custom-request="uploadRequest('image')"
@@ -682,13 +684,13 @@ function handlePreviewClose() {
           <Icon icon="ant-design:plus-outlined" />
           <div style="margin-top: 8px">上传</div>
         </div>
-      </a-upload>
+      </AUpload>
       <!--
         受控预览：只借 `a-image` 的大图预览层，本体藏起来。
         以前这里常驻渲染且 `src` 初始为空字符串，卡片里就留了一个破图占位；
         `:visible` / `@cancel` 也不是 1.6 的受控写法（预览根本打不开）。
       -->
-      <a-image
+      <AImage
         v-if="imagePreviewUrl"
         :src="imagePreviewUrl"
         :style="{ display: 'none' }"
@@ -697,14 +699,14 @@ function handlePreviewClose() {
           onVisibleChange: handleImagePreviewVisibleChange,
         }"
       />
-    </a-card>
+    </ACard>
 
-    <a-card title="头像上传" variant="borderless">
+    <ACard title="头像上传" variant="borderless">
       <div :class="descClassName">
         圆形头像裁剪上传，仅限图片格式，不超过 5MB
       </div>
       <div class="flex items-start gap-6">
-        <a-upload
+        <AUpload
           v-model:file-list="avatarFileList"
           :custom-request="uploadRequest('avatar')"
           :show-upload-list="false"
@@ -735,7 +737,7 @@ function handlePreviewClose() {
             alt="avatar"
             :class="avatarImageClassName"
           />
-        </a-upload>
+        </AUpload>
         <div :class="avatarInfoClassName">
           <h4 :class="avatarTitleClassName">上传头像</h4>
           <ul :class="avatarRuleListClassName">
@@ -745,11 +747,11 @@ function handlePreviewClose() {
           </ul>
         </div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="自定义上传按钮" variant="borderless">
+    <ACard title="自定义上传按钮" variant="borderless">
       <div :class="descClassName">带图标的自定义上传区域，支持拖拽</div>
-      <a-upload
+      <AUpload
         v-model:file-list="customFileList"
         :custom-request="uploadRequest('custom')"
         :drag="true"
@@ -763,23 +765,23 @@ function handlePreviewClose() {
           <span :class="customTextClassName">点击或拖拽文件到此处上传</span>
           <span :class="customHintClassName">支持任意文件类型</span>
         </div>
-      </a-upload>
-    </a-card>
+      </AUpload>
+    </ACard>
 
-    <a-card title="上传状态展示" variant="borderless">
+    <ACard title="上传状态展示" variant="borderless">
       <div :class="descClassName">
         展示 uploading（上传中）、error（错误）、done（完成）三种状态
       </div>
-      <a-upload
+      <AUpload
         v-model:file-list="statusFileList"
         :custom-request="uploadRequest('status')"
         @change="handleStatusChange"
       >
-        <a-button>
+        <AButton>
           <Icon icon="ant-design:upload-outlined" />
           选择文件
-        </a-button>
-      </a-upload>
+        </AButton>
+      </AUpload>
       <div :class="statusLegendClassName">
         <div :class="statusGridClassName">
           <div :class="statusItemClassName">
@@ -796,64 +798,64 @@ function handlePreviewClose() {
           </div>
         </div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="上传前校验" variant="borderless">
+    <ACard title="上传前校验" variant="borderless">
       <div :class="descClassName">
         文件类型和大小校验提示，仅允许 PDF/Word/图片，最大 10MB
       </div>
-      <a-upload
+      <AUpload
         v-model:file-list="validateFileList"
         :custom-request="uploadRequest('validate')"
         :before-upload="handleValidateBeforeUpload"
         :multiple="true"
       >
-        <a-button>
+        <AButton>
           <Icon icon="ant-design:file-text-outlined" />
           选择文件（PDF/Word/图片）
-        </a-button>
-      </a-upload>
+        </AButton>
+      </AUpload>
       <div :class="validateTipClassName">
         提示：尝试上传非指定格式的文件或超过 10MB 的文件，查看校验效果
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="手动上传" variant="borderless">
+    <ACard title="手动上传" variant="borderless">
       <div :class="descClassName">先选择文件，再点击按钮才会上传</div>
       <div :class="manualButtonGroupClassName">
-        <a-upload
+        <AUpload
           ref="manualUploadRef"
           v-model:file-list="manualFileList"
           :custom-request="uploadRequest('manual')"
           :auto-upload="false"
           :multiple="true"
         >
-          <a-button>
+          <AButton>
             <Icon icon="ant-design:folder-open-outlined" />
             选择文件
-          </a-button>
-        </a-upload>
-        <a-button
+          </AButton>
+        </AUpload>
+        <AButton
           type="primary"
           :loading="manualUploading"
           :disabled="manualFileList.length === 0"
           @click="handleManualUpload"
         >
           开始上传
-        </a-button>
-        <a-button
+        </AButton>
+        <AButton
           :disabled="manualFileList.length === 0"
           @click="handleManualClear"
         >
           清空列表
-        </a-button>
+        </AButton>
       </div>
       <div v-if="manualFileList.length > 0" :class="manualSelectedTipClassName">
         已选择 {{ manualFileList.length }} 个文件，请点击「开始上传」按钮
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="头像上传（自研组件）" variant="borderless">
+    <ACard title="头像上传（自研组件）" variant="borderless">
       <div :class="inhouseAvatarDescClassName">
         基于本仓库自研的
         <code class="font-mono text-xs">AvatarUploader</code>
@@ -870,12 +872,12 @@ function handlePreviewClose() {
           round
           @uploaded="handleInhouseAvatarUploaded"
         />
-        <a-button
+        <AButton
           :disabled="!inhouseAvatarUrl"
           @click="handleInhouseAvatarReset"
         >
           重置
-        </a-button>
+        </AButton>
       </div>
       <div :class="inhouseAvatarInfoClassName">
         <template v-if="inhouseAvatarUrl">
@@ -893,9 +895,9 @@ function handlePreviewClose() {
         </template>
         <div v-else>尚未上传头像，选择图片并确认后地址会显示在这里。</div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="大文件上传" variant="borderless">
+    <ACard title="大文件上传" variant="borderless">
       <div :class="largeFileCardDescClassName">
         支持暂停/恢复，基于切片上传的大文件上传组件，支持多文件队列
       </div>
@@ -908,13 +910,13 @@ function handlePreviewClose() {
           :class="largeFileSelectInputClassName"
           @change="handleLargeFileSelect"
         />
-        <a-button @click="handleSelectFileClick">
+        <AButton @click="handleSelectFileClick">
           <template #icon>
             <Icon icon="carbon:document-import" />
           </template>
           选择文件
-        </a-button>
-        <a-button
+        </AButton>
+        <AButton
           type="primary"
           :disabled="fileQueue.length === 0"
           @click="startQueueUpload"
@@ -923,20 +925,20 @@ function handlePreviewClose() {
             <Icon icon="carbon:cloud-upload" />
           </template>
           开始上传
-        </a-button>
-        <a-button :disabled="!hasUploadingItem" @click="handlePauseAll">
+        </AButton>
+        <AButton :disabled="!hasUploadingItem" @click="handlePauseAll">
           <template #icon>
             <Icon icon="carbon:pause" />
           </template>
           暂停
-        </a-button>
-        <a-button :disabled="!hasPausedItem" @click="handleResumeAll">
+        </AButton>
+        <AButton :disabled="!hasPausedItem" @click="handleResumeAll">
           <template #icon>
             <Icon icon="carbon:play" />
           </template>
           恢复
-        </a-button>
-        <a-button
+        </AButton>
+        <AButton
           danger
           :disabled="fileQueue.length === 0"
           @click="handleCancelAll"
@@ -945,11 +947,11 @@ function handlePreviewClose() {
             <Icon icon="carbon:close" />
           </template>
           取消
-        </a-button>
+        </AButton>
       </div>
 
       <!-- 同 detail 页：全局 `virtual` 打开时，没有数值 `scroll.y` 的表要显式关掉虚拟滚动 -->
-      <a-table
+      <ATable
         :columns="largeFileColumns"
         :data-source="fileQueue"
         :pagination="false"
@@ -1012,31 +1014,31 @@ function handlePreviewClose() {
           </template>
           <template v-else-if="column.key === 'actions'">
             <div :class="largeFileTableActionsClassName">
-              <a-button
+              <AButton
                 type="link"
                 size="small"
                 :disabled="record.status !== 'uploading'"
                 @click="handlePauseItem(record)"
               >
                 暂停
-              </a-button>
-              <a-button
+              </AButton>
+              <AButton
                 type="link"
                 size="small"
                 :disabled="record.status !== 'paused'"
                 @click="handleResumeItem(record)"
               >
                 恢复
-              </a-button>
-              <a-button
+              </AButton>
+              <AButton
                 type="link"
                 size="small"
                 danger
                 @click="handleDeleteItem(record)"
               >
                 删除
-              </a-button>
-              <a-button
+              </AButton>
+              <AButton
                 type="link"
                 size="small"
                 danger
@@ -1046,13 +1048,13 @@ function handlePreviewClose() {
                 @click="handleCancelItem(record)"
               >
                 取消
-              </a-button>
+              </AButton>
             </div>
           </template>
         </template>
-      </a-table>
+      </ATable>
       <!-- 文件预览弹窗 -->
-      <a-modal
+      <AModal
         :open="previewVisible"
         :title="`预览：${previewFileName}`"
         :footer="null"
@@ -1061,7 +1063,7 @@ function handlePreviewClose() {
         @cancel="handlePreviewClose"
       >
         <!-- 图片预览 -->
-        <a-image
+        <AImage
           v-if="previewType === 'image'"
           :src="previewUrl"
           :style="{ maxHeight: '70vh' }"
@@ -1114,8 +1116,8 @@ function handlePreviewClose() {
             </div>
           </div>
         </Scrollbar>
-      </a-modal>
-    </a-card>
+      </AModal>
+    </ACard>
   </div>
 </template>
 

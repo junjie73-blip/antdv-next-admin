@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
+import { Spin as ASpin } from 'antdv-next';
 import { useAppStore } from '~/stores/modules/app';
 
 defineOptions({ name: 'PageLoading' });
@@ -52,7 +53,7 @@ const containerClassName = computed(() =>
       :aria-label="text"
     >
       <!-- ⭐ 使用 antdv Spin -->
-      <a-spin size="large" />
+      <ASpin size="large" />
 
       <!-- 提示文本 -->
       <span

@@ -12,7 +12,7 @@ In one sentence: **`apps/web/vite.config.ts` is two effective lines — `defineA
 
 ## Plugin inventory (`src/plugins/index.ts`, `kind: 'application'`)
 
-**Always**: `createVuePlugins()` (plugin-vue + jsx, unplugin-vue-router, `@tailwindcss/vite`, vite-plugin-vue-layouts-next, @intlify/unplugin-vue-i18n, vite-plugin-inspect) → `createAutoImportPlugins()` (unplugin-auto-import / unplugin-vue-components with `AntdvNextResolver`, offline iconify sets, vite-plugin-env-parse) → svg-icons, imagemin, dayjs.
+**Always**: `createVuePlugins()` (plugin-vue + jsx, unplugin-vue-router, `@tailwindcss/vite`, vite-plugin-vue-layouts-next, @intlify/unplugin-vue-i18n, vite-plugin-inspect) → `createAutoImportPlugins()` (unplugin-auto-import fed only `vue` / `@vueuse/core` / `pinia` / `vue-router`; unplugin-vue-components scanning just this app's `src/components` — **there is no component resolver any more**; plus the offline iconify sets and vite-plugin-env-parse) → svg-icons, imagemin, dayjs.
 
 **By artifact kind**: only `application` gets HTML injection (vite-plugin-html), the first-screen loading, PWA, archiver, metadata, extra-app-config, print and mock; `library` keeps just the compile chain + vite-plugin-dts (the `kind` comment records the mixing symptom: dts complaining about a library that needs no declarations).
 

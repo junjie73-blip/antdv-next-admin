@@ -1,0 +1,1072 @@
+import type { FormProps, FormSchema } from '@antdv/form-ui';
+
+import type { ComputedRef, CSSProperties, Ref, VNode } from 'vue';
+
+// ============================================
+// 基础类型
+// ============================================
+
+/** 通用记录类型 */
+export type Recordable<T = any> = Record<string, T>;
+
+/** 通用函数类型 */
+export type Fn<P extends any[] = any[], R = any> = (...args: P) => R;
+
+/** 可为空的类型 */
+export type Nullable<T> = null | T | undefined;
+
+/** 数组元素类型 */
+export type ArrayElement<T> = T extends (infer E)[] ? E : never;
+
+/** 表格尺寸（替代 antdv `TableProps['size']`） */
+export type TableSize = 'large' | 'middle' | 'small';
+
+/**
+ * 行主键的真实类型。
+ *
+ * 业务表的主键有两种来源：数字（id）和字符串（如文件 path 当 rowKey），
+ * 展开态/选中态的比较是 `includes` 严格比较，所以 key 数组必须
+ * 和数据里的类型保持一致，不能在中间某层被 `String()` 掉。
+ */
+export type TableRowKey = number | string;
+
+/** 滚动配置 */
+export interface TableScroll {
+  x?: number | string | true;
+  y?: number | string;
+  scrollToFirstRowOnChange?: boolean;
+}
+
+/** 行事件处理器 */
+export interface TableRowEventHandlers {
+  onClick?: (event: MouseEvent) => void;
+  onDblclick?: (event: MouseEvent) => void;
+  onContextmenu?: (event: MouseEvent) => void;
+  onMouseenter?: (event: MouseEvent) => void;
+  onMouseleave?: (event: MouseEvent) => void;
+}
+
+/** 分页配置（替代 antdv `PaginationProps`，字段命名保持兼容） */
+export interface PaginationProps {
+  current?: number;
+  defaultCurrent?: number;
+  defaultPageSize?: number;
+  disabled?: boolean;
+  hideOnSinglePage?: boolean;
+  itemRender?: any;
+  pageSize?: number;
+  pageSizeOptions?: (number | string)[];
+  showQuickJumper?: boolean | { goButton?: VNode };
+  showSizeChanger?: boolean;
+  showTotal?: (total: number, range: [number, number]) => any;
+  simple?: boolean | { readOnly?: boolean };
+  size?: 'default' | 'small';
+  total?: number;
+  [key: string]: any;
+}
+
+// ============================================
+// 表格列类型
+// ============================================
+
+/** 编辑组件类型（与 form-ui `ComponentType` 命名对齐，取交集内子集） */
+export type ComponentType =
+  | 'ApiCascader'
+  | 'ApiRadioGroup'
+  | 'ApiSelect'
+  | 'ApiTreeSelect'
+  | 'Cascader'
+  | 'Checkbox'
+  | 'CheckboxGroup'
+  | 'DatePicker'
+  | 'Input'
+  | 'InputNumber'
+  | 'Radio'
+  | 'RadioGroup'
+  | 'RangePicker'
+  | 'Select'
+  | 'Switch'
+  | 'TimePicker'
+  | 'TreeSelect';
+
+/** 表格列配置 */
+export interface BasicColumn {
+  /** 列唯一标识 */
+  key?: string;
+
+  /** 对应数据字段 */
+  dataIndex?: string | string[];
+
+  /** 列标题 */
+  title?:
+    | ((options: {
+        sortOrder: boolean | string;
+        filters: Recordable;
+        sortColumn: BasicColumn;
+      }) => VNode)
+    | string
+    | VNode;
+
+  /** 默认隐藏 */
+  defaultHidden?: boolean;
+
+  /** 权限控制 */
+  auth?: string | string[];
+
+  /** 是否显示 */
+  ifShow?: ((column: BasicColumn) => boolean) | boolean;
+
+  /** 是否可编辑 */
+  edit?: boolean;
+
+  /** 整行编辑 */
+  editRow?: boolean;
+
+  /** 编辑组件类型 */
+  editComponent?: ComponentType;
+
+  /** 编辑组件属性 */
+  editComponentProps?: Recordable;
+
+  /** 编辑值映射 */
+  editValueMap?: (value: any) => number | string;
+
+  /** 单元格格式化处理 */
+  format?:
+    | ((text: any, record: Recordable, index: number) => string | VNode)
+    | string;
+
+  /** 自定义渲染函数（优先级高于 format） */
+  customRender?: (options: {
+    text: any;
+    record: Recordable;
+    index: number;
+    column: BasicColumn;
+  }) => number | string | VNode;
+
+  /** 列宽 */
+  width?: number | string;
+
+  /** 最小列宽 */
+  minWidth?: number | string;
+
+  /** 列对齐方式 */
+  align?: 'center' | 'left' | 'right';
+
+  /** 表头对齐方式 */
+  headerAlign?: 'center' | 'left' | 'right';
+
+  /** 是否固定列 */
+  fixed?: 'left' | 'right' | boolean;
+
+  /** 是否省略显示 */
+  ellipsis?: boolean | { showTitle?: boolean };
+
+  /** 自定义单元格样式 */
+  cellStyle?:
+    | ((record: Recordable, index: number) => CSSProperties)
+    | CSSProperties;
+
+  /** 自定义表头样式 */
+  headerStyle?: CSSProperties;
+
+  /** 排序配置 */
+  sorter?:
+    | ((a: Recordable, b: Recordable) => number)
+    | boolean
+    | { compare: (a: Recordable, b: Recordable) => number; multiple: number };
+
+  /** 筛选配置 */
+  filters?: {
+    text: string;
+    value: string;
+    children?: { text: string; value: string }[];
+  }[];
+
+  /** 筛选模式 */
+  filterMode?: 'menu' | 'tree';
+
+  /** 筛选搜索配置 */
+  filterSearch?:
+    | ((input: string, filter: { text: string; value: string }) => boolean)
+    | boolean;
+
+  /** 默认筛选值 */
+  defaultFilteredValue?: string[];
+
+  /** 受控筛选值 */
+  filteredValue?: string[];
+
+  /** 筛选回调 */
+  onFilter?: (value: string, record: Recordable) => boolean;
+
+  /** 筛选改变回调 */
+  onFilterDropdownOpenChange?: (open: boolean) => void;
+
+  /** 自定义筛选下拉框 */
+  filterDropdown?:
+    | ((props: {
+        setSelectedKeys: (keys: string[]) => void;
+        selectedKeys: string[];
+        confirm: () => void;
+        clearFilters: () => void;
+      }) => VNode)
+    | VNode;
+
+  /** 是否显示筛选图标 */
+  filterIcon?: ((filtered: boolean) => VNode) | VNode;
+
+  /** 列类名 */
+  className?: string;
+
+  /** 表头类名 */
+  headerClassName?: string;
+
+  /** 自定义渲染过滤图标 */
+  customFilterIcon?: VNode;
+
+  /** 是否可调整列宽 */
+  resizable?: boolean;
+}
+
+// ============================================
+// 操作列类型
+// ============================================
+
+/** 操作项 */
+export interface ActionItem {
+  /** 操作标签 */
+  label?: ((record: Recordable) => string | VNode) | string | VNode;
+
+  /** 操作图标 */
+  icon?: string;
+
+  /** 点击事件 */
+  onClick?: Fn<[Recordable, MouseEvent], void>;
+
+  /** 权限码；数组表示任一命中即可 */
+  auth?: string | string[];
+
+  /** 是否显示 */
+  ifShow?: ((record: Recordable) => boolean) | boolean;
+
+  /** 是否禁用 */
+  disabled?: ((record: Recordable) => boolean) | boolean;
+
+  /** 按钮类型 */
+  type?: 'dashed' | 'default' | 'ghost' | 'link' | 'primary' | 'text';
+
+  /** 按钮大小 */
+  size?: 'large' | 'middle' | 'small';
+
+  /** 危险按钮 */
+  danger?: boolean;
+
+  /** 按钮颜色 */
+  color?: 'error' | 'success' | 'warning' | string;
+
+  /** Popconfirm 配置 */
+  popConfirm?: {
+    title: string | VNode;
+    content?: string | VNode;
+    confirm?: Fn<[Recordable, MouseEvent], void>;
+    cancel?: Fn<[Recordable, MouseEvent], void>;
+  };
+
+  /** Dropdown 配置 */
+  dropdown?: ActionItem[];
+
+  /** 分割线 */
+  divider?: boolean;
+
+  /** 自定义渲染 */
+  render?: (record: Recordable) => VNode;
+}
+
+/** 操作列配置 */
+export interface ActionColumnProps {
+  /** 列宽 */
+  width?: number;
+
+  /** 列标题 */
+  title?: string;
+
+  /** 列 key */
+  dataIndex?: string;
+
+  /** 固定位置 */
+  fixed?: 'left' | 'right';
+
+  /** 对齐方式 */
+  align?: 'center' | 'left' | 'right';
+
+  /** 操作项 */
+  actions?: (record: Recordable) => ActionItem[];
+
+  /** 最多显示数量，超出显示下拉 */
+  maxShowCount?: number;
+}
+
+// ============================================
+// 行选择类型
+// ============================================
+
+/** 行选择配置 */
+export interface TableRowSelection {
+  /** 选择类型 */
+  type?: 'checkbox' | 'radio';
+
+  /** 选中的行 key */
+  selectedRowKeys?: number[] | string[];
+
+  /** 选中的行数据 */
+  selectedRows?: Recordable[];
+
+  /** 选择改变回调 */
+  onChange?: (
+    selectedRowKeys: number[] | string[],
+    selectedRows: Recordable[],
+    info?: { type: 'all' | 'multiple' | 'single' },
+  ) => void;
+
+  /** 单行选择回调 */
+  onSelect?: (
+    record: Recordable,
+    selected: boolean,
+    selectedRows: Recordable[],
+    nativeEvent: Event,
+  ) => void;
+
+  /** 获取 Checkbox 属性 */
+  getCheckboxProps?: (record: Recordable) => {
+    disabled?: boolean;
+    name?: string;
+  };
+
+  /** 获取标题 Checkbox 属性 */
+  getTitleCheckboxProps?: () => { disabled?: boolean };
+
+  /** 隐藏全选 */
+  hideSelectAll?: boolean;
+
+  /** 自定义列标题 */
+  columnTitle?: ((originalNode: VNode) => VNode) | string | VNode;
+
+  /** 列宽 */
+  columnWidth?: number | string;
+
+  /** 固定列 */
+  fixed?: 'left' | 'right' | boolean;
+
+  /** 对齐方式 */
+  align?: 'center' | 'left' | 'right';
+
+  /** 严格模式 */
+  checkStrictly?: boolean;
+
+  /** 保留已移除的选中项 */
+  preserveSelectedRowKeys?: boolean;
+
+  /** 自定义单元格渲染 */
+  renderCell?: (
+    checked: boolean,
+    record: Recordable,
+    index: number,
+    originNode: VNode,
+  ) => VNode;
+
+  /** 单元格属性 */
+  onCell?: (record: Recordable, rowIndex: number) => Recordable;
+}
+
+// ============================================
+// 展开行类型
+// ============================================
+
+/** 展开行配置（透传给内部展开逻辑的自定义项） */
+export interface TableExpandable {
+  expandedRowKeys?: TableRowKey[];
+  defaultExpandedRowKeys?: TableRowKey[];
+  expandedRowRender?: (
+    record: Recordable,
+    index: number,
+    indent: number,
+    expanded: boolean,
+  ) => VNode;
+  expandIcon?: (props: {
+    expanded: boolean;
+    record: Recordable;
+    onExpand: (record: Recordable, e: Event) => void;
+  }) => VNode;
+  expandRowByClick?: boolean;
+  onExpand?: (expanded: boolean, record: Recordable) => void;
+  onExpandedRowsChange?: (expandedRows: TableRowKey[]) => void;
+  defaultExpandAllRows?: boolean;
+  indentSize?: number;
+  expandIconColumnIndex?: number;
+  rowExpandable?: (record: Recordable) => boolean;
+  columnTitle?: string | VNode;
+  fixed?: 'left' | 'right' | boolean;
+}
+
+/** 展开行配置（`expandable` 属性的宽松透传形状） */
+export interface TableExpandableConfig {
+  /** 展开图标列标题 */
+  columnTitle?: string | VNode;
+
+  /** 展开图标列宽 */
+  columnWidth?: number | string;
+
+  /** 是否固定展开列 */
+  fixed?: 'left' | 'right' | boolean;
+
+  /** 展开行渲染 */
+  expandedRowRender?: (
+    record: Recordable,
+    index: number,
+    indent: number,
+    expanded: boolean,
+  ) => VNode;
+
+  /** 展开图标 */
+  expandIcon?: (props: {
+    expanded: boolean;
+    record: Recordable;
+    onExpand: (record: Recordable, e: MouseEvent) => void;
+  }) => VNode;
+
+  /** 点击行展开 */
+  expandRowByClick?: boolean;
+
+  /** 是否可展开 */
+  rowExpandable?: (record: Recordable) => boolean;
+
+  /** 展开改变回调 */
+  onExpand?: (expanded: boolean, record: Recordable) => void;
+
+  /** 展开行改变回调 */
+  onExpandedRowsChange?: (expandedRows: TableRowKey[]) => void;
+}
+
+// ============================================
+// 数据获取类型
+// ============================================
+
+/** 分页字段配置 */
+export interface FetchSetting {
+  /** 当前页字段 */
+  pageField?: string;
+
+  /** 每页条数字段 */
+  sizeField?: string;
+
+  /** 列表字段 */
+  listField?: string;
+
+  /** 总数字段 */
+  totalField?: string;
+}
+
+/** 数据获取参数 */
+export interface FetchParams {
+  /** 搜索参数 */
+  searchInfo?: Recordable;
+
+  /** 分页参数 */
+  pageNum?: number;
+
+  /** 每页条数 */
+  pageSize?: number;
+
+  /** 排序字段 */
+  sortInfo?: Recordable;
+
+  /** 筛选信息 */
+  filterInfo?: Recordable;
+  /** 字段列表 */
+  fields?: string[];
+}
+
+/** API 函数类型 */
+export type ApiFn = (params: FetchParams) => Promise<any>;
+
+// ============================================
+// 表格属性类型
+// ============================================
+
+/** 表格属性 */
+export interface BasicTableProps {
+  /** 列配置 */
+  columns?: BasicColumn[];
+
+  /** 数据源 */
+  dataSource?: Recordable[];
+
+  /** 行选择配置 */
+  rowSelection?: boolean | TableRowSelection;
+
+  /** 是否显示边框 */
+  bordered?: boolean;
+
+  /** 表格标题 */
+  title?: ((data: Recordable[]) => VNode) | string | VNode;
+
+  /** 分页配置 */
+  pagination?: boolean | PaginationProps;
+
+  /** 是否可调整列宽 */
+  canResize?: boolean;
+
+  /** 调整高度偏移量 */
+  resizeHeightOffset?: number;
+
+  /** 是否显示序号列 */
+  showIndexColumn?: boolean;
+
+  /** 序号列配置 */
+  indexColumnProps?: Partial<BasicColumn>;
+
+  /** 操作列配置 */
+  actionColumn?: ActionColumnProps;
+
+  /** 是否显示表格设置 */
+  showTableSetting?: boolean;
+
+  /** 表格设置配置 */
+  tableSetting?: {
+    /** 是否显示刷新 */
+    redo?: boolean;
+    /** 是否显示列设置 */
+    setting?: boolean;
+    /** 是否显示全屏 */
+    fullScreen?: boolean;
+  };
+
+  /** 数据获取 API */
+  api?: ApiFn;
+
+  /** 默认参数 */
+  params?: Recordable;
+
+  /** 数据获取前处理 */
+  beforeFetch?: (params: FetchParams) => false | FetchParams;
+
+  /** 数据获取后处理 */
+  afterFetch?: (data: Recordable[]) => Recordable[];
+
+  /** 数据字段配置 */
+  fetchSetting?: FetchSetting;
+
+  /** 立即执行数据获取 */
+  immediate?: boolean;
+
+  /** 搜索表单配置 */
+  searchInfo?: Recordable;
+
+  /** 是否显示搜索表单 */
+  useSearchForm?: boolean;
+
+  /** 搜索表单 schema */
+  formConfig?: Partial<FormProps> & { schemas?: FormSchema[] };
+
+  /** 提交前处理搜索参数 */
+  handleSearchInfoFn?: (values: Recordable) => Recordable;
+
+  /** 行 key */
+  rowKey?: ((record: any) => string) | string;
+
+  /** 展开行渲染 */
+  expandedRowRender?: (
+    record: Recordable,
+    index: number,
+    indent: number,
+    expanded: boolean,
+  ) => VNode;
+
+  /** 展开图标 */
+  expandIcon?: (props: {
+    expanded: boolean;
+    record: Recordable;
+    onExpand: (record: Recordable, e: Event) => void;
+  }) => VNode;
+
+  /** 默认展开所有行 */
+  defaultExpandAllRows?: boolean;
+
+  /** 默认展开的行 */
+  defaultExpandedRowKeys?: TableRowKey[];
+
+  /** 展开的行 */
+  expandedRowKeys?: TableRowKey[];
+
+  /** 展开行改变回调 */
+  onExpand?: (expanded: boolean, record: Recordable) => void;
+
+  /** 展开行改变回调 */
+  onExpandedRowsChange?: (expandedRows: TableRowKey[]) => void;
+
+  /** 是否可展开 */
+  rowExpandable?: (record: Recordable) => boolean;
+
+  /** 树形数据配置 */
+  childrenColumnName?: string;
+
+  /** 缩进大小 */
+  indentSize?: number;
+
+  /** 是否启用树形数据 */
+  isTree?: boolean;
+
+  /** 树形数据配置 */
+  treeConfig?: {
+    /** 子节点字段名 */
+    childrenField?: string;
+    /** 是否显示展开图标 */
+    showExpandIcon?: boolean;
+    /** 是否默认展开所有行 */
+    defaultExpandAll?: boolean;
+    /** 展开的节点 keys */
+    expandedKeys?: string[];
+    /** 展开节点改变回调 */
+    onExpandChange?: (expandedKeys: string[], record: Recordable) => void;
+    /** 是否异步加载子节点 */
+    loadData?: (record: Recordable) => Promise<Recordable[]>;
+    /** 是否显示连接线 */
+    showLine?: boolean;
+    /** 缩进大小 */
+    indent?: number;
+  };
+
+  /** 滚动配置 */
+  scroll?: TableScroll;
+
+  /** 是否启用虚拟滚动 */
+  virtual?: boolean;
+  /** 行属性（事件 + 样式） */
+  onRow?: (
+    record: Recordable,
+    index: number,
+  ) => TableRowEventHandlers & {
+    style?: CSSProperties;
+    class?: string;
+  };
+
+  /** 表头行属性 */
+  onHeaderRow?: (
+    columns: BasicColumn[],
+    index: number,
+  ) => TableRowEventHandlers & {
+    style?: CSSProperties;
+    class?: string;
+  };
+
+  /** 排序提示 */
+  showSorterTooltip?: boolean | { title?: string; target?: string };
+
+  /** 排序方向 */
+  sortDirections?: ('ascend' | 'descend')[];
+
+  /** 弹出容器 */
+  getPopupContainer?: () => HTMLElement;
+
+  /** 表格标题（caption 语义） */
+  caption?: string | VNode;
+
+  /** 表格底部 */
+  footer?: (data: Recordable[]) => VNode;
+
+  /**
+   * 是否启用拖拽排序（`BasicTable` 挂载后把 Sortable 绑到 `<tbody>` 上）。
+   *
+   * 排完序只写回当前 `dataSource`，是否落库由 `dragSortConfig.onDragEnd` 决定。
+   * 前端分页（本地 `dataSource` + 分页开）时行下标只覆盖当前页，
+   * 需要「拖出的顺序就是全量顺序」请配 `pagination: false`，或走服务端分页。
+   */
+  dragSort?: boolean;
+
+  /** 拖拽排序配置 */
+  dragSortConfig?: {
+    /** 拖拽手柄选择器 */
+    handle?: string;
+    /** 是否启用动画 */
+    animation?: number;
+    /** 是否禁用 */
+    disabled?: ((record: Recordable) => boolean) | boolean;
+    /** 拖拽完成回调 */
+    onDragEnd?: (newData: Recordable[], oldData: Recordable[]) => void;
+    /** 是否可以放置 */
+    canDrop?: (dragRecord: Recordable, dropRecord: Recordable) => boolean;
+  };
+
+  /** 行类名 */
+  rowClassName?: ((record: Recordable, index: number) => string) | string;
+
+  /** 单元格类名 */
+  cellClassName?:
+    | ((record: Recordable, index: number, column: BasicColumn) => string)
+    | string;
+
+  /** 行点击事件 */
+  onRowClick?: (record: Recordable, index: number, event: Event) => void;
+
+  /** 行双击事件 */
+  onRowDoubleClick?: (record: Recordable, index: number, event: Event) => void;
+
+  /** 行上下文菜单 */
+  onRowContextMenu?: (record: Recordable, index: number, event: Event) => void;
+
+  /** 行鼠标进入 */
+  onRowMouseEnter?: (record: Recordable, index: number, event: Event) => void;
+
+  /** 行鼠标离开 */
+  onRowMouseLeave?: (record: Recordable, index: number, event: Event) => void;
+
+  /** 表格改变回调 */
+  onChange?: (
+    pagination: any,
+    filters: any,
+    sorter: any,
+    extra: { currentDataSource: Recordable[] },
+  ) => void;
+
+  /** 加载状态 */
+  loading?: boolean;
+
+  /** 空数据提示 */
+  locale?: Recordable;
+
+  /** 表格布局 */
+  tableLayout?: 'auto' | 'fixed';
+
+  /** 粘性头部 */
+  sticky?:
+    | boolean
+    | {
+        offsetHeader?: number;
+        offsetSummary?: number;
+        offsetScroll?: number;
+        getContainer?: () => HTMLElement;
+      };
+
+  /** 汇总行 */
+  summary?: (data: Recordable[]) => VNode;
+
+  /** 自定义空数据展示 */
+  emptyText?: string | VNode;
+
+  /** 是否显示表头 */
+  showHeader?: boolean;
+
+  /** 表格尺寸 */
+  size?: TableSize;
+
+  /** 是否可展开 */
+  expandable?: TableExpandableConfig;
+}
+
+// ============================================
+// 表格实例方法类型
+// ============================================
+
+/** 表格实例方法 */
+export interface TableActionType {
+  // 基础操作
+  /** 设置属性 */
+  setProps: (props: Partial<BasicTableProps>) => void;
+
+  /** 重新加载数据 */
+  reload: (opt?: FetchParams) => Promise<void>;
+
+  /** 重新计算高度 */
+  redoHeight: () => Promise<void>;
+
+  /** 设置加载状态 */
+  setLoading: (value: boolean) => void;
+
+  /** 获取原始数据 */
+  getRawDataSource: () => Recordable[];
+
+  // 列操作
+  /** 设置列 */
+  setColumns: (columns: BasicColumn[] | string[]) => void;
+
+  /** 获取列 */
+  getColumns: () => BasicColumn[];
+
+  /** 更新列 */
+  updateColumn: (column: Partial<BasicColumn>, key: string) => void;
+
+  /** 获取可见列 */
+  getVisibleColumns: () => BasicColumn[];
+
+  /** 获取缓存列 */
+  getCacheColumns: () => BasicColumn[];
+
+  // 行操作
+  /** 展开所有 */
+  expandAll: () => void;
+
+  /** 折叠所有 */
+  collapseAll: () => void;
+
+  /** 展开指定行 */
+  expandRows: (keys: string[]) => void;
+
+  /** 折叠指定行 */
+  collapseRows: (keys: string[]) => void;
+
+  /** 滚动到指定行 */
+  scrollTo: (pos: { left?: number; top?: number }) => void;
+
+  /** 选中行 */
+  selectRows: (keys: string[]) => void;
+
+  /** 获取选中行 */
+  getSelectRows: () => Recordable[];
+
+  /** 获取选中行 keys */
+  getSelectRowKeys: () => string[];
+
+  /** 清空选中 */
+  clearSelectedRowKeys: () => void;
+
+  /** 删除选中行 */
+  deleteSelectRowByKey: (key: string) => void;
+
+  // 分页操作
+  /** 获取分页配置 */
+  getPaginationRef: () => boolean | PaginationProps;
+
+  /** 设置分页 */
+  setPagination: (pagination: Partial<PaginationProps>) => void;
+
+  /** 设置是否显示分页 */
+  setShowPagination: (show: boolean) => Promise<void> | void;
+
+  /** 获取是否显示分页 */
+  getShowPagination: () => boolean;
+
+  // 表单操作
+  /** 获取表单值 */
+  getFormValues: () => Recordable;
+
+  /** 设置表单值 */
+  setFormValues: (values: Recordable) => void;
+
+  /** 重置表单 */
+  resetForm: () => void;
+
+  /** 提交表单 */
+  submitForm: () => Promise<void>;
+
+  /** 验证表单 */
+  validateForm: () => Promise<Recordable>;
+
+  /** 更新表单 schema */
+  updateFormSchema: (schema: Partial<FormSchema>, field: string) => void;
+
+  /** 追加表单 schema */
+  appendFormSchema: (
+    schema: FormSchema,
+    prefixField?: string,
+    first?: boolean,
+  ) => void;
+
+  /** 删除表单 schema */
+  removeFormSchema: (field: string) => void;
+
+  /** 获取表单实例 */
+  getForm: () => Recordable;
+
+  // 数据操作
+  /** 插入数据 */
+  insertTableDataRecord: (
+    record: Recordable | Recordable[],
+    index?: number,
+  ) => void;
+
+  /** 删除数据 */
+  deleteTableDataRecord: (key: string | string[]) => void;
+
+  /** 更新数据 */
+  updateTableDataRecord: (key: string, record: Recordable) => void;
+
+  /** 查找数据 */
+  findTableDataRecord: (key: string) => Recordable | undefined;
+
+  /** 获取数据 */
+  getDataSource: () => Recordable[];
+
+  /** 设置数据 */
+  setTableData: (data: Recordable[]) => void;
+}
+
+// ============================================
+// Hook 类型
+// ============================================
+
+/** useTable 返回类型 */
+export interface UseTableReturn extends TableActionType {
+  /** 获取属性 */
+  getProps: () => BasicTableProps;
+}
+
+/** useColumns 配置 */
+export interface UseColumnsOptions {
+  columns: BasicColumn[] | Ref<BasicColumn[]>;
+  cacheKey?: string;
+  showIndexColumn?: boolean | Ref<boolean | undefined>;
+  indexColumnProps?: Partial<BasicColumn>;
+  actionColumn?: ActionColumnProps | Ref<ActionColumnProps | undefined>;
+}
+
+/** useColumns 返回 */
+export interface UseColumnsReturn {
+  columnsRef: Ref<BasicColumn[]>;
+  cacheColumnsRef: Ref<BasicColumn[]>;
+  setColumns: (columns: BasicColumn[] | string[]) => void;
+  getColumns: () => BasicColumn[];
+  getCacheColumns: () => BasicColumn[];
+  setCacheColumns: (columns: BasicColumn[]) => void;
+  updateColumn: (column: Partial<BasicColumn>, key: string) => void;
+}
+
+/** useDataSource 配置 */
+export interface UseDataSourceOptions {
+  api?: ApiFn | Ref<ApiFn | undefined>;
+  params?: Recordable | Ref<Recordable | undefined>;
+  dataSource?: Recordable[] | Ref<Recordable[] | undefined>;
+  beforeFetch?: (params: FetchParams) => false | FetchParams;
+  afterFetch?: (data: Recordable[]) => Recordable[];
+  fetchSetting?: FetchSetting;
+  rowKey?:
+    | ((record: Recordable) => string)
+    | Ref<((record: Recordable) => string) | string | undefined>
+    | string;
+  immediate?: boolean;
+  pagination?: {
+    getPagination: () => false | PaginationProps;
+    setPagination: (pagination: Partial<PaginationProps>) => void;
+  };
+  loading: { setLoading: (value: boolean) => void };
+  fields?: Ref<string[] | undefined> | string[];
+}
+
+/** useDataSource 返回 */
+export interface UseDataSourceReturn {
+  dataSourceRef: Ref<Recordable[]>;
+  rawDataSourceRef: Ref<Recordable[]>;
+  fetch: (opt?: FetchParams) => Promise<void>;
+  reload: (opt?: FetchParams) => Promise<void>;
+  setTableData: (data: Recordable[]) => void;
+  insertTableDataRecord: (
+    record: Recordable | Recordable[],
+    index?: number,
+  ) => void;
+  deleteTableDataRecord: (key: string | string[]) => void;
+  updateTableDataRecord: (key: string, record: Recordable) => void;
+  findTableDataRecord: (key: string) => Recordable | undefined;
+  /** 只同步记忆中的搜索条件（不取数），供「清空表单但不自动查询」时使用 */
+  setSearchInfo: (info?: Recordable) => void;
+  abort: () => void;
+}
+
+/** useRowSelection 配置 */
+export interface UseRowSelectionOptions {
+  rowSelection?:
+    | boolean
+    | Ref<boolean | TableRowSelection | undefined>
+    | TableRowSelection;
+  dataSourceRef?: Ref<Recordable[]>;
+  rowKey?:
+    | ((record: Recordable) => string)
+    | Ref<((record: Recordable) => string) | string>
+    | string;
+  clearSelectOnPageChange?: boolean;
+}
+
+/** useRowSelection 返回 */
+export interface UseRowSelectionReturn {
+  selectedRowKeysRef: ComputedRef<string[]> | Ref<string[]>;
+  selectedRowsRef: ComputedRef<Recordable[]> | Ref<Recordable[]>;
+  getRowSelection: ComputedRef<null | TableRowSelection>;
+  clearSelectedRowKeys: () => void;
+  deleteSelectRowByKey: (key: string) => void;
+  setSelectedRowKeys: (keys: string[]) => void;
+  getSelectRows: () => Recordable[];
+}
+
+/** usePagination 配置 */
+export interface UsePaginationOptions {
+  pagination?:
+    | boolean
+    | PaginationProps
+    | Ref<boolean | PaginationProps | undefined>;
+  fetchSetting?: FetchSetting;
+}
+
+/** usePagination 返回 */
+export interface UsePaginationReturn {
+  paginationRef: Ref<false | PaginationProps>;
+  getPagination: ComputedRef<false | PaginationProps>;
+  setPagination: (pagination: Partial<PaginationProps>) => void;
+  setShowPagination: (show: boolean) => void;
+  getShowPagination: () => boolean;
+}
+
+/** useTableScroll 配置（滚动由 BasicTable 内联处理，类型保留兼容） */
+export interface UseTableScrollOptions {
+  scroll?: Ref<TableScroll | undefined> | TableScroll;
+  canResize?: boolean | Ref<boolean | undefined>;
+  resizeHeightOffset?: number | Ref<number | undefined>;
+}
+
+/** useTableScroll 返回（保留兼容） */
+export interface UseTableScrollReturn {
+  scrollRef: Ref<TableScroll | undefined>;
+  getScroll: ComputedRef<TableScroll | undefined>;
+  redoHeight: () => Promise<void>;
+  scrollTo: (pos: { left?: number; top?: number }) => void;
+}
+
+/** useTableForm 配置（保留兼容，实际签名见 useTableForm.ts） */
+export interface UseTableFormOptions {
+  formConfig?: Partial<FormProps> & { schemas?: FormSchema[] };
+  fetch: (opt?: FetchParams) => Promise<void>;
+  getBindValues: () => BasicTableProps;
+}
+
+/** useTableForm 返回（保留兼容） */
+export interface UseTableFormReturn {
+  formRef: Ref<Recordable>;
+  formMethods: Recordable;
+  getFormProps: ComputedRef<Partial<FormProps>>;
+  handleSearchInfoFn: (values: Recordable) => Recordable;
+  replaceFormSlotKey: (key: string) => string;
+  getFormSlotKeys: ComputedRef<string[]>;
+  getForm: () => Recordable;
+}
+
+/** 表格设置 */
+export interface TableSetting {
+  redo?: boolean;
+  setting?: boolean;
+  fullScreen?: boolean;
+}
+
+/** 拖拽排序 hook 配置 */
+export interface UseDragSortOptions {
+  dataSource: Ref<Recordable[]>;
+  enabled: boolean;
+  handle?: string;
+  animation?: number;
+  disabled?: ((record: Recordable) => boolean) | boolean;
+  onDragEnd?: (newData: Recordable[], oldData: Recordable[]) => void;
+  canDrop?: (dragRecord: Recordable, dropRecord: Recordable) => boolean;
+}
+
+/** 拖拽排序 hook 返回 */
+export interface UseDragSortReturn {
+  initSortable: (el: HTMLElement) => void;
+  destroySortable: () => void;
+}

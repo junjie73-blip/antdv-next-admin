@@ -9,7 +9,7 @@ import { computed } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { message } from 'antdv-next';
+import { Tag as ATag, message } from 'antdv-next';
 
 import { useChunkUploader } from './composables/useChunkUploader';
 import { classifyUploadError, STATUS_COLOR } from './constants';
@@ -342,12 +342,12 @@ const hasPaused = computed(() =>
                 >
                   {{ getPercent(task) }}%
                 </span>
-                <a-tag
+                <ATag
                   :color="getStatusColor(task)"
                   class="!m-0 !text-[10px] !leading-4"
                 >
                   {{ getStatusText(task) }}
-                </a-tag>
+                </ATag>
 
                 <span class="text-gray-400 dark:text-gray-500">
                   {{ formatBytes(task.chunkSize) }} × {{ task.totalChunks }} 片

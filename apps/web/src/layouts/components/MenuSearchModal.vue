@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
-import { Scrollbar } from '@antdv/ui/scrollbar';
+import { Scrollbar } from '@antdv/scrollbar-ui';
 import { Icon } from '@iconify/vue';
 import { Modal } from 'antdv-next';
 

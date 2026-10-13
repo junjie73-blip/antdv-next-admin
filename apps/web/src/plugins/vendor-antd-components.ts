@@ -44,8 +44,8 @@ import {
 /**
  * 给"预编译第三方模板"补一份全局组件注册。
  *
- * 本项目的 `a-*` 组件靠 `unplugin-vue-components` + `AntdvNextResolver` 在**编译期**
- * 逐个注入（见 internal/vite-config 的 auto-import 插件），好处是业务页只打包真正用到的组件；
+ * 本项目的 `a-*` 组件由各页面/组件**显式 import**（`import { Card as ACard } from 'antdv-next'`，
+ * `<script setup>` 的局部绑定优先于全局注册），好处是业务页只打包真正用到的组件；
  * 代价是它只作用于本仓库源码 —— 像 `@form-create/antd-designer` 这样的依赖，
  * 模板早在发布时就编译好了，运行时才用 `resolveComponent('a-layout-sider')` 找组件，
  * 编译期注入帮不到它。没这份全局注册的话，表单设计器会打出几十条

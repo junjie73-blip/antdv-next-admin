@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
+import { IconPicker } from '@antdv/icons/icon';
 import { cn } from '@antdv/shared/cn';
-import { IconPicker } from '@antdv/ui/icon';
 import { Icon } from '@iconify/vue';
+import { Card as ACard, message } from 'antdv-next';
 
 const containerClassName = cn('space-y-6');
 const twinContainerClassName = cn('grid grid-cols-2 gap-4');
@@ -39,7 +40,7 @@ function handleRightChange(value: string) {
 
 <template>
   <div :class="containerClassName">
-    <a-card title="基础用法" variant="borderless">
+    <ACard title="基础用法" variant="borderless">
       <p class="mb-4 text-gray-600 dark:text-gray-400">
         点击输入框打开图标选择器，搜索或浏览图标集合后点击选择。
       </p>
@@ -56,9 +57,9 @@ function handleRightChange(value: string) {
           </span>
         </div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="默认值" variant="borderless">
+    <ACard title="默认值" variant="borderless">
       <p class="mb-4 text-gray-600 dark:text-gray-400">
         通过 <code>v-model</code> 提供初始图标值。本例中预设了
         <code>carbon:star-filled</code> 图标。
@@ -70,9 +71,9 @@ function handleRightChange(value: string) {
           <span :class="infoTextClassName"> 默认值：{{ defaultIcon }} </span>
         </div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="禁用状态（只读）" variant="borderless">
+    <ACard title="禁用状态（只读）" variant="borderless">
       <p class="mb-4 text-gray-600 dark:text-gray-400">
         设置 <code>:disabled=&quot;true&quot;</code> 可禁止用户交互。
       </p>
@@ -83,9 +84,9 @@ function handleRightChange(value: string) {
           placeholder="此选择器已被禁用"
         />
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="多实例" variant="borderless">
+    <ACard title="多实例" variant="borderless">
       <p class="mb-4 text-gray-600 dark:text-gray-400">
         多个独立的图标选择器并排显示，各自维护独立的状态。
       </p>
@@ -115,9 +116,9 @@ function handleRightChange(value: string) {
           />
         </div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="变更事件" variant="borderless">
+    <ACard title="变更事件" variant="borderless">
       <p class="mb-4 text-gray-600 dark:text-gray-400">
         每次图标选择变更时触发
         <code>@change</code> 事件（包括清空操作），通过消息提示展示选中值。
@@ -129,6 +130,6 @@ function handleRightChange(value: string) {
           @change="handleBasicChange"
         />
       </div>
-    </a-card>
+    </ACard>
   </div>
 </template>

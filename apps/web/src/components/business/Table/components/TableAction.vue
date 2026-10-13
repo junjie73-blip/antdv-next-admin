@@ -5,8 +5,8 @@ import type { ActionItem } from '../types';
 
 import { computed, defineComponent, h, isVNode } from 'vue';
 
+import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import { cn } from '@antdv/shared/cn';
-import { IconifyIcon as Icon } from '@antdv/ui/icon';
 import { Button, Divider, Dropdown, Popconfirm } from 'antdv-next';
 import { isFunction, isString } from 'es-toolkit';
 import { usePermission } from '~/composables';

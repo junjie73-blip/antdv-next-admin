@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { cn } from '@antdv/shared/cn';
+import { Button as AButton } from 'antdv-next';
 import { HOME_PATH, LOGIN_PATH } from '~/config/constants';
 import { useUserStore } from '~/stores/modules/user';
 
@@ -41,9 +42,9 @@ function handleBack() {
       <p class="mb-8 text-gray-400 dark:text-gray-500">
         请联系管理员获取访问权限
       </p>
-      <a-button type="primary" size="large" @click="handleBack">
+      <AButton type="primary" size="large" @click="handleBack">
         返回首页
-      </a-button>
+      </AButton>
     </div>
   </div>
 </template>

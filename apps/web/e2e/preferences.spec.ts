@@ -17,7 +17,7 @@ import {
  * 风格选项点了没反应。所以这里全程真点：按钮开抽屉 → 切面板 → 滚到底 → 点分段控件。
  */
 
-/** 抽屉里的面板滚动容器（`@antdv/ui` Scrollbar 的 wrap 层） */
+/** 抽屉里的面板滚动容器（`@antdv/icons` Scrollbar 的 wrap 层） */
 function scrollWrap(drawer: Locator) {
   return drawer.locator('.scrollbar__wrap');
 }

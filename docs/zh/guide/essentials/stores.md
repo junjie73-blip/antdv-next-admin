@@ -3,12 +3,12 @@
 状态层是 **Pinia + 一套手写缓存**：store 里不放持久化插件，落盘全部走 `@antdv/shared` 的 `cache`（或直接 `localStorage`）。这一点和多数模板不同——没有 `pinia-plugin-persistedstate`，所以"哪些状态会留下来"是个显式决定，而不是一个 `persist: true` 开关。
 
 ```ts
-// apps/web/src/main.ts:44-45
+// apps/web/src/main.ts:54-55
 const pinia = createPinia();
 app.use(pinia);
 ```
 
-`createPinia` / `defineStore` 同时被自动导入注册（`internal/vite-config/src/plugins/auto-import.ts:77`），所以 store 文件里看不到 import 也能用。
+`createPinia` / `defineStore` 同时被自动导入注册（`internal/vite-config/src/plugins/auto-import.ts:49` 的 `imports` 列表），所以 store 文件里看不到 import 也能用。组件不在这个范围内 —— 子包组件与 antdv-next 组件一律显式 import，见[外部模块](/zh/guide/essentials/external)。
 
 ## 一共六个 store
 
@@ -30,7 +30,7 @@ app.use(pinia);
 - **清一色 setup store**：`defineStore(id, () => { ... })`，getter 用 `computed` 返回、动作用具名函数返回（`auth.ts:18-43`、`route.ts:354-371`）。没有 option store 写法。
 - 命名 `useXxxStore`，文件名与 id 对应。
 - **组件外使用**：没有 `pinia` 实例注入技巧，一律在函数/守卫回调里即时调用（`router/guards/index.ts:53`、`fetcher.ts:75`、`directives/index.ts:35`）。这意味着不能在模块顶层拿 store——那时 pinia 还没装。
-- 登出只有一个聚合出口：`user.ts:126-150` 里依次 `resetPageCache()`、 `useRouteStore().resetRoutes()`、`useTabsStore().reset()`。新增需要清理的状态就加在这里，不要各处散着写。
+- 登出只有一个聚合出口：`user.ts:163-169` 先把 token 与用户信息置空、删掉两个缓存键，再调 `clearDerivedSession()`（`:84-88`），由它依次跑 `resetPageCache()`、`useRouteStore().resetRoutes()`、`useTabsStore().reset()`。新增需要清理的状态就加在这里，不要各处散着写。
 
 ## 持久化：手写，且各 key 规则不同
 
@@ -58,7 +58,7 @@ app.use(pinia);
 - **不要**在 app store 里加新的 `ref` 存业务状态，那是给偏好用的门面层
 - 判断当前是深是浅要用 `resolvedTheme` / `isSystemDark`（`app.ts:41-48`、 `theme-mode.ts:15-21`），因为默认 `theme: 'auto'`，`appStore.theme` 可能是 `'auto'`
 
-详见[主题与偏好设置](/guide/in-depth/theme)。
+详见[主题与偏好设置](/zh/guide/in-depth/theme)。
 
 ## 该放 store，还是不该
 

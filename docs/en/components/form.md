@@ -137,7 +137,7 @@ Defined at `Form/types.ts:61-111` (the generic inference of `component` / `compo
 
 The string in `component` has **one resolution path**: a lookup in the `componentMap` table — `getComponentInstance` → `getComponent(schema.component)` (`FormItem.vue:76-79` → `componentMap.ts:126-128`). The built-in keys are the 28 members of `ComponentType` (`componentMap.ts:30-58`, registered on lines 91-120).
 
-::: tip Nothing to do with `types/components.d.ts` `apps/web/types/components.d.ts` is the `unplugin-vue-components` artifact for **template tags**; schema resolution never touches it. `component: 'AInput'`, or any name absent from the table, makes `getComponent` return `undefined`: no error, no warning — the field degrades into the plain text <code v-pre>{{ formModel[field] }}</code> (`FormItem.vue:204-206`). :::
+::: tip Nothing to do with `types/components.d.ts` `apps/web/types/components.d.ts` is the `unplugin-vue-components` artifact for **template tags**, produced by scanning the `src/components` directory (with the resolvers withdrawn it now contains only this repository's local components); schema resolution never touches it. `component: 'AInput'`, or any name absent from the table, makes `getComponent` return `undefined`: no error, no warning — the field degrades into the plain text <code v-pre>{{ formModel[field] }}</code> (`FormItem.vue:204-206`). :::
 
 Details worth knowing:
 
@@ -206,10 +206,10 @@ The `FormActionType` contract (`types.ts:155-190`) is implemented in `BasicForm.
 
 ## The form designer is not `BasicForm`
 
-`#/components/form-designer` is 39 lines and renders a single third-party component: `<fc-designer ref="designerRef" height="100%" :config="designerConfig" />` (`views/components/form-designer/index.vue:37`), provided by `@form-create/antd-designer` and installed globally at the entry point (`apps/web/src/main.ts:9,54`).
+`#/components/form-designer` is 39 lines and renders a single third-party component: `<fc-designer ref="designerRef" height="100%" :config="designerConfig" />` (`views/components/form-designer/index.vue:37`), provided by `@form-create/antd-designer` and installed globally at the entry point (`apps/web/src/main.ts:11,46,63-64`).
 
 - `designerConfig` is nothing but those 15 switches (14 `show*` flags plus `autoActive`, `form-designer/index.vue:11-27`); nothing in the page consumes the designer's output.
-- It depends on `registerVendorAntdComponents(app)` (`main.ts:49`): the app normally injects `a-*` components at compile time, but the designer's templates were compiled before publication and call `resolveComponent('a-layout-sider')` at runtime; without that global registration the page shows no error yet renders as empty tags (`plugins/vendor-antd-components.ts:44-58`).
+- It depends on `registerVendorAntdComponents(app)` (`main.ts:53`): every `a-*` in this repository goes through each file's own explicit import (`import { Card as ACard } from 'antdv-next'`), which is a **local binding**. The designer's templates were compiled before publication and only call `resolveComponent('a-layout-sider')` at runtime, so local bindings cannot help them — without that global registration the page shows no error yet renders as empty tags (the comment in `plugins/vendor-antd-components.ts:44-58`, `main.ts:48-52`).
 - What the designer produces is form-create's own rule JSON (`type` / `field` / `title` / `validate`), **not this repository's `FormSchema` (`component` / `rules`, `Form/types.ts:61-111`)**. There is no converter and no save logic in the page — wiring it to `BasicForm` means writing the mapping yourself.
 
 ## Related

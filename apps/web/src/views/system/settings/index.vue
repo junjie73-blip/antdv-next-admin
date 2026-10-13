@@ -7,6 +7,7 @@ import { computed, ref } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
+import { Button as AButton, Card as ACard, Divider as ADivider, Switch as ASwitch, Tag as ATag, Tooltip as ATooltip, message } from 'antdv-next';
 import {
   addSetting,
   deleteSetting,
@@ -387,7 +388,7 @@ const columns: BasicColumn[] = [
 
 <template>
   <div :class="containerClassName">
-    <a-card title="系统设置" :class="cardClassName">
+    <ACard title="系统设置" :class="cardClassName">
       <BasicTable
         :columns="columns"
         :api="mockApi"
@@ -399,20 +400,20 @@ const columns: BasicColumn[] = [
         @register="tableRegister"
       >
         <template #toolbar>
-          <a-button type="primary" @click="handleAdd">
+          <AButton type="primary" @click="handleAdd">
             <template #icon>
               <Icon icon="ant-design:plus-outlined" />
             </template>
             新增设置
-          </a-button>
+          </AButton>
         </template>
         <template #cell-type="{ record }">
-          <a-tag :color="typeColorMap[record.type] || 'default'">
+          <ATag :color="typeColorMap[record.type] || 'default'">
             {{ typeLabelMap[record.type] || record.type }}
-          </a-tag>
+          </ATag>
         </template>
         <template #cell-group="{ record }">
-          <a-tag
+          <ATag
             :color="groupColorMap[record.group] || 'default'"
             class="flex! w-full items-center justify-between whitespace-nowrap"
           >
@@ -423,24 +424,24 @@ const columns: BasicColumn[] = [
               />
             </template>
             {{ record.group }}
-          </a-tag>
+          </ATag>
         </template>
         <template #cell-enabled="{ record }">
-          <a-switch
+          <ASwitch
             :checked="record.enabled"
             size="small"
             @change="(checked: boolean) => handleToggleEnabled(record as SystemConfig, checked)"
           />
         </template>
         <template #cell-value="{ text }">
-          <a-tooltip :title="text">
+          <ATooltip :title="text">
             <span :class="valueCellClassName">{{ text }}</span>
-          </a-tooltip>
+          </ATooltip>
         </template>
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <a-button
+            <AButton
               type="link"
               :class="btnClassName"
               @click="() => handleApply(record)"
@@ -449,9 +450,9 @@ const columns: BasicColumn[] = [
                 <Icon icon="carbon:restart" />
               </template>
               应用
-            </a-button>
-            <a-divider type="vertical" :class="dividerClassName" />
-            <a-button
+            </AButton>
+            <ADivider type="vertical" :class="dividerClassName" />
+            <AButton
               type="link"
               :class="btnClassName"
               @click="() => handleView(record)"
@@ -460,9 +461,9 @@ const columns: BasicColumn[] = [
                 <Icon icon="ant-design:eye-outlined" />
               </template>
               查看
-            </a-button>
-            <a-divider type="vertical" :class="dividerClassName" />
-            <a-button
+            </AButton>
+            <ADivider type="vertical" :class="dividerClassName" />
+            <AButton
               type="link"
               :class="btnClassName"
               @click="() => handleEdit(record)"
@@ -471,9 +472,9 @@ const columns: BasicColumn[] = [
                 <Icon icon="ant-design:edit-outlined" />
               </template>
               编辑
-            </a-button>
-            <a-divider type="vertical" :class="dividerClassName" />
-            <a-button
+            </AButton>
+            <ADivider type="vertical" :class="dividerClassName" />
+            <AButton
               type="link"
               danger
               :class="btnClassName"
@@ -483,11 +484,11 @@ const columns: BasicColumn[] = [
                 <Icon icon="ant-design:delete-outlined" />
               </template>
               删除
-            </a-button>
+            </AButton>
           </div>
         </template>
       </BasicTable>
-    </a-card>
+    </ACard>
 
     <BasicModal
       :title="isEditing ? '编辑设置' : '新增设置'"

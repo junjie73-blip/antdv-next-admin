@@ -82,7 +82,7 @@ The token value has its own mechanism, independent of `shouldEncrypt`: `encryptT
 
 ## How stores use it, and the cleanup exit on logout
 
-There is exactly one aggregated exit: `useUserStore().logout()` (`stores/modules/user.ts:126-150`) — clear the in-memory state, `cache.removeItem(TOKEN_KEY)` + `cache.removeItem(USER_INFO_KEY)`, `resetPageCache()` (`layouts/composables/usePageCache.ts:59-63`), `useRouteStore().resetRoutes()`, `useTabsStore().reset()`. `forceLogout()` in the request layer does not clean anything itself, it calls this (`composables/web/request/fetcher.ts:72-87`). State that must be cleared on logout gets added here.
+There is exactly one aggregated exit: `useUserStore().logout()` (`stores/modules/user.ts:163-169`) — clear the in-memory state, `cache.removeItem(TOKEN_KEY)` + `cache.removeItem(USER_INFO_KEY)`, `resetPageCache()` (`layouts/composables/usePageCache.ts:63-67`), `useRouteStore().resetRoutes()`, `useTabsStore().reset()`. `forceLogout()` in the request layer does not clean anything itself, it calls this (`apps/web/src/composables/web/request/fetcher.ts:72-88`). State that must be cleared on logout gets added here.
 
 | Read / write point | Location |
 | --- | --- |

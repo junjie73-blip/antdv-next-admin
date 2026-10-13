@@ -3,8 +3,9 @@ import type { BasicColumn, TableSetting } from '../types';
 
 import { computed, ref, watch } from 'vue';
 
+import { IconifyIcon as Icon } from '@antdv/icons/icon';
+import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
-import { IconifyIcon as Icon } from '@antdv/ui/icon';
 import { Button, Checkbox, Popover, Tooltip } from 'antdv-next';
 import { cloneDeep } from 'es-toolkit';
 

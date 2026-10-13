@@ -90,7 +90,7 @@ export function createMenuTreeSource(deps: MenuTreeDeps): MenuTreeSource {
 
   /*
    * `includeHidden`：这里要的是"完整的一棵树"，可见性交给下游的
-   * `visibleMenus` / `buildMenuItems` 去剔。原因是隐藏页也要能反查 path 与祖先链
+   * `visibleMenus` / `visibleMenuTree` 去剔。原因是隐藏页也要能反查 path 与祖先链
    * （直达链接、标签页标题、一级导航归属），早先在补 path 这一步就把它丢掉，
    * 等于让整棵树对隐藏页失明。
    */

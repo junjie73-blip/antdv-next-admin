@@ -4,9 +4,9 @@
 
 | What you want to do | The actual chain | Where to look |
 | --- | --- | --- |
-| Add a third-party dependency | `catalog:` in the root `pnpm-workspace.yaml` + `"catalog:"` in the consuming package | `pnpm-workspace.yaml:19-266` |
-| Decide whether it ships to the browser | Which basket it sits in, plus the chunk-group rules | `apps/web/package.json:16-113`, `internal/vite-config/src/optimize.ts:1-41` |
-| Use its components | Compile-time resolver / runtime `app.component` / generated `.d.ts` — three different things | `internal/vite-config/src/plugins/auto-import.ts:85-94` |
+| Add a third-party dependency | `catalog:` in the root `pnpm-workspace.yaml` + `"catalog:"` in the consuming package | `pnpm-workspace.yaml:19-273` |
+| Decide whether it ships to the browser | Which basket it sits in, plus the chunk-group rules | `apps/web/package.json:17-125`, `internal/vite-config/src/optimize.ts:1-41` |
+| Use its components | explicit `import` / runtime `app.component` / generated `.d.ts` — three different things | `apps/web/src/plugins/vendor-antd-components.ts:59-118` |
 | Export an internal package | `exports` subpaths + `files: ["dist"]` + package boundaries + lockstep versions | `packages/shared/package.json:14-43`, `.changeset/config.json:10-17` |
 | Embed an outside sub-app | Registry + `VITE_MICRO_APP` + iframe fallback | `apps/web/src/config/micro-app.ts:5-92` |
 
@@ -16,11 +16,11 @@
 
 | Step | Location | What to do | Evidence |
 | --- | --- | --- | --- |
-| 1 | `catalog:` in `pnpm-workspace.yaml` | Add `some-lib: ^1.2.3` — the only place versions live | `pnpm-workspace.yaml:19-266` (241 entries today) |
-| 2 | Consuming `package.json` | Write `"some-lib": "catalog:"`, **never a literal range** | `apps/web/package.json:17-112` is almost entirely `catalog:` |
-| 3 | Pick the basket | Node-only (Vite plugin, resolver, CLI) → `devDependencies`; anything the browser executes → `dependencies` | `apps/web/package.json:114-178` |
+| 1 | `catalog:` in `pnpm-workspace.yaml` | Add `some-lib: ^1.2.3` — the only place versions live | `pnpm-workspace.yaml:19-273` (254 entries today) |
+| 2 | Consuming `package.json` | Write `"some-lib": "catalog:"`, **never a literal range** | `apps/web/package.json:17-125` is almost entirely `catalog:` |
+| 3 | Pick the basket | Node-only (Vite plugin, CLI) → `devDependencies`; anything the browser executes → `dependencies` | `apps/web/package.json:126-190` vs `:17-125` |
 | 4 | `pnpm install` **from the repo root** | Regenerate `pnpm-lock.yaml`; CI installs with `--frozen-lockfile`, so a stale lockfile fails outright | `.github/workflows/docs.yml:56` |
-| 5 | `overrides` only when needed | Add an entry only once you see a duplicated instance of the same package | `pnpm-workspace.yaml:292-297` |
+| 5 | `overrides` only when needed | Add an entry only once you see a duplicated instance of the same package | `pnpm-workspace.yaml:303-308` |
 
 ::: warning `pnpm add` does not write `catalog:` for you `pnpm-workspace.yaml` has **no** `useCatalog` key (its complete key list is `packages`, `allowBuilds`, `autoInstallPeers`, `catalog`, `catalogs`, `dedupePeerDependents`, `ignoredBuiltDependencies`, `minimumReleaseAge`, `onlyBuiltDependencies`, `overrides`, `publicHoistPattern`, `strictPeerDependencies`, `verifyDepsBeforeRun`). So `pnpm add some-lib` drops a literal range into `package.json`, and step 2 is a manual edit: add the line under `catalog:`, then change the package entry to `"catalog:"`. Three packages got away with literals — see the warning below. :::
 
@@ -37,7 +37,7 @@ pnpm check:dep                  # knip: proves the package is actually imported
 
 Why step 4 belongs **at the repo root**: `catalog:`, `overrides` and `pnpm-lock.yaml` are all workspace-level artefacts, so installing from inside `apps/web/` only produces a tree that is out of sync with the root catalog. On top of that, `verifyDepsBeforeRun: false` (`pnpm-workspace.yaml:311`) disables the "is node_modules in sync with the lockfile" check before every script — edit `catalog:`, skip the install, and your next command silently runs against the old tree with no error.
 
-Internal packages always reference each other with `workspace:*` (e.g. `apps/web/package.json:20-28`), which installs as a symlink. A new package only becomes a workspace member if it lands inside one of the declared globs (`pnpm-workspace.yaml:1-8` — `docs` is the one deliberately listed by name).
+Internal packages always reference each other with `workspace:*` (e.g. `apps/web/package.json:21-38`), which installs as a symlink. A new package only becomes a workspace member if it lands inside one of the declared globs (`pnpm-workspace.yaml:1-8` — `docs` is the one deliberately listed by name).
 
 ### Two convergence lists beside `catalog:`
 
@@ -59,11 +59,11 @@ Internal packages always reference each other with `workspace:*` (e.g. `apps/web
 
 | Basket | Examples | Reaches the browser |
 | --- | --- | --- |
-| `dependencies` of `apps/web` (96 entries) | `antdv-next`, `echarts`, `xlsx`, `pdfjs-dist`, `@antdv/*` | Yes — then split by the chunk rules below |
-| `devDependencies` of `apps/web` (63 entries) | `vite`, `unplugin-auto-import`, `unplugin-vue-components`, `@antdv-next/auto-import-resolver`, `@antdv/vite-config` | No — Node side only |
+| `dependencies` of `apps/web` (107 entries) | `antdv-next`, `echarts`, `xlsx`, `pdfjs-dist`, `@antdv/*` | Yes — then split by the chunk rules below |
+| `devDependencies` of `apps/web` (63 entries) | `vite`, `unplugin-auto-import`, `unplugin-vue-components`, `@antdv/vite-config` | No — Node side only |
 | `internal/*` | `@antdv/vite-config`, `@antdv/node-utils`, the lint config packages | Build-time; the bundle only contains code they emit |
 
-Source: `apps/web/package.json:115` (the resolver), `:156` and `:159` (the two unplugins), `:118` (`@antdv/vite-config`) are devDependencies; `:70` (`antdv-next`) and `:104` (`vue-cropper`) are dependencies. **Whether something ships is decided by its basket plus whether anything imports it — not by how library-like its name looks.**
+Source: `apps/web/package.json:168` and `:171` (the two unplugins) and `:129` (`@antdv/vite-config`) are devDependencies (the block starts at `:126`); `:81` (`antdv-next`) and `:117` (`vue-cropper`) are dependencies (the block starts at `:17`). This row used to hold `@antdv-next/auto-import-resolver` as well — once the resolvers were withdrawn it had no reference left, so its catalog entry (`pnpm-workspace.yaml`) was deleted with it. **Whether something ships is decided by its basket plus whether anything imports it — not by how library-like its name looks.**
 
 ### Chunking: there is no `manualChunks` here, it is rolldown's `codeSplitting.groups`
 
@@ -126,36 +126,38 @@ These are routinely treated as one mechanism. They differ in when they act and w
 
 | Layer | Mechanism | When it acts | Whom it covers | Source |
 | --- | --- | --- | --- | --- |
-| Compile time | `unplugin-vue-components` + `AntdvNextResolver` | Emits an import per tag used while the SFC compiles | Only `<a-xxx>` / `<Xxx>` written **in this repository's source** | `auto-import.ts:85-94` |
-| Runtime | `app.component('a-xxx', Comp)` | At application start | Pre-compiled **third-party templates** that call `resolveComponent` at runtime | `apps/web/src/plugins/vendor-antd-components.ts:59-117` |
-| Types | `components.d.ts` / `auto-imports.d.ts` | Rewritten by the plugins during dev/build | TypeScript and the IDE only; proves nothing about usage | `auto-import.ts:83`, `:93` |
+| Compile time | writing `import { Card as ACard } from 'antdv-next'` | the SFC compiler wires that local binding into the template | `<ACard>` / `<a-card>` written **in this repository's source** | the header of 100+ `.vue` files in the app |
+| Runtime | `app.component('a-xxx', Comp)` | at application start | **pre-compiled third-party templates** only | `apps/web/src/plugins/vendor-antd-components.ts:59-118` |
+| Types | `components.d.ts` / `auto-imports.d.ts` | Rewritten by the plugins during dev/build | TypeScript and the IDE only; proves nothing about usage | `auto-import.ts:50`, `:53` |
 
-### Compile time: the resolver only sees first-party source
+### Compile time: there is no resolver any more, components come from imports
 
-`createAutoImportPlugins()` registers three resolvers (`auto-import.ts:85-94`):
+`createAutoImportPlugins()` (`internal/vite-config/src/plugins/auto-import.ts:41-64`) used to register three resolvers: `AntdvNextResolver` (`a-*` → `antdv-next`), `AntdvUiResolver` (the sub-package components) and `IconifyResolver` (bare `<Icon>`). **All three are gone** (the comment at `:12-25` of the same file explains why):
 
-- `AntdvNextResolver({ resolveIcons: false })` (`:87-89`, from `@antdv-next/auto-import-resolver`). With `resolveIcons` off, icons from `@antdv-next/icons` are **not** auto-imported and must be imported explicitly; icons travel a separate offline channel — see [Icons](/en/guide/essentials/icons).
-- `AntdvUiResolver()` (`:30-36`) re-connects the five `@antdv/ui` components used as bare tags (`IconifyIcon` / `IconPicker` / `Loading` / `Scrollbar` / `SvgIcon`, `:22-28`). Note that the comment above it (`:19`) says "these four components" while the set holds five — trust the code.
-- `IconifyResolver()` (`:44-50`) maps the legacy bare `<Icon>` onto `@iconify/vue`.
+- A bare tag has nobody to inject it at compile time, so the runtime leaves a single `Failed to resolve component` warning while the page renders an empty element — icons vanishing silently, the designer shell collapsing into empty tags; every such incident had to be traced back through the build configuration.
+- Explicit imports make "what is used, and from where" visible in the file header, and subpath writes such as `import { cn } from '@antdv/shared/cn'` finally match how components are imported.
+- The sub-packages no longer assume the host ships an auto-import setup: another application can just install `@antdv/scrollbar-ui` or `@antdv/icons` and run.
 
-On the `AutoImport` side (`:73-84`) the auto-imported surface is framework APIs: `vue`, `@vueuse/core`, `pinia`, `VueRouterAutoImports`, plus four functional entry points from `antdv-next` — `message`, `notification`, `Modal`, `Drawer` (`:79`). **Package subpaths are not part of it**: `import { cn } from '@antdv/shared/cn'` must always be written by hand.
+The `Components` plugin itself stays (`:52-54`) but only with its built-in behaviour: scanning the app's own `src/components` directory for local registration, with no npm package involved. On the `AutoImport` side (`:48-51`) the auto-imported surface is framework APIs only: `vue`, `@vueuse/core`, `pinia`, `VueRouterAutoImports` — the four functional entry points from `antdv-next` (`message`, `notification`, `Modal`, `Drawer`) were removed from it too and must now be imported by hand.
+
+One detail that bites: when `<script setup>` compiles a template it looks for a local binding named `capitalize(camelize(tag))`, so `<a-card>` needs the alias `ACard` and `<Card>` needs `Card`. With the resolvers gone, the app-wide convention is `import { Card as ACard } from 'antdv-next'` plus a kebab-case tag, which lines up exactly with ESLint's `vue/component-name-in-template-casing`.
 
 ### Runtime: 36 components plus 1 placeholder
 
-`apps/web/src/plugins/vendor-antd-components.ts` imports 36 named components from `antdv-next` (`:5-42`); `VENDOR_COMPONENTS` holds exactly 36 kebab-case keys (`:59-96`), and `registerVendorAntdComponents()` adds one more, `a-form-item-rest` (`:104-107`, `:113`) — **37 `app.component` calls in total**. The entry point imports it at `apps/web/src/main.ts:30` and calls it at `:49`, before `app.use(pinia)`.
+`apps/web/src/plugins/vendor-antd-components.ts` imports 36 named components from `antdv-next` (`:5-42`); `VENDOR_COMPONENTS` holds exactly 36 kebab-case keys (`:59-96`), and `registerVendorAntdComponents()` (`:112`) adds one more, `a-form-item-rest` (`:116`) — **37 `app.component` calls in total**. The entry point imports it at `apps/web/src/main.ts:32` and calls it at `:53`, before `app.use(pinia)`.
 
-Why exactly these 36: `@form-create/antd-designer` ships templates that were **already compiled** when published; it looks components up at runtime via `resolveComponent('a-layout-sider')`, which compile-time injection cannot help (`:44-58`). The list came from statically scanning that package.
+Why exactly these 36: `@form-create/antd-designer` ships templates that were **already compiled** when published; it looks components up at runtime via `resolveComponent('a-layout-sider')`, and the explicit imports in our source cannot help it (header comment `:44-58`). The list came from statically scanning that package.
 
-::: warning Do not "simplify" this into `app.use(antd)` Full registration throws away tree-shaking and puts the whole component library into the bundle — exactly what the `vendor-ui` rule (`optimize.ts:9`) exists to avoid. The registration names must also stay kebab-case: per `:110-111`, the PascalCase path only works when the SFC compiler resolves tags, never at runtime. :::
+::: warning Do not "simplify" this into `app.use(antd)` Full registration throws away tree-shaking and puts the whole component library into the bundle — exactly what the `vendor-ui` rule (`optimize.ts:9`) exists to avoid. The registration names must also stay kebab-case: per `:113-114`, the PascalCase path only works when the SFC compiler resolves tags, never at runtime. :::
 
-`a-form-item-rest` is a React-antd concept (strip non-`Form.Item` props from the DOM); the Vue library has no such component and antdv-next does not provide it, yet the designer template hard-codes it — so a pass-through component that renders the default slot stands in (`:98-107`). Which means "37 registered" ≠ "37 used": `a-directory-tree` is in the table (`:64`) while `grep -rn "<a-directory-tree" apps/web/src` finds nothing — it serves the designer, not the app.
+`a-form-item-rest` is a React-antd concept (strip non-`Form.Item` props from the DOM); the Vue library has no such component and antdv-next does not provide it, yet the designer template hard-codes it — so a pass-through component that renders the default slot stands in (`:98-110`). Which means "37 registered" ≠ "37 used": `a-directory-tree` is in the table (`:64`) while `grep -rn "<a-directory-tree" apps/web/src` finds nothing — it serves the designer, not the app.
 
 ### Types: `components.d.ts` is a scan artifact, and entry counts mean nothing
 
 Line 6 of `apps/web/types/components.d.ts` reads `Generated by unplugin-vue-components`; line 2 is `@ts-nocheck`. It is a **list of tags the scanner saw**, and the two implications must be kept apart:
 
-- An entry does not mean the component is used. Whatever the dev server scans gets written; while this page was being drafted the file carried over a hundred `typeof import('antdv-next')[...]` entries, some of which have no matching tag anywhere in `apps/web/src`.
-- No entry does not mean unusable. With `VITE_WRITE_DTS=false` the plugins skip both files (`auto-import.ts:63`, `:70`, `:83`, `:93`) and they stay at their previous state — and the 36 globally registered components never depended on this file anyway, since runtime registration goes through Vue's `GlobalComponents` interface.
+- It should contain **no `antdv-next` entries any more**: after the resolvers were deleted the plugin no longer knows any third-party tag, only the app's own local components. If you see `typeof import('antdv-next')[...]` you are looking at a dev server that has not been restarted (the old configuration is still in memory).
+- No entry does not mean unusable. With `VITE_WRITE_DTS=false` the plugins skip both files (`auto-import.ts:31-36`) and they stay at their previous state — and the 37 globally registered components never depended on this file anyway, since runtime registration goes through Vue's `GlobalComponents` interface.
 
 Both files are committed (`git ls-files` shows them) and churn on every build, so do not read their diff as a semantic change. To know whether a given `a-*` is really used, there is exactly one route: search for the tag in `apps/web/src`.
 
@@ -181,7 +183,7 @@ Why many entries instead of one barrel: importing only `cn` should not pull the 
 | Shape | Packages | `main` | After editing `src` | Reusable outside |
 | --- | --- | --- | --- | --- |
 | dist-published | `shared`, `composables`, `directives`, `layouts`, `preferences`, `router`, `types` | `./dist/index.js` (`types` uses `./dist/index.mjs`) | Rebuild required | Yes, once `dist` exists |
-| source-published | `@antdv/ui` (`main: ./src/index.ts`, `files: ["src"]`, `:12-25`), `@antdv/styles` (`./src/index.css`, `:11-23`) | Points at `src` | Hot-updates immediately | **No**: no build script; its `.vue` files and Tailwind entry are compiled by the consuming app's pipeline |
+| source-published | `@antdv/icons`, `@antdv/styles` (`./src/index.css`) and the nine `@antdv/ui-kit` packages (`shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` / `loading-ui` / `scrollbar-ui`; e.g. `packages/ui-kit/scrollbar-ui/package.json:12-19`: `files: ["src"]` with `main/types` both pointing at `./src/index.ts`) | Points at `src` | Hot-updates immediately | **No**: no build script; its `.vue` files and Tailwind entry are compiled by the consuming app's pipeline |
 
 ### Package boundaries are the only reason these are reusable
 
@@ -197,7 +199,7 @@ Editing `packages/*/src` does not show up in the application until a rebuild hap
 
 ### The library-mode build chain is ready, but has no consumer
 
-`internal/vite-config/src/config/library.ts:39` exports `defineLibraryConfig()`, whose external list is `dependencies + peerDependencies` fully excluded (`internal/vite-config/src/utils/package-json.ts:62-70`; the comment at `:56-61` explains that bundling them would drag a second vue / antdv-next along). The one package that would need it — `@antdv/ui`, with SFCs to compile — **does not use it**; only the tsdown-based packages emit `dist`. That is the wiring point for publishing a real component library.
+`internal/vite-config/src/config/library.ts:39` exports `defineLibraryConfig()`, whose external list is `dependencies + peerDependencies` fully excluded (`internal/vite-config/src/utils/package-json.ts:62-70`; the comment at `:56-61` explains that bundling them would drag a second vue / antdv-next along). The packages that compile SFCs — `@antdv/icons` and the nine `@antdv/ui-kit` packages — **do not use it**; they have no build script at all, and only the tsdown-based packages emit `dist`. That is the wiring point for publishing a real component library.
 
 ## 5. The other direction: external sub-apps and the upstream repository
 

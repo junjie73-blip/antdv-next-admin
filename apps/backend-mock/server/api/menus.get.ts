@@ -169,7 +169,7 @@ const list: BackendMenu[] = [
       // 手风琴一次只允许展开一个分类，"看看都有什么"只能一个个点。
       // 分类信息没有丢：`views/components/overview` 的卡片墙读的就是这棵树的叶子。
       //
-      // 这一节只放**本项目自己写的组件**（`src/components/business|common`、`@antdv/ui`、
+      // 这一节只放**本项目自己写的组件**（`src/components/business|common`、`@antdv/icons`、
       // `@antdv/directives`）。原来混在里面的纯 antd 展示页（通用 / 卡片列表 / 详情页 /
       // 数据展示 / 反馈与交互 / 树形控件 / 视频播放 / VueUse / 二维码 / 密码强度）已经删掉 ——
       // 示例页是给别人直接抄的模板，抄 antd 官方文档就够了，抄本仓库的包装器才有增量价值。

@@ -2,6 +2,7 @@
 import type { SelectProps } from 'antdv-next';
 
 import { watchDebounced } from '@vueuse/core';
+import { Select as ASelect } from 'antdv-next';
 import { useRequest } from '~/composables';
 
 interface Props extends /* @vue-ignore */ SelectProps {
@@ -16,5 +17,5 @@ watchDebounced(api, () => refresh(), { immediate: true, debounce: 200 });
 </script>
 
 <template>
-  <a-select v-bind="props" :options="data" />
+  <ASelect v-bind="props" :options="data" />
 </template>

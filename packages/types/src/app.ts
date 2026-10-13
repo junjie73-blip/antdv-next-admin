@@ -136,6 +136,8 @@ export interface AppSetting {
   widgetLogout: boolean;
   widgetSearch: boolean;
   widgetPreferences: boolean;
+  /** 顶栏语言切换下拉 */
+  widgetLocaleSwitcher: boolean;
 
   /* ---------- 底栏 ---------- */
   showFooter: boolean;

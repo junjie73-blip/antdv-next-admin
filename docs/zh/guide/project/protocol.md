@@ -13,7 +13,7 @@
 | 3 Vue | `<script setup lang="ts">` 必须；`defineProps<{}>()` / `defineEmits<{}>()` 泛型写法，不用 runtime props |
 | 4 Pinia | setup store；`useUserStore` 是**唯一**用户态出口，`useAuthStore` 已废弃不许用；禁用 pinia 全量持久化插件 |
 | 7 样式 | 优先级：Tailwind 原子类 → `cn()` 合并 → `:deep()` → `scoped`；复杂 class 串抽进 `constants.ts` |
-| 8-9 表格/CRUD | `BasicTable` + `useTable` 标准用法、`useCRUD` 参数面（见[常用功能](/guide/in-depth/common)） |
+| 8-9 表格/CRUD | `BasicTable` + `useTable` 标准用法、`useCRUD` 参数面（见[常用功能](/zh/guide/in-depth/common)） |
 | 12 环境变量 | `VITE_` 前缀才暴露；密钥不进 `VITE_*` |
 | 13 表单 Schema | schema 依赖响应式数据必须 `computed` 工厂，不许静态数组 |
 | 19 TypeScript | 禁 `any`（用 `unknown` + 类型守卫）；类型一律 `import type` |
@@ -53,15 +53,15 @@ pnpm check           # check:circular(vsh) + check:dep(vsh) + check:type(turbo) 
 
 - 类型集与交互问卷在 `commitlint.config.mjs`（cz-git 的 `defineConfig`）： `feat / fix / docs / style / refactor / perf / test / build / ci / chore / revert`，breaking change 只允许 `feat`、`fix` 带；推荐用 `pnpm commit`（czg）走问卷，别手敲。
 - 校验器 `@antdv/eslint-config` 同目录还有 `@antdv/commitlint-config`，根 devDependencies 里两者都装了。
-- **lefthook 的钩子目前整文件注释停用**（`lefthook.yml` 里 pre-commit / commit-msg / post-merge 全部带 `#`），但 `prepare` 脚本仍会 `lefthook install`。后果：提交时**没有任何自动检查**，`test.only`、类型错误、脏格式都能直接进仓库。所以提交前自查是硬要求，清单见[测试](/guide/project/testing)文末。
+- **lefthook 的钩子目前整文件注释停用**（`lefthook.yml` 里 pre-commit / commit-msg / post-merge 全部带 `#`），但 `prepare` 脚本仍会 `lefthook install`。后果：提交时**没有任何自动检查**，`test.only`、类型错误、脏格式都能直接进仓库。所以提交前自查是硬要求，清单见[测试](/zh/guide/project/testing)文末。
 
 ## 测试与文档的口径
 
-- 单测放被测对象同目录的 `__tests__/`，文件 `*.spec.ts`；"源码契约"类守卫必须带正反样例（防止扫描正则写错导致的永真绿）。详见[测试](/guide/project/testing)。
-- 值得记版本的改动补一条 `.changeset/*.md`（见 [Changeset](/guide/project/changeset)）。
+- 单测放被测对象同目录的 `__tests__/`，文件 `*.spec.ts`；"源码契约"类守卫必须带正反样例（防止扫描正则写错导致的永真绿）。详见[测试](/zh/guide/project/testing)。
+- 值得记版本的改动补一条 `.changeset/*.md`（见 [Changeset](/zh/guide/project/changeset)）。
 - 拼写检查进 `pnpm check`：cspell 扫 `**/*.ts`、README 与 `.changeset/*.md`。
 
 ## 相关页面
 
-- 目录树逐层解释：[目录说明](/guide/project/dir)
-- 样式体系（Tailwind 与 antd 共存）：[Tailwind CSS](/guide/project/tailwindcss)
+- 目录树逐层解释：[目录说明](/zh/guide/project/dir)
+- 样式体系（Tailwind 与 antd 共存）：[Tailwind CSS](/zh/guide/project/tailwindcss)

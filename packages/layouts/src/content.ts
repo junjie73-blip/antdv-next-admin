@@ -21,11 +21,18 @@ export interface ContentStyleOptions {
   width?: number;
 }
 
-export interface ContentStyle {
+/**
+ * 内容容器的行内样式。
+ *
+ * 用 `type` 而不是 `interface`：TS 只给对象字面量类型推导隐式索引签名，
+ * 渲染层（`@antdv/layout-ui` 的 `LayoutContent`）要把它当样式记录绑到 `:style` 上，
+ * 接口在那一步会被判成"缺少索引签名"而报错。
+ */
+export type ContentStyle = {
   marginInline?: string;
   maxWidth?: string;
   width?: string;
-}
+};
 
 /** 把越界的期望宽度收进 [min, max]，非数字回落到默认档 */
 export function clampContentWidth(

@@ -6,11 +6,11 @@ import type {
 
 import { computed, nextTick, ref, useTemplateRef } from 'vue';
 
+import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
-import { Scrollbar } from '@antdv/ui/scrollbar';
 import { Icon } from '@iconify/vue';
 import { useClipboard } from '@vueuse/core';
-import { message } from 'antdv-next';
+import { Button as AButton, Card as ACard, Divider as ADivider, Segmented as ASegmented, Space as ASpace, Switch as ASwitch, TabPane as ATabPane, Tabs as ATabs, Tag as ATag, Tooltip as ATooltip, message } from 'antdv-next';
 import hljs from 'highlight.js';
 import MarkdownIt from 'markdown-it';
 import { Marked } from 'marked';
@@ -678,7 +678,7 @@ const outputPreClassName = cn(
       </p>
     </div>
 
-    <a-card size="small" title="两种模式共用的配置">
+    <ACard size="small" title="两种模式共用的配置">
       <p :class="introClassName">
         这两个 Tab 不是同一个组件的两种模式：Markdown 侧是本页手写的
         <code>textarea</code> 加纯前端渲染，富文本侧是仓库内的
@@ -692,46 +692,46 @@ const outputPreClassName = cn(
       <div class="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3">
         <div class="flex items-center gap-2">
           <span :class="fieldLabelClassName">只读</span>
-          <a-switch v-model:checked="readonly" size="small" />
+          <ASwitch v-model:checked="readonly" size="small" />
         </div>
         <div class="flex items-center gap-2">
           <span :class="fieldLabelClassName">禁用</span>
-          <a-switch v-model:checked="disabled" size="small" />
+          <ASwitch v-model:checked="disabled" size="small" />
         </div>
         <div class="flex items-center gap-2">
           <span :class="fieldLabelClassName">字数统计</span>
-          <a-switch v-model:checked="showCount" size="small" />
+          <ASwitch v-model:checked="showCount" size="small" />
         </div>
-        <a-divider type="vertical" class="!h-5" />
-        <a-space wrap :size="8">
-          <a-button size="small" @click="handleGetValue">
+        <ADivider type="vertical" class="!h-5" />
+        <ASpace wrap :size="8">
+          <AButton size="small" @click="handleGetValue">
             <template #icon><Icon icon="carbon:copy" /></template>
             取值
-          </a-button>
-          <a-button
+          </AButton>
+          <AButton
             size="small"
             :disabled="contentLocked"
             @click="handleSetValue"
           >
             <template #icon><Icon icon="carbon:edit" /></template>
             赋值
-          </a-button>
-          <a-button
+          </AButton>
+          <AButton
             size="small"
             :disabled="contentLocked"
             @click="handleResetInitial"
           >
             <template #icon><Icon icon="carbon:reset" /></template>
             恢复初始值
-          </a-button>
-        </a-space>
+          </AButton>
+        </ASpace>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card size="small">
-      <a-tabs v-model:active-key="activeKey">
+    <ACard size="small">
+      <ATabs v-model:active-key="activeKey">
         <!-- ============ Markdown 编辑 ============ -->
-        <a-tab-pane key="markdown" tab="Markdown 编辑">
+        <ATabPane key="markdown" tab="Markdown 编辑">
           <div class="mb-3 flex flex-wrap items-center gap-2">
             <span :class="fieldLabelClassName">渲染引擎：</span>
             <div :class="rendererToggleClassName">
@@ -785,7 +785,7 @@ const outputPreClassName = cn(
               <div :class="toolbarContainerClassName">
                 <template v-for="(group, idx) in toolbarGroups" :key="idx">
                   <span v-if="idx > 0" :class="toolbarDividerClassName"></span>
-                  <a-tooltip
+                  <ATooltip
                     v-for="btn in group.buttons"
                     :key="btn.label"
                     :title="btn.label"
@@ -800,7 +800,7 @@ const outputPreClassName = cn(
                     >
                       <Icon :icon="btn.icon" :width="14" />
                     </button>
-                  </a-tooltip>
+                  </ATooltip>
                 </template>
               </div>
 
@@ -859,14 +859,14 @@ const outputPreClassName = cn(
               </div>
             </div>
           </div>
-        </a-tab-pane>
+        </ATabPane>
 
         <!-- ============ 富文本编辑 ============ -->
-        <a-tab-pane key="rich-text" tab="富文本编辑">
+        <ATabPane key="rich-text" tab="富文本编辑">
           <div class="mb-3 flex flex-wrap items-center gap-x-6 gap-y-3">
             <div class="flex items-center gap-2">
               <span :class="fieldLabelClassName">模式</span>
-              <a-segmented
+              <ASegmented
                 v-model:value="mode"
                 :options="[
                   { label: '编辑', value: 'edit' },
@@ -878,7 +878,7 @@ const outputPreClassName = cn(
             <div
               class="ml-auto flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400"
             >
-              <a-tag color="blue">change × {{ changeCount }}</a-tag>
+              <ATag color="blue">change × {{ changeCount }}</ATag>
             </div>
           </div>
 
@@ -894,53 +894,53 @@ const outputPreClassName = cn(
             @change="handleChange"
           />
 
-          <a-card
+          <ACard
             :class="cn('mt-4')"
             size="small"
             title="实例方法（MarkdownEditor ref）"
           >
-            <a-space wrap :size="8">
-              <a-button size="small" @click="handleInsertText">
+            <ASpace wrap :size="8">
+              <AButton size="small" @click="handleInsertText">
                 <template #icon><Icon icon="carbon:zoom-in" /></template>
                 插入文本
-              </a-button>
-              <a-button size="small" @click="handleInsertHtml">
+              </AButton>
+              <AButton size="small" @click="handleInsertHtml">
                 <template #icon><Icon icon="carbon:code" /></template>
                 插入 HTML
-              </a-button>
-              <a-button size="small" @click="handleInsertImage">
+              </AButton>
+              <AButton size="small" @click="handleInsertImage">
                 <template #icon><Icon icon="carbon:image" /></template>
                 插入图片
-              </a-button>
-              <a-button size="small" @click="handleUndo">
+              </AButton>
+              <AButton size="small" @click="handleUndo">
                 <template #icon><Icon icon="carbon:undo" /></template>
                 撤销
-              </a-button>
-              <a-button size="small" @click="handleRedo">
+              </AButton>
+              <AButton size="small" @click="handleRedo">
                 <template #icon><Icon icon="carbon:redo" /></template>
                 重做
-              </a-button>
-              <a-button size="small" @click="handleFocus">
+              </AButton>
+              <AButton size="small" @click="handleFocus">
                 <template #icon><Icon icon="carbon:cursor-1" /></template>
                 聚焦
-              </a-button>
-              <a-button size="small" @click="handleLogMarkdown">
+              </AButton>
+              <AButton size="small" @click="handleLogMarkdown">
                 <template #icon><Icon icon="carbon:string-text" /></template>
                 导出 Markdown
-              </a-button>
-              <a-button danger size="small" @click="handleClear">
+              </AButton>
+              <AButton danger size="small" @click="handleClear">
                 <template #icon><Icon icon="carbon:trash-can" /></template>
                 清空
-              </a-button>
-            </a-space>
+              </AButton>
+            </ASpace>
             <p :class="hintClassName">
               「导出 Markdown」与「取值」只读本地内容，结果打到控制台；
               「插入图片」用的是本地生成的 data URL，不请求接口。
               工具栏上的「上传图片 / 上传视频」才会走组件内置上传 （<code>POST /api/upload/file</code>），本地由 mock 返回一张内联 SVG 占位图，不落盘。
             </p>
-          </a-card>
+          </ACard>
 
-          <a-card
+          <ACard
             :class="cn('mt-4')"
             size="small"
             title="v-model:value 产出的 HTML"
@@ -948,10 +948,10 @@ const outputPreClassName = cn(
             <Scrollbar max-height="180px">
               <pre :class="outputPreClassName">{{ html }}</pre>
             </Scrollbar>
-          </a-card>
-        </a-tab-pane>
-      </a-tabs>
-    </a-card>
+          </ACard>
+        </ATabPane>
+      </ATabs>
+    </ACard>
   </div>
 </template>
 

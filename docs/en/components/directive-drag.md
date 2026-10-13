@@ -4,17 +4,17 @@ This page covers two demo routes: `/components/directive` (the **five globally r
 
 ## The five global directives: exactly two registration sites
 
-The only `app.directive(...)` calls in the entire repository are these five, at `apps/web/src/main.ts:90-100`:
+The only `app.directive(...)` calls in the entire repository are these five, at `apps/web/src/main.ts:103-113`:
 
 | Directive | Implementation lives in | App-side injection | Production use sites (outside the demo) |
 | --- | --- | --- | --- |
 | `v-permission` | `packages/directives/src/permission/index.ts:57` | `apps/web/src/directives/index.ts:19-36` | `apps/web/src/components/business/ImportExport.vue:206, 223` |
-| `v-loading` | `packages/ui/src/loading/directive.ts:88-105` | registered directly from `@antdv/ui/loading` (`main.ts:8, 100`) | `apps/web/src/views/components/loading/index.vue:1026` onwards |
+| `v-loading` | `packages/ui-kit/loading-ui/src/directive.ts:88-107` | the `vLoading` from `@antdv/loading-ui`, registered directly (`main.ts:8, 113`) | `apps/web/src/views/components/loading/index.vue:1026` onwards |
 | `v-lazy` | `packages/directives/src/lazy.ts:145, 311` | re-exported at `apps/web/src/directives/index.ts:16` | **no usage outside the demo page** (see below) |
 | `v-safe-html` | `packages/shared/src/xss.ts:437-445` | re-exported at `apps/web/src/directives/index.ts:17` | `MarkdownEditor.vue:599`, editor demo `editor/index.vue:834` |
 | `v-escape` | `packages/shared/src/xss.ts:454-462` | re-exported at `apps/web/src/directives/index.ts:17` | **no usage outside the demo page** (see below) |
 
-::: warning Don't look for everything under the package name `@antdv/directives` contains **only permission and lazy** (its `src/index.ts:10-11` has exactly those two exports). `escape` / `safe-html` live in `@antdv/shared/xss`, `v-loading` lives in `@antdv/ui/loading`. `apps/web/src/directives/index.ts` exists to inject project dependencies into the factories: the packages never import pinia / stores (the design constraint is stated at `packages/directives/src/index.ts:4-7`); checkers and the subscription source come from the app. :::
+::: warning Don't look for everything under the package name `@antdv/directives` contains **only permission and lazy** (its `src/index.ts:10-11` has exactly those two exports). `escape` / `safe-html` live in `@antdv/shared/xss`, `v-loading` lives in `@antdv/loading-ui`. `apps/web/src/directives/index.ts` exists to inject project dependencies into the factories: the packages never import pinia / stores (the design constraint is stated at `packages/directives/src/index.ts:4-7`); checkers and the subscription source come from the app. :::
 
 ## v-permission: decisions outside the package, DOM flags inside it
 
@@ -54,7 +54,7 @@ The only `app.directive(...)` calls in the entire repository are these five, at 
 
 ## v-loading: boolean-driven, configuration read from attributes
 
-The directive value is a `boolean` (type annotation at `packages/ui/src/loading/directive.ts:88`). Key points:
+The directive value is a `boolean` (type annotation at `packages/ui-kit/loading-ui/src/directive.ts:88`). Key points:
 
 - **Configuration comes from element attributes**: `loading-background` / `loading-size` / `loading-theme` / `loading-tip` (`directive.ts:34-39`). The tip can also be the directive arg, `v-loading:加载中="isLoading"`, which takes precedence (`directive.ts:81, 96-98`).
 - **Mount target is decided by modifiers**: `.fullscreen` or `.body` pins the overlay to `body`, covering the whole page (`directive.ts:59-61`); the default covers the element itself.
@@ -143,11 +143,11 @@ Open `http://localhost:6080/#/components/drag-layout`. Per card: on the first, d
 
 ## Verified absent or silently inert
 
-- **The demo's claim that route-switch fullscreen loading "does the same thing via `createFullscreenLoading()`" is not true** (`apps/web/src/views/components/directive/index.vue:368-371`). `createFullscreenLoading()` is exported (`packages/ui/src/loading/createLoading.ts:66-71`) but has **zero call sites** in the repository; the actual route-switch loading comes from `useRouteLoading()` + `RouteLoadingBar` + `PageLoading` (`apps/web/src/layouts/index.vue:14, 160-167, 177-183, 225-229`) and has nothing to do with that function.
-- **`v-lazy` and `v-escape` are registered but used only by the demo page itself** (registration: `main.ts:94, 98`; usage search finds hits only in `views/components/directive/index.vue`). The "avatar list" rationale behind the `data-*` fallbacks (`lazy.ts:154-155`) also has no consumer in this repository.
+- **The demo's claim that route-switch fullscreen loading "does the same thing via `createFullscreenLoading()`" is not true** (`apps/web/src/views/components/directive/index.vue:368-371`). `createFullscreenLoading()` is exported (`packages/ui-kit/loading-ui/src/createLoading.ts:66-74`) but has **zero call sites** in the repository; the actual route-switch loading comes from `useRouteLoading()` + `RouteLoadingBar` + `PageLoading` (`apps/web/src/layouts/index.vue:14, 160-167, 177-183, 225-229`) and has nothing to do with that function.
+- **`v-lazy` and `v-escape` are registered but used only by the demo page itself** (registration: `main.ts:107, 111`; usage search finds hits only in `views/components/directive/index.vue`). The "avatar list" rationale behind the `data-*` fallbacks (`lazy.ts:154-155`) also has no consumer in this repository.
 - **`vue-draggable-plus`'s `v-draggable` directive and `useDraggable` composable have no call sites** (see the tip above), and `RouteMeta.roles` / `RouteMeta.permissions` have no readers (see the v-permission tip). These, like `packages/types/src/app-router.ts:9-10` and the library's `dist/index.d.ts`, are cases of "declared ≠ used".
 - **There is no wildcard path for the `'*'` permission code**: neither the evaluation chain `resolveAccess()` (`utils.ts:82-109`) nor the matching implementation of `usePermission()` (`usePermission.ts:23-34`) contains a `'*'` branch — the permission table is a plain `Array.includes` whitelist. Yet the mock grants the admin account `permissions: ['*']` (`apps/backend-mock/server/api/auth/login.post.ts:24`), and `['*'].includes('user:add')` is `false`, so that wildcard **grants nothing** at the element layer; on the demo account, visible `v-permission` passes rely on `.disabled` / `:admin` or on the exact code being in the table.
-- **`v-loading` reads its attribute configuration only at overlay creation** (`packages/ui/src/loading/directive.ts:70-76`); mutating `loading-tip` and friends afterwards is silently ineffective — only `binding.arg` hot-updates (`directive.ts:96-98`).
+- **`v-loading` reads its attribute configuration only at overlay creation** (`packages/ui-kit/loading-ui/src/directive.ts:69-76`); mutating `loading-tip` and friends afterwards is silently ineffective — only `binding.arg` hot-updates (`directive.ts:96-98`).
 - **`v-escape` / `v-safe-html` overwrite the host element's content** (`textContent` / `innerHTML`, `xss.ts:472, 532`); hosting them on an element with slots or children means discarding that DOM — by design, but the UI never says so.
 
 ## Related pages

@@ -20,13 +20,13 @@ scripts/           仓库任务（vsh、turbo-run、clean、deploy）
 | 形态 | 包 | `main` 指向 | 改完 src 之后 |
 | --- | --- | --- | --- |
 | dist 发布 | `@antdv/shared`、`composables`、`directives`、`layouts`、`preferences`、`router`、`types` | `./dist/index.js`（tsdown 产物） | 必须 `pnpm --filter @antdv/shared build`，再重启 dev |
-| 源码发布 | `@antdv/ui`、`@antdv/styles` | `./src/index.ts` / `./src/index.css` | 直接热更新，没有构建步骤 |
+| 源码发布 | `@antdv/icons`、`@antdv/styles`、`@antdv/ui-kit` 那九个（`shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` / `loading-ui` / `scrollbar-ui`） | `./src/index.ts`（`styles` 是 `./src/index.css`） | 直接热更新，没有构建步骤 |
 
-依据：`packages/*/package.json` 的 `main` 字段，以及 `packages/shared/tsdown.config.ts` （`entry: ['src/index.ts', 'src/*.ts', 'src/*/index.ts']`）。dist 发布的那几个包没有 build 脚本就永远出新产物，`dev` 脚本是 `tsdown --watch`。
+依据：`packages/*/package.json` 与 `packages/ui-kit/*/package.json` 的 `main` 字段，以及 `packages/shared/tsdown.config.ts` （`entry: ['src/index.ts', 'src/*.ts', 'src/*/index.ts']`）。dist 发布的那几个包没有 build 脚本就永远出新产物，`dev` 脚本是 `tsdown --watch`。
 
 ::: warning 改了 dist 发布包却没生效这是本仓库最常见的"我明明改了"。Vite 的依赖缓存和 `optimizeDeps` 都指向 dist， `src` 不在构建图里。表现是改代码、保存、页面毫无变化，且不报错。:::
 
-`@antdv/ui` 走源码发布是有代价的：它没有 build 脚本（`packages/ui/package.json` 只有 `clean` / `test:unit` / `type-check`），组件里的 `<script setup>` 由应用的 `@vitejs/plugin-vue` 编译，所以这个包**不能**被脱离 Vite 的消费者直接用。
+源码发布是有代价的：这些包没有 build 脚本（`packages/icons/package.json` 只有 `clean` / `test:unit` / `type-check`），组件里的 `<script setup>` 由应用的 `@vitejs/plugin-vue` 编译，所以它们**不能**被脱离 Vite 的消费者直接用。
 
 ## 子包的边界：不碰 store、不碰 env
 
@@ -58,13 +58,23 @@ scripts/           仓库任务（vsh、turbo-run、clean、deploy）
 
 两边不一致时 vite 能跑但 `vue-tsc` 报错（或反过来），所以别名只在 `createAliases()` 里定义一次。 `resolve.dedupe: ['pinia', 'vue', 'vue-router']` 也在那里——pnpm 的 peer 解析一度让依赖树里同时出现 `vue` 3.5.42 / 3.5.43 两份类型（catalog 现在把 `vue` 钉在 `3.5.43`），运行时两份 Vue 会让 inject 和响应式系统互相看不见。
 
-自动导入的范围是**框架 API，不是本仓库的包**（`internal/vite-config/src/plugins/auto-import.ts`）：
+自动导入的范围是**框架 API，不是本仓库的包，也不是 antdv-next**（`internal/vite-config/src/plugins/auto-import.ts:48-54`）：
 
-- `AutoImport`：`vue`、`@vueuse/core`、`pinia`、`VueRouterAutoImports`，外加 `antdv-next` 的 `message` / `notification` / `Modal` / `Drawer` 四个函数式入口。
-- `Components`：`AntdvNextResolver` 按用到的组件逐个注入（`resolveIcons: false`，图标另有通道），`AntdvUiResolver` 补 `IconifyIcon` / `IconPicker` / `Loading` / `Scrollbar` / `SvgIcon`，`IconifyResolver` 把裸写的 `<Icon>` 接回 `@iconify/vue`。
+- `AutoImport`（`:48-51`）：`vue`、`@vueuse/core`、`pinia`、`VueRouterAutoImports`。`antdv-next` 的 `message` / `notification` / `Modal` / `Drawer` 以前也在这里，现在**已经移除**，要用就自己 import。
+- `Components`（`:52-54`）：**没有配任何 resolver**。以前是 `AntdvNextResolver`（`a-*`）+ `AntdvUiResolver`（子包组件）+ `IconifyResolver`（裸写 `<Icon>`）三个，现在这三条通道全部关掉，插件只保留它自带的"扫描应用内 `src/components` 目录、本地组件免 import"能力。
 - 声明文件 `apps/web/types/auto-imports.d.ts`、`components.d.ts` 是入库的。它们由插件在构建时回写，Windows 映射盘上偶发 `UNKNOWN (errno -4094)` 直接把 dev server 带走，所以留了 `VITE_WRITE_DTS=false` 跳过写入（见同文件注释）。
 
-结论：`import { cn } from '@antdv/shared/cn'` 这种写法**必须自己写**，别指望自动导入；裸写 `<Modal>`、`useRoute()` 才是自动导入负责的。
+结论：组件与组件库 API **一律显式 import**，应用里 100 多个文件都是这么写的：
+
+```ts
+import { Card as ACard, message } from 'antdv-next';
+import { Scrollbar } from '@antdv/scrollbar-ui';
+import { Icon } from '@iconify/vue';
+```
+
+`<script setup>` 里模板绑定按 `capitalize(camelize(tag))` 查找，所以模板要继续写 `<ACard>` 就得把默认导出别名成 `ACard`（`import { Card }` 只能配 `<Card>` 用）。`vue/component-name-in-template-casing` 规则会把 kebab 标签改成 Pascal，两者正好对得上。
+
+裸写 `useRoute()`、`ref()` 才是自动导入负责的；`import { cn } from '@antdv/shared/cn'` 这种子路径 import 也必须自己写。
 
 ## 命名与页面骨架
 

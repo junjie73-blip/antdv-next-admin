@@ -7,6 +7,7 @@ import { computed, ref } from 'vue';
 import { cn } from '@antdv/shared/cn';
 import { exportToExcel } from '@antdv/shared/excel';
 import { Icon } from '@iconify/vue';
+import { Alert as AAlert, Button as AButton, Card as ACard, Divider as ADivider, Popconfirm as APopconfirm, Tag as ATag, Tree as ATree, message } from 'antdv-next';
 import { addRole, deleteRole, getRoleList, updateRole } from '~/api/system';
 import { BasicDrawer, useDrawer } from '~/components/business/Drawer';
 import { BasicForm, useForm } from '~/components/business/Form';
@@ -345,7 +346,7 @@ const columns: BasicColumn[] = [
 
 <template>
   <div :class="containerClassName">
-    <a-card title="角色管理" :class="cardClassName">
+    <ACard title="角色管理" :class="cardClassName">
       <BasicTable
         :columns="columns"
         :api="mockApi"
@@ -360,22 +361,22 @@ const columns: BasicColumn[] = [
         @register="tableRegister"
       >
         <template #toolbar>
-          <a-button @click="handleExport">
+          <AButton @click="handleExport">
             <template #icon>
               <Icon icon="carbon:export" />
             </template>
             导出
-          </a-button>
-          <a-button type="primary" @click="handleAdd">
+          </AButton>
+          <AButton type="primary" @click="handleAdd">
             <template #icon>
               <Icon icon="ant-design:plus-outlined" />
             </template>
             新增角色
-          </a-button>
+          </AButton>
         </template>
 
         <template #cell-status="{ record }">
-          <a-tag :color="statusColorMap[record.status] || 'default'">
+          <ATag :color="statusColorMap[record.status] || 'default'">
             <span :class="tagClassName">
               <Icon
                 :icon="
@@ -386,12 +387,12 @@ const columns: BasicColumn[] = [
               />
               {{ statusLabelMap[record.status] || '未知' }}
             </span>
-          </a-tag>
+          </ATag>
         </template>
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <a-button
+            <AButton
               type="link"
               :class="btnClassName"
               @click="() => handlePermission(record)"
@@ -400,9 +401,9 @@ const columns: BasicColumn[] = [
                 <Icon icon="ant-design:safety-certificate-outlined" />
               </template>
               权限
-            </a-button>
-            <a-divider type="vertical" :class="dividerClassName" />
-            <a-button
+            </AButton>
+            <ADivider type="vertical" :class="dividerClassName" />
+            <AButton
               type="link"
               :class="btnClassName"
               @click="() => handleEdit(record)"
@@ -411,39 +412,39 @@ const columns: BasicColumn[] = [
                 <Icon icon="ant-design:edit-outlined" />
               </template>
               编辑
-            </a-button>
-            <a-divider type="vertical" :class="dividerClassName" />
-            <a-popconfirm
+            </AButton>
+            <ADivider type="vertical" :class="dividerClassName" />
+            <APopconfirm
               :title="`确定要「${record.status === 1 ? '停用' : '启用'}」角色「${record.name}」吗？`"
               @confirm="() => handleToggleStatus(record)"
             >
-              <a-button
+              <AButton
                 v-if="record.status === 1"
                 type="link"
                 :class="btnClassName"
               >
                 停用
-              </a-button>
-              <a-button v-else type="link" :class="btnClassName">
+              </AButton>
+              <AButton v-else type="link" :class="btnClassName">
                 启用
-              </a-button>
-            </a-popconfirm>
-            <a-divider type="vertical" :class="dividerClassName" />
-            <a-popconfirm
+              </AButton>
+            </APopconfirm>
+            <ADivider type="vertical" :class="dividerClassName" />
+            <APopconfirm
               :title="`确定要删除角色「${record.name}」吗？`"
               @confirm="() => handleDelete(record)"
             >
-              <a-button type="link" danger :class="btnClassName">
+              <AButton type="link" danger :class="btnClassName">
                 <template #icon>
                   <Icon icon="ant-design:delete-outlined" />
                 </template>
                 删除
-              </a-button>
-            </a-popconfirm>
+              </AButton>
+            </APopconfirm>
           </div>
         </template>
       </BasicTable>
-    </a-card>
+    </ACard>
 
     <!-- 新增/编辑抽屉 -->
     <BasicDrawer
@@ -468,15 +469,15 @@ const columns: BasicColumn[] = [
       @register="permDrawerRegister"
     >
       <div class="space-y-4">
-        <a-alert
+        <AAlert
           message="选择该角色可以访问的菜单和按钮权限"
           type="info"
           show-icon
         />
         <div class="text-sm text-gray-500 dark:text-gray-400">
-          角色编码：<a-tag color="blue">
+          角色编码：<ATag color="blue">
             {{ currentRecord?.code }}
-          </a-tag>
+          </ATag>
         </div>
         <div class="text-sm text-gray-500 dark:text-gray-400">
           角色描述：<span class="text-gray-700 dark:text-gray-300">{{
@@ -484,7 +485,7 @@ const columns: BasicColumn[] = [
           }}</span>
         </div>
 
-        <a-tree
+        <ATree
           checkable
           default-expand-all
           :tree-data="permissionTreeData"

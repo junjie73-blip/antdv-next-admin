@@ -1,12 +1,12 @@
 # Data and display
 
-This page covers six demo routes — `/components/description`, `/components/count-to`, `/components/relative-time`, `/components/icon-picker`, `/components/loading`, `/components/scroll/basic`. They are unrelated features, but one thread runs through them: **the first two are business wrappers living in `apps/web`, while the remaining four are implemented in `packages/ui` (the stateless atom package) or only inside the page itself**. Reading this page therefore also draws the line between "what belongs in `packages/ui`" and "what stays in the app".
+This page covers six demo routes — `/components/description`, `/components/count-to`, `/components/relative-time`, `/components/icon-picker`, `/components/loading`, `/components/scroll/basic`. They are unrelated features, but one thread runs through them: **the first two are business wrappers living in `apps/web`, while the remaining four now live in shared packages — icons in `packages/icons`, the loading overlay in `packages/ui-kit/loading-ui`, the scrollbar in `packages/ui-kit/scrollbar-ui` (none of the three use antdv-next any more; they are built on the shadcn-vue layer, see `@antdv/shadcn-ui`)**. Reading this page therefore also draws the line between "what belongs in a shared package" and "what stays in the app".
 
 ::: warning Three things to say up front
 
 1. **There is no `RelativeTime` component**: no such directory under `apps/web/src/components/business/`, and no import of `RelativeTime` anywhere in the repository. `/components/relative-time` is just a page built from `a-timeline` plus **absolute timestamps** (see [relative time](#relative-time-pages-components-relative-time)).
 2. **`Description`'s `setData()` is a stub** that only calls `console.warn` (`apps/web/src/components/business/Description/Description.vue:156-158`).
-3. **The text prop of `Loading` is `tip`, not `description`**, and `useLoading` needs an explicit `target` (selector / element / ref / getter) — otherwise the overlay silently never mounts (`packages/ui/src/loading/overlay.ts:101-105`). :::
+3. **The text prop of `Loading` is `tip`, not `description`**, and `useLoading` needs an explicit `target` (selector / element / ref / getter) — otherwise the overlay silently never mounts and only prints a `console.warn` (`packages/ui-kit/loading-ui/src/overlay.ts:101-105`). :::
 
 ## Why these six pages are all second-level menu entries
 
@@ -173,42 +173,42 @@ What drives the refresh: **no timer at all**. `fromNow()` sits inside a `compute
 
 ### What problem it solves
 
-Letting a _user_ (rather than a developer) pick an icon name — the common case is assigning icons to menu entries in menu management (real usage: `apps/web/src/views/system/menu/index.vue`). It is a `packages/ui` component, and **its icon sets come from offline-bundled `@iconify-json/*`** packages: they are in the build output, so nothing queries the Iconify API at runtime. The mechanism and the steps to add a collection are in the [icons guide](/en/guide/essentials/icons).
+Letting a _user_ (rather than a developer) pick an icon name — the common case is assigning icons to menu entries in menu management (real usage: `apps/web/src/views/system/menu/index.vue`). It lives in `packages/icons` (package name `@antdv/icons`), and **its icon sets come from offline-bundled `@iconify-json/*`** packages: they are in the build output, so nothing queries the Iconify API at runtime. The mechanism and the steps to add a collection are in the [icons guide](/en/guide/essentials/icons).
 
 ### The real API
 
-Source `packages/ui/src/icon/IconPicker.vue`, defaults at `:16-22`.
+Source `packages/icons/src/icon/IconPicker.vue` (396 lines), defaults at `:34-40`.
 
 | Prop | Default | Behaviour / location |
 | --- | --- | --- |
-| `v-model` (`defineModel<string>`) | `''` | the value is the icon name in `prefix:name` form (`:30`, `:109`) |
-| `currentIcon` | `''` | legacy entry point: the current value is `modelValue \|\| currentIcon` (`:78`), so with both supplied `v-model` wins |
-| `placeholder` | `'选择图标'` | placeholder of the trigger input (`:288`) |
-| `disabled` | `false` | disables the popover and the input together (`:201`, `:289`) |
-| `size` | `'middle'` | passed to `a-input` only (`:290`) |
-| `allowClear` | `true` | with a value selected, the suffix shows `lucide:x` and clears on click (`:297-304`) |
+| `v-model` (`defineModel<string>`) | `''` | the value is the icon name in `prefix:name` form (`:48`, `:195`) |
+| `currentIcon` | `''` | legacy entry point: the current value is `modelValue \|\| currentIcon` (`:96`), so with both supplied `v-model` wins |
+| `placeholder` | `'选择图标'` | the grey placeholder text inside the trigger button (`:263`) |
+| `disabled` | `false` | lands on the trigger button's `:disabled` (`:241`); the browser then blocks the popover too |
+| `size` | `'middle'` | only swaps the trigger height class (`triggerSizeClass`, `:217-223`); the panel is unaffected |
+| `allowClear` | `true` | with a value selected, the suffix shows `lucide:x` and clears on click (`:267-273`, `:200-204`) |
 
-Events (`:24-27`):
+Events (`:42-45`):
 
 | Event | Payload | Fires |
 | --- | --- | --- |
-| `change` | the icon name, `''` when cleared | both selection (`:168`) and clearing (`:176`) |
-| `select` | the icon name | **selection only** (`:169`) — clearing does not emit it, so a `@select` listener for "the value changed" misses the clear case |
+| `change` | the icon name, `''` when cleared | both selection (`:195`) and clearing (`:203`) |
+| `select` | the icon name | **selection only** (`:196`) — clearing does not emit it, so a `@select` listener for "the value changed" misses the clear case |
 
 Internals:
 
 | Item | Detail | Location |
 | --- | --- | --- |
-| Collection list | five prefixes: `lucide` / `mdi` / `ant-design` / `fa6-regular` / `carbon` | `:35`, `:44-50` |
-| Lazy loading | one `() => import('@iconify-json/<name>/icons.json')` per collection; Vite emits a separate chunk per collection, so an untouched category is never downloaded | `:57-66` |
-| Deduplication | a prefix already loaded or in flight is skipped | `:85-99` |
-| Load failure | `console.error` plus an empty array for that category; the UI shows the "no icons" empty state | `:93-96`, `:241-245` |
-| Search | **scoped to the current category**; switching category clears the search term and resets to page 1 | `:102-110`, `:136-144` |
-| Pagination | 108 icons per page, a 12-column grid; the pager renders only past one page | `:32`, `:112-115`, `:247`, `:268-281` |
-| Preload | on page change the visible icons are fed to `loadIcons`, debounced 50ms | `:123-133` |
-| Popover | `a-popover` with click trigger, 560px content width, fixed 360px scroll area | `:197-205`, `:33`, `:231-234` |
+| Collection list | five prefixes: `lucide` / `mdi` / `ant-design` / `fa6-regular` / `carbon` | `:55` (`Prefix` union), `:62-73` (`COLLECTIONS`) |
+| Lazy loading | one `() => import('@iconify-json/<name>/icons.json')` per collection; Vite emits a separate chunk per collection, so an untouched category is never downloaded | `:75-84` |
+| Deduplication | a prefix already loaded or in flight is skipped | `:94`, `:103-121` |
+| Load failure | `console.error` plus an empty array for that category; the UI shows the shadcn `Empty` state | `:112-114`, `:328-336` |
+| Search | **scoped to the current category**; switching category clears the search term and resets to page 1 | `:123-134`, `:174-177` |
+| Pagination | 108 icons per page (`PAGE_SIZE`), a 12-column grid; the footer pager renders only past one page | `:50`, `:136-138`, `:206-209`, `:365-393` |
+| Preload | on page change the visible icons are fed to `loadIcons`, debounced 50ms | `:151-160` |
+| Popover | shadcn `Popover` with click trigger, `PopoverContent` 560px wide (`w-[560px] max-w-[92vw]`), a fixed 360px grid area scrolled by `Scrollbar` | `:232`, `:278`, `:314-320`, `:51` |
 
-::: tip Why bare `<a-popover>` works inside the package `IconPicker.vue` imports no antd component at all, yet the template writes `a-popover` / `a-select` / `a-input` / `a-pagination` / `a-tooltip` / `a-empty` / `a-spin` directly. The host provides them: `a-*` is injected at **compile time** by `unplugin-vue-components` + `AntdvNextResolver` (the comment at `apps/web/src/plugins/vendor-antd-components.ts:47-49` explains the mechanism; the plugin config is at `internal/vite-config/src/plugins/auto-import.ts:85-93`). Drop this package into a project without that plugin pair and those tags fail to resolve — it is currently `@antdv/ui`'s only implicit dependency on an external component resolver. :::
+::: tip Why the package only needs shadcn tags `IconPicker.vue` uses no antdv-next component at all: `Popover` / `Select` / `Input` / `Spinner` / `Empty` / `Tooltip` are **explicitly imported** from `@antdv/shadcn-ui` (`:5-22`), `Scrollbar` from `@antdv/scrollbar-ui` (`:4`), and the icons themselves come from `@iconify/vue`'s `<Icon>` (`:24`). Component resolvers have been removed from `internal/vite-config`, so there is no "the host injects the tags for us" implicit dependency left — any host that has these workspace packages installed can consume it. See [External modules](/en/guide/essentials/external). :::
 
 ### Live example: `/components/icon-picker`
 
@@ -224,33 +224,35 @@ Internals:
 
 ## The loading family and scroll areas
 
-### The `Loading` component (`packages/ui`)
+### The `Loading` component (`@antdv/loading-ui`)
 
-A mask that serves both fullscreen and container modes; inside it is a single antdv-next `Spin` (`packages/ui/src/loading/Loading.vue:86-97`). Props: `loading/types.ts:16-51`; defaults: `Loading.vue:14-19` — `loading` `false`, `tip` none, `size` `'default'`, `absolute` `false`, `theme` `'light'`, `background` none.
+A mask that serves both fullscreen and container modes; inside it is a single shadcn `Spinner` (`packages/ui-kit/loading-ui/src/Loading.vue:6`, `:90`). Props: `loading-ui/src/types.ts:16-51`; defaults: `Loading.vue:14-19` — `loading` `false`, `tip` none, `size` `'default'`, `absolute` `false`, `theme` `'light'`, `background` none.
 
 | Item | Actual behaviour | Location |
 | --- | --- | --- |
 | Mode switch | `absolute: false` → `fixed inset-0 h-screen w-screen` (fullscreen); `true` → `absolute inset-0 size-full` (inside a container, **which must be a positioned element**) | `:44`, `:46` |
 | Background | if `background` is given it wins as an inline style and no theme class is added | `:25-31`, `:51-66` |
-| Size | `small` / `large` are `transform: scale(0.8/1.2)`, not a different spinner | `:48-49`, `:101-107` |
-| Spin size | this package's `'default'` is mapped to antd's `'medium'` — passing `'default'` straight through prints a deprecation warning | `:71-83` |
-| Text | **`tip`** — there is no `description` field in `LoadingProps` | `types.ts:16-20` |
-| Show/hide | `v-show` plus a 300ms `loading-fade` transition | `:87-96`, `:110-118` |
+| Size | `small` / `default` / `large` are `size-4` / `size-6` / `size-9` — utility classes, not `transform: scale()` | `:76-83` |
+| Theme | four translucent backgrounds via `cn()` (light/dark × fullscreen/container); dark also sets `text-white` | `:51-66` |
+| Text | **`tip`** — there is no `description` field in `LoadingProps` | `types.ts:20` |
+| Show/hide | `v-show` plus a 300ms `loading-fade` transition | `:87-96`, `:101-109` |
+
+::: tip The `.loading-small` / `.loading-large` hooks Besides the size classes the component also carries two meaningless scope classes (`:48-49`): host styles and the e2e specs read the档位 through them, because `size-*` is exactly what `cn()`'s tailwind-merge collapses away. :::
 
 ### `useLoading` / `createLoading` / `v-loading`
 
-All three share one overlay implementation, `createOverlay` (`packages/ui/src/loading/overlay.ts:60-187`), whose key property is **lazy mounting**: `createApp` inserts DOM only when `loading` flips `false` → `true`, and flipping back waits `LEAVE_DURATION` (300ms, `:14`) before removing it (`:151-168`).
+All three share one overlay implementation, `createOverlay` (`packages/ui-kit/loading-ui/src/overlay.ts:60-187`), whose key property is **lazy mounting**: `createApp` inserts DOM only when `loading` flips `false` → `true`, and flipping back waits `LEAVE_DURATION` (300ms, `:14`) before removing it (`:160-167`).
 
 | Entry point | Signature and defaults | Location |
 | --- | --- | --- |
-| `useLoading(options?)` | composable; `body` defaults to `true` (mount on `document.body`); container mode **requires** `body: false` + `target`; returns `open / close / setLoading / setTip / destroy`; calling it inside a component auto-registers `tryOnUnmounted(destroy)` | `loading/useLoading.ts:30-51` |
-| `createLoading(options?)` | usable anywhere (route guards, interceptors); `{ body: true, ...rest }` — note the spread order, so an explicit `body: false` still wins; additionally supports `onClose`, and **only `close()` triggers it** | `loading/createLoading.ts:44-61`; the comment at `:49-52` records the earlier `{...rest, body: true}` form that clobbered container mode |
-| `createFullscreenLoading(tip?, options?)` / `createContainerLoading(target, tip?, options?)` | two shorthands; the second pins `body: false` | `:66-71`, `:76-82` |
-| `v-loading` directive | targets the element itself by default (`target: el`, `body: false`); the `.body` / `.fullscreen` modifier switches to fullscreen-on-body; configuration via the `loading-tip` / `loading-size` / `loading-theme` / `loading-background` attributes | `loading/directive.ts:33-39`, `:58-61`, `:69-86` |
+| `useLoading(options?)` | composable; `body` defaults to `true` (mount on `document.body`); container mode **requires** `body: false` + `target`; returns `open / close / setLoading / setTip / destroy`; calling it inside a component auto-registers `tryOnUnmounted(destroy)` | `loading-ui/src/useLoading.ts:30-51` |
+| `createLoading(options?)` | usable anywhere (route guards, interceptors); `{ body: true, ...rest }` — note the spread order, so an explicit `body: false` still wins; additionally supports `onClose`, and **only `close()` triggers it** | `loading-ui/src/createLoading.ts:44-61`; the comment at `:49-52` records the earlier `{...rest, body: true}` form that clobbered container mode |
+| `createFullscreenLoading(tip?, options?)` / `createContainerLoading(target, tip?, options?)` | two shorthands; the second pins `body: false` | `:66-74`, `:76-82` |
+| `v-loading` directive | targets the element itself by default (`target: el`, `body: false`); the `.body` / `.fullscreen` modifier switches to fullscreen-on-body; configuration via the `loading-tip` / `loading-size` / `loading-theme` / `loading-background` attributes | `loading-ui/src/directive.ts:34-40`, `:59-67`, `:69-86` |
 
-Instance-method semantics: `close()` waits for the fade-out and then cleans the DOM itself, while `destroy()` removes it immediately and **does not fire `onClose`** (comment in `loading/types.ts:53-84`). The difference between `setVisible(true)` and writing `loading.value = true` directly: when the state is already `true`, `setVisible` still **retries the mount** (`overlay.ts:40-47`, `:179-184`) — that is the recovery path for container-mode targets that appear later than `open()`.
+Instance-method semantics: `close()` waits for the fade-out and then cleans the DOM itself, while `destroy()` removes it immediately and **does not fire `onClose`** (comment in `loading-ui/src/types.ts:59-84`). The difference between `setVisible(true)` and writing `loading.value = true` directly: when the state is already `true`, `setVisible` still **retries the mount** (`overlay.ts:43-47`, `:179-184`) — that is the recovery path for container-mode targets that appear later than `open()`.
 
-::: warning How to actually get the target in container mode `resolveContainer` accepts a CSS selector string, an element, a ref or a getter; if it resolves to nothing it prints `console.warn('[@antdv/ui] loading: target 容器不存在，覆盖层未挂载')` and **nothing else happens** (`overlay.ts:78-87`, `:101-105`). Section 5 of the demo turns this into an in-file comment (source comments quoted verbatim):
+::: warning How to actually get the target in container mode `resolveContainer` accepts a CSS selector string, an element, a ref or a getter; if it resolves to nothing it prints `console.warn('[@antdv/loading-ui] loading: target 容器不存在，覆盖层未挂载')` and **nothing else happens** (`overlay.ts:78-87`, `:101-105`). Section 5 of the demo turns this into an in-file comment (source comments quoted verbatim):
 
 ```ts
 // views/components/loading/index.vue:292-301
@@ -266,7 +268,7 @@ const hookLoading = useLoading({
 });
 ```
 
-Passing a getter as `target` is safe: resolution is deferred until the moment the overlay actually wants to display (comment in `loading/types.ts:89-108`), so referencing a not-yet-mounted template ref during setup does not throw. :::
+Passing a getter as `target` is safe: resolution is deferred until the moment the overlay actually wants to display (comment in `loading-ui/src/types.ts:89-108`), so referencing a not-yet-mounted template ref during setup does not throw. :::
 
 ::: warning Three real bugs this family used to have (all fixed as of now)
 
@@ -274,35 +276,35 @@ Passing a getter as `target` is safe: resolution is deferred until the moment th
 2. **`useLoading()` could not find its target** — see the warning above; `useTemplateRef` must be given the key explicitly (`index.vue:292-296`).
 3. **Passing a snapshot at instance creation made `open()` a no-op** — `createApp(Loading, { loading: loading.value })` hands over the value of that instant, so later writes to the ref produce no visual change. The fix reads the refs inside `render()` so Vue can establish the dependency (`overlay.ts:120-133`; the comment states outright that this was the original bug fixed during extraction). The same class of issue once in `v-loading`: instances are cached and reused on a `WeakMap` (`directive.ts:45`, `:70-73`), so **changing `loading-size` / `loading-theme` / `loading-background` after the element is mounted is not re-read**; only `binding.arg` (`v-loading:文本=`) is synced into the tip on `updated` (`:93-99`). One more: the comment at `directive.ts:17` claims "priority: attribute > directive argument", which is the opposite of the code — `:81` reads `tip: binding.arg ?? attributeProps.tip`, so **the directive argument wins**. :::
 
-::: tip What does not exist `@antdv/ui/loading` has **no `delay` prop** and no throttling or debouncing. The "PageLoading and delayed mask" card in the demo hand-rolls that behaviour with two real timers (a request finishing under 300ms cancels the mask before it ever lights up), and its body text says explicitly that the delay policy belongs to the caller (`index.vue:319-350`, `:969-971`). :::
+::: tip What does not exist `@antdv/loading-ui` has **no `delay` prop** and no throttling or debouncing. The "PageLoading and delayed mask" card in the demo hand-rolls that behaviour with two real timers (a request finishing under 300ms cancels the mask before it ever lights up), and its body text says explicitly that the delay policy belongs to the caller (`index.vue:319-350`, `:969-971`). :::
 
 ### `Scrollbar`
 
-A self-drawn scrollbar that replaces the system one — a hard convention in this repository (modals, drawers and the menu all use it). Source `packages/ui/src/scrollbar/Scrollbar.vue`, prop types at `scrollbar/types.ts:25-40`, defaults at `Scrollbar.vue:22-41`.
+A self-drawn scrollbar that replaces the system one — a hard convention in this repository (modals, drawers and the menu all use it). Source `packages/ui-kit/scrollbar-ui/src/Scrollbar.vue` (417 lines), prop types at `scrollbar-ui/src/types.ts:25-40`, defaults at `Scrollbar.vue:22-41`.
 
 | Prop | Default | Behaviour / location |
 | --- | --- | --- |
-| `native` | `false` | `true` hands scrolling back to the browser and the self-drawn `Bar` block is not rendered at all |
-| `rootClass` | none → `'h-full'` | root class name; omit it and you get `h-full` (`:270`) |
-| `wrapClass` / `wrapStyle` / `viewClass` / `viewStyle` | `''` | applied to the scroll layer and the content layer respectively (`:274-289`) |
-| `maxHeight` | none | **only writes a `max-height` inline style when supplied** (`:94-100`); the value is computed responsively — see the warning below |
-| `always` | `false` | `true` keeps the bar visible instead of fading it out |
+| `native` | `false` | `true` hands scrolling back to the browser and the self-drawn `Bar` block is not rendered at all (`:288`, `:65`) |
+| `rootClass` | none → `'h-full'` | root class name; omit it and you get `h-full` (`:271`) |
+| `wrapClass` / `wrapStyle` / `viewClass` / `viewStyle` | `''` | applied to the scroll layer and the content layer respectively (`:275-288`) |
+| `maxHeight` | none | **only writes a `max-height` inline style when supplied** (`:93-99`); the value is computed responsively — see the warning below |
+| `always` | `false` | `true` keeps the bar visible instead of fading it out (`:82`) |
 | `hideDelay` | `800` | delay before the bar hides after scrolling stops (`:73-79`) |
-| `minSize` | `20` | minimum bar length |
-| `tag` | `'div'` | tag of the content layer (`:282-289`) |
+| `minSize` | `20` | minimum bar length (`:146`, `:152`) |
+| `tag` | `'div'` | tag of the content layer (`:281-283`) |
 | `noresize` / `scrollHeight` | `false` / `0` | declared in the type; no demo uses them |
 
-There is exactly one event: `@scroll`, payload `{ scrollTop, scrollLeft }` (`:43-45`, `:127`). Instance methods: `wrap` (the scroll container element ref), `update`, `setScrollTop`, `setScrollLeft`, `scrollTo`, `handleScroll` (`defineExpose` at `:256-263`). `setScrollTop/Left` reject `NaN` and non-finite values — the comment explains why: assigning `NaN` to `scrollTop` is silently treated as `0` by the browser (`:235-250`).
+There is exactly one event: `@scroll`, payload `{ scrollTop, scrollLeft }` (`:43-45`, `:127`). Instance methods: `wrap` (the scroll container element ref), `update`, `setScrollTop`, `setScrollLeft`, `scrollTo`, `handleScroll` (`defineExpose` at `:257-264`). `setScrollTop/Left` reject `NaN` and non-finite values — the comment explains why: assigning `NaN` to `scrollTop` is silently treated as `0` by the browser (`:234-254`).
 
-::: warning Do not use `max-height` casually `maxHeight` is used as the _base value_ for `useResponsiveMaxHeight` (base default 495), and that hook's `min` floor defaults to **712px** with exponent 1.938 against a 1080 reference height (`packages/ui/src/scrollbar/useResponsiveMaxHeight.ts:44-52`). So on a 1080-high window, `:max-height="400"` goes through `clamp(400, 712, ∞)` and becomes **712px** — the shorter box you asked for is unreachable. For a genuinely smaller fixed height, use a class like the drawer demo does: `root-class="h-60"` (`apps/web/src/views/components/modal-drawer/index.vue:540-543`, `:577-580`). :::
+::: warning Do not use `max-height` casually `maxHeight` is used as the _base value_ for `useResponsiveMaxHeight` (base default 495, `Scrollbar.vue:47-48`), and that hook's `min` floor defaults to **712px** with exponent 1.938 against a 1080 reference height (`packages/ui-kit/scrollbar-ui/src/useResponsiveMaxHeight.ts:42-52`). So on a 1080-high window, `:max-height="400"` goes through `clamp(400, 712, ∞)` and becomes **712px** — the shorter box you asked for is unreachable. For a genuinely smaller fixed height, use a class like the drawer demo does: `root-class="h-60"` (`apps/web/src/views/components/modal-drawer/index.vue:540-543`, `:577-580`). :::
 
-::: warning Its styles do not depend on the host Tailwind The `<style>` block in `Scrollbar.vue` deliberately avoids `@apply` and expands the utility classes into equivalent native CSS inside `@layer components` (`:310-321`; the comment gives the reason: a standalone SFC has no `@import 'tailwindcss'`, so the build fails with `Cannot apply unknown utility class`). This is precisely what lets the component live in `packages/ui`. :::
+::: warning Its styles do not depend on the host Tailwind The `<style>` block in `Scrollbar.vue` deliberately avoids `@apply` and expands the utility classes into equivalent native CSS inside `@layer components` (`:316-324`; the comment gives the reason: a standalone SFC has no `@import 'tailwindcss'`, so the build fails with `Cannot apply unknown utility class`, and the components layer keeps the template's own `flex-1 / min-h-0` utilities able to override). This is precisely what lets the component live in its own package. :::
 
-As for registration, `Scrollbar` can be imported explicitly (`views/components/scroll/basic/index.vue:5` does) or used as a bare tag (`BasicDrawer.vue:262`, `ModalWrapper.vue:70`), because `unplugin-vue-components` lists it in `apps/web/types/components.d.ts`.
+As for registration, `Scrollbar` is **always imported explicitly**: `views/components/scroll/basic/index.vue:4`, `BasicDrawer.vue:9`, `ModalWrapper.vue:4`, `TreeTable.vue:12` and the rest all do `import { Scrollbar } from '@antdv/scrollbar-ui'`. There is no component resolver left in `internal/vite-config`, so the "write a bare tag and let `components.d.ts` generate it" style can no longer appear (see [External modules](/en/guide/essentials/external)).
 
 ### Live examples: `/components/loading` and `/components/scroll/basic`
 
-`http://localhost:6080/#/components/loading` — source `apps/web/src/views/components/loading/index.vue` (1187 lines, **12 sections**; the first five demo thin shells on the application side, which are not part of `packages/ui`). Every "load duration" here is a `setTimeout` inside the page — there is no backend. The script opens with a timer registry plus unmount cleanup (`:38-66`), and leaving the page explicitly `destroy()`s even the fullscreen mask (`:60-66`).
+`http://localhost:6080/#/components/loading` — source `apps/web/src/views/components/loading/index.vue` (1187 lines, **12 sections**; the first five demo thin shells on the application side, which belong to no shared package). Every "load duration" here is a `setTimeout` inside the page — there is no backend. The script opens with a timer registry plus unmount cleanup (`:38-66`), and leaving the page explicitly `destroy()`s even the fullscreen mask (`:60-66`).
 
 | Section | What to click / look at |
 | --- | --- |
@@ -314,7 +316,7 @@ As for registration, `Scrollbar` can be imported explicitly (`views/components/s
 | Skeleton `:846-907` | plain antdv-next `Skeleton` |
 | `Loading` component (project wrapper) `:909-961` | sizes `small/default/large` × themes `light/dark`; "触发 Loading" shows the in-container mask; the `tip="组件式加载中..."` line and its `description` correction comment are at `:951-958` |
 | PageLoading and delayed mask `:963-1012` | left: `PageLoading` over a container — it reads `resolvedTheme` from the app store to decide light/dark (`apps/web/src/components/common/Loading/PageLoading.vue:6`, `:22-24`), the textbook example of "a shell that needs a store stays in the app"; right: "fast request 150ms" never flashes the mask, "slow request 1800ms" does |
-| `v-loading` directive `:1014-1058` | three blocks: default light (`v-loading="directiveLoading"`), dark + large + the `loading-tip` attribute, and `v-loading.fullscreen` for the whole page; the directive is registered in `apps/web/src/main.ts:100` |
+| `v-loading` directive `:1014-1058` | three blocks: default light (`v-loading="directiveLoading"`), dark + large + the `loading-tip` attribute, and `v-loading.fullscreen` for the whole page; the directive is registered in `apps/web/src/main.ts:113` (implementation in `packages/ui-kit/loading-ui/src/directive.ts`) |
 | `useLoading` hook `:1060-1103` | "触发 useLoading" → an in-container mask for 2.5s; the section also prints a `target / body / tip` snippet |
 | Button loading state `:1105-1149` | antdv-next `Button`'s own `loading` prop — unrelated to this project |
 | Global mask `:1151-1185` | "模拟 API 请求 (全屏遮罩)" → `createLoading` opens fullscreen, `setTip('即将完成...')` at 1.5s, `close()` at 3s (`:400-415`) |
@@ -325,7 +327,7 @@ As for registration, `Scrollbar` can be imported explicitly (`views/components/s
 | --- | --- | --- |
 | Basic Scroll (`:94-134`) | drag the list | 30 items scrolling inside an `h-80` box via the self-drawn bar; it fades out 800ms after you stop |
 |  | **click "Add Item"** | **nothing happens at all** — see the warning below |
-| Horizontal Scroll (`:136-155`) | drag sideways | 10 framework cards, `flex min-w-max` forces horizontal overflow and the horizontal bar appears (the `hasHorizontal` branch, `Scrollbar.vue:293-298`) |
+| Horizontal Scroll (`:136-155`) | drag sideways | 10 framework cards, `flex min-w-max` forces horizontal overflow and the horizontal bar appears (the `hasHorizontal` branch, `Scrollbar.vue:161`, `:293`) |
 | Chat Scroll (`:157-199`) | Enter in the input, or Send | messages append to `chatMessages` (a `ref`, `:29-73`), bubbles aligned left/right; `Scrollbar class="flex-1 p-4"` (`:162`) fills the remaining height of the flex column |
 
 ::: warning "Add Item" is the only broken button on these pages `basicItems` is declared as a **plain array constant** — neither `ref` nor `reactive`:
@@ -337,17 +339,25 @@ const basicItems = Array.from({ length: 30 }, (_, i) => ({/* ... */}));
 
 The button runs `basicItems.push(...)` (`:96-106`). With no reactive proxy behind it, `v-for="item in basicItems"` (`:113`) never re-renders, so clicking leaves the list the same length and raises no error. For contrast, the chat section on the same page uses `ref([])` (`:29`) and its Send works. Wrapping `basicItems` in a `ref` would fix it; this page documents the current state only. :::
 
-## The `packages/ui` package boundary
+## Which package each atom lives in
 
-The four atoms on this page (`IconPicker`, `Loading`, `Scrollbar`, plus the `Spin` that `Loading` renders) all live in `packages/ui`, and the boundary is written into the package manifest itself:
+The old `@antdv/ui` package has been taken apart, and the three atoms on this page each have their own home; the pure-antd demos (`Spin`, `Skeleton`) do not count:
+
+| Package | Contents | Boundary (written into `description`) | Exports |
+| --- | --- | --- | --- |
+| `@antdv/icons` (`packages/icons`) | `IconPicker` / `IconifyIcon` / `SvgIcon` | icons only: loading overlays belong to `@antdv/loading-ui`, scrollbars to `@antdv/scrollbar-ui` | `.:src/index.ts` + the `./icon` subpath + `createIconInstaller()` (`:13-31`) |
+| `@antdv/loading-ui` (`packages/ui-kit/loading-ui`) | `Loading` + `useLoading` + `createLoading` / `createContainerLoading` / `createFullscreenLoading` + `vLoading` | no pinia, vue-router, business stores or application configuration | single-entry barrel (`src/index.ts:1-26`) |
+| `@antdv/scrollbar-ui` (`packages/ui-kit/scrollbar-ui`) | `Scrollbar` + `Bar` | styles travel with the component — no host Tailwind config, no store or app configuration | single-entry barrel (`src/index.ts:1-10`) |
+
+All three have `files: ["src"]` and point `main`/`types` at `./src/index.ts` — that is, **source-published**: the host Vite compiles them directly and there is no dist build step (rationale in [External modules](/en/guide/essentials/external)).
 
 | Convention | Source |
 | --- | --- |
-| "does not depend on pinia, vue-router, business stores or application configuration — shells that need those stay in the app" | `packages/ui/package.json:4` (the `description` field) |
-| Export style is subpaths: `@antdv/ui/icon`, `@antdv/ui/loading`, `@antdv/ui/scrollbar`, plus a `createUiInstaller()` for global registration (components + the `v-loading` directive) | the `exports` field of `packages/ui/package.json`, `packages/ui/src/index.ts:15-44` |
-| No implicit auto-import globals inside the package: `useResponsiveMaxHeight.ts` imports `toValue` / `MaybeRefOrGetter` explicitly, and the comment notes that another host would fail with `toValue is not defined` | `packages/ui/src/scrollbar/useResponsiveMaxHeight.ts:8-12` |
-| Configuration stays out of the package: `native` is passed in by the caller, the package never reads app config | `packages/ui/src/scrollbar/Scrollbar.vue:23-28` |
-| Styles are self-contained, independent of the host Tailwind | `Scrollbar.vue:310-321` |
+| "does not depend on pinia, vue-router, business stores or application configuration — shells that need those stay in the app" | the `description` field of the three `package.json` files (`packages/icons/package.json:4` etc.) |
+| Components inside a package are **always imported explicitly**, never resolved by the host | `IconPicker.vue:4-24`; the resolvers were withdrawn from `internal/vite-config/src/plugins/auto-import.ts` |
+| No implicit auto-import globals inside a package: `useResponsiveMaxHeight.ts` imports `toValue` / `MaybeRefOrGetter` explicitly, and the comment notes that another host would fail with `toValue is not defined` | `packages/ui-kit/scrollbar-ui/src/useResponsiveMaxHeight.ts:1-12` |
+| Configuration stays out of the package: `native` is passed in by the caller, the package never reads app config | `packages/ui-kit/scrollbar-ui/src/Scrollbar.vue:23-28` |
+| Styles are self-contained, independent of the host Tailwind | `Scrollbar.vue:316-324` |
 | Conversely, application-side shells should read stores when they need to: `PageLoading` reads `useAppStore().resolvedTheme` | `apps/web/src/components/common/Loading/PageLoading.vue:6`, `:22-24` |
 
 ## Related

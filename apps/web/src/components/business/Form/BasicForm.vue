@@ -21,9 +21,10 @@ import {
   watch,
 } from 'vue';
 
+import { IconifyIcon } from '@antdv/icons/icon';
 import { cn } from '@antdv/shared/cn';
-import { IconifyIcon } from '@antdv/ui/icon';
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
+import { Button as AButton, Col as ACol, Divider as ADivider, Form as AForm, Row as ARow } from 'antdv-next';
 
 import FormItem from './components/FormItem.vue';
 import { deepMerge, formatDateFields, handleRangeValue } from './helper';
@@ -448,7 +449,7 @@ defineExpose(formActionType);
 </script>
 
 <template>
-  <a-form
+  <AForm
     ref="formRef"
     :model="formModel"
     :label-align="getProps.labelAlign || 'right'"
@@ -460,7 +461,7 @@ defineExpose(formActionType);
     v-bind="aFormAttrs"
     @finish="handleSubmit"
   >
-    <a-row v-bind="getRowProps">
+    <ARow v-bind="getRowProps">
       <!-- 普通字段 -->
       <template v-for="schema in displayFields" :key="schema.field">
         <FormItem
@@ -484,22 +485,22 @@ defineExpose(formActionType);
         v-for="(schema, index) in displayDividers"
         :key="`divider-${index}`"
       >
-        <a-col :span="24">
-          <a-divider v-bind="schema.componentProps">
+        <ACol :span="24">
+          <ADivider v-bind="schema.componentProps">
             {{ schema.label }}
-          </a-divider>
-        </a-col>
+          </ADivider>
+        </ACol>
       </template>
 
       <!-- 操作按钮 -->
-      <a-col
+      <ACol
         v-if="getProps.showActionButtonGroup"
         :span="needCollapse ? 24 : undefined"
         :class="cn('flex justify-end', !needCollapse && 'flex-1')"
       >
         <div class="flex flex-wrap gap-2">
           <slot name="submitBefore"></slot>
-          <a-button
+          <AButton
             v-if="getProps.showSubmitButton"
             type="primary"
             html-type="submit"
@@ -508,21 +509,21 @@ defineExpose(formActionType);
               <IconifyIcon :icon="getSubmitButtonOptions.preIcon" />
             </template>
             {{ getSubmitButtonOptions.text }}
-          </a-button>
+          </AButton>
           <slot name="resetBefore"></slot>
-          <a-button v-if="getProps.showResetButton" @click="handleReset">
+          <AButton v-if="getProps.showResetButton" @click="handleReset">
             <template v-if="getResetButtonOptions.preIcon" #icon>
               <IconifyIcon :icon="getResetButtonOptions.preIcon" />
             </template>
             {{ getResetButtonOptions.text }}
-          </a-button>
-          <a-button v-if="needCollapse" type="link" @click="toggleAdvanced">
+          </AButton>
+          <AButton v-if="needCollapse" type="link" @click="toggleAdvanced">
             <IconifyIcon :icon="getAdvancedButtonOptions.icon" class="mr-1" />
             {{ getAdvancedButtonOptions.text }}
-          </a-button>
+          </AButton>
           <slot name="actionAfter"></slot>
         </div>
-      </a-col>
-    </a-row>
-  </a-form>
+      </ACol>
+    </ARow>
+  </AForm>
 </template>

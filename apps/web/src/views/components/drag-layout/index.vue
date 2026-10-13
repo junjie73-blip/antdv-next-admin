@@ -5,6 +5,7 @@ import { ref } from 'vue';
 import { VueDraggable } from 'vue-draggable-plus';
 
 import { cn } from '@antdv/shared/cn';
+import { Button as AButton, Card as ACard, Col as ACol, Row as ARow, Switch as ASwitch, Tag as ATag } from 'antdv-next';
 
 /**
  * 这一页讲的是「布局 / 卡片 / 列表」的拖拽，用 `vue-draggable-plus` 的 `VueDraggable` 组件；
@@ -375,7 +376,7 @@ function toggleLocked(item: RuleItem) {
 
 <template>
   <div :class="containerClassName">
-    <a-card title="基础列表拖拽" variant="borderless">
+    <ACard title="基础列表拖拽" variant="borderless">
       <div :class="descClassName">
         `VueDraggable` 用 `v-model`
         直接接管数组：松手时库已经在老下标和新下标之间把元素 splice
@@ -404,13 +405,13 @@ function toggleLocked(item: RuleItem) {
       </VueDraggable>
       <div :class="orderRowClassName">
         <span :class="noteClassName">当前顺序（来自 v-model，实时）：</span>
-        <a-tag v-for="(item, index) in basicList" :key="item.id" color="blue">
+        <ATag v-for="(item, index) in basicList" :key="item.id" color="blue">
           {{ index + 1 }}. {{ item.name }}
-        </a-tag>
+        </ATag>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="手柄拖拽" variant="borderless">
+    <ACard title="手柄拖拽" variant="borderless">
       <div :class="descClassName">
         `handle: '.drag-grip'` 把拖拽触发区收敛到左边的 ⠿：行内文字保持可选中，
         划词复制、双击选词都正常，不会出现「想抄一句话却把整行拖走」。
@@ -437,9 +438,9 @@ function toggleLocked(item: RuleItem) {
           </div>
         </div>
       </VueDraggable>
-    </a-card>
+    </ACard>
 
-    <a-card title="两个列表互拖" variant="borderless">
+    <ACard title="两个列表互拖" variant="borderless">
       <div :class="toolbarClassName">
         <span :class="descClassName">
           两边共用同一个 `group`（名字必须相同），条目就能左右互转：跨容器时
@@ -449,14 +450,14 @@ function toggleLocked(item: RuleItem) {
           `min-h-[112px]`）—— 塌成 0
           高的空列表接不住落点，`emptyInsertThreshold`（默认 5px）根本够不着。
         </span>
-        <a-button size="small" @click="resetPanelLists">还原示例数据</a-button>
+        <AButton size="small" @click="resetPanelLists">还原示例数据</AButton>
       </div>
-      <a-row :gutter="[16, 16]">
-        <a-col :xs="24" :md="12">
+      <ARow :gutter="[16, 16]">
+        <ACol :xs="24" :md="12">
           <div :class="panelClassName">
             <div :class="panelHeadClassName">
               <span>待选组件</span>
-              <a-tag color="orange">{{ candidateList.length }} 项</a-tag>
+              <ATag color="orange">{{ candidateList.length }} 项</ATag>
             </div>
             <VueDraggable
               v-model="candidateList"
@@ -476,12 +477,12 @@ function toggleLocked(item: RuleItem) {
               </div>
             </VueDraggable>
           </div>
-        </a-col>
-        <a-col :xs="24" :md="12">
+        </ACol>
+        <ACol :xs="24" :md="12">
           <div :class="panelClassName">
             <div :class="panelHeadClassName">
               <span>已选上墙</span>
-              <a-tag color="green">{{ chosenList.length }} 项</a-tag>
+              <ATag color="green">{{ chosenList.length }} 项</ATag>
             </div>
             <VueDraggable
               v-model="chosenList"
@@ -503,11 +504,11 @@ function toggleLocked(item: RuleItem) {
               </div>
             </VueDraggable>
           </div>
-        </a-col>
-      </a-row>
-    </a-card>
+        </ACol>
+      </ARow>
+    </ACard>
 
-    <a-card title="栅格卡片布局拖拽" variant="borderless">
+    <ACard title="栅格卡片布局拖拽" variant="borderless">
       <div :class="toolbarClassName">
         <span :class="descClassName">
           把上面那套配置原样搬进响应式栅格就行：`animation`、`ghostClass`（要跨容器互拖再加同一个
@@ -517,7 +518,7 @@ function toggleLocked(item: RuleItem) {
           必须自己就是栅格容器（它默认渲染一个 `div`，`tag`
           可换），卡片外面再套一层 wrapper 就拖不动了。
         </span>
-        <a-button size="small" @click="resetCardOrder">还原卡片顺序</a-button>
+        <AButton size="small" @click="resetCardOrder">还原卡片顺序</AButton>
       </div>
       <VueDraggable
         v-model="cardList"
@@ -533,7 +534,7 @@ function toggleLocked(item: RuleItem) {
         >
           <div class="flex items-center justify-between">
             <span :class="cardTitleClassName">{{ card.title }}</span>
-            <a-tag>{{ index + 1 }}</a-tag>
+            <ATag>{{ index + 1 }}</ATag>
           </div>
           <div :class="cardValueClassName">{{ card.value }}</div>
           <div :class="cardBarClassName">
@@ -550,9 +551,9 @@ function toggleLocked(item: RuleItem) {
           <div :class="noteClassName">环比 {{ card.delta }}</div>
         </div>
       </VueDraggable>
-    </a-card>
+    </ACard>
 
-    <a-card title="约束与开关" variant="borderless">
+    <ACard title="约束与开关" variant="borderless">
       <div :class="toolbarClassName">
         <span :class="descClassName">
           三个约束同时生效：`disabled` 由开关驱动，整列表冻结；`filter`
@@ -562,7 +563,7 @@ function toggleLocked(item: RuleItem) {
         </span>
         <span class="flex items-center gap-2">
           <span :class="noteClassName">整列表禁用</span>
-          <a-switch v-model:checked="dragDisabled" />
+          <ASwitch v-model:checked="dragDisabled" />
         </span>
       </div>
       <VueDraggable
@@ -589,11 +590,11 @@ function toggleLocked(item: RuleItem) {
         >
           <span :class="indexClassName">{{ index + 1 }}</span>
           <span :class="titleClassName">{{ item.name }}</span>
-          <a-tag v-if="item.locked" color="red">filter 命中 · 拖不起</a-tag>
-          <a-tag v-else color="green">可拖动</a-tag>
-          <a-button size="small" @click="toggleLocked(item)">
+          <ATag v-if="item.locked" color="red">filter 命中 · 拖不起</ATag>
+          <ATag v-else color="green">可拖动</ATag>
+          <AButton size="small" @click="toggleLocked(item)">
             {{ item.locked ? '解锁' : '锁定' }}
-          </a-button>
+          </AButton>
         </div>
       </VueDraggable>
       <div :class="payloadRowClassName">
@@ -602,9 +603,9 @@ function toggleLocked(item: RuleItem) {
           {{ lastOrder || '还没拖过，先把上面的行拖一下' }}
         </span>
         <span v-if="lastMove" :class="noteClassName">下标 {{ lastMove }}</span>
-        <a-tag v-if="dragDisabled" color="volcano">
+        <ATag v-if="dragDisabled" color="volcano">
           disabled: true，现在拖不动
-        </a-tag>
+        </ATag>
       </div>
       <div :class="descClassName">
         两个容易忽略的点：`preventOnFilter` 默认是 `true`，它会对被 `filter`
@@ -613,7 +614,7 @@ function toggleLocked(item: RuleItem) {
         `filter` 改值不需要重建拖拽实例， 库对 options 做深比较后逐项
         `sortable.option()` 回灌，开关一拨立刻生效。
       </div>
-    </a-card>
+    </ACard>
   </div>
 </template>
 

@@ -64,5 +64,5 @@
 
 ## 相关
 
-- 提交信息怎么写、有哪些类型前缀：[规范](/guide/project/protocol)
-- changeset 与 catalog 依赖版本的关系：[项目更新](/guide/other/project-update)
+- 提交信息怎么写、有哪些类型前缀：[规范](/zh/guide/project/protocol)
+- changeset 与 catalog 依赖版本的关系：[项目更新](/zh/guide/other/project-update)

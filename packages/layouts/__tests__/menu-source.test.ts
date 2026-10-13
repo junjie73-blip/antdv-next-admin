@@ -92,7 +92,7 @@ describe('createMenuTreeSource', () => {
      * 「隐藏」的语义是"不在导航里出现"，不是"这个页面不存在"。
      * 所以补 path 这一步不能顺手把 hidden 剪掉 —— 直达链接、标签页标题、
      * 一级导航归属都还要在这棵树上反查。真正渲染导航的三个出口（topMenus /
-     * sidebarMenus / buildMenuItems）各自会再过滤一次，两侧都在测试里钉住。
+     * sidebarMenus / railMenus）各自会再过滤一次，两侧都在测试里钉住。
      */
     const { menus } = makeSource();
     expect(menus.value.map((menu) => menu.path)).toEqual([

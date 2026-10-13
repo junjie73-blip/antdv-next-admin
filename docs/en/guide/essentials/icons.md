@@ -4,15 +4,15 @@ Three icon channels coexist here, each with its own use case and its own failure
 
 | Channel | Dependency | How you write it | State in this repo |
 | --- | --- | --- | --- |
-| Offline Iconify sets | `@iconify/vue` `^5.0.3` + five `@iconify-json/*` sets | `<Icon icon="carbon:search" />` | the workhorse: 460+ `carbon:` literals and ~90 `ant-design:` under `apps`/`packages`, `lucide:` in single digits |
-| antdv-next's own icon components | `@antdv-next/icons` `^1.1.2` | `import { SearchOutlined } from '@antdv-next/icons'` | narrow: login/register pages, tab close button, big-screen header — 7 files |
+| Offline Iconify sets | `@iconify/vue` `^5.0.3` + five `@iconify-json/*` sets | `<Icon icon="carbon:search" />` | the workhorse: 420+ `carbon:` literals and ~110 `ant-design:` under `apps`/`packages`, `lucide:` in single digits (almost all inside `IconPicker`) |
+| antdv-next's own icon components | `@antdv-next/icons` `^1.1.2` | `import { SearchOutlined } from '@antdv-next/icons'` | narrow: login, register, import/export, tenant select and the big-screen header — 5 source files (plus one test) |
 | Local SVG sprite | `vite-plugin-svg-icons` `^2.0.1` | `<SvgIcon name="logo" />` | wired up, but `apps/web/src/assets/icons` is **empty** |
 
 Versions come from the catalog in `pnpm-workspace.yaml`; don't read a sub-package manifest to find one.
 
 ## Iconify: offline data by default
 
-Offline serving comes from `@tomjs/vite-plugin-iconify` (`internal/vite-config/src/plugins/auto-import.ts:95-97`):
+Offline serving comes from `@tomjs/vite-plugin-iconify` (`internal/vite-config/src/plugins/auto-import.ts:55-57`):
 
 ```ts
 iconifyOffline({
@@ -20,7 +20,7 @@ iconifyOffline({
 });
 ```
 
-Each set listed in `local` is read from `@iconify-json/<name>/icons.json` and handed to `@iconify/vue` at build time, so the browser **never** calls the Iconify API. Which five are installed: `packages/ui/package.json` lists all five; `apps/web` carries `carbon` in dependencies (`:37`) and `ant-design` / `fa6-regular` / `lucide` / `mdi` in devDependencies (`:121-124`).
+Each set listed in `local` is read from `@iconify-json/<name>/icons.json` and handed to `@iconify/vue` at build time, so the browser **never** calls the Iconify API. Which five are installed: `packages/icons/package.json` lists all five (`:28-32`); `apps/web` carries `carbon` in dependencies (`:46`) and `ant-design` / `fa6-regular` / `lucide` / `mdi` in devDependencies (`:131-134`).
 
 `mdi` and `fa6-regular` currently have **no code references at all** (zero literals under `apps`/`packages`) — they exist so users can browse them in `IconPicker`. In other words, the offline list equals "sets the picker can search", not "sets the app uses".
 
@@ -32,20 +32,20 @@ Each set listed in `local` is read from `@iconify-json/<name>/icons.json` and ha
 
 | Component | Source | When to reach for it |
 | --- | --- | --- |
-| `<Icon>` | `@iconify/vue`, re-connected to auto-import by `IconifyResolver` (`auto-import.ts:44-50`) | first choice; writing the explicit `import { Icon } from '@iconify/vue'` reads better and both work |
-| `IconifyIcon` | `packages/ui/src/icon/IconifyIcon.vue` | when you want that wrapper's `size` default of `16`, `mode`, flips and `rotate`; also resolvable without an import |
-| `IconPicker` | `packages/ui/src/icon/IconPicker.vue` | letting a human pick an icon in a form (menu management `views/system/menu/index.vue`, demo page `views/components/icon-picker/index.vue`) |
-| `SvgIcon` | `packages/ui/src/icon/SvgIcon.vue` | brand marks and multicolor glyphs (Iconify handles multicolor poorly); renders `<use xlink:href="#icon-xxx">` |
+| `<Icon>` | `@iconify/vue` — you **must write `import { Icon } from '@iconify/vue'` explicitly** (`IconifyResolver` was withdrawn together with the auto-import setup) | first choice; every file that writes a bare `<Icon>` now imports it in its own header |
+| `IconifyIcon` | `packages/icons/src/icon/IconifyIcon.vue`, `import { IconifyIcon } from '@antdv/icons/icon'` | when you want that wrapper's `size` default of `16`, `mode`, flips and `rotate` |
+| `IconPicker` | `packages/icons/src/icon/IconPicker.vue` (shadcn-ui implementation: `Popover` + `Select` + `Input` + `Tooltip`, with `@antdv/scrollbar-ui` for the scroll area) | letting a human pick an icon in a form (menu management `views/system/menu/index.vue`, demo page `views/components/icon-picker/index.vue`) |
+| `SvgIcon` | `packages/icons/src/icon/SvgIcon.vue` | brand marks and multicolor glyphs (Iconify handles multicolor poorly); renders `<use xlink:href="#icon-xxx">` |
 
 `IconifyIcon` deliberately assigns no defaults to its optional props (the file header explains it): supplying `''` or `0` turns "not set" into "explicitly set to empty", which overrides `@iconify/vue`'s own fallbacks (color inheriting `currentColor`, size falling back to `size`).
 
-`IconPicker` loads its name lists **lazily**: each of the five sets is a `() => import('@iconify-json/<name>/icons.json')` (`IconPicker.vue:57-66`), so Vite splits them into separate chunks and nothing is fetched until you switch to that category. Offline does not mean "all five sets in the first paint": only components actually rendered pull icon data, and the full JSON appears on demand in the picker (`mdi`'s single JSON is about 3 MB — the audit test's timeout comment calls this out).
+`IconPicker` loads its name lists **lazily**: each of the five sets is a `() => import('@iconify-json/<name>/icons.json')` (`IconPicker.vue:75-86`), so Vite splits them into separate chunks and nothing is fetched until you switch to that category. Offline does not mean "all five sets in the first paint": only components actually rendered pull icon data, and the full JSON appears on demand in the picker (`mdi`'s single JSON is about 3 MB — the audit test's timeout comment calls this out).
 
 ::: tip Adding a set touches five places
 
 1. add `@iconify-json/<name>` to the catalog in `pnpm-workspace.yaml` and reference it with `"catalog:"` in the consuming package;
-2. the `local` array at `auto-import.ts:96`;
-3. `IconPicker.vue` — the `Prefix` union, `COLLECTIONS`, and `COLLECTION_LOADERS` (miss this and the set can neither be selected nor searched);
+2. the `local` array at `auto-import.ts:56`;
+3. `IconPicker.vue` — the `Prefix` union (`:53`), `COLLECTIONS` (`:62`) and `COLLECTION_LOADERS` (`:75`) (miss this and the set can neither be selected nor searched);
 4. `apps/web/test/icon-names.test.ts` — `COLLECTIONS` and the collection alternation in `LITERAL`;
 5. run `pnpm --filter @antdv/web build` once to confirm the data really is in the output. :::
 

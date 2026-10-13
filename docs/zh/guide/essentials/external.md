@@ -4,9 +4,9 @@
 
 | 你要做的事 | 真实链路 | 关键出处 |
 | --- | --- | --- |
-| 加一个第三方依赖 | 根 `pnpm-workspace.yaml` 的 `catalog:` + 子包 `package.json` 的 `catalog:` | `pnpm-workspace.yaml:19-266` |
-| 判断它进不进产物 | 看它在 `dependencies` 还是 `devDependencies`，再看分包规则 | `apps/web/package.json:16-113`、`internal/vite-config/src/optimize.ts:1-41` |
-| 用它的组件 | 编译期 resolver / 运行期 `app.component` / 生成的 `.d.ts`，三件事 | `internal/vite-config/src/plugins/auto-import.ts:85-94` |
+| 加一个第三方依赖 | 根 `pnpm-workspace.yaml` 的 `catalog:` + 子包 `package.json` 的 `catalog:` | `pnpm-workspace.yaml:19-273` |
+| 判断它进不进产物 | 看它在 `dependencies` 还是 `devDependencies`，再看分包规则 | `apps/web/package.json:17-125`、`internal/vite-config/src/optimize.ts:1-41` |
+| 用它的组件 | 显式 `import` / 运行期 `app.component` / 生成的 `.d.ts`，三件事 | `apps/web/src/plugins/vendor-antd-components.ts:59-118` |
 | 把内部包给外部项目 | `exports` 子路径 + `files: ["dist"]` + 包边界 + 锁步版本 | `packages/shared/package.json:14-43`、`.changeset/config.json:10-17` |
 | 接一个外部子应用 | 注册表 + `VITE_MICRO_APP` + iframe 兜底 | `apps/web/src/config/micro-app.ts:5-92` |
 
@@ -16,11 +16,11 @@
 
 | 步骤 | 位置 | 做什么 | 依据 |
 | --- | --- | --- | --- |
-| 1 | `pnpm-workspace.yaml` 的 `catalog:` | 加一行 `some-lib: ^1.2.3`，这是全仓唯一的版本来源 | `pnpm-workspace.yaml:19-266`（当前 241 条） |
-| 2 | 消费方 `package.json` | 在对应包里写 `"some-lib": "catalog:"`，**不要写字面量版本** | `apps/web/package.json:17-112` 几乎全是 `catalog:` |
-| 3 | 判断篮子 | 只在 Node 里用（vite 插件、解析器、CLI）→ `devDependencies`；要进浏览器 → `dependencies` | `apps/web/package.json:114-178` |
+| 1 | `pnpm-workspace.yaml` 的 `catalog:` | 加一行 `some-lib: ^1.2.3`，这是全仓唯一的版本来源 | `pnpm-workspace.yaml:19-273`（当前 254 条） |
+| 2 | 消费方 `package.json` | 在对应包里写 `"some-lib": "catalog:"`，**不要写字面量版本** | `apps/web/package.json:17-125` 全是 `catalog:` / `workspace:*` |
+| 3 | 判断篮子 | 只在 Node 里用（vite 插件、CLI）→ `devDependencies`；要进浏览器 → `dependencies` | `apps/web/package.json:126-190` |
 | 4 | 仓库根 `pnpm install` | 重算 `pnpm-lock.yaml`；CI 用 `--frozen-lockfile`，锁文件没跟上就直接红 | `.github/workflows/docs.yml:56` |
-| 5 | 只在需要时用 `overrides` | 出现"两份实例"（同名包被不同 peer 树各装一遍）才加，见下 | `pnpm-workspace.yaml:292-297` |
+| 5 | 只在需要时用 `overrides` | 出现"两份实例"（同名包被不同 peer 树各装一遍）才加，见下 | `pnpm-workspace.yaml:303-308` |
 
 ::: warning `pnpm add` 不会替你写 `catalog:` `pnpm-workspace.yaml` 里**没有** `useCatalog` 这个键（全文的键：`packages` / `allowBuilds` / `autoInstallPeers` / `catalog` / `catalogs` / `dedupePeerDependents` / `ignoredBuiltDependencies` / `minimumReleaseAge` / `onlyBuiltDependencies` / `overrides` / `publicHoistPattern` / `strictPeerDependencies` / `verifyDepsBeforeRun`）。所以 `pnpm add some-lib` 落进 `package.json` 的是字面范围号，第 2 步得手工补：先在 `catalog:` 加行，再把子包那行改成 `"catalog:"`。已经漏网的三条见下面警告。:::
 
@@ -37,7 +37,7 @@ pnpm check:dep                  # knip：确认它真的被 import 了（也确�
 
 为什么第 4 步要在**仓库根**跑：`catalog:`、`overrides`、`pnpm-lock.yaml` 都是 workspace 级的东西，在 `apps/web/` 里单独装只会拿到一份和根 catalog 不同步的树。另外 `verifyDepsBeforeRun: false`（`pnpm-workspace.yaml:311`）关掉了"跑脚本前校验 node_modules 与lockfile 是否同步"，改完 `catalog:` 忘记 install 就直接跑，用的还是旧树，而且不会报错。
 
-内部包之间一律 `workspace:*`（如 `apps/web/package.json:20-28`），装出来是软链。新包要落在 `packages/*` 或 `internal/*` 等 glob 里才会成为 workspace 成员（`pnpm-workspace.yaml:1-8`，`docs` 是单独一行的例外）。
+内部包之间一律 `workspace:*`（如 `apps/web/package.json:21-38`），装出来是软链。新包要落在 `packages/*` 或 `internal/*` 等 glob 里才会成为 workspace 成员（`pnpm-workspace.yaml:1-8`，`docs` 是单独一行的例外）。
 
 ### catalog 之外还有两张收敛名单
 
@@ -59,11 +59,11 @@ pnpm check:dep                  # knip：确认它真的被 import 了（也确�
 
 | 篮子 | 代表 | 进不进产物 |
 | --- | --- | --- |
-| `apps/web` 的 `dependencies`（96 条） | `antdv-next`、`echarts`、`xlsx`、`pdfjs-dist`、`@antdv/*` | 进，按需被 chunk 收走 |
-| `apps/web` 的 `devDependencies`（63 条） | `vite`、`unplugin-auto-import`、`unplugin-vue-components`、`@antdv-next/auto-import-resolver`、`@antdv/vite-config` | 只在 Node 里跑，不进产物 |
+| `apps/web` 的 `dependencies`（107 条） | `antdv-next`、`echarts`、`xlsx`、`pdfjs-dist`、`@antdv/*` | 进，按需被 chunk 收走 |
+| `apps/web` 的 `devDependencies`（63 条） | `vite`、`unplugin-auto-import`、`unplugin-vue-components`、`@antdv/vite-config` | 只在 Node 里跑，不进产物 |
 | `internal/*` | `@antdv/vite-config`、`@antdv/node-utils`、lint 配置包 | 构建期依赖，产物里只有它们生成的代码 |
 
-出处：`apps/web/package.json:115`（`@antdv-next/auto-import-resolver`）、`:156`、`:159` （两个 unplugin）、`:118`（`@antdv/vite-config`）都写在 devDependencies； `:70` 的 `antdv-next`、`:104` 的 `vue-cropper` 在 dependencies。 **一个包会不会进产物，取决于它在哪个篮子 + 有没有被真实 import，而不是名字像不像库。**
+出处：`apps/web/package.json:168`、`:171`（两个 unplugin）、`:129`（`@antdv/vite-config`）都写在 devDependencies （`:126` 起）；`:81` 的 `antdv-next`、`:117` 的 `vue-cropper` 在 dependencies（`:17` 起）。 以前这里还有一条 `@antdv-next/auto-import-resolver`，resolver 下线后它已经没有引用点了， catalog（`pnpm-workspace.yaml`）里的对应条目也一起删了。 **一个包会不会进产物，取决于它在哪个篮子 + 有没有被真实 import，而不是名字像不像库。**
 
 ### 分包：这里没有 `manualChunks`，是 rolldown 的 `codeSplitting.groups`
 
@@ -118,44 +118,46 @@ return {
 
 ### 没接线的通道：CDN externals
 
-`vite-plugin-cdn-import` 在 `apps/web/package.json:162` 的 devDependencies 里，但 `internal/vite-config` 与应用侧都没有 import 它（grep 命中 0）。所以"外部模块走 CDN + `rollupOptions.external`"这条路在本仓库**不存在**， `base: './'` 的产物是自包含的静态目录，见[构建与部署](/guide/essentials/deploy)。
+`vite-plugin-cdn-import` 在 `apps/web/package.json:162` 的 devDependencies 里，但 `internal/vite-config` 与应用侧都没有 import 它（grep 命中 0）。所以"外部模块走 CDN + `rollupOptions.external`"这条路在本仓库**不存在**， `base: './'` 的产物是自包含的静态目录，见[构建与部署](/zh/guide/essentials/deploy)。
 
-## 三、按需引入、自动注册、类型声明是三层
+## 三、显式引入、运行期注册、类型声明是三层
 
 这三件事经常被当成一件，实际作用时机和覆盖面完全不同：
 
 | 层 | 机制 | 作用时机 | 覆盖谁 | 出处 |
 | --- | --- | --- | --- | --- |
-| 编译期 | `unplugin-vue-components` + `AntdvNextResolver` | SFC 编译时按用到的标签逐个注入 import | 只有**本仓库源码**里的 `<a-xxx>` / `<Xxx>` | `auto-import.ts:85-94` |
-| 运行期 | `app.component('a-xxx', Comp)` 全局注册 | 应用启动时挂进 `app` | 只为**预编译好的第三方模板**服务 | `apps/web/src/plugins/vendor-antd-components.ts:59-117` |
-| 类型层 | `components.d.ts` / `auto-imports.d.ts` | 构建/dev 时被插件回写 | 只影响 TS 与 IDE，不代表任何东西被用到 | `auto-import.ts:83`、`:93` |
+| 编译期 | 写 `import { Card as ACard } from 'antdv-next'` | SFC 编译时把局部绑定接进模板 | **本仓库源码**里的 `<ACard>` / `<a-card>` | 应用里 100 多个 `.vue` 文件各自头部 |
+| 运行期 | `app.component('a-xxx', Comp)` 全局注册 | 应用启动时挂进 `app` | 只为**预编译好的第三方模板**服务 | `apps/web/src/plugins/vendor-antd-components.ts:59-118` |
+| 类型层 | `components.d.ts` / `auto-imports.d.ts` | 构建/dev 时被插件回写 | 只影响 TS 与 IDE，不代表任何东西被用到 | `auto-import.ts:50`、`:53` |
 
-### 编译期：resolver 只补本仓库源码
+### 编译期：没有 resolver 了，组件全靠 import
 
-`createAutoImportPlugins()` 注册了三个 resolver（`auto-import.ts:85-94`）：
+`createAutoImportPlugins()`（`internal/vite-config/src/plugins/auto-import.ts:41-64`）过去注册过三个 resolver：`AntdvNextResolver`（`a-*` → `antdv-next`）、`AntdvUiResolver`（子包组件）、`IconifyResolver`（裸写 `<Icon>`）。**现在三个都删掉了**（同文件 `:12-25` 的注释解释了为什么）：
 
-- `AntdvNextResolver({ resolveIcons: false })`（`:87-89`，来自 `@antdv-next/auto-import-resolver`）。`resolveIcons` 关掉后 `@antdv-next/icons` 的图标 **不会**被自动导入，必须显式 import；图标走的是另一条离线通道，见[图标](/guide/essentials/icons)。
-- `AntdvUiResolver()`（`:30-36`）：把 `@antdv/ui` 里的 5 个组件重新接回裸标签（`IconifyIcon` / `IconPicker` / `Loading` / `Scrollbar` / `SvgIcon`，`:22-28`）。注意同文件 `:19` 的注释写的是"这四个组件"，集合里实际是 5 个 —— 以代码为准。
-- `IconifyResolver()`（`:44-50`）：把历史遗留的裸写 `<Icon>` 接回 `@iconify/vue` 同名组件。
+- 裸标签在编译期没人注入，运行期只留一条 `Failed to resolve component` 警告，页面却整块变空白 —— 图标静默消失、设计器外壳塌成空白标签，这类事故排查都要从编译配置倒推。
+- 显式 import 让"谁在用、从哪来"在文件头部一眼可见，`import { cn } from '@antdv/shared/cn'` 这种子路径写法也终于和组件写法统一。
+- 子包不再假设宿主带着自动导入配置，别的应用直接引 `@antdv/scrollbar-ui`、`@antdv/icons` 也能跑。
 
-`AutoImport` 侧（`:73-84`）自动导入的是框架 API：`vue`、`@vueuse/core`、`pinia`、 `VueRouterAutoImports`，外加 `antdv-next` 的 `message` / `notification` / `Modal` / `Drawer` 四个函数式入口（`:79`）。**包的子路径 import 不在自动导入范围内**， `import { cn } from '@antdv/shared/cn'` 必须自己写。
+`Components` 插件本身还留着（`:52-54`），但它只剩自带的能力：扫应用内 `src/components` 目录做本地组件注册，不涉及任何 npm 包。`AutoImport` 侧（`:48-51`）自动导入的仍然只有框架 API：`vue`、`@vueuse/core`、`pinia`、`VueRouterAutoImports` —— `antdv-next` 的 `message` / `notification` / `Modal` / `Drawer` 四个函数式入口也一起移除了，用它们得自己 import。
+
+一个容易踩的细节：`<script setup>` 编译模板时按 `capitalize(camelize(tag))` 找局部绑定，所以 `<a-card>` 要命中别名 `ACard`、`<Card>` 要命中 `Card`。删 resolver 之后应用里的写法统一成 `import { Card as ACard } from 'antdv-next'` + 保留 kebab 标签，配 ESLint 的 `vue/component-name-in-template-casing` 正好自洽。
 
 ### 运行期：36 个 + 1 个占位
 
-`apps/web/src/plugins/vendor-antd-components.ts` 从 `antdv-next` 具名 import 了 36 个组件（`:5-42`），`VENDOR_COMPONENTS` 表里正好 36 条 kebab-case 键（`:59-96`）， `registerVendorAntdComponents()` 再额外注册一个 `a-form-item-rest` （`:104-107`、`:113`），合计 **37 次 `app.component`**。入口在 `apps/web/src/main.ts:30` import、`:49` 调用（早于 `app.use(pinia)`）。
+`apps/web/src/plugins/vendor-antd-components.ts` 从 `antdv-next` 具名 import 了 36 个组件，`VENDOR_COMPONENTS` 表里正好 36 条 kebab-case 键（`:59-96`）， `registerVendorAntdComponents()`（`:112`）再额外注册一个 `a-form-item-rest`（`:116`），合计 **37 次 `app.component`**。入口在 `apps/web/src/main.ts:32` import、`:53` 调用（早于 `app.use(pinia)`）。
 
-为什么只有这 36 个：`@form-create/antd-designer` 的模板**发布时就已经编译好了**，运行时才用 `resolveComponent('a-layout-sider')` 找组件，编译期注入帮不到它（文件头注释 `:44-58`）。清单来自对该包产物的静态扫描。
+为什么只有这 36 个：`@form-create/antd-designer` 的模板**发布时就已经编译好了**，运行时才用 `resolveComponent('a-layout-sider')` 找组件，源码里的显式 import 帮不到它（文件头注释 `:44-58`）。清单来自对该包产物的静态扫描。
 
-::: warning 不要顺手改成 `app.use(antd)` 全量注册全量注册会把 tree-shaking 的成果整体退回去（整个组件库进包），与 `vendor-ui` 这条分包规则（`optimize.ts:9`）的初衷冲突。注册名也必须是 kebab-case：`:110-111` 的注释说明 PascalCase 那条路只在 SFC 编译期生效，运行期查不到。:::
+::: warning 不要顺手改成 `app.use(antd)` 全量注册全量注册会把 tree-shaking 的成果整体退回去（整个组件库进包），与 `vendor-ui` 这条分包规则（`optimize.ts:9`）的初衷冲突。注册名也必须是 kebab-case：`:113-114` 的注释说明 PascalCase 那条路只在 SFC 编译期生效，运行期查不到。:::
 
-`a-form-item-rest` 是 React 版 antd 的东西，antdv-next 不提供，但设计器模板里写死了它 ——这里用一个"只渲染默认插槽"的透传组件顶上（`:98-107`）。所以"注册了 37 个"不等于 "页面用到了 37 个"：例如 `a-directory-tree` 在表里（`:64`），而 `grep -rn "<a-directory-tree" apps/web/src` 没有任何命中 —— 它是给设计器准备的，不是给业务页的。
+`a-form-item-rest` 是 React 版 antd 的东西，antdv-next 不提供，但设计器模板里写死了它 ——这里用一个"只渲染默认插槽"的透传组件顶上（`:98-110`）。所以"注册了 37 个"不等于 "页面用到了 37 个"：例如 `a-directory-tree` 在表里（`:64`），而 `grep -rn "<a-directory-tree" apps/web/src` 没有任何命中 —— 它是给设计器准备的，不是给业务页的。
 
 ### 类型层：`components.d.ts` 是扫描产物，条目数不作数
 
-`apps/web/types/components.d.ts` 头部第 6 行写着 `Generated by unplugin-vue-components`， `@ts-nocheck` 在第 2 行。它是**扫到的标签清单**，两个含义要分清：
+`apps/web/types/components.d.ts` 头部第 6 行写着 `Generated by unplugin-vue-components`， `@ts-nocheck` 在第 2 行。它是**扫到的本地标签清单**，两个含义要分清：
 
-- 有条目 ≠ 被使用：dev server 扫到什么就写什么，写文档时它有一百多条 `typeof import('antdv-next')[...]`，其中一部分在 `apps/web/src` 里搜不到对应标签。
-- 没条目 ≠ 不能用：`VITE_WRITE_DTS=false` 时插件不回写这两个文件（`auto-import.ts:63`、`:70`、`:83`、`:93`），文件就停留在上次构建的状态；而运行期注册的 36 个组件也不靠它，全局注册走的是 `vue` 的 `GlobalComponents` 接口。
+- 现在它里面**不该再有 `antdv-next` 的条目**：resolver 删掉之后插件不再认识任何第三方标签，只剩应用自身的本地组件。看到 `typeof import('antdv-next')[...]` 说明你连的是还没重启的 dev server（旧配置还在内存里）。
+- 没条目 ≠ 不能用：`VITE_WRITE_DTS=false` 时插件不回写这两个文件（`auto-import.ts:31-36`），文件就停留在上次构建的状态；而运行期注册的 37 个组件也不靠它，全局注册走的是 `vue` 的 `GlobalComponents` 接口。
 
 这两个文件是入库的（`git ls-files` 能看到），会随构建反复变动 —— 看 diff 时别把它们当语义变更。想知道某个 `a-*` 到底有没有被用，只有一条路：在 `apps/web/src` 里搜标签本身。
 
@@ -181,29 +183,29 @@ return {
 | 形态 | 包 | `main` | 改完 `src` | 外部可用吗 |
 | --- | --- | --- | --- | --- |
 | dist 发布 | `shared`、`composables`、`directives`、`layouts`、`preferences`、`router`、`types` | `./dist/index.js`（`types` 是 `./dist/index.mjs`） | 必须重新 `build` | 只要装到 `dist` 就能被解析 |
-| 源码发布 | `@antdv/ui`（`main: ./src/index.ts`，`files: ["src"]`，`:12-25`）、`@antdv/styles`（`./src/index.css`，`:11-23`） | 直指 `src` | 直接热更新 | **不能**：没有 build 脚本，`.vue` 与 Tailwind 入口由应用的构建链编译 |
+| 源码发布 | `@antdv/icons`、`@antdv/styles`（`./src/index.css`）、`@antdv/ui-kit` 九个（`shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` / `loading-ui` / `scrollbar-ui`，如 `packages/ui-kit/scrollbar-ui/package.json:12-19`：`files: ["src"]` + `main/types` 全指 `./src/index.ts`） | 直指 `src` | 直接热更新 | **不能**：没有 build 脚本，`.vue` 与 Tailwind 入口由应用的构建链编译 |
 
 ### 包边界是它们能被单点复用的唯一原因
 
-`packages/*` 里不许 import `pinia` / `vue-router` 实例 / 应用 store，也不许读 `import.meta.env`；需要这些能力时由应用**注入**（守卫工厂、指令工厂、偏好 defaults）。细则与注入示例见[基础概念](/guide/essentials/concepts)与[目录说明](/guide/project/dir)，这里只补一句产物角度的后果：**包一旦被 store 绑住，脱离这个应用就装不起来**， `exports` 写得再漂亮也没用。类型例外（`packages/shared/src/menu.ts` 只 import `vue-router` 的类型）不进产物，不算破边界。
+`packages/*` 里不许 import `pinia` / `vue-router` 实例 / 应用 store，也不许读 `import.meta.env`；需要这些能力时由应用**注入**（守卫工厂、指令工厂、偏好 defaults）。细则与注入示例见[基础概念](/zh/guide/essentials/concepts)与[目录说明](/zh/guide/project/dir)，这里只补一句产物角度的后果：**包一旦被 store 绑住，脱离这个应用就装不起来**， `exports` 写得再漂亮也没用。类型例外（`packages/shared/src/menu.ts` 只 import `vue-router` 的类型）不进产物，不算破边界。
 
 ### 版本是锁步的 —— 但今天没有任何包发得出去
 
-`.changeset/config.json:10` 的 `fixed: [["@antdv/*", "@antdv/*"]]` 让任何一个 `@antdv/*` 升版时全家跟着跳到同一个版本号；`:14-17` 的 `privatePackages: { version: true, tag: true }` 让私有包照样参与递增与打 tag。**对外部项目的含义是：你拿到的是一起跳的版本号，不能只钉其中一个包**（这也是内部互引一律 `workspace:*` 的另一面，见 [Changeset](/guide/project/changeset)）。
+`.changeset/config.json:10` 的 `fixed: [["@antdv/*", "@antdv/*"]]` 让任何一个 `@antdv/*` 升版时全家跟着跳到同一个版本号；`:14-17` 的 `privatePackages: { version: true, tag: true }` 让私有包照样参与递增与打 tag。**对外部项目的含义是：你拿到的是一起跳的版本号，不能只钉其中一个包**（这也是内部互引一律 `workspace:*` 的另一面，见 [Changeset](/zh/guide/project/changeset)）。
 
 ::: warning 现在没有 npm 这条路 `packages/*`、`internal/*`、`apps/*`、`docs`、`scripts/*` **全部** `"private": true` （逐个文件验证过，例如 `packages/shared/package.json:5`）。 `changeset publish` 不会发私有包；`pnpm publint`（`vsh publint`）在 `scripts/vsh/src/publint/index.ts:166-168` 明确 `if (pkgJson.private) return null;` ——也就是说这条发布面检查当前覆盖 0 个包。所以"给别的项目用"目前只有把包目录（含 `dist`）带出去、或自己改成非私有再发这两类做法， `exports` / `files` 是为这两类做法准备的。:::
 
-改 `packages/*/src` 之后应用看不到变化，是因为它读的是 `dist`（`turbo.json:16-24` 的 `dependsOn: ["^build"]` 保证构建顺序）—— 具体命令见[快速开始](/guide/introduction/quick-start)。
+改 `packages/*/src` 之后应用看不到变化，是因为它读的是 `dist`（`turbo.json:16-24` 的 `dependsOn: ["^build"]` 保证构建顺序）—— 具体命令见[快速开始](/zh/guide/introduction/quick-start)。
 
 ### 库形态的构建链已经备好，但没有消费者
 
-`internal/vite-config/src/config/library.ts:39` 导出 `defineLibraryConfig()`，external 清单取 `dependencies + peerDependencies` 全量排除（`internal/vite-config/src/utils/package-json.ts:62-70`，注释 `:56-61` 说明打进来会带第二份 vue / antdv-next）。仓库里需要编译 SFC 的包（`@antdv/ui`）目前**没有**用它，只有 tsdown 那批在出 `dist`。想正式对外发一个组件库，这才是接线点。
+`internal/vite-config/src/config/library.ts:39` 导出 `defineLibraryConfig()`，external 清单取 `dependencies + peerDependencies` 全量排除（`internal/vite-config/src/utils/package-json.ts:62-70`，注释 `:56-61` 说明打进来会带第二份 vue / antdv-next）。仓库里需要编译 SFC 的包（`@antdv/icons` 与 `@antdv/ui-kit` 那九个）目前**没有**用它 —— 它们连 build 脚本都没有，只有 tsdown 那批在出 `dist`。想正式对外发一个组件库，这才是接线点。
 
 ## 五、反过来：外部子应用与外部仓库
 
 ### 微前端注册表
 
-`apps/web/src/config/micro-app.ts:5-92` 是一份 6 条的子应用注册表（`name` / `url` / `baseroute` / `icon` / `loader` …），总开关 `enabled` 用 `isEnvEnabled(import.meta.env.VITE_MICRO_APP)` （`:7`，写成 `=== true` 会恒为 false）。类型契约在 `packages/types/src/micro-app.ts`， `loader` 只有 `'iframe' | 'webcomponent'` 两种（`:21`）。路由侧怎么按 `baseroute` 匹配见 [路由和菜单](/guide/essentials/route)。
+`apps/web/src/config/micro-app.ts:5-92` 是一份 6 条的子应用注册表（`name` / `url` / `baseroute` / `icon` / `loader` …），总开关 `enabled` 用 `isEnvEnabled(import.meta.env.VITE_MICRO_APP)` （`:7`，写成 `=== true` 会恒为 false）。类型契约在 `packages/types/src/micro-app.ts`， `loader` 只有 `'iframe' | 'webcomponent'` 两种（`:21`）。路由侧怎么按 `baseroute` 匹配见 [路由和菜单](/zh/guide/essentials/route)。
 
 `<micro-app>` 这个标签不会被 Vue 当成"没注册的组件"：编译期通过 `compilerOptions.isCustomElement` 把它交给浏览器当原生元素（`internal/vite-config/src/plugins/custom-elements.ts:21-24`、 `internal/vite-config/src/plugins/vue.ts:38-46`）。规则只认显式登记的 `micro-app` 与 `micro-` 前缀且必须含连字符（`custom-elements.ts:47-55`），否则会把真实的注册失败吞成空标签。
 
@@ -228,7 +230,7 @@ return {
 | `codemirror`、`vue-codemirror`、`@codemirror/commands`、`/lang-javascript`、`/lang-sql`、`/lang-vue`、`/theme-one-dark` | `:29-33`、`:76`、`:104` | 0 命中 |
 | `@tiptap/core`、`/extension-document`、`/extension-highlight`、`/extension-link`、`/extension-list`、`/extension-underline`、`/markdown`、`/pm` | 声明 16 条，实际 import 7 条 | 有引用的是 `@tiptap/{extension-image,extension-table,extension-text-align,extension-text-style,extensions,starter-kit,vue-3}`；表里这几条没有任何直接 import（部分是 `starter-kit` / `extensions` 的 peer） |
 | `nanoid`、`qrcode`、`resize-observer-polyfill`、`vue-demi`、`vue-virtual-scroller` | `:90`、`:94`、`:95`、`:106`、`:111` | 0 命中 |
-| `vite-plugin-cdn-import`、`@vitejs/plugin-legacy`、`vite-plugin-iconify-offline` | `:139`、`:162`、`:167` | devDependencies 里的构建插件，没有任何 import（与[配置](/guide/essentials/config)末尾那条警告是同一批） |
+| `vite-plugin-cdn-import`、`@vitejs/plugin-legacy`、`vite-plugin-iconify-offline` | `:139`、`:162`、`:167` | devDependencies 里的构建插件，没有任何 import（与[配置](/zh/guide/essentials/config)末尾那条警告是同一批） |
 
 ### 工具怎么把它们抓出来
 
@@ -237,19 +239,19 @@ return {
 | `pnpm check:dep` | `vsh check-dep` → knip（`pnpm-workspace.yaml:266` 钉 `knip: ^6.40.0`） | 配置不落盘，内联在 `scripts/vsh/src/check-dep/index.ts:14-31`，运行时写到 `os.tmpdir()` 再跑（`:92-98`）。参数是 `--include dependencies --reporter json`（`:100-109`）——**只看 `dependencies` 侧的未使用**，devDependencies 那一侧不在它的报告范围里 |
 | `pnpm publint` | `vsh publint` → publint | 遍历所有 workspace 包的 `package.json`（`scripts/vsh/src/publint/index.ts:39-52`），但私有包直接 `return null`（`:166-168`）—— 本仓全是私有包，所以现在报不出东西 |
 | `pnpm check:circular` | `vsh check-circular` | 包与包之间的环，跟"未使用"是两回事 |
-| `pnpm check` | circular + dep + type + cspell 串起来 | 最后一环必失败（`cspell` 不在任何依赖里），见[常见问题](/guide/other/faq) |
+| `pnpm check` | circular + dep + type + cspell 串起来 | 最后一环必失败（`cspell` 不在任何依赖里），见[常见问题](/zh/guide/other/faq) |
 
-::: warning "报未使用"不等于"可以删" `check:dep` 的内置配置里有一串 `ignoreDependencies` （`scripts/vsh/src/check-dep/index.ts:17-29`：`playwright`、`rimraf`、`tailwindcss`、几个 `@vben/*` 遗留名等），`ignore` 排掉 `dist/**` 与 `docs/**`（`:15`）， `ignoreWorkspaces` 排掉 `internal/lint-configs/*` 与 `scripts/*`（`:30`）。另一方面，被别的包的 peer 拖住的依赖（上表 tiptap 那几条）在源码里本来就搜不到 import。所以每一条都要回到"谁 import 它 / 谁的 peer 需要它"再定，升级侧的同类提醒见[项目更新](/guide/other/project-update)。:::
+::: warning "报未使用"不等于"可以删" `check:dep` 的内置配置里有一串 `ignoreDependencies` （`scripts/vsh/src/check-dep/index.ts:17-29`：`playwright`、`rimraf`、`tailwindcss`、几个 `@vben/*` 遗留名等），`ignore` 排掉 `dist/**` 与 `docs/**`（`:15`）， `ignoreWorkspaces` 排掉 `internal/lint-configs/*` 与 `scripts/*`（`:30`）。另一方面，被别的包的 peer 拖住的依赖（上表 tiptap 那几条）在源码里本来就搜不到 import。所以每一条都要回到"谁 import 它 / 谁的 peer 需要它"再定，升级侧的同类提醒见[项目更新](/zh/guide/other/project-update)。:::
 
 ## 相关页面
 
-- [基础概念](/guide/essentials/concepts)：分层、包边界与自动导入的完整清单
-- [目录说明](/guide/project/dir)：包清单、catalog 的动机、tsdown + turbo
-- [Vite Config](/guide/project/vite)：三层合并、插件装配、构建开关
-- [配置](/guide/essentials/config)：`VITE_*` 的两条读取路径与变量清单
-- [本地开发](/guide/essentials/development)：环境变量与日常脚本
-- [快速开始](/guide/introduction/quick-start)：安装、启动、改了共享包不生效怎么办
-- [项目更新](/guide/other/project-update)：升级依赖时的版本落点与安装期开关
-- [Changeset](/guide/project/changeset)：`fixed` / `privatePackages` 的发版链路
-- [图标](/guide/essentials/icons)：`resolveIcons: false` 之后图标走的那条通道
-- [路由和菜单](/guide/essentials/route)：子应用怎么按 `baseroute` 匹配进路由表
+- [基础概念](/zh/guide/essentials/concepts)：分层、包边界与自动导入的完整清单
+- [目录说明](/zh/guide/project/dir)：包清单、catalog 的动机、tsdown + turbo
+- [Vite Config](/zh/guide/project/vite)：三层合并、插件装配、构建开关
+- [配置](/zh/guide/essentials/config)：`VITE_*` 的两条读取路径与变量清单
+- [本地开发](/zh/guide/essentials/development)：环境变量与日常脚本
+- [快速开始](/zh/guide/introduction/quick-start)：安装、启动、改了共享包不生效怎么办
+- [项目更新](/zh/guide/other/project-update)：升级依赖时的版本落点与安装期开关
+- [Changeset](/zh/guide/project/changeset)：`fixed` / `privatePackages` 的发版链路
+- [图标](/zh/guide/essentials/icons)：`resolveIcons: false` 之后图标走的那条通道
+- [路由和菜单](/zh/guide/essentials/route)：子应用怎么按 `baseroute` 匹配进路由表

@@ -7,6 +7,7 @@ import { computed, onMounted, ref } from 'vue';
 import { usePrint } from '@antdv/composables/usePrint';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
+import { Button as AButton, Card as ACard, Divider as ADivider, Popconfirm as APopconfirm, Tag as ATag, Tree as ATree, message } from 'antdv-next';
 import * as XLSX from 'xlsx';
 import {
   addUser,
@@ -442,8 +443,8 @@ const columns: BasicColumn[] = [
 <template>
   <div :class="containerClassName">
     <div :class="leftPanelClassName">
-      <a-card :class="treeCardClassName" title="部门列表" size="small">
-        <a-tree
+      <ACard :class="treeCardClassName" title="部门列表" size="small">
+        <ATree
           :tree-data="mockDeptTree"
           :field-names="{ children: 'children', title: 'name', key: 'id' }"
           :expanded-keys="treeExpandedKeys"
@@ -458,11 +459,11 @@ const columns: BasicColumn[] = [
             }
           "
         />
-      </a-card>
+      </ACard>
     </div>
 
     <div :class="rightPanelClassName">
-      <a-card title="用户管理" :class="cardClassName">
+      <ACard title="用户管理" :class="cardClassName">
         <BasicTable
           :columns="columns"
           :api="mockApi"
@@ -479,27 +480,27 @@ const columns: BasicColumn[] = [
           @register="tableRegister"
         >
           <template #toolbar>
-            <a-button type="primary" @click="handleAdd">
+            <AButton type="primary" @click="handleAdd">
               <template #icon>
                 <Icon icon="ant-design:plus-outlined" />
               </template>
               新增用户
-            </a-button>
-            <a-button @click="handleExport">
+            </AButton>
+            <AButton @click="handleExport">
               <template #icon>
                 <Icon icon="carbon:export" />
               </template>
               导出
-            </a-button>
-            <a-button @click="handlePrint">
+            </AButton>
+            <AButton @click="handlePrint">
               <template #icon>
                 <Icon icon="carbon:printer" />
               </template>
               打印
-            </a-button>
+            </AButton>
           </template>
           <template #cell-status="{ record }">
-            <a-tag :color="statusColorMap[record.status] || 'default'">
+            <ATag :color="statusColorMap[record.status] || 'default'">
               <span :class="statusTagClassName">
                 <Icon
                   :icon="
@@ -510,12 +511,12 @@ const columns: BasicColumn[] = [
                 />
                 {{ statusLabelMap[record.status] || '未知' }}
               </span>
-            </a-tag>
+            </ATag>
           </template>
 
           <template #action="{ record }">
             <div :class="actionClassName">
-              <a-button
+              <AButton
                 type="link"
                 :class="btnClassName"
                 @click="() => handleDetail(record)"
@@ -524,9 +525,9 @@ const columns: BasicColumn[] = [
                   <Icon icon="ant-design:eye-outlined" />
                 </template>
                 详情
-              </a-button>
-              <a-divider type="vertical" :class="dividerClassName" />
-              <a-button
+              </AButton>
+              <ADivider type="vertical" :class="dividerClassName" />
+              <AButton
                 type="link"
                 :class="btnClassName"
                 @click="() => handleEdit(record)"
@@ -535,31 +536,31 @@ const columns: BasicColumn[] = [
                   <Icon icon="ant-design:edit-outlined" />
                 </template>
                 编辑
-              </a-button>
-              <a-divider type="vertical" :class="dividerClassName" />
+              </AButton>
+              <ADivider type="vertical" :class="dividerClassName" />
               <!--
                 删除是不可逆操作，必须二次确认。以前点一下就直接 PUT 掉，
                 列表行高密集、删除又排在编辑旁边，误触一次就少一个用户，
                 连"删了谁"都没来得看清。和消息通知页保持同一套交互。
               -->
-              <a-popconfirm
+              <APopconfirm
                 :title="`确定删除用户「${record.nickname}」吗？删除后不可恢复。`"
                 ok-text="删除"
                 ok-type="danger"
                 cancel-text="取消"
                 @confirm="() => handleDelete(record)"
               >
-                <a-button type="link" danger :class="btnClassName">
+                <AButton type="link" danger :class="btnClassName">
                   <template #icon>
                     <Icon icon="ant-design:delete-outlined" />
                   </template>
                   删除
-                </a-button>
-              </a-popconfirm>
+                </AButton>
+              </APopconfirm>
             </div>
           </template>
         </BasicTable>
-      </a-card>
+      </ACard>
     </div>
 
     <BasicModal

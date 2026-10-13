@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ToolbarOption } from '../constants';
 
+import { Scrollbar } from '@antdv/scrollbar-ui';
 import { Icon } from '@iconify/vue';
 
 const props = defineProps<{
@@ -23,7 +24,7 @@ function previewStyle(value: string): Record<string, string> | undefined {
 <template>
   <!--
     浮层里的选项列表：超过 16 条就必须能滚，而系统滚动条在这个尺寸下既难抓
-    又会把面板撑宽，所以统一交给封装的 <Scrollbar>（自动导入，见 @antdv/ui）。
+    又会把面板撑宽，所以统一交给封装的 <Scrollbar>（来自 @antdv/scrollbar-ui）。
     高度限制放在 Scrollbar 的 root 上，`ul` 只负责内容与最小宽度。
   -->
   <Scrollbar root-class="max-h-64" wrap-class="overflow-x-hidden">

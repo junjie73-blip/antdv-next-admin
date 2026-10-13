@@ -3,8 +3,10 @@ import type { AlertItem, SecurityEventLevel } from '~/api/security';
 
 import { onMounted, ref } from 'vue';
 
+import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
+import { Button as AButton, Empty as AEmpty, Spin as ASpin, Tag as ATag } from 'antdv-next';
 import { getAlertList, handleAlert } from '~/api/security';
 
 defineOptions({ name: 'RealtimeAlertPanel' });
@@ -140,13 +142,13 @@ onMounted(async () => {
         </span>
         <span class="text-xs text-red-400">LIVE</span>
       </div>
-      <a-button size="small" type="link" @click="alerts = []">
+      <AButton size="small" type="link" @click="alerts = []">
         清空已读
-      </a-button>
+      </AButton>
     </div>
 
     <!-- 告警列表 -->
-    <a-spin :spinning="loading">
+    <ASpin :spinning="loading">
       <Scrollbar v-if="alerts.length > 0" root-class="max-h-[240px] pr-1">
         <div class="space-y-2.5">
           <div
@@ -178,7 +180,7 @@ onMounted(async () => {
                 <span
                   class="truncate text-sm font-medium text-gray-800 dark:text-gray-200"
                   >{{ alert.message }}</span>
-                <a-tag
+                <ATag
                   :color="
                     alert.level === 'critical'
                       ? 'error'
@@ -190,7 +192,7 @@ onMounted(async () => {
                   class="shrink-0 text-[10px]"
                 >
                   {{ getLevelConfig(alert.level).label }}
-                </a-tag>
+                </ATag>
               </div>
               <div class="mt-1 flex items-center justify-between">
                 <span class="font-mono text-[11px] text-gray-400">{{
@@ -206,7 +208,7 @@ onMounted(async () => {
                 v-if="isHighPriority(alert.level)"
                 class="mt-2 flex items-center gap-2"
               >
-                <a-button
+                <AButton
                   v-for="action in alert.actions"
                   :key="action"
                   size="small"
@@ -215,15 +217,15 @@ onMounted(async () => {
                   @click.stop="onHandle(alert.id, action)"
                 >
                   {{ action }}
-                </a-button>
+                </AButton>
               </div>
             </div>
           </div>
         </div>
       </Scrollbar>
 
-      <a-empty v-else description="暂无告警信息" class="py-8" />
-    </a-spin>
+      <AEmpty v-else description="暂无告警信息" class="py-8" />
+    </ASpin>
   </div>
 </template>
 

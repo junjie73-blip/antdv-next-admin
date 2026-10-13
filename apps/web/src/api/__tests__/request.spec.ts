@@ -6,7 +6,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
  * `api/request.ts` 是把业务接口语义（`{ code, data, message }`）套到底层
  * `http.Get/Post/...` 上的薄封装。这里钉住一条踩过的位置参数契约：
  *
- * 底层 `request.get(url, params, opts)` 的**第二个实参就是查询串本身**。
+ * 底层 `request.get(url, params, opts)` 的**第二个实参就是查询串本身**；
+ * 第三个实参是可选的 `ExecuteOptions`（vue-query 的取消信号从这里透传）。
  * 曾经写成 `http.Get(url, { params })`，于是发出去的是
  * `?params=[object Object]` —— 全站列表页的筛选与分页条件整批静默丢失，
  * 页面看起来"能打开、永远返回第一页全量数据"，极难从 UI 上发现。
@@ -49,13 +50,17 @@ describe('api/request —— 查询串按位置参数透传', () => {
   it('get 把 params 直接作为第二个实参，不再包一层 { params }', async () => {
     await get('/user/list', { page: 2, keyword: '张三' });
 
-    expect(lastArgs()).toEqual(['/user/list', { page: 2, keyword: '张三' }]);
+    expect(lastArgs()).toEqual([
+      '/user/list',
+      { page: 2, keyword: '张三' },
+      undefined,
+    ]);
   });
 
   it('get 不传 params 时保持单参调用，不会拼出空对象', async () => {
     await get('/user/list');
 
-    expect(lastArgs()).toEqual(['/user/list', undefined]);
+    expect(lastArgs()).toEqual(['/user/list', undefined, undefined]);
   });
 
   it('del 同样按位置参数带查询串', async () => {

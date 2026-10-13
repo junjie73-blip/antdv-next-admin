@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 /**
@@ -17,6 +17,7 @@ const read = (file: string) =>
   );
 
 const index = read('index.css');
+const tokens = read('tokens.css');
 const base = read('base.css');
 const nprogress = read('nprogress.css');
 const a11y = read('a11y.css');
@@ -45,8 +46,9 @@ describe('@antdv/styles —— 入口', () => {
     expect(index).toContain('@custom-variant dark (&:where(.dark, .dark *))');
   });
 
-  it('五个分部都在入口里被引入，且 @import 全部出现在 @plugin 之前', () => {
+  it('六个分部都在入口里被引入，且 @import 全部出现在 @plugin 之前', () => {
     for (const part of [
+      'tokens',
       'base',
       'nprogress',
       'a11y',
@@ -61,6 +63,85 @@ describe('@antdv/styles —— 入口', () => {
     const firstPlugin = index.indexOf('@plugin');
     expect(lastImport).toBeGreaterThan(-1);
     expect(firstPlugin).toBeGreaterThan(lastImport);
+  });
+});
+
+/**
+ * shadcn 的 vendored 组件写的是 `bg-popover` / `text-muted-foreground` 这类裸名字。
+ * Tailwind v4 只为 `@theme` 里声明过的 token 生成工具类，少一个名字不是"退回默认样式"，
+ * 而是**整条类不生成** —— 表现是弹层透明、次要文字没有灰度，而构建一声不吭。
+ * 所以这份名单是契约，不是备忘。
+ */
+const SHADCN_COLORS = [
+  'background',
+  'foreground',
+  'card',
+  'card-foreground',
+  'popover',
+  'popover-foreground',
+  'primary',
+  'primary-foreground',
+  'secondary',
+  'secondary-foreground',
+  'muted',
+  'muted-foreground',
+  'accent',
+  'accent-foreground',
+  'destructive',
+  'destructive-foreground',
+  'border',
+  'input',
+  'ring',
+  'sidebar',
+  'sidebar-foreground',
+  'sidebar-primary',
+  'sidebar-primary-foreground',
+  'sidebar-accent',
+  'sidebar-accent-foreground',
+  'sidebar-border',
+  'sidebar-ring',
+];
+
+/** 取某个选择器块里的声明体（只要第一段，够覆盖 :root / .dark 两种写法） */
+function blockBody(selector: string): string {
+  const start = tokens.indexOf(`${selector} {`);
+  expect(start).toBeGreaterThan(-1);
+  const end = tokens.indexOf('}', start);
+  return tokens.slice(start, end);
+}
+
+describe('@antdv/styles —— shadcn 色板', () => {
+  it('每个语义色都导出成 --color-* token', () => {
+    for (const name of SHADCN_COLORS) {
+      expect(tokens).toContain(`--color-${name}: var(--app-${name});`);
+    }
+  });
+
+  it('亮暗两套给齐：缺一条暗色声明，切到深色就是白底黑字浮层', () => {
+    for (const name of SHADCN_COLORS) {
+      expect(blockBody(':root')).toContain(`--app-${name}:`);
+      expect(blockBody('.dark')).toContain(`--app-${name}:`);
+    }
+  });
+
+  it('主色读偏好写到 html 上的变量，并留兜底值', () => {
+    // 偏好面板改的是 `--ant-color-primary`（见 @antdv/preferences/css-vars），
+    // 钉死值就会出现"换了主题色、弹层还是蓝的"
+    expect(tokens).toContain(
+      '--app-primary: var(--ant-color-primary, #1677ff);',
+    );
+    expect(tokens).toContain('--app-ring: var(--ant-color-primary, #1677ff);');
+  });
+
+  it('必须写 @theme inline，否则 .dark 覆盖不生效', () => {
+    // 非 inline 形式在 :root 求值一次就冻结了，暗色切换只动 class 不动颜色
+    expect(tokens).toContain('@theme inline');
+  });
+
+  it('值不依赖 antd 作用域变量（浮层 portal 在 .ant-app 之外）', () => {
+    expect(blockBody(':root')).not.toMatch(
+      /var\(--ant-color-(?:text|bg-[a-z]+)\b/u,
+    );
   });
 });
 
@@ -146,17 +227,26 @@ describe('@antdv/styles —— 分部职责', () => {
 
 describe('@antdv/styles —— 包边界', () => {
   it('不 @import 组件包，避免 CSS 与组件互相牵动（注释里提到不算依赖）', () => {
-    const imports = [index, base, nprogress, a11y, permission, scrollbar]
+    const imports = [
+      index,
+      tokens,
+      base,
+      nprogress,
+      a11y,
+      permission,
+      scrollbar,
+    ]
       .join('\n')
       .split('\n')
       .filter((line) => line.trimStart().startsWith('@import'));
-    expect(imports.join('\n')).not.toContain('@antdv/ui');
+    expect(imports.join('\n')).not.toContain('@antdv/icons');
     expect(imports.join('\n')).not.toContain('@antdv/layouts');
     // 外部只允许这三个 npm 包进入样式入口
     expect(imports).toEqual([
       "@import 'tailwindcss';",
       "@import '@antdv-next/tailwind/compat.css';",
       "@import 'tw-animate-css';",
+      "@import './tokens.css';",
       "@import './base.css';",
       "@import './nprogress.css';",
       "@import './a11y.css';",
@@ -172,8 +262,32 @@ describe('@antdv/styles —— 包边界', () => {
     /**
      * `scrollbar.css` 是"第三方内部滚动区"的兜底，注释里会提到 `.scrollbar__wrap`
      * （解释为什么层级要选 base），但它自己绝不写以 `scrollbar__` 为选择器的规则：
-     * 那是组件带的类，样式归 `@antdv/ui`，全局包一旦插手就会出现"改组件不生效"的分裂。
+     * 那是组件带的类，样式归 `@antdv/scrollbar-ui`，全局包一旦插手就会出现"改组件不生效"的分裂。
      */
     expect(scrollbar).not.toMatch(/^\s*\.scrollbar__/mu);
+  });
+
+  /**
+   * Tailwind v4 的自动内容检测从 Vite 根目录（`apps/web`）往上扫，扫不到 `packages/**`，
+   * 所以每个子包模板里的工具类都必须在这里显式 `@source`。
+   * 漏掉的包不会构建失败 —— 只是页面少一层圆角、少一个间距，属于最难查的那类"静默变样"，
+   * 所以用目录清单反查登记项：新增子包却忘了登记 `@source` 时，这条先红。
+   */
+  it('每个子包的源码目录都登记了 @source', () => {
+    const registered = [
+      ...index.matchAll(/^@source\s+'([^']+)';/gmu),
+    ].map((m) => m[1]);
+
+    const uiKitRoot = fileURLToPath(new URL('../../ui-kit', import.meta.url));
+    const uiKit = readdirSync(uiKitRoot).filter((name) =>
+      existsSync(`${uiKitRoot}/${name}/src`),
+    );
+
+    for (const dir of ['../../icons/src', ...uiKit.map((n) => `../../ui-kit/${n}/src`)]) {
+      expect(
+        registered,
+        `${dir} 没登记 @source，模板里的工具类不会被生成`,
+      ).toContain(dir);
+    }
   });
 });

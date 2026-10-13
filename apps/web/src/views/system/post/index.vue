@@ -7,6 +7,7 @@ import { computed, ref, useTemplateRef } from 'vue';
 import { cn } from '@antdv/shared/cn';
 import { faker } from '@faker-js/faker/locale/zh_CN';
 import { Icon } from '@iconify/vue';
+import { Alert as AAlert, Badge as ABadge, Button as AButton, Card as ACard, Divider as ADivider, Input as AInput, Popconfirm as APopconfirm, Tag as ATag, Transfer as ATransfer, message } from 'antdv-next';
 import { addPost, deletePost, getPostList, updatePost } from '~/api/system';
 import { BasicDrawer, useDrawer } from '~/components/business/Drawer';
 import { BasicForm, useForm } from '~/components/business/Form';
@@ -427,7 +428,7 @@ const columns: BasicColumn[] = [
 
 <template>
   <div :class="containerClassName">
-    <a-card title="岗位管理" :class="cardClassName">
+    <ACard title="岗位管理" :class="cardClassName">
       <BasicTable
         ref="tableRef"
         :columns="columns"
@@ -444,16 +445,16 @@ const columns: BasicColumn[] = [
         @register="tableRegister"
       >
         <template #toolbar>
-          <a-button type="primary" @click="handleAdd">
+          <AButton type="primary" @click="handleAdd">
             <template #icon>
               <Icon icon="ant-design:plus-outlined" />
             </template>
             新增岗位
-          </a-button>
+          </AButton>
         </template>
 
         <template #cell-status="{ record }">
-          <a-tag :color="statusColorMap[record.status] || 'default'">
+          <ATag :color="statusColorMap[record.status] || 'default'">
             <span :class="tagClassName">
               <Icon
                 :icon="
@@ -464,11 +465,11 @@ const columns: BasicColumn[] = [
               />
               {{ statusLabelMap[record.status] || '未知' }}
             </span>
-          </a-tag>
+          </ATag>
         </template>
 
         <template #cell-userCount="{ record }">
-          <a-badge
+          <ABadge
             :count="record.userCount"
             :number-style="{ backgroundColor: '#1677ff' }"
           />
@@ -476,7 +477,7 @@ const columns: BasicColumn[] = [
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <a-button
+            <AButton
               type="link"
               :class="btnClassName"
               @click="() => handleOpenAssign(record)"
@@ -485,9 +486,9 @@ const columns: BasicColumn[] = [
                 <Icon icon="ant-design:user-switch-outlined" />
               </template>
               分配用户
-            </a-button>
-            <a-divider type="vertical" :class="dividerClassName" />
-            <a-button
+            </AButton>
+            <ADivider type="vertical" :class="dividerClassName" />
+            <AButton
               type="link"
               :class="btnClassName"
               @click="() => handleEdit(record)"
@@ -496,39 +497,39 @@ const columns: BasicColumn[] = [
                 <Icon icon="ant-design:edit-outlined" />
               </template>
               编辑
-            </a-button>
-            <a-divider type="vertical" :class="dividerClassName" />
-            <a-popconfirm
+            </AButton>
+            <ADivider type="vertical" :class="dividerClassName" />
+            <APopconfirm
               :title="`确定要「${record.status === 1 ? '停用' : '启用'}」岗位「${record.name}」吗？`"
               @confirm="() => handleToggleStatus(record)"
             >
-              <a-button
+              <AButton
                 v-if="record.status === 1"
                 type="link"
                 :class="btnClassName"
               >
                 停用
-              </a-button>
-              <a-button v-else type="link" :class="btnClassName">
+              </AButton>
+              <AButton v-else type="link" :class="btnClassName">
                 启用
-              </a-button>
-            </a-popconfirm>
-            <a-divider type="vertical" :class="dividerClassName" />
-            <a-popconfirm
+              </AButton>
+            </APopconfirm>
+            <ADivider type="vertical" :class="dividerClassName" />
+            <APopconfirm
               :title="`确定要删除岗位「${record.name}」吗？`"
               @confirm="() => handleDelete(record)"
             >
-              <a-button type="link" danger :class="btnClassName">
+              <AButton type="link" danger :class="btnClassName">
                 <template #icon>
                   <Icon icon="ant-design:delete-outlined" />
                 </template>
                 删除
-              </a-button>
-            </a-popconfirm>
+              </AButton>
+            </APopconfirm>
           </div>
         </template>
       </BasicTable>
-    </a-card>
+    </ACard>
 
     <!-- 新增/编辑抽屉 -->
     <BasicDrawer
@@ -555,7 +556,7 @@ const columns: BasicColumn[] = [
     >
       <div class="space-y-4">
         <!-- 岗位信息提示 -->
-        <a-alert
+        <AAlert
           message="选择要分配到该岗位的用户，支持多选"
           type="info"
           show-icon
@@ -564,17 +565,17 @@ const columns: BasicColumn[] = [
         <div
           class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400"
         >
-          <span>岗位编码：<a-tag color="blue">{{
+          <span>岗位编码：<ATag color="blue">{{
               assignPostRecord?.code
-            }}</a-tag></span>
-          <span>所属部门：<a-tag color="cyan">{{
+            }}</ATag></span>
+          <span>所属部门：<ATag color="cyan">{{
               assignPostRecord?.deptName
-            }}</a-tag></span>
-          <span>已选：<a-tag color="orange">{{ selectedAssignUserIds.length }} 人</a-tag></span>
+            }}</ATag></span>
+          <span>已选：<ATag color="orange">{{ selectedAssignUserIds.length }} 人</ATag></span>
         </div>
 
         <!-- 搜索框 -->
-        <a-input
+        <AInput
           v-model:value="assignSearchKeyword"
           placeholder="搜索用户名/昵称..."
           allow-clear
@@ -582,10 +583,10 @@ const columns: BasicColumn[] = [
           <template #prefix>
             <Icon icon="ant-design:search-outlined" class="text-gray-400" />
           </template>
-        </a-input>
+        </AInput>
 
         <!-- Transfer 穿梭框 -->
-        <a-transfer
+        <ATransfer
           v-model:target-keys="selectedAssignUserIds"
           :data-source="transferDataSource"
           :titles="['待选用户', '已选用户']"

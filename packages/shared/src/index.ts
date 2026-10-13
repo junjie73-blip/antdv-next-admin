@@ -27,6 +27,7 @@ export * from './iframe';
 export * from './jwt';
 export * from './masking';
 export * from './menu';
+export * from './scroll';
 export * from './template';
 export * from './welcome';
 export * from './xss';

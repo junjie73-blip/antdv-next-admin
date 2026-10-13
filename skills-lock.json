@@ -18,6 +18,12 @@
       "sourceType": "github",
       "skillPath": ".agents/skills/create-pr/SKILL.md",
       "computedHash": "ed62187839cd00787865cab43b1987d40b71f8cfdaa6ba862a0b130ea3243ac5"
+    },
+    "shadcn-vue": {
+      "source": "unovue/shadcn-vue",
+      "sourceType": "github",
+      "skillPath": "skills/shadcn-vue/SKILL.md",
+      "computedHash": "7037ba3c62e72d5324dbe0bfebe21d4fb8cb7aba5a2200dce96a797e948dc368"
     }
   }
 }

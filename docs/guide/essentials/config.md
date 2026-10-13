@@ -53,7 +53,7 @@ Vite 的合并顺序是 `.env` → `.env.[mode]` → `.env.local` → `.env.[mod
 | `VITE_PRINT` | 关 | 自定义 dev 启动横幅 | `:136` |
 | `VITE_INJECT_APP_LOADING` | 关（两个模式文件都写了 `true`） | 首屏遮罩注入（插件本体**永远注册**，见下） | `:145` |
 | `VITE_APP_LOADING_DEV` / `_BUILD` / `_DURATION` / `_PATH` | 前两个在未关注入时默认开 | 分别控制 dev/build 注入、淡出时长、自定义遮罩 HTML | `:175-189` |
-| `VITE_WRITE_DTS` | 开 | 关掉可跳过自动导入声明文件回写（映射盘上的稳定性开关） | `:65-67` |
+| `VITE_WRITE_DTS` | 开 | 关掉可跳过自动导入声明文件回写（映射盘上的稳定性开关） | `:62-67` |
 | `VITE_DEV_POLLING` | 关 | `server.watch.usePolling`；映射盘上的结论写在[本地开发](/guide/essentials/development) | `config/application.ts:119-123` |
 | `VITE_MOCK_SERVER` / `VITE_MOCK_PORT` | `http://localhost:5320` / `5320` | dev 代理目标与内嵌 Nitro 端口，必须同源推导 | `utils/proxy.ts:40-90` |
 | `VITE_PROXY` | 无 | 额外代理表 `[prefix, target][]`，Mock 代理优先级更高 | `config/application.ts:106` |

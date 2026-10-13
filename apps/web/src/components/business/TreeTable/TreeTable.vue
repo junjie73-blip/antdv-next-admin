@@ -9,10 +9,11 @@ import type { TreeDataNode, TreeTableProps } from './types';
 
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
+import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
 import { useDebounceFn, useEventListener } from '@vueuse/core';
-import { Tree } from 'antdv-next';
+import { Input as AInput, Tree } from 'antdv-next';
 import { BasicTable } from '~/components/business/Table';
 
 const props = withDefaults(defineProps<TreeTableProps>(), {
@@ -216,7 +217,7 @@ const nothingSelectedClassName = cn('text-sm text-gray-400 dark:text-gray-500');
       <div :class="treeBodyClassName">
         <Scrollbar root-class="h-full">
           <div v-if="showSearch" :class="treeSearchClassName">
-            <a-input
+            <AInput
               :placeholder="treeSearchPlaceholder"
               allow-clear
               @change="(e: any) => debouncedSearch(e.target.value)"
@@ -224,7 +225,7 @@ const nothingSelectedClassName = cn('text-sm text-gray-400 dark:text-gray-500');
               <template #prefix>
                 <Icon icon="carbon:search" class="text-gray-400" />
               </template>
-            </a-input>
+            </AInput>
           </div>
 
           <Tree

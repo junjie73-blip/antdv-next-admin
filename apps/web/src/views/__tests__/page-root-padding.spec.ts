@@ -6,7 +6,8 @@ import { describe, expect, it } from 'vitest';
 /**
  * 「内边距归布局管」的源码契约。
  *
- * 布局在内容区外面套了一层 `<Scrollbar view-class="p-4">`（`src/layouts/index.vue`），
+ * 布局在内容区外面套了一层 `<Scrollbar view-class="p-4">`（现在在
+ * `@antdv/layout-ui` 的 `LayoutContent` 里），
  * 页面内容的所有者已经是布局。路由页面**再**给自己的外层容器加一份 padding，
  * 表现是内容离边缘 40px、和别的页面对不齐、卡片阴影被顶出可视区。
  * 用户诉求：「所有路由页面，在布局组件中增加了 padding，那么路由页面外层容器不需要添加 padding」。
@@ -29,7 +30,11 @@ const INLINE_PADDING =
   /padding(?:-top|-right|-bottom|-left|-inline|-block)?\s*:/;
 
 const VIEWS = join(process.cwd(), 'src/views');
-const LAYOUT = join(process.cwd(), 'src/layouts/index.vue');
+/** 内容区的滚动容器已经进了包，那份 p-4 的真相在这一行里（仓库根的 packages/） */
+const LAYOUT_CONTENT = join(
+  process.cwd(),
+  '../../packages/ui-kit/layout-ui/src/components/LayoutContent.vue',
+);
 
 /** `views/<页>/components/X.vue`、`.../widgets/X.vue` 是页面私有组件，不是路由页面 */
 function isPrivateComponent(relativePath: string) {
@@ -186,10 +191,17 @@ function rootClassText(tag: string, source: string): string {
 }
 
 describe('路由页面的根容器不重复加内边距', () => {
+  /**
+   * 「布局那份 padding 还在」的口径随迁移换了位置：内容区的滚动容器现在是
+   * `@antdv/layout-ui` 的 `LayoutContent`，`p-4` 挂在它的 Scrollbar view 上。
+   * 包内另有渲染用例覆盖"padded 出 p-4、沉浸态不出"，这里只钉接入侧的前提：
+   * 布局那一层仍然给内容加了内边距 —— 一旦这圈 padding 被摘掉，
+   * 全仓几十个页面会同时缺内边距，而本用例的其他断言全部照绿。
+   */
   it('内边距由布局的 Scrollbar view-class 统一提供', () => {
-    const layout = readSource(LAYOUT);
-    // 「内容全屏 / 标签页放大」那一档故意不留内边距，所以只认"view 上出现 p-4"这件事
-    expect(layout).toMatch(/view-class="[^"]*p-4/);
+    const content = readSource(LAYOUT_CONTENT);
+    expect(content).toMatch(/padded[\s\S]{0,120}p-4/);
+    expect(content).toMatch(/view-class="viewClass"/);
   });
 
   it('扫到了足够多的页面（防止目录口径变化把断言跑成空转）', () => {

@@ -9,7 +9,8 @@
 | `apps/web/src/views/components/**` | 全部示例页的 `.vue` 源码，路径与菜单路径一一对应 |
 | `apps/web/src/components/business/**` | 被示例的业务组件（Table / Form / Modal / Drawer / Description / CountTo / TreeTable） |
 | `apps/web/src/components/common/**` | 通用封装（ECharts / CronEditor / MarkdownEditor / AvatarUploader / ImageUpload …） |
-| `packages/ui/src/**` | 无状态 UI 原子（Icon / IconPicker / Scrollbar / Loading …），以 `@antdv/ui/*` 子路径导出 |
+| `packages/icons/src/**` | 图标原子（`IconPicker` / `IconifyIcon` / `SvgIcon`），包名 `@antdv/icons` |
+| `packages/ui-kit/**` | 无状态 UI 原子：`loading-ui`、`scrollbar-ui`、`shadcn-ui` 以及 form/table/popup/tabs/menu/layout 的封装层 |
 | `apps/backend-mock/server/api/menus.get.ts:159-342` | 示例页的**唯一权威清单**：菜单即权限，没进菜单的路由进不去 |
 
 `views/components/overview/index.vue` 是画廊的目录页，它不另写一份清单，而是直接读 `useRouteStore().menus` 把菜单树摊平成卡片墙（`overview/index.vue:12-24`）—— 所以新增示例页只要进菜单就会自动出现在总览里。

@@ -3,7 +3,7 @@ import { computed, onMounted } from 'vue';
 
 import { ShopOutlined } from '@antdv-next/icons';
 import { useVModel } from '@vueuse/core';
-import { Select } from 'antdv-next';
+import { Empty as AEmpty, Select } from 'antdv-next';
 import { useTenantStore } from '~/stores/modules/tenant';
 
 interface Props {
@@ -106,7 +106,7 @@ defineExpose({
     </template>
 
     <template #notFoundContent>
-      <a-empty
+      <AEmpty
         :image="false"
         description="暂无租户数据"
         class="!py-4 !text-xs !text-stone-400"

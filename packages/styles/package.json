@@ -1,7 +1,7 @@
 {
   "name": "@antdv/styles",
   "version": "0.4.0",
-  "description": "全局样式子包：Tailwind v4 入口（层级顺序 / 插件 / dark 变体）、基础层、NProgress、无障碍与权限降级样式。边界：只写 CSS，不含任何组件逻辑；组件自身的样式随组件放在 @antdv/ui / @antdv/layouts",
+  "description": "全局样式子包：Tailwind v4 入口（层级顺序 / 插件 / dark 变体）、基础层、NProgress、无障碍与权限降级样式。边界：只写 CSS，不含任何组件逻辑；组件自身的样式随组件放在 @antdv/icons 与 packages/ui-kit/*，本包只登记它们的 Tailwind 扫描路径",
   "private": true,
   "type": "module",
   "scripts": {
@@ -19,6 +19,7 @@
     "./nprogress.css": "./src/nprogress.css",
     "./package.json": "./package.json",
     "./permission.css": "./src/permission.css",
+    "./tokens.css": "./src/tokens.css",
     "./a11y.css": "./src/a11y.css"
   },
   "dependencies": {

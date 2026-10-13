@@ -9,6 +9,7 @@ import {
   useTimeoutFn,
   useTimestamp,
 } from '@vueuse/core';
+import { Button as AButton } from 'antdv-next';
 import { useRegisterSW } from 'virtual:pwa-register/vue';
 
 defineOptions({ name: 'ReloadPrompt' });
@@ -252,7 +253,7 @@ tryOnScopeDispose(stopCountdown);
 
           <div class="mt-3 flex items-center gap-2">
             <template v-if="isUpdate">
-              <a-button
+              <AButton
                 type="primary"
                 size="small"
                 :loading="updating"
@@ -263,9 +264,9 @@ tryOnScopeDispose(stopCountdown);
                   <Icon v-if="!updating" icon="carbon:renew" />
                 </template>
                 立即更新
-              </a-button>
+              </AButton>
 
-              <a-button
+              <AButton
                 size="small"
                 class="!h-8 !rounded-lg !px-3 !text-xs !text-slate-500 hover:!text-slate-700 dark:!text-slate-400 dark:hover:!text-slate-200"
                 @click="handleLater"
@@ -277,10 +278,10 @@ tryOnScopeDispose(stopCountdown);
                 >
                   ({{ countdown }}s)
                 </span>
-              </a-button>
+              </AButton>
             </template>
 
-            <a-button
+            <AButton
               v-else
               type="primary"
               size="small"
@@ -288,7 +289,7 @@ tryOnScopeDispose(stopCountdown);
               @click="close"
             >
               知道了
-            </a-button>
+            </AButton>
           </div>
         </div>
 

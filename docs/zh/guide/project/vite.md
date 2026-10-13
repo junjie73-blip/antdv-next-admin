@@ -12,7 +12,7 @@
 
 ## 插件清单（`src/plugins/index.ts`，`kind: 'application'`）
 
-**无条件**：`createVuePlugins()`（@vitejs/plugin-vue + jsx、unplugin-vue-router、 `@tailwindcss/vite`、vite-plugin-vue-layouts-next、@intlify/unplugin-vue-i18n、vite-plugin-inspect）→ `createAutoImportPlugins()`（unplugin-auto-import / unplugin-vue-components + `AntdvNextResolver`、iconify 离线集合、vite-plugin-env-parse）→ svg-icons、imagemin、dayjs。
+**无条件**：`createVuePlugins()`（@vitejs/plugin-vue + jsx、unplugin-vue-router、 `@tailwindcss/vite`、vite-plugin-vue-layouts-next、@intlify/unplugin-vue-i18n、vite-plugin-inspect）→ `createAutoImportPlugins()`（unplugin-auto-import 只喂 `vue` / `@vueuse/core` / `pinia` / `vue-router`，unplugin-vue-components 只扫本应用 `src/components`，**没有任何组件解析器**，另有 iconify 离线集合、vite-plugin-env-parse）→ svg-icons、imagemin、dayjs。
 
 **按产物形态**：application 才有 HTML 注入（vite-plugin-html）与首屏 Loading、PWA、archiver、metadata、extra-app-config、print、mock；library 形态只留编译链 + vite-plugin-dts（`kind` 的注释写了混用症状）。
 
@@ -22,7 +22,7 @@
 | --- | --- |
 | `VITE_WRITE_DTS`（默认开） | auto-import/components 的 `.d.ts` 回写；Windows 映射盘上这写入偶发 `errno -4094` 直接带走 dev 进程，所以留了关闭口 |
 | `VITE_DEVTOOLS` / `VITE_VISUALIZER` / `VITE_TURBO_CONSOLE` | vue-devtools / vite-bundle-analyzer / 控制台增强 |
-| `VITE_ARCHIVER` / `VITE_COMPRESS` / `VITE_PWA` / `VITE_EXTRA_APP` / `VITE_PRINT` | 归档、压缩、PWA（见[检查更新](/guide/in-depth/check-update)）、运行时配置、打印 |
+| `VITE_ARCHIVER` / `VITE_COMPRESS` / `VITE_PWA` / `VITE_EXTRA_APP` / `VITE_PRINT` | 归档、压缩、PWA（见[检查更新](/zh/guide/in-depth/check-update)）、运行时配置、打印 |
 | `VITE_MOCK` | `vite:mock-server`（`nitro-mock.ts`）：dev 时在进程内起 `@antdv/backend-mock`（端口 `resolveMockPort`，默认 5320，占用则跳过），同时 `utils/proxy.ts` 把 `/api` 原样代理过去 —— 两处判定用同一个 `isEnvEnabled(VITE_MOCK)`，防止"代理开着 mock 没起"的半开状态 |
 | `VITE_INJECT_APP_LOADING` | 只决定首屏遮罩注不注入，虚拟模块永远注册 |
 
@@ -34,7 +34,7 @@ dts: './types/router.d.ts',
 exclude: ['**/*/components/*', 'account/**/*', 'login/**/*', 'register/**/*'],
 ```
 
-`**/components/**` 这种写法会把 `views/components/` 下 26 个组件示例页一起排掉（`**/` 匹配零层目录），表现是全站示例路由命中 404 兜底。改成"中间必须多一段目录"的 `**/*/components/*` 后，页面私有组件继续排除、示例页恢复真实路由 —— 改这行前读注释。登录/注册在 exclude 里是因为它们走 `constantRoutes`（见[路由](/guide/essentials/route)）。dev 下约定路由 HMR 与布局/权限裁剪的互搏由守卫里的 `syncRoutes()` 自愈（见[权限与菜单](/guide/in-depth/access)）。
+`**/components/**` 这种写法会把 `views/components/` 下 26 个组件示例页一起排掉（`**/` 匹配零层目录），表现是全站示例路由命中 404 兜底。改成"中间必须多一段目录"的 `**/*/components/*` 后，页面私有组件继续排除、示例页恢复真实路由 —— 改这行前读注释。登录/注册在 exclude 里是因为它们走 `constantRoutes`（见[路由](/zh/guide/essentials/route)）。dev 下约定路由 HMR 与布局/权限裁剪的互搏由守卫里的 `syncRoutes()` 自愈（见[权限与菜单](/zh/guide/in-depth/access)）。
 
 ## dev server 与代理
 
@@ -51,4 +51,4 @@ exclude: ['**/*/components/*', 'account/**/*', 'login/**/*', 'register/**/*'],
 ## 相关页面
 
 - 各开关的实际取值：`apps/web/.env*`（dev/prod 两份）
-- 检查更新链路：[检查更新](/guide/in-depth/check-update)
+- 检查更新链路：[检查更新](/zh/guide/in-depth/check-update)

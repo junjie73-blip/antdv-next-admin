@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
+import { Button as AButton, Card as ACard } from 'antdv-next';
 import { CountTo } from '~/components/business/CountTo';
 
 // 容器类名
@@ -167,7 +168,7 @@ function resetDynamicCounter() {
     </div>
 
     <!-- 1. 基础用法 -->
-    <a-card title="基础用法" variant="borderless">
+    <ACard title="基础用法" variant="borderless">
       <template #extra>
         <span :class="cardExtraClassName">从 0 到目标数字的动画</span>
       </template>
@@ -180,10 +181,10 @@ function resetDynamicCounter() {
           :class="cn(numberValueClassName, 'text-blue-600')"
         />
       </div>
-    </a-card>
+    </ACard>
 
     <!-- 2. 小数精度 -->
-    <a-card title="小数精度" variant="borderless">
+    <ACard title="小数精度" variant="borderless">
       <template #extra>
         <span :class="cardExtraClassName">配置 decimals 控制小数位数</span>
       </template>
@@ -226,10 +227,10 @@ function resetDynamicCounter() {
           />
         </div>
       </div>
-    </a-card>
+    </ACard>
 
     <!-- 3. 前缀后缀 -->
-    <a-card title="前缀后缀" variant="borderless">
+    <ACard title="前缀后缀" variant="borderless">
       <template #extra>
         <span :class="cardExtraClassName">添加 ¥、%、人 等单位符号</span>
       </template>
@@ -298,10 +299,10 @@ function resetDynamicCounter() {
           />
         </div>
       </div>
-    </a-card>
+    </ACard>
 
     <!-- 4. 分隔符 -->
-    <a-card title="千分位分隔符" variant="borderless">
+    <ACard title="千分位分隔符" variant="borderless">
       <template #extra>
         <span :class="cardExtraClassName">大数字使用逗号分隔，更易读</span>
       </template>
@@ -334,10 +335,10 @@ function resetDynamicCounter() {
           />
         </div>
       </div>
-    </a-card>
+    </ACard>
 
     <!-- 5. 正负数 -->
-    <a-card title="正负数展示" variant="borderless">
+    <ACard title="正负数展示" variant="borderless">
       <template #extra>
         <span :class="cardExtraClassName">支持正数和负数的动画效果</span>
       </template>
@@ -403,10 +404,10 @@ function resetDynamicCounter() {
           <span :class="cn(signChangeClassName, 'text-orange-500')">-23.4%</span>
         </div>
       </div>
-    </a-card>
+    </ACard>
 
     <!-- 6. 缓动函数 -->
-    <a-card title="缓动函数对比" variant="borderless">
+    <ACard title="缓动函数对比" variant="borderless">
       <template #extra>
         <span :class="cardExtraClassName">不同缓动效果让动画更有节奏感</span>
       </template>
@@ -482,10 +483,10 @@ function resetDynamicCounter() {
           </div>
         </div>
       </div>
-    </a-card>
+    </ACard>
 
     <!-- 7. 数据看板面板 -->
-    <a-card title="数据看板面板" variant="borderless">
+    <ACard title="数据看板面板" variant="borderless">
       <template #extra>
         <span :class="cardExtraClassName">模拟真实业务场景的数据展示</span>
       </template>
@@ -527,10 +528,10 @@ function resetDynamicCounter() {
           </div>
         </div>
       </div>
-    </a-card>
+    </ACard>
 
     <!-- 8. 动态更新 -->
-    <a-card title="动态更新目标值" variant="borderless">
+    <ACard title="动态更新目标值" variant="borderless">
       <template #extra>
         <span :class="cardExtraClassName">点击按钮改变目标值，动画自动重播</span>
       </template>
@@ -547,18 +548,18 @@ function resetDynamicCounter() {
           />
         </div>
         <div :class="buttonGroupClassName">
-          <a-button type="primary" size="large" @click="updateDynamicValue">
+          <AButton type="primary" size="large" @click="updateDynamicValue">
             🎲 随机生成新数值
-          </a-button>
-          <a-button size="large" @click="resetDynamicCounter">
+          </AButton>
+          <AButton size="large" @click="resetDynamicCounter">
             🔄 重播动画
-          </a-button>
+          </AButton>
         </div>
         <p :class="dynamicTipClassName">
           点击「随机生成」会改变目标值，CountTo 会检测到 endVal
           变化并自动重新播放动画
         </p>
       </div>
-    </a-card>
+    </ACard>
   </div>
 </template>

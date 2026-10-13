@@ -3,12 +3,12 @@
 The state layer is **Pinia plus a hand-written cache**: stores carry no persistence plugin, and everything that reaches disk goes through `cache` from `@antdv/shared` (or `localStorage` directly). This is where the project differs from most templates — there is no `pinia-plugin-persistedstate`, so "which state survives" is an explicit decision rather than a `persist: true` switch.
 
 ```ts
-// apps/web/src/main.ts:44-45
+// apps/web/src/main.ts:54-55
 const pinia = createPinia();
 app.use(pinia);
 ```
 
-`createPinia` / `defineStore` are also registered by auto-import (`internal/vite-config/src/plugins/auto-import.ts:77`), so a store file works without a visible import.
+`createPinia` / `defineStore` are also registered by auto-import (the `imports` list at `internal/vite-config/src/plugins/auto-import.ts:49`), so a store file works without a visible import. Components are not covered by this — sub-package components and antdv-next components are always imported explicitly, see [External modules](/en/guide/essentials/external).
 
 ## Six stores in total
 
@@ -30,7 +30,7 @@ All of them are in `apps/web/src/stores/modules/`, and `packages/*` has **none a
 - **All setup stores**: `defineStore(id, () => { ... })`, getters returned as `computed`, actions returned as named functions (`auth.ts:18-43`, `route.ts:354-371`). There is no option store style anywhere.
 - Naming is `useXxxStore`, and the file name corresponds to the id.
 - **Using a store outside components**: there is no pinia-instance injection trick; the store is called on the spot inside function/guard callbacks (`router/guards/index.ts:53`, `fetcher.ts:75`, `directives/index.ts:35`). That means you cannot grab a store at module top level — pinia has not been installed yet at that point.
-- Logout has exactly one aggregated exit: `user.ts:126-150` runs `resetPageCache()`, `useRouteStore().resetRoutes()`, `useTabsStore().reset()` in that order. State that needs clearing on logout gets added here, not scattered all over the place.
+- Logout has exactly one aggregated exit: `user.ts:163-169` nulls the token and user info, drops both cache keys, then calls `clearDerivedSession()` (`:84-88`), which runs `resetPageCache()`, `useRouteStore().resetRoutes()` and `useTabsStore().reset()` in that order. State that needs clearing on logout gets added here, not scattered all over the place.
 
 ## Persistence: hand-written, and every key follows its own rule
 

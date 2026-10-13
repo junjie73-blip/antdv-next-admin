@@ -6,7 +6,7 @@ Once you clone this repository it is yours — nobody pushes updates to you. Thi
 
 | Location | Contents | Notes |
 | --- | --- | --- |
-| `catalog:` in `pnpm-workspace.yaml` | 241 entries | the single source of truth; all 145 dependencies in `apps/web/package.json` say `catalog:` |
+| `catalog:` in `pnpm-workspace.yaml` | 254 entries | the single source of truth; every one of the 170 dependency entries in `apps/web/package.json` is `catalog:` or `workspace:*` |
 | `overrides` in the same file | `vue`, `clsx`, `pinia`, `@ctrl/tinycolor`, `@ast-grep/napi` → `catalog:` | forces one instance of each so third-party peer trees cannot fork |
 | Root `package.json` | `packageManager: pnpm@10.12.4`, `engines.node: ">=22"`; `.node-version` says 24.0.0 | `preinstall` runs `only-allow pnpm`; a workspace installed with npm/yarn is a fake one |
 
@@ -47,12 +47,14 @@ Three decisions in `.changeset/config.json` matter: `fixed: [["@antdv/*", "@antd
 
 ## Running an antdv-next upgrade
 
-`antdv-next` appears exactly once in the catalog (`^1.6.0`) but it is a direct dependency of four packages (`composables`, `preferences`, `shared`, `ui`) plus `apps/web`, so that one line moves everything. Its five satellites deserve the same attention: `@antdv-next/cssinjs`, `-icons`, `-tailwind`, `-auto-import-resolver`, `-happy-work-theme`, along with the `@iconify-json/*` sets.
+`antdv-next` appears exactly once in the catalog (`^1.6.0`) but it is a direct dependency of four packages (`composables`, `preferences`, `shared`, `types`) plus `apps/web`, so that one line moves everything. Its four satellites deserve the same attention: `@antdv-next/cssinjs`, `-icons`, `-tailwind`, `-happy-work-theme`, along with the `@iconify-json/*` sets. None of the nine `ui-kit` packages import antdv-next — forms, tables, popups, tabs, menus and layout shells were re-implemented on TanStack + shadcn-vue, so an antdv-next bump never touches them.
 
 ```bash
 # 1. edit the catalog line in pnpm-workspace.yaml
 pnpm install --no-frozen-lockfile
-# 2. rebuild the sub-packages first: the app consumes dist, not source
+# 2. build the dist-published packages first (shared, composables, directives, layouts,
+#    preferences, router, types) — the app imports their dist. The source-published ones
+#    (icons, styles, the nine ui-kit packages) are read straight from src and need no build
 pnpm build
 # 3. types + unit tests (turbo runs ^build before each task)
 pnpm check:type
@@ -68,7 +70,7 @@ Two more things about `pnpm build`: it sets `NODE_OPTIONS=--max-old-space-size=8
 ## Five places a breaking upgrade touches first
 
 1. **The shape of the `ConfigProvider` theme** (`apps/web/src/App.vue:46-62`). The object is assembled by `packages/preferences/src/theme/index.ts` in three layers: `algorithm` (`darkAlgorithm` / `defaultAlgorithm` / `compactAlgorithm`), `token` (`lightToken` / `darkToken` + preset + runtime overrides), and `components`. A renamed algorithm field does not throw — dark and compact themes just silently fall back to the default. The same layering shows up in `css-vars.ts`, which writes the primary color **twice** (`--ant-color-primary` plus the legacy `--ant-primary-color`); see [Theming & preferences](/en/guide/in-depth/theme).
-2. **Sub-component template syntax.** Tags like `<a-descriptions-item>` are still in five pages (`views/account/center`, `views/components/editor`, `views/components/form/steps`, `views/system/micro-app`, `views/system/notice`). A failed resolution **does not fail the build** — you get one `Failed to resolve component` warning and an empty node, which is why `apps/web/e2e/gallery-examples.spec.ts` counts `.ant-descriptions-item-label` nodes instead of checking that a heading is visible. Pre-compiled third-party templates (`@form-create/antd-designer`) never see compile-time resolution: they rely on the 36 global registrations in `apps/web/src/plugins/vendor-antd-components.ts`, which is where a new sub-component has to be added.
+2. **Sub-component template syntax.** Four pages still render antd sub-components (`views/account/center`, `views/components/form/steps`, `views/components/table/crud`, `views/system/notice`), and since the resolver was withdrawn every one of them goes through an explicit `import { DescriptionsItem as ADescriptionsItem } from 'antdv-next'` — there is no bare `<a-descriptions-item>` left in `apps/web/src`. That closes the failure mode for first-party source, but not for the pre-compiled third-party templates: `@form-create/antd-designer` resolves at runtime through `resolveComponent('a-…')` and is served by the 36 kebab-case entries in `apps/web/src/plugins/vendor-antd-components.ts` — that list is where a new sub-component has to be added. A missing name **does not fail the build**; you get one `Failed to resolve component` warning and an empty node, which is why `apps/web/e2e/gallery-examples.spec.ts` counts `.ant-descriptions-item-label` nodes instead of checking that a heading is visible, and asserts on the warning text as well.
 3. **Table.** `App.vue` turns `virtual` on globally, so antd requires a numeric `scroll.y`; `BasicTable.vue` papers over the pages that only pass `{ x: 1400 }` through `mergedVirtual`. Fixed headers and horizontal scrolling also inject a leading `ant-table-measure-row` into `<tbody>`, and `useDragSort.ts` counts `data-row-key` rows to find that offset. Both behaviours have unit tests (`components/business/Table/__tests__/drag-sort.spec.ts`).
 4. **APIs that are wrong but silent.** `apps/web/src/views/__tests__/gallery-api-usage.spec.ts` catches three families before you do: a named `useApp` import (1.6 only exposes `App.useApp()`), permission directive arguments written as modifiers (`v-permission:role`, not `v-permission.role`), and Tabs bound to `@add` (1.6 only emits `@edit`).
 5. **Icons.** `@antdv-next/icons`, the five `@iconify-json/*` sets, and the offline list in `internal/vite-config/src/plugins/auto-import.ts`. A misspelled icon name never errors — it renders an empty square — so `apps/web/test/icon-names.test.ts` reconciles every literal against the installed collections.

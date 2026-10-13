@@ -4,7 +4,7 @@ import type { BasicColumn } from '../types';
 
 import { computed, defineComponent } from 'vue';
 
-import { IconifyIcon as Icon } from '@antdv/ui/icon';
+import { IconifyIcon as Icon } from '@antdv/icons/icon';
 
 export default defineComponent({
   name: 'TableHeaderCell',

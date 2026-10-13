@@ -55,7 +55,9 @@ describe('isTransientSpawnError', () => {
   });
 });
 
-describe('仓库内查询', () => {
+// 每个用例会真实 spawn git 子进程；turbo 并发跑全站测试时 Windows 上的进程调度
+// 会把单条命令拖到 5s 默认超时以上（单独跑必过），所以显式放宽这一组的超时。
+describe('仓库内查询', { timeout: 20_000 }, () => {
   it('能定位仓库并读出分支 / commit / 提交数', async () => {
     const root = (await findRepoRoot()) as string;
     expect(await isGitRepo(root)).toBe(true);

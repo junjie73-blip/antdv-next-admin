@@ -7,6 +7,7 @@ import { useRouter } from 'vue-router';
 
 import { LockOutlined, MailOutlined, UserOutlined } from '@antdv-next/icons';
 import { cn } from '@antdv/shared/cn';
+import { Button as AButton, Checkbox as ACheckbox, Form as AForm, FormItem as AFormItem, Input as AInput, InputPassword as AInputPassword, message } from 'antdv-next';
 
 const router = useRouter();
 
@@ -327,15 +328,15 @@ function _handleSendCode() {
         </div>
 
         <!-- 表单 -->
-        <a-form
+        <AForm
           ref="formRef"
           :model="formState"
           :rules="rules"
           layout="vertical"
           @finish="handleRegister"
         >
-          <a-form-item name="username">
-            <a-input
+          <AFormItem name="username">
+            <AInput
               v-model:value="formState.username"
               size="large"
               placeholder="请输入用户名"
@@ -345,11 +346,11 @@ function _handleSendCode() {
               <template #prefix>
                 <UserOutlined class="text-stone-400" />
               </template>
-            </a-input>
-          </a-form-item>
+            </AInput>
+          </AFormItem>
 
-          <a-form-item name="email">
-            <a-input
+          <AFormItem name="email">
+            <AInput
               v-model:value="formState.email"
               size="large"
               placeholder="请输入邮箱"
@@ -359,11 +360,11 @@ function _handleSendCode() {
               <template #prefix>
                 <MailOutlined class="text-stone-400" />
               </template>
-            </a-input>
-          </a-form-item>
+            </AInput>
+          </AFormItem>
 
-          <a-form-item name="password">
-            <a-input-password
+          <AFormItem name="password">
+            <AInputPassword
               v-model:value="formState.password"
               size="large"
               placeholder="请输入密码"
@@ -373,11 +374,11 @@ function _handleSendCode() {
               <template #prefix>
                 <LockOutlined class="text-stone-400" />
               </template>
-            </a-input-password>
-          </a-form-item>
+            </AInputPassword>
+          </AFormItem>
 
-          <a-form-item name="confirmPassword">
-            <a-input-password
+          <AFormItem name="confirmPassword">
+            <AInputPassword
               v-model:value="formState.confirmPassword"
               size="large"
               placeholder="请确认密码"
@@ -387,35 +388,35 @@ function _handleSendCode() {
               <template #prefix>
                 <LockOutlined class="text-stone-400" />
               </template>
-            </a-input-password>
-          </a-form-item>
+            </AInputPassword>
+          </AFormItem>
 
-          <a-form-item name="agreement">
-            <a-checkbox
+          <AFormItem name="agreement">
+            <ACheckbox
               v-model:checked="formState.agreement"
               class="[&_.ant-checkbox-inner]:!border-slate-300 [&_.ant-checkbox-inner]:!bg-white [&_.ant-checkbox-wrapper]:!text-stone-500"
             >
               我已阅读并同意
-              <a-button
+              <AButton
                 type="link"
                 size="small"
                 class="!p-0 !text-stone-400 hover:!text-stone-600"
               >
                 《用户协议》
-              </a-button>
+              </AButton>
               和
-              <a-button
+              <AButton
                 type="link"
                 size="small"
                 class="!p-0 !text-stone-400 hover:!text-stone-600"
               >
                 《隐私政策》
-              </a-button>
-            </a-checkbox>
-          </a-form-item>
+              </AButton>
+            </ACheckbox>
+          </AFormItem>
 
-          <a-form-item class="mt-8">
-            <a-button
+          <AFormItem class="mt-8">
+            <AButton
               type="primary"
               html-type="submit"
               size="large"
@@ -424,21 +425,21 @@ function _handleSendCode() {
               class="!h-11 !border-0 !shadow-lg"
             >
               注册
-            </a-button>
-          </a-form-item>
-        </a-form>
+            </AButton>
+          </AFormItem>
+        </AForm>
 
         <!-- 登录链接 -->
         <div class="text-center">
           <span class="text-stone-500">已有账户？</span>
-          <a-button
+          <AButton
             type="link"
             class="!ml-1 !p-0"
             style="color: var(--ant-color-primary)"
             @click="handleBackToLogin"
           >
             立即登录
-          </a-button>
+          </AButton>
         </div>
       </div>
     </div>

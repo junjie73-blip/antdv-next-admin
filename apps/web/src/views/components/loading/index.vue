@@ -3,8 +3,9 @@ import type { Ref, VNode } from 'vue';
 
 import { h, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue';
 
+import { createLoading, Loading, useLoading } from '@antdv/loading-ui';
 import { cn } from '@antdv/shared/cn';
-import { createLoading, Loading, useLoading } from '@antdv/ui/loading';
+import { Button as AButton, Card as ACard, Checkbox as ACheckbox, Input as AInput, InputNumber as AInputNumber, Radio as ARadio, RadioGroup as ARadioGroup, Select as ASelect, Skeleton as ASkeleton, SkeletonButton as ASkeletonButton, SkeletonImage as ASkeletonImage, Space as ASpace, Spin as ASpin, Switch as ASwitch, Table as ATable } from 'antdv-next';
 import EmptyState from '~/components/common/EmptyState.vue';
 import ErrorBoundary from '~/components/common/ErrorBoundary.vue';
 import PageLoading from '~/components/common/Loading/PageLoading.vue';
@@ -276,7 +277,7 @@ const statusOptions = [
 const rawStatus = ref('processing');
 
 /* ============================================================
- * 5. 加载家族 —— @antdv/ui 的 Loading / 指令 / Hook
+ * 5. 加载家族 —— @antdv/loading-ui 的 Loading / 指令 / Hook
  * ============================================================ */
 const spinLoading = ref(true);
 const spinTip = ref('加载中...');
@@ -417,7 +418,7 @@ function triggerGlobalLoading() {
 
 <template>
   <div :class="containerClassName">
-    <a-card variant="borderless" title="骨架屏（PageSkeleton / TableSkeleton）">
+    <ACard variant="borderless" title="骨架屏（PageSkeleton / TableSkeleton）">
       <div :class="cn('space-y-8')">
         <div>
           <h4 :class="sectionTitleClassName">
@@ -431,32 +432,32 @@ function triggerGlobalLoading() {
             的真实计时，到点自动换成内容；中途关掉立刻交还。
           </p>
           <div class="flex flex-wrap items-center gap-4">
-            <a-switch
+            <ASwitch
               :checked="pageSkeletonLoading"
               checked-children="加载中"
               un-checked-children="已完成"
               @change="togglePageSkeleton"
             />
-            <a-radio-group
+            <ARadioGroup
               v-model:value="skeletonVariant"
               option-type="button"
               size="small"
             >
-              <a-radio value="page">page</a-radio>
-              <a-radio value="card">card</a-radio>
-              <a-radio value="form">form</a-radio>
-              <a-radio value="detail">detail</a-radio>
-            </a-radio-group>
-            <a-input-number
+              <ARadio value="page">page</ARadio>
+              <ARadio value="card">card</ARadio>
+              <ARadio value="form">form</ARadio>
+              <ARadio value="detail">detail</ARadio>
+            </ARadioGroup>
+            <AInputNumber
               v-model:value="skeletonRows"
               :max="10"
               :min="1"
               size="small"
               style="width: 110px"
             />
-            <a-checkbox v-model:checked="skeletonShowSidebar">
+            <ACheckbox v-model:checked="skeletonShowSidebar">
               带侧边栏
-            </a-checkbox>
+            </ACheckbox>
             <span :class="hintClassName">rows 与侧边栏只在 page 变体生效</span>
           </div>
           <p v-if="skeletonFinishedAt" :class="cn(hintClassName, 'mt-2')">
@@ -494,9 +495,9 @@ function triggerGlobalLoading() {
             表格骨架屏（列数/行数/表头/操作列/分页都可关）
           </h4>
           <div class="mb-3 flex flex-wrap items-center gap-3">
-            <a-button type="primary" @click="reloadTableSkeleton">
+            <AButton type="primary" @click="reloadTableSkeleton">
               重新加载表格
-            </a-button>
+            </AButton>
             <span :class="hintClassName">
               真实项目里把它放进
               <code :class="codeClassName">&lt;BasicTable&gt;</code>
@@ -511,7 +512,7 @@ function triggerGlobalLoading() {
             :show-actions="true"
             :show-pagination="false"
           >
-            <a-table
+            <ATable
               :data-source="tableRows"
               :pagination="false"
               :columns="[
@@ -525,9 +526,9 @@ function triggerGlobalLoading() {
           </TableSkeleton>
         </div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card variant="borderless" title="空状态（EmptyState）">
+    <ACard variant="borderless" title="空状态（EmptyState）">
       <div :class="cn('space-y-8')">
         <div>
           <h4 :class="sectionTitleClassName">
@@ -557,9 +558,9 @@ function triggerGlobalLoading() {
                 description="换个时间范围或状态再试一次"
                 icon="ant-design:filter-outlined"
               >
-                <a-button type="primary" class="mt-4" @click="addNotice">
+                <AButton type="primary" class="mt-4" @click="addNotice">
                   新建一条公告
-                </a-button>
+                </AButton>
               </EmptyState>
             </div>
           </div>
@@ -585,32 +586,32 @@ function triggerGlobalLoading() {
               title="公告已清空"
               description="列表长度为 0 时组件接管整块区域，不需要页面再写 v-if 兜底文案"
             >
-              <a-button class="mt-4" type="primary" @click="restoreNoticeList">
+              <AButton class="mt-4" type="primary" @click="restoreNoticeList">
                 恢复示例数据
-              </a-button>
+              </AButton>
             </EmptyState>
           </div>
           <div class="mt-3 flex gap-3">
-            <a-button
+            <AButton
               :disabled="noticeList.length === 0"
               status="danger"
               @click="clearNoticeList"
             >
               清空列表
-            </a-button>
-            <a-button
+            </AButton>
+            <AButton
               :disabled="noticeList.length > 0"
               type="primary"
               @click="restoreNoticeList"
             >
               恢复数据
-            </a-button>
+            </AButton>
           </div>
         </div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card variant="borderless" title="错误边界（ErrorBoundary）">
+    <ACard variant="borderless" title="错误边界（ErrorBoundary）">
       <div :class="cn('space-y-8')">
         <div>
           <h4 :class="sectionTitleClassName">
@@ -627,16 +628,16 @@ function triggerGlobalLoading() {
             所以重试是真的恢复到内容，而不是原地再崩一次。
           </p>
           <div class="mb-3 flex flex-wrap items-center gap-4">
-            <a-switch
+            <ASwitch
               v-model:checked="boundaryFail"
               checked-children="抛错"
               un-checked-children="正常"
               @change="handleBoundaryChange"
             />
-            <a-button status="danger" @click="crashChild">
+            <AButton status="danger" @click="crashChild">
               模拟一次崩溃
-            </a-button>
-            <a-button @click="healChild">恢复子组件</a-button>
+            </AButton>
+            <AButton @click="healChild">恢复子组件</AButton>
             <span :class="hintClassName">已重试 {{ boundaryResetCount }} 次</span>
           </div>
           <p :class="cn(hintClassName, 'mb-3 break-all')">
@@ -662,9 +663,9 @@ function triggerGlobalLoading() {
             <code :class="codeClassName">reset</code>，否则用户就被困死在兜底页。
           </p>
           <div class="mb-3 flex flex-wrap items-center gap-3">
-            <a-button status="warning" @click="crashWithCustomFallback">
+            <AButton status="warning" @click="crashWithCustomFallback">
               抛错（走自定义兜底）
-            </a-button>
+            </AButton>
             <span :class="hintClassName">
               子组件先正常挂载，点一下才失败 —— 页面初次进入不制造无害的错误日志
             </span>
@@ -674,9 +675,9 @@ function triggerGlobalLoading() {
           </ErrorBoundary>
         </div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card variant="borderless" title="状态标签（StatusTag）">
+    <ACard variant="borderless" title="状态标签（StatusTag）">
       <div :class="cn('space-y-8')">
         <div>
           <h4 :class="sectionTitleClassName">任务列表里的状态列</h4>
@@ -695,7 +696,7 @@ function triggerGlobalLoading() {
             <code :class="codeClassName">default</code>，
             所以后端新增状态时页面只是少了配色，不会白屏。
           </p>
-          <a-table
+          <ATable
             :columns="[
               { dataIndex: 'name', title: '任务' },
               { dataIndex: 'status', title: '状态' },
@@ -713,7 +714,7 @@ function triggerGlobalLoading() {
                 }}</span>
               </template>
             </template>
-          </a-table>
+          </ATable>
         </div>
 
         <div>
@@ -735,7 +736,7 @@ function triggerGlobalLoading() {
         <div>
           <h4 :class="sectionTitleClassName">换一个原始值看映射结果</h4>
           <div class="flex flex-wrap items-center gap-4">
-            <a-select
+            <ASelect
               v-model:value="rawStatus"
               :options="statusOptions"
               style="width: 220px"
@@ -749,52 +750,52 @@ function triggerGlobalLoading() {
           </div>
         </div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card variant="borderless" title="Spin 加载器">
+    <ACard variant="borderless" title="Spin 加载器">
       <div :class="cn('space-y-8')">
         <div>
           <h4 :class="sectionTitleClassName">基础用法</h4>
           <div class="flex flex-wrap items-center gap-8">
-            <a-spin />
-            <a-spin :loading="spinLoading" description="数据加载中..." />
-            <a-button @click="spinLoading = !spinLoading">
+            <ASpin />
+            <ASpin :loading="spinLoading" description="数据加载中..." />
+            <AButton @click="spinLoading = !spinLoading">
               {{ spinLoading ? '停止' : '开始' }}加载
-            </a-button>
+            </AButton>
           </div>
         </div>
 
         <div>
           <h4 :class="sectionTitleClassName">包裹内容</h4>
           <div class="flex flex-wrap gap-6">
-            <a-spin :loading="true" class="w-[240px]">
+            <ASpin :loading="true" class="w-[240px]">
               <div :class="demoBoxClassName">内容区域被 Spin 包裹</div>
-            </a-spin>
-            <a-spin :loading="spinLoading" class="w-[240px]">
+            </ASpin>
+            <ASpin :loading="spinLoading" class="w-[240px]">
               <div
                 class="rounded-lg bg-gray-50 p-4 text-sm text-gray-600 dark:bg-gray-800 dark:text-gray-400"
               >
                 点击按钮切换加载状态
               </div>
-            </a-spin>
+            </ASpin>
           </div>
         </div>
 
         <div>
           <h4 :class="sectionTitleClassName">自定义提示文字</h4>
           <div class="flex flex-wrap items-center gap-4">
-            <a-spin description="正在加载用户信息..." />
-            <a-spin description="请稍候，数据同步中...">
+            <ASpin description="正在加载用户信息..." />
+            <ASpin description="请稍候，数据同步中...">
               <div
                 class="h-[80px] w-[200px] rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20"
               ></div>
-            </a-spin>
-            <a-input
+            </ASpin>
+            <AInput
               v-model:value="spinTip"
               placeholder="输入提示文字"
               style="width: 180px"
             />
-            <a-spin :description="spinTip" />
+            <ASpin :description="spinTip" />
           </div>
         </div>
 
@@ -802,15 +803,15 @@ function triggerGlobalLoading() {
           <h4 :class="sectionTitleClassName">尺寸大小</h4>
           <div class="flex items-center gap-8">
             <div class="flex flex-col items-center gap-2">
-              <a-spin size="small" />
+              <ASpin size="small" />
               <span class="text-xs text-gray-500">Small</span>
             </div>
             <div class="flex flex-col items-center gap-2">
-              <a-spin size="medium" />
+              <ASpin size="medium" />
               <span class="text-xs text-gray-500">Medium</span>
             </div>
             <div class="flex flex-col items-center gap-2">
-              <a-spin size="large" />
+              <ASpin size="large" />
               <span class="text-xs text-gray-500">Large</span>
             </div>
           </div>
@@ -819,57 +820,57 @@ function triggerGlobalLoading() {
         <div>
           <h4 :class="sectionTitleClassName">样式切换（点状 / 圆圈 / 网格）</h4>
           <div class="flex flex-wrap items-center gap-6">
-            <a-space>
-              <a-button
+            <ASpace>
+              <AButton
                 :type="spinStyle === 'circle' ? 'primary' : 'outline'"
                 size="small"
                 @click="toggleSpinStyle('circle')"
               >
                 圆圈 Circle
-              </a-button>
-              <a-button
+              </AButton>
+              <AButton
                 :type="spinStyle === 'dot' ? 'primary' : 'outline'"
                 size="small"
                 @click="toggleSpinStyle('dot')"
               >
                 点状 Dot
-              </a-button>
-              <a-button
+              </AButton>
+              <AButton
                 :type="spinStyle === 'grid' ? 'primary' : 'outline'"
                 size="small"
                 @click="toggleSpinStyle('grid')"
               >
                 网格 Grid
-              </a-button>
-            </a-space>
+              </AButton>
+            </ASpace>
             <div
               class="ml-4 flex min-h-[100px] min-w-[160px] items-center justify-center rounded-lg bg-gray-50 p-4 dark:bg-gray-800"
             >
-              <a-spin v-if="spinStyle === 'circle'" />
-              <a-spin v-else-if="spinStyle === 'dot'" dot />
-              <a-spin v-else-if="spinStyle === 'grid'" grid />
+              <ASpin v-if="spinStyle === 'circle'" />
+              <ASpin v-else-if="spinStyle === 'dot'" dot />
+              <ASpin v-else-if="spinStyle === 'grid'" grid />
             </div>
           </div>
         </div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card variant="borderless" title="Skeleton 骨架屏">
+    <ACard variant="borderless" title="Skeleton 骨架屏">
       <div :class="cn('space-y-8')">
         <div>
           <h4 :class="sectionTitleClassName">头像 + 文本骨架</h4>
           <div class="flex gap-8">
-            <a-skeleton avatar :paragraph="{ rows: 3 }" />
-            <a-skeleton avatar active :paragraph="{ rows: 2 }" />
+            <ASkeleton avatar :paragraph="{ rows: 3 }" />
+            <ASkeleton avatar active :paragraph="{ rows: 2 }" />
           </div>
         </div>
 
         <div>
           <h4 :class="sectionTitleClassName">图片骨架</h4>
           <div class="flex flex-wrap gap-6">
-            <a-skeleton-image />
-            <a-skeleton-image active />
-            <a-skeleton-image style="width: 280px; height: 160px" />
+            <ASkeletonImage />
+            <ASkeletonImage active />
+            <ASkeletonImage style="width: 280px; height: 160px" />
           </div>
         </div>
 
@@ -880,7 +881,7 @@ function triggerGlobalLoading() {
             Avatar / Element / Input / Image 等子组件），未注册标签渲染成空元素，
             这块示例实际上什么都没显示。用 Skeleton 的多行段落占位还原表格观感。
           -->
-          <a-skeleton
+          <ASkeleton
             active
             :avatar="false"
             :paragraph="{ rows: 4, width: ['18%', '30%', '22%', '26%'] }"
@@ -891,15 +892,15 @@ function triggerGlobalLoading() {
         <div>
           <h4 :class="sectionTitleClassName">按钮骨架</h4>
           <div class="flex gap-4">
-            <a-skeleton-button />
-            <a-skeleton-button active block />
+            <ASkeletonButton />
+            <ASkeletonButton active block />
           </div>
         </div>
 
         <div>
           <h4 :class="sectionTitleClassName">动画控制</h4>
           <div class="flex items-center gap-4">
-            <a-switch
+            <ASwitch
               v-model:checked="skeletonActive"
               checked-children="激活"
               un-checked-children="静止"
@@ -911,35 +912,35 @@ function triggerGlobalLoading() {
             </span>
           </div>
           <div class="mt-4 max-w-md rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
-            <a-skeleton :active="skeletonActive" :paragraph="{ rows: 2 }" />
+            <ASkeleton :active="skeletonActive" :paragraph="{ rows: 2 }" />
           </div>
         </div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card variant="borderless" title="Loading 组件（项目封装）">
+    <ACard variant="borderless" title="Loading 组件（项目封装）">
       <div :class="cn('space-y-6')">
         <p :class="hintClassName">
-          <code :class="codeClassName">@antdv/ui/loading</code>
+          <code :class="codeClassName">@antdv/loading-ui</code>
           的 <code :class="codeClassName">Loading</code>
           组件，支持全屏/容器内两种模式，可配置尺寸、主题、提示文字等
         </p>
 
         <div class="flex items-center gap-4">
           <span class="text-sm font-medium text-gray-600 dark:text-gray-400">尺寸：</span>
-          <a-radio-group v-model:value="componentSize" option-type="button">
-            <a-radio value="small"> Small </a-radio>
-            <a-radio value="default"> Default </a-radio>
-            <a-radio value="large"> Large </a-radio>
-          </a-radio-group>
+          <ARadioGroup v-model:value="componentSize" option-type="button">
+            <ARadio value="small"> Small </ARadio>
+            <ARadio value="default"> Default </ARadio>
+            <ARadio value="large"> Large </ARadio>
+          </ARadioGroup>
         </div>
 
         <div class="flex items-center gap-4">
           <span class="text-sm font-medium text-gray-600 dark:text-gray-400">主题：</span>
-          <a-radio-group v-model:value="componentTheme" option-type="button">
-            <a-radio value="light"> Light </a-radio>
-            <a-radio value="dark"> Dark </a-radio>
-          </a-radio-group>
+          <ARadioGroup v-model:value="componentTheme" option-type="button">
+            <ARadio value="light"> Light </ARadio>
+            <ARadio value="dark"> Dark </ARadio>
+          </ARadioGroup>
         </div>
 
         <div :class="frameClassName">
@@ -950,13 +951,13 @@ function triggerGlobalLoading() {
               <p :class="cn('mb-4 text-sm', hintClassName)">
                 这是一个容器内 Loading 演示区域
               </p>
-              <a-button
+              <AButton
                 type="primary"
                 :loading="componentLoading"
                 @click="triggerComponentLoading"
               >
                 触发 Loading ({{ componentSize }} / {{ componentTheme }})
-              </a-button>
+              </AButton>
             </div>
           </div>
           <!-- tip 才是 Loading 组件的文案属性（没有 description 这个 prop） -->
@@ -969,16 +970,16 @@ function triggerGlobalLoading() {
           />
         </div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card variant="borderless" title="PageLoading 与延迟遮罩">
+    <ACard variant="borderless" title="PageLoading 与延迟遮罩">
       <div :class="cn('space-y-6')">
         <p :class="hintClassName">
           <code :class="codeClassName">PageLoading</code>
           是应用侧的薄壳（读 app
           store，明暗跟随偏好设置），布局里路由切换的那层占位就是它；
           右边演示"请求快就不闪遮罩"的延迟加载写法 ——
-          <code :class="codeClassName">@antdv/ui/loading</code> 本身没有 delay
+          <code :class="codeClassName">@antdv/loading-ui</code> 本身没有 delay
           属性， 延迟这层由调用方用一个定时器决定要不要把
           <code :class="codeClassName">loading</code> 置真。
         </p>
@@ -992,7 +993,7 @@ function triggerGlobalLoading() {
                 <p :class="cn('mb-4 text-sm', hintClassName)">
                   PageLoading 覆盖整个容器（absolute inset-0）
                 </p>
-                <a-switch
+                <ASwitch
                   :checked="pageLoadingVisible"
                   checked-children="占位中"
                   un-checked-children="空闲"
@@ -1010,14 +1011,14 @@ function triggerGlobalLoading() {
             <div
               class="flex min-h-[180px] flex-col items-center justify-center gap-3 bg-gradient-to-br from-violet-50 to-fuchsia-50 p-6 dark:from-gray-800 dark:to-gray-900"
             >
-              <a-space>
-                <a-button @click="runDelayedRequest(150)">
+              <ASpace>
+                <AButton @click="runDelayedRequest(150)">
                   快请求 150ms
-                </a-button>
-                <a-button type="primary" @click="runDelayedRequest(1800)">
+                </AButton>
+                <AButton type="primary" @click="runDelayedRequest(1800)">
                   慢请求 1800ms
-                </a-button>
-              </a-space>
+                </AButton>
+              </ASpace>
               <p :class="cn('text-center text-xs', hintClassName)">
                 {{ delayedResult }}
               </p>
@@ -1030,9 +1031,9 @@ function triggerGlobalLoading() {
           </div>
         </div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card variant="borderless" title="v-loading 指令">
+    <ACard variant="borderless" title="v-loading 指令">
       <div :class="cn('space-y-4')">
         <p :class="hintClassName">
           <code :class="codeClassName">main.ts</code> 里
@@ -1059,30 +1060,30 @@ function triggerGlobalLoading() {
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-4">
-          <a-button
+          <AButton
             :loading="directiveLoading"
             @click="flashDirective('plain')"
           >
             加载左块
-          </a-button>
-          <a-button
+          </AButton>
+          <AButton
             :loading="directiveDarkLoading"
             type="primary"
             @click="flashDirective('dark')"
           >
             加载右块
-          </a-button>
-          <a-button
+          </AButton>
+          <AButton
             v-loading.fullscreen="fullscreenDirectiveLoading"
             @click="flashDirective('full')"
           >
             整页遮罩 2 秒
-          </a-button>
+          </AButton>
         </div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card variant="borderless" title="useLoading Hook">
+    <ACard variant="borderless" title="useLoading Hook">
       <div :class="cn('space-y-4')">
         <p :class="hintClassName">
           通过
@@ -1099,13 +1100,13 @@ function triggerGlobalLoading() {
               <p :class="cn('mb-4 text-sm', hintClassName)">
                 useLoading 控制此容器的加载状态
               </p>
-              <a-button
+              <AButton
                 type="primary"
                 status="success"
                 @click="triggerUseLoading"
               >
                 触发 useLoading
-              </a-button>
+              </AButton>
             </div>
           </div>
         </div>
@@ -1125,9 +1126,9 @@ hookLoading.close() // 关闭
 hookLoading.setTip('新提示文字') // 修改提示</pre>
         </div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card variant="borderless" title="按钮加载态">
+    <ACard variant="borderless" title="按钮加载态">
       <div :class="cn('space-y-6')">
         <p :class="hintClassName">
           Antdv-next 按钮内置
@@ -1136,44 +1137,44 @@ hookLoading.setTip('新提示文字') // 修改提示</pre>
         </p>
 
         <div class="flex flex-wrap gap-4">
-          <a-button
+          <AButton
             type="primary"
             :loading="btnLoading1"
             @click="triggerBtnLoading(0)"
           >
             主要按钮
-          </a-button>
-          <a-button :loading="btnLoading2" @click="triggerBtnLoading(1)">
+          </AButton>
+          <AButton :loading="btnLoading2" @click="triggerBtnLoading(1)">
             默认按钮
-          </a-button>
-          <a-button
+          </AButton>
+          <AButton
             type="dashed"
             :loading="btnLoading3"
             @click="triggerBtnLoading(2)"
           >
             虚线按钮
-          </a-button>
-          <a-button type="outline" :loading="btnLoading1" disabled>
+          </AButton>
+          <AButton type="outline" :loading="btnLoading1" disabled>
             禁用按钮
-          </a-button>
+          </AButton>
         </div>
 
         <div class="flex flex-wrap gap-4">
-          <a-button type="primary" loading> 常驻加载态 </a-button>
-          <a-button type="primary" loading> 提交中... </a-button>
-          <a-button
+          <AButton type="primary" loading> 常驻加载态 </AButton>
+          <AButton type="primary" loading> 提交中... </AButton>
+          <AButton
             type="primary"
             shape="round"
             :loading="btnLoading2"
             @click="triggerBtnLoading(1)"
           >
             圆角按钮
-          </a-button>
+          </AButton>
         </div>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card variant="borderless" title="全局加载遮罩">
+    <ACard variant="borderless" title="全局加载遮罩">
       <div :class="cn('space-y-4')">
         <p :class="hintClassName">
           使用
@@ -1183,13 +1184,13 @@ hookLoading.setTip('新提示文字') // 修改提示</pre>
         </p>
 
         <div class="flex gap-4">
-          <a-button
+          <AButton
             type="primary"
             status="danger"
             @click="triggerGlobalLoading"
           >
             模拟 API 请求 (全屏遮罩)
-          </a-button>
+          </AButton>
         </div>
 
         <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-800/60">
@@ -1207,6 +1208,6 @@ instance.setTip('即将完成...') // 动态更新提示
 instance.close() // 关闭并自动销毁</pre>
         </div>
       </div>
-    </a-card>
+    </ACard>
   </div>
 </template>

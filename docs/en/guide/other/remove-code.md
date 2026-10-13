@@ -54,17 +54,23 @@ Short answer: none of `packages/*` can be deleted by removing a directory. The m
 
 | Package | Files in `apps/web/src` | Imported by | What removal actually costs |
 | --- | --- | --- | --- |
-| `@antdv/shared` | 132 | `composables`, `layouts`, `preferences`, `ui` all import it | roughly a rewrite of the app |
-| `@antdv/types` | 35 | `shared`, `layouts`, `preferences`, `composables` + the whole `apps/backend-mock` server layer | type surface spread over every layer |
-| `@antdv/ui` | 25 | `internal/vite-config/src/plugins/auto-import.ts:22-35` names its five components in a `UI_COMPONENTS` set | the build tool must change first, otherwise `<IconifyIcon />` and `<Scrollbar />` silently render nothing |
-| `@antdv/layouts` | 12 | no other package; the app's `src/layouts/index.vue` shell comes from it | layout, menu, breadcrumb and tabs all go |
-| `@antdv/preferences` | 5 | no other package; `apps/web/src/settings/index.ts` is the adapter | the theme chain breaks, see [Theming & preferences](/en/guide/in-depth/theme) |
+| `@antdv/shared` | 124 | `composables` / `layouts` / `preferences` / `icons` / `loading-ui` / `popup-ui` / `table-ui` … all import it (`cn()` is the repository's only class-merge entry) | roughly a rewrite of the app |
+| `@antdv/types` | 31 | `shared` / `layouts` / `preferences` / `composables` + the whole `apps/backend-mock` server layer | type surface spread over every layer |
+| `@antdv/scrollbar-ui` | 24 | `icons` (the scroll area inside `IconPicker`) and the ui-kit packages `popup-ui` / `table-ui` / `menu-ui` | modal, drawer, menu and table content areas lose their scrollbar implementation |
+| `@antdv/icons` | 10 | the iconify offline list in `internal/vite-config` only supplies data, it does not import this package; components come from each file's explicit import | the icon picker, `IconifyIcon` and `SvgIcon` go together |
+| `@antdv/layout-ui` | 10 | the region shell of `apps/web/src/layouts/index.vue`; `layouts` only supplies blueprints and state | the DOM for all seven layout shapes lives in this layer — delete the shell and it has nowhere to mount |
 | `@antdv/composables` | 7 | app only | removable, but `echarts` / `sse` / `websocket` are three separate entry points |
-| `@antdv/router` | 1 | the guards live in the package; `apps/web/src/router/guards/index.ts` only injects dependencies | not a one-line dependency edit: 403 pruning, progress bar and title all have to be rewritten in the app |
+| `@antdv/layouts` | 7 | no other package; the app's `src/layouts/index.vue` shell comes from it | layout, menu, breadcrumb and tabs all go |
+| `@antdv/preferences` | 5 | no other package; `apps/web/src/settings/index.ts` is the adapter | the theme chain breaks, see [Theming & preferences](/en/guide/in-depth/theme) |
+| `@antdv/tabs-ui` | 5 | the app's `useTabs` plus the layout shell | tab bar, context menu and zoom toggles all go |
+| `@antdv/loading-ui` | 3 | `main.ts` registers `v-loading`; demo pages and several containers use it | the directive, `Loading` and `createLoading` break together, see [Loading system](/en/guide/in-depth/loading) |
+| `@antdv/menu-ui` | 2 | the menu tree inside the layout shell | sider / icon-rail menu rendering breaks |
 | `@antdv/directives` | 2 | `apps/web/src/directives/index.ts` injects the checker; `v-permission` / `v-lazy` appear in 7 template spots | the cheapest one; the disabled state styles sit in `@antdv/styles/permission.css` |
+| `@antdv/router` | 1 | the guards live in the package; `apps/web/src/router/guards/index.ts` only injects dependencies | not a one-line dependency edit: 403 pruning, progress bar and title all have to be rewritten in the app |
 | `@antdv/styles` | 1 (`main.ts`) | no other package imports it; `preferences/css-vars.ts` and the directive only match its naming | lose the Tailwind layer order and every library override needs `!important` |
+| `@antdv/shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` | 0 (not wired into the app yet) | the app still uses its own `src/components/business/**` copies of `BasicForm` / `BasicTable` / `BasicModal`; these four packages currently serve as the implementation base for `icons` / `loading-ui` and friends | deleting `shadcn-ui` today would kill those packages with it; the four wrapper packages are "deletable but shouldn't be deleted" until the app switches over |
 
-Two mechanics. Every package except `ui` and `styles` builds to `dist` (`main: ./dist/...`, `build: tsdown`) while those two ship source, so after touching a sub-package run `pnpm --filter <pkg> build` **and restart dev**. And the coupling inside `@antdv/router` is the instructive one: the route store refuses to import the router (its comment says `router → guards → store → router` would close a cycle) and takes it by injection instead.
+Two mechanics. Every package except the source-published ones (`icons` / `styles` / the nine `ui-kit` packages) builds to `dist` (`main: ./dist/...`, `build: tsdown`), so after touching a dist package run `pnpm --filter <pkg> build` **and restart dev**, while a source package hot-reloads on save. And the coupling inside `@antdv/router` is the instructive one: the route store refuses to import the router (its comment says `router → guards → store → router` would close a cycle) and takes it by injection instead.
 
 ## Case D: one application dependency
 

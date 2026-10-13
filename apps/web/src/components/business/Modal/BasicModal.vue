@@ -5,8 +5,8 @@ import type { ModalInnerMethods, ModalMethods, ModalProps } from './types';
 
 import { computed, onMounted, ref, useSlots, watch } from 'vue';
 
+import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import { cn } from '@antdv/shared/cn';
-import { IconifyIcon as Icon } from '@antdv/ui/icon';
 import { Button, Modal } from 'antdv-next';
 
 import ModalWrapper from './components/ModalWrapper.vue';

@@ -92,8 +92,7 @@ export function resetLogoutFlag(): void {
 
 async function doRefreshToken(baseUrl: string): Promise<string> {
   const userStore = useUserStore();
-  const refreshTokenValue =
-    userStore.refreshToken || cache.getItem(REFRESH_TOKEN_KEY);
+  const refreshTokenValue = cache.getItem(REFRESH_TOKEN_KEY);
   if (!refreshTokenValue) throw new Error('缺少 refresh token');
 
   const headers: Record<string, string> = {

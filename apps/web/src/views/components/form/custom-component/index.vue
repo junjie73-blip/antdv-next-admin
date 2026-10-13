@@ -3,9 +3,9 @@ import type { ComponentType, FormSchema } from '~/components/business/Form';
 
 import { ref } from 'vue';
 
+import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
-import { Scrollbar } from '@antdv/ui/scrollbar';
-import { App } from 'antdv-next';
+import { Button as AButton, Card as ACard, App } from 'antdv-next';
 import { addComponent, BasicForm, useForm } from '~/components/business/Form';
 
 import TagPickerField from './components/TagPickerField.vue';
@@ -236,7 +236,7 @@ function handleReset() {
 
 <template>
   <div :class="containerClassName">
-    <a-card title="内置扩展字段" variant="borderless">
+    <ACard title="内置扩展字段" variant="borderless">
       <div :class="introClassName">
         <code :class="inlineCodeClassName">componentMap.ts</code>
         在 antd 基础控件之外还注册了本仓库自己的字段：
@@ -248,9 +248,9 @@ function handleReset() {
         时只需要给组件名，不需要 import 组件本身。
       </div>
       <BasicForm @register="registerBuiltin" />
-    </a-card>
+    </ACard>
 
-    <a-card title="注册自定义字段" variant="borderless">
+    <ACard title="注册自定义字段" variant="borderless">
       <div :class="introClassName">
         下面这两个字段用的是本页私有组件
         <code :class="inlineCodeClassName">components/TagPickerField.vue</code>， 注册只有一行
@@ -269,9 +269,9 @@ function handleReset() {
         <code :class="inlineCodeClassName">slot</code>，直接在页面模板里放控件。
       </div>
       <BasicForm @register="registerCustom" />
-    </a-card>
+    </ACard>
 
-    <a-card title="字段联动" variant="borderless">
+    <ACard title="字段联动" variant="borderless">
       <div :class="introClassName">
         BasicForm 每渲染一个字段都会用当前
         <code :class="inlineCodeClassName">formModel</code>
@@ -285,9 +285,9 @@ function handleReset() {
         跟着值变。自定义字段同样吃这套配置 —— 「推送群组」就是刚注册的那个组件。
       </div>
       <BasicForm @register="registerLinked" @submit="handleLinkedSubmit" />
-    </a-card>
+    </ACard>
 
-    <a-card title="校验与取值" variant="borderless">
+    <ACard title="校验与取值" variant="borderless">
       <div :class="introClassName">
         校验走 <code :class="inlineCodeClassName">useForm()</code> 返回的
         <code :class="inlineCodeClassName">validate()</code>：通过就 resolve
@@ -296,9 +296,9 @@ function handleReset() {
         不通过则 reject，提交被拦在本地，不发任何请求。
       </div>
       <div class="mb-4 flex flex-wrap gap-2">
-        <a-button type="primary" @click="handleValidate"> 校验并取值 </a-button>
-        <a-button @click="handleRawValues"> 取当前值（不校验） </a-button>
-        <a-button @click="handleReset"> 重置 </a-button>
+        <AButton type="primary" @click="handleValidate"> 校验并取值 </AButton>
+        <AButton @click="handleRawValues"> 取当前值（不校验） </AButton>
+        <AButton @click="handleReset"> 重置 </AButton>
       </div>
       <BasicForm @register="registerCollect" />
       <Scrollbar :root-class="jsonBoxClassName">
@@ -306,6 +306,6 @@ function handleReset() {
           JSON.stringify(collected, null, 2)
         }}</pre>
       </Scrollbar>
-    </a-card>
+    </ACard>
   </div>
 </template>

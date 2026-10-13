@@ -9,7 +9,8 @@ This chapter documents **this repository's own demo gallery**, not the antdv-nex
 | `apps/web/src/views/components/**` | Every demo page; the directory mirrors the menu path |
 | `apps/web/src/components/business/**` | The business components being demoed (Table / Form / Modal / Drawer / Description / CountTo / TreeTable) |
 | `apps/web/src/components/common/**` | Shared wrappers (ECharts / CronEditor / MarkdownEditor / AvatarUploader / ImageUpload …) |
-| `packages/ui/src/**` | Stateless UI atoms (Icon / IconPicker / Scrollbar / Loading …), exported as `@antdv/ui/*` subpaths |
+| `packages/icons/src/**` | Icon atoms (`IconPicker` / `IconifyIcon` / `SvgIcon`), package name `@antdv/icons` |
+| `packages/ui-kit/**` | Stateless UI atoms: `loading-ui`, `scrollbar-ui`, `shadcn-ui`, plus the form/table/popup/tabs/menu/layout wrapper layers |
 | `apps/backend-mock/server/api/menus.get.ts:159-342` | The **only authoritative list** of demo routes — menu entries are also the permission source, so a route that is not in the menu cannot be reached |
 
 `views/components/overview/index.vue` is the gallery's index. It does not keep a second inventory: it flattens `useRouteStore().menus` into a searchable card wall (`overview/index.vue:12-24`), so a new demo page appears there as soon as it is added to the menu.

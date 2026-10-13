@@ -23,7 +23,7 @@
 ```
 
 - **层级顺序是刻意的**：`utilities` 排最后，模板里的工具类才能覆盖 `components` 层规则（自绘 Scrollbar、布局外壳依赖这一点）。`antd` 位是预留给第三方样式进层的占位 —— antdv-next 的样式本体是 cssinjs 运行时注入的，不落在这张表里。
-- `@custom-variant dark` 把 `dark:` 变体绑到 `.dark` class，而这个 class 由 `@antdv/preferences` 的 `applyPreferencesToDom()` 增删（`themeMode: auto` 先经 `matchMedia` 解析）。**暗黑不是 media 策略**，否则偏好抽屉里的开关就失效了。明暗链路的完整口径见[主题与偏好设置](/guide/in-depth/theme)。
+- `@custom-variant dark` 把 `dark:` 变体绑到 `.dark` class，而这个 class 由 `@antdv/preferences` 的 `applyPreferencesToDom()` 增删（`themeMode: auto` 先经 `matchMedia` 解析）。**暗黑不是 media 策略**，否则偏好抽屉里的开关就失效了。明暗链路的完整口径见[主题与偏好设置](/zh/guide/in-depth/theme)。
 
 ## 与 antdv-next 共存
 
@@ -55,5 +55,5 @@ cn('bg-ant-primary text-white shadow-ant-primary/30'); // 永远跟主色
 
 ## 相关页面
 
-- 主题变量与偏好持久化：[主题与偏好设置](/guide/in-depth/theme)
-- 样式优先级四档：[样式约定](/guide/essentials/styles)
+- 主题变量与偏好持久化：[主题与偏好设置](/zh/guide/in-depth/theme)
+- 样式优先级四档：[样式约定](/zh/guide/essentials/styles)

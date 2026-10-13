@@ -4,10 +4,10 @@ import type { TemplateColumn } from '@antdv/shared/template';
 import { h, ref } from 'vue';
 
 import { DownloadOutlined, UploadOutlined } from '@antdv-next/icons';
-import { generateTemplate } from '@antdv/shared/template';
 // 自动导入（unplugin-vue-components）只重写模板标签；这里的滚动区在 h() 渲染函数里，必须显式 import
-import { Scrollbar } from '@antdv/ui/scrollbar';
-import { message, Modal } from 'antdv-next';
+import { Scrollbar } from '@antdv/scrollbar-ui';
+import { generateTemplate } from '@antdv/shared/template';
+import { Button as AButton, Space as ASpace, Upload as AUpload, message, Modal } from 'antdv-next';
 import { isError } from 'es-toolkit';
 import { request } from '~/composables';
 import { submitExport } from '~/views/system/export/api';
@@ -199,8 +199,8 @@ function downloadTemplate() {
 </script>
 
 <template>
-  <a-space>
-    <a-button
+  <ASpace>
+    <AButton
       :loading="exporting"
       :disabled="disableExport"
       v-permission="permissions[1]"
@@ -208,27 +208,27 @@ function downloadTemplate() {
     >
       <template #icon><DownloadOutlined /></template>
       {{ exportText }}
-    </a-button>
+    </AButton>
 
-    <a-upload
+    <AUpload
       :show-upload-list="false"
       :accept="accept"
       :disabled="disableImport"
       :before-upload="handleBeforeUpload"
       :multiple="false"
     >
-      <a-button
+      <AButton
         :loading="importing"
         :disabled="disableImport"
         v-permission="permissions[0]"
       >
         <template #icon><UploadOutlined /></template>
         {{ importText }}
-      </a-button>
-    </a-upload>
-    <a-button type="primary" @click="downloadTemplate">
+      </AButton>
+    </AUpload>
+    <AButton type="primary" @click="downloadTemplate">
       <template #icon><UploadOutlined /></template>
       导入模板
-    </a-button>
-  </a-space>
+    </AButton>
+  </ASpace>
 </template>

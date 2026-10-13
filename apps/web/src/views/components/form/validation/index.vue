@@ -7,8 +7,9 @@ import type {
 
 import { computed, ref } from 'vue';
 
+import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
-import { message } from 'antdv-next';
+import { Button as AButton, Card as ACard, Switch as ASwitch, message } from 'antdv-next';
 import { BasicForm, useForm } from '~/components/business/Form';
 
 const containerClassName = cn('space-y-6');
@@ -392,7 +393,7 @@ const timingSchemas = computed<FormSchema[]>(() => [
 
 <template>
   <div :class="containerClassName">
-    <a-card title="必填与格式" variant="borderless">
+    <ACard title="必填与格式" variant="borderless">
       <p :class="descClassName">
         这一页全部走本仓库的
         <code :class="inlineCodeClassName">BasicForm</code>
@@ -417,15 +418,15 @@ const timingSchemas = computed<FormSchema[]>(() => [
         @register="registerFormat"
       />
       <div :class="toolbarClassName">
-        <a-button type="primary" @click="handleSubmit(formatApi)">
+        <AButton type="primary" @click="handleSubmit(formatApi)">
           校验
-        </a-button>
-        <a-button @click="handleClear(formatApi)"> 清除校验 </a-button>
-        <a-button @click="handleReset(formatApi)"> 重置 </a-button>
+        </AButton>
+        <AButton @click="handleClear(formatApi)"> 清除校验 </AButton>
+        <AButton @click="handleReset(formatApi)"> 重置 </AButton>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="长度与数值区间" variant="borderless">
+    <ACard title="长度与数值区间" variant="borderless">
       <p :class="descClassName">
         字符串长度用
         <code :class="inlineCodeClassName">min</code>/<code
@@ -453,15 +454,15 @@ const timingSchemas = computed<FormSchema[]>(() => [
         @register="registerLength"
       />
       <div :class="toolbarClassName">
-        <a-button type="primary" @click="handleSubmit(lengthApi)">
+        <AButton type="primary" @click="handleSubmit(lengthApi)">
           校验
-        </a-button>
-        <a-button @click="handleClear(lengthApi)"> 清除校验 </a-button>
-        <a-button @click="handleReset(lengthApi)"> 重置 </a-button>
+        </AButton>
+        <AButton @click="handleClear(lengthApi)"> 清除校验 </AButton>
+        <AButton @click="handleReset(lengthApi)"> 重置 </AButton>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="异步与跨字段校验" variant="borderless">
+    <ACard title="异步与跨字段校验" variant="borderless">
       <p :class="descClassName">
         <code :class="inlineCodeClassName">validator</code>
         返回 Promise 就是异步规则，antd 会自己维护 validating
@@ -489,15 +490,15 @@ const timingSchemas = computed<FormSchema[]>(() => [
         @register="registerCross"
       />
       <div :class="toolbarClassName">
-        <a-button type="primary" @click="handleSubmit(crossApi)">
+        <AButton type="primary" @click="handleSubmit(crossApi)">
           校验
-        </a-button>
-        <a-button @click="handleClear(crossApi)"> 清除校验 </a-button>
-        <a-button @click="handleReset(crossApi)"> 重置 </a-button>
+        </AButton>
+        <AButton @click="handleClear(crossApi)"> 清除校验 </AButton>
+        <AButton @click="handleReset(crossApi)"> 重置 </AButton>
       </div>
-    </a-card>
+    </ACard>
 
-    <a-card title="校验时机与结果" variant="borderless">
+    <ACard title="校验时机与结果" variant="borderless">
       <p :class="descClassName">
         触发时机不是 BasicForm 自己造的轮子：
         <code :class="inlineCodeClassName">itemProps</code>
@@ -518,7 +519,7 @@ const timingSchemas = computed<FormSchema[]>(() => [
       </p>
       <div class="mb-4 flex flex-wrap items-center gap-3">
         <span class="text-sm">校验时机</span>
-        <a-switch
+        <ASwitch
           v-model:checked="validateOnBlur"
           checked-children="blur"
           un-checked-children="change"
@@ -535,11 +536,11 @@ const timingSchemas = computed<FormSchema[]>(() => [
         @register="registerTiming"
       />
       <div :class="toolbarClassName">
-        <a-button type="primary" @click="handleSubmit(timingApi)">
+        <AButton type="primary" @click="handleSubmit(timingApi)">
           提交
-        </a-button>
-        <a-button @click="handleClear(timingApi)"> 清除校验 </a-button>
-        <a-button @click="handleReset(timingApi)"> 重置 </a-button>
+        </AButton>
+        <AButton @click="handleClear(timingApi)"> 清除校验 </AButton>
+        <AButton @click="handleReset(timingApi)"> 重置 </AButton>
       </div>
       <div class="mt-4">
         <div class="mb-2 text-sm text-gray-600 dark:text-gray-300">
@@ -549,6 +550,6 @@ const timingSchemas = computed<FormSchema[]>(() => [
           <pre>{{ JSON.stringify(lastResult, null, 2) }}</pre>
         </Scrollbar>
       </div>
-    </a-card>
+    </ACard>
   </div>
 </template>

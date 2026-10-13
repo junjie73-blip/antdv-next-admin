@@ -1,0 +1,46 @@
+{
+  "name": "@antdv/icons",
+  "version": "0.4.0",
+  "description": "图标子包：Iconify 图标、SVG 雪碧图图标与图标选择器。边界：不依赖 pinia、vue-router、业务 store 或应用配置；加载遮罩见 @antdv/loading-ui，滚动条见 @antdv/scrollbar-ui",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf .turbo",
+    "test:unit": "vitest run --passWithNoTests",
+    "type-check": "vue-tsc --noEmit"
+  },
+  "files": [
+    "src"
+  ],
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts",
+    "./icon": "./src/icon/index.ts",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@antdv/scrollbar-ui": "workspace:*",
+    "@antdv/shadcn-ui": "workspace:*",
+    "@antdv/shared": "workspace:*",
+    "@iconify-json/ant-design": "catalog:",
+    "@iconify-json/carbon": "catalog:",
+    "@iconify-json/fa6-regular": "catalog:",
+    "@iconify-json/lucide": "catalog:",
+    "@iconify-json/mdi": "catalog:",
+    "@iconify/vue": "catalog:",
+    "vue": "catalog:"
+  },
+  "devDependencies": {
+    "@antdv/tsconfig": "workspace:*",
+    "@vitejs/plugin-vue": "catalog:",
+    "@vue/test-utils": "catalog:",
+    "jsdom": "catalog:",
+    "rimraf": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}

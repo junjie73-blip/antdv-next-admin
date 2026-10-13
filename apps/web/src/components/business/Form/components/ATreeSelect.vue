@@ -2,6 +2,7 @@
 import type { TreeSelectProps } from 'antdv-next';
 
 import { watchDebounced } from '@vueuse/core';
+import { TreeSelect as ATreeSelect } from 'antdv-next';
 import { useRequest } from '~/composables';
 
 interface Props extends /* @vue-ignore */ TreeSelectProps {
@@ -17,5 +18,5 @@ watchDebounced(api, () => refresh(), { immediate: true, debounce: 200 });
 </script>
 
 <template>
-  <a-tree-select v-bind="props" :tree-data="data" />
+  <ATreeSelect v-bind="props" :tree-data="data" />
 </template>

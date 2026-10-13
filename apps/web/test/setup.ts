@@ -9,6 +9,7 @@ import { config } from '@vue/test-utils';
  */
 import { beforeEach, vi } from 'vitest';
 import i18n from '~/locales';
+import { configureUiKitRuntimes } from '~/plugins/ui-runtime';
 
 /**
  * `useI18n()` 在没装插件的 app 上会直接抛 "Need to install with `app.use`"，
@@ -16,6 +17,13 @@ import i18n from '~/locales';
  * 免得每个 spec 各自挂一遍、将来又是有的挂有的不挂。
  */
 config.global.plugins.push(i18n);
+
+/**
+ * `@antdv/layout-ui` / `menu-ui` / `tabs-ui` 的 aria-label 走注入的 `t`。
+ * 用例断言的是中文原文（`[aria-label="退出内容全屏"]`），所以这里与 `main.ts`
+ * 一样先注入一次，否则渲染出来的是裸 key。
+ */
+configureUiKitRuntimes();
 
 interface FakeMediaQueryList extends MediaQueryList {
   addListener: (callback: (e: MediaQueryListEvent) => void) => void;

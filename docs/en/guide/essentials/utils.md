@@ -32,7 +32,7 @@ import { useWebSocket } from '@antdv/composables/websocket';
 | Module (subpath) | Representative exports | Consumers | Tested |
 | --- | --- | --- | --- |
 | `cache` | `cache` (`src/cache/index.ts:196`), `createCache` (`:60`), `buildStorageKey` (`:40`), `encryptToken` / `decryptToken` (`src/cache/tokenCrypto.ts:77,106`) | `stores/modules/user.ts:5` | yes |
-| `cn` | `cn()` (`src/cn.ts:6`) | 107 files repo-wide, e.g. `layouts/components/LayoutNavRail.vue:48` | yes |
+| `cn` | `cn()` (`src/cn.ts:6`) | 446 files repo-wide, e.g. `packages/ui-kit/layout-ui/src/components/LayoutBreadcrumb.vue:14` | yes |
 | `crypto` | `encrypt` / `decrypt` / `encryptObject` / `decryptObject` (`src/crypto/aes.ts:14,19,24,31`), `md5` / `md5File` / `sha256` / `hash` (`src/crypto/hash.ts:3,7,32,40`) | **no call sites** | no |
 | `csrf` | `config` (`src/csrf.ts:67`), `initCsrfProtection` (`:111`), `getCsrfToken` (`:164`) | `composables/web/request/fetcher.ts:5-8`, `utils/securityInit.ts:9` | yes |
 | `dayjs` | `dayjs` (`src/dayjs.ts:136`), `setTimezone` (`:62`), `nowTz` (`:116`) | `stores/modules/app.ts:7,130`, `layouts/widgets/WidgetTimezone.vue:8`, `composables/web/useLocale.ts:4` | yes |
@@ -48,7 +48,7 @@ import { useWebSocket } from '@antdv/composables/websocket';
 | `menu` | `menuKeyOf` (`src/menu.ts:32`), `attachMenuPaths` (`:258`), `buildMenuItems` (`:561`), `MenuPathRouter` (`:393`) | `stores/modules/route.ts:1-15`, `layouts/composables/useSidebarMenu.ts:10`, `packages/layouts/src/menu-source.ts:18` | yes |
 | `template` | `generateTemplate` (`src/template.ts:30`) | `components/business/ImportExport.vue:7,194` | yes |
 | `welcome` | `showLoginWelcome` (`src/welcome.ts:114`), `getPersonalizedWelcome` (`:66`) | **no call sites** | yes |
-| `xss` | `safeHtmlDirective` (`src/xss.ts:437`), `escapeDirective` (`:454`), `escapeHtml` (`:173`) | `directives/index.ts:17` → `main.ts:90,94`; `escapeHtml` is used by `packages/composables/src/usePrint.ts:1` | yes |
+| `xss` | `safeHtmlDirective` (`src/xss.ts:437`), `escapeDirective` (`:454`), `escapeHtml` (`:173`) | `directives/index.ts:17` → `main.ts:103,107`; `escapeHtml` is used by `packages/composables/src/usePrint.ts:1` | yes |
 
 ## `@antdv/composables` inventory
 
@@ -74,7 +74,7 @@ This layer is actually better tested than `shared` — every entry has a spec in
 | --- | --- | --- |
 | `apps/web/src/utils/dict.ts:7,18` | `getDictLabel` / `getDictLabels` | in use (`components/business/Description/Description.vue:19`) |
 | `apps/web/src/utils/ws.ts:338` | `useWebSocket`, `WS_EVENTS` (`:76`), `noticeTypeConfig` (`:52`) | in use (`composables/useNotice.ts:11`, `layouts/widgets/WidgetNotice.vue:15`) |
-| `apps/web/src/utils/securityInit.ts:16` | `initSecuritySystem` | in use (`main.ts:32,82`) |
+| `apps/web/src/utils/securityInit.ts:16` | `initSecuritySystem` | in use (`main.ts:35,95`) |
 | `apps/web/src/utils/crud-actions.ts:15` | `createCrudActions` | **no call site** |
 | `apps/web/src/utils/routePreload.ts:38,110,130` | `preloadRoute` / `preloadRoutes` / `useRoutePreloader` | **no call site** (only re-exported by `utils/index.ts:3`) |
 | `apps/web/src/composables/index.ts:1-3` | `useCRUD`, `usePermission`, everything from `web/request` | The request layer is in use (`stores/modules/user.ts:7`, `route.ts:18` take `http`); `usePermission` is imported straight from `~/composables/web/permission` (`directives/index.ts:13`); `useCRUD` (`useCRUD.ts:100`) has **no call site** |
@@ -117,7 +117,7 @@ export function cn(...inputs: ClassValue[]): string {
 }
 ```
 
-`from '@antdv/shared/cn'` appears in **107 files** (105 under `apps/web/src`, one in `packages/composables`, one in `packages/ui`), and the repository contains no second `cn` implementation and no other class-merge library. `@antdv/shared` therefore depends on `clsx` + `tailwind-merge` (`packages/shared/package.json:49,57`); `apps/web` also lists both directly (`apps/web/package.json:75,99`), but **do not** reach for `import { twMerge }` in app code — conflict resolution only becomes a convention while one implementation exists.
+`from '@antdv/shared/cn'` appears in **446 files** (96 under `apps/web/src`, 350 under `packages` — of which 314 are the shadcn-generated atoms in `ui-kit/shadcn-ui`, followed by `form-ui` 14, `table-ui` 6, `popup-ui` 4, `tabs-ui` 4, `menu-ui` 3, `layout-ui` 2, and one each in `icons`, `loading-ui` and `composables`), and the repository contains no second `cn` implementation and no other class-merge library. `@antdv/shared` therefore depends on `clsx` + `tailwind-merge` (`packages/shared/package.json:49,57`); `apps/web` also lists both directly (`apps/web/package.json:86,111`), but **do not** reach for `import { twMerge }` in app code — conflict resolution only becomes a convention while one implementation exists.
 
 Naming follows `CODE_STANDARD.md` section 2: Tailwind first, `cn()` for anything dynamic or complex.
 
@@ -130,7 +130,7 @@ pnpm --filter @antdv/shared build      # or @antdv/composables
 # then restart dev: `pnpm dev:web` runs vite only, it does not build sub-packages
 ```
 
-`turbo` gives `dev` / `build` a `dependsOn: ["^build"]`, so `pnpm dev` (through `turbo-run`) and a full `build` produce upstream dists first. But `pnpm dev:web` (`package.json:20`) is `pnpm --filter @antdv/web run dev` — **vite only**. Each package's own `dev` script is `tsdown --watch` (`packages/shared/package.json:10`); keep that running separately if you want edits to land as you save.
+`turbo` gives `dev` / `build` a `dependsOn: ["^build"]`, so `pnpm dev` (through `turbo-run`) and a full `build` produce upstream dists first. But `pnpm dev:web` (`package.json:25`) is `pnpm --filter @antdv/web run dev` — **vite only**. Each package's own `dev` script is `tsdown --watch` (`packages/shared/package.json:10`); keep that running separately if you want edits to land as you save.
 
 ::: warning the symptom is "nothing changed, and nothing failed" You edit `packages/shared/src/**`, save, and behaviour and types stay exactly as they were, with no error, because Vite's dependency cache and `optimizeDeps` both point at `dist`. Build first, restart second; do not copy the implementation into the app to work around it. :::
 

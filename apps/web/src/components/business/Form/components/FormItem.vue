@@ -7,7 +7,8 @@ import type { FormSchema, Recordable, RenderCallbackParams } from '../types';
 
 import { computed, inject, unref } from 'vue';
 
-import { IconifyIcon } from '@antdv/ui/icon';
+import { IconifyIcon } from '@antdv/icons/icon';
+import { Col as ACol, FormItem as AFormItem, Tooltip as ATooltip } from 'antdv-next';
 import { isFunction } from 'es-toolkit';
 
 import { getComponent } from '../componentMap';
@@ -153,8 +154,8 @@ const bodyContainer = () => document.body;
 
 <template>
   <template v-if="schema && getShowState.ifShow">
-    <a-col v-show="getShowState.show" v-bind="getColProps">
-      <a-form-item
+    <ACol v-show="getShowState.show" v-bind="getColProps">
+      <AFormItem
         v-bind="mergedItemProps"
         :name="schema.field"
         :rules="getRulesValue"
@@ -164,7 +165,7 @@ const bodyContainer = () => document.body;
             class="inline-flex flex-wrap items-center break-all whitespace-normal"
           >
             {{ schema.label }}
-            <a-tooltip
+            <ATooltip
               v-if="schema.helpMessage"
               placement="top"
               :get-popup-container="bodyContainer"
@@ -177,7 +178,7 @@ const bodyContainer = () => document.body;
                 icon="carbon:information"
                 class="ml-1 cursor-help text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               />
-            </a-tooltip>
+            </ATooltip>
           </span>
         </template>
 
@@ -208,7 +209,7 @@ const bodyContainer = () => document.body;
         <template v-else>
           <span>{{ formModel[schema.field] }}</span>
         </template>
-      </a-form-item>
-    </a-col>
+      </AFormItem>
+    </ACol>
   </template>
 </template>

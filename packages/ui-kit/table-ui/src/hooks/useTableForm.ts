@@ -1,0 +1,303 @@
+import type { FormActionType, FormProps, FormSchema } from '@antdv/form-ui';
+
+import type { ComputedRef, Ref } from 'vue';
+
+import type { BasicTableProps, Recordable } from '../types';
+
+import { computed, unref, watch } from 'vue';
+
+import { useForm } from '@antdv/form-ui';
+import dayjs from '@antdv/shared/dayjs';
+
+interface UseTableFormOptions {
+  propsRef?: Ref<BasicTableProps>;
+  baseProps?: ComputedRef<BasicTableProps>;
+  formConfig?: Partial<FormProps>;
+  useSearchForm?: boolean;
+  fieldMapToTime?: [string, [string, string], string?][];
+  fetch?: (opt?: { searchInfo?: Recordable }) => Promise<void>;
+  /** 不同步取数，只把表格记住的搜索条件换掉（重置表单时用） */
+  setSearchInfo?: (info?: Recordable) => void;
+  getFormValues?: () => Recordable;
+}
+
+interface UseTableFormReturn {
+  registerForm: (instance: FormActionType) => void;
+  getForm: () => FormActionType | null;
+  getFormProps: ComputedRef<Partial<FormProps>>;
+  handleSearchInfoFn: (info: Recordable) => Recordable;
+  replaceFormSchemaKey: (
+    values: Recordable,
+    schemas: FormSchema[],
+  ) => Recordable;
+  processFormSchema: (schemas: FormSchema[]) => FormSchema[];
+}
+
+/**
+ * 处理时间字段映射
+ * 将时间范围字段拆分为开始和结束字段
+ */
+function handleRangeTimeValue(
+  values: Recordable,
+  fieldMapToTime?: [string, [string, string], string?][],
+): Recordable {
+  if (!fieldMapToTime || !Array.isArray(fieldMapToTime)) return values;
+  const result = { ...values };
+
+  for (const [
+    field,
+    [startKey, endKey],
+    format = 'YYYY-MM-DD',
+  ] of fieldMapToTime) {
+    const value = result[field];
+    if (value && Array.isArray(value) && value.length === 2) {
+      const [start, end] = value;
+      const fmt = (v: any): null | string => {
+        if (!v) return null;
+        const d = dayjs.isDayjs(v) ? v : dayjs(v);
+        return d.isValid() ? d.format(format) : String(v);
+      };
+      result[startKey] = fmt(start);
+      result[endKey] = fmt(end);
+      delete result[field];
+    }
+  }
+  return result;
+}
+
+/**
+ * 处理表单字段名替换
+ * 支持将表单字段名映射为 API 参数名
+ */
+function replaceSchemaKey(
+  values: Recordable,
+  schemas: FormSchema[],
+): Recordable {
+  const result: Recordable = {};
+
+  Object.keys(values).forEach((key) => {
+    const schema = schemas.find((s) => s.field === key);
+    const value = values[key];
+
+    if (schema && value !== undefined && value !== null && value !== '') {
+      result[key] = value;
+    } else if (value !== undefined && value !== null && value !== '') {
+      result[key] = value;
+    }
+  });
+
+  return result;
+}
+
+/**
+ * 处理搜索表单相关逻辑
+ * 集成 BasicForm 组件，处理搜索参数转换和提交
+ */
+export function useTableForm(
+  options?: UseTableFormOptions,
+): UseTableFormReturn {
+  const {
+    propsRef,
+    baseProps,
+    formConfig: formConfigOption,
+    useSearchForm: useSearchFormOption,
+    fieldMapToTime: fieldMapToTimeOption,
+    fetch: fetchOption,
+    setSearchInfo: setSearchInfoOption,
+    getFormValues: getFormValuesOption,
+  } = options || {};
+
+  /**
+   * 获取表格 props
+   * 优先从 baseProps（defineProps 模式）获取，其次从 propsRef（useTable 模式）获取
+   */
+  const getProps = (): Partial<BasicTableProps> => {
+    if (baseProps) {
+      return unref(baseProps) || {};
+    }
+    if (propsRef) {
+      return unref(propsRef) || {};
+    }
+    return {};
+  };
+
+  /**
+   * 获取表单配置
+   * 优先从 options 获取，其次从 props 获取
+   */
+  const getFormProps = computed<Partial<FormProps>>(() => {
+    const props = getProps();
+    const formConfig = formConfigOption || props.formConfig;
+    const useSearchForm = useSearchFormOption ?? props.useSearchForm;
+
+    const defaultFormProps: Partial<FormProps> = {
+      showActionButtonGroup: true,
+      showResetButton: true,
+      showSubmitButton: true,
+      submitOnReset: true,
+      autoSubmitOnEnter: true,
+      showAdvancedButton: useSearchForm ?? false,
+      ...formConfig,
+    };
+
+    if (useSearchForm) {
+      defaultFormProps.submitFunc = handleSubmit;
+      defaultFormProps.resetFunc = handleReset;
+    }
+
+    return defaultFormProps;
+  });
+
+  // 使用 useForm 获取表单方法，传入初始表单配置
+  const [registerForm, formMethods] = useForm(getFormProps.value);
+
+  // 监听表单配置变化，实时同步到 useForm（解决初始化时序问题）
+  watch(
+    () => ({ ...unref(getFormProps) }),
+    (newProps) => {
+      if (newProps && Object.keys(newProps).length > 0 && formMethods) {
+        formMethods.setProps(newProps);
+      }
+    },
+    { deep: true },
+  );
+
+  /**
+   * 获取表单 schemas
+   */
+  const getFormSchemas = (): FormSchema[] => {
+    const { formConfig } = getProps();
+    return formConfig?.schemas || [];
+  };
+
+  /**
+   * 处理搜索参数
+   * 转换时间字段、处理字段映射等
+   */
+  const handleSearchInfoFn = (info: Recordable): Recordable => {
+    const props = getProps();
+    const schemas = getFormSchemas();
+
+    // 处理字段映射
+    let result = replaceSchemaKey(info, schemas);
+
+    // 处理时间范围字段（优先从 options 获取，其次从 props 获取）
+    const fieldMapToTime =
+      fieldMapToTimeOption || props.formConfig?.fieldMapToTime;
+    if (fieldMapToTime) {
+      result = handleRangeTimeValue(result, fieldMapToTime);
+    }
+    return result;
+  };
+
+  /**
+   * 替换表单 schema 中的 key
+   */
+  const replaceFormSchemaKey = (
+    values: Recordable,
+    schemas: FormSchema[],
+  ): Recordable => {
+    return replaceSchemaKey(values, schemas);
+  };
+
+  /**
+   * 处理表单 schema
+   * 应用动态规则、禁用状态等
+   */
+  const processFormSchema = (schemas: FormSchema[]): FormSchema[] => {
+    return schemas.map((schema) => {
+      const newSchema = { ...schema };
+
+      // 处理动态禁用状态
+      if (typeof newSchema.dynamicDisabled === 'function') {
+        const formValues = getFormValuesOption ? getFormValuesOption() : {};
+        const params = {
+          schema: newSchema,
+          values: formValues,
+          model: formValues,
+          field: newSchema.field,
+        };
+        const disabled = newSchema.dynamicDisabled(params as any);
+        newSchema.componentProps = {
+          ...newSchema.componentProps,
+          disabled,
+        };
+      }
+
+      // 处理动态规则
+      if (typeof newSchema.dynamicRules === 'function') {
+        const formValues = getFormValuesOption ? getFormValuesOption() : {};
+        const params = {
+          schema: newSchema,
+          values: formValues,
+          model: formValues,
+          field: newSchema.field,
+        };
+        newSchema.rules = newSchema.dynamicRules(params as any);
+      }
+
+      return newSchema;
+    });
+  };
+
+  /**
+   * 处理表单提交
+   */
+  async function handleSubmit(): Promise<void> {
+    const values = await formMethods.validate();
+    const searchInfo = handleSearchInfoFn(values);
+
+    if (fetchOption) {
+      await fetchOption({ searchInfo });
+    }
+  }
+
+  /**
+   * 处理表单重置
+   *
+   * ⚠️ 不管 `submitOnReset` 是什么，表格记住的搜索条件都必须跟着清空。
+   * 以前只在 `submitOnReset` 为真时带上新条件取数，为假时连状态都不动 ——
+   * 于是"搜索 → 重置 → 保存某条记录触发 reload"会把用户明明已经清掉的 keyword
+   * 偷偷带回去，列表出现一堆和搜索框对不上的数据。
+   */
+  async function handleReset(): Promise<void> {
+    await formMethods.resetFields();
+
+    const { submitOnReset } = unref(getFormProps);
+    const values = formMethods.getFieldsValue();
+    const searchInfo = handleSearchInfoFn(values);
+
+    if (submitOnReset && fetchOption) {
+      await fetchOption({ searchInfo });
+      return;
+    }
+    setSearchInfoOption?.(searchInfo);
+  }
+
+  /**
+   * 获取表单实例
+   */
+  const getForm = (): FormActionType | null => {
+    return formMethods as FormActionType | null;
+  };
+
+  // 监听表单配置变化，更新表单
+  watch(
+    () => getProps().formConfig,
+    (newConfig) => {
+      if (newConfig && formMethods) {
+        formMethods.setProps(newConfig);
+      }
+    },
+    { deep: true },
+  );
+
+  return {
+    registerForm: registerForm as (instance: FormActionType) => void,
+    getForm,
+    getFormProps,
+    handleSearchInfoFn,
+    replaceFormSchemaKey,
+    processFormSchema,
+  };
+}

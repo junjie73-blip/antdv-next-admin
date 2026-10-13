@@ -6,7 +6,7 @@
 
 | 位置 | 内容 | 说明 |
 | --- | --- | --- |
-| `pnpm-workspace.yaml` 的 `catalog:` | 241 条 | 全仓唯一的版本来源；`apps/web/package.json` 的 145 个依赖写的都是 `catalog:` |
+| `pnpm-workspace.yaml` 的 `catalog:` | 254 条 | 全仓唯一的版本来源；`apps/web/package.json` 的 170 条依赖全是 `catalog:` 或 `workspace:*`，没有一条写字面量 |
 | `pnpm-workspace.yaml` 的 `overrides` | `vue` / `clsx` / `pinia` / `@ctrl/tinycolor` / `@ast-grep/napi` → `catalog:` | 强制这些包只有一份实例，防止第三方 peer 树各装各的 |
 | 根 `package.json` | `packageManager: pnpm@10.12.4`、`engines.node: ">=22"`；`.node-version` 写 24.0.0 | `preinstall` 挂了 `only-allow pnpm`，用 npm/yarn 装出来的 workspace 是假的 |
 
@@ -47,12 +47,14 @@ pnpm release                      # pnpm build && changeset publish
 
 ## 一次 antdv-next 升级怎么跑
 
-`antdv-next` 只在 catalog 里出现一次（`^1.6.0`），但它是 4 个包的直接依赖（`composables`、 `preferences`、`shared`、`ui`）加 `apps/web`，改一行全仓生效。配套还要看 `@antdv-next/*` 五个卫星包（`cssinjs`、`icons`、`tailwind`、`auto-import-resolver`、`happy-work-theme`）与 `@iconify-json/*`。
+`antdv-next` 只在 catalog 里出现一次（`^1.6.0`），但它是 4 个包的直接依赖（`composables`、 `preferences`、`shared`、`types`）加 `apps/web`，改一行全仓生效。配套还要看 `@antdv-next/*` 四个卫星包（`cssinjs`、`icons`、`tailwind`、`happy-work-theme`）与 `@iconify-json/*`。`ui-kit` 那九个包一个都不引 antdv-next —— 表单/表格/弹窗/标签页/菜单/布局的实现已经换成 TanStack + shadcn-vue，所以升级 antdv-next 不会碰到它们。
 
 ```bash
 # 1. 改 pnpm-workspace.yaml 里 catalog 的那一行
 pnpm install --no-frozen-lockfile
-# 2. 子包先出 dist：应用消费的是构建产物，不是源码
+# 2. 先构建"产物发布"的那批包（shared、composables、directives、layouts、
+#    preferences、router、types）—— 应用吃的是它们的 dist；而 icons、styles 与
+#    ui-kit 九包是"源码发布"，直接从 src 读，不需要构建
 pnpm build
 # 3. 类型 + 单测（turbo 会按依赖图先跑 ^build）
 pnpm check:type
@@ -68,7 +70,7 @@ cd apps/web && pnpm exec playwright test --project=chromium --reporter=line
 ## 破坏性升级最先敲门的五处
 
 1. **`ConfigProvider` 的 theme 形状**（`apps/web/src/App.vue:46-62`）。`theme` 对象由 `packages/preferences/src/theme/index.ts` 组装：`algorithm`（`darkAlgorithm` / `defaultAlgorithm` / `compactAlgorithm`）、`token`（`lightToken` / `darkToken` + 预设 + 运行时覆盖）、 `components` 三层。算法字段改名不会报错，只会让深色/紧凑主题静默退回默认。同一层还要留意 `css-vars.ts` 把主色**写两遍**（`--ant-color-primary` 与旧命名 `--ant-primary-color`），主题口径见 [主题与偏好设置](/guide/in-depth/theme)。
-2. **子组件模板写法**。`<a-descriptions-item>` 这类标签还在 5 个页面里用（`views/account/center`、 `views/components/editor`、`views/components/form/steps`、`views/system/micro-app`、 `views/system/notice`）。解析失败**不报错**，只有一句 `Failed to resolve component` warning + 一块空节点，所以 `apps/web/e2e/gallery-examples.spec.ts` 是去数 `.ant-descriptions-item-label` 的条数，而不是看标题在不在。预编译的第三方模板（`@form-create/antd-designer`）不看编译期解析，它靠 `apps/web/src/plugins/vendor-antd-components.ts` 里那 36 条全局注册 —— 新增子组件要在那里补。
+2. **子组件模板写法**。还有 4 个页面在用 antd 子组件（`views/account/center`、 `views/components/form/steps`、`views/components/table/crud`、`views/system/notice`），而 resolver 下线后它们全部走显式 import（`import { DescriptionsItem as ADescriptionsItem } from 'antdv-next'`）—— `apps/web/src` 里已经没有一个裸 `<a-descriptions-item>` 标签了。这把第一方源码的失败面堵住了，但堵不住预编译的第三方模板：`@form-create/antd-designer` 在运行时靠 `resolveComponent('a-…')` 找组件，服务它的是 `apps/web/src/plugins/vendor-antd-components.ts` 里那 36 条 kebab-case 注册 —— 新增子组件要补的是这张表。名字缺失**不会让构建失败**，只有一句 `Failed to resolve component` warning + 一块空节点，所以 `apps/web/e2e/gallery-examples.spec.ts` 既去数 `.ant-descriptions-item-label` 的条数，也顺手断言了那句 warning。
 3. **Table**。`App.vue` 全开了 `virtual`，antd 因此要求 `scroll.y` 是数值，`BasicTable.vue` 用 `mergedVirtual` 兜住"业务页只写 `{ x: 1400 }`"的情况；固定表头/横向滚动又会在 `<tbody>` 前面插一行 `ant-table-measure-row`，`useDragSort.ts` 靠数 `data-row-key` 来算前导偏移。两处都有单测（`components/business/Table/__tests__/drag-sort.spec.ts`）。
 4. **"用错也不报错"的 API**。`apps/web/src/views/__tests__/gallery-api-usage.spec.ts` 会先替你抓到三类：具名 `useApp`（1.6 只有 `App.useApp()`）、把权限指令的参数写成修饰符（`v-permission:role` 才对）、Tabs 绑 `@add`（1.6 只有 `@edit`）。
 5. **图标**。`@antdv-next/icons` + 5 个 `@iconify-json/*` 集合 + `internal/vite-config/src/plugins/auto-import.ts` 的离线列表。写错的图标名不报错，只是空白方块，所以有 `apps/web/test/icon-names.test.ts` 扫 `apps/backend-mock/server`、`apps/web/src`、`packages` 三个根做对账。

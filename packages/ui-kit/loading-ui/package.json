@@ -1,0 +1,38 @@
+{
+  "name": "@antdv/loading-ui",
+  "version": "0.4.0",
+  "description": "加载组件包：Loading 遮罩组件（shadcn-ui Spinner 实现）+ useLoading 组合式函数 + createLoading 函数式实例 + v-loading 指令。边界：不依赖 pinia、vue-router、业务 store 或应用配置",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf .turbo",
+    "test:unit": "vitest run --passWithNoTests",
+    "type-check": "vue-tsc --noEmit"
+  },
+  "files": [
+    "src"
+  ],
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@antdv/shadcn-ui": "workspace:*",
+    "@antdv/shared": "workspace:*",
+    "@vueuse/core": "catalog:",
+    "vue": "catalog:"
+  },
+  "devDependencies": {
+    "@antdv/tsconfig": "workspace:*",
+    "@vitejs/plugin-vue": "catalog:",
+    "@vue/test-utils": "catalog:",
+    "jsdom": "catalog:",
+    "rimraf": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}

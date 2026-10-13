@@ -4,6 +4,7 @@ import type { BasicColumn } from '~/components/business/Table';
 import { ref } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
+import { Button as AButton, Card as ACard, Space as ASpace, Tag as ATag, message } from 'antdv-next';
 import { BasicTable, useTable } from '~/components/business/Table';
 
 const containerClassName = cn('space-y-6');
@@ -350,62 +351,62 @@ const [registerLoading] = useTable({
 
 <template>
   <div :class="containerClassName">
-    <a-card title="Basic Table" variant="borderless">
+    <ACard title="Basic Table" variant="borderless">
       <div :class="toolbarClassName">
         <span :class="descriptionClassName">Sorting, filtering, loading, and selection support</span>
-        <a-space>
-          <a-button type="primary" size="small" @click="handleBasicRefresh">
+        <ASpace>
+          <AButton type="primary" size="small" @click="handleBasicRefresh">
             Refresh
-          </a-button>
-          <a-button
+          </AButton>
+          <AButton
             size="small"
             :disabled="basicSelectedKeys.length === 0"
             @click="handleBulkAction"
           >
             Bulk Action
-          </a-button>
-        </a-space>
+          </AButton>
+        </ASpace>
       </div>
       <BasicTable @register="registerBasic">
         <template #cell-status="{ record }">
-          <a-tag :color="statusColorMap[record?.status] || 'default'">
+          <ATag :color="statusColorMap[record?.status] || 'default'">
             {{ record?.status }}
-          </a-tag>
+          </ATag>
         </template>
         <template #cell-salary="{ record }">
           <span :class="monoClassName">¥{{ record?.salary?.toLocaleString() ?? '-' }}</span>
         </template>
       </BasicTable>
-    </a-card>
+    </ACard>
 
-    <a-card title="Pagination" variant="borderless">
+    <ACard title="Pagination" variant="borderless">
       <BasicTable @register="registerPagination">
         <template #cell-status="{ record }">
-          <a-tag :color="orderStatusColorMap[record?.status] || 'default'">
+          <ATag :color="orderStatusColorMap[record?.status] || 'default'">
             {{ record?.status }}
-          </a-tag>
+          </ATag>
         </template>
         <template #cell-amount="{ record }">
           <span :class="monoClassName">¥{{ record?.amount?.toLocaleString() ?? '-' }}</span>
         </template>
       </BasicTable>
-    </a-card>
+    </ACard>
 
-    <a-card title="Expandable / Tree Data" variant="borderless">
+    <ACard title="Expandable / Tree Data" variant="borderless">
       <BasicTable @register="registerTree">
         <template #cell-type="{ record }">
-          <a-tag :color="typeColorMap[record?.type] || 'default'">
+          <ATag :color="typeColorMap[record?.type] || 'default'">
             {{ record?.type }}
-          </a-tag>
+          </ATag>
         </template>
         <template #cell-memberCount="{ record }">
           <span>{{ record?.memberCount ?? '-' }}</span>
         </template>
       </BasicTable>
-    </a-card>
+    </ACard>
 
-    <a-card title="Empty &amp; Loading States" variant="borderless">
-      <a-space direction="vertical" :size="16" :style="fullWidthStyle">
+    <ACard title="Empty &amp; Loading States" variant="borderless">
+      <ASpace direction="vertical" :size="16" :style="fullWidthStyle">
         <div>
           <p :class="labelClassName">Loading state</p>
           <BasicTable @register="registerLoading" />
@@ -414,7 +415,7 @@ const [registerLoading] = useTable({
           <p :class="labelClassName">Empty state</p>
           <BasicTable @register="registerEmpty" />
         </div>
-      </a-space>
-    </a-card>
+      </ASpace>
+    </ACard>
   </div>
 </template>

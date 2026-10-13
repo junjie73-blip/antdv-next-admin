@@ -198,7 +198,7 @@ export { useDrawer as useDrawerInner } from './useDrawer';
 | 传了 `height` | `height: Npx` 固定，`maxHeight`/`minHeight` 全部让路 | `:30-32` |
 | 其余情况 | `maxHeight = 视口高 - 200 - footerOffset`，`minHeight` 缺省 `200px` | `:34,38` |
 
-外层 `div.modal-wrapper` 是 `relative`，loading 时叠一层 `absolute inset-0` 的半透明遮罩 + spinner（`:47-68`），内容始终包在 `@antdv/ui` 的 `Scrollbar` 里（`:70-76`，`p-6` 内边距），`native` 取自 `projectConfig.scrollbar?.native`（`:6,72`）—— 设成 `true` 就换成浏览器默认滚动条。窗口尺寸变化由 `useWindowSize` 响应（`:25`），不需要手动重算。
+外层 `div.modal-wrapper` 是 `relative`，loading 时叠一层 `absolute inset-0` 的半透明遮罩 + spinner（`:47-68`），内容始终包在 `@antdv/scrollbar-ui` 的 `Scrollbar` 里（`:71-77`，`p-6` 内边距），`native` 取自 `projectConfig.scrollbar?.native`（`:4`、`:73`）—— 设成 `true` 就换成浏览器默认滚动条。窗口尺寸变化由 `useWindowSize` 响应（`:26`），不需要手动重算。
 
 标题区与底部按钮栏在滚动容器**之外**（`BasicModal.vue:191-212` 与 `:229-264`），所以内容滚动时它们固定。抽屉的做法不同：body 直接 `h-full min-h-0 overflow-hidden` 再套 `Scrollbar root-class="h-full"`（`BasicDrawer.vue:231-236,262-264`），配合 `:deep(.ant-drawer-content)` 的 flex 列布局（`:306-318`）把高度压给 body；`ModalWrapper` 里那套 `height` / `minHeight` / `footerOffset` 在抽屉里一个都不适用。`ModalWrapper` 自己还声明了一个从不读取的 `visible` prop（`:17`）。
 
@@ -236,7 +236,7 @@ export { useDrawer as useDrawerInner } from './useDrawer';
 
 ### 4. 抽屉内滚动（`index.vue:526-599`，逻辑 `:163-195`）
 
-`打开长内容抽屉`（`:529-531`）弹出 `:size="560"` 的抽屉（`:553-599`）：外层 16 条条款在 `BasicDrawer` 内置的 `Scrollbar` 里滚，标题与底部固定；里面再嵌一个 `@antdv/ui` 的 `Scrollbar`（`root-class="h-60"`，即 240px，`:577-580`），通过它的 `@scroll` 事件把 `scrollTop` 写回页面状态（逻辑 `:183-189`，`wrap` 元素来自组件 `defineExpose`，见 `packages/ui/src/scrollbar/Scrollbar.vue:256-257`）。只有滚到底（`scrollTop + clientHeight >= scrollHeight - 4`）才能勾选「我已阅读完附加条款」（`:591-597`），没勾选时抽屉的确认按钮通过 `:ok-button-props="{ disabled: !agreement }"`（`:558`）保持禁用。
+`打开长内容抽屉`（`:529-531`）弹出 `:size="560"` 的抽屉（`:553-599`）：外层 16 条条款在 `BasicDrawer` 内置的 `Scrollbar` 里滚，标题与底部固定；里面再嵌一个 `@antdv/scrollbar-ui` 的 `Scrollbar`（`root-class="h-60"`，即 240px，`:577-580`），通过它的 `@scroll` 事件把 `scrollTop` 写回页面状态（逻辑 `:183-189`，`wrap` 元素来自组件 `defineExpose`，见 `packages/ui-kit/scrollbar-ui/src/Scrollbar.vue:257-258`）。只有滚到底（`scrollTop + clientHeight >= scrollHeight - 4`）才能勾选「我已阅读完附加条款」（`:591-597`），没勾选时抽屉的确认按钮通过 `:ok-button-props="{ disabled: !agreement }"`（`:558`）保持禁用。
 
 ::: tip 高度为什么用 `root-class` 而不是 `max-height` 页面文字（`:540-543`）给了原因：`max-height` 属性会被 `Scrollbar` 内部的 `useResponsiveMaxHeight` 以 712px 为下限重新算掉，所以这里用 `root-class="h-60"` 固定高度。细节见[数据与展示](/components/display)的滚动一节。:::
 

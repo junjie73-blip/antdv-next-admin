@@ -4,7 +4,7 @@ import type { BasicColumn, ComponentType, Recordable } from '../types';
 
 import { computed, defineComponent, nextTick, ref, watch } from 'vue';
 
-import { IconifyIcon as Icon } from '@antdv/ui/icon';
+import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import {
   Button,
   DatePicker,

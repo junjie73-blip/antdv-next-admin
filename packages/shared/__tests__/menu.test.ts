@@ -1,12 +1,9 @@
 import type { MenuConfig } from '@antdv/types';
 
-import type { BuildMenuItemsOptions } from '../src/menu';
-
 import { describe, expect, it } from 'vitest';
 
 import {
   attachMenuPaths,
-  buildMenuItems,
   collectMenuKeys,
   collectSubmenuKeys,
   findAncestorKeys,
@@ -191,125 +188,6 @@ describe('叶子遍历', () => {
   it('collectSubmenuKeys 只收集可展开父级', () => {
     // 监控 只有一个可见子节点，同样是可展开父级
     expect(collectSubmenuKeys(menus)).toEqual(['System', 'DictGroup', '监控']);
-  });
-});
-
-/** antd 的 items 是联合类型（含 divider/group），测试里只关心这几项 */
-interface Item {
-  children?: Item[];
-  disabled?: boolean;
-  icon?: unknown;
-  key?: string;
-  label?: unknown;
-}
-
-function build(menus: MenuConfig[], options?: BuildMenuItemsOptions): Item[] {
-  return buildMenuItems(menus, options) as unknown as Item[];
-}
-
-describe('buildMenuItems', () => {
-  const menus = makeMenus();
-
-  it('key 唯一，杜绝多选中', () => {
-    const keys = build(menus).map((item) => item.key);
-    expect(keys).toEqual(['System', '监控']);
-    expect(new Set(keys).size).toBe(2);
-  });
-
-  it('maxDepth=1 时一级导航不带 children（子项交给侧边栏）', () => {
-    const [system] = build(menus, { maxDepth: 1 });
-    expect(system?.children).toBeUndefined();
-  });
-
-  it('默认递归展开，隐藏子项被过滤', () => {
-    const [system] = build(menus);
-    expect((system?.children ?? []).map((child) => child.key)).toEqual([
-      'UserList',
-      'DictGroup',
-    ]);
-    const dict = system?.children?.[1];
-    expect((dict?.children ?? []).map((child) => child.key)).toEqual([
-      'DictList',
-    ]);
-  });
-
-  it('withChildren=false 彻底不带子节点', () => {
-    const [system] = build(menus, { withChildren: false });
-    expect(system?.children).toBeUndefined();
-  });
-
-  it('保留 disabled，并为图标生成渲染函数', () => {
-    const withIcon: MenuConfig[] = [
-      {
-        name: 'A',
-        path: '/a',
-        title: '甲',
-        icon: 'lucide:settings',
-        disabled: true,
-      },
-    ];
-    const [item] = build(withIcon);
-    expect(item!.disabled).toBe(true);
-    expect(typeof item!.icon).toBe('function');
-    expect(item!.key).toBe('A');
-  });
-
-  /**
-   * 侧边栏的图标槽位（`keepIconSlot`）。
-   *
-   * 需求原话是"菜单的样式有点问题"，根子在这一列里有的项有图标、有的没有：
-   * 没图标那一项的文字左边缘就比邻居更靠左，整列看起来参差。
-   * 这里钉住契约 —— 开了开关，**每一项**都拿到图标渲染器，缺图标的用空 span 占位，
-   * 槽位宽度由 antd 的 `.ant-menu-item-icon`（`min-width` 来自 iconSize token）决定，
-   * 所以和真图标严格等宽，不需要在样式里猜像素。
-   */
-  it('keepIconSlot：每一项都有图标渲染器，缺图标的渲染成空槽', () => {
-    const tree: MenuConfig[] = [
-      {
-        name: 'Group',
-        path: '',
-        title: '分组',
-        children: [
-          { name: 'A', path: '/a', title: '甲' },
-          { name: 'B', path: '/b', title: '乙', icon: 'lucide:settings' },
-        ],
-      },
-    ];
-
-    const [group] = build(tree, { keepIconSlot: true });
-    // 目录节点自己也要占位，否则"有图标的目录"和"没图标的目录"标题不齐
-    expect(typeof group!.icon).toBe('function');
-    const children = group!.children ?? [];
-    expect(children).toHaveLength(2);
-    expect(
-      children.every((child) => typeof child.icon === 'function'),
-      '开了空槽后不该再有项缺 icon',
-    ).toBe(true);
-
-    // 没图标 → 裸 span（占位，不画任何东西）
-    const slot = (children[0]!.icon as () => { type: unknown })();
-    expect(slot.type).toBe('span');
-    // 有图标 → 图标组件，不能被空槽覆盖掉
-    const real = (children[1]!.icon as () => { type: unknown })();
-    expect(typeof real.type).not.toBe('string');
-  });
-
-  /**
-   * 反向契约：默认不开空槽。
-   * 顶栏横向导航按内容宽度排布，没图标就是不该留一格空白 —— 宽度要留给文字，
-   * 否则溢出时白白少显示一项（横向滚动那条链依赖"总量尽量小"）。
-   */
-  it('默认不占图标槽', () => {
-    const [group] = build([
-      {
-        name: 'Group',
-        path: '',
-        title: '分组',
-        children: [{ name: 'A', path: '/a', title: '甲' }],
-      },
-    ]);
-    expect(group!.icon).toBeUndefined();
-    expect(group!.children![0]!.icon).toBeUndefined();
   });
 });
 
@@ -552,19 +430,18 @@ describe('includeHidden：隐藏项留在树上，只有导航出口剔掉它', 
     ).toEqual(['Tool', 'DictList']);
   });
 
-  it('树里留着隐藏项也不影响导航出口：items / 叶子遍历 / 首个叶子都照常过滤', () => {
+  it('树里留着隐藏项也不影响导航出口：可见树 / 叶子遍历 / 首个叶子都照常过滤', () => {
     const full = attachMenuPaths(makeMenus(), router, { includeHidden: true });
 
     /**
-     * `buildMenuItems` 的返回类型是 antd 的内部联合（item / submenu 两种形状），
-     * 断言只关心 key 与 children，所以在这里一次性收窄成用得到的字段，
-     * 避免每个用例都写一遍 `as never`。
+     * 渲染出口从 `buildMenuItems`（antd items）换成了 `visibleMenuTree`：
+     * 本包只负责"该渲染的那棵树"，把它画成节点是 `@antdv/menu-ui` 的 `toMenuNodes`，
+     * 那里的单测覆盖 key / children / 图标槽位。
      */
-    type RenderedItem = { children?: RenderedItem[]; key?: string };
-    const items = buildMenuItems(full) as unknown as RenderedItem[];
-    expect(items.map((item) => item.key)).toEqual(['System', '监控']);
-    const system = items[0];
-    expect((system?.children ?? []).map((child) => child.key)).toEqual([
+    const tree = visibleMenuTree(full);
+    expect(tree.map((menu) => menuKeyOf(menu))).toEqual(['System', '监控']);
+    const system = tree[0];
+    expect((system?.children ?? []).map((child) => menuKeyOf(child))).toEqual([
       'UserList',
       'DictGroup',
     ]);
