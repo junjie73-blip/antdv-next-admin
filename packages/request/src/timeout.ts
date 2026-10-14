@@ -30,11 +30,12 @@ export function combineSignals(signals: (AbortSignal | undefined)[]): {
   cleanup: () => void;
 } {
   const valid = signals.filter(Boolean) as AbortSignal[];
-  if (valid.length === 0) {
+  const [only] = valid;
+  if (!only) {
     return { signal: new AbortController().signal, cleanup: () => {} };
   }
   if (valid.length === 1) {
-    return { signal: valid[0], cleanup: () => {} };
+    return { signal: only, cleanup: () => {} };
   }
 
   const controller = new AbortController();

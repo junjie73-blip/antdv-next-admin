@@ -4,7 +4,7 @@ import { useWebSocket as useWebSocketComposable } from '@antdv/composables/webso
 import { eventBus } from '@antdv/shared/utils/event';
 import { Icon } from '@iconify/vue';
 import { toast } from '@antdv/popup-ui';
-import { forceLogout } from '~/composables/web/request/fetcher';
+import { forceLogout } from '@antdv/request';
 import { useUserStore } from '~/stores/modules/user';
 
 // ==================== 类型 ====================
@@ -166,19 +166,16 @@ function handleMessage(raw: unknown): void {
     sharedNotice.value = notice;
     eventBus.emit(WS_EVENTS.NOTICE, notice);
 
-    toast(
-      `新${noticeTypeConfig[notice.noticeType]?.label || '通知'}`,
-      {
-        description: notice.title,
-        duration: 3000,
-        icon: h(Icon, {
-          icon:
-            noticeTypeConfig[notice.noticeType]?.icon || 'carbon:notification',
-          style: { color: '#108ee9' },
-        }),
-        position: 'bottom-right',
-      },
-    );
+    toast(`新${noticeTypeConfig[notice.noticeType]?.label || '通知'}`, {
+      description: notice.title,
+      duration: 3000,
+      icon: h(Icon, {
+        icon:
+          noticeTypeConfig[notice.noticeType]?.icon || 'carbon:notification',
+        style: { color: '#108ee9' },
+      }),
+      position: 'bottom-right',
+    });
     return;
   }
 

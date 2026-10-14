@@ -1,16 +1,19 @@
-import { createPinia, setActivePinia } from 'pinia';
-import { beforeEach, describe, expect, it } from 'vitest';
-import { LOGIN_PATH } from '~/config/constants';
-import { useRouteStore } from '~/stores/modules/route';
-import { useTabsStore } from '~/stores/modules/tabs';
-import { useUserStore } from '~/stores/modules/user';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { forceLogout, resetLogoutFlag } from '../fetcher';
+import { forceLogout, resetLogoutFlag } from '../src/fetcher';
+import { configureRequest, resetRequestRuntime } from '../src/runtime';
+
+// fetcher 只在报错时才用 toast；把 popup-ui 的组件依赖图挡在单测之外
+vi.mock('@antdv/popup-ui', () => ({ toast: {} }));
+
+const LOGIN_PATH = '/login';
 
 /**
  * `forceLogout` 是"会话没了"的唯一收尾入口，它有两个必须守住的行为：
  *
- * 1. 状态清干净（凭证 / 页面缓存 / 菜单授权 / 标签页）；
+ * 1. 清状态。请求层不认识 pinia，怎么清由应用通过 `configureRequest()` 注入的
+ *    `onLogout` 决定 —— 这里只断言"退出出口被调用了一次"，
+ *    现场清得干不干净由 `stores/__tests__/user-logout.spec.ts` 负责。
  * 2. 回登录页的方式要对：本应用是 hash 路由，登录页是 `/#/login`。
  *    旧实现写的是 `window.location.href = '/login?...'` —— 那是 pathname，
  *    路由表里没有这条真实路径，浏览器会当成跨文档导航整页重载。
@@ -23,59 +26,51 @@ function setHash(hash: string) {
   window.location.hash = hash;
 }
 
-function seededStores() {
-  const user = useUserStore();
-  const route = useRouteStore();
-  const tabs = useTabsStore();
+const onLogout = vi.fn<() => void>();
 
-  user.token = 'a-token';
-  user.userInfo = { id: 1, username: 'admin' } as never;
-  route.isLoaded = true;
-  route.allowedPaths = new Set(['/system/user']);
-  tabs.tabs = [
-    {
-      closable: true,
-      key: '/system/user',
-      path: '/system/user',
-      title: '用户管理',
+function seedRuntime(loginPath = LOGIN_PATH) {
+  configureRequest({
+    baseUrl: 'http://mock',
+    loginPath,
+    onLogout,
+    tokens: {
+      access: () => 'a-token',
+      refresh: () => 'r-token',
+      setAccess: () => {},
+      setRefresh: () => {},
     },
-  ] as never;
-
-  return { route, tabs, user };
+  });
 }
 
 beforeEach(() => {
-  setActivePinia(createPinia());
   resetLogoutFlag();
   setHash('');
+  onLogout.mockClear();
+  seedRuntime();
+});
+
+afterEach(() => {
+  resetRequestRuntime();
 });
 
 describe('forceLogout', () => {
-  it('把上一个账号的会话态全部清掉', () => {
-    const { route, tabs, user } = seededStores();
-
+  it('退出时调用应用注入的 onLogout 清状态', () => {
     forceLogout(false);
 
-    expect(user.isLoggedIn).toBe(false);
-    expect(route.isLoaded).toBe(false);
-    expect([...route.allowedPaths]).toEqual([]);
-    expect(tabs.tabs).toEqual([]);
+    expect(onLogout).toHaveBeenCalledTimes(1);
   });
 
   it('redirect=false 时只清状态，不动地址', () => {
     setHash('#/system/user');
-    expect(window.location.hash).toBe('#/system/user');
-    const { user } = seededStores();
 
     forceLogout(false);
 
-    expect(user.isLoggedIn).toBe(false);
+    expect(onLogout).toHaveBeenCalledTimes(1);
     expect(window.location.hash).toBe('#/system/user');
   });
 
   it('默认改 hash 回登录页，并把原路径带在 redirect 上', () => {
     setHash('#/system/user');
-    seededStores();
 
     forceLogout();
 
@@ -95,7 +90,6 @@ describe('forceLogout', () => {
   it('回登录页是站内导航：pathname 不动，只有 hash 变了', () => {
     setHash('#/dashboard/analysis');
     const pathname = window.location.pathname;
-    seededStores();
 
     forceLogout();
 
@@ -106,7 +100,6 @@ describe('forceLogout', () => {
   it('已经在登录页就不重复跳（避免 redirect 套 redirect）', () => {
     setHash(`#${LOGIN_PATH}?redirect=${encodeURIComponent('/system/user')}`);
     const before = window.location.hash;
-    seededStores();
 
     forceLogout();
 
@@ -115,23 +108,19 @@ describe('forceLogout', () => {
 
   it('5 秒内的重复调用只生效一次（多个并发 401 不该刷屏式重定向）', () => {
     setHash('#/system/user');
-    const { user } = seededStores();
     forceLogout();
     expect(window.location.hash).toContain(LOGIN_PATH);
 
     // 门闩生效的证明：把现场"还原"成还没退出的样子，第二次调用不该再动它
     setHash('#/system/role');
-    user.token = 'another-token';
-
     forceLogout();
 
     expect(window.location.hash).toBe('#/system/role');
-    expect(user.isLoggedIn).toBe(true);
+    expect(onLogout).toHaveBeenCalledTimes(1);
   });
 
   it('resetLogoutFlag 后门闩放开（测试与真实重新登录都靠它）', () => {
     setHash('#/system/user');
-    seededStores();
     forceLogout();
 
     resetLogoutFlag();
@@ -141,5 +130,14 @@ describe('forceLogout', () => {
     expect(window.location.hash).toBe(
       `#${LOGIN_PATH}?redirect=${encodeURIComponent('/system/role')}`,
     );
+  });
+
+  it('登录页路径来自运行时配置，不是硬编码', () => {
+    seedRuntime('/sign-in');
+    setHash('#/system/user');
+
+    forceLogout();
+
+    expect(window.location.hash).toBe('#/sign-in?redirect=%2Fsystem%2Fuser');
   });
 });

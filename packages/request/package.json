@@ -1,0 +1,42 @@
+{
+  "name": "@antdv/request",
+  "version": "0.1.0",
+  "description": "HTTP 请求层：csrf / 令牌刷新 / 401 收尾 / 缓存与去重 / 超时 / qs 参数序列化 / useRequest。凭证存储与登录页路径由应用 configureRequest() 注入，包不碰 pinia 也不读 import.meta.env",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf .turbo",
+    "test:unit": "vitest run",
+    "type-check": "vue-tsc --noEmit"
+  },
+  "files": [
+    "src"
+  ],
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "//exports": "入口 barrel 之外只开 runtime：应用接线时想只拿注入点也能单独引。",
+  "exports": {
+    ".": "./src/index.ts",
+    "./runtime": "./src/runtime.ts",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@antdv/popup-ui": "workspace:*",
+    "@antdv/shared": "workspace:*",
+    "@vueuse/core": "catalog:",
+    "es-toolkit": "catalog:",
+    "qs": "catalog:",
+    "vue": "catalog:"
+  },
+  "devDependencies": {
+    "@antdv/tsconfig": "workspace:*",
+    "@types/qs": "catalog:",
+    "happy-dom": "catalog:",
+    "rimraf": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}

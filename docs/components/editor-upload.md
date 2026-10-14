@@ -54,7 +54,7 @@
 
 ### 编辑器内置上传打到哪、mock 给什么
 
-工具栏「上传图片 / 上传视频」走 `uploadFile`，默认地址 `/upload/file`（`MarkdownEditor/utils.ts:80`），经请求层拼上 `VITE_APP_BASE_API=/api`（`apps/web/.env.development:19`；前缀拼接在 `composables/web/request/fetcher.ts:159`），即 **`POST /api/upload/file`**。mock 端由 catch-all 变体 handler 接住（`apps/backend-mock/server/api/upload/[variant].post.ts:13-23`），返回一张**内联 SVG data URL**（`server/utils/upload.ts:64-106`），不落盘、不存字节（设计说明见其头注释 `upload.ts:9-12`）。所以「上传成功」是示例自己装的假成功；组件侧只校验响应里有没有 `url`（`utils.ts:98-100`）。示例页自己在界面提示里也写明了这一点（`editor/index.vue:917-922`）。
+工具栏「上传图片 / 上传视频」走 `uploadFile`，默认地址 `/upload/file`（`MarkdownEditor/utils.ts:80`），经请求层拼上 `VITE_APP_BASE_API=/api`（`apps/web/.env.development:19`；前缀拼接在 `packages/request/src/fetcher.ts:162`，baseUrl 由 `apps/web/src/plugins/request-runtime.ts` 注入），即 **`POST /api/upload/file`**。mock 端由 catch-all 变体 handler 接住（`apps/backend-mock/server/api/upload/[variant].post.ts:13-23`），返回一张**内联 SVG data URL**（`server/utils/upload.ts:64-106`），不落盘、不存字节（设计说明见其头注释 `upload.ts:9-12`）。所以「上传成功」是示例自己装的假成功；组件侧只校验响应里有没有 `url`（`utils.ts:98-100`）。示例页自己在界面提示里也写明了这一点（`editor/index.vue:917-922`）。
 
 ## 文件上传：`/components/upload`
 
@@ -106,7 +106,7 @@
 
 - **导入路径断链**：第 9 行 `import { uploadFile } from '~/api'`，但 `~/api` 的入口 `apps/web/src/api/index.ts`（全文 42 行）只导出 `login` / `logout` / `getUserInfo`，**没有再导出 `uploadFile`**；函数实际定义在 `api/system.ts:146-148`（`POST /system/file/upload`）。这是缺名的具名导出，示例页注释「`~/api` 里真实存在的 `uploadFile`」（`upload/index.vue:252-259`）与源码不符。
 - **就算改对导入，mock 也回不了 url**：`/system/file/upload` 的 handler 只把元数据登记进内存表（`server/api/system/file/upload.post.ts:14-42`），返回的 `FileRecord` 类型里**没有 `url` 字段**（`server/utils/db/file.ts:19-34`）；组件要求 `res.data.url || res.url`，拿不到就报「上传接口未返回 url」（`AvatarUploader.vue:81-82`）。
-- **`uploadFile` 签名不吃 File**：形参是 `Record<string, unknown>`（`api/system.ts:146`），请求层对非 BodyInit 的普通对象做 `JSON.stringify`（`composables/web/request/executor.ts:163-167`）。头像二进制根本不会被正确发送。
+- **`uploadFile` 签名不吃 File**：形参是 `Record<string, unknown>`（`api/system.ts:146`），请求层对非 BodyInit 的普通对象做 `JSON.stringify`（`packages/request/src/executor.ts:148,167-168`）。头像二进制根本不会被正确发送。
 - **`outputSize` 只影响文案**：裁剪器固定 `:output-size="1"`（`AvatarUploader.vue:148`），props 的 256 只出现在提示文字里（`:153`）。「输出 256×256」是展示口径，不是实际裁剪尺寸。:::
 
 页面上仍然值得点的部分：圆形头像框、裁剪弹窗、拖拽缩放选区（vue-cropper 本身可用），失败与进度提示都来自上面这些源码位置。

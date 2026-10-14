@@ -36,7 +36,7 @@ import { useWebSocket } from '@antdv/composables/websocket';
 | `color` | `parseColor` (`src/color/convert.ts:23`), `toRgbString` / `toHex` (`:45,50`), `mixWithWhite` (`:60`) | `layouts/components/SettingDrawer/components/AppearancePanel.vue:22`, `LayoutPanel.vue:32` | yes |
 | `constants` | `PREFERENCE_CSS_VARS` (`src/constants/css-vars.ts:24`), `DARK_CLASS` / `COLOR_WEAK_CLASS` / `GRAY_MODE_CLASS` (`src/constants/dom-classes.ts:10,12,14`), `DEFAULT_PRIMARY_COLOR` (`src/constants/theme.ts:9`) | `packages/core/preferences/src/css-vars.ts:3`, `src/defaults.ts:3` | yes |
 | `crypto` | `encrypt` / `decrypt` / `encryptObject` / `decryptObject` (`src/utils/crypto/aes.ts:14,19,24,31`), `md5` / `md5File` / `sha256` / `hash` (`src/utils/crypto/hash.ts:3,7,32,40`) | **no call sites** | no |
-| `csrf` | `config` (`src/utils/csrf.ts:67`), `initCsrfProtection` (`:111`), `getCsrfToken` (`:164`) | `composables/web/request/fetcher.ts:5-8`, `utils/securityInit.ts:9` | yes |
+| `csrf` | `config` (`src/utils/csrf.ts:67`), `initCsrfProtection` (`:111`), `getCsrfToken` (`:164`) | `packages/request/src/fetcher.ts:4-8`, `utils/securityInit.ts:9` | yes |
 | `dayjs` | `dayjs` (`src/utils/dayjs.ts:136`), `setTimezone` (`:62`), `nowTz` (`:116`) | `stores/modules/app.ts:7,130`, `layouts/widgets/WidgetTimezone.vue:8`, `composables/web/useLocale.ts:4` | yes |
 | `domUtils` | `getBoundingClientRect` (`src/utils/domUtils.ts:14`), `getViewportOffset` (`:89`), `useRafThrottle` (`:187`) | **no call sites** | yes |
 | `download` | `saveBlob` (`src/utils/download.ts:159`), `downloadFile` (`:248`), `downloadWithAuth` (`:416`), `downloadMultiple` (`:552`) | **no call sites** | no |
@@ -45,7 +45,7 @@ import { useWebSocket } from '@antdv/composables/websocket';
 | `excel` | `exportToExcel` (`src/utils/excel.ts:40`) | `views/system/role/index.vue:8` and four more list pages | no |
 | `file-category` | `getExt` (`src/utils/file-category.ts:15`), `getFileCategory` (`:98`) | **no call sites** | yes |
 | `iframe` | `buildIframeSandbox` (`src/utils/iframe.ts:95`), `canEscapeSandbox` (`:131`), `SANDBOX_FLAGS` (`:23`) | `views/micro-app/SubAppView.vue:8` | yes |
-| `jwt` | `isTokenExpired` (`src/utils/jwt.ts:97`); `parseJwt` (`:70`), `isJwtFormat` (`:138`), `getTokenRemainingSeconds` (`:121`) | `composables/web/request/fetcher.ts:9,210` (only `isTokenExpired`) | yes |
+| `jwt` | `isTokenExpired` (`src/utils/jwt.ts:97`); `parseJwt` (`:70`), `isJwtFormat` (`:138`), `getTokenRemainingSeconds` (`:121`) | `packages/request/src/fetcher.ts:9,214` (only `isTokenExpired`) | yes |
 | `masking` | `maskPhone` / `maskEmail` / `maskIdCard` (`src/utils/masking.ts:22,30,40`), `MASKING_RULES` (`:84`) | **no call sites** | yes |
 | `menu` | `menuKeyOf` (`src/utils/menu.ts:32`), `attachMenuPaths` (`:258`), `buildMenuItems` (`:561`), `MenuPathRouter` (`:393`) | `stores/modules/route.ts:1-15`, `layouts/composables/useSidebarMenu.ts:10`, `packages/layouts/src/menu-source.ts:18` | yes |
 | `scroll` | `computeOverflow` (`src/utils/scroll.ts:28`), `useHorizontalScroll` (`:72`), `pickHorizontalDelta` (`:47`) | `packages/core/ui-kit/menu-ui/src/BasicMenu.vue`, `tabs-ui/src/TabsBar.vue` | yes |
@@ -81,11 +81,11 @@ This layer is actually better tested than `shared` — every entry has a spec in
 | `apps/web/src/utils/securityInit.ts:16` | `initSecuritySystem` | in use (`main.ts:35,95`) |
 | `apps/web/src/utils/crud-actions.ts:15` | `createCrudActions` | **no call site** |
 | `apps/web/src/utils/routePreload.ts:38,110,130` | `preloadRoute` / `preloadRoutes` / `useRoutePreloader` | **no call site** (only re-exported by `utils/index.ts:3`) |
-| `apps/web/src/composables/index.ts:1-3` | `useCRUD`, `usePermission`, everything from `web/request` | The request layer is in use (`stores/modules/user.ts:7`, `route.ts:18` take `http`); `usePermission` is imported straight from `~/composables/web/permission` (`directives/index.ts:13`); `useCRUD` (`useCRUD.ts:100`) has **no call site** |
+| `apps/web/src/composables/index.ts:1-3` | `useCRUD`, `usePermission`, everything from `@antdv/request` | The request layer is in use (`stores/modules/user.ts:7`, `route.ts:18` take `http`); `usePermission` is imported straight from `~/composables/web/permission` (`directives/index.ts:13`); `useCRUD` (`useCRUD.ts:100`) has **no call site** |
 | `apps/web/src/composables/useNotice.ts:62` | `useNotice` | **no call site** |
 | `apps/web/src/composables/usePasswordPolicy.ts:24` | `usePasswordPolicy` | **no call site** |
 
-Neither `utils/**` nor `composables/useCRUD.ts` has unit tests: no `__tests__` directory exists under `apps/web/src/utils` (the request layer does — `composables/web/request/__tests__/`). That is the division of labour showing up in the test layout: the logic should be in a package, where it can be tested.
+Neither `utils/**` nor `composables/useCRUD.ts` has unit tests: no `__tests__` directory exists under `apps/web/src/utils` (the request layer lives in its own package and does — `packages/request/__tests__/`). That is the division of labour showing up in the test layout: the logic should be in a package, where it can be tested.
 
 ## The hard boundary: no pinia, no stores, no env inside packages
 

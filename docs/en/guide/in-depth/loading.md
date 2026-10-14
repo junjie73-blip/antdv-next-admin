@@ -58,7 +58,7 @@ The three tools from `@antdv/loading-ui` (the entry point takes `vLoading` at `m
 
 - `BasicTable` has its own `hooks/useLoading`; while `api` runs it spins automatically and `setLoading(value)` on the instance intervenes manually — do not cover a table with a second `v-loading`.
 - Skeletons: `apps/web/src/components/common/Skeleton/` (`PageSkeleton`, `TableSkeleton`) for first-paint placeholders; empty and error states are `EmptyState` and `ErrorBoundary`.
-- The request layer (`src/composables/web/request/`) deliberately provides **no global loading**; it owns cache, dedupe, retry and the 401 replay. Adding an implicit overlay there would fight the four layers above.
+- The request layer (`packages/request/`) deliberately provides **no global loading**; it owns cache, dedupe, retry and the 401 replay. Adding an implicit overlay there would fight the four layers above.
 
 ## Switch matrix
 

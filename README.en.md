@@ -49,10 +49,11 @@ apps/
 ├── web/                  # admin app (@antdv/web)
 │   ├── src/
 │   │   ├── api/          # API wrappers (request.ts provides get/post/put/del)
-│   │   ├── composables/  # app-level composables, incl. the web/request layer
+│   │   ├── composables/  # app-level composables (re-export @antdv/request)
 │   │   ├── config/       # constants (cache key names, login path, etc.)
 │   │   ├── layouts/      # app-side layout assembly (shells come from @antdv/layouts)
 │   │   ├── locales/      # zh-CN / en-US
+│   │   ├── plugins/      # runtime injection (request credentials, vue-query, table, UI shells)
 │   │   ├── router/       # file-convention routing + guard registration (guards from @antdv/router)
 │   │   ├── stores/       # user / app / route / dict / tabs
 │   │   ├── utils/        # ws.ts singleton, cache, crypto, security init
@@ -60,7 +61,7 @@ apps/
 │   └── e2e/              # Playwright end-to-end tests (three engines)
 ├── backend-mock/         # Nitro mock APIs and runtime controls
 docs/                     # VitePress docs site, a package beside apps/; zh/en bilingual, published to GitHub Pages
-packages/                 # 9 runtime sub-packages (shared / ui / layouts / router / directives / ...)
+packages/                 # runtime sub-packages (core/{base,ui-kit,composables,preferences} / request / layouts / router / enums / utils / directives ...)
 internal/                 # build and lint tooling (vite-config / lint-configs / tsconfig / node-utils)
 scripts/                  # repo tasks such as vsh
 .changeset/               # versions and change notes

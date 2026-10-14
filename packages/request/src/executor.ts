@@ -127,11 +127,12 @@ function cleanExpiredCache() {
 function evictIfNeeded() {
   if (cacheStore.size <= MAX_CACHE_SIZE) return;
   // Map 保持插入顺序；用 lastAccess 排序找最旧的
+  // oxlint-disable-next-line unicorn/no-array-sort -- 应用侧 tsconfig 的 lib 还没有 ES2023，`toSorted` 会报 TS2550；这里排的已是展开出来的新数组
   const entries = [...cacheStore.entries()].sort(
     (a, b) => a[1].lastAccess - b[1].lastAccess,
   );
   const removeCount = cacheStore.size - MAX_CACHE_SIZE;
-  for (let i = 0; i < removeCount; i++) cacheStore.delete(entries[i]![0]);
+  for (const [key] of entries.slice(0, removeCount)) cacheStore.delete(key);
 }
 
 function isRetryable(err: unknown): boolean {
@@ -338,8 +339,9 @@ export async function executeRequest<T = any>(
   }
 
   // ---------- 2) 去重 ----------
-  if (canDedupe && pendingStore.has(cacheKey)) {
-    return pendingStore.get(cacheKey)!;
+  if (canDedupe) {
+    const inflight = pendingStore.get(cacheKey);
+    if (inflight) return inflight;
   }
 
   // ---------- 3) 执行 ----------

@@ -49,10 +49,11 @@ apps/
 ├── web/                  # 管理后台（@antdv/web）
 │   ├── src/
 │   │   ├── api/          # 接口封装（request.ts 提供 get/post/put/del）
-│   │   ├── composables/  # 应用内组合式函数，含 web/request 请求层
+│   │   ├── composables/  # 应用内组合式函数（re-export @antdv/request）
 │   │   ├── config/       # constants（缓存键名、登录路径等）
 │   │   ├── layouts/      # 应用侧布局装配（外壳来自 @antdv/layouts）
 │   │   ├── locales/      # zh-CN / en-US
+│   │   ├── plugins/      # 运行时注入（请求层凭证、vue-query、表格、UI 外壳）
 │   │   ├── router/       # 文件约定路由 + 守卫注册（守卫来自 @antdv/router）
 │   │   ├── stores/       # user / app / route / dict / tabs
 │   │   ├── utils/        # ws.ts 单例、cache、crypto、安全初始化
@@ -60,7 +61,7 @@ apps/
 │   └── e2e/              # Playwright 端到端（三引擎）
 ├── backend-mock/         # Nitro mock 接口与运行时控制
 docs/                     # VitePress 文档站，与 apps/ 齐平的独立包；zh/en 双语，单独发布到 GitHub Pages
-packages/                 # 9 个运行时子包（shared / ui / layouts / router / directives / ...）
+packages/                 # 运行时子包（core/{base,ui-kit,composables,preferences} / request / layouts / router / enums / utils / directives ...）
 internal/                 # 构建与规范工具（vite-config / lint-configs / tsconfig / node-utils）
 scripts/                  # vsh 等仓库任务
 .changeset/               # 版本与变更说明

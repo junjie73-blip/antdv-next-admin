@@ -84,7 +84,7 @@ Token 的值另有机制，且不受 `shouldEncrypt` 影响：`encryptToken()` �
 
 ## store 侧怎么用，以及登出清理出口
 
-唯一聚合出口是 `useUserStore().logout()`（`stores/modules/user.ts:163-169`）：内存态置空 → `cache.removeItem(TOKEN_KEY)` + `cache.removeItem(USER_INFO_KEY)` → `resetPageCache()` （`layouts/composables/usePageCache.ts:63-67`）→ `useRouteStore().resetRoutes()` → `useTabsStore().reset()`。请求层的 `forceLogout()` 不自己清，就调它（`apps/web/src/composables/web/request/fetcher.ts:72-88`）。新增需要清理的状态就加在这里。
+唯一聚合出口是 `useUserStore().logout()`（`stores/modules/user.ts:163-169`）：内存态置空 → `cache.removeItem(TOKEN_KEY)` + `cache.removeItem(USER_INFO_KEY)` → `resetPageCache()` （`layouts/composables/usePageCache.ts:63-67`）→ `useRouteStore().resetRoutes()` → `useTabsStore().reset()`。请求层的 `forceLogout()` 不自己清，它只调用入口注入的 `onLogout`（`packages/request/src/fetcher.ts:73-76`），由应用把 `logout()` 接回去（`apps/web/src/plugins/request-runtime.ts`）。新增需要清理的状态就加在这里。
 
 | 读写点 | 位置 |
 | --- | --- |

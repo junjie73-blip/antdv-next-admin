@@ -32,7 +32,7 @@ Vite 的合并顺序是 `.env` → `.env.[mode]` → `.env.local` → `.env.[mod
 | 变量 | 读取处 | 作用 |
 | --- | --- | --- |
 | `VITE_APP_TITLE` | `index.html` 模板、`internal/vite-config/src/plugins/pwa.ts` 的 manifest、标题守卫、`bootstrap/env.ts` 的 `cachePrefix`、`settings/index.ts` 的 `APP_DEFAULTS` | 标题与缓存键前缀（改它会让全部旧缓存失效） |
-| `VITE_APP_BASE_API` | `apps/web/src/composables/web/request/fetcher.ts` | 接口前缀，别在业务代码里写完整域名 |
+| `VITE_APP_BASE_API` | `apps/web/src/plugins/request-runtime.ts`（注入给 `@antdv/request`） | 接口前缀，别在业务代码里写完整域名 |
 | `VITE_WS_URL` | `apps/web/src/utils/ws.ts` | 空 = 不连接（重连是无限的，没后端时只会刷屏） |
 | `VITE_MICRO_APP` | `apps/web/src/config/micro-app.ts` | 微前端总开关，用 `isEnvEnabled` 判定 |
 | `VITE_CACHE_ENCRYPT_KEY` | `apps/web/src/bootstrap/env.ts` → `configureSharedEnv` | 缓存加密密钥，长度要求见[缓存](/guide/essentials/cache) |

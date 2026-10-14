@@ -137,9 +137,9 @@ packages/ui-kit/common-ui/src/components/<kebab>/
 
 ::: warning `preview` 三种写法的差别
 - `preview` 不给 / `true` → 可点，非受控。
-- `preview={{ visible }}`（`visible` 是 boolean）→ **受控**，配合 `@update:preview-visible` 回写。
-- `preview={{ visible: false }}` 且没有 `onVisibleChange` → 视为**静态关闭**，整块预览入口不渲染（`showPreview`，`:55-60`）；`preview=false` 同样关闭。
-这是迁移前"隐藏预览"的用法，行为保留但写法容易写错，注意 `preview={false}` 与 `preview={{ visible: false }}` 等价、而 `preview={{}}` 是可点。:::
+- <code v-pre>preview={{ visible }}</code>（`visible` 是 boolean）→ **受控**，配合 `@update:preview-visible` 回写。
+- <code v-pre>preview={{ visible: false }}</code> 且没有 `onVisibleChange` → 视为**静态关闭**，整块预览入口不渲染（`showPreview`，`:55-60`）；`preview=false` 同样关闭。
+这是迁移前"隐藏预览"的用法，行为保留但写法容易写错，注意 `preview={false}` 与 <code v-pre>preview={{ visible: false }}</code> 等价、而 <code v-pre>preview={{}}</code> 是可点。:::
 
 ## Upload / UploadDragger / UploadList
 

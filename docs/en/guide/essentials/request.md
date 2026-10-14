@@ -1,32 +1,45 @@
 # Request layer and API contract
 
-The HTTP layer is **a home-grown fetch wrapper**, built on `createFetch` from `@vueuse/core` (`apps/web/src/composables/web/request/fetcher.ts:10,171`). There is no axios dependency anywhere in the repo, and every business request must go through the wrapper functions under `apps/web/src/api/` — don't call `fetch` in pages.
+The HTTP layer is **a home-grown fetch wrapper**, now its own package `@antdv/request` (`packages/request/`), built on `createFetch` from `@vueuse/core` (`packages/request/src/fetcher.ts:10,160`). There is no axios dependency anywhere in the repo, and every business request must go through the wrapper functions under `apps/web/src/api/` — don't call `fetch` in pages.
 
 ```
 views / stores ──► api/*.ts ──► api/request.ts(get/post/put/del)
-                                   └─► composables/web/request（fetcher + executor）
-                                          └─► VITE_APP_BASE_API（dev: /api → Nitro 5320）
+                                   └─► @antdv/request (fetcher + executor)
+                                          └─► baseUrl injected by the app entry (dev: /api → Nitro 5320)
 ```
+
+## The package knows nothing about the app: the configureRequest seam
+
+`@antdv/request` only understands HTTP. Three things it cannot know, so the application injects them at the entry point (`packages/request/src/runtime.ts:20-64`):
+
+| Injected | Meaning | Implemented in |
+| --- | --- | --- |
+| `baseUrl` / `timeout` | Endpoint prefix and default timeout | `apps/web/src/plugins/request-runtime.ts` |
+| `tokens` | Read/write the access / refresh credentials (`access` / `refresh` / `setAccess` / `setRefresh`) | Same file, over `useUserStore()` and `cache` |
+| `loginPath` | Where to go once the session is gone (`/login` under hash routing) | `LOGIN_PATH` in `apps/web/src/config/constants.ts` |
+| `onLogout` | Which state to clear when the session ends | `useUserStore().logout()` |
+
+::: warning The injection has to happen before the first request, and only from the application entry calling `configureRequestRuntime()`. Running a request without it throws straight away (`getRequestRuntime()`, `runtime.ts:48-56`) — it never silently sends a request with empty credentials. This file pulls `~/stores` into the module graph, the same constraint as `table-runtime.ts` and `ui-runtime.ts`: **test setup must not touch it**, or everyone else's `vi.mock` stops working. :::
 
 ## Environment variables
 
 | Variable | dev | prod | Purpose | Source of truth |
 | --- | --- | --- | --- | --- |
-| `VITE_APP_BASE_API` | `/api` | The real backend address | `baseUrl` of `createFetcher`, defaults to `''` | `apps/web/.env.development:18`, `fetcher.ts:159` |
+| `VITE_APP_BASE_API` | `/api` | The real backend address | The `baseUrl` handed to `createFetcher`, defaults to `''` | `apps/web/.env.development:18`, `apps/web/src/plugins/request-runtime.ts:16`, `fetcher.ts:162` |
 | `VITE_MOCK` | `true` | `false` | Whether the dev server proxies `/api` to Nitro | `.env.development:19`, `internal/vite-config/src/utils/proxy.ts:40-57` |
 | `VITE_MOCK_SERVER` | `http://localhost:5320` | — | The proxy target, the same value as the mock process port | `.env.development:20` |
 | `VITE_WS_URL` | Empty | Empty | Notification-center WebSocket; leaving it empty means **don't connect** | `apps/web/src/utils/ws.ts:105-112` |
 
-The timeout defaults to `30_000` ms (`fetcher.ts:160`; per-call override at `executor.ts:176`).
+The timeout defaults to `30_000` ms (`fetcher.ts:163`; per-call override at `executor.ts:177`).
 
 ## Outbound: beforeFetch does four things
 
-`fetcher.ts:181-259`:
+`fetcher.ts:185-262`:
 
-1. **token**: `useUserStore().token || cache.getItem(TOKEN_KEY)` (`TOKEN_KEY = 'auth_token'`, `config/constants.ts:1,4`), written as `Authorization: Bearer <token>` (`AUTHORIZATION_KEY` is in `composables/constant.ts:1`). Endpoints like login/refresh skip the injection (`isAuthEndpoint`, `fetcher.ts:186`).
-2. **Refresh when close to expiry**: when the access token is missing but a refreshToken exists, first get one from `/auth/refresh`; when it exists but has **less than 60s left** (`isTokenExpired(token, 60)`), also refresh first (`fetcher.ts:193-215`, `:93-132`). If refresh fails and no token was ever obtained → `forceLogout()` + throw 401.
-3. **CSRF**: only write methods (`STATE_CHANGING`) get an `X-CSRF-Token`; double-submit + automatic rotation (`fetcher.ts:162-169,227-239`).
-4. **Security headers**: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection`, `Referrer-Policy`; write methods additionally get `Cache-Control: no-store`. For `FormData` the `Content-Type` is **deliberately set to undefined** so the browser adds the boundary itself (`:243-252`).
+1. **token**: credentials come only from the injected `tokens.access()` (`fetcher.ts:190-193`), written as `Authorization: Bearer <token>` (`AUTHORIZATION_KEY` is now in `fetcher.ts:16`). Endpoints like login/refresh skip the injection (`isAuthEndpoint`, `fetcher.ts:35`, used at `:187`). **Never fall back to the cache**: what storage holds is a JWE ciphertext, and sending it as a credential means a 401 on every reload.
+2. **Refresh when close to expiry**: when the access token is missing but a refreshToken exists, first get one from `/auth/refresh`; when it exists but has **less than 60s left** (`isTokenExpired(token, 60)`), also refresh first (`fetcher.ts:196-220`, refresh implementation `:94-134`). If refresh fails and no token was ever obtained → `forceLogout()` + throw 401.
+3. **CSRF**: only write methods (`STATE_CHANGING`) get an `X-CSRF-Token`; double-submit + automatic rotation (`fetcher.ts:165-172,231-243`).
+4. **Security headers**: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection`, `Referrer-Policy`; write methods additionally get `Cache-Control: no-store`. For `FormData` the `Content-Type` is **deliberately set to undefined** so the browser adds the boundary itself (`:245-259`).
 
 ## Inbound: afterFetch checks the business code
 
@@ -45,19 +58,19 @@ interface RL<T> {
 }
 ```
 
-- `code !== ErrorCode.SUCCESS(200)` → throws `RequestError` and marks `err.handled = true` to avoid `onFetchError` popping a duplicate message (`fetcher.ts:283-297`). The error-code table is in `request/error.ts:1-12`.
-- **Non-JSON responses pass straight through**: when `content-type` doesn't contain `application/json`, the code isn't checked (blob / file download / binary take this path, `fetcher.ts:262-266`).
-- Messages are popped uniformly by `reportRequestError` → `notification.error` from `antdv-next`; when the server is down it collapses to "Server busy" rather than showing the user the raw stack (`fetcher.ts:331-334,345-363`).
-- **401**: refresh once and replay once (no loop), implemented in `executor.ts:252-275`; `forceLogout` clears the store then jumps via hash to `#/login?redirect=…` (`fetcher.ts:72-87`).
+- `code !== ErrorCode.SUCCESS(200)` → throws `RequestError` and marks `err.handled = true` to avoid `onFetchError` popping a duplicate message (`fetcher.ts:287-298`). The error-code table is in `packages/request/src/error.ts`.
+- **Non-JSON responses pass straight through**: when `content-type` doesn't contain `application/json`, the code isn't checked (blob / file download / binary take this path, `fetcher.ts:268`).
+- Messages are popped uniformly by `reportRequestError` → `toast.error` from `@antdv/popup-ui`; when the server is down it collapses to "Server busy" rather than showing the user the raw stack (`fetcher.ts:349-365`). `401` sits in `SILENT_CODES`, so it stays quiet (`:29`).
+- **401**: refresh once and replay once (no loop), implemented in `executor.ts:253-276`; `forceLogout` calls `onLogout` to clear the store then jumps via hash to `#/login?redirect=…` (`fetcher.ts:73-88`), and a repeat call within 5 seconds is swallowed by the latch (`:74`).
 
 ## Retries, cancellation, and component unmount
 
 | Capability | Behavior | Source of truth |
 | --- | --- | --- |
-| Retry | Exponential backoff + jitter, defaults `retries=3`, `retryDelay=300`, only enabled for retryable errors | `executor.ts:225-246,371`, check at `:137-144` |
-| Timeout | The `AbortSignal` is merged with the caller's `signal` and handed to fetch together | `executor.ts:176-183`, `timeout.ts:1-52` |
-| Manual cancellation | `useRequest` exposes `abort()` | `composables/web/request/useRequest.ts:65,127-131` |
-| Cancel on unmount | Automatically aborts when the effect scope disposes; no need to write it by hand | `useRequest.ts:135` |
+| Retry | Exponential backoff + jitter, defaults `retries=3`, `retryDelay=300`, only enabled for retryable errors | `executor.ts:226-247,374`, check at `:138-145` |
+| Timeout | The `AbortSignal` is merged with the caller's `signal` and handed to fetch together | `executor.ts:177-183`, `timeout.ts:1-58` |
+| Manual cancellation | `useRequest` exposes `abort()` | `packages/request/src/useRequest.ts:147-151` |
+| Cancel on unmount | Automatically aborts when the effect scope disposes; no need to write it by hand | `useRequest.ts:155` |
 
 ## How to write an api module
 
@@ -91,6 +104,6 @@ The file path under `apps/backend-mock/server/api/**` is the route: `system/user
 
 ## WebSocket
 
-The `utils/ws.ts` singleton reads `VITE_WS_URL`, automatically attaches `token` and `type=notice` on connect, and doesn't connect when unset (`:105-112,310`); its only consumer is the notification center `layouts/widgets/WidgetNotice.vue:73`. There's no SSE endpoint on the app side (`packages/composables/src/sse` is a standalone capability package, not wired in).
+The `utils/ws.ts` singleton reads `VITE_WS_URL`, automatically attaches `token` and `type=notice` on connect, and doesn't connect when unset (`:105-112,310`); its only consumer is the notification center `layouts/widgets/WidgetNotice.vue:73`. There's no SSE endpoint on the app side (`packages/core/composables/src/sse` is a standalone capability package, not wired in).
 
 ::: warning Don't bypass the shared client All `api/*.ts` and stores import only `~/api/request` or the http from `~/composables` (e.g. `stores/modules/route.ts:18`, `stores/modules/user.ts:7`). This is currently **a convention, not a lint rule** — ESLint only locks import boundaries (`internal/lint-configs/eslint-config/src/custom-config.ts:31-113`) and doesn't forbid bare `fetch`. Once bypassed, CSRF, 401 refresh, and unified messaging all stop working, and it's hard to catch in code review. :::

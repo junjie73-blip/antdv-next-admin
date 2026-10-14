@@ -29,6 +29,7 @@
     "@antdv/menu-ui": "workspace:*",
     "@antdv/popup-ui": "workspace:*",
     "@antdv/preferences": "workspace:*",
+    "@antdv/request": "workspace:*",
     "@antdv/router": "workspace:*",
     "@antdv/shadcn-ui": "workspace:*",
     "@antdv/shared": "workspace:*",

@@ -28,6 +28,7 @@ import {
 import i18n from './locales';
 import { installBrowserMockIfEnabled } from './mock/activate';
 import { setupVueQuery } from './plugins/query';
+import { configureRequestRuntime } from './plugins/request-runtime';
 import { configureTableRuntime } from './plugins/table-runtime';
 import { configureUiKitRuntimes } from './plugins/ui-runtime';
 import { registerVendorAntdComponents } from './plugins/vendor-antd-components';
@@ -55,6 +56,8 @@ registerVendorAntdComponents(app);
 const pinia = createPinia();
 app.use(pinia);
 app.use(i18n);
+// 请求层的凭证来源与登录页路径来自应用，第一发请求发出之前必须接好
+configureRequestRuntime();
 /**
  * ui-kit 包（布局壳 / 菜单 / 标签栏）的文案靠注入的 `t`，不认 vue-i18n。
  * 必须在挂载之前完成：这些控件的首次渲染就在这一拍里，漏接的症状是

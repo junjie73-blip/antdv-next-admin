@@ -16,7 +16,7 @@ Name collisions are nastier than a missing import: `@vueuse/core` already export
 
 `echarts` / `sse` / `websocket` are deliberately kept out of the `@antdv/composables` root barrel: they either drag in the whole chart registry or a pile of manager classes, and putting them in the root entry would make `import { usePrint }` pay for parsing a chart library (`packages/composables/src/index.ts:1-12`; the `exports` map is in `packages/composables/package.json:21-43`, where the `"./*"` wildcard is what lets single-file modules be imported by name). :::
 
-Barrel coverage is worth memorising too: `apps/web/src/composables/index.ts` re-exports exactly three things — `useCRUD`, `usePermission` and the whole `./web/request` directory. `useLocale` / `useLocaleSync` / `useThemeTransition` / `useNotice` / `usePasswordPolicy` must be imported by file path:
+Barrel coverage is worth memorising too: `apps/web/src/composables/index.ts` re-exports exactly three things — `useCRUD`, `usePermission` and the full surface of `@antdv/request`, which now lives in its own package. `useLocale` / `useLocaleSync` / `useThemeTransition` / `useNotice` / `usePasswordPolicy` must be imported by file path:
 
 ```ts
 import { http, useCRUD, usePermission } from '~/composables';
@@ -270,7 +270,7 @@ For template-level declarations use `v-permission`; its arg/modifier grammar and
 
 ## 4. The request layer: `http`, `useRequest`, `requestCache`
 
-The public exit is `~/composables` (`composables/index.ts:3` re-exports the whole `./web/request` directory). Four layers underneath: `fetcher` (@vueuse `createFetch` + interceptors) → `executor` (cache / dedupe / retry / 401 replay) → `http` (five verbs) → `useRequest` (reactive wrapper).
+The public exit is `@antdv/request` (`packages/request/src/index.ts`); `~/composables` still re-exports the whole package (`composables/index.ts:3`), so existing call sites are unchanged. Four layers underneath: `fetcher` (@vueuse `createFetch` + interceptors) → `executor` (cache / dedupe / retry / 401 replay) → `http` (five verbs) → `useRequest` (reactive wrapper).
 
 ### http: imperative verbs
 

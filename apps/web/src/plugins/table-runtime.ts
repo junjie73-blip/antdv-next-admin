@@ -1,7 +1,7 @@
 import { message } from '@antdv/popup-ui';
 import { configureTable } from '@antdv/table-ui';
 import { usePermission } from '~/composables/web/permission';
-import { resolveErrorMessage } from '~/composables/web/request/fetcher';
+import { resolveErrorMessage } from '@antdv/request';
 
 /**
  * 表格组件要认权限、要报接口错误，这两件事只有应用知道，所以从包里注入。

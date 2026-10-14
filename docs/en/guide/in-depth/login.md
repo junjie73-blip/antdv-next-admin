@@ -36,7 +36,7 @@ The wiring is in `apps/web/src/router/guards/index.ts`; it only injects dependen
 
 ## 401s, token refresh, and forceLogout
 
-Rules implemented in the request layer (`src/composables/web/request/fetcher.ts` + `executor.ts`):
+Rules implemented in the request layer (`packages/request/src/fetcher.ts` + `executor.ts`):
 
 1. `beforeFetch` attaches `Bearer` to non-auth endpoints; with no token it tries a refresh first if a refresh token exists, otherwise `forceLogout()`.
 2. On a 401, `doOnceWithAuthReplay` **refreshes once and replays once**; auth endpoints themselves, an in-flight logout, or an already-replayed request throw directly to avoid loops.

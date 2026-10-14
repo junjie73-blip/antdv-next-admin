@@ -16,7 +16,7 @@
 
 `@antdv/composables` 的 `echarts` / `sse` / `websocket` 故意**不进根 barrel**：它们要么拖进整个图表库注册表，要么带一堆管理器类，放进根入口会让 `import { usePrint }` 也付出一份图表的解析成本（`packages/composables/src/index.ts:1-12`，`exports` 映射见 `packages/composables/package.json:21-43`，其中 `"./*"` 通配让单文件模块可以直接按名引）。:::
 
-barrel 覆盖面也值得记一笔：`apps/web/src/composables/index.ts` 只 re-export 三样 —— `useCRUD`、`usePermission`、`./web/request` 整个目录。`useLocale` / `useLocaleSync` / `useThemeTransition` / `useNotice` / `usePasswordPolicy` 得按文件路径引：
+barrel 覆盖面也值得记一笔：`apps/web/src/composables/index.ts` 只 re-export 三样 —— `useCRUD`、`usePermission`，加上已经独立成包的 `@antdv/request` 全量出口。`useLocale` / `useLocaleSync` / `useThemeTransition` / `useNotice` / `usePasswordPolicy` 得按文件路径引：
 
 ```ts
 import { http, useCRUD, usePermission } from '~/composables';
@@ -270,7 +270,7 @@ const actions = (record: Recordable): ActionItem[] => [
 
 ## 四、请求层：`http` / `useRequest` / `requestCache`
 
-出口在 `~/composables`（`composables/index.ts:3` 把 `./web/request` 整个目录 re-export 出来），实现分四层：`fetcher`（@vueuse `createFetch` + 拦截器）→ `executor`（缓存 / 去重 / 重试 / 401 重放）→ `http`（五个动词）→ `useRequest`（组合式外壳）。
+出口在 `@antdv/request`（`packages/request/src/index.ts`）；`~/composables` 仍然整包 re-export 它（`composables/index.ts:3`），老调用点一行都不用改。实现分四层：`fetcher`（@vueuse `createFetch` + 拦截器）→ `executor`（缓存 / 去重 / 重试 / 401 重放）→ `http`（五个动词）→ `useRequest`（组合式外壳）。
 
 ### http：命令式动词
 

@@ -17,7 +17,10 @@ export function buildUrl(url: string, params?: Record<string, any>): string {
     cleaned[key] = value;
   }
 
-  const query = qs.stringify(cleaned, { arrayFormat: 'repeat', skipNulls: true });
+  const query = qs.stringify(cleaned, {
+    arrayFormat: 'repeat',
+    skipNulls: true,
+  });
   if (!query) return url;
   return url.includes('?') ? `${url}&${query}` : `${url}?${query}`;
 }

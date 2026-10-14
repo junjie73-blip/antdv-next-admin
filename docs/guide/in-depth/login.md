@@ -36,7 +36,7 @@
 
 ## 401、刷新令牌与 forceLogout
 
-请求层（`src/composables/web/request/fetcher.ts` + `executor.ts`）的规则：
+请求层（`packages/request/src/fetcher.ts` + `executor.ts`）的规则：
 
 1. `beforeFetch` 给非认证端点拼 `Bearer`；无 token 时若有 refresh token 先刷新，否则 `forceLogout()`。
 2. 收到 401 时 `doOnceWithAuthReplay` 会**刷新一次并重放一次**；认证端点自身、已在登出流程、或已重放过的直接抛错，避免死循环。

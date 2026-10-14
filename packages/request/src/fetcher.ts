@@ -1,8 +1,6 @@
 import type { ApiResponse } from './types';
 
-import { CacheKey } from '@antdv/enums';
 import { toast } from '@antdv/popup-ui';
-import { cache } from '@antdv/shared';
 import {
   config as csrfConfig,
   getCsrfToken,
@@ -10,11 +8,12 @@ import {
 } from '@antdv/shared/utils/csrf';
 import { isTokenExpired } from '@antdv/shared/utils/jwt';
 import { createFetch } from '@vueuse/core';
-import { AUTHORIZATION_KEY } from '~/composables/constant';
-import { LOGIN_PATH } from '~/config/constants';
-import { useUserStore } from '~/stores/modules/user';
 
 import { ErrorCode, isServerFailure, RequestError } from './error';
+import { getRequestRuntime, loginPathOfRuntime } from './runtime';
+
+/** 凭证头名；服务端网关只认这一个写法，应用侧不要再传别的 */
+export const AUTHORIZATION_KEY = 'Authorization';
 
 const AUTH_ENDPOINTS = [
   '/auth/login',
@@ -50,10 +49,11 @@ function currentRoutePath(): string {
 
 /** 是否已经在登录页（含带 redirect 参数的登录页） */
 function isOnLoginPath(path: string): boolean {
+  const loginPath = loginPathOfRuntime();
   return (
-    path === LOGIN_PATH ||
-    path.startsWith(`${LOGIN_PATH}?`) ||
-    path.startsWith(`${LOGIN_PATH}/`)
+    path === loginPath ||
+    path.startsWith(`${loginPath}?`) ||
+    path.startsWith(`${loginPath}/`)
   );
 }
 
@@ -63,7 +63,7 @@ function isOnLoginPath(path: string): boolean {
  * 两件事必须一起做，之前都做错了：
  * 1. 清状态。旧写法在 store 外面手抄 `token = ''`（还带一层 `as any`），
  *    漏掉用户信息、页面缓存、菜单授权与标签页 —— 换账号进来会带上一人的残影。
- *    现在直接走 `useUserStore().logout()` 这个唯一出口。
+ *    现在交给应用注入的 `onLogout`，它走 store 的那个唯一出口。
  * 2. 回登录页。本应用是 **hash 路由**（`createWebHashHistory`），登录页地址是
  *    `/#/login`；`window.location.href = '/login?...'` 写的是 pathname，路由表里
  *    没有这条真实路径，于是触发一次整页重载：正在跑的导航被打断
@@ -73,12 +73,12 @@ function isOnLoginPath(path: string): boolean {
 export function forceLogout(redirect = true): void {
   if (isLoggingOut) return;
   isLoggingOut = true;
-  useUserStore().logout();
+  getRequestRuntime().onLogout();
 
   if (redirect) {
     const current = currentRoutePath();
     if (!isOnLoginPath(current)) {
-      window.location.hash = `#${LOGIN_PATH}?redirect=${encodeURIComponent(current)}`;
+      window.location.hash = `#${loginPathOfRuntime()}?redirect=${encodeURIComponent(current)}`;
     }
   }
 
@@ -92,14 +92,14 @@ export function resetLogoutFlag(): void {
 }
 
 async function doRefreshToken(baseUrl: string): Promise<string> {
-  const userStore = useUserStore();
-  const refreshTokenValue = cache.getItem(CacheKey.REFRESH_TOKEN);
+  const { tokens } = getRequestRuntime();
+  const refreshTokenValue = tokens.refresh();
   if (!refreshTokenValue) throw new Error('缺少 refresh token');
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json; charset=utf-8',
-    // 只认 store 里的明文 token：缓存里存的是 JWE 密文，当凭证发出去必然 401
-    [AUTHORIZATION_KEY]: `Bearer ${userStore.token ?? ''}`,
+    // 只认凭证来源里的明文 token：缓存里存的是 JWE 密文，当凭证发出去必然 401
+    [AUTHORIZATION_KEY]: `Bearer ${tokens.access() ?? ''}`,
   };
   try {
     const csrf = await getCsrfToken();
@@ -126,10 +126,10 @@ async function doRefreshToken(baseUrl: string): Promise<string> {
   const newAccess = payload.data?.accessToken;
   const newRefresh = payload.data?.refreshToken ?? refreshTokenValue;
   if (!newAccess) throw new Error('刷新接口未返回 accessToken');
-  userStore.setToken(newAccess);
-  // accessToken 的持久化由 store 负责（它写的是密文）；这里再塞一次明文会把密文覆盖掉，
-  // 于是缓存里的值没法当凭证用。refreshToken 没有 store 字段，只能自己落盘。
-  cache.setItem(CacheKey.REFRESH_TOKEN, newRefresh);
+  // accessToken 的持久化由凭证来源负责（它写的是密文）；这里再塞一次明文会把密文覆盖掉，
+  // 于是缓存里的值没法当凭证用。
+  await tokens.setAccess(newAccess);
+  tokens.setRefresh(newRefresh);
   return newAccess;
 }
 
@@ -144,7 +144,7 @@ function getRefreshPromise(baseUrl: string): Promise<string> {
 
 /** 供 executor 在收到响应式 401 后主动刷新；baseUrl 与 createFetcher 默认值保持一致 */
 export function refreshAccessToken(): Promise<string> {
-  return getRefreshPromise(import.meta.env.VITE_APP_BASE_API ?? '');
+  return getRefreshPromise(getRequestRuntime().baseUrl);
 }
 
 /** 刷新期间可能已触发 forceLogout，用于避免重复刷新与重放 */
@@ -158,8 +158,9 @@ export interface CreateFetcherOptions {
 }
 
 export function createFetcher(opts: CreateFetcherOptions = {}) {
-  const baseUrl = opts.baseUrl ?? import.meta.env.VITE_APP_BASE_API ?? '';
-  const defaultTimeout = opts.timeout ?? 30_000;
+  const runtime = getRequestRuntime();
+  const baseUrl = opts.baseUrl ?? runtime.baseUrl ?? '';
+  const defaultTimeout = opts.timeout ?? runtime.timeout ?? 30_000;
 
   if (!csrfInitialized) {
     initCsrfProtection({
@@ -186,12 +187,11 @@ export function createFetcher(opts: CreateFetcherOptions = {}) {
         const isAuth = isAuthEndpoint(url);
 
         if (!isAuth) {
-          const userStore = useUserStore();
-          // store 是凭证的唯一来源：入口挂载前会 `initToken()` 把缓存里的密文解开，
+          const { tokens } = getRequestRuntime();
+          // 凭证来源是 token 的唯一出口：入口挂载前应用会把缓存里的密文解开设进 store，
           // 直接回退去读缓存等于把 JWE 当凭证发出去（每次刷新都 401）
-          const accessToken = userStore.token;
-          const refreshToken =
-            userStore.refreshToken || cache.getItem(CacheKey.REFRESH_TOKEN);
+          const accessToken = tokens.access();
+          const refreshToken = tokens.refresh();
 
           if (!accessToken) {
             if (refreshToken) {
@@ -219,7 +219,7 @@ export function createFetcher(opts: CreateFetcherOptions = {}) {
             }
           }
 
-          const finalToken = useUserStore().token;
+          const finalToken = tokens.access();
           if (finalToken) {
             fetchOptions.headers = {
               ...fetchOptions.headers,

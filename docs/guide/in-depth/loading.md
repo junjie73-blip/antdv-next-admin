@@ -58,7 +58,7 @@
 
 - `BasicTable` 内部有 `hooks/useLoading`，`api` 拉取期间自动转圈，实例方法 `setLoading(value)` 可手动干预 —— 表格不要再自己盖 `v-loading`。
 - 骨架屏在 `apps/web/src/components/common/Skeleton/`：`PageSkeleton`、 `TableSkeleton`，用于首屏占位；空态/错误态另有 `EmptyState`、`ErrorBoundary`。
-- 请求层（`src/composables/web/request/`）**不提供全局 loading**，它管缓存、去重、重试、401 重放；loading 归调用方。别给 fetcher 加隐式遮罩，会和上面四层打架。
+- 请求层（`packages/request/`）**不提供全局 loading**，它管缓存、去重、重试、401 重放；loading 归调用方。别给 fetcher 加隐式遮罩，会和上面四层打架。
 
 ## 开关一览
 

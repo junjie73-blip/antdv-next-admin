@@ -32,7 +32,7 @@ Read from browser code:
 | Variable | Read in | Effect |
 | --- | --- | --- |
 | `VITE_APP_TITLE` | the `index.html` template, the PWA manifest in `internal/vite-config/src/plugins/pwa.ts`, the title guard, `cachePrefix` in `bootstrap/env.ts`, `APP_DEFAULTS` in `settings/index.ts` | window title _and_ cache key prefix — changing it orphans every existing cache entry |
-| `VITE_APP_BASE_API` | `apps/web/src/composables/web/request/fetcher.ts` | endpoint prefix; never hardcode a full domain in feature code |
+| `VITE_APP_BASE_API` | `apps/web/src/plugins/request-runtime.ts` (injected into `@antdv/request`) | endpoint prefix; never hardcode a full domain in feature code |
 | `VITE_WS_URL` | `apps/web/src/utils/ws.ts` | empty means "do not connect" (reconnection is unlimited, so connecting without a backend only floods logs) |
 | `VITE_MICRO_APP` | `apps/web/src/config/micro-app.ts` | micro-frontend master switch, evaluated with `isEnvEnabled` |
 | `VITE_CACHE_ENCRYPT_KEY` | `apps/web/src/bootstrap/env.ts` → `configureSharedEnv` | cache encryption key; length rules in [Caching](/en/guide/essentials/cache) |

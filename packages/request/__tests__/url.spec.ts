@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildUrl } from '../url';
+import { buildUrl } from '../src/url';
 
 describe('buildUrl (qs)', () => {
   it('plain params serialize as key=value pairs', () => {

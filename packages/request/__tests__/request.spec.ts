@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ErrorCode, RequestError } from '../error';
-import { requestCache } from '../executor';
-import { request } from '../http';
+import { ErrorCode, RequestError } from '../src/error';
+import { requestCache } from '../src/executor';
+import { request } from '../src/http';
 
 interface MockedCall {
   url: string;
@@ -31,7 +31,7 @@ const h = vi.hoisted(() => {
 
 // 请求层依赖大量浏览器/Pinia 上下文，这里只替换 fetcher，专测 executor 的编排逻辑
 // 注意：真实 createFetch 返回的是同步 UseFetchReturn（可 then 的对象），故这里不能写成 async
-vi.mock('../fetcher', () => ({
+vi.mock('../src/fetcher', () => ({
   createFetcher: () => (url: string, init: RequestInit) => {
     h.calls.push({ url, init });
     const item = h.queue.shift();
@@ -178,11 +178,11 @@ describe('uRL 与参数', () => {
     );
 
     const query = new URL(firstCall().url, 'http://x').searchParams;
-    expect([...query].sort()).toEqual(
+    expect([...query].toSorted()).toEqual(
       [
         ['keyword', 'x'],
         ['page', '2'],
-      ].sort(),
+      ].toSorted(),
     );
   });
 

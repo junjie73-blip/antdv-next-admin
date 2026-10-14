@@ -2,7 +2,7 @@ import type { ExecuteOptions } from './executor';
 
 import { onScopeDispose, ref, shallowRef } from 'vue';
 
-import { createEventHook, useDebounceFn, useThrottleFn } from '@vueuse/core';
+import { useDebounceFn, useThrottleFn } from '@vueuse/core';
 
 import { RequestError } from './error';
 import { executeRequest, requestCache } from './executor';
@@ -11,7 +11,7 @@ export interface UseRequestConfig<T = unknown> extends ExecuteOptions {
   /** 是否立即发起请求，默认 true */
   immediate?: boolean;
   /** 初始 data 值 */
-  initialData?: T;
+  initialData?: Awaited<T>;
   /** 是否开启 GET 缓存 */
   cache?: boolean;
   /** 缓存过期时间（ms），默认 5 分钟 */
@@ -33,11 +33,31 @@ export interface UseRequestConfig<T = unknown> extends ExecuteOptions {
   /** 是否在错误时也更新 data（用于保留旧数据） */
   updateDataOnError?: boolean;
   /** 成功回调 */
-  onSuccess?: (data: T) => void;
+  onSuccess?: (data: Awaited<T>) => void;
   /** 错误回调 */
   onError?: (error: RequestError) => void;
   /** 完成回调（无论成功失败） */
   onFinally?: () => void;
+}
+
+/**
+ * 单参数事件钩子。
+ *
+ * 不用 `@vueuse/core` 的 `createEventHook`：它的 `Callback<T>` 靠条件类型判断参数形态，
+ * `T` 还没实例化（这里是泛型 `Awaited<T>`）时只能退化成 `[T, ...unknown[]]`，
+ * composable 内部根本调不过类型检查。对外 API 形状与它一致（`on` 返回 `{ off }`）。
+ */
+function createArgHook<A>() {
+  const listeners = new Set<(arg: A) => void>();
+  return {
+    off: (fn: (arg: A) => void) => listeners.delete(fn),
+    on: (fn: (arg: A) => void) => ({
+      off: () => listeners.delete(fn),
+    }),
+    trigger: (arg: A) => {
+      for (const fn of listeners) fn(arg);
+    },
+  };
 }
 
 export function useRequest<T = unknown>(
@@ -53,14 +73,14 @@ export function useRequest<T = unknown>(
     ...execOpts
   } = config;
 
-  const data = shallowRef<T | undefined>(initialData);
+  const data = shallowRef<Awaited<T> | undefined>(initialData);
   const loading = ref(false);
   const error = shallowRef<null | RequestError>(null);
   const status = ref<'error' | 'idle' | 'loading' | 'success'>('idle');
 
-  const onSuccessHook = createEventHook<T>();
-  const onErrorHook = createEventHook<RequestError>();
-  const onFinallyHook = createEventHook<void>();
+  const onSuccessHook = createArgHook<Awaited<T>>();
+  const onErrorHook = createArgHook<RequestError>();
+  const onFinallyHook = createArgHook<undefined>();
 
   let abortController: AbortController | null = null;
   let lastMethod = 'GET';
@@ -68,7 +88,7 @@ export function useRequest<T = unknown>(
 
   const resolveUrl = () => (typeof url === 'function' ? url() : url);
 
-  async function run(method: string, arg?: any): Promise<T> {
+  async function run(method: string, arg?: any): Promise<Awaited<T>> {
     lastMethod = method;
     lastBody = arg;
     loading.value = true;
@@ -107,7 +127,7 @@ export function useRequest<T = unknown>(
     } finally {
       loading.value = false;
       abortController = null;
-      onFinallyHook.trigger();
+      onFinallyHook.trigger(undefined);
       config.onFinally?.();
     }
   }
@@ -133,7 +153,7 @@ export function useRequest<T = unknown>(
 
   if (immediate) void send('GET');
   onScopeDispose(abort);
-  async function forceRefresh(): Promise<T> {
+  async function forceRefresh(): Promise<Awaited<T>> {
     const result = await executeRequest<T>(lastMethod, resolveUrl(), lastBody, {
       ...execOpts,
       forceRefresh: true, // ⭐ 关键

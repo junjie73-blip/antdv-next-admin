@@ -137,9 +137,9 @@ Emits: `update:previewVisible: [boolean]` (`:42`). The preview layer is shadcn `
 
 ::: warning The three `preview` spellings differ
 - omitted or `true` → clickable, uncontrolled.
-- `preview={{ visible }}` (`visible` is a boolean)→ **controlled**; pair it with `@update:preview-visible`.
-- `preview={{ visible: false }}` with no `onVisibleChange` → treated as **statically disabled**, the preview affordance is not rendered at all (`showPreview`, `:55-60`); `preview=false` behaves the same.
-This mirrors the pre-migration "hide preview" usage: `preview={false}` and `preview={{ visible: false }}` are equivalent, while `preview={{}}` is clickable.:::
+- <code v-pre>preview={{ visible }}</code> (`visible` is a boolean)→ **controlled**; pair it with `@update:preview-visible`.
+- <code v-pre>preview={{ visible: false }}</code> with no `onVisibleChange` → treated as **statically disabled**, the preview affordance is not rendered at all (`showPreview`, `:55-60`); `preview=false` behaves the same.
+This mirrors the pre-migration "hide preview" usage: `preview={false}` and <code v-pre>preview={{ visible: false }}</code> are equivalent, while <code v-pre>preview={{}}</code> is clickable.:::
 
 ## Upload / UploadDragger / UploadList
 

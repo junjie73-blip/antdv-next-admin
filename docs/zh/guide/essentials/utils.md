@@ -36,7 +36,7 @@ import { useWebSocket } from '@antdv/composables/websocket';
 | `color` | `parseColor`（`src/color/convert.ts:23`）、`toRgbString` / `toHex`（`:45,50`）、`mixWithWhite`（`:60`） | `layouts/components/SettingDrawer/components/AppearancePanel.vue:22`、`LayoutPanel.vue:32` | 有 |
 | `constants` | `PREFERENCE_CSS_VARS`（`src/constants/css-vars.ts:24`）、`DARK_CLASS` / `COLOR_WEAK_CLASS` / `GRAY_MODE_CLASS`（`src/constants/dom-classes.ts:10,12,14`）、`DEFAULT_PRIMARY_COLOR`（`src/constants/theme.ts:9`） | `packages/core/preferences/src/css-vars.ts:3`、`src/defaults.ts:3` | 有 |
 | `crypto` | `encrypt` / `decrypt` / `encryptObject` / `decryptObject`（`src/utils/crypto/aes.ts:14,19,24,31`）、`md5` / `md5File` / `sha256` / `hash`（`src/utils/crypto/hash.ts:3,7,32,40`） | **无调用点** | 无 |
-| `csrf` | `config`（`src/utils/csrf.ts:67`）、`initCsrfProtection`（`:111`）、`getCsrfToken`（`:164`） | `composables/web/request/fetcher.ts:5-8`、`utils/securityInit.ts:9` | 有 |
+| `csrf` | `config`（`src/utils/csrf.ts:67`）、`initCsrfProtection`（`:111`）、`getCsrfToken`（`:164`） | `packages/request/src/fetcher.ts:4-8`、`utils/securityInit.ts:9` | 有 |
 | `dayjs` | `dayjs`（`src/utils/dayjs.ts:136`）、`setTimezone`（`:62`）、`nowTz`（`:116`） | `stores/modules/app.ts:7,130`、`layouts/widgets/WidgetTimezone.vue:8`、`composables/web/useLocale.ts:4` | 有 |
 | `domUtils` | `getBoundingClientRect`（`src/utils/domUtils.ts:14`）、`getViewportOffset`（`:89`）、`useRafThrottle`（`:187`） | **无调用点** | 有 |
 | `download` | `saveBlob`（`src/utils/download.ts:159`）、`downloadFile`（`:248`）、`downloadWithAuth`（`:416`）、`downloadMultiple`（`:552`） | **无调用点** | 无 |
@@ -45,7 +45,7 @@ import { useWebSocket } from '@antdv/composables/websocket';
 | `excel` | `exportToExcel`（`src/utils/excel.ts:40`） | `views/system/role/index.vue:8` 等 5 个列表页 | 无 |
 | `file-category` | `getExt`（`src/utils/file-category.ts:15`）、`getFileCategory`（`:98`） | **无调用点** | 有 |
 | `iframe` | `buildIframeSandbox`（`src/utils/iframe.ts:95`）、`canEscapeSandbox`（`:131`）、`SANDBOX_FLAGS`（`:23`） | `views/micro-app/SubAppView.vue:8` | 有 |
-| `jwt` | `isTokenExpired`（`src/utils/jwt.ts:97`）；`parseJwt`（`:70`）、`isJwtFormat`（`:138`）、`getTokenRemainingSeconds`（`:121`） | `composables/web/request/fetcher.ts:9,210`（只用 `isTokenExpired`） | 有 |
+| `jwt` | `isTokenExpired`（`src/utils/jwt.ts:97`）；`parseJwt`（`:70`）、`isJwtFormat`（`:138`）、`getTokenRemainingSeconds`（`:121`） | `packages/request/src/fetcher.ts:9,214`（只用 `isTokenExpired`） | 有 |
 | `masking` | `maskPhone` / `maskEmail` / `maskIdCard`（`src/utils/masking.ts:22,30,40`）、`MASKING_RULES`（`:84`） | **无调用点** | 有 |
 | `menu` | `menuKeyOf`（`src/utils/menu.ts:32`）、`attachMenuPaths`（`:258`）、`buildMenuItems`（`:561`）、`MenuPathRouter`（`:393`） | `stores/modules/route.ts:1-15`、`layouts/composables/useSidebarMenu.ts:10`、`packages/layouts/src/menu-source.ts:18` | 有 |
 | `scroll` | `computeOverflow`（`src/utils/scroll.ts:28`）、`useHorizontalScroll`（`:72`）、`pickHorizontalDelta`（`:47`） | `packages/core/ui-kit/menu-ui/src/BasicMenu.vue`、`tabs-ui/src/TabsBar.vue` | 有 |
@@ -81,11 +81,11 @@ import { useWebSocket } from '@antdv/composables/websocket';
 | `apps/web/src/utils/securityInit.ts:16` | `initSecuritySystem` | 在用（`main.ts:35,95`） |
 | `apps/web/src/utils/crud-actions.ts:15` | `createCrudActions` | **无调用点** |
 | `apps/web/src/utils/routePreload.ts:38,110,130` | `preloadRoute` / `preloadRoutes` / `useRoutePreloader` | **无调用点**（只被 `utils/index.ts:3` re-export） |
-| `apps/web/src/composables/index.ts:1-3` | `useCRUD`、`usePermission`、`web/request` 全家 | 请求层在用（`stores/modules/user.ts:7`、`route.ts:18` 取 `http`）；`usePermission` 从 `~/composables/web/permission` 直接引（`directives/index.ts:13`）；`useCRUD`（`useCRUD.ts:100`）**无调用点** |
+| `apps/web/src/composables/index.ts:1-3` | `useCRUD`、`usePermission`、`@antdv/request` 整包 | 请求层在用（`stores/modules/user.ts:7`、`route.ts:18` 取 `http`）；`usePermission` 从 `~/composables/web/permission` 直接引（`directives/index.ts:13`）；`useCRUD`（`useCRUD.ts:100`）**无调用点** |
 | `apps/web/src/composables/useNotice.ts:62` | `useNotice` | **无调用点** |
 | `apps/web/src/composables/usePasswordPolicy.ts:24` | `usePasswordPolicy` | **无调用点** |
 
-`utils/**` 与 `composables/useCRUD.ts` 等文件**没有单元测试**：`apps/web/src/` 下的 `__tests__` 目录里没有 utils（请求层有：`composables/web/request/__tests__/`）。这正是"包里有测试、应用薄壳没测试"的分工结果 —— 逻辑应该在包里。
+`utils/**` 与 `composables/useCRUD.ts` 等文件**没有单元测试**：`apps/web/src/` 下的 `__tests__` 目录里没有 utils（请求层已经独立成包：`packages/request/__tests__/`）。这正是"包里有测试、应用薄壳没测试"的分工结果 —— 逻辑应该在包里。
 
 ## 硬边界：包不许碰 pinia / store / env
 
