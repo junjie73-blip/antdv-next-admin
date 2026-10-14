@@ -18,7 +18,7 @@ import {
  * —— UA 样式里它是 `default`。以前靠逐个模板补 `cursor-pointer`，漏一处就出现
  * "盒子亮了、鼠标还是箭头"，用户以为页面卡死。
  *
- * 现在规则住在 `packages/design/src/base.css`，所以这里验的是**浏览器算出来的光标**，
+ * 现在规则住在 `packages/core/base/design/src/base.css`，所以这里验的是**浏览器算出来的光标**，
  * 而不是模板里有没有写那个类 —— 类名断言只能证明"有人写了字"，证明不了它生效、
  * 也证明不了没被 antd 的规则盖掉。
  */

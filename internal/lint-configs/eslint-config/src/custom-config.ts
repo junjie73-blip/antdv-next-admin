@@ -4,10 +4,10 @@ const restrictedImportIgnores = ['**/vite.config.mts'];
 
 const customConfig: Linter.Config[] = [
   // shadcn-ui 内部组件是自动生成的，不做太多限制
-  // 路径是本仓的实际位置（`npx shadcn-vue add` 落在 packages/ui-kit/shadcn-ui），
+  // 路径是本仓的实际位置（`npx shadcn-vue add` 落在 packages/core/ui-kit/shadcn-ui），
   // 生成的 props 声明普遍不带 default，逐文件补默认值会在下次 `add` 时被冲掉。
   {
-    files: ['packages/ui-kit/shadcn-ui/**/**'],
+    files: ['packages/core/ui-kit/shadcn-ui/**/**'],
     rules: {
       'vue/require-default-prop': 'off',
     },
@@ -17,7 +17,7 @@ const customConfig: Linter.Config[] = [
       'apps/**/**',
       'packages/effects/**/**',
       'packages/utils/**/**',
-      'packages/types/**/**',
+      'packages/core/base/typings/**/**',
       'packages/locales/**/**',
     ],
     ignores: restrictedImportIgnores,
@@ -101,13 +101,13 @@ const customConfig: Linter.Config[] = [
   {
     // 不能引入@vben/*里面的包
     files: [
-      'packages/types/**/**',
+      'packages/core/base/typings/**/**',
       'packages/utils/**/**',
-      'packages/icons/**/**',
+      'packages/core/base/icons/**/**',
       'packages/constants/**/**',
-      'packages/design/**/**',
+      'packages/core/base/design/**/**',
       'packages/stores/**/**',
-      'packages/preferences/**/**',
+      'packages/core/preferences/**/**',
       'packages/locales/**/**',
     ],
     ignores: restrictedImportIgnores,

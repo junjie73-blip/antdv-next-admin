@@ -1,4 +1,5 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
@@ -212,7 +213,7 @@ describe('@antdv/design —— 分部职责', () => {
     expect(a11y).toContain('html.color-weak');
     expect(a11y).toContain('html.gray-mode');
     expect(a11y).toContain('var(--app-filter');
-    // 滤镜值要和 packages/preferences/src/css-vars.ts 的常量对得上
+    // 滤镜值要和 packages/core/preferences/src/css-vars.ts 的常量对得上
     expect(a11y).toContain('invert(80%) grayscale(100%)');
     expect(a11y).toContain('grayscale(100%)');
   });
@@ -272,18 +273,35 @@ describe('@antdv/design —— 包边界', () => {
    * 所以每个子包模板里的工具类都必须在这里显式 `@source`。
    * 漏掉的包不会构建失败 —— 只是页面少一层圆角、少一个间距，属于最难查的那类"静默变样"，
    * 所以用目录清单反查登记项：新增子包却忘了登记 `@source` 时，这条先红。
+   *
+   * 比的是**解析后的绝对目录**而不是登记时写的那串相对路径：子包搬家会让 `@source` 指空，
+   * 字符串对照反而看不出问题。
    */
-  it('每个子包的源码目录都登记了 @source', () => {
-    const registered = [
-      ...index.matchAll(/^@source\s+'([^']+)';/gmu),
-    ].map((m) => m[1]);
+  it('每个子包的源码目录都登记了 @source，且登记路径解析得到真实目录', () => {
+    const designDir = fileURLToPath(new URL('../', import.meta.url));
+    const cssDir = resolve(designDir, 'src');
+    const coreDir = resolve(designDir, '../..');
 
-    const uiKitRoot = fileURLToPath(new URL('../../ui-kit', import.meta.url));
-    const uiKit = readdirSync(uiKitRoot).filter((name) =>
-      existsSync(`${uiKitRoot}/${name}/src`),
+    const registered = [...index.matchAll(/^@source\s+'([^']+)';/gmu)].map(
+      (m) => resolve(cssDir, m[1]),
     );
 
-    for (const dir of ['../../icons/src', ...uiKit.map((n) => `../../ui-kit/${n}/src`)]) {
+    for (const dir of registered) {
+      expect(
+        existsSync(dir),
+        `@source 登记的 ${dir} 不存在，Tailwind 会扫不到这些模板`,
+      ).toBe(true);
+    }
+
+    const uiKitDir = resolve(coreDir, 'ui-kit');
+    const expected = [
+      resolve(coreDir, 'base/icons/src'),
+      ...readdirSync(uiKitDir)
+        .filter((name) => existsSync(resolve(uiKitDir, name, 'src')))
+        .map((name) => resolve(uiKitDir, name, 'src')),
+    ];
+
+    for (const dir of expected) {
       expect(
         registered,
         `${dir} 没登记 @source，模板里的工具类不会被生成`,

@@ -6,6 +6,8 @@ import { cn } from '@antdv/shared/cn';
 
 defineOptions({ name: 'Divider' });
 
+// 三条分支都传 decorative=false：reka 默认渲染成 role="none"，这里统一成 antd 的 role="separator"
+
 const props = withDefaults(
   defineProps<{
     dashed?: boolean;
@@ -47,8 +49,6 @@ const trailingLine = computed(
 </script>
 
 <template>
-  <!-- decorative=false：reka 默认给 role="none"，这里统一成 antd 的 role="separator"，
-       带标题的那条分支也是同一个角色 -->
   <Separator
     v-if="type === 'vertical'"
     :decorative="false"

@@ -2,7 +2,7 @@
   "extends": "@antdv/tsconfig/web.json",
   "compilerOptions": {
     "paths": {
-      "@antdv/shared/*": ["../../shared/src/*"],
+      "@antdv/shared/*": ["../../base/shared/src/*"],
       "@antdv/shadcn-ui/*": ["./src/*"]
     },
     "types": ["vitest/globals"],

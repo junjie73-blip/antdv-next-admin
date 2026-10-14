@@ -33,7 +33,7 @@ const VIEWS = join(process.cwd(), 'src/views');
 /** 内容区的滚动容器已经进了包，那份 p-4 的真相在这一行里（仓库根的 packages/） */
 const LAYOUT_CONTENT = join(
   process.cwd(),
-  '../../packages/ui-kit/layout-ui/src/components/LayoutContent.vue',
+  '../../packages/core/ui-kit/layout-ui/src/components/LayoutContent.vue',
 );
 
 /** `views/<页>/components/X.vue`、`.../widgets/X.vue` 是页面私有组件，不是路由页面 */
