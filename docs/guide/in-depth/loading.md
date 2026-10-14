@@ -26,7 +26,7 @@
 
 | 件 | 来源 | 说明 |
 | --- | --- | --- |
-| NProgress | 守卫装配 `router/guards/index.ts`（`minimum: 0.1`，`trickleSpeed: 200`），样式在 `@antdv/design` 的 `nprogress.css` | 顶栏那条细线，偏好 `showProgressBar`（默认 true）管它的可见性 |
+| NProgress | 守卫装配 `router/guards/index.ts`（`minimum: 0.1`，`trickleSpeed: 200`），样式在 `@antdv/design` 的 `css/nprogress.css` | 顶栏那条细线，偏好 `showProgressBar`（默认 true）管它的可见性 |
 | `RouteLoadingBar` + `PageLoading` | `apps/web/src/components/common/Loading/`，状态来自 `@antdv/composables/useRouteLoading` | 布局 `layouts/index.vue` 里 `useRouteLoading({ minDuration: 400, auto: true })`：进度条 `:duration="250"`、开百分比、可取消（`@cancel="cancelRouteLoading"`）、慢加载阈值 3000ms；内容区 `PageLoading` 绑同一个 `isLoading`，`isSlow` 转成错误态提示 |
 
 `useRouteLoading` 的 `minDuration` 是**防闪烁**用的：路由秒开时 loading 也至少显示满这个时长再收尾，否则进度条一闪反而更焦虑。它还提供 `withLoading(fn)` 包一段异步操作（状态同步置位，不等 rAF —— 源码注释里有"快结束调用走进未开始分支、进度条永远挂着" 的修复记录）。

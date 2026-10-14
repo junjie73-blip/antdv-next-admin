@@ -72,7 +72,7 @@ registerThemePreset('glass', {
 
 ## 无障碍开关
 
-灰色模式与色弱模式走 CSS filter（`--app-filter` + 内联 `filter`，并挂 `gray-mode` / `color-weak` class）：用内联而不只是样式表，是为了"没有样式表时开关也立即生效"。焦点可见性、`prefers-reduced-motion` 等规则在 `@antdv/design` 的 `a11y.css`。
+灰色模式与色弱模式走 CSS filter（`--app-filter` + 内联 `filter`，并挂 `gray-mode` / `color-weak` class）：用内联而不只是样式表，是为了"没有样式表时开关也立即生效"。焦点可见性、`prefers-reduced-motion` 等规则在 `@antdv/design` 的 `css/a11y.css`。
 
 ## 加一个偏好开关的固定动作
 

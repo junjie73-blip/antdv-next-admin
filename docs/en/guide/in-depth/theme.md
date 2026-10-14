@@ -72,7 +72,7 @@ In preferences `borderRadius` stores a multiplier (`0 / 0.25 / 0.5 / 0.75 / 1`);
 
 ## Accessibility switches
 
-Gray mode and color-weak mode run on CSS filters (`--app-filter` plus an inline `filter`, and the `gray-mode` / `color-weak` classes): inline rather than stylesheet-only, so the switch takes effect immediately even without the stylesheet. Rules for focus visibility, `prefers-reduced-motion` and the like live in `a11y.css` in `@antdv/design`.
+Gray mode and color-weak mode run on CSS filters (`--app-filter` plus an inline `filter`, and the `gray-mode` / `color-weak` classes): inline rather than stylesheet-only, so the switch takes effect immediately even without the stylesheet. Rules for focus visibility, `prefers-reduced-motion` and the like live in `css/a11y.css` in `@antdv/design`.
 
 ## The fixed routine for adding a preference switch
 

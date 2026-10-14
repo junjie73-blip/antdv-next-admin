@@ -2,46 +2,54 @@
 
 Styles have exactly **one path**: Tailwind CSS v4 + the CSS variable tokens of `@antdv/design` + a very thin layer of custom CSS. The repo has no SCSS / Less source files, and no second global style entry.
 
-`@antdv/design` (`packages/design`) **is** that token-and-style layer; its boundary is stated in the `description` field of `packages/design/package.json:4`: **variables and CSS only — no component logic, and no awareness of any component library**. A component's own styles travel with the component, in `packages/ui-kit/*` and `packages/icons`; this package only registers their Tailwind scan paths (see the `@source` section below).
+`@antdv/design` (`packages/core/base/design`) **is** that token-and-style layer; its boundary is stated in the `description` field of `packages/core/base/design/package.json:4`: **variables and CSS only — no component logic, and no awareness of any component library**. A component's own styles travel with the component, in `packages/core/ui-kit/*` and `packages/core/base/icons`; this package only registers their Tailwind scan paths (see the `@source` section below).
 
 ## What it contains
 
+There are exactly two second-level directories, split on **variable or rule**: `token/` holds the CSS variables shadcn-vue needs, `css/` holds the rules.
+
 ```
-packages/design/
-├─ package.json          named @antdv/design, exports are .css-granular
-├─ src/index.css     ← the only entry, imported once in apps/web/src/main.ts:44
-│   ├─ tokens.css        the shadcn semantic palette: --app-* variables + @theme inline mapping
-│   ├─ base.css          document root / selection / view transitions / shared interaction classes
-│   ├─ nprogress.css     the route progress bar on top
-│   ├─ a11y.css          color-weak and gray modes (the classes are put on <html> by @antdv/preferences)
-│   ├─ permission.css    degraded no-permission styling (the class comes from v-permission in @antdv/directives)
-│   └─ scrollbar.css     fallback beautification of system scrollbars inside third-party scroll areas
+packages/core/base/design/
+├─ package.json              named @antdv/design, exports are .css-granular
+└─ src/
+   ├─ index.css         ← the only entry, imported once in apps/web/src/main.ts:44
+   ├─ token/                 theme tokens — variable declarations only
+   │  ├─ default.css         light set (`--app-*` on `:root`)
+   │  ├─ dark.css            dark set (`--app-*` on `.dark`)
+   │  └─ index.css           imports both sets + the `@theme inline` mapping `--app-*` → `--color-*`
+   └─ css/                   shared styles, one file per concern
+      ├─ base.css            document root / selection / view transitions / shared interaction classes
+      ├─ nprogress.css       the route progress bar on top
+      ├─ a11y.css            color-weak and gray modes (the classes are put on <html> by @antdv/preferences)
+      ├─ permission.css      degraded no-permission styling (the class comes from v-permission in @antdv/directives)
+      └─ scrollbar.css       fallback beautification of system scrollbars inside third-party scroll areas
 ```
 
-`index.css` imports all six parts (the CSS spec only allows `@import` before ordinary rules, which is why they must come ahead of `@layer` / `@source` / `@plugin` — see the comment at `index.css:22`). Each part can also be pulled on its own: the `exports` map in `package.json` publishes the keys `.`, `./tokens.css`, `./base.css`, `./index.css`, `./nprogress.css`, `./permission.css`, `./a11y.css` and `./package.json`, so `@antdv/design/tokens.css` works when you want the variables but not the entry.
+Light and dark are **two independent value sets**, not "light with a few tweaks": the name lists must line up entry by entry (one missing dark declaration and switching to dark gives you a white-background, black-text overlay), while the values themselves may differ completely. The mapping exists once, in `token/index.css` — the theme files know nothing about the Tailwind contract, and adding a variable while forgetting its mapping fails silently exactly like a missing `@source` registration. That is why three invariants (list parity, variable ↔ mapping bijection, "variables only" inside `token/`) are pinned in `__tests__/design.test.ts`.
+
+`src/index.css` imports the token entry plus the five css parts (the CSS spec only allows `@import` before ordinary rules, which is why they must come ahead of `@layer` / `@source` / `@plugin` — see the comment at `index.css:24`). Each part can also be pulled on its own: the `exports` map in `package.json` publishes `.`, `./index.css`, `./token`, `./token/index.css`, `./token/default.css`, `./token/dark.css`, `./css/base.css`, `./css/nprogress.css`, `./css/a11y.css`, `./css/permission.css`, `./css/scrollbar.css` and `./package.json`, so `@antdv/design/token` works when you want the variables but not the entry.
 
 ::: warning What `@antdv/design` does not contain
 
-- **No components**: the package has not a single `.vue` file and no `src/index.ts`. The shared display components (Card, Tag, Steps …) live in `@antdv/common-ui`, the icon atoms in `@antdv/icons`; the comment at `index.css:15` states exactly this boundary.
-- **No component-library awareness**: it imports no JS from any component library, so renaming or swapping a component package never requires a change here. Its only two contact points with antd are **style** dependencies: `@import '@antdv-next/tailwind/compat.css'` (maps the antd palette onto `--color-ant-*` utilities, `index.css:27`) and the two `.ant-upload` cursor rules in `base.css:111-117` (antd leaves `cursor: pointer` off its upload trigger). Those two only become meaningless once the component library goes away.
+- **No components**: the package has not a single `.vue` file and no `src/index.ts`. The shared display components (Card, Tag, Steps …) live in `@antdv/common-ui`, the icon atoms in `@antdv/icons`; the comment at `index.css:17` states exactly this boundary.
+- **No component-library awareness**: it imports no JS from any component library, so renaming or swapping a component package never requires a change here. Its only two contact points with antd are **style** dependencies: `@import '@antdv-next/tailwind/compat.css'` (maps the antd palette onto `--color-ant-*` utilities, `index.css:29`) and the two `.ant-upload` cursor rules in `css/base.css:111-117` (antd leaves `cursor: pointer` off its upload trigger). Those two only become meaningless once the component library goes away.
 - **No business styling**: thin shells that need a store (for instance `apps/web/src/components/common/Loading/PageLoading.vue`) stay in the app and are never moved here. :::
 
 ## The layer order is declared explicitly
 
-`packages/design/src/index.css:24-52`:
+`packages/core/base/design/src/index.css:26-52`:
 
 ```css
 @layer theme, base, antd, components, utilities;
 @import 'tailwindcss';
 @import '@antdv-next/tailwind/compat.css';
 @import 'tw-animate-css';
-@import './tokens.css';
-/* …base / nprogress / a11y / permission / scrollbar */
+@import './token/index.css';   /* which in turn imports ./default.css + ./dark.css */
+/* …css/base · css/nprogress · css/a11y · css/permission · css/scrollbar */
 
 @source '../../icons/src';
-@source '../../ui-kit/common-ui/src';
-/* …form-ui / layout-ui / loading-ui / menu-ui / popup-ui / scrollbar-ui /
-   shadcn-ui / table-ui / tabs-ui */
+@source '../../../ui-kit/common-ui/src';
+/* …form-ui / layout-ui / menu-ui / popup-ui / shadcn-ui / table-ui / tabs-ui */
 
 @plugin "@tailwindcss/typography";
 @plugin "@tailwindcss/nesting";
@@ -57,23 +65,23 @@ Tailwind is wired in through `@tailwindcss/vite` (`internal/vite-config/src/plug
 
 ## `@source`: why every component package has to be registered
 
-Tailwind v4's automatic content detection starts at the **build root**, and the app-side build root is `apps/web`, while every `@antdv/*` package sits in `packages/` at the repository root (symlinked into `node_modules`, and therefore outside detection). So the utility classes inside component packages must be **registered package by package** in the entry CSS (the comment at `index.css:17-20` records the symptom).
+Tailwind v4's automatic content detection starts at the **build root**, and the app-side build root is `apps/web`, while every `@antdv/*` package sits in `packages/` at the repository root (symlinked into `node_modules`, and therefore outside detection). So the utility classes inside component packages must be **registered package by package** in the entry CSS (the comment at `index.css:19-22` records the symptom).
 
 - What a missing registration looks like: "the component renders but has no styles" — the sidebar stays white and un-indented, the tab bar collapses into one line — **with no error at all**.
-- What is registered today: `packages/icons/src` plus the ten `src` directories under `packages/ui-kit/*` (including `common-ui`).
-- Adding a new ui-kit sub-package, or writing a fresh set of utility classes into an existing one, **means editing this `@source` list in the same change**; adding the package without the registration is the laziest way to get "the build passes and the page is unstyled".
-- Conversely, a package that expands its utility classes into equivalent native CSS inside `@layer components` — the way `Scrollbar` does in the `<style>` block of `packages/ui-kit/scrollbar-ui/src/Scrollbar.vue` — does not depend on this registration, which is exactly what makes it safe to consume standalone.
+- What is registered today: `packages/core/base/icons/src` plus the eight `src` directories under `packages/core/ui-kit/*`.
+- Adding a new ui-kit sub-package, or writing a fresh set of utility classes into an existing one, **means editing this `@source` list in the same change**; adding the package without the registration is the laziest way to get "the build passes and the page is unstyled". `__tests__/design.test.ts` cross-checks the registrations against the directory listing and compares **resolved absolute paths** — after a package move a stale `@source` would point at nothing, and comparing the literal relative strings would happily pass.
+- Conversely, a package that expands its utility classes into equivalent native CSS inside `@layer components` — the way `Scrollbar` does in the `<style>` block of `packages/core/ui-kit/common-ui/src/components/scrollbar/Scrollbar.vue` — does not depend on this registration, which is exactly what makes it safe to consume standalone.
 
 ## How to use the variable tokens
 
-`tokens.css` adds a **bare-name semantic palette**. The reason is in the file header (`tokens.css:4-7`): `@antdv-next/tailwind/compat.css` only exports the `--color-ant-*` namespace, whereas the vendored shadcn components are written against bare names — `bg-popover`, `text-muted-foreground`, `border-input`. Tailwind v4 generates utilities only for tokens declared in `@theme`, so a missing declaration is not "the style got overridden" but **the class is never generated at all**; the visible result is popovers with no background, secondary text with no grey and hover with no feedback.
+`token/` adds a **bare-name semantic palette**. The reason is in the header of `token/index.css`: `@antdv-next/tailwind/compat.css` only exports the `--color-ant-*` namespace, whereas the vendored shadcn components are written against bare names — `bg-popover`, `text-muted-foreground`, `border-input`. Tailwind v4 generates utilities only for tokens declared in `@theme`, so a missing declaration is not "the style got overridden" but **the class is never generated at all**; the visible result is popovers with no background, secondary text with no grey and hover with no feedback.
 
 The chain has two links:
 
 | Link | Location | Contents |
 | --- | --- | --- |
-| Seed variables | `tokens.css:20-50` (`:root`), `:57-86` (`.dark`) | `--app-background` / `--app-foreground` / `--app-card` / `--app-popover` / `--app-primary` / `--app-secondary` / `--app-muted` / `--app-accent` / `--app-destructive` / `--app-border` / `--app-input` / `--app-ring`, plus a whole `--app-sidebar-*` set |
-| Tailwind tokens | the `@theme inline` block, `tokens.css:88-117` | maps each `--app-*` onto a `--color-*`, which is what makes `bg-popover`, `text-muted-foreground` and `border-input` exist as classes |
+| Seed variables | `token/default.css:10` (`:root`), `token/dark.css:12` (`.dark`) | `--app-background` / `--app-foreground` / `--app-card` / `--app-popover` / `--app-primary` / `--app-secondary` / `--app-muted` / `--app-accent` / `--app-destructive` / `--app-border` / `--app-input` / `--app-ring`, plus a whole `--app-sidebar-*` set |
+| Tailwind tokens | the `@theme inline` block, `token/index.css:23-52` | maps each `--app-*` onto a `--color-*`, which is what makes `bg-popover`, `text-muted-foreground` and `border-input` exist as classes |
 
 Three decisions here must not be reverted:
 
@@ -93,26 +101,26 @@ Two ways to consume them:
 </template>
 ```
 
-The sidebar has its own set (`--app-sidebar-*`): a dark sidebar is a deliberate preference, not dark mode, so its values must stay independently tunable. In dark mode the neutral colors are translucent overlays (the `.08` / `.12` steps matching antd's `fillTertiary` / `fillSecondary`) rather than pinned hex values — the reasoning is at `tokens.css:52-56`.
+The sidebar has its own set (`--app-sidebar-*`): a dark sidebar is a deliberate preference, not dark mode, so its values must stay independently tunable. In dark mode the neutral colors are translucent overlays (the `.08` / `.12` steps matching antd's `fillTertiary` / `fillSecondary`) rather than pinned hex values — the reasoning is in the header of `token/dark.css`.
 
 How the theme color lands on these variables is covered in [Theming](/en/guide/in-depth/theme).
 
 ## How components write styles
 
-The convention is **utilities + `cn()`**, where `cn()` = clsx + tailwind-merge (`packages/shared/src/cn.ts`).
+The convention is **utilities + `cn()`**, where `cn()` = clsx + tailwind-merge (`packages/core/base/shared/src/cn.ts`).
 
 | Goal | How |
 | --- | --- |
 | Conditional class names / merging an incoming class | `cn('base', cond && 'x', props.class)` |
 | Theme colors | bare token names `bg-primary` / `text-muted-foreground`, or the antd bridge `bg-ant-primary` / `bg-[var(--ant-color-primary)]` |
-| Small reusable chunks | the shared classes `.icon`, `.outline-box`, `.outline-box-active` (`base.css:53-64`) |
+| Small reusable chunks | the shared classes `.icon`, `.outline-box`, `.outline-box-active` (`css/base.css:53-64`) |
 | Transitions / keyframes | only then open a `<style scoped>` |
 
 ::: warning Tailwind only understands literal class names
 
 - A class name must be **a complete string as it appears in the source**. Concatenation (`text-${color}-500`), building a step name out of variables, or writing classes in a directory that `@source` does not cover all produce **no CSS and no error**.
-- Do not write `cn(...)` in a template attribute with a **trailing comma**; the form used across the component packages is to collapse it into a `computed` in `<script setup>` and let the template reference the variable — that is how every component in `packages/ui-kit/common-ui` does it, which keeps expressions out of the template and keeps the class strings literal.
-- Status-to-color mappings go through a **lookup table** (`Record<string, string>` whose values are full class strings), never `cn('text-' + tone)`. See the `STATUS_DOT` / `CIRCLE` / `PRESET` constants in `packages/ui-kit/common-ui/src/components/badge/Badge.vue`, `steps/Steps.vue` and `tag/Tag.vue`. :::
+- Do not write `cn(...)` in a template attribute with a **trailing comma**; the form used across the component packages is to collapse it into a `computed` in `<script setup>` and let the template reference the variable — that is how every component in `packages/core/ui-kit/common-ui` does it, which keeps expressions out of the template and keeps the class strings literal.
+- Status-to-color mappings go through a **lookup table** (`Record<string, string>` whose values are full class strings), never `cn('text-' + tone)`. See the `STATUS_DOT` / `CIRCLE` / `PRESET` constants in `packages/core/ui-kit/common-ui/src/components/badge/Badge.vue`, `steps/Steps.vue` and `tag/Tag.vue`. :::
 
 ::: warning Do not pad the outer container of a route page. Content padding belongs to the layout; a page that adds its own layer doubles it when the layout shape changes. See [Local development](/en/guide/essentials/development) and [Layout and tabs](/en/guide/in-depth/layout). :::
 

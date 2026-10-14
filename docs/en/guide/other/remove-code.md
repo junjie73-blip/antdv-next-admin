@@ -54,26 +54,24 @@ Short answer: none of `packages/*` can be deleted by removing a directory. The m
 
 | Package | Files in `apps/web/src` | Imported by | What removal actually costs |
 | --- | --- | --- | --- |
-| `@antdv/shared` | 108 | `composables` / `layouts` / `preferences` / `icons` / `common-ui` / `loading-ui` / `popup-ui` / `table-ui` … all import it (`cn()` is the repository's only class-merge entry) | roughly a rewrite of the app |
+| `@antdv/shared` | 108 | `composables` / `layouts` / `preferences` / `icons` / `common-ui` / `popup-ui` / `table-ui` … all import it (`cn()` is the repository's only class-merge entry) | roughly a rewrite of the app |
 | `@antdv/types` | 31 | `shared` / `layouts` / `preferences` / `composables` + the whole `apps/backend-mock` server layer | type surface spread over every layer |
-| `@antdv/shadcn-ui` | 63 | the implementation base of `common-ui` / `icons` / `loading-ui` / `popup-ui` / `table-ui` / `form-ui` / `menu-ui` / `tabs-ui` | that whole group collapses with it, i.e. there is no UI layer left |
-| `@antdv/common-ui` | 55 | app only; it depends on `icons` / `scrollbar-ui` / `shadcn-ui` / `shared` | the shared display components (Card, Tag, Steps, Upload, Transfer, skeletons) all go; `@antdv/design`'s `index.css` also carries a `@source '../../ui-kit/common-ui/src'` line that must be deleted in the same change |
-| `@antdv/popup-ui` | 49 | `BasicModal` / `BasicDrawer` / `useModal` / `useDrawer` / `confirm` / `message` in the app **all come from this package** (`apps/web/src/components/business/**` no longer holds that set of wrappers) | modals, drawers, imperative confirms and the global toast break together, see [Modal and drawer](/en/components/modal-drawer) |
+| `@antdv/shadcn-ui` | 67 | the implementation base of `common-ui` / `icons` / `popup-ui` / `table-ui` / `form-ui` / `menu-ui` / `tabs-ui` | that whole group collapses with it, i.e. there is no UI layer left |
+| `@antdv/common-ui` | 67 | app only; it depends on `icons` / `shadcn-ui` / `shared` (loading and scrollbar now live inside it) | the shared display components (Card, Tag, Steps, Upload, Transfer, skeletons) all go; `@antdv/design`'s `index.css` also carries a `@source '../../../ui-kit/common-ui/src'` line that must be deleted in the same change |
+| `@antdv/popup-ui` | 50 | `BasicModal` / `BasicDrawer` / `useModal` / `useDrawer` / `confirm` / `message` in the app **all come from this package** (`apps/web/src/components/business/**` no longer holds that set of wrappers) | modals, drawers, imperative confirms and the global toast break together, see [Modal and drawer](/en/components/modal-drawer) |
 | `@antdv/table-ui` | 27 | the app's `BasicTable` / `useTable` / `BasicColumn` come from it | every list page loses its table |
 | `@antdv/form-ui` | 22 | the app's `BasicForm` / `useForm` / `FormSchema` come from it | search forms and form pages break together |
-| `@antdv/scrollbar-ui` | 20 | `icons` (the scroll area inside `IconPicker`), `common-ui` (the stack-trace area of `ErrorBoundary`) and the ui-kit packages `popup-ui` / `table-ui` / `menu-ui` | modal, drawer, menu and table content areas lose their scrollbar implementation |
 | `@antdv/layout-ui` | 10 | the region shell of `apps/web/src/layouts/index.vue`; `layouts` only supplies blueprints and state | the DOM for all seven layout shapes lives in this layer, so deleting the shell leaves it nowhere to mount |
 | `@antdv/composables` | 7 | app only | removable, but `echarts` / `sse` / `websocket` are three separate entry points |
 | `@antdv/layouts` | 7 | no other package; the app's `src/layouts/index.vue` shell comes from it | layout, menu, breadcrumb and tabs all go |
-| `@antdv/loading-ui` | 6 | `main.ts` registers `v-loading`; demo pages and several containers use it | the directive, `Loading` and `createLoading` break together, see [Loading system](/en/guide/in-depth/loading) |
 | `@antdv/preferences` | 5 | no other package; `apps/web/src/settings/index.ts` is the adapter | the theme chain breaks, see [Theming & preferences](/en/guide/in-depth/theme) |
 | `@antdv/tabs-ui` | 5 | the app's `useTabs` plus the layout shell | tab bar, context menu and zoom toggles all go |
 | `@antdv/menu-ui` | 2 | the menu tree inside the layout shell | sider / icon-rail menu rendering breaks |
 | `@antdv/icons` | 2 | the app uses `IconPicker` directly, while the packages (including `common-ui`) import `@antdv/icons/icon` heavily. The iconify offline list in `internal/vite-config` only supplies data, it does not import this package | the icon picker, `IconifyIcon` and `SvgIcon` go together |
-| `@antdv/directives` | 2 | `apps/web/src/directives/index.ts` injects the checker; `v-permission` / `v-lazy` appear in 7 template spots | the cheapest one; the disabled state styles sit in `@antdv/design/permission.css` |
+| `@antdv/directives` | 2 | `apps/web/src/directives/index.ts` injects the checker; `v-permission` / `v-lazy` appear in 7 template spots | the cheapest one; the disabled state styles sit in `@antdv/design/css/permission.css` |
 | `@antdv/router` | 1 | the guards live in the package; `apps/web/src/router/guards/index.ts` only injects dependencies | not a one-line dependency edit: 403 pruning, progress bar and title all have to be rewritten in the app |
 | `@antdv/design` | 1 (`main.ts`) | no other package imports it; `preferences/css-vars.ts` and the directive only match its naming | lose the Tailwind layer order and every library override needs `!important` |
-Two mechanics. Every package except the source-published ones (`icons` / `design` / the ten `ui-kit` packages) builds to `dist` (`main: ./dist/...`, `build: tsdown`), so after touching a dist package run `pnpm --filter <pkg> build` **and restart dev**, while a source package hot-reloads on save. And the coupling inside `@antdv/router` is the instructive one: the route store refuses to import the router (its comment says `router → guards → store → router` would close a cycle) and takes it by injection instead.
+Two mechanics. Every package except the source-published ones (`icons` / `design` / the eight `ui-kit` packages) builds to `dist` (`main: ./dist/...`, `build: tsdown`), so after touching a dist package run `pnpm --filter <pkg> build` **and restart dev**, while a source package hot-reloads on save. And the coupling inside `@antdv/router` is the instructive one: the route store refuses to import the router (its comment says `router → guards → store → router` would close a cycle) and takes it by injection instead.
 
 ## Case D: one application dependency
 

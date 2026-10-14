@@ -1,0 +1,40 @@
+/*
+ * 亮色主题 token（shadcn-vue 需要的变量，仅此而已）。
+ *
+ * 值为什么不写 `var(--ant-color-*)`：antd 的 CSS 变量挂在 ConfigProvider 生成的
+ * 作用域类上，而 reka/shadcn 的弹层 portal 到 `body`（在 `.ant-app` 之外），
+ * 取不到变量就只剩透明底。明暗两套值钉在根元素上，body 里的浮层与页面内部同解。
+ * 主色是例外：偏好面板实时改的是 html 上的 `--ant-color-primary`，必须跟着它走。
+ */
+
+:root {
+  --app-background: #fff;
+  --app-foreground: rgba(0, 0, 0, 0.88);
+  --app-card: #fff;
+  --app-card-foreground: rgba(0, 0, 0, 0.88);
+  --app-popover: #fff;
+  --app-popover-foreground: rgba(0, 0, 0, 0.88);
+  --app-primary: var(--ant-color-primary, #1677ff);
+  --app-primary-foreground: #fff;
+  --app-secondary: #f5f5f5;
+  --app-secondary-foreground: rgba(0, 0, 0, 0.88);
+  --app-muted: #f5f5f5;
+  --app-muted-foreground: rgba(0, 0, 0, 0.45);
+  --app-accent: rgba(0, 0, 0, 0.06);
+  --app-accent-foreground: rgba(0, 0, 0, 0.88);
+  --app-destructive: #ff4d4f;
+  --app-destructive-foreground: #fff;
+  --app-border: #f0f0f0;
+  --app-input: #d9d9d9;
+  --app-ring: var(--ant-color-primary, #1677ff);
+
+  /* 侧栏自成一套：暗色侧栏是刻意偏好（不是暗色模式），值要能独立调 */
+  --app-sidebar: #fafafa;
+  --app-sidebar-foreground: rgba(0, 0, 0, 0.88);
+  --app-sidebar-primary: var(--ant-color-primary, #1677ff);
+  --app-sidebar-primary-foreground: #fff;
+  --app-sidebar-accent: rgba(0, 0, 0, 0.04);
+  --app-sidebar-accent-foreground: rgba(0, 0, 0, 0.88);
+  --app-sidebar-border: #f0f0f0;
+  --app-sidebar-ring: var(--ant-color-primary, #1677ff);
+}

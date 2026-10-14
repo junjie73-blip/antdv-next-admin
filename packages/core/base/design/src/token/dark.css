@@ -1,0 +1,41 @@
+/*
+ * 暗色主题 token。
+ *
+ * 与 default 是**两套独立的值**，不是"亮色改几条"：名单必须对齐（少一条声明，
+ * 切到深色就是白底黑字浮层），但具体取值可以完全不同。
+ *
+ * 中性色一律用半透明叠加而不是钉死 hex：页面底色由 antd 决定（#141414 一档），
+ * 叠一层白既能贴合又不会被它的容器色卡住，深浅两档（.08 / .12）刚好对应
+ * antd 的 fillTertiary / fillSecondary。
+ */
+
+.dark {
+  --app-background: #141414;
+  --app-foreground: rgba(255, 255, 255, 0.85);
+  --app-card: #141414;
+  --app-card-foreground: rgba(255, 255, 255, 0.85);
+  --app-popover: #1f1f1f;
+  --app-popover-foreground: rgba(255, 255, 255, 0.85);
+  --app-primary: var(--ant-color-primary, #1677ff);
+  --app-primary-foreground: #fff;
+  --app-secondary: rgba(255, 255, 255, 0.08);
+  --app-secondary-foreground: rgba(255, 255, 255, 0.85);
+  --app-muted: rgba(255, 255, 255, 0.08);
+  --app-muted-foreground: rgba(255, 255, 255, 0.45);
+  --app-accent: rgba(255, 255, 255, 0.12);
+  --app-accent-foreground: rgba(255, 255, 255, 0.85);
+  --app-destructive: #ff4d4f;
+  --app-destructive-foreground: #fff;
+  --app-border: rgba(255, 255, 255, 0.12);
+  --app-input: rgba(255, 255, 255, 0.24);
+  --app-ring: var(--ant-color-primary, #1677ff);
+
+  --app-sidebar: #141414;
+  --app-sidebar-foreground: rgba(255, 255, 255, 0.85);
+  --app-sidebar-primary: var(--ant-color-primary, #1677ff);
+  --app-sidebar-primary-foreground: #fff;
+  --app-sidebar-accent: rgba(255, 255, 255, 0.12);
+  --app-sidebar-accent-foreground: #fff;
+  --app-sidebar-border: rgba(255, 255, 255, 0.12);
+  --app-sidebar-ring: var(--ant-color-primary, #1677ff);
+}

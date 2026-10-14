@@ -34,7 +34,7 @@ The old `@antdv/ui` split into three (`icons` / `loading-ui` / `scrollbar-ui`), 
 | `@antdv/layouts` | Region blueprints for the 7 menu modes, content area width strategy, menu tree state source, breadcrumb derivation | pinia / vue-router |
 | `@antdv/router` | Navigation guards: login check, dynamic menu registration, title, progress bar, permission filtering | store / api |
 | `@antdv/directives` | `v-permission`, `v-lazy` | store / pinia / vueuse |
-| `@antdv/design` | Tailwind v4 entry, base layer, NProgress, accessibility and permission fallback styles | CSS only, no component logic |
+| `@antdv/design` | Two second-level directories: `token/` (a `default` and a `dark` set of shadcn variables plus the `@theme inline` mapping) and `css/` (base layer, NProgress, accessibility, permission fallback, scrollbar fallback), assembled by the Tailwind v4 entry `src/index.css` | variables and CSS only, no component logic |
 
 ::: tip Why every table has an extra "no imports" column This is the only reason these packages can be reused on their own in customer projects. Everywhere that needs to read user permissions / fetch the menu / look at preferences gets a function or ref passed in through **dependency injection** — the package itself knows nothing about pinia. So the packages stay plain TS + Vue composables, can be unit tested outside the app, and never form the "store imports the package, the package imports the store back" cycle. When adding a capability, settle this boundary first, then decide whether it goes in the app or in a sub-package — thin shells that need store stay in `apps/web`. :::
 

@@ -1,7 +1,7 @@
 {
   "name": "@antdv/design",
   "version": "0.4.0",
-  "description": "设计子包：shadcn-vue 的 CSS 变量令牌（tokens.css）与公共样式 —— Tailwind v4 入口（层级顺序 / 插件 / dark 变体）、基础层、NProgress、无障碍与权限降级样式。边界：只写变量与 CSS，不含组件逻辑，也不感知组件库；组件自身样式随组件放在 packages/core/ui-kit/*，本包只登记它们的 Tailwind 扫描路径",
+  "description": "设计子包：二级目录只有 token（shadcn-vue 需要的 CSS 变量，default/dark 两套主题值 + @theme inline 映射）与 css（Tailwind v4 入口的公共样式 —— 基础层、NProgress、无障碍、权限降级、滚动条兜底），入口 src/index.css 引齐两侧。边界：只写变量与 CSS，不含组件逻辑，也不感知组件库；组件自身样式随组件放在 packages/core/ui-kit/*，本包只登记它们的 Tailwind 扫描路径",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,13 +14,17 @@
   "main": "./src/index.css",
   "exports": {
     ".": "./src/index.css",
-    "./base.css": "./src/base.css",
+    "./css/a11y.css": "./src/css/a11y.css",
+    "./css/base.css": "./src/css/base.css",
+    "./css/nprogress.css": "./src/css/nprogress.css",
+    "./css/permission.css": "./src/css/permission.css",
+    "./css/scrollbar.css": "./src/css/scrollbar.css",
     "./index.css": "./src/index.css",
-    "./nprogress.css": "./src/nprogress.css",
     "./package.json": "./package.json",
-    "./permission.css": "./src/permission.css",
-    "./tokens.css": "./src/tokens.css",
-    "./a11y.css": "./src/a11y.css"
+    "./token": "./src/token/index.css",
+    "./token/dark.css": "./src/token/dark.css",
+    "./token/default.css": "./src/token/default.css",
+    "./token/index.css": "./src/token/index.css"
   },
   "dependencies": {
     "@antdv-next/tailwind": "catalog:",

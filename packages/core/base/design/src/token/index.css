@@ -1,0 +1,52 @@
+/*
+ * shadcn-vue 语义色板的 token 入口：两套主题值 + 到 Tailwind token 的映射。
+ *
+ * 为什么要单独补这一层：`@antdv-next/tailwind/compat.css` 只导出 `--color-ant-*`
+ * 命名空间，而 vendored 的 shadcn 组件写的是裸名字 —— `bg-popover`、
+ * `text-muted-foreground`、`border-input`。Tailwind v4 只为 `@theme` 里声明过的
+ * token 生成工具类，没声明不是"样式被覆盖"，而是**整条类根本不生成**，
+ * 表现就是弹层没有底色、次要文字没有灰度、hover 没有反馈。
+ *
+ * 主题值按明暗拆成两个文件（default / dark），名单必须一致、取值各自独立；
+ * 下面的 `@theme inline` 才是本包唯一的 Tailwind 契约，所以留在入口里，
+ * 两套主题文件只管变量值，不掺映射规则。
+ *
+ * `@theme inline` 而不是 `@theme`：inline 让工具类直接内联 `var(--app-*)`，
+ * 于是 `.dark` 覆盖能生效；写成 `--color-x: var(--app-x)` 的非 inline 形式
+ * 会在 :root 求值一次，暗色切换就冻在亮色值上了。
+ */
+
+/* CSS 规范只允许 @import 出现在普通规则之前，两套主题必须先引完再声明 @theme */
+@import './default.css';
+@import './dark.css';
+
+@theme inline {
+  --color-background: var(--app-background);
+  --color-foreground: var(--app-foreground);
+  --color-card: var(--app-card);
+  --color-card-foreground: var(--app-card-foreground);
+  --color-popover: var(--app-popover);
+  --color-popover-foreground: var(--app-popover-foreground);
+  --color-primary: var(--app-primary);
+  --color-primary-foreground: var(--app-primary-foreground);
+  --color-secondary: var(--app-secondary);
+  --color-secondary-foreground: var(--app-secondary-foreground);
+  --color-muted: var(--app-muted);
+  --color-muted-foreground: var(--app-muted-foreground);
+  --color-accent: var(--app-accent);
+  --color-accent-foreground: var(--app-accent-foreground);
+  --color-destructive: var(--app-destructive);
+  --color-destructive-foreground: var(--app-destructive-foreground);
+  --color-border: var(--app-border);
+  --color-input: var(--app-input);
+  --color-ring: var(--app-ring);
+
+  --color-sidebar: var(--app-sidebar);
+  --color-sidebar-foreground: var(--app-sidebar-foreground);
+  --color-sidebar-primary: var(--app-sidebar-primary);
+  --color-sidebar-primary-foreground: var(--app-sidebar-primary-foreground);
+  --color-sidebar-accent: var(--app-sidebar-accent);
+  --color-sidebar-accent-foreground: var(--app-sidebar-accent-foreground);
+  --color-sidebar-border: var(--app-sidebar-border);
+  --color-sidebar-ring: var(--app-sidebar-ring);
+}

@@ -18,12 +18,14 @@ const read = (file: string) =>
   );
 
 const index = read('index.css');
-const tokens = read('tokens.css');
-const base = read('base.css');
-const nprogress = read('nprogress.css');
-const a11y = read('a11y.css');
-const permission = read('permission.css');
-const scrollbar = read('scrollbar.css');
+const tokenEntry = read('token/index.css');
+const tokenDefault = read('token/default.css');
+const tokenDark = read('token/dark.css');
+const base = read('css/base.css');
+const nprogress = read('css/nprogress.css');
+const a11y = read('css/a11y.css');
+const permission = read('css/permission.css');
+const scrollbar = read('css/scrollbar.css');
 
 describe('@antdv/design —— 入口', () => {
   it('第一句必须是层级顺序声明，utilities 排在最后', () => {
@@ -47,16 +49,16 @@ describe('@antdv/design —— 入口', () => {
     expect(index).toContain('@custom-variant dark (&:where(.dark, .dark *))');
   });
 
-  it('六个分部都在入口里被引入，且 @import 全部出现在 @plugin 之前', () => {
+  it('token 入口与五个 css 分部都在主入口里被引入，且 @import 全部出现在 @plugin 之前', () => {
     for (const part of [
-      'tokens',
-      'base',
-      'nprogress',
-      'a11y',
-      'permission',
-      'scrollbar',
+      './token/index.css',
+      './css/base.css',
+      './css/nprogress.css',
+      './css/a11y.css',
+      './css/permission.css',
+      './css/scrollbar.css',
     ]) {
-      expect(index).toContain(`@import './${part}.css'`);
+      expect(index).toContain(`@import '${part}'`);
     }
     // CSS 规范：@import 必须早于普通规则；Tailwind 的 @plugin 也按位置解析，
     // 分部里要用 @apply，就必须先引完 tailwindcss 本体再声明插件。
@@ -103,44 +105,85 @@ const SHADCN_COLORS = [
   'sidebar-ring',
 ];
 
-/** 取某个选择器块里的声明体（只要第一段，够覆盖 :root / .dark 两种写法） */
-function blockBody(selector: string): string {
-  const start = tokens.indexOf(`${selector} {`);
+/** 取某个选择器块里的声明体（只要第一段） */
+function blockBody(source: string, selector: string): string {
+  const start = source.indexOf(`${selector} {`);
   expect(start).toBeGreaterThan(-1);
-  const end = tokens.indexOf('}', start);
-  return tokens.slice(start, end);
+  const end = source.indexOf('}', start);
+  return source.slice(start, end);
+}
+
+/** 主题文件里声明过的 shadcn 语义色名（`--app-x` 的 x），用于两套主题对名单 */
+function appColorNames(source: string): string[] {
+  return [
+    ...new Set(
+      [...source.matchAll(/--app-([a-z-]+):/gmu)].map((match) => match[1]),
+    ),
+  ].sort();
 }
 
 describe('@antdv/design —— shadcn 色板', () => {
-  it('每个语义色都导出成 --color-* token', () => {
+  it('每个语义色都在 token 入口里导出成 --color-* token', () => {
     for (const name of SHADCN_COLORS) {
-      expect(tokens).toContain(`--color-${name}: var(--app-${name});`);
+      expect(tokenEntry).toContain(`--color-${name}: var(--app-${name});`);
     }
   });
 
-  it('亮暗两套给齐：缺一条暗色声明，切到深色就是白底黑字浮层', () => {
+  it('变量与映射一一对应：加了三套侧栏变量却忘了 @theme，工具类照样不生成', () => {
+    const mapped = [
+      ...new Set(
+        [
+          ...tokenEntry.matchAll(/--color-[a-z-]+: var\(--app-([a-z-]+)\);/gmu),
+        ].map((match) => match[1]),
+      ),
+    ].sort();
+    expect(mapped).toEqual(appColorNames(tokenDefault));
+  });
+
+  it('亮暗两套的名单逐条对齐：缺一条暗色声明，切到深色就是白底黑字浮层', () => {
+    expect(appColorNames(tokenDark)).toEqual(appColorNames(tokenDefault));
     for (const name of SHADCN_COLORS) {
-      expect(blockBody(':root')).toContain(`--app-${name}:`);
-      expect(blockBody('.dark')).toContain(`--app-${name}:`);
+      expect(blockBody(tokenDefault, ':root')).toContain(`--app-${name}:`);
+      expect(blockBody(tokenDark, '.dark')).toContain(`--app-${name}:`);
+    }
+  });
+
+  it('token 目录只写变量声明，不掺视觉规则', () => {
+    for (const [file, source] of [
+      ['default.css', tokenDefault],
+      ['dark.css', tokenDark],
+      ['index.css', tokenEntry],
+    ]) {
+      const body = source.replace(/\/\*[\s\S]*?\*\//gmu, '');
+      const offenders = body
+        .split('\n')
+        .filter((line) => /^\s+\S.*;$/.test(line))
+        .filter((line) => !/^\s*--/u.test(line));
+      expect(offenders, `${file} 只允许 --变量: 值`).toEqual([]);
+      expect(body).not.toContain('@apply');
     }
   });
 
   it('主色读偏好写到 html 上的变量，并留兜底值', () => {
     // 偏好面板改的是 `--ant-color-primary`（见 @antdv/preferences/css-vars），
     // 钉死值就会出现"换了主题色、弹层还是蓝的"
-    expect(tokens).toContain(
-      '--app-primary: var(--ant-color-primary, #1677ff);',
-    );
-    expect(tokens).toContain('--app-ring: var(--ant-color-primary, #1677ff);');
+    for (const source of [tokenDefault, tokenDark]) {
+      expect(source).toContain(
+        '--app-primary: var(--ant-color-primary, #1677ff);',
+      );
+      expect(source).toContain(
+        '--app-ring: var(--ant-color-primary, #1677ff);',
+      );
+    }
   });
 
   it('必须写 @theme inline，否则 .dark 覆盖不生效', () => {
     // 非 inline 形式在 :root 求值一次就冻结了，暗色切换只动 class 不动颜色
-    expect(tokens).toContain('@theme inline');
+    expect(tokenEntry).toContain('@theme inline');
   });
 
   it('值不依赖 antd 作用域变量（浮层 portal 在 .ant-app 之外）', () => {
-    expect(blockBody(':root')).not.toMatch(
+    expect(blockBody(tokenDefault, ':root')).not.toMatch(
       /var\(--ant-color-(?:text|bg-[a-z]+)\b/u,
     );
   });
@@ -230,7 +273,9 @@ describe('@antdv/design —— 包边界', () => {
   it('不 @import 组件包，避免 CSS 与组件互相牵动（注释里提到不算依赖）', () => {
     const imports = [
       index,
-      tokens,
+      tokenEntry,
+      tokenDefault,
+      tokenDark,
       base,
       nprogress,
       a11y,
@@ -247,12 +292,31 @@ describe('@antdv/design —— 包边界', () => {
       "@import 'tailwindcss';",
       "@import '@antdv-next/tailwind/compat.css';",
       "@import 'tw-animate-css';",
-      "@import './tokens.css';",
-      "@import './base.css';",
-      "@import './nprogress.css';",
-      "@import './a11y.css';",
-      "@import './permission.css';",
-      "@import './scrollbar.css';",
+      "@import './token/index.css';",
+      "@import './css/base.css';",
+      "@import './css/nprogress.css';",
+      "@import './css/a11y.css';",
+      "@import './css/permission.css';",
+      "@import './css/scrollbar.css';",
+      "@import './default.css';",
+      "@import './dark.css';",
+    ]);
+  });
+
+  it('二级目录只有 token 与 css：token 装变量，css 装规则', () => {
+    const srcDir = resolve(fileURLToPath(new URL('../src', import.meta.url)));
+    expect(readdirSync(srcDir).sort()).toEqual(['css', 'index.css', 'token']);
+    expect(readdirSync(resolve(srcDir, 'token')).sort()).toEqual([
+      'dark.css',
+      'default.css',
+      'index.css',
+    ]);
+    expect(readdirSync(resolve(srcDir, 'css')).sort()).toEqual([
+      'a11y.css',
+      'base.css',
+      'nprogress.css',
+      'permission.css',
+      'scrollbar.css',
     ]);
   });
 
