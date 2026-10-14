@@ -28,6 +28,7 @@ import { Check, X } from '@lucide/vue';
 import { useTimeoutFn } from '@vueuse/core';
 
 import { resolvePopupButton } from '../shared/button';
+import { isFocusOutsideEvent } from '../shared/dismiss';
 import { CLOSED_PANEL_INERT } from '../shared/presence';
 
 const props = withDefaults(defineProps<DrawerProps>(), {
@@ -170,12 +171,15 @@ onMounted(() => {
   scheduleRegister();
 });
 
+// `open` / `visible` 没绑就等于「不归 props 管」，不能拿默认值 false 去顶掉 visibleRef：
+// 源写成 `[open, visible]` 数组的话，父组件每次重渲染（比如换了个 okButtonProps 对象）都会
+// 触发回调，抽屉会在用户点到底部按钮之前自己关掉。
 watch(
-  () => [merged.value.open, merged.value.visible] as const,
-  ([open, visible]) => {
-    visibleRef.value = open || visible || false;
+  () => props.open ?? props.visible,
+  (val) => {
+    if (val === undefined) return;
+    visibleRef.value = val;
   },
-  { immediate: true },
 );
 
 async function handleOk(e: MouseEvent) {
@@ -193,8 +197,14 @@ function onRootUpdate(val: boolean) {
   else void handleCancel();
 }
 
+/**
+ * 只绑 `interact-outside`：reka 在一次外部按下时会连发 `pointerDownOutside` 和
+ * `interactOutside`，两个都接等于点一次蒙层关两次（`closeFunc` 会被跑两遍）。
+ * 焦点移出同样进这里，但那只是重新渲染把焦点甩回 body 的副作用，不算关闭请求。
+ */
 function onInteractOutside(event: Event) {
   event.preventDefault();
+  if (isFocusOutsideEvent(event)) return;
   if (!merged.value.maskClosable) return;
   void handleCancel();
 }
@@ -226,7 +236,6 @@ const cancelBtn = computed(() =>
       :force-mount="!merged.destroyOnHidden"
       aria-modal="true"
       role="dialog"
-      @pointer-down-outside="onInteractOutside"
       @interact-outside="onInteractOutside"
       @escape-key-down="onEscapeKeyDown"
     >

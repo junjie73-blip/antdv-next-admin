@@ -23,6 +23,7 @@ import { Check, X } from '@lucide/vue';
 import { useTimeoutFn } from '@vueuse/core';
 
 import { resolvePopupButton } from '../shared/button';
+import { isFocusOutsideEvent } from '../shared/dismiss';
 import { CLOSED_PANEL_INERT } from '../shared/presence';
 import ModalWrapper from './ModalWrapper.vue';
 
@@ -166,14 +167,13 @@ async function handleCancel(e?: MouseEvent) {
  *
  * 只绑 `interact-outside` 一个：reka 的 DismissableLayer 在一次外部按下时会连发
  * `pointerDownOutside` 和 `interactOutside`，两个都接就等于点一次蒙层关两次
- * （`closeFunc` 这类有副作用的钩子会被跑两遍）。
+ * （`closeFunc` 这类有副作用的钩子会被跑两遍）。焦点移出同样会进 `interactOutside`，
+ * 但那是重新渲染把焦点甩回 body 的副作用，一律拦下。
  */
 async function onInteractOutside(event: Event) {
-  if (!merged.value.maskClosable || !merged.value.closable) {
-    event.preventDefault();
-    return;
-  }
   event.preventDefault();
+  if (isFocusOutsideEvent(event)) return;
+  if (!merged.value.maskClosable || !merged.value.closable) return;
   await handleCancel();
 }
 

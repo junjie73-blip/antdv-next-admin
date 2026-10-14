@@ -47,7 +47,14 @@ const trailingLine = computed(
 </script>
 
 <template>
-  <Separator v-if="type === 'vertical'" orientation="vertical" :class="verticalClass">
+  <!-- decorative=false：reka 默认给 role="none"，这里统一成 antd 的 role="separator"，
+       带标题的那条分支也是同一个角色 -->
+  <Separator
+    v-if="type === 'vertical'"
+    :decorative="false"
+    orientation="vertical"
+    :class="verticalClass"
+  >
     <slot></slot>
   </Separator>
 
@@ -57,7 +64,7 @@ const trailingLine = computed(
     <span v-if="trailingLine" class="h-px flex-1 bg-gray-200 dark:bg-gray-700"></span>
   </div>
 
-  <Separator v-else :class="plainClass">
+  <Separator v-else :decorative="false" :class="plainClass">
     <slot></slot>
   </Separator>
 </template>

@@ -58,6 +58,27 @@ describe('BasicDrawer', () => {
     expect(drawerContent()).toBeNull();
   });
 
+  it('未绑 open/visible 时，父组件改其他 props 不会把抽屉顶关', async () => {
+    wrapper = mountDrawer();
+    const instance = await getRegisteredInstance(wrapper);
+    instance.openDrawer(true);
+    await flushPromises();
+    expect(drawerContent()).not.toBeNull();
+
+    // 模板里 `:ok-button-props="{ disabled: !agreement }"` 每次重渲染都是新对象，
+    // 曾经会触发 [open, visible] 数组源 watcher，把 visibleRef 重置成 false
+    wrapper.setProps({ okButtonProps: { disabled: true } });
+    await flushPromises();
+    wrapper.setProps({ okButtonProps: { disabled: false } });
+    await flushPromises();
+    expect(drawerContent()).not.toBeNull();
+    expect(instance.getVisible()).toBe(true);
+
+    instance.closeDrawer();
+    await flushPromises();
+    expect(drawerContent()).toBeNull();
+  });
+
   it('openDrawer/closeDrawer 切换并触发 visibleChange 与 update:visible', async () => {
     wrapper = mountDrawer();
     const instance = await getRegisteredInstance(wrapper);

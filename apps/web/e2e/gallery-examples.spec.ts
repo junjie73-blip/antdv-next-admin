@@ -22,12 +22,12 @@ import {
  * - `BasicTable` 的 `dragSort` / `dragSortConfig`（真拖一行，看 `tbody` 和数据谁先动）；
  * - `vue-draggable-plus` 的 `v-model` 与跨容器 `group`；
  * - 分步表单的门禁与"来回切步骤值不丢"；
- * - `useModal` / `useModalInner` 的数据通道与 `closeFunc` 拦截；
- * - `<a-descriptions-item>` 这类**子组件写法**在 antdv-next 1.6 里到底还在不在
+ * - `useModal` / `useModalInner` 的数据通道与 `closeFunc` 拦截（含点蒙层只算一次关闭请求）；
+ * - `<a-descriptions-item>` 这类**子组件写法**在 common-ui 里到底还在不在
  *   （解析失败只出 warning，表现是"那块内容是空的"，所以要数节点，不能只看标题）。
  *
- * 反过来说，这里也**如实钉住页面自己承认的哑炮**（`setModalProps` 改不动只读 props）：
- * 那类结论一旦被"顺手修好"，用例该红，所以写成断言而不是注释。
+ * 反过来说，这里也把**已经修好的能力钉成断言**（`setModalProps` 的覆盖层会真的重渲染标题、
+ * 按钮文案和宽度）：那类结论一旦被"顺手改回去"，用例该红，所以写成断言而不是注释。
  */
 
 const OVERVIEW = '/components/overview';
