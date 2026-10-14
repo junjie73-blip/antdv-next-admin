@@ -1,0 +1,9 @@
+{
+  "extends": "@antdv/tsconfig/web.json",
+  "compilerOptions": {
+    // css-vars / theme-mode 需要 DOM 与 matchMedia 类型；node 只给 structure 单测读目录用
+    "types": ["node", "vitest/globals"],
+    "noEmit": true
+  },
+  "include": ["src/**/*.ts", "__tests__/**/*.ts", "vitest.config.ts"]
+}

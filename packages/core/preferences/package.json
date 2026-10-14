@@ -43,6 +43,7 @@
   "dependencies": {
     "@antdv/shared": "workspace:*",
     "@antdv/types": "workspace:*",
+    "@antdv/utils": "workspace:*",
     "antdv-next": "catalog:",
     "es-toolkit": "catalog:",
     "vue": "catalog:"

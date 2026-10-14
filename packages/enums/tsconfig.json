@@ -1,0 +1,9 @@
+{
+  "extends": "@antdv/tsconfig/web.json",
+  "compilerOptions": {
+    // 包内只用枚举字面量，不引入 vite / vue 类型，避免把它们变成隐式依赖
+    "types": [],
+    "noEmit": true
+  },
+  "include": ["src/**/*.ts", "__tests__/**/*.ts"]
+}

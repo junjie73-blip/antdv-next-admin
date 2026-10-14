@@ -28,10 +28,7 @@ export type {
 } from '@antdv/preferences';
 
 export {
-  applyPreferencesToDom,
-  clearPreferencesFromDom,
   createPreferences,
-  createSystemDark,
   createToggles,
   DEFAULT_PREFERENCES,
   getAntdTheme,
@@ -40,9 +37,15 @@ export {
   loadLocale,
   palette,
   registerThemePreset,
-  resolveThemeMode,
   withDefaultPreferences,
 } from '@antdv/preferences';
+
+export {
+  applyPreferencesToDom,
+  clearPreferencesFromDom,
+  createSystemDark,
+  resolveThemeMode,
+} from '@antdv/utils';
 
 /**
  * 项目级默认值。

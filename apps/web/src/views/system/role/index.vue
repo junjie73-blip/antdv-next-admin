@@ -13,7 +13,7 @@ import { addRole, deleteRole, getRoleList, updateRole } from '~/api/system';
 import { BasicDrawer, message, useDrawer } from '@antdv/popup-ui';
 import { BasicForm, useForm } from '@antdv/form-ui';
 import { BasicTable, useTable } from '@antdv/table-ui';
-import { DictType } from '~/enums/dict';
+import { DictType } from '@antdv/enums';
 import { useDictStore } from '~/stores';
 
 defineOptions({ name: 'SystemRole' });

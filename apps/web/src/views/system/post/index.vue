@@ -27,7 +27,7 @@ import { BasicTable, useTable } from '@antdv/table-ui';
 import { faker } from '@faker-js/faker/locale/zh_CN';
 import { Icon } from '@iconify/vue';
 import { addPost, deletePost, getPostList, updatePost } from '~/api/system';
-import { DictType } from '~/enums/dict';
+import { DictType } from '@antdv/enums';
 import { useDictStore } from '~/stores';
 
 defineOptions({ name: 'SystemPost' });
@@ -65,7 +65,10 @@ const actionClassName = cn(
   'whitespace-nowrap',
 );
 const btnClassName = cn('h-auto', 'px-0.5!');
-const dangerLinkBtnClassName = cn(btnClassName, 'text-destructive hover:text-destructive');
+const dangerLinkBtnClassName = cn(
+  btnClassName,
+  'text-destructive hover:text-destructive',
+);
 const dividerClassName = cn('mx-0');
 
 // ========== 状态映射 ==========
@@ -490,12 +493,20 @@ const columns: BasicColumn[] = [
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <Button :class="btnClassName" variant="link" @click="() => handleOpenAssign(record as PostRecord)">
+            <Button
+              :class="btnClassName"
+              variant="link"
+              @click="() => handleOpenAssign(record as PostRecord)"
+            >
               <Icon icon="ant-design:user-switch-outlined" />
               分配用户
             </Button>
             <Divider type="vertical" :class="dividerClassName" />
-            <Button :class="btnClassName" variant="link" @click="() => handleEdit(record as PostRecord)">
+            <Button
+              :class="btnClassName"
+              variant="link"
+              @click="() => handleEdit(record as PostRecord)"
+            >
               <Icon icon="ant-design:edit-outlined" />
               编辑
             </Button>
@@ -504,7 +515,11 @@ const columns: BasicColumn[] = [
               :title="`确定要「${record.status === 1 ? '停用' : '启用'}」岗位「${record.name}」吗？`"
               @confirm="() => handleToggleStatus(record as PostRecord)"
             >
-              <Button v-if="record.status === 1" :class="btnClassName" variant="link">
+              <Button
+                v-if="record.status === 1"
+                :class="btnClassName"
+                variant="link"
+              >
                 停用
               </Button>
               <Button v-else :class="btnClassName" variant="link">
@@ -560,13 +575,21 @@ const columns: BasicColumn[] = [
         <div
           class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400"
         >
-          <span>岗位编码：<Tag color="blue">{{
+          <span
+            >岗位编码：<Tag color="blue">{{
               assignPostRecord?.code
-            }}</Tag></span>
-          <span>所属部门：<Tag color="cyan">{{
+            }}</Tag></span
+          >
+          <span
+            >所属部门：<Tag color="cyan">{{
               assignPostRecord?.deptName
-            }}</Tag></span>
-          <span>已选：<Tag color="orange">{{ selectedAssignUserIds.length }} 人</Tag></span>
+            }}</Tag></span
+          >
+          <span
+            >已选：<Tag color="orange"
+              >{{ selectedAssignUserIds.length }} 人</Tag
+            ></span
+          >
         </div>
 
         <!-- 搜索框 -->

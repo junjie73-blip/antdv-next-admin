@@ -3,11 +3,7 @@ import type { AppRouteRecordRaw } from '@antdv/types';
 import type { Router, RouteRecordRaw } from 'vue-router';
 
 import { applyRouterGuards } from '@antdv/router';
-import {
-  findMenuByPath,
-  firstLeafMenu,
-  normalizeMenuPath,
-} from '@antdv/shared/utils/menu';
+import { findMenuByPath, firstLeafMenu, normalizeMenuPath } from '@antdv/utils';
 import NProgress from 'nprogress';
 import { HOME_PATH, LOGIN_PATH, WHITE_LIST } from '~/config/constants';
 import { useRouteStore } from '~/stores';

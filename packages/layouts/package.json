@@ -31,6 +31,7 @@
   "dependencies": {
     "@antdv/shared": "workspace:*",
     "@antdv/types": "workspace:*",
+    "@antdv/utils": "workspace:*",
     "vue": "catalog:"
   },
   "devDependencies": {

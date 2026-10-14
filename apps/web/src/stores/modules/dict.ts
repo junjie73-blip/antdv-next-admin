@@ -3,7 +3,7 @@ import { computed, ref } from 'vue';
 import { localStorageCacheStorage } from '@antdv/shared/cache';
 import { defineStore } from 'pinia';
 import { getDictList } from '~/api/system';
-import { CacheKey } from '~/enums/cache';
+import { CacheKey } from '@antdv/enums';
 
 /** 单个字典项 */
 export interface DictItem {

@@ -7,12 +7,24 @@ import {
   applyPreferencesToDom,
   clearPreferencesFromDom,
 } from '../src/css-vars';
-import { DEFAULT_PREFERENCES, withDefaultPreferences } from '../src/defaults';
 
 const html = document.documentElement;
 
+/**
+ * 只铺 `applyPreferencesToDom` 真正读到的那几个字段。
+ * 这里刻意不 import `@antdv/preferences`：那个包依赖本包，测试反过来依赖它就成了环。
+ */
 function prefs(patch: Partial<AppSetting> = {}): AppSetting {
-  return withDefaultPreferences(patch);
+  return {
+    borderRadius: 0.5,
+    colorWeak: false,
+    fontSize: 14,
+    grayMode: false,
+    primaryColor: '#1677ff',
+    sidebarWidth: 200,
+    theme: 'auto',
+    ...patch,
+  } as AppSetting;
 }
 
 beforeEach(() => {
@@ -115,7 +127,7 @@ describe('applyPreferencesToDom', () => {
   });
 
   it('默认偏好不会给 html 留下 dark class', () => {
-    expect(DEFAULT_PREFERENCES.theme).toBe('auto');
+    expect(prefs().theme).toBe('auto');
     applyPreferencesToDom(prefs(), { target: html });
     expect(html.classList.contains('dark')).toBe(false);
   });
@@ -138,7 +150,7 @@ describe('clearPreferencesFromDom', () => {
     expect(html.style.getPropertyValue('--ant-border-radius')).toBe('');
   });
 
-  it('PREFERENCE_CSS_VARS 名单与真正写入的变量对齐', () => {
+  it('变量名单 PREFERENCE_CSS_VARS 与真正写入的变量对齐', () => {
     // 名单漏一项的后果是"清不掉"，写侧漏一项是"读侧拿不到"，两边都靠这份名单钉住
     applyPreferencesToDom(prefs({ colorWeak: true, theme: 'dark' }), {
       target: html,

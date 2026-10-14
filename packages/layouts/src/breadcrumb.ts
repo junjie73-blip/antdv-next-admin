@@ -8,7 +8,7 @@ import {
   findMenuChain,
   menuKeyOf,
   normalizeMenuPath,
-} from '@antdv/shared/utils/menu';
+} from '@antdv/utils';
 
 /**
  * 面包屑。

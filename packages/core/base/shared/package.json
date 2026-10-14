@@ -1,7 +1,7 @@
 {
   "name": "@antdv/shared",
   "version": "0.4.0",
-  "description": "浏览器侧通用能力：缓存、色值换算、跨层常量、工具方法（cn/日期/下载/Excel/脱敏/XSS/事件/菜单辅助）、@tanstack/vue-store 出口",
+  "description": "浏览器侧通用能力：缓存、色值换算、跨层常量、工具方法（cn/日期/下载/Excel/脱敏/XSS/事件）、@tanstack/vue-store 出口",
   "private": true,
   "type": "module",
   "scripts": {

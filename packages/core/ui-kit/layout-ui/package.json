@@ -27,6 +27,7 @@
     "@antdv/shadcn-ui": "workspace:*",
     "@antdv/shared": "workspace:*",
     "@antdv/types": "workspace:*",
+    "@antdv/utils": "workspace:*",
     "@vueuse/core": "catalog:",
     "vue": "catalog:"
   },

@@ -9,7 +9,7 @@ import { useRouteLoading } from '@antdv/composables/useRouteLoading';
 import { useWatermark } from '@antdv/composables/useWatermark';
 import { LayoutShell } from '@antdv/layout-ui';
 import { eventBus } from '@antdv/shared';
-import { isExternalPath } from '@antdv/shared/utils/menu';
+import { isExternalPath } from '@antdv/utils';
 import logoUrl from '~/assets/images/logo.png';
 import PageLoading from '~/components/common/Loading/PageLoading.vue';
 import RouteLoadingBar from '~/components/common/Loading/RouteLoadingBar.vue';

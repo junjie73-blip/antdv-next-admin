@@ -7,7 +7,7 @@ import { createCache } from '@antdv/shared/cache';
 import { configureSharedEnv } from '@antdv/shared/utils/env';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { clearPreferencesFromDom } from '../src/css-vars';
+import { clearPreferencesFromDom } from '@antdv/utils';
 import { DEFAULT_PREFERENCES, withDefaultPreferences } from '../src/defaults';
 import {
   booleanPreferenceKeys,

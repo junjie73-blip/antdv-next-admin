@@ -12,7 +12,7 @@ import {
   BreadcrumbSeparator,
 } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
-import { isExternalPath } from '@antdv/shared/utils/menu';
+import { isExternalPath } from '@antdv/utils';
 
 import { useLayoutStyle } from '../useLayoutStyle';
 

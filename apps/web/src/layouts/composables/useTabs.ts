@@ -4,11 +4,7 @@ import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
-import {
-  findMenuByPath,
-  normalizeMenuPath,
-  visibleMenus,
-} from '@antdv/shared/utils/menu';
+import { findMenuByPath, normalizeMenuPath, visibleMenus } from '@antdv/utils';
 import { useRouteStore } from '~/stores/modules/route';
 import { useTabsStore } from '~/stores/modules/tabs';
 

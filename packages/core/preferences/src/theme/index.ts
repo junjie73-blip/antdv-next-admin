@@ -9,7 +9,7 @@ import type { ThemeConfig } from 'antdv-next';
 
 import { theme } from 'antdv-next';
 
-import { resolveThemeMode } from '../theme-mode';
+import { resolveThemeMode } from '@antdv/utils';
 import { darkComponents, darkToken } from './dark';
 import { lightComponents, lightToken } from './light';
 

@@ -1,5 +1,6 @@
 import type { ApiResponse } from './types';
 
+import { CacheKey } from '@antdv/enums';
 import { toast } from '@antdv/popup-ui';
 import { cache } from '@antdv/shared';
 import {
@@ -10,7 +11,7 @@ import {
 import { isTokenExpired } from '@antdv/shared/utils/jwt';
 import { createFetch } from '@vueuse/core';
 import { AUTHORIZATION_KEY } from '~/composables/constant';
-import { LOGIN_PATH, REFRESH_TOKEN_KEY } from '~/config/constants';
+import { LOGIN_PATH } from '~/config/constants';
 import { useUserStore } from '~/stores/modules/user';
 
 import { ErrorCode, isServerFailure, RequestError } from './error';
@@ -92,7 +93,7 @@ export function resetLogoutFlag(): void {
 
 async function doRefreshToken(baseUrl: string): Promise<string> {
   const userStore = useUserStore();
-  const refreshTokenValue = cache.getItem(REFRESH_TOKEN_KEY);
+  const refreshTokenValue = cache.getItem(CacheKey.REFRESH_TOKEN);
   if (!refreshTokenValue) throw new Error('缺少 refresh token');
 
   const headers: Record<string, string> = {
@@ -128,7 +129,7 @@ async function doRefreshToken(baseUrl: string): Promise<string> {
   userStore.setToken(newAccess);
   // accessToken 的持久化由 store 负责（它写的是密文）；这里再塞一次明文会把密文覆盖掉，
   // 于是缓存里的值没法当凭证用。refreshToken 没有 store 字段，只能自己落盘。
-  cache.setItem(REFRESH_TOKEN_KEY, newRefresh);
+  cache.setItem(CacheKey.REFRESH_TOKEN, newRefresh);
   return newAccess;
 }
 
@@ -190,7 +191,7 @@ export function createFetcher(opts: CreateFetcherOptions = {}) {
           // 直接回退去读缓存等于把 JWE 当凭证发出去（每次刷新都 401）
           const accessToken = userStore.token;
           const refreshToken =
-            userStore.refreshToken || cache.getItem(REFRESH_TOKEN_KEY);
+            userStore.refreshToken || cache.getItem(CacheKey.REFRESH_TOKEN);
 
           if (!accessToken) {
             if (refreshToken) {

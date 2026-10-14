@@ -12,7 +12,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@antdv/shadcn-ui';
-import { menuKeyOf } from '@antdv/shared/utils/menu';
+import { menuKeyOf } from '@antdv/utils';
 
 import { useLayoutStyle } from '../useLayoutStyle';
 

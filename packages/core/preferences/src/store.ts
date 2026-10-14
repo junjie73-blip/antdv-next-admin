@@ -9,13 +9,13 @@ import { computed, ref } from 'vue';
 
 import { createCache } from '@antdv/shared/cache';
 
-import { applyPreferencesToDom } from './css-vars';
+import { applyPreferencesToDom } from '@antdv/utils';
 import {
   DEFAULT_PREFERENCES,
   pickKnownPreferences,
   withDefaultPreferences,
 } from './defaults';
-import { createSystemDark, resolveThemeMode } from './theme-mode';
+import { createSystemDark, resolveThemeMode } from '@antdv/utils';
 
 /** 沿用历史键：改名会让老用户的设置凭空消失 */
 export const PREFERENCES_CACHE_KEY = 'appSetting';

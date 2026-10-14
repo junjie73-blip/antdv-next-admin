@@ -18,11 +18,9 @@
  * ```
  */
 
-export * from './css-vars';
 export * from './defaults';
 export * from './store';
 export * from './theme';
-export * from './theme-mode';
 
 export type {
   AppSetting,

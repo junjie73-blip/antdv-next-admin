@@ -23,7 +23,7 @@ import {
 import { BasicForm, useForm } from '@antdv/form-ui';
 import { BasicModal, message, useModal } from '@antdv/popup-ui';
 import { BasicTable, useTable } from '@antdv/table-ui';
-import { DictType } from '~/enums/dict';
+import { DictType } from '@antdv/enums';
 import { useDictStore } from '~/stores';
 
 defineOptions({ name: 'SystemDict' });

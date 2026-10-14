@@ -1,4 +1,4 @@
-import type { MenuPathRouter } from '@antdv/shared/utils/menu';
+import type { MenuPathRouter } from '@antdv/utils';
 import type { BackendMenu, MenuConfig } from '@antdv/types';
 
 import type { RouteRecordRaw } from 'vue-router';
@@ -12,7 +12,7 @@ import {
   isBuiltinMenuPath,
   joinMenuPath,
   normalizeMenuPath,
-} from '@antdv/shared/utils/menu';
+} from '@antdv/utils';
 // stores/modules/route.ts
 import { defineStore } from 'pinia';
 import { http } from '~/composables';

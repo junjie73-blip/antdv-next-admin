@@ -20,7 +20,7 @@ import {
   updateSetting,
 } from '~/api/system';
 import { Description as DetailDescription } from '@antdv/common-ui';
-import { DictType } from '~/enums/dict';
+import { DictType } from '@antdv/enums';
 import { useDictStore } from '~/stores';
 
 defineOptions({ name: 'SystemSettings' });

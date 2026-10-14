@@ -2,6 +2,7 @@ import type { UserInfo } from '@antdv/types';
 
 import { computed, ref } from 'vue';
 
+import { CacheKey } from '@antdv/enums';
 import { cache, decryptToken, encryptToken } from '@antdv/shared/cache';
 import { defineStore } from 'pinia';
 import { http } from '~/composables';
@@ -11,8 +12,7 @@ import { resetPageCache } from '~/layouts/composables/usePageCache';
 import { useRouteStore } from './route';
 import { useTabsStore } from './tabs';
 
-const TOKEN_KEY = 'auth_token';
-const USER_INFO_KEY = 'user_info';
+const { ACCESS_TOKEN: TOKEN_KEY, USER_INFO: USER_INFO_KEY } = CacheKey;
 const TOKEN_EXPIRE = 24 * 60 * 60;
 
 export const useUserStore = defineStore('user', () => {
