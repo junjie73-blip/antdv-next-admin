@@ -7,7 +7,7 @@ import {
   findMenuByPath,
   firstLeafMenu,
   normalizeMenuPath,
-} from '@antdv/shared/menu';
+} from '@antdv/shared/utils/menu';
 import NProgress from 'nprogress';
 import { HOME_PATH, LOGIN_PATH, WHITE_LIST } from '~/config/constants';
 import { useRouteStore } from '~/stores';

@@ -1,7 +1,7 @@
 import { h, ref, watch } from 'vue';
 
 import { useWebSocket as useWebSocketComposable } from '@antdv/composables/websocket';
-import { eventBus } from '@antdv/shared/event';
+import { eventBus } from '@antdv/shared/utils/event';
 import { Icon } from '@iconify/vue';
 import { toast } from '@antdv/popup-ui';
 import { forceLogout } from '~/composables/web/request/fetcher';

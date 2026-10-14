@@ -3,7 +3,7 @@ import { computed } from 'vue';
 
 import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import { ToggleGroup, ToggleGroupItem } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 defineOptions({ name: 'Segmented' });
 

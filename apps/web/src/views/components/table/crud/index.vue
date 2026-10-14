@@ -17,7 +17,7 @@ import type {
 import { computed, onMounted, ref } from 'vue';
 
 import { Card, Descriptions, DescriptionsItem, Tag } from '@antdv/common-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 import {
   addTask,

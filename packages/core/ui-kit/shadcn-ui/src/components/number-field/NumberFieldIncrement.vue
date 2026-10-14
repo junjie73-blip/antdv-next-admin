@@ -4,7 +4,7 @@ import type { HTMLAttributes } from "vue"
 import { Plus } from "@lucide/vue"
 import { reactiveOmit } from "@vueuse/core"
 import { NumberFieldIncrement, useForwardProps } from "reka-ui"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 
 const props = defineProps<NumberFieldIncrementProps & { class?: HTMLAttributes["class"] }>()
 

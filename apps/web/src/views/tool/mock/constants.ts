@@ -1,4 +1,4 @@
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 // ========== 样式类名 ==========
 export const containerClassName = cn('space-y-4');

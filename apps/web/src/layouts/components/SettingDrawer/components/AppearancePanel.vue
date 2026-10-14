@@ -19,7 +19,7 @@ import { Icon } from '@iconify/vue';
 import ThemeToggle from '~/layouts/widgets/ThemeToggle.vue';
 import { useAppStore } from '~/stores/modules/app';
 
-import { parseColor, toHex, toRgbString } from '../color';
+import { parseColor, toHex, toRgbString } from '@antdv/shared/color';
 import { BORDER_RADIUS_OPTIONS, PRIMARY_COLORS } from '../constants';
 import SettingGroup from './SettingGroup.vue';
 import SettingItem from './SettingItem.vue';
@@ -176,7 +176,9 @@ function applyCustomColor(value: string) {
               :value="hexColor"
               type="color"
               class="h-9 w-full cursor-pointer rounded-md border border-slate-200 bg-transparent p-1 dark:border-slate-700"
-              @input="applyCustomColor(($event.target as HTMLInputElement).value)"
+              @input="
+                applyCustomColor(($event.target as HTMLInputElement).value)
+              "
             />
             <Input
               v-model="hexColor"
@@ -240,7 +242,8 @@ function applyCustomColor(value: string) {
           :step="1"
           class="w-24"
           @update:model-value="
-            (v: number | undefined) => v !== undefined && appStore.updateSetting({ fontSize: v })
+            (v: number | undefined) =>
+              v !== undefined && appStore.updateSetting({ fontSize: v })
           "
         >
           <NumberFieldContent>

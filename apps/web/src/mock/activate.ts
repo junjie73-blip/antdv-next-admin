@@ -1,4 +1,4 @@
-import { isEnvEnabled } from '@antdv/shared/env';
+import { isEnvEnabled } from '@antdv/shared/utils/env';
 
 export interface BrowserMockEnv {
   PROD?: boolean;

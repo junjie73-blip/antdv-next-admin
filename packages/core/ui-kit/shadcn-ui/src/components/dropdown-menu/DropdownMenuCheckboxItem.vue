@@ -8,7 +8,7 @@ import {
   DropdownMenuItemIndicator,
   useForwardPropsEmits,
 } from "reka-ui"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 
 const props = defineProps<DropdownMenuCheckboxItemProps & { class?: HTMLAttributes["class"] }>()
 const emits = defineEmits<DropdownMenuCheckboxItemEmits>()

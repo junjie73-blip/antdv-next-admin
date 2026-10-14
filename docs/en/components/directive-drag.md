@@ -11,10 +11,10 @@ The only `app.directive(...)` calls in the entire repository are these five, at 
 | `v-permission` | `packages/directives/src/permission/index.ts:57` | `apps/web/src/directives/index.ts:19-36` | `apps/web/src/components/business/ImportExport.vue:206, 223` |
 | `v-loading` | `packages/ui-kit/loading-ui/src/directive.ts:88-107` | the `vLoading` from `@antdv/loading-ui`, registered directly (`main.ts:8, 113`) | `apps/web/src/views/components/loading/index.vue:1026` onwards |
 | `v-lazy` | `packages/directives/src/lazy.ts:145, 311` | re-exported at `apps/web/src/directives/index.ts:16` | **no usage outside the demo page** (see below) |
-| `v-safe-html` | `packages/shared/src/xss.ts:437-445` | re-exported at `apps/web/src/directives/index.ts:17` | `MarkdownEditor.vue:599`, editor demo `editor/index.vue:834` |
-| `v-escape` | `packages/shared/src/xss.ts:454-462` | re-exported at `apps/web/src/directives/index.ts:17` | **no usage outside the demo page** (see below) |
+| `v-safe-html` | `packages/shared/src/utils/xss.ts:437-445` | re-exported at `apps/web/src/directives/index.ts:17` | `MarkdownEditor.vue:599`, editor demo `editor/index.vue:834` |
+| `v-escape` | `packages/shared/src/utils/xss.ts:454-462` | re-exported at `apps/web/src/directives/index.ts:17` | **no usage outside the demo page** (see below) |
 
-::: warning Don't look for everything under the package name `@antdv/directives` contains **only permission and lazy** (its `src/index.ts:10-11` has exactly those two exports). `escape` / `safe-html` live in `@antdv/shared/xss`, `v-loading` lives in `@antdv/loading-ui`. `apps/web/src/directives/index.ts` exists to inject project dependencies into the factories: the packages never import pinia / stores (the design constraint is stated at `packages/directives/src/index.ts:4-7`); checkers and the subscription source come from the app. :::
+::: warning Don't look for everything under the package name `@antdv/directives` contains **only permission and lazy** (its `src/index.ts:10-11` has exactly those two exports). `escape` / `safe-html` live in `@antdv/shared/utils/xss`, `v-loading` lives in `@antdv/loading-ui`. `apps/web/src/directives/index.ts` exists to inject project dependencies into the factories: the packages never import pinia / stores (the design constraint is stated at `packages/directives/src/index.ts:4-7`); checkers and the subscription source come from the app. :::
 
 ## v-permission: decisions outside the package, DOM flags inside it
 
@@ -80,7 +80,7 @@ Resolution precedence: **`binding.value` > `data-*` attributes > factory-level `
 
 ### v-safe-html
 
-The `updateSafeHtml()` pipeline (`packages/shared/src/xss.ts:476-533`): **regex-strip the worst content first, then hand the result to DOMPurify with a tag whitelist**. The binding value is a string or a `{ content, allowedTags, … }` object (options are `XssFilterOptions`, `xss.ts:21-38;` the caller's fields override the defaults, `xss.ts:514-519`).
+The `updateSafeHtml()` pipeline (`packages/shared/src/utils/xss.ts:476-533`): **regex-strip the worst content first, then hand the result to DOMPurify with a tag whitelist**. The binding value is a string or a `{ content, allowedTags, … }` object (options are `XssFilterOptions`, `xss.ts:21-38;` the caller's fields override the defaults, `xss.ts:514-519`).
 
 - Stage one, `stripDangerousMarkup()` (`xss.ts:127-153`): paired deletion of `<script>/<iframe>/<object>/<embed>/<applet>`, then a sweep of leftover fragments; strips every `on*=` handler and `srcdoc`. The stated motivation: DOMPurify may parse inconsistently in SSR / test environments, so this strip guarantees a **floor in every runtime** (`xss.ts:119-126`).
 - Stage two, DOMPurify (`xss.ts:523-530`): whitelist `defaultSafeTags` (`xss.ts:482-511` — paragraphs, headings, lists, tables, `a`, `img` and friends), with `ALLOW_DATA_ATTR: false`. If DOMPurify is unavailable the pipeline falls back to full `escapeHtml()` (`xss.ts:530`).

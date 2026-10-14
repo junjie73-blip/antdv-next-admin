@@ -8,7 +8,7 @@ import { computed, nextTick, ref, watch } from 'vue';
 import { getComponent } from '@antdv/form-ui';
 import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import { Button } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 const props = defineProps<{
   column?: any | BasicColumn;

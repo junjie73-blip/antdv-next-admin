@@ -3,7 +3,7 @@ import type { CSSProperties } from 'vue';
 
 import { computed, useSlots } from 'vue';
 
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 defineOptions({ name: 'Badge' });
 

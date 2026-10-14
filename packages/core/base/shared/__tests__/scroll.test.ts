@@ -8,7 +8,7 @@ import {
   dragWalk,
   pickHorizontalDelta,
   useHorizontalScroll,
-} from '../src/scroll';
+} from '../src/utils/scroll';
 
 /**
  * 横向滚动条逻辑的单测：标签条（tabs-ui）与顶部导航菜单（menu-ui）都跑这套，
@@ -119,7 +119,10 @@ function setupScroll(
 }
 
 const pointerEvent = (type: string, init: Record<string, unknown>) =>
-  Object.assign(new Event(type, { bubbles: true, cancelable: true }), init) as unknown as MouseEvent & PointerEvent & WheelEvent;
+  Object.assign(
+    new Event(type, { bubbles: true, cancelable: true }),
+    init,
+  ) as unknown as MouseEvent & PointerEvent & WheelEvent;
 
 /** 每个用例挂起来的宿主，收尾时统一卸载（窗口监听的摘除也是被测行为） */
 const mounted: Array<() => void> = [];
@@ -241,14 +244,18 @@ describe('useHorizontalScroll', () => {
     api.onPointerDown(
       pointerEvent('pointerdown', { button: 0, pageX: 300, pointerId: 1 }),
     );
-    window.dispatchEvent(pointerEvent('pointermove', { pageX: 100, pointerId: 1 }));
+    window.dispatchEvent(
+      pointerEvent('pointermove', { pageX: 100, pointerId: 1 }),
+    );
     expect(api.isDragging.value).toBe(false);
 
     const drag = setup(600, 400);
     drag.api.onPointerDown(
       pointerEvent('pointerdown', { button: 2, pageX: 300, pointerId: 2 }),
     );
-    window.dispatchEvent(pointerEvent('pointermove', { pageX: 100, pointerId: 2 }));
+    window.dispatchEvent(
+      pointerEvent('pointermove', { pageX: 100, pointerId: 2 }),
+    );
     expect(drag.api.isDragging.value).toBe(false);
   });
 
@@ -257,7 +264,9 @@ describe('useHorizontalScroll', () => {
     api.onPointerDown(
       pointerEvent('pointerdown', { button: 0, pageX: 300, pointerId: 1 }),
     );
-    window.dispatchEvent(pointerEvent('pointermove', { pageX: 100, pointerId: 1 }));
+    window.dispatchEvent(
+      pointerEvent('pointermove', { pageX: 100, pointerId: 1 }),
+    );
     expect(api.isDragging.value).toBe(false);
     expect(container.left()).toBe(0);
   });

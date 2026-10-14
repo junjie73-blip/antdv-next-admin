@@ -13,7 +13,7 @@ import { defineMockRoute } from '../utils/runtime';
  * 相对片段（`user`）会让横向导航、侧边二级菜单、标签页集体落到 404。
  *
  * 前端仍保留"相对片段 + 按末级路径段反查路由表"的兜底解析
- * （`@antdv/shared/menu` 的 attachMenuPaths），所以这份数据不规整也不至于点不动。
+ * （`@antdv/shared/utils/menu` 的 attachMenuPaths），所以这份数据不规整也不至于点不动。
  *
  * ## 关于 `hidden`
  *

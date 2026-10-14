@@ -5,7 +5,7 @@ import type { BasicColumn } from '@antdv/table-ui';
 import { computed, onMounted, ref } from 'vue';
 
 import { usePrint } from '@antdv/composables/usePrint';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 import { Card, Divider, Popconfirm, Tag, Tree } from '@antdv/common-ui';
 import { Button } from '@antdv/shadcn-ui';

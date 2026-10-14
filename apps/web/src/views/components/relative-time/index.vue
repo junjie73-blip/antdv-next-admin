@@ -4,7 +4,7 @@ import type { BasicColumn } from '@antdv/table-ui';
 import { ref } from 'vue';
 
 import { Card, Tag, Timeline, TimelineItem } from '@antdv/common-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { BasicTable, useTable } from '@antdv/table-ui';
 
 const containerClassName = cn('space-y-6');

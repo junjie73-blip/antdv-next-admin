@@ -1,5 +1,6 @@
 import type { AppSetting } from '@antdv/types';
 
+import { PREFERENCE_CSS_VARS } from '@antdv/shared/constants';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
@@ -135,5 +136,20 @@ describe('clearPreferencesFromDom', () => {
     expect(html.style.colorScheme).toBe('');
     expect(html.style.getPropertyValue('--ant-color-primary')).toBe('');
     expect(html.style.getPropertyValue('--ant-border-radius')).toBe('');
+  });
+
+  it('PREFERENCE_CSS_VARS 名单与真正写入的变量对齐', () => {
+    // 名单漏一项的后果是"清不掉"，写侧漏一项是"读侧拿不到"，两边都靠这份名单钉住
+    applyPreferencesToDom(prefs({ colorWeak: true, theme: 'dark' }), {
+      target: html,
+    });
+    for (const name of PREFERENCE_CSS_VARS) {
+      expect(html.style.getPropertyValue(name)).not.toBe('');
+    }
+
+    clearPreferencesFromDom({ target: html });
+    for (const name of PREFERENCE_CSS_VARS) {
+      expect(html.style.getPropertyValue(name)).toBe('');
+    }
   });
 });

@@ -2,7 +2,7 @@
 import type { HTMLAttributes } from "vue"
 import type { InputGroupButtonVariants } from "."
 import type { ButtonVariants } from '../button'
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 import { Button } from '../button'
 import { inputGroupButtonVariants } from "."
 

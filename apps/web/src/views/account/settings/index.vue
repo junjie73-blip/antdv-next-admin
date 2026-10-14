@@ -4,7 +4,7 @@ import { reactive, ref } from 'vue';
 import { Card, Divider } from '@antdv/common-ui';
 import { BasicModal, message, useModal } from '@antdv/popup-ui';
 import { Button, Input, Label, Switch } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 import { useAppStore } from '~/stores/modules/app';
 import { useUserStore } from '~/stores/modules/user';

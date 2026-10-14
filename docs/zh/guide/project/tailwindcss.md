@@ -40,7 +40,7 @@ cn('bg-ant-primary text-white shadow-ant-primary/30'); // 永远跟主色
 ## 响应式与写法约定
 
 - 断点用默认 `sm/md/lg/xl`，登录页的品牌区/表单区分栏就是纯工具类实现（`views/login/index.vue` 可当范例：窄屏隐藏 `data-auth="brand"` 区，logo 退到卡片内）。
-- 超过一行、或需要条件拼接的 class 走 `cn()`（`packages/shared/src/cn.ts`，clsx + tailwind-merge；twMerge 保证"后写的冲突类赢"，这是 register-props 组件里 `setProps` 能覆盖样式类的基础）。
+- 超过一行、或需要条件拼接的 class 走 `cn()`（`packages/shared/src/utils/cn.ts`，clsx + tailwind-merge；twMerge 保证"后写的冲突类赢"，这是 register-props 组件里 `setProps` 能覆盖样式类的基础）。
 - 复杂类名串抽到模块 `constants.ts` 里命名（`CODE_STANDARD.md` 7.2），模板只引用变量。
 - 需要原始 CSS 的少数场景（视图过渡、`::selection`）集中在 `packages/design/src/base.css`，刻意**不写 @layer**：无层级规则优先级高于全部层级，`html/body` 的尺寸约束不能被工具类意外盖掉。
 

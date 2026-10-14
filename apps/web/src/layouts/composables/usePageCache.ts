@@ -2,7 +2,7 @@ import type { Component, VNode } from 'vue';
 
 import { computed, defineComponent, h, isVNode, markRaw, ref } from 'vue';
 
-import { normalizeMenuPath } from '@antdv/shared/menu';
+import { normalizeMenuPath } from '@antdv/shared/utils/menu';
 import { useRouteStore } from '~/stores/modules/route';
 import { useTabsStore } from '~/stores/modules/tabs';
 

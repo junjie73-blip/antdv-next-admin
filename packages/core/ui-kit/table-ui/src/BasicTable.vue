@@ -34,7 +34,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { useTable as useTanstackTable } from '@tanstack/vue-table';
 import { isFunction, isString } from 'es-toolkit';
 

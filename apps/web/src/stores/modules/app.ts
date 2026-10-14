@@ -4,7 +4,7 @@ import type { Ref } from 'vue';
 
 import { computed, toRef, watch } from 'vue';
 
-import { setTimezone } from '@antdv/shared/dayjs';
+import { setTimezone } from '@antdv/shared/utils/dayjs';
 import { defineStore } from 'pinia';
 import { createToggles, getPreferences } from '~/settings';
 

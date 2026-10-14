@@ -8,7 +8,7 @@ import { BasicForm, useForm } from '@antdv/form-ui';
 import { message } from '@antdv/popup-ui';
 
 import { Button, Switch } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 const containerClassName = cn('space-y-6');
 const descClassName = cn('mb-4 text-sm/6 text-gray-600 dark:text-gray-300');

@@ -11,8 +11,8 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
-import { isExternalPath } from '@antdv/shared/menu';
+import { cn } from '@antdv/shared/utils/cn';
+import { isExternalPath } from '@antdv/shared/utils/menu';
 
 import { useLayoutStyle } from '../useLayoutStyle';
 

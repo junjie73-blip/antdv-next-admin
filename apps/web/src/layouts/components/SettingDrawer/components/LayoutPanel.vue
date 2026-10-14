@@ -29,7 +29,7 @@ import {
 import { TAB_STYLE_OPTIONS } from '@antdv/tabs-ui';
 import { useAppStore } from '~/stores/modules/app';
 
-import { mixWithWhite } from '../color';
+import { mixWithWhite } from '@antdv/shared/color';
 import SettingGroup from './SettingGroup.vue';
 import SettingItem from './SettingItem.vue';
 
@@ -169,7 +169,8 @@ const tabStyleOptions = computed(() =>
           :step="20"
           class="w-32"
           @update:model-value="
-            (v: number[] | undefined) => v && appStore.updateSetting({ contentWidth: v[0] })
+            (v: number[] | undefined) =>
+              v && appStore.updateSetting({ contentWidth: v[0] })
           "
         />
       </SettingItem>
@@ -236,7 +237,8 @@ const tabStyleOptions = computed(() =>
           :step="10"
           class="w-24"
           @update:model-value="
-            (v: number | undefined) => v !== undefined && appStore.updateSetting({ sidebarWidth: v })
+            (v: number | undefined) =>
+              v !== undefined && appStore.updateSetting({ sidebarWidth: v })
           "
         >
           <NumberFieldContent>
@@ -259,7 +261,8 @@ const tabStyleOptions = computed(() =>
           :step="4"
           class="w-24"
           @update:model-value="
-            (v: number | undefined) => v !== undefined && appStore.updateSetting({ railWidth: v })
+            (v: number | undefined) =>
+              v !== undefined && appStore.updateSetting({ railWidth: v })
           "
         >
           <NumberFieldContent>
@@ -447,7 +450,8 @@ const tabStyleOptions = computed(() =>
           :placeholder="t('preferences.copyrightCompanyPlaceholder')"
           class="w-32"
           @update:model-value="
-            (v: string | number) => appStore.updateSetting({ copyrightCompany: String(v) })
+            (v: string | number) =>
+              appStore.updateSetting({ copyrightCompany: String(v) })
           "
         />
       </SettingItem>
@@ -458,7 +462,8 @@ const tabStyleOptions = computed(() =>
           :placeholder="t('preferences.copyrightIcpPlaceholder')"
           class="w-32"
           @update:model-value="
-            (v: string | number) => appStore.updateSetting({ copyrightIcp: String(v) })
+            (v: string | number) =>
+              appStore.updateSetting({ copyrightIcp: String(v) })
           "
         />
       </SettingItem>

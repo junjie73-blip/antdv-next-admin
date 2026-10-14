@@ -13,7 +13,7 @@ import {
   PopoverTrigger,
   Separator,
 } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { isFunction, isString } from 'es-toolkit';
 
 import { tableRuntime } from '../config';

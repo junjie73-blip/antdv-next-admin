@@ -1,4 +1,4 @@
-import { escapeHtml } from '@antdv/shared/xss';
+import { escapeHtml } from '@antdv/shared/utils/xss';
 import { message } from 'antdv-next';
 
 /**

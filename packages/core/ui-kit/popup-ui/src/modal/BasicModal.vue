@@ -18,7 +18,7 @@ import {
   DialogTitle,
   Spinner,
 } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { Check, X } from '@lucide/vue';
 import { useTimeoutFn } from '@vueuse/core';
 

@@ -4,7 +4,7 @@ import type { HTMLAttributes } from "vue"
 import { ChevronLeft } from "@lucide/vue"
 import { reactiveOmit } from "@vueuse/core"
 import { CalendarPrev, useForwardProps } from "reka-ui"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 import { buttonVariants } from '../button'
 
 const props = defineProps<CalendarPrevProps & { class?: HTMLAttributes["class"] }>()

@@ -10,45 +10,49 @@
 | 组合式 | `packages/composables/src/**` | 分片上传、打印、水印、ECharts、SSE、WebSocket、响应式缓存、路由 Loading、文件读取 | 只用 Vue 响应式 API，不碰 pinia / 业务 store |
 | 应用薄壳 | `apps/web/src/utils/**`、`apps/web/src/composables/**` | 需要 store / api / 应用内类型的接线 | 例 `utils/dict.ts:2`（读字典 store）、`utils/ws.ts:8`（拿 user store 的 token）、`utils/routePreload.ts:19,66`（`useRouter`） |
 
-::: tip 自动导入不负责本仓库的包 `internal/vite-config/src/plugins/auto-import.ts` 只注入框架 API。`import { cn } from '@antdv/shared/cn'` 这类写法必须自己写（同 [基础概念](/zh/guide/essentials/concepts)）。:::
+::: tip 自动导入不负责本仓库的包 `internal/vite-config/src/plugins/auto-import.ts` 只注入框架 API。`import { cn } from '@antdv/shared/utils/cn'` 这类写法必须自己写（同 [基础概念](/zh/guide/essentials/concepts)）。:::
 
 ## 子路径即模块
 
-`packages/shared/package.json:21-43` 的 `exports` 用了 `"./*"` 通配符，配合 `packages/shared/tsdown.config.ts:16` 的 `entry: ['src/index.ts', 'src/*.ts', 'src/*/index.ts']`：**`src/` 下每个单文件模块就是一个入口**， `@antdv/shared/cn` → `dist/cn.js`。多文件目录模块（`cache` / `crypto` / `event`）产出 `dist/<目录>/index.js`，所以在那里被显式列出（`packages/shared/package.json:26-37`，注释见同文件 `:20`）。
+`packages/core/base/shared/package.json:21-55` 的 `exports` 用了 `"./*"` 通配符（`*` 可以含斜杠，`utils/cn` 这种两段路径照样命中），配合 `packages/core/base/shared/tsdown.config.ts:16-22` 的 `entry: ['src/index.ts', 'src/*.ts', 'src/*/*.ts', 'src/*/index.ts', 'src/*/*/index.ts']`：**`src/` 下每个模块文件就是一个入口**，`@antdv/shared/utils/cn` → `dist/utils/cn.js`。多文件目录模块（`cache` / `color` / `constants` / `utils`，以及它们内部的 `utils/crypto` / `utils/event`）产出 `dist/<目录>/index.js`，通配符不会替它们补上 `index`，所以在那里逐个显式列出（`package.json:26-49`，注释见同文件 `:20`）。
 
 `@antdv/composables` 同一套机制，独立列出的目录是 `echarts` / `sse` / `websocket` （`packages/composables/package.json:26-37`）：重型依赖（echarts 全量注册表、`watermark-plus`）刻意留在独立入口，不让 `import { usePrint }` 也付出一份图表的解析成本（同文件 `:20` 的注释、`src/index.ts:2-12`）。
 
 ```ts
-import { cn } from '@antdv/shared/cn'; // 单文件模块 → 子路径
+import { cn } from '@antdv/shared/utils/cn'; // 单文件模块 → 子路径
 import { cache } from '@antdv/shared/cache'; // 目录模块 → 显式列出
-import { cache } from '@antdv/shared'; // 根 barrel 也可用（src/index.ts:9-37 显式 export *）
+import { cache } from '@antdv/shared'; // 根 barrel 也可用（src/index.ts:11-15 显式 export *）
 import { useWebSocket } from '@antdv/composables/websocket';
 ```
 
 ## `@antdv/shared` 清单
 
-「单测」指 `packages/shared/__tests__/` 下有没有同名用例。消费者给一个真实调用点即可，不代表全部。
+「单测」指 `packages/core/base/shared/__tests__/` 下有没有同名用例。消费者给一个真实调用点即可，不代表全部。
 
 | 模块（子路径） | 代表导出 | 消费者 | 单测 |
 | --- | --- | --- | --- |
 | `cache` | `cache`（`src/cache/index.ts:196`）、`createCache`（`:60`）、`buildStorageKey`（`:40`）、`encryptToken` / `decryptToken`（`src/cache/tokenCrypto.ts:77,106`） | `stores/modules/user.ts:5` | 有 |
-| `cn` | `cn()`（`src/cn.ts:6`） | 全仓 446 个文件，如 `packages/ui-kit/layout-ui/src/components/LayoutBreadcrumb.vue:14` | 有 |
-| `crypto` | `encrypt` / `decrypt` / `encryptObject` / `decryptObject`（`src/crypto/aes.ts:14,19,24,31`）、`md5` / `md5File` / `sha256` / `hash`（`src/crypto/hash.ts:3,7,32,40`） | **无调用点** | 无 |
-| `csrf` | `config`（`src/csrf.ts:67`）、`initCsrfProtection`（`:111`）、`getCsrfToken`（`:164`） | `composables/web/request/fetcher.ts:5-8`、`utils/securityInit.ts:9` | 有 |
-| `dayjs` | `dayjs`（`src/dayjs.ts:136`）、`setTimezone`（`:62`）、`nowTz`（`:116`） | `stores/modules/app.ts:7,130`、`layouts/widgets/WidgetTimezone.vue:8`、`composables/web/useLocale.ts:4` | 有 |
-| `domUtils` | `getBoundingClientRect`（`src/domUtils.ts:14`）、`getViewportOffset`（`:89`）、`useRafThrottle`（`:187`） | **无调用点** | 有 |
-| `download` | `saveBlob`（`src/download.ts:159`）、`downloadFile`（`:248`）、`downloadWithAuth`（`:416`）、`downloadMultiple`（`:552`） | **无调用点** | 无 |
-| `env` | `configureSharedEnv`（`src/env.ts:32`）、`isEnvEnabled`（`:86`）、`getCachePrefix`（`:72`） | `bootstrap/env.ts:1`、`mock/activate.ts:1`、`config/micro-app.ts:3` | 有 |
-| `event` | `eventBus` / `createEventBus`（`src/event/bus.ts:45,5`）、`addResizeListener`（`src/event/resize.ts:71`）、`useResizeListener`（`:151`） | `utils/ws.ts:4,118`、`layouts/components/LayoutHeader.vue:8` | 有（bus + `triggerWindowResize`） |
-| `excel` | `exportToExcel`（`src/excel.ts:40`） | `views/system/role/index.vue:8` 等 5 个列表页 | 无 |
-| `file-category` | `getExt`（`src/file-category.ts:15`）、`getFileCategory`（`:98`） | **无调用点** | 有 |
-| `iframe` | `buildIframeSandbox`（`src/iframe.ts:95`）、`canEscapeSandbox`（`:131`）、`SANDBOX_FLAGS`（`:23`） | `views/micro-app/SubAppView.vue:8` | 有 |
-| `jwt` | `isTokenExpired`（`src/jwt.ts:97`）；`parseJwt`（`:70`）、`isJwtFormat`（`:138`）、`getTokenRemainingSeconds`（`:121`） | `composables/web/request/fetcher.ts:9,210`（只用 `isTokenExpired`） | 有 |
-| `masking` | `maskPhone` / `maskEmail` / `maskIdCard`（`src/masking.ts:22,30,40`）、`MASKING_RULES`（`:84`） | **无调用点** | 有 |
-| `menu` | `menuKeyOf`（`src/menu.ts:32`）、`attachMenuPaths`（`:258`）、`buildMenuItems`（`:561`）、`MenuPathRouter`（`:393`） | `stores/modules/route.ts:1-15`、`layouts/composables/useSidebarMenu.ts:10`、`packages/layouts/src/menu-source.ts:18` | 有 |
-| `template` | `generateTemplate`（`src/template.ts:30`） | `components/business/ImportExport.vue:7,194` | 有 |
-| `welcome` | `showLoginWelcome`（`src/welcome.ts:114`）、`getPersonalizedWelcome`（`:66`） | **无调用点** | 有 |
-| `xss` | `safeHtmlDirective`（`src/xss.ts:437`）、`escapeDirective`（`:454`）、`escapeHtml`（`:173`） | `directives/index.ts:17` → `main.ts:103,107`；`escapeHtml` 被 `packages/composables/src/usePrint.ts:1` | 有 |
+| `cn` | `cn()`（`src/utils/cn.ts:6`） | 全仓 460 个文件，如 `packages/ui-kit/layout-ui/src/components/LayoutBreadcrumb.vue:14` | 有 |
+| `color` | `parseColor`（`src/color/convert.ts:23`）、`toRgbString` / `toHex`（`:45,50`）、`mixWithWhite`（`:60`） | `layouts/components/SettingDrawer/components/AppearancePanel.vue:22`、`LayoutPanel.vue:32` | 有 |
+| `constants` | `PREFERENCE_CSS_VARS`（`src/constants/css-vars.ts:24`）、`DARK_CLASS` / `COLOR_WEAK_CLASS` / `GRAY_MODE_CLASS`（`src/constants/dom-classes.ts:10,12,14`）、`DEFAULT_PRIMARY_COLOR`（`src/constants/theme.ts:9`） | `packages/core/preferences/src/css-vars.ts:3`、`src/defaults.ts:3` | 有 |
+| `crypto` | `encrypt` / `decrypt` / `encryptObject` / `decryptObject`（`src/utils/crypto/aes.ts:14,19,24,31`）、`md5` / `md5File` / `sha256` / `hash`（`src/utils/crypto/hash.ts:3,7,32,40`） | **无调用点** | 无 |
+| `csrf` | `config`（`src/utils/csrf.ts:67`）、`initCsrfProtection`（`:111`）、`getCsrfToken`（`:164`） | `composables/web/request/fetcher.ts:5-8`、`utils/securityInit.ts:9` | 有 |
+| `dayjs` | `dayjs`（`src/utils/dayjs.ts:136`）、`setTimezone`（`:62`）、`nowTz`（`:116`） | `stores/modules/app.ts:7,130`、`layouts/widgets/WidgetTimezone.vue:8`、`composables/web/useLocale.ts:4` | 有 |
+| `domUtils` | `getBoundingClientRect`（`src/utils/domUtils.ts:14`）、`getViewportOffset`（`:89`）、`useRafThrottle`（`:187`） | **无调用点** | 有 |
+| `download` | `saveBlob`（`src/utils/download.ts:159`）、`downloadFile`（`:248`）、`downloadWithAuth`（`:416`）、`downloadMultiple`（`:552`） | **无调用点** | 无 |
+| `env` | `configureSharedEnv`（`src/utils/env.ts:32`）、`isEnvEnabled`（`:86`）、`getCachePrefix`（`:72`） | `bootstrap/env.ts:1`、`mock/activate.ts:1`、`config/micro-app.ts:3` | 有 |
+| `event` | `eventBus` / `createEventBus`（`src/utils/event/bus.ts:45,5`）、`addResizeListener`（`src/utils/event/resize.ts:71`）、`useResizeListener`（`:151`） | `utils/ws.ts:4,118`、`layouts/components/LayoutHeader.vue:8` | 有（bus + `triggerWindowResize`） |
+| `excel` | `exportToExcel`（`src/utils/excel.ts:40`） | `views/system/role/index.vue:8` 等 5 个列表页 | 无 |
+| `file-category` | `getExt`（`src/utils/file-category.ts:15`）、`getFileCategory`（`:98`） | **无调用点** | 有 |
+| `iframe` | `buildIframeSandbox`（`src/utils/iframe.ts:95`）、`canEscapeSandbox`（`:131`）、`SANDBOX_FLAGS`（`:23`） | `views/micro-app/SubAppView.vue:8` | 有 |
+| `jwt` | `isTokenExpired`（`src/utils/jwt.ts:97`）；`parseJwt`（`:70`）、`isJwtFormat`（`:138`）、`getTokenRemainingSeconds`（`:121`） | `composables/web/request/fetcher.ts:9,210`（只用 `isTokenExpired`） | 有 |
+| `masking` | `maskPhone` / `maskEmail` / `maskIdCard`（`src/utils/masking.ts:22,30,40`）、`MASKING_RULES`（`:84`） | **无调用点** | 有 |
+| `menu` | `menuKeyOf`（`src/utils/menu.ts:32`）、`attachMenuPaths`（`:258`）、`buildMenuItems`（`:561`）、`MenuPathRouter`（`:393`） | `stores/modules/route.ts:1-15`、`layouts/composables/useSidebarMenu.ts:10`、`packages/layouts/src/menu-source.ts:18` | 有 |
+| `scroll` | `computeOverflow`（`src/utils/scroll.ts:28`）、`useHorizontalScroll`（`:72`）、`pickHorizontalDelta`（`:47`） | `packages/core/ui-kit/menu-ui/src/BasicMenu.vue`、`tabs-ui/src/TabsBar.vue` | 有 |
+| `store` | `useStore` / `useAtom` / `useSelector`（`src/store.ts:12`，整包转发 `@tanstack/vue-store`） | 暂无调用点：共享状态的写法统一从这里取，不再各建 ref 单例 | 由 `__tests__/structure.test.ts` 覆盖 |
+| `template` | `generateTemplate`（`src/utils/template.ts:30`） | `components/business/ImportExport.vue:7,194` | 有 |
+| `welcome` | `showLoginWelcome`（`src/utils/welcome.ts:114`）、`getPersonalizedWelcome`（`:66`） | **无调用点** | 有 |
+| `xss` | `safeHtmlDirective`（`src/utils/xss.ts:437`）、`escapeDirective`（`:454`）、`escapeHtml`（`:173`） | `directives/index.ts:17` → `main.ts:103,107`；`escapeHtml` 被 `packages/composables/src/usePrint.ts:1` | 有 |
 
 ## `@antdv/composables` 清单
 
@@ -91,15 +95,15 @@ import { useWebSocket } from '@antdv/composables/websocket';
 | --- | --- | --- |
 | 不许 import `pinia` | `packages/*/src` 里 `from 'pinia'` **零命中** | 无 |
 | 不许 import 应用 store / 用 `~/` 别名 | `packages/*/src` 里 `from '~/...'` 零命中（只剩 `useChunkUpload.ts:32` 注释里的示例） | 无 |
-| 不许读 `import.meta.env` | 包源码里**没有一处运行时**读它（只有注释提到）；env 由应用入口注入（`packages/shared/src/env.ts:1-10`、`apps/web/src/bootstrap/env.ts:1-7`） | 无 |
-| 尽量不依赖 `vue-router` 运行时 | 全仓包源码只有一处运行时 import：`packages/composables/src/useRouteLoading.ts:2`（`useRouter`，本来就要路由实例）；其余全是类型（如 `packages/shared/src/menu.ts:4` 的 `import type { RouteRecordRaw }`） | 就是那一处 |
+| 不许读 `import.meta.env` | 包源码里**没有一处运行时**读它（只有注释提到）；env 由应用入口注入（`packages/shared/src/utils/env.ts:1-10`、`apps/web/src/bootstrap/env.ts:1-7`） | 无 |
+| 尽量不依赖 `vue-router` 运行时 | 全仓包源码只有一处运行时 import：`packages/composables/src/useRouteLoading.ts:2`（`useRouter`，本来就要路由实例）；其余全是类型（如 `packages/shared/src/utils/menu.ts:4` 的 `import type { RouteRecordRaw }`） | 就是那一处 |
 
 需要应用状态时靠**依赖注入**传进来，所以这些包能被别的项目单点复用、能脱离应用做单测：
 
 | 需要的能力 | 包接收什么 | 应用在哪注入 |
 | --- | --- | --- |
 | 持久化介质 / 前缀 / 密钥 | `createPreferences({ cache, cacheKey, expire })`（`packages/preferences/src/store.ts:26-31`） | 默认实例走 `configureSharedEnv` 的注入（`apps/web/src/bootstrap/env.ts`） |
-| 环境信息 | `configureSharedEnv({ cachePrefix, cacheEncryptKey, minioPublicUrl, production })`（`packages/shared/src/env.ts:32-42`） | `apps/web/src/bootstrap/env.ts:2-7` |
+| 环境信息 | `configureSharedEnv({ cachePrefix, cacheEncryptKey, minioPublicUrl, production })`（`packages/shared/src/utils/env.ts:32-42`） | `apps/web/src/bootstrap/env.ts:2-7` |
 | 权限判定 | `createPermissionDirective({ checkers, onCheck, subscribe })` | `apps/web/src/directives/index.ts:19` |
 | 文件切片处理 | `useChunkUpload({ createWorker, workerUrl })`（`packages/composables/src/useChunkUpload.ts:35-37`） | 应用提供 `upload.worker` |
 
@@ -108,7 +112,7 @@ import { useWebSocket } from '@antdv/composables/websocket';
 ## `cn()` 是类名拼接的唯一口径
 
 ```ts
-// packages/shared/src/cn.ts:1-8
+// packages/shared/src/utils/cn.ts:1-8
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -117,7 +121,7 @@ export function cn(...inputs: ClassValue[]): string {
 }
 ```
 
-全仓 `from '@antdv/shared/cn'` 命中 **446 个文件**（`apps/web/src` 96 个，`packages` 350 个 —— 其中 `ui-kit/shadcn-ui` 314 个是 shadcn 生成的原子件，剩下 `form-ui` 14、`table-ui` 6、`popup-ui` 4、`tabs-ui` 4、`menu-ui` 3、`layout-ui` 2、`icons`、`loading-ui`、`composables` 各 1），仓库里没有第二份 `cn` 实现，也没有别的类名合并库。`@antdv/shared` 因此依赖 `clsx` + `tailwind-merge` （`packages/shared/package.json:49,57`）；`apps/web` 也各自直依赖这两个包（`apps/web/package.json:86,111`），但**不要**在应用里直接 `import { twMerge }` 组类名 —— 冲突消解规则只有一份才谈得上口径。
+全仓 `from '@antdv/shared/utils/cn'` 命中 **460 个文件**（`apps/web` 82 个，`packages` 378 个 —— 其中 `ui-kit/shadcn-ui` 314 个是 shadcn 生成的原子件，剩下 `common-ui` 28、`form-ui` 14、`table-ui` 7、`popup-ui` 4、`tabs-ui` 4、`menu-ui` 3、`layout-ui` 2、`icons`、`composables` 各 1），仓库里没有第二份 `cn` 实现，也没有别的类名合并库。`@antdv/shared` 因此依赖 `clsx` + `tailwind-merge` （`packages/core/base/shared/package.json:62,70`）；`apps/web` 也各自直依赖这两个包（`apps/web/package.json:85,110`），但**不要**在应用里直接 `import { twMerge }` 组类名 —— 冲突消解规则只有一份才谈得上口径。
 
 命名规范同 `CODE_STANDARD.md` 第 2 节：Tailwind 优先，复杂/动态类名走 `cn()`。
 

@@ -5,7 +5,7 @@ import { reactiveOmit } from "@vueuse/core"
 import {
   AlertDialogDescription,
 } from "reka-ui"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 
 const props = defineProps<AlertDialogDescriptionProps & { class?: HTMLAttributes["class"] }>()
 

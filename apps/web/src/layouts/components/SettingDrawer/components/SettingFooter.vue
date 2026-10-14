@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n';
 
 import { confirm, message } from '@antdv/popup-ui';
 import { cache } from '@antdv/shared/cache';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 import { useClipboard } from '@vueuse/core';
 import { useAppStore } from '~/stores/modules/app';

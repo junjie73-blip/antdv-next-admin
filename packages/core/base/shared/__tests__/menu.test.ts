@@ -23,7 +23,7 @@ import {
   normalizeMenuPath,
   visibleMenus,
   visibleMenuTree,
-} from '../src/menu';
+} from '../src/utils/menu';
 
 /**
  * 后端菜单的真实形状：目录节点只有 name + menuName，没有 path。

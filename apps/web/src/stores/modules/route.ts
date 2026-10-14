@@ -1,4 +1,4 @@
-import type { MenuPathRouter } from '@antdv/shared/menu';
+import type { MenuPathRouter } from '@antdv/shared/utils/menu';
 import type { BackendMenu, MenuConfig } from '@antdv/types';
 
 import type { RouteRecordRaw } from 'vue-router';
@@ -12,7 +12,7 @@ import {
   isBuiltinMenuPath,
   joinMenuPath,
   normalizeMenuPath,
-} from '@antdv/shared/menu';
+} from '@antdv/shared/utils/menu';
 // stores/modules/route.ts
 import { defineStore } from 'pinia';
 import { http } from '~/composables';
@@ -83,7 +83,7 @@ export const useRouteStore = defineStore('route', () => {
    * **隐藏节点照样保留**：`hidden` 的语义是"不在导航里出现"，不是"没权限"。
    * 直接过滤掉会带来一串副作用 —— 页面失去授权（直达链接变 403）、标签页查不到
    * 菜单（标题退化成路径）、keep-alive 配置丢失。剔掉隐藏项是渲染侧的事
-   * （`@antdv/shared/menu` 的 `visibleMenus` / `attachMenuPaths` 默认就会做）。
+   * （`@antdv/shared/utils/menu` 的 `visibleMenus` / `attachMenuPaths` 默认就会做）。
    */
   function normalize(list: BackendMenu[]): MenuConfig[] {
     return list

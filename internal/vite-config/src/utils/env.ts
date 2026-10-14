@@ -22,7 +22,7 @@ export function loadEnv(mode: string): Record<string, any> {
  * 认 `true / 1 / 'true' / '1' / 'on' / 'yes'`（大小写、前后空格忽略），其余（含 undefined、''、'0'）为 false。
  * 数字 1/0 也要认 —— 这是 Node 侧相对浏览器侧的额外分支，因为 `parseLoadedEnv` 会把 `'1'` 转成 `1`。
  *
- * 浏览器侧的同名函数在 `@antdv/shared/env`（来源是 `import.meta.env`，一律是字符串，不认数字）。
+ * 浏览器侧的同名函数在 `@antdv/shared/utils/env`（来源是 `import.meta.env`，一律是字符串，不认数字）。
  * 两个包各自服务自己的运行时，Node 侧不依赖浏览器包，所以重复一份几行的纯函数，
  * 而不是让 `internal/vite-config` 去 import `@antdv/shared`。
  */

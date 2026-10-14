@@ -4,7 +4,7 @@ import type { AppSetting } from '@antdv/types';
 import type { PreferencesInstance } from '../src/store';
 
 import { createCache } from '@antdv/shared/cache';
-import { configureSharedEnv } from '@antdv/shared/env';
+import { configureSharedEnv } from '@antdv/shared/utils/env';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { clearPreferencesFromDom } from '../src/css-vars';

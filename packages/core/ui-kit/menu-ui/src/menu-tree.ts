@@ -2,7 +2,7 @@ import type { MenuConfig } from '@antdv/types';
 
 import type { MenuNode, ToMenuNodesOptions } from './types';
 
-import { menuKeyOf, visibleMenus } from '@antdv/shared/menu';
+import { menuKeyOf, visibleMenus } from '@antdv/shared/utils/menu';
 
 /**
  * 把业务菜单树归一成渲染节点。

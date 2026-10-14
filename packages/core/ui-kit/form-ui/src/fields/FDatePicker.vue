@@ -7,7 +7,7 @@ import {
   PopoverTrigger,
 } from '@antdv/shadcn-ui';
 import { Calendar, RangeCalendar } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { CalendarDate } from '@internationalized/date';
 import { X } from '@lucide/vue';
 import dayjs from 'dayjs';

@@ -6,8 +6,8 @@ import { useRoute } from 'vue-router';
 
 import { Tag } from '@antdv/common-ui';
 import { Button, Spinner } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
-import { buildIframeSandbox, canEscapeSandbox } from '@antdv/shared/iframe';
+import { cn } from '@antdv/shared/utils/cn';
+import { buildIframeSandbox, canEscapeSandbox } from '@antdv/shared/utils/iframe';
 import { Icon } from '@iconify/vue';
 import { microAppConfig as registry } from '~/config/micro-app';
 import { useUserStore } from '~/stores/modules/user';

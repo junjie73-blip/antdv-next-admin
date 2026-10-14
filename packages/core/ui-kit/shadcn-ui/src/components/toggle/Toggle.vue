@@ -4,7 +4,7 @@ import type { HTMLAttributes } from "vue"
 import type { ToggleVariants } from "."
 import { reactiveOmit } from "@vueuse/core"
 import { Toggle, useForwardPropsEmits } from "reka-ui"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 import { toggleVariants } from "."
 
 const props = withDefaults(defineProps<ToggleProps & {

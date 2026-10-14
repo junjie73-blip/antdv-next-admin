@@ -5,8 +5,8 @@ import type { BasicColumn } from '@antdv/table-ui';
 
 import { ref } from 'vue';
 
-import { cn } from '@antdv/shared/cn';
-import { exportToExcel } from '@antdv/shared/excel';
+import { cn } from '@antdv/shared/utils/cn';
+import { exportToExcel } from '@antdv/shared/utils/excel';
 import { Icon } from '@iconify/vue';
 import { Divider, Popconfirm, Tag } from '@antdv/common-ui';
 import { deleteOperLog, getOperLogList } from '~/api/system';

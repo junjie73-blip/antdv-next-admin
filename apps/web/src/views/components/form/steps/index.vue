@@ -18,7 +18,7 @@ import {
 import { BasicForm, useForm } from '@antdv/form-ui';
 import { message } from '@antdv/popup-ui';
 import { Button, Checkbox } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 /**
  * 分步表单示例。

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { useAppStore } from '~/stores/modules/app';
 
 defineOptions({ name: 'WidgetButton' });

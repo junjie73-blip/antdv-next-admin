@@ -11,10 +11,10 @@
 | `v-permission` | `packages/directives/src/permission/index.ts:57` | `apps/web/src/directives/index.ts:19-36` | `apps/web/src/components/business/ImportExport.vue:206, 223` |
 | `v-loading` | `packages/ui-kit/loading-ui/src/directive.ts:88-107` | 直接注册 `@antdv/loading-ui` 的 `vLoading`（`main.ts:8, 113`） | `apps/web/src/views/components/loading/index.vue:1026` 起 |
 | `v-lazy` | `packages/directives/src/lazy.ts:145, 311` | `apps/web/src/directives/index.ts:16` 转出 | **除示例页外没有使用点**（见下文） |
-| `v-safe-html` | `packages/shared/src/xss.ts:437-445` | `apps/web/src/directives/index.ts:17` 转出 | `MarkdownEditor.vue:599`、编辑器示例页 `editor/index.vue:834` |
-| `v-escape` | `packages/shared/src/xss.ts:454-462` | `apps/web/src/directives/index.ts:17` 转出 | **除示例页外没有使用点**（见下文） |
+| `v-safe-html` | `packages/shared/src/utils/xss.ts:437-445` | `apps/web/src/directives/index.ts:17` 转出 | `MarkdownEditor.vue:599`、编辑器示例页 `editor/index.vue:834` |
+| `v-escape` | `packages/shared/src/utils/xss.ts:454-462` | `apps/web/src/directives/index.ts:17` 转出 | **除示例页外没有使用点**（见下文） |
 
-::: warning 别按包名找实现 `@antdv/directives` 包里**只有 permission 和 lazy** 两条（`packages/directives/src/index.ts:10-11` 就这两个 export）。`escape` / `safe-html` 的实现住在 `@antdv/shared/xss`，`v-loading` 住在 `@antdv/loading-ui`。`apps/web/src/directives/index.ts` 的定位是「把项目依赖注进工厂」：包内不 import pinia / store（`packages/directives/src/index.ts:4-7` 的设计约束），判定函数、订阅源都由应用侧提供。:::
+::: warning 别按包名找实现 `@antdv/directives` 包里**只有 permission 和 lazy** 两条（`packages/directives/src/index.ts:10-11` 就这两个 export）。`escape` / `safe-html` 的实现住在 `@antdv/shared/utils/xss`，`v-loading` 住在 `@antdv/loading-ui`。`apps/web/src/directives/index.ts` 的定位是「把项目依赖注进工厂」：包内不 import pinia / store（`packages/directives/src/index.ts:4-7` 的设计约束），判定函数、订阅源都由应用侧提供。:::
 
 ## v-permission：判定在包外，打标记在包内
 
@@ -80,7 +80,7 @@
 
 ### v-safe-html
 
-`updateSafeHtml()`（`packages/shared/src/xss.ts:476-533`）的管线：**先正则剥离最危险内容，再交 DOMPurify 按白名单清理**。指令值是字符串，或 `{ content, allowedTags, … }` 对象（选项即 `XssFilterOptions`，`xss.ts:21-38`；外部传的对象字段覆盖默认值，`xss.ts:514-519`）。
+`updateSafeHtml()`（`packages/shared/src/utils/xss.ts:476-533`）的管线：**先正则剥离最危险内容，再交 DOMPurify 按白名单清理**。指令值是字符串，或 `{ content, allowedTags, … }` 对象（选项即 `XssFilterOptions`，`xss.ts:21-38`；外部传的对象字段覆盖默认值，`xss.ts:514-519`）。
 
 - 第一道 `stripDangerousMarkup()`（`xss.ts:127-153`）：成对删 `<script>/<iframe>/<object>/<embed>/<applet>`，再兜底清扫残标签；摘掉所有 `on*=` 属性处理器与 `srcdoc`。注释写明了动机：DOMPurify 在 SSR / 测试环境可能解析不一致，这道剥离保证**任何环境都有下限**（`xss.ts:119-126`）。
 - 第二道 DOMPurify（`xss.ts:523-530`）：白名单 `defaultSafeTags`（`xss.ts:482-511`，段落/标题/列表/表格/`a`/`img` 等富文本常用标签），`ALLOW_DATA_ATTR: false`。DOMPurify 不可用时退回 `escapeHtml()` 全转义（`xss.ts:530`）。

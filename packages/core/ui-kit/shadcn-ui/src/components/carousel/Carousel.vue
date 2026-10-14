@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CarouselEmits, CarouselProps, WithClassAsProps } from "./interface"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 import { useProvideCarousel } from "./useCarousel"
 
 const props = withDefaults(defineProps<CarouselProps & WithClassAsProps>(), {

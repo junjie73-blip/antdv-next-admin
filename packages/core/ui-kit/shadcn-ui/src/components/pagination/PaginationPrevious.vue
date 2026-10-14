@@ -5,7 +5,7 @@ import type { ButtonVariants } from '../button'
 import { ChevronLeftIcon } from "@lucide/vue"
 import { reactiveOmit } from "@vueuse/core"
 import { PaginationPrev, useForwardProps } from "reka-ui"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 import { buttonVariants } from '../button'
 
 const props = withDefaults(defineProps<PaginationPrevProps & {

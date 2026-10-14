@@ -7,7 +7,7 @@ import type { BasicTableProps, Recordable } from '../types';
 import { computed, unref, watch } from 'vue';
 
 import { useForm } from '@antdv/form-ui';
-import dayjs from '@antdv/shared/dayjs';
+import dayjs from '@antdv/shared/utils/dayjs';
 
 interface UseTableFormOptions {
   propsRef?: Ref<BasicTableProps>;

@@ -3,7 +3,7 @@ import type { MenuKey } from '@antdv/types';
 import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
-import { findAncestorKeys } from '@antdv/shared/menu';
+import { findAncestorKeys } from '@antdv/shared/utils/menu';
 import { useAppStore } from '~/stores/modules/app';
 
 import { useShell } from './useLayout';

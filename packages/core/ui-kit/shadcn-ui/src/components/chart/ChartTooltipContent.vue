@@ -2,7 +2,7 @@
 import type { HTMLAttributes } from "vue"
 import type { ChartConfig } from "."
 import { computed } from "vue"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 
 const props = withDefaults(defineProps<{
   hideLabel?: boolean

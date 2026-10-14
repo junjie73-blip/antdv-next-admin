@@ -6,7 +6,7 @@ import type { TransferDirection, TransferItem, TransferKey } from './types';
 import { computed, reactive, ref } from 'vue';
 
 import { Button, Checkbox, Input } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 import { transferKey } from './types';
 

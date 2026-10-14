@@ -3,7 +3,7 @@ import type { StepperIndicatorProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { StepperIndicator, useForwardProps } from "reka-ui"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 
 const props = defineProps<StepperIndicatorProps & { class?: HTMLAttributes["class"] }>()
 

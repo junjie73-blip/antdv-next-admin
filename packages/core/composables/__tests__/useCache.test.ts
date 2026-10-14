@@ -3,7 +3,7 @@ import type { CacheInstance } from '@antdv/shared/cache';
 import { effectScope, isRef, nextTick } from 'vue';
 
 import { buildStorageKey, cache } from '@antdv/shared/cache';
-import { configureSharedEnv } from '@antdv/shared/env';
+import { configureSharedEnv } from '@antdv/shared/utils/env';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useCache } from '../src/useCache';

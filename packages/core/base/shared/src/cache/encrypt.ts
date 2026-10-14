@@ -9,7 +9,7 @@
 import { isString } from 'es-toolkit';
 import { sm4 } from 'sm-crypto';
 
-import { getCacheEncryptKey, isProduction } from '../env';
+import { getCacheEncryptKey, isProduction } from '../utils/env';
 
 /** 最小密钥长度 */
 const MIN_KEY_LENGTH = 16;

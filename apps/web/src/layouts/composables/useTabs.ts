@@ -8,7 +8,7 @@ import {
   findMenuByPath,
   normalizeMenuPath,
   visibleMenus,
-} from '@antdv/shared/menu';
+} from '@antdv/shared/utils/menu';
 import { useRouteStore } from '~/stores/modules/route';
 import { useTabsStore } from '~/stores/modules/tabs';
 
@@ -22,7 +22,7 @@ import { usePageCache } from './usePageCache';
  * - **tab key 用归一化 path，不用 route name**。文件约定式路由生成的 name 带结尾斜杠
  *   （`/system/user/`），且与业务菜单 name（`SystemUser`）不同源；拿它当 key，
  *   「菜单 → 标签页」的标题/图标反查会全部落空，标签页只能显示一串路径。
- *   path 才是菜单、面包屑、守卫、标签页四方共用的连接键（见 `@antdv/shared/menu`）。
+ *   path 才是菜单、面包屑、守卫、标签页四方共用的连接键（见 `@antdv/shared/utils/menu`）。
  * - 首页来自菜单树第一个叶子，异步菜单加载完成后回填；
  * - 关闭 / 跳转 / 刷新都要经过 router，所以 store 不持有路由实例。
  */

@@ -8,7 +8,7 @@ import {
   DrawerPortal,
   useForwardPropsEmits,
 } from "reka-ui"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 import DrawerOverlay from "./DrawerOverlay.vue"
 
 defineOptions({

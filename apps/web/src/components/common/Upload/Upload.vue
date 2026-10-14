@@ -12,7 +12,7 @@ import { ref, watch } from 'vue';
 import { Upload as BaseUpload } from '@antdv/common-ui';
 import { message } from '@antdv/popup-ui';
 import { Button } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 
 import { uploadSingleFile } from './api';

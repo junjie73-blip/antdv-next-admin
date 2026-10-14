@@ -1,4 +1,4 @@
-import type { XssFilterOptions } from '../src/xss';
+import type { XssFilterOptions } from '../src/utils/xss';
 
 import { describe, expect, it, vi } from 'vitest';
 
@@ -16,7 +16,7 @@ import {
   sanitizeUrl,
   smartEscape,
   stripDangerousMarkup,
-} from '../src/xss';
+} from '../src/utils/xss';
 
 /** 这些函数会 console.warn 刷攻击模式名，测试里静音 */
 vi.spyOn(console, 'warn').mockImplementation(() => {});

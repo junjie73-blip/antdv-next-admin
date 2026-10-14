@@ -32,7 +32,7 @@ Being source-published has a cost: those packages have no `build` script at all 
 
 Nothing under `packages/*` may import `pinia`, an app store, or read `import.meta.env`. Two concrete reasons, not aesthetic preference:
 
-1. **Package output lives in `dist`, out of reach of Vite's env static replacement.** Reading `import.meta.env` inside a package yields `undefined` and the behavior degrades silently. The app injects its environment instead: `apps/web/src/bootstrap/env.ts` calls `configureSharedEnv({ cachePrefix, cacheEncryptKey, ... })`, and `packages/shared/src/env.ts` holds that explicit config. Preferences work the same way — the project-specific defaults are passed into `createPreferences({ defaults })` from `apps/web/src/settings/index.ts`.
+1. **Package output lives in `dist`, out of reach of Vite's env static replacement.** Reading `import.meta.env` inside a package yields `undefined` and the behavior degrades silently. The app injects its environment instead: `apps/web/src/bootstrap/env.ts` calls `configureSharedEnv({ cachePrefix, cacheEncryptKey, ... })`, and `packages/shared/src/utils/env.ts` holds that explicit config. Preferences work the same way — the project-specific defaults are passed into `createPreferences({ defaults })` from `apps/web/src/settings/index.ts`.
 2. **Unit tests need to flip branches.** A check like `shouldEncrypt()` ("encrypt only in production") is untestable when it reads env, and testable when it reads injected config — which is exactly what `packages/shared/__tests__/cache.test.ts` does.
 
 "No stores" is enforced with dependency injection:
@@ -43,7 +43,7 @@ Nothing under `packages/*` may import `pinia`, an app store, or read `import.met
 | Route guards | guard factories in `@antdv/router` (auth state, menu loading, progress bar, title are all parameters) | `apps/web/src/router/guards/index.ts` |
 | Layout shapes | `@antdv/layouts` ships only the region blueprint, no SFCs | `apps/web/src/layouts/` |
 
-The one exception is `packages/shared/src/menu.ts`, which imports a **type** from `vue-router` (`import type { RouteRecordRaw }`). Types never reach the output, so the boundary holds.
+The one exception is `packages/shared/src/utils/menu.ts`, which imports a **type** from `vue-router` (`import type { RouteRecordRaw }`). Types never reach the output, so the boundary holds.
 
 ::: tip Where new code goes Relevant to one page only → inside that page's `views/<module>/<page>/` directory. App-wide but app-specific (stores, api, ws) → the matching folder under `apps/web/src/`. Pure functions that another project could reuse → `packages/shared` or `packages/composables`. Requires pinia, the router, or backend data to work → keep a thin shell in the app and let the package receive the capability as an argument. :::
 
@@ -74,7 +74,7 @@ import { Icon } from '@iconify/vue';
 
 `<script setup>` looks template bindings up by `capitalize(camelize(tag))`, so to keep writing `<ACard>` you alias the named export to `ACard` (`import { Card }` only pairs with `<Card>`). The `vue/component-name-in-template-casing` rule rewrites kebab tags to PascalCase, which lines up with exactly that.
 
-Bare `useRoute()` and `ref()` are what auto-import still handles; subpath imports such as `import { cn } from '@antdv/shared/cn'` you also write by hand.
+Bare `useRoute()` and `ref()` are what auto-import still handles; subpath imports such as `import { cn } from '@antdv/shared/utils/cn'` you also write by hand.
 
 ## Naming and the page skeleton
 

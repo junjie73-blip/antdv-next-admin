@@ -11,7 +11,7 @@ import { computed, h, ref } from 'vue';
 import { Card, Divider, Segmented, Space, Tag } from '@antdv/common-ui';
 import { message } from '@antdv/popup-ui';
 import { Button, Switch } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 import { breakpointsTailwind, useBreakpoints, useClipboard } from '@vueuse/core';
 import certUrl from '~/assets/images/img.jpg';

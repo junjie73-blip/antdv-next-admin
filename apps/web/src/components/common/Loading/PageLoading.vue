@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 
 import { Spinner } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { useAppStore } from '~/stores/modules/app';
 
 defineOptions({ name: 'PageLoading' });

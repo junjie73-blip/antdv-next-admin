@@ -19,7 +19,7 @@
  */
 
 import { Skeleton } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 interface Props {
   /** 是否显示骨架屏 */

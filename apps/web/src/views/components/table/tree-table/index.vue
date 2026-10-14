@@ -6,7 +6,7 @@ import { ref } from 'vue';
 
 import { Card } from '@antdv/common-ui';
 import { message } from '@antdv/popup-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { TreeTable } from '~/components/business/TreeTable';
 
 const containerClassName = cn('flex h-full flex-col');

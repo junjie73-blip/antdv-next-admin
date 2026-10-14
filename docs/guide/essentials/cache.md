@@ -34,7 +34,7 @@
 
 ```ts
 // apps/web/src/bootstrap/env.ts:1-7（原样，未删改）
-import { configureSharedEnv } from '@antdv/shared/env';
+import { configureSharedEnv } from '@antdv/shared/utils/env';
 configureSharedEnv({
   cacheEncryptKey: import.meta.env.VITE_CACHE_ENCRYPT_KEY,
   cachePrefix: import.meta.env.VITE_APP_TITLE ?? 'app_cache',
@@ -45,7 +45,7 @@ configureSharedEnv({
 
 `VITE_APP_TITLE` 的实际值是 `Antdv Admin`（`apps/web/.env:2`）。
 
-两个细节值得记住：前缀**含空格**（`VITE_APP_TITLE` 原样，`apps/web/.env:2` 的实际值是 `Antdv Admin`，于是盘上真的出现 `Antdv Admin_auth_token` 这种键名），未注入时兜底 `'app_cache'` （`packages/shared/src/env.ts:27`）；前缀和加密开关都是**每次读写时重新解析**，不在建实例时定型（`index.ts:68-78`），因为 `export const cache = createCache()` 在模块求值阶段就跑了，一定早于 `configureSharedEnv()`。这条时序有个回归用例钉着（`packages/shared/__tests__/cache.test.ts:147-183`）。
+两个细节值得记住：前缀**含空格**（`VITE_APP_TITLE` 原样，`apps/web/.env:2` 的实际值是 `Antdv Admin`，于是盘上真的出现 `Antdv Admin_auth_token` 这种键名），未注入时兜底 `'app_cache'` （`packages/shared/src/utils/env.ts:27`）；前缀和加密开关都是**每次读写时重新解析**，不在建实例时定型（`index.ts:68-78`），因为 `export const cache = createCache()` 在模块求值阶段就跑了，一定早于 `configureSharedEnv()`。这条时序有个回归用例钉着（`packages/shared/__tests__/cache.test.ts:147-183`）。
 
 ### `CacheKey` 枚举只有一部分在用
 

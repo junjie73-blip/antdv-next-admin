@@ -6,7 +6,7 @@ import type { TabStyleClasses } from './types';
 
 import { computed, toValue } from 'vue';
 
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 import { tabsRuntime } from './config';
 

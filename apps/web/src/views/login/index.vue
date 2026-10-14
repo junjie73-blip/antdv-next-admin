@@ -12,7 +12,7 @@ import {
   Input as AInput,
   Label,
 } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 import { HOME_PATH } from '~/config/constants';
 import { useUserStore } from '~/stores/modules/user';

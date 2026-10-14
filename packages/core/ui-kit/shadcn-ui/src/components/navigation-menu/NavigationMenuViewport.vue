@@ -6,7 +6,7 @@ import {
   NavigationMenuViewport,
   useForwardProps,
 } from "reka-ui"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 
 const props = defineProps<NavigationMenuViewportProps & { class?: HTMLAttributes["class"] }>()
 

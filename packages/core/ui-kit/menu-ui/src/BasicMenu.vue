@@ -6,8 +6,8 @@ import { computed, useTemplateRef, watch } from 'vue';
 
 import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import { Scrollbar } from '@antdv/common-ui';
-import { cn } from '@antdv/shared/cn';
-import { useHorizontalScroll } from '@antdv/shared/scroll';
+import { cn } from '@antdv/shared/utils/cn';
+import { useHorizontalScroll } from '@antdv/shared/utils/scroll';
 
 import MenuList from './components/MenuList.vue';
 import { menuRuntime } from './config';

@@ -4,7 +4,7 @@ import type { HTMLAttributes } from "vue"
 import type { ButtonVariants } from '../button'
 import { Primitive } from "reka-ui"
 import { computed } from "vue"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 import { buttonVariants } from '../button'
 import { injectQuestionnaireRootContext } from "./useQuestionnaire"
 

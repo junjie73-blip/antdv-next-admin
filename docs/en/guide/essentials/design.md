@@ -107,7 +107,7 @@ How the theme color lands on these variables is covered in [Theming](/en/guide/i
 
 ## How components write styles
 
-The convention is **utilities + `cn()`**, where `cn()` = clsx + tailwind-merge (`packages/core/base/shared/src/cn.ts`).
+The convention is **utilities + `cn()`**, where `cn()` = clsx + tailwind-merge (`packages/core/base/shared/src/utils/cn.ts`).
 
 | Goal | How |
 | --- | --- |

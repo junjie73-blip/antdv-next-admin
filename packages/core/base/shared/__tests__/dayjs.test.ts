@@ -7,7 +7,7 @@ import {
   nowTz,
   parseTz,
   setTimezone,
-} from '../src/dayjs';
+} from '../src/utils/dayjs';
 
 describe('时区默认值', () => {
   it('初始为 Asia/Shanghai', () => {

@@ -135,7 +135,7 @@ These are routinely treated as one mechanism. They differ in when they act and w
 `createAutoImportPlugins()` (`internal/vite-config/src/plugins/auto-import.ts:41-64`) used to register three resolvers: `AntdvNextResolver` (`a-*` → `antdv-next`), `AntdvUiResolver` (the sub-package components) and `IconifyResolver` (bare `<Icon>`). **All three are gone** (the comment at `:12-25` of the same file explains why):
 
 - A bare tag has nobody to inject it at compile time, so the runtime leaves a single `Failed to resolve component` warning while the page renders an empty element — icons vanishing silently, the designer shell collapsing into empty tags; every such incident had to be traced back through the build configuration.
-- Explicit imports make "what is used, and from where" visible in the file header, and subpath writes such as `import { cn } from '@antdv/shared/cn'` finally match how components are imported.
+- Explicit imports make "what is used, and from where" visible in the file header, and subpath writes such as `import { cn } from '@antdv/shared/utils/cn'` finally match how components are imported.
 - The sub-packages no longer assume the host ships an auto-import setup: another application can just install `@antdv/scrollbar-ui` or `@antdv/icons` and run.
 
 The `Components` plugin itself stays (`:52-54`) but only with its built-in behaviour: scanning the app's own `src/components` directory for local registration, with no npm package involved. On the `AutoImport` side (`:48-51`) the auto-imported surface is framework APIs only: `vue`, `@vueuse/core`, `pinia`, `VueRouterAutoImports` — the four functional entry points from `antdv-next` (`message`, `notification`, `Modal`, `Drawer`) were removed from it too and must now be imported by hand.
@@ -169,9 +169,9 @@ Both files are committed (`git ls-files` shows them) and churn on every build, s
 
 | Import | Resolves to | Uses in this repo |
 | --- | --- | --- |
-| `@antdv/shared/cn` | `dist/cn.js` (via `"./*"`, `:38-41`) | 107 |
+| `@antdv/shared/utils/cn` | `dist/cn.js` (via `"./*"`, `:38-41`) | 107 |
 | `@antdv/shared/cache` | `dist/cache/index.js` (listed, `:26-29`) | 13 |
-| `@antdv/shared/env` | `dist/env.js` | 5 |
+| `@antdv/shared/utils/env` | `dist/env.js` | 5 |
 | `@antdv/composables/websocket` | `dist/websocket/index.js` (listed, `packages/composables/package.json:34-37`) | 2 (`apps/web/src/utils/ws.ts:3`) |
 
 Build side: `packages/shared/tsdown.config.ts:13-20` declares `entry: ['src/index.ts', 'src/*.ts', 'src/*/index.ts']` with `platform: 'neutral'`, and `files: ["dist"]` (`packages/shared/package.json:14-16`) is what decides that only `dist` travels.
@@ -187,7 +187,7 @@ Why many entries instead of one barrel: importing only `cn` should not pull the 
 
 ### Package boundaries are the only reason these are reusable
 
-`packages/*` may not import `pinia`, a router instance, an application store, or read `import.meta.env`; when such a capability is needed, the application **injects** it (guard factories, directive factories, preference defaults). Details and injection examples live in [Core concepts](/en/guide/essentials/concepts) and [Directory structure](/en/guide/project/dir); from the bundle's point of view one sentence is enough: **a package bound to a store cannot be installed anywhere else**, no matter how clean its `exports` are. The one accepted exception — `packages/shared/src/menu.ts` importing only `vue-router` _types_ — never reaches the output and does not break the boundary.
+`packages/*` may not import `pinia`, a router instance, an application store, or read `import.meta.env`; when such a capability is needed, the application **injects** it (guard factories, directive factories, preference defaults). Details and injection examples live in [Core concepts](/en/guide/essentials/concepts) and [Directory structure](/en/guide/project/dir); from the bundle's point of view one sentence is enough: **a package bound to a store cannot be installed anywhere else**, no matter how clean its `exports` are. The one accepted exception — `packages/shared/src/utils/menu.ts` importing only `vue-router` _types_ — never reaches the output and does not break the boundary.
 
 ### Versions move in lockstep — but today nothing can actually be published
 

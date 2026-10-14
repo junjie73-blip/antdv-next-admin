@@ -9,7 +9,7 @@
  */
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { buildCookieAttributes } from '../src/csrf';
+import { buildCookieAttributes } from '../src/utils/csrf';
 
 function setProtocol(protocol: string) {
   Object.defineProperty(window, 'location', {

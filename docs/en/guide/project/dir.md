@@ -17,7 +17,7 @@ The old `@antdv/ui` split into three (`icons` / `loading-ui` / `scrollbar-ui`), 
 | Package | Responsibility | Boundary (no imports inside the package) |
 | --- | --- | --- |
 | `@antdv/types` | Shared type contracts: layout settings, menu, tab pages, Mock envelope | Types only, no runtime code |
-| `@antdv/shared` | Cache, crypto, date, download, Excel, masking, XSS, event bus, menu helpers, `cn()` | store / api |
+| `@antdv/shared` | Four directories plus one entry: `cache`, `color` (colour conversions), `constants` (cross-layer literals: CSS variable names, DOM classes, the default primary colour), `utils` (one file per tool — `cn`, dates, download, Excel, masking, XSS, event bus, menu helpers…), and `store.ts`, which only re-exports `@tanstack/vue-store` | store / api |
 | `@antdv/preferences` | Preference defaults, persistence, writing CSS variables, antdv-next theme config | pinia / store |
 | `@antdv/composables` | Composables: chunked upload, print, watermark, ECharts, SSE, WebSocket… | store / api / router instance |
 | `@antdv/icons` | Icons only: the Iconify wrapper, the SVG-sprite icon, the icon picker (shadcn implementation) | pinia / vue-router / business stores / app config / antdv-next |
@@ -61,7 +61,7 @@ Internal packages reference each other with `workspace:*`, which installs as a s
 
 ## Build: tsdown + turbo (two kinds of package)
 
-- **dist-published packages** (`shared` / `composables` / `directives` / `layouts` / `preferences` / `router` / `types` / `node-utils` / `vite-config`): their `build` is just `tsdown` (the Rolldown family), the output lands in `dist/` and `files` ships `dist` only; `exports` supports **subpath modules** — `@antdv/shared/cn` → `dist/cn.js` (via the `./*` wildcard), while multi-file directory modules (`cache` / `crypto` / `event`) are listed explicitly. `apps/web` reads these packages' `dist`, so after changing their `src` you must rebuild and restart dev to see anything.
+- **dist-published packages** (`shared` / `composables` / `directives` / `layouts` / `preferences` / `router` / `types` / `node-utils` / `vite-config`): their `build` is just `tsdown` (the Rolldown family), the output lands in `dist/` and `files` ships `dist` only; `exports` supports **subpath modules** — `@antdv/shared/utils/cn` → `dist/cn.js` (via the `./*` wildcard), while multi-file directory modules (`cache` / `crypto` / `event`) are listed explicitly. `apps/web` reads these packages' `dist`, so after changing their `src` you must rebuild and restart dev to see anything.
 - **source-published packages** (`icons` / `design` / the ten under `ui-kit`): `files: ["src"]`, `main`/`types` point straight at `./src/index.ts`, and there is **no build script** — the host Vite compiles them. Saving an edit hot-reloads with no rebuild, but the host must be able to compile `.vue` files and the Tailwind entry. The full account is in [External modules](/en/guide/essentials/external).
 - The task graph in `turbo.json`: `build` / `type-check` / `test:unit` / `test:e2e` all carry `dependsOn: ["^build"]`, i.e. "build my dependencies first"; `dev` is `persistent`, never cached, and likewise runs after `^build` (packages with no build script simply skip that step).
 

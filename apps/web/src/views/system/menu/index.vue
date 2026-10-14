@@ -6,7 +6,7 @@ import type { BasicColumn } from '@antdv/table-ui';
 import { computed, ref, watch } from 'vue';
 
 import { IconPicker } from '@antdv/icons/icon';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 import { Card, Divider, Popconfirm, Tag } from '@antdv/common-ui';
 import { Button, Switch } from '@antdv/shadcn-ui';

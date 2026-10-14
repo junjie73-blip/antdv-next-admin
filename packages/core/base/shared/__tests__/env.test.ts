@@ -6,7 +6,7 @@ import {
   getMinioPublicUrl,
   isEnvEnabled,
   isProduction,
-} from '../src/env';
+} from '../src/utils/env';
 
 describe('configureSharedEnv', () => {
   beforeEach(() => {

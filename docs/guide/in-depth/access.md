@@ -105,7 +105,7 @@ app.directive('lazy', vLazy); // 进视口才加载
 app.directive('loading', vLoading); // 元素遮罩 + 全屏实例
 ```
 
-`v-safe-html` / `v-escape` 来自 `@antdv/shared/xss`。两条已经踩过的坑：
+`v-safe-html` / `v-escape` 来自 `@antdv/shared/utils/xss`。两条已经踩过的坑：
 
 1. **`v-escape` 在 html 语境下不要再二次转义**。`textContent` 本来就不会把内容解析成 HTML，再跑一遍 `escapeHtml` 只会让用户看见 `&lt;script&gt;` 这种字面量。现在 html 语境直接落原文，其余语境（`url` / `js` / `css` / `attr`）按各自语义变换： `v-escape:url` 会把 `javascript:` 这类伪协议换成 `#unsafe-url`。
 2. **`<script setup>` 会把模板表达式里的 ref 自动解包**。`@click="flashLoading(boxLoading)"` 传进函数的是 `false` 而不是 `Ref`，于是 `target.value = true` 抛 `Cannot create property 'value' on boolean 'false'`，遮罩永远不出现。要按"键名 + 一个 `reactive` 记录"传，别把 ref 直接当参数递。

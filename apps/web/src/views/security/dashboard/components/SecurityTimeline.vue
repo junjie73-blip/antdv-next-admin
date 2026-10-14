@@ -17,7 +17,7 @@ import {
   TimelineItem,
 } from '@antdv/common-ui';
 
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 import dayjs from 'dayjs';
 import { getSecurityEvents } from '~/api/security';

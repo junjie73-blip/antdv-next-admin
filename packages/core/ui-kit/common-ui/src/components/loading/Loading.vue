@@ -4,7 +4,7 @@ import type { LoadingProps } from './types';
 import { computed } from 'vue';
 
 import { Spinner } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 /**
  * Loading 加载组件

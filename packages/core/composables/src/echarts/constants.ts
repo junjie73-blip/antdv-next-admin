@@ -1,4 +1,4 @@
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 /* ============================================================
  * 调色板

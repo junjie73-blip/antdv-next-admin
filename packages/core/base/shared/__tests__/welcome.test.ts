@@ -4,7 +4,7 @@ import {
   getPersonalizedWelcome,
   getTimeGreeting,
   showLoginWelcome,
-} from '../src/welcome';
+} from '../src/utils/welcome';
 
 /** 用本地时间构造时刻，避免 CI 时区影响小时数 */
 function atLocalHour(hour: number) {

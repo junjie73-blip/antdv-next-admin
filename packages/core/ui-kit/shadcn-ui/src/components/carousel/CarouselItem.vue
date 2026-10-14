@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { WithClassAsProps } from "./interface"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 import { useCarousel } from "./useCarousel"
 
 const props = defineProps<WithClassAsProps>()

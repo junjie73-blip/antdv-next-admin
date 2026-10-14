@@ -10,7 +10,7 @@ import { Card, Scrollbar } from '@antdv/common-ui';
 import { createPermissionDirective } from '@antdv/directives';
 
 import { Button, Checkbox, Spinner } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import audioUrl from '~/assets/images/audio.jpg';
 import excelUrl from '~/assets/images/excel.jpg';
 import imgUrl from '~/assets/images/img.jpg';

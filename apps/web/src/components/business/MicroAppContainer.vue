@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 
 import { Button, Spinner } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { useEventListener, useTimeoutFn } from '@vueuse/core';
 
 interface Props {

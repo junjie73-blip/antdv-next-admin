@@ -8,7 +8,7 @@ import { BasicForm, useForm, addComponent } from '@antdv/form-ui';
 import { message } from '@antdv/popup-ui';
 import { Button } from '@antdv/shadcn-ui';
 
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 import TagPickerField from './components/TagPickerField.vue';
 

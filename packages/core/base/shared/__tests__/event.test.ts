@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { createEventBus, eventBus, triggerWindowResize } from '../src/event';
+import {
+  createEventBus,
+  eventBus,
+  triggerWindowResize,
+} from '../src/utils/event';
 
 describe('createEventBus', () => {
   it('emit 会把 payload 传给处理器', () => {

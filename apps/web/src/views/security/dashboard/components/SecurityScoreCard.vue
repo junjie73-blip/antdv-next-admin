@@ -4,7 +4,7 @@ import { computed, onMounted, ref } from 'vue';
 import { watch } from 'vue';
 
 import { Tag } from '@antdv/common-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import * as echarts from 'echarts';
 import { getSecurityScore } from '~/api/security';
 import { CountTo } from '@antdv/common-ui';

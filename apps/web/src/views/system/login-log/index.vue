@@ -14,8 +14,8 @@ import {
   Statistic,
   Tag,
 } from '@antdv/common-ui';
-import { cn } from '@antdv/shared/cn';
-import { exportToExcel } from '@antdv/shared/excel';
+import { cn } from '@antdv/shared/utils/cn';
+import { exportToExcel } from '@antdv/shared/utils/excel';
 import { Button } from '@antdv/shadcn-ui';
 import { Icon } from '@iconify/vue';
 import { getLoginLogList, getLoginLogStats } from '~/api/system';

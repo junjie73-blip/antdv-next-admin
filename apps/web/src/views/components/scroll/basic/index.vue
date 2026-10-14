@@ -4,7 +4,7 @@ import { ref } from 'vue';
 import { Card, Scrollbar } from '@antdv/common-ui';
 import { Button, Input } from '@antdv/shadcn-ui';
 
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 const containerClassName = cn('space-y-6');
 const scrollContentClassName = cn('rounded-lg bg-gray-50 p-4 dark:bg-gray-800');

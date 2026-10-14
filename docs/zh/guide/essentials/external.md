@@ -135,7 +135,7 @@ return {
 `createAutoImportPlugins()`（`internal/vite-config/src/plugins/auto-import.ts:41-64`）过去注册过三个 resolver：`AntdvNextResolver`（`a-*` → `antdv-next`）、`AntdvUiResolver`（子包组件）、`IconifyResolver`（裸写 `<Icon>`）。**现在三个都删掉了**（同文件 `:12-25` 的注释解释了为什么）：
 
 - 裸标签在编译期没人注入，运行期只留一条 `Failed to resolve component` 警告，页面却整块变空白 —— 图标静默消失、设计器外壳塌成空白标签，这类事故排查都要从编译配置倒推。
-- 显式 import 让"谁在用、从哪来"在文件头部一眼可见，`import { cn } from '@antdv/shared/cn'` 这种子路径写法也终于和组件写法统一。
+- 显式 import 让"谁在用、从哪来"在文件头部一眼可见，`import { cn } from '@antdv/shared/utils/cn'` 这种子路径写法也终于和组件写法统一。
 - 子包不再假设宿主带着自动导入配置，别的应用直接引 `@antdv/scrollbar-ui`、`@antdv/icons` 也能跑。
 
 `Components` 插件本身还留着（`:52-54`），但它只剩自带的能力：扫应用内 `src/components` 目录做本地组件注册，不涉及任何 npm 包。`AutoImport` 侧（`:48-51`）自动导入的仍然只有框架 API：`vue`、`@vueuse/core`、`pinia`、`VueRouterAutoImports` —— `antdv-next` 的 `message` / `notification` / `Modal` / `Drawer` 四个函数式入口也一起移除了，用它们得自己 import。
@@ -169,9 +169,9 @@ return {
 
 | 写法 | 解析到 | 本仓引用次数 |
 | --- | --- | --- |
-| `@antdv/shared/cn` | `dist/cn.js`（走 `"./*"` 通配符，`:38-41`） | 107 |
+| `@antdv/shared/utils/cn` | `dist/cn.js`（走 `"./*"` 通配符，`:38-41`） | 107 |
 | `@antdv/shared/cache` | `dist/cache/index.js`（显式列出，`:26-29`） | 13 |
-| `@antdv/shared/env` | `dist/env.js` | 5 |
+| `@antdv/shared/utils/env` | `dist/env.js` | 5 |
 | `@antdv/composables/websocket` | `dist/websocket/index.js`（显式列出，`packages/composables/package.json:34-37`） | 2（`apps/web/src/utils/ws.ts:3`） |
 
 对应构建侧：`packages/shared/tsdown.config.ts:13-20` 的 `entry: ['src/index.ts', 'src/*.ts', 'src/*/index.ts']` 与 `platform: 'neutral'`； `files: ["dist"]`（`packages/shared/package.json:14-16`）决定打包出去只带 `dist`。
@@ -187,7 +187,7 @@ return {
 
 ### 包边界是它们能被单点复用的唯一原因
 
-`packages/*` 里不许 import `pinia` / `vue-router` 实例 / 应用 store，也不许读 `import.meta.env`；需要这些能力时由应用**注入**（守卫工厂、指令工厂、偏好 defaults）。细则与注入示例见[基础概念](/zh/guide/essentials/concepts)与[目录说明](/zh/guide/project/dir)，这里只补一句产物角度的后果：**包一旦被 store 绑住，脱离这个应用就装不起来**， `exports` 写得再漂亮也没用。类型例外（`packages/shared/src/menu.ts` 只 import `vue-router` 的类型）不进产物，不算破边界。
+`packages/*` 里不许 import `pinia` / `vue-router` 实例 / 应用 store，也不许读 `import.meta.env`；需要这些能力时由应用**注入**（守卫工厂、指令工厂、偏好 defaults）。细则与注入示例见[基础概念](/zh/guide/essentials/concepts)与[目录说明](/zh/guide/project/dir)，这里只补一句产物角度的后果：**包一旦被 store 绑住，脱离这个应用就装不起来**， `exports` 写得再漂亮也没用。类型例外（`packages/shared/src/utils/menu.ts` 只 import `vue-router` 的类型）不进产物，不算破边界。
 
 ### 版本是锁步的 —— 但今天没有任何包发得出去
 

@@ -6,8 +6,8 @@ import {
   config as csrfConfig,
   getCsrfToken,
   initCsrfProtection,
-} from '@antdv/shared/csrf';
-import { isTokenExpired } from '@antdv/shared/jwt';
+} from '@antdv/shared/utils/csrf';
+import { isTokenExpired } from '@antdv/shared/utils/jwt';
 import { createFetch } from '@vueuse/core';
 import { AUTHORIZATION_KEY } from '~/composables/constant';
 import { LOGIN_PATH, REFRESH_TOKEN_KEY } from '~/config/constants';

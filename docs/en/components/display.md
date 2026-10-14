@@ -162,7 +162,7 @@ Where relative time really comes from in this repository:
 
 | Location | What it does |
 | --- | --- |
-| `packages/shared/src/dayjs.ts:10`, `:23` | a single `dayjs.extend(relativeTime)` — the plugin is installed in the shared package |
+| `packages/shared/src/utils/dayjs.ts:10`, `:23` | a single `dayjs.extend(relativeTime)` — the plugin is installed in the shared package |
 | `apps/web/src/layouts/widgets/components/NoticeItem.vue:49-50` | `dayjs(sendTime).fromNow()`, rendered in the notice item (`:141`) |
 | `apps/web/src/views/system/notice/index.vue:23`, `:361` | the page calls `extend` again on its own; the table column uses `fromNow(true)` (bare duration, no "ago/from now") |
 | `apps/web/src/views/system/online/index.vue:20`, `:93` | same pattern, for the "online for" column |

@@ -2,7 +2,7 @@
 import type { HTMLAttributes } from "vue"
 import { CheckIcon } from "@lucide/vue"
 import { computed, onBeforeUnmount, ref, useId, watch } from "vue"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 import { getAnswerKeyShortcuts, injectQuestionnaireItemContext } from "./useQuestionnaire"
 
 const props = withDefaults(defineProps<{

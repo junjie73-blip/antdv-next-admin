@@ -7,8 +7,8 @@ import { computed, ref } from 'vue';
 import { Divider, Popconfirm, Scrollbar, Tag } from '@antdv/common-ui';
 
 import { Button } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
-import { exportToExcel } from '@antdv/shared/excel';
+import { cn } from '@antdv/shared/utils/cn';
+import { exportToExcel } from '@antdv/shared/utils/excel';
 import { Icon } from '@iconify/vue';
 import {
   addDict,

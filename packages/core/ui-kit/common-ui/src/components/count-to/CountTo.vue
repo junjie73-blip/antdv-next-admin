@@ -3,7 +3,7 @@ import type { CountToInstance, CountToProps } from './types';
 
 import { computed, onMounted, ref, watch } from 'vue';
 
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { useRafFn } from '@vueuse/core';
 
 const props = withDefaults(defineProps<CountToProps>(), {

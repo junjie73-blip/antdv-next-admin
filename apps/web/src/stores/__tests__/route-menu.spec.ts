@@ -1,6 +1,6 @@
 import type { BackendMenu } from '@antdv/types';
 
-import { visibleMenuTree } from '@antdv/shared/menu';
+import { visibleMenuTree } from '@antdv/shared/utils/menu';
 import { createPinia, setActivePinia } from 'pinia';
 import { useRouteStore } from '~/stores/modules/route';
 

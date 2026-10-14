@@ -2,7 +2,7 @@
 import type { HTMLAttributes } from "vue"
 import type { QuestionnaireInputType } from "./useQuestionnaire"
 import { computed, nextTick, onBeforeUnmount, ref, useId, watch } from "vue"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 import {
   getAnswerKeyShortcuts,
   hasInputValue,

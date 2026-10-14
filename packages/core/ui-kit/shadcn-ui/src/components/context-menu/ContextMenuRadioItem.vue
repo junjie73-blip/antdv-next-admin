@@ -8,7 +8,7 @@ import {
   ContextMenuRadioItem,
   useForwardPropsEmits,
 } from "reka-ui"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 
 const props = defineProps<ContextMenuRadioItemProps & { class?: HTMLAttributes["class"] }>()
 const emits = defineEmits<ContextMenuRadioItemEmits>()

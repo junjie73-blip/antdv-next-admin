@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 defineOptions({ name: 'TablePagination' });
 

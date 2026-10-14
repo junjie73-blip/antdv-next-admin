@@ -3,7 +3,7 @@ import { ref } from 'vue';
 
 import { Card } from '@antdv/common-ui';
 import { Button } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { CountTo } from '@antdv/common-ui';
 
 // 容器类名

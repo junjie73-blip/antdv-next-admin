@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { onBeforeRouteUpdate, useRoute } from 'vue-router';
 
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { useAppStore } from '~/stores/modules/app';
 
 defineOptions({ name: 'RouteLoadingBar' });

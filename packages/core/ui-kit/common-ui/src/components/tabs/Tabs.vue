@@ -6,7 +6,7 @@ import type { TabPaneProps } from './types';
 import { computed, provide, ref, watch } from 'vue';
 
 import { Tabs, TabsList, TabsTrigger } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 import { TABS_KEY } from './context';
 

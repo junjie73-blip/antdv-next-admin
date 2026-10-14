@@ -5,7 +5,7 @@ import { defineComponent, h, nextTick } from 'vue';
 
 import { PREFERENCES_CACHE_KEY } from '@antdv/preferences';
 import { cache } from '@antdv/shared/cache';
-import dayjs from '@antdv/shared/dayjs';
+import dayjs from '@antdv/shared/utils/dayjs';
 import { createPinia } from 'pinia';
 import { useLocale, useLocaleSync } from '~/composables/web/useLocale';
 import i18n from '~/locales';

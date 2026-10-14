@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { Button } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { HOME_PATH, LOGIN_PATH } from '~/config/constants';
 import { useUserStore } from '~/stores/modules/user';
 

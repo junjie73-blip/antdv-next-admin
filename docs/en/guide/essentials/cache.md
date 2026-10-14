@@ -34,7 +34,7 @@ The real key is `` `${prefix}_${businessKey}` `` (`buildStorageKey`, `index.ts:4
 
 ```ts
 // apps/web/src/bootstrap/env.ts:1-7 (verbatim)
-import { configureSharedEnv } from '@antdv/shared/env';
+import { configureSharedEnv } from '@antdv/shared/utils/env';
 configureSharedEnv({
   cacheEncryptKey: import.meta.env.VITE_CACHE_ENCRYPT_KEY,
   cachePrefix: import.meta.env.VITE_APP_TITLE ?? 'app_cache',
@@ -43,7 +43,7 @@ configureSharedEnv({
 });
 ```
 
-Two details matter: the prefix **contains a space** (`VITE_APP_TITLE` verbatim, whose value in `apps/web/.env:2` is `Antdv Admin`, so keys such as `Antdv Admin_auth_token` really exist on disk), and the fallback when nothing was injected is `'app_cache'` (`packages/shared/src/env.ts:27`). Also, the prefix and the encryption flag are **re-resolved on every read and write** rather than frozen when the instance is created (`index.ts:68-78`), because `export const cache = createCache()` runs during module evaluation and therefore always before `configureSharedEnv()`. A regression spec pins that ordering (`packages/shared/__tests__/cache.test.ts:147-183`).
+Two details matter: the prefix **contains a space** (`VITE_APP_TITLE` verbatim, whose value in `apps/web/.env:2` is `Antdv Admin`, so keys such as `Antdv Admin_auth_token` really exist on disk), and the fallback when nothing was injected is `'app_cache'` (`packages/shared/src/utils/env.ts:27`). Also, the prefix and the encryption flag are **re-resolved on every read and write** rather than frozen when the instance is created (`index.ts:68-78`), because `export const cache = createCache()` runs during module evaluation and therefore always before `configureSharedEnv()`. A regression spec pins that ordering (`packages/shared/__tests__/cache.test.ts:147-183`).
 
 ### Only part of the `CacheKey` enum is in use
 

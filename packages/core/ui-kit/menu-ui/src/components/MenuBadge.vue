@@ -8,7 +8,7 @@ const props = withDefaults(defineProps<{ badge?: MenuBadgeConfig }>(), {
 });
 
 /**
- * 徽标自绘：迁移前由 `@antdv/shared/menu` 借 antd Badge 渲染，
+ * 徽标自绘：迁移前由 `@antdv/shared/utils/menu` 借 antd Badge 渲染，
  * 包一拆就不能再把 antd 拖进 menu-ui。尺寸照抄侧栏里已经调好的那组
  * （11px 字号、16px 高、点标 6px、默认溢出 99）。
  */

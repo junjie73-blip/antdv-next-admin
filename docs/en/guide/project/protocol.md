@@ -19,10 +19,10 @@ Do not copy its text here — this is the skeleton and the "why" (full text in `
 | 19 TypeScript | no `any` (use `unknown` + type guards); types always via `import type` |
 | 20 Performance | virtual scrolling for big lists, `shallowRef`/`markRaw` for charts, lazy routes |
 
-`cn()` is implemented in `packages/shared/src/cn.ts` (clsx + tailwind-merge); the house style:
+`cn()` is implemented in `packages/shared/src/utils/cn.ts` (clsx + tailwind-merge); the house style:
 
 ```ts
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 export const cardClassName = cn('shadow-sm', 'rounded-lg');
 ```
 

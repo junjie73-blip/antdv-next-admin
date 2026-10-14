@@ -1,4 +1,4 @@
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import i18n from '~/locales';
 
 /** `@antdv/common-ui` Segmented 的选项形状（icon 是图标名，不是 VNode） */

@@ -19,10 +19,10 @@
 | 19 TypeScript | 禁 `any`（用 `unknown` + 类型守卫）；类型一律 `import type` |
 | 20 性能 | 大列表虚拟滚动、图表 `shallowRef`/`markRaw`、路由懒加载 |
 
-`cn()` 的实现是 `packages/shared/src/cn.ts`（clsx + tailwind-merge），约定写法：
+`cn()` 的实现是 `packages/shared/src/utils/cn.ts`（clsx + tailwind-merge），约定写法：
 
 ```ts
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 export const cardClassName = cn('shadow-sm', 'rounded-lg');
 ```
 

@@ -14,7 +14,7 @@ import {
   normalizeMenuPath,
   visibleMenus,
   visibleMenuTree,
-} from '@antdv/shared/menu';
+} from '@antdv/shared/utils/menu';
 
 import { getBlueprint } from './modes';
 

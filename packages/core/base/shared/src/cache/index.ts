@@ -2,7 +2,7 @@ import type { CacheInstance, CacheItem, CacheOptions } from './types';
 
 import { isNil, isPromise } from 'es-toolkit';
 
-import { getCachePrefix } from '../env';
+import { getCachePrefix } from '../utils/env';
 import { decryptValueSync, encryptValueSync, shouldEncrypt } from './encrypt';
 import { createStorage } from './storage';
 

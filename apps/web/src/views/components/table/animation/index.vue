@@ -5,7 +5,7 @@ import { ref } from 'vue';
 
 import { Alert, Card, Tag } from '@antdv/common-ui';
 import { Button, Skeleton } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { BasicTable, useTable } from '@antdv/table-ui';
 
 const containerClassName = cn('space-y-6');

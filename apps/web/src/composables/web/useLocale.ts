@@ -1,7 +1,7 @@
 import { computed, shallowRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import dayjs from '@antdv/shared/dayjs';
+import dayjs from '@antdv/shared/utils/dayjs';
 import i18n from '~/locales';
 import { loadLocale } from '~/settings';
 import { useAppStore } from '~/stores/modules/app';

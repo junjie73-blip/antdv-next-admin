@@ -4,7 +4,7 @@ import type { ScrollbarProps } from './types';
 import { computed, onMounted, ref, shallowRef, watch } from 'vue';
 
 import { ScrollArea } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { unrefElement, useEventListener } from '@vueuse/core';
 import { isNumber } from 'es-toolkit';
 

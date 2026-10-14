@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getExt, getFileCategory } from '../src/file-category';
+import { getExt, getFileCategory } from '../src/utils/file-category';
 
 describe('getExt', () => {
   it('取小写后缀，不含点则返回空串', () => {

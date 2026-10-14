@@ -2,7 +2,7 @@ import type { BreadcrumbVariant, LayoutTone } from './types';
 
 import { computed } from 'vue';
 
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 /**
  * 外壳各区域的类名计算。

@@ -107,7 +107,7 @@ Tailwind v4 的自动内容检测从**构建根**开始扫，而应用侧的构�
 
 ## 组件里怎么写样式
 
-约定是 **utilities + `cn()`**，`cn()` = clsx + tailwind-merge（`packages/core/base/shared/src/cn.ts`）。
+约定是 **utilities + `cn()`**，`cn()` = clsx + tailwind-merge（`packages/core/base/shared/src/utils/cn.ts`）。
 
 | 要做的事 | 写法 |
 | --- | --- |

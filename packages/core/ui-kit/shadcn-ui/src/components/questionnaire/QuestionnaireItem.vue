@@ -2,7 +2,7 @@
 import type { HTMLAttributes } from "vue"
 import type { AnswerControlRegistration, QuestionnaireItemStatus } from "./useQuestionnaire"
 import { computed, onBeforeUnmount, ref, shallowRef, useAttrs, watch } from "vue"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 import {
   compareDocumentOrder,
   getShortcutByChoiceValue,

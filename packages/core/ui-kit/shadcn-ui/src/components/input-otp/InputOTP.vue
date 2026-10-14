@@ -4,7 +4,7 @@ import type { OTPInputEmits, OTPInputProps } from "vue-input-otp"
 import { reactiveOmit } from "@vueuse/core"
 import { useForwardPropsEmits } from "reka-ui"
 import { OTPInput } from "vue-input-otp"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 
 const props = defineProps<OTPInputProps & { class?: HTMLAttributes["class"] }>()
 

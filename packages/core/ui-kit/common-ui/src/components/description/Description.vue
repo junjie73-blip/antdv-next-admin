@@ -10,8 +10,8 @@ import type {
 import { computed, h, inject, useSlots } from 'vue';
 
 import { Spinner } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
-import { dayjs } from '@antdv/shared/dayjs';
+import { cn } from '@antdv/shared/utils/cn';
+import { dayjs } from '@antdv/shared/utils/dayjs';
 import { isNil, isString } from 'es-toolkit';
 import { isArray } from 'es-toolkit/compat';
 

@@ -6,7 +6,7 @@ import {
   ContextMenuSubContent,
   useForwardPropsEmits,
 } from "reka-ui"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 
 const props = defineProps<DropdownMenuSubContentProps & { class?: HTMLAttributes["class"] }>()
 const emits = defineEmits<DropdownMenuSubContentEmits>()

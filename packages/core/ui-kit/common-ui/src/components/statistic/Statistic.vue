@@ -4,7 +4,7 @@ import type { CSSProperties } from 'vue';
 import { computed } from 'vue';
 
 import { Spinner } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 defineOptions({ name: 'Statistic' });
 

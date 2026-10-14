@@ -12,7 +12,7 @@ import {
   Input as AInput,
   Label,
 } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 
 const router = useRouter();

@@ -1,8 +1,8 @@
-import type { TemplateColumn } from '../src/template';
+import type { TemplateColumn } from '../src/utils/template';
 
 import { describe, expect, it, vi } from 'vitest';
 
-import { generateTemplate } from '../src/template';
+import { generateTemplate } from '../src/utils/template';
 
 const writes = vi.hoisted(
   () => [] as { filename: string; workbook: unknown }[],

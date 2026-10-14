@@ -6,7 +6,7 @@ import { onMounted, ref } from 'vue';
 import { Empty, Loading, Scrollbar, Tag } from '@antdv/common-ui';
 
 import { Button } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 import { getAlertList, handleAlert } from '~/api/security';
 

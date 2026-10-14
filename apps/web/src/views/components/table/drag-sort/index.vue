@@ -6,7 +6,7 @@ import { computed, ref } from 'vue';
 import { Card, Space, Tag } from '@antdv/common-ui';
 import { message } from '@antdv/popup-ui';
 import { Button, Switch } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { BasicTable, useTable } from '@antdv/table-ui';
 
 const containerClassName = cn('space-y-6');

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 import { SCROLL_KEYS, useMessageScrollerContext } from "./useMessageScroller"
 
 const props = withDefaults(defineProps<{

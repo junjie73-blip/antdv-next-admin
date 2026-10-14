@@ -7,7 +7,7 @@ import {
   ScrollAreaRoot,
   ScrollAreaViewport,
 } from "reka-ui"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 import ScrollBar from "./ScrollBar.vue"
 
 const props = defineProps<ScrollAreaRootProps & {

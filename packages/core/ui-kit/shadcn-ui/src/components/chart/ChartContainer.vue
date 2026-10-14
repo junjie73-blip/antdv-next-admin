@@ -3,7 +3,7 @@ import type { HTMLAttributes } from "vue"
 import type { ChartConfig } from "."
 import { useId } from "reka-ui"
 import { computed, toRefs } from "vue"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 import { provideChartContext } from "."
 import ChartStyle from "./ChartStyle.vue"
 </script>

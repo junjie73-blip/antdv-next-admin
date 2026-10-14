@@ -1,4 +1,4 @@
-import { configureSharedEnv } from '@antdv/shared/env';
+import { configureSharedEnv } from '@antdv/shared/utils/env';
 configureSharedEnv({
   cacheEncryptKey: import.meta.env.VITE_CACHE_ENCRYPT_KEY,
   cachePrefix: import.meta.env.VITE_APP_TITLE ?? 'app_cache',

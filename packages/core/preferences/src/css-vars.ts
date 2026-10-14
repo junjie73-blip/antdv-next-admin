@@ -1,5 +1,21 @@
 import type { AppSetting } from '@antdv/types';
 
+import {
+  ANT_BORDER_RADIUS,
+  ANT_COLOR_PRIMARY,
+  ANT_FONT_SIZE,
+  ANT_PRIMARY_COLOR,
+  APP_BORDER_RADIUS,
+  APP_FILTER,
+  APP_FONT_SIZE,
+  APP_SIDEBAR_WIDTH,
+  BORDER_RADIUS_BASE,
+  COLOR_WEAK_CLASS,
+  DARK_CLASS,
+  GRAY_MODE_CLASS,
+  PREFERENCE_CSS_VARS,
+} from '@antdv/shared/constants';
+
 import { resolveThemeMode } from './theme-mode';
 
 /** 色弱模式：antd 官方推荐写法（invert + grayscale） */
@@ -44,9 +60,9 @@ export function applyPreferencesToDom(
   );
   const isDark = resolvedMode === 'dark';
 
-  target.classList.toggle(options.darkClass ?? 'dark', isDark);
-  target.classList.toggle('color-weak', preferences.colorWeak);
-  target.classList.toggle('gray-mode', preferences.grayMode);
+  target.classList.toggle(options.darkClass ?? DARK_CLASS, isDark);
+  target.classList.toggle(COLOR_WEAK_CLASS, preferences.colorWeak);
+  target.classList.toggle(GRAY_MODE_CLASS, preferences.grayMode);
   // 原生控件、滚动条、输入框的配色跟随明暗；漏了它会出现"页面黑了、滚动条还是白的"
   target.style.colorScheme = isDark ? 'dark' : 'light';
 
@@ -58,7 +74,7 @@ export function applyPreferencesToDom(
   ].filter(Boolean);
   const filterValue = filters.length > 0 ? filters.join(' ') : 'none';
   // 变量给样式层（@antdv/design）消费，内联 filter 保证没有样式表时开关也立即生效
-  setCssVar(target, '--app-filter', filterValue);
+  setCssVar(target, APP_FILTER, filterValue);
   target.style.filter = filterValue;
 
   if (options.cssVars !== false) {
@@ -78,18 +94,18 @@ export function applyPreferencesToDom(
 function writeThemeCssVars(target: HTMLElement, preferences: AppSetting): void {
   const { borderRadius, fontSize, primaryColor, sidebarWidth } = preferences;
 
-  setCssVar(target, '--ant-color-primary', primaryColor);
-  setCssVar(target, '--ant-primary-color', primaryColor);
+  setCssVar(target, ANT_COLOR_PRIMARY, primaryColor);
+  setCssVar(target, ANT_PRIMARY_COLOR, primaryColor);
 
   // borderRadius 存的是倍率（0 / 0.25 / 0.5 / 0.75 / 1），antd 的基准是 8px
-  const radiusPx = `${Math.round(borderRadius * 8 * 100) / 100}px`;
-  setCssVar(target, '--ant-border-radius', radiusPx);
-  setCssVar(target, '--app-border-radius', radiusPx);
+  const radiusPx = `${Math.round(borderRadius * BORDER_RADIUS_BASE * 100) / 100}px`;
+  setCssVar(target, ANT_BORDER_RADIUS, radiusPx);
+  setCssVar(target, APP_BORDER_RADIUS, radiusPx);
 
-  setCssVar(target, '--ant-font-size', `${fontSize}px`);
-  setCssVar(target, '--app-font-size', `${fontSize}px`);
+  setCssVar(target, ANT_FONT_SIZE, `${fontSize}px`);
+  setCssVar(target, APP_FONT_SIZE, `${fontSize}px`);
 
-  setCssVar(target, '--app-sidebar-width', `${sidebarWidth}px`);
+  setCssVar(target, APP_SIDEBAR_WIDTH, `${sidebarWidth}px`);
 }
 
 function setCssVar(target: HTMLElement, name: string, value: string): void {
@@ -103,22 +119,13 @@ export function clearPreferencesFromDom(
   if (typeof document === 'undefined') return;
   const target = options.target ?? document.documentElement;
   target.classList.remove(
-    'color-weak',
-    'gray-mode',
-    options.darkClass ?? 'dark',
+    COLOR_WEAK_CLASS,
+    GRAY_MODE_CLASS,
+    options.darkClass ?? DARK_CLASS,
   );
   target.style.filter = '';
   target.style.colorScheme = '';
-  for (const name of [
-    '--ant-color-primary',
-    '--ant-primary-color',
-    '--ant-border-radius',
-    '--ant-font-size',
-    '--app-border-radius',
-    '--app-font-size',
-    '--app-sidebar-width',
-    '--app-filter',
-  ]) {
+  for (const name of PREFERENCE_CSS_VARS) {
     target.style.removeProperty(name);
   }
 }

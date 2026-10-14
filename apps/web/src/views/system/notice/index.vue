@@ -18,7 +18,7 @@ import {
 import { BasicForm, useForm } from '@antdv/form-ui';
 import { BasicDrawer, BasicModal, message, useModal } from '@antdv/popup-ui';
 import { Button } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { BasicTable, useTable } from '@antdv/table-ui';
 import { Icon } from '@iconify/vue';
 import dayjs from 'dayjs';

@@ -50,7 +50,7 @@ http://localhost:6080/#/components/chart
 
 ## 读示例前先知道的几条约定
 
-- **类名一律走 `cn()`**。示例页顶部会先声明一串 `const xxxClassName = cn('space-y-6')`，正文里 `:class="containerClassName"`。这是 `@antdv/shared/cn`（clsx + tailwind-merge），不是样式文件；写文档时引用的类名字符串就是源码里的字符串。
+- **类名一律走 `cn()`**。示例页顶部会先声明一串 `const xxxClassName = cn('space-y-6')`，正文里 `:class="containerClassName"`。这是 `@antdv/shared/utils/cn`（clsx + tailwind-merge），不是样式文件；写文档时引用的类名字符串就是源码里的字符串。
 - **页面根节点不加内边距**。滚动容器由布局层提供，示例页自己只放 `space-y-6` / `flex h-full flex-col` 这类间距，`a-card` 统一 `variant="borderless"`。
 - **示例没有后端**。除了 `menus.get.ts` 和 `api/**` 这几个 Nitro handler，示例页的"保存"基本都是本地 ref 或 localStorage。每个用到这种情况的小节都会明说（典型：表格拖拽排序的「保存顺序」、分步表单的「草稿」）。
 - **组件名要靠 `defineOptions({ name })`**。示例页被 keep-alive 缓存，name 与菜单的 `name` 字段对上才缓存得住（`apps/backend-mock/server/api/menus.get.ts` 里每个 Demo 节点的 `name`，如 `DemoModalDrawer`）。

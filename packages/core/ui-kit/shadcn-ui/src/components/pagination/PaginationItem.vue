@@ -4,7 +4,7 @@ import type { HTMLAttributes } from "vue"
 import type { ButtonVariants } from '../button'
 import { reactiveOmit } from "@vueuse/core"
 import { PaginationListItem } from "reka-ui"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 import { buttonVariants } from '../button'
 
 const props = withDefaults(defineProps<PaginationListItemProps & {

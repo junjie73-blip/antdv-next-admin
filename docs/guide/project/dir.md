@@ -17,7 +17,7 @@ internal/   构建期工具：只在 Node 里跑，不进产物
 | 包 | 职责 | 边界（包内不许 import） |
 | --- | --- | --- |
 | `@antdv/types` | 共享类型契约：布局设置、菜单、标签页、Mock 信封 | 纯类型，无运行时代码 |
-| `@antdv/shared` | 缓存、加密、日期、下载、Excel、脱敏、XSS、事件总线、菜单辅助、`cn()` | store / api |
+| `@antdv/shared` | 四个目录 + 一个出口：`cache` 缓存、`color` 色值换算、`constants` 跨层字面量（CSS 变量名 / DOM class / 默认主色）、`utils` 一个文件一件工具（`cn`、日期、下载、Excel、脱敏、XSS、事件总线、菜单辅助……）、`store.ts` 只转发 `@tanstack/vue-store` | store / api |
 | `@antdv/preferences` | 偏好默认值、持久化、CSS 变量落地、antdv-next 主题配置 | pinia / store |
 | `@antdv/composables` | 组合式函数：分片上传、打印、水印、ECharts、SSE、WebSocket… | store / api / 路由实例 |
 | `@antdv/icons` | 只管图标：Iconify 包装、SVG 雪碧图图标、图标选择器（shadcn 实现） | pinia / vue-router / 业务 store / 应用配置 / antdv-next |
@@ -61,7 +61,7 @@ packages/*  ──►  packages/*，且必须单向（types ← 其他所有包�
 
 ## 构建：tsdown + turbo（两类包不一样）
 
-- **dist 发布的包**（`shared` / `composables` / `directives` / `layouts` / `preferences` / `router` / `types` / `node-utils` / `vite-config`）：`build` 就是 `tsdown`（Rolldown 系），产物在 `dist/`，`files` 只带 `dist`；`exports` 支持**子路径即模块**：`@antdv/shared/cn` → `dist/cn.js`（`./*` 通配符），多文件目录模块（`cache` / `crypto` / `event`）显式列出。 `apps/web` 读的是这些包的 `dist`，所以改 `packages/*/src` 必须重新构建 + 重启 dev 才看得见。
+- **dist 发布的包**（`shared` / `composables` / `directives` / `layouts` / `preferences` / `router` / `types` / `node-utils` / `vite-config`）：`build` 就是 `tsdown`（Rolldown 系），产物在 `dist/`，`files` 只带 `dist`；`exports` 支持**子路径即模块**：`@antdv/shared/utils/cn` → `dist/cn.js`（`./*` 通配符），多文件目录模块（`cache` / `crypto` / `event`）显式列出。 `apps/web` 读的是这些包的 `dist`，所以改 `packages/*/src` 必须重新构建 + 重启 dev 才看得见。
 - **源码发布的包**（`icons` / `design` / `ui-kit` 那十个）：`files: ["src"]`、`main`/`types` 直指 `./src/index.ts`，**没有 build 脚本**，由宿主 Vite 直接编译。改这类包保存即热更，不需要重新构建 —— 但也意味着宿主必须能编译 `.vue` 与 Tailwind 入口。口径见[外部模块](/guide/essentials/external)。
 - `turbo.json` 的任务图：`build` / `type-check` / `test:unit` / `test:e2e` 全部 `dependsOn: ["^build"]`，即"先构建我的依赖"；`dev` 是 `persistent` 且不吃缓存，同样先 `^build`（没有 build 脚本的包这一步直接跳过）。
 

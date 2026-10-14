@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 
 import { Alert, Card, Divider, Scrollbar, Space, Tag } from '@antdv/common-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 import {
   BasicDrawer,

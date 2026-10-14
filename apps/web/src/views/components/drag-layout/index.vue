@@ -6,7 +6,7 @@ import { VueDraggable } from 'vue-draggable-plus';
 
 import { Card, Tag } from '@antdv/common-ui';
 import { Button, Switch } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 /**
  * 这一页讲的是「布局 / 卡片 / 列表」的拖拽，用 `vue-draggable-plus` 的 `VueDraggable` 组件；

@@ -6,7 +6,7 @@ import {
   NavigationMenuRoot,
   useForwardPropsEmits,
 } from "reka-ui"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 import NavigationMenuViewport from "./NavigationMenuViewport.vue"
 
 const props = withDefaults(defineProps<NavigationMenuRootProps & {

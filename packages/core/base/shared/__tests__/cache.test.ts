@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { cache, createCache } from '../src/cache';
-import { configureSharedEnv } from '../src/env';
+import { configureSharedEnv } from '../src/utils/env';
 
 const PREFIX = 'unit_cache';
 

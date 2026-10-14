@@ -13,8 +13,8 @@ import { computed, ref, useTemplateRef, watch } from 'vue';
 
 import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import { Scrollbar } from '@antdv/common-ui';
-import { cn } from '@antdv/shared/cn';
-import { useHorizontalScroll } from '@antdv/shared/scroll';
+import { cn } from '@antdv/shared/utils/cn';
+import { useHorizontalScroll } from '@antdv/shared/utils/scroll';
 
 import TabActions from './components/TabActions.vue';
 import TabContextMenu from './components/TabContextMenu.vue';

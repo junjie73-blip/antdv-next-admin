@@ -4,7 +4,7 @@ import { VueCropper } from 'vue-cropper';
 
 import { Card } from '@antdv/common-ui';
 import { Slider, Switch } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { isString } from 'es-toolkit';
 
 type AspectRatioKey = '1:1' | '4:3' | '16:9' | 'free';

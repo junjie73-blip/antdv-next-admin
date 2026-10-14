@@ -50,7 +50,7 @@ The sidebar keeps a third level for "Table" and "Form" only; every other demo is
 
 ## Conventions to know before reading a demo
 
-- **All class names go through `cn()`.** Each page starts with declarations like `const containerClassName = cn('space-y-6')` and then binds `:class="containerClassName"`. That is `@antdv/shared/cn` (clsx + tailwind-merge), not a stylesheet; the class strings quoted here are exactly the ones in the source.
+- **All class names go through `cn()`.** Each page starts with declarations like `const containerClassName = cn('space-y-6')` and then binds `:class="containerClassName"`. That is `@antdv/shared/utils/cn` (clsx + tailwind-merge), not a stylesheet; the class strings quoted here are exactly the ones in the source.
 - **Page roots carry no padding.** The layout owns the scroll container, so demo pages only add spacing (`space-y-6`, `flex h-full flex-col`) and every `a-card` is `variant="borderless"`.
 - **Demos have no backend.** Apart from a handful of Nitro handlers under `api/**`, "save" buttons write a local `ref` or `localStorage`. Each section that relies on this says so explicitly (the table drag-sort "保存顺序" / Save order button and the step form draft are the two clear cases).
 - **Component names must match `defineOptions({ name })`.** Pages are kept alive by keep-alive, which matches the route's `name` against the menu entry's `name` field (e.g. `DemoModalDrawer` in `menus.get.ts`).

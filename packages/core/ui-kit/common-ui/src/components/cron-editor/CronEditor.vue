@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import cronstrue from 'cronstrue';
 
 import 'cronstrue/locales/zh_CN';

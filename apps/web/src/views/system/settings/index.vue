@@ -10,7 +10,7 @@ import { BasicForm, useForm } from '@antdv/form-ui';
 import { BasicDrawer, message, useDrawer } from '@antdv/popup-ui';
 import { BasicModal, useModal } from '@antdv/popup-ui';
 import { Button, Switch } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { BasicTable, useTable } from '@antdv/table-ui';
 import { Icon } from '@iconify/vue';
 import {

@@ -9,7 +9,7 @@ import {
   MASKING_RULES,
   maskName,
   maskPhone,
-} from '../src/masking';
+} from '../src/utils/masking';
 
 describe('masking 各字段规则', () => {
   it('手机号保留前三后四', () => {

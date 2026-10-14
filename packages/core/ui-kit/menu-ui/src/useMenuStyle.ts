@@ -1,6 +1,6 @@
 import type { MenuMode, MenuVisualOptions } from './types';
 
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 /** 一类行的归属：侧栏内联 / 顶部横向条 / 浮层面板 */
 export type MenuVariant = 'bar' | 'inline' | 'popup';

@@ -14,7 +14,7 @@ declare module '*.vue' {
  * 下面这些 `boolean` 只是 env-parse 按 `.env` 里的字面量推出来的"看起来的类型"：
  * Vite 运行时注入的值**一律是字符串**（`'true'` / `'false'` / `''`）。
  * 所以不要写 `import.meta.env.VITE_X === true` —— 它恒为 false，开关看着配了却永远不生效。
- * 判断开关统一用 `isEnvEnabled(import.meta.env.VITE_X)`（来自 `@antdv/shared/env`）。
+ * 判断开关统一用 `isEnvEnabled(import.meta.env.VITE_X)`（来自 `@antdv/shared/utils/env`）。
  */
 interface ImportMetaEnv {
   // Auto generate by env-parse
@@ -24,9 +24,6 @@ interface ImportMetaEnv {
    * 否则「微前端」菜单页会去连不通的地址。用 isEnvEnabled 判断，不要写 === true。
    */
   readonly VITE_MICRO_APP: boolean
-  /**
-   * Mock：VITE_MOCK=true 时 dev server 把 /api 透传到 apps/backend-mock（Nitro）
-   */
   readonly VITE_MOCK: boolean
   readonly VITE_NAMESPACE: string
   /**
@@ -36,11 +33,6 @@ interface ImportMetaEnv {
    * 接真实后端时填完整地址，例如 ws://localhost:8080/ws，token 由前端自动附加。
    */
   readonly VITE_WS_URL: string
-  readonly VITE_APP_BASE_API: string
-  readonly VITE_DEVTOOLS: boolean
-  readonly VITE_INJECT_APP_LOADING: boolean
-  readonly VITE_MOCK_SERVER: string
-  readonly VITE_PORT: number
 }
 
 interface ImportMeta {

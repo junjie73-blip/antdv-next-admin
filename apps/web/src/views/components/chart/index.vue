@@ -6,7 +6,7 @@ import { computed, ref } from 'vue';
 import { Alert, Card } from '@antdv/common-ui';
 import { message } from '@antdv/popup-ui';
 import { Button, Switch } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import * as echarts from 'echarts';
 import { useAppStore } from '~/stores/modules/app';
 

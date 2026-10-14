@@ -4,7 +4,7 @@ import type { ModalWrapperProps } from '../types';
 import { computed } from 'vue';
 
 import { ScrollArea } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { useWindowSize } from '@vueuse/core';
 
 const props = withDefaults(defineProps<ModalWrapperProps>(), {

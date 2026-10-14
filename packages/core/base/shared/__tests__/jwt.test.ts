@@ -5,7 +5,7 @@ import {
   isJwtFormat,
   isTokenExpired,
   parseJwt,
-} from '../src/jwt';
+} from '../src/utils/jwt';
 
 /** 用 base64url 手搓一个未签名校验的 token，只测解析链路 */
 function makeToken(payload: Record<string, unknown>): string {

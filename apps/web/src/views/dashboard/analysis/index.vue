@@ -4,7 +4,7 @@ import type { Ref } from 'vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 import { useEventListener } from '@vueuse/core';
 import { Card, Segmented, Space, Tag } from '@antdv/common-ui';

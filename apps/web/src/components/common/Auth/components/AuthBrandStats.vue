@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 
 defineOptions({ name: 'AuthBrandStats' });

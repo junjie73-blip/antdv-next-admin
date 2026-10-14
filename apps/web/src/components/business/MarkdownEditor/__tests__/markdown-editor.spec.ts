@@ -2,7 +2,7 @@ import type { MarkdownEditorInstance } from '../types';
 
 import { flushPromises, mount } from '@vue/test-utils';
 
-import { safeHtmlDirective } from '@antdv/shared/xss';
+import { safeHtmlDirective } from '@antdv/shared/utils/xss';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import MarkdownEditor from '../MarkdownEditor.vue';

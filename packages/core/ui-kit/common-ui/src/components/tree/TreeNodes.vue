@@ -5,7 +5,7 @@ import { computed } from 'vue';
 
 import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import { Checkbox } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 import { treeKey } from './types';
 

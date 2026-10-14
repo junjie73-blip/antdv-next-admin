@@ -1,5 +1,7 @@
 import type { AppSetting } from '@antdv/types';
 
+import { DEFAULT_PRIMARY_COLOR } from '@antdv/shared/constants';
+
 /**
  * 偏好默认值。
  *
@@ -17,7 +19,7 @@ export const DEFAULT_PREFERENCES = {
   /* ---------- 主题 ---------- */
   theme: 'auto',
   themeStyle: 'default',
-  primaryColor: '#1677ff',
+  primaryColor: DEFAULT_PRIMARY_COLOR,
   borderRadius: 0.5,
   fontSize: 14,
   darkSidebar: false,

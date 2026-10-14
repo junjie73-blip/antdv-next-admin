@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import * as echarts from 'echarts';
 import { getSecurityStats } from '~/api/security';
 import { useAppStore } from '~/stores/modules/app';

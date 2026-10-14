@@ -105,7 +105,7 @@ app.directive('lazy', vLazy); // load only when it enters the viewport
 app.directive('loading', vLoading); // element mask + full-screen instance
 ```
 
-`v-safe-html` / `v-escape` come from `@antdv/shared/xss`. Two pitfalls we already hit:
+`v-safe-html` / `v-escape` come from `@antdv/shared/utils/xss`. Two pitfalls we already hit:
 
 1. **In the html context, `v-escape` must not escape a second time.** `textContent` never parses the content as HTML to begin with, so running `escapeHtml` again only makes users see literals like `&lt;script&gt;`. The html context now writes the raw text as is, while the other contexts (`url` / `js` / `css` / `attr`) transform according to their own semantics: `v-escape:url` replaces pseudo-protocols such as `javascript:` with `#unsafe-url`.
 2. **`<script setup>` unwraps refs inside template expressions automatically.** `@click="flashLoading(boxLoading)"` passes `false` into the function rather than a `Ref`, so `target.value = true` throws `Cannot create property 'value' on boolean 'false'` and the mask never appears. Pass "a key name + one `reactive` record" instead, don't hand a ref over as an argument.

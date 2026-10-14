@@ -3,7 +3,7 @@ import type { StepperTitleProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { StepperTitle, useForwardProps } from "reka-ui"
-import { cn } from '@antdv/shared/cn'
+import { cn } from '@antdv/shared/utils/cn'
 
 const props = defineProps<StepperTitleProps & { class?: HTMLAttributes["class"] }>()
 

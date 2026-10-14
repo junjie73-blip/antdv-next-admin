@@ -15,7 +15,7 @@
 
 import { ref } from 'vue';
 
-import { cache, localStorageCacheStorage } from './cache';
+import { cache, localStorageCacheStorage } from '../cache';
 
 // ==================== 类型定义 ====================
 

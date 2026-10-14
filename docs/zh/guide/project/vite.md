@@ -46,7 +46,7 @@ exclude: ['**/*/components/*', 'account/**/*', 'login/**/*', 'register/**/*'],
 
 ## 环境变量：唯一的坑与唯一的解法
 
-`loadEnv(mode)` 用 vite 的 `loadEnv`（第三参 `""`，加载全部变量）再过 `vite-plugin-env-parse` 的 `parseLoadedEnv`：**`'true'` 变成布尔、`'6080'` 变成数字**。于是 `envConfig.VITE_X === 'true'` 恒为 false —— 本仓库真的因此让 `VITE_DEV_POLLING` 当了很久的死配置，且 `Record<string, any>` 下 TS 连报错都给不出。反过来真值判断也不对（`'0'` 不被转换、`'abc'` 也算真）。口径：Node 侧一律 `isEnvEnabled(value)` （认 `true/1/'true'/'1'/'on'/'yes'`），浏览器侧同名函数在 `@antdv/shared/env` （来源 `import.meta.env` 恒为字符串，不认数字）。两侧各有一份是刻意的： `internal/vite-config` 不依赖浏览器包。
+`loadEnv(mode)` 用 vite 的 `loadEnv`（第三参 `""`，加载全部变量）再过 `vite-plugin-env-parse` 的 `parseLoadedEnv`：**`'true'` 变成布尔、`'6080'` 变成数字**。于是 `envConfig.VITE_X === 'true'` 恒为 false —— 本仓库真的因此让 `VITE_DEV_POLLING` 当了很久的死配置，且 `Record<string, any>` 下 TS 连报错都给不出。反过来真值判断也不对（`'0'` 不被转换、`'abc'` 也算真）。口径：Node 侧一律 `isEnvEnabled(value)` （认 `true/1/'true'/'1'/'on'/'yes'`），浏览器侧同名函数在 `@antdv/shared/utils/env` （来源 `import.meta.env` 恒为字符串，不认数字）。两侧各有一份是刻意的： `internal/vite-config` 不依赖浏览器包。
 
 ## 相关页面
 

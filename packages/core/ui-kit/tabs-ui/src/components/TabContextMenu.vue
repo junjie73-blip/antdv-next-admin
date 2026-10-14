@@ -6,7 +6,7 @@ import type { TabActionContext, TabActionItem } from '../types';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 import { IconifyIcon as Icon } from '@antdv/icons/icon';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 import { tabsRuntime } from '../config';
 import { buildTabActions } from '../constants';

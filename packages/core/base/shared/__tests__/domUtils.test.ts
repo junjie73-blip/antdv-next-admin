@@ -11,7 +11,7 @@ import {
   once,
   removeClass,
   useRafThrottle,
-} from '../src/domUtils';
+} from '../src/utils/domUtils';
 
 function el(className = '') {
   const node = document.createElement('div');

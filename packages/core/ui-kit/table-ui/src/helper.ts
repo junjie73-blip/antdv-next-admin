@@ -3,7 +3,7 @@ import type { VNode } from 'vue';
 import type { TableUIColumnDef } from './features';
 import type { BasicColumn, Recordable } from './types';
 
-import dayjs from '@antdv/shared/dayjs';
+import dayjs from '@antdv/shared/utils/dayjs';
 import {
   cloneDeep,
   debounce,

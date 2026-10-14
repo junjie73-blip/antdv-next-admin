@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TemplateColumn } from '@antdv/shared/template';
+import type { TemplateColumn } from '@antdv/shared/utils/template';
 
 import { h, ref } from 'vue';
 
@@ -8,7 +8,7 @@ import { Scrollbar, Space } from '@antdv/common-ui';
 import { alert, message } from '@antdv/popup-ui';
 
 import { Button } from '@antdv/shadcn-ui';
-import { generateTemplate } from '@antdv/shared/template';
+import { generateTemplate } from '@antdv/shared/utils/template';
 import { Icon } from '@iconify/vue';
 import { useFileDialog } from '@vueuse/core';
 import { isError } from 'es-toolkit';

@@ -4,7 +4,7 @@
  * 指令的**实现**都在子包里，这里只负责把本项目的依赖注进去：
  * - `v-permission`：判定函数来自 `usePermission()`（pinia store），开发期日志走 `import.meta.env.DEV`
  * - `v-lazy`：图片懒加载，包内已带 IntersectionObserver 降级
- * - `v-safe-html` / `v-escape`：XSS 防护，来自 `@antdv/shared/xss`
+ * - `v-safe-html` / `v-escape`：XSS 防护，来自 `@antdv/shared/utils/xss`
  */
 
 import { watch } from 'vue';
@@ -14,7 +14,7 @@ import { usePermission } from '~/composables/web/permission';
 import { useUserStore } from '~/stores/modules/user';
 
 export { createLazyDirective, vLazy } from '@antdv/directives';
-export { escapeDirective, safeHtmlDirective } from '@antdv/shared/xss';
+export { escapeDirective, safeHtmlDirective } from '@antdv/shared/utils/xss';
 
 export const vPermission = createPermissionDirective({
   /**

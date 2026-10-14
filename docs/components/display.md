@@ -162,7 +162,7 @@ KPI 卡、看板上的数字滚动。核心是**用 `requestAnimationFrame` 驱�
 
 | 位置 | 做什么 |
 | --- | --- |
-| `packages/shared/src/dayjs.ts:10`、`:23` | 统一 `dayjs.extend(relativeTime)`，插件在共享包里就装好了 |
+| `packages/shared/src/utils/dayjs.ts:10`、`:23` | 统一 `dayjs.extend(relativeTime)`，插件在共享包里就装好了 |
 | `apps/web/src/layouts/widgets/components/NoticeItem.vue:49-50` | `dayjs(sendTime).fromNow()`，渲染在通知项上（`:141`） |
 | `apps/web/src/views/system/notice/index.vue:23`、`:361` | 页面自己又 `extend` 了一次，表格里用 `fromNow(true)`（去掉「前/后」的纯时长） |
 | `apps/web/src/views/system/online/index.vue:20`、`:93` | 同上，在线时长列 |

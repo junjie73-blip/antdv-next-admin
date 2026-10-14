@@ -4,7 +4,7 @@ import type { VNode } from 'vue';
 import { onErrorCaptured, ref } from 'vue';
 
 import { Scrollbar } from '@antdv/common-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { isError, isString } from 'es-toolkit';
 
 interface Props {

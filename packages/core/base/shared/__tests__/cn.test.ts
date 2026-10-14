@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { cn } from '../src/cn';
+import { cn } from '../src/utils/cn';
 
 describe('cn', () => {
   it('拼接条件类名', () => {

@@ -2,7 +2,7 @@
 import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 import { useColorMode } from '@vueuse/core';
 import { useAppStore } from '~/stores/modules/app';

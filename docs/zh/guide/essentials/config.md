@@ -23,7 +23,7 @@ Vite 的合并顺序是 `.env` → `.env.[mode]` → `.env.local` → `.env.[mod
 - Node 侧：`internal/vite-config/src/utils/env.ts` 的 `loadEnv()` 把结果交给 `vite-plugin-env-parse` 的 `parseLoadedEnv`，于是 `.env` 里的 `true` 变成布尔 `true`、`6080` 变成数字。写 `envConfig.VITE_X === 'true'` 恒为 false。
 - 浏览器侧：`import.meta.env.VITE_X` **永远是字符串**（`'true'` / `'false'` / `''`）。写 `=== true` 恒为 false。
 
-所以有两份 `isEnvEnabled`：Node 版在 `internal/vite-config/src/utils/env.ts`（额外认数字 `1`），浏览器版在 `packages/shared/src/env.ts`（`@antdv/shared/env`）。两边都只认 `true / 1 / on / yes`（忽略大小写与前后空格），其余含 `''`、`'0'` 一律 false。 `types/env.d.ts` 由 `envParse` 自动生成，里面的 `boolean` 只是"字面量看上去是布尔"，不代表运行时类型——这个提醒就写在文件头注释里。
+所以有两份 `isEnvEnabled`：Node 版在 `internal/vite-config/src/utils/env.ts`（额外认数字 `1`），浏览器版在 `packages/shared/src/utils/env.ts`（`@antdv/shared/utils/env`）。两边都只认 `true / 1 / on / yes`（忽略大小写与前后空格），其余含 `''`、`'0'` 一律 false。 `types/env.d.ts` 由 `envParse` 自动生成，里面的 `boolean` 只是"字面量看上去是布尔"，不代表运行时类型——这个提醒就写在文件头注释里。
 
 ## 变量清单
 
@@ -63,7 +63,7 @@ Vite 的合并顺序是 `.env` → `.env.[mode]` → `.env.local` → `.env.[mod
 
 - `VITE_NAMESPACE`：只在 `.env` 与 `types/env.d.ts` 里出现，全仓无引用。缓存前缀实际来自 `VITE_APP_TITLE`，别再按名字猜它有隔离作用。
 - `VITE_APP_VERSION`：`plugins/metadata.ts:104` 用 `define` 造出来的，应用代码里没有读它。
-- `VITE_MINIO_PUBLIC_URL`、`VITE_SENTRY_DSN`：代码里读（`bootstrap/env.ts`、`main.ts`），但三份 `.env` 都没写，运行时是 `undefined`。Sentry 只在 `import.meta.env.PROD` 分支初始化，DSN 为空即不实际上报；MinIO 直链没配时下载走代理前缀（`packages/shared/src/download.ts`）。:::
+- `VITE_MINIO_PUBLIC_URL`、`VITE_SENTRY_DSN`：代码里读（`bootstrap/env.ts`、`main.ts`），但三份 `.env` 都没写，运行时是 `undefined`。Sentry 只在 `import.meta.env.PROD` 分支初始化，DSN 为空即不实际上报；MinIO 直链没配时下载走代理前缀（`packages/shared/src/utils/download.ts`）。:::
 
 `vite-plugin-iconify-offline`、`@vitejs/plugin-legacy`、`vite-plugin-cdn-import` 在 `apps/web/package.json` 的 devDependencies 里，但**没有任何 import**；图标离线由 `@tomjs/vite-plugin-iconify` 负责（见[图标](/zh/guide/essentials/icons)）。加依赖前先搜一遍有没有人用。
 

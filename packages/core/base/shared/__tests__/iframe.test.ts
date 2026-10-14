@@ -5,7 +5,7 @@ import {
   canEscapeSandbox,
   DEFAULT_SANDBOX_FLAGS,
   SANDBOX_FLAGS,
-} from '../src/iframe';
+} from '../src/utils/iframe';
 
 /**
  * 这些断言守护的是"默认策略必须不给同源身份"。

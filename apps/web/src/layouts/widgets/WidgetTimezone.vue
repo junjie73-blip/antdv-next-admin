@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared';
-import { nowTz } from '@antdv/shared/dayjs';
+import { nowTz } from '@antdv/shared/utils/dayjs';
 import { Icon } from '@iconify/vue';
 import { useAppStore } from '~/stores/modules/app';
 

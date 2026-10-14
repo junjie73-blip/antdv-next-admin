@@ -4,7 +4,7 @@ import { computed, ref } from 'vue';
 import { Alert, Card, CronEditor, Space } from '@antdv/common-ui';
 import { message } from '@antdv/popup-ui';
 import { Button, Input } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import cronstrue from 'cronstrue';
 
 import 'cronstrue/locales/zh_CN';

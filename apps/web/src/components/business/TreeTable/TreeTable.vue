@@ -9,7 +9,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { Scrollbar, Tree } from '@antdv/common-ui';
 
 import { Input } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { BasicTable } from '@antdv/table-ui';
 import { Icon } from '@iconify/vue';
 import { useDebounceFn, useEventListener } from '@vueuse/core';

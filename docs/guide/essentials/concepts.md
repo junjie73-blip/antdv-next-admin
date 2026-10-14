@@ -32,7 +32,7 @@ scripts/           仓库任务（vsh、turbo-run、clean、deploy）
 
 `packages/*` 里不许 import `pinia`、应用 store，也不许读 `import.meta.env`。这不是洁癖，有两个具体原因：
 
-1. **包的产物在 dist 里，Vite 的 env 静态替换够不到它**。包里读 `import.meta.env` 会拿到 `undefined`，行为静默退化。所以环境变量由应用在入口注入： `apps/web/src/bootstrap/env.ts` 调 `configureSharedEnv({ cachePrefix, cacheEncryptKey, ... })`， `packages/shared/src/env.ts` 保存这份显式配置；偏好的项目默认值同理，由 `apps/web/src/settings/index.ts` 传进 `createPreferences({ defaults })`。
+1. **包的产物在 dist 里，Vite 的 env 静态替换够不到它**。包里读 `import.meta.env` 会拿到 `undefined`，行为静默退化。所以环境变量由应用在入口注入： `apps/web/src/bootstrap/env.ts` 调 `configureSharedEnv({ cachePrefix, cacheEncryptKey, ... })`， `packages/shared/src/utils/env.ts` 保存这份显式配置；偏好的项目默认值同理，由 `apps/web/src/settings/index.ts` 传进 `createPreferences({ defaults })`。
 2. **单测要能切分支**。`shouldEncrypt()` 这类"生产才加密"的判定如果直接读 env 就不可测，读注入的配置就能测（`packages/shared/__tests__/cache.test.ts` 里就是这么做的）。
 
 "不碰 store"则靠依赖注入落实：
@@ -43,7 +43,7 @@ scripts/           仓库任务（vsh、turbo-run、clean、deploy）
 | 路由守卫 | `@antdv/router` 的守卫工厂（登录态、菜单加载、进度条、标题全是入参） | `apps/web/src/router/guards/index.ts` |
 | 布局形态 | `@antdv/layouts` 只给区域蓝图，无 SFC | `apps/web/src/layouts/` |
 
-唯一例外是 `packages/shared/src/menu.ts` import 了 `vue-router` 的**类型** （`import type { RouteRecordRaw }`）——类型不进产物，不破坏边界。
+唯一例外是 `packages/shared/src/utils/menu.ts` import 了 `vue-router` 的**类型** （`import type { RouteRecordRaw }`）——类型不进产物，不破坏边界。
 
 ::: tip 新代码该放哪只跟这个页面有关 → 页面目录里（`views/<模块>/<页面>/`）。跨页面但只服务应用（store、api、ws） → `apps/web/src/` 对应目录。纯函数、不依赖应用状态、换个项目还想用 → `packages/shared` 或 `packages/composables`。需要 pinia / router / 后端数据才能工作 → 留在应用里做薄壳，包只接收注入。:::
 
@@ -74,7 +74,7 @@ import { Icon } from '@iconify/vue';
 
 `<script setup>` 里模板绑定按 `capitalize(camelize(tag))` 查找，所以模板要继续写 `<ACard>` 就得把默认导出别名成 `ACard`（`import { Card }` 只能配 `<Card>` 用）。`vue/component-name-in-template-casing` 规则会把 kebab 标签改成 Pascal，两者正好对得上。
 
-裸写 `useRoute()`、`ref()` 才是自动导入负责的；`import { cn } from '@antdv/shared/cn'` 这种子路径 import 也必须自己写。
+裸写 `useRoute()`、`ref()` 才是自动导入负责的；`import { cn } from '@antdv/shared/utils/cn'` 这种子路径 import 也必须自己写。
 
 ## 命名与页面骨架
 

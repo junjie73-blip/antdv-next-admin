@@ -2,7 +2,7 @@
 import type { TabItem as TabItemData } from '@antdv/types';
 
 import { IconifyIcon as Icon } from '@antdv/icons/icon';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 defineOptions({ name: 'TabItem' });
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Switch } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 interface Props {
   checkedChildren?: any;

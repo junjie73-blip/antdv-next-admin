@@ -6,7 +6,7 @@ import {
   PopoverAnchor,
   PopoverContent,
 } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 
 import { normalizeOptions } from './utils';
 

@@ -2,7 +2,7 @@
 import { computed, inject, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 import {
   Card,

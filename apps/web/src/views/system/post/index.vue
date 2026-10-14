@@ -22,7 +22,7 @@ import {
   useModal,
 } from '@antdv/popup-ui';
 import { Button, Input } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/cn';
+import { cn } from '@antdv/shared/utils/cn';
 import { BasicTable, useTable } from '@antdv/table-ui';
 import { faker } from '@faker-js/faker/locale/zh_CN';
 import { Icon } from '@iconify/vue';

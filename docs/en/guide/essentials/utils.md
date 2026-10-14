@@ -10,18 +10,18 @@ One criterion decides where a utility lives: **would it still work in another pr
 | Composables | `packages/composables/src/**` | Chunked upload, print, watermark, ECharts, SSE, WebSocket, reactive cache, route loading, file reading | Uses Vue reactivity only, never pinia or a business store |
 | App shells | `apps/web/src/utils/**`, `apps/web/src/composables/**` | Wiring that needs a store / api / app-internal types | E.g. `utils/dict.ts:2` (reads the dict store), `utils/ws.ts:8` (takes the token from the user store), `utils/routePreload.ts:19,66` (`useRouter`) |
 
-::: tip Auto-import does not cover this repository's packages `internal/vite-config/src/plugins/auto-import.ts` only injects framework APIs. A line such as `import { cn } from '@antdv/shared/cn'` has to be written by hand (see [Core concepts](/en/guide/essentials/concepts)). :::
+::: tip Auto-import does not cover this repository's packages `internal/vite-config/src/plugins/auto-import.ts` only injects framework APIs. A line such as `import { cn } from '@antdv/shared/utils/cn'` has to be written by hand (see [Core concepts](/en/guide/essentials/concepts)). :::
 
 ## Every subpath is a module
 
-`packages/shared/package.json:21-43` declares `exports` with a `"./*"` wildcard, and `packages/shared/tsdown.config.ts:16` sets `entry: ['src/index.ts', 'src/*.ts', 'src/*/index.ts']`: **each single-file module under `src/` is its own entry**, so `@antdv/shared/cn` → `dist/cn.js`. Multi-file directory modules (`cache` / `crypto` / `event`) emit `dist/<dir>/index.js` and are therefore listed explicitly (`packages/shared/package.json:26-37`, with the note at `:20` in the same file).
+`packages/core/base/shared/package.json:21-55` declares `exports` with a `"./*"` wildcard (`*` may contain slashes, so two-segment paths like `utils/cn` hit it too), and `packages/core/base/shared/tsdown.config.ts:16-22` sets `entry: ['src/index.ts', 'src/*.ts', 'src/*/*.ts', 'src/*/index.ts', 'src/*/*/index.ts']`: **each module file under `src/` is its own entry**, so `@antdv/shared/utils/cn` → `dist/utils/cn.js`. Multi-file directory modules (`cache` / `color` / `constants` / `utils`, plus `utils/crypto` / `utils/event` inside them) emit `dist/<dir>/index.js`, and the wildcard does not append `index` for them, so each is listed explicitly (`package.json:26-49`, with the note at `:20` in the same file).
 
 `@antdv/composables` works the same way; the directories listed explicitly are `echarts` / `sse` / `websocket` (`packages/composables/package.json:26-37`). Heavy dependencies (the full echarts registry, `watermark-plus`) stay on their own entries on purpose, so `import { usePrint }` does not pay for parsing a chart library (comment at `:20`, plus `src/index.ts:2-12`).
 
 ```ts
-import { cn } from '@antdv/shared/cn'; // single-file module → subpath
+import { cn } from '@antdv/shared/utils/cn'; // single-file module → subpath
 import { cache } from '@antdv/shared/cache'; // directory module, listed explicitly
-import { cache } from '@antdv/shared'; // the root barrel works too (src/index.ts:9-37, explicit export *)
+import { cache } from '@antdv/shared'; // the root barrel works too (src/index.ts:11-15, explicit export *)
 import { useWebSocket } from '@antdv/composables/websocket';
 ```
 
@@ -32,23 +32,27 @@ import { useWebSocket } from '@antdv/composables/websocket';
 | Module (subpath) | Representative exports | Consumers | Tested |
 | --- | --- | --- | --- |
 | `cache` | `cache` (`src/cache/index.ts:196`), `createCache` (`:60`), `buildStorageKey` (`:40`), `encryptToken` / `decryptToken` (`src/cache/tokenCrypto.ts:77,106`) | `stores/modules/user.ts:5` | yes |
-| `cn` | `cn()` (`src/cn.ts:6`) | 446 files repo-wide, e.g. `packages/ui-kit/layout-ui/src/components/LayoutBreadcrumb.vue:14` | yes |
-| `crypto` | `encrypt` / `decrypt` / `encryptObject` / `decryptObject` (`src/crypto/aes.ts:14,19,24,31`), `md5` / `md5File` / `sha256` / `hash` (`src/crypto/hash.ts:3,7,32,40`) | **no call sites** | no |
-| `csrf` | `config` (`src/csrf.ts:67`), `initCsrfProtection` (`:111`), `getCsrfToken` (`:164`) | `composables/web/request/fetcher.ts:5-8`, `utils/securityInit.ts:9` | yes |
-| `dayjs` | `dayjs` (`src/dayjs.ts:136`), `setTimezone` (`:62`), `nowTz` (`:116`) | `stores/modules/app.ts:7,130`, `layouts/widgets/WidgetTimezone.vue:8`, `composables/web/useLocale.ts:4` | yes |
-| `domUtils` | `getBoundingClientRect` (`src/domUtils.ts:14`), `getViewportOffset` (`:89`), `useRafThrottle` (`:187`) | **no call sites** | yes |
-| `download` | `saveBlob` (`src/download.ts:159`), `downloadFile` (`:248`), `downloadWithAuth` (`:416`), `downloadMultiple` (`:552`) | **no call sites** | no |
-| `env` | `configureSharedEnv` (`src/env.ts:32`), `isEnvEnabled` (`:86`), `getCachePrefix` (`:72`) | `bootstrap/env.ts:1`, `mock/activate.ts:1`, `config/micro-app.ts:3` | yes |
-| `event` | `eventBus` / `createEventBus` (`src/event/bus.ts:45,5`), `addResizeListener` (`src/event/resize.ts:71`), `useResizeListener` (`:151`) | `utils/ws.ts:4,118`, `layouts/components/LayoutHeader.vue:8` | yes (the bus plus `triggerWindowResize`) |
-| `excel` | `exportToExcel` (`src/excel.ts:40`) | `views/system/role/index.vue:8` and four more list pages | no |
-| `file-category` | `getExt` (`src/file-category.ts:15`), `getFileCategory` (`:98`) | **no call sites** | yes |
-| `iframe` | `buildIframeSandbox` (`src/iframe.ts:95`), `canEscapeSandbox` (`:131`), `SANDBOX_FLAGS` (`:23`) | `views/micro-app/SubAppView.vue:8` | yes |
-| `jwt` | `isTokenExpired` (`src/jwt.ts:97`); `parseJwt` (`:70`), `isJwtFormat` (`:138`), `getTokenRemainingSeconds` (`:121`) | `composables/web/request/fetcher.ts:9,210` (only `isTokenExpired`) | yes |
-| `masking` | `maskPhone` / `maskEmail` / `maskIdCard` (`src/masking.ts:22,30,40`), `MASKING_RULES` (`:84`) | **no call sites** | yes |
-| `menu` | `menuKeyOf` (`src/menu.ts:32`), `attachMenuPaths` (`:258`), `buildMenuItems` (`:561`), `MenuPathRouter` (`:393`) | `stores/modules/route.ts:1-15`, `layouts/composables/useSidebarMenu.ts:10`, `packages/layouts/src/menu-source.ts:18` | yes |
-| `template` | `generateTemplate` (`src/template.ts:30`) | `components/business/ImportExport.vue:7,194` | yes |
-| `welcome` | `showLoginWelcome` (`src/welcome.ts:114`), `getPersonalizedWelcome` (`:66`) | **no call sites** | yes |
-| `xss` | `safeHtmlDirective` (`src/xss.ts:437`), `escapeDirective` (`:454`), `escapeHtml` (`:173`) | `directives/index.ts:17` → `main.ts:103,107`; `escapeHtml` is used by `packages/composables/src/usePrint.ts:1` | yes |
+| `cn` | `cn()` (`src/utils/cn.ts:6`) | 460 files repo-wide, e.g. `packages/ui-kit/layout-ui/src/components/LayoutBreadcrumb.vue:14` | yes |
+| `color` | `parseColor` (`src/color/convert.ts:23`), `toRgbString` / `toHex` (`:45,50`), `mixWithWhite` (`:60`) | `layouts/components/SettingDrawer/components/AppearancePanel.vue:22`, `LayoutPanel.vue:32` | yes |
+| `constants` | `PREFERENCE_CSS_VARS` (`src/constants/css-vars.ts:24`), `DARK_CLASS` / `COLOR_WEAK_CLASS` / `GRAY_MODE_CLASS` (`src/constants/dom-classes.ts:10,12,14`), `DEFAULT_PRIMARY_COLOR` (`src/constants/theme.ts:9`) | `packages/core/preferences/src/css-vars.ts:3`, `src/defaults.ts:3` | yes |
+| `crypto` | `encrypt` / `decrypt` / `encryptObject` / `decryptObject` (`src/utils/crypto/aes.ts:14,19,24,31`), `md5` / `md5File` / `sha256` / `hash` (`src/utils/crypto/hash.ts:3,7,32,40`) | **no call sites** | no |
+| `csrf` | `config` (`src/utils/csrf.ts:67`), `initCsrfProtection` (`:111`), `getCsrfToken` (`:164`) | `composables/web/request/fetcher.ts:5-8`, `utils/securityInit.ts:9` | yes |
+| `dayjs` | `dayjs` (`src/utils/dayjs.ts:136`), `setTimezone` (`:62`), `nowTz` (`:116`) | `stores/modules/app.ts:7,130`, `layouts/widgets/WidgetTimezone.vue:8`, `composables/web/useLocale.ts:4` | yes |
+| `domUtils` | `getBoundingClientRect` (`src/utils/domUtils.ts:14`), `getViewportOffset` (`:89`), `useRafThrottle` (`:187`) | **no call sites** | yes |
+| `download` | `saveBlob` (`src/utils/download.ts:159`), `downloadFile` (`:248`), `downloadWithAuth` (`:416`), `downloadMultiple` (`:552`) | **no call sites** | no |
+| `env` | `configureSharedEnv` (`src/utils/env.ts:32`), `isEnvEnabled` (`:86`), `getCachePrefix` (`:72`) | `bootstrap/env.ts:1`, `mock/activate.ts:1`, `config/micro-app.ts:3` | yes |
+| `event` | `eventBus` / `createEventBus` (`src/utils/event/bus.ts:45,5`), `addResizeListener` (`src/utils/event/resize.ts:71`), `useResizeListener` (`:151`) | `utils/ws.ts:4,118`, `layouts/components/LayoutHeader.vue:8` | yes (the bus plus `triggerWindowResize`) |
+| `excel` | `exportToExcel` (`src/utils/excel.ts:40`) | `views/system/role/index.vue:8` and four more list pages | no |
+| `file-category` | `getExt` (`src/utils/file-category.ts:15`), `getFileCategory` (`:98`) | **no call sites** | yes |
+| `iframe` | `buildIframeSandbox` (`src/utils/iframe.ts:95`), `canEscapeSandbox` (`:131`), `SANDBOX_FLAGS` (`:23`) | `views/micro-app/SubAppView.vue:8` | yes |
+| `jwt` | `isTokenExpired` (`src/utils/jwt.ts:97`); `parseJwt` (`:70`), `isJwtFormat` (`:138`), `getTokenRemainingSeconds` (`:121`) | `composables/web/request/fetcher.ts:9,210` (only `isTokenExpired`) | yes |
+| `masking` | `maskPhone` / `maskEmail` / `maskIdCard` (`src/utils/masking.ts:22,30,40`), `MASKING_RULES` (`:84`) | **no call sites** | yes |
+| `menu` | `menuKeyOf` (`src/utils/menu.ts:32`), `attachMenuPaths` (`:258`), `buildMenuItems` (`:561`), `MenuPathRouter` (`:393`) | `stores/modules/route.ts:1-15`, `layouts/composables/useSidebarMenu.ts:10`, `packages/layouts/src/menu-source.ts:18` | yes |
+| `scroll` | `computeOverflow` (`src/utils/scroll.ts:28`), `useHorizontalScroll` (`:72`), `pickHorizontalDelta` (`:47`) | `packages/core/ui-kit/menu-ui/src/BasicMenu.vue`, `tabs-ui/src/TabsBar.vue` | yes |
+| `store` | `useStore` / `useAtom` / `useSelector` (`src/store.ts:12`, re-exporting `@tanstack/vue-store` wholesale) | none yet: shared state is supposed to come from here instead of per-feature ref singletons | covered by `__tests__/structure.test.ts` |
+| `template` | `generateTemplate` (`src/utils/template.ts:30`) | `components/business/ImportExport.vue:7,194` | yes |
+| `welcome` | `showLoginWelcome` (`src/utils/welcome.ts:114`), `getPersonalizedWelcome` (`:66`) | **no call sites** | yes |
+| `xss` | `safeHtmlDirective` (`src/utils/xss.ts:437`), `escapeDirective` (`:454`), `escapeHtml` (`:173`) | `directives/index.ts:17` → `main.ts:103,107`; `escapeHtml` is used by `packages/composables/src/usePrint.ts:1` | yes |
 
 ## `@antdv/composables` inventory
 
@@ -91,15 +95,15 @@ These three rules are architectural borders, not style preferences, and checking
 | --- | --- | --- |
 | No `import ... from 'pinia'` | **zero hits** across `packages/*/src` | none |
 | No app store imports, no `~/` alias | zero hits for `from '~/...'` in `packages/*/src` (only the example inside the doc comment at `useChunkUpload.ts:32`) | none |
-| No reading `import.meta.env` | **no runtime read anywhere** in package sources (only comments mention it); env is injected by the app entry (`packages/shared/src/env.ts:1-10`, `apps/web/src/bootstrap/env.ts:1-7`) | none |
-| Avoid `vue-router` at runtime | exactly one runtime import in all package sources: `packages/composables/src/useRouteLoading.ts:2` (`useRouter`, which genuinely needs the router instance); everything else is types, e.g. `import type { RouteRecordRaw }` at `packages/shared/src/menu.ts:4` | that one line |
+| No reading `import.meta.env` | **no runtime read anywhere** in package sources (only comments mention it); env is injected by the app entry (`packages/shared/src/utils/env.ts:1-10`, `apps/web/src/bootstrap/env.ts:1-7`) | none |
+| Avoid `vue-router` at runtime | exactly one runtime import in all package sources: `packages/composables/src/useRouteLoading.ts:2` (`useRouter`, which genuinely needs the router instance); everything else is types, e.g. `import type { RouteRecordRaw }` at `packages/shared/src/utils/menu.ts:4` | that one line |
 
 When a package needs application state it receives it through dependency injection, which is what makes these packages reusable elsewhere and testable without the app:
 
 | Capability needed | What the package accepts | Where the app injects it |
 | --- | --- | --- |
 | Storage / prefix / key | `createPreferences({ cache, cacheKey, expire })` (`packages/preferences/src/store.ts:26-31`) | The default instance follows `configureSharedEnv` (`apps/web/src/bootstrap/env.ts`) |
-| Environment info | `configureSharedEnv({ cachePrefix, cacheEncryptKey, minioPublicUrl, production })` (`packages/shared/src/env.ts:32-42`) | `apps/web/src/bootstrap/env.ts:2-7` |
+| Environment info | `configureSharedEnv({ cachePrefix, cacheEncryptKey, minioPublicUrl, production })` (`packages/shared/src/utils/env.ts:32-42`) | `apps/web/src/bootstrap/env.ts:2-7` |
 | Permission checks | `createPermissionDirective({ checkers, onCheck, subscribe })` | `apps/web/src/directives/index.ts:19` |
 | Chunk processing | `useChunkUpload({ createWorker, workerUrl })` (`packages/composables/src/useChunkUpload.ts:35-37`) | The app supplies `upload.worker` |
 
@@ -108,7 +112,7 @@ When a package needs application state it receives it through dependency injecti
 ## `cn()` is the only way class names get concatenated
 
 ```ts
-// packages/shared/src/cn.ts:1-8
+// packages/shared/src/utils/cn.ts:1-8
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -117,7 +121,7 @@ export function cn(...inputs: ClassValue[]): string {
 }
 ```
 
-`from '@antdv/shared/cn'` appears in **446 files** (96 under `apps/web/src`, 350 under `packages` — of which 314 are the shadcn-generated atoms in `ui-kit/shadcn-ui`, followed by `form-ui` 14, `table-ui` 6, `popup-ui` 4, `tabs-ui` 4, `menu-ui` 3, `layout-ui` 2, and one each in `icons`, `loading-ui` and `composables`), and the repository contains no second `cn` implementation and no other class-merge library. `@antdv/shared` therefore depends on `clsx` + `tailwind-merge` (`packages/shared/package.json:49,57`); `apps/web` also lists both directly (`apps/web/package.json:86,111`), but **do not** reach for `import { twMerge }` in app code — conflict resolution only becomes a convention while one implementation exists.
+`from '@antdv/shared/utils/cn'` appears in **460 files** (82 under `apps/web`, 378 under `packages` — of which 314 are the shadcn-generated atoms in `ui-kit/shadcn-ui`, followed by `common-ui` 28, `form-ui` 14, `table-ui` 7, `popup-ui` 4, `tabs-ui` 4, `menu-ui` 3, `layout-ui` 2, and one each in `icons` and `composables`), and the repository contains no second `cn` implementation and no other class-merge library. `@antdv/shared` therefore depends on `clsx` + `tailwind-merge` (`packages/core/base/shared/package.json:62,70`); `apps/web` also lists both directly (`apps/web/package.json:85,110`), but **do not** reach for `import { twMerge }` in app code — conflict resolution only becomes a convention while one implementation exists.
 
 Naming follows `CODE_STANDARD.md` section 2: Tailwind first, `cn()` for anything dynamic or complex.
 
