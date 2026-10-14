@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import { computed } from "vue"
-
 import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<{
   class?: HTMLAttributes["class"]
-  errors?: Array<string | undefined | { message: string | undefined }>
+  errors?: Array<string | { message: string | undefined } | undefined>
 }>()
 
 const content = computed(() => {
@@ -40,7 +38,7 @@ const content = computed(() => {
     data-slot="field-error"
     :class="cn('text-destructive text-sm font-normal', props.class)"
   >
-    <slot v-if="$slots.default"></slot>
+    <slot v-if="$slots.default" />
 
     <template v-else-if="typeof content === 'string'">
       {{ content }}

@@ -18,7 +18,7 @@ import { go, signIn } from './utils/app';
 async function paddingOf(page: Page) {
   return page.evaluate(() => {
     const view = document.querySelector(
-      '.ant-layout-content .scrollbar__view',
+      '[data-layout-region="content"] .scrollbar__view',
     ) as HTMLElement | null;
     const pageRoot = view?.firstElementChild as HTMLElement | null;
     const read = (el: HTMLElement | null) => {

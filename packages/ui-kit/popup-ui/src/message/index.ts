@@ -5,6 +5,8 @@
  */
 import { toast } from 'vue-sonner';
 
+import 'vue-sonner/style.css';
+
 export const message = {
   error: (content: string, duration?: number) => toast.error(content, { duration }),
   info: (content: string, duration?: number) => toast.info(content, { duration }),

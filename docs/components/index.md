@@ -8,7 +8,7 @@
 | --- | --- |
 | `apps/web/src/views/components/**` | 全部示例页的 `.vue` 源码，路径与菜单路径一一对应 |
 | `apps/web/src/components/business/**` | 被示例的业务组件（Table / Form / Modal / Drawer / Description / CountTo / TreeTable） |
-| `apps/web/src/components/common/**` | 通用封装（ECharts / CronEditor / MarkdownEditor / AvatarUploader / ImageUpload …） |
+| `apps/web/src/components/common/**` | 通用封装（ECharts / MarkdownEditor / AvatarUploader / ImageUpload …；CronEditor 已迁入 `packages/ui-kit/common-ui`） |
 | `packages/icons/src/**` | 图标原子（`IconPicker` / `IconifyIcon` / `SvgIcon`），包名 `@antdv/icons` |
 | `packages/ui-kit/**` | 无状态 UI 原子：`loading-ui`、`scrollbar-ui`、`shadcn-ui` 以及 form/table/popup/tabs/menu/layout 的封装层 |
 | `apps/backend-mock/server/api/menus.get.ts:159-342` | 示例页的**唯一权威清单**：菜单即权限，没进菜单的路由进不去 |

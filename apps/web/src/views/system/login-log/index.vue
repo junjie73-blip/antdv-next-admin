@@ -1,19 +1,27 @@
 <script setup lang="tsx">
-import type { DescriptionItem } from '~/components/business/Description';
-import type { FormSchema } from '~/components/business/Form';
-import type { BasicColumn } from '~/components/business/Table';
+import type { DescriptionItem } from '@antdv/common-ui';
+import type { FormSchema } from '@antdv/form-ui';
+import type { BasicColumn } from '@antdv/table-ui';
 
 import { ref } from 'vue';
 
 import { usePrint } from '@antdv/composables/usePrint';
+import {
+  Alert,
+  Card,
+  Divider,
+  Popconfirm,
+  Statistic,
+  Tag,
+} from '@antdv/common-ui';
 import { cn } from '@antdv/shared/cn';
 import { exportToExcel } from '@antdv/shared/excel';
+import { Button } from '@antdv/shadcn-ui';
 import { Icon } from '@iconify/vue';
-import { Alert as AAlert, Button as AButton, Card as ACard, Divider as ADivider, Popconfirm as APopconfirm, Statistic as AStatistic, Tag as ATag, message } from 'antdv-next';
 import { getLoginLogList, getLoginLogStats } from '~/api/system';
-import { Description as DetailDescription } from '~/components/business/Description';
-import { BasicDrawer, useDrawer } from '~/components/business/Drawer';
-import { BasicTable, useTable } from '~/components/business/Table';
+import { Description as DetailDescription } from '@antdv/common-ui';
+import { BasicDrawer, message, useDrawer } from '@antdv/popup-ui';
+import { BasicTable, useTable } from '@antdv/table-ui';
 
 defineOptions({ name: 'SystemLoginLog' });
 
@@ -37,7 +45,7 @@ const cardClassName = cn('shadow-sm');
 const statsGridClassName = cn('grid', 'grid-cols-4', 'gap-4');
 const tagClassName = cn('inline-flex', 'items-center', 'gap-1');
 const actionClassName = cn('flex', 'items-center', 'justify-center');
-const btnClassName = cn('px-0.5!');
+const btnClassName = cn('h-auto', 'px-0.5!');
 const dividerClassName = cn('mx-0');
 const failCardClassName = cn('border-red-200', 'dark:border-red-900');
 
@@ -130,9 +138,9 @@ const detailSchemas: DescriptionItem[] = [
     field: 'status',
     label: '登录状态',
     render: (value) => (
-      <a-tag color={value === 'success' ? 'green' : 'red'}>
+      <Tag color={value === 'success' ? 'green' : 'red'}>
         {value === 'success' ? '成功' : '失败'}
-      </a-tag>
+      </Tag>
     ),
   },
   { field: 'message', label: '登录消息' },
@@ -143,21 +151,19 @@ const detailSchemas: DescriptionItem[] = [
     render: (value) => {
       const ms = value as number;
       const color = ms > 1000 ? 'red' : ms > 500 ? 'orange' : 'green';
-      return <a-tag color={color}>{ms} ms</a-tag>;
+      return <Tag color={color}>{ms} ms</Tag>;
     },
   },
   {
     field: 'userAgent',
     label: 'User-Agent',
     render: (value) => (
-      <a-typography-paragraph
-        code
-        copyable={{ text: value as string }}
-        ellipsis={{ rows: 3, expandable: true, symbol: '展开' }}
-        style={{ margin: 0, maxWidth: 480 }}
+      <code
+        class="block max-w-[480px] truncate rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800"
+        title={(value as string) || '-'}
       >
         {(value as string) || '-'}
-      </a-typography-paragraph>
+      </code>
     ),
   },
 ];
@@ -223,7 +229,7 @@ function handleExport() {
 function handlePrint() {
   usePrint({
     title: '登录日志',
-    target: '.ant-card-body',
+    target: '.login-log-print-area',
   });
 }
 
@@ -293,32 +299,32 @@ const columns: BasicColumn[] = [
   <div :class="containerClassName">
     <!-- 统计卡片区域 -->
     <div :class="statsGridClassName">
-      <ACard :class="cardClassName" size="small">
-        <AStatistic title="今日登录次数" :value="todayLoginCount" suffix="次">
+      <Card :class="cardClassName">
+        <Statistic title="今日登录次数" :value="todayLoginCount" suffix="次">
           <template #prefix>
             <Icon icon="carbon:login" class="mr-1 text-lg text-blue-500" />
           </template>
-        </AStatistic>
-      </ACard>
-      <ACard :class="cardClassName" size="small">
-        <AStatistic title="本周登录次数" :value="weekLoginCount" suffix="次">
+        </Statistic>
+      </Card>
+      <Card :class="cardClassName">
+        <Statistic title="本周登录次数" :value="weekLoginCount" suffix="次">
           <template #prefix>
             <Icon icon="carbon:calendar" class="mr-1 text-lg text-green-500" />
           </template>
-        </AStatistic>
-      </ACard>
-      <ACard :class="cardClassName" size="small">
-        <AStatistic title="本月登录次数" :value="monthLoginCount" suffix="次">
+        </Statistic>
+      </Card>
+      <Card :class="cardClassName">
+        <Statistic title="本月登录次数" :value="monthLoginCount" suffix="次">
           <template #prefix>
             <Icon
               icon="carbon:chart-line-data"
               class="mr-1 text-lg text-orange-500"
             />
           </template>
-        </AStatistic>
-      </ACard>
-      <ACard :class="[cardClassName, failCardClassName]" size="small">
-        <AStatistic
+        </Statistic>
+      </Card>
+      <Card :class="[cardClassName, failCardClassName]">
+        <Statistic
           title="今日失败次数"
           :value="todayFailCount"
           suffix="次"
@@ -327,12 +333,12 @@ const columns: BasicColumn[] = [
           <template #prefix>
             <Icon icon="carbon:error" class="mr-1 text-lg text-red-500" />
           </template>
-        </AStatistic>
-      </ACard>
+        </Statistic>
+      </Card>
     </div>
 
     <!-- 表格区域 -->
-    <ACard title="登录日志" :class="cardClassName">
+    <Card title="登录日志" :class="cardClassName" body-class="login-log-print-area">
       <BasicTable
         :columns="columns"
         :api="mockApi"
@@ -349,39 +355,32 @@ const columns: BasicColumn[] = [
         @register="tableRegister"
       >
         <template #toolbar>
-          <AButton @click="handleExport">
-            <template #icon>
-              <Icon icon="carbon:export" />
-            </template>
+          <Button variant="outline" @click="handleExport">
+            <Icon icon="carbon:export" />
             导出
-          </AButton>
-          <AButton @click="handlePrint">
-            <template #icon>
-              <Icon icon="carbon:printer" />
-            </template>
+          </Button>
+          <Button variant="outline" @click="handlePrint">
+            <Icon icon="carbon:printer" />
             打印
-          </AButton>
-          <AButton danger @click="handleBatchDelete">
-            <template #icon>
-              <Icon icon="ant-design:delete-outlined" />
-            </template>
+          </Button>
+          <Button variant="destructive" @click="handleBatchDelete">
+            <Icon icon="ant-design:delete-outlined" />
             批量删除
-          </AButton>
-          <APopconfirm
+          </Button>
+          <Popconfirm
             title="确定要清空所有登录日志吗？此操作不可恢复！"
+            danger
             @confirm="handleClear"
           >
-            <AButton danger>
-              <template #icon>
-                <Icon icon="carbon:trash-can" />
-              </template>
+            <Button variant="destructive">
+              <Icon icon="carbon:trash-can" />
               清空
-            </AButton>
-          </APopconfirm>
+            </Button>
+          </Popconfirm>
         </template>
 
         <template #cell-status="{ record }">
-          <ATag :color="record.status === 'success' ? 'green' : 'red'">
+          <Tag :color="record.status === 'success' ? 'green' : 'red'">
             <span :class="tagClassName">
               <Icon
                 :icon="
@@ -392,37 +391,38 @@ const columns: BasicColumn[] = [
               />
               {{ record.status === 'success' ? '成功' : '失败' }}
             </span>
-          </ATag>
+          </Tag>
         </template>
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <AButton
-              type="link"
+            <Button
+              variant="link"
               :class="btnClassName"
               @click="() => handleView(record)"
             >
-              <template #icon>
-                <Icon icon="ant-design:eye-outlined" />
-              </template>
+              <Icon icon="ant-design:eye-outlined" />
               详情
-            </AButton>
-            <ADivider type="vertical" :class="dividerClassName" />
-            <APopconfirm
+            </Button>
+            <Divider type="vertical" :class="dividerClassName" />
+            <Popconfirm
               :title="`确定要删除日志 #${record.id} 吗？`"
+              danger
               @confirm="() => handleDelete(record)"
             >
-              <AButton type="link" danger :class="btnClassName">
-                <template #icon>
-                  <Icon icon="ant-design:delete-outlined" />
-                </template>
+              <Button
+                variant="link"
+                class="text-destructive hover:text-destructive"
+                :class="btnClassName"
+              >
+                <Icon icon="ant-design:delete-outlined" />
                 删除
-              </AButton>
-            </APopconfirm>
+              </Button>
+            </Popconfirm>
           </div>
         </template>
       </BasicTable>
-    </ACard>
+    </Card>
 
     <!-- 详情抽屉 -->
     <BasicDrawer
@@ -440,7 +440,7 @@ const columns: BasicColumn[] = [
       />
 
       <div class="mt-6 border-t border-gray-200 pt-4 dark:border-gray-700">
-        <AAlert
+        <Alert
           message="提示：如发现异常登录记录，请及时修改密码并联系安全管理人员"
           type="warning"
           show-icon

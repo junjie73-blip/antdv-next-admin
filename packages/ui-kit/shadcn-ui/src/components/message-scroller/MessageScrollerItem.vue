@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue"
-
 import { cn } from '@antdv/shared/cn'
-
 import { useMessageScrollerRegister } from "./useMessageScroller"
 
 const props = withDefaults(defineProps<{
@@ -51,6 +48,6 @@ onBeforeUnmount(() => {
       props.class,
     )"
   >
-    <slot></slot>
+    <slot />
   </div>
 </template>

@@ -5,6 +5,7 @@ import type {
   FormActionType,
   FormProps,
   FormSchema,
+  FormValidateError,
   NamePath,
   Recordable,
 } from './types';
@@ -94,6 +95,34 @@ const rootRef = ref<HTMLFormElement>();
 
 const getValues = (): Recordable => ({ ...(form.state.values ?? {}) });
 
+/**
+ * 给插槽用的表单值代理。
+ *
+ * `getValues()` 返回的是快照，插槽里 `v-model="model[field]"` 写回去只会落在
+ * 一次性对象上；代理把读写都接到表单本身，赋值走 `setFieldValue`（才会触发校验）。
+ */
+const readModelValue = (key: string) =>
+  (form.state.values as Recordable | undefined)?.[key];
+
+const formModel = new Proxy({} as Recordable, {
+  get(_target, key) {
+    return typeof key === 'symbol' ? undefined : readModelValue(key);
+  },
+  getOwnPropertyDescriptor(_target, key) {
+    return { configurable: true, enumerable: true, value: readModelValue(key as string) };
+  },
+  has(_target, key) {
+    return key in (form.state.values ?? {});
+  },
+  ownKeys() {
+    return Reflect.ownKeys(form.state.values ?? {});
+  },
+  set(_target, key, value) {
+    if (typeof key !== 'symbol') form.setFieldValue(key, value);
+    return true;
+  },
+});
+
 // ============ 合并 props（schemas 不参与合并） ============
 const getProps = computed(() => {
   const merged = deepMerge({ ...props }, { ...unref(propsRef) }) as FormProps;
@@ -141,6 +170,7 @@ provide('formContext', {
   formActionTypeRef,
   submitAttempted: submitAttemptedRef,
   getValues,
+  model: formModel,
 });
 
 // ============ 折叠行数 ============
@@ -291,7 +321,20 @@ async function validate(nameList?: NamePath[]): Promise<Recordable> {
     if (getProps.value.scrollToFirstError !== false) {
       void scrollToField(errorFields[0]?.name ?? '');
     }
-    throw { values, errorFields, outOfDate: false };
+    /**
+     * 拒绝对象的形状照 antd：`name` 是字段路径数组，`message` 是第一条错误文案，
+     * 页面用它拼提示语（`steps` 还按 `errorFields[0].name[0]` 反查该跳回哪一步）。
+     */
+    const failure: FormValidateError = {
+      errorFields: errorFields.map(({ errors, name }) => ({
+        errors,
+        name: [name],
+      })),
+      message: errorFields[0]?.errors[0],
+      outOfDate: false,
+      values,
+    };
+    throw failure;
   }
 
   let processed = formatDateFields(values, schemas);

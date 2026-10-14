@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
-import { computed, onBeforeUnmount, ref, useId, watch } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { CheckIcon } from "@lucide/vue"
-
+import { computed, onBeforeUnmount, ref, useId, watch } from "vue"
+import { cn } from '@antdv/shared/cn'
 import { getAnswerKeyShortcuts, injectQuestionnaireItemContext } from "./useQuestionnaire"
 
 const props = withDefaults(defineProps<{
@@ -170,7 +167,7 @@ onBeforeUnmount(() => {
       :type="type"
       :value="props.value"
       @change="handleChange"
-    />
+    >
     <span
       aria-hidden="true"
       data-slot="questionnaire-choice-indicator"
@@ -179,7 +176,7 @@ onBeforeUnmount(() => {
       <span
         data-slot="questionnaire-choice-indicator-dot"
         class="bg-primary-foreground size-2 hidden rounded-full group-data-[type=checkbox]/questionnaire-choice:hidden group-data-checked/questionnaire-choice:block"
-      ></span>
+      />
       <CheckIcon
         data-slot="questionnaire-choice-indicator-check"
         class="size-3.5 hidden group-data-[type=radio]/questionnaire-choice:hidden group-data-checked/questionnaire-choice:block"
@@ -189,7 +186,7 @@ onBeforeUnmount(() => {
       data-slot="questionnaire-choice-label"
       class="gap-1 flex min-w-0 flex-1 flex-col leading-snug"
     >
-      <slot :checked="checked" :disabled="disabled" :shortcut="shortcut" :type="type"></slot>
+      <slot :checked="checked" :disabled="disabled" :shortcut="shortcut" :type="type" />
     </span>
     <span
       v-if="shortcut"

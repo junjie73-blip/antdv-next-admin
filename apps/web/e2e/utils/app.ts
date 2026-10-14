@@ -485,39 +485,48 @@ export function region(
  * 但"滚动区看不全""控件挤在一行"这类缺陷恰好只出现在抽屉的 UI 层，
  * 所以这几条用例必须真点按钮，把抽屉当作被测对象。
  */
+/**
+ * 抽屉里的分段控件（Segmented）。
+ * `data-common-segmented` 是 `@antdv/common-ui` 挂在 ToggleGroup 根节点上的作用域钩子；
+ * 每个选项是 `[data-slot="toggle-group-item"]`，`aria-label` 就是选项文案原文，
+ * 选中态用 `data-state="on"`（不是 class）。
+ */
+export function segmentedControl(scope: Locator | Page) {
+  return scope.locator('[data-common-segmented]');
+}
+
 export async function openPreferenceDrawer(
   page: Page,
   section: '外观' | '布局' | '通用',
 ) {
   await page.getByRole('button', { name: '偏好设置' }).click();
   const drawer = page.locator('.setting-drawer');
-  // 同 `closePreferenceDrawer`：展开与否看 `ant-drawer-open`，容器盒子一直都在
-  await expect(drawer).toHaveClass(/ant-drawer-open/);
+  // 同 `closePreferenceDrawer`：Sheet 的开合看 `data-state`，收起时面板直接从 DOM 移除
+  await expect(drawer).toHaveAttribute('data-state', 'open');
 
   /**
    * 分段控件里点 section。
    * 不能直接 `drawer.getByText(section)`：面板内部还有同名的小节标题
    * （「布局」「通用」都是 SettingGroup 的 title），strict mode 会撞上多个命中。
-   * `.ant-segmented-item` 只属于顶部那排切换条。
+   * 顶部切换条是抽屉里第一个 `[data-common-segmented]`，面板里的选项条都排在它后面。
    */
-  await drawer
-    .locator('.ant-segmented-item')
-    .filter({ hasText: section })
+  await segmentedControl(drawer)
     .first()
+    .locator(`[data-slot="toggle-group-item"][aria-label="${section}"]`)
     .click();
   await expect(drawer.locator('.scrollbar__view')).toBeVisible();
   return drawer;
 }
 
 /**
- * 抽屉里某一行的控件（开关 / 输入框 / 数字框…）。
+ * 抽屉里某一行的控件（开关 / 分段条 / 滑块 / 数字框 / 输入框 / 下拉）。
  * 键值是 `SettingItem` 上的 `data-setting-label`，就是面板上那行标题的原文。
  */
 export function settingControl(drawer: Locator, label: string) {
   return drawer
     .locator(`[data-setting-label="${label}"]`)
     .locator(
-      '.ant-switch, .ant-segmented, .ant-slider, .ant-input-number, .ant-input',
+      '[role="switch"], [data-common-segmented], [data-slot="slider"], [role="spinbutton"], input[data-slot="input"], [data-slot="select-trigger"]',
     )
     .first();
 }
@@ -525,17 +534,14 @@ export function settingControl(drawer: Locator, label: string) {
 /**
  * 收起偏好抽屉。
  *
- * 按 Esc 关不掉：抽屉标题栏右上角那颗 × 是 `SettingDrawer` 自绘的
- * （`:closable="false"` 关掉了 antd 自带的），所以这里点它。
- * 判"关好了"也不能看 `.setting-drawer` 是否可见 —— antd 不销毁 DOM，
- * 收起后只是从根节点摘掉 `ant-drawer-open`，容器盒子还在。
+ * 按 Esc 关不掉：`keyboard` 走的是 `handleCancel`，而抽屉的关闭态由父级 `v-model:open`
+ * 决定，自绘的那颗 ×（`SettingDrawer` 头部按钮）才是这条路径的入口。
+ * 判"关好了"用 `toBeHidden`：`destroyOnHidden` 默认为真，收起动画跑完后面板会被摘掉。
  */
 export async function closePreferenceDrawer(page: Page) {
   await page
-    .locator('.setting-drawer .ant-drawer-header button')
-    .first()
+    .locator('.setting-drawer')
+    .getByRole('button', { name: '关闭', exact: true })
     .click();
-  await expect(page.locator('.setting-drawer')).not.toHaveClass(
-    /ant-drawer-open/,
-  );
+  await expect(page.locator('.setting-drawer')).toBeHidden();
 }

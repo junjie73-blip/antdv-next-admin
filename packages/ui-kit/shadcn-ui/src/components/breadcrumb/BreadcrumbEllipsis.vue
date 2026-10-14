@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { MoreHorizontal } from "@lucide/vue"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<{
   class?: HTMLAttributes["class"]

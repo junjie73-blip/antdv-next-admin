@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ContextMenuGroupProps } from "reka-ui"
-
 import { ContextMenuGroup } from "reka-ui"
 
 const props = defineProps<ContextMenuGroupProps>()
@@ -11,6 +10,6 @@ const props = defineProps<ContextMenuGroupProps>()
     data-slot="context-menu-group"
     v-bind="props"
   >
-    <slot></slot>
+    <slot />
   </ContextMenuGroup>
 </template>

@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
-import type { ButtonVariants } from '../button'
 import type { MessageScrollerButtonDirection } from "./useMessageScroller"
-
-import { computed } from "vue"
-
-import { cn } from '@antdv/shared/cn'
+import type { ButtonVariants } from '../button'
 import { ArrowDownIcon } from "@lucide/vue"
-
+import { computed } from "vue"
+import { cn } from '@antdv/shared/cn'
 import { Button } from '../button'
 import { useMessageScroller, useMessageScrollerScrollable } from "./useMessageScroller"
 

@@ -8,6 +8,7 @@ import { normalizeOptions, optionValueEquals } from './utils';
 
 interface Props {
   disabled?: boolean;
+  id?: string;
   options?: any[];
   value?: any;
   [key: string]: any;
@@ -80,6 +81,7 @@ function toggleOption(val: any, optDisabled?: boolean) {
     <Checkbox
       :model-value="singleChecked"
       :disabled="disabled"
+      :id="id"
       data-field-control
     />
     <slot></slot>

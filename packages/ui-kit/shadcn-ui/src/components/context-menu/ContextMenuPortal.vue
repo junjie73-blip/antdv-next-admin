@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ContextMenuPortalProps } from "reka-ui"
-
 import { ContextMenuPortal } from "reka-ui"
 
 const props = defineProps<ContextMenuPortalProps>()
@@ -11,6 +10,6 @@ const props = defineProps<ContextMenuPortalProps>()
     data-slot="context-menu-portal"
     v-bind="props"
   >
-    <slot></slot>
+    <slot />
   </ContextMenuPortal>
 </template>

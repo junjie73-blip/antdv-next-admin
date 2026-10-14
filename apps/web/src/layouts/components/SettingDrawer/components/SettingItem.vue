@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { Tooltip } from '@antdv/common-ui';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { Tooltip as ATooltip } from 'antdv-next';
 
 import {
   itemDescClassName,
@@ -40,9 +40,9 @@ const props = defineProps<{
     <div class="min-w-0 flex-1">
       <div class="flex items-center gap-1">
         <span :class="itemLabelClassName">{{ props.label }}</span>
-        <ATooltip v-if="props.tooltip" :title="props.tooltip">
+        <Tooltip v-if="props.tooltip" :title="props.tooltip">
           <Icon icon="carbon:information" class="text-xs text-slate-400" />
-        </ATooltip>
+        </Tooltip>
       </div>
       <div v-if="props.desc" :class="itemDescClassName">{{ props.desc }}</div>
     </div>

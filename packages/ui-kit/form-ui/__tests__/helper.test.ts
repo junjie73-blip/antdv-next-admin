@@ -303,6 +303,32 @@ describe('rules/runRule', () => {
     ).toBeUndefined();
   });
 
+  it('空值也要跑自定义 validator（antd async-validator 语义）', async () => {
+    expect(
+      await runRule(
+        {
+          validator: (_rule: any, value: any) =>
+            value === 'agree'
+              ? Promise.resolve()
+              : Promise.reject(new Error('需要先同意《用户服务协议》')),
+        },
+        '',
+        { label: '服务协议' },
+      ),
+    ).toBe('需要先同意《用户服务协议》');
+
+    expect(
+      await runRule(
+        {
+          validator: (_rule: any, value: any, cb: any) =>
+            value ? cb() : cb('未选择'),
+        },
+        undefined,
+        { label: '协议' },
+      ),
+    ).toBe('未选择');
+  });
+
   it('transform 先行执行', async () => {
     expect(
       await runRule(

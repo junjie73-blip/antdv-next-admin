@@ -80,6 +80,29 @@ describe('LayoutShell - 顶栏住在哪一行', () => {
     ).toBe(false);
   });
 
+  /**
+   * 侧边导航这类形态：Logo 在顶栏，菜单整棵树在左列。
+   * 使用方仍会把顶栏那份 `nav` 数据传进来（它同时是菜单数据的载体），
+   * 所以这根柱只能由蓝图的 `headerNavVisible` 决定，不能看 menus 空不空。
+   */
+  it('headerNavVisible=false 时即便传了 nav 也不渲染横向导航柱', async () => {
+    const wrapper = mountShell(
+      regions({
+        headerLead: 'logo',
+        headerNavVisible: false,
+        headerVisible: true,
+        sidebarVisible: true,
+      }),
+      { nav: navProps, sider: siderProps, title: '控制台' },
+    );
+    await nextTick();
+    expect(wrapper.find('[data-layout-region="header-nav"]').exists()).toBe(
+      false,
+    );
+    expect(wrapper.find('[data-layout-logo="header"]').exists()).toBe(true);
+    expect(wrapper.find('[data-layout-region="sidebar"]').exists()).toBe(true);
+  });
+
   it('没有面包屑配置时不渲染面包屑行，Logo 形态的顶栏照常', () => {
     const wrapper = mountShell(
       regions({ headerLead: 'logo', headerVisible: true }),
@@ -391,6 +414,7 @@ describe('LayoutShell - 事件上抛', () => {
     const wrapper = mountShell(
       regions({
         headerLead: 'logo',
+        headerNavVisible: true,
         headerVisible: true,
         navRailVisible: true,
         sidebarVisible: true,

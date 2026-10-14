@@ -23,6 +23,7 @@ The old `@antdv/ui` split into three (`icons` / `loading-ui` / `scrollbar-ui`), 
 | `@antdv/icons` | Icons only: the Iconify wrapper, the SVG-sprite icon, the icon picker (shadcn implementation) | pinia / vue-router / business stores / app config / antdv-next |
 | `@antdv/loading-ui` | The `Loading` overlay + `useLoading` + the `createLoading` family + the `v-loading` directive | same as above (dependencies stop at `shadcn-ui` / `shared`) |
 | `@antdv/scrollbar-ui` | The self-drawn `Scrollbar` + `Bar`; styles travel with the component, no host Tailwind | same as above |
+| `@antdv/common-ui` | The shared display components: `Alert`, `Badge`, `Card`, `CountTo`, `CronEditor`, `Description`, `Descriptions`, `Divider`, `Empty`, `EmptyState`, `ErrorBoundary`, `Image`, `PageSkeleton`, `TableSkeleton`, `Popconfirm`, `Result`, `Segmented`, `Space`, `Statistic`, `StatusTag`, `Steps`, `Tabs`/`TabPane`, `Tag`, `Timeline`, `Tooltip`, `Transfer`, `Tree`, `Upload` — all composed from `@antdv/shadcn-ui` primitives | As above (depends only on `icons` / `scrollbar-ui` / `shadcn-ui` / `shared`) |
 | `@antdv/shadcn-ui` | shadcn-vue atoms (Dialog / Popover / Select / Spinner…), the implementation base of the packages above | business logic |
 | `@antdv/form-ui` | Schema-driven forms on top of `@tanstack/vue-form`: `BasicForm` / `useForm` / `componentMap` | application store |
 | `@antdv/table-ui` | `BasicTable` / `useTable` + hooks on top of `@tanstack/vue-table` | application store |
@@ -33,7 +34,7 @@ The old `@antdv/ui` split into three (`icons` / `loading-ui` / `scrollbar-ui`), 
 | `@antdv/layouts` | Region blueprints for the 7 menu modes, content area width strategy, menu tree state source, breadcrumb derivation | pinia / vue-router |
 | `@antdv/router` | Navigation guards: login check, dynamic menu registration, title, progress bar, permission filtering | store / api |
 | `@antdv/directives` | `v-permission`, `v-lazy` | store / pinia / vueuse |
-| `@antdv/styles` | Tailwind v4 entry, base layer, NProgress, accessibility and permission fallback styles | CSS only, no component logic |
+| `@antdv/design` | Tailwind v4 entry, base layer, NProgress, accessibility and permission fallback styles | CSS only, no component logic |
 
 ::: tip Why every table has an extra "no imports" column This is the only reason these packages can be reused on their own in customer projects. Everywhere that needs to read user permissions / fetch the menu / look at preferences gets a function or ref passed in through **dependency injection** — the package itself knows nothing about pinia. So the packages stay plain TS + Vue composables, can be unit tested outside the app, and never form the "store imports the package, the package imports the store back" cycle. When adding a capability, settle this boundary first, then decide whether it goes in the app or in a sub-package — thin shells that need store stay in `apps/web`. :::
 
@@ -61,7 +62,7 @@ Internal packages reference each other with `workspace:*`, which installs as a s
 ## Build: tsdown + turbo (two kinds of package)
 
 - **dist-published packages** (`shared` / `composables` / `directives` / `layouts` / `preferences` / `router` / `types` / `node-utils` / `vite-config`): their `build` is just `tsdown` (the Rolldown family), the output lands in `dist/` and `files` ships `dist` only; `exports` supports **subpath modules** — `@antdv/shared/cn` → `dist/cn.js` (via the `./*` wildcard), while multi-file directory modules (`cache` / `crypto` / `event`) are listed explicitly. `apps/web` reads these packages' `dist`, so after changing their `src` you must rebuild and restart dev to see anything.
-- **source-published packages** (`icons` / `styles` / the nine under `ui-kit`): `files: ["src"]`, `main`/`types` point straight at `./src/index.ts`, and there is **no build script** — the host Vite compiles them. Saving an edit hot-reloads with no rebuild, but the host must be able to compile `.vue` files and the Tailwind entry. The full account is in [External modules](/en/guide/essentials/external).
+- **source-published packages** (`icons` / `design` / the ten under `ui-kit`): `files: ["src"]`, `main`/`types` point straight at `./src/index.ts`, and there is **no build script** — the host Vite compiles them. Saving an edit hot-reloads with no rebuild, but the host must be able to compile `.vue` files and the Tailwind entry. The full account is in [External modules](/en/guide/essentials/external).
 - The task graph in `turbo.json`: `build` / `type-check` / `test:unit` / `test:e2e` all carry `dependsOn: ["^build"]`, i.e. "build my dependencies first"; `dev` is `persistent`, never cached, and likewise runs after `^build` (packages with no build script simply skip that step).
 
 ## Publishing: changesets

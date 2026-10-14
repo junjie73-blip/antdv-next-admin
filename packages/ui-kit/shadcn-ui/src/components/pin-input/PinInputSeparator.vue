@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { PrimitiveProps } from "reka-ui"
-
 import { Minus } from "@lucide/vue"
 import { Primitive, useForwardProps } from "reka-ui"
 

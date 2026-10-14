@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import type { ProgressRootProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import {
   ProgressIndicator,
   ProgressRoot,
 } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = withDefaults(
   defineProps<ProgressRootProps & { class?: HTMLAttributes["class"] }>(),

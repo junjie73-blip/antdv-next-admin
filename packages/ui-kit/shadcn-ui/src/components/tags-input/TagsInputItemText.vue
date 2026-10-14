@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import type { TagsInputItemTextProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import { TagsInputItemText, useForwardProps } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<TagsInputItemTextProps & { class?: HTMLAttributes["class"] }>()
 
@@ -16,6 +14,6 @@ const forwardedProps = useForwardProps(delegatedProps)
 
 <template>
   <TagsInputItemText v-bind="forwardedProps" :class="cn('py-0.5 px-2 text-sm rounded bg-transparent', props.class)">
-    <slot></slot>
+    <slot />
   </TagsInputItemText>
 </template>

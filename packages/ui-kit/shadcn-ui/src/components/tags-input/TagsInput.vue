@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import type { TagsInputRootEmits, TagsInputRootProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import { TagsInputRoot, useForwardPropsEmits } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<TagsInputRootProps & { class?: HTMLAttributes["class"] }>()
 const emits = defineEmits<TagsInputRootEmits>()
@@ -23,6 +21,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
       'aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive',
       props.class)"
   >
-    <slot v-bind="slotProps"></slot>
+    <slot v-bind="slotProps" />
   </TagsInputRoot>
 </template>

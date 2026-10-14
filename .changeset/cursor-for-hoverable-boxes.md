@@ -1,5 +1,5 @@
 ---
-'@antdv/styles': patch
+'@antdv/design': patch
 '@antdv/web': patch
 ---
 
@@ -8,7 +8,7 @@ fix: 能点的盒子都有可点光标，禁用的不再装成能点
 现象：不少地方"盒子已经亮了、鼠标还是箭头" —— 设置面板的主题色块与布局磁贴、通知面板的按钮、Markdown 工具栏、分片上传的操作键、评分星、上传拖拽区；反过来也有"已经灰掉了、光标却还是能点的样子"。用户归纳成一句话： **能 hover 的盒子都需要带上 cursor**。
 
 - **根因是 UA 默认值，不是谁写错了样式**：浏览器给 `<button>` 的是 `default` 光标（只有 `<a href>` 才自动 pointer），而本项目可点的"盒子"绝大多数是手写的 `<button type="button">`。以前靠逐个模板补 `cursor-pointer` —— 79 处里对的需要 35 处，漏的那些就是用户看到的。模板写法管不住新页面，所以规则搬到样式层一次接上。
-- **写在 `packages/styles/src/base.css`，且不新增文件**：`@antdv/styles` 的入口是**原始 CSS** （无编译步骤，`main.ts` 直接 `import '@antdv/styles'`），Tailwind v4 在应用构建时处理；再加一个 `cursor.css` 就得动 `index.css` 的 `@import` 清单，而那份清单有契约用例钉着 ——不值得为四条规则引发一次包边界变更。
+- **写在 `packages/design/src/base.css`，且不新增文件**：`@antdv/design` 的入口是**原始 CSS** （无编译步骤，`main.ts` 直接 `import '@antdv/design'`），Tailwind v4 在应用构建时处理；再加一个 `cursor.css` 就得动 `index.css` 的 `@import` 清单，而那份清单有契约用例钉着 ——不值得为四条规则引发一次包边界变更。
 - **规则按"可点性的来源"分三档**，而不是罗列 class 名：
   1. `button:not(:disabled)` / `button:disabled` → pointer / not-allowed； `input[type=checkbox|radio]`、`select` 同理（antd 的 hover 反馈做在外层盒子上，光标却归元素自己）。
   2. 带 ARIA `role` 的自定义控件（评分星的 `role="radio"` 等）→ pointer， `[aria-disabled=true]` → not-allowed。role 属性本身就是在宣布"这里能点"，antd 只把光标写在外层 `<li>` 上，鼠标真正停的那层是 `default`。

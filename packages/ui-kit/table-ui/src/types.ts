@@ -65,6 +65,23 @@ export interface PaginationProps {
   [key: string]: any;
 }
 
+/**
+ * 分页条入参：`PaginationProps` 里被 `BasicTable` 归一化后的那部分。
+ *
+ * `current` / `pageSize` 由使用方单向控制 —— 分页条自己不改内部状态，
+ * 越界页码（快速跳至输了个不存在的页）就能被原样拒绝，输入框不必回滚。
+ */
+export interface TablePaginationProps {
+  current: number;
+  pageSize: number;
+  pageSizeOptions?: (number | string)[];
+  showQuickJumper?: boolean;
+  showSizeChanger?: boolean;
+  showTotal?: (total: number, range: [number, number]) => any;
+  siblingCount?: number;
+  total: number;
+}
+
 // ============================================
 // 表格列类型
 // ============================================

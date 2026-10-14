@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import type { DialogContentEmits, DialogContentProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { X } from "@lucide/vue"
 import { reactiveOmit } from "@vueuse/core"
 import {
@@ -12,12 +9,12 @@ import {
   DialogPortal,
   useForwardPropsEmits,
 } from "reka-ui"
-
+import { cn } from '@antdv/shared/cn'
 import SheetOverlay from "./SheetOverlay.vue"
 
 interface SheetContentProps extends DialogContentProps {
   class?: HTMLAttributes["class"]
-  side?: "bottom" | "left" | "right" | "top"
+  side?: "top" | "right" | "bottom" | "left"
 }
 
 defineOptions({
@@ -52,7 +49,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
         props.class)"
       v-bind="{ ...$attrs, ...forwarded }"
     >
-      <slot></slot>
+      <slot />
 
       <DialogClose
         class="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none"

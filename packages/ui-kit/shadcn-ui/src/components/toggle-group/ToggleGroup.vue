@@ -1,16 +1,12 @@
 <script setup lang="ts">
 import type { VariantProps } from "class-variance-authority"
 import type { ToggleGroupRootEmits, ToggleGroupRootProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
 import type { toggleVariants } from '../toggle'
-
-import { provide } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import { ToggleGroupRoot, useForwardPropsEmits } from "reka-ui"
+import { provide } from "vue"
+import { cn } from '@antdv/shared/cn'
 
 type ToggleGroupVariants = VariantProps<typeof toggleVariants>
 
@@ -48,6 +44,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
     v-bind="forwarded"
     :class="cn('group/toggle-group flex w-fit items-center gap-[--spacing(var(--gap))] rounded-md data-[spacing=default]:data-[variant=outline]:shadow-xs', props.class)"
   >
-    <slot v-bind="slotProps"></slot>
+    <slot v-bind="slotProps" />
   </ToggleGroupRoot>
 </template>

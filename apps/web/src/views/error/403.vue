@@ -2,8 +2,8 @@
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 
+import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
-import { Button as AButton } from 'antdv-next';
 import { HOME_PATH, LOGIN_PATH } from '~/config/constants';
 import { useUserStore } from '~/stores/modules/user';
 
@@ -42,9 +42,9 @@ function handleBack() {
       <p class="mb-8 text-gray-400 dark:text-gray-500">
         请联系管理员获取访问权限
       </p>
-      <AButton type="primary" size="large" @click="handleBack">
+      <Button size="lg" @click="handleBack">
         返回首页
-      </AButton>
+      </Button>
     </div>
   </div>
 </template>

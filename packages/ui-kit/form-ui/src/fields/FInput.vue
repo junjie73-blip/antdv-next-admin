@@ -7,6 +7,7 @@ import { Eye, EyeOff, Search, X } from '@lucide/vue';
 interface Props {
   allowClear?: boolean;
   disabled?: boolean;
+  id?: string;
   maxlength?: number;
   placeholder?: string;
   readonly?: boolean;
@@ -68,6 +69,7 @@ function clear() {
       :readonly="readonly"
       :maxlength="maxlength"
       :placeholder="placeholder"
+      :id="id"
       data-field-control
       class="h-9 w-full min-w-0 bg-transparent text-sm outline-hidden placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed"
       @input="onInput"

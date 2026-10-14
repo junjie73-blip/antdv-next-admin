@@ -1,18 +1,32 @@
 <script setup lang="ts">
-import type { FormSchema } from '~/components/business/Form';
-import type { BasicColumn } from '~/components/business/Table';
+import type { FormSchema } from '@antdv/form-ui';
+import type { BasicColumn } from '@antdv/table-ui';
 
 import { computed, ref, useTemplateRef } from 'vue';
 
+import {
+  Alert,
+  Badge,
+  Card,
+  Divider,
+  Popconfirm,
+  Tag,
+  Transfer,
+} from '@antdv/common-ui';
+import { BasicForm, useForm } from '@antdv/form-ui';
+import {
+  BasicDrawer,
+  BasicModal,
+  message,
+  useDrawer,
+  useModal,
+} from '@antdv/popup-ui';
+import { Button, Input } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
+import { BasicTable, useTable } from '@antdv/table-ui';
 import { faker } from '@faker-js/faker/locale/zh_CN';
 import { Icon } from '@iconify/vue';
-import { Alert as AAlert, Badge as ABadge, Button as AButton, Card as ACard, Divider as ADivider, Input as AInput, Popconfirm as APopconfirm, Tag as ATag, Transfer as ATransfer, message } from 'antdv-next';
 import { addPost, deletePost, getPostList, updatePost } from '~/api/system';
-import { BasicDrawer, useDrawer } from '~/components/business/Drawer';
-import { BasicForm, useForm } from '~/components/business/Form';
-import { BasicModal, useModal } from '~/components/business/Modal';
-import { BasicTable, useTable } from '~/components/business/Table';
 import { DictType } from '~/enums/dict';
 import { useDictStore } from '~/stores';
 
@@ -50,7 +64,8 @@ const actionClassName = cn(
   'justify-center',
   'whitespace-nowrap',
 );
-const btnClassName = cn('px-0.5!');
+const btnClassName = cn('h-auto', 'px-0.5!');
+const dangerLinkBtnClassName = cn(btnClassName, 'text-destructive hover:text-destructive');
 const dividerClassName = cn('mx-0');
 
 // ========== 状态映射 ==========
@@ -428,7 +443,7 @@ const columns: BasicColumn[] = [
 
 <template>
   <div :class="containerClassName">
-    <ACard title="岗位管理" :class="cardClassName">
+    <Card title="岗位管理" :class="cardClassName">
       <BasicTable
         ref="tableRef"
         :columns="columns"
@@ -445,16 +460,14 @@ const columns: BasicColumn[] = [
         @register="tableRegister"
       >
         <template #toolbar>
-          <AButton type="primary" @click="handleAdd">
-            <template #icon>
-              <Icon icon="ant-design:plus-outlined" />
-            </template>
+          <Button @click="handleAdd">
+            <Icon icon="ant-design:plus-outlined" />
             新增岗位
-          </AButton>
+          </Button>
         </template>
 
         <template #cell-status="{ record }">
-          <ATag :color="statusColorMap[record.status] || 'default'">
+          <Tag :color="statusColorMap[record.status] || 'default'">
             <span :class="tagClassName">
               <Icon
                 :icon="
@@ -465,11 +478,11 @@ const columns: BasicColumn[] = [
               />
               {{ statusLabelMap[record.status] || '未知' }}
             </span>
-          </ATag>
+          </Tag>
         </template>
 
         <template #cell-userCount="{ record }">
-          <ABadge
+          <Badge
             :count="record.userCount"
             :number-style="{ backgroundColor: '#1677ff' }"
           />
@@ -477,59 +490,41 @@ const columns: BasicColumn[] = [
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <AButton
-              type="link"
-              :class="btnClassName"
-              @click="() => handleOpenAssign(record)"
-            >
-              <template #icon>
-                <Icon icon="ant-design:user-switch-outlined" />
-              </template>
+            <Button :class="btnClassName" variant="link" @click="() => handleOpenAssign(record as PostRecord)">
+              <Icon icon="ant-design:user-switch-outlined" />
               分配用户
-            </AButton>
-            <ADivider type="vertical" :class="dividerClassName" />
-            <AButton
-              type="link"
-              :class="btnClassName"
-              @click="() => handleEdit(record)"
-            >
-              <template #icon>
-                <Icon icon="ant-design:edit-outlined" />
-              </template>
+            </Button>
+            <Divider type="vertical" :class="dividerClassName" />
+            <Button :class="btnClassName" variant="link" @click="() => handleEdit(record as PostRecord)">
+              <Icon icon="ant-design:edit-outlined" />
               编辑
-            </AButton>
-            <ADivider type="vertical" :class="dividerClassName" />
-            <APopconfirm
+            </Button>
+            <Divider type="vertical" :class="dividerClassName" />
+            <Popconfirm
               :title="`确定要「${record.status === 1 ? '停用' : '启用'}」岗位「${record.name}」吗？`"
-              @confirm="() => handleToggleStatus(record)"
+              @confirm="() => handleToggleStatus(record as PostRecord)"
             >
-              <AButton
-                v-if="record.status === 1"
-                type="link"
-                :class="btnClassName"
-              >
+              <Button v-if="record.status === 1" :class="btnClassName" variant="link">
                 停用
-              </AButton>
-              <AButton v-else type="link" :class="btnClassName">
+              </Button>
+              <Button v-else :class="btnClassName" variant="link">
                 启用
-              </AButton>
-            </APopconfirm>
-            <ADivider type="vertical" :class="dividerClassName" />
-            <APopconfirm
+              </Button>
+            </Popconfirm>
+            <Divider type="vertical" :class="dividerClassName" />
+            <Popconfirm
               :title="`确定要删除岗位「${record.name}」吗？`"
-              @confirm="() => handleDelete(record)"
+              @confirm="() => handleDelete(record as PostRecord)"
             >
-              <AButton type="link" danger :class="btnClassName">
-                <template #icon>
-                  <Icon icon="ant-design:delete-outlined" />
-                </template>
+              <Button :class="dangerLinkBtnClassName" variant="link">
+                <Icon icon="ant-design:delete-outlined" />
                 删除
-              </AButton>
-            </APopconfirm>
+              </Button>
+            </Popconfirm>
           </div>
         </template>
       </BasicTable>
-    </ACard>
+    </Card>
 
     <!-- 新增/编辑抽屉 -->
     <BasicDrawer
@@ -556,7 +551,7 @@ const columns: BasicColumn[] = [
     >
       <div class="space-y-4">
         <!-- 岗位信息提示 -->
-        <AAlert
+        <Alert
           message="选择要分配到该岗位的用户，支持多选"
           type="info"
           show-icon
@@ -565,28 +560,31 @@ const columns: BasicColumn[] = [
         <div
           class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400"
         >
-          <span>岗位编码：<ATag color="blue">{{
+          <span>岗位编码：<Tag color="blue">{{
               assignPostRecord?.code
-            }}</ATag></span>
-          <span>所属部门：<ATag color="cyan">{{
+            }}</Tag></span>
+          <span>所属部门：<Tag color="cyan">{{
               assignPostRecord?.deptName
-            }}</ATag></span>
-          <span>已选：<ATag color="orange">{{ selectedAssignUserIds.length }} 人</ATag></span>
+            }}</Tag></span>
+          <span>已选：<Tag color="orange">{{ selectedAssignUserIds.length }} 人</Tag></span>
         </div>
 
         <!-- 搜索框 -->
-        <AInput
-          v-model:value="assignSearchKeyword"
-          placeholder="搜索用户名/昵称..."
-          allow-clear
-        >
-          <template #prefix>
-            <Icon icon="ant-design:search-outlined" class="text-gray-400" />
-          </template>
-        </AInput>
+        <div class="relative">
+          <Icon
+            class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+            icon="ant-design:search-outlined"
+          />
+          <Input
+            v-model="assignSearchKeyword"
+            class="pl-8"
+            placeholder="搜索用户名/昵称..."
+            type="search"
+          />
+        </div>
 
         <!-- Transfer 穿梭框 -->
-        <ATransfer
+        <Transfer
           v-model:target-keys="selectedAssignUserIds"
           :data-source="transferDataSource"
           :titles="['待选用户', '已选用户']"

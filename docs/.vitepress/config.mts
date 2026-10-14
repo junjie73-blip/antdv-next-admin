@@ -8,7 +8,7 @@ import { defineConfig } from 'vitepress';
  * 信息架构参考 vben（doc.vben.pro）：正文在 `guide/` 下按 `introduction`（介绍）/
  * `essentials`（基础）/ `in-depth`（深入）/ `project`（工程）/ `other`（其他）分层，
  * 示例文档另起一章 `components/`（组件示例）并**用独立的侧栏键**（`/components/`）——
- * 混进 `guide` 的侧栏会让读指南的人全程拖着 8 条示例页。两边**目录与文件名逐一对应**，
+ * 混进 `guide` 的侧栏会让读指南的人全程拖着 9 条示例页。两边**目录与文件名逐一对应**，
  * 侧栏分组与阅读顺序一致 —— 一份 `sidebar` 里出现的每个 link，两边都要有同名文件。
  * 加页面时先在 `zh` 落地，再补同路径的 `en`，只补一边会让语言切换跳到 404。
  *
@@ -97,7 +97,7 @@ export default defineConfig({
                 { text: '路由和菜单', link: '/guide/essentials/route' },
                 { text: '配置', link: '/guide/essentials/config' },
                 { text: '图标', link: '/guide/essentials/icons' },
-                { text: '样式', link: '/guide/essentials/styles' },
+                { text: '设计令牌', link: '/guide/essentials/design' },
                 { text: '工具', link: '/guide/essentials/utils' },
                 { text: '状态管理', link: '/guide/essentials/stores' },
                 { text: '缓存', link: '/guide/essentials/cache' },
@@ -149,12 +149,13 @@ export default defineConfig({
               ],
             },
           ],
-          /** 组件示例是独立一章，不混进指南侧栏：读指南时不该被 8 条示例页拖着走 */
+          /** 组件示例是独立一章，不混进指南侧栏：读指南时不该被 9 条示例页拖着走 */
           '/components/': [
             {
               text: '组件示例',
               items: [
                 { text: '总览', link: '/components/' },
+                { text: '公共组件', link: '/components/common-ui' },
                 { text: '表格', link: '/components/table' },
                 { text: '表单', link: '/components/form' },
                 { text: '弹窗与抽屉', link: '/components/modal-drawer' },
@@ -213,7 +214,10 @@ export default defineConfig({
                 { text: 'Routes and menu', link: '/en/guide/essentials/route' },
                 { text: 'Configuration', link: '/en/guide/essentials/config' },
                 { text: 'Icons', link: '/en/guide/essentials/icons' },
-                { text: 'Styles', link: '/en/guide/essentials/styles' },
+                {
+                  text: 'Design tokens',
+                  link: '/en/guide/essentials/design',
+                },
                 { text: 'Utilities', link: '/en/guide/essentials/utils' },
                 {
                   text: 'State management',
@@ -286,6 +290,10 @@ export default defineConfig({
               text: 'Examples',
               items: [
                 { text: 'Overview', link: '/en/components/' },
+                {
+                  text: 'Shared components',
+                  link: '/en/components/common-ui',
+                },
                 { text: 'Table', link: '/en/components/table' },
                 { text: 'Form', link: '/en/components/form' },
                 {

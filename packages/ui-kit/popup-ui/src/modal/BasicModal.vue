@@ -23,6 +23,7 @@ import { Check, X } from '@lucide/vue';
 import { useTimeoutFn } from '@vueuse/core';
 
 import { resolvePopupButton } from '../shared/button';
+import { CLOSED_PANEL_INERT } from '../shared/presence';
 import ModalWrapper from './ModalWrapper.vue';
 
 const props = withDefaults(defineProps<ModalProps>(), {
@@ -84,6 +85,7 @@ const contentStyle = computed(() => ({
 const contentClass = computed(() =>
   cn(
     'basic-modal max-w-none! gap-0 p-0',
+    CLOSED_PANEL_INERT,
     merged.value.centered
       ? ''
       : '!top-20 translate-y-0 data-[state=open]:animate-none',
@@ -159,7 +161,13 @@ async function handleCancel(e?: MouseEvent) {
   await modalMethods.closeModal();
 }
 
-/** 蒙层点击 / ESC 走 reka 的拦截事件，补上 closeFunc 守卫与 cancel 语义 */
+/**
+ * 蒙层点击 / ESC 走 reka 的拦截事件，补上 closeFunc 守卫与 cancel 语义。
+ *
+ * 只绑 `interact-outside` 一个：reka 的 DismissableLayer 在一次外部按下时会连发
+ * `pointerDownOutside` 和 `interactOutside`，两个都接就等于点一次蒙层关两次
+ * （`closeFunc` 这类有副作用的钩子会被跑两遍）。
+ */
 async function onInteractOutside(event: Event) {
   if (!merged.value.maskClosable || !merged.value.closable) {
     event.preventDefault();
@@ -192,7 +200,6 @@ const cancelBtn = computed(() =>
       :show-close-button="false"
       aria-modal="true"
       role="dialog"
-      @pointer-down-outside="onInteractOutside"
       @interact-outside="onInteractOutside"
       @escape-key-down="onEscapeKeyDown"
     >

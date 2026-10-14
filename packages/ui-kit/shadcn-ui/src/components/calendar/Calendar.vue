@@ -1,20 +1,15 @@
 <script lang="ts" setup>
 import type { CalendarRootEmits, CalendarRootProps, DateValue } from "reka-ui"
-
 import type { HTMLAttributes, Ref } from "vue"
-
 import type { LayoutTypes } from "."
-
-import { computed, toRaw } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { getLocalTimeZone, today } from "@internationalized/date"
 import { createReusableTemplate, reactiveOmit, useVModel } from "@vueuse/core"
 import { CalendarRoot, useDateFormatter, useForwardPropsEmits } from "reka-ui"
 import { createYear, createYearRange, toDate } from "reka-ui/date"
-
-import { CalendarCell, CalendarCellTrigger, CalendarGrid, CalendarGridBody, CalendarGridHead, CalendarGridRow, CalendarHeadCell, CalendarHeader, CalendarHeading, CalendarNextButton, CalendarPrevButton } from "."
+import { computed, toRaw } from "vue"
+import { cn } from '@antdv/shared/cn'
 import { NativeSelect, NativeSelectOption } from '../native-select'
+import { CalendarCell, CalendarCellTrigger, CalendarGrid, CalendarGridBody, CalendarGridHead, CalendarGridRow, CalendarHeadCell, CalendarHeader, CalendarHeading, CalendarNextButton, CalendarPrevButton } from "."
 
 const props = withDefaults(defineProps<CalendarRootProps & { class?: HTMLAttributes["class"], layout?: LayoutTypes, yearRange?: DateValue[] }>(), {
   modelValue: undefined,
@@ -128,10 +123,10 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
 
       <nav class="pointer-events-none flex items-center gap-1 absolute top-0 inset-x-0 justify-between">
         <CalendarPrevButton>
-          <slot name="calendar-prev-icon"></slot>
+          <slot name="calendar-prev-icon" />
         </CalendarPrevButton>
         <CalendarNextButton>
-          <slot name="calendar-next-icon"></slot>
+          <slot name="calendar-next-icon" />
         </CalendarNextButton>
       </nav>
     </CalendarHeader>

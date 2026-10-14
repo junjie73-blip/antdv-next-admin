@@ -7,7 +7,9 @@ import { RouterLink } from 'vue-router';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
 import { useEventListener } from '@vueuse/core';
-import { Button as AButton, Card as ACard, Col as ACol, RadioButton as ARadioButton, RadioGroup as ARadioGroup, Row as ARow, Segmented as ASegmented, Space as ASpace, Tag as ATag, message } from 'antdv-next';
+import { Card, Segmented, Space, Tag } from '@antdv/common-ui';
+import { message } from '@antdv/popup-ui';
+import { Button } from '@antdv/shadcn-ui';
 import * as echarts from 'echarts';
 import { useAppStore } from '~/stores/modules/app';
 
@@ -16,6 +18,10 @@ const appStore = useAppStore();
 
 // ========== 主题相关 ==========
 const isDark = computed(() => appStore.themeMode === 'dark');
+
+// ========== 顶部筛选（时间范围 / 趋势口径） ==========
+const rangeTab = ref('今日');
+const trendMode = ref('pv');
 
 // ========== 图表实例管理 ==========
 const charts = new Map<string, echarts.ECharts>();
@@ -36,6 +42,10 @@ const analyticsCardClassName = cn(
 );
 const sectionTitleClassName = cn(
   'mb-4 text-base font-semibold text-gray-800 dark:text-gray-200',
+);
+const kpiCardClassName = cn(
+  'h-full rounded-lg border border-gray-100 bg-white p-5 dark:border-gray-800 dark:bg-gray-900',
+  'transition-all duration-300 hover:shadow-md',
 );
 
 // ═══════════════════════════════════════════
@@ -127,6 +137,10 @@ function kpiTrendColor(trend: number): string {
     : 'text-red-600 dark:text-red-400';
 }
 
+function kpiTrendTextClass(trend: number): string {
+  return cn('text-xs font-semibold', kpiTrendColor(trend));
+}
+
 // ═══════════════════════════════════════════
 // 🗂 工作台并入：快捷操作 / 最近动态
 // ═══════════════════════════════════════════
@@ -195,6 +209,17 @@ function activityDotColor(type: string): string {
     permission: 'bg-amber-400',
   };
   return map[type] || 'bg-gray-400 dark:bg-gray-600';
+}
+
+function activityDotClass(type: string): string {
+  return cn('mt-2 h-1.5 w-1.5 shrink-0 rounded-full', activityDotColor(type));
+}
+
+function quickActionIconClass(color: string): string {
+  return cn(
+    'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
+    color,
+  );
 }
 
 const todayLabel = new Date().toLocaleDateString('zh-CN', {
@@ -1001,19 +1026,17 @@ onBeforeUnmount(() => {
           系统数据分析与可视化 · {{ todayLabel }}
         </p>
       </div>
-      <ASpace>
-        <ASegmented
+      <Space>
+        <Segmented
+          v-model:value="rangeTab"
           :options="['今日', '近7天', '近30天']"
-          default-value="今日"
           size="small"
         />
-        <AButton size="small" @click="handleExportReport">
-          <template #icon>
-            <Icon icon="carbon:download" />
-          </template>
+        <Button size="sm" @click="handleExportReport">
+          <Icon icon="carbon:download" />
           导出报告
-        </AButton>
-      </ASpace>
+        </Button>
+      </Space>
     </div>
 
     <!-- 数据分析内容 -->
@@ -1021,14 +1044,7 @@ onBeforeUnmount(() => {
       <!-- KPI 统计卡片区：6 张卡按 1/2/3 列铺开，正好整除，不留半空行 -->
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <div v-for="kpi in kpiList" :key="kpi.title">
-          <div
-            :class="
-              cn(
-                'h-full rounded-lg border border-gray-100 bg-white p-5 dark:border-gray-800 dark:bg-gray-900',
-                'transition-all duration-300 hover:shadow-md',
-              )
-            "
-          >
+          <div :class="kpiCardClassName">
             <div class="flex items-start gap-4">
               <div :class="kpiIconWrap(kpi.color)">
                 <Icon :icon="kpi.icon" :width="22" :height="22" />
@@ -1053,11 +1069,7 @@ onBeforeUnmount(() => {
                       kpi.trend >= 0 ? 'text-emerald-500' : 'text-red-500'
                     "
                   />
-                  <span
-                    :class="
-                      cn('text-xs font-semibold', kpiTrendColor(kpi.trend))
-                    "
-                  >
+                  <span :class="kpiTrendTextClass(kpi.trend)">
                     {{ Math.abs(kpi.trend) }}%
                   </span>
                   <span v-if="kpi.trendLabel" class="text-xs text-gray-400">{{
@@ -1071,34 +1083,33 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- 主趋势图：全宽 -->
-      <ACard
-        :class="analyticsCardClassName"
+      <Card
+        :class="[analyticsCardClassName, 'mt-6']"
         variant="borderless"
-        :styles="{ body: { padding: '20px 24px' } }"
-        class="mt-6"
+        body-class="px-6 py-5"
       >
         <div class="mb-4 flex items-center justify-between">
           <h3 :class="sectionTitleClassName">系统活动趋势</h3>
-          <ARadioGroup
+          <Segmented
+            v-model:value="trendMode"
+            :options="[
+              { label: 'PV / UV', value: 'pv' },
+              { label: 'API 调用', value: 'api' },
+            ]"
             size="small"
-            button-style="solid"
-            default-value="pv"
             class="origin-right scale-90"
-          >
-            <ARadioButton value="pv"> PV / UV </ARadioButton>
-            <ARadioButton value="api"> API 调用 </ARadioButton>
-          </ARadioGroup>
+          />
         </div>
         <div ref="mainTrendRef" class="w-full" style="height: 380px"></div>
-      </ACard>
+      </Card>
 
       <!-- 第二行：分布 + 仪表盘 -->
-      <ARow :gutter="[16, 16]" class="mt-6">
-        <ACol :xs="24" :lg="12">
-          <ACard
+      <div class="mt-6 grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-6">
+          <Card
             :class="analyticsCardClassName"
             variant="borderless"
-            :styles="{ body: { padding: '20px 24px' } }"
+            body-class="px-6 py-5"
           >
             <h3 :class="sectionTitleClassName">流量来源分布</h3>
             <div
@@ -1106,13 +1117,13 @@ onBeforeUnmount(() => {
               class="w-full"
               style="height: 320px"
             ></div>
-          </ACard>
-        </ACol>
-        <ACol :xs="24" :lg="12">
-          <ACard
+          </Card>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <Card
             :class="analyticsCardClassName"
             variant="borderless"
-            :styles="{ body: { padding: '20px 24px' } }"
+            body-class="px-6 py-5"
           >
             <h3 :class="sectionTitleClassName">系统健康度</h3>
             <div
@@ -1120,17 +1131,17 @@ onBeforeUnmount(() => {
               class="w-full"
               style="height: 320px"
             ></div>
-          </ACard>
-        </ACol>
-      </ARow>
+          </Card>
+        </div>
+      </div>
 
       <!-- 第三行：雷达图 + 热力图 -->
-      <ARow :gutter="[16, 16]">
-        <ACol :xs="24" :lg="12">
-          <ACard
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-6">
+          <Card
             :class="analyticsCardClassName"
             variant="borderless"
-            :styles="{ body: { padding: '20px 24px' } }"
+            body-class="px-6 py-5"
           >
             <h3 :class="sectionTitleClassName">资源使用概况</h3>
             <div
@@ -1138,13 +1149,13 @@ onBeforeUnmount(() => {
               class="w-full"
               style="height: 320px"
             ></div>
-          </ACard>
-        </ACol>
-        <ACol :xs="24" :lg="12">
-          <ACard
+          </Card>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <Card
             :class="analyticsCardClassName"
             variant="borderless"
-            :styles="{ body: { padding: '20px 24px' } }"
+            body-class="px-6 py-5"
           >
             <h3 :class="sectionTitleClassName">API 错误率趋势</h3>
             <div
@@ -1152,23 +1163,17 @@ onBeforeUnmount(() => {
               class="w-full"
               style="height: 320px"
             ></div>
-          </ACard>
-        </ACol>
-      </ARow>
+          </Card>
+        </div>
+      </div>
 
       <!-- 第四行：漏斗 + 排行榜 -->
-      <ARow :gutter="[16, 16]" class="items-stretch">
-        <ACol :xs="24" :lg="10" class="mb-2">
-          <ACard
-            :class="cn(analyticsCardClassName, 'h-full')"
+      <div class="grid grid-cols-12 items-stretch gap-4">
+        <div class="col-span-12 mb-2 lg:col-span-5">
+          <Card
+            :class="[analyticsCardClassName, 'h-full']"
             variant="borderless"
-            :styles="{
-              body: {
-                padding: '20px 24px',
-                display: 'flex',
-                flexDirection: 'column',
-              },
-            }"
+            body-class="flex flex-col px-6 py-5"
           >
             <h3 :class="sectionTitleClassName">用户行为漏斗</h3>
             <div
@@ -1176,40 +1181,34 @@ onBeforeUnmount(() => {
               class="w-full flex-1"
               style="min-height: 280px"
             ></div>
-          </ACard>
-        </ACol>
-        <ACol :xs="24" :lg="14" class="mb-2">
-          <ACard
-            :class="cn(analyticsCardClassName, 'h-full')"
+          </Card>
+        </div>
+        <div class="col-span-12 mb-2 lg:col-span-7">
+          <Card
+            :class="[analyticsCardClassName, 'h-full']"
             variant="borderless"
-            :styles="{
-              body: {
-                padding: '20px 24px',
-                display: 'flex',
-                flexDirection: 'column',
-              },
-            }"
+            body-class="flex flex-col px-6 py-5"
           >
             <div class="mb-4 flex items-center justify-between">
               <h3 :class="sectionTitleClassName">模块使用热度</h3>
-              <ATag color="blue" class="text-[11px]"> 实时更新 </ATag>
+              <Tag color="blue" class="text-[11px]"> 实时更新 </Tag>
             </div>
             <div
               ref="moduleRankRef"
               class="w-full flex-1"
               style="min-height: 280px"
             ></div>
-          </ACard>
-        </ACol>
-      </ARow>
+          </Card>
+        </div>
+      </div>
 
       <!-- 第五行：快捷操作 + 最近动态（原工作台内容并入） -->
-      <ARow :gutter="[16, 16]" class="items-stretch">
-        <ACol :xs="24" :lg="12">
-          <ACard
+      <div class="grid grid-cols-12 items-stretch gap-4">
+        <div class="col-span-12 lg:col-span-6">
+          <Card
             :class="analyticsCardClassName"
             variant="borderless"
-            :styles="{ body: { padding: '20px 24px' } }"
+            body-class="px-6 py-5"
           >
             <h3 :class="sectionTitleClassName">快捷操作</h3>
             <div class="grid grid-cols-2 gap-3">
@@ -1219,14 +1218,7 @@ onBeforeUnmount(() => {
                 :to="action.path"
                 class="group flex items-center gap-3 rounded-lg p-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
               >
-                <span
-                  :class="
-                    cn(
-                      'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
-                      action.color,
-                    )
-                  "
-                >
+                <span :class="quickActionIconClass(action.color)">
                   <Icon :icon="action.icon" :width="18" :height="18" />
                 </span>
                 <span class="min-w-0">
@@ -1239,13 +1231,13 @@ onBeforeUnmount(() => {
                 </span>
               </RouterLink>
             </div>
-          </ACard>
-        </ACol>
-        <ACol :xs="24" :lg="12">
-          <ACard
+          </Card>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <Card
             :class="analyticsCardClassName"
             variant="borderless"
-            :styles="{ body: { padding: '20px 24px' } }"
+            body-class="px-6 py-5"
           >
             <h3 :class="sectionTitleClassName">最近动态</h3>
             <ul class="space-y-3">
@@ -1254,14 +1246,7 @@ onBeforeUnmount(() => {
                 :key="i"
                 class="flex items-start gap-3 text-sm"
               >
-                <span
-                  :class="
-                    cn(
-                      'mt-2 h-1.5 w-1.5 shrink-0 rounded-full',
-                      activityDotColor(activity.type),
-                    )
-                  "
-                ></span>
+                <span :class="activityDotClass(activity.type)"></span>
                 <span class="min-w-0 flex-1">
                   <span
                     class="block truncate text-gray-600 dark:text-gray-400"
@@ -1272,9 +1257,9 @@ onBeforeUnmount(() => {
                 </span>
               </li>
             </ul>
-          </ACard>
-        </ACol>
-      </ARow>
+          </Card>
+        </div>
+      </div>
     </div>
   </div>
 </template>

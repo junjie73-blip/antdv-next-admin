@@ -75,14 +75,7 @@ const affixCount = computed(
  * 不去 `document.querySelector` 摸 DOM：模板 ref 走组件实例，重渲染也不会失联。
  */
 const tabsScrollbarRef = useTemplateRef<ScrollbarType>('tabsScrollbar');
-/**
- * `ScrollbarType.wrap` 声明成 `Ref<HTMLElement>`，但 `defineExpose` 暴露出来的对象
- * 会被 Vue 用 proxyRefs 解包，实例上取到的其实就是那个 DOM 元素 —— 类型上对不上，
- * 只能显式转一次（组件内部同样按元素用）。
- */
-const scrollContainerRef = computed<HTMLElement | undefined>(
-  () => tabsScrollbarRef.value?.wrap as unknown as HTMLElement | undefined,
-);
+const scrollContainerRef = computed(() => tabsScrollbarRef.value?.wrap);
 /**
  * 标签栏横向滚动复用导航栏那套逻辑（滚轮 / 箭头 / 触摸滑动）。
  * 这里关掉指针拖拽平移：标签本身要参与拖拽排序，两种 drag 语义会互相打断。

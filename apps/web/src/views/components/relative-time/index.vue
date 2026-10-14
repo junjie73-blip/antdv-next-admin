@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { BasicColumn } from '~/components/business/Table';
+import type { BasicColumn } from '@antdv/table-ui';
 
 import { ref } from 'vue';
 
+import { Card, Tag, Timeline, TimelineItem } from '@antdv/common-ui';
 import { cn } from '@antdv/shared/cn';
-import { Card as ACard, Tag as ATag, Timeline as ATimeline, TimelineItem as ATimelineItem } from 'antdv-next';
-import { BasicTable, useTable } from '~/components/business/Table';
+import { BasicTable, useTable } from '@antdv/table-ui';
 
 const containerClassName = cn('space-y-6');
 
@@ -77,11 +77,11 @@ const tableColumns: BasicColumn[] = [
 ];
 
 const statusColorMap: Record<string, string> = {
-  published: 'success',
-  completed: 'success',
-  resolved: 'success',
-  pending: 'processing',
-  reviewing: 'warning',
+  published: 'green',
+  completed: 'green',
+  resolved: 'green',
+  pending: 'blue',
+  reviewing: 'orange',
 };
 
 const [registerRelative] = useTable({
@@ -93,9 +93,9 @@ const [registerRelative] = useTable({
 
 <template>
   <div :class="containerClassName">
-    <ACard title="基础用法">
-      <ATimeline>
-        <ATimelineItem v-for="item in timelineData" :key="item.id">
+    <Card title="基础用法">
+      <Timeline>
+        <TimelineItem v-for="item in timelineData" :key="item.id">
           <template #dot>
             <div :class="getDotClassName(item.status)"></div>
           </template>
@@ -105,42 +105,42 @@ const [registerRelative] = useTable({
           <p :class="eventTimeClassName">
             {{ item.time }}
           </p>
-        </ATimelineItem>
-      </ATimeline>
-    </ACard>
+        </TimelineItem>
+      </Timeline>
+    </Card>
 
-    <ACard title="自定义颜色和位置">
-      <ATimeline mode="left">
-        <ATimelineItem color="green">
+    <Card title="自定义颜色和位置">
+      <Timeline mode="left">
+        <TimelineItem color="green">
           <p :class="eventTitleClassName">创建服务成功</p>
           <p :class="eventTimeClassName">2015-09-01</p>
-        </ATimelineItem>
-        <ATimelineItem color="green">
+        </TimelineItem>
+        <TimelineItem color="green">
           <p :class="eventTitleClassName">通过审核</p>
           <p :class="eventTimeClassName">2015-09-01</p>
-        </ATimelineItem>
-        <ATimelineItem color="red">
+        </TimelineItem>
+        <TimelineItem color="red">
           <p :class="eventTitleClassName">活动开始报名</p>
           <p :class="eventTimeClassName">2015-09-10</p>
-        </ATimelineItem>
-        <ATimelineItem>
+        </TimelineItem>
+        <TimelineItem>
           <p :class="eventTitleClassName">活动进行中</p>
           <p :class="eventTimeClassName">2015-09-15</p>
-          <ATag color="blue"> 进行中 </ATag>
-        </ATimelineItem>
-        <ATimelineItem color="gray">
+          <Tag color="blue"> 进行中 </Tag>
+        </TimelineItem>
+        <TimelineItem color="gray">
           <p :class="eventTitleClassName">活动结束</p>
           <p :class="eventTimeClassName">2015-12-31</p>
-        </ATimelineItem>
-      </ATimeline>
-    </ACard>
+        </TimelineItem>
+      </Timeline>
+    </Card>
 
-    <ACard title="表格中的相对时间">
+    <Card title="表格中的相对时间">
       <BasicTable @register="registerRelative">
         <template #cell-status="{ record }">
-          <ATag :color="statusColorMap[record?.status] || 'default'">
+          <Tag :color="statusColorMap[record?.status] || 'default'">
             {{ record?.status }}
-          </ATag>
+          </Tag>
         </template>
         <template #cell-time="{ record }">
           <span>{{
@@ -148,6 +148,6 @@ const [registerRelative] = useTable({
           }}</span>
         </template>
       </BasicTable>
-    </ACard>
+    </Card>
   </div>
 </template>

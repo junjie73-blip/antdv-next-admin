@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import type { SplitterResizeHandleEmits, SplitterResizeHandleProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { GripVertical } from "@lucide/vue"
 import { reactiveOmit } from "@vueuse/core"
 import { SplitterResizeHandle, useForwardPropsEmits } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<SplitterResizeHandleProps & { class?: HTMLAttributes["class"], withHandle?: boolean }>()
 const emits = defineEmits<SplitterResizeHandleEmits>()

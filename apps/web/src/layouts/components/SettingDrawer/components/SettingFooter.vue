@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 
+import { confirm, message } from '@antdv/popup-ui';
 import { cache } from '@antdv/shared/cache';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
 import { useClipboard } from '@vueuse/core';
-import { message, Modal } from 'antdv-next';
 import { useAppStore } from '~/stores/modules/app';
 import { useUserStore } from '~/stores/modules/user';
 defineOptions({ name: 'SettingFooter' });
@@ -37,10 +37,10 @@ function handleCopy() {
 
 /** 清除缓存 & 退出登录 */
 function handleClearAndLogout() {
-  Modal.confirm({
+  confirm({
     title: t('preferences.clearAndLogoutTitle'),
     content: t('preferences.clearAndLogoutConfirm'),
-    okType: 'danger',
+    danger: true,
     okText: t('preferences.confirmLogout'),
     cancelText: t('common.cancel'),
     async onOk() {

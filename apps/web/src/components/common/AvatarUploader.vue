@@ -1,11 +1,15 @@
 <script setup lang="ts">
+import type { ModalInnerMethods, ModalMethods } from '@antdv/popup-ui';
+
 import { computed, nextTick, ref, watch } from 'vue';
 import { VueCropper } from 'vue-cropper';
 import 'vue-cropper/dist/index.css';
 
 import { useFileReader } from '@antdv/composables/useFileReader';
+import { BasicModal, message } from '@antdv/popup-ui';
+import { Button } from '@antdv/shadcn-ui';
 import { Icon } from '@iconify/vue';
-import { Avatar as AAvatar, Button as AButton, Modal as AModal, Upload as AUpload, message } from 'antdv-next';
+import { useFileDialog } from '@vueuse/core';
 import { http } from '~/composables';
 
 interface Props {
@@ -32,8 +36,10 @@ const emit = defineEmits<{
 const visible = ref(false);
 const uploading = ref(false);
 const cropperRef = ref<InstanceType<typeof VueCropper> | null>(null);
+const modalApi = ref<(ModalInnerMethods & ModalMethods) | null>(null);
 
-const { result: imgSrc, read: readFile } = useFileReader();
+const { read: readFile } = useFileReader();
+const imgSrc = ref<null | string>(null);
 
 const previewStyle = computed(() => ({
   width: `${props.size}px`,
@@ -41,27 +47,39 @@ const previewStyle = computed(() => ({
   borderRadius: props.round ? '50%' : '8px',
 }));
 
-function beforeUpload(file: File): boolean {
+/** 校验并读取为 DataURL 后打开裁剪弹窗（等价旧的 beforeUpload，始终不自动上传） */
+function handleFile(file: File) {
   const isImage = /^image\/(jpeg|png|webp|gif)$/.test(file.type);
   if (!isImage) {
     message.error('仅支持 JPG / PNG / WebP / GIF');
-    return false;
+    return;
   }
   if (file.size / 1024 / 1024 > props.maxSizeMb) {
     message.error(`图片大小不能超过 ${props.maxSizeMb}MB`);
-    return false;
+    return;
   }
 
   // useFileReader 读取为 DataURL
-  readFile(file).then(() => {
+  readFile(file).then((data) => {
+    imgSrc.value = typeof data === 'string' ? data : null;
     visible.value = true;
     nextTick(() => {
       cropperRef.value?.refresh?.();
     });
   });
-
-  return false;
 }
+
+// 选文件通道：vueuse useFileDialog 替代 antdv Upload
+const ACCEPT = 'image/jpeg,image/png,image/webp,image/gif';
+const { open: openPicker, onChange: onPicked } = useFileDialog({
+  accept: ACCEPT,
+  multiple: false,
+  reset: true,
+});
+onPicked((picked: FileList | null) => {
+  const file = Array.from(picked ?? [])[0];
+  if (file) handleFile(file);
+});
 
 async function handleConfirm() {
   if (!cropperRef.value) return;
@@ -98,6 +116,8 @@ async function handleConfirm() {
     message.error(error?.message || '上传失败');
   } finally {
     uploading.value = false;
+    // BasicModal 内部点确认会置 ok loading，成功后随弹窗关闭，失败时手动复位
+    modalApi.value?.changeOkLoading(false);
   }
 }
 
@@ -108,35 +128,33 @@ watch(visible, (v) => {
 
 <template>
   <div class="flex items-center gap-4">
-    <AAvatar
-      :size="size"
-      :src="modelValue"
+    <!-- 圆形预览容器：自建，保持 size / round / 占位图标与迁移前一致 -->
+    <div
+      class="flex shrink-0 items-center justify-center overflow-hidden bg-slate-100 dark:bg-slate-800"
       :style="previewStyle"
-      class="bg-slate-100 dark:bg-slate-800"
     >
-      <template v-if="!modelValue">
-        <Icon icon="carbon:user-avatar" class="text-3xl text-gray-400" />
-      </template>
-    </AAvatar>
+      <img
+        v-if="modelValue"
+        :src="modelValue"
+        alt="avatar"
+        class="size-full object-cover"
+      />
+      <Icon v-else icon="carbon:user-avatar" class="text-3xl text-gray-400" />
+    </div>
 
-    <AUpload
-      :show-upload-list="false"
-      accept="image/jpeg,image/png,image/webp,image/gif"
-      :before-upload="beforeUpload"
-    >
-      <AButton>
-        <template #icon><Icon icon="carbon:upload" /></template>
-        {{ modelValue ? '更换头像' : '上传头像' }}
-      </AButton>
-    </AUpload>
+    <Button @click="openPicker()">
+      <Icon icon="carbon:upload" />
+      {{ modelValue ? '更换头像' : '上传头像' }}
+    </Button>
 
-    <AModal
+    <BasicModal
       v-model:open="visible"
       title="裁剪头像"
       :width="480"
-      :confirm-loading="uploading"
       ok-text="确认上传"
       cancel-text="取消"
+      :ok-button-props="{ loading: uploading }"
+      @register="(api: any) => (modalApi = api)"
       @ok="handleConfirm"
     >
       <div class="flex flex-col items-center gap-4 py-2">
@@ -163,6 +181,6 @@ watch(visible, (v) => {
           PNG
         </div>
       </div>
-    </AModal>
+    </BasicModal>
   </div>
 </template>

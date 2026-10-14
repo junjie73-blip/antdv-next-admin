@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import type { FormSchema } from '~/components/business/Form';
-import type { BasicColumn } from '~/components/business/Table';
+import type { FormSchema } from '@antdv/form-ui';
+import type { BasicColumn } from '@antdv/table-ui';
 
 import { computed, onMounted, ref } from 'vue';
 
 import { usePrint } from '@antdv/composables/usePrint';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { Button as AButton, Card as ACard, Divider as ADivider, Popconfirm as APopconfirm, Tag as ATag, Tree as ATree, message } from 'antdv-next';
+import { Card, Divider, Popconfirm, Tag, Tree } from '@antdv/common-ui';
+import { Button } from '@antdv/shadcn-ui';
 import * as XLSX from 'xlsx';
 import {
   addUser,
@@ -17,9 +18,9 @@ import {
   getUserOptions,
   updateUser,
 } from '~/api/system';
-import { BasicForm, useForm } from '~/components/business/Form';
-import { BasicModal, useModal } from '~/components/business/Modal';
-import { BasicTable, useTable } from '~/components/business/Table';
+import { BasicForm, useForm } from '@antdv/form-ui';
+import { BasicModal, message, useModal } from '@antdv/popup-ui';
+import { BasicTable, useTable } from '@antdv/table-ui';
 import { DictType } from '~/enums/dict';
 import { useDictStore } from '~/stores';
 defineOptions({ name: 'SystemUser' });
@@ -52,7 +53,7 @@ const cardClassName = cn('shadow-sm');
 const treeCardClassName = cn('h-full shadow-sm');
 const statusTagClassName = cn('inline-flex items-center gap-1');
 const actionClassName = cn('flex', 'items-center', 'justify-center');
-const btnClassName = cn('px-0.5!');
+const btnClassName = cn('h-auto', 'px-0.5!');
 const dividerClassName = cn('mx-0');
 
 const statusColorMap: Record<number, string> = {
@@ -244,9 +245,9 @@ const modalFormSchemas: FormSchema[] = [
 
 function handleDeptSelect(
   _selectedKeys: (number | string)[],
-  info: { node: { id: number } },
+  info: { node: Record<string, any> },
 ) {
-  selectedDeptId.value = info.node.id;
+  selectedDeptId.value = Number(info.node.id);
   tableMethods.value?.reload();
 }
 
@@ -342,7 +343,7 @@ function handleExport() {
 function handlePrint() {
   usePrint({
     title: '用户列表',
-    target: '.ant-card-body',
+    target: '[data-slot="card-content"]',
   });
 }
 
@@ -443,8 +444,8 @@ const columns: BasicColumn[] = [
 <template>
   <div :class="containerClassName">
     <div :class="leftPanelClassName">
-      <ACard :class="treeCardClassName" title="部门列表" size="small">
-        <ATree
+      <Card :class="treeCardClassName" title="部门列表">
+        <Tree
           :tree-data="mockDeptTree"
           :field-names="{ children: 'children', title: 'name', key: 'id' }"
           :expanded-keys="treeExpandedKeys"
@@ -454,16 +455,16 @@ const columns: BasicColumn[] = [
           block-node
           @select="handleDeptSelect"
           @update:expanded-keys="
-            (keys: number[]) => {
-              treeExpandedKeys = keys;
+            (keys) => {
+              treeExpandedKeys = keys.map(Number);
             }
           "
         />
-      </ACard>
+      </Card>
     </div>
 
     <div :class="rightPanelClassName">
-      <ACard title="用户管理" :class="cardClassName">
+      <Card title="用户管理" :class="cardClassName">
         <BasicTable
           :columns="columns"
           :api="mockApi"
@@ -480,27 +481,21 @@ const columns: BasicColumn[] = [
           @register="tableRegister"
         >
           <template #toolbar>
-            <AButton type="primary" @click="handleAdd">
-              <template #icon>
-                <Icon icon="ant-design:plus-outlined" />
-              </template>
+            <Button @click="handleAdd">
+              <Icon icon="ant-design:plus-outlined" />
               新增用户
-            </AButton>
-            <AButton @click="handleExport">
-              <template #icon>
-                <Icon icon="carbon:export" />
-              </template>
+            </Button>
+            <Button @click="handleExport">
+              <Icon icon="carbon:export" />
               导出
-            </AButton>
-            <AButton @click="handlePrint">
-              <template #icon>
-                <Icon icon="carbon:printer" />
-              </template>
+            </Button>
+            <Button @click="handlePrint">
+              <Icon icon="carbon:printer" />
               打印
-            </AButton>
+            </Button>
           </template>
           <template #cell-status="{ record }">
-            <ATag :color="statusColorMap[record.status] || 'default'">
+            <Tag :color="statusColorMap[record.status] || 'default'">
               <span :class="statusTagClassName">
                 <Icon
                   :icon="
@@ -511,56 +506,54 @@ const columns: BasicColumn[] = [
                 />
                 {{ statusLabelMap[record.status] || '未知' }}
               </span>
-            </ATag>
+            </Tag>
           </template>
 
           <template #action="{ record }">
             <div :class="actionClassName">
-              <AButton
-                type="link"
+              <Button
+                variant="link"
                 :class="btnClassName"
                 @click="() => handleDetail(record)"
               >
-                <template #icon>
-                  <Icon icon="ant-design:eye-outlined" />
-                </template>
+                <Icon icon="ant-design:eye-outlined" />
                 详情
-              </AButton>
-              <ADivider type="vertical" :class="dividerClassName" />
-              <AButton
-                type="link"
+              </Button>
+              <Divider type="vertical" :class="dividerClassName" />
+              <Button
+                variant="link"
                 :class="btnClassName"
                 @click="() => handleEdit(record)"
               >
-                <template #icon>
-                  <Icon icon="ant-design:edit-outlined" />
-                </template>
+                <Icon icon="ant-design:edit-outlined" />
                 编辑
-              </AButton>
-              <ADivider type="vertical" :class="dividerClassName" />
+              </Button>
+              <Divider type="vertical" :class="dividerClassName" />
               <!--
                 删除是不可逆操作，必须二次确认。以前点一下就直接 PUT 掉，
                 列表行高密集、删除又排在编辑旁边，误触一次就少一个用户，
                 连"删了谁"都没来得看清。和消息通知页保持同一套交互。
               -->
-              <APopconfirm
+              <Popconfirm
                 :title="`确定删除用户「${record.nickname}」吗？删除后不可恢复。`"
                 ok-text="删除"
-                ok-type="danger"
+                danger
                 cancel-text="取消"
                 @confirm="() => handleDelete(record)"
               >
-                <AButton type="link" danger :class="btnClassName">
-                  <template #icon>
-                    <Icon icon="ant-design:delete-outlined" />
-                  </template>
+                <Button
+                  variant="link"
+                  class="text-destructive hover:text-destructive"
+                  :class="btnClassName"
+                >
+                  <Icon icon="ant-design:delete-outlined" />
                   删除
-                </AButton>
-              </APopconfirm>
+                </Button>
+              </Popconfirm>
             </div>
           </template>
         </BasicTable>
-      </ACard>
+      </Card>
     </div>
 
     <BasicModal

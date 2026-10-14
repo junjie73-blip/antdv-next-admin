@@ -3,9 +3,14 @@ import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from '@antdv/shadcn-ui';
 import { Scrollbar } from '@antdv/scrollbar-ui';
 import { Icon } from '@iconify/vue';
-import { Modal } from 'antdv-next';
 
 import { flattenMenus, matchEntries } from '../composables/useMenuSearch';
 import { useLocalizedMenus } from '../composables/useMenuTree';
@@ -43,11 +48,13 @@ watch(
 /**
  * 呼出即可打字是命令面板的底线：不聚焦的话 Ctrl+K 只是"弹个窗"，
  * 用户还得再点一下输入框，快捷键就白做了。
- * 放在 `afterOpenChange` 而不是 watch 里，是因为 rc-dialog 在动画结束后
- * 会把焦点收进弹窗容器 —— 更早的 focus 会被它抢走。
+ *
+ * 挂在 `open-auto-focus`（弹层打开时的那次自动聚焦）上并把默认行为拦掉：
+ * 容器自己会去聚焦第一个可聚焦节点，而我们要的始终是搜索框。
  */
-function onAfterOpenChange(open: boolean) {
-  if (open) inputRef.value?.focus();
+function focusInput(event: Event) {
+  event.preventDefault();
+  inputRef.value?.focus();
 }
 
 function close() {
@@ -102,77 +109,87 @@ const itemClassName =
 </script>
 
 <template>
-  <Modal
-    :closable="false"
-    :footer="null"
+  <Dialog
     :open="props.open"
-    class="menu-search-modal"
-    width="560px"
-    @after-open-change="onAfterOpenChange"
     @update:open="(value: boolean) => (value ? null : close())"
   >
-    <div>
-      <div
-        class="flex items-center gap-2 border-b border-gray-100 pb-3 dark:border-gray-800"
-      >
-        <Icon class="shrink-0 text-base text-gray-400" icon="carbon:search" />
-        <input
-          ref="inputRef"
-          v-model="keyword"
-          :aria-label="t('header.searchMenu')"
-          class="w-full bg-transparent text-base outline-none placeholder:text-gray-400"
-          data-testid="menu-search-input"
-          :placeholder="t('header.searchPlaceholder')"
-          type="text"
-          @keydown="onKeydown"
-        />
-      </div>
-
-      <Scrollbar class="pt-2" max-height="320px">
-        <p
-          v-if="results.length === 0"
-          class="py-10 text-center text-sm text-gray-400"
-          data-testid="menu-search-empty"
+    <!-- 命令面板只有一个输入框可聚焦，标题/描述用 sr-only 交给读屏（reka 的 Dialog 要求有可访问名字） -->
+    <DialogContent
+      class="menu-search-modal p-4 sm:max-w-[560px]"
+      data-test="menu-search-modal"
+      :show-close-button="false"
+      @open-auto-focus="focusInput"
+    >
+      <DialogTitle class="sr-only">{{ t('header.searchMenu') }}</DialogTitle>
+      <DialogDescription class="sr-only">
+        {{ t('header.searchPlaceholder') }}
+      </DialogDescription>
+      <div>
+        <div
+          class="flex items-center gap-2 border-b border-gray-100 pb-3 dark:border-gray-800"
         >
-          {{ t('header.searchEmpty') }}
-        </p>
-        <template v-else>
-          <!--
-            `data-active` 把"键盘当前停在哪一项"暴露成可断言的状态：
-            高亮过去只体现在 class 组合里，用例只能猜类名，很脆。
-          -->
-          <button
-            v-for="(item, index) in results"
-            :key="item.path"
-            :class="[
-              itemClassName,
-              index === activeIndex
-                ? 'bg-gray-100 text-ant-primary dark:bg-gray-800'
-                : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800/60',
-            ]"
-            :data-active="index === activeIndex"
-            :data-search-path="item.path"
-            data-testid="menu-search-item"
-            type="button"
-            @click="go(index)"
-            @mouseenter="activeIndex = index"
+          <Icon
+            class="shrink-0 text-base text-gray-400"
+            icon="carbon:search"
+          />
+          <input
+            ref="inputRef"
+            v-model="keyword"
+            :aria-label="t('header.searchMenu')"
+            class="w-full bg-transparent text-base outline-none placeholder:text-gray-400"
+            data-testid="menu-search-input"
+            :placeholder="t('header.searchPlaceholder')"
+            type="text"
+            @keydown="onKeydown"
+          />
+        </div>
+
+        <Scrollbar class="pt-2" max-height="320px">
+          <p
+            v-if="results.length === 0"
+            class="py-10 text-center text-sm text-gray-400"
+            data-testid="menu-search-empty"
           >
-            <Icon
-              class="shrink-0 text-base"
-              :icon="item.icon || 'carbon:document'"
-            />
-            <span class="truncate">{{ item.title }}</span>
-            <span v-if="item.hidden" class="shrink-0 text-xs text-gray-400">
-              {{ t('header.notInNav') }}
-            </span>
-            <span
-              class="ml-auto max-w-[45%] shrink-0 truncate text-xs text-gray-400"
+            {{ t('header.searchEmpty') }}
+          </p>
+          <template v-else>
+            <!--
+              `data-active` 把"键盘当前停在哪一项"暴露成可断言的状态：
+              高亮过去只体现在 class 组合里，用例只能猜类名，很脆。
+            -->
+            <button
+              v-for="(item, index) in results"
+              :key="item.path"
+              :class="[
+                itemClassName,
+                index === activeIndex
+                  ? 'bg-gray-100 text-ant-primary dark:bg-gray-800'
+                  : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800/60',
+              ]"
+              :data-active="index === activeIndex"
+              :data-search-path="item.path"
+              data-testid="menu-search-item"
+              type="button"
+              @click="go(index)"
+              @mouseenter="activeIndex = index"
             >
-              {{ item.breadcrumb || item.path }}
-            </span>
-          </button>
-        </template>
-      </Scrollbar>
-    </div>
-  </Modal>
+              <Icon
+                class="shrink-0 text-base"
+                :icon="item.icon || 'carbon:document'"
+              />
+              <span class="truncate">{{ item.title }}</span>
+              <span v-if="item.hidden" class="shrink-0 text-xs text-gray-400">
+                {{ t('header.notInNav') }}
+              </span>
+              <span
+                class="ml-auto max-w-[45%] shrink-0 truncate text-xs text-gray-400"
+              >
+                {{ item.breadcrumb || item.path }}
+              </span>
+            </button>
+          </template>
+        </Scrollbar>
+      </div>
+    </DialogContent>
+  </Dialog>
 </template>

@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import type { PrimitiveProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { Primitive } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<PrimitiveProps & {
   class?: HTMLAttributes["class"]
@@ -22,6 +20,6 @@ const props = defineProps<PrimitiveProps & {
       'group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:select-none group-data-[collapsible=icon]:opacity-0',
       props.class)"
   >
-    <slot></slot>
+    <slot />
   </Primitive>
 </template>

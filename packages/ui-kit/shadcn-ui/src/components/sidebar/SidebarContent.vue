@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<{
@@ -14,6 +13,6 @@ const props = defineProps<{
     data-sidebar="content"
     :class="cn('flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden', props.class)"
   >
-    <slot></slot>
+    <slot />
   </div>
 </template>

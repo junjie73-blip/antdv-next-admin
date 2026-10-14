@@ -65,7 +65,7 @@ iconifyOffline({
 
 跑法：`pnpm test:unit`（turbo 全仓）或 `pnpm --filter @antdv/web test:unit`（只跑应用，含这条）。
 
-::: warning 类名形式的图标在本仓库不生效 `views/system/micro-app/index.vue` 与 `components/business/MicroAppContainer.vue` 里还能看到 `class="i-carbon-search"`、`i-carbon-application` 这类 UnoCSS 风格写法。仓库里没有 UnoCSS，也没有任何把 `i-*` 编译成 CSS 的插件（样式是 Tailwind v4，见[样式](/zh/guide/essentials/styles)），这些 span 渲染出来是**纯空白**。新代码一律写组件形式：`<Icon icon="carbon:search" />`。:::
+::: warning 类名形式的图标在本仓库不生效 `views/system/micro-app/index.vue` 与 `components/business/MicroAppContainer.vue` 里还能看到 `class="i-carbon-search"`、`i-carbon-application` 这类 UnoCSS 风格写法。仓库里没有 UnoCSS，也没有任何把 `i-*` 编译成 CSS 的插件（样式是 Tailwind v4，见[设计令牌与全局样式](/zh/guide/essentials/design)），这些 span 渲染出来是**纯空白**。新代码一律写组件形式：`<Icon icon="carbon:search" />`。:::
 
 ## 图标名从哪来
 
@@ -80,6 +80,6 @@ iconifyOffline({
 
 ## 相关页面
 
-- 样式链路与 `cn()`：[样式](/zh/guide/essentials/styles)
+- 样式链路与 `cn()`：[设计令牌与全局样式](/zh/guide/essentials/design)
 - 菜单与 `meta` 字段的完整口径：[路由和菜单](/zh/guide/essentials/route)
 - 测试策略与门禁：[测试策略](/zh/guide/project/testing)

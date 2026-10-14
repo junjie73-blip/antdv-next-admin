@@ -1,11 +1,9 @@
 <script lang="ts" setup>
 import type { DrawerDescriptionProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import { DrawerDescription } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<DrawerDescriptionProps & { class?: HTMLAttributes["class"] }>()
 
@@ -18,6 +16,6 @@ const delegatedProps = reactiveOmit(props, "class")
     v-bind="delegatedProps"
     :class="cn('text-muted-foreground text-sm', props.class)"
   >
-    <slot></slot>
+    <slot />
   </DrawerDescription>
 </template>

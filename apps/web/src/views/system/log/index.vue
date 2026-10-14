@@ -1,17 +1,18 @@
 <script setup lang="tsx">
-import type { DescriptionItem } from '~/components/business/Description';
-import type { FormSchema } from '~/components/business/Form';
-import type { BasicColumn } from '~/components/business/Table';
+import type { DescriptionItem } from '@antdv/common-ui';
+import type { FormSchema } from '@antdv/form-ui';
+import type { BasicColumn } from '@antdv/table-ui';
 
 import { ref } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
 import { exportToExcel } from '@antdv/shared/excel';
 import { Icon } from '@iconify/vue';
-import { Button as AButton, Divider as ADivider, Popconfirm as APopconfirm, Tag as ATag, message } from 'antdv-next';
+import { Divider, Popconfirm, Tag } from '@antdv/common-ui';
 import { deleteOperLog, getOperLogList } from '~/api/system';
-import { BasicDrawer, useDrawer } from '~/components/business/Drawer';
-import { BasicTable, useTable } from '~/components/business/Table';
+import { Button } from '@antdv/shadcn-ui';
+import { BasicDrawer, message, useDrawer } from '@antdv/popup-ui';
+import { BasicTable, useTable } from '@antdv/table-ui';
 
 defineOptions({ name: 'SystemLog' });
 
@@ -58,7 +59,7 @@ const filterBarClassName = cn(
 );
 const dividerClassName = cn('mx-0');
 const actionClassName = cn('flex items-center justify-center');
-const btnClassName = cn('px-0.5!');
+const btnClassName = cn('h-auto', 'px-0.5!');
 
 // 标签页
 const activeTab = ref(0);
@@ -220,9 +221,9 @@ const detailSchemas: DescriptionItem[] = [
     field: 'operType',
     label: '操作类型',
     render: (value) => (
-      <a-tag color={operTypeColorMap[value as string] || 'default'}>
+      <Tag color={operTypeColorMap[value as string] || 'default'}>
         {value}
-      </a-tag>
+      </Tag>
     ),
   },
   { field: 'title', label: '操作模块' },
@@ -245,7 +246,7 @@ const detailSchemas: DescriptionItem[] = [
         PUT: 'orange',
         DELETE: 'red',
       };
-      return <a-tag color={m[value as string] || 'default'}>{value}</a-tag>;
+      return <Tag color={m[value as string] || 'default'}>{value}</Tag>;
     },
   },
   {
@@ -270,14 +271,12 @@ const detailSchemas: DescriptionItem[] = [
     field: 'operParam',
     label: '请求参数',
     render: (value) => (
-      <a-typography-paragraph
-        code
-        copyable={{ text: value as string }}
-        ellipsis={{ rows: 2, expandable: true, symbol: '展开' }}
-        style={{ margin: 0, maxWidth: 400 }}
+      <code
+        class="block max-w-[400px] truncate rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800"
+        title={(value as string) || '-'}
       >
         {(value as string) || '-'}
-      </a-typography-paragraph>
+      </code>
     ),
   },
   {
@@ -285,14 +284,12 @@ const detailSchemas: DescriptionItem[] = [
     label: '返回结果',
     render: (value) =>
       value ? (
-        <a-typography-paragraph
-          code
-          copyable={{ text: value as string }}
-          ellipsis={{ rows: 2, expandable: true, symbol: '展开' }}
-          style={{ margin: 0, maxWidth: 400 }}
+        <code
+          class="block max-w-[400px] truncate rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800"
+          title={value as string}
         >
           {value as string}
-        </a-typography-paragraph>
+        </code>
       ) : (
         <span class="text-gray-400">-</span>
       ),
@@ -301,9 +298,9 @@ const detailSchemas: DescriptionItem[] = [
     field: 'status',
     label: '操作状态',
     render: (value) => (
-      <a-tag color={statusColorMap[value as number] || 'default'}>
+      <Tag color={statusColorMap[value as number] || 'default'}>
         {statusLabelMap[value as number] || '未知'}
-      </a-tag>
+      </Tag>
     ),
   },
   {
@@ -311,13 +308,12 @@ const detailSchemas: DescriptionItem[] = [
     label: '错误消息',
     render: (value) =>
       (value as string) ? (
-        <a-typography-paragraph
-          ellipsis={{ rows: 2, expandable: true, symbol: '展开' }}
-          style={{ margin: 0, maxWidth: 400 }}
-          type="danger"
+        <span
+          class="block max-w-[400px] truncate text-red-500"
+          title={value as string}
         >
           {value as string}
-        </a-typography-paragraph>
+        </span>
       ) : (
         <span class="text-gray-400">-</span>
       ),
@@ -329,7 +325,7 @@ const detailSchemas: DescriptionItem[] = [
     render: (value) => {
       const ms = value as number;
       const color = ms > 1000 ? 'red' : ms > 500 ? 'orange' : 'green';
-      return <a-tag color={color}>{ms} ms</a-tag>;
+      return <Tag color={color}>{ms} ms</Tag>;
     },
   },
 ];
@@ -540,35 +536,34 @@ const loginColumns: BasicColumn[] = [
           @register="tableRegister"
         >
           <template #toolbar>
-            <AButton @click="handleExport">
-              <template #icon><Icon icon="carbon:export" /></template>
+            <Button variant="outline" @click="handleExport">
+              <Icon icon="carbon:export" />
               导出
-            </AButton>
-            <AButton danger @click="handleBatchDelete">
-              <template #icon>
-                <Icon icon="ant-design:delete-outlined" />
-              </template>
+            </Button>
+            <Button variant="destructive" @click="handleBatchDelete">
+              <Icon icon="ant-design:delete-outlined" />
               批量删除
-            </AButton>
-            <APopconfirm
+            </Button>
+            <Popconfirm
               title="确定要清空所有系统日志吗？此操作不可恢复！"
+              danger
               @confirm="handleClear"
             >
-              <AButton danger>
-                <template #icon><Icon icon="carbon:trash-can" /></template>
+              <Button variant="destructive">
+                <Icon icon="carbon:trash-can" />
                 清空
-              </AButton>
-            </APopconfirm>
+              </Button>
+            </Popconfirm>
           </template>
 
           <template #cell-operType="{ record }">
-            <ATag :color="operTypeColorMap[record.operType] || 'default'">
+            <Tag :color="operTypeColorMap[record.operType] || 'default'">
               {{ record.operType }}
-            </ATag>
+            </Tag>
           </template>
 
           <template #cell-status="{ record }">
-            <ATag :color="statusColorMap[record.status] || 'default'">
+            <Tag :color="statusColorMap[record.status] || 'default'">
               <span class="inline-flex items-center gap-1">
                 <Icon
                   :icon="
@@ -579,7 +574,7 @@ const loginColumns: BasicColumn[] = [
                 />
                 {{ statusLabelMap[record.status] || '未知' }}
               </span>
-            </ATag>
+            </Tag>
           </template>
 
           <template #cell-costTime="{ record }">
@@ -598,28 +593,29 @@ const loginColumns: BasicColumn[] = [
 
           <template #action="{ record }">
             <div :class="actionClassName">
-              <AButton
-                type="link"
+              <Button
+                variant="link"
                 :class="btnClassName"
                 @click="() => handleView(record)"
               >
-                <template #icon>
-                  <Icon icon="ant-design:eye-outlined" />
-                </template>
+                <Icon icon="ant-design:eye-outlined" />
                 详情
-              </AButton>
-              <ADivider type="vertical" :class="dividerClassName" />
-              <APopconfirm
+              </Button>
+              <Divider type="vertical" :class="dividerClassName" />
+              <Popconfirm
                 :title="`确定要删除日志 #${record.id} 吗？`"
+                danger
                 @confirm="() => handleDelete(record)"
               >
-                <AButton type="link" danger :class="btnClassName">
-                  <template #icon>
-                    <Icon icon="ant-design:delete-outlined" />
-                  </template>
+                <Button
+                  variant="link"
+                  class="text-destructive hover:text-destructive"
+                  :class="btnClassName"
+                >
+                  <Icon icon="ant-design:delete-outlined" />
                   删除
-                </AButton>
-              </APopconfirm>
+                </Button>
+              </Popconfirm>
             </div>
           </template>
         </BasicTable>
@@ -643,9 +639,9 @@ const loginColumns: BasicColumn[] = [
           @register="loginTableRegister"
         >
           <template #cell-status="{ record }">
-            <ATag :color="record.status === 0 ? 'green' : 'red'">
+            <Tag :color="record.status === 0 ? 'green' : 'red'">
               {{ record.status === 0 ? '成功' : '失败' }}
-            </ATag>
+            </Tag>
           </template>
         </BasicTable>
       </template>
@@ -701,11 +697,11 @@ const loginColumns: BasicColumn[] = [
             ></div>
             <div class="mb-1 text-xs text-gray-400">操作类型</div>
             <div class="text-sm">
-              <ATag
+              <Tag
                 :color="operTypeColorMap[viewingRecord.operType] || 'default'"
               >
                 {{ viewingRecord.operType }}
-              </ATag>
+              </Tag>
             </div>
           </div>
           <div class="relative pb-6">
@@ -752,9 +748,9 @@ const loginColumns: BasicColumn[] = [
             ></div>
             <div class="mb-1 text-xs text-gray-400">执行状态</div>
             <div class="text-sm">
-              <ATag :color="statusColorMap[viewingRecord.status] || 'default'">
+              <Tag :color="statusColorMap[viewingRecord.status] || 'default'">
                 {{ statusLabelMap[viewingRecord.status] || '未知' }}
-              </ATag>
+              </Tag>
             </div>
           </div>
           <div class="relative">

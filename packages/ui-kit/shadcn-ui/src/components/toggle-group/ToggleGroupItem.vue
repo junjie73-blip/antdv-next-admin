@@ -1,15 +1,11 @@
 <script setup lang="ts">
 import type { VariantProps } from "class-variance-authority"
 import type { ToggleGroupItemProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { inject } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import { ToggleGroupItem, useForwardProps } from "reka-ui"
-
+import { inject } from "vue"
+import { cn } from '@antdv/shared/cn'
 import { toggleVariants } from '../toggle'
 
 type ToggleGroupVariants = VariantProps<typeof toggleVariants> & {
@@ -45,6 +41,6 @@ const forwardedProps = useForwardProps(delegatedProps)
       'data-[spacing=0]:rounded-none data-[spacing=0]:shadow-none data-[spacing=0]:first:rounded-l-md data-[spacing=0]:last:rounded-r-md data-[spacing=0]:data-[variant=outline]:border-l-0 data-[spacing=0]:data-[variant=outline]:first:border-l',
       props.class)"
   >
-    <slot v-bind="slotProps"></slot>
+    <slot v-bind="slotProps" />
   </ToggleGroupItem>
 </template>

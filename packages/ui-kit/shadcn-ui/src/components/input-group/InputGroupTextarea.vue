@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import { cn } from '@antdv/shared/cn'
-
 import { Textarea } from '../textarea'
 
 const props = defineProps<{

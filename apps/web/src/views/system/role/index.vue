@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import type { FormSchema } from '~/components/business/Form';
-import type { BasicColumn } from '~/components/business/Table';
+import type { FormSchema } from '@antdv/form-ui';
+import type { BasicColumn } from '@antdv/table-ui';
 
 import { computed, ref } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
 import { exportToExcel } from '@antdv/shared/excel';
 import { Icon } from '@iconify/vue';
-import { Alert as AAlert, Button as AButton, Card as ACard, Divider as ADivider, Popconfirm as APopconfirm, Tag as ATag, Tree as ATree, message } from 'antdv-next';
+import { Alert, Card, Divider, Popconfirm, Tag, Tree } from '@antdv/common-ui';
+import { Button } from '@antdv/shadcn-ui';
 import { addRole, deleteRole, getRoleList, updateRole } from '~/api/system';
-import { BasicDrawer, useDrawer } from '~/components/business/Drawer';
-import { BasicForm, useForm } from '~/components/business/Form';
-import { BasicTable, useTable } from '~/components/business/Table';
+import { BasicDrawer, message, useDrawer } from '@antdv/popup-ui';
+import { BasicForm, useForm } from '@antdv/form-ui';
+import { BasicTable, useTable } from '@antdv/table-ui';
 import { DictType } from '~/enums/dict';
 import { useDictStore } from '~/stores';
 
@@ -37,7 +38,7 @@ const actionClassName = cn(
   'justify-center',
   'whitespace-nowrap',
 );
-const btnClassName = cn('px-0.5!');
+const btnClassName = cn('h-auto', 'px-0.5!');
 const dividerClassName = cn('mx-0');
 
 const statusColorMap: Record<number, string> = {
@@ -346,7 +347,7 @@ const columns: BasicColumn[] = [
 
 <template>
   <div :class="containerClassName">
-    <ACard title="角色管理" :class="cardClassName">
+    <Card title="角色管理" :class="cardClassName">
       <BasicTable
         :columns="columns"
         :api="mockApi"
@@ -361,22 +362,18 @@ const columns: BasicColumn[] = [
         @register="tableRegister"
       >
         <template #toolbar>
-          <AButton @click="handleExport">
-            <template #icon>
-              <Icon icon="carbon:export" />
-            </template>
+          <Button @click="handleExport">
+            <Icon icon="carbon:export" />
             导出
-          </AButton>
-          <AButton type="primary" @click="handleAdd">
-            <template #icon>
-              <Icon icon="ant-design:plus-outlined" />
-            </template>
+          </Button>
+          <Button @click="handleAdd">
+            <Icon icon="ant-design:plus-outlined" />
             新增角色
-          </AButton>
+          </Button>
         </template>
 
         <template #cell-status="{ record }">
-          <ATag :color="statusColorMap[record.status] || 'default'">
+          <Tag :color="statusColorMap[record.status] || 'default'">
             <span :class="tagClassName">
               <Icon
                 :icon="
@@ -387,64 +384,63 @@ const columns: BasicColumn[] = [
               />
               {{ statusLabelMap[record.status] || '未知' }}
             </span>
-          </ATag>
+          </Tag>
         </template>
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <AButton
-              type="link"
+            <Button
+              variant="link"
               :class="btnClassName"
               @click="() => handlePermission(record)"
             >
-              <template #icon>
-                <Icon icon="ant-design:safety-certificate-outlined" />
-              </template>
+              <Icon icon="ant-design:safety-certificate-outlined" />
               权限
-            </AButton>
-            <ADivider type="vertical" :class="dividerClassName" />
-            <AButton
-              type="link"
+            </Button>
+            <Divider type="vertical" :class="dividerClassName" />
+            <Button
+              variant="link"
               :class="btnClassName"
               @click="() => handleEdit(record)"
             >
-              <template #icon>
-                <Icon icon="ant-design:edit-outlined" />
-              </template>
+              <Icon icon="ant-design:edit-outlined" />
               编辑
-            </AButton>
-            <ADivider type="vertical" :class="dividerClassName" />
-            <APopconfirm
+            </Button>
+            <Divider type="vertical" :class="dividerClassName" />
+            <Popconfirm
               :title="`确定要「${record.status === 1 ? '停用' : '启用'}」角色「${record.name}」吗？`"
               @confirm="() => handleToggleStatus(record)"
             >
-              <AButton
+              <Button
                 v-if="record.status === 1"
-                type="link"
+                variant="link"
                 :class="btnClassName"
               >
                 停用
-              </AButton>
-              <AButton v-else type="link" :class="btnClassName">
+              </Button>
+              <Button v-else variant="link" :class="btnClassName">
                 启用
-              </AButton>
-            </APopconfirm>
-            <ADivider type="vertical" :class="dividerClassName" />
-            <APopconfirm
+              </Button>
+            </Popconfirm>
+            <Divider type="vertical" :class="dividerClassName" />
+            <Popconfirm
               :title="`确定要删除角色「${record.name}」吗？`"
+              danger
               @confirm="() => handleDelete(record)"
             >
-              <AButton type="link" danger :class="btnClassName">
-                <template #icon>
-                  <Icon icon="ant-design:delete-outlined" />
-                </template>
+              <Button
+                variant="link"
+                class="text-destructive hover:text-destructive"
+                :class="btnClassName"
+              >
+                <Icon icon="ant-design:delete-outlined" />
                 删除
-              </AButton>
-            </APopconfirm>
+              </Button>
+            </Popconfirm>
           </div>
         </template>
       </BasicTable>
-    </ACard>
+    </Card>
 
     <!-- 新增/编辑抽屉 -->
     <BasicDrawer
@@ -469,15 +465,15 @@ const columns: BasicColumn[] = [
       @register="permDrawerRegister"
     >
       <div class="space-y-4">
-        <AAlert
+        <Alert
           message="选择该角色可以访问的菜单和按钮权限"
           type="info"
           show-icon
         />
         <div class="text-sm text-gray-500 dark:text-gray-400">
-          角色编码：<ATag color="blue">
+          角色编码：<Tag color="blue">
             {{ currentRecord?.code }}
-          </ATag>
+          </Tag>
         </div>
         <div class="text-sm text-gray-500 dark:text-gray-400">
           角色描述：<span class="text-gray-700 dark:text-gray-300">{{
@@ -485,7 +481,7 @@ const columns: BasicColumn[] = [
           }}</span>
         </div>
 
-        <ATree
+        <Tree
           checkable
           default-expand-all
           :tree-data="permissionTreeData"

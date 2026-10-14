@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { HTMLAttributes } from "vue"
-
 import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<{
@@ -13,6 +12,6 @@ const props = defineProps<{
     data-slot="breadcrumb-list"
     :class="cn('text-muted-foreground flex flex-wrap items-center gap-1.5 text-sm break-words sm:gap-2.5', props.class)"
   >
-    <slot></slot>
+    <slot />
   </ol>
 </template>

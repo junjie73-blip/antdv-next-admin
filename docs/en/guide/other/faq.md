@@ -40,7 +40,7 @@ Indexed by **symptom**, not by module — when you hit one, all you have is the 
 | --- | --- | --- |
 | Changing the primary color leaves the selected menu item unchanged | Only one variable name was written | **Both** `--ant-color-primary` and `--ant-primary-color` have to be written (`packages/preferences/src/css-vars.ts:47-93`) |
 | In dark mode the primary color differs from the one you set | antdv-next recomputes the primary color on `.ant-app` | Put overrides on the seed variables on `html`; don't pin color values in test assertions |
-| Overriding component library styles now needs `!important` | The Tailwind layer order was changed | `@layer theme, base, antd, components, utilities` must be declared explicitly (`packages/styles/src/index.css:18-32`) |
+| Overriding component library styles now needs `!important` | The Tailwind layer order was changed | `@layer theme, base, antd, components, utilities` must be declared explicitly (`packages/design/src/index.css:18-32`) |
 | Spacing is inconsistent between pages | The route page's outer container declares its own padding | Inner padding is the layout's job, see [Development conventions and environment variables](/en/guide/essentials/development) |
 | Icons are empty squares in the production bundle | An Iconify prefix outside the offline list was used | A new collection goes into the catalog dependency and the offline list at `auto-import.ts:95-97` together |
 

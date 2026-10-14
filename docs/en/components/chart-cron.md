@@ -39,40 +39,40 @@ Five cards, all data are in-page constants, zero requests (the page alert states
 
 ### What problem it solves
 
-`CronEditor` (`apps/web/src/components/common/CronEditor/index.vue`) gives cron configuration a visual surface — preset buttons plus six dropdown fields — with a live Chinese human-readable description via `cronstrue`, consuming and producing a plain expression string.
+`CronEditor` (`packages/ui-kit/common-ui/src/components/cron-editor/CronEditor.vue`, a named export of `@antdv/common-ui`) gives cron configuration a visual surface — preset buttons plus six dropdown fields — with a live Chinese human-readable description via `cronstrue`, consuming and producing a plain expression string.
 
 ### The real API
 
-Props and events (`CronEditor/index.vue:12-26`):
+Props and events (`CronEditor.vue:27-33`):
 
 | Name | Type | Notes |
 | --- | --- | --- |
-| `modelValue` | `string` | the expression, works with `v-model`; in custom mode the fields are re-parsed from it (`:154-162`) |
+| `modelValue` | `string` | the expression, works with `v-model`; in custom mode the fields are re-parsed from it (`:151-159`) |
 | `disabled` | `boolean` | disables all buttons and selects |
-| `change` event | `(value: string) => void` | emitted on preset selection (`:226-229`), field changes (`:232-236`), and mode-switch default fill (`:211-223`) |
+| `change` event | `(value: string) => void` | emitted on preset selection (`:224-227`), field changes (`:230-240`), and mode-switch default fill (`:208-221`) |
 
 There is no validation function, no `valid` event, and no exposed instance methods — expression legality only shows up in the description area.
 
 ### Expression format: 6 segments, "second minute hour day month week"
 
-- The output side always emits **6 segments**, joined in `fields` order (`CronEditor/index.vue:57-106,165-167`): second, minute, hour, day-of-month, month, day-of-week; all 12 built-in presets are 6-segment too (`:32-45`). Think "Quartz-style, but only the first six segments".
-- **Not strict Quartz**: there is no year segment, day-of-month and day-of-week are not mutually exclusive and no `?` placeholder is ever produced, and the week field ranges over **0~6** (`:99-105`). A Quartz-based backend (which typically requires exactly one of day-of-month / day-of-week to be `?` and a 1-based day-of-week) will need a conversion you must write yourself — the wrapper guarantees none of that, so don't document it as a "native Quartz editor".
-- The parsing side (inbound `modelValue`): `parseCron` accepts **5 or 6 segments**, padding a `0` second for 5-segment input (`CronEditor/index.vue:119-151`); **any other segment count silently resets the fields to the default `0 0 0 * * *`** without raising an error — bad input is swallowed.
-- Field choices are enumerated by dropdowns: `*` / single values per range / stepping options only for second & minute (`*/5 */10 */15 */30`) and hour (`*/2 */4 */6 */12`) — see `getFieldOptions` (`:170-199`). Day/month/week have no stepping options.
+- The output side always emits **6 segments**, joined in `fields` order (`CronEditor.vue:54-103,162-164`): second, minute, hour, day-of-month, month, day-of-week; all 12 built-in presets are 6-segment too (`:38-51`). Think "Quartz-style, but only the first six segments".
+- **Not strict Quartz**: there is no year segment, day-of-month and day-of-week are not mutually exclusive and no `?` placeholder is ever produced, and the week field ranges over **0~6** (`:95-102`). A Quartz-based backend (which typically requires exactly one of day-of-month / day-of-week to be `?` and a 1-based day-of-week) will need a conversion you must write yourself — the wrapper guarantees none of that, so don't document it as a "native Quartz editor".
+- The parsing side (inbound `modelValue`): `parseCron` accepts **5 or 6 segments**, padding a `0` second for 5-segment input (`CronEditor.vue:116-148`); **any other segment count silently resets the fields to the default `0 0 0 * * *`** without raising an error — bad input is swallowed.
+- Field choices are enumerated by dropdowns: `*` / single values per range / stepping options only for second & minute (`*/5 */10 */15 */30`) and hour (`*/2 */4 */6 */12`) — see `getFieldOptions` (`:167-196`). Day/month/week have no stepping options. The dropdowns are the reka composite `Select`, whose values are strings only, so selections are bridged back through `String()` (`:237-240`).
 
 ### Validation rules: one layer of try/catch, and nothing else
 
-The component's notion of "validation" is feeding the generated expression to `cronstrue.toString(expr, { locale: 'zh_CN' })` and replacing the description with "表达式无效" (invalid expression) when it throws (`CronEditor/index.vue:202-208`) — **it does not block output**; `change` is still emitted. The demo page layers its own `check()` on top, normalizing errors into `{ text, error }` (`views/components/cron/index.vue:34-43`) and marking red / warning when invalid (`:48-53,88-96`).
+The component's notion of "validation" is feeding the generated expression to `cronstrue.toString(expr, { locale: 'zh_CN' })` and replacing the description with "表达式无效" (invalid expression) when it throws (`CronEditor.vue:199-205`) — **it does not block output**; `change` is still emitted. The demo page layers its own `check()` on top, normalizing errors into `{ text, error }` (`views/components/cron/index.vue:49-61`) and marking red / warning when invalid (`:63-71,84-98`).
 
-::: warning The component cannot be typed into The `a-input` that displays the expression is `readonly` (`CronEditor/index.vue:323-330`); the `handleInputChange` defined in the script (`:239-243`) **has no binding anywhere in the template** — it is dead code. To enter an expression by hand, do what card 3 of the demo does and place your own input. :::
+::: warning The component cannot be typed into The `Input` that displays the expression is `readonly` (`CronEditor.vue:330-336`); the old antd-era `handleInputChange` — dead code with no template binding — was removed when the component moved into `@antdv/common-ui`. To enter an expression by hand, do what card 3 of the demo does and place your own input. :::
 
-### One of the known type-check error files: a type-level hazard, not a runtime fault
+### A former type-check error file, resolved by the migration
 
-`CronEditor` is a confirmed type-check error file (type-check is currently non-blocking in this repo). Reading the source, the cause is clear: `apps/web/tsconfig.app.json:21` enables `noUncheckedIndexedAccess`, so `presets[0].value` (`CronEditor/index.vue:219-220`) and the `parseCron` assignments of `parts[0]`-style index results into a `Record<string, string>` (`:123-139`) are inferred as possibly `undefined` and flagged. Every actual execution path is guarded — `presets` is a non-empty literal array, and indexing happens inside `parts.length === 5 / 6` branches — so **current runtime behavior is unaffected**. The hazard is forward-looking: those length checks are what makes the code safe, and deleting them in a refactor would leave the type system as the only (currently non-blocking) alarm.
+The in-app `CronEditor` used to be a confirmed type-check error file (type-check is currently non-blocking in this repo): under `noUncheckedIndexedAccess`, `presets[0].value` and the `parseCron` assignments of `parts[0]`-style index results into a `Record<string, string>` were inferred as possibly `undefined` and flagged. The common-ui package tsconfig enables the same strict flag, and the migration guarded those accesses (`?? ''`, destructuring with an existence check) so the errors are gone; the `parts.length === 5 / 6` branches are kept verbatim — don't delete them in a refactor. One same-origin TS2769 still exists in the demo page's `previewFields` (`views/components/cron/index.vue:129`), left untouched by this migration.
 
 ### How the demo page uses it: inline on the page, not inside a modal
 
-All four cards of `/components/cron` each mount `CronEditor` inline (explicit import; usages at `cron/index.vue:8,134,163,216,233`), demonstrating four patterns: `v-model` + live description; preset buttons writing values with validation; a draft → apply/reset controlled-vs-uncontrolled fallback (`:83-104`); and splitting an expression into its 5/6 fields plus the textual description. The alert atop card 4 honestly states: the project **only has cronstrue (text descriptions), no cron-parser-style scheduling library that could compute "next run time", and no backend** — so the page refuses to fake an execution timetable (source comment `cron/index.vue:107-108`, alert text at `:223-229`).
+All four cards of `/components/cron` each mount `CronEditor` inline (named import from `@antdv/common-ui`, `cron/index.vue:4`; usages at `:168,206,268,287`), demonstrating four patterns: `v-model` + live description; preset buttons writing values with validation; a draft → apply/reset controlled-vs-uncontrolled fallback (`:102-122`); and splitting an expression into its 5/6 fields plus the textual description. The alert atop card 4 honestly states: the project **only has cronstrue (text descriptions), no cron-parser-style scheduling library that could compute "next run time", and no backend** — so the page refuses to fake an execution timetable (source comment `cron/index.vue:125-126`, alert text at `:275-281`).
 
 ## Live examples
 
@@ -85,4 +85,4 @@ All four cards of `/components/cron` each mount `CronEditor` inline (explicit im
 - [Table](/en/components/table)
 - [Form](/en/components/form)
 - [Theme](/en/guide/in-depth/theme) — the `resolvedTheme` the chart's light/dark option colors depend on
-- [Styles](/en/guide/essentials/styles) — where the demo pages' `cn()` class-name convention comes from
+- [Design tokens and global styles](/en/guide/essentials/design) — where the demo pages' `cn()` class-name convention comes from

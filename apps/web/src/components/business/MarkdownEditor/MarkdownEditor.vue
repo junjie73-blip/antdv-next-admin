@@ -17,10 +17,10 @@ import {
   watch,
 } from 'vue';
 
+import { message } from '@antdv/popup-ui';
 import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
 import { Editor, EditorContent } from '@tiptap/vue-3';
-import { message } from 'antdv-next';
 
 import EditorToolbar from './components/EditorToolbar.vue';
 import { DEFAULT_TOOLBAR_KEYS } from './constants';

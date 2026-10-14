@@ -47,7 +47,7 @@ pnpm release                      # pnpm build && changeset publish
 
 ## 一次 antdv-next 升级怎么跑
 
-`antdv-next` 只在 catalog 里出现一次（`^1.6.0`），但它是 4 个包的直接依赖（`composables`、 `preferences`、`shared`、`types`）加 `apps/web`，改一行全仓生效。配套还要看 `@antdv-next/*` 四个卫星包（`cssinjs`、`icons`、`tailwind`、`happy-work-theme`）与 `@iconify-json/*`。`ui-kit` 那九个包一个都不引 antdv-next —— 表单/表格/弹窗/标签页/菜单/布局的实现已经换成 TanStack + shadcn-vue，所以升级 antdv-next 不会碰到它们。
+`antdv-next` 只在 catalog 里出现一次（`^1.6.0`），但它是 4 个包的直接依赖（`composables`、 `preferences`、`shared`、`types`）加 `apps/web`，改一行全仓生效。配套还要看 `@antdv-next/*` 四个卫星包（`cssinjs`、`icons`、`tailwind`、`happy-work-theme`）与 `@iconify-json/*`。`ui-kit` 那十个包一个都不引 antdv-next —— 表单/表格/弹窗/标签页/菜单/布局的实现已经换成 TanStack + shadcn-vue，所以升级 antdv-next 不会碰到它们。
 
 ```bash
 # 1. 改 pnpm-workspace.yaml 里 catalog 的那一行

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
+import { Card } from '@antdv/common-ui';
+import { Button, Input } from '@antdv/shadcn-ui';
 import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
-import { Button as AButton, Card as ACard, Input as AInput } from 'antdv-next';
 
 const containerClassName = cn('space-y-6');
 const scrollContentClassName = cn('rounded-lg bg-gray-50 p-4 dark:bg-gray-800');
@@ -92,9 +93,10 @@ function sendMessage() {
 
 <template>
   <div :class="containerClassName">
-    <ACard title="Basic Scroll" variant="borderless">
+    <Card title="Basic Scroll" variant="borderless">
       <div class="space-y-4">
-        <AButton
+        <Button
+          variant="outline"
           @click="
             basicItems.push({
               id: basicItems.length + 1,
@@ -104,7 +106,7 @@ function sendMessage() {
           "
         >
           Add Item
-        </AButton>
+        </Button>
         <div
           class="h-80 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
           :class="scrollContentClassName"
@@ -132,9 +134,9 @@ function sendMessage() {
           </Scrollbar>
         </div>
       </div>
-    </ACard>
+    </Card>
 
-    <ACard title="Horizontal Scroll" variant="borderless">
+    <Card title="Horizontal Scroll" variant="borderless">
       <div
         class="h-32 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
       >
@@ -153,9 +155,9 @@ function sendMessage() {
           </div>
         </Scrollbar>
       </div>
-    </ACard>
+    </Card>
 
-    <ACard title="Chat Scroll" variant="borderless">
+    <Card title="Chat Scroll" variant="borderless">
       <div class="space-y-3">
         <div
           class="flex h-80 flex-col overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
@@ -188,15 +190,15 @@ function sendMessage() {
           <div
             class="flex gap-2 border-t border-gray-200 p-3 dark:border-gray-700"
           >
-            <AInput
-              v-model:value="newMessage"
+            <Input
+              v-model="newMessage"
               placeholder="Type a message..."
-              @press-enter="sendMessage"
+              @keyup.enter="sendMessage"
             />
-            <AButton type="primary" @click="sendMessage"> Send </AButton>
+            <Button @click="sendMessage"> Send </Button>
           </div>
         </div>
       </div>
-    </ACard>
+    </Card>
   </div>
 </template>

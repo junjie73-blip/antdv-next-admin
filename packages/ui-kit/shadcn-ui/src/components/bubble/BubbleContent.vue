@@ -1,10 +1,8 @@
 <script lang='ts' setup>
 import type { PrimitiveProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { Primitive } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 interface Props extends PrimitiveProps {
   class?: HTMLAttributes["class"]
@@ -25,6 +23,6 @@ const props = withDefaults(defineProps<Props>(), {
       props.class,
     )"
   >
-    <slot></slot>
+    <slot />
   </Primitive>
 </template>

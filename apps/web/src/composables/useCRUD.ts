@@ -1,10 +1,10 @@
+import type { FormActionType } from '@antdv/form-ui';
+import type { TableActionType } from '@antdv/table-ui';
 import type { DrawerMethods, ModalMethods } from '~/components';
-import type { FormActionType } from '~/components/business/Form';
-import type { TableActionType } from '~/components/business/Table';
 
 import { nextTick, ref } from 'vue';
 
-import { message, Modal } from 'antdv-next';
+import { confirm, message } from '@antdv/popup-ui';
 
 type ContainerType = 'drawer' | 'modal';
 
@@ -237,15 +237,15 @@ export function useCRUD<
 
     loading.value = true;
     /**
-     * 确认框的 `onOk` 是异步的，它的 reject 到不了外层 `try`（外层只管"弹不弹得出"），
+     * 确认框是非阻塞的，它的 `onOk` reject 到不了外层 `try`（外层只管"弹不弹得出"），
      * 失败提示必须写在 `onOk` 内部 —— 否则批量删除炸了就是一句 console 警告，
      * 用户看到的仍是"点了没反应"。
      */
-    Modal.confirm({
+    void confirm({
       title: '批量删除',
       // 文案可覆盖，条数由 composable 补上：调用方写死数量迟早和实际选中的对不上
       content: `${msgs.batchDeleteConfirm}（${selected.length} 条）`,
-      okType: 'danger',
+      danger: true,
       async onOk() {
         try {
           if (onBatchDelete) {

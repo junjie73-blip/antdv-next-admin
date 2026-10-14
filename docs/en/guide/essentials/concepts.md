@@ -20,7 +20,7 @@ The split is not "does this look like a library", it is **who consumes the artif
 | Shape | Packages | `main` points at | After editing `src` |
 | --- | --- | --- | --- |
 | dist-published | `@antdv/shared`, `composables`, `directives`, `layouts`, `preferences`, `router`, `types` | `./dist/index.js` (tsdown output) | run `pnpm --filter @antdv/shared build`, then restart dev |
-| source-published | `@antdv/icons`, `@antdv/styles` and the nine `@antdv/ui-kit` packages (`shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` / `loading-ui` / `scrollbar-ui`) | `./src/index.ts` (`styles`: `./src/index.css`) | hot-reloads, there is no build step |
+| source-published | `@antdv/icons`, `@antdv/design` and the ten `@antdv/ui-kit` packages (`common-ui` / `shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` / `loading-ui` / `scrollbar-ui`) | `./src/index.ts` (`design`: `./src/index.css`) | hot-reloads, there is no build step |
 
 Evidence: the `main` field of each `packages/*/package.json` and `packages/ui-kit/*/package.json`, plus `packages/shared/tsdown.config.ts` (`entry: ['src/index.ts', 'src/*.ts', 'src/*/index.ts']`). The dist-published ones are the packages that have a `build` script; their `dev` script is `tsdown --watch`.
 

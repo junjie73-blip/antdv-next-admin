@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import type { ListboxContentProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import { ListboxContent, useForwardProps } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<ListboxContentProps & { class?: HTMLAttributes["class"] }>()
 
@@ -21,7 +19,7 @@ const forwarded = useForwardProps(delegatedProps)
     :class="cn('max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto', props.class)"
   >
     <div role="presentation">
-      <slot></slot>
+      <slot />
     </div>
   </ListboxContent>
 </template>

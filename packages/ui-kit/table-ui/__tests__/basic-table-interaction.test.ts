@@ -317,17 +317,32 @@ describe('BasicTable 分页', () => {
   });
 
   it('改每页条数回到第一页', async () => {
-    const wrapper = mountTable({
-      dataSource: manyRows,
-      pagination: { pageSize: 10 },
-    });
+    const wrapper = mountTable(
+      {
+        dataSource: manyRows,
+        pagination: { pageSize: 10 },
+      },
+      { attachTo: document.body },
+    );
     await wrapper.find('.basic-table-page-3').trigger('click');
     await settle();
-    await wrapper.find('.basic-table-page-size').findAll('option')[2]!
-      .setValue('50');
+
+    // 每页条数换成 shadcn 的 Select（reka 的 listbox），没有原生 option 可点
+    await wrapper.find('.basic-table-page-size').trigger('pointerdown');
+    await wrapper.find('.basic-table-page-size').trigger('click');
     await settle();
+    const items = [...document.querySelectorAll('[data-slot="select-item"]')];
+    const option50 = items.find((el) => el.textContent?.includes('50'));
+    expect(option50).toBeTruthy();
+    // reka 的选项在 pointerup 上落值，且事件要从内容元素冒泡上去
+    option50!.firstElementChild!.dispatchEvent(
+      new PointerEvent('pointerup', { bubbles: true }),
+    );
+    await settle();
+
     expect(bodyRows(wrapper)).toHaveLength(25);
     expect(wrapper.find('.basic-table-page-1').exists()).toBe(true);
+    wrapper.unmount();
   });
 
   it('快速跳至输入页码', async () => {

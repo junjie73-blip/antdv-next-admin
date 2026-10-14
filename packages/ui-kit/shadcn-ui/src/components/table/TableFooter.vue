@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<{
@@ -13,6 +12,6 @@ const props = defineProps<{
     data-slot="table-footer"
     :class="cn('bg-muted/50 border-t font-medium [&>tr]:last:border-b-0', props.class)"
   >
-    <slot></slot>
+    <slot />
   </tfoot>
 </template>

@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import type { MenubarCheckboxItemEmits, MenubarCheckboxItemProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { Check } from "@lucide/vue"
 import { reactiveOmit } from "@vueuse/core"
 import {
@@ -11,6 +8,7 @@ import {
   MenubarItemIndicator,
   useForwardPropsEmits,
 } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<MenubarCheckboxItemProps & { class?: HTMLAttributes["class"] }>()
 const emits = defineEmits<MenubarCheckboxItemEmits>()
@@ -36,6 +34,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
         </slot>
       </MenubarItemIndicator>
     </span>
-    <slot></slot>
+    <slot />
   </MenubarCheckboxItem>
 </template>

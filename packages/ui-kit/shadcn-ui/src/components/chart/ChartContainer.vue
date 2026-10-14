@@ -1,13 +1,9 @@
 <script lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import type { ChartConfig } from "."
-
-import { computed, toRefs } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { useId } from "reka-ui"
-
+import { computed, toRefs } from "vue"
+import { cn } from '@antdv/shared/cn'
 import { provideChartContext } from "."
 import ChartStyle from "./ChartStyle.vue"
 </script>
@@ -57,7 +53,7 @@ provideChartContext({
       '--vis-font-family': 'var(--font-sans)',
     }"
   >
-    <slot :id="uniqueId" :config="config"></slot>
+    <slot :id="uniqueId" :config="config" />
     <ChartStyle :id="chartId" />
   </div>
 </template>

@@ -1,18 +1,16 @@
 <script setup lang="ts">
-import type { ButtonVariants } from '../button'
 import type { WithClassAsProps } from "./interface"
-
-import { cn } from '@antdv/shared/cn'
+import type { ButtonVariants } from '../button'
 import { ArrowLeft } from "@lucide/vue"
-
+import { cn } from '@antdv/shared/cn'
 import { Button } from '../button'
 import { useCarousel } from "./useCarousel"
 
-const props = withDefaults(defineProps<WithClassAsProps
-& {
+const props = withDefaults(defineProps<{
   variant?: ButtonVariants["variant"]
   size?: ButtonVariants["size"]
-}>(), {
+}
+& WithClassAsProps>(), {
   variant: "outline",
   size: "icon",
 })

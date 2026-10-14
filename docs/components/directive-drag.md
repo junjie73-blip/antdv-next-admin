@@ -48,7 +48,7 @@
 
 ### 无权限时 DOM 上发生什么
 
-`applyPermissionState()`（`utils.ts:176-209`）：默认隐藏走 `display: none` + `disabled` 属性 + `aria-disabled` + 叠加 class `permission-disabled`；`.disabled` 模式保留可见只禁用。**从不删节点**——删节点会让 Vue 的 patch 找不到锚点、兄弟 diff 错乱（`utils.ts:172-174` 注释）。降级样式在 `packages/styles/src/permission.css:12-17`（`cursor-not-allowed opacity-50 saturate-50 select-none` + `pointer-events: none`，非表单元素不认 `disabled` 属性所以统一挡交互），逃生舱 class `permission-disabled--passthrough`（`permission.css:21-23`）允许「看着降级但还能点」。样式由 `packages/styles/src/index.css:26` 统一引入。
+`applyPermissionState()`（`utils.ts:176-209`）：默认隐藏走 `display: none` + `disabled` 属性 + `aria-disabled` + 叠加 class `permission-disabled`；`.disabled` 模式保留可见只禁用。**从不删节点**——删节点会让 Vue 的 patch 找不到锚点、兄弟 diff 错乱（`utils.ts:172-174` 注释）。降级样式在 `packages/design/src/permission.css:12-17`（`cursor-not-allowed opacity-50 saturate-50 select-none` + `pointer-events: none`，非表单元素不认 `disabled` 属性所以统一挡交互），逃生舱 class `permission-disabled--passthrough`（`permission.css:21-23`）允许「看着降级但还能点」。样式由 `packages/design/src/index.css:26` 统一引入。
 
 ::: tip 路由层不读 roles `RouteMeta` 类型声明了 `roles?: string[]` / `permissions?: string[]`（`packages/types/src/app-router.ts:9-10`），但 `apps/web/src/router/**` 与 `packages/router/src/**` 里**没有任何读取点**——路由准入实际靠菜单数据（「菜单即权限」，`apps/web/src/stores/modules/route.ts:181, 210` 只处理 `meta.requiresAuth`）。`v-permission` 管的只是元素这一层，三层的完整讲法见[权限与菜单访问](/guide/in-depth/access)。:::
 
@@ -155,5 +155,5 @@
 - [组件示例](/components/) — 章节总览与起服务方式
 - [表格](/components/table) — `dragSort` 表格行拖拽（与本页的 VueDraggable 是两条路）
 - [权限、指令与光标](/guide/in-depth/access) — 权限三层：路由、菜单、元素
-- [样式与图标](/guide/essentials/styles) — `permission-disabled` 等降级样式的出处
+- [设计令牌与全局样式](/guide/essentials/design) — `permission-disabled` 等降级样式的出处
 - [目录说明](/guide/project/dir) — `packages/directives` / `packages/shared` 的分层位置

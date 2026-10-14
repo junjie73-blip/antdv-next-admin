@@ -39,40 +39,40 @@
 
 ### 它解决什么问题
 
-`CronEditor`（`apps/web/src/components/common/CronEditor/index.vue`）给「配置定时任务表达式」一个预设点选 + 六字段下拉拼接的可视界面，配 `cronstrue` 中文描述实时回显，产出/接收一个表达式字符串。
+`CronEditor`（`packages/ui-kit/common-ui/src/components/cron-editor/CronEditor.vue`，从 `@antdv/common-ui` 具名导出）给「配置定时任务表达式」一个预设点选 + 六字段下拉拼接的可视界面，配 `cronstrue` 中文描述实时回显，产出/接收一个表达式字符串。
 
 ### 真实 API
 
-Props 与事件（`CronEditor/index.vue:12-26`）：
+Props 与事件（`CronEditor.vue:27-33`）：
 
 | 名称 | 类型 | 说明 |
 | --- | --- | --- |
-| `modelValue` | `string` | 表达式，支持 `v-model`；组件挂载时若处于「自定义」模式会解析回填字段（`:154-162`） |
+| `modelValue` | `string` | 表达式，支持 `v-model`；组件挂载时若处于「自定义」模式会解析回填字段（`:151-159`） |
 | `disabled` | `boolean` | 禁用全部按钮与下拉 |
-| `change` 事件 | `(value: string) => void` | 预设点选（`:226-229`）、字段变更（`:232-236`）、模式切换补默认值（`:211-223`）时抛出 |
+| `change` 事件 | `(value: string) => void` | 预设点选（`:224-227`）、字段变更（`:230-240`）、模式切换补默认值（`:208-221`）时抛出 |
 
 没有校验函数、没有 `valid` 事件、不暴露实例方法——表达式合法性只体现在描述区。
 
 ### 表达式格式：6 段「秒 分 时 日 月 周」
 
-- 生成侧固定输出 **6 段**：按 `fields` 顺序 join（`CronEditor/index.vue:57-106,165-167`），即秒、分、时、日、月、周；12 个内置预设也全是 6 段（`:32-45`）。可以理解为「Quartz 风格但只有前 6 段」。
-- **不是严格 Quartz**：组件没有年段，日/周两段互不排斥、不输出 Quartz 的 `?` 占位，周字段取值范围是 **0~6**（`:99-105`）。Quartz 后端（典型如调度器要求 day-of-month 与 day-of-week 恰有一个为 `?`、周从 1 开始）接到这份表达式需要自己转换——封装并没有做这层保证，别按「原生 Quartz 编辑器」写它。
-- 解析侧（外部传入的 `modelValue`）：`parseCron` 接受 **5 段或 6 段**，5 段按「分时日月周」补一个 `0` 秒（`CronEditor/index.vue:119-151`）；**其余段数一律重置为默认值** `0 0 0 * * *`，不报错——坏输入会被静默吞掉。
-- 字段选项由下拉枚举：每个字段 `*` / 单值 / 秒分（`*/5 */10 */15 */30`）/ 时（`*/2 */4 */6 */12`），见 `getFieldOptions`（`:170-199`）。日/月/周没有步进选项。
+- 生成侧固定输出 **6 段**：按 `fields` 顺序 join（`CronEditor.vue:54-103,162-164`），即秒、分、时、日、月、周；12 个内置预设也全是 6 段（`:38-51`）。可以理解为「Quartz 风格但只有前 6 段」。
+- **不是严格 Quartz**：组件没有年段，日/周两段互不排斥、不输出 Quartz 的 `?` 占位，周字段取值范围是 **0~6**（`:95-102`）。Quartz 后端（典型如调度器要求 day-of-month 与 day-of-week 恰有一个为 `?`、周从 1 开始）接到这份表达式需要自己转换——封装并没有做这层保证，别按「原生 Quartz 编辑器」写它。
+- 解析侧（外部传入的 `modelValue`）：`parseCron` 接受 **5 段或 6 段**，5 段按「分时日月周」补一个 `0` 秒（`CronEditor.vue:116-148`）；**其余段数一律重置为默认值** `0 0 0 * * *`，不报错——坏输入会被静默吞掉。
+- 字段选项由下拉枚举：每个字段 `*` / 单值 / 秒分（`*/5 */10 */15 */30`）/ 时（`*/2 */4 */6 */12`），见 `getFieldOptions`（`:167-196`）。日/月/周没有步进选项。下拉由 reka 组合件 `Select` 渲染，值一律按字符串桥接（`String()` 归一，`:237-240`）。
 
 ### 校验规则：只有一层 try/catch
 
-组件对表达式的「校验」就是把生成结果丢给 `cronstrue.toString(expr, { locale: 'zh_CN' })`，抛异常时把描述区改成「表达式无效」（`CronEditor/index.vue:202-208`）——**不阻止输出**，`change` 照抛。示例页在此之上自建了 `check()` 把错误收进 `{ text, error }`（`views/components/cron/index.vue:34-43`），非法时标红/弹 warning（如 `:48-53,88-96`）。
+组件对表达式的「校验」就是把生成结果丢给 `cronstrue.toString(expr, { locale: 'zh_CN' })`，抛异常时把描述区改成「表达式无效」（`CronEditor.vue:199-205`）——**不阻止输出**，`change` 照抛。示例页在此之上自建了 `check()` 把错误收进 `{ text, error }`（`views/components/cron/index.vue:49-61`），非法时标红/弹 warning（如 `:63-71,84-98`）。
 
-::: warning 组件不支持手动输入展示表达式的那个 `a-input` 是 `readonly` 的（`CronEditor/index.vue:323-330`）；脚本里定义的 `handleInputChange`（`:239-243`）**在模板里没有任何绑定点**，是一段死代码。想手输表达式得像示例页第 3 张卡片那样自己放输入框。:::
+::: warning 组件不支持手动输入展示表达式的那个 `Input` 是 `readonly` 的（`CronEditor.vue:330-336`）；antd 时代脚本里那段无模板绑定点的死代码 `handleInputChange` 已在迁入 `@antdv/common-ui` 时删除。想手输表达式得像示例页第 3 张卡片那样自己放输入框。:::
 
-### type-check 报错文件之一：类型隐患，不是运行时故障
+### 曾经的 type-check 报错文件：迁移时已消解
 
-`CronEditor` 是仓库已确认的 type-check 报错文件之一（type-check 目前非阻断）。从源码看报错来源清楚：`apps/web/tsconfig.app.json:21` 开了 `noUncheckedIndexedAccess`，于是 `presets[0].value`（`CronEditor/index.vue:219-220`）与 `parseCron` 里把 `parts[0]` 这类下标结果赋进 `Record<string, string>`（`:123-139`）都被推成可能 `undefined` 而被拦。实际执行路径都有前置守卫——`presets` 是非空字面量数组、下标访问发生在 `parts.length === 5 / 6` 分支内——**不影响当前运行行为**，但也意味着别在重构时顺手删掉那些长度判断，删了类型层不会替你兜住 `undefined` 之外的语义。
+`CronEditor` 应用内旧版是仓库已确认的 type-check 报错文件之一（type-check 目前非阻断）：`noUncheckedIndexedAccess` 下 `presets[0].value` 与 `parseCron` 里 `parts[0]` 类下标赋值被推成可能 `undefined`。common-ui 与应用的 tsconfig 都开着同一个严格开关，迁入包时已用 `?? ''` 与解构守卫消解这些报错；长度判断（`parts.length === 5 / 6`）原样保留，别在重构时顺手删掉。示例页 `previewFields`（`views/components/cron/index.vue:129`）仍有一处同源的既有 TS2769 报错，未在本次迁移中处理。
 
 ### 示例页怎么用它：页面内联，不是弹窗
 
-`/components/cron` 的四张卡片各自内联一个 `CronEditor`（显式 import，`cron/index.vue:8,134,163,216,233`），演示的是四种用法：v-model + 实时描述；预设按钮写值并校验；「草稿 → 应用/重置」的受控/非受控回退（`:83-104`）；表达式按 5/6 段拆字段展示 + 文字描述。第 4 张卡片顶上的 alert 诚实地写明：项目里**只有 cronstrue（只能生成文字描述），没有 cron-parser 这类能算「下次运行时间」的调度库，也没有后端**，所以这一页不伪造运行时间表（原注释 `cron/index.vue:107-108`，alert 文案 `:223-229`）。
+`/components/cron` 的四张卡片各自内联一个 `CronEditor`（从 `@antdv/common-ui` 具名 import，`cron/index.vue:4`，使用点 `:168,206,268,287`），演示的是四种用法：v-model + 实时描述；预设按钮写值并校验；「草稿 → 应用/重置」的受控/非受控回退（`:102-122`）；表达式按 5/6 段拆字段展示 + 文字描述。第 4 张卡片顶上的 alert 诚实地写明：项目里**只有 cronstrue（只能生成文字描述），没有 cron-parser 这类能算「下次运行时间」的调度库，也没有后端**，所以这一页不伪造运行时间表（原注释 `cron/index.vue:125-126`，alert 文案 `:275-281`）。
 
 ## 在线示例
 
@@ -85,4 +85,4 @@ Props 与事件（`CronEditor/index.vue:12-26`）：
 - [表格](/components/table)
 - [表单](/components/form)
 - [主题定制](/guide/in-depth/theme) —— 图表明暗取色所依赖的 `resolvedTheme`
-- [样式](/guide/essentials/styles) —— 示例页 `cn()` 类名约定的出处
+- [设计令牌与全局样式](/guide/essentials/design) —— 示例页 `cn()` 类名约定的出处

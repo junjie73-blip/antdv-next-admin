@@ -1,8 +1,0 @@
-export { default as BasicForm } from './BasicForm.vue';
-export * from './componentMap';
-export { default as ASelect } from './components/ApiSelect.vue';
-export { default as ApiTreeSelect } from './components/ATreeSelect.vue';
-export { default as FormItem } from './components/FormItem.vue';
-export * from './helper';
-export * from './types';
-export { useForm } from './useForm';

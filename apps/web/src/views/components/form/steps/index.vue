@@ -3,13 +3,22 @@ import type {
   FormProps,
   FormSchema,
   Recordable,
-} from '~/components/business/Form';
+} from '@antdv/form-ui';
 
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
+import {
+  Alert,
+  Card,
+  Descriptions,
+  DescriptionsItem,
+  Result,
+  Steps,
+} from '@antdv/common-ui';
+import { BasicForm, useForm } from '@antdv/form-ui';
+import { message } from '@antdv/popup-ui';
+import { Button, Checkbox } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
-import { Alert as AAlert, Button as AButton, Card as ACard, Checkbox as ACheckbox, CheckboxGroup as ACheckboxGroup, Descriptions as ADescriptions, DescriptionsItem as ADescriptionsItem, App, Result as AResult, Steps as ASteps } from 'antdv-next';
-import { BasicForm, useForm } from '~/components/business/Form';
 
 /**
  * 分步表单示例。
@@ -18,8 +27,6 @@ import { BasicForm, useForm } from '~/components/business/Form';
  * 换步骤靠 `setProps({ schemas })` 整体替换字段（`BasicForm` 把 schemas 从合并逻辑里
  * 单独摘出来做替换，并且不动 `formModel`），值留在页面 state 里，来回切步骤不丢。
  */
-
-const { message } = App.useApp();
 
 /* 根容器不留内边距：内容区的 p-4 由布局的 Scrollbar 统一给（见 page-root-padding 守卫） */
 const containerClassName = cn('space-y-6');
@@ -43,7 +50,7 @@ const serviceRowClassName = cn(
 interface StepConfig {
   /** 步骤条上的标题 */
   title: string;
-  /** 步骤条下的副文案（对应 a-steps item 的 content） */
+  /** 步骤条下的副文案（对应 Steps item 的 description） */
   hint?: string;
   /** 这一步要渲染的字段：换步骤 = 换这份 schema */
   schemas: FormSchema[];
@@ -105,23 +112,28 @@ function useStepFlow(
   }
 
   const stepItems = computed(() =>
-    steps.map((item, index) => ({
+    steps.map((item) => ({
       title: item.title,
-      content: item.hint,
-      // 没走过的步骤置灰：a-steps 的 item 只在 !disabled 时接点击
-      disabled: index > furthest.value,
+      description: item.hint,
     })),
   );
 
   const isLast = computed(() => step.value === steps.length - 1);
 
-  async function gotoStep(index: number, snapshot?: Recordable) {
+  /**
+   * 换步骤：换 schema + 灌回页面里的值。
+   *
+   * `keepErrors` 只给整表校验失败的回跳用 —— 这时字段上的错误正是用户要看的，
+   * 清掉就变成「点了提交只有一句 toast，表单上哪儿都不红」。
+   */
+  async function gotoStep(index: number, snapshot?: Recordable, keepErrors = false) {
     const merged = { ...(snapshot ?? collect()) };
     values.value = merged;
     step.value = index;
     furthest.value = Math.max(furthest.value, index);
     await form.setProps({ schemas: steps[index].schemas });
     await form.setFieldsValue(merged);
+    if (keepErrors) return;
     // 新步骤的 a-form-item 要到这一轮渲染结束才注册，清残留错误得排在 nextTick 之后
     await nextTick();
     await form.clearValidate(fieldsOf(index));
@@ -199,7 +211,12 @@ function useStepFlow(
           (schema) => schema.field === failed.errorFields?.[0]?.name?.[0],
         ),
       );
-      await gotoStep(target === -1 ? step.value : target, snapshot);
+      await gotoStep(
+        target === -1 ? step.value : target,
+        snapshot,
+        // 回跳是为了让用户看到错误，别把刚跑出来的校验结果抹了
+        true,
+      );
       message.error(
         `${failed.message ?? '有字段没填对'}${target === -1 ? '' : `，已跳回「${steps[target].title}」`}`,
       );
@@ -850,12 +867,31 @@ async function submitComplex() {
 function restartComplex() {
   void complex.reset();
 }
+
+/**
+ * shadcn 的 Checkbox 是「一个独立勾选框」，没有 antd 的 CheckboxGroup，
+ * 所以数组模型由外面自己拼：勾选就并进数组，取消就从数组里剔除。
+ */
+function toggleOption(model: Recordable, field: string, value: string) {
+  const list: string[] = Array.isArray(model[field]) ? [...model[field]] : [];
+  model[field] = list.includes(value)
+    ? list.filter((item) => item !== value)
+    : [...list, value];
+}
+
+const optionChecked = (model: Recordable, field: string, value: string) =>
+  Array.isArray(model[field]) && model[field].includes(value);
+
+/** 单勾选框：布尔值写在 formModel 上（antd 的 checked 对应这里的 model-value） */
+function setAgreed(model: Recordable, field: string, checked: unknown) {
+  model[field] = checked === true;
+}
 </script>
 
 <template>
   <div :class="containerClassName">
     <!-- 1 -->
-    <ACard title="基础分步表单" variant="borderless">
+    <Card title="基础分步表单" variant="borderless">
       <p :class="hintClassName">
         一个 <code>BasicForm</code> 实例跑三步：点「下一步」先校验这一步的字段
         （<code>validate(fieldsOf(当前步))</code>），不过就原地停住；「上一步」直接换
@@ -874,9 +910,10 @@ function restartComplex() {
 
       <!-- 结果页用 v-show 留住表单实例：v-if 会把 BasicForm 卸掉，之后的 setProps 就写在死实例上了 -->
       <div v-show="!basic.done" :class="stepClassName">
-        <ASteps
+        <Steps
           :current="basic.step"
           :items="basic.stepItems"
+          clickable
           size="small"
           class="mb-2"
           @change="basic.jumpTo"
@@ -890,39 +927,37 @@ function restartComplex() {
             第 {{ basic.step + 1 }}/{{ basicSteps.length }} 步 · 页面已攒
             {{ filledCount(basic.values) }} 个字段
           </span>
-          <AButton :disabled="basic.step === 0" @click="basic.prev()">
+          <Button :disabled="basic.step === 0" @click="basic.prev()">
             上一步
-          </AButton>
-          <AButton v-if="!basic.isLast" type="primary" @click="basic.next()">
-            下一步
-          </AButton>
-          <AButton v-else type="primary" @click="submitBasic"> 提交 </AButton>
+          </Button>
+          <Button v-if="!basic.isLast" @click="basic.next()"> 下一步 </Button>
+          <Button v-else @click="submitBasic"> 提交 </Button>
         </div>
       </div>
 
-      <AResult
+      <Result
         v-if="basic.done"
         status="success"
         title="分步表单已提交"
         sub-title="下面这份摘要取的是页面 state 里的全量值，不是某一步自己的。"
       >
-        <ADescriptions :column="1" bordered size="small">
-          <ADescriptionsItem
+        <Descriptions :column="1" bordered size="small">
+          <DescriptionsItem
             v-for="row in basicRows"
             :key="row.field"
             :label="row.label"
           >
             {{ row.text }}
-          </ADescriptionsItem>
-        </ADescriptions>
+          </DescriptionsItem>
+        </Descriptions>
         <template #extra>
-          <AButton type="primary" @click="restartBasic"> 重新填写 </AButton>
+          <Button @click="restartBasic"> 重新填写 </Button>
         </template>
-      </AResult>
-    </ACard>
+      </Result>
+    </Card>
 
     <!-- 2 -->
-    <ACard title="分步校验与草稿" variant="borderless">
+    <Card title="分步校验与草稿" variant="borderless">
       <p :class="hintClassName">
         和第 1
         段相反：「下一步」只换步骤、<strong>不做任何校验</strong>，切到第几步都能改。
@@ -938,9 +973,10 @@ function restartComplex() {
       </p>
 
       <div :class="stepClassName">
-        <ASteps
+        <Steps
           :current="draft.step"
           :items="draft.stepItems"
+          clickable
           size="small"
           class="mb-2"
           @change="draft.jumpTo"
@@ -954,74 +990,74 @@ function restartComplex() {
             第 {{ draft.step + 1 }}/{{ draftSteps.length }} 步 · 最远走到第
             {{ draft.furthest + 1 }} 步
           </span>
-          <AButton :disabled="draft.step === 0" @click="draft.prev()">
+          <Button :disabled="draft.step === 0" @click="draft.prev()">
             上一步
-          </AButton>
-          <AButton :disabled="draft.isLast" @click="nextDraftStep()">
+          </Button>
+          <Button :disabled="draft.isLast" variant="outline" @click="nextDraftStep()">
             下一步
-          </AButton>
-          <AButton @click="checkDraftStep"> 校验本步 </AButton>
-          <AButton @click="saveDraft"> 保存草稿 </AButton>
-          <AButton @click="restoreDraft"> 恢复草稿 </AButton>
-          <AButton danger :disabled="!storedDraft" @click="clearDraft">
+          </Button>
+          <Button variant="outline" @click="checkDraftStep"> 校验本步 </Button>
+          <Button variant="outline" @click="saveDraft"> 保存草稿 </Button>
+          <Button variant="outline" @click="restoreDraft"> 恢复草稿 </Button>
+          <Button variant="destructive" :disabled="!storedDraft" @click="clearDraft">
             清除草稿
-          </AButton>
-          <AButton type="primary" @click="submitDraft"> 提交 </AButton>
+          </Button>
+          <Button @click="submitDraft"> 提交 </Button>
         </div>
       </div>
 
-      <ADescriptions
+      <Descriptions
         :column="2"
         bordered
         size="small"
         class="mt-4"
         title="草稿状态"
       >
-        <ADescriptionsItem label="存储位置">
+        <DescriptionsItem label="存储位置">
           localStorage · demo:form-steps:draft
-        </ADescriptionsItem>
-        <ADescriptionsItem label="是否有草稿">
+        </DescriptionsItem>
+        <DescriptionsItem label="是否有草稿">
           {{ storedDraft ? '有' : '还没有' }}
-        </ADescriptionsItem>
-        <ADescriptionsItem label="最近保存">
+        </DescriptionsItem>
+        <DescriptionsItem label="最近保存">
           {{
             storedDraft
               ? new Date(storedDraft.savedAt).toLocaleString('zh-CN')
               : '—'
           }}
-        </ADescriptionsItem>
-        <ADescriptionsItem label="停在第几步">
+        </DescriptionsItem>
+        <DescriptionsItem label="停在第几步">
           {{ storedDraft ? storedDraft.step + 1 : '—' }}
-        </ADescriptionsItem>
-        <ADescriptionsItem label="有值字段">
+        </DescriptionsItem>
+        <DescriptionsItem label="有值字段">
           {{ storedDraft ? filledCount(storedDraft.values) : '—' }}
-        </ADescriptionsItem>
-        <ADescriptionsItem label="本次提交">
+        </DescriptionsItem>
+        <DescriptionsItem label="本次提交">
           {{
             draft.done
               ? `${filledCount(draft.done)} 个字段校验通过`
               : '尚未提交'
           }}
-        </ADescriptionsItem>
-      </ADescriptions>
+        </DescriptionsItem>
+      </Descriptions>
 
-      <div :class="cn('mt-3')">
+      <div class="mt-3">
         <p :class="hintClassName">localStorage 里躺着的那条原文：</p>
         <pre :class="codeClassName">{{ storedDraftJson }}</pre>
       </div>
-    </ACard>
+    </Card>
 
     <!-- 3 -->
-    <ACard title="步骤可跳转 / 自定义底部" variant="borderless">
+    <Card title="步骤可跳转 / 自定义底部" variant="borderless">
       <p :class="hintClassName">
-        步骤条是可以点回去的：item 只要没
-        <code>disabled</code> 就接点击，所以这里让没走过的步骤先置灰，
-        走过的点下去直接 <code>gotoStep</code> 换回那一步的
-        schema（跳转不校验，值照样带得走）。
-        <strong>别用 <code>v-model:current</code></strong>：<code>current</code> 是受控的， 单向写步骤号会把步骤号和字段拆开 ——
-        指示条到第 3 步了，表单还在渲染第 1 步的字段。 这里只绑
-        <code>:current</code> + <code>@change</code>，让步骤号必须经过换 schema
-        的那条路。
+        步骤条是可以点回去的：<code>Steps</code> 开了
+        <code>clickable</code> 就每步接点击，没走过的步骤点下去由
+        <code>jumpTo</code> 的守卫拦下来并给一句提示，走过的点下去直接
+        <code>gotoStep</code> 换回那一步的 schema（跳转不校验，值照样带得走）。
+        <strong>别用 <code>v-model:current</code></strong>：<code>current</code> 是受控的，
+        单向写步骤号会把步骤号和字段拆开 —— 指示条到第 3 步了，表单还在渲染第 1
+        步的字段。 这里只绑 <code>:current</code> + <code>@change</code>，让步骤号必须经过换
+        schema 的那条路。
       </p>
       <p :class="hintClassName">
         底部按钮不在卡片里另起一行，而是塞进 <code>BasicForm</code> 的动作区插槽
@@ -1033,9 +1069,10 @@ function restartComplex() {
       </p>
 
       <div :class="stepClassName">
-        <ASteps
+        <Steps
           :current="jump.step"
           :items="jump.stepItems"
+          clickable
           size="small"
           @change="jump.jumpTo"
         />
@@ -1045,68 +1082,67 @@ function restartComplex() {
           @register="jump.register"
         >
           <template #submitBefore>
-            <AButton :disabled="jump.step === 0" @click="jump.prev()">
+            <Button :disabled="jump.step === 0" @click="jump.prev()">
               上一步
-            </AButton>
+            </Button>
           </template>
           <template #actionAfter>
             <span :class="metaClassName">
               最远走到第 {{ jump.furthest + 1 }} 步 · 已攒
               {{ filledCount(jump.values) }} 个字段
             </span>
-            <AButton v-if="!jump.isLast" type="primary" @click="jump.next()">
-              下一步
-            </AButton>
-            <AButton v-else type="primary" @click="submitJump">
-              提交
-            </AButton>
+            <Button v-if="!jump.isLast" @click="jump.next()"> 下一步 </Button>
+            <Button v-else @click="submitJump"> 提交 </Button>
           </template>
         </BasicForm>
       </div>
 
       <div v-if="jump.done" class="mt-4 flex flex-wrap items-center gap-3">
-        <AAlert
+        <Alert
           type="success"
           show-icon
+          class="flex-1"
           message="已提交（本地演示，无接口调用）"
           :description="
             summaryRows(jumpSteps, jump.done)
               .map((row) => `${row.label}：${row.text}`)
               .join('；')
           "
-          :class="cn('flex-1')"
         />
-        <AButton @click="restartJump"> 重新填写 </AButton>
+        <Button variant="outline" @click="restartJump"> 重新填写 </Button>
       </div>
-    </ACard>
+    </Card>
 
     <!-- 4 -->
-    <ACard title="复杂步骤内容" variant="borderless">
+    <Card title="复杂步骤内容" variant="borderless">
       <p :class="hintClassName">
         步骤内容不必是普通输入框，照样由同一个 <code>BasicForm</code> 管：第 2
         步用 schema 的 <code>slot</code> 渲染成表格化的多选列表，值仍然写在
         <code>formModel.services</code> 上，所以「至少选一项」的规则照常生效；第
-        3 步是一份只读 <code>a-descriptions</code> 摘要（<code>__summary</code>
+        3 步是一份只读 <code>Descriptions</code> 摘要（<code>__summary</code>
         这种字段不进校验、也不进摘要行）加一个勾选项。
       </p>
       <p :class="hintClassName">
-        单勾选框只能走 slot，不能用 <code>component: 'Checkbox'</code>：FormItem
-        只喂 <code>value</code> / <code>update:value</code>，而 antd 的勾选态在
-        <code>checked</code> 上 ——
-        用组件名会渲染出一个点了没反应的框。开关可以用
-        <code>component: 'Switch'</code>，它把 <code>value</code> 做成了
-        <code>checked</code> 的别名。
+        多选和单勾选都走 slot：包装层的
+        <code>Checkbox</code> 只认
+        <code>:model-value</code> + <code>@update:model-value</code>，数组模型由
+        <code>toggleOption</code> 自己增删，布尔值由
+        <code>setAgreed</code> 直接写回 <code>formModel</code> ——
+        写成 <code>:checked</code> 会点了没反应。开关这类
+        <code>component: 'Switch'</code> 的字段由 FormItem 把
+        <code>value</code> 喂成受控值。
       </p>
 
       <div :class="stepClassName">
-        <ASteps
+        <Steps
           :current="complex.step"
           :items="complex.stepItems"
+          clickable
           size="small"
           class="mb-2"
           @change="complex.jumpTo"
         />
-        <AAlert
+        <Alert
           v-if="complex.done"
           type="success"
           show-icon
@@ -1125,39 +1161,49 @@ function restartComplex() {
                 <span>单价</span>
                 <span>耗时</span>
               </div>
-              <ACheckboxGroup v-model:value="model[field]">
+              <div>
                 <div
                   v-for="item in serviceOptions"
                   :key="item.value"
                   :class="serviceRowClassName"
                 >
-                  <ACheckbox :value="item.value">{{ item.label }}</ACheckbox>
-                  <span :class="cn('text-xs text-gray-500 dark:text-gray-400')">
+                  <label class="flex cursor-pointer items-center gap-2">
+                    <Checkbox
+                      :model-value="optionChecked(model, field, item.value)"
+                      @update:model-value="() => toggleOption(model, field, item.value)"
+                    />
+                    {{ item.label }}
+                  </label>
+                  <span class="text-xs text-gray-500 dark:text-gray-400">
                     {{ item.desc }}
                   </span>
                   <span>{{ item.price }}</span>
                   <span>{{ item.hours }}</span>
                 </div>
-              </ACheckboxGroup>
+              </div>
             </div>
           </template>
 
           <template #summarySlot>
-            <ADescriptions :column="2" bordered size="small">
-              <ADescriptionsItem
+            <Descriptions :column="2" bordered size="small">
+              <DescriptionsItem
                 v-for="row in complexSummary"
                 :key="row.label"
                 :label="row.label"
               >
                 {{ row.text }}
-              </ADescriptionsItem>
-            </ADescriptions>
+              </DescriptionsItem>
+            </Descriptions>
           </template>
 
           <template #agreeSlot="{ model, field }">
-            <ACheckbox v-model:checked="model[field]">
-              我已确认上面的服务清单与价格
-            </ACheckbox>
+            <label class="flex cursor-pointer items-center gap-2">
+              <Checkbox
+                :model-value="model[field] === true"
+                @update:model-value="(v: any) => setAgreed(model, field, v)"
+              />
+              <span>我已确认上面的服务清单与价格</span>
+            </label>
           </template>
         </BasicForm>
 
@@ -1171,24 +1217,18 @@ function restartComplex() {
             }}
             项服务
           </span>
-          <AButton :disabled="complex.step === 0" @click="complex.prev()">
+          <Button :disabled="complex.step === 0" @click="complex.prev()">
             上一步
-          </AButton>
-          <AButton
-            v-if="!complex.isLast"
-            type="primary"
-            @click="complex.next()"
-          >
+          </Button>
+          <Button v-if="!complex.isLast" @click="complex.next()">
             下一步
-          </AButton>
-          <AButton v-else type="primary" @click="submitComplex">
-            提交
-          </AButton>
-          <AButton v-if="complex.done" @click="restartComplex">
+          </Button>
+          <Button v-else @click="submitComplex"> 提交 </Button>
+          <Button v-if="complex.done" variant="outline" @click="restartComplex">
             重新填写
-          </AButton>
+          </Button>
         </div>
       </div>
-    </ACard>
+    </Card>
   </div>
 </template>

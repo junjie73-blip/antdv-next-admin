@@ -1,5 +1,13 @@
 import type { MenuConfig } from '@antdv/types';
 
+import { flushPromises, mount } from '@vue/test-utils';
+import { defineComponent, h, nextTick } from 'vue';
+import { createMemoryHistory, createRouter } from 'vue-router';
+
+import { createPinia, setActivePinia } from 'pinia';
+import { useRouteStore } from '~/stores/modules/route';
+
+import MenuSearchModal from '../components/MenuSearchModal.vue';
 import { flattenMenus, matchEntries } from '../composables/useMenuSearch';
 
 /**
@@ -166,5 +174,156 @@ describe('matchEntries', () => {
 
   it('无匹配时返回空数组（组件据此展示空态）', () => {
     expect(matchEntries(entries, '不存在的东西')).toEqual([]);
+  });
+});
+
+/* ============================================================
+ * 渲染层：弹窗本体（Ctrl+K 的真实入口）
+ * ============================================================
+ *
+ * 上面钉的是"能不能搜到、排得对不对"，这一组钉"搜到以后能不能用"：
+ * 弹窗从旧组件库的 Modal 换成封装件 Dialog 以后，最容易丢的是这三件事 ——
+ * 打开即聚焦（命令面板的底线）、键盘上下选、Enter 跳转并关掉自己。
+ * 断言只用稳定钩子：`data-test` / `data-testid` / `data-active`。
+ */
+
+const PATHS = [
+  '/dashboard',
+  '/system/user',
+  '/system/role',
+  '/system/dept',
+  '/profile',
+];
+
+async function mountSearch() {
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  useRouteStore().menus = MENUS;
+
+  const blank = { render: () => h('div') };
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { component: blank, name: 'home', path: '/' },
+      ...PATHS.map((path) => ({ component: blank, name: path, path })),
+    ],
+  });
+  await router.push('/');
+  await router.isReady();
+
+  const wrapper = mount(
+    defineComponent({
+      props: { open: { default: false, type: Boolean } },
+      setup: (props) => () =>
+        h(MenuSearchModal, {
+          // 调用方（HeaderWidgets）就是拿 `v-model:open` 驱动它的，这里复刻同一份接线
+          'onUpdate:open': (value: boolean) => {
+            void wrapper.setProps({ open: value });
+          },
+          open: props.open,
+        }),
+    }),
+    { global: { plugins: [pinia, router] } },
+  );
+  await flushPromises();
+
+  // 弹窗内容走 Portal，挂在 body 上而不在 wrapper 子树里
+  const q = (selector: string) => document.body.querySelector(selector);
+  const qa = (selector: string) =>
+    [...document.body.querySelectorAll(selector)] as HTMLElement[];
+
+  async function open() {
+    await wrapper.setProps({ open: true });
+    await flushPromises();
+    await nextTick();
+  }
+
+  return { q, qa, router, open, wrapper };
+}
+
+afterEach(() => {
+  document.body.innerHTML = '';
+});
+
+describe('MenuSearchModal —— 弹窗与键盘输入', () => {
+  it('未打开时不渲染，`open` 置真后出现弹窗并把焦点交给搜索框', async () => {
+    const { open, q, wrapper } = await mountSearch();
+    expect(q('[data-testid="menu-search-input"]')).toBeNull();
+
+    await open();
+    expect(q('[data-test="menu-search-modal"]'), 'open 后没有渲染弹窗').not.toBeNull();
+    const input = q('[data-testid="menu-search-input"]') as HTMLInputElement;
+    expect(input).not.toBeNull();
+    // 呼出即可打字：焦点必须已经在输入框上，否则 Ctrl+K 只是"弹个窗"
+    expect(document.activeElement).toBe(input);
+    expect(wrapper.props('open')).toBe(true);
+  });
+
+  it('输入关键词就地过滤，命中项按 `data-search-path` 可断言', async () => {
+    const { open, q, qa } = await mountSearch();
+    await open();
+
+    const input = q('[data-testid="menu-search-input"]') as HTMLInputElement;
+    input.value = '用户';
+    input.dispatchEvent(new Event('input'));
+    await nextTick();
+
+    const items = qa('[data-testid="menu-search-item"]');
+    expect(items.map((item) => item.dataset.searchPath)).toEqual([
+      '/system/user',
+    ]);
+    // 键盘默认停在第一项
+    expect(items[0]!.dataset.active).toBe('true');
+  });
+
+  it('↑ ↓ 移动高亮，Enter 打开高亮项并关掉弹窗', async () => {
+    const { open, q, qa, router } = await mountSearch();
+    await open();
+
+    const input = q('[data-testid="menu-search-input"]') as HTMLInputElement;
+    input.value = '管';
+    input.dispatchEvent(new Event('input'));
+    await nextTick();
+    expect(qa('[data-testid="menu-search-item"]')).toHaveLength(3);
+
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+    await nextTick();
+    const active = qa('[data-testid="menu-search-item"]').filter(
+      (item) => item.dataset.active === 'true',
+    );
+    expect(active).toHaveLength(1);
+    expect(active[0]!.dataset.searchPath).toBe('/system/role');
+
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    await flushPromises();
+    await nextTick();
+    expect(router.currentRoute.value.path).toBe('/system/role');
+    expect(q('[data-testid="menu-search-input"]'), '跳转后弹窗没关').toBeNull();
+  });
+
+  it('搜不到时空态可见，且不残留任何条目', async () => {
+    const { open, q, qa } = await mountSearch();
+    await open();
+
+    const input = q('[data-testid="menu-search-input"]') as HTMLInputElement;
+    input.value = '不存在的页面';
+    input.dispatchEvent(new Event('input'));
+    await nextTick();
+
+    expect(q('[data-testid="menu-search-empty"]')).not.toBeNull();
+    expect(qa('[data-testid="menu-search-item"]')).toEqual([]);
+  });
+
+  it('Escape 关掉弹窗', async () => {
+    const { open, q, wrapper } = await mountSearch();
+    await open();
+
+    const input = q('[data-testid="menu-search-input"]') as HTMLInputElement;
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    await flushPromises();
+    await nextTick();
+
+    expect(wrapper.props('open')).toBe(false);
+    expect(q('[data-testid="menu-search-input"]')).toBeNull();
   });
 });

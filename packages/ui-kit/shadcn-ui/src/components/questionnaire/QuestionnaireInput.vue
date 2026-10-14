@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import type { QuestionnaireInputType } from "./useQuestionnaire"
-
 import { computed, nextTick, onBeforeUnmount, ref, useId, watch } from "vue"
-
 import { cn } from '@antdv/shared/cn'
-
 import {
   getAnswerKeyShortcuts,
   hasInputValue,
@@ -21,10 +17,10 @@ defineOptions({
 const props = withDefaults(defineProps<{
   class?: HTMLAttributes["class"]
   /** Fills the answer on mount and after a native form reset. */
-  defaultValue?: number | string
+  defaultValue?: string | number
   disabled?: boolean
   /** Controlled value. Use with `v-model`. */
-  modelValue?: number | string
+  modelValue?: string | number
   type?: QuestionnaireInputType
 }>(), {
   disabled: false,
@@ -159,6 +155,6 @@ onBeforeUnmount(() => {
         props.class,
       )"
       @input="handleInput"
-    />
+    >
   </div>
 </template>

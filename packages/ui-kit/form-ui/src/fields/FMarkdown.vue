@@ -4,6 +4,7 @@ import { cn } from '@antdv/shared/cn';
 
 interface Props {
   disabled?: boolean;
+  id?: string;
   placeholder?: string;
   rows?: number;
   value?: any;
@@ -22,12 +23,13 @@ const emit = defineEmits<{ 'update:value': [value: any] }>();
 
 <template>
   <Textarea
-    :value="value === undefined || value === null ? '' : String(value)"
+    :model-value="value === undefined || value === null ? '' : String(value)"
     :disabled="disabled"
     :rows="rows"
     :placeholder="placeholder"
+    :id="id"
     data-field-control
     :class="cn('w-full font-mono')"
-    @input="emit('update:value', ($event.target as HTMLTextAreaElement).value)"
+    @update:model-value="(next: string | number) => emit('update:value', next)"
   />
 </template>

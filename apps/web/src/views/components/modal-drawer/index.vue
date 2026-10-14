@@ -3,13 +3,22 @@ import { computed, ref } from 'vue';
 
 import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
-import { Alert as AAlert, Button as AButton, Card as ACard, Checkbox as ACheckbox, CheckboxGroup as ACheckboxGroup, Col as ACol, Divider as ADivider, Radio as ARadio, RadioGroup as ARadioGroup, Row as ARow, Space as ASpace, Tag as ATag, TextArea as ATextarea, message } from 'antdv-next';
+import { Alert, Card, Divider, Space, Tag } from '@antdv/common-ui';
 import {
   BasicDrawer,
+  BasicModal,
+  message,
   useDrawer,
   useDrawerInner,
-} from '~/components/business/Drawer';
-import { BasicModal, useModal } from '~/components/business/Modal';
+  useModal,
+} from '@antdv/popup-ui';
+import {
+  Button,
+  Checkbox,
+  RadioGroup,
+  RadioGroupItem,
+  Textarea,
+} from '@antdv/shadcn-ui';
 
 import InnerForm from './components/InnerForm.vue';
 
@@ -17,8 +26,8 @@ import InnerForm from './components/InnerForm.vue';
  * 弹窗与抽屉示例页（合并自原 `scroll/modal` 与 `scroll/drawer` 两页）。
  *
  * 全程只用仓库内的自研组件：
- * - `BasicModal` + `useModal` + `useModalInner`（`~/components/business/Modal`）
- * - `BasicDrawer` + `useDrawer`（`~/components/business/Drawer`）
+ * - `BasicModal` + `useModal` + `useModalInner`（`@antdv/popup-ui`）
+ * - `BasicDrawer` + `useDrawer`（`@antdv/popup-ui`）
  * 没有任何后端请求，所有"提交/保存"都只是同步赋值 + 本地 ref，文案里也这么写了。
  */
 defineOptions({ name: 'ComponentsModalDrawer' });
@@ -72,10 +81,8 @@ function handleProbeVisible() {
 }
 
 /**
- * setModalProps 在本仓库里是"调用了但改不动"的：BasicModal 的实现是
- * `Object.assign(props, newProps)`，而 `defineProps` 交出来的 props 是只读代理，
- * 写入会被静默丢弃（DEV 控制台能看到 readonly 告警）。
- * 这里照样把它当 API 用一遍，但把结论如实打在页面上，不假装标题变了。
+ * `setModalProps` 不改 `defineProps` 交出来的只读 props，而是把覆盖值并进组件内部的
+ * `propOverrides`，渲染一律读 `merged`，所以标题、按钮文案、宽度当场生效。
  */
 function handleSetModalProps() {
   const attempted = {
@@ -86,11 +93,9 @@ function handleSetModalProps() {
   setModalProps(attempted);
   propsLog.value.unshift(
     `${new Date().toLocaleTimeString()} · setModalProps(${JSON.stringify(attempted)}) 已发出，` +
-      `弹窗实际状态 getVisible() = ${getVisible()}（标题/按钮/宽度均无变化，原因见上）`,
+      `弹窗实际状态 getVisible() = ${getVisible()}（标题/按钮/宽度已按覆盖值重渲染）`,
   );
-  message.warning(
-    '调用已发出，但组件的 props 是只读的，值不会变 —— 见本节日志',
-  );
+  message.success('props 覆盖层已生效，标题、按钮文案、宽度都变了');
 }
 
 /* ============================ 2. 弹窗内滚动 ============================ */
@@ -164,6 +169,13 @@ const checkedModules = ref<string[]>(['system', 'monitor']);
 const allModules = ['system', 'monitor', 'report', 'schedule', 'notice'];
 const animationMs = ref('200');
 const drawerResult = ref('');
+
+/** 独立 Checkbox 组合出原来 CheckboxGroup 的数组模型 */
+function toggleModule(item: string, checked: boolean) {
+  checkedModules.value = checked
+    ? [...checkedModules.value, item]
+    : checkedModules.value.filter((name) => name !== item);
+}
 
 function handleApplyLeft() {
   drawerResult.value = `左侧抽屉（:width="360"）→ 密度 = ${density.value}`;
@@ -271,31 +283,30 @@ function handleDiscard() {
 <template>
   <div :class="containerClassName">
     <!-- 1 -->
-    <ACard
-      title="基础弹窗（BasicModal + useModal + useModalInner）"
-      variant="borderless"
-    >
+    <Card title="基础弹窗（BasicModal + useModal + useModalInner）" variant="borderless">
       <div class="space-y-4">
-        <ASpace wrap>
-          <AButton type="primary" @click="handleOpenFormModal">
+        <Space wrap>
+          <Button @click="handleOpenFormModal">
             openModal(true, data) 打开并传数据
-          </AButton>
-          <AButton @click="handleCloseModal"> closeModal() 关闭 </AButton>
-          <AButton @click="handleProbeVisible">
+          </Button>
+          <Button variant="outline" @click="handleCloseModal">
+            closeModal() 关闭
+          </Button>
+          <Button variant="outline" @click="handleProbeVisible">
             getVisible() 查询显隐
-          </AButton>
-          <AButton @click="handleSetModalProps">
+          </Button>
+          <Button variant="outline" @click="handleSetModalProps">
             setModalProps() 尝试改 props
-          </AButton>
-        </ASpace>
-        <AAlert
+          </Button>
+        </Space>
+        <Alert
           type="info"
           show-icon
           message="这一节验证的是数据通道"
           description="openModal 的真实签名是 openModal(visible?, data?)；data 只有像 InnerForm 这样用 useModalInner 注册过的子组件收得到（它会把实例上的 openModal 包一层）。页面内直接写 slot 内容的弹窗收不到 data，读页面自己的 ref 就行。"
         />
-        <ARow :gutter="16">
-          <ACol :span="12">
+        <div class="grid grid-cols-12 gap-4">
+          <div class="col-span-6">
             <div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
               <h4
                 class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -306,8 +317,8 @@ function handleDiscard() {
                 class="max-h-40 overflow-auto text-xs text-gray-600 dark:text-gray-400"
                 >{{ sentPayload || '（还没点过）' }}</pre>
             </div>
-          </ACol>
-          <ACol :span="12">
+          </div>
+          <div class="col-span-6">
             <div
               class="rounded-lg p-3"
               :class="
@@ -325,8 +336,8 @@ function handleDiscard() {
                 class="max-h-40 overflow-auto text-xs text-green-600 dark:text-green-400"
                 >{{ backFromModal || '（打开弹窗，改任意字段后点提交）' }}</pre>
             </div>
-          </ACol>
-        </ARow>
+          </div>
+        </div>
         <div
           class="space-y-2 rounded-lg border border-dashed border-gray-300 p-3 dark:border-gray-700"
         >
@@ -344,37 +355,40 @@ function handleDiscard() {
           </ul>
         </div>
         <p class="text-xs text-gray-400">
-          两条实测出来的坑，抄代码前先看：1）
-          <code>setModalProps</code> / <code>setDrawerProps</code> 里写的是
-          <code>Object.assign(props, newProps)</code>，而
-          <code>defineProps</code> 交出来的是只读
-          props，写入被静默丢弃，所以标题、按钮文案、宽度都不会变（要改就在模板上绑
-          prop）；2） <code>useModalInner</code> 的
-          <code>changeOkLoading</code> /
-          <code>changeLoading</code> 也拿不到实例，因为 BasicModal 的
-          <code>register</code> 事件发的是不含这两个方法的
-          <code>ModalMethods</code>。确认按钮的 loading
+          两条实测结论，抄代码前先看：1）
+          <code>setModalProps</code> / <code>setDrawerProps</code> 不去写
+          <code>defineProps</code> 交出来的只读 props，而是把覆盖值并进组件内部的
+          <code>propOverrides</code>，渲染统一读
+          <code>merged</code>，所以标题、按钮文案、宽度都能当场翻正；2）页面级
+          <code>useModal</code> 只回传
+          <code>openModal</code> / <code>closeModal</code> /
+          <code>setModalProps</code> / <code>getVisible</code>
+          四个方法，<code>changeOkLoading</code> /
+          <code>changeLoading</code> 要在弹窗内用
+          <code>useModalInner</code> 才拿得到 —— BasicModal 的
+          <code>register</code> 事件发的正是含这两个方法的
+          <code>innerMethods</code>。确认按钮的 loading
           是组件在被点击时自己打开、
           <code>closeModal()</code>
           时复位，本页所有提交路径都会关闭弹窗，所以不会卡住。
         </p>
       </div>
-    </ACard>
+    </Card>
 
     <InnerForm @register="registerFormModal" />
 
     <!-- 2 -->
-    <ACard title="弹窗内滚动（长内容 + 固定头部与底部）" variant="borderless">
+    <Card title="弹窗内滚动（长内容 + 固定头部与底部）" variant="borderless">
       <div class="space-y-4">
-        <ASpace wrap>
-          <AButton type="primary" @click="openFixedModal(true)">
+        <Space wrap>
+          <Button @click="openFixedModal(true)">
             打开固定高度弹窗（:height="360"）
-          </AButton>
-          <AButton @click="openFitModal(true)">
+          </Button>
+          <Button variant="outline" @click="openFitModal(true)">
             打开自适应高度弹窗（minHeight + wrapperFooterOffset）
-          </AButton>
-        </ASpace>
-        <AAlert
+          </Button>
+        </Space>
+        <Alert
           type="info"
           show-icon
           message="滚动由 BasicModal 的内容区自己完成"
@@ -387,7 +401,7 @@ function handleDiscard() {
           {{ fixedReadResult }}
         </div>
       </div>
-    </ACard>
+    </Card>
 
     <BasicModal
       title="变更记录（内容区 360px 固定高）"
@@ -397,14 +411,18 @@ function handleDiscard() {
       @register="registerFixedModal"
       @ok="handleFixedOk"
     >
-      <ARadioGroup v-model:value="selectedLogId" class="w-full">
+      <RadioGroup
+        class="w-full"
+        :model-value="selectedLogId === null ? '' : String(selectedLogId)"
+        @update:model-value="(v: any) => (selectedLogId = Number(v))"
+      >
         <div class="space-y-2">
-          <div
+          <label
             v-for="log in changeLogs"
             :key="log.id"
-            class="flex items-start gap-2 rounded border border-gray-100 p-2 dark:border-gray-700"
+            class="flex cursor-pointer items-start gap-2 rounded border border-gray-100 p-2 dark:border-gray-700"
           >
-            <ARadio :value="log.id" />
+            <RadioGroupItem :value="String(log.id)" class="mt-0.5" />
             <div class="min-w-0">
               <p class="text-sm font-medium text-gray-800 dark:text-gray-200">
                 {{ log.title }}
@@ -413,9 +431,9 @@ function handleDiscard() {
                 {{ log.detail }}
               </p>
             </div>
-          </div>
+          </label>
         </div>
-      </ARadioGroup>
+      </RadioGroup>
     </BasicModal>
 
     <BasicModal
@@ -428,9 +446,7 @@ function handleDiscard() {
       @ok="closeFitModal"
     >
       <div class="space-y-3">
-        <AButton size="small" @click="handleAppendContent">
-          再追加 12 行
-        </AButton>
+        <Button size="sm" @click="handleAppendContent"> 再追加 12 行 </Button>
         <p class="text-xs text-gray-400">
           当前 {{ fitLogs.length }} 行 ·
           内容超过最大高度后只在内容区里滚，头部与底部不动。
@@ -451,23 +467,16 @@ function handleDiscard() {
     </BasicModal>
 
     <!-- 3 -->
-    <ACard
-      title="抽屉基础与位置（左 / 右 / 底 + footer 插槽）"
-      variant="borderless"
-    >
+    <Card title="抽屉基础与位置（左 / 右 / 底 + footer 插槽）" variant="borderless">
       <div class="space-y-4">
-        <ASpace wrap>
-          <AButton type="primary" @click="openLeftDrawer(true)">
-            左侧抽屉 :width="360"
-          </AButton>
-          <AButton type="primary" @click="openRightDrawer(true)">
-            右侧抽屉 :size="520"
-          </AButton>
-          <AButton type="primary" @click="openBottomDrawer(true)">
+        <Space wrap>
+          <Button @click="openLeftDrawer(true)"> 左侧抽屉 :width="360" </Button>
+          <Button @click="openRightDrawer(true)"> 右侧抽屉 :size="520" </Button>
+          <Button @click="openBottomDrawer(true)">
             底部抽屉 :height="280"
-          </AButton>
-        </ASpace>
-        <AAlert
+          </Button>
+        </Space>
+        <Alert
           type="info"
           show-icon
           message="尺寸取值规则"
@@ -480,7 +489,7 @@ function handleDiscard() {
           {{ drawerResult }}
         </div>
       </div>
-    </ACard>
+    </Card>
 
     <BasicDrawer
       title="左侧抽屉 · 布局密度"
@@ -488,19 +497,28 @@ function handleDiscard() {
       :width="360"
       @register="registerLeftDrawer"
     >
-      <ARadioGroup v-model:value="density">
+      <RadioGroup v-model="density">
         <div class="space-y-2">
-          <ARadio value="compact"> 紧凑 </ARadio>
-          <ARadio value="standard"> 标准 </ARadio>
-          <ARadio value="loose"> 宽松 </ARadio>
+          <label class="flex cursor-pointer items-center gap-2">
+            <RadioGroupItem value="compact" />
+            紧凑
+          </label>
+          <label class="flex cursor-pointer items-center gap-2">
+            <RadioGroupItem value="standard" />
+            标准
+          </label>
+          <label class="flex cursor-pointer items-center gap-2">
+            <RadioGroupItem value="loose" />
+            宽松
+          </label>
         </div>
-      </ARadioGroup>
+      </RadioGroup>
       <template #footer>
         <div
           class="flex justify-end gap-3 border-t border-gray-200 px-4 py-3 dark:border-gray-700"
         >
-          <AButton @click="closeLeftDrawer()"> 取消 </AButton>
-          <AButton type="primary" @click="handleApplyLeft"> 应用 </AButton>
+          <Button variant="outline" @click="closeLeftDrawer()"> 取消 </Button>
+          <Button @click="handleApplyLeft"> 应用 </Button>
         </div>
       </template>
     </BasicDrawer>
@@ -510,31 +528,35 @@ function handleDiscard() {
       :size="520"
       @register="registerRightDrawer"
     >
-      <ACheckboxGroup v-model:value="checkedModules">
-        <div class="grid grid-cols-2 gap-3">
-          <ACheckbox v-for="item in allModules" :key="item" :value="item">
-            {{ item }}
-          </ACheckbox>
-        </div>
-      </ACheckboxGroup>
+      <div class="grid grid-cols-2 gap-3">
+        <label
+          v-for="item in allModules"
+          :key="item"
+          class="flex cursor-pointer items-center gap-2"
+        >
+          <Checkbox
+            :model-value="checkedModules.includes(item)"
+            @update:model-value="(v: any) => toggleModule(item, v === true)"
+          />
+          {{ item }}
+        </label>
+      </div>
       <template #footer>
         <div
           class="flex items-center justify-between border-t border-gray-200 px-4 py-3 dark:border-gray-700"
         >
-          <ASpace>
-            <AButton size="small" @click="checkedModules = [...allModules]">
+          <Space>
+            <Button size="sm" @click="checkedModules = [...allModules]">
               全选
-            </AButton>
-            <AButton size="small" @click="checkedModules = []">
-              清空
-            </AButton>
-          </ASpace>
-          <ASpace>
-            <AButton @click="closeRightDrawer()"> 取消 </AButton>
-            <AButton type="primary" @click="handleFinishRight">
-              完成
-            </AButton>
-          </ASpace>
+            </Button>
+            <Button size="sm" @click="checkedModules = []"> 清空 </Button>
+          </Space>
+          <Space>
+            <Button variant="outline" @click="closeRightDrawer()">
+              取消
+            </Button>
+            <Button @click="handleFinishRight"> 完成 </Button>
+          </Space>
         </div>
       </template>
     </BasicDrawer>
@@ -545,29 +567,40 @@ function handleDiscard() {
       :height="280"
       @register="registerBottomDrawer"
     >
-      <ARadioGroup v-model:value="animationMs">
-        <ARadio value="100"> 100ms </ARadio>
-        <ARadio value="200"> 200ms </ARadio>
-        <ARadio value="400"> 400ms </ARadio>
-      </ARadioGroup>
+      <RadioGroup v-model="animationMs">
+        <div class="space-y-2">
+          <label class="flex cursor-pointer items-center gap-2">
+            <RadioGroupItem value="100" />
+            100ms
+          </label>
+          <label class="flex cursor-pointer items-center gap-2">
+            <RadioGroupItem value="200" />
+            200ms
+          </label>
+          <label class="flex cursor-pointer items-center gap-2">
+            <RadioGroupItem value="400" />
+            400ms
+          </label>
+        </div>
+      </RadioGroup>
       <template #footer>
         <div
           class="flex justify-end gap-3 border-t border-gray-200 px-4 py-3 dark:border-gray-700"
         >
-          <AButton @click="closeBottomDrawer()"> 关闭 </AButton>
-          <AButton type="primary" @click="handleApplyBottom"> 应用 </AButton>
+          <Button variant="outline" @click="closeBottomDrawer()">
+            关闭
+          </Button>
+          <Button @click="handleApplyBottom"> 应用 </Button>
         </div>
       </template>
     </BasicDrawer>
 
     <!-- 4 -->
-    <ACard title="抽屉内滚动（长内容在 body 里滚）" variant="borderless">
+    <Card title="抽屉内滚动（长内容在 body 里滚）" variant="borderless">
       <div class="space-y-4">
-        <ASpace wrap>
-          <AButton type="primary" @click="openScrollDrawer(true)">
-            打开长内容抽屉
-          </AButton>
-        </ASpace>
+        <Space wrap>
+          <Button @click="openScrollDrawer(true)"> 打开长内容抽屉 </Button>
+        </Space>
         <p class="text-sm text-gray-500 dark:text-gray-400">
           BasicDrawer 的 body 已经内置
           <code>Scrollbar</code>（<code>root-class="h-full"</code>），抽屉打开后
@@ -588,7 +621,7 @@ function handleDiscard() {
           {{ scrollDrawerResult }}
         </div>
       </div>
-    </ACard>
+    </Card>
 
     <BasicDrawer
       title="抽屉内滚动 · 协议确认"
@@ -608,7 +641,7 @@ function handleDiscard() {
           {{ item.text }}
         </div>
       </div>
-      <ADivider />
+      <Divider />
       <div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
         <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
           嵌套 Scrollbar：scrollTop = {{ innerScrollTop }}px
@@ -628,33 +661,29 @@ function handleDiscard() {
             属性可切回浏览器默认滚动条。
           </p>
         </Scrollbar>
-        <ACheckbox
-          v-model:checked="agreement"
-          :disabled="!reachedBottom"
-          class="mt-2"
-        >
+        <label class="mt-2 flex cursor-pointer items-center gap-2">
+          <Checkbox
+            :model-value="agreement"
+            :disabled="!reachedBottom"
+            @update:model-value="(v: any) => (agreement = v === true)"
+          />
           {{
             reachedBottom ? '我已阅读完附加条款' : '先把上面的条款滚动到底部'
           }}
-        </ACheckbox>
+        </label>
       </div>
     </BasicDrawer>
 
     <!-- 5 -->
-    <ACard
-      title="嵌套与关闭拦截（closeFunc + 抽屉上叠弹窗）"
-      variant="borderless"
-    >
+    <Card title="嵌套与关闭拦截（closeFunc + 抽屉上叠弹窗）" variant="borderless">
       <div class="space-y-4">
-        <ASpace wrap>
-          <AButton type="primary" @click="openNestDrawer(true)">
-            打开可编辑抽屉
-          </AButton>
-          <ATag :color="isDirty ? 'orange' : 'green'">
+        <Space wrap>
+          <Button @click="openNestDrawer(true)"> 打开可编辑抽屉 </Button>
+          <Tag :color="isDirty ? 'orange' : 'green'">
             {{ isDirty ? '有未保存修改' : '内容已保存' }}
-          </ATag>
-          <ATag color="blue">拦截 {{ interceptCount }} 次</ATag>
-        </ASpace>
+          </Tag>
+          <Tag color="blue">拦截 {{ interceptCount }} 次</Tag>
+        </Space>
         <p class="text-sm text-gray-500 dark:text-gray-400">
           抽屉里改几个字，再分别用
           X、蒙层、ESC、底部「关闭」去关：四种路径最后都会调用
@@ -671,7 +700,7 @@ function handleDiscard() {
           {{ nestLog }}
         </div>
       </div>
-    </ACard>
+    </Card>
 
     <BasicDrawer
       title="草稿编辑（关闭前会过 closeFunc）"
@@ -683,15 +712,15 @@ function handleDiscard() {
       @ok="handleSaveDraft"
     >
       <div class="space-y-3">
-        <AAlert
+        <Alert
           :type="isDirty ? 'warning' : 'success'"
           show-icon
           :message="
             isDirty ? '有未保存内容，关闭会被拦截' : '内容与已保存值一致'
           "
         />
-        <ATextarea
-          v-model:value="draft"
+        <Textarea
+          v-model="draft"
           :rows="8"
           placeholder="随便改几个字试试关闭"
         />

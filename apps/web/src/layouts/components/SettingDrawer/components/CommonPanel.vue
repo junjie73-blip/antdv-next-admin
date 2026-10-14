@@ -1,13 +1,20 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 
-import { Input, Segmented, Select, Switch } from 'antdv-next';
+import { Segmented } from '@antdv/common-ui';
+import {
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Switch,
+} from '@antdv/shadcn-ui';
 import { useAppStore } from '~/stores/modules/app';
 
 import {
   NOTIFICATION_POSITION_OPTIONS,
-  POPUP_CONTAINER,
-  sectionStyles,
   TIMEZONE_OPTIONS,
   TRANSITION_OPTIONS,
 } from '../constants';
@@ -31,13 +38,24 @@ const { t } = useI18n({ useScope: 'global' });
         :desc="t('preferences.systemTimezoneDesc')"
       >
         <Select
-          :value="appStore.timezone"
-          :options="TIMEZONE_OPTIONS"
-          size="small"
-          class="!w-48"
-          :get-popup-container="POPUP_CONTAINER"
-          @change="(v: string) => appStore.updateSetting({ timezone: v })"
-        />
+          :model-value="appStore.timezone"
+          @update:model-value="
+            (v: unknown) => appStore.updateSetting({ timezone: String(v) })
+          "
+        >
+          <SelectTrigger class="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem
+              v-for="opt in TIMEZONE_OPTIONS"
+              :key="opt.value"
+              :value="opt.value"
+            >
+              {{ opt.label }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </SettingItem>
     </SettingGroup>
 
@@ -50,9 +68,8 @@ const { t } = useI18n({ useScope: 'global' });
         :desc="t('preferences.showWatermarkDesc')"
       >
         <Switch
-          :checked="appStore.enableWatermark"
-          size="small"
-          @change="appStore.toggles.enableWatermark"
+          :model-value="appStore.enableWatermark"
+          @update:model-value="appStore.toggles.enableWatermark"
         />
       </SettingItem>
 
@@ -61,12 +78,11 @@ const { t } = useI18n({ useScope: 'global' });
         :label="t('preferences.watermarkContent')"
       >
         <Input
-          :value="appStore.watermarkContent"
+          :model-value="appStore.watermarkContent"
           :placeholder="t('preferences.pleaseInput')"
-          size="small"
-          class="!w-40"
-          @update:value="
-            (v: string) => appStore.updateSetting({ watermarkContent: v })
+          class="h-8 w-40"
+          @update:model-value="
+            (v: string | number) => appStore.updateSetting({ watermarkContent: String(v) })
           "
         />
       </SettingItem>
@@ -84,9 +100,8 @@ const { t } = useI18n({ useScope: 'global' });
         :desc="t('preferences.waterRippleDesc')"
       >
         <Switch
-          :checked="appStore.enableWaterRipple"
-          size="small"
-          @change="appStore.toggles.enableWaterRipple"
+          :model-value="appStore.enableWaterRipple"
+          @update:model-value="appStore.toggles.enableWaterRipple"
         />
       </SettingItem>
 
@@ -95,9 +110,8 @@ const { t } = useI18n({ useScope: 'global' });
         :desc="t('preferences.progressBarDesc')"
       >
         <Switch
-          :checked="appStore.showProgressBar"
-          size="small"
-          @change="appStore.toggles.showProgressBar"
+          :model-value="appStore.showProgressBar"
+          @update:model-value="appStore.toggles.showProgressBar"
         />
       </SettingItem>
 
@@ -106,9 +120,8 @@ const { t } = useI18n({ useScope: 'global' });
         :desc="t('preferences.routeLoadingDesc')"
       >
         <Switch
-          :checked="appStore.showLoading"
-          size="small"
-          @change="appStore.toggles.showLoading"
+          :model-value="appStore.showLoading"
+          @update:model-value="appStore.toggles.showLoading"
         />
       </SettingItem>
     </SettingGroup>
@@ -122,16 +135,25 @@ const { t } = useI18n({ useScope: 'global' });
         :desc="t('preferences.transitionTypeDesc')"
       >
         <Select
-          :value="appStore.transitionEffect"
-          :options="TRANSITION_OPTIONS"
-          size="small"
-          class="!w-40"
-          :get-popup-container="POPUP_CONTAINER"
-          @change="
-            (v: string) =>
-              appStore.updateSetting({ transitionEffect: v as never })
+          :model-value="appStore.transitionEffect"
+          @update:model-value="
+            (v: unknown) =>
+              appStore.updateSetting({ transitionEffect: String(v) as never })
           "
-        />
+        >
+          <SelectTrigger class="w-40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem
+              v-for="opt in TRANSITION_OPTIONS"
+              :key="opt.value"
+              :value="opt.value"
+            >
+              {{ opt.label }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </SettingItem>
     </SettingGroup>
 
@@ -142,12 +164,13 @@ const { t } = useI18n({ useScope: 'global' });
       <SettingItem
         :label="t('preferences.notificationPosition')"
         :desc="t('preferences.notificationPositionDesc')"
+        stacked
       >
         <Segmented
           :value="appStore.notificationPosition"
           :options="NOTIFICATION_POSITION_OPTIONS"
-          :styles="sectionStyles"
           size="small"
+          block
           @change="
             (v: string | number) =>
               appStore.updateSetting({

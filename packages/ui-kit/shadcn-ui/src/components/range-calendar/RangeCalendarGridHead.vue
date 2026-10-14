@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { RangeCalendarGridHeadProps } from "reka-ui"
-
 import { RangeCalendarGridHead } from "reka-ui"
 
 const props = defineProps<RangeCalendarGridHeadProps>()
@@ -11,6 +10,6 @@ const props = defineProps<RangeCalendarGridHeadProps>()
     data-slot="range-calendar-grid-head"
     v-bind="props"
   >
-    <slot></slot>
+    <slot />
   </RangeCalendarGridHead>
 </template>

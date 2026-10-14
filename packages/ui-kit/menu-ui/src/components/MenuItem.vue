@@ -5,6 +5,8 @@ import type { MenuVariant } from '../useMenuStyle';
 import { computed } from 'vue';
 
 import {
+  Collapsible,
+  CollapsibleContent,
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
@@ -74,18 +76,24 @@ const flyout = computed(
     <template v-else>
       <MenuRow :base-depth="baseDepth" :node="node" :variant="variant" />
 
-      <div
-        v-if="hasChildren && expanded"
-        :id="`menu-sub-${node.key}`"
-        data-menu-submenu
-        role="group"
-      >
-        <MenuList
-          :base-depth="node.depth"
-          :nodes="node.children"
-          variant="inline"
-        />
-      </div>
+      <!--
+        就地展开的子树交给 reka 的 Collapsible 量高度做收放动画。
+        `open` 单向受控于菜单的 `openKeys`，这里不挂 Trigger —— 展开开关是整行，
+        再套一个 button 会变成按钮里套按钮。
+      -->
+      <Collapsible v-if="hasChildren" :open="expanded" data-menu-submenu-wrap>
+        <CollapsibleContent
+          class="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down"
+          data-menu-submenu
+          role="group"
+        >
+          <MenuList
+            :base-depth="node.depth"
+            :nodes="node.children"
+            variant="inline"
+          />
+        </CollapsibleContent>
+      </Collapsible>
     </template>
   </li>
 </template>

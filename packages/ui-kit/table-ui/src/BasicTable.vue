@@ -42,6 +42,7 @@ import TableAction from './components/TableAction.vue';
 import TableEditableCell from './components/TableEditableCell.vue';
 import TableHeaderCell from './components/TableHeaderCell.vue';
 import TableImg from './components/TableImg.vue';
+import TablePagination from './components/TablePagination.vue';
 import TableSetting from './components/TableSetting.vue';
 import { features } from './features';
 import {
@@ -75,6 +76,9 @@ const props = withDefaults(defineProps<BasicTableProps>(), {
   showTableSetting: true,
   tableLayout: 'fixed',
   scroll: () => ({ y: 440 }),
+  // 树表首屏默认全展开；显式传 false 才收起。Vue 会把缺省的布尔 prop 转成 false，
+  // 不写这条默认值就等于把"没传"当成了"传了 false"。
+  defaultExpandAllRows: true,
 });
 
 const emit = defineEmits<{
@@ -678,32 +682,9 @@ const isFilterActive = (col: BasicColumn) =>
 // ============================================
 
 /**
- * 分页页码窗口：总数很大时（服务端分页很常见）不能把 1..N 全渲染成按钮。
- * 逻辑与 antd 一致——首尾恒定可见，中间随当前页滑动。
+ * 分页页码窗口交给 reka 的 Pagination 算（首尾恒定可见，中间随当前页滑动），
+ * 这里只留 `pageCount` 给快速跳至做越界判定。
  */
-function buildPages(current: number, pageCount: number): number[] {
-  if (pageCount <= 7) {
-    return Array.from({ length: pageCount }, (_, i) => i + 1);
-  }
-  const half = 2;
-  let start = Math.max(2, current - half);
-  let end = Math.min(pageCount - 1, current + half);
-  if (current <= 3) {
-    start = 2;
-    end = 6;
-  }
-  if (current >= pageCount - 2) {
-    start = pageCount - 5;
-    end = pageCount - 1;
-  }
-  const pages: number[] = [1];
-  if (start > 2) pages.push(-1);
-  for (let i = start; i <= end; i += 1) pages.push(i);
-  if (end < pageCount - 1) pages.push(-1);
-  pages.push(pageCount);
-  return pages;
-}
-
 const paginationInfo = computed(() => {
   const cfg = pagination.getPagination.value;
   if (!cfg) return null;
@@ -715,11 +696,10 @@ const paginationInfo = computed(() => {
   const current = cfg.current ?? 1;
   const pageCount = Math.max(1, Math.ceil((total || 1) / pageSize));
   return {
-    config: cfg,
     current,
     pageCount,
-    pages: buildPages(current, pageCount),
     pageSize,
+    pageSizeOptions: cfg.pageSizeOptions,
     showQuickJumper: cfg.showQuickJumper !== false,
     showSizeChanger: cfg.showSizeChanger !== false,
     showTotal: cfg.showTotal,
@@ -1534,102 +1514,17 @@ defineExpose(tableActionType);
     </div>
 
     <!-- 分页 -->
-    <div
+    <TablePagination
       v-if="paginationInfo && pagination.getShowPagination()"
-      class="basic-table-pagination mt-3 flex flex-wrap items-center justify-end gap-2 text-sm"
-    >
-      <span
-        v-if="paginationInfo.showTotal"
-        class="mr-auto text-gray-500 dark:text-gray-400"
-      >
-        {{
-          paginationInfo.showTotal(paginationInfo.total, [
-            (paginationInfo.current - 1) * paginationInfo.pageSize + 1,
-            Math.min(
-              paginationInfo.current * paginationInfo.pageSize,
-              paginationInfo.total,
-            ),
-          ])
-        }}
-      </span>
-
-      <select
-        v-if="paginationInfo.showSizeChanger"
-        aria-label="每页条数"
-        class="basic-table-page-size h-7 rounded border border-gray-200 bg-transparent px-1 text-sm dark:border-gray-700"
-        :value="paginationInfo.pageSize"
-        @change="
-          (e: Event) =>
-            changePageSize(Number((e.target as HTMLSelectElement).value))
-        "
-      >
-        <option
-          v-for="option in paginationInfo.config?.pageSizeOptions || [
-            10, 20, 50, 100,
-          ]"
-          :key="String(option)"
-          :value="Number(option)"
-        >
-          {{ option }} 条/页
-        </option>
-      </select>
-
-      <div class="flex items-center gap-1">
-        <Button
-          aria-label="上一页"
-          class="basic-table-prev"
-          size="xs"
-          variant="outline"
-          :disabled="paginationInfo.current <= 1"
-          @click="changePage(paginationInfo.current - 1)"
-        >
-          <Icon icon="ant-design:left-outlined" />
-        </Button>
-        <template v-for="page in paginationInfo.pages" :key="page">
-          <span
-            v-if="page < 0"
-            class="basic-table-page-ellipsis px-1 text-gray-400"
-          >
-            ···
-          </span>
-          <Button
-            v-else
-            :class="cn('basic-table-page', `basic-table-page-${page}`)"
-            size="xs"
-            :variant="page === paginationInfo.current ? 'default' : 'outline'"
-            @click="changePage(page)"
-          >
-            {{ page }}
-          </Button>
-        </template>
-        <Button
-          aria-label="下一页"
-          class="basic-table-next"
-          size="xs"
-          variant="outline"
-          :disabled="paginationInfo.current >= paginationInfo.pageCount"
-          @click="changePage(paginationInfo.current + 1)"
-        >
-          <Icon icon="ant-design:right-outlined" />
-        </Button>
-      </div>
-
-      <span
-        v-if="paginationInfo.showQuickJumper"
-        class="flex items-center gap-1 text-gray-500 dark:text-gray-400"
-      >
-        跳至
-        <input
-          aria-label="跳至页码"
-          class="basic-table-quick-jumper h-7 w-12 rounded border border-gray-200 bg-transparent px-1 text-center dark:border-gray-700"
-          type="text"
-          @keydown.enter="
-            (e: KeyboardEvent) =>
-              changePage(Number((e.target as HTMLInputElement).value))
-          "
-        />
-        页
-      </span>
-    </div>
+      :current="paginationInfo.current"
+      :page-size="paginationInfo.pageSize"
+      :page-size-options="paginationInfo.pageSizeOptions"
+      :show-quick-jumper="paginationInfo.showQuickJumper"
+      :show-size-changer="paginationInfo.showSizeChanger"
+      :show-total="paginationInfo.showTotal"
+      :total="paginationInfo.total"
+      @update:current="changePage"
+      @update:page-size="changePageSize"
+    />
   </div>
 </template>

@@ -26,7 +26,7 @@ Two parallel pieces with different jobs:
 
 | Piece | Source | Notes |
 | --- | --- | --- |
-| NProgress | configured in `router/guards/index.ts` (`minimum: 0.1`, `trickleSpeed: 200`); styles in `@antdv/styles`' `nprogress.css` | the thin line on top; preference `showProgressBar` (default true) controls its visibility |
+| NProgress | configured in `router/guards/index.ts` (`minimum: 0.1`, `trickleSpeed: 200`); styles in `@antdv/design`' `nprogress.css` | the thin line on top; preference `showProgressBar` (default true) controls its visibility |
 | `RouteLoadingBar` + `PageLoading` | `apps/web/src/components/common/Loading/`, state from `@antdv/composables/useRouteLoading` | in `layouts/index.vue`: `useRouteLoading({ minDuration: 400, auto: true })`; the bar runs with `:duration="250"`, percentage on, cancellable (`@cancel="cancelRouteLoading"`), slow threshold 3000ms; `PageLoading` in the content area binds the same `isLoading`, with `isSlow` surfacing as an error hint |
 
 `minDuration` is an **anti-flicker** rule: even an instant navigation keeps the loading visible for that long, otherwise a flashing bar is more anxiety-inducing than helpful. The composable also offers `withLoading(fn)` to wrap async work (state is set synchronously, not deferred to rAF — the source comment records a fixed bug where fast calls hit the "not started yet" branch and the bar never came down).

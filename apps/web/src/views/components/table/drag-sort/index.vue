@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import type { BasicColumn, Recordable } from '~/components/business/Table';
+import type { BasicColumn, Recordable } from '@antdv/table-ui';
 
 import { computed, ref } from 'vue';
 
+import { Card, Space, Tag } from '@antdv/common-ui';
+import { message } from '@antdv/popup-ui';
+import { Button, Switch } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
-import { Button as AButton, Card as ACard, Space as ASpace, Switch as ASwitch, Tag as ATag, message } from 'antdv-next';
-import { BasicTable, useTable } from '~/components/business/Table';
+import { BasicTable, useTable } from '@antdv/table-ui';
 
 const containerClassName = cn('space-y-6');
 const toolbarClassName = cn(
@@ -210,30 +212,30 @@ function handleSaveOrder() {
 
 <template>
   <div :class="containerClassName">
-    <ACard title="基础拖拽排序" variant="borderless">
+    <Card title="基础拖拽排序" variant="borderless">
       <div :class="toolbarClassName">
         <span :class="descriptionClassName">
           `dragSort: true`
           后整行任意位置均可按住拖动，松开即换位；下方实时展示当前顺序。
         </span>
-        <ATag color="blue">已调整 {{ dragCount }} 次</ATag>
+        <Tag color="blue">已调整 {{ dragCount }} 次</Tag>
       </div>
       <BasicTable :data-source="basicList" @register="registerBasic">
         <template #cell-stage="{ record }">
-          <ATag :color="stageColorMap[record?.stage] || 'default'">
+          <Tag :color="stageColorMap[record?.stage] || 'default'">
             {{ record?.stage }}
-          </ATag>
+          </Tag>
         </template>
       </BasicTable>
       <div :class="orderClassName">
         <span :class="descriptionClassName">当前顺序：</span>
-        <ATag v-for="(item, index) in basicList" :key="item.id">
+        <Tag v-for="(item, index) in basicList" :key="item.id">
           {{ index + 1 }}. {{ item.name }}
-        </ATag>
+        </Tag>
       </div>
-    </ACard>
+    </Card>
 
-    <ACard title="手柄拖拽" variant="borderless">
+    <Card title="手柄拖拽" variant="borderless">
       <div :class="toolbarClassName">
         <span :class="descriptionClassName">
           `dragSortConfig.handle` 把拖拽触发区收敛到 ⠿
@@ -246,9 +248,9 @@ function handleSaveOrder() {
           <span :class="dragHandleClassName" title="按住此处拖动整行">⠿</span>
         </template>
       </BasicTable>
-    </ACard>
+    </Card>
 
-    <ACard title="禁止某些行被拖动 / 禁止落点" variant="borderless">
+    <Card title="禁止某些行被拖动 / 禁止落点" variant="borderless">
       <div :class="toolbarClassName">
         <span :class="descriptionClassName">
           函数形态 `disabled` 让“置顶公告”拖不起来；`canDrop`
@@ -258,7 +260,10 @@ function handleSaveOrder() {
         </span>
         <span class="flex items-center gap-2">
           <span :class="descriptionClassName">整表冻结</span>
-          <ASwitch v-model:checked="freezeAll" />
+          <Switch
+            :model-value="freezeAll"
+            @update:model-value="(v: boolean) => (freezeAll = v)"
+          />
         </span>
       </div>
       <BasicTable
@@ -268,34 +273,29 @@ function handleSaveOrder() {
         @register="registerFrozen"
       >
         <template #cell-constraint="{ record }">
-          <ATag v-if="record?.pinned" color="red">置顶 · 不可拖动</ATag>
-          <ATag v-else-if="record?.locked" color="purple">
+          <Tag v-if="record?.pinned" color="red">置顶 · 不可拖动</Tag>
+          <Tag v-else-if="record?.locked" color="purple">
             锁定 · 不可跨越
-          </ATag>
+          </Tag>
           <span v-else>—</span>
         </template>
       </BasicTable>
-    </ACard>
+    </Card>
 
-    <ACard title="保存顺序" variant="borderless">
+    <Card title="保存顺序" variant="borderless">
       <div :class="toolbarClassName">
         <span :class="descriptionClassName">
           仓库请求层（src/api）没有现成的排序保存接口，这里用本地 ref
           模拟持久化， 不伪造后端调用：点“保存顺序”只把当前 id
           序列快照进页面状态，刷新即丢。
         </span>
-        <ASpace>
-          <ATag v-if="!orderDirty" color="green">顺序与已保存一致</ATag>
-          <ATag v-else color="orange">有未保存的改动</ATag>
-          <AButton
-            type="primary"
-            size="small"
-            :disabled="!orderDirty"
-            @click="handleSaveOrder"
-          >
+        <Space>
+          <Tag v-if="!orderDirty" color="green">顺序与已保存一致</Tag>
+          <Tag v-else color="orange">有未保存的改动</Tag>
+          <Button size="sm" :disabled="!orderDirty" @click="handleSaveOrder">
             保存顺序
-          </AButton>
-        </ASpace>
+          </Button>
+        </Space>
       </div>
       <BasicTable :data-source="saveList" @register="registerSave" />
       <div :class="savedLineClassName">
@@ -305,6 +305,6 @@ function handleSaveOrder() {
             : '最近一次保存（本地 ref）：尚未保存'
         }}
       </div>
-    </ACard>
+    </Card>
   </div>
 </template>

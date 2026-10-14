@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { BasicDrawer, useDrawer } from '~/components/business/Drawer';
+import { BasicDrawer, useDrawer } from '@antdv/popup-ui';
 import AccountCenter from '~/views/account/center/index.vue';
 import AccountSettings from '~/views/account/settings/index.vue';
 

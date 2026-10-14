@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import type { BasicColumn } from '~/components/business/Table';
+import type { BasicColumn } from '@antdv/table-ui';
 
 import { ref } from 'vue';
 
+import { Card, Space, Tag } from '@antdv/common-ui';
+import { message } from '@antdv/popup-ui';
+import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
-import { Button as AButton, Card as ACard, Space as ASpace, Tag as ATag, message } from 'antdv-next';
-import { BasicTable, useTable } from '~/components/business/Table';
+import { BasicTable, useTable } from '@antdv/table-ui';
 
 const containerClassName = cn('space-y-6');
 const toolbarClassName = cn('mb-4', 'flex', 'justify-between', 'items-center');
@@ -351,62 +353,61 @@ const [registerLoading] = useTable({
 
 <template>
   <div :class="containerClassName">
-    <ACard title="Basic Table" variant="borderless">
+    <Card title="Basic Table" variant="borderless">
       <div :class="toolbarClassName">
         <span :class="descriptionClassName">Sorting, filtering, loading, and selection support</span>
-        <ASpace>
-          <AButton type="primary" size="small" @click="handleBasicRefresh">
-            Refresh
-          </AButton>
-          <AButton
-            size="small"
+        <Space>
+          <Button size="sm" @click="handleBasicRefresh"> Refresh </Button>
+          <Button
+            variant="outline"
+            size="sm"
             :disabled="basicSelectedKeys.length === 0"
             @click="handleBulkAction"
           >
             Bulk Action
-          </AButton>
-        </ASpace>
+          </Button>
+        </Space>
       </div>
       <BasicTable @register="registerBasic">
         <template #cell-status="{ record }">
-          <ATag :color="statusColorMap[record?.status] || 'default'">
+          <Tag :color="statusColorMap[record?.status] || 'default'">
             {{ record?.status }}
-          </ATag>
+          </Tag>
         </template>
         <template #cell-salary="{ record }">
           <span :class="monoClassName">¥{{ record?.salary?.toLocaleString() ?? '-' }}</span>
         </template>
       </BasicTable>
-    </ACard>
+    </Card>
 
-    <ACard title="Pagination" variant="borderless">
+    <Card title="Pagination" variant="borderless">
       <BasicTable @register="registerPagination">
         <template #cell-status="{ record }">
-          <ATag :color="orderStatusColorMap[record?.status] || 'default'">
+          <Tag :color="orderStatusColorMap[record?.status] || 'default'">
             {{ record?.status }}
-          </ATag>
+          </Tag>
         </template>
         <template #cell-amount="{ record }">
           <span :class="monoClassName">¥{{ record?.amount?.toLocaleString() ?? '-' }}</span>
         </template>
       </BasicTable>
-    </ACard>
+    </Card>
 
-    <ACard title="Expandable / Tree Data" variant="borderless">
+    <Card title="Expandable / Tree Data" variant="borderless">
       <BasicTable @register="registerTree">
         <template #cell-type="{ record }">
-          <ATag :color="typeColorMap[record?.type] || 'default'">
+          <Tag :color="typeColorMap[record?.type] || 'default'">
             {{ record?.type }}
-          </ATag>
+          </Tag>
         </template>
         <template #cell-memberCount="{ record }">
           <span>{{ record?.memberCount ?? '-' }}</span>
         </template>
       </BasicTable>
-    </ACard>
+    </Card>
 
-    <ACard title="Empty &amp; Loading States" variant="borderless">
-      <ASpace direction="vertical" :size="16" :style="fullWidthStyle">
+    <Card title="Empty &amp; Loading States" variant="borderless">
+      <Space direction="vertical" :size="16" :style="fullWidthStyle">
         <div>
           <p :class="labelClassName">Loading state</p>
           <BasicTable @register="registerLoading" />
@@ -415,7 +416,7 @@ const [registerLoading] = useTable({
           <p :class="labelClassName">Empty state</p>
           <BasicTable @register="registerEmpty" />
         </div>
-      </ASpace>
-    </ACard>
+      </Space>
+    </Card>
   </div>
 </template>

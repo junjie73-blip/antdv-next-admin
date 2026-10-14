@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
+import { Spinner } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
-import { Spin as ASpin } from 'antdv-next';
 import { useAppStore } from '~/stores/modules/app';
 
 defineOptions({ name: 'PageLoading' });
@@ -52,8 +52,8 @@ const containerClassName = computed(() =>
       aria-live="polite"
       :aria-label="text"
     >
-      <!-- ⭐ 使用 antdv Spin -->
-      <ASpin size="large" />
+      <!-- ⭐ 旋转指示器：与 antdv Spin size="large" 语义对等（@antdv/loading-ui 内部同款 Spinner，large 档 = size-9） -->
+      <Spinner class="size-9" />
 
       <!-- 提示文本 -->
       <span

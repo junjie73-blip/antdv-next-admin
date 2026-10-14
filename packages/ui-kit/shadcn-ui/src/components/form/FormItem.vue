@@ -1,11 +1,8 @@
 <script lang="ts" setup>
 import type { HTMLAttributes } from "vue"
-
-import { provide } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { useId } from "reka-ui"
-
+import { provide } from "vue"
+import { cn } from '@antdv/shared/cn'
 import { FORM_ITEM_INJECTION_KEY } from "./injectionKeys"
 
 const props = defineProps<{
@@ -21,6 +18,6 @@ provide(FORM_ITEM_INJECTION_KEY, id)
     data-slot="form-item"
     :class="cn('grid gap-2', props.class)"
   >
-    <slot></slot>
+    <slot />
   </div>
 </template>

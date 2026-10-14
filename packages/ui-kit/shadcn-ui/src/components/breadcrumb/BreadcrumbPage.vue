@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { HTMLAttributes } from "vue"
-
 import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<{
@@ -16,6 +15,6 @@ const props = defineProps<{
     aria-current="page"
     :class="cn('text-foreground font-normal', props.class)"
   >
-    <slot></slot>
+    <slot />
   </span>
 </template>

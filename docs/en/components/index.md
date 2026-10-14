@@ -8,7 +8,7 @@ This chapter documents **this repository's own demo gallery**, not the antdv-nex
 | --- | --- |
 | `apps/web/src/views/components/**` | Every demo page; the directory mirrors the menu path |
 | `apps/web/src/components/business/**` | The business components being demoed (Table / Form / Modal / Drawer / Description / CountTo / TreeTable) |
-| `apps/web/src/components/common/**` | Shared wrappers (ECharts / CronEditor / MarkdownEditor / AvatarUploader / ImageUpload …) |
+| `apps/web/src/components/common/**` | Shared wrappers (ECharts / MarkdownEditor / AvatarUploader / ImageUpload …; CronEditor has moved to `packages/ui-kit/common-ui`) |
 | `packages/icons/src/**` | Icon atoms (`IconPicker` / `IconifyIcon` / `SvgIcon`), package name `@antdv/icons` |
 | `packages/ui-kit/**` | Stateless UI atoms: `loading-ui`, `scrollbar-ui`, `shadcn-ui`, plus the form/table/popup/tabs/menu/layout wrapper layers |
 | `apps/backend-mock/server/api/menus.get.ts:159-342` | The **only authoritative list** of demo routes — menu entries are also the permission source, so a route that is not in the menu cannot be reached |

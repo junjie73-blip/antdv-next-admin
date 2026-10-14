@@ -1,60 +1,20 @@
+import { flushPromises, mount } from '@vue/test-utils';
 import { nextTick } from 'vue';
 
-import { mount } from '@vue/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import Scrollbar from '../src/Scrollbar.vue';
 
-/**
- * jsdom 不做布局，`clientHeight / scrollHeight` 恒为 0，
- * `update()` 会在"量不到尺寸"时早退 —— 所以溢出判定必须手动喂假尺寸。
- */
-function stubBox(
-  el: Element | null,
-  box: {
-    clientHeight: number;
-    clientWidth: number;
-    scrollHeight: number;
-    scrollWidth: number;
-  },
-) {
-  if (!el) throw new Error('找不到 .scrollbar__wrap，无法注入假尺寸');
-  for (const [key, value] of Object.entries(box)) {
-    Object.defineProperty(el, key, { configurable: true, get: () => value });
-  }
-}
+const VIEWPORT = '[data-reka-scroll-area-viewport]';
+const BAR = '[data-slot="scroll-area-scrollbar"]';
 
-const OVERFLOW_Y = {
-  clientHeight: 100,
-  clientWidth: 200,
-  scrollHeight: 200,
-  scrollWidth: 200,
-};
-const OVERFLOW_X = {
-  clientHeight: 100,
-  clientWidth: 200,
-  scrollHeight: 100,
-  scrollWidth: 400,
-};
-const FIT = {
-  clientHeight: 100,
-  clientWidth: 200,
-  scrollHeight: 100,
-  scrollWidth: 200,
-};
-
-async function mountScrollbar(
-  props: Record<string, any> = {},
-  box: Parameters<typeof stubBox>[1] = OVERFLOW_Y,
-) {
+async function mountScrollbar(props: Record<string, any> = {}) {
   const wrapper = mount(Scrollbar, {
-    props: { always: true, ...props },
+    props,
     slots: { default: '<div class="content">内容</div>' },
   });
-  stubBox(wrapper.find('.scrollbar__wrap').element, box);
-  (wrapper.vm as any).update();
-  // update() 只改状态，轨道是 v-if 出来的，断言前得让 DOM 追上来
-  await nextTick();
+  // 滚动盒在 onMounted 里等一次 nextTick 才解析出来
+  await flushPromises();
   return wrapper;
 }
 
@@ -63,108 +23,79 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe('Scrollbar 渲染模式', () => {
-  it('native 模式不画自绘轨道，也不隐藏系统滚动条', async () => {
-    const wrapper = await mountScrollbar({ always: false, native: true });
-    expect(wrapper.find('.scrollbar__bar').exists()).toBe(false);
-    expect(wrapper.find('.scrollbar__wrap').classes()).not.toContain(
-      'scrollbar__wrap--hidden-default',
-    );
-  });
-
-  it('自绘模式下隐藏系统滚动条', async () => {
+describe('渲染模式', () => {
+  it('自绘模式的滚动盒就是 ScrollArea 的 viewport', async () => {
     const wrapper = await mountScrollbar();
-    expect(wrapper.find('.scrollbar__wrap').classes()).toContain(
-      'scrollbar__wrap--hidden-default',
-    );
+    const wrap = wrapper.find('.scrollbar__wrap');
+    expect(wrap.exists()).toBe(true);
+    expect(wrap.element).toBe(wrapper.find(VIEWPORT).element);
   });
 
-  it('内容放得下时一条轨道都不渲染', async () => {
-    const wrapper = await mountScrollbar({}, FIT);
-    expect(wrapper.find('.is-vertical').exists()).toBe(false);
-    expect(wrapper.find('.is-horizontal').exists()).toBe(false);
+  it('native 模式不用 ScrollArea，把系统滚动条留给浏览器', async () => {
+    const wrapper = await mountScrollbar({ native: true });
+    expect(wrapper.find('.scrollbar__wrap').exists()).toBe(true);
+    expect(wrapper.find(VIEWPORT).exists()).toBe(false);
+    expect(wrapper.find(BAR).exists()).toBe(false);
   });
 
-  it('纵向溢出只出现纵向轨道，thumb 高度按可视比例算', async () => {
-    const wrapper = await mountScrollbar({}, OVERFLOW_Y);
-    expect(wrapper.find('.is-vertical').exists()).toBe(true);
-    expect(wrapper.find('.is-horizontal').exists()).toBe(false);
-    expect(wrapper.find('.is-vertical .scrollbar__thumb').attributes('style')).toContain(
-      'height: 50%',
-    );
-  });
+  it('always 时两条轨道常驻，hover 模式下不渲染', async () => {
+    const always = await mountScrollbar({ always: true });
+    expect(always.findAll(BAR)).toHaveLength(2);
+    expect(
+      always.find(`${BAR}[data-orientation="vertical"]`).exists(),
+    ).toBe(true);
+    expect(
+      always.find(`${BAR}[data-orientation="horizontal"]`).exists(),
+    ).toBe(true);
 
-  it('横向溢出只出现横向轨道', async () => {
-    const wrapper = await mountScrollbar({}, OVERFLOW_X);
-    expect(wrapper.find('.is-horizontal').exists()).toBe(true);
-    expect(wrapper.find('.is-vertical').exists()).toBe(false);
-  });
-
-  it('thumb 有下限，极长列表不会缩成一像素', async () => {
-    const wrapper = await mountScrollbar(
-      { minSize: 20 },
-      { ...OVERFLOW_Y, scrollHeight: 10_000 },
-    );
-    expect(wrapper.find('.scrollbar__thumb').attributes('style')).toContain(
-      'height: 20%',
-    );
+    const hover = await mountScrollbar({ always: false });
+    expect(hover.find(BAR).exists()).toBe(false);
   });
 
   it('view 用 tag 指定的标签渲染 slot', async () => {
-    const wrapper = await mountScrollbar({ tag: 'ul' }, FIT);
+    const wrapper = await mountScrollbar({ tag: 'ul' });
     expect(wrapper.find('ul.scrollbar__view').exists()).toBe(true);
     expect(wrapper.find('.content').text()).toBe('内容');
   });
+
+  it('wrapClass / viewClass 分别落到滚动盒和内容层', async () => {
+    const wrapper = await mountScrollbar({
+      viewClass: 'view-x',
+      wrapClass: 'wrap-x',
+    });
+    expect(wrapper.find('.scrollbar__wrap').classes()).toContain('wrap-x');
+    expect(wrapper.find('.scrollbar__view').classes()).toContain('view-x');
+  });
 });
 
-describe('可见性与滚动事件', () => {
-  it('always 时轨道常驻', async () => {
-    const wrapper = await mountScrollbar({ always: true });
-    expect(wrapper.find('.is-vertical').classes()).toContain('opacity-100');
-  });
-
-  it('滚动后出现轨道，停止 hideDelay 之后淡出', async () => {
-    vi.useFakeTimers();
-    const wrapper = await mountScrollbar({ always: false, hideDelay: 800 });
-    // 溢出判定通过才有轨道；此时既没滚动也没悬停 → 隐藏
-    await wrapper.find('.scrollbar__wrap').trigger('scroll');
-    expect(wrapper.find('.is-vertical').classes()).toContain('opacity-100');
-
-    vi.advanceTimersByTime(801);
-    await nextTick();
-    expect(wrapper.find('.is-vertical').classes()).toContain('opacity-0');
-    expect(wrapper.find('.is-vertical').classes()).toContain(
-      'pointer-events-none',
-    );
-  });
-
+describe('滚动事件与对外 API', () => {
   it('scroll 事件带出滚动位置', async () => {
-    const wrapper = await mountScrollbar({ always: false });
+    const wrapper = await mountScrollbar();
     const wrapEl = wrapper.find('.scrollbar__wrap').element as HTMLElement;
     wrapEl.scrollTop = 40;
+    wrapEl.scrollLeft = 12;
     await wrapper.find('.scrollbar__wrap').trigger('scroll');
 
     const payload = wrapper.emitted('scroll')?.at(-1)?.[0] as {
+      scrollLeft: number;
       scrollTop: number;
     };
-    expect(payload.scrollTop).toBe(40);
-    // 位移按 clientHeight 归一成百分比，供 thumb 的 translate 使用
-    expect(
-      (wrapper.find('.is-vertical .scrollbar__thumb').element as HTMLElement)
-        .style.transform,
-    ).toBe('translateY(40%)');
+    expect(payload).toEqual({ scrollLeft: 12, scrollTop: 40 });
   });
-});
 
-describe('对外 API', () => {
-  it('setScrollTop / setScrollLeft 拒绝 NaN，避免"以为滚回去了"', async () => {
-    const wrapper = await mountScrollbar({}, OVERFLOW_Y);
+  it('wrap 暴露的是滚动盒元素本身', async () => {
+    const wrapper = await mountScrollbar();
+    const vm = wrapper.vm as any;
+    expect(vm.wrap).toBe(wrapper.find('.scrollbar__wrap').element);
+  });
+
+  it('setScrollTop / setScrollLeft 拒绝 NaN 与非有限值', async () => {
+    const wrapper = await mountScrollbar();
     const vm = wrapper.vm as any;
     const wrapEl = wrapper.find('.scrollbar__wrap').element as HTMLElement;
 
     vm.setScrollTop(60);
     expect(wrapEl.scrollTop).toBe(60);
-
     vm.setScrollTop(Number.NaN);
     expect(wrapEl.scrollTop).toBe(60);
 
@@ -175,7 +106,7 @@ describe('对外 API', () => {
   });
 
   it('scrollTo 透传给滚动容器', async () => {
-    const wrapper = await mountScrollbar({}, OVERFLOW_Y);
+    const wrapper = await mountScrollbar();
     const wrapEl = wrapper.find('.scrollbar__wrap').element as HTMLElement;
     const scrollTo = vi.fn();
     wrapEl.scrollTo = scrollTo;
@@ -186,9 +117,21 @@ describe('对外 API', () => {
 
   it('maxHeight 走按窗口高度缩放的响应式上限', async () => {
     // jsdom 视口高 768：495 × (768/1080)^1.938 ≈ 265，被下限 712 兜住
-    const wrapper = await mountScrollbar({ maxHeight: 495 }, OVERFLOW_Y);
-    expect(wrapper.find('.group\\/scrollbar').attributes('style')).toContain(
+    const wrapper = await mountScrollbar({ maxHeight: 495 });
+    expect(wrapper.find('.scrollbar').attributes('style')).toContain(
       'max-height: 712px',
+    );
+  });
+
+  it('切到 native 后 wrap 指向新的滚动元素', async () => {
+    const wrapper = await mountScrollbar();
+    const before = (wrapper.vm as any).wrap;
+    await wrapper.setProps({ native: true });
+    await nextTick();
+    await flushPromises();
+    expect((wrapper.vm as any).wrap).not.toBe(before);
+    expect((wrapper.vm as any).wrap).toBe(
+      wrapper.find('.scrollbar__wrap').element,
     );
   });
 });

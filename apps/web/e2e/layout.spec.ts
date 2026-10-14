@@ -117,7 +117,7 @@ test.describe('布局形态', () => {
    * Logo 位与顶栏那一行必须严格对齐。
    *
    * 这个需求看起来是"差 8px 的审美问题"，根子是 antd 的 cssinjs 注入
-   * `.ant-layout-header{height:64px;line-height:64px}`：类选择器 + 后注入，
+   * `[data-layout-region="header"]{height:64px;line-height:64px}`：类选择器 + 后注入，
    * 特异性压过 Tailwind 的 `.h-14`，于是顶栏 64、侧栏 Logo 56，两栏顶端错开一条缝。
    * 现在三处 Logo（侧栏 / 图标栏 / 顶栏）与顶栏都吃同一个 `LAYOUT_HEADER_ROW_STYLE`，
    * 断言也就从"看起来对齐"升级成"盒子的实际渲染位置与高度相等"。
@@ -238,18 +238,18 @@ test.describe('布局形态', () => {
      * 原缺陷：菜单其实"渲染了"，只是渲染在一个默认收起的浮层抽屉里，
      * 桌面用户看到的就是选完什么都没发生。所以这里既要有条目、也要在常驻列里。
      */
-    await expect(sidebar.locator('.ant-menu-submenu').first()).toBeVisible();
+    await expect(sidebar.locator('.menu-item').first()).toBeVisible();
     await expect(
-      page.locator('.ant-drawer [data-layout-region="sidebar"]'),
+      page.locator('.basic-drawer [data-layout-region="sidebar"]'),
       '侧栏不该躲在抽屉浮层里',
     ).toHaveCount(0);
 
     await sidebar
-      .locator('.ant-menu-submenu-title')
+      .locator('[role="menuitem"]')
       .filter({ hasText: '系统管理' })
       .click();
     const leaf = sidebar
-      .locator('.ant-menu-title-content')
+      .locator('[data-menu-label]')
       .filter({ hasText: '用户管理' })
       .first();
     await expect(leaf).toBeVisible();
@@ -268,9 +268,9 @@ test.describe('布局形态', () => {
     await go(page, '/system/user');
 
     const headerItems = region(page, 'header-nav').locator(
-      '.ant-menu-item, .ant-menu-submenu',
+      '.menu-item',
     );
-    const sideItems = region(page, 'sidebar').locator('.ant-menu-item');
+    const sideItems = region(page, 'sidebar').locator('.menu-item');
 
     // 原缺陷的回归保护：曾经"点了菜单，两级导航都是空的"，
     // 根因是后端菜单写相对片段，横向/侧边一起落到 404
@@ -309,7 +309,7 @@ test.describe('布局形态', () => {
     // 一级高亮仍归「系统管理」，而不是退回第一项
     await expect(
       region(page, 'header-nav').locator(
-        '.ant-menu-submenu-selected, .ant-menu-item-selected',
+        '[data-menu-state="selected"]',
       ),
     ).toContainText('系统管理');
     // 标签页拿到的是菜单标题而不是路径
@@ -347,7 +347,7 @@ test.describe('面包屑 · 首次进入', () => {
      */
     await expect(region(page, 'breadcrumb')).toHaveCount(1);
     await expect(
-      region(page, 'breadcrumb').locator('.ant-breadcrumb-item'),
+      region(page, 'breadcrumb').locator('[data-breadcrumb-item]'),
     ).toHaveText(['仪表盘', '分析面板']);
     expect(errors.errors).toEqual([]);
   });
@@ -369,7 +369,7 @@ test.describe('面包屑 · 首次进入', () => {
      * 这条用例要验的是"刷新之后菜单还在不在"，不是"刷新时恰好有谁在飞"。
      */
     await expect(
-      region(page, 'breadcrumb').locator('.ant-breadcrumb-item'),
+      region(page, 'breadcrumb').locator('[data-breadcrumb-item]'),
     ).toHaveText(['组件示例', '表单', '基础表单']);
     await page.waitForLoadState('networkidle');
 
@@ -378,7 +378,7 @@ test.describe('面包屑 · 首次进入', () => {
 
     // 三级页：菜单树到位后链应该是完整三级，而不是被 matched 砍成一级
     await expect(
-      region(page, 'breadcrumb').locator('.ant-breadcrumb-item'),
+      region(page, 'breadcrumb').locator('[data-breadcrumb-item]'),
     ).toHaveText(['组件示例', '表单', '基础表单']);
     expect(errors.errors).toEqual([]);
   });
@@ -425,12 +425,18 @@ test.describe('面包屑', () => {
   test('每一级的链接指向自己那一页', async ({ page }) => {
     await setLayout(page, 'vertical');
 
-    const trail = region(page, 'breadcrumb').locator('.ant-breadcrumb-item');
+    const trail = region(page, 'breadcrumb').locator('[data-breadcrumb-item]');
     await expect(trail).toHaveCount(2);
     await expect(trail.nth(0).locator('a')).toHaveAttribute('href', '#/system');
-    await expect(trail.nth(1).locator('a')).toHaveAttribute(
-      'href',
-      '#/system/user',
+    /*
+     * 最后一级是当前页，输出的是文本而不是"点自己"的链接（shadcn 面包屑的
+     * `BreadcrumbPage` 语义，`aria-current="page"` 给读屏软件定位）。
+     * 迁移前 antd 会给它也画一个 `<a>`，这里保留的是"指向哪一级"的核对，
+     * 落点由前一级与真点一次来保证。
+     */
+    await expect(trail.nth(1).locator('a')).toHaveCount(0);
+    await expect(trail.nth(1).locator('[aria-current="page"]')).toHaveText(
+      '用户管理',
     );
 
     await trail.nth(0).locator('a').click();
@@ -456,27 +462,44 @@ test.describe('面包屑', () => {
     await setLayout(page, 'vertical');
 
     const pairs = await page.evaluate(() => {
-      /** 图标的"字形指纹"：svg 内部标记；没有图标就是 null */
-      const glyph = (el: Element | null | undefined): null | string =>
-        el?.querySelector('svg')?.innerHTML ?? null;
+      /**
+       * 图标的"字形指纹"：svg 内部标记；没有图标就是 null。
+       *
+       * 只认两侧的图标槽（`[data-breadcrumb-icon]` / `[data-menu-icon]`）——
+       * 面包屑的分隔符 chevron 也长在条目里，按"第一个 svg"取会把它当图标。
+       * 图标标记本身可能就是那颗 svg（`@iconify/vue` 直接渲染 svg 根，属性透传到根上，
+       * 面包屑就是这么写的），也可能只是包着一层 span（菜单的图标槽），两种都要认。
+       */
+      const glyph =
+        (marker: string) =>
+        (el: Element | null | undefined): null | string => {
+          const slot = el?.querySelector(marker);
+          if (!slot) return null;
+          const svg =
+            slot.tagName === 'svg' ? slot : slot.querySelector('svg');
+          return svg?.innerHTML ?? null;
+        };
+
+      const crumbGlyph = glyph('[data-breadcrumb-icon]');
+      const menuGlyph = glyph('[data-menu-icon]');
 
       const crumbs = [
         ...document.querySelectorAll(
-          '[data-layout-region="breadcrumb"] .ant-breadcrumb-item',
+          '[data-layout-region="breadcrumb"] [data-breadcrumb-item]',
         ),
       ].map((el) => ({
-        glyph: glyph(el),
+        glyph: crumbGlyph(el),
         title: (el.textContent ?? '').trim(),
       }));
 
       const menu = [
         ...document.querySelectorAll(
-          '[data-layout-region="sidebar"] .ant-menu-submenu-title, [data-layout-region="sidebar"] .ant-menu-item',
+          '[data-layout-region="sidebar"] [role="menuitem"]',
         ),
       ].map((el) => ({
-        glyph: glyph(el),
+        glyph: menuGlyph(el),
         title: (
-          el.querySelector('.ant-menu-title-content')?.textContent ?? ''
+          el.querySelector('[data-menu-label]')?.textContent ?? ''
         ).trim(),
       }));
 
@@ -528,9 +551,9 @@ test.describe('面包屑', () => {
 
     const iconStats = () =>
       region(page, 'breadcrumb').evaluate((el) => ({
-        items: el.querySelectorAll('.ant-breadcrumb-item').length,
-        // 只数条目里的 svg：分隔符（chevron）挂在 .ant-breadcrumb-separator 上，不算图标
-        withIcon: el.querySelectorAll('.ant-breadcrumb-item svg').length,
+        items: el.querySelectorAll('[data-breadcrumb-item]').length,
+        // 只数图标节点：分隔符的 chevron 也挂在条目里面，按 svg 数会多算
+        withIcon: el.querySelectorAll('[data-breadcrumb-icon]').length,
       }));
 
     const before = await iconStats();
@@ -585,7 +608,7 @@ test.describe('侧边菜单样式', () => {
    * 同一层的菜单项，标题左边缘必须在同一条竖线上。
    *
    * 需求原话是"菜单的样式有点问题"，根因是没图标的项不占图标位：
-   * antd 给图标元素 `.ant-menu-item-icon` 的 `min-width` 由 iconSize 决定，
+   * antd 给图标元素 `[data-menu-icon]` 的 `min-width` 由 iconSize 决定，
    * 有图标的项文字就被这一格顶开，没图标的项贴在最左边，整列看着参差。
    * 现在 `buildMenuItems(..., { keepIconSlot: true })` 给缺图标的项补空槽，
    * 于是按"同层 x 坐标只有一个值"来验收 —— 比目测可靠，也不会被内联 padding 骗过去
@@ -595,7 +618,7 @@ test.describe('侧边菜单样式', () => {
    * "没图标的那一项到底有没有拿到等宽空槽"由
    * `apps/web/test/menu-icon-slot.test.ts` 直接挂 antd `Menu` 数 DOM 来验。
    *
-   * 落点选 `/components/form/basic` 而不是某个二级页：这里的"层"按 `.ant-menu-sub`
+   * 落点选 `/components/form/basic` 而不是某个二级页：这里的"层"按 `[data-menu-tree]`
    * 的嵌套数算，二级叶子全都只套一层，样本会退成一层、断言变成空跑。
    */
   test('同层菜单项的文字左边缘对齐（缺图标也占位）', async ({ page }) => {
@@ -603,15 +626,12 @@ test.describe('侧边菜单样式', () => {
 
     const byDepth = await region(page, 'sidebar').evaluate((el) => {
       const groups = new Map<number, Set<number>>();
-      for (const item of el.querySelectorAll('.ant-menu-item')) {
-        // 层级 = 这项外面套了几层 `.ant-menu-sub`（antd 的子菜单容器）
-        let depth = 0;
-        let node: Element | null = item.parentElement;
-        while (node && node !== el) {
-          if (node.classList.contains('ant-menu-sub')) depth += 1;
-          node = node.parentElement;
-        }
-        const title = item.querySelector('.ant-menu-title-content');
+      // menu-ui 把层级直接印在行上（`data-menu-depth`），不必再数容器嵌套
+      for (const row of el.querySelectorAll(
+        '[role="menuitem"][data-menu-depth]',
+      )) {
+        const depth = Number(row.getAttribute('data-menu-depth')) || 0;
+        const title = row.querySelector('[data-menu-label]');
         if (!title) continue;
         const rect = title.getBoundingClientRect();
         /**
@@ -662,7 +682,7 @@ test.describe('侧边菜单样式', () => {
     await expect(bar).toHaveAttribute('aria-expanded', 'true');
 
     await bar.click();
-    await expect(sidebar).toHaveClass(/ant-layout-sider-collapsed/);
+    await expect(sidebar).toHaveAttribute('data-layout-sider-collapsed', 'true');
     await expect(bar).toHaveAttribute('aria-expanded', 'false');
     await expect(bar).toHaveAttribute('aria-label', '展开菜单');
     // 收起后的宽度是设计 token（`LAYOUT_SIDEBAR_COLLAPSED_WIDTH`），只说"变窄了"太松
@@ -672,7 +692,10 @@ test.describe('侧边菜单样式', () => {
     ).toBeLessThanOrEqual(1);
 
     await bar.click();
-    await expect(sidebar).not.toHaveClass(/ant-layout-sider-collapsed/);
+    await expect(sidebar).not.toHaveAttribute(
+      'data-layout-sider-collapsed',
+      'true',
+    );
     expect(
       Math.abs((await settledWidth(sidebar)) - expandedWidth),
       `展开后宽度没回到 ${expandedWidth}`,
@@ -706,7 +729,7 @@ test.describe('横向导航溢出', () => {
     // 收窄视口逼它溢出：菜单总宽超过可视区才会出现滚动条
     await page.setViewportSize({ height: 720, width: 720 });
 
-    const scroller = page.locator('.header-menu-scroll');
+    const scroller = page.locator('.menu-scroll');
     await expect(scroller).toBeVisible();
     const overflow = await scroller.evaluate(
       (el) => el.scrollWidth - el.clientWidth,
@@ -770,18 +793,14 @@ test.describe('横向导航溢出', () => {
     }
     const lastReachable = await scroller.evaluate((el) => {
       /**
-       * 菜单项不是滚动容器的直接子节点：中间还夹着 antd 的
-       * `.ant-menu-overflow` 根节点，所以按类名取。
-       * 另外本项目用 `[&_.ant-menu-overflow-item-rest]:hidden!` 关掉了 antd 的
-       * "溢出折叠成 …" 行为（折叠了就没法横向访问了），那个占位项要排除；
-       * `-hidden` 是 antd 的测量副本，同样不算。
+       * 菜单项不是滚动容器的直接子节点：中间还夹着 `[data-menu-tree]` 与
+       * `li.menu-item` 两层。menu-ui 没有 antd 的"溢出折叠成 …"行为
+       * （折叠了就没法横向访问），所以这里数到的就是全部一级项。
        * 用 getBoundingClientRect 而不是 offsetLeft：后者的基准是 offsetParent，
        * 跨了绝对定位的渐隐层就容易对不上。
        */
       const items = [
-        ...el.querySelectorAll<HTMLElement>(
-          '.ant-menu-overflow-item:not(.ant-menu-overflow-item-rest):not(.ant-menu-overflow-item-hidden)',
-        ),
+        ...el.querySelectorAll<HTMLElement>('[data-menu-tree] > .menu-item'),
       ];
       if (items.length === 0) return false;
       const container = el.getBoundingClientRect();

@@ -28,6 +28,7 @@ import {
 import i18n from './locales';
 import { installBrowserMockIfEnabled } from './mock/activate';
 import { setupVueQuery } from './plugins/query';
+import { configureTableRuntime } from './plugins/table-runtime';
 import { configureUiKitRuntimes } from './plugins/ui-runtime';
 import { registerVendorAntdComponents } from './plugins/vendor-antd-components';
 import { setupRouter } from './router';
@@ -37,10 +38,10 @@ import { initSecuritySystem } from './utils/securityInit';
 import './bootstrap/env';
 import 'virtual:svg-icons-register';
 /*
- * 全局样式来自 `@antdv/styles`（Tailwind 入口 + 基础层 + NProgress + 无障碍 + 权限降级），
+ * 全局样式来自 `@antdv/design`（Tailwind 入口 + 基础层 + NProgress + 无障碍 + 权限降级），
  * 应用侧不再维护 global.css。
  */
-import '@antdv/styles';
+import '@antdv/design';
 
 // 按需导入 form-create 组件
 formCreate.use(install);
@@ -60,6 +61,8 @@ app.use(i18n);
  * 按钮上出现 `shell.exitFullContent` 这类裸 key（而不是报错）。
  */
 configureUiKitRuntimes();
+// 表格的权限判定与接口错误文案来自应用，注入要赶在第一张表渲染之前
+configureTableRuntime();
 app.use(formCreate);
 app.use(FcDesigner);
 app.use(MotionPlugin);

@@ -69,10 +69,10 @@ features:
     link: /en/guide/project/testing
     linkText: Testing strategy
   - icon: 🖼
-    title: Styles and icons
-    details: Tailwind v4 with an explicit layer order, so overriding the component library needs no !important; icons are five offline Iconify collections, and the SVG sprite chain is wired up.
-    link: /en/guide/essentials/styles
-    linkText: Style conventions
+    title: Design tokens and global styles
+    details: Tailwind v4 with an explicit layer order, so overriding the component library needs no !important; the shadcn semantic palette ships as --app-* variables pinned to the root element, so overlays and pages resolve identically.
+    link: /en/guide/essentials/design
+    linkText: Design tokens
   - icon: 📦
     title: Versions managed by changesets
     details: Changes ship with a changeset, `pnpm version` generates the CHANGELOG, and `pnpm release` publishes. Version numbers are never written by hand.
@@ -90,12 +90,12 @@ features:
 | Your situation | Go straight to |
 | --- | --- |
 | Just cloned it, want it running | [Getting started](/en/guide/introduction/quick-start) |
-| Want to know which components exist and how to use them | [Component examples](/en/components/) |
+| Want to know which components exist and how to use them | [Component examples](/en/components/), [Shared components](/en/components/common-ui) |
 | Want to know why the code is arranged this way | [Core concepts](/en/guide/essentials/concepts), [Directory structure](/en/guide/project/dir) |
 | Adding a page / a menu entry | [Routes and menu](/en/guide/essentials/route), [Layout, menu, and tab pages](/en/guide/in-depth/layout) |
 | Calling an API or adding a field | [Request layer and API contract](/en/guide/essentials/request), [Data mocking](/en/guide/essentials/mock) |
 | Keeping state that outlives one page | [State management](/en/guide/essentials/stores) |
-| Writing styles or hunting an icon | [Styles and icons](/en/guide/essentials/styles) |
+| Writing styles or hunting an icon | [Design tokens and global styles](/en/guide/essentials/design) |
 | Changing the primary color or adding a preference switch | [Theme and preferences](/en/guide/in-depth/theme) |
 | Controlling button / route permissions | [Permissions, directives and cursors](/en/guide/in-depth/access) |
 | What checks to pass before committing | [Development conventions and environment variables](/en/guide/essentials/development), [Testing strategy](/en/guide/project/testing) |

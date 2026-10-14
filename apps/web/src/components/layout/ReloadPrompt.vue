@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
+import { Button } from '@antdv/shadcn-ui';
 import { Icon } from '@iconify/vue';
 import {
   useDocumentVisibility,
@@ -9,7 +10,6 @@ import {
   useTimeoutFn,
   useTimestamp,
 } from '@vueuse/core';
-import { Button as AButton } from 'antdv-next';
 import { useRegisterSW } from 'virtual:pwa-register/vue';
 
 defineOptions({ name: 'ReloadPrompt' });
@@ -253,22 +253,20 @@ tryOnScopeDispose(stopCountdown);
 
           <div class="mt-3 flex items-center gap-2">
             <template v-if="isUpdate">
-              <AButton
-                type="primary"
-                size="small"
-                :loading="updating"
-                class="!h-8 !rounded-lg !px-3 !text-xs !font-medium"
+              <Button
+                size="sm"
+                :disabled="updating"
+                class="h-8 rounded-lg px-3 text-xs font-medium"
                 @click="handleUpdate"
               >
-                <template #icon>
-                  <Icon v-if="!updating" icon="carbon:renew" />
-                </template>
+                <Icon v-if="!updating" icon="carbon:renew" />
                 立即更新
-              </AButton>
+              </Button>
 
-              <AButton
-                size="small"
-                class="!h-8 !rounded-lg !px-3 !text-xs !text-slate-500 hover:!text-slate-700 dark:!text-slate-400 dark:hover:!text-slate-200"
+              <Button
+                variant="outline"
+                size="sm"
+                class="h-8 rounded-lg px-3 text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
                 @click="handleLater"
               >
                 稍后
@@ -278,18 +276,17 @@ tryOnScopeDispose(stopCountdown);
                 >
                   ({{ countdown }}s)
                 </span>
-              </AButton>
+              </Button>
             </template>
 
-            <AButton
+            <Button
               v-else
-              type="primary"
-              size="small"
-              class="!h-8 !rounded-lg !px-3 !text-xs !font-medium"
+              size="sm"
+              class="h-8 rounded-lg px-3 text-xs font-medium"
               @click="close"
             >
               知道了
-            </AButton>
+            </Button>
           </div>
         </div>
 

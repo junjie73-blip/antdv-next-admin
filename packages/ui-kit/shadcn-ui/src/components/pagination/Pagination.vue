@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import type { PaginationRootEmits, PaginationRootProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import { PaginationRoot, useForwardPropsEmits } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<PaginationRootProps & {
   class?: HTMLAttributes["class"]
@@ -23,6 +21,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
     v-bind="forwarded"
     :class="cn('mx-auto flex w-full justify-center', props.class)"
   >
-    <slot v-bind="slotProps"></slot>
+    <slot v-bind="slotProps" />
   </PaginationRoot>
 </template>

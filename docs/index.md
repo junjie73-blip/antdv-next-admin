@@ -69,10 +69,10 @@ features:
     link: /guide/project/testing
     linkText: 测试策略
   - icon: 🖼
-    title: 样式与图标
-    details: Tailwind v4 显式层顺序，覆盖组件库不用 !important；图标是五套离线 Iconify 集合，SVG sprite 链路已接通。
-    link: /guide/essentials/styles
-    linkText: 样式约定
+    title: 设计令牌与全局样式
+    details: Tailwind v4 显式层顺序，覆盖组件库不用 !important；shadcn 语义色板的 --app-* 令牌钉在根元素上，弹层与页面同解。
+    link: /guide/essentials/design
+    linkText: 设计令牌
   - icon: 📦
     title: changesets 管版本
     details: 改动带 changeset，`pnpm version` 生成 CHANGELOG，`pnpm release` 发布，不再手写版本号。
@@ -90,12 +90,12 @@ features:
 | 你的处境 | 直接去 |
 | --- | --- |
 | 刚 clone，想跑起来 | [快速开始](/guide/introduction/quick-start) |
-| 想知道有哪些组件可以用、怎么用 | [组件示例](/components/) |
+| 想知道有哪些组件可以用、怎么用 | [组件示例](/components/)、[公共组件](/components/common-ui) |
 | 想知道代码为什么这么摆 | [基础概念](/guide/essentials/concepts)、[目录说明](/guide/project/dir) |
 | 要加一个页面 / 一条菜单 | [路由与菜单](/guide/essentials/route)、[布局、菜单与标签页](/guide/in-depth/layout) |
 | 要调接口、加字段 | [请求层与接口约定](/guide/essentials/request)、[数据 Mock](/guide/essentials/mock) |
 | 要存跨页面共享的状态 | [状态管理](/guide/essentials/stores) |
-| 要写样式、找图标 | [样式与图标](/guide/essentials/styles) |
+| 要写样式、找图标 | [设计令牌与全局样式](/guide/essentials/design) |
 | 要换主题色、加偏好开关 | [主题与偏好设置](/guide/in-depth/theme) |
 | 要控制按钮 / 路由权限 | [权限、指令与光标](/guide/in-depth/access) |
 | 提交前要过什么检查 | [开发规范与环境变量](/guide/essentials/development)、[测试策略](/guide/project/testing) |

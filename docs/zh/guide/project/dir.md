@@ -23,6 +23,7 @@ internal/   构建期工具：只在 Node 里跑，不进产物
 | `@antdv/icons` | 只管图标：Iconify 包装、SVG 雪碧图图标、图标选择器（shadcn 实现） | pinia / vue-router / 业务 store / 应用配置 / antdv-next |
 | `@antdv/loading-ui` | `Loading` 遮罩 + `useLoading` + `createLoading` 系列 + `v-loading` 指令 | 同上（依赖只到 `shadcn-ui` / `shared`） |
 | `@antdv/scrollbar-ui` | 自绘 `Scrollbar` + `Bar`，样式随组件走，不依赖宿主 Tailwind | 同上 |
+| `@antdv/common-ui` | 公共展示组件：`Alert`、`Badge`、`Card`、`CountTo`、`CronEditor`、`Description`、`Descriptions`、`Divider`、`Empty`、`EmptyState`、`ErrorBoundary`、`Image`、`PageSkeleton`、`TableSkeleton`、`Popconfirm`、`Result`、`Segmented`、`Space`、`Statistic`、`StatusTag`、`Steps`、`Tabs`/`TabPane`、`Tag`、`Timeline`、`Tooltip`、`Transfer`、`Tree`、`Upload`，全部由 `@antdv/shadcn-ui` 的原语组合出来 | 同上（依赖只到 `icons` / `scrollbar-ui` / `shadcn-ui` / `shared`） |
 | `@antdv/shadcn-ui` | shadcn-vue 原子件（Dialog / Popover / Select / Spinner…），上面几包的实现底座 | 业务逻辑 |
 | `@antdv/form-ui` | `@tanstack/vue-form` 之上的 schema 表单：`BasicForm` / `useForm` / `componentMap` | 应用 store |
 | `@antdv/table-ui` | `@tanstack/vue-table` 之上的 `BasicTable` / `useTable` + hooks | 应用 store |
@@ -33,7 +34,7 @@ internal/   构建期工具：只在 Node 里跑，不进产物
 | `@antdv/layouts` | 7 种菜单形态的区域蓝图、内容区宽度策略、菜单树状态源、面包屑派生 | pinia / vue-router |
 | `@antdv/router` | 路由守卫：登录校验、动态菜单注册、标题、进度条、权限过滤 | store / api |
 | `@antdv/directives` | `v-permission`、`v-lazy` | store / pinia / vueuse |
-| `@antdv/styles` | Tailwind v4 入口、基础层、NProgress、无障碍与权限降级样式 | 只写 CSS，不含组件逻辑 |
+| `@antdv/design` | Tailwind v4 入口、基础层、NProgress、无障碍与权限降级样式 | 只写 CSS，不含组件逻辑 |
 
 ::: tip 为什么每张表都多一列"不许 import" 这是这些包能被客户项目单独复用的唯一原因。凡是"要读用户权限 / 要拿菜单 / 要看偏好"的地方，一律通过**依赖注入**把函数或 ref 传进来，包自己不认识 pinia。于是包能保持纯 TS + Vue 组合式、能脱离应用做单测，也不会出现"store 引包、包又反过来引 store"的环。新增能力时先想清楚这条边界，再决定放应用里还是放子包里 —— 需要 store 的薄壳留在 `apps/web`。:::
 
@@ -61,7 +62,7 @@ packages/*  ──►  packages/*，且必须单向（types ← 其他所有包�
 ## 构建：tsdown + turbo（两类包不一样）
 
 - **dist 发布的包**（`shared` / `composables` / `directives` / `layouts` / `preferences` / `router` / `types` / `node-utils` / `vite-config`）：`build` 就是 `tsdown`（Rolldown 系），产物在 `dist/`，`files` 只带 `dist`；`exports` 支持**子路径即模块**：`@antdv/shared/cn` → `dist/cn.js`（`./*` 通配符），多文件目录模块（`cache` / `crypto` / `event`）显式列出。 `apps/web` 读的是这些包的 `dist`，所以改 `packages/*/src` 必须重新构建 + 重启 dev 才看得见。
-- **源码发布的包**（`icons` / `styles` / `ui-kit` 那九个）：`files: ["src"]`、`main`/`types` 直指 `./src/index.ts`，**没有 build 脚本**，由宿主 Vite 直接编译。改这类包保存即热更，不需要重新构建 —— 但也意味着宿主必须能编译 `.vue` 与 Tailwind 入口。口径见[外部模块](/zh/guide/essentials/external)。
+- **源码发布的包**（`icons` / `design` / `ui-kit` 那十个）：`files: ["src"]`、`main`/`types` 直指 `./src/index.ts`，**没有 build 脚本**，由宿主 Vite 直接编译。改这类包保存即热更，不需要重新构建 —— 但也意味着宿主必须能编译 `.vue` 与 Tailwind 入口。口径见[外部模块](/zh/guide/essentials/external)。
 - `turbo.json` 的任务图：`build` / `type-check` / `test:unit` / `test:e2e` 全部 `dependsOn: ["^build"]`，即"先构建我的依赖"；`dev` 是 `persistent` 且不吃缓存，同样先 `^build`（没有 build 脚本的包这一步直接跳过）。
 
 ## 发布：changesets

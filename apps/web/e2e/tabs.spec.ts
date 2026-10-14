@@ -130,7 +130,7 @@ test.describe('标签页交互', () => {
     await menu.getByRole('menuitem', { name: '放大当前页' }).click();
 
     // 头部与侧栏都撤掉，内容区独占视口
-    await expect(page.locator('.ant-layout-header')).toHaveCount(0);
+    await expect(page.locator('[data-layout-region="header"]')).toHaveCount(0);
     await expect(page.locator('[data-layout-region="sidebar"]')).toHaveCount(0);
     /**
      * 标签栏是**故意留下的**（`useLayoutRegions.tabsVisible` 只看蓝图 chromeless，
@@ -150,7 +150,7 @@ test.describe('标签页交互', () => {
     await page.keyboard.press('Escape');
 
     await restore.click();
-    await expect(page.locator('.ant-layout-header')).toBeVisible();
+    await expect(page.locator('[data-layout-region="header"]')).toBeVisible();
     await expect(page.locator('[data-layout-region="sidebar"]')).toBeVisible();
     await expect(page.getByRole('button', { name: '还原标签页' })).toHaveCount(
       0,
@@ -167,14 +167,14 @@ test.describe('标签页交互', () => {
     let order = await tabOrder(page);
     expect(order.slice(0, 2)).toEqual([HOME_PATH, ROLE]);
     // 固定标签不给关闭按钮
-    await expect(tab(page, ROLE).locator('.anticon-close')).toHaveCount(0);
+    await expect(tab(page, ROLE).locator('.tab-item__close')).toHaveCount(0);
 
     // 取消固定：回到非固定区，关闭按钮重新出现
     const menu2 = await rightClickTab(page, ROLE);
     await menu2.getByRole('menuitem', { name: '取消固定' }).click();
     order = await tabOrder(page);
     expect(order[0]).toBe(HOME_PATH);
-    await expect(tab(page, ROLE).locator('.anticon-close')).toBeVisible();
+    await expect(tab(page, ROLE).locator('.tab-item__close')).toBeVisible();
   });
 
   test('首页那一格不给「取消固定」，避免首页身份漂移', async ({ page }) => {
@@ -276,7 +276,9 @@ test.describe('标签页交互', () => {
     await openThree(page);
 
     await page.getByRole('button', { name: '标签页操作' }).click();
-    const dropdown = page.locator('.ant-dropdown').last();
+    const dropdown = page
+      .locator('[data-slot="dropdown-menu-content"]')
+      .last();
     await expect(dropdown).toBeVisible();
     await dropdown.getByRole('menuitem', { name: /关闭其他/ }).click();
 
@@ -292,7 +294,7 @@ test.describe('标签页交互', () => {
     await navigate(page, DEPT);
     await expectActive(page, DEPT);
 
-    await tab(page, DEPT).locator('.anticon-close').click();
+    await tab(page, DEPT).locator('.tab-item__close').click();
 
     await expect(page.locator('.tab-item')).toHaveCount(3);
     await expect(tab(page, ROLE)).toHaveAttribute('data-active', 'true');

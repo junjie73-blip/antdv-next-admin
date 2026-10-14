@@ -46,6 +46,44 @@ describe('BasicForm', () => {
     expect(input.attributes('placeholder')).toBe('输入用户名');
   });
 
+  it('label 用 for 关联到控件节点，`label.control` 解析得回来', async () => {
+    const wrapper = mountForm([
+      { field: 'username', label: '用户名', component: 'Input' },
+      { field: 'memo', label: '备注', component: 'InputTextArea' },
+    ]);
+    await flushPromises();
+    const labels = wrapper.findAll('label.form-item-label');
+    expect(labels).toHaveLength(2);
+    const ids = labels.map((label) => label.attributes('for'));
+    expect(ids[0]).toBeTruthy();
+    // 两个字段的 id 不能撞车
+    expect(new Set(ids).size).toBe(2);
+    for (const id of ids) {
+      const control = document.querySelector(`#${CSS.escape(id as string)}`);
+      expect(control?.hasAttribute('data-field-control')).toBe(true);
+      expect((wrapper.find(`label[for="${id}"]`).element as HTMLLabelElement).control)
+        .toBe(control);
+    }
+  });
+
+  it('必填星号是伪元素，不落在标签文本里', async () => {
+    const wrapper = mountForm([
+      { field: 'username', label: '用户名', component: 'Input', required: true },
+      {
+        field: 'remark',
+        label: '备注',
+        component: 'Input',
+        itemProps: { required: true },
+      },
+    ]);
+    await flushPromises();
+    const labels = wrapper.findAll('label.form-item-label');
+    expect(labels.map((label) => label.text())).toEqual(['用户名', '备注']);
+    for (const label of labels) {
+      expect(label.classes()).toContain("before:content-['*']");
+    }
+  });
+
   it('输入触发 update:value 并同步 getFieldsValue', async () => {
     const wrapper = mountForm([
       { field: 'username', label: '用户名', component: 'Input' },
@@ -82,7 +120,8 @@ describe('BasicForm', () => {
     await flushPromises();
     const instance = getInstance(wrapper);
     await expect(instance.validate()).rejects.toMatchObject({
-      errorFields: [{ name: 'username', errors: ['该项为必填项'] }],
+      errorFields: [{ errors: ['该项为必填项'], name: ['username'] }],
+      message: '该项为必填项',
     });
     await vi.waitFor(() => {
       expect(wrapper.find('[data-error]').text()).toBe('该项为必填项');

@@ -1,20 +1,22 @@
 <script setup lang="ts">
+import type { TreeKey } from '@antdv/common-ui';
 import type {
   FetchParams,
   Recordable,
   TableActionType,
-} from '~/components/business/Table/types';
+} from '@antdv/table-ui';
 
 import type { TreeDataNode, TreeTableProps } from './types';
 
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
+import { Tree } from '@antdv/common-ui';
 import { Scrollbar } from '@antdv/scrollbar-ui';
+import { Input } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
+import { BasicTable } from '@antdv/table-ui';
 import { Icon } from '@iconify/vue';
 import { useDebounceFn, useEventListener } from '@vueuse/core';
-import { Input as AInput, Tree } from 'antdv-next';
-import { BasicTable } from '~/components/business/Table';
 
 const props = withDefaults(defineProps<TreeTableProps>(), {
   treeTitle: '目录',
@@ -103,11 +105,15 @@ const debouncedSearch = useDebounceFn((val: string) => {
   );
 }, 300);
 
+// shadcn Input 走 v-model，不再提供 @change/allow-clear，这里用 watch 驱动防抖搜索
+const treeSearchText = ref('');
+watch(treeSearchText, (val) => debouncedSearch(val));
+
 async function handleTreeSelect(
-  _selectedKeys: unknown[],
-  info: { node: { key: string } },
+  _selectedKeys: TreeKey[],
+  info: { node: Record<string, any>; selected?: boolean },
 ) {
-  const key = info.node?.key;
+  const key = info.node?.key as string;
   if (!key) return;
   selectedKey.value = key;
   currentTreeKey.value = key;
@@ -217,15 +223,18 @@ const nothingSelectedClassName = cn('text-sm text-gray-400 dark:text-gray-500');
       <div :class="treeBodyClassName">
         <Scrollbar root-class="h-full">
           <div v-if="showSearch" :class="treeSearchClassName">
-            <AInput
-              :placeholder="treeSearchPlaceholder"
-              allow-clear
-              @change="(e: any) => debouncedSearch(e.target.value)"
-            >
-              <template #prefix>
-                <Icon icon="carbon:search" class="text-gray-400" />
-              </template>
-            </AInput>
+            <div class="relative">
+              <span
+                class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400"
+              >
+                <Icon icon="carbon:search" />
+              </span>
+              <Input
+                v-model="treeSearchText"
+                :placeholder="treeSearchPlaceholder"
+                class="pl-8"
+              />
+            </div>
           </div>
 
           <Tree
@@ -236,7 +245,7 @@ const nothingSelectedClassName = cn('text-sm text-gray-400 dark:text-gray-500');
             :field-names="{ key: 'key', title: 'title', children: 'children' }"
             block-node
             @select="handleTreeSelect"
-            @expand="(keys: string[]) => (expandedKeys = keys)"
+            @expand="(keys: TreeKey[]) => (expandedKeys = keys.map((k) => String(k)))"
           />
 
           <div v-else :class="emptyClassName">

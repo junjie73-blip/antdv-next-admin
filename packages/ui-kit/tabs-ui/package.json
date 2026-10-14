@@ -31,7 +31,7 @@
     "vue": "catalog:"
   },
   "devDependencies": {
-    "@antdv/styles": "workspace:*",
+    "@antdv/design": "workspace:*",
     "@antdv/tsconfig": "workspace:*",
     "@types/sortablejs": "catalog:",
     "@vitejs/plugin-vue": "catalog:",

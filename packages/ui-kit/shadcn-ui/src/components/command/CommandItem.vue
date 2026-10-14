@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import type { ListboxItemEmits, ListboxItemProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { computed, onMounted, onUnmounted, ref } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit, useCurrentElement } from "@vueuse/core"
 import { ListboxItem, useForwardPropsEmits, useId } from "reka-ui"
-
+import { computed, onMounted, onUnmounted, ref } from "vue"
+import { cn } from '@antdv/shared/cn'
 import { useCommand, useCommandGroup } from "."
 
 const props = defineProps<ListboxItemProps & { class?: HTMLAttributes["class"] }>()
@@ -75,6 +71,6 @@ onUnmounted(() => {
       filterState.search = ''
     }"
   >
-    <slot></slot>
+    <slot />
   </ListboxItem>
 </template>

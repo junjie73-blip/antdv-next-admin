@@ -3,7 +3,7 @@ import type { ComputedRef, Ref } from 'vue';
 
 import type { FormSchema, Recordable } from '../types';
 
-import { computed, inject, unref } from 'vue';
+import { computed, inject, unref, useId } from 'vue';
 
 import { IconifyIcon } from '@antdv/icons/icon';
 import {
@@ -36,9 +36,17 @@ interface FormContext {
   formActionTypeRef: Ref<any>;
   submitAttempted?: Ref<boolean>;
   getValues: () => Recordable;
+  /** 插槽里直接读写的表单值代理（`getValues()` 是快照，写不回去） */
+  model: Recordable;
 }
 
 const props = defineProps<{ schema: FormSchema }>();
+
+/**
+ * 标签与控件的关联点：`for` 指向控件的 `id`，字段组件把这个 `id` 落在自己的
+ * `data-field-control` 节点上（`<input>` / `role=combobox` 的按钮才是可关联控件）。
+ */
+const controlId = useId();
 
 const ctx = inject<FormContext>('formContext');
 
@@ -113,9 +121,21 @@ const getRulesValue = computed(() => {
   );
 });
 
-const isRequired = computed(() =>
-  getRulesValue.value.some((r: any) => !!r.required),
+/**
+ * 星号的两条来路：`schema.required`（helper 会折成一条 required 规则，同时参与校验）
+ * 与 `itemProps.required`（只标记，不改校验，页面用它给自定义 validator 的那类字段补星号）。
+ */
+const isRequired = computed(
+  () =>
+    !!props.schema?.itemProps?.required ||
+    getRulesValue.value.some((r: any) => !!r.required),
 );
+
+/**
+ * 必填星号走伪元素：它不进标签的文本，`getByLabel` 与读屏拿到的都只有标签本身。
+ * 常量放在脚本里，模板里的 `:class="..."` 属性值容不下引号。
+ */
+const requiredMarkClass = "before:content-['*'] before:text-destructive";
 
 const getComponentInstance = computed(() => {
   if (!props.schema?.component) return null;
@@ -246,13 +266,11 @@ const displayValue = computed(() => {
     <div class="flex flex-wrap items-start gap-y-1">
       <label
         v-if="schema.label !== undefined && schema.label !== ''"
+        :for="getComponentInstance ? controlId : undefined"
         class="form-item-label flex min-h-9 shrink-0 flex-wrap items-center gap-1 pt-1 text-sm leading-none whitespace-normal"
-        :class="labelAlignClass"
+        :class="[labelAlignClass, isRequired ? requiredMarkClass : '']"
         :style="labelStyle"
       >
-        <span v-if="isRequired" class="text-destructive" aria-hidden="true">
-          *
-        </span>
         <span class="break-all">{{ schema.label }}</span>
         <span v-if="colon">:</span>
         <TooltipProvider v-if="schema.helpMessage">
@@ -279,7 +297,7 @@ const displayValue = computed(() => {
         <template v-if="schema.slot">
           <slot
             :name="schema.slot"
-            :model="ctx?.getValues()"
+            :model="ctx?.model ?? {}"
             :field="schema.field"
           ></slot>
         </template>
@@ -289,6 +307,7 @@ const displayValue = computed(() => {
             <component
               :is="getComponentInstance"
               v-bind="getComponentPropsValueComputed"
+              :id="controlId"
               :disabled="getDisabled"
               :value="field.state.value"
               @update:value="handleValueChange"

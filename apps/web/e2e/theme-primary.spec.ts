@@ -58,8 +58,9 @@ test.describe('主题色真的生效', () => {
     await signIn(page);
     await go(page, '/system/user');
 
+    // 侧栏里当前页所在子树的父级（menu-ui 的 `data-menu-state="ancestor"`）
     const selectedParent = page
-      .locator('.ant-menu-submenu-selected > .ant-menu-submenu-title')
+      .locator('[data-menu-state="ancestor"]')
       .first();
     const detailButton = linkButton(page);
     await expect(selectedParent).toBeVisible();

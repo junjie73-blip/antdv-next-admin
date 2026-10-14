@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import type { DropdownMenuSeparatorProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import {
   DropdownMenuSeparator,
 } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<DropdownMenuSeparatorProps & {
   class?: HTMLAttributes["class"]

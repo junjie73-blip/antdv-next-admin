@@ -162,8 +162,15 @@ const railProps = computed(() => ({
   tone: props.tone,
 }));
 
+/**
+ * 导航柱的显隐归蓝图（`headerNavVisible`），数据归使用方（`nav.menus`）：
+ * 只看菜单非空的话，侧边导航这类"Logo 在顶栏、菜单在左列"的形态会被顶栏那份
+ * 一级菜单多渲染一根柱 —— 同一个 `nav` 对象两处读，开关就永远对不上账。
+ */
 const navProps = computed(() =>
-  props.nav ? { ...props.nav, tone: props.tone } : undefined,
+  props.regions.headerNavVisible && props.nav
+    ? { ...props.nav, tone: props.tone }
+    : undefined,
 );
 
 const breadcrumbProps = computed(() => ({

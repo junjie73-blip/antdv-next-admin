@@ -47,14 +47,14 @@ Three decisions in `.changeset/config.json` matter: `fixed: [["@antdv/*", "@antd
 
 ## Running an antdv-next upgrade
 
-`antdv-next` appears exactly once in the catalog (`^1.6.0`) but it is a direct dependency of four packages (`composables`, `preferences`, `shared`, `types`) plus `apps/web`, so that one line moves everything. Its four satellites deserve the same attention: `@antdv-next/cssinjs`, `-icons`, `-tailwind`, `-happy-work-theme`, along with the `@iconify-json/*` sets. None of the nine `ui-kit` packages import antdv-next — forms, tables, popups, tabs, menus and layout shells were re-implemented on TanStack + shadcn-vue, so an antdv-next bump never touches them.
+`antdv-next` appears exactly once in the catalog (`^1.6.0`) but it is a direct dependency of four packages (`composables`, `preferences`, `shared`, `types`) plus `apps/web`, so that one line moves everything. Its four satellites deserve the same attention: `@antdv-next/cssinjs`, `-icons`, `-tailwind`, `-happy-work-theme`, along with the `@iconify-json/*` sets. None of the ten `ui-kit` packages import antdv-next — forms, tables, popups, tabs, menus and layout shells were re-implemented on TanStack + shadcn-vue, so an antdv-next bump never touches them.
 
 ```bash
 # 1. edit the catalog line in pnpm-workspace.yaml
 pnpm install --no-frozen-lockfile
 # 2. build the dist-published packages first (shared, composables, directives, layouts,
 #    preferences, router, types) — the app imports their dist. The source-published ones
-#    (icons, styles, the nine ui-kit packages) are read straight from src and need no build
+#    (icons, styles, the ten ui-kit packages) are read straight from src and need no build
 pnpm build
 # 3. types + unit tests (turbo runs ^build before each task)
 pnpm check:type

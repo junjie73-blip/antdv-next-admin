@@ -1,15 +1,11 @@
 <script setup lang="ts">
 import type { PaginationNextProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
 import type { ButtonVariants } from '../button'
-
-import { cn } from '@antdv/shared/cn'
 import { ChevronRightIcon } from "@lucide/vue"
 import { reactiveOmit } from "@vueuse/core"
 import { PaginationNext, useForwardProps } from "reka-ui"
-
+import { cn } from '@antdv/shared/cn'
 import { buttonVariants } from '../button'
 
 const props = withDefaults(defineProps<PaginationNextProps & {

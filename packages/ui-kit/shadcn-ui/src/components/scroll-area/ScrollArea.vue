@@ -1,25 +1,24 @@
 <script setup lang="ts">
 import type { ScrollAreaRootProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import {
   ScrollAreaCorner,
   ScrollAreaRoot,
   ScrollAreaViewport,
 } from "reka-ui"
-
+import { cn } from '@antdv/shared/cn'
 import ScrollBar from "./ScrollBar.vue"
 
 const props = defineProps<ScrollAreaRootProps & {
   class?: HTMLAttributes["class"]
+  scrollbarClass?: HTMLAttributes["class"]
+  thumbClass?: HTMLAttributes["class"]
   viewportClass?: HTMLAttributes["class"]
   viewportStyle?: HTMLAttributes["style"]
 }>()
 
-const delegatedProps = reactiveOmit(props, "class", "viewportClass", "viewportStyle")
+const delegatedProps = reactiveOmit(props, "class", "scrollbarClass", "thumbClass", "viewportClass", "viewportStyle")
 </script>
 
 <template>
@@ -36,10 +35,10 @@ const delegatedProps = reactiveOmit(props, "class", "viewportClass", "viewportSt
       )"
       :style="props.viewportStyle"
     >
-      <slot></slot>
+      <slot />
     </ScrollAreaViewport>
-    <ScrollBar />
-    <ScrollBar orientation="horizontal" />
+    <ScrollBar :class="props.scrollbarClass" :thumb-class="props.thumbClass" />
+    <ScrollBar orientation="horizontal" :class="props.scrollbarClass" :thumb-class="props.thumbClass" />
     <ScrollAreaCorner />
   </ScrollAreaRoot>
 </template>

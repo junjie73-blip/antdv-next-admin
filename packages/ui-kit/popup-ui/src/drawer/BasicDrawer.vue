@@ -28,6 +28,7 @@ import { Check, X } from '@lucide/vue';
 import { useTimeoutFn } from '@vueuse/core';
 
 import { resolvePopupButton } from '../shared/button';
+import { CLOSED_PANEL_INERT } from '../shared/presence';
 
 const props = withDefaults(defineProps<DrawerProps>(), {
   placement: 'right',
@@ -42,6 +43,7 @@ const props = withDefaults(defineProps<DrawerProps>(), {
   closable: true,
   mask: true,
   destroyOnHidden: true,
+  bodyScroll: true,
   zIndex: 1000,
 });
 
@@ -101,9 +103,10 @@ const contentStyle = computed(() => ({
 const contentClass = computed(() =>
   cn(
     'basic-drawer flex flex-col gap-0 [&>button]:hidden!',
-    isHorizontal.value
-      ? 'w-auto! max-w-none!'
-      : 'h-auto! sm:max-w-none',
+    // 尺寸靠 contentStyle 的内联 width/height，这里只解开 SheetContent 的 max-w 上限；
+    // 别再叠 `w-auto!`，important 会反过来把内联宽度顶掉
+    isHorizontal.value && 'max-w-none!',
+    CLOSED_PANEL_INERT,
     merged.value.wrapClassName,
   ),
 );
@@ -229,6 +232,7 @@ const cancelBtn = computed(() =>
     >
       <!-- 自定义头部 -->
       <div
+        v-if="!slots.header"
         :id="drawerTitleId"
         :class="
           cn(
@@ -261,6 +265,7 @@ const cancelBtn = computed(() =>
           </button>
         </div>
       </div>
+      <slot v-else name="header"></slot>
 
       <!-- 内容区域 -->
       <SheetDescription :class="cn('sr-only')">
@@ -299,10 +304,11 @@ const cancelBtn = computed(() =>
           </div>
         </div>
 
-        <!-- 内容滚动区（shadcn ScrollArea 自绘滚动条） -->
-        <ScrollArea class="h-full">
+        <!-- 内容滚动区（shadcn ScrollArea 自绘滚动条）；调用方自带滚动时这层要让位 -->
+        <ScrollArea v-if="merged.bodyScroll" class="h-full">
           <slot></slot>
         </ScrollArea>
+        <slot v-else></slot>
       </div>
 
       <!-- 底部按钮 -->

@@ -52,27 +52,31 @@
 
 ## 案例 C：删一个 workspace 包
 
-先给结论：`packages/` 里没有一个可以只删目录了事。下表是 `grep -rl "@antdv/<pkg>" apps/web/src` 的真实文件数，以及包与包之间的边（只算源码里的 import，注释与文档字符串不算）：
+先给结论：`packages/` 里没有一个可以只删目录了事。下表是 `grep -rl "@antdv/<pkg>" apps/web/src | wc -l` 的真实文件数（本轮重构后重跑过一遍），以及包与包之间的边（只算源码里的 import，注释与文档字符串不算）：
 
 | 包 | apps/web 引用文件数 | 其他引用者 | 删它的真实成本 |
 | --- | --- | --- | --- |
-| `@antdv/shared` | 124 | `composables` / `layouts` / `preferences` / `icons` / `loading-ui` / `popup-ui` / `table-ui` … 都 import 它（`cn()` 是全仓唯一的类名合并入口） | 基本等于重写应用 |
+| `@antdv/shared` | 108 | `composables` / `layouts` / `preferences` / `icons` / `common-ui` / `loading-ui` / `popup-ui` / `table-ui` … 都 import 它（`cn()` 是全仓唯一的类名合并入口） | 基本等于重写应用 |
 | `@antdv/types` | 31 | `shared` / `layouts` / `preferences` / `composables` + `apps/backend-mock` | 类型面全域铺开 |
-| `@antdv/scrollbar-ui` | 24 | `icons`（`IconPicker` 的滚动区）与 `popup-ui` / `table-ui` / `menu-ui` 等 ui-kit 包 | 弹窗、抽屉、菜单、表格的内容区全都没有滚动条实现 |
-| `@antdv/icons` | 10 | `internal/vite-config` 的 iconify 离线列表只供数据，不 import 这个包；组件全靠各文件显式 import | 图标选择器与 `IconifyIcon` / `SvgIcon` 一起没 |
+| `@antdv/shadcn-ui` | 63 | `common-ui` / `icons` / `loading-ui` / `popup-ui` / `table-ui` / `form-ui` / `menu-ui` / `tabs-ui` 的实现底座 | 上面这批包一起塌，等于没有 UI 层 |
+| `@antdv/common-ui` | 55 | 只被应用引用；它自己依赖 `icons` / `scrollbar-ui` / `shadcn-ui` / `shared` | 卡片、标签、步骤条、上传、穿梭框、骨架屏这类展示件一起没；`@antdv/design` 的 `index.css` 里还有一条 `@source '../../ui-kit/common-ui/src'`，删包要同步删这一行 |
+| `@antdv/popup-ui` | 49 | 应用侧的 `BasicModal` / `BasicDrawer` / `useModal` / `useDrawer` / `confirm` / `message` **全部来自这个包**（`apps/web/src/components/business/**` 里已经没有这套包装器） | 弹窗、抽屉、命令式确认与全局提示一起断，见[弹窗与抽屉](/components/modal-drawer) |
+| `@antdv/table-ui` | 27 | 应用侧 `BasicTable` / `useTable` / `BasicColumn` 来自它 | 列表页全都没表格 |
+| `@antdv/form-ui` | 22 | 应用侧 `BasicForm` / `useForm` / `FormSchema` 来自它 | 搜索表单与表单页一起断 |
+| `@antdv/scrollbar-ui` | 20 | `icons`（`IconPicker` 的滚动区）、`common-ui`（`ErrorBoundary` 的调用栈区）与 `popup-ui` / `table-ui` / `menu-ui` 等 ui-kit 包 | 弹窗、抽屉、菜单、表格的内容区全都没有滚动条实现 |
 | `@antdv/layout-ui` | 10 | `apps/web/src/layouts/index.vue` 的区域外壳；`layouts` 只提供蓝图与状态源 | 七种布局形态的 DOM 在这一层，删了壳就没地方挂 |
 | `@antdv/composables` | 7 | 仅应用引用 | 相对可删，但 echarts/sse/websocket 是三个子入口 |
 | `@antdv/layouts` | 7 | 没有其他包 import 它；应用侧 `src/layouts/index.vue` 的外壳来自它 | 布局与菜单/面包屑/标签页一起没 |
+| `@antdv/loading-ui` | 6 | `main.ts` 注册 `v-loading`；示例页与若干容器用它 | 指令 + `Loading` + `createLoading` 三件一起断，见[加载系统](/guide/in-depth/loading) |
 | `@antdv/preferences` | 5 | 没有其他包 import 它；`apps/web/src/settings/index.ts` 是它的适配层 | 主题链路断，见[主题与偏好设置](/guide/in-depth/theme) |
 | `@antdv/tabs-ui` | 5 | 应用侧 `useTabs` 与布局壳 | 标签栏、右键菜单、放大收起一起没 |
-| `@antdv/loading-ui` | 3 | `main.ts` 注册 `v-loading`；示例页与若干容器用它 | 指令 + `Loading` + `createLoading` 三件一起断，见[加载系统](/guide/in-depth/loading) |
 | `@antdv/menu-ui` | 2 | 布局壳内的菜单树 | 侧栏/图标栏的菜单渲染断 |
-| `@antdv/directives` | 2 | `apps/web/src/directives/index.ts` 注入判定函数；模板里 `v-permission` / `v-lazy` 共 7 处 | 可删，权限降级样式在 `@antdv/styles/permission.css` |
+| `@antdv/icons` | 2 | 应用侧只直接用 `IconPicker`；包内组件（含 `common-ui`）大量 import `@antdv/icons/icon`。`internal/vite-config` 的 iconify 离线列表只供数据，不 import 这个包 | 图标选择器与 `IconifyIcon` / `SvgIcon` 一起没 |
+| `@antdv/directives` | 2 | `apps/web/src/directives/index.ts` 注入判定函数；模板里 `v-permission` / `v-lazy` 共 7 处 | 可删，权限降级样式在 `@antdv/design/permission.css` |
 | `@antdv/router` | 1 | 守卫实现全在包里，`apps/web/src/router/guards/index.ts` 只做依赖注入 | 不是删一行依赖：403 裁剪、进度条、标题都要在应用里重写 |
-| `@antdv/styles` | 1（`main.ts`） | 没有其他包 import 它；`preferences/css-vars.ts` 与指令的禁用态只是按它的口径写 | Tailwind 层顺序一丢，覆盖组件库样式就要靠 `!important` |
-| `@antdv/shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` | 0（应用侧还没接） | 应用目前用的仍是自己 `src/components/business/**` 里的那套 `BasicForm` / `BasicTable` / `BasicModal`；这四个包先服务于 `icons` / `loading-ui` 等包的实现底座 | 现在删 `shadcn-ui` 会连带打死上面几个包；四个封装包暂时"可删但不该删"，等应用侧切过去再谈 |
+| `@antdv/design` | 1（`main.ts`） | 没有其他包 import 它；`preferences/css-vars.ts` 与指令的禁用态只是按它的口径写 | Tailwind 层顺序一丢，覆盖组件库样式就要靠 `!important` |
 
-两个操作细节：除源码发布的那批（`icons` / `styles` / `ui-kit` 九个）之外，每个包都产出 `dist`（`main: ./dist/...`，`build: tsdown`）—— 改 dist 包要 `pnpm --filter <pkg> build` **并重启 dev**，改源码包保存即热更；另外 `@antdv/router` 的 store 刻意不 import router（`route.ts` 的注释：`router → guards → store → router` 会闭环），裁剪能力靠装配处注入，这就是"看着像装饰、其实拆不动"的那类耦合。
+两个操作细节：除源码发布的那批（`icons` / `design` / `ui-kit` 十个）之外，每个包都产出 `dist`（`main: ./dist/...`，`build: tsdown`）—— 改 dist 包要 `pnpm --filter <pkg> build` **并重启 dev**，改源码包保存即热更；另外 `@antdv/router` 的 store 刻意不 import router（`route.ts` 的注释：`router → guards → store → router` 会闭环），裁剪能力靠装配处注入，这就是"看着像装饰、其实拆不动"的那类耦合。
 
 ## 案例 D：删一个应用依赖
 

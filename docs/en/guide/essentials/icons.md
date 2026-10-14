@@ -65,7 +65,7 @@ The motivation is recorded in the file header: before one sweep, the repository 
 
 How to run it: `pnpm test:unit` (whole repository through turbo) or `pnpm --filter @antdv/web test:unit` (app only, which includes this file).
 
-::: warning Class-based icon names do not work in this repository `views/system/micro-app/index.vue` and `components/business/MicroAppContainer.vue` still contain UnoCSS-style `class="i-carbon-search"` / `i-carbon-application` markup. There is no UnoCSS here and no plugin compiling `i-*` into CSS (styling is Tailwind v4, see [Styles](/en/guide/essentials/styles)), so those spans render **empty**. Write the component form: `<Icon icon="carbon:search" />`. :::
+::: warning Class-based icon names do not work in this repository `views/system/micro-app/index.vue` and `components/business/MicroAppContainer.vue` still contain UnoCSS-style `class="i-carbon-search"` / `i-carbon-application` markup. There is no UnoCSS here and no plugin compiling `i-*` into CSS (styling is Tailwind v4, see [Design tokens and global styles](/en/guide/essentials/design)), so those spans render **empty**. Write the component form: `<Icon icon="carbon:search" />`. :::
 
 ## Where icon names come from
 
@@ -80,6 +80,6 @@ Icons used _inside_ antdv-next components (form validation, the select arrow, an
 
 ## Related pages
 
-- The styling pipeline and `cn()`: [Styles](/en/guide/essentials/styles)
+- The styling pipeline and `cn()`: [Design tokens and global styles](/en/guide/essentials/design)
 - Full semantics of menu and `meta` fields: [Routes and menu](/en/guide/essentials/route)
 - What the CI gate runs: [Testing strategy](/en/guide/project/testing)

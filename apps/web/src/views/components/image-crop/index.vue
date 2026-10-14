@@ -2,8 +2,9 @@
 import { computed, ref, useTemplateRef } from 'vue';
 import { VueCropper } from 'vue-cropper';
 
+import { Card } from '@antdv/common-ui';
+import { Slider, Switch } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
-import { Card as ACard, Slider as ASlider, Switch as ASwitch } from 'antdv-next';
 import { isString } from 'es-toolkit';
 
 type AspectRatioKey = '1:1' | '4:3' | '16:9' | 'free';
@@ -133,6 +134,11 @@ function handleZoomChange(value: number) {
   scaleValue.value = value;
 }
 
+/** reka 的 Slider 值恒为数组，这里只有一个把手 */
+function handleScaleInput(value: number[]) {
+  handleZoomChange(value[0] ?? 0);
+}
+
 function handleRotateLeft() {
   cropperRef.value?.rotateLeft();
 }
@@ -170,7 +176,7 @@ function handleRealTime(data: { w: number; h: number; url: string }) {
 
 <template>
   <div :class="containerClassName">
-    <ACard variant="borderless" title="图片裁剪">
+    <Card variant="borderless" title="图片裁剪">
       <p :class="cn('mb-4 text-gray-600 dark:text-gray-400')">
         上传图片后，使用下方工具进行裁剪操作，支持旋转、缩放、比例锁定等功能
       </p>
@@ -235,12 +241,12 @@ function handleRealTime(data: { w: number; h: number; url: string }) {
             <div :class="controlCardTitleClassName">缩放</div>
             <div :class="sliderRowClassName">
               <span :class="sliderLabelClassName">缩小</span>
-              <ASlider
+              <Slider
                 :class="sliderClassName"
                 :min="-100"
                 :max="100"
-                :value="scaleValue"
-                @change="handleZoomChange"
+                :model-value="[scaleValue]"
+                @update:model-value="handleScaleInput"
               />
               <span :class="sliderValueClassName">{{ scaleValue > 0 ? '+' : '' }}{{ scaleValue }}</span>
             </div>
@@ -278,7 +284,10 @@ function handleRealTime(data: { w: number; h: number; url: string }) {
             "
           >
             <span :class="cn('text-sm text-gray-600 dark:text-gray-400')">实时预览</span>
-            <ASwitch v-model:checked="previewVisible" />
+            <Switch
+              :model-value="previewVisible"
+              @update:model-value="(v: boolean) => (previewVisible = v)"
+            />
           </div>
 
           <div :class="dividerClassName"></div>
@@ -306,6 +315,6 @@ function handleRealTime(data: { w: number; h: number; url: string }) {
           </div>
         </div>
       </div>
-    </ACard>
+    </Card>
   </div>
 </template>

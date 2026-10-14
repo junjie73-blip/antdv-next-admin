@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import type { InputGroupButtonVariants } from "."
 import type { ButtonVariants } from '../button'
-
 import { cn } from '@antdv/shared/cn'
-
-import { inputGroupButtonVariants } from "."
 import { Button } from '../button'
+import { inputGroupButtonVariants } from "."
 
 interface InputGroupButtonProps {
   variant?: ButtonVariants["variant"]
@@ -27,6 +24,6 @@ const props = withDefaults(defineProps<InputGroupButtonProps>(), {
     :variant="props.variant"
     :class="cn(inputGroupButtonVariants({ size: props.size }), props.class)"
   >
-    <slot></slot>
+    <slot />
   </Button>
 </template>

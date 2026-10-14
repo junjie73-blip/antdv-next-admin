@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import { computed, onMounted, ref } from "vue"
-
 import { cn } from '@antdv/shared/cn'
-
 import { useChart } from "."
 
 const props = withDefaults(defineProps<{
@@ -55,7 +52,7 @@ onMounted(() => {
         :style="{
           backgroundColor: itemConfig?.color,
         }"
-      ></div>
+      />
 
       {{ itemConfig.label }}
     </div>

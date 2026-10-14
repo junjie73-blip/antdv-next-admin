@@ -82,7 +82,28 @@ export async function runRule(
     );
   }
 
-  // 非必填且为空 → 跳过后续规则（antdv 语义）
+  // 自定义 validator 先跑：antd 的 async-validator 对空值一样会执行它，
+  // 页面里「必须选中某个值」「两次输入要一致」这类规则全靠这条路径拦下来。
+  if (typeof rule.validator === 'function') {
+    try {
+      let callbackError: any;
+      const ret = rule.validator(rule, value, (err?: any) => {
+        callbackError = err;
+      });
+      if (ret && typeof ret.then === 'function') {
+        await ret;
+      }
+      if (callbackError) {
+        return String(
+          callbackError?.message ?? callbackError ?? rule.message ?? '校验失败',
+        );
+      }
+    } catch (error: any) {
+      return String(error?.message ?? error ?? rule.message ?? '校验失败');
+    }
+  }
+
+  // 非必填且为空 → 跳过内置规则（antdv 语义），上面的 validator 不受这条影响
   if (isEmptyValue(value)) return undefined;
 
   if (rule.type && !typeMatches(rule.type, value)) {
@@ -121,27 +142,6 @@ export async function runRule(
       len > rule.max
     ) {
       return rule.message || `不得多于 ${rule.max} 个字符`;
-    }
-  }
-
-  if (typeof rule.validator === 'function') {
-    try {
-      let callbackError: any;
-      const ret = rule.validator(rule, value, (err?: any) => {
-        callbackError = err;
-      });
-      if (ret && typeof ret.then === 'function') {
-        await ret;
-      }
-      if (callbackError) {
-        return String(
-          callbackError?.message ?? callbackError ?? rule.message ?? '校验失败',
-        );
-      }
-    } catch (error: any) {
-      return String(
-        error?.message ?? error ?? rule.message ?? '校验失败',
-      );
     }
   }
 

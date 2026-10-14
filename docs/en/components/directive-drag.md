@@ -48,7 +48,7 @@ The only `app.directive(...)` calls in the entire repository are these five, at 
 
 ### What happens to the DOM when access is denied
 
-`applyPermissionState()` (`utils.ts:176-209`): the default hiding mode sets `display: none` plus the `disabled` attribute, `aria-disabled`, and the class `permission-disabled`; `.disabled` keeps the element visible and only disables it. **Nodes are never removed** — deleting a node leaves Vue's patch without an anchor and corrupts sibling diffing (comment at `utils.ts:172-174`). The degraded style is `packages/styles/src/permission.css:12-17` (`cursor-not-allowed opacity-50 saturate-50 select-none` + `pointer-events: none`, because non-form elements ignore the `disabled` attribute), with an escape hatch class `permission-disabled--passthrough` (`permission.css:21-23`) for "looks degraded but still interactive". The stylesheet is pulled in by `packages/styles/src/index.css:26`.
+`applyPermissionState()` (`utils.ts:176-209`): the default hiding mode sets `display: none` plus the `disabled` attribute, `aria-disabled`, and the class `permission-disabled`; `.disabled` keeps the element visible and only disables it. **Nodes are never removed** — deleting a node leaves Vue's patch without an anchor and corrupts sibling diffing (comment at `utils.ts:172-174`). The degraded style is `packages/design/src/permission.css:12-17` (`cursor-not-allowed opacity-50 saturate-50 select-none` + `pointer-events: none`, because non-form elements ignore the `disabled` attribute), with an escape hatch class `permission-disabled--passthrough` (`permission.css:21-23`) for "looks degraded but still interactive". The stylesheet is pulled in by `packages/design/src/index.css:26`.
 
 ::: tip The router layer reads none of this The `RouteMeta` type declares `roles?: string[]` / `permissions?: string[]` (`packages/types/src/app-router.ts:9-10`), but **nothing anywhere in `apps/web/src/router/**` or `packages/router/src/**` reads them** — route admission is actually driven by menu data ("menu is the permission"; `apps/web/src/stores/modules/route.ts:181, 210` only handles `meta.requiresAuth`). `v-permission` governs only the element layer; the full three-layer picture is in [Access control](/en/guide/in-depth/access). :::
 
@@ -155,5 +155,5 @@ Open `http://localhost:6080/#/components/drag-layout`. Per card: on the first, d
 - [Component Examples](/en/components/) — chapter overview and how to start the services
 - [Table](/en/components/table) — `dragSort` row dragging (a separate path from this page's VueDraggable)
 - [Permissions, directives and cursors](/en/guide/in-depth/access) — the three permission layers: route, menu, element
-- [Styles and icons](/en/guide/essentials/styles) — where `permission-disabled` and other degraded styles live
+- [Design tokens and global styles](/en/guide/essentials/design) — where `permission-disabled` and other degraded styles live
 - [Directory structure](/en/guide/project/dir) — where `packages/directives` / `packages/shared` sit in the layout

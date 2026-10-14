@@ -3,15 +3,40 @@ import type { Ref, VNode } from 'vue';
 
 import { h, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue';
 
+import {
+  Card,
+  EmptyState,
+  ErrorBoundary,
+  PageSkeleton,
+  Space,
+  StatusTag,
+  TableSkeleton,
+} from '@antdv/common-ui';
 import { createLoading, Loading, useLoading } from '@antdv/loading-ui';
+import {
+  Button,
+  Checkbox,
+  Input,
+  RadioGroup,
+  RadioGroupItem,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Skeleton,
+  Spinner,
+  Switch,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
-import { Button as AButton, Card as ACard, Checkbox as ACheckbox, Input as AInput, InputNumber as AInputNumber, Radio as ARadio, RadioGroup as ARadioGroup, Select as ASelect, Skeleton as ASkeleton, SkeletonButton as ASkeletonButton, SkeletonImage as ASkeletonImage, Space as ASpace, Spin as ASpin, Switch as ASwitch, Table as ATable } from 'antdv-next';
-import EmptyState from '~/components/common/EmptyState.vue';
-import ErrorBoundary from '~/components/common/ErrorBoundary.vue';
+import { Icon } from '@iconify/vue';
 import PageLoading from '~/components/common/Loading/PageLoading.vue';
-import PageSkeleton from '~/components/common/Skeleton/PageSkeleton.vue';
-import TableSkeleton from '~/components/common/Skeleton/TableSkeleton.vue';
-import StatusTag from '~/components/common/StatusTag.vue';
 
 import ErrorProneContent from './components/ErrorProneContent.vue';
 
@@ -30,6 +55,13 @@ const demoBoxClassName = cn(
 );
 const frameClassName = cn(
   'relative overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700',
+);
+
+/** 旧版「按钮式单选」的观感：RadioGroupItem 藏进 sr-only，label 本身画成按钮段 */
+const radioGroupClassName = cn('flex flex-wrap');
+const radioOptionClassName = cn(
+  'relative m-0 -ms-px flex min-h-9 cursor-pointer items-center justify-center border border-input bg-transparent px-3 py-1.5 text-sm first:ms-0 first:rounded-s-md last:rounded-e-md',
+  'has-[[data-state=checked]]:z-10 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary has-[[data-state=checked]]:font-medium has-[[data-state=checked]]:[&>span]:text-primary-foreground',
 );
 
 /* ============================================================
@@ -83,7 +115,7 @@ const loadedRows = [
 ];
 
 /**
- * 开关的 `checked` 就是骨架屏的显示状态：
+ * 开关的 `model-value` 就是骨架屏的显示状态：
  * 打开 → 显示骨架并起一个真实计时，到点自动翻回真实内容；
  * 中途关掉 → 取消计时（否则上一次的延时会在你重新打开后把它提前掐掉），立刻交还内容。
  */
@@ -125,6 +157,15 @@ const tableRows = [
   { key: '1', code: 'JOB-2048', name: '每日营收汇总', count: 128 },
   { key: '2', code: 'JOB-2049', name: '订单索引重建', count: 512 },
   { key: '3', code: 'JOB-2050', name: '短信网关探活', count: 32 },
+];
+
+const skeletonTableColumns: {
+  dataIndex: 'code' | 'count' | 'name';
+  title: string;
+}[] = [
+  { dataIndex: 'code', title: '任务编号' },
+  { dataIndex: 'name', title: '任务名称' },
+  { dataIndex: 'count', title: '处理条数' },
 ];
 
 /** 进页面就补一次真实加载，让"骨架 → 内容"的切换第一眼就能看到 */
@@ -262,6 +303,14 @@ const jobRows = [
   { key: '7', name: '试验中的新状态', status: 'draft' },
 ];
 
+const statusTableColumns: {
+  dataIndex: 'name' | 'status';
+  title: string;
+}[] = [
+  { dataIndex: 'name', title: '任务' },
+  { dataIndex: 'status', title: '状态' },
+];
+
 /** 后端枚举直出（'0' ~ '3'）也走同一张映射表 */
 const enumCodes = ['0', '1', '2', '3'] as const;
 
@@ -394,7 +443,8 @@ function triggerUseLoading() {
 
 function triggerBtnLoading(index: number) {
   const refs = [btnLoading1, btnLoading2, btnLoading3];
-  simulateAsync(refs[index], 2000 + index * 500);
+  const target = refs[index];
+  if (target) simulateAsync(target, 2000 + index * 500);
 }
 
 function triggerGlobalLoading() {
@@ -418,7 +468,7 @@ function triggerGlobalLoading() {
 
 <template>
   <div :class="containerClassName">
-    <ACard variant="borderless" title="骨架屏（PageSkeleton / TableSkeleton）">
+    <Card variant="borderless" title="骨架屏（PageSkeleton / TableSkeleton）">
       <div :class="cn('space-y-8')">
         <div>
           <h4 :class="sectionTitleClassName">
@@ -432,32 +482,50 @@ function triggerGlobalLoading() {
             的真实计时，到点自动换成内容；中途关掉立刻交还。
           </p>
           <div class="flex flex-wrap items-center gap-4">
-            <ASwitch
-              :checked="pageSkeletonLoading"
-              checked-children="加载中"
-              un-checked-children="已完成"
-              @change="togglePageSkeleton"
+            <Switch
+              :model-value="pageSkeletonLoading"
+              @update:model-value="(v: any) => togglePageSkeleton(v === true)"
             />
-            <ARadioGroup
-              v-model:value="skeletonVariant"
-              option-type="button"
-              size="small"
+            <span class="text-sm">{{ pageSkeletonLoading ? '加载中' : '已完成' }}</span>
+            <RadioGroup
+              :model-value="skeletonVariant"
+              :class="radioGroupClassName"
+              @update:model-value="(v: any) => (skeletonVariant = v as SkeletonVariant)"
             >
-              <ARadio value="page">page</ARadio>
-              <ARadio value="card">card</ARadio>
-              <ARadio value="form">form</ARadio>
-              <ARadio value="detail">detail</ARadio>
-            </ARadioGroup>
-            <AInputNumber
-              v-model:value="skeletonRows"
+              <label :class="radioOptionClassName">
+                <RadioGroupItem value="page" class="sr-only" />
+                <span>page</span>
+              </label>
+              <label :class="radioOptionClassName">
+                <RadioGroupItem value="card" class="sr-only" />
+                <span>card</span>
+              </label>
+              <label :class="radioOptionClassName">
+                <RadioGroupItem value="form" class="sr-only" />
+                <span>form</span>
+              </label>
+              <label :class="radioOptionClassName">
+                <RadioGroupItem value="detail" class="sr-only" />
+                <span>detail</span>
+              </label>
+            </RadioGroup>
+            <Input
+              class="w-[110px]"
               :max="10"
               :min="1"
-              size="small"
-              style="width: 110px"
+              :model-value="String(skeletonRows)"
+              type="number"
+              @update:model-value="(v: any) => (skeletonRows = Number(v) || 0)"
             />
-            <ACheckbox v-model:checked="skeletonShowSidebar">
+            <label class="flex cursor-pointer items-center gap-2 text-sm">
+              <Checkbox
+                :model-value="skeletonShowSidebar"
+                @update:model-value="
+                  (v: any) => (skeletonShowSidebar = v === true)
+                "
+              />
               带侧边栏
-            </ACheckbox>
+            </label>
             <span :class="hintClassName">rows 与侧边栏只在 page 变体生效</span>
           </div>
           <p v-if="skeletonFinishedAt" :class="cn(hintClassName, 'mt-2')">
@@ -495,9 +563,9 @@ function triggerGlobalLoading() {
             表格骨架屏（列数/行数/表头/操作列/分页都可关）
           </h4>
           <div class="mb-3 flex flex-wrap items-center gap-3">
-            <AButton type="primary" @click="reloadTableSkeleton">
+            <Button @click="reloadTableSkeleton">
               重新加载表格
-            </AButton>
+            </Button>
             <span :class="hintClassName">
               真实项目里把它放进
               <code :class="codeClassName">&lt;BasicTable&gt;</code>
@@ -512,23 +580,34 @@ function triggerGlobalLoading() {
             :show-actions="true"
             :show-pagination="false"
           >
-            <ATable
-              :data-source="tableRows"
-              :pagination="false"
-              :columns="[
-                { dataIndex: 'code', title: '任务编号' },
-                { dataIndex: 'name', title: '任务名称' },
-                { dataIndex: 'count', title: '处理条数' },
-              ]"
-              :virtual="false"
-              size="small"
-            />
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead
+                    v-for="col in skeletonTableColumns"
+                    :key="col.dataIndex"
+                  >
+                    {{ col.title }}
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow v-for="row in tableRows" :key="row.key">
+                  <TableCell
+                    v-for="col in skeletonTableColumns"
+                    :key="col.dataIndex"
+                  >
+                    {{ row[col.dataIndex] }}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </TableSkeleton>
         </div>
       </div>
-    </ACard>
+    </Card>
 
-    <ACard variant="borderless" title="空状态（EmptyState）">
+    <Card variant="borderless" title="空状态（EmptyState）">
       <div :class="cn('space-y-8')">
         <div>
           <h4 :class="sectionTitleClassName">
@@ -558,9 +637,9 @@ function triggerGlobalLoading() {
                 description="换个时间范围或状态再试一次"
                 icon="ant-design:filter-outlined"
               >
-                <AButton type="primary" class="mt-4" @click="addNotice">
+                <Button class="mt-4" @click="addNotice">
                   新建一条公告
-                </AButton>
+                </Button>
               </EmptyState>
             </div>
           </div>
@@ -586,32 +665,31 @@ function triggerGlobalLoading() {
               title="公告已清空"
               description="列表长度为 0 时组件接管整块区域，不需要页面再写 v-if 兜底文案"
             >
-              <AButton class="mt-4" type="primary" @click="restoreNoticeList">
+              <Button class="mt-4" @click="restoreNoticeList">
                 恢复示例数据
-              </AButton>
+              </Button>
             </EmptyState>
           </div>
           <div class="mt-3 flex gap-3">
-            <AButton
+            <Button
               :disabled="noticeList.length === 0"
-              status="danger"
+              variant="destructive"
               @click="clearNoticeList"
             >
               清空列表
-            </AButton>
-            <AButton
+            </Button>
+            <Button
               :disabled="noticeList.length > 0"
-              type="primary"
               @click="restoreNoticeList"
             >
               恢复数据
-            </AButton>
+            </Button>
           </div>
         </div>
       </div>
-    </ACard>
+    </Card>
 
-    <ACard variant="borderless" title="错误边界（ErrorBoundary）">
+    <Card variant="borderless" title="错误边界（ErrorBoundary）">
       <div :class="cn('space-y-8')">
         <div>
           <h4 :class="sectionTitleClassName">
@@ -628,16 +706,15 @@ function triggerGlobalLoading() {
             所以重试是真的恢复到内容，而不是原地再崩一次。
           </p>
           <div class="mb-3 flex flex-wrap items-center gap-4">
-            <ASwitch
-              v-model:checked="boundaryFail"
-              checked-children="抛错"
-              un-checked-children="正常"
-              @change="handleBoundaryChange"
+            <Switch
+              :model-value="boundaryFail"
+              @update:model-value="(v: any) => handleBoundaryChange(v === true)"
             />
-            <AButton status="danger" @click="crashChild">
+            <span class="text-sm">{{ boundaryFail ? '抛错' : '正常' }}</span>
+            <Button variant="destructive" @click="crashChild">
               模拟一次崩溃
-            </AButton>
-            <AButton @click="healChild">恢复子组件</AButton>
+            </Button>
+            <Button variant="outline" @click="healChild">恢复子组件</Button>
             <span :class="hintClassName">已重试 {{ boundaryResetCount }} 次</span>
           </div>
           <p :class="cn(hintClassName, 'mb-3 break-all')">
@@ -663,9 +740,13 @@ function triggerGlobalLoading() {
             <code :class="codeClassName">reset</code>，否则用户就被困死在兜底页。
           </p>
           <div class="mb-3 flex flex-wrap items-center gap-3">
-            <AButton status="warning" @click="crashWithCustomFallback">
+            <Button
+              class="border-amber-400 text-amber-600 hover:bg-amber-50 dark:text-amber-400"
+              variant="outline"
+              @click="crashWithCustomFallback"
+            >
               抛错（走自定义兜底）
-            </AButton>
+            </Button>
             <span :class="hintClassName">
               子组件先正常挂载，点一下才失败 —— 页面初次进入不制造无害的错误日志
             </span>
@@ -675,9 +756,9 @@ function triggerGlobalLoading() {
           </ErrorBoundary>
         </div>
       </div>
-    </ACard>
+    </Card>
 
-    <ACard variant="borderless" title="状态标签（StatusTag）">
+    <Card variant="borderless" title="状态标签（StatusTag）">
       <div :class="cn('space-y-8')">
         <div>
           <h4 :class="sectionTitleClassName">任务列表里的状态列</h4>
@@ -696,25 +777,34 @@ function triggerGlobalLoading() {
             <code :class="codeClassName">default</code>，
             所以后端新增状态时页面只是少了配色，不会白屏。
           </p>
-          <ATable
-            :columns="[
-              { dataIndex: 'name', title: '任务' },
-              { dataIndex: 'status', title: '状态' },
-            ]"
-            :data-source="jobRows"
-            :pagination="false"
-            :virtual="false"
-            size="small"
-          >
-            <template #bodyCell="{ column, record }">
-              <template v-if="column.dataIndex === 'status'">
-                <StatusTag :status="record.status" />
-                <span :class="cn(hintClassName, 'ml-2 font-mono text-xs')">{{
-                  record.status
-                }}</span>
-              </template>
-            </template>
-          </ATable>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead
+                  v-for="col in statusTableColumns"
+                  :key="col.dataIndex"
+                >
+                  {{ col.title }}
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow v-for="row in jobRows" :key="row.key">
+                <TableCell
+                  v-for="col in statusTableColumns"
+                  :key="col.dataIndex"
+                >
+                  <template v-if="col.dataIndex === 'status'">
+                    <StatusTag :status="row.status" />
+                    <span
+                      :class="cn(hintClassName, 'ml-2 font-mono text-xs')"
+                    >{{ row.status }}</span>
+                  </template>
+                  <template v-else>{{ row[col.dataIndex] }}</template>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
         </div>
 
         <div>
@@ -736,11 +826,22 @@ function triggerGlobalLoading() {
         <div>
           <h4 :class="sectionTitleClassName">换一个原始值看映射结果</h4>
           <div class="flex flex-wrap items-center gap-4">
-            <ASelect
-              v-model:value="rawStatus"
-              :options="statusOptions"
-              style="width: 220px"
-            />
+            <Select
+              v-model="rawStatus"
+            >
+              <SelectTrigger class="w-[220px]">
+                <SelectValue placeholder="选择状态" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="opt in statusOptions"
+                  :key="opt.value"
+                  :value="opt.value"
+                >
+                  {{ opt.label }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
             <StatusTag :status="rawStatus" />
             <span :class="hintClassName">
               <code :class="codeClassName">type</code>
@@ -750,52 +851,68 @@ function triggerGlobalLoading() {
           </div>
         </div>
       </div>
-    </ACard>
+    </Card>
 
-    <ACard variant="borderless" title="Spin 加载器">
+    <Card variant="borderless" title="Spin 加载器">
       <div :class="cn('space-y-8')">
         <div>
           <h4 :class="sectionTitleClassName">基础用法</h4>
           <div class="flex flex-wrap items-center gap-8">
-            <ASpin />
-            <ASpin :loading="spinLoading" description="数据加载中..." />
-            <AButton @click="spinLoading = !spinLoading">
+            <Spinner class="size-6" />
+            <div v-if="spinLoading" class="flex items-center gap-2">
+              <Spinner class="size-6" />
+              <span :class="hintClassName">数据加载中...</span>
+            </div>
+            <Button variant="outline" @click="spinLoading = !spinLoading">
               {{ spinLoading ? '停止' : '开始' }}加载
-            </AButton>
+            </Button>
           </div>
         </div>
 
         <div>
           <h4 :class="sectionTitleClassName">包裹内容</h4>
           <div class="flex flex-wrap gap-6">
-            <ASpin :loading="true" class="w-[240px]">
-              <div :class="demoBoxClassName">内容区域被 Spin 包裹</div>
-            </ASpin>
-            <ASpin :loading="spinLoading" class="w-[240px]">
+            <div class="relative w-[240px]">
+              <div :class="demoBoxClassName">内容区域被加载遮罩包裹</div>
+              <Loading :loading="true" :absolute="true" />
+            </div>
+            <div class="relative w-[240px]">
               <div
                 class="rounded-lg bg-gray-50 p-4 text-sm text-gray-600 dark:bg-gray-800 dark:text-gray-400"
               >
                 点击按钮切换加载状态
               </div>
-            </ASpin>
+              <Loading :loading="spinLoading" :absolute="true" />
+            </div>
           </div>
         </div>
 
         <div>
           <h4 :class="sectionTitleClassName">自定义提示文字</h4>
           <div class="flex flex-wrap items-center gap-4">
-            <ASpin description="正在加载用户信息..." />
-            <ASpin description="请稍候，数据同步中...">
+            <div class="flex items-center gap-2">
+              <Spinner class="size-6" />
+              <span class="text-sm">正在加载用户信息...</span>
+            </div>
+            <div class="relative">
               <div
                 class="h-[80px] w-[200px] rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20"
               ></div>
-            </ASpin>
-            <AInput
-              v-model:value="spinTip"
+              <Loading
+                :loading="true"
+                :absolute="true"
+                tip="请稍候，数据同步中..."
+              />
+            </div>
+            <Input
+              v-model="spinTip"
               placeholder="输入提示文字"
-              style="width: 180px"
+              class="w-[180px]"
             />
-            <ASpin :description="spinTip" />
+            <div class="flex items-center gap-2">
+              <Spinner class="size-6" />
+              <span class="text-sm">{{ spinTip }}</span>
+            </div>
           </div>
         </div>
 
@@ -803,15 +920,15 @@ function triggerGlobalLoading() {
           <h4 :class="sectionTitleClassName">尺寸大小</h4>
           <div class="flex items-center gap-8">
             <div class="flex flex-col items-center gap-2">
-              <ASpin size="small" />
+              <Spinner class="size-4" />
               <span class="text-xs text-gray-500">Small</span>
             </div>
             <div class="flex flex-col items-center gap-2">
-              <ASpin size="medium" />
+              <Spinner class="size-6" />
               <span class="text-xs text-gray-500">Medium</span>
             </div>
             <div class="flex flex-col items-center gap-2">
-              <ASpin size="large" />
+              <Spinner class="size-9" />
               <span class="text-xs text-gray-500">Large</span>
             </div>
           </div>
@@ -820,91 +937,108 @@ function triggerGlobalLoading() {
         <div>
           <h4 :class="sectionTitleClassName">样式切换（点状 / 圆圈 / 网格）</h4>
           <div class="flex flex-wrap items-center gap-6">
-            <ASpace>
-              <AButton
-                :type="spinStyle === 'circle' ? 'primary' : 'outline'"
-                size="small"
+            <Space>
+              <Button
+                :variant="spinStyle === 'circle' ? 'default' : 'outline'"
+                size="sm"
                 @click="toggleSpinStyle('circle')"
               >
                 圆圈 Circle
-              </AButton>
-              <AButton
-                :type="spinStyle === 'dot' ? 'primary' : 'outline'"
-                size="small"
+              </Button>
+              <Button
+                :variant="spinStyle === 'dot' ? 'default' : 'outline'"
+                size="sm"
                 @click="toggleSpinStyle('dot')"
               >
                 点状 Dot
-              </AButton>
-              <AButton
-                :type="spinStyle === 'grid' ? 'primary' : 'outline'"
-                size="small"
+              </Button>
+              <Button
+                :variant="spinStyle === 'grid' ? 'default' : 'outline'"
+                size="sm"
                 @click="toggleSpinStyle('grid')"
               >
                 网格 Grid
-              </AButton>
-            </ASpace>
+              </Button>
+            </Space>
             <div
               class="ml-4 flex min-h-[100px] min-w-[160px] items-center justify-center rounded-lg bg-gray-50 p-4 dark:bg-gray-800"
             >
-              <ASpin v-if="spinStyle === 'circle'" />
-              <ASpin v-else-if="spinStyle === 'dot'" dot />
-              <ASpin v-else-if="spinStyle === 'grid'" grid />
+              <Spinner v-if="spinStyle === 'circle'" class="size-8" />
+              <Icon
+                v-else-if="spinStyle === 'dot'"
+                icon="svg-spinners:pulse-multiple"
+                class="size-8"
+              />
+              <Icon
+                v-else-if="spinStyle === 'grid'"
+                icon="svg-spinners:bars-scale-fade"
+                class="size-8"
+              />
             </div>
           </div>
         </div>
       </div>
-    </ACard>
+    </Card>
 
-    <ACard variant="borderless" title="Skeleton 骨架屏">
+    <Card variant="borderless" title="Skeleton 骨架屏">
       <div :class="cn('space-y-8')">
         <div>
           <h4 :class="sectionTitleClassName">头像 + 文本骨架</h4>
           <div class="flex gap-8">
-            <ASkeleton avatar :paragraph="{ rows: 3 }" />
-            <ASkeleton avatar active :paragraph="{ rows: 2 }" />
+            <div class="flex w-full max-w-md items-start gap-4">
+              <Skeleton class="size-12 shrink-0 rounded-full" />
+              <div class="w-full space-y-2">
+                <Skeleton class="h-4 w-full" />
+                <Skeleton class="h-4 w-full" />
+                <Skeleton class="h-4 w-3/5" />
+              </div>
+            </div>
+            <div class="flex w-full max-w-md items-start gap-4">
+              <Skeleton class="size-12 shrink-0 rounded-full" />
+              <div class="w-full space-y-2">
+                <Skeleton class="h-4 w-full" />
+                <Skeleton class="h-4 w-4/5" />
+              </div>
+            </div>
           </div>
         </div>
 
         <div>
           <h4 :class="sectionTitleClassName">图片骨架</h4>
           <div class="flex flex-wrap gap-6">
-            <ASkeletonImage />
-            <ASkeletonImage active />
-            <ASkeletonImage style="width: 280px; height: 160px" />
+            <Skeleton class="size-16" />
+            <Skeleton class="size-16" />
+            <Skeleton class="h-[160px] w-[280px]" />
           </div>
         </div>
 
         <div>
           <h4 :class="sectionTitleClassName">表格骨架</h4>
-          <!--
-            `a-skeleton-table` 在 antdv-next 里不存在（Skeleton 只有
-            Avatar / Element / Input / Image 等子组件），未注册标签渲染成空元素，
-            这块示例实际上什么都没显示。用 Skeleton 的多行段落占位还原表格观感。
-          -->
-          <ASkeleton
-            active
-            :avatar="false"
-            :paragraph="{ rows: 4, width: ['18%', '30%', '22%', '26%'] }"
-            :title="false"
-          />
+          <!-- 没有独立的表格骨架子组件，用 Skeleton 的多行段落占位还原表格观感。 -->
+          <div class="w-full space-y-2">
+            <Skeleton class="h-4 w-[18%]" />
+            <Skeleton class="h-4 w-[30%]" />
+            <Skeleton class="h-4 w-[22%]" />
+            <Skeleton class="h-4 w-[26%]" />
+          </div>
         </div>
 
         <div>
           <h4 :class="sectionTitleClassName">按钮骨架</h4>
           <div class="flex gap-4">
-            <ASkeletonButton />
-            <ASkeletonButton active block />
+            <Skeleton class="h-8 w-[80px]" />
+            <Skeleton class="h-8 w-full" />
           </div>
         </div>
 
         <div>
           <h4 :class="sectionTitleClassName">动画控制</h4>
           <div class="flex items-center gap-4">
-            <ASwitch
-              v-model:checked="skeletonActive"
-              checked-children="激活"
-              un-checked-children="静止"
+            <Switch
+              :model-value="skeletonActive"
+              @update:model-value="(v: any) => (skeletonActive = v === true)"
             />
+            <span class="text-sm">{{ skeletonActive ? '激活' : '静止' }}</span>
             <span :class="hintClassName">
               当前状态：<span class="font-medium">{{
                 skeletonActive ? '流动动画' : '静止'
@@ -912,13 +1046,16 @@ function triggerGlobalLoading() {
             </span>
           </div>
           <div class="mt-4 max-w-md rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
-            <ASkeleton :active="skeletonActive" :paragraph="{ rows: 2 }" />
+            <div class="w-full space-y-2">
+              <Skeleton :class="cn('h-4 w-full', !skeletonActive && 'animate-none')" />
+              <Skeleton :class="cn('h-4 w-4/5', !skeletonActive && 'animate-none')" />
+            </div>
           </div>
         </div>
       </div>
-    </ACard>
+    </Card>
 
-    <ACard variant="borderless" title="Loading 组件（项目封装）">
+    <Card variant="borderless" title="Loading 组件（项目封装）">
       <div :class="cn('space-y-6')">
         <p :class="hintClassName">
           <code :class="codeClassName">@antdv/loading-ui</code>
@@ -928,19 +1065,46 @@ function triggerGlobalLoading() {
 
         <div class="flex items-center gap-4">
           <span class="text-sm font-medium text-gray-600 dark:text-gray-400">尺寸：</span>
-          <ARadioGroup v-model:value="componentSize" option-type="button">
-            <ARadio value="small"> Small </ARadio>
-            <ARadio value="default"> Default </ARadio>
-            <ARadio value="large"> Large </ARadio>
-          </ARadioGroup>
+          <RadioGroup
+            :model-value="componentSize"
+            :class="radioGroupClassName"
+            @update:model-value="
+              (v: any) => (componentSize = v as 'default' | 'large' | 'small')
+            "
+          >
+            <label :class="radioOptionClassName">
+              <RadioGroupItem value="small" class="sr-only" />
+              <span> Small </span>
+            </label>
+            <label :class="radioOptionClassName">
+              <RadioGroupItem value="default" class="sr-only" />
+              <span> Default </span>
+            </label>
+            <label :class="radioOptionClassName">
+              <RadioGroupItem value="large" class="sr-only" />
+              <span> Large </span>
+            </label>
+          </RadioGroup>
         </div>
 
         <div class="flex items-center gap-4">
           <span class="text-sm font-medium text-gray-600 dark:text-gray-400">主题：</span>
-          <ARadioGroup v-model:value="componentTheme" option-type="button">
-            <ARadio value="light"> Light </ARadio>
-            <ARadio value="dark"> Dark </ARadio>
-          </ARadioGroup>
+          <RadioGroup
+            :model-value="componentTheme"
+            :class="radioGroupClassName"
+            @update:model-value="
+              (v: any) => (componentTheme = v as 'dark' | 'light')
+            "
+          >
+            <label :class="radioOptionClassName">
+              <RadioGroupItem value="light" class="sr-only" />
+              <span> Light </span>
+            </label>
+            <label :class="radioOptionClassName">
+              <RadioGroupItem value="dark" class="sr-only" />
+              <span> Dark </span>
+            </label>
+          </RadioGroup>
         </div>
 
         <div :class="frameClassName">
@@ -951,13 +1115,14 @@ function triggerGlobalLoading() {
               <p :class="cn('mb-4 text-sm', hintClassName)">
                 这是一个容器内 Loading 演示区域
               </p>
-              <AButton
-                type="primary"
-                :loading="componentLoading"
-                @click="triggerComponentLoading"
-              >
+              <Button :disabled="componentLoading" @click="triggerComponentLoading">
+                <Icon
+                  v-if="componentLoading"
+                  class="animate-spin"
+                  icon="svg-spinners:bouncing-ball"
+                />
                 触发 Loading ({{ componentSize }} / {{ componentTheme }})
-              </AButton>
+              </Button>
             </div>
           </div>
           <!-- tip 才是 Loading 组件的文案属性（没有 description 这个 prop） -->
@@ -970,9 +1135,9 @@ function triggerGlobalLoading() {
           />
         </div>
       </div>
-    </ACard>
+    </Card>
 
-    <ACard variant="borderless" title="PageLoading 与延迟遮罩">
+    <Card variant="borderless" title="PageLoading 与延迟遮罩">
       <div :class="cn('space-y-6')">
         <p :class="hintClassName">
           <code :class="codeClassName">PageLoading</code>
@@ -993,12 +1158,13 @@ function triggerGlobalLoading() {
                 <p :class="cn('mb-4 text-sm', hintClassName)">
                   PageLoading 覆盖整个容器（absolute inset-0）
                 </p>
-                <ASwitch
-                  :checked="pageLoadingVisible"
-                  checked-children="占位中"
-                  un-checked-children="空闲"
-                  @change="togglePageLoading"
+                <Switch
+                  :model-value="pageLoadingVisible"
+                  @update:model-value="
+                    (v: any) => togglePageLoading(v === true)
+                  "
                 />
+                <span class="text-sm">{{ pageLoadingVisible ? '占位中' : '空闲' }}</span>
               </div>
             </div>
             <PageLoading
@@ -1011,14 +1177,14 @@ function triggerGlobalLoading() {
             <div
               class="flex min-h-[180px] flex-col items-center justify-center gap-3 bg-gradient-to-br from-violet-50 to-fuchsia-50 p-6 dark:from-gray-800 dark:to-gray-900"
             >
-              <ASpace>
-                <AButton @click="runDelayedRequest(150)">
+              <Space>
+                <Button variant="outline" @click="runDelayedRequest(150)">
                   快请求 150ms
-                </AButton>
-                <AButton type="primary" @click="runDelayedRequest(1800)">
+                </Button>
+                <Button @click="runDelayedRequest(1800)">
                   慢请求 1800ms
-                </AButton>
-              </ASpace>
+                </Button>
+              </Space>
               <p :class="cn('text-center text-xs', hintClassName)">
                 {{ delayedResult }}
               </p>
@@ -1031,9 +1197,9 @@ function triggerGlobalLoading() {
           </div>
         </div>
       </div>
-    </ACard>
+    </Card>
 
-    <ACard variant="borderless" title="v-loading 指令">
+    <Card variant="borderless" title="v-loading 指令">
       <div :class="cn('space-y-4')">
         <p :class="hintClassName">
           <code :class="codeClassName">main.ts</code> 里
@@ -1060,30 +1226,34 @@ function triggerGlobalLoading() {
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-4">
-          <AButton
-            :loading="directiveLoading"
-            @click="flashDirective('plain')"
-          >
+          <Button variant="outline" :disabled="directiveLoading" @click="flashDirective('plain')">
+            <Icon
+              v-if="directiveLoading"
+              class="animate-spin"
+              icon="svg-spinners:bouncing-ball"
+            />
             加载左块
-          </AButton>
-          <AButton
-            :loading="directiveDarkLoading"
-            type="primary"
-            @click="flashDirective('dark')"
-          >
+          </Button>
+          <Button :disabled="directiveDarkLoading" @click="flashDirective('dark')">
+            <Icon
+              v-if="directiveDarkLoading"
+              class="animate-spin"
+              icon="svg-spinners:bouncing-ball"
+            />
             加载右块
-          </AButton>
-          <AButton
+          </Button>
+          <Button
             v-loading.fullscreen="fullscreenDirectiveLoading"
+            variant="outline"
             @click="flashDirective('full')"
           >
             整页遮罩 2 秒
-          </AButton>
+          </Button>
         </div>
       </div>
-    </ACard>
+    </Card>
 
-    <ACard variant="borderless" title="useLoading Hook">
+    <Card variant="borderless" title="useLoading Hook">
       <div :class="cn('space-y-4')">
         <p :class="hintClassName">
           通过
@@ -1100,13 +1270,12 @@ function triggerGlobalLoading() {
               <p :class="cn('mb-4 text-sm', hintClassName)">
                 useLoading 控制此容器的加载状态
               </p>
-              <AButton
-                type="primary"
-                status="success"
+              <Button
+                class="bg-emerald-600 text-white hover:bg-emerald-700"
                 @click="triggerUseLoading"
               >
                 触发 useLoading
-              </AButton>
+              </Button>
             </div>
           </div>
         </div>
@@ -1126,55 +1295,83 @@ hookLoading.close() // 关闭
 hookLoading.setTip('新提示文字') // 修改提示</pre>
         </div>
       </div>
-    </ACard>
+    </Card>
 
-    <ACard variant="borderless" title="按钮加载态">
+    <Card variant="borderless" title="按钮加载态">
       <div :class="cn('space-y-6')">
         <p :class="hintClassName">
-          Antdv-next 按钮内置
+          按钮没有内置
           <code :class="codeClassName">loading</code>
-          属性，点击后自动进入加载态并禁用交互
+          属性：加载态用
+          <code :class="codeClassName">disabled</code>
+          加一个旋转图标表达，点击后禁用交互
         </p>
 
         <div class="flex flex-wrap gap-4">
-          <AButton
-            type="primary"
-            :loading="btnLoading1"
-            @click="triggerBtnLoading(0)"
-          >
+          <Button :disabled="btnLoading1" @click="triggerBtnLoading(0)">
+            <Icon
+              v-if="btnLoading1"
+              class="animate-spin"
+              icon="svg-spinners:bouncing-ball"
+            />
             主要按钮
-          </AButton>
-          <AButton :loading="btnLoading2" @click="triggerBtnLoading(1)">
+          </Button>
+          <Button
+            variant="outline"
+            :disabled="btnLoading2"
+            @click="triggerBtnLoading(1)"
+          >
+            <Icon
+              v-if="btnLoading2"
+              class="animate-spin"
+              icon="svg-spinners:bouncing-ball"
+            />
             默认按钮
-          </AButton>
-          <AButton
-            type="dashed"
-            :loading="btnLoading3"
+          </Button>
+          <Button
+            class="border-dashed"
+            variant="outline"
+            :disabled="btnLoading3"
             @click="triggerBtnLoading(2)"
           >
+            <Icon
+              v-if="btnLoading3"
+              class="animate-spin"
+              icon="svg-spinners:bouncing-ball"
+            />
             虚线按钮
-          </AButton>
-          <AButton type="outline" :loading="btnLoading1" disabled>
+          </Button>
+          <Button variant="outline" disabled>
             禁用按钮
-          </AButton>
+          </Button>
         </div>
 
         <div class="flex flex-wrap gap-4">
-          <AButton type="primary" loading> 常驻加载态 </AButton>
-          <AButton type="primary" loading> 提交中... </AButton>
-          <AButton
-            type="primary"
-            shape="round"
-            :loading="btnLoading2"
+          <Button disabled>
+            <Icon class="animate-spin" icon="svg-spinners:bouncing-ball" />
+            常驻加载态
+          </Button>
+          <Button disabled>
+            <Icon class="animate-spin" icon="svg-spinners:bouncing-ball" />
+            提交中...
+          </Button>
+          <Button
+            class="rounded-full"
+            :disabled="btnLoading2"
             @click="triggerBtnLoading(1)"
           >
+            <Icon
+              v-if="btnLoading2"
+              class="animate-spin"
+              icon="svg-spinners:bouncing-ball"
+            />
             圆角按钮
-          </AButton>
+          </Button>
         </div>
       </div>
-    </ACard>
+    </Card>
 
-    <ACard variant="borderless" title="全局加载遮罩">
+    <Card variant="borderless" title="全局加载遮罩">
       <div :class="cn('space-y-4')">
         <p :class="hintClassName">
           使用
@@ -1184,13 +1381,9 @@ hookLoading.setTip('新提示文字') // 修改提示</pre>
         </p>
 
         <div class="flex gap-4">
-          <AButton
-            type="primary"
-            status="danger"
-            @click="triggerGlobalLoading"
-          >
+          <Button variant="destructive" @click="triggerGlobalLoading">
             模拟 API 请求 (全屏遮罩)
-          </AButton>
+          </Button>
         </div>
 
         <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-800/60">
@@ -1208,6 +1401,6 @@ instance.setTip('即将完成...') // 动态更新提示
 instance.close() // 关闭并自动销毁</pre>
         </div>
       </div>
-    </ACard>
+    </Card>
   </div>
 </template>

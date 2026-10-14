@@ -3,7 +3,7 @@ import { h, ref, watch } from 'vue';
 import { useWebSocket as useWebSocketComposable } from '@antdv/composables/websocket';
 import { eventBus } from '@antdv/shared/event';
 import { Icon } from '@iconify/vue';
-import { notification } from 'antdv-next';
+import { toast } from '@antdv/popup-ui';
 import { forceLogout } from '~/composables/web/request/fetcher';
 import { useUserStore } from '~/stores/modules/user';
 
@@ -166,17 +166,19 @@ function handleMessage(raw: unknown): void {
     sharedNotice.value = notice;
     eventBus.emit(WS_EVENTS.NOTICE, notice);
 
-    notification.open({
-      title: `新${noticeTypeConfig[notice.noticeType]?.label || '通知'}`,
-      description: notice.title,
-      icon: h(Icon, {
-        icon:
-          noticeTypeConfig[notice.noticeType]?.icon || 'carbon:notification',
-        style: { color: '#108ee9' },
-      }),
-      placement: 'bottomRight',
-      duration: 3,
-    });
+    toast(
+      `新${noticeTypeConfig[notice.noticeType]?.label || '通知'}`,
+      {
+        description: notice.title,
+        duration: 3000,
+        icon: h(Icon, {
+          icon:
+            noticeTypeConfig[notice.noticeType]?.icon || 'carbon:notification',
+          style: { color: '#108ee9' },
+        }),
+        position: 'bottom-right',
+      },
+    );
     return;
   }
 

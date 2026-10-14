@@ -54,14 +54,14 @@ async function collectLeaves(page: Page): Promise<LeafMenu[]> {
 /** 顶栏一级导航的可见文案（去掉折叠箭头等子节点文本） */
 async function topLevelNavTitles(page: Page): Promise<string[]> {
   return regionTitles(
-    page.locator('[data-layout-region="header-nav"] .ant-menu').first(),
+    page.locator('[data-layout-region="header-nav"] [data-menu-root]').first(),
   );
 }
 
 /** 侧边二级导航的可见文案 */
 async function sideNavTitles(page: Page): Promise<string[]> {
   return regionTitles(
-    page.locator('[data-layout-region="sidebar"] .ant-menu').first(),
+    page.locator('[data-layout-region="sidebar"] [data-menu-root]').first(),
   );
 }
 
@@ -77,13 +77,11 @@ function visibleTreeNodes(page: Page): Locator {
 /**
  * 只取"这一层"的条目文本。
  *
- * 不能用 `.ant-menu-item`：子菜单展开时孙层的条目也是 `.ant-menu-item`，
- * 会把侧栏读成一长串。`> .ant-menu-item / > .ant-menu-submenu` 才是本层。
+ * 不能用 `.menu-item`：子菜单展开时孙层的条目也是 `.menu-item`，
+ * 会把侧栏读成一长串。`> .menu-item` 才是本层（menu-ui 把子树嵌在同一个 li 里）。
  */
 async function regionTitles(menu: Locator): Promise<string[]> {
-  const items = menu.locator(
-    ':scope > .ant-menu-item, :scope > .ant-menu-submenu',
-  );
+  const items = menu.locator(':scope > .menu-item');
   const count = await items.count();
   const titles: string[] = [];
   for (let i = 0; i < count; i += 1) {
@@ -127,7 +125,7 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     await page.locator('.ant-avatar').first().click();
     await page.getByRole('menuitem', { name: '个人中心' }).click();
 
-    const drawer = page.locator('.ant-drawer-open');
+    const drawer = page.locator('.basic-drawer[data-state="open"]');
     await expect(drawer).toBeVisible();
     await expect(drawer).toContainText('个人中心');
 
@@ -163,7 +161,7 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     await go(page, '/system/dept');
 
     await expect(
-      page.locator('.ant-table-tbody .ant-table-row').first(),
+      page.locator('tr.basic-table-row').first(),
     ).toBeVisible();
     expect(
       await page
@@ -204,7 +202,7 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
        */
       await go(page, leaf.path);
 
-      const table = page.locator('.ant-table').first();
+      const table = page.locator('.basic-table').first();
       if ((await table.count()) === 0) continue;
 
       /**
@@ -214,8 +212,8 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
        * Vite 现编译这个页面。固定等 400ms 会把"还没到"读成"没有数据"，
        * 报出 `/demo/table-pagination-test 0 行` 这种假缺陷 —— 手动打开明明是 10 行。
        *
-       * ⚠️ "空态"要等 loading 撤掉才算数：antd 在转圈期间就把 `暂无数据` 占位渲染出来了，
-       * 一见 `.ant-empty` 就收工等于把"还在加载"判成"确实没数据"，
+       * ⚠️ "空态"要等 loading 撤掉才算数：表格在转圈期间就把 `暂无数据` 占位渲染出来了，
+       * 一见 `.basic-table-empty-row` 就收工等于把"还在加载"判成"确实没数据"，
        * 于是取数挂死的页面反而能混过去。所以判据是：出行了，或者"不转圈了且是空的"。
        */
       const deadline = Date.now() + 15_000;
@@ -223,11 +221,11 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
       let rows: number;
       let empty: number;
       for (;;) {
-        rows = await page.locator('.ant-table-tbody .ant-table-row').count();
-        const loading = await page.locator('.ant-spin-spinning').count();
+        rows = await page.locator('tr.basic-table-row').count();
+        const loading = await page.locator('.basic-table-loading').count();
         empty =
           loading === 0
-            ? await page.locator('.ant-table .ant-empty').count()
+            ? await page.locator('.basic-table-empty-row').count()
             : 0;
         if (rows > 0 || empty > 0 || Date.now() > deadline) break;
         await page.waitForTimeout(300);
@@ -274,11 +272,11 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     // 先翻页再搜索：筛完只剩几条，"下一页"是禁用态，点了会超时（那不是缺陷是用例顺序问题）
     // 表格分页用的参数名是 `pageNum`（与 `pageSize` 成对），断言按真实字段来
     const firstRow = () =>
-      page.locator('.ant-table-tbody .ant-table-row').first().innerText();
+      page.locator('tr.basic-table-row').first().innerText();
     const pageOneFirstRow = await firstRow();
 
-    await expect(page.locator('.ant-pagination-next')).toBeEnabled();
-    await page.locator('.ant-pagination-next').click();
+    await expect(page.locator('[data-slot="pagination-next"]')).toBeEnabled();
+    await page.locator('[data-slot="pagination-next"]').click();
     await expect
       .poll(() => urls.some((u) => /[?&]pageNum=[2-9]\d*/.test(u)), {
         message: `分页参数没进 query，实际请求：${urls.join(' | ')}`,
@@ -336,7 +334,7 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     await signIn(page);
     await go(page, '/system/menu');
 
-    const rows = () => page.locator('.ant-table-tbody .ant-table-row');
+    const rows = () => page.locator('tr.basic-table-row');
     await expect(rows().first()).toBeVisible();
 
     // antd 给每行的层级 class（`ant-table-row-level-N`）：
@@ -367,9 +365,9 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
 
     await page.getByRole('button', { name: /新增部门/ }).click();
     /**
-     * 按 role 取弹窗，而不是 `.ant-modal-content`。
+     * 按 role 取弹窗，而不是 `.basic-modal-content`。
      *
-     * 这版 antdv-next 的弹窗外壳类名是 `.ant-modal-container`（DOM 里根本没有
+     * 这版 antdv-next 的弹窗外壳类名是 `.basic-modal-container`（DOM 里根本没有
      * `-content`），用类名选会把"弹窗明明开着"读成"弹窗没出现"。
      * `role="dialog"` 是 ARIA 语义，不随皮肤类名变，也更贴近用户视角。
      */
@@ -391,7 +389,7 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     await expect
       .poll(
         async () =>
-          (await page.locator('.ant-message-success').count()) > 0 ||
+          (await page.locator('li[data-sonner-toast][data-type="success"]').count()) > 0 ||
           (await page.getByText('自动化巡检部门').count()) > 0,
         { message: '新增部门既没有成功提示也没落到树上', timeout: 10_000 },
       )
@@ -403,7 +401,7 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     await page.getByPlaceholder('搜索菜单名称/权限标识...').fill(name);
     await page.getByRole('button', { name: '查询' }).first().click();
     const row = page
-      .locator('.ant-table-tbody .ant-table-row')
+      .locator('tr.basic-table-row')
       .filter({ hasText: name })
       .first();
     await expect(row).toBeVisible();
@@ -419,10 +417,10 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
 
     // decorate 出来的类型/权限标识不是空的（曾经三列全空）
     await expect(
-      page.locator('.ant-table-tbody .ant-tag').first(),
+      page.locator('tr.basic-table-row .ant-tag').first(),
     ).toBeVisible();
     const permCells = page
-      .locator('.ant-table-tbody td')
+      .locator('tbody td')
       .filter({ hasText: /:/ });
     expect(await permCells.count()).toBeGreaterThan(0);
 
@@ -504,7 +502,7 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/#\/system\/user/);
     await expect(
-      page.locator('.ant-table-tbody .ant-table-row').first(),
+      page.locator('tr.basic-table-row').first(),
     ).toBeVisible();
     // 选完即关：不能留一层遮罩挡住页面
     await expect(input).toBeHidden();
@@ -535,7 +533,7 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/#\/system\/dept/);
     await expect(
-      page.locator('.ant-table-tbody .ant-table-row').first(),
+      page.locator('tr.basic-table-row').first(),
     ).toBeVisible();
   });
 
@@ -669,7 +667,7 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
     await first.getByText('在通知中心查看').click();
     await expect(page).toHaveURL(/#\/system\/notice/);
     await expect(
-      page.locator('.ant-table-tbody .ant-table-row').first(),
+      page.locator('tr.basic-table-row').first(),
     ).toBeVisible();
 
     expect(probe.errors, probe.errors.join('\n')).toEqual([]);
@@ -680,7 +678,7 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
     await signIn(page);
     await go(page, '/system/notice');
     await expect(
-      page.locator('.ant-table-tbody .ant-table-row').first(),
+      page.locator('tr.basic-table-row').first(),
     ).toBeVisible();
 
     /**
@@ -708,7 +706,7 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
         async () => {
           await go(page, '/system/notice');
           return await page
-            .locator('.ant-table-row')
+            .locator('tr.basic-table-row')
             .filter({ hasText: title })
             .count();
         },
@@ -722,7 +720,7 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
 
     // ---- 编辑 ----
     const row = page
-      .locator('.ant-table-row')
+      .locator('tr.basic-table-row')
       .filter({ hasText: title })
       .first();
     await row.getByRole('button', { name: /编辑/ }).click();
@@ -739,7 +737,7 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
         async () => {
           await go(page, '/system/notice');
           return await page
-            .locator('.ant-table-row')
+            .locator('tr.basic-table-row')
             .filter({ hasText: `${title}（改）` })
             .count();
         },
@@ -752,12 +750,12 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
 
     // ---- 删除（带 Popconfirm 二次确认）----
     const edited = page
-      .locator('.ant-table-row')
+      .locator('tr.basic-table-row')
       .filter({ hasText: `${title}（改）` })
       .first();
     await edited.getByRole('button', { name: /删除/ }).click();
     const confirm = page
-      .locator('.ant-popover')
+      .locator('[data-slot="popover-content"]')
       .filter({ hasText: '确定要删除消息' })
       .last();
     await expect(confirm, '删除消息没有二次确认').toBeVisible();
@@ -769,7 +767,7 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
       .poll(
         async () =>
           await page
-            .locator('.ant-table-row')
+            .locator('tr.basic-table-row')
             .filter({ hasText: title })
             .count(),
         { message: '确认后那条消息仍在列表里', timeout: 15_000 },
@@ -861,7 +859,7 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
     await signIn(page);
     await go(page, '/system/user');
     await expect(
-      page.locator('.ant-table-tbody .ant-table-row').first(),
+      page.locator('tr.basic-table-row').first(),
     ).toBeVisible();
 
     // 同上：用户名带时间戳，避免上一轮失败留下的同名记录干扰断言
@@ -888,7 +886,7 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
           await page.getByRole('button', { name: '查询' }).first().click();
           await page.waitForTimeout(600);
           return await page
-            .locator('.ant-table-row')
+            .locator('tr.basic-table-row')
             .filter({ hasText: username })
             .count();
         },
@@ -898,7 +896,7 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
 
     // 编辑：改昵称
     const row = page
-      .locator('.ant-table-row')
+      .locator('tr.basic-table-row')
       .filter({ hasText: username })
       .first();
     await row.getByRole('button', { name: /编辑/ }).click();
@@ -912,7 +910,7 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
       .poll(
         async () =>
           await page
-            .locator('.ant-table-row')
+            .locator('tr.basic-table-row')
             .filter({ hasText: '巡检用例用户-改名' })
             .count(),
         { message: '编辑后的昵称没有回到表格', timeout: 15_000 },
@@ -926,13 +924,13 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
      * 上一行的断言在这种情况下照样可能通过（改名后的用户排在后面），
      * 所以这里直接数行数：条件一丢，行数立刻变成整页。
      */
-    expect(await page.locator('.ant-table-tbody .ant-table-row').count()).toBe(
+    expect(await page.locator('tr.basic-table-row').count()).toBe(
       1,
     );
 
     // 删除：把用例造的数据收掉
     await page
-      .locator('.ant-table-row')
+      .locator('tr.basic-table-row')
       .filter({ hasText: username })
       .first()
       .getByRole('button', { name: /删除/ })
@@ -942,11 +940,11 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
      * 所以这里必须把确认气泡点掉 —— 顺带验证气泡真的出来了。
      * 固定在右侧的操作列会自成一个层叠上下文，弹层挂到 body 上才不被隔壁单元格压住。
      */
-    const confirm = page.locator('.ant-popconfirm:visible').last();
+    const confirm = page.locator('[data-slot="popover-content"]:visible').last();
     await expect(confirm).toBeVisible();
 
     const targetRow = () =>
-      page.locator('.ant-table-row').filter({ hasText: username });
+      page.locator('tr.basic-table-row').filter({ hasText: username });
     // 先按「取消」：这一步必须什么都不删，否则确认框等于没加
     await confirm.getByRole('button', { name: /取\s*消/ }).click();
     await page.waitForTimeout(500);
@@ -958,7 +956,7 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
       .getByRole('button', { name: /删除/ })
       .click();
     await page
-      .locator('.ant-popconfirm:visible')
+      .locator('[data-slot="popover-content"]:visible')
       .last()
       .getByRole('button', { name: /删\s*除/ })
       .click();
@@ -968,7 +966,7 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
           await page.getByRole('button', { name: '查询' }).first().click();
           await page.waitForTimeout(600);
           return await page
-            .locator('.ant-table-row')
+            .locator('tr.basic-table-row')
             .filter({ hasText: username })
             .count();
         },
@@ -991,15 +989,15 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
     await signIn(page);
     await go(page, '/system/menu');
     await expect(
-      page.locator('.ant-table-tbody .ant-table-row').first(),
+      page.locator('tr.basic-table-row').first(),
     ).toBeVisible();
 
-    const rows = () => page.locator('.ant-table-tbody .ant-table-row');
+    const rows = () => page.locator('tr.basic-table-row');
     const before = await rows().count();
     const target = rows().filter({ hasText: '系统管理' }).first();
 
     await target.getByRole('button', { name: /删除/ }).click();
-    const confirm = page.locator('.ant-popconfirm:visible').last();
+    const confirm = page.locator('[data-slot="popover-content"]:visible').last();
     await expect(confirm, '点删除没有弹出二次确认').toBeVisible();
     await expect(confirm, '确认文案没说清会连带多少个子项').toContainText(
       '个子项',
@@ -1011,7 +1009,7 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
 
     await target.getByRole('button', { name: /删除/ }).click();
     await page
-      .locator('.ant-popconfirm:visible')
+      .locator('[data-slot="popover-content"]:visible')
       .last()
       .getByRole('button', { name: /删\s*除/ })
       .click();
@@ -1027,13 +1025,13 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
     await signIn(page);
     await go(page, '/system/user');
     await expect(
-      page.locator('.ant-table-tbody .ant-table-row').first(),
+      page.locator('tr.basic-table-row').first(),
     ).toBeVisible();
 
     await page
-      .locator('.ant-table-tbody .ant-table-row')
+      .locator('tr.basic-table-row')
       .first()
-      .locator('.ant-checkbox-input')
+      .locator('.basic-table-row-checkbox')
       .check();
 
     // 未勾选时点导出只给提示（这条分支也顺手钉住）
@@ -1097,21 +1095,21 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
    * "10 / page"，空表显示 "No data"，整个系统看着像汉化做了一半。
    * 这种"自己的文案对、第三方组件文案错"的错位，单测发现不了，只能看真实渲染结果。
    */
-  test('antd 自带文案跟着中文语言包（条/页 / 暂无数据）', async ({ page }) => {
+  test('表格自带文案跟着中文语言包（条/页 / 暂无数据）', async ({ page }) => {
     await signIn(page);
     await go(page, '/system/user');
     await expect(
-      page.locator('.ant-table-tbody .ant-table-row').first(),
+      page.locator('tr.basic-table-row').first(),
     ).toBeVisible();
-    await expect(page.locator('.ant-pagination').first()).toContainText(
-      '条/页',
-    );
+    await expect(
+      page.locator('.basic-table-pagination').first(),
+    ).toContainText('条/页');
 
     await page
       .getByPlaceholder('搜索用户名/昵称/邮箱/手机号...')
       .fill('这条用户名不存在');
     await page.getByRole('button', { name: '查询' }).first().click();
-    await expect(page.locator('.ant-empty-description').first()).toHaveText(
+    await expect(page.locator('.basic-table-empty-row').first()).toHaveText(
       '暂无数据',
     );
 
@@ -1119,7 +1117,7 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
     await page.getByPlaceholder('搜索用户名/昵称/邮箱/手机号...').fill('');
     await page.getByRole('button', { name: '查询' }).first().click();
     await expect(
-      page.locator('.ant-table-tbody .ant-table-row').first(),
+      page.locator('tr.basic-table-row').first(),
     ).toBeVisible();
   });
 });

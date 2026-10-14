@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import type { ButtonGroupVariants } from "."
-
 import { cn } from '@antdv/shared/cn'
-
 import { buttonGroupVariants } from "."
 
 const props = defineProps<{
@@ -20,6 +17,6 @@ const props = defineProps<{
     :data-orientation="props.orientation"
     :class="cn(buttonGroupVariants({ orientation: props.orientation }), props.class)"
   >
-    <slot></slot>
+    <slot />
   </div>
 </template>

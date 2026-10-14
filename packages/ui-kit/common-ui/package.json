@@ -1,0 +1,42 @@
+{
+  "name": "@antdv/common-ui",
+  "version": "0.1.0",
+  "description": "公共展示组件：卡片、标签、分隔线、间距、提示，全部基于 @antdv/shadcn-ui 的原语组合，不依赖 pinia / vue-router / 应用配置",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf .turbo",
+    "test:unit": "vitest run --passWithNoTests",
+    "type-check": "vue-tsc --noEmit"
+  },
+  "files": [
+    "src"
+  ],
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@antdv/icons": "workspace:*",
+    "@antdv/scrollbar-ui": "workspace:*",
+    "@antdv/shadcn-ui": "workspace:*",
+    "@antdv/shared": "workspace:*",
+    "@vueuse/core": "catalog:",
+    "cronstrue": "catalog:",
+    "es-toolkit": "catalog:",
+    "vue": "catalog:"
+  },
+  "devDependencies": {
+    "@antdv/tsconfig": "workspace:*",
+    "@vitejs/plugin-vue": "catalog:",
+    "@vue/test-utils": "catalog:",
+    "jsdom": "catalog:",
+    "rimraf": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}

@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import type { FieldVariants } from "."
-
 import { cn } from '@antdv/shared/cn'
-
 import { fieldVariants } from "."
 
 const props = defineProps<{
@@ -23,6 +20,6 @@ const props = defineProps<{
       props.class,
     )"
   >
-    <slot></slot>
+    <slot />
   </div>
 </template>

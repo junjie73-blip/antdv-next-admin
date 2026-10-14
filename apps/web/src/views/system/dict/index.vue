@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import type { FormSchema } from '~/components/business/Form';
-import type { BasicColumn } from '~/components/business/Table';
+import type { FormSchema } from '@antdv/form-ui';
+import type { BasicColumn } from '@antdv/table-ui';
 
 import { computed, ref } from 'vue';
 
+import { Divider, Popconfirm, Tag } from '@antdv/common-ui';
 import { Scrollbar } from '@antdv/scrollbar-ui';
+import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
 import { exportToExcel } from '@antdv/shared/excel';
 import { Icon } from '@iconify/vue';
-import { Button as AButton, Divider as ADivider, Popconfirm as APopconfirm, Tag as ATag, message } from 'antdv-next';
 import {
   addDict,
   addDictItem,
@@ -19,9 +20,9 @@ import {
   updateDict,
   updateDictItem,
 } from '~/api/system';
-import { BasicForm, useForm } from '~/components/business/Form';
-import { BasicModal, useModal } from '~/components/business/Modal';
-import { BasicTable, useTable } from '~/components/business/Table';
+import { BasicForm, useForm } from '@antdv/form-ui';
+import { BasicModal, message, useModal } from '@antdv/popup-ui';
+import { BasicTable, useTable } from '@antdv/table-ui';
 import { DictType } from '~/enums/dict';
 import { useDictStore } from '~/stores';
 
@@ -83,7 +84,7 @@ const cardTitleClassName = cn(
   'text-sm font-semibold text-gray-800 dark:text-gray-200',
 );
 const actionClassName = cn('flex', 'items-center', 'justify-center');
-const btnClassName = cn('px-0.5!');
+const btnClassName = cn('h-auto', 'px-0.5!');
 const dividerClassName = cn('mx-0');
 const tagClassName = cn('inline-flex items-center gap-1');
 
@@ -473,50 +474,45 @@ loadDictTypes();
               <div :class="typeItemCodeClassName">{{ item.typeCode }}</div>
             </div>
             <div :class="typeItemActionsClassName">
-              <ATag
+              <Tag
                 :color="statusColorMap[item.status] || 'default'"
                 class="!px-1 !py-0 !text-[10px] !leading-4"
               >
                 {{ statusLabelMap[item.status] || '未知' }}
-              </ATag>
-              <AButton
-                type="text"
-                size="small"
+              </Tag>
+              <Button
+                variant="ghost"
+                size="icon-sm"
                 :class="typeItemBtnClassName"
                 @click.stop="handleEdit(item)"
               >
-                <template #icon>
-                  <Icon icon="ant-design:edit-outlined" class="text-xs" />
-                </template>
-              </AButton>
-              <APopconfirm
+                <Icon icon="ant-design:edit-outlined" class="text-xs" />
+              </Button>
+              <Popconfirm
                 :title="`确定要删除字典「${item.typeName}」吗？`"
+                danger
                 @confirm="handleDelete(item)"
               >
-                <AButton
-                  type="text"
-                  danger
-                  size="small"
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  class="text-destructive hover:text-destructive"
                   :class="typeItemBtnClassName"
                   @click.stop
                 >
-                  <template #icon>
-                    <Icon icon="ant-design:delete-outlined" class="text-xs" />
-                  </template>
-                </AButton>
-              </APopconfirm>
+                  <Icon icon="ant-design:delete-outlined" class="text-xs" />
+                </Button>
+              </Popconfirm>
             </div>
           </div>
         </Scrollbar>
 
         <!-- 底部新增按钮 -->
         <div :class="cardFooterClassName">
-          <AButton type="primary" size="small" @click="handleAdd">
-            <template #icon>
-              <Icon icon="ant-design:plus-outlined" />
-            </template>
+          <Button size="sm" @click="handleAdd">
+            <Icon icon="ant-design:plus-outlined" />
             新增类型
-          </AButton>
+          </Button>
         </div>
       </div>
     </div>
@@ -533,23 +529,14 @@ loadDictTypes();
             {{ selectedType ? `${selectedType.typeName} - 字典项` : '字典项' }}
           </span>
           <div class="flex items-center gap-2">
-            <AButton size="small" @click="handleExport">
-              <template #icon>
-                <Icon icon="carbon:export" />
-              </template>
+            <Button variant="outline" size="sm" @click="handleExport">
+              <Icon icon="carbon:export" />
               导出
-            </AButton>
-            <AButton
-              type="primary"
-              size="small"
-              :disabled="!selectedType"
-              @click="handleAddItem"
-            >
-              <template #icon>
-                <Icon icon="ant-design:plus-outlined" />
-              </template>
+            </Button>
+            <Button size="sm" :disabled="!selectedType" @click="handleAddItem">
+              <Icon icon="ant-design:plus-outlined" />
               新增字典项
-            </AButton>
+            </Button>
           </div>
         </div>
 
@@ -581,7 +568,7 @@ loadDictTypes();
             @register="itemTableRegister"
           >
             <template #cell-status="{ record }">
-              <ATag :color="statusColorMap[record.status] || 'default'">
+              <Tag :color="statusColorMap[record.status] || 'default'">
                 <span :class="tagClassName">
                   <Icon
                     :icon="
@@ -592,33 +579,32 @@ loadDictTypes();
                   />
                   {{ statusLabelMap[record.status] || '未知' }}
                 </span>
-              </ATag>
+              </Tag>
             </template>
 
             <template #action="{ record }">
               <div :class="actionClassName">
-                <AButton
-                  type="link"
+                <Button
+                  variant="link"
                   :class="btnClassName"
-                  size="small"
                   @click="() => handleEditItem(record)"
                 >
                   编辑
-                </AButton>
-                <ADivider type="vertical" :class="dividerClassName" />
-                <APopconfirm
+                </Button>
+                <Divider type="vertical" :class="dividerClassName" />
+                <Popconfirm
                   :title="`确定要删除字典项「${record.dictLabel}」吗？`"
+                  danger
                   @confirm="() => handleDeleteItem(record)"
                 >
-                  <AButton
-                    type="link"
-                    danger
+                  <Button
+                    variant="link"
+                    class="text-destructive hover:text-destructive"
                     :class="btnClassName"
-                    size="small"
                   >
                     删除
-                  </AButton>
-                </APopconfirm>
+                  </Button>
+                </Popconfirm>
               </div>
             </template>
           </BasicTable>

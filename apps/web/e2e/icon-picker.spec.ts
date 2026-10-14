@@ -141,7 +141,7 @@ test.describe('IconPicker（shadcn-ui 重写）', () => {
       /^lucide:\S+$/,
     );
     // 页面用 message 播报 @change，这条断言证明事件真的发出去了
-    await expect(page.locator('.ant-message')).toContainText(
+    await expect(page.locator('[data-sonner-toaster]')).toContainText(
       /已选择图标：lucide:/,
     );
 
@@ -149,7 +149,7 @@ test.describe('IconPicker（shadcn-ui 重写）', () => {
     await triggerButton.locator('[class*="hover:text-foreground"]').click();
     await expect(basic.getByText('已选：(无)')).toBeVisible();
     await expect(triggerButton.locator('[data-picker-value]')).toHaveCount(0);
-    await expect(page.locator('.ant-message')).toContainText(/已选择图标：\(/);
+    await expect(page.locator('[data-sonner-toaster]')).toContainText(/已选择图标：\(/);
 
     expect(errors.errors).toEqual([]);
     errors.stop();
@@ -185,19 +185,21 @@ test.describe('IconPicker（shadcn-ui 重写）', () => {
 
     /**
      * 面板高度是组件里写死的 `SCROLLER_HEIGHT`，滚动交给 `@antdv/scrollbar-ui`：
-     * `scrollbar__wrap--hidden-default` 是"原生条已被摘掉"的证据，
-     * 也就是重写后仍然没有第二个"看得见但点不到"的系统滚动条。
+     * 滚动元素带 `data-reka-scroll-area-viewport` 就是"原生条已被摘掉"的证据
+     * （reka 给 viewport 注入了隐藏原生条的样式），也就是没有第二个"看得见但点不到"的系统滚动条。
      */
     const wrap = box.locator('.scrollbar__wrap');
-    await expect(wrap).toHaveClass(/scrollbar__wrap--hidden-default/);
-    await expect(wrap).toHaveCSS('overflow-y', 'auto');
+    await expect(wrap).toHaveAttribute('data-reka-scroll-area-viewport', '');
+    await expect(wrap).toHaveCSS('overflow-y', 'scroll');
 
     /**
      * 一页 108 格（12 列 × 9 行）正好铺满固定高度，所以此刻不该出现轨道 ——
-     * `Scrollbar` 只在真的溢出时才渲染 `.scrollbar__bar`（按需渲染，见包内 `update()`）。
+     * ScrollArea 的轨道要"悬停 + 真的溢出"才挂进 DOM。
      * "溢出时轨道要出现、能拖能滚"由 `shell-scroll.spec.ts` 覆盖，这里不重复造场景。
      */
-    await expect(box.locator('.scrollbar__bar')).toHaveCount(0);
+    await expect(
+      box.locator('[data-slot="scroll-area-scrollbar"]'),
+    ).toHaveCount(0);
 
     expect(errors.errors).toEqual([]);
     errors.stop();

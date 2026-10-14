@@ -1,0 +1,13 @@
+{
+  "extends": "@antdv/tsconfig/web.json",
+  "compilerOptions": {
+    "types": ["vitest/globals"],
+    "noEmit": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "__tests__/**/*.ts",
+    "vitest.config.ts"
+  ]
+}

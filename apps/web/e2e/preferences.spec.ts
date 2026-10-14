@@ -5,6 +5,7 @@ import { expect, test } from '@playwright/test';
 import {
   closePreferenceDrawer,
   openPreferenceDrawer,
+  segmentedControl,
   signIn,
   watchErrors,
 } from './utils/app';
@@ -25,22 +26,21 @@ function scrollWrap(drawer: Locator) {
 /**
  * 分段控件。
  * 按"其中一个选项的文字"定位，因为抽屉里同时挂着顶部面板切换条（外观/布局/通用）
- * 和面板里的风格选择条，用 `.ant-segmented` 的序号太脆。
+ * 和面板里的风格选择条，用 `[data-common-segmented]` 的序号太脆。
  */
 function segmented(drawer: Locator, optionText: string) {
-  return drawer
-    .locator('.ant-segmented')
-    .filter({ hasText: optionText })
-    .first();
+  return segmentedControl(drawer).filter({ hasText: optionText }).first();
 }
 
 /** 分段控件里点某个选项 */
 async function pickSegment(drawer: Locator, anchor: string, option: string) {
   const bar = segmented(drawer, anchor);
-  await bar.locator('.ant-segmented-item').filter({ hasText: option }).click();
-  await expect(bar.locator('.ant-segmented-item-selected')).toContainText(
-    option,
-  );
+  await bar
+    .locator(`[data-slot="toggle-group-item"][aria-label="${option}"]`)
+    .click();
+  await expect(
+    bar.locator('[data-slot="toggle-group-item"][data-state="on"]'),
+  ).toContainText(option);
 }
 
 test.describe('偏好抽屉的滚动区', () => {

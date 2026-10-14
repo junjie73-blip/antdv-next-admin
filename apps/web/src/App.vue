@@ -3,6 +3,7 @@ import { computed } from 'vue';
 
 import { autoPrefixTransformer, px2remTransformer } from '@antdv-next/cssinjs';
 import { HappyProvider } from '@antdv-next/happy-work-theme';
+import { Toaster } from '@antdv/shadcn-ui';
 import { App as AApp, ConfigProvider, StyleProvider } from 'antdv-next';
 import { useLocaleSync } from '~/composables/web/useLocale';
 import { getThemeConfig } from '~/settings';
@@ -26,6 +27,21 @@ const getPopupContainer = (triggerNode?: HTMLElement): HTMLElement => {
 const themeConfig = computed(() =>
   getThemeConfig(appStore.appSetting, appStore.isSystemDark),
 );
+
+/** 偏好项沿用 antd 的命名，sonner 的位置写法不同，这里做一次映射 */
+const TOAST_POSITIONS = {
+  bottomLeft: 'bottom-left',
+  bottomRight: 'bottom-right',
+  topLeft: 'top-left',
+  topRight: 'top-right',
+} as const;
+
+const toastPosition = computed(
+  () =>
+    TOAST_POSITIONS[
+      appStore.notificationPosition as keyof typeof TOAST_POSITIONS
+    ] ?? 'top-right',
+);
 </script>
 
 <template>
@@ -46,6 +62,7 @@ const themeConfig = computed(() =>
           }"
         >
           <router-view />
+          <Toaster :position="toastPosition" />
         </AApp>
       </ConfigProvider>
     </StyleProvider>

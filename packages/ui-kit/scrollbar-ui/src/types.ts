@@ -1,21 +1,4 @@
-import type { CSSProperties, Ref } from 'vue';
-
-export interface BarMapItem {
-  offset: string;
-  scroll: string;
-  scrollSize: string;
-  size: string;
-  key: string;
-  /** CSS transform 的轴向：只能是对应坐标轴的字母，索引拖拽缓存时靠它保证类型安全 */
-  axis: 'X' | 'Y';
-  client: string;
-  direction: string;
-}
-
-export interface BarMap {
-  vertical: BarMapItem;
-  horizontal: BarMapItem;
-}
+import type { CSSProperties } from 'vue';
 
 export type ScrollbarStyle =
   | (CSSProperties | string)[]
@@ -23,27 +6,24 @@ export type ScrollbarStyle =
   | string;
 
 export interface ScrollbarProps {
+  /** 用浏览器原生滚动条，而不是 shadcn 的 ScrollArea */
   native?: boolean;
   wrapStyle?: ScrollbarStyle;
   wrapClass?: (string | undefined)[] | string;
   viewClass?: (string | undefined)[] | string;
   viewStyle?: ScrollbarStyle;
-  noresize?: boolean;
   tag?: string;
+  /** 滚动条常驻 */
   always?: boolean;
-  minSize?: number;
-  scrollHeight?: number;
   maxHeight?: number | string;
   rootClass?: (string | undefined)[] | string;
-  /** ⭐ 停止滚动后隐藏滚动条的延迟（ms），默认 800 */
+  /** 停止滚动后隐藏滚动条的延迟（ms） */
   hideDelay?: number;
 }
 
-export type ScrollbarWrapRef = Ref<HTMLElement | undefined>;
-
 export interface ScrollbarType {
-  wrap: Ref<HTMLElement | undefined>;
-  update: () => void;
+  /** 真正的滚动盒：自绘模式下是 reka 的 viewport */
+  wrap: HTMLElement | undefined;
   setScrollTop: (value: number) => void;
   setScrollLeft: (value: number) => void;
   scrollTo: (options: ScrollToOptions) => void;

@@ -49,10 +49,21 @@ const showIcon = computed(() => Boolean(props.icon) || props.keepIconSlot);
       <Icon v-if="icon" :icon="icon" />
     </span>
 
-    <template v-if="!collapsed">
-      <span class="min-w-0 flex-1 truncate" data-menu-label>{{ title }}</span>
-      <MenuBadge :badge="badge" />
-    </template>
+    <!--
+      折叠时标题淡出而不是瞬间消失：侧栏宽度是渐变收的，文字跟着淡掉才不跳。
+      标题与徽标同进同退，所以包成一个节点给 Transition 用。
+    -->
+    <Transition
+      enter-active-class="transition-opacity duration-200 ease-out"
+      enter-from-class="opacity-0"
+      leave-active-class="transition-opacity duration-150 ease-in"
+      leave-to-class="opacity-0"
+    >
+      <span v-if="!collapsed" class="flex min-w-0 flex-1 items-center gap-1.5">
+        <span class="min-w-0 flex-1 truncate" data-menu-label>{{ title }}</span>
+        <MenuBadge :badge="badge" />
+      </span>
+    </Transition>
   </span>
 
   <span

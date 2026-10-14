@@ -1,8 +1,7 @@
 import type { ComputedRef, Ref } from "vue"
-
 import { createContext } from "reka-ui"
 
-export type QuestionnaireItemStatus = "answered" | "skipped" | "unanswered"
+export type QuestionnaireItemStatus = "unanswered" | "answered" | "skipped"
 export type QuestionnaireShortcutMode = "letters" | "numbers"
 
 export type QuestionnaireInputType
@@ -64,9 +63,9 @@ export interface ItemRegistration {
 
 export interface QuestionnaireRootContext {
   activeItem: ComputedRef<ItemRegistration | null>
-  activeItemName: ComputedRef<null | string>
+  activeItemName: ComputedRef<string | null>
   activeItemRequired: ComputedRef<boolean | null>
-  activeItemStatus: ComputedRef<null | QuestionnaireItemStatus>
+  activeItemStatus: ComputedRef<QuestionnaireItemStatus | null>
   current: ComputedRef<number>
   domVersion: Ref<number>
   first: ComputedRef<boolean>
@@ -76,7 +75,7 @@ export interface QuestionnaireRootContext {
   last: ComputedRef<boolean>
   nativeValidation: ComputedRef<boolean>
   registerItem: (registration: ItemRegistration) => () => void
-  shortcuts: ComputedRef<null | QuestionnaireShortcutMode>
+  shortcuts: ComputedRef<QuestionnaireShortcutMode | null>
   skipCurrent: () => void
   total: ComputedRef<number>
 }
@@ -104,7 +103,7 @@ export interface QuestionnaireItemContext {
   setAnswerSelectionFromInteraction: (answerId: string, selected: boolean) => void
   shortcutByAnswerId: ComputedRef<Map<string, string>>
   shortcutByChoiceValue: ComputedRef<Map<string, string> | null>
-  shortcuts: ComputedRef<null | QuestionnaireShortcutMode>
+  shortcuts: ComputedRef<QuestionnaireShortcutMode | null>
   status: ComputedRef<QuestionnaireItemStatus>
   syncControlledAnswerSelection: (answerId: string, selected: boolean) => void
 }
@@ -123,7 +122,7 @@ export function hasInputValue(value: unknown) {
   return value !== undefined && value !== null && String(value).trim().length > 0
 }
 
-export function getShortcutKeys(shortcuts: null | QuestionnaireShortcutMode) {
+export function getShortcutKeys(shortcuts: QuestionnaireShortcutMode | null) {
   if (shortcuts === "letters") {
     return Array.from({ length: 26 }, (_, index) => String.fromCharCode(65 + index))
   }
@@ -141,7 +140,7 @@ export function getShortcutFromKey(key: string, shortcuts: QuestionnaireShortcut
   return getShortcutKeys(shortcuts).includes(normalizedKey) ? normalizedKey : null
 }
 
-export function getAnswerKeyShortcuts(shortcut: null | string, filled: boolean) {
+export function getAnswerKeyShortcuts(shortcut: string | null, filled: boolean) {
   return [shortcut, filled ? "Enter" : null].filter(Boolean).join(" ") || undefined
 }
 
@@ -207,7 +206,7 @@ export interface QuestionnaireCollection {
 
 export function createQuestionnaireCollection(
   items: readonly QuestionnaireItemDefinition[] | undefined,
-): null | QuestionnaireCollection {
+): QuestionnaireCollection | null {
   if (items === undefined) {
     return null
   }
@@ -220,7 +219,7 @@ export function createQuestionnaireCollection(
 }
 
 export function getInitialItemName(
-  collection: null | QuestionnaireCollection,
+  collection: QuestionnaireCollection | null,
   defaultItem: string | undefined,
 ) {
   if (!collection) {
@@ -242,7 +241,7 @@ export function getInitialItemName(
  */
 export function getShortcutByChoiceValue(
   item: QuestionnaireItemDefinition | undefined,
-  shortcuts: null | QuestionnaireShortcutMode,
+  shortcuts: QuestionnaireShortcutMode | null,
 ) {
   const shortcutByChoiceValue = new Map<string, string>()
 

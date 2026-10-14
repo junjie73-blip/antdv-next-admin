@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { ref } from 'vue';
+
+import { Segmented, Space } from '@antdv/common-ui';
+import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { Button as AButton, Segmented as ASegmented, Space as ASpace } from 'antdv-next';
 
 import RealtimeAlertPanel from './components/RealtimeAlertPanel.vue';
 import SecurityScoreCard from './components/SecurityScoreCard.vue';
@@ -12,6 +15,8 @@ defineOptions({ name: 'SecurityDashboard' });
 
 const containerClassName = cn('space-y-4');
 const headerClassName = cn('mb-2 flex items-center justify-between');
+
+const range = ref('今日');
 </script>
 
 <template>
@@ -34,19 +39,17 @@ const headerClassName = cn('mb-2 flex items-center justify-between');
           实时安全态势感知与威胁分析中心
         </p>
       </div>
-      <ASpace>
-        <ASegmented
+      <Space>
+        <Segmented
+          v-model:value="range"
           :options="['今日', '近7天', '近30天']"
-          default-value="今日"
           size="small"
         />
-        <AButton size="small">
-          <template #icon>
-            <Icon icon="carbon:download" />
-          </template>
+        <Button size="sm">
+          <Icon icon="carbon:download" />
           导出报告
-        </AButton>
-      </ASpace>
+        </Button>
+      </Space>
     </div>
 
     <!-- 第一行：评分卡 + 告警面板 -->

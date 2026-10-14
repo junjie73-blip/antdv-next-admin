@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import type { FormSchema } from '~/components/business/Form';
-import type { BasicColumn } from '~/components/business/Table';
+import type { FormSchema } from '@antdv/form-ui';
+import type { BasicColumn } from '@antdv/table-ui';
 
 import { computed, onMounted, ref, useTemplateRef } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { Badge as ABadge, Button as AButton, Card as ACard, Divider as ADivider, Popconfirm as APopconfirm, Tag as ATag, Tree as ATree, message } from 'antdv-next';
+import { Badge, Card, Divider, Popconfirm, Tag, Tree } from '@antdv/common-ui';
+import { Button } from '@antdv/shadcn-ui';
 import { addDept, deleteDept, getDeptTree, updateDept } from '~/api/system';
-import { BasicForm, useForm } from '~/components/business/Form';
-import { BasicModal, useModal } from '~/components/business/Modal';
-import { BasicTable, useTable } from '~/components/business/Table';
+import { BasicForm, useForm } from '@antdv/form-ui';
+import { BasicModal, message, useModal } from '@antdv/popup-ui';
+import { BasicTable, useTable } from '@antdv/table-ui';
 import { DictType } from '~/enums/dict';
 import { useDictStore } from '~/stores';
 
@@ -48,7 +49,7 @@ const statClassName = cn('text-sm text-gray-500');
 const statNumClassName = cn('text-lg font-bold text-blue-600');
 const statusTagClassName = cn('inline-flex items-center gap-1');
 const actionClassName = cn('flex', 'items-center', 'justify-center');
-const btnClassName = cn('px-0.5!');
+const btnClassName = cn('h-auto', 'px-0.5!');
 const dividerClassName = cn('mx-0');
 
 // ========== 状态映射 ==========
@@ -308,8 +309,8 @@ async function mockApi(params: Record<string, any>) {
 
 // ========== 事件处理 ==========
 /**
- * `a-tree` 的 `@select` 回调签名由 antd 定义（`selectedKeys: Key[]`、
- * `info.node: EventDataNode<DataNode>`），这里只关心被点的那条部门 id。
+ * Tree 的 `@select` 回调签名是 `(keys, { node, selected })`，`node` 就是
+ * `treeData` 里那条原始数据，这里只关心被点的那条部门 id。
  * `node` 收成宽类型而不是自造 `{ id: number }`：后者会让模板上的事件绑定
  * 因为"实参类型对不上形参"而过不了 type-check。
  */
@@ -489,25 +490,22 @@ const columns: BasicColumn[] = [
   <div :class="containerClassName">
     <!-- 左侧部门树 -->
     <div :class="leftPanelClassName">
-      <ACard :class="treeCardClassName" title="部门架构" size="small">
+      <Card :class="treeCardClassName" title="部门架构">
         <template #extra>
-          <AButton
-            type="link"
-            size="small"
+          <Button
+            variant="link"
             :class="btnClassName"
             @click="handleToggleExpand"
           >
-            <template #icon>
-              <Icon
-                :icon="
-                  isAllExpanded ? 'carbon:collapse-all' : 'carbon:expand-all'
-                "
-              />
-            </template>
+            <Icon
+              :icon="
+                isAllExpanded ? 'carbon:collapse-all' : 'carbon:expand-all'
+              "
+            />
             {{ isAllExpanded ? '折叠' : '展开' }}
-          </AButton>
+          </Button>
         </template>
-        <ATree
+        <Tree
           :tree-data="deptTreeData"
           :field-names="{ children: 'children', title: 'name', key: 'id' }"
           :expanded-keys="treeExpandedKeys"
@@ -520,12 +518,12 @@ const columns: BasicColumn[] = [
             }
           "
         />
-      </ACard>
+      </Card>
     </div>
 
     <!-- 右侧内容区 -->
     <div :class="rightPanelClassName">
-      <ACard title="部门列表" :class="cardClassName">
+      <Card title="部门列表" :class="cardClassName">
         <!-- 统计信息 -->
         <div :class="headerClassName">
           <div :class="statClassName">
@@ -561,16 +559,14 @@ const columns: BasicColumn[] = [
           @register="tableRegister"
         >
           <template #toolbar>
-            <AButton type="primary" @click="handleAdd">
-              <template #icon>
-                <Icon icon="ant-design:plus-outlined" />
-              </template>
+            <Button @click="handleAdd">
+              <Icon icon="ant-design:plus-outlined" />
               新增部门
-            </AButton>
+            </Button>
           </template>
 
           <template #cell-status="{ record }">
-            <ATag :color="statusColorMap[record.status] || 'default'">
+            <Tag :color="statusColorMap[record.status] || 'default'">
               <span :class="statusTagClassName">
                 <Icon
                   :icon="
@@ -581,11 +577,11 @@ const columns: BasicColumn[] = [
                 />
                 {{ statusLabelMap[record.status] || '未知' }}
               </span>
-            </ATag>
+            </Tag>
           </template>
 
           <template #cell-userCount="{ record }">
-            <ABadge
+            <Badge
               :count="record.userCount"
               :number-style="{ backgroundColor: '#1677ff' }"
             />
@@ -593,42 +589,41 @@ const columns: BasicColumn[] = [
 
           <template #action="{ record }">
             <div :class="actionClassName">
-              <AButton
-                type="link"
+              <Button
+                variant="link"
                 :class="btnClassName"
                 @click="() => handleAddChild(record as DeptRecord)"
               >
-                <template #icon>
-                  <Icon icon="ant-design:plus-circle-outlined" />
-                </template>
+                <Icon icon="ant-design:plus-circle-outlined" />
                 新增
-              </AButton>
-              <AButton
-                type="link"
+              </Button>
+              <Button
+                variant="link"
                 :class="btnClassName"
                 @click="() => handleEdit(record as DeptRecord)"
               >
-                <template #icon>
-                  <Icon icon="ant-design:edit-outlined" />
-                </template>
+                <Icon icon="ant-design:edit-outlined" />
                 编辑
-              </AButton>
-              <ADivider type="vertical" :class="dividerClassName" />
-              <APopconfirm
+              </Button>
+              <Divider type="vertical" :class="dividerClassName" />
+              <Popconfirm
                 :title="`确定要删除部门「${record.name}」吗？子部门也将一并删除。`"
+                danger
                 @confirm="() => handleDelete(record as DeptRecord)"
               >
-                <AButton type="link" danger :class="btnClassName">
-                  <template #icon>
-                    <Icon icon="ant-design:delete-outlined" />
-                  </template>
+                <Button
+                  variant="link"
+                  class="text-destructive hover:text-destructive"
+                  :class="btnClassName"
+                >
+                  <Icon icon="ant-design:delete-outlined" />
                   删除
-                </AButton>
-              </APopconfirm>
+                </Button>
+              </Popconfirm>
             </div>
           </template>
         </BasicTable>
-      </ACard>
+      </Card>
     </div>
 
     <!-- 新增/编辑弹窗 -->

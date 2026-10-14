@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<{
@@ -13,6 +12,6 @@ const props = defineProps<{
     data-slot="table-caption"
     :class="cn('text-muted-foreground mt-4 text-sm', props.class)"
   >
-    <slot></slot>
+    <slot />
   </caption>
 </template>

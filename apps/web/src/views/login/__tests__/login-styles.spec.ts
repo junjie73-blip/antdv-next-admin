@@ -76,6 +76,10 @@ describe('登录页模板', () => {
   it('保留端到端夹具依赖的占位符与按钮文案', () => {
     expect(template).toContain('placeholder="请输入用户名"');
     expect(template).toContain('placeholder="请输入密码"');
-    expect(template).toMatch(/>\s*登录\s*<\/a-button>/u);
+    // 夹具用 `getByRole('button', { name: '登录', exact: true })`，认的是按钮文案；
+    // 标签名 `<a-button>` / `<AButton>` 换过写法，这里两种都算通过
+    expect(template).toMatch(
+      /<(?:a-button|AButton)\b[^>]*>\s*登录\s*<\/(?:a-button|AButton)>/u,
+    );
   });
 });

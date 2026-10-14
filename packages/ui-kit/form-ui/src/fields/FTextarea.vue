@@ -5,6 +5,7 @@ import { cn } from '@antdv/shared/cn';
 interface Props {
   autoSize?: any;
   disabled?: boolean;
+  id?: string;
   maxlength?: number;
   placeholder?: string;
   rows?: number;
@@ -25,22 +26,23 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{ 'update:value': [value: any] }>();
 
-function onInput(event: Event) {
-  emit('update:value', (event.target as HTMLTextAreaElement).value);
+function onValueChange(next: string | number) {
+  emit('update:value', next);
 }
 </script>
 
 <template>
   <div class="w-full">
     <Textarea
-      :value="value === undefined || value === null ? '' : String(value)"
+      :model-value="value === undefined || value === null ? '' : String(value)"
       :disabled="disabled"
       :rows="rows"
       :maxlength="maxlength"
       :placeholder="placeholder"
+      :id="id"
       data-field-control
       :class="cn('w-full')"
-      @input="onInput"
+      @update:model-value="onValueChange"
     />
     <div
       v-if="showCount && maxlength"

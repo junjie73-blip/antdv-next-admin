@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import type { TabsTriggerProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import { TabsTrigger, useForwardProps } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<TabsTriggerProps & { class?: HTMLAttributes["class"] }>()
 
@@ -23,6 +21,6 @@ const forwardedProps = useForwardProps(delegatedProps)
     )"
     v-bind="forwardedProps"
   >
-    <slot></slot>
+    <slot />
   </TabsTrigger>
 </template>

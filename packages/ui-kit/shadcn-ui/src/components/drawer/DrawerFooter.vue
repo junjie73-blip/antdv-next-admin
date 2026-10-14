@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { HTMLAttributes } from "vue"
-
 import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<{
@@ -13,6 +12,6 @@ const props = defineProps<{
     data-slot="drawer-footer"
     :class="cn('mt-auto flex flex-col gap-2 p-4', props.class)"
   >
-    <slot></slot>
+    <slot />
   </div>
 </template>

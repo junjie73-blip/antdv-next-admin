@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { WithClassAsProps } from "./interface"
-
 import { cn } from '@antdv/shared/cn'
-
 import { useCarousel } from "./useCarousel"
 
 const props = defineProps<WithClassAsProps>()
@@ -21,6 +19,6 @@ const { orientation } = useCarousel()
       props.class,
     )"
   >
-    <slot></slot>
+    <slot />
   </div>
 </template>

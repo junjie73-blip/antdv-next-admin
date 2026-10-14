@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import { cn } from '@antdv/shared/cn'
-
 import { useSidebar } from "./utils"
 
 const props = defineProps<{
@@ -30,6 +28,6 @@ const { toggleSidebar } = useSidebar()
     )"
     @click="toggleSidebar"
   >
-    <slot></slot>
+    <slot />
   </button>
 </template>

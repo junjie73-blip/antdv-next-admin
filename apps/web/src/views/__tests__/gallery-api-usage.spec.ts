@@ -20,7 +20,6 @@ import { describe, expect, it } from 'vitest';
  */
 
 const SCAN_ROOTS = ['src/views', 'src/components', 'src/layouts'];
-const SRC = join(process.cwd(), 'src');
 
 /** 三条规则的出处与判据，报错信息里要能直接看到该改什么 */
 const RULES: Array<{
@@ -128,4 +127,29 @@ const { message } = App.useApp();
       expect(rule.find(NEGATIVES[rule.name] ?? ''), rule.name).toEqual([]);
     });
   }
+
+  /**
+   * 示例页是别人直接抄的模板，所以只允许出现仓库自己封装的那套组件
+   * （`@antdv/common-ui` / `@antdv/shadcn-ui` / `@antdv/popup-ui` / `@antdv/table-ui` …）。
+   * 直接引 antd 原语的话，组件库就成了隐式依赖：换库时这些页面全部要重写，
+   * 而且示例展示的不再是本仓库的设计语言。
+   */
+  it('示例与布局不得直接引入 antdv-next 组件', () => {
+    const hits = SCAN_ROOTS.flatMap((root) =>
+      vueFiles(join(process.cwd(), root)),
+    )
+      .map((file) => [
+        file,
+        readFileSync(file, 'utf8').replaceAll('\r\n', '\n'),
+      ] as const)
+      .flatMap(([file, text]) =>
+        [...text.matchAll(/from\s*['"]antdv-next['"]/g)].map(
+          () => `${relative(process.cwd(), file).replaceAll('\\', '/')}`,
+        ),
+      );
+    expect(
+      [...new Set(hits)],
+      '示例与布局改用 @antdv/* 封装组件（common-ui / shadcn-ui / popup-ui）：',
+    ).toEqual([]);
+  });
 });

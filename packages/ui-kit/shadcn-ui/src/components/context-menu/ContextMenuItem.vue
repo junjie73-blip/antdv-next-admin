@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import type { ContextMenuItemEmits, ContextMenuItemProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import {
   ContextMenuItem,
   useForwardPropsEmits,
 } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = withDefaults(defineProps<ContextMenuItemProps & {
   class?: HTMLAttributes["class"]
@@ -35,6 +33,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
       props.class,
     )"
   >
-    <slot></slot>
+    <slot />
   </ContextMenuItem>
 </template>

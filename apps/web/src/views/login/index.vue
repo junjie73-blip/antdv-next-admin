@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import type { FormInstance } from 'antdv-next';
-import type { Rule } from 'antdv-next/dist/form/types';
+import type { Rule } from '@antdv/form-ui';
 
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
+import { runRule } from '@antdv/form-ui';
+import { message } from '@antdv/popup-ui';
 import {
-  LockOutlined,
-  MailOutlined,
-  MobileOutlined,
-  UserOutlined,
-} from '@antdv-next/icons';
+  Button as AButton,
+  Checkbox as ACheckbox,
+  Input as AInput,
+  Label,
+} from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { Button as AButton, Checkbox as ACheckbox, Form as AForm, FormItem as AFormItem, Input as AInput, InputPassword as AInputPassword, message } from 'antdv-next';
 import { HOME_PATH } from '~/config/constants';
 import { useUserStore } from '~/stores/modules/user';
 
@@ -70,9 +70,12 @@ const FEATURES = [
   },
 ];
 
-const formRef = ref<FormInstance>();
 const loading = ref(false);
 const loginType = ref<'account' | 'mobile'>('account');
+const passwordVisible = ref(false);
+
+/** 每个字段的错误文案，`''` 表示没有错误（原来由 antd FormItem 自己持有） */
+const errors = reactive<Record<string, string>>({});
 
 const formState = reactive({
   username: '',
@@ -105,9 +108,48 @@ const currentRules = computed(() =>
   loginType.value === 'account' ? accountRules : mobileRules,
 );
 
+/**
+ * 逐条跑规则引擎（`runRule` 与 antd async-validator 的常用子集语义对齐），
+ * 命中的第一条消息写进 `errors[field]`。传 names 只校验这几个字段，对应表单项
+ * 的 `trigger: 'blur'`；不传则校验当前登录方式下的全部字段（提交时）。
+ */
+async function validateNames(names?: string[]) {
+  const targets = names ?? Object.keys(currentRules.value);
+  let valid = true;
+  for (const name of targets) {
+    const rules = currentRules.value[name] ?? [];
+    const value = (formState as Record<string, any>)[name];
+    let errorMsg = '';
+    for (const rule of rules) {
+      const error = await runRule(rule, value, {
+        joinLabel: false,
+        label: name,
+      });
+      if (error) {
+        errorMsg = error;
+        break;
+      }
+    }
+    errors[name] = errorMsg;
+    if (errorMsg) valid = false;
+  }
+  return valid;
+}
+
+/** 保持旧 `formRef.validate()` 的"校验不过就抛错"契约，调用点的 try/catch 不用改 */
+async function validate(names?: string[]) {
+  if (await validateNames(names)) return;
+  throw new Error('表单校验未通过');
+}
+
+/** 切换登录方式时清掉另一种方式留下的红字：旧版 FormItem 卸载时会自动清，这里等价实现 */
+watch(loginType, () => {
+  for (const name of Object.keys(errors)) errors[name] = '';
+});
+
 async function handleLogin() {
   try {
-    await formRef.value?.validate();
+    await validate();
     loading.value = true;
 
     const result = await userStore.login(
@@ -254,114 +296,147 @@ function handleSendCode() {
           </button>
         </div>
 
-        <AForm
-          ref="formRef"
-          :model="formState"
-          :rules="currentRules"
-          layout="vertical"
-          @finish="handleLogin"
-        >
+        <form class="space-y-6" @submit.prevent="handleLogin">
           <template v-if="loginType === 'account'">
-            <AFormItem name="username">
-              <AInput
-                v-model:value="formState.username"
-                size="large"
-                placeholder="请输入用户名"
-                :class="inputClassName"
-                allow-clear
-              >
-                <template #prefix>
-                  <UserOutlined />
-                </template>
-              </AInput>
-            </AFormItem>
+            <div>
+              <div class="relative">
+                <Icon
+                  icon="carbon:user"
+                  class="text-slate-400 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                />
+                <AInput
+                  v-model="formState.username"
+                  type="text"
+                  placeholder="请输入用户名"
+                  :class="inputClassName"
+                  class="h-11 rounded-lg pl-9"
+                  @blur="validateNames(['username'])"
+                />
+              </div>
+              <p v-if="errors.username" class="text-red-500 mt-1 text-xs">
+                {{ errors.username }}
+              </p>
+            </div>
 
-            <AFormItem name="password">
-              <AInputPassword
-                v-model:value="formState.password"
-                size="large"
-                placeholder="请输入密码"
-                :class="inputClassName"
-                allow-clear
-              >
-                <template #prefix>
-                  <LockOutlined />
-                </template>
-              </AInputPassword>
-            </AFormItem>
-
-            <AFormItem>
-              <div class="flex items-center justify-between">
-                <ACheckbox v-model:checked="formState.remember">
-                  记住我
-                </ACheckbox>
+            <div>
+              <div class="relative">
+                <Icon
+                  icon="carbon:locked"
+                  class="text-slate-400 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                />
+                <AInput
+                  v-model="formState.password"
+                  :type="passwordVisible ? 'text' : 'password'"
+                  placeholder="请输入密码"
+                  :class="inputClassName"
+                  class="h-11 rounded-lg pr-10 pl-9"
+                  @blur="validateNames(['password'])"
+                />
                 <AButton
-                  type="link"
-                  size="small"
-                  class="!h-auto !px-0"
-                  @click="handleForgotPassword"
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  :aria-label="passwordVisible ? '隐藏密码' : '显示密码'"
+                  class="text-slate-400 absolute top-1/2 right-1 -translate-y-1/2"
+                  @click="passwordVisible = !passwordVisible"
                 >
-                  忘记密码？
+                  <Icon
+                    :icon="passwordVisible ? 'carbon:view-off' : 'carbon:view'"
+                    class="size-4"
+                  />
                 </AButton>
               </div>
-            </AFormItem>
+              <p v-if="errors.password" class="text-red-500 mt-1 text-xs">
+                {{ errors.password }}
+              </p>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <Label class="text-slate-600 cursor-pointer gap-2 font-normal dark:text-slate-300">
+                <ACheckbox
+                  :model-value="formState.remember"
+                  @update:model-value="
+                    (v: any) => (formState.remember = v === true)
+                  "
+                />
+                记住我
+              </Label>
+              <AButton
+                type="button"
+                variant="link"
+                size="sm"
+                class="h-auto px-0"
+                @click="handleForgotPassword"
+              >
+                忘记密码？
+              </AButton>
+            </div>
           </template>
 
           <template v-else>
-            <AFormItem name="mobile">
-              <AInput
-                v-model:value="formState.mobile"
-                size="large"
-                placeholder="请输入手机号"
-                :class="inputClassName"
-                allow-clear
-              >
-                <template #prefix>
-                  <MobileOutlined />
-                </template>
-              </AInput>
-            </AFormItem>
+            <div>
+              <div class="relative">
+                <Icon
+                  icon="carbon:mobile"
+                  class="text-slate-400 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                />
+                <AInput
+                  v-model="formState.mobile"
+                  type="text"
+                  placeholder="请输入手机号"
+                  :class="inputClassName"
+                  class="h-11 rounded-lg pl-9"
+                  @blur="validateNames(['mobile'])"
+                />
+              </div>
+              <p v-if="errors.mobile" class="text-red-500 mt-1 text-xs">
+                {{ errors.mobile }}
+              </p>
+            </div>
 
-            <AFormItem name="code">
-              <AInput
-                v-model:value="formState.code"
-                size="large"
-                placeholder="请输入验证码"
-                :class="inputClassName"
-                allow-clear
-              >
-                <template #prefix>
-                  <MailOutlined />
-                </template>
-                <template #suffix>
-                  <AButton
-                    type="link"
-                    size="small"
-                    class="!h-auto !px-0"
-                    data-auth="send-code"
-                    @click="handleSendCode"
-                  >
-                    发送验证码
-                  </AButton>
-                </template>
-              </AInput>
-            </AFormItem>
+            <div>
+              <div class="relative">
+                <Icon
+                  icon="carbon:email"
+                  class="text-slate-400 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                />
+                <AInput
+                  v-model="formState.code"
+                  type="text"
+                  placeholder="请输入验证码"
+                  :class="inputClassName"
+                  class="h-11 rounded-lg pr-24 pl-9"
+                  @blur="validateNames(['code'])"
+                />
+                <AButton
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  class="absolute top-1/2 right-2 h-auto px-1 -translate-y-1/2"
+                  data-auth="send-code"
+                  @click="handleSendCode"
+                >
+                  发送验证码
+                </AButton>
+              </div>
+              <p v-if="errors.code" class="text-red-500 mt-1 text-xs">
+                {{ errors.code }}
+              </p>
+            </div>
           </template>
 
-          <AFormItem class="mt-6">
+          <div>
             <AButton
-              type="primary"
-              html-type="submit"
-              size="large"
-              block
-              :loading="loading"
+              type="submit"
+              :disabled="loading"
               :class="submitButtonClassName"
+              class="w-full"
               data-auth="submit"
             >
               登录
             </AButton>
-          </AFormItem>
-        </AForm>
+          </div>
+        </form>
 
         <p :class="hintClassName">
           演示账号：admin / admin123（全部页面）· custom /

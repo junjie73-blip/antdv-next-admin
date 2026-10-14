@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<{
@@ -13,6 +12,6 @@ const props = defineProps<{
     data-slot="context-menu-shortcut"
     :class="cn('text-muted-foreground ml-auto text-xs tracking-widest', props.class)"
   >
-    <slot></slot>
+    <slot />
   </span>
 </template>

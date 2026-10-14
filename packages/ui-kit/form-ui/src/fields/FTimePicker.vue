@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 interface Props {
   disabled?: boolean;
   format?: string;
+  id?: string;
   placeholder?: string;
   range?: boolean;
   value?: any;
@@ -93,6 +94,7 @@ function onTimeInput(index: null | number, raw: string) {
         step="1"
         :value="rangeValues[0]"
         :disabled="disabled"
+        :id="id"
         data-field-control
         class="h-9 min-w-0 flex-1 bg-transparent text-sm outline-hidden disabled:cursor-not-allowed"
         @change="onTimeInput(0, ($event.target as HTMLInputElement).value)"
@@ -113,6 +115,7 @@ function onTimeInput(index: null | number, raw: string) {
       step="1"
       :value="singleValue"
       :disabled="disabled"
+      :id="id"
       data-field-control
       class="h-9 w-full min-w-0 bg-transparent text-sm outline-hidden disabled:cursor-not-allowed"
       @change="onTimeInput(null, ($event.target as HTMLInputElement).value)"

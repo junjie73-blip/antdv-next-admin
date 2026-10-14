@@ -12,6 +12,6 @@ const props = defineProps<{
     data-slot="breadcrumb"
     :class="props.class"
   >
-    <slot></slot>
+    <slot />
   </nav>
 </template>

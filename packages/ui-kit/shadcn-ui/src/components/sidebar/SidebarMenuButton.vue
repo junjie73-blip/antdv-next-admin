@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import type { Component } from "vue"
-
 import type { SidebarMenuButtonProps } from "./SidebarMenuButtonChild.vue"
-
 import { reactiveOmit } from "@vueuse/core"
-
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import SidebarMenuButtonChild from "./SidebarMenuButtonChild.vue"
 import { useSidebar } from "./utils"
@@ -14,7 +11,7 @@ defineOptions({
 })
 
 const props = withDefaults(defineProps<SidebarMenuButtonProps & {
-  tooltip?: Component | string
+  tooltip?: string | Component
 }>(), {
   as: "button",
   variant: "default",
@@ -28,13 +25,13 @@ const delegatedProps = reactiveOmit(props, "tooltip")
 
 <template>
   <SidebarMenuButtonChild v-if="!tooltip" v-bind="{ ...delegatedProps, ...$attrs }">
-    <slot></slot>
+    <slot />
   </SidebarMenuButtonChild>
 
   <Tooltip v-else>
     <TooltipTrigger as-child>
       <SidebarMenuButtonChild v-bind="{ ...delegatedProps, ...$attrs }">
-        <slot></slot>
+        <slot />
       </SidebarMenuButtonChild>
     </TooltipTrigger>
     <TooltipContent

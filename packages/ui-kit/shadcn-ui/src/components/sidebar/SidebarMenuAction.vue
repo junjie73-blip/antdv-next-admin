@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import type { PrimitiveProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { Primitive } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = withDefaults(defineProps<PrimitiveProps & {
   showOnHover?: boolean
@@ -32,6 +30,6 @@ const props = withDefaults(defineProps<PrimitiveProps & {
     :as="as"
     :as-child="asChild"
   >
-    <slot></slot>
+    <slot />
   </Primitive>
 </template>

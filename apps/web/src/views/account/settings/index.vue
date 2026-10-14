@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 
+import { Card, Divider } from '@antdv/common-ui';
+import { BasicModal, message, useModal } from '@antdv/popup-ui';
+import { Button, Input, Label, Switch } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { Button as AButton, Card as ACard, Divider as ADivider, Form as AForm, FormItem as AFormItem, Input as AInput, InputPassword as AInputPassword, Switch as ASwitch, message } from 'antdv-next';
-import { BasicModal, useModal } from '~/components/business/Modal';
 import { useAppStore } from '~/stores/modules/app';
 import { useUserStore } from '~/stores/modules/user';
 
@@ -51,6 +52,17 @@ const passwordForm = reactive({
   confirmPassword: '',
 });
 
+/** 三个密码框各自的明文可见状态，替代 antd InputPassword 自带的那只眼睛 */
+const passwordVisible = reactive({
+  confirmPassword: false,
+  newPassword: false,
+  oldPassword: false,
+});
+
+function togglePassword(name: keyof typeof passwordVisible) {
+  passwordVisible[name] = !passwordVisible[name];
+}
+
 const passwordLoading = ref(false);
 
 function handlePasswordSave() {
@@ -90,6 +102,15 @@ function handleNotificationChange() {
   message.success('通知偏好已更新');
 }
 
+/** Switch 没有 antd 的 `@change`，改在 update 回调里写回状态并复用同一条提示 */
+function handleNotificationSwitch(
+  name: keyof typeof notificationSettings,
+  value: any,
+) {
+  notificationSettings[name] = value === true;
+  handleNotificationChange();
+}
+
 const [registerDangerModal, dangerModalMethods] = useModal();
 const dangerLoading = ref(false);
 
@@ -113,69 +134,144 @@ function handleThemeToggle() {
 
 <template>
   <div :class="containerClassName">
-    <ACard variant="borderless" :class="cardClassName" title="个人资料">
+    <Card variant="borderless" :class="cardClassName" title="个人资料">
       <div :class="sectionTitleClassName">基本信息</div>
-      <AForm :model="profileForm" layout="vertical" style="max-width: 560px">
-        <AFormItem label="姓名">
-          <AInput v-model:value="profileForm.name" placeholder="请输入姓名" />
-        </AFormItem>
-        <AFormItem label="邮箱地址">
-          <AInput
-            v-model:value="profileForm.email"
-            placeholder="请输入邮箱地址"
-          />
-        </AFormItem>
-        <AFormItem label="手机号码">
-          <AInput
-            v-model:value="profileForm.phone"
-            placeholder="请输入手机号码"
-          />
-        </AFormItem>
-        <AFormItem>
-          <AButton
-            type="primary"
-            :loading="profileLoading"
+      <form class="max-w-[560px] space-y-6" @submit.prevent>
+        <div class="space-y-2">
+          <Label class="text-gray-700 dark:text-gray-300">姓名</Label>
+          <Input v-model="profileForm.name" placeholder="请输入姓名" />
+        </div>
+        <div class="space-y-2">
+          <Label class="text-gray-700 dark:text-gray-300">邮箱地址</Label>
+          <Input v-model="profileForm.email" placeholder="请输入邮箱地址" />
+        </div>
+        <div class="space-y-2">
+          <Label class="text-gray-700 dark:text-gray-300">手机号码</Label>
+          <Input v-model="profileForm.phone" placeholder="请输入手机号码" />
+        </div>
+        <div>
+          <Button
+            type="button"
+            :disabled="profileLoading"
             @click="handleProfileSave"
           >
+            <Icon
+              v-if="profileLoading"
+              class="animate-spin"
+              icon="svg-spinners:bouncing-ball"
+            />
             保存修改
-          </AButton>
-        </AFormItem>
-      </AForm>
-    </ACard>
+          </Button>
+        </div>
+      </form>
+    </Card>
 
-    <ACard variant="borderless" :class="cardClassName" title="修改密码">
-      <AForm :model="passwordForm" layout="vertical" style="max-width: 560px">
-        <AFormItem label="当前密码">
-          <AInputPassword
-            v-model:value="passwordForm.oldPassword"
-            placeholder="请输入当前密码"
-          />
-        </AFormItem>
-        <AFormItem label="新密码">
-          <AInputPassword
-            v-model:value="passwordForm.newPassword"
-            placeholder="请输入新密码"
-          />
-        </AFormItem>
-        <AFormItem label="确认新密码">
-          <AInputPassword
-            v-model:value="passwordForm.confirmPassword"
-            placeholder="请再次输入新密码"
-          />
-        </AFormItem>
-        <AFormItem>
-          <AButton
-            type="primary"
-            :loading="passwordLoading"
+    <Card variant="borderless" :class="cardClassName" title="修改密码">
+      <form class="max-w-[560px] space-y-6" @submit.prevent>
+        <div class="space-y-2">
+          <Label class="text-gray-700 dark:text-gray-300">当前密码</Label>
+          <div class="relative">
+            <Input
+              v-model="passwordForm.oldPassword"
+              :type="passwordVisible.oldPassword ? 'text' : 'password'"
+              placeholder="请输入当前密码"
+              class="pr-10"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              :aria-label="passwordVisible.oldPassword ? '隐藏密码' : '显示密码'"
+              class="absolute top-1/2 right-1 -translate-y-1/2"
+              @click="togglePassword('oldPassword')"
+            >
+              <Icon
+                :icon="
+                  passwordVisible.oldPassword
+                    ? 'carbon:view-off'
+                    : 'carbon:view'
+                "
+                class="size-4"
+              />
+            </Button>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <Label class="text-gray-700 dark:text-gray-300">新密码</Label>
+          <div class="relative">
+            <Input
+              v-model="passwordForm.newPassword"
+              :type="passwordVisible.newPassword ? 'text' : 'password'"
+              placeholder="请输入新密码"
+              class="pr-10"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              :aria-label="passwordVisible.newPassword ? '隐藏密码' : '显示密码'"
+              class="absolute top-1/2 right-1 -translate-y-1/2"
+              @click="togglePassword('newPassword')"
+            >
+              <Icon
+                :icon="
+                  passwordVisible.newPassword
+                    ? 'carbon:view-off'
+                    : 'carbon:view'
+                "
+                class="size-4"
+              />
+            </Button>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <Label class="text-gray-700 dark:text-gray-300">确认新密码</Label>
+          <div class="relative">
+            <Input
+              v-model="passwordForm.confirmPassword"
+              :type="passwordVisible.confirmPassword ? 'text' : 'password'"
+              placeholder="请再次输入新密码"
+              class="pr-10"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              :aria-label="
+                passwordVisible.confirmPassword ? '隐藏密码' : '显示密码'
+              "
+              class="absolute top-1/2 right-1 -translate-y-1/2"
+              @click="togglePassword('confirmPassword')"
+            >
+              <Icon
+                :icon="
+                  passwordVisible.confirmPassword
+                    ? 'carbon:view-off'
+                    : 'carbon:view'
+                "
+                class="size-4"
+              />
+            </Button>
+          </div>
+        </div>
+        <div>
+          <Button
+            type="button"
+            :disabled="passwordLoading"
             @click="handlePasswordSave"
           >
+            <Icon
+              v-if="passwordLoading"
+              class="animate-spin"
+              icon="svg-spinners:bouncing-ball"
+            />
             更新密码
-          </AButton>
-        </AFormItem>
-      </AForm>
-    </ACard>
+          </Button>
+        </div>
+      </form>
+    </Card>
 
-    <ACard variant="borderless" :class="cardClassName" title="通知设置">
+    <Card variant="borderless" :class="cardClassName" title="通知设置">
       <div class="max-w-lg space-y-4">
         <div class="flex items-center justify-between">
           <div>
@@ -184,12 +280,14 @@ function handleThemeToggle() {
               通过邮件接收系统通知
             </p>
           </div>
-          <ASwitch
-            v-model:checked="notificationSettings.email"
-            @change="handleNotificationChange"
+          <Switch
+            :model-value="notificationSettings.email"
+            @update:model-value="
+              (v: any) => handleNotificationSwitch('email', v)
+            "
           />
         </div>
-        <ADivider />
+        <Divider />
         <div class="flex items-center justify-between">
           <div>
             <p class="font-medium text-gray-800 dark:text-gray-200">短信通知</p>
@@ -197,12 +295,12 @@ function handleThemeToggle() {
               通过短信接收系统通知
             </p>
           </div>
-          <ASwitch
-            v-model:checked="notificationSettings.sms"
-            @change="handleNotificationChange"
+          <Switch
+            :model-value="notificationSettings.sms"
+            @update:model-value="(v: any) => handleNotificationSwitch('sms', v)"
           />
         </div>
-        <ADivider />
+        <Divider />
         <div class="flex items-center justify-between">
           <div>
             <p class="font-medium text-gray-800 dark:text-gray-200">推送通知</p>
@@ -210,15 +308,17 @@ function handleThemeToggle() {
               在浏览器中接收推送通知
             </p>
           </div>
-          <ASwitch
-            v-model:checked="notificationSettings.push"
-            @change="handleNotificationChange"
+          <Switch
+            :model-value="notificationSettings.push"
+            @update:model-value="
+              (v: any) => handleNotificationSwitch('push', v)
+            "
           />
         </div>
       </div>
-    </ACard>
+    </Card>
 
-    <ACard variant="borderless" :class="cardClassName" title="主题设置">
+    <Card variant="borderless" :class="cardClassName" title="主题设置">
       <div class="flex max-w-lg items-center justify-between">
         <div>
           <p class="font-medium text-gray-800 dark:text-gray-200">主题模式</p>
@@ -226,28 +326,30 @@ function handleThemeToggle() {
             当前：{{ isDarkMode ? '深色' : '浅色' }}
           </p>
         </div>
-        <AButton @click="handleThemeToggle">
-          <template #icon>
-            <Icon
-              :icon="isDarkMode ? 'carbon:sun' : 'carbon:moon'"
-              width="18"
-              height="18"
-            />
-          </template>
+        <Button type="button" @click="handleThemeToggle">
+          <Icon
+            :icon="isDarkMode ? 'carbon:sun' : 'carbon:moon'"
+            width="18"
+            height="18"
+          />
           切换为{{ isDarkMode ? '浅色' : '深色' }}
-        </AButton>
+        </Button>
       </div>
-    </ACard>
+    </Card>
 
-    <ACard variant="borderless" :class="dangerCardClassName">
+    <Card variant="borderless" :class="dangerCardClassName">
       <div :class="dangerTitleClassName">危险操作</div>
       <p :class="dangerDescClassName">
         删除账号后，所有数据将永久丢失且不可恢复，请谨慎操作。
       </p>
-      <AButton danger @click="dangerModalMethods?.openModal()">
+      <Button
+        type="button"
+        variant="destructive"
+        @click="dangerModalMethods?.openModal()"
+      >
         删除账号
-      </AButton>
-    </ACard>
+      </Button>
+    </Card>
 
     <BasicModal
       :register="registerDangerModal"

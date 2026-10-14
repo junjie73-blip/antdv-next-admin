@@ -12,6 +12,7 @@ import { normalizeOptions } from './utils';
 
 interface Props {
   disabled?: boolean;
+  id?: string;
   options?: any[];
   placeholder?: string;
   value?: any;
@@ -64,6 +65,7 @@ function pick(val: any) {
           :value="value === undefined || value === null ? '' : String(value)"
           :disabled="disabled"
           :placeholder="placeholder"
+          :id="id"
           data-field-control
           class="h-9 w-full min-w-0 bg-transparent text-sm outline-hidden placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed"
           @input="onInput"

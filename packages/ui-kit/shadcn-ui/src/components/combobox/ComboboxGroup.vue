@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import type { ComboboxGroupProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import { ComboboxGroup, ComboboxLabel } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<ComboboxGroupProps & {
   class?: HTMLAttributes["class"]
@@ -24,6 +22,6 @@ const delegatedProps = reactiveOmit(props, "class")
     <ComboboxLabel v-if="heading" class="px-2 py-1.5 text-xs font-medium text-muted-foreground">
       {{ heading }}
     </ComboboxLabel>
-    <slot></slot>
+    <slot />
   </ComboboxGroup>
 </template>

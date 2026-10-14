@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import type { PrimitiveProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
 import type { ItemVariants } from "."
-
-import { cn } from '@antdv/shared/cn'
 import { Primitive } from "reka-ui"
-
+import { cn } from '@antdv/shared/cn'
 import { itemVariants } from "."
 
 const props = withDefaults(defineProps<PrimitiveProps & {
@@ -28,6 +24,6 @@ const props = withDefaults(defineProps<PrimitiveProps & {
     :as-child="asChild"
     :class="cn(itemVariants({ variant, size }), props.class)"
   >
-    <slot></slot>
+    <slot />
   </Primitive>
 </template>

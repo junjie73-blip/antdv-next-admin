@@ -48,7 +48,7 @@ Same reasoning: the **parent of the selected menu item** and the active bar of t
 
 ::: warning Use the resolved value to ask "is it dark right now" `appStore.themeMode === 'dark'` is **always false** in `auto` mode, even when the system is already dark. Code that branches on light/dark (ECharts colors, the big-screen background) has to read `resolvedTheme`, not `themeMode`. :::
 
-The DOM-side class is added and removed by `applyPreferencesToDom()` (default `dark`, pass `darkClass` to override); Tailwind's `dark:` variant and the dark rules in `@antdv/styles` both hang off this class.
+The DOM-side class is added and removed by `applyPreferencesToDom()` (default `dark`, pass `darkClass` to override); Tailwind's `dark:` variant and the dark rules in `@antdv/design` both hang off this class.
 
 ## Style presets are registration-based
 
@@ -72,7 +72,7 @@ In preferences `borderRadius` stores a multiplier (`0 / 0.25 / 0.5 / 0.75 / 1`);
 
 ## Accessibility switches
 
-Gray mode and color-weak mode run on CSS filters (`--app-filter` plus an inline `filter`, and the `gray-mode` / `color-weak` classes): inline rather than stylesheet-only, so the switch takes effect immediately even without the stylesheet. Rules for focus visibility, `prefers-reduced-motion` and the like live in `a11y.css` in `@antdv/styles`.
+Gray mode and color-weak mode run on CSS filters (`--app-filter` plus an inline `filter`, and the `gray-mode` / `color-weak` classes): inline rather than stylesheet-only, so the switch takes effect immediately even without the stylesheet. Rules for focus visibility, `prefers-reduced-motion` and the like live in `a11y.css` in `@antdv/design`.
 
 ## The fixed routine for adding a preference switch
 

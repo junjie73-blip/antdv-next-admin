@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import type { BasicColumn } from '~/components/business/Table';
+import type { BasicColumn } from '@antdv/table-ui';
 
 import { ref } from 'vue';
 
+import { Alert, Card, Tag } from '@antdv/common-ui';
+import { Button, Skeleton } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
-import { Alert as AAlert, Button as AButton, Card as ACard, Skeleton as ASkeleton, Tag as ATag } from 'antdv-next';
-import { BasicTable, useTable } from '~/components/business/Table';
+import { BasicTable, useTable } from '@antdv/table-ui';
 
 const containerClassName = cn('space-y-6');
 const toolbarClassName = cn('mt-4', 'flex', 'gap-2');
@@ -88,10 +89,10 @@ function handleRefresh() {
 
 <template>
   <div :class="containerClassName">
-    <ACard title="基础表格">
+    <Card title="基础表格">
       <BasicTable @register="registerBasic">
         <template #cell-status="{ record }">
-          <ATag
+          <Tag
             :color="
               record?.status === '在职'
                 ? 'green'
@@ -101,41 +102,43 @@ function handleRefresh() {
             "
           >
             {{ record?.status }}
-          </ATag>
+          </Tag>
         </template>
       </BasicTable>
 
       <div :class="toolbarClassName">
-        <AButton type="primary" @click="handleRefresh"> 刷新数据 </AButton>
+        <Button @click="handleRefresh"> 刷新数据 </Button>
       </div>
-    </ACard>
+    </Card>
 
-    <ACard title="骨架屏加载动画">
-      <AAlert
+    <Card title="骨架屏加载动画">
+      <Alert
         message="点击下方按钮查看加载状态"
         type="info"
         show-icon
         :class="infoClassName"
       />
 
-      <ASkeleton :loading="loading" active :paragraph="{ rows: 5 }">
-        <div :class="skeletonContentClassName">
-          <p>这是表格的实际内容，当 loading 为 true 时会显示骨架屏</p>
-        </div>
-      </ASkeleton>
+      <div v-if="loading" :class="skeletonContentClassName">
+        <Skeleton
+          v-for="row in 5"
+          :key="row"
+          :class="cn('mb-3 h-4', row === 5 ? 'w-4/5' : 'w-full')"
+        />
+      </div>
+      <div v-else :class="skeletonContentClassName">
+        <p>这是表格的实际内容，当 loading 为 true 时会显示骨架屏</p>
+      </div>
 
       <div :class="toolbarClassName">
-        <AButton
-          :type="loading ? 'default' : 'primary'"
-          @click="loading = !loading"
-        >
+        <Button :variant="loading ? 'outline' : 'default'" @click="loading = !loading">
           {{ loading ? '停止加载' : '开始加载' }}
-        </AButton>
+        </Button>
       </div>
-    </ACard>
+    </Card>
 
-    <ACard title="行动画效果">
-      <AAlert
+    <Card title="行动画效果">
+      <Alert
         message="添加/删除行时会有平滑的过渡动画效果"
         type="success"
         show-icon
@@ -143,6 +146,6 @@ function handleRefresh() {
       />
 
       <BasicTable @register="registerAnimated" />
-    </ACard>
+    </Card>
   </div>
 </template>

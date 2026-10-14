@@ -1,11 +1,9 @@
 <script lang="ts" setup>
 import type { StepperSeparatorProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import { StepperSeparator, useForwardProps } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<StepperSeparatorProps & { class?: HTMLAttributes["class"] }>()
 

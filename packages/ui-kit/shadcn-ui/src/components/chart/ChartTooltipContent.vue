@@ -1,24 +1,21 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import type { ChartConfig } from "."
-
 import { computed } from "vue"
-
 import { cn } from '@antdv/shared/cn'
 
 const props = withDefaults(defineProps<{
   hideLabel?: boolean
   hideIndicator?: boolean
-  indicator?: "dashed" | "dot" | "line"
+  indicator?: "line" | "dot" | "dashed"
   nameKey?: string
   labelKey?: string
-  labelFormatter?: (d: Date | number) => string
+  labelFormatter?: (d: number | Date) => string
   payload?: Record<string, any>
   config?: ChartConfig
   class?: HTMLAttributes["class"]
   color?: string
-  x?: Date | number
+  x?: number | Date
 }>(), {
   payload: () => ({}),
   config: () => ({}),
@@ -85,7 +82,7 @@ const tooltipLabel = computed(() => {
                 '--color-bg': indicatorColor,
                 '--color-border': indicatorColor,
               }"
-            ></div>
+            />
           </template>
 
           <div :class="cn('flex flex-1 justify-between leading-none', nestLabel ? 'items-end' : 'items-center')">

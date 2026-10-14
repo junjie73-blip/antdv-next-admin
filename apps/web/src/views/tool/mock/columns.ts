@@ -1,4 +1,4 @@
-import type { BasicColumn } from '~/components/business/Table';
+import type { BasicColumn } from '@antdv/table-ui';
 
 /** 接口清单列：状态、命中与运行时配置均由单元格插槽渲染 */
 export const routeColumns: BasicColumn[] = [

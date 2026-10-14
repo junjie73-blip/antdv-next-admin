@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import type { HoverCardContentProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import {
   HoverCardContent,
   HoverCardPortal,
   useForwardProps,
 } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 defineOptions({
   inheritAttrs: false,
@@ -39,7 +37,7 @@ const forwardedProps = useForwardProps(delegatedProps)
         )
       "
     >
-      <slot></slot>
+      <slot />
     </HoverCardContent>
   </HoverCardPortal>
 </template>

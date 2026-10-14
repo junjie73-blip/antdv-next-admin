@@ -30,7 +30,7 @@ Vercel 控制台里 New Project → 导仓库 → **Root Directory 填 `apps/web
 | Output Directory | `dist` |
 | Node Version | 24（跟随根目录 `.node-version`） |
 
-::: important `--filter @antdv/web...` 末尾那三个点不是排版错误 `apps/web` 依赖 20 个 workspace 包（18 个运行时子包 + `@antdv/tsconfig` / `@antdv/vite-config`），其中 `shared` / `composables` / `directives` / `layouts` / `preferences` / `router` / `types` / `node-utils` / `vite-config` 这几个是 **`tsdown` 出来的产物**，仓库里不入库 `dist`。pnpm 的 `<pkg>...` 会把这个包**和它的依赖**一起纳入，于是 `... build` 会先构建 `@antdv/shared`、`@antdv/layouts`、`@antdv/vite-config` …再构建 web。只写 `pnpm --filter @antdv/web build` 的话，Vercel 上会得到一堆"找不到 `@antdv/shared/cn`"的构建失败 ——本地不复现，因为你机器上的 `dist` 是上一次构建留下的。另一批（`icons` / `styles` / `ui-kit` 九个）是源码发布，没有构建步骤，由 web 的 Vite 直接编译，所以它们在不在 `... build` 里都一样。
+::: important `--filter @antdv/web...` 末尾那三个点不是排版错误 `apps/web` 依赖 21 个 workspace 包（19 个运行时子包 + `@antdv/tsconfig` / `@antdv/vite-config`），其中 `shared` / `composables` / `directives` / `layouts` / `preferences` / `router` / `types` / `node-utils` / `vite-config` 这几个是 **`tsdown` 出来的产物**，仓库里不入库 `dist`。pnpm 的 `<pkg>...` 会把这个包**和它的依赖**一起纳入，于是 `... build` 会先构建 `@antdv/shared`、`@antdv/layouts`、`@antdv/vite-config` …再构建 web。只写 `pnpm --filter @antdv/web build` 的话，Vercel 上会得到一堆"找不到 `@antdv/shared/cn`"的构建失败 ——本地不复现，因为你机器上的 `dist` 是上一次构建留下的。另一批（`icons` / `design` / `ui-kit` 十个）是源码发布，没有构建步骤，由 web 的 Vite 直接编译，所以它们在不在 `... build` 里都一样。
 
 也可以用 `pnpm turbo build --filter=@antdv/web`（turbo 自己会算 `^build`），代价是要在 Vercel 上多装一遍 turbo 的缓存目录，收益只有远程缓存；真要加速 CI 时再换。:::
 

@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import type { PrimitiveProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
 import type { SidebarMenuButtonVariants } from "."
-
-import { cn } from '@antdv/shared/cn'
 import { Primitive } from "reka-ui"
-
+import { cn } from '@antdv/shared/cn'
 import { sidebarMenuButtonVariants } from "."
 
 export interface SidebarMenuButtonProps extends PrimitiveProps {
@@ -35,6 +31,6 @@ const props = withDefaults(defineProps<SidebarMenuButtonProps>(), {
     :as-child="asChild"
     v-bind="$attrs"
   >
-    <slot></slot>
+    <slot />
   </Primitive>
 </template>

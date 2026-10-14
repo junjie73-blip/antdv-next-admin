@@ -80,7 +80,7 @@ export const vPermission = createPermissionDirective({
 
 ## Fallback styling belongs to the style layer
 
-The directive only "raises a flag" (under the `.disabled` modifier it adds `permission-disabled`, by default it just sets `display:none`); the visual result is decided by `@antdv/styles/permission.css`:
+The directive only "raises a flag" (under the `.disabled` modifier it adds `permission-disabled`, by default it just sets `display:none`); the visual result is decided by `@antdv/design/permission.css`:
 
 ```css
 .permission-disabled {

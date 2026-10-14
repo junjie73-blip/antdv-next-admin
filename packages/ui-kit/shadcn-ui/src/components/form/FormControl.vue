@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { Slot } from "reka-ui"
-
 import { useFormField } from "./useFormField"
 
 const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
@@ -13,6 +12,6 @@ const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
     :aria-describedby="!error ? `${formDescriptionId}` : `${formDescriptionId} ${formMessageId}`"
     :aria-invalid="!!error"
   >
-    <slot></slot>
+    <slot />
   </Slot>
 </template>

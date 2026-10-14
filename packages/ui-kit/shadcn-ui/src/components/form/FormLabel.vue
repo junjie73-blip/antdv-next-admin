@@ -1,10 +1,7 @@
 <script lang="ts" setup>
 import type { LabelProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
 import { cn } from '@antdv/shared/cn'
-
 import { Label } from '../label'
 import { useFormField } from "./useFormField"
 
@@ -23,6 +20,6 @@ const { error, formItemId } = useFormField()
     )"
     :for="formItemId"
   >
-    <slot></slot>
+    <slot />
   </Label>
 </template>

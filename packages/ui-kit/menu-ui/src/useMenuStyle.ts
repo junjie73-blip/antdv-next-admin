@@ -97,6 +97,8 @@ export function useMenuStyle(
       const active = Boolean(state.selected);
       // 横向栏只区分「命中」与「未命中」，不叠底色：整条栏一列底色会盖住 Logo 区的层次
       const barActive = variant === 'bar' && (active || state.inSelectedPath);
+      // 侧栏里当前页所在子树的父级也跟着主色（antd 的 submenu-selected），但不加粗
+      const pathTinted = barActive || (variant !== 'bar' && state.inSelectedPath);
 
       return cn(
         'group/menu-row relative flex w-full cursor-pointer select-none items-center gap-2',
@@ -107,7 +109,7 @@ export function useMenuStyle(
         state.disabled &&
           'cursor-not-allowed text-slate-400 opacity-60 hover:bg-transparent dark:text-slate-500',
         variant !== 'bar' && active && selectedClass(),
-        barActive && (isGeek() ? 'text-[#00ff88]' : 'text-primary'),
+        pathTinted && (isGeek() ? 'text-[#00ff88]' : 'text-primary'),
         // 键盘可达性：焦点环用主色，避免深色侧栏上看不见
         'focus-visible:ring-2 focus-visible:ring-ring/60',
       );

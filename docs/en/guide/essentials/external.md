@@ -183,7 +183,7 @@ Why many entries instead of one barrel: importing only `cn` should not pull the 
 | Shape | Packages | `main` | After editing `src` | Reusable outside |
 | --- | --- | --- | --- | --- |
 | dist-published | `shared`, `composables`, `directives`, `layouts`, `preferences`, `router`, `types` | `./dist/index.js` (`types` uses `./dist/index.mjs`) | Rebuild required | Yes, once `dist` exists |
-| source-published | `@antdv/icons`, `@antdv/styles` (`./src/index.css`) and the nine `@antdv/ui-kit` packages (`shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` / `loading-ui` / `scrollbar-ui`; e.g. `packages/ui-kit/scrollbar-ui/package.json:12-19`: `files: ["src"]` with `main/types` both pointing at `./src/index.ts`) | Points at `src` | Hot-updates immediately | **No**: no build script; its `.vue` files and Tailwind entry are compiled by the consuming app's pipeline |
+| source-published | `@antdv/icons`, `@antdv/design` (`./src/index.css`) and the ten `@antdv/ui-kit` packages (`common-ui` / `shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` / `loading-ui` / `scrollbar-ui`; e.g. `packages/ui-kit/scrollbar-ui/package.json:12-19`: `files: ["src"]` with `main/types` both pointing at `./src/index.ts`) | Points at `src` | Hot-updates immediately | **No**: no build script; its `.vue` files and Tailwind entry are compiled by the consuming app's pipeline |
 
 ### Package boundaries are the only reason these are reusable
 
@@ -199,7 +199,7 @@ Editing `packages/*/src` does not show up in the application until a rebuild hap
 
 ### The library-mode build chain is ready, but has no consumer
 
-`internal/vite-config/src/config/library.ts:39` exports `defineLibraryConfig()`, whose external list is `dependencies + peerDependencies` fully excluded (`internal/vite-config/src/utils/package-json.ts:62-70`; the comment at `:56-61` explains that bundling them would drag a second vue / antdv-next along). The packages that compile SFCs — `@antdv/icons` and the nine `@antdv/ui-kit` packages — **do not use it**; they have no build script at all, and only the tsdown-based packages emit `dist`. That is the wiring point for publishing a real component library.
+`internal/vite-config/src/config/library.ts:39` exports `defineLibraryConfig()`, whose external list is `dependencies + peerDependencies` fully excluded (`internal/vite-config/src/utils/package-json.ts:62-70`; the comment at `:56-61` explains that bundling them would drag a second vue / antdv-next along). The packages that compile SFCs — `@antdv/icons` and the ten `@antdv/ui-kit` packages — **do not use it**; they have no build script at all, and only the tsdown-based packages emit `dist`. That is the wiring point for publishing a real component library.
 
 ## 5. The other direction: external sub-apps and the upstream repository
 

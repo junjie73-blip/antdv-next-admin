@@ -48,7 +48,7 @@ antd 把 `colorLink` 绑在自己的 `#1677ff` 上，而不是从 `colorPrimary`
 
 ::: warning 判断"现在是不是深色"要用解析结果 `appStore.themeMode === 'dark'` 在 `auto` 模式下**永远为 false**，即使系统已经是深色。需要按明暗分支的地方（ECharts 配色、大屏底色）要读 `resolvedTheme`，不能读 `themeMode`。:::
 
-DOM 侧的 class 由 `applyPreferencesToDom()` 增删（默认 `dark`，可传 `darkClass`），Tailwind 的 `dark:` 变体和 `@antdv/styles` 的 dark 规则都挂在这个 class 上。
+DOM 侧的 class 由 `applyPreferencesToDom()` 增删（默认 `dark`，可传 `darkClass`），Tailwind 的 `dark:` 变体和 `@antdv/design` 的 dark 规则都挂在这个 class 上。
 
 ## 风格预设是注册式的
 
@@ -72,7 +72,7 @@ registerThemePreset('glass', {
 
 ## 无障碍开关
 
-灰色模式与色弱模式走 CSS filter（`--app-filter` + 内联 `filter`，并挂 `gray-mode` / `color-weak` class）：用内联而不只是样式表，是为了"没有样式表时开关也立即生效"。焦点可见性、`prefers-reduced-motion` 等规则在 `@antdv/styles` 的 `a11y.css`。
+灰色模式与色弱模式走 CSS filter（`--app-filter` + 内联 `filter`，并挂 `gray-mode` / `color-weak` class）：用内联而不只是样式表，是为了"没有样式表时开关也立即生效"。焦点可见性、`prefers-reduced-motion` 等规则在 `@antdv/design` 的 `a11y.css`。
 
 ## 加一个偏好开关的固定动作
 

@@ -46,6 +46,14 @@ describe('FTextarea', () => {
     await wrapper.find('textarea').setValue('line1');
     expect(wrapper.emitted('update:value')?.[0]).toEqual(['line1']);
   });
+
+  it('外部 value 变化要回灌进 textarea（受控写法不能只认 input 事件）', async () => {
+    const wrapper = mount(FTextarea, { props: { value: '' } });
+    await wrapper.setProps({ value: '回填内容' });
+    expect(
+      (wrapper.find('textarea').element as HTMLTextAreaElement).value,
+    ).toBe('回填内容');
+  });
 });
 
 describe('FInputNumber', () => {

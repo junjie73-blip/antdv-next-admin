@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { DrawerCloseProps } from "reka-ui"
-
 import { DrawerClose } from "reka-ui"
 
 const props = defineProps<DrawerCloseProps>()
@@ -11,6 +10,6 @@ const props = defineProps<DrawerCloseProps>()
     data-slot="drawer-close"
     v-bind="props"
   >
-    <slot></slot>
+    <slot />
   </DrawerClose>
 </template>

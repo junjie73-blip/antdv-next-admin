@@ -26,12 +26,12 @@ const expanded = computed(() => context.openKeys.value.has(props.node.key));
 const hasChildren = computed(() => props.node.children.length > 0);
 
 /**
- * 横向栏的一级项点的是祖先、亮的是叶子：当前页面在谁家的子树里，谁就亮
- * （等价 antd 的 `submenu-selected`）。内联与浮层用不上 —— 那里选中态
- * 就落在具体的行上。
+ * 当前页面在谁家的子树里，谁就亮（等价 antd 的 `submenu-selected`）：
+ * 横向栏与侧栏都 tint 文字主色，只有选中的那一行才叠底色与加粗。
+ * 浮层用不上 —— 那里的子菜单正飘在屏幕上，父级已经看得见。
  */
 const inSelectedPath = computed(() => {
-  if (props.variant !== 'bar') return false;
+  if (props.variant === 'popup') return false;
   const keys = [...context.selectedKeys.value];
   return props.node.children.some((child) =>
     keys.some((key) => isBranchSelected(child, key)),
@@ -91,17 +91,26 @@ function onClick() {
     :data-menu-key="node.key"
     :data-menu-depth="node.depth"
     :data-menu-mode="variant"
-    :data-menu-state="selected ? 'selected' : undefined"
+    :data-menu-state="
+      selected ? 'selected' : inSelectedPath ? 'ancestor' : undefined
+    "
     role="menuitem"
     @click="onClick"
   >
     <!-- 选中竖条：迁移前用 ::before 画；自绘后放一个真元素，深色下的辉光靠 token 混色 -->
-    <span
-      v-if="selected && variant !== 'bar'"
-      :class="context.style.activeBarClass()"
-      aria-hidden="true"
-      data-menu-active-bar
-    ></span>
+    <Transition
+      enter-active-class="transition-[transform,opacity,scale] duration-200 ease-out"
+      enter-from-class="opacity-0 scale-y-0"
+      leave-active-class="transition-[transform,opacity,scale] duration-150 ease-in"
+      leave-to-class="opacity-0 scale-y-0"
+    >
+      <span
+        v-if="selected && variant !== 'bar'"
+        :class="context.style.activeBarClass()"
+        aria-hidden="true"
+        data-menu-active-bar
+      ></span>
+    </Transition>
 
     <MenuLabel
       :badge="node.badge"

@@ -1,23 +1,24 @@
 <script setup lang="ts">
-import type { ComponentType, FormSchema } from '~/components/business/Form';
+import type { ComponentType, FormSchema } from '@antdv/form-ui';
 
 import { ref } from 'vue';
 
+import { Card } from '@antdv/common-ui';
+import { BasicForm, useForm, addComponent } from '@antdv/form-ui';
+import { message } from '@antdv/popup-ui';
+import { Button } from '@antdv/shadcn-ui';
 import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
-import { Button as AButton, Card as ACard, App } from 'antdv-next';
-import { addComponent, BasicForm, useForm } from '~/components/business/Form';
 
 import TagPickerField from './components/TagPickerField.vue';
 
 /**
  * 自定义字段示例页。
  *
- * 讲的不是 antd 的控件，而是本仓库 `BasicForm`（`src/components/business/Form`）的字段扩展机制：
+ * 讲的不是 antd 的控件，而是本仓库 `BasicForm`（`@antdv/form-ui`）的字段扩展机制：
  * schema 里的 `component` 是一个**查表用的字符串键**（`FormItem.vue` → `getComponent(schema.component)`），
  * 表就是 `componentMap.ts`，往表里加一行的官方入口是 `addComponent(name, component)`。
  */
-const { message } = App.useApp();
 
 // 根容器不带内边距，内边距由布局统一给
 const containerClassName = cn('space-y-6');
@@ -236,7 +237,7 @@ function handleReset() {
 
 <template>
   <div :class="containerClassName">
-    <ACard title="内置扩展字段" variant="borderless">
+    <Card title="内置扩展字段" variant="borderless">
       <div :class="introClassName">
         <code :class="inlineCodeClassName">componentMap.ts</code>
         在 antd 基础控件之外还注册了本仓库自己的字段：
@@ -248,9 +249,9 @@ function handleReset() {
         时只需要给组件名，不需要 import 组件本身。
       </div>
       <BasicForm @register="registerBuiltin" />
-    </ACard>
+    </Card>
 
-    <ACard title="注册自定义字段" variant="borderless">
+    <Card title="注册自定义字段" variant="borderless">
       <div :class="introClassName">
         下面这两个字段用的是本页私有组件
         <code :class="inlineCodeClassName">components/TagPickerField.vue</code>， 注册只有一行
@@ -269,9 +270,9 @@ function handleReset() {
         <code :class="inlineCodeClassName">slot</code>，直接在页面模板里放控件。
       </div>
       <BasicForm @register="registerCustom" />
-    </ACard>
+    </Card>
 
-    <ACard title="字段联动" variant="borderless">
+    <Card title="字段联动" variant="borderless">
       <div :class="introClassName">
         BasicForm 每渲染一个字段都会用当前
         <code :class="inlineCodeClassName">formModel</code>
@@ -285,9 +286,9 @@ function handleReset() {
         跟着值变。自定义字段同样吃这套配置 —— 「推送群组」就是刚注册的那个组件。
       </div>
       <BasicForm @register="registerLinked" @submit="handleLinkedSubmit" />
-    </ACard>
+    </Card>
 
-    <ACard title="校验与取值" variant="borderless">
+    <Card title="校验与取值" variant="borderless">
       <div :class="introClassName">
         校验走 <code :class="inlineCodeClassName">useForm()</code> 返回的
         <code :class="inlineCodeClassName">validate()</code>：通过就 resolve
@@ -296,9 +297,9 @@ function handleReset() {
         不通过则 reject，提交被拦在本地，不发任何请求。
       </div>
       <div class="mb-4 flex flex-wrap gap-2">
-        <AButton type="primary" @click="handleValidate"> 校验并取值 </AButton>
-        <AButton @click="handleRawValues"> 取当前值（不校验） </AButton>
-        <AButton @click="handleReset"> 重置 </AButton>
+        <Button @click="handleValidate"> 校验并取值 </Button>
+        <Button variant="outline" @click="handleRawValues"> 取当前值（不校验） </Button>
+        <Button variant="outline" @click="handleReset"> 重置 </Button>
       </div>
       <BasicForm @register="registerCollect" />
       <Scrollbar :root-class="jsonBoxClassName">
@@ -306,6 +307,6 @@ function handleReset() {
           JSON.stringify(collected, null, 2)
         }}</pre>
       </Scrollbar>
-    </ACard>
+    </Card>
   </div>
 </template>

@@ -1,14 +1,13 @@
 import type { ComputedRef, InjectionKey, Ref, ShallowRef } from "vue"
-
 import { computed, getCurrentScope, inject, onMounted, onScopeDispose, provide, shallowRef, watch } from "vue"
 
 // -----------------------------------------------------------------------------
 // Public types
 // -----------------------------------------------------------------------------
 
-export type MessageScrollerDefaultScrollPosition = "end" | "last-anchor" | "start"
-export type MessageScrollerButtonDirection = "end" | "start"
-export type MessageScrollerScrollAlign = "center" | "end" | "nearest" | "start"
+export type MessageScrollerDefaultScrollPosition = "start" | "end" | "last-anchor"
+export type MessageScrollerButtonDirection = "start" | "end"
+export type MessageScrollerScrollAlign = "start" | "center" | "end" | "nearest"
 
 export interface MessageScrollerScrollOptions {
   align?: MessageScrollerScrollAlign
@@ -22,7 +21,7 @@ export interface MessageScrollerScrollable {
 }
 
 export interface MessageScrollerVisibilityState {
-  currentAnchorId: null | string
+  currentAnchorId: string | null
   visibleMessageIds: string[]
 }
 
@@ -45,13 +44,13 @@ const SCROLL_EPSILON = 0.5
 const AUTOSCROLLING_TIMEOUT = 180
 
 const SCROLL_KEYS = new Set([
-  " ",
   "ArrowDown",
   "ArrowUp",
   "End",
   "Home",
   "PageDown",
   "PageUp",
+  " ",
 ])
 
 const EMPTY_SCROLLABLE: MessageScrollerScrollable = { start: false, end: false }
@@ -62,9 +61,9 @@ const EMPTY_VISIBILITY: MessageScrollerVisibilityState = {
 }
 
 type Mode
-  = | "anchored-to-message"
-    | "following-bottom"
+  = | "following-bottom"
     | "free-scrolling"
+    | "anchored-to-message"
     | "settling-jump"
 
 interface PrependRestore {
@@ -98,7 +97,7 @@ function visibilityEqual(
 // DOM measurement helpers
 // -----------------------------------------------------------------------------
 
-function parseNumber(value: null | string | undefined): number {
+function parseNumber(value: string | null | undefined): number {
   if (!value)
     return 0
   const parsed = Number.parseFloat(value)
@@ -263,7 +262,7 @@ function computeVisibility({
   const anchorLine = viewportRect.top + scrollMargin + scrollPreviousItemPeek
   const noIntersectionObserver = typeof IntersectionObserver === "undefined"
   const visible: string[] = []
-  let currentAnchorId: null | string = null
+  let currentAnchorId: string | null = null
 
   for (const child of getMessageChildren(content, spacer)) {
     const messageId = child.dataset.messageId
@@ -404,12 +403,12 @@ function createEngine(props: MessageScrollerProviderProps) {
   let lastScrollTop = 0
   let defaultScrollPositionApplied = false
   let preserveScrollOnPrepend = true
-  let prependRestore: null | PrependRestore = null
-  let pendingScrollToMessage: null | PendingScrollToMessage = null
-  let stateFrame: null | number = null
-  let visibilityFrame: null | number = null
-  let pendingScrollFrame: null | number = null
-  let autoscrollingTimeout: null | number = null
+  let prependRestore: PrependRestore | null = null
+  let pendingScrollToMessage: PendingScrollToMessage | null = null
+  let stateFrame: number | null = null
+  let visibilityFrame: number | null = null
+  let pendingScrollFrame: number | null = null
+  let autoscrollingTimeout: number | null = null
   let visibilityObserver: IntersectionObserver | null = null
   let visibilityConsumers = 0
   const messageElements = new Map<string, HTMLElement>()
@@ -681,7 +680,7 @@ function createEngine(props: MessageScrollerProviderProps) {
     if (defaultScrollPositionApplied || itemCount === 0)
       return false
     const position = defaultScrollPosition()
-    let applied: boolean
+    let applied = false
     if (position === "last-anchor") {
       const lastAnchor = content && viewport
         ? findLastAnchor(getMessageChildren(content, spacer))

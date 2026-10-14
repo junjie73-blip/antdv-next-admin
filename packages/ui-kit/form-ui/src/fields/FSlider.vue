@@ -5,6 +5,7 @@ import { Slider } from '@antdv/shadcn-ui';
 
 interface Props {
   disabled?: boolean;
+  id?: string;
   max?: number;
   min?: number;
   range?: boolean;
@@ -49,6 +50,7 @@ function onChange(next: any) {
     :step="step"
     :disabled="disabled"
     :class="isRange ? '' : 'is-single'"
+    :id="id"
     data-field-control
     @update:model-value="onChange"
   />

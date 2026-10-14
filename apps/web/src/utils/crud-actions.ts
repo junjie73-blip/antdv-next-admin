@@ -1,4 +1,4 @@
-import type { ActionItem } from '~/components/business/Table';
+import type { ActionItem } from '@antdv/table-ui';
 
 import { isFunction } from 'es-toolkit';
 

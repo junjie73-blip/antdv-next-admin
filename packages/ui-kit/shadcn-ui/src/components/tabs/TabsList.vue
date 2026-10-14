@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import type { TabsListProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import { TabsList } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<TabsListProps & { class?: HTMLAttributes["class"] }>()
 
@@ -21,6 +19,6 @@ const delegatedProps = reactiveOmit(props, "class")
       props.class,
     )"
   >
-    <slot></slot>
+    <slot />
   </TabsList>
 </template>

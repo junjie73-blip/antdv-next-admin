@@ -3,9 +3,15 @@ import type { MenuConfig } from '@antdv/types';
 
 import { computed, ref } from 'vue';
 
+import { Empty } from '@antdv/common-ui';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { Empty as AEmpty, Input as AInput } from 'antdv-next';
 import { useRouteStore } from '~/stores/modules/route';
 
 /**
@@ -151,22 +157,27 @@ const total = computed(() =>
   <div :class="containerClassName">
     <div :class="headerClassName">
       <span :class="groupTitleClassName">组件示例总览</span>
-      <AInput
-        v-model:value="keyword"
-        allow-clear
-        class="w-60"
-        placeholder="按名称或路径过滤"
-      >
-        <template #prefix>
+      <InputGroup class="w-60">
+        <InputGroupAddon>
           <Icon icon="carbon:search" />
-        </template>
-      </AInput>
+        </InputGroupAddon>
+        <InputGroupInput v-model="keyword" placeholder="按名称或路径过滤" />
+        <InputGroupAddon v-if="keyword" align="inline-end">
+          <InputGroupButton
+            size="icon-xs"
+            aria-label="清空过滤条件"
+            @click="keyword = ''"
+          >
+            <Icon icon="carbon:close" />
+          </InputGroupButton>
+        </InputGroupAddon>
+      </InputGroup>
       <span :class="countClassName">
         共 {{ total }} 个示例{{ keyword.trim() ? '（已过滤）' : '' }}
       </span>
     </div>
 
-    <AEmpty v-if="total === 0" description="没有匹配的示例页" />
+    <Empty v-if="total === 0" description="没有匹配的示例页" />
 
     <section v-for="group in groups" :key="group.key" :class="groupClassName">
       <h3 :class="groupTitleClassName">

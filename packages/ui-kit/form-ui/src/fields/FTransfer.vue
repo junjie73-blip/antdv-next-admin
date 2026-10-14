@@ -5,6 +5,7 @@ import { normalizeOptions, optionValueEquals } from './utils';
 
 interface Props {
   disabled?: boolean;
+  id?: string;
   options?: any[];
   showSearch?: boolean;
   titles?: any[];
@@ -78,7 +79,7 @@ function moveToSource() {
 </script>
 
 <template>
-  <div class="flex w-full items-center gap-2" data-field-control>
+  <div class="flex w-full items-center gap-2" :id="id" data-field-control>
     <div class="flex-1 rounded-md border">
       <div class="border-b bg-muted/40 px-2 py-1 text-xs font-medium">
         {{ titles[0] }} ({{ sourceChecked.length }}/{{ sourceOptions.length }})

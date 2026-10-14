@@ -102,6 +102,26 @@ describe('BasicDrawer', () => {
     expect(drawerContent()!.getAttribute('style')).toContain('height: 400px');
   });
 
+  /**
+   * 「顶部切换条固定 + 面板内部再滚动」的调用方（偏好抽屉）要关掉这层：
+   * 抽屉自带的 ScrollArea 会把内层滚动容器撑到内容高度，滚动条反过来长在正文上。
+   */
+  it('bodyScroll 默认包 ScrollArea，关掉后插槽内容直接落到正文', async () => {
+    wrapper = mountDrawer({ open: true });
+    await flushPromises();
+    expect(
+      document.querySelector('.basic-drawer [data-slot="scroll-area"]'),
+    ).not.toBeNull();
+
+    wrapper.unmount();
+    wrapper = mountDrawer({ bodyScroll: false, open: true });
+    await flushPromises();
+    expect(
+      document.querySelector('.basic-drawer [data-slot="scroll-area"]'),
+    ).toBeNull();
+    expect(drawerContent()!.querySelector('.slot-content')).not.toBeNull();
+  });
+
   it('setDrawerProps 覆盖 title/open/visible', async () => {
     wrapper = mountDrawer();
     const instance = await getRegisteredInstance(wrapper);
@@ -144,6 +164,29 @@ describe('BasicDrawer', () => {
     wrapper = mountDrawer({ destroyOnHidden: false });
     await getRegisteredInstance(wrapper);
     expect(drawerContent()).not.toBeNull();
+  });
+
+  /**
+   * force-mount 的关闭态面板不会从 DOM 摘掉，样式上必须自己"退场"：
+   * 少了这两条，一块透明的 fixed 面板会盖在页面上吃掉所有点击（jsdom 量不出来，
+   * 但类名在，真实浏览器里的级联才对）。
+   */
+  it('force-mount 的关闭态面板要置为不可交互并停在退场终点', async () => {
+    wrapper = mountDrawer({ destroyOnHidden: false });
+    await getRegisteredInstance(wrapper);
+    const cls = drawerContent()!.className;
+    expect(cls).toContain('data-[state=closed]:pointer-events-none');
+    expect(cls).toContain('data-[state=closed]:fill-mode-forwards');
+  });
+
+  /** 宽度是内联 style，所以不能出现 `w-auto!` 这类 important 覆盖 */
+  it('左右 placement 不给面板加 !important 宽度覆盖', async () => {
+    wrapper = mountDrawer({ size: 680 });
+    const instance = await getRegisteredInstance(wrapper);
+    instance.openDrawer(true);
+    await flushPromises();
+    expect(drawerContent()!.className).not.toMatch(/\bw-auto!?\b/);
+    expect(drawerContent()!.getAttribute('style')).toContain('width: 680px');
   });
 });
 

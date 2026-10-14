@@ -1,5 +1,4 @@
 import type { Component, Ref } from "vue"
-
 import { createContext } from "reka-ui"
 
 export { default as ChartContainer } from "./ChartContainer.vue"
@@ -11,13 +10,13 @@ export { componentToString } from "./utils"
 export const THEMES = { light: "", dark: ".dark" } as const
 
 export type ChartConfig = {
-  [k in string]: (
-    | { color?: never, theme: Record<keyof typeof THEMES, string> }
+  [k in string]: {
+    label?: string | Component
+    icon?: string | Component
+  } & (
     | { color?: string, theme?: never }
-  ) & {
-    label?: Component | string
-    icon?: Component | string
-  }
+    | { color?: never, theme: Record<keyof typeof THEMES, string> }
+  )
 }
 
 interface ChartContextProps {

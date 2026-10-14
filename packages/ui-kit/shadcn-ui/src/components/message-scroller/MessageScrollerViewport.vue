@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue"
-
 import { cn } from '@antdv/shared/cn'
-
 import { SCROLL_KEYS, useMessageScrollerContext } from "./useMessageScroller"
 
 const props = withDefaults(defineProps<{
@@ -33,7 +30,7 @@ function onKeyDown(event: KeyboardEvent) {
     userScrollIntent()
 }
 
-let resizeObserver: null | ResizeObserver = null
+let resizeObserver: ResizeObserver | null = null
 let resizeFrame = 0
 
 onMounted(() => {
@@ -74,6 +71,6 @@ onBeforeUnmount(() => {
     @touchmove="userScrollIntent()"
     @keydown="onKeyDown"
   >
-    <slot></slot>
+    <slot />
   </div>
 </template>

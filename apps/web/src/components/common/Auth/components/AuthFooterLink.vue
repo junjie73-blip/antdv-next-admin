@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
-import { Button as AButton } from 'antdv-next';
 
 defineOptions({ name: 'AuthFooterLink' });
 
@@ -26,12 +26,12 @@ const emit = defineEmits<{
     "
   >
     {{ text }}
-    <AButton
-      type="link"
-      class="!text-ant-primary !h-auto !px-1 !font-medium"
+    <Button
+      variant="link"
+      class="h-auto px-1 font-medium"
       @click="emit('action')"
     >
       {{ actionText }}
-    </AButton>
+    </Button>
   </div>
 </template>

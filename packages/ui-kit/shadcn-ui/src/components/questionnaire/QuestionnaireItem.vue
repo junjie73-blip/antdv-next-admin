@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import type { AnswerControlRegistration, QuestionnaireItemStatus } from "./useQuestionnaire"
-
 import { computed, onBeforeUnmount, ref, shallowRef, useAttrs, watch } from "vue"
-
 import { cn } from '@antdv/shared/cn'
-
 import {
   compareDocumentOrder,
   getShortcutByChoiceValue,
@@ -466,6 +462,6 @@ provideQuestionnaireItemContext({
     tabindex="-1"
     :class="cn('flex flex-col gap-5 min-w-0 border-0 p-0 outline-none', props.class)"
   >
-    <slot :active="active" :invalid="invalid" :status="status"></slot>
+    <slot :active="active" :invalid="invalid" :status="status" />
   </fieldset>
 </template>

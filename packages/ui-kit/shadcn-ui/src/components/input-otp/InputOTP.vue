@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
 import type { OTPInputEmits, OTPInputProps } from "vue-input-otp"
-
-import { OTPInput } from "vue-input-otp"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import { useForwardPropsEmits } from "reka-ui"
+import { OTPInput } from "vue-input-otp"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<OTPInputProps & { class?: HTMLAttributes["class"] }>()
 
@@ -25,6 +23,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
     data-slot="input-otp"
     class="disabled:cursor-not-allowed"
   >
-    <slot v-bind="slotProps"></slot>
+    <slot v-bind="slotProps" />
   </OTPInput>
 </template>

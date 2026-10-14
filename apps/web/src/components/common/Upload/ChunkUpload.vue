@@ -7,9 +7,10 @@ import type {
 
 import { computed } from 'vue';
 
+import { Tag } from '@antdv/common-ui';
+import { message } from '@antdv/popup-ui';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { Tag as ATag, message } from 'antdv-next';
 
 import { useChunkUploader } from './composables/useChunkUploader';
 import { classifyUploadError, STATUS_COLOR } from './constants';
@@ -181,8 +182,18 @@ function getMergeStatusText(
   }
 }
 
+/** STATUS_COLOR 用的是语义色名，映射到 common-ui Tag 的预设色板，保持状态色一致 */
+const TAG_PRESET: Record<string, string> = {
+  default: 'default',
+  error: 'red',
+  processing: 'blue',
+  success: 'green',
+  warning: 'gold',
+};
+
 function getStatusColor(task: ChunkUploadTask): string {
-  return STATUS_COLOR[task.status] ?? 'default';
+  const semantic = STATUS_COLOR[task.status] ?? 'default';
+  return TAG_PRESET[semantic] ?? 'default';
 }
 
 // ============================================================
@@ -342,12 +353,12 @@ const hasPaused = computed(() =>
                 >
                   {{ getPercent(task) }}%
                 </span>
-                <ATag
+                <Tag
                   :color="getStatusColor(task)"
-                  class="!m-0 !text-[10px] !leading-4"
+                  class="m-0 text-[10px] leading-4"
                 >
                   {{ getStatusText(task) }}
-                </ATag>
+                </Tag>
 
                 <span class="text-gray-400 dark:text-gray-500">
                   {{ formatBytes(task.chunkSize) }} × {{ task.totalChunks }} 片

@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import type { ContextMenuSubTriggerProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { ChevronRight } from "@lucide/vue"
 import { reactiveOmit } from "@vueuse/core"
 import {
   ContextMenuSubTrigger,
   useForwardProps,
 } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<ContextMenuSubTriggerProps & { class?: HTMLAttributes["class"], inset?: boolean }>()
 
@@ -28,7 +26,7 @@ const forwardedProps = useForwardProps(delegatedProps)
       props.class,
     )"
   >
-    <slot></slot>
+    <slot />
     <ChevronRight class="ml-auto" />
   </ContextMenuSubTrigger>
 </template>

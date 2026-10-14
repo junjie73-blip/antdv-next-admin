@@ -12,6 +12,7 @@ withDefaults(
     className?: string;
   }>(),
   {
+    className: undefined,
     badges: () => [
       { icon: 'carbon:locked', text: 'SSL 加密' },
       { icon: 'carbon:shield-alert', text: '隐私保护' },

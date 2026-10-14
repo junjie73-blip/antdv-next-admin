@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import type { NavigationMenuContentEmits, NavigationMenuContentProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import {
   NavigationMenuContent,
   useForwardPropsEmits,
 } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<NavigationMenuContentProps & { class?: HTMLAttributes["class"] }>()
 const emits = defineEmits<NavigationMenuContentEmits>()
@@ -28,6 +26,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
       props.class,
     )"
   >
-    <slot></slot>
+    <slot />
   </NavigationMenuContent>
 </template>

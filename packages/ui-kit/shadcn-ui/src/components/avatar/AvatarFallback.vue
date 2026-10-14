@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import type { AvatarFallbackProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import { AvatarFallback } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<AvatarFallbackProps & { class?: HTMLAttributes["class"] }>()
 
@@ -18,6 +16,6 @@ const delegatedProps = reactiveOmit(props, "class")
     v-bind="delegatedProps"
     :class="cn('bg-muted flex size-full items-center justify-center rounded-full', props.class)"
   >
-    <slot></slot>
+    <slot />
   </AvatarFallback>
 </template>

@@ -83,28 +83,28 @@ test.describe('两种权限账号的授权生成', () => {
     const sidebar = page.locator('[data-layout-region="sidebar"]');
     // antd 的内联子菜单收起时不渲染孩子，先展开「系统管理」再断言里面的项
     await sidebar
-      .locator('.ant-menu-submenu-title', { hasText: '系统管理' })
+      .locator('[role="menuitem"]', { hasText: '系统管理' })
       .first()
       .click();
     await expect(
       sidebar
-        .locator('.ant-menu-title-content', { hasText: '用户管理' })
+        .locator('[data-menu-label]', { hasText: '用户管理' })
         .first(),
     ).toBeVisible();
     await expect(
-      sidebar.locator('.ant-menu-title-content', { hasText: '菜单管理' }),
+      sidebar.locator('[data-menu-label]', { hasText: '菜单管理' }),
     ).toHaveCount(0);
     await sidebar
-      .locator('.ant-menu-submenu-title', { hasText: '组件示例' })
+      .locator('[role="menuitem"]', { hasText: '组件示例' })
       .first()
       .click();
     // 「表单」整节都不在 custom 的白名单里，展开后它连子菜单都不该出现
     await expect(
-      sidebar.locator('.ant-menu-title-content', { hasText: '表单' }),
+      sidebar.locator('[data-menu-label]', { hasText: '表单' }),
     ).toHaveCount(0);
     await expect(
       sidebar
-        .locator('.ant-menu-title-content', { hasText: '示例总览' })
+        .locator('[data-menu-label]', { hasText: '示例总览' })
         .first(),
     ).toBeVisible();
   });

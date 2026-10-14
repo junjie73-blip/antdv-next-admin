@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import type { EmptyMediaVariants } from "."
-
 import { cn } from '@antdv/shared/cn'
-
 import { emptyMediaVariants } from "."
 
 const props = defineProps<{
@@ -19,6 +16,6 @@ const props = defineProps<{
     :data-variant="variant"
     :class="cn(emptyMediaVariants({ variant }), props.class)"
   >
-    <slot></slot>
+    <slot />
   </div>
 </template>

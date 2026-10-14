@@ -6,6 +6,7 @@ interface Props {
   checkedChildren?: any;
   checkedValue?: any;
   disabled?: boolean;
+  id?: string;
   size?: string;
   unCheckedChildren?: any;
   unCheckedValue?: any;
@@ -37,6 +38,7 @@ const checked = () => props.value === onValue();
     <Switch
       :model-value="checked()"
       :disabled="disabled"
+      :id="id"
       data-field-control
       :class="cn()"
       @update:model-value="(v: boolean) => emit('update:value', v ? onValue() : offValue())"

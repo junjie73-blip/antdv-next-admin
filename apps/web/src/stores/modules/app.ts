@@ -5,7 +5,6 @@ import type { Ref } from 'vue';
 import { computed, toRef, watch } from 'vue';
 
 import { setTimezone } from '@antdv/shared/dayjs';
-import { theme } from 'antdv-next';
 import { defineStore } from 'pinia';
 import { createToggles, getPreferences } from '~/settings';
 
@@ -18,7 +17,6 @@ import { createToggles, getPreferences } from '~/settings';
  *    避免 SettingDrawer、Layout 等十几处调用点一起改。
  */
 export const useAppStore = defineStore('app', () => {
-  const { token } = theme.useToken();
   const preferences: PreferencesInstance = getPreferences();
 
   /** 当前偏好快照，只读：写入一律走 `updateSetting` / `toggles`，否则不会落盘 */
@@ -139,7 +137,6 @@ export const useAppStore = defineStore('app', () => {
     preferences,
     isSystemDark,
     resolvedTheme,
-    token,
 
     themeMode,
     themeStyle,

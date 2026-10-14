@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import type { FormSchema } from '~/components/business/Form';
+import type { FormSchema } from '@antdv/form-ui';
 
 import { ref } from 'vue';
 
+import { Card } from '@antdv/common-ui';
+import { BasicForm, useForm } from '@antdv/form-ui';
+import { Button } from '@antdv/shadcn-ui';
 import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
-import { Button as AButton, Card as ACard } from 'antdv-next';
-import { BasicForm, useForm } from '~/components/business/Form';
 
 const containerClassName = cn('space-y-6');
 
@@ -234,23 +235,23 @@ function handleGetValues() {
 
 <template>
   <div :class="containerClassName">
-    <ACard title="基础表单">
+    <Card title="基础表单">
       <div class="space-y-4">
         <div class="flex flex-wrap gap-2">
-          <AButton type="primary" @click="handleValidate"> 验证表单 </AButton>
-          <AButton @click="handleReset"> 重置表单 </AButton>
-          <AButton @click="handleSetValues"> 设置 </AButton>
-          <AButton @click="handleGetValues"> 获取 </AButton>
+          <Button @click="handleValidate"> 验证表单 </Button>
+          <Button variant="outline" @click="handleReset"> 重置表单 </Button>
+          <Button variant="outline" @click="handleSetValues"> 设置 </Button>
+          <Button variant="outline" @click="handleGetValues"> 获取 </Button>
         </div>
 
         <BasicForm @register="register" @submit="handleSubmit" />
       </div>
-    </ACard>
+    </Card>
 
-    <ACard title="表单数据">
+    <Card title="表单数据">
       <Scrollbar root-class="rounded bg-gray-100 p-4 dark:bg-gray-800">
         <pre>{{ JSON.stringify(formResult, null, 2) }}</pre>
       </Scrollbar>
-    </ACard>
+    </Card>
   </div>
 </template>

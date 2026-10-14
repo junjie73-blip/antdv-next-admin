@@ -1,24 +1,25 @@
 <script setup lang="tsx">
-import type { DescriptionItem } from '~/components/business/Description';
-import type { FormSchema } from '~/components/business/Form';
-import type { BasicColumn } from '~/components/business/Table';
+import type { FormSchema } from '@antdv/form-ui';
+import type { BasicColumn } from '@antdv/table-ui';
+import type { DescriptionItem } from '@antdv/common-ui';
 
 import { computed, ref } from 'vue';
 
+import { Card, Divider, Tag, Tooltip } from '@antdv/common-ui';
+import { BasicForm, useForm } from '@antdv/form-ui';
+import { BasicDrawer, message, useDrawer } from '@antdv/popup-ui';
+import { BasicModal, useModal } from '@antdv/popup-ui';
+import { Button, Switch } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
+import { BasicTable, useTable } from '@antdv/table-ui';
 import { Icon } from '@iconify/vue';
-import { Button as AButton, Card as ACard, Divider as ADivider, Switch as ASwitch, Tag as ATag, Tooltip as ATooltip, message } from 'antdv-next';
 import {
   addSetting,
   deleteSetting,
   getSettingsList,
   updateSetting,
 } from '~/api/system';
-import { Description as DetailDescription } from '~/components/business/Description';
-import { BasicDrawer, useDrawer } from '~/components/business/Drawer';
-import { BasicForm, useForm } from '~/components/business/Form';
-import { BasicModal, useModal } from '~/components/business/Modal';
-import { BasicTable, useTable } from '~/components/business/Table';
+import { Description as DetailDescription } from '@antdv/common-ui';
 import { DictType } from '~/enums/dict';
 import { useDictStore } from '~/stores';
 
@@ -48,6 +49,8 @@ const cardClassName = cn('shadow-sm');
 const valueCellClassName = cn('truncate', 'block', 'max-w-[180px]');
 const actionClassName = cn('flex', 'items-center', 'justify-center');
 const btnClassName = cn('px-0.5!');
+const linkBtnClassName = cn('h-auto px-0', btnClassName);
+const dangerLinkBtnClassName = cn(linkBtnClassName, 'text-destructive');
 const dividerClassName = cn('mx-0');
 
 const groupColorMap: Record<string, string> = {
@@ -388,7 +391,7 @@ const columns: BasicColumn[] = [
 
 <template>
   <div :class="containerClassName">
-    <ACard title="系统设置" :class="cardClassName">
+    <Card title="系统设置" :class="cardClassName">
       <BasicTable
         :columns="columns"
         :api="mockApi"
@@ -400,95 +403,81 @@ const columns: BasicColumn[] = [
         @register="tableRegister"
       >
         <template #toolbar>
-          <AButton type="primary" @click="handleAdd">
-            <template #icon>
-              <Icon icon="ant-design:plus-outlined" />
-            </template>
+          <Button @click="handleAdd">
+            <Icon icon="ant-design:plus-outlined" />
             新增设置
-          </AButton>
+          </Button>
         </template>
         <template #cell-type="{ record }">
-          <ATag :color="typeColorMap[record.type] || 'default'">
+          <Tag :color="typeColorMap[record.type] || 'default'">
             {{ typeLabelMap[record.type] || record.type }}
-          </ATag>
+          </Tag>
         </template>
         <template #cell-group="{ record }">
-          <ATag
+          <Tag
             :color="groupColorMap[record.group] || 'default'"
             class="flex! w-full items-center justify-between whitespace-nowrap"
           >
-            <template #icon>
-              <Icon
-                v-if="groupIconMap[record.group]"
-                :icon="groupIconMap[record.group]!"
-              />
-            </template>
+            <Icon
+              v-if="groupIconMap[record.group]"
+              :icon="groupIconMap[record.group]!"
+            />
             {{ record.group }}
-          </ATag>
+          </Tag>
         </template>
         <template #cell-enabled="{ record }">
-          <ASwitch
-            :checked="record.enabled"
-            size="small"
-            @change="(checked: boolean) => handleToggleEnabled(record as SystemConfig, checked)"
+          <Switch
+            :model-value="record.enabled"
+            @update:model-value="(v: any) => handleToggleEnabled(record as SystemConfig, v === true)"
           />
         </template>
         <template #cell-value="{ text }">
-          <ATooltip :title="text">
+          <Tooltip :title="text">
             <span :class="valueCellClassName">{{ text }}</span>
-          </ATooltip>
+          </Tooltip>
         </template>
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <AButton
-              type="link"
-              :class="btnClassName"
+            <Button
+              variant="link"
+              :class="linkBtnClassName"
               @click="() => handleApply(record)"
             >
-              <template #icon>
-                <Icon icon="carbon:restart" />
-              </template>
+              <Icon icon="carbon:restart" />
               应用
-            </AButton>
-            <ADivider type="vertical" :class="dividerClassName" />
-            <AButton
-              type="link"
-              :class="btnClassName"
+            </Button>
+            <Divider type="vertical" :class="dividerClassName" />
+            <Button
+              variant="link"
+              :class="linkBtnClassName"
               @click="() => handleView(record)"
             >
-              <template #icon>
-                <Icon icon="ant-design:eye-outlined" />
-              </template>
+              <Icon icon="ant-design:eye-outlined" />
               查看
-            </AButton>
-            <ADivider type="vertical" :class="dividerClassName" />
-            <AButton
-              type="link"
-              :class="btnClassName"
+            </Button>
+            <Divider type="vertical" :class="dividerClassName" />
+            <Button
+              variant="link"
+              :class="linkBtnClassName"
               @click="() => handleEdit(record)"
             >
-              <template #icon>
-                <Icon icon="ant-design:edit-outlined" />
-              </template>
+              <Icon icon="ant-design:edit-outlined" />
               编辑
-            </AButton>
-            <ADivider type="vertical" :class="dividerClassName" />
-            <AButton
-              type="link"
-              danger
-              :class="btnClassName"
+            </Button>
+            <Divider type="vertical" :class="dividerClassName" />
+            <Button
+              variant="link"
+              :class="dangerLinkBtnClassName"
               @click="() => handleDelete(record)"
             >
-              <template #icon>
-                <Icon icon="ant-design:delete-outlined" />
-              </template>
+              <Icon icon="ant-design:delete-outlined" />
               删除
-            </AButton>
+            </Button>
           </div>
         </template>
       </BasicTable>
-    </ACard>
+    </Card>
 
     <BasicModal
       :title="isEditing ? '编辑设置' : '新增设置'"

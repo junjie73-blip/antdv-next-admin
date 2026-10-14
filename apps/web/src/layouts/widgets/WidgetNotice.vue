@@ -5,9 +5,16 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
+import { Badge } from '@antdv/common-ui';
+import { message } from '@antdv/popup-ui';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Spinner,
+} from '@antdv/shadcn-ui';
 import { Scrollbar } from '@antdv/scrollbar-ui';
 import { Icon } from '@iconify/vue';
-import { Badge, message, Popover, Spin } from 'antdv-next';
 import { getNoticeList, markAllNoticeRead, markNoticeRead } from '~/api/system';
 import { useWebSocket } from '~/utils/ws';
 
@@ -26,7 +33,8 @@ defineOptions({ name: 'WidgetNotice' });
  * - `import '~/api/notice.js'`：这个文件不存在，异步块直接解析失败；
  * - 读 `noticeId / isRead / createdAt`：mock 契约是 `id / status / sendTime`，
  *   字段对不上导致未读角标恒为 0、列表恒为空（映射统一收在 ./notice.ts）；
- * - `<Badge mode="dot">`：antdv-next 1.6 的 Badge 没有 `mode`，属性被忽略。
+ * - 角标写法：`<Badge mode="dot">` 里的 `mode` 从来不存在，属性被原样忽略，
+ *   现在统一用封装 Badge 的 `count`（未读条数）。
  */
 
 /** 顶栏只给最近几条，全量在「通知管理」页看 */
@@ -130,21 +138,22 @@ function handleViewAll() {
 </script>
 
 <template>
-  <Popover
-    v-model:open="open"
-    placement="bottomRight"
-    trigger="click"
-    :arrow="false"
-  >
+  <Popover v-model:open="open">
     <!-- 触发按钮 -->
-    <WidgetButton :active="open" :label="t('header.notification')">
-      <Badge :count="unreadCount" size="small" :offset="[0, 4]">
-        <Icon icon="carbon:notification" class="text-base" />
-      </Badge>
-    </WidgetButton>
+    <PopoverTrigger as-child>
+      <WidgetButton :active="open" :label="t('header.notification')">
+        <Badge :count="unreadCount" :offset="[0, 4]">
+          <Icon icon="carbon:notification" class="text-base" />
+        </Badge>
+      </WidgetButton>
+    </PopoverTrigger>
 
     <!-- 内容 -->
-    <template #content>
+    <PopoverContent
+      align="end"
+      class="w-[380px] overflow-hidden p-0"
+      side="bottom"
+    >
       <div class="flex w-[380px] flex-col" data-testid="notice-panel">
         <!-- 头部 -->
         <div
@@ -178,36 +187,43 @@ function handleViewAll() {
 
         <!-- 列表：滚动走封装组件，弹窗里不露系统滚动条 -->
         <Scrollbar root-class="max-h-[420px] min-h-[140px]" view-class="p-2">
-          <Spin :spinning="loading">
-            <div
-              v-if="!loading && list.length === 0"
-              data-testid="notice-empty"
-              class="flex flex-col items-center justify-center gap-2 py-12"
-            >
-              <div
-                class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800"
-              >
-                <Icon
-                  icon="carbon:notification-off"
-                  class="text-xl text-slate-400 dark:text-slate-500"
-                />
-              </div>
-              <span class="text-xs text-slate-400 dark:text-slate-500">{{
-                t('header.noNotification')
-              }}</span>
-            </div>
+          <!-- 加载中 / 空列表 / 有数据三个分支各占其位，不再叠一层蒙版 -->
+          <div
+            v-if="loading"
+            class="flex items-center justify-center py-12"
+            data-testid="notice-loading"
+          >
+            <Spinner class="size-5 text-slate-400 dark:text-slate-500" />
+          </div>
 
-            <div v-else class="space-y-1">
-              <NoticeItem
-                v-for="item in list"
-                :key="item.id"
-                :expanded="expandedId === item.id"
-                :item="item"
-                @click="handleClick"
-                @view-all="handleViewAll"
+          <div
+            v-else-if="list.length === 0"
+            data-testid="notice-empty"
+            class="flex flex-col items-center justify-center gap-2 py-12"
+          >
+            <div
+              class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800"
+            >
+              <Icon
+                icon="carbon:notification-off"
+                class="text-xl text-slate-400 dark:text-slate-500"
               />
             </div>
-          </Spin>
+            <span class="text-xs text-slate-400 dark:text-slate-500">{{
+              t('header.noNotification')
+            }}</span>
+          </div>
+
+          <div v-else class="space-y-1">
+            <NoticeItem
+              v-for="item in list"
+              :key="item.id"
+              :expanded="expandedId === item.id"
+              :item="item"
+              @click="handleClick"
+              @view-all="handleViewAll"
+            />
+          </div>
         </Scrollbar>
 
         <!-- 底部 -->
@@ -223,6 +239,6 @@ function handleViewAll() {
           </button>
         </div>
       </div>
-    </template>
+    </PopoverContent>
   </Popover>
 </template>

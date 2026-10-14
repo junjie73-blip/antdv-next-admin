@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import type { PrimitiveProps } from "reka-ui"
-
 import type { ComponentPublicInstance, HTMLAttributes } from "vue"
-
-import { onBeforeUnmount, onMounted, ref, useId } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { Primitive } from "reka-ui"
-
+import { onBeforeUnmount, onMounted, ref, useId } from "vue"
+import { cn } from '@antdv/shared/cn'
 import { injectQuestionnaireItemContext } from "./useQuestionnaire"
 
 const props = withDefaults(defineProps<PrimitiveProps & {
@@ -58,6 +54,6 @@ onBeforeUnmount(() => unregisterDescription())
     :as-child="props.asChild"
     :class="cn('text-sm text-pretty text-muted-foreground', props.class)"
   >
-    <slot></slot>
+    <slot />
   </Primitive>
 </template>

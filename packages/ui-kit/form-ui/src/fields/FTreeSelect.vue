@@ -15,6 +15,7 @@ interface Props {
   allowClear?: boolean;
   disabled?: boolean;
   fieldNames?: { children?: string; label?: string; value?: string };
+  id?: string;
   multiple?: boolean;
   placeholder?: string;
   showSearch?: boolean;
@@ -118,6 +119,7 @@ function clear(event: MouseEvent) {
         role="combobox"
         :aria-expanded="open"
         :disabled="disabled"
+        :id="id"
         data-field-control
         :class="
           cn(

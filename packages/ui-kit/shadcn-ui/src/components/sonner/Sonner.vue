@@ -1,10 +1,8 @@
 <script lang="ts" setup>
 import type { ToasterProps } from "vue-sonner"
-
-import { Toaster as Sonner } from "vue-sonner"
-
-import { cn } from '@antdv/shared/cn'
 import { CircleCheckIcon, InfoIcon, Loader2Icon, OctagonXIcon, TriangleAlertIcon, XIcon } from "@lucide/vue"
+import { Toaster as Sonner } from "vue-sonner"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<ToasterProps>()
 </script>

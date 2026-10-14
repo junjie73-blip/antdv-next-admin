@@ -31,6 +31,14 @@ if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = () => {};
 }
 
+// reka 的 Select/Popover 触发器按下时会调这三个指针捕获 API，jsdom 没实现
+if (typeof Element !== 'undefined') {
+  const proto = Element.prototype as any;
+  if (!proto.hasPointerCapture) proto.hasPointerCapture = () => false;
+  if (!proto.releasePointerCapture) proto.releasePointerCapture = () => {};
+  if (!proto.setPointerCapture) proto.setPointerCapture = () => {};
+}
+
 // jsdom 的布局尺寸恒为 0，列宽拖拽 / 滚动定位要有一个可读的假尺寸
 if (!HTMLElement.prototype.getBoundingClientRect) {
   (HTMLElement.prototype as any).getBoundingClientRect = () => ({

@@ -16,6 +16,7 @@ interface Props {
   allowClear?: boolean;
   disabled?: boolean;
   format?: string;
+  id?: string;
   picker?: 'date' | 'month' | 'week';
   placeholder?: string;
   range?: boolean;
@@ -180,6 +181,7 @@ function clear(event: MouseEvent) {
       <button
         type="button"
         :disabled="disabled"
+        :id="id"
         data-field-control
         :class="
           cn(

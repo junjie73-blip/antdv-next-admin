@@ -183,7 +183,7 @@ return {
 | 形态 | 包 | `main` | 改完 `src` | 外部可用吗 |
 | --- | --- | --- | --- | --- |
 | dist 发布 | `shared`、`composables`、`directives`、`layouts`、`preferences`、`router`、`types` | `./dist/index.js`（`types` 是 `./dist/index.mjs`） | 必须重新 `build` | 只要装到 `dist` 就能被解析 |
-| 源码发布 | `@antdv/icons`、`@antdv/styles`（`./src/index.css`）、`@antdv/ui-kit` 九个（`shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` / `loading-ui` / `scrollbar-ui`，如 `packages/ui-kit/scrollbar-ui/package.json:12-19`：`files: ["src"]` + `main/types` 全指 `./src/index.ts`） | 直指 `src` | 直接热更新 | **不能**：没有 build 脚本，`.vue` 与 Tailwind 入口由应用的构建链编译 |
+| 源码发布 | `@antdv/icons`、`@antdv/design`（`./src/index.css`）、`@antdv/ui-kit` 十个（`common-ui` / `shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` / `loading-ui` / `scrollbar-ui`，如 `packages/ui-kit/scrollbar-ui/package.json:12-19`：`files: ["src"]` + `main/types` 全指 `./src/index.ts`） | 直指 `src` | 直接热更新 | **不能**：没有 build 脚本，`.vue` 与 Tailwind 入口由应用的构建链编译 |
 
 ### 包边界是它们能被单点复用的唯一原因
 
@@ -199,7 +199,7 @@ return {
 
 ### 库形态的构建链已经备好，但没有消费者
 
-`internal/vite-config/src/config/library.ts:39` 导出 `defineLibraryConfig()`，external 清单取 `dependencies + peerDependencies` 全量排除（`internal/vite-config/src/utils/package-json.ts:62-70`，注释 `:56-61` 说明打进来会带第二份 vue / antdv-next）。仓库里需要编译 SFC 的包（`@antdv/icons` 与 `@antdv/ui-kit` 那九个）目前**没有**用它 —— 它们连 build 脚本都没有，只有 tsdown 那批在出 `dist`。想正式对外发一个组件库，这才是接线点。
+`internal/vite-config/src/config/library.ts:39` 导出 `defineLibraryConfig()`，external 清单取 `dependencies + peerDependencies` 全量排除（`internal/vite-config/src/utils/package-json.ts:62-70`，注释 `:56-61` 说明打进来会带第二份 vue / antdv-next）。仓库里需要编译 SFC 的包（`@antdv/icons` 与 `@antdv/ui-kit` 那十个）目前**没有**用它 —— 它们连 build 脚本都没有，只有 tsdown 那批在出 `dist`。想正式对外发一个组件库，这才是接线点。
 
 ## 五、反过来：外部子应用与外部仓库
 

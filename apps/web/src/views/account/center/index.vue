@@ -4,7 +4,20 @@ import { useRouter } from 'vue-router';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { Button as AButton, Card as ACard, Descriptions as ADescriptions, DescriptionsItem as ADescriptionsItem, Divider as ADivider, Space as ASpace, TabPane as ATabPane, Tabs as ATabs, Tag as ATag, Timeline as ATimeline, TimelineItem as ATimelineItem, message, Modal } from 'antdv-next';
+import {
+  Card,
+  Descriptions,
+  DescriptionsItem,
+  Divider,
+  Space,
+  TabPane,
+  Tabs,
+  Tag,
+  Timeline,
+  TimelineItem,
+} from '@antdv/common-ui';
+import { confirm, message } from '@antdv/popup-ui';
+import { Button } from '@antdv/shadcn-ui';
 import { useUserStore } from '~/stores/modules/user';
 
 const userStore = useUserStore();
@@ -197,13 +210,12 @@ function handleDeleteDevice(device: LoginDevice) {
   const isCurrent = device.time === '当前会话';
 
   if (isCurrent) {
-    Modal.confirm({
+    confirm({
       title: '注销当前设备',
       content: `您正在删除当前登录设备「${device.device}」，删除后将退出登录，确定继续吗？`,
       okText: '确定退出',
-      okType: 'danger',
+      danger: true,
       cancelText: '取消',
-      centered: true,
       onOk: () => {
         const idx = securityInfo.loginDevices.findIndex(
           (d) => d.device === device.device,
@@ -220,13 +232,12 @@ function handleDeleteDevice(device: LoginDevice) {
     return;
   }
 
-  Modal.confirm({
+  confirm({
     title: '移除登录设备',
     content: `确定要移除设备「${device.device}」吗？移除后该设备将需要重新登录。`,
     okText: '确定移除',
-    okType: 'danger',
+    danger: true,
     cancelText: '取消',
-    centered: true,
     onOk: () => {
       const idx = securityInfo.loginDevices.findIndex(
         (d) => d.device === device.device,
@@ -246,7 +257,7 @@ function handleDeleteDevice(device: LoginDevice) {
 
 <template>
   <div :class="containerClassName">
-    <ACard variant="borderless" :class="userCardClassName">
+    <Card variant="borderless" :class="userCardClassName">
       <div class="flex items-start gap-6">
         <div :class="avatarWrapperClassName">
           <template v-if="hasAvatar">
@@ -265,9 +276,9 @@ function handleDeleteDevice(device: LoginDevice) {
             <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
               {{ userStore.nickname || userStore.username }}
             </h1>
-            <ATag color="blue">
+            <Tag color="blue">
               {{ displayRole }}
-            </ATag>
+            </Tag>
           </div>
           <div class="mb-3 flex items-center gap-6">
             <span :class="statItemClassName">
@@ -285,46 +296,46 @@ function handleDeleteDevice(device: LoginDevice) {
           </div>
         </div>
         <div class="flex-shrink-0">
-          <ASpace>
-            <AButton type="primary"> 编辑资料 </AButton>
-            <AButton>分享</AButton>
-          </ASpace>
+          <Space>
+            <Button>编辑资料</Button>
+            <Button variant="outline">分享</Button>
+          </Space>
         </div>
       </div>
-    </ACard>
+    </Card>
 
-    <ACard variant="borderless" :class="cardClassName">
-      <ATabs v-model:active-key="activeTab">
-        <ATabPane key="basic" tab="基本信息">
-          <ADescriptions :column="2" bordered size="middle">
-            <ADescriptionsItem label="用户名">
+    <Card variant="borderless" :class="cardClassName">
+      <Tabs v-model:active-key="activeTab">
+        <TabPane value="basic" tab="基本信息">
+          <Descriptions :column="2" bordered size="middle">
+            <DescriptionsItem label="用户名">
               {{ userStore.username }}
-            </ADescriptionsItem>
-            <ADescriptionsItem label="昵称">
+            </DescriptionsItem>
+            <DescriptionsItem label="昵称">
               {{ userStore.nickname }}
-            </ADescriptionsItem>
-            <ADescriptionsItem label="邮箱">
+            </DescriptionsItem>
+            <DescriptionsItem label="邮箱">
               {{ userStore.email }}
-            </ADescriptionsItem>
-            <ADescriptionsItem label="手机号">
+            </DescriptionsItem>
+            <DescriptionsItem label="手机号">
               {{ userStore.phone }}
-            </ADescriptionsItem>
-            <ADescriptionsItem label="性别" :span="2">
+            </DescriptionsItem>
+            <DescriptionsItem label="性别" :span="2">
               未设置
-            </ADescriptionsItem>
-            <ADescriptionsItem label="生日" :span="2">
+            </DescriptionsItem>
+            <DescriptionsItem label="生日" :span="2">
               未设置
-            </ADescriptionsItem>
-            <ADescriptionsItem label="地址" :span="2">
+            </DescriptionsItem>
+            <DescriptionsItem label="地址" :span="2">
               未设置
-            </ADescriptionsItem>
-            <ADescriptionsItem label="个人简介" :span="2">
+            </DescriptionsItem>
+            <DescriptionsItem label="个人简介" :span="2">
               未设置
-            </ADescriptionsItem>
-          </ADescriptions>
-        </ATabPane>
+            </DescriptionsItem>
+          </Descriptions>
+        </TabPane>
 
-        <ATabPane key="security" tab="安全设置">
+        <TabPane value="security" tab="安全设置">
           <div class="space-y-6">
             <div class="space-y-2">
               <div :class="securityHeaderClassName">
@@ -337,12 +348,12 @@ function handleDeleteDevice(device: LoginDevice) {
                   :style="{ width: `${securityInfo.passwordStrength}%` }"
                 ></div>
               </div>
-              <AButton size="small" @click="switchAccountTab?.('settings')">
+              <Button size="sm" @click="switchAccountTab?.('settings')">
                 前往修改
-              </AButton>
+              </Button>
             </div>
 
-            <ADivider />
+            <Divider />
 
             <div class="space-y-2">
               <div :class="securityHeaderClassName">
@@ -357,7 +368,7 @@ function handleDeleteDevice(device: LoginDevice) {
               </p>
             </div>
 
-            <ADivider />
+            <Divider />
 
             <div class="space-y-3">
               <span class="font-medium text-gray-700 dark:text-gray-300">登录设备</span>
@@ -380,8 +391,8 @@ function handleDeleteDevice(device: LoginDevice) {
                   }"
                   :style="{
                     transform:
-                      swipedDeviceId === device.device
-                        ? `translateX(-${swipeCurrentX.value}px)`
+                      draggingDeviceId === device.device
+                        ? `translateX(-${swipeCurrentX}px)`
                         : undefined,
                   }"
                 >
@@ -422,11 +433,11 @@ function handleDeleteDevice(device: LoginDevice) {
               </div>
             </div>
           </div>
-        </ATabPane>
+        </TabPane>
 
-        <ATabPane key="activity" tab="活动日志">
-          <ATimeline>
-            <ATimelineItem v-for="log in activityLogs" :key="log.time">
+        <TabPane value="activity" tab="活动日志">
+          <Timeline>
+            <TimelineItem v-for="log in activityLogs" :key="log.time">
               <template #dot>
                 <div
                   class="h-2.5 w-2.5 rounded-full bg-blue-500 ring-4 ring-blue-100 dark:ring-blue-900/30"
@@ -440,33 +451,33 @@ function handleDeleteDevice(device: LoginDevice) {
                   {{ log.time }}
                 </p>
               </div>
-            </ATimelineItem>
-          </ATimeline>
-        </ATabPane>
+            </TimelineItem>
+          </Timeline>
+        </TabPane>
 
-        <ATabPane key="team" tab="团队信息">
+        <TabPane value="team" tab="团队信息">
           <div class="space-y-4">
             <div :class="teamInfoItemClassName">
               <span :class="teamInfoLabelClassName">角色</span>
               <span :class="teamInfoValueClassName">{{ displayRole }}</span>
             </div>
-            <ADivider />
+            <Divider />
             <div :class="teamInfoItemClassName">
               <span :class="teamInfoLabelClassName">权限</span>
               <div class="flex-1">
-                <ATag
+                <Tag
                   v-for="perm in userStore.permissions"
                   :key="perm"
                   :class="permissionTagClassName"
                   :color="perm === '*' ? 'purple' : 'blue'"
                 >
                   {{ perm }}
-                </ATag>
+                </Tag>
               </div>
             </div>
           </div>
-        </ATabPane>
-      </ATabs>
-    </ACard>
+        </TabPane>
+      </Tabs>
+    </Card>
   </div>
 </template>

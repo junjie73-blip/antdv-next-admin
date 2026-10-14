@@ -3,11 +3,14 @@ import type { TemplateColumn } from '@antdv/shared/template';
 
 import { h, ref } from 'vue';
 
-import { DownloadOutlined, UploadOutlined } from '@antdv-next/icons';
 // 自动导入（unplugin-vue-components）只重写模板标签；这里的滚动区在 h() 渲染函数里，必须显式 import
+import { Space } from '@antdv/common-ui';
+import { alert, message } from '@antdv/popup-ui';
 import { Scrollbar } from '@antdv/scrollbar-ui';
+import { Button } from '@antdv/shadcn-ui';
 import { generateTemplate } from '@antdv/shared/template';
-import { Button as AButton, Space as ASpace, Upload as AUpload, message, Modal } from 'antdv-next';
+import { Icon } from '@iconify/vue';
+import { useFileDialog } from '@vueuse/core';
 import { isError } from 'es-toolkit';
 import { request } from '~/composables';
 import { submitExport } from '~/views/system/export/api';
@@ -40,6 +43,14 @@ interface ImportResult {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  exportParams: undefined,
+  exportProps: undefined,
+  filename: undefined,
+  importProps: undefined,
+  importTemplate: undefined,
+  onExportSuccess: undefined,
+  onImportError: undefined,
+  onImportSuccess: undefined,
   fieldName: 'file',
   accept: '.xlsx,.xls',
   maxSizeMB: 10,
@@ -155,38 +166,36 @@ function handleImportResult(result: ImportResult) {
 
   if (props.onImportError?.(result)) return;
 
-  Modal.info({
+  // 单按钮提示框替代旧 Modal.info：content 用 VNode 承载滚动区
+  void alert({
     title: '导入结果',
-    width: 640,
-    content: () =>
-      h('div', [
+    type: 'info',
+    content: h('div', [
+      h(
+        'p',
+        { class: 'mb-3 text-sm' },
+        `成功 ${successCount} 条，失败 ${failCount} 条`,
+      ),
+      errors.length > 0 &&
+        // 原生纵向滚动容器换成 Scrollbar：max-h 移到 rootClass，
+        // padding 挪到 viewClass（真正滚动的元素在组件内部，挂内容侧才不丢边距）
         h(
-          'p',
-          { class: 'mb-3 text-sm' },
-          `成功 ${successCount} 条，失败 ${failCount} 条`,
-        ),
-        errors.length > 0 &&
-          // 原生纵向滚动容器换成 Scrollbar：max-h 移到 rootClass，
-          // padding 挪到 viewClass（真正滚动的元素在组件内部，挂内容侧才不丢边距）
-          h(
-            Scrollbar,
-            {
-              rootClass:
-                'max-h-[400px] rounded bg-red-50 text-xs dark:bg-red-900/20',
-              viewClass: 'p-3',
-            },
-            () =>
-              shownErrors.map((err, i) =>
-                h(
-                  'div',
-                  { key: i, class: 'mb-1 text-red-600 dark:text-red-400' },
-                  err,
-                ),
+          Scrollbar,
+          {
+            rootClass: 'max-h-[400px] rounded bg-red-50 text-xs dark:bg-red-900/20',
+            viewClass: 'p-3',
+          },
+          () =>
+            shownErrors.map((err, i) =>
+              h(
+                'div',
+                { key: i, class: 'mb-1 text-red-600 dark:text-red-400' },
+                err,
               ),
-          ),
-        moreText && h('p', { class: 'mt-2 text-xs text-stone-500' }, moreText),
-      ]),
-    okText: '知道了',
+            ),
+        ),
+      moreText && h('p', { class: 'mt-2 text-xs text-stone-500' }, moreText),
+    ]),
   });
 }
 
@@ -196,39 +205,52 @@ function downloadTemplate() {
     props.importTemplate!,
   );
 }
+
+/* ============================================================
+ * 选文件：vueuse useFileDialog 替代 antdv Upload
+ * ============================================================ */
+const { open: openImportPicker, onChange: onImportChange } = useFileDialog({
+  accept: props.accept,
+  multiple: false,
+  reset: true,
+});
+
+onImportChange((picked: FileList | null) => {
+  const file = Array.from(picked ?? [])[0];
+  if (file) handleBeforeUpload(file);
+});
+
+function handleImportClick() {
+  if (props.disableImport) return;
+  openImportPicker();
+}
 </script>
 
 <template>
-  <ASpace>
-    <AButton
-      :loading="exporting"
-      :disabled="disableExport"
+  <Space>
+    <Button
+      :disabled="disableExport || exporting"
       v-permission="permissions[1]"
       @click="handleExport"
     >
-      <template #icon><DownloadOutlined /></template>
+      <Icon v-if="!exporting" icon="carbon:download" />
+      <span v-else class="animate-spin">…</span>
       {{ exportText }}
-    </AButton>
+    </Button>
 
-    <AUpload
-      :show-upload-list="false"
-      :accept="accept"
-      :disabled="disableImport"
-      :before-upload="handleBeforeUpload"
-      :multiple="false"
+    <Button
+      :disabled="disableImport || importing"
+      v-permission="permissions[0]"
+      @click="handleImportClick"
     >
-      <AButton
-        :loading="importing"
-        :disabled="disableImport"
-        v-permission="permissions[0]"
-      >
-        <template #icon><UploadOutlined /></template>
-        {{ importText }}
-      </AButton>
-    </AUpload>
-    <AButton type="primary" @click="downloadTemplate">
-      <template #icon><UploadOutlined /></template>
+      <Icon v-if="!importing" icon="carbon:upload" />
+      <span v-else class="animate-spin">…</span>
+      {{ importText }}
+    </Button>
+
+    <Button @click="downloadTemplate">
+      <Icon icon="carbon:download" />
       导入模板
-    </AButton>
-  </ASpace>
+    </Button>
+  </Space>
 </template>

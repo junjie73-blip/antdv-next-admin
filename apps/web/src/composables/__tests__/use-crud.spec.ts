@@ -1,6 +1,6 @@
+import type { FormActionType } from '@antdv/form-ui';
+import type { TableActionType } from '@antdv/table-ui';
 import type { ModalMethods } from '~/components';
-import type { FormActionType } from '~/components/business/Form';
-import type { TableActionType } from '~/components/business/Table';
 
 import { ref } from 'vue';
 
@@ -22,7 +22,7 @@ import { useCRUD } from '../useCRUD';
  */
 
 const { confirms, notifies } = vi.hoisted(() => ({
-  /** `Modal.confirm` 的入参：用例自己调 `onOk` / `onCancel`，因为确认框是非阻塞的 */
+  /** `confirm` 的入参：用例自己调 `onOk` / `onCancel`，因为确认框是非阻塞的 */
   confirms: [] as Array<{
     content?: unknown;
     onCancel?: () => void;
@@ -32,11 +32,11 @@ const { confirms, notifies } = vi.hoisted(() => ({
   notifies: [] as Array<{ text: string; type: string }>,
 }));
 
-vi.mock('antdv-next', () => ({
-  Modal: {
-    confirm: (options: (typeof confirms)[number]) => {
-      confirms.push(options);
-    },
+vi.mock('@antdv/popup-ui', () => ({
+  /** `confirm` 在这里只当"被请求过一次"的记录器用，用例自己调 `onOk` / `onCancel` */
+  confirm: (options: (typeof confirms)[number]) => {
+    confirms.push(options);
+    return Promise.resolve(false);
   },
   message: {
     error: (text: string) => notifies.push({ text, type: 'error' }),

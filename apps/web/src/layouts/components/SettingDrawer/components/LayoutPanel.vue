@@ -4,6 +4,7 @@ import type { TabStyle } from '@antdv/types';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import { Segmented } from '@antdv/common-ui';
 import { LayoutIcon } from '@antdv/layout-ui';
 import {
   CONTENT_MAX_WIDTH,
@@ -15,10 +16,20 @@ import {
   showsHeaderNav,
   showsNavRail,
 } from '@antdv/layouts';
+import {
+  Input,
+  NumberField,
+  NumberFieldContent,
+  NumberFieldDecrement,
+  NumberFieldIncrement,
+  NumberFieldInput,
+  Slider,
+  Switch,
+} from '@antdv/shadcn-ui';
 import { TAB_STYLE_OPTIONS } from '@antdv/tabs-ui';
-import { InputNumber as AInputNumber, Slider as ASlider, Switch as ASwitch, Input, Segmented, theme } from 'antdv-next';
 import { useAppStore } from '~/stores/modules/app';
 
+import { mixWithWhite } from '../color';
 import SettingGroup from './SettingGroup.vue';
 import SettingItem from './SettingItem.vue';
 
@@ -32,15 +43,14 @@ const { t } = useI18n({ useScope: 'global' });
  *
  * `@antdv/layout-ui` 的 `LayoutIcon` 不 import 组件库（那份 `.tsx` 以前直接
  * `theme.useToken()`，在 StyleProvider 之外一调用就抛错，也没法进单测），
- * 改成外部注入四个主色派生值 —— 用户换了主色，示意图还得跟着变，所以这里
- * 从 token 现取，而不是用包内的默认色板。
+ * 改成外部注入四个主色派生值 —— 用户换了主色，示意图还得跟着变。
+ * 三个派生值按白色占比混合，对应 antd 色板里 hover / bg / border 的档位。
  */
-const { token } = theme.useToken();
 const iconPalette = computed(() => ({
-  primary: token.value.colorPrimary,
-  primaryHover: token.value.colorPrimaryHover,
-  primaryBg: token.value.colorPrimaryBg,
-  primaryBorder: token.value.colorPrimaryBorder,
+  primary: appStore.primaryColor,
+  primaryHover: mixWithWhite(appStore.primaryColor, 0.3),
+  primaryBg: mixWithWhite(appStore.primaryColor, 0.9),
+  primaryBorder: mixWithWhite(appStore.primaryColor, 0.6),
 }));
 
 /**
@@ -152,13 +162,15 @@ const tabStyleOptions = computed(() =>
           })
         "
       >
-        <ASlider
-          :value="appStore.contentWidth"
+        <Slider
+          :model-value="[appStore.contentWidth]"
           :min="CONTENT_MIN_WIDTH"
           :max="CONTENT_MAX_WIDTH"
           :step="20"
-          class="!w-32 !m-0"
-          @change="(v: number) => appStore.updateSetting({ contentWidth: v })"
+          class="w-32"
+          @update:model-value="
+            (v: number[] | undefined) => v && appStore.updateSetting({ contentWidth: v[0] })
+          "
         />
       </SettingItem>
     </SettingGroup>
@@ -175,10 +187,9 @@ const tabStyleOptions = computed(() =>
         :label="t('preferences.headerMenuScroll')"
         :desc="t('preferences.headerMenuScrollDesc')"
       >
-        <ASwitch
-          :checked="appStore.headerMenuScroll"
-          size="small"
-          @change="appStore.toggles.headerMenuScroll"
+        <Switch
+          :model-value="appStore.headerMenuScroll"
+          @update:model-value="appStore.toggles.headerMenuScroll"
         />
       </SettingItem>
     </SettingGroup>
@@ -198,10 +209,9 @@ const tabStyleOptions = computed(() =>
         :label="t('preferences.sidebarCollapsed')"
         :desc="t('preferences.sidebarCollapsedDesc')"
       >
-        <ASwitch
-          :checked="appStore.sidebarCollapsed"
-          size="small"
-          @change="appStore.toggles.sidebarCollapsed"
+        <Switch
+          :model-value="appStore.sidebarCollapsed"
+          @update:model-value="appStore.toggles.sidebarCollapsed"
         />
       </SettingItem>
 
@@ -209,10 +219,9 @@ const tabStyleOptions = computed(() =>
         :label="t('preferences.menuAccordion')"
         :desc="t('preferences.menuAccordionDesc')"
       >
-        <ASwitch
-          :checked="appStore.menuAccordion"
-          size="small"
-          @change="appStore.toggles.menuAccordion"
+        <Switch
+          :model-value="appStore.menuAccordion"
+          @update:model-value="appStore.toggles.menuAccordion"
         />
       </SettingItem>
 
@@ -220,18 +229,22 @@ const tabStyleOptions = computed(() =>
         :label="t('preferences.sidebarWidth')"
         :desc="`${LAYOUT_SIDEBAR_MIN_WIDTH} - ${LAYOUT_SIDEBAR_MAX_WIDTH} px`"
       >
-        <AInputNumber
-          :value="appStore.sidebarWidth"
+        <NumberField
+          :model-value="appStore.sidebarWidth"
           :min="LAYOUT_SIDEBAR_MIN_WIDTH"
           :max="LAYOUT_SIDEBAR_MAX_WIDTH"
           :step="10"
-          size="small"
-          class="!w-24"
-          @change="
-            (v: number | null) =>
-              v !== null && appStore.updateSetting({ sidebarWidth: v })
+          class="w-24"
+          @update:model-value="
+            (v: number | undefined) => v !== undefined && appStore.updateSetting({ sidebarWidth: v })
           "
-        />
+        >
+          <NumberFieldContent>
+            <NumberFieldDecrement />
+            <NumberFieldInput class="h-8" />
+            <NumberFieldIncrement />
+          </NumberFieldContent>
+        </NumberField>
       </SettingItem>
 
       <SettingItem
@@ -239,18 +252,22 @@ const tabStyleOptions = computed(() =>
         :label="t('preferences.railWidth')"
         :desc="t('preferences.railWidthDesc')"
       >
-        <AInputNumber
-          :value="appStore.railWidth"
+        <NumberField
+          :model-value="appStore.railWidth"
           :min="48"
           :max="96"
           :step="4"
-          size="small"
-          class="!w-24"
-          @change="
-            (v: number | null) =>
-              v !== null && appStore.updateSetting({ railWidth: v })
+          class="w-24"
+          @update:model-value="
+            (v: number | undefined) => v !== undefined && appStore.updateSetting({ railWidth: v })
           "
-        />
+        >
+          <NumberFieldContent>
+            <NumberFieldDecrement />
+            <NumberFieldInput class="h-8" />
+            <NumberFieldIncrement />
+          </NumberFieldContent>
+        </NumberField>
       </SettingItem>
     </SettingGroup>
 
@@ -262,10 +279,9 @@ const tabStyleOptions = computed(() =>
         :label="t('preferences.showTabs')"
         :desc="t('preferences.showTabsDesc')"
       >
-        <ASwitch
-          :checked="appStore.showTabs"
-          size="small"
-          @change="appStore.toggles.showTabs"
+        <Switch
+          :model-value="appStore.showTabs"
+          @update:model-value="appStore.toggles.showTabs"
         />
       </SettingItem>
 
@@ -273,10 +289,9 @@ const tabStyleOptions = computed(() =>
         :label="t('preferences.tabShowIcon')"
         :desc="t('preferences.tabShowIconDesc')"
       >
-        <ASwitch
-          :checked="appStore.tabShowIcon"
-          size="small"
-          @change="appStore.toggles.tabShowIcon"
+        <Switch
+          :model-value="appStore.tabShowIcon"
+          @update:model-value="appStore.toggles.tabShowIcon"
         />
       </SettingItem>
 
@@ -292,7 +307,6 @@ const tabStyleOptions = computed(() =>
       >
         <Segmented
           block
-          size="small"
           :options="tabStyleOptions"
           :value="appStore.tabStyle"
           @change="
@@ -306,10 +320,9 @@ const tabStyleOptions = computed(() =>
         :label="t('preferences.tabDragSort')"
         :desc="t('preferences.tabDragSortDesc')"
       >
-        <ASwitch
-          :checked="appStore.tabDragSort"
-          size="small"
-          @change="appStore.toggles.tabDragSort"
+        <Switch
+          :model-value="appStore.tabDragSort"
+          @update:model-value="appStore.toggles.tabDragSort"
         />
       </SettingItem>
 
@@ -317,10 +330,9 @@ const tabStyleOptions = computed(() =>
         :label="t('preferences.tabContextMenu')"
         :desc="t('preferences.tabContextMenuDesc')"
       >
-        <ASwitch
-          :checked="appStore.tabContextMenu"
-          size="small"
-          @change="appStore.toggles.tabContextMenu"
+        <Switch
+          :model-value="appStore.tabContextMenu"
+          @update:model-value="appStore.toggles.tabContextMenu"
         />
       </SettingItem>
     </SettingGroup>
@@ -330,10 +342,9 @@ const tabStyleOptions = computed(() =>
     <!-- ============================================================ -->
     <SettingGroup :title="t('preferences.breadcrumb')" icon="carbon:gui">
       <SettingItem :label="t('preferences.showBreadcrumb')">
-        <ASwitch
-          :checked="appStore.showBreadcrumb"
-          size="small"
-          @change="appStore.toggles.showBreadcrumb"
+        <Switch
+          :model-value="appStore.showBreadcrumb"
+          @update:model-value="appStore.toggles.showBreadcrumb"
         />
       </SettingItem>
 
@@ -341,18 +352,16 @@ const tabStyleOptions = computed(() =>
         :label="t('preferences.breadcrumbHideOnlyOne')"
         :desc="t('preferences.breadcrumbHideOnlyOneDesc')"
       >
-        <ASwitch
-          :checked="appStore.hideBreadcrumbWhenOnlyOne"
-          size="small"
-          @change="appStore.toggles.hideBreadcrumbWhenOnlyOne"
+        <Switch
+          :model-value="appStore.hideBreadcrumbWhenOnlyOne"
+          @update:model-value="appStore.toggles.hideBreadcrumbWhenOnlyOne"
         />
       </SettingItem>
 
       <SettingItem :label="t('preferences.showBreadcrumbIcon')">
-        <ASwitch
-          :checked="appStore.showBreadcrumbIcon"
-          size="small"
-          @change="appStore.toggles.showBreadcrumbIcon"
+        <Switch
+          :model-value="appStore.showBreadcrumbIcon"
+          @update:model-value="appStore.toggles.showBreadcrumbIcon"
         />
       </SettingItem>
     </SettingGroup>
@@ -362,58 +371,51 @@ const tabStyleOptions = computed(() =>
     <!-- ============================================================ -->
     <SettingGroup :title="t('preferences.widgets')" icon="carbon:application">
       <SettingItem :label="t('preferences.widgetNotice')">
-        <ASwitch
-          :checked="appStore.widgetNotice"
-          size="small"
-          @change="appStore.toggles.widgetNotice"
+        <Switch
+          :model-value="appStore.widgetNotice"
+          @update:model-value="appStore.toggles.widgetNotice"
         />
       </SettingItem>
 
       <SettingItem :label="t('preferences.widgetFullscreen')">
-        <ASwitch
-          :checked="appStore.widgetFullscreen"
-          size="small"
-          @change="appStore.toggles.widgetFullscreen"
+        <Switch
+          :model-value="appStore.widgetFullscreen"
+          @update:model-value="appStore.toggles.widgetFullscreen"
         />
       </SettingItem>
 
       <SettingItem :label="t('preferences.widgetTheme')">
-        <ASwitch
-          :checked="appStore.widgetTheme"
-          size="small"
-          @change="appStore.toggles.widgetTheme"
+        <Switch
+          :model-value="appStore.widgetTheme"
+          @update:model-value="appStore.toggles.widgetTheme"
         />
       </SettingItem>
 
       <SettingItem :label="t('preferences.widgetTimezone')">
-        <ASwitch
-          :checked="appStore.widgetTimezone"
-          size="small"
-          @change="appStore.toggles.widgetTimezone"
+        <Switch
+          :model-value="appStore.widgetTimezone"
+          @update:model-value="appStore.toggles.widgetTimezone"
         />
       </SettingItem>
 
       <SettingItem :label="t('preferences.widgetLogout')">
-        <ASwitch
-          :checked="appStore.widgetLogout"
-          size="small"
-          @change="appStore.toggles.widgetLogout"
+        <Switch
+          :model-value="appStore.widgetLogout"
+          @update:model-value="appStore.toggles.widgetLogout"
         />
       </SettingItem>
 
       <SettingItem :label="t('preferences.widgetSearch')">
-        <ASwitch
-          :checked="appStore.widgetSearch"
-          size="small"
-          @change="appStore.toggles.widgetSearch"
+        <Switch
+          :model-value="appStore.widgetSearch"
+          @update:model-value="appStore.toggles.widgetSearch"
         />
       </SettingItem>
 
       <SettingItem :label="t('preferences.widgetPreferences')">
-        <ASwitch
-          :checked="appStore.widgetPreferences"
-          size="small"
-          @change="appStore.toggles.widgetPreferences"
+        <Switch
+          :model-value="appStore.widgetPreferences"
+          @update:model-value="appStore.toggles.widgetPreferences"
         />
       </SettingItem>
     </SettingGroup>
@@ -426,41 +428,37 @@ const tabStyleOptions = computed(() =>
       icon="carbon:text-align-center"
     >
       <SettingItem :label="t('preferences.showFooter')">
-        <ASwitch
-          :checked="appStore.showFooter"
-          size="small"
-          @change="appStore.toggles.showFooter"
+        <Switch
+          :model-value="appStore.showFooter"
+          @update:model-value="appStore.toggles.showFooter"
         />
       </SettingItem>
 
       <SettingItem :label="t('preferences.showCopyright')">
-        <ASwitch
-          :checked="appStore.showCopyright"
-          size="small"
-          @change="appStore.toggles.showCopyright"
+        <Switch
+          :model-value="appStore.showCopyright"
+          @update:model-value="appStore.toggles.showCopyright"
         />
       </SettingItem>
 
       <SettingItem :label="t('preferences.copyrightCompany')">
         <Input
-          :value="appStore.copyrightCompany"
+          :model-value="appStore.copyrightCompany"
           :placeholder="t('preferences.copyrightCompanyPlaceholder')"
-          size="small"
-          class="!w-32"
-          @update:value="
-            (v: string) => appStore.updateSetting({ copyrightCompany: v })
+          class="w-32"
+          @update:model-value="
+            (v: string | number) => appStore.updateSetting({ copyrightCompany: String(v) })
           "
         />
       </SettingItem>
 
       <SettingItem :label="t('preferences.copyrightIcp')">
         <Input
-          :value="appStore.copyrightIcp"
+          :model-value="appStore.copyrightIcp"
           :placeholder="t('preferences.copyrightIcpPlaceholder')"
-          size="small"
-          class="!w-32"
-          @update:value="
-            (v: string) => appStore.updateSetting({ copyrightIcp: v })
+          class="w-32"
+          @update:model-value="
+            (v: string | number) => appStore.updateSetting({ copyrightIcp: String(v) })
           "
         />
       </SettingItem>

@@ -16,5 +16,6 @@
         "lib": "@antdv/shadcn-ui/lib",
         "ui": "@antdv/shadcn-ui/components"
     },
-    "iconLibrary": "lucide"
+    "iconLibrary": "lucide",
+    "pointer": true
 }

@@ -1,19 +1,29 @@
 <script setup lang="ts">
-import type { FormInstance } from 'antdv-next';
-import type { Rule } from 'antdv-next/dist/form/types';
+import type { Rule } from '@antdv/form-ui';
 
 import { computed, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { LockOutlined, MailOutlined, UserOutlined } from '@antdv-next/icons';
+import { runRule } from '@antdv/form-ui';
+import { message } from '@antdv/popup-ui';
+import {
+  Button as AButton,
+  Checkbox as ACheckbox,
+  Input as AInput,
+  Label,
+} from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
-import { Button as AButton, Checkbox as ACheckbox, Form as AForm, FormItem as AFormItem, Input as AInput, InputPassword as AInputPassword, message } from 'antdv-next';
+import { Icon } from '@iconify/vue';
 
 const router = useRouter();
 
-const formRef = ref<FormInstance>();
 const loading = ref(false);
 const countdown = ref(0);
+const passwordVisible = ref(false);
+const confirmPasswordVisible = ref(false);
+
+/** 每个字段的错误文案，`''` 表示没有错误（原来由 antd FormItem 自己持有） */
+const errors = reactive<Record<string, string>>({});
 
 const formState = reactive({
   username: '',
@@ -64,20 +74,11 @@ const glassCardClassName = computed(() =>
 
 const inputClassName = computed(() =>
   cn(
-    '[&_.ant-input]:bg-white/80!',
-    '[&_.ant-input]:border-slate-200!',
-    '[&_.ant-input]:text-stone-700!',
-    '[&_.ant-input]:placeholder:text-stone-400',
-    '[&_.ant-input]:hover:border-slate-400!',
-    '[&_.ant-input]:focus:border-(--ant-color-primary)!',
-    '[&_.ant-input]:focus:shadow-[0_0_0_2px_color-mix(in_srgb,var(--ant-color-primary)_20%,transparent)]!',
-    '[&_.ant-input-affix-wrapper]:bg-white/80!',
-    '[&_.ant-input-affix-wrapper]:border-slate-200!',
-    '[&_.ant-input-affix-wrapper]:hover:border-slate-400!',
-    '[&_.ant-input-affix-wrapper-focused]:border-(--ant-color-primary)!',
-    '[&_.ant-input-affix-wrapper-focused]:shadow-[0_0_0_2px_color-mix(in_srgb,var(--ant-color-primary)_20%,transparent)]!',
-    '[&_.ant-input-affix-wrapper_input]:bg-transparent!',
-    '[&_.ant-input-affix-wrapper_input]:text-stone-700!',
+    'h-11 rounded-lg border-slate-200 bg-white/80',
+    'text-stone-700 placeholder:text-stone-400',
+    'hover:border-slate-400',
+    'focus-visible:border-(--ant-color-primary)',
+    'focus-visible:shadow-[0_0_0_2px_color-mix(in_srgb,var(--ant-color-primary)_20%,transparent)]',
   ),
 );
 
@@ -117,9 +118,50 @@ const rules: Record<string, Rule[]> = {
   ],
 };
 
+/**
+ * 页面上真实渲染出来的字段，顺序与 DOM 一致。
+ * `rules` 里还留着 `code`（手机验证码那版布局的遗留），但它没有对应的表单项，
+ * 旧版 antd Form 只校验挂载过的 FormItem，所以这里同样不参与校验。
+ */
+const fieldNames = ['username', 'email', 'password', 'confirmPassword'];
+
+/**
+ * 逐条跑规则引擎（`runRule` 与 antd async-validator 的常用子集语义对齐），
+ * 命中的第一条消息写进 `errors[field]`。传 names 只校验这几个字段，对应表单项
+ * 的 `trigger: 'blur'`；不传则校验全部渲染字段（提交时）。
+ */
+async function validateNames(names?: string[]) {
+  const targets = names ?? fieldNames;
+  let valid = true;
+  for (const name of targets) {
+    const fieldRules = rules[name] ?? [];
+    const value = (formState as Record<string, any>)[name];
+    let errorMsg = '';
+    for (const rule of fieldRules) {
+      const error = await runRule(rule, value, {
+        joinLabel: false,
+        label: name,
+      });
+      if (error) {
+        errorMsg = error;
+        break;
+      }
+    }
+    errors[name] = errorMsg;
+    if (errorMsg) valid = false;
+  }
+  return valid;
+}
+
+/** 保持旧 `formRef.validate()` 的"校验不过就抛错"契约，调用点的 try/catch 不用改 */
+async function validate(names?: string[]) {
+  if (await validateNames(names)) return;
+  throw new Error('表单校验未通过');
+}
+
 async function handleRegister() {
   try {
-    await formRef.value?.validate();
+    await validate();
     loading.value = true;
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -328,113 +370,169 @@ function _handleSendCode() {
         </div>
 
         <!-- 表单 -->
-        <AForm
-          ref="formRef"
-          :model="formState"
-          :rules="rules"
-          layout="vertical"
-          @finish="handleRegister"
-        >
-          <AFormItem name="username">
-            <AInput
-              v-model:value="formState.username"
-              size="large"
-              placeholder="请输入用户名"
-              :class="inputClassName"
-              allow-clear
-            >
-              <template #prefix>
-                <UserOutlined class="text-stone-400" />
-              </template>
-            </AInput>
-          </AFormItem>
+        <form class="space-y-6" @submit.prevent="handleRegister">
+          <div>
+            <div class="relative">
+              <Icon
+                icon="carbon:user"
+                class="text-stone-400 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+              />
+              <AInput
+                v-model="formState.username"
+                type="text"
+                placeholder="请输入用户名"
+                :class="inputClassName"
+                class="pl-9"
+                @blur="validateNames(['username'])"
+              />
+            </div>
+            <p v-if="errors.username" class="mt-1 text-xs text-red-500">
+              {{ errors.username }}
+            </p>
+          </div>
 
-          <AFormItem name="email">
-            <AInput
-              v-model:value="formState.email"
-              size="large"
-              placeholder="请输入邮箱"
-              :class="inputClassName"
-              allow-clear
-            >
-              <template #prefix>
-                <MailOutlined class="text-stone-400" />
-              </template>
-            </AInput>
-          </AFormItem>
+          <div>
+            <div class="relative">
+              <Icon
+                icon="carbon:email"
+                class="text-stone-400 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+              />
+              <AInput
+                v-model="formState.email"
+                type="text"
+                placeholder="请输入邮箱"
+                :class="inputClassName"
+                class="pl-9"
+                @blur="validateNames(['email'])"
+              />
+            </div>
+            <p v-if="errors.email" class="mt-1 text-xs text-red-500">
+              {{ errors.email }}
+            </p>
+          </div>
 
-          <AFormItem name="password">
-            <AInputPassword
-              v-model:value="formState.password"
-              size="large"
-              placeholder="请输入密码"
-              :class="inputClassName"
-              allow-clear
-            >
-              <template #prefix>
-                <LockOutlined class="text-stone-400" />
-              </template>
-            </AInputPassword>
-          </AFormItem>
-
-          <AFormItem name="confirmPassword">
-            <AInputPassword
-              v-model:value="formState.confirmPassword"
-              size="large"
-              placeholder="请确认密码"
-              :class="inputClassName"
-              allow-clear
-            >
-              <template #prefix>
-                <LockOutlined class="text-stone-400" />
-              </template>
-            </AInputPassword>
-          </AFormItem>
-
-          <AFormItem name="agreement">
-            <ACheckbox
-              v-model:checked="formState.agreement"
-              class="[&_.ant-checkbox-inner]:!border-slate-300 [&_.ant-checkbox-inner]:!bg-white [&_.ant-checkbox-wrapper]:!text-stone-500"
-            >
-              我已阅读并同意
+          <div>
+            <div class="relative">
+              <Icon
+                icon="carbon:locked"
+                class="text-stone-400 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+              />
+              <AInput
+                v-model="formState.password"
+                :type="passwordVisible ? 'text' : 'password'"
+                placeholder="请输入密码"
+                :class="inputClassName"
+                class="pr-10 pl-9"
+                @blur="validateNames(['password'])"
+              />
               <AButton
-                type="link"
-                size="small"
-                class="!p-0 !text-stone-400 hover:!text-stone-600"
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                :aria-label="passwordVisible ? '隐藏密码' : '显示密码'"
+                class="text-stone-400 absolute top-1/2 right-1 -translate-y-1/2"
+                @click="passwordVisible = !passwordVisible"
               >
-                《用户协议》
+                <Icon
+                  :icon="passwordVisible ? 'carbon:view-off' : 'carbon:view'"
+                  class="size-4"
+                />
               </AButton>
-              和
-              <AButton
-                type="link"
-                size="small"
-                class="!p-0 !text-stone-400 hover:!text-stone-600"
-              >
-                《隐私政策》
-              </AButton>
-            </ACheckbox>
-          </AFormItem>
+            </div>
+            <p v-if="errors.password" class="mt-1 text-xs text-red-500">
+              {{ errors.password }}
+            </p>
+          </div>
 
-          <AFormItem class="mt-8">
+          <div>
+            <div class="relative">
+              <Icon
+                icon="carbon:locked"
+                class="text-stone-400 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+              />
+              <AInput
+                v-model="formState.confirmPassword"
+                :type="confirmPasswordVisible ? 'text' : 'password'"
+                placeholder="请确认密码"
+                :class="inputClassName"
+                class="pr-10 pl-9"
+                @blur="validateNames(['confirmPassword'])"
+              />
+              <AButton
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                :aria-label="
+                  confirmPasswordVisible ? '隐藏密码' : '显示密码'
+                "
+                class="text-stone-400 absolute top-1/2 right-1 -translate-y-1/2"
+                @click="confirmPasswordVisible = !confirmPasswordVisible"
+              >
+                <Icon
+                  :icon="
+                    confirmPasswordVisible ? 'carbon:view-off' : 'carbon:view'
+                  "
+                  class="size-4"
+                />
+              </AButton>
+            </div>
+            <p v-if="errors.confirmPassword" class="mt-1 text-xs text-red-500">
+              {{ errors.confirmPassword }}
+            </p>
+          </div>
+
+          <div>
+            <Label
+              class="text-stone-500 cursor-pointer items-start gap-2 font-normal"
+            >
+              <ACheckbox
+                class="mt-0.5"
+                :model-value="formState.agreement"
+                @update:model-value="
+                  (v: any) => (formState.agreement = v === true)
+                "
+              />
+              <span class="flex flex-wrap items-center gap-1">
+                我已阅读并同意
+                <AButton
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  class="h-auto p-0 text-stone-400 hover:text-stone-600"
+                >
+                  《用户协议》
+                </AButton>
+                和
+                <AButton
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  class="h-auto p-0 text-stone-400 hover:text-stone-600"
+                >
+                  《隐私政策》
+                </AButton>
+              </span>
+            </Label>
+          </div>
+
+          <div>
             <AButton
-              type="primary"
-              html-type="submit"
-              size="large"
-              block
-              :loading="loading"
-              class="!h-11 !border-0 !shadow-lg"
+              type="submit"
+              :disabled="loading"
+              class="w-full h-11 border-0 shadow-lg"
             >
               注册
             </AButton>
-          </AFormItem>
-        </AForm>
+          </div>
+        </form>
 
         <!-- 登录链接 -->
         <div class="text-center">
           <span class="text-stone-500">已有账户？</span>
           <AButton
-            type="link"
-            class="!ml-1 !p-0"
+            type="button"
+            variant="link"
+            class="ml-1 h-auto p-0"
             style="color: var(--ant-color-primary)"
             @click="handleBackToLogin"
           >

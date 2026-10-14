@@ -3,8 +3,10 @@ import type { EChartsOption } from 'echarts';
 
 import { computed, ref } from 'vue';
 
+import { Alert, Card } from '@antdv/common-ui';
+import { message } from '@antdv/popup-ui';
+import { Button, Switch } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
-import { Alert as AAlert, Button as AButton, Card as ACard, Col as ACol, Row as ARow, Switch as ASwitch, message } from 'antdv-next';
 import * as echarts from 'echarts';
 import { useAppStore } from '~/stores/modules/app';
 
@@ -441,42 +443,42 @@ const emptyOption = computed<EChartsOption>(() =>
 
 <template>
   <div :class="containerClassName">
-    <AAlert show-icon type="info">
-      <template #description>
-        本页展示项目内封装的 ECharts 组件（
-        <code>src/components/common/ECharts</code>
-        ，经 unplugin-vue-components 自动注册，模板里直接写
-        <code>&lt;ECharts /&gt;</code>
-        即可），入参只有 option / height / loading
-        三个。所有数据都是本页内置的静态样例数组，没有任何接口请求，可放心整页复制。
-      </template>
-    </AAlert>
+    <Alert show-icon type="info">
+      本页展示项目内封装的 ECharts 组件（
+      <code>src/components/common/ECharts</code>
+      ，经 unplugin-vue-components 自动注册，模板里直接写
+      <code>&lt;ECharts /&gt;</code>
+      即可），入参只有 option / height / loading
+      三个。所有数据都是本页内置的静态样例数组，没有任何接口请求，可放心整页复制。
+    </Alert>
 
-    <ACard title="折线图 · 数据响应式" variant="borderless">
+    <Card title="折线图 · 数据响应式" variant="borderless">
       <p :class="tipClassName">
         折线数据来自页内常量 datasets，点击「刷新数据」会整组替换 option ——
         封装组件内部对 option 做了 deep watch 并以 notMerge
         重绘，所以能直接看到重渲染效果。
       </p>
       <div class="mb-4">
-        <AButton type="primary" @click="refreshLineData">
+        <Button @click="refreshLineData">
           刷新数据（当前第 {{ lineDatasetIndex + 1 }} 组）
-        </AButton>
+        </Button>
       </div>
       <ECharts :option="lineOption" height="320px" />
-    </ACard>
+    </Card>
 
-    <ACard title="柱状图 · 分组 / 堆叠" variant="borderless">
+    <Card title="柱状图 · 分组 / 堆叠" variant="borderless">
       <p :class="tipClassName">
         同一个数据源，开关只改变 series 的 stack
         配置：关闭时三根柱子并排（分组）， 打开时叠加为一根（堆叠）。
       </p>
       <div class="mb-4 flex items-center gap-3">
-        <ASwitch
-          v-model:checked="stacked"
-          checked-children="堆叠"
-          un-checked-children="分组"
+        <Switch
+          :model-value="stacked"
+          @update:model-value="(v: boolean) => (stacked = v)"
         />
+        <span class="text-sm text-gray-500 dark:text-gray-400">
+          {{ stacked ? '堆叠' : '分组' }}
+        </span>
         <span class="text-sm text-gray-500 dark:text-gray-400">
           当前模式：<span class="font-medium">{{
             stacked ? '堆叠柱状图' : '分组柱状图'
@@ -484,9 +486,9 @@ const emptyOption = computed<EChartsOption>(() =>
         </span>
       </div>
       <ECharts :option="barOption" height="320px" />
-    </ACard>
+    </Card>
 
-    <ACard title="饼图 / 环形 · 图例交互" variant="borderless">
+    <Card title="饼图 / 环形 · 图例交互" variant="borderless">
       <p :class="tipClassName">
         环形饼图：legend 支持点选（点击右侧图例可隐藏/恢复对应扇区），label
         用格式化模板显示「名称 + 百分比」 （<code>formatter: '{b} 换行 {d}%'</code>），tooltip 模板为
@@ -494,46 +496,46 @@ const emptyOption = computed<EChartsOption>(() =>
         。
       </p>
       <ECharts :option="pieOption" height="320px" />
-    </ACard>
+    </Card>
 
-    <ACard title="组合图 · 双 Y 轴（柱 + 线）" variant="borderless">
+    <Card title="组合图 · 双 Y 轴（柱 + 线）" variant="borderless">
       <p :class="tipClassName">
         读者最常问的场景：柱状（销售额）挂左轴、折线（环比增长率）通过
         <code>yAxisIndex: 1</code>
         挂右轴，右轴关掉 splitLine 避免网格线打架。
       </p>
       <ECharts :option="comboOption" height="320px" />
-    </ACard>
+    </Card>
 
-    <ACard title="加载与空数据" variant="borderless">
+    <Card title="加载与空数据" variant="borderless">
       <p :class="tipClassName">
         封装组件自带 loading 入参（映射到 ECharts 的 showLoading/hideLoading
         遮罩，无需页面自己盖 Spin）； 空数据则传一份空数组的
         option，图表会正常渲染出坐标系骨架而不是白屏/坏画布。
       </p>
-      <ARow :gutter="[16, 16]">
-        <ACol :xs="24" :lg="12">
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div>
           <div class="mb-3">
-            <AButton
-              :type="chartLoading ? 'default' : 'primary'"
+            <Button
+              :variant="chartLoading ? 'outline' : 'default'"
               @click="toggleChartLoading"
             >
               {{ chartLoading ? '隐藏 Loading' : '显示 Loading' }}
-            </AButton>
+            </Button>
           </div>
           <ECharts
             :option="loadingDemoOption"
             height="320px"
             :loading="chartLoading"
           />
-        </ACol>
-        <ACol :xs="24" :lg="12">
+        </div>
+        <div>
           <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
             下方为空数据集（xAxis.data 与 series.data 均为 []）：
           </p>
           <ECharts :option="emptyOption" height="320px" />
-        </ACol>
-      </ARow>
-    </ACard>
+        </div>
+      </div>
+    </Card>
   </div>
 </template>

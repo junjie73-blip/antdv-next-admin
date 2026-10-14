@@ -3,12 +3,32 @@ import type { MicroAppItem } from '@antdv/types';
 
 import { computed, ref, watch } from 'vue';
 
+import { Tag, Tooltip } from '@antdv/common-ui';
 import { Scrollbar } from '@antdv/scrollbar-ui';
+import {
+  Button,
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Spinner,
+} from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
 import { buildIframeSandbox, canEscapeSandbox } from '@antdv/shared/iframe';
 import { Icon } from '@iconify/vue';
-import { Button as AButton, Input as AInput, Select as ASelect, SelectOption as ASelectOption, Spin as ASpin, Tag as ATag, Tooltip as ATooltip } from 'antdv-next';
 import { getAllMicroApps, microAppConfig } from '~/config/micro-app';
+
+/** 状态下拉框的选项（原来是 antd 的 SelectOption 子节点） */
+const statusOptions = [
+  { label: '全部状态', value: 'all' },
+  { label: '运行中', value: 'running' },
+  { label: '已停止', value: 'stopped' },
+];
 
 // 状态
 const apps = ref<MicroAppItem[]>(getAllMicroApps());
@@ -158,10 +178,10 @@ watch(
           子应用注册与预览（iframe 嵌套模式）
         </p>
       </div>
-      <AButton v-if="isEnabled && currentApp" @click="handleRefreshIframe">
+      <Button v-if="isEnabled && currentApp" @click="handleRefreshIframe">
         <Icon icon="carbon:restart" class="mr-1" />
         刷新预览
-      </AButton>
+      </Button>
     </div>
 
     <!-- 未启用提示 -->
@@ -205,21 +225,35 @@ watch(
 
         <!-- 搜索筛选 -->
         <div class="flex flex-col gap-2">
-          <AInput
-            v-model:value="searchKeyword"
-            placeholder="搜索子应用..."
-            size="small"
-            allow-clear
-          >
-            <template #prefix>
-              <span class="i-carbon-search text-xs text-gray-400"></span>
-            </template>
-          </AInput>
-          <ASelect v-model:value="statusFilter" size="small" class="w-full">
-            <ASelectOption value="all"> 全部状态 </ASelectOption>
-            <ASelectOption value="running"> 运行中 </ASelectOption>
-            <ASelectOption value="stopped"> 已停止 </ASelectOption>
-          </ASelect>
+          <InputGroup class="w-full">
+            <InputGroupAddon>
+              <Icon icon="carbon:search" />
+            </InputGroupAddon>
+            <InputGroupInput v-model="searchKeyword" placeholder="搜索子应用..." />
+            <InputGroupAddon v-if="searchKeyword" align="inline-end">
+              <InputGroupButton
+                size="icon-xs"
+                aria-label="清空搜索条件"
+                @click="searchKeyword = ''"
+              >
+                <Icon icon="carbon:close" />
+              </InputGroupButton>
+            </InputGroupAddon>
+          </InputGroup>
+          <Select v-model="statusFilter">
+            <SelectTrigger class="w-full">
+              <SelectValue placeholder="全部状态" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem
+                v-for="opt in statusOptions"
+                :key="opt.value"
+                :value="opt.value"
+              >
+                {{ opt.label }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <!-- 应用列表 -->
@@ -336,19 +370,19 @@ watch(
           </div>
           <div class="flex items-center gap-2">
             <!-- 打开同源身份意味着 sandbox 可被逃逸，必须让人在界面上看到 -->
-            <ATooltip v-if="previewEscapable" :title="sandboxWarningTitle">
-              <ATag color="orange">同源预览</ATag>
-            </ATooltip>
+            <Tooltip v-if="previewEscapable" :title="sandboxWarningTitle">
+              <Tag color="orange">同源预览</Tag>
+            </Tooltip>
             <span :class="getStatusTagClass(!!currentApp.active)">
               {{ currentApp.active ? '运行中' : '已停止' }}
             </span>
-            <AButton
-              :type="currentApp.active ? 'default' : 'primary'"
-              size="small"
+            <Button
+              size="sm"
+              :variant="currentApp.active ? 'outline' : 'default'"
               @click="handleToggleStatus(currentApp!)"
             >
               {{ currentApp.active ? '停止' : '启动' }}
-            </AButton>
+            </Button>
           </div>
         </div>
 
@@ -380,7 +414,7 @@ watch(
               v-if="currentApp && !iframeLoaded[currentApp.name]"
               class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900"
             >
-              <ASpin size="large" />
+              <Spinner class="size-8" />
               <p class="mt-2 text-xs text-gray-500">
                 正在加载子应用 {{ currentApp.title }}...
               </p>

@@ -1,9 +1,6 @@
 <script lang="ts" setup>
 import type { DrawerContentEmits, DrawerContentProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import {
   DrawerContent,
@@ -11,7 +8,7 @@ import {
   DrawerPortal,
   useForwardPropsEmits,
 } from "reka-ui"
-
+import { cn } from '@antdv/shared/cn'
 import DrawerOverlay from "./DrawerOverlay.vue"
 
 defineOptions({
@@ -45,7 +42,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
       )"
     >
       <DrawerHandle class="bg-muted mx-auto mt-4 hidden h-2 w-[100px] shrink-0 rounded-full group-data-[swipe-direction=down]/drawer-content:block" />
-      <slot></slot>
+      <slot />
     </DrawerContent>
   </DrawerPortal>
 </template>

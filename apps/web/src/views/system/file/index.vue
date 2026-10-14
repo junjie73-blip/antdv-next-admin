@@ -1,13 +1,21 @@
 <script setup lang="tsx">
-import type { TreeData } from 'antdv-next/es/tree';
-import type { FormSchema } from '~/components/business/Form';
-import type { BasicColumn } from '~/components/business/Table';
+import type { NormalTreeNode, UploadChangeParam, UploadFile } from '@antdv/common-ui';
+import type { FormSchema } from '@antdv/form-ui';
+import type { BasicColumn, Recordable } from '@antdv/table-ui';
 
 import { computed, ref, useTemplateRef } from 'vue';
 
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { Alert as AAlert, Button as AButton, Card as ACard, Divider as ADivider, Modal as AntModal, Popconfirm as APopconfirm, Tree as ATree, UploadDragger as AUploadDragger, message } from 'antdv-next';
+import {
+  Alert,
+  Card,
+  Divider,
+  Popconfirm,
+  Tree,
+  UploadDragger,
+} from '@antdv/common-ui';
+import { Button } from '@antdv/shadcn-ui';
 import {
   createFolder,
   deleteFile,
@@ -16,9 +24,9 @@ import {
   renameFile,
   uploadFile,
 } from '~/api/system';
-import { BasicForm, useForm } from '~/components/business/Form';
-import { BasicModal, useModal } from '~/components/business/Modal';
-import { BasicTable, useTable } from '~/components/business/Table';
+import { BasicForm, useForm } from '@antdv/form-ui';
+import { BasicModal, confirm, message, useModal } from '@antdv/popup-ui';
+import { BasicTable, useTable } from '@antdv/table-ui';
 
 defineOptions({ name: 'SystemFile' });
 
@@ -54,11 +62,11 @@ const actionClassName = cn(
   'justify-center',
   'whitespace-nowrap',
 );
-const btnClassName = cn('px-0.5!');
+const btnClassName = cn('h-auto', 'px-0.5!');
 const dividerClassName = cn('mx-0');
 
 // ========== 文件类型图标映射 ==========
-function getFileIcon(record: FileRecord): string {
+function getFileIcon(record: Recordable): string {
   if (record.isFolder) return 'carbon:folder';
 
   const iconMap: Record<string, string> = {
@@ -71,7 +79,7 @@ function getFileIcon(record: FileRecord): string {
   return iconMap[record.type] || 'carbon:document';
 }
 
-function getFileColor(record: FileRecord): string {
+function getFileColor(record: Recordable): string {
   if (record.isFolder) return '#faad14';
 
   const colorMap: Record<string, string> = {
@@ -97,7 +105,9 @@ const fileTypeOptions = [
 
 // ========== 状态管理 ==========
 const currentParentId = ref<null | number>(null);
-const currentPath = ref<TreeData[]>([{ title: '根目录', key: '__root__' }]);
+/** 面包屑节点：只用到 common-ui 树节点的 `key`/`title` 两个字段 */
+type PathNode = Pick<NormalTreeNode, 'key' | 'title'>;
+const currentPath = ref<PathNode[]>([{ title: '根目录', key: '__root__' }]);
 const isEditing = ref(false);
 const currentRecord = ref<FileRecord | null>(null);
 const selectedRowKeys = ref<(number | string)[]>([]);
@@ -113,7 +123,8 @@ const [formRegister, formMethods] = useForm();
 // 加载文件树
 async function loadFileTree() {
   try {
-    const res = await getFileTree();
+    // 信封/裸数组两种返回都要兼容，http 的泛型声明只给了数组壳
+    const res: any = await getFileTree();
     fileTreeData.value = res.data || [];
   } catch (error) {
     console.error('获取文件树失败', error);
@@ -171,8 +182,8 @@ const renameFormSchemas: FormSchema[] = [
 
 // ========== API 适配层 ==========
 async function mockApi(params: Record<string, any>) {
-  const res = await getFileList({ ...params, parentId: currentParentId.value });
-  // 兼容 mock 直接返回完整响应或已解包的数据
+  // 兼容 mock 直接返回完整响应或已解包的数据，声明层给不出这两种形状
+  const res: any = await getFileList({ ...params, parentId: currentParentId.value });
   const data = res?.data ?? res;
   return { items: data?.list || [], total: data?.total || 0 };
 }
@@ -196,6 +207,17 @@ function handleNavigateToFolder(node: any) {
   tableMethods.value?.reload();
 }
 
+/** Tree 的 `@select`：keys 为空表示点掉取消选中，行为与迁移前一致（只跟随选中项导航） */
+function handleTreeSelect(keys: (number | string)[]) {
+  const node = keys[0];
+  if (node !== undefined && node !== null) {
+    handleNavigateToFolder({
+      key: node,
+      title: String(node),
+    });
+  }
+}
+
 // ========== CRUD 操作 ==========
 function handleCreateFolder() {
   isEditing.value = false;
@@ -205,9 +227,9 @@ function handleCreateFolder() {
   modalMethods.openModal();
 }
 
-function handleRename(record: FileRecord) {
+function handleRename(record: Recordable) {
   isEditing.value = true;
-  currentRecord.value = record;
+  currentRecord.value = record as FileRecord;
   formMethods.setFieldsValue({ name: record.name });
   formMethods.clearValidate();
   modalMethods.openModal();
@@ -293,6 +315,20 @@ async function handleSimulateUpload(fileList?: any[]) {
   loadFileTree();
 }
 
+/** 拖拽区没有真实通道（customRequest 为空实现），选中文件即视为"已上传"走模拟登记 */
+function handleUploadChange(info: UploadChangeParam) {
+  const list = info.fileList || [];
+  if (info.file.status === 'done' || list.some((f: UploadFile) => f.originFileObj)) {
+    handleSimulateUpload(
+      list.map((f: UploadFile) => ({
+        name: f.name,
+        size: f.size || 0,
+        type: f.type || '',
+      })),
+    );
+  }
+}
+
 async function handleDelete(record: any | FileRecord) {
   try {
     await deleteFile(record.id);
@@ -310,12 +346,12 @@ function handleBatchDelete() {
     return;
   }
 
-  AntModal.confirm({
+  confirm({
     title: `确定要删除选中的 ${selectedRows.value.length} 个项目吗？`,
     content: '删除后不可恢复，请谨慎操作。',
     okText: '确认删除',
     cancelText: '取消',
-    okType: 'danger',
+    danger: true,
     async onOk() {
       let successCount = 0;
       for (const row of selectedRows.value) {
@@ -335,15 +371,18 @@ function handleBatchDelete() {
   });
 }
 
-function handleDownload(record: FileRecord) {
+function handleDownload(record: Recordable) {
   // Mock 环境下模拟下载
   message.info(`开始下载：${record.name}`);
 }
 
 // ========== 表格事件回调 ==========
-function handleSelectionChange(keys: (number | string)[], rows: FileRecord[]) {
+function handleSelectionChange(
+  keys: (number | string)[],
+  rows: Recordable[],
+) {
   selectedRowKeys.value = keys;
-  selectedRows.value = rows;
+  selectedRows.value = rows as unknown as FileRecord[];
 }
 
 // ========== 计算属性 ==========
@@ -404,27 +443,19 @@ const columns: BasicColumn[] = [
   <div :class="containerClassName">
     <!-- 左侧文件树 -->
     <div :class="leftPanelClassName">
-      <ACard :class="treeCardClassName" title="文件结构" size="small">
-        <ATree
+      <Card :class="treeCardClassName" title="文件结构">
+        <Tree
           :tree-data="fileTreeData"
           default-expand-all
           block-node
-          @select="(keys: (string|number)[]) => {
-            const node = keys[0]
-            if (node !== undefined && node !== null) {
-              handleNavigateToFolder({
-                key: node,
-                title: String(node),
-              })
-            }
-          }"
+          @select="handleTreeSelect"
         />
-      </ACard>
+      </Card>
     </div>
 
     <!-- 右侧内容区 -->
     <div :class="rightPanelClassName">
-      <ACard title="文件列表" :class="cardClassName">
+      <Card title="文件列表" :class="cardClassName">
         <!-- 面包屑导航 -->
         <div :class="breadcrumbClassName">
           <span>当前位置：</span>
@@ -483,26 +514,20 @@ const columns: BasicColumn[] = [
           @register="tableRegister"
         >
           <template #toolbar>
-            <AButton @click="handleCreateFolder">
-              <template #icon>
-                <Icon icon="ant-design:folder-add-outlined" />
-              </template>
+            <Button @click="handleCreateFolder">
+              <Icon icon="ant-design:folder-add-outlined" />
               新建文件夹
-            </AButton>
-            <AButton type="primary" @click="handleUpload">
-              <template #icon>
-                <Icon icon="ant-design:cloud-upload-outlined" />
-              </template>
+            </Button>
+            <Button @click="handleUpload">
+              <Icon icon="ant-design:cloud-upload-outlined" />
               上传文件
-            </AButton>
-            <AButton danger @click="handleBatchDelete">
-              <template #icon>
-                <Icon icon="ant-design:delete-outlined" />
-              </template>
+            </Button>
+            <Button variant="destructive" @click="handleBatchDelete">
+              <Icon icon="ant-design:delete-outlined" />
               批量删除 (
               {{ selectedRowKeys.length }}
               )
-            </AButton>
+            </Button>
           </template>
 
           <template #cell-name="{ record }">
@@ -524,43 +549,41 @@ const columns: BasicColumn[] = [
 
           <template #action="{ record }">
             <div :class="actionClassName">
-              <AButton
+              <Button
                 v-if="!record.isFolder"
-                type="link"
+                variant="link"
                 :class="btnClassName"
                 @click="() => handleDownload(record)"
               >
-                <template #icon>
-                  <Icon icon="ant-design:download-outlined" />
-                </template>
+                <Icon icon="ant-design:download-outlined" />
                 下载
-              </AButton>
-              <AButton
-                type="link"
+              </Button>
+              <Button
+                variant="link"
                 :class="btnClassName"
                 @click="() => handleRename(record)"
               >
-                <template #icon>
-                  <Icon icon="ant-design:edit-outlined" />
-                </template>
+                <Icon icon="ant-design:edit-outlined" />
                 重命名
-              </AButton>
-              <ADivider type="vertical" :class="dividerClassName" />
-              <APopconfirm
+              </Button>
+              <Divider type="vertical" :class="dividerClassName" />
+              <Popconfirm
                 :title="`确定要删除「${record.name}」吗？${record.isFolder ? '文件夹内的所有内容也将被删除。' : ''}`"
                 @confirm="() => handleDelete(record)"
               >
-                <AButton type="link" danger :class="btnClassName">
-                  <template #icon>
-                    <Icon icon="ant-design:delete-outlined" />
-                  </template>
+                <Button
+                  variant="link"
+                  class="text-destructive hover:text-destructive"
+                  :class="btnClassName"
+                >
+                  <Icon icon="ant-design:delete-outlined" />
                   删除
-                </AButton>
-              </APopconfirm>
+                </Button>
+              </Popconfirm>
             </div>
           </template>
         </BasicTable>
-      </ACard>
+      </Card>
     </div>
 
     <!-- 新建文件夹 / 重命名弹窗 -->
@@ -587,45 +610,36 @@ const columns: BasicColumn[] = [
       @register="uploadModalRegister"
     >
       <div class="space-y-4">
-        <AAlert
+        <Alert
           message="选择要上传的文件，支持多文件同时上传"
           type="info"
           show-icon
         />
 
-        <AUploadDragger
-          name="file"
+        <UploadDragger
           multiple
           accept="*/*"
           :max-count="10"
           :show-upload-list="true"
           :custom-request="() => {}"
-          @change="(info: any) => {
-            if (info.file.status === 'done' || info.fileList.some((f: any) => f.originFileObj)) {
-              handleSimulateUpload(info.fileList.map((f: any) => ({
-                name: f.name,
-                size: f.size || 0,
-                type: f.type || '',
-              })))
-            }
-          }"
+          @change="handleUploadChange"
         >
-          <p class="ant-upload-drag-icon">
+          <p class="mb-2 text-2xl">
             <Icon
               icon="carbon:cloud-upload"
               style="font-size: 48px; color: #1677ff"
             />
           </p>
-          <p class="ant-upload-text">点击或拖拽文件到此区域上传</p>
-          <p class="ant-upload-hint">
+          <p class="text-sm">点击或拖拽文件到此区域上传</p>
+          <p class="mt-1 text-xs text-gray-400">
             支持单个或批量上传，最大支持 10 个文件，单个文件不超过 100MB
           </p>
-        </AUploadDragger>
+        </UploadDragger>
 
         <div class="border-t border-gray-200 pt-3 dark:border-gray-700">
-          <AButton type="primary" block @click="handleSimulateUpload()">
+          <Button class="w-full" @click="handleSimulateUpload()">
             模拟上传（测试用）
-          </AButton>
+          </Button>
         </div>
       </div>
     </BasicModal>

@@ -46,11 +46,15 @@ function handleWidgetEvent(key: string) {
 </script>
 
 <template>
-  <component
-    :is="meta.component"
+  <!--
+    `v-motion` 要挂在元素上：小部件的根节点是 reka 的 Popover/Dropdown 容器（非元素根），
+    指令落不进去，Vue 只会给一条警告，动画和 hover 缩放都静默失效。
+  -->
+  <div
     v-for="meta in visibleWidgets"
     :key="meta.key"
     v-motion
+    class="flex shrink-0 items-center"
     :initial="{ opacity: 0, y: -6 }"
     :enter="{
       opacity: 1,
@@ -59,8 +63,12 @@ function handleWidgetEvent(key: string) {
     }"
     :hovered="{ scale: 1.08 }"
     :tapped="{ scale: 0.94 }"
-    @open="handleWidgetEvent(meta.key)"
-  />
+  >
+    <component
+      :is="meta.component"
+      @open="handleWidgetEvent(meta.key)"
+    />
+  </div>
 
   <SettingDrawer v-model:visible="showSetting" />
   <MenuSearchModal v-model:open="showSearch" />

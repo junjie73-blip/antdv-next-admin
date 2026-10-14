@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import type { AlertVariants } from "."
-
 import { cn } from '@antdv/shared/cn'
-
 import { alertVariants } from "."
 
 const props = defineProps<{
@@ -19,6 +16,6 @@ const props = defineProps<{
     :class="cn(alertVariants({ variant }), props.class)"
     role="alert"
   >
-    <slot></slot>
+    <slot />
   </div>
 </template>

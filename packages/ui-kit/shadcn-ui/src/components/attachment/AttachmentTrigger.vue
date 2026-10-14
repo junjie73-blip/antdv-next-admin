@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { PrimitiveProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
 import { cn } from '@antdv/shared/cn'
 
 interface Props extends PrimitiveProps {
@@ -20,6 +18,6 @@ const props = withDefaults(defineProps<Props>(), {
     :as-child="asChild"
     :class="cn('absolute inset-0 z-10 outline-none', props.class)"
   >
-    <slot></slot>
+    <slot />
   </Primitive>
 </template>

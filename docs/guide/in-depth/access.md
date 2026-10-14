@@ -80,7 +80,7 @@ export const vPermission = createPermissionDirective({
 
 ## 降级样式归样式层
 
-指令只"打标记"（`.disabled` 修饰符下叠 `permission-disabled`，默认直接 `display:none`），视觉由 `@antdv/styles/permission.css` 决定：
+指令只"打标记"（`.disabled` 修饰符下叠 `permission-disabled`，默认直接 `display:none`），视觉由 `@antdv/design/permission.css` 决定：
 
 ```css
 .permission-disabled {

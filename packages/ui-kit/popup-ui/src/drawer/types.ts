@@ -47,6 +47,12 @@ export interface DrawerProps {
   /** 内容区是否包 padding（沿用旧 useWrapper 语义） */
   useWrapper?: boolean;
   afterClose?: () => void;
+  /**
+   * 内容区是否由抽屉自带 ScrollArea 负责滚动（默认开）。
+   * 调用方自己管滚动时关掉——比如偏好抽屉要"顶部切换条固定 + 面板单独滚"，
+   * 两层滚动容器会让内层撑到内容高度，外层反过来把切换条一起滚走。
+   */
+  bodyScroll?: boolean;
 
   onOk?: (e: MouseEvent) => Promise<void> | void;
   onCancel?: (e: MouseEvent) => void;

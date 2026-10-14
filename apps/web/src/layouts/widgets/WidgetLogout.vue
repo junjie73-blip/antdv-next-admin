@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 
+import { confirm, message } from '@antdv/popup-ui';
 import { Icon } from '@iconify/vue';
-import { message, Modal } from 'antdv-next';
 import { useUserStore } from '~/stores/modules/user';
 
 import WidgetButton from './components/WidgetButton.vue';
@@ -13,10 +13,11 @@ const { t } = useI18n({ useScope: 'global' });
 const userStore = useUserStore();
 
 function handleLogout() {
-  Modal.confirm({
+  void confirm({
     title: t('header.logout'),
     content: t('header.logoutConfirm'),
-    okType: 'danger',
+    // 退出是不可逆操作，确认按钮走 destructive 配色（旧 okType: 'danger'）
+    danger: true,
     okText: t('header.logoutOk'),
     cancelText: t('common.cancel'),
     async onOk() {

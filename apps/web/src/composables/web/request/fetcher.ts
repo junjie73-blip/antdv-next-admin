@@ -1,5 +1,6 @@
 import type { ApiResponse } from './types';
 
+import { toast } from '@antdv/popup-ui';
 import { cache } from '@antdv/shared';
 import {
   config as csrfConfig,
@@ -8,7 +9,6 @@ import {
 } from '@antdv/shared/csrf';
 import { isTokenExpired } from '@antdv/shared/jwt';
 import { createFetch } from '@vueuse/core';
-import { notification } from 'antdv-next';
 import { AUTHORIZATION_KEY } from '~/composables/constant';
 import { LOGIN_PATH, REFRESH_TOKEN_KEY } from '~/config/constants';
 import { useUserStore } from '~/stores/modules/user';
@@ -348,14 +348,12 @@ export function resolveErrorMessage(
 async function reportRequestError(error: RequestError) {
   if (error.handled || SILENT_CODES.has(error.code)) return;
   if (isServerFailure(error.status, error.code)) {
-    notification.error({
-      title: '请求错误',
+    toast.error('请求错误', {
       description: error.message || '服务器繁忙，请稍后重试',
     });
     return;
   }
-  notification.error({
-    title: '请求错误',
+  toast.error('请求错误', {
     description: resolveErrorMessage(
       error.data,
       error.message,

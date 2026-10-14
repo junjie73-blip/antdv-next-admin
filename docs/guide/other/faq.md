@@ -40,7 +40,7 @@
 | --- | --- | --- |
 | 换主色，菜单选中项不变 | 只写了一个变量名 | `--ant-color-primary` 与 `--ant-primary-color` **都要写**（`packages/preferences/src/css-vars.ts:47-93`） |
 | 深色下主色和自己设的不一样 | antdv-next 在 `.ant-app` 上重算主色 | 覆盖写在 `html` 的种子变量上；测试断言不要钉色值 |
-| 覆盖组件库样式要靠 `!important` | Tailwind 层顺序被改动 | `@layer theme, base, antd, components, utilities` 必须显式声明（`packages/styles/src/index.css:18-32`） |
+| 覆盖组件库样式要靠 `!important` | Tailwind 层顺序被改动 | `@layer theme, base, antd, components, utilities` 必须显式声明（`packages/design/src/index.css:18-32`） |
 | 页面之间间距不一致 | 路由页面外层自己写了 padding | 内边距归布局管，见[开发规范与环境变量](/guide/essentials/development) |
 | 生产包里图标是空白方块 | 用了离线列表外的 Iconify 前缀 | 新集合要同时加 catalog 依赖与 `auto-import.ts:95-97` 的离线列表 |
 

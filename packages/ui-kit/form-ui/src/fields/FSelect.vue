@@ -14,6 +14,7 @@ import { normalizeOptions, optionValueEquals } from './utils';
 interface Props {
   allowClear?: boolean;
   disabled?: boolean;
+  id?: string;
   maxTagCount?: number;
   mode?: 'multiple' | undefined;
   options?: any[];
@@ -122,6 +123,7 @@ function clear(event: MouseEvent) {
         role="combobox"
         :aria-expanded="open"
         :disabled="disabled"
+        :id="id"
         data-field-control
         :class="
           cn(

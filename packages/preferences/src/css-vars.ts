@@ -57,7 +57,7 @@ export function applyPreferencesToDom(
     preferences.grayMode ? GRAY_MODE_FILTER : '',
   ].filter(Boolean);
   const filterValue = filters.length > 0 ? filters.join(' ') : 'none';
-  // 变量给样式层（@antdv/styles）消费，内联 filter 保证没有样式表时开关也立即生效
+  // 变量给样式层（@antdv/design）消费，内联 filter 保证没有样式表时开关也立即生效
   setCssVar(target, '--app-filter', filterValue);
   target.style.filter = filterValue;
 

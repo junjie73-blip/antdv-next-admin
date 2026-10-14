@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import type {
-  UploadProps as AntUploadProps,
+  UploadChangeParam,
   UploadFile,
-  UploadRequestOption,
-} from 'antdv-next';
+  UploadRequestOptions,
+} from '@antdv/common-ui';
 
 import type { UploadInstance, UploadProps } from './types';
 
-import { computed, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 
+import { Upload as BaseUpload } from '@antdv/common-ui';
+import { message } from '@antdv/popup-ui';
+import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { Upload as AntUpload, Button, message } from 'antdv-next';
 
 import { uploadSingleFile } from './api';
 
@@ -34,7 +36,7 @@ const emit = defineEmits<{
   error: [error: Error, file: UploadFile];
 }>();
 
-// 文件列表
+// 文件列表：与 common-ui Upload 的 v-model:fileList 双向绑定
 const fileList = ref<UploadFile[]>(props.value ?? []);
 
 watch(
@@ -50,7 +52,7 @@ watch(
  * - 自动带 token / tenant header / 请求拦截
  * - 支持进度上报
  */
-function handleCustomRequest(options: UploadRequestOption) {
+function handleCustomRequest(options: UploadRequestOptions) {
   const file = options.file as unknown as File;
   const extra = props.data ?? {};
 
@@ -69,7 +71,7 @@ function handleCustomRequest(options: UploadRequestOption) {
  * 处理文件变化
  * 内存优化：done 后释放 originFileObj 引用
  */
-const handleChange: AntUploadProps['onChange'] = (info) => {
+function handleChange(info: UploadChangeParam) {
   fileList.value = info.fileList.map((f) => {
     if (f.status === 'done' && f.response) {
       return { ...f, originFileObj: undefined } as UploadFile;
@@ -84,12 +86,12 @@ const handleChange: AntUploadProps['onChange'] = (info) => {
   } else if (info.file.status === 'error') {
     emit('error', new Error(info.file.error?.message || '上传失败'), info.file);
   }
-};
+}
 
 /**
- * 上传前校验
+ * 上传前校验：maxSize / maxCount 的警告文案与拦截时机保持原样
  */
-const handleBeforeUpload: AntUploadProps['beforeUpload'] = (file, list) => {
+function handleBeforeUpload(file: File, list: File[]) {
   if (props.maxSize && file.size > props.maxSize * 1024 * 1024) {
     message.warning(`文件大小不能超过 ${props.maxSize}MB`);
     return false;
@@ -99,28 +101,18 @@ const handleBeforeUpload: AntUploadProps['beforeUpload'] = (file, list) => {
     return false;
   }
   if (props.beforeUpload) {
-    return props.beforeUpload(file as UploadFile, list as UploadFile[]);
+    return props.beforeUpload(
+      file as unknown as UploadFile,
+      list as unknown as UploadFile[],
+    );
   }
   return true;
-};
+}
 
-/**
- * 组装上传配置
- * 注意：不再传 action，使用 customRequest 走系统 http
- */
-const uploadProps = computed((): AntUploadProps => {
-  return {
-    name: props.name,
-    multiple: props.multiple,
-    accept: props.accept,
-    listType: props.listType,
-    showUploadList: props.showUploadList,
-    disabled: props.disabled || props.readonly,
-    beforeUpload: handleBeforeUpload,
-    customRequest: handleCustomRequest,
-    onRemove: props.onRemove,
-  };
-});
+/** 删除回调：base 已完成移除，这里只把 onRemove 契约透传给消费方 */
+function handleRemove(file: UploadFile) {
+  props.onRemove?.(file);
+}
 
 // 实例方法
 function getFileList() {
@@ -145,17 +137,22 @@ defineExpose<UploadInstance>({
 
 <template>
   <div :class="cn('upload-wrapper', props.className)">
-    <AntUpload
+    <BaseUpload
       v-model:file-list="fileList"
-      v-bind="uploadProps"
+      :accept="props.accept"
+      :multiple="props.multiple"
+      :list-type="props.listType"
+      :show-upload-list="props.showUploadList"
+      :disabled="props.disabled || props.readonly"
+      :before-upload="handleBeforeUpload"
+      :custom-request="handleCustomRequest"
       @change="handleChange"
+      @remove="handleRemove"
     >
       <Button v-if="!readonly" :disabled="disabled">
-        <template #icon>
-          <Icon icon="carbon:upload" />
-        </template>
+        <Icon :icon="props.uploadIcon ?? 'carbon:upload'" />
         {{ uploadText }}
       </Button>
-    </AntUpload>
+    </BaseUpload>
   </div>
 </template>

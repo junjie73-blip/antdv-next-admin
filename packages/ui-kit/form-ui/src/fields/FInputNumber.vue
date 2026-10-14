@@ -4,6 +4,7 @@ import { cn } from '@antdv/shared/cn';
 interface Props {
   disabled?: boolean;
   formatter?: (value: number | string | undefined) => string;
+  id?: string;
   max?: number;
   min?: number;
   placeholder?: string;
@@ -78,6 +79,7 @@ function stepBy(direction: number) {
       :min="min"
       :max="max"
       :step="step"
+      :id="id"
       data-field-control
       class="h-9 w-full min-w-0 bg-transparent px-3 text-sm outline-hidden placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
       @input="onInput"

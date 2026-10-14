@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 
-import { ShopOutlined } from '@antdv-next/icons';
+import { Empty } from '@antdv/common-ui';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@antdv/shadcn-ui';
+import { Icon } from '@iconify/vue';
 import { useVModel } from '@vueuse/core';
-import { Empty as AEmpty, Select } from 'antdv-next';
 import { useTenantStore } from '~/stores/modules/tenant';
 
 interface Props {
@@ -25,6 +32,9 @@ const props = withDefaults(defineProps<Props>(), {
   placeholder: '请选择租户',
   disabled: false,
   allowClear: true,
+  class: undefined,
+  dropdownClass: undefined,
+  modelValue: undefined,
   size: 'middle',
   onlyEnabled: true,
   immediate: true,
@@ -38,11 +48,11 @@ const emit = defineEmits<{
 
 const tenantStore = useTenantStore();
 
-// useVModel：标准 v-model 双向绑定
+// useVModel：标准 v-model 双向绑定（对外契约仍是 code 字符串 / id 数字原样回抛）
 const innerValue = useVModel(props, 'modelValue', emit, { passive: true });
 
 const selectOptions = computed(() =>
-  tenantStore.options.map((t) => ({
+  tenantStore.options.map((t: any) => ({
     value: props.valueType === 'id' ? t.tenantId : t.tenantCode,
     label: t.tenantName,
     code: t.tenantCode,
@@ -50,22 +60,22 @@ const selectOptions = computed(() =>
   })),
 );
 
-function filterOption(input: string, option: any): boolean {
-  if (!input) return true;
-  const keyword = input.toLowerCase();
-  return (
-    String(option.label || '')
-      .toLowerCase()
-      .includes(keyword) ||
-    String(option.code || '')
-      .toLowerCase()
-      .includes(keyword)
-  );
-}
+/** reka Select 的取值只能是字符串：用 String() 桥接数字 id */
+const selectValue = computed(() =>
+  innerValue.value === undefined || innerValue.value === null
+    ? undefined
+    : String(innerValue.value),
+);
 
-function handleChange(value: string | undefined) {
-  const option = selectOptions.value.find((o) => o.value === value);
-  emit('change', value, option);
+function handleChange(val: any) {
+  // 回填时按 valueType 还原成调用方期望的类型（id → Number）
+  const str = String(val);
+  const raw: number | string = props.valueType === 'id' ? Number(str) : str;
+  innerValue.value = raw as unknown as string | undefined;
+  const option = selectOptions.value.find(
+    (o: any) => String(o.value) === String(raw),
+  );
+  emit('change', raw as unknown as string | undefined, option);
 }
 
 onMounted(() => {
@@ -81,36 +91,30 @@ defineExpose({
 
 <template>
   <Select
-    v-model:value="innerValue"
-    :loading="tenantStore.loading"
-    :placeholder="placeholder"
-    :disabled="disabled"
-    :allow-clear="allowClear"
-    :size="size"
-    :show-search="showSearch"
-    :filter-option="filterOption"
-    :options="selectOptions"
-    :class="props.class"
-    :dropdown-class-name="dropdownClass"
-    @change="handleChange"
+    :model-value="selectValue"
+    :disabled="disabled || tenantStore.loading"
+    @update:model-value="handleChange"
   >
-    <template #suffixIcon>
-      <ShopOutlined class="text-stone-400" />
-    </template>
-
-    <template #optionRender="{ option }">
-      <div class="flex items-center justify-between gap-3">
-        <span>{{ option.data.label }}</span>
-        <span class="text-xs text-stone-400">{{ option.data.code }}</span>
+    <SelectTrigger :class="props.class" :size="size === 'small' ? 'sm' : 'default'">
+      <span class="flex items-center gap-2">
+        <Icon icon="carbon:store" class="size-4 text-stone-400" />
+        <SelectValue :placeholder="placeholder" />
+      </span>
+    </SelectTrigger>
+    <SelectContent :class="dropdownClass">
+      <SelectItem
+        v-for="opt in selectOptions"
+        :key="String(opt.value)"
+        :value="String(opt.value)"
+      >
+        <span class="flex items-center justify-between gap-3">
+          <span>{{ opt.label }}</span>
+          <span class="text-xs text-stone-400">{{ opt.code }}</span>
+        </span>
+      </SelectItem>
+      <div v-if="selectOptions.length === 0" class="px-2 py-3">
+        <Empty :image="false" description="暂无租户数据" class="py-0 text-xs" />
       </div>
-    </template>
-
-    <template #notFoundContent>
-      <AEmpty
-        :image="false"
-        description="暂无租户数据"
-        class="!py-4 !text-xs !text-stone-400"
-      />
-    </template>
+    </SelectContent>
   </Select>
 </template>

@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import { onBeforeUnmount, onMounted, useTemplateRef } from "vue"
-
 import { cn } from '@antdv/shared/cn'
-
 import { useMessageScrollerContext } from "./useMessageScroller"
 
 const props = defineProps<{
@@ -23,7 +20,7 @@ const contentRef = useTemplateRef<HTMLElement>("content")
 const spacerRef = useTemplateRef<HTMLElement>("spacer")
 
 let mutationObserver: MutationObserver | null = null
-let resizeObserver: null | ResizeObserver = null
+let resizeObserver: ResizeObserver | null = null
 let resizeFrame = 0
 
 onMounted(() => {
@@ -68,13 +65,13 @@ onBeforeUnmount(() => {
     aria-relevant="additions"
     :class="cn('flex h-max min-h-full flex-col gap-8', props.class)"
   >
-    <slot></slot>
+    <slot />
     <div
       ref="spacer"
       aria-hidden="true"
       data-message-scroller-spacer=""
       hidden
       :class="props.spacerClass"
-    ></div>
+    />
   </div>
 </template>

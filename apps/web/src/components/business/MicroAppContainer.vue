@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
+import { Button, Spinner } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
 import { useEventListener, useTimeoutFn } from '@vueuse/core';
-import { Button as AButton, Spin as ASpin } from 'antdv-next';
 
 interface Props {
   name: string;
@@ -16,6 +16,9 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  baseroute: undefined,
+  className: undefined,
+  url: undefined,
   disableMemoryRouter: true,
   disablePatchRequest: false,
 });
@@ -95,7 +98,7 @@ if (!props.url) {
 <template>
   <div :class="containerClassName">
     <div v-if="loading" :class="overlayClassName">
-      <ASpin size="large" />
+      <Spinner class="size-9 animate-spin" />
       <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
         正在加载子应用...
       </p>
@@ -128,8 +131,8 @@ if (!props.url) {
         </p>
 
         <div class="flex justify-center gap-3">
-          <AButton type="primary" @click="handleRetry">重试加载</AButton>
-          <AButton @click="hasError = false">关闭提示</AButton>
+          <Button @click="handleRetry">重试加载</Button>
+          <Button variant="outline" @click="hasError = false">关闭提示</Button>
         </div>
       </div>
     </div>

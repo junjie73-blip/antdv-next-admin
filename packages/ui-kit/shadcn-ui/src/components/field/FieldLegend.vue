@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<{
   class?: HTMLAttributes["class"]
-  variant?: "label" | "legend"
+  variant?: "legend" | "label"
 }>()
 </script>
 
@@ -20,6 +19,6 @@ const props = defineProps<{
       props.class,
     )"
   >
-    <slot></slot>
+    <slot />
   </legend>
 </template>

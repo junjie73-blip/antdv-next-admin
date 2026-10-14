@@ -9,6 +9,7 @@ import { normalizeOptions } from './utils';
 interface Props {
   buttonStyle?: string;
   disabled?: boolean;
+  id?: string;
   optionType?: 'button' | undefined;
   options?: any[];
   size?: string;
@@ -41,6 +42,7 @@ function onSelectChange(val: any) {
   <RadioGroup
     :model-value="value === undefined || value === null ? '' : String(value)"
     :disabled="disabled"
+    :id="id"
     data-field-control
     :class="cn('flex flex-wrap gap-4', isButtonStyle && 'gap-0')"
     @update:model-value="onSelectChange"

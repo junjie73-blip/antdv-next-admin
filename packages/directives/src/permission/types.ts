@@ -69,7 +69,7 @@ export interface PermissionDirectiveOptions {
   checkers: PermissionCheckerSource;
   /**
    * 无权限时叠加的 class，供样式层做视觉降级。
-   * 默认 `permission-disabled`；样式规则归 `@antdv/styles` 提供，
+   * 默认 `permission-disabled`；样式规则归 `@antdv/design` 提供，
    * 包只负责打标记。
    */
   className?: string;

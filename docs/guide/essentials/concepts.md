@@ -20,7 +20,7 @@ scripts/           仓库任务（vsh、turbo-run、clean、deploy）
 | 形态 | 包 | `main` 指向 | 改完 src 之后 |
 | --- | --- | --- | --- |
 | dist 发布 | `@antdv/shared`、`composables`、`directives`、`layouts`、`preferences`、`router`、`types` | `./dist/index.js`（tsdown 产物） | 必须 `pnpm --filter @antdv/shared build`，再重启 dev |
-| 源码发布 | `@antdv/icons`、`@antdv/styles`、`@antdv/ui-kit` 那九个（`shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` / `loading-ui` / `scrollbar-ui`） | `./src/index.ts`（`styles` 是 `./src/index.css`） | 直接热更新，没有构建步骤 |
+| 源码发布 | `@antdv/icons`、`@antdv/design`、`@antdv/ui-kit` 那十个（`common-ui` / `shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` / `loading-ui` / `scrollbar-ui`） | `./src/index.ts`（`design` 是 `./src/index.css`） | 直接热更新，没有构建步骤 |
 
 依据：`packages/*/package.json` 与 `packages/ui-kit/*/package.json` 的 `main` 字段，以及 `packages/shared/tsdown.config.ts` （`entry: ['src/index.ts', 'src/*.ts', 'src/*/index.ts']`）。dist 发布的那几个包没有 build 脚本就永远出新产物，`dev` 脚本是 `tsdown --watch`。
 

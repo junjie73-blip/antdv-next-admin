@@ -1,4 +1,4 @@
-import { message } from 'antdv-next';
+import { message } from '@antdv/popup-ui';
 import { request } from '~/composables';
 
 /* ============================================================

@@ -181,9 +181,10 @@ export interface FormProps {
   scrollToFirstError?: boolean;
 }
 
-/** 校验失败时抛出的错误（兼容旧 antdv 结构） */
+/** 校验失败时抛出的错误：`name` 是字段路径数组，`message` 是第一条错误文案 */
 export interface FormValidateError {
-  errorFields?: { name: string; errors: string[] }[];
+  errorFields?: { errors: string[]; name: (number | string)[] }[];
+  message?: string;
   outOfDate?: boolean;
   values?: Recordable;
 }

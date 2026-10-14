@@ -37,7 +37,10 @@ test.describe('应用冒烟', () => {
     await expectActivePath(page, HOME_PATH);
     await expect(page.locator('.tab-item').first()).toBeVisible();
     // 菜单来自 Nitro 的 /menus，能渲染出条目说明前后端接通了
-    await expect(page.locator('.ant-menu-root li').first()).toBeVisible();
+    // `[data-menu-root]` / `.menu-item` 是 `@antdv/menu-ui` 的契约（不是 antd 的 `[data-menu-root]`）
+    await expect(
+      page.locator('[data-menu-root] .menu-item').first(),
+    ).toBeVisible();
     expect(errors.errors).toEqual([]);
   });
 
@@ -59,14 +62,13 @@ test.describe('应用冒烟', () => {
     await signIn(page);
     await go(page, '/system/role');
 
-    const roots = page.locator('.ant-menu-root');
+    const roots = page.locator('[data-menu-root]');
     const total = await roots.count();
     expect(total).toBeGreaterThan(0);
     for (let i = 0; i < total; i += 1) {
-      await expect(roots.nth(i).locator('.ant-menu-item-selected')).toHaveCount(
-        1,
-        { timeout: 10_000 },
-      );
+      await expect(
+        roots.nth(i).locator('[data-menu-state="selected"]'),
+      ).toHaveCount(1, { timeout: 10_000 });
     }
   });
 

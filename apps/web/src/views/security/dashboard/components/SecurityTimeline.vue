@@ -7,10 +7,17 @@ import type {
 
 import { computed, onMounted, ref } from 'vue';
 
+import {
+  Badge,
+  Empty,
+  Tag,
+  Timeline,
+  TimelineItem,
+} from '@antdv/common-ui';
+import { Loading } from '@antdv/loading-ui';
 import { Scrollbar } from '@antdv/scrollbar-ui';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { Badge as ABadge, Empty as AEmpty, Spin as ASpin, Tag as ATag, Timeline as ATimeline, TimelineItem as ATimelineItem } from 'antdv-next';
 import dayjs from 'dayjs';
 import { getSecurityEvents } from '~/api/security';
 
@@ -82,9 +89,9 @@ function getTimelineColor(level: SecurityEventLevel): string {
 /** 级别标签颜色 */
 function getLevelTagColor(level: SecurityEventLevel): string {
   const map: Record<SecurityEventLevel, string> = {
-    critical: 'error',
-    high: 'warning',
-    medium: 'processing',
+    critical: 'red',
+    high: 'orange',
+    medium: 'blue',
     low: 'default',
   };
   return map[level] || map.low;
@@ -155,19 +162,19 @@ onMounted(async () => {
         </h3>
         <p class="mt-0.5 text-xs text-gray-400">近期安全事件追踪</p>
       </div>
-      <ABadge
+      <Badge
         :count="filteredEvents.filter((e) => e.status === 'pending').length"
         :offset="[2, 0]"
       >
         <span class="text-xs text-gray-400">待处理</span>
-      </ABadge>
+      </Badge>
     </div>
 
     <!-- 筛选栏 -->
     <div :class="filterBarClassName">
       <!-- 类型筛选 -->
       <div class="flex items-center gap-1">
-        <ATag
+        <Tag
           v-for="opt in typeOptions"
           :key="opt.value"
           :class="tagClassName"
@@ -175,11 +182,11 @@ onMounted(async () => {
           @click="activeType = opt.value"
         >
           {{ opt.label }}
-        </ATag>
+        </Tag>
       </div>
       <!-- 级别筛选 -->
       <div class="flex items-center gap-1">
-        <ATag
+        <Tag
           v-for="opt in levelOptions"
           :key="opt.value"
           :class="tagClassName"
@@ -197,11 +204,11 @@ onMounted(async () => {
           @click="activeLevel = opt.value"
         >
           {{ opt.label }}
-        </ATag>
+        </Tag>
       </div>
       <!-- 状态筛选 -->
       <div class="flex items-center gap-1">
-        <ATag
+        <Tag
           v-for="opt in statusOptions"
           :key="opt.value"
           :class="tagClassName"
@@ -215,15 +222,16 @@ onMounted(async () => {
           @click="activeStatus = opt.value"
         >
           {{ opt.label }}
-        </ATag>
+        </Tag>
       </div>
     </div>
 
     <!-- 时间线 -->
     <Scrollbar root-class="max-h-[420px] pr-1">
-      <ASpin :spinning="loading">
-        <ATimeline v-if="filteredEvents.length > 0" mode="left" class="mt-2">
-          <ATimelineItem
+      <div class="relative">
+        <Loading :loading="loading" :absolute="true" size="small" />
+        <Timeline v-if="filteredEvents.length > 0" class="mt-2">
+          <TimelineItem
             v-for="event in filteredEvents"
             :key="event.id"
             :color="getTimelineColor(event.level)"
@@ -259,36 +267,32 @@ onMounted(async () => {
                   <span
                     class="text-sm font-medium text-gray-800 dark:text-gray-200"
                     >{{ event.title }}</span>
-                  <ATag
+                  <Tag
                     :color="getLevelTagColor(event.level)"
-                    size="small"
                     class="text-[10px]"
                   >
                     {{ getLevelLabel(event.level) }}
-                  </ATag>
-                  <ATag
+                  </Tag>
+                  <Tag
                     :color="getTypeTagColor(event.type)"
-                    size="small"
                     class="text-[10px]"
                   >
                     {{ typeOptions.find((t) => t.value === event.type)?.label }}
-                  </ATag>
-                  <ATag
+                  </Tag>
+                  <Tag
                     v-if="event.status === 'pending'"
-                    color="error"
-                    size="small"
+                    color="red"
                     class="text-[10px]"
                   >
                     待处理
-                  </ATag>
-                  <ATag
+                  </Tag>
+                  <Tag
                     v-else-if="event.status === 'handled'"
-                    color="success"
-                    size="small"
+                    color="green"
                     class="text-[10px]"
                   >
                     已处理
-                  </ATag>
+                  </Tag>
                 </div>
                 <p
                   class="line-clamp-1 text-xs text-gray-500 dark:text-gray-400"
@@ -308,11 +312,11 @@ onMounted(async () => {
                 </div>
               </div>
             </div>
-          </ATimelineItem>
-        </ATimeline>
+          </TimelineItem>
+        </Timeline>
 
-        <AEmpty v-else description="暂无匹配的安全事件" class="py-8" />
-      </ASpin>
+        <Empty v-else description="暂无匹配的安全事件" class="py-8" />
+      </div>
     </Scrollbar>
   </div>
 </template>

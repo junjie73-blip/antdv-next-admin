@@ -4,24 +4,26 @@ import type {
   DescriptionItem,
   DescriptionLayout,
   DescriptionSize,
-} from '~/components/business/Description';
+} from '@antdv/common-ui';
 
 import { computed, h, ref } from 'vue';
 
+import { Card, Divider, Segmented, Space, Tag } from '@antdv/common-ui';
+import { message } from '@antdv/popup-ui';
+import { Button, Switch } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
-import { Button as AButton, Card as ACard, Divider as ADivider, App, Segmented as ASegmented, Space as ASpace, Switch as ASwitch, Tag as ATag, TypographyParagraph as ATypographyParagraph, Tag } from 'antdv-next';
+import { breakpointsTailwind, useBreakpoints, useClipboard } from '@vueuse/core';
 import certUrl from '~/assets/images/img.jpg';
 import avatarUrl from '~/assets/images/logo.png';
-import { Description } from '~/components/business/Description';
+import { Description } from '@antdv/common-ui';
 
 defineOptions({ name: 'ComponentsDescription' });
 
 /**
  * 描述列表（详情列表）示例页 —— 用的是仓库自研的 `Description` 业务组件
- * （`src/components/business/Description`，内部包了一层 antdv-next 的 `Descriptions`），
- * 不是裸 `<a-descriptions>`。
+ * （`src/components/business/Description`，内部包了一层 common-ui 的
+ * `Descriptions` / `DescriptionsItem`），不是裸的通用描述列表。
  *
  * 组件是**配置驱动**的：`schema`（`DescriptionItem[]`）定义「标签 + 值 + 渲染方式」，
  * `data`（`Recordable`）提供字段值；每行的列数由 `column` 决定，
@@ -31,7 +33,7 @@ defineOptions({ name: 'ComponentsDescription' });
  * 没有调用任何后端接口 —— 详情页这种场景先演示渲染，再谈取数。
  */
 
-const { message } = App.useApp();
+const { copy } = useClipboard();
 
 const containerClassName = cn('space-y-6');
 const hintClassName = cn('mb-3 text-xs text-gray-500 dark:text-gray-400');
@@ -64,9 +66,8 @@ const basicSchema: DescriptionItem[] = [
   { field: 'department', label: '所属部门' },
   { field: 'position', label: '岗位' },
   { field: 'birthday', label: '出生日期', type: 'date' },
-  // 占满整行的项必须正好落在新起的一行：`span` 大于「本行剩余列数」时 antd 会把它
-  // 截断成剩余宽度并在控制台告警（`dist/descriptions/hooks/useRow.js` 的 exceed 分支），
-  // 所以它前面得是 3 的倍数个单元格。
+  // 占满整行的项必须正好落在新起的一行：跨行截断会在控制台告警（行内 `span`
+  // 之和不能超过 `column`），所以它前面得是 3 的倍数个单元格。
   {
     field: 'address',
     label: '通信地址',
@@ -85,7 +86,7 @@ const profileData = ref({
   certificates: [avatarUrl, certUrl],
   department: '研发中心 / 平台组',
   email: 'zhangsan@example.com',
-  skills: ['Vue 3', 'TypeScript', 'Vite', 'antdv-next'],
+  skills: ['Vue 3', 'TypeScript', 'Vite', 'Tailwind CSS'],
 });
 
 const statusColorMap: Record<string, string> = {
@@ -93,6 +94,12 @@ const statusColorMap: Record<string, string> = {
   休假: 'orange',
   离职: 'red',
 };
+
+/** 演示「插槽接管值渲染」：邮箱用可复制的 code 文本呈现 */
+function copyEmail(text: string) {
+  copy(text);
+  message.success(`已复制 ${text}`);
+}
 
 /**
  * 同一份 schema 里的四种取值优先级（源码 `renderValue`）：
@@ -278,7 +285,7 @@ const size = ref<DescriptionSize>('large');
 
 <template>
   <div :class="containerClassName">
-    <ACard title="基础描述列表" variant="borderless">
+    <Card title="基础描述列表" variant="borderless">
       <p :class="hintClassName">
         由 <code>schema</code>（字段 + 标签 + 渲染方式）与
         <code>data</code>（字段值）两份配置驱动，
@@ -296,9 +303,9 @@ const size = ref<DescriptionSize>('large');
         :column="3"
         bordered
       />
-    </ACard>
+    </Card>
 
-    <ACard title="值渲染与插槽" variant="borderless">
+    <Card title="值渲染与插槽" variant="borderless">
       <p :class="hintClassName">
         取值的优先级是：<strong>具名插槽 <code>#字段名</code> → <code>render</code> 函数 →
           <code>type</code> 内置渲染 → 文本</strong>。 头像走 <code>type: 'image'</code>（<code>imageSize</code>
@@ -322,26 +329,30 @@ const size = ref<DescriptionSize>('large');
         </template>
 
         <template #email="{ value }">
-          <ATypographyParagraph
-            :copyable="{ text: String(value) }"
-            code
-            :style="{ marginBottom: 0 }"
-          >
-            {{ value }}
-          </ATypographyParagraph>
+          <span class="inline-flex items-center gap-1">
+            <code class="rounded-sm bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800">{{ value }}</code>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              title="复制"
+              @click="copyEmail(String(value))"
+            >
+              <Icon icon="carbon:copy" />
+            </Button>
+          </span>
         </template>
 
         <template #skills="{ value }">
-          <ASpace :size="4" wrap>
-            <ATag v-for="skill in value" :key="skill" color="purple">
+          <Space :size="4" wrap>
+            <Tag v-for="skill in value" :key="skill" color="purple">
               {{ skill }}
-            </ATag>
-          </ASpace>
+            </Tag>
+          </Space>
         </template>
       </Description>
-    </ACard>
+    </Card>
 
-    <ACard title="动态切换（编辑态 / 只读态）" variant="borderless">
+    <Card title="动态切换（编辑态 / 只读态）" variant="borderless">
       <p :class="hintClassName">
         同一份 <code>schema</code> + <code>data</code> 全程响应式：<code>show: false</code>
         的项被组件过滤掉（身份证、发票抬头），把 <code>data</code> 换成脱敏后的
@@ -352,24 +363,37 @@ const size = ref<DescriptionSize>('large');
 
       <div :class="toolbarClassName">
         <span class="inline-flex items-center gap-2">
-          <ASwitch v-model:checked="showSensitive" size="small" />
+          <Switch
+            :model-value="showSensitive"
+            @update:model-value="(v: any) => (showSensitive = v === true)"
+          />
           <span class="text-sm">显示敏感字段</span>
         </span>
         <span class="inline-flex items-center gap-2">
-          <ASwitch v-model:checked="masked" size="small" />
+          <Switch
+            :model-value="masked"
+            @update:model-value="(v: any) => (masked = v === true)"
+          />
           <span class="text-sm">手机号 / 身份证脱敏</span>
         </span>
-        <ASegmented
+        <Segmented
           v-model:value="layout"
           :options="[
             { label: '水平', value: 'horizontal' },
             { label: '垂直', value: 'vertical' },
           ]"
         />
-        <AButton size="small" :loading="loading" @click="refreshOrder">
+        <Button size="sm" :disabled="loading" @click="refreshOrder">
+          <Icon
+            v-if="loading"
+            class="animate-spin"
+            icon="svg-spinners:bouncing-ball"
+          />
           模拟刷新详情
-        </AButton>
-        <AButton size="small" @click="printData"> 调用 getData() </AButton>
+        </Button>
+        <Button size="sm" variant="outline" @click="printData">
+          调用 getData()
+        </Button>
       </div>
 
       <Description
@@ -381,9 +405,9 @@ const size = ref<DescriptionSize>('large');
         :layout="layout"
         bordered
       />
-    </ACard>
+    </Card>
 
-    <ACard title="响应式列数与分组" variant="borderless">
+    <Card title="响应式列数与分组" variant="borderless">
       <p :class="hintClassName">
         一个业务详情页往往是多个分组的组合：下面用两个
         <code>Description</code>（基础信息 / 金额信息）各自带
@@ -392,12 +416,12 @@ const size = ref<DescriptionSize>('large');
         <code>number</code>，所以「窄屏降列」是在页面这层用断点算出来的 ——
         把窗口拖窄到 <code>md</code> 以下会看到每行从 3 列变 1
         列；<code>bordered</code>、 <code>colon</code>、<code>size</code>（<code>large</code>
-        / <code>middle</code> / <code>small</code> 三档，antd 已废弃
-        <code>default</code>，等价写法是 <code>large</code>）可实时切换。
+        / <code>middle</code> / <code>small</code> 三档，<code>default</code>
+        已废弃，等价写法是 <code>large</code>）可实时切换。
       </p>
 
       <div :class="toolbarClassName">
-        <ASegmented
+        <Segmented
           v-model:value="columnMode"
           :options="[
             { label: '自动(响应式)', value: 'auto' },
@@ -406,7 +430,7 @@ const size = ref<DescriptionSize>('large');
             { label: '3 列', value: '3' },
           ]"
         />
-        <ASegmented
+        <Segmented
           v-model:value="size"
           :options="[
             { label: 'large', value: 'large' },
@@ -415,14 +439,20 @@ const size = ref<DescriptionSize>('large');
           ]"
         />
         <span class="inline-flex items-center gap-2">
-          <ASwitch v-model:checked="bordered" size="small" />
+          <Switch
+            :model-value="bordered"
+            @update:model-value="(v: any) => (bordered = v === true)"
+          />
           <span class="text-sm">bordered</span>
         </span>
         <span class="inline-flex items-center gap-2">
-          <ASwitch v-model:checked="colon" size="small" />
+          <Switch
+            :model-value="colon"
+            @update:model-value="(v: any) => (colon = v === true)"
+          />
           <span class="text-sm">colon</span>
         </span>
-        <ATag color="blue">当前 column = {{ column }}</ATag>
+        <Tag color="blue">当前 column = {{ column }}</Tag>
       </div>
 
       <Description
@@ -435,7 +465,7 @@ const size = ref<DescriptionSize>('large');
         :colon="colon"
       />
 
-      <ADivider />
+      <Divider />
 
       <Description
         title="金额信息"
@@ -446,6 +476,6 @@ const size = ref<DescriptionSize>('large');
         :bordered="bordered"
         :colon="colon"
       />
-    </ACard>
+    </Card>
   </div>
 </template>

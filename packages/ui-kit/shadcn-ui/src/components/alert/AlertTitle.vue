@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<{
@@ -13,6 +12,6 @@ const props = defineProps<{
     data-slot="alert-title"
     :class="cn('col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight', props.class)"
   >
-    <slot></slot>
+    <slot />
   </div>
 </template>

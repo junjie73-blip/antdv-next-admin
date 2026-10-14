@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import type { PrimitiveProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { computed } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import { Primitive } from "reka-ui"
-
+import { computed } from "vue"
+import { cn } from '@antdv/shared/cn'
 import { useCommand } from "."
 
 const props = defineProps<PrimitiveProps & { class?: HTMLAttributes["class"] }>()
@@ -26,6 +22,6 @@ const isRender = computed(() => !!filterState.search && filterState.filtered.cou
     data-slot="command-empty"
     v-bind="delegatedProps" :class="cn('py-6 text-center text-sm', props.class)"
   >
-    <slot></slot>
+    <slot />
   </Primitive>
 </template>

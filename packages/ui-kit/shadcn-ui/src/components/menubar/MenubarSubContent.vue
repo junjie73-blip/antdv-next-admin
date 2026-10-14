@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import type { MenubarSubContentEmits, MenubarSubContentProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import {
   MenubarPortal,
   MenubarSubContent,
   useForwardPropsEmits,
 } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 defineOptions({
   inheritAttrs: false,
@@ -35,7 +33,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
         )
       "
     >
-      <slot></slot>
+      <slot />
     </MenubarSubContent>
   </MenubarPortal>
 </template>

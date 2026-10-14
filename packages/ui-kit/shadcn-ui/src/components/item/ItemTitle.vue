@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<{
@@ -13,6 +12,6 @@ const props = defineProps<{
     data-slot="item-title"
     :class="cn('flex w-fit items-center gap-2 text-sm leading-snug font-medium', props.class)"
   >
-    <slot></slot>
+    <slot />
   </div>
 </template>

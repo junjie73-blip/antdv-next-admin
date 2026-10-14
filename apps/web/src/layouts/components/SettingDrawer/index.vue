@@ -4,9 +4,11 @@ import type { SettingSection } from './constants';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import { Segmented } from '@antdv/common-ui';
+import { BasicDrawer } from '@antdv/popup-ui';
 import { Scrollbar } from '@antdv/scrollbar-ui';
+import { SheetTitle } from '@antdv/shadcn-ui';
 import { Icon } from '@iconify/vue';
-import { Drawer as ADrawer, Segmented } from 'antdv-next';
 import { projectConfig } from '~/config/project';
 
 import AppearancePanel from './components/AppearancePanel.vue';
@@ -14,11 +16,9 @@ import CommonPanel from './components/CommonPanel.vue';
 import LayoutPanel from './components/LayoutPanel.vue';
 import SettingFooter from './components/SettingFooter.vue';
 import {
-  drawerBodyClassName,
   drawerContentClassName,
   drawerHeaderClassName,
   SECTION_OPTIONS,
-  sectionStyles,
 } from './constants';
 
 defineOptions({ name: 'SettingDrawer' });
@@ -27,11 +27,7 @@ const { t } = useI18n({ useScope: 'global' });
 
 const visible = defineModel<boolean>('visible', { default: false });
 
-/**
- * 模板里那行 `root-class="setting-drawer"` 用的是 antdv-next 的命名（React 版 antd 叫
- * `rootClassName`）。写错属性名不会报错，只会当成未知属性丢掉：抽屉根节点上永远等不到
- * `.setting-drawer`，所有拿它做作用域的选择器（样式覆盖、e2e 定位）静默落空。
- */
+/** `setting-drawer` 是样式覆盖和 e2e 定位的作用域钩子，改名会同时打断两边 */
 const activeSection = ref<SettingSection>('appearance');
 
 function handleClose() {
@@ -41,15 +37,16 @@ function handleClose() {
 </script>
 
 <template>
-  <ADrawer
+  <BasicDrawer
     v-model:open="visible"
     placement="right"
     :size="380"
     :closable="false"
-    :styles="{ body: { padding: 0, overflow: 'hidden' } }"
-    root-class="setting-drawer"
+    :body-scroll="false"
+    :use-wrapper="false"
+    wrap-class-name="setting-drawer"
   >
-    <template #title>
+    <template #header>
       <div :class="drawerHeaderClassName">
         <div class="flex items-center gap-2.5">
           <div
@@ -58,11 +55,13 @@ function handleClose() {
             <Icon icon="carbon:settings" class="text-ant-primary text-lg" />
           </div>
           <div>
-            <div
-              class="text-[15px] font-semibold text-slate-800 dark:text-slate-100"
-            >
-              {{ t('preferences.title') }}
-            </div>
+            <SheetTitle as-child>
+              <div
+                class="text-[15px] font-semibold text-slate-800 dark:text-slate-100"
+              >
+                {{ t('preferences.title') }}
+              </div>
+            </SheetTitle>
             <div class="mt-0.5 text-[11px] text-slate-400">
               {{ t('preferences.subtitle') }}
             </div>
@@ -71,45 +70,43 @@ function handleClose() {
         <button
           type="button"
           class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          :aria-label="t('common.close')"
           @click="handleClose"
         >
           <Icon icon="carbon:close" class="text-lg" />
         </button>
       </div>
     </template>
-    <div :class="drawerBodyClassName">
-      <div :class="drawerContentClassName">
-        <div class="shrink-0 p-4">
-          <Segmented
-            v-model:value="activeSection"
-            :options="SECTION_OPTIONS"
-            :styles="sectionStyles"
-            block
-          />
-        </div>
 
-        <!--
-          面板（滚动）：容器高度由上一层的 flex 分配，所以这里给 `min-h-0 flex-1`。
-          `rootClass` 传了就不会再套组件默认的 `h-full`——那正是"底部看不全"的元凶：
-          h-full = 100% 容器高，加上面切换条的高度就超出了容器。
-          另外组件没有 `height` 这个 prop，之前的 `height="720"` 只是个被忽略的属性，
-          想限制高度得用 `maxHeight`（且它会走 useResponsiveMaxHeight 的下限 712px，
-          比抽屉本身还高，等于没有）。这里让它自适应，交给 flex 计算。
-        -->
-        <Scrollbar
-          root-class="min-h-0 flex-1"
-          :native="projectConfig.scrollbar?.native ?? false"
-        >
-          <div class="px-5 pt-1">
-            <AppearancePanel v-if="activeSection === 'appearance'" />
-            <LayoutPanel v-else-if="activeSection === 'layout'" />
-            <CommonPanel v-else-if="activeSection === 'common'" />
-          </div>
-        </Scrollbar>
+    <!--
+      切换条固定、面板单独滚动：`:body-scroll="false"` 关掉了抽屉自带的 ScrollArea，
+      滚动只由里面这层 Scrollbar 负责，所以内容列要 h-full 撑满抽屉正文。
+    -->
+    <div :class="drawerContentClassName">
+      <div class="shrink-0 p-4">
+        <Segmented
+          v-model:value="activeSection"
+          :options="SECTION_OPTIONS"
+          block
+        />
       </div>
+
+      <Scrollbar
+        root-class="min-h-0 flex-1"
+        :native="projectConfig.scrollbar?.native ?? false"
+      >
+        <div class="px-5 pb-5 pt-1">
+          <AppearancePanel v-if="activeSection === 'appearance'" />
+          <LayoutPanel v-else-if="activeSection === 'layout'" />
+          <CommonPanel v-else-if="activeSection === 'common'" />
+        </div>
+      </Scrollbar>
     </div>
+
     <template #footer>
-      <SettingFooter @close="handleClose" />
+      <div class="border-border border-t px-5 py-4">
+        <SettingFooter @close="handleClose" />
+      </div>
     </template>
-  </ADrawer>
+  </BasicDrawer>
 </template>

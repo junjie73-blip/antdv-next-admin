@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { useVModel } from "@vueuse/core"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<{
-  defaultValue?: number | string
-  modelValue?: number | string
+  defaultValue?: string | number
+  modelValue?: string | number
   class?: HTMLAttributes["class"]
 }>()
 
 const emits = defineEmits<{
-  (e: "update:modelValue", payload: number | string): void
+  (e: "update:modelValue", payload: string | number): void
 }>()
 
 const modelValue = useVModel(props, "modelValue", emits, {
@@ -30,5 +29,5 @@ const modelValue = useVModel(props, "modelValue", emits, {
       'aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive',
       props.class,
     )"
-  />
+  >
 </template>

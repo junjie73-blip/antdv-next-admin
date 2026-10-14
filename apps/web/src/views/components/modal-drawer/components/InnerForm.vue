@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 
-import { Button as AButton, Col as ACol, Form as AForm, FormItem as AFormItem, Input as AInput, Row as ARow, TextArea as ATextarea, message } from 'antdv-next';
-import { BasicModal, useModalInner } from '~/components/business/Modal';
+import { Button, Input, Label, Textarea } from '@antdv/shadcn-ui';
+import { BasicModal, message, useModalInner } from '@antdv/popup-ui';
 
 /**
  * 页面私有子组件（`views/<page>/components/**` 不参与路由），只服务示例页第 1 节。
@@ -87,36 +87,42 @@ function handleReset() {
           >{{ receivedJson }}</pre>
       </div>
 
-      <AForm :model="form" layout="vertical">
-        <ARow :gutter="16">
-          <ACol :span="12">
-            <AFormItem label="姓名">
-              <AInput v-model:value="form.name" placeholder="请输入姓名" />
-            </AFormItem>
-          </ACol>
-          <ACol :span="12">
-            <AFormItem label="邮箱">
-              <AInput v-model:value="form.email" placeholder="请输入邮箱" />
-            </AFormItem>
-          </ACol>
-        </ARow>
-        <AFormItem label="部门">
-          <AInput v-model:value="form.department" placeholder="请输入部门" />
-        </AFormItem>
-        <AFormItem label="备注">
-          <ATextarea
-            v-model:value="form.remark"
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-6 space-y-1.5">
+          <Label class="text-sm font-normal text-gray-700 dark:text-gray-300">
+            姓名
+          </Label>
+          <Input v-model="form.name" placeholder="请输入姓名" />
+        </div>
+        <div class="col-span-6 space-y-1.5">
+          <Label class="text-sm font-normal text-gray-700 dark:text-gray-300">
+            邮箱
+          </Label>
+          <Input v-model="form.email" placeholder="请输入邮箱" />
+        </div>
+        <div class="col-span-12 space-y-1.5">
+          <Label class="text-sm font-normal text-gray-700 dark:text-gray-300">
+            部门
+          </Label>
+          <Input v-model="form.department" placeholder="请输入部门" />
+        </div>
+        <div class="col-span-12 space-y-1.5">
+          <Label class="text-sm font-normal text-gray-700 dark:text-gray-300">
+            备注
+          </Label>
+          <Textarea
+            v-model="form.remark"
             :rows="3"
             placeholder="请输入备注"
           />
-        </AFormItem>
-        <p class="text-xs text-gray-400">数据 ID：{{ form.id }}</p>
-      </AForm>
+        </div>
+        <p class="col-span-12 text-xs text-gray-400">数据 ID：{{ form.id }}</p>
+      </div>
     </div>
 
     <!-- 内置底部按钮栏里的插槽：footer 用了 slot 就没有默认按钮，这里用 centerFooter -->
     <template #centerFooter>
-      <AButton @click="handleReset"> 重置 </AButton>
+      <Button variant="outline" @click="handleReset"> 重置 </Button>
     </template>
   </BasicModal>
 </template>

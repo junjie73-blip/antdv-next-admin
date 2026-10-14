@@ -1,4 +1,4 @@
-import type { UploadProps as AntUploadProps, UploadFile } from 'antdv-next';
+import type { UploadFile } from '@antdv/common-ui';
 
 import type { UploadErrorCode } from './constants';
 
@@ -6,7 +6,11 @@ import type { UploadErrorCode } from './constants';
  * 基础 Upload
  * ============================================================ */
 
-export interface UploadProps extends Omit<AntUploadProps, 'onChange'> {
+export type { UploadFile };
+/** 变更参数与 common-ui Upload 对齐（file + fileList），供消费方按需引用 */
+export type { UploadChangeParam } from '@antdv/common-ui';
+
+export interface UploadProps {
   /** 文件列表（v-model:value） */
   value?: UploadFile[];
   /** 是否多选 */
@@ -33,6 +37,8 @@ export interface UploadProps extends Omit<AntUploadProps, 'onChange'> {
   data?: Record<string, unknown>;
   /** 后端接收的字段名，默认 "file" */
   name?: string;
+  /** 外层容器样式类 */
+  className?: string;
   /** 上传前钩子 */
   beforeUpload?: (
     file: UploadFile,

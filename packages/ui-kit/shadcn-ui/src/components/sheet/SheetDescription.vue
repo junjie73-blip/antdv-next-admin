@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import type { DialogDescriptionProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import { DialogDescription } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<DialogDescriptionProps & { class?: HTMLAttributes["class"] }>()
 
@@ -18,6 +16,6 @@ const delegatedProps = reactiveOmit(props, "class")
     :class="cn('text-muted-foreground text-sm', props.class)"
     v-bind="delegatedProps"
   >
-    <slot></slot>
+    <slot />
   </DialogDescription>
 </template>

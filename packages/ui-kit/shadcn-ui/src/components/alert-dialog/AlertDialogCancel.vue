@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import type { AlertDialogCancelProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import { AlertDialogCancel } from "reka-ui"
-
+import { cn } from '@antdv/shared/cn'
 import { buttonVariants } from '../button'
 
 const props = defineProps<AlertDialogCancelProps & { class?: HTMLAttributes["class"] }>()
@@ -23,6 +20,6 @@ const delegatedProps = reactiveOmit(props, "class")
       props.class,
     )"
   >
-    <slot></slot>
+    <slot />
   </AlertDialogCancel>
 </template>

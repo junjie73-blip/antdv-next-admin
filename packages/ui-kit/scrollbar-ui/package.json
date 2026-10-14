@@ -1,7 +1,7 @@
 {
   "name": "@antdv/scrollbar-ui",
   "version": "0.4.0",
-  "description": "shadcn-vue 风格自绘滚动条：Scrollbar 组件 + Bar 轨道，样式随组件走，不依赖宿主 Tailwind 配置，也不依赖 pinia / vue-router / 应用配置",
+  "description": "滚动条组件：基于 @antdv/shadcn-ui 的 ScrollArea 组合，保留 native 模式与滚动盒句柄，样式随组件走，不依赖 pinia / vue-router / 应用配置",
   "private": true,
   "type": "module",
   "scripts": {
@@ -20,6 +20,8 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
+    "@antdv/shared": "workspace:*",
+    "@antdv/shadcn-ui": "workspace:*",
     "@vueuse/core": "catalog:",
     "es-toolkit": "catalog:",
     "vue": "catalog:"

@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import { cn } from '@antdv/shared/cn'
-
 import { useMessageScrollerContext } from "./useMessageScroller"
 
 const props = defineProps<{
@@ -22,6 +20,6 @@ const { autoscrolling, scrollableAttr } = useMessageScrollerContext()
       props.class,
     )"
   >
-    <slot></slot>
+    <slot />
   </div>
 </template>

@@ -1,18 +1,14 @@
 <script lang='ts' setup>
 import type { PrimitiveProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
 import type { BubbleVariants } from "."
-
-import { cn } from '@antdv/shared/cn'
 import { Primitive } from "reka-ui"
-
+import { cn } from '@antdv/shared/cn'
 import { bubbleVariants } from "."
 
 interface Props extends PrimitiveProps {
   variant?: BubbleVariants["variant"]
-  align?: "end" | "start"
+  align?: "start" | "end"
   class?: HTMLAttributes["class"]
 }
 
@@ -32,6 +28,6 @@ const props = withDefaults(defineProps<Props>(), {
     :as-child="asChild"
     :class="cn(bubbleVariants({ variant }), props.class)"
   >
-    <slot></slot>
+    <slot />
   </Primitive>
 </template>

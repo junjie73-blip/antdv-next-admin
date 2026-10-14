@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import type { PaginationListItemProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
 import type { ButtonVariants } from '../button'
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import { PaginationListItem } from "reka-ui"
-
+import { cn } from '@antdv/shared/cn'
 import { buttonVariants } from '../button'
 
 const props = withDefaults(defineProps<PaginationListItemProps & {
@@ -33,6 +29,6 @@ const delegatedProps = reactiveOmit(props, "class", "size", "isActive")
       }),
       props.class)"
   >
-    <slot></slot>
+    <slot />
   </PaginationListItem>
 </template>

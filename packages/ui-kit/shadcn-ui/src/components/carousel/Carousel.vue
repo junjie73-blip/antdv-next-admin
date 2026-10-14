@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { CarouselEmits, CarouselProps, WithClassAsProps } from "./interface"
-
 import { cn } from '@antdv/shared/cn'
-
 import { useProvideCarousel } from "./useCarousel"
 
 const props = withDefaults(defineProps<CarouselProps & WithClassAsProps>(), {
@@ -50,6 +48,6 @@ function onKeyDown(event: KeyboardEvent) {
     tabindex="0"
     @keydown="onKeyDown"
   >
-    <slot :can-scroll-next :can-scroll-prev :carousel-api :carousel-ref :orientation :scroll-next :scroll-prev></slot>
+    <slot :can-scroll-next :can-scroll-prev :carousel-api :carousel-ref :orientation :scroll-next :scroll-prev />
   </div>
 </template>

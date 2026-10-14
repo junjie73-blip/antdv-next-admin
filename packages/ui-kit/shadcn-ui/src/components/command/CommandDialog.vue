@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { DialogRootEmits, DialogRootProps } from "reka-ui"
-
 import { useForwardPropsEmits } from "reka-ui"
-
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../dialog'
 import Command from "./Command.vue"
 
@@ -26,7 +24,7 @@ const forwarded = useForwardPropsEmits(props, emits)
         <DialogDescription>{{ description }}</DialogDescription>
       </DialogHeader>
       <Command>
-        <slot v-bind="slotProps"></slot>
+        <slot v-bind="slotProps" />
       </Command>
     </DialogContent>
   </Dialog>

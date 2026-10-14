@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<{
@@ -13,6 +12,6 @@ const props = defineProps<{
     data-slot="kbd-group"
     :class="cn('inline-flex items-center gap-1', props.class)"
   >
-    <slot></slot>
+    <slot />
   </kbd>
 </template>

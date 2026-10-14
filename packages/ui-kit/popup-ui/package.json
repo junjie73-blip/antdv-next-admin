@@ -31,7 +31,7 @@
     "vue-sonner": "catalog:"
   },
   "devDependencies": {
-    "@antdv/styles": "workspace:*",
+    "@antdv/design": "workspace:*",
     "@antdv/tsconfig": "workspace:*",
     "@vitejs/plugin-vue": "catalog:",
     "@vue/test-utils": "catalog:",

@@ -5,20 +5,19 @@ import { expect, test } from '@playwright/test';
 import { go, region, setLayout, signIn } from './utils/app';
 
 /**
- * 全站滚动条不变量：凡是我们写得着的滚动区域，一律用 `@antdv/icons` 的 `<Scrollbar>`，
+ * 全站滚动条不变量：凡是我们写得着的滚动区域，一律用 `@antdv/scrollbar-ui` 的 `<Scrollbar>`，
  * 不许露出操作系统那条滚动条。
  *
  * 这条需求是"观感"级别的，靠肉眼验收很容易漏（某处滚动条只在内容超长时才出现），
  * 所以把它翻译成两个可执行的物理量：
  *
- * 1. **外壳的滚动区必须是封装组件的 DOM**。`<Scrollbar>` 会留下
- *    `.scrollbar__wrap`（真正的滚动元素）+ `.scrollbar__bar`（自绘条），
- *    并且默认带 `scrollbar__wrap--hidden-default` 把原生条藏掉。
- *    侧栏菜单、标签栏、内容区这三处以前各自写过 `overflow: auto`，
- *    是最容易"退回系统滚动条"的地方。
+ * 1. **外壳的滚动区必须是封装组件的 DOM**。`<Scrollbar>` 自绘模式下把滚动元素交给
+ *    shadcn 的 ScrollArea，那个元素带 `data-reka-scroll-area-viewport` —— reka 注入的
+ *    全局规则会顺手把它的原生滚动条隐藏，所以"有 wrap 就等于原生条被藏掉了"。
+ *    自绘条本身是 `[data-slot="scroll-area-scrollbar"]`。
  * 2. **页面上任何元素的原生滚动槽（gutter）不得宽于全局兜底给出的宽度**。
  *    包不住的第三方滚动区（antd 表格体、虚拟列表、textarea）由
- *    `@antdv/styles` 的 base 层统一压细，Windows 上从 17px 变成 8px；
+ *    `@antdv/design` 的 base 层统一压细，Windows 上从 17px 变成 8px；
  *    真正"露出系统滚动条"的特征就是 gutter 又变回浏览器的默认宽度。
  *
  * 第 2 条的阈值不写死数字：先在当前页面插一个探针元素，量出"这个引擎 + 我们的全局 CSS"
@@ -132,7 +131,7 @@ test.describe('全站滚动条：用封装组件，不用系统内置', () => {
     /**
      * 侧栏 / 内容区 / 标签栏。
      * 每处都同时断言两件事：滚动元素是 `.scrollbar__wrap`，
-     * 且它带 `--hidden-default`（自绘模式）—— 少了后者就是"两条滚动条"。
+     * 且它就是 ScrollArea 的 viewport（原生条已被 reka 的注入样式藏掉）。
      *
      * 直接拿到 wrap 本身而不是"容器里的 wrap"：标签栏的 `.tab-scroll` 是
      * `<Scrollbar>` 的 `wrap-class`，它和 `.scrollbar__wrap` 是同一个元素，
@@ -161,23 +160,27 @@ test.describe('全站滚动条：用封装组件，不用系统内置', () => {
       await expect(wrap, `${name} 的滚动区应该是封装 Scrollbar`).toBeVisible();
       await expect(
         wrap,
-        `${name} 的原生滚动条必须被藏掉，否则和自绘条并存`,
-      ).toHaveClass(/scrollbar__wrap--hidden-default/);
+        `${name} 的滚动元素必须是 ScrollArea 的 viewport，否则原生条和自绘条会并存`,
+      ).toHaveAttribute('data-reka-scroll-area-viewport', '');
     }
 
     /**
-     * 内容区超长时自绘条要出现（.scrollbar__bar.is-vertical）。
-     * 这是"封装组件真的在干活"的证据 —— 只有 wrap 没有 bar 就等于
-     * 既藏了原生条又没给用户任何滚动指示。
+     * 内容区超长时自绘条要出现。默认是 hover 模式，轨道只在指针进入后才挂进 DOM，
+     * 所以先悬停再断言 —— 只有 wrap 没有条就等于既藏了原生条又没给用户任何滚动指示。
      */
     const contentWrap = page.locator('main .scrollbar__wrap').first();
     const overflows = await contentWrap.evaluate(
       (el) => el.scrollHeight > el.clientHeight + 1,
     );
     if (overflows) {
+      await contentWrap.hover();
       await expect(
-        page.locator('main .scrollbar__bar.is-vertical').first(),
-      ).toBeAttached();
+        page
+          .locator(
+            'main [data-slot="scroll-area-scrollbar"][data-orientation="vertical"]',
+          )
+          .first(),
+      ).toBeVisible();
     }
   });
 

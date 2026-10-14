@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
+import { Tag } from '@antdv/common-ui';
+import { Button, Input } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
-import { Button as AButton, Input as AInput, SpaceCompact as ASpaceCompact, Tag as ATag } from 'antdv-next';
+import { Icon } from '@iconify/vue';
 
 defineOptions({ name: 'TagPickerField' });
 
@@ -41,6 +43,8 @@ const wrapperClassName = cn('flex w-full flex-col gap-2');
 const tagsClassName = cn('flex flex-wrap items-center gap-1');
 const candidatesClassName = cn('flex flex-wrap items-center gap-1');
 const hintClassName = cn('text-xs text-gray-400 dark:text-gray-500');
+/** 输入框与按钮拼成一段：各自去掉相邻一侧的圆角 */
+const compactClassName = cn('flex w-full items-stretch');
 
 const draft = ref('');
 
@@ -73,49 +77,58 @@ function clearAll() {
 <template>
   <div :class="wrapperClassName">
     <div v-if="tags.length > 0" :class="tagsClassName">
-      <ATag
-        v-for="tag in tags"
-        :key="tag"
-        color="blue"
-        :closable="!disabled"
-        @close="removeTag(tag)"
-      >
+      <Tag v-for="tag in tags" :key="tag" color="blue">
         {{ tag }}
-      </ATag>
-      <AButton
+        <button
+          v-if="!disabled"
+          type="button"
+          aria-label="移除标签"
+          class="ml-0.5 inline-flex cursor-pointer items-center opacity-60 hover:opacity-100"
+          @click="removeTag(tag)"
+        >
+          <Icon icon="carbon:close" class="size-2.5" />
+        </button>
+      </Tag>
+      <Button
         v-if="!disabled"
-        type="link"
-        size="small"
-        class="!px-1"
+        variant="link"
+        size="sm"
+        class="px-1"
         @click="clearAll"
       >
         清空
-      </AButton>
+      </Button>
     </div>
 
-    <ASpaceCompact block>
-      <AInput
-        v-model:value="draft"
+    <div :class="compactClassName">
+      <Input
+        v-model="draft"
         :disabled="disabled || reachedMax"
         :placeholder="placeholder"
-        @press-enter="addTag()"
+        class="flex-1 rounded-r-none"
+        @keyup.enter="addTag()"
       />
-      <AButton :disabled="disabled || reachedMax" @click="addTag()">
+      <Button
+        :disabled="disabled || reachedMax"
+        variant="outline"
+        class="shrink-0 rounded-l-none border-l-0"
+        @click="addTag()"
+      >
         添加
-      </AButton>
-    </ASpaceCompact>
+      </Button>
+    </div>
 
     <div v-if="candidates.length > 0" :class="candidatesClassName">
       <span :class="hintClassName">候选：</span>
-      <ATag
+      <Tag
         v-for="option in candidates"
         :key="option"
-        class="cursor-pointer"
         :color="disabled ? undefined : 'default'"
+        class="cursor-pointer"
         @click="!disabled && addTag(option)"
       >
         {{ option }}
-      </ATag>
+      </Tag>
     </div>
 
     <div :class="hintClassName">

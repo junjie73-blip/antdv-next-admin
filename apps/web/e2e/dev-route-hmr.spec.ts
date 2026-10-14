@@ -40,7 +40,7 @@ test.describe('开发态路由热更新', () => {
     await signIn(page);
     await go(page, '/system/user');
     await expect(region(page, 'sidebar')).toBeVisible();
-    await expect(page.locator('.ant-table').first()).toBeVisible();
+    await expect(page.locator('.basic-table').first()).toBeVisible();
 
     const original = await readFile(PAGE_FILE, 'utf8');
     try {
@@ -69,7 +69,7 @@ test.describe('开发态路由热更新', () => {
       await expect(region(page, 'sidebar')).toHaveCount(1);
       await expect(region(page, 'header')).toHaveCount(1);
       // 二级页面仍然渲染在布局里，而不是脱离外壳变成整屏
-      await expect(page.locator('.ant-table').first()).toBeVisible();
+      await expect(page.locator('.basic-table').first()).toBeVisible();
 
       /**
        * 静态路由也没被那次 `clearRoutes()` 带走。

@@ -5,6 +5,7 @@ interface Props {
   allowHalf?: boolean;
   count?: number;
   disabled?: boolean;
+  id?: string;
   value?: any;
   [key: string]: any;
 }
@@ -39,7 +40,7 @@ function pick(index: number, event: MouseEvent) {
 </script>
 
 <template>
-  <div class="flex items-center gap-0.5" data-field-control>
+  <div class="flex items-center gap-0.5" :id="id" data-field-control>
     <button
       v-for="i in count"
       :key="i"

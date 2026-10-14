@@ -6,11 +6,22 @@ import type {
 
 import { computed, nextTick, ref, useTemplateRef } from 'vue';
 
+import {
+  Card,
+  Divider,
+  Segmented,
+  Space,
+  TabPane,
+  Tabs,
+  Tag,
+  Tooltip,
+} from '@antdv/common-ui';
+import { message } from '@antdv/popup-ui';
 import { Scrollbar } from '@antdv/scrollbar-ui';
+import { Button, Switch } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
 import { useClipboard } from '@vueuse/core';
-import { Button as AButton, Card as ACard, Divider as ADivider, Segmented as ASegmented, Space as ASpace, Switch as ASwitch, TabPane as ATabPane, Tabs as ATabs, Tag as ATag, Tooltip as ATooltip, message } from 'antdv-next';
 import hljs from 'highlight.js';
 import MarkdownIt from 'markdown-it';
 import { Marked } from 'marked';
@@ -660,6 +671,31 @@ const rendererOptionClassName = cn(
   'transition-colors duration-150',
 );
 
+/**
+ * 渲染引擎切换按钮的选中 / 未选中态。
+ *
+ * 提到脚本里算：模板内联 `cn(...)` 一旦带上尾随逗号，Vue 模板解析器会报
+ * "Unexpected EOF in tag"，整页编译不过。
+ */
+const OPTION_ACTIVE =
+  'bg-white font-medium text-gray-800 shadow-sm dark:bg-gray-700 dark:text-gray-200';
+const OPTION_IDLE =
+  'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300';
+
+const markedOptionClassName = computed(() =>
+  cn(
+    rendererOptionClassName,
+    renderer.value === 'marked' ? OPTION_ACTIVE : OPTION_IDLE,
+  ),
+);
+
+const markdownItOptionClassName = computed(() =>
+  cn(
+    rendererOptionClassName,
+    renderer.value === 'markdown-it' ? OPTION_ACTIVE : OPTION_IDLE,
+  ),
+);
+
 const outputPreClassName = cn(
   'overflow-wrap-anywhere px-1 whitespace-pre-wrap',
   'font-mono text-xs',
@@ -678,7 +714,7 @@ const outputPreClassName = cn(
       </p>
     </div>
 
-    <ACard size="small" title="两种模式共用的配置">
+    <Card title="两种模式共用的配置">
       <p :class="introClassName">
         这两个 Tab 不是同一个组件的两种模式：Markdown 侧是本页手写的
         <code>textarea</code> 加纯前端渲染，富文本侧是仓库内的
@@ -692,73 +728,70 @@ const outputPreClassName = cn(
       <div class="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3">
         <div class="flex items-center gap-2">
           <span :class="fieldLabelClassName">只读</span>
-          <ASwitch v-model:checked="readonly" size="small" />
+          <Switch
+            :model-value="readonly"
+            @update:model-value="(v: boolean) => (readonly = v)"
+          />
         </div>
         <div class="flex items-center gap-2">
           <span :class="fieldLabelClassName">禁用</span>
-          <ASwitch v-model:checked="disabled" size="small" />
+          <Switch
+            :model-value="disabled"
+            @update:model-value="(v: boolean) => (disabled = v)"
+          />
         </div>
         <div class="flex items-center gap-2">
           <span :class="fieldLabelClassName">字数统计</span>
-          <ASwitch v-model:checked="showCount" size="small" />
+          <Switch
+            :model-value="showCount"
+            @update:model-value="(v: boolean) => (showCount = v)"
+          />
         </div>
-        <ADivider type="vertical" class="!h-5" />
-        <ASpace wrap :size="8">
-          <AButton size="small" @click="handleGetValue">
-            <template #icon><Icon icon="carbon:copy" /></template>
+        <Divider type="vertical" class="h-5!" />
+        <Space wrap :size="8">
+          <Button size="sm" variant="outline" @click="handleGetValue">
+            <Icon icon="carbon:copy" />
             取值
-          </AButton>
-          <AButton
-            size="small"
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
             :disabled="contentLocked"
             @click="handleSetValue"
           >
-            <template #icon><Icon icon="carbon:edit" /></template>
+            <Icon icon="carbon:edit" />
             赋值
-          </AButton>
-          <AButton
-            size="small"
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
             :disabled="contentLocked"
             @click="handleResetInitial"
           >
-            <template #icon><Icon icon="carbon:reset" /></template>
+            <Icon icon="carbon:reset" />
             恢复初始值
-          </AButton>
-        </ASpace>
+          </Button>
+        </Space>
       </div>
-    </ACard>
+    </Card>
 
-    <ACard size="small">
-      <ATabs v-model:active-key="activeKey">
+    <Card>
+      <Tabs v-model:active-key="activeKey">
         <!-- ============ Markdown 编辑 ============ -->
-        <ATabPane key="markdown" tab="Markdown 编辑">
+        <TabPane value="markdown" tab="Markdown 编辑">
           <div class="mb-3 flex flex-wrap items-center gap-2">
             <span :class="fieldLabelClassName">渲染引擎：</span>
             <div :class="rendererToggleClassName">
               <button
                 type="button"
-                :class="
-                  cn(
-                    rendererOptionClassName,
-                    renderer === 'marked'
-                      ? 'bg-white font-medium text-gray-800 shadow-sm dark:bg-gray-700 dark:text-gray-200'
-                      : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300',
-                  )
-                "
+                :class="markedOptionClassName"
                 @click="renderer = 'marked'"
               >
                 marked
               </button>
               <button
                 type="button"
-                :class="
-                  cn(
-                    rendererOptionClassName,
-                    renderer === 'markdown-it'
-                      ? 'bg-white font-medium text-gray-800 shadow-sm dark:bg-gray-700 dark:text-gray-200'
-                      : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300',
-                  )
-                "
+                :class="markdownItOptionClassName"
                 @click="renderer = 'markdown-it'"
               >
                 markdown-it
@@ -785,12 +818,11 @@ const outputPreClassName = cn(
               <div :class="toolbarContainerClassName">
                 <template v-for="(group, idx) in toolbarGroups" :key="idx">
                   <span v-if="idx > 0" :class="toolbarDividerClassName"></span>
-                  <ATooltip
+                  <Tooltip
                     v-for="btn in group.buttons"
                     :key="btn.label"
                     :title="btn.label"
                     placement="top"
-                    :mouse-enter-delay="0.3"
                   >
                     <button
                       type="button"
@@ -800,7 +832,7 @@ const outputPreClassName = cn(
                     >
                       <Icon :icon="btn.icon" :width="14" />
                     </button>
-                  </ATooltip>
+                  </Tooltip>
                 </template>
               </div>
 
@@ -859,14 +891,14 @@ const outputPreClassName = cn(
               </div>
             </div>
           </div>
-        </ATabPane>
+        </TabPane>
 
         <!-- ============ 富文本编辑 ============ -->
-        <ATabPane key="rich-text" tab="富文本编辑">
+        <TabPane value="rich-text" tab="富文本编辑">
           <div class="mb-3 flex flex-wrap items-center gap-x-6 gap-y-3">
             <div class="flex items-center gap-2">
               <span :class="fieldLabelClassName">模式</span>
-              <ASegmented
+              <Segmented
                 v-model:value="mode"
                 :options="[
                   { label: '编辑', value: 'edit' },
@@ -878,7 +910,7 @@ const outputPreClassName = cn(
             <div
               class="ml-auto flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400"
             >
-              <ATag color="blue">change × {{ changeCount }}</ATag>
+              <Tag color="blue">change × {{ changeCount }}</Tag>
             </div>
           </div>
 
@@ -894,64 +926,56 @@ const outputPreClassName = cn(
             @change="handleChange"
           />
 
-          <ACard
-            :class="cn('mt-4')"
-            size="small"
-            title="实例方法（MarkdownEditor ref）"
-          >
-            <ASpace wrap :size="8">
-              <AButton size="small" @click="handleInsertText">
-                <template #icon><Icon icon="carbon:zoom-in" /></template>
+          <Card class="mt-4" title="实例方法（MarkdownEditor ref）">
+            <Space wrap :size="8">
+              <Button size="sm" variant="outline" @click="handleInsertText">
+                <Icon icon="carbon:zoom-in" />
                 插入文本
-              </AButton>
-              <AButton size="small" @click="handleInsertHtml">
-                <template #icon><Icon icon="carbon:code" /></template>
+              </Button>
+              <Button size="sm" variant="outline" @click="handleInsertHtml">
+                <Icon icon="carbon:code" />
                 插入 HTML
-              </AButton>
-              <AButton size="small" @click="handleInsertImage">
-                <template #icon><Icon icon="carbon:image" /></template>
+              </Button>
+              <Button size="sm" variant="outline" @click="handleInsertImage">
+                <Icon icon="carbon:image" />
                 插入图片
-              </AButton>
-              <AButton size="small" @click="handleUndo">
-                <template #icon><Icon icon="carbon:undo" /></template>
+              </Button>
+              <Button size="sm" variant="outline" @click="handleUndo">
+                <Icon icon="carbon:undo" />
                 撤销
-              </AButton>
-              <AButton size="small" @click="handleRedo">
-                <template #icon><Icon icon="carbon:redo" /></template>
+              </Button>
+              <Button size="sm" variant="outline" @click="handleRedo">
+                <Icon icon="carbon:redo" />
                 重做
-              </AButton>
-              <AButton size="small" @click="handleFocus">
-                <template #icon><Icon icon="carbon:cursor-1" /></template>
+              </Button>
+              <Button size="sm" variant="outline" @click="handleFocus">
+                <Icon icon="carbon:cursor-1" />
                 聚焦
-              </AButton>
-              <AButton size="small" @click="handleLogMarkdown">
-                <template #icon><Icon icon="carbon:string-text" /></template>
+              </Button>
+              <Button size="sm" variant="outline" @click="handleLogMarkdown">
+                <Icon icon="carbon:string-text" />
                 导出 Markdown
-              </AButton>
-              <AButton danger size="small" @click="handleClear">
-                <template #icon><Icon icon="carbon:trash-can" /></template>
+              </Button>
+              <Button size="sm" variant="destructive" @click="handleClear">
+                <Icon icon="carbon:trash-can" />
                 清空
-              </AButton>
-            </ASpace>
+              </Button>
+            </Space>
             <p :class="hintClassName">
               「导出 Markdown」与「取值」只读本地内容，结果打到控制台；
               「插入图片」用的是本地生成的 data URL，不请求接口。
               工具栏上的「上传图片 / 上传视频」才会走组件内置上传 （<code>POST /api/upload/file</code>），本地由 mock 返回一张内联 SVG 占位图，不落盘。
             </p>
-          </ACard>
+          </Card>
 
-          <ACard
-            :class="cn('mt-4')"
-            size="small"
-            title="v-model:value 产出的 HTML"
-          >
+          <Card class="mt-4" title="v-model:value 产出的 HTML">
             <Scrollbar max-height="180px">
               <pre :class="outputPreClassName">{{ html }}</pre>
             </Scrollbar>
-          </ACard>
-        </ATabPane>
-      </ATabs>
-    </ACard>
+          </Card>
+        </TabPane>
+      </Tabs>
+    </Card>
   </div>
 </template>
 

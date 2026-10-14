@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { DrawerTriggerProps } from "reka-ui"
-
 import { DrawerTrigger } from "reka-ui"
 
 const props = defineProps<DrawerTriggerProps>()
@@ -11,6 +10,6 @@ const props = defineProps<DrawerTriggerProps>()
     data-slot="drawer-trigger"
     v-bind="props"
   >
-    <slot></slot>
+    <slot />
   </DrawerTrigger>
 </template>

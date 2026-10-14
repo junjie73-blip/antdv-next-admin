@@ -4,10 +4,11 @@ import type { MicroAppConfig } from '@antdv/types';
 import { computed, onActivated, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
+import { Tag } from '@antdv/common-ui';
+import { Button, Spinner } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
 import { buildIframeSandbox, canEscapeSandbox } from '@antdv/shared/iframe';
 import { Icon } from '@iconify/vue';
-import { Button as AButton, Spin as ASpin, Tag as ATag } from 'antdv-next';
 import { microAppConfig as registry } from '~/config/micro-app';
 import { useUserStore } from '~/stores/modules/user';
 
@@ -302,20 +303,20 @@ onUnmounted(() => {
 
     <!-- 加载态 -->
     <div v-if="isLoading" :class="loadingClassName">
-      <ASpin size="large" />
+      <Spinner class="size-8" />
       <p class="mt-2 text-sm text-gray-500">
         正在加载 {{ microAppConfig.title ?? microAppConfig.name }}...
       </p>
     </div>
 
     <!-- 打开了同源身份：把风险标出来，别让它藏在配置里 -->
-    <ATag
+    <Tag
       v-if="sandboxEscapable"
       color="orange"
       class="absolute top-2 right-2 z-20"
     >
       同源预览
-    </ATag>
+    </Tag>
 
     <!-- 错误态 -->
     <div v-if="hasError" :class="errorClassName">
@@ -324,7 +325,7 @@ onUnmounted(() => {
       <p class="mb-4 max-w-xs text-center text-xs break-all text-gray-400">
         {{ microAppConfig.url }}
       </p>
-      <AButton type="primary" @click="retry"> 重试 </AButton>
+      <Button @click="retry"> 重试 </Button>
     </div>
   </div>
 </template>

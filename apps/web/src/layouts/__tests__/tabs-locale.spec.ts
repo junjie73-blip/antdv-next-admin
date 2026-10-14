@@ -1,15 +1,17 @@
 import type { MenuConfig } from '@antdv/types';
 
 import { flushPromises, mount } from '@vue/test-utils';
-import { defineComponent, h } from 'vue';
+import { defineComponent, h, nextTick } from 'vue';
 import { createMemoryHistory, createRouter } from 'vue-router';
 
 import { createPinia, setActivePinia } from 'pinia';
 import i18n from '~/locales';
+import { useAppStore } from '~/stores/modules/app';
 import { useRouteStore } from '~/stores/modules/route';
 import { useTabsStore } from '~/stores/modules/tabs';
 
 import { useTabs } from '../composables/useTabs';
+import LocaleSwitcher from '../widgets/LocaleSwitcher.vue';
 
 /**
  * 标签页标题的语言跟随。
@@ -144,5 +146,75 @@ describe('标签页标题 —— 与面包屑同一个语言来源', () => {
     await flushPromises();
 
     expect(rendered(wrapper)).toEqual(['分析面板']);
+  });
+});
+
+/* ============================================================
+ * 语言切换下拉（顶栏那个入口本体）
+ * ============================================================
+ *
+ * 上面钉的是"译文只活在渲染层"，这一组钉"改语言的开关还灵不灵"：
+ * 下拉从旧菜单组件换成封装件以后，选项仍然只来自文案表里已注册的语言，
+ * 点一项就是把偏好写进 app store，不该多出第二个写入口。
+ * 菜单项是 Portal 出去的，所以断言直接查 document。
+ */
+
+async function mountSwitcher() {
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  const wrapper = mount(
+    defineComponent({ setup: () => () => h(LocaleSwitcher) }),
+    { global: { plugins: [pinia] } },
+  );
+  await flushPromises();
+  return { appStore: useAppStore(), wrapper };
+}
+
+afterEach(() => {
+  document.body.innerHTML = '';
+});
+
+describe('LocaleSwitcher —— 选项与写入偏好', () => {
+  it('触发器显示当前语言，展开后列出已注册的语言并标出当前项', async () => {
+    const { wrapper } = await mountSwitcher();
+
+    const trigger = wrapper.get('[data-testid="locale-switcher"]');
+    expect(trigger.text()).toContain('简体中文');
+
+    await trigger.trigger('click');
+    await nextTick();
+
+    const codes = [...document.body.querySelectorAll('[data-testid^="locale-option-"]')].map(
+      (node) => (node as HTMLElement).dataset.testid,
+    );
+    // 选项跟着文案表走：两门语言都在，且没有多余的第三门
+    expect(codes).toEqual(['locale-option-en-US', 'locale-option-zh-CN']);
+
+    const current = document.body.querySelector(
+      '[data-testid="locale-option-zh-CN"]',
+    ) as HTMLElement | null;
+    expect(current?.getAttribute('aria-current')).toBe('true');
+    expect(
+      document
+        .body.querySelector('[data-testid="locale-option-en-US"]')
+        ?.getAttribute('aria-current'),
+    ).toBeNull();
+  });
+
+  it('选 English 只写偏好：locale 落到 app store，组件不直接改 i18n', async () => {
+    const { appStore, wrapper } = await mountSwitcher();
+    await wrapper.get('[data-testid="locale-switcher"]').trigger('click');
+    await nextTick();
+
+    (
+      document.body.querySelector(
+        '[data-testid="locale-option-en-US"]',
+      ) as HTMLElement
+    ).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await flushPromises();
+
+    // 写偏好是唯一的出口：语言包、`<html lang>`、dayjs 由 `useLocaleSync` 统一展开
+    expect(appStore.locale).toBe('en-US');
+    expect(i18n.global.locale.value).toBe('zh-CN');
   });
 });

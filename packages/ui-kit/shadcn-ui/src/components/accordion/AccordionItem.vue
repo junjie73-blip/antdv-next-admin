@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import type { AccordionItemProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import { AccordionItem, useForwardProps } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<AccordionItemProps & { class?: HTMLAttributes["class"] }>()
 
@@ -21,6 +19,6 @@ const forwardedProps = useForwardProps(delegatedProps)
     v-bind="forwardedProps"
     :class="cn('border-b last:border-b-0', props.class)"
   >
-    <slot v-bind="slotProps"></slot>
+    <slot v-bind="slotProps" />
   </AccordionItem>
 </template>

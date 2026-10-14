@@ -1,12 +1,13 @@
-import type { SegmentedProps } from 'antdv-next';
-
-import { h } from 'vue';
-
 import { cn } from '@antdv/shared/cn';
-import { Icon } from '@iconify/vue';
 import i18n from '~/locales';
 
-export const POPUP_CONTAINER = () => document.body;
+/** `@antdv/common-ui` Segmented 的选项形状（icon 是图标名，不是 VNode） */
+interface SegmentedOption {
+  disabled?: boolean;
+  icon?: string;
+  label: string;
+  value: number | string;
+}
 
 /**
  * Segmented 选项：label 用 getter 现取现翻。
@@ -17,12 +18,12 @@ function segmentedOption(
   value: string,
   labelKey: string,
   iconName: string,
-): NonNullable<SegmentedProps['options']>[number] {
+): SegmentedOption {
   return {
-    icon: h(Icon, { icon: iconName }),
     get label() {
       return i18n.global.t(labelKey);
     },
+    icon: iconName,
     value,
   };
 }
@@ -32,7 +33,7 @@ function segmentedOption(
  * ============================================================ */
 export type SettingSection = 'appearance' | 'common' | 'layout';
 
-export const SECTION_OPTIONS: SegmentedProps['options'] = [
+export const SECTION_OPTIONS: SegmentedOption[] = [
   segmentedOption(
     'appearance',
     'preferences.appearance',
@@ -40,15 +41,6 @@ export const SECTION_OPTIONS: SegmentedProps['options'] = [
   ),
   segmentedOption('layout', 'preferences.layout', 'carbon:grid'),
   segmentedOption('common', 'preferences.common', 'carbon:settings-adjust'),
-];
-
-/* ============================================================
- * 主题模式
- * ============================================================ */
-export const THEME_MODE_OPTIONS: SegmentedProps['options'] = [
-  segmentedOption('light', 'preferences.themeLight', 'carbon:sun'),
-  segmentedOption('dark', 'preferences.themeDark', 'carbon:moon'),
-  segmentedOption('auto', 'preferences.themeAuto', 'carbon:laptop'),
 ];
 
 /* ============================================================
@@ -160,23 +152,6 @@ export const TIMEZONE_OPTIONS = [
 /* ============================================================
  * 通用样式
  * ============================================================ */
-export const sectionStyles: SegmentedProps['styles'] = {
-  root: {
-    padding: '4px',
-    width: '100%',
-    background: 'rgba(241, 245, 249, 0.8)',
-    borderRadius: '10px',
-  },
-  item: { borderRadius: '8px', transition: 'all 200ms ease' },
-  icon: { fontSize: '14px' },
-  label: { fontSize: '12px', fontWeight: 500 },
-};
-
-export const drawerBodyClassName = cn(
-  'flex h-full flex-col',
-  'bg-white dark:bg-slate-950',
-);
-
 export const drawerHeaderClassName = cn(
   'flex shrink-0 items-center justify-between gap-2',
 );
@@ -184,12 +159,11 @@ export const drawerHeaderClassName = cn(
 /**
  * 内容列：分类切换条（固定高度）+ 面板滚动区（吃掉剩下的高度）。
  *
- * 这里必须是 flex 列：早先是普通块级容器，面板滚动区写死 `h-full`，
- * 于是"切换条的高度 + 100% 容器高度"一起撑出去，被 `overflow-hidden` 裁掉——
- * 表现就是抽屉底部那块永远看不到，滚动到底也差一截。
+ * 外层是 BasicDrawer 的滚动区，不是 flex 容器，所以这里用 `h-full` 而不是 `flex-1`：
+ * 少了它切换条会跟着面板一起滚走，面板高度也算不准。
  */
 export const drawerContentClassName = cn(
-  'flex min-h-0 flex-1 flex-col overflow-hidden',
+  'flex h-full min-h-0 flex-col overflow-hidden',
 );
 
 export const panelWrapperClassName = cn('space-y-6 p-5');

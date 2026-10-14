@@ -64,10 +64,10 @@ function overviewLink(page: Page, path: string) {
   return page.locator('main').locator(`a[href="#${path}"]`);
 }
 
-/** 按卡片标题取那一块 `a-card` */
+/** 按卡片标题取那一块卡片（`[data-slot="card"]` 是 shadcn Card 的根） */
 function card(page: Page, title: string) {
   return page
-    .locator('.ant-card')
+    .locator('[data-slot="card"]')
     .filter({ has: page.getByText(title, { exact: true }) });
 }
 
@@ -78,8 +78,10 @@ function card(page: Page, title: string) {
  */
 function cardByTitle(page: Page, prefix: string) {
   return page
-    .locator('.ant-card')
-    .filter({ has: page.locator('.ant-card-head-title', { hasText: prefix }) });
+    .locator('[data-slot="card"]')
+    .filter({
+      has: page.locator('[data-slot="card-title"]', { hasText: prefix }),
+    });
 }
 
 /**
@@ -145,12 +147,11 @@ async function dragIntoList(page: Page, source: Locator, targetList: Locator) {
 }
 
 /**
- * 表格行只认 `tr[data-row-key]`。
+ * 表格行只认 `tbody tr[data-row-key]`。
  *
- * 这页刻意不给 `scroll.y`：antd 一旦做固定表头就往 `tbody` 里插一条隐藏的
- * `ant-table-measure-row`，Sortable 给的 `oldIndex` 整体 +1（`useDragSort` 里
- * 那个 `leadingOffset()` 就是为它准备的）。用例按同一个口径选行，
- * 才不会把量尺行当数据行拖、或把它的下标算进断言。
+ * `BasicTable` 的行上同时挂着 `.basic-table-row` 与 `data-row-key`，而拖拽排序的
+ * `oldIndex`/`newIndex` 是 Sortable 在 `tbody` 的**子节点**里数出来的；用例按同一个
+ * 口径选行，才不会把非数据行（占位/空状态那类）算进下标。
  */
 function tableRows(scope: Locator) {
   return scope.locator('tbody tr[data-row-key]');
@@ -180,25 +181,87 @@ function itemTexts(items: Locator) {
  * 按标题取那一个弹窗。
  *
  * 本页同时挂着 4 个 `BasicModal`，而且第 5 节的确认框是**叠在抽屉之上**开的，
- * 所以必须按标题分家；`.ant-modal` 是带宽度内联样式的那层，量尺寸也读它。
+ * 所以必须按标题分家；`.basic-modal` 是带宽度内联样式的那层，量尺寸也读它。
  */
 function antModal(page: Page, title: string) {
   return page
-    .locator('.ant-modal')
+    .locator('.basic-modal')
     .filter({ has: page.getByText(title, { exact: true }) });
 }
 
-/** 按标题取那一个抽屉（`.ant-drawer` 根节点同时带着 placement 类） */
+/** 按标题取那一个抽屉（`.basic-drawer` 是 SheetContent 上的稳定类） */
 function antDrawer(page: Page, title: string) {
   return page
-    .locator('.ant-drawer')
+    .locator('.basic-drawer')
     .filter({ has: page.getByText(title, { exact: true }) });
+}
+
+/**
+ * 卡片上的页面按钮，按文字取，不用 getByRole。
+ *
+ * 弹窗/抽屉开着的时候 `aria-modal` 会把页面其余部分整棵挡出无障碍树，
+ * 角色选择器在那一刻数不到卡片按钮 —— 而 `clickPageButtonThroughMask`
+ * 要的正是"遮罩还压着"的那个时刻。
+ */
+function cardButton(box: Locator, text: RegExp) {
+  return box.locator('button').filter({ hasText: text }).first();
+}
+
+/**
+ * 成功态结果块。
+ * `Result` 把状态写在 `data-status` 上（不再有 `.ant-result-success` 这类状态类）。
+ */
+function resultBox(scope: Locator) {
+  return scope.locator('[data-common-result][data-status="success"]');
+}
+
+/**
+ * 抽屉贴在哪一边。
+ *
+ * Sheet 不再挂方位类（方位只体现为 `inset-*` 工具类），所以直接量面板与视口的关系：
+ * 左右是通高（`inset-y-0`），上下是通宽。
+ * `boundingBox()` 给的是 `{x, y, width, height}`，下沿要自己算 `y + height`。
+ *
+ * 量之前要等入场动画跑完：`data-[state=open]` 那条是 500ms 的 `slide-in-from-*`，
+ * 途中读到的包围盒还在路上（实测底部抽屉第一帧 `y=717`，落定才是 `y=440`），
+ * 左右方位则还带着 x 位移。动画末段是 ease-out、每帧只挪不到 1px，
+ * 所以「两次读数相同」不算收敛 —— 要连着三次一样才收工。
+ */
+async function drawerSide(page: Page, panel: Locator) {
+  let box = await panel.boundingBox();
+  let stable = 0;
+  const deadline = Date.now() + 3_000;
+  while (stable < 3 && Date.now() < deadline) {
+    await page.waitForTimeout(100);
+    const next = await panel.boundingBox();
+    if (
+      box &&
+      next &&
+      Math.abs(next.x - box.x) < 1 &&
+      Math.abs(next.y - box.y) < 1 &&
+      Math.abs(next.width - box.width) < 1 &&
+      Math.abs(next.height - box.height) < 1
+    ) {
+      stable += 1;
+    } else {
+      stable = 0;
+    }
+    box = next ?? box;
+  }
+  const viewport = page.viewportSize();
+  if (!box || !viewport) throw new Error('抽屉面板没有包围盒');
+  if (Math.abs(box.height - viewport.height) <= 2) {
+    return box.x <= 1 ? 'left' : 'right';
+  }
+  return Math.abs(box.y + box.height - viewport.height) < Math.abs(box.y)
+    ? 'bottom'
+    : 'top';
 }
 
 /**
  * 弹窗还开着的时候点**页面卡片上**的按钮。
  *
- * antd 的 `.ant-modal-wrap` 是一整屏的遮罩层，卡片按钮全在它下面，正常 click 会被
+ * antd 的 `.basic-modal-wrap` 是一整屏的遮罩层，卡片按钮全在它下面，正常 click 会被
  * "subtree intercepts pointer events" 顶回来。这里要测的是页面自己那几个方法
  * （`getVisible()` / `closeModal()` / `setModalProps()`）在被调下去之后做了什么，
  * 不是"蒙层挡不挡得住鼠标"——那条路径由本页 X / 取消 / 蒙层几处用例覆盖。
@@ -323,7 +386,7 @@ test.describe('表格拖拽排序页', () => {
       .toEqual(moved);
     // 数据侧：顺序标签读的是 `basicList`（onDragEnd 写回的 ref），
     // 只有 DOM 变了而标签没变，才说明 Sortable 的下标和数据源对不上
-    const tags = box.locator('.mt-3 .ant-tag');
+    const tags = box.locator('.mt-3 [data-common-tag]');
     await expect
       .poll(() => itemTexts(tags), { message: '顺序标签要跟着数据源变' })
       .toEqual([
@@ -461,9 +524,9 @@ test.describe('表格拖拽排序页', () => {
       ]);
 
     // 布尔形态 `disabled: true`：整表冻结后任何一行都拖不动
-    const freeze = box.locator('.ant-switch');
+    const freeze = box.locator('[role="switch"]');
     await freeze.click();
-    await expect(freeze).toHaveClass(/ant-switch-checked/);
+    await expect(freeze).toHaveAttribute('data-state', 'checked');
     await rows.nth(1).dragTo(rows.nth(2));
     await expect
       .poll(() => cellTexts(rows), { message: '整表冻结后行序不该动' })
@@ -525,7 +588,7 @@ test.describe('表格拖拽排序页', () => {
     ).toBeVisible();
     await expect(
       page
-        .locator('.ant-message-notice')
+        .locator('li[data-sonner-toast]')
         .filter({ hasText: '已保存 5 条顺序' })
         .first(),
     ).toBeVisible();
@@ -556,14 +619,14 @@ test.describe('拖拽布局页', () => {
       '6. 系统设置',
     ];
     await expect
-      .poll(async () => itemTexts(box.locator('.mt-4 .ant-tag')))
+      .poll(async () => itemTexts(box.locator('.mt-4 [data-common-tag]')))
       .toEqual(initial);
 
     await rows.nth(0).dragTo(rows.nth(2));
 
     // 标签行读的就是 `v-model` 那份数组：DOM 与数据不一致时这里先红
     await expect
-      .poll(async () => itemTexts(box.locator('.mt-4 .ant-tag')), {
+      .poll(async () => itemTexts(box.locator('.mt-4 [data-common-tag]')), {
         message: 'VueDraggable 要在 update 里把数组 splice 好',
       })
       .toEqual([
@@ -699,13 +762,31 @@ test.describe('分步表单页', () => {
    * 按标签取字段控件，**必须圈在卡片里**：这一页第 2 张卡也有「手机号 / 邮箱」同名字段，
    * 从 page 上取会撞 strict mode。
    *
-   * `BasicForm` 把 `a-form-item` 的标签写成 `<label for="字段名">`，控件自己的 `id`
-   * 就是字段名（`#realName`、`#idType`…），所以这里一律走 `getByLabel` —— 它同时覆盖
-   * Input / InputTextArea / Select 的输入节点，不必再按 `.ant-form-item` 的结构去拼 CSS
+   * `FormItem` 给每个字段生成一个 `useId()`，标签写成 `<label for=那个 id>`，字段组件
+   * 把同一个 id 落在自己的 `data-field-control` 节点上，所以这里一律走 `getByLabel` ——
+   * 它同时覆盖 Input / InputTextArea / Select 的可关联控件，不必再按 DOM 结构去拼 CSS
    * （`filter({ has: box.locator('label') })` 那种写法会在子树里重新解析选择器，实测命中 0 个）。
    */
   function field(scope: Locator, label: string) {
     return scope.getByLabel(label, { exact: true });
+  }
+
+  /**
+   * 取那一个 `Select` 的触发按钮。
+   *
+   * form-ui 的 Select 是 `Popover` + `role=combobox` 的按钮，不是 antd 的 `.ant-select`，
+   * 而这一页第 1 步只有它一个 combobox，所以按角色数就够。
+   */
+  function combobox(scope: Locator) {
+    return scope.locator('[role="combobox"]');
+  }
+
+  /** 选项面板挂在 body 上（Popover 传送到根节点），不能圈在卡片里找 */
+  function option(page: Page, text: string) {
+    return page
+      .locator('[data-slot="popover-content"] button')
+      .filter({ hasText: text })
+      .first();
   }
 
   test('「下一步」被必填拦住时原地停住，补全后才过去', async ({ page }) => {
@@ -720,7 +801,7 @@ test.describe('分步表单页', () => {
     await expect(meta).toContainText('第 1/3 步 · 页面已攒 0 个字段');
     await expect(cjkButton(box, '提交')).toHaveCount(0);
     // 两个必填（真实姓名 / 证件类型）各出一条行内错误，文案是 Form 的默认必填语
-    const explains = box.locator('.ant-form-item-explain-error');
+    const explains = box.locator('.form-item-error');
     await expect(explains).toHaveCount(2);
     expect(await explains.allTextContents()).toEqual([
       '该项为必填项',
@@ -729,19 +810,15 @@ test.describe('分步表单页', () => {
     // 页面还会把失败原因播报成一句 message（前缀是这一步的标题）
     await expect(
       page
-        .locator('.ant-message-notice')
+        .locator('li[data-sonner-toast]')
         .filter({ hasText: '「基本信息」：该项为必填项' }),
     ).toBeVisible();
 
     await field(box, '真实姓名').fill('张伟');
     // 第 1 步只有一个 Select，选项面板挂在 body 上，不能圈在卡片里找
-    await expect(box.locator('.ant-select')).toHaveCount(1);
-    await box.locator('.ant-select').click();
-    await page
-      .locator('.ant-select-dropdown .ant-select-item-option')
-      .filter({ hasText: '身份证' })
-      .first()
-      .click();
+    await expect(combobox(box)).toHaveCount(1);
+    await combobox(box).click();
+    await option(page, '身份证').click();
     await expect(explains).toHaveCount(0);
 
     await cjkButton(box, '下一步').click();
@@ -752,7 +829,7 @@ test.describe('分步表单页', () => {
     await cjkButton(box, '下一步').click();
     await expect(meta).toContainText('第 2/3 步');
     expect(
-      await box.locator('.ant-form-item-explain-error').allTextContents(),
+      await box.locator('.form-item-error').allTextContents(),
     ).toEqual(['11 位手机号，别带空格']);
 
     expect(errors.errors).toEqual([]);
@@ -767,12 +844,8 @@ test.describe('分步表单页', () => {
     // 第 1 步：三个字段都填（昵称选填，用来验证「已攒」计数确实数的是值）
     await field(box, '真实姓名').fill('张伟');
     await field(box, '昵称').fill('小张');
-    await box.locator('.ant-select').click();
-    await page
-      .locator('.ant-select-dropdown .ant-select-item-option')
-      .filter({ hasText: '护照' })
-      .first()
-      .click();
+    await combobox(box).click();
+    await option(page, '护照').click();
     await cjkButton(box, '下一步').click();
     await expect(meta).toContainText('第 2/3 步 · 页面已攒 3 个字段');
 
@@ -798,28 +871,28 @@ test.describe('分步表单页', () => {
     // 服务协议是 RadioGroup，不点则提交会被整表校验拦回第 3 步
     await cjkButton(box, '提交').click();
     await expect(meta).toContainText('第 3/3 步');
-    await expect(box.locator('.ant-result-success')).toHaveCount(0);
+    await expect(resultBox(box)).toHaveCount(0);
     expect(
-      await box.locator('.ant-form-item-explain-error').allTextContents(),
+      await box.locator('.form-item-error').allTextContents(),
     ).toEqual(['需要先同意《用户服务协议》']);
 
     await box
-      .locator('.ant-radio-wrapper')
+      .locator('label')
       .filter({ hasText: '我已阅读并同意' })
       .click();
     await cjkButton(box, '提交').click();
 
     /**
-     * 结果页这一段同时是**子组件写法**的证据：`<a-result>` 里的摘要用的是
-     * `<a-descriptions><a-descriptions-item v-for>` 这种**内容式子标签**，
-     * 而不是业务组件 `Description` 的 `items` 配置。这类写法在 antdv-next 1.6 里
-     * 解析失败时只出一条 warning，节点静默变成空的 —— 所以这里逐格数标签与值。
+     * 结果页这一段同时是**子组件写法**的证据：`Result` 里的摘要用的是
+     * `<Descriptions><DescriptionsItem v-for>…</DescriptionsItem></Descriptions>`
+     * 这种**内容式子标签**，而不是业务组件 `Description` 的 `items` 配置。
+     * 这类写法一旦注册漏了就只有一条 warning、节点静默变空 —— 所以这里逐格数标签与值。
      */
-    const result = box.locator('.ant-result-success');
+    const result = resultBox(box);
     await expect(result).toBeVisible();
     await expect(result).toContainText('分步表单已提交');
-    const labels = result.locator('.ant-descriptions-item-label');
-    const contents = result.locator('.ant-descriptions-item-content');
+    const labels = result.locator('[data-common-descriptions-label]');
+    const contents = result.locator('[data-common-descriptions-value]');
     await expect(labels).toHaveCount(8);
     expect(await labels.allTextContents()).toEqual([
       '真实姓名',
@@ -896,7 +969,7 @@ test.describe('弹窗与抽屉页', () => {
     await expect(back).toContainText('"name": "张三"');
     await expect(
       page
-        .locator('.ant-message-notice')
+        .locator('li[data-sonner-toast]')
         .filter({ hasText: '弹窗已把表单回传到示例页' }),
     ).toBeVisible();
 
@@ -910,13 +983,9 @@ test.describe('弹窗与抽屉页', () => {
     const errors = await open(page, MODAL_DRAWER);
     const box = cardByTitle(page, '基础弹窗');
     const probe = box.locator('p').filter({ hasText: '方法返回值' });
-    const openButton = box.getByRole('button', { name: /打开并传数据/ });
-    const probeButton = box.getByRole('button', {
-      name: /getVisible\(\) 查询显隐/,
-    });
-    const closeButton = box.getByRole('button', {
-      name: /closeModal\(\) 关闭/,
-    });
+    const openButton = cardButton(box, /打开并传数据/);
+    const probeButton = cardButton(box, /getVisible\(\) 查询显隐/);
+    const closeButton = cardButton(box, /closeModal\(\) 关闭/);
     const modal = antModal(page, '编辑用户信息');
 
     await openButton.click();
@@ -938,7 +1007,7 @@ test.describe('弹窗与抽屉页', () => {
     await expect(modal).toBeHidden();
     await expect(
       page
-        .locator('.ant-message-notice')
+        .locator('li[data-sonner-toast]')
         .filter({ hasText: '已调用 useModal().closeModal()' }),
     ).toBeVisible();
     // 关掉之后 closeModal() 是幂等的：再点一次不报错、状态还是关
@@ -952,49 +1021,52 @@ test.describe('弹窗与抽屉页', () => {
   });
 
   /**
-   * `setModalProps` 的哑炮回归位。
+   * `setModalProps` 的生效回归位。
    *
-   * BasicModal 的实现是 `Object.assign(props, …)`，而 `defineProps` 交出的是只读代理，
-   * 写入被静默丢弃。页面把这条结论如实打在日志里，用例把它钉住：
-   * 哪天有人"顺手修好"了 setModalProps，这里就该红，好让页面上的文案一起被改。
+   * BasicModal 不写只读的 `defineProps`，而是把覆盖值并进组件内部的 `propOverrides`，
+   * 渲染统一读 `merged`，所以标题、确认按钮文案、宽度都会当场翻正。
+   * 页面把这条结论如实打在日志里，用例把它钉住：哪天覆盖层被改坏了，这里就该红。
    */
-  test('setModalProps 是哑炮：调用发出去了，标题、按钮、宽度一个都没变', async ({
+  test('setModalProps 生效：标题、按钮文案、宽度都按覆盖值重渲染', async ({
     page,
   }) => {
     const errors = await open(page, MODAL_DRAWER);
     const box = cardByTitle(page, '基础弹窗');
 
     await box.getByRole('button', { name: /打开并传数据/ }).click();
-    const modal = antModal(page, '编辑用户信息');
-    await expect(modal).toBeVisible();
-    await expect(modal).toHaveAttribute('style', /520px/);
+    await expect(antModal(page, '编辑用户信息')).toBeVisible();
+    await expect(antModal(page, '编辑用户信息')).toHaveAttribute(
+      'style',
+      /520px/,
+    );
 
-    // 弹窗开着的时候卡片上那几个按钮全在 `.ant-modal-wrap` 这层整屏遮罩下面，
+    // 弹窗开着的时候卡片上那几个按钮全在遮罩层下面，
     // 本段要证的是「setModalProps 被调下去之后 props 有没有变」，
     // 遮罩挡鼠标那条路径另有 X / 取消 / 蒙层三处用例覆盖，这里直接派发 click。
-    await clickPageButtonThroughMask(
-      box.getByRole('button', { name: /尝试改 props/ }),
-    );
-    await expect(
-      modal.getByText('编辑用户信息', { exact: true }),
-    ).toBeVisible();
-    await expect(modal.getByText('标题被 setModalProps 改掉')).toHaveCount(0);
-    await expect(cjkButton(modal, '提交')).toBeVisible();
-    await expect(modal.getByRole('button', { name: /确认修改/ })).toHaveCount(
+    await clickPageButtonThroughMask(cardButton(box, /尝试改 props/));
+
+    // 标题换了之后原来的锚点就没了，按新标题重新定位
+    const renamed = antModal(page, '标题被 setModalProps 改掉');
+    await expect(renamed).toBeVisible();
+    await expect(renamed.getByText('编辑用户信息', { exact: true })).toHaveCount(
       0,
     );
-    await expect(modal).toHaveAttribute('style', /520px/);
+    await expect(cjkButton(renamed, '确认修改')).toBeVisible();
+    await expect(renamed.getByRole('button', { name: /^提交$/ })).toHaveCount(0);
+    await expect(renamed).toHaveAttribute('style', /640px/);
 
-    // 页面自己也承认没生效
-    await expect(box.getByText(/标题\/按钮\/宽度均无变化/)).toBeVisible();
+    // 页面自己也这么说
+    await expect(
+      box.getByText(/标题\/按钮\/宽度已按覆盖值重渲染/),
+    ).toBeVisible();
     await expect(
       page
-        .locator('.ant-message-notice')
-        .filter({ hasText: '组件的 props 是只读的' }),
+        .locator('li[data-sonner-toast]')
+        .filter({ hasText: 'props 覆盖层已生效' }),
     ).toBeVisible();
     // getVisible() 仍然是真的
     await clickPageButtonThroughMask(
-      box.getByRole('button', { name: /getVisible\(\) 查询显隐/ }),
+      cardButton(box, /getVisible\(\) 查询显隐/),
     );
     await expect(
       box.locator('p').filter({ hasText: '方法返回值' }),
@@ -1016,11 +1088,8 @@ test.describe('弹窗与抽屉页', () => {
     // 左：#footer 插槽替掉了内置按钮，「应用」写状态并关闭
     await box.getByRole('button', { name: /左侧抽屉/ }).click();
     const left = antDrawer(page, '左侧抽屉 · 布局密度');
-    await expect(left).toHaveClass(/ant-drawer-left|placement-left/);
-    await left
-      .locator('.ant-radio-wrapper')
-      .filter({ hasText: '紧凑' })
-      .click();
+    expect(await drawerSide(page, left), '左侧抽屉应贴在视口左边').toBe('left');
+    await left.locator('label').filter({ hasText: '紧凑' }).click();
     await left.getByRole('button', { name: /应用/ }).click();
     await expect(left).toBeHidden();
     await expect(
@@ -1029,10 +1098,7 @@ test.describe('弹窗与抽屉页', () => {
 
     // 左：取消不改页面状态（还是 compact）
     await box.getByRole('button', { name: /左侧抽屉/ }).click();
-    await left
-      .locator('.ant-radio-wrapper')
-      .filter({ hasText: '宽松' })
-      .click();
+    await left.locator('label').filter({ hasText: '宽松' }).click();
     await cjkButton(left, '取消').click();
     await expect(left).toBeHidden();
     await expect(page.getByText(/密度 = compact$/)).toBeVisible();
@@ -1041,9 +1107,11 @@ test.describe('弹窗与抽屉页', () => {
     // 右：默认方位，footer 里的「全选」是插槽按钮，只有回写状态才会带出五个模块
     await box.getByRole('button', { name: /右侧抽屉/ }).click();
     const right = antDrawer(page, '右侧抽屉 · 模块选择');
-    await expect(right).toHaveClass(/ant-drawer-right|placement-right/);
+    expect(await drawerSide(page, right), '右侧抽屉贴右').toBe('right');
     await right.getByRole('button', { name: /全选/ }).click();
-    await expect(right.locator('.ant-checkbox-wrapper-checked')).toHaveCount(5);
+    await expect(
+      right.locator('[role="checkbox"][data-state="checked"]'),
+    ).toHaveCount(5);
     await right.getByRole('button', { name: /完成/ }).click();
     await expect(right).toBeHidden();
     await expect(
@@ -1055,11 +1123,8 @@ test.describe('弹窗与抽屉页', () => {
     // 底：placement 决定取 height 而不是 width
     await box.getByRole('button', { name: /底部抽屉/ }).click();
     const bottom = antDrawer(page, '底部抽屉 · 过渡时长');
-    await expect(bottom).toHaveClass(/ant-drawer-bottom|placement-bottom/);
-    await bottom
-      .locator('.ant-radio-wrapper')
-      .filter({ hasText: '400ms' })
-      .click();
+    expect(await drawerSide(page, bottom), '底部抽屉贴下沿').toBe('bottom');
+    await bottom.locator('label').filter({ hasText: '400ms' }).click();
     await bottom.getByRole('button', { name: /应用/ }).click();
     await expect(bottom).toBeHidden();
     await expect(
@@ -1108,7 +1173,7 @@ test.describe('弹窗与抽屉页', () => {
     await expect(drawer).toBeVisible();
     await expect(confirm).toBeVisible();
     await cjkButton(confirm, '留在页面').click();
-    await page.locator('.ant-drawer-mask').click();
+    await page.locator('[data-slot="sheet-overlay"]').last().click();
     await expect(drawer).toBeVisible();
     await expect(confirm).toBeVisible();
     await expect(box.getByText('拦截 3 次')).toBeVisible();
@@ -1133,13 +1198,14 @@ test.describe('弹窗与抽屉页', () => {
     const drawer = antDrawer(page, '抽屉内滚动 · 协议确认');
     await expect(drawer).toBeVisible();
     // 内置底部的确认按钮由 okButtonProps 驱动：没勾同意就一直是禁用态
-    const footer = drawer.locator('.ant-drawer-footer');
+    const footer = drawer.locator('.drawer-footer');
     await expect(
       footer.getByRole('button', { name: /同意并关闭/ }),
     ).toBeDisabled();
 
     // 嵌套 Scrollbar 的滚动位置是 @scroll 事件写回页面状态的
-    const inner = drawer.locator('.scrollbar__wrap').nth(1);
+    // （抽屉正文自己那层是 ScrollArea，不带 `.scrollbar__wrap`，所以这里只有一个）
+    const inner = drawer.locator('.scrollbar__wrap').first();
     await inner.evaluate((el) => {
       el.scrollTop = el.scrollHeight;
     });
@@ -1170,67 +1236,73 @@ test.describe('描述列表页', () => {
 
     const basic = card(page, '基础描述列表');
     // 解析失败的组件只会静默变成空节点，所以按标签格数数：schema 写几条就该有几条
-    await expect(basic.locator('.ant-descriptions-item-label')).toHaveCount(9);
+    await expect(basic.locator('[data-common-descriptions-label]')).toHaveCount(9);
     await expect(basic.getByText('用户基本信息')).toBeVisible();
     await expect(basic.getByText('张伟')).toBeVisible();
     // type: 'date' / 'datetime' 走 dayjs 格式化
     await expect(basic.getByText('1996-05-15')).toBeVisible();
     await expect(basic.getByText('2024-01-15 10:30:00')).toBeVisible();
-    // 空值落到 emptyText，而不是留一个空格子
-    await expect(basic.getByText('个人主页', { exact: true })).toBeVisible();
+    // 空值落到 emptyText，而不是留一个空格子（标签带冒号，按 data 属性定位才稳）
+    const homepage = basic
+      .locator('[data-common-descriptions-item]')
+      .filter({ hasText: '个人主页' });
+    await expect(homepage.locator('[data-common-descriptions-value]')).toHaveText(
+      '-'
+    );
     expect(
       await basic
-        .locator('.ant-descriptions-item-content')
+        .locator('[data-common-descriptions-value]')
         .filter({ hasText: /^-$/ })
         .count(),
     ).toBeGreaterThanOrEqual(1);
 
     const renderBox = card(page, '值渲染与插槽');
-    await expect(renderBox.locator('.ant-descriptions-item-label')).toHaveCount(
+    await expect(renderBox.locator('[data-common-descriptions-label]')).toHaveCount(
       6,
     );
     // type: image(1) + images(2) 一共三张可预览图，节点没解析出来就是 0
-    await expect(renderBox.locator('.ant-image')).toHaveCount(3);
+    await expect(renderBox.locator('[data-common-image]')).toHaveCount(3);
     // render 函数返回的 Tag
     await expect(
-      renderBox.locator('.ant-tag').filter({ hasText: '在职' }),
+      renderBox.locator('[data-common-tag]').filter({ hasText: '在职' }),
     ).toHaveCount(1);
     // 具名插槽 #skills：四个技能标签
     await expect(
-      renderBox.locator('.ant-tag').filter({ hasText: 'antdv-next' }),
+      renderBox.locator('[data-common-tag]').filter({ hasText: 'Tailwind CSS' }),
     ).toHaveCount(1);
     // 标签插槽 #department-label 把「所属部门」换成了带图标的蓝字
     await expect(renderBox.getByText('所属部门')).toBeVisible();
-    // 插槽 #email 包的是 a-typography-paragraph（子组件写法）
+    // 插槽 #email 包的是「code + 复制按钮」，值格子里必须能读到邮箱原文
     await expect(
       renderBox
-        .locator('.ant-typography')
+        .locator('[data-common-descriptions-value]')
         .filter({ hasText: 'zhangsan@example.com' }),
     ).toHaveCount(1);
 
-    // 分组那张卡里两个 Description + a-divider，全靠子组件写法
-    // 标题必须点 `.ant-descriptions-title`：卡面提示语里也写了「基础信息」，
+    // 分组那张卡里两个 Description + 一条 Divider，全靠子组件写法
+    // 标题必须点 `[data-common-descriptions-title]`：卡面提示语里也写了「基础信息」，
     // 用纯文本选择器会同时命中说明段
     const grouped = cardByTitle(page, '响应式列数与分组');
     await expect(
       grouped
-        .locator('.ant-descriptions-title')
+        .locator('[data-common-descriptions-title]')
         .filter({ hasText: '基础信息' }),
     ).toBeVisible();
     await expect(
       grouped
-        .locator('.ant-descriptions-title')
+        .locator('[data-common-descriptions-title]')
         .filter({ hasText: '金额信息' }),
     ).toBeVisible();
-    await expect(grouped.locator('.ant-descriptions-item-label')).toHaveCount(
-      13,
-    );
+    // 两份 schema 各 7 项：基础信息 7 + 金额信息 7
+    await expect(
+      grouped.locator('[data-common-descriptions-label]'),
+    ).toHaveCount(14);
     // render 里的 0 元运费换成「包邮」标签，实付金额走 contentStyle
     await expect(
-      grouped.locator('.ant-tag').filter({ hasText: '包邮' }),
+      grouped.locator('[data-common-tag]').filter({ hasText: '包邮' }),
     ).toHaveCount(1);
     await expect(grouped.getByText('¥ 18116.91')).toBeVisible();
-    expect(await grouped.locator('.ant-divider').count()).toBe(1);
+    expect(await grouped.locator('[role="separator"]').count()).toBe(1);
 
     expect(
       errors.warnings.filter((text) =>
@@ -1244,32 +1316,32 @@ test.describe('描述列表页', () => {
   test('show: false 真的少两行，脱敏开关改的是值不是行数', async ({ page }) => {
     const errors = await open(page, DESCRIPTION);
     const box = cardByTitle(page, '动态切换');
-    const labels = box.locator('.ant-descriptions-item-label');
+    const labels = box.locator('[data-common-descriptions-label]');
 
     await expect(labels).toHaveCount(7);
     await expect(box.getByText('138****8888')).toBeVisible();
     await expect(box.getByText('1101**********001X')).toBeVisible();
 
-    const sensitive = box.locator('.ant-switch').first();
+    const sensitive = box.locator('[role="switch"]').first();
     await sensitive.click();
     await expect(labels).toHaveCount(5);
     // 只在标签格里查：卡面提示语原文就写着「身份证、发票抬头」，
     // 拿整卡文本做 toHaveCount(0) 会被提示语顶掉
     await expect(
       box
-        .locator('.ant-descriptions-item-label')
+        .locator('[data-common-descriptions-label]')
         .filter({ hasText: '身份证号' }),
     ).toHaveCount(0);
     await expect(
       box
-        .locator('.ant-descriptions-item-label')
+        .locator('[data-common-descriptions-label]')
         .filter({ hasText: '发票抬头' }),
     ).toHaveCount(0);
     await sensitive.click();
     await expect(labels).toHaveCount(7);
 
     // 脱敏关掉：还是 7 行，变的是格子里的值
-    await box.locator('.ant-switch').nth(1).click();
+    await box.locator('[role="switch"]').nth(1).click();
     await expect(labels).toHaveCount(7);
     await expect(box.getByText('13812348888')).toBeVisible();
     await expect(box.getByText('11010119960515001X')).toBeVisible();
@@ -1278,7 +1350,7 @@ test.describe('描述列表页', () => {
     await box.getByRole('button', { name: /调用 getData\(\)/ }).click();
     await expect(
       page
-        .locator('.ant-message-notice')
+        .locator('li[data-sonner-toast]')
         .filter({ hasText: 'getData() 读到 7 个字段' }),
     ).toBeVisible();
 
@@ -1299,30 +1371,59 @@ test.describe('描述列表页', () => {
   }) => {
     const errors = await open(page, DESCRIPTION);
     const box = cardByTitle(page, '响应式列数与分组');
-    const head = box.locator('.ant-descriptions-header');
-    await expect(head).toHaveCount(2);
+    // 两个 Description 各自的表头就是 `[data-common-descriptions-title]`
+    await expect(
+      box.locator('[data-common-descriptions-title]'),
+    ).toHaveCount(2);
+
+    /**
+     * 数「排了几行」。
+     *
+     * `Descriptions` 用 CSS grid 排版，`column` 只体现在 `grid-template-columns` 上，
+     * DOM 里没有行节点，所以按格子的 top 去重 —— 数的是页面上真的看到的行数。
+     */
+    function distinctRows(items: Locator) {
+      return items.evaluateAll((els) =>
+        new Set(
+          els.map((el) => Math.round(el.getBoundingClientRect().top)),
+        ).size,
+      );
+    }
 
     await expect(box.getByText(/当前 column = \d/)).toBeVisible();
     await box.getByText('1 列', { exact: true }).click();
     await expect(box.getByText('当前 column = 1')).toBeVisible();
-    // 每行一项：基础信息组 6 项 → 那一个 Description 里就该有 6 个 row
-    const firstGroup = box
-      .locator('.ant-descriptions')
+
+    const firstItems = box
+      .locator('[data-common-descriptions]')
       .first()
-      .locator('.ant-descriptions-row');
-    await expect(firstGroup).toHaveCount(6);
+      .locator('[data-common-descriptions-item]');
+    const firstCount = await firstItems.count();
+    expect(firstCount).toBeGreaterThanOrEqual(6);
+    // 每行一项 → 行数与项数相等
+    await expect
+      .poll(() => distinctRows(firstItems), { message: '1 列要每项独占一行' })
+      .toBe(firstCount);
     expect(
-      await box.locator('.ant-descriptions-row').count(),
+      await distinctRows(box.locator('[data-common-descriptions-item]')),
     ).toBeGreaterThanOrEqual(13);
 
     await box.getByText('3 列', { exact: true }).click();
     await expect(box.getByText('当前 column = 3')).toBeVisible();
+    // 收到 3 列：同样的项数要排得下，行数必须比项数少
+    await expect
+      .poll(() => distinctRows(firstItems), { message: '3 列要一行排多项' })
+      .toBeLessThan(firstCount);
 
-    // bordered 关掉后组件不再挂 `.ant-descriptions-bordered`
-    await box.locator('.ant-switch').first().click();
-    await expect(box.locator('.ant-descriptions-bordered')).toHaveCount(0);
-    await box.locator('.ant-switch').first().click();
-    await expect(box.locator('.ant-descriptions-bordered')).toHaveCount(2);
+    // bordered 关掉后组件不再挂 `data-bordered="true"`
+    await box.locator('[role="switch"]').first().click();
+    await expect(
+      box.locator('[data-common-descriptions][data-bordered="true"]'),
+    ).toHaveCount(0);
+    await box.locator('[role="switch"]').first().click();
+    await expect(
+      box.locator('[data-common-descriptions][data-bordered="true"]'),
+    ).toHaveCount(2);
 
     expect(
       errors.warnings.filter((text) =>

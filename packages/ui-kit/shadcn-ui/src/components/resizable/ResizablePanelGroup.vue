@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import type { SplitterGroupEmits, SplitterGroupProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import { SplitterGroup, useForwardPropsEmits } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<SplitterGroupProps & { class?: HTMLAttributes["class"] }>()
 const emits = defineEmits<SplitterGroupEmits>()
@@ -22,6 +20,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
     v-bind="forwarded"
     :class="cn('flex h-full w-full data-[orientation=vertical]:flex-col', props.class)"
   >
-    <slot v-bind="slotProps"></slot>
+    <slot v-bind="slotProps" />
   </SplitterGroup>
 </template>

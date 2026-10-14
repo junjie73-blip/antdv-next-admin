@@ -110,14 +110,10 @@ const isHorizontal = computed(() => props.mode === 'horizontal');
 const canScroll = computed(() => isHorizontal.value && props.scrollable);
 
 /**
- * 滚动层由封装的 Scrollbar 提供，滚动元素是它内部的 `.scrollbar__wrap`；
- * 与标签栏同源：原先手写 `overflow-x-auto` + 美化原生条，只在 Chromium 生效，
- * Firefox/WebKit 仍是一条系统灰杠。
+ * 滚动层由封装的 Scrollbar 提供，`wrap` 就是它内部的滚动元素（`.scrollbar__wrap`）。
  */
 const scrollbarRef = useTemplateRef<ScrollbarType>('menuScrollbar');
-const scrollContainer = computed<HTMLElement | undefined>(
-  () => scrollbarRef.value?.wrap as unknown as HTMLElement | undefined,
-);
+const scrollContainer = computed(() => scrollbarRef.value?.wrap);
 const scroller = useHorizontalScroll(scrollContainer, { step: 220 });
 const dragging = computed(() => scroller.isDragging.value);
 

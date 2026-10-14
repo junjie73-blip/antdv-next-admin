@@ -1,16 +1,12 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import type {
   ItemRegistration,
   QuestionnaireItemDefinition,
   QuestionnaireShortcutMode,
 } from "./useQuestionnaire"
-
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue"
-
 import { cn } from '@antdv/shared/cn'
-
 import {
   compareDocumentOrder,
   createQuestionnaireCollection,
@@ -52,10 +48,10 @@ interface PendingFocus {
 const rootElement = ref<HTMLFormElement | null>(null)
 const registrations = shallowRef<ItemRegistration[]>([])
 const domVersion = ref(0)
-const pendingFocus = shallowRef<null | PendingFocus>(null)
+const pendingFocus = shallowRef<PendingFocus | null>(null)
 
 const collection = computed(() => createQuestionnaireCollection(props.items))
-const uncontrolledItem = ref<null | string>(
+const uncontrolledItem = ref<string | null>(
   getInitialItemName(collection.value, props.defaultItem),
 )
 const controlled = computed(() => props.item !== undefined)
@@ -452,6 +448,6 @@ provideQuestionnaireRootContext({
     @reset="handleReset"
     @submit="handleSubmit"
   >
-    <slot :current="current" :first="first" :last="last" :total="total"></slot>
+    <slot :current="current" :first="first" :last="last" :total="total" />
   </form>
 </template>

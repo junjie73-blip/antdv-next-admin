@@ -1,6 +1,6 @@
 # Tailwind CSS
 
-一句话：**Tailwind v4、CSS-first —— 没有 `tailwind.config.*`（全仓搜不到），入口在 `packages/styles/src/index.css`，由 `@tailwindcss/vite` 插件编译，主题色全部走 antd CSS 变量而不是硬编码色板。**
+一句话：**Tailwind v4、CSS-first —— 没有 `tailwind.config.*`（全仓搜不到），入口在 `packages/design/src/index.css`，由 `@tailwindcss/vite` 插件编译，主题色全部走 antd CSS 变量而不是硬编码色板。**
 
 ## 版本与装配
 
@@ -10,7 +10,7 @@
 | Vite 插件 | `@tailwindcss/vite ^4.3.3`，在 `internal/vite-config/src/plugins/vue.ts` 里 `tailwindcss()` 注册 | 应用与库共用这套插件装配 |
 | 动画 | `tw-animate-css ^1.4.0`（**不是** v3 时代的 tailwindcss-animate） | catalog + `@import 'tw-animate-css'` |
 | 排版 | `@plugin "@tailwindcss/typography"`；`@plugin "@tailwindcss/nesting"` | `index.css` |
-| 入口 | `main.ts` 一句 `import '@antdv/styles'`，全局样式只此一处 | 应用侧不再维护 global.css |
+| 入口 | `main.ts` 一句 `import '@antdv/design'`，全局样式只此一处 | 应用侧不再维护 global.css |
 
 ## 入口 CSS 的三件关键事
 
@@ -42,7 +42,7 @@ cn('bg-ant-primary text-white shadow-ant-primary/30'); // 永远跟主色
 - 断点用默认 `sm/md/lg/xl`，登录页的品牌区/表单区分栏就是纯工具类实现（`views/login/index.vue` 可当范例：窄屏隐藏 `data-auth="brand"` 区，logo 退到卡片内）。
 - 超过一行、或需要条件拼接的 class 走 `cn()`（`packages/shared/src/cn.ts`，clsx + tailwind-merge；twMerge 保证"后写的冲突类赢"，这是 register-props 组件里 `setProps` 能覆盖样式类的基础）。
 - 复杂类名串抽到模块 `constants.ts` 里命名（`CODE_STANDARD.md` 7.2），模板只引用变量。
-- 需要原始 CSS 的少数场景（视图过渡、`::selection`）集中在 `packages/styles/src/base.css`，刻意**不写 @layer**：无层级规则优先级高于全部层级，`html/body` 的尺寸约束不能被工具类意外盖掉。
+- 需要原始 CSS 的少数场景（视图过渡、`::selection`）集中在 `packages/design/src/base.css`，刻意**不写 @layer**：无层级规则优先级高于全部层级，`html/body` 的尺寸约束不能被工具类意外盖掉。
 
 ## 常见失误
 
@@ -56,4 +56,4 @@ cn('bg-ant-primary text-white shadow-ant-primary/30'); // 永远跟主色
 ## 相关页面
 
 - 主题变量与偏好持久化：[主题与偏好设置](/guide/in-depth/theme)
-- 样式优先级四档：[样式约定](/guide/essentials/styles)
+- 样式优先级四档：[设计令牌与全局样式](/guide/essentials/design)

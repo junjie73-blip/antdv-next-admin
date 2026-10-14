@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-
 import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<{
@@ -14,6 +13,6 @@ const props = defineProps<{
     data-sidebar="group"
     :class="cn('relative flex w-full min-w-0 flex-col p-2', props.class)"
   >
-    <slot></slot>
+    <slot />
   </div>
 </template>

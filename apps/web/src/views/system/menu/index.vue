@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import type { BackendMenu, MenuConfig, MicroAppConfig } from '@antdv/types';
-import type { FormSchema } from '~/components/business/Form';
-import type { BasicColumn } from '~/components/business/Table';
+import type { FormSchema } from '@antdv/form-ui';
+import type { BasicColumn } from '@antdv/table-ui';
 
 import { computed, ref, watch } from 'vue';
 
 import { IconPicker } from '@antdv/icons/icon';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
-import { Button as AButton, Card as ACard, Divider as ADivider, Popconfirm as APopconfirm, Switch as ASwitch, Tag as ATag, message } from 'antdv-next';
-import { BasicDrawer, useDrawer } from '~/components/business/Drawer';
-import { BasicForm, useForm } from '~/components/business/Form';
-import { BasicTable, useTable } from '~/components/business/Table';
+import { Card, Divider, Popconfirm, Tag } from '@antdv/common-ui';
+import { Button, Switch } from '@antdv/shadcn-ui';
+import { BasicDrawer, message, useDrawer } from '@antdv/popup-ui';
+import { BasicForm, useForm } from '@antdv/form-ui';
+import { BasicTable, useTable } from '@antdv/table-ui';
 import { DictType } from '~/enums/dict';
 import { useDictStore, useRouteStore } from '~/stores';
 
@@ -42,7 +43,7 @@ const containerClassName = cn('space-y-4');
 const cardClassName = cn('shadow-sm');
 const tagClassName = cn('inline-flex items-center gap-1');
 const actionClassName = cn('flex', 'items-center', 'justify-center');
-const btnClassName = cn('px-0.5!');
+const btnClassName = cn('h-auto', 'px-0.5!');
 const dividerClassName = cn('mx-0');
 
 const menuTypeColorMap: Record<string, string> = {
@@ -756,7 +757,7 @@ const columns: BasicColumn[] = [
 
 <template>
   <div :class="containerClassName">
-    <ACard title="菜单管理" :class="cardClassName">
+    <Card title="菜单管理" :class="cardClassName">
       <BasicTable
         :columns="columns"
         :api="mockApi"
@@ -771,12 +772,10 @@ const columns: BasicColumn[] = [
         @register="tableRegister"
       >
         <template #toolbar>
-          <AButton type="primary" @click="handleAdd">
-            <template #icon>
-              <Icon icon="ant-design:plus-outlined" />
-            </template>
+          <Button @click="handleAdd">
+            <Icon icon="ant-design:plus-outlined" />
             新增菜单
-          </AButton>
+          </Button>
         </template>
         <template #cell-icon="{ record }">
           <div class="flex items-center justify-center">
@@ -786,7 +785,7 @@ const columns: BasicColumn[] = [
         </template>
 
         <template #cell-menuType="{ record }">
-          <ATag :color="menuTypeColorMap[record.menuType] || 'default'">
+          <Tag :color="menuTypeColorMap[record.menuType] || 'default'">
             <span :class="tagClassName">
               <Icon
                 :icon="
@@ -801,11 +800,11 @@ const columns: BasicColumn[] = [
               />
               {{ menuTypeLabelMap[record.menuType] || record.menuType }}
             </span>
-          </ATag>
+          </Tag>
         </template>
 
         <template #cell-status="{ record }">
-          <ATag :color="statusColorMap[record.status] || 'default'">
+          <Tag :color="statusColorMap[record.status] || 'default'">
             <span :class="tagClassName">
               <Icon
                 :icon="
@@ -816,7 +815,7 @@ const columns: BasicColumn[] = [
               />
               {{ statusLabelMap[record.status] || '未知' }}
             </span>
-          </ATag>
+          </Tag>
         </template>
 
         <!--
@@ -825,61 +824,57 @@ const columns: BasicColumn[] = [
           页面本身仍可直达，所以提示里写清楚，别让人以为是把页面下了线。
         -->
         <template #cell-hidden="{ record }">
-          <ASwitch
-            :checked="!record.hidden"
-            size="small"
-            @change="
-              (checked: boolean) =>
-                handleToggleNav(record as MenuRecord, checked)
+          <Switch
+            :model-value="!record.hidden"
+            @update:model-value="
+              (v: any) => handleToggleNav(record as MenuRecord, v === true)
             "
           />
         </template>
 
         <template #action="{ record }">
           <div :class="actionClassName">
-            <AButton
-              type="link"
+            <Button
+              variant="link"
               :class="btnClassName"
               @click="() => handleAddChild(record as MenuRecord)"
             >
-              <template #icon>
-                <Icon icon="ant-design:plus-circle-outlined" />
-              </template>
+              <Icon icon="ant-design:plus-circle-outlined" />
               新增
-            </AButton>
-            <AButton
-              type="link"
+            </Button>
+            <Button
+              variant="link"
               :class="btnClassName"
               @click="() => handleEdit(record as MenuRecord)"
             >
-              <template #icon>
-                <Icon icon="ant-design:edit-outlined" />
-              </template>
+              <Icon icon="ant-design:edit-outlined" />
               编辑
-            </AButton>
-            <ADivider type="vertical" :class="dividerClassName" />
+            </Button>
+            <Divider type="vertical" :class="dividerClassName" />
             <!--
               删除是连带子树的，且没有回收站 —— 一刀下去可能十几项没了。
               这种操作不能点到就生效，必须有一次把影响面说清楚的确认。
             -->
-            <APopconfirm
+            <Popconfirm
               :title="deleteConfirmTitle(record as MenuRecord)"
               ok-text="删除"
-              ok-type="danger"
+              danger
               cancel-text="取消"
               @confirm="() => handleDelete(record as MenuRecord)"
             >
-              <AButton type="link" danger :class="btnClassName">
-                <template #icon>
-                  <Icon icon="ant-design:delete-outlined" />
-                </template>
+              <Button
+                variant="link"
+                class="text-destructive hover:text-destructive"
+                :class="btnClassName"
+              >
+                <Icon icon="ant-design:delete-outlined" />
                 删除
-              </AButton>
-            </APopconfirm>
+              </Button>
+            </Popconfirm>
           </div>
         </template>
       </BasicTable>
-    </ACard>
+    </Card>
 
     <BasicDrawer
       :title="isEditing ? '编辑菜单' : '新增菜单'"

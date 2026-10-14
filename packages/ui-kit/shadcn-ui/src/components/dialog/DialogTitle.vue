@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import type { DialogTitleProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import { DialogTitle, useForwardProps } from "reka-ui"
+import { cn } from '@antdv/shared/cn'
 
 const props = defineProps<DialogTitleProps & { class?: HTMLAttributes["class"] }>()
 
@@ -20,6 +18,6 @@ const forwardedProps = useForwardProps(delegatedProps)
     v-bind="forwardedProps"
     :class="cn('text-lg leading-none font-semibold', props.class)"
   >
-    <slot></slot>
+    <slot />
   </DialogTitle>
 </template>

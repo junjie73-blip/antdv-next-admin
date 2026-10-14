@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import type { SelectContentEmits, SelectContentProps } from "reka-ui"
-
 import type { HTMLAttributes } from "vue"
-
-import { cn } from '@antdv/shared/cn'
 import { reactiveOmit } from "@vueuse/core"
 import {
   SelectContent,
@@ -11,7 +8,7 @@ import {
   SelectViewport,
   useForwardPropsEmits,
 } from "reka-ui"
-
+import { cn } from '@antdv/shared/cn'
 import { SelectScrollDownButton, SelectScrollUpButton } from "."
 
 defineOptions({
@@ -46,7 +43,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
     >
       <SelectScrollUpButton />
       <SelectViewport :class="cn('p-1', position === 'popper' && 'h-(--reka-select-trigger-height) w-full min-w-(--reka-select-trigger-width) scroll-my-1')">
-        <slot></slot>
+        <slot />
       </SelectViewport>
       <SelectScrollDownButton />
     </SelectContent>
