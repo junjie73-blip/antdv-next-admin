@@ -263,7 +263,7 @@ describe('@antdv/design —— 包边界', () => {
     /**
      * `scrollbar.css` 是"第三方内部滚动区"的兜底，注释里会提到 `.scrollbar__wrap`
      * （解释为什么层级要选 base），但它自己绝不写以 `scrollbar__` 为选择器的规则：
-     * 那是组件带的类，样式归 `@antdv/scrollbar-ui`，全局包一旦插手就会出现"改组件不生效"的分裂。
+     * 那是组件带的类，样式归 `@antdv/common-ui`，全局包一旦插手就会出现"改组件不生效"的分裂。
      */
     expect(scrollbar).not.toMatch(/^\s*\.scrollbar__/mu);
   });

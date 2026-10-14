@@ -3,11 +3,11 @@ import type { ComponentType, FormSchema } from '@antdv/form-ui';
 
 import { ref } from 'vue';
 
-import { Card } from '@antdv/common-ui';
+import { Card, Scrollbar } from '@antdv/common-ui';
 import { BasicForm, useForm, addComponent } from '@antdv/form-ui';
 import { message } from '@antdv/popup-ui';
 import { Button } from '@antdv/shadcn-ui';
-import { Scrollbar } from '@antdv/scrollbar-ui';
+
 import { cn } from '@antdv/shared/cn';
 
 import TagPickerField from './components/TagPickerField.vue';
@@ -254,8 +254,11 @@ function handleReset() {
     <Card title="注册自定义字段" variant="borderless">
       <div :class="introClassName">
         下面这两个字段用的是本页私有组件
-        <code :class="inlineCodeClassName">components/TagPickerField.vue</code>， 注册只有一行
-        <code :class="inlineCodeClassName">addComponent('TagPickerField', TagPickerField)</code>：
+        <code :class="inlineCodeClassName">components/TagPickerField.vue</code
+        >， 注册只有一行
+        <code :class="inlineCodeClassName"
+          >addComponent('TagPickerField', TagPickerField)</code
+        >：
         表是全局的，注册一次之后所有表单都能按名字引用它。字段组件要满足的契约也很小
         —— 接收 <code :class="inlineCodeClassName">value</code> 这个
         prop、改动后
@@ -281,7 +284,8 @@ function handleReset() {
         都不渲染，字段自然不参与校验）、
         <code :class="inlineCodeClassName">show</code>（只是
         <code :class="inlineCodeClassName">v-show</code> 隐藏，仍然参与校验）、
-        <code :class="inlineCodeClassName">dynamicDisabled</code>（算出禁用态）， 规则还能用
+        <code :class="inlineCodeClassName">dynamicDisabled</code
+        >（算出禁用态）， 规则还能用
         <code :class="inlineCodeClassName">dynamicRules</code>
         跟着值变。自定义字段同样吃这套配置 —— 「推送群组」就是刚注册的那个组件。
       </div>
@@ -298,7 +302,9 @@ function handleReset() {
       </div>
       <div class="mb-4 flex flex-wrap gap-2">
         <Button @click="handleValidate"> 校验并取值 </Button>
-        <Button variant="outline" @click="handleRawValues"> 取当前值（不校验） </Button>
+        <Button variant="outline" @click="handleRawValues">
+          取当前值（不校验）
+        </Button>
         <Button variant="outline" @click="handleReset"> 重置 </Button>
       </div>
       <BasicForm @register="registerCollect" />

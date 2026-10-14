@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { ScrollbarType } from '@antdv/scrollbar-ui';
+import type { ScrollbarType } from '@antdv/common-ui';
 import type { MenuConfig, MenuKey } from '@antdv/types';
 
 import { computed, useTemplateRef, watch } from 'vue';
 
 import { IconifyIcon as Icon } from '@antdv/icons/icon';
-import { Scrollbar } from '@antdv/scrollbar-ui';
+import { Scrollbar } from '@antdv/common-ui';
 import { cn } from '@antdv/shared/cn';
 import { useHorizontalScroll } from '@antdv/shared/scroll';
 

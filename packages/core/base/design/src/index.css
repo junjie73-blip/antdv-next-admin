@@ -12,7 +12,7 @@
  * - permission.css 无权限降级（class 由 @antdv/directives 的 v-permission 打上）
  * - scrollbar.css  第三方组件内部滚动区的系统滚动条兜底美化
  *
- * 组件自身的样式不放这里 —— 随组件走，见 @antdv/icons 的 Scrollbar.vue。
+ * 组件自身的样式不放这里 —— 随组件走，见 @antdv/common-ui 的 Scrollbar.vue。
  *
  * 组件包里的工具类必须显式登记（下面的 `@source`）：Tailwind v4 的自动内容检测
  * 从**构建根**开始扫，而应用侧的构建根是 `apps/web`，`@antdv/*` 全在仓库根的
@@ -38,10 +38,8 @@
 @source '../../../ui-kit/common-ui/src';
 @source '../../../ui-kit/form-ui/src';
 @source '../../../ui-kit/layout-ui/src';
-@source '../../../ui-kit/loading-ui/src';
 @source '../../../ui-kit/menu-ui/src';
 @source '../../../ui-kit/popup-ui/src';
-@source '../../../ui-kit/scrollbar-ui/src';
 @source '../../../ui-kit/shadcn-ui/src';
 @source '../../../ui-kit/table-ui/src';
 @source '../../../ui-kit/tabs-ui/src';

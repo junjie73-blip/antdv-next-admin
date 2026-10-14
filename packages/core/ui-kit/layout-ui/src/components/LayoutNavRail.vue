@@ -4,11 +4,8 @@ import type { MenuConfig, MenuKey } from '@antdv/types';
 import type { LayoutRailConfig } from '../types';
 
 import { IconifyIcon as Icon } from '@antdv/icons/icon';
-import { Scrollbar } from '@antdv/scrollbar-ui';
-import {
-  LAYOUT_HEADER_ROW_STYLE,
-  LAYOUT_RAIL_WIDTH,
-} from '@antdv/layouts';
+import { Scrollbar } from '@antdv/common-ui';
+import { LAYOUT_HEADER_ROW_STYLE, LAYOUT_RAIL_WIDTH } from '@antdv/layouts';
 import {
   Tooltip,
   TooltipContent,

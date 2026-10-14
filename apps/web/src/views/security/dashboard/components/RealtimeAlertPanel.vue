@@ -3,9 +3,8 @@ import type { AlertItem, SecurityEventLevel } from '~/api/security';
 
 import { onMounted, ref } from 'vue';
 
-import { Empty, Tag } from '@antdv/common-ui';
-import { Loading } from '@antdv/loading-ui';
-import { Scrollbar } from '@antdv/scrollbar-ui';
+import { Empty, Loading, Scrollbar, Tag } from '@antdv/common-ui';
+
 import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
@@ -144,12 +143,7 @@ onMounted(async () => {
         </span>
         <span class="text-xs text-red-400">LIVE</span>
       </div>
-      <Button
-        size="sm"
-        variant="link"
-        class="h-auto px-0"
-        @click="alerts = []"
-      >
+      <Button size="sm" variant="link" class="h-auto px-0" @click="alerts = []">
         清空已读
       </Button>
     </div>
@@ -187,7 +181,8 @@ onMounted(async () => {
               <div class="mb-0.5 flex items-center gap-2">
                 <span
                   class="truncate text-sm font-medium text-gray-800 dark:text-gray-200"
-                  >{{ alert.message }}</span>
+                  >{{ alert.message }}</span
+                >
                 <Tag
                   :color="
                     alert.level === 'critical'

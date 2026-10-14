@@ -18,7 +18,7 @@ import {
 } from 'vue';
 
 import { message } from '@antdv/popup-ui';
-import { Scrollbar } from '@antdv/scrollbar-ui';
+import { Scrollbar } from '@antdv/common-ui';
 import { cn } from '@antdv/shared/cn';
 import { Editor, EditorContent } from '@tiptap/vue-3';
 

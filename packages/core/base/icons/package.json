@@ -1,7 +1,7 @@
 {
   "name": "@antdv/icons",
   "version": "0.4.0",
-  "description": "图标子包：Iconify 图标、SVG 雪碧图图标与图标选择器。边界：不依赖 pinia、vue-router、业务 store 或应用配置；加载遮罩见 @antdv/loading-ui，滚动条见 @antdv/scrollbar-ui",
+  "description": "图标子包：Iconify 图标、SVG 雪碧图图标与图标选择器。边界：只组合 @antdv/shadcn-ui 原语，不引 ui-kit 上层包（否则 icons ↔ common-ui 成环）；加载遮罩与滚动条的封装见 @antdv/common-ui",
   "private": true,
   "type": "module",
   "scripts": {
@@ -22,7 +22,6 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@antdv/scrollbar-ui": "workspace:*",
     "@antdv/shadcn-ui": "workspace:*",
     "@antdv/shared": "workspace:*",
     "@iconify-json/ant-design": "catalog:",

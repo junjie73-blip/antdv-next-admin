@@ -1,17 +1,13 @@
 <script setup lang="ts">
 import type { TreeKey } from '@antdv/common-ui';
-import type {
-  FetchParams,
-  Recordable,
-  TableActionType,
-} from '@antdv/table-ui';
+import type { FetchParams, Recordable, TableActionType } from '@antdv/table-ui';
 
 import type { TreeDataNode, TreeTableProps } from './types';
 
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
-import { Tree } from '@antdv/common-ui';
-import { Scrollbar } from '@antdv/scrollbar-ui';
+import { Scrollbar, Tree } from '@antdv/common-ui';
+
 import { Input } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
 import { BasicTable } from '@antdv/table-ui';
@@ -245,7 +241,9 @@ const nothingSelectedClassName = cn('text-sm text-gray-400 dark:text-gray-500');
             :field-names="{ key: 'key', title: 'title', children: 'children' }"
             block-node
             @select="handleTreeSelect"
-            @expand="(keys: TreeKey[]) => (expandedKeys = keys.map((k) => String(k)))"
+            @expand="
+              (keys: TreeKey[]) => (expandedKeys = keys.map((k) => String(k)))
+            "
           />
 
           <div v-else :class="emptyClassName">

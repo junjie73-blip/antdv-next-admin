@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import type { UploadChangeParam, UploadFile, UploadListType } from '@antdv/common-ui';
+import type {
+  UploadChangeParam,
+  UploadFile,
+  UploadListType,
+} from '@antdv/common-ui';
 
 import { computed, ref, useTemplateRef } from 'vue';
 
-import { Card, Image, Upload } from '@antdv/common-ui';
+import { Card, Image, Scrollbar, Upload } from '@antdv/common-ui';
 // ===== 大文件切片上传 =====
 import { useChunkUpload } from '@antdv/composables/useChunkUpload';
 import { message } from '@antdv/popup-ui';
-import { Scrollbar } from '@antdv/scrollbar-ui';
+
 import {
   Button,
   Dialog,
@@ -876,7 +880,11 @@ function handlePreviewOpenChange(value: boolean) {
           :disabled="manualUploading || manualFileList.length === 0"
           @click="handleManualUpload"
         >
-          <Icon v-if="manualUploading" class="animate-spin" icon="svg-spinners:bouncing-ball" />
+          <Icon
+            v-if="manualUploading"
+            class="animate-spin"
+            icon="svg-spinners:bouncing-ball"
+          />
           开始上传
         </Button>
         <Button
@@ -908,10 +916,7 @@ function handlePreviewOpenChange(value: boolean) {
           round
           @uploaded="handleInhouseAvatarUploaded"
         />
-        <Button
-          :disabled="!inhouseAvatarUrl"
-          @click="handleInhouseAvatarReset"
-        >
+        <Button :disabled="!inhouseAvatarUrl" @click="handleInhouseAvatarReset">
           重置
         </Button>
       </div>
@@ -950,10 +955,7 @@ function handlePreviewOpenChange(value: boolean) {
           <Icon icon="carbon:document-import" />
           选择文件
         </Button>
-        <Button
-          :disabled="fileQueue.length === 0"
-          @click="startQueueUpload"
-        >
+        <Button :disabled="fileQueue.length === 0" @click="startQueueUpload">
           <Icon icon="carbon:cloud-upload" />
           开始上传
         </Button>
@@ -978,19 +980,13 @@ function handlePreviewOpenChange(value: boolean) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead
-              v-for="column in largeFileColumns"
-              :key="column.key"
-            >
+            <TableHead v-for="column in largeFileColumns" :key="column.key">
               {{ column.title }}
             </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          <TableRow
-            v-for="record in fileQueue"
-            :key="record.id"
-          >
+          <TableRow v-for="record in fileQueue" :key="record.id">
             <TableCell v-for="column in largeFileColumns" :key="column.key">
               <template v-if="column.key === 'thumbnail'">
                 <div
@@ -1040,7 +1036,9 @@ function handlePreviewOpenChange(value: boolean) {
                       :class="largeFileTableProgressFillClassName"
                     ></div>
                   </div>
-                  <span :class="largeFileTableProgressTextClassName">{{ record.progress }}%</span>
+                  <span :class="largeFileTableProgressTextClassName"
+                    >{{ record.progress }}%</span
+                  >
                 </div>
               </template>
               <template v-else-if="column.key === 'status'">
@@ -1081,7 +1079,8 @@ function handlePreviewOpenChange(value: boolean) {
                     size="sm"
                     class="h-auto px-0 text-destructive hover:text-destructive"
                     :disabled="
-                      record.status !== 'uploading' && record.status !== 'paused'
+                      record.status !== 'uploading' &&
+                      record.status !== 'paused'
                     "
                     @click="handleCancelItem(record)"
                   >

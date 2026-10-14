@@ -21,7 +21,6 @@
   },
   "dependencies": {
     "@antdv/icons": "workspace:*",
-    "@antdv/scrollbar-ui": "workspace:*",
     "@antdv/shadcn-ui": "workspace:*",
     "@antdv/shared": "workspace:*",
     "@vueuse/core": "catalog:",

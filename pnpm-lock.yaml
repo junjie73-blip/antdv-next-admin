@@ -857,9 +857,6 @@ importers:
       '@antdv/layouts':
         specifier: workspace:*
         version: link:../../packages/layouts
-      '@antdv/loading-ui':
-        specifier: workspace:*
-        version: link:../../packages/core/ui-kit/loading-ui
       '@antdv/menu-ui':
         specifier: workspace:*
         version: link:../../packages/core/ui-kit/menu-ui
@@ -872,9 +869,6 @@ importers:
       '@antdv/router':
         specifier: workspace:*
         version: link:../../packages/router
-      '@antdv/scrollbar-ui':
-        specifier: workspace:*
-        version: link:../../packages/core/ui-kit/scrollbar-ui
       '@antdv/shadcn-ui':
         specifier: workspace:*
         version: link:../../packages/core/ui-kit/shadcn-ui
@@ -1690,9 +1684,6 @@ importers:
 
   packages/core/base/icons:
     dependencies:
-      '@antdv/scrollbar-ui':
-        specifier: workspace:*
-        version: link:../../ui-kit/scrollbar-ui
       '@antdv/shadcn-ui':
         specifier: workspace:*
         version: link:../../ui-kit/shadcn-ui
@@ -1934,9 +1925,6 @@ importers:
       '@antdv/icons':
         specifier: workspace:*
         version: link:../../base/icons
-      '@antdv/scrollbar-ui':
-        specifier: workspace:*
-        version: link:../scrollbar-ui
       '@antdv/shadcn-ui':
         specifier: workspace:*
         version: link:../shadcn-ui
@@ -2053,6 +2041,9 @@ importers:
 
   packages/core/ui-kit/layout-ui:
     dependencies:
+      '@antdv/common-ui':
+        specifier: workspace:*
+        version: link:../common-ui
       '@antdv/icons':
         specifier: workspace:*
         version: link:../../base/icons
@@ -2062,9 +2053,6 @@ importers:
       '@antdv/menu-ui':
         specifier: workspace:*
         version: link:../menu-ui
-      '@antdv/scrollbar-ui':
-        specifier: workspace:*
-        version: link:../scrollbar-ui
       '@antdv/shadcn-ui':
         specifier: workspace:*
         version: link:../shadcn-ui
@@ -2109,54 +2097,14 @@ importers:
         specifier: 'catalog:'
         version: 3.3.12(typescript@6.0.3)
 
-  packages/core/ui-kit/loading-ui:
-    dependencies:
-      '@antdv/shadcn-ui':
-        specifier: workspace:*
-        version: link:../shadcn-ui
-      '@antdv/shared':
-        specifier: workspace:*
-        version: link:../../base/shared
-      '@vueuse/core':
-        specifier: 'catalog:'
-        version: 14.4.0(vue@3.5.43(typescript@6.0.3))
-      vue:
-        specifier: 3.5.43
-        version: 3.5.43(typescript@6.0.3)
-    devDependencies:
-      '@antdv/tsconfig':
-        specifier: workspace:*
-        version: link:../../../../internal/tsconfig
-      '@vitejs/plugin-vue':
-        specifier: 'catalog:'
-        version: 6.0.9(vite@8.3.3)(vue@3.5.43(typescript@6.0.3))
-      '@vue/test-utils':
-        specifier: 'catalog:'
-        version: 2.5.1(@vue/compiler-dom@3.5.43)(@vue/server-renderer@3.5.43)(vue@3.5.43(typescript@6.0.3))
-      jsdom:
-        specifier: 'catalog:'
-        version: 27.4.0
-      rimraf:
-        specifier: 'catalog:'
-        version: 6.1.3
-      typescript:
-        specifier: 'catalog:'
-        version: 6.0.3
-      vitest:
-        specifier: 'catalog:'
-        version: 4.1.11(@types/node@26.6.4)(happy-dom@20.14.5)(jsdom@27.4.0)(vite@8.3.3)
-      vue-tsc:
-        specifier: 'catalog:'
-        version: 3.3.12(typescript@6.0.3)
-
   packages/core/ui-kit/menu-ui:
     dependencies:
+      '@antdv/common-ui':
+        specifier: workspace:*
+        version: link:../common-ui
       '@antdv/icons':
         specifier: workspace:*
         version: link:../../base/icons
-      '@antdv/scrollbar-ui':
-        specifier: workspace:*
-        version: link:../scrollbar-ui
       '@antdv/shadcn-ui':
         specifier: workspace:*
         version: link:../shadcn-ui
@@ -2237,49 +2185,6 @@ importers:
       '@antdv/design':
         specifier: workspace:*
         version: link:../../base/design
-      '@antdv/tsconfig':
-        specifier: workspace:*
-        version: link:../../../../internal/tsconfig
-      '@vitejs/plugin-vue':
-        specifier: 'catalog:'
-        version: 6.0.9(vite@8.3.3)(vue@3.5.43(typescript@6.0.3))
-      '@vue/test-utils':
-        specifier: 'catalog:'
-        version: 2.5.1(@vue/compiler-dom@3.5.43)(@vue/server-renderer@3.5.43)(vue@3.5.43(typescript@6.0.3))
-      jsdom:
-        specifier: 'catalog:'
-        version: 27.4.0
-      rimraf:
-        specifier: 'catalog:'
-        version: 6.1.3
-      typescript:
-        specifier: 'catalog:'
-        version: 6.0.3
-      vitest:
-        specifier: 'catalog:'
-        version: 4.1.11(@types/node@26.6.4)(happy-dom@20.14.5)(jsdom@27.4.0)(vite@8.3.3)
-      vue-tsc:
-        specifier: 'catalog:'
-        version: 3.3.12(typescript@6.0.3)
-
-  packages/core/ui-kit/scrollbar-ui:
-    dependencies:
-      '@antdv/shadcn-ui':
-        specifier: workspace:*
-        version: link:../shadcn-ui
-      '@antdv/shared':
-        specifier: workspace:*
-        version: link:../../base/shared
-      '@vueuse/core':
-        specifier: 'catalog:'
-        version: 14.4.0(vue@3.5.43(typescript@6.0.3))
-      es-toolkit:
-        specifier: 'catalog:'
-        version: 1.52.0
-      vue:
-        specifier: 3.5.43
-        version: 3.5.43(typescript@6.0.3)
-    devDependencies:
       '@antdv/tsconfig':
         specifier: workspace:*
         version: link:../../../../internal/tsconfig
@@ -2450,12 +2355,12 @@ importers:
 
   packages/core/ui-kit/tabs-ui:
     dependencies:
+      '@antdv/common-ui':
+        specifier: workspace:*
+        version: link:../common-ui
       '@antdv/icons':
         specifier: workspace:*
         version: link:../../base/icons
-      '@antdv/scrollbar-ui':
-        specifier: workspace:*
-        version: link:../scrollbar-ui
       '@antdv/shadcn-ui':
         specifier: workspace:*
         version: link:../shadcn-ui

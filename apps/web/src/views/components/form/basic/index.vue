@@ -3,10 +3,10 @@ import type { FormSchema } from '@antdv/form-ui';
 
 import { ref } from 'vue';
 
-import { Card } from '@antdv/common-ui';
+import { Card, Scrollbar } from '@antdv/common-ui';
 import { BasicForm, useForm } from '@antdv/form-ui';
 import { Button } from '@antdv/shadcn-ui';
-import { Scrollbar } from '@antdv/scrollbar-ui';
+
 import { cn } from '@antdv/shared/cn';
 
 const containerClassName = cn('space-y-6');

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-import { Scrollbar } from '@antdv/scrollbar-ui';
+import { Alert, Card, Divider, Scrollbar, Space, Tag } from '@antdv/common-ui';
 import { cn } from '@antdv/shared/cn';
-import { Alert, Card, Divider, Space, Tag } from '@antdv/common-ui';
+
 import {
   BasicDrawer,
   BasicModal,
@@ -283,7 +283,10 @@ function handleDiscard() {
 <template>
   <div :class="containerClassName">
     <!-- 1 -->
-    <Card title="基础弹窗（BasicModal + useModal + useModalInner）" variant="borderless">
+    <Card
+      title="基础弹窗（BasicModal + useModal + useModalInner）"
+      variant="borderless"
+    >
       <div class="space-y-4">
         <Space wrap>
           <Button @click="handleOpenFormModal">
@@ -357,13 +360,13 @@ function handleDiscard() {
         <p class="text-xs text-gray-400">
           两条实测结论，抄代码前先看：1）
           <code>setModalProps</code> / <code>setDrawerProps</code> 不去写
-          <code>defineProps</code> 交出来的只读 props，而是把覆盖值并进组件内部的
+          <code>defineProps</code> 交出来的只读
+          props，而是把覆盖值并进组件内部的
           <code>propOverrides</code>，渲染统一读
           <code>merged</code>，所以标题、按钮文案、宽度都能当场翻正；2）页面级
-          <code>useModal</code> 只回传
-          <code>openModal</code> / <code>closeModal</code> /
-          <code>setModalProps</code> / <code>getVisible</code>
-          四个方法，<code>changeOkLoading</code> /
+          <code>useModal</code> 只回传 <code>openModal</code> /
+          <code>closeModal</code> / <code>setModalProps</code> /
+          <code>getVisible</code> 四个方法，<code>changeOkLoading</code> /
           <code>changeLoading</code> 要在弹窗内用
           <code>useModalInner</code> 才拿得到 —— BasicModal 的
           <code>register</code> 事件发的正是含这两个方法的
@@ -467,7 +470,10 @@ function handleDiscard() {
     </BasicModal>
 
     <!-- 3 -->
-    <Card title="抽屉基础与位置（左 / 右 / 底 + footer 插槽）" variant="borderless">
+    <Card
+      title="抽屉基础与位置（左 / 右 / 底 + footer 插槽）"
+      variant="borderless"
+    >
       <div class="space-y-4">
         <Space wrap>
           <Button @click="openLeftDrawer(true)"> 左侧抽屉 :width="360" </Button>
@@ -587,9 +593,7 @@ function handleDiscard() {
         <div
           class="flex justify-end gap-3 border-t border-gray-200 px-4 py-3 dark:border-gray-700"
         >
-          <Button variant="outline" @click="closeBottomDrawer()">
-            关闭
-          </Button>
+          <Button variant="outline" @click="closeBottomDrawer()"> 关闭 </Button>
           <Button @click="handleApplyBottom"> 应用 </Button>
         </div>
       </template>
@@ -657,8 +661,8 @@ function handleDiscard() {
             :key="n"
             class="mb-3 text-sm text-gray-600 dark:text-gray-400"
           >
-            附加条款 {{ n }}：滚动条样式由 @antdv/scrollbar-ui 的 Scrollbar 自绘， native
-            属性可切回浏览器默认滚动条。
+            附加条款 {{ n }}：滚动条样式由 @antdv/scrollbar-ui 的 Scrollbar
+            自绘， native 属性可切回浏览器默认滚动条。
           </p>
         </Scrollbar>
         <label class="mt-2 flex cursor-pointer items-center gap-2">
@@ -675,7 +679,10 @@ function handleDiscard() {
     </BasicDrawer>
 
     <!-- 5 -->
-    <Card title="嵌套与关闭拦截（closeFunc + 抽屉上叠弹窗）" variant="borderless">
+    <Card
+      title="嵌套与关闭拦截（closeFunc + 抽屉上叠弹窗）"
+      variant="borderless"
+    >
       <div class="space-y-4">
         <Space wrap>
           <Button @click="openNestDrawer(true)"> 打开可编辑抽屉 </Button>
@@ -688,7 +695,8 @@ function handleDiscard() {
           抽屉里改几个字，再分别用
           X、蒙层、ESC、底部「关闭」去关：四种路径最后都会调用
           <code>closeDrawer()</code>，而 BasicDrawer 的
-          <code>closeFunc</code>（<code>: () =&gt; Promise&lt;boolean&gt;</code>）被 await 且返回 false 时不关闭 ——
+          <code>closeFunc</code>（<code>: () =&gt; Promise&lt;boolean&gt;</code
+          >）被 await 且返回 false 时不关闭 ——
           这是组件自带的钩子，不需要自己接按钮。 拦截后弹出的确认框用
           <code>:z-index="1100"</code> 压在抽屉（默认
           1000）之上；点「放弃修改」会先把内容改回已保存值，关闭请求自然放行。

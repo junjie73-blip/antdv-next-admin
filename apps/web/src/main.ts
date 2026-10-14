@@ -5,7 +5,7 @@ import VuePdfEmbed, {
 import 'vue-pdf-embed/dist/styles/annotationLayer.css';
 import 'vue-pdf-embed/dist/styles/textLayer.css';
 
-import { vLoading } from '@antdv/loading-ui';
+import { vLoading } from '@antdv/common-ui';
 import FcDesigner from '@form-create/antd-designer';
 import formCreate from '@form-create/antdv-next';
 import install from '@form-create/antdv-next/auto-import';

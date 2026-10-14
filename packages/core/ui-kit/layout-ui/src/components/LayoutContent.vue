@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { ScrollbarType } from '@antdv/scrollbar-ui';
+import type { ScrollbarType } from '@antdv/common-ui';
 
 import type { LayoutContentStyle, LayoutTone } from '../types';
 
 import { computed, useTemplateRef } from 'vue';
 
-import { Scrollbar } from '@antdv/scrollbar-ui';
+import { Scrollbar } from '@antdv/common-ui';
 
 import { useLayoutStyle } from '../useLayoutStyle';
 

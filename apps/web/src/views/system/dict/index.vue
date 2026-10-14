@@ -4,8 +4,8 @@ import type { BasicColumn } from '@antdv/table-ui';
 
 import { computed, ref } from 'vue';
 
-import { Divider, Popconfirm, Tag } from '@antdv/common-ui';
-import { Scrollbar } from '@antdv/scrollbar-ui';
+import { Divider, Popconfirm, Scrollbar, Tag } from '@antdv/common-ui';
+
 import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
 import { exportToExcel } from '@antdv/shared/excel';

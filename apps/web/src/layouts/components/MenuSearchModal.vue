@@ -9,7 +9,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@antdv/shadcn-ui';
-import { Scrollbar } from '@antdv/scrollbar-ui';
+import { Scrollbar } from '@antdv/common-ui';
 import { Icon } from '@iconify/vue';
 
 import { flattenMenus, matchEntries } from '../composables/useMenuSearch';
@@ -128,10 +128,7 @@ const itemClassName =
         <div
           class="flex items-center gap-2 border-b border-gray-100 pb-3 dark:border-gray-800"
         >
-          <Icon
-            class="shrink-0 text-base text-gray-400"
-            icon="carbon:search"
-          />
+          <Icon class="shrink-0 text-base text-gray-400" icon="carbon:search" />
           <input
             ref="inputRef"
             v-model="keyword"

@@ -100,7 +100,9 @@ export function createOverlay(options: OverlayOptions = {}): OverlayInstance {
 
     const container = resolveContainer();
     if (!container) {
-      console.warn('[@antdv/loading-ui] loading: target 容器不存在，覆盖层未挂载');
+      console.warn(
+        '[@antdv/common-ui] Loading: target 容器不存在，覆盖层未挂载',
+      );
       return;
     }
 

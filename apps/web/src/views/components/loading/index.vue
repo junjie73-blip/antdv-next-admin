@@ -5,14 +5,17 @@ import { h, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue';
 
 import {
   Card,
+  createLoading,
   EmptyState,
   ErrorBoundary,
+  Loading,
   PageSkeleton,
   Space,
   StatusTag,
   TableSkeleton,
+  useLoading,
 } from '@antdv/common-ui';
-import { createLoading, Loading, useLoading } from '@antdv/loading-ui';
+
 import {
   Button,
   Checkbox,
@@ -486,11 +489,15 @@ function triggerGlobalLoading() {
               :model-value="pageSkeletonLoading"
               @update:model-value="(v: any) => togglePageSkeleton(v === true)"
             />
-            <span class="text-sm">{{ pageSkeletonLoading ? '加载中' : '已完成' }}</span>
+            <span class="text-sm">{{
+              pageSkeletonLoading ? '加载中' : '已完成'
+            }}</span>
             <RadioGroup
               :model-value="skeletonVariant"
               :class="radioGroupClassName"
-              @update:model-value="(v: any) => (skeletonVariant = v as SkeletonVariant)"
+              @update:model-value="
+                (v: any) => (skeletonVariant = v as SkeletonVariant)
+              "
             >
               <label :class="radioOptionClassName">
                 <RadioGroupItem value="page" class="sr-only" />
@@ -551,7 +558,8 @@ function triggerGlobalLoading() {
                   <span :class="hintClassName">{{ row.label }}</span>
                   <span
                     class="font-mono text-sm text-gray-900 dark:text-gray-100"
-                    >{{ row.value }}</span>
+                    >{{ row.value }}</span
+                  >
                 </div>
               </div>
             </PageSkeleton>
@@ -563,9 +571,7 @@ function triggerGlobalLoading() {
             表格骨架屏（列数/行数/表头/操作列/分页都可关）
           </h4>
           <div class="mb-3 flex flex-wrap items-center gap-3">
-            <Button @click="reloadTableSkeleton">
-              重新加载表格
-            </Button>
+            <Button @click="reloadTableSkeleton"> 重新加载表格 </Button>
             <span :class="hintClassName">
               真实项目里把它放进
               <code :class="codeClassName">&lt;BasicTable&gt;</code>
@@ -637,9 +643,7 @@ function triggerGlobalLoading() {
                 description="换个时间范围或状态再试一次"
                 icon="ant-design:filter-outlined"
               >
-                <Button class="mt-4" @click="addNotice">
-                  新建一条公告
-                </Button>
+                <Button class="mt-4" @click="addNotice"> 新建一条公告 </Button>
               </EmptyState>
             </div>
           </div>
@@ -700,9 +704,11 @@ function triggerGlobalLoading() {
             <code :class="codeClassName">onErrorCaptured</code>
             收子组件 setup / render / 生命周期钩子 / watcher
             阶段的异常，命中就换成兜底 UI，并向外
-            <code :class="codeClassName">emit('error')</code>。兜底里的「重试」调
+            <code :class="codeClassName">emit('error')</code
+            >。兜底里的「重试」调
             <code :class="codeClassName">resetError()</code> 后会 emit
-            <code :class="codeClassName">reset</code>，页面在这个回调里关掉抛错开关，
+            <code :class="codeClassName">reset</code
+            >，页面在这个回调里关掉抛错开关，
             所以重试是真的恢复到内容，而不是原地再崩一次。
           </p>
           <div class="mb-3 flex flex-wrap items-center gap-4">
@@ -715,7 +721,9 @@ function triggerGlobalLoading() {
               模拟一次崩溃
             </Button>
             <Button variant="outline" @click="healChild">恢复子组件</Button>
-            <span :class="hintClassName">已重试 {{ boundaryResetCount }} 次</span>
+            <span :class="hintClassName"
+              >已重试 {{ boundaryResetCount }} 次</span
+            >
           </div>
           <p :class="cn(hintClassName, 'mb-3 break-all')">
             最近捕获：{{ lastBoundaryError }}
@@ -737,7 +745,8 @@ function triggerGlobalLoading() {
             <code :class="codeClassName">fallback</code> 是个渲染函数
             <code :class="codeClassName">(error, reset) =&gt; VNode</code>
             ，业务想换成品牌化的报错卡、或带「上报工单」按钮时用这一档；出口必须保留
-            <code :class="codeClassName">reset</code>，否则用户就被困死在兜底页。
+            <code :class="codeClassName">reset</code
+            >，否则用户就被困死在兜底页。
           </p>
           <div class="mb-3 flex flex-wrap items-center gap-3">
             <Button
@@ -798,7 +807,8 @@ function triggerGlobalLoading() {
                     <StatusTag :status="row.status" />
                     <span
                       :class="cn(hintClassName, 'ml-2 font-mono text-xs')"
-                    >{{ row.status }}</span>
+                      >{{ row.status }}</span
+                    >
                   </template>
                   <template v-else>{{ row[col.dataIndex] }}</template>
                 </TableCell>
@@ -826,9 +836,7 @@ function triggerGlobalLoading() {
         <div>
           <h4 :class="sectionTitleClassName">换一个原始值看映射结果</h4>
           <div class="flex flex-wrap items-center gap-4">
-            <Select
-              v-model="rawStatus"
-            >
+            <Select v-model="rawStatus">
               <SelectTrigger class="w-[220px]">
                 <SelectValue placeholder="选择状态" />
               </SelectTrigger>
@@ -1047,8 +1055,12 @@ function triggerGlobalLoading() {
           </div>
           <div class="mt-4 max-w-md rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
             <div class="w-full space-y-2">
-              <Skeleton :class="cn('h-4 w-full', !skeletonActive && 'animate-none')" />
-              <Skeleton :class="cn('h-4 w-4/5', !skeletonActive && 'animate-none')" />
+              <Skeleton
+                :class="cn('h-4 w-full', !skeletonActive && 'animate-none')"
+              />
+              <Skeleton
+                :class="cn('h-4 w-4/5', !skeletonActive && 'animate-none')"
+              />
             </div>
           </div>
         </div>
@@ -1064,7 +1076,9 @@ function triggerGlobalLoading() {
         </p>
 
         <div class="flex items-center gap-4">
-          <span class="text-sm font-medium text-gray-600 dark:text-gray-400">尺寸：</span>
+          <span class="text-sm font-medium text-gray-600 dark:text-gray-400"
+            >尺寸：</span
+          >
           <RadioGroup
             :model-value="componentSize"
             :class="radioGroupClassName"
@@ -1088,7 +1102,9 @@ function triggerGlobalLoading() {
         </div>
 
         <div class="flex items-center gap-4">
-          <span class="text-sm font-medium text-gray-600 dark:text-gray-400">主题：</span>
+          <span class="text-sm font-medium text-gray-600 dark:text-gray-400"
+            >主题：</span
+          >
           <RadioGroup
             :model-value="componentTheme"
             :class="radioGroupClassName"
@@ -1115,7 +1131,10 @@ function triggerGlobalLoading() {
               <p :class="cn('mb-4 text-sm', hintClassName)">
                 这是一个容器内 Loading 演示区域
               </p>
-              <Button :disabled="componentLoading" @click="triggerComponentLoading">
+              <Button
+                :disabled="componentLoading"
+                @click="triggerComponentLoading"
+              >
                 <Icon
                   v-if="componentLoading"
                   class="animate-spin"
@@ -1164,7 +1183,9 @@ function triggerGlobalLoading() {
                     (v: any) => togglePageLoading(v === true)
                   "
                 />
-                <span class="text-sm">{{ pageLoadingVisible ? '占位中' : '空闲' }}</span>
+                <span class="text-sm">{{
+                  pageLoadingVisible ? '占位中' : '空闲'
+                }}</span>
               </div>
             </div>
             <PageLoading
@@ -1226,7 +1247,11 @@ function triggerGlobalLoading() {
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-4">
-          <Button variant="outline" :disabled="directiveLoading" @click="flashDirective('plain')">
+          <Button
+            variant="outline"
+            :disabled="directiveLoading"
+            @click="flashDirective('plain')"
+          >
             <Icon
               v-if="directiveLoading"
               class="animate-spin"
@@ -1234,7 +1259,10 @@ function triggerGlobalLoading() {
             />
             加载左块
           </Button>
-          <Button :disabled="directiveDarkLoading" @click="flashDirective('dark')">
+          <Button
+            :disabled="directiveDarkLoading"
+            @click="flashDirective('dark')"
+          >
             <Icon
               v-if="directiveDarkLoading"
               class="animate-spin"
@@ -1341,9 +1369,7 @@ hookLoading.setTip('新提示文字') // 修改提示</pre>
             />
             虚线按钮
           </Button>
-          <Button variant="outline" disabled>
-            禁用按钮
-          </Button>
+          <Button variant="outline" disabled> 禁用按钮 </Button>
         </div>
 
         <div class="flex flex-wrap gap-4">

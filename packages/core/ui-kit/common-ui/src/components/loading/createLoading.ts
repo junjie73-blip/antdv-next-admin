@@ -8,7 +8,7 @@ import { useLoading } from './useLoading';
  *
  * @example
  * // 在路由守卫中使用
- * import { createLoading } from '@antdv/loading-ui'
+ * import { createLoading } from '@antdv/common-ui'
  *
  * const loading = createLoading({
  *   tip: '页面初始化...',

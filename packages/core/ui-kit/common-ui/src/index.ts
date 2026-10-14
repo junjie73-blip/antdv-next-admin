@@ -14,7 +14,10 @@ export type {
   CronField,
   CronPreset,
 } from './components/cron-editor';
-export { Description, DESCRIPTION_DICT_RESOLVER } from './components/description';
+export {
+  Description,
+  DESCRIPTION_DICT_RESOLVER,
+} from './components/description';
 export type { DictResolver } from './components/description';
 export type {
   DescriptionInstance,
@@ -29,8 +32,31 @@ export { Empty } from './components/empty';
 export { EmptyState } from './components/empty-state';
 export { ErrorBoundary } from './components/error-boundary';
 export { Image } from './components/image';
+export {
+  createContainerLoading,
+  createFullscreenLoading,
+  createLoading,
+  Loading,
+  useLoading,
+  vLoading,
+} from './components/loading';
+export type {
+  CreateLoadingOptions,
+  LoadingDirectiveBinding,
+  LoadingInstance,
+  LoadingProps,
+  LoadingSize,
+  LoadingTheme,
+  UseLoadingOptions,
+} from './components/loading';
 export { Popconfirm } from './components/popconfirm';
 export { Result } from './components/result';
+export { Scrollbar } from './components/scrollbar';
+export type {
+  ScrollbarProps,
+  ScrollbarStyle,
+  ScrollbarType,
+} from './components/scrollbar';
 export { Segmented } from './components/segmented';
 export { PageSkeleton, TableSkeleton } from './components/skeleton';
 export { Space } from './components/space';

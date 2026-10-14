@@ -6,9 +6,9 @@ import type {
 
 import { computed, onUnmounted, reactive, ref, watch } from 'vue';
 
-import { Card } from '@antdv/common-ui';
+import { Card, Scrollbar } from '@antdv/common-ui';
 import { createPermissionDirective } from '@antdv/directives';
-import { Scrollbar } from '@antdv/scrollbar-ui';
+
 import { Button, Checkbox, Spinner } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/cn';
 import audioUrl from '~/assets/images/audio.jpg';
@@ -254,8 +254,10 @@ const strictSafeHtml = {
     <Card title="v-permission 权限指令" variant="borderless">
       <p :class="hintClassName">
         全局那条的判定来自
-        <code :class="codeClassName">usePermission()</code>（也就是当前登录用户的权限表）。 本页改用本地实例
-        <code :class="codeClassName">v-demo-permission</code>，勾选左边的权限就能看到隐藏 / 置灰 / 任一命中 /
+        <code :class="codeClassName">usePermission()</code
+        >（也就是当前登录用户的权限表）。 本页改用本地实例
+        <code :class="codeClassName">v-demo-permission</code
+        >，勾选左边的权限就能看到隐藏 / 置灰 / 任一命中 /
         全部命中四种行为，不会真的改动当前账号。
       </p>
 

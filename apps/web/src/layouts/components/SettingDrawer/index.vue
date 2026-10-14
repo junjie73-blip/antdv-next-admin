@@ -4,9 +4,9 @@ import type { SettingSection } from './constants';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import { Segmented } from '@antdv/common-ui';
+import { Scrollbar, Segmented } from '@antdv/common-ui';
 import { BasicDrawer } from '@antdv/popup-ui';
-import { Scrollbar } from '@antdv/scrollbar-ui';
+
 import { SheetTitle } from '@antdv/shadcn-ui';
 import { Icon } from '@iconify/vue';
 import { projectConfig } from '~/config/project';

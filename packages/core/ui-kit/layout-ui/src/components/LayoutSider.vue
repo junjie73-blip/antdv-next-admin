@@ -6,7 +6,7 @@ import type { LayoutSiderConfig } from '../types';
 import { computed } from 'vue';
 
 import { IconifyIcon as Icon } from '@antdv/icons/icon';
-import { Scrollbar } from '@antdv/scrollbar-ui';
+import { Scrollbar } from '@antdv/common-ui';
 import {
   LAYOUT_DRAWER_WIDTH,
   LAYOUT_HEADER_ROW_STYLE,
@@ -72,7 +72,9 @@ const siderWidth = computed(() => {
 
 /** 折叠入口的文案要说明"点了会变成什么"，而不是"现在是什么状态" */
 const collapseLabel = computed(() =>
-  layoutRuntime.t(collapsed.value ? 'header.expandMenu' : 'header.collapseMenu'),
+  layoutRuntime.t(
+    collapsed.value ? 'header.expandMenu' : 'header.collapseMenu',
+  ),
 );
 </script>
 
@@ -95,13 +97,33 @@ const collapseLabel = computed(() =>
       :style="LAYOUT_HEADER_ROW_STYLE"
     >
       <transition name="logo-fade" mode="out-in">
-        <div v-if="collapsed" key="collapsed" class="flex items-center justify-center">
-          <img v-if="props.logo" :src="props.logo" :alt="props.title ?? ''" class="h-8 w-8 object-contain" />
+        <div
+          v-if="collapsed"
+          key="collapsed"
+          class="flex items-center justify-center"
+        >
+          <img
+            v-if="props.logo"
+            :src="props.logo"
+            :alt="props.title ?? ''"
+            class="h-8 w-8 object-contain"
+          />
           <Icon v-else icon="carbon:cube" class="text-2xl" />
         </div>
-        <div v-else key="expanded" class="flex items-center justify-center gap-2.5 px-4">
-          <img v-if="props.logo" :src="props.logo" :alt="props.title ?? ''" class="h-8 w-8 object-contain" />
-          <span class="truncate text-base font-semibold text-gray-800 dark:text-white">
+        <div
+          v-else
+          key="expanded"
+          class="flex items-center justify-center gap-2.5 px-4"
+        >
+          <img
+            v-if="props.logo"
+            :src="props.logo"
+            :alt="props.title ?? ''"
+            class="h-8 w-8 object-contain"
+          />
+          <span
+            class="truncate text-base font-semibold text-gray-800 dark:text-white"
+          >
             {{ props.title }}
           </span>
         </div>
@@ -109,7 +131,10 @@ const collapseLabel = computed(() =>
     </div>
 
     <!-- 菜单区的滚动容器：`min-h-0 flex-1` 让它拿满 Logo 之外的剩余高度 -->
-    <Scrollbar root-class="min-h-0 flex-1 px-2 py-3" wrap-class="overflow-x-hidden">
+    <Scrollbar
+      root-class="min-h-0 flex-1 px-2 py-3"
+      wrap-class="overflow-x-hidden"
+    >
       <BasicMenu
         v-if="props.menus.length > 0"
         mode="inline"

@@ -7,6 +7,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     include: ['__tests__/**/*.test.ts'],
+    setupFiles: ['./vitest.setup.ts'],
     name: 'common-ui',
   },
 });

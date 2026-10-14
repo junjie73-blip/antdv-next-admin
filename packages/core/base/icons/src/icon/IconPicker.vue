@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
-import { Scrollbar } from '@antdv/scrollbar-ui';
 import {
   Empty,
   EmptyDescription,
@@ -9,6 +8,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
+  ScrollArea,
   Select,
   SelectContent,
   SelectItem,
@@ -204,7 +204,10 @@ function handleClear(e: MouseEvent) {
 }
 
 function stepPage(delta: number) {
-  const next = Math.min(totalPages.value, Math.max(1, currentPage.value + delta));
+  const next = Math.min(
+    totalPages.value,
+    Math.max(1, currentPage.value + delta),
+  );
   currentPage.value = next;
 }
 
@@ -308,14 +311,17 @@ const prefixOptions = COLLECTIONS.map((c) => ({
       </div>
 
       <!--
-        图标网格：固定高度，滚动交给 @antdv/scrollbar-ui（全站不留系统滚动条）。
-        `min-h-full` 让"加载中/空态"仍然垂直居中，同时不限制网格把内容撑高。
+        图标网格：固定高度，滚动直接用 shadcn 的 ScrollArea（本包只引 shadcn-ui 原语，
+        不反向依赖 common-ui，否则 icons ↔ common-ui 会成环）。
+        `[&>div]:min-h-full` 补的是 reka 插在 viewport 与 slot 之间那层没有高度的
+        content div —— 没有它，"加载中"的 h-full 量不到高度，垂直居中就没了。
       -->
       <div class="pr-1" :style="{ height: `${SCROLLER_HEIGHT}px` }">
-        <Scrollbar
-          root-class="h-full"
-          wrap-class="overflow-x-hidden"
-          view-class="min-h-full"
+        <ScrollArea
+          class="h-full"
+          scrollbar-class="p-0 data-[orientation=horizontal]:h-1.5 data-[orientation=vertical]:w-1.5"
+          thumb-class="bg-muted-foreground/60 transition-colors hover:bg-muted-foreground/80"
+          viewport-class="overflow-x-hidden [&>div]:min-h-full"
         >
           <div
             v-if="loading"
@@ -358,7 +364,7 @@ const prefixOptions = COLLECTIONS.map((c) => ({
               </Tooltip>
             </div>
           </TooltipProvider>
-        </Scrollbar>
+        </ScrollArea>
       </div>
 
       <!-- 底部分页：仅超过一页时显示 -->
@@ -366,7 +372,9 @@ const prefixOptions = COLLECTIONS.map((c) => ({
         v-if="totalCount > PAGE_SIZE"
         class="border-input mt-3 flex items-center justify-between border-t pt-3"
       >
-        <span class="text-muted-foreground text-xs">{{ totalCount }} 个图标</span>
+        <span class="text-muted-foreground text-xs"
+          >{{ totalCount }} 个图标</span
+        >
         <div class="flex items-center gap-1">
           <button
             type="button"

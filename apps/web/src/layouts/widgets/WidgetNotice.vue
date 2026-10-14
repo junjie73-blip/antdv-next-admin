@@ -5,7 +5,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
-import { Badge } from '@antdv/common-ui';
+import { Badge, Scrollbar } from '@antdv/common-ui';
 import { message } from '@antdv/popup-ui';
 import {
   Popover,
@@ -13,7 +13,7 @@ import {
   PopoverTrigger,
   Spinner,
 } from '@antdv/shadcn-ui';
-import { Scrollbar } from '@antdv/scrollbar-ui';
+
 import { Icon } from '@iconify/vue';
 import { getNoticeList, markAllNoticeRead, markNoticeRead } from '~/api/system';
 import { useWebSocket } from '~/utils/ws';

@@ -3,11 +3,14 @@ import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { createContainerLoading, createLoading } from '../src/createLoading';
-import Loading from '../src/Loading.vue';
-import loadingDirective from '../src/directive';
-import { LEAVE_DURATION } from '../src/overlay';
-import { useLoading } from '../src/useLoading';
+import {
+  createContainerLoading,
+  createLoading,
+} from '../src/components/loading/createLoading';
+import Loading from '../src/components/loading/Loading.vue';
+import loadingDirective from '../src/components/loading/directive';
+import { LEAVE_DURATION } from '../src/components/loading/overlay';
+import { useLoading } from '../src/components/loading/useLoading';
 
 /**
  * `overlay.ts` 用 `createApp` 往真实 DOM 里插节点，测试必须自己收尾，
@@ -213,7 +216,9 @@ describe('v-loading 指令', () => {
 
     await wrapper.setProps({ value: false });
     await settleLeave();
-    expect(document.body.querySelector('.loading-directive-wrapper')).toBeNull();
+    expect(
+      document.body.querySelector('.loading-directive-wrapper'),
+    ).toBeNull();
     wrapper.unmount();
   });
 

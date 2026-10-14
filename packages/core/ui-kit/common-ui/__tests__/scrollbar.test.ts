@@ -3,7 +3,7 @@ import { nextTick } from 'vue';
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import Scrollbar from '../src/Scrollbar.vue';
+import Scrollbar from '../src/components/scrollbar/Scrollbar.vue';
 
 const VIEWPORT = '[data-reka-scroll-area-viewport]';
 const BAR = '[data-slot="scroll-area-scrollbar"]';
@@ -41,12 +41,12 @@ describe('渲染模式', () => {
   it('always 时两条轨道常驻，hover 模式下不渲染', async () => {
     const always = await mountScrollbar({ always: true });
     expect(always.findAll(BAR)).toHaveLength(2);
-    expect(
-      always.find(`${BAR}[data-orientation="vertical"]`).exists(),
-    ).toBe(true);
-    expect(
-      always.find(`${BAR}[data-orientation="horizontal"]`).exists(),
-    ).toBe(true);
+    expect(always.find(`${BAR}[data-orientation="vertical"]`).exists()).toBe(
+      true,
+    );
+    expect(always.find(`${BAR}[data-orientation="horizontal"]`).exists()).toBe(
+      true,
+    );
 
     const hover = await mountScrollbar({ always: false });
     expect(hover.find(BAR).exists()).toBe(false);

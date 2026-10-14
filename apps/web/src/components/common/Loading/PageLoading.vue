@@ -52,7 +52,7 @@ const containerClassName = computed(() =>
       aria-live="polite"
       :aria-label="text"
     >
-      <!-- ⭐ 旋转指示器：与 antdv Spin size="large" 语义对等（@antdv/loading-ui 内部同款 Spinner，large 档 = size-9） -->
+      <!-- ⭐ 旋转指示器：与 antdv Spin size="large" 语义对等（@antdv/common-ui 内部同款 Spinner，large 档 = size-9） -->
       <Spinner class="size-9" />
 
       <!-- 提示文本 -->

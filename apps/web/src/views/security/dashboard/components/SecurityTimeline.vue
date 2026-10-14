@@ -10,12 +10,13 @@ import { computed, onMounted, ref } from 'vue';
 import {
   Badge,
   Empty,
+  Loading,
+  Scrollbar,
   Tag,
   Timeline,
   TimelineItem,
 } from '@antdv/common-ui';
-import { Loading } from '@antdv/loading-ui';
-import { Scrollbar } from '@antdv/scrollbar-ui';
+
 import { cn } from '@antdv/shared/cn';
 import { Icon } from '@iconify/vue';
 import dayjs from 'dayjs';
@@ -266,17 +267,15 @@ onMounted(async () => {
                 <div class="mb-1 flex flex-wrap items-center gap-2">
                   <span
                     class="text-sm font-medium text-gray-800 dark:text-gray-200"
-                    >{{ event.title }}</span>
+                    >{{ event.title }}</span
+                  >
                   <Tag
                     :color="getLevelTagColor(event.level)"
                     class="text-[10px]"
                   >
                     {{ getLevelLabel(event.level) }}
                   </Tag>
-                  <Tag
-                    :color="getTypeTagColor(event.type)"
-                    class="text-[10px]"
-                  >
+                  <Tag :color="getTypeTagColor(event.type)" class="text-[10px]">
                     {{ typeOptions.find((t) => t.value === event.type)?.label }}
                   </Tag>
                   <Tag

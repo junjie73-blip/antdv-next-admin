@@ -18,17 +18,17 @@ import { go, signIn, watchErrors } from './utils/app';
  *    只有真点一次分类切换才会发出那次请求；
  * 2. 面板渲染在 `PopoverPortal`（body 下），不在卡片 DOM 里，
  *    作用域写错就会"看不见面板"，是重写最容易踩的坑；
- * 3. 网格固定高度 + `@antdv/scrollbar-ui` 自绘滚动条，滚动条属于组件不带系统滚动条。
+ * 3. 网格固定高度 + shadcn ScrollArea 自绘滚动条，滚动条属于组件不带系统滚动条。
  */
 
 const ICON_PICKER = '/components/icon-picker';
 /** 与 `IconPicker.vue` 的 `PAGE_SIZE` 一致：一页 108 个格子 */
 const PAGE_SIZE = 108;
 
-/** 按卡片标题取示例块（页面用 `a-card` 分节，标题唯一） */
+/** 按卡片标题取示例块（页面用 `@antdv/common-ui` 的 Card 分节，标题唯一） */
 function card(page: Page, title: string): Locator {
   return page
-    .locator('.ant-card')
+    .locator('[data-slot="card"]')
     .filter({ has: page.getByText(title, { exact: true }) });
 }
 
@@ -149,7 +149,9 @@ test.describe('IconPicker（shadcn-ui 重写）', () => {
     await triggerButton.locator('[class*="hover:text-foreground"]').click();
     await expect(basic.getByText('已选：(无)')).toBeVisible();
     await expect(triggerButton.locator('[data-picker-value]')).toHaveCount(0);
-    await expect(page.locator('[data-sonner-toaster]')).toContainText(/已选择图标：\(/);
+    await expect(page.locator('[data-sonner-toaster]')).toContainText(
+      /已选择图标：\(/,
+    );
 
     expect(errors.errors).toEqual([]);
     errors.stop();
@@ -174,7 +176,7 @@ test.describe('IconPicker（shadcn-ui 重写）', () => {
     errors.stop();
   });
 
-  test('面板用同包的自绘 Scrollbar，不留系统滚动条', async ({ page }) => {
+  test('面板用 shadcn ScrollArea，不留系统滚动条', async ({ page }) => {
     const errors = watchErrors(page);
     await go(page, ICON_PICKER);
 
@@ -184,11 +186,12 @@ test.describe('IconPicker（shadcn-ui 重写）', () => {
     await expect(cells(box)).toHaveCount(PAGE_SIZE);
 
     /**
-     * 面板高度是组件里写死的 `SCROLLER_HEIGHT`，滚动交给 `@antdv/scrollbar-ui`：
+     * 面板高度是组件里写死的 `SCROLLER_HEIGHT`，滚动直接走 shadcn 的 ScrollArea
+     * （icons 包不引 common-ui）：
      * 滚动元素带 `data-reka-scroll-area-viewport` 就是"原生条已被摘掉"的证据
      * （reka 给 viewport 注入了隐藏原生条的样式），也就是没有第二个"看得见但点不到"的系统滚动条。
      */
-    const wrap = box.locator('.scrollbar__wrap');
+    const wrap = box.locator('[data-slot="scroll-area-viewport"]');
     await expect(wrap).toHaveAttribute('data-reka-scroll-area-viewport', '');
     await expect(wrap).toHaveCSS('overflow-y', 'scroll');
 

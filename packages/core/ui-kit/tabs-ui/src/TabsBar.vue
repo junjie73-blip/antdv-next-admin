@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ScrollbarType } from '@antdv/scrollbar-ui';
+import type { ScrollbarType } from '@antdv/common-ui';
 import type {
   TabContextMenuPayload,
   TabItem,
@@ -12,7 +12,7 @@ import type { TabActionContext } from './types';
 import { computed, ref, useTemplateRef, watch } from 'vue';
 
 import { IconifyIcon as Icon } from '@antdv/icons/icon';
-import { Scrollbar } from '@antdv/scrollbar-ui';
+import { Scrollbar } from '@antdv/common-ui';
 import { cn } from '@antdv/shared/cn';
 import { useHorizontalScroll } from '@antdv/shared/scroll';
 
@@ -65,9 +65,7 @@ const { barClass, closeClass, itemClass, listClass } = useTabStyle(
 );
 
 /** 固定标签数量：与 store 的算法一致，由标签数组现量，包内不认 store */
-const affixCount = computed(
-  () => props.tabs.filter((tab) => tab.affix).length,
-);
+const affixCount = computed(() => props.tabs.filter((tab) => tab.affix).length);
 
 /**
  * 滚动的那一层现在是封装 Scrollbar 内部的 `.scrollbar__wrap`，

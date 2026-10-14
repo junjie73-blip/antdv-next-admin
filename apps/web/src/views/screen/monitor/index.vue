@@ -11,7 +11,7 @@ import {
   watch,
 } from 'vue';
 
-import { Scrollbar } from '@antdv/scrollbar-ui';
+import { Scrollbar } from '@antdv/common-ui';
 import { useEventListener } from '@vueuse/core';
 import * as echarts from 'echarts';
 import { isPlainObject } from 'es-toolkit';
@@ -1122,19 +1122,27 @@ function securityAlertLevelText(level: string): string {
             <div class="grid shrink-0 grid-cols-2 gap-3">
               <ScreenCard>
                 <RealtimeNumber :value="overview.onlineUsers" suffix="人" />
-                <span class="mt-1 block text-[10px] text-blue-300/50">在线用户</span>
+                <span class="mt-1 block text-[10px] text-blue-300/50"
+                  >在线用户</span
+                >
               </ScreenCard>
               <ScreenCard>
                 <RealtimeNumber :value="overview.todayVisits" />
-                <span class="mt-1 block text-[10px] text-blue-300/50">今日访问(PV)</span>
+                <span class="mt-1 block text-[10px] text-blue-300/50"
+                  >今日访问(PV)</span
+                >
               </ScreenCard>
               <ScreenCard>
                 <RealtimeNumber :value="overview.alertCount" />
-                <span class="mt-1 block text-[10px] text-blue-300/50">告警数</span>
+                <span class="mt-1 block text-[10px] text-blue-300/50"
+                  >告警数</span
+                >
               </ScreenCard>
               <ScreenCard>
                 <RealtimeNumber :value="roundedNetworkIn" suffix="MB/s" />
-                <span class="mt-1 block text-[10px] text-blue-300/50">网络入流量</span>
+                <span class="mt-1 block text-[10px] text-blue-300/50"
+                  >网络入流量</span
+                >
               </ScreenCard>
             </div>
 
@@ -1230,7 +1238,9 @@ function securityAlertLevelText(level: string): string {
                   <div class="flex items-center gap-1.5">
                     <span class="h-0.5 w-2 rounded bg-cyan-400"></span>
                     <span class="text-slate-400">平均</span>
-                    <span class="font-mono font-medium text-cyan-300">{{ latencyStats.avg }}ms</span>
+                    <span class="font-mono font-medium text-cyan-300"
+                      >{{ latencyStats.avg }}ms</span
+                    >
                   </div>
                   <div class="flex items-center gap-1.5">
                     <span
@@ -1238,7 +1248,9 @@ function securityAlertLevelText(level: string): string {
                       style="border-style: dashed"
                     ></span>
                     <span class="text-slate-400">P99</span>
-                    <span class="font-mono font-medium text-rose-300">{{ latencyStats.p99 }}ms</span>
+                    <span class="font-mono font-medium text-rose-300"
+                      >{{ latencyStats.p99 }}ms</span
+                    >
                   </div>
                   <div class="ml-auto flex items-center gap-1.5">
                     <span class="text-slate-500">可用率</span>
@@ -1249,7 +1261,8 @@ function securityAlertLevelText(level: string): string {
                           ? 'text-emerald-400'
                           : 'text-amber-400',
                       ]"
-                      >{{ latencyStats.availability }}%</span>
+                      >{{ latencyStats.availability }}%</span
+                    >
                   </div>
                 </div>
               </ScreenCard>
@@ -1278,7 +1291,8 @@ function securityAlertLevelText(level: string): string {
                       <span
                         :class="eventLevelText(evt.level)"
                         class="shrink-0"
-                        >{{ evt.type.toUpperCase() }}</span>
+                        >{{ evt.type.toUpperCase() }}</span
+                      >
                       <span class="truncate text-blue-100/70">{{
                         evt.msg
                       }}</span>
@@ -1295,7 +1309,9 @@ function securityAlertLevelText(level: string): string {
             <ScreenCard class="shrink-0">
               <div class="py-1 text-center">
                 <RealtimeNumber :value="overview.totalRequests" />
-                <span class="mt-1 block text-[10px] text-blue-300/50">总请求数</span>
+                <span class="mt-1 block text-[10px] text-blue-300/50"
+                  >总请求数</span
+                >
               </div>
             </ScreenCard>
 
@@ -1418,7 +1434,8 @@ function securityAlertLevelText(level: string): string {
                     <span
                       :class="securityAlertLevelText(alert.level)"
                       class="shrink-0 text-[9px] font-bold uppercase"
-                      >{{ alert.level }}</span>
+                      >{{ alert.level }}</span
+                    >
                     <span class="truncate text-red-100/70">{{
                       alert.msg
                     }}</span>
@@ -1434,8 +1451,10 @@ function securityAlertLevelText(level: string): string {
       <div
         class="flex h-6 items-center justify-center border-t border-blue-500/10 bg-blue-950/80 text-[10px] text-blue-300/30"
       >
-        <span>数据刷新于 {{ new Date().toLocaleString('zh-CN') }} &nbsp;|&nbsp;
-          Antdv Next Admin Security Monitor &nbsp;|&nbsp; v1.0.0</span>
+        <span
+          >数据刷新于 {{ new Date().toLocaleString('zh-CN') }} &nbsp;|&nbsp;
+          Antdv Next Admin Security Monitor &nbsp;|&nbsp; v1.0.0</span
+        >
       </div>
     </div>
   </Scrollbar>

@@ -4,9 +4,9 @@ import type { TemplateColumn } from '@antdv/shared/template';
 import { h, ref } from 'vue';
 
 // 自动导入（unplugin-vue-components）只重写模板标签；这里的滚动区在 h() 渲染函数里，必须显式 import
-import { Space } from '@antdv/common-ui';
+import { Scrollbar, Space } from '@antdv/common-ui';
 import { alert, message } from '@antdv/popup-ui';
-import { Scrollbar } from '@antdv/scrollbar-ui';
+
 import { Button } from '@antdv/shadcn-ui';
 import { generateTemplate } from '@antdv/shared/template';
 import { Icon } from '@iconify/vue';
@@ -182,7 +182,8 @@ function handleImportResult(result: ImportResult) {
         h(
           Scrollbar,
           {
-            rootClass: 'max-h-[400px] rounded bg-red-50 text-xs dark:bg-red-900/20',
+            rootClass:
+              'max-h-[400px] rounded bg-red-50 text-xs dark:bg-red-900/20',
             viewClass: 'p-3',
           },
           () =>

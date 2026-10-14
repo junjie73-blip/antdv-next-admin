@@ -3,8 +3,8 @@ import type { MicroAppItem } from '@antdv/types';
 
 import { computed, ref, watch } from 'vue';
 
-import { Tag, Tooltip } from '@antdv/common-ui';
-import { Scrollbar } from '@antdv/scrollbar-ui';
+import { Scrollbar, Tag, Tooltip } from '@antdv/common-ui';
+
 import {
   Button,
   InputGroup,
@@ -229,7 +229,10 @@ watch(
             <InputGroupAddon>
               <Icon icon="carbon:search" />
             </InputGroupAddon>
-            <InputGroupInput v-model="searchKeyword" placeholder="搜索子应用..." />
+            <InputGroupInput
+              v-model="searchKeyword"
+              placeholder="搜索子应用..."
+            />
             <InputGroupAddon v-if="searchKeyword" align="inline-end">
               <InputGroupButton
                 size="icon-xs"
