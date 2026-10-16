@@ -5,6 +5,7 @@ import { onErrorCaptured, ref } from 'vue';
 
 import { Scrollbar } from '@antdv/common-ui';
 import { cn } from '@antdv/shared/utils/cn';
+import { isProduction } from '@antdv/shared/utils/env';
 import { isError, isString } from 'es-toolkit';
 
 interface Props {
@@ -27,6 +28,9 @@ const emit = defineEmits<{
 const error = ref<Error | null>(null);
 const errorId = ref(0);
 
+// 开发态判定走 `@antdv/shared` 注入的环境配置：包内 tsconfig 有意不引 vite/client，读 `import.meta.env` 会让按源码消费本包的兄弟包一起报 TS2339。
+const isDev = !isProduction();
+
 onErrorCaptured((err: unknown, instance, info) => {
   // isError 替代 instanceof
   let errorObj: Error;
@@ -41,7 +45,7 @@ onErrorCaptured((err: unknown, instance, info) => {
   error.value = errorObj;
   emit('error', errorObj);
 
-  if (import.meta.env.DEV) {
+  if (isDev) {
     console.group('🚨 ErrorBoundary 捕获到错误');
     console.error('错误对象:', errorObj);
     console.error('组件实例:', instance);
@@ -94,8 +98,6 @@ const detailsClassName = cn(
   'rounded-sm border border-red-200 bg-white dark:border-red-700 dark:bg-gray-800',
   'text-xs text-gray-600 dark:text-gray-400',
 );
-
-const isDev = import.meta.env.DEV;
 </script>
 
 <template>

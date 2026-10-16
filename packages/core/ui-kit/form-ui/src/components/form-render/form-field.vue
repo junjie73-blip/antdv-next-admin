@@ -1,44 +1,24 @@
 <script setup lang="ts">
-import type { ComputedRef, Ref } from 'vue';
+import type { FormSchema } from './schema';
 
-import type { FormSchema, Recordable } from '../types';
+import type { FormContext } from './context';
 
 import { computed, inject, unref, useId } from 'vue';
 
-import { IconifyIcon } from '@antdv/icons/icon';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@antdv/shadcn-ui';
 import { useField } from '@tanstack/vue-form';
 
-import { getComponent } from '../componentMap';
+import { getComponent } from '../../config';
+import { runRule } from '../../rule-registry';
+import { FORM_CONTEXT_KEY } from './context';
+import FormLabel from './form-label.vue';
 import {
   getDynamicDisabled,
   getDynamicRules,
   getShow,
   setComponentProps,
-} from '../helper';
-import { runRule } from '../rules';
+} from './helper';
 
-interface FormContext {
-  form: any;
-  getProps: ComputedRef<any>;
-  labelCol: ComputedRef<any>;
-  wrapperCol: ComputedRef<any>;
-  grid: {
-    cols?: ComputedRef<number>;
-    span?: ComputedRef<number>;
-    gutter?: ComputedRef<[number, number] | number>;
-  };
-  formActionTypeRef: Ref<any>;
-  submitAttempted?: Ref<boolean>;
-  getValues: () => Recordable;
-  /** 插槽里直接读写的表单值代理（`getValues()` 是快照，写不回去） */
-  model: Recordable;
-}
+defineOptions({ name: 'FormField' });
 
 const props = defineProps<{ schema: FormSchema }>();
 
@@ -48,7 +28,7 @@ const props = defineProps<{ schema: FormSchema }>();
  */
 const controlId = useId();
 
-const ctx = inject<FormContext>('formContext');
+const ctx = inject<FormContext>(FORM_CONTEXT_KEY);
 
 const form = ctx?.form;
 
@@ -56,8 +36,10 @@ const field = useField({
   name: props.schema.field,
   form,
   validators: {
+    // 首次提交前不跑规则：抽屉/弹窗打开时 `setFieldsValue` 灌初值会把字段标成
+    // touched，change 校验一跑就是一屏"该项为必填项"。提交过之后才实时纠正。
     onChangeAsync: async ({ value }: { value: any }) =>
-      runCurrentRules(value, 'change'),
+      ctx?.submitAttempted?.value ? runCurrentRules(value, 'change') : undefined,
     onSubmitAsync: async ({ value }: { value: any }) =>
       runCurrentRules(value, 'submit'),
   },
@@ -131,12 +113,6 @@ const isRequired = computed(
     getRulesValue.value.some((r: any) => !!r.required),
 );
 
-/**
- * 必填星号走伪元素：它不进标签的文本，`getByLabel` 与读屏拿到的都只有标签本身。
- * 常量放在脚本里，模板里的 `:class="..."` 属性值容不下引号。
- */
-const requiredMarkClass = "before:content-['*'] before:text-destructive";
-
 const getComponentInstance = computed(() => {
   if (!props.schema?.component) return null;
   return getComponent(props.schema.component);
@@ -205,28 +181,17 @@ const labelStyle = computed(() => {
   return { width: '25%' };
 });
 
-const labelAlignClass = computed(() => {
-  const align = ctx?.getProps.value.labelAlign ?? 'right';
-  return align === 'left' ? 'justify-start text-left' : 'justify-end text-right';
-});
+const labelAlign = computed(() => ctx?.getProps.value.labelAlign ?? 'right');
 
 const colon = computed(() => ctx?.getProps.value.colon ?? false);
 
 const errorMessage = computed(() => {
   const meta = field.state.meta;
   const shown =
-    meta.isTouched ||
-    meta.isBlurred ||
-    !!ctx?.submitAttempted?.value;
+    meta.isTouched || meta.isBlurred || !!ctx?.submitAttempted?.value;
   if (!shown) return '';
   const errors = meta.errors ?? [];
   return errors.length ? String(errors[0]) : '';
-});
-
-const getHelpMessage = computed(() => {
-  const { helpMessage } = props.schema ?? {};
-  if (Array.isArray(helpMessage)) return helpMessage.join('\n');
-  return helpMessage;
 });
 
 function handleValueChange(value: any) {
@@ -263,33 +228,18 @@ const displayValue = computed(() => {
     class="form-item shrink-0 box-border"
     :style="rootStyle"
   >
-    <div class="flex flex-wrap items-start gap-y-1">
-      <label
+    <!-- 标签与控件之间留横向间隙：只写 gap-y 时两者是贴在一起的，右侧对齐的标签会直接顶到输入框 -->
+    <div class="flex flex-wrap items-start gap-x-2 gap-y-1">
+      <FormLabel
         v-if="schema.label !== undefined && schema.label !== ''"
-        :for="getComponentInstance ? controlId : undefined"
-        class="form-item-label flex min-h-9 shrink-0 flex-wrap items-center gap-1 pt-1 text-sm leading-none whitespace-normal"
-        :class="[labelAlignClass, isRequired ? requiredMarkClass : '']"
+        :align="labelAlign"
+        :colon="colon"
+        :help-message="schema.helpMessage"
+        :html-for="getComponentInstance ? controlId : undefined"
+        :label="schema.label"
+        :required="isRequired"
         :style="labelStyle"
-      >
-        <span class="break-all">{{ schema.label }}</span>
-        <span v-if="colon">:</span>
-        <TooltipProvider v-if="schema.helpMessage">
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <IconifyIcon
-                icon="carbon:information"
-                class="cursor-help text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              />
-            </TooltipTrigger>
-            <TooltipContent
-              side="top"
-              :style="{ maxWidth: '280px', wordBreak: 'break-word' }"
-            >
-              <span>{{ getHelpMessage }}</span>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </label>
+      />
       <div
         class="form-item-control flex min-w-0 flex-1 flex-col gap-1"
         :style="wrapperStyle"

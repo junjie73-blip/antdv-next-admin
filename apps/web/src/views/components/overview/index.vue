@@ -71,7 +71,7 @@ const cardClassName = cn(
   'text-inherit',
   'cursor-pointer',
   'transition-all',
-  'hover:border-ant-primary',
+  'hover:border-primary',
   'hover:shadow-sm',
   'dark:border-gray-700',
   'dark:bg-gray-900',
@@ -81,7 +81,7 @@ const iconClassName = cn(
   'text-xl',
   'text-gray-400',
   'transition-colors',
-  'group-hover:text-ant-primary',
+  'group-hover:text-primary',
   'dark:text-gray-500',
 );
 const titleClassName = cn('truncate', 'text-sm', 'font-medium');

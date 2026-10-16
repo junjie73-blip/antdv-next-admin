@@ -162,7 +162,7 @@ const quickActions: QuickAction[] = [
     title: '用户管理',
     desc: '管理系统用户',
     path: '/system/user',
-    color: 'text-ant-primary bg-ant-primary/10',
+    color: 'text-primary bg-primary/10',
   },
   {
     icon: 'carbon:user-role',
@@ -205,7 +205,7 @@ const recentActivities = [
 function activityDotColor(type: string): string {
   const map: Record<string, string> = {
     alert: 'bg-red-400',
-    login: 'bg-ant-primary',
+    login: 'bg-primary',
     permission: 'bg-amber-400',
   };
   return map[type] || 'bg-gray-400 dark:bg-gray-600';
@@ -1223,7 +1223,7 @@ onBeforeUnmount(() => {
                 </span>
                 <span class="min-w-0">
                   <span
-                    class="block text-sm font-medium text-gray-700 transition-colors group-hover:text-ant-primary dark:text-gray-300"
+                    class="block text-sm font-medium text-gray-700 transition-colors group-hover:text-primary dark:text-gray-300"
                     >{{ action.title }}</span>
                   <span class="mt-0.5 block text-[11px] text-gray-400">{{
                     action.desc

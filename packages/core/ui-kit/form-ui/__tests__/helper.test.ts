@@ -1,14 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
-  deepMerge,
-  formatDateFields,
   getDynamicRules,
   getShow,
-  handleRangeValue,
   setComponentProps,
-} from '../src/helper';
-import { runRule } from '../src/rules';
+} from '../src/components/form-render/helper';
+import {
+  deepMerge,
+  formatDateFields,
+  handleRangeValue,
+} from '../src/components/form-render/utils';
+import { runRule } from '../src/rule-registry';
 
 describe('helper/setComponentProps', () => {
   it('为 Input 自动生成 placeholder 与 allowClear', () => {
@@ -115,7 +117,10 @@ describe('helper/getDynamicRules', () => {
       null,
     );
     expect(rules).toHaveLength(1);
-    expect(rules![0]).toMatchObject({ required: true, message: '该项为必填项' });
+    expect(rules![0]).toMatchObject({
+      required: true,
+      message: '该项为必填项',
+    });
   });
 
   it('rulesMessageJoinLabel 让默认消息带上 label', () => {
@@ -165,20 +170,18 @@ describe('helper/getDynamicRules', () => {
 
 describe('helper/handleRangeValue', () => {
   it('默认按字符串格式化拆分并删除源字段', () => {
-    const result = handleRangeValue(
-      { time: ['2024-01-01', '2024-01-31'] },
-      [['time', ['startTime', 'endTime']]],
-    );
+    const result = handleRangeValue({ time: ['2024-01-01', '2024-01-31'] }, [
+      ['time', ['startTime', 'endTime']],
+    ]);
     expect(result.startTime).toBe('2024-01-01');
     expect(result.endTime).toBe('2024-01-31');
     expect(result.time).toBeUndefined();
   });
 
   it('timestamp 模式输出秒级时间戳', () => {
-    const result = handleRangeValue(
-      { time: ['2024-01-01', '2024-01-02'] },
-      [['time', ['start', 'end'], 'timestamp']],
-    );
+    const result = handleRangeValue({ time: ['2024-01-01', '2024-01-02'] }, [
+      ['time', ['start', 'end'], 'timestamp'],
+    ]);
     expect(result.start).toBe(new Date('2024-01-01').getTime() / 1000);
     expect(result.end).toBe(new Date('2024-01-02').getTime() / 1000);
   });
@@ -187,25 +190,21 @@ describe('helper/handleRangeValue', () => {
 describe('helper/formatDateFields', () => {
   it('dayjs 形态的值按 valueFormat 序列化', () => {
     const fakeDayjs = { format: (f: string) => `formatted:${f}` };
-    const result = formatDateFields(
-      { created: fakeDayjs },
-      [
-        {
-          field: 'created',
-          component: 'DatePicker',
-          componentProps: { valueFormat: 'YYYY-MM-DD' },
-        },
-      ] as any,
-    );
+    const result = formatDateFields({ created: fakeDayjs }, [
+      {
+        field: 'created',
+        component: 'DatePicker',
+        componentProps: { valueFormat: 'YYYY-MM-DD' },
+      },
+    ] as any);
     expect(result.created).toBe('formatted:YYYY-MM-DD');
   });
 
   it('RangePicker 字段跳过转换（与旧实现一致）', () => {
     const fakeDayjs = { format: () => 'X' };
-    const result = formatDateFields(
-      { range: [fakeDayjs, fakeDayjs] },
-      [{ field: 'range', component: 'RangePicker' }] as any,
-    );
+    const result = formatDateFields({ range: [fakeDayjs, fakeDayjs] }, [
+      { field: 'range', component: 'RangePicker' },
+    ] as any);
     expect(result.range[0]).toBe(fakeDayjs);
   });
 });
@@ -219,7 +218,11 @@ describe('helper/deepMerge', () => {
   });
 
   it('源 undefined 忽略、目标优先于源的非对象冲突', () => {
-    const merged = deepMerge({ a: 1, b: 2 }, { a: undefined, b: 3, c: 4 } as any);
+    const merged = deepMerge({ a: 1, b: 2 }, {
+      a: undefined,
+      b: 3,
+      c: 4,
+    } as any);
     expect(merged).toEqual({ a: 1, b: 2, c: 4 });
   });
 });
@@ -246,12 +249,12 @@ describe('rules/runRule', () => {
   });
 
   it('type=email / number 校验', async () => {
-    expect(
-      await runRule({ type: 'email' }, 'bad', { label: '邮箱' }),
-    ).toBe('邮箱类型不正确');
-    expect(
-      await runRule({ type: 'number' }, 'abc', { label: '数量' }),
-    ).toBe('数量类型不正确');
+    expect(await runRule({ type: 'email' }, 'bad', { label: '邮箱' })).toBe(
+      '邮箱类型不正确',
+    );
+    expect(await runRule({ type: 'number' }, 'abc', { label: '数量' })).toBe(
+      '数量类型不正确',
+    );
     expect(
       await runRule({ type: 'number' }, '1.5', { label: '数量' }),
     ).toBeUndefined();
@@ -261,18 +264,10 @@ describe('rules/runRule', () => {
     expect(
       await runRule({ pattern: /^[a-z]+$/ }, 'ABC', { label: '代码' }),
     ).toBeTruthy();
-    expect(
-      await runRule({ min: 5 }, 'abc', { label: '密码' }),
-    ).toBeTruthy();
-    expect(
-      await runRule({ max: 2 }, 'abc', { label: '密码' }),
-    ).toBeTruthy();
-    expect(
-      await runRule({ len: 11 }, '123', { label: '手机号' }),
-    ).toBeTruthy();
-    expect(
-      await runRule({ max: 10 }, 8, { label: '年龄' }),
-    ).toBeUndefined();
+    expect(await runRule({ min: 5 }, 'abc', { label: '密码' })).toBeTruthy();
+    expect(await runRule({ max: 2 }, 'abc', { label: '密码' })).toBeTruthy();
+    expect(await runRule({ len: 11 }, '123', { label: '手机号' })).toBeTruthy();
+    expect(await runRule({ max: 10 }, 8, { label: '年龄' })).toBeUndefined();
   });
 
   it('validator 支持 reject 与 callback 两种风格', async () => {

@@ -126,7 +126,6 @@
     "xlsx": "catalog:"
   },
   "devDependencies": {
-    "@antdv-next/tailwind": "catalog:",
     "@antdv/tsconfig": "workspace:*",
     "@antdv/vite-config": "workspace:*",
     "@faker-js/faker": "catalog:",

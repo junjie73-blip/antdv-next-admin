@@ -82,8 +82,8 @@ const tabStyleOptions = computed(() =>
           class="relative flex flex-col items-center gap-2 rounded-xl p-2 outline outline-1 transition-all duration-200"
           :class="
             appStore.layout === item.value
-              ? 'bg-ant-primary/5 outline-ant-primary outline-2'
-              : 'hover:outline-ant-primary/40 bg-white outline-slate-200 dark:bg-slate-800 dark:outline-slate-700'
+              ? 'bg-primary/5 outline-primary outline-2'
+              : 'hover:outline-primary/40 bg-white outline-slate-200 dark:bg-slate-800 dark:outline-slate-700'
           "
           :title="item.description"
           @click="appStore.updateSetting({ layout: item.value })"
@@ -97,7 +97,7 @@ const tabStyleOptions = computed(() =>
             class="text-[11px] font-medium"
             :class="
               appStore.layout === item.value
-                ? 'text-ant-primary'
+                ? 'text-primary'
                 : 'text-slate-500 dark:text-slate-400'
             "
           >
@@ -105,7 +105,7 @@ const tabStyleOptions = computed(() =>
           </span>
           <div
             v-if="appStore.layout === item.value"
-            class="bg-ant-primary absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full"
+            class="bg-primary absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full"
           >
             <span class="text-xs text-white">✓</span>
           </div>
@@ -128,8 +128,8 @@ const tabStyleOptions = computed(() =>
           class="flex flex-col items-center gap-1 rounded-xl p-2 outline outline-1 transition-all duration-200"
           :class="
             appStore.contentMode === item.value
-              ? 'bg-ant-primary/5 outline-ant-primary outline-2'
-              : 'hover:outline-ant-primary/40 bg-white outline-slate-200 dark:bg-slate-800 dark:outline-slate-700'
+              ? 'bg-primary/5 outline-primary outline-2'
+              : 'hover:outline-primary/40 bg-white outline-slate-200 dark:bg-slate-800 dark:outline-slate-700'
           "
           :title="item.description"
           @click="appStore.updateSetting({ contentMode: item.value })"
@@ -143,7 +143,7 @@ const tabStyleOptions = computed(() =>
             class="text-[11px] font-medium"
             :class="
               appStore.contentMode === item.value
-                ? 'text-ant-primary'
+                ? 'text-primary'
                 : 'text-slate-500 dark:text-slate-400'
             "
           >

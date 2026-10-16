@@ -92,10 +92,17 @@ const entries = computed(() =>
         <component
           :is="entry.isLast || !entry.href ? 'span' : 'a'"
           :aria-current="entry.isLast ? 'page' : undefined"
-          :href="entry.href"
+          :href="entry.isLast || !entry.href ? undefined : entry.href"
           :rel="entry.external ? 'noopener noreferrer' : undefined"
           :target="entry.external ? '_blank' : undefined"
-          class="inline-flex min-w-0 items-center gap-1.5 hover:text-gray-700 dark:hover:text-gray-200"
+          :class="
+            cn(
+              'inline-flex min-w-0 items-center gap-1.5',
+              entry.isLast || !entry.href
+                ? ''
+                : 'hover:text-gray-700 dark:hover:text-gray-200',
+            )
+          "
         >
           <!-- 每一级只取自己声明的图标：菜单里画什么就画什么，渲染侧不补房子或文件夹 -->
           <Icon

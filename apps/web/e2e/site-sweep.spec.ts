@@ -32,7 +32,7 @@ interface LeafMenu {
  * "渲染成功、控制台干净"的 HTML，只靠 errors + html 长度发现不了。
  * 巡检必须能抓到这种"链接是死的、页面却像是好的"的问题，所以按文案特征判定。
  *
- * 刻意**跳过 `a-card` 里的文字**：示例页会把 404/403 的 `a-result` 当素材摆在卡片里，
+ * 刻意**跳过卡片里的文字**：示例页会把 404/403 的结果状态素材摆在卡片里，
  * 整段 innerText 会把它一起读进来，把好页面误报成兜底页（第一版就是这么红的）。
  * 真的兜底页（`views/error/404.vue`）是裸的 h1/h2/p，不在卡里。
  */
@@ -41,7 +41,7 @@ function hasFallbackMarker(region: Element): boolean {
   const collect = (node: Node): string => {
     if (
       node.nodeType === Node.ELEMENT_NODE &&
-      (node as Element).closest('.ant-card')
+      (node as Element).closest('[data-slot="card"]')
     ) {
       return '';
     }
@@ -337,7 +337,7 @@ test.describe('全站页面巡检', () => {
     await go(page, '/components/overview');
     await contentRegion(page).evaluate((region) => {
       const card = document.createElement('div');
-      card.className = 'ant-card';
+      card.dataset.slot = 'card';
       card.textContent = '抱歉，您访问的页面不存在';
       region.append(card);
     });

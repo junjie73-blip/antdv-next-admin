@@ -1,6 +1,10 @@
-import type { FormSchema, Recordable, Rule } from './types';
+import type {
+  FormSchema,
+  Recordable,
+  Rule,
+} from './components/form-render/schema';
 
-import { getDynamicRules } from './helper';
+import { getDynamicRules } from './components/form-render/helper';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const URL_RE = /^https?:\/\/[^\s]+$/i;
@@ -23,13 +27,17 @@ function typeMatches(type: string | undefined, value: any): boolean {
     case 'email': {
       return typeof value === 'string' && EMAIL_RE.test(value);
     }
-    case 'float': case 'integer': case 'number': {
+    case 'float':
+    case 'integer':
+    case 'number': {
       const num = Number(value);
       if (Number.isNaN(num)) return false;
       return type === 'integer' ? Number.isInteger(num) : true;
     }
     case 'object': {
-      return typeof value === 'object' && value !== null && !Array.isArray(value);
+      return (
+        typeof value === 'object' && value !== null && !Array.isArray(value)
+      );
     }
     case 'regexp': {
       try {
@@ -73,13 +81,9 @@ export async function runRule(
   if (
     rule.required &&
     (isEmptyValue(value) ||
-      (rule.whitespace &&
-        typeof value === 'string' &&
-        value.trim() === ''))
+      (rule.whitespace && typeof value === 'string' && value.trim() === ''))
   ) {
-    return (
-      rule.message || (joinLabel ? `${label}不能为空` : '该项为必填项')
-    );
+    return rule.message || (joinLabel ? `${label}不能为空` : '该项为必填项');
   }
 
   // 自定义 validator 先跑：antd 的 async-validator 对空值一样会执行它，
@@ -126,10 +130,7 @@ export async function runRule(
     if (typeof value === 'number' && value < rule.min) {
       return rule.message || `不得小于 ${rule.min}`;
     }
-    if (
-      (typeof value === 'string' || Array.isArray(value)) &&
-      len < rule.min
-    ) {
+    if ((typeof value === 'string' || Array.isArray(value)) && len < rule.min) {
       return rule.message || `不得少于 ${rule.min} 个字符`;
     }
   }
@@ -137,10 +138,7 @@ export async function runRule(
     if (typeof value === 'number' && value > rule.max) {
       return rule.message || `不得大于 ${rule.max}`;
     }
-    if (
-      (typeof value === 'string' || Array.isArray(value)) &&
-      len > rule.max
-    ) {
+    if ((typeof value === 'string' || Array.isArray(value)) && len > rule.max) {
       return rule.message || `不得多于 ${rule.max} 个字符`;
     }
   }
@@ -159,8 +157,7 @@ export function compileFieldValidator(
 ): (ctx: { value: any }) => Promise<string | undefined> {
   return async ({ value }) => {
     const values = getValues();
-    const rules =
-      getDynamicRules(schema, values, formActionType) ?? [];
+    const rules = getDynamicRules(schema, values, formActionType) ?? [];
     const joinLabel =
       schema.rulesMessageJoinLabel ??
       (values as Recordable).__rulesMessageJoinLabel ??

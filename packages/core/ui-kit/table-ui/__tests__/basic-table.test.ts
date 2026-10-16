@@ -124,6 +124,54 @@ describe('BasicTable 基础渲染', () => {
     expect(wrapper.find('.basic-table-head').classes()).toContain('sticky');
   });
 
+  it('固定列自带不透明底色与层级，横向滚动时不被同行单元格穿透', () => {
+    const wrapper = mountTable({
+      actionColumn: { title: '操作', width: 160 },
+      columns: [
+        { dataIndex: 'name', fixed: 'left', title: '名称' },
+        ...baseColumns.slice(1),
+      ],
+    });
+    const first = bodyRows(wrapper)[0]!;
+    const cells = first.findAll('td');
+    const pinned = cells.filter((cell) =>
+      cell.attributes('style')?.includes('position: sticky'),
+    );
+    expect(pinned).toHaveLength(2);
+
+    // 左固定列与右固定操作列：实色底（从行继承）+ 压住普通单元格的层级
+    for (const cell of pinned) {
+      expect(cell.classes()).toEqual(expect.arrayContaining(['bg-inherit', 'z-[2]']));
+    }
+    expect(pinned[0]!.attributes('style')).toContain('left: 0px');
+    expect(pinned[1]!.attributes('style')).toContain('right: 0px');
+    // 中间那列是普通单元格，不该被顺手染上底色
+    const normal = cells.find(
+      (cell) => !cell.attributes('style')?.includes('position: sticky'),
+    );
+    expect(normal!.classes()).not.toContain('bg-inherit');
+
+    // 底色来自 `<tr>`，所以行背景必须是实色，否则固定列照样透
+    expect(first.classes()).toEqual(expect.arrayContaining(['group', 'bg-card']));
+    for (const cls of wrapper.findAll('.basic-table-head')) {
+      expect(cls.classes()).toEqual(expect.arrayContaining(['bg-gray-50']));
+      expect(cls.classes().join(' ')).not.toContain('gray-800/');
+    }
+    // 固定表头压住固定单元格
+    expect(wrapper.findAll('.basic-table-head')[0]!.classes()).toContain('z-20');
+  });
+
+  it('表头与单元格共用同一套盒模型（行高不一致会错位）', () => {
+    const wrapper = mountTable();
+    const head = wrapper.findAll('.basic-table-head')[0]!.classes();
+    const cell = bodyRows(wrapper)[0]!.findAll('td')[0]!.classes();
+    // 行高取 24px 的文本行盒：单元格住的不只是一行文字，20px 时表头比数据行矮一线
+    for (const cls of ['px-3', 'py-2', 'text-sm', 'leading-6', 'align-middle']) {
+      expect(head).toContain(cls);
+      expect(cell).toContain(cls);
+    }
+  });
+
   it('bordered / rowClassName / cellClassName 落到 DOM', () => {
     const wrapper = mountTable({
       bordered: true,

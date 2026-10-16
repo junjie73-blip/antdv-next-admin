@@ -103,9 +103,9 @@ const avatarFallback = computed(
         data-testid="header-user"
         type="button"
       >
-        <Avatar class="size-7 shrink-0 bg-ant-primary">
+        <Avatar class="size-7 shrink-0 bg-primary">
           <AvatarImage :alt="userStore.username" :src="userStore.avatar" />
-          <AvatarFallback class="bg-ant-primary text-xs text-white">
+          <AvatarFallback class="bg-primary text-xs text-white">
             {{ avatarFallback }}
           </AvatarFallback>
         </Avatar>

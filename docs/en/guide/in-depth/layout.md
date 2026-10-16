@@ -68,4 +68,4 @@ The breadcrumb is derived from the menu tree (`breadcrumb.ts` in `@antdv/layouts
 
 ## Scrollbar
 
-Content scrolling across the whole app goes through the self-drawn `Scrollbar` from `@antdv/scrollbar-ui` instead of each page writing its own `overflow: auto` + `::-webkit-scrollbar`: the latter behaves inconsistently on Firefox / Safari, while `Scrollbar` is one shared set of DOM and styles, which is the only way the three engines can get the same end-to-end result.
+Content scrolling across the whole app goes through the self-drawn `Scrollbar` from `@antdv/common-ui` instead of each page writing its own `overflow: auto` + `::-webkit-scrollbar`: the latter behaves inconsistently on Firefox / Safari, while `Scrollbar` is one shared set of DOM and styles, which is the only way the three engines can get the same end-to-end result.

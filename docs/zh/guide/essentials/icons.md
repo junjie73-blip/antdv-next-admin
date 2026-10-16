@@ -34,7 +34,7 @@ iconifyOffline({
 | --- | --- | --- |
 | `<Icon>` | `@iconify/vue`，**必须显式 `import { Icon } from '@iconify/vue'`**（`IconifyResolver` 随自动导入一起下线了） | 首选，全站裸写 `<Icon>` 的文件现在都在自己头部引它 |
 | `IconifyIcon` | `packages/icons/src/icon/IconifyIcon.vue`，`import { IconifyIcon } from '@antdv/icons/icon'` | 想要 `size` 默认 `16`、`mode`、翻转、`rotate` 这层封装时 |
-| `IconPicker` | `packages/icons/src/icon/IconPicker.vue`（shadcn-ui 实现：`Popover` + `Select` + `Input` + `Tooltip`，滚动区用 `@antdv/scrollbar-ui`） | 表单里让人选图标（菜单管理页 `views/system/menu/index.vue`、示例页 `views/components/icon-picker/index.vue`） |
+| `IconPicker` | `packages/icons/src/icon/IconPicker.vue`（shadcn-ui 实现：`Popover` + `Select` + `Input` + `Tooltip`，滚动区用 `@antdv/common-ui`） | 表单里让人选图标（菜单管理页 `views/system/menu/index.vue`、示例页 `views/components/icon-picker/index.vue`） |
 | `SvgIcon` | `packages/icons/src/icon/SvgIcon.vue` | 品牌图 / 多色图标（Iconify 对多色支持差），`<use xlink:href="#icon-xxx">` |
 
 `IconifyIcon` 刻意不给可选属性补 `''` / `0` 默认值（文件头注释写了原因）：一旦补上，"未设置"就变成 "显式设为空值"，把 `@iconify/vue` 自己的回落逻辑（颜色继承 `currentColor`、尺寸回落 `size`）顶掉了。

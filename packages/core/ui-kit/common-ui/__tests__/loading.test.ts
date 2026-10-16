@@ -91,6 +91,11 @@ describe('Loading 组件', () => {
       props: { loading: true, tip: '加载中…' },
     });
     expect(withTip.find('.loading-tip').text()).toBe('加载中…');
+    /*
+     * 文字颜色必须走主题主色（`text-primary` → `--color-primary` → `--app-primary`），
+     * 不能是继承下来的黑字，也不能写死色值。
+     */
+    expect(withTip.find('.loading-tip').classes()).toContain('text-primary');
 
     const noTip = mount(Loading, { props: { loading: true } });
     expect(noTip.find('.loading-tip').exists()).toBe(false);

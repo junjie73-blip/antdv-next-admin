@@ -89,7 +89,7 @@ const spinnerClassName = computed(() =>
       <div class="loading-spin">
         <Spinner :class="spinnerClassName" />
       </div>
-      <div v-if="tip" class="loading-tip mt-3 text-sm">
+      <div v-if="tip" class="loading-tip mt-3 text-sm text-primary">
         {{ tip }}
       </div>
     </div>

@@ -38,9 +38,9 @@ Indexed by **symptom**, not by module — when you hit one, all you have is the 
 
 | Symptom | Cause | What to do |
 | --- | --- | --- |
-| Changing the primary color leaves the selected menu item unchanged | Only one variable name was written | **Both** `--ant-color-primary` and `--ant-primary-color` have to be written (`packages/preferences/src/css-vars.ts:47-93`) |
-| In dark mode the primary color differs from the one you set | antdv-next recomputes the primary color on `.ant-app` | Put overrides on the seed variables on `html`; don't pin color values in test assertions |
-| Overriding component library styles now needs `!important` | The Tailwind layer order was changed | `@layer theme, base, antd, components, utilities` must be declared explicitly (`packages/design/src/index.css:18-32`) |
+| Changing the primary color leaves the selected menu item unchanged | Only the antd token changed, or only one variable name was written | The primary colour has one chain: the tier goes on `<html data-theme>`, a custom colour additionally inlines `--app-primary`; the bridge for antdv-next has to write **both** `--ant-color-primary` and the legacy `--ant-primary-color` (`packages/utils/src/css-vars.ts:104-127`) |
+| In dark mode the primary color differs from the one you set | The page mixes two chains: `--app-primary` reads the seed on `html`, while antdv-next keeps a recomputed family on `.ant-app` | New pages use `@antdv/design`'s `*-primary` tokens only; don't pin color values in assertions — either assert in light mode or assert the same-source relation (see [Theming & preferences](/en/guide/in-depth/theme)) |
+| Utilities no longer beat the `components` layer | The Tailwind layer order was changed | `@layer theme, base, components, utilities` must be declared explicitly with `utilities` last (`packages/core/base/design/src/index.css:27`) |
 | Spacing is inconsistent between pages | The route page's outer container declares its own padding | Inner padding is the layout's job, see [Development conventions and environment variables](/en/guide/essentials/development) |
 | Icons are empty squares in the production bundle | An Iconify prefix outside the offline list was used | A new collection goes into the catalog dependency and the offline list at `auto-import.ts:95-97` together |
 

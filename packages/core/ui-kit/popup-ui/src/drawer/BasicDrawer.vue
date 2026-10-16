@@ -1,26 +1,15 @@
 <script setup lang="ts">
-import type {
-  DrawerInnerMethods,
-  DrawerMethods,
-  DrawerProps,
-} from './types';
+import type { DrawerInnerMethods, DrawerMethods, DrawerProps } from './types';
 
-import {
-  computed,
-  onMounted,
-  ref,
-  useId,
-  useSlots,
-  watch,
-} from 'vue';
+import { computed, onMounted, ref, useId, useSlots, watch } from 'vue';
 
 import {
   Button,
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerTitle,
   ScrollArea,
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetTitle,
   Spinner,
 } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
@@ -45,7 +34,6 @@ const props = withDefaults(defineProps<DrawerProps>(), {
   mask: true,
   destroyOnHidden: true,
   bodyScroll: true,
-  zIndex: 1000,
 });
 
 const emit = defineEmits<{
@@ -93,6 +81,38 @@ const isHorizontal = computed(
   () => merged.value.placement === 'left' || merged.value.placement === 'right',
 );
 
+// 抽屉原语只说上下（up/down），placement 沿用旧词汇（top/bottom），只有这两档要换词
+const SWIPE_DIRECTIONS = {
+  bottom: 'down',
+  left: 'left',
+  right: 'right',
+  top: 'up',
+} as const;
+
+/**
+ * 蒙层用 `'trap-focus'` 而不是 `true`：reka 的 DrawerContent 只在 modal 为严格 `true`
+ * 时才跑 `useHideOthers`，而且少了 Dialog 那层的 `present` 闸门 ——
+ * `destroyOnHidden: false` 的关闭态面板一直挂着，就会把整个应用置成
+ * `aria-hidden="true"`（键盘 Tab 出得去面板，屏幕阅读器读不到页面）。
+ * `'trap-focus'` 照样渲染蒙层、照样发 interactOutside / escapeKeyDown，只是不改别人的 aria。
+ * 也不能在开合时把这里改成 `true`：DrawerContent 的 full-modal 与非 modal 分支是两棵
+ * keyed 子树，翻 `modal` 会整棵重挂载，调用方插槽里的状态全丢。
+ */
+const swipeDirection = computed(
+  () => SWIPE_DIRECTIONS[merged.value.placement ?? 'right'],
+);
+
+/**
+ * 用 `'trap-focus'` 而不是 `true`：reka 的 DrawerContent 在 modal 为严格 `true` 时会跑
+ * `useHideOthers`，且少了 Dialog 那层的 `present` 闸门 —— force-mount 的关闭态面板会把
+ * 整个应用置成 `aria-hidden="true"`。代价是面板要自己认领 pointer-events（见 contentClass）。
+ * 也不能开合时切成 `true`：full-modal 与非 modal 是两棵 keyed 子树，翻 modal 会重挂载，
+ * 调用方插槽里的状态全丢。
+ */
+const rootModal = computed(() =>
+  merged.value.mask === false ? false : 'trap-focus',
+);
+
 const contentStyle = computed(() => ({
   ...(isHorizontal.value
     ? { width: `${getSize.value}px` }
@@ -103,10 +123,14 @@ const contentStyle = computed(() => ({
 
 const contentClass = computed(() =>
   cn(
-    'basic-drawer flex flex-col gap-0 [&>button]:hidden!',
-    // 尺寸靠 contentStyle 的内联 width/height，这里只解开 SheetContent 的 max-w 上限；
+    'basic-drawer flex flex-col gap-0',
+    // 尺寸靠 contentStyle 的内联 width/height，这里只解开 DrawerContent 的 `sm:max-w-sm` 上限；
     // 别再叠 `w-auto!`，important 会反过来把内联宽度顶掉
     isHorizontal.value && 'max-w-none!',
+    // 蒙层用 `body{pointer-events:none}` 锁页面，而 reka 只在 full-modal 分支把面板的
+    // pointer-events 认领回来；我们走 'trap-focus'，这一条得自己补，否则整块面板点不动。
+    // 只给 open 态，关闭态继续由 CLOSED_PANEL_INERT 置为不可交互。
+    'data-[state=open]:pointer-events-auto',
     CLOSED_PANEL_INERT,
     merged.value.wrapClassName,
   ),
@@ -192,9 +216,30 @@ async function handleCancel(e?: MouseEvent) {
   await drawerMethods.closeDrawer();
 }
 
-function onRootUpdate(val: boolean) {
-  if (val) visibleRef.value = true;
-  else void handleCancel();
+/**
+ * reka `DrawerRoot` 的 `update:open` 第二参（`DrawerOpenChangeDetails`）。
+ * 按结构写而不引 `reka-ui`：本包只用 `@antdv/shadcn-ui` 的原语壳，
+ * 把 reka 提进 dependencies 会让版本口径绕过那一层封装。
+ */
+interface OpenChangeDetails {
+  cancel: () => void;
+  reason?: string;
+}
+
+/**
+ * 只剩「滑动关闭」会走到这里：Esc 与点蒙层在 `onEscapeKeyDown` / `onInteractOutside`
+ * 就被 preventDefault 拦下了。先 `cancel()` 把已经拖出屏外的面板弹回原位，
+ * 关不关交给 `closeDrawer` 里的 `closeFunc` 这道异步闸门决定 ——
+ * `cancel()` 只能在 emit 的同步过程里生效，等 await 完再调已经来不及。
+ */
+function onRootUpdate(val: boolean, details?: OpenChangeDetails) {
+  if (val) {
+    visibleRef.value = true;
+    return;
+  }
+  details?.cancel();
+  if (details?.reason === 'swipe' && !merged.value.maskClosable) return;
+  void handleCancel();
 }
 
 /**
@@ -228,18 +273,20 @@ const cancelBtn = computed(() =>
 </script>
 
 <template>
-  <Sheet :open="visibleRef" :modal="merged.mask" @update:open="onRootUpdate">
-    <SheetContent
-      :side="merged.placement"
+  <Drawer
+    :open="visibleRef"
+    :modal="rootModal"
+    :swipe-direction="swipeDirection"
+    @update:open="onRootUpdate"
+  >
+    <DrawerContent
       :class="contentClass"
       :style="contentStyle"
       :force-mount="!merged.destroyOnHidden"
-      aria-modal="true"
-      role="dialog"
       @interact-outside="onInteractOutside"
       @escape-key-down="onEscapeKeyDown"
     >
-      <!-- 自定义头部 -->
+      <!-- 头部：内置与自定义插槽共用同一圈内边距，插槽内容不再贴着抽屉边缘 -->
       <div
         v-if="!slots.header"
         :id="drawerTitleId"
@@ -251,11 +298,11 @@ const cancelBtn = computed(() =>
         :style="merged.headerStyle"
       >
         <div :class="cn('flex items-center gap-2')">
-          <SheetTitle as-child>
+          <DrawerTitle as-child>
             <span :class="cn('text-foreground text-lg font-medium')">
               {{ merged.title }}
             </span>
-          </SheetTitle>
+          </DrawerTitle>
           <slot name="titleTip"></slot>
         </div>
         <div :class="cn('flex items-center gap-2')">
@@ -274,12 +321,22 @@ const cancelBtn = computed(() =>
           </button>
         </div>
       </div>
-      <slot v-else name="header"></slot>
+      <div
+        v-else
+        :class="cn('drawer-header px-6 py-4')"
+        :style="merged.headerStyle"
+      >
+        <!-- 面板自己带 aria-labelledby，插槽标题不可见时补一个供读屏器定位 -->
+        <DrawerTitle v-if="merged.title" :class="cn('sr-only')">
+          {{ merged.title }}
+        </DrawerTitle>
+        <slot name="header"></slot>
+      </div>
 
       <!-- 内容区域 -->
-      <SheetDescription :class="cn('sr-only')">
+      <DrawerDescription :class="cn('sr-only')">
         {{ merged.title ? `${merged.title} 抽屉` : '抽屉内容' }}
-      </SheetDescription>
+      </DrawerDescription>
       <div
         :class="
           cn('drawer-body relative min-h-0 flex-1 overflow-hidden!', {
@@ -304,12 +361,16 @@ const cancelBtn = computed(() =>
           <div :class="cn('flex flex-col items-center gap-2')">
             <div
               :class="
-                cn('primary animate-spin border-2 border-t-transparent h-8 w-8 rounded-full border-current/20')
+                cn(
+                  'primary animate-spin border-2 border-t-transparent h-8 w-8 rounded-full border-current/20',
+                )
               "
             ></div>
-            <span v-if="merged.loadingTip" :class="cn('text-muted-foreground text-sm')">{{
-              merged.loadingTip
-            }}</span>
+            <span
+              v-if="merged.loadingTip"
+              :class="cn('text-muted-foreground text-sm')"
+              >{{ merged.loadingTip }}</span
+            >
           </div>
         </div>
 
@@ -322,7 +383,11 @@ const cancelBtn = computed(() =>
 
       <!-- 底部按钮 -->
       <div
-        v-if="merged.showFooter && !slots.footer && (merged.showCancelBtn || merged.showOkBtn)"
+        v-if="
+          merged.showFooter &&
+          !slots.footer &&
+          (merged.showCancelBtn || merged.showOkBtn)
+        "
         :class="
           cn(
             'drawer-footer border-border flex items-center justify-center gap-3 border-t px-4 py-3',
@@ -358,6 +423,6 @@ const cancelBtn = computed(() =>
       <div v-else-if="slots.footer" :style="merged.footerStyle">
         <slot name="footer"></slot>
       </div>
-    </SheetContent>
-  </Sheet>
+    </DrawerContent>
+  </Drawer>
 </template>

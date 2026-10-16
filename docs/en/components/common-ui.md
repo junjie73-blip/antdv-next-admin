@@ -332,7 +332,7 @@ Getting these wrong produces no error — only silent breakage. Each line was ve
 
 ## Relationship to antdv-next
 
-This package **does not import antdv-next**. Its `dependencies` stop at `@antdv/icons`, `@antdv/scrollbar-ui`, `@antdv/shadcn-ui`, `@antdv/shared`, plus `@vueuse/core`, `cronstrue`, `es-toolkit`, `vue` (`packages/ui-kit/common-ui/package.json`). Any host project that installs those workspace packages can use it — see [External Modules](/en/guide/essentials/external).
+This package **does not import antdv-next**. Its `dependencies` stop at `@antdv/icons`, `@antdv/common-ui`, `@antdv/shadcn-ui`, `@antdv/shared`, plus `@vueuse/core`, `cronstrue`, `es-toolkit`, `vue` (`packages/ui-kit/common-ui/package.json`). Any host project that installs those workspace packages can use it — see [External Modules](/en/guide/essentials/external).
 
 No page under `apps/web/src/views/**` imports antdv-next for its own UI any more. What still imports it:
 

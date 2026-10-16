@@ -18,7 +18,7 @@ import {
  * —— UA 样式里它是 `default`。以前靠逐个模板补 `cursor-pointer`，漏一处就出现
  * "盒子亮了、鼠标还是箭头"，用户以为页面卡死。
  *
- * 现在规则住在 `packages/core/base/design/src/base.css`，所以这里验的是**浏览器算出来的光标**，
+ * 现在规则住在 `packages/core/base/design/src/css/base.css`，所以这里验的是**浏览器算出来的光标**，
  * 而不是模板里有没有写那个类 —— 类名断言只能证明"有人写了字"，证明不了它生效、
  * 也证明不了没被 antd 的规则盖掉。
  */
@@ -34,23 +34,26 @@ function cursorOf(locator: Locator) {
  */
 const POINTER_TARGETS: Array<[string, string]> = [
   ['/system/user', 'button'],
-  ['/system/user', '.ant-btn-link'],
+  ['/system/user', '[data-slot="button"][data-variant="link"]'],
   ['/system/user', '[data-slot="pagination-item"]'],
   ['/system/user', '[role="menuitem"]'],
-  ['/components/upload', '.ant-upload-select'],
+  ['/components/upload', '[data-common-upload] > div'],
   // 树节点：原先挂在「组件示例 → 树形控件」那页，那页演示的是裸 antd，已随示例节收敛删掉，
   // 换成真实的树形业务页（部门管理的部门树）
-  ['/system/dept', '.ant-tree-node-content-wrapper'],
+  ['/system/dept', '[data-common-tree-node]'],
   // 开关：拖拽排序示例页的「整表冻结」开关
-  ['/components/table/drag-sort', '.ant-switch:not(.ant-switch-disabled)'],
-  // 单选按钮组：分析面板的时间范围切换
-  ['/dashboard/analysis', '.ant-radio-button-wrapper'],
+  ['/components/table/drag-sort', 'button[role="switch"]:not(:disabled)'],
+  // 分段选择器：分析面板的时间范围切换
+  [
+    '/dashboard/analysis',
+    '[data-common-segmented] [data-slot="toggle-group-item"]:not(:disabled)',
+  ],
   /*
-   * 评分组件：外层 `<li>` 一直是 pointer，漏的是鼠标真正停在的那个 `role="radio"` 的 div。
-   * 这条是"按 ARIA role 接光标"那条样式规则的现场证据。
+   * 评分组件：星位现在是 `form-ui/FRate` 里手写的 `<button>`，UA 默认不带指针光标，
+   * 靠上面那条 `button:not(:disabled)` 规则接上。
    * 落在基础表单示例页——它把 `Rate` 当成 BasicForm 的 schema 字段在用。
    */
-  ['/components/form/basic', '.ant-rate-star div[role="radio"]'],
+  ['/components/form/basic', '[data-field="rate"] button[aria-label^="评分"]'],
 ];
 
 /**
@@ -58,7 +61,26 @@ const POINTER_TARGETS: Array<[string, string]> = [
  * 给它们指针光标是在撒谎，所以扫描放行；但必须留名 —— 以后谁让这类盒子真的可点了，
  * 就要么从这里删掉、要么补上 click，不能靠"扫描本来就看不见它"糊过去。
  */
-const DECORATIVE_HOVER_ALLOWLIST: string[] = [];
+const DECORATIVE_HOVER_ALLOWLIST: string[] = [
+  /*
+   * 上传列表的行（text / picture 模式）：底色亮起来是"帮你把目光对准这一行的移除键"，
+   * 能点的是行内的 ×（以及 picture-card 模式下的缩略图，那两个自己有指针）。
+   */
+  'div|group flex items-center gap-2',
+  /**
+   * 表格行：`hover:bg-muted/50` 是 shadcn 表格的出厂样式，作用同上（横向读数不串行）；
+   * 行内可点的是勾选框与操作列的按钮。
+   */
+  'tr|hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors',
+  /*
+   * `BasicTable` 自己的行样式（业务列表页走这一套而不是上面的 shadcn 默认行）。
+   * 行上确实挂着 `onClick`，但那是 `rowClick` 事件的出口 —— 全站目前没有任何一处监听它，
+   * 所以"点了有事"还不成立，给指针同样是撒谎。
+   * 哪天某个页面真的开始消费 `rowClick`，就要给 `basic-table-row` 补 `cursor-pointer`
+   * 并把这一条从这里删掉。
+   */
+  'tr|basic-table-row border-b border-gray-100 transition-colors',
+];
 
 /**
  * 全站兜底扫描：可见的 `<button>` / `<a>` / `[role=button|tab|...]` /
@@ -176,7 +198,9 @@ test.describe('可交互元素的光标', () => {
         ).toBe('pointer');
       }
       // 分段选择器（标签风格、布局模式）也是"能 hover 的盒子"
-      const segmented = drawer.locator('.ant-segmented-item').first();
+      const segmented = drawer
+        .locator('[data-common-segmented] [data-slot="toggle-group-item"]')
+        .first();
       if (await segmented.count()) {
         expect(
           await cursorOf(segmented),

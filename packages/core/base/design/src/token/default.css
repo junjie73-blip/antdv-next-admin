@@ -1,40 +1,471 @@
 /*
- * 亮色主题 token（shadcn-vue 需要的变量，仅此而已）。
+ * 亮色主题 token：shadcn-vue 的语义色板 + 四条尺度变量，本包不依赖任何组件库。
  *
- * 值为什么不写 `var(--ant-color-*)`：antd 的 CSS 变量挂在 ConfigProvider 生成的
- * 作用域类上，而 reka/shadcn 的弹层 portal 到 `body`（在 `.ant-app` 之外），
- * 取不到变量就只剩透明底。明暗两套值钉在根元素上，body 里的浮层与页面内部同解。
- * 主色是例外：偏好面板实时改的是 html 上的 `--ant-color-primary`，必须跟着它走。
+ * 改这里之前先读完三条规则：
+ *
+ * 1. **值必须是自洽的实色**，不读 `var(--ant-color-*)` 这类外部变量。
+ *    antd 的 CSS 变量挂在 ConfigProvider 生成的作用域类上，而 reka/shadcn 的弹层
+ *    portal 到 `body`（在 `.ant-app` 之外），取不到变量就只剩透明底。
+ *    主题色由偏好面板**内联写在 html 上**（`--app-primary`），样式表只给默认值。
+ *
+ * 2. **派生色写 `var(--app-*)`，不重复钉值**。`ring` 与整个 `sidebar-*` 家族都从
+ *    同块基色派生：自定义主色时运行时只改 `--app-primary` 一条，其余在同一元素上
+ *    按 computed value 自动跟上（自定义色因此不会只染到一个按钮）。
+ *
+ * 3. **每个 `[data-theme]` 块都是完整名单**，27 条语义色一条不少。
+ *    少一条不是"退回默认色"，而是它继续吃 `:root` 的亮色值 —— 暗色预设上就会
+ *    浮出一块白底。名单与 `dark.css` 逐条对齐，由 `__tests__/design.test.ts` 钉住。
+ *
+ * 尺度变量（圆角/字号/侧栏宽/滤镜）由 `@antdv/utils` 的 `applyPreferencesToDom`
+ * 按偏好写在 html 内联样式上；这里给的是首屏兜底值 —— 只活在内联样式里时，
+ * 偏好落盘前的一帧这些值取不到，读它们的样式会抖一下。
  */
 
-:root {
+:root,
+.light,
+.light[data-theme='custom'],
+.light[data-theme='default'] {
   --app-background: #fff;
-  --app-foreground: rgba(0, 0, 0, 0.88);
+  --app-foreground: rgb(0 0 0 / 88%);
   --app-card: #fff;
-  --app-card-foreground: rgba(0, 0, 0, 0.88);
+  --app-card-foreground: rgb(0 0 0 / 88%);
   --app-popover: #fff;
-  --app-popover-foreground: rgba(0, 0, 0, 0.88);
-  --app-primary: var(--ant-color-primary, #1677ff);
+  --app-popover-foreground: rgb(0 0 0 / 88%);
+  --app-primary: #1677ff;
   --app-primary-foreground: #fff;
   --app-secondary: #f5f5f5;
-  --app-secondary-foreground: rgba(0, 0, 0, 0.88);
+  --app-secondary-foreground: rgb(0 0 0 / 88%);
   --app-muted: #f5f5f5;
-  --app-muted-foreground: rgba(0, 0, 0, 0.45);
-  --app-accent: rgba(0, 0, 0, 0.06);
-  --app-accent-foreground: rgba(0, 0, 0, 0.88);
+  --app-muted-foreground: rgb(0 0 0 / 45%);
+  --app-accent: rgb(0 0 0 / 6%);
+  --app-accent-foreground: rgb(0 0 0 / 88%);
   --app-destructive: #ff4d4f;
   --app-destructive-foreground: #fff;
   --app-border: #f0f0f0;
   --app-input: #d9d9d9;
-  --app-ring: var(--ant-color-primary, #1677ff);
+  --app-ring: var(--app-primary);
 
-  /* 侧栏自成一套：暗色侧栏是刻意偏好（不是暗色模式），值要能独立调 */
   --app-sidebar: #fafafa;
-  --app-sidebar-foreground: rgba(0, 0, 0, 0.88);
-  --app-sidebar-primary: var(--ant-color-primary, #1677ff);
-  --app-sidebar-primary-foreground: #fff;
-  --app-sidebar-accent: rgba(0, 0, 0, 0.04);
-  --app-sidebar-accent-foreground: rgba(0, 0, 0, 0.88);
-  --app-sidebar-border: #f0f0f0;
-  --app-sidebar-ring: var(--ant-color-primary, #1677ff);
+  --app-sidebar-foreground: var(--app-foreground);
+  --app-sidebar-primary: var(--app-primary);
+  --app-sidebar-primary-foreground: var(--app-primary-foreground);
+  --app-sidebar-accent: rgb(0 0 0 / 4%);
+  --app-sidebar-accent-foreground: var(--app-accent-foreground);
+  --app-sidebar-border: var(--app-border);
+  --app-sidebar-ring: var(--app-primary);
+
+  /* 尺度 token：名单与 dark 一致，取值各自独立 */
+  --app-border-radius: 4px;
+  --app-font-size: 14px;
+  --app-sidebar-width: 210px;
+  --app-filter: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * 预设主题：每套都给完整名单，且取值互不相同。
+ * `--app-primary` 就是设置面板里那颗色块，其余中性色按同色系的 shadcn 配方走 ——
+ * 所以换主题换掉的不只是一个按钮的颜色，而是整块画布的色温。
+ * ------------------------------------------------------------------ */
+
+.light[data-theme='violet'],
+[data-theme='violet'] {
+  --app-background: hsl(0 0% 100%);
+  --app-foreground: hsl(224 71.4% 4.1%);
+  --app-card: hsl(0 0% 100%);
+  --app-card-foreground: hsl(224 71.4% 4.1%);
+  --app-popover: hsl(0 0% 100%);
+  --app-popover-foreground: hsl(224 71.4% 4.1%);
+  --app-primary: #722ed1;
+  --app-primary-foreground: hsl(210 20% 98%);
+  --app-secondary: hsl(220 14.3% 95.9%);
+  --app-secondary-foreground: hsl(220.9 39.3% 11%);
+  --app-muted: hsl(220 14.3% 95.9%);
+  --app-muted-foreground: hsl(220 8.9% 46.1%);
+  --app-accent: hsl(220 14.3% 95.9%);
+  --app-accent-foreground: hsl(220.9 39.3% 11%);
+  --app-destructive: hsl(0 84.2% 60.2%);
+  --app-destructive-foreground: hsl(210 20% 98%);
+  --app-border: hsl(220 13% 91%);
+  --app-input: hsl(220 13% 91%);
+  --app-ring: var(--app-primary);
+  --app-sidebar: hsl(220 14.3% 95.9%);
+  --app-sidebar-foreground: var(--app-foreground);
+  --app-sidebar-primary: var(--app-primary);
+  --app-sidebar-primary-foreground: var(--app-primary-foreground);
+  --app-sidebar-accent: var(--app-accent);
+  --app-sidebar-accent-foreground: var(--app-accent-foreground);
+  --app-sidebar-border: var(--app-border);
+  --app-sidebar-ring: var(--app-primary);
+}
+
+.light[data-theme='pink'],
+[data-theme='pink'] {
+  --app-background: hsl(0 0% 100%);
+  --app-foreground: hsl(240 10% 3.9%);
+  --app-card: hsl(0 0% 100%);
+  --app-card-foreground: hsl(240 10% 3.9%);
+  --app-popover: hsl(0 0% 100%);
+  --app-popover-foreground: hsl(240 10% 3.9%);
+  --app-primary: #eb2f96;
+  --app-primary-foreground: hsl(355.7 100% 97.3%);
+  --app-secondary: hsl(240 4.8% 95.9%);
+  --app-secondary-foreground: hsl(240 5.9% 10%);
+  --app-muted: hsl(240 4.8% 95.9%);
+  --app-muted-foreground: hsl(240 3.8% 46.1%);
+  --app-accent: hsl(240 4.8% 95.9%);
+  --app-accent-foreground: hsl(240 5.9% 10%);
+  --app-destructive: hsl(0 84.2% 60.2%);
+  --app-destructive-foreground: hsl(0 0% 98%);
+  --app-border: hsl(240 5.9% 90%);
+  --app-input: hsl(240 5.9% 90%);
+  --app-ring: var(--app-primary);
+  --app-sidebar: hsl(240 4.8% 95.9%);
+  --app-sidebar-foreground: var(--app-foreground);
+  --app-sidebar-primary: var(--app-primary);
+  --app-sidebar-primary-foreground: var(--app-primary-foreground);
+  --app-sidebar-accent: var(--app-accent);
+  --app-sidebar-accent-foreground: var(--app-accent-foreground);
+  --app-sidebar-border: var(--app-border);
+  --app-sidebar-ring: var(--app-primary);
+}
+
+.light[data-theme='rose'],
+[data-theme='rose'] {
+  --app-background: hsl(0 0% 100%);
+  --app-foreground: hsl(350 90% 4.9%);
+  --app-card: hsl(0 0% 100%);
+  --app-card-foreground: hsl(350 90% 4.9%);
+  --app-popover: hsl(0 0% 100%);
+  --app-popover-foreground: hsl(350 90% 4.9%);
+  --app-primary: #f5222d;
+  --app-primary-foreground: hsl(355.7 100% 97.3%);
+  --app-secondary: hsl(350 30% 95.9%);
+  --app-secondary-foreground: hsl(350 40% 10%);
+  --app-muted: hsl(350 30% 95.9%);
+  --app-muted-foreground: hsl(350 8% 46.1%);
+  --app-accent: hsl(350 30% 95.9%);
+  --app-accent-foreground: hsl(350 40% 10%);
+  --app-destructive: hsl(0 84.2% 60.2%);
+  --app-destructive-foreground: hsl(0 0% 98%);
+  --app-border: hsl(350 40% 91%);
+  --app-input: hsl(350 40% 91%);
+  --app-ring: var(--app-primary);
+  --app-sidebar: hsl(350 30% 95.9%);
+  --app-sidebar-foreground: var(--app-foreground);
+  --app-sidebar-primary: var(--app-primary);
+  --app-sidebar-primary-foreground: var(--app-primary-foreground);
+  --app-sidebar-accent: var(--app-accent);
+  --app-sidebar-accent-foreground: var(--app-accent-foreground);
+  --app-sidebar-border: var(--app-border);
+  --app-sidebar-ring: var(--app-primary);
+}
+
+.light[data-theme='sky-blue'],
+[data-theme='sky-blue'] {
+  --app-background: hsl(0 0% 100%);
+  --app-foreground: hsl(222.2 84% 4.9%);
+  --app-card: hsl(0 0% 100%);
+  --app-card-foreground: hsl(222.2 84% 4.9%);
+  --app-popover: hsl(0 0% 100%);
+  --app-popover-foreground: hsl(222.2 84% 4.9%);
+  --app-primary: #1890ff;
+  --app-primary-foreground: hsl(210 40% 98%);
+  --app-secondary: hsl(210 40% 96.1%);
+  --app-secondary-foreground: hsl(222.2 47.4% 11.2%);
+  --app-muted: hsl(210 40% 96.1%);
+  --app-muted-foreground: hsl(215.4 16.3% 46.9%);
+  --app-accent: hsl(210 40% 96.1%);
+  --app-accent-foreground: hsl(222.2 47.4% 11.2%);
+  --app-destructive: hsl(0 84.2% 60.2%);
+  --app-destructive-foreground: hsl(210 40% 98%);
+  --app-border: hsl(214.3 31.8% 91.4%);
+  --app-input: hsl(214.3 31.8% 91.4%);
+  --app-ring: var(--app-primary);
+  --app-sidebar: hsl(210 40% 96.1%);
+  --app-sidebar-foreground: var(--app-foreground);
+  --app-sidebar-primary: var(--app-primary);
+  --app-sidebar-primary-foreground: var(--app-primary-foreground);
+  --app-sidebar-accent: var(--app-accent);
+  --app-sidebar-accent-foreground: var(--app-accent-foreground);
+  --app-sidebar-border: var(--app-border);
+  --app-sidebar-ring: var(--app-primary);
+}
+
+.light[data-theme='deep-blue'],
+[data-theme='deep-blue'] {
+  --app-background: hsl(0 0% 100%);
+  --app-foreground: hsl(230 80% 4.9%);
+  --app-card: hsl(0 0% 100%);
+  --app-card-foreground: hsl(230 80% 4.9%);
+  --app-popover: hsl(0 0% 100%);
+  --app-popover-foreground: hsl(230 80% 4.9%);
+  --app-primary: #1d39c4;
+  --app-primary-foreground: hsl(210 40% 98%);
+  --app-secondary: hsl(228 60% 95.1%);
+  --app-secondary-foreground: hsl(230 53% 11.2%);
+  --app-muted: hsl(228 60% 95.1%);
+  --app-muted-foreground: hsl(228 15% 46.9%);
+  --app-accent: hsl(228 60% 95.1%);
+  --app-accent-foreground: hsl(230 53% 11.2%);
+  --app-destructive: hsl(0 84.2% 60.2%);
+  --app-destructive-foreground: hsl(210 40% 98%);
+  --app-border: hsl(228 45% 90.4%);
+  --app-input: hsl(228 45% 90.4%);
+  --app-ring: var(--app-primary);
+  --app-sidebar: hsl(228 60% 95.1%);
+  --app-sidebar-foreground: var(--app-foreground);
+  --app-sidebar-primary: var(--app-primary);
+  --app-sidebar-primary-foreground: var(--app-primary-foreground);
+  --app-sidebar-accent: var(--app-accent);
+  --app-sidebar-accent-foreground: var(--app-accent-foreground);
+  --app-sidebar-border: var(--app-border);
+  --app-sidebar-ring: var(--app-primary);
+}
+
+.light[data-theme='green'],
+[data-theme='green'] {
+  --app-background: hsl(0 0% 100%);
+  --app-foreground: hsl(142 72% 3.9%);
+  --app-card: hsl(0 0% 100%);
+  --app-card-foreground: hsl(142 72% 3.9%);
+  --app-popover: hsl(0 0% 100%);
+  --app-popover-foreground: hsl(142 72% 3.9%);
+  --app-primary: #52c41a;
+  --app-primary-foreground: hsl(0 0% 98%);
+  --app-secondary: hsl(144 30% 95.1%);
+  --app-secondary-foreground: hsl(143 40% 10%);
+  --app-muted: hsl(144 30% 95.1%);
+  --app-muted-foreground: hsl(143 8% 44.1%);
+  --app-accent: hsl(144 30% 95.1%);
+  --app-accent-foreground: hsl(143 40% 10%);
+  --app-destructive: hsl(0 84.2% 60.2%);
+  --app-destructive-foreground: hsl(0 0% 98%);
+  --app-border: hsl(143 40% 90%);
+  --app-input: hsl(143 40% 90%);
+  --app-ring: var(--app-primary);
+  --app-sidebar: hsl(144 30% 95.1%);
+  --app-sidebar-foreground: var(--app-foreground);
+  --app-sidebar-primary: var(--app-primary);
+  --app-sidebar-primary-foreground: var(--app-primary-foreground);
+  --app-sidebar-accent: var(--app-accent);
+  --app-sidebar-accent-foreground: var(--app-accent-foreground);
+  --app-sidebar-border: var(--app-border);
+  --app-sidebar-ring: var(--app-primary);
+}
+
+.light[data-theme='deep-green'],
+[data-theme='deep-green'] {
+  --app-background: hsl(0 0% 100%);
+  --app-foreground: hsl(180 72% 3.9%);
+  --app-card: hsl(0 0% 100%);
+  --app-card-foreground: hsl(180 72% 3.9%);
+  --app-popover: hsl(0 0% 100%);
+  --app-popover-foreground: hsl(180 72% 3.9%);
+  --app-primary: #13c2c2;
+  --app-primary-foreground: hsl(180 100% 97.3%);
+  --app-secondary: hsl(180 30% 95.1%);
+  --app-secondary-foreground: hsl(180 40% 10%);
+  --app-muted: hsl(180 30% 95.1%);
+  --app-muted-foreground: hsl(180 8% 44.1%);
+  --app-accent: hsl(180 30% 95.1%);
+  --app-accent-foreground: hsl(180 40% 10%);
+  --app-destructive: hsl(0 84.2% 60.2%);
+  --app-destructive-foreground: hsl(0 0% 98%);
+  --app-border: hsl(180 40% 90%);
+  --app-input: hsl(180 40% 90%);
+  --app-ring: var(--app-primary);
+  --app-sidebar: hsl(180 30% 95.1%);
+  --app-sidebar-foreground: var(--app-foreground);
+  --app-sidebar-primary: var(--app-primary);
+  --app-sidebar-primary-foreground: var(--app-primary-foreground);
+  --app-sidebar-accent: var(--app-accent);
+  --app-sidebar-accent-foreground: var(--app-accent-foreground);
+  --app-sidebar-border: var(--app-border);
+  --app-sidebar-ring: var(--app-primary);
+}
+
+.light[data-theme='orange'],
+[data-theme='orange'] {
+  --app-background: hsl(0 0% 100%);
+  --app-foreground: hsl(14 80% 4.1%);
+  --app-card: hsl(0 0% 100%);
+  --app-card-foreground: hsl(14 80% 4.1%);
+  --app-popover: hsl(0 0% 100%);
+  --app-popover-foreground: hsl(14 80% 4.1%);
+  --app-primary: #fa541c;
+  --app-primary-foreground: hsl(60 9.1% 97.8%);
+  --app-secondary: hsl(20 40% 95.1%);
+  --app-secondary-foreground: hsl(15 40% 10%);
+  --app-muted: hsl(20 40% 95.1%);
+  --app-muted-foreground: hsl(17 10% 44.7%);
+  --app-accent: hsl(20 40% 95.1%);
+  --app-accent-foreground: hsl(15 40% 10%);
+  --app-destructive: hsl(0 84.2% 60.2%);
+  --app-destructive-foreground: hsl(60 9.1% 97.8%);
+  --app-border: hsl(16 50% 90%);
+  --app-input: hsl(16 50% 90%);
+  --app-ring: var(--app-primary);
+  --app-sidebar: hsl(20 40% 95.1%);
+  --app-sidebar-foreground: var(--app-foreground);
+  --app-sidebar-primary: var(--app-primary);
+  --app-sidebar-primary-foreground: var(--app-primary-foreground);
+  --app-sidebar-accent: var(--app-accent);
+  --app-sidebar-accent-foreground: var(--app-accent-foreground);
+  --app-sidebar-border: var(--app-border);
+  --app-sidebar-ring: var(--app-primary);
+}
+
+.light[data-theme='yellow'],
+[data-theme='yellow'] {
+  --app-background: hsl(0 0% 100%);
+  --app-foreground: hsl(40 80% 4.1%);
+  --app-card: hsl(0 0% 100%);
+  --app-card-foreground: hsl(40 80% 4.1%);
+  --app-popover: hsl(0 0% 100%);
+  --app-popover-foreground: hsl(40 80% 4.1%);
+  --app-primary: #faad14;
+  --app-primary-foreground: hsl(26 83.3% 14.1%);
+  --app-secondary: hsl(50 50% 95.1%);
+  --app-secondary-foreground: hsl(45 40% 10%);
+  --app-muted: hsl(50 50% 95.1%);
+  --app-muted-foreground: hsl(45 10% 44.7%);
+  --app-accent: hsl(50 50% 95.1%);
+  --app-accent-foreground: hsl(45 40% 10%);
+  --app-destructive: hsl(0 84.2% 60.2%);
+  --app-destructive-foreground: hsl(60 9.1% 97.8%);
+  --app-border: hsl(48 50% 90%);
+  --app-input: hsl(48 50% 90%);
+  --app-ring: var(--app-primary);
+  --app-sidebar: hsl(50 50% 95.1%);
+  --app-sidebar-foreground: var(--app-foreground);
+  --app-sidebar-primary: var(--app-primary);
+  --app-sidebar-primary-foreground: var(--app-primary-foreground);
+  --app-sidebar-accent: var(--app-accent);
+  --app-sidebar-accent-foreground: var(--app-accent-foreground);
+  --app-sidebar-border: var(--app-border);
+  --app-sidebar-ring: var(--app-primary);
+}
+
+.light[data-theme='zinc'],
+[data-theme='zinc'] {
+  --app-background: hsl(0 0% 100%);
+  --app-foreground: hsl(240 10% 3.9%);
+  --app-card: hsl(0 0% 100%);
+  --app-card-foreground: hsl(240 10% 3.9%);
+  --app-popover: hsl(0 0% 100%);
+  --app-popover-foreground: hsl(240 10% 3.9%);
+  --app-primary: #262626;
+  --app-primary-foreground: hsl(0 0% 98%);
+  --app-secondary: hsl(240 4.8% 95.9%);
+  --app-secondary-foreground: hsl(240 5.9% 10%);
+  --app-muted: hsl(240 4.8% 95.9%);
+  --app-muted-foreground: hsl(240 3.8% 46.1%);
+  --app-accent: hsl(240 4.8% 95.9%);
+  --app-accent-foreground: hsl(240 5.9% 10%);
+  --app-destructive: hsl(0 84.2% 60.2%);
+  --app-destructive-foreground: hsl(0 0% 98%);
+  --app-border: hsl(240 5.9% 90%);
+  --app-input: hsl(240 5.9% 90%);
+  --app-ring: var(--app-primary);
+  --app-sidebar: hsl(240 4.8% 95.9%);
+  --app-sidebar-foreground: var(--app-foreground);
+  --app-sidebar-primary: var(--app-primary);
+  --app-sidebar-primary-foreground: var(--app-primary-foreground);
+  --app-sidebar-accent: var(--app-accent);
+  --app-sidebar-accent-foreground: var(--app-accent-foreground);
+  --app-sidebar-border: var(--app-border);
+  --app-sidebar-ring: var(--app-primary);
+}
+
+.light[data-theme='neutral'],
+[data-theme='neutral'] {
+  --app-background: hsl(0 0% 100%);
+  --app-foreground: hsl(0 0% 3.9%);
+  --app-card: hsl(0 0% 100%);
+  --app-card-foreground: hsl(0 0% 3.9%);
+  --app-popover: hsl(0 0% 100%);
+  --app-popover-foreground: hsl(0 0% 3.9%);
+  --app-primary: #2f54eb;
+  --app-primary-foreground: hsl(0 0% 98%);
+  --app-secondary: hsl(0 0% 96.1%);
+  --app-secondary-foreground: hsl(0 0% 9%);
+  --app-muted: hsl(0 0% 96.1%);
+  --app-muted-foreground: hsl(0 0% 45.1%);
+  --app-accent: hsl(0 0% 96.1%);
+  --app-accent-foreground: hsl(0 0% 9%);
+  --app-destructive: hsl(0 84.2% 60.2%);
+  --app-destructive-foreground: hsl(0 0% 98%);
+  --app-border: hsl(0 0% 89.8%);
+  --app-input: hsl(0 0% 89.8%);
+  --app-ring: var(--app-primary);
+  --app-sidebar: hsl(0 0% 96.1%);
+  --app-sidebar-foreground: var(--app-foreground);
+  --app-sidebar-primary: var(--app-primary);
+  --app-sidebar-primary-foreground: var(--app-primary-foreground);
+  --app-sidebar-accent: var(--app-accent);
+  --app-sidebar-accent-foreground: var(--app-accent-foreground);
+  --app-sidebar-border: var(--app-border);
+  --app-sidebar-ring: var(--app-primary);
+}
+
+.light[data-theme='slate'],
+[data-theme='slate'] {
+  --app-background: hsl(0 0% 100%);
+  --app-foreground: hsl(222.2 60% 6.9%);
+  --app-card: hsl(0 0% 100%);
+  --app-card-foreground: hsl(222.2 60% 6.9%);
+  --app-popover: hsl(0 0% 100%);
+  --app-popover-foreground: hsl(222.2 60% 6.9%);
+  --app-primary: #1f2937;
+  --app-primary-foreground: hsl(210 40% 98%);
+  --app-secondary: hsl(210 30% 95.1%);
+  --app-secondary-foreground: hsl(222.2 47.4% 11.2%);
+  --app-muted: hsl(210 30% 95.1%);
+  --app-muted-foreground: hsl(215.4 16.3% 46.9%);
+  --app-accent: hsl(210 30% 95.1%);
+  --app-accent-foreground: hsl(222.2 47.4% 11.2%);
+  --app-destructive: hsl(0 84.2% 60.2%);
+  --app-destructive-foreground: hsl(210 40% 98%);
+  --app-border: hsl(214.3 26% 89.4%);
+  --app-input: hsl(214.3 26% 89.4%);
+  --app-ring: var(--app-primary);
+  --app-sidebar: hsl(210 30% 95.1%);
+  --app-sidebar-foreground: var(--app-foreground);
+  --app-sidebar-primary: var(--app-primary);
+  --app-sidebar-primary-foreground: var(--app-primary-foreground);
+  --app-sidebar-accent: var(--app-accent);
+  --app-sidebar-accent-foreground: var(--app-accent-foreground);
+  --app-sidebar-border: var(--app-border);
+  --app-sidebar-ring: var(--app-primary);
+}
+
+.light[data-theme='gray'],
+[data-theme='gray'] {
+  --app-background: hsl(0 0% 100%);
+  --app-foreground: hsl(224 50% 6.1%);
+  --app-card: hsl(0 0% 100%);
+  --app-card-foreground: hsl(224 50% 6.1%);
+  --app-popover: hsl(0 0% 100%);
+  --app-popover-foreground: hsl(224 50% 6.1%);
+  --app-primary: #374151;
+  --app-primary-foreground: hsl(210 20% 98%);
+  --app-secondary: hsl(220 14.3% 95.9%);
+  --app-secondary-foreground: hsl(220.9 39.3% 11%);
+  --app-muted: hsl(220 14.3% 95.9%);
+  --app-muted-foreground: hsl(220 8.9% 46.1%);
+  --app-accent: hsl(220 14.3% 95.9%);
+  --app-accent-foreground: hsl(220.9 39.3% 11%);
+  --app-destructive: hsl(0 84.2% 60.2%);
+  --app-destructive-foreground: hsl(210 20% 98%);
+  --app-border: hsl(220 13% 91%);
+  --app-input: hsl(220 13% 91%);
+  --app-ring: var(--app-primary);
+  --app-sidebar: hsl(220 14.3% 95.9%);
+  --app-sidebar-foreground: var(--app-foreground);
+  --app-sidebar-primary: var(--app-primary);
+  --app-sidebar-primary-foreground: var(--app-primary-foreground);
+  --app-sidebar-accent: var(--app-accent);
+  --app-sidebar-accent-foreground: var(--app-accent-foreground);
+  --app-sidebar-border: var(--app-border);
+  --app-sidebar-ring: var(--app-primary);
 }

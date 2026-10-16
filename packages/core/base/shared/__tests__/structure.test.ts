@@ -77,7 +77,6 @@ describe('shared 目录结构', () => {
       'masking.ts',
       'scroll.ts',
       'template.ts',
-      'welcome.ts',
       'xss.ts',
     ]);
   });

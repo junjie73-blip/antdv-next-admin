@@ -58,6 +58,18 @@ describe('BasicModal', () => {
     expect(modalContent()).toBeNull();
   });
 
+  /** 与抽屉同一条层级约定：默认跟随 DialogContent 的 `z-50`，让浮层能盖在弹窗之上 */
+  it('默认不覆盖层级，显式传入才写内联 zIndex', async () => {
+    wrapper = mountModal({ open: true });
+    await flushPromises();
+    expect(modalContent()!.style.zIndex).toBe('');
+    wrapper.unmount();
+
+    wrapper = mountModal({ open: true, zIndex: 1100 });
+    await flushPromises();
+    expect(modalContent()!.style.zIndex).toBe('1100');
+  });
+
   it('mount 后通过 register 事件暴露实例方法', async () => {
     wrapper = mountModal();
     const instance = await getRegisteredInstance(wrapper);

@@ -1,3 +1,4 @@
+import { THEME_PRESETS } from '@antdv/shared/constants';
 import { cn } from '@antdv/shared/utils/cn';
 import i18n from '~/locales';
 
@@ -57,22 +58,35 @@ export const BORDER_RADIUS_OPTIONS = [
 /* ============================================================
  * 主题色
  * ============================================================ */
-export const PRIMARY_COLORS = [
-  { value: '#1677FF', label: '默认' },
-  { value: '#722ED1', label: '紫罗兰' },
-  { value: '#EB2F96', label: '樱花粉' },
-  { value: '#FAAD14', label: '柠檬黄' },
-  { value: '#1890FF', label: '天蓝色' },
-  { value: '#52C41A', label: '浅绿色' },
-  { value: '#262626', label: '锌色灰' },
-  { value: '#13C2C2', label: '深绿色' },
-  { value: '#1D39C4', label: '深蓝色' },
-  { value: '#FA541C', label: '橙黄色' },
-  { value: '#F5222D', label: '玫瑰红' },
-  { value: '#2F54EB', label: '中性色' },
-  { value: '#1F2937', label: '石板灰' },
-  { value: '#374151', label: '中灰色' },
-];
+
+/**
+ * 色块名单来自 `@antdv/shared` 的 `THEME_PRESETS`（预设色板的单一来源），
+ * 这里只补中文名；key 对不上时退回显示 key 本身，避免出现"点了没名字"的空块。
+ */
+const THEME_LABELS: Record<string, string> = {
+  default: '默认',
+  violet: '紫罗兰',
+  pink: '樱花粉',
+  yellow: '柠檬黄',
+  'sky-blue': '天蓝色',
+  green: '浅绿色',
+  zinc: '锌色灰',
+  'deep-green': '深绿色',
+  'deep-blue': '深蓝色',
+  orange: '橙黄色',
+  rose: '玫瑰红',
+  neutral: '中性色',
+  slate: '石板灰',
+  gray: '中灰色',
+};
+
+export const PRIMARY_COLORS = THEME_PRESETS.map((preset) => ({
+  key: preset.key,
+  value: preset.color,
+  get label() {
+    return THEME_LABELS[preset.key] ?? preset.key;
+  },
+}));
 
 /* ============================================================
  * 页面切换动画
@@ -171,7 +185,7 @@ export const panelWrapperClassName = cn('space-y-6 p-5');
 export const groupIconClassName = cn(
   'flex size-7 shrink-0 items-center justify-center rounded-lg',
   'bg-linear-to-br from-blue-500/15 to-indigo-500/15',
-  'text-ant-primary text-[15px]',
+  'text-primary text-[15px]',
 );
 
 export const groupBoxClassName = cn(
@@ -185,7 +199,7 @@ export const itemRowClassName = cn(
   'rounded-xl bg-white px-4 py-3',
   'outline outline-1 outline-slate-200',
   'transition-all duration-200',
-  'hover:outline-ant-primary/40 hover:shadow-sm',
+  'hover:outline-primary/40 hover:shadow-sm',
   'dark:bg-slate-800 dark:outline-slate-700',
 );
 
@@ -202,7 +216,7 @@ export const groupTitleClassName = cn(
   'text-[13px] font-semibold text-slate-700 dark:text-slate-200',
   'after:absolute after:right-0 after:bottom-0 after:left-9',
   'after:h-[2px] after:rounded-full',
-  'after:from-ant-primary after:to-ant-primary/20 after:bg-linear-to-r',
+  'after:from-primary after:to-primary/20 after:bg-linear-to-r',
   'after:origin-left after:scale-x-0',
   'after:transition-transform after:duration-300 after:ease-out',
   'hover:after:scale-x-100',

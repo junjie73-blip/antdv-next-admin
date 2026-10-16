@@ -2,7 +2,7 @@ import type { FormActionType } from '../src/types';
 
 import { describe, expect, it, vi } from 'vitest';
 
-import { useForm } from '../src/useForm';
+import { useForm } from '../src/use-vben-form';
 
 function createMockInstance(isMounted = true): FormActionType {
   return {

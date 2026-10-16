@@ -36,7 +36,7 @@
 
 1. **页面按 `views/<模块>/<页面>/index.vue` 摆放**，页面私有逻辑放同目录的 `actions.ts` / `columns.ts` / `schemas.ts`；`components/`、`widgets/` 子目录里的是 **私有组件，不是路由页面** —— 文件约定路由和"根容器不许加 padding"的守卫都用这个口径排除它们。
 2. **路由页面外层容器不写 padding**，内边距归布局管（见[布局、菜单与标签页](/guide/in-depth/layout#内容区内边距归布局管)）。
-3. **强调色只用 `*-ant-primary` / `var(--ant*)`**，不写死 `blue-*` 或 `#1677ff` （见[主题与偏好设置](/guide/in-depth/theme#用-tailwind-写主题色)）。
+3. **强调色只用 `@antdv/design` 的主色令牌**（`bg-primary` / `text-primary` / `var(--app-primary)`），不写 antd 兼容层的 `*-ant-*`（那组类已不再生成），也不写死 `blue-*` 或 `#1677ff`（见[主题与偏好设置](/guide/in-depth/theme#用-tailwind-写主题色)）。
 
 跑检查：
 

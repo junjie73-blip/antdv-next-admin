@@ -143,6 +143,50 @@ describe('BasicDrawer', () => {
     expect(drawerContent()!.querySelector('.slot-content')).not.toBeNull();
   });
 
+  /**
+   * 头部内边距由抽屉负责：`#header` 插槽过去裸挂在 DrawerContent 里，
+   * 调用方不给 padding 时标题就贴着抽屉外沿（偏好抽屉实测只剩 1px 边框）。
+   */
+  it('内置与自定义头部共用同一套内边距', async () => {
+    wrapper = mountDrawer({ open: true });
+    await flushPromises();
+    const builtin = document.querySelector('.basic-drawer .drawer-header');
+    expect(builtin?.className).toContain('px-6');
+    expect(builtin?.className).toContain('py-4');
+    wrapper.unmount();
+
+    wrapper = mount(BasicDrawer, {
+      props: { open: true, title: '自定义头' },
+      slots: {
+        default: () => h('div', { class: 'slot-content' }, '内容'),
+        header: () => h('div', { class: 'custom-header' }, '自定义标题'),
+      },
+      attachTo: document.body,
+    });
+    await flushPromises();
+    const custom = document.querySelector('.basic-drawer .drawer-header');
+    expect(custom?.querySelector('.custom-header')).not.toBeNull();
+    expect(custom?.className).toContain('px-6');
+    expect(custom?.className).toContain('py-4');
+  });
+
+  /**
+   * 层级不抢：抽屉默认不写内联 zIndex，跟着 DrawerContent 的 `z-50` 走。
+   * 抽屉自带的 z-1000 会把同页所有 shadcn 浮层（Popover / Select / Tooltip 都是 z-50，
+   * 且 portal 到 body 末尾）压在抽屉下面 —— 偏好抽屉里"自定义取色"点不开就是这一条。
+   * 同一档位下由挂载顺序决定先后，正合"后开的在上"。需要钉死关系时才显式传 zIndex。
+   */
+  it('默认不覆盖层级，显式传入才写内联 zIndex', async () => {
+    wrapper = mountDrawer({ open: true });
+    await flushPromises();
+    expect(drawerContent()!.style.zIndex).toBe('');
+    wrapper.unmount();
+
+    wrapper = mountDrawer({ open: true, zIndex: 1100 });
+    await flushPromises();
+    expect(drawerContent()!.style.zIndex).toBe('1100');
+  });
+
   it('setDrawerProps 覆盖 title/open/visible', async () => {
     wrapper = mountDrawer();
     const instance = await getRegisteredInstance(wrapper);
@@ -200,6 +244,64 @@ describe('BasicDrawer', () => {
     expect(cls).toContain('data-[state=closed]:fill-mode-forwards');
   });
 
+  /**
+   * reka 只把 pointer-events 认领给 full-modal 分支的面板；我们走 'trap-focus'（见下条），
+   * 而蒙层照样会把 body 锁成 `pointer-events: none` —— 面板不自己开回来就整块点不动。
+   * 反过来关闭态必须继续不可交互，所以两条要同时钉住。
+   */
+  it('open 态面板认领 pointer-events，关闭态仍然不可交互', async () => {
+    wrapper = mountDrawer({ destroyOnHidden: false, open: true });
+    await flushPromises();
+    expect(drawerContent()!.className).toContain(
+      'data-[state=open]:pointer-events-auto',
+    );
+
+    wrapper.unmount();
+    wrapper = mountDrawer({ destroyOnHidden: false });
+    await getRegisteredInstance(wrapper);
+    expect(drawerContent()!.className).toContain(
+      'data-[state=closed]:pointer-events-none',
+    );
+  });
+
+  /**
+   * reka 的 DrawerContent 只要 modal 是严格 `true` 就把面板外的节点整片标成 aria-hidden，
+   * 而且没有 Dialog 那层的 present 闸门：force-mount 的关闭态抽屉会让整个应用读屏不可见。
+   * 根节点因此只传 'trap-focus' / false，这一条就是守住那个口子。
+   */
+  it('抽屉开着或 force-mount 关着都不把兄弟节点标成 aria-hidden', async () => {
+    const appShell = document.createElement('div');
+    appShell.textContent = '页面主内容';
+    document.body.append(appShell);
+
+    wrapper = mountDrawer({ destroyOnHidden: false });
+    const instance = await getRegisteredInstance(wrapper);
+    expect(appShell.getAttribute('aria-hidden')).toBeNull();
+
+    instance.openDrawer(true);
+    await flushPromises();
+    expect(appShell.getAttribute('aria-hidden')).toBeNull();
+
+    instance.closeDrawer();
+    await flushPromises();
+    expect(appShell.getAttribute('aria-hidden')).toBeNull();
+  });
+
+  /** mask 仍然管蒙层：默认有，关掉就没有（焦点陷阱跟着 modal 一起退场） */
+  it('mask=false 时不渲染蒙层', async () => {
+    wrapper = mountDrawer({ mask: false, open: true });
+    await flushPromises();
+    expect(drawerContent()).not.toBeNull();
+    expect(document.querySelector('[data-slot="drawer-overlay"]')).toBeNull();
+
+    wrapper.unmount();
+    wrapper = mountDrawer({ open: true });
+    await flushPromises();
+    expect(
+      document.querySelector('[data-slot="drawer-overlay"]'),
+    ).not.toBeNull();
+  });
+
   /** 宽度是内联 style，所以不能出现 `w-auto!` 这类 important 覆盖 */
   it('左右 placement 不给面板加 !important 宽度覆盖', async () => {
     wrapper = mountDrawer({ size: 680 });
@@ -219,7 +321,11 @@ describe('useDrawer / useDrawerInner', () => {
         const [register, m] = useDrawer();
         methods = m;
         return () =>
-          h(BasicDrawer, { title: '宿主抽屉', onRegister: register }, { default: () => '宿主内容' });
+          h(
+            BasicDrawer,
+            { title: '宿主抽屉', onRegister: register },
+            { default: () => '宿主内容' },
+          );
       },
     });
 
@@ -244,7 +350,11 @@ describe('useDrawer / useDrawerInner', () => {
         const [register, m] = useDrawerInner();
         methods = m;
         return () =>
-          h(BasicDrawer, { title: '别名抽屉', onRegister: register }, { default: () => '内容' });
+          h(
+            BasicDrawer,
+            { title: '别名抽屉', onRegister: register },
+            { default: () => '内容' },
+          );
       },
     });
 

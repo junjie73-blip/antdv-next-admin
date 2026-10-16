@@ -15,9 +15,6 @@ catalogs:
     '@antdv-next/icons':
       specifier: ^1.1.2
       version: 1.1.2
-    '@antdv-next/tailwind':
-      specifier: ^1.1.2
-      version: 1.1.2
     '@changesets/changelog-github':
       specifier: ^1.0.1
       version: 1.0.1
@@ -546,6 +543,9 @@ catalogs:
     tailwindcss:
       specifier: ^4.3.3
       version: 4.3.3
+    theme-colors:
+      specifier: ^0.1.0
+      version: 0.1.0
     tinyglobby:
       specifier: ^0.2.17
       version: 0.2.17
@@ -1155,9 +1155,6 @@ importers:
         specifier: 'catalog:'
         version: 0.18.5
     devDependencies:
-      '@antdv-next/tailwind':
-        specifier: 'catalog:'
-        version: 1.1.2(tailwindcss@4.3.3)
       '@antdv/tsconfig':
         specifier: workspace:*
         version: link:../../internal/tsconfig
@@ -1668,9 +1665,6 @@ importers:
 
   packages/core/base/design:
     dependencies:
-      '@antdv-next/tailwind':
-        specifier: 'catalog:'
-        version: 1.1.2(tailwindcss@4.3.3)
       '@tailwindcss/nesting':
         specifier: 'catalog:'
         version: 0.0.0-insiders.565cd3e(postcss@8.5.29)
@@ -1754,6 +1748,9 @@ importers:
       '@antdv/types':
         specifier: workspace:*
         version: link:../typings
+      '@ctrl/tinycolor':
+        specifier: ^4.2.0
+        version: 4.2.1
       '@iconify/vue':
         specifier: 'catalog:'
         version: 5.0.3(vue@3.5.43(typescript@6.0.3))
@@ -1763,9 +1760,6 @@ importers:
       '@vueuse/core':
         specifier: 'catalog:'
         version: 14.4.0(vue@3.5.43(typescript@6.0.3))
-      antdv-next:
-        specifier: 'catalog:'
-        version: 1.6.0(vue@3.5.43(typescript@6.0.3))
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -1793,6 +1787,9 @@ importers:
       tailwind-merge:
         specifier: 'catalog:'
         version: 3.7.0
+      theme-colors:
+        specifier: 'catalog:'
+        version: 0.1.0
       vue:
         specifier: 3.5.43
         version: 3.5.43(typescript@6.0.3)
@@ -2774,11 +2771,6 @@ packages:
     resolution: {integrity: sha512-Ul4me4fx72VqA9xPYf9JVjlHq1PXO4JWGJGDtr9vPZfZYowFWDMjd7NeME1APYrJosVTMbJsArRMURbEGwbliA==}
     peerDependencies:
       vue: 3.5.43
-
-  '@antdv-next/tailwind@1.1.2':
-    resolution: {integrity: sha512-c26r6TPOcm+HGz1jCX9Ad0zOjhYvOKDsFlzo0j76/D7fWEkMEK3VPFOKX0xIxA6eHbSCw7/ldoYvWUe9jSFrKQ==}
-    peerDependencies:
-      tailwindcss: '>=3.0.0'
 
   '@apideck/better-ajv-errors@0.3.7':
     resolution: {integrity: sha512-TajUJwGWbDwkCx/CZi7tRE8PVB7simCvKJfHUsSdvps+aTM/PDPP4gkLmKnc+x3CE//y9i/nj74GqdL/hwk7Iw==}
@@ -13226,6 +13218,9 @@ packages:
     resolution: {integrity: sha512-wiBrwC1EhBelW12Zy26JeOUkQ5mRu+5o8rpsJk5+2t+Y5vE7e842qtZDQ2g1NpX/29HdyFeJ4nSIhI47ENSxlQ==}
     engines: {node: '>=0.10'}
 
+  theme-colors@0.1.0:
+    resolution: {integrity: sha512-6gTEHQqWlQNiOEGHCSSQmU//E5SnXHJ4H7oHQOD8x77CvNYNQAmt73dqR71mzw5ULV87zaHLxK5pIBnsToFuZw==}
+
   throttle-debounce@5.0.2:
     resolution: {integrity: sha512-B71/4oyj61iNH0KeCamLuE2rmKuTO5byTOSVwECM5FA7TiAiAW+UqTKZ9ERueC4qvgSttUhdmq1mXC3kJqGX7A==}
     engines: {node: '>=12.22'}
@@ -14756,10 +14751,6 @@ snapshots:
       '@ant-design/icons-svg': 4.6.0
       '@v-c/util': 1.3.2(vue@3.5.43(typescript@6.0.3))
       vue: 3.5.43(typescript@6.0.3)
-
-  '@antdv-next/tailwind@1.1.2(tailwindcss@4.3.3)':
-    dependencies:
-      tailwindcss: 4.3.3
 
   '@apideck/better-ajv-errors@0.3.7(ajv@8.20.0)':
     dependencies:
@@ -25816,6 +25807,8 @@ snapshots:
       - react-native-b4a
 
   text-extensions@1.9.0: {}
+
+  theme-colors@0.1.0: {}
 
   throttle-debounce@5.0.2: {}
 

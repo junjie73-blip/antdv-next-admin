@@ -8,7 +8,7 @@ import { Divider, Popconfirm, Scrollbar, Tag } from '@antdv/common-ui';
 
 import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
-import { exportToExcel } from '@antdv/shared/utils/excel';
+import { exportToExcel } from '~/utils/excel';
 import { Icon } from '@iconify/vue';
 import {
   addDict,
@@ -60,7 +60,7 @@ const typeItemClassName = (active: boolean) =>
     'transition-colors duration-200',
     'hover:bg-gray-50 dark:hover:bg-gray-800',
     active &&
-      'border-l-[3px] border-l-(--ant-color-primary) bg-blue-50 dark:bg-blue-900/20',
+      'border-l-[3px] border-l-(--app-primary) bg-blue-50 dark:bg-blue-900/20',
   );
 const typeItemNameClassName = cn(
   'truncate text-sm font-medium text-gray-800 dark:text-gray-200',

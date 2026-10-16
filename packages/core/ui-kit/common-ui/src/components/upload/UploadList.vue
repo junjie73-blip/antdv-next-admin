@@ -65,6 +65,7 @@ function onPreview(file: UploadFile, event: MouseEvent) {
       v-for="file in props.items"
       :key="file.uid"
       data-common-upload-item
+      :data-common-upload-status="file.status"
       :class="itemClass"
     >
       <!-- 图片模式：卡片是 96px 方格并带遮罩预览，普通图片模式只画小缩略图 -->

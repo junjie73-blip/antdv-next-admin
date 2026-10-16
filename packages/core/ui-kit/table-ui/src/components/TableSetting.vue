@@ -141,17 +141,18 @@ const isIndeterminate = computed(() => {
         <TooltipContent>刷新</TooltipContent>
       </Tooltip>
 
+      <!--
+        这里刻意不再套 reka 的 Tooltip。TooltipRoot 与 PopoverRoot 各提供一份 PopperRoot，
+        而 inject 只认组件树上最近的那一份：Trigger 落在 Tooltip 子树里，锚点就注册到 tooltip
+        的 PopperRoot 上，面板自己的那一份永远是空的，于是按零尺寸锚点算坐标（实测 y=-784，
+        弹层跑到视口外）。悬停提示改用下面 Button 的原生 title。
+      -->
       <Popover v-if="getSetting.setting" v-model:open="settingVisible">
-        <Tooltip>
-          <TooltipTrigger as-child>
-            <PopoverTrigger as-child>
-              <Button variant="ghost" size="sm" title="列设置">
-                <Icon icon="ant-design:setting-outlined" />
-              </Button>
-            </PopoverTrigger>
-          </TooltipTrigger>
-          <TooltipContent>列设置</TooltipContent>
-        </Tooltip>
+        <PopoverTrigger as-child>
+          <Button variant="ghost" size="sm" title="列设置">
+            <Icon icon="ant-design:setting-outlined" />
+          </Button>
+        </PopoverTrigger>
 
         <PopoverContent align="end" :class="cn('basic-table-setting-panel w-auto p-0')">
           <div :class="cn('w-56 p-3')">

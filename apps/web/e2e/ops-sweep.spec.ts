@@ -67,21 +67,23 @@ async function sideNavTitles(page: Page): Promise<string[]> {
 
 /**
  * 可见的树节点。
- * antd Tree 会额外渲染一条 `aria-hidden` 的量测节点，直接数 `.ant-tree-treenode`
- * 会把"只有量测节点、真树是空的"算成有数据。
+ * `@antdv/common-ui` 的 Tree 只渲染真实节点（`[data-common-tree-node]`），
+ * 没有 antd 那条 `aria-hidden` 的量测节点，直接数就是真的树。
  */
 function visibleTreeNodes(page: Page): Locator {
-  return page.locator('.ant-tree-treenode:not([aria-hidden="true"])');
+  return page.locator('[data-common-tree-node]');
 }
 
 /**
  * 只取"这一层"的条目文本。
  *
- * 不能用 `.menu-item`：子菜单展开时孙层的条目也是 `.menu-item`，
- * 会把侧栏读成一长串。`> .menu-item` 才是本层（menu-ui 把子树嵌在同一个 li 里）。
+ * 不能用裸 `.menu-item`：子菜单展开时孙层的条目也是 `.menu-item`，会把侧栏读成一长串。
+ * 也不能挂在 `[data-menu-root]` 上取直接子节点：横向形态里 `menu-ui` 在根节点和
+ * `[data-menu-tree]` 之间还夹着滚动容器与渐隐层，只有 `[data-menu-tree] > .menu-item`
+ * 在两种形态下都正好是本层。
  */
 async function regionTitles(menu: Locator): Promise<string[]> {
-  const items = menu.locator(':scope > .menu-item');
+  const items = menu.locator('[data-menu-tree] > .menu-item');
   const count = await items.count();
   const titles: string[] = [];
   for (let i = 0; i < count; i += 1) {
@@ -122,7 +124,7 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     await signIn(page);
     await go(page, '/dashboard/analysis');
 
-    await page.locator('.ant-avatar').first().click();
+    await page.getByTestId('header-user').click();
     await page.getByRole('menuitem', { name: '个人中心' }).click();
 
     const drawer = page.locator('.basic-drawer[data-state="open"]');
@@ -135,10 +137,10 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
       'true',
     );
 
-    // 切到「账户设置」：表单要出来
+    // 切到「账户设置」：表单要出来（form-ui 的字段盒子带 data-field）
     await drawer.getByRole('tab', { name: '账户设置' }).click();
     await expect(
-      drawer.locator('.ant-form-item, .ant-tabs-tabpane, input').first(),
+      drawer.locator('[data-field], input').first(),
     ).toBeVisible();
 
     // 切回来仍然可用（页签来回不是单向）
@@ -360,7 +362,7 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     // 首屏就要展开到根节点下面：只露一个「总公司」等于把右侧表格的数据来源折起来了
     expect(await visibleTreeNodes(page).count()).toBeGreaterThan(2);
     await expect(
-      page.locator('.ant-tree-treenode').filter({ hasText: '技术部' }),
+      page.locator('[data-common-tree-node]').filter({ hasText: '技术部' }),
     ).toBeVisible();
 
     await page.getByRole('button', { name: /新增部门/ }).click();
@@ -417,7 +419,7 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
 
     // decorate 出来的类型/权限标识不是空的（曾经三列全空）
     await expect(
-      page.locator('tr.basic-table-row .ant-tag').first(),
+      page.locator('tr.basic-table-row [data-common-tag]').first(),
     ).toBeVisible();
     const permCells = page
       .locator('tbody td')
@@ -432,7 +434,7 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     await (
       await menuRow(page, '用户管理')
     )
-      .locator('.ant-switch')
+      .locator('[role="switch"]')
       .last()
       .click();
     await expect
@@ -459,7 +461,7 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     await (
       await menuRow(page, '用户管理')
     )
-      .locator('.ant-switch')
+      .locator('[role="switch"]')
       .last()
       .click();
     await page.waitForTimeout(400);
@@ -600,9 +602,9 @@ async function uploadIntoCard(
   name = 'probe.png',
 ) {
   const card = page
-    .locator('.ant-card')
+    .locator('[data-slot="card"]')
     .filter({
-      has: page.locator('.ant-card-head-title', { hasText: cardTitle }),
+      has: page.locator('h3[data-slot="card-title"]', { hasText: cardTitle }),
     })
     .first();
   await expect(card, `找不到「${cardTitle}」卡片`).toBeVisible();
@@ -641,9 +643,14 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
     );
     const unreadCount = await unread.count();
     if (unreadCount > 0) {
-      const badge = page.locator('.ant-badge-count').first();
-      await expect(badge).toBeVisible();
-      expect(await badge.innerText()).toBe(String(unreadCount));
+      /*
+       * 角标贴在铃铛**里面**（`WidgetNotice` 把 Badge 当按钮图标用），所以作用域从
+       * 按钮往里找，而不是往上找一个"包含按钮的 Badge"——后者永远匹配不到。
+       * 限定作用域还有个用处：别把页面里其他状态点读成未读角标。
+       */
+      const dot = bell.locator('[data-common-badge-dot]');
+      await expect(dot).toBeVisible();
+      expect(await dot.innerText()).toBe(String(unreadCount));
 
       // 全部已读：本地乐观更新 + 服务端落库
       await panel.getByTestId('notice-mark-all').click();
@@ -655,6 +662,8 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
         .toBe(0);
       // 没有未读之后，按钮本身就该消失（`v-if="hasUnread"`）
       await expect(panel.getByTestId('notice-mark-all')).toBeHidden();
+      // 角标跟着未读数一起消失：封装 Badge 的 `visible` 要求 count > 0
+      await expect(dot).toHaveCount(0);
     }
 
     // 就地展开：点一条 → 显示正文全文与「在通知中心查看」，不新开路由
@@ -672,6 +681,37 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
 
     expect(probe.errors, probe.errors.join('\n')).toEqual([]);
     probe.stop();
+  });
+
+  test('表格的「列设置」弹层贴在触发按钮下方，不出视口', async ({ page }) => {
+    await signIn(page);
+    await go(page, '/system/user');
+
+    const trigger = page.locator(
+      '.basic-table-setting button[title="列设置"]',
+    );
+    await expect(trigger, '用户列表没有渲染列设置按钮').toBeVisible();
+    await trigger.click();
+
+    const panel = page.locator('.basic-table-setting-panel');
+    await expect(panel, '点列设置没有出面板').toBeVisible();
+    /*
+     * 光断言"看得见"挡不住这个缺陷：锚点接错时面板照样渲染、条目齐全，只是被甩到
+     * 视口外（实测 top: -784），`toBeVisible` 依旧放行。所以钉的是几何位置。
+     */
+    const box = await panel.boundingBox();
+    const triggerBox = await trigger.boundingBox();
+    const viewport = page.viewportSize();
+    if (!box || !triggerBox || !viewport) {
+      throw new Error(
+        `列设置面板或按钮量不出盒子：${JSON.stringify({ box, triggerBox, viewport })}`,
+      );
+    }
+    expect(box.y, '列设置面板跑到了按钮上方').toBeGreaterThan(triggerBox.y);
+    expect(
+      box.y + box.height,
+      '列设置面板超出视口下沿',
+    ).toBeLessThanOrEqual(viewport.height);
   });
 
   test('通知管理：新增、编辑、删除一条消息', async ({ page }) => {
@@ -798,33 +838,41 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
 
     const basic = await uploadIntoCard(page, '基础上传', 'basic.png');
     await expect(
-      basic.locator('.ant-upload-list-item-done').first(),
+      basic.locator(
+        '[data-common-upload-item][data-common-upload-status="done"]',
+      ).first(),
       '基础上传没有进入 done 状态',
     ).toBeVisible({ timeout: 20_000 });
     // 失败态（红色条目）一枚都不该有：以前 8 个 action 全 404，这里必然炸
-    expect(await basic.locator('.ant-upload-list-item-error').count()).toBe(0);
+    expect(
+      await basic
+        .locator('[data-common-upload-item][data-common-upload-status="error"]')
+        .count(),
+    ).toBe(0);
 
     const wall = await uploadIntoCard(page, '图片墙', 'wall.png');
-    const thumb = wall.locator('.ant-upload-list-item').first();
-    await expect(thumb).toHaveClass(/ant-upload-list-item-done/, {
-      timeout: 20_000,
-    });
+    const thumb = wall.locator('[data-common-upload-item]').first();
+    await expect(thumb).toHaveAttribute(
+      'data-common-upload-status',
+      'done',
+      { timeout: 20_000 },
+    );
 
-    const preview = page.locator('.ant-image-preview-img');
+    const preview = page.locator('[data-common-image-preview] img');
 
     /**
      * 点图片本体 → 站内大图预览。
      *
-     * `position` 不是随手写的：picture-card 是 102×102，hover 遮罩内缩 8px，
-     * 三个操作图标又被 flexbox 的 abspos 规则正好居中成一排 —— 点在几何中心会打在
-     * 中间那颗「下载」上。取左上 (16,16) 才是用户理解的"点这张图"。
-     * 顺带盯住 popup：缩略图本体是 `<a target="_blank">`，`preventDefault` 没吃掉的话
+     * `position` 不是随手写的：picture-card 的方格是 96px，文件名与状态行排在图片
+     * **下方**（common-ui 的 UploadList 在卡片形态里是纵向排布），
+     * 点在几何中心会落到文字区。取左上 (16,16) 才是用户理解的"点这张图"。
+     * 顺带盯住 popup：缩略图本体不是 `<a target="_blank">`，`preventDefault` 没吃掉的话
      * 会另开一个标签页看同一张图，那种"预览"是假的。
      */
     const popup = page
       .waitForEvent('popup', { timeout: 1500 })
       .catch(() => null);
-    await thumb.click({ position: { x: 16, y: 16 } });
+    await thumb.locator('img').first().click({ position: { x: 16, y: 16 } });
     await expect(preview, '点图片墙的图片没有打开大图预览').toBeVisible({
       timeout: 10_000,
     });
@@ -833,21 +881,19 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
     await page.keyboard.press('Escape');
     await expect(preview).toBeHidden();
 
-    // 眼睛图标是同一条链路的第二个入口，也得能用
-    await thumb.hover();
-    await thumb.locator('.ant-upload-list-item-actions > a').first().click();
-    await expect(preview, '点预览图标没有打开大图预览').toBeVisible({
-      timeout: 10_000,
-    });
-
-    // 关掉再点一次：受控状态没回写的话，第二次点同一张图是没反应的
-    await page.keyboard.press('Escape');
-    await expect(preview).toBeHidden();
-    await thumb.click({ position: { x: 16, y: 16 } });
+    // 第二次点同一张图：受控状态没回写的话是没有反应的
+    await thumb.locator('img').first().click({ position: { x: 16, y: 16 } });
     await expect(preview, '第二次点同一张图打不开预览').toBeVisible({
       timeout: 10_000,
     });
     await page.keyboard.press('Escape');
+    await expect(preview).toBeHidden();
+
+    // 移除：列表项真的从 DOM 里退掉
+    await thumb.locator('button[aria-label^="移除"]').click();
+    await expect(
+      wall.locator('[data-common-upload-item]'),
+    ).toHaveCount(0);
 
     expect(
       uploadResponses.filter((r) => r.status >= 400 || r.code !== 200),

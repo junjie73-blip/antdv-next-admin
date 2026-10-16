@@ -56,9 +56,7 @@ const containerClassName = computed(() =>
       <Spinner class="size-9" />
 
       <!-- 提示文本 -->
-      <span
-        :class="cn('text-xs', isDark ? 'text-slate-400' : 'text-slate-500')"
-      >
+      <span :class="cn('text-xs text-primary')">
         {{ text }}
       </span>
     </div>

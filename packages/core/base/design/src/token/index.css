@@ -1,19 +1,18 @@
 /*
  * shadcn-vue 语义色板的 token 入口：两套主题值 + 到 Tailwind token 的映射。
  *
- * 为什么要单独补这一层：`@antdv-next/tailwind/compat.css` 只导出 `--color-ant-*`
- * 命名空间，而 vendored 的 shadcn 组件写的是裸名字 —— `bg-popover`、
- * `text-muted-foreground`、`border-input`。Tailwind v4 只为 `@theme` 里声明过的
+ * 为什么要单独补这一层：vendored 的 shadcn 组件写的是裸名字 —— `bg-popover`、
+ * `text-muted-foreground`、`border-input`，而 Tailwind v4 只为 `@theme` 里声明过的
  * token 生成工具类，没声明不是"样式被覆盖"，而是**整条类根本不生成**，
  * 表现就是弹层没有底色、次要文字没有灰度、hover 没有反馈。
  *
- * 主题值按明暗拆成两个文件（default / dark），名单必须一致、取值各自独立；
- * 下面的 `@theme inline` 才是本包唯一的 Tailwind 契约，所以留在入口里，
- * 两套主题文件只管变量值，不掺映射规则。
+ * 主题值按明暗拆成两个文件（default / dark），每个文件里都是"基础主题 + 13 套
+ * `[data-theme]` 预设"；名单必须一致、取值各自独立。下面的 `@theme inline` 才是
+ * 本包唯一的 Tailwind 契约，所以留在入口里，主题文件只管变量值，不掺映射规则。
  *
  * `@theme inline` 而不是 `@theme`：inline 让工具类直接内联 `var(--app-*)`，
- * 于是 `.dark` 覆盖能生效；写成 `--color-x: var(--app-x)` 的非 inline 形式
- * 会在 :root 求值一次，暗色切换就冻在亮色值上了。
+ * 于是 `.dark` 与 `[data-theme]` 的覆盖能生效；写成 `--color-x: var(--app-x)`
+ * 的非 inline 形式会在 :root 求值一次，换主题就冻在首屏值上了。
  */
 
 /* CSS 规范只允许 @import 出现在普通规则之前，两套主题必须先引完再声明 @theme */

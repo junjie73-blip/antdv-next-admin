@@ -170,7 +170,7 @@ function handleViewAll() {
       </span>
       <button
         type="button"
-        class="text-ant-primary flex shrink-0 items-center gap-0.5 hover:underline"
+        class="text-primary flex shrink-0 items-center gap-0.5 hover:underline"
         @click.stop="handleViewAll"
       >
         在通知中心查看

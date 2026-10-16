@@ -33,9 +33,24 @@ const toast = (page: Page, text: string) =>
     .filter({ hasText: text })
     .first();
 
+/**
+ * 往关键词框里打字。
+ *
+ * 必须先 `click` 再 `fill`：上一步 `createTask` 刚关掉弹窗，而 dialog 在退场动画期间
+ * 焦点仍留在正在消失的面板里（`destroyOnHidden` 要等动画跑完才把面板摘掉、归还焦点）。
+ * WebKit 的 `fill` 是按焦点/选区实现的 —— 焦点不在目标上时它既不写值也不派发 `input`，
+ * 还不报错，于是查询带着空关键词跑出去，筛回全量十条。
+ * click 一下把焦点拿回来，也正是真人打字的顺序。
+ */
+async function typeKeyword(page: Page, text: string) {
+  const keyword = page.getByPlaceholder('标题 / 负责人 / 备注');
+  await keyword.click();
+  await keyword.fill(text);
+}
+
 /** 按关键词筛出唯一一行（表格自带的搜索表单） */
 async function filterBy(page: Page, text: string) {
-  await page.getByPlaceholder('标题 / 负责人 / 备注').fill(text);
+  await typeKeyword(page, text);
   await page.getByRole('button', { name: '查询' }).first().click();
   const rows = page.locator(ROW);
   await expect(rows.first(), `筛选「${text}」后一行都没有`).toBeVisible();
@@ -80,7 +95,7 @@ async function createTask(page: Page, title: string, owner = '自动化用例') 
 
 /** 按关键词重新筛一次，返回命中行数（轮询用） */
 async function countBy(page: Page, text: string) {
-  await page.getByPlaceholder('标题 / 负责人 / 备注').fill(text);
+  await typeKeyword(page, text);
   await page.getByRole('button', { name: '查询' }).first().click();
   return await page.locator(ROW).filter({ hasText: text }).count();
 }

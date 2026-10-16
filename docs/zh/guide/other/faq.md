@@ -38,9 +38,9 @@
 
 | 症状 | 原因 | 处理 |
 | --- | --- | --- |
-| 换主色，菜单选中项不变 | 只写了一个变量名 | `--ant-color-primary` 与 `--ant-primary-color` **都要写**（`packages/preferences/src/css-vars.ts:47-93`） |
-| 深色下主色和自己设的不一样 | antdv-next 在 `.ant-app` 上重算主色 | 覆盖写在 `html` 的种子变量上；测试断言不要钉色值 |
-| 覆盖组件库样式要靠 `!important` | Tailwind 层顺序被改动 | `@layer theme, base, antd, components, utilities` 必须显式声明（`packages/design/src/index.css:18-32`） |
+| 换主色，菜单选中项不变 | 只改了 antd token，或只写了一个变量名 | 主色只有一条链：档位写在 `<html data-theme>`，自定义色再内联 `--app-primary`；给 antdv-next 的桥 `--ant-color-primary` 与旧命名 `--ant-primary-color` 都要写（`packages/utils/src/css-vars.ts:104-127`） |
+| 深色下主色和自己设的不一样 | 页面混用了两条链：`--app-primary` 取的是 html 上的种子，antdv-next 在 `.ant-app` 上还有一份按暗底重算的同名族变量 | 新页面统一走 `@antdv/design` 的 `*-primary` 令牌；测试断言别钉色值，要么在浅色下断，要么断"同源关系"（见[主题与偏好设置](/zh/guide/in-depth/theme)） |
+| 工具类盖不住 `components` 层规则 | Tailwind 层顺序被改动 | `@layer theme, base, components, utilities` 必须显式声明且 `utilities` 在最后（`packages/core/base/design/src/index.css:27`） |
 | 页面之间间距不一致 | 路由页面外层自己写了 padding | 内边距归布局管，见[开发规范与环境变量](/zh/guide/essentials/development) |
 | 生产包里图标是空白方块 | 用了离线列表外的 Iconify 前缀 | 新集合要同时加 catalog 依赖与 `auto-import.ts:95-97` 的离线列表 |
 

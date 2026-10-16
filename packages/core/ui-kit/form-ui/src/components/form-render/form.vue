@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import type { ComputedRef, Ref } from 'vue';
 
-import type {
-  FormActionType,
-  FormProps,
-  FormSchema,
-  FormValidateError,
-  NamePath,
-  Recordable,
-} from './types';
+import type { FormActionType, FormProps, FormValidateError } from '../../types';
+
+import type { FormContext } from './context';
+
+import type { FormSchema, NamePath, Recordable } from './schema';
 
 import {
   computed,
@@ -22,13 +19,14 @@ import {
   watch,
 } from 'vue';
 
-import { IconifyIcon } from '@antdv/icons/icon';
-import { Button, Separator } from '@antdv/shadcn-ui';
+import { Separator } from '@antdv/shadcn-ui';
 import { useForm as useTanstackForm } from '@tanstack/vue-form';
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
 
-import FormItem from './components/FormItem.vue';
-import { deepMerge, formatDateFields, handleRangeValue } from './helper';
+import { deepMerge, formatDateFields, handleRangeValue } from './utils';
+import { FORM_CONTEXT_KEY } from './context';
+import FormActions from '../form-actions.vue';
+import FormField from './form-field.vue';
 
 defineOptions({
   name: 'BasicForm',
@@ -109,7 +107,11 @@ const formModel = new Proxy({} as Recordable, {
     return typeof key === 'symbol' ? undefined : readModelValue(key);
   },
   getOwnPropertyDescriptor(_target, key) {
-    return { configurable: true, enumerable: true, value: readModelValue(key as string) };
+    return {
+      configurable: true,
+      enumerable: true,
+      value: readModelValue(key as string),
+    };
   },
   has(_target, key) {
     return key in (form.state.values ?? {});
@@ -144,6 +146,26 @@ const gutterComputed = computed(
   () => getProps.value.grid?.gutter ?? 24,
 ) as ComputedRef<[number, number] | number>;
 
+/** 行内边距取 gutter 的水平分量，行容器与字段各吃掉一半 */
+const gutterPx = computed(() => {
+  const raw = unref(gutterComputed);
+  return Array.isArray(raw) ? (raw[0] ?? 24) : (raw ?? 24);
+});
+
+/** `gutter` 没给垂直分量时的行间距 */
+const DEFAULT_ROW_GAP_PX = 16;
+
+/**
+ * 行与行（以及行内换行后）的垂直间距。
+ *
+ * antd 的 `gutter` 只有写成 `[水平, 垂直]` 才有垂直分量，单值时垂直为 0；
+ * 字段本身带 `min-h-9`，两行贴在一起就是一屏拥挤，所以要兜一个默认值。
+ */
+const rowGapPx = computed(() => {
+  const raw = unref(gutterComputed);
+  return (Array.isArray(raw) ? raw[1] : undefined) ?? DEFAULT_ROW_GAP_PX;
+});
+
 const formActionTypeRef = ref<FormActionType | null>(null) as Ref<any>;
 
 /** 是否已经尝试过提交（校验失败时用于决定错误信息是否展示） */
@@ -157,7 +179,7 @@ const getLabelCol = computed(() => {
   return getProps.value.labelCol || { span: 4 };
 });
 
-provide('formContext', {
+provide<FormContext>(FORM_CONTEXT_KEY, {
   form,
   getProps,
   labelCol: getLabelCol,
@@ -227,15 +249,18 @@ const displayRows = computed<FormSchema[][]>(() => {
   return rows;
 });
 
-// ============ 行容器样式（gutter 负边距，FormItem 自带左右 padding） ============
+// ============ 行容器样式（gutter 负边距，FormField 自带左右 padding） ============
 const rowStyle = computed<Record<string, any>>(() => {
-  const raw = unref(gutterComputed);
-  const g = Array.isArray(raw) ? (raw[0] ?? 24) : (raw ?? 24);
+  const g = gutterPx.value;
+  const gap = rowGapPx.value;
   return {
     display: 'flex',
     flexWrap: 'wrap',
+    // 行内换行后的行间距，与行和行之间的间距同一个值
+    marginBottom: `${gap}px`,
     marginLeft: `-${g / 2}px`,
     marginRight: `-${g / 2}px`,
+    rowGap: `${gap}px`,
     ...getProps.value.baseRowStyle,
   };
 });
@@ -339,7 +364,9 @@ async function validate(nameList?: NamePath[]): Promise<Recordable> {
 
   let processed = formatDateFields(values, schemas);
   const fieldMapToTime = getProps.value.fieldMapToTime;
-  return fieldMapToTime ? handleRangeValue(processed, fieldMapToTime) : processed;
+  return fieldMapToTime
+    ? handleRangeValue(processed, fieldMapToTime)
+    : processed;
 }
 
 async function validateFields(nameList?: NamePath[]): Promise<Recordable> {
@@ -354,7 +381,8 @@ async function handleSubmit() {
       const schemas = unref(schemaRef) || [];
       let processed = formatDateFields({ ...values }, schemas);
       const fieldMapToTime = getProps.value.fieldMapToTime;
-      if (fieldMapToTime) processed = handleRangeValue(processed, fieldMapToTime);
+      if (fieldMapToTime)
+        processed = handleRangeValue(processed, fieldMapToTime);
 
       if (typeof attrs.onFinish === 'function') {
         (attrs.onFinish as (v: Recordable) => void)(processed);
@@ -555,11 +583,7 @@ defineExpose(formActionType);
       </template>
 
       <template v-else>
-        <FormItem
-          v-for="schema in row"
-          :key="schema.field"
-          :schema="schema"
-        >
+        <FormField v-for="schema in row" :key="schema.field" :schema="schema">
           <template
             v-for="(_, slotName) in $slots"
             :key="slotName"
@@ -567,74 +591,35 @@ defineExpose(formActionType);
           >
             <slot :name="slotName" v-bind="slotProps"></slot>
           </template>
-        </FormItem>
+        </FormField>
       </template>
     </div>
 
     <!-- 操作按钮 -->
-    <div
+    <FormActions
       v-if="getProps.showActionButtonGroup"
-      class="flex flex-wrap items-center"
-      :style="rowStyle"
+      :action-col-style="getProps.actionColOptions?.style"
+      :advanced-options="getAdvancedButtonOptions"
+      :collapse="needCollapse"
+      :disabled="getProps.disabled"
+      :gutter-px="gutterPx"
+      :reset-options="getResetButtonOptions"
+      :row-style="rowStyle"
+      :show-reset="getProps.showResetButton"
+      :show-submit="getProps.showSubmitButton"
+      :submit-options="getSubmitButtonOptions"
+      @reset="handleReset"
+      @toggle-advanced="toggleAdvanced"
     >
-      <div
-        class="box-border shrink-0"
-        :style="{
-          width: needCollapse ? '100%' : undefined,
-          paddingLeft: `${(Array.isArray(gutterComputed) ? gutterComputed[0] : gutterComputed) / 2}px`,
-          paddingRight: `${(Array.isArray(gutterComputed) ? gutterComputed[0] : gutterComputed) / 2}px`,
-          ...(needCollapse ? {} : { marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' }),
-          ...getProps.actionColOptions?.style,
-        }"
-      >
-        <div
-          class="flex flex-wrap items-center gap-2"
-          :class="needCollapse ? 'justify-end' : ''"
-        >
-          <slot name="submitBefore"></slot>
-          <Button
-            v-if="getProps.showSubmitButton"
-            type="submit"
-            :disabled="getSubmitButtonOptions.disabled || getProps.disabled"
-          >
-            <IconifyIcon
-              v-if="getSubmitButtonOptions.preIcon"
-              :icon="getSubmitButtonOptions.preIcon"
-              class="mr-1"
-            />
-            {{ getSubmitButtonOptions.text }}
-          </Button>
-          <slot name="resetBefore"></slot>
-          <Button
-            v-if="getProps.showResetButton"
-            type="button"
-            variant="outline"
-            :disabled="getResetButtonOptions.disabled"
-            @click="handleReset"
-          >
-            <IconifyIcon
-              v-if="getResetButtonOptions.preIcon"
-              :icon="getResetButtonOptions.preIcon"
-              class="mr-1"
-            />
-            {{ getResetButtonOptions.text }}
-          </Button>
-          <Button
-            v-if="needCollapse"
-            type="button"
-            variant="ghost"
-            size="sm"
-            @click="toggleAdvanced"
-          >
-            <IconifyIcon
-              :icon="getAdvancedButtonOptions.icon"
-              class="mr-1"
-            />
-            {{ getAdvancedButtonOptions.text }}
-          </Button>
-          <slot name="actionAfter"></slot>
-        </div>
-      </div>
-    </div>
+      <template #submitBefore>
+        <slot name="submitBefore"></slot>
+      </template>
+      <template #resetBefore>
+        <slot name="resetBefore"></slot>
+      </template>
+      <template #actionAfter>
+        <slot name="actionAfter"></slot>
+      </template>
+    </FormActions>
   </form>
 </template>

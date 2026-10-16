@@ -69,12 +69,13 @@ test.describe('登录页的样式', () => {
       .toBe(true);
 
     /*
-     * 深色下 antd 会把主色按暗底重算一档（#FA541C 落到 rgb(216, 74, 27)），
-     * 而且这个值是写在 `.ant-app` 的 `--ant-color-primary` 上的，作用域比偏好
-     * 写在 `<html>` 上的那一份更近，模板里的 `*-ant-primary` 读到的就是重算后的。
-     * 所以这里不钉色值，只钉两件事：
+     * 登录页的强调色全部挂在 app 主色 token 上（`--app-primary`，派生自偏好写在
+     * `<html>` 的 `--ant-color-primary`）。深色下 antd 还会在 `.ant-app` 作用域里
+     * 把主色按暗底重算一档（#FA541C 落到 rgb(216, 74, 27)），那是 `*-ant-primary`
+     * 读的那一份 —— 同页混用两条链路就会渲染出两种橙色。所以这里不钉色值，
+     * 只钉两件事：
      * 1. 确实离开了默认那支蓝；
-     * 2. 工具类与 antd 主按钮取到同一个主色 —— 只要有一条链路没接上，两者就会分开。
+     * 2. 主按钮底色与品牌文字取到同一个主色 —— 只要有一条链路没接上，两者就会分开。
      */
     await expect
       .poll(() => backgroundColor(auth(page, 'submit')))

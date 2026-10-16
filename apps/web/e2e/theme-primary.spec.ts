@@ -29,12 +29,14 @@ function colorOf(locator: Locator) {
   return locator.evaluate((node) => getComputedStyle(node).color);
 }
 
-/** 写在 `html` 上的主色变量（Tailwind 的 `*-ant-primary` 系列读它） */
+/** 写在 `html` 上的主色变量（antdv-next 组件读它） */
 function cssPrimary(page: Page) {
   return page.evaluate(() =>
     getComputedStyle(document.documentElement)
       .getPropertyValue('--ant-color-primary')
-      .trim(),
+      .trim()
+      // 色板里的写法是小写（`shared/constants/theme-presets.ts`），大小写不是契约的一部分
+      .toUpperCase(),
   );
 }
 

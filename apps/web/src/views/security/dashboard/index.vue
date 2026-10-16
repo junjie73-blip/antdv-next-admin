@@ -31,7 +31,7 @@ const range = ref('今日');
             icon="carbon:security"
             :width="24"
             :height="24"
-            class="text-ant-primary"
+            class="text-primary"
           />
           安全审计仪表盘
         </h1>

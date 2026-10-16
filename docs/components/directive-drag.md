@@ -9,12 +9,12 @@
 | 指令 | 实现所在 | 应用侧注入 | 生产使用点（示例页以外） |
 | --- | --- | --- | --- |
 | `v-permission` | `packages/directives/src/permission/index.ts:57` | `apps/web/src/directives/index.ts:19-36` | `apps/web/src/components/business/ImportExport.vue:206, 223` |
-| `v-loading` | `packages/ui-kit/loading-ui/src/directive.ts:88-107` | 直接注册 `@antdv/loading-ui` 的 `vLoading`（`main.ts:8, 113`） | `apps/web/src/views/components/loading/index.vue:1026` 起 |
+| `v-loading` | `packages/core/ui-kit/common-ui/src/components/loading/directive.ts:88-107` | 直接注册 `@antdv/common-ui` 的 `vLoading`（`main.ts:8, 113`） | `apps/web/src/views/components/loading/index.vue:1026` 起 |
 | `v-lazy` | `packages/directives/src/lazy.ts:145, 311` | `apps/web/src/directives/index.ts:16` 转出 | **除示例页外没有使用点**（见下文） |
 | `v-safe-html` | `packages/shared/src/utils/xss.ts:437-445` | `apps/web/src/directives/index.ts:17` 转出 | `MarkdownEditor.vue:599`、编辑器示例页 `editor/index.vue:834` |
 | `v-escape` | `packages/shared/src/utils/xss.ts:454-462` | `apps/web/src/directives/index.ts:17` 转出 | **除示例页外没有使用点**（见下文） |
 
-::: warning 别按包名找实现 `@antdv/directives` 包里**只有 permission 和 lazy** 两条（`packages/directives/src/index.ts:10-11` 就这两个 export）。`escape` / `safe-html` 的实现住在 `@antdv/shared/utils/xss`，`v-loading` 住在 `@antdv/loading-ui`。`apps/web/src/directives/index.ts` 的定位是「把项目依赖注进工厂」：包内不 import pinia / store（`packages/directives/src/index.ts:4-7` 的设计约束），判定函数、订阅源都由应用侧提供。:::
+::: warning 别按包名找实现 `@antdv/directives` 包里**只有 permission 和 lazy** 两条（`packages/directives/src/index.ts:10-11` 就这两个 export）。`escape` / `safe-html` 的实现住在 `@antdv/shared/utils/xss`，`v-loading` 住在 `@antdv/common-ui`。`apps/web/src/directives/index.ts` 的定位是「把项目依赖注进工厂」：包内不 import pinia / store（`packages/directives/src/index.ts:4-7` 的设计约束），判定函数、订阅源都由应用侧提供。:::
 
 ## v-permission：判定在包外，打标记在包内
 
@@ -54,7 +54,7 @@
 
 ## v-loading：布尔值驱动，配置从属性读
 
-指令值是 `boolean`（`packages/ui-kit/loading-ui/src/directive.ts:88` 的类型标注）。要点：
+指令值是 `boolean`（`packages/core/ui-kit/common-ui/src/components/loading/directive.ts:88` 的类型标注）。要点：
 
 - **配置读自元素属性**：`loading-background` / `loading-size` / `loading-theme` / `loading-tip` 四个（`directive.ts:34-39` 的映射表）。也可以把文案写成指令参数 `v-loading:加载中="isLoading"`，`binding.arg` 优先（`directive.ts:81, 96-98`）。
 - **挂载位置由修饰符决定**：`.fullscreen` 或 `.body` 时覆盖层挂 body 盖整页（`directive.ts:59-61`），默认覆盖元素自身。
@@ -143,11 +143,11 @@
 
 ## 查证后确认「不存在 / 静默失效」的
 
-- **示例页那句「路由切换时的全屏 loading 由 `createFullscreenLoading()` 做同一件事」不成立**（`apps/web/src/views/components/directive/index.vue:368-371`）。`createFullscreenLoading()` 确实导出（`packages/ui-kit/loading-ui/src/createLoading.ts:66-74`），但全仓库检索**没有任何调用点**；路由切换的 loading 实际来自 `useRouteLoading()` + `RouteLoadingBar` + `PageLoading`（`apps/web/src/layouts/index.vue:14, 160-167, 177-183, 225-229`），和这个函数无关。
+- **示例页那句「路由切换时的全屏 loading 由 `createFullscreenLoading()` 做同一件事」不成立**（`apps/web/src/views/components/directive/index.vue:368-371`）。`createFullscreenLoading()` 确实导出（`packages/core/ui-kit/common-ui/src/components/loading/createLoading.ts:66-74`），但全仓库检索**没有任何调用点**；路由切换的 loading 实际来自 `useRouteLoading()` + `RouteLoadingBar` + `PageLoading`（`apps/web/src/layouts/index.vue:14, 160-167, 177-183, 225-229`），和这个函数无关。
 - **`v-lazy`、`v-escape` 注册了但全应用只有示例页自己在用**（注册：`main.ts:107, 111`；使用点检索除 `views/components/directive/index.vue` 外为零）。`lazy.ts:154-155` 注释里「头像列表逐张传对象太啰嗦」的 `data-*` 理由在本仓库也没有对应消费方。
 - **`vue-draggable-plus` 的 `v-draggable` 指令与 `useDraggable` 组合式没有使用点**（见上文的 tip）；`RouteMeta.roles` / `RouteMeta.permissions` 类型字段没有读取方（见 v-permission 的 tip）。这三条和 `packages/types/src/app-router.ts:9-10`、库的 `dist/index.d.ts` 一样：声明 ≠ 在用。
 - **`'*'` 权限码没有通配通道**：判定链 `resolveAccess()`（`utils.ts:82-109`）与 `usePermission()` 的匹配实现（`usePermission.ts:23-34`）里都没有 `'*'` 分支，权限表就是 `Array.includes` 白名单。而 mock 给 admin 账号发的是 `permissions: ['*']`（`apps/backend-mock/server/api/auth/login.post.ts:24`）——`['*'].includes('user:add')` 为 `false`，所以这条通配在元素层**什么都不授予**，演示账号想看 `v-permission` 放行得靠 `.disabled` / `:admin` 或指定码本身在表里。
-- **`v-loading` 的属性配置只在遮罩创建那一次被读**（`packages/ui-kit/loading-ui/src/directive.ts:69-76`），挂载后改 `loading-tip` 等属性静默无效；能热更的只有 `binding.arg`（`directive.ts:96-98`）。
+- **`v-loading` 的属性配置只在遮罩创建那一次被读**（`packages/core/ui-kit/common-ui/src/components/loading/directive.ts:69-76`），挂载后改 `loading-tip` 等属性静默无效；能热更的只有 `binding.arg`（`directive.ts:96-98`）。
 - **`v-escape` / `v-safe-html` 会覆写宿主元素内容**（`textContent` / `innerHTML`，`xss.ts:472, 532`），带插槽或子节点的容器挂它们等于丢弃原有 DOM——这是设计使然，但界面上没有任何提示。
 
 ## 相关页面

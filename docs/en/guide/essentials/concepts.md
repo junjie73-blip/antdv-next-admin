@@ -68,7 +68,7 @@ Consequence: components and component-library APIs are **always imported explici
 
 ```ts
 import { Card as ACard, message } from 'antdv-next';
-import { Scrollbar } from '@antdv/scrollbar-ui';
+import { Scrollbar } from '@antdv/common-ui';
 import { Icon } from '@iconify/vue';
 ```
 

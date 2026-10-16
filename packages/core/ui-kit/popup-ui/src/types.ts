@@ -70,7 +70,11 @@ export interface ModalProps {
   /** 关闭前回调，返回 true 才关闭 */
   closeFunc?: () => Promise<boolean>;
 
-  /** zIndex */
+  /**
+   * 层级。留空即用 shadcn 浮层刻度的 z-50：抽屉/弹窗/Popover/Select 同层，
+   * 谁后挂载谁在上（浮层都 portal 到 body 末尾，所以抽屉里的 Select 不会被抽屉压住）。
+   * 只有要把两个浮层钉死先后关系时才显式给值。
+   */
   zIndex?: number;
   /** 是否显示蒙层 */
   mask?: boolean;

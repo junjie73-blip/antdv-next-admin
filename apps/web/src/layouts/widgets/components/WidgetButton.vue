@@ -32,9 +32,9 @@ const buttonClass = computed(() =>
     'transition-colors duration-200',
     appStore.darkHeader
       ? 'text-slate-300 hover:bg-white/10 hover:text-white'
-      : 'dark:hover:text-ant-primary hover:text-ant-primary text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800',
+      : 'dark:hover:text-primary hover:text-primary text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800',
     // 展开态：与 hover 同源但常驻，让用户看得出"这个弹层是哪个按钮开的"
-    props.active && 'text-ant-primary bg-slate-100 dark:bg-slate-800',
+    props.active && 'text-primary bg-slate-100 dark:bg-slate-800',
   ),
 );
 

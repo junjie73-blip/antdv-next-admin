@@ -1,4 +1,3 @@
-import { message } from 'antdv-next';
 import * as XLSX from 'xlsx';
 
 import dayjs from './dayjs';
@@ -25,6 +24,9 @@ export interface ExportOptions {
 /**
  * 导出数据为 Excel 文件
  *
+ * 基础包不依赖组件库，所以这里只回结果、不弹提示：空数据返回 `false`，
+ * 落盘成功返回 `true`，"没有可导出的数据 / 成功导出 N 条"由应用侧包装（`~/utils/excel`）。
+ *
  * @example
  * ```ts
  * exportToExcel({
@@ -37,7 +39,7 @@ export interface ExportOptions {
  * })
  * ```
  */
-export function exportToExcel(options: ExportOptions) {
+export function exportToExcel(options: ExportOptions): boolean {
   const {
     filename,
     columns,
@@ -46,10 +48,7 @@ export function exportToExcel(options: ExportOptions) {
     autoWidth = true,
   } = options;
 
-  if (!data || data.length === 0) {
-    message.warning('没有可导出的数据');
-    return;
-  }
+  if (!data || data.length === 0) return false;
 
   // 构建表头行和数据行
   const headers = columns.map((col) => col.header);
@@ -93,5 +92,5 @@ export function exportToExcel(options: ExportOptions) {
 
   // 触发下载
   XLSX.writeFile(wb, finalFilename);
-  message.success(`成功导出 ${data.length} 条数据`);
+  return true;
 }

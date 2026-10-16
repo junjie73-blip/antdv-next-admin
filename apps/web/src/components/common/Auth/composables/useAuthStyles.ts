@@ -255,16 +255,16 @@ export function useAuthStyles() {
     '[&_.ant-input-affix-wrapper]:backdrop-blur-sm!',
     '[&_.ant-input-affix-wrapper:hover]:border-white/90!',
     'dark:[&_.ant-input-affix-wrapper:hover]:border-white/15!',
-    '[&_.ant-input-affix-wrapper-focused]:border-(--ant-color-primary)!',
-    '[&_.ant-input-affix-wrapper-focused]:shadow-[0_0_0_3px_color-mix(in_srgb,var(--ant-color-primary)_14%,transparent)]!',
+    '[&_.ant-input-affix-wrapper-focused]:border-(--app-primary)!',
+    '[&_.ant-input-affix-wrapper-focused]:shadow-[0_0_0_3px_color-mix(in_srgb,var(--app-primary)_14%,transparent)]!',
     '[&_.ant-select-selector]:bg-white/50! dark:[&_.ant-select-selector]:bg-slate-800/40!',
     '[&_.ant-select-selector]:border-white/60! dark:[&_.ant-select-selector]:border-white/8!',
     '[&_.ant-select-selector]:rounded-lg!',
     '[&_.ant-select-selector]:h-11!',
     '[&_.ant-select-selector]:flex! [&_.ant-select-selector]:items-center!',
     '[&_.ant-select-selector]:backdrop-blur-sm!',
-    '[&_.ant-select-focused_.ant-select-selector]:border-(--ant-color-primary)!',
-    '[&_.ant-select-focused_.ant-select-selector]:shadow-[0_0_0_3px_color-mix(in_srgb,var(--ant-color-primary)_14%,transparent)]!',
+    '[&_.ant-select-focused_.ant-select-selector]:border-(--app-primary)!',
+    '[&_.ant-select-focused_.ant-select-selector]:shadow-[0_0_0_3px_color-mix(in_srgb,var(--app-primary)_14%,transparent)]!',
   );
 
   const submitButtonClassName = cn('h-11! rounded-lg! text-sm! font-medium!');

@@ -215,7 +215,7 @@ function handleSendCode() {
 
       <h1 :class="brandTitleClassName">
         构建现代化<br />
-        <span class="text-ant-primary">管理系统</span>
+        <span class="text-primary">管理系统</span>
       </h1>
 
       <p :class="brandDescClassName">

@@ -41,7 +41,8 @@ export interface MockAccount {
 /** token 前缀；改这里要同步 `mock:fixtures` 生成器与浏览器内 overlay */
 export const TOKEN_PREFIX = 'mock_token_';
 
-export const accounts: MockAccount[] = [
+/** 元组头保证"至少一条"：`noUncheckedIndexedAccess` 下 `accounts[0]` 才是 `MockAccount` 而不是 `| undefined` */
+export const accounts: [MockAccount, ...MockAccount[]] = [
   {
     password: 'admin123',
     permissions: ['*'],

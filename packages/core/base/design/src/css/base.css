@@ -3,10 +3,27 @@
  *
  * 这些规则刻意保持"无层级"（不写 @layer），与抽包前在应用 global.css 里的行为一致 ——
  * 无层级规则优先级高于全部 @layer，`html/body` 的尺寸约束不会被工具类意外盖掉。
+ * 唯一的例外是最下面的边框兜底：它必须待在 base 层里，否则会把
+ * `border-gray-700` 这类工具类的边框颜色全部压掉。
  */
 
+/*
+ * Tailwind v4 把 v3 的 `borderColor.DEFAULT = gray.200` 去掉了，preflight 只剩
+ * `border: 0 solid`（不带颜色），于是 `border-color` 算出来是 `currentColor` ——
+ * 任何只写 `border` 不写颜色的盒子，边框就成了正文色（亮色下 88% 黑）。
+ * shadcn 原语、steps/transfer/descriptions 等手写组件都按"默认有边框色"写，
+ * 所以在这里补回规范值；写在 `@layer base` 里，显式的 `border-*` 颜色类仍然压得过它。
+ */
+@layer base {
+  *,
+  ::after,
+  ::before {
+    @apply border-border;
+  }
+}
+
 ::selection {
-  @apply bg-ant-primary text-white;
+  @apply bg-primary text-primary-foreground;
 }
 
 html,
@@ -56,11 +73,11 @@ body {
 
 /* 布局/标签页风格的"外框选中"卡片 */
 .outline-box {
-  @apply outline-ant-border not-[.outline-box-active]:after:hover:outline-ant-primary relative cursor-pointer rounded-lg p-1 outline-1 outline-solid after:absolute after:top-1/2 after:left-1/2 after:z-20 after:h-0 after:w-px after:opacity-0 after:outline-2 after:outline-transparent after:transition-all after:duration-300 after:ease-in-out after:content-[""] after:outline-solid not-[.outline-box-active]:after:hover:top-0 not-[.outline-box-active]:after:hover:left-0 not-[.outline-box-active]:after:hover:h-full not-[.outline-box-active]:after:hover:w-full not-[.outline-box-active]:after:hover:p-1 not-[.outline-box-active]:after:hover:opacity-100;
+  @apply outline-border not-[.outline-box-active]:after:hover:outline-primary relative cursor-pointer rounded-lg p-1 outline-1 outline-solid after:absolute after:top-1/2 after:left-1/2 after:z-20 after:h-0 after:w-px after:opacity-0 after:outline-2 after:outline-transparent after:transition-all after:duration-300 after:ease-in-out after:content-[""] after:outline-solid not-[.outline-box-active]:after:hover:top-0 not-[.outline-box-active]:after:hover:left-0 not-[.outline-box-active]:after:hover:h-full not-[.outline-box-active]:after:hover:w-full not-[.outline-box-active]:after:hover:p-1 not-[.outline-box-active]:after:hover:opacity-100;
 }
 
 .outline-box-active {
-  @apply outline-ant-primary outline-2 after:hidden;
+  @apply outline-primary outline-2 after:hidden;
 }
 
 /*

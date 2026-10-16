@@ -726,8 +726,15 @@ test.describe('横向导航溢出', () => {
     const errors = watchErrors(page);
     await signIn(page);
     await setLayout(page, 'horizontal');
-    // 收窄视口逼它溢出：菜单总宽超过可视区才会出现滚动条
-    await page.setViewportSize({ height: 720, width: 720 });
+    /**
+     * 收窄视口逼它溢出：菜单总宽（一级四项 ≈ 457px）超过可视区才会出现滚动条。
+     *
+     * 900 而不是更狠的 720：顶栏右侧工具区不参与收缩，720 时导航区只剩 60 余 px，
+     * 而箭头是浮在滚动视口之上的（见 BasicMenu），两颗箭头就能把整条可视区盖满 ——
+     * 拖拽的起止点全落在箭头上，测的已经不是拖拽了。900 下可视区约 240px：
+     * 仍然溢出（上限 214），也还剩得下拖拽手势的净空。
+     */
+    await page.setViewportSize({ height: 720, width: 900 });
 
     const scroller = page.locator('.menu-scroll');
     await expect(scroller).toBeVisible();

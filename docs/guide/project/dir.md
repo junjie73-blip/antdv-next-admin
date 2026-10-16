@@ -21,8 +21,8 @@ internal/   构建期工具：只在 Node 里跑，不进产物
 | `@antdv/preferences` | 偏好默认值、持久化、CSS 变量落地、antdv-next 主题配置 | pinia / store |
 | `@antdv/composables` | 组合式函数：分片上传、打印、水印、ECharts、SSE、WebSocket… | store / api / 路由实例 |
 | `@antdv/icons` | 只管图标：Iconify 包装、SVG 雪碧图图标、图标选择器（shadcn 实现） | pinia / vue-router / 业务 store / 应用配置 / antdv-next |
-| `@antdv/loading-ui` | `Loading` 遮罩 + `useLoading` + `createLoading` 系列 + `v-loading` 指令 | 同上（依赖只到 `shadcn-ui` / `shared`） |
-| `@antdv/scrollbar-ui` | 自绘 `Scrollbar` + `Bar`，样式随组件走，不依赖宿主 Tailwind | 同上 |
+| `@antdv/common-ui` | `Loading` 遮罩 + `useLoading` + `createLoading` 系列 + `v-loading` 指令 | 同上（依赖只到 `shadcn-ui` / `shared`） |
+| `@antdv/common-ui` | 自绘 `Scrollbar` + `Bar`，样式随组件走，不依赖宿主 Tailwind | 同上 |
 | `@antdv/common-ui` | 公共展示组件：`Alert`、`Badge`、`Card`、`CountTo`、`CronEditor`、`Description`、`Descriptions`、`Divider`、`Empty`、`EmptyState`、`ErrorBoundary`、`Image`、`PageSkeleton`、`TableSkeleton`、`Popconfirm`、`Result`、`Segmented`、`Space`、`Statistic`、`StatusTag`、`Steps`、`Tabs`/`TabPane`、`Tag`、`Timeline`、`Tooltip`、`Transfer`、`Tree`、`Upload`，全部由 `@antdv/shadcn-ui` 的原语组合出来 | 同上（依赖只到 `icons` / `scrollbar-ui` / `shadcn-ui` / `shared`） |
 | `@antdv/shadcn-ui` | shadcn-vue 原子件（Dialog / Popover / Select / Spinner…），上面几包的实现底座 | 业务逻辑 |
 | `@antdv/form-ui` | `@tanstack/vue-form` 之上的 schema 表单：`BasicForm` / `useForm` / `componentMap` | 应用 store |

@@ -39,7 +39,6 @@ const props = withDefaults(defineProps<ModalProps>(), {
   closable: true,
   centered: true,
   wrapperFooterOffset: 0,
-  zIndex: 1000,
   mask: true,
   destroyOnHidden: true,
 });

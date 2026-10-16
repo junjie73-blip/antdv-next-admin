@@ -332,7 +332,7 @@ Tabs 事件：`change: [number | string]`、`update:activeKey: [number \| string
 
 ## 与 antdv-next 的关系
 
-这个包**不 import antdv-next**，`dependencies` 只到 `@antdv/icons`、`@antdv/scrollbar-ui`、`@antdv/shadcn-ui`、`@antdv/shared`，加上 `@vueuse/core`、`cronstrue`、`es-toolkit`、`vue`（`packages/ui-kit/common-ui/package.json`）。换宿主工程只要装上这几个 workspace 包就能跑，机制见[外部模块](/guide/essentials/external)。
+这个包**不 import antdv-next**，`dependencies` 只到 `@antdv/icons`、`@antdv/common-ui`、`@antdv/shadcn-ui`、`@antdv/shared`，加上 `@vueuse/core`、`cronstrue`、`es-toolkit`、`vue`（`packages/ui-kit/common-ui/package.json`）。换宿主工程只要装上这几个 workspace 包就能跑，机制见[外部模块](/guide/essentials/external)。
 
 `apps/web/src/views/**` 里已经没有示例页引 antdv-next；全仓库还在引它的只有：
 

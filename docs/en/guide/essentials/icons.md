@@ -34,7 +34,7 @@ Each set listed in `local` is read from `@iconify-json/<name>/icons.json` and ha
 | --- | --- | --- |
 | `<Icon>` | `@iconify/vue` — you **must write `import { Icon } from '@iconify/vue'` explicitly** (`IconifyResolver` was withdrawn together with the auto-import setup) | first choice; every file that writes a bare `<Icon>` now imports it in its own header |
 | `IconifyIcon` | `packages/icons/src/icon/IconifyIcon.vue`, `import { IconifyIcon } from '@antdv/icons/icon'` | when you want that wrapper's `size` default of `16`, `mode`, flips and `rotate` |
-| `IconPicker` | `packages/icons/src/icon/IconPicker.vue` (shadcn-ui implementation: `Popover` + `Select` + `Input` + `Tooltip`, with `@antdv/scrollbar-ui` for the scroll area) | letting a human pick an icon in a form (menu management `views/system/menu/index.vue`, demo page `views/components/icon-picker/index.vue`) |
+| `IconPicker` | `packages/icons/src/icon/IconPicker.vue` (shadcn-ui implementation: `Popover` + `Select` + `Input` + `Tooltip`, with `@antdv/common-ui` for the scroll area) | letting a human pick an icon in a form (menu management `views/system/menu/index.vue`, demo page `views/components/icon-picker/index.vue`) |
 | `SvgIcon` | `packages/icons/src/icon/SvgIcon.vue` | brand marks and multicolor glyphs (Iconify handles multicolor poorly); renders `<use xlink:href="#icon-xxx">` |
 
 `IconifyIcon` deliberately assigns no defaults to its optional props (the file header explains it): supplying `''` or `0` turns "not set" into "explicitly set to empty", which overrides `@iconify/vue`'s own fallbacks (color inheriting `currentColor`, size falling back to `size`).

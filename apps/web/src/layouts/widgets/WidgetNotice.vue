@@ -232,7 +232,7 @@ function handleViewAll() {
         >
           <button
             type="button"
-            class="text-ant-primary text-xs transition-colors hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+            class="text-primary text-xs transition-colors hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
             @click="handleViewAll"
           >
             {{ t('header.viewAllNotification') }} →

@@ -55,10 +55,10 @@
   },
   "dependencies": {
     "@antdv/types": "workspace:*",
+    "@ctrl/tinycolor": "catalog:",
     "@iconify/vue": "catalog:",
     "@tanstack/vue-store": "catalog:",
     "@vueuse/core": "catalog:",
-    "antdv-next": "catalog:",
     "clsx": "catalog:",
     "dayjs": "catalog:",
     "dompurify": "catalog:",
@@ -68,6 +68,7 @@
     "sm-crypto": "catalog:",
     "spark-md5": "catalog:",
     "tailwind-merge": "catalog:",
+    "theme-colors": "catalog:",
     "vue": "catalog:",
     "vue-router": "catalog:",
     "xlsx": "catalog:"

@@ -160,7 +160,7 @@ const itemClassName =
               :class="[
                 itemClassName,
                 index === activeIndex
-                  ? 'bg-gray-100 text-ant-primary dark:bg-gray-800'
+                  ? 'bg-gray-100 text-primary dark:bg-gray-800'
                   : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800/60',
               ]"
               :data-active="index === activeIndex"

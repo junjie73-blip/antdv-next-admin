@@ -1,7 +1,7 @@
 {
   "name": "@antdv/design",
   "version": "0.4.0",
-  "description": "设计子包：二级目录只有 token（shadcn-vue 需要的 CSS 变量，default/dark 两套主题值 + @theme inline 映射）与 css（Tailwind v4 入口的公共样式 —— 基础层、NProgress、无障碍、权限降级、滚动条兜底），入口 src/index.css 引齐两侧。边界：只写变量与 CSS，不含组件逻辑，也不感知组件库；组件自身样式随组件放在 packages/core/ui-kit/*，本包只登记它们的 Tailwind 扫描路径",
+  "description": "设计子包：二级目录只有 token（shadcn-vue 的 CSS 变量规范 —— default/dark 两套基础主题，各带 13 套 [data-theme] 预设，每套都是完整独立的色板，再由 index.css 映射成 @theme inline）与 css（Tailwind v4 入口的公共样式 —— 基础层、NProgress、无障碍、权限降级、滚动条兜底），入口 src/index.css 引齐两侧。边界：本包是设计规范的单一来源，不依赖任何组件库（不引 antdv-next 的兼容层、不读 --ant-* 变量），只写变量与 CSS；组件自身样式随组件放在 packages/core/ui-kit/*，本包只登记它们的 Tailwind 扫描路径",
   "private": true,
   "type": "module",
   "scripts": {
@@ -27,7 +27,6 @@
     "./token/index.css": "./src/token/index.css"
   },
   "dependencies": {
-    "@antdv-next/tailwind": "catalog:",
     "@tailwindcss/nesting": "catalog:",
     "@tailwindcss/typography": "catalog:",
     "tailwindcss": "catalog:",

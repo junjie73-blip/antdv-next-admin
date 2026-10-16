@@ -1,24 +1,24 @@
-export { default as BasicForm } from './BasicForm.vue';
-export {
-  addComponent,
-  componentMap,
-  getComponent,
-} from './componentMap';
+export { default as BasicForm } from './components/form-render/form.vue';
+export { default as FormItem } from './components/form-render/form-field.vue';
 
-export type { ComponentType } from './componentMap';
-export { default as FormItem } from './components/FormItem.vue';
+export { addComponent, componentMap, getComponent } from './config';
+
+export type { ComponentType } from './config';
+
+export {
+  getDynamicDisabled,
+  getDynamicRules,
+  getShow,
+  setComponentProps,
+} from './components/form-render/helper';
 
 export {
   deepMerge,
   formatDateFields,
-  getDynamicDisabled,
-  getDynamicRules,
-  getShow,
   handleRangeValue,
-  setComponentProps,
-} from './helper';
+} from './components/form-render/utils';
 
-export { compileFieldValidator, runRule } from './rules';
+export { compileFieldValidator, runRule } from './rule-registry';
 
 export type {
   ActionButtonOptions,
@@ -40,4 +40,4 @@ export type {
   UseFormReturnType,
 } from './types';
 
-export { useForm } from './useForm';
+export { useForm } from './use-vben-form';

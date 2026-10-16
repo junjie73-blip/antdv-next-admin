@@ -77,8 +77,8 @@ const inputClassName = computed(() =>
     'h-11 rounded-lg border-slate-200 bg-white/80',
     'text-stone-700 placeholder:text-stone-400',
     'hover:border-slate-400',
-    'focus-visible:border-(--ant-color-primary)',
-    'focus-visible:shadow-[0_0_0_2px_color-mix(in_srgb,var(--ant-color-primary)_20%,transparent)]',
+    'focus-visible:border-(--app-primary)',
+    'focus-visible:shadow-[0_0_0_2px_color-mix(in_srgb,var(--app-primary)_20%,transparent)]',
   ),
 );
 
@@ -212,7 +212,7 @@ function _handleSendCode() {
           style="
             background: color-mix(
               in srgb,
-              var(--ant-color-primary) 15%,
+              var(--app-primary) 15%,
               transparent
             );
           "
@@ -222,7 +222,7 @@ function _handleSendCode() {
           style="
             background: color-mix(
               in srgb,
-              var(--ant-color-primary) 10%,
+              var(--app-primary) 10%,
               transparent
             );
           "
@@ -232,7 +232,7 @@ function _handleSendCode() {
           style="
             background: color-mix(
               in srgb,
-              var(--ant-color-primary) 8%,
+              var(--app-primary) 8%,
               transparent
             );
           "
@@ -254,9 +254,9 @@ function _handleSendCode() {
             <div
               class="flex h-9 w-9 items-center justify-center rounded-lg shadow-md"
               style="
-                background: var(--ant-color-primary);
+                background: var(--app-primary);
                 box-shadow: 0 4px 12px
-                  color-mix(in srgb, var(--ant-color-primary) 30%, transparent);
+                  color-mix(in srgb, var(--app-primary) 30%, transparent);
               "
             >
               <svg
@@ -280,7 +280,7 @@ function _handleSendCode() {
           class="mb-6 text-4xl leading-tight font-bold text-stone-800 xl:text-5xl"
         >
           开启您的<br />
-          <span style="color: var(--ant-color-primary)"> 高效之旅 </span>
+          <span style="color: var(--app-primary)"> 高效之旅 </span>
         </h1>
 
         <p class="mb-12 max-w-lg text-lg leading-relaxed text-stone-600">
@@ -295,7 +295,7 @@ function _handleSendCode() {
             >
               <svg
                 class="h-5 w-5"
-                style="color: var(--ant-color-primary)"
+                style="color: var(--app-primary)"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -319,7 +319,7 @@ function _handleSendCode() {
             >
               <svg
                 class="h-5 w-5"
-                style="color: var(--ant-color-primary)"
+                style="color: var(--app-primary)"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -341,7 +341,7 @@ function _handleSendCode() {
             >
               <svg
                 class="h-5 w-5"
-                style="color: var(--ant-color-primary)"
+                style="color: var(--app-primary)"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -533,7 +533,7 @@ function _handleSendCode() {
             type="button"
             variant="link"
             class="ml-1 h-auto p-0"
-            style="color: var(--ant-color-primary)"
+            style="color: var(--app-primary)"
             @click="handleBackToLogin"
           >
             立即登录
@@ -546,10 +546,10 @@ function _handleSendCode() {
 
 <style scoped>
 [class*='group']:hover .w-11 {
-  background-color: color-mix(in srgb, var(--ant-color-primary) 5%, white);
+  background-color: color-mix(in srgb, var(--app-primary) 5%, white);
   border-color: color-mix(
     in srgb,
-    var(--ant-color-primary) 20%,
+    var(--app-primary) 20%,
     rgb(203 213 225)
   );
 }

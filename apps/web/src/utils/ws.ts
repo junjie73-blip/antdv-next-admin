@@ -212,12 +212,7 @@ function handleMessage(raw: unknown): void {
    * ============================================================ */
   if (data.type === 'force-logout') {
     const reason = data.data?.reason || '您已被管理员强制下线';
-    notification.warning({
-      title: '会话已失效',
-      description: reason,
-      placement: 'bottomRight',
-      duration: 5,
-    });
+    toast.warning('会话已失效', { description: reason, duration: 5000 });
     eventBus.emit(WS_EVENTS.FORCE_LOGOUT, data.data);
     forceLogout();
     return;

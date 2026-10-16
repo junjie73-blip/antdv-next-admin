@@ -4,7 +4,7 @@ import { flushPromises, mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import BasicForm from '../src/BasicForm.vue';
+import BasicForm from '../src/components/form-render/form.vue';
 
 function mountForm(
   schemas: FormSchema[],
@@ -61,14 +61,21 @@ describe('BasicForm', () => {
     for (const id of ids) {
       const control = document.querySelector(`#${CSS.escape(id as string)}`);
       expect(control?.hasAttribute('data-field-control')).toBe(true);
-      expect((wrapper.find(`label[for="${id}"]`).element as HTMLLabelElement).control)
-        .toBe(control);
+      expect(
+        (wrapper.find(`label[for="${id}"]`).element as HTMLLabelElement)
+          .control,
+      ).toBe(control);
     }
   });
 
   it('必填星号是伪元素，不落在标签文本里', async () => {
     const wrapper = mountForm([
-      { field: 'username', label: '用户名', component: 'Input', required: true },
+      {
+        field: 'username',
+        label: '用户名',
+        component: 'Input',
+        required: true,
+      },
       {
         field: 'remark',
         label: '备注',
@@ -126,6 +133,64 @@ describe('BasicForm', () => {
     await vi.waitFor(() => {
       expect(wrapper.find('[data-error]').text()).toBe('该项为必填项');
     });
+  });
+
+  it('校验只在提交后触发：灌初值阶段一条错误都不显示', async () => {
+    const wrapper = mountForm([
+      {
+        component: 'Input',
+        field: 'username',
+        label: '用户名',
+        required: true,
+      },
+      { component: 'Input', field: 'code', label: '编码', required: true },
+    ]);
+    await flushPromises();
+    const instance = getInstance(wrapper);
+
+    // 抽屉/弹窗打开时的常规动作：先灌一遍空初值（tanstack 会把字段标成 touched）
+    await instance.setFieldsValue({ code: '', username: '' });
+    await flushPromises();
+    expect(wrapper.find('[data-error]').exists()).toBe(false);
+
+    await expect(instance.validate()).rejects.toBeTruthy();
+    await vi.waitFor(() => {
+      expect(wrapper.findAll('[data-error]')).toHaveLength(2);
+    });
+
+    // 提交过一次以后，改动才实时纠正
+    await instance.setFieldsValue({ username: 'admin' });
+    await vi.waitFor(() => {
+      expect(wrapper.findAll('[data-error]')).toHaveLength(1);
+    });
+  });
+
+  it('行与行之间有垂直间距，gutter 的垂直分量可覆盖', async () => {
+    const schemas: FormSchema[] = [
+      { component: 'Input', field: 'username', label: '用户名' },
+      { component: 'Input', field: 'code', label: '编码' },
+    ];
+    const wrapper = mountForm(schemas, { grid: { cols: 1 } });
+    await flushPromises();
+    const style = wrapper.find('.form-row').attributes('style') ?? '';
+    expect(style).toContain('margin-bottom: 16px');
+    expect(style).toContain('row-gap: 16px');
+
+    const custom = mountForm(schemas, { grid: { cols: 1, gutter: [24, 4] } });
+    await flushPromises();
+    expect(custom.find('.form-row').attributes('style')).toContain(
+      'margin-bottom: 4px',
+    );
+  });
+
+  it('标签与控件之间留横向间隙（只写 gap-y 时两者贴在一起）', async () => {
+    const wrapper = mountForm([
+      { component: 'Input', field: 'username', label: '用户名' },
+    ]);
+    await flushPromises();
+    expect(
+      wrapper.find('.form-item > div').classes(),
+    ).toContain('gap-x-2');
   });
 
   it('校验通过后 submit 触发 emit(submit)', async () => {
@@ -213,9 +278,7 @@ describe('BasicForm', () => {
   });
 
   it('updateSchema 合并新属性（deepMerge 目标优先语义）', async () => {
-    const wrapper = mountForm([
-      { field: 'a', label: 'A', component: 'Input' },
-    ]);
+    const wrapper = mountForm([{ field: 'a', label: 'A', component: 'Input' }]);
     await flushPromises();
     const instance = getInstance(wrapper);
     await instance.updateSchema({
@@ -250,9 +313,7 @@ describe('BasicForm', () => {
   });
 
   it('setProps 替换 schemas 并重建表单', async () => {
-    const wrapper = mountForm([
-      { field: 'a', label: 'A', component: 'Input' },
-    ]);
+    const wrapper = mountForm([{ field: 'a', label: 'A', component: 'Input' }]);
     await flushPromises();
     const instance = getInstance(wrapper);
     await instance.setProps({
@@ -302,9 +363,7 @@ describe('BasicForm', () => {
   });
 
   it('提交按钮存在且表单 submit 事件触发 emit(submit)', async () => {
-    const wrapper = mountForm([
-      { field: 'a', label: 'A', component: 'Input' },
-    ]);
+    const wrapper = mountForm([{ field: 'a', label: 'A', component: 'Input' }]);
     await flushPromises();
     const submitBtn = wrapper
       .findAll('button')
@@ -318,9 +377,7 @@ describe('BasicForm', () => {
   });
 
   it('卸载后 isMounted() 返回 false', async () => {
-    const wrapper = mountForm([
-      { field: 'a', label: 'A', component: 'Input' },
-    ]);
+    const wrapper = mountForm([{ field: 'a', label: 'A', component: 'Input' }]);
     await flushPromises();
     const instance = getInstance(wrapper);
     expect(instance.isMounted!()).toBe(true);

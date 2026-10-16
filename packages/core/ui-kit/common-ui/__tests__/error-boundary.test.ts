@@ -1,9 +1,9 @@
 import type { VNode } from 'vue';
 
+import { configureSharedEnv } from '@antdv/shared/utils/env';
 import { flushPromises, mount } from '@vue/test-utils';
 import { defineComponent, h, nextTick, onMounted } from 'vue';
-
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 
 import ErrorBoundary from '../src/components/error-boundary/ErrorBoundary.vue';
 
@@ -78,4 +78,23 @@ describe('ErrorBoundary', () => {
     await btn!.trigger('click');
     expect(wrapper.emitted('reset')).toBeTruthy();
   });
+
+  // 调用栈详情属于调试信息：开发态给出、生产构建里不渲染。判定走注入的环境配置，所以两个分支都能测。
+  it.each([
+    [false, true],
+    [true, false],
+  ])('production=%s 时调用栈详情存在=%s', async (production, expected) => {
+    configureSharedEnv({ production });
+    const wrapper = mount(ErrorBoundary, {
+      slots: { default: () => h(makeBoom()) },
+    });
+    await flushPromises();
+    await nextTick();
+    expect(wrapper.find('details').exists()).toBe(expected);
+  });
+});
+
+// 单测之间共享 `configureSharedEnv` 的模块级状态，收尾复位免得串味
+afterAll(() => {
+  configureSharedEnv({ production: false });
 });

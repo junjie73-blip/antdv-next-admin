@@ -7,7 +7,7 @@ import { useI18n } from 'vue-i18n';
 import { Scrollbar, Segmented } from '@antdv/common-ui';
 import { BasicDrawer } from '@antdv/popup-ui';
 
-import { SheetTitle } from '@antdv/shadcn-ui';
+import { DrawerTitle } from '@antdv/shadcn-ui';
 import { Icon } from '@iconify/vue';
 import { projectConfig } from '~/config/project';
 
@@ -52,16 +52,16 @@ function handleClose() {
           <div
             class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/15 to-indigo-500/15"
           >
-            <Icon icon="carbon:settings" class="text-ant-primary text-lg" />
+            <Icon icon="carbon:settings" class="text-primary text-lg" />
           </div>
           <div>
-            <SheetTitle as-child>
+            <DrawerTitle as-child>
               <div
                 class="text-[15px] font-semibold text-slate-800 dark:text-slate-100"
               >
                 {{ t('preferences.title') }}
               </div>
-            </SheetTitle>
+            </DrawerTitle>
             <div class="mt-0.5 text-[11px] text-slate-400">
               {{ t('preferences.subtitle') }}
             </div>

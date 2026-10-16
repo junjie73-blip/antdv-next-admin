@@ -63,7 +63,7 @@ const tabItemClassName = (tab: AccountTab) =>
   cn(
     'flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition-colors',
     tab === activeTab.value
-      ? 'bg-ant-primary font-medium text-white'
+      ? 'bg-primary font-medium text-white'
       : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800',
   );
 

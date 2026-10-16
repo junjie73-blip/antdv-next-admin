@@ -942,11 +942,43 @@ const alignClass = (col: BasicColumn, header = false) => {
   return align === 'right' ? 'text-right' : 'text-left';
 };
 
+/**
+ * 表头与单元格共用同一套盒模型。
+ *
+ * 两边各写一份时，字号 / 行高 / 内边距只要有一条不一致，行高就错开：
+ * 原先表头是 `text-xs py-2`、单元格是 `text-sm py-1.5`，同一列的表头与数据
+ * 视觉上对不齐，横向滚动时更明显。
+ *
+ * 行高取 `leading-6`（24px）而不是 `leading-5`：单元格里住的不只是一行文字
+ * （标签、按钮实测 24px 高），文本行盒只有 20px 时表头就比数据行矮出一线。
+ * 别用 `h-6` 顶——Tailwind 预置的 `box-sizing: border-box` 会让它连内边距一起算，
+ * 24px 反而小于"内边距 16 + 内容 20"，等于没设。
+ */
+const cellBoxClass = 'px-3 py-2 text-sm leading-6 align-middle';
+
+/**
+ * 固定列（含操作列）必须自带不透明底色。
+ *
+ * `position: sticky` 只改变绘制位置，不给背景 —— 透明底的固定单元格会被同一行
+ * 横向滚过去的普通单元格穿透，出现"2026-10-1新增35-24编辑删除"那种叠字。
+ * 底色从 `<tr>` 继承（`bg-inherit`），所以行背景一律取实色：半透明的
+ * hover / 选中叠加会同样穿透。
+ */
+const pinnedCellClass = (col: BasicColumn) =>
+  stickyPosition(col) ? 'z-[2] bg-inherit' : '';
+
+/** 固定表头要压住同样被钉住的单元格 */
+const pinnedHeadClass = (col: BasicColumn) =>
+  stickyPosition(col) ? 'z-20' : '';
+
 const headClass = (col: BasicColumn) =>
   cn(
-    'basic-table-head px-2 py-2 align-middle text-xs font-medium text-gray-500 dark:text-gray-400',
-    'bg-gray-50 dark:bg-gray-800/60',
+    'basic-table-head',
+    cellBoxClass,
+    'font-medium text-muted-foreground',
+    'bg-gray-50 dark:bg-gray-800',
     mergedScrollY.value !== undefined && 'sticky top-0 z-10',
+    pinnedHeadClass(col),
     col.sorter && 'cursor-pointer select-none',
     col.className,
     col.headerClassName,
@@ -957,8 +989,9 @@ const cellClass = (col: BasicColumn, record: Recordable, index: number) => {
     ? mergedCellClassName.value(record, index, col)
     : mergedCellClassName.value;
   return cn(
-    'px-2 py-1.5 align-middle',
+    cellBoxClass,
     col.ellipsis ? 'max-w-[1px] truncate' : 'whitespace-nowrap',
+    pinnedCellClass(col),
     col.className,
     userClass,
   );
@@ -969,9 +1002,11 @@ const rowClass = (record: Recordable, index: number) => {
     ? mergedRowClassName.value(record, index)
     : mergedRowClassName.value;
   return cn(
-    'basic-table-row border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/40',
+    'basic-table-row group border-b border-gray-100 bg-card transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800',
     userClass,
-    isSelected(record) && 'bg-primary/5',
+    // 主色 8% 与卡片底色混出实色，固定列继承后依然不透
+    isSelected(record) &&
+      'bg-[color-mix(in_srgb,var(--color-primary)_8%,var(--color-card))] dark:bg-[color-mix(in_srgb,var(--color-primary)_16%,var(--color-card))]',
   );
 };
 
@@ -1144,17 +1179,12 @@ defineExpose(tableActionType);
 <template>
   <div ref="rootRef" :class="tableContainerClassName">
     <!-- 搜索表单 -->
-    <div v-if="showSearchForm" class="mb-2">
+    <div v-if="showSearchForm" class="mb-4">
       <BasicForm
         v-bind="tableForm.getFormProps"
         @register="tableForm.registerForm"
       />
     </div>
-
-    <div
-      v-if="showSearchForm"
-      class="mb-2 border-t border-gray-200 dark:border-gray-700"
-    ></div>
 
     <!-- 工具栏 -->
     <div
@@ -1199,11 +1229,20 @@ defineExpose(tableActionType);
         </caption>
 
         <thead v-if="mergedShowHeader" class="basic-table-header">
-          <tr v-bind="getHeaderRowProps(0)" class="border-b border-gray-200 dark:border-gray-800">
+          <tr
+            v-bind="getHeaderRowProps(0)"
+            class="border-b border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-gray-800"
+          >
             <!-- 选择列表头 -->
             <th
               v-if="getRowSelection"
-              :class="cn(headClass({ key: 'ant-table-selection-column' }), 'text-center')"
+              :class="
+                cn(
+                  headClass({ key: 'ant-table-selection-column' }),
+                  'text-center',
+                  getRowSelection?.fixed && 'z-20',
+                )
+              "
               :style="{
                 position: getRowSelection?.fixed ? 'sticky' : undefined,
                 right: getRowSelection?.fixed === 'right' ? '0px' : undefined,
@@ -1328,7 +1367,13 @@ defineExpose(tableActionType);
               <!-- 选择列 -->
               <td
                 v-if="getRowSelection"
-                :class="cn('px-2 py-1.5 text-center align-middle', getRowSelection?.fixed && 'sticky')"
+                :class="
+                  cn(
+                    cellBoxClass,
+                    'text-center',
+                    getRowSelection?.fixed && 'sticky z-[2] bg-inherit',
+                  )
+                "
                 :style="{
                   left: getRowSelection?.fixed === 'left' ? '0px' : undefined,
                   right: getRowSelection?.fixed === 'right' ? '0px' : undefined,

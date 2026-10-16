@@ -19,7 +19,7 @@ import { tabsRuntime } from './config';
 const STYLE_MAP: Record<TabStyle, TabStyleClasses> = {
   card: {
     item: 'gap-1.5 rounded-md border border-transparent px-3 py-1.5',
-    active: 'bg-ant-primary border-ant-primary text-white shadow-sm',
+    active: 'bg-primary border-primary text-white shadow-sm',
     bar: '',
     list: 'gap-1.5',
     close: 'hover:bg-white/20 rounded-full p-0.5',
@@ -35,7 +35,7 @@ const STYLE_MAP: Record<TabStyle, TabStyleClasses> = {
   chrome: {
     item: 'h-8 gap-1.5 rounded-t-lg border border-b-0 border-gray-300 px-3 dark:border-gray-600',
     active:
-      'border-t-ant-primary bg-white text-gray-800 shadow-sm dark:bg-gray-800 dark:text-white',
+      'border-t-primary bg-white text-gray-800 shadow-sm dark:bg-gray-800 dark:text-white',
     bar: 'items-stretch',
     list: 'h-full items-end gap-0',
     close: 'hover:text-red-500 rounded-full p-0.5',
@@ -43,7 +43,7 @@ const STYLE_MAP: Record<TabStyle, TabStyleClasses> = {
   },
   rounded: {
     item: 'gap-1.5 rounded-full px-3.5 py-1.5',
-    active: 'bg-ant-primary text-white shadow-sm',
+    active: 'bg-primary text-white shadow-sm',
     bar: '',
     list: 'gap-2',
     close: 'hover:bg-white/20 rounded-full p-0.5',
@@ -51,7 +51,7 @@ const STYLE_MAP: Record<TabStyle, TabStyleClasses> = {
   },
   line: {
     item: 'gap-1.5 border-b-2 border-transparent px-2 py-2',
-    active: 'border-ant-primary text-ant-primary',
+    active: 'border-primary text-primary',
     bar: '',
     list: 'gap-0',
     close: 'hover:text-red-500 rounded-full p-0.5',
@@ -59,7 +59,7 @@ const STYLE_MAP: Record<TabStyle, TabStyleClasses> = {
   },
   plain: {
     item: 'gap-1.5 px-3 py-1.5',
-    active: 'text-ant-primary',
+    active: 'text-primary',
     bar: '',
     list: 'gap-0 divide-x divide-gray-200 dark:divide-gray-700',
     close: 'hover:text-red-500 rounded-full p-0.5',
@@ -69,7 +69,7 @@ const STYLE_MAP: Record<TabStyle, TabStyleClasses> = {
 
 /** 未选中态：风格之间只有文字色差异，统一放这里避免四处复制 */
 const IDLE_ITEM =
-  'text-gray-600 hover:text-ant-primary dark:text-gray-300 dark:hover:text-ant-primary';
+  'text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary';
 
 const IDLE_BG: Record<TabStyle, string> = {
   card: 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600',

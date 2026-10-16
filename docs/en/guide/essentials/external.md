@@ -136,7 +136,7 @@ These are routinely treated as one mechanism. They differ in when they act and w
 
 - A bare tag has nobody to inject it at compile time, so the runtime leaves a single `Failed to resolve component` warning while the page renders an empty element — icons vanishing silently, the designer shell collapsing into empty tags; every such incident had to be traced back through the build configuration.
 - Explicit imports make "what is used, and from where" visible in the file header, and subpath writes such as `import { cn } from '@antdv/shared/utils/cn'` finally match how components are imported.
-- The sub-packages no longer assume the host ships an auto-import setup: another application can just install `@antdv/scrollbar-ui` or `@antdv/icons` and run.
+- The sub-packages no longer assume the host ships an auto-import setup: another application can just install `@antdv/common-ui` or `@antdv/icons` and run.
 
 The `Components` plugin itself stays (`:52-54`) but only with its built-in behaviour: scanning the app's own `src/components` directory for local registration, with no npm package involved. On the `AutoImport` side (`:48-51`) the auto-imported surface is framework APIs only: `vue`, `@vueuse/core`, `pinia`, `VueRouterAutoImports` — the four functional entry points from `antdv-next` (`message`, `notification`, `Modal`, `Drawer`) were removed from it too and must now be imported by hand.
 
@@ -183,7 +183,7 @@ Why many entries instead of one barrel: importing only `cn` should not pull the 
 | Shape | Packages | `main` | After editing `src` | Reusable outside |
 | --- | --- | --- | --- | --- |
 | dist-published | `shared`, `composables`, `directives`, `layouts`, `preferences`, `router`, `types` | `./dist/index.js` (`types` uses `./dist/index.mjs`) | Rebuild required | Yes, once `dist` exists |
-| source-published | `@antdv/icons`, `@antdv/design` (`./src/index.css`) and the ten `@antdv/ui-kit` packages (`common-ui` / `shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` / `loading-ui` / `scrollbar-ui`; e.g. `packages/ui-kit/scrollbar-ui/package.json:12-19`: `files: ["src"]` with `main/types` both pointing at `./src/index.ts`) | Points at `src` | Hot-updates immediately | **No**: no build script; its `.vue` files and Tailwind entry are compiled by the consuming app's pipeline |
+| source-published | `@antdv/icons`, `@antdv/design` (`./src/index.css`) and the ten `@antdv/ui-kit` packages (`common-ui` / `shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` / `loading-ui` / `scrollbar-ui`; e.g. `packages/core/ui-kit/common-ui/src/components/scrollbar/package.json:12-19`: `files: ["src"]` with `main/types` both pointing at `./src/index.ts`) | Points at `src` | Hot-updates immediately | **No**: no build script; its `.vue` files and Tailwind entry are compiled by the consuming app's pipeline |
 
 ### Package boundaries are the only reason these are reusable
 

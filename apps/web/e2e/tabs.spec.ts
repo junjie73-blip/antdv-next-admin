@@ -376,7 +376,11 @@ async function openLayoutPanel(page: Page) {
   await page.getByRole('button', { name: '偏好设置' }).click();
   const drawer = page.locator('.setting-drawer');
   await expect(drawer).toBeVisible();
-  await drawer.locator('.ant-segmented-item', { hasText: '布局' }).click();
+  await drawer
+    .locator('[data-common-segmented]')
+    .first()
+    .locator('[data-slot="toggle-group-item"][aria-label="布局"]')
+    .click();
   await expect(drawer.getByText('标签风格')).toBeVisible();
   return drawer;
 }

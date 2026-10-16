@@ -152,7 +152,7 @@ const listWrapClass = computed(() =>
 
 const arrowClass = computed(() =>
   cn(
-    'z-10 flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full border',
+    'absolute inset-y-0 z-20 flex size-7 my-auto cursor-pointer items-center justify-center rounded-full border',
     'transition-colors duration-200',
     props.theme === 'dark' || props.geek
       ? 'border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700'
@@ -169,18 +169,6 @@ const arrowClass = computed(() =>
     aria-label="menu"
     data-menu-root
   >
-    <button
-      v-if="canScroll && scroller.canScrollLeft.value"
-      :aria-label="menuRuntime.t('shell.scrollMenuLeft')"
-      :class="arrowClass"
-      :title="menuRuntime.t('shell.scrollHintLeft')"
-      type="button"
-      @click="scroller.scrollByStep(-1)"
-      @dblclick="scroller.scrollToEnd(-1)"
-    >
-      <Icon icon="carbon:chevron-left" />
-    </button>
-
     <!-- 内联形态（侧栏 / 图标栏 / 浮层）不套滚动容器：滚动条归布局壳管，这里只管排版 -->
     <MenuList
       v-if="!isHorizontal"
@@ -189,7 +177,7 @@ const arrowClass = computed(() =>
       data-menu-tree
     />
 
-    <div v-else :class="listWrapClass">
+    <div v-else :class="listWrapClass" @click.capture="scroller.onClickCapture">
       <Scrollbar
         v-if="canScroll"
         ref="menuScrollbar"
@@ -199,7 +187,6 @@ const arrowClass = computed(() =>
         view-class="h-full"
         @pointerdown="scroller.onPointerDown"
         @wheel="scroller.onWheel"
-        @click.capture="scroller.onClickCapture"
       >
         <MenuList :nodes="nodes" variant="bar" data-menu-tree />
       </Scrollbar>
@@ -214,19 +201,39 @@ const arrowClass = computed(() =>
         v-if="scroller.canScrollRight.value"
         class="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white to-transparent dark:from-gray-800"
       ></div>
-    </div>
 
-    <button
-      v-if="canScroll && scroller.canScrollRight.value"
-      :aria-label="menuRuntime.t('shell.scrollMenuRight')"
-      :class="arrowClass"
-      :title="menuRuntime.t('shell.scrollHintRight')"
-      type="button"
-      @click="scroller.scrollByStep(1)"
-      @dblclick="scroller.scrollToEnd(1)"
-    >
-      <Icon icon="carbon:chevron-right" />
-    </button>
+      <!--
+        箭头浮在滚动区之上，而不是排在它旁边：作为 flex 兄弟节点时箭头一出现就抢走
+        滚动视口的宽度，窄屏下两颗箭头能把 `.menu-scroll` 压到 0 宽，而 0 宽的滚动口
+        在 Firefox 里连 scrollTo 都不生效（Chromium 只是宽容，不等于正确）。
+        浮在视口上就意味着拖拽可能松手在箭头上，所以「拖完吞掉一次 click」的
+        `@click.capture` 也跟着上移到了 `.listWrap`，而不只是挂在 Scrollbar 上。
+      -->
+      <button
+        v-if="canScroll && scroller.canScrollLeft.value"
+        :aria-label="menuRuntime.t('shell.scrollMenuLeft')"
+        :class="arrowClass"
+        :title="menuRuntime.t('shell.scrollHintLeft')"
+        class="left-0"
+        type="button"
+        @click="scroller.scrollByStep(-1)"
+        @dblclick="scroller.scrollToEnd(-1)"
+      >
+        <Icon icon="carbon:chevron-left" />
+      </button>
+      <button
+        v-if="canScroll && scroller.canScrollRight.value"
+        :aria-label="menuRuntime.t('shell.scrollMenuRight')"
+        :class="arrowClass"
+        :title="menuRuntime.t('shell.scrollHintRight')"
+        class="right-0"
+        type="button"
+        @click="scroller.scrollByStep(1)"
+        @dblclick="scroller.scrollToEnd(1)"
+      >
+        <Icon icon="carbon:chevron-right" />
+      </button>
+    </div>
   </nav>
 </template>
 

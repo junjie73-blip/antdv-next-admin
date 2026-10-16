@@ -15,26 +15,31 @@ preferences store (persisted)
         └──► applyPreferencesToDom() ──► CSS variables on documentElement ──► our own styles
 ```
 
-antd's tokens only reach the antdv-next components; the styles we **wrote ourselves** for the sidebar, tab pages, login page and NProgress have to go through CSS variables, otherwise you get "the primary color changed, the components changed, the shell didn't". So `writeThemeCssVars()` writes two names at once:
+antd's tokens only reach the antdv-next components; the styles we **wrote ourselves** for the sidebar, tab pages, login page and NProgress have to go through CSS variables, otherwise you get "the primary color changed, the components changed, the shell didn't". On the DOM side `writeThemeCssVars()` in `packages/utils/src/css-vars.ts` lands three things:
 
-| Variable | Who uses it |
+| What lands on `<html>` | Purpose |
 | --- | --- |
-| `--ant-color-primary` | The name injected by the antdv-next runtime (39 usages in this project); Tailwind's `*-ant-primary` also points at it |
-| `--ant-primary-color` | The old name; the progress bar, NProgress and a few other places still read it |
-
-Writing both is deliberate — writing only the new one produces half-updates like "changed the primary color, the progress bar is still blue".
+| `data-theme="…"` | The theme tier. `THEME_PRESETS` (`@antdv/shared/constants`) has 14 entries: `default` uses the base block, the other 13 each ship a complete `--app-*` palette for light and dark in `@antdv/design`'s `token/default.css` / `token/dark.css` |
+| `--app-primary` (**custom color only**) | A color picked in the colour picker is in no palette, so it has to be inlined; for a preset this would push the primary back down to its light-mode value even in the dark tier |
+| `--ant-color-primary` + `--ant-primary-color` | The bridge for antdv-next components. antd's DOM is still on the page and both names are read, so writing only the new one produces "changed the primary color, the progress bar is still blue" |
 
 ## Writing the primary color with Tailwind
 
-`@antdv-next/tailwind/compat.css` maps antd's palette onto Tailwind theme variables (`--color-ant-primary: var(--ant-color-primary)`, plus the whole `-hover / -active / -bg / -border / -text` set), so the visual layer only has to be written like this and it always follows the primary color:
+The design spec has exactly one set of tokens — shadcn-vue's. `@theme inline` wires `--app-*` into utilities, so accent colors always come from them and always follow the primary color:
 
 ```ts
-// Accent colors always use *-ant-primary; never hardcode a color value
-cn('bg-ant-primary text-white shadow-lg shadow-ant-primary/30');
-cn('bg-ant-primary/10 text-ant-primary ring-1 ring-ant-primary/20');
+// Accent colors use *-primary; neutral colors must be paired with dark:
+cn('bg-primary text-primary-foreground shadow-lg shadow-primary/30');
+cn('bg-primary/10 text-primary ring-1 ring-primary/20');
 ```
 
-::: danger Don't hardcode blue Hardcoded values like `bg-blue-600`, `text-blue-500` and `#1677ff` look right in light mode and give themselves away when you switch the primary color or enter dark mode. The login page pins this with a contract, `views/login/__tests__/login-styles.spec.ts`: accent colors may only come from `*-ant-primary` or `var(--ant*)`. New pages should follow the same rule. (Pre-existing debt: about 38 view files still contain `blue-*` / `#1677ff`, cleaned up progressively.) :::
+::: danger Never write `*-ant-primary` again That family came from antdv-next's Tailwind compatibility layer (`@antdv-next/tailwind/compat.css`), which `@antdv/design` no longer imports — the failure is not "wrong colour", it is **the utility is never generated at all**, so the element ends up with no background and no border. :::
+
+::: warning Don't hardcode blue Hardcoded values like `bg-blue-600`, `text-blue-500` and `#1677ff` look right in light mode and give themselves away when you switch the primary color or enter dark mode. The login page pins this with a contract, `views/login/__tests__/login-styles.spec.ts`: accent colors may only come from the primary tokens. New pages should follow the same rule. (Pre-existing debt: some view files still contain `blue-*` / `#1677ff`, cleaned up progressively.) :::
+
+## Every theme is a complete palette
+
+The 13 `[data-theme]` presets (`violet / pink / rose / sky-blue / deep-blue / green / deep-green / orange / yellow / zinc / neutral / slate / gray`) each write out all 27 colour tokens on both the light and the dark side — this is not "just a different primary". `background / card / popover / border / foreground / sidebar-*` are all re-valued in that theme's hue, so switching a theme moves the overlay backgrounds, dividers and the sidebar together. `packages/core/base/design/__tests__/design.test.ts` holds the contract: every preset complete, no two presets identical, light and dark genuinely different.
 
 ## `colorLink` must be provided together with `colorPrimary`
 
@@ -66,9 +71,11 @@ registerThemePreset('glass', {
 
 Only `compact` is built in (antd officially has `compactAlgorithm`); unregistered styles fall back to default safely.
 
-## Corner radius and font size are multipliers, not px
+## Corner radius is a multiplier, font size is px
 
-In preferences `borderRadius` stores a multiplier (`0 / 0.25 / 0.5 / 0.75 / 1`); antd's baseline is 8px and the font baseline is 16px, and the conversion happens in two places, `getThemeConfig` and `writeThemeCssVars` (both land `--ant-*` into `--app-*`). That way "storing 0.5" derives a consistent hierarchy under both the dark and light algorithms.
+`borderRadius` in preferences stores a multiplier (`0 / 0.25 / 0.5 / 0.75 / 1`, default `0.5`) against the 8px baseline (`BORDER_RADIUS_BASE`). The conversion has two outlets and they share one source: `themeOverridesFrom()` turns the multiplier into px for the antd tokens, `writeThemeCssVars()` writes the same px into `--ant-border-radius` / `--app-border-radius`. Missing one gives "the antd components rounded, our own panels didn't".
+
+`fontSize` stores px directly (default `14`): in `themeOverridesFrom()` a `0`/`NaN` falls back to the 16px baseline so the component tree cannot collapse to zero-size text.
 
 ## Accessibility switches
 
@@ -77,7 +84,7 @@ Gray mode and color-weak mode run on CSS filters (`--app-filter` plus an inline 
 ## The fixed routine for adding a preference switch
 
 1. Add the field to `AppSetting` in `@antdv/types`;
-2. Give it a default value in `packages/preferences/src/defaults.ts`;
+2. Give it a default value in `packages/core/preferences/src/defaults.ts`;
 3. If it has to reach the DOM, write the variable / class in `css-vars.ts` and add it to the cleanup list in `clearPreferencesFromDom()` (logout, unmount and test teardown all rely on it — miss one and stale values leak into the next run);
 4. Add the control to the settings drawer;
 5. Add a unit test asserting "change the preference → the matching variable/class is on the DOM", then click the real switch once end-to-end (e2e).

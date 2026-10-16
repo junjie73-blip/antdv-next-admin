@@ -96,8 +96,8 @@ function applyCustomColor(value: string) {
               'group relative flex flex-col items-center gap-2 rounded-lg border-2 bg-white p-2 transition-all duration-200',
               'dark:bg-slate-800',
               isColorActive(opt.value)
-                ? 'border-ant-primary'
-                : 'hover:border-ant-primary/40 border-slate-200 dark:border-slate-700',
+                ? 'border-primary'
+                : 'hover:border-primary/40 border-slate-200 dark:border-slate-700',
             )
           "
           @click="handleColorSelect(opt.value)"
@@ -114,7 +114,7 @@ function applyCustomColor(value: string) {
               cn(
                 'text-[11px] leading-none',
                 isColorActive(opt.value)
-                  ? 'text-ant-primary font-medium'
+                  ? 'text-primary font-medium'
                   : 'text-slate-500 dark:text-slate-400',
               )
             "
@@ -132,8 +132,8 @@ function applyCustomColor(value: string) {
                   'group relative flex flex-col items-center gap-2 rounded-lg border-2 bg-white p-2 transition-all duration-200',
                   'cursor-pointer dark:bg-slate-800',
                   !isPresetColor
-                    ? 'border-ant-primary'
-                    : 'hover:border-ant-primary/40 border-slate-200 dark:border-slate-700',
+                    ? 'border-primary'
+                    : 'hover:border-primary/40 border-slate-200 dark:border-slate-700',
                 )
               "
             >
@@ -158,7 +158,7 @@ function applyCustomColor(value: string) {
                   cn(
                     'text-[11px] leading-none',
                     !isPresetColor
-                      ? 'text-ant-primary font-medium'
+                      ? 'text-primary font-medium'
                       : 'text-slate-500 dark:text-slate-400',
                   )
                 "
@@ -220,8 +220,8 @@ function applyCustomColor(value: string) {
             class="h-8 rounded-md text-xs font-medium transition-all duration-200"
             :class="
               appStore.borderRadius === opt.value
-                ? 'bg-ant-primary text-white shadow-sm'
-                : 'hover:outline-ant-primary/40 bg-slate-50 text-slate-600 outline outline-1 outline-slate-200 hover:bg-slate-100 dark:bg-slate-700 dark:text-slate-300 dark:outline-slate-600'
+                ? 'bg-primary text-white shadow-sm'
+                : 'hover:outline-primary/40 bg-slate-50 text-slate-600 outline outline-1 outline-slate-200 hover:bg-slate-100 dark:bg-slate-700 dark:text-slate-300 dark:outline-slate-600'
             "
             @click="appStore.updateSetting({ borderRadius: opt.value })"
           >

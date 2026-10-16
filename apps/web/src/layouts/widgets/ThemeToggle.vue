@@ -80,8 +80,8 @@ function handleChange(mode: 'auto' | 'dark' | 'light') {
           'relative flex h-16 flex-col items-center justify-center gap-1.5 rounded-lg border',
           'cursor-pointer transition-all duration-200',
           current === opt.value
-            ? 'border-ant-primary bg-ant-primary/5 text-ant-primary border-2'
-            : 'hover:border-ant-primary/40 border-slate-200 bg-white text-slate-500 hover:text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-slate-200',
+            ? 'border-primary bg-primary/5 text-primary border-2'
+            : 'hover:border-primary/40 border-slate-200 bg-white text-slate-500 hover:text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-slate-200',
         )
       "
       @click="handleChange(opt.value)"

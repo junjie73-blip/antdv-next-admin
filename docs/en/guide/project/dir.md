@@ -21,8 +21,8 @@ The old `@antdv/ui` split into three (`icons` / `loading-ui` / `scrollbar-ui`), 
 | `@antdv/preferences` | Preference defaults, persistence, writing CSS variables, antdv-next theme config | pinia / store |
 | `@antdv/composables` | Composables: chunked upload, print, watermark, ECharts, SSE, WebSocket… | store / api / router instance |
 | `@antdv/icons` | Icons only: the Iconify wrapper, the SVG-sprite icon, the icon picker (shadcn implementation) | pinia / vue-router / business stores / app config / antdv-next |
-| `@antdv/loading-ui` | The `Loading` overlay + `useLoading` + the `createLoading` family + the `v-loading` directive | same as above (dependencies stop at `shadcn-ui` / `shared`) |
-| `@antdv/scrollbar-ui` | The self-drawn `Scrollbar` + `Bar`; styles travel with the component, no host Tailwind | same as above |
+| `@antdv/common-ui` | The `Loading` overlay + `useLoading` + the `createLoading` family + the `v-loading` directive | same as above (dependencies stop at `shadcn-ui` / `shared`) |
+| `@antdv/common-ui` | The self-drawn `Scrollbar` + `Bar`; styles travel with the component, no host Tailwind | same as above |
 | `@antdv/common-ui` | The shared display components: `Alert`, `Badge`, `Card`, `CountTo`, `CronEditor`, `Description`, `Descriptions`, `Divider`, `Empty`, `EmptyState`, `ErrorBoundary`, `Image`, `PageSkeleton`, `TableSkeleton`, `Popconfirm`, `Result`, `Segmented`, `Space`, `Statistic`, `StatusTag`, `Steps`, `Tabs`/`TabPane`, `Tag`, `Timeline`, `Tooltip`, `Transfer`, `Tree`, `Upload` — all composed from `@antdv/shadcn-ui` primitives | As above (depends only on `icons` / `scrollbar-ui` / `shadcn-ui` / `shared`) |
 | `@antdv/shadcn-ui` | shadcn-vue atoms (Dialog / Popover / Select / Spinner…), the implementation base of the packages above | business logic |
 | `@antdv/form-ui` | Schema-driven forms on top of `@tanstack/vue-form`: `BasicForm` / `useForm` / `componentMap` | application store |

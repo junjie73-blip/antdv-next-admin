@@ -8,12 +8,16 @@ import {
   APP_BORDER_RADIUS,
   APP_FILTER,
   APP_FONT_SIZE,
+  APP_PRIMARY,
   APP_SIDEBAR_WIDTH,
   BORDER_RADIUS_BASE,
   COLOR_WEAK_CLASS,
+  CUSTOM_THEME_KEY,
   DARK_CLASS,
   GRAY_MODE_CLASS,
   PREFERENCE_CSS_VARS,
+  THEME_DATA_ATTRIBUTE,
+  themeKeyByColor,
 } from '@antdv/shared/constants';
 
 import { resolveThemeMode } from './theme-mode';
@@ -85,14 +89,28 @@ export function applyPreferencesToDom(
 }
 
 /**
- * 写主题相关的 CSS 变量。
+ * 写主题相关的 CSS 变量与主题档位。
  *
+ * `--ant-*` 那一组是留给 antdv-next 组件的桥（antd 的 DOM 还在页面里），
+ * 设计规范本身一律读 `--app-*`，见 `@antdv/design`。
  * `--ant-color-primary` 是 antdv-next 运行时注入的命名（39 处在用），
  * `--ant-primary-color` 是旧命名（进度条等几处仍在读）。
  * 两个都写，避免"改了主色、进度条还是蓝的"这种半更新。
+ *
+ * 主题档位写在 `<html data-theme>` 上：预设主题各自带一整套色板（`@antdv/design`
+ * 的 token 文件），所以只有取色器选的颜色才需要内联 `--app-primary` —— 预设时
+ * 内联反而会把暗色档提亮过的主色压回亮色值。
  */
 function writeThemeCssVars(target: HTMLElement, preferences: AppSetting): void {
   const { borderRadius, fontSize, primaryColor, sidebarWidth } = preferences;
+  const themeKey = themeKeyByColor(primaryColor);
+
+  target.setAttribute(THEME_DATA_ATTRIBUTE, themeKey);
+  if (themeKey === CUSTOM_THEME_KEY) {
+    setCssVar(target, APP_PRIMARY, primaryColor);
+  } else {
+    target.style.removeProperty(APP_PRIMARY);
+  }
 
   setCssVar(target, ANT_COLOR_PRIMARY, primaryColor);
   setCssVar(target, ANT_PRIMARY_COLOR, primaryColor);
@@ -125,6 +143,7 @@ export function clearPreferencesFromDom(
   );
   target.style.filter = '';
   target.style.colorScheme = '';
+  target.removeAttribute(THEME_DATA_ATTRIBUTE);
   for (const name of PREFERENCE_CSS_VARS) {
     target.style.removeProperty(name);
   }

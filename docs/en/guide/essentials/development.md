@@ -36,7 +36,7 @@ The details live in `CODE_STANDARD.md` at the repo root (20 sections: directory 
 
 1. **Pages are laid out as `views/<module>/<page>/index.vue`**, with page-private logic in `actions.ts` / `columns.ts` / `schemas.ts` next to it; what sits inside the `components/` and `widgets/` subdirectories is a **private component, not a route page** — both file-convention routing and the "no padding on the root container" guard exclude them on that same criterion.
 2. **The outer container of a route page declares no padding**; inner spacing is the layout's job (see [Layout, menu, and tab pages](/en/guide/in-depth/layout#content-area-padding-belongs-to-the-layout)).
-3. **Accent colors only come from `*-ant-primary` / `var(--ant*)`**, never a hardcoded `blue-*` or `#1677ff` (see [Theme and preferences](/en/guide/in-depth/theme#writing-the-primary-color-with-tailwind)).
+3. **Accent colors only come from `@antdv/design`'s primary tokens** (`bg-primary` / `text-primary` / `var(--app-primary)`) — never the antd compatibility layer's `*-ant-*` (those utilities are no longer generated) and never a hardcoded `blue-*` or `#1677ff` (see [Theme and preferences](/en/guide/in-depth/theme#writing-the-primary-color-with-tailwind)).
 
 Running the checks:
 

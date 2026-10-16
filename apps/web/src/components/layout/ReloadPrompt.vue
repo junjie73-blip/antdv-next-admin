@@ -214,7 +214,7 @@ tryOnScopeDispose(stopCountdown);
             class="flex h-10 w-10 items-center justify-center rounded-2xl transition-colors duration-300"
             :class="
               isUpdate
-                ? 'text-ant-primary bg-blue-50 dark:bg-blue-500/15 dark:text-blue-400'
+                ? 'text-primary bg-blue-50 dark:bg-blue-500/15 dark:text-blue-400'
                 : 'bg-emerald-50 text-emerald-500 dark:bg-emerald-500/15 dark:text-emerald-400'
             "
           >
@@ -305,7 +305,7 @@ tryOnScopeDispose(stopCountdown);
         class="h-0.5 w-full bg-slate-100/80 dark:bg-slate-800/60"
       >
         <div
-          class="bg-ant-primary h-full transition-[width] duration-1000 ease-linear"
+          class="bg-primary h-full transition-[width] duration-1000 ease-linear"
           :style="{ width: `${countdownProgress}%` }"
         ></div>
       </div>

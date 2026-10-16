@@ -136,7 +136,7 @@ return {
 
 - 裸标签在编译期没人注入，运行期只留一条 `Failed to resolve component` 警告，页面却整块变空白 —— 图标静默消失、设计器外壳塌成空白标签，这类事故排查都要从编译配置倒推。
 - 显式 import 让"谁在用、从哪来"在文件头部一眼可见，`import { cn } from '@antdv/shared/utils/cn'` 这种子路径写法也终于和组件写法统一。
-- 子包不再假设宿主带着自动导入配置，别的应用直接引 `@antdv/scrollbar-ui`、`@antdv/icons` 也能跑。
+- 子包不再假设宿主带着自动导入配置，别的应用直接引 `@antdv/common-ui`、`@antdv/icons` 也能跑。
 
 `Components` 插件本身还留着（`:52-54`），但它只剩自带的能力：扫应用内 `src/components` 目录做本地组件注册，不涉及任何 npm 包。`AutoImport` 侧（`:48-51`）自动导入的仍然只有框架 API：`vue`、`@vueuse/core`、`pinia`、`VueRouterAutoImports` —— `antdv-next` 的 `message` / `notification` / `Modal` / `Drawer` 四个函数式入口也一起移除了，用它们得自己 import。
 
@@ -183,7 +183,7 @@ return {
 | 形态 | 包 | `main` | 改完 `src` | 外部可用吗 |
 | --- | --- | --- | --- | --- |
 | dist 发布 | `shared`、`composables`、`directives`、`layouts`、`preferences`、`router`、`types` | `./dist/index.js`（`types` 是 `./dist/index.mjs`） | 必须重新 `build` | 只要装到 `dist` 就能被解析 |
-| 源码发布 | `@antdv/icons`、`@antdv/design`（`./src/index.css`）、`@antdv/ui-kit` 十个（`common-ui` / `shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` / `loading-ui` / `scrollbar-ui`，如 `packages/ui-kit/scrollbar-ui/package.json:12-19`：`files: ["src"]` + `main/types` 全指 `./src/index.ts`） | 直指 `src` | 直接热更新 | **不能**：没有 build 脚本，`.vue` 与 Tailwind 入口由应用的构建链编译 |
+| 源码发布 | `@antdv/icons`、`@antdv/design`（`./src/index.css`）、`@antdv/ui-kit` 十个（`common-ui` / `shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` / `loading-ui` / `scrollbar-ui`，如 `packages/core/ui-kit/common-ui/src/components/scrollbar/package.json:12-19`：`files: ["src"]` + `main/types` 全指 `./src/index.ts`） | 直指 `src` | 直接热更新 | **不能**：没有 build 脚本，`.vue` 与 Tailwind 入口由应用的构建链编译 |
 
 ### 包边界是它们能被单点复用的唯一原因
 

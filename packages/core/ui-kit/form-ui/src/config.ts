@@ -74,7 +74,11 @@ export const componentMap: { [K in ComponentType]: Component } = {
   Select: FSelect,
   TreeSelect: FTreeSelect,
   RadioGroup: FRadioGroup,
-  RadioButtonGroup: withProps(FRadioGroup, { optionType: 'button' }, 'FRadioButtonGroup'),
+  RadioButtonGroup: withProps(
+    FRadioGroup,
+    { optionType: 'button' },
+    'FRadioButtonGroup',
+  ),
   Checkbox: FCheckbox,
   CheckboxGroup: withProps(FCheckbox, { options: [] }, 'FCheckboxGroup'),
   AutoComplete: FAutoComplete,

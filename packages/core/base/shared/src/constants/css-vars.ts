@@ -19,6 +19,18 @@ export const APP_BORDER_RADIUS = '--app-border-radius';
 export const APP_FILTER = '--app-filter';
 export const APP_FONT_SIZE = '--app-font-size';
 export const APP_SIDEBAR_WIDTH = '--app-sidebar-width';
+/**
+ * 自定义主色才写这条。预设主题的颜色由 token 文件里完整的 `[data-theme]` 色板给出，
+ * 内联一个 `--app-primary` 反而会把暗色档辛苦提亮的那版主色又压回亮色值。
+ */
+export const APP_PRIMARY = '--app-primary';
+
+/**
+ * 偏好写下的主题档位标记（`<html data-theme="violet">`）。
+ * 名字与 `@antdv/design` token 文件里的 `[data-theme='x']` 块是同一份名单，
+ * 取值见 `./theme-presets`。
+ */
+export const THEME_DATA_ATTRIBUTE = 'data-theme';
 
 /** 偏好写下的全部变量，`clearPreferencesFromDom` 按这份名单移除 */
 export const PREFERENCE_CSS_VARS = [
@@ -29,5 +41,6 @@ export const PREFERENCE_CSS_VARS = [
   APP_BORDER_RADIUS,
   APP_FONT_SIZE,
   APP_SIDEBAR_WIDTH,
+  APP_PRIMARY,
   APP_FILTER,
 ] as const;

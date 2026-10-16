@@ -68,7 +68,7 @@ scripts/           仓库任务（vsh、turbo-run、clean、deploy）
 
 ```ts
 import { Card as ACard, message } from 'antdv-next';
-import { Scrollbar } from '@antdv/scrollbar-ui';
+import { Scrollbar } from '@antdv/common-ui';
 import { Icon } from '@iconify/vue';
 ```
 

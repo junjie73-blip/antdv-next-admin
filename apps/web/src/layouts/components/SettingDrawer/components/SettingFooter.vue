@@ -67,7 +67,7 @@ function handleClearAndLogout() {
         cn(
           btnClass,
           'bg-white text-slate-600 outline-slate-200',
-          'hover:border-ant-primary/40 hover:text-ant-primary hover:bg-slate-50',
+          'hover:border-primary/40 hover:text-primary hover:bg-slate-50',
           'dark:bg-slate-800 dark:text-slate-300 dark:outline-slate-700 dark:hover:bg-slate-700',
         )
       "

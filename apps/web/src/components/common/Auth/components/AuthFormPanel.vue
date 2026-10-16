@@ -17,7 +17,7 @@ const { formPanelClassName, formWrapClassName } = useAuthStyles();
       <!-- 移动端 Logo -->
       <div class="mb-8 flex items-center justify-center gap-2.5 lg:hidden">
         <div
-          class="bg-ant-primary flex h-10 w-10 items-center justify-center rounded-xl text-white"
+          class="bg-primary flex h-10 w-10 items-center justify-center rounded-xl text-white"
         >
           <img :src="logo" :alt="appTitle" class="h-6 w-6 object-contain" />
         </div>

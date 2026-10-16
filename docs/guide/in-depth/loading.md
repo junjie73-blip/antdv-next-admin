@@ -35,7 +35,7 @@
 
 ## 3. 元素级遮罩
 
-`@antdv/loading-ui` 三件套（指令在 `main.ts:8` 取 `vLoading`、`:113` 注册：`app.directive('loading', vLoading)`）：
+`@antdv/common-ui` 三件套（指令在 `main.ts:8` 取 `vLoading`、`:113` 注册：`app.directive('loading', vLoading)`）：
 
 ```vue
 <!-- 指令：配置从属性读，arg 是提示文本 -->
@@ -50,9 +50,9 @@
 <div v-loading.fullscreen="busy">…</div>
 ```
 
-- 属性映射表在 `packages/ui-kit/loading-ui/src/directive.ts:34-39`：`loading-tip / loading-theme(light|dark) / loading-size(default|small|large) / loading-background`， `binding.arg` 优先级高于 `loading-tip`。
+- 属性映射表在 `packages/core/ui-kit/common-ui/src/components/loading/directive.ts:34-39`：`loading-tip / loading-theme(light|dark) / loading-size(default|small|large) / loading-background`， `binding.arg` 优先级高于 `loading-tip`。
 - 函数式：`createLoading` / `createFullscreenLoading` / `createContainerLoading`，返回 `LoadingInstance`（`open` / `close` / `setTip` / `destroy`）。 `close` 等淡出动画后自清理，`destroy` 强制立刻移除 —— 路由守卫中断、组件卸载这类 "确定不再显示"的场景必须用后者，示例页 `views/components/loading/index.vue` 里有完整的定时器清理示范。
-- 声明式 `Loading` 组件与 `useLoading` 组合式也在同一包，props 见 `packages/ui-kit/loading-ui/src/types.ts`（`absolute` 区分容器内/全屏）。转圈的东西是 `@antdv/shadcn-ui` 的 `Spinner`，不再依赖 antdv-next 的 `Spin`。
+- 声明式 `Loading` 组件与 `useLoading` 组合式也在同一包，props 见 `packages/core/ui-kit/common-ui/src/components/loading/types.ts`（`absolute` 区分容器内/全屏）。转圈的东西是 `@antdv/shadcn-ui` 的 `Spinner`，不再依赖 antdv-next 的 `Spin`。
 
 ## 4. 组件内建与骨架屏
 

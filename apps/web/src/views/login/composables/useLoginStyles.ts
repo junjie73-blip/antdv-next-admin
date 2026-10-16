@@ -4,9 +4,11 @@ import { cn } from '@antdv/shared/utils/cn';
 
 /**
  * 登录页样式表。三条约束都是踩过坑定下来的：
- * 1. 强调色只用 `*-ant-primary`（值是 `var(--ant-color-primary)`，由
- *    `@antdv/preferences` 在偏好变化时重写到 `<html>`），写死 `blue-500` 的话
- *    设置面板换主色，登录页不动。
+ * 1. 强调色只用主色 token `*-primary`：`@theme inline` 把它接到 `--app-primary`，
+ *    预设主题由 token 文件里对应的 `[data-theme]` 色板给值，取色器选的自定义色
+ *    由偏好内联写在 `<html>` 上。写死 `blue-500` 的话设置面板换主色，登录页不动。
+ *    ⚠️ 不要再写 `*-ant-*`：那组工具类来自 antdv-next 的 Tailwind 兼容层，
+ *    本包已经不引它，写上去不是颜色不对，而是**类根本不生成**。
  * 2. 中性色必须成对写 `dark:`。明暗开关是 `html.dark` 这个 class，漏一处就出现
  *    "整站深色、登录页还是白的"。
  * 3. antd 已经从 colorPrimary / darkAlgorithm 派生出输入框边框、复选框选中色和
@@ -33,18 +35,15 @@ export function useLoginStyles() {
   );
 
   const blob1ClassName = computed(() =>
-    cn(blobClassName.value, 'bg-ant-primary/20 -top-24 -left-24 size-[380px]'),
+    cn(blobClassName.value, 'bg-primary/20 -top-24 -left-24 size-[380px]'),
   );
 
   const blob2ClassName = computed(() =>
-    cn(blobClassName.value, 'bg-ant-primary/12 top-1/2 -left-16 size-[300px]'),
+    cn(blobClassName.value, 'bg-primary/12 top-1/2 -left-16 size-[300px]'),
   );
 
   const blob3ClassName = computed(() =>
-    cn(
-      blobClassName.value,
-      'bg-ant-primary/8 -bottom-24 left-1/3 size-[320px]',
-    ),
+    cn(blobClassName.value, 'bg-primary/8 -bottom-24 left-1/3 size-[320px]'),
   );
 
   const gridClassName = computed(() =>
@@ -71,7 +70,7 @@ export function useLoginStyles() {
   const brandLogoIconClassName = computed(() =>
     cn(
       'flex size-10 items-center justify-center rounded-xl',
-      'bg-ant-primary shadow-ant-primary/30 text-white shadow-lg',
+      'bg-primary shadow-primary/30 text-white shadow-lg',
     ),
   );
 
@@ -95,7 +94,7 @@ export function useLoginStyles() {
   const featureIconClassName = computed(() =>
     cn(
       'flex size-10 shrink-0 items-center justify-center rounded-lg',
-      'bg-ant-primary/10 ring-ant-primary/20 text-ant-primary ring-1',
+      'bg-primary/10 ring-primary/20 text-primary ring-1',
       'transition-transform duration-200 group-hover:scale-110',
     ),
   );
@@ -143,8 +142,8 @@ export function useLoginStyles() {
 
   const segActiveClassName = computed(() =>
     cn(
-      'text-ant-primary bg-white shadow-sm',
-      'dark:text-ant-primary dark:bg-slate-700',
+      'text-primary bg-white shadow-sm',
+      'dark:text-primary dark:bg-slate-700',
     ),
   );
 

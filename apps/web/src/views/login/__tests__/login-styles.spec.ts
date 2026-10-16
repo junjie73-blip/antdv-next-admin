@@ -38,11 +38,28 @@ describe('登录页样式表', () => {
 
   it('强调色只走主色变量，不出现写死的蓝', () => {
     const accented = entries().filter(([, classes]) =>
-      /ant-primary|color-mix|var\(--ant/u.test(classes),
+      /-primary\b|color-mix|var\(--app/u.test(classes),
     );
     expect(accented.length, '登录页没有任何一处跟随主色').toBeGreaterThan(4);
     for (const [name, classes] of entries()) {
       expect(classes, `${name} 写死了强调色`).not.toMatch(ACCENT_LITERAL);
+    }
+  });
+
+  /**
+   * 主色只允许一条链路：`@antdv/design` 的 `--app-primary`。
+   * `*-ant-*` 那组工具类来自 antdv-next 的 Tailwind 兼容层，已经把整包请出依赖，
+   * 现在写它们不是"颜色不对"，而是**类根本不生成**（表现为主色缺失）；
+   * `var(--ant-*)` 同理 —— antd 的那份变量挂在 `.ant-app` 作用域里，
+   * portal 到 body 的浮层取不到。深色模式下两条链路的取值本来就不同，
+   * 混用就会出现"主按钮和品牌文字两种橙色"。
+   */
+  it('强调色统一在 app 主色 token 上，不引用 antd 那条链路', () => {
+    for (const [name, classes] of entries()) {
+      expect(classes, `${name} 混用了 antd 主色`).not.toMatch(/-ant-/u);
+      expect(classes, `${name} 读了 antd 作用域变量`).not.toMatch(
+        /var\(--ant/u,
+      );
     }
   });
 

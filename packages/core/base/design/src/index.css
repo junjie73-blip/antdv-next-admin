@@ -6,7 +6,8 @@
  *
  * 二级目录只有两个，按"是不是变量"分：
  * - token/ 主题令牌，内容只有 shadcn-vue 需要的 CSS 变量
- *            default.css / dark.css 是明暗两套值，index.css 把它们映射成 `--color-*`
+ *            default.css / dark.css 是明暗两套值，各自带 13 套 `[data-theme]` 预设
+ *            index.css 把它们映射成 `--color-*`
  * - css/   公共样式，按职责再分文件：
  *            base.css       文档根 / 选中态 / 视图过渡 / 通用交互类
  *            nprogress.css  顶部路由进度条
@@ -23,10 +24,9 @@
  *
  * 注意：CSS 规范只允许 @import 出现在普通规则之前，所以 token 与各 css 分部必须在这儿引完。
  */
-@layer theme, base, antd, components, utilities;
+@layer theme, base, components, utilities;
 
 @import 'tailwindcss';
-@import '@antdv-next/tailwind/compat.css';
 @import 'tw-animate-css';
 @import './token/index.css';
 @import './css/base.css';

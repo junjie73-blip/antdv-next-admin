@@ -186,7 +186,7 @@ describe('useTabStyle —— 五种风格的类名', () => {
     const { itemClass, style } = useTabStyle();
     expect(style.value).toBe('card');
     expect(itemClass(true)).toContain('rounded-md');
-    expect(itemClass(true)).toContain('bg-ant-primary');
+    expect(itemClass(true)).toContain('bg-primary');
   });
 
   it('未选中态只有文字色与底色差异，选中态用风格的 active', () => {
@@ -195,7 +195,7 @@ describe('useTabStyle —— 五种风格的类名', () => {
     expect(idle).toContain('text-gray-600');
     // line 风格未选中没有底色
     expect(idle).not.toContain('bg-gray-100');
-    expect(itemClass(true)).toContain('border-ant-primary');
+    expect(itemClass(true)).toContain('border-primary');
   });
 
   it('chrome 风格要把标签贴到行底边（bar/list 一起改对齐）', () => {

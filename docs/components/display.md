@@ -1,12 +1,12 @@
 # 数据与展示
 
-这一页覆盖六个示例路由 —— `/components/description`、`/components/count-to`、`/components/relative-time`、`/components/icon-picker`、`/components/loading`、`/components/scroll/basic`。它们各自独立，但有一根共同的线：**前两个是 `apps/web` 里的业务包装器，后四个的实现已经在共享包里 —— 图标在 `packages/icons`，加载遮罩在 `packages/ui-kit/loading-ui`，滚动条在 `packages/ui-kit/scrollbar-ui`（三者的实现都不再用 antdv-next，而是 shadcn-vue 那一层，见 `@antdv/shadcn-ui`）**。所以读这页顺手能把「什么该进共享包、什么该留在应用里」这条边界看清。
+这一页覆盖六个示例路由 —— `/components/description`、`/components/count-to`、`/components/relative-time`、`/components/icon-picker`、`/components/loading`、`/components/scroll/basic`。它们各自独立，但有一根共同的线：**前两个是 `apps/web` 里的业务包装器，后四个的实现已经在共享包里 —— 图标在 `packages/icons`，加载遮罩在 `packages/core/ui-kit/common-ui/src/components/loading`，滚动条在 `packages/core/ui-kit/common-ui/src/components/scrollbar`（三者的实现都不再用 antdv-next，而是 shadcn-vue 那一层，见 `@antdv/shadcn-ui`）**。所以读这页顺手能把「什么该进共享包、什么该留在应用里」这条边界看清。
 
 ::: warning 三条要先说的
 
 1. **`RelativeTime` 组件不存在**：`apps/web/src/components/business/` 下没有这个目录，全仓库也没有 `RelativeTime` 的 import。`/components/relative-time` 只是一个用了 `a-timeline` + **绝对时间**的页面（详见[相对时间](#相对时间-pages-components-relative-time)）。
 2. **`Description` 的 `setData()` 是空壳**，只 `console.warn`（`apps/web/src/components/business/Description/Description.vue:156-158`）。
-3. **`Loading` 的文案属性是 `tip`，不是 `description`**；`useLoading` 的 `target` 必须显式给（选择器 / 元素 / ref / getter），否则覆盖层静默不挂载，只留一句 `console.warn`（`packages/ui-kit/loading-ui/src/overlay.ts:101-105`）。:::
+3. **`Loading` 的文案属性是 `tip`，不是 `description`**；`useLoading` 的 `target` 必须显式给（选择器 / 元素 / ref / getter），否则覆盖层静默不挂载，只留一句 `console.warn`（`packages/core/ui-kit/common-ui/src/components/loading/overlay.ts:101-105`）。:::
 
 ## 这六页现在为什么都是二级菜单
 
@@ -208,7 +208,7 @@ KPI 卡、看板上的数字滚动。核心是**用 `requestAnimationFrame` 驱�
 | 预加载 | 翻页时把当前页图标喂给 `loadIcons`，50ms 防抖 | `:151-160` |
 | 弹出层 | shadcn `Popover` click 触发，`PopoverContent` 宽 560px（`w-[560px] max-w-[92vw]`），网格区固定高 360px（`SCROLLER_HEIGHT`）滚动交给 `Scrollbar` | `:232`、`:278`、`:314-320`、`:51` |
 
-::: tip 包内为什么能只用 shadcn 的标签 `IconPicker.vue` 一个 antdv-next 组件都没用：`Popover` / `Select` / `Input` / `Spinner` / `Empty` / `Tooltip` 全部从 `@antdv/shadcn-ui` **显式 import**（`:5-22`），滚动区从 `@antdv/scrollbar-ui` 显式 import（`:4`），图标本身用 `@iconify/vue` 的 `<Icon>`（`:24`）。组件解析器已经从 `internal/vite-config` 撤掉，所以包内不存在"靠宿主插件注入"的隐性依赖 —— 换宿主工程只要装上这几个 workspace 包就能跑。机制见[外部模块](/guide/essentials/external)。:::
+::: tip 包内为什么能只用 shadcn 的标签 `IconPicker.vue` 一个 antdv-next 组件都没用：`Popover` / `Select` / `Input` / `Spinner` / `Empty` / `Tooltip` 全部从 `@antdv/shadcn-ui` **显式 import**（`:5-22`），滚动区从 `@antdv/common-ui` 显式 import（`:4`），图标本身用 `@iconify/vue` 的 `<Icon>`（`:24`）。组件解析器已经从 `internal/vite-config` 撤掉，所以包内不存在"靠宿主插件注入"的隐性依赖 —— 换宿主工程只要装上这几个 workspace 包就能跑。机制见[外部模块](/guide/essentials/external)。:::
 
 ### 在线示例：`/components/icon-picker`
 
@@ -224,9 +224,9 @@ KPI 卡、看板上的数字滚动。核心是**用 `requestAnimationFrame` 驱�
 
 ## Loading 家族与滚动区域
 
-### `Loading` 组件（`@antdv/loading-ui`）
+### `Loading` 组件（`@antdv/common-ui`）
 
-全屏 / 容器内两用的遮罩，内部就是一枚 shadcn `Spinner`（`packages/ui-kit/loading-ui/src/Loading.vue:6`、`:90`）。props 见 `loading-ui/src/types.ts:16-51`，默认值见 `Loading.vue:14-19`：`loading` `false`、`tip` 无、`size` `'default'`、`absolute` `false`、`theme` `'light'`、`background` 无。
+全屏 / 容器内两用的遮罩，内部就是一枚 shadcn `Spinner`（`packages/core/ui-kit/common-ui/src/components/loading/Loading.vue:6`、`:90`）。props 见 `components/loading/types.ts:16-51`，默认值见 `Loading.vue:14-19`：`loading` `false`、`tip` 无、`size` `'default'`、`absolute` `false`、`theme` `'light'`、`background` 无。
 
 | 事项 | 真实行为 | 位置 |
 | --- | --- | --- |
@@ -241,18 +241,18 @@ KPI 卡、看板上的数字滚动。核心是**用 `requestAnimationFrame` 驱�
 
 ### `useLoading` / `createLoading` / `v-loading`
 
-三者共用同一个覆盖层实现 `createOverlay`（`packages/ui-kit/loading-ui/src/overlay.ts:60-187`），要点是**懒挂载**：`loading` 从 `false` 变 `true` 才 `createApp` 插 DOM，变回 `false` 等 `LEAVE_DURATION`（300ms，`:14`）再摘掉（`:160-167`）。
+三者共用同一个覆盖层实现 `createOverlay`（`packages/core/ui-kit/common-ui/src/components/loading/overlay.ts:60-187`），要点是**懒挂载**：`loading` 从 `false` 变 `true` 才 `createApp` 插 DOM，变回 `false` 等 `LEAVE_DURATION`（300ms，`:14`）再摘掉（`:160-167`）。
 
 | 入口 | 签名与默认 | 位置 |
 | --- | --- | --- |
-| `useLoading(options?)` | 组合式函数；`body` 默认 `true`（全屏挂 body）；容器模式**必须** `body: false` + `target`；返回 `open / close / setLoading / setTip / destroy`；在组件里调用会自动 `tryOnUnmounted(destroy)` | `loading-ui/src/useLoading.ts:30-51` |
-| `createLoading(options?)` | 任意位置可用（路由守卫、拦截器）；`{ body: true, ...rest }` —— 注意是 rest 在后，所以能显式传 `body: false`；额外支持 `onClose`，且**只有 `close()` 会触发它** | `loading-ui/src/createLoading.ts:44-61`、`:49-52` 的注释记录了早期版本 `{...rest, body: true}` 把容器模式覆盖掉的 bug |
+| `useLoading(options?)` | 组合式函数；`body` 默认 `true`（全屏挂 body）；容器模式**必须** `body: false` + `target`；返回 `open / close / setLoading / setTip / destroy`；在组件里调用会自动 `tryOnUnmounted(destroy)` | `components/loading/useLoading.ts:30-51` |
+| `createLoading(options?)` | 任意位置可用（路由守卫、拦截器）；`{ body: true, ...rest }` —— 注意是 rest 在后，所以能显式传 `body: false`；额外支持 `onClose`，且**只有 `close()` 会触发它** | `components/loading/createLoading.ts:44-61`、`:49-52` 的注释记录了早期版本 `{...rest, body: true}` 把容器模式覆盖掉的 bug |
 | `createFullscreenLoading(tip?, options?)` / `createContainerLoading(target, tip?, options?)` | 两个快捷方法，后者固定 `body: false` | `:66-74`、`:76-82` |
-| `v-loading` 指令 | 默认覆盖元素本身（`target: el`、`body: false`）；`.body` / `.fullscreen` 修饰符改成挂 body 全屏；配置走 `loading-tip` / `loading-size` / `loading-theme` / `loading-background` 属性 | `loading-ui/src/directive.ts:34-40`、`:59-67`、`:69-86` |
+| `v-loading` 指令 | 默认覆盖元素本身（`target: el`、`body: false`）；`.body` / `.fullscreen` 修饰符改成挂 body 全屏；配置走 `loading-tip` / `loading-size` / `loading-theme` / `loading-background` 属性 | `components/loading/directive.ts:34-40`、`:59-67`、`:69-86` |
 
-实例方法语义：`close()` 等淡出后自动清理 DOM，`destroy()` 强制立即清理且**不触发 `onClose`**（`loading-ui/src/types.ts:59-84` 的注释）。`setVisible(true)` 与直接写 `loading.value = true` 的差别是：状态本来就是 `true` 时，`setVisible` 仍会**重试挂载**（`overlay.ts:43-47`、`:179-184`）—— 容器模式的 `target` 晚于 `open()` 出现就靠它补救。
+实例方法语义：`close()` 等淡出后自动清理 DOM，`destroy()` 强制立即清理且**不触发 `onClose`**（`components/loading/types.ts:59-84` 的注释）。`setVisible(true)` 与直接写 `loading.value = true` 的差别是：状态本来就是 `true` 时，`setVisible` 仍会**重试挂载**（`overlay.ts:43-47`、`:179-184`）—— 容器模式的 `target` 晚于 `open()` 出现就靠它补救。
 
-::: warning 容器模式的 target 怎么才拿得到 `resolveContainer` 支持 CSS 选择器字符串 / 元素 / ref / getter，解析不出就 `console.warn('[@antdv/loading-ui] loading: target 容器不存在，覆盖层未挂载')` 然后**什么都不发生**（`overlay.ts:78-87`、`:101-105`）。示例页第 5 节把这条写成了页内注释：
+::: warning 容器模式的 target 怎么才拿得到 `resolveContainer` 支持 CSS 选择器字符串 / 元素 / ref / getter，解析不出就 `console.warn('[@antdv/common-ui] loading: target 容器不存在，覆盖层未挂载')` 然后**什么都不发生**（`overlay.ts:78-87`、`:101-105`）。示例页第 5 节把这条写成了页内注释：
 
 ```ts
 // views/components/loading/index.vue:292-301
@@ -268,7 +268,7 @@ const hookLoading = useLoading({
 });
 ```
 
-`target` 传 getter 是安全的：解析被推迟到真正要显示的那一刻（`loading-ui/src/types.ts:89-108` 的注释），所以 setup 期引用还没挂载的模板 ref 不会抛错。:::
+`target` 传 getter 是安全的：解析被推迟到真正要显示的那一刻（`components/loading/types.ts:89-108` 的注释），所以 setup 期引用还没挂载的模板 ref 不会抛错。:::
 
 ::: warning 这个家族历史上修过的三个真 bug（现在都是修好的样子）
 
@@ -276,11 +276,11 @@ const hookLoading = useLoading({
 2. **`useLoading()` 拿不到目标** —— 见上一个 warning，`useTemplateRef` 必须显式传 key（`index.vue:292-296`）。
 3. **实例创建时传快照导致 `open()` 无效** —— `createApp(Loading, { loading: loading.value })` 交出去的是当刻的值，之后写 ref 不会有视觉变化；现在改成在 `render()` 里读 ref，Vue 才能建立依赖（`overlay.ts:120-133`，注释明确写着"这是本包抽离时修掉的原始 bug"）。同类的一次：`v-loading` 的实例挂在 `WeakMap` 上并复用（`directive.ts:45`、`:70-73`），所以**元素挂上之后再改 `loading-size` / `loading-theme` / `loading-background` 属性不会被重读**，只有 `binding.arg`（`v-loading:文本=`）在 `updated` 里会被同步进 tip（`:93-99`）。顺带一句：`directive.ts:17` 的注释写「优先级 属性 > 指令参数」，与代码相反 —— `:81` 是 `tip: binding.arg ?? attributeProps.tip`，**指令参数优先**。:::
 
-::: tip 没有的东西 `@antdv/loading-ui` **没有 `delay` 属性**，也没有节流/防抖。示例页「PageLoading 与延迟遮罩」那张卡用两个真实定时器手写这个逻辑（请求快于 300ms 就取消尚未亮起的遮罩），正文里也写明了"遮罩延迟这层由调用方决定"（`index.vue:319-350`、`:969-971`）。:::
+::: tip 没有的东西 `@antdv/common-ui` **没有 `delay` 属性**，也没有节流/防抖。示例页「PageLoading 与延迟遮罩」那张卡用两个真实定时器手写这个逻辑（请求快于 300ms 就取消尚未亮起的遮罩），正文里也写明了"遮罩延迟这层由调用方决定"（`index.vue:319-350`、`:969-971`）。:::
 
 ### Scrollbar（滚动区域）
 
-自绘滚动条，替掉系统滚动条 —— 这是本仓库的硬约定（弹窗、抽屉、菜单都用它）。源码 `packages/ui-kit/scrollbar-ui/src/Scrollbar.vue`（417 行），props 类型在 `scrollbar-ui/src/types.ts:25-40`，默认值在 `Scrollbar.vue:22-41`。
+自绘滚动条，替掉系统滚动条 —— 这是本仓库的硬约定（弹窗、抽屉、菜单都用它）。源码 `packages/core/ui-kit/common-ui/src/components/scrollbar/Scrollbar.vue`（417 行），props 类型在 `components/scrollbar/types.ts:25-40`，默认值在 `Scrollbar.vue:22-41`。
 
 | prop | 默认 | 行为 / 位置 |
 | --- | --- | --- |
@@ -296,11 +296,11 @@ const hookLoading = useLoading({
 
 事件只有一个：`@scroll`，载荷 `{ scrollTop, scrollLeft }`（`:43-45`、`:127`）。实例方法：`wrap`（滚动容器元素 ref）、`update`、`setScrollTop`、`setScrollLeft`、`scrollTo`、`handleScroll`（`defineExpose` 在 `:257-264`）。`setScrollTop/Left` 会挡掉 `NaN` 与非有限值 —— 注释解释了原因：把 `NaN` 写进 `scrollTop` 会被浏览器静默当成 `0`（`:234-254`）。
 
-::: warning `max-height` 属性别随便用 `maxHeight` 传给 `useResponsiveMaxHeight` 当基准值，缺省基准是 495（`Scrollbar.vue:47-48`）；该 hook 的下限 `min` 默认 **712px**，指数 1.938，基准分辨率 1080（`packages/ui-kit/scrollbar-ui/src/useResponsiveMaxHeight.ts:42-52`）。所以在 1080 高的窗口里传 `:max-height="400"`，经过 `clamp(400, 712, ∞)` 会变成 **712px** —— 比你要的小了 312px 的效果是拿不到的。想要一个更小的固定高度，就像抽屉示例那样用类名：`root-class="h-60"`（`apps/web/src/views/components/modal-drawer/index.vue:540-543`、`:577-580`）。:::
+::: warning `max-height` 属性别随便用 `maxHeight` 传给 `useResponsiveMaxHeight` 当基准值，缺省基准是 495（`Scrollbar.vue:47-48`）；该 hook 的下限 `min` 默认 **712px**，指数 1.938，基准分辨率 1080（`packages/core/ui-kit/common-ui/src/components/scrollbar/useResponsiveMaxHeight.ts:42-52`）。所以在 1080 高的窗口里传 `:max-height="400"`，经过 `clamp(400, 712, ∞)` 会变成 **712px** —— 比你要的小了 312px 的效果是拿不到的。想要一个更小的固定高度，就像抽屉示例那样用类名：`root-class="h-60"`（`apps/web/src/views/components/modal-drawer/index.vue:540-543`、`:577-580`）。:::
 
 ::: warning 样式不依赖宿主 Tailwind `Scrollbar.vue` 的 `<style>` 块刻意没用 `@apply`，而是把工具类展开成等价原生 CSS 并写进 `@layer components`（`:316-324` 的注释说明了原因：独立 SFC 里没有 `@import 'tailwindcss'`，构建期会报 `Cannot apply unknown utility class`；写进 components 层是为了让模板上的 `flex-1 / min-h-0` 这些 utilities 仍能覆盖）。这也是它敢作为独立包被消费的前提。:::
 
-组件注册上，`Scrollbar` 一律**显式 import**：`views/components/scroll/basic/index.vue:4`、`BasicDrawer.vue:9`、`ModalWrapper.vue:4`、`TreeTable.vue:12` 等都是 `import { Scrollbar } from '@antdv/scrollbar-ui'`。`internal/vite-config` 里已经没有组件解析器，所以不可能再出现"裸写标签靠 `components.d.ts` 生成"的用法（见[外部模块](/guide/essentials/external)）。
+组件注册上，`Scrollbar` 一律**显式 import**：`views/components/scroll/basic/index.vue:4`、`BasicDrawer.vue:9`、`ModalWrapper.vue:4`、`TreeTable.vue:12` 等都是 `import { Scrollbar } from '@antdv/common-ui'`。`internal/vite-config` 里已经没有组件解析器，所以不可能再出现"裸写标签靠 `components.d.ts` 生成"的用法（见[外部模块](/guide/essentials/external)）。
 
 ### 在线示例：`/components/loading` 与 `/components/scroll/basic`
 
@@ -316,7 +316,7 @@ const hookLoading = useLoading({
 | Skeleton 骨架屏 `:846-907` | 纯 antdv-next `Skeleton` |
 | Loading 组件（项目封装）`:909-961` | 尺寸 `small/default/large` × 主题 `light/dark`，点「触发 Loading」看容器内遮罩；`tip="组件式加载中..."` 与那行 `description` 纠错注释就在 `:951-958` |
 | PageLoading 与延迟遮罩 `:963-1012` | 左：`PageLoading` 覆盖容器（它读 app store 的 `resolvedTheme` 来定明暗，`apps/web/src/components/common/Loading/PageLoading.vue:6`、`:22-24` —— 这就是"需要 store 的薄壳留在应用里"的标准例子）；右：「快请求 150ms」不闪遮罩，「慢请求 1800ms」闪 |
-| v-loading 指令 `:1014-1058` | 三块：默认浅色（`v-loading="directiveLoading"`）、深色 + 大尺寸 + `loading-tip` 属性、`v-loading.fullscreen` 整页遮罩；指令在 `apps/web/src/main.ts:113` 注册（实现在 `packages/ui-kit/loading-ui/src/directive.ts`） |
+| v-loading 指令 `:1014-1058` | 三块：默认浅色（`v-loading="directiveLoading"`）、深色 + 大尺寸 + `loading-tip` 属性、`v-loading.fullscreen` 整页遮罩；指令在 `apps/web/src/main.ts:113` 注册（实现在 `packages/core/ui-kit/common-ui/src/components/loading/directive.ts`） |
 | useLoading Hook `:1060-1103` | 「触发 useLoading」→ 容器内遮罩 2.5s；下面还贴了 `target / body / tip` 的用法片段 |
 | 按钮加载态 `:1105-1149` | antdv-next `Button` 自带 `loading`，与本项目无关 |
 | 全局加载遮罩 `:1151-1185` | 「模拟 API 请求 (全屏遮罩)」→ `createLoading` 起全屏，1.5s 时 `setTip('即将完成...')`，3s 时 `close()`（`:400-415`） |
@@ -345,9 +345,9 @@ const basicItems = Array.from({ length: 30 }, (_, i) => ({/* ... */}));
 
 | 包 | 内容 | 边界（写在 description 里） | 导出 |
 | --- | --- | --- | --- |
-| `@antdv/icons`（`packages/icons`） | `IconPicker` / `IconifyIcon` / `SvgIcon` | 只管图标：加载遮罩归 `@antdv/loading-ui`，滚动条归 `@antdv/scrollbar-ui` | `.:src/index.ts` + `./icon` 子路径 + `createIconInstaller()`（`:13-31`） |
-| `@antdv/loading-ui`（`packages/ui-kit/loading-ui`） | `Loading` + `useLoading` + `createLoading` / `createContainerLoading` / `createFullscreenLoading` + `vLoading` | 不依赖 pinia、vue-router、业务 store 或应用配置 | 单入口 barrel（`src/index.ts:1-26`） |
-| `@antdv/scrollbar-ui`（`packages/ui-kit/scrollbar-ui`） | `Scrollbar` + `Bar` | 样式随组件走，不依赖宿主 Tailwind 配置，也不依赖 store / 应用配置 | 单入口 barrel（`src/index.ts:1-10`） |
+| `@antdv/icons`（`packages/icons`） | `IconPicker` / `IconifyIcon` / `SvgIcon` | 只管图标：加载遮罩归 `@antdv/common-ui`，滚动条归 `@antdv/common-ui` | `.:src/index.ts` + `./icon` 子路径 + `createIconInstaller()`（`:13-31`） |
+| `@antdv/common-ui`（`packages/core/ui-kit/common-ui/src/components/loading`） | `Loading` + `useLoading` + `createLoading` / `createContainerLoading` / `createFullscreenLoading` + `vLoading` | 不依赖 pinia、vue-router、业务 store 或应用配置 | 单入口 barrel（`src/index.ts:1-26`） |
+| `@antdv/common-ui`（`packages/core/ui-kit/common-ui/src/components/scrollbar`） | `Scrollbar` + `Bar` | 样式随组件走，不依赖宿主 Tailwind 配置，也不依赖 store / 应用配置 | 单入口 barrel（`src/index.ts:1-10`） |
 
 三个包的 `files` 都只有 `src`、`main/types` 都指向 `./src/index.ts` —— 也就是**源码发布**，宿主 Vite 直接编译，没有 dist 构建步骤（原因见[外部模块](/guide/essentials/external)）。
 
@@ -355,8 +355,8 @@ const basicItems = Array.from({ length: 30 }, (_, i) => ({/* ... */}));
 | --- | --- |
 | 「不依赖 pinia、vue-router、业务 store 或应用配置，需要这些的薄壳留在应用里」 | 三个 `package.json` 的 description 字段（`packages/icons/package.json:4` 等） |
 | 包内组件**一律显式 import**，不靠宿主的解析器 | `IconPicker.vue:4-24`；解析器已从 `internal/vite-config/src/plugins/auto-import.ts` 撤掉 |
-| 包内**不用 auto-import 的隐式全局**：`useResponsiveMaxHeight.ts` 显式 import `toValue` / `MaybeRefOrGetter`，注释解释换工程就会 `toValue is not defined` | `packages/ui-kit/scrollbar-ui/src/useResponsiveMaxHeight.ts:1-12` |
-| 配置不进包：`native` 由调用方传，包不读 app 配置 | `packages/ui-kit/scrollbar-ui/src/Scrollbar.vue:22-41` |
+| 包内**不用 auto-import 的隐式全局**：`useResponsiveMaxHeight.ts` 显式 import `toValue` / `MaybeRefOrGetter`，注释解释换工程就会 `toValue is not defined` | `packages/core/ui-kit/common-ui/src/components/scrollbar/useResponsiveMaxHeight.ts:1-12` |
+| 配置不进包：`native` 由调用方传，包不读 app 配置 | `packages/core/ui-kit/common-ui/src/components/scrollbar/Scrollbar.vue:22-41` |
 | 样式自持，不靠宿主 Tailwind | `Scrollbar.vue:316-324` |
 | 反过来，应用侧的薄壳该读 store 就读：`PageLoading` 读 `useAppStore().resolvedTheme` | `apps/web/src/components/common/Loading/PageLoading.vue:6`、`:22-24` |
 

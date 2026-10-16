@@ -24,5 +24,4 @@ export * from './jwt';
 export * from './masking';
 export * from './scroll';
 export * from './template';
-export * from './welcome';
 export * from './xss';

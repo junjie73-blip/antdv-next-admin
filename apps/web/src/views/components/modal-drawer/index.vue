@@ -698,8 +698,8 @@ function handleDiscard() {
           <code>closeFunc</code>（<code>: () =&gt; Promise&lt;boolean&gt;</code
           >）被 await 且返回 false 时不关闭 ——
           这是组件自带的钩子，不需要自己接按钮。 拦截后弹出的确认框用
-          <code>:z-index="1100"</code> 压在抽屉（默认
-          1000）之上；点「放弃修改」会先把内容改回已保存值，关闭请求自然放行。
+          <code>:z-index="1100"</code> 压在抽屉之上（抽屉默认与
+          shadcn 浮层同处 <code>z-50</code> 一档，靠弹层的挂载顺序叠放）；点「放弃修改」会先把内容改回已保存值，关闭请求自然放行。
         </p>
         <div
           v-if="nestLog"

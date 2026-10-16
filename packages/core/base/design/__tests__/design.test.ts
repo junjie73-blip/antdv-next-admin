@@ -27,19 +27,26 @@ const a11y = read('css/a11y.css');
 const permission = read('css/permission.css');
 const scrollbar = read('css/scrollbar.css');
 
+const THEME_PARTS = [tokenEntry, tokenDefault, tokenDark];
+const CSS_PARTS = [base, nprogress, a11y, permission, scrollbar];
+const ALL_SOURCES = [index, ...THEME_PARTS, ...CSS_PARTS];
+
+/** 去掉注释后的源码：断言"不存在某类写法"时要用它，否则注释自己会命中 */
+const stripComments = (source: string) =>
+  source.replace(/\/\*[\s\S]*?\*\//gmu, '');
+
 describe('@antdv/design —— 入口', () => {
   it('第一句必须是层级顺序声明，utilities 排在最后', () => {
     // 顺序错了会出现"组件里的 components 规则盖掉模板 utilities"这类难查问题
     const layerDecl = /@layer\s+([^;]+);/u.exec(index)?.[1]?.trim();
-    expect(layerDecl).toBe('theme, base, antd, components, utilities');
+    expect(layerDecl).toBe('theme, base, components, utilities');
     expect(index.indexOf('@layer theme')).toBeLessThan(
       index.indexOf("@import 'tailwindcss'"),
     );
   });
 
-  it('tailwind 本体 + antdv-next 兼容层 + 动画库都要在入口里', () => {
+  it('tailwind 本体与动画库在入口里，插件声明排在 @import 之后', () => {
     expect(index).toContain("@import 'tailwindcss'");
-    expect(index).toContain("@import '@antdv-next/tailwind/compat.css'");
     expect(index).toContain("@import 'tw-animate-css'");
     expect(index).toContain('@plugin "@tailwindcss/typography"');
     expect(index).toContain('@plugin "@tailwindcss/nesting"');
@@ -105,21 +112,77 @@ const SHADCN_COLORS = [
   'sidebar-ring',
 ];
 
-/** 取某个选择器块里的声明体（只要第一段） */
-function blockBody(source: string, selector: string): string {
-  const start = source.indexOf(`${selector} {`);
-  expect(start).toBeGreaterThan(-1);
-  const end = source.indexOf('}', start);
-  return source.slice(start, end);
+/**
+ * 尺度 token：偏好面板写在 html 内联样式上，主题文件里只负责给首屏兜底值。
+ * 它们不进 `@theme` —— `@theme` 的命名空间全是"颜色/圆角/字号"这类工具类来源，
+ * 把 `--app-filter` 这种映成 `--color-*` 只会生成一条没人用、还会污染色板名单的工具类。
+ */
+const THEME_SCALARS = ['border-radius', 'filter', 'font-size', 'sidebar-width'];
+
+type Block = {
+  selectors: string[];
+  vars: Map<string, string>;
+};
+
+/**
+ * 把主题文件拆成"选择器 + 声明"的块。
+ *
+ * 不能按 `:root {` 这种字符串找块：现在每个主题都是**选择器列表**
+ * （`:root, .light, .light[data-theme='custom'], ...`），字符串对照只会一路误报。
+ */
+function parseBlocks(source: string): Block[] {
+  return [...stripComments(source).matchAll(/([^{}]+)\{([^{}]*)\}/gmu)].map(
+    (match) => ({
+      selectors: match[1]!
+        .split(',')
+        .map((selector) => selector.trim())
+        .filter(Boolean),
+      vars: new Map(
+        [...match[2]!.matchAll(/--app-([a-z-]+):\s*([^;]*)/gmu)].map((decl) => [
+          decl[1]!,
+          decl[2]!.trim(),
+        ]),
+      ),
+    }),
+  );
 }
 
-/** 主题文件里声明过的 shadcn 语义色名（`--app-x` 的 x），用于两套主题对名单 */
+/** 基础主题块：亮色带 `:root`，暗色带裸 `.dark` */
+function baseBlock(source: string): Block {
+  const block = parseBlocks(source).find(
+    ({ selectors }) =>
+      selectors.includes(':root') || selectors.includes('.dark'),
+  );
+  expect(block, '主题文件必须有一个裸基础块（:root 或 .dark）').toBeDefined();
+  return block!;
+}
+
+/** `[data-theme='x']` 预设块，按主题名索引；custom/default 属于基础块，不算预设 */
+function presetBlocks(source: string): Map<string, Block> {
+  const presets = new Map<string, Block>();
+  for (const block of parseBlocks(source)) {
+    const names = new Set(
+      block.selectors.map(
+        (selector) => /data-theme='([^']+)'/u.exec(selector)?.[1],
+      ),
+    );
+    // 基础块自己也带 [data-theme='custom'|'default']，用来抵消残留的预设标记
+    if (names.size === 1 && [...names][0] === undefined) continue;
+    const name = [...names].find((x) => x && x !== 'custom' && x !== 'default');
+    if (name) presets.set(name, block);
+  }
+  return presets;
+}
+
+/** 主题文件里出现过的全部语义色名（含只在预设里出现的），用于两套主题对名单 */
 function appColorNames(source: string): string[] {
-  return [
-    ...new Set(
-      [...source.matchAll(/--app-([a-z-]+):/gmu)].map((match) => match[1]),
-    ),
-  ].sort();
+  const names = new Set<string>();
+  for (const { vars } of parseBlocks(source)) {
+    for (const name of vars.keys()) {
+      if (!THEME_SCALARS.includes(name)) names.add(name);
+    }
+  }
+  return [...names].sort();
 }
 
 describe('@antdv/design —— shadcn 色板', () => {
@@ -129,7 +192,7 @@ describe('@antdv/design —— shadcn 色板', () => {
     }
   });
 
-  it('变量与映射一一对应：加了三套侧栏变量却忘了 @theme，工具类照样不生成', () => {
+  it('变量与映射一一对应：加了预设色却忘了 @theme，工具类照样不生成', () => {
     const mapped = [
       ...new Set(
         [
@@ -138,13 +201,101 @@ describe('@antdv/design —— shadcn 色板', () => {
       ),
     ].sort();
     expect(mapped).toEqual(appColorNames(tokenDefault));
+    expect(mapped).toEqual(appColorNames(tokenDark));
   });
 
   it('亮暗两套的名单逐条对齐：缺一条暗色声明，切到深色就是白底黑字浮层', () => {
     expect(appColorNames(tokenDark)).toEqual(appColorNames(tokenDefault));
     for (const name of SHADCN_COLORS) {
-      expect(blockBody(tokenDefault, ':root')).toContain(`--app-${name}:`);
-      expect(blockBody(tokenDark, '.dark')).toContain(`--app-${name}:`);
+      expect(baseBlock(tokenDefault).vars.has(name), `亮色缺 ${name}`).toBe(
+        true,
+      );
+      expect(baseBlock(tokenDark).vars.has(name), `暗色缺 ${name}`).toBe(true);
+    }
+  });
+
+  /**
+   * 用户要的是"每个主题的 token 都不一样"，而漂移的最初形态永远是
+   * 新增预设时漏掉几条 —— 漏掉的那条不会报错，它会继续吃 `:root` 的亮色值，
+   * 于是暗色预设上浮出一块白底。所以这里要的是**完整名单**，不是"有差异"。
+   */
+  it('每套预设都写满名单，缺一条就会被基础主题的颜色顶穿', () => {
+    for (const [file, source] of [
+      ['default.css', tokenDefault],
+      ['dark.css', tokenDark],
+    ]) {
+      const presets = presetBlocks(source);
+      expect(presets.size, `${file} 的预设数量`).toBe(13);
+      for (const [name, block] of presets) {
+        for (const color of SHADCN_COLORS) {
+          expect(
+            block.vars.has(color),
+            `${file} 的 ${name} 预设缺 --app-${color}`,
+          ).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('预设主题名两套一致：亮色有 violet 暗色没有，切深色就掉回默认蓝', () => {
+    expect([...presetBlocks(tokenDark).keys()].sort()).toEqual(
+      [...presetBlocks(tokenDefault).keys()].sort(),
+    );
+  });
+
+  it('每套预设的取值互不相同：两套预设长得一样，等于用户点了没反应', () => {
+    for (const [file, source] of [
+      ['default.css', tokenDefault],
+      ['dark.css', tokenDark],
+    ]) {
+      const signatures = new Map<string, string>();
+      for (const [name, block] of presetBlocks(source)) {
+        const signature = SHADCN_COLORS.map((color) => block.vars.get(color)).join(
+          '|',
+        );
+        const previous = signatures.get(signature);
+        expect(
+          previous,
+          `${file} 的 ${name} 与 ${previous ?? ''} 取值完全相同`,
+        ).toBeUndefined();
+        signatures.set(signature, name);
+      }
+    }
+  });
+
+  /**
+   * "每个主题的 token 都不一样"在明暗之间同样成立：换到深色不是只换个主色，
+   * 而是整块画布（底、卡片、浮层、正文、主色）一起重算。
+   * `primary-foreground` 这类"色块上的一颗白字"两套相同是对的，所以只比画布五色。
+   */
+  it('同一预设的明暗取值必须真的换了：抄一遍亮色值就是深色模式白底', () => {
+    const light = presetBlocks(tokenDefault);
+    const dark = presetBlocks(tokenDark);
+    const canvas = [
+      'background',
+      'card',
+      'popover',
+      'foreground',
+      'primary',
+      'border',
+    ];
+    for (const [name, lightBlock] of light) {
+      const darkBlock = dark.get(name)!;
+      for (const color of canvas) {
+        expect(
+          darkBlock.vars.get(color),
+          `${name} 预设的 --app-${color} 明暗同值，深色模式没换画布`,
+        ).not.toBe(lightBlock.vars.get(color));
+      }
+    }
+  });
+
+  it('尺度 token 两套基础主题各自完整：偏好落盘前的一帧也有兜底值', () => {
+    for (const name of THEME_SCALARS) {
+      expect(baseBlock(tokenDefault).vars.has(name)).toBe(true);
+      expect(baseBlock(tokenDark).vars.has(name)).toBe(true);
+      // 不进 @theme：色板名单里混进非颜色 token，工具类就会生成一堆没用的东西
+      expect(tokenEntry).not.toContain(`--app-${name})`);
     }
   });
 
@@ -154,7 +305,7 @@ describe('@antdv/design —— shadcn 色板', () => {
       ['dark.css', tokenDark],
       ['index.css', tokenEntry],
     ]) {
-      const body = source.replace(/\/\*[\s\S]*?\*\//gmu, '');
+      const body = stripComments(source);
       const offenders = body
         .split('\n')
         .filter((line) => /^\s+\S.*;$/.test(line))
@@ -164,27 +315,83 @@ describe('@antdv/design —— shadcn 色板', () => {
     }
   });
 
-  it('主色读偏好写到 html 上的变量，并留兜底值', () => {
-    // 偏好面板改的是 `--ant-color-primary`（见 @antdv/preferences/css-vars），
-    // 钉死值就会出现"换了主题色、弹层还是蓝的"
-    for (const source of [tokenDefault, tokenDark]) {
-      expect(source).toContain(
-        '--app-primary: var(--ant-color-primary, #1677ff);',
-      );
-      expect(source).toContain(
-        '--app-ring: var(--ant-color-primary, #1677ff);',
-      );
+  /**
+   * 偏好面板只往 html 内联写一条 `--app-primary`（见 @antdv/utils 的 css-vars）。
+   * 派生色写成 `var(--app-*)`，自定义主色才会连带染到 ring 与整条侧栏；
+   * 反过来，如果这里钉死 hex，"换了主题色、弹层还是蓝的"就又回来了。
+   */
+  it('主色与它的派生族：一条 var(--app-primary) 串起 ring 和侧栏', () => {
+    for (const [file, source] of [
+      ['default.css', tokenDefault],
+      ['dark.css', tokenDark],
+    ]) {
+      const { vars } = baseBlock(source);
+      // 基础值是自洽实色，不读组件库变量
+      expect(vars.get('primary')).toMatch(/^#/u);
+      for (const derived of ['ring', 'sidebar-primary', 'sidebar-ring']) {
+        expect(vars.get(derived), `${file} 的 ${derived}`).toBe(
+          'var(--app-primary)',
+        );
+      }
+      expect(vars.get('sidebar-foreground')).toBe('var(--app-foreground)');
+      expect(vars.get('sidebar-border')).toBe('var(--app-border)');
     }
   });
 
-  it('必须写 @theme inline，否则 .dark 覆盖不生效', () => {
-    // 非 inline 形式在 :root 求值一次就冻结了，暗色切换只动 class 不动颜色
+  it('必须写 @theme inline，否则 .dark / [data-theme] 的覆盖不生效', () => {
+    // 非 inline 形式在 :root 求值一次就冻结了，换主题只动标记不动颜色
     expect(tokenEntry).toContain('@theme inline');
   });
 
+  /**
+   * 写侧在 `@antdv/shared` 的 `THEME_PRESETS`（偏好面板的色块、`<html data-theme>` 的档位名），
+   * 读侧在本包两个 token 文件的 `[data-theme='x']` 块。名字对不上不报错，
+   * 只会让那一档静默退回基础主题 —— 所以两边名单要在这里对一次。
+   *
+   * 直接读源码而不是 import：本包是样式包，不该为了测试背上 workspace 依赖。
+   */
+  it('预设名单与 @antdv/shared 的 THEME_PRESETS 完全一致', () => {
+    const presetsSource = readFileSync(
+      fileURLToPath(
+        new URL('../../shared/src/constants/theme-presets.ts', import.meta.url),
+      ),
+      'utf8',
+    );
+    const registered = [
+      ...presetsSource.matchAll(/key: ([A-Z_]+|'[^']+')/gmu),
+    ].map((match) => match[1]!.replaceAll(/['"]/gmu, ''));
+    const presetKeys = [...presetBlocks(tokenDefault).keys()];
+
+    expect(registered).toContain('DEFAULT_THEME_KEY');
+    // custom 档不进预设名单，但它必须真的存在：取色器选的颜色全靠它接住
+    expect(presetsSource).toContain("CUSTOM_THEME_KEY = 'custom'");
+    for (const source of [tokenDefault, tokenDark]) {
+      expect(source).toContain("[data-theme='custom']");
+    }
+    // custom / default 由基础主题块承接，顺序各自自由，只比集合
+    expect([...presetKeys].sort()).toEqual(
+      registered
+        .filter((key) => key !== 'DEFAULT_THEME_KEY')
+        .sort(),
+    );
+  });
+
+  /**
+   * 本包是设计规范本身：值一旦去读 `--ant-*`，"主题"就变成 antd 主题算法的副产品，
+   * 明暗两套预设也就没法各自成立（antd 的作用域类还在 `.ant-app` 里，
+   * 而弹层 portal 到 body，取不到变量只剩透明底）。
+   */
+  it('全包不引用 antd 变量与兼容层：token 是本包的单一事实来源', () => {
+    const joined = stripComments(ALL_SOURCES.join('\n'));
+    expect(joined).not.toMatch(/--ant-/u);
+    expect(joined).not.toMatch(/@antdv-next\//u);
+    // `-ant-primary` 这类工具类的生成源已被删掉，写它们等于静默丢样式
+    expect(joined).not.toMatch(/-ant-[a-z]/u);
+  });
+
   it('值不依赖 antd 作用域变量（浮层 portal 在 .ant-app 之外）', () => {
-    expect(blockBody(tokenDefault, ':root')).not.toMatch(
-      /var\(--ant-color-(?:text|bg-[a-z]+)\b/u,
+    expect([...baseBlock(tokenDefault).vars.values()].join()).not.toMatch(
+      /--ant-/u,
     );
   });
 });
@@ -209,6 +416,15 @@ describe('@antdv/design —— 分部职责', () => {
     );
     // perfect-scrollbar 已经下线，别再留它的死规则
     expect(base).not.toContain('.ps__');
+    //
+    // Tailwind v4 去掉了 v3 的 `borderColor.DEFAULT = gray.200`，preflight 只剩
+    // 不带颜色的 `border: 0 solid`，于是只写 `border` 不写颜色的盒子边框算成
+    // `currentColor`（亮色下就是 88% 黑）。兜底必须待在 base 层里 ——
+    // 写在层级之外会把 `border-gray-700` 这类工具类的颜色一并压掉。
+    expect(base).toMatch(/@layer base\s*\{/u);
+    expect(base).toMatch(/::before\s*\{\s*@apply border-border;/u);
+    // 选中态走本包主色，不再蹭 antd 命名空间
+    expect(base).toMatch(/::selection\s*\{\s*@apply bg-primary/u);
   });
 
   it('光标：能点的盒子一律 pointer，禁用的给 not-allowed（浏览器不会自己给 button 指针）', () => {
@@ -244,9 +460,9 @@ describe('@antdv/design —— 分部职责', () => {
     expect(base).not.toContain('::-webkit-scrollbar');
   });
 
-  it('nprogress：进度条配色读 antd 主色变量，不写死蓝色', () => {
+  it('nprogress：进度条配色读本包主色 token，不写死蓝色', () => {
     expect(nprogress).toContain('#nprogress .bar');
-    expect(nprogress).toContain('var(--ant-primary-color, #1677ff)');
+    expect(nprogress).toContain('var(--app-primary, #1677ff)');
     expect(nprogress).toMatch(
       /@apply fixed top-0 left-0 z-\[9999\] h-\[3px\] w-full/u,
     );
@@ -271,26 +487,14 @@ describe('@antdv/design —— 分部职责', () => {
 
 describe('@antdv/design —— 包边界', () => {
   it('不 @import 组件包，避免 CSS 与组件互相牵动（注释里提到不算依赖）', () => {
-    const imports = [
-      index,
-      tokenEntry,
-      tokenDefault,
-      tokenDark,
-      base,
-      nprogress,
-      a11y,
-      permission,
-      scrollbar,
-    ]
-      .join('\n')
+    const imports = ALL_SOURCES.join('\n')
       .split('\n')
       .filter((line) => line.trimStart().startsWith('@import'));
     expect(imports.join('\n')).not.toContain('@antdv/icons');
     expect(imports.join('\n')).not.toContain('@antdv/layouts');
-    // 外部只允许这三个 npm 包进入样式入口
+    // 外部只允许这两个 npm 包进入样式入口：Tailwind 本体与动画库
     expect(imports).toEqual([
       "@import 'tailwindcss';",
-      "@import '@antdv-next/tailwind/compat.css';",
       "@import 'tw-animate-css';",
       "@import './token/index.css';",
       "@import './css/base.css';",
@@ -301,6 +505,11 @@ describe('@antdv/design —— 包边界', () => {
       "@import './default.css';",
       "@import './dark.css';",
     ]);
+  });
+
+  it('package.json 不声明组件库依赖：设计规范不建立在某个库的主题算法上', () => {
+    const pkg = JSON.parse(read('../package.json'));
+    expect(Object.keys(pkg.dependencies)).not.toContain('@antdv-next/tailwind');
   });
 
   it('二级目录只有 token 与 css：token 装变量，css 装规则', () => {

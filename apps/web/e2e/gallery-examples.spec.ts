@@ -189,7 +189,7 @@ function antModal(page: Page, title: string) {
     .filter({ has: page.getByText(title, { exact: true }) });
 }
 
-/** 按标题取那一个抽屉（`.basic-drawer` 是 SheetContent 上的稳定类） */
+/** 按标题取那一个抽屉（`.basic-drawer` 是 DrawerContent 上的稳定类） */
 function antDrawer(page: Page, title: string) {
   return page
     .locator('.basic-drawer')
@@ -218,7 +218,8 @@ function resultBox(scope: Locator) {
 /**
  * 抽屉贴在哪一边。
  *
- * Sheet 不再挂方位类（方位只体现为 `inset-*` 工具类），所以直接量面板与视口的关系：
+ * 方位在 DOM 上只有 `data-swipe-direction`（值还是 up/down，不是 placement 的 top/bottom），
+ * 落位靠对应的 `inset-*` 工具类，所以这里直接量面板与视口的关系：
  * 左右是通高（`inset-y-0`），上下是通宽。
  * `boundingBox()` 给的是 `{x, y, width, height}`，下沿要自己算 `y + height`。
  *
@@ -256,6 +257,53 @@ async function drawerSide(page: Page, panel: Locator) {
   return Math.abs(box.y + box.height - viewport.height) < Math.abs(box.y)
     ? 'bottom'
     : 'top';
+}
+
+/**
+ * 按住头部把面板往它的 swipe 方向拖出去 —— Drawer 比 Sheet 多出来的那条关闭路径。
+ *
+ * 起手点必须落在**非交互区**：`useSwipeDismiss` 看到手势起点在
+ * `button / a / input / select / textarea / label / [role=button]` 上就放弃这次拖拽，
+ * 所以头部标题那段 `span` 是唯一稳定的落点（右侧是关闭按钮，正文全是单选行）。
+ * 左右方位从面板自己的 x 往视口内一侧起步，免得把指针拖出屏幕。
+ *
+ * 松手前必须**慢**：`useSwipeDismiss` 除了看位移是否过 40px 阈值，还会看释放速度
+ * （每 80ms 内采样一次，方向速度 > 0.3px/ms 也算甩出）。一次 `steps: 6` 的快速拖拽
+ * 哪怕只拖 20px 也会被速度判成关闭，所以这里拆成几段离散移动 + 每段之间等 40ms，
+ * 松手前再停 200ms 让最后一次采样过期 —— 结论就只由位移是否过阈值决定。
+ */
+async function dragPanelOut(
+  page: Page,
+  panel: Locator,
+  distance: number,
+  fromTitleX = 80,
+) {
+  const box = await panel.evaluate(async (el) => {
+    // 先等入场动画收干净再量：途中读到的包围盒还在屏幕外（实测左侧抽屉 x=-263），
+    // 起点落在 overlay 上就变成"点蒙层关闭"，拖拽压根不会开始。
+    await Promise.allSettled(
+      (el as HTMLElement).getAnimations().map((anim) => anim.finished),
+    );
+    return (el as HTMLElement).getBoundingClientRect().toJSON();
+  });
+  const direction = await panel.getAttribute('data-swipe-direction');
+  const horizontal = direction === 'left' || direction === 'right';
+  const sign = direction === 'left' || direction === 'up' ? -1 : 1;
+  const startX = box.x + fromTitleX;
+  const startY = box.y + 20;
+  await page.mouse.move(startX, startY);
+  await page.mouse.down();
+  const steps = 4;
+  const per = distance / steps;
+  for (let step = 1; step <= steps; step += 1) {
+    await page.mouse.move(
+      startX + (horizontal ? sign * per * step : 0),
+      startY + (horizontal ? 0 : sign * per * step),
+    );
+    await page.waitForTimeout(40);
+  }
+  await page.waitForTimeout(200);
+  await page.mouse.up();
 }
 
 /**
@@ -1135,6 +1183,44 @@ test.describe('弹窗与抽屉页', () => {
     errors.stop();
   });
 
+  /**
+   * Drawer 的原生手势：拖过阈值就关，没拖到或 `closeFunc` 拦着都弹回原位。
+   * 这条路径只走 `update:open(false, { reason: 'swipe' })`，
+   * 所以它既不该绕过 `closeFunc`，也不该把面板留在屏幕外。
+   */
+  test('拖头部甩出抽屉：没到阈值弹回，closeFunc 照样拦得住', async ({
+    page,
+  }) => {
+    const errors = await open(page, MODAL_DRAWER);
+    const box = cardByTitle(page, '抽屉基础与位置');
+
+    await box.getByRole('button', { name: /左侧抽屉/ }).click();
+    const left = antDrawer(page, '左侧抽屉 · 布局密度');
+    await expect(left).toBeVisible();
+
+    // 20px < 40px 阈值 → 不算关闭请求
+    await dragPanelOut(page, left, 20);
+    await expect(left, '没到阈值不该关').toBeVisible();
+    expect(await drawerSide(page, left), '弹回后仍贴左边').toBe('left');
+
+    // 70px > 阈值 → 甩出，走的是和 X 按钮同一条关闭链
+    await dragPanelOut(page, left, 70);
+    await expect(left).toBeHidden();
+
+    // 脏草稿 + 甩出：先 cancel() 把面板拉回来，关不关交给 closeFunc
+    const nest = cardByTitle(page, '嵌套与关闭拦截');
+    await nest.getByRole('button', { name: '打开可编辑抽屉' }).click();
+    const draft = antDrawer(page, '草稿编辑（关闭前会过 closeFunc）');
+    await draft.locator('textarea').fill('拖一下试试');
+    await expect(nest.getByText('有未保存修改')).toBeVisible();
+    await dragPanelOut(page, draft, 70);
+    await expect(draft, 'closeFunc 要拦得住甩出').toBeVisible();
+    await expect(nest.getByText('拦截 1 次')).toBeVisible();
+
+    expect(errors.errors).toEqual([]);
+    errors.stop();
+  });
+
   test('closeFunc：草稿脏时底部、X、蒙层三条路都被拦下，放弃修改后放行', async ({
     page,
   }) => {
@@ -1173,7 +1259,7 @@ test.describe('弹窗与抽屉页', () => {
     await expect(drawer).toBeVisible();
     await expect(confirm).toBeVisible();
     await cjkButton(confirm, '留在页面').click();
-    await page.locator('[data-slot="sheet-overlay"]').last().click();
+    await page.locator('[data-slot="drawer-overlay"]').last().click();
     await expect(drawer).toBeVisible();
     await expect(confirm).toBeVisible();
     await expect(box.getByText('拦截 3 次')).toBeVisible();

@@ -34,7 +34,7 @@ import { useWebSocket } from '@antdv/composables/websocket';
 | `cache` | `cache` (`src/cache/index.ts:196`), `createCache` (`:60`), `buildStorageKey` (`:40`), `encryptToken` / `decryptToken` (`src/cache/tokenCrypto.ts:77,106`) | `stores/modules/user.ts:5` | yes |
 | `cn` | `cn()` (`src/utils/cn.ts:6`) | 460 files repo-wide, e.g. `packages/ui-kit/layout-ui/src/components/LayoutBreadcrumb.vue:14` | yes |
 | `color` | `parseColor` (`src/color/convert.ts:23`), `toRgbString` / `toHex` (`:45,50`), `mixWithWhite` (`:60`) | `layouts/components/SettingDrawer/components/AppearancePanel.vue:22`, `LayoutPanel.vue:32` | yes |
-| `constants` | `PREFERENCE_CSS_VARS` (`src/constants/css-vars.ts:24`), `DARK_CLASS` / `COLOR_WEAK_CLASS` / `GRAY_MODE_CLASS` (`src/constants/dom-classes.ts:10,12,14`), `DEFAULT_PRIMARY_COLOR` (`src/constants/theme.ts:9`) | `packages/core/preferences/src/css-vars.ts:3`, `src/defaults.ts:3` | yes |
+| `constants` | `PREFERENCE_CSS_VARS` (`src/constants/css-vars.ts:36`), `DARK_CLASS` / `COLOR_WEAK_CLASS` / `GRAY_MODE_CLASS` (`src/constants/dom-classes.ts:10,12,14`), `DEFAULT_PRIMARY_COLOR` / `BORDER_RADIUS_BASE` (`src/constants/theme.ts:9,13`), `THEME_PRESETS` / `themeKeyByColor` (`src/constants/theme-presets.ts:26,63`) | `packages/utils/src/css-vars.ts:3` (the writer), `packages/core/preferences/src/defaults.ts:3` | yes |
 | `crypto` | `encrypt` / `decrypt` / `encryptObject` / `decryptObject` (`src/utils/crypto/aes.ts:14,19,24,31`), `md5` / `md5File` / `sha256` / `hash` (`src/utils/crypto/hash.ts:3,7,32,40`) | **no call sites** | no |
 | `csrf` | `config` (`src/utils/csrf.ts:67`), `initCsrfProtection` (`:111`), `getCsrfToken` (`:164`) | `packages/request/src/fetcher.ts:4-8`, `utils/securityInit.ts:9` | yes |
 | `dayjs` | `dayjs` (`src/utils/dayjs.ts:136`), `setTimezone` (`:62`), `nowTz` (`:116`) | `stores/modules/app.ts:7,130`, `layouts/widgets/WidgetTimezone.vue:8`, `composables/web/useLocale.ts:4` | yes |
@@ -102,7 +102,7 @@ When a package needs application state it receives it through dependency injecti
 
 | Capability needed | What the package accepts | Where the app injects it |
 | --- | --- | --- |
-| Storage / prefix / key | `createPreferences({ cache, cacheKey, expire })` (`packages/preferences/src/store.ts:26-31`) | The default instance follows `configureSharedEnv` (`apps/web/src/bootstrap/env.ts`) |
+| Storage / prefix / key | `createPreferences({ cache, cacheKey, expire })` (`packages/core/preferences/src/store.ts:26-31`) | The default instance follows `configureSharedEnv` (`apps/web/src/bootstrap/env.ts`) |
 | Environment info | `configureSharedEnv({ cachePrefix, cacheEncryptKey, minioPublicUrl, production })` (`packages/shared/src/utils/env.ts:32-42`) | `apps/web/src/bootstrap/env.ts:2-7` |
 | Permission checks | `createPermissionDirective({ checkers, onCheck, subscribe })` | `apps/web/src/directives/index.ts:19` |
 | Chunk processing | `useChunkUpload({ createWorker, workerUrl })` (`packages/composables/src/useChunkUpload.ts:35-37`) | The app supplies `upload.worker` |

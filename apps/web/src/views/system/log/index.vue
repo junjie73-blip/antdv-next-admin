@@ -6,7 +6,7 @@ import type { BasicColumn } from '@antdv/table-ui';
 import { ref } from 'vue';
 
 import { cn } from '@antdv/shared/utils/cn';
-import { exportToExcel } from '@antdv/shared/utils/excel';
+import { exportToExcel } from '~/utils/excel';
 import { Icon } from '@iconify/vue';
 import { Divider, Popconfirm, Tag } from '@antdv/common-ui';
 import { deleteOperLog, getOperLogList } from '~/api/system';
@@ -73,7 +73,7 @@ const tabClassName = (active: boolean) =>
   cn(
     'cursor-pointer border-x-0 border-t-0 border-b-2 bg-transparent px-5 py-3 font-[inherit] text-sm font-medium transition-colors duration-150',
     active
-      ? 'border-ant-primary text-ant-primary'
+      ? 'border-primary text-primary'
       : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
   );
 
@@ -686,14 +686,14 @@ const loginColumns: BasicColumn[] = [
           </div>
           <div class="relative pb-6">
             <div
-              class="border-ant-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
+              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
             ></div>
             <div class="mb-1 text-xs text-gray-400">操作模块</div>
             <div class="text-sm">{{ viewingRecord.title }}</div>
           </div>
           <div class="relative pb-6">
             <div
-              class="border-ant-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
+              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
             ></div>
             <div class="mb-1 text-xs text-gray-400">操作类型</div>
             <div class="text-sm">
@@ -706,18 +706,18 @@ const loginColumns: BasicColumn[] = [
           </div>
           <div class="relative pb-6">
             <div
-              class="border-ant-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
+              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
             ></div>
             <div class="mb-1 text-xs text-gray-400">操作人员</div>
             <div class="text-sm">
-              <span class="text-ant-primary font-medium">{{
+              <span class="text-primary font-medium">{{
                 viewingRecord.operName
               }}</span>
             </div>
           </div>
           <div class="relative pb-6">
             <div
-              class="border-ant-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
+              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
             ></div>
             <div class="mb-1 text-xs text-gray-400">请求URL</div>
             <div class="text-sm">
@@ -728,7 +728,7 @@ const loginColumns: BasicColumn[] = [
           </div>
           <div class="relative pb-6">
             <div
-              class="border-ant-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
+              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
             ></div>
             <div class="mb-1 text-xs text-gray-400">IP地址</div>
             <div class="text-sm">
@@ -755,7 +755,7 @@ const loginColumns: BasicColumn[] = [
           </div>
           <div class="relative">
             <div
-              class="border-ant-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
+              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
             ></div>
             <div class="mb-1 text-xs text-gray-400">耗时</div>
             <div class="text-sm">{{ viewingRecord.costTime }}ms</div>

@@ -392,7 +392,7 @@ const hasPaused = computed(() =>
             <button
               v-if="task.status === 'waiting'"
               type="button"
-              class="text-ant-primary rounded p-1 hover:bg-blue-50 dark:hover:bg-blue-950"
+              class="text-primary rounded p-1 hover:bg-blue-50 dark:hover:bg-blue-950"
               title="开始"
               @click="handleStartOne(task.uid)"
             >
@@ -413,7 +413,7 @@ const hasPaused = computed(() =>
             <button
               v-if="task.status === 'paused'"
               type="button"
-              class="text-ant-primary rounded p-1 hover:bg-blue-50 dark:hover:bg-blue-950"
+              class="text-primary rounded p-1 hover:bg-blue-50 dark:hover:bg-blue-950"
               title="继续"
               @click="handleResume(task.uid)"
             >
@@ -474,7 +474,7 @@ const hasPaused = computed(() =>
               :href="task.result.url"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-ant-primary hover:text-blue-600 dark:text-blue-400"
+              class="text-primary hover:text-blue-600 dark:text-blue-400"
             >
               查看文件
             </a>
@@ -542,7 +542,7 @@ const hasPaused = computed(() =>
             :href="task.result.url"
             target="_blank"
             rel="noopener noreferrer"
-            class="text-ant-primary hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+            class="text-primary hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
           >
             查看文件
           </a>

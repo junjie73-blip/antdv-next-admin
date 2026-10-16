@@ -158,35 +158,58 @@ function handleVisibleChange(visible: boolean) {
 
 ## BasicDrawer 的 API
 
-默认值来自 `Drawer/BasicDrawer.vue:12-26`。与 `BasicModal` 同名的 props（`title`/`showFooter`/`showCancelBtn`/`showOkBtn`/`cancelText`/`okText`/`okType`/`okButtonProps`/`cancelButtonProps`/`closable`/`maskClosable`/`keyboard`/`mask`/`maskStyle`/`bodyStyle`/`wrapClassName`/`zIndex`/`destroyOnHidden`/`loading`/`loadingTip`/`closeFunc`）作用一致，位置换成 `:184-302` 区间，这里只写**差异**。
+`BasicDrawer` 是 shadcn-vue 的 **Drawer 原语**（reka-ui 的 `DrawerRoot` / `DrawerContent` / `DrawerTitle` / `DrawerDescription`）之上的一层壳，默认值来自 `Drawer/BasicDrawer.vue:23-37`。与 `BasicModal` 同名的 props（`title`/`showFooter`/`showCancelBtn`/`showOkBtn`/`cancelText`/`okText`/`okType`/`okButtonProps`/`cancelButtonProps`/`closable`/`maskClosable`/`keyboard`/`mask`/`bodyStyle`/`wrapClassName`/`zIndex`/`destroyOnHidden`/`loading`/`loadingTip`/`closeFunc`）作用一致，这里只写**差异**。
 
 | prop | 默认 | 差异点 |
 | --- | --- | --- |
-| `placement` | `'right'` | 决定 `size` 取宽度还是高度（`:48-64`） |
-| `size` | 无 | 推荐用法；左右缺省 `520`，上下缺省 `400`（`:54`、`:61`） |
-| `width` | 无 | `placement` 为 left/right 时作为 `size` 的备选（`:50`） |
-| `height` | 无 | `placement` 为 top/bottom 时作为 `size` 的备选（`:57`） |
-| `useWrapper` | `true` | 抽屉里**只决定 body 加不加 `p-4`**（`:71-76`），没有高度逻辑 |
-| `open` | 无 | 读的仍是 `props.open`（`:43,146-152`） |
+| `placement` | `'right'` | 决定 `size` 取宽还是高（`:61-78`），并换成原语的 `swipe-direction`（`:84-103`，`top/bottom` → `up/down`） |
+| `size` | 无 | 推荐用法；左右缺省 `520`，上下缺省 `400`（`:66`、`:68`、`:73`、`:75`） |
+| `width` | 无 | 只在 left/right 下作为 `size` 的备选（`:64`） |
+| `height` | 无 | 只在 top/bottom 下作为 `size` 的备选（`:71`） |
+| `useWrapper` | `true` | 抽屉里**只决定 body 加不加 `p-4`**（`:340-345`），没有高度逻辑 |
+| `mask` | `true` | 关掉就不渲染蒙层，并把原语的 `modal` 从 `'trap-focus'` 降到 `false`（`:112-114`） |
+| `bodyScroll` | `true` | 内容区交给内置 `ScrollArea`；调用方自己管滚动时关掉（`:378-381`，注释见 `types.ts:49-55`） |
+| `open` / `visible` | 无 | 两个都读（`:53`、`:201-207`），`v-model:open` 与 `v-model:visible` 双向都通（emit 见 `:39-46`、`:139-144`） |
 
-::: warning 抽屉的 v-model 方向是断的 `BasicDrawer` 读 `props.open`（`:43`、`:146-152`），但 emit 的是 `update:visible`（`:33,99,111`）。`DrawerProps` 里也只声明了 `open`（`types.ts:14-15`）。于是：`v-model:visible` 绑不上（没有 `visible` 这个 prop，它会掉进 attrs）；`v-model:open` 只能进不能出（没有 `update:open`）。**可靠用法只有两种**：`@register` 配 `useDrawer()` 的命令式句柄，或者 `:open="x"` 自己接 `@update:visible` 写回。示例页全部走前者。:::
+`zIndex` 只在显式传入时才写进面板的内联 style（`:116-122`）；不传就跟页面里其他 `z-50` 浮层一样按挂载顺序叠——这是抽屉之上还能压确认弹窗的原因（示例页第 5 节用 `:z-index="1100"`）。`drawerStyle` 同样并进内联 style，`wrapClassName` 并进面板 class，`headerStyle`/`footerStyle`/`bodyStyle` 各归各的区域；`maskStyle` 目前没有落点（蒙层是原语的 `DrawerOverlay`，样式在 `@antdv/shadcn-ui` 的 `drawer/DrawerOverlay.vue`）。
 
-另外三点按实记录：
+### 选型：为什么落在 Drawer 原语上
 
-- **`wrapperFooterOffset` 在抽屉里没人读**：`Drawer/types.ts:33-34` 声明了，`BasicDrawer.vue` 既没设默认值也没引用（对比 `Modal/BasicModal.vue:25,220`）。同理 `helpMessage`（`types.ts:19`）、`afterClose`（`:86`）、`DrawerWrapperProps`（`:145-152`，没有对应的 wrapper 组件）。
-- **字符串尺寸会被 `parseInt` 吃掉**：`getSize` 对字符串走 `Number.parseInt(size, 10)`（`:52`、`:59`），所以 `width="40%"` 会变成 `40` 像素。示例页统一给数字，并把这条写在信息条里（`modal-drawer/index.vue:416-421`）。
-- **`closeDrawer()` 之外的显隐不受 `closeFunc` 约束**：钩子只在 `closeDrawer` 里 `await`（`:102-106`），打开方向没有等价的拦截点。
+这条决策换过一次方向：早期实现用 Sheet（Dialog 语义 + `side`），现在用 Drawer。按维度摊开写清楚，免得下一次改动再把结论当 folklore。
 
-`useDrawer()` 的返回是 `openDrawer / closeDrawer / setDrawerProps / getVisible`（`useDrawer.ts:43-57`），语义与 `useModal` 完全对称：`waitForInstance` 同样是 10 轮 `nextTick` + 50ms、超时抛 `[useDrawer] Drawer instance not found`（`:29-41`）；`getVisible` 同样同步不等待（`:56`）。`setDrawerProps` 同样是 `Object.assign(props, ...)` 空操作（`BasicDrawer.vue:113-115`）。
+**功能适配性。** 两者都是"贴边面板 + 蒙层"，能力面几乎重合：`DrawerTitle`/`DrawerDescription`/`Portal` 与 Sheet 的对应物同源，`placement` 与 Sheet 的 `side` 是一对一映射（Drawer 只多一个词汇转换）。真正的差别在两条开关上：Drawer 的 `modal` 接受 `'trap-focus'` 这个中间档（收焦但不改别人的 `aria-hidden`），Dialog/Sheet 只有布尔；Drawer 自带 `swipe-direction` 与滑动关闭，Sheet 没有。
 
-::: warning `useDrawerInner` 不是「内层专用」 `Drawer/index.ts:19-20` 是同一模块的两行导出：
+**交互体验要求。** 抽屉的关闭路径有五条：底部按钮、右上角 X、点蒙层、ESC、**按住面板往开口方向甩**。前四条 Sheet 也做得到；第五条是抽屉这种控件在触屏上的默认预期，只有 Drawer 原语提供（`useSwipeDismiss`：位移过 `40px` 阈值，或释放速度高于 `0.3px/ms` 即判甩出；手势起点落在 `button/a/input/select/textarea/label/[role=button]` 时原语主动放弃，所以拖动区是头部空白而不是按钮）。关键是这条新路径没有绕开拦截：它同样从 `update:open(false, { reason: 'swipe' })` 出去（`:235-243`），于是 `closeFunc` 与 `maskClosable` 都管得着——先在同步过程里 `details.cancel()` 把已经拖出屏外的面板弹回原位，关不关交给 `closeDrawer()` 里那道 `await closeFunc()` 决定（`:150-162`）。`cancel()` 只能同步生效，等 `await` 完再调已经来不及。
+
+**自定义扩展能力。** `DrawerContent` 的 class/style 完全开放，所以尺寸用内联 `width`/`height` 给（`:116-122`），面板只要再用 `max-w-none!` 解开原语自带的 `sm:max-w-sm` 上限（`:129`）——不能再叠 `w-auto!`，`important` 会反过来把内联宽度顶掉。`destroyOnHidden: false` 直接映射到原语的 `force-mount`（`:285`）。代价是原语留了两个缺口，得在组件里补：
+
+- `DrawerContent` 在 `modal === true` 时跑 `useHideOthers`，而且少了 Dialog 那层的 `present` 闸门 —— force-mount 的关闭态面板一直挂在 DOM 里，会把整个应用标成 `aria-hidden="true"`。所以这里固定用 `'trap-focus'`，并且**不能**在开合时切成 `true`：full-modal 与非 modal 是两棵 keyed 子树，翻 `modal` 会整棵重挂载，调用方插槽里的状态全丢。
+- 蒙层用 `document.body.style.pointerEvents = 'none'` 锁背景，走的是 `useBodyScrollLock` 的 owner 记账，不是 DismissableLayer 的"谁锁谁认领"。于是面板自己（`:133`）和所有 portal 到 body 的浮层（`@antdv/shadcn-ui` 的 Popover/Select/DropdownMenu/ContextMenu/Menubar/HoverCard 内容组件）都必须带 `data-[state=open]:pointer-events-auto`，否则浮层能看见、点不动。
+
+**业务场景匹配度。** 本仓库的抽屉承载表单编辑、详情长文、偏好设置三类：桌面为主、偶尔窄屏。桌面要的是"五条关闭路径都能被脏数据拦住"，窄屏要的是"单手甩掉"，前者是既有语义（`closeFunc`），后者正是换到 Drawer 白捡的。偏好抽屉这类"顶部切换条固定 + 面板内滚动 + 内嵌浮层取色"的场景，则把上面那个 `pointer-events` 缺口第一次暴露出来。
+
+**版本兼容性。** 不换依赖：Drawer 与 Sheet 都在仓库内 vendor 的 `@antdv/shadcn-ui` 里，底层同为 reka-ui 2.11.0，不需要 vaul 之类的第三方抽屉。对外 API 面零变化——`DrawerProps`、`useDrawer()` 的 `[register, methods]` 与四个方法名原样保留，所以 `apps/web` 里 10 个消费点（系统页的编辑抽屉、布局的个人中心与偏好设置）一行没改。
+
+**性能表现。** 关闭态默认 `destroyOnHidden: true`，面板根本不挂载；需要保留状态时用 `force-mount`，此时靠 `CLOSED_PANEL_INERT`（`shared/presence.ts`）把关闭态置为 `pointer-events-none` 并让退场动画停在终点（`fill-mode-forwards`），否则那层透明的 `fixed` 面板会吃掉整页点击。开合期间不做重挂载，滚动与输入状态由 DOM 自身保留。
+
+### 仍需按实记录的三点
+
+- **`wrapperFooterOffset` 在抽屉里没人读**：它是弹窗侧的共用 prop（`src/types.ts:38`，`BasicModal.vue:41`、`:246` 会读进 `ModalWrapper` 的 `footer-offset`），而 `DrawerProps`（`drawer/types.ts:8-62`）干脆没声明，也没有 `DrawerWrapperProps` 那样的 wrapper 组件；`ModalWrapper` 那套 `height` / `minHeight` / `footerOffset` 在抽屉里一个都不适用。
+- **`helpMessage` 声明了但没渲染**：`drawer/types.ts:13`，`BasicDrawer.vue` 里没有任何引用点。`maskStyle`（`:41`）同样只声明不落地。
+- **字符串尺寸会被 `parseInt` 吃掉**：`getSize` 对字符串走 `Number.parseInt(size, 10)`（`:66`、`:73`），所以 `width="40%"` 会变成 `40` 像素。示例页统一给数字，并把这条写在信息条里。
+- **`closeDrawer()` 之外的显隐不受 `closeFunc` 约束**：钩子只在 `closeDrawer` 里 `await`（`:151-153`），打开方向没有等价的拦截点。
+
+`useDrawer()` 的返回是 `openDrawer / closeDrawer / setDrawerProps / getVisible`（`useDrawer.ts:40-54`），语义与 `useModal` 完全对称：`waitForInstance` 同样是 10 轮 `nextTick` + 50ms、超时抛 `[useDrawer] Drawer instance not found`（`:26-38`）；`getVisible` 同样同步不等待（`:53`）。`setDrawerProps` 这次是真生效的——它把覆盖值并进 `propOverrides`（`BasicDrawer.vue:163-168`），标题、按钮文案、宽度都会按覆盖值重渲染。
+
+::: warning `useDrawerInner` 不是「内层专用」 `Drawer/index.ts:13-15` 是同一模块的两行导出：
 
 ```ts
 export { useDrawer } from './useDrawer';
+// 与旧实现一致：本仓库的 useDrawerInner 就是 useDrawer 的别名导出
 export { useDrawer as useDrawerInner } from './useDrawer';
 ```
 
-所以 `useDrawerInner(callback)` 的 `callback` **不会被接收也不会被调用**（`useDrawer.ts:9` 的签名没有任何参数）—— 抽屉侧没有 `useModalInner` 那样的数据通道。解构出来的第二个元素实际只有 `openDrawer/closeDrawer/setDrawerProps/getVisible` 四个键，按 `DrawerInnerMethods`（`types.ts:115-124`）去解构 `changeOkLoading` / `changeLoading` 会得到 `undefined`，调用即 `TypeError`。`BasicDrawer` 确实准备好了含这两个方法的 `_innerMethods`（`:120-128`），但它只挂在 `defineExpose` 上（`:131-134`），而 `register` emit 发的是 `drawerMethods`（`:136`），两头没接上。示例页第 4 节因此只用 `openDrawer/closeDrawer`（`modal-drawer/index.vue:165-171`）。:::
+所以 `useDrawerInner(callback)` 的 `callback` **不会被接收也不会被调用**（`useDrawer.ts:10` 的签名没有任何参数）—— 抽屉侧没有 `useModalInner` 那样的数据通道。解构出来的第二个元素实际只有 `openDrawer/closeDrawer/setDrawerProps/getVisible` 四个键，按 `DrawerInnerMethods`（`types.ts:72-79`）去解构 `changeOkLoading` / `changeLoading` 会得到 `undefined`，调用即 `TypeError`。`BasicDrawer` 确实准备好了含这两个方法的 `innerMethods` 并把它作为 `register` 的载荷发出去（`:172-181`、`:187-193`），但 `useDrawer` 侧只转发四个键（`useDrawer.ts:40-54`），两头还是没接上。示例页第 4 节因此只用 `openDrawer/closeDrawer`。:::
 
 ## 内容区滚动与 loading 遮罩
 
@@ -198,7 +221,7 @@ export { useDrawer as useDrawerInner } from './useDrawer';
 | 传了 `height` | `height: Npx` 固定，`maxHeight`/`minHeight` 全部让路 | `:30-32` |
 | 其余情况 | `maxHeight = 视口高 - 200 - footerOffset`，`minHeight` 缺省 `200px` | `:34,38` |
 
-外层 `div.modal-wrapper` 是 `relative`，loading 时叠一层 `absolute inset-0` 的半透明遮罩 + spinner（`:47-68`），内容始终包在 `@antdv/scrollbar-ui` 的 `Scrollbar` 里（`:71-77`，`p-6` 内边距），`native` 取自 `projectConfig.scrollbar?.native`（`:4`、`:73`）—— 设成 `true` 就换成浏览器默认滚动条。窗口尺寸变化由 `useWindowSize` 响应（`:26`），不需要手动重算。
+外层 `div.modal-wrapper` 是 `relative`，loading 时叠一层 `absolute inset-0` 的半透明遮罩 + spinner（`:47-68`），内容始终包在 `@antdv/common-ui` 的 `Scrollbar` 里（`:71-77`，`p-6` 内边距），`native` 取自 `projectConfig.scrollbar?.native`（`:4`、`:73`）—— 设成 `true` 就换成浏览器默认滚动条。窗口尺寸变化由 `useWindowSize` 响应（`:26`），不需要手动重算。
 
 标题区与底部按钮栏在滚动容器**之外**（`BasicModal.vue:191-212` 与 `:229-264`），所以内容滚动时它们固定。抽屉的做法不同：body 直接 `h-full min-h-0 overflow-hidden` 再套 `Scrollbar root-class="h-full"`（`BasicDrawer.vue:231-236,262-264`），配合 `:deep(.ant-drawer-content)` 的 flex 列布局（`:306-318`）把高度压给 body；`ModalWrapper` 里那套 `height` / `minHeight` / `footerOffset` 在抽屉里一个都不适用。`ModalWrapper` 自己还声明了一个从不读取的 `visible` prop（`:17`）。
 
@@ -236,7 +259,7 @@ export { useDrawer as useDrawerInner } from './useDrawer';
 
 ### 4. 抽屉内滚动（`index.vue:526-599`，逻辑 `:163-195`）
 
-`打开长内容抽屉`（`:529-531`）弹出 `:size="560"` 的抽屉（`:553-599`）：外层 16 条条款在 `BasicDrawer` 内置的 `Scrollbar` 里滚，标题与底部固定；里面再嵌一个 `@antdv/scrollbar-ui` 的 `Scrollbar`（`root-class="h-60"`，即 240px，`:577-580`），通过它的 `@scroll` 事件把 `scrollTop` 写回页面状态（逻辑 `:183-189`，`wrap` 元素来自组件 `defineExpose`，见 `packages/ui-kit/scrollbar-ui/src/Scrollbar.vue:257-258`）。只有滚到底（`scrollTop + clientHeight >= scrollHeight - 4`）才能勾选「我已阅读完附加条款」（`:591-597`），没勾选时抽屉的确认按钮通过 `:ok-button-props="{ disabled: !agreement }"`（`:558`）保持禁用。
+`打开长内容抽屉`（`:529-531`）弹出 `:size="560"` 的抽屉（`:553-599`）：外层 16 条条款在 `BasicDrawer` 内置的 `Scrollbar` 里滚，标题与底部固定；里面再嵌一个 `@antdv/common-ui` 的 `Scrollbar`（`root-class="h-60"`，即 240px，`:577-580`），通过它的 `@scroll` 事件把 `scrollTop` 写回页面状态（逻辑 `:183-189`，`wrap` 元素来自组件 `defineExpose`，见 `packages/core/ui-kit/common-ui/src/components/scrollbar/Scrollbar.vue:257-258`）。只有滚到底（`scrollTop + clientHeight >= scrollHeight - 4`）才能勾选「我已阅读完附加条款」（`:591-597`），没勾选时抽屉的确认按钮通过 `:ok-button-props="{ disabled: !agreement }"`（`:558`）保持禁用。
 
 ::: tip 高度为什么用 `root-class` 而不是 `max-height` 页面文字（`:540-543`）给了原因：`max-height` 属性会被 `Scrollbar` 内部的 `useResponsiveMaxHeight` 以 712px 为下限重新算掉，所以这里用 `root-class="h-60"` 固定高度。细节见[数据与展示](/components/display)的滚动一节。:::
 
