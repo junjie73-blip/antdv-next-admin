@@ -1,16 +1,16 @@
 # Component Examples
 
-This chapter documents **this repository's own demo gallery**, not the antdv-next component reference. The template wraps a set of business components (table, form, modal, drawer, upload, charts …) inside `apps/web` and gives each one a clickable demo page. To work out what a wrapper actually does — and where it bites — read the demo page next to the source citations below.
+This chapter documents **this repository's own demo gallery**, not the antdv-next component reference. The business components (table, form, modal, drawer, upload, charts …) are wrapped in `@antdv/*` sub-packages and each one gets a clickable demo page inside `apps/web`. To work out what a wrapper actually does — and where it bites — read the demo page next to the source citations below.
 
 ## Where the demos live
 
 | Location | Contents |
 | --- | --- |
 | `apps/web/src/views/components/**` | Every demo page; the directory mirrors the menu path |
-| `apps/web/src/components/business/**` | The business components being demoed (Table / Form / Modal / Drawer / Description / CountTo / TreeTable) |
-| `apps/web/src/components/common/**` | Shared wrappers (ECharts / MarkdownEditor / AvatarUploader / ImageUpload …; CronEditor has moved to `packages/ui-kit/common-ui`) |
-| `packages/icons/src/**` | Icon atoms (`IconPicker` / `IconifyIcon` / `SvgIcon`), package name `@antdv/icons` |
-| `packages/ui-kit/**` | Stateless UI atoms: `loading-ui`, `scrollbar-ui`, `shadcn-ui`, plus the form/table/popup/tabs/menu/layout wrapper layers |
+| `apps/web/src/components/business/**` | What is left on the app side (`ImportExport` / `MicroAppContainer` / `TenantSelect` / `TreeTable`); Table, Form, Modal/Drawer, Description and CountTo have moved into `@antdv/{table-ui,form-ui,popup-ui,common-ui}` |
+| `apps/web/src/components/common/**` | Wrappers still living in the app (`Auth`, `AvatarUploader`, `ECharts`, `Loading`, `Upload`); `MarkdownEditor`, `CronEditor`, `EmptyState`, `StatusTag`, `Description`, `CountTo`, `Scrollbar` etc. now live in `@antdv/common-ui` |
+| `packages/core/base/icons/src/**` | Icon atoms (`IconPicker` / `IconifyIcon` / `SvgIcon`), package name `@antdv/icons` |
+| `packages/core/ui-kit/**` | Stateless UI atoms: `shadcn-ui` plus the common / form / table / popup / tabs / menu / layout wrapper layers (`loading-ui` and `scrollbar-ui` have been folded into `common-ui`) |
 | `apps/backend-mock/server/api/menus.get.ts:159-342` | The **only authoritative list** of demo routes — menu entries are also the permission source, so a route that is not in the menu cannot be reached |
 
 `views/components/overview/index.vue` is the gallery's index. It does not keep a second inventory: it flattens `useRouteStore().menus` into a searchable card wall (`overview/index.vue:12-24`), so a new demo page appears there as soon as it is added to the menu.

@@ -14,7 +14,8 @@ import { BasicDrawer, message, useDrawer } from '@antdv/popup-ui';
 import { BasicForm, useForm } from '@antdv/form-ui';
 import { BasicTable, useTable } from '@antdv/table-ui';
 import { DictType } from '@antdv/enums';
-import { useDictStore, useRouteStore } from '~/stores';
+import { useRouteStore } from '@antdv/stores';
+import { useDictStore } from '~/stores';
 
 defineOptions({ name: 'SystemMenu' });
 
@@ -664,7 +665,7 @@ function handleIconSelect(icon: string) {
  * 这一列和「状态」不是一回事，别混：状态是菜单本身的启停（业务字段），
  * 导航是"要不要在侧栏/顶栏占一格"。而且拨下去只是**不显示**，
  * 页面本身仍可直达 —— 这是"菜单即权限"里 hidden 的语义
- * （`stores/modules/route.ts` 的授权集合从完整树摊出来，裁剪只动注册表）。
+ * （`@antdv/stores` 的路由 store 从完整树摊出授权集合，裁剪只动注册表）。
  *
  * 表格不用手动重铺：`setMenuHidden` 会重算派生树，`watch(() => routeStore.menus)`
  * 跟着把新 hidden 铺回行里；这里只负责把结论说给用户听。

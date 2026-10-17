@@ -1,14 +1,14 @@
 # 组合式函数
 
-这个仓库里的 `use*` 分三处住着，**判据是"它依赖什么"**：驱动某个 `Basic*` 组件的 hook 和组件同目录（`apps/web/src/components/business/<组件>/`）；要读 store、发请求、跳路由的应用级 hook 在 `apps/web/src/composables/`；只碰 DOM / 浏览器 API、不带业务依赖的通用件在 `packages/composables`（`@antdv/composables`）。本文按这个顺序展开，重点是**前两类怎么把组件驱起来** —— `useTable` / `useForm` / `useModal` / `useCRUD` 这一组接线是全站列表页的骨架，写法上有好几个"照着 vben 的记忆写就会错"的地方。
+这个仓库里的 `use*` 分三处住着，**判据是"它依赖什么"**：驱动某个 `Basic*` 组件的 hook 和组件同目录（`apps/web/src/components/business/<组件>/`）；要读 store、发请求、跳路由的应用级 hook 在 `apps/web/src/composables/`；只碰 DOM / 浏览器 API、不带业务依赖的通用件在 `packages/composables`（`@antdv/composables`）。本文按这个顺序展开，重点是**前两类怎么把组件驱起来** —— `useTable` / `useForm` / `useModal` / `useCRUD` 这一组接线是全站列表页的骨架，写法上有好几个"照着 vue-vben-admin 的记忆写就会错"的地方。
 
 ## 归属与导入（先定坐标）
 
 | 归属 | 位置 | 导入口径 | 典型成员 |
 | --- | --- | --- | --- |
 | 组件驱动型 | `apps/web/src/components/business/<组件>/useXxx.ts` | 从该组件目录的 `index.ts` 引 | `useTable`、`useForm`、`useModal`、`useModalInner`、`useDrawer` |
-| 应用级 | `apps/web/src/composables/` | `~/composables`（barrel）或具体文件深路径 | `useCRUD`、`usePermission`、`http` / `request` / `useRequest` / `requestCache`、`useLocale`、`useLocaleSync`、`useThemeTransition`、`useNotice`、`usePasswordPolicy` |
-| 库无关通用件 | `@antdv/composables` | 根入口 `@antdv/composables`，重件走子路径 | `useCache`、`useChunkUpload`、`useFileReader`、`usePrint`、`useRouteLoading`、`useWatermark`；`@antdv/composables/echarts`、`/sse`、`/websocket` |
+| 应用级 | `apps/web/src/composables/` | `~/composables`（barrel）或具体文件深路径 | `useCRUD`、`usePermission`、`http` / `request` / `useRequest` / `requestCache`、`useLocale`、`useLocaleSync`、`useNotice`、`usePasswordPolicy` |
+| 应用无关通用件 | `@antdv/composables` | 根入口 `@antdv/composables`，重件走子路径 | `useCache`、`useChunkUpload`、`useFileReader`、`usePrint`、`useRouteLoading`、`useWatermark`；`@antdv/composables/echarts`、`/sse`、`/websocket`。这批 hook 不读 pinia / store / `import.meta.env`，唯一的 UI 侧依赖是 `usePrint` 失败时用的 `@antdv/popup-ui` 的 `message`（vue-sonner 的封装），不是任何组件库 |
 
 ::: warning 本仓库的组合式函数一个都不自动导入 `unplugin-auto-import` 的 `imports` 只列了 `vue` / `@vueuse/core` / `pinia` / `vue-router` 四项（`internal/vite-config/src/plugins/auto-import.ts:48-51`），**没有配 `dirs`**，antdv-next 的函数式 API 也早就不在里面了。所以 `useTable`、`http`、`usePermission`，以及 `message` / `notification` / `Modal` / `Drawer` 这一类必须显式 `import`。
 
@@ -16,13 +16,14 @@
 
 `@antdv/composables` 的 `echarts` / `sse` / `websocket` 故意**不进根 barrel**：它们要么拖进整个图表库注册表，要么带一堆管理器类，放进根入口会让 `import { usePrint }` 也付出一份图表的解析成本（`packages/composables/src/index.ts:1-12`，`exports` 映射见 `packages/composables/package.json:21-43`，其中 `"./*"` 通配让单文件模块可以直接按名引）。:::
 
-barrel 覆盖面也值得记一笔：`apps/web/src/composables/index.ts` 只 re-export 三样 —— `useCRUD`、`usePermission`，加上已经独立成包的 `@antdv/request` 全量出口。`useLocale` / `useLocaleSync` / `useThemeTransition` / `useNotice` / `usePasswordPolicy` 得按文件路径引：
+barrel 覆盖面也值得记一笔：`apps/web/src/composables/index.ts` 只 re-export 三样 —— `useCRUD`、`usePermission`，加上已经独立成包的 `@antdv/request` 全量出口。`useLocale` / `useLocaleSync` / `useNotice` / `usePasswordPolicy` 得按文件路径引：
 
 ```ts
 import { http, useCRUD, usePermission } from '~/composables';
 import { useLocaleSync } from '~/composables/web/useLocale';
-import { useThemeTransition } from '~/composables/web/useThemeTransition';
 ```
+
+`useThemeTransition` 以前也在这排里，现在它住在装配层：`import { useThemeTransition } from '@antdv/layouts/hooks/use-theme-transition'`（`packages/layouts/src/hooks/use-theme-transition.ts`），全仓只有顶栏那个小部件用它。
 
 ## 一、驱动组件的 register 模式
 
@@ -342,11 +343,11 @@ watchDebounced(api, () => refresh(), { immediate: true, debounce: 200 });
 
 ## 五、界面与环境：useLocale / useLocaleSync / useThemeTransition
 
-`useLocale()`（`composables/web/useLocale.ts:64-81`）给模板用：`{ availableLocales, locale, setLocale, t }`。**写语言只有一条路** —— `setLocale` 改的是偏好（`appStore.updateSetting({ locale })`），效应由 `useLocaleSync` 统一展开；任何组件都不该再自己写 `i18n.global.locale`，两处各写一份迟早漂移（表现是"菜单变英文、分页器还是中文"）。
+`useLocale()`（`composables/web/useLocale.ts:63-80`）给模板用：`{ availableLocales, locale, setLocale, t }`。**写语言只有一条路** —— `setLocale` 改的是偏好（`appStore.updateSetting({ locale })`），效应由 `useLocaleSync` 统一展开；任何组件都不该再自己写 `i18n.global.locale`，两处各写一份迟早漂移（表现是"菜单变英文、分页器还是中文"）。
 
-`useLocaleSync()`（`:46-62`）是 locale 效应的唯一出口，`App.vue:13` 在根组件调一次，把返回的 `antdLocale` 交给 `ConfigProvider :locale`。它 `watch` 偏好并展开四件事：i18n 文案、`<html lang>`、dayjs locale（注意 dayjs 用小写短码 `zh-cn`，与偏好里的 BCP 47 不同源，`:22-25`）、antd 内置文案的按需动态 import。语言包名一律用本语言自称（`localeLabels`，`:16-19`）。消费方是 `layouts/components/LocaleSwitcher.vue:16`，口径详见[国际化](/zh/guide/in-depth/internationalization)。
+`useLocaleSync()`（`:45-61`）是 locale 效应的唯一出口，`App.vue:14` 在根组件调一次，把返回的 `antdLocale` 交给 `ConfigProvider :locale`。它 `watch` 偏好并展开四件事：i18n 文案、`<html lang>`、dayjs locale（注意 dayjs 用小写短码 `zh-cn`，与偏好里的 BCP 47 不同源，`:20-24`）、antd 内置文案的按需动态 import。语言包名一律用本语言自称（`localeLabels`，`:15-18`）。语言切换的 UI 已经搬进装配层：`packages/layouts/src/widgets/language-toggle/index.vue:28` 只读宿主注入的 `layoutHost.locales`，那份候选表在 `apps/web/src/plugins/layouts-host.ts:35-38` 由 `localeLabels` 生成；写入仍然是改偏好这一个动作，口径详见[国际化](/zh/guide/in-depth/internationalization)。
 
-`useThemeTransition()`（`composables/web/useThemeTransition.ts:35-121`）负责带圆形扩散动画的主题切换：
+`useThemeTransition()`（`packages/layouts/src/hooks/use-theme-transition.ts:37-114`，从 `apps/web/src/composables/web/` 一起搬进了装配层）负责带圆形扩散动画的主题切换：
 
 | 成员 | 说明 |
 | --- | --- |
@@ -354,7 +355,7 @@ watchDebounced(api, () => refresh(), { immediate: true, debounce: 200 });
 | `toggleThemeWithAnimation(event?)` | 取反当前**渲染**态（`isDarkNow` 会把 `auto` 解析成实际深浅） |
 | `isDarkNow(theme)` | 导出的独立函数，`auto` 模式下按系统偏好解析（模块级只查一次 `createSystemDark()`） |
 
-三处实现约束值得抄进自己的 View Transition 代码里：`startViewTransition` 的回调**必须同步改 DOM、不能 `await`**（否则快照捕获时机错乱，`:71-75`）；store 更新放在动画结束之后（`:104-105`），避免响应式反过来打断动画；不支持 `startViewTransition` 的浏览器直接切（`:64-68`）。切暗用 `::view-transition-new(root)` 扩散、切亮用 `::view-transition-old(root)` 收缩（`:80-99`）。消费方：`layouts/widgets/WidgetTheme.vue:14`、偏好抽屉 `AppearancePanel.vue:25`。
+三处实现约束值得抄进自己的 View Transition 代码里：`startViewTransition` 的回调**必须同步改 DOM、不能 `await`**（否则快照捕获时机错乱，`:71-75`）；store 更新放在动画结束之后（`:104-105`），避免响应式反过来打断动画；不支持 `startViewTransition` 的浏览器直接切（`:64-68`）。切暗用 `::view-transition-new(root)` 扩散、切亮用 `::view-transition-old(root)` 收缩（`:80-99`）。消费方现在只剩一个：装配层的顶栏小部件 `packages/layouts/src/widgets/color-toggle/index.vue:15`（偏好抽屉的外观面板改成挂 `<ThemeToggle>`，不再自己调动画）。
 
 ## 六、应用级 hooks 的现状（别照着抄的两个）
 

@@ -23,7 +23,6 @@ function mountTable(props: Partial<BasicTableProps> = {}, options: any = {}) {
     props: {
       columns: baseColumns,
       dataSource: rows,
-      showTableSetting: false,
       ...props,
     },
     ...options,
@@ -323,25 +322,13 @@ describe('BasicTable 行事件', () => {
   });
 });
 
-describe('BasicTable 工具栏与列设置', () => {
+describe('BasicTable 工具栏', () => {
   it('toolbar 插槽渲染', () => {
     const wrapper = mountTable(
       {},
       { slots: { toolbar: () => h('button', '新增') } },
     );
     expect(wrapper.text()).toContain('新增');
-  });
-
-  it('showTableSetting 打开设置区，redo 触发重新取数', async () => {
-    const api = vi.fn(async () => ({ list: rows, total: 3 }));
-    const wrapper = mountTable({ api, dataSource: undefined, showTableSetting: true });
-    await flushPromises();
-    const setting = wrapper.find('.basic-table-setting');
-    expect(setting.exists()).toBe(true);
-    api.mockClear();
-    await setting.findAll('button')[0]!.trigger('click');
-    await flushPromises();
-    expect(api).toHaveBeenCalled();
   });
 });
 

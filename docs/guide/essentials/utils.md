@@ -52,7 +52,7 @@ import { useWebSocket } from '@antdv/composables/websocket';
 | `store` | `useStore` / `useAtom` / `useSelector`（`src/store.ts:12`，整包转发 `@tanstack/vue-store`） | 暂无调用点：共享状态的写法统一从这里取，不再各建 ref 单例 | 由 `__tests__/structure.test.ts` 覆盖 |
 | `template` | `generateTemplate`（`src/utils/template.ts:30`） | `components/business/ImportExport.vue:7,194` | 有 |
 | `welcome` | `showLoginWelcome`（`src/utils/welcome.ts:114`）、`getPersonalizedWelcome`（`:66`） | **无调用点** | 有 |
-| `xss` | `safeHtmlDirective`（`src/utils/xss.ts:437`）、`escapeDirective`（`:454`）、`escapeHtml`（`:173`） | `directives/index.ts:17` → `main.ts:103,107`；`escapeHtml` 被 `packages/composables/src/usePrint.ts:1` | 有 |
+| `xss` | `safeHtmlDirective`（`src/utils/xss.ts:437`）、`escapeDirective`（`:454`）、`escapeHtml`（`:173`） | `directives/index.ts:17` → `main.ts:103,107`；`escapeHtml` 被 `packages/core/composables/src/usePrint.ts:2` | 有 |
 
 ## `@antdv/composables` 清单
 
@@ -62,7 +62,7 @@ import { useWebSocket } from '@antdv/composables/websocket';
 | --- | --- | --- | --- |
 | `useChunkUpload` | `@antdv/composables/useChunkUpload`（`src/useChunkUpload.ts:76`） | `views/components/upload/index.vue:7,356` | 有 |
 | `useFileReader` | `.../useFileReader`（`src/useFileReader.ts:3`） | `components/common/AvatarUploader.vue:6` | 有 |
-| `usePrint` | `.../usePrint`（`src/usePrint.ts:47`） | `views/system/user/index.vue:7,342` 等 3 页 | 有 |
+| `usePrint` | `.../usePrint`（`src/usePrint.ts:47`） | `views/system/user/index.vue:7,344` 等 3 页 | 有 |
 | `useRouteLoading` | `.../useRouteLoading`（`src/useRouteLoading.ts:24`） | `layouts/index.vue:8,164` | 有 |
 | `useWatermark` | `.../useWatermark`（`src/useWatermark.ts:48`） | `layouts/index.vue:9,169` | 有 |
 | `useCache` | `.../useCache`（`src/useCache.ts:41`） | **应用侧无调用点**（只有它自己的测试） | 有 |

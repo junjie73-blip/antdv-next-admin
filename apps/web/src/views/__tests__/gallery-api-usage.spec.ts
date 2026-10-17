@@ -138,10 +138,10 @@ const { message } = App.useApp();
     const hits = SCAN_ROOTS.flatMap((root) =>
       vueFiles(join(process.cwd(), root)),
     )
-      .map((file) => [
-        file,
-        readFileSync(file, 'utf8').replaceAll('\r\n', '\n'),
-      ] as const)
+      .map(
+        (file) =>
+          [file, readFileSync(file, 'utf8').replaceAll('\r\n', '\n')] as const,
+      )
       .flatMap(([file, text]) =>
         [...text.matchAll(/from\s*['"]antdv-next['"]/g)].map(
           () => `${relative(process.cwd(), file).replaceAll('\\', '/')}`,

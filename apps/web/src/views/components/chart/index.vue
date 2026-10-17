@@ -8,7 +8,7 @@ import { message } from '@antdv/popup-ui';
 import { Button, Switch } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 import * as echarts from 'echarts';
-import { useAppStore } from '~/stores/modules/app';
+import { useAppStore } from '@antdv/stores';
 
 defineOptions({ name: 'ComponentsChart' });
 
@@ -491,7 +491,9 @@ const emptyOption = computed<EChartsOption>(() =>
     <Card title="饼图 / 环形 · 图例交互" variant="borderless">
       <p :class="tipClassName">
         环形饼图：legend 支持点选（点击右侧图例可隐藏/恢复对应扇区），label
-        用格式化模板显示「名称 + 百分比」 （<code>formatter: '{b} 换行 {d}%'</code>），tooltip 模板为
+        用格式化模板显示「名称 + 百分比」 （<code
+          >formatter: '{b} 换行 {d}%'</code
+        >），tooltip 模板为
         <code>{ '{b}: {c} 人次 ({d}%)' }</code>
         。
       </p>

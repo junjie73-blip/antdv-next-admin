@@ -1,14 +1,14 @@
 # Composables
 
-The `use*` functions in this repo live in three places, and the rule for where one belongs is **"what does it depend on"**: hooks that drive a specific `Basic*` component sit next to that component (`apps/web/src/components/business/<component>/`); app-level hooks that read a store, fire a request or navigate live in `apps/web/src/composables/`; anything that only touches the DOM or a browser API with zero business dependencies goes into `packages/composables` (`@antdv/composables`). This page follows that order, with the emphasis on **how the first two groups drive components** — the `useTable` / `useForm` / `useModal` / `useCRUD` wiring is the skeleton of every list page here, and several parts of it will bite you if you write them from memory of vben.
+The `use*` functions in this repo live in three places, and the rule for where one belongs is **"what does it depend on"**: hooks that drive a specific `Basic*` component sit next to that component (`apps/web/src/components/business/<component>/`); app-level hooks that read a store, fire a request or navigate live in `apps/web/src/composables/`; anything that only touches the DOM or a browser API with zero business dependencies goes into `packages/composables` (`@antdv/composables`). This page follows that order, with the emphasis on **how the first two groups drive components** — the `useTable` / `useForm` / `useModal` / `useCRUD` wiring is the skeleton of every list page here, and several parts of it will bite you if you write them from memory of vue-vben-admin.
 
 ## Where things live and how you import them
 
 | Group | Location | Import path | Typical members |
 | --- | --- | --- | --- |
 | Component drivers | `apps/web/src/components/business/<component>/useXxx.ts` | from that component's `index.ts` | `useTable`, `useForm`, `useModal`, `useModalInner`, `useDrawer` |
-| App-level | `apps/web/src/composables/` | `~/composables` (barrel) or the file directly | `useCRUD`, `usePermission`, `http` / `request` / `useRequest` / `requestCache`, `useLocale`, `useLocaleSync`, `useThemeTransition`, `useNotice`, `usePasswordPolicy` |
-| Library-agnostic utilities | `@antdv/composables` | root barrel, heavy ones via subpath | `useCache`, `useChunkUpload`, `useFileReader`, `usePrint`, `useRouteLoading`, `useWatermark`; `@antdv/composables/echarts`, `/sse`, `/websocket` |
+| App-level | `apps/web/src/composables/` | `~/composables` (barrel) or the file directly | `useCRUD`, `usePermission`, `http` / `request` / `useRequest` / `requestCache`, `useLocale`, `useLocaleSync`, `useNotice`, `usePasswordPolicy` |
+| App-agnostic utilities | `@antdv/composables` | root barrel, heavy ones via subpath | `useCache`, `useChunkUpload`, `useFileReader`, `usePrint`, `useRouteLoading`, `useWatermark`; `@antdv/composables/echarts`, `/sse`, `/websocket`. These hooks never read pinia, app stores or `import.meta.env`; their one UI-side dependency is the `message` from `@antdv/popup-ui` (a vue-sonner wrapper) that `usePrint` uses on failure — not a component library |
 
 ::: warning Nothing in this repo is auto-imported `unplugin-auto-import` lists only `vue` / `@vueuse/core` / `pinia` / `vue-router` (the four entries at `internal/vite-config/src/plugins/auto-import.ts:48-51`) — antdv-next's functional APIs (`message`, `notification`, `Modal`, `Drawer`) are no longer in there either. **There is no `dirs` option**, so `useTable`, `http`, `usePermission` and those four all need an explicit import.
 
@@ -16,13 +16,14 @@ Name collisions are nastier than a missing import: `@vueuse/core` already export
 
 `echarts` / `sse` / `websocket` are deliberately kept out of the `@antdv/composables` root barrel: they either drag in the whole chart registry or a pile of manager classes, and putting them in the root entry would make `import { usePrint }` pay for parsing a chart library (`packages/composables/src/index.ts:1-12`; the `exports` map is in `packages/composables/package.json:21-43`, where the `"./*"` wildcard is what lets single-file modules be imported by name). :::
 
-Barrel coverage is worth memorising too: `apps/web/src/composables/index.ts` re-exports exactly three things — `useCRUD`, `usePermission` and the full surface of `@antdv/request`, which now lives in its own package. `useLocale` / `useLocaleSync` / `useThemeTransition` / `useNotice` / `usePasswordPolicy` must be imported by file path:
+Barrel coverage is worth memorising too: `apps/web/src/composables/index.ts` re-exports exactly three things — `useCRUD`, `usePermission` and the full surface of `@antdv/request`, which now lives in its own package. `useLocale` / `useLocaleSync` / `useNotice` / `usePasswordPolicy` must be imported by file path:
 
 ```ts
 import { http, useCRUD, usePermission } from '~/composables';
 import { useLocaleSync } from '~/composables/web/useLocale';
-import { useThemeTransition } from '~/composables/web/useThemeTransition';
 ```
+
+`useThemeTransition` used to be in that list; it now lives in the composition layer: `import { useThemeTransition } from '@antdv/layouts/hooks/use-theme-transition'` (`packages/layouts/src/hooks/use-theme-transition.ts`), and the only consumer left in the repository is the header widget.
 
 ## 1. The register pattern that drives components
 
@@ -342,11 +343,11 @@ watchDebounced(api, () => refresh(), { immediate: true, debounce: 200 });
 
 ## 5. UI environment: useLocale / useLocaleSync / useThemeTransition
 
-`useLocale()` (`composables/web/useLocale.ts:64-81`) is the template-facing one: `{ availableLocales, locale, setLocale, t }`. **There is exactly one way to write**: `setLocale` changes the preference (`appStore.updateSetting({ locale })`) and `useLocaleSync` expands the effect. No component should touch `i18n.global.locale` directly — two writers always drift, and the symptom is "the menu switched to English but the pagination is still Chinese".
+`useLocale()` (`composables/web/useLocale.ts:63-80`) is the template-facing one: `{ availableLocales, locale, setLocale, t }`. **There is exactly one way to write**: `setLocale` changes the preference (`appStore.updateSetting({ locale })`) and `useLocaleSync` expands the effect. No component should touch `i18n.global.locale` directly — two writers always drift, and the symptom is "the menu switched to English but the pagination is still Chinese".
 
-`useLocaleSync()` (`:46-62`) is the single exit for locale side effects. `App.vue:13` calls it once at the root and binds the returned `antdLocale` to `ConfigProvider :locale`. It watches the preference and expands four things: i18n messages, `<html lang>`, the dayjs locale (note dayjs uses lowercase short codes — `zh-cn`, not the BCP 47 value stored in preferences, `:22-25`), and an on-demand dynamic import of antd's built-in locale. Language names are always endonyms (`localeLabels`, `:16-19`). Consumer: `layouts/components/LocaleSwitcher.vue:16`; the wider contract is in [Internationalization](/en/guide/in-depth/internationalization).
+`useLocaleSync()` (`:45-61`) is the single exit for locale side effects. `App.vue:14` calls it once at the root and binds the returned `antdLocale` to `ConfigProvider :locale`. It watches the preference and expands four things: i18n messages, `<html lang>`, the dayjs locale (note dayjs uses lowercase short codes — `zh-cn`, not the BCP 47 value stored in preferences, `:20-24`), and an on-demand dynamic import of antd's built-in locale. Language names are always endonyms (`localeLabels`, `:15-18`). The language-switch UI moved into the composition layer: `packages/layouts/src/widgets/language-toggle/index.vue:28` reads only the host-injected `layoutHost.locales`, and that candidate table is built from `localeLabels` in `apps/web/src/plugins/layouts-host.ts:35-38`; writing is still the single preference update. the wider contract is in [Internationalization](/en/guide/in-depth/internationalization).
 
-`useThemeTransition()` (`composables/web/useThemeTransition.ts:35-121`) owns the circular-expanding theme switch:
+`useThemeTransition()` (`packages/layouts/src/hooks/use-theme-transition.ts:37-114`) owns the circular-expanding theme switch:
 
 | Member | Notes |
 | --- | --- |
@@ -354,7 +355,7 @@ watchDebounced(api, () => refresh(), { immediate: true, debounce: 200 });
 | `toggleThemeWithAnimation(event?)` | inverts the current **rendered** state (`isDarkNow` resolves `auto` to light/dark) |
 | `isDarkNow(theme)` | exported standalone function; in `auto` mode it resolves via the system preference (a module-level `createSystemDark()` queried once) |
 
-Three implementation constraints worth copying into any View Transition code: the `startViewTransition` callback **must mutate the DOM synchronously — no `await`** or the snapshot timing is wrong and the animation dies (`:71-75`); the store update happens after the animation finishes (`:104-105`) so reactivity can't interrupt it; browsers without `startViewTransition` just switch (`:64-68`). To dark uses `::view-transition-new(root)` expanding, to light uses `::view-transition-old(root)` contracting (`:80-99`). Consumers: `layouts/widgets/WidgetTheme.vue:14` and the preference drawer's `AppearancePanel.vue:25`.
+Three implementation constraints worth copying into any View Transition code: the `startViewTransition` callback **must mutate the DOM synchronously — no `await`** or the snapshot timing is wrong and the animation dies (`:71-75`); the store update happens after the animation finishes (`:104-105`) so reactivity can't interrupt it; browsers without `startViewTransition` just switch (`:64-68`). To dark uses `::view-transition-new(root)` expanding, to light uses `::view-transition-old(root)` contracting (`:80-99`). There is exactly one consumer left: the header widget `packages/layouts/src/widgets/color-toggle/index.vue:15` (the drawer's appearance panel mounts `<ThemeToggle>` instead of driving the animation itself).
 
 ## 6. App-level hooks that aren't wired (don't copy these yet)
 

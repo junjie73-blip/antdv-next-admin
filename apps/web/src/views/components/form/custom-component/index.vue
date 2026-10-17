@@ -4,10 +4,9 @@ import type { ComponentType, FormSchema } from '@antdv/form-ui';
 import { ref } from 'vue';
 
 import { Card, Scrollbar } from '@antdv/common-ui';
-import { BasicForm, useForm, addComponent } from '@antdv/form-ui';
+import { addComponent, BasicForm, useForm } from '@antdv/form-ui';
 import { message } from '@antdv/popup-ui';
 import { Button } from '@antdv/shadcn-ui';
-
 import { cn } from '@antdv/shared/utils/cn';
 
 import TagPickerField from './components/TagPickerField.vue';
@@ -63,7 +62,7 @@ const [registerBuiltin] = useForm({
       component: 'MarkdownEditor',
       colProps: { span: 24 },
       defaultValue:
-        '<p>这一段由 <strong>MarkdownEditor</strong> 扩展字段产出。</p>',
+        '这一段由 **MarkdownEditor** 扩展字段产出（value 是 Markdown 源码）。',
       componentProps: { mode: 'edit', height: 180 },
       helpMessage:
         'componentMap 里注册的仓库自研组件，按名字写进 schema 就能用',
@@ -80,7 +79,7 @@ const [registerBuiltin] = useForm({
       component: 'MarkdownEditor',
       colProps: { span: 24 },
       defaultValue:
-        '<p>组件名不变，只把 <code>componentProps</code> 换成 mode: preview，字段就变成只读预览。</p>',
+        '组件名不变，只把 `componentProps` 换成 mode: preview，字段就变成只读预览。',
       componentProps: { mode: 'preview', height: 120 },
     },
   ]),
@@ -241,8 +240,9 @@ function handleReset() {
       <div :class="introClassName">
         <code :class="inlineCodeClassName">componentMap.ts</code>
         在 antd 基础控件之外还注册了本仓库自己的字段：
-        <code :class="inlineCodeClassName">MarkdownEditor</code>（富文本，value
-        存 HTML）、 <code :class="inlineCodeClassName">ASelect</code> /
+        <code :class="inlineCodeClassName">MarkdownEditor</code>（tiptap
+        富文本，value 存 Markdown 源码）、
+        <code :class="inlineCodeClassName">ASelect</code> /
         <code :class="inlineCodeClassName">ATreeSelect</code>（接口驱动，传一个
         <code :class="inlineCodeClassName">api</code>
         字符串就自己取数，本页不打后端，所以只在分隔线里点名）。写 schema

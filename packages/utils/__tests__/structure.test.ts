@@ -9,38 +9,28 @@ import pkg from '../package.json';
 const srcDir = path.resolve(import.meta.dirname, '../src');
 
 /**
- * 这个包的定位是"两类纯函数"：菜单（menu）与 DOM 落地（css-vars / theme-mode）。
- * 想再加第三个目录时先确认它真的不需要 pinia / vue-router 运行时——需要就该去别的包。
+ * 这个包的定位是"纯函数"：菜单（menu）与主题模式（theme-mode）。
+ * 想再加目录时先确认它真的不需要 pinia / vue-router 运行时，也不需要 DOM——
+ * 写 DOM 的 `applyPreferencesToDom` 就是因为这个搬去了 `@antdv/preferences`。
  */
 describe('utils 目录结构', () => {
-  it('src 根只有约定的四个文件', () => {
+  it('src 根只有约定的三个文件', () => {
     const files = readdirSync(srcDir)
       .filter((name) => name.endsWith('.ts'))
       .toSorted();
 
-    expect(files).toEqual([
-      'css-vars.ts',
-      'index.ts',
-      'menu.ts',
-      'theme-mode.ts',
-    ]);
+    expect(files).toEqual(['index.ts', 'menu.ts', 'theme-mode.ts']);
   });
 
   it('root barrel 三类能力各导出一个代表', () => {
-    for (const name of [
-      'applyPreferencesToDom',
-      'clearPreferencesFromDom',
-      'createSystemDark',
-      'menuKeyOf',
-      'resolveThemeMode',
-    ]) {
+    for (const name of ['createSystemDark', 'menuKeyOf', 'resolveThemeMode']) {
       expect(barrel).toHaveProperty(name);
     }
   });
 
-  it('三个模块都有可导入的子路径', () => {
+  it('两个模块都有可导入的子路径', () => {
     const declared = Object.keys(pkg.exports as Record<string, unknown>);
-    for (const subpath of ['./css-vars', './menu', './theme-mode']) {
+    for (const subpath of ['./menu', './theme-mode']) {
       expect(declared).toContain(subpath);
     }
   });

@@ -20,7 +20,6 @@ autoInstallPeers: true
 
 catalog:
   '@antdv-next/cssinjs': ^1.1.0
-  '@antdv-next/happy-work-theme': ^1.0.1
   '@antdv-next/icons': ^1.1.2
   '@antdv-next/tailwind': ^1.1.2
   '@ast-grep/napi': ^0.45.2
@@ -66,18 +65,11 @@ catalog:
   '@tanstack/vue-store': ^0.11.2
   '@tanstack/vue-table': ^9.2.8
   '@tiptap/core': ^3.31.4
-  '@tiptap/extension-document': ^3.31.4
-  '@tiptap/extension-highlight': ^3.31.4
   '@tiptap/extension-image': ^3.31.4
-  '@tiptap/extension-link': ^3.31.4
-  '@tiptap/extension-list': ^3.31.4
   '@tiptap/extension-table': ^3.31.4
-  '@tiptap/extension-text': ^3.31.4
   '@tiptap/extension-text-align': ^3.31.4
   '@tiptap/extension-text-style': ^3.31.4
-  '@tiptap/extension-underline': ^3.31.4
   '@tiptap/extensions': ^3.31.4
-  '@tiptap/markdown': ^3.31.4
   '@tiptap/pm': ^3.31.4
   '@tiptap/starter-kit': ^3.31.4
   '@tiptap/vue-3': ^3.31.4

@@ -38,8 +38,8 @@ import {
   TableRow,
 } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
+import { PageLoading } from '@antdv/layouts';
 import { Icon } from '@iconify/vue';
-import PageLoading from '~/components/common/Loading/PageLoading.vue';
 
 import ErrorProneContent from './components/ErrorProneContent.vue';
 

@@ -25,7 +25,7 @@ full-content · horizontal · mixed-two-column · mixed-vertical · side-nav · 
 
 ## Content area padding belongs to the layout
 
-`src/layouts/index.vue` wraps the content area in an extra `<Scrollbar view-class="p-4">` layer, which means **the layout already owns the page content**. If a routed page **also** adds padding to its own outer container, the symptoms are content sitting 40px from the edge, pages that don't line up with each other, and card shadows pushed outside the visible area.
+`LayoutContent` from `@antdv/layout-ui` (`packages/core/ui-kit/layout-ui/src/components/layout-content/index.vue:44`) wraps the content area in an extra `<Scrollbar view-class="p-4">` layer, which means **the layout already owns the page content**. If a routed page **also** adds padding to its own outer container, the symptoms are content sitting 40px from the edge, pages that don't line up with each other, and card shadows pushed outside the visible area.
 
 The rule: **the outer container of a routed page never declares padding**; cards, code blocks, and drawer content inside the page can have as much inner padding as they want. `apps/web/src/views/__tests__/page-root-padding.spec.ts` pins this down as a source contract — it scans the **root container** of every `.vue` page file and forbids utility classes like `p-*` / `px-*` / `pt-*` plus inline `padding:`, while also asserting that the layout's own `p-4` is still there (move it and you have to come back and change the rule).
 

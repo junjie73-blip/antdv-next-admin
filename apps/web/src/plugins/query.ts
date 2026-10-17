@@ -18,6 +18,8 @@ export const queryClientConfig: QueryClientConfig = {
 
 export const queryClient = new QueryClient(queryClientConfig);
 
-export function setupVueQuery(app: Parameters<typeof VueQueryPlugin.install>[0]) {
+export function setupVueQuery(
+  app: Parameters<typeof VueQueryPlugin.install>[0],
+) {
   app.use(VueQueryPlugin, { queryClient });
 }

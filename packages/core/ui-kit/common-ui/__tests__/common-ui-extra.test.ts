@@ -145,6 +145,50 @@ describe('Popconfirm', () => {
 
     wrapper.unmount();
   });
+
+  /**
+   * reka 的浮层要等一次 tick 才挂到 body 上，`open: true` 直接给到 mount 是拿不到面板的。
+   * 面板取"最后一只"：前一条用例失败时来不及 unmount，`querySelector` 会命中那只残留的。
+   */
+  async function openPanel(props: Record<string, unknown> = {}) {
+    const wrapper = mount(Popconfirm, {
+      props: { title: '确定删除？', ...props },
+      slots: { default: '<button>删除</button>' },
+      attachTo: document.body,
+    });
+    await wrapper.setProps({ open: true });
+    const panels = document.querySelectorAll('[data-common-popconfirm]');
+    return { panel: panels[panels.length - 1] as HTMLElement, wrapper };
+  }
+
+  it('标题与说明各占一档行距，说明走 muted 而不是写死的灰', async () => {
+    const { panel, wrapper } = await openPanel({ description: '删除后不可恢复' });
+    const desc = [...panel.querySelectorAll('div')]
+      .filter((el) => el.textContent?.includes('删除后不可恢复'))
+      .at(-1);
+    expect(desc?.className).toContain('text-muted-foreground');
+    expect(desc?.className).not.toMatch(/text-gray-\d/);
+    wrapper.unmount();
+  });
+
+  it('默认带警示图标，showIcon=false 才没有', async () => {
+    const first = await openPanel();
+    expect(first.panel.querySelector('svg, .iconify')).not.toBeNull();
+    first.wrapper.unmount();
+
+    const second = await openPanel({ danger: true, showIcon: false });
+    expect(second.panel.querySelector('svg, .iconify')).toBeNull();
+    second.wrapper.unmount();
+  });
+
+  it('确定与取消都把原生事件带回给调用方', async () => {
+    const { panel, wrapper } = await openPanel();
+    const buttons = [...panel.querySelectorAll('button')];
+    buttons.at(-1)?.click();
+    await wrapper.vm.$nextTick();
+    expect(wrapper.emitted('confirm')?.[0]?.[0]).toBeInstanceOf(MouseEvent);
+    wrapper.unmount();
+  });
 });
 
 const treeData = [

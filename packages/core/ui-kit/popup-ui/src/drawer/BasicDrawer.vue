@@ -61,14 +61,16 @@ const merged = computed(() => ({ ...props, ...propOverrides.value }));
 const getSize = computed(() => {
   const { placement } = merged.value;
   if (placement === 'left' || placement === 'right') {
-    const size = merged.value.size || merged.value.width;
+    const configured = merged.value.size;
+    const size = configured || merged.value.width;
     if (typeof size === 'string') {
       return Number.parseInt(size, 10) || 520;
     }
     return size || 520;
   }
   if (placement === 'top' || placement === 'bottom') {
-    const size = merged.value.size || merged.value.height;
+    const configured = merged.value.size;
+    const size = configured || merged.value.height;
     if (typeof size === 'string') {
       return Number.parseInt(size, 10) || 400;
     }
@@ -89,15 +91,6 @@ const SWIPE_DIRECTIONS = {
   top: 'up',
 } as const;
 
-/**
- * 蒙层用 `'trap-focus'` 而不是 `true`：reka 的 DrawerContent 只在 modal 为严格 `true`
- * 时才跑 `useHideOthers`，而且少了 Dialog 那层的 `present` 闸门 ——
- * `destroyOnHidden: false` 的关闭态面板一直挂着，就会把整个应用置成
- * `aria-hidden="true"`（键盘 Tab 出得去面板，屏幕阅读器读不到页面）。
- * `'trap-focus'` 照样渲染蒙层、照样发 interactOutside / escapeKeyDown，只是不改别人的 aria。
- * 也不能在开合时把这里改成 `true`：DrawerContent 的 full-modal 与非 modal 分支是两棵
- * keyed 子树，翻 `modal` 会整棵重挂载，调用方插槽里的状态全丢。
- */
 const swipeDirection = computed(
   () => SWIPE_DIRECTIONS[merged.value.placement ?? 'right'],
 );
@@ -323,7 +316,7 @@ const cancelBtn = computed(() =>
       </div>
       <div
         v-else
-        :class="cn('drawer-header px-6 py-4')"
+        :class="cn('drawer-header border-border flex items-center border-b px-6 py-4')"
         :style="merged.headerStyle"
       >
         <!-- 面板自己带 aria-labelledby，插槽标题不可见时补一个供读屏器定位 -->
@@ -362,7 +355,7 @@ const cancelBtn = computed(() =>
             <div
               :class="
                 cn(
-                  'primary animate-spin border-2 border-t-transparent h-8 w-8 rounded-full border-current/20',
+                  'text-primary animate-spin border-2 border-t-transparent h-8 w-8 rounded-full border-current/20',
                 )
               "
             ></div>

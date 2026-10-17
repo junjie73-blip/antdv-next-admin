@@ -274,9 +274,7 @@ function handleSaveOrder() {
       >
         <template #cell-constraint="{ record }">
           <Tag v-if="record?.pinned" color="red">置顶 · 不可拖动</Tag>
-          <Tag v-else-if="record?.locked" color="purple">
-            锁定 · 不可跨越
-          </Tag>
+          <Tag v-else-if="record?.locked" color="purple"> 锁定 · 不可跨越 </Tag>
           <span v-else>—</span>
         </template>
       </BasicTable>

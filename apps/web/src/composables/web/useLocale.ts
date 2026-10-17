@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n';
 import dayjs from '@antdv/shared/utils/dayjs';
 import i18n from '~/locales';
 import { loadLocale } from '~/settings';
-import { useAppStore } from '~/stores/modules/app';
+import { useAppStore } from '@antdv/stores';
 
 import 'dayjs/locale/en';
 import 'dayjs/locale/zh-cn';

@@ -8,7 +8,9 @@
     // Vitest runs in a different environment than the application code.
     // Adjust lib and types accordingly.
     "lib": [],
-    "types": ["node", "jsdom"]
+    // 用例里 `describe / it / expect / vi` 是运行时全局（vitest.config 开了 `globals`），
+    // 不给 TS 登记 `vitest/globals` 就会满屏 "Cannot find name 'describe'"
+    "types": ["node", "jsdom", "vitest/globals"]
   },
   // Override to include only test files and clear exclusions.
   // Application code imported in tests is automatically included via module resolution.

@@ -139,9 +139,7 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
 
     // 切到「账户设置」：表单要出来（form-ui 的字段盒子带 data-field）
     await drawer.getByRole('tab', { name: '账户设置' }).click();
-    await expect(
-      drawer.locator('[data-field], input').first(),
-    ).toBeVisible();
+    await expect(drawer.locator('[data-field], input').first()).toBeVisible();
 
     // 切回来仍然可用（页签来回不是单向）
     await drawer.getByRole('tab', { name: '个人主页' }).click();
@@ -162,9 +160,7 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     const probe = watchErrors(page);
     await go(page, '/system/dept');
 
-    await expect(
-      page.locator('tr.basic-table-row').first(),
-    ).toBeVisible();
+    await expect(page.locator('tr.basic-table-row').first()).toBeVisible();
     expect(
       await page
         .locator('[data-layout-region="content"], main')
@@ -391,7 +387,9 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     await expect
       .poll(
         async () =>
-          (await page.locator('li[data-sonner-toast][data-type="success"]').count()) > 0 ||
+          (await page
+            .locator('li[data-sonner-toast][data-type="success"]')
+            .count()) > 0 ||
           (await page.getByText('自动化巡检部门').count()) > 0,
         { message: '新增部门既没有成功提示也没落到树上', timeout: 10_000 },
       )
@@ -421,9 +419,7 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     await expect(
       page.locator('tr.basic-table-row [data-common-tag]').first(),
     ).toBeVisible();
-    const permCells = page
-      .locator('tbody td')
-      .filter({ hasText: /:/ });
+    const permCells = page.locator('tbody td').filter({ hasText: /:/ });
     expect(await permCells.count()).toBeGreaterThan(0);
 
     await go(page, '/system/user');
@@ -503,9 +499,7 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
 
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/#\/system\/user/);
-    await expect(
-      page.locator('tr.basic-table-row').first(),
-    ).toBeVisible();
+    await expect(page.locator('tr.basic-table-row').first()).toBeVisible();
     // 选完即关：不能留一层遮罩挡住页面
     await expect(input).toBeHidden();
 
@@ -534,9 +528,7 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
 
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/#\/system\/dept/);
-    await expect(
-      page.locator('tr.basic-table-row').first(),
-    ).toBeVisible();
+    await expect(page.locator('tr.basic-table-row').first()).toBeVisible();
   });
 
   test('搜索：↑↓ 换候选、Esc 关闭、无匹配给空态', async ({ page }) => {
@@ -675,51 +667,16 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
     // 从展开的条目跳通知中心（该页不在导航上，铃铛是它的常规入口）
     await first.getByText('在通知中心查看').click();
     await expect(page).toHaveURL(/#\/system\/notice/);
-    await expect(
-      page.locator('tr.basic-table-row').first(),
-    ).toBeVisible();
+    await expect(page.locator('tr.basic-table-row').first()).toBeVisible();
 
     expect(probe.errors, probe.errors.join('\n')).toEqual([]);
     probe.stop();
   });
 
-  test('表格的「列设置」弹层贴在触发按钮下方，不出视口', async ({ page }) => {
-    await signIn(page);
-    await go(page, '/system/user');
-
-    const trigger = page.locator(
-      '.basic-table-setting button[title="列设置"]',
-    );
-    await expect(trigger, '用户列表没有渲染列设置按钮').toBeVisible();
-    await trigger.click();
-
-    const panel = page.locator('.basic-table-setting-panel');
-    await expect(panel, '点列设置没有出面板').toBeVisible();
-    /*
-     * 光断言"看得见"挡不住这个缺陷：锚点接错时面板照样渲染、条目齐全，只是被甩到
-     * 视口外（实测 top: -784），`toBeVisible` 依旧放行。所以钉的是几何位置。
-     */
-    const box = await panel.boundingBox();
-    const triggerBox = await trigger.boundingBox();
-    const viewport = page.viewportSize();
-    if (!box || !triggerBox || !viewport) {
-      throw new Error(
-        `列设置面板或按钮量不出盒子：${JSON.stringify({ box, triggerBox, viewport })}`,
-      );
-    }
-    expect(box.y, '列设置面板跑到了按钮上方').toBeGreaterThan(triggerBox.y);
-    expect(
-      box.y + box.height,
-      '列设置面板超出视口下沿',
-    ).toBeLessThanOrEqual(viewport.height);
-  });
-
   test('通知管理：新增、编辑、删除一条消息', async ({ page }) => {
     await signIn(page);
     await go(page, '/system/notice');
-    await expect(
-      page.locator('tr.basic-table-row').first(),
-    ).toBeVisible();
+    await expect(page.locator('tr.basic-table-row').first()).toBeVisible();
 
     /**
      * 标题带时间戳，不能写死。
@@ -838,9 +795,9 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
 
     const basic = await uploadIntoCard(page, '基础上传', 'basic.png');
     await expect(
-      basic.locator(
-        '[data-common-upload-item][data-common-upload-status="done"]',
-      ).first(),
+      basic
+        .locator('[data-common-upload-item][data-common-upload-status="done"]')
+        .first(),
       '基础上传没有进入 done 状态',
     ).toBeVisible({ timeout: 20_000 });
     // 失败态（红色条目）一枚都不该有：以前 8 个 action 全 404，这里必然炸
@@ -852,11 +809,9 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
 
     const wall = await uploadIntoCard(page, '图片墙', 'wall.png');
     const thumb = wall.locator('[data-common-upload-item]').first();
-    await expect(thumb).toHaveAttribute(
-      'data-common-upload-status',
-      'done',
-      { timeout: 20_000 },
-    );
+    await expect(thumb).toHaveAttribute('data-common-upload-status', 'done', {
+      timeout: 20_000,
+    });
 
     const preview = page.locator('[data-common-image-preview] img');
 
@@ -872,7 +827,10 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
     const popup = page
       .waitForEvent('popup', { timeout: 1500 })
       .catch(() => null);
-    await thumb.locator('img').first().click({ position: { x: 16, y: 16 } });
+    await thumb
+      .locator('img')
+      .first()
+      .click({ position: { x: 16, y: 16 } });
     await expect(preview, '点图片墙的图片没有打开大图预览').toBeVisible({
       timeout: 10_000,
     });
@@ -882,7 +840,10 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
     await expect(preview).toBeHidden();
 
     // 第二次点同一张图：受控状态没回写的话是没有反应的
-    await thumb.locator('img').first().click({ position: { x: 16, y: 16 } });
+    await thumb
+      .locator('img')
+      .first()
+      .click({ position: { x: 16, y: 16 } });
     await expect(preview, '第二次点同一张图打不开预览').toBeVisible({
       timeout: 10_000,
     });
@@ -891,9 +852,7 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
 
     // 移除：列表项真的从 DOM 里退掉
     await thumb.locator('button[aria-label^="移除"]').click();
-    await expect(
-      wall.locator('[data-common-upload-item]'),
-    ).toHaveCount(0);
+    await expect(wall.locator('[data-common-upload-item]')).toHaveCount(0);
 
     expect(
       uploadResponses.filter((r) => r.status >= 400 || r.code !== 200),
@@ -904,9 +863,7 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
   test('用户管理：新增、编辑、删除贯穿一遍', async ({ page }) => {
     await signIn(page);
     await go(page, '/system/user');
-    await expect(
-      page.locator('tr.basic-table-row').first(),
-    ).toBeVisible();
+    await expect(page.locator('tr.basic-table-row').first()).toBeVisible();
 
     // 同上：用户名带时间戳，避免上一轮失败留下的同名记录干扰断言
     const username = `ops_sweep_${Date.now()}`;
@@ -970,9 +927,7 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
      * 上一行的断言在这种情况下照样可能通过（改名后的用户排在后面），
      * 所以这里直接数行数：条件一丢，行数立刻变成整页。
      */
-    expect(await page.locator('tr.basic-table-row').count()).toBe(
-      1,
-    );
+    expect(await page.locator('tr.basic-table-row').count()).toBe(1);
 
     // 删除：把用例造的数据收掉
     await page
@@ -986,7 +941,9 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
      * 所以这里必须把确认气泡点掉 —— 顺带验证气泡真的出来了。
      * 固定在右侧的操作列会自成一个层叠上下文，弹层挂到 body 上才不被隔壁单元格压住。
      */
-    const confirm = page.locator('[data-slot="popover-content"]:visible').last();
+    const confirm = page
+      .locator('[data-slot="popover-content"]:visible')
+      .last();
     await expect(confirm).toBeVisible();
 
     const targetRow = () =>
@@ -1034,16 +991,16 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
   }) => {
     await signIn(page);
     await go(page, '/system/menu');
-    await expect(
-      page.locator('tr.basic-table-row').first(),
-    ).toBeVisible();
+    await expect(page.locator('tr.basic-table-row').first()).toBeVisible();
 
     const rows = () => page.locator('tr.basic-table-row');
     const before = await rows().count();
     const target = rows().filter({ hasText: '系统管理' }).first();
 
     await target.getByRole('button', { name: /删除/ }).click();
-    const confirm = page.locator('[data-slot="popover-content"]:visible').last();
+    const confirm = page
+      .locator('[data-slot="popover-content"]:visible')
+      .last();
     await expect(confirm, '点删除没有弹出二次确认').toBeVisible();
     await expect(confirm, '确认文案没说清会连带多少个子项').toContainText(
       '个子项',
@@ -1070,9 +1027,7 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
   test('用户管理：勾选后导出真的产出 xlsx 文件', async ({ page }) => {
     await signIn(page);
     await go(page, '/system/user');
-    await expect(
-      page.locator('tr.basic-table-row').first(),
-    ).toBeVisible();
+    await expect(page.locator('tr.basic-table-row').first()).toBeVisible();
 
     await page
       .locator('tr.basic-table-row')
@@ -1144,12 +1099,10 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
   test('表格自带文案跟着中文语言包（条/页 / 暂无数据）', async ({ page }) => {
     await signIn(page);
     await go(page, '/system/user');
-    await expect(
-      page.locator('tr.basic-table-row').first(),
-    ).toBeVisible();
-    await expect(
-      page.locator('.basic-table-pagination').first(),
-    ).toContainText('条/页');
+    await expect(page.locator('tr.basic-table-row').first()).toBeVisible();
+    await expect(page.locator('.basic-table-pagination').first()).toContainText(
+      '条/页',
+    );
 
     await page
       .getByPlaceholder('搜索用户名/昵称/邮箱/手机号...')
@@ -1162,8 +1115,6 @@ test.describe('交互巡检：顶栏小部件、上传与列表页写操作', ()
     // 收尾清掉条件：keep-alive 会把这一页停在空结果上，后面的用例容易被带偏
     await page.getByPlaceholder('搜索用户名/昵称/邮箱/手机号...').fill('');
     await page.getByRole('button', { name: '查询' }).first().click();
-    await expect(
-      page.locator('tr.basic-table-row').first(),
-    ).toBeVisible();
+    await expect(page.locator('tr.basic-table-row').first()).toBeVisible();
   });
 });

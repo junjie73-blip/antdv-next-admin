@@ -15,10 +15,8 @@ const customConfig: Linter.Config[] = [
   {
     files: [
       'apps/**/**',
-      'packages/effects/**/**',
       'packages/utils/**/**',
       'packages/core/base/typings/**/**',
-      'packages/locales/**/**',
     ],
     ignores: restrictedImportIgnores,
     rules: {
@@ -37,22 +35,22 @@ const customConfig: Linter.Config[] = [
             {
               group: ['#/api/*'],
               message:
-                'The #/api package cannot be imported, please use the @core package itself',
+                'The #/api package cannot be imported, please use the @antdv package itself',
             },
             {
               group: ['#/layouts/*'],
               message:
-                'The #/layouts package cannot be imported, please use the @core package itself',
+                'The #/layouts package cannot be imported, please use the @antdv package itself',
             },
             {
               group: ['#/locales/*'],
               message:
-                'The #/locales package cannot be imported, please use the @core package itself',
+                'The #/locales package cannot be imported, please use the @antdv package itself',
             },
             {
               group: ['#/stores/*'],
               message:
-                'The #/stores package cannot be imported, please use the @core package itself',
+                'The #/stores package cannot be imported, please use the @antdv package itself',
             },
           ],
         },
@@ -60,55 +58,14 @@ const customConfig: Linter.Config[] = [
     },
   },
   {
-    // @core内部组件，不能引入@vben/* 里面的包
-    files: ['packages/@core/**/**'],
-    ignores: restrictedImportIgnores,
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['@vben/*'],
-              message:
-                'The @core package cannot import the @vben package, please use the @core package itself',
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    // @core/shared内部组件，不能引入@vben/* 或者 @vben-core/* 里面的包
-    files: ['packages/@core/base/**/**'],
-    ignores: restrictedImportIgnores,
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['@vben/*', '@vben-core/*'],
-              message:
-                'The @vben-core/shared package cannot import the @vben package, please use the @core/shared package itself',
-            },
-          ],
-        },
-      ],
-    },
-  },
-
-  {
-    // 不能引入@vben/*里面的包
+    // 底层包（design / icons / shared / typings / enums / utils）不能反向依赖上层：
+    // ui-kit 组件包、effects（layouts / router / request / directives / preferences / composables）与应用壳。
+    // 本仓只有一个 @antdv/* 命名空间，所以边界必须按包名枚举，不能按 scope 写。
+    // @antdv/shadcn-ui 是 vendored 原语层（icons 的 IconPicker 依赖它），属于允许项。
     files: [
-      'packages/core/base/typings/**/**',
+      'packages/core/base/**/**',
+      'packages/enums/**/**',
       'packages/utils/**/**',
-      'packages/core/base/icons/**/**',
-      'packages/constants/**/**',
-      'packages/core/base/design/**/**',
-      'packages/stores/**/**',
-      'packages/core/preferences/**/**',
-      'packages/locales/**/**',
     ],
     ignores: restrictedImportIgnores,
     rules: {
@@ -117,9 +74,25 @@ const customConfig: Linter.Config[] = [
         {
           patterns: [
             {
-              group: ['@vben/*'],
+              group: [
+                '@antdv/common-ui',
+                '@antdv/form-ui',
+                '@antdv/layout-ui',
+                '@antdv/menu-ui',
+                '@antdv/popup-ui',
+                '@antdv/table-ui',
+                '@antdv/tabs-ui',
+                '@antdv/backend-mock',
+                '@antdv/directives',
+                '@antdv/hooks',
+                '@antdv/layouts',
+                '@antdv/preferences',
+                '@antdv/request',
+                '@antdv/router',
+                '@antdv/web',
+              ],
               message:
-                'The @vben package cannot be imported, please use the @core package itself',
+                'Base packages must not depend on ui-kit, effects or app packages. Use the lowest package that already provides this.',
             },
           ],
         },
@@ -143,12 +116,6 @@ const customConfig: Linter.Config[] = [
     files: ['internal/**/**', 'scripts/**/**'],
     rules: {
       'no-console': 'off',
-    },
-  },
-  {
-    files: ['packages/@core/base/shared/src/utils/inference.ts'],
-    rules: {
-      'vue/prefer-import-from-vue': 'off',
     },
   },
 ];

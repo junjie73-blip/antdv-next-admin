@@ -1,5 +1,5 @@
 /**
- * 配置分层（对齐 Vben 的 `internal/vite-config/src/config`）：
+ * 配置分层（对齐上游 vue-vben-admin 的 `internal/vite-config/src/config`）：
  *
  * - `common`     ：任何构建目标都要的部分（别名、dedupe、缓存目录、CSS sourcemap）
  * - `application`：SPA —— 插件装配、dev server + Mock 代理、分包与压缩

@@ -66,7 +66,6 @@ Declared at `Table/types.ts:437-706`; defaults live in the `withDefaults` call a
 | `useSearchForm` / `formConfig` | `boolean` / `Partial<FormProps>` | built-in search area, see [Form](/en/components/form) |
 | `rowSelection` | `boolean \| TableRowSelection` | an object means checkboxes; `type: 'radio'` for single select |
 | `actionColumn` | `ActionColumnProps` | action column; `actions(record)` returns `ActionItem[]` |
-| `showTableSetting` / `tableSetting` | `boolean` / object | top-right column settings / refresh / density |
 | `dragSort` / `dragSortConfig` | `boolean` / object | see drag sorting below |
 | `scroll` | `{ x, y, scrollToFirstRowOnChange }` | horizontal / vertical scrolling |
 | `immediate` | `boolean` | fetch on mount, default `true` |

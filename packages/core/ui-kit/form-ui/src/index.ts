@@ -1,9 +1,5 @@
-export { default as BasicForm } from './components/form-render/form.vue';
 export { default as FormItem } from './components/form-render/form-field.vue';
-
-export { addComponent, componentMap, getComponent } from './config';
-
-export type { ComponentType } from './config';
+export { default as BasicForm } from './components/form-render/form.vue';
 
 export {
   getDynamicDisabled,
@@ -17,6 +13,10 @@ export {
   formatDateFields,
   handleRangeValue,
 } from './components/form-render/utils';
+
+export { addComponent, componentMap, getComponent } from './config';
+
+export type { ComponentType } from './config';
 
 export { compileFieldValidator, runRule } from './rule-registry';
 
@@ -40,4 +40,4 @@ export type {
   UseFormReturnType,
 } from './types';
 
-export { useForm } from './use-vben-form';
+export { useForm } from './use-antdv-form';

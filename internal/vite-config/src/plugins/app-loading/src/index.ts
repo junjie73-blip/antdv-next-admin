@@ -10,8 +10,9 @@ import { isEnvEnabled } from '../../../utils/env';
 import { DEFAULT_LOADING_HTML } from '../defaults/loading-html';
 import { DEFAULT_OPTIONS } from './constants';
 import { scanCssVariables } from './css-variables';
-import { injectLoadingHtml, resolveLoadingHtml } from './html-injector';
+import { injectLoadingHtml, injectThemeSync, resolveLoadingHtml } from './html-injector';
 import { generateThemeStyle } from './theme';
+import { themeSyncTag } from './theme-sync';
 import { resolveVirtualModule } from './virtual-module';
 
 export function vitePluginAppLoading(
@@ -80,7 +81,9 @@ export function vitePluginAppLoading(
             ? `<style data-app-loading-theme>${themeStyle}</style>`
             : '') + loadingHtmlContent;
 
-        return injectLoadingHtml(html, payload, options);
+        const withLoading = injectLoadingHtml(html, payload, options);
+        if (!options.themeSync) return withLoading;
+        return injectThemeSync(withLoading, themeSyncTag(options));
       },
     },
 

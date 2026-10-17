@@ -1,8 +1,8 @@
-import type { LayoutTone } from '../src/types';
+import type { LayoutTone } from '../src/layout';
 
 import { describe, expect, it } from 'vitest';
 
-import { useLayoutStyle } from '../src/useLayoutStyle';
+import { useLayoutStyle } from '../src/hooks/use-layout';
 
 /** 每个用例都从干净的一档开始，避免上一次的 tone 残留 */
 function styleOf(tone: LayoutTone) {
@@ -66,12 +66,21 @@ describe('useLayoutStyle - 「深色侧栏 / 深色顶栏」偏好', () => {
     expect(style.railClass()).toContain('bg-gray-900');
   });
 
-  it('偏好深色顶栏只影响顶栏那一行的菜单配色，外壳底色仍随明暗', () => {
+  /**
+   * 「顶栏反转色」的生效判据是顶栏那一行整条换深色：底色、文字、下边框、
+   * 里面的图标按钮四样一起走，判据是 `headerDark()` 而不是 `isDark()`。
+   * 侧栏与外壳不吃这个开关（那是「深色侧栏」与明暗模式的事）。
+   */
+  it('偏好深色顶栏只把顶栏整条换成深色，侧栏与外壳仍随明暗', () => {
     const style = styleOf({ headerDark: true });
     expect(style.headerDark()).toBe(true);
     expect(style.sidebarDark()).toBe(false);
-    expect(style.headerClass()).toContain('bg-white');
+    expect(style.headerClass()).toContain('bg-gray-800');
+    expect(style.headerClass()).toContain('text-white');
+    expect(style.headerClass()).toContain('border-gray-700');
+    expect(style.triggerClass()).toContain('text-gray-300');
     expect(style.siderClass()).toContain('bg-white');
+    expect(style.shellClass()).toContain('bg-gray-50');
   });
 
   it('整体深色时两个偏好开关多余，左右两列与顶栏都深色', () => {
@@ -92,19 +101,20 @@ describe('useLayoutStyle - 细节档位', () => {
     expect(style.railItemClass(false)).not.toContain('bg-primary/12');
   });
 
-  it('面包屑在顶栏里窄屏让位，独立成行时有高度与底边', () => {
-    // 断言按 token 比对：`cn` 会合并相邻工具类，字符串顺序不是契约的一部分
-    const tokens = (cls: string) => cls.split(' ');
-    const header = tokens(styleOf({}).breadcrumbClass('header'));
-    expect(header).toContain('hidden');
-    expect(header).toContain('md:flex');
-
-    const content = tokens(styleOf({}).breadcrumbClass('content'));
-    expect(content).toContain('h-9');
-    expect(content).toContain('bg-white');
+  it('侧栏拖拽条是一根细竖条，覆盖在右边框上且给出横向游标', () => {
+    const cls = styleOf({}).dragHandleClass();
+    expect(cls).toContain('cursor-col-resize');
+    expect(cls).toContain('w-1');
+    expect(cls).toContain('inset-y-0');
   });
 
-  it('默认按 header 档输出，调用方不传第二参数也不会报错', () => {
-    expect(styleOf({}).breadcrumbClass()).toContain('md:flex');
+  it('深浅色与极客档下折叠条都带边界线与 hover 反馈', () => {
+    expect(styleOf({}).collapseBarClass()).toContain('border-gray-100');
+    expect(styleOf({ dark: true }).collapseBarClass()).toContain(
+      'border-gray-800',
+    );
+    expect(styleOf({ geek: true }).collapseBarClass()).toContain(
+      'border-gray-800',
+    );
   });
 });

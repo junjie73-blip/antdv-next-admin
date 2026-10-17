@@ -1,16 +1,12 @@
-import type { ConfigProviderProps, ThemeConfig } from 'antdv-next';
-
 /**
- * antd 主题算法：单个派生函数，或算法数组（如 `[darkAlgorithm, compactAlgorithm]`）。
+ * 组件尺寸词汇。
  *
- * `antdv-next` 只在 `theme` 子模块里导出 `MappingAlgorithm`（单函数版），
- * 根入口没有，从根导入会直接 TS2614；这里直接从 `ThemeConfig` 派生，
- * 覆盖 antd 允许的全部写法，换 antdv 版本时只改这一行。
+ * `middle` 是 `medium` 的旧别名：历史偏好缓存里存的是它，删掉这个值会让
+ * `pickKnownPreferences` 在恢复缓存时丢键，用户升级后尺寸凭空回默认。
  */
-export type ThemeAlgorithm = NonNullable<ThemeConfig['algorithm']>;
+export type ComponentSize = 'large' | 'medium' | 'middle' | 'small';
 
 export type ThemeMode = 'auto' | 'dark' | 'light';
-export type ComponentSize = ConfigProviderProps['componentSize'];
 
 /**
  * 布局形态（7 种，语义见 `@antdv/layouts` 的区域蓝图）。
@@ -37,6 +33,10 @@ export type LayoutMode =
  */
 export type ContentMode = 'fixed' | 'full';
 
+/**
+ * 通知通道的出场位置（轻提示恒在屏幕居中，见 `@antdv/popup-ui` 的双 toaster 分工）。
+ * 值形态沿用 antd 的驼峰命名，映射到 sonner 的连字符写法由应用侧完成。
+ */
 export type NotificationPosition =
   | 'bottomLeft'
   | 'bottomRight'
@@ -78,22 +78,14 @@ export type ThemeStyle =
   | 'shadcn'
   | 'skeuomorphism';
 
-export interface ThemePreset {
-  name: string;
-  label: string;
-  algorithm?: ThemeAlgorithm;
-  token?: Record<string, unknown>;
-  components?: Record<string, Record<string, unknown>>;
-}
-
 export interface AppSetting {
   /* ---------- 主题 ---------- */
   theme: ThemeMode;
   themeStyle: ThemeStyle;
   primaryColor: string;
-  /** 圆角倍率：0 / 0.25 / 0.5 / 0.75 / 1 */
+  /** 圆角倍率：0 / 0.25 / 0.5 / 0.75 / 1，1 档 = 8px（`--radius-lg` 的基准） */
   borderRadius: number;
-  /** 基础字号（px） */
+  /** 正文字号（px），写侧按它折算根字号百分比 */
   fontSize: number;
   darkSidebar: boolean;
   darkHeader: boolean;
@@ -150,7 +142,6 @@ export interface AppSetting {
   timezone: string;
   enableWatermark: boolean;
   watermarkContent: string;
-  enableWaterRipple: boolean;
   notificationPosition: NotificationPosition;
   transitionEffect: TransitionEffect;
   /** 页面切换进度条 */

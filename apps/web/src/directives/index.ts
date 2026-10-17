@@ -11,7 +11,7 @@ import { watch } from 'vue';
 
 import { createPermissionDirective } from '@antdv/directives';
 import { usePermission } from '~/composables/web/permission';
-import { useUserStore } from '~/stores/modules/user';
+import { useUserStore } from '@antdv/stores';
 
 export { createLazyDirective, vLazy } from '@antdv/directives';
 export { escapeDirective, safeHtmlDirective } from '@antdv/shared/utils/xss';

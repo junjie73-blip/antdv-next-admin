@@ -1,0 +1,9 @@
+{
+  "extends": "@antdv/tsconfig/web.json",
+  "compilerOptions": {
+    // 源码只用 vue + DOM；node 类型是给 __tests__/boundary.test.ts 读目录用的（fs/path、import.meta.dirname）
+    "types": ["node"],
+    "noEmit": true
+  },
+  "include": ["src/**/*.ts", "__tests__/**/*.ts"]
+}

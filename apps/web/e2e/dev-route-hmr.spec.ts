@@ -15,7 +15,7 @@ import { go, region, signIn } from './utils/app';
  * 这层父记录**没有 name**，裸路由里根本不存在它。
  * 于是改一下二级页面（`views/system/user/index.vue` 这种），页面就被挂回顶层，
  * 顶栏 / 侧栏 / 标签栏 / 面包屑整套外壳一起消失，只能整页刷新找回来。
- * 更阴的是它按 name 自愈不回来：`stores/modules/route.ts` 的注册表对齐靠
+ * 更阴的是它按 name 自愈不回来：`@antdv/stores` 路由 store 的注册表对齐靠
  * `router.hasRoute(name)` 判断"这条还在不在"，布局壳没有 name，永远判不到它缺席。
  *
  * 生产构建里 `import.meta.hot` 被替换成 false，这段逻辑整个不进包，

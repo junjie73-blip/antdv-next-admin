@@ -13,6 +13,8 @@
  * `@theme inline` 而不是 `@theme`：inline 让工具类直接内联 `var(--app-*)`，
  * 于是 `.dark` 与 `[data-theme]` 的覆盖能生效；写成 `--color-x: var(--app-x)`
  * 的非 inline 形式会在 :root 求值一次，换主题就冻在首屏值上了。
+ * 同一件事也决定了圆角：`rounded-lg` 内联的是 `var(--app-border-radius)` 本身，
+ * 偏好面板往 html 上内联写一条新值，全站半径才跟着动。
  */
 
 /* CSS 规范只允许 @import 出现在普通规则之前，两套主题必须先引完再声明 @theme */
@@ -48,4 +50,24 @@
   --color-sidebar-accent-foreground: var(--app-sidebar-accent-foreground);
   --color-sidebar-border: var(--app-sidebar-border);
   --color-sidebar-ring: var(--app-sidebar-ring);
+
+  --color-success: var(--app-success);
+  --color-warning: var(--app-warning);
+  --color-info: var(--app-info);
+
+  /*
+   * 圆角刻度：以 `--app-border-radius` 为 lg 档基准，其余按比例派生。
+   *
+   * 基准取 8px 时，sm/md/lg/xl/2xl 正好是 Tailwind 自带的 4/6/8/12/16px ——
+   * 也就是"偏好不动时视觉零变化"，而动圆角时整条刻度按比例一起缩放（含缩到 0）。
+   * 用乘法而不是 shadcn 官方的 `calc(var(--radius) ± 4px)`：减法档在 0 时算出负半径，
+   * 那条声明会被浏览器丢掉， xl/2xl 就还是圆的，"取消圆角"取消不干净。
+   */
+  --radius-xs: calc(var(--app-border-radius) * 0.25);
+  --radius-sm: calc(var(--app-border-radius) * 0.5);
+  --radius-md: calc(var(--app-border-radius) * 0.75);
+  --radius-lg: var(--app-border-radius);
+  --radius-xl: calc(var(--app-border-radius) * 1.5);
+  --radius-2xl: calc(var(--app-border-radius) * 2);
+  --radius-3xl: calc(var(--app-border-radius) * 3);
 }

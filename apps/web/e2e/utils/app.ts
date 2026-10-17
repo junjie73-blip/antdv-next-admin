@@ -432,7 +432,7 @@ export interface AccessState {
 }
 
 /**
- * 读前端算出来的授权集（`stores/modules/route.ts` 的 allowedNames/allowedPaths）。
+ * 读前端算出来的授权集（`@antdv/stores` 路由 store 的 allowedNames/allowedPaths）。
  *
  * 为什么直接读 store 而不是只看导航：本项目的权限来源就是这份集合（菜单即权限），
  * 而导航只是它的一个消费方 —— 侧栏少一项可能是渲染问题，也可能是授权问题，
@@ -544,4 +544,34 @@ export async function closePreferenceDrawer(page: Page) {
     .getByRole('button', { name: '关闭', exact: true })
     .click();
   await expect(page.locator('.setting-drawer')).toBeHidden();
+}
+
+/** 读 `<html>` 上的 CSS 变量（偏好写入的落点） */
+export function cssVar(page: Page, name: string) {
+  return page.evaluate(
+    (key) =>
+      getComputedStyle(document.documentElement).getPropertyValue(key).trim(),
+    name,
+  );
+}
+
+/**
+ * 把一个 CSS 颜色值算成浏览器实际画出来的颜色。
+ *
+ * 不能直接比字符串：`var(--app-success)` 在令牌里是 `#52c41a`，画出来是
+ * `rgb(82, 196, 26)`，而 `color-mix(in oklab, …)` 算出来是 `oklab(…)`。
+ * 挂一个探针元素让浏览器自己换算，拿到的两边才是同一种口音。
+ */
+export function painted(page: Page, cssValue: string) {
+  return page.evaluate(
+    (value) => {
+      const probe = document.createElement('span');
+      probe.style.color = value;
+      document.body.append(probe);
+      const color = getComputedStyle(probe).color;
+      probe.remove();
+      return color;
+    },
+    cssValue,
+  );
 }

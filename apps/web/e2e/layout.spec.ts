@@ -267,9 +267,7 @@ test.describe('布局形态', () => {
     await setLayout(page, 'mixed-vertical');
     await go(page, '/system/user');
 
-    const headerItems = region(page, 'header-nav').locator(
-      '.menu-item',
-    );
+    const headerItems = region(page, 'header-nav').locator('.menu-item');
     const sideItems = region(page, 'sidebar').locator('.menu-item');
 
     // 原缺陷的回归保护：曾经"点了菜单，两级导航都是空的"，
@@ -308,9 +306,7 @@ test.describe('布局形态', () => {
     await go(page, '/system/dept');
     // 一级高亮仍归「系统管理」，而不是退回第一项
     await expect(
-      region(page, 'header-nav').locator(
-        '[data-menu-state="selected"]',
-      ),
+      region(page, 'header-nav').locator('[data-menu-state="selected"]'),
     ).toContainText('系统管理');
     // 标签页拿到的是菜单标题而不是路径
     await expect(tab(page, '/system/dept')).toHaveText(/部门管理/);
@@ -475,8 +471,7 @@ test.describe('面包屑', () => {
         (el: Element | null | undefined): null | string => {
           const slot = el?.querySelector(marker);
           if (!slot) return null;
-          const svg =
-            slot.tagName === 'svg' ? slot : slot.querySelector('svg');
+          const svg = slot.tagName === 'svg' ? slot : slot.querySelector('svg');
           return svg?.innerHTML ?? null;
         };
 
@@ -682,7 +677,10 @@ test.describe('侧边菜单样式', () => {
     await expect(bar).toHaveAttribute('aria-expanded', 'true');
 
     await bar.click();
-    await expect(sidebar).toHaveAttribute('data-layout-sider-collapsed', 'true');
+    await expect(sidebar).toHaveAttribute(
+      'data-layout-sider-collapsed',
+      'true',
+    );
     await expect(bar).toHaveAttribute('aria-expanded', 'false');
     await expect(bar).toHaveAttribute('aria-label', '展开菜单');
     // 收起后的宽度是设计 token（`LAYOUT_SIDEBAR_COLLAPSED_WIDTH`），只说"变窄了"太松
@@ -700,6 +698,59 @@ test.describe('侧边菜单样式', () => {
       Math.abs((await settledWidth(sidebar)) - expandedWidth),
       `展开后宽度没回到 ${expandedWidth}`,
     ).toBeLessThanOrEqual(1);
+  });
+
+  /**
+   * 拖这一列的右边缘改宽度。
+   *
+   * 钉三件单测看不见的事：
+   * 1. 拖拽条真的压在右边框上（`box.x` 就是这一列的右边缘，能点着）；
+   * 2. 拖动中跟手、松手后停在拖到的位置（过渡动画没把预览吃掉）；
+   * 3. 松手那一下写进了偏好 —— 刷新还在，才是"宽度"而不是"一次性的样式"。
+   *
+   * 结尾拖回原宽度：偏好会活过 reload，留着 270 会让后面的用例读到意外值。
+   */
+  test('拖右边缘改这一列宽度，松手落盘且活过刷新', async ({ page }) => {
+    await go(page, '/system/user');
+
+    const sidebar = region(page, 'sidebar');
+    const handle = page.locator('[data-layout-sidebar-drag]');
+    await expect(handle).toHaveCount(1);
+    const before = await settledWidth(sidebar);
+
+    /**
+     * 从当前右边缘拖 `delta`，拖动中与松手后都断言宽度。
+     * 每轮重取盒模型：上一轮拖完竖条已经跟着新宽度挪了位置。
+     */
+    async function dragBy(delta: number, expectWidth: number) {
+      const box = await handle.boundingBox();
+      if (!box) throw new Error('拖拽条没有盒模型，点不着');
+      const x = box.x + box.width / 2;
+      const y = box.y + box.height / 2;
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      await page.mouse.move(x + delta, y, { steps: 4 });
+      // 拖动中就跟手：预览宽度来自 hook，不等 store 回写
+      await expect(sidebar).toHaveCSS('width', `${expectWidth}px`);
+      await page.mouse.up();
+      await expect(sidebar).toHaveCSS('width', `${expectWidth}px`);
+    }
+
+    await dragBy(60, before + 60);
+
+    await page.reload();
+    await expect(sidebar).toHaveCSS('width', `${before + 60}px`);
+
+    // 偏好会活过 reload，不拖回去会把这一列留给后面的用例
+    await dragBy(-60, before);
+
+    // 折叠态这一列只有图标宽度，不该还能拖
+    await page.locator('[data-layout-sidebar-collapse]').click();
+    await expect(sidebar).toHaveAttribute(
+      'data-layout-sider-collapsed',
+      'true',
+    );
+    await expect(handle, '折叠态不给拖拽条').toHaveCount(0);
   });
 
   /**

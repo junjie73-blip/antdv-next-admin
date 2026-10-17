@@ -5,10 +5,12 @@ import type { BasicColumn } from '@antdv/table-ui';
 import { computed, ref } from 'vue';
 
 import { Divider, Popconfirm, Scrollbar, Tag } from '@antdv/common-ui';
-
+import { DictType } from '@antdv/enums';
+import { BasicForm, useForm } from '@antdv/form-ui';
+import { BasicModal, message, useModal } from '@antdv/popup-ui';
 import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
-import { exportToExcel } from '~/utils/excel';
+import { BasicTable, useTable } from '@antdv/table-ui';
 import { Icon } from '@iconify/vue';
 import {
   addDict,
@@ -20,11 +22,8 @@ import {
   updateDict,
   updateDictItem,
 } from '~/api/system';
-import { BasicForm, useForm } from '@antdv/form-ui';
-import { BasicModal, message, useModal } from '@antdv/popup-ui';
-import { BasicTable, useTable } from '@antdv/table-ui';
-import { DictType } from '@antdv/enums';
 import { useDictStore } from '~/stores';
+import { exportToExcel } from '~/utils/excel';
 
 defineOptions({ name: 'SystemDict' });
 
@@ -558,7 +557,6 @@ loadDictTypes();
             :api="mockItemApi"
             :immediate="true"
             :use-search-form="false"
-            :show-table-setting="false"
             :pagination="{
               showSizeChanger: true,
               pageSizeOptions: ['10', '20', '50'],

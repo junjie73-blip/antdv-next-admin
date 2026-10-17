@@ -5,7 +5,7 @@ import type { BasicColumn } from '@antdv/table-ui';
 
 import { ref } from 'vue';
 
-import { usePrint } from '@antdv/composables/usePrint';
+import { usePrint } from '@antdv/hooks/use-print';
 import {
   Alert,
   Card,
@@ -338,7 +338,11 @@ const columns: BasicColumn[] = [
     </div>
 
     <!-- 表格区域 -->
-    <Card title="登录日志" :class="cardClassName" body-class="login-log-print-area">
+    <Card
+      title="登录日志"
+      :class="cardClassName"
+      body-class="login-log-print-area"
+    >
       <BasicTable
         :columns="columns"
         :api="mockApi"

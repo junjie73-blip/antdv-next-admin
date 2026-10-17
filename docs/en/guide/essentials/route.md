@@ -38,7 +38,7 @@ The type is defined in `packages/types/src/app-router.ts:3-12`:
 | `layout` | `'blank' \| 'default'` | Login/register/error pages use `blank` |
 | `roles` / `permissions` | **No consumer** | Button-level permissions go through a directive instead; see [Permissions, directives and cursors](/en/guide/in-depth/access) |
 
-The app side also reads two fields **not written into `RouteMeta`**: `meta.microApp` (`apps/web/src/layouts/index.vue:246`) and `meta.noTransition` (`:252`). No route in the repo currently sets them; remember to add the types before using them.
+The composition layer also reads two fields **not written into `RouteMeta`**: `meta.microApp` (`packages/layouts/src/basic/layout.vue:285`) and `meta.noTransition` (`:294`). No route in the repo currently sets them; remember to add the types before using them.
 
 ## Guards: five fixed stages
 

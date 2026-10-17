@@ -6,18 +6,20 @@ import {
   closePreferenceDrawer,
   go,
   openPreferenceDrawer,
+  settingControl,
   signIn,
 } from './utils/app';
 
 /**
  * 主题色要**真的生效**。
  *
- * 原缺陷：偏好里换了主色，只有 CSS 变量跟着动，antd 侧一片纹丝不动 ——
- * 侧栏"选中父级"的字色、表格里 `type="link"` 的操作按钮、输入框聚焦光晕全还是蓝的。
- * 根因不在设置面板，而在 `@antdv/preferences` 的主题常量：
- * 那批本该由算法从种子色派生的键（`colorPrimaryHover`、`controlItemBgActive`、
- * `Menu.itemSelectedColor`、`colorLink*` …）被按 Tailwind 蓝写死了，
- * 覆盖在用户选的颜色之上。
+ * 原缺陷：偏好里换了主色，只有 CSS 变量跟着动，组件侧一片纹丝不动 ——
+ * 侧栏"选中父级"的字色、表格里 link 型操作按钮、输入框聚焦光晕全还是蓝的。
+ * 根因是当初有两条互不相干的主色链路：设计 token 读 `--app-primary`，
+ * 而组件那侧的值被按 Tailwind 蓝写死（`colorPrimaryHover`、`Menu.itemSelectedColor`、
+ * `colorLink*` 这些本该由算法从种子色派生的键），盖在用户选的颜色之上。
+ * 现在全站只有一条链路：预设色 = `[data-theme]` 色板，自定义色 = `html` 上的内联
+ * `--app-primary`，组件一律读 `bg-primary` / `text-primary` 这一类语义 token。
  *
  * 所以这里不测"设置面板有没有把值存进去"（那层一直是好的），
  * 测**浏览器实际算出来的颜色**：计算样式是唯一能同时穿过 token、CSS 变量、
@@ -29,11 +31,16 @@ function colorOf(locator: Locator) {
   return locator.evaluate((node) => getComputedStyle(node).color);
 }
 
-/** 写在 `html` 上的主色变量（antdv-next 组件读它） */
+/**
+ * 设计规范自己那条主色链路（`@antdv/design` 的 `[data-theme]` 色板 → `--app-primary`）。
+ *
+ * 预设档不内联变量，值从色板里来；取色器选的自定义色才写在 `html` 的 style 上。
+ * 读计算样式两条都覆盖，而 `--ant-color-primary` 那组兼容层变量已经整体删掉了。
+ */
 function cssPrimary(page: Page) {
   return page.evaluate(() =>
     getComputedStyle(document.documentElement)
-      .getPropertyValue('--ant-color-primary')
+      .getPropertyValue('--app-primary')
       .trim()
       // 色板里的写法是小写（`shared/constants/theme-presets.ts`），大小写不是契约的一部分
       .toUpperCase(),
@@ -46,8 +53,8 @@ const PICKED_RGB = 'rgb(250, 84, 28)';
 
 /**
  * 列表操作列里的「详情」按钮。
- * 显式点名而不是 `.ant-btn-link.first()`：同一格里紧跟其后的「删除」是 danger，
- * 走 colorError 派生链，拿它当主色判据会假红。
+ * 显式点名而不是"取第一个 link 按钮"：同一格里紧跟其后的「删除」是 danger 档，
+ * 走破坏色那条派生链，拿它当主色判据会假红。
  */
 function linkButton(page: Page) {
   return page.getByRole('button', { name: '详情', exact: true }).first();
@@ -61,9 +68,7 @@ test.describe('主题色真的生效', () => {
     await go(page, '/system/user');
 
     // 侧栏里当前页所在子树的父级（menu-ui 的 `data-menu-state="ancestor"`）
-    const selectedParent = page
-      .locator('[data-menu-state="ancestor"]')
-      .first();
+    const selectedParent = page.locator('[data-menu-state="ancestor"]').first();
     const detailButton = linkButton(page);
     await expect(selectedParent).toBeVisible();
     await expect(detailButton).toBeVisible();
@@ -79,10 +84,10 @@ test.describe('主题色真的生效', () => {
 
     /**
      * 三条链一起断：
-     * - CSS 变量：偏好 → DOM（原本就是通的，留着当基准）；
-     * - 选中父级：`Menu.itemSelectedColor` / `subMenuItemSelectedColor` → colorPrimary；
-     * - link 按钮：`colorLink` → 主色（antd 默认把它绑在自己的 `#1677ff` 上，
-     *   不显式接就永远不跟主题，这条正是用户点名的那个失效点）。
+     * - CSS 变量：偏好 → `[data-theme]` 档位（设计规范的取色入口）；
+     * - 选中父级：menu-ui 的 `text-primary`；
+     * - 操作列按钮：table-ui 的 link 型按钮同样落回 `text-primary`。
+     *   这三处以前各自有各自的写死值，所以必须一起测 —— 漏一条就是"换了主题，某处还是蓝的"。
      */
     await expect
       .poll(() => cssPrimary(page), { message: '主色变量没换' })
@@ -116,5 +121,40 @@ test.describe('主题色真的生效', () => {
     await expect
       .poll(() => colorOf(linkButton(page)))
       .toBe('rgb(235, 47, 150)');
+  });
+
+  test('时区小部件的选中态跟着主色走（这里曾经写死蓝色）', async ({
+    page,
+  }) => {
+    await signIn(page);
+    await go(page, '/system/user');
+
+    const drawer = await openPreferenceDrawer(page, '外观');
+    await drawer.getByRole('button', { name: '橙黄色' }).click();
+    await closePreferenceDrawer(page);
+
+    // 时区小部件默认关掉，先在「布局 · 小部件」里打开它
+    const layout = await openPreferenceDrawer(page, '布局');
+    await settingControl(layout, '时区小部件').click();
+    await closePreferenceDrawer(page);
+
+    await page.getByTestId('timezone-widget').click();
+    // 当前时区那一项由 `aria-current` 标出来，不靠顺序猜
+    const activeOption = page
+      .locator('[data-testid^="timezone-option-"][aria-current="true"]')
+      .first();
+    await expect(activeOption).toBeVisible();
+
+    await expect
+      .poll(() => colorOf(activeOption), {
+        message: '选中项的字色还是写死的蓝',
+      })
+      .toBe(PICKED_RGB);
+    // 底色是主色的 10% 淡染，算出来一定不是原来那支 blue-50
+    await expect
+      .poll(() =>
+        activeOption.evaluate((node) => getComputedStyle(node).backgroundColor),
+      )
+      .not.toBe('rgb(239, 246, 255)');
   });
 });

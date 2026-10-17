@@ -131,7 +131,7 @@ const [register, { validate, setFieldsValue, getFieldsValue }] = useForm({
 | `slot` | 该字段的内容改为渲染页面同名插槽，作用域参数是 `{ model, field }`（`FormItem.vue:184-186`，转发链路 `BasicForm.vue:472-478`） |
 | `defaultValue` | 挂载与每次 `setProps({ schemas })` 都会重灌一遍（`BasicForm.vue:246-254,388-391`） |
 
-::: warning schema 上这些字段是死的 `subLabel`、`emptySpan`、`disabledLabelWidth`、`render`、`renderColContent`、`renderComponentContent`、`colSlot`、`isAdvanced`、`children`、`changeEvent`（`types.ts:61-101` 里都在，`FormItem.vue` / `BasicForm.vue` / `helper.ts` 一个都没读）。尤其别按 vben 的经验去写 `render` / `colSlot` —— 这里的 `FormItem.vue` 只有 `slot` 一条自定义渲染路径（`FormItem.vue:184-206`），`render` 写了不报错，也不显示。:::
+::: warning schema 上这些字段是死的 `subLabel`、`emptySpan`、`disabledLabelWidth`、`render`、`renderColContent`、`renderComponentContent`、`colSlot`、`isAdvanced`、`children`、`changeEvent`（`types.ts:61-101` 里都在，`FormItem.vue` / `BasicForm.vue` / `helper.ts` 一个都没读）。尤其别按 vue-vben-admin 的经验去写 `render` / `colSlot` —— 这里的 `FormItem.vue` 只有 `slot` 一条自定义渲染路径（`FormItem.vue:184-206`），`render` 写了不报错，也不显示。:::
 
 ## 组件解析：只查 `componentMap`
 
@@ -192,7 +192,7 @@ const [register, { validate, setFieldsValue, getFieldsValue }] = useForm({
 | `#/components/form/basic` | 一张 14 字段的表单：`required` 简写、`rules`、`colProps.span` 两列排版、`showAdvancedButton` + `alwaysShowLines: 2` 的折叠、`fieldMapToTime` 拆 `timeRange`（`views/components/form/basic/index.vue:11-192`）。四个按钮分别演示 `validate()` / `resetFields()` / `setFieldsValue()` / `getFieldsValue()`，结果 JSON打在第二张卡片（233-252）。这一页两张卡片都没写 `variant="borderless"`（235、248），和目录页那条约定不一致 |
 | `#/components/form/steps` | 四段，全部**一个 `BasicForm` 实例跑完整条流程**，换步骤靠 `setProps({ schemas })`（`views/components/form/steps/index.vue:10-16,114-124`）：① 下一步带本步门禁、最后出本地摘要（790）；② 下一步不校验 + 草稿（843）；③ 步骤条可点回退 + 底部按钮塞进 `#submitBefore` / `#actionAfter`（907）；④ `slot` 字段做表格化多选与只读摘要（966） |
 | `#/components/form/validation` | 四张卡片对应四份 schema：必填与格式（385）、长度与数值区间（416）、异步与跨字段（448）、校验时机与结果（479） |
-| `#/components/form/custom-component` | 四张卡片：`MarkdownEditor` 内置扩展（236）、`addComponent('TagPickerField', …)`（251）、`ifShow`/`show`/`dynamicDisabled`/`dynamicRules` 联动（270）、自定义 `validator` 拦截提交（287） |
+| `#/components/form/custom-component` | 四张卡片：`MarkdownEditor` 内置扩展（240，字段值由 `FMarkdown` 的 `content-type="markdown"` 决定，存的是 Markdown 源码）、`addComponent('TagPickerField', …)`（254）、`ifShow`/`show`/`dynamicDisabled`/`dynamicRules` 联动（278）、自定义 `validator` 拦截提交（295） |
 | `#/components/form-designer` | 第三方表单设计器，见下一节 |
 
 ::: warning 分步表单的草稿是示例页自己写的键名 `demo:form-steps:draft` 定义在 `views/components/form/steps/index.vue:55`，写/读/删分别是本页的 `saveDraft`（498-510）、`readStoredDraft` + `restoreDraft`（477-523）、`clearDraft`（525-529）。**`BasicForm` 完全没有草稿能力**，`FormProps` 里也没有相关字段；草稿存的是 `{ savedAt, step, values }` 的 `JSON.stringify`，只活在这台浏览器里。同理，「提交」只做整表校验并把值打出来，一个请求都不发（`372-377`、`545-550`、`775-780`）。:::

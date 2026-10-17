@@ -1,5 +1,3 @@
-import type { BadgeProps } from 'antdv-next';
-
 /**
  * 菜单/标签页统一 key 类型。
  *
@@ -31,13 +29,27 @@ export interface MicroAppConfig {
 }
 
 /**
+ * 徽标语义状态。
+ *
+ * 渲染层（`@antdv/menu-ui` 的 `MenuBadge`）把这张表当类名表的键用，
+ * 所以加一个状态忘了配色会直接编译不过。这里不再从任何 UI 库派生：
+ * 词汇本身是这套徽标的定义，antd 的 `BadgeProps['status']` 只是恰好同名。
+ */
+export type MenuBadgeStatus =
+  | 'default'
+  | 'error'
+  | 'processing'
+  | 'success'
+  | 'warning';
+
+/**
  * 菜单徽标配置。
  * 渲染层（`@antdv/menu-ui` 的 `MenuBadge`）会把它画成徽标（text 数字徽标或 dot 圆点）。
  */
 export interface MenuBadge {
   text?: number | string;
   dot?: boolean;
-  status?: BadgeProps['status'];
+  status?: MenuBadgeStatus;
   overflowCount?: number;
 }
 

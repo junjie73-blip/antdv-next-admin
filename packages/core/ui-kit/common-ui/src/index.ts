@@ -1,6 +1,32 @@
 export { Alert } from './components/alert';
+export {
+  AuthColorPresets,
+  AuthFormPanel,
+  AuthPageLayout,
+  AuthSocialLogin,
+} from './components/auth';
+export type {
+  AuthColorPreset,
+  AuthColorPresetsProps,
+  AuthFeatureItem,
+  AuthFormPanelProps,
+  AuthPageLayoutProps,
+  AuthSocialItem,
+  AuthSocialLoginProps,
+} from './components/auth';
 export { Badge } from './components/badge';
 export { Card } from './components/card';
+export {
+  ConfigProvider,
+  DEFAULT_GLOBAL_CONFIG,
+  GLOBAL_CONFIG_KEY,
+  textsByLocale,
+  useGlobalConfig,
+} from './components/config-provider';
+export type {
+  GlobalConfig,
+  ResolvedGlobalConfig,
+} from './components/config-provider';
 export { CountTo } from './components/count-to';
 export type {
   CountToEvents,
@@ -49,6 +75,19 @@ export type {
   LoadingTheme,
   UseLoadingOptions,
 } from './components/loading';
+export { MarkdownEditor } from './components/markdown-editor';
+export type {
+  ImageUploadConfig,
+  MarkdownEditorEvents,
+  MarkdownEditorInstance,
+  MarkdownEditorMode,
+  MarkdownEditorProps,
+  MarkdownEditorTheme,
+  MarkdownEditorToolbarConfig,
+  MarkdownEditorToolbarKey,
+  UploadResponse,
+  VideoUploadConfig,
+} from './components/markdown-editor';
 export { Popconfirm } from './components/popconfirm';
 export { Result } from './components/result';
 export { Scrollbar } from './components/scrollbar';

@@ -9,7 +9,7 @@ import { computed, ref, useTemplateRef } from 'vue';
 
 import { Card, Image, Scrollbar, Upload } from '@antdv/common-ui';
 // ===== 大文件切片上传 =====
-import { useChunkUpload } from '@antdv/composables/useChunkUpload';
+import { useChunkUpload } from '@antdv/hooks/use-chunk-upload';
 import { message } from '@antdv/popup-ui';
 
 import {
@@ -386,8 +386,12 @@ const largeFileTableProgressFillClassName = cn(
 const largeFileTableProgressTextClassName = cn(
   'w-10 text-right text-xs text-gray-500',
 );
-const largeFileTableActionsClassName = cn('flex gap-1');
-const largeFileTableProgressRowClassName = cn('flex items-center gap-2');
+const largeFileTableActionsClassName = cn(
+  'flex flex-wrap items-center justify-center gap-1',
+);
+const largeFileTableProgressRowClassName = cn(
+  'flex items-center justify-center gap-2',
+);
 
 interface FileQueueItem {
   id: string;
@@ -400,7 +404,6 @@ interface FileQueueItem {
 
 /** 大文件表格列：与模板里按 `column.key` 分支渲染的单元格一一对应 */
 interface LargeFileColumn {
-  align?: 'center' | 'left' | 'right';
   dataIndex?: keyof FileQueueItem;
   ellipsis?: boolean;
   key: string;
@@ -409,7 +412,7 @@ interface LargeFileColumn {
 }
 
 const largeFileColumns: LargeFileColumn[] = [
-  { title: '缩略图', key: 'thumbnail', width: 80, align: 'center' },
+  { title: '缩略图', key: 'thumbnail', width: 80 },
   { title: '文件名', dataIndex: 'fileName', key: 'fileName', ellipsis: true },
   { title: '大小', key: 'fileSize', width: 120 },
   { title: '进度', key: 'progress', width: 220 },
@@ -980,18 +983,27 @@ function handlePreviewOpenChange(value: boolean) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead v-for="column in largeFileColumns" :key="column.key">
+            <!-- 整表单元格统一居中：表头跟着正文对齐，否则居中的内容顶着左对齐的标题 -->
+            <TableHead
+              v-for="column in largeFileColumns"
+              :key="column.key"
+              class="text-center"
+            >
               {{ column.title }}
             </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           <TableRow v-for="record in fileQueue" :key="record.id">
-            <TableCell v-for="column in largeFileColumns" :key="column.key">
+            <TableCell
+              v-for="column in largeFileColumns"
+              :key="column.key"
+              class="text-center"
+            >
               <template v-if="column.key === 'thumbnail'">
                 <div
                   v-if="isImageFile(record.fileName)"
-                  class="h-10 w-10 cursor-pointer overflow-hidden rounded border border-gray-200"
+                  class="mx-auto h-10 w-10 cursor-pointer overflow-hidden rounded border border-gray-200"
                   @click="handlePreview(record)"
                 >
                   <img
@@ -1002,7 +1014,7 @@ function handlePreviewOpenChange(value: boolean) {
                 </div>
                 <div
                   v-else-if="getPreviewType(record.fileName)"
-                  class="flex h-10 w-10 cursor-pointer items-center justify-center rounded bg-gray-100 transition-colors hover:bg-blue-50 dark:bg-gray-800 dark:hover:bg-blue-900/30"
+                  class="mx-auto flex h-10 w-10 cursor-pointer items-center justify-center rounded bg-gray-100 transition-colors hover:bg-blue-50 dark:bg-gray-800 dark:hover:bg-blue-900/30"
                   @click="handlePreview(record)"
                 >
                   <Icon
@@ -1013,7 +1025,7 @@ function handlePreviewOpenChange(value: boolean) {
                 </div>
                 <div
                   v-else
-                  class="flex h-10 w-10 items-center justify-center rounded bg-gray-100 dark:bg-gray-800"
+                  class="mx-auto flex h-10 w-10 items-center justify-center rounded bg-gray-100 dark:bg-gray-800"
                 >
                   <Icon
                     :icon="getFileIcon(record.fileName)"

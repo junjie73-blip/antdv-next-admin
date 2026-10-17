@@ -207,7 +207,6 @@ describe('BasicTable 拖拽接线', () => {
         dataSource: rows(),
         dragSort: true,
         dragSortConfig: { handle: 'tr' },
-        showTableSetting: false,
       },
     });
     await flushPromises();
@@ -222,7 +221,6 @@ describe('BasicTable 拖拽接线', () => {
       props: {
         columns: [{ dataIndex: 'name', title: '名称' }],
         dataSource: rows(),
-        showTableSetting: false,
       },
     });
     await flushPromises();
@@ -237,7 +235,6 @@ describe('BasicTable 拖拽接线', () => {
         dataSource: rows(),
         dragSort: true,
         dragSortConfig: { onDragEnd },
-        showTableSetting: false,
       },
     }) as any;
     await flushPromises();

@@ -2,6 +2,8 @@ import type { ResolvedConfig } from 'vite';
 
 import type { AppLoadingOptions } from './types';
 
+import { THEME_SYNC_MARKER } from './theme-sync';
+
 export function injectLoadingHtml(
   html: string,
   loadingHtml: string,
@@ -31,6 +33,18 @@ export function injectLoadingHtml(
       return html.replace(/<body([^>]*)>/i, `<body$1>\n${loadingHtml}`);
     }
   }
+}
+
+/**
+ * 首屏主题脚本注入 `<head>` 末尾。
+ *
+ * 放 head 而不是跟着遮罩一起进 body：head 里的内联脚本先于 body 解析执行，
+ * `<html>` 的 class / 变量在遮罩第一次被画出来之前就位，用户看不到"出厂色 → 主题色"的跳变。
+ */
+export function injectThemeSync(html: string, tag: string): string {
+  if (html.includes(THEME_SYNC_MARKER)) return html;
+  if (!/<\/head>/i.test(html)) return html;
+  return html.replace(/<\/head>/i, `${tag}\n</head>`);
 }
 
 export function resolveLoadingHtml(

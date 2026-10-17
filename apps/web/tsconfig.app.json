@@ -4,6 +4,10 @@
     // `vue-tsc --build` produces a .tsbuildinfo file for incremental type-checking.
     // Specified here to keep it out of the root directory.
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    // `@vue/tsconfig/tsconfig.dom.json` 的 lib 停在 ES2020，比本仓库 `@antdv/tsconfig/base.json`
+    // （target ES2022）低；不显式抬高就会把 `replaceAll` / `Array.prototype.at` 判成不存在，
+    // 而这些 API 是子包源码（如 common-ui 的 Markdown 序列化）在用的。
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     // Path mapping for cleaner imports.
     // TS 6 起 `paths` 相对 tsconfig 解析，不再需要（也不允许）`baseUrl`。
     "paths": {

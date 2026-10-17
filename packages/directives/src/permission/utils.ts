@@ -170,7 +170,6 @@ export function isDomInSync(
  *  - `.disabled` 修饰符：只禁用，保留可见（按钮灰掉比消失更易理解）
  *
  * 为什么不「移出 DOM」：指令删节点会让 Vue 的 patch 找不到锚点，
- * 兄弟节点 diff 直接错乱。Vben 也只在特定容器上这么做。
  */
 export function applyPermissionState(
   el: HTMLElement,

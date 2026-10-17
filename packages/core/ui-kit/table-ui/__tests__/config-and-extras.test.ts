@@ -3,10 +3,9 @@ import type { Recordable, TableActionType } from '../src/types';
 import { flushPromises, mount } from '@vue/test-utils';
 import { h, nextTick, ref } from 'vue';
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import BasicTable from '../src/BasicTable.vue';
-import TableSetting from '../src/components/TableSetting.vue';
 import { configureTable, tableRuntime } from '../src/config';
 import { features } from '../src/features';
 import * as indexExports from '../src/index';
@@ -75,7 +74,6 @@ describe('configureTable / tableRuntime', () => {
         },
         columns,
         dataSource: undefined,
-        showTableSetting: false,
       },
     });
     await wait();
@@ -97,7 +95,6 @@ function mountRegistered(
     props: {
       columns,
       dataSource: rows,
-      showTableSetting: false,
       ...props,
       onRegister: register,
     },
@@ -113,10 +110,7 @@ describe('useTable', () => {
       pagination: { pageSize: 5 },
     });
 
-    const wrapper = mountRegistered(register, {
-      dataSource: undefined,
-      showTableSetting: false,
-    });
+    const wrapper = mountRegistered(register, { dataSource: undefined });
     await wait();
     await nextTick();
 
@@ -179,183 +173,6 @@ describe('useTable', () => {
   });
 });
 
-describe('TableSetting', () => {
-  let requestFullscreen: ReturnType<typeof vi.fn>;
-  let exitFullscreen: ReturnType<typeof vi.fn>;
-  let fullscreenEl: Element | null;
-
-  beforeEach(() => {
-    // jsdom 没有 Fullscreen API：`toggleFullscreen` 靠 `document.fullscreenElement`
-    // 判断当前处于哪个方向，所以要把它做成可读写的假状态
-    fullscreenEl = null;
-    requestFullscreen = vi.fn(async () => {
-      fullscreenEl = document.documentElement;
-    });
-    exitFullscreen = vi.fn(async () => {
-      fullscreenEl = null;
-    });
-    Object.defineProperty(document.documentElement, 'requestFullscreen', {
-      configurable: true,
-      value: requestFullscreen,
-    });
-    Object.defineProperty(document, 'exitFullscreen', {
-      configurable: true,
-      value: exitFullscreen,
-    });
-    Object.defineProperty(document, 'fullscreenElement', {
-      configurable: true,
-      get: () => fullscreenEl,
-    });
-  });
-
-  it('三个按钮按 tableSetting 开关逐个渲染', async () => {
-    const wrapper = mount(BasicTable, {
-      props: {
-        columns,
-        dataSource: rows,
-        showTableSetting: true,
-        tableSetting: { fullScreen: false, redo: false, setting: true },
-      },
-    });
-    await nextTick();
-    const setting = wrapper.find('.basic-table-setting');
-    expect(setting.exists()).toBe(true);
-    expect(setting.find('button[title="列设置"]').exists()).toBe(true);
-    expect(setting.find('button[title="刷新"]').exists()).toBe(false);
-    expect(setting.find('button[title="全屏"]').exists()).toBe(false);
-    wrapper.unmount();
-  });
-
-  it('刷新按钮触发 reload，回到第一页重新取数', async () => {
-    const api = vi.fn(async () => ({ list: rows, total: 2 }));
-    const wrapper = mount(BasicTable as any, {
-      props: {
-        api,
-        columns,
-        pagination: { pageSize: 10 },
-        showTableSetting: true,
-      },
-    }) as any;
-    await wait();
-    wrapper.vm.setPagination({ current: 2 });
-    await wait();
-    expect(api).toHaveBeenCalled();
-    api.mockClear();
-
-    await wrapper
-      .find('.basic-table-setting button[title="刷新"]')
-      .trigger('click');
-    await wait();
-    expect(api).toHaveBeenCalledOnce();
-    // redo 语义是回到第一页重取
-    expect(wrapper.vm.getPaginationRef()).toMatchObject({ current: 1 });
-    wrapper.unmount();
-  });
-
-  it('全屏按钮切换 isFullscreen 与图标标题', async () => {
-    const wrapper = mount(BasicTable, {
-      props: { columns, dataSource: rows, showTableSetting: true },
-    });
-    const button = () => wrapper.find('.basic-table-setting button');
-    expect(button().attributes('title')).toBe('刷新');
-
-    const fullscreen = wrapper.find(
-      '.basic-table-setting button[title="全屏"]',
-    );
-    expect(fullscreen.exists()).toBe(true);
-    await fullscreen.trigger('click');
-    await nextTick();
-    expect(requestFullscreen).toHaveBeenCalled();
-    expect(
-      wrapper.find('.basic-table-setting button[title="退出全屏"]').exists(),
-    ).toBe(true);
-
-    await wrapper
-      .find('.basic-table-setting button[title="退出全屏"]')
-      .trigger('click');
-    await nextTick();
-    expect(exitFullscreen).toHaveBeenCalled();
-    expect(
-      wrapper.find('.basic-table-setting button[title="全屏"]').exists(),
-    ).toBe(true);
-    wrapper.unmount();
-  });
-
-  it('列设置弹层可切换列的显隐', async () => {
-    const wrapper = mount(BasicTable, {
-      props: {
-        columns: [
-          { dataIndex: 'name', title: '名称' },
-          { dataIndex: 'age', title: '年龄' },
-        ],
-        dataSource: rows,
-        showTableSetting: true,
-      },
-    });
-    await wrapper
-      .find('.basic-table-setting button[title="列设置"]')
-      .trigger('click');
-    await nextTick();
-
-    const panel = document.body.querySelector('.basic-table-setting-panel');
-    expect(panel).toBeTruthy();
-    // reka 的 Checkbox 是 role=checkbox 的按钮，不是原生 input
-    const toggles = panel!.querySelectorAll('[role="checkbox"]');
-    expect(toggles.length).toBe(3);
-    (toggles[2] as HTMLElement).click();
-    await nextTick();
-    expect(
-      wrapper
-        .findAll('.basic-table-head')
-        .map((th) => th.attributes('data-column-key')),
-    ).toEqual(['name']);
-    wrapper.unmount();
-    document.body.innerHTML = '';
-  });
-
-  it('弹层里的重置把被勾掉的列恢复回来', async () => {
-    const wrapper = mount(BasicTable, {
-      props: {
-        columns: [
-          { dataIndex: 'name', title: '名称' },
-          { dataIndex: 'age', title: '年龄' },
-        ],
-        dataSource: rows,
-        showTableSetting: true,
-      },
-    });
-    await wrapper
-      .find('.basic-table-setting button[title="列设置"]')
-      .trigger('click');
-    await nextTick();
-
-    const panel = document.body.querySelector('.basic-table-setting-panel')!;
-    // 先勾掉第二列 → 表头只剩名称
-    (panel.querySelectorAll('[role="checkbox"]')[2] as HTMLElement).click();
-    await nextTick();
-    expect(wrapper.findAll('.basic-table-head')).toHaveLength(1);
-
-    // 重置：从 cacheColumns 恢复初始列（与 web 的 handleResetColumns 一致）
-    const buttons = [...document.body.querySelectorAll('button')];
-    const reset = buttons.find((b) => b.textContent?.trim() === '重置')!;
-    reset.click();
-    await nextTick();
-    expect(wrapper.findAll('.basic-table-head')).toHaveLength(2);
-    wrapper.unmount();
-    document.body.innerHTML = '';
-  });
-
-  it('单独挂载时不依赖表格也能渲染', () => {
-    const wrapper = mount(TableSetting as any, {
-      props: { columns: [{ dataIndex: 'name', title: '名称' }] },
-    });
-    expect(
-      wrapper.findAll('button').map((b) => b.attributes('title')),
-    ).toEqual(['刷新', '列设置', '全屏']);
-    wrapper.unmount();
-  });
-});
-
 describe('index 导出面', () => {
   it('对外暴露组件、hooks 与运行时配置', () => {
     for (const key of [
@@ -364,7 +181,6 @@ describe('index 导出面', () => {
       'TableEditableCell',
       'TableHeaderCell',
       'TableImg',
-      'TableSetting',
       'configureTable',
       'tableRuntime',
       'useTable',

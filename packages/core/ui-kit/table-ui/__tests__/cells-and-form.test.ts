@@ -374,7 +374,6 @@ describe('BasicTable 搜索表单联动', () => {
         formConfig: { schemas: baseSchemas.slice(0, 1) },
         immediate: false,
         pagination: false,
-        showTableSetting: false,
         useSearchForm: true,
       },
     });
@@ -395,7 +394,6 @@ describe('BasicTable 搜索表单联动', () => {
       props: {
         columns: [{ dataIndex: 'name', title: '名称' }],
         dataSource: [record],
-        showTableSetting: false,
       },
     });
     expect(wrapper.find('form').exists()).toBe(false);

@@ -6,8 +6,7 @@ import { applyRouterGuards } from '@antdv/router';
 import { findMenuByPath, firstLeafMenu, normalizeMenuPath } from '@antdv/utils';
 import NProgress from 'nprogress';
 import { HOME_PATH, LOGIN_PATH, WHITE_LIST } from '~/config/constants';
-import { useRouteStore } from '~/stores';
-import { useUserStore } from '~/stores/modules/user';
+import { useRouteStore, useUserStore } from '@antdv/stores';
 
 /**
  * 进度条样式与阈值属于应用（换 UI 库不必改包），

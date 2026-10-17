@@ -110,11 +110,7 @@ function handleReset() {
           <Label class="text-sm font-normal text-gray-700 dark:text-gray-300">
             备注
           </Label>
-          <Textarea
-            v-model="form.remark"
-            :rows="3"
-            placeholder="请输入备注"
-          />
+          <Textarea v-model="form.remark" :rows="3" placeholder="请输入备注" />
         </div>
         <p class="col-span-12 text-xs text-gray-400">数据 ID：{{ form.id }}</p>
       </div>

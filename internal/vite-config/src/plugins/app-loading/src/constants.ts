@@ -61,4 +61,14 @@ export const DEFAULT_OPTIONS: Required<AppLoadingOptions> = {
   // 默认不加 !important，保证应用样式加载后能覆盖内联值
   themeImportant: false,
   htmlVariables: {},
+
+  /* ==================== 首屏主题同步 ==================== */
+  themeSync: true,
+
+  // 与 `@antdv/preferences` 的 BOOT_THEME_CACHE_KEY 同一条字面量；
+  // 写侧在运行时包、读侧在构建期脚本，两边隔着打包边界，改一边不改另一边由
+  // `apps/web/e2e/app-loading-theme.spec.ts` 的首屏颜色断言兜住。
+  themeCacheKeySuffix: 'bootTheme',
+
+  darkClass: 'dark',
 };

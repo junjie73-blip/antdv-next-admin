@@ -6,9 +6,9 @@ In one sentence: **app-level composite components live in `apps/web/src/componen
 
 | Layer | Where | What lives there |
 | --- | --- | --- |
-| App business components | `apps/web/src/components/business/` | `BasicTable`/`TableAction`, `BasicForm`, `BasicModal`, `BasicDrawer`, `TreeTable`, `Description`, `CountTo`, `MarkdownEditor`, `ImportExport`, `TenantSelect`, `MicroAppContainer` |
-| Library-agnostic primitives | `packages/icons` (`@antdv/icons`) + `packages/ui-kit/*` | `IconifyIcon`, `IconPicker`, `SvgIcon` in `@antdv/icons`; `Loading` + `v-loading` in `@antdv/common-ui`; `Scrollbar` in `@antdv/common-ui`; `shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` one package each. None of these depends on antdv-next, and none relies on auto-import — the host must import them explicitly |
-| Generic composables | `packages/composables` (`@antdv/composables`) | The root barrel only exports the light ones: `useCache` / `useChunkUpload` / `useFileReader` / `usePrint` / `useRouteLoading` / `useWatermark`; `echarts` / `sse` / `websocket` must be imported from subpaths so that `import { usePrint }` does not pay for a chart library |
+| App business components | `apps/web/src/components/business/` | `TreeTable`, `ImportExport`, `TenantSelect`, `MicroAppContainer`; `BasicTable`/`TableAction`, `BasicForm` and `BasicModal`/`BasicDrawer` have moved into `@antdv/{table-ui,form-ui,popup-ui}` |
+| Library-agnostic primitives | `packages/core/base/icons` (`@antdv/icons`) + `packages/core/ui-kit/*` | `IconifyIcon`, `IconPicker`, `SvgIcon` in `@antdv/icons`; `Loading` + `v-loading` in `@antdv/common-ui`; `Scrollbar` in `@antdv/common-ui`; `shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` one package each. None of these depends on antdv-next, and none relies on auto-import — the host must import them explicitly |
+| Generic composables | `packages/core/composables` (`@antdv/composables`) | The root barrel only exports the light ones: `useCache` / `useChunkUpload` / `useFileReader` / `usePrint` / `useRouteLoading` / `useWatermark`; `echarts` / `sse` / `websocket` must be imported from subpaths so that `import { usePrint }` does not pay for a chart library |
 | App-level hooks | `apps/web/src/composables/` | `useCRUD`, `usePermission`, `http` (the request layer's exit) |
 
 ## The register-props pattern
@@ -27,7 +27,7 @@ const [register, tableRef] = useTable({ api: fetchUsers, useSearchForm: true });
 </template>
 ```
 
-::: warning The second return value is not uniform — do not code from vben muscle memory
+::: warning The second return value is not uniform — do not code from vue-vben-admin muscle memory
 
 | Hook | Returns | Usage |
 | --- | --- | --- |
@@ -51,7 +51,6 @@ Every list page does `formMethods.setFieldsValue(record)` before `openModal()`. 
 | `fetchSetting` / `beforeFetch` / `afterFetch` | pagination field mapping, request hooks |
 | `useSearchForm` / `formConfig` | built-in search form and its schema |
 | `rowSelection` / `pagination` / `canResize` | selection, pagination, height auto-fit |
-| `tableSetting: { redo, setting, fullScreen }` | toolbar at the top right |
 
 Instance methods come from `TableActionType`: `reload` / `setProps` / `setColumns` / `expandAll` / `getSelectRows` and friends. Split columns, search schemas and row actions into `columns.ts` / `schemas.ts` / `actions.ts` as `CODE_STANDARD.md` section 8 mandates; `actions.ts` stays stateless and receives side effects through a ctx.
 
@@ -64,9 +63,9 @@ Confirmation has two separate rules — don't remember it as "all built-in confi
 ## Worth mentioning
 
 - `CountTo`: animated number, props in `CountTo/types.ts` (`startVal` / `endVal` / `duration` / `autoplay` / `decimals`).
-- `MarkdownEditor`: a tiptap-based wrapper with an `ImageUploadConfig` hooking into the Minio upload settings.
+- `MarkdownEditor`: a tiptap-based wrapper now living in `@antdv/common-ui` (`packages/core/ui-kit/common-ui/src/components/markdown-editor/`), with an `ImageUploadConfig` hooking into the Minio upload settings; `contentType` decides whether the value is HTML or Markdown source.
 - `Description`, `TreeTable`, `ImportExport`: detail panes, tree tables, import/export.
-- Global registration: `@antdv/icons` ships `createIconInstaller()` (`packages/icons/src/index.ts:13-31`) and the `@antdv/common-ui` barrel re-exports the directive under the name `vLoading` (`packages/core/ui-kit/common-ui/src/components/loading/index.ts:9`); the app uses no installer and imports everything explicitly so tree-shaking survives (the component resolvers were withdrawn from `internal/vite-config`, so a bare tag is never injected).
+- Global registration: `@antdv/icons` ships `createIconInstaller()` (`packages/core/base/icons/src/index.ts:19-31`) and the `@antdv/common-ui` barrel re-exports the directive under the name `vLoading` (`packages/core/ui-kit/common-ui/src/components/loading/index.ts:9`); the app uses no installer and imports everything explicitly so tree-shaking survives (the component resolvers were withdrawn from `internal/vite-config`, so a bare tag is never injected).
 
 ## Related pages
 

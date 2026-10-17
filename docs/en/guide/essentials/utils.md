@@ -52,7 +52,7 @@ import { useWebSocket } from '@antdv/composables/websocket';
 | `store` | `useStore` / `useAtom` / `useSelector` (`src/store.ts:12`, re-exporting `@tanstack/vue-store` wholesale) | none yet: shared state is supposed to come from here instead of per-feature ref singletons | covered by `__tests__/structure.test.ts` |
 | `template` | `generateTemplate` (`src/utils/template.ts:30`) | `components/business/ImportExport.vue:7,194` | yes |
 | `welcome` | `showLoginWelcome` (`src/utils/welcome.ts:114`), `getPersonalizedWelcome` (`:66`) | **no call sites** | yes |
-| `xss` | `safeHtmlDirective` (`src/utils/xss.ts:437`), `escapeDirective` (`:454`), `escapeHtml` (`:173`) | `directives/index.ts:17` → `main.ts:103,107`; `escapeHtml` is used by `packages/composables/src/usePrint.ts:1` | yes |
+| `xss` | `safeHtmlDirective` (`src/utils/xss.ts:437`), `escapeDirective` (`:454`), `escapeHtml` (`:173`) | `directives/index.ts:17` → `main.ts:103,107`; `escapeHtml` is used by `packages/core/composables/src/usePrint.ts:2` | yes |
 
 ## `@antdv/composables` inventory
 
@@ -62,7 +62,7 @@ This layer is actually better tested than `shared` — every entry has a spec in
 | --- | --- | --- | --- |
 | `useChunkUpload` | `@antdv/composables/useChunkUpload` (`src/useChunkUpload.ts:76`) | `views/components/upload/index.vue:7,356` | yes |
 | `useFileReader` | `.../useFileReader` (`src/useFileReader.ts:3`) | `components/common/AvatarUploader.vue:6` | yes |
-| `usePrint` | `.../usePrint` (`src/usePrint.ts:47`) | `views/system/user/index.vue:7,342` and two more pages | yes |
+| `usePrint` | `.../usePrint` (`src/usePrint.ts:47`) | `views/system/user/index.vue:7,344` and two more pages | yes |
 | `useRouteLoading` | `.../useRouteLoading` (`src/useRouteLoading.ts:24`) | `layouts/index.vue:8,164` | yes |
 | `useWatermark` | `.../useWatermark` (`src/useWatermark.ts:48`) | `layouts/index.vue:9,169` | yes |
 | `useCache` | `.../useCache` (`src/useCache.ts:41`) | **no call site in the app** (only its own spec) | yes |

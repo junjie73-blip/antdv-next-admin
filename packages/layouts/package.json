@@ -1,44 +1,57 @@
 {
   "name": "@antdv/layouts",
-  "version": "0.4.0",
-  "description": "布局模型：7 种菜单形态的区域蓝图、内容区宽度策略、菜单树状态源与面包屑派生逻辑。纯 TS + Vue 组合式，菜单/路由/偏好全部依赖注入，包内不 import pinia 与 vue-router",
+  "version": "0.5.0",
+  "description": "布局装配层：外壳装配（basic）、菜单与标签页的行为 hook（hooks）、顶栏小部件（widgets）、页面缓存（route-cached）与 7 种菜单形态的区域蓝图。状态读 @antdv/stores，路由用 vue-router 的组合式 API，文案与品牌资源由宿主注入",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsdown",
-    "clean": "rimraf dist .turbo",
-    "dev": "tsdown --watch",
+    "clean": "rimraf .turbo",
     "test:unit": "vitest run",
-    "type-check": "tsc --noEmit"
+    "type-check": "vue-tsc --noEmit"
   },
   "files": [
-    "dist"
+    "src"
   ],
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "//exports": "源码入口：包里有 SFC（外壳、面包屑、小部件），必须由消费方的 Vite/vitest 编译，dist 产物做不到这点。子路径给只要单一能力的场景（`@antdv/layouts/menu-search`）。",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    },
-    "./*": {
-      "types": "./dist/*.d.ts",
-      "default": "./dist/*.js"
-    },
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts",
     "./package.json": "./package.json"
   },
   "dependencies": {
+    "@antdv/common-ui": "workspace:*",
+    "@antdv/hooks": "workspace:*",
+    "@antdv/icons": "workspace:*",
+    "@antdv/layout-ui": "workspace:*",
+    "@antdv/menu-ui": "workspace:*",
+    "@antdv/popup-ui": "workspace:*",
+    "@antdv/preferences": "workspace:*",
     "@antdv/shared": "workspace:*",
+    "@antdv/shadcn-ui": "workspace:*",
+    "@antdv/stores": "workspace:*",
+    "@antdv/tabs-ui": "workspace:*",
     "@antdv/types": "workspace:*",
     "@antdv/utils": "workspace:*",
-    "vue": "catalog:"
+    "@iconify/vue": "catalog:",
+    "@vueuse/core": "catalog:",
+    "@vueuse/motion": "catalog:",
+    "dayjs": "catalog:",
+    "vue": "catalog:",
+    "vue-router": "catalog:"
   },
   "devDependencies": {
+    "@antdv/design": "workspace:*",
     "@antdv/tsconfig": "workspace:*",
+    "@vitejs/plugin-vue": "catalog:",
+    "@vue/test-utils": "catalog:",
+    "jsdom": "catalog:",
+    "pinia": "catalog:",
     "rimraf": "catalog:",
-    "tsdown": "catalog:",
     "typescript": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "vue-tsc": "catalog:"
   }
 }

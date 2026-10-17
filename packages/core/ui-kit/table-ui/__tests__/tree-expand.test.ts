@@ -59,7 +59,6 @@ async function renderTree(dataSource: Recordable[], rowKey = 'id') {
       dataSource,
       isTree: true,
       rowKey,
-      showTableSetting: false,
       useSearchForm: false,
     },
   });

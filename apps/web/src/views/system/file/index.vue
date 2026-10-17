@@ -1,5 +1,9 @@
 <script setup lang="tsx">
-import type { NormalTreeNode, UploadChangeParam, UploadFile } from '@antdv/common-ui';
+import type {
+  NormalTreeNode,
+  UploadChangeParam,
+  UploadFile,
+} from '@antdv/common-ui';
 import type { FormSchema } from '@antdv/form-ui';
 import type { BasicColumn, Recordable } from '@antdv/table-ui';
 
@@ -183,7 +187,10 @@ const renameFormSchemas: FormSchema[] = [
 // ========== API 适配层 ==========
 async function mockApi(params: Record<string, any>) {
   // 兼容 mock 直接返回完整响应或已解包的数据，声明层给不出这两种形状
-  const res: any = await getFileList({ ...params, parentId: currentParentId.value });
+  const res: any = await getFileList({
+    ...params,
+    parentId: currentParentId.value,
+  });
   const data = res?.data ?? res;
   return { items: data?.list || [], total: data?.total || 0 };
 }
@@ -318,7 +325,10 @@ async function handleSimulateUpload(fileList?: any[]) {
 /** 拖拽区没有真实通道（customRequest 为空实现），选中文件即视为"已上传"走模拟登记 */
 function handleUploadChange(info: UploadChangeParam) {
   const list = info.fileList || [];
-  if (info.file.status === 'done' || list.some((f: UploadFile) => f.originFileObj)) {
+  if (
+    info.file.status === 'done' ||
+    list.some((f: UploadFile) => f.originFileObj)
+  ) {
     handleSimulateUpload(
       list.map((f: UploadFile) => ({
         name: f.name,
@@ -377,10 +387,7 @@ function handleDownload(record: Recordable) {
 }
 
 // ========== 表格事件回调 ==========
-function handleSelectionChange(
-  keys: (number | string)[],
-  rows: Recordable[],
-) {
+function handleSelectionChange(keys: (number | string)[], rows: Recordable[]) {
   selectedRowKeys.value = keys;
   selectedRows.value = rows as unknown as FileRecord[];
 }
@@ -463,7 +470,8 @@ const columns: BasicColumn[] = [
             <a
               class="cursor-pointer transition-colors hover:text-blue-500"
               @click="handleNavigateToFolder(item)"
-              >{{ item.title }}</a>
+              >{{ item.title }}</a
+            >
             <span v-if="index < currentPath.length - 1" class="mx-1">/</span>
           </template>
         </div>
@@ -543,7 +551,8 @@ const columns: BasicColumn[] = [
               <span
                 class="cursor-pointer truncate transition-colors hover:text-blue-500"
                 :title="record.name"
-                >{{ record.name }}</span>
+                >{{ record.name }}</span
+              >
             </div>
           </template>
 

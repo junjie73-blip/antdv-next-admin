@@ -20,7 +20,7 @@ describe('pnpm eslint config', () => {
 
   it('does not change an invalid catalog during an ESLint autofix run', async () => {
     const fixtureDirectory = await mkdtemp(
-      join(tmpdir(), 'vben-pnpm-catalog-'),
+      join(tmpdir(), 'antdv-pnpm-catalog-'),
     );
     const packageJsonPath = join(fixtureDirectory, 'package.json');
     const workspacePath = join(fixtureDirectory, 'pnpm-workspace.yaml');

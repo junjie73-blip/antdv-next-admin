@@ -76,7 +76,6 @@ These are not pitfalls, they are **the current state**. Know them before touchin
 | `apps/web/src/assets/icons/` | Empty directory; the sprite path is wired up but has no custom icons |
 | `views/tool/mock/**` | Only the private modules are left, no `index.vue`, so the mock-center panel can only be driven over its HTTP endpoints |
 | stylelint | The rules package exists, **there is no config file on disk**, and the lefthook step is commented out (`lefthook.yml:16-18`) |
-| `@vben/*` literals in ESLint | The import boundary rules still name the upstream packages (`custom-config.ts:61-118`), while there is no `@vben` dependency at runtime |
 | The logo in `docs/` and `apps/web/public/pwa-icons/` | A **copy** relationship, not a reference; changing the logo means changing both sides |
 
 ::: tip Cleaning up Ranked by what the "dead code" costs, the best value is: for i18n the shell and the menu titles are already wired, what is missing is the business-page copy (either add `useI18n` there or accept that Chinese is this UI's language); delete the `auth` store outright (the only thing holding it in is the `export *` at `stores/index.ts:2`); pick one for `routeMode` / `VITE_NAMESPACE` — either implement them or remove them from `.env` and `types/env.d.ts`. Keep this FAQ in sync afterwards, and for the deletion order and its blast radius see [Removing code](/en/guide/other/remove-code). :::

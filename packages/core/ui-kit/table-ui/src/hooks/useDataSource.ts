@@ -13,12 +13,14 @@ import { cloneDeep, isFunction, isPlainObject } from 'es-toolkit';
 
 import { tableRuntime } from '../config';
 
-const DEFAULT_FETCH_SETTING: FetchSetting = {
+// `satisfies` 而不是类型标注：标注会把字段类型放宽成 `string | undefined`
+// （FetchSetting 全字段可选），下游取值就得靠 `!` 收尾
+const DEFAULT_FETCH_SETTING = {
   pageField: 'pageNum',
   sizeField: 'pageSize',
   listField: 'list',
   totalField: 'total',
-};
+} satisfies FetchSetting;
 
 /** 解构后端响应外层包装（保持与原 unwrap 语义一致） */
 function getRawData(raw: any): any {
@@ -39,7 +41,7 @@ function getRawData(raw: any): any {
  * 为什么不能只认 `listField`：这个项目里同时存在三套"列表"写法，都是真实来源——
  * 1. mock / Java 系后端：`{ list, total }`，即 `DEFAULT_FETCH_SETTING.listField`；
  * 2. .NET 分页习惯（`views/system/*` 的适配层就返回这个形状）：`{ items, totalCount }`；
- * 3. antd/vben 习惯：`{ data, records }` 或直接一个裸数组。
+ * 3. antd / vue-vben-admin 习惯：`{ data, records }` 或直接一个裸数组。
  * 只在第 1 条命中失败后试 3 会把第 2 条漏掉 —— 结果所有列表页
  * "分页总数正确、表格永远 No data"：total 走的是独立的兜底链，跟 list 无关。
  * 所以这里按 `listField → items → data → records → 裸数组` 的顺序嗅探，
@@ -149,8 +151,8 @@ export function useDataSource(
       const paginationInfo = pagination.getPagination();
       if (paginationInfo && isPlainObject(paginationInfo)) {
         const p = mergedParams as Recordable;
-        p[pageField!] = paginationInfo.current || 1;
-        p[sizeField!] = paginationInfo.pageSize || 10;
+        p[pageField] = paginationInfo.current || 1;
+        p[sizeField] = paginationInfo.pageSize || 10;
       }
     }
 

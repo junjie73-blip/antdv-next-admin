@@ -1,6 +1,6 @@
 import type { AppRouteRecordRaw } from '@antdv/types';
 
-import { useRouteStore } from '~/stores/modules/route';
+import { useRouteStore } from '@antdv/stores';
 
 /**
  * 静态路由：不参与"菜单即权限"的判断，所以统一标 `requiresAuth: false`，

@@ -486,12 +486,20 @@ const columns: BasicColumn[] = [
       >
         <template #action="{ record }">
           <div class="flex items-center justify-center gap-1">
-            <Button variant="link" :class="btnClassName" @click="() => handleView(record)">
+            <Button
+              variant="link"
+              :class="btnClassName"
+              @click="() => handleView(record)"
+            >
               <Icon icon="ant-design:eye-outlined" />
               详情
             </Button>
             <Divider type="vertical" :class="dividerClassName" />
-            <Button variant="link" :class="btnClassName" @click="() => handleEdit(record)">
+            <Button
+              variant="link"
+              :class="btnClassName"
+              @click="() => handleEdit(record)"
+            >
               <Icon icon="ant-design:edit-outlined" />
               编辑
             </Button>

@@ -1,11 +1,11 @@
 import { h, ref, watch } from 'vue';
 
-import { useWebSocket as useWebSocketComposable } from '@antdv/composables/websocket';
 import { eventBus } from '@antdv/shared/utils/event';
 import { Icon } from '@iconify/vue';
-import { toast } from '@antdv/popup-ui';
+import { NOTIFICATION_TOASTER_ID, toast } from '@antdv/popup-ui';
 import { forceLogout } from '@antdv/request';
-import { useUserStore } from '~/stores/modules/user';
+import { useWebSocket as useWebSocketComposable } from '@antdv/request/websocket';
+import { useUserStore } from '@antdv/stores';
 
 // ==================== 类型 ====================
 export interface NotificationItem {
@@ -166,6 +166,10 @@ function handleMessage(raw: unknown): void {
     sharedNotice.value = notice;
     eventBus.emit(WS_EVENTS.NOTICE, notice);
 
+    /*
+     * 走通知通道（`toasterId`），出场位置交给偏好 `notificationPosition` ——
+     * 这里再钉一个 `position` 就会把用户的设置盖掉。
+     */
     toast(`新${noticeTypeConfig[notice.noticeType]?.label || '通知'}`, {
       description: notice.title,
       duration: 3000,
@@ -174,7 +178,7 @@ function handleMessage(raw: unknown): void {
           noticeTypeConfig[notice.noticeType]?.icon || 'carbon:notification',
         style: { color: '#108ee9' },
       }),
-      position: 'bottom-right',
+      toasterId: NOTIFICATION_TOASTER_ID,
     });
     return;
   }

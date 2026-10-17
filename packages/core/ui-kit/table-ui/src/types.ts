@@ -546,19 +546,6 @@ export interface BasicTableProps {
   /** 操作列配置 */
   actionColumn?: ActionColumnProps;
 
-  /** 是否显示表格设置 */
-  showTableSetting?: boolean;
-
-  /** 表格设置配置 */
-  tableSetting?: {
-    /** 是否显示刷新 */
-    redo?: boolean;
-    /** 是否显示列设置 */
-    setting?: boolean;
-    /** 是否显示全屏 */
-    fullScreen?: boolean;
-  };
-
   /** 数据获取 API */
   api?: ApiFn;
 
@@ -1062,13 +1049,6 @@ export interface UseTableFormReturn {
   replaceFormSlotKey: (key: string) => string;
   getFormSlotKeys: ComputedRef<string[]>;
   getForm: () => Recordable;
-}
-
-/** 表格设置 */
-export interface TableSetting {
-  redo?: boolean;
-  setting?: boolean;
-  fullScreen?: boolean;
 }
 
 /** 拖拽排序 hook 配置 */

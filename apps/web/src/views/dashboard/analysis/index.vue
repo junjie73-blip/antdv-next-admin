@@ -11,7 +11,7 @@ import { Card, Segmented, Space, Tag } from '@antdv/common-ui';
 import { message } from '@antdv/popup-ui';
 import { Button } from '@antdv/shadcn-ui';
 import * as echarts from 'echarts';
-import { useAppStore } from '~/stores/modules/app';
+import { useAppStore } from '@antdv/stores';
 
 defineOptions({ name: 'DashboardAnalysis' });
 const appStore = useAppStore();
@@ -1224,7 +1224,8 @@ onBeforeUnmount(() => {
                 <span class="min-w-0">
                   <span
                     class="block text-sm font-medium text-gray-700 transition-colors group-hover:text-primary dark:text-gray-300"
-                    >{{ action.title }}</span>
+                    >{{ action.title }}</span
+                  >
                   <span class="mt-0.5 block text-[11px] text-gray-400">{{
                     action.desc
                   }}</span>
@@ -1250,7 +1251,8 @@ onBeforeUnmount(() => {
                 <span class="min-w-0 flex-1">
                   <span
                     class="block truncate text-gray-600 dark:text-gray-400"
-                    >{{ activity.action }}</span>
+                    >{{ activity.action }}</span
+                  >
                   <span class="mt-0.5 block text-[11px] text-gray-400">{{
                     activity.time
                   }}</span>

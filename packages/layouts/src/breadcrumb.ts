@@ -4,11 +4,7 @@ import type { ComputedRef } from 'vue';
 
 import { computed } from 'vue';
 
-import {
-  findMenuChain,
-  menuKeyOf,
-  normalizeMenuPath,
-} from '@antdv/utils';
+import { findMenuChain, menuKeyOf, normalizeMenuPath } from '@antdv/utils';
 
 /**
  * 面包屑。
@@ -141,6 +137,34 @@ export function shouldShowBreadcrumb(
   const { enabled = true, hideWhenOnlyOne = false } = options;
   if (!enabled || items.length === 0) return false;
   return !(hideWhenOnlyOne && items.length === 1);
+}
+
+/**
+ * 面包屑住在哪一行。
+ *
+ * `header`：住在顶栏里，窄屏先让位给 Logo 与工具区；
+ * `content`：独立成行 —— Logo 系形态（水平 / 混合 / 侧边导航）的顶栏被品牌位
+ * 与横向导航占满，只能退到内容列的第一行。
+ * 由外壳决定并经由 `#breadcrumb` 插槽传给组件，使用方不自己判断形态。
+ */
+export type BreadcrumbVariant = 'content' | 'header';
+
+/** 面包屑组件的渲染契约（与 `widgets/breadcrumb.vue` 同处布局层） */
+export interface LayoutBreadcrumbConfig {
+  /** 偏好总开关（关掉时整条不渲染） */
+  enabled?: boolean;
+  /** 只有一级时不显示 */
+  hideWhenOnlyOne?: boolean;
+  items: BreadcrumbItem[];
+  /**
+   * path → 可点击链接。
+   *
+   * 必须在使用方生成：hash / history 模式下的 href 由 router.resolve 决定，
+   * 布局层不 import vue-router，所以这里只接一个函数。缺省时不输出链接（纯文本）。
+   */
+  resolveHref?: (path: string) => string | undefined;
+  showIcon?: boolean;
+  variant?: BreadcrumbVariant;
 }
 
 /**

@@ -1,12 +1,12 @@
 import { mount } from '@vue/test-utils';
 import { defineComponent, h } from 'vue';
 
-import { LAYOUT_DRAWER_WIDTH } from '@antdv/layouts';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import LayoutContent from '../src/components/LayoutContent.vue';
-import LayoutFooter from '../src/components/LayoutFooter.vue';
-import LayoutOverlay from '../src/components/LayoutOverlay.vue';
+import LayoutContent from '../src/components/layout-content/index.vue';
+import LayoutFooter from '../src/components/layout-footer/index.vue';
+import LayoutOverlay from '../src/components/layout-sidebar/overlay.vue';
+import { LAYOUT_DRAWER_WIDTH } from '../src/layout';
 
 const mounted: Array<{ unmount: () => void }> = [];
 
@@ -130,9 +130,7 @@ describe('LayoutOverlay - 浮层侧栏', () => {
 
   it('点遮罩发一次 update:open=false', async () => {
     const wrapper = track(mount(LayoutOverlay, { props: { open: true } }));
-    document
-      .querySelector<HTMLElement>('[data-layout-overlay-mask]')
-      ?.click();
+    document.querySelector<HTMLElement>('[data-layout-overlay-mask]')?.click();
     await wrapper.vm.$nextTick();
     expect(wrapper.emitted('update:open')?.[0]).toEqual([false]);
   });

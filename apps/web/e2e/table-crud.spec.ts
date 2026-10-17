@@ -28,10 +28,7 @@ const ROW = 'tr.basic-table-row';
 const ROW_CHECKBOX = 'input.basic-table-row-checkbox';
 /** `@antdv/popup-ui` 的轻提示走 vue-sonner */
 const toast = (page: Page, text: string) =>
-  page
-    .locator('li[data-sonner-toast]')
-    .filter({ hasText: text })
-    .first();
+  page.locator('li[data-sonner-toast]').filter({ hasText: text }).first();
 
 /**
  * 往关键词框里打字。
@@ -89,7 +86,9 @@ async function createTask(page: Page, title: string, owner = '自动化用例') 
   await expect(modal(page)).toBeVisible();
   await titleInput(page).fill(title);
   await modal(page).getByPlaceholder('请输入负责人').fill(owner);
-  await modal(page).getByRole('button', { name: /保\s*存/ }).click();
+  await modal(page)
+    .getByRole('button', { name: /保\s*存/ })
+    .click();
   await expect(toast(page, '任务已创建')).toBeVisible();
 }
 
@@ -108,10 +107,7 @@ test.describe('增删改查示例（useCRUD）', () => {
     const probe = watchErrors(page);
     await go(page, PAGE_PATH);
 
-    await expect(
-      page.locator(ROW).first(),
-      '表格首屏没有数据行',
-    ).toBeVisible();
+    await expect(page.locator(ROW).first(), '表格首屏没有数据行').toBeVisible();
 
     const title = `useCRUD 闭环验证-${Date.now()}`;
     await createTask(page, title);
@@ -134,7 +130,9 @@ test.describe('增删改查示例（useCRUD）', () => {
 
     const edited = `${title}（改）`;
     await titleInput(page).fill(edited);
-    await modal(page).getByRole('button', { name: /保\s*存/ }).click();
+    await modal(page)
+      .getByRole('button', { name: /保\s*存/ })
+      .click();
     await expect(toast(page, '任务已更新')).toBeVisible();
 
     await expect
@@ -145,15 +143,15 @@ test.describe('增删改查示例（useCRUD）', () => {
       .toBe(1);
 
     // ---- 删除：必须二次确认，确认后那行真的消失 ----
-    const target = page
-      .locator(ROW)
-      .filter({ hasText: edited })
-      .first();
+    const target = page.locator(ROW).filter({ hasText: edited }).first();
     await target.getByRole('button', { name: /删除/ }).click();
     const confirm = rowPopConfirm(page);
     await expect(confirm, '删除任务没有二次确认').toBeVisible();
     await expect(confirm).toContainText('删除后不可恢复');
-    await confirm.getByRole('button', { name: /确\s*定/ }).last().click();
+    await confirm
+      .getByRole('button', { name: /确\s*定/ })
+      .last()
+      .click();
 
     await expect
       .poll(() => countBy(page, edited), {
@@ -194,7 +192,10 @@ test.describe('增删改查示例（useCRUD）', () => {
     await expect(confirm).toBeVisible();
     await expect(confirm).toContainText('（2 条）');
 
-    await confirm.getByRole('button', { name: /确\s*认/ }).last().click();
+    await confirm
+      .getByRole('button', { name: /确\s*认/ })
+      .last()
+      .click();
     await expect
       .poll(() => countBy(page, tag), {
         message: '批量删除后两行仍在（逐条 onDelete 没跑通）',

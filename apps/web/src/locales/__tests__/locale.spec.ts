@@ -1,5 +1,3 @@
-import type { MenuConfig } from '@antdv/types';
-
 import { flushPromises, mount } from '@vue/test-utils';
 import { defineComponent, h, nextTick } from 'vue';
 
@@ -11,9 +9,8 @@ import { useLocale, useLocaleSync } from '~/composables/web/useLocale';
 import i18n from '~/locales';
 import enUS from '~/locales/lang/en-US';
 import zhCN from '~/locales/lang/zh-CN';
-import { localizeMenus } from '~/locales/menu';
 import { getPreferences } from '~/settings';
-import { useAppStore } from '~/stores/modules/app';
+import { useAppStore } from '@antdv/stores';
 
 /**
  * locale 的接入与切换。
@@ -41,24 +38,6 @@ function mountHarness() {
   const wrapper = mount(Harness, { global: { plugins: [pinia] } });
   return { appStore: useAppStore(pinia), wrapper };
 }
-
-/** 后端菜单里真实存在的几条（`apps/backend-mock` 的 name + 中文 menuName） */
-const BACKEND_MENUS: MenuConfig[] = [
-  { name: 'Dashboard', path: '/dashboard', title: '仪表盘' },
-  {
-    children: [
-      { name: 'SystemUser', path: '/system/user', title: '用户管理' },
-      { name: 'SystemRole', path: '/system/role', title: '角色管理' },
-    ],
-    name: 'SystemManage',
-    path: '/system',
-    title: '系统管理',
-  },
-  { name: 'BrandNewPage', path: '/brand-new', title: '全新页面' },
-];
-
-const translate = (key: string) =>
-  i18n.global.te(key) ? i18n.global.t(key) : undefined;
 
 /** 摊平 `menu` 命名空间下的键，供两侧对齐检查用 */
 function menuKeys(messages: Record<string, unknown>): string[] {
@@ -137,37 +116,6 @@ describe('useLocaleSync —— locale 的唯一出口', () => {
 
     expect(wrapper.vm.locale).toBe('zh-CN');
     expect(i18n.global.locale.value).toBe('zh-CN');
-  });
-});
-
-describe('localizeMenus —— 菜单标题的翻译层', () => {
-  it('按菜单 name 命中译文，中文与英文都翻得出来', () => {
-    i18n.global.locale.value = 'en-US';
-    const [dashboard, system] = localizeMenus(BACKEND_MENUS, translate);
-    expect(dashboard?.title).toBe('Dashboard');
-    expect(system?.title).toBe('System');
-    expect(system?.children?.[0]?.title).toBe('Users');
-
-    i18n.global.locale.value = 'zh-CN';
-    const [zhDashboard] = localizeMenus(BACKEND_MENUS, translate);
-    expect(zhDashboard?.title).toBe('仪表盘');
-  });
-
-  it('文案表里没有的菜单退回后端原文，而不是渲染一个 key', () => {
-    i18n.global.locale.value = 'en-US';
-    const [unmapped] = localizeMenus(
-      BACKEND_MENUS.filter((menu) => menu.name === 'BrandNewPage'),
-      translate,
-    );
-    expect(unmapped?.title).toBe('全新页面');
-  });
-
-  it('只改标题，path / name / 选中态依赖的字段原样保留', () => {
-    const [localized] = localizeMenus(BACKEND_MENUS, translate);
-    expect(localized).toMatchObject({
-      name: 'Dashboard',
-      path: '/dashboard',
-    });
   });
 });
 

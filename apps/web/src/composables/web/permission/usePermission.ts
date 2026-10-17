@@ -2,7 +2,7 @@ import type { UsePermissionOptions } from './types';
 
 import { computed, readonly, ref } from 'vue';
 
-import { useUserStore } from '~/stores/modules/user';
+import { useUserStore } from '@antdv/stores';
 
 import { PermissionRole } from './types';
 

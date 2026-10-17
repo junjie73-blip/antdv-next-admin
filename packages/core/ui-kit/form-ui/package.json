@@ -20,6 +20,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
+    "@antdv/common-ui": "workspace:*",
     "@antdv/icons": "workspace:*",
     "@antdv/shadcn-ui": "workspace:*",
     "@antdv/shared": "workspace:*",

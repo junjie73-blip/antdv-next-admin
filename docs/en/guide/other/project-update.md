@@ -47,7 +47,7 @@ Three decisions in `.changeset/config.json` matter: `fixed: [["@antdv/*", "@antd
 
 ## Running an antdv-next upgrade
 
-`antdv-next` appears exactly once in the catalog (`^1.6.0`) but it is a direct dependency of four packages (`composables`, `preferences`, `shared`, `types`) plus `apps/web`, so that one line moves everything. Its four satellites deserve the same attention: `@antdv-next/cssinjs`, `-icons`, `-tailwind`, `-happy-work-theme`, along with the `@iconify-json/*` sets. None of the ten `ui-kit` packages import antdv-next — forms, tables, popups, tabs, menus and layout shells were re-implemented on TanStack + shadcn-vue, so an antdv-next bump never touches them.
+`antdv-next` appears exactly once in the catalog (`^1.6.0`), and today **only `apps/web` depends on it directly** — none of the 21 runtime packages do (`shared`, `types`, `composables`, `preferences`, `directives`, `router`, `layouts` and the eight `ui-kit` packages are all clean): toasts go through `@antdv/popup-ui` (a vue-sonner wrapper), while forms, tables, popups, tabs, menus and layout shells are built on TanStack + shadcn-vue. `packages/core/composables/__tests__/boundary.test.ts` enforces that boundary file by file, so bumping antdv-next touches the app only. The satellites deserve the same attention: the catalog lists four (`@antdv-next/cssinjs`, `-icons`, `-tailwind`, `-happy-work-theme`) but only three are actually referenced, from `apps/web` — `@antdv-next/tailwind` is in no manifest anymore; the `@iconify-json/*` sets live in `@antdv/icons`.
 
 ```bash
 # 1. edit the catalog line in pnpm-workspace.yaml

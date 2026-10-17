@@ -31,6 +31,19 @@ body {
   @apply h-full overflow-hidden;
 }
 
+/*
+ * 全局字号的唯一落点：偏好面板把 `fontSize` 折算成根字号百分比写在 html 上
+ * （见 @antdv/preferences 的 writeThemeCssVars）。
+ *
+ * 为什么不写成 `body { font-size }`：正文文字几乎都挂着 `text-sm` 这类工具类，
+ * 显式声明会顶掉 body 的继承值，看着"设了没反应"；而工具类全是 rem 的，
+ * 缩放必须落在根元素上 —— 顺带让间距、行高、尺寸一起等比走，
+ * 这才是"整套界面小一号"想要的效果。
+ */
+html {
+  font-size: var(--app-font-size, 100%);
+}
+
 #app {
   @apply h-full;
 }

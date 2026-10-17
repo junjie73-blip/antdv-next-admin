@@ -468,7 +468,9 @@ const hasPaused = computed(() =>
             v-else-if="task.status === 'success'"
             class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
           >
-            <span class="text-green-600 dark:text-green-400">✓ 已上传并入库</span>
+            <span class="text-green-600 dark:text-green-400"
+              >✓ 已上传并入库</span
+            >
             <a
               v-if="task.result?.url"
               :href="task.result.url"

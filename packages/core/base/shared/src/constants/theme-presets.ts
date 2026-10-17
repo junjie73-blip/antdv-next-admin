@@ -46,11 +46,7 @@ function normalizeHex(value: string): string | undefined {
   if (!match) return undefined;
   const hex = value.trim().slice(1);
   const full =
-    hex.length === 3
-      ? [...hex]
-          .map((char) => `${char}${char}`)
-          .join('')
-      : hex;
+    hex.length === 3 ? [...hex].map((char) => `${char}${char}`).join('') : hex;
   return `#${full.toLowerCase()}`;
 }
 

@@ -95,7 +95,10 @@ defineExpose({
     :disabled="disabled || tenantStore.loading"
     @update:model-value="handleChange"
   >
-    <SelectTrigger :class="props.class" :size="size === 'small' ? 'sm' : 'default'">
+    <SelectTrigger
+      :class="props.class"
+      :size="size === 'small' ? 'sm' : 'default'"
+    >
       <span class="flex items-center gap-2">
         <Icon icon="carbon:store" class="size-4 text-stone-400" />
         <SelectValue :placeholder="placeholder" />

@@ -276,9 +276,7 @@ test.describe('标签页交互', () => {
     await openThree(page);
 
     await page.getByRole('button', { name: '标签页操作' }).click();
-    const dropdown = page
-      .locator('[data-slot="dropdown-menu-content"]')
-      .last();
+    const dropdown = page.locator('[data-slot="dropdown-menu-content"]').last();
     await expect(dropdown).toBeVisible();
     await dropdown.getByRole('menuitem', { name: /关闭其他/ }).click();
 

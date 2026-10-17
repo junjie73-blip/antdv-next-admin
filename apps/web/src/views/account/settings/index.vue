@@ -6,8 +6,7 @@ import { BasicModal, message, useModal } from '@antdv/popup-ui';
 import { Button, Input, Label, Switch } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
-import { useAppStore } from '~/stores/modules/app';
-import { useUserStore } from '~/stores/modules/user';
+import { useAppStore, useUserStore } from '@antdv/stores';
 
 const appStore = useAppStore();
 const userStore = useUserStore();
@@ -181,7 +180,9 @@ function handleThemeToggle() {
               type="button"
               variant="ghost"
               size="icon-sm"
-              :aria-label="passwordVisible.oldPassword ? '隐藏密码' : '显示密码'"
+              :aria-label="
+                passwordVisible.oldPassword ? '隐藏密码' : '显示密码'
+              "
               class="absolute top-1/2 right-1 -translate-y-1/2"
               @click="togglePassword('oldPassword')"
             >
@@ -209,7 +210,9 @@ function handleThemeToggle() {
               type="button"
               variant="ghost"
               size="icon-sm"
-              :aria-label="passwordVisible.newPassword ? '隐藏密码' : '显示密码'"
+              :aria-label="
+                passwordVisible.newPassword ? '隐藏密码' : '显示密码'
+              "
               class="absolute top-1/2 right-1 -translate-y-1/2"
               @click="togglePassword('newPassword')"
             >

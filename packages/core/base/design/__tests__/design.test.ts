@@ -114,10 +114,13 @@ const SHADCN_COLORS = [
 
 /**
  * 尺度 token：偏好面板写在 html 内联样式上，主题文件里只负责给首屏兜底值。
- * 它们不进 `@theme` —— `@theme` 的命名空间全是"颜色/圆角/字号"这类工具类来源，
- * 把 `--app-filter` 这种映成 `--color-*` 只会生成一条没人用、还会污染色板名单的工具类。
+ *
+ * 它们不进 `@theme` 的**颜色**命名空间 —— 把 `--app-filter` 映成 `--color-*`
+ * 只会生成一条没人用的工具类，还会把色板名单弄脏（名单是逐条比对亮暗两套的）。
+ * 圆角是唯一例外，它进的是 `--radius-*` 命名空间：Tailwind 的 `rounded-*`
+ * 类只认那一份表，偏好要能拖动全站半径，就必须把 `--app-border-radius` 接进去。
  */
-const THEME_SCALARS = ['border-radius', 'filter', 'font-size', 'sidebar-width'];
+const THEME_SCALARS = ['border-radius', 'filter', 'font-size'];
 
 type Block = {
   selectors: string[];
@@ -250,9 +253,9 @@ describe('@antdv/design —— shadcn 色板', () => {
     ]) {
       const signatures = new Map<string, string>();
       for (const [name, block] of presetBlocks(source)) {
-        const signature = SHADCN_COLORS.map((color) => block.vars.get(color)).join(
-          '|',
-        );
+        const signature = SHADCN_COLORS.map((color) =>
+          block.vars.get(color),
+        ).join('|');
         const previous = signatures.get(signature);
         expect(
           previous,
@@ -291,12 +294,26 @@ describe('@antdv/design —— shadcn 色板', () => {
   });
 
   it('尺度 token 两套基础主题各自完整：偏好落盘前的一帧也有兜底值', () => {
+    const colorNamespace = new Set(
+      [...tokenEntry.matchAll(/--color-[a-z-]+: var\(--app-([a-z-]+)\);/gmu)].map(
+        (match) => match[1],
+      ),
+    );
     for (const name of THEME_SCALARS) {
       expect(baseBlock(tokenDefault).vars.has(name)).toBe(true);
       expect(baseBlock(tokenDark).vars.has(name)).toBe(true);
-      // 不进 @theme：色板名单里混进非颜色 token，工具类就会生成一堆没用的东西
-      expect(tokenEntry).not.toContain(`--app-${name})`);
+      // 尺度值只准待在尺度命名空间里；混进颜色名单就是一堆没人用的工具类
+      expect(colorNamespace, `--app-${name} 不该映射成颜色`).not.toContain(name);
     }
+  });
+
+  /**
+   * 偏好面板改圆角/字号时，往 html 上内联写的就是这两条变量（见 `@antdv/preferences`）。
+   * 变量断了不会报错，只会"设置保存了但页面没反应"，所以把两条接线钉住。
+   */
+  it('尺度 token 接到使用点：圆角进 --radius-* 表，字号进根字号', () => {
+    expect(tokenEntry).toContain('--radius-lg: var(--app-border-radius);');
+    expect(base).toContain('font-size: var(--app-font-size');
   });
 
   it('token 目录只写变量声明，不掺视觉规则', () => {
@@ -370,9 +387,7 @@ describe('@antdv/design —— shadcn 色板', () => {
     }
     // custom / default 由基础主题块承接，顺序各自自由，只比集合
     expect([...presetKeys].sort()).toEqual(
-      registered
-        .filter((key) => key !== 'DEFAULT_THEME_KEY')
-        .sort(),
+      registered.filter((key) => key !== 'DEFAULT_THEME_KEY').sort(),
     );
   });
 
@@ -569,6 +584,8 @@ describe('@antdv/design —— 包边界', () => {
     const uiKitDir = resolve(coreDir, 'ui-kit');
     const expected = [
       resolve(coreDir, 'base/icons/src'),
+      // 布局装配层在 packages 根下（不在 core 里），模板同样是包内源码
+      resolve(coreDir, '../layouts/src'),
       ...readdirSync(uiKitDir)
         .filter((name) => existsSync(resolve(uiKitDir, name, 'src')))
         .map((name) => resolve(uiKitDir, name, 'src')),

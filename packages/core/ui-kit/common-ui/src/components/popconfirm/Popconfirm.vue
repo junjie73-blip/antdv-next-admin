@@ -1,54 +1,79 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
+import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import {
   Button,
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@antdv/shadcn-ui';
+import { cn } from '@antdv/shared/utils/cn';
+
+import { useGlobalConfig } from '../config-provider';
 
 defineOptions({ name: 'Popconfirm' });
 
 const props = withDefaults(
   defineProps<{
+    /** 不传则取 `ConfigProvider`（或内置默认）的取消文案 */
     cancelText?: string;
+    /** 危险确认：确认按钮走 destructive，图标也换成警示色 */
     danger?: boolean;
     description?: string;
     disabled?: boolean;
+    /** 隐藏左侧图标（纯文字确认） */
+    showIcon?: boolean;
     okText?: string;
     placement?: 'bottom' | 'left' | 'right' | 'top';
     title?: string;
   }>(),
   {
-    cancelText: '取消',
+    cancelText: undefined,
     danger: false,
     description: undefined,
     disabled: false,
-    okText: '确定',
+    showIcon: true,
+    okText: undefined,
     placement: 'top',
     title: undefined,
   },
 );
 
-const emit = defineEmits<{ cancel: []; confirm: [] }>();
+/** 按钮文案：显式 prop > 全局配置 > 包内置词条 */
+const globalConfig = useGlobalConfig();
+const okLabel = computed(() => props.okText ?? globalConfig.okText);
+const cancelLabel = computed(() => props.cancelText ?? globalConfig.cancelText);
+
+const emit = defineEmits<{
+  cancel: [e: MouseEvent];
+  confirm: [e: MouseEvent];
+}>();
 
 const open = defineModel<boolean>('open', { default: false });
 
+/**
+ * 面板宽度：左右两侧留给触发按钮的横向空间更少，所以收窄一档。
+ * `p-0` 覆盖 `PopoverContent` 的 `p-4`，内边距由下面的内容层统一给，
+ * 图标列与文字列才能共用同一套间距刻度。
+ */
 const panelClass = computed(() =>
-  props.placement === 'left' || props.placement === 'right'
-    ? 'w-56 p-3'
-    : 'w-64 p-3',
+  cn(
+    'flex w-64 flex-col gap-3 p-3',
+    props.placement === 'left' || props.placement === 'right'
+      ? 'sm:w-60'
+      : 'sm:w-64',
+  ),
 );
 
-function handleConfirm() {
+function handleConfirm(e: MouseEvent) {
   open.value = false;
-  emit('confirm');
+  emit('confirm', e);
 }
 
-function handleCancel() {
+function handleCancel(e: MouseEvent) {
   open.value = false;
-  emit('cancel');
+  emit('cancel', e);
 }
 </script>
 
@@ -61,31 +86,47 @@ function handleCancel() {
       data-common-popconfirm
       :side="props.placement"
       align="center"
-      :side-offset="6"
+      :side-offset="8"
       :class="panelClass"
     >
-      <div
-        v-if="props.title || $slots.title"
-        class="mb-1 text-sm font-medium leading-relaxed"
-      >
-        <slot name="title">{{ props.title }}</slot>
+      <div class="flex items-start gap-2">
+        <Icon
+          v-if="props.showIcon"
+          :icon="props.danger ? 'lucide:circle-alert' : 'lucide:circle-help'"
+          :class="cn(
+            'mt-px size-4 shrink-0',
+            props.danger ? 'text-destructive' : 'text-warning',
+          )"
+        />
+        <div class="min-w-0 flex-1">
+          <div
+            v-if="props.title || $slots.title"
+            class="text-sm leading-5 font-medium break-words"
+          >
+            <slot name="title">{{ props.title }}</slot>
+          </div>
+          <div
+            v-if="props.description || $slots.description"
+            :class="cn(
+              'text-xs leading-5 text-muted-foreground break-words',
+              props.title || $slots.title ? 'mt-1' : '',
+            )"
+          >
+            <slot name="description">{{ props.description }}</slot>
+          </div>
+        </div>
       </div>
-      <div
-        v-if="props.description || $slots.description"
-        class="mb-2 text-xs leading-relaxed text-gray-500 dark:text-gray-400"
-      >
-        <slot name="description">{{ props.description }}</slot>
-      </div>
+
       <div class="flex items-center justify-end gap-2">
         <Button size="xs" variant="outline" @click="handleCancel">
-          {{ props.cancelText }}
+          {{ cancelLabel }}
         </Button>
         <Button
           size="xs"
           :variant="props.danger ? 'destructive' : 'default'"
           @click="handleConfirm"
         >
-          {{ props.okText }}
+          {{ okLabel }}
         </Button>
       </div>
     </PopoverContent>

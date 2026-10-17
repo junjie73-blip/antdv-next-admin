@@ -18,7 +18,6 @@ function mountTable(props: Partial<BasicTableProps> = {}, options: any = {}) {
     props: {
       columns: [{ dataIndex: 'name', title: '名称' }] as BasicColumn[],
       dataSource: rows,
-      showTableSetting: false,
       ...props,
     },
     ...options,

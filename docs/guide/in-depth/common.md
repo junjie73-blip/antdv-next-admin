@@ -6,9 +6,9 @@
 
 | 层 | 位置 | 放什么 |
 | --- | --- | --- |
-| 应用业务组件 | `apps/web/src/components/business/` | `BasicTable`/`TableAction`、`BasicForm`、`BasicModal`、`BasicDrawer`、`TreeTable`、`Description`、`CountTo`、`MarkdownEditor`、`ImportExport`、`TenantSelect`、`MicroAppContainer` |
-| 库无关基础件 | `packages/icons`（`@antdv/icons`）+ `packages/ui-kit/*` | `IconifyIcon`、`IconPicker`、`SvgIcon` 在 `@antdv/icons`；`Loading` + `v-loading` 在 `@antdv/common-ui`；`Scrollbar` 在 `@antdv/common-ui`；`shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` 各自一包。这批包一律不依赖 antdv-next，组件也不靠自动导入，宿主必须显式 import |
-| 通用组合式 | `packages/composables`（`@antdv/composables`） | 根入口只收轻量件：`useCache` / `useChunkUpload` / `useFileReader` / `usePrint` / `useRouteLoading` / `useWatermark`；`echarts` / `sse` / `websocket` 走子路径导入，避免 `import { usePrint }` 也付出一份图表库 |
+| 应用业务组件 | `apps/web/src/components/business/` | `TreeTable`、`ImportExport`、`TenantSelect`、`MicroAppContainer`；`BasicTable`/`TableAction`、`BasicForm`、`BasicModal`/`BasicDrawer` 已迁到 `@antdv/{table-ui,form-ui,popup-ui}` |
+| 库无关基础件 | `packages/core/base/icons`（`@antdv/icons`）+ `packages/core/ui-kit/*` | `IconifyIcon`、`IconPicker`、`SvgIcon` 在 `@antdv/icons`；`Loading` + `v-loading` 在 `@antdv/common-ui`；`Scrollbar` 在 `@antdv/common-ui`；`shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` 各自一包。这批包一律不依赖 antdv-next，组件也不靠自动导入，宿主必须显式 import |
+| 通用组合式 | `packages/core/composables`（`@antdv/composables`） | 根入口只收轻量件：`useCache` / `useChunkUpload` / `useFileReader` / `usePrint` / `useRouteLoading` / `useWatermark`；`echarts` / `sse` / `websocket` 走子路径导入，避免 `import { usePrint }` 也付出一份图表库 |
 | 应用级 hooks | `apps/web/src/composables/` | `useCRUD`、`usePermission`、`http`（请求层出口） |
 
 ## 注册式（register-props）模式
@@ -27,7 +27,7 @@ const [register, tableRef] = useTable({ api: fetchUsers, useSearchForm: true });
 </template>
 ```
 
-::: warning 第二个返回值不统一，别看 vben 的记忆写代码
+::: warning 第二个返回值不统一，别看 vue-vben-admin 的记忆写代码
 
 | Hook | 返回 | 用法 |
 | --- | --- | --- |
@@ -51,7 +51,6 @@ const [register, tableRef] = useTable({ api: fetchUsers, useSearchForm: true });
 | `fetchSetting` / `beforeFetch` / `afterFetch` | 分页字段名映射、请求前后钩子 |
 | `useSearchForm` / `formConfig` | 内置搜索表单开关与 schema |
 | `rowSelection` / `pagination` / `canResize` | 选择、分页、高度自适应 |
-| `tableSetting: { redo, setting, fullScreen }` | 右上角工具条 |
 
 实例方法在 `TableActionType`：`reload` / `setProps` / `setColumns` / `expandAll` / `getSelectRows` 等。列/搜索/行操作按 `CODE_STANDARD.md` 第 8 节拆进 `columns.ts` / `schemas.ts` / `actions.ts`，`actions.ts` 保持无状态、副作用走 ctx。
 
@@ -64,9 +63,9 @@ const [register, tableRef] = useTable({ api: fetchUsers, useSearchForm: true });
 ## 其余值得一提的
 
 - `CountTo`：数字滚动，props 在 `CountTo/types.ts`（`startVal` / `endVal` / `duration` / `autoplay` / `decimals`）。
-- `MarkdownEditor`：基于 tiptap 的编辑器封装，带 `ImageUploadConfig`（走 Minio 上传配置）。
+- `MarkdownEditor`：基于 tiptap 的编辑器封装，住在 `@antdv/common-ui`（`packages/core/ui-kit/common-ui/src/components/markdown-editor/`），带 `ImageUploadConfig`（走 Minio 上传配置）；`contentType` 决定 value 是 HTML 还是 Markdown 源码。
 - `Description` / `TreeTable` / `ImportExport`：详情列表、树表格、导入导出，导出能力依赖 `@antdv/shared` 的 `excel.ts`。
-- 全局注册：`@antdv/icons` 提供 `createIconInstaller()`（`packages/icons/src/index.ts:13-31`），`@antdv/common-ui` 的 barrel 具名导出 `vLoading`（`packages/core/ui-kit/common-ui/src/components/loading/index.ts:9`）；应用侧不用 installer，一律显式 import，保留 tree-shaking（组件 resolver 已从 `internal/vite-config` 撤掉，裸标签不会被注入）。
+- 全局注册：`@antdv/icons` 提供 `createIconInstaller()`（`packages/core/base/icons/src/index.ts:19-31`），`@antdv/common-ui` 的 barrel 具名导出 `vLoading`（`packages/core/ui-kit/common-ui/src/components/loading/index.ts:9`）；应用侧不用 installer，一律显式 import，保留 tree-shaking（组件 resolver 已从 `internal/vite-config` 撤掉，裸标签不会被注入）。
 
 ## 相关页面
 

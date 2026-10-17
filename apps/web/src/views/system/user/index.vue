@@ -4,7 +4,7 @@ import type { BasicColumn } from '@antdv/table-ui';
 
 import { computed, onMounted, ref } from 'vue';
 
-import { usePrint } from '@antdv/composables/usePrint';
+import { usePrint } from '@antdv/hooks/use-print';
 import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 import { Card, Divider, Popconfirm, Tag, Tree } from '@antdv/common-ui';

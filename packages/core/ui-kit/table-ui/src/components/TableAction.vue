@@ -5,6 +5,7 @@ import type { ActionItem } from '../types';
 
 import { computed, defineComponent, h, isVNode, ref } from 'vue';
 
+import { Popconfirm } from '@antdv/common-ui';
 import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import {
   Button,
@@ -181,9 +182,13 @@ function handleCancel(action: ActionItem, index: number, e?: MouseEvent) {
 // 渲染辅助
 // ============================
 
+/** `popConfirm.title/content` 允许字符串或 VNode，交给 Popconfirm 的具名插槽前要成 VNode */
+function toNode(value: string | VNode): VNode {
+  return isVNode(value) ? value : h('span', String(value));
+}
+
 /** 获取某个 action 的 label VNode（兼容字符串 / VNode） */
-function getLabelVNode(action: ActionItem): undefined | VNode {
-  const label = getActionLabel(action.label, currentRecord.value);
+function getLabelVNode(action: ActionItem): undefined | VNode {  const label = getActionLabel(action.label, currentRecord.value);
   if (!label) return undefined;
   if (isVNode(label)) return label;
   return h('span', String(label));
@@ -244,23 +249,27 @@ function renderDropdownAction(
   return h('div', { key }, [
     content,
     isOpen
-      ? h('div', { class: 'mx-1 my-1 rounded-sm bg-gray-50 p-2 text-sm dark:bg-gray-800' }, [
-          h(
-            'div',
-            { class: 'mb-2 text-gray-600 dark:text-gray-300' },
-            [
+      ? h('div', {
+          key: confirmKey,
+          class: cn(
+            'mx-1 my-1 rounded-md border bg-muted/60 p-2 text-sm',
+            'flex flex-col gap-2',
+          ),
+        }, [
+          h('div', { class: 'flex flex-col gap-1' }, [
+            h('div', { class: 'font-medium leading-5' }, [
               isVNode(action.popConfirm.title)
                 ? action.popConfirm.title
                 : String(action.popConfirm.title),
-              action.popConfirm.content
-                ? h(
-                    'div',
-                    { class: 'mt-1 text-xs text-gray-400' },
-                    [action.popConfirm.content],
-                  )
-                : null,
-            ],
-          ),
+            ]),
+            action.popConfirm.content
+              ? h(
+                  'div',
+                  { class: 'text-xs leading-5 text-muted-foreground' },
+                  [action.popConfirm.content],
+                )
+              : null,
+          ]),
           h('div', { class: 'flex items-center justify-end gap-2' }, [
             h(
               Button,
@@ -347,52 +356,29 @@ function subMenuClick(
       />
 
       <!-- ============ Popconfirm 类型 ============ -->
-      <Popover
+      <Popconfirm
         v-if="action.popConfirm"
         v-model:open="popConfirmOpenMap[index]"
+        :danger="action.danger"
+        @cancel="(e: MouseEvent) => handleCancel(action, index, e)"
+        @confirm="(e: MouseEvent) => handleConfirm(action, index, e)"
       >
-        <PopoverTrigger as-child>
-          <Button
-            :variant="getButtonVariant(action)"
-            :size="getButtonSize(action)"
-            :disabled="isDisabled(action, currentRecord)"
-            :class="getButtonClass(action)"
-          >
-            <Icon v-if="action.icon" :icon="action.icon" />
-            <RenderVNode
-              v-if="getLabelVNode(action)"
-              :vnode="getLabelVNode(action)"
-            />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent align="center" :side-offset="6" class="w-60 p-3">
-          <div class="mb-1 text-sm font-medium">
-            {{ action.popConfirm.title }}
-          </div>
-          <div
-            v-if="action.popConfirm.content"
-            class="mb-2 text-xs text-gray-500 dark:text-gray-400"
-          >
-            {{ action.popConfirm.content }}
-          </div>
-          <div class="flex items-center justify-end gap-2">
-            <Button
-              size="xs"
-              variant="outline"
-              @click="(e: MouseEvent) => handleCancel(action, index, e)"
-            >
-              取消
-            </Button>
-            <Button
-              :variant="action.danger ? 'destructive' : 'default'"
-              size="xs"
-              @click="(e: MouseEvent) => handleConfirm(action, index, e)"
-            >
-              确定
-            </Button>
-          </div>
-        </PopoverContent>
-      </Popover>
+        <Button
+          :variant="getButtonVariant(action)"
+          :size="getButtonSize(action)"
+          :disabled="isDisabled(action, currentRecord)"
+          :class="getButtonClass(action)"
+        >
+          <Icon v-if="action.icon" :icon="action.icon" />
+          <RenderVNode v-if="getLabelVNode(action)" :vnode="getLabelVNode(action)" />
+        </Button>
+        <template #title>
+          <RenderVNode :vnode="toNode(action.popConfirm.title)" />
+        </template>
+        <template v-if="action.popConfirm.content" #description>
+          <RenderVNode :vnode="toNode(action.popConfirm.content)" />
+        </template>
+      </Popconfirm>
 
       <!-- ============ Dropdown 类型 ============ -->
       <Popover

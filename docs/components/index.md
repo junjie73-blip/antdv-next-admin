@@ -1,16 +1,16 @@
 # 组件示例
 
-这一章讲的是**这个仓库自己的组件画廊**，不是 antdv-next 的组件文档。模板把业务组件（表格、表单、弹窗、上传、图表……）都包了一层放在 `apps/web` 里，每个都配了可以点着玩的示例页；想搞清楚「这个封装到底怎么用、有什么坑」，最省事的办法是边看示例页边看这一章的源码引用。
+这一章讲的是**这个仓库自己的组件画廊**，不是 antdv-next 的组件文档。业务组件（表格、表单、弹窗、上传、图表……）都封装在 `@antdv/*` 子包里，`apps/web` 只给每个组件配了可以点着玩的示例页；想搞清楚「这个封装到底怎么用、有什么坑」，最省事的办法是边看示例页边看这一章的源码引用。
 
 ## 示例页在哪
 
 | 位置 | 内容 |
 | --- | --- |
 | `apps/web/src/views/components/**` | 全部示例页的 `.vue` 源码，路径与菜单路径一一对应 |
-| `apps/web/src/components/business/**` | 被示例的业务组件（Table / Form / Modal / Drawer / Description / CountTo / TreeTable） |
-| `apps/web/src/components/common/**` | 通用封装（ECharts / MarkdownEditor / AvatarUploader / ImageUpload …；CronEditor 已迁入 `packages/ui-kit/common-ui`） |
-| `packages/icons/src/**` | 图标原子（`IconPicker` / `IconifyIcon` / `SvgIcon`），包名 `@antdv/icons` |
-| `packages/ui-kit/**` | 无状态 UI 原子：`loading-ui`、`scrollbar-ui`、`shadcn-ui` 以及 form/table/popup/tabs/menu/layout 的封装层 |
+| `apps/web/src/components/business/**` | 仍留在应用侧的少量业务组件（`ImportExport` / `MicroAppContainer` / `TenantSelect` / `TreeTable`）；Table、Form、Modal/Drawer、Description、CountTo 等已迁到 `@antdv/{table-ui,form-ui,popup-ui,common-ui}` |
+| `apps/web/src/components/common/**` | 应用侧还留着的封装（`Auth`、`AvatarUploader`、`ECharts`、`Loading`、`Upload`）；`MarkdownEditor`、`CronEditor`、`EmptyState`、`StatusTag`、`Description`、`CountTo`、`Scrollbar` 等已进 `@antdv/common-ui` |
+| `packages/core/base/icons/src/**` | 图标原子（`IconPicker` / `IconifyIcon` / `SvgIcon`），包名 `@antdv/icons` |
+| `packages/core/ui-kit/**` | 无状态 UI 原子：`shadcn-ui` 与 common / form / table / popup / tabs / menu / layout 的封装层（`loading-ui`、`scrollbar-ui` 已并入 `common-ui`） |
 | `apps/backend-mock/server/api/menus.get.ts:159-342` | 示例页的**唯一权威清单**：菜单即权限，没进菜单的路由进不去 |
 
 `views/components/overview/index.vue` 是画廊的目录页，它不另写一份清单，而是直接读 `useRouteStore().menus` 把菜单树摊平成卡片墙（`overview/index.vue:12-24`）—— 所以新增示例页只要进菜单就会自动出现在总览里。

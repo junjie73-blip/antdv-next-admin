@@ -25,7 +25,7 @@ full-content · horizontal · mixed-two-column · mixed-vertical · side-nav · 
 
 ## 内容区内边距归布局管
 
-`src/layouts/index.vue` 在内容区外面套了一层 `<Scrollbar view-class="p-4">`，也就是说 **页面内容的所有者已经是布局**。路由页面**再**给自己的外层容器加一份 padding，表现是内容离边缘 40px、和别的页面对不齐、卡片阴影被顶出可视区。
+`@antdv/layout-ui` 的 `LayoutContent`（`packages/core/ui-kit/layout-ui/src/components/layout-content/index.vue:44`）在内容区外面套了一层 `<Scrollbar view-class="p-4">`，也就是说 **页面内容的所有者已经是布局**。路由页面**再**给自己的外层容器加一份 padding，表现是内容离边缘 40px、和别的页面对不齐、卡片阴影被顶出可视区。
 
 口径：**所有路由页面的外层容器不写 padding**，页面内部的卡片、代码块、抽屉内容该有内边距随便有。这条由 `apps/web/src/views/__tests__/page-root-padding.spec.ts` 当源码契约钉住 ——它扫每个 `.vue` 页面文件的**根容器**，禁止 `p-*` / `px-*` / `pt-*` 这类工具类和行内 `padding:`，同时断言布局那份 `p-4` 还在（挪走了就得回来改口径）。
 

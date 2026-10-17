@@ -1,7 +1,7 @@
 {
   "name": "@antdv/layout-ui",
   "version": "0.4.0",
-  "description": "shadcn-vue 布局组件包：布局壳与各区渲染（Header/Sider/NavRail/Content/Breadcrumb/Footer/移动遮罩）+ 布局形态示意图，纯表现层，不依赖 pinia、vue-router、业务 store",
+  "description": "shadcn-vue 布局渲染层：布局壳与五个区域（Header/Sidebar/NavRail/Tabbar/Content/Footer）+ 侧栏折叠按钮与拖拽 hook + 外壳尺寸与文案注入契约，纯表现层；形态蓝图、面包屑与示意图在 @antdv/layouts，不依赖 pinia、vue-router、业务 store",
   "private": true,
   "type": "module",
   "scripts": {
@@ -22,7 +22,6 @@
   "dependencies": {
     "@antdv/common-ui": "workspace:*",
     "@antdv/icons": "workspace:*",
-    "@antdv/layouts": "workspace:*",
     "@antdv/menu-ui": "workspace:*",
     "@antdv/shadcn-ui": "workspace:*",
     "@antdv/shared": "workspace:*",

@@ -24,7 +24,7 @@ Four check paths, all against the SW registration:
 
 Prompt semantics: `needRefresh` shows "发现新版本" and starts a **10-second auto-update countdown** (`AUTO_COUNTDOWN`); "later" cancels the auto-update but keeps the manual button; `offlineReady` shows a one-off "offline ready" toast. The countdown is driven by `useTimestamp` rather than a decrementing `setInterval`, so background-tab throttling cannot drift it.
 
-::: warning What is NOT here — do not look for vben's mechanisms
+::: warning What is NOT here — do not look for vue-vben-admin's mechanisms
 
 - No endpoint polling of a published version / no `buildTime` diff service;
 - `__APP_INFO__` (build time + dependency manifest, injected by `defineApplicationConfig`) exists, but nothing consumes it for update detection — it is build metadata only;

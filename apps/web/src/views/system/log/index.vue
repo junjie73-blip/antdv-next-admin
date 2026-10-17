@@ -5,14 +5,14 @@ import type { BasicColumn } from '@antdv/table-ui';
 
 import { ref } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
-import { exportToExcel } from '~/utils/excel';
-import { Icon } from '@iconify/vue';
 import { Divider, Popconfirm, Tag } from '@antdv/common-ui';
-import { deleteOperLog, getOperLogList } from '~/api/system';
-import { Button } from '@antdv/shadcn-ui';
 import { BasicDrawer, message, useDrawer } from '@antdv/popup-ui';
+import { Button } from '@antdv/shadcn-ui';
+import { cn } from '@antdv/shared/utils/cn';
 import { BasicTable, useTable } from '@antdv/table-ui';
+import { Icon } from '@iconify/vue';
+import { deleteOperLog, getOperLogList } from '~/api/system';
+import { exportToExcel } from '~/utils/excel';
 
 defineOptions({ name: 'SystemLog' });
 
@@ -221,9 +221,7 @@ const detailSchemas: DescriptionItem[] = [
     field: 'operType',
     label: '操作类型',
     render: (value) => (
-      <Tag color={operTypeColorMap[value as string] || 'default'}>
-        {value}
-      </Tag>
+      <Tag color={operTypeColorMap[value as string] || 'default'}>{value}</Tag>
     ),
   },
   { field: 'title', label: '操作模块' },
@@ -630,7 +628,6 @@ const loginColumns: BasicColumn[] = [
           :use-search-form="true"
           :form-config="{ schemas: loginSearchFormSchemas, labelWidth: 80 }"
           :action-column="{ width: 0, title: '操作', fixed: 'right' }"
-          :show-table-setting="false"
           :pagination="{
             showSizeChanger: true,
             pageSizeOptions: ['10', '20', '50'],

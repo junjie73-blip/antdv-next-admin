@@ -26,17 +26,18 @@ const STYLE_MAP: Record<TabStyle, TabStyleClasses> = {
     divider: false,
   },
   /*
-   * 谷歌风格：浏览器标签的样子 —— 只有顶部两个圆角、四边描边但不画底边、
+   * 谷歌风格：浏览器标签的样子 —— 只有顶部两个圆角、左右+顶描边但不画底边、
    * 标签贴着标签栏底边排（`bar: items-stretch` 让滚动容器拿到整行高度，
    * 再配合 `list: items-end`，标签才会"坐"在底边上而不是垂直居中悬空）。
-   * 选中页换成内容底色并在顶边压一条主色，未选中页留浅灰，
-   * 相邻标签靠各自的左右描边天然形成浏览器那种分隔。
+   *
+   * 关键：标签栏（strip）铺一层**主色浅底**，选中页换成内容底色
+   * （`bg-background`）才能从浅底里"跳"出来 —— Chrome 的窗口条本身就是主题色
+   * 染出来的灰蓝，用中性 muted 就少了那层染色。相邻标签靠各自的左右描边天然分隔。
    */
   chrome: {
-    item: 'h-8 gap-1.5 rounded-t-lg border border-b-0 border-gray-300 px-3 dark:border-gray-600',
-    active:
-      'border-t-primary bg-white text-gray-800 shadow-sm dark:bg-gray-800 dark:text-white',
-    bar: 'items-stretch',
+    item: 'h-8 gap-1.5 rounded-t-lg border border-b-0 border-transparent px-3',
+    active: 'border-border bg-background text-foreground shadow-sm',
+    bar: 'items-stretch bg-primary/10',
     list: 'h-full items-end gap-0',
     close: 'hover:text-red-500 rounded-full p-0.5',
     divider: false,
@@ -74,7 +75,7 @@ const IDLE_ITEM =
 const IDLE_BG: Record<TabStyle, string> = {
   card: 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600',
   chrome:
-    'bg-gray-100/80 hover:bg-gray-50 dark:bg-gray-900/40 dark:hover:bg-gray-800',
+    'bg-background/40 hover:bg-background/70 dark:bg-background/10 dark:hover:bg-background/20',
   line: '',
   plain: '',
   rounded:

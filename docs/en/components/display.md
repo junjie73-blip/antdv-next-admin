@@ -163,9 +163,9 @@ Where relative time really comes from in this repository:
 | Location | What it does |
 | --- | --- |
 | `packages/shared/src/utils/dayjs.ts:10`, `:23` | a single `dayjs.extend(relativeTime)` — the plugin is installed in the shared package |
-| `apps/web/src/layouts/widgets/components/NoticeItem.vue:49-50` | `dayjs(sendTime).fromNow()`, rendered in the notice item (`:141`) |
-| `apps/web/src/views/system/notice/index.vue:23`, `:361` | the page calls `extend` again on its own; the table column uses `fromNow(true)` (bare duration, no "ago/from now") |
-| `apps/web/src/views/system/online/index.vue:20`, `:93` | same pattern, for the "online for" column |
+| `packages/layouts/src/widgets/notification/notice-item.vue:21-25`, `:77-79` | `dayjs(sendTime).fromNow()`, wrapped in a narrow `fromNow()` helper (it patches in the missing `relativeTime` types); rendered in the notice item (`:171`) |
+| `apps/web/src/views/system/notice/index.vue:36`, `:384` | the page calls `extend` again on its own; the table column uses `fromNow(true)` (bare duration, no "ago/from now") |
+| `apps/web/src/views/system/online/index.vue:30`, `:103` | same pattern, for the "online for" column |
 
 What drives the refresh: **no timer at all**. `fromNow()` sits inside a `computed`, so it only re-evaluates when its data dependency changes; the text will not update itself while you stay on the page. For "changes every minute" behaviour you have to attach an interval yourself.
 
@@ -304,7 +304,7 @@ As for registration, `Scrollbar` is **always imported explicitly**: `views/compo
 
 ### Live examples: `/components/loading` and `/components/scroll/basic`
 
-`http://localhost:6080/#/components/loading` — source `apps/web/src/views/components/loading/index.vue` (1187 lines, **12 sections**; the first five demo thin shells on the application side, which belong to no shared package). Every "load duration" here is a `setTimeout` inside the page — there is no backend. The script opens with a timer registry plus unmount cleanup (`:38-66`), and leaving the page explicitly `destroy()`s even the fullscreen mask (`:60-66`).
+`http://localhost:6080/#/components/loading` — source `apps/web/src/views/components/loading/index.vue` (1432 lines, **12 sections**; the page owns no private shells any more — every demo piece comes from a shared package: skeletons / `EmptyState` / `ErrorBoundary` / `StatusTag` / `Loading` / `useLoading` from `@antdv/common-ui` (`:6-17`), `Spinner` and `Skeleton` from `@antdv/shadcn-ui` (`:19-38`), `PageLoading` from `@antdv/layouts` (`:41`)). Every "load duration" here is a `setTimeout` inside the page — there is no backend. The script opens with a timer registry plus unmount cleanup (`:38-66`), and leaving the page explicitly `destroy()`s even the fullscreen mask (`:60-66`).
 
 | Section | What to click / look at |
 | --- | --- |
@@ -315,8 +315,8 @@ As for registration, `Scrollbar` is **always imported explicitly**: `views/compo
 | Spin loaders `:741-844` | plain antdv-next `Spin` in three styles (circle/dot/grid) plus tip |
 | Skeleton `:846-907` | plain antdv-next `Skeleton` |
 | `Loading` component (project wrapper) `:909-961` | sizes `small/default/large` × themes `light/dark`; "触发 Loading" shows the in-container mask; the `tip="组件式加载中..."` line and its `description` correction comment are at `:951-958` |
-| PageLoading and delayed mask `:963-1012` | left: `PageLoading` over a container — it reads `resolvedTheme` from the app store to decide light/dark (`apps/web/src/components/common/Loading/PageLoading.vue:6`, `:22-24`), the textbook example of "a shell that needs a store stays in the app"; right: "fast request 150ms" never flashes the mask, "slow request 1800ms" does |
-| `v-loading` directive `:1014-1058` | three blocks: default light (`v-loading="directiveLoading"`), dark + large + the `loading-tip` attribute, and `v-loading.fullscreen` for the whole page; the directive is registered in `apps/web/src/main.ts:113` (implementation in `packages/core/ui-kit/common-ui/src/components/loading/directive.ts`) |
+| PageLoading and delayed mask `:1159-1221` | left: `PageLoading` over a container — no longer an "application-side shell": the layout shell moved into `@antdv/layouts` (the demo imports it as `import { PageLoading } from '@antdv/layouts'`, `:41`), and the component itself reads `resolvedTheme` from `@antdv/stores` to decide light/dark (`packages/layouts/src/basic/content/page-loading.vue:6`, `:23-25`); right: "fast request 150ms" never flashes the mask, "slow request 1800ms" does |
+| `v-loading` directive `:1014-1058` | three blocks: default light (`v-loading="directiveLoading"`), dark + large + the `loading-tip` attribute, and `v-loading.fullscreen` for the whole page; the directive is registered in `apps/web/src/main.ts:132` (implementation in `packages/core/ui-kit/common-ui/src/components/loading/directive.ts`) |
 | `useLoading` hook `:1060-1103` | "触发 useLoading" → an in-container mask for 2.5s; the section also prints a `target / body / tip` snippet |
 | Button loading state `:1105-1149` | antdv-next `Button`'s own `loading` prop — unrelated to this project |
 | Global mask `:1151-1185` | "模拟 API 请求 (全屏遮罩)" → `createLoading` opens fullscreen, `setTip('即将完成...')` at 1.5s, `close()` at 3s (`:400-415`) |
@@ -345,7 +345,7 @@ The old `@antdv/ui` package has been taken apart, and the three atoms on this pa
 
 | Package | Contents | Boundary (written into `description`) | Exports |
 | --- | --- | --- | --- |
-| `@antdv/icons` (`packages/icons`) | `IconPicker` / `IconifyIcon` / `SvgIcon` | icons only: loading overlays belong to `@antdv/common-ui`, scrollbars to `@antdv/common-ui` | `.:src/index.ts` + the `./icon` subpath + `createIconInstaller()` (`:13-31`) |
+| `@antdv/icons` (`packages/core/base/icons`) | `IconPicker` / `IconifyIcon` / `SvgIcon` | icons only: loading overlays belong to `@antdv/common-ui`, scrollbars to `@antdv/common-ui` | `.:src/index.ts` + the `./icon` subpath + `createIconInstaller()` (`:13-31`) |
 | `@antdv/common-ui` (`packages/core/ui-kit/common-ui/src/components/loading`) | `Loading` + `useLoading` + `createLoading` / `createContainerLoading` / `createFullscreenLoading` + `vLoading` | no pinia, vue-router, business stores or application configuration | single-entry barrel (`src/index.ts:1-26`) |
 | `@antdv/common-ui` (`packages/core/ui-kit/common-ui/src/components/scrollbar`) | `Scrollbar` + `Bar` | styles travel with the component — no host Tailwind config, no store or app configuration | single-entry barrel (`src/index.ts:1-10`) |
 
@@ -353,12 +353,12 @@ All three have `files: ["src"]` and point `main`/`types` at `./src/index.ts` —
 
 | Convention | Source |
 | --- | --- |
-| "does not depend on pinia, vue-router, business stores or application configuration — shells that need those stay in the app" | the `description` field of the three `package.json` files (`packages/icons/package.json:4` etc.) |
+| "does not depend on pinia, vue-router, business stores or application configuration — the shell that needs them is its own layer" | the `description` field of the three `package.json` files (`packages/core/base/icons/package.json:4` etc.); the "stays in the app" wording is now obsolete — that shell is the `@antdv/layouts` composition package, and the app keeps only `apps/web/src/layouts/index.vue` |
 | Components inside a package are **always imported explicitly**, never resolved by the host | `IconPicker.vue:4-24`; the resolvers were withdrawn from `internal/vite-config/src/plugins/auto-import.ts` |
 | No implicit auto-import globals inside a package: `useResponsiveMaxHeight.ts` imports `toValue` / `MaybeRefOrGetter` explicitly, and the comment notes that another host would fail with `toValue is not defined` | `packages/core/ui-kit/common-ui/src/components/scrollbar/useResponsiveMaxHeight.ts:1-12` |
 | Configuration stays out of the package: `native` is passed in by the caller, the package never reads app config | `packages/core/ui-kit/common-ui/src/components/scrollbar/Scrollbar.vue:23-28` |
 | Styles are self-contained, independent of the host Tailwind | `Scrollbar.vue:316-324` |
-| Conversely, application-side shells should read stores when they need to: `PageLoading` reads `useAppStore().resolvedTheme` | `apps/web/src/components/common/Loading/PageLoading.vue:6`, `:22-24` |
+| Conversely, the composition layer should read stores when it needs to: `PageLoading` reads `useAppStore().resolvedTheme` | `packages/layouts/src/basic/content/page-loading.vue:6`, `:23-25` |
 
 ## Related
 

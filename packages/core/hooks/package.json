@@ -1,0 +1,56 @@
+{
+  "name": "@antdv/hooks",
+  "version": "0.4.0",
+  "description": "通用组合式函数：缓存、文件读取、分片上传、打印、路由 Loading、水印、ECharts（不依赖 store/api/路由实例）。SSE 与 WebSocket 在 @antdv/request",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsdown",
+    "clean": "rimraf dist .turbo",
+    "dev": "tsdown --watch",
+    "test:unit": "vitest run",
+    "type-check": "vue-tsc --noEmit"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "//exports": "单文件 hook 走 \"./*\" 通配符（@antdv/hooks/use-print -> dist/use-print.js），\n 文件名一律 kebab-case，与 @antdv/layouts 的 hooks 目录同一套词汇。\n echarts 是目录模块且拖进整个图表库的全量注册表，tsdown 产出 dist/echarts/index.js，\n 需要显式列出——放进根入口会让 `import { usePrint }` 也付出一份图表的解析成本。",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./echarts": {
+      "types": "./dist/echarts/index.d.ts",
+      "default": "./dist/echarts/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@antdv/popup-ui": "workspace:*",
+    "@antdv/shared": "workspace:*",
+    "@antdv/types": "workspace:*",
+    "@vueuse/core": "catalog:",
+    "echarts": "catalog:",
+    "es-toolkit": "catalog:",
+    "vue": "catalog:",
+    "vue-router": "catalog:",
+    "watermark-plus": "catalog:"
+  },
+  "devDependencies": {
+    "@antdv/tsconfig": "workspace:*",
+    "happy-dom": "catalog:",
+    "rimraf": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}

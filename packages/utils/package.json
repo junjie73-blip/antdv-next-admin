@@ -1,7 +1,7 @@
 {
   "name": "@antdv/utils",
   "version": "0.1.0",
-  "description": "与框架无关的两类纯函数：菜单树/key 体系（menu）、把偏好落到 DOM 的读写函数与系统主题探测（css-vars / theme-mode）",
+  "description": "与框架无关的纯函数：菜单树/key 体系（menu）、主题模式解析与系统深色探测（theme-mode）",
   "private": true,
   "type": "module",
   "scripts": {
@@ -15,10 +15,9 @@
   "main": "./src/index.ts",
   "module": "./src/index.ts",
   "types": "./src/index.ts",
-  "//exports": "入口 barrel 之外保留三个子路径，方便只取一类能力（如只要 menu）而不把 DOM 逻辑带进 SSR / Node 侧。",
+  "//exports": "入口 barrel 之外保留两个子路径，方便只取一类能力（如只要 menu）而不把其它逻辑带进 SSR / Node 侧。",
   "exports": {
     ".": "./src/index.ts",
-    "./css-vars": "./src/css-vars.ts",
     "./menu": "./src/menu.ts",
     "./theme-mode": "./src/theme-mode.ts",
     "./package.json": "./package.json"

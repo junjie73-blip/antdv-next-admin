@@ -1,0 +1,9 @@
+{
+  "extends": "@antdv/tsconfig/web.json",
+  "compilerOptions": {
+    // store 用例要摸 localStorage（tabs 持久化、route 的菜单覆盖），所以带上 DOM 与 vitest 全局
+    "types": ["node", "vitest/globals"],
+    "noEmit": true
+  },
+  "include": ["src/**/*.ts", "__tests__/**/*.ts", "vitest.config.ts"]
+}

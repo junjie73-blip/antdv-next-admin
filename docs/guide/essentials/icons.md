@@ -71,7 +71,7 @@ iconifyOffline({
 
 运行时消费的图标名有两处来源，都不在组件里写死：
 
-- **菜单数据**：`GET /menus` 每条的 `icon` 字段（mock 种子在 `apps/backend-mock/server/api/menus.get.ts`），归一化后进 `MenuConfig.icon`。侧栏/图标栏消费点 `apps/web/src/layouts/components/LayoutNavRail.vue:111` 带兜底 `menu.icon || 'carbon:category'`。
+- **菜单数据**：`GET /menus` 每条的 `icon` 字段（mock 种子在 `apps/backend-mock/server/api/menus.get.ts`），归一化后进 `MenuConfig.icon`。侧栏/图标栏消费点 `packages/core/ui-kit/layout-ui/src/components/layout-sidebar/nav-rail.vue:90` 带兜底 `menu.icon || 'carbon:category'`。
 - **路由 `meta.icon`**：约定路由或静态路由上写的字段，类型见 `packages/types/src/app-router.ts`；标签页与面包屑也读它（`packages/layouts/src/breadcrumb.ts`）。
 
 面包屑对空串的处理值得注意：`LayoutBreadcrumb.vue:81` 的注释说明为什么用 `''` 而不是 `undefined` ——`undefined` 会让 `<Icon :icon>` 报类型错，空串既让 `v-if` 为假又保持 `string`。

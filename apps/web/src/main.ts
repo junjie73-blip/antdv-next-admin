@@ -6,6 +6,7 @@ import 'vue-pdf-embed/dist/styles/annotationLayer.css';
 import 'vue-pdf-embed/dist/styles/textLayer.css';
 
 import { vLoading } from '@antdv/common-ui';
+import { useUserStore } from '@antdv/stores';
 import FcDesigner from '@form-create/antd-designer';
 import formCreate from '@form-create/antdv-next';
 import install from '@form-create/antdv-next/auto-import';
@@ -28,12 +29,13 @@ import {
 import i18n from './locales';
 import { installBrowserMockIfEnabled } from './mock/activate';
 import { setupVueQuery } from './plugins/query';
+import { configureLayoutsHost } from './plugins/layouts-host';
 import { configureRequestRuntime } from './plugins/request-runtime';
 import { configureTableRuntime } from './plugins/table-runtime';
 import { configureUiKitRuntimes } from './plugins/ui-runtime';
 import { registerVendorAntdComponents } from './plugins/vendor-antd-components';
 import { setupRouter } from './router';
-import { useUserStore } from './stores/modules/user';
+import { getPreferences } from './settings';
 import { initSecuritySystem } from './utils/securityInit';
 
 import './bootstrap/env';
@@ -64,8 +66,19 @@ configureRequestRuntime();
  * 按钮上出现 `shell.exitFullContent` 这类裸 key（而不是报错）。
  */
 configureUiKitRuntimes();
+/**
+ * 顶栏小部件（铃铛、语言、账户抽屉…）住在 `@antdv/layouts`，
+ * 但它们要的接口、推送通道、账户页面与语言候选只有应用知道，挂载前一次性交进去。
+ */
+configureLayoutsHost();
 // 表格的权限判定与接口错误文案来自应用，注入要赶在第一张表渲染之前
 configureTableRuntime();
+/**
+ * 偏好单例要先带着**项目默认值**建好，再装路由：`initPreferences` 是幂等的"第一次赢"，
+ * 谁先调用谁定规格。应用默认值（标题、水印文案）与老缓存的形态迁移都在 `~/settings` 里，
+ * 晚一步就会被包默认值占位 —— 表现是水印/版权没了、老布局名读不出来，且不报错。
+ */
+getPreferences();
 app.use(formCreate);
 app.use(FcDesigner);
 app.use(MotionPlugin);

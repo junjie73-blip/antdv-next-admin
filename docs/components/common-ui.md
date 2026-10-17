@@ -1,6 +1,6 @@
 # 公共组件（`@antdv/common-ui`）
 
-这一页讲 `packages/ui-kit/common-ui` —— 与路由无关、跨页面复用的展示型组件，34 个导出名。它们**全部由 `@antdv/shadcn-ui` 的原语（reka-ui）组合出来**，不认得 antdv-next，也不认得应用：包里没有 store、没有路由、没有 `~/...` 别名。
+这一页讲 `packages/core/ui-kit/common-ui` —— 与路由无关、跨页面复用的展示型组件，34 个导出名。它们**全部由 `@antdv/shadcn-ui` 的原语（reka-ui）组合出来**，不认得 antdv-next，也不认得应用：包里没有 store、没有路由、没有 `~/...` 别名。
 
 迁移落地的顺序是「代码先动、文档后动」，所以这一页是补齐的：原先散在 `apps/web/src/components/business/` 下的 `Description`、`CountTo` 已经进了这个包，另一批（Badge、Steps、Result、Transfer、Image、Upload、Tabs……）是从示例页里"每页各写一份"抽出来的。
 
@@ -9,7 +9,7 @@
 
 ## 怎么引用：只有根入口
 
-`packages/ui-kit/common-ui/package.json` 的 `exports` 只有两条：`.`（→ `./src/index.ts`）和 `./package.json`。**没有子路径导出**，所以 `@antdv/common-ui/components/badge` 这种写法在 Node 解析阶段就会 `ERR_PACKAGE_EXPORTS` 报错，不是"能用但不推荐"。
+`packages/core/ui-kit/common-ui/package.json` 的 `exports` 只有两条：`.`（→ `./src/index.ts`）和 `./package.json`。**没有子路径导出**，所以 `@antdv/common-ui/components/badge` 这种写法在 Node 解析阶段就会 `ERR_PACKAGE_EXPORTS` 报错，不是"能用但不推荐"。
 
 ```ts
 // ✅ 具名导入，一律从包根 barrel
@@ -24,7 +24,7 @@ ESLint 配的是 `vue/component-name-in-template-casing: PascalCase`（`internal
 目录结构是**一个组件一个 kebab 目录**：
 
 ```text
-packages/ui-kit/common-ui/src/components/<kebab>/
+packages/core/ui-kit/common-ui/src/components/<kebab>/
   ├── <PascalCase>.vue      # 组件本体
   ├── index.ts              # 具名 + default 双导出（barrel 只取具名）
   ├── types.ts              # 可选：props / emits / 数据结构
@@ -326,23 +326,23 @@ Tabs 事件：`change: [number | string]`、`update:activeKey: [number \| string
 | `Checkbox` / `Switch` 永远用 `:model-value` + `@update:model-value`（或直接 `v-model`） | 这两个原语**不在本包的 barrel 里**，来自 `@antdv/shadcn-ui`（`src/index.ts:15`、`:58`），组件体只是把 props / emits 原样 `useForwardPropsEmits` 给 reka-ui 的 `CheckboxRoot` / `SwitchRoot`，reka v2 的模型名是 `modelValue`。写 `:checked` 会被忽略（勾选框永远停在初始值），写 `@change` 收不到。仓库里的正确写法：`apps/web/src/views/account/settings/index.vue:283-286`。会混淆是因为 antdv-next 的 `Switch` 才是 `:checked` —— 现在只剩 `SettingDrawer/**` 还在用它 |
 | `<TabPane value="...">`，不是 `key` | `TabPane.vue:13` 的必填 prop 叫 `value`；`key` 被 Vue 吃掉，pane 注册成 `undefined`（见上方 Tabs 小节） |
 | `Popconfirm` 用 `danger`，不是 `ok-type="danger"` | `popconfirm/Popconfirm.vue:17`；`ok-type` 这个 prop 不存在，传了不报错也不生效 |
-| `Modal.confirm` → `confirm()`；`message` → 也从 `@antdv/popup-ui` 拿 | `packages/ui-kit/popup-ui/src/index.ts` 就四行 `export *`（alert、drawer、message、modal）加类型，四个入口都在那个包。应用侧 49 个文件引 `@antdv/popup-ui`，典型写法 `import { confirm, message } from '@antdv/popup-ui'`（如 `apps/web/src/views/account/center/index.vue:19`） |
+| `Modal.confirm` → `confirm()`；`message` → 也从 `@antdv/popup-ui` 拿 | `packages/core/ui-kit/popup-ui/src/index.ts` 就四行 `export *`（alert、drawer、message、modal）加类型，四个入口都在那个包。应用侧 41 个文件引 `@antdv/popup-ui`，搬进 `@antdv/layouts` 的顶栏小部件另有 5 个，典型写法 `import { confirm, message } from '@antdv/popup-ui'`（如 `apps/web/src/views/account/center/index.vue:19`） |
 | Tailwind 只认**字面量类名** | 状态 → 颜色一律查表（`Badge.vue:37-44` 的 `STATUS_DOT`、`Steps.vue:37-43` 的 `CIRCLE`、`Tag.vue` 的 `PRESET`），不要 `bg-${color}-500` 拼接，也不要指望扫描器认识动态串 |
 | 模板里不要写 `cn(...)` 并带尾逗号 | `<div :class="cn('a', 'b',)">` 这种写法会让模板表达式解析失败；把 `cn()` 收进 `<script setup>` 里的 `computed` / 常量，模板只引用变量名（示例页全部是这个形态） |
 
 ## 与 antdv-next 的关系
 
-这个包**不 import antdv-next**，`dependencies` 只到 `@antdv/icons`、`@antdv/common-ui`、`@antdv/shadcn-ui`、`@antdv/shared`，加上 `@vueuse/core`、`cronstrue`、`es-toolkit`、`vue`（`packages/ui-kit/common-ui/package.json`）。换宿主工程只要装上这几个 workspace 包就能跑，机制见[外部模块](/guide/essentials/external)。
+这个包**不 import antdv-next**，`dependencies` 只到 `@antdv/icons`、`@antdv/common-ui`、`@antdv/shadcn-ui`、`@antdv/shared`，加上 `@vueuse/core`、`cronstrue`、`es-toolkit`、`vue`（`packages/core/ui-kit/common-ui/package.json`）。换宿主工程只要装上这几个 workspace 包就能跑，机制见[外部模块](/guide/essentials/external)。
 
 `apps/web/src/views/**` 里已经没有示例页引 antdv-next；全仓库还在引它的只有：
 
 | 位置 | 引它的原因 |
 | --- | --- |
 | `apps/web/src/plugins/vendor-antd-components.ts` + `App.vue` 的 `ConfigProvider` / `StyleProvider` | **唯一还算合法的遗留例外**：`@form-create/antd-designer` 的模板是发布前编译好的，运行时靠 `resolveComponent('a-…')` 找组件，所以手工登记 36 个 kebab-case 名字（外加 `a-form-item-rest`）。这是给第三方用的，不是新代码的样板 |
-| `apps/web/src/layouts/components/SettingDrawer/**`（7 个文件） | 设置抽屉的 `ColorPicker` / `Slider` / `InputNumber` 等控件目前仍直接用 antdv-next —— 迁移没做完的部分，见下 |
+| ~~设置抽屉~~ | 曾经在 `apps/web/src/layouts/components/SettingDrawer/**` 欠的那笔债**已经还了**：抽屉现在在 `packages/layouts/src/widgets/setting-drawer/**`（7 个 `.vue`），`Slider` / `Switch` / `NumberField` 取自 `@antdv/shadcn-ui`（`components/layout-panel.vue:15-21`），`Tooltip` 取自 `@antdv/common-ui`（`components/setting-item.vue:2`），包里再没有 `from 'antdv-next'` |
 
 ::: warning 文档与代码还没对上的地方
-1. `SettingDrawer` 这一处 antdv-next 依赖是**既成事实、不是推荐写法**，但 `guide/essentials/external.md` 把它描述成"应用里 100 多个 `.vue` 文件各自的显式 import"，数字与结论都过期了（实测：9 个非测试文件）。
+1. 设置抽屉的 antdv-next 依赖已经清掉，剩下的只有 `App.vue`（`apps/web/src/App.vue:7`）与 vendor 登记表；但 `guide/essentials/external.md` 还把它描述成"应用里 100 多个 `.vue` 文件各自的显式 import"，数字与结论都过期了（实测：`.vue` 里只剩 `App.vue` 一个）。
 2. `apps/web/src/views/system/settings/index.vue:94` 起的 JSX 里还在写 `<a-tag>`，靠上面那份全局注册才解析出来 —— 新代码应当写 `import { Tag } from '@antdv/common-ui'`。:::
 
 ## 相关页面

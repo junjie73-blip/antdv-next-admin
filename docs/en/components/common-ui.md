@@ -1,6 +1,6 @@
 # Shared Components (`@antdv/common-ui`)
 
-This page documents `packages/ui-kit/common-ui` — the route-agnostic, cross-page presentational components: 34 exported values. Every one of them is **composed from primitives in `@antdv/shadcn-ui`** (reka-ui); the package does not know antdv-next exists and does not know the app exists — no store, no router, no `~/...` alias inside.
+This page documents `packages/core/ui-kit/common-ui` — the route-agnostic, cross-page presentational components: 34 exported values. Every one of them is **composed from primitives in `@antdv/shadcn-ui`** (reka-ui); the package does not know antdv-next exists and does not know the app exists — no store, no router, no `~/...` alias inside.
 
 The refactor landed in code before it landed in docs, so this page is the catch-up: `Description` and `CountTo`, which used to live in `apps/web/src/components/business/`, are now in this package, and a second batch (Badge, Steps, Result, Transfer, Image, Upload, Tabs …) was extracted from demo pages that each kept their own copy.
 
@@ -9,7 +9,7 @@ Every props / events / slots / instance-method line below is copied from the rea
 
 ## How to import: the root entry only
 
-`packages/ui-kit/common-ui/package.json` declares exactly two `exports` keys: `.` (→ `./src/index.ts`) and `./package.json`. **There are no subpath exports**, so `@antdv/common-ui/components/badge` fails at Node resolution with `ERR_PACKAGE_EXPORTS` — it is not "allowed but discouraged".
+`packages/core/ui-kit/common-ui/package.json` declares exactly two `exports` keys: `.` (→ `./src/index.ts`) and `./package.json`. **There are no subpath exports**, so `@antdv/common-ui/components/badge` fails at Node resolution with `ERR_PACKAGE_EXPORTS` — it is not "allowed but discouraged".
 
 ```ts
 // ✅ named imports, always from the package barrel
@@ -24,7 +24,7 @@ ESLint enforces `vue/component-name-in-template-casing: PascalCase` (`internal/l
 Directory layout is **one kebab-case directory per component**:
 
 ```text
-packages/ui-kit/common-ui/src/components/<kebab>/
+packages/core/ui-kit/common-ui/src/components/<kebab>/
  ├── <PascalCase>.vue   # the component
  ├── index.ts       # named + default export (the barrel only takes the named one)
  ├── types.ts       # optional: props / emits / data shapes
@@ -326,23 +326,23 @@ Getting these wrong produces no error — only silent breakage. Each line was ve
 | `Checkbox` / `Switch` always use `:model-value` + `@update:model-value` (or plain `v-model`) | Those two primitives are **not in this barrel**; they come from `@antdv/shadcn-ui` (`src/index.ts:15`, `:58`), and the wrappers simply `useForwardPropsEmits` onto reka-ui's `CheckboxRoot` / `SwitchRoot`, whose model name in reka v2 is `modelValue`. Writing `:checked` is ignored (the control stays at its initial value)and `@change` never fires. The correct in-repo example is `apps/web/src/views/account/settings/index.vue:283-286`. The confusion comes from antdv-next's `Switch`, which does use `:checked` — and only `SettingDrawer/**` still uses it |
 | `<TabPane value="...">`, never `key` | The required prop in `TabPane.vue:13` is `value`; `key` is eaten by Vue and the pane registers as `undefined` (see the Tabs section) |
 | `Popconfirm` uses `danger`, not `ok-type="danger"` | `popconfirm/Popconfirm.vue:17`; there is no `ok-type` prop, so passing it neither errors nor works |
-| `Modal.confirm` → `confirm()`; `message` also comes from `@antdv/popup-ui` | `packages/ui-kit/popup-ui/src/index.ts` is four `export *` lines (alert, drawer, message, modal) plus types. 49 app files import `@antdv/popup-ui`; the typical line is `import { confirm, message } from '@antdv/popup-ui'` (e.g. `apps/web/src/views/account/center/index.vue:19`) |
+| `Modal.confirm` → `confirm()`; `message` also comes from `@antdv/popup-ui` | `packages/core/ui-kit/popup-ui/src/index.ts` is four `export *` lines (alert, drawer, message, modal) plus types. 41 app files import `@antdv/popup-ui`, plus 5 more inside `@antdv/layouts`' header widgets; the typical line is `import { confirm, message } from '@antdv/popup-ui'` (e.g. `apps/web/src/views/account/center/index.vue:19`) |
 | Tailwind only understands **literal class strings** | Status→colour always goes through a lookup table (`STATUS_DOT` in `Badge.vue:37-44`, `CIRCLE` in `Steps.vue:37-43`, `PRESET` in `Tag.vue`); never `bg-${color}-500`, and do not expect the scanner to see dynamic strings |
 | Do not write `cn(...)` in templates, especially with a trailing comma | `<div :class="cn('a', 'b',)">` breaks template expression parsing. Keep `cn()` calls in `<script setup>` as `computed` values or constants and reference the variable — every demo page follows this shape |
 
 ## Relationship to antdv-next
 
-This package **does not import antdv-next**. Its `dependencies` stop at `@antdv/icons`, `@antdv/common-ui`, `@antdv/shadcn-ui`, `@antdv/shared`, plus `@vueuse/core`, `cronstrue`, `es-toolkit`, `vue` (`packages/ui-kit/common-ui/package.json`). Any host project that installs those workspace packages can use it — see [External Modules](/en/guide/essentials/external).
+This package **does not import antdv-next**. Its `dependencies` stop at `@antdv/icons`, `@antdv/common-ui`, `@antdv/shadcn-ui`, `@antdv/shared`, plus `@vueuse/core`, `cronstrue`, `es-toolkit`, `vue` (`packages/core/ui-kit/common-ui/package.json`). Any host project that installs those workspace packages can use it — see [External Modules](/en/guide/essentials/external).
 
 No page under `apps/web/src/views/**` imports antdv-next for its own UI any more. What still imports it:
 
 | location | why |
 | --- | --- |
 | `apps/web/src/plugins/vendor-antd-components.ts` + the `ConfigProvider` / `StyleProvider` in `App.vue` | **The only still-legal legacy exception**: `@form-create/antd-designer` ships templates compiled before publication, which look components up at runtime via `resolveComponent('a-…')`. Hence 36 manually registered kebab-case names (plus `a-form-item-rest`). It exists for a third-party dependency — it is not a pattern for new code |
-| `apps/web/src/layouts/components/SettingDrawer/**` (7 files) | The settings drawer still uses antdv-next controls (`ColorPicker` / `Slider` / `InputNumber` …) — migration debt, see below |
+| ~~the settings drawer~~ | The antdv-next debt that used to sit in `apps/web/src/layouts/components/SettingDrawer/**` **is paid off**: the drawer now lives in `packages/layouts/src/widgets/setting-drawer/**` (7 `.vue` files), its `Slider` / `Switch` / `NumberField` come from `@antdv/shadcn-ui` (`components/layout-panel.vue:15-21`) and its `Tooltip` from `@antdv/common-ui` (`components/setting-item.vue:2`) — nothing in there says `from 'antdv-next'` any more |
 
 ::: warning Where docs and code still disagree
-1. That `SettingDrawer` dependency is a **fact of the current code, not a recommendation**, yet `en/guide/essentials/external.md` still describes it as "explicit imports at the top of 100+ `.vue` files in the app". Both the number and the conclusion are stale (measured: 9 non-test files).
+1. The settings drawer no longer imports antdv-next; what is left is `App.vue` (`apps/web/src/App.vue:7`) and the vendor registration table. `en/guide/essentials/external.md` still describes it as "explicit imports at the top of 100+ `.vue` files in the app" — both the number and the conclusion are stale (measured: `App.vue` is the only `.vue` left).
 2. `apps/web/src/views/system/settings/index.vue:94` and the lines below it still render `<a-tag>` inside JSX, which only resolves thanks to that global registration. New code should write `import { Tag } from '@antdv/common-ui'`.:::
 
 ## Related pages

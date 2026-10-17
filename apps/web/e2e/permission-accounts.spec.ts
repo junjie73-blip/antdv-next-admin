@@ -87,9 +87,7 @@ test.describe('两种权限账号的授权生成', () => {
       .first()
       .click();
     await expect(
-      sidebar
-        .locator('[data-menu-label]', { hasText: '用户管理' })
-        .first(),
+      sidebar.locator('[data-menu-label]', { hasText: '用户管理' }).first(),
     ).toBeVisible();
     await expect(
       sidebar.locator('[data-menu-label]', { hasText: '菜单管理' }),
@@ -103,9 +101,7 @@ test.describe('两种权限账号的授权生成', () => {
       sidebar.locator('[data-menu-label]', { hasText: '表单' }),
     ).toHaveCount(0);
     await expect(
-      sidebar
-        .locator('[data-menu-label]', { hasText: '示例总览' })
-        .first(),
+      sidebar.locator('[data-menu-label]', { hasText: '示例总览' }).first(),
     ).toBeVisible();
   });
 

@@ -10,7 +10,7 @@ import { defineConfig } from 'tsdown';
 export default defineConfig({
   clean: true,
   dts: true,
-  entry: ['src/index.ts', 'src/*.ts', 'src/*/index.ts', 'src/*/*/index.ts'],
+  entry: ['src/index.ts', 'src/*.ts'],
   format: ['esm'],
   platform: 'neutral',
   target: 'es2022',

@@ -1,6 +1,6 @@
 import type { MenuConfig } from '@antdv/types';
 
-import type { LayoutShellRegions } from '../src/types';
+import type { LayoutShellRegions } from '../src/layout';
 
 /**
  * 外壳测试共用的菜单树。
@@ -28,7 +28,11 @@ export const menuTree: MenuConfig[] = [
     children: [
       {
         children: [
-          { name: 'DemoFormBasic', path: '/demo/form/basic', title: '基础表单' },
+          {
+            name: 'DemoFormBasic',
+            path: '/demo/form/basic',
+            title: '基础表单',
+          },
           {
             disabled: true,
             name: 'DemoFormStep',
@@ -51,7 +55,12 @@ export const menuTree: MenuConfig[] = [
     path: '/demo',
     title: '组件示例',
   },
-  { badge: { dot: true }, name: 'Analysis', path: '/analysis', title: '分析面板' },
+  {
+    badge: { dot: true },
+    name: 'Analysis',
+    path: '/analysis',
+    title: '分析面板',
+  },
 ];
 
 /** 区域开关的默认值：一个"什么都不渲染"的壳，用例按需打开 */

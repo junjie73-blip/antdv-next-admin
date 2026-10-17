@@ -77,11 +77,9 @@ function card(page: Page, title: string) {
  * 这类带全角括号与代码片段的标题，整串抄进用例会因为一次排版改动就红。
  */
 function cardByTitle(page: Page, prefix: string) {
-  return page
-    .locator('[data-slot="card"]')
-    .filter({
-      has: page.locator('[data-slot="card-title"]', { hasText: prefix }),
-    });
+  return page.locator('[data-slot="card"]').filter({
+    has: page.locator('[data-slot="card-title"]', { hasText: prefix }),
+  });
 }
 
 /**
@@ -876,9 +874,9 @@ test.describe('分步表单页', () => {
     await field(box, '手机号').fill('1234');
     await cjkButton(box, '下一步').click();
     await expect(meta).toContainText('第 2/3 步');
-    expect(
-      await box.locator('.form-item-error').allTextContents(),
-    ).toEqual(['11 位手机号，别带空格']);
+    expect(await box.locator('.form-item-error').allTextContents()).toEqual([
+      '11 位手机号，别带空格',
+    ]);
 
     expect(errors.errors).toEqual([]);
     errors.stop();
@@ -920,14 +918,11 @@ test.describe('分步表单页', () => {
     await cjkButton(box, '提交').click();
     await expect(meta).toContainText('第 3/3 步');
     await expect(resultBox(box)).toHaveCount(0);
-    expect(
-      await box.locator('.form-item-error').allTextContents(),
-    ).toEqual(['需要先同意《用户服务协议》']);
+    expect(await box.locator('.form-item-error').allTextContents()).toEqual([
+      '需要先同意《用户服务协议》',
+    ]);
 
-    await box
-      .locator('label')
-      .filter({ hasText: '我已阅读并同意' })
-      .click();
+    await box.locator('label').filter({ hasText: '我已阅读并同意' }).click();
     await cjkButton(box, '提交').click();
 
     /**
@@ -1096,11 +1091,13 @@ test.describe('弹窗与抽屉页', () => {
     // 标题换了之后原来的锚点就没了，按新标题重新定位
     const renamed = antModal(page, '标题被 setModalProps 改掉');
     await expect(renamed).toBeVisible();
-    await expect(renamed.getByText('编辑用户信息', { exact: true })).toHaveCount(
+    await expect(
+      renamed.getByText('编辑用户信息', { exact: true }),
+    ).toHaveCount(0);
+    await expect(cjkButton(renamed, '确认修改')).toBeVisible();
+    await expect(renamed.getByRole('button', { name: /^提交$/ })).toHaveCount(
       0,
     );
-    await expect(cjkButton(renamed, '确认修改')).toBeVisible();
-    await expect(renamed.getByRole('button', { name: /^提交$/ })).toHaveCount(0);
     await expect(renamed).toHaveAttribute('style', /640px/);
 
     // 页面自己也这么说
@@ -1322,7 +1319,9 @@ test.describe('描述列表页', () => {
 
     const basic = card(page, '基础描述列表');
     // 解析失败的组件只会静默变成空节点，所以按标签格数数：schema 写几条就该有几条
-    await expect(basic.locator('[data-common-descriptions-label]')).toHaveCount(9);
+    await expect(basic.locator('[data-common-descriptions-label]')).toHaveCount(
+      9,
+    );
     await expect(basic.getByText('用户基本信息')).toBeVisible();
     await expect(basic.getByText('张伟')).toBeVisible();
     // type: 'date' / 'datetime' 走 dayjs 格式化
@@ -1332,9 +1331,9 @@ test.describe('描述列表页', () => {
     const homepage = basic
       .locator('[data-common-descriptions-item]')
       .filter({ hasText: '个人主页' });
-    await expect(homepage.locator('[data-common-descriptions-value]')).toHaveText(
-      '-'
-    );
+    await expect(
+      homepage.locator('[data-common-descriptions-value]'),
+    ).toHaveText('-');
     expect(
       await basic
         .locator('[data-common-descriptions-value]')
@@ -1343,9 +1342,9 @@ test.describe('描述列表页', () => {
     ).toBeGreaterThanOrEqual(1);
 
     const renderBox = card(page, '值渲染与插槽');
-    await expect(renderBox.locator('[data-common-descriptions-label]')).toHaveCount(
-      6,
-    );
+    await expect(
+      renderBox.locator('[data-common-descriptions-label]'),
+    ).toHaveCount(6);
     // type: image(1) + images(2) 一共三张可预览图，节点没解析出来就是 0
     await expect(renderBox.locator('[data-common-image]')).toHaveCount(3);
     // render 函数返回的 Tag
@@ -1354,7 +1353,9 @@ test.describe('描述列表页', () => {
     ).toHaveCount(1);
     // 具名插槽 #skills：四个技能标签
     await expect(
-      renderBox.locator('[data-common-tag]').filter({ hasText: 'Tailwind CSS' }),
+      renderBox
+        .locator('[data-common-tag]')
+        .filter({ hasText: 'Tailwind CSS' }),
     ).toHaveCount(1);
     // 标签插槽 #department-label 把「所属部门」换成了带图标的蓝字
     await expect(renderBox.getByText('所属部门')).toBeVisible();
@@ -1458,9 +1459,9 @@ test.describe('描述列表页', () => {
     const errors = await open(page, DESCRIPTION);
     const box = cardByTitle(page, '响应式列数与分组');
     // 两个 Description 各自的表头就是 `[data-common-descriptions-title]`
-    await expect(
-      box.locator('[data-common-descriptions-title]'),
-    ).toHaveCount(2);
+    await expect(box.locator('[data-common-descriptions-title]')).toHaveCount(
+      2,
+    );
 
     /**
      * 数「排了几行」。
@@ -1469,10 +1470,10 @@ test.describe('描述列表页', () => {
      * DOM 里没有行节点，所以按格子的 top 去重 —— 数的是页面上真的看到的行数。
      */
     function distinctRows(items: Locator) {
-      return items.evaluateAll((els) =>
-        new Set(
-          els.map((el) => Math.round(el.getBoundingClientRect().top)),
-        ).size,
+      return items.evaluateAll(
+        (els) =>
+          new Set(els.map((el) => Math.round(el.getBoundingClientRect().top)))
+            .size,
       );
     }
 

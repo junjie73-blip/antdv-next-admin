@@ -47,7 +47,7 @@ pnpm release                      # pnpm build && changeset publish
 
 ## 一次 antdv-next 升级怎么跑
 
-`antdv-next` 只在 catalog 里出现一次（`^1.6.0`），但它是 4 个包的直接依赖（`composables`、 `preferences`、`shared`、`types`）加 `apps/web`，改一行全仓生效。配套还要看 `@antdv-next/*` 四个卫星包（`cssinjs`、`icons`、`tailwind`、`happy-work-theme`）与 `@iconify-json/*`。`ui-kit` 那十个包一个都不引 antdv-next —— 表单/表格/弹窗/标签页/菜单/布局的实现已经换成 TanStack + shadcn-vue，所以升级 antdv-next 不会碰到它们。
+`antdv-next` 只在 catalog 里出现一次（`^1.6.0`），而现在**只有 `apps/web` 直接依赖它** —— 21 个运行时子包一个都不引（`shared`、`types`、`composables`、`preferences`、`directives`、`router`、`layouts` 与 `ui-kit` 那八个都已清空）：轻提示走 `@antdv/popup-ui`（vue-sonner 的封装），表单/表格/弹窗/标签页/菜单/布局的实现是 TanStack + shadcn-vue。这条边界由 `packages/core/composables/__tests__/boundary.test.ts` 逐文件守着，所以升级 antdv-next 只动应用，不会碰子包产物。配套还要看 `@antdv-next/*` 卫星包：catalog 里挂着四个（`cssinjs`、`icons`、`tailwind`、`happy-work-theme`），实际只有 `apps/web` 引用了其中三个 —— `@antdv-next/tailwind` 已经不在任何清单里；`@iconify-json/*` 那批图标集则住在 `@antdv/icons`。
 
 ```bash
 # 1. 改 pnpm-workspace.yaml 里 catalog 的那一行

@@ -8,7 +8,8 @@
  *
  * - 由插件在 transformIndexHtml 阶段注入到 index.html
  * - 支持 `<%= VITE_APP_TITLE %>` 等 HTML 环境变量（由 vite-plugin-html 处理）
- * - 全部颜色/尺寸使用 CSS 变量 + fallback，配合插件 autoTheme 自动主题
+ * - 颜色一律走三级链：`--loading-*`（首屏脚本从主题快照写入）→ `--app-*`（`@antdv/design`
+ *   的色板，应用样式生效后接手）→ 按明暗分档的兜底色
  * - `<style>` 内联在容器内部，随容器一起移除，不产生样式残留
  */
 export const DEFAULT_LOADING_HTML = `<!--
@@ -44,14 +45,40 @@ export const DEFAULT_LOADING_HTML = `<!--
       align-items: center;
       justify-content: center;
 
-      /* 背景：优先使用应用主题变量，退化到中性灰 */
-      background: var(
-        --color-bg-layout,
-        var(--color-bg-container, #f4f7f9)
+      /*
+       * 三条颜色的取值顺序：
+       * 1. --loading-* —— head 里的主题同步脚本按 localStorage 的主题快照写入，
+       *    覆盖"应用样式还没落地"的那几百毫秒；
+       * 2. --app-* —— @antdv/design 的色板，样式表一进来就由它接手（含预设主题与深色档）；
+       * 3. 兜底 —— 首次访问、没有快照时按当前明暗各给一个实色，避免出现出厂蓝。
+       */
+      --app-loading-bg: var(
+        --loading-background,
+        var(--app-background, #fff)
       );
+      --app-loading-fg: var(
+        --loading-foreground,
+        var(--app-foreground, rgb(0 0 0 / 88%))
+      );
+      --app-loading-primary: var(--loading-primary, var(--app-primary, #1677ff));
+
+      background: var(--app-loading-bg);
 
       /* 与插件 fadeDuration 默认值保持同步 */
       transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* 没有快照时，深色档的兜底由这条规则给（有快照时上面那条已经是对的） */
+    html.dark .app-loading,
+    [data-theme='dark'] .app-loading {
+      --app-loading-bg: var(
+        --loading-background,
+        var(--app-background, #141414)
+      );
+      --app-loading-fg: var(
+        --loading-foreground,
+        var(--app-foreground, rgb(255 255 255 / 85%))
+      );
     }
 
     /* 隐藏状态（可选，插件使用内联样式直接修改 opacity，这里是备用 API） */
@@ -80,7 +107,7 @@ export const DEFAULT_LOADING_HTML = `<!--
       width: 48px;
       height: 5px;
       border-radius: 50%;
-      background: var(--color-primary, #007bff);
+      background: var(--app-loading-primary);
       animation: app-loading-shadow 0.5s linear infinite;
     }
 
@@ -89,7 +116,7 @@ export const DEFAULT_LOADING_HTML = `<!--
       width: 100%;
       height: 100%;
       border-radius: 4px;
-      background: var(--color-primary, #007bff);
+      background: var(--app-loading-primary);
       animation: app-loading-jump 0.5s linear infinite;
     }
 
@@ -101,11 +128,11 @@ export const DEFAULT_LOADING_HTML = `<!--
       font-weight: 700;
       letter-spacing: 1px;
 
-      /* 渐变文字：使用主色到主色 hover 色的过渡 */
+      /* 渐变文字：主色 → 主色掺白，第二档由 color-mix 现算，不再依赖额外的变量名 */
       background: linear-gradient(
         135deg,
-        var(--color-primary, #007bff) 0%,
-        var(--color-primary-hover, #40a9ff) 100%
+        var(--app-loading-primary) 0%,
+        color-mix(in srgb, var(--app-loading-primary) 65%, #fff) 100%
       );
       -webkit-background-clip: text;
       background-clip: text;
@@ -113,35 +140,21 @@ export const DEFAULT_LOADING_HTML = `<!--
       color: transparent; /* 兜底：不支持 -webkit-text-fill-color 时也不会露出黑字 */
 
       /* 未启用渐变时的降级色 */
-      color: var(--color-text, rgba(0, 0, 0, 0.85));
+      color: var(--app-loading-fg);
     }
 
     /* ==================== 暗色模式适配 ==================== */
-    /* 场景一：应用通过 html.dark 切换主题 */
-    html.dark .app-loading {
-      background: var(
-        --color-bg-layout,
-        var(--color-bg-container, #0d0d10)
-      );
-    }
-
-    html.dark .app-loading__title {
+    /* 深色下渐变换成"白 → 主色"，纯主色文字在深底上对比度不够 */
+    html.dark .app-loading__title,
+    [data-theme='dark'] .app-loading__title {
       background: linear-gradient(
         135deg,
-        #ffffff 0%,
-        var(--color-primary, #007bff) 100%
+        #fff 0%,
+        var(--app-loading-primary) 100%
       );
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
-    }
-
-    /* 场景二：应用通过 [data-theme="dark"] 切换主题 */
-    [data-theme='dark'] .app-loading {
-      background: var(
-        --color-bg-layout,
-        var(--color-bg-container, #0d0d10)
-      );
     }
 
     /* ==================== 动画关键帧 ==================== */

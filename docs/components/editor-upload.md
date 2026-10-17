@@ -11,9 +11,9 @@
 | Tab | 内核 | 产出 |
 | --- | --- | --- |
 | Markdown 编辑 | 示例页手写的 `textarea` + `marked` / `markdown-it` + `highlight.js`（`editor/index.vue:60-82`），**不是组件**，没有对外 API | Markdown 源码字符串 |
-| 富文本编辑 | 仓库内组件 `MarkdownEditor`（tiptap，`apps/web/src/components/business/MarkdownEditor/MarkdownEditor.vue`） | HTML |
+| 富文本编辑 | 组件库里的 `MarkdownEditor`（tiptap，`packages/core/ui-kit/common-ui/src/components/markdown-editor/MarkdownEditor.vue`） | 由 `contentType` 决定：默认 HTML，`'markdown'` 时是 Markdown 源码 |
 
-::: warning 富文本这一侧没有 wangEditor `MarkdownEditor` 是当年 `@wangeditor/editor` 的 tiptap 替代实现，工具栏按键名、待办/视频节点按 wangEditor 存量格式对齐（`editor/index.vue:35-40`；扩展组装见 `MarkdownEditor/extensions/index.ts:31-58`）。依赖清单 `apps/web/package.json:42-56` 里只有 `@tiptap/*`，**从来没有装过 `@wangeditor/*`**。所以「富文本」现在指 tiptap 版 `MarkdownEditor`，wangEditor 那套能力（如它自己的菜单体系）不存在，也不要把旧文档里的 wangEditor 配置往这上面套。:::
+::: warning 富文本这一侧没有 wangEditor `MarkdownEditor` 是当年 `@wangeditor/editor` 的 tiptap 替代实现，工具栏按键名、待办/视频节点按 wangEditor 存量格式对齐（`editor/index.vue:35-40`；扩展组装见 `markdown-editor/extensions/index.ts:31-58`）。依赖清单在 `packages/core/ui-kit/common-ui/package.json:29-37`（9 个 `@tiptap/*` + `marked`），应用侧 `apps/web/package.json` 已经不再声明 `@tiptap/*`，**也从来没有装过 `@wangeditor/*`**。所以「富文本」现在指 tiptap 版 `MarkdownEditor`，wangEditor 那套能力（如它自己的菜单体系）不存在，也不要把旧文档里的 wangEditor 配置往这上面套。:::
 
 ### Markdown Tab 实际提供了什么
 
@@ -25,36 +25,46 @@
 
 **它解决什么问题**：给后台一个能直接吃 wangEditor 存量 HTML 的所见即所得编辑器，产出 HTML 字符串，支持编辑/分屏/预览三种模式与图片、视频插入。
 
-**Props**（类型 `MarkdownEditor/types.ts:113-131`，默认值 `MarkdownEditor.vue:31-45`）：
+**Props**（类型 `markdown-editor/types.ts:113-137`，默认值 `MarkdownEditor.vue:36-52`）：
 
 | 字段 | 默认 | 说明 |
 | --- | --- | --- |
-| `value` | `''` | HTML 内容，配合 `v-model:value` |
-| `mode` | `'edit'` | `edit` / `split` / `preview`（`types.ts:3`）；`preview` 视为锁定且隐藏工具栏（`MarkdownEditor.vue:392-394,561`） |
-| `minHeight` / `maxHeight` / `height` | `160` / `500` / 未设 | 数字按 px（`MarkdownEditor.vue:159-179`） |
-| `readonly` / `disabled` | `false` | 与 `mode==='preview'` 合成 `isLocked`（`MarkdownEditor.vue:392-394`） |
-| `showToolbar` / `toolbarConfig` | `true` / 未设 | `toolbarKeys` 一旦配置则 `excludeKeys` 失效（`MarkdownEditor.vue:379-386`，同 wangEditor 语义） |
-| `imageUpload` / `videoUpload` | 见下 | `types.ts:71-108`；图片默认 ≤5MB、视频默认 ≤100MB（`MarkdownEditor.vue:222-232`） |
-| `maxLength` / `showCount` / `autoFocus` / `compact` / `placeholder` | — | `maxLength` 在输入/粘贴/拖入时拦截（`MarkdownEditor.vue:401-431`）并抛 `maxLength` 事件 |
+| `value` | `''` | 内容，配合 `v-model:value`；语义由 `contentType` 决定 |
+| `contentType` | `'html'` | `'html'` \| `'markdown'`（`types.ts:136`）。取/放都要过一遍转换：喂进去的模型经 `toEditorContent()` 解析，抛出来的值经 `modelFromEditor()` 序列化（`MarkdownEditor.vue:96-105`） |
+| `mode` | `'edit'` | `edit` / `split` / `preview`（`types.ts:3`）；`preview` 视为锁定且隐藏工具栏（`MarkdownEditor.vue:429-431,626`） |
+| `minHeight` / `maxHeight` / `height` | `160` / `500` / 未设 | 数字按 px（默认值见 `MarkdownEditor.vue:38-40`） |
+| `readonly` / `disabled` | `false` | 与 `mode==='preview'` 合成 `isLocked`（`MarkdownEditor.vue:429-431`） |
+| `showToolbar` / `toolbarConfig` | `true` / 未设 | `toolbarKeys` 一旦配置则 `excludeKeys` 失效（`MarkdownEditor.vue:416-423`，同 wangEditor 语义） |
+| `imageUpload` / `videoUpload` | 见下 | `types.ts:71-108`；图片默认 ≤5MB、视频默认 ≤100MB（`types.ts:78-79,99-100`，编辑器侧配置在 `MarkdownEditor.vue:259,265`） |
+| `maxLength` / `showCount` / `autoFocus` / `compact` / `placeholder` | — | `maxLength` 在输入/粘贴/拖入时拦截（`MarkdownEditor.vue:434-441`）并抛 `maxLength` 事件 |
 | `theme` | `'light'` | ⚠️ **静默空操作**，见下方缺陷清单 |
 
-**事件**（`types.ts:140-150`）：`update:value`、`change(html, text)`、`focus` / `blur`、`uploadSuccess` / `uploadError`、`maxLength`、`created`、`destroyed`。
+**事件**（`types.ts:147-157`）：`update:value`、`change(html, text)`、`focus` / `blur`、`uploadSuccess` / `uploadError`、`maxLength`、`created`、`destroyed`。
 
-**实例方法**（`defineExpose`，`MarkdownEditor.vue:496-531`）：`getEditor` / `getHtml` / `getMarkdown` / `getText` / `setHtml` / `setMarkdown` / `clear` / `focus` / `blur` / `undo` / `redo` / `insertText` / `insertHtml` / `insertImage` / `insertVideo` / `selectAll` / `getStats`。示例页把大部分做成了按钮（`editor/index.vue:882-923`）。
+**实例方法**（`MarkdownEditor.vue:552-600`，`defineExpose` 在 600）：`getEditor` / `getHtml` / `getHTML` / `getMarkdown` / `getText` / `setHtml` / `setHTML` / `setMarkdown` / `clear` / `focus` / `blur` / `undo` / `redo` / `insertText` / `insertHtml` / `insertMarkdown` / `insertImage` / `insertVideo` / `selectAll` / `getStats`。示例页把大部分做成了按钮（`editor/index.vue:882-923`）。
 
-**v-model 行为**：内容变化时抛 `update:value`（`MarkdownEditor.vue:134-145`）；外部回传等价内容会被 200ms「回声屏蔽期」跳过以免光标跳文首，但真·外部改写按文本比对后仍会落地（`MarkdownEditor.vue:110-123,450-476`）。**初值请走 `value` prop 而不是挂载后 `setHtml()`**——后者可能落在屏蔽期里被吞，示例页注释记录了这条踩坑史（`editor/index.vue:417-424`）。
+**Markdown ↔ 文档的往返在 `markdown.ts`**：`docToMarkdown(JSONContent)`（`markdown.ts:588`）把 ProseMirror 文档序列化成 Markdown 源码，`markdownToDoc(markdown)`（`markdown.ts:593`）用 `marked` 的 lexer 反解回文档，其中 `case 'html'` 分支保证喂 HTML 也解得开（`contentType="html"` 的老调用因此不受影响）。没有改用 `@tiptap/markdown` 的理由写在 `markdown.ts` 头注释里：本编辑器有自定义 `todo` 节点和块级 `text-align`，官方 markdown 序列化器覆盖不了这两样。
 
-::: warning 读源码读出来的三个坑
+**配色全走 design token**：外框/工具栏分隔线/表格线用 `border-border`（即 `--app-border`，亮色 `#f0f0f0`），面板底色 `bg-card`、下拉弹层 `bg-popover`、代码与表头底 `bg-muted`、正文 `text-card-foreground`、选中态 `text-primary`（`MarkdownEditor.vue:606-621`、内容样式 `:697-855`）。组件里**没有**任何 `gray-*` 之类的硬编码色，也没有 `.dark` 分支——切主题时由 `packages/core/base/design/src/token/{default,dark}.css` 的变量接管，因此 8 套预设主题各自的边框/底色都会跟着变。实测：亮色外框 `rgb(240,240,240)`、深色 `rgba(255,255,255,.12)`，弹层亮 `#fff` / 深 `#1f1f1f`。
 
-1. **`theme` prop 不生效**：声明在 `types.ts:119`、默认值在 `MarkdownEditor.vue:37`，但组件内部没有任何地方读它；深色效果实际由全局 `.dark` 类下的样式提供（`MarkdownEditor.vue:826-858`）。传 `theme="dark"` 什么都不会发生。
-2. **`getMarkdown()` / `setMarkdown()` 其实是 HTML**：`getMarkdown: () => editorRef.value?.getHTML()`（`MarkdownEditor.vue:499-503`），注释写明「Markdown 语义由 HTML 承接」（同文件 499、`types.ts:136-137`）。示例页「导出 Markdown」按钮打到控制台的（`editor/index.vue:466-470`）就是 HTML，不是 Markdown 源码。
-3. **`imageUpload.onProgress` / `videoUpload.onProgress` 从不触发**：回调声明在 `types.ts:65`、`utils.ts:71`，但上传调用只透传 `file/server/fieldName/meta`（`MarkdownEditor.vue:268-273`），`uploadFile` 的实现根本没有消费 `onProgress`（`utils.ts:77-103`）。内置上传没有进度上报。:::
+**v-model 行为**：内容变化时抛 `update:value`（`MarkdownEditor.vue:167`）；外部回传等价内容会被 200ms「回声屏蔽期」跳过以免光标跳文首，但真·外部改写按文本比对后仍会落地（`MarkdownEditor.vue:141-150,487-521`）。**初值请走 `value` prop 而不是挂载后 `setHtml()`**——后者可能落在屏蔽期里被吞，示例页注释记录了这条踩坑史（`editor/index.vue:417-424`）。
+
+::: warning 读源码读出来的两个坑
+
+1. **`theme` prop 不生效**：声明在 `types.ts:119`、默认值在 `MarkdownEditor.vue:42`，但组件内部没有任何地方读它；深浅色实际由上面的 `--app-*` token 自动切换。传 `theme="dark"` 什么都不会发生。
+2. **`imageUpload.onProgress` / `videoUpload.onProgress` 从不触发**：回调声明在 `types.ts:65`、`utils.ts:71`，但上传调用只透传 `file/server/fieldName/meta`（`MarkdownEditor.vue:305-310,328-333`），`uploadFile` 的实现根本没有消费 `onProgress`（`utils.ts:77-103`）。内置上传没有进度上报。
+
+原先这里的第三条「`getMarkdown()` / `setMarkdown()` 其实是 HTML」已经修掉了：现在这两个方法走 `docToMarkdown` / `markdownToDoc` 的真往返（`MarkdownEditor.vue:557-562,580`），示例页「导出 Markdown」打到控制台的是 Markdown 源码。:::
 
 **工具栏默认按键**：`constants.ts:8-39` 的 `DEFAULT_TOOLBAR_KEYS`（headerSelect、粗斜体下划线删除线、颜色、字号字体行高、列表/待办、对齐、链接、uploadImage、uploadVideo、表格、代码块、undo/redo、fullScreen）。按键名的字典是 `types.ts:12-37`。
 
+### 表单字段 `FMarkdown`：同一个编辑器的字段壳
+
+`@antdv/form-ui` 的 componentMap 里 `MarkdownEditor: FMarkdown`（`packages/core/ui-kit/form-ui/src/config.ts`），`FMarkdown.vue` 是 `@antdv/common-ui` 那个编辑器的薄壳：`content-type="markdown"`，所以**字段值就是 Markdown 源码**，不再是 HTML；`rows` 只用来换算编辑区最小高度（`rows * 24`，下限 60）。渲染结果里没有 `textarea`，可编辑区是 `.tiptap`（`contenteditable`），预览态靠 `disabled`。字段级断言见 `form-ui/__tests__/fields.test.ts` 的 `describe('FMarkdown')`。
+
 ### 编辑器内置上传打到哪、mock 给什么
 
-工具栏「上传图片 / 上传视频」走 `uploadFile`，默认地址 `/upload/file`（`MarkdownEditor/utils.ts:80`），经请求层拼上 `VITE_APP_BASE_API=/api`（`apps/web/.env.development:19`；前缀拼接在 `packages/request/src/fetcher.ts:162`，baseUrl 由 `apps/web/src/plugins/request-runtime.ts` 注入），即 **`POST /api/upload/file`**。mock 端由 catch-all 变体 handler 接住（`apps/backend-mock/server/api/upload/[variant].post.ts:13-23`），返回一张**内联 SVG data URL**（`server/utils/upload.ts:64-106`），不落盘、不存字节（设计说明见其头注释 `upload.ts:9-12`）。所以「上传成功」是示例自己装的假成功；组件侧只校验响应里有没有 `url`（`utils.ts:98-100`）。示例页自己在界面提示里也写明了这一点（`editor/index.vue:917-922`）。
+工具栏「上传图片 / 上传视频」走 `uploadFile`，默认地址 `/upload/file`（`packages/core/ui-kit/common-ui/src/components/markdown-editor/utils.ts:80`），经请求层拼上 `VITE_APP_BASE_API=/api`（`apps/web/.env.development:19`；前缀拼接在 `packages/request/src/fetcher.ts:162`，baseUrl 由 `apps/web/src/plugins/request-runtime.ts` 注入），即 **`POST /api/upload/file`**。mock 端由 catch-all 变体 handler 接住（`apps/backend-mock/server/api/upload/[variant].post.ts:13-23`），返回一张**内联 SVG data URL**（`server/utils/upload.ts:64-106`），不落盘、不存字节（设计说明见其头注释 `upload.ts:9-12`）。所以「上传成功」是示例自己装的假成功；组件侧只校验响应里有没有 `url`（`utils.ts:98-100`）。示例页自己在界面提示里也写明了这一点（`editor/index.vue:917-922`）。
 
 ## 文件上传：`/components/upload`
 

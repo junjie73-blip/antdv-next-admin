@@ -1,13 +1,14 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
 import {
-  PREFERENCE_CSS_VARS,
-  ANT_COLOR_PRIMARY,
-  ANT_PRIMARY_COLOR,
+  APP_BORDER_RADIUS,
   APP_FILTER,
+  APP_FONT_SIZE,
+  APP_PRIMARY,
+  PREFERENCE_CSS_VARS,
 } from '../src/constants/css-vars';
 import {
   COLOR_WEAK_CLASS,
@@ -15,6 +16,7 @@ import {
   GRAY_MODE_CLASS,
 } from '../src/constants/dom-classes';
 import {
+  BASE_FONT_SIZE,
   BORDER_RADIUS_BASE,
   DEFAULT_PRIMARY_COLOR,
   DEFAULT_PRIMARY_RGB,
@@ -24,6 +26,15 @@ const designSrc = path.resolve(import.meta.dirname, '../../design/src');
 const read = (file: string) =>
   readFileSync(path.join(designSrc, file), 'utf8').replaceAll('\\', '/');
 
+/** `@antdv/design` 的全部样式源码，拼成一条字符串用来查"有没有人读这个变量" */
+const designCss = ['token', 'css']
+  .flatMap((dir) =>
+    readdirSync(path.join(designSrc, dir)).map((file) =>
+      read(`${dir}/${file}`),
+    ),
+  )
+  .join('\n');
+
 describe('css-vars', () => {
   it('名单里的每一项都是合法的自定义属性名且不重复', () => {
     for (const name of PREFERENCE_CSS_VARS) {
@@ -32,11 +43,25 @@ describe('css-vars', () => {
     expect(new Set(PREFERENCE_CSS_VARS).size).toBe(PREFERENCE_CSS_VARS.length);
   });
 
-  it('主色的新旧两种命名都在名单里', () => {
-    // 只写一种会出现"改了主色、进度条还是旧的"半更新
-    expect(PREFERENCE_CSS_VARS).toContain(ANT_COLOR_PRIMARY);
-    expect(PREFERENCE_CSS_VARS).toContain(ANT_PRIMARY_COLOR);
-    expect(PREFERENCE_CSS_VARS).toContain(APP_FILTER);
+  /**
+   * 名单纪律：只收有读取点的名字。
+   * 多一项 = `clearPreferencesFromDom` 多清一个僵尸变量；少一项 = 偏好写的值清不掉。
+   * `--ant-*` 那四条是 antd 兼容层的桥，桥对面已经没人站着了，所以这里反向钉住它不回来。
+   */
+  it('四条偏好变量各就各位，没有 --ant-* 兼容层', () => {
+    expect([...PREFERENCE_CSS_VARS].sort()).toEqual(
+      [APP_BORDER_RADIUS, APP_FILTER, APP_FONT_SIZE, APP_PRIMARY].sort(),
+    );
+    expect(PREFERENCE_CSS_VARS.join(' ')).not.toContain('--ant-');
+  });
+
+  it('每个偏好变量在 @antdv/design 里都有读取点', () => {
+    // 写侧与读侧分家时的失效形态是"保存了但页面不动"，构建一声不吭，只能这样钉
+    for (const name of PREFERENCE_CSS_VARS) {
+      expect(designCss, `--app 变量 ${name} 没有任何样式读它`).toContain(
+        `var(${name}`,
+      );
+    }
   });
 });
 
@@ -63,7 +88,13 @@ describe('theme', () => {
     });
   });
 
-  it('圆角基准与 antd 的默认值一致', () => {
+  /**
+   * 两个基准值决定了"偏好里的倍率/px 换算成什么"，挪动它们等于全站半径与字号一起变。
+   * 8px 是 Tailwind 的 `--radius-lg` 档（1 档 = 默认），14 是正文 `text-sm` 的 px 值，
+   * 于是默认偏好（倍率 1、字号 14）换算后落回 `--app-font-size: 100%` —— 首屏零位移。
+   */
+  it('圆角与字号的换算基准：默认偏好换算后不改变视觉', () => {
     expect(BORDER_RADIUS_BASE).toBe(8);
+    expect(BASE_FONT_SIZE).toBe(14);
   });
 });

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { MenuBadge as MenuBadgeConfig } from '@antdv/types';
+import type { MenuBadge as MenuBadgeConfig, MenuBadgeStatus } from '@antdv/types';
 
 defineOptions({ name: 'MenuBadge' });
 
@@ -11,8 +11,11 @@ const props = withDefaults(defineProps<{ badge?: MenuBadgeConfig }>(), {
  * 徽标自绘：迁移前由 `@antdv/utils` 借 antd Badge 渲染，
  * 包一拆就不能再把 antd 拖进 menu-ui。尺寸照抄侧栏里已经调好的那组
  * （11px 字号、16px 高、点标 6px、默认溢出 99）。
+ *
+ * 键型用 `@antdv/types` 的 `MenuBadgeStatus`：菜单数据里的 status 与这里的
+ * 类名表由编译器锁在一起，加一个状态忘了配色会直接报错。
  */
-const STATUS_DOT: Record<string, string> = {
+const STATUS_DOT: Record<MenuBadgeStatus, string> = {
   default: 'bg-gray-400',
   error: 'bg-red-500',
   processing: 'bg-blue-500',
@@ -20,7 +23,7 @@ const STATUS_DOT: Record<string, string> = {
   warning: 'bg-amber-500',
 };
 
-function dotClass(status?: string): string {
+function dotClass(status?: MenuBadgeStatus): string {
   return STATUS_DOT[status ?? 'default'] ?? STATUS_DOT.default!;
 }
 

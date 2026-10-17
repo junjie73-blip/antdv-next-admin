@@ -25,12 +25,10 @@
     "./package.json": "./package.json"
   },
   "peerDependencies": {
-    "antdv-next": "catalog:",
     "vue-router": "catalog:"
   },
   "devDependencies": {
     "@antdv/tsconfig": "workspace:*",
-    "antdv-next": "catalog:",
     "rimraf": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",

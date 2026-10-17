@@ -19,7 +19,10 @@ import {
   Spinner,
 } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
-import { buildIframeSandbox, canEscapeSandbox } from '@antdv/shared/utils/iframe';
+import {
+  buildIframeSandbox,
+  canEscapeSandbox,
+} from '@antdv/shared/utils/iframe';
 import { Icon } from '@iconify/vue';
 import { getAllMicroApps, microAppConfig } from '~/config/micro-app';
 

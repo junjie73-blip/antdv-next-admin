@@ -61,9 +61,9 @@ Short answer: none of `packages/*` can be deleted by removing a directory. The m
 | `@antdv/popup-ui` | 50 | `BasicModal` / `BasicDrawer` / `useModal` / `useDrawer` / `confirm` / `message` in the app **all come from this package** (`apps/web/src/components/business/**` no longer holds that set of wrappers) | modals, drawers, imperative confirms and the global toast break together, see [Modal and drawer](/en/components/modal-drawer) |
 | `@antdv/table-ui` | 27 | the app's `BasicTable` / `useTable` / `BasicColumn` come from it | every list page loses its table |
 | `@antdv/form-ui` | 22 | the app's `BasicForm` / `useForm` / `FormSchema` come from it | search forms and form pages break together |
-| `@antdv/layout-ui` | 10 | the region shell of `apps/web/src/layouts/index.vue`; `layouts` only supplies blueprints and state | the DOM for all seven layout shapes lives in this layer, so deleting the shell leaves it nowhere to mount |
+| `@antdv/layout-ui` | 3 | the render base layer under `@antdv/layouts` (shell, five regions, size contract and the text injection point) | the DOM for all seven layout shapes lives here, so the composition layer would have nothing left to render |
 | `@antdv/composables` | 7 | app only | removable, but `echarts` / `sse` / `websocket` are three separate entry points |
-| `@antdv/layouts` | 7 | no other package; the app's `src/layouts/index.vue` shell comes from it | layout, menu, breadcrumb and tabs all go |
+| `@antdv/layouts` | 6 | no other package; the app's thin shell `apps/web/src/layouts/index.vue` takes `BasicLayout` / `LayoutWidgetBar` / `LayoutUserDropdown` from it | layout shell, header widgets, menu, breadcrumb and tabs all go |
 | `@antdv/preferences` | 5 | no other package; `apps/web/src/settings/index.ts` is the adapter | the theme chain breaks, see [Theming & preferences](/en/guide/in-depth/theme) |
 | `@antdv/tabs-ui` | 5 | the app's `useTabs` plus the layout shell | tab bar, context menu and zoom toggles all go |
 | `@antdv/menu-ui` | 2 | the menu tree inside the layout shell | sider / icon-rail menu rendering breaks |

@@ -19,6 +19,7 @@ import {
   isExternalPath,
   isLeafMenu,
   joinMenuPath,
+  localizeMenus,
   menuKeyOf,
   normalizeMenuPath,
   visibleMenus,
@@ -361,7 +362,7 @@ describe('normalizeMenuPath / joinMenuPath', () => {
 /**
  * `hidden` 的语义：不在导航里出现 ≠ 没权限。
  *
- * 菜单树同时是权限来源（`stores/modules/route.ts` 把树上的 name/path 摊成
+ * 菜单树同时是权限来源（`@antdv/stores` 的路由 store 把树上的 name/path 摊成
  * allowedNames / allowedPaths）。如果补 path 那一步就把隐藏项剪了，
  * 这些页面会集体掉出权限表 —— 直达链接变 403、标签页只剩路径、keep-alive 失效。
  * 所以"剔隐藏"只发生在渲染导航的那几个出口，搜索侧用 `includeHidden` 显式放行。
@@ -598,5 +599,48 @@ describe('isExternalPath', () => {
     for (const path of ['/system/user', 'system/user', '/', '', undefined]) {
       expect(isExternalPath(path), String(path)).toBe(false);
     }
+  });
+});
+
+describe('localizeMenus —— 菜单标题的翻译层', () => {
+  const MENUS: MenuConfig[] = [
+    { name: 'Dashboard', path: '/dashboard', title: '仪表盘' },
+    {
+      children: [
+        { name: 'SystemUser', path: '/system/user', title: '用户管理' },
+      ],
+      name: 'SystemManage',
+      path: '/system',
+      title: '系统管理',
+    },
+    { name: 'BrandNewPage', path: '/brand-new', title: '全新页面' },
+  ];
+
+  /** 只按 `menu.<name>` 查表，查不到返回 undefined —— 与 vue-i18n 的 te/t 同形 */
+  const table: Record<string, string> = {
+    'menu.Dashboard': 'Dashboard',
+    'menu.SystemManage': 'System',
+    'menu.SystemUser': 'Users',
+  };
+  const translate = (key: string) => table[key];
+
+  it('按菜单 name 命中译文，父子都翻', () => {
+    const [dashboard, system] = localizeMenus(MENUS, translate);
+    expect(dashboard?.title).toBe('Dashboard');
+    expect(system?.title).toBe('System');
+    expect(system?.children?.[0]?.title).toBe('Users');
+  });
+
+  it('文案表里没有的菜单退回后端原文，而不是渲染出一个 key', () => {
+    const [unmapped] = localizeMenus(
+      MENUS.filter((menu) => menu.name === 'BrandNewPage'),
+      translate,
+    );
+    expect(unmapped?.title).toBe('全新页面');
+  });
+
+  it('只改标题，path / name 这些选中态依赖的字段原样保留', () => {
+    const [localized] = localizeMenus(MENUS, translate);
+    expect(localized).toMatchObject({ name: 'Dashboard', path: '/dashboard' });
   });
 });

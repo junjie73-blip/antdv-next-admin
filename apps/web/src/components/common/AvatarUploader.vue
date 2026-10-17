@@ -5,7 +5,7 @@ import { computed, nextTick, ref, watch } from 'vue';
 import { VueCropper } from 'vue-cropper';
 import 'vue-cropper/dist/index.css';
 
-import { useFileReader } from '@antdv/composables/useFileReader';
+import { useFileReader } from '@antdv/hooks/use-file-reader';
 import { BasicModal, message } from '@antdv/popup-ui';
 import { Button } from '@antdv/shadcn-ui';
 import { Icon } from '@iconify/vue';

@@ -2,13 +2,14 @@
 import type {
   MarkdownEditorInstance,
   MarkdownEditorMode,
-} from '~/components/business/MarkdownEditor';
+} from '@antdv/common-ui';
 
 import { computed, nextTick, ref, useTemplateRef } from 'vue';
 
 import {
   Card,
   Divider,
+  MarkdownEditor,
   Scrollbar,
   Segmented,
   Space,
@@ -18,7 +19,6 @@ import {
   Tooltip,
 } from '@antdv/common-ui';
 import { message } from '@antdv/popup-ui';
-
 import { Button, Switch } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
@@ -27,7 +27,6 @@ import hljs from 'highlight.js';
 import MarkdownIt from 'markdown-it';
 import { Marked } from 'marked';
 import { markedHighlight } from 'marked-highlight';
-import { MarkdownEditor } from '~/components/business/MarkdownEditor';
 
 import 'highlight.js/styles/github-dark.css';
 

@@ -48,7 +48,7 @@ const bodyStyle = computed(() => ({ maxHeight: '100%' }));
       <div :class="cn('flex flex-col items-center gap-2')">
         <div
           :class="
-            cn('primary animate-spin border-2 border-t-transparent h-8 w-8 rounded-full border-current/20')
+            cn('text-primary animate-spin border-2 border-t-transparent h-8 w-8 rounded-full border-current/20')
           "
         ></div>
         <span v-if="loadingTip" :class="cn('text-muted-foreground text-sm')">{{

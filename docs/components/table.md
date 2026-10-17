@@ -66,7 +66,6 @@ function handleRefresh() {
 | `useSearchForm` / `formConfig` | `boolean` / `Partial<FormProps>` | 表格自带搜索区，见[表单](/components/form) |
 | `rowSelection` | `boolean \| TableRowSelection` | 传对象即 checkbox，`type: 'radio'` 单选 |
 | `actionColumn` | `ActionColumnProps` | 操作列，`actions(record)` 返回 `ActionItem[]` |
-| `showTableSetting` / `tableSetting` | `boolean` / 对象 | 右上角列设置/刷新/密度 |
 | `dragSort` / `dragSortConfig` | `boolean` / 对象 | 见下文拖拽排序 |
 | `scroll` | `{ x, y, scrollToFirstRowOnChange }` | 横向/纵向滚动 |
 | `immediate` | `boolean` | 挂载即请求，默认 `true` |

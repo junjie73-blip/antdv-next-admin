@@ -1,15 +1,15 @@
 import { mount } from '@vue/test-utils';
 import { nextTick } from 'vue';
 
+import { afterEach, describe, expect, it } from 'vitest';
+
+import LayoutSider from '../src/components/layout-sidebar/index.vue';
 import {
+  configureLayout,
   LAYOUT_DRAWER_WIDTH,
   LAYOUT_SIDEBAR_COLLAPSED_WIDTH,
   LAYOUT_SIDEBAR_WIDTH,
-} from '@antdv/layouts';
-import { afterEach, describe, expect, it } from 'vitest';
-
-import LayoutSider from '../src/components/LayoutSider.vue';
-import { configureLayout } from '../src/config';
+} from '../src/layout';
 import { menuTree } from './fixtures';
 
 /**
@@ -95,28 +95,28 @@ describe('LayoutSider - 宽度与折叠', () => {
 describe('LayoutSider - Logo 位', () => {
   it('showLogo 关掉时整格不渲染，避免与图标栏/顶栏重复占高', () => {
     expect(
-      mountSider({ logo: '/logo.svg', showLogo: false, title: '控制台' }).find(
-        '[data-layout-logo="sidebar"]',
-      ).exists(),
+      mountSider({ logo: '/logo.svg', showLogo: false, title: '控制台' })
+        .find('[data-layout-logo="sidebar"]')
+        .exists(),
     ).toBe(false);
   });
 
   it('既没有 logo 也没有 title 时没有内容可放，整格让位', () => {
-    expect(
-      mountSider().find('[data-layout-logo="sidebar"]').exists(),
-    ).toBe(false);
+    expect(mountSider().find('[data-layout-logo="sidebar"]').exists()).toBe(
+      false,
+    );
   });
 
   it('展开显示标题，折叠只剩图标', async () => {
     const wrapper = mountSider({ title: '控制台' });
-    expect(
-      wrapper.find('[data-layout-logo="sidebar"]').text(),
-    ).toContain('控制台');
+    expect(wrapper.find('[data-layout-logo="sidebar"]').text()).toContain(
+      '控制台',
+    );
     await wrapper.setProps({ collapsed: true });
     await nextTick();
-    expect(
-      wrapper.find('[data-layout-logo="sidebar"]').text(),
-    ).not.toContain('控制台');
+    expect(wrapper.find('[data-layout-logo="sidebar"]').text()).not.toContain(
+      '控制台',
+    );
   });
 });
 

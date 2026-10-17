@@ -11,9 +11,9 @@ The old `editor/markdown` and `editor/rich-text` demo pages were deleted; there 
 | Tab | Engine | Output |
 | --- | --- | --- |
 | Markdown 编辑 (Markdown editing) | A hand-rolled `textarea` + `marked` / `markdown-it` + `highlight.js` inside the demo page (`editor/index.vue:60-82`); it is **not a component** and exposes no API | Markdown source string |
-| 富文本编辑 (Rich-text editing) | The in-repo `MarkdownEditor` component (tiptap, `apps/web/src/components/business/MarkdownEditor/MarkdownEditor.vue`) | HTML |
+| 富文本编辑 (Rich-text editing) | The component-library `MarkdownEditor` (tiptap, `packages/core/ui-kit/common-ui/src/components/markdown-editor/MarkdownEditor.vue`) | Decided by `contentType`: HTML by default, Markdown source when `'markdown'` |
 
-::: warning There is no wangEditor on the rich-text side `MarkdownEditor` is the tiptap replacement written for the former `@wangeditor/editor`, with toolbar key names and todo/video nodes aligned to wangEditor's legacy format (`editor/index.vue:35-40`; extension assembly at `MarkdownEditor/extensions/index.ts:31-58`). The dependency manifest `apps/web/package.json:42-56` lists only `@tiptap/*` — **`@wangeditor/*` was never installed**. So "rich text" today means the tiptap-based `MarkdownEditor`; whatever wangEditor-only capabilities old docs describe are simply gone, and wangEditor configuration does not transfer to this component. :::
+::: warning There is no wangEditor on the rich-text side `MarkdownEditor` is the tiptap replacement written for the former `@wangeditor/editor`, with toolbar key names and todo/video nodes aligned to wangEditor's legacy format (`editor/index.vue:35-40`; extension assembly at `markdown-editor/extensions/index.ts:31-58`). Its dependencies live in `packages/core/ui-kit/common-ui/package.json:29-37` (9 `@tiptap/*` entries plus `marked`); `apps/web/package.json` no longer declares `@tiptap/*`, and **`@wangeditor/*` was never installed**. So "rich text" today means the tiptap-based `MarkdownEditor`; whatever wangEditor-only capabilities old docs describe are simply gone, and wangEditor configuration does not transfer to this component. :::
 
 ### What the Markdown tab actually provides
 
@@ -25,36 +25,46 @@ The old `editor/markdown` and `editor/rich-text` demo pages were deleted; there 
 
 **What problem it solves**: a WYSIWYG editor that keeps reading and writing wangEditor-era HTML, with edit/split/preview modes and image/video insertion.
 
-**Props** (types at `MarkdownEditor/types.ts:113-131`, defaults at `MarkdownEditor.vue:31-45`):
+**Props** (types at `markdown-editor/types.ts:113-137`, defaults at `MarkdownEditor.vue:36-52`):
 
 | Field | Default | Notes |
 | --- | --- | --- |
-| `value` | `''` | HTML content, used with `v-model:value` |
-| `mode` | `'edit'` | `edit` / `split` / `preview` (`types.ts:3`); `preview` counts as locked and hides the toolbar (`MarkdownEditor.vue:392-394,561`) |
-| `minHeight` / `maxHeight` / `height` | `160` / `500` / unset | Numbers become px (`MarkdownEditor.vue:159-179`) |
-| `readonly` / `disabled` | `false` | Combined with `mode==='preview'` into `isLocked` (`MarkdownEditor.vue:392-394`) |
-| `showToolbar` / `toolbarConfig` | `true` / unset | Setting `toolbarKeys` makes `excludeKeys` ignored (`MarkdownEditor.vue:379-386`, same semantics as wangEditor) |
-| `imageUpload` / `videoUpload` | see below | `types.ts:71-108`; defaults: images ≤ 5 MB, videos ≤ 100 MB (`MarkdownEditor.vue:222-232`) |
-| `maxLength` / `showCount` / `autoFocus` / `compact` / `placeholder` | — | `maxLength` blocks typing/paste/drop (`MarkdownEditor.vue:401-431`) and emits the `maxLength` event |
+| `value` | `''` | The content, used with `v-model:value`; its meaning is decided by `contentType` |
+| `contentType` | `'html'` | `'html'` \| `'markdown'` (`types.ts:136`). Both directions go through a conversion: the incoming model is parsed by `toEditorContent()` and the outgoing value is serialized by `modelFromEditor()` (`MarkdownEditor.vue:96-105`) |
+| `mode` | `'edit'` | `edit` / `split` / `preview` (`types.ts:3`); `preview` counts as locked and hides the toolbar (`MarkdownEditor.vue:429-431,626`) |
+| `minHeight` / `maxHeight` / `height` | `160` / `500` / unset | Numbers become px (defaults at `MarkdownEditor.vue:38-40`) |
+| `readonly` / `disabled` | `false` | Combined with `mode==='preview'` into `isLocked` (`MarkdownEditor.vue:429-431`) |
+| `showToolbar` / `toolbarConfig` | `true` / unset | Setting `toolbarKeys` makes `excludeKeys` ignored (`MarkdownEditor.vue:416-423`, same semantics as wangEditor) |
+| `imageUpload` / `videoUpload` | see below | `types.ts:71-108`; defaults: images ≤ 5 MB, videos ≤ 100 MB (`types.ts:78-79,99-100`, editor-side config at `MarkdownEditor.vue:259,265`) |
+| `maxLength` / `showCount` / `autoFocus` / `compact` / `placeholder` | — | `maxLength` blocks typing/paste/drop (`MarkdownEditor.vue:434-441`) and emits the `maxLength` event |
 | `theme` | `'light'` | ⚠️ **silent no-op**, see the defect list below |
 
-**Events** (`types.ts:140-150`): `update:value`, `change(html, text)`, `focus` / `blur`, `uploadSuccess` / `uploadError`, `maxLength`, `created`, `destroyed`.
+**Events** (`types.ts:147-157`): `update:value`, `change(html, text)`, `focus` / `blur`, `uploadSuccess` / `uploadError`, `maxLength`, `created`, `destroyed`.
 
-**Instance methods** (`defineExpose`, `MarkdownEditor.vue:496-531`): `getEditor` / `getHtml` / `getMarkdown` / `getText` / `setHtml` / `setMarkdown` / `clear` / `focus` / `blur` / `undo` / `redo` / `insertText` / `insertHtml` / `insertImage` / `insertVideo` / `selectAll` / `getStats`. The demo page wires most of them into buttons (`editor/index.vue:882-923`).
+**Instance methods** (`MarkdownEditor.vue:552-600`, exposed at `:600`): `getEditor` / `getHtml` / `getHTML` / `getMarkdown` / `getText` / `setHtml` / `setHTML` / `setMarkdown` / `clear` / `focus` / `blur` / `undo` / `redo` / `insertText` / `insertHtml` / `insertMarkdown` / `insertImage` / `insertVideo` / `selectAll` / `getStats`. The demo page wires most of them into buttons (`editor/index.vue:882-923`).
 
-**v-model behaviour**: content changes emit `update:value` (`MarkdownEditor.vue:134-145`); an equivalent value sent back from the parent is skipped during a 200 ms "echo suppression" window so the caret doesn't jump, while genuine external rewrites still land via a text-equality check (`MarkdownEditor.vue:110-123,450-476`). **Pass the initial value through the `value` prop instead of calling `setHtml()` after mount** — the latter can fall inside the suppression window; the demo comment records exactly this bug history (`editor/index.vue:417-424`).
+**The Markdown ↔ document round-trip lives in `markdown.ts`**: `docToMarkdown(JSONContent)` (`markdown.ts:588`) serializes a ProseMirror document into Markdown source, `markdownToDoc(markdown)` (`markdown.ts:593`) parses it back with the `marked` lexer — including a `case 'html'` branch, so feeding HTML still works (which is why `contentType="html"` callers are unaffected). The header comment of `markdown.ts` records why `@tiptap/markdown` was not used instead: this editor has a custom `todo` node and block-level `text-align`, neither of which the official markdown serializer covers.
 
-::: warning Three pitfalls read straight from the source
+**Colours come entirely from design tokens**: the outer frame, toolbar divider and table rules use `border-border` (i.e. `--app-border`, `#f0f0f0` in light), the shell uses `bg-card`, dropdown panels `bg-popover`, code and table headers `bg-muted`, body text `text-card-foreground`, active toolbar keys `text-primary` (MarkdownEditor.vue:606-621, content styles `:697-855`). There is **no** hard-coded `gray-*` palette and no `.dark` branch left in the component — the variables in `packages/core/base/design/src/token/{default,dark}.css` take over, so all eight theme presets move the editor's borders and surfaces with them. Measured: outer border `rgb(240,240,240)` in light and `rgba(255,255,255,.12)` in dark; panel `#fff` / `#1f1f1f`.
 
-1. **The `theme` prop does nothing**: declared at `types.ts:119`, defaulted at `MarkdownEditor.vue:37`, but no code inside the component ever reads it; dark styling actually comes from `:global(.dark)` CSS (`MarkdownEditor.vue:826-858`). Passing `theme="dark"` changes nothing.
-2. **`getMarkdown()` / `setMarkdown()` are HTML**: `getMarkdown: () => editorRef.value?.getHTML()` (`MarkdownEditor.vue:499-503`); the comments state that "Markdown semantics are carried by HTML" (same file line 499, `types.ts:136-137`). The demo's "导出 Markdown" button logs HTML to the console (`editor/index.vue:466-470,882-923`) — it is not Markdown source.
-3. **`imageUpload.onProgress` / `videoUpload.onProgress` never fire**: declared at `types.ts:65` and `utils.ts:71`, but the upload call only forwards `file/server/fieldName/meta` (`MarkdownEditor.vue:268-273`) and `uploadFile` never consumes `onProgress` (`utils.ts:77-103`). The built-in upload has no progress reporting. :::
+**v-model behaviour**: content changes emit `update:value` (`MarkdownEditor.vue:167`); an equivalent value sent back from the parent is skipped during a 200 ms "echo suppression" window so the caret doesn't jump, while genuine external rewrites still land via a text-equality check (`MarkdownEditor.vue:141-150,487-521`). **Pass the initial value through the `value` prop instead of calling `setHtml()` after mount** — the latter can fall inside the suppression window; the demo comment records exactly this bug history (`editor/index.vue:417-424`).
+
+::: warning Two pitfalls read straight from the source
+
+1. **The `theme` prop does nothing**: declared at `types.ts:119`, defaulted at `MarkdownEditor.vue:42`, but no code inside the component ever reads it — light/dark styling is handled by the `--app-*` tokens above. Passing `theme="dark"` changes nothing.
+2. **`imageUpload.onProgress` / `videoUpload.onProgress` never fire**: declared at `types.ts:65` and `utils.ts:71`, but the upload call only forwards `file/server/fieldName/meta` (`MarkdownEditor.vue:305-310,328-333`) and `uploadFile` never consumes `onProgress` (`utils.ts:77-103`). The built-in upload has no progress reporting.
+
+The third item that used to sit here — "`getMarkdown()` / `setMarkdown()` are HTML" — is fixed: those two methods now run the real `docToMarkdown` / `markdownToDoc` round-trip (`MarkdownEditor.vue:557-562,580`), and the demo's "导出 Markdown" button logs Markdown source. :::
 
 **Default toolbar keys**: `DEFAULT_TOOLBAR_KEYS` at `constants.ts:8-39` (headerSelect, bold/italic/underline/strike, colors, font size/family/line height, lists/todo, alignment, link, uploadImage, uploadVideo, table, codeBlock, undo/redo, fullScreen). The key vocabulary is `types.ts:12-37`.
 
+### The `FMarkdown` form field: the same editor behind a field shell
+
+`@antdv/form-ui`'s componentMap registers `MarkdownEditor: FMarkdown` (`packages/core/ui-kit/form-ui/src/config.ts`), and `FMarkdown.vue` is a thin shell over the `@antdv/common-ui` editor: it sets `content-type="markdown"`, so **the field value is Markdown source** rather than HTML; `rows` only converts into the editing surface's minimum height (`rows * 24`, floor 60). There is no `textarea` in the output — the editable area is `.tiptap` (`contenteditable`), and the readonly preview uses `disabled`. Field-level assertions are in `form-ui/__tests__/fields.test.ts` under `describe('FMarkdown')`.
+
 ### Where the editor's built-in upload goes, and what the mock returns
 
-The toolbar's image/video buttons call `uploadFile`, whose default endpoint is `/upload/file` (`MarkdownEditor/utils.ts:80`); the request layer prepends `VITE_APP_BASE_API=/api` (`apps/web/.env.development:19`; concatenation at `packages/request/src/fetcher.ts:162`; `baseUrl` is injected by `apps/web/src/plugins/request-runtime.ts`), i.e. **`POST /api/upload/file`**. On the mock side the catch-all variant handler answers (`apps/backend-mock/server/api/upload/[variant].post.ts:13-23`) with an **inline SVG data URL** (`server/utils/upload.ts:64-106`), storing nothing — the file's header comment says the mock only acts out "what success looks like" (`upload.ts:9-12`). So the "upload success" here is a fake the demo installs itself; the component only checks that the response carries a `url` (`utils.ts:98-100`). The demo page states the same in its UI hint (`editor/index.vue:917-922`).
+The toolbar's image/video buttons call `uploadFile`, whose default endpoint is `/upload/file` (`packages/core/ui-kit/common-ui/src/components/markdown-editor/utils.ts:80`); the request layer prepends `VITE_APP_BASE_API=/api` (`apps/web/.env.development:19`; concatenation at `packages/request/src/fetcher.ts:162`; `baseUrl` is injected by `apps/web/src/plugins/request-runtime.ts`), i.e. **`POST /api/upload/file`**. On the mock side the catch-all variant handler answers (`apps/backend-mock/server/api/upload/[variant].post.ts:13-23`) with an **inline SVG data URL** (`server/utils/upload.ts:64-106`), storing nothing — the file's header comment says the mock only acts out "what success looks like" (`upload.ts:9-12`). So the "upload success" here is a fake the demo installs itself; the component only checks that the response carries a `url` (`utils.ts:98-100`). The demo page states the same in its UI hint (`editor/index.vue:917-922`).
 
 ## File upload: `/components/upload`
 

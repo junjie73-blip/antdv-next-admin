@@ -1,11 +1,10 @@
 import { mount } from '@vue/test-utils';
 import { nextTick } from 'vue';
 
-import { LAYOUT_HEADER_ROW_STYLE } from '@antdv/layouts';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import LayoutHeader from '../src/components/LayoutHeader.vue';
-import { configureLayout } from '../src/config';
+import LayoutHeader from '../src/components/layout-header/index.vue';
+import { configureLayout, LAYOUT_HEADER_ROW_STYLE } from '../src/layout';
 import { menuTree } from './fixtures';
 
 const mounted: Array<{ unmount: () => void }> = [];
@@ -38,14 +37,18 @@ describe('LayoutHeader - 形态由 lead 决定', () => {
   });
 
   it('lead=logo：品牌位在场，导航有数据才渲染', async () => {
-    const wrapper = mountHeader({ lead: 'logo', nav: { menus: menuTree }, title: '控制台' });
+    const wrapper = mountHeader({
+      lead: 'logo',
+      nav: { menus: menuTree },
+      title: '控制台',
+    });
     await nextTick();
     expect(wrapper.find('[data-layout-logo="header"]').exists()).toBe(true);
     expect(wrapper.text()).toContain('控制台');
     // 导航区域挂在容器上而不是菜单根节点：箭头与渐隐也算它的一部分
-    expect(
-      wrapper.find('[data-layout-region="header-nav"]').exists(),
-    ).toBe(true);
+    expect(wrapper.find('[data-layout-region="header-nav"]').exists()).toBe(
+      true,
+    );
   });
 
   it('导航没有数据时整块让位，品牌位不再带分隔线', () => {
@@ -53,9 +56,9 @@ describe('LayoutHeader - 形态由 lead 决定', () => {
     expect(wrapper.find('[data-layout-region="header-nav"]').exists()).toBe(
       false,
     );
-    expect(
-      wrapper.find('[data-layout-logo="header"]').classes(),
-    ).not.toContain('border-r');
+    expect(wrapper.find('[data-layout-logo="header"]').classes()).not.toContain(
+      'border-r',
+    );
   });
 
   it('高度由 inline style 给出，避免被组件库的默认行高顶掉', () => {
@@ -68,14 +71,17 @@ describe('LayoutHeader - 形态由 lead 决定', () => {
 describe('LayoutHeader - 侧栏触发按钮', () => {
   it('默认不渲染，只有使用方明确要求时才出现', () => {
     expect(
-      mountHeader({ lead: 'breadcrumb' }).find(
-        '[data-layout-sidebar-trigger]',
-      ).exists(),
+      mountHeader({ lead: 'breadcrumb' })
+        .find('[data-layout-sidebar-trigger]')
+        .exists(),
     ).toBe(false);
   });
 
   it('点了只发 toggleSidebar，开合状态由使用方保管', async () => {
-    const wrapper = mountHeader({ lead: 'breadcrumb', showSidebarTrigger: true });
+    const wrapper = mountHeader({
+      lead: 'breadcrumb',
+      showSidebarTrigger: true,
+    });
     await wrapper.find('[data-layout-sidebar-trigger]').trigger('click');
     expect(wrapper.emitted('toggleSidebar')).toHaveLength(1);
   });
@@ -144,7 +150,9 @@ describe('LayoutHeader - 导航配色与事件', () => {
   it('导航点击把 key 交给使用方', async () => {
     const wrapper = mountHeader({
       lead: 'logo',
-      nav: { menus: [{ name: 'Analysis', path: '/analysis', title: '分析面板' }] },
+      nav: {
+        menus: [{ name: 'Analysis', path: '/analysis', title: '分析面板' }],
+      },
     });
     await nextTick();
     await wrapper.find('[data-menu-key="Analysis"]').trigger('click');

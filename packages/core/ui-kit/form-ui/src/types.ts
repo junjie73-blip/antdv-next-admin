@@ -108,7 +108,7 @@ export interface FormActionType {
 
   /**
    * 实例当前是否还挂在组件树上。
-   * `useForm` 依据它判断"现在写进去有没有人看得见"（详见 use-vben-form.ts）。
+   * `useForm` 依据它判断"现在写进去有没有人看得见"（详见 use-antdv-form.ts）。
    */
   isMounted?: () => boolean;
 }

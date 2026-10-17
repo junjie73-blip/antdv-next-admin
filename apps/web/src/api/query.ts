@@ -9,8 +9,10 @@ import { toValue } from 'vue';
 import { useQuery } from '@tanstack/vue-query';
 import { http } from '~/composables';
 
-export interface ApiQueryDefinition<T>
-  extends Omit<UseQueryOptions<T>, 'queryFn' | 'queryKey'> {
+export interface ApiQueryDefinition<T> extends Omit<
+  UseQueryOptions<T>,
+  'queryFn' | 'queryKey'
+> {
   /** 查询串参数；ref / getter 会被追踪，变化即换 key 重查 */
   params?: MaybeRefOrGetter<Record<string, unknown> | undefined>;
   url: MaybeRefOrGetter<string>;

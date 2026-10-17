@@ -131,7 +131,10 @@ function handleRefresh() {
       </div>
 
       <div :class="toolbarClassName">
-        <Button :variant="loading ? 'outline' : 'default'" @click="loading = !loading">
+        <Button
+          :variant="loading ? 'outline' : 'default'"
+          @click="loading = !loading"
+        >
           {{ loading ? '停止加载' : '开始加载' }}
         </Button>
       </div>

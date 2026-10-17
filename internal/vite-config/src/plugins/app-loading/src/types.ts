@@ -58,4 +58,20 @@ export interface AppLoadingOptions {
   /** 是否在变量声明中保留 !important（默认 false，避免压过应用主题） */
   themeImportant?: boolean;
   htmlVariables?: Record<string, string>;
+
+  /* ========== 首屏主题同步（读取偏好写下的主题快照） ========== */
+  /**
+   * 是否在 `<head>` 注入一段内联脚本，用 localStorage 里的主题快照回填
+   * 遮罩与 `<html>` 的明暗/主色，默认 true。
+   *
+   * 关掉它就等于回到"出厂色 loading"：`autoTheme` 那份是构建期扫出来的，
+   * 不会跟着用户的偏好走。
+   */
+  themeSync?: boolean;
+
+  /** 主题快照的键后缀，与 `@antdv/preferences` 的 `BOOT_THEME_CACHE_KEY` 同源 */
+  themeCacheKeySuffix?: string;
+
+  /** 深色 class 名，与 Tailwind `@custom-variant dark` 及偏好的 `darkClass` 一致 */
+  darkClass?: string;
 }

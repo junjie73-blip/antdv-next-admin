@@ -36,6 +36,7 @@
 @import './css/scrollbar.css';
 
 /* 自带工具类的组件包（路径相对本文件） */
+@source '../../../../layouts/src';
 @source '../../icons/src';
 @source '../../../ui-kit/common-ui/src';
 @source '../../../ui-kit/form-ui/src';

@@ -1,10 +1,10 @@
 import { mount } from '@vue/test-utils';
 import { nextTick } from 'vue';
 
-import { LAYOUT_RAIL_WIDTH } from '@antdv/layouts';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import LayoutNavRail from '../src/components/LayoutNavRail.vue';
+import LayoutNavRail from '../src/components/layout-sidebar/nav-rail.vue';
+import { LAYOUT_RAIL_WIDTH } from '../src/layout';
 import { menuTree } from './fixtures';
 
 const mounted: Array<{ unmount: () => void }> = [];
@@ -89,9 +89,9 @@ describe('LayoutNavRail - 品牌位与配色', () => {
   it('没有 logo 图片时用占位图标，不留空白格', async () => {
     const wrapper = mountRail();
     await nextTick();
-    expect(
-      wrapper.find('[data-layout-logo="rail"]').find('img').exists(),
-    ).toBe(false);
+    expect(wrapper.find('[data-layout-logo="rail"]').find('img').exists()).toBe(
+      false,
+    );
   });
 
   it('深色侧栏偏好下选中项仍然只用主色淡底 + 主色文字', async () => {

@@ -23,7 +23,8 @@ function textColor(locator: Locator) {
 /**
  * 偏好只能在登录后改，改完还得回到"未登录"的登录页才看得到效果。
  *
- * 清 storage 时保留 `appSetting`（那就是偏好本身），其余（token、用户信息、标签页
+ * 清 storage 时保留 `appSetting`（那就是偏好本身）和它的 `bootTheme` 首屏快照，
+ * 其余（token、用户信息、标签页
  * 状态）当作登出。然后**整页 reload**：只换 hash 不会重启应用，pinia 里的登录态
  * 还在，路由守卫会立刻把 `/#/login` 弹回首页 —— 少了这一步，断言的是后台页面。
  */
@@ -40,7 +41,8 @@ async function signInThenApply(page: Page, labels: string[]) {
   await closePreferenceDrawer(page);
   await page.evaluate(() => {
     for (const key of Object.keys(localStorage)) {
-      if (!key.includes('appSetting')) localStorage.removeItem(key);
+      // appSetting 是偏好本身，bootTheme 是它的首屏快照，两者都要留
+      if (!/appSetting|bootTheme/.test(key)) localStorage.removeItem(key);
     }
   });
   await page.goto('/#/login');
@@ -69,13 +71,12 @@ test.describe('登录页的样式', () => {
       .toBe(true);
 
     /*
-     * 登录页的强调色全部挂在 app 主色 token 上（`--app-primary`，派生自偏好写在
-     * `<html>` 的 `--ant-color-primary`）。深色下 antd 还会在 `.ant-app` 作用域里
-     * 把主色按暗底重算一档（#FA541C 落到 rgb(216, 74, 27)），那是 `*-ant-primary`
-     * 读的那一份 —— 同页混用两条链路就会渲染出两种橙色。所以这里不钉色值，
-     * 只钉两件事：
+     * 认证外壳的强调色全部挂在 app 主色 token 上（`--app-primary`）：预设档由
+     * `@antdv/design` 的 `[data-theme]` 色板给值，取色器选的自定义色才内联写在 `<html>`。
+     * 同一颗主色在明暗两套色板里的取值本来就不同（橙黄在暗底上要单独调一档），
+     * 所以这里不钉色值，只钉两件事：
      * 1. 确实离开了默认那支蓝；
-     * 2. 主按钮底色与品牌文字取到同一个主色 —— 只要有一条链路没接上，两者就会分开。
+     * 2. 主按钮底色与品牌侧的 logo 方块取到同一个主色 —— 一条链路没接上两者就会分开。
      */
     await expect
       .poll(() => backgroundColor(auth(page, 'submit')))
@@ -84,13 +85,13 @@ test.describe('登录页的样式', () => {
       .poll(
         async () =>
           (await backgroundColor(auth(page, 'submit'))) ===
-          (await textColor(auth(page, 'brand').locator('h1 span'))),
+          (await backgroundColor(auth(page, 'slogan-mark'))),
       )
       .toBe(true);
 
-    // 中性色：卡片和页面底都脱离白色，否则就是"整站黑了、登录页还白着"
+    // 中性色：右栏和页面底都脱离白色，否则就是"整站黑了、登录页还白着"
     await expect
-      .poll(() => backgroundColor(auth(page, 'card')))
+      .poll(() => backgroundColor(auth(page, 'panel')))
       .not.toBe('rgb(255, 255, 255)');
     await expect
       .poll(() => backgroundColor(auth(page, 'page')))
@@ -101,13 +102,15 @@ test.describe('登录页的样式', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/#/login');
     await expect(auth(page, 'brand')).toBeVisible();
-    await expect(auth(page, 'mobile-brand')).toBeHidden();
+    await expect(auth(page, 'logo')).toBeVisible();
+    await expect(auth(page, 'toolbar')).toBeVisible();
 
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(auth(page, 'brand')).toBeHidden();
-    await expect(auth(page, 'mobile-brand')).toBeVisible();
-    await expect(auth(page, 'card')).toBeVisible();
-    // 装饰光斑溢出过一整次横向滚动条，这里钉住"不溢出视口"
+    // 表单列不随断点消失，只是从 2/5 宽收成整屏
+    await expect(auth(page, 'panel')).toBeVisible();
+    await expect(auth(page, 'submit')).toBeVisible();
+    // 装饰层溢出过一整次横向滚动条，这里钉住"不溢出视口"
     expect(
       await page.evaluate(
         () =>
@@ -118,9 +121,9 @@ test.describe('登录页的样式', () => {
     ).toBe(true);
   });
 
-  test('手机登录里的链接按钮同样跟随主色', async ({ page }) => {
+  test('切换手机登录后，链接按钮同样跟随主色', async ({ page }) => {
     await page.goto('/#/login');
-    await page.getByRole('tab', { name: '手机登录' }).click();
+    await auth(page, 'mode-mobile').click();
     await expect(page.getByPlaceholder('请输入手机号')).toBeVisible();
 
     // 不写死色值：链接色与主按钮底色同源，两者相等就说明都挂在主色上
@@ -128,5 +131,17 @@ test.describe('登录页的样式', () => {
     await expect
       .poll(() => textColor(auth(page, 'send-code')))
       .toBe(await submit);
+  });
+
+  test('右上角主题色面板改了主色，登录页立刻跟着换', async ({ page }) => {
+    await page.goto('/#/login');
+    const before = await backgroundColor(auth(page, 'submit'));
+
+    await auth(page, 'color-presets-trigger').click();
+    await auth(page, 'color-preset-violet').click();
+
+    await expect
+      .poll(() => backgroundColor(auth(page, 'submit')))
+      .not.toBe(before);
   });
 });

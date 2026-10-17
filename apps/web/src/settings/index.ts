@@ -1,13 +1,14 @@
 import type { AppSetting, PreferencesInstance } from '@antdv/preferences';
 
 import { normalizeLayoutMode } from '@antdv/layouts';
-import { createPreferences, withDefaultPreferences } from '@antdv/preferences';
+import { initPreferences, withDefaultPreferences } from '@antdv/preferences';
 
 /**
  * 应用侧的偏好入口：`@antdv/preferences` 的项目适配层。
  *
- * 包本身不认识本项目的 `VITE_APP_TITLE`，也不该有全局单例；
- * "这一份配置属于 web 应用"这件事留在这里。
+ * 包本身不认识本项目的 `VITE_APP_TITLE`；"这一份配置属于 web 应用"这件事留在这里，
+ * 连"偏好 → antd `ThemeConfig`""偏好 → antd locale"这两段翻译也留在这里 ——
+ * 偏好包只存值与写 CSS 变量，不认识任何 UI 库。
  */
 
 export type {
@@ -16,36 +17,40 @@ export type {
   ContentMode,
   LayoutMode,
   NotificationPosition,
+  PreferenceKey,
   PreferencesListener,
   PreferencesOptions,
   RouteMode,
   TabStyle,
-  ThemeAlgorithm,
   ThemeMode,
-  ThemePreset,
   ThemeStyle,
   TransitionEffect,
 } from '@antdv/preferences';
 
-export {
-  createPreferences,
-  createToggles,
-  DEFAULT_PREFERENCES,
-  getAntdTheme,
-  getLocaleModule,
-  getThemeConfig,
-  loadLocale,
-  palette,
-  registerThemePreset,
-  withDefaultPreferences,
-} from '@antdv/preferences';
+/** antd 主题与语言包：类型与函数都出自本目录，不再经由偏好包转发 */
+export type { ThemeAlgorithm, ThemePreset } from './theme';
 
 export {
   applyPreferencesToDom,
   clearPreferencesFromDom,
-  createSystemDark,
-  resolveThemeMode,
-} from '@antdv/utils';
+  createPreferences,
+  createToggles,
+  DEFAULT_PREFERENCES,
+  initPreferences,
+  usePreferences,
+  withDefaultPreferences,
+} from '@antdv/preferences';
+
+export { createSystemDark, resolveThemeMode } from '@antdv/utils';
+
+export {
+  getAntdTheme,
+  getThemeConfig,
+  registerThemePreset,
+  themeOverridesFrom,
+} from './theme';
+
+export { getLocaleModule, loadLocale } from './locale';
 
 /**
  * 项目级默认值。
@@ -76,19 +81,17 @@ function migratePreferences(
   return { ...cached, layout: normalizeLayoutMode(cached.layout) };
 }
 
-let instance: null | PreferencesInstance = null;
-
 /**
- * 偏好单例（懒创建）。
+ * 偏好单例（懒创建，实例由包持有）。
  *
- * 顶层直接 `createPreferences()` 会在 `bootstrap/env` 注入缓存前缀之前执行，
+ * 顶层直接 `initPreferences()` 会在 `bootstrap/env` 注入缓存前缀之前执行，
  * 于是读写的都是默认 `app_cache_*` 而不是项目前缀的键——
  * 表现是"设置保存了但刷新就丢"，比报错难查得多。
+ * 所以这里保持"第一次用时才建"，建好的那份就是 `usePreferences()` 拿到的那份。
  */
 export function getPreferences(): PreferencesInstance {
-  instance ??= createPreferences({
+  return initPreferences({
     defaults: APP_DEFAULTS,
     migrate: migratePreferences,
   });
-  return instance;
 }

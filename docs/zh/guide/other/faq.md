@@ -76,7 +76,6 @@
 | `apps/web/src/assets/icons/` | 空目录，sprite 链路已接通但无自定义图标 |
 | `views/tool/mock/**` | 只剩私有模块，没有 `index.vue`，mock-center 面板只能走 HTTP 接口 |
 | stylelint | 规则包存在，**没有落地配置文件**，lefthook 步骤被注释（`lefthook.yml:16-18`） |
-| ESLint 里的 `@vben/*` 字面量 | import 边界规则仍写着上游包名（`custom-config.ts:61-118`），运行时已无 `@vben` 依赖 |
 | `docs/` 与 `apps/web/public/pwa-icons/` 的 logo | **拷贝**关系，不是引用；换 logo 要两边一起改 |
 
 ::: tip 想清理按"死代码"的代价排序最划算的是：i18n 的外壳与菜单标题已经接上，剩下来的是业务页面文案（要么补 `useI18n`，要么承认中文就是这个界面的语言）；`auth` store 直接删（挂住它的只有 `stores/index.ts:2` 那句 `export *`）；`routeMode` / `VITE_NAMESPACE` 二选一——要么实现要么从 `.env` 与 `types/env.d.ts` 移除。清理完记得同步这份 FAQ；删的顺序与牵动面见[移除代码](/zh/guide/other/remove-code)。:::

@@ -4,14 +4,14 @@ This page covers two demo routes: `/components/directive` (the **five globally r
 
 ## The five global directives: exactly two registration sites
 
-The only `app.directive(...)` calls in the entire repository are these five, at `apps/web/src/main.ts:103-113`:
+The only `app.directive(...)` calls in the entire repository are these five, at `apps/web/src/main.ts:122-132`:
 
 | Directive | Implementation lives in | App-side injection | Production use sites (outside the demo) |
 | --- | --- | --- | --- |
 | `v-permission` | `packages/directives/src/permission/index.ts:57` | `apps/web/src/directives/index.ts:19-36` | `apps/web/src/components/business/ImportExport.vue:206, 223` |
 | `v-loading` | `packages/core/ui-kit/common-ui/src/components/loading/directive.ts:88-107` | the `vLoading` from `@antdv/common-ui`, registered directly (`main.ts:8, 113`) | `apps/web/src/views/components/loading/index.vue:1026` onwards |
 | `v-lazy` | `packages/directives/src/lazy.ts:145, 311` | re-exported at `apps/web/src/directives/index.ts:16` | **no usage outside the demo page** (see below) |
-| `v-safe-html` | `packages/shared/src/utils/xss.ts:437-445` | re-exported at `apps/web/src/directives/index.ts:17` | `MarkdownEditor.vue:599`, editor demo `editor/index.vue:834` |
+| `v-safe-html` | `packages/core/base/shared/src/utils/xss.ts:446` | re-exported at `apps/web/src/directives/index.ts:17` | `markdown-editor/MarkdownEditor.vue:664`, editor demo `editor/index.vue:880` |
 | `v-escape` | `packages/shared/src/utils/xss.ts:454-462` | re-exported at `apps/web/src/directives/index.ts:17` | **no usage outside the demo page** (see below) |
 
 ::: warning Don't look for everything under the package name `@antdv/directives` contains **only permission and lazy** (its `src/index.ts:10-11` has exactly those two exports). `escape` / `safe-html` live in `@antdv/shared/utils/xss`, `v-loading` lives in `@antdv/common-ui`. `apps/web/src/directives/index.ts` exists to inject project dependencies into the factories: the packages never import pinia / stores (the design constraint is stated at `packages/directives/src/index.ts:4-7`); checkers and the subscription source come from the app. :::

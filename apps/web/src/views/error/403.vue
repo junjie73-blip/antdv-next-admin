@@ -5,7 +5,7 @@ import { useRouter } from 'vue-router';
 import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 import { HOME_PATH, LOGIN_PATH } from '~/config/constants';
-import { useUserStore } from '~/stores/modules/user';
+import { useUserStore } from '@antdv/stores';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -42,9 +42,7 @@ function handleBack() {
       <p class="mb-8 text-gray-400 dark:text-gray-500">
         请联系管理员获取访问权限
       </p>
-      <Button size="lg" @click="handleBack">
-        返回首页
-      </Button>
+      <Button size="lg" @click="handleBack"> 返回首页 </Button>
     </div>
   </div>
 </template>

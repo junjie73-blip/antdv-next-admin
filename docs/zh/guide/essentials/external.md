@@ -241,7 +241,7 @@ return {
 | `pnpm check:circular` | `vsh check-circular` | 包与包之间的环，跟"未使用"是两回事 |
 | `pnpm check` | circular + dep + type + cspell 串起来 | 最后一环必失败（`cspell` 不在任何依赖里），见[常见问题](/zh/guide/other/faq) |
 
-::: warning "报未使用"不等于"可以删" `check:dep` 的内置配置里有一串 `ignoreDependencies` （`scripts/vsh/src/check-dep/index.ts:17-29`：`playwright`、`rimraf`、`tailwindcss`、几个 `@vben/*` 遗留名等），`ignore` 排掉 `dist/**` 与 `docs/**`（`:15`）， `ignoreWorkspaces` 排掉 `internal/lint-configs/*` 与 `scripts/*`（`:30`）。另一方面，被别的包的 peer 拖住的依赖（上表 tiptap 那几条）在源码里本来就搜不到 import。所以每一条都要回到"谁 import 它 / 谁的 peer 需要它"再定，升级侧的同类提醒见[项目更新](/zh/guide/other/project-update)。:::
+::: warning "报未使用"不等于"可以删" `check:dep` 的内置配置里有一串 `ignoreDependencies` （`scripts/vsh/src/check-dep/index.ts:17-29`：`playwright`、`rimraf`、`tailwindcss`，以及 `@antdv/{commitlint,eslint,oxfmt,oxlint,stylelint}-config` 与 `@antdv/{design,vite-config}` 这些只在构建期被配置引用的包内件），`ignore` 排掉 `dist/**` 与 `docs/**`（`:15`）， `ignoreWorkspaces` 排掉 `internal/lint-configs/*` 与 `scripts/*`（`:30`）。另一方面，被别的包的 peer 拖住的依赖（上表 tiptap 那几条）在源码里本来就搜不到 import。所以每一条都要回到"谁 import 它 / 谁的 peer 需要它"再定，升级侧的同类提醒见[项目更新](/zh/guide/other/project-update)。:::
 
 ## 相关页面
 

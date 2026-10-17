@@ -1,7 +1,7 @@
 {
   "name": "@antdv/preferences",
   "version": "0.4.0",
-  "description": "用户偏好设置：默认值、持久化、CSS 变量落地、antdv-next 主题配置（明暗 token + 组件覆盖 + 色板），不含 pinia / store 依赖",
+  "description": "用户偏好设置：默认值、持久化、CSS 变量落地与组件侧读写入口；不依赖 pinia、vue-router 与任何具体 UI 库",
   "private": true,
   "type": "module",
   "scripts": {
@@ -18,18 +18,6 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    "./theme": {
-      "types": "./dist/theme/index.d.ts",
-      "default": "./dist/theme/index.js"
-    },
-    "./theme/light": {
-      "types": "./dist/theme/light/index.d.ts",
-      "default": "./dist/theme/light/index.js"
-    },
-    "./theme/dark": {
-      "types": "./dist/theme/dark/index.d.ts",
-      "default": "./dist/theme/dark/index.js"
-    },
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
@@ -44,8 +32,6 @@
     "@antdv/shared": "workspace:*",
     "@antdv/types": "workspace:*",
     "@antdv/utils": "workspace:*",
-    "antdv-next": "catalog:",
-    "es-toolkit": "catalog:",
     "vue": "catalog:"
   },
   "devDependencies": {

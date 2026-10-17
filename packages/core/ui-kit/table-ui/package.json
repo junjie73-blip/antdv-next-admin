@@ -20,6 +20,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
+    "@antdv/common-ui": "workspace:*",
     "@antdv/form-ui": "workspace:*",
     "@antdv/icons": "workspace:*",
     "@antdv/popup-ui": "workspace:*",

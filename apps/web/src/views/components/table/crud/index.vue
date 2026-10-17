@@ -426,7 +426,8 @@ const canBatchDelete = computed(() => hasPermission('demo:task:remove'));
         按钮级权限同样在跑：当前账号的权限码若是
         <code class="font-mono">['*']</code>（超管）全部可见； 换成
         <code class="font-mono">custom</code> 登录，它没有
-        <code class="font-mono">demo:task:remove</code>，删除与批量删除都会消失。
+        <code class="font-mono">demo:task:remove</code
+        >，删除与批量删除都会消失。
       </p>
     </Card>
 
@@ -461,7 +462,9 @@ const canBatchDelete = computed(() => hasPermission('demo:task:remove'));
           确认交互（这里用操作列的
           <code class="font-mono">popConfirm</code>）、字段映射
           <code class="font-mono">getFormValues</code>、以及业务规则钩子
-          <code class="font-mono">beforeCreate / beforeUpdate / beforeDelete</code>。
+          <code class="font-mono"
+            >beforeCreate / beforeUpdate / beforeDelete</code
+          >。
         </DescriptionsItem>
       </Descriptions>
     </Card>

@@ -43,7 +43,6 @@ import TableEditableCell from './components/TableEditableCell.vue';
 import TableHeaderCell from './components/TableHeaderCell.vue';
 import TableImg from './components/TableImg.vue';
 import TablePagination from './components/TablePagination.vue';
-import TableSetting from './components/TableSetting.vue';
 import { features } from './features';
 import {
   convertColumns,
@@ -73,7 +72,6 @@ const props = withDefaults(defineProps<BasicTableProps>(), {
   resizeHeightOffset: 0,
   showHeader: true,
   size: 'small',
-  showTableSetting: true,
   tableLayout: 'fixed',
   scroll: () => ({ y: 440 }),
   // 树表首屏默认全展开；显式传 false 才收起。Vue 会把缺省的布尔 prop 转成 false，
@@ -799,14 +797,6 @@ function renderCellContent(
   return isVNode(text) ? h(() => text) : h('span', text ?? '');
 }
 
-function handleUpdateColumns(newColumns: BasicColumn[]) {
-  columns.setColumns(newColumns);
-}
-
-function handleResetColumns() {
-  columns.setColumns(columns.getCacheColumns());
-}
-
 function handleHeaderEdit(column: BasicColumn) {
   emit('headerEdit', column);
 }
@@ -1041,17 +1031,6 @@ const showSearchForm = computed(
   () => getMergedProps.value.useSearchForm && getMergedProps.value.formConfig,
 );
 
-const showTableSetting = computed(() => getMergedProps.value.showTableSetting);
-
-const tableSettingConfig = computed(
-  () =>
-    getMergedProps.value.tableSetting || {
-      fullScreen: true,
-      redo: true,
-      setting: true,
-    },
-);
-
 const emptyTextContent = computed(() => {
   const locale = getMergedProps.value.locale as any;
   return locale?.emptyText ?? mergedEmptyText.value ?? '暂无数据';
@@ -1188,7 +1167,7 @@ defineExpose(tableActionType);
 
     <!-- 工具栏 -->
     <div
-      v-if="showTableSetting || $slots.toolbar || renderTitle"
+      v-if="$slots.toolbar || renderTitle"
       class="mb-4 flex items-center justify-between gap-2"
     >
       <div class="flex flex-wrap items-center gap-2">
@@ -1200,15 +1179,6 @@ defineExpose(tableActionType);
         </span>
         <slot name="toolbar"></slot>
       </div>
-      <TableSetting
-        v-if="showTableSetting"
-        :setting="tableSettingConfig"
-        :columns="columns.getColumns()"
-        :cache-columns="columns.getCacheColumns()"
-        @redo="dataSource.reload"
-        @update:columns="handleUpdateColumns"
-        @reset="handleResetColumns"
-      />
     </div>
 
     <div :class="bodyClassName" :style="bodyStyle">

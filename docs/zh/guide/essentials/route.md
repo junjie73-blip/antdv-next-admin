@@ -38,7 +38,7 @@ Router 本体：`createWebHashHistory()` + `strict: true` + 每次导航滚回�
 | `layout` | `'blank' \| 'default'` | 登录/注册/错误页用 `blank` |
 | `roles` / `permissions` | **没有消费者** | 按钮级权限另走指令，见[权限、指令与光标](/zh/guide/in-depth/access) |
 
-另外应用侧还会读两个**没写进 `RouteMeta`** 的字段：`meta.microApp` （`apps/web/src/layouts/index.vue:246`）与 `meta.noTransition`（`:252`）。目前仓库里没有路由设置它们，用之前记得补类型。
+另外装配层还会读两个**没写进 `RouteMeta`** 的字段：`meta.microApp` （`packages/layouts/src/basic/layout.vue:285`）与 `meta.noTransition`（`:294`）。目前仓库里没有路由设置它们，用之前记得补类型。
 
 ## 守卫：固定五段
 

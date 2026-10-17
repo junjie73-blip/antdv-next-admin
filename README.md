@@ -201,7 +201,7 @@ CI（`.github/workflows/ci.yml`）：`quality`（lint + 循环依赖 + 单测，
 
 `docs/` 是 VitePress 站点，`/zh/` 与 `/en/` 双语，**默认中文** —— 根 `docs/index.md` 只有一条 `redirect: /zh/`，打开站点直接落到中文首页，英文靠默认主题自带的语言菜单跳过去（顶栏那份要视口≥1280px，更窄的窗口在汉堡菜单里），它按当前页面路径跳到另一语言的同一篇，所以两边文件名必须一致。 `locales` 的键必须是裸语言码 `zh` / `en` —— 写成 `'/zh/'` 会让侧栏、顶栏、语言切换全部静默失效，细节见 [`docs/zh/guide/essentials/deploy.md`](./docs/zh/guide/essentials/deploy.md)。
 
-正文按 [vben 文档](https://doc.vben.pro/) 的信息架构分层：`guide/introduction`（介绍）、 `guide/essentials`（基础）、`guide/in-depth`（深入）、`components`（组件示例，讲这个仓库自己的组件画廊）、 `guide/project`（工程）、`guide/other`（其他）。**不再有架构章节** —— 留下来的是目录与包结构，在 `guide/project/dir.md`。新增页面先在 `zh` 落地，再补同路径的 `en`，只补一边会让语言切换跳到 404。
+正文按 [vue-vben-admin 文档](https://doc.vben.pro/) 的信息架构分层：`guide/introduction`（介绍）、 `guide/essentials`（基础）、`guide/in-depth`（深入）、`components`（组件示例，讲这个仓库自己的组件画廊）、 `guide/project`（工程）、`guide/other`（其他）。**不再有架构章节** —— 留下来的是目录与包结构，在 `guide/project/dir.md`。新增页面先在 `zh` 落地，再补同路径的 `en`，只补一边会让语言切换跳到 404。
 
 | 分区 | 页面 | 内容 |
 | --- | --- | --- |

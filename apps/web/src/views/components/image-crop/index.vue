@@ -248,7 +248,9 @@ function handleRealTime(data: { w: number; h: number; url: string }) {
                 :model-value="[scaleValue]"
                 @update:model-value="handleScaleInput"
               />
-              <span :class="sliderValueClassName">{{ scaleValue > 0 ? '+' : '' }}{{ scaleValue }}</span>
+              <span :class="sliderValueClassName"
+                >{{ scaleValue > 0 ? '+' : '' }}{{ scaleValue }}</span
+              >
             </div>
           </div>
 
@@ -283,7 +285,9 @@ function handleRealTime(data: { w: number; h: number; url: string }) {
               cn(controlCardClassName, 'flex items-center justify-between')
             "
           >
-            <span :class="cn('text-sm text-gray-600 dark:text-gray-400')">实时预览</span>
+            <span :class="cn('text-sm text-gray-600 dark:text-gray-400')"
+              >实时预览</span
+            >
             <Switch
               :model-value="previewVisible"
               @update:model-value="(v: boolean) => (previewVisible = v)"

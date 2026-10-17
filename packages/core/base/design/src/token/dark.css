@@ -42,10 +42,14 @@
   --app-sidebar-border: var(--app-border);
   --app-sidebar-ring: var(--app-primary);
 
+  /* 状态色：暗底上要提亮一档才看得见，取值与亮色各自独立 */
+  --app-success: #73d13d;
+  --app-warning: #ffc53d;
+  --app-info: var(--app-primary);
+
   /* 尺度 token：名单与亮色一致，取值各自独立 */
-  --app-border-radius: 4px;
-  --app-font-size: 14px;
-  --app-sidebar-width: 210px;
+  --app-border-radius: 8px;
+  --app-font-size: 100%;
   --app-filter: none;
 }
 

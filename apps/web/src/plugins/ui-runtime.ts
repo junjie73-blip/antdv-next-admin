@@ -14,7 +14,12 @@ export function configureUiKitRuntimes(): void {
   const t = (key: string, named?: Record<string, number | string>) =>
     i18n.global.t(key, named ?? {}) as string;
 
-  configureLayout({ t });
+  configureLayout({
+    t,
+    // 菜单译文要能区分"有这个键但值和键同名"与"根本没这个键"，`t` 办不到（miss 时它把键还给你）
+    translateMenu: (key: string) =>
+      i18n.global.te(key) ? (i18n.global.t(key) as string) : undefined,
+  });
   configureMenu({ t });
   configureTabs({ t });
 }

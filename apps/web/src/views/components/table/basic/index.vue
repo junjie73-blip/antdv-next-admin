@@ -355,7 +355,9 @@ const [registerLoading] = useTable({
   <div :class="containerClassName">
     <Card title="Basic Table" variant="borderless">
       <div :class="toolbarClassName">
-        <span :class="descriptionClassName">Sorting, filtering, loading, and selection support</span>
+        <span :class="descriptionClassName"
+          >Sorting, filtering, loading, and selection support</span
+        >
         <Space>
           <Button size="sm" @click="handleBasicRefresh"> Refresh </Button>
           <Button
@@ -375,7 +377,9 @@ const [registerLoading] = useTable({
           </Tag>
         </template>
         <template #cell-salary="{ record }">
-          <span :class="monoClassName">¥{{ record?.salary?.toLocaleString() ?? '-' }}</span>
+          <span :class="monoClassName"
+            >¥{{ record?.salary?.toLocaleString() ?? '-' }}</span
+          >
         </template>
       </BasicTable>
     </Card>
@@ -388,7 +392,9 @@ const [registerLoading] = useTable({
           </Tag>
         </template>
         <template #cell-amount="{ record }">
-          <span :class="monoClassName">¥{{ record?.amount?.toLocaleString() ?? '-' }}</span>
+          <span :class="monoClassName"
+            >¥{{ record?.amount?.toLocaleString() ?? '-' }}</span
+          >
         </template>
       </BasicTable>
     </Card>

@@ -154,13 +154,22 @@ test.describe('谷歌风格标签页', () => {
       const style = getComputedStyle(el);
       return {
         bottomLeft: style.borderBottomLeftRadius,
+        bottomRight: style.borderBottomRightRadius,
         borderTopLeft: style.borderTopLeftRadius,
+        borderTopRight: style.borderTopRightRadius,
         bottomWidth: style.borderBottomWidth,
       };
     });
     expect(radii.borderTopLeft).toBe('8px');
+    expect(radii.borderTopRight).toBe('8px');
     expect(radii.bottomLeft).toBe('0px');
+    expect(radii.bottomRight).toBe('0px');
     expect(radii.bottomWidth).toBe('0px');
+
+    // 标签条带主色淡染（浏览器工具栏那层底色），不是原来的中性灰
+    await expect
+      .poll(() => bar.evaluate((el) => getComputedStyle(el).backgroundColor))
+      .not.toBe('rgba(0, 0, 0, 0)');
 
     // 切回卡片风格：排布与圆角都回到原样，证明风格是"可切换"而不是一次性
     drawer = await openPreferenceDrawer(page, '布局');

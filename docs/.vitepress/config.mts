@@ -5,7 +5,7 @@ import { defineConfig } from 'vitepress';
  * 根路径 `docs/index.md` 只有一条 `redirect: /`，打开站点直接落到中文首页，
  * 英文靠语言菜单跳到 `/en/`（不再有"选择语言"中间页）。
  *
- * 信息架构参考 vben（doc.vben.pro）：正文在 `guide/` 下按 `introduction`（介绍）/
+ * 信息架构参考 vue-vben-admin（doc.vben.pro）：正文在 `guide/` 下按 `introduction`（介绍）/
  * `essentials`（基础）/ `in-depth`（深入）/ `project`（工程）/ `other`（其他）分层，
  * 示例文档另起一章 `components/`（组件示例）并**用独立的侧栏键**（`/components/`）——
  * 混进 `guide` 的侧栏会让读指南的人全程拖着 9 条示例页。两边**目录与文件名逐一对应**，

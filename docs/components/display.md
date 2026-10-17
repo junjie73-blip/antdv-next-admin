@@ -163,9 +163,9 @@ KPI 卡、看板上的数字滚动。核心是**用 `requestAnimationFrame` 驱�
 | 位置 | 做什么 |
 | --- | --- |
 | `packages/shared/src/utils/dayjs.ts:10`、`:23` | 统一 `dayjs.extend(relativeTime)`，插件在共享包里就装好了 |
-| `apps/web/src/layouts/widgets/components/NoticeItem.vue:49-50` | `dayjs(sendTime).fromNow()`，渲染在通知项上（`:141`） |
-| `apps/web/src/views/system/notice/index.vue:23`、`:361` | 页面自己又 `extend` 了一次，表格里用 `fromNow(true)`（去掉「前/后」的纯时长） |
-| `apps/web/src/views/system/online/index.vue:20`、`:93` | 同上，在线时长列 |
+| `packages/layouts/src/widgets/notification/notice-item.vue:21-25`、`:77-79` | `dayjs(sendTime).fromNow()`，外面套了一个窄接口助手 `fromNow()`（补 `relativeTime` 的类型），渲染在通知项上（`:171`） |
+| `apps/web/src/views/system/notice/index.vue:36`、`:384` | 页面自己又 `extend` 了一次，表格里用 `fromNow(true)`（去掉「前/后」的纯时长） |
+| `apps/web/src/views/system/online/index.vue:30`、`:103` | 同上，在线时长列 |
 
 刷新由谁驱动：**没有任何定时器**。`fromNow()` 在 `computed` 里，只有依赖的数据变化时才会重算，页面停留期间文字不会自己跳。要「每分钟自己变」得自己挂 interval。
 
@@ -304,7 +304,7 @@ const hookLoading = useLoading({
 
 ### 在线示例：`/components/loading` 与 `/components/scroll/basic`
 
-`http://localhost:6080/#/components/loading` —— 源码 `apps/web/src/views/components/loading/index.vue`（1187 行，**12 张小节**，前五张演示的是应用侧薄壳，不属于任何共享包）。本页所有"加载耗时"都是页面里的 `setTimeout`，无后端；脚本开头有一整套计时器登记与卸载清理（`:38-66`），离开页面时连全屏遮罩都会显式 `destroy()`（`:60-66`）。
+`http://localhost:6080/#/components/loading` —— 源码 `apps/web/src/views/components/loading/index.vue`（1432 行，**12 张小节**；页面自己不带私有壳，示例件全在共享包里：骨架屏 / 空状态 / 错误边界 / 状态标签 / `Loading` / `useLoading` 取自 `@antdv/common-ui`（`:6-17`），`Spinner` 与 `Skeleton` 取自 `@antdv/shadcn-ui`（`:19-38`），`PageLoading` 取自 `@antdv/layouts`（`:41`））。本页所有"加载耗时"都是页面里的 `setTimeout`，无后端；脚本开头有一整套计时器登记与卸载清理（`:38-66`），离开页面时连全屏遮罩都会显式 `destroy()`（`:60-66`）。
 
 | 小节 | 点什么 / 看什么 |
 | --- | --- |
@@ -315,8 +315,8 @@ const hookLoading = useLoading({
 | Spin 加载器 `:741-844` | 纯 antdv-next `Spin` 的三种 style（circle/dot/grid）与 tip |
 | Skeleton 骨架屏 `:846-907` | 纯 antdv-next `Skeleton` |
 | Loading 组件（项目封装）`:909-961` | 尺寸 `small/default/large` × 主题 `light/dark`，点「触发 Loading」看容器内遮罩；`tip="组件式加载中..."` 与那行 `description` 纠错注释就在 `:951-958` |
-| PageLoading 与延迟遮罩 `:963-1012` | 左：`PageLoading` 覆盖容器（它读 app store 的 `resolvedTheme` 来定明暗，`apps/web/src/components/common/Loading/PageLoading.vue:6`、`:22-24` —— 这就是"需要 store 的薄壳留在应用里"的标准例子）；右：「快请求 150ms」不闪遮罩，「慢请求 1800ms」闪 |
-| v-loading 指令 `:1014-1058` | 三块：默认浅色（`v-loading="directiveLoading"`）、深色 + 大尺寸 + `loading-tip` 属性、`v-loading.fullscreen` 整页遮罩；指令在 `apps/web/src/main.ts:113` 注册（实现在 `packages/core/ui-kit/common-ui/src/components/loading/directive.ts`） |
+| PageLoading 与延迟遮罩 `:1159-1221` | 左：`PageLoading` 覆盖容器 —— 它已经不算"应用侧薄壳"了，外壳搬进 `@antdv/layouts`（示例页 `:41` 就是 `import { PageLoading } from '@antdv/layouts'`），组件体读 `@antdv/stores` 的 `resolvedTheme` 来定明暗（`packages/layouts/src/basic/content/page-loading.vue:6`、`:23-25`）；右：「快请求 150ms」不闪遮罩，「慢请求 1800ms」闪 |
+| v-loading 指令 `:1014-1058` | 三块：默认浅色（`v-loading="directiveLoading"`）、深色 + 大尺寸 + `loading-tip` 属性、`v-loading.fullscreen` 整页遮罩；指令在 `apps/web/src/main.ts:132` 注册（实现在 `packages/core/ui-kit/common-ui/src/components/loading/directive.ts`） |
 | useLoading Hook `:1060-1103` | 「触发 useLoading」→ 容器内遮罩 2.5s；下面还贴了 `target / body / tip` 的用法片段 |
 | 按钮加载态 `:1105-1149` | antdv-next `Button` 自带 `loading`，与本项目无关 |
 | 全局加载遮罩 `:1151-1185` | 「模拟 API 请求 (全屏遮罩)」→ `createLoading` 起全屏，1.5s 时 `setTip('即将完成...')`，3s 时 `close()`（`:400-415`） |
@@ -345,7 +345,7 @@ const basicItems = Array.from({ length: 30 }, (_, i) => ({/* ... */}));
 
 | 包 | 内容 | 边界（写在 description 里） | 导出 |
 | --- | --- | --- | --- |
-| `@antdv/icons`（`packages/icons`） | `IconPicker` / `IconifyIcon` / `SvgIcon` | 只管图标：加载遮罩归 `@antdv/common-ui`，滚动条归 `@antdv/common-ui` | `.:src/index.ts` + `./icon` 子路径 + `createIconInstaller()`（`:13-31`） |
+| `@antdv/icons`（`packages/core/base/icons`） | `IconPicker` / `IconifyIcon` / `SvgIcon` | 只管图标：加载遮罩归 `@antdv/common-ui`，滚动条归 `@antdv/common-ui` | `.:src/index.ts` + `./icon` 子路径 + `createIconInstaller()`（`:13-31`） |
 | `@antdv/common-ui`（`packages/core/ui-kit/common-ui/src/components/loading`） | `Loading` + `useLoading` + `createLoading` / `createContainerLoading` / `createFullscreenLoading` + `vLoading` | 不依赖 pinia、vue-router、业务 store 或应用配置 | 单入口 barrel（`src/index.ts:1-26`） |
 | `@antdv/common-ui`（`packages/core/ui-kit/common-ui/src/components/scrollbar`） | `Scrollbar` + `Bar` | 样式随组件走，不依赖宿主 Tailwind 配置，也不依赖 store / 应用配置 | 单入口 barrel（`src/index.ts:1-10`） |
 
@@ -353,12 +353,12 @@ const basicItems = Array.from({ length: 30 }, (_, i) => ({/* ... */}));
 
 | 约定 | 出处 |
 | --- | --- |
-| 「不依赖 pinia、vue-router、业务 store 或应用配置，需要这些的薄壳留在应用里」 | 三个 `package.json` 的 description 字段（`packages/icons/package.json:4` 等） |
+| 「不依赖 pinia、vue-router、业务 store 或应用配置」，需要这些的薄壳自己成一层 | 三个 `package.json` 的 description 字段（`packages/core/base/icons/package.json:4` 等）；"薄壳留在应用里"的口径已经变了 —— 那层壳现在是 `@antdv/layouts` 这个装配层包，应用侧只剩 `apps/web/src/layouts/index.vue` |
 | 包内组件**一律显式 import**，不靠宿主的解析器 | `IconPicker.vue:4-24`；解析器已从 `internal/vite-config/src/plugins/auto-import.ts` 撤掉 |
 | 包内**不用 auto-import 的隐式全局**：`useResponsiveMaxHeight.ts` 显式 import `toValue` / `MaybeRefOrGetter`，注释解释换工程就会 `toValue is not defined` | `packages/core/ui-kit/common-ui/src/components/scrollbar/useResponsiveMaxHeight.ts:1-12` |
 | 配置不进包：`native` 由调用方传，包不读 app 配置 | `packages/core/ui-kit/common-ui/src/components/scrollbar/Scrollbar.vue:22-41` |
 | 样式自持，不靠宿主 Tailwind | `Scrollbar.vue:316-324` |
-| 反过来，应用侧的薄壳该读 store 就读：`PageLoading` 读 `useAppStore().resolvedTheme` | `apps/web/src/components/common/Loading/PageLoading.vue:6`、`:22-24` |
+| 反过来，装配层该读 store 就读：`PageLoading` 读 `useAppStore().resolvedTheme` | `packages/layouts/src/basic/content/page-loading.vue:6`、`:23-25` |
 
 ## 相关页面
 

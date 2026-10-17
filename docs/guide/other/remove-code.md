@@ -63,9 +63,9 @@
 | `@antdv/popup-ui` | 50 | 应用侧的 `BasicModal` / `BasicDrawer` / `useModal` / `useDrawer` / `confirm` / `message` **全部来自这个包**（`apps/web/src/components/business/**` 里已经没有这套包装器） | 弹窗、抽屉、命令式确认与全局提示一起断，见[弹窗与抽屉](/components/modal-drawer) |
 | `@antdv/table-ui` | 27 | 应用侧 `BasicTable` / `useTable` / `BasicColumn` 来自它 | 列表页全都没表格 |
 | `@antdv/form-ui` | 22 | 应用侧 `BasicForm` / `useForm` / `FormSchema` 来自它 | 搜索表单与表单页一起断 |
-| `@antdv/layout-ui` | 10 | `apps/web/src/layouts/index.vue` 的区域外壳；`layouts` 只提供蓝图与状态源 | 七种布局形态的 DOM 在这一层，删了壳就没地方挂 |
+| `@antdv/layout-ui` | 3 | `@antdv/layouts` 的渲染底座（外壳、五个区域、尺寸契约与文案注入点都在这） | 七种布局形态的 DOM 在这一层，装配层就没有可渲染的件了 |
 | `@antdv/composables` | 7 | 仅应用引用 | 相对可删，但 echarts/sse/websocket 是三个子入口 |
-| `@antdv/layouts` | 7 | 没有其他包 import 它；应用侧 `src/layouts/index.vue` 的外壳来自它 | 布局与菜单/面包屑/标签页一起没 |
+| `@antdv/layouts` | 6 | 没有其他包 import 它；应用侧薄壳 `apps/web/src/layouts/index.vue` 的 `BasicLayout` / `LayoutWidgetBar` / `LayoutUserDropdown` 来自它 | 布局外壳、顶栏小部件与菜单/面包屑/标签页一起没 |
 | `@antdv/preferences` | 5 | 没有其他包 import 它；`apps/web/src/settings/index.ts` 是它的适配层 | 主题链路断，见[主题与偏好设置](/guide/in-depth/theme) |
 | `@antdv/tabs-ui` | 5 | 应用侧 `useTabs` 与布局壳 | 标签栏、右键菜单、放大收起一起没 |
 | `@antdv/menu-ui` | 2 | 布局壳内的菜单树 | 侧栏/图标栏的菜单渲染断 |

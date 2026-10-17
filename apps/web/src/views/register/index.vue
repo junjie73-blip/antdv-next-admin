@@ -1,10 +1,25 @@
 <script setup lang="ts">
+import type {
+  AuthColorPreset,
+  AuthFeatureItem,
+  AuthSocialItem,
+} from '@antdv/common-ui';
 import type { Rule } from '@antdv/form-ui';
 
 import { computed, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
+import {
+  AuthColorPresets,
+  AuthFormPanel,
+  AuthPageLayout,
+  AuthSocialLogin,
+} from '@antdv/common-ui';
 import { runRule } from '@antdv/form-ui';
+import {
+  LayoutWidgetColorToggle,
+  LayoutWidgetLanguageToggle,
+} from '@antdv/layouts';
 import { message } from '@antdv/popup-ui';
 import {
   Button as AButton,
@@ -12,13 +27,42 @@ import {
   Input as AInput,
   Label,
 } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/utils/cn';
+import { THEME_PRESETS } from '@antdv/shared/constants';
+import { useAppStore } from '@antdv/stores';
 import { Icon } from '@iconify/vue';
+import { useLocale } from '~/composables/web/useLocale';
+import logoUrl from '~/assets/images/logo.png';
 
 const router = useRouter();
+const appStore = useAppStore();
+const { t } = useLocale();
 
+const appTitle = import.meta.env.VITE_APP_TITLE || 'Antdv Admin';
+
+/* ============================================================
+ * 右上角工具条：与登录页同一套外壳
+ * ============================================================ */
+const colorPresets: AuthColorPreset[] = THEME_PRESETS.map((preset) => ({
+  color: preset.color,
+  key: preset.key,
+}));
+const currentColor = computed(() => appStore.primaryColor);
+
+function pickColor(preset: AuthColorPreset) {
+  appStore.updateSetting({ primaryColor: preset.color });
+}
+
+/** 品牌栏底部的三条产品特性，与登录页同一份文案 */
+const features = computed<AuthFeatureItem[]>(() => [
+  { icon: 'carbon:flash', label: t('auth.pointPerformance') },
+  { icon: 'carbon:color-palette', label: t('auth.pointDesign') },
+  { icon: 'carbon:security', label: t('auth.pointSecurity') },
+]);
+
+/* ============================================================
+ * 表单
+ * ============================================================ */
 const loading = ref(false);
-const countdown = ref(0);
 const passwordVisible = ref(false);
 const confirmPasswordVisible = ref(false);
 
@@ -26,103 +70,67 @@ const confirmPasswordVisible = ref(false);
 const errors = reactive<Record<string, string>>({});
 
 const formState = reactive({
-  username: '',
+  agreement: false,
+  confirmPassword: '',
   email: '',
   password: '',
-  confirmPassword: '',
-  code: '',
-  agreement: false,
+  username: '',
 });
 
-const containerClassName = computed(() =>
-  cn(
-    'flex min-h-screen',
-    'bg-linear-to-br from-stone-100 via-slate-50 to-gray-50',
-  ),
-);
-
-const leftPanelClassName = computed(() =>
-  cn('hidden lg:flex lg:w-1/2 xl:w-3/5', 'relative overflow-hidden'),
-);
-
-const leftGlassClassName = computed(() =>
-  cn(
-    'absolute inset-0',
-    'bg-linear-to-br from-white/60 via-slate-100/40 to-gray-100/50',
-    'backdrop-blur-xl',
-  ),
-);
-
-const rightPanelClassName = computed(() =>
-  cn(
-    'w-full lg:w-1/2 xl:w-2/5',
-    'flex items-center justify-center',
-    'p-8 lg:p-12',
-    'bg-linear-to-br from-white/80 to-slate-50/60',
-  ),
-);
-
-const glassCardClassName = computed(() =>
-  cn(
-    'w-full max-w-md',
-    'bg-white/70 backdrop-blur-2xl',
-    'border border-white/80',
-    'rounded-2xl shadow-xl shadow-slate-900/5',
-    'p-8 lg:p-10',
-  ),
-);
-
-const inputClassName = computed(() =>
-  cn(
-    'h-11 rounded-lg border-slate-200 bg-white/80',
-    'text-stone-700 placeholder:text-stone-400',
-    'hover:border-slate-400',
-    'focus-visible:border-(--app-primary)',
-    'focus-visible:shadow-[0_0_0_2px_color-mix(in_srgb,var(--app-primary)_20%,transparent)]',
-  ),
-);
-
-const rules: Record<string, Rule[]> = {
-  username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, max: 20, message: '用户名长度为3-20个字符', trigger: 'blur' },
+const rules = computed<Record<string, Rule[]>>(() => ({
+  confirmPassword: [
     {
-      pattern: /^\w+$/,
-      message: '用户名只能包含字母、数字和下划线',
+      message: t('register.confirmPasswordPlaceholder'),
+      required: true,
       trigger: 'blur',
     },
-  ],
-  email: [
-    { required: true, message: '请输入邮箱', trigger: 'blur' },
-    { type: 'email', message: '邮箱格式不正确', trigger: 'blur' },
-  ],
-  password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码至少6位', trigger: 'blur' },
-  ],
-  confirmPassword: [
-    { required: true, message: '请确认密码', trigger: 'blur' },
     {
-      validator: (_rule, value) => {
+      trigger: 'blur',
+      validator: (_rule: unknown, value: string) => {
         if (value && value !== formState.password) {
-          return Promise.reject(new Error('两次密码输入不一致'));
+          return Promise.reject(new Error(t('register.confirmPasswordSame')));
         }
         return Promise.resolve();
       },
+    },
+  ],
+  email: [
+    { message: t('register.emailPlaceholder'), required: true, trigger: 'blur' },
+    {
+      message: t('register.emailInvalid'),
+      pattern: /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/u,
       trigger: 'blur',
     },
   ],
-  code: [
-    { required: true, message: '请输入验证码', trigger: 'blur' },
-    { len: 6, message: '验证码为6位', trigger: 'blur' },
+  password: [
+    {
+      message: t('register.passwordPlaceholder'),
+      required: true,
+      trigger: 'blur',
+    },
+    { message: t('login.passwordMin'), min: 6, trigger: 'blur' },
   ],
-};
+  username: [
+    {
+      message: t('register.usernamePlaceholder'),
+      required: true,
+      trigger: 'blur',
+    },
+    {
+      max: 20,
+      message: t('register.usernameLength'),
+      min: 3,
+      trigger: 'blur',
+    },
+    {
+      message: t('register.usernamePattern'),
+      pattern: /^\w+$/u,
+      trigger: 'blur',
+    },
+  ],
+}));
 
-/**
- * 页面上真实渲染出来的字段，顺序与 DOM 一致。
- * `rules` 里还留着 `code`（手机验证码那版布局的遗留），但它没有对应的表单项，
- * 旧版 antd Form 只校验挂载过的 FormItem，所以这里同样不参与校验。
- */
+/** 页面上真实渲染出来的字段，顺序与 DOM 一致 */
 const fieldNames = ['username', 'email', 'password', 'confirmPassword'];
 
 /**
@@ -134,7 +142,7 @@ async function validateNames(names?: string[]) {
   const targets = names ?? fieldNames;
   let valid = true;
   for (const name of targets) {
-    const fieldRules = rules[name] ?? [];
+    const fieldRules = rules.value[name] ?? [];
     const value = (formState as Record<string, any>)[name];
     let errorMsg = '';
     for (const rule of fieldRules) {
@@ -162,310 +170,146 @@ async function validate(names?: string[]) {
 async function handleRegister() {
   try {
     await validate();
+    if (!formState.agreement) {
+      errors.agreement = t('register.agreementRequired');
+      throw new Error(t('register.agreementRequired'));
+    }
+    errors.agreement = '';
     loading.value = true;
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    message.success('注册成功，请登录');
+    message.success(t('register.success'));
     router.push('/login');
   } catch {
-    message.error('注册失败，请检查输入');
+    message.error(t('login.checkInput'));
   } finally {
     loading.value = false;
   }
 }
 
-function handleBackToLogin() {
-  router.push('/login');
-}
+/* ============================================================
+ * 底部：第三方入口与登录页保持一致的版式
+ * ============================================================ */
+const socialItems: AuthSocialItem[] = [
+  { icon: 'mdi:github', label: 'GitHub', value: 'github' },
+  { icon: 'mdi:wechat', label: 'WeChat', value: 'wechat' },
+  { icon: 'mdi:qq-chat', label: 'QQ', value: 'qq' },
+  { icon: 'mdi:dingtalk', label: 'DingTalk', value: 'dingtalk' },
+];
 
-function _handleSendCode() {
-  if (
-    !formState.email ||
-    !/^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/.test(formState.email)
-  ) {
-    message.error('请输入正确的邮箱');
-    return;
-  }
-  countdown.value = 60;
-  const timer = setInterval(() => {
-    countdown.value--;
-    if (countdown.value <= 0) {
-      clearInterval(timer);
-    }
-  }, 1000);
-  message.success('验证码已发送');
+function handleSocial(item: AuthSocialItem) {
+  message.info(t('login.socialUnreleased', { name: item.label }));
 }
 </script>
 
 <template>
-  <div :class="containerClassName">
-    <!-- 左侧面板 -->
-    <div :class="leftPanelClassName">
-      <!-- 玻璃背景 -->
-      <div :class="leftGlassClassName"></div>
+  <AuthPageLayout
+    :app-logo="logoUrl"
+    :app-name="appTitle"
+    :copyright="`Antdv Admin ${new Date().getFullYear()}`"
+    :features="features"
+    :page-description="t('auth.sloganDesc')"
+    :page-title="t('auth.sloganTitle')"
+  >
+    <template #toolbar>
+      <AuthColorPresets
+        :current="currentColor"
+        :label="t('auth.themeColor')"
+        :presets="colorPresets"
+        @select="pickColor"
+      />
+      <LayoutWidgetColorToggle />
+      <LayoutWidgetLanguageToggle />
+    </template>
 
-      <!-- 装饰性背景 -->
-      <div class="absolute inset-0">
-        <div
-          class="absolute top-1/4 right-1/4 h-[500px] w-[500px] rounded-full blur-[100px]"
-          style="
-            background: color-mix(
-              in srgb,
-              var(--app-primary) 15%,
-              transparent
-            );
-          "
-        ></div>
-        <div
-          class="absolute bottom-1/4 left-1/4 h-[400px] w-[400px] rounded-full blur-[80px]"
-          style="
-            background: color-mix(
-              in srgb,
-              var(--app-primary) 10%,
-              transparent
-            );
-          "
-        ></div>
-        <div
-          class="absolute top-1/2 right-1/3 h-[300px] w-[300px] rounded-full blur-[60px]"
-          style="
-            background: color-mix(
-              in srgb,
-              var(--app-primary) 8%,
-              transparent
-            );
-          "
-        ></div>
-      </div>
-
-      <!-- 网格背景 -->
-      <div
-        class="absolute inset-0 bg-[linear-gradient(rgba(100,100,100,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(100,100,100,0.03)_1px,transparent_1px)] bg-[size:48px_48px]"
-      ></div>
-
-      <!-- 内容 -->
-      <div class="relative z-10 flex flex-col justify-center px-12 xl:px-20">
-        <!-- Logo -->
-        <div class="mb-12">
-          <div
-            class="inline-flex items-center gap-3 rounded-xl border border-white/80 bg-white/60 px-5 py-2.5 shadow-lg shadow-slate-900/5 backdrop-blur-md"
-          >
-            <div
-              class="flex h-9 w-9 items-center justify-center rounded-lg shadow-md"
-              style="
-                background: var(--app-primary);
-                box-shadow: 0 4px 12px
-                  color-mix(in srgb, var(--app-primary) 30%, transparent);
-              "
-            >
-              <svg
-                class="h-5 w-5 text-white"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-                />
-              </svg>
-            </div>
-            <span class="text-xl font-semibold text-stone-800">Antdv Next</span>
-          </div>
-        </div>
-
-        <!-- 标题 -->
-        <h1
-          class="mb-6 text-4xl leading-tight font-bold text-stone-800 xl:text-5xl"
-        >
-          开启您的<br />
-          <span style="color: var(--app-primary)"> 高效之旅 </span>
-        </h1>
-
-        <p class="mb-12 max-w-lg text-lg leading-relaxed text-stone-600">
-          注册账户，体验现代化的管理系统解决方案，让工作更高效、更智能。
-        </p>
-
-        <!-- 特性列表 -->
-        <div class="space-y-5">
-          <div class="group flex items-center gap-4">
-            <div
-              class="flex h-11 w-11 items-center justify-center rounded-lg border border-white/80 bg-white/60 shadow-md shadow-slate-900/5 backdrop-blur-md transition-all duration-300"
-            >
-              <svg
-                class="h-5 w-5"
-                style="color: var(--app-primary)"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="8.5" cy="7" r="4" />
-                <line x1="20" y1="8" x2="20" y2="14" />
-                <line x1="23" y1="11" x2="17" y2="11" />
-              </svg>
-            </div>
-            <div>
-              <h3 class="font-medium text-stone-800">快速注册</h3>
-              <p class="text-sm text-stone-500">简单几步即可完成注册</p>
-            </div>
-          </div>
-
-          <div class="group flex items-center gap-4">
-            <div
-              class="flex h-11 w-11 items-center justify-center rounded-lg border border-white/80 bg-white/60 shadow-md shadow-slate-900/5 backdrop-blur-md transition-all duration-300"
-            >
-              <svg
-                class="h-5 w-5"
-                style="color: var(--app-primary)"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
-            </div>
-            <div>
-              <h3 class="font-medium text-stone-800">安全加密</h3>
-              <p class="text-sm text-stone-500">数据安全有保障</p>
-            </div>
-          </div>
-
-          <div class="group flex items-center gap-4">
-            <div
-              class="flex h-11 w-11 items-center justify-center rounded-lg border border-white/80 bg-white/60 shadow-md shadow-slate-900/5 backdrop-blur-md transition-all duration-300"
-            >
-              <svg
-                class="h-5 w-5"
-                style="color: var(--app-primary)"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                <polyline points="22 4 12 14.01 9 11.01" />
-              </svg>
-            </div>
-            <div>
-              <h3 class="font-medium text-stone-800">免费试用</h3>
-              <p class="text-sm text-stone-500">立即体验所有功能</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 右侧注册面板 -->
-    <div :class="rightPanelClassName">
-      <div :class="glassCardClassName">
-        <!-- 标题 -->
-        <div class="mb-8 text-center">
-          <h2 class="mb-2 text-2xl font-semibold text-stone-800">创建账户</h2>
-          <p class="text-stone-500">填写以下信息完成注册</p>
-        </div>
-
-        <!-- 表单 -->
-        <form class="space-y-6" @submit.prevent="handleRegister">
+    <AuthFormPanel
+      :description="t('register.welcomeDesc')"
+      :title="t('register.title')"
+    >
+      <form @submit.prevent="handleRegister">
+        <div class="space-y-4" data-auth="fields">
           <div>
-            <div class="relative">
-              <Icon
-                icon="carbon:user"
-                class="text-stone-400 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-              />
-              <AInput
-                v-model="formState.username"
-                type="text"
-                placeholder="请输入用户名"
-                :class="inputClassName"
-                class="pl-9"
-                @blur="validateNames(['username'])"
-              />
-            </div>
-            <p v-if="errors.username" class="mt-1 text-xs text-red-500">
+            <AInput
+              v-model="formState.username"
+              :placeholder="t('register.usernamePlaceholder')"
+              class="h-10"
+              data-auth="username"
+              type="text"
+              @blur="validateNames(['username'])"
+            />
+            <p
+              v-if="errors.username"
+              class="text-destructive mt-1.5 text-xs"
+              data-auth="error-username"
+            >
               {{ errors.username }}
             </p>
           </div>
 
           <div>
-            <div class="relative">
-              <Icon
-                icon="carbon:email"
-                class="text-stone-400 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-              />
-              <AInput
-                v-model="formState.email"
-                type="text"
-                placeholder="请输入邮箱"
-                :class="inputClassName"
-                class="pl-9"
-                @blur="validateNames(['email'])"
-              />
-            </div>
-            <p v-if="errors.email" class="mt-1 text-xs text-red-500">
+            <AInput
+              v-model="formState.email"
+              :placeholder="t('register.emailPlaceholder')"
+              class="h-10"
+              data-auth="email"
+              type="text"
+              @blur="validateNames(['email'])"
+            />
+            <p
+              v-if="errors.email"
+              class="text-destructive mt-1.5 text-xs"
+              data-auth="error-email"
+            >
               {{ errors.email }}
             </p>
           </div>
 
           <div>
             <div class="relative">
-              <Icon
-                icon="carbon:locked"
-                class="text-stone-400 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-              />
               <AInput
                 v-model="formState.password"
+                :placeholder="t('register.passwordPlaceholder')"
                 :type="passwordVisible ? 'text' : 'password'"
-                placeholder="请输入密码"
-                :class="inputClassName"
-                class="pr-10 pl-9"
+                class="h-10 pr-10"
+                data-auth="password"
                 @blur="validateNames(['password'])"
               />
-              <AButton
+              <button
+                :aria-label="passwordVisible ? t('login.hidePassword') : t('login.showPassword')"
+                class="text-foreground/50 hover:text-foreground absolute top-1/2 right-2 flex size-7 -translate-y-1/2 items-center justify-center"
                 type="button"
-                variant="ghost"
-                size="icon-sm"
-                :aria-label="passwordVisible ? '隐藏密码' : '显示密码'"
-                class="text-stone-400 absolute top-1/2 right-1 -translate-y-1/2"
                 @click="passwordVisible = !passwordVisible"
               >
                 <Icon
                   :icon="passwordVisible ? 'carbon:view-off' : 'carbon:view'"
                   class="size-4"
                 />
-              </AButton>
+              </button>
             </div>
-            <p v-if="errors.password" class="mt-1 text-xs text-red-500">
+            <p
+              v-if="errors.password"
+              class="text-destructive mt-1.5 text-xs"
+              data-auth="error-password"
+            >
               {{ errors.password }}
             </p>
           </div>
 
           <div>
             <div class="relative">
-              <Icon
-                icon="carbon:locked"
-                class="text-stone-400 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-              />
               <AInput
                 v-model="formState.confirmPassword"
+                :placeholder="t('register.confirmPasswordPlaceholder')"
                 :type="confirmPasswordVisible ? 'text' : 'password'"
-                placeholder="请确认密码"
-                :class="inputClassName"
-                class="pr-10 pl-9"
+                class="h-10 pr-10"
+                data-auth="confirm-password"
                 @blur="validateNames(['confirmPassword'])"
               />
-              <AButton
+              <button
+                :aria-label="confirmPasswordVisible ? t('login.hidePassword') : t('login.showPassword')"
+                class="text-foreground/50 hover:text-foreground absolute top-1/2 right-2 flex size-7 -translate-y-1/2 items-center justify-center"
                 type="button"
-                variant="ghost"
-                size="icon-sm"
-                :aria-label="
-                  confirmPasswordVisible ? '隐藏密码' : '显示密码'
-                "
-                class="text-stone-400 absolute top-1/2 right-1 -translate-y-1/2"
                 @click="confirmPasswordVisible = !confirmPasswordVisible"
               >
                 <Icon
@@ -474,83 +318,69 @@ function _handleSendCode() {
                   "
                   class="size-4"
                 />
-              </AButton>
+              </button>
             </div>
-            <p v-if="errors.confirmPassword" class="mt-1 text-xs text-red-500">
+            <p
+              v-if="errors.confirmPassword"
+              class="text-destructive mt-1.5 text-xs"
+              data-auth="error-confirm-password"
+            >
               {{ errors.confirmPassword }}
             </p>
           </div>
 
           <div>
-            <Label
-              class="text-stone-500 cursor-pointer items-start gap-2 font-normal"
-            >
+            <Label class="cursor-pointer items-start gap-2 font-normal">
               <ACheckbox
                 class="mt-0.5"
                 :model-value="formState.agreement"
+                data-auth="agreement"
                 @update:model-value="
                   (v: any) => (formState.agreement = v === true)
                 "
               />
-              <span class="flex flex-wrap items-center gap-1">
-                我已阅读并同意
-                <AButton
-                  type="button"
-                  variant="link"
-                  size="sm"
-                  class="h-auto p-0 text-stone-400 hover:text-stone-600"
-                >
-                  《用户协议》
-                </AButton>
-                和
-                <AButton
-                  type="button"
-                  variant="link"
-                  size="sm"
-                  class="h-auto p-0 text-stone-400 hover:text-stone-600"
-                >
-                  《隐私政策》
-                </AButton>
-              </span>
+              <span class="text-sm">{{ t('register.agreement') }}</span>
             </Label>
-          </div>
-
-          <div>
-            <AButton
-              type="submit"
-              :disabled="loading"
-              class="w-full h-11 border-0 shadow-lg"
+            <p
+              v-if="errors.agreement"
+              class="text-destructive mt-1.5 text-xs"
+              data-auth="error-agreement"
             >
-              注册
-            </AButton>
+              {{ errors.agreement }}
+            </p>
           </div>
-        </form>
+        </div>
 
-        <!-- 登录链接 -->
-        <div class="text-center">
-          <span class="text-stone-500">已有账户？</span>
+        <div class="mb-6 mt-6">
           <AButton
-            type="button"
-            variant="link"
-            class="ml-1 h-auto p-0"
-            style="color: var(--app-primary)"
-            @click="handleBackToLogin"
+            :disabled="loading"
+            class="w-full"
+            data-auth="submit"
+            type="submit"
           >
-            立即登录
+            {{ t('register.submit') }}
           </AButton>
         </div>
-      </div>
-    </div>
-  </div>
-</template>
+      </form>
 
-<style scoped>
-[class*='group']:hover .w-11 {
-  background-color: color-mix(in srgb, var(--app-primary) 5%, white);
-  border-color: color-mix(
-    in srgb,
-    var(--app-primary) 20%,
-    rgb(203 213 225)
-  );
-}
-</style>
+      <AuthSocialLogin
+        :divider-text="t('login.otherLoginMethods')"
+        :items="socialItems"
+        @select="handleSocial"
+      />
+
+      <div class="mt-3 text-center text-sm">
+        <span class="text-muted-foreground">{{ t('register.hasAccount') }}</span>
+        <AButton
+          class="h-auto px-0 text-sm"
+          data-auth="to-login"
+          type="button"
+          variant="link"
+          @click="router.push('/login')"
+        >
+          {{ t('register.goLogin') }}
+        </AButton>
+      </div>
+    </AuthFormPanel>
+  </AuthPageLayout>
+</template>

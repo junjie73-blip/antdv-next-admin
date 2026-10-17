@@ -1,5 +1,5 @@
 /*
- * 亮色主题 token：shadcn-vue 的语义色板 + 四条尺度变量，本包不依赖任何组件库。
+ * 亮色主题 token：shadcn-vue 的语义色板 + 状态色 + 三条尺度变量，本包不依赖任何组件库。
  *
  * 改这里之前先读完三条规则：
  *
@@ -15,10 +15,11 @@
  * 3. **每个 `[data-theme]` 块都是完整名单**，27 条语义色一条不少。
  *    少一条不是"退回默认色"，而是它继续吃 `:root` 的亮色值 —— 暗色预设上就会
  *    浮出一块白底。名单与 `dark.css` 逐条对齐，由 `__tests__/design.test.ts` 钉住。
+ *    状态色（success/warning/info）与尺度变量按设计不参与预设，只写在基础块里。
  *
- * 尺度变量（圆角/字号/侧栏宽/滤镜）由 `@antdv/utils` 的 `applyPreferencesToDom`
- * 按偏好写在 html 内联样式上；这里给的是首屏兜底值 —— 只活在内联样式里时，
- * 偏好落盘前的一帧这些值取不到，读它们的样式会抖一下。
+ * 尺度变量由 `@antdv/preferences` 的 `applyPreferencesToDom` 按偏好写在 html 内联样式上；
+ * 这里给的是首屏兜底值 —— 只活在内联样式里时，偏好落盘前的一帧这些值取不到，
+ * 读它们的样式会抖一下。
  */
 
 :root,
@@ -54,10 +55,23 @@
   --app-sidebar-border: var(--app-border);
   --app-sidebar-ring: var(--app-primary);
 
-  /* 尺度 token：名单与 dark 一致，取值各自独立 */
-  --app-border-radius: 4px;
-  --app-font-size: 14px;
-  --app-sidebar-width: 210px;
+  /*
+   * 状态色：不随预设主题走（`success` 在樱花粉预设里也必须是绿的），
+   * 所以只写在基础块，靠层叠从任何 `[data-theme]` 预设里透出来。
+   * `info` 派生自主色，换主题时提示气泡跟着换色温。
+   */
+  --app-success: #52c41a;
+  --app-warning: #faad14;
+  --app-info: var(--app-primary);
+
+  /*
+   * 尺度 token：名单与 dark 一致，取值各自独立。
+   * `--app-border-radius` 是圆角刻度（`--radius-*` 工具类的基准档，档位 1 = 8px）；
+   * `--app-font-size` 是**相对根字号**（100% = 浏览器 16px = 正文 14px 那一档），
+   * 写成倍率而不是 px，rem 体系的间距与行高才会一起缩放。
+   */
+  --app-border-radius: 8px;
+  --app-font-size: 100%;
   --app-filter: none;
 }
 

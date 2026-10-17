@@ -71,7 +71,7 @@ How to run it: `pnpm test:unit` (whole repository through turbo) or `pnpm --filt
 
 Two runtime sources, neither hardcoded inside a component:
 
-- **Menu data**: the `icon` field of each entry returned by `GET /menus` (mock seed in `apps/backend-mock/server/api/menus.get.ts`), normalized into `MenuConfig.icon`. The rail consumes it with a fallback — `apps/web/src/layouts/components/LayoutNavRail.vue:111` uses `menu.icon || 'carbon:category'`.
+- **Menu data**: the `icon` field of each entry returned by `GET /menus` (mock seed in `apps/backend-mock/server/api/menus.get.ts`), normalized into `MenuConfig.icon`. The rail consumes it with a fallback — `packages/core/ui-kit/layout-ui/src/components/layout-sidebar/nav-rail.vue:90` uses `menu.icon || 'carbon:category'`.
 - **Route `meta.icon`**: written on conventional or static routes, typed in `packages/types/src/app-router.ts`; tabs and the breadcrumb read it too (`packages/layouts/src/breadcrumb.ts`).
 
 The breadcrumb's handling of the empty value is worth copying: the comment at `LayoutBreadcrumb.vue:81` explains why it uses `''` instead of `undefined` — `undefined` makes `<Icon :icon>` a type error, while `''` both fails the `v-if` and keeps the prop a `string`.

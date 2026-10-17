@@ -3,8 +3,8 @@ import { nextTick } from 'vue';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import LayoutShell from '../src/components/LayoutShell.vue';
-import { configureLayout } from '../src/config';
+import LayoutShell from '../src/layout.vue';
+import { configureLayout } from '../src/layout';
 import { menuTree, regions } from './fixtures';
 
 const mounted: Array<{ unmount: () => void }> = [];
@@ -26,7 +26,13 @@ function mountShell(
 const siderProps = { menus: menuTree, title: '控制台' };
 const railProps = { menus: menuTree };
 const navProps = { menus: menuTree };
-const breadcrumbProps = { items: [{ path: '/system', title: '系统管理' }] };
+/**
+ * 面包屑组件住在 `@antdv/layouts`，外壳只给出落脚点。
+ * 这里用一段带 `data-layout-region` 的替身，验证的是"壳把插槽放在哪一行、
+ * 传的是哪一档 variant"，面包屑自己的显隐与链接由装配层的用例覆盖。
+ */
+const breadcrumbSlot =
+  '<div data-layout-region="breadcrumb" :data-variant="variant" :class="variant === \'content\' ? \'h-9\' : \'\'"></div>';
 
 afterEach(() => {
   for (const wrapper of mounted.splice(0)) wrapper.unmount();
@@ -37,18 +43,24 @@ afterEach(() => {
 describe('LayoutShell - 顶栏住在哪一行', () => {
   it('headerLead=logo 时顶栏横贯全宽，面包屑退到内容列第一行', async () => {
     const wrapper = mountShell(
-      regions({ headerLead: 'logo', headerVisible: true, headerNavVisible: true }),
-      { breadcrumb: breadcrumbProps, nav: navProps, title: '控制台' },
+      regions({
+        headerLead: 'logo',
+        headerVisible: true,
+        headerNavVisible: true,
+      }),
+      { nav: navProps, title: '控制台' },
+      { breadcrumb: breadcrumbSlot },
     );
     await nextTick();
-    expect(
-      wrapper.find('[data-layout-shell="header-full"]').exists(),
-    ).toBe(true);
-    expect(
-      wrapper.find('[data-layout-shell="header-column"]').exists(),
-    ).toBe(false);
-    // 独立成行的那一档：面包屑带 h-9，而不是藏在顶栏里
+    expect(wrapper.find('[data-layout-shell="header-full"]').exists()).toBe(
+      true,
+    );
+    expect(wrapper.find('[data-layout-shell="header-column"]').exists()).toBe(
+      false,
+    );
+    // 独立成行的那一档：外壳把 variant=content 交给插槽
     const row = wrapper.find('[data-layout-region="breadcrumb"]');
+    expect(row.attributes('data-variant')).toBe('content');
     expect(row.classes()).toContain('h-9');
   });
 
@@ -58,25 +70,31 @@ describe('LayoutShell - 顶栏住在哪一行', () => {
         headerVisible: true,
         sidebarVisible: true,
       }),
-      { breadcrumb: breadcrumbProps, sider: siderProps },
+      { sider: siderProps },
+      { breadcrumb: breadcrumbSlot },
     );
     await nextTick();
-    expect(
-      wrapper.find('[data-layout-shell="header-column"]').exists(),
-    ).toBe(true);
+    expect(wrapper.find('[data-layout-shell="header-column"]').exists()).toBe(
+      true,
+    );
     const header = wrapper.find('[data-layout-shell="header-column"]');
+    expect(header.find('[data-layout-region="breadcrumb"]').exists()).toBe(
+      true,
+    );
     expect(
-      header.find('[data-layout-region="breadcrumb"]').exists(),
-    ).toBe(true);
+      header
+        .find('[data-layout-region="breadcrumb"]')
+        .attributes('data-variant'),
+    ).toBe('header');
     // 不再另起一行
     expect(header.classes()).not.toContain('h-9');
   });
 
   it('headerVisible 关掉时两处顶栏都不出现', () => {
     expect(
-      mountShell(regions(), { breadcrumb: breadcrumbProps }).find(
-        '[data-layout-region="header"]',
-      ).exists(),
+      mountShell(regions(), {}, { breadcrumb: breadcrumbSlot })
+        .find('[data-layout-region="header"]')
+        .exists(),
     ).toBe(false);
   });
 
@@ -103,7 +121,7 @@ describe('LayoutShell - 顶栏住在哪一行', () => {
     expect(wrapper.find('[data-layout-region="sidebar"]').exists()).toBe(true);
   });
 
-  it('没有面包屑配置时不渲染面包屑行，Logo 形态的顶栏照常', () => {
+  it('没有面包屑插槽时不渲染面包屑行，Logo 形态的顶栏照常', () => {
     const wrapper = mountShell(
       regions({ headerLead: 'logo', headerVisible: true }),
       { title: '控制台' },
@@ -140,10 +158,9 @@ describe('LayoutShell - 三列的嵌套顺序', () => {
   });
 
   it('只有图标栏时侧栏让位，内容列仍然满宽跟随', () => {
-    const wrapper = mountShell(
-      regions({ navRailVisible: true }),
-      { rail: railProps },
-    );
+    const wrapper = mountShell(regions({ navRailVisible: true }), {
+      rail: railProps,
+    });
     expect(wrapper.find('[data-layout-region="nav-rail"]').exists()).toBe(true);
     expect(wrapper.find('[data-layout-region="sidebar"]').exists()).toBe(false);
   });
@@ -152,20 +169,28 @@ describe('LayoutShell - 三列的嵌套顺序', () => {
     const wrapper = mountShell(regions({ navRailVisible: true }), {
       sider: siderProps,
     });
-    expect(wrapper.find('[data-layout-region="nav-rail"]').exists()).toBe(false);
+    expect(wrapper.find('[data-layout-region="nav-rail"]').exists()).toBe(
+      false,
+    );
   });
 });
 
 describe('LayoutShell - 常驻侧栏与浮层的互斥', () => {
   it('overlaySidebar 时常驻那一列消失，抽屉改由遮罩 + 面板承载', async () => {
     const wrapper = mountShell(
-      regions({ headerVisible: true, overlaySidebar: true, sidebarVisible: true }),
+      regions({
+        headerVisible: true,
+        overlaySidebar: true,
+        sidebarVisible: true,
+      }),
       { overlayOpen: true, sider: siderProps },
     );
     await nextTick();
     const inline = wrapper
       .findAll('[data-layout-region="sidebar"]')
-      .filter((node) => node.attributes('data-layout-sider-overlay') === 'false');
+      .filter(
+        (node) => node.attributes('data-layout-sider-overlay') === 'false',
+      );
     expect(inline).toHaveLength(0);
     expect(document.body.querySelector('[data-layout-overlay]')).not.toBeNull();
     const panel = document.body.querySelector('[data-layout-overlay-panel]');
@@ -176,17 +201,23 @@ describe('LayoutShell - 常驻侧栏与浮层的互斥', () => {
 
   it('浮层形态下图标栏也一起让位（同一时间只有一列菜单）', () => {
     const wrapper = mountShell(
-      regions({ navRailVisible: true, overlaySidebar: true, sidebarVisible: true }),
+      regions({
+        navRailVisible: true,
+        overlaySidebar: true,
+        sidebarVisible: true,
+      }),
       { rail: railProps },
     );
-    expect(wrapper.find('[data-layout-region="nav-rail"]').exists()).toBe(false);
+    expect(wrapper.find('[data-layout-region="nav-rail"]').exists()).toBe(
+      false,
+    );
   });
 
   it('overlayOpen=false 时浮层不出现，但常驻列也不出现', () => {
-    mountShell(
-      regions({ overlaySidebar: true, sidebarVisible: true }),
-      { overlayOpen: false, sider: siderProps },
-    );
+    mountShell(regions({ overlaySidebar: true, sidebarVisible: true }), {
+      overlayOpen: false,
+      sider: siderProps,
+    });
     expect(document.body.querySelector('[data-layout-overlay]')).toBeNull();
   });
 
@@ -195,9 +226,7 @@ describe('LayoutShell - 常驻侧栏与浮层的互斥', () => {
       regions({ overlaySidebar: true, sidebarVisible: true }),
       { overlayOpen: true, sider: siderProps },
     );
-    document
-      .querySelector<HTMLElement>('[data-layout-overlay-mask]')
-      ?.click();
+    document.querySelector<HTMLElement>('[data-layout-overlay-mask]')?.click();
     await nextTick();
     expect(wrapper.emitted('update:overlayOpen')?.[0]).toEqual([false]);
   });
@@ -206,16 +235,16 @@ describe('LayoutShell - 常驻侧栏与浮层的互斥', () => {
 describe('LayoutShell - 侧栏触发按钮的位置', () => {
   it('常驻侧栏在场时顶栏不再重复一个入口（折叠条住在列底）', async () => {
     const wrapper = mountShell(
-      regions({ headerLead: 'logo', headerVisible: true, sidebarVisible: true }),
+      regions({
+        headerLead: 'logo',
+        headerVisible: true,
+        sidebarVisible: true,
+      }),
       { nav: navProps, sider: siderProps },
     );
     await nextTick();
-    expect(
-      wrapper.find('[data-layout-sidebar-trigger]').exists(),
-    ).toBe(false);
-    expect(
-      wrapper.find('[data-layout-sidebar-collapse]').exists(),
-    ).toBe(true);
+    expect(wrapper.find('[data-layout-sidebar-trigger]').exists()).toBe(false);
+    expect(wrapper.find('[data-layout-sidebar-collapse]').exists()).toBe(true);
   });
 
   it('浮层形态下入口回到顶栏，图标反映抽屉开合', async () => {
@@ -248,14 +277,16 @@ describe('LayoutShell - 侧栏触发按钮的位置', () => {
       { nav: navProps, rail: railProps },
     );
     await nextTick();
-    expect(
-      wrapper.find('[data-layout-sidebar-trigger]').exists(),
-    ).toBe(true);
+    expect(wrapper.find('[data-layout-sidebar-trigger]').exists()).toBe(true);
   });
 
   it('点顶栏入口发 toggleSidebar', async () => {
     const wrapper = mountShell(
-      regions({ headerVisible: true, overlaySidebar: true, sidebarVisible: true }),
+      regions({
+        headerVisible: true,
+        overlaySidebar: true,
+        sidebarVisible: true,
+      }),
       { sider: siderProps },
     );
     await nextTick();
@@ -315,7 +346,11 @@ describe('LayoutShell - 品牌位只出现一次', () => {
         navRailVisible: true,
         sidebarVisible: true,
       }),
-      { logo: '/logo.svg', rail: railProps, sider: { ...siderProps, showLogo: true } },
+      {
+        logo: '/logo.svg',
+        rail: railProps,
+        sider: { ...siderProps, showLogo: true },
+      },
     );
     await nextTick();
     expect(wrapper.find('[data-layout-logo="sidebar"]').exists()).toBe(true);
@@ -323,27 +358,31 @@ describe('LayoutShell - 品牌位只出现一次', () => {
 });
 
 describe('LayoutShell - 标签页、底栏与沉浸视角', () => {
-  it('tabsVisible 决定标签页插槽是否落在内容列里', () => {
+  it('tabsVisible 决定标签页插槽是否落在内容列里，并给出 tabs 区域钩子', () => {
     const on = mountShell(
       regions({ tabsVisible: true }),
       {},
       { tabs: '<div data-mark="tabs">tabs</div>' },
     );
     expect(on.find('[data-mark="tabs"]').exists()).toBe(true);
+    // 这一行的 DOM 契约与其余区域同源（此前只能靠 .tab-bar 这个内部类名定位）
+    expect(on.find('[data-layout-region="tabs"]').exists()).toBe(true);
     const off = mountShell(
       regions({ tabsVisible: false }),
       {},
       { tabs: '<div data-mark="tabs">tabs</div>' },
     );
     expect(off.find('[data-mark="tabs"]').exists()).toBe(false);
+    expect(off.find('[data-layout-region="tabs"]').exists()).toBe(false);
   });
 
   it('底栏可见性由区域开关决定', () => {
-    const withFooter = mountShell(
-      regions({ footerVisible: true }),
-      { footer: { year: 2026 } },
+    const withFooter = mountShell(regions({ footerVisible: true }), {
+      footer: { year: 2026 },
+    });
+    expect(withFooter.find('[data-layout-region="footer"]').exists()).toBe(
+      true,
     );
-    expect(withFooter.find('[data-layout-region="footer"]').exists()).toBe(true);
     expect(withFooter.text()).toContain('2026');
     expect(
       mountShell(regions()).find('[data-layout-region="footer"]').exists(),
@@ -363,7 +402,9 @@ describe('LayoutShell - 标签页、底栏与沉浸视角', () => {
     await nextTick();
     // 顶栏由壳自己按 shellHidden 拦住，图标栏/侧栏/底栏/标签页由区域开关让位
     expect(wrapper.find('[data-layout-region="header"]').exists()).toBe(false);
-    expect(wrapper.find('[data-layout-region="nav-rail"]').exists()).toBe(false);
+    expect(wrapper.find('[data-layout-region="nav-rail"]').exists()).toBe(
+      false,
+    );
     expect(wrapper.find('[data-layout-region="sidebar"]').exists()).toBe(false);
     expect(wrapper.find('[data-layout-region="footer"]').exists()).toBe(false);
     expect(wrapper.find('[data-mark="tabs"]').exists()).toBe(false);
@@ -403,9 +444,9 @@ describe('LayoutShell - 标签页、底栏与沉浸视角', () => {
   it('注入 locale 后退出入口跟着换文案', () => {
     configureLayout({ t: (key) => `tr:${key}` });
     const wrapper = mountShell(regions({ shellHidden: true }));
-    expect(
-      wrapper.find('[data-layout-exit-full]').text(),
-    ).toBe('tr:shell.exitFullContent');
+    expect(wrapper.find('[data-layout-exit-full]').text()).toBe(
+      'tr:shell.exitFullContent',
+    );
   });
 });
 
@@ -420,7 +461,9 @@ describe('LayoutShell - 事件上抛', () => {
         sidebarVisible: true,
       }),
       {
-        nav: { menus: [{ name: 'Analysis', path: '/analysis', title: '分析面板' }] },
+        nav: {
+          menus: [{ name: 'Analysis', path: '/analysis', title: '分析面板' }],
+        },
         rail: railProps,
         sider: siderProps,
       },
@@ -471,12 +514,12 @@ describe('LayoutShell - 配色与插槽的分发', () => {
       { sider: siderProps, tone: { sidebarDark: true } },
     );
     await nextTick();
-    expect(
-      wrapper.find('[data-layout-region="sidebar"]').classes(),
-    ).toContain('bg-gray-900');
-    expect(
-      wrapper.find('[data-layout-region="header"]').classes(),
-    ).toContain('bg-white');
+    expect(wrapper.find('[data-layout-region="sidebar"]').classes()).toContain(
+      'bg-gray-900',
+    );
+    expect(wrapper.find('[data-layout-region="header"]').classes()).toContain(
+      'bg-white',
+    );
   });
 
   it('内容、工具区、用户区、内容遮罩都落在该落的那一行', async () => {
@@ -499,10 +542,16 @@ describe('LayoutShell - 配色与插槽的分发', () => {
         .exists(),
     ).toBe(true);
     expect(
-      wrapper.find('[data-layout-region="header"]').find('[data-mark="tools"]').exists(),
+      wrapper
+        .find('[data-layout-region="header"]')
+        .find('[data-mark="tools"]')
+        .exists(),
     ).toBe(true);
     expect(
-      wrapper.find('[data-layout-region="header"]').find('[data-mark="user"]').exists(),
+      wrapper
+        .find('[data-layout-region="header"]')
+        .find('[data-mark="user"]')
+        .exists(),
     ).toBe(true);
   });
 });

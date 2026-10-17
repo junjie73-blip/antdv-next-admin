@@ -198,13 +198,16 @@ describe('useTabStyle —— 五种风格的类名', () => {
     expect(itemClass(true)).toContain('border-primary');
   });
 
-  it('chrome 风格要把标签贴到行底边（bar/list 一起改对齐）', () => {
+  it('chrome 风格要把标签贴到行底边，且选中页用内容底色从灰底里跳出来', () => {
     const { barClass, closeClass, itemClass, listClass } = useTabStyle(
       () => 'chrome',
     );
-    expect(barClass()).toBe('items-stretch');
+    expect(barClass()).toContain('items-stretch');
+    // 标签栏铺一层 muted 灰底，选中页换成 background 才有 Chrome 的对比
+    expect(barClass()).toContain('bg-muted/60');
     expect(listClass()).toContain('items-end');
-    expect(itemClass(true)).toContain('bg-white');
+    expect(itemClass(true)).toContain('bg-background');
+    expect(itemClass(true)).not.toContain('border-t-primary');
     expect(closeClass()).toContain('hover:text-red-500');
   });
 

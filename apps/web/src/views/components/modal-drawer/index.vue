@@ -2,8 +2,6 @@
 import { computed, ref } from 'vue';
 
 import { Alert, Card, Divider, Scrollbar, Space, Tag } from '@antdv/common-ui';
-import { cn } from '@antdv/shared/utils/cn';
-
 import {
   BasicDrawer,
   BasicModal,
@@ -19,6 +17,7 @@ import {
   RadioGroupItem,
   Textarea,
 } from '@antdv/shadcn-ui';
+import { cn } from '@antdv/shared/utils/cn';
 
 import InnerForm from './components/InnerForm.vue';
 
@@ -208,7 +207,7 @@ const [
 
 const terms = Array.from({ length: 16 }, (_, i) => ({
   id: i + 1,
-  text: `第 ${i + 1} 条：抽屉内容区由 BasicDrawer 内部包了一层 @antdv/scrollbar-ui，头部与底部按钮不参与滚动。`,
+  text: `第 ${i + 1} 条：抽屉内容区由 BasicDrawer 内部包了一层 shadcn 的 ScrollArea，头部与底部按钮不参与滚动。`,
 }));
 const innerScrollTop = ref(0);
 const reachedBottom = ref(false);
@@ -607,9 +606,11 @@ function handleDiscard() {
         </Space>
         <p class="text-sm text-gray-500 dark:text-gray-400">
           BasicDrawer 的 body 已经内置
-          <code>Scrollbar</code>（<code>root-class="h-full"</code>），抽屉打开后
-          16 条条款只在 body 内滚，标题与底部按钮固定。下面再嵌一个
-          <code>@antdv/scrollbar-ui</code> 的 <code>Scrollbar</code>，用它的
+          <code>ScrollArea</code>（shadcn
+          自绘滚动条，<code>class="h-full"</code>），抽屉打开后 16 条条款只在
+          body 内滚，标题与底部按钮固定。想自己接管滚动就传
+          <code>:body-scroll="false"</code>，内置那层让位给插槽。 下面再嵌一个
+          <code>@antdv/common-ui</code> 的 <code>Scrollbar</code>，用它的
           <code>@scroll</code>
           事件把滚动位置读成页面状态：只有滚到底才能勾选同意，
           没勾选时抽屉的确认按钮通过
@@ -661,8 +662,8 @@ function handleDiscard() {
             :key="n"
             class="mb-3 text-sm text-gray-600 dark:text-gray-400"
           >
-            附加条款 {{ n }}：滚动条样式由 @antdv/scrollbar-ui 的 Scrollbar
-            自绘， native 属性可切回浏览器默认滚动条。
+            附加条款 {{ n }}：滚动条样式由 @antdv/common-ui 的 Scrollbar 自绘，
+            native 属性可切回浏览器默认滚动条。
           </p>
         </Scrollbar>
         <label class="mt-2 flex cursor-pointer items-center gap-2">
@@ -698,8 +699,9 @@ function handleDiscard() {
           <code>closeFunc</code>（<code>: () =&gt; Promise&lt;boolean&gt;</code
           >）被 await 且返回 false 时不关闭 ——
           这是组件自带的钩子，不需要自己接按钮。 拦截后弹出的确认框用
-          <code>:z-index="1100"</code> 压在抽屉之上（抽屉默认与
-          shadcn 浮层同处 <code>z-50</code> 一档，靠弹层的挂载顺序叠放）；点「放弃修改」会先把内容改回已保存值，关闭请求自然放行。
+          <code>:z-index="1100"</code> 压在抽屉之上：抽屉与弹窗默认都落在 shadcn
+          浮层的 <code>z-50</code> 这一档，<code>zIndex</code>
+          是唯一能把它们分层的内联覆盖。点「放弃修改」会先把内容改回已保存值，关闭请求自然放行。
         </p>
         <div
           v-if="nestLog"
@@ -750,7 +752,8 @@ function handleDiscard() {
       <p class="text-gray-600 dark:text-gray-400">
         抽屉里有未保存的修改，确认要放弃吗？这个弹窗叠在抽屉之上，靠的是
         BasicModal 的
-        <code>zIndex</code> 属性（抽屉默认 1000，这里给 1100）。
+        <code>zIndex</code> 属性（弹窗与抽屉默认都落在 <code>z-50</code>
+        这一档，这里给 1100 才能压住抽屉）。
       </p>
     </BasicModal>
   </div>

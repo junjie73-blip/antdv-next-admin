@@ -208,7 +208,9 @@ test.describe('全站页面巡检', () => {
 
       // 应用级错误提示（接口 5xx / 权限不足都会以 toast 呈现，用户看得见）
       const toasts = await page
-        .locator('li[data-sonner-toast][data-type="error"], .ant-notification-notice-error')
+        .locator(
+          'li[data-sonner-toast][data-type="error"], .ant-notification-notice-error',
+        )
         .allInnerTexts()
         .catch(() => [] as string[]);
 

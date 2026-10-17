@@ -80,7 +80,9 @@ onBeforeUnmount(() => {
     <div :class="titleClassName">
       <span class="h-6 w-1.5 rounded-full bg-blue-400"></span>
       {{ title }}
-      <span class="ml-2 text-[10px] tracking-widest text-blue-300/50">SECURITY MONITOR</span>
+      <span class="ml-2 text-[10px] tracking-widest text-blue-300/50"
+        >SECURITY MONITOR</span
+      >
     </div>
 
     <!-- 中间：时间 -->

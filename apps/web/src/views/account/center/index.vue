@@ -18,7 +18,7 @@ import {
 } from '@antdv/common-ui';
 import { confirm, message } from '@antdv/popup-ui';
 import { Button } from '@antdv/shadcn-ui';
-import { useUserStore } from '~/stores/modules/user';
+import { useUserStore } from '@antdv/stores';
 
 const userStore = useUserStore();
 const router = useRouter();
@@ -320,15 +320,9 @@ function handleDeleteDevice(device: LoginDevice) {
             <DescriptionsItem label="手机号">
               {{ userStore.phone }}
             </DescriptionsItem>
-            <DescriptionsItem label="性别" :span="2">
-              未设置
-            </DescriptionsItem>
-            <DescriptionsItem label="生日" :span="2">
-              未设置
-            </DescriptionsItem>
-            <DescriptionsItem label="地址" :span="2">
-              未设置
-            </DescriptionsItem>
+            <DescriptionsItem label="性别" :span="2"> 未设置 </DescriptionsItem>
+            <DescriptionsItem label="生日" :span="2"> 未设置 </DescriptionsItem>
+            <DescriptionsItem label="地址" :span="2"> 未设置 </DescriptionsItem>
             <DescriptionsItem label="个人简介" :span="2">
               未设置
             </DescriptionsItem>
@@ -339,8 +333,12 @@ function handleDeleteDevice(device: LoginDevice) {
           <div class="space-y-6">
             <div class="space-y-2">
               <div :class="securityHeaderClassName">
-                <span class="font-medium text-gray-700 dark:text-gray-300">密码强度</span>
-                <span class="text-sm text-green-600 dark:text-green-400">{{ securityInfo.passwordStrength }}%</span>
+                <span class="font-medium text-gray-700 dark:text-gray-300"
+                  >密码强度</span
+                >
+                <span class="text-sm text-green-600 dark:text-green-400"
+                  >{{ securityInfo.passwordStrength }}%</span
+                >
               </div>
               <div :class="passwordStrengthBarClassName">
                 <div
@@ -357,7 +355,9 @@ function handleDeleteDevice(device: LoginDevice) {
 
             <div class="space-y-2">
               <div :class="securityHeaderClassName">
-                <span class="font-medium text-gray-700 dark:text-gray-300">双因素认证</span>
+                <span class="font-medium text-gray-700 dark:text-gray-300"
+                  >双因素认证</span
+                >
                 <span :class="twoFactorBadgeClassName">
                   <Icon icon="carbon:checkmark-filled" width="14" height="14" />
                   已启用
@@ -371,7 +371,9 @@ function handleDeleteDevice(device: LoginDevice) {
             <Divider />
 
             <div class="space-y-3">
-              <span class="font-medium text-gray-700 dark:text-gray-300">登录设备</span>
+              <span class="font-medium text-gray-700 dark:text-gray-300"
+                >登录设备</span
+              >
               <div
                 v-for="device in securityInfo.loginDevices"
                 :key="device.device"

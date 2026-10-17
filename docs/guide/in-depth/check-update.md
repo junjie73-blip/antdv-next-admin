@@ -24,7 +24,7 @@
 
 提示 UI 的口径：`needRefresh` 显示"发现新版本"，同时启动 **10 秒自动更新倒计时** （`AUTO_COUNTDOWN`），点"稍后"取消自动更新但保留手动按钮；`offlineReady` 显示"离线可用" 一次性提示。倒计时用 `useTimestamp` 驱动而不是 `setInterval` 递减，标签页后台节流时也不会漂。
 
-::: warning 这里没有的东西，别按 vben 的文档找
+::: warning 这里没有的东西，别按 vue-vben-admin 的文档找
 
 - 没有接口轮询 `package.json` 版本号 / `buildTime` 对比的"版本检查服务"；
 - 没有 `__APP_INFO__`（构建时间 + 依赖清单，`defineApplicationConfig` 会注入）与运行时对比的逻辑 —— 它目前只是构建元数据，没有消费者拿它做更新判定；

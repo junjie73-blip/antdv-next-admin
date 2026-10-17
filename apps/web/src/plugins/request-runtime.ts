@@ -2,7 +2,7 @@ import { CacheKey } from '@antdv/enums';
 import { configureRequest } from '@antdv/request';
 import { cache } from '@antdv/shared/cache';
 import { LOGIN_PATH } from '~/config/constants';
-import { useUserStore } from '~/stores/modules/user';
+import { useUserStore } from '@antdv/stores';
 
 /**
  * `@antdv/request` 只管 HTTP，凭证存哪、登录页在哪、退出要清什么，全由这里注入。

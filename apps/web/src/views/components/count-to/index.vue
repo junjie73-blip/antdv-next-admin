@@ -402,7 +402,9 @@ function resetDynamicCounter() {
             :end-val="-8888"
             :class="cn(numberValueClassName, 'text-orange-600')"
           />
-          <span :class="cn(signChangeClassName, 'text-orange-500')">-23.4%</span>
+          <span :class="cn(signChangeClassName, 'text-orange-500')"
+            >-23.4%</span
+          >
         </div>
       </div>
     </Card>
@@ -434,7 +436,9 @@ function resetDynamicCounter() {
         <!-- easeInOutCubic - 三次缓入缓出 -->
         <div :class="easingCardClassName">
           <div :class="easingHeaderClassName">
-            <span :class="easingNameClassName">easeInOutCubic (三次缓入缓出)</span>
+            <span :class="easingNameClassName"
+              >easeInOutCubic (三次缓入缓出)</span
+            >
             <span :class="easingDescClassName">慢→快→慢，自然流畅</span>
           </div>
           <div :class="easingDisplayClassName">
@@ -534,7 +538,9 @@ function resetDynamicCounter() {
     <!-- 8. 动态更新 -->
     <Card title="动态更新目标值" variant="borderless">
       <template #extra>
-        <span :class="cardExtraClassName">点击按钮改变目标值，动画自动重播</span>
+        <span :class="cardExtraClassName"
+          >点击按钮改变目标值，动画自动重播</span
+        >
       </template>
       <div :class="dynamicContainerClassName">
         <div class="mb-6">
