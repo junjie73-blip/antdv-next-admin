@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import type { NormalTreeNode, TreeContext, TreeFieldNames, TreeKey } from './types';
+import type {
+  NormalTreeNode,
+  TreeContext,
+  TreeFieldNames,
+  TreeKey,
+} from './types';
 
 import { computed, ref } from 'vue';
 
@@ -96,17 +101,11 @@ const expandedList = computed(() => {
   return props.defaultExpandedKeys;
 });
 
-const selectedList = computed(
-  () => props.selectedKeys ?? innerSelected.value,
-);
+const selectedList = computed(() => props.selectedKeys ?? innerSelected.value);
 const checkedList = computed(() => props.checkedKeys ?? innerChecked.value);
 
-const expandedSet = computed(
-  () => new Set(expandedList.value.map(treeKey)),
-);
-const selectedSet = computed(
-  () => new Set(selectedList.value.map(treeKey)),
-);
+const expandedSet = computed(() => new Set(expandedList.value.map(treeKey)));
+const selectedSet = computed(() => new Set(selectedList.value.map(treeKey)));
 const checkedSet = computed(() => new Set(checkedList.value.map(treeKey)));
 
 /** 父节点不写在 checkedKeys 里也算选中：由子树推导，同时得到半选集合 */
@@ -196,9 +195,10 @@ function onCheck(node: NormalTreeNode, checked: boolean) {
   if (props.checkedKeys === undefined) innerChecked.value = keys;
   emit('update:checkedKeys', keys);
   emit('check', keys, {
-    checkedNodes: keys
-      .map((key) => findData(key))
-      .filter(Boolean) as Record<string, any>[],
+    checkedNodes: keys.map((key) => findData(key)).filter(Boolean) as Record<
+      string,
+      any
+    >[],
   });
 }
 

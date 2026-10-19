@@ -198,16 +198,32 @@ describe('useTabStyle —— 五种风格的类名', () => {
     expect(itemClass(true)).toContain('border-primary');
   });
 
-  it('chrome 风格要把标签贴到行底边，且选中页用内容底色从灰底里跳出来', () => {
-    const { barClass, closeClass, itemClass, listClass } = useTabStyle(
+  it('chrome 风格：标签坐底边、四角同半径不描边，栏体自己不染主色', () => {
+    const { barClass, classes, closeClass, itemClass, listClass } = useTabStyle(
       () => 'chrome',
     );
     expect(barClass()).toContain('items-stretch');
-    // 标签栏铺一层 muted 灰底，选中页换成 background 才有 Chrome 的对比
-    expect(barClass()).toContain('bg-muted/60');
+    // 参考稿的层次是"中性灰条 + 主色浅底选中页"，栏体染色会淹掉标签间的发丝线
+    expect(barClass()).not.toContain('bg-');
     expect(listClass()).toContain('items-end');
-    expect(itemClass(true)).toContain('bg-background');
-    expect(itemClass(true)).not.toContain('border-t-primary');
+    // 左右各留 10px：选中页的"脚"要横向伸出 10px，贴着滚动容器边缘会被裁掉
+    expect(listClass()).toContain('px-2.5');
+
+    // 反向圆角由 TabsBar 的样式块按 [data-tab-style] 画，类名这边只留几何与文字色
+    expect(itemClass(true)).toContain('relative');
+    expect(itemClass(true)).toContain('rounded-[10px]');
+    expect(itemClass(true)).toContain('text-primary');
+    // 标签体底色与两只脚共用 `--tab-chrome-fill`，所以这里不能再出现底色工具类
+    expect(itemClass(true)).not.toContain('bg-');
+    expect(itemClass(true)).not.toContain('border');
+    // 未选中是透明底，只有悬停才落一层灰
+    expect(itemClass(false)).toContain('hover:bg-gray-100');
+    expect(
+      itemClass(false)
+        .split(' ')
+        .some((cls) => cls.startsWith('bg-')),
+    ).toBe(false);
+    expect(classes.value.divider).toBe(true);
     expect(closeClass()).toContain('hover:text-red-500');
   });
 

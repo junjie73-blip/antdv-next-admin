@@ -1,0 +1,162 @@
+<script setup lang="ts">
+import type { MicroAppContainerEmits, MicroAppContainerProps } from './types';
+
+import { computed, ref } from 'vue';
+
+import { IconifyIcon as Icon } from '@antdv/icons/icon';
+import { cn } from '@antdv/shared/utils/cn';
+import { Button, Spinner } from '@antdv/shadcn-ui';
+import { useEventListener, useTimeoutFn } from '@vueuse/core';
+
+/**
+ * `<micro-app>` 自定义元素的声明式外壳：加载态遮罩、失败重试与未配置地址的占位。
+ *
+ * 微前端 SDK（`@micro-zoe/micro-app`）在运行时给每个实例派发
+ * `beforeload-${name}` / `mounted-${name}` / `unmount-${name}` / `error-${name}`
+ * 四个 window 事件，本组件把它们收敛成 Vue 的 props / emits 口径。
+ * `<micro-app>` 标签由 `internal/vite-config` 的 `isCustomElement` 认下，
+ * 组件里不必声明成局部组件，否则会触发 `Failed to resolve component` 警告。
+ */
+const props = withDefaults(defineProps<MicroAppContainerProps>(), {
+  baseroute: undefined,
+  className: undefined,
+  url: undefined,
+  disableMemoryRouter: true,
+  disablePatchRequest: false,
+});
+
+const emit = defineEmits<MicroAppContainerEmits>();
+
+const loading = ref(true);
+const hasError = ref(false);
+const errorMessage = ref('');
+const retryCount = ref(0);
+
+const containerClassName = computed(() =>
+  cn('micro-app-container relative', 'size-full', props.className),
+);
+
+const overlayClassName = cn(
+  'absolute inset-0 z-10 flex flex-col items-center justify-center',
+  'rounded-lg bg-background/80 backdrop-blur-sm',
+);
+
+function handleBeforeLoad() {
+  loading.value = true;
+  hasError.value = false;
+  errorMessage.value = '';
+  emit('beforeload');
+}
+
+function handleMounted() {
+  loading.value = false;
+  hasError.value = false;
+  emit('mounted');
+}
+
+function handleUnmount() {
+  emit('unmount');
+}
+
+function handleError(event: Event) {
+  const detail = (event as CustomEvent).detail;
+  loading.value = false;
+  hasError.value = true;
+  errorMessage.value = detail?.message || `子应用 ${props.name} 加载失败`;
+  emit('error', new Error(errorMessage.value));
+}
+
+function handleRetry() {
+  hasError.value = false;
+  loading.value = true;
+  retryCount.value++;
+}
+
+// useEventListener：一次注册一个事件，组件卸载自动解绑
+useEventListener(window, `beforeload-${props.name}`, handleBeforeLoad);
+useEventListener(window, `mounted-${props.name}`, handleMounted);
+useEventListener(window, `unmount-${props.name}`, handleUnmount);
+useEventListener(window, `error-${props.name}`, handleError);
+
+// useTimeoutFn：无 URL 时占位延迟；组件卸载自动取消
+const { start: startPlaceholderTimer } = useTimeoutFn(
+  () => {
+    loading.value = false;
+  },
+  800,
+  { immediate: false },
+);
+
+if (!props.url) {
+  startPlaceholderTimer();
+}
+</script>
+
+<template>
+  <div :class="containerClassName">
+    <div v-if="loading" :class="overlayClassName">
+      <Spinner class="size-9 animate-spin" />
+      <p class="mt-3 text-sm text-muted-foreground">正在加载子应用...</p>
+      <p v-if="retryCount > 0" class="mt-1 text-xs text-muted-foreground">
+        第 {{ retryCount }} 次重试
+      </p>
+    </div>
+
+    <div v-if="hasError && !loading" :class="overlayClassName">
+      <div class="max-w-sm px-4 text-center">
+        <div
+          class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10"
+        >
+          <Icon icon="carbon:error" :size="30" class="text-destructive" />
+        </div>
+        <h4 class="mb-2 text-base font-semibold text-foreground">
+          子应用加载失败
+        </h4>
+        <p class="mb-1 text-sm text-muted-foreground">{{ errorMessage }}</p>
+        <p
+          v-if="url"
+          class="mb-5 font-mono text-xs break-all text-muted-foreground"
+        >
+          {{ url }}
+        </p>
+
+        <div class="flex justify-center gap-3">
+          <Button @click="handleRetry">重试加载</Button>
+          <Button variant="outline" @click="hasError = false">关闭提示</Button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      v-if="!url && !loading"
+      class="flex h-full flex-col items-center justify-center text-muted-foreground"
+    >
+      <Icon icon="carbon:application" :size="60" class="mb-4 opacity-30" />
+      <p class="text-sm">未配置应用地址</p>
+      <p class="mt-1 text-xs opacity-60">请在微前端管理中设置访问 URL</p>
+    </div>
+
+    <micro-app
+      v-show="!hasError && url"
+      :name="props.name"
+      :url="props.url"
+      :baseroute="props.baseroute"
+      :keep-alive="props.keepAlive"
+      :disable-memory-router="props.disableMemoryRouter"
+      :disable-patch-request="props.disablePatchRequest"
+    />
+  </div>
+</template>
+
+<style scoped>
+.micro-app-container {
+  position: relative;
+  min-height: 200px;
+}
+
+:deep(micro-app) {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+</style>

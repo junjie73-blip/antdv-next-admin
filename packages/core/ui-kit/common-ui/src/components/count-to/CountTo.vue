@@ -40,7 +40,9 @@ const startTimestamp = ref<null | number>(null);
 // ============ 格式化 ============
 function formatNumber(num: number): string {
   // split('.') 至少返回一段，`= ''` 仅用于满足 noUncheckedIndexedAccess，运行期不会触发
-  const [integerPart = '', decimalPart] = num.toFixed(props.decimals).split('.');
+  const [integerPart = '', decimalPart] = num
+    .toFixed(props.decimals)
+    .split('.');
   const formatted = integerPart.replaceAll(
     /\B(?=(\d{3})+(?!\d))/g,
     props.separator,

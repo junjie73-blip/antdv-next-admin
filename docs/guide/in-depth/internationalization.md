@@ -15,7 +15,7 @@ appStore.locale         // 偏好里的 locale（@antdv/preferences defaults: 'z
 
 ## applyLocale：一个 locale 展开成四件事
 
-`src/composables/web/useLocale.ts`：
+`apps/web/src/composables/useLocale.ts`：
 
 ```ts
 i18n.global.locale.value = locale; // 1. 自己的文案
@@ -35,23 +35,23 @@ const { setLocale } = useLocale();
 setLocale('en-US'); // 实际是 appStore.updateSetting({ locale })
 ```
 
-偏好落盘由 `@antdv/preferences` 负责，`watch(appStore.locale)` 让效应自动跟上。语言切换的 UI 入口在设置抽屉（`layouts/components/SettingDrawer/`），它写的也是这个 `locale` 字段；组件层不要绕过 `setLocale` 直接 patch 偏好。
+偏好落盘由 `@antdv/preferences` 负责，`watch(appStore.locale)` 让效应自动跟上。语言切换的 UI 在装配层的独立小部件 `packages/layouts/src/widgets/language-toggle/index.vue`（宿主在 `apps/web/src/plugins/layouts-host.ts` 注入候选语言），它写的也是这个 `locale` 字段；组件层不要绕过 `setLocale` 直接 patch 偏好。
 
 ## antd 语言包按需加载
 
-`packages/preferences/src/theme/index.ts`：
+`apps/web/src/settings/locale.ts`：
 
-- `LOCALE_LOADERS` 懒加载 `antdv-next/locale/zh_CN | en_US | zh_TW`；
-- `loadLocale()` 加载失败**回落默认语言**而不是白屏；
-- 注意两处口径不同：loader 支持三种语言，而 `useLocale.ts` 的 `LocaleType = 'en-US' | 'zh-CN'`。加一门语言要同时改这两处，并在 `locales/lang/` 补对应文案表。
+- `LOCALE_LOADERS` 懒加载 `antdv-next/locale/zh_CN | en_US | zh_TW`（`:12-16`）；这一段是**合法的** `antdv-next` 引用 —— 语言包本身就来自 antd，偏好包只存 `locale` 字符串，不该知道 antd 的语言包在哪；
+- `loadLocale()` 加载失败**回落默认语言**而不是白屏（`:26-38`）；
+- 注意两处口径不同：loader 支持三种语言，而 `useLocale.ts:12` 的 `LocaleType = 'en-US' | 'zh-CN'`。加一门语言要同时改这两处，并在 `locales/lang/` 补对应文案表。
 
 ## 菜单标题的翻译
 
-后端菜单的 `menuName` 是中文常量、不是 i18n key。`src/locales/menu.ts` 的 `localizeMenus()` 按路由 `name` 去文案表找 `menu.<Name>`，消费点在 `layouts/composables/useMenuTree.ts`（`te(key) ? t(key) : undefined`）；查不到就原样显示后端标题 —— 新增页面还没补译文时，导航里是一条能看懂的中文，而不是渲染出 `menu.NewPage` 这种 key。
+后端菜单的 `menuName` 是中文常量、不是 i18n key。`packages/utils/src/menu.ts:474` 的 `localizeMenus()` 按路由 `name` 去文案表找 `menu.<Name>`，消费点在 `packages/layouts/src/hooks/use-menu-tree.ts`（`layoutRuntime.translateMenu` 由宿主注入，`te(key) ? t(key) : undefined`）；查不到就原样显示后端标题 —— 新增页面还没补译文时，导航里是一条能看懂的中文，而不是渲染出 `menu.NewPage` 这种 key。
 
 ## 编译期配合
 
-`internal/vite-config/src/plugins/vue.ts` 注册了 `@intlify/unplugin-vue-i18n` （`compositionOnly / runtimeOnly: true`），模板里的 `$t` 走 Composition API 的运行时；`createI18n` 的 `legacy: false` 必须与它配套。
+`internal/vite-config/src/plugins/vue.ts` 在 `:6` import `@intlify/unplugin-vue-i18n/vite`、`:56-60` 注册（`compositionOnly / runtimeOnly: true`），模板里的 `$t` 走 Composition API 的运行时；`createI18n` 的 `legacy: false` 必须与它配套。
 
 ## 常见失误
 

@@ -362,6 +362,112 @@ test.describe('标签页交互', () => {
       .poll(() => scroller.evaluate((el) => el.scrollLeft))
       .toBeLessThanOrEqual(2);
   });
+
+  /**
+   * 谷歌风格的两处几何 —— 反向圆角与发丝分隔线 —— 都由 `TabsBar.vue` 里那段
+   * 按 `[data-tab-style='chrome']` 生效的样式块画出来。
+   *
+   * 单测钉不住它们（jsdom 不应用组件样式，伪元素更是没有），所以这里全部按**实值**量：
+   * 弧的裁剪与半径、脚的颜色必须等于标签体的颜色（不同色就有拼接缝）、
+   * 线在"悬停 / 选中 / 紧邻其右"这三种情况下必须消失（不消失就是两条线叠在弧上）。
+   */
+  test('谷歌风格：选中页长出反向圆角，标签之间是会消失的发丝线', async ({
+    page,
+  }) => {
+    await openThree(page);
+    await setPreference(page, { tabStyle: 'chrome' });
+
+    const active = tab(page, DEPT);
+    await expect(active).toHaveAttribute('data-active', 'true');
+    await expect(page.locator('.tab-bar')).toHaveAttribute(
+      'data-tab-style',
+      'chrome',
+    );
+
+    /**
+     * 标签体带 `transition-colors`，切风格的瞬间读到的 `backgroundColor` 是从旧风格
+     * （卡片风格的实色 `bg-primary`）往新底色插值的中间值，而伪元素的阴影不参与过渡 ——
+     * 不先等它落定就会拿到"底色 ≠ 脚色"的假红。用同一个比较做轮询，等完即验。
+     */
+    await expect
+      .poll(() =>
+        active.evaluate((el) =>
+          getComputedStyle(el, '::before').boxShadow.includes(
+            getComputedStyle(el).backgroundColor,
+          ),
+        ),
+      )
+      .toBe(true);
+
+    const geometry = await active.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      const before = getComputedStyle(el, '::before');
+      const after = getComputedStyle(el, '::after');
+      return {
+        bg: cs.backgroundColor,
+        left: { clip: before.clipPath, shadow: before.boxShadow, w: before.width },
+        radius: cs.borderTopLeftRadius,
+        right: { clip: after.clipPath, shadow: after.boxShadow, w: after.width },
+      };
+    });
+
+    // 四角同半径（不是只圆上面两角）：底角由下面的凹弧接手才连得起来
+    expect(geometry.radius).toBe('10px');
+    for (const foot of [geometry.left, geometry.right]) {
+      expect(foot.w).toBe('20px');
+      // 只留靠标签那一侧的下半象限；-10px 那一路是给扩散阴影留的越界余量
+      expect(foot.clip).toMatch(/^inset\(50% -10px 0px 50%\)|^inset\(50% 50% 0px -10px\)/);
+      // 脚的颜色 == 标签体的颜色，否则弧与标签之间露出色差
+      expect(foot.shadow).toContain(geometry.bg);
+    }
+
+    // 标签坐在栏底：底边与栏内容盒底边齐平（差 1px 以内，栏下沿那条边框除外）
+    const barBox = await page.locator('.tab-bar').boundingBox();
+    const tabBox = await active.boundingBox();
+    expect(barBox).not.toBeNull();
+    expect(tabBox).not.toBeNull();
+    expect(
+      Math.abs(barBox!.y + barBox!.height - 1 - (tabBox!.y + tabBox!.height)),
+    ).toBeLessThanOrEqual(1);
+
+    /**
+     * 量未选中标签左沿的发丝线（选中页的 `::after` 是右脚，不是线）。
+     *
+     * 线的显隐带 0.3s 过渡（参考稿同款），所以**只能轮询不能直读**：
+     * 直读会撞上过渡中间值（实测拿到 `0.887511`），看着像"该隐的线没隐"。
+     */
+    const expectLine = (path: string, opacity: string) =>
+      expect
+        .poll(() =>
+          tab(page, path).evaluate(
+            (el) => getComputedStyle(el, '::after').opacity,
+          ),
+        )
+        .toBe(opacity);
+
+    // 整条的第一个左边是栏边，没有邻居，不画线
+    await expectLine(HOME_PATH, '0');
+    // 用户与左邻（首页）之间：1px 宽、16px 高的线
+    expect(
+      await tab(page, USER).evaluate((el) => {
+        const after = getComputedStyle(el, '::after');
+        return { height: after.height, opacity: after.opacity, w: after.width };
+      }),
+    ).toEqual({ height: '16px', opacity: '1', w: '1px' });
+
+    // 切到用户：角色紧随选中页之后不画线；岗位左边那条（邻居是角色，未悬停）还在
+    await tab(page, USER).click();
+    await expectActive(page, USER);
+    await expectLine(ROLE, '0');
+    await expectLine(DEPT, '1');
+
+    // 自己被悬停时线也让位（参考稿的同一条规则）
+    await tab(page, DEPT).hover();
+    await expectLine(DEPT, '0');
+    // 线只是隐掉而不是被删掉：鼠标移回用户标签，岗位那条又回来
+    await tab(page, USER).hover();
+    await expectLine(DEPT, '1');
+  });
 });
 
 /** 激活态断言：`data-active` 而不是 class，风格切换不影响它 */

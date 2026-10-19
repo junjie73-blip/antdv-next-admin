@@ -3,7 +3,11 @@ import { inject, provide, reactive, watch } from 'vue';
 
 import type { GlobalConfig, ResolvedGlobalConfig } from './types';
 
-import { DEFAULT_GLOBAL_CONFIG, GLOBAL_CONFIG_KEY, textsByLocale } from './types';
+import {
+  DEFAULT_GLOBAL_CONFIG,
+  GLOBAL_CONFIG_KEY,
+  textsByLocale,
+} from './types';
 
 defineOptions({ name: 'ConfigProvider' });
 
@@ -44,7 +48,8 @@ watch(
   () => {
     const base = outer ?? DEFAULT_GLOBAL_CONFIG;
     const locale = props.locale ?? base.locale;
-    const texts = outer && props.locale === undefined ? outer : textsByLocale(locale);
+    const texts =
+      outer && props.locale === undefined ? outer : textsByLocale(locale);
     config.cancelText = props.cancelText ?? texts.cancelText;
     config.componentSize = props.componentSize ?? base.componentSize;
     config.locale = locale;

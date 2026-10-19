@@ -8,8 +8,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@antdv/shadcn-ui';
-import { Icon } from '@iconify/vue';
 import { useAppStore } from '@antdv/stores';
+import { Icon } from '@iconify/vue';
 
 import { layoutHost } from '../../host';
 import WidgetButton from '../widget-button.vue';

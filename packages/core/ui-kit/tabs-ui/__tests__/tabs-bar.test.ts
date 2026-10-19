@@ -274,6 +274,21 @@ describe('TabsBar —— 标签宿主条', () => {
     expect(wrapper.find('.tab-list').classes()).toContain('items-end');
   });
 
+  /**
+   * `data-tab-style` 是那段反向圆角 CSS 的唯一开关（jsdom 不应用组件样式，
+   * 弧与线只能在浏览器里验，这里先钉住"钩子挂对了元素与值"）。
+   */
+  it('容器带当前风格的 data-tab-style，样式块才认得到', () => {
+    expect(mountBar().find('.tab-bar').attributes('data-tab-style')).toBe(
+      'card',
+    );
+    expect(
+      mountBar({ tabStyle: 'chrome' })
+        .find('.tab-bar')
+        .attributes('data-tab-style'),
+    ).toBe('chrome');
+  });
+
   it('左右滚动箭头默认不显示（没有溢出）', () => {
     const wrapper = mountBar();
     // 按 aria-label 选箭头：动作按钮同样是 .tab-bar 的直接子节点

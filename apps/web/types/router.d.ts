@@ -45,6 +45,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/components/border-beam/': RouteRecordInfo<
+      '/components/border-beam/',
+      '/components/border-beam',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/components/chart/': RouteRecordInfo<
       '/components/chart/',
       '/components/chart',
@@ -94,6 +101,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/components/feedback/': RouteRecordInfo<
+      '/components/feedback/',
+      '/components/feedback',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/components/form/basic/': RouteRecordInfo<
       '/components/form/basic/',
       '/components/form/basic',
@@ -139,6 +153,13 @@ declare module 'vue-router/auto-routes' {
     '/components/image-crop/': RouteRecordInfo<
       '/components/image-crop/',
       '/components/image-crop',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/components/listy/': RouteRecordInfo<
+      '/components/listy/',
+      '/components/listy',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -410,6 +431,14 @@ declare module 'vue-router/auto-routes' {
       pathParamNames:
         | never
     }
+    'src/views/components/border-beam/index.vue': {
+      routes:
+        | '/components/border-beam/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/components/chart/index.vue': {
       routes:
         | '/components/chart/'
@@ -466,6 +495,14 @@ declare module 'vue-router/auto-routes' {
       pathParamNames:
         | never
     }
+    'src/views/components/feedback/index.vue': {
+      routes:
+        | '/components/feedback/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/views/components/form/basic/index.vue': {
       routes:
         | '/components/form/basic/'
@@ -517,6 +554,14 @@ declare module 'vue-router/auto-routes' {
     'src/views/components/image-crop/index.vue': {
       routes:
         | '/components/image-crop/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/views/components/listy/index.vue': {
+      routes:
+        | '/components/listy/'
       views:
         | never
       pathParamNames:

@@ -110,8 +110,8 @@ const rootClass = computed(() =>
     showPreview.value && 'cursor-pointer',
     props.rootClassName,
     // 放在最后：外层传入的类名要能覆盖上面的默认布局
-    props.class
-  )
+    props.class,
+  ),
 );
 </script>
 

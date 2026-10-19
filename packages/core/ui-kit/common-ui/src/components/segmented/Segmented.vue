@@ -24,7 +24,10 @@ const props = withDefaults(
   },
 );
 
-const emit = defineEmits<{ change: [number | string]; 'update:value': [number | string] }>();
+const emit = defineEmits<{
+  change: [number | string];
+  'update:value': [number | string];
+}>();
 
 interface SegmentedOption {
   disabled?: boolean;
@@ -35,8 +38,8 @@ interface SegmentedOption {
 
 const items = computed<SegmentedOption[]>(() =>
   props.options.map((option) =>
-    typeof option === 'string' ? { label: option, value: option } : option
-  )
+    typeof option === 'string' ? { label: option, value: option } : option,
+  ),
 );
 
 const groupSize = computed(() =>
@@ -66,7 +69,12 @@ function select(item: SegmentedOption) {
       :value="String(item.value)"
       :disabled="item.disabled || props.disabled"
       :aria-label="item.label"
-      :class="cn('rounded-md data-[state=on]:bg-background data-[state=on]:shadow-sm', props.block && 'flex-1')"
+      :class="
+        cn(
+          'rounded-md data-[state=on]:bg-background data-[state=on]:shadow-sm',
+          props.block && 'flex-1',
+        )
+      "
       @click="select(item)"
     >
       <Icon v-if="item.icon" :icon="item.icon" class="text-sm" />

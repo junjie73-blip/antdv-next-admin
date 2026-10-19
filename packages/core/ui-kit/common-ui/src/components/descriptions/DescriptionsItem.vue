@@ -63,7 +63,11 @@ const valueClass = computed(() =>
 
 <template>
   <div data-common-descriptions-item :style="style" :class="rootClass">
-    <div v-if="props.label || $slots.label" data-common-descriptions-label :class="labelClass">
+    <div
+      v-if="props.label || $slots.label"
+      data-common-descriptions-label
+      :class="labelClass"
+    >
       <slot name="label">{{ props.label }}</slot>
     </div>
     <div data-common-descriptions-value :class="valueClass">

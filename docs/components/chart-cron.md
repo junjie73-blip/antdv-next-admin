@@ -6,34 +6,34 @@
 
 ### 它解决什么问题
 
-`ECharts` 封装（`apps/web/src/components/common/ECharts/index.vue`）把「挂容器 → init → setOption → resize → dispose」这条样板收进一个组件，页面只管喂 `option`。它由 unplugin-vue-components 自动注册（见 `apps/web/types/components.d.ts` 的 `ECharts` 条目），示例页模板里裸写 `<ECharts />` 没有 import 语句，不是漏了。
+`ECharts` 封装（`packages/core/ui-kit/common-ui/src/components/charts/ECharts.vue`）把「挂容器 → init → setOption → resize → dispose」这条样板收进一个组件，页面只管喂 `option`。它**不在根 barrel 里**，得走子路径显式引：`import { ECharts } from '@antdv/common-ui/charts'`（`packages/core/ui-kit/common-ui/package.json` 的 `exports` 只列了 `.` 和 `./charts`，因为这张图会把整个 echarts 全量注册表拖进来）。
 
 ### 真实 API
 
-入参**只有三个**，没有事件，也不 `defineExpose` 任何东西（`ECharts/index.vue:8-15`）：
+入参**只有三个**，没有事件，也不 `defineExpose` 任何东西（`charts/ECharts.vue:18-21`）：
 
 | Prop | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
 | `option` | `echarts.EChartsOption` | 必填 | 图表配置 |
-| `height` | `string` | `'320px'` | 容器高度，宽度固定 100%（`:58`） |
-| `loading` | `boolean` | `false` | 映射到 ECharts 自身的 `showLoading/hideLoading` 遮罩（`:38-44`），不用页面自己盖 Spin |
+| `height` | `string` | `'320px'` | 容器高度，宽度固定 100%（`:64`） |
+| `loading` | `boolean` | `false` | 映射到 ECharts 自身的 `showLoading/hideLoading` 遮罩（`:44-50`），不用页面自己盖 Spin |
 
 行为逐条对源码：
 
-- **`option` 更新是替换不是合并**：组件对 `option` 做 deep watch，回调里 `setOption(opt, true)`（`ECharts/index.vue:30-36`）——第二个参数 `true` 即 `notMerge`，**每次改动整篇重设**。想「只改数据、保留其余配置」就别原地改 option 的子字段，示例页的做法是每次由 `computed` 产出完整新 option（`views/components/chart/index.vue:104-158`）。
-- **resize 谁负责**：组件自己监听 `window` 的 `resize` 并调 `chart.resize()`（`ECharts/index.vue:26-28,48`）。**没有 ResizeObserver**：窗口不动、只有容器变（侧栏折叠、分栏拖动）时不会重算尺寸。
-- **销毁时机**：`onBeforeUnmount` 摘掉 resize 监听并 `dispose()`（`ECharts/index.vue:51-54`）。
-- **主题不联动**：`echarts.init(el.value)` 不传主题参数（`ECharts/index.vue:22`），封装也**没有 `theme` 入参**——注册过的 ECharts 主题、偏好里的深色模式都不会自动作用到图上。
+- **`option` 更新是替换不是合并**：组件对 `option` 做 deep watch，回调里 `setOption(opt, true)`（`charts/ECharts.vue:36-42`）——第二个参数 `true` 即 `notMerge`，**每次改动整篇重设**。想「只改数据、保留其余配置」就别原地改 option 的子字段，示例页的做法是每次由 `computed` 产出完整新 option（`views/components/chart/index.vue:104-164`）。
+- **resize 谁负责**：组件自己监听 `window` 的 `resize` 并调 `chart.resize()`（`charts/ECharts.vue:32-34,54`）。**没有 ResizeObserver**：窗口不动、只有容器变（侧栏折叠、分栏拖动）时不会重算尺寸。
+- **销毁时机**：`onBeforeUnmount` 摘掉 resize 监听并 `dispose()`（`charts/ECharts.vue:57-60`）。
+- **主题不联动**：`echarts.init(el.value)` 不传主题参数（`charts/ECharts.vue:28`），封装也**没有 `theme` 入参**——注册过的 ECharts 主题、偏好里的深色模式都不会自动作用到图上。
 
-::: warning 明暗适配是示例页自己做的「图表」示例页的做法是：读 `appStore.resolvedTheme` 得到 `isDark`（`chart/index.vue:21`；store 侧 `apps/web/src/stores/modules/app.ts:42`），把所有颜色写成 `computed` 里的 option 字段（文字/轴线/tooltip 背景都按明暗两套取值，`chart/index.vue:23-50`），主题切换时 `computed` 重算、触发组件的 notMerge 重绘（页面注释原话在 `chart/index.vue:19-21`）。换你自己的页面时，这是封装可用能力的全部：其余的「深色主题」都得这样进 option。:::
+::: warning 明暗适配是示例页自己做的「图表」示例页的做法是：读 `appStore.resolvedTheme` 得到 `isDark`（`chart/index.vue:22`；store 侧 `packages/stores/src/app.ts:44`），把所有颜色写成 `computed` 里的 option 字段（文字/轴线/tooltip 背景都按明暗两套取值，`chart/index.vue:24-51`），主题切换时 `computed` 重算、触发组件的 notMerge 重绘（页面注释原话在 `chart/index.vue:20-21`）。换你自己的页面时，这是封装可用能力的全部：其余的「深色主题」都得这样进 option。:::
 
 ### 一个存在但没被接线的全功能 composable
 
-仓库里另有一套 `packages/composables/src/echarts/useEcharts.ts`：支持 `isDark`（切换时销毁重建图表，`:297-310`）、`resizeStrategy`（none/raf/debounce/throttle，`:130-150`）、ResizeObserver 观察容器（`:313-342`）、`setData` 深合并补丁（`:254-262`）、init 失败重试（`:201-215`）。注释还记录它修掉过「`setData` 曾经是静默空函数」的历史（`:245-252`）。但它在 `apps/web` 里**没有任何消费者**（除自身的测试与 dist 产物），`/components/chart` 用的是上面那个三 prop 的薄封装。别把两套能力混着写。
+仓库里另有一套 `packages/core/hooks/src/echarts/use-echarts.ts`（子路径 `@antdv/hooks/echarts`）：支持 `isDark`（切换时销毁重建图表，`:296-310`）、`resizeStrategy`（none/raf/debounce/throttle，`:129-151`）、ResizeObserver 观察容器（`:313-342`）、`setData` 深合并补丁（`:254-262`）、init 失败重试（`:201-215`）。注释还记录它修掉过「`setData` 曾经是静默空函数」的历史（`:245-252`）。但它在 `apps/web` 里**没有任何消费者**（只有 `packages/core/hooks/__tests__/echarts.test.ts`），`/components/chart` 用的是上面那个三 prop 的薄封装。别把两套能力混着写。
 
 ### 示例页内容
 
-五张卡片，数据全是页内常量、零请求（页面 alert 原话，`chart/index.vue:417-425`）：折线（「刷新数据」在三组内置数据间轮换，`:96-102`）、柱状（分组/堆叠开关只改 `series.stack`，`:164-211`）、环形饼图（图例点选、label 模板）、双 Y 轴组合图（柱+线，`:282-351`）、loading 与空数据（空数组 option 渲染坐标系骨架，`:357-412`）。
+五张卡片，数据全是页内常量、零请求（页面 alert 原话，`chart/index.vue:447-456`）：折线（「刷新数据」在三组内置数据间轮换，`:79-102`）、柱状（分组/堆叠开关只改 `series.stack`，`:170-223`）、环形饼图（图例点选、label 模板）、双 Y 轴组合图（柱+线，`:294-369`）、loading 与空数据（空数组 option 渲染坐标系骨架，`:375-443`）。
 
 ## Cron：`/components/cron`
 

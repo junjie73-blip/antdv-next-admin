@@ -1067,3 +1067,42 @@ export interface UseDragSortReturn {
   initSortable: (el: HTMLElement) => void;
   destroySortable: () => void;
 }
+
+/** 左树右表：树节点的最小形状（`title` / `key` 之外允许业务字段） */
+export interface TreeDataNode {
+  key: string;
+  title: string;
+  children?: TreeDataNode[];
+  [key: string]: any;
+}
+
+/** 左树右表：把选中的树节点连同分页一起交给业务接口 */
+export interface TreeTableFetchParams {
+  treeKey: string;
+  page: number;
+  pageSize: number;
+}
+
+export interface TreeTableProps {
+  treeTitle?: string;
+  treeData: TreeDataNode[];
+  treeDefaultExpandAll?: boolean;
+  treeSearchPlaceholder?: string;
+  treeWidth?: number;
+  treeMinWidth?: number;
+  treeMaxWidth?: number;
+  tableTitle?: string;
+  tableColumns: BasicColumn[];
+  tableApi?: (
+    params: TreeTableFetchParams,
+  ) => Promise<{ list: any[]; total: number }>;
+  tableRowKey?: string;
+  tablePageSize?: number;
+  showSearch?: boolean;
+  treeEmptyText?: string;
+  tableEmptyText?: string;
+}
+
+export interface TreeTableEmits {
+  treeSelect: [selectedKey: string, selectedNode: TreeDataNode];
+}

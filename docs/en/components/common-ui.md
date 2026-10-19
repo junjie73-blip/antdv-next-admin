@@ -1,19 +1,24 @@
 # Shared Components (`@antdv/common-ui`)
 
-This page documents `packages/core/ui-kit/common-ui` — the route-agnostic, cross-page presentational components: 34 exported values. Every one of them is **composed from primitives in `@antdv/shadcn-ui`** (reka-ui); the package does not know antdv-next exists and does not know the app exists — no store, no router, no `~/...` alias inside.
+This page documents `packages/core/ui-kit/common-ui` — the route-agnostic, cross-page presentational components: 55 exported values. Every one of them is **composed from primitives in `@antdv/shadcn-ui`** (reka-ui); the package does not know antdv-next exists and does not know the app exists — no store, no router, no `~/...` alias inside.
 
 The refactor landed in code before it landed in docs, so this page is the catch-up: `Description` and `CountTo`, which used to live in `apps/web/src/components/business/`, are now in this package, and a second batch (Badge, Steps, Result, Transfer, Image, Upload, Tabs …) was extracted from demo pages that each kept their own copy.
 
 ::: tip APIs only, no narrative
 Every props / events / slots / instance-method line below is copied from the real `defineProps` / `defineEmits` / `defineExpose` in the source, with file:line. For "what do I click and what happens", use the routes listed under [Component examples](/en/components/); for the CSS variables these components consume, see [Design tokens and global styles](/en/guide/essentials/design).:::
 
-## How to import: the root entry only
+## How to import: the root entry plus one charts subpath
 
-`packages/core/ui-kit/common-ui/package.json` declares exactly two `exports` keys: `.` (→ `./src/index.ts`) and `./package.json`. **There are no subpath exports**, so `@antdv/common-ui/components/badge` fails at Node resolution with `ERR_PACKAGE_EXPORTS` — it is not "allowed but discouraged".
+`packages/core/ui-kit/common-ui/package.json` declares exactly three `exports` keys: `.` (→ `./src/index.ts`), `./charts` (→ `./src/components/charts/index.ts`) and `./package.json`. Apart from `./charts` **there are no subpath exports**, so `@antdv/common-ui/components/badge` fails at Node resolution with `ERR_PACKAGE_EXPORTS` — it is not "allowed but discouraged".
+
+`ECharts` is the one exception and it is **deliberately kept out of the root barrel**: the component does `import * as echarts from 'echarts'`, which pulls the chart library's full registry into the module graph, and putting it in the root entry would make every `from '@antdv/common-ui'` consumer pay for parsing it (same reasoning as `@antdv/hooks/echarts`; the comment is at `components/charts/index.ts:1-5`).
 
 ```ts
 // ✅ named imports, always from the package barrel
-import { Card, Popconfirm, Tag } from '@antdv/common-ui';
+import { Card, MicroAppContainer, Popconfirm, Tag } from '@antdv/common-ui';
+
+// ✅ the chart only exists on the subpath
+import { ECharts } from '@antdv/common-ui/charts';
 
 // ❌ this subpath does not exist
 import { Badge } from '@antdv/common-ui/components/badge';
@@ -35,23 +40,28 @@ Internal cross-references use relative paths (`status-tag/StatusTag.vue:6` impor
 
 ## Full export list
 
-The 34 value exports from `src/index.ts`, grouped by purpose:
+The 55 value exports from `src/index.ts`, grouped by purpose:
 
 | Group | Exports |
 | --- | --- |
 | Containers & layout | `Card`, `Divider`, `Space`, `Empty`, `EmptyState`, `ErrorBoundary` |
 | Status & identity | `Badge`, `Tag`, `StatusTag`, `Alert`, `Result`, `Steps` |
-| Data display | `Description`, `Descriptions`, `DescriptionsItem`, `Statistic`, `CountTo`, `Image`, `Timeline`, `TimelineItem`, `Tooltip` |
+| Data display | `Description`, `Descriptions`, `DescriptionsItem`, `Statistic`, `CountTo`, `Image`, `Listy`, `Timeline`, `TimelineItem`, `Tooltip` |
 | Interaction & switching | `Tabs`, `TabPane`, `Segmented`, `Popconfirm`, `Transfer`, `Tree` |
+| Micro-frontend | `MicroAppContainer` |
 | Upload | `Upload`, `UploadDragger`, `UploadList` |
-| Skeletons | `PageSkeleton`, `TableSkeleton` |
-| Editors | `CronEditor` |
+| Skeletons & loading | `PageSkeleton`, `TableSkeleton`, `Loading`, `createContainerLoading`, `createFullscreenLoading`, `createLoading`, `useLoading`, `vLoading`, `Scrollbar` |
+| Editors | `CronEditor`, `MarkdownEditor` |
+| Auth page chrome | `AuthColorPresets`, `AuthFormPanel`, `AuthPageLayout`, `AuthSocialLogin` |
+| Toast container | `Toaster` |
+| Global config | `ConfigProvider`, `DEFAULT_GLOBAL_CONFIG`, `GLOBAL_CONFIG_KEY`, `textsByLocale`, `useGlobalConfig` |
+| Decorative motion | `BorderBeam` |
 | Injection key | `DESCRIPTION_DICT_RESOLVER` |
 
-Type exports: `CountToEvents` / `CountToInstance` / `CountToProps`, `CronEditorEmits` / `CronEditorProps` / `CronField` / `CronPreset`, `DescriptionInstance` / `DescriptionItem` / `DescriptionLayout` / `DescriptionProps` / `DescriptionSize` / `DictResolver`, `TabPaneProps`, `TransferDirection` / `TransferItem` / `TransferKey`, `NormalTreeNode` / `TreeContext` / `TreeFieldNames` / `TreeKey`, `UploadChangeParam` / `UploadFile` / `UploadListType` / `UploadRequestOptions`.
+Type exports: `BorderBeamProps`, `CountToEvents` / `CountToInstance` / `CountToProps`, `CronEditorEmits` / `CronEditorProps` / `CronField` / `CronPreset`, `DescriptionInstance` / `DescriptionItem` / `DescriptionLayout` / `DescriptionProps` / `DescriptionSize` / `DictResolver`, `GlobalConfig` / `ResolvedGlobalConfig`, `ListyEmits` / `ListyItem` / `ListyItemHeight` / `ListyProps` / `ListyRow` / `ListyScrollState` / `ListyScrollToOptions` / `ListySize`, `LoadingProps` / `LoadingSize` / `LoadingTheme` / `LoadingInstance` / `CreateLoadingOptions` / `UseLoadingOptions` / `LoadingDirectiveBinding`, `MarkdownEditor*` (9 names), `MicroAppContainerProps` / `MicroAppContainerEmits`, `ScrollbarProps` / `ScrollbarStyle` / `ScrollbarType`, `TabPaneProps`, `ToasterProps` (vue-sonner's type, re-exported), `TransferDirection` / `TransferItem` / `TransferKey`, `NormalTreeNode` / `TreeContext` / `TreeFieldNames` / `TreeKey`, `UploadChangeParam` / `UploadFile` / `UploadListType` / `UploadRequestOptions`, plus the `Auth*Props` types with `AuthColorPreset` / `AuthFeatureItem` / `AuthSocialItem`. `EChartsProps` is not on this list — it only leaves through `@antdv/common-ui/charts`.
 
 ::: warning `UploadProps` is not exported
-`components/upload/index.ts` declares `export type { UploadProps }`, but the re-export block in `src/index.ts:60-65` does not include it. To type Upload props in a page, compose `import type { UploadFile, UploadChangeParam } from '@antdv/common-ui'` instead — or leave it untyped.:::
+`components/upload/index.ts` declares `export type { UploadProps }`, but the re-export block in `src/index.ts:144-150` does not include it. To type Upload props in a page, compose `import type { UploadFile, UploadChangeParam } from '@antdv/common-ui'` instead — or leave it untyped.:::
 
 ## Badge
 
@@ -284,9 +294,9 @@ Four components the app used to re-implement per page; all are in the package no
 
 **StatusTag** (`status-tag/StatusTag.vue`, 54 lines): props `status` (**required**, `string`), `type?: 'export' | 'instance' | 'task' | 'workflow'`. The semantic table `MAP` (`:15-26`): `'0'` 处理中 / `'1'` 已完成 / `'2'` 已终止 / `'3'` 已挂起, plus `pending` / `processing` / `completed` / `failed` / `cancelled` / `timeout`; `PRESET_BY_SEMANTIC` (`:33-39`)then aligns those semantics onto `Tag`'s preset colour names (processing→blue, success→green, error→red, warning→gold, default→default). **An unknown status is shown verbatim with the default colour** (`:41-45`, `isNil` instead of `??` so an empty string is not swallowed). It renders a `<Tag :color>`.
 
-**EmptyState** (`empty-state/EmptyState.vue`, 31 lines): props `title` (`'暂无数据'`), `description` (`''`), `icon` (`'ant-design:inbox-outlined'`, an Iconify name)+ default slot for actions. Versus `Empty`: `Empty` is the component-library "no data" placeholder (`description?: false | string`, `image?: false | string`), while `EmptyState` is the page-level "nothing here — and here is what you can do".
+**EmptyState** (`empty-state/EmptyState.vue`, 31 lines): props `title` (`'暂无数据'`), `description` (`''`), `icon` (`'ant-design:inbox-outlined'`, an Iconify name)+ default slot for actions. Versus `Empty`: `Empty` is the component-library "no data" placeholder (`description?: false | string`, `image?: false | string`), while `EmptyState` is the page-level "nothing here — and here is what you can do". Colours are semantic tokens now (disc `bg-muted`, glyph `text-muted-foreground`, title `text-foreground`) — the hard-coded `bg-gray-50` / `text-gray-900` it used to carry rendered black-on-black in dark mode. `Listy`'s default empty state is this component.
 
-**ErrorBoundary** (`error-boundary/ErrorBoundary.vue`, 143 lines): props `fallback?: (error: Error, reset: () => void) => VNode`, `resetOnError`(true), `maxStackDepth`(5); emits `error: [Error]`, `reset: []`. Mechanism: `onErrorCaptured` prefixes the message with `[${info}]` and returns `false` to stop propagation (`:30-42`); in DEV it also prints a `console.group` + `console.trace` (from `:44`); the default fallback UI is "⚠️ 出错了 / 🔄 重试 / expandable stack", with the stack area wrapped in `Scrollbar root-class="max-h-32"`; children are wrapped in `<Suspense>` whose `#fallback` uses the `loading` slot; remount on retry happens by changing `<slot :key="errorId">`.
+**ErrorBoundary** (`error-boundary/ErrorBoundary.vue`, 143 lines): props `fallback?: (error: Error, reset: () => void) => VNode`, `resetOnError`(true), `maxStackDepth`(5); emits `error: [Error]`, `reset: []`. Mechanism: `onErrorCaptured` prefixes the message with `[${info}]` and returns `false` to stop propagation (`:30-42`); in DEV it also prints a `console.group` + `console.trace` (from `:44`); the default fallback UI is "⚠️ 出错了 / 🔄 重试 / expandable stack", with the stack area wrapped in `Scrollbar root-class="h-32"` (a fixed height, not `max-h-32`: `max-*` only clips the visible box, so the scroll region never gets a definite height and ends up "half visible, impossible to scroll"); children are wrapped in `<Suspense>` whose `#fallback` uses the `loading` slot; remount on retry happens by changing `<slot :key="errorId">`.
 
 ::: warning `maxStackDepth` has no effect path
 It is declared in `interface Props` (`:10-14`)with a default of 5, but the implementation only renders `error.stack` in full — there is no code that trims frames. Passing `:max-stack-depth` changes nothing; this page records it as "declared, unused" rather than documenting it as an API.:::
@@ -299,6 +309,173 @@ It is declared in `interface Props` (`:10-14`)with a default of 5, but the imple
 | `TableSkeleton` | `loading`(true), `columns`(5), `rows`(8), `showHeader`(true), `showActions`(true), `showPagination`(true), `class` |
 
 Real usage: `apps/web/src/views/components/loading/index.vue:6-14` (all five used together).
+
+## BorderBeam
+
+`components/border-beam/BorderBeam.vue` (115 lines), props and defaults at `:12-22`, types in `border-beam/types.ts` (20 lines). A purely decorative wrapper: it runs a gradient beam around the container's edge while the content stays in the default slot.
+
+| prop | default | notes |
+| --- | --- | --- |
+| `color` | `'var(--app-primary)'` | Beam head colour; any CSS colour including `var(...)` |
+| `tailColor` | `'transparent'` | Beam tail; transparent makes the head fade out of the background |
+| `duration` | `6` | Seconds per revolution → `animation-duration` (`:41-44`) |
+| `delay` | `0` | Seconds before the beam starts → `animation-delay`; **negative values pass through**, which is how you make it enter mid-lap |
+| `size` | `25` | Arc length as a percentage of the full circle → `--bb-size: ${size}%` |
+| `borderWidth` | `2` | Beam thickness; numbers become px (`toLength()`, `:25-27`) |
+| `radius` | `'var(--app-border-radius)'` | Numbers become px, strings are written verbatim, so `'999px'` or another variable both work |
+| `class` / `style` | none | `class` goes through `cn('relative', props.class)`; `style` is spread last on the root, so it can override the component's own variables |
+
+Events: none. Slots: `default` only.
+
+The implementation has three moving parts: the root writes the CSS variables and the radius → `.border-beam__ring` subtracts two mask layers (outer covers the border box, inner stops at the content box, `mask-composite: exclude`) leaving a ring exactly as thick as its padding → `.border-beam__spin` is a square at `inset: -50%`, concentric with the container and twice its size, painted with `conic-gradient(transparent → tail → color)` and rotated `360deg` infinitely. Enlarging and centring that square is what **keeps the rotation centre on the container centre**, so the beam sweeps the top and bottom edges at a uniform speed even when the box is flat. Under `@media (prefers-reduced-motion: reduce)` the animation is dropped: the beam parks, the border stays.
+
+::: warning Two boundaries worth knowing
+1. **The ring fills the parent's padding box** (that is what an absolutely positioned `inset: 0` resolves against). If the container also carries `border-*` utilities, the beam sits inside them; let `borderWidth` draw the edge on its own.
+2. **The `border-beam` hook class is a static `class`, never inside `cn()`** (comment above `:48`): tailwind-merge reads it as the `border-{color}` family, so a caller passing `border-border` deletes the hook class in the conflict resolution, and the ring disappears. Same rule for the template: **do not put a comment before the root element** — dev builds keep comment nodes, which turns the component into a Fragment and breaks automatic `class` / `style` inheritance.:::
+
+Real usage: `apps/web/src/views/components/border-beam/index.vue` (six configurations plus one live statistic card).
+
+## Listy
+
+`components/listy/Listy.vue` (434 lines), props and defaults at `:30-46`, types in `listy/types.ts` (134 lines). The default shell for row-style display: data, loading skeleton, empty state and per-row slots, with business fields carried through on the item object for the slots to read. Flip on `virtual` and the same row template turns into a ten-thousand-row virtual scroller.
+
+| prop | default | notes |
+| --- | --- | --- |
+| `items` | `[]` | `ListyItem[]`. Only `title` / `description` / `extra` / `icon` / `key` are conventional; anything else rides along (`[field: string]: unknown`) |
+| `itemKey` | none | A field name or `(index, item) => key`; falls back to `item.key`, then the index (`rowKey()`, `:227`) |
+| `size` | `'middle'` | `'small' \| 'middle' \| 'large'` — row density (`rowClass`, `:204`) and title font size |
+| `loading` | `false` | Skeleton mode: a `<ul aria-busy="true">` replaces the list |
+| `loadingRows` | `3` | How many skeleton rows |
+| `selectable` | `false` | Adds the pointer cursor and `hover:bg-accent` to rows |
+| `emptyText` / `emptyIcon` | `'暂无数据'` / `'ant-design:inbox-outlined'` | Passed straight to `EmptyState` |
+| `virtual` | `false` | Enables virtual scrolling: only the rows inside the viewport are rendered |
+| `containerHeight` | `320` | Height of the scroll viewport in virtual mode. Numbers become px, strings are written into the style verbatim (`'50vh'`, `'100%'`) |
+| `itemHeight` | `40` | Row height: a number, or `(index, item) => number` (`ListyItemHeight`). Unused in plain mode |
+| `measureHeights` | `false` | Measure and feed back: drops the inline height so content decides it, and rows entering the window get measured with a `ResizeObserver`. `itemHeight` degrades to a first-frame estimate |
+| `overscan` | `5` | Extra rows rendered above and below the viewport. **Read once at setup** (VueUse destructures the options), so changing it requires a remount |
+| `class` / `style` | none | Same as BorderBeam: the `listy` hook class is static, the rest goes through `cn()` |
+
+Two events: `itemClick: [ListyItem, number]` (written `@item-click`) and `scroll: [ListyScrollState]` (written `@scroll`). The latter is a snapshot emitted only when the position changes: `{ startIndex, endIndex, visibleCount, scrollTop, scrollHeight, progress }`. Programmatic scrolling and in-place data swaps take the same path.
+
+Seven slots: `header`, `loading` (replaces the whole skeleton), `empty` (replaces the whole empty state), `item` (the whole row), `item-media` (row head), `item-extra` (row tail), `footer`. `header` / `footer` are gated on `slots.xxx`, so **they render nothing at all when absent** — no stray divider strip. In virtual mode slots receive the **absolute upstream index**, not the position inside the window.
+
+What the instance exposes (`defineExpose`, `:299`): reactive state `visibleItems` / `visibleRange` / `scrollState` / `totalHeight` / `isScrolling` / `directions` / `arrivedState` / `containerElement` — reading `computed(() => listyRef.value?.scrollState)` from the outside keeps you inside the dependency graph — and the methods `scrollToIndex(index, { behavior, block })` / `scrollTo(offset, behavior)` / `scrollToTop()` / `scrollToBottom()` / `recalc()`. Out-of-range indexes are clamped, and calling them on an empty list is a no-op rather than a throw.
+
+Basic usage (20 000 rows, a dozen of them in the DOM):
+
+```vue
+<script setup lang="ts">
+import type { ListyItem, ListyScrollState } from '@antdv/common-ui';
+
+import { ref } from 'vue';
+
+import { Listy } from '@antdv/common-ui';
+
+const rows: ListyItem[] = Array.from({ length: 20_000 }, (_, index) => ({
+  description: `第 ${index} 条`,
+  key: index,
+  title: `条目 ${index}`,
+}));
+
+const listy = ref<InstanceType<typeof Listy> | null>(null);
+
+function onScroll(state: ListyScrollState) {
+  // startIndex / endIndex / visibleCount / scrollTop / scrollHeight / progress
+  console.log(state.startIndex, state.progress);
+}
+</script>
+
+<template>
+  <Listy
+    ref="listy"
+    :container-height="320"
+    :items="rows"
+    :item-height="48"
+    item-key="key"
+    selectable
+    :virtual="true"
+    @item-click="(item) => console.log(item.title)"
+    @scroll="onScroll"
+  />
+  <button @click="listy?.scrollToIndex(10_000, { behavior: 'smooth' })">
+    跳到第 10 000 行
+  </button>
+</template>
+```
+
+### How the virtual mode works
+
+Three VueUse hooks carry it; none of the scroll arithmetic is hand written: `useVirtualList` owns the window and the offsets, `useScroll` owns position / direction / arrived state, `useResizeObserver` owns the container size and the dynamic row measurements.
+
+- **The `<ul>` is itself the spacer**: `wrapperProps.style` supplies `marginTop` (everything before the window) and `height` (the remainder), and the two always add up to the content height. That is why virtual and plain modes share one `<li>` template instead of needing an "outer spacer + absolutely positioned inner list" scaffolding.
+- **`itemHeight` is always handed to VueUse as a function** (`rowHeight()`, `:67`). A number would be frozen at setup, so later prop changes would not recompute; a function re-reads the latest props every pass, at the cost of turning VueUse's offset scan from O(1) into O(n) — measured in the tens of microseconds for 10k uniform rows, which buys "change the prop and it just works".
+- **The arithmetic height must equal the real height.** Fixed mode pins it by inlining `height` on the `<li>` (`box-border`, padding included), so DOM and arithmetic share one ruler. When content can wrap, either supply a height function that actually computes it, or turn on `measure-heights`.
+- **`measure-heights` observes only the rows currently in the window** (`measuredTargets`, `:162`). VueUse rebuilds the observer when the target array changes, and `observe()` always fires once for a newly added element, so head insertions that shift indexes heal themselves on the next measurement pass — no manual cache invalidation.
+- **The first frame computes its own window** (`recalc()` in `onMounted`): `useElementSize` and `ResizeObserver` are both async callbacks, so without this 10k lists would stay empty until the first scroll (and forever in environments without `ResizeObserver`). Container resizes need nothing extra — `totalHeight` plus VueUse's size watch already cover it.
+
+::: warning `selectable` is explicit, not "auto-cursor when a listener exists"
+Once a component declares `emits`, its listeners no longer appear in `attrs`, so the implementation cannot sniff whether anyone is listening (that is what the comment at `:199` records). And even if it could, giving hover feedback to a purely informational list would just trick users into clicking something that does nothing.:::
+
+::: warning Virtual mode needs a box that can actually scroll
+`container-height: '100%'` requires an ancestor with a height, otherwise the viewport measures 0 and the window collapses to the `overscan` rows. The height function (when you pass one) **must only read**: writing reactive state inside it makes "scroll → recompute → height changed → recompute" self-exciting.:::
+
+Real usage: `apps/web/src/views/components/listy/index.vue` (eight cards: basic, loading, empty, slots, then fixed heights over 20 000 rows, function heights, measured dynamic heights and a plain-mode control). Two unit files: `__tests__/listy.test.ts` (12 cases) and `__tests__/listy-virtual.test.ts` (17 cases — jsdom pins state and styles only). The scroll geometry is measured in the browser by `apps/web/e2e/listy-virtual.spec.ts` (8 cases × three engines): whether rows really come out 48px tall, whether `marginTop + height` equals the content height, and whether the window shrinks when the container does.
+
+## Auth family (login / register chrome)
+
+`components/auth/` ships four pieces: `AuthPageLayout` (three-column shell plus the brand panel), `AuthFormPanel` (title block plus the form slot), `AuthSocialLogin` (the third-party entry row) and `AuthColorPresets` (the theme-colour trigger in the toolbar). This layer knows nothing about stores, routers or i18n — copy and colour swatches are computed by the host and passed in.
+
+`AuthSocialItem.icon` takes two shapes: a **string** resolves as an iconify icon name, a **Vue component** renders as given. The component shape exists for icons that are not in the offline iconify set — brand logos have to come from the host. The four entries on the login and register pages take exactly that route: the SVGs live in `apps/web/src/assets/icons/`, `vite-plugin-svg-icons` bundles them into a sprite under `#icon-<filename>` (registered by `import 'virtual:svg-icons-register'` in `main.ts`), and `SvgIcon` from `@antdv/icons` renders one:
+
+```ts
+import type { AuthSocialItem } from '@antdv/common-ui';
+
+import { h } from 'vue';
+
+import { SvgIcon } from '@antdv/icons';
+
+const socialIcon = (name: string) => () => h(SvgIcon, { name, size: 18 });
+
+export const AUTH_SOCIAL_ITEMS: AuthSocialItem[] = [
+  { icon: socialIcon('github'), label: 'GitHub', value: 'github' },
+];
+```
+
+::: warning The component shape sizes itself
+`AuthSocialLogin` only puts `size-[18px]` on the outer wrapper, which cannot beat the inline width/height `SvgIcon` writes (16px when `size` is omitted), so the host must pass `size` explicitly.:::
+
+Real usage: `apps/web/src/config/auth-social.ts` (the four sprite entries, shared by login and register) and `apps/web/src/views/login/index.vue`.
+
+## MicroAppContainer (micro-frontend shell)
+
+`components/micro-app-container/MicroAppContainer.vue` wraps the `<micro-app>` custom element from `@micro-zoe/micro-app` in a declarative shell: loading overlay, failure retry, and a placeholder for "no URL configured". At runtime the SDK dispatches four **window** events per instance — `beforeload-${name}` / `mounted-${name}` / `unmount-${name}` / `error-${name}` — which the component collapses into Vue emits via `useEventListener` (`:76-79`, auto-detached on unmount).
+
+props (`types.ts:1-11`, defaults at `MicroAppContainer.vue:20-26`):
+
+| Prop | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `name` | `string` | required | micro-app instance name, also the event-name prefix |
+| `url` | `string` | `undefined` | child app entry; without it a "未配置应用地址" placeholder appears after 800 ms (`:82-92`) |
+| `className` | `string` | `undefined` | appended to the root, whose base classes are `micro-app-container relative size-full` |
+| `baseroute` | `string` | `undefined` | passed through to `<micro-app>` |
+| `keepAlive` | `boolean` | no default | passed through as the `keep-alive` attribute |
+| `disableMemoryRouter` | `boolean` | `true` | passed through as `disable-memory-router` |
+| `disablePatchRequest` | `boolean` | `false` | passed through as `disable-patch-request` |
+
+Events: `beforeload`, `mounted`, `unmount` take no payload; `error` carries an `Error` (`types.ts:13-18`). The SDK sends a `CustomEvent`, and the component reads `detail.message`, falling back to `子应用 ${name} 加载失败` (`:61-67`).
+
+::: warning Nobody consumes this component yet The embed page actually running in the app is `apps/web/src/views/micro-app/SubAppView.vue`, which writes `<micro-app>` itself with its own loading/error state (`:72-93`) and does not import this component. `MicroAppContainer` came over from `apps/web/src/components/business/` because it is the reusable shell — but today **nothing reuses it**. Before adopting it, decide whether SubAppView should consume it instead of adding a third variant. The retry button only flips local state (`handleRetry` resets `loading`/`hasError`/`retryCount`, `:69-73`); it does not re-trigger the SDK's load pipeline. :::
+
+## Charts: `@antdv/common-ui/charts`
+
+`ECharts` is this package's only subpath export, with three props (`option` required, `height` defaulting to `'320px'`, `loading` defaulting to `false`), no events, and nothing exposed on the instance. The full behavioural breakdown lives in the chart section of [Charts and Cron](/en/components/chart-cron); what belongs here is why it gets its own entry: `import * as echarts from 'echarts'` drags the whole registry into the module graph, and that cost should not be charged to every `@antdv/common-ui` consumer.
+
+## Toaster (toast container)
+
+`components/toast/Toaster.vue` (200 lines) is a themed shell over vue-sonner's `Toaster`: its props *are* `ToasterProps` (re-exported from `index.ts`), passed through with `v-bind="props"`, and it only adds three things — the `--normal-*` variable group (`:43-48`), `toastOptions.classes` (`:58-63`, merged entry by entry with the host's), and six "named slot with default content" state badges (`:96-165`). The palette contract, the two-toaster split and how `message` / `notification` relate to it all live in the "Messages and notifications" section of [Modals & drawers](/en/components/modal-drawer); this entry only explains why the layer sits in this package.
+
+::: warning The styling layer is not in `@antdv/shadcn-ui`
+That package's `Sonner.vue` hardcodes `rich-colors` *after* `v-bind` (nothing can pass it in) and hardcodes its state icons inside slots (nothing can pass them out). Replacing either without editing its source means betting our selectors on which lucide icons it picked, and that bet expires on the next upgrade. So this package builds its own shell straight on vue-sonner: `@antdv/shadcn-ui` did not change by a line, and whatever it adds, removes or iterates cannot reach here. Hosts only change where they import from: `import { Toaster } from '@antdv/common-ui'`.:::
 
 ## The remaining entries
 
@@ -317,7 +494,7 @@ These are documented where their demos live; only signatures here, to avoid dupl
 | `Timeline` / `TimelineItem` | Timeline: `mode`, `labelPlacement`, `pending`(`boolean \| string`), `reverse`. Item: `color`(`'blue'`), `label`, `position` | Item slots `dot`, `label`, `default`; parent/child talk through `TIMELINE_KEY` |
 | `Tree` | `treeData`, `checkable`(false), `selectable`(true), `blockNode`(false), `checkedKeys` / `expandedKeys` / `selectedKeys` (all three support `v-model:`)plus the `default*` variants, `defaultExpandAll`(false), `fieldNames` | `check`, `expand`, `select` + the three `update:*Keys`; the recursive child is the internal `tree/TreeNodes.vue` |
 
-## Six conventions for this package
+## Eight conventions for this package
 
 Getting these wrong produces no error — only silent breakage. Each line was verified against behaviour.
 
@@ -329,10 +506,12 @@ Getting these wrong produces no error — only silent breakage. Each line was ve
 | `Modal.confirm` → `confirm()`; `message` also comes from `@antdv/popup-ui` | `packages/core/ui-kit/popup-ui/src/index.ts` is four `export *` lines (alert, drawer, message, modal) plus types. 41 app files import `@antdv/popup-ui`, plus 5 more inside `@antdv/layouts`' header widgets; the typical line is `import { confirm, message } from '@antdv/popup-ui'` (e.g. `apps/web/src/views/account/center/index.vue:19`) |
 | Tailwind only understands **literal class strings** | Status→colour always goes through a lookup table (`STATUS_DOT` in `Badge.vue:37-44`, `CIRCLE` in `Steps.vue:37-43`, `PRESET` in `Tag.vue`); never `bg-${color}-500`, and do not expect the scanner to see dynamic strings |
 | Do not write `cn(...)` in templates, especially with a trailing comma | `<div :class="cn('a', 'b',)">` breaks template expression parsing. Keep `cn()` calls in `<script setup>` as `computed` values or constants and reference the variable — every demo page follows this shape |
+| BEM hook classes (`border-beam`, `listy`) live on the static `class`, not inside `cn()` | `twMerge` resolves conflicts per utility family: it reads `border-beam` as the `border-{color}` group and `listy` as the `list-{type}` group. A caller passing `border-border` or `list-none` deletes the hook class outright, and the ring / row styling vanishes (`BorderBeam.vue:48-52` and `Listy.vue:327-330` each keep a regression test for this) |
+| No comment before the root element in `<template>` | Dev builds preserve comment nodes, so a leading comment turns the template into a Fragment: `wrapper.classes()` comes back empty and non-prop `class` / `style` stop being inherited. Put the explanation inside the root element (both new components learned this the hard way) |
 
 ## Relationship to antdv-next
 
-This package **does not import antdv-next**. Its `dependencies` stop at `@antdv/icons`, `@antdv/common-ui`, `@antdv/shadcn-ui`, `@antdv/shared`, plus `@vueuse/core`, `cronstrue`, `es-toolkit`, `vue` (`packages/core/ui-kit/common-ui/package.json`). Any host project that installs those workspace packages can use it — see [External Modules](/en/guide/essentials/external).
+This package **does not import antdv-next**. Its workspace `dependencies` are only `@antdv/icons`, `@antdv/popup-ui`, `@antdv/request`, `@antdv/shadcn-ui`, `@antdv/shared`; the external ones are `@vueuse/core`, `cronstrue`, `es-toolkit`, `marked`, `vue`, `vue-sonner`, `@iconify/vue`, `@lucide/vue`, the tiptap set, and `echarts` — which exists solely for the `./charts` subpath (`packages/core/ui-kit/common-ui/package.json`). `@antdv/request` and `@antdv/popup-ui` appear only on the MarkdownEditor upload/error path (`markdown-editor/utils.ts:1-2`, `MarkdownEditor.vue:20`), and what they bring in is `request` and `message` — not a store, not the router. Any host project that installs those workspace packages can use it — see [External Modules](/en/guide/essentials/external).
 
 No page under `apps/web/src/views/**` imports antdv-next for its own UI any more. What still imports it:
 

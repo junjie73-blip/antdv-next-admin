@@ -6,6 +6,7 @@ export { default as TableAction } from './components/TableAction.vue';
 export { default as TableEditableCell } from './components/TableEditableCell.vue';
 export { default as TableHeaderCell } from './components/TableHeaderCell.vue';
 export { default as TableImg } from './components/TableImg.vue';
+export { default as TreeTable } from './components/TreeTable.vue';
 
 // 运行时配置（错误提示 / 权限校验的注入点）
 export { configureTable, tableRuntime } from './config';
@@ -65,6 +66,10 @@ export type {
   TableRowSelection,
   TableScroll,
   TableSize,
+  TreeDataNode,
+  TreeTableEmits,
+  TreeTableFetchParams,
+  TreeTableProps,
   UseColumnsOptions,
   UseColumnsReturn,
   UseDataSourceOptions,

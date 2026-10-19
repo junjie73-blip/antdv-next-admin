@@ -60,7 +60,12 @@ function rowClass(node: NormalTreeNode) {
         >
           <Icon
             icon="carbon:chevron-right"
-            :class="cn('text-xs transition-transform', isExpanded(node) && 'rotate-90')"
+            :class="
+              cn(
+                'text-xs transition-transform',
+                isExpanded(node) && 'rotate-90',
+              )
+            "
           />
         </button>
         <span v-else class="size-5 shrink-0"></span>

@@ -13,6 +13,11 @@ const props = withDefaults(defineProps<AuthSocialLoginProps>(), {
 const emit = defineEmits<{
   select: [item: AuthSocialItem];
 }>();
+
+/** 字符串一律按 iconify 名解析，其余（Vue 组件）原样渲染 */
+function isIconifyName(icon: AuthSocialItem['icon']): icon is string {
+  return typeof icon === 'string';
+}
 </script>
 
 <template>
@@ -40,7 +45,12 @@ const emit = defineEmits<{
         type="button"
         @click="emit('select', item)"
       >
-        <Icon :icon="item.icon" class="size-[18px]" />
+        <Icon
+          v-if="isIconifyName(item.icon)"
+          :icon="item.icon"
+          class="size-[18px]"
+        />
+        <component :is="item.icon" v-else class="size-[18px]" />
       </button>
     </div>
   </div>

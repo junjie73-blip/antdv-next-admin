@@ -1123,6 +1123,39 @@
                   "permission": "components:drag-layout:list",
                   "sortOrder": 17,
                   "status": "1"
+                },
+                {
+                  "component": "components/feedback/index",
+                  "icon": "carbon:warning-alt",
+                  "menuName": "轻提示与通知",
+                  "menuType": 2,
+                  "name": "DemoFeedback",
+                  "path": "/components/feedback",
+                  "permission": "components:feedback:list",
+                  "sortOrder": 18,
+                  "status": "1"
+                },
+                {
+                  "component": "components/border-beam/index",
+                  "icon": "carbon:border-full",
+                  "menuName": "边框光带",
+                  "menuType": 2,
+                  "name": "DemoBorderBeam",
+                  "path": "/components/border-beam",
+                  "permission": "components:border-beam:list",
+                  "sortOrder": 19,
+                  "status": "1"
+                },
+                {
+                  "component": "components/listy/index",
+                  "icon": "carbon:list-bulleted",
+                  "menuName": "通用列表",
+                  "menuType": 2,
+                  "name": "DemoListy",
+                  "path": "/components/listy",
+                  "permission": "components:listy:list",
+                  "sortOrder": 20,
+                  "status": "1"
                 }
               ],
               "icon": "carbon:game-console",

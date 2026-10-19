@@ -19,30 +19,36 @@ redirect: (to) =>
   useRouteStore().isUngrantedExistingPage(to.path) ? '/error/403' : '/error/404',
 ```
 
-`isUngrantedExistingPage`（`apps/web/src/stores/modules/route.ts:370-375`）拿全量菜单快照里的 **叶子落点**（`collectExistingPagePaths`，已剔掉框架页）比对当前地址：页面存在而未授权 → 403，和守卫的 `forbiddenPath` 同一个落点，两种拦法表现一致；真的没这个地址 → 404。判据取"叶子" 而不是"有没有 `component` 字段"—— 约定路由生成的页面记录在快照里未必带该字段，按字段筛会把好端端的页面筛成"不存在"，越权访问就又退回 404 了。
+`isUngrantedExistingPage`（`packages/stores/src/route.ts:379-383`）拿全量菜单快照里的 **叶子落点**（`collectExistingPagePaths`，:397；已剔掉框架页）比对当前地址：页面存在而未授权 → 403，和守卫的 `forbiddenPath` 同一个落点，两种拦法表现一致；真的没这个地址 → 404。判据取"叶子" 而不是"有没有 `component` 字段"—— 约定路由生成的页面记录在快照里未必带该字段，按字段筛会把好端端的页面筛成"不存在"，越权访问就又退回 404 了。
 
 `apps/web/e2e/permission-accounts.spec.ts` 用 `admin` / `custom` 两个账号把这条链钉住：白名单页都能进、名单外的页一律落 `/#/error/403`，并反向对照一次 —— 乱敲的地址（`/components/this-page-does-not-exist`）必须还是 404，否则"没权限"和"打错了"被写成同一个落点没人发现。按钮级的那条不对称放在 `apps/web/e2e/table-crud.spec.ts`：同一张表，admin 看得见「删除 / 批量删除」，custom 只给了 `add`/`edit`，整页找不到任何删除入口。
 
 ## `v-permission` 的写法（arg 与 modifier 别混）
 
-判定优先级来自 `packages/directives/src/permission/utils.ts`： `arg === 'admin'` → 超管；`'*'` 权限码 → 全通；`arg === 'role'` → 按角色解释；否则按权限码。
+判定优先级来自 `packages/directives/src/permission/utils.ts`： `arg === 'admin'` → 超管；`'*'` 权限码 → 全通；`arg === 'role'` → 按角色解释；否则按权限码。示例页与真实业务都用仓库自己封的 `Button`（`@antdv/shadcn-ui` 或 `@antdv/common-ui`），不是 `antdv-next` 的 `a-button` —— `apps/web/src/views/__tests__/gallery-api-usage.spec.ts:137` 会扫源码禁掉示例与布局目录里的 `from 'antdv-next'`，所以这里的示例也照这套写。
 
 ```vue
-<!-- 按权限码（默认解释方式），"或"关系 -->
-<a-button v-permission="'system:user:add'">新增</a-button>
-<a-button v-permission="['system:user:edit', 'system:user:add']">编辑</a-button>
+<script setup lang="ts">
+import { Button } from '@antdv/shadcn-ui';
+</script>
 
-<!-- 要求同时具备 → .all -->
-<a-button v-permission="['a', 'b'].all">两个都要</a-button>
+<template>
+  <!-- 按权限码（默认解释方式），"或"关系 -->
+  <Button v-permission="'system:user:add'">新增</Button>
+  <Button v-permission="['system:user:edit', 'system:user:add']">编辑</Button>
 
-<!-- 按角色：role 是**参数 arg** -->
-<a-button v-permission:role="'auditor'">审计员可见</a-button>
+  <!-- 要求同时具备 → .all -->
+  <Button v-permission="['a', 'b'].all">两个都要</Button>
 
-<!-- 超管：同样是一个 arg，值为空 -->
-<a-button v-permission:admin>管理员可见</a-button>
+  <!-- 按角色：role 是**参数 arg** -->
+  <Button v-permission:role="'auditor'">审计员可见</Button>
 
-<!-- 不隐藏，改成禁用降级 -->
-<a-button v-permission.disabled="'system:user:delete'">删除</a-button>
+  <!-- 超管：同样是一个 arg，值为空 -->
+  <Button v-permission:admin>管理员可见</Button>
+
+  <!-- 不隐藏，改成禁用降级 -->
+  <Button v-permission.disabled="'system:user:delete'">删除</Button>
+</template>
 ```
 
 ::: danger `role` / `admin` 是参数，不是修饰符写成 `v-permission.role="'auditor'"` 或 `v-permission.admin`，判定**根本不读**，元素永远可见 —— 不报错、不警告，是最难发现的一类权限漏洞。（真正的修饰符只有 `.all` 和 `.disabled`。） `apps/web/src/views/__tests__/gallery-api-usage.spec.ts` 里有一条静态守卫专门抓这种写法，并配了"必须命中 / 不许误伤"两组样例，防止规则本身写空。:::
@@ -50,11 +56,11 @@ redirect: (to) =>
 对象写法可以自带口径，此时 `arg` 不再参与解释：
 
 ```vue
-<a-button
+<Button
   v-permission="{ mode: 'all', permissions: ['a', 'b'], roles: ['ops'] }"
 >
   混合判定
-</a-button>
+</Button>
 ```
 
 ## 指令包不碰 store

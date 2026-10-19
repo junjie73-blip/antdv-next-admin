@@ -5,6 +5,8 @@
  * 于是同一套版式既能配 vue-i18n，也能配任何文案源，包本身保持零副作用。
  */
 
+import type { Component } from 'vue';
+
 /** 工具条里的一个主题色预设 */
 export interface AuthColorPreset {
   /** 色块颜色（亮色档），宿主拿它反查 `data-theme` 档位或直接内联 */
@@ -15,8 +17,15 @@ export interface AuthColorPreset {
 
 /** 第三方登录入口 */
 export interface AuthSocialItem {
-  /** iconify 图标名 */
-  icon: string;
+  /**
+   * 图标：iconify 图标名（字符串），或宿主给的 Vue 组件。
+   *
+   * 组件形态是给"图标不在 iconify 离线集里"的场景留的口子 —— 品牌 logo 只能宿主自带
+   * （本地 SVG 走 `vite-plugin-svg-icons` 的雪碧图时用 `@antdv/icons` 的 `SvgIcon` 包一层）。
+   * **组件自己负责尺寸**：`SvgIcon` 的宽高写在内联 style 上，外层给的 `size-[18px]`
+   * 类名压不过它，所以传 `size` 而不是指望类名。
+   */
+  icon: Component | string;
   /** 无障碍名称（title / aria-label），由宿主翻译后传入 */
   label: string;
   /** `select` 事件回传的标识，宿主据此决定跳哪条授权 */

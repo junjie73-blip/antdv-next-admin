@@ -43,8 +43,8 @@ const rootClass = computed(() =>
       ? ALIGN[props.align]
       : props.direction === 'vertical'
         ? 'items-stretch'
-        : 'items-center'
-  )
+        : 'items-center',
+  ),
 );
 
 const style = computed(() => {

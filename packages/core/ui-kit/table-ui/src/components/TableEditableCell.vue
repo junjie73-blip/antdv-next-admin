@@ -136,10 +136,9 @@ const handleKeydownEnter = (e: KeyboardEvent) => {
 </script>
 
 <template>
-  <span
-    v-if="!column?.edit && !column?.editRow"
-    :class="cn('inline-block')"
-  >{{ value }}</span>
+  <span v-if="!column?.edit && !column?.editRow" :class="cn('inline-block')">{{
+    value
+  }}</span>
 
   <div
     v-else-if="isEditing"

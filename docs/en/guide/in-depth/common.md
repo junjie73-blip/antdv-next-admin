@@ -1,15 +1,15 @@
 # Reusable components
 
-In one sentence: **app-level composite components live in `apps/web/src/components/business/`, library-agnostic primitives in `@antdv/icons` and `@antdv/ui-kit/*`, generic hooks in `@antdv/composables`; the `Basic*` family is driven by one `[register, methods]` convention.**
+In one sentence: **app-level composite components live in `apps/web/src/components/business/`, library-agnostic primitives in `@antdv/icons` and `@antdv/ui-kit/*`, generic hooks in `@antdv/hooks`; the `Basic*` family is driven by one `[register, methods]` convention.**
 
 ## The three layers
 
 | Layer | Where | What lives there |
 | --- | --- | --- |
-| App business components | `apps/web/src/components/business/` | `TreeTable`, `ImportExport`, `TenantSelect`, `MicroAppContainer`; `BasicTable`/`TableAction`, `BasicForm` and `BasicModal`/`BasicDrawer` have moved into `@antdv/{table-ui,form-ui,popup-ui}` |
+| App business components | `apps/web/src/components/business/` | Only `ImportExport` and `TenantSelect` remain; `TreeTable` lives in `@antdv/table-ui`, `MicroAppContainer` in `@antdv/common-ui`; `BasicTable`/`TableAction`, `BasicForm` and `BasicModal`/`BasicDrawer` are in `@antdv/{table-ui,form-ui,popup-ui}` |
 | Library-agnostic primitives | `packages/core/base/icons` (`@antdv/icons`) + `packages/core/ui-kit/*` | `IconifyIcon`, `IconPicker`, `SvgIcon` in `@antdv/icons`; `Loading` + `v-loading` in `@antdv/common-ui`; `Scrollbar` in `@antdv/common-ui`; `shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` one package each. None of these depends on antdv-next, and none relies on auto-import — the host must import them explicitly |
-| Generic composables | `packages/core/composables` (`@antdv/composables`) | The root barrel only exports the light ones: `useCache` / `useChunkUpload` / `useFileReader` / `usePrint` / `useRouteLoading` / `useWatermark`; `echarts` / `sse` / `websocket` must be imported from subpaths so that `import { usePrint }` does not pay for a chart library |
-| App-level hooks | `apps/web/src/composables/` | `useCRUD`, `usePermission`, `http` (the request layer's exit) |
+| Generic composables | `packages/core/hooks` (`@antdv/hooks`, consumed from `dist`) | The root barrel only exports the light ones: `useCRUD` / `useCache` / `useChunkUpload` / `useFileReader` / `usePermission` / `usePrint` / `useRouteLoading` / `useWatermark`; `useEcharts` comes from the subpath `@antdv/hooks/echarts` so that `import { usePrint }` does not pay for a chart library. SSE and WebSocket are not here at all — realtime traffic lives in `@antdv/request` |
+| App-level hooks | `apps/web/src/composables/` | `useLocale` / `useLocaleSync` (`useLocale.ts:45,63`), `useNotice`, `usePasswordPolicy` and `http` (the request layer's exit); `useCRUD` and `usePermission` moved into `@antdv/hooks`, with call sites at `directives/index.ts:13`, `plugins/table-runtime.ts:1` and `views/components/table/crud/index.vue:34` |
 
 ## The register-props pattern
 
@@ -17,7 +17,7 @@ Every `Basic*` + `use*` pair works the same way: the hook produces a `register` 
 
 ```vue
 <script setup lang="ts">
-import { BasicTable, useTable } from '~/components/business/Table';
+import { BasicTable, useTable } from '@antdv/table-ui';
 
 const [register, tableRef] = useTable({ api: fetchUsers, useSearchForm: true });
 </script>
@@ -42,7 +42,7 @@ Initial props passed to the hook are merged via `instance.setProps(props)` at re
 
 Every list page does `formMethods.setFieldsValue(record)` before `openModal()`. But `BasicModal` defaults to `destroyOnHidden: true`: before mount (and after the previous close) the stored form reference is a corpse, so values were written into it and the edit dialog never repopulated. `useForm` detects `isMounted() === false`, parks the values in `pendingValues` (successive calls merge, later fields win), and replays them when a live instance registers; `resetFields` clears the parked values too. This behavior is a bug fix — do not regress it back to "manual nextTick after openModal".
 
-## BasicTable's key options (`BasicTableProps` in `Table/types.ts`)
+## BasicTable's key options (`BasicTableProps` in `packages/core/ui-kit/table-ui/src/types.ts`)
 
 | Key | Purpose |
 | --- | --- |
@@ -56,16 +56,16 @@ Instance methods come from `TableActionType`: `reload` / `setProps` / `setColumn
 
 ## useCRUD: wiring a modal CRUD together
 
-`src/composables/useCRUD.ts` takes `formMethods` (required) plus `modalMethods` / `drawerMethods` (chosen by `containerType: 'modal' | 'drawer'`), a `tableMethods` reference (**the instance ref returned by `useTable()`**), the callbacks `onCreate / onUpdate / onDelete / onBatchDelete / onFetchDetail / onExport`, and a `messages` table; it returns `isEditing / currentRecord / loading` and `handleAdd / handleEdit / handleDelete / handleBatchDelete / handleSave`.
+`packages/core/hooks/src/use-crud.ts` (`import { useCRUD } from '@antdv/hooks'`) takes `formMethods` (required) plus `modalMethods` / `drawerMethods` (chosen by `containerType: 'modal' | 'drawer'`), a `tableMethods` reference (**the instance ref returned by `useTable()`**), the callbacks `onCreate / onUpdate / onDelete / onBatchDelete / onFetchDetail / onExport`, and a `messages` table; it returns `isEditing / currentRecord / loading` and `handleAdd / handleEdit / handleDelete / handleBatchDelete / handleSave`.
 
-Confirmation has two separate rules — don't remember it as "all built-in confirms are off": **a single delete confirms nothing** (the action item's `popConfirm` owns it, which is what avoids a double prompt), while **batch delete includes exactly one `Modal.confirm`** (toolbar buttons have no popconfirm host, and the count in the message is appended by the composable). Full sequences and edge cases live in [Composables](/en/guide/in-depth/composables); the working sample is `#/components/table/crud`.
+Confirmation has two separate rules — don't remember it as "all built-in confirms are off": **a single delete confirms nothing** (the action item's `popConfirm` owns it, which is what avoids a double prompt), while **batch delete includes exactly one `confirm()`** (the `@antdv/popup-ui` confirm dialog, `use-crud.ts:277`; toolbar buttons have no popconfirm host, and the count in the message is appended by the composable). Full sequences and edge cases live in [Composables](/en/guide/in-depth/composables); the working sample is `#/components/table/crud`.
 
 ## Worth mentioning
 
-- `CountTo`: animated number, props in `CountTo/types.ts` (`startVal` / `endVal` / `duration` / `autoplay` / `decimals`).
+- `CountTo`: animated number, now in `@antdv/common-ui` (`packages/core/ui-kit/common-ui/src/components/count-to/`), props in `types.ts` (`startVal` / `endVal` / `duration` / `autoplay` / `decimals`).
 - `MarkdownEditor`: a tiptap-based wrapper now living in `@antdv/common-ui` (`packages/core/ui-kit/common-ui/src/components/markdown-editor/`), with an `ImageUploadConfig` hooking into the Minio upload settings; `contentType` decides whether the value is HTML or Markdown source.
-- `Description`, `TreeTable`, `ImportExport`: detail panes, tree tables, import/export.
-- Global registration: `@antdv/icons` ships `createIconInstaller()` (`packages/core/base/icons/src/index.ts:19-31`) and the `@antdv/common-ui` barrel re-exports the directive under the name `vLoading` (`packages/core/ui-kit/common-ui/src/components/loading/index.ts:9`); the app uses no installer and imports everything explicitly so tree-shaking survives (the component resolvers were withdrawn from `internal/vite-config`, so a bare tag is never injected).
+- `Description`, `TreeTable`, `ImportExport`: detail panes, tree tables, import/export. The first two are packaged (`@antdv/common-ui`, `@antdv/table-ui`); `ImportExport` is still app-side in `components/business/`. Export relies on `excel.ts` in `@antdv/shared`.
+- Global registration: `@antdv/icons` ships `createIconInstaller()` (`packages/core/base/icons/src/index.ts:19`) and the loading barrel re-exports the directive under the name `vLoading` (`packages/core/ui-kit/common-ui/src/components/loading/index.ts:7`); the app uses no installer and imports everything explicitly so tree-shaking survives (the component resolvers were withdrawn from `internal/vite-config`, so a bare tag is never injected).
 
 ## Related pages
 

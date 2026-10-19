@@ -4,6 +4,7 @@ import type { EChartsOption } from 'echarts';
 import { computed, ref } from 'vue';
 
 import { Alert, Card } from '@antdv/common-ui';
+import { ECharts } from '@antdv/common-ui/charts';
 import { message } from '@antdv/popup-ui';
 import { Button, Switch } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
@@ -445,10 +446,12 @@ const emptyOption = computed<EChartsOption>(() =>
   <div :class="containerClassName">
     <Alert show-icon type="info">
       本页展示项目内封装的 ECharts 组件（
-      <code>src/components/common/ECharts</code>
-      ，经 unplugin-vue-components 自动注册，模板里直接写
+      <code>@antdv/common-ui/charts</code>
+      ，需要显式
+      <code>import</code>
+      后在模板里写
       <code>&lt;ECharts /&gt;</code>
-      即可），入参只有 option / height / loading
+      ），入参只有 option / height / loading
       三个。所有数据都是本页内置的静态样例数组，没有任何接口请求，可放心整页复制。
     </Alert>
 

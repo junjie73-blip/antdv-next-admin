@@ -40,12 +40,17 @@ const emit = defineEmits<{
   select: [TransferDirection, TransferKey[]];
 }>();
 
-const targetKeys = defineModel<TransferKey[]>('targetKeys', { default: () => [] });
+const targetKeys = defineModel<TransferKey[]>('targetKeys', {
+  default: () => [],
+});
 
 /** 面板内勾选态各自维护，键统一按字符串比较（mock 接口混用数字/字符串） */
 const leftSelected = ref<Set<string>>(new Set());
 const rightSelected = ref<Set<string>>(new Set());
-const search = reactive<Record<TransferDirection, string>>({ left: '', right: '' });
+const search = reactive<Record<TransferDirection, string>>({
+  left: '',
+  right: '',
+});
 
 function displayLabel(item: TransferItem) {
   return props.render?.(item) ?? item.title ?? String(item.key);
@@ -68,7 +73,9 @@ const rightList = computed(() =>
     .filter((item): item is TransferItem => Boolean(item)),
 );
 const leftList = computed(() =>
-  props.dataSource.filter((item) => !targetSet.value.has(transferKey(item.key))),
+  props.dataSource.filter(
+    (item) => !targetSet.value.has(transferKey(item.key)),
+  ),
 );
 
 function listOf(direction: TransferDirection) {
@@ -162,7 +169,10 @@ function move(to: TransferDirection) {
   let next: TransferKey[];
   if (to === 'right') {
     const existing = new Set(current.map(transferKey));
-    next = [...current, ...movedKeys.filter((k) => !existing.has(transferKey(k)))];
+    next = [
+      ...current,
+      ...movedKeys.filter((k) => !existing.has(transferKey(k))),
+    ];
   } else {
     const removing = new Set(movedKeys.map(transferKey));
     next = current.filter((k) => !removing.has(transferKey(k)));
@@ -192,7 +202,9 @@ const canMoveLeft = computed(
           <Checkbox
             :disabled="props.disabled"
             :model-value="panel.headerState"
-            @update:model-value="onSelectAll(panel.direction, panel.items, $event)"
+            @update:model-value="
+              onSelectAll(panel.direction, panel.items, $event)
+            "
           />
           <span class="min-w-0 flex-1 truncate">{{ panel.title }}</span>
           <span class="text-xs text-gray-400">
@@ -223,7 +235,9 @@ const canMoveLeft = computed(
             :class="
               cn(
                 'flex items-center gap-2 px-3 py-1.5',
-                item.disabled || props.disabled ? 'cursor-not-allowed text-gray-400' : ''
+                item.disabled || props.disabled
+                  ? 'cursor-not-allowed text-gray-400'
+                  : '',
               )
             "
           >
@@ -232,9 +246,14 @@ const canMoveLeft = computed(
               :model-value="isSelected(panel.direction, item.key)"
               @update:model-value="onItemSelect(panel.direction, item, $event)"
             />
-            <span class="min-w-0 flex-1 truncate">{{ displayLabel(item) }}</span>
+            <span class="min-w-0 flex-1 truncate">{{
+              displayLabel(item)
+            }}</span>
           </div>
-          <div v-if="!panel.items.length" class="py-6 text-center text-xs text-gray-400">
+          <div
+            v-if="!panel.items.length"
+            class="py-6 text-center text-xs text-gray-400"
+          >
             暂无数据
           </div>
         </div>

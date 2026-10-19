@@ -3,7 +3,7 @@ import { defineAsyncComponent } from 'vue';
 import { configureLayoutHost } from '@antdv/layouts';
 
 import { getNoticeList, markAllNoticeRead, markNoticeRead } from '~/api/system';
-import { localeLabels } from '~/composables/web/useLocale';
+import { localeLabels } from '~/composables/useLocale';
 import { projectConfig } from '~/config/project';
 import i18n from '~/locales';
 import { useWebSocket } from '~/utils/ws';

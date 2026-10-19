@@ -67,15 +67,18 @@ const multipleRef = computed(() => props.multiple);
  * 传入模板里的 `data-common-upload-input` 元素作为 input 注入点，
  * 既复用 vueuse 的原生交互，也让单测能直接在 jsdom 里对该 input 驱动 change。
  */
-const { open: openDialog, reset: resetDialog, onChange: onDialogChange } =
-  useFileDialog({
-    // 模板 ref 挂载前是 undefined，vueuse 内部会容错处理；这里做一次类型桥接
-    input: inputRef as unknown as Ref<HTMLInputElement>,
-    accept: acceptRef,
-    multiple: multipleRef,
-    // 每次打开前清空，保证连续选择同一文件仍能触发 change
-    reset: true,
-  });
+const {
+  open: openDialog,
+  reset: resetDialog,
+  onChange: onDialogChange,
+} = useFileDialog({
+  // 模板 ref 挂载前是 undefined，vueuse 内部会容错处理；这里做一次类型桥接
+  input: inputRef as unknown as Ref<HTMLInputElement>,
+  accept: acceptRef,
+  multiple: multipleRef,
+  // 每次打开前清空，保证连续选择同一文件仍能触发 change
+  reset: true,
+});
 
 onDialogChange((picked: FileList | null) => {
   const files = Array.from(picked ?? []);
@@ -131,8 +134,7 @@ function updateFile(uid: string, patch: Partial<UploadFile>, notify = true) {
     f.uid === uid ? Object.assign(f, patch) : f,
   );
   const target = next.find((f) => f.uid === uid);
-  if (notify && target)
-    commit(next, target);
+  if (notify && target) commit(next, target);
   else fileList.value = next.slice();
 }
 
@@ -164,7 +166,8 @@ function startUpload(uf: UploadFile, raw: File) {
 }
 
 async function processFiles(rawFiles: File[]) {
-  const list = rawFiles.length && props.multiple ? rawFiles : rawFiles.slice(0, 1);
+  const list =
+    rawFiles.length && props.multiple ? rawFiles : rawFiles.slice(0, 1);
 
   for (const raw of list) {
     let toUse: File = raw;
@@ -173,7 +176,7 @@ async function processFiles(rawFiles: File[]) {
       try {
         const res = await props.beforeUpload(raw, list);
         if (res === false) continue;
-        if (res instanceof Blob || (res instanceof File)) toUse = res as File;
+        if (res instanceof Blob || res instanceof File) toUse = res as File;
       } catch {
         continue; // 拒绝的 Promise 视为跳过
       }
@@ -236,7 +239,11 @@ function handleRetry(file: UploadFile) {
   const raw = (file.originFileObj as File) ?? queued.get(file.uid);
   if (!raw) return;
   queued.delete(file.uid);
-  updateFile(file.uid, { status: 'uploading', percent: 0, error: undefined }, false);
+  updateFile(
+    file.uid,
+    { status: 'uploading', percent: 0, error: undefined },
+    false,
+  );
   startUpload(file, raw);
 }
 

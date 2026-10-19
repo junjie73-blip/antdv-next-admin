@@ -20,7 +20,9 @@ const props = withDefaults(
 );
 
 const context = inject(TABS_KEY, undefined);
-const isActive = computed(() => String(context?.value.active) === String(props.value));
+const isActive = computed(
+  () => String(context?.value.active) === String(props.value),
+);
 
 // 首次激活后才挂载，之后靠 v-show 保留内部状态
 const mounted = ref(isActive.value);

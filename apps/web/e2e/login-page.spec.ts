@@ -144,4 +144,62 @@ test.describe('登录页的样式', () => {
       .poll(() => backgroundColor(auth(page, 'submit')))
       .not.toBe(before);
   });
+
+  test('官方 logo 与侧栏同一档规格，品牌栏结构齐全', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/#/login');
+
+    // 官方 logo 是应用里的图片资源，不是内联占位图形 —— 必须真的解码成功
+    const logo = auth(page, 'logo-img');
+    await expect(logo).toBeVisible();
+    await expect
+      .poll(() =>
+        logo.evaluate((node) => (node as HTMLImageElement).naturalWidth),
+      )
+      .toBeGreaterThan(0);
+    // h-8 w-8 + object-contain：32px 见方，不拉伸不裁切
+    const box = await logo.boundingBox();
+    expect(box?.width).toBeCloseTo(32, 0);
+    expect(box?.height).toBeCloseTo(32, 0);
+
+    await expect(auth(page, 'brand-title')).toBeVisible();
+    await expect(auth(page, 'brand-desc')).toBeVisible();
+    await expect
+      .poll(() => auth(page, 'brand-features').count())
+      .toBe(1);
+    expect(
+      await page.locator('[data-auth="brand-feature"]').count(),
+    ).toBeGreaterThanOrEqual(3);
+
+    // 表单徽标跟着登录方式换字，和下方的切换按钮同源
+    await expect(auth(page, 'form-badge')).toContainText('账号登录');
+    await auth(page, 'mode-mobile').click();
+    await expect(auth(page, 'form-badge')).toContainText('手机号登录');
+
+    // 卡片居中版式不允许挤出横向滚动
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth,
+      ),
+      '1440px 下登录页出现横向溢出',
+    ).toBe(true);
+  });
+
+  test('卡片左右两栏各占一半以上，表单不会挤成窄条', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/#/login');
+
+    const card = await auth(page, 'card').boundingBox();
+    const brand = await auth(page, 'brand').boundingBox();
+    const panel = await auth(page, 'panel').boundingBox();
+    expect(card?.width).toBeCloseTo(1152, 0); // 1440 已过 xl 断点，卡片走 max-w-6xl
+    // 品牌栏 46% / 表单栏 54%，两栏加起来正好铺满卡片内容区（各边 1px 边框之外）
+    expect(brand!.width / card!.width).toBeGreaterThan(0.4);
+    expect(panel!.width / card!.width).toBeGreaterThan(0.5);
+    expect(brand!.width + panel!.width).toBeCloseTo(card!.width - 2, 0);
+    // 两栏顶边对齐，否则视觉上卡片像被切了一刀
+    expect(Math.abs(brand!.y - panel!.y)).toBeLessThan(1);
+  });
 });

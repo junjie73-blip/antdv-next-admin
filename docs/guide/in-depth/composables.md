@@ -1,26 +1,27 @@
 # 组合式函数
 
-这个仓库里的 `use*` 分三处住着，**判据是"它依赖什么"**：驱动某个 `Basic*` 组件的 hook 和组件同目录（`apps/web/src/components/business/<组件>/`）；要读 store、发请求、跳路由的应用级 hook 在 `apps/web/src/composables/`；只碰 DOM / 浏览器 API、不带业务依赖的通用件在 `packages/composables`（`@antdv/composables`）。本文按这个顺序展开，重点是**前两类怎么把组件驱起来** —— `useTable` / `useForm` / `useModal` / `useCRUD` 这一组接线是全站列表页的骨架，写法上有好几个"照着 vue-vben-admin 的记忆写就会错"的地方。
+这个仓库里的 `use*` 分三处住着，**判据是"它依赖什么"**：驱动某个 `Basic*` 组件的 hook 和组件同包（`packages/core/ui-kit/<层>/src/`）；要发请求、跳路由、读 i18n 单例的应用级 hook 在 `apps/web/src/composables/`；只碰 DOM / 浏览器 API / 会话 store 的通用件在 `packages/core/hooks`（`@antdv/hooks`）。本文按这个顺序展开，重点是**前两类怎么把组件驱起来** —— `useTable` / `useForm` / `useModal` / `useCRUD` 这一组接线是全站列表页的骨架，写法上有好几个"照着 vue-vben-admin 的记忆写就会错"的地方。
 
 ## 归属与导入（先定坐标）
 
 | 归属 | 位置 | 导入口径 | 典型成员 |
 | --- | --- | --- | --- |
-| 组件驱动型 | `apps/web/src/components/business/<组件>/useXxx.ts` | 从该组件目录的 `index.ts` 引 | `useTable`、`useForm`、`useModal`、`useModalInner`、`useDrawer` |
-| 应用级 | `apps/web/src/composables/` | `~/composables`（barrel）或具体文件深路径 | `useCRUD`、`usePermission`、`http` / `request` / `useRequest` / `requestCache`、`useLocale`、`useLocaleSync`、`useNotice`、`usePasswordPolicy` |
-| 应用无关通用件 | `@antdv/composables` | 根入口 `@antdv/composables`，重件走子路径 | `useCache`、`useChunkUpload`、`useFileReader`、`usePrint`、`useRouteLoading`、`useWatermark`；`@antdv/composables/echarts`、`/sse`、`/websocket`。这批 hook 不读 pinia / store / `import.meta.env`，唯一的 UI 侧依赖是 `usePrint` 失败时用的 `@antdv/popup-ui` 的 `message`（vue-sonner 的封装），不是任何组件库 |
+| 组件驱动型 | `packages/core/ui-kit/<层>/src/`（`useTable` 在 table-ui、`useForm` 在 form-ui、`useModal` / `useDrawer` 在 popup-ui） | 从该包的根入口引 | `useTable`、`useForm`、`useModal`、`useModalInner`、`useDrawer` |
+| 应用级 | `apps/web/src/composables/` | `~/composables`（barrel）或具体文件深路径 | `http` / `request` / `useRequest` / `requestCache`（barrel 只转出了 `@antdv/request`）、`useLocale`、`useLocaleSync`、`useNotice`、`usePasswordPolicy` |
+| 应用无关通用件 | `@antdv/hooks` | 根入口 `@antdv/hooks`，重件走子路径 | `useCache`、`useChunkUpload`、`useFileReader`、`usePrint`、`useRouteLoading`、`useWatermark`、`useCRUD`、`usePermission`；`@antdv/hooks/echarts`。这批 hook 不发请求、不读路由实例，UI 侧依赖只有 `usePrint` 与 `useCRUD` 用到的 `@antdv/popup-ui` 的 `message` / `confirm`（vue-sonner 的封装）；`usePermission` 是唯一读会话状态的那个，只认 `@antdv/stores` 的 user store |
 
-::: warning 本仓库的组合式函数一个都不自动导入 `unplugin-auto-import` 的 `imports` 只列了 `vue` / `@vueuse/core` / `pinia` / `vue-router` 四项（`internal/vite-config/src/plugins/auto-import.ts:48-51`），**没有配 `dirs`**，antdv-next 的函数式 API 也早就不在里面了。所以 `useTable`、`http`、`usePermission`，以及 `message` / `notification` / `Modal` / `Drawer` 这一类必须显式 `import`。
+::: warning 本仓库的组合式函数一个都不自动导入 `unplugin-auto-import` 的 `imports` 只列了 `vue` / `@vueuse/core` / `pinia` / `vue-router` 四项（`internal/vite-config/src/plugins/auto-import.ts:23-26`），**没有配 `dirs`**，antdv-next 的函数式 API 也早就不在里面了。所以 `useTable`、`http`、`usePermission`，以及 `message` / `notification` / `Modal` / `Drawer` 这一类必须显式 `import`。
 
 撞名比漏 import 更阴：`@vueuse/core` 自己就导出 `usePermission`（浏览器的 Permissions API）和 `useWebSocket`，这两个已经躺在 `apps/web/types/auto-imports.d.ts:232` 与 `:293` 里被自动导入了。少写一行 import 不会报错，只会拿到另一个函数的返回值 —— vueuse 的 `usePermission()` 返回的是 `{ permissions }` 一个 ref，压根没有 `hasPermission` 方法。
 
-`@antdv/composables` 的 `echarts` / `sse` / `websocket` 故意**不进根 barrel**：它们要么拖进整个图表库注册表，要么带一堆管理器类，放进根入口会让 `import { usePrint }` 也付出一份图表的解析成本（`packages/composables/src/index.ts:1-12`，`exports` 映射见 `packages/composables/package.json:21-43`，其中 `"./*"` 通配让单文件模块可以直接按名引）。:::
+`@antdv/hooks` 的 `echarts` 故意**不进根 barrel**：它拖进整个图表库的全量注册表，放进根入口会让 `import { usePrint }` 也付出一份图表的解析成本（`packages/core/hooks/src/index.ts`，`exports` 映射见 `packages/core/hooks/package.json`，其中 `"./*"` 通配让单文件模块可以直接按名引，`@antdv/hooks/use-print`、`@antdv/hooks/use-crud` 都走这条）。SSE 与 WebSocket 不住这里 —— 它们在 `@antdv/request`（`packages/request/src/{sse,websocket}/`），与 HTTP 共用一套重连语义。:::
 
-barrel 覆盖面也值得记一笔：`apps/web/src/composables/index.ts` 只 re-export 三样 —— `useCRUD`、`usePermission`，加上已经独立成包的 `@antdv/request` 全量出口。`useLocale` / `useLocaleSync` / `useNotice` / `usePasswordPolicy` 得按文件路径引：
+barrel 覆盖面也值得记一笔：`apps/web/src/composables/index.ts` 现在只剩一件事 —— 整包转出 `@antdv/request`，让老调用点继续按 `~/composables` 取 `http` / `request`。`useCRUD` 与 `usePermission` 已经迁进 `@antdv/hooks`，`useLocale` / `useLocaleSync` / `useNotice` / `usePasswordPolicy` 按文件路径引：
 
 ```ts
-import { http, useCRUD, usePermission } from '~/composables';
-import { useLocaleSync } from '~/composables/web/useLocale';
+import { http } from '~/composables';
+import { useCRUD, usePermission } from '@antdv/hooks';
+import { useLocaleSync } from '~/composables/useLocale';
 ```
 
 `useThemeTransition` 以前也在这排里，现在它住在装配层：`import { useThemeTransition } from '@antdv/layouts/hooks/use-theme-transition'`（`packages/layouts/src/hooks/use-theme-transition.ts`），全仓只有顶栏那个小部件用它。
@@ -31,7 +32,7 @@ import { useLocaleSync } from '~/composables/web/useLocale';
 
 ```vue
 <script setup lang="ts">
-import { BasicTable, useTable } from '~/components/business/Table';
+import { BasicTable, useTable } from '@antdv/table-ui';
 
 const [register, tableRef] = useTable({
   api: getUserList,
@@ -48,26 +49,26 @@ const [register, tableRef] = useTable({
 
 | Hook | 源码 | 返回 | 用法 |
 | --- | --- | --- | --- |
-| `useTable(props?)` | `Table/useTable.ts:24-41` | `[register, Ref<null \| TableActionType>]` | 是**实例 ref**：`tableRef.value?.reload()` |
-| `useForm(props?)` | `Form/useForm.ts:13-168` | `[register, FormActionType]` | 是**方法对象**：`formMethods.setFieldsValue(v)` |
-| `useModal()` | `Modal/useModal.ts:9-54` | `[register, ModalMethods]` | 方法对象，内部等实例 |
-| `useModalInner(cb?)` | `Modal/useModalInner.ts:20-71` | `[register, ModalInnerMethods]` | 在**弹窗组件内部**用 |
-| `useDrawer()` | `Drawer/useDrawer.ts:9-60` | `[register, DrawerMethods]` | 同 `useModal` |
+| `useTable(props?)` | `packages/core/ui-kit/table-ui/src/useTable.ts:20-37` | `[register, Ref<null \| TableActionType>]` | 是**实例 ref**：`tableRef.value?.reload()` |
+| `useForm(props?)` | `packages/core/ui-kit/form-ui/src/use-antdv-form.ts:13-157` | `[register, FormActionType]` | 是**方法对象**：`formMethods.setFieldsValue(v)` |
+| `useModal()` | `packages/core/ui-kit/popup-ui/src/modal/useModal.ts:13-58` | `[register, ModalMethods]` | 方法对象，内部等实例 |
+| `useModalInner(cb?)` | `packages/core/ui-kit/popup-ui/src/modal/useModalInner.ts:21-73` | `[register, ModalInnerMethods]` | 在**弹窗组件内部**用 |
+| `useDrawer()` | `packages/core/ui-kit/popup-ui/src/drawer/useDrawer.ts:10-57` | `[register, DrawerMethods]` | 同 `useModal` |
 
-`useTable` 的 `useTable.ts` 顶部注释写的是 `methods.reload()`，那是旧写法，照抄会报 undefined。另外 `Drawer/index.ts` 把 `useDrawerInner` 作为 `useDrawer` 的**别名**导出（`export { useDrawer as useDrawerInner }`），它没有 `useModalInner` 那套"接收 data 的回调"语义 —— 需要 data 通道时只有 Modal 有。:::
+`useTable.ts` 顶部的用法注释已经写成 `tableRef.value?.reload()`（`:18`），跟着它走就对。另外 `Drawer/index.ts` 把 `useDrawerInner` 作为 `useDrawer` 的**别名**导出（`packages/core/ui-kit/popup-ui/src/drawer/index.ts`），它没有 `useModalInner` 那套"接收 data 的回调"语义 —— 需要 data 通道时只有 Modal 有。:::
 
 三种"拿不到实例"的表现也各不相同，这决定了你要不要判空：
 
 | Hook | 实例还没注册时 |
 | --- | --- |
 | `useTable` | ref 保持 `null`，`tableRef.value?.reload()` 静默跳过（所以调用点要么判空要么 `?.`） |
-| `useModal` / `useDrawer` | `waitForInstance()` 最多重试 10 次 ×（`nextTick` + 50 ms），仍拿不到就 **抛错** `[useModal] Modal instance not found…`（`useModal.ts:22-35`、`useDrawer.ts:29-41`） |
-| `useForm` | 除 `setFieldsValue` / `resetFields` 外都是**静默 no-op**（`useForm.ts:57-59` 取不到实例就返回空对象），不重试也不抛错 |
+| `useModal` / `useDrawer` | `waitForInstance()` 最多重试 10 次 ×（`nextTick` + 50 ms），仍拿不到就 **抛错** `[useModal] Modal instance not found…` / `[useDrawer] Drawer instance not found…`（`useModal.ts:26-39`、`useDrawer.ts:26-38`） |
+| `useForm` | 除 `setFieldsValue` / `resetFields` 外都是**静默 no-op**（`use-antdv-form.ts:43-45` 的 `getFormInstance()` 取不到实例就返回 `null`，方法里再回退成空对象），不重试也不抛错 |
 
 ### useTable：初始 props 在 register 那一刻合并
 
 ```ts
-// apps/web/src/components/business/Table/useTable.ts:31-38
+// packages/core/ui-kit/table-ui/src/useTable.ts:27-34
 function register(instance: TableActionType) {
   tableRef.value = instance;
   if (props) {
@@ -76,7 +77,7 @@ function register(instance: TableActionType) {
 }
 ```
 
-所以 `useTable({ api })` 和模板上写 `:api="api"` 是同一件事的两个入口，`useTable` 里那份**先**执行。表格 props 的完整口径、响应解包顺序（`listField → items → data → records → 裸数组`）、`fetchSetting` 默认 `pageNum / pageSize / list / total` 都在[表格](/components/table)里写过，这里不再抄一遍。要记的是实例方法清单在 `Table/types.ts:711` 的 `TableActionType`，`reload` / `setProps` / `getSelectRows` / `clearSelectedRowKeys` / `setTableData` / `expandAll` 等，以及转发给内置搜索表单的那一组（`getFormValues`、`updateFormSchema`…）。
+所以 `useTable({ api })` 和模板上写 `:api="api"` 是同一件事的两个入口，`useTable` 里那份**先**执行。表格 props 的完整口径、响应解包顺序（`listField → items → data → records → 裸数组`）、`fetchSetting` 默认 `pageNum / pageSize / list / total` 都在[表格](/components/table)里写过，这里不再抄一遍。要记的是实例方法清单在 `packages/core/ui-kit/table-ui/src/types.ts:776` 的 `TableActionType`，`reload` / `setProps` / `getSelectRows` / `clearSelectedRowKeys` / `setTableData` / `expandAll` 等，以及转发给内置搜索表单的那一组（`getFormValues`、`updateFormSchema`…）。
 
 ### useForm：`pendingValues` 是编辑弹窗能回填的原因
 
@@ -89,7 +90,7 @@ modalMethods.openModal();
 
 而 `BasicModal` 默认 `destroyOnHidden: true` —— 弹窗没开时表单组件根本不在组件树上，关掉一次又被销毁一次。`formRef` 里留着的是**上一次 register 的对象引用**，卸载不会让它变 null，于是值写进了一具尸体，表现是"点编辑，弹窗里啥都没有；一保存把这条记录清空了"。
 
-`useForm` 的解法（`Form/useForm.ts:17-55`、`67-84`）：实例 `isMounted() === false` 时把值暂存进 `pendingValues`，多次调用**累加**而不是覆盖（后写的字段赢），`register` 拿到活实例后补写一次；显式 `resetFields()` 会把暂存一起清掉，否则下次挂载又被旧数据盖回来。**不要**退化回"`openModal` 之后手动 `await nextTick()` 灌值"的写法 —— 那依赖 Modal 的挂载时机，很脆。
+`useForm` 的解法（`packages/core/ui-kit/form-ui/src/use-antdv-form.ts:23, 26-30, 32-41, 53-64, 66-73`）：`getLiveInstance()` 判 `isMounted() === false` 就把值暂存进 `pendingValues`（`:26-30`），多次调用**累加**而不是覆盖（`:60-63`，后写的字段赢），`register` 拿到实例后补写一次并清空（`:36-39`）；显式 `resetFields()` 会把暂存一起清掉（`:68`），否则下次挂载又被旧数据盖回来。**不要**退化回"`openModal` 之后手动 `await nextTick()` 灌值"的写法 —— 那依赖 Modal 的挂载时机，很脆。
 
 ### useModal / useModalInner：一个在外面，一个在里面
 
@@ -111,7 +112,7 @@ const [register, { closeModal, setModalProps, changeOkLoading }] =
 
 ## 二、useCRUD：把弹窗 + 表单 + 表格接成一条线
 
-`apps/web/src/composables/useCRUD.ts:100` 的 `useCRUD<RecordType, FormValues>(options)` 不碰任何接口，它只编排上面三个 hook 的实例：**校验 → 落库 → 关窗 → 刷新表格**这条固定序列搬进 composable，页面只声明"怎么创建、怎么更新、怎么删、文案叫什么"。
+`packages/core/hooks/src/use-crud.ts:134` 的 `useCRUD<RecordType, FormValues>(options)` 不碰任何接口，它只编排上面三个 hook 的实例：**校验 → 落库 → 关窗 → 刷新表格**这条固定序列搬进 composable，页面只声明"怎么创建、怎么更新、怎么删、文案叫什么"。
 
 ```ts
 // apps/web/src/views/components/table/crud/index.vue:205-237（节选）
@@ -151,7 +152,7 @@ const {
 });
 ```
 
-### options（`useCRUD.ts:26-85`）
+### options（`use-crud.ts:36-95`）
 
 | 字段 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
@@ -166,10 +167,10 @@ const {
 | `getFormValues` / `getEmptyValues` | `(record) => Values` / `() => Values` | 直接用记录 / `{}` | 回填与新增的初值 |
 | `beforeCreate` / `beforeUpdate` / `beforeDelete` | `(...) => boolean \| Promise<boolean>` | — | 返回 `false` 中断；`beforeDelete` 在批量场景**逐条**调用，任一 `false` 整批中止 |
 | `onSaved` / `onDeleted` | 回调 | — | `onSaved(isEdit, values)` |
-| `messages` | `CRUDMessages` | 见 `useCRUD.ts:87-98` | 十个文案键，成功/失败/确认各一对 |
+| `messages` | `CRUDMessages` | 见 `use-crud.ts:97-108` | 十个文案键，成功/失败/确认各一对 |
 | `onExport` / `onImport` | `(params?) => …` / `(file: File) => …` | — | 缺省时调用 `handleExport` / `handleImport` 只弹一条"未配置…功能" |
 
-返回值：`isEditing`、`currentRecord`、`loading` 三个 ref + `handleAdd` / `handleEdit` / `handleDelete` / `handleBatchDelete` / `handleSave` / `handleExport` / `handleImport` / `reset`（`useCRUD.ts:344-360`）。
+返回值：`isEditing`、`currentRecord`、`loading` 三个 ref + `handleAdd` / `handleEdit` / `handleDelete` / `handleBatchDelete` / `handleSave` / `handleExport` / `handleImport` / `reset`（`use-crud.ts:376-392`）。
 
 ### 固定时序与三处必须知道的边界
 
@@ -205,11 +206,11 @@ function clearSelection() {
 
 ::: danger API helper 已经把信封剥过一层 `~/api/request.ts` 的 `get/post/put/del` 内部是 `http.Get<R<T>>(…).then(res => res.data)`（`api/request.ts:18-54`），也就是**它们 resolve 出来就是负载本身**。所以 `onCreate: (values) => addTask(values)` 直接给函数就行，别再 `.then(res => res.data)` —— 多剥一次拿到 `undefined`，表现是"保存成功了但表格没新行 / 编辑弹窗回填全空"。:::
 
-行为契约写成了单测：`apps/web/src/composables/__tests__/use-crud.spec.ts`（23 条，用最小替身把三个组件的方法名与**调用顺序**都断言住了 —— 例如"先 `resetFields` 再 `setFieldsValue`"错了就是弹窗闪一下上一个人的数据）。改 `useCRUD` 前后都跑它。
+行为契约写成了单测：`packages/core/hooks/__tests__/use-crud.test.ts`（23 条，用最小替身把三个组件的方法名与**调用顺序**都断言住了 —— 例如"先 `resetFields` 再 `setFieldsValue`"错了就是弹窗闪一下上一个人的数据）。改 `useCRUD` 前后都跑它。
 
 ## 三、权限：usePermission 与按钮级访问
 
-`apps/web/src/composables/web/permission/usePermission.ts:12`，数据源是 `useUserStore()` 的 `permissions` / `roles`：
+`packages/core/hooks/src/use-permission.ts:68`，数据源是 `useUserStore()` 的 `permissions` / `roles`：
 
 ```ts
 const {
@@ -231,7 +232,7 @@ const {
 | `checkPermission(perms, { mode })` / `checkRole(roles, { mode })` | `mode: 'any'` 走 any，否则默认 all |
 | `permissions` / `roles` | `readonly(computed)`，给模板直接渲染用 |
 
-三条判定口径，都在 `usePermission.ts:19-44`：
+三条判定口径，都在 `use-permission.ts:86-140`：
 
 1. **未登录一律 false**：每个方法先过 `checkAuth()`，不看权限表。
 2. **`'*'` 是全通哨兵**：用户权限里出现它就万事通过（mock 的 `admin` 账号就是 `permissions: ['*']`，超管不必逐条列举）。
@@ -271,7 +272,7 @@ const actions = (record: Recordable): ActionItem[] => [
 
 ## 四、请求层：`http` / `useRequest` / `requestCache`
 
-出口在 `@antdv/request`（`packages/request/src/index.ts`）；`~/composables` 仍然整包 re-export 它（`composables/index.ts:3`），老调用点一行都不用改。实现分四层：`fetcher`（@vueuse `createFetch` + 拦截器）→ `executor`（缓存 / 去重 / 重试 / 401 重放）→ `http`（五个动词）→ `useRequest`（组合式外壳）。
+出口在 `@antdv/request`（`packages/request/src/index.ts`）；`~/composables` 仍然整包 re-export 它（`composables/index.ts:6`），老调用点一行都不用改。实现分四层：`fetcher`（@vueuse `createFetch` + 拦截器）→ `executor`（缓存 / 去重 / 重试 / 401 重放）→ `http`（五个动词）→ `useRequest`（组合式外壳）。
 
 ### http：命令式动词
 
@@ -417,7 +418,7 @@ WebSocket 这一侧的口径是：业务代码订**应用级单例** `useWebSock
 3. **需要收尾的一律注册清理**：`onScopeDispose` / `tryOnScopeDispose` / `onUnmounted`；确实不做的（如 `useWebSocket`）要在类型注释里写明白，让调用方知道自己负责。
 4. **模块级状态是有意为之就要说明**：`useNotice`、`usePasswordPolicy`、`utils/ws` 都是跨组件共享的单例，注释里写清"多处调用共享同一份"，否则后来人会以为每次调用都是新状态。
 5. **类型和默认值同源**：options 接口逐字段带类型注释，默认值在解构处给（本文的表格就是照这个规则从源码里读的）。
-6. **配单测**：`apps/web/src/composables/__tests__/<name>.spec.ts`，依赖组件用最小替身 + 调用顺序数组（参考 `use-crud.spec.ts`）；跑 `pnpm --filter @antdv/web test:unit`。
+6. **配单测**：`apps/web/src/composables/__tests__/<name>.spec.ts`，依赖组件用最小替身 + 调用顺序数组（参考 `use-crud.test.ts`）；跑 `pnpm --filter @antdv/web test:unit`。
 7. 改 `packages/*` 要重新构建子包（`npx turbo build --filter=@antdv/composables`）才被 `apps/web` 看到。
 
 ## 在线示例

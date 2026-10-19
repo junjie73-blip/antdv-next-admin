@@ -29,12 +29,15 @@ const labelPlacement = computed(
 const labeled = computed(() => Boolean(props.labelPlacement || props.mode));
 
 const rootClass = computed(() =>
-  cn('flex flex-col', props.reverse ? 'flex-col-reverse' : '')
+  cn('flex flex-col', props.reverse ? 'flex-col-reverse' : ''),
 );
 
 provide(
   TIMELINE_KEY,
-  computed(() => ({ labelPlacement: labelPlacement.value, labeled: labeled.value })),
+  computed(() => ({
+    labelPlacement: labelPlacement.value,
+    labeled: labeled.value,
+  })),
 );
 </script>
 

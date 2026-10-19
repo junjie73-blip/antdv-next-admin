@@ -25,7 +25,10 @@ const props = withDefaults(
   },
 );
 
-const emits = defineEmits<{ change: [number | string]; 'update:activeKey': [number | string] }>();
+const emits = defineEmits<{
+  change: [number | string];
+  'update:activeKey': [number | string];
+}>();
 
 const panes: Ref<TabPaneProps[]> = ref([]);
 const innerActive = ref<number | string | undefined>(props.defaultActiveKey);

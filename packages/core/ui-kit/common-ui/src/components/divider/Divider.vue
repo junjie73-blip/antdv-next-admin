@@ -61,7 +61,10 @@ const trailingLine = computed(
   <div v-else-if="$slots.default" role="separator" :class="labelClass">
     <span class="h-px flex-1 bg-gray-200 dark:bg-gray-700"></span>
     <span class="shrink-0"><slot></slot></span>
-    <span v-if="trailingLine" class="h-px flex-1 bg-gray-200 dark:bg-gray-700"></span>
+    <span
+      v-if="trailingLine"
+      class="h-px flex-1 bg-gray-200 dark:bg-gray-700"
+    ></span>
   </div>
 
   <Separator v-else :decorative="false" :class="plainClass">

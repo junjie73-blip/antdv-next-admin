@@ -81,11 +81,11 @@ This layer is actually better tested than `shared` — every entry has a spec in
 | `apps/web/src/utils/securityInit.ts:16` | `initSecuritySystem` | in use (`main.ts:35,95`) |
 | `apps/web/src/utils/crud-actions.ts:15` | `createCrudActions` | **no call site** |
 | `apps/web/src/utils/routePreload.ts:38,110,130` | `preloadRoute` / `preloadRoutes` / `useRoutePreloader` | **no call site** (only re-exported by `utils/index.ts:3`) |
-| `apps/web/src/composables/index.ts:1-3` | `useCRUD`, `usePermission`, everything from `@antdv/request` | The request layer is in use (`stores/modules/user.ts:7`, `route.ts:18` take `http`); `usePermission` is imported straight from `~/composables/web/permission` (`directives/index.ts:13`); `useCRUD` (`useCRUD.ts:100`) has **no call site** |
+| `apps/web/src/composables/index.ts:6` | Only the whole `@antdv/request` surface (`http` / `request` / `ExecuteOptions`) | The request layer is in use (`api/request.ts:3`, `api/query.ts:10`, `components/common/AvatarUploader.vue:13` and 3 more); `useCRUD` and `usePermission` now live in `@antdv/hooks` and are imported from the package by both pages and directives (`views/components/table/crud/index.vue:34`, `directives/index.ts:13`); the stores do not route through this shell — they take `import { http } from '@antdv/request'` directly (`packages/stores/src/user.ts:6`, `route.ts:8`) |
 | `apps/web/src/composables/useNotice.ts:62` | `useNotice` | **no call site** |
 | `apps/web/src/composables/usePasswordPolicy.ts:24` | `usePasswordPolicy` | **no call site** |
 
-Neither `utils/**` nor `composables/useCRUD.ts` has unit tests: no `__tests__` directory exists under `apps/web/src/utils` (the request layer lives in its own package and does — `packages/request/__tests__/`). That is the division of labour showing up in the test layout: the logic should be in a package, where it can be tested.
+Neither `utils/**` nor the app-side shells have unit tests: no `__tests__` directory exists under `apps/web/src/utils`. Once the logic moved into packages it got its tests there — the request layer in `packages/request/__tests__/`, the generic composables in `packages/core/hooks/__tests__/` (one file each for `useCRUD` and `usePermission`). That is the division of labour showing up in the test layout: the logic should be in a package, where it can be tested.
 
 ## The hard boundary: no pinia, no stores, no env inside packages
 

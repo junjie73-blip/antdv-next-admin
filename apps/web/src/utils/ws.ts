@@ -1,10 +1,9 @@
-import { h, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 
-import { eventBus } from '@antdv/shared/utils/event';
-import { Icon } from '@iconify/vue';
 import { NOTIFICATION_TOASTER_ID, toast } from '@antdv/popup-ui';
 import { forceLogout } from '@antdv/request';
 import { useWebSocket as useWebSocketComposable } from '@antdv/request/websocket';
+import { eventBus } from '@antdv/shared/utils/event';
 import { useUserStore } from '@antdv/stores';
 
 // ==================== 类型 ====================
@@ -169,15 +168,20 @@ function handleMessage(raw: unknown): void {
     /*
      * 走通知通道（`toasterId`），出场位置交给偏好 `notificationPosition` ——
      * 这里再钉一个 `position` 就会把用户的设置盖掉。
+     *
+     * 徽标一律交给 `<Toaster />` 的四个状态插槽（见 @antdv/common-ui 的 toast/Toaster.vue）：
+     * 自定义 `icon` 会把插槽整个顶掉，配色退化成硬编码的实色图标，
+     * 和"实色圆徽 + 反白笔画"的通知规范对不上，所以按公告类型映射到 toast 的类型上。
      */
-    toast(`新${noticeTypeConfig[notice.noticeType]?.label || '通知'}`, {
+    const toastType =
+      notice.noticeType === 2
+        ? 'success'
+        : notice.noticeType === 3
+          ? 'warning'
+          : 'info';
+    toast[toastType](`新${noticeTypeConfig[notice.noticeType]?.label || '通知'}`, {
       description: notice.title,
       duration: 3000,
-      icon: h(Icon, {
-        icon:
-          noticeTypeConfig[notice.noticeType]?.icon || 'carbon:notification',
-        style: { color: '#108ee9' },
-      }),
       toasterId: NOTIFICATION_TOASTER_ID,
     });
     return;

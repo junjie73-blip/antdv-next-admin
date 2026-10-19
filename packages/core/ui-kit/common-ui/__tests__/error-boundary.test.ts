@@ -73,10 +73,27 @@ describe('ErrorBoundary', () => {
     });
     await flushPromises();
     await nextTick();
-    const btn = wrapper.findAll('button').find((b) => b.text().includes('重试'));
+    const btn = wrapper
+      .findAll('button')
+      .find((b) => b.text().includes('重试'));
     expect(btn).toBeTruthy();
     await btn!.trigger('click');
     expect(wrapper.emitted('reset')).toBeTruthy();
+  });
+
+  // 堆栈区必须是定高：`max-h-*` 只裁掉可视高度，Scrollbar 内部的滚动区量不到确定高度，
+  // 结果就是浏览器里"看得见一半、滚不动"（jsdom 不应用 CSS，只能钉类名）。
+  it('调用栈区套的是定高 Scrollbar', async () => {
+    configureSharedEnv({ production: false });
+    const wrapper = mount(ErrorBoundary, {
+      slots: { default: () => h(makeBoom()) },
+    });
+    await flushPromises();
+    await nextTick();
+    const scrollbar = wrapper.find('.scrollbar');
+    expect(scrollbar.exists()).toBe(true);
+    expect(scrollbar.classes()).toContain('h-32');
+    expect(scrollbar.classes()).not.toContain('max-h-32');
   });
 
   // 调用栈详情属于调试信息：开发态给出、生产构建里不渲染。判定走注入的环境配置，所以两个分支都能测。

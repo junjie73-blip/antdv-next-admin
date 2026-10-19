@@ -105,7 +105,7 @@ describe('AuthPageLayout', () => {
     });
     const pills = wrapper.findAll('[data-auth="brand-feature"]');
     expect(pills).toHaveLength(2);
-    expect(pills[0].text()).toBe('极速开发体验');
+    expect(pills[0]!.text()).toBe('极速开发体验');
 
     const bare = mount(AuthPageLayout);
     expect(bare.find('[data-auth="brand-features"]').exists()).toBe(false);
@@ -203,8 +203,25 @@ describe('AuthSocialLogin', () => {
 
   it('点击条目抛出该条目本身', async () => {
     const wrapper = mount(AuthSocialLogin, { props: { items } });
-    await wrapper.findAll('button')[1].trigger('click');
+    await wrapper.findAll('button')[1]!.trigger('click');
     expect(wrapper.emitted('select')).toEqual([[items[1]]]);
+  });
+
+  it('icon 给字符串走 iconify，给组件则原样渲染并带上同一个尺寸类', () => {
+    const Sprite = () => h('svg', { 'data-sprite': 'wechat' });
+    const wrapper = mount(AuthSocialLogin, {
+      props: {
+        items: [
+          { icon: 'mdi:github', label: 'GitHub', value: 'github' },
+          { icon: Sprite, label: 'WeChat', value: 'wechat' },
+        ],
+      },
+    });
+    const iconify = wrapper.findAll('button')[0]!;
+    const component = wrapper.findAll('button')[1]!;
+    expect(component.find('[data-sprite="wechat"]').exists()).toBe(true);
+    expect(component.find('svg').classes()).toContain('size-[18px]');
+    expect(iconify.find('[data-sprite]').exists()).toBe(false);
   });
 });
 
@@ -232,7 +249,7 @@ describe('AuthColorPresets', async () => {
     const swatches = wrapper.findAll('[data-auth^="color-preset-"]');
     expect(swatches).toHaveLength(2);
 
-    await swatches[0].trigger('click');
+    await swatches[0]!.trigger('click');
     expect(wrapper.emitted('select')).toEqual([[presets[0]]]);
   });
 

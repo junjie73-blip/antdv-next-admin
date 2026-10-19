@@ -32,7 +32,10 @@ const props = withDefaults(
 const slots = useSlots();
 
 const rootClass = computed(() =>
-  cn('gap-0 py-0', props.variant === 'borderless' ? 'border-0 shadow-none' : '')
+  cn(
+    'gap-0 py-0',
+    props.variant === 'borderless' ? 'border-0 shadow-none' : '',
+  ),
 );
 
 const hasHead = computed(
@@ -44,8 +47,8 @@ const hasHead = computed(
 const headerClass = computed(() =>
   cn(
     'flex items-center justify-between gap-2 border-b border-gray-100 px-4 py-3 dark:border-gray-800',
-    slots.extra ? 'flex-wrap' : ''
-  )
+    slots.extra ? 'flex-wrap' : '',
+  ),
 );
 </script>
 

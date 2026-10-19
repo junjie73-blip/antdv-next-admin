@@ -17,6 +17,7 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
+    "./charts": "./src/components/charts/index.ts",
     "./package.json": "./package.json"
   },
   "dependencies": {
@@ -26,6 +27,7 @@
     "@antdv/shadcn-ui": "workspace:*",
     "@antdv/shared": "workspace:*",
     "@iconify/vue": "catalog:",
+    "@lucide/vue": "catalog:",
     "@tiptap/core": "catalog:",
     "@tiptap/extension-image": "catalog:",
     "@tiptap/extension-table": "catalog:",
@@ -37,9 +39,11 @@
     "@tiptap/vue-3": "catalog:",
     "@vueuse/core": "catalog:",
     "cronstrue": "catalog:",
+    "echarts": "catalog:",
     "es-toolkit": "catalog:",
     "marked": "catalog:",
-    "vue": "catalog:"
+    "vue": "catalog:",
+    "vue-sonner": "catalog:"
   },
   "devDependencies": {
     "@antdv/tsconfig": "workspace:*",

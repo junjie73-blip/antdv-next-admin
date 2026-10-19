@@ -6,34 +6,34 @@ This page documents two demo routes: `/components/chart` (menu "图表" / Chart,
 
 ### What problem it solves
 
-The `ECharts` wrapper (`apps/web/src/components/common/ECharts/index.vue`) collapses the "mount container → init → setOption → resize → dispose" boilerplate so a page only feeds it an `option`. It is auto-registered by unplugin-vue-components (see the `ECharts` entry in `apps/web/types/components.d.ts`); the demo template uses `<ECharts />` with no import statement, which is not a missing import.
+The `ECharts` wrapper (`packages/core/ui-kit/common-ui/src/components/charts/ECharts.vue`) collapses the "mount container → init → setOption → resize → dispose" boilerplate so a page only feeds it an `option`. It is **not in the root barrel** — import it from the subpath: `import { ECharts } from '@antdv/common-ui/charts'` (the `exports` map in `packages/core/ui-kit/common-ui/package.json` only lists `.` and `./charts`, because this chart drags in the entire echarts registry).
 
 ### The real API
 
-There are **exactly three props**, no events, and nothing exposed via `defineExpose` (`ECharts/index.vue:8-15`):
+There are **exactly three props**, no events, and nothing exposed via `defineExpose` (`charts/ECharts.vue:18-21`):
 
 | Prop | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `option` | `echarts.EChartsOption` | required | chart configuration |
-| `height` | `string` | `'320px'` | container height; width is always 100% (`:58`) |
-| `loading` | `boolean` | `false` | mapped to ECharts' own `showLoading/hideLoading` overlay (`:38-44`) — no page-level Spin needed |
+| `height` | `string` | `'320px'` | container height; width is always 100% (`:64`) |
+| `loading` | `boolean` | `false` | mapped to ECharts' own `showLoading/hideLoading` overlay (`:44-50`) — no page-level Spin needed |
 
 Behaviour, line by line against the source:
 
-- **Updating `option` replaces, it does not merge**: the component deep-watches `option` and calls `setOption(opt, true)` (`ECharts/index.vue:30-36`) — the second argument is `notMerge`, so **every change re-sets the whole option**. If you want "change only the data, keep everything else", don't mutate a sub-field in place; the demo's pattern is to produce a complete new option from a `computed` each time (`views/components/chart/index.vue:104-158`).
-- **Who owns resize**: the component itself listens to `window` `resize` and calls `chart.resize()` (`ECharts/index.vue:26-28,48`). **There is no ResizeObserver**: when the window stays still but only the container changes (sidebar collapse, split panes), nothing recalculates.
-- **When it is destroyed**: `onBeforeUnmount` removes the resize listener and calls `dispose()` (`ECharts/index.vue:51-54`).
-- **No theme wiring**: `echarts.init(el.value)` is called without a theme argument (`ECharts/index.vue:22`) and the wrapper **has no `theme` prop** — registered ECharts themes and the app's dark preference do not reach the chart automatically.
+- **Updating `option` replaces, it does not merge**: the component deep-watches `option` and calls `setOption(opt, true)` (`charts/ECharts.vue:36-42`) — the second argument is `notMerge`, so **every change re-sets the whole option**. If you want "change only the data, keep everything else", don't mutate a sub-field in place; the demo's pattern is to produce a complete new option from a `computed` each time (`views/components/chart/index.vue:104-164`).
+- **Who owns resize**: the component itself listens to `window` `resize` and calls `chart.resize()` (`charts/ECharts.vue:32-34,54`). **There is no ResizeObserver**: when the window stays still but only the container changes (sidebar collapse, split panes), nothing recalculates.
+- **When it is destroyed**: `onBeforeUnmount` removes the resize listener and calls `dispose()` (`charts/ECharts.vue:57-60`).
+- **No theme wiring**: `echarts.init(el.value)` is called without a theme argument (`charts/ECharts.vue:28`) and the wrapper **has no `theme` prop** — registered ECharts themes and the app's dark preference do not reach the chart automatically.
 
-::: warning Dark mode is the demo page's own doing The chart demo's approach: derive `isDark` from `appStore.resolvedTheme` (`chart/index.vue:21`; store side at `apps/web/src/stores/modules/app.ts:42`), and write every color as an option field inside `computed` values (text/axis/tooltip colors each have a light and dark variant, `chart/index.vue:23-50`). When the theme flips, the computed re-runs and the component's notMerge re-render repaints the chart (the page's own comment, `chart/index.vue:19-21`). That is the full extent of what the wrapper gives you here: any other "dark theme" work has to happen inside your option. :::
+::: warning Dark mode is the demo page's own doing The chart demo's approach: derive `isDark` from `appStore.resolvedTheme` (`chart/index.vue:22`; store side at `packages/stores/src/app.ts:44`), and write every color as an option field inside `computed` values (text/axis/tooltip colors each have a light and dark variant, `chart/index.vue:24-51`). When the theme flips, the computed re-runs and the component's notMerge re-render repaints the chart (the page's own comment, `chart/index.vue:20-21`). That is the full extent of what the wrapper gives you here: any other "dark theme" work has to happen inside your option. :::
 
 ### A full-featured composable that exists but is not wired in
 
-The repo also ships `packages/composables/src/echarts/useEcharts.ts`: `isDark` (rebuilds the chart on theme change, `:297-310`), `resizeStrategy` (none/raf/debounce/throttle, `:130-150`), a ResizeObserver on the container (`:313-342`), `setData` deep-merging patches (`:254-262`), and init-with-retry (`:201-215`). Its comments even record fixing "`setData` used to be a silent no-op function" (`:245-252`). However it has **no consumer inside `apps/web`** (only its own tests and dist output), and `/components/chart` uses the three-prop thin wrapper above. Do not blend the two capability sets in one description.
+The repo also ships `packages/core/hooks/src/echarts/use-echarts.ts` (subpath `@antdv/hooks/echarts`): `isDark` (rebuilds the chart on theme change, `:296-310`), `resizeStrategy` (none/raf/debounce/throttle, `:129-151`), a ResizeObserver on the container (`:313-342`), `setData` deep-merging patches (`:254-262`), and init-with-retry (`:201-215`). Its comments even record fixing "`setData` used to be a silent no-op function" (`:245-252`). However it has **no consumer inside `apps/web`** (only `packages/core/hooks/__tests__/echarts.test.ts`), and `/components/chart` uses the three-prop thin wrapper above. Do not blend the two capability sets in one description.
 
 ### What the demo page shows
 
-Five cards, all data are in-page constants, zero requests (the page alert states this verbatim, `chart/index.vue:417-425`): a line chart whose "刷新数据" (refresh) button rotates through three built-in datasets (`:96-102`); a bar chart with a grouped/stacked switch that only toggles `series.stack` (`:164-211`); a doughnut pie chart with clickable legend and label templates; a dual-axis combo chart (bar + line, `:282-351`); and loading / empty-data states (an empty-array option still renders the axis skeleton, `:357-412`).
+Five cards, all data are in-page constants, zero requests (the page alert states this verbatim, `chart/index.vue:447-456`): a line chart whose "刷新数据" (refresh) button rotates through three built-in datasets (`:79-102`); a bar chart with a grouped/stacked switch that only toggles `series.stack` (`:170-223`); a doughnut pie chart with clickable legend and label templates; a dual-axis combo chart (bar + line, `:294-369`); and loading / empty-data states (an empty-array option still renders the axis skeleton, `:375-443`).
 
 ## Cron: `/components/cron`
 

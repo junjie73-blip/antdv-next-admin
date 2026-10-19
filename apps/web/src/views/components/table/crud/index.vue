@@ -31,8 +31,7 @@ import { BasicForm, useForm } from '@antdv/form-ui';
 import { BasicModal, useModal } from '@antdv/popup-ui';
 import { Button, Progress } from '@antdv/shadcn-ui';
 import { BasicTable, useTable } from '@antdv/table-ui';
-import { useCRUD } from '~/composables/useCRUD';
-import { usePermission } from '~/composables/web/permission';
+import { useCRUD, usePermission } from '@antdv/hooks';
 
 /**
  * 增删改查示例：把「表格 + 搜索表单 + 编辑弹窗」这套后台最常见的组合，

@@ -293,7 +293,9 @@ const filteredRows = computed(() => tanstackTable.getSortedRowModel().rows);
 const getColumn = (id: string) => tanstackTable.getColumn(id);
 
 const getHeader = (id: string) =>
-  tanstackTable.getHeaderGroups()[0]?.headers.find((item) => item.column.id === id);
+  tanstackTable
+    .getHeaderGroups()[0]
+    ?.headers.find((item) => item.column.id === id);
 
 // ============================================
 // 拖拽排序（dragSort / dragSortConfig）
@@ -508,9 +510,7 @@ function toggleRowExpand(record: Recordable) {
 
 const getRowSelection = computed(() => rowSelection.getRowSelection.value);
 
-const selectionType = computed(
-  () => getRowSelection.value?.type ?? 'checkbox',
-);
+const selectionType = computed(() => getRowSelection.value?.type ?? 'checkbox');
 
 /**
  * 选中态用的是**字符串化**的 rowKey —— 与 `useRowSelection` 内部的 `getRowKeyValue`
@@ -603,7 +603,11 @@ async function handleSort(col: BasicColumn) {
   const id = getColumnId(col);
   const orders = mergedSortDirections.value;
   const current = sortingRef.value.find((item) => item.id === id);
-  const currentOrder = current ? (current.desc ? 'descend' : 'ascend') : undefined;
+  const currentOrder = current
+    ? current.desc
+      ? 'descend'
+      : 'ascend'
+    : undefined;
   const index = currentOrder ? orders.indexOf(currentOrder) : -1;
   const nextOrder = index + 1 < orders.length ? orders[index + 1] : undefined;
 
@@ -687,9 +691,7 @@ const paginationInfo = computed(() => {
   const cfg = pagination.getPagination.value;
   if (!cfg) return null;
   const rowCount = filteredRows.value.length;
-  const total = getMergedProps.value.api
-    ? (cfg.total ?? rowCount)
-    : rowCount;
+  const total = getMergedProps.value.api ? (cfg.total ?? rowCount) : rowCount;
   const pageSize = cfg.pageSize ?? 10;
   const current = cfg.current ?? 1;
   const pageCount = Math.max(1, Math.ceil((total || 1) / pageSize));
@@ -838,8 +840,7 @@ const tableContainerClassName = computed(() =>
 const bodyClassName = computed(() =>
   cn(
     'basic-table-body relative w-full overflow-auto',
-    mergedBordered.value &&
-      'border border-gray-200 dark:border-gray-800',
+    mergedBordered.value && 'border border-gray-200 dark:border-gray-800',
   ),
 );
 
@@ -926,8 +927,7 @@ const cellStyleOf = (
 };
 
 const alignClass = (col: BasicColumn, header = false) => {
-  const align =
-    (header ? (col.headerAlign ?? col.align) : col.align) || 'left';
+  const align = (header ? (col.headerAlign ?? col.align) : col.align) || 'left';
   if (align === 'center') return 'text-center';
   return align === 'right' ? 'text-right' : 'text-left';
 };
@@ -1186,7 +1186,10 @@ defineExpose(tableActionType);
         v-if="loadingRef"
         class="basic-table-loading absolute inset-0 z-20 flex items-center justify-center bg-white/60 dark:bg-gray-900/60"
       >
-        <Icon class="animate-spin text-base text-primary" icon="ant-design:loading-outlined" />
+        <Icon
+          class="animate-spin text-base text-primary"
+          icon="ant-design:loading-outlined"
+        />
       </div>
 
       <table
@@ -1194,7 +1197,10 @@ defineExpose(tableActionType);
         :class="mergedBordered ? 'border-collapse' : ''"
         :style="tableStyle"
       >
-        <caption v-if="getMergedProps.caption" class="caption-top py-2 text-left text-xs text-gray-500">
+        <caption
+          v-if="getMergedProps.caption"
+          class="caption-top py-2 text-left text-xs text-gray-500"
+        >
           <RenderVNode :vnode="getMergedProps.caption" />
         </caption>
 
@@ -1223,7 +1229,9 @@ defineExpose(tableActionType);
               }"
             >
               <input
-                v-if="!getRowSelection?.hideSelectAll && selectionType !== 'radio'"
+                v-if="
+                  !getRowSelection?.hideSelectAll && selectionType !== 'radio'
+                "
                 aria-label="全选"
                 class="basic-table-select-all cursor-pointer accent-primary"
                 :checked="isAllSelected"
@@ -1238,7 +1246,11 @@ defineExpose(tableActionType);
               :key="getColumnId(col)"
               :class="cn(headClass(col), alignClass(col, true))"
               :data-column-key="getColumnId(col)"
-              :title="col.sorter && getMergedProps.showSorterTooltip !== false ? '点击排序' : undefined"
+              :title="
+                col.sorter && getMergedProps.showSorterTooltip !== false
+                  ? '点击排序'
+                  : undefined
+              "
               :style="headStyle(col)"
               @click="col.sorter ? handleSort(col) : undefined"
             >
@@ -1248,14 +1260,26 @@ defineExpose(tableActionType);
                 <span
                   v-if="col.sorter"
                   class="ml-1 flex flex-col leading-[0]"
-                  :class="getSortOrder(getColumnId(col)) ? 'text-primary' : 'text-gray-300 dark:text-gray-600'"
+                  :class="
+                    getSortOrder(getColumnId(col))
+                      ? 'text-primary'
+                      : 'text-gray-300 dark:text-gray-600'
+                  "
                 >
                   <Icon
-                    :class="getSortOrder(getColumnId(col)) === 'asc' ? '' : 'opacity-40'"
+                    :class="
+                      getSortOrder(getColumnId(col)) === 'asc'
+                        ? ''
+                        : 'opacity-40'
+                    "
                     icon="ant-design:caret-up-filled"
                   />
                   <Icon
-                    :class="getSortOrder(getColumnId(col)) === 'desc' ? '' : 'opacity-40'"
+                    :class="
+                      getSortOrder(getColumnId(col)) === 'desc'
+                        ? ''
+                        : 'opacity-40'
+                    "
                     icon="ant-design:caret-down-filled"
                   />
                 </span>
@@ -1263,7 +1287,9 @@ defineExpose(tableActionType);
                 <Popover
                   v-if="col.filters?.length"
                   :open="filterOpenMap[getColumnId(col)]"
-                  @update:open="(v: boolean) => (filterOpenMap[getColumnId(col)] = v)"
+                  @update:open="
+                    (v: boolean) => (filterOpenMap[getColumnId(col)] = v)
+                  "
                 >
                   <PopoverTrigger
                     aria-label="筛选"
@@ -1280,7 +1306,10 @@ defineExpose(tableActionType);
                       icon="ant-design:filter-filled"
                     />
                   </PopoverTrigger>
-                  <PopoverContent align="start" class="basic-table-filter-panel w-48 p-2">
+                  <PopoverContent
+                    align="start"
+                    class="basic-table-filter-panel w-48 p-2"
+                  >
                     <div class="max-h-48 overflow-y-auto">
                       <label
                         v-for="item in col.filters"
@@ -1305,7 +1334,11 @@ defineExpose(tableActionType);
                       >
                         重置
                       </Button>
-                      <Button class="basic-table-filter-confirm" size="xs" @click="confirmFilter(col)">
+                      <Button
+                        class="basic-table-filter-confirm"
+                        size="xs"
+                        @click="confirmFilter(col)"
+                      >
                         确定
                       </Button>
                     </div>
@@ -1316,12 +1349,8 @@ defineExpose(tableActionType);
                   v-if="col.resizable"
                   class="basic-table-resize-handle -mr-2 ml-1 h-4 w-1 shrink-0 cursor-col-resize bg-gray-200 hover:bg-primary dark:bg-gray-700"
                   @click.stop
-                  @mousedown.stop="
-                    (e: MouseEvent) => resizeHandler(col)?.(e)
-                  "
-                  @touchstart.stop="
-                    (e: TouchEvent) => resizeHandler(col)?.(e)
-                  "
+                  @mousedown.stop="(e: MouseEvent) => resizeHandler(col)?.(e)"
+                  @touchstart.stop="(e: TouchEvent) => resizeHandler(col)?.(e)"
                 ></span>
               </TableHeaderCell>
             </th>
@@ -1363,7 +1392,9 @@ defineExpose(tableActionType);
               <td
                 v-for="col in visibleColumns"
                 :key="getColumnId(col)"
-                :class="cn(cellClass(col, row.record, row.index), alignClass(col))"
+                :class="
+                  cn(cellClass(col, row.record, row.index), alignClass(col))
+                "
                 :style="cellStyleOf(col, row.record, row.index)"
               >
                 <!-- 序号列 -->
@@ -1446,7 +1477,10 @@ defineExpose(tableActionType);
                         showRowToggle(col, row.record)
                       "
                       class="basic-table-row-expand-icon mr-1 inline-flex cursor-pointer align-middle text-gray-400"
-                      :class="isRowExpanded(row.rowKey) && 'basic-table-row-expand-icon-expanded'"
+                      :class="
+                        isRowExpanded(row.rowKey) &&
+                        'basic-table-row-expand-icon-expanded'
+                      "
                       @click.stop="toggleRowExpand(row.record)"
                     >
                       <Icon
@@ -1474,7 +1508,11 @@ defineExpose(tableActionType);
 
             <!-- 自定义展开行 -->
             <tr
-              v-if="!mergedIsTree && hasExpandedRowRender && isRowExpanded(row.rowKey)"
+              v-if="
+                !mergedIsTree &&
+                hasExpandedRowRender &&
+                isRowExpanded(row.rowKey)
+              "
               class="basic-table-expanded-row"
             >
               <td :colspan="totalColumnCount">

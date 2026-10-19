@@ -1,4 +1,8 @@
-import type { Recordable, UseDragSortOptions, UseDragSortReturn } from '../types';
+import type {
+  Recordable,
+  UseDragSortOptions,
+  UseDragSortReturn,
+} from '../types';
 
 import { onUnmounted } from 'vue';
 

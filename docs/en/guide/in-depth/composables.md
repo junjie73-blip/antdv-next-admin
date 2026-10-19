@@ -1,26 +1,27 @@
 # Composables
 
-The `use*` functions in this repo live in three places, and the rule for where one belongs is **"what does it depend on"**: hooks that drive a specific `Basic*` component sit next to that component (`apps/web/src/components/business/<component>/`); app-level hooks that read a store, fire a request or navigate live in `apps/web/src/composables/`; anything that only touches the DOM or a browser API with zero business dependencies goes into `packages/composables` (`@antdv/composables`). This page follows that order, with the emphasis on **how the first two groups drive components** — the `useTable` / `useForm` / `useModal` / `useCRUD` wiring is the skeleton of every list page here, and several parts of it will bite you if you write them from memory of vue-vben-admin.
+The `use*` functions in this repo live in three places, and the rule for where one belongs is **"what does it depend on"**: hooks that drive a specific `Basic*` component sit in that component's package (`packages/core/ui-kit/<layer>/src/`); app-level hooks that fire a request, navigate or read the i18n singleton live in `apps/web/src/composables/`; anything that only touches the DOM, a browser API or the session store goes into `packages/core/hooks` (`@antdv/hooks`). This page follows that order, with the emphasis on **how the first two groups drive components** — the `useTable` / `useForm` / `useModal` / `useCRUD` wiring is the skeleton of every list page here, and several parts of it will bite you if you write them from memory of vue-vben-admin.
 
 ## Where things live and how you import them
 
 | Group | Location | Import path | Typical members |
 | --- | --- | --- | --- |
-| Component drivers | `apps/web/src/components/business/<component>/useXxx.ts` | from that component's `index.ts` | `useTable`, `useForm`, `useModal`, `useModalInner`, `useDrawer` |
-| App-level | `apps/web/src/composables/` | `~/composables` (barrel) or the file directly | `useCRUD`, `usePermission`, `http` / `request` / `useRequest` / `requestCache`, `useLocale`, `useLocaleSync`, `useNotice`, `usePasswordPolicy` |
-| App-agnostic utilities | `@antdv/composables` | root barrel, heavy ones via subpath | `useCache`, `useChunkUpload`, `useFileReader`, `usePrint`, `useRouteLoading`, `useWatermark`; `@antdv/composables/echarts`, `/sse`, `/websocket`. These hooks never read pinia, app stores or `import.meta.env`; their one UI-side dependency is the `message` from `@antdv/popup-ui` (a vue-sonner wrapper) that `usePrint` uses on failure — not a component library |
+| Component drivers | `packages/core/ui-kit/<layer>/src/` (`useTable` in table-ui, `useForm` in form-ui, `useModal` / `useDrawer` in popup-ui) | from that package's root entry | `useTable`, `useForm`, `useModal`, `useModalInner`, `useDrawer` |
+| App-level | `apps/web/src/composables/` | `~/composables` (barrel) or the file directly | `http` / `request` / `useRequest` / `requestCache` (the barrel only forwards `@antdv/request`), `useLocale`, `useLocaleSync`, `useNotice`, `usePasswordPolicy` |
+| App-agnostic utilities | `@antdv/hooks` | root barrel, heavy ones via subpath | `useCache`, `useChunkUpload`, `useFileReader`, `usePrint`, `useRouteLoading`, `useWatermark`, `useCRUD`, `usePermission`; `@antdv/hooks/echarts`. These hooks never fire a request or read a router instance; their UI-side dependency is the `message` / `confirm` from `@antdv/popup-ui` (a vue-sonner wrapper) used by `usePrint` and `useCRUD`. `usePermission` is the one that reads session state, and only through the `@antdv/stores` user store |
 
 ::: warning Nothing in this repo is auto-imported `unplugin-auto-import` lists only `vue` / `@vueuse/core` / `pinia` / `vue-router` (the four entries at `internal/vite-config/src/plugins/auto-import.ts:48-51`) — antdv-next's functional APIs (`message`, `notification`, `Modal`, `Drawer`) are no longer in there either. **There is no `dirs` option**, so `useTable`, `http`, `usePermission` and those four all need an explicit import.
 
 Name collisions are nastier than a missing import: `@vueuse/core` already exports `usePermission` (the browser Permissions API) and `useWebSocket`, and both are pre-registered in `apps/web/types/auto-imports.d.ts:232` and `:293`. Forget the import and nothing errors — you just get the other function's return value, and vueuse's `usePermission()` returns a single `{ permissions }` ref with no `hasPermission` method.
 
-`echarts` / `sse` / `websocket` are deliberately kept out of the `@antdv/composables` root barrel: they either drag in the whole chart registry or a pile of manager classes, and putting them in the root entry would make `import { usePrint }` pay for parsing a chart library (`packages/composables/src/index.ts:1-12`; the `exports` map is in `packages/composables/package.json:21-43`, where the `"./*"` wildcard is what lets single-file modules be imported by name). :::
+`echarts` is deliberately kept out of the `@antdv/hooks` root barrel: it drags in the whole chart registry, and putting it in the root entry would make `import { usePrint }` pay for parsing a chart library (`packages/core/hooks/src/index.ts`; the `exports` map is in `packages/core/hooks/package.json`, where the `"./*"` wildcard is what lets single-file modules be imported by name — `@antdv/hooks/use-print`, `@antdv/hooks/use-crud`). SSE and WebSocket do not live here; they are in `@antdv/request`. :::
 
-Barrel coverage is worth memorising too: `apps/web/src/composables/index.ts` re-exports exactly three things — `useCRUD`, `usePermission` and the full surface of `@antdv/request`, which now lives in its own package. `useLocale` / `useLocaleSync` / `useNotice` / `usePasswordPolicy` must be imported by file path:
+Barrel coverage is worth memorising too: `apps/web/src/composables/index.ts` now does one thing — it re-exports the whole of `@antdv/request`, so old call sites keep taking `http` / `request` from `~/composables`. `useCRUD` and `usePermission` moved into `@antdv/hooks`, and `useLocale` / `useLocaleSync` / `useNotice` / `usePasswordPolicy` must be imported by file path:
 
 ```ts
-import { http, useCRUD, usePermission } from '~/composables';
-import { useLocaleSync } from '~/composables/web/useLocale';
+import { http } from '~/composables';
+import { useCRUD, usePermission } from '@antdv/hooks';
+import { useLocaleSync } from '~/composables/useLocale';
 ```
 
 `useThemeTransition` used to be in that list; it now lives in the composition layer: `import { useThemeTransition } from '@antdv/layouts/hooks/use-theme-transition'` (`packages/layouts/src/hooks/use-theme-transition.ts`), and the only consumer left in the repository is the header widget.
@@ -31,7 +32,7 @@ Every `Basic*` component works the same way: the hook produces a `register` call
 
 ```vue
 <script setup lang="ts">
-import { BasicTable, useTable } from '~/components/business/Table';
+import { BasicTable, useTable } from '@antdv/table-ui';
 
 const [register, tableRef] = useTable({
   api: getUserList,
@@ -111,7 +112,7 @@ const [register, { closeModal, setModalProps, changeOkLoading }] =
 
 ## 2. useCRUD: modal + form + table in one declaration
 
-`useCRUD<RecordType, FormValues>(options)` (`apps/web/src/composables/useCRUD.ts:100`) doesn't know anything about your API. It orchestrates the three instances above and owns the fixed sequence **validate → persist → close → reload**, leaving the page to declare only "how to create, update, delete" and "what the messages say".
+`useCRUD<RecordType, FormValues>(options)` (`packages/core/hooks/src/use-crud.ts:134`) doesn't know anything about your API. It orchestrates the three instances above and owns the fixed sequence **validate → persist → close → reload**, leaving the page to declare only "how to create, update, delete" and "what the messages say".
 
 ```ts
 // apps/web/src/views/components/table/crud/index.vue:205-237 (abridged)
@@ -151,7 +152,7 @@ const {
 });
 ```
 
-### options (`useCRUD.ts:26-85`)
+### options (`use-crud.ts:36-95`)
 
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
@@ -166,10 +167,10 @@ const {
 | `getFormValues` / `getEmptyValues` | `(record) => Values` / `() => Values` | use the record / `{}` | prefill and blank-form defaults |
 | `beforeCreate` / `beforeUpdate` / `beforeDelete` | `(...) => boolean \| Promise<boolean>` | — | returning `false` aborts; in batch mode `beforeDelete` runs **per record** and any `false` stops the whole batch |
 | `onSaved` / `onDeleted` | callbacks | — | `onSaved(isEdit, values)` |
-| `messages` | `CRUDMessages` | `useCRUD.ts:87-98` | ten keys, a pair each for success/failure/confirm |
+| `messages` | `CRUDMessages` | `use-crud.ts:97-108` | ten keys, a pair each for success/failure/confirm |
 | `onExport` / `onImport` | `(params?) => …` / `(file: File) => …` | — | calling `handleExport` / `handleImport` without them only shows "未配置…功能" |
 
-Return value: refs `isEditing`, `currentRecord`, `loading`, plus `handleAdd` / `handleEdit` / `handleDelete` / `handleBatchDelete` / `handleSave` / `handleExport` / `handleImport` / `reset` (`useCRUD.ts:344-360`).
+Return value: refs `isEditing`, `currentRecord`, `loading`, plus `handleAdd` / `handleEdit` / `handleDelete` / `handleBatchDelete` / `handleSave` / `handleExport` / `handleImport` / `reset` (`use-crud.ts:376-392`).
 
 ### The fixed sequences and the boundaries you must know
 
@@ -205,11 +206,11 @@ And pass a **snapshot** to `handleBatchDelete` (`[...selectedRows.value]`), not 
 
 ::: danger The API helpers already unwrapped the envelope `get/post/put/del` in `~/api/request.ts` are `http.Get<R<T>(… ).then(res => res.data)` internally (`api/request.ts:18-54`), i.e. **they resolve to the payload itself**. So `onCreate: (values) => addTask(values)` passes the function straight through — don't add another `.then(res => res.data)`. Unwrapping twice yields `undefined`, whose symptom is "save succeeded but the new row isn't in the table / the edit modal prefills empty". :::
 
-The behaviour is pinned by unit tests: `apps/web/src/composables/__tests__/use-crud.spec.ts` (23 cases, minimal stubs for the three components that record **call order**, so requirements like "resetFields before setFieldsValue" are actually asserted — getting it wrong shows up as the modal flashing the previous record). Run that file before and after touching `useCRUD`.
+The behaviour is pinned by unit tests: `packages/core/hooks/__tests__/use-crud.test.ts` (23 cases, minimal stubs for the three components that record **call order**, so requirements like "resetFields before setFieldsValue" are actually asserted — getting it wrong shows up as the modal flashing the previous record). Run that file before and after touching `useCRUD`.
 
 ## 3. Permissions: usePermission and button-level access
 
-`apps/web/src/composables/web/permission/usePermission.ts:12`, reading `permissions` / `roles` off `useUserStore()`:
+`packages/core/hooks/src/use-permission.ts:68`, reading `permissions` / `roles` off `useUserStore()`:
 
 ```ts
 const {
@@ -231,7 +232,7 @@ const {
 | `checkPermission(perms, { mode })` / `checkRole(roles, { mode })` | `mode: 'any'` → any, otherwise all |
 | `permissions` / `roles` | `readonly(computed)`, renderable directly |
 
-Three decision rules, all in `usePermission.ts:19-44`:
+Three decision rules, all in `use-permission.ts:86-140`:
 
 1. **Signed out ⇒ everything is false**: every method runs `checkAuth()` first, before looking at the permission table.
 2. **`'*'` is the wildcard sentinel**: if it appears in the user's list, everything passes (the mock `admin` account is literally `permissions: ['*']`, so superusers need no enumeration).
@@ -271,7 +272,7 @@ For template-level declarations use `v-permission`; its arg/modifier grammar and
 
 ## 4. The request layer: `http`, `useRequest`, `requestCache`
 
-The public exit is `@antdv/request` (`packages/request/src/index.ts`); `~/composables` still re-exports the whole package (`composables/index.ts:3`), so existing call sites are unchanged. Four layers underneath: `fetcher` (@vueuse `createFetch` + interceptors) → `executor` (cache / dedupe / retry / 401 replay) → `http` (five verbs) → `useRequest` (reactive wrapper).
+The public exit is `@antdv/request` (`packages/request/src/index.ts`); `~/composables` still re-exports the whole package (`composables/index.ts:6`), so existing call sites are unchanged. Four layers underneath: `fetcher` (@vueuse `createFetch` + interceptors) → `executor` (cache / dedupe / retry / 401 replay) → `http` (five verbs) → `useRequest` (reactive wrapper).
 
 ### http: imperative verbs
 
@@ -417,7 +418,7 @@ Rules to keep:
 3. **Register cleanup when you allocate**: `onScopeDispose` / `tryOnScopeDispose` / `onUnmounted`. If you deliberately don't (as with `useWebSocket`), say so in the type comments so the caller knows they own it.
 4. **Document intentional module-level state**: `useNotice`, `usePasswordPolicy` and `utils/ws` are cross-component singletons — the comment must say "shared by every call", otherwise the next person assumes each call is fresh state.
 5. **Types and defaults in one place**: the options interface carries per-field types and comments, defaults live in the destructuring (every table in this page was read off that pattern).
-6. **Ship a unit test**: `apps/web/src/composables/__tests__/<name>.spec.ts`, with minimal stubs plus a call-order array as the reference (copy `use-crud.spec.ts`); run `pnpm --filter @antdv/web test:unit`.
+6. **Ship a unit test**: `apps/web/src/composables/__tests__/<name>.spec.ts`, with minimal stubs plus a call-order array as the reference (copy `use-crud.test.ts`); run `pnpm --filter @antdv/web test:unit`.
 7. After changing `packages/*`, rebuild the subpackage (`npx turbo build --filter=@antdv/composables`) before `apps/web` can see it.
 
 ## Live examples

@@ -30,8 +30,9 @@ import {
 import { THEME_PRESETS } from '@antdv/shared/constants';
 import { useAppStore } from '@antdv/stores';
 import { Icon } from '@iconify/vue';
-import { useLocale } from '~/composables/web/useLocale';
 import logoUrl from '~/assets/images/logo.png';
+import { useLocale } from '~/composables/useLocale';
+import { AUTH_SOCIAL_ITEMS } from '~/config/auth-social';
 
 const router = useRouter();
 const appStore = useAppStore();
@@ -191,13 +192,6 @@ async function handleRegister() {
 /* ============================================================
  * 底部：第三方入口与登录页保持一致的版式
  * ============================================================ */
-const socialItems: AuthSocialItem[] = [
-  { icon: 'mdi:github', label: 'GitHub', value: 'github' },
-  { icon: 'mdi:wechat', label: 'WeChat', value: 'wechat' },
-  { icon: 'mdi:qq-chat', label: 'QQ', value: 'qq' },
-  { icon: 'mdi:dingtalk', label: 'DingTalk', value: 'dingtalk' },
-];
-
 function handleSocial(item: AuthSocialItem) {
   message.info(t('login.socialUnreleased', { name: item.label }));
 }
@@ -229,11 +223,15 @@ function handleSocial(item: AuthSocialItem) {
     >
       <form @submit.prevent="handleRegister">
         <div class="space-y-4" data-auth="fields">
-          <div>
+          <div class="relative">
+            <Icon
+              class="text-foreground/40 pointer-events-none absolute top-5 left-3 size-4 -translate-y-1/2"
+              icon="carbon:user"
+            />
             <AInput
               v-model="formState.username"
               :placeholder="t('register.usernamePlaceholder')"
-              class="h-10"
+              class="h-10 pl-9"
               data-auth="username"
               type="text"
               @blur="validateNames(['username'])"
@@ -247,11 +245,15 @@ function handleSocial(item: AuthSocialItem) {
             </p>
           </div>
 
-          <div>
+          <div class="relative">
+            <Icon
+              class="text-foreground/40 pointer-events-none absolute top-5 left-3 size-4 -translate-y-1/2"
+              icon="carbon:email"
+            />
             <AInput
               v-model="formState.email"
               :placeholder="t('register.emailPlaceholder')"
-              class="h-10"
+              class="h-10 pl-9"
               data-auth="email"
               type="text"
               @blur="validateNames(['email'])"
@@ -265,13 +267,17 @@ function handleSocial(item: AuthSocialItem) {
             </p>
           </div>
 
-          <div>
+          <div class="relative">
+            <Icon
+              class="text-foreground/40 pointer-events-none absolute top-5 left-3 size-4 -translate-y-1/2"
+              icon="carbon:password"
+            />
             <div class="relative">
               <AInput
                 v-model="formState.password"
                 :placeholder="t('register.passwordPlaceholder')"
                 :type="passwordVisible ? 'text' : 'password'"
-                class="h-10 pr-10"
+                class="h-10 pr-10 pl-9"
                 data-auth="password"
                 @blur="validateNames(['password'])"
               />
@@ -296,13 +302,17 @@ function handleSocial(item: AuthSocialItem) {
             </p>
           </div>
 
-          <div>
+          <div class="relative">
+            <Icon
+              class="text-foreground/40 pointer-events-none absolute top-5 left-3 size-4 -translate-y-1/2"
+              icon="carbon:password"
+            />
             <div class="relative">
               <AInput
                 v-model="formState.confirmPassword"
                 :placeholder="t('register.confirmPasswordPlaceholder')"
                 :type="confirmPasswordVisible ? 'text' : 'password'"
-                class="h-10 pr-10"
+                class="h-10 pr-10 pl-9"
                 data-auth="confirm-password"
                 @blur="validateNames(['confirmPassword'])"
               />
@@ -365,7 +375,7 @@ function handleSocial(item: AuthSocialItem) {
 
       <AuthSocialLogin
         :divider-text="t('login.otherLoginMethods')"
-        :items="socialItems"
+        :items="AUTH_SOCIAL_ITEMS"
         @select="handleSocial"
       />
 

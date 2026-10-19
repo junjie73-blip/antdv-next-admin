@@ -3,7 +3,7 @@ import type { VNode } from 'vue';
 
 import { onErrorCaptured, ref } from 'vue';
 
-import { Scrollbar } from '@antdv/common-ui';
+import Scrollbar from '../scrollbar/Scrollbar.vue';
 import { cn } from '@antdv/shared/utils/cn';
 import { isProduction } from '@antdv/shared/utils/env';
 import { isError, isString } from 'es-toolkit';
@@ -121,7 +121,7 @@ const detailsClassName = cn(
 
       <details v-if="isDev && isString(error.stack)" :class="detailsClassName">
         <summary class="mb-1 cursor-pointer font-medium">调用栈详情</summary>
-        <Scrollbar root-class="max-h-32">
+        <Scrollbar root-class="h-32">
           <pre class="break-all whitespace-pre-wrap">{{ error.stack }}</pre>
         </Scrollbar>
       </details>

@@ -66,29 +66,29 @@ function select(index: number) {
 }
 
 const rootClass = computed(() =>
-  cn('flex', vertical.value ? 'flex-col' : 'items-start')
+  cn('flex', vertical.value ? 'flex-col' : 'items-start'),
 );
 
 const itemClass = computed(() =>
   cn(
     'flex shrink-0 gap-2',
     props.clickable ? 'cursor-pointer hover:opacity-80' : 'cursor-default',
-    vertical.value ? 'relative pb-8 last:pb-0' : 'items-center'
-  )
+    vertical.value ? 'relative pb-8 last:pb-0' : 'items-center',
+  ),
 );
 
 const circleClass = (index: number) =>
   cn(
     'flex size-6 shrink-0 items-center justify-center rounded-full border text-xs font-medium',
     small.value && 'size-5',
-    CIRCLE[stateOf(index)]
+    CIRCLE[stateOf(index)],
   );
 
 const titleClass = (index: number) =>
   cn(
     'text-sm leading-6',
     stateOf(index) === 'wait' ? 'text-muted-foreground' : 'font-medium',
-    stateOf(index) === 'error' ? 'text-destructive' : ''
+    stateOf(index) === 'error' ? 'text-destructive' : '',
   );
 
 /** 横向连接线夹在两个步骤之间，竖向连接线挂在圆点下方 */
@@ -96,14 +96,14 @@ const hLineClass = (index: number) =>
   cn(
     'mx-2 h-px flex-1 self-start',
     small.value ? 'mt-2.5' : 'mt-3',
-    index < props.current ? 'bg-primary' : 'bg-border'
+    index < props.current ? 'bg-primary' : 'bg-border',
   );
 
 const vLineClass = (index: number) =>
   cn(
     'absolute bottom-0 top-7 w-px',
     small.value ? 'left-2.5' : 'left-3',
-    index < props.current ? 'bg-primary' : 'bg-border'
+    index < props.current ? 'bg-primary' : 'bg-border',
   );
 </script>
 
@@ -154,7 +154,10 @@ const vLineClass = (index: number) =>
         ></span>
       </div>
 
-      <span v-if="!vertical && !isLast(index)" :class="hLineClass(index)"></span>
+      <span
+        v-if="!vertical && !isLast(index)"
+        :class="hLineClass(index)"
+      ></span>
     </template>
   </div>
 </template>

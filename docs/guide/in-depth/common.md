@@ -1,15 +1,15 @@
 # 常用功能
 
-一句话：**应用级复合组件在 `apps/web/src/components/business/`，库无关的基础件在 `@antdv/icons` 与 `@antdv/ui-kit/*`，通用 hooks 在 `@antdv/composables`；`Basic*` 系列统一用 `[register, methods]` 的注册式写法驱动。**
+一句话：**应用级复合组件在 `apps/web/src/components/business/`，库无关的基础件在 `@antdv/icons` 与 `@antdv/ui-kit/*`，通用 hooks 在 `@antdv/hooks`；`Basic*` 系列统一用 `[register, methods]` 的注册式写法驱动。**
 
 ## 三层拆分
 
 | 层 | 位置 | 放什么 |
 | --- | --- | --- |
-| 应用业务组件 | `apps/web/src/components/business/` | `TreeTable`、`ImportExport`、`TenantSelect`、`MicroAppContainer`；`BasicTable`/`TableAction`、`BasicForm`、`BasicModal`/`BasicDrawer` 已迁到 `@antdv/{table-ui,form-ui,popup-ui}` |
+| 应用业务组件 | `apps/web/src/components/business/` | 只剩 `ImportExport`、`TenantSelect`；`TreeTable` 在 `@antdv/table-ui`，`MicroAppContainer` 在 `@antdv/common-ui`；`BasicTable`/`TableAction`、`BasicForm`、`BasicModal`/`BasicDrawer` 在 `@antdv/{table-ui,form-ui,popup-ui}` |
 | 库无关基础件 | `packages/core/base/icons`（`@antdv/icons`）+ `packages/core/ui-kit/*` | `IconifyIcon`、`IconPicker`、`SvgIcon` 在 `@antdv/icons`；`Loading` + `v-loading` 在 `@antdv/common-ui`；`Scrollbar` 在 `@antdv/common-ui`；`shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` 各自一包。这批包一律不依赖 antdv-next，组件也不靠自动导入，宿主必须显式 import |
-| 通用组合式 | `packages/core/composables`（`@antdv/composables`） | 根入口只收轻量件：`useCache` / `useChunkUpload` / `useFileReader` / `usePrint` / `useRouteLoading` / `useWatermark`；`echarts` / `sse` / `websocket` 走子路径导入，避免 `import { usePrint }` 也付出一份图表库 |
-| 应用级 hooks | `apps/web/src/composables/` | `useCRUD`、`usePermission`、`http`（请求层出口） |
+| 通用组合式 | `packages/core/hooks`（`@antdv/hooks`，消费 dist 产物） | 根入口只收轻量件：`useCRUD` / `useCache` / `useChunkUpload` / `useFileReader` / `usePermission` / `usePrint` / `useRouteLoading` / `useWatermark`；`useEcharts` 走子路径 `@antdv/hooks/echarts`，避免 `import { usePrint }` 也付出一份图表库。SSE 与 WebSocket 不在这里，实时通信统一在 `@antdv/request` |
+| 应用级 hooks | `apps/web/src/composables/` | `useLocale` / `useLocaleSync`（`useLocale.ts:45,63`）、`useNotice`、`usePasswordPolicy`、`http`（请求层出口）；`useCRUD`、`usePermission` 已迁到 `@antdv/hooks`，消费点在 `directives/index.ts:13`、`plugins/table-runtime.ts:1`、`views/components/table/crud/index.vue:34` |
 
 ## 注册式（register-props）模式
 
@@ -17,7 +17,7 @@
 
 ```vue
 <script setup lang="ts">
-import { BasicTable, useTable } from '~/components/business/Table';
+import { BasicTable, useTable } from '@antdv/table-ui';
 
 const [register, tableRef] = useTable({ api: fetchUsers, useSearchForm: true });
 </script>
@@ -42,7 +42,7 @@ const [register, tableRef] = useTable({ api: fetchUsers, useSearchForm: true });
 
 全站列表页都是先 `formMethods.setFieldsValue(record)` 再 `openModal()`。而 `BasicModal` 默认 `destroyOnHidden: true`：表单还没挂载、或上一次弹窗销毁后， `formRef` 里留着的是死引用 —— 值写进"尸体"，编辑弹窗回填不上。`useForm` 的处理是：实例 `isMounted() === false` 时把值暂存进 `pendingValues`（多次调用合并、后写覆盖）， `register` 拿到活实例后再补写；`resetFields` 会连暂存一起清掉。这个行为是修复出来的，不要退化回"openModal 后手动 nextTick"的脆弱写法。
 
-## BasicTable 常用 options（`Table/types.ts` 的 `BasicTableProps`）
+## BasicTable 常用 options（`packages/core/ui-kit/table-ui/src/types.ts` 的 `BasicTableProps`）
 
 | 键 | 作用 |
 | --- | --- |
@@ -56,16 +56,16 @@ const [register, tableRef] = useTable({ api: fetchUsers, useSearchForm: true });
 
 ## useCRUD：把弹窗式增删改查接成一条线
 
-`src/composables/useCRUD.ts` 接收 `formMethods`（必填）+ `modalMethods` / `drawerMethods`（`containerType: 'modal' | 'drawer'`）+ `tableMethods`（`useTable()` 的 **实例 ref**）+ 回调 `onCreate / onUpdate / onDelete / onBatchDelete / onFetchDetail / onExport` 与 `messages` 文案表，返回 `isEditing / currentRecord / loading` 与 `handleAdd / handleEdit / handleDelete / handleBatchDelete / handleSave` 等。
+`packages/core/hooks/src/use-crud.ts`（`import { useCRUD } from '@antdv/hooks'`）接收 `formMethods`（必填）+ `modalMethods` / `drawerMethods`（`containerType: 'modal' | 'drawer'`）+ `tableMethods`（`useTable()` 的 **实例 ref**）+ 回调 `onCreate / onUpdate / onDelete / onBatchDelete / onFetchDetail / onExport` 与 `messages` 文案表，返回 `isEditing / currentRecord / loading` 与 `handleAdd / handleEdit / handleDelete / handleBatchDelete / handleSave` 等。
 
-确认框的口径分两条，别记成"内置确认全关掉了"：**单条删除不弹确认**（由操作项的 `popConfirm` 描述，避免双重确认），**批量删除内置一次 `Modal.confirm`**（工具条按钮没有 popconfirm 载体，`content` 的条数由 composable 补上）。完整时序与边界见 [组合式函数](/guide/in-depth/composables)；活样板在 `#/components/table/crud`。
+确认框的口径分两条，别记成"内置确认全关掉了"：**单条删除不弹确认**（由操作项的 `popConfirm` 描述，避免双重确认），**批量删除内置一次 `confirm()`**（`@antdv/popup-ui` 的确认框，`use-crud.ts:277`；工具条按钮没有 popconfirm 载体，`content` 的条数由 composable 补上）。完整时序与边界见 [组合式函数](/guide/in-depth/composables)；活样板在 `#/components/table/crud`。
 
 ## 其余值得一提的
 
-- `CountTo`：数字滚动，props 在 `CountTo/types.ts`（`startVal` / `endVal` / `duration` / `autoplay` / `decimals`）。
+- `CountTo`：数字滚动，住在 `@antdv/common-ui`（`packages/core/ui-kit/common-ui/src/components/count-to/`），props 在 `types.ts`（`startVal` / `endVal` / `duration` / `autoplay` / `decimals`）。
 - `MarkdownEditor`：基于 tiptap 的编辑器封装，住在 `@antdv/common-ui`（`packages/core/ui-kit/common-ui/src/components/markdown-editor/`），带 `ImageUploadConfig`（走 Minio 上传配置）；`contentType` 决定 value 是 HTML 还是 Markdown 源码。
-- `Description` / `TreeTable` / `ImportExport`：详情列表、树表格、导入导出，导出能力依赖 `@antdv/shared` 的 `excel.ts`。
-- 全局注册：`@antdv/icons` 提供 `createIconInstaller()`（`packages/core/base/icons/src/index.ts:19-31`），`@antdv/common-ui` 的 barrel 具名导出 `vLoading`（`packages/core/ui-kit/common-ui/src/components/loading/index.ts:9`）；应用侧不用 installer，一律显式 import，保留 tree-shaking（组件 resolver 已从 `internal/vite-config` 撤掉，裸标签不会被注入）。
+- `Description` / `TreeTable` / `ImportExport`：详情列表、树表格、导入导出。前两个已进包（`@antdv/common-ui`、`@antdv/table-ui`），`ImportExport` 还在应用侧 `components/business/`；导出能力依赖 `@antdv/shared` 的 `excel.ts`。
+- 全局注册：`@antdv/icons` 提供 `createIconInstaller()`（`packages/core/base/icons/src/index.ts:19`），`@antdv/common-ui` 的 loading barrel 具名导出 `vLoading`（`packages/core/ui-kit/common-ui/src/components/loading/index.ts:7`）；应用侧不用 installer，一律显式 import，保留 tree-shaking（组件 resolver 已从 `internal/vite-config` 撤掉，裸标签不会被注入）。
 
 ## 相关页面
 

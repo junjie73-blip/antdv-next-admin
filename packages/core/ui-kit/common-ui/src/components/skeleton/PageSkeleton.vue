@@ -55,7 +55,11 @@ const props = withDefaults(defineProps<Props>(), {
 const barClassName = cn('bg-gray-200 dark:bg-gray-700', 'rounded-sm');
 
 // 带脉冲动画的容器底色（卡片外框自身也要脉冲，仍用原生 div 承载边框/内边距）
-const skeletonBaseClassName = cn('animate-pulse', 'bg-gray-200 dark:bg-gray-700', 'rounded-sm');
+const skeletonBaseClassName = cn(
+  'animate-pulse',
+  'bg-gray-200 dark:bg-gray-700',
+  'rounded-sm',
+);
 
 // 标题骨架样式
 const titleClassName = cn(barClassName, 'mb-6 h-8 w-48');
@@ -144,9 +148,7 @@ function getRowClassName(width: string) {
       <div
         class="flex items-center gap-4 border-b border-gray-200 pb-4 dark:border-gray-700"
       >
-        <Skeleton
-          :class="cn(barClassName, 'h-16 w-16 rounded-full')"
-        />
+        <Skeleton :class="cn(barClassName, 'h-16 w-16 rounded-full')" />
         <div class="flex-1 space-y-2">
           <Skeleton :class="cn(barClassName, 'h-6 w-48')" />
           <Skeleton :class="cn(barClassName, 'h-4 w-64')" />

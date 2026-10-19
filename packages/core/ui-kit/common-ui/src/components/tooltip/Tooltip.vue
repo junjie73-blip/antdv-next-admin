@@ -36,7 +36,10 @@ const props = withDefaults(
 /** antd 的九宫格方位映射到 reka 的 side + align */
 const PLACEMENT: Record<
   string,
-  { align: 'center' | 'end' | 'start'; side: 'bottom' | 'left' | 'right' | 'top' }
+  {
+    align: 'center' | 'end' | 'start';
+    side: 'bottom' | 'left' | 'right' | 'top';
+  }
 > = {
   bottom: { align: 'center', side: 'bottom' },
   bottomLeft: { align: 'start', side: 'bottom' },

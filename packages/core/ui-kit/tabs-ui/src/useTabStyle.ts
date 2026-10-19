@@ -26,21 +26,21 @@ const STYLE_MAP: Record<TabStyle, TabStyleClasses> = {
     divider: false,
   },
   /*
-   * 谷歌风格：浏览器标签的样子 —— 只有顶部两个圆角、左右+顶描边但不画底边、
-   * 标签贴着标签栏底边排（`bar: items-stretch` 让滚动容器拿到整行高度，
-   * 再配合 `list: items-end`，标签才会"坐"在底边上而不是垂直居中悬空）。
+   * 谷歌风格 = 浏览器标签：32px 高的胶囊坐在标签栏下沿，**四角同半径（10px）、不描边**，
+   * 选中页靠一段"反向圆角"与内容区接上（那段弧只能由伪元素画，见 `TabsBar.vue` 的样式块）。
    *
-   * 关键：标签栏（strip）铺一层**主色浅底**，选中页换成内容底色
-   * （`bg-background`）才能从浅底里"跳"出来 —— Chrome 的窗口条本身就是主题色
-   * 染出来的灰蓝，用中性 muted 就少了那层染色。相邻标签靠各自的左右描边天然分隔。
+   * 标签栏底色保持中性（不染色）：参考稿的层次是"灰条 + 主色浅底选中页"，
+   * 把整条染成 `bg-primary/10` 反而让选中页的分隔线发丝看不见了。
+   * 未选中是透明底、悬停才有灰底，选中页的底色写在样式块里而不是这里 ——
+   * 因为标签体与它的两只"脚"必须共用同一个颜色值。
    */
   chrome: {
-    item: 'h-8 gap-1.5 rounded-t-lg border border-b-0 border-transparent px-3',
-    active: 'border-border bg-background text-foreground shadow-sm',
-    bar: 'items-stretch bg-primary/10',
-    list: 'h-full items-end gap-0',
+    item: 'relative h-8 gap-1.5 rounded-[10px] px-3.5',
+    active: 'text-primary',
+    bar: 'items-stretch',
+    list: 'h-full items-end gap-1 px-2.5',
     close: 'hover:text-red-500 rounded-full p-0.5',
-    divider: false,
+    divider: true,
   },
   rounded: {
     item: 'gap-1.5 rounded-full px-3.5 py-1.5',
@@ -74,8 +74,7 @@ const IDLE_ITEM =
 
 const IDLE_BG: Record<TabStyle, string> = {
   card: 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600',
-  chrome:
-    'bg-background/40 hover:bg-background/70 dark:bg-background/10 dark:hover:bg-background/20',
+  chrome: 'hover:bg-gray-100 dark:hover:bg-gray-700',
   line: '',
   plain: '',
   rounded:

@@ -33,34 +33,38 @@ That one `pnpm dev:web` command is enough, because it brings up two things at th
 ```
 apps/web dev server ──── 6080 ─  frontend (Vite 8 + Vue 3 + antdv-next 1.6)
         │
-        └─ in-process Nitro Mock ── 5320 ─  /api/**, data for all 21 menu pages + login + upload
+        └─ in-process Nitro Mock ── 5320 ─  /api/**, data for login, upload and all 50 menu paths
 ```
 
-The ports aren't hardcoded: `apps/web/.env.development` sets `VITE_PORT=6080` and `VITE_MOCK_SERVER=http://localhost:5320`, and the dev server proxies `/api` through. So **you don't need a backend prepared separately**.
+The mock isn't "another process": `VITE_MOCK=true` in `apps/web/.env.development:18` makes the Vite assembly register `viteNitroMockPlugin` (`internal/vite-config/src/plugins/index.ts:130-135`), which calls `createDevServer().listen(5320)` inside the same Node process. The ports aren't hardcoded either: the same file sets `VITE_PORT=6080` (`:1`) and `VITE_MOCK_SERVER=http://localhost:5320` (`:20`), and the dev server proxies `/api` through. So **you don't need a backend prepared separately**.
 
 Other scripts you'll use:
 
 ```bash
-pnpm dev              # turbo-run dev, web + mock together
+pnpm dev              # turbo-run dev: pick one package interactively, run its dev script (NOT "web + mock together")
 pnpm build            # turbo build, builds all packages along the dependency graph
 pnpm preview          # preview the build output
-pnpm test:unit        # repo-wide unit tests (turbo, 21 tasks)
+pnpm test:unit        # repo-wide unit tests (turbo; 24 sub-packages declare test:unit)
 pnpm test:e2e         # Playwright (starts the dev server itself)
-pnpm lint             # eslint (the shared config in internal/lint-configs)
+pnpm lint             # vsh lint: oxlint / oxfmt / eslint / stylelint
 pnpm check:type       # vue-tsc type-check, package by package
 ```
 
 ## 3. You changed a shared package but nothing took effect
 
-`apps/web` consumes each sub-package's **`dist`**, not its `src`. After editing `packages/*/src` or `internal/vite-config/src`:
+The sub-packages come in two publishing styles — read each `package.json`'s `exports["."]`:
+
+- **`dist` published** (6 packages): `@antdv/shared`, `@antdv/types`, `@antdv/hooks`, `@antdv/preferences`, `@antdv/router`, `@antdv/directives`. `apps/web` reads their `dist/`, so editing `src` requires a rebuild:
 
 ```bash
 pnpm --filter @antdv/shared build   # or just pnpm build
 ```
 
-Then restart the dev server. This constraint is the easiest thing to trip over in the project: without a restart the page still gets the old modules, which shows up as "I clearly changed it, but the page didn't change".
+- **Source published** (15 packages): the eight `ui-kit` packages plus `design`, `icons`, `layouts`, `request`, `stores`, `utils`, `enums`. Their `exports` point straight at `./src/index.ts`, they have no `build` script, and a save hot-reloads immediately.
 
-::: details Why not alias straight to src
+After rebuilding a `dist` package, restart the dev server. This constraint is the easiest thing to trip over in the project: without a restart the page still gets the old modules, which shows up as "I clearly changed it, but the page didn't change".
+
+::: details Why the dist packages don't just alias to src
 
 - The sub-packages have to be installable and usable on their own by other projects, so their build output must be their own `dist`;
 - Vite's `optimizeDeps` and type resolution often disagree with the build result when aliased to source;
@@ -74,10 +78,16 @@ Then restart the dev server. This constraint is the easiest thing to trip over i
 apps/
   web/              # the admin app (@antdv/web)
   backend-mock/     # Nitro Mock (@antdv/backend-mock)
-  docs/             # this site (@antdv/docs, deployed separately)
-packages/           # 9 runtime sub-packages: shared / preferences / composables / ui /
-                    # layouts / router / directives / styles / types
-internal/           # build and conventions: vite-config / node-utils / tsconfig / lint-configs/*
+packages/           # 21 runtime sub-packages in three tiers:
+  core/base/        #   design / icons / shared / types
+  core/             #   hooks / preferences
+  core/ui-kit/      #   common-ui / form-ui / layout-ui / menu-ui /
+                    #   popup-ui / shadcn-ui / table-ui / tabs-ui
+  (packages root)   #   directives / enums / layouts / request / router / stores / utils
+internal/           # 8 build-time packages: vite-config / node-utils / tsconfig /
+                    # lint-configs/{eslint,oxlint,oxfmt,stylelint,commitlint}-config
+scripts/            # the two in-house CLIs: turbo-run / vsh
+docs/               # this site (@antdv/docs, deployed separately)
 .changeset/         # where versions and the CHANGELOG come from
 ```
 

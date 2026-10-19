@@ -81,11 +81,11 @@ import { useWebSocket } from '@antdv/composables/websocket';
 | `apps/web/src/utils/securityInit.ts:16` | `initSecuritySystem` | 在用（`main.ts:35,95`） |
 | `apps/web/src/utils/crud-actions.ts:15` | `createCrudActions` | **无调用点** |
 | `apps/web/src/utils/routePreload.ts:38,110,130` | `preloadRoute` / `preloadRoutes` / `useRoutePreloader` | **无调用点**（只被 `utils/index.ts:3` re-export） |
-| `apps/web/src/composables/index.ts:1-3` | `useCRUD`、`usePermission`、`@antdv/request` 整包 | 请求层在用（`stores/modules/user.ts:7`、`route.ts:18` 取 `http`）；`usePermission` 从 `~/composables/web/permission` 直接引（`directives/index.ts:13`）；`useCRUD`（`useCRUD.ts:100`）**无调用点** |
+| `apps/web/src/composables/index.ts:6` | 只剩 `@antdv/request` 整包（`http` / `request` / `ExecuteOptions`） | 请求层在用（`api/request.ts:3`、`api/query.ts:10`、`components/common/AvatarUploader.vue:13` 等 6 处）；`useCRUD`、`usePermission` 已迁进 `@antdv/hooks`，页面与指令都从包里引（`views/components/table/crud/index.vue:34`、`directives/index.ts:13`）；stores 不绕这层，直接 `import { http } from '@antdv/request'`（`packages/stores/src/user.ts:6`、`route.ts:8`） |
 | `apps/web/src/composables/useNotice.ts:62` | `useNotice` | **无调用点** |
 | `apps/web/src/composables/usePasswordPolicy.ts:24` | `usePasswordPolicy` | **无调用点** |
 
-`utils/**` 与 `composables/useCRUD.ts` 等文件**没有单元测试**：`apps/web/src/` 下的 `__tests__` 目录里没有 utils（请求层已经独立成包：`packages/request/__tests__/`）。这正是"包里有测试、应用薄壳没测试"的分工结果 —— 逻辑应该在包里。
+`utils/**` 与应用侧薄壳**没有单元测试**：`apps/web/src/` 下的 `__tests__` 目录里没有 utils（逻辑搬进包后就有了对应用例：请求层在 `packages/request/__tests__/`，通用组合式函数在 `packages/core/hooks/__tests__/`，`useCRUD`、`usePermission` 各一份）。这正是"包里有测试、应用薄壳没测试"的分工结果 —— 逻辑应该在包里。
 
 ## 硬边界：包不许碰 pinia / store / env
 

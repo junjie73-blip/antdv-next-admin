@@ -37,7 +37,8 @@ const formatted = computed(() => {
   const raw = props.value;
   if (raw === undefined || raw === null || raw === '') return '-';
   if (typeof raw !== 'number') return String(raw);
-  const fixed = props.precision === undefined ? raw : raw.toFixed(props.precision);
+  const fixed =
+    props.precision === undefined ? raw : raw.toFixed(props.precision);
   const [int = '0', decimal] = String(fixed).split('.');
   const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, props.groupSeparator);
   return decimal ? `${grouped}${props.decimalSeparator}${decimal}` : grouped;
@@ -58,13 +59,19 @@ const formatted = computed(() => {
       :style="props.valueStyle"
       :class="cn('text-2xl font-semibold leading-tight tabular-nums')"
     >
-      <span v-if="props.prefix || $slots.prefix" class="mr-1 text-base font-normal">
+      <span
+        v-if="props.prefix || $slots.prefix"
+        class="mr-1 text-base font-normal"
+      >
         <slot name="prefix">{{ props.prefix }}</slot>
       </span>
       <slot name="formatter">
         <span data-common-statistic-value>{{ formatted }}</span>
       </slot>
-      <span v-if="props.suffix || $slots.suffix" class="ml-1 text-base font-normal">
+      <span
+        v-if="props.suffix || $slots.suffix"
+        class="ml-1 text-base font-normal"
+      >
         <slot name="suffix">{{ props.suffix }}</slot>
       </span>
     </div>

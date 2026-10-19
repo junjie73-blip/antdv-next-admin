@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from '@antdv/shadcn-ui';
+import { Dialog, DialogContent, DialogTrigger } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 
 const props = withDefaults(
@@ -56,7 +52,9 @@ const imgStyle = computed(() => ({
       </DialogTrigger>
       <DialogContent
         :class="
-          cn('max-w-[90vw] sm:max-w-[720px] bg-transparent border-none shadow-none')
+          cn(
+            'max-w-[90vw] sm:max-w-[720px] bg-transparent border-none shadow-none',
+          )
         "
       >
         <img :src="img" :class="cn('w-full rounded')" alt="" />

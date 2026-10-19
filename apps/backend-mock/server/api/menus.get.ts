@@ -345,6 +345,24 @@ const list: BackendMenu[] = [
         icon: 'carbon:grid',
         path: '/components/drag-layout',
       },
+      {
+        menuName: '轻提示与通知',
+        name: 'DemoFeedback',
+        icon: 'carbon:warning-alt',
+        path: '/components/feedback',
+      },
+      {
+        menuName: '边框光带',
+        name: 'DemoBorderBeam',
+        icon: 'carbon:border-full',
+        path: '/components/border-beam',
+      },
+      {
+        menuName: '通用列表',
+        name: 'DemoListy',
+        icon: 'carbon:list-bulleted',
+        path: '/components/listy',
+      },
     ],
   },
   {

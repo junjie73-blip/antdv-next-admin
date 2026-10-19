@@ -93,10 +93,12 @@ function handleCancel(e: MouseEvent) {
         <Icon
           v-if="props.showIcon"
           :icon="props.danger ? 'lucide:circle-alert' : 'lucide:circle-help'"
-          :class="cn(
-            'mt-px size-4 shrink-0',
-            props.danger ? 'text-destructive' : 'text-warning',
-          )"
+          :class="
+            cn(
+              'mt-px size-4 shrink-0',
+              props.danger ? 'text-destructive' : 'text-warning',
+            )
+          "
         />
         <div class="min-w-0 flex-1">
           <div
@@ -107,10 +109,12 @@ function handleCancel(e: MouseEvent) {
           </div>
           <div
             v-if="props.description || $slots.description"
-            :class="cn(
-              'text-xs leading-5 text-muted-foreground break-words',
-              props.title || $slots.title ? 'mt-1' : '',
-            )"
+            :class="
+              cn(
+                'text-xs leading-5 text-muted-foreground break-words',
+                props.title || $slots.title ? 'mt-1' : '',
+              )
+            "
           >
             <slot name="description">{{ props.description }}</slot>
           </div>

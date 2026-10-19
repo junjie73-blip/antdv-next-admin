@@ -11,8 +11,8 @@ import type { TabActionContext } from './types';
 
 import { computed, ref, useTemplateRef, watch } from 'vue';
 
-import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import { Scrollbar } from '@antdv/common-ui';
+import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import { cn } from '@antdv/shared/utils/cn';
 import { useHorizontalScroll } from '@antdv/shared/utils/scroll';
 
@@ -60,9 +60,13 @@ const emit = defineEmits<{
 /** 右键菜单命中的标签与坐标 */
 const contextPayload = ref<null | TabContextMenuPayload>(null);
 
-const { barClass, closeClass, itemClass, listClass } = useTabStyle(
-  () => props.tabStyle,
-);
+const {
+  barClass,
+  closeClass,
+  itemClass,
+  listClass,
+  style: currentStyle,
+} = useTabStyle(() => props.tabStyle);
 
 /** 固定标签数量：与 store 的算法一致，由标签数组现量，包内不认 store */
 const affixCount = computed(() => props.tabs.filter((tab) => tab.affix).length);
@@ -90,6 +94,8 @@ const scroller = useHorizontalScroll(scrollContainerRef, {
  *
  * 开头的 `tab-bar` 是给用例留的稳定钩子：容器本身没有语义化属性，
  * 靠 `.tab-list` 的父节点反查太脆（中间层一改就断），而风格切换要看的就是这一层。
+ * `data-tab-style` 同一用途，但服务对象是下面那段 CSS —— 谷歌风格的分隔线与
+ * 反向圆角都要按"当前是哪一种风格"生效，写进 Tailwind 类名反而没法表达 clip-path。
  */
 const tabsClassName = computed(() =>
   cn(
@@ -139,7 +145,7 @@ function openContextMenu(event: MouseEvent, key: string) {
 </script>
 
 <template>
-  <div :class="tabsClassName">
+  <div :class="tabsClassName" :data-tab-style="currentStyle">
     <button
       v-show="scroller.canScrollLeft.value"
       :aria-label="tabsRuntime.t('shell.scrollTabsLeft')"
@@ -207,3 +213,90 @@ function openContextMenu(event: MouseEvent, key: string) {
     @close="contextPayload = null"
   />
 </template>
+
+<style>
+/*
+ * 谷歌风格的两处几何：选中页与内容区之间的**反向圆角**、相邻标签之间的发丝分隔线。
+ * 都画不出来用 Tailwind 表达的图形（`clip-path` 的象限裁剪、伪元素的圆 + 扩散阴影），
+ * 所以留在样式块里，按 `data-tab-style='chrome'` 生效，其余四种风格一概不受影响。
+ *
+ * 「脚」的做法：两个 20px 的圆，圆心正好落在标签下沿的外侧角上，
+ * `box-shadow: 0 0 0 30px` 把同一种底色铺满圆外的方形区域，再用 `clip-path`
+ * 只保留靠标签那一侧的下半象限 —— 于是标签底边左右各长出一段**凹**弧，
+ * 与内容区的直角接上，读起来像标签"坐"在内容区上（浏览器标签的那口气）。
+ *
+ * 半径必须与标签自己的圆角**同一个值**（10px）：两条弧的圆心都在标签底边上、
+ * 半径相同，交点处切线都是竖直的，接得上才是平滑的 S 形；
+ * 参考稿用的 8px 圆角 + 10px 弧，接缝处差的那 2px 会露出一个针尖大的缺口。
+ *
+ * 底色写在 `--tab-chrome-fill` 上、标签体与两只脚共用同一个变量：
+ * 换主题换明暗时三处一起变，不会出现"脚"和标签不同色的拼接缝。
+ */
+.tab-bar[data-tab-style='chrome'] .tab-item[data-active='true'] {
+  --tab-chrome-fill: color-mix(
+    in oklab,
+    var(--app-primary) 12%,
+    var(--app-background)
+  );
+
+  z-index: 1;
+  background-color: var(--tab-chrome-fill);
+}
+.tab-bar[data-tab-style='chrome'] .tab-item[data-active='true']::before,
+.tab-bar[data-tab-style='chrome'] .tab-item[data-active='true']::after {
+  position: absolute;
+  bottom: 0;
+  width: 20px;
+  height: 20px;
+  content: '';
+  border-radius: 9999px;
+  box-shadow: 0 0 0 30px var(--tab-chrome-fill);
+}
+.tab-bar[data-tab-style='chrome'] .tab-item[data-active='true']::before {
+  left: -20px;
+  clip-path: inset(50% -10px 0 50%);
+}
+.tab-bar[data-tab-style='chrome'] .tab-item[data-active='true']::after {
+  right: -20px;
+  clip-path: inset(50% 50% 0 -10px);
+}
+
+/*
+ * 分隔线走**未选中**标签的 `::after`、画在自己的左沿：
+ * 选中页的那两个伪元素已经被上面的脚占用，用它自己的槽位就没有抢占之争，
+ * 隐藏规则也只需要同步带上 `:not([data-active])` —— 少写一层判断的话，
+ * 悬停到选中页时会把它的左脚一起 `opacity: 0` 掉。
+ *
+ * 该没线的四种情形（与参考稿一致）：整条的第一个（左边是栏边，没有邻居）、
+ * 自己正被悬停、自己就是选中页、以及紧邻在悬停/选中页后面的那一个 ——
+ * 线是"两个平级标签之间"的东西，任何一侧翘起来就该整段消失。
+ */
+.tab-bar[data-tab-style='chrome'] .tab-item:not([data-active='true'])::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  height: 16px;
+  margin: auto;
+  content: '';
+  background-color: var(--app-border);
+  transition: opacity 0.3s ease;
+}
+.tab-bar[data-tab-style='chrome']
+  .tab-list
+  .tab-item:not([data-active='true']):first-child::after,
+.tab-bar[data-tab-style='chrome']
+  .tab-list
+  .tab-item:not([data-active='true']):hover::after,
+.tab-bar[data-tab-style='chrome']
+  .tab-list
+  .tab-item[data-active='true']
+  + .tab-item:not([data-active='true'])::after,
+.tab-bar[data-tab-style='chrome']
+  .tab-list
+  .tab-item:not([data-active='true']):hover
+  + .tab-item:not([data-active='true'])::after {
+  opacity: 0;
+}
+</style>

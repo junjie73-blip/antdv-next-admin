@@ -16,7 +16,15 @@ test.describe('注册页', () => {
   });
 
   test('与登录页同一套认证外壳，字段齐全', async ({ page }) => {
-    for (const hook of ['page', 'brand', 'panel', 'form-panel', 'toolbar']) {
+    for (const hook of [
+      'page',
+      'brand',
+      'card',
+      'panel',
+      'form-panel',
+      'logo-img',
+      'toolbar',
+    ]) {
       await expect(auth(page, hook)).toBeVisible();
     }
     await expect(auth(page, 'username')).toBeVisible();

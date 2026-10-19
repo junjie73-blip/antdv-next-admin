@@ -1773,12 +1773,21 @@ importers:
 
   packages/core/hooks:
     dependencies:
+      '@antdv/form-ui':
+        specifier: workspace:*
+        version: link:../ui-kit/form-ui
       '@antdv/popup-ui':
         specifier: workspace:*
         version: link:../ui-kit/popup-ui
       '@antdv/shared':
         specifier: workspace:*
         version: link:../base/shared
+      '@antdv/stores':
+        specifier: workspace:*
+        version: link:../../stores
+      '@antdv/table-ui':
+        specifier: workspace:*
+        version: link:../ui-kit/table-ui
       '@antdv/types':
         specifier: workspace:*
         version: link:../base/typings
@@ -1791,6 +1800,9 @@ importers:
       es-toolkit:
         specifier: 'catalog:'
         version: 1.52.0
+      pinia:
+        specifier: ^3.0.4
+        version: 3.0.4(typescript@6.0.3)(vue@3.5.43(typescript@6.0.3))
       vue:
         specifier: 3.5.43
         version: 3.5.43(typescript@6.0.3)
@@ -1804,6 +1816,9 @@ importers:
       '@antdv/tsconfig':
         specifier: workspace:*
         version: link:../../../internal/tsconfig
+      '@vitejs/plugin-vue':
+        specifier: 'catalog:'
+        version: 6.0.9(vite@8.3.3)(vue@3.5.43(typescript@6.0.3))
       happy-dom:
         specifier: 'catalog:'
         version: 20.14.5
@@ -1816,6 +1831,9 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
+      vite:
+        specifier: 'catalog:'
+        version: 8.3.3(@types/node@26.6.4)(@vitejs/devtools@0.7.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)
       vitest:
         specifier: 'catalog:'
         version: 4.1.11(@types/node@26.6.4)(happy-dom@20.14.5)(jsdom@27.4.0)(vite@8.3.3)
@@ -1877,6 +1895,9 @@ importers:
       '@iconify/vue':
         specifier: 'catalog:'
         version: 5.0.3(vue@3.5.43(typescript@6.0.3))
+      '@lucide/vue':
+        specifier: 'catalog:'
+        version: 1.55.0(vue@3.5.43(typescript@6.0.3))
       '@tiptap/core':
         specifier: 'catalog:'
         version: 3.31.4(@tiptap/pm@3.31.4)
@@ -1910,6 +1931,9 @@ importers:
       cronstrue:
         specifier: 'catalog:'
         version: 3.30.0
+      echarts:
+        specifier: 'catalog:'
+        version: 6.1.0
       es-toolkit:
         specifier: 'catalog:'
         version: 1.52.0
@@ -1919,6 +1943,9 @@ importers:
       vue:
         specifier: 3.5.43
         version: 3.5.43(typescript@6.0.3)
+      vue-sonner:
+        specifier: 'catalog:'
+        version: 2.0.9
     devDependencies:
       '@antdv/tsconfig':
         specifier: workspace:*

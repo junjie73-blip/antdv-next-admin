@@ -13,5 +13,6 @@ export type DictResolver = (dictType: string, value: unknown) => string;
  * 即可复用真实字典。未注入时回退为「命中不了就显示原值、空值显示 `-`」，
  * 与迁移前字典尚未加载时 store 的表现完全一致。
  */
-export const DESCRIPTION_DICT_RESOLVER: InjectionKey<DictResolver> =
-  Symbol('description-dict-resolver');
+export const DESCRIPTION_DICT_RESOLVER: InjectionKey<DictResolver> = Symbol(
+  'description-dict-resolver',
+);

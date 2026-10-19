@@ -19,30 +19,36 @@ redirect: (to) =>
   useRouteStore().isUngrantedExistingPage(to.path) ? '/error/403' : '/error/404',
 ```
 
-`isUngrantedExistingPage` (`apps/web/src/stores/modules/route.ts:370-375`) compares the current address against the **leaf landing points** of the full menu snapshot (`collectExistingPagePaths`, framework pages already removed): the page exists but is ungranted → 403, the very same target as the guard's `forbiddenPath`, so both interception styles look identical; the address really doesn't exist → 404. The criterion is "leaf", not "does it have a `component` field" — a convention-route page isn't guaranteed to carry that field in the snapshot, and filtering on it would classify perfectly good pages as "nonexistent", sending unauthorized access back to 404.
+`isUngrantedExistingPage` (`packages/stores/src/route.ts:379-383`) compares the current address against the **leaf landing points** of the full menu snapshot (`collectExistingPagePaths` at `:397`, framework pages already removed): the page exists but is ungranted → 403, the very same target as the guard's `forbiddenPath`, so both interception styles look identical; the address really doesn't exist → 404. The criterion is "leaf", not "does it have a `component` field" — a convention-route page isn't guaranteed to carry that field in the snapshot, and filtering on it would classify perfectly good pages as "nonexistent", sending unauthorized access back to 404.
 
 `apps/web/e2e/permission-accounts.spec.ts` pins this chain with the `admin` / `custom` accounts: every whitelisted page opens, every page outside the list lands on `/#/error/403`, plus a reverse control — a mistyped address (`/components/this-page-does-not-exist`) must still be 404, otherwise "no permission" and "typo" collapse into one target and nobody notices. The button-level asymmetry lives in `apps/web/e2e/table-crud.spec.ts`: on the same table admin sees Delete / Batch delete, while `custom` only gets `add` / `edit` and no delete entry is findable anywhere on the page.
 
 ## How to write `v-permission` (don't mix up arg and modifier)
 
-The decision priority comes from `packages/directives/src/permission/utils.ts`: `arg === 'admin'` → super admin; a `'*'` permission code → everything passes; `arg === 'role'` → interpret as roles; otherwise interpret as permission codes.
+The decision priority comes from `packages/directives/src/permission/utils.ts`: `arg === 'admin'` → super admin; a `'*'` permission code → everything passes; `arg === 'role'` → interpret as roles; otherwise interpret as permission codes. Example pages and real business code use the repo's own `Button` (`@antdv/shadcn-ui` or `@antdv/common-ui`), not antdv-next's `a-button` — `apps/web/src/views/__tests__/gallery-api-usage.spec.ts:137` scans the source and forbids `from 'antdv-next'` under the example and layout directories, so the snippets below follow the same rule.
 
 ```vue
-<!-- By permission code (the default interpretation), an "or" relationship -->
-<a-button v-permission="'system:user:add'">Add</a-button>
-<a-button v-permission="['system:user:edit', 'system:user:add']">Edit</a-button>
+<script setup lang="ts">
+import { Button } from '@antdv/shadcn-ui';
+</script>
 
-<!-- Require both at the same time → .all -->
-<a-button v-permission="['a', 'b'].all">Both required</a-button>
+<template>
+  <!-- By permission code (the default interpretation), an "or" relationship -->
+  <Button v-permission="'system:user:add'">Add</Button>
+  <Button v-permission="['system:user:edit', 'system:user:add']">Edit</Button>
 
-<!-- By role: role is the **arg** -->
-<a-button v-permission:role="'auditor'">Visible to auditors</a-button>
+  <!-- Require both at the same time → .all -->
+  <Button v-permission="['a', 'b'].all">Both required</Button>
 
-<!-- Super admin: also an arg, with an empty value -->
-<a-button v-permission:admin>Visible to admins</a-button>
+  <!-- By role: role is the **arg** -->
+  <Button v-permission:role="'auditor'">Visible to auditors</Button>
 
-<!-- Don't hide it, fall back to disabled instead -->
-<a-button v-permission.disabled="'system:user:delete'">Delete</a-button>
+  <!-- Super admin: also an arg, with an empty value -->
+  <Button v-permission:admin>Visible to admins</Button>
+
+  <!-- Don't hide it, fall back to disabled instead -->
+  <Button v-permission.disabled="'system:user:delete'">Delete</Button>
+</template>
 ```
 
 ::: danger `role` / `admin` are args, not modifiers Write `v-permission.role="'auditor'"` or `v-permission.admin` and the check **never reads them at all**, so the element is visible forever — no error, no warning: the hardest class of permission bug to notice. (The only real modifiers are `.all` and `.disabled`.) `apps/web/src/views/__tests__/gallery-api-usage.spec.ts` has a static guard that catches exactly this pattern, with two sample sets — "must match" and "must not over-match" — so the rule itself can't be silently empty. :::
@@ -50,11 +56,11 @@ The decision priority comes from `packages/directives/src/permission/utils.ts`: 
 The object form can carry its own criteria, and then `arg` no longer takes part in interpretation:
 
 ```vue
-<a-button
+<Button
   v-permission="{ mode: 'all', permissions: ['a', 'b'], roles: ['ops'] }"
 >
   Mixed check
-</a-button>
+</Button>
 ```
 
 ## The directive package doesn't touch the store

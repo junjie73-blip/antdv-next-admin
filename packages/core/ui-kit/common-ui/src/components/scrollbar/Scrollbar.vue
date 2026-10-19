@@ -37,8 +37,7 @@ const nativeWrapRef = ref<HTMLElement>();
 const wrap = shallowRef<HTMLElement>();
 
 const responsiveMaxHeight = useResponsiveMaxHeight({
-  referenceMaxHeight: () =>
-    isNumber(props.maxHeight) ? props.maxHeight : 495,
+  referenceMaxHeight: () => (isNumber(props.maxHeight) ? props.maxHeight : 495),
 });
 
 // 显式声明再返回：直接 `return {}` 会被 TS 推成 `{ maxHeight?: undefined }`

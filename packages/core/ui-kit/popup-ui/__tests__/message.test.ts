@@ -20,9 +20,9 @@ vi.mock('vue-sonner', () => ({
 import { toast } from 'vue-sonner';
 
 import {
-  NOTIFICATION_TOASTER_ID,
   message,
   notification,
+  NOTIFICATION_TOASTER_ID,
 } from '../src/message';
 
 type ToastMethod = 'error' | 'info' | 'loading' | 'success' | 'warning';
@@ -44,6 +44,11 @@ describe('message —— 轻提示通道', () => {
     }
   });
 
+  it('缺省停留 3 秒：够读完一行短文案，又不至于挡路', () => {
+    message.info('内容');
+    expect(spies.info).toHaveBeenCalledWith('内容', { duration: 3000 });
+  });
+
   it('一条都不带 toasterId：漏挂通知那只时轻提示仍然可见', () => {
     for (const type of types) message[type]('内容');
     message.loading('加载中');
@@ -62,9 +67,28 @@ describe('notification —— 通知通道', () => {
     for (const type of types) {
       expect(spies[type]).toHaveBeenCalledWith('标题', {
         description: '描述',
+        duration: 8000,
         toasterId: NOTIFICATION_TOASTER_ID,
       });
     }
+  });
+
+  it('默认 8 秒：挂了常驻关闭按钮就不能短到按钮还没看清就消失', () => {
+    notification.info('标题', '描述');
+    expect(spies.info).toHaveBeenCalledWith('标题', {
+      description: '描述',
+      duration: 8000,
+      toasterId: NOTIFICATION_TOASTER_ID,
+    });
+  });
+
+  it('第三个参数覆盖停留时长', () => {
+    notification.success('标题', '描述', 2000);
+    expect(spies.success).toHaveBeenCalledWith('标题', {
+      description: '描述',
+      duration: 2000,
+      toasterId: NOTIFICATION_TOASTER_ID,
+    });
   });
 
   it('id 就是宿主 `<Toaster :id>` 用的那个字符串', () => {

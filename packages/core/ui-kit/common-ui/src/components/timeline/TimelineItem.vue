@@ -32,7 +32,7 @@ const labeled = computed(() => context?.value.labeled ?? false);
 const labelPlacement = computed(() => context?.value.labelPlacement ?? 'left');
 
 const dotClass = computed(() =>
-  cn('size-2.5 shrink-0 rounded-full', COLOR[props.color] ?? 'bg-primary')
+  cn('size-2.5 shrink-0 rounded-full', COLOR[props.color] ?? 'bg-primary'),
 );
 
 const dotStyle = computed(() =>
@@ -43,7 +43,10 @@ const labelFirst = computed(() => labelPlacement.value !== 'right');
 </script>
 
 <template>
-  <li data-common-timeline-item class="group relative flex gap-3 pb-6 last:pb-0">
+  <li
+    data-common-timeline-item
+    class="group relative flex gap-3 pb-6 last:pb-0"
+  >
     <div
       v-if="labeled && labelFirst"
       class="w-24 shrink-0 pt-0.5 text-right text-xs text-gray-500 dark:text-gray-400"
@@ -55,7 +58,9 @@ const labelFirst = computed(() => labelPlacement.value !== 'right');
       <slot name="dot">
         <span :class="dotClass" :style="dotStyle"></span>
       </slot>
-      <span class="mt-1 w-px flex-1 bg-gray-200 group-last:hidden dark:bg-gray-700"></span>
+      <span
+        class="mt-1 w-px flex-1 bg-gray-200 group-last:hidden dark:bg-gray-700"
+      ></span>
     </div>
 
     <div class="min-w-0 flex-1 -mt-0.5 pb-1">

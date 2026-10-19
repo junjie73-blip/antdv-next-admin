@@ -30,9 +30,10 @@ import {
 import { THEME_PRESETS } from '@antdv/shared/constants';
 import { useAppStore, useUserStore } from '@antdv/stores';
 import { Icon } from '@iconify/vue';
-import { useLocale } from '~/composables/web/useLocale';
-import { HOME_PATH } from '~/config/constants';
 import logoUrl from '~/assets/images/logo.png';
+import { useLocale } from '~/composables/useLocale';
+import { AUTH_SOCIAL_ITEMS } from '~/config/auth-social';
+import { HOME_PATH } from '~/config/constants';
 
 const router = useRouter();
 const route = useRoute();
@@ -83,11 +84,19 @@ const formState = reactive({
 
 const accountRules = computed<Record<string, Rule[]>>(() => ({
   password: [
-    { message: t('login.passwordPlaceholder'), required: true, trigger: 'blur' },
+    {
+      message: t('login.passwordPlaceholder'),
+      required: true,
+      trigger: 'blur',
+    },
     { message: t('login.passwordMin'), min: 6, trigger: 'blur' },
   ],
   username: [
-    { message: t('login.usernamePlaceholder'), required: true, trigger: 'blur' },
+    {
+      message: t('login.usernamePlaceholder'),
+      required: true,
+      trigger: 'blur',
+    },
   ],
 }));
 
@@ -98,12 +107,16 @@ const mobileRules = computed<Record<string, Rule[]>>(() => ({
   ],
   mobile: [
     { message: t('login.mobilePlaceholder'), required: true, trigger: 'blur' },
-    { message: t('login.mobileInvalid'), pattern: /^1[3-9]\d{9}$/u, trigger: 'blur' },
+    {
+      message: t('login.mobileInvalid'),
+      pattern: /^1[3-9]\d{9}$/u,
+      trigger: 'blur',
+    },
   ],
 }));
 
-const currentRules = computed(
-  () => (loginType.value === 'account' ? accountRules.value : mobileRules.value),
+const currentRules = computed(() =>
+  loginType.value === 'account' ? accountRules.value : mobileRules.value,
 );
 
 /**
@@ -119,7 +132,10 @@ async function validateNames(names?: string[]) {
     const value = (formState as Record<string, any>)[name];
     let errorMsg = '';
     for (const rule of rules) {
-      const error = await runRule(rule, value, { joinLabel: false, label: name });
+      const error = await runRule(rule, value, {
+        joinLabel: false,
+        label: name,
+      });
       if (error) {
         errorMsg = error;
         break;
@@ -183,13 +199,6 @@ function handleSendCode() {
 /* ============================================================
  * 底部：切换登录方式 / 第三方 / 注册入口
  * ============================================================ */
-const socialItems: AuthSocialItem[] = [
-  { icon: 'mdi:github', label: 'GitHub', value: 'github' },
-  { icon: 'mdi:wechat', label: 'WeChat', value: 'wechat' },
-  { icon: 'mdi:qq-chat', label: 'QQ', value: 'qq' },
-  { icon: 'mdi:dingtalk', label: 'DingTalk', value: 'dingtalk' },
-];
-
 function handleSocial(item: AuthSocialItem) {
   message.info(t('login.socialUnreleased', { name: item.label }));
 }
@@ -216,16 +225,24 @@ function handleSocial(item: AuthSocialItem) {
     </template>
 
     <AuthFormPanel
-      :badge="loginType === 'account' ? t('login.accountLogin') : t('login.mobileLogin')"
+      :badge="
+        loginType === 'account'
+          ? t('login.accountLogin')
+          : t('login.mobileLogin')
+      "
       :description="t('login.welcomeDesc')"
       :title="t('login.welcome')"
     >
       <form @submit.prevent="handleLogin">
         <div class="space-y-4" data-auth="fields">
+          <!--
+            前缀图标锚在 `top-5`（输入框 h-10 的中线）而不是 `top-1/2`：
+            定位上下文是含错误提示整块，用 1/2 时红字一出来图标就往下飘。
+          -->
           <template v-if="loginType === 'account'">
             <div class="relative">
               <Icon
-                class="text-foreground/40 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                class="text-foreground/40 pointer-events-none absolute top-5 left-3 size-4 -translate-y-1/2"
                 icon="carbon:user"
               />
               <AInput
@@ -247,7 +264,7 @@ function handleSocial(item: AuthSocialItem) {
 
             <div class="relative">
               <Icon
-                class="text-foreground/40 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                class="text-foreground/40 pointer-events-none absolute top-5 left-3 size-4 -translate-y-1/2"
                 icon="carbon:password"
               />
               <div class="relative">
@@ -260,7 +277,11 @@ function handleSocial(item: AuthSocialItem) {
                   @blur="validateNames(['password'])"
                 />
                 <button
-                  :aria-label="passwordVisible ? t('login.hidePassword') : t('login.showPassword')"
+                  :aria-label="
+                    passwordVisible
+                      ? t('login.hidePassword')
+                      : t('login.showPassword')
+                  "
                   class="text-foreground/50 hover:text-foreground absolute top-1/2 right-2 flex size-7 -translate-y-1/2 items-center justify-center"
                   type="button"
                   @click="passwordVisible = !passwordVisible"
@@ -284,7 +305,7 @@ function handleSocial(item: AuthSocialItem) {
           <template v-else>
             <div class="relative">
               <Icon
-                class="text-foreground/40 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                class="text-foreground/40 pointer-events-none absolute top-5 left-3 size-4 -translate-y-1/2"
                 icon="carbon:mobile"
               />
               <AInput
@@ -306,7 +327,7 @@ function handleSocial(item: AuthSocialItem) {
 
             <div class="relative">
               <Icon
-                class="text-foreground/40 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                class="text-foreground/40 pointer-events-none absolute top-5 left-3 size-4 -translate-y-1/2"
                 icon="carbon:email"
               />
               <div class="relative">
@@ -347,7 +368,9 @@ function handleSocial(item: AuthSocialItem) {
           <Label class="cursor-pointer items-center gap-2 font-normal">
             <ACheckbox
               :model-value="formState.remember"
-              @update:model-value="(v: any) => (formState.remember = v === true)"
+              @update:model-value="
+                (v: any) => (formState.remember = v === true)
+              "
             />
             <span class="text-sm">{{ t('login.rememberMe') }}</span>
           </Label>
@@ -397,7 +420,7 @@ function handleSocial(item: AuthSocialItem) {
 
       <AuthSocialLogin
         :divider-text="t('login.otherLoginMethods')"
-        :items="socialItems"
+        :items="AUTH_SOCIAL_ITEMS"
         @select="handleSocial"
       />
 

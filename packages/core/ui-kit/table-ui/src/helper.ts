@@ -197,9 +197,7 @@ export function getColumnId(col: BasicColumn): string {
  *   （antd 的 `sorter: true` 就是"交给服务端"的语义）；
  * - `onFilter` 存在才真正过滤，`filters` 单独出现只是展示用菜单。
  */
-export function convertColumns(
-  columns: BasicColumn[],
-): TableUIColumnDef[] {
+export function convertColumns(columns: BasicColumn[]): TableUIColumnDef[] {
   return filterVisibleColumns(columns).map((col) => {
     const id = getColumnId(col);
     const compare = isFunction(col.sorter)

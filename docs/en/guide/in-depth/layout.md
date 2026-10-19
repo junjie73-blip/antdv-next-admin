@@ -54,7 +54,7 @@ The fix goes through the opening the official tooling leaves: the second argumen
 
 Tab page state moved out of the components into a store, so drag-to-reorder, the context menu, and maximizing are reusable across modes; the rendering layer is split into small components (one tab, the dropdown add button, and the context menu each get their own file), and the shell only assembles them.
 
-- **Style**: `TabStyle = card | chrome | line | plain | rounded` (`chrome` is the Google-style pill).
+- **Style**: `TabStyle = card | chrome | line | plain | rounded`. `chrome` is the Google style, drawn like browser tabs: a 32px pill sits on the bottom edge of the bar, the active tab grows a pair of "concave feet" from pseudo-elements so it merges seamlessly into the content area, and tabs are separated by a 1px × 16px hairline that steps aside when it is hovered, when its left neighbour is active, or when it is the first tab (see the style block in `TabsBar.vue`).
 - **Ordering**: drag to reorder, the state is written back to the store, and switching layout modes doesn't lose it.
 - **Context menu**: pin / maximize / reload / new window / close left / close right / close others / close all.
 - **Caching**: wired up to `keep-alive`, so pinned tabs and pages marked "cache" don't re-request when you switch back to them.

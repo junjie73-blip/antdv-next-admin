@@ -25,6 +25,19 @@ const ICON_PICKER = '/components/icon-picker';
 /** 与 `IconPicker.vue` 的 `PAGE_SIZE` 一致：一页 108 个格子 */
 const PAGE_SIZE = 108;
 
+/**
+ * 轻提示那只 toaster。
+ *
+ * 根部挂了**两只** `<Toaster />`（轻提示 + 通知，见 `apps/web/src/App.vue`），
+ * 裸 `[data-sonner-toaster]` 会命中两个元素触发 strict mode；
+ * 轻提示那只的位置由 `App.vue` 写死成"顶部居中"，按这两个属性收窄。
+ */
+function messageToaster(page: Page): Locator {
+  return page.locator(
+    'ol[data-sonner-toaster][data-x-position="center"][data-y-position="top"]',
+  );
+}
+
 /** 按卡片标题取示例块（页面用 `@antdv/common-ui` 的 Card 分节，标题唯一） */
 function card(page: Page, title: string): Locator {
   return page
@@ -141,17 +154,13 @@ test.describe('IconPicker（shadcn-ui 重写）', () => {
       /^lucide:\S+$/,
     );
     // 页面用 message 播报 @change，这条断言证明事件真的发出去了
-    await expect(page.locator('[data-sonner-toaster]')).toContainText(
-      /已选择图标：lucide:/,
-    );
+    await expect(messageToaster(page)).toContainText(/已选择图标：lucide:/);
 
     // 清除：触发器尾部那颗 × 只发 change('')，不该把面板再打开
     await triggerButton.locator('[class*="hover:text-foreground"]').click();
     await expect(basic.getByText('已选：(无)')).toBeVisible();
     await expect(triggerButton.locator('[data-picker-value]')).toHaveCount(0);
-    await expect(page.locator('[data-sonner-toaster]')).toContainText(
-      /已选择图标：\(/,
-    );
+    await expect(messageToaster(page)).toContainText(/已选择图标：\(/);
 
     expect(errors.errors).toEqual([]);
     errors.stop();

@@ -304,7 +304,9 @@ function presetButtonClass(preset: CronPreset) {
           <Select
             :disabled="disabled"
             :model-value="fieldValues[f.key]"
-            @update:model-value="(value: unknown) => handleFieldSelect(f.key, value)"
+            @update:model-value="
+              (value: unknown) => handleFieldSelect(f.key, value)
+            "
           >
             <SelectTrigger class="w-full font-mono" size="sm">
               <SelectValue />

@@ -60,8 +60,8 @@ const rootClass = computed(() =>
     customStyle.value ? '' : presetClass.value,
     // 放在色板之后：preset 里带 `border-*-200`，先写的 `border-transparent`
     // 会被 twMerge 当成同一个 border-color 冲突项吃掉
-    props.bordered ? '' : 'border-transparent'
-  )
+    props.bordered ? '' : 'border-transparent',
+  ),
 );
 </script>
 

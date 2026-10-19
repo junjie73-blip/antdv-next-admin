@@ -15,7 +15,7 @@ The header comment of `locales/index.ts` states the split: it only **registers m
 
 ## applyLocale: one locale, four effects
 
-From `src/composables/web/useLocale.ts`:
+From `apps/web/src/composables/useLocale.ts`:
 
 ```ts
 i18n.global.locale.value = locale; // 1. our own messages
@@ -35,23 +35,23 @@ const { setLocale } = useLocale();
 setLocale('en-US'); // really: appStore.updateSetting({ locale })
 ```
 
-Persistence belongs to `@antdv/preferences`; a `watch(appStore.locale)` keeps the effects in sync. The language switcher UI lives in the settings drawer (`layouts/components/SettingDrawer/`) and writes the same `locale` field — do not bypass `setLocale` and patch preferences directly.
+Persistence belongs to `@antdv/preferences`; a `watch(appStore.locale)` keeps the effects in sync. The language switcher UI lives in its own widget at `packages/layouts/src/widgets/language-toggle/index.vue` (the app injects the candidate list via `apps/web/src/plugins/layouts-host.ts`) and writes the same `locale` field — do not bypass `setLocale` and patch preferences directly.
 
 ## On-demand antd locale chunks
 
-`packages/preferences/src/theme/index.ts`:
+`apps/web/src/settings/locale.ts`:
 
-- `LOCALE_LOADERS` lazily imports `antdv-next/locale/zh_CN | en_US | zh_TW`;
-- `loadLocale()` **falls back to the default language** when a chunk fails, never a blank page;
-- note the two different scopes: the loader knows three languages, while `useLocale.ts` declares `LocaleType = 'en-US' | 'zh-CN'`. Adding a language means touching both plus a new file under `locales/lang/`.
+- `LOCALE_LOADERS` lazily imports `antdv-next/locale/zh_CN | en_US | zh_TW` (`:12-16`); these are **legitimate** `antdv-next` references — the language packs themselves come from antd, and the preferences package only stores the `locale` string without knowing where antd's locale files live;
+- `loadLocale()` (`:26-38`) **falls back to the default language** when a chunk fails, never a blank page;
+- note the two different scopes: the loader knows three languages, while `useLocale.ts:12` declares `LocaleType = 'en-US' | 'zh-CN'`. Adding a language means touching both plus a new file under `locales/lang/`.
 
 ## Menu titles
 
-The backend menu's `menuName` is a Chinese constant, not an i18n key. `localizeMenus()` in `src/locales/menu.ts` looks up `menu.<Name>` (keyed by the stable route `name`), and its consumer is `layouts/composables/useMenuTree.ts` (`te(key) ? t(key) : undefined`). A missing translation renders the backend title as-is — a brand-new menu item shows readable Chinese rather than a literal `menu.NewPage`.
+The backend menu's `menuName` is a Chinese constant, not an i18n key. `localizeMenus()` at `packages/utils/src/menu.ts:474` looks up `menu.<Name>` (keyed by the stable route `name`), and its consumer is `packages/layouts/src/hooks/use-menu-tree.ts` (translation goes through `layoutRuntime.translateMenu`, injected by the host; `te(key) ? t(key) : undefined`). A missing translation renders the backend title as-is — a brand-new menu item shows readable Chinese rather than a literal `menu.NewPage`.
 
 ## Build-time pairing
 
-`internal/vite-config/src/plugins/vue.ts` registers `@intlify/unplugin-vue-i18n` with `compositionOnly / runtimeOnly: true`; `createI18n({ legacy: false })` must match it.
+`internal/vite-config/src/plugins/vue.ts` imports `@intlify/unplugin-vue-i18n/vite` at `:6` and registers it at `:56-60` with `compositionOnly / runtimeOnly: true`; `createI18n({ legacy: false })` must match it.
 
 ## Common mistakes
 

@@ -188,7 +188,8 @@ function toNode(value: string | VNode): VNode {
 }
 
 /** 获取某个 action 的 label VNode（兼容字符串 / VNode） */
-function getLabelVNode(action: ActionItem): undefined | VNode {  const label = getActionLabel(action.label, currentRecord.value);
+function getLabelVNode(action: ActionItem): undefined | VNode {
+  const label = getActionLabel(action.label, currentRecord.value);
   if (!label) return undefined;
   if (isVNode(label)) return label;
   return h('span', String(label));
@@ -249,59 +250,63 @@ function renderDropdownAction(
   return h('div', { key }, [
     content,
     isOpen
-      ? h('div', {
-          key: confirmKey,
-          class: cn(
-            'mx-1 my-1 rounded-md border bg-muted/60 p-2 text-sm',
-            'flex flex-col gap-2',
-          ),
-        }, [
-          h('div', { class: 'flex flex-col gap-1' }, [
-            h('div', { class: 'font-medium leading-5' }, [
-              isVNode(action.popConfirm.title)
-                ? action.popConfirm.title
-                : String(action.popConfirm.title),
+      ? h(
+          'div',
+          {
+            key: confirmKey,
+            class: cn(
+              'mx-1 my-1 rounded-md border bg-muted/60 p-2 text-sm',
+              'flex flex-col gap-2',
+            ),
+          },
+          [
+            h('div', { class: 'flex flex-col gap-1' }, [
+              h('div', { class: 'font-medium leading-5' }, [
+                isVNode(action.popConfirm.title)
+                  ? action.popConfirm.title
+                  : String(action.popConfirm.title),
+              ]),
+              action.popConfirm.content
+                ? h(
+                    'div',
+                    { class: 'text-xs leading-5 text-muted-foreground' },
+                    [action.popConfirm.content],
+                  )
+                : null,
             ]),
-            action.popConfirm.content
-              ? h(
-                  'div',
-                  { class: 'text-xs leading-5 text-muted-foreground' },
-                  [action.popConfirm.content],
-                )
-              : null,
-          ]),
-          h('div', { class: 'flex items-center justify-end gap-2' }, [
-            h(
-              Button,
-              {
-                variant: 'outline',
-                size: 'xs',
-                onClick: (e: MouseEvent) => {
-                  action.popConfirm?.cancel?.(currentRecord.value, e);
-                  inlineConfirmOpen.value[confirmKey] = false;
+            h('div', { class: 'flex items-center justify-end gap-2' }, [
+              h(
+                Button,
+                {
+                  variant: 'outline',
+                  size: 'xs',
+                  onClick: (e: MouseEvent) => {
+                    action.popConfirm?.cancel?.(currentRecord.value, e);
+                    inlineConfirmOpen.value[confirmKey] = false;
+                  },
                 },
-              },
-              () => '取消',
-            ),
-            h(
-              Button,
-              {
-                variant: action.danger ? 'destructive' : 'default',
-                size: 'xs',
-                onClick: (e: MouseEvent) => {
-                  if (action.popConfirm?.confirm) {
-                    action.popConfirm.confirm(currentRecord.value, e);
-                  } else {
-                    action.onClick?.(currentRecord.value, e);
-                  }
-                  inlineConfirmOpen.value[confirmKey] = false;
-                  closeDropdown();
+                () => '取消',
+              ),
+              h(
+                Button,
+                {
+                  variant: action.danger ? 'destructive' : 'default',
+                  size: 'xs',
+                  onClick: (e: MouseEvent) => {
+                    if (action.popConfirm?.confirm) {
+                      action.popConfirm.confirm(currentRecord.value, e);
+                    } else {
+                      action.onClick?.(currentRecord.value, e);
+                    }
+                    inlineConfirmOpen.value[confirmKey] = false;
+                    closeDropdown();
+                  },
                 },
-              },
-              () => '确定',
-            ),
-          ]),
-        ])
+                () => '确定',
+              ),
+            ]),
+          ],
+        )
       : null,
   ]);
 }
@@ -322,9 +327,14 @@ function renderMoreDropdownContent() {
         'py-1.5 min-w-[120px] rounded bg-white dark:bg-slate-800 dark:text-slate-100',
     },
     dropdownActions.value.map((action, i) =>
-      renderDropdownAction(action, i, () => {
-        moreDropdownOpen.value = false;
-      }, `more-${i}`),
+      renderDropdownAction(
+        action,
+        i,
+        () => {
+          moreDropdownOpen.value = false;
+        },
+        `more-${i}`,
+      ),
     ),
   );
 }
@@ -370,7 +380,10 @@ function subMenuClick(
           :class="getButtonClass(action)"
         >
           <Icon v-if="action.icon" :icon="action.icon" />
-          <RenderVNode v-if="getLabelVNode(action)" :vnode="getLabelVNode(action)" />
+          <RenderVNode
+            v-if="getLabelVNode(action)"
+            :vnode="getLabelVNode(action)"
+          />
         </Button>
         <template #title>
           <RenderVNode :vnode="toNode(action.popConfirm.title)" />
@@ -412,12 +425,14 @@ function subMenuClick(
             >
               <div
                 v-if="!sub.popConfirm"
-                :class="cn(
-                  'mx-1 flex cursor-pointer items-center gap-2 rounded-sm px-3 py-1.5 text-sm transition-colors duration-200 select-none',
-                  sub.danger
-                    ? 'text-red-500 hover:bg-red-50'
-                    : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800',
-                )"
+                :class="
+                  cn(
+                    'mx-1 flex cursor-pointer items-center gap-2 rounded-sm px-3 py-1.5 text-sm transition-colors duration-200 select-none',
+                    sub.danger
+                      ? 'text-red-500 hover:bg-red-50'
+                      : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800',
+                  )
+                "
                 @click="
                   (e: MouseEvent) =>
                     subMenuClick(action, subIndex, e, () => {
@@ -439,10 +454,17 @@ function subMenuClick(
                 </span>
               </div>
               <component
-                :is="() =>
-                  renderDropdownAction(sub, subIndex, () => {
-                    subDropdownOpenMap[index] = false;
-                  }, `sub-${index}-${subIndex}`)"
+                :is="
+                  () =>
+                    renderDropdownAction(
+                      sub,
+                      subIndex,
+                      () => {
+                        subDropdownOpenMap[index] = false;
+                      },
+                      `sub-${index}-${subIndex}`,
+                    )
+                "
                 v-else
               />
             </template>
@@ -460,7 +482,10 @@ function subMenuClick(
         @click="(e: MouseEvent) => handleClick(action, e)"
       >
         <Icon v-if="action.icon" :icon="action.icon" />
-        <RenderVNode v-if="getLabelVNode(action)" :vnode="getLabelVNode(action)" />
+        <RenderVNode
+          v-if="getLabelVNode(action)"
+          :vnode="getLabelVNode(action)"
+        />
       </Button>
     </template>
 

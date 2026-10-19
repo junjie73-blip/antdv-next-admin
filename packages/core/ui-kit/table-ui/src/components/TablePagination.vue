@@ -61,9 +61,7 @@ function jump(e: KeyboardEvent) {
     <Select
       v-if="props.showSizeChanger"
       :model-value="String(props.pageSize)"
-      @update:model-value="
-        (v: unknown) => emit('update:pageSize', Number(v))
-      "
+      @update:model-value="(v: unknown) => emit('update:pageSize', Number(v))"
     >
       <SelectTrigger
         aria-label="每页条数"

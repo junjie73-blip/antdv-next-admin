@@ -54,7 +54,7 @@ full-content · horizontal · mixed-two-column · mixed-vertical · side-nav · 
 
 标签页状态从组件里抽到了 store，所以拖拽排序、右键菜单、最大化都能跨形态复用；渲染层拆成小组件（单个 tab、下拉新增按钮、右键菜单各自一个文件），外壳只负责装配。
 
-- **风格**：`TabStyle = card | chrome | line | plain | rounded`（`chrome` 就是谷歌风格胶囊）。
+- **风格**：`TabStyle = card | chrome | line | plain | rounded`。`chrome` 就是谷歌风格——按浏览器标签画：32px 高的胶囊坐在栏底，选中页用一对伪元素长出"反向圆角"与内容区无缝相接，标签之间是 1px × 16px 的发丝线，悬停到自己、选中的前一个、或整条的第一个时线自动让位（`TabsBar.vue` 的样式块）。
 - **排序**：拖拽换顺序，状态写回 store，切换布局形态不丢。
 - **右键菜单**：固定 / 最大化 / 重载 / 新窗口 / 关闭左侧 / 关闭右侧 / 关闭其他 / 关闭全部。
 - **缓存**：接通 `keep-alive`，固定标签与"缓存"标记的页面切回去不重新请求。

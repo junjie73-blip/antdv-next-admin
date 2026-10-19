@@ -46,9 +46,7 @@ const itemClass = computed(() =>
 );
 
 /** 状态色：uploading 蓝、error 红、done 绿，抽成 computed 避免模板里写 cn(...) */
-const statusTextClass = computed(() =>
-  cn('min-w-0 flex-1 truncate'),
-);
+const statusTextClass = computed(() => cn('min-w-0 flex-1 truncate'));
 
 function thumbOf(file: UploadFile) {
   return file.thumbUrl ?? file.url ?? '';
@@ -73,11 +71,7 @@ function onPreview(file: UploadFile, event: MouseEvent) {
         :is="isCard ? 'div' : 'span'"
         v-if="listType !== 'text'"
         class="relative shrink-0 overflow-hidden"
-        :class="
-          isCard
-            ? 'size-24 cursor-pointer'
-            : 'flex items-center gap-2'
-        "
+        :class="isCard ? 'size-24 cursor-pointer' : 'flex items-center gap-2'"
         @click="isCard ? onPreview(file, $event) : undefined"
       >
         <img
@@ -92,10 +86,7 @@ function onPreview(file: UploadFile, event: MouseEvent) {
         <span :class="statusTextClass" :title="file.name">{{ file.name }}</span>
 
         <!-- 上传中：进度条 + 百分比 -->
-        <div
-          v-if="file.status === 'uploading'"
-          class="flex items-center gap-2"
-        >
+        <div v-if="file.status === 'uploading'" class="flex items-center gap-2">
           <Progress :model-value="file.percent ?? 0" class="h-1.5 flex-1" />
           <span class="w-10 text-right text-xs text-gray-500">
             {{ Math.round(file.percent ?? 0) }}%

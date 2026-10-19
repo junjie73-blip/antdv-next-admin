@@ -5,7 +5,7 @@ import { PREFERENCES_CACHE_KEY } from '@antdv/preferences';
 import { cache } from '@antdv/shared/cache';
 import dayjs from '@antdv/shared/utils/dayjs';
 import { createPinia } from 'pinia';
-import { useLocale, useLocaleSync } from '~/composables/web/useLocale';
+import { useLocale, useLocaleSync } from '~/composables/useLocale';
 import i18n from '~/locales';
 import enUS from '~/locales/lang/en-US';
 import zhCN from '~/locales/lang/zh-CN';

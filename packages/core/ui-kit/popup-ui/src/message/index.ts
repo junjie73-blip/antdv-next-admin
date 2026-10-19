@@ -1,8 +1,8 @@
 /**
- * 轻提示与通知：都基于 vue-sonner（shadcn `Toaster` 的底层）。
+ * 轻提示与通知：都基于 vue-sonner。
  *
  * 用法与旧 `message.success/error/info/warning` 对齐；应用需要在根部挂**两只**
- * `<Toaster />`（`@antdv/shadcn-ui` 导出）：一只不带 `id`（轻提示，位置固定居中），
+ * `<Toaster />`（`@antdv/common-ui` 导出的主题化外壳）：一只不带 `id`（轻提示，位置固定居中），
  * 一只 `:id="NOTIFICATION_TOASTER_ID"`（通知，位置由偏好 `notificationPosition` 决定）。
  *
  * 为什么分两只而不是给每条 toast 传 `position`：sonner 同一个位置只维护一个堆栈，
@@ -15,36 +15,61 @@
  */
 // CSS 副作用导入的类型声明只能引用、不能复制：下游按源码消费本包时看不到 popup-ui 的 tsconfig include。
 // oxlint-disable-next-line typescript/triple-slash-reference
-/// <reference path="../types/css.d.ts" />
+// / <reference path="../types/css.d.ts" />
 import { toast } from 'vue-sonner';
-
 import 'vue-sonner/style.css';
 
 /** 通知通道的 toaster id，宿主按这个名字挂第二只 `<Toaster />` */
 export const NOTIFICATION_TOASTER_ID = 'notification';
 
+/**
+ * 两条通道的默认停留时长。
+ *
+ * 轻提示沿用旧 `message` 的 3 秒：够读完一行短文案，又不至于挡路。
+ * 通知给 8 秒：message 那只没有关闭按钮（3 秒自己走，不值得占一个控件），
+ * 通知挂了常驻的 ✕，停留就不能短到"按钮还没看清就消失了"。
+ */
+const MESSAGE_DURATION = 3000;
+const NOTIFICATION_DURATION = 8000;
+
 export const message = {
   error: (content: string, duration?: number) =>
-    toast.error(content, { duration }),
+    toast.error(content, { duration: duration ?? MESSAGE_DURATION }),
   info: (content: string, duration?: number) =>
-    toast.info(content, { duration }),
+    toast.info(content, { duration: duration ?? MESSAGE_DURATION }),
   loading: (content: string) => toast.loading(content),
   success: (content: string, duration?: number) =>
-    toast.success(content, { duration }),
+    toast.success(content, { duration: duration ?? MESSAGE_DURATION }),
   warning: (content: string, duration?: number) =>
-    toast.warning(content, { duration }),
+    toast.warning(content, { duration: duration ?? MESSAGE_DURATION }),
 };
 
 /** 通知：比轻提示多一条描述，并落到宿主单独定位的那只 toaster 上 */
 export const notification = {
-  error: (content: string, description?: string) =>
-    toast.error(content, { description, toasterId: NOTIFICATION_TOASTER_ID }),
-  info: (content: string, description?: string) =>
-    toast.info(content, { description, toasterId: NOTIFICATION_TOASTER_ID }),
-  success: (content: string, description?: string) =>
-    toast.success(content, { description, toasterId: NOTIFICATION_TOASTER_ID }),
-  warning: (content: string, description?: string) =>
-    toast.warning(content, { description, toasterId: NOTIFICATION_TOASTER_ID }),
+  error: (content: string, description?: string, duration?: number) =>
+    toast.error(content, {
+      description,
+      duration: duration ?? NOTIFICATION_DURATION,
+      toasterId: NOTIFICATION_TOASTER_ID,
+    }),
+  info: (content: string, description?: string, duration?: number) =>
+    toast.info(content, {
+      description,
+      duration: duration ?? NOTIFICATION_DURATION,
+      toasterId: NOTIFICATION_TOASTER_ID,
+    }),
+  success: (content: string, description?: string, duration?: number) =>
+    toast.success(content, {
+      description,
+      duration: duration ?? NOTIFICATION_DURATION,
+      toasterId: NOTIFICATION_TOASTER_ID,
+    }),
+  warning: (content: string, description?: string, duration?: number) =>
+    toast.warning(content, {
+      description,
+      duration: duration ?? NOTIFICATION_DURATION,
+      toasterId: NOTIFICATION_TOASTER_ID,
+    }),
 };
 
 export { toast };

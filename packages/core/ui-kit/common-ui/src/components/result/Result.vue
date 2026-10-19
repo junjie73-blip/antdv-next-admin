@@ -39,9 +39,7 @@ const PRESET: Record<ResultStatus, { color: string; icon: string }> = {
   warning: { color: 'text-amber-500', icon: 'carbon:warning-alt' },
 };
 
-const preset = computed(
-  () => PRESET[props.status] ?? PRESET.info
-);
+const preset = computed(() => PRESET[props.status] ?? PRESET.info);
 
 const iconClass = computed(() => cn('shrink-0', preset.value.color));
 </script>

@@ -3,38 +3,42 @@
 ## 三层结构
 
 ```
-apps/       可部署的东西：web（管理后台）、backend-mock（Nitro）、docs（本站点）
+apps/       可部署的东西：web（管理后台）、backend-mock（Nitro）
 packages/   运行时子包：会被打进浏览器产物
 internal/   构建期工具：只在 Node 里跑，不进产物
 ```
 
-`pnpm-workspace.yaml` 的 glob 是 `internal/*`、`internal/lint-configs/*`、`packages/*`、`packages/ui-kit/*`、`apps/*`、`docs`、`scripts/*`。 **新增包要落在这几个目录里**，否则不会被识别为 workspace 成员（`docs/` 这种根目录就不会，`packages/ui-kit/foo` 在加进 glob 之前也不会）。
+根目录另有三个不属于上面三层的成员：`docs`（本站点，`pnpm-workspace.yaml` 里单独列了一行）、`scripts`（`turbo-run` / `vsh` 两个自研 CLI）、`.changeset`（版本与 CHANGELOG 的来源）。
 
-## 18 个运行时子包
+`pnpm-workspace.yaml:2-10` 的 glob 是 `internal/*`、`internal/lint-configs/*`、`packages/*`、`packages/core/*`、`packages/core/base/*`、`packages/core/ui-kit/*`、`apps/*`、`docs`、`scripts/*`。**新增包要落进这几个位置**，否则不会被识别为 workspace 成员 —— 新加一个根目录（比如 `tools/foo`）不会自动入伙，得往这九行里补一条；`packages/core/ui-kit/foo` 这种已经覆盖到的位置才不用改。
 
-原先的 `@antdv/ui` 一拆为三（`icons` / `loading-ui` / `scrollbar-ui`），TanStack 化的封装层与 shadcn 原子件都在 `packages/ui-kit/` 下独立成包：
+## 21 个运行时子包
+
+原先的 `@antdv/ui` 已经拆光：图标进了 `packages/core/base/icons`，Loading 与 Scrollbar 连同公共展示件一起并进了 `packages/core/ui-kit/common-ui`；TanStack 化的封装层与 shadcn 原子件都在 `packages/core/ui-kit/` 下独立成包（8 个）。下表 21 行的"位置"列就是 `pnpm-workspace.yaml` 里那三层：
 
 | 包 | 职责 | 边界（包内不许 import） |
 | --- | --- | --- |
-| `@antdv/types` | 共享类型契约：布局设置、菜单、标签页、Mock 信封 | 纯类型，无运行时代码 |
-| `@antdv/shared` | 四个目录 + 一个出口：`cache` 缓存、`color` 色值换算、`constants` 跨层字面量（CSS 变量名 / DOM class / 默认主色）、`utils` 一个文件一件工具（`cn`、日期、下载、Excel、脱敏、XSS、事件总线、菜单辅助……）、`store.ts` 只转发 `@tanstack/vue-store` | store / api |
-| `@antdv/preferences` | 偏好默认值、持久化、CSS 变量落地、antdv-next 主题配置 | pinia / store |
-| `@antdv/composables` | 组合式函数：分片上传、打印、水印、ECharts、SSE、WebSocket… | store / api / 路由实例 |
-| `@antdv/icons` | 只管图标：Iconify 包装、SVG 雪碧图图标、图标选择器（shadcn 实现） | pinia / vue-router / 业务 store / 应用配置 / antdv-next |
-| `@antdv/common-ui` | `Loading` 遮罩 + `useLoading` + `createLoading` 系列 + `v-loading` 指令 | 同上（依赖只到 `shadcn-ui` / `shared`） |
-| `@antdv/common-ui` | 自绘 `Scrollbar` + `Bar`，样式随组件走，不依赖宿主 Tailwind | 同上 |
-| `@antdv/common-ui` | 公共展示组件：`Alert`、`Badge`、`Card`、`CountTo`、`CronEditor`、`Description`、`Descriptions`、`Divider`、`Empty`、`EmptyState`、`ErrorBoundary`、`Image`、`PageSkeleton`、`TableSkeleton`、`Popconfirm`、`Result`、`Segmented`、`Space`、`Statistic`、`StatusTag`、`Steps`、`Tabs`/`TabPane`、`Tag`、`Timeline`、`Tooltip`、`Transfer`、`Tree`、`Upload`，全部由 `@antdv/shadcn-ui` 的原语组合出来 | 同上（依赖只到 `icons` / `scrollbar-ui` / `shadcn-ui` / `shared`） |
-| `@antdv/shadcn-ui` | shadcn-vue 原子件（Dialog / Popover / Select / Spinner…），上面几包的实现底座 | 业务逻辑 |
-| `@antdv/form-ui` | `@tanstack/vue-form` 之上的 schema 表单：`BasicForm` / `useForm` / `componentMap` | 应用 store |
-| `@antdv/table-ui` | `@tanstack/vue-table` 之上的 `BasicTable` / `useTable` + hooks | 应用 store |
-| `@antdv/popup-ui` | Dialog / Drawer / AlertDialog 封装与 `useModal` / `useDrawer` | 应用 store |
-| `@antdv/tabs-ui` | 标签页：`TabList` / `TabItem` / `TabActions` / 右键菜单 + 布局壳 | pinia / vue-router |
-| `@antdv/menu-ui` | 菜单树渲染与折叠状态 | pinia / vue-router |
-| `@antdv/layout-ui` | 7 种布局形态的区域组件（侧栏、图标栏、顶栏…） | pinia / vue-router |
-| `@antdv/layouts` | 7 种菜单形态的区域蓝图、内容区宽度策略、菜单树状态源、面包屑派生 | pinia / vue-router |
-| `@antdv/router` | 路由守卫：登录校验、动态菜单注册、标题、进度条、权限过滤 | store / api |
-| `@antdv/directives` | `v-permission`、`v-lazy` | store / pinia / vueuse |
-| `@antdv/design` | 两个二级目录：`token/`（default / dark 两套 shadcn 变量 + `@theme inline` 映射）与 `css/`（基础层、NProgress、无障碍、权限降级、滚动条兜底），由 Tailwind v4 入口 `src/index.css` 引齐 | 只写变量与 CSS，不含组件逻辑 |
+| `@antdv/types`（`core/base/typings`） | 共享类型契约：布局设置、菜单、标签页、Mock 信封 | 纯类型，无运行时代码 |
+| `@antdv/shared`（`core/base/shared`） | 四个目录 + 一个出口：`cache` 缓存（含 SM4 加密）、`color` 色值换算、`constants` 跨层字面量（CSS 变量名 `css-vars.ts` / DOM class / 默认主色）、`utils` 一个文件一件工具（`cn`、日期、下载、Excel、脱敏、XSS、事件总线……），`store.ts` 只转发 `@tanstack/vue-store` | store / api |
+| `@antdv/design`（`core/base/design`） | 两个二级目录：`token/`（default / dark 两套 shadcn 变量 + `@theme inline` 映射）与 `css/`（基础层、NProgress、无障碍、权限降级、滚动条兜底），由 Tailwind v4 入口 `src/index.css` 引齐 | 只写变量与 CSS，不含组件逻辑 |
+| `@antdv/icons`（`core/base/icons`） | 只管图标：Iconify 包装、SVG 雪碧图图标、图标选择器（shadcn 实现），5 个 `@iconify-json/*` 集合声明在本包 `dependencies` | pinia / vue-router / 业务 store / 应用配置 / antdv-next |
+| `@antdv/hooks`（`core/hooks`） | 组合式函数：`use-cache`、`use-chunk-upload`、`use-crud`、`use-file-reader`、`use-permission`、`use-print`、`use-route-loading`、`use-watermark` + `echarts/` 子入口 | store / api / 路由实例 |
+| `@antdv/preferences`（`core/preferences`） | 偏好默认值（`src/config.ts`）、持久化、`applyPreferencesToDom()` 落 DOM（`src/update-css-variables.ts`）、启动主题快照 | pinia / store；**不认识 antd** —— "偏好 → antd `ThemeConfig`" 的翻译在应用侧 `apps/web/src/settings/theme/index.ts:2-4` |
+| `@antdv/common-ui`（`core/ui-kit/common-ui`） | 公共展示件与外壳：`Loading` + `useLoading` / `createLoading`、自绘 `Scrollbar` + `Bar`、`Alert`、`Badge`、`BorderBeam`、`Card`、`CountTo`、`CronEditor`、`Description(s)`、`Divider`、`Empty` / `EmptyState`、`ErrorBoundary`、`Image`、`Listy`、`MarkdownEditor`、`PageSkeleton` / `TableSkeleton`、`Popconfirm`、`Result`、`Segmented`、`Space`、`Statistic`、`StatusTag`、`Steps`、`Tabs` / `TabPane`、`Tag`、`Timeline`、`Toaster`、`Tooltip`、`Transfer`、`Tree`、`Upload`、登录页外壳 `AuthPageLayout` / `AuthFormPanel` / `AuthColorPresets`、`ConfigProvider`，全部由 `@antdv/shadcn-ui` 的原语组合出来 | 应用 store / api |
+| `@antdv/shadcn-ui`（`core/ui-kit/shadcn-ui`） | shadcn-vue 原子件（Dialog / Popover / Select / Spinner…），上面几包的实现底座 | 业务逻辑 |
+| `@antdv/form-ui`（`core/ui-kit/form-ui`） | `@tanstack/vue-form` 之上的 schema 表单：`BasicForm` / `useForm` / `componentMap` | 应用 store |
+| `@antdv/table-ui`（`core/ui-kit/table-ui`） | `@tanstack/vue-table` 之上的 `BasicTable` / `useTable` + hooks | 应用 store |
+| `@antdv/popup-ui`（`core/ui-kit/popup-ui`） | Modal / Drawer / confirm 封装与 `useModal` / `useDrawer` / `message`（vue-sonner 的桥） | 应用 store |
+| `@antdv/tabs-ui`（`core/ui-kit/tabs-ui`） | 标签页：`TabList` / `TabItem` / `TabActions` / 右键菜单 | pinia / vue-router |
+| `@antdv/menu-ui`（`core/ui-kit/menu-ui`） | 菜单树渲染与折叠动效 | pinia / vue-router |
+| `@antdv/layout-ui`（`core/ui-kit/layout-ui`） | 7 种布局形态（`LayoutMode`：`packages/core/base/typings/src/app.ts:20-26`）的区域组件（侧栏、图标栏、顶栏…） | pinia / vue-router |
+| `@antdv/layouts`（`packages/layouts`） | 7 种菜单形态的区域蓝图、内容区宽度策略、菜单树状态源（`src/hooks/use-menu-tree.ts`）、面包屑派生、顶栏小部件 | pinia / vue-router |
+| `@antdv/router`（`packages/router`） | 路由守卫：登录校验、动态菜单注册、标题、进度条、权限过滤 | store / api |
+| `@antdv/directives`（`packages/directives`） | `v-permission`、`v-lazy` | store / pinia / vueuse |
+| `@antdv/stores`（`packages/stores`） | 4 个 setup store（`app` / `route` / `tabs` / `user`）+ `session.ts` 的会话作废登记处 | 只依赖 `@tanstack/vue-store` 之类的包，不 import 路由实例 |
+| `@antdv/request`（`packages/request`） | `createFetch` 之上的请求层：Bearer / CSRF / 重试 / 401 刷新，外加 `sse/` 与 `websocket/` 两个管理器 | pinia / 应用 store |
+| `@antdv/utils`（`packages/utils`） | 应用无关的纯函数：`menu.ts`（`attachMenuPaths` / `localizeMenus`）、`theme-mode.ts`（`resolveThemeMode`） | 任何有状态的依赖 |
+| `@antdv/enums`（`packages/enums`） | 跨层枚举与字面量：`CacheKey`、字典相关 | 任何运行时依赖 |
 
 ::: tip 为什么每张表都多一列"不许 import" 这是这些包能被客户项目单独复用的唯一原因。凡是"要读用户权限 / 要拿菜单 / 要看偏好"的地方，一律通过**依赖注入**把函数或 ref 传进来，包自己不认识 pinia。于是包能保持纯 TS + Vue 组合式、能脱离应用做单测，也不会出现"store 引包、包又反过来引 store"的环。新增能力时先想清楚这条边界，再决定放应用里还是放子包里 —— 需要 store 的薄壳留在 `apps/web`。:::
 
@@ -42,7 +46,7 @@ internal/   构建期工具：只在 Node 里跑，不进产物
 
 ```
 internal/*  ──►  只在构建期被 apps/packages 用
-apps/web    ──►  packages/*、packages/ui-kit/*（运行时）
+apps/web    ──►  packages/*、packages/core/ui-kit/*（运行时）
 packages/*  ──►  packages/*，且必须单向（types ← 其他所有包）
 ```
 
@@ -55,14 +59,14 @@ packages/*  ──►  packages/*，且必须单向（types ← 其他所有包�
 - 升级一个第三方库只改一处，不会出现"A 包 vue 3.5.40、B 包 3.5.43"这种类型打架；
 - `vue` 是**精确锁定**的（`3.5.43`，不带 `^`）：留 caret 时部分第三方 peer 树会停在旧 3.5.x， `@vue/runtime-core` 出现两份类型，跨包传 `Directive` 直接冲突；
 - 确有例外用 `catalogs.conflicts_vue_h3_5_43` 这样的分组目录；
-- `overrides` 把 `@ctrl/tinycolor`、`clsx`、`pinia`、`vue` 强制收敛到 catalog 版本。
+- `overrides` 把 `@ast-grep/napi`、`@ctrl/tinycolor`、`clsx`、`pinia`、`vue` 强制收敛到 catalog 版本（`pnpm-workspace.yaml:298-303`）。
 
 内部包之间用 `workspace:*`，装出来是软链，改完立刻生效 —— 但"生效"到哪一层取决于对面包是 dist 发布还是源码发布（见下）。
 
 ## 构建：tsdown + turbo（两类包不一样）
 
-- **dist 发布的包**（`shared` / `composables` / `directives` / `layouts` / `preferences` / `router` / `types` / `node-utils` / `vite-config`）：`build` 就是 `tsdown`（Rolldown 系），产物在 `dist/`，`files` 只带 `dist`；`exports` 支持**子路径即模块**：`@antdv/shared/utils/cn` → `dist/cn.js`（`./*` 通配符），多文件目录模块（`cache` / `crypto` / `event`）显式列出。 `apps/web` 读的是这些包的 `dist`，所以改 `packages/*/src` 必须重新构建 + 重启 dev 才看得见。
-- **源码发布的包**（`icons` / `design` / `ui-kit` 那十个）：`files: ["src"]`、`main`/`types` 直指 `./src/index.ts`，**没有 build 脚本**，由宿主 Vite 直接编译。改这类包保存即热更，不需要重新构建 —— 但也意味着宿主必须能编译 `.vue` 与 Tailwind 入口。口径见[外部模块](/guide/essentials/external)。
+- **dist 发布的包**（运行时 6 个：`shared` / `types` / `hooks` / `preferences` / `router` / `directives`；构建期的 `node-utils` / `vite-config` 同理）：`build` 就是 `tsdown`（Rolldown 系），产物在 `dist/`，`files` 只带 `dist`；`exports` 支持**子路径即模块**：`@antdv/shared/utils/cn` → `dist/utils/cn.js`（`./*` 通配符），多文件目录模块（`cache` / `color` / `constants` / `utils` 与 `utils/crypto`、`utils/event`）显式列出。 `apps/web` 读的是这些包的 `dist`，所以改这 6 个包的 `src` 必须重新构建 + 重启 dev 才看得见。
+- **源码发布的包**（运行时 15 个）：`ui-kit` 那八个、`design`、`icons`、`layouts`、`request`、`stores`、`utils`、`enums`。`files: ["src"]`、`main`/`types` 直指 `./src/index.ts`（`design` 是 `./src/index.css`），**没有 build 脚本**，由宿主 Vite 直接编译。改这类包保存即热更，不需要重新构建 —— 但也意味着宿主必须能编译 `.vue` 与 Tailwind 入口。口径见[外部模块](/guide/essentials/external)。
 - `turbo.json` 的任务图：`build` / `type-check` / `test:unit` / `test:e2e` 全部 `dependsOn: ["^build"]`，即"先构建我的依赖"；`dev` 是 `persistent` 且不吃缓存，同样先 `^build`（没有 build 脚本的包这一步直接跳过）。
 
 ## 发布：changesets
@@ -75,9 +79,10 @@ pnpm release            # build + changeset publish
 
 `.changeset/config.json` 里三个字段决定了实际行为：
 
-- `changelog: @changesets/changelog-github` + `repo` —— CHANGELOG 每条带 PR 链接；
-- `fixed: [["@antdv/*", "@antdv/*"]]` —— **所有 `@antdv/*` 锁步升版**，任一包 patch 会带着大家一起走同一版本号（所以现在每个包都是 `0.4.0`）。这是刻意的：内部包互相引用，版本分散会让 "装哪几个版本能一起跑"变成谜题；
-- `privatePackages: { version: true, tag: true }` —— `private: true` 的 `@antdv/web` / `docs` / `backend-mock` 也一起升版打 tag，虽然不发布到 npm。
+- `changelog: ["@changesets/changelog-github", { repo }]` —— 生成 CHANGELOG 时每条带 PR 链接；**目前还没有任何一包有 `CHANGELOG.md`**（`pnpm version` 一次都没跑过），仓库根那个 `CHANGELOG.md` 是改造前 `standard-version` 留下的旧文件。
+- `fixed: [["@antdv/*", "@antdv/*"]]` —— **`@antdv/*` 锁步升版**：一次 `pnpm version` 里被同一批 changeset 带到的包会一起跳到同一个号。这是刻意的：内部包互相引用，版本分散会让"装哪几个版本能一起跑"变成谜题。但锁步不等于全体相等 —— 没被这批 changeset 触及的包保持原号，所以现在（按各 `package.json` 实测）：多数包 `0.4.0`，`@antdv/layouts` `0.5.0`，`common-ui` / `enums` / `request` / `stores` / `utils` 还是 `0.1.0`，5 个 `*-config` 与 `docs` 是 `0.0.0`，`scripts/` 下的 `turbo-run` / `vsh` 是另一条线上的 `5.8.0`。别在文档里写"所有包都是同一个版本"。
+- `privatePackages: { version: true, tag: true }` —— 34 个 workspace 成员**全部** `private: true`（含 `@antdv/web` / `@antdv/backend-mock` / `@antdv/docs`），这个开关让它们也一起升版打 tag，虽然不会发布到 npm。
+- `baseBranch: "main"`、`updateInternalDependencies: "patch"`、`linked: []`、`ignore: []`。
 
 以前那套 `standard-version` 已随 monorepo 改造移除 —— 单个仓库版本号对多包不够用。
 

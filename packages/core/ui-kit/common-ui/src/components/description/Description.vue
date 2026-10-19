@@ -41,10 +41,7 @@ function resolveDictLabel(dictType: string, value: unknown): string {
   return dictResolver?.(dictType, value) ?? String(value);
 }
 
-function resolveDictLabels(
-  dictType: string,
-  value: string | string[],
-): string {
+function resolveDictLabels(dictType: string, value: string | string[]): string {
   if (!value) return '-';
   const values = isArray(value) ? value : String(value).split(',');
   return values.map((v) => resolveDictLabel(dictType, v)).join('、');

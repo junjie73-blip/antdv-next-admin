@@ -10,7 +10,7 @@
 import { watch } from 'vue';
 
 import { createPermissionDirective } from '@antdv/directives';
-import { usePermission } from '~/composables/web/permission';
+import { usePermission } from '@antdv/hooks';
 import { useUserStore } from '@antdv/stores';
 
 export { createLazyDirective, vLazy } from '@antdv/directives';

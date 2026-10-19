@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import type { BasicColumn } from '@antdv/table-ui';
-import type { TreeDataNode } from '~/components/business/TreeTable';
+import type { BasicColumn, TreeDataNode } from '@antdv/table-ui';
 
 import { ref } from 'vue';
 
 import { Card } from '@antdv/common-ui';
 import { message } from '@antdv/popup-ui';
 import { cn } from '@antdv/shared/utils/cn';
-import { TreeTable } from '~/components/business/TreeTable';
+import { TreeTable } from '@antdv/table-ui';
 
 const containerClassName = cn('flex h-full flex-col');
 const pageHeaderClassName = cn(
