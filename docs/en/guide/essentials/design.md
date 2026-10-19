@@ -33,7 +33,7 @@ Light and dark are **two independent value sets**, not "light with a few tweaks"
 
 - **No components**: the package has not a single `.vue` file and no `src/index.ts`. The shared display components (Card, Tag, Steps …) live in `@antdv/common-ui`, the icon atoms in `@antdv/icons`; the comment at `index.css:18` states exactly this boundary.
 - **No component-library awareness**: it imports no JS from any component library and no style compatibility layer either — every token and rule is owned by this package, so renaming or swapping a component library never requires a change here. The one leftover is the pair of `.ant-upload` cursor rules in `css/base.css:128-134` (antd leaves `cursor: pointer` off its upload trigger; deletable once that DOM is gone from the page).
-- **No business styling**: thin shells that need a store (for instance `apps/web/src/components/common/Loading/PageLoading.vue`) stay in the app and are never moved here. :::
+- **No business styling**: thin shells that need a store (for instance `packages/layouts/src/basic/content/page-loading.vue`) stay in the app and are never moved here. :::
 
 ## The layer order is declared explicitly
 

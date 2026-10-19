@@ -26,7 +26,7 @@ The Router itself: `createWebHashHistory()` + `strict: true` + scrolling back to
 
 ## What you can put in meta
 
-The type is defined in `packages/types/src/app-router.ts:3-12`:
+The type is defined in `packages/core/base/typings/src/app-router.ts:3-12`:
 
 | Field | Who reads it | Description |
 | --- | --- | --- |
@@ -56,11 +56,11 @@ progress → auth → dynamicRoutes → title → navLog
 
 ## The menu comes from the backend, not from the route table
 
-::: warning This is the point most easily got backwards The sidebar is **not** recursed out of routes. After login `GET /menus` returns the menu tree (`apps/web/src/stores/modules/route.ts:112-117`), and the frontend only does three things: :::
+::: warning This is the point most easily got backwards The sidebar is **not** recursed out of routes. After login `GET /menus` returns the menu tree (`packages/stores/src/route.ts:112-117`), and the frontend only does three things: :::
 
 1. `normalize()` maps the backend fields into the internal structure: `menuName → title`, carrying `icon/hidden/isExternal/path/keepAlive/children`; it **does not sort**, the order is just the array order (`route.ts:86-99`).
-2. `attachMenuPaths()` takes the menu and reverse-looks-up the real path in the route table, with five-level priority matching (`packages/shared/src/utils/menu.ts:258-314`). If the menu writes a path the route table doesn't have, the page won't open.
-3. `syncRouteRegistry()` in turn **prunes the routes**: whitelist exemption, `requiresAuth: false` exemption, a parent node is kept because a child is kept, duplicate paths take the first, incremental `addRoute`/`removeRoute` (**never `clearRoutes`**) (`route.ts:189-263`, `packages/shared/src/utils/menu.ts:82-106`).
+2. `attachMenuPaths()` takes the menu and reverse-looks-up the real path in the route table, with five-level priority matching (`packages/utils/src/menu.ts:258-314`). If the menu writes a path the route table doesn't have, the page won't open.
+3. `syncRouteRegistry()` in turn **prunes the routes**: whitelist exemption, `requiresAuth: false` exemption, a parent node is kept because a child is kept, duplicate paths take the first, incremental `addRoute`/`removeRoute` (**never `clearRoutes`**) (`route.ts:189-263`, `packages/utils/src/menu.ts:82-106`).
 
 Render layer: `buildMenuItems`'s key takes `name → path → title` in turn (`menu.ts:32-36,561-591`); external links render as `<a target="_blank">` (`:440-455`); top-level nodes are dispatched to the top bar / icon bar / sidebar according to the layout blueprint (`packages/layouts/src/menu-source.ts:165-191`); the nested tree is **not flattened**.
 
@@ -89,4 +89,4 @@ The symptoms and conclusions:
 
 ## Micro-frontend routing
 
-The registry matches sub-apps by `baseroute`; the loader supports `webcomponent` / `iframe`; the master switch is `VITE_MICRO_APP` (`apps/web/src/config/micro-app.ts:5-12`). The view reads `meta.microApp` and uses a sandbox when same-origin (`views/micro-app/SubAppView.vue:38`, `packages/types/src/menu.ts:24-31`).
+The registry matches sub-apps by `baseroute`; the loader supports `webcomponent` / `iframe`; the master switch is `VITE_MICRO_APP` (`apps/web/src/config/micro-app.ts:5-12`). The view reads `meta.microApp` and uses a sandbox when same-origin (`views/micro-app/SubAppView.vue:38`, `packages/core/base/typings/src/menu.ts:24-31`).

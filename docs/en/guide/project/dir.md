@@ -8,11 +8,11 @@ packages/   Runtime sub-packages: they get bundled into the browser build output
 internal/   Build-time tooling: runs in Node only, never enters the build output
 ```
 
-The globs in `pnpm-workspace.yaml` are `internal/*`, `internal/lint-configs/*`, `packages/*`, `packages/ui-kit/*`, `apps/*`, `docs`, `scripts/*`. **New packages have to land in one of these directories**, otherwise they aren't recognized as workspace members (a root-level directory like `docs/` isn't — and `packages/ui-kit/foo` was not either until the glob gained that entry).
+The globs in `pnpm-workspace.yaml` are `internal/*`, `internal/lint-configs/*`, `packages/*`, `packages/core/ui-kit/*`, `apps/*`, `docs`, `scripts/*`. **New packages have to land in one of these directories**, otherwise they aren't recognized as workspace members (a root-level directory like `docs/` isn't — and `packages/core/ui-kit/foo` was not either until the glob gained that entry).
 
 ## The 18 runtime sub-packages
 
-The old `@antdv/ui` split into three (`icons` / `loading-ui` / `scrollbar-ui`), and the TanStack-based wrapper layers plus the shadcn atoms each became their own package under `packages/ui-kit/`:
+The old `@antdv/ui` split into three (`icons` / `loading-ui` / `scrollbar-ui`), and the TanStack-based wrapper layers plus the shadcn atoms each became their own package under `packages/core/ui-kit/`:
 
 | Package | Responsibility | Boundary (no imports inside the package) |
 | --- | --- | --- |
@@ -42,7 +42,7 @@ The old `@antdv/ui` split into three (`icons` / `loading-ui` / `scrollbar-ui`), 
 
 ```
 internal/*  ──►  Used by apps/packages at build time only
-apps/web    ──►  packages/*, packages/ui-kit/* (runtime)
+apps/web    ──►  packages/*, packages/core/ui-kit/* (runtime)
 packages/*  ──►  packages/*, and it must stay one-way (types ← every other package)
 ```
 

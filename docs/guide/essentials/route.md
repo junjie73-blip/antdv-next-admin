@@ -26,7 +26,7 @@ Router 本体：`createWebHashHistory()` + `strict: true` + 每次导航滚回�
 
 ## meta 里能写什么
 
-类型定义在 `packages/types/src/app-router.ts:3-12`：
+类型定义在 `packages/core/base/typings/src/app-router.ts:3-12`：
 
 | 字段 | 谁在读 | 说明 |
 | --- | --- | --- |
@@ -56,11 +56,11 @@ progress → auth → dynamicRoutes → title → navLog
 
 ## 菜单来自后端，不来自路由表
 
-::: warning 这是最容易搞反的一点侧栏**不是**从 routes 递归出来的。登录后 `GET /menus` 返回菜单树（`apps/web/src/stores/modules/route.ts:112-117`），前端只做三件事：:::
+::: warning 这是最容易搞反的一点侧栏**不是**从 routes 递归出来的。登录后 `GET /menus` 返回菜单树（`packages/stores/src/route.ts:112-117`），前端只做三件事：:::
 
 1. `normalize()` 把后端字段映射成内部结构：`menuName → title`，带 `icon/hidden/isExternal/path/keepAlive/children`； **不排序**，顺序就是数组顺序（`route.ts:86-99`）。
-2. `attachMenuPaths()` 拿菜单去路由表里反查真实 path，五级优先级匹配（`packages/shared/src/utils/menu.ts:258-314`）。菜单里写了个路由表没有的 path，页面就打不开。
-3. `syncRouteRegistry()` 反过来**裁剪路由**：白名单豁免、`requiresAuth: false` 豁免、父节点因子节点保留而保留、重复 path 取首个，增量 `addRoute`/`removeRoute` （**从不用 `clearRoutes`**）（`route.ts:189-263`、`packages/shared/src/utils/menu.ts:82-106`）。
+2. `attachMenuPaths()` 拿菜单去路由表里反查真实 path，五级优先级匹配（`packages/utils/src/menu.ts:258-314`）。菜单里写了个路由表没有的 path，页面就打不开。
+3. `syncRouteRegistry()` 反过来**裁剪路由**：白名单豁免、`requiresAuth: false` 豁免、父节点因子节点保留而保留、重复 path 取首个，增量 `addRoute`/`removeRoute` （**从不用 `clearRoutes`**）（`route.ts:189-263`、`packages/utils/src/menu.ts:82-106`）。
 
 渲染层：`buildMenuItems` 的 key 依次取 `name → path → title`（`menu.ts:32-36,561-591`），外链渲染成 `<a target="_blank">`（`:440-455`），顶层节点按布局蓝图分派到顶栏 / 图标栏 / 侧栏（`packages/layouts/src/menu-source.ts:165-191`），嵌套树**不拍平**。
 
@@ -89,4 +89,4 @@ progress → auth → dynamicRoutes → title → navLog
 
 ## 微前端路由
 
-注册表按 `baseroute` 匹配子应用，loader 支持 `webcomponent` / `iframe`，总开关是 `VITE_MICRO_APP`（`apps/web/src/config/micro-app.ts:5-12`）。视图读 `meta.microApp`，同源时用 sandbox（`views/micro-app/SubAppView.vue:38`、`packages/types/src/menu.ts:24-31`）。
+注册表按 `baseroute` 匹配子应用，loader 支持 `webcomponent` / `iframe`，总开关是 `VITE_MICRO_APP`（`apps/web/src/config/micro-app.ts:5-12`）。视图读 `meta.microApp`，同源时用 sandbox（`views/micro-app/SubAppView.vue:38`、`packages/core/base/typings/src/menu.ts:24-31`）。

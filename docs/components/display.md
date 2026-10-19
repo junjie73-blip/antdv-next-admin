@@ -1,11 +1,11 @@
 # 数据与展示
 
-这一页覆盖六个示例路由 —— `/components/description`、`/components/count-to`、`/components/relative-time`、`/components/icon-picker`、`/components/loading`、`/components/scroll/basic`。它们各自独立，但有一根共同的线：**前两个是 `apps/web` 里的业务包装器，后四个的实现已经在共享包里 —— 图标在 `packages/icons`，加载遮罩在 `packages/core/ui-kit/common-ui/src/components/loading`，滚动条在 `packages/core/ui-kit/common-ui/src/components/scrollbar`（三者的实现都不再用 antdv-next，而是 shadcn-vue 那一层，见 `@antdv/shadcn-ui`）**。所以读这页顺手能把「什么该进共享包、什么该留在应用里」这条边界看清。
+这一页覆盖六个示例路由 —— `/components/description`、`/components/count-to`、`/components/relative-time`、`/components/icon-picker`、`/components/loading`、`/components/scroll/basic`。它们各自独立，但有一根共同的线：**前两个是 `apps/web` 里的业务包装器，后四个的实现已经在共享包里 —— 图标在 `packages/core/base/icons`，加载遮罩在 `packages/core/ui-kit/common-ui/src/components/loading`，滚动条在 `packages/core/ui-kit/common-ui/src/components/scrollbar`（三者的实现都不再用 antdv-next，而是 shadcn-vue 那一层，见 `@antdv/shadcn-ui`）**。所以读这页顺手能把「什么该进共享包、什么该留在应用里」这条边界看清。
 
 ::: warning 三条要先说的
 
 1. **`RelativeTime` 组件不存在**：`apps/web/src/components/business/` 下没有这个目录，全仓库也没有 `RelativeTime` 的 import。`/components/relative-time` 只是一个用了 `a-timeline` + **绝对时间**的页面（详见[相对时间](#相对时间-pages-components-relative-time)）。
-2. **`Description` 的 `setData()` 是空壳**，只 `console.warn`（`apps/web/src/components/business/Description/Description.vue:156-158`）。
+2. **`Description` 的 `setData()` 是空壳**，只 `console.warn`（`packages/core/ui-kit/common-ui/src/components/description/Description.vue:156-158`）。
 3. **`Loading` 的文案属性是 `tip`，不是 `description`**；`useLoading` 的 `target` 必须显式给（选择器 / 元素 / ref / getter），否则覆盖层静默不挂载，只留一句 `console.warn`（`packages/core/ui-kit/common-ui/src/components/loading/overlay.ts:101-105`）。:::
 
 ## 这六页现在为什么都是二级菜单
@@ -37,7 +37,7 @@
 
 ### 它解决什么问题
 
-详情页的「标签 + 值」网格。裸用 antdv-next 的 `Descriptions` 要自己拼 `items`，而 `Description` 把它拆成两份配置：`schema`（`DescriptionItem[]`，定义标签、取值方式、占几列）和 `data`（字段值），再补上内置的日期格式化、图片预览、字典翻译（`apps/web/src/components/business/Description/types.ts:93-160`）。
+详情页的「标签 + 值」网格。裸用 antdv-next 的 `Descriptions` 要自己拼 `items`，而 `Description` 把它拆成两份配置：`schema`（`DescriptionItem[]`，定义标签、取值方式、占几列）和 `data`（字段值），再补上内置的日期格式化、图片预览、字典翻译（`packages/core/ui-kit/common-ui/src/components/description/types.ts:93-160`）。
 
 ### 真实 API
 
@@ -97,7 +97,7 @@
 
 ### 它解决什么问题
 
-KPI 卡、看板上的数字滚动。核心是**用 `requestAnimationFrame` 驱动**，不是 `setInterval`：`useRafFn`（`@vueuse/core`）拿到帧时间戳，按 `(timestamp - start) / duration` 算进度再套缓动函数（`apps/web/src/components/business/CountTo/CountTo.vue:54-76`）。带来的实际差别是：帧率跟着浏览器走、标签页隐藏时 rAF 自然停、卸载时 `useRafFn` 自己 `pause`（组件注释在 `:111`）。
+KPI 卡、看板上的数字滚动。核心是**用 `requestAnimationFrame` 驱动**，不是 `setInterval`：`useRafFn`（`@vueuse/core`）拿到帧时间戳，按 `(timestamp - start) / duration` 算进度再套缓动函数（`packages/core/ui-kit/common-ui/src/components/count-to/CountTo.vue:54-76`）。带来的实际差别是：帧率跟着浏览器走、标签页隐藏时 rAF 自然停、卸载时 `useRafFn` 自己 `pause`（组件注释在 `:111`）。
 
 ### 真实 API
 
@@ -162,7 +162,7 @@ KPI 卡、看板上的数字滚动。核心是**用 `requestAnimationFrame` 驱�
 
 | 位置 | 做什么 |
 | --- | --- |
-| `packages/shared/src/utils/dayjs.ts:10`、`:23` | 统一 `dayjs.extend(relativeTime)`，插件在共享包里就装好了 |
+| `packages/core/base/shared/src/utils/dayjs.ts:10`、`:23` | 统一 `dayjs.extend(relativeTime)`，插件在共享包里就装好了 |
 | `packages/layouts/src/widgets/notification/notice-item.vue:21-25`、`:77-79` | `dayjs(sendTime).fromNow()`，外面套了一个窄接口助手 `fromNow()`（补 `relativeTime` 的类型），渲染在通知项上（`:171`） |
 | `apps/web/src/views/system/notice/index.vue:36`、`:384` | 页面自己又 `extend` 了一次，表格里用 `fromNow(true)`（去掉「前/后」的纯时长） |
 | `apps/web/src/views/system/online/index.vue:30`、`:103` | 同上，在线时长列 |
@@ -173,11 +173,11 @@ KPI 卡、看板上的数字滚动。核心是**用 `requestAnimationFrame` 驱�
 
 ### 它解决什么问题
 
-让用户（而不是开发者）挑一个图标名，最常见的用途是菜单管理里给菜单配图（真实用例：`apps/web/src/views/system/menu/index.vue`）。它在 `packages/icons`（包名 `@antdv/icons`）—— **图标集合来自离线打包的 `@iconify-json/*`**，构建期就进了产物，不需要联网查 API；机制与新增集合的步骤见[图标指南](/guide/essentials/icons)。
+让用户（而不是开发者）挑一个图标名，最常见的用途是菜单管理里给菜单配图（真实用例：`apps/web/src/views/system/menu/index.vue`）。它在 `packages/core/base/icons`（包名 `@antdv/icons`）—— **图标集合来自离线打包的 `@iconify-json/*`**，构建期就进了产物，不需要联网查 API；机制与新增集合的步骤见[图标指南](/guide/essentials/icons)。
 
 ### 真实 API
 
-源码 `packages/icons/src/icon/IconPicker.vue`（396 行），默认值在 `:34-40`。
+源码 `packages/core/base/icons/src/icon/IconPicker.vue`（396 行），默认值在 `:34-40`。
 
 | prop | 默认 | 行为 / 位置 |
 | --- | --- | --- |

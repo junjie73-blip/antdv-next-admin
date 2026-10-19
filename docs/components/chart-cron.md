@@ -39,7 +39,7 @@
 
 ### 它解决什么问题
 
-`CronEditor`（`packages/ui-kit/common-ui/src/components/cron-editor/CronEditor.vue`，从 `@antdv/common-ui` 具名导出）给「配置定时任务表达式」一个预设点选 + 六字段下拉拼接的可视界面，配 `cronstrue` 中文描述实时回显，产出/接收一个表达式字符串。
+`CronEditor`（`packages/core/ui-kit/common-ui/src/components/cron-editor/CronEditor.vue`，从 `@antdv/common-ui` 具名导出）给「配置定时任务表达式」一个预设点选 + 六字段下拉拼接的可视界面，配 `cronstrue` 中文描述实时回显，产出/接收一个表达式字符串。
 
 ### 真实 API
 

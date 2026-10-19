@@ -38,7 +38,7 @@ Indexed by **symptom**, not by module — when you hit one, all you have is the 
 
 | Symptom | Cause | What to do |
 | --- | --- | --- |
-| Changing the primary color leaves the selected menu item unchanged | Only the antd token changed, or only one variable name was written | The primary colour has one chain: the tier goes on `<html data-theme>`, a custom colour additionally inlines `--app-primary`; the bridge for antdv-next has to write **both** `--ant-color-primary` and the legacy `--ant-primary-color` (`packages/utils/src/css-vars.ts:104-127`) |
+| Changing the primary color leaves the selected menu item unchanged | Only the antd token changed, or only one variable name was written | The primary colour has one chain: the tier goes on `<html data-theme>`, a custom colour additionally inlines `--app-primary`; the bridge for antdv-next has to write **both** `--ant-color-primary` and the legacy `--ant-primary-color` (`packages/core/base/shared/src/constants/css-vars.ts:104-127`) |
 | In dark mode the primary color differs from the one you set | The page mixes two chains: `--app-primary` reads the seed on `html`, while antdv-next keeps a recomputed family on `.ant-app` | New pages use `@antdv/design`'s `*-primary` tokens only; don't pin color values in assertions — either assert in light mode or assert the same-source relation (see [Theming & preferences](/en/guide/in-depth/theme)) |
 | Utilities no longer beat the `components` layer | The Tailwind layer order was changed | `@layer theme, base, components, utilities` must be declared explicitly with `utilities` last (`packages/core/base/design/src/index.css:27`) |
 | Spacing is inconsistent between pages | The route page's outer container declares its own padding | Inner padding is the layout's job, see [Development conventions and environment variables](/en/guide/essentials/development) |
@@ -70,7 +70,7 @@ These are not pitfalls, they are **the current state**. Know them before touchin
 | Location | Status |
 | --- | --- |
 | `stores/modules/auth.ts` | Duplicates `user.ts`, **zero consumers in the repo** |
-| `routeMode` in the preferences | Declared at `packages/preferences/src/defaults.ts:73`, no read site in app code |
+| `routeMode` in the preferences | Declared at `packages/core/preferences/src/config.ts:73`, no read site in app code |
 | `VITE_NAMESPACE` | No code path reads it; the prefix actually comes from `VITE_APP_TITLE` |
 | vue-i18n | **Wired up, not dead code**: 10 `.vue` files in the shell call `useI18n`, menu titles go through `localizeMenus` (`layouts/composables/useMenuTree.ts:22`), and the header has a language switcher (`layouts/components/LocaleSwitcher.vue` calls the `setLocale` at `useLocale.ts:71`). What is still unwired is the business pages: not one `useI18n` under `src/views/**`, the copy is hardcoded Chinese, and there is no `$t()` in any `.vue` |
 | `apps/web/src/assets/icons/` | Empty directory; the sprite path is wired up but has no custom icons |

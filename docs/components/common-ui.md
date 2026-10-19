@@ -256,7 +256,7 @@ Tabs 事件：`change: [number | string]`、`update:activeKey: [number \| string
 
 动画由 `useRafFn` 驱动（不是 `setInterval`）：帧率跟浏览器、标签页隐藏自然停、卸载自动 pause。`start()` 第一行是 `if (isActive) return`，所以**能暂停但不能续播**：`pause()` 之后只有 `reset()` + `start()` 从头再来，`resume` 没有对外暴露。
 
-真实用例：`apps/web/src/views/components/count-to/index.vue:7`、`apps/web/src/views/screen/components/RealtimeNumber.vue:3`、`apps/web/src/views/security/dashboard/components/SecurityScoreCard.vue:10`。原来那份 `apps/web/src/components/business/CountTo/` 已删除。
+真实用例：`apps/web/src/views/components/count-to/index.vue:7`、`apps/web/src/views/screen/components/RealtimeNumber.vue:3`、`apps/web/src/views/security/dashboard/components/SecurityScoreCard.vue:10`。原来那份 `packages/core/ui-kit/common-ui/src/components/count-to/` 已删除。
 
 ## Description / Descriptions（描述列表）
 
@@ -520,7 +520,7 @@ shadcn 那只 `Sonner.vue` 把 `rich-colors` 写死在 `v-bind` 之后、状态�
 | 位置 | 引它的原因 |
 | --- | --- |
 | `apps/web/src/plugins/vendor-antd-components.ts` + `App.vue` 的 `ConfigProvider` / `StyleProvider` | **唯一还算合法的遗留例外**：`@form-create/antd-designer` 的模板是发布前编译好的，运行时靠 `resolveComponent('a-…')` 找组件，所以手工登记 36 个 kebab-case 名字（外加 `a-form-item-rest`）。这是给第三方用的，不是新代码的样板 |
-| ~~设置抽屉~~ | 曾经在 `apps/web/src/layouts/components/SettingDrawer/**` 欠的那笔债**已经还了**：抽屉现在在 `packages/layouts/src/widgets/setting-drawer/**`（7 个 `.vue`），`Slider` / `Switch` / `NumberField` 取自 `@antdv/shadcn-ui`（`components/layout-panel.vue:15-21`），`Tooltip` 取自 `@antdv/common-ui`（`components/setting-item.vue:2`），包里再没有 `from 'antdv-next'` |
+| ~~设置抽屉~~ | 曾经在 `packages/layouts/src/widgets/setting-drawer/**` 欠的那笔债**已经还了**：抽屉现在在 `packages/layouts/src/widgets/setting-drawer/**`（7 个 `.vue`），`Slider` / `Switch` / `NumberField` 取自 `@antdv/shadcn-ui`（`components/layout-panel.vue:15-21`），`Tooltip` 取自 `@antdv/common-ui`（`components/setting-item.vue:2`），包里再没有 `from 'antdv-next'` |
 
 ::: warning 文档与代码还没对上的地方
 1. 设置抽屉的 antdv-next 依赖已经清掉，剩下的只有 `App.vue`（`apps/web/src/App.vue:7`）与 vendor 登记表；但 `guide/essentials/external.md` 还把它描述成"应用里 100 多个 `.vue` 文件各自的显式 import"，数字与结论都过期了（实测：`.vue` 里只剩 `App.vue` 一个）。

@@ -96,7 +96,7 @@
 
 ### 大文件上传：本地切片调度，不发请求
 
-最后一张卡片用的是 `@antdv/composables/useChunkUpload`（`upload/index.vue:7,356-359`，源码已迁到 `packages/composables/src/useChunkUpload.ts`）。这个 composable 的职责边界写在它自己的头注释里：**只做「切片 + 并发 + 进度 + 暂停/恢复/取消」，不关心后端接口**（`useChunkUpload.ts:52-58`）。示例没给它 `createWorker` / `workerUrl`，于是走「主线程模式」：每个分片读进内存就算完成，**不算哈希、不发任何请求**（`useChunkUpload.ts:66-69,283-287`）。进度 = 完成分片数 ÷ 总分片数（`useChunkUpload.ts:335-338`），「已完成」状态是纯本地结论。队列按文件串行推进（`upload/index.vue:406-435`），暂停/恢复/取消透传给各自的 uploader 实例（`useChunkUpload.ts:187-226`）。文件预览（图片/PDF/docx/excel）全部基于本地 `URL.createObjectURL` / `FileReader`（`upload/index.vue:569-596`），与上传无关。
+最后一张卡片用的是 `@antdv/composables/useChunkUpload`（`upload/index.vue:7,356-359`，源码已迁到 `packages/core/hooks/src/use-chunk-upload.ts`）。这个 composable 的职责边界写在它自己的头注释里：**只做「切片 + 并发 + 进度 + 暂停/恢复/取消」，不关心后端接口**（`useChunkUpload.ts:52-58`）。示例没给它 `createWorker` / `workerUrl`，于是走「主线程模式」：每个分片读进内存就算完成，**不算哈希、不发任何请求**（`useChunkUpload.ts:66-69,283-287`）。进度 = 完成分片数 ÷ 总分片数（`useChunkUpload.ts:335-338`），「已完成」状态是纯本地结论。队列按文件串行推进（`upload/index.vue:406-435`），暂停/恢复/取消透传给各自的 uploader 实例（`useChunkUpload.ts:187-226`）。文件预览（图片/PDF/docx/excel）全部基于本地 `URL.createObjectURL` / `FileReader`（`upload/index.vue:569-596`），与上传无关。
 
 ### 真正的分片/秒传封装在仓库里，但这个页面没有演示它
 
@@ -110,7 +110,7 @@
 
 ### 自研 `AvatarUploader`：设计完整，示例链路上有两处硬伤
 
-组件本体 `apps/web/src/components/common/AvatarUploader.vue`：props `modelValue / maxSizeMb(5) / outputSize(256) / round(true) / size(80)`（`:11-25`），事件 `update:modelValue` / `uploaded`（`:27-30`）。流程是 `beforeUpload` 拦下自动上传 → `useFileReader` 读 DataURL（`:44-64`，composable 在 `packages/composables/src/useFileReader.ts`）→ vue-cropper 1:1 裁剪弹窗 → `getCropBlob` 出 PNG → 调 `uploadFile` 并回抛 url（`:66-93`）。
+组件本体 `apps/web/src/components/common/AvatarUploader.vue`：props `modelValue / maxSizeMb(5) / outputSize(256) / round(true) / size(80)`（`:11-25`），事件 `update:modelValue` / `uploaded`（`:27-30`）。流程是 `beforeUpload` 拦下自动上传 → `useFileReader` 读 DataURL（`:44-64`，composable 在 `packages/core/hooks/src/use-file-reader.ts`）→ vue-cropper 1:1 裁剪弹窗 → `getCropBlob` 出 PNG → 调 `uploadFile` 并回抛 url（`:66-93`）。
 
 ::: warning 缺陷照实写
 

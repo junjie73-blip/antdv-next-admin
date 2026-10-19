@@ -39,7 +39,7 @@ Five cards, all data are in-page constants, zero requests (the page alert states
 
 ### What problem it solves
 
-`CronEditor` (`packages/ui-kit/common-ui/src/components/cron-editor/CronEditor.vue`, a named export of `@antdv/common-ui`) gives cron configuration a visual surface — preset buttons plus six dropdown fields — with a live Chinese human-readable description via `cronstrue`, consuming and producing a plain expression string.
+`CronEditor` (`packages/core/ui-kit/common-ui/src/components/cron-editor/CronEditor.vue`, a named export of `@antdv/common-ui`) gives cron configuration a visual surface — preset buttons plus six dropdown fields — with a live Chinese human-readable description via `cronstrue`, consuming and producing a plain expression string.
 
 ### The real API
 

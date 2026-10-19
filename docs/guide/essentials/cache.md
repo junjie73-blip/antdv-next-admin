@@ -1,8 +1,8 @@
 # 缓存
 
-持久化是**手写的**：没有 `pinia-plugin-persistedstate`（依赖表里没有它，store 文件里也没有 `persist` 选项），落盘全部走 `packages/shared/src/cache/**` 或直接 `localStorage`。所以"哪些状态会留下来"是一个显式决定，每个 key 的规则还各不相同。这篇讲实现、key 从哪来、加密的真实开关，以及读不出来时发生了什么。
+持久化是**手写的**：没有 `pinia-plugin-persistedstate`（依赖表里没有它，store 文件里也没有 `persist` 选项），落盘全部走 `packages/core/base/shared/src/cache/**` 或直接 `localStorage`。所以"哪些状态会留下来"是一个显式决定，每个 key 的规则还各不相同。这篇讲实现、key 从哪来、加密的真实开关，以及读不出来时发生了什么。
 
-## 实现：`packages/shared/src/cache/**`
+## 实现：`packages/core/base/shared/src/cache/**`
 
 | 文件 | 内容 |
 | --- | --- |
@@ -45,26 +45,26 @@ configureSharedEnv({
 
 `VITE_APP_TITLE` 的实际值是 `Antdv Admin`（`apps/web/.env:2`）。
 
-两个细节值得记住：前缀**含空格**（`VITE_APP_TITLE` 原样，`apps/web/.env:2` 的实际值是 `Antdv Admin`，于是盘上真的出现 `Antdv Admin_auth_token` 这种键名），未注入时兜底 `'app_cache'` （`packages/shared/src/utils/env.ts:27`）；前缀和加密开关都是**每次读写时重新解析**，不在建实例时定型（`index.ts:68-78`），因为 `export const cache = createCache()` 在模块求值阶段就跑了，一定早于 `configureSharedEnv()`。这条时序有个回归用例钉着（`packages/shared/__tests__/cache.test.ts:147-183`）。
+两个细节值得记住：前缀**含空格**（`VITE_APP_TITLE` 原样，`apps/web/.env:2` 的实际值是 `Antdv Admin`，于是盘上真的出现 `Antdv Admin_auth_token` 这种键名），未注入时兜底 `'app_cache'` （`packages/core/base/shared/src/utils/env.ts:27`）；前缀和加密开关都是**每次读写时重新解析**，不在建实例时定型（`index.ts:68-78`），因为 `export const cache = createCache()` 在模块求值阶段就跑了，一定早于 `configureSharedEnv()`。这条时序有个回归用例钉着（`packages/core/base/shared/__tests__/cache.test.ts:147-183`）。
 
-### `CacheKey` 枚举只有一部分在用
+### `CacheKey` 枚举
 
-`apps/web/src/enums/cache.ts:2-19` 定义了 8 项，但**只有 `DICT_DATA` 有代码引用** （`stores/modules/dict.ts:6,35,49,133`）。其余 7 项（`ACCESS_TOKEN` / `REFRESH_TOKEN` / `USER_INFO` / `ROLES` / `PERMISSIONS` / `THEME` / `SIDEBAR`）全仓无引用，而且它们的值（`app_cache_access_token`）和应用真正写进去的键（`auth_token`）根本不是一回事 —— 别把它们当"缓存键的唯一来源"。
+`packages/enums/src/cache.ts:8-16` 定义 4 项，且每一项都真的被引用：`DICT_DATA`（`apps/web/src/stores/modules/dict.ts:35,49,133`）、`ACCESS_TOKEN`（`packages/stores/src/user.ts:14` 解构成 `TOKEN_KEY`）、`REFRESH_TOKEN`（`apps/web/src/plugins/request-runtime.ts:22,24`）、`USER_INFO`（`user.ts:14` 解构成 `USER_INFO_KEY`）。枚举值就是落盘键名（`auth_token` / `refresh_token` / `user_info` / `antdv_dict_data`），和应用真正写进去的键一致，可以当唯一来源用（文件顶部的注释就写着"新增成员前先确认写入方和读取方都用了它"）。
 
-**没有 `LOCALE`。** 语言切换改造后 locale 不再单独存一份，只活在偏好的快照里；测试直接断言了这一点：持久化只有一份、`app_cache_locale` 必须为 `null`（`apps/web/src/locales/__tests__/locale.spec.ts:100-104`）。
+**没有 `ROLES` / `PERMISSIONS` / `THEME` / `SIDEBAR` / `LOCALE`。** 角色与权限活在 user store 的内存态（跟着 `user_info` 一起存），偏好（含主题、语言）自成一份 `appSetting`，菜单可见性覆盖走裸 `localStorage`（见下表）—— 都不占 `CacheKey`。语言切换改造后 locale 不再单独存一份，只活在偏好的快照里；测试直接断言了这一点：持久化只有一份、`app_cache_locale` 必须为 `null`（`apps/web/src/locales/__tests__/locale.spec.ts:100-104`）。
 
 实际在盘上的键：
 
 | 真实键（不含前缀） | 谁写 | 写法 | 出处 |
 | --- | --- | --- | --- |
-| `auth_token` | user store / 请求层 | 登录路径把值先经 `encryptToken`（JWE）再进 cache、TTL 24h；**刷新路径 `cache.setItem(TOKEN_KEY, newAccess)` 没加密**，且不传 TTL | `stores/modules/user.ts:14,55,106`、`fetcher.ts:129` |
-| `user_info` | user store | `cache.setItem`，无 TTL | `user.ts:15,60` |
-| `refresh_token` | **只有请求层** | `cache.setItem`，无 TTL | `fetcher.ts:130`，键名来自 `config/constants.ts:4` |
-| `tabsState` | tabs store | `watch` 里整体写回 | `stores/modules/tabs.ts:15,41-50` |
-| `antdv_dict_data` | dict store | 走 `localStorageCacheStorage`，信封外**又套一层** `loadedAt` 判 1 小时过期 | `dict.ts:35,49`、`enums/cache.ts:4` |
-| `appSetting` | preferences（自带 `createCache`） | `PREFERENCES_CACHE_KEY`，永不过期 | `packages/preferences/src/store.ts:21,104,146` |
-| `xy-menu-hidden-overrides` | route store | **裸 `localStorage` + 裸 JSON**，不走 cache、没有前缀 | `stores/modules/route.ts:27,31,43` |
-| `chunk-upload:<hash>` | 上传组件 | **裸 `localStorage`**，自有 `updatedAt` 7 天过期 | `components/common/Upload/constants.ts:8-9`、`Upload/utils.ts:50-52,56-60` |
+| `auth_token` | user store | 登录与刷新都走 `setToken`，值先经 `encryptToken`（JWE）再进 cache，TTL 默认 `TOKEN_EXPIRE`（24h）；**仅当加密抛错才降级写明文**（`:143-144`） | `packages/stores/src/user.ts:56,60,136,144` |
+| `user_info` | user store | `cache.setItem`，无 TTL | `user.ts:14,65` |
+| `refresh_token` | **只有请求层** | `cache.setItem`，**不加密、无 TTL**（与 token 不同） | `apps/web/src/plugins/request-runtime.ts:24`，键名 `CacheKey.REFRESH_TOKEN`（`packages/enums/src/cache.ts`） |
+| `tabsState` | tabs store | `watch` 里整体写回 | `packages/stores/src/tabs.ts:16,42-51` |
+| `antdv_dict_data` | dict store | 走 `localStorageCacheStorage`，信封外**又套一层** `loadedAt` 判 1 小时过期 | `apps/web/src/stores/modules/dict.ts:35,48-49`、`packages/enums/src/cache.ts` |
+| `appSetting` | preferences（自带 `createCache`） | `PREFERENCES_CACHE_KEY`，`options.expire` 缺省即永不过期 | `packages/core/preferences/src/constants.ts:11`、`preferences.ts:31-32,71-73` |
+| `xy-menu-hidden-overrides` | route store | **裸 `localStorage` + 裸 JSON**，不走 cache、没有前缀 | `packages/stores/src/route.ts:26,30,42` |
+| `chunk-upload:<hash>` | 上传组件 | **裸 `localStorage`**，自有 `updatedAt` 7 天过期 | `apps/web/src/components/common/Upload/constants.ts:8-9`、`apps/web/src/components/common/Upload/utils.ts:50-52,56-60` |
 
 `config/constants.ts` 里的 `TOKEN_EXPIRES_IN` / `REFRESH_TOKEN_EXPIRE` / `PERMISSIONS_KEY` 无任何引用（`TOKEN_EXPIRE` 的三处命中是 `user.ts:16` 自己的同名局部常量）。`VITE_NAMESPACE` 同样没人读，它不参与键拼接（见[配置](/guide/essentials/config)）。
 
@@ -108,7 +108,7 @@ Token 的值另有机制，且不受 `shouldEncrypt` 影响：`encryptToken()` �
 | --- | --- |
 | `localStorage` | 主战场：cache 的默认介质 + 两处裸用（`route.ts:31,43`、`Upload/utils.ts:56,83,91`） |
 | `sessionStorage` | **有适配器，无人使用**。`createStorage('session')` 只在 `storage.ts:71` 导出成 `sessionStorageAdapter`，全仓没有 `createCache({ type: 'session' })`；应用代码里唯一的 session 操作是 SettingFooter 那次 `clear()` |
-| `memory` | `type: 'memory'` 只出现在 `packages/shared/__tests__/cache.test.ts:137`，应用没用 |
+| `memory` | `type: 'memory'` 只出现在 `packages/core/base/shared/__tests__/cache.test.ts:137`，应用没用 |
 | IndexedDB | **没有**。源码里 `indexedDB` 零命中，只有 PWA 打开时（`VITE_PWA`）构建产物里的 workbox 运行时会用（`apps/web/dist/workbox-*.js`），跟应用状态持久化无关 |
 
 ## 失效的代价
@@ -116,12 +116,12 @@ Token 的值另有机制，且不受 `shouldEncrypt` 影响：`encryptToken()` �
 改了前缀（`VITE_APP_TITLE`）或加密形态之后，旧缓存**读不出来是不报错的**：
 
 - `deserialize` 把解密异常和 JSON 解析异常一起 `catch` 成 `null`（`index.ts:87-94`）， `getItem` 见 `null` 就返回 `null`（`:107-109`）—— 表现得跟"没有缓存"一模一样。
-- 用户视角的后果：token 读不回 → 守卫视为未登录 → 回登录页；偏好读不回 → `readSaved()` 的 `try/catch` 返回 `undefined`（`packages/preferences/src/store.ts:135-142`）→ 界面退回默认值；标签页读不回 → 空标签列表。没有一处会告诉你"是被前缀/密钥挡掉的"。
+- 用户视角的后果：token 读不回 → 守卫视为未登录 → 回登录页；偏好读不回 → `readSaved()` 的 `try/catch` 返回 `undefined`（`packages/core/preferences/src/preferences.ts:135-142`）→ 界面退回默认值；标签页读不回 → 空标签列表。没有一处会告诉你"是被前缀/密钥挡掉的"。
 - **旧键变成孤儿**：`clear()` 只删 `startsWith(prefix)` 的键（`index.ts:136-143`），换了前缀之后旧数据再也清不掉，只能整份 `localStorage.clear()`（SettingFooter 那个按钮就是干这个的）。
 - 跨介质同理：dev 写的明文在 build 里解不开，换前缀后按新前缀的密钥也解不开 —— `cache.test.ts:106-118` 就是把"另一套前缀解密失败并降级为 `null`"这个行为钉住的用例。
 - Token 那条链的失效条件更微妙：设备指纹变了（浏览器升级、改时区、换屏幕/旋转、`navigator.language` 变化）→ 派生密钥变 → `decryptToken` 对 JWE 串返回 `null`（`tokenCrypto.ts:106-139`，只有不含 `.` 的旧明文才回退）。表现就是"没换密码却掉登录"。
 
-::: tip 加一份持久化状态之前先决定键放哪：跟应用生命周期走的就照 `dict.ts` —— `CacheKey` 加一项（顺手真的引用它）、在 `watch` 里 `cache.setItem`、并把它加进 `user.ts` 的 `logout()` 清理列表。只是界面外观的偏好不要自己开 key，走 `packages/preferences`（见 [状态管理](/guide/essentials/stores)）。裸 `localStorage` 只留给"跟缓存语义无关"的数据（菜单可见性覆盖、分片续传进度），并自己带上过期判定。:::
+::: tip 加一份持久化状态之前先决定键放哪：跟应用生命周期走的就照 `dict.ts` —— `CacheKey` 加一项（顺手真的引用它）、在 `watch` 里 `cache.setItem`、并把它加进 `user.ts` 的 `logout()` 清理列表。只是界面外观的偏好不要自己开 key，走 `packages/core/preferences`（见 [状态管理](/guide/essentials/stores)）。裸 `localStorage` 只留给"跟缓存语义无关"的数据（菜单可见性覆盖、分片续传进度），并自己带上过期判定。:::
 
 ## 相关页面
 

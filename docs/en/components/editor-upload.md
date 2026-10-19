@@ -96,7 +96,7 @@ The image wall resolves preview URLs in the order `thumbUrl → url → response
 
 ### Large files: local chunk scheduling, no requests
 
-The last card uses `@antdv/composables/useChunkUpload` (`upload/index.vue:7,356-359`; the source moved to `packages/composables/src/useChunkUpload.ts`). Its own header comment defines the boundary: **slicing + concurrency + progress + pause/resume/cancel only, no knowledge of any backend API** (`useChunkUpload.ts:52-58`). The demo passes no `createWorker` / `workerUrl`, so it runs in "main-thread mode": each chunk is read into memory and immediately counted as done — **no hashing, no network** (`useChunkUpload.ts:66-69,283-287`). Progress = chunks done ÷ chunks total (`useChunkUpload.ts:335-338`); "completed" is a purely local conclusion. The queue advances file by file (`upload/index.vue:406-435`), and pause/resume/cancel forward to each uploader instance (`useChunkUpload.ts:187-226`). The in-table previews (image/PDF/docx/excel) are all built on local `URL.createObjectURL` / `FileReader` (`upload/index.vue:569-596`) and have nothing to do with uploading.
+The last card uses `@antdv/composables/useChunkUpload` (`upload/index.vue:7,356-359`; the source moved to `packages/core/hooks/src/use-chunk-upload.ts`). Its own header comment defines the boundary: **slicing + concurrency + progress + pause/resume/cancel only, no knowledge of any backend API** (`useChunkUpload.ts:52-58`). The demo passes no `createWorker` / `workerUrl`, so it runs in "main-thread mode": each chunk is read into memory and immediately counted as done — **no hashing, no network** (`useChunkUpload.ts:66-69,283-287`). Progress = chunks done ÷ chunks total (`useChunkUpload.ts:335-338`); "completed" is a purely local conclusion. The queue advances file by file (`upload/index.vue:406-435`), and pause/resume/cancel forward to each uploader instance (`useChunkUpload.ts:187-226`). The in-table previews (image/PDF/docx/excel) are all built on local `URL.createObjectURL` / `FileReader` (`upload/index.vue:569-596`) and have nothing to do with uploading.
 
 ### The real chunked / instant-upload wrapper exists in the repo — but this page does not demo it
 
@@ -110,7 +110,7 @@ Three things to know before trusting that pipeline in this environment:
 
 ### In-house `AvatarUploader`: complete by design, two hard breaks in the demo chain
 
-The component itself (`apps/web/src/components/common/AvatarUploader.vue`): props `modelValue / maxSizeMb(5) / outputSize(256) / round(true) / size(80)` (`:11-25`), events `update:modelValue` / `uploaded` (`:27-30`). Flow: `beforeUpload` cancels the automatic upload → `useFileReader` produces a DataURL (`:44-64`; the composable lives at `packages/composables/src/useFileReader.ts`) → a vue-cropper 1:1 modal → `getCropBlob` yields a PNG → `uploadFile` runs and the URL is emitted back (`:66-93`).
+The component itself (`apps/web/src/components/common/AvatarUploader.vue`): props `modelValue / maxSizeMb(5) / outputSize(256) / round(true) / size(80)` (`:11-25`), events `update:modelValue` / `uploaded` (`:27-30`). Flow: `beforeUpload` cancels the automatic upload → `useFileReader` produces a DataURL (`:44-64`; the composable lives at `packages/core/hooks/src/use-file-reader.ts`) → a vue-cropper 1:1 modal → `getCropBlob` yields a PNG → `uploadFile` runs and the URL is emitted back (`:66-93`).
 
 ::: warning Defects as they are
 

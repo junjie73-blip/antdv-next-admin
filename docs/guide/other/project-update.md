@@ -6,13 +6,13 @@
 
 | 位置 | 内容 | 说明 |
 | --- | --- | --- |
-| `pnpm-workspace.yaml` 的 `catalog:` | 254 条 | 全仓唯一的版本来源；`apps/web/package.json` 的 170 条依赖全是 `catalog:` 或 `workspace:*`，没有一条写字面量 |
+| `pnpm-workspace.yaml` 的 `catalog:` | 247 条 | 全仓唯一的版本来源；`apps/web` 的 155 条依赖（`dependencies` 93 + `devDependencies` 62）全是 `catalog:` 或 `workspace:*`，没有一条写字面量 |
 | `pnpm-workspace.yaml` 的 `overrides` | `vue` / `clsx` / `pinia` / `@ctrl/tinycolor` / `@ast-grep/napi` → `catalog:` | 强制这些包只有一份实例，防止第三方 peer 树各装各的 |
 | 根 `package.json` | `packageManager: pnpm@10.12.4`、`engines.node: ">=22"`；`.node-version` 写 24.0.0 | `preinstall` 挂了 `only-allow pnpm`，用 npm/yarn 装出来的 workspace 是假的 |
 
-**整个工作区只有 3 个依赖没走 catalog**：`apps/web` 的 `clsx@^2.1.1`、`pinia@^3.0.4`、 `vue@^3.5.43`。前两个是历史遗留（`overrides` 已经把它们按回 catalog 口径），`vue` 那行即使写了范围号也会被 `overrides` 顶成 `3.5.43`。改版本就改 `catalog:` 那一行，别在子包补字面量。
+**依赖版本没有一处字面量**：所有包（含 `apps/web`）的依赖一律 `catalog:` 或 `workspace:*`。唯一的形式差异是 `apps/web` 的 `vue` 走的是**具名 catalog** —— `"vue": "catalog:conflicts_vue_h3_5_43"`（`apps/web/package.json:101`，`dependencies` 块从 `:17` 到 `:111`）。改版本就改 `pnpm-workspace.yaml` 的 `catalog:` 那一行，别在子包补字面量。
 
-::: warning 一处死配置 `pnpm-workspace.yaml` 末尾还有个具名 catalog `catalogs.conflicts_vue_h3_5_43`（`vue: ^3.5.43`），但全仓没有任何 package.json 写 `catalog(conflicts_vue_h3_5_43)` —— 它不参与解析，别指望它生效。:::
+::: warning 具名 catalog 只有一条，而且被 overrides 顶住了 `catalogs.conflicts_vue_h3_5_43`（`pnpm-workspace.yaml:270-272`，`vue: ^3.5.43`）确实被 `apps/web` 引用，不是死配置；但 `overrides.vue: 'catalog:'`（`:298-303`）会把它按回默认 catalog 里的**精确** `3.5.43`（`:235`）。也就是说这条具名通道现在解析不出任何不同的版本，留着它只是历史痕迹 —— 真要升 Vue，改 `catalog:` 的 `:235` 那一行就够了。:::
 
 ## 安装期真正生效的开关
 
@@ -31,30 +31,33 @@ pnpm 10 的构建脚本白名单在这里是**显式维护**的（`pnpm-workspac
 | `pnpm check:type` | `turbo run type-check` | 可用（脚本名是 `check:type`，**没有** `pnpm typecheck`） |
 | `pnpm check:cspell` | `cspell lint ...` | **必失败**：没有任何 package.json 依赖 cspell，见[常见问题](/guide/other/faq) |
 | `pnpm check` | circular + dep + type + cspell 串起来 | 最后一环是断的，日常用前三条 |
-| Git 钩子 | `lefthook`（`prepare` 时 `lefthook install`） | `.git/hooks` 里确实装了，但 `lefthook.yml` 的 `pre-commit` / `post-merge` / `commit-msg` **整段被注释**，等于没有强制门禁。也没有 `simple-git-hooks` / `lint-staged` |
+| Git 钩子 | `lefthook`（`prepare` 时 `lefthook install`） | `.git/hooks` 里确实装了，但 `lefthook.yml` 只有 `# pre-commit:`（`:1-11`）与 `# post-merge:`（`:13-16`）两段、**全部是注释**，连 `commit-msg` 都没有 —— 等于没有强制门禁（commitlint 只在手动 `pnpm commit`/`czg` 那条路上生效）。也没有 `simple-git-hooks` / `lint-staged` |
 
 ## changesets：版本跳了，但没人替你发
 
 ```bash
-pnpm changeset                    # 生成 .changeset/*.md（工作区里当前有 15 份待发布）
+pnpm changeset                    # 生成 .changeset/*.md（工作区里当前有 25 份待发布）
 pnpm version                      # changeset version && pnpm install --no-frozen-lockfile
 pnpm release                      # pnpm build && changeset publish
 ```
 
-`.changeset/config.json` 里三个决定值得注意：`fixed: [["@antdv/*", "@antdv/*"]]` 让所有 `@antdv/*` 包**永远同版本号一起跳**（所以各包 package.json 都是 0.4.0，包括 `scripts/turbo-run` 与 `scripts/vsh` 这两个还是 5.8.0 的）；`privatePackages: { version: true, tag: true }` 允许给私有包写版本和打标签； `updateInternalDependencies: "patch"`。changelog 走 `@changesets/changelog-github`，仓库名写死为 `junjie73-blip/antdv-next-admin`。
+`.changeset/config.json` 里三个决定值得注意：`fixed: [["@antdv/*", "@antdv/*"]]`（`:10`）让所有 `@antdv/*` 包**在同一次 `pnpm version` 里一起跳版本号**；`privatePackages: { version: true, tag: true }`（`:14-17`）允许给私有包写版本和打标签；`updateInternalDependencies: "patch"`（`:21`）。changelog 走 `@changesets/changelog-github`，仓库名写死为 `junjie73-blip/antdv-next-admin`（`:3-8`）。
 
-::: danger 别把 `pnpm release` 当成"发 npm" `packages/*`、`apps/*` 与根包的 package.json **全部是 `"private": true`**，也没有 `publishConfig`。changesets 在这里只产出 CHANGELOG 与 git tag，不会往 registry 推任何东西。发布历史也确实薄： `git tag` 现在只有 `v0.0.3` 和一个 `vnull`，而版本号已经走到 0.4.0；`.github/workflows/` 里只有 `docs.yml`（它的注释还引用了一个不存在的 `ci.yml`）。**升级与发版目前是一次纯本地动作**，要打标签得自己 `git tag && git push --tags`。:::
+::: warning `fixed` 不等于"现在大家都是同一个号" 上一次 `pnpm version` 之后新建的包是**带着自己的初版号进组的**，所以当前仓库的版本号是散的：多数包 `0.4.0`（= 根包 `package.json:3`），`@antdv/layouts` 已经 `0.5.0`，`@antdv/{common-ui,enums,request,stores,utils}` 从 `0.1.0` 起步，`internal/lint-configs/*` 与 `@antdv/docs` 停在 `0.0.0`，`scripts/*` 两个（`@antdv/turbo-run`、`@antdv/vsh`）还是脚手架带来的 `5.8.0`。下一次 `pnpm version` 才会把它们拉齐 —— 别按号判断"这个包比那个包新"。:::
+
+::: danger 别把 `pnpm release` 当成"发 npm" `packages/*`、`apps/*`、`docs` 与根包的 package.json **全部是 `"private": true`**（唯一的 `publishConfig` 在 `packages/core/ui-kit/shadcn-ui/package.json:29`，它只是把 `src` 的 exports 原样重复一遍，那个包同样是 private）。changesets 在这里只产出 CHANGELOG 与 git tag，不会往 registry 推任何东西。发布历史也确实薄： `git tag` 现在只有 `v0.0.3` 和一个 `vnull`，而版本号已经走到 0.4.0；`.github/workflows/` 里只有 `docs.yml` 一个文件。**升级与发版目前是一次纯本地动作**，要打标签得自己 `git tag && git push --tags`。:::
 
 ## 一次 antdv-next 升级怎么跑
 
-`antdv-next` 只在 catalog 里出现一次（`^1.6.0`），而现在**只有 `apps/web` 直接依赖它** —— 21 个运行时子包一个都不引（`shared`、`types`、`hooks`、`preferences`、`directives`、`router`、`layouts` 与 `ui-kit` 那八个都已清空）：轻提示走 `@antdv/popup-ui`（vue-sonner 的封装），表单/表格/弹窗/标签页/菜单/布局的实现是 TanStack + shadcn-vue。这条边界由 `packages/core/hooks/__tests__/boundary.test.ts` 逐文件守着，所以升级 antdv-next 只动应用，不会碰子包产物。同一个文件还有第二节「跨包只走包名导入」，守的是另一类边界：相对路径不许伸进别的包（唯一例外是 `@antdv/design` 的 `@source`，Tailwind 只认文件系统路径，名单还必须覆盖所有带 `.vue` 的包）、跨包 `@antdv/*` 要写进 `dependencies`/`peerDependencies`、`src` 里不通过自己的包名绕 barrel。配套还要看 `@antdv-next/*` 卫星包：catalog 里挂着四个（`cssinjs`、`icons`、`tailwind`、`happy-work-theme`），实际只有 `apps/web` 引用了其中三个 —— `@antdv-next/tailwind` 已经不在任何清单里；`@iconify-json/*` 那批图标集则住在 `@antdv/icons`。
+`antdv-next` 只在 catalog 里出现一次（`pnpm-workspace.yaml:116`，`^1.6.0`），而现在**只有 `apps/web` 直接依赖它**（`apps/web/package.json:67`）—— `apps/web` 的 21 个运行时子包一个都不引（`shared`、`types`、`hooks`、`preferences`、`directives`、`router`、`stores`、`request`、`utils`、`enums`、`icons`、`design`、`layouts` 与 `ui-kit` 那八个都已清空）：轻提示走 `@antdv/popup-ui`（vue-sonner 的封装），表单/表格/弹窗/标签页/菜单/布局的实现是 TanStack + shadcn-vue。这条边界由 `packages/core/hooks/__tests__/boundary.test.ts` 逐文件守着（第一节 `:136-186`，含"源码里没有组件库 import"和"清单的 dependencies / peerDependencies 里没有组件库"两条），所以升级 antdv-next 只动应用，不会碰子包产物。同一个文件还有第二节「跨包只走包名导入」（`:188` 起），守的是另一类边界：相对路径不许伸进别的包（唯一例外是 `@antdv/design` 的 `@source`，Tailwind 只认文件系统路径，名单还必须覆盖所有带 `.vue` 的包）、跨包 `@antdv/*` 要写进 `dependencies`/`peerDependencies`、`src` 里不通过自己的包名绕 barrel。配套还要看 `@antdv-next/*` 卫星包：catalog 里挂着三个（`cssinjs` `:22`、`icons` `:23`、`tailwind` `:24`），实际只有 `apps/web` 引用了前两个（`apps/web/package.json:18-19`），`@antdv-next/tailwind` 已经没有消费者 —— 升级时它的 catalog 行可以不管，甚至可以顺手删。真正还会把 antd DOM 打进产物的是 `@form-create/antd-designer` + `@form-create/antdv-next`（catalog `:42`，`apps/web/package.json:46-47`），见下面第 2 条。`@iconify-json/*` 那五个图标集（catalog `:43-47`）主要住在 `@antdv/icons`（`packages/core/base/icons/package.json:27-31`），`apps/web` 另外直依赖 carbon 与四个 dev 侧集合（`apps/web/package.json:48,116-119`）。
 
 ```bash
 # 1. 改 pnpm-workspace.yaml 里 catalog 的那一行
 pnpm install --no-frozen-lockfile
-# 2. 先构建"产物发布"的那批包（shared、composables、directives、layouts、
-#    preferences、router、types）—— 应用吃的是它们的 dist；而 icons、styles 与
-#    ui-kit 九包是"源码发布"，直接从 src 读，不需要构建
+# 2. 先构建"产物发布"的那批包（shared、types、hooks、preferences、
+#    directives、router 六个，`main` 指 ./dist）—— 应用吃的是它们的 dist；
+#    其余 15 个（design、icons、enums、layouts、request、stores、utils
+#    与 ui-kit 八包）是"源码发布"，`main` 直指 ./src，由 web 的 Vite 直接编译
 pnpm build
 # 3. 类型 + 单测（turbo 会按依赖图先跑 ^build）
 pnpm check:type
@@ -69,12 +72,12 @@ cd apps/web && pnpm exec playwright test --project=chromium --reporter=line
 
 ## 破坏性升级最先敲门的五处
 
-1. **`ConfigProvider` 的 theme 形状**（`apps/web/src/App.vue:27-28、50-51`）。`theme` 对象由 `packages/core/preferences/src/theme/index.ts` 组装：`algorithm`（`darkAlgorithm` / `defaultAlgorithm` / `compactAlgorithm`）、`token`（`lightToken` / `darkToken` + 注册式风格预设 + 运行时覆盖）、`components` 三层。算法字段改名不会报错，只会让深色/紧凑主题静默退回默认。同一层还要留意 `packages/utils/src/css-vars.ts` 把主色**写两遍**（`--ant-color-primary` 与旧命名 `--ant-primary-color`，都是给 antdv-next 的桥；设计规范本身只读 `--app-*`），主题口径见 [主题与偏好设置](/guide/in-depth/theme)。
-2. **子组件模板写法**。还有 4 个页面在用 antd 子组件（`views/account/center`、 `views/components/form/steps`、`views/components/table/crud`、`views/system/notice`），而 resolver 下线后它们全部走显式 import（`import { DescriptionsItem as ADescriptionsItem } from 'antdv-next'`）—— `apps/web/src` 里已经没有一个裸 `<a-descriptions-item>` 标签了。这把第一方源码的失败面堵住了，但堵不住预编译的第三方模板：`@form-create/antd-designer` 在运行时靠 `resolveComponent('a-…')` 找组件，服务它的是 `apps/web/src/plugins/vendor-antd-components.ts` 里那 36 条 kebab-case 注册 —— 新增子组件要补的是这张表。名字缺失**不会让构建失败**，只有一句 `Failed to resolve component` warning + 一块空节点，所以 `apps/web/e2e/gallery-examples.spec.ts` 既去数 `.ant-descriptions-item-label` 的条数，也顺手断言了那句 warning。
-3. **Table**。`App.vue` 全开了 `virtual`，antd 因此要求 `scroll.y` 是数值，`BasicTable.vue` 用 `mergedVirtual` 兜住"业务页只写 `{ x: 1400 }`"的情况；固定表头/横向滚动又会在 `<tbody>` 前面插一行 `ant-table-measure-row`，`useDragSort.ts` 靠数 `data-row-key` 来算前导偏移。两处都有单测（`components/business/Table/__tests__/drag-sort.spec.ts`）。
+1. **`ConfigProvider` 的 theme 形状**（`apps/web/src/App.vue:67-74`，`themeConfig` 计算在 `:21-23`）。`theme` 对象由 `apps/web/src/settings/theme/index.ts:80-122` 的 `getAntdTheme` 组装：`algorithm`（`darkAlgorithm` / `defaultAlgorithm` / `compactAlgorithm`，`:87-94`）、`token`（`lightToken` / `darkToken` + 注册式风格预设 + 运行时覆盖，`:98-116`）、`components`（`:117-120`）三层。算法字段改名不会报错，只会让深色/紧凑主题静默退回默认。另一条独立链路是偏好 → DOM：`packages/core/preferences/src/update-css-variables.ts:37-72` 的 `applyPreferencesToDom` 只写 `@antdv/design` 那套 `--app-*` / `--radius-*` 变量（主题相关的写在 `:85-115`），曾经给 antd 兼容层用的 `--ant-color-primary`、`--ant-primary-color`、`--ant-border-radius` 已经删干净，并被 `packages/core/preferences/__tests__/update-css-variables.test.ts:64-78` 反向钉住"不许再出现"。主题口径见 [主题与偏好设置](/guide/in-depth/theme)。
+2. **子组件模板写法**。第一方源码已经**没有** antd 组件的使用者了：`apps/web/src` 里 `from 'antdv-next'` 只剩三处生产代码（`App.vue:8`、`plugins/vendor-antd-components.ts:5-42`、`settings/theme/index.ts:2-4`）和两个测试（`settings/__tests__/antd-theme.test.ts`、`views/__tests__/gallery-api-usage.spec.ts`），页面与布局要用组件只能引 `@antdv/*` 的封装件 —— 这条由守卫测试 `apps/web/src/views/__tests__/gallery-api-usage.spec.ts:137` 钉住。堵不住的是预编译的第三方模板：`@form-create/antd-designer` 在运行时靠 `resolveComponent('a-…')` 找组件，服务它的是 `apps/web/src/plugins/vendor-antd-components.ts` 里那 36 条 kebab-case 注册（清单 `:59-96`，登记在 `:112-119`，另加 `a-form-item-rest` 一个透传占位）—— 新增物料要补的是这张表。名字缺失**不会让构建失败**，只有一句 `Failed to resolve component` warning + 一块空节点，所以 `apps/web/e2e/gallery-examples.spec.ts` 在示例页用例末尾断言这类 warning 为空（`:968-972`、`:1394-1398`），详情列表则改数 common-ui 自己的 `[data-common-descriptions-label]`（`:937`）。
+3. **Table**。`App.vue:73` 在 antd 的 `ConfigProvider` 上全开了 `virtual`，但它只影响**仍在渲染 antd 表格的地方**（设计器物料）；`@antdv/table-ui` 的 `BasicTable` 是 TanStack 实现，是否开内部滚动容器与钉住表头只看数值 `scroll.y`（`packages/core/ui-kit/table-ui/src/BasicTable.vue:151`），`types.ts:648` 那个 `virtual` 字段是表格自己的虚拟滚动开关，两者不同名同源。拖拽排序那边，`packages/core/ui-kit/table-ui/src/hooks/useDragSort.ts:26-46` 每次事件现量一次"第一条数据行前面有几行"（数据行是 `<tbody>` 里唯一带 `data-row-key` 的 `<tr>`，见 `BasicTable.vue:1364`），所以前面插测量行/占位行都不会让下标错位。两处都有单测（`packages/core/ui-kit/table-ui/__tests__/drag-sort.test.ts`）。
 4. **"用错也不报错"的 API**。`apps/web/src/views/__tests__/gallery-api-usage.spec.ts` 会先替你抓到三类：具名 `useApp`（1.6 只有 `App.useApp()`）、把权限指令的参数写成修饰符（`v-permission:role` 才对）、Tabs 绑 `@add`（1.6 只有 `@edit`）。
-5. **图标**。`@antdv-next/icons` + 5 个 `@iconify-json/*` 集合 + `internal/vite-config/src/plugins/auto-import.ts` 的离线列表。写错的图标名不报错，只是空白方块，所以有 `apps/web/test/icon-names.test.ts` 扫 `apps/backend-mock/server`、`apps/web/src`、`packages` 三个根做对账。
+5. **图标**。`@antdv-next/icons`（catalog `:23`，`apps/web/package.json:19`）+ 5 个 `@iconify-json/*` 集合（catalog `:43-47`）+ `internal/vite-config/src/plugins/auto-import.ts:30-32` 的离线列表（`local: ['carbon', 'ant-design', 'lucide', 'fa6-regular', 'mdi']`，名单必须与依赖同步，少一个就变成构建期现拉或直接空白）。写错的图标名不报错，只是空白方块，所以有 `apps/web/test/icon-names.test.ts` 扫 `apps/backend-mock/server`、`apps/web/src`、`packages` 三个根做对账（`SCAN_ROOTS`，`:45`）。
 
-::: tip Vue 是唯一被钉死的运行时 catalog 里 `vue: 3.5.43` 是**精确版本**，注释写明了原因：范围号会让部分第三方 peer 树停在 3.5.42，于是 `@vue/runtime-core` 出现两份类型，跨包传 Directive 直接打架。升 Vue 之前先读懂这条注释，再决定 `overrides` 要不要跟着动。:::
+::: tip Vue 是被精确钉死的运行时 默认 catalog 里 `vue: 3.5.43`（`pnpm-workspace.yaml:235`）没有范围号；catalog 里另有 11 个精确版本（`reka-ui`、`@vueuse/core`、`vee-validate` 等），但只有 `vue` 同时出现在 `overrides`（`:298-303`）里，等于强制整棵树只有一份实例。原因是范围号会让部分第三方 peer 树停在 3.5.42，于是 `@vue/runtime-core` 出现两份类型，跨包传 Directive 直接打架。升 Vue 之前先决定 `overrides` 要不要跟着动。:::
 
 要把不需要的东西拆掉，看[移除代码](/guide/other/remove-code)；工程侧的其它约定见 [开发规范与环境变量](/guide/essentials/development)、[目录说明](/guide/project/dir)。

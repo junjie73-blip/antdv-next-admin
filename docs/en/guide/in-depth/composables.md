@@ -381,7 +381,7 @@ On the WebSocket side the rule is: business code subscribes to the **app-level s
 | `usePrint(options)` | `target` **required**, `title = document.title`, `showHeader/showFooter = true`; returns `void` | `views/system/{login-log,online,user}` |
 | `useRouteLoading(options?)` | `{ minDuration = 300, auto = true }` | `layouts/index.vue:166` |
 | `useWatermark(options?)` | `{ content?, enabled?, style? }`, style defaults `200×150 / rotate 330 / alpha 0.15 / 14px / #666666` | `layouts/index.vue:171` |
-| `useEcharts(option?, options?)` (subpath) | `{ autoResize = true, resizeStrategy = 'raf', resizeDelay = 100, renderer = 'canvas', applyInitial = true, debug = false }` | nothing (`packages/composables/__tests__/echarts.test.ts`) |
+| `useEcharts(option?, options?)` (subpath) | `{ autoResize = true, resizeStrategy = 'raf', resizeDelay = 100, renderer = 'canvas', applyInitial = true, debug = false }` | nothing (`packages/core/hooks/__tests__/echarts.test.ts`) |
 | `useSSE(options)` (subpath) | `url` required; `{ reconnectEnabled = true, reconnectInterval = 1000, maxReconnectAttempts = 5, reconnectDelayMultiplier = 2, maxReconnectDelay = 30000, withCredentials = false }` | nothing (unit tests only) |
 | `useWebSocket(options)` (subpath) | `url` is **`() => string \| URL`**; `autoConnect = false`; omit `heartbeat` / `reconnect` and both stay off | `utils/ws.ts:265` — the only entry point; business code must not call it directly |
 
@@ -399,7 +399,7 @@ On the WebSocket side the rule is: business code subscribes to the **app-level s
 - **`useSSE`'s `headers` option is decorative**: `EventSource` can't set request headers, and the implementation only reads `url` and `withCredentials` (`useSSE.ts:57-67`) — put credentials in the query string or a cookie. Two event channels: business frames arrive on `on('event:message', cb)` (`SSEEventManager` routes the `event:` prefix into a separate map) while the raw `MessageEvent` arrives on `on(SSEEventType.Message)`; heartbeat/comment frames (`data === ''`) are swallowed. `lastEventId` is appended as a query parameter for resume; `onUnmounted` disconnects, so it must be used inside a component.
 - **`useWebSocket` (the package one) has no lifecycle cleanup at all** — the socket, heartbeat timer and reconnect timer outlive your component; call `disconnect()` yourself. `autoDisconnect` is still in the types but `@deprecated` and a no-op (`useWebSocket.ts:19`). Both `heartbeat` and `reconnect` are **opt-in by presence**: `enabled: !!reconnect` (`:58`), so the `DEFAULT_*` constants only fill in fields of an object you actually passed (heartbeat: 30 s ping / 5 s pong timeout / payload `{"type":"ping"}`; reconnect: 1000 ms × 2 backoff, capped at 30 s, max 5 attempts, `retries <= 0` = unlimited). Frames matching `heartbeat.pongMessage` are consumed and never reach business handlers; a heartbeat timeout closes with custom code `4000` so `onclose` takes the reconnect branch.
 
-`useSSE`, `useEcharts` and `useCache` currently have **no business call sites** (only `packages/composables/__tests__/`). They are capability reserves, not working features — confirm the backend (an SSE endpoint, a chart page) can actually serve them before adopting one.
+`useSSE`, `useEcharts` and `useCache` currently have **no business call sites** (only `packages/core/hooks/__tests__/`). They are capability reserves, not working features — confirm the backend (an SSE endpoint, a chart page) can actually serve them before adopting one.
 
 ## 8. Adding a new composable
 
@@ -409,7 +409,7 @@ Where it goes, decided by dependencies:
 | --- | --- | --- |
 | An instance of some `Basic*` component | `useXxx.ts` next to that component | export `register` + types from that directory's `index.ts` (`UseXxxReturnType` lives in `types.ts`) |
 | A store / requests / the router / `import.meta.env` | `apps/web/src/composables/` | add to `composables/index.ts` if pages need it, and **always** import explicitly |
-| Only the DOM or browser APIs, reusable verbatim elsewhere | `packages/composables/src/` | light ones into the root barrel; heavy ones get their own subpath **and** an `exports` entry in `package.json` |
+| Only the DOM or browser APIs, reusable verbatim elsewhere | `packages/core/hooks/src/` | light ones into the root barrel; heavy ones get their own subpath **and** an `exports` entry in `package.json` |
 
 Rules to keep:
 

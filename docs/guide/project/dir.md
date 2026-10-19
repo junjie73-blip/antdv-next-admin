@@ -77,7 +77,7 @@ pnpm version            # 消耗 changeset，升版本号并写 CHANGELOG.md，�
 pnpm release            # build + changeset publish
 ```
 
-`.changeset/config.json` 里三个字段决定了实际行为：
+`.changeset/config.json` 里这几个字段决定了实际行为：
 
 - `changelog: ["@changesets/changelog-github", { repo }]` —— 生成 CHANGELOG 时每条带 PR 链接；**目前还没有任何一包有 `CHANGELOG.md`**（`pnpm version` 一次都没跑过），仓库根那个 `CHANGELOG.md` 是改造前 `standard-version` 留下的旧文件。
 - `fixed: [["@antdv/*", "@antdv/*"]]` —— **`@antdv/*` 锁步升版**：一次 `pnpm version` 里被同一批 changeset 带到的包会一起跳到同一个号。这是刻意的：内部包互相引用，版本分散会让"装哪几个版本能一起跑"变成谜题。但锁步不等于全体相等 —— 没被这批 changeset 触及的包保持原号，所以现在（按各 `package.json` 实测）：多数包 `0.4.0`，`@antdv/layouts` `0.5.0`，`common-ui` / `enums` / `request` / `stores` / `utils` 还是 `0.1.0`，5 个 `*-config` 与 `docs` 是 `0.0.0`，`scripts/` 下的 `turbo-run` / `vsh` 是另一条线上的 `5.8.0`。别在文档里写"所有包都是同一个版本"。

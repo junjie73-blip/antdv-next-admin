@@ -6,7 +6,7 @@ Adopting this template as a business system usually starts with deletion: the de
 
 Neither the sidebar nor the access set comes from the route table. Both come from `GET /api/menus`, whose seed data is a plain array in `apps/backend-mock/server/api/menus.get.ts`:
 
-- `apps/web/src/stores/modules/route.ts` flattens the whole tree (including `hidden` nodes) into `allowedNames` / `allowedPaths`, then `syncRouteRegistry()` diffs it against the route-table snapshot and **calls `removeRoute` for every conventional route the menu does not list**;
+- `packages/stores/src/route.ts` flattens the whole tree (including `hidden` nodes) into `allowedNames` / `allowedPaths`, then `syncRouteRegistry()` diffs it against the route-table snapshot and **calls `removeRoute` for every conventional route the menu does not list**;
 - the guard in `packages/router/src/guards/dynamic-route.ts:85-86` consults `canAccess` and sends a miss to `/error/403`; a path the menu lists but no page provides falls through to `/:pathMatch(.*)*` in `router/routes.ts`, which redirects to `/error/404`.
 
 The two half-deletions fail differently and both fail badly: **delete the page but keep the menu record** and the sidebar keeps a dead link that lands on 404; **delete the menu record but keep the page** and the file still compiles and answers a typed URL, but nothing navigates to it and `site-sweep` never visits it.

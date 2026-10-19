@@ -33,7 +33,7 @@ packages/core/base/design/
 
 - **不含组件**：包里没有一行 `.vue`，也没有 `src/index.ts`。卡片、标签、步骤条这类公共展示件在 `@antdv/common-ui`，图标原子在 `@antdv/icons`，`index.css:18` 的注释专门写了这条边界。
 - **不感知组件库**：不 import 任何组件库的 JS，也不引它们的样式兼容层 —— 令牌与规则全部来自本包，组件包改名或换库都不需要动这里。唯一的残留是 `css/base.css:128-134` 那两条 `.ant-upload` 光标补丁（antd 给上传触发区漏了 `cursor: pointer`，页面里还有它的 DOM 时得补），组件库 DOM 一走就可以删掉。
-- **不含业务样式**：需要读 store 的薄壳（如 `apps/web/src/components/common/Loading/PageLoading.vue`）留在应用里，不往本包搬。:::
+- **不含业务样式**：需要读 store 的薄壳（如 `packages/layouts/src/basic/content/page-loading.vue`）留在应用里，不往本包搬。:::
 
 ## 层顺序是显式声明的
 

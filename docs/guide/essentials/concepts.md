@@ -45,7 +45,7 @@ scripts/           仓库任务（vsh、turbo-run、clean、deploy）
 
 唯一例外是 `packages/utils/src/menu.ts:3` import 了 `vue-router` 的**类型** （`import type { RouteRecordRaw }`）——类型不进产物，不破坏边界。
 
-::: tip 新代码该放哪只跟这个页面有关 → 页面目录里（`views/<模块>/<页面>/`）。跨页面但只服务应用（store、api、ws） → `apps/web/src/` 对应目录。纯函数、不依赖应用状态、换个项目还想用 → `packages/core/base/shared` 或 `packages/core/composables`。需要 pinia / router / 后端数据才能工作 → 留在应用里做薄壳，包只接收注入。:::
+::: tip 新代码该放哪只跟这个页面有关 → 页面目录里（`views/<模块>/<页面>/`）。跨页面但只服务应用（store、api、ws） → `apps/web/src/` 对应目录。纯函数、不依赖应用状态、换个项目还想用 → `packages/core/base/shared` 或 `packages/core/hooks`。需要 pinia / router / 后端数据才能工作 → 留在应用里做薄壳，包只接收注入。:::
 
 ## 路径别名与自动导入
 

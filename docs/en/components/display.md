@@ -1,11 +1,11 @@
 # Data and display
 
-This page covers six demo routes — `/components/description`, `/components/count-to`, `/components/relative-time`, `/components/icon-picker`, `/components/loading`, `/components/scroll/basic`. They are unrelated features, but one thread runs through them: **the first two are business wrappers living in `apps/web`, while the remaining four now live in shared packages — icons in `packages/icons`, the loading overlay in `packages/core/ui-kit/common-ui/src/components/loading`, the scrollbar in `packages/core/ui-kit/common-ui/src/components/scrollbar` (none of the three use antdv-next any more; they are built on the shadcn-vue layer, see `@antdv/shadcn-ui`)**. Reading this page therefore also draws the line between "what belongs in a shared package" and "what stays in the app".
+This page covers six demo routes — `/components/description`, `/components/count-to`, `/components/relative-time`, `/components/icon-picker`, `/components/loading`, `/components/scroll/basic`. They are unrelated features, but one thread runs through them: **the first two are business wrappers living in `apps/web`, while the remaining four now live in shared packages — icons in `packages/core/base/icons`, the loading overlay in `packages/core/ui-kit/common-ui/src/components/loading`, the scrollbar in `packages/core/ui-kit/common-ui/src/components/scrollbar` (none of the three use antdv-next any more; they are built on the shadcn-vue layer, see `@antdv/shadcn-ui`)**. Reading this page therefore also draws the line between "what belongs in a shared package" and "what stays in the app".
 
 ::: warning Three things to say up front
 
 1. **There is no `RelativeTime` component**: no such directory under `apps/web/src/components/business/`, and no import of `RelativeTime` anywhere in the repository. `/components/relative-time` is just a page built from `a-timeline` plus **absolute timestamps** (see [relative time](#relative-time-pages-components-relative-time)).
-2. **`Description`'s `setData()` is a stub** that only calls `console.warn` (`apps/web/src/components/business/Description/Description.vue:156-158`).
+2. **`Description`'s `setData()` is a stub** that only calls `console.warn` (`packages/core/ui-kit/common-ui/src/components/description/Description.vue:156-158`).
 3. **The text prop of `Loading` is `tip`, not `description`**, and `useLoading` needs an explicit `target` (selector / element / ref / getter) — otherwise the overlay silently never mounts and only prints a `console.warn` (`packages/core/ui-kit/common-ui/src/components/loading/overlay.ts:101-105`). :::
 
 ## Why these six pages are all second-level menu entries
@@ -37,7 +37,7 @@ The six menu entries and their `name` (keep-alive matches on it):
 
 ### What problem it solves
 
-The label/value grid on detail pages. Using antdv-next's `Descriptions` directly means assembling `items` yourself; `Description` splits that into two configurations — `schema` (`DescriptionItem[]`, defining labels, how a value is obtained, and column span) and `data` (the field values) — and adds built-in date formatting, image preview and dictionary translation (`apps/web/src/components/business/Description/types.ts:93-160`).
+The label/value grid on detail pages. Using antdv-next's `Descriptions` directly means assembling `items` yourself; `Description` splits that into two configurations — `schema` (`DescriptionItem[]`, defining labels, how a value is obtained, and column span) and `data` (the field values) — and adds built-in date formatting, image preview and dictionary translation (`packages/core/ui-kit/common-ui/src/components/description/types.ts:93-160`).
 
 ### The real API
 
@@ -97,7 +97,7 @@ For the record, the type `DescriptionBordered = 'bordered' | 'none' | boolean` a
 
 ### What problem it solves
 
-Rolling numbers on KPI cards and dashboards. The core decision is that **it is driven by `requestAnimationFrame`**, not `setInterval`: `useRafFn` (from `@vueuse/core`) supplies the frame timestamp, progress is `(timestamp - start) / duration`, and an easing function is applied to it (`apps/web/src/components/business/CountTo/CountTo.vue:54-76`). What that buys you in practice: the frame rate follows the browser, rAF stops by itself when the tab is hidden, and `useRafFn` pauses on unmount (the component comment is at `:111`).
+Rolling numbers on KPI cards and dashboards. The core decision is that **it is driven by `requestAnimationFrame`**, not `setInterval`: `useRafFn` (from `@vueuse/core`) supplies the frame timestamp, progress is `(timestamp - start) / duration`, and an easing function is applied to it (`packages/core/ui-kit/common-ui/src/components/count-to/CountTo.vue:54-76`). What that buys you in practice: the frame rate follows the browser, rAF stops by itself when the tab is hidden, and `useRafFn` pauses on unmount (the component comment is at `:111`).
 
 ### The real API
 
@@ -162,7 +162,7 @@ Where relative time really comes from in this repository:
 
 | Location | What it does |
 | --- | --- |
-| `packages/shared/src/utils/dayjs.ts:10`, `:23` | a single `dayjs.extend(relativeTime)` — the plugin is installed in the shared package |
+| `packages/core/base/shared/src/utils/dayjs.ts:10`, `:23` | a single `dayjs.extend(relativeTime)` — the plugin is installed in the shared package |
 | `packages/layouts/src/widgets/notification/notice-item.vue:21-25`, `:77-79` | `dayjs(sendTime).fromNow()`, wrapped in a narrow `fromNow()` helper (it patches in the missing `relativeTime` types); rendered in the notice item (`:171`) |
 | `apps/web/src/views/system/notice/index.vue:36`, `:384` | the page calls `extend` again on its own; the table column uses `fromNow(true)` (bare duration, no "ago/from now") |
 | `apps/web/src/views/system/online/index.vue:30`, `:103` | same pattern, for the "online for" column |
@@ -173,11 +173,11 @@ What drives the refresh: **no timer at all**. `fromNow()` sits inside a `compute
 
 ### What problem it solves
 
-Letting a _user_ (rather than a developer) pick an icon name — the common case is assigning icons to menu entries in menu management (real usage: `apps/web/src/views/system/menu/index.vue`). It lives in `packages/icons` (package name `@antdv/icons`), and **its icon sets come from offline-bundled `@iconify-json/*`** packages: they are in the build output, so nothing queries the Iconify API at runtime. The mechanism and the steps to add a collection are in the [icons guide](/en/guide/essentials/icons).
+Letting a _user_ (rather than a developer) pick an icon name — the common case is assigning icons to menu entries in menu management (real usage: `apps/web/src/views/system/menu/index.vue`). It lives in `packages/core/base/icons` (package name `@antdv/icons`), and **its icon sets come from offline-bundled `@iconify-json/*`** packages: they are in the build output, so nothing queries the Iconify API at runtime. The mechanism and the steps to add a collection are in the [icons guide](/en/guide/essentials/icons).
 
 ### The real API
 
-Source `packages/icons/src/icon/IconPicker.vue` (396 lines), defaults at `:34-40`.
+Source `packages/core/base/icons/src/icon/IconPicker.vue` (396 lines), defaults at `:34-40`.
 
 | Prop | Default | Behaviour / location |
 | --- | --- | --- |

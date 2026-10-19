@@ -42,7 +42,7 @@ The login page pins this as a source contract: `views/login/__tests__/login-styl
 ## Responsive rules and house style
 
 - Use the default `sm/md/lg/xl` breakpoints. The login page's brand/form split is pure utility classes (`views/login/index.vue` is the reference: the `data-auth="brand"` section hides on narrow screens, the logo collapses into the card).
-- Anything over one line or conditionally combined goes through `cn()` (`packages/shared/src/utils/cn.ts` — clsx + tailwind-merge; twMerge guarantees "the later conflicting class wins", which is what makes `setProps` able to override style classes in the register-props components).
+- Anything over one line or conditionally combined goes through `cn()` (`packages/core/base/shared/src/utils/cn.ts` — clsx + tailwind-merge; twMerge guarantees "the later conflicting class wins", which is what makes `setProps` able to override style classes in the register-props components).
 - Long class strings are extracted into the module's `constants.ts` (`CODE_STANDARD.md` 7.2); templates only reference the variable.
 - The rare raw-CSS cases (view transitions, `::selection`) live in `packages/core/base/design/src/css/base.css` **outside any @layer** — unlayered rules outrank every layer, so `html/body` sizing can't be accidentally overridden by utilities.
 

@@ -70,7 +70,7 @@
 | 位置 | 状态 |
 | --- | --- |
 | `stores/modules/auth.ts` | 与 `user.ts` 重复，**全仓零消费者** |
-| 偏好里的 `routeMode` | 声明在 `packages/preferences/src/defaults.ts:73`，应用代码无读取点 |
+| 偏好里的 `routeMode` | 声明在 `packages/core/preferences/src/config.ts:73`，应用代码无读取点 |
 | `VITE_NAMESPACE` | 无任何代码路径读它，前缀实际来自 `VITE_APP_TITLE` |
 | vue-i18n | **已接线，不是死代码**：外壳有 10 个 `.vue` 用 `useI18n`，菜单标题经 `localizeMenus` 翻译（`layouts/composables/useMenuTree.ts:22`），顶栏有语言切换（`layouts/components/LocaleSwitcher.vue` 调 `useLocale.ts:71` 的 `setLocale`）。仍然没接上的是业务页面：`src/views/**` 一个 `useI18n` 都没有，文案硬编码中文，`.vue` 里也没有 `$t()` |
 | `apps/web/src/assets/icons/` | 空目录，sprite 链路已接通但无自定义图标 |

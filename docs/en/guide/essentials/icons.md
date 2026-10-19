@@ -20,7 +20,7 @@ iconifyOffline({
 });
 ```
 
-Each set listed in `local` is read from `@iconify-json/<name>/icons.json` and handed to `@iconify/vue` at build time, so the browser **never** calls the Iconify API. Which five are installed: `packages/icons/package.json` lists all five (`:28-32`); `apps/web` carries `carbon` in dependencies (`:46`) and `ant-design` / `fa6-regular` / `lucide` / `mdi` in devDependencies (`:131-134`).
+Each set listed in `local` is read from `@iconify-json/<name>/icons.json` and handed to `@iconify/vue` at build time, so the browser **never** calls the Iconify API. Which five are installed: `packages/core/base/icons/package.json` lists all five (`:28-32`); `apps/web` carries `carbon` in dependencies (`:46`) and `ant-design` / `fa6-regular` / `lucide` / `mdi` in devDependencies (`:131-134`).
 
 `mdi` and `fa6-regular` currently have **no code references at all** (zero literals under `apps`/`packages`) — they exist so users can browse them in `IconPicker`. In other words, the offline list equals "sets the picker can search", not "sets the app uses".
 
@@ -33,9 +33,9 @@ Each set listed in `local` is read from `@iconify-json/<name>/icons.json` and ha
 | Component | Source | When to reach for it |
 | --- | --- | --- |
 | `<Icon>` | `@iconify/vue` — you **must write `import { Icon } from '@iconify/vue'` explicitly** (`IconifyResolver` was withdrawn together with the auto-import setup) | first choice; every file that writes a bare `<Icon>` now imports it in its own header |
-| `IconifyIcon` | `packages/icons/src/icon/IconifyIcon.vue`, `import { IconifyIcon } from '@antdv/icons/icon'` | when you want that wrapper's `size` default of `16`, `mode`, flips and `rotate` |
-| `IconPicker` | `packages/icons/src/icon/IconPicker.vue` (shadcn-ui implementation: `Popover` + `Select` + `Input` + `Tooltip`, with `@antdv/common-ui` for the scroll area) | letting a human pick an icon in a form (menu management `views/system/menu/index.vue`, demo page `views/components/icon-picker/index.vue`) |
-| `SvgIcon` | `packages/icons/src/icon/SvgIcon.vue` | brand marks and multicolor glyphs (Iconify handles multicolor poorly); renders `<use xlink:href="#icon-xxx">` |
+| `IconifyIcon` | `packages/core/base/icons/src/icon/IconifyIcon.vue`, `import { IconifyIcon } from '@antdv/icons/icon'` | when you want that wrapper's `size` default of `16`, `mode`, flips and `rotate` |
+| `IconPicker` | `packages/core/base/icons/src/icon/IconPicker.vue` (shadcn-ui implementation: `Popover` + `Select` + `Input` + `Tooltip`, with `@antdv/common-ui` for the scroll area) | letting a human pick an icon in a form (menu management `views/system/menu/index.vue`, demo page `views/components/icon-picker/index.vue`) |
+| `SvgIcon` | `packages/core/base/icons/src/icon/SvgIcon.vue` | brand marks and multicolor glyphs (Iconify handles multicolor poorly); renders `<use xlink:href="#icon-xxx">` |
 
 `IconifyIcon` deliberately assigns no defaults to its optional props (the file header explains it): supplying `''` or `0` turns "not set" into "explicitly set to empty", which overrides `@iconify/vue`'s own fallbacks (color inheriting `currentColor`, size falling back to `size`).
 
@@ -72,7 +72,7 @@ How to run it: `pnpm test:unit` (whole repository through turbo) or `pnpm --filt
 Two runtime sources, neither hardcoded inside a component:
 
 - **Menu data**: the `icon` field of each entry returned by `GET /menus` (mock seed in `apps/backend-mock/server/api/menus.get.ts`), normalized into `MenuConfig.icon`. The rail consumes it with a fallback — `packages/core/ui-kit/layout-ui/src/components/layout-sidebar/nav-rail.vue:90` uses `menu.icon || 'carbon:category'`.
-- **Route `meta.icon`**: written on conventional or static routes, typed in `packages/types/src/app-router.ts`; tabs and the breadcrumb read it too (`packages/layouts/src/breadcrumb.ts`).
+- **Route `meta.icon`**: written on conventional or static routes, typed in `packages/core/base/typings/src/app-router.ts`; tabs and the breadcrumb read it too (`packages/layouts/src/breadcrumb.ts`).
 
 The breadcrumb's handling of the empty value is worth copying: the comment at `LayoutBreadcrumb.vue:81` explains why it uses `''` instead of `undefined` — `undefined` makes `<Icon :icon>` a type error, while `''` both fails the `v-if` and keeps the prop a `string`.
 

@@ -127,8 +127,8 @@ return {
 
 | 层 | 机制 | 作用时机 | 覆盖谁 | 出处 |
 | --- | --- | --- | --- | --- |
-| 编译期 | 写 `import { Card as ACard } from 'antdv-next'` | SFC 编译时把局部绑定接进模板 | **本仓库源码**里的 `<ACard>` / `<a-card>` | 今天只剩两处：`App.vue:8` 与 `plugins/vendor-antd-components.ts`（守卫测试 `views/__tests__/gallery-api-usage.spec.ts:137` 禁止示例页与布局直接引 antd 组件） |
-| 运行期 | `app.component('a-xxx', Comp)` 全局注册 | 应用启动时挂进 `app` | 只为**预编译好的第三方模板**服务 | `apps/web/src/plugins/vendor-antd-components.ts:59-118` |
+| 编译期 | 写 `import { Card as ACard } from 'antdv-next'` | SFC 编译时把局部绑定接进模板 | **本仓库源码**里的 `<ACard>` / `<a-card>` | 今天只剩三处：`App.vue:8`、`plugins/vendor-antd-components.ts:42`、`settings/theme/index.ts:2,4`（守卫测试 `views/__tests__/gallery-api-usage.spec.ts:137` 禁止示例页与布局直接引 antd 组件） |
+| 运行期 | `app.component('a-xxx', Comp)` 全局注册 | 应用启动时挂进 `app` | 只为**预编译好的第三方模板**服务 | `apps/web/src/plugins/vendor-antd-components.ts:112-119`（清单 `:59-96`） |
 | 类型层 | `components.d.ts` / `auto-imports.d.ts` | 构建/dev 时被插件回写 | 只影响 TS 与 IDE，不代表任何东西被用到 | `internal/vite-config/src/plugins/index.ts:62-67` |
 
 ### 编译期：没有 resolver 了，组件全靠 import
@@ -186,7 +186,7 @@ return {
 | 形态 | 包 | `main` | 改完 `src` | 外部可用吗 |
 | --- | --- | --- | --- | --- |
 | dist 发布 | `shared`、`types`、`hooks`、`preferences`、`directives`、`router` | `./dist/index.js`（`types` 是 `./dist/index.mjs`） | 必须重新 `build` | 只要装到 `dist` 就能被解析 |
-| 源码发布 | `@antdv/icons`（`./src/index.ts`）、`@antdv/design`（`./src/index.css`）、`@antdv/enums`、`@antdv/layouts`、`@antdv/request`、`@antdv/stores`、`@antdv/utils`，以及 `@antdv/ui-kit` 八个（`common-ui` / `shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui`） | 直指 `src`（如 `packages/core/ui-kit/common-ui/package.json:12-17`：`files: ["src"]` + `main/module/types` 全指 `./src/index.ts`；`packages/utils/package.json:12-17` 同形） | 直接热更新 | **不能**：这十三个包连 `build` 脚本都没有，`.vue` 与 Tailwind 入口由应用的构建链编译 |
+| 源码发布 | `@antdv/icons`（`./src/index.ts`）、`@antdv/design`（`./src/index.css`）、`@antdv/enums`、`@antdv/layouts`、`@antdv/request`、`@antdv/stores`、`@antdv/utils`，以及 ui-kit 目录下那八个（`common-ui` / `shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui`） | 直指 `src`（如 `packages/core/ui-kit/common-ui/package.json:12-17`：`files: ["src"]` + `main/module/types` 全指 `./src/index.ts`；`packages/utils/package.json:12-17` 同形） | 直接热更新 | **不能**：这十五个包连 `build` 脚本都没有，`.vue` 与 Tailwind 入口由应用的构建链编译 |
 
 `loading-ui` 与 `scrollbar-ui` 已经并进 `common-ui`（分别是 `src/components/loading/`、`src/components/scrollbar/`），ui-kit 顶层 `package.json` 从十个收敛到八个；`@antdv/composables` 这个包名也不存在了，HTTP / SSE / WebSocket 现在是 `@antdv/request`。
 

@@ -47,7 +47,7 @@ pnpm check           # circular + dep + type + cspell 四件套
 pnpm publint         # 子包产物是否可发布
 ```
 
-`check:type` 目前**存量 253 条错误**（`components/business/**`、`api/mock.ts`、 `security/dashboard/**`、`form/validation` 等）。CI 里它以"继续但不阻断"的方式跑，理由与收敛计划见 [CI 与部署](/guide/essentials/deploy#type-check-为什么先设成非阻断)。
+`check:type`（= `turbo run type-check`）**目前跑不完整**：`@antdv/layout-ui` 的 `vue-tsc` 会把默认堆吃满并崩在 `FATAL ERROR: Zone Allocation failed`（退出码 134），所以没有可信的仓库总数。应用侧单独跑（`cd apps/web && NODE_OPTIONS=--max-old-space-size=8192 npx vue-tsc --noEmit -p tsconfig.app.json`）当前 **98 条**，81 条在 `views/`（大屏 `useScreenAdapter.ts` 15、`screen/monitor/index.vue` 13）。**没有任何 CI 在跑它**，仓库里只有 `docs.yml` 一个 workflow —— 存量清单、`&&` 短路掉的 vitest 那一段、以及收敛步骤见 [CI 与部署](/guide/essentials/deploy)。
 
 ## 提交信息
 
@@ -60,7 +60,7 @@ pnpm commit :f       # 别名直接预填 "docs: fix typos"
 
 其余硬约束：`header-max-length` 108、`body-leading-blank`（正文前必须空行）、 `footer-leading-blank`（警告级）、scope 可以为空，非空时必须落在允许列表里（`function-rules/scope-enum`）。**没有**任何规则把 breaking change 限制在 `feat` / `fix`，那只是交互提示里的措辞。
 
-::: warning 本地钩子目前是关的 `lefthook.yml` 里所有 hook 都被注释掉了（`prepare` 仍会执行 `lefthook install`，但没有实际拦截）。所以**别指望提交时自动跑 lint**，也别忘了 `pnpm exec lefthook run pre-commit` 现在等于什么都没做 ——真正的门禁在 CI 那侧，见 [CI 与部署](/guide/essentials/deploy)。:::
+::: warning 本地钩子目前是关的 `lefthook.yml` 里所有 hook 都被注释掉了（只剩 `# pre-commit:` 与 `# post-merge:` 两段注释，`prepare` 仍会执行 `lefthook install`，但没有实际拦截）。所以**别指望提交时自动跑 lint**，也别忘了 `pnpm exec lefthook run pre-commit` 现在等于什么都没做 ——而且**CI 那侧也没有门禁**（`.github/workflows/` 下只有 `docs.yml`），强制层目前是零，全部靠本地自查，见 [CI 与部署](/guide/essentials/deploy)。:::
 
 ## changeset
 

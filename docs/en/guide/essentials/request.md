@@ -104,6 +104,6 @@ The file path under `apps/backend-mock/server/api/**` is the route: `system/user
 
 ## WebSocket
 
-The `utils/ws.ts` singleton reads `VITE_WS_URL`, automatically attaches `token` and `type=notice` on connect, and doesn't connect when unset (`:105-112,310`); its only consumer is the notification center `layouts/widgets/WidgetNotice.vue:73`. There's no SSE endpoint on the app side (`packages/core/composables/src/sse` is a standalone capability package, not wired in).
+The `utils/ws.ts` singleton reads `VITE_WS_URL`, automatically attaches `token` and `type=notice` on connect, and doesn't connect when unset (`:105-112,310`); its only consumer is the notification center `layouts/widgets/WidgetNotice.vue:73`. There's no SSE endpoint on the app side (`packages/core/hooks/src/sse` is a standalone capability package, not wired in).
 
 ::: warning Don't bypass the shared client All `api/*.ts` and stores import only `~/api/request` or the http from `~/composables` (e.g. `stores/modules/route.ts:18`, `stores/modules/user.ts:7`). This is currently **a convention, not a lint rule** — ESLint only locks import boundaries (`internal/lint-configs/eslint-config/src/custom-config.ts:31-113`) and doesn't forbid bare `fetch`. Once bypassed, CSRF, 401 refresh, and unified messaging all stop working, and it's hard to catch in code review. :::

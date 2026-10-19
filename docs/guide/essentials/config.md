@@ -5,7 +5,7 @@
 | 配置面 | 位置 | 生效时机 | 改完要不要重启 |
 | --- | --- | --- | --- |
 | 构建期环境变量（`VITE_*`） | `apps/web/.env*` | Node 里读（插件与 dev server）+ 浏览器里读（`import.meta.env`） | 要，dev server 重启 |
-| 用户偏好 | `packages/preferences` + `apps/web/src/settings/index.ts` | 运行时，落在 localStorage | 不要，刷新即可 |
+| 用户偏好 | `packages/core/preferences` + `apps/web/src/settings/index.ts` | 运行时，落在 localStorage | 不要，刷新即可 |
 | 应用常量 | `apps/web/src/config/*.ts` | 编译期常量 | 不要（HMR） |
 
 第一套决定"这个包怎么被打出来、连哪个后端"，第二套决定"界面长什么样"，第三套是写死的业务约定（缓存键名、首页路径、表格分页字段）。**偏好不是配置文件的运行时副本**：它有默认值、有净化、有迁移，见下文。
@@ -23,7 +23,7 @@ Vite 的合并顺序是 `.env` → `.env.[mode]` → `.env.local` → `.env.[mod
 - Node 侧：`internal/vite-config/src/utils/env.ts` 的 `loadEnv()` 把结果交给 `vite-plugin-env-parse` 的 `parseLoadedEnv`，于是 `.env` 里的 `true` 变成布尔 `true`、`6080` 变成数字。写 `envConfig.VITE_X === 'true'` 恒为 false。
 - 浏览器侧：`import.meta.env.VITE_X` **永远是字符串**（`'true'` / `'false'` / `''`）。写 `=== true` 恒为 false。
 
-所以有两份 `isEnvEnabled`：Node 版在 `internal/vite-config/src/utils/env.ts`（额外认数字 `1`），浏览器版在 `packages/shared/src/utils/env.ts`（`@antdv/shared/utils/env`）。两边都只认 `true / 1 / on / yes`（忽略大小写与前后空格），其余含 `''`、`'0'` 一律 false。 `types/env.d.ts` 由 `envParse` 自动生成，里面的 `boolean` 只是"字面量看上去是布尔"，不代表运行时类型——这个提醒就写在文件头注释里。
+所以有两份 `isEnvEnabled`：Node 版在 `internal/vite-config/src/utils/env.ts`（额外认数字 `1`），浏览器版在 `packages/core/base/shared/src/utils/env.ts`（`@antdv/shared/utils/env`）。两边都只认 `true / 1 / on / yes`（忽略大小写与前后空格），其余含 `''`、`'0'` 一律 false。 `types/env.d.ts` 由 `envParse` 自动生成，里面的 `boolean` 只是"字面量看上去是布尔"，不代表运行时类型——这个提醒就写在文件头注释里。
 
 ## 变量清单
 
@@ -63,7 +63,7 @@ Vite 的合并顺序是 `.env` → `.env.[mode]` → `.env.local` → `.env.[mod
 
 - `VITE_NAMESPACE`：只在 `.env` 与 `types/env.d.ts` 里出现，全仓无引用。缓存前缀实际来自 `VITE_APP_TITLE`，别再按名字猜它有隔离作用。
 - `VITE_APP_VERSION`：`plugins/metadata.ts:104` 用 `define` 造出来的，应用代码里没有读它。
-- `VITE_MINIO_PUBLIC_URL`、`VITE_SENTRY_DSN`：代码里读（`bootstrap/env.ts`、`main.ts`），但三份 `.env` 都没写，运行时是 `undefined`。Sentry 只在 `import.meta.env.PROD` 分支初始化，DSN 为空即不实际上报；MinIO 直链没配时下载走代理前缀（`packages/shared/src/utils/download.ts`）。:::
+- `VITE_MINIO_PUBLIC_URL`、`VITE_SENTRY_DSN`：代码里读（`bootstrap/env.ts`、`main.ts`），但三份 `.env` 都没写，运行时是 `undefined`。Sentry 只在 `import.meta.env.PROD` 分支初始化，DSN 为空即不实际上报；MinIO 直链没配时下载走代理前缀（`packages/core/base/shared/src/utils/download.ts`）。:::
 
 `vite-plugin-iconify-offline`、`@vitejs/plugin-legacy`、`vite-plugin-cdn-import` 在 `apps/web/package.json` 的 devDependencies 里，但**没有任何 import**；图标离线由 `@tomjs/vite-plugin-iconify` 负责（见[图标](/guide/essentials/icons)）。加依赖前先搜一遍有没有人用。
 
@@ -98,7 +98,7 @@ export default defineApplicationConfig({
 
 ## 用户偏好
 
-`packages/preferences` 是无单例的工厂，项目适配层在 `apps/web/src/settings/index.ts`：
+`packages/core/preferences` 是无单例的工厂，项目适配层在 `apps/web/src/settings/index.ts`：
 
 ```ts
 // apps/web/src/settings/index.ts:60-113
@@ -119,8 +119,8 @@ export function getPreferences(): PreferencesInstance {
 三条设计值得记住：
 
 - **必须懒创建**。顶层直接 `createPreferences()` 会跑在 `bootstrap/env` 注入前缀之前，读写的都是默认 `app_cache_*` 键，症状是"设置保存了但刷新就丢"。
-- **默认值里不许有 `import.meta.env`**（`packages/preferences/src/defaults.ts:6-14`）：包体在 dist 里，拿不到静态替换，字段会静默变成空串。项目差异值只能由应用通过 `defaults` 注入。
-- **读取链是 缓存 → `migrate` → `pickKnownPreferences` → 与默认值合并** （`packages/preferences/src/store.ts:129-133`）。`pickKnownPreferences` 按类型丢脏值， `migrate` 处理"值合法但枚举已过时"（布局名 `mixed` → 新名字）；迁移只在读时做一次。
+- **默认值里不许有 `import.meta.env`**（`packages/core/preferences/src/config.ts:6-14`）：包体在 dist 里，拿不到静态替换，字段会静默变成空串。项目差异值只能由应用通过 `defaults` 注入。
+- **读取链是 缓存 → `migrate` → `pickKnownPreferences` → 与默认值合并** （`packages/core/preferences/src/preferences.ts:129-133`）。`pickKnownPreferences` 按类型丢脏值， `migrate` 处理"值合法但枚举已过时"（布局名 `mixed` → 新名字）；迁移只在读时做一次。
 
 全量键与分组（主题 / 布局 / 小部件 / 底栏 / 通用）在 `defaults.ts:16-70`，落盘键是 `appSetting` （`store.ts:21`，带缓存前缀）。怎么用它们驱动 DOM 与 antd 主题见[主题与偏好设置](/guide/in-depth/theme)， `appStore` 如何把它们展平见[状态管理](/guide/essentials/stores)。
 

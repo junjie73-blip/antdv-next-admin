@@ -104,6 +104,6 @@ export function updateUser(id: number, data: Record<string, unknown>) {
 
 ## WebSocket
 
-`utils/ws.ts` 的单例读 `VITE_WS_URL`，连接时自动附 `token` 与 `type=notice`，未配置就不连（`:105-112,310`）；消费方只有通知中心 `layouts/widgets/WidgetNotice.vue:73`。应用侧没有 SSE 端点（`packages/core/composables/src/sse` 是独立能力包，未接入）。
+`utils/ws.ts` 的单例读 `VITE_WS_URL`，连接时自动附 `token` 与 `type=notice`，未配置就不连（`:105-112,310`）；消费方只有通知中心 `layouts/widgets/WidgetNotice.vue:73`。应用侧没有 SSE 端点（`packages/request/src/sse` 是独立能力包，未接入）。
 
 ::: warning 不要绕过共享 client 所有 `api/*.ts` 与 store 只 import `~/api/request` 或 `~/composables` 的 http（例如 `stores/modules/route.ts:18`、`stores/modules/user.ts:7`）。这条目前是**约定而不是 lint 规则**——ESLint 只锁 import 边界（`internal/lint-configs/eslint-config/src/custom-config.ts:31-113`），不禁止裸 `fetch`。绕过之后 CSRF、401 刷新、统一提示全部失效，而且很难在 code review 里发现。:::

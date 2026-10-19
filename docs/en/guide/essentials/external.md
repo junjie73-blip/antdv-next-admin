@@ -7,7 +7,7 @@
 | Add a third-party dependency | `catalog:` in the root `pnpm-workspace.yaml` + `"catalog:"` in the consuming package | `pnpm-workspace.yaml:19-273` |
 | Decide whether it ships to the browser | Which basket it sits in, plus the chunk-group rules | `apps/web/package.json:17-125`, `internal/vite-config/src/optimize.ts:1-41` |
 | Use its components | explicit `import` / runtime `app.component` / generated `.d.ts` — three different things | `apps/web/src/plugins/vendor-antd-components.ts:59-118` |
-| Export an internal package | `exports` subpaths + `files: ["dist"]` + package boundaries + lockstep versions | `packages/shared/package.json:14-43`, `.changeset/config.json:10-17` |
+| Export an internal package | `exports` subpaths + `files: ["dist"]` + package boundaries + lockstep versions | `packages/core/base/shared/package.json:14-43`, `.changeset/config.json:10-17` |
 | Embed an outside sub-app | Registry + `VITE_MICRO_APP` + iframe fallback | `apps/web/src/config/micro-app.ts:5-92` |
 
 ## 1. Adding a third-party dependency
@@ -165,18 +165,18 @@ Both files are committed (`git ls-files` shows them) and churn on every build, s
 
 ### Subpaths are modules
 
-`@antdv/shared` combines a wildcard with explicitly listed directory modules (`packages/shared/package.json:21-43`; the reason sits in the `//exports` comment at `:20`):
+`@antdv/shared` combines a wildcard with explicitly listed directory modules (`packages/core/base/shared/package.json:21-43`; the reason sits in the `//exports` comment at `:20`):
 
 | Import | Resolves to | Uses in this repo |
 | --- | --- | --- |
 | `@antdv/shared/utils/cn` | `dist/cn.js` (via `"./*"`, `:38-41`) | 107 |
 | `@antdv/shared/cache` | `dist/cache/index.js` (listed, `:26-29`) | 13 |
 | `@antdv/shared/utils/env` | `dist/env.js` | 5 |
-| `@antdv/composables/websocket` | `dist/websocket/index.js` (listed, `packages/composables/package.json:34-37`) | 2 (`apps/web/src/utils/ws.ts:3`) |
+| `@antdv/composables/websocket` | `dist/websocket/index.js` (listed, `packages/core/hooks/package.json:34-37`) | 2 (`apps/web/src/utils/ws.ts:3`) |
 
-Build side: `packages/shared/tsdown.config.ts:13-20` declares `entry: ['src/index.ts', 'src/*.ts', 'src/*/index.ts']` with `platform: 'neutral'`, and `files: ["dist"]` (`packages/shared/package.json:14-16`) is what decides that only `dist` travels.
+Build side: `packages/core/base/shared/tsdown.config.ts:13-20` declares `entry: ['src/index.ts', 'src/*.ts', 'src/*/index.ts']` with `platform: 'neutral'`, and `files: ["dist"]` (`packages/core/base/shared/package.json:14-16`) is what decides that only `dist` travels.
 
-Why many entries instead of one barrel: importing only `cn` should not pull the initialization of `xlsx` / `dompurify` into the graph (`tsdown.config.ts:6-8`). `@antdv/composables` follows the same rule — `echarts / sse / websocket` stay on separate entries (`packages/composables/src/index.ts:4-9`). Of those, the `./echarts` entry is declared in `exports` (`package.json:26-29`) and recommended in that comment, yet **no application code imports it**: a declared subpath is not a consumed subpath.
+Why many entries instead of one barrel: importing only `cn` should not pull the initialization of `xlsx` / `dompurify` into the graph (`tsdown.config.ts:6-8`). `@antdv/composables` follows the same rule — `echarts / sse / websocket` stay on separate entries (`packages/core/hooks/src/index.ts:4-9`). Of those, the `./echarts` entry is declared in `exports` (`package.json:26-29`) and recommended in that comment, yet **no application code imports it**: a declared subpath is not a consumed subpath.
 
 ### Two publication shapes; the deciding question is whether it survives without Vite
 
@@ -187,13 +187,13 @@ Why many entries instead of one barrel: importing only `cn` should not pull the 
 
 ### Package boundaries are the only reason these are reusable
 
-`packages/*` may not import `pinia`, a router instance, an application store, or read `import.meta.env`; when such a capability is needed, the application **injects** it (guard factories, directive factories, preference defaults). Details and injection examples live in [Core concepts](/en/guide/essentials/concepts) and [Directory structure](/en/guide/project/dir); from the bundle's point of view one sentence is enough: **a package bound to a store cannot be installed anywhere else**, no matter how clean its `exports` are. The one accepted exception — `packages/shared/src/utils/menu.ts` importing only `vue-router` _types_ — never reaches the output and does not break the boundary.
+`packages/*` may not import `pinia`, a router instance, an application store, or read `import.meta.env`; when such a capability is needed, the application **injects** it (guard factories, directive factories, preference defaults). Details and injection examples live in [Core concepts](/en/guide/essentials/concepts) and [Directory structure](/en/guide/project/dir); from the bundle's point of view one sentence is enough: **a package bound to a store cannot be installed anywhere else**, no matter how clean its `exports` are. The one accepted exception — `packages/utils/src/menu.ts` importing only `vue-router` _types_ — never reaches the output and does not break the boundary.
 
 ### Versions move in lockstep — but today nothing can actually be published
 
 `fixed: [["@antdv/*", "@antdv/*"]]` (`.changeset/config.json:10`) makes every `@antdv/*` package jump to the same version whenever any one of them bumps, and `privatePackages: { version: true, tag: true }` (`:14-17`) lets private packages join that bump and tagging. **For a consumer this means you receive a set of versions that move together; pinning one of them alone is not a thing** (the flip side of `workspace:*` for internal references — see [Changeset](/en/guide/project/changeset)).
 
-::: warning There is no npm route right now `packages/*`, `internal/*`, `apps/*`, `docs` and `scripts/*` are **all** `"private": true` (checked file by file, e.g. `packages/shared/package.json:5`). `changeset publish` skips private packages, and `pnpm publint` (`vsh publint`) bails out at `scripts/vsh/src/publint/index.ts:166-168` with `if (pkgJson.private) return null;` — so this packaging check currently covers 0 packages. Practically, "give a package to another project" today means carrying the package directory (with its `dist`) out, or making it non-private first; `exports` and `files` are what makes either route work. :::
+::: warning There is no npm route right now `packages/*`, `internal/*`, `apps/*`, `docs` and `scripts/*` are **all** `"private": true` (checked file by file, e.g. `packages/core/base/shared/package.json:5`). `changeset publish` skips private packages, and `pnpm publint` (`vsh publint`) bails out at `scripts/vsh/src/publint/index.ts:166-168` with `if (pkgJson.private) return null;` — so this packaging check currently covers 0 packages. Practically, "give a package to another project" today means carrying the package directory (with its `dist`) out, or making it non-private first; `exports` and `files` are what makes either route work. :::
 
 Editing `packages/*/src` does not show up in the application until a rebuild happens, because the app reads `dist` (and `turbo.json:16-24` orders builds with `dependsOn: ["^build"]`) — commands in [Quick start](/en/guide/introduction/quick-start).
 
@@ -205,7 +205,7 @@ Editing `packages/*/src` does not show up in the application until a rebuild hap
 
 ### The micro-frontend registry
 
-`apps/web/src/config/micro-app.ts:5-92` is a registry of six sub-apps (`name` / `url` / `baseroute` / `icon` / `loader` …). Its `enabled` flag goes through `isEnvEnabled(import.meta.env.VITE_MICRO_APP)` (`:7`) — writing `=== true` there is permanently false, because `import.meta.env` values are strings. The contract lives in `packages/types/src/micro-app.ts`, where `loader` accepts only `'iframe' | 'webcomponent'` (`:21`). How routes match a `baseroute` is covered by [Routes and menu](/en/guide/essentials/route).
+`apps/web/src/config/micro-app.ts:5-92` is a registry of six sub-apps (`name` / `url` / `baseroute` / `icon` / `loader` …). Its `enabled` flag goes through `isEnvEnabled(import.meta.env.VITE_MICRO_APP)` (`:7`) — writing `=== true` there is permanently false, because `import.meta.env` values are strings. The contract lives in `packages/core/base/typings/src/micro-app.ts`, where `loader` accepts only `'iframe' | 'webcomponent'` (`:21`). How routes match a `baseroute` is covered by [Routes and menu](/en/guide/essentials/route).
 
 The `<micro-app>` tag is not treated as an unregistered component: the compiler is told to consider it a native custom element (`internal/vite-config/src/plugins/custom-elements.ts:21-24`, wired at `internal/vite-config/src/plugins/vue.ts:38-46`). Only the explicitly registered `micro-app` tag and the `micro-` prefix qualify, and a name must contain a hyphen (`custom-elements.ts:47-55`) — otherwise a genuine registration failure would be silently rendered as an empty tag.
 
