@@ -22,7 +22,10 @@
 | 4 | 仓库根 `pnpm install` | 重算 `pnpm-lock.yaml`；CI 用 `--frozen-lockfile`，锁文件没跟上就直接红 | `.github/workflows/docs.yml:56` |
 | 5 | 只在需要时用 `overrides` | 出现"两份实例"（同名包被不同 peer 树各装一遍）才加，见下 | `pnpm-workspace.yaml:303-308` |
 
-::: warning `pnpm add` 不会替你写 `catalog:` `pnpm-workspace.yaml` 里**没有** `useCatalog` 这个键（全文的键：`packages` / `allowBuilds` / `autoInstallPeers` / `catalog` / `catalogs` / `dedupePeerDependents` / `ignoredBuiltDependencies` / `minimumReleaseAge` / `onlyBuiltDependencies` / `overrides` / `publicHoistPattern` / `strictPeerDependencies` / `verifyDepsBeforeRun`）。所以 `pnpm add some-lib` 落进 `package.json` 的是字面范围号，第 2 步得手工补：先在 `catalog:` 加行，再把子包那行改成 `"catalog:"`。已经漏网的三条见下面警告。:::
+::: warning
+
+`pnpm add` 不会替你写 `catalog:` `pnpm-workspace.yaml` 里**没有** `useCatalog` 这个键（全文的键：`packages` / `allowBuilds` / `autoInstallPeers` / `catalog` / `catalogs` / `dedupePeerDependents` / `ignoredBuiltDependencies` / `minimumReleaseAge` / `onlyBuiltDependencies` / `overrides` / `publicHoistPattern` / `strictPeerDependencies` / `verifyDepsBeforeRun`）。所以 `pnpm add some-lib` 落进 `package.json` 的是字面范围号，第 2 步得手工补：先在 `catalog:` 加行，再把子包那行改成 `"catalog:"`。已经漏网的三条见下面警告。
+:::
 
 ### 最短可照做的步骤
 
@@ -49,9 +52,15 @@ pnpm check:dep                  # knip：确认它真的被 import 了（也确�
 
 `catalog:` 里的 `vue` 是**不带范围号的精确值** `3.5.43`（`pnpm-workspace.yaml:212`，理由写在 `:210-211` 的注释里：留 caret 会让部分第三方 peer 树停在旧 3.5.x，`@vue/runtime-core` 出现两份类型）。
 
-::: tip 分组 catalog 是干什么的，以及本仓库的这条是死的具名 catalog 的语义是"同一依赖的第二套版本"：在 `catalogs.<名字>` 里定义，消费方写 `catalog(<名字>)` 才生效，用于某个包确实必须钉在另一个版本的场合。本仓库只声明了一个 `catalogs.conflicts_vue_h3_5_43`（`pnpm-workspace.yaml:312-315`，值是 `vue: ^3.5.43`），但**全仓没有任何 `package.json` 写 `catalog(conflicts_vue_h3_5_43)`** —— 它不参与解析。真要出现"某个包必须用另一份 vue"时，才需要既定义又引用。:::
+::: tip
 
-::: warning 别照抄这三行整个工作区只有 3 个依赖没走 catalog：`apps/web/package.json` 的 `clsx: ^2.1.1`、`pinia: ^3.0.4`、`vue: ^3.5.43`（历史遗留）。它们现在靠 `overrides` 顶回 catalog 口径，属于"看着是范围号、装的其实是钉住的版本"。新依赖不要复制这种写法。:::
+分组 catalog 是干什么的，以及本仓库的这条是死的具名 catalog 的语义是"同一依赖的第二套版本"：在 `catalogs.<名字>` 里定义，消费方写 `catalog(<名字>)` 才生效，用于某个包确实必须钉在另一个版本的场合。本仓库只声明了一个 `catalogs.conflicts_vue_h3_5_43`（`pnpm-workspace.yaml:312-315`，值是 `vue: ^3.5.43`），但**全仓没有任何 `package.json` 写 `catalog(conflicts_vue_h3_5_43)`** —— 它不参与解析。真要出现"某个包必须用另一份 vue"时，才需要既定义又引用。
+:::
+
+::: warning
+
+别照抄这三行整个工作区只有 3 个依赖没走 catalog：`apps/web/package.json` 的 `clsx: ^2.1.1`、`pinia: ^3.0.4`、`vue: ^3.5.43`（历史遗留）。它们现在靠 `overrides` 顶回 catalog 口径，属于"看着是范围号、装的其实是钉住的版本"。新依赖不要复制这种写法。
+:::
 
 ## 二、外部模块进浏览器产物的代价
 
@@ -86,7 +95,8 @@ pnpm check:dep                  # knip：确认它真的被 import 了（也确�
 
 - 这些规则是 `id.includes(...)` 的**字符串包含**判断，且外层还要求 id 在 `node_modules` 里（`optimize.ts:8`），顺序即优先级。于是 `vue` 这条（`:10-15`）会把所有路径含 `vue` 的第三方包一起收进 `vendor-vue`：`@vueuse/*`、`@vue-office/*`、`vue-i18n` 都在到达 `vendor-utils` / `vendor-office` / `vendor-i18n` 之前就被截走，那三条规则实际只对不含 `vue` 的名字生效（`es-toolkit` / `dayjs` / `xlsx`、`@intlify/*`）。`packages/*` 自己的代码也不按这条切分 —— 它们的模块 id 不在 `node_modules` 下。
 - `debugName` 是给产物体积报告看的（`:5-6`）：`name` 是函数，报告里默认显示匿名。
-- 规则表会留孤儿：`vendor-office` 还在，但 `@vue-office/*` 四个包今天没有任何 import（见第六节）。规则本身不影响体积，只是别再以为产物里有 office 分片。:::
+- 规则表会留孤儿：`vendor-office` 还在，但 `@vue-office/*` 四个包今天没有任何 import（见第六节）。规则本身不影响体积，只是别再以为产物里有 office 分片。
+:::
 
 ### `optimizeDeps` 的两个特例
 
@@ -114,7 +124,10 @@ return {
 
 `defineApplicationConfig()` 默认注入 `__APP_INFO__`，内容是构建时间加上 `package.json` 的 `dependencies` 与 `devDependencies` 两张表原样序列化（`internal/vite-config/src/config/application.ts:87-96`、 `internal/vite-config/src/utils/package-json.ts:43-54`）。 `appInfo: false` 可以关掉。
 
-::: warning 它现在没人读全仓 `grep APP_INFO` 只有两处命中：注入侧与 `apps/web/vite.config.ts:10` 的注释。应用代码里没有消费者 —— 注释里说的"关于页展示版本与构建时间"并没有接上（`utils/package-json.ts:42`）。也就是说：产物里目前白带了一份依赖清单。:::
+::: warning
+
+它现在没人读全仓 `grep APP_INFO` 只有两处命中：注入侧与 `apps/web/vite.config.ts:10` 的注释。应用代码里没有消费者 —— 注释里说的"关于页展示版本与构建时间"并没有接上（`utils/package-json.ts:42`）。也就是说：产物里目前白带了一份依赖清单。
+:::
 
 ### 没接线的通道：CDN externals
 
@@ -148,7 +161,10 @@ return {
 
 为什么只有这 36 个：`@form-create/antd-designer` 的模板**发布时就已经编译好了**，运行时才用 `resolveComponent('a-layout-sider')` 找组件，源码里的显式 import 帮不到它（文件头注释 `:44-58`）。清单来自对该包产物的静态扫描。
 
-::: warning 不要顺手改成 `app.use(antd)` 全量注册全量注册会把 tree-shaking 的成果整体退回去（整个组件库进包），与 `vendor-ui` 这条分包规则（`optimize.ts:9`）的初衷冲突。注册名也必须是 kebab-case：`:113-114` 的注释说明 PascalCase 那条路只在 SFC 编译期生效，运行期查不到。:::
+::: warning
+
+不要顺手改成 `app.use(antd)` 全量注册全量注册会把 tree-shaking 的成果整体退回去（整个组件库进包），与 `vendor-ui` 这条分包规则（`optimize.ts:9`）的初衷冲突。注册名也必须是 kebab-case：`:113-114` 的注释说明 PascalCase 那条路只在 SFC 编译期生效，运行期查不到。
+:::
 
 `a-form-item-rest` 是 React 版 antd 的东西，antdv-next 不提供，但设计器模板里写死了它 ——这里用一个"只渲染默认插槽"的透传组件顶上（`:98-110`）。所以"注册了 37 个"不等于 "页面用到了 37 个"：例如 `a-directory-tree` 在表里（`:64`），而 `grep -rn "<a-directory-tree" apps/web/src` 没有任何命中 —— 它是给设计器准备的，不是给业务页的。
 
@@ -193,7 +209,10 @@ return {
 
 `.changeset/config.json:10` 的 `fixed: [["@antdv/*", "@antdv/*"]]` 让任何一个 `@antdv/*` 升版时全家跟着跳到同一个版本号；`:14-17` 的 `privatePackages: { version: true, tag: true }` 让私有包照样参与递增与打 tag。**对外部项目的含义是：你拿到的是一起跳的版本号，不能只钉其中一个包**（这也是内部互引一律 `workspace:*` 的另一面，见 [Changeset](/zh/guide/project/changeset)）。
 
-::: warning 现在没有 npm 这条路 `packages/*`、`internal/*`、`apps/*`、`docs`、`scripts/*` **全部** `"private": true` （逐个文件验证过，例如 `packages/shared/package.json:5`）。 `changeset publish` 不会发私有包；`pnpm publint`（`vsh publint`）在 `scripts/vsh/src/publint/index.ts:166-168` 明确 `if (pkgJson.private) return null;` ——也就是说这条发布面检查当前覆盖 0 个包。所以"给别的项目用"目前只有把包目录（含 `dist`）带出去、或自己改成非私有再发这两类做法， `exports` / `files` 是为这两类做法准备的。:::
+::: warning
+
+现在没有 npm 这条路 `packages/*`、`internal/*`、`apps/*`、`docs`、`scripts/*` **全部** `"private": true` （逐个文件验证过，例如 `packages/shared/package.json:5`）。 `changeset publish` 不会发私有包；`pnpm publint`（`vsh publint`）在 `scripts/vsh/src/publint/index.ts:166-168` 明确 `if (pkgJson.private) return null;` ——也就是说这条发布面检查当前覆盖 0 个包。所以"给别的项目用"目前只有把包目录（含 `dist`）带出去、或自己改成非私有再发这两类做法， `exports` / `files` 是为这两类做法准备的。
+:::
 
 改 `packages/*/src` 之后应用看不到变化，是因为它读的是 `dist`（`turbo.json:16-24` 的 `dependsOn: ["^build"]` 保证构建顺序）—— 具体命令见[快速开始](/zh/guide/introduction/quick-start)。
 
@@ -209,13 +228,19 @@ return {
 
 `<micro-app>` 这个标签不会被 Vue 当成"没注册的组件"：编译期通过 `compilerOptions.isCustomElement` 把它交给浏览器当原生元素（`internal/vite-config/src/plugins/custom-elements.ts:21-24`、 `internal/vite-config/src/plugins/vue.ts:38-46`）。规则只认显式登记的 `micro-app` 与 `micro-` 前缀且必须含连字符（`custom-elements.ts:47-55`），否则会把真实的注册失败吞成空标签。
 
-::: warning 本仓库没有装任何微前端 SDK `@micro-zoe/micro-app` / `wujie` / `qiankun` 在全部 `package.json` 里搜不到（0 命中）。 `<micro-app>` 是靠 SDK 在运行时 `customElements.define()` 注册的标签，而 `SubAppView.vue:67` 用 `!!window.microApp` 判断就绪、`:70` 得出 `useIframe = isExternalUrl || !isMicroAppReady` —— 当前依赖状态下这个表达式**恒为 true**，实际每条路都走 `<iframe>`（`:268-279`），`<micro-app>` 分支（`:282-301`）是留给"以后接 SDK"的。iframe 的 `sandbox` 默认不含 `allow-same-origin`，只有注册表里显式 `sameOrigin` 才放开（`:81-84`），打开了会在右上角挂"同源预览"标签（`:312-318`）。:::
+::: warning
+
+本仓库没有装任何微前端 SDK `@micro-zoe/micro-app` / `wujie` / `qiankun` 在全部 `package.json` 里搜不到（0 命中）。 `<micro-app>` 是靠 SDK 在运行时 `customElements.define()` 注册的标签，而 `SubAppView.vue:67` 用 `!!window.microApp` 判断就绪、`:70` 得出 `useIframe = isExternalUrl || !isMicroAppReady` —— 当前依赖状态下这个表达式**恒为 true**，实际每条路都走 `<iframe>`（`:268-279`），`<micro-app>` 分支（`:282-301`）是留给"以后接 SDK"的。iframe 的 `sandbox` 默认不含 `allow-same-origin`，只有注册表里显式 `sameOrigin` 才放开（`:81-84`），打开了会在右上角挂"同源预览"标签（`:312-318`）。
+:::
 
 ### 上游同步
 
 `sync-upstream.json` 记录上游是 `vbenjs/vue-vben-admin`，同步目录只有 `internal/lint-configs`（`syncDirs`），并且 `previewMode: true`； `.sync-state.json` 里留着已同步文件的 upstream OID 清单。
 
-::: warning `pnpm sync-upstream` 这条命令是断的根 `package.json` 的 `"sync-upstream": " sync-upstream"` 只写了同名命令，但 `node_modules/.bin` 里没有它、`pnpm-lock.yaml` 里也没有对应包（两处都 grep 过 0 命中）。别指望跑它拉上游代码。:::
+::: warning
+
+`pnpm sync-upstream` 这条命令是断的根 `package.json` 的 `"sync-upstream": " sync-upstream"` 只写了同名命令，但 `node_modules/.bin` 里没有它、`pnpm-lock.yaml` 里也没有对应包（两处都 grep 过 0 命中）。别指望跑它拉上游代码。
+:::
 
 ## 六、这些外部模块其实没人用了
 
@@ -241,7 +266,10 @@ return {
 | `pnpm check:circular` | `vsh check-circular` | 包与包之间的环，跟"未使用"是两回事 |
 | `pnpm check` | circular + dep + type + cspell 串起来 | 最后一环必失败（`cspell` 不在任何依赖里），见[常见问题](/zh/guide/other/faq) |
 
-::: warning "报未使用"不等于"可以删" `check:dep` 的内置配置里有一串 `ignoreDependencies` （`scripts/vsh/src/check-dep/index.ts:17-29`：`playwright`、`rimraf`、`tailwindcss`，以及 `@antdv/{commitlint,eslint,oxfmt,oxlint,stylelint}-config` 与 `@antdv/{design,vite-config}` 这些只在构建期被配置引用的包内件），`ignore` 排掉 `dist/**` 与 `docs/**`（`:15`）， `ignoreWorkspaces` 排掉 `internal/lint-configs/*` 与 `scripts/*`（`:30`）。另一方面，被别的包的 peer 拖住的依赖（上表 tiptap 那几条）在源码里本来就搜不到 import。所以每一条都要回到"谁 import 它 / 谁的 peer 需要它"再定，升级侧的同类提醒见[项目更新](/zh/guide/other/project-update)。:::
+::: warning
+
+"报未使用"不等于"可以删" `check:dep` 的内置配置里有一串 `ignoreDependencies` （`scripts/vsh/src/check-dep/index.ts:17-29`：`playwright`、`rimraf`、`tailwindcss`，以及 `@antdv/{commitlint,eslint,oxfmt,oxlint,stylelint}-config` 与 `@antdv/{design,vite-config}` 这些只在构建期被配置引用的包内件），`ignore` 排掉 `dist/**` 与 `docs/**`（`:15`）， `ignoreWorkspaces` 排掉 `internal/lint-configs/*` 与 `scripts/*`（`:30`）。另一方面，被别的包的 peer 拖住的依赖（上表 tiptap 那几条）在源码里本来就搜不到 import。所以每一条都要回到"谁 import 它 / 谁的 peer 需要它"再定，升级侧的同类提醒见[项目更新](/zh/guide/other/project-update)。
+:::
 
 ## 相关页面
 

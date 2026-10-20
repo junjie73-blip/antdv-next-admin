@@ -9,8 +9,8 @@ import type { Rgb } from '../color/convert';
 export const DEFAULT_PRIMARY_COLOR = '#1677ff';
 export const DEFAULT_PRIMARY_RGB: Rgb = { b: 255, g: 119, r: 22 };
 
-/** 圆角倍率的基准：偏好里存 0~1 的倍率，`--radius-lg` 档按 8px 换算成 px */
-export const BORDER_RADIUS_BASE = 8;
+/** 圆角倍率的基准：偏好里存 0~1 的倍率，`--radius-lg` 档按 16px 换算成 px */
+export const BORDER_RADIUS_BASE = 16;
 
 /**
  * 正文的像素值：偏好里 `fontSize`（默认 14）指的是"正文要多大"，不是根字号。

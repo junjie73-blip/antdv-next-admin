@@ -36,7 +36,10 @@ internal/   构建期工具：只在 Node 里跑，不进产物
 | `@antdv/directives` | `v-permission`、`v-lazy` | store / pinia / vueuse |
 | `@antdv/design` | 两个二级目录：`token/`（default / dark 两套 shadcn 变量 + `@theme inline` 映射）与 `css/`（基础层、NProgress、无障碍、权限降级、滚动条兜底），由 Tailwind v4 入口 `src/index.css` 引齐 | 只写变量与 CSS，不含组件逻辑 |
 
-::: tip 为什么每张表都多一列"不许 import" 这是这些包能被客户项目单独复用的唯一原因。凡是"要读用户权限 / 要拿菜单 / 要看偏好"的地方，一律通过**依赖注入**把函数或 ref 传进来，包自己不认识 pinia。于是包能保持纯 TS + Vue 组合式、能脱离应用做单测，也不会出现"store 引包、包又反过来引 store"的环。新增能力时先想清楚这条边界，再决定放应用里还是放子包里 —— 需要 store 的薄壳留在 `apps/web`。:::
+::: tip
+
+为什么每张表都多一列"不许 import" 这是这些包能被客户项目单独复用的唯一原因。凡是"要读用户权限 / 要拿菜单 / 要看偏好"的地方，一律通过**依赖注入**把函数或 ref 传进来，包自己不认识 pinia。于是包能保持纯 TS + Vue 组合式、能脱离应用做单测，也不会出现"store 引包、包又反过来引 store"的环。新增能力时先想清楚这条边界，再决定放应用里还是放子包里 —— 需要 store 的薄壳留在 `apps/web`。
+:::
 
 ## 依赖方向
 

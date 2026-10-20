@@ -42,9 +42,15 @@
 2. 收到 401 时 `doOnceWithAuthReplay` 会**刷新一次并重放一次**；认证端点自身、已在登出流程、或已重放过的直接抛错，避免死循环。
 3. `forceLogout` 做两件事：调 `useUserStore().logout()`（唯一出口），然后 **改 hash** 回 `#/login?redirect=…`。本应用是 `createWebHashHistory`，写 `location.href = '/login'` 会触发整页重载、打断进行中的导航并把 redirect 弄丢。
 
-::: warning Mock 环境没有 `/auth/refresh` `backend-mock/server/api/auth/` 下只有 `login` / `logout` / `user-info`，登录响应也不发 refresh token。所以演示环境里 401 的直接结果就是 `forceLogout`。刷新链路是按 `REFRESH_TOKEN_KEY`（`config/constants.ts`）设计的，接真实后端才会被激活。:::
+::: warning
 
-::: tip token 解密要显式触发 store 初始化只把缓存里的密文原样读进 `token`；`initToken()` 负责异步解密（解密失败回落原值，兼容旧明文）。它不在应用启动路径上，改这条链路时记得验证 "刷新页面后 Authorization 头里是可用的 token"。:::
+Mock 环境没有 `/auth/refresh` `backend-mock/server/api/auth/` 下只有 `login` / `logout` / `user-info`，登录响应也不发 refresh token。所以演示环境里 401 的直接结果就是 `forceLogout`。刷新链路是按 `REFRESH_TOKEN_KEY`（`config/constants.ts`）设计的，接真实后端才会被激活。
+:::
+
+::: tip
+
+token 解密要显式触发 store 初始化只把缓存里的密文原样读进 `token`；`initToken()` 负责异步解密（解密失败回落原值，兼容旧明文）。它不在应用启动路径上，改这条链路时记得验证 "刷新页面后 Authorization 头里是可用的 token"。
+:::
 
 ## 登出清哪四件套
 

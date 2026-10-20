@@ -5,11 +5,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "clean": "rimraf .turbo",
+    "build": "vite build",
+    "clean": "rimraf dist .turbo",
     "test:unit": "vitest run --passWithNoTests",
     "type-check": "vue-tsc --noEmit"
   },
   "files": [
+    "dist",
     "src"
   ],
   "main": "./src/index.ts",
@@ -42,16 +44,19 @@
     "echarts": "catalog:",
     "es-toolkit": "catalog:",
     "marked": "catalog:",
+    "reka-ui": "catalog:",
     "vue": "catalog:",
     "vue-sonner": "catalog:"
   },
   "devDependencies": {
     "@antdv/tsconfig": "workspace:*",
+    "@antdv/vite-config": "workspace:*",
     "@vitejs/plugin-vue": "catalog:",
     "@vue/test-utils": "catalog:",
     "jsdom": "catalog:",
     "rimraf": "catalog:",
     "typescript": "catalog:",
+    "vite": "catalog:",
     "vitest": "catalog:",
     "vue-tsc": "catalog:"
   }

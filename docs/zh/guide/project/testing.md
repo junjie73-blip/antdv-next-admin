@@ -5,7 +5,7 @@
 ## 单元测试
 
 ```bash
-pnpm test:unit                 # turbo 全仓（21 个任务，按依赖图先 ^build）
+pnpm test:unit                 # turbo 全仓（24 个子包声明了 test:unit，按依赖图先 ^build）
 pnpm --filter @antdv/shared test:unit
 cd apps/web && pnpm exec vitest run src/views/__tests__/page-root-padding.spec.ts
 cd apps/web && pnpm exec vitest run -t "关键字"
@@ -19,9 +19,15 @@ cd apps/web && pnpm exec vitest run -t "关键字"
 | `apps/web/src/**/__tests__` | 应用内组合层：store、布局装配、**源码契约** |
 | `apps/web/test/` | 仓库级对账，例如图标名真实性 |
 
-::: tip "源码契约"是本项目的特色层有些规则只有扫源码才钉得住：路由页面根容器不许写 padding（`page-root-padding.spec.ts`）、登录页强调色不许写死（`login-styles.spec.ts`）、标签风格 class 集合（`tab-style.spec.ts`）、API 不许静默用错（`gallery-api-usage.spec.ts`）。:::
+::: tip
 
-::: danger 静态守卫必须配正反样例只断言"现存代码里 0 命中"是不够的 —— 正则写错（比如漏了转义、扫错了目录）时结果同样是 0 命中，守卫会静默变成一条永远绿的空检查。所以每条规则都带两组样例：**必须被抓到**的错写法，和**不许误伤**的正确写法，外加一条"扫描范围非空"的 sanity 断言（如 `expect(FILES.length).toBeGreaterThan(30)`）。:::
+"源码契约"是本项目的特色层有些规则只有扫源码才钉得住：路由页面根容器不许写 padding（`page-root-padding.spec.ts`）、登录页强调色不许写死（`login-styles.spec.ts`）、标签风格 class 集合（`tab-style.spec.ts`）、API 不许静默用错（`gallery-api-usage.spec.ts`）。
+:::
+
+::: danger
+
+静态守卫必须配正反样例只断言"现存代码里 0 命中"是不够的 —— 正则写错（比如漏了转义、扫错了目录）时结果同样是 0 命中，守卫会静默变成一条永远绿的空检查。所以每条规则都带两组样例：**必须被抓到**的错写法，和**不许误伤**的正确写法，外加一条"扫描范围非空"的 sanity 断言（如 `expect(FILES.length).toBeGreaterThan(30)`）。
+:::
 
 ## 端到端
 
@@ -53,7 +59,10 @@ e2e 夹具在 `apps/web/e2e/utils/app.ts`：`signIn` / `go` / `navigate` / `expe
 1. **假阳**：巡检靠"内容区文本里有没有 `页面不存在`"抓死链接，而示例页正好把 404 的 `a-result` 当素材摆在 `a-card` 里 —— 好页面被判成兜底页。修法是判定**跳过卡片内的文字** （真兜底页是裸的 h1/p），并补一条"死链接要认得出、示例页的 404 卡不能误判"的正反用例。
 2. **假红**：WebKit 整跑时把 `/system/user` 判红，现场快照停在**上一个**页面（实时监控大屏，它自己还在跑定时器），标签页始终没出现 —— 导航还在路上，不是页面坏了。巡检是"每页都能打开"的存在性检查，不是性能闸门，所以给这个引擎单独放宽等待；另外两个引擎保持紧，真退化立刻红。
 
-::: tip 判断"计时问题"还是"真坏了" 只重跑那一个引擎、那一条用例：`--project=webkit e2e/xxx.spec.ts -g "名字"`。单跑立刻绿 + 整跑红 ⇒ 环境/并发；单跑也红 ⇒ 真问题，去读 `error-context.md`。:::
+::: tip
+
+判断"计时问题"还是"真坏了" 只重跑那一个引擎、那一条用例：`--project=webkit e2e/xxx.spec.ts -g "名字"`。单跑立刻绿 + 整跑红 ⇒ 环境/并发；单跑也红 ⇒ 真问题，去读 `error-context.md`。
+:::
 
 ## 断言要落在"用户看得见的结果"上
 

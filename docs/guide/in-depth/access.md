@@ -8,7 +8,10 @@
 | 菜单 | 后端菜单接口只返回有权项，前端不再自己猜 | 菜单里根本不出现 |
 | 元素 | `v-permission`（`@antdv/directives`） | 默认 `display: none`，或 `.disabled` 降级 |
 
-::: tip 兜底页不该进标签页 `/error/403`、`/error/404` 在菜单里标 `hidden`，也不参与标签页注册 —— 用户点开一次错误页不该在标签栏留一枚"404"。全站巡检判断"落到兜底页"靠的是地址（`toHaveURL(/#\/error\/404/)`），不是标签激活状态。:::
+::: tip
+
+兜底页不该进标签页 `/error/403`、`/error/404` 根本不是菜单项——后端菜单种子（`apps/backend-mock/server/api/menus.get.ts`）里没有任何 `/error` 条目，三张错误页只是约定路由文件（`apps/web/src/views/error/403.vue` 等）。它们靠 `WHITE_LIST` 里的显式路径放行匿名访问（`apps/web/src/config/constants.ts:9-11`），靠内置 path 名单豁免菜单裁剪（`packages/utils/src/menu.ts:96-103`），又因为"不在菜单里、也没有 `meta.title`"被标签页登记逻辑跳过（`packages/layouts/src/hooks/use-tabs.ts:101-102`）——用户点开一次错误页不会在标签栏留一枚"404"。全站巡检判断"落到兜底页"靠的是地址（`toHaveURL(/#\/error\/404/)`），不是标签激活状态。
+:::
 
 ## 越权落 403 还是 404（不是写死的）
 
@@ -51,7 +54,10 @@ import { Button } from '@antdv/shadcn-ui';
 </template>
 ```
 
-::: danger `role` / `admin` 是参数，不是修饰符写成 `v-permission.role="'auditor'"` 或 `v-permission.admin`，判定**根本不读**，元素永远可见 —— 不报错、不警告，是最难发现的一类权限漏洞。（真正的修饰符只有 `.all` 和 `.disabled`。） `apps/web/src/views/__tests__/gallery-api-usage.spec.ts` 里有一条静态守卫专门抓这种写法，并配了"必须命中 / 不许误伤"两组样例，防止规则本身写空。:::
+::: danger
+
+`role` / `admin` 是参数，不是修饰符写成 `v-permission.role="'auditor'"` 或 `v-permission.admin`，判定**根本不读**，元素永远可见 —— 不报错、不警告，是最难发现的一类权限漏洞。（真正的修饰符只有 `.all` 和 `.disabled`。） `apps/web/src/views/__tests__/gallery-api-usage.spec.ts` 里有一条静态守卫专门抓这种写法，并配了"必须命中 / 不许误伤"两组样例，防止规则本身写空。
+:::
 
 对象写法可以自带口径，此时 `arg` 不再参与解释：
 

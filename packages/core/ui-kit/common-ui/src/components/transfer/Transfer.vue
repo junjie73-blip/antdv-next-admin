@@ -8,6 +8,7 @@ import { computed, reactive, ref } from 'vue';
 import { Button, Checkbox, Input } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 
+import { useGlobalConfig } from '../config-provider';
 import { transferKey } from './types';
 
 defineOptions({ name: 'Transfer' });
@@ -39,6 +40,9 @@ const emit = defineEmits<{
   change: [TransferKey[], TransferDirection, TransferKey[]];
   select: [TransferDirection, TransferKey[]];
 }>();
+
+/** 空列表提示取全局词条，其余文案（titles / operation / 搜索占位）由宿主显式给 */
+const globalConfig = useGlobalConfig();
 
 const targetKeys = defineModel<TransferKey[]>('targetKeys', {
   default: () => [],
@@ -254,7 +258,7 @@ const canMoveLeft = computed(
             v-if="!panel.items.length"
             class="py-6 text-center text-xs text-gray-400"
           >
-            暂无数据
+            {{ globalConfig.emptyText }}
           </div>
         </div>
 

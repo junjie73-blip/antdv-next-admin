@@ -24,7 +24,10 @@ scripts/           仓库任务（vsh、turbo-run、clean、deploy）
 
 依据：`packages/**/package.json` 的 `main` 字段（底座在 `packages/core/base/`、UI 层在 `packages/core/ui-kit/`），以及 `packages/core/base/shared/tsdown.config.ts` （`entry: ['src/index.ts', 'src/*.ts', 'src/*/index.ts']`）。dist 发布的那几个包没有 build 脚本就永远出新产物，`dev` 脚本是 `tsdown --watch`。
 
-::: warning 改了 dist 发布包却没生效这是本仓库最常见的"我明明改了"。Vite 的依赖缓存和 `optimizeDeps` 都指向 dist， `src` 不在构建图里。表现是改代码、保存、页面毫无变化，且不报错。:::
+::: warning
+
+改了 dist 发布包却没生效这是本仓库最常见的"我明明改了"。Vite 的依赖缓存和 `optimizeDeps` 都指向 dist， `src` 不在构建图里。表现是改代码、保存、页面毫无变化，且不报错。
+:::
 
 源码发布是有代价的：这些包没有 build 脚本（`packages/core/base/icons/package.json` 只有 `clean` / `test:unit` / `type-check`），组件里的 `<script setup>` 由应用的 `@vitejs/plugin-vue` 编译，所以它们**不能**被脱离 Vite 的消费者直接用。
 
@@ -45,7 +48,10 @@ scripts/           仓库任务（vsh、turbo-run、clean、deploy）
 
 唯一例外是 `packages/utils/src/menu.ts:3` import 了 `vue-router` 的**类型** （`import type { RouteRecordRaw }`）——类型不进产物，不破坏边界。
 
-::: tip 新代码该放哪只跟这个页面有关 → 页面目录里（`views/<模块>/<页面>/`）。跨页面但只服务应用（store、api、ws） → `apps/web/src/` 对应目录。纯函数、不依赖应用状态、换个项目还想用 → `packages/core/base/shared` 或 `packages/core/composables`。需要 pinia / router / 后端数据才能工作 → 留在应用里做薄壳，包只接收注入。:::
+::: tip
+
+新代码该放哪只跟这个页面有关 → 页面目录里（`views/<模块>/<页面>/`）。跨页面但只服务应用（store、api、ws） → `apps/web/src/` 对应目录。纯函数、不依赖应用状态、换个项目还想用 → `packages/core/base/shared` 或 `packages/core/composables`。需要 pinia / router / 后端数据才能工作 → 留在应用里做薄壳，包只接收注入。
+:::
 
 ## 路径别名与自动导入
 

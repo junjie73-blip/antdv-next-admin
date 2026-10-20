@@ -19,12 +19,15 @@ The split is not "does this look like a library", it is **who consumes the artif
 
 | Shape | Packages | `main` points at | After editing `src` |
 | --- | --- | --- | --- |
-| dist-published | `@antdv/shared`, `composables`, `directives`, `preferences`, `router`, `types` | `./dist/index.js` (tsdown output) | run `pnpm --filter @antdv/shared build`, then restart dev |
-| source-published | `@antdv/icons`, `@antdv/design`, the eight `@antdv/ui-kit` packages (`common-ui` / `shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui`), plus `layouts` / `stores` / `enums` / `utils` / `request` | `./src/index.ts` (`design`: `./src/index.css`) | hot-reloads, there is no build step |
+| dist-published | `@antdv/shared`, `@antdv/hooks`, `@antdv/directives`, `@antdv/preferences`, `@antdv/router`, `@antdv/types` | `./dist/index.js` (`@antdv/types`: `./dist/index.mjs`) | run `pnpm --filter @antdv/shared build`, then restart dev |
+| source-published | `@antdv/icons`, `@antdv/design`, the eight packages under `packages/core/ui-kit/` (`@antdv/common-ui` / `@antdv/shadcn-ui` / `@antdv/form-ui` / `@antdv/table-ui` / `@antdv/popup-ui` / `@antdv/layout-ui` / `@antdv/menu-ui` / `@antdv/tabs-ui` — there is no `@antdv/ui-kit` package, `ui-kit` is only a directory name), plus `@antdv/layouts` / `@antdv/stores` / `@antdv/enums` / `@antdv/utils` / `@antdv/request` | `./src/index.ts` (`design`: `./src/index.css`) | hot-reloads, there is no build step |
 
-Evidence: the `main` field of each `packages/**/package.json` (base layer under `packages/core/base/`, UI layer under `packages/core/ui-kit/`), plus `packages/core/base/shared/tsdown.config.ts` (`entry: ['src/index.ts', 'src/*.ts', 'src/*/index.ts']`). The dist-published ones are the packages that have a `build` script; their `dev` script is `tsdown --watch`.
+Evidence: the `main` field of each `packages/**/package.json` (base layer under `packages/core/base/`, UI layer under `packages/core/ui-kit/`), plus the `entry` of `packages/core/base/shared/tsdown.config.ts` (`:16-22`, **five** patterns: `'src/index.ts'`, `'src/*.ts'`, `'src/*/*.ts'`, `'src/*/index.ts'`, `'src/*/*/index.ts'`). All six dist-published packages have a `build` script running `tsdown` — skip it and no new output is ever emitted; their `dev` script is `tsdown --watch`.
 
-::: warning You edited a dist-published package and nothing changed This is the most common "I clearly changed it" in this repository. Vite's dependency cache and `optimizeDeps` both point at `dist`, so `src` is simply not in the build graph. You edit, save, and see nothing — and get no error either. :::
+::: warning
+
+You edited a dist-published package and nothing changed This is the most common "I clearly changed it" in this repository. Vite's dependency cache and `optimizeDeps` both point at `dist`, so `src` is simply not in the build graph. You edit, save, and see nothing — and get no error either.
+:::
 
 Being source-published has a cost: those packages have no `build` script at all (`packages/core/base/icons/package.json` only defines `clean` / `test:unit` / `type-check`), and their `<script setup>` blocks are compiled by the app's `@vitejs/plugin-vue`. So they cannot be consumed outside a Vite build.
 
@@ -32,7 +35,7 @@ Being source-published has a cost: those packages have no `build` script at all 
 
 Nothing under `packages/*` may import `pinia`, an app store, or read `import.meta.env`. Two concrete reasons, not aesthetic preference:
 
-1. **Package output lives in `dist`, out of reach of Vite's env static replacement.** Reading `import.meta.env` inside a package yields `undefined` and the behavior degrades silently. The app injects its environment instead: `apps/web/src/bootstrap/env.ts` calls `configureSharedEnv({ cachePrefix, cacheEncryptKey, ... })`, and `packages/core/base/shared/src/utils/env.ts` holds that explicit config. Preferences work the same way — the project-specific defaults are passed into `createPreferences({ defaults })` from `apps/web/src/settings/index.ts`.
+1. **Package output lives in `dist`, out of reach of Vite's env static replacement.** Reading `import.meta.env` inside a package yields `undefined` and the behavior degrades silently. The app injects its environment instead: `apps/web/src/bootstrap/env.ts` calls `configureSharedEnv({ cachePrefix, cacheEncryptKey, ... })`, and `packages/core/base/shared/src/utils/env.ts` holds that explicit config. Preferences work the same way — the project-specific defaults are passed into `initPreferences({ defaults })` by `apps/web/src/settings/index.ts:92-97` (which forwards to `createPreferences()` inside the package, `packages/core/preferences/src/preferences.ts:160-165`).
 2. **Unit tests need to flip branches.** A check like `shouldEncrypt()` ("encrypt only in production") is untestable when it reads env, and testable when it reads injected config — which is exactly what `packages/core/base/shared/__tests__/cache.test.ts` does.
 
 "No stores" is enforced with dependency injection:
@@ -45,7 +48,10 @@ Nothing under `packages/*` may import `pinia`, an app store, or read `import.met
 
 The one exception is `packages/utils/src/menu.ts:3`, which imports a **type** from `vue-router` (`import type { RouteRecordRaw }`). Types never reach the output, so the boundary holds.
 
-::: tip Where new code goes Relevant to one page only → inside that page's `views/<module>/<page>/` directory. App-wide but app-specific (stores, api, ws) → the matching folder under `apps/web/src/`. Pure functions that another project could reuse → `packages/core/base/shared` or `packages/core/composables`. Requires pinia, the router, or backend data to work → keep a thin shell in the app and let the package receive the capability as an argument. :::
+::: tip
+
+Where new code goes Relevant to one page only → inside that page's `views/<module>/<page>/` directory. App-wide but app-specific (stores, api, ws) → the matching folder under `apps/web/src/`. Pure functions that another project could reuse → `packages/core/base/shared` or `packages/core/hooks`. Requires pinia, the router, or backend data to work → keep a thin shell in the app and let the package receive the capability as an argument.
+:::
 
 ## Aliases and auto-import
 
@@ -58,21 +64,25 @@ There are exactly two aliases, and both sides must agree:
 
 If the two drift apart, Vite runs but `vue-tsc` errors (or the reverse), so the aliases are defined once inside `createAliases()`. The same function sets `resolve.dedupe: ['pinia', 'vue', 'vue-router']` — pnpm's peer resolution once left both `vue` 3.5.42 and 3.5.43 types in the tree (the catalog now pins `vue` to `3.5.43`), and two Vue runtimes make `inject` and the reactivity system blind to each other.
 
-Auto-import covers **framework APIs — not this repository's packages and not antdv-next** (`internal/vite-config/src/plugins/auto-import.ts:48-54`):
+Auto-import covers **framework APIs — not this repository's packages and not antdv-next** (`internal/vite-config/src/plugins/auto-import.ts:23-29`):
 
-- `AutoImport` (`:48-51`): `vue`, `@vueuse/core`, `pinia`, `VueRouterAutoImports`. The four functional entry points of `antdv-next` (`message`, `notification`, `Modal`, `Drawer`) used to be listed here; they have been **removed** — import them yourself.
-- `Components` (`:52-54`): **no resolvers at all**. It used to carry three — `AntdvNextResolver` (`a-*`), `AntdvUiResolver` (the sub-package components) and `IconifyResolver` (bare `<Icon>`) — and all three channels are now closed. The plugin keeps only its built-in behaviour: scan the app's `src/components` directory so local components need no import.
-- The generated declarations `apps/web/types/auto-imports.d.ts` and `components.d.ts` are committed. Plugins rewrite them during the build, and on a Windows mapped drive that write occasionally fails with `UNKNOWN (errno -4094)` and takes the dev server down, hence the `VITE_WRITE_DTS=false` escape hatch (see the comments in the same file).
+- `AutoImport` (`:23-26`): `vue`, `@vueuse/core`, `pinia`, `VueRouterAutoImports`. The four functional entry points of `antdv-next` (`message`, `notification`, `Modal`, `Drawer`) used to be listed here; they have been **removed** — import them yourself.
+- `Components` (`:27-29`): **no resolvers at all**. It used to carry three — `AntdvNextResolver` (`a-*`), `AntdvUiResolver` (the sub-package components) and `IconifyResolver` (bare `<Icon>`) — and all three channels are now closed. The plugin keeps only its built-in behaviour: scan the app's `src/components` directory so local components need no import.
+- The same factory also registers `iconifyOffline({ local: [...] })` (`:30-32`, the module being `@tomjs/vite-plugin-iconify`, imported at `:7`) plus `envParse` (`:33-37`); see [Icons](/en/guide/essentials/icons).
+- The generated declarations `apps/web/types/auto-imports.d.ts` and `components.d.ts` are committed. Plugins rewrite them during the build, and on a Windows mapped drive that write occasionally fails with `UNKNOWN (errno -4094)` and takes the dev server down, hence the `VITE_WRITE_DTS=false` escape hatch — the switch itself is at `internal/vite-config/src/plugins/index.ts:65-67` and the comment explaining the trade-off at `:62-64` of that file (`auto-import.ts` carries no such comment).
 
-Consequence: components and component-library APIs are **always imported explicitly**, in 100+ app files:
+Consequence: components and component-library APIs are **always imported explicitly**, in 100+ app files (106 of them import from `@antdv/*`) — for example `apps/web/src/components/business/ImportExport.vue:7-12`:
 
 ```ts
-import { Card as ACard, message } from 'antdv-next';
-import { Scrollbar } from '@antdv/common-ui';
+import { Scrollbar, Space } from '@antdv/common-ui';
+import { alert, message } from '@antdv/popup-ui';
+
+import { Button } from '@antdv/shadcn-ui';
+import { generateTemplate } from '@antdv/shared/utils/template';
 import { Icon } from '@iconify/vue';
 ```
 
-`<script setup>` looks template bindings up by `capitalize(camelize(tag))`, so to keep writing `<ACard>` you alias the named export to `ACard` (`import { Card }` only pairs with `<Card>`). The `vue/component-name-in-template-casing` rule rewrites kebab tags to PascalCase, which lines up with exactly that.
+`<script setup>` looks template bindings up by `capitalize(camelize(tag))`, so to keep writing `<AButton>` you alias the component to `AButton` (`apps/web/src/views/login/index.vue:25` writes `import { Button as AButton }`; a plain `import { Button }` only pairs with `<Button>`). The `vue/component-name-in-template-casing` rule rewrites kebab tags to PascalCase, which lines up with exactly that.
 
 Bare `useRoute()` and `ref()` are what auto-import still handles; subpath imports such as `import { cn } from '@antdv/shared/utils/cn'` you also write by hand.
 

@@ -10,7 +10,10 @@
 | 组合式 | `packages/composables/src/**` | 分片上传、打印、水印、ECharts、SSE、WebSocket、响应式缓存、路由 Loading、文件读取 | 只用 Vue 响应式 API，不碰 pinia / 业务 store |
 | 应用薄壳 | `apps/web/src/utils/**`、`apps/web/src/composables/**` | 需要 store / api / 应用内类型的接线 | 例 `utils/dict.ts:2`（读字典 store）、`utils/ws.ts:8`（拿 user store 的 token）、`utils/routePreload.ts:19,66`（`useRouter`） |
 
-::: tip 自动导入不负责本仓库的包 `internal/vite-config/src/plugins/auto-import.ts` 只注入框架 API。`import { cn } from '@antdv/shared/utils/cn'` 这类写法必须自己写（同 [基础概念](/zh/guide/essentials/concepts)）。:::
+::: tip
+
+自动导入不负责本仓库的包 `internal/vite-config/src/plugins/auto-import.ts` 只注入框架 API。`import { cn } from '@antdv/shared/utils/cn'` 这类写法必须自己写（同 [基础概念](/zh/guide/essentials/concepts)）。
+:::
 
 ## 子路径即模块
 
@@ -70,7 +73,10 @@ import { useWebSocket } from '@antdv/composables/websocket';
 | `useSSE` + 三个管理器 | `@antdv/composables/sse`（`src/sse/useSSE.ts:23`） | **无调用点**（`apps/web/src/composables/web/sse/` 是个空目录） | 有 |
 | `useWebSocket` + `EventManager` / `HeartbeatManager` / `ReconnectManager` / `WebSocketStateManager` | `@antdv/composables/websocket`（`src/websocket/useWebSocket.ts:44`） | `apps/web/src/utils/ws.ts:3`（薄壳再导出 `useWebSocket`） | 有 |
 
-::: warning 空目录不是"还没写"，是"搬走了" `apps/web/src/composables/web/sse/` 与 `apps/web/src/composables/web/websocket/` 已经空了 —— 实现迁到了 `packages/composables`。应用侧保留的是需要 store 的那一层（`utils/ws.ts` 里拼通知、发 `eventBus`、拿 token）。在里面新建文件之前，先确认这个能力是不是已经在包里。:::
+::: warning
+
+空目录不是"还没写"，是"搬走了" `apps/web/src/composables/web/sse/` 与 `apps/web/src/composables/web/websocket/` 已经空了 —— 实现迁到了 `packages/composables`。应用侧保留的是需要 store 的那一层（`utils/ws.ts` 里拼通知、发 `eventBus`、拿 token）。在里面新建文件之前，先确认这个能力是不是已经在包里。
+:::
 
 ## 应用侧薄壳
 
@@ -136,7 +142,10 @@ pnpm --filter @antdv/shared build      # 或 @antdv/composables
 
 `turbo` 的 `dev` / `build` 带 `dependsOn: ["^build"]`，所以 `pnpm dev`（走 `turbo-run`）与整仓 `build` 会先把上游包出 dist；但 `pnpm dev:web`（`package.json:25`）是 `pnpm --filter @antdv/web run dev`，**只起 vite**。包各自的 `dev` 脚本是 `tsdown --watch`（`packages/shared/package.json:10`），想要边改边生效就单独把它挂着。
 
-::: warning 症状是"改了没反应，也不报错" 表现：改 `packages/shared/src/**` → 保存 → 页面行为与类型都纹丝不动。原因是 Vite 的依赖缓存与 `optimizeDeps` 都指向 dist。先 `build` 再重启，别在应用侧绕开包自己抄一份实现。:::
+::: warning
+
+症状是"改了没反应，也不报错" 表现：改 `packages/shared/src/**` → 保存 → 页面行为与类型都纹丝不动。原因是 Vite 的依赖缓存与 `optimizeDeps` 都指向 dist。先 `build` 再重启，别在应用侧绕开包自己抄一份实现。
+:::
 
 ## 相关页面
 

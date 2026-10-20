@@ -28,7 +28,8 @@
 
 - 没有接口轮询 `package.json` 版本号 / `buildTime` 对比的"版本检查服务"；
 - 没有 `__APP_INFO__`（构建时间 + 依赖清单，`defineApplicationConfig` 会注入）与运行时对比的逻辑 —— 它目前只是构建元数据，没有消费者拿它做更新判定；
-- 没有版本信息展示页。想要"检测到新版本文案 + 立即刷新"的完整体验，第一步就是把 `<ReloadPrompt />` 挂进布局（例如 `apps/web/src/layouts/index.vue` 根节点旁），其余逻辑都是现成的。:::
+- 没有版本信息展示页。想要"检测到新版本文案 + 立即刷新"的完整体验，第一步就是把 `<ReloadPrompt />` 挂进布局（例如 `apps/web/src/layouts/index.vue` 根节点旁），其余逻辑都是现成的。
+:::
 
 ## 本地验证
 

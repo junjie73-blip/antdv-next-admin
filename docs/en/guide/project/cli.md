@@ -32,7 +32,10 @@ pnpm build:docker     # scripts/deploy/build-local-docker-image.sh
 pnpm --filter @antdv/web build            # single package build
 ```
 
-::: warning Bundle analysis is an env switch, not `build:analyze` The root `build:analyze` script points at a turbo task that **is not defined** in `turbo.json`, so it fails. The working path is `VITE_VISUALIZER=true pnpm build` — `createVisualizerPlugin` then mounts `vite-bundle-analyzer` (see [Vite config](/en/guide/project/vite)). :::
+::: warning
+
+Bundle analysis is an env switch, not `build:analyze` The root `build:analyze` script points at a turbo task that **is not defined** in `turbo.json`, so it fails. The working path is `VITE_VISUALIZER=true pnpm build` — `createVisualizerPlugin` then mounts `vite-bundle-analyzer` (see [Vite config](/en/guide/project/vite)).
+:::
 
 The turbo graph (`turbo.json`): `build / dev / type-check / test:unit / test:e2e` all `dependsOn ^build`; `dev / test:e2e / clean` skip caching; `build` outputs cover `dist / .output / .nitro / .vitepress/dist`. After editing `packages/*`, the browser still reads the sub-package `dist` — if turbo's cache mis-times, you get "changed nothing happened"; restarting dev is a fixed step in the checklist at the end of [Testing](/en/guide/project/testing).
 

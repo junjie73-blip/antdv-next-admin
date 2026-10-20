@@ -19,16 +19,19 @@ views / stores ──► api/*.ts ──► api/request.ts(get/post/put/del)
 | `loginPath` | Where to go once the session is gone (`/login` under hash routing) | `LOGIN_PATH` in `apps/web/src/config/constants.ts` |
 | `onLogout` | Which state to clear when the session ends | `useUserStore().logout()` |
 
-::: warning The injection has to happen before the first request, and only from the application entry calling `configureRequestRuntime()`. Running a request without it throws straight away (`getRequestRuntime()`, `runtime.ts:48-56`) — it never silently sends a request with empty credentials. This file pulls `~/stores` into the module graph, the same constraint as `table-runtime.ts` and `ui-runtime.ts`: **test setup must not touch it**, or everyone else's `vi.mock` stops working. :::
+::: warning
+
+The injection has to happen before the first request, and only from the application entry calling `configureRequestRuntime()`. Running a request without it throws straight away (`getRequestRuntime()`, `runtime.ts:48-56`) — it never silently sends a request with empty credentials. This file pulls `~/stores` into the module graph, the same constraint as `table-runtime.ts` and `ui-runtime.ts`: **test setup must not touch it**, or everyone else's `vi.mock` stops working.
+:::
 
 ## Environment variables
 
 | Variable | dev | prod | Purpose | Source of truth |
 | --- | --- | --- | --- | --- |
-| `VITE_APP_BASE_API` | `/api` | The real backend address | The `baseUrl` handed to `createFetcher`, defaults to `''` | `apps/web/.env.development:18`, `apps/web/src/plugins/request-runtime.ts:16`, `fetcher.ts:162` |
-| `VITE_MOCK` | `true` | `false` | Whether the dev server proxies `/api` to Nitro | `.env.development:19`, `internal/vite-config/src/utils/proxy.ts:40-57` |
+| `VITE_APP_BASE_API` | `/api` | `/api` (the built bundle carries the same value) | The `baseUrl` handed to `createFetcher`, defaults to `''` | `apps/web/.env.development:19`, `apps/web/.env.production:12`, `apps/web/src/plugins/request-runtime.ts:16`, `fetcher.ts:162` |
+| `VITE_MOCK` | `true` | `true` | In dev the dev server proxies `/api` to Nitro; in prod the fixtures bundled into the artifact intercept same-origin requests at the fetch exit, so no Node mock service is needed | `.env.development:18`, `.env.production:7-10`, `internal/vite-config/src/utils/proxy.ts:40-57` |
 | `VITE_MOCK_SERVER` | `http://localhost:5320` | — | The proxy target, the same value as the mock process port | `.env.development:20` |
-| `VITE_WS_URL` | Empty | Empty | Notification-center WebSocket; leaving it empty means **don't connect** | `apps/web/src/utils/ws.ts:105-112` |
+| `VITE_WS_URL` | Empty | Empty | Notification-center WebSocket; leaving it empty means **don't connect** | `apps/web/src/utils/ws.ts:107-112` |
 
 The timeout defaults to `30_000` ms (`fetcher.ts:163`; per-call override at `executor.ts:177`).
 
@@ -43,7 +46,7 @@ The timeout defaults to `30_000` ms (`fetcher.ts:163`; per-call override at `exe
 
 ## Inbound: afterFetch checks the business code
 
-The API contract is an envelope structure; HTTP 200 doesn't mean success (`apps/web/src/api/request.ts:3-16`):
+The API contract is an envelope structure; HTTP 200 doesn't mean success (`apps/web/src/api/request.ts:5-18`):
 
 ```ts
 interface R<T> {
@@ -91,9 +94,12 @@ export function updateUser(id: number, data: Record<string, unknown>) {
 }
 ```
 
-::: danger The second argument of `get`/`del` **is the query string itself** `request.ts:22-26` hands `params` directly to `buildUrl`. If you write `get(url, { params })`, what goes out is `?params=[object Object]`, and the whole batch of filter and pagination conditions is lost — the symptom is "typing anything into the search box gives the same result, and going to page 2 still shows page 1's data". Only `post`/`put` have a third argument for the query string. :::
+::: danger
 
-The wrapper functions return `res.data`, which is **the whole envelope** (`request.ts:26`), so the caller's `R<T>` still has to take `.data` itself; this layer deliberately does no second-level unwrapping, to accommodate binary and empty-data cases.
+The second argument of `get`/`del` **is the query string itself** `request.ts:22-26` hands `params` directly to `buildUrl`. If you write `get(url, { params })`, what goes out is `?params=[object Object]`, and the whole batch of filter and pagination conditions is lost — the symptom is "typing anything into the search box gives the same result, and going to page 2 still shows page 1's data". Only `post`/`put` have a third argument for the query string.
+:::
+
+The wrapper functions return `res.data`, which is **the whole envelope** (`request.ts:29`), so the caller's `R<T>` still has to take `.data` itself; this layer deliberately does no second-level unwrapping, to accommodate binary and empty-data cases.
 
 ## The corresponding mock side
 
@@ -104,6 +110,9 @@ The file path under `apps/backend-mock/server/api/**` is the route: `system/user
 
 ## WebSocket
 
-The `utils/ws.ts` singleton reads `VITE_WS_URL`, automatically attaches `token` and `type=notice` on connect, and doesn't connect when unset (`:105-112,310`); its only consumer is the notification center `layouts/widgets/WidgetNotice.vue:73`. There's no SSE endpoint on the app side (`packages/core/hooks/src/sse` is a standalone capability package, not wired in).
+The singleton in `apps/web/src/utils/ws.ts` reads `VITE_WS_URL` and attaches `token` plus `type=notice` when it connects (`resolveWsUrl`, `:107-112`); if the variable is missing it never starts a connection at all (`:312-319`). There is exactly one consumer chain: `apps/web/src/plugins/layouts-host.ts:22` takes `onNotice` and injects it through `configureLayoutHost({ notice: { onPush } })` (`:40-48`), and `packages/layouts/src/widgets/notification/index.vue:84` subscribes to it. `apps/web/src/composables/useNotice.ts:74` also calls `useWebSocket()`, but `useNotice()` itself has no call sites in the repo — that one is dead code. There is no SSE endpoint on the app side either (`@antdv/request/sse` is only exercised by `packages/request/__tests__/sse.spec.ts`).
 
-::: warning Don't bypass the shared client All `api/*.ts` and stores import only `~/api/request` or the http from `~/composables` (e.g. `stores/modules/route.ts:18`, `stores/modules/user.ts:7`). This is currently **a convention, not a lint rule** — ESLint only locks import boundaries (`internal/lint-configs/eslint-config/src/custom-config.ts:31-113`) and doesn't forbid bare `fetch`. Once bypassed, CSRF, 401 refresh, and unified messaging all stop working, and it's hard to catch in code review. :::
+::: warning
+
+Don't bypass the shared client The app's `api/*.ts` go only through `~/api/request` (which re-exports the `http` from `~/composables` under envelope types); `packages/stores` never references app paths at all and imports the `http` from `@antdv/request` directly (e.g. `packages/stores/src/route.ts:8`, `packages/stores/src/user.ts:6`). This is currently **a convention, not a lint rule** — ESLint only locks import boundaries (`internal/lint-configs/eslint-config/src/custom-config.ts:31-113`) and doesn't forbid bare `fetch`. Once bypassed, CSRF, 401 refresh, and unified messaging all stop working, and it's hard to catch in code review.
+:::

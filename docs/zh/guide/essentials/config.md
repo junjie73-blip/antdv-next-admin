@@ -63,7 +63,8 @@ Vite 的合并顺序是 `.env` → `.env.[mode]` → `.env.local` → `.env.[mod
 
 - `VITE_NAMESPACE`：只在 `.env` 与 `types/env.d.ts` 里出现，全仓无引用。缓存前缀实际来自 `VITE_APP_TITLE`，别再按名字猜它有隔离作用。
 - `VITE_APP_VERSION`：`plugins/metadata.ts:104` 用 `define` 造出来的，应用代码里没有读它。
-- `VITE_MINIO_PUBLIC_URL`、`VITE_SENTRY_DSN`：代码里读（`bootstrap/env.ts`、`main.ts`），但三份 `.env` 都没写，运行时是 `undefined`。Sentry 只在 `import.meta.env.PROD` 分支初始化，DSN 为空即不实际上报；MinIO 直链没配时下载走代理前缀（`packages/shared/src/utils/download.ts`）。:::
+- `VITE_MINIO_PUBLIC_URL`、`VITE_SENTRY_DSN`：代码里读（`bootstrap/env.ts`、`main.ts`），但三份 `.env` 都没写，运行时是 `undefined`。Sentry 只在 `import.meta.env.PROD` 分支初始化，DSN 为空即不实际上报；MinIO 直链没配时下载走代理前缀（`packages/shared/src/utils/download.ts`）。
+:::
 
 `vite-plugin-iconify-offline`、`@vitejs/plugin-legacy`、`vite-plugin-cdn-import` 在 `apps/web/package.json` 的 devDependencies 里，但**没有任何 import**；图标离线由 `@tomjs/vite-plugin-iconify` 负责（见[图标](/zh/guide/essentials/icons)）。加依赖前先搜一遍有没有人用。
 
@@ -94,7 +95,10 @@ export default defineApplicationConfig({
 
 `createPlugins()` 按产物形态分派（`internal/vite-config/src/plugins/index.ts:49-195`）： `application` 才有 HTML 注入、PWA、归档、metadata；`library` 只留编译链与 `.d.ts`。
 
-::: warning `VITE_INJECT_APP_LOADING=false` 不等于关掉插件入口是常驻的 `import { loadingFadeOut } from 'virtual:app-loading'`。把插件整个跳过会让虚拟模块无法解析，构建期直接 500；所以开关只决定"注不注入"，未注入时那些函数找不到容器、自然空转（`plugins/index.ts:139-145`）。:::
+::: warning
+
+`VITE_INJECT_APP_LOADING=false` 不等于关掉插件入口是常驻的 `import { loadingFadeOut } from 'virtual:app-loading'`。把插件整个跳过会让虚拟模块无法解析，构建期直接 500；所以开关只决定"注不注入"，未注入时那些函数找不到容器、自然空转（`plugins/index.ts:139-145`）。
+:::
 
 ## 用户偏好
 

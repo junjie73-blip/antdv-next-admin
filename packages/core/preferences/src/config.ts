@@ -22,7 +22,7 @@ export const DEFAULT_PREFERENCES = {
   theme: 'auto',
   themeStyle: 'default',
   primaryColor: DEFAULT_PRIMARY_COLOR,
-  /* 倍率 1 = 8px，即 `@antdv/design` 里 `--radius-lg` 的基准档（其余档按比例派生） */
+  /* 倍率 1 = 16px，即 `@antdv/design` 里 `--radius-lg` 的基准档（其余档按比例派生） */
   borderRadius: 1,
   fontSize: 14,
   darkSidebar: false,

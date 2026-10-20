@@ -22,11 +22,17 @@ export {
   ConfigProvider,
   DEFAULT_GLOBAL_CONFIG,
   GLOBAL_CONFIG_KEY,
+  normalizeComponentSize,
   textsByLocale,
   useGlobalConfig,
 } from './components/config-provider';
 export type {
+  ComponentSizeOption,
+  Direction,
   GlobalConfig,
+  GlobalTheme,
+  LocaleKey,
+  ResolvedComponentSize,
   ResolvedGlobalConfig,
 } from './components/config-provider';
 export { CountTo } from './components/count-to';

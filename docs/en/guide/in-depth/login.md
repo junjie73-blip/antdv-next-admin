@@ -23,7 +23,7 @@ Pitfalls that are baked into the code with reasons:
 - **Never hardcode `/dashboard` as the post-login target.** It is a menu directory node with no page component of its own — jumping there gives "chrome everywhere, blank content area". The guard has a safety net too: `resolveDirectory` maps a directory to its first visible leaf (`router/guards/index.ts`).
 - **The demo account is `admin / admin123`.** The account table lives in `apps/backend-mock/server/utils/accounts.ts` (both `authenticate` and `issueToken` come from there); tokens look like `mock_token_<username>_<timestamp>`, and the hint is shown under the form.
 - **The mobile-login tab is not wired to the backend.** `handleLogin` calls `userStore.login(username, password)` regardless of mode, and "send code" only shows a message; the `remember` checkbox is never consumed either. All three need real endpoints when you connect an actual backend.
-- If encryption fails, the token is **stored in plaintext** with a `console.warn` (the try/catch inside `setToken`) — a crypto hiccup never locks a user out.
+- If encryption fails, the token is **stored in plaintext** with a `console.warn` (the try/catch that wraps the `setToken` call inside `login()`, `user.ts:135-145`) — a crypto hiccup never locks a user out. Note that `setToken` itself (`user.ts:56-61`) has no fallback branch: it just lets the failure propagate, and the plaintext recovery lives in `login()`.
 
 ## How the guards intercept
 
@@ -44,9 +44,15 @@ Rules implemented in the request layer (`packages/request/src/fetcher.ts` + `exe
 2. On a 401, `doOnceWithAuthReplay` **refreshes once and replays once**; auth endpoints themselves, an in-flight logout, or an already-replayed request throw directly to avoid loops.
 3. `forceLogout` (`packages/request/src/fetcher.ts:73-88`) does exactly two things: call the injected `onLogout()` — the app wires it to `useUserStore().logout()` in `plugins/request-runtime.ts` (the single exit) — and **change the hash** to `#/login?redirect=…`. The app uses `createWebHashHistory`, so assigning `location.href = '/login'` triggers a full page reload, aborts the pending navigation, and drops the redirect parameter.
 
-::: warning The mock backend has no `/auth/refresh` `backend-mock/server/api/auth/` contains only `login` / `logout` / `user-info`, and the login response issues no refresh token. So in the demo environment a 401 simply ends in `forceLogout`. The refresh path is designed around `REFRESH_TOKEN_KEY` (`config/constants.ts`) and only becomes live against a real backend. :::
+::: warning
 
-::: tip Token decryption is opt-in Store initialization reads the ciphertext from cache as-is; `initToken()` decrypts it asynchronously (falling back to the raw value when decryption fails, for legacy plaintext). It is not on the bootstrap path, so when you touch this chain verify that after a page refresh the `Authorization` header carries a usable token. :::
+The mock backend has no `/auth/refresh` `backend-mock/server/api/auth/` contains only `login` / `logout` / `user-info`, and the login response issues no refresh token. So in the demo environment a 401 simply ends in `forceLogout`. The refresh path is designed around `REFRESH_TOKEN_KEY` (`config/constants.ts`) and only becomes live against a real backend.
+:::
+
+::: tip
+
+Token decryption is opt-in Store initialization only reads the ciphertext from cache as-is into `token` (`user.ts:19-20`); `initToken()` decrypts it asynchronously, falling back to the raw value when decryption fails (for legacy plaintext) (`user.ts:36-45`). It IS on the bootstrap path — `bootstrap()` in `main.ts` runs `await useUserStore().initToken()` before installing the router and mounting (`main.ts:167-171`), and it must happen before the first navigation, otherwise the guard still holds ciphertext and the `Authorization` header 401s.
+:::
 
 ## The four things logout must clear
 

@@ -21,14 +21,18 @@
 | `VITE_VISUALIZER` | `.env.production` | 产物体积分析 |
 | `VITE_CACHE_ENCRYPT_KEY` | `.env.production` | 本地缓存加密密钥（SM4，必须 32 字符） |
 
-::: warning 布尔开关用 `isEnvEnabled` 判断，不要写 `=== true` `VITE_*` 从环境里拿到的是字符串。`VITE_MICRO_APP === true` 这种写法永远为 false，表现是"我明明打开了开关，微前端页还是一直报连不上"。:::
+::: warning
+
+布尔开关用 `isEnvEnabled` 判断，不要写 `=== true` `VITE_*` 从环境里拿到的是字符串。`VITE_MICRO_APP === true` 这种写法永远为 false，表现是"我明明打开了开关，微前端页还是一直报连不上"。
+:::
 
 ::: warning 两个默认关掉的开关是有原因的
 
 - `VITE_MICRO_APP=false`：子应用要真的跑在注册表配的端口上（`src/config/micro-app.ts`），否则「微前端」菜单页会去连不通的地址。
 - `VITE_WS_URL=`（空）：Nitro mock 没有 `/ws` 处理器，而重连是**无限**的 —— 在没有后端的情况下发起连接，只会把控制台和端到端用例淹掉。接真实后端时填完整地址（如 `ws://localhost:8080/ws`），token 由前端自动附加。
 
-`VITE_DEV_POLLING` 也在 `.env.development` 里注释着：仓库放在映射盘（本机是 `J:`）时 inotify 事件不送达，看起来该开。实测**开了也救不回来** —— 配置确实拿到了 `server.watch.usePolling`，用 chokidar 直接轮询同目录能收到 change，但 dev server 的模块图始终不失效（旧模块一直服务到重启）。白烧 CPU 换不到 HMR，所以保持注释，改完共享包按 [快速开始](/guide/introduction/quick-start#_3-改了共享包却没生效) 的流程重新构建 + 重启。:::
+`VITE_DEV_POLLING` 也在 `.env.development` 里注释着：仓库放在映射盘（本机是 `J:`）时 inotify 事件不送达，看起来该开。实测**开了也救不回来** —— 配置确实拿到了 `server.watch.usePolling`，用 chokidar 直接轮询同目录能收到 change，但 dev server 的模块图始终不失效（旧模块一直服务到重启）。白烧 CPU 换不到 HMR，所以保持注释，改完共享包按 [快速开始](/guide/introduction/quick-start#_3-改了共享包却没生效) 的流程重新构建 + 重启。
+:::
 
 ## 编码规范
 
@@ -43,11 +47,50 @@
 ```bash
 pnpm lint            # eslint（组装 internal/lint-configs 里的共享配置）
 pnpm format          # oxfmt
-pnpm check           # circular + dep + type + cspell 四件套
+pnpm check           # circular + dep + type + builds + cspell 五件套
 pnpm publint         # 子包产物是否可发布
 ```
 
 `check:type`（= `turbo run type-check`）**目前跑不完整**：`@antdv/layout-ui` 的 `vue-tsc` 会把默认堆吃满并崩在 `FATAL ERROR: Zone Allocation failed`（退出码 134），所以没有可信的仓库总数。应用侧单独跑（`cd apps/web && NODE_OPTIONS=--max-old-space-size=8192 npx vue-tsc --noEmit -p tsconfig.app.json`）当前 **98 条**，81 条在 `views/`（大屏 `useScreenAdapter.ts` 15、`screen/monitor/index.vue` 13）。**没有任何 CI 在跑它**，仓库里只有 `docs.yml` 一个 workflow —— 存量清单、`&&` 短路掉的 vitest 那一段、以及收敛步骤见 [CI 与部署](/guide/essentials/deploy)。
+
+## 子包统一构建标准
+
+全仓 34 个包只有两种合法形态，**不存在"某些包靠热更新、某些包才编译"的混配**：
+
+| 形态 | 谁在用 | `build` 做什么 |
+| --- | --- | --- |
+| 按源码发布（`exports` 指向 `./src/**`） | `packages/**` 的组件与工具包、`@antdv/design` | `vite build`（lib 模式）：编译 SFC / TSX / 原子类 → 打包进 `dist` → 校验产物 |
+| 按产物发布（`exports` 指向 `./dist/**`） | `shared`、`preferences`、`router`、`directives`、`hooks`、`types`，以及全部 `internal/*`、`scripts/*` | `tsdown`（各自 `tsdown.config.ts` 里 `clean: true`、`dts: true`） |
+
+四条硬约束：
+
+1. **每个包都有 `build`**。只有"配置本身没有可编译内容"的包例外（`@antdv/tsconfig`、`@antdv/stylelint-config`、`@antdv/commitlint-config` 是纯 JSON / CSS 预设），例外清单和理由就写在 `scripts/check-uniform-build.mjs` 顶部。
+2. **`stub` 不能是唯一的构建方式**。tsdown 的 `stub` 只在 `dist` 里放一层跳板，产物从没真被编译过 —— 类型错误、缺依赖、SFC 编译失败全部推迟到宿主应用起 dev server 时才现形。`@antdv/node-utils` 留着 `stub` 是因为它的脚本工具链靠跳板直跑源码，但它同时有真 `build`。
+3. **按源码发布的包不挂自己的 `dev` / `watch`**。它们的热更新由宿主应用（`apps/web`）的 dev server 提供：Vite 直接吃源码，改子包立刻生效。再挂一层 `vite build --watch` 只会跟宿主抢同一批目录。
+4. **产物必须覆盖 `exports` 的每一个公共子路径**。`defineLibraryConfig()` 从 `package.json` 的 `exports` 推导入口（含 `./*` 通配），构建完由 `antdv:validate-dist` 逐条检查 `dist/<name>.js`（样式入口查 `.css`，开了 `dts` 再查同名 `.d.ts`）真的落盘，缺一个就让构建失败并点名是哪个子路径。
+
+守卫是可直接跑的（`check:builds` 已排在 `pnpm check` 里，但那条链现在会在 `check:type` 那一步短路，所以实际要单跑）：
+
+```bash
+pnpm check:builds
+# 子包统一构建标准检查通过：34 个包都有 build / 无 stub-only / 源码发布包不挂 watch。
+```
+
+新增子包只做三件事：`vite.config.mts` 写 `export default defineLibraryConfig();`；`package.json` 补 `build: vite build`、`clean: rimraf dist .turbo`、`files: ["dist", "src"]`；devDependencies 加 `@antdv/vite-config` 与 `vite`。剩下的漏配由守卫兜住。
+
+::: warning 三个已经踩实的 lib 模式细节
+
+- **别用 `build.lib.fileName`**：它是单入口的前缀选项，写成 `'[name]'` 时 CSS 资产不走同一个替换，产物落成 `dist/_name_.css`；写成函数时 JS 又被塞进 `dist/es/`。多入口的产物名一律走 `rolldownOptions.output.entryFileNames` + `assetFileNames`。
+- **纯样式入口要显式 `cssCodeSplit: true`**：lib 模式默认是 `false`，而那个模式下 Vite 直接拒绝 CSS 入口（`"rolldownOptions.input" should not include CSS files`），`@antdv/design` 就是这么起来的。
+- **`dts` 默认跟随 `types` 指向**：`types` 指进 `dist` 才生成声明文件。按源码发布的包（`types: ./src/index.ts`）生成的 `.d.ts` 没有读者 —— 类型面由各包自己的 `type-check` 把关，重复出一份只把构建时间翻倍（实测 `@antdv/menu-ui` 27 s → 7.5 s）。
+
+:::
+
+::: tip 代价与时序
+
+全量 `pnpm build` 现在是 31 个任务、约 4 分钟，单个源码包 7–10 s。`turbo.json` 里 `dev` / `type-check` / `test:unit` 都 `dependsOn ^build`，所以冷启动的第一次 `pnpm dev` 会先补一遍依赖包的产物（约 1 分钟），之后命中缓存。这不是回归，它正是"改坏的子包在提交前就红"的价钱。
+
+:::
 
 ## 提交信息
 
@@ -60,7 +103,10 @@ pnpm commit :f       # 别名直接预填 "docs: fix typos"
 
 其余硬约束：`header-max-length` 108、`body-leading-blank`（正文前必须空行）、 `footer-leading-blank`（警告级）、scope 可以为空，非空时必须落在允许列表里（`function-rules/scope-enum`）。**没有**任何规则把 breaking change 限制在 `feat` / `fix`，那只是交互提示里的措辞。
 
-::: warning 本地钩子目前是关的 `lefthook.yml` 里所有 hook 都被注释掉了（只剩 `# pre-commit:` 与 `# post-merge:` 两段注释，`prepare` 仍会执行 `lefthook install`，但没有实际拦截）。所以**别指望提交时自动跑 lint**，也别忘了 `pnpm exec lefthook run pre-commit` 现在等于什么都没做 ——而且**CI 那侧也没有门禁**（`.github/workflows/` 下只有 `docs.yml`），强制层目前是零，全部靠本地自查，见 [CI 与部署](/guide/essentials/deploy)。:::
+::: warning
+
+本地钩子目前是关的 `lefthook.yml` 里所有 hook 都被注释掉了（只剩 `# pre-commit:` 与 `# post-merge:` 两段注释，`prepare` 仍会执行 `lefthook install`，但没有实际拦截）。所以**别指望提交时自动跑 lint**，也别忘了 `pnpm exec lefthook run pre-commit` 现在等于什么都没做 ——而且**CI 那侧也没有门禁**（`.github/workflows/` 下只有 `docs.yml`），强制层目前是零，全部靠本地自查，见 [CI 与部署](/guide/essentials/deploy)。
+:::
 
 ## changeset
 

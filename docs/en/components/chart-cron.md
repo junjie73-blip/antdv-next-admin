@@ -25,7 +25,10 @@ Behaviour, line by line against the source:
 - **When it is destroyed**: `onBeforeUnmount` removes the resize listener and calls `dispose()` (`charts/ECharts.vue:57-60`).
 - **No theme wiring**: `echarts.init(el.value)` is called without a theme argument (`charts/ECharts.vue:28`) and the wrapper **has no `theme` prop** — registered ECharts themes and the app's dark preference do not reach the chart automatically.
 
-::: warning Dark mode is the demo page's own doing The chart demo's approach: derive `isDark` from `appStore.resolvedTheme` (`chart/index.vue:22`; store side at `packages/stores/src/app.ts:44`), and write every color as an option field inside `computed` values (text/axis/tooltip colors each have a light and dark variant, `chart/index.vue:24-51`). When the theme flips, the computed re-runs and the component's notMerge re-render repaints the chart (the page's own comment, `chart/index.vue:20-21`). That is the full extent of what the wrapper gives you here: any other "dark theme" work has to happen inside your option. :::
+::: warning
+
+Dark mode is the demo page's own doing The chart demo's approach: derive `isDark` from `appStore.resolvedTheme` (`chart/index.vue:22`; store side at `packages/stores/src/app.ts:44`), and write every color as an option field inside `computed` values (text/axis/tooltip colors each have a light and dark variant, `chart/index.vue:24-51`). When the theme flips, the computed re-runs and the component's notMerge re-render repaints the chart (the page's own comment, `chart/index.vue:20-21`). That is the full extent of what the wrapper gives you here: any other "dark theme" work has to happen inside your option.
+:::
 
 ### A full-featured composable that exists but is not wired in
 
@@ -64,7 +67,10 @@ There is no validation function, no `valid` event, and no exposed instance metho
 
 The component's notion of "validation" is feeding the generated expression to `cronstrue.toString(expr, { locale: 'zh_CN' })` and replacing the description with "表达式无效" (invalid expression) when it throws (`CronEditor.vue:199-205`) — **it does not block output**; `change` is still emitted. The demo page layers its own `check()` on top, normalizing errors into `{ text, error }` (`views/components/cron/index.vue:49-61`) and marking red / warning when invalid (`:63-71,84-98`).
 
-::: warning The component cannot be typed into The `Input` that displays the expression is `readonly` (`CronEditor.vue:330-336`); the old antd-era `handleInputChange` — dead code with no template binding — was removed when the component moved into `@antdv/common-ui`. To enter an expression by hand, do what card 3 of the demo does and place your own input. :::
+::: warning
+
+The component cannot be typed into The `Input` that displays the expression is `readonly` (`CronEditor.vue:330-336`); the old antd-era `handleInputChange` — dead code with no template binding — was removed when the component moved into `@antdv/common-ui`. To enter an expression by hand, do what card 3 of the demo does and place your own input.
+:::
 
 ### A former type-check error file, resolved by the migration
 

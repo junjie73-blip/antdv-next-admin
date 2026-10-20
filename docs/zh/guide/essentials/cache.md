@@ -72,13 +72,16 @@ configureSharedEnv({
 
 `shouldEncrypt()` 就是 `isProduction()`（`encrypt.ts:152-154` → `env.ts:48-50`），而 `production` 来自 `bootstrap/env.ts:6` 的 `import.meta.env.PROD`。**没有独立的加密开关**：dev 永远明文、build 永远密文， `VITE_CACHE_ENCRYPT_KEY` 开不开都不影响这条判定。想按实例关掉，只能 `createCache({ encrypt: false })` （`index.ts:63,76`）。
 
-::: warning 缓存值的 SM4 密钥是前缀，不是 `VITE_CACHE_ENCRYPT_KEY` `index.ts:81-84` 把**解析出来的前缀当作 key 传进** `encryptValueSync(json, prefix)`，而 `encryptValueSync` 的实现是 `padKey(key || getBaseKey())`（`encrypt.ts:135-136`）—— `key` 永远非空，于是 `getBaseKey()` / `getCacheEncryptKey()` 这条链在缓存读写路径上**走不到**。后果有三个：
+::: warning
+
+缓存值的 SM4 密钥是前缀，不是 `VITE_CACHE_ENCRYPT_KEY` `index.ts:81-84` 把**解析出来的前缀当作 key 传进** `encryptValueSync(json, prefix)`，而 `encryptValueSync` 的实现是 `padKey(key || getBaseKey())`（`encrypt.ts:135-136`）—— `key` 永远非空，于是 `getBaseKey()` / `getCacheEncryptKey()` 这条链在缓存读写路径上**走不到**。后果有三个：
 
 1. `VITE_CACHE_ENCRYPT_KEY`（`apps/web/.env.production:14`）实际上不参与缓存加解密； `config.md:50` 说它是"缓存加密密钥，长度要求见缓存"，代码里它只是被 `configureSharedEnv` 存进配置对象（`env.ts:34-36`），缓存路径一次都不读它。
 2. 生产环境缺这个变量**不会**触发 `env.ts:57-66` 那个"必须配置密钥"的抛错，那条分支在缓存路径上是死代码。
 3. SM4 密钥 = `padKey(VITE_APP_TITLE)`（截断/补齐到 32 字符，`encrypt.ts:18,93-98`）。也就是说 **改 title 同时改了键名和密钥**，跨项目抄同一个 title 等于共用一把密钥。
 
-派生密钥那一套（SHA-256 + 设备指纹，`encrypt.ts:40-75`）只服务于异步版 `encryptValue` / `decryptValue`，而这两个函数**全仓没有调用方**。:::
+派生密钥那一套（SHA-256 + 设备指纹，`encrypt.ts:40-75`）只服务于异步版 `encryptValue` / `decryptValue`，而这两个函数**全仓没有调用方**。
+:::
 
 Token 的值另有机制，且不受 `shouldEncrypt` 影响：`encryptToken()` 用 `jose` 的 `EncryptJWT` （`alg: 'dir'` + `A256GCM`，`tokenCrypto.ts:86-90`），密钥由 PBKDF2（10 万次迭代）从**设备指纹**派生（`tokenCrypto.ts:21-69`），指纹因子含 `navigator.userAgent`、`navigator.language`、`screen.width/height`、时区偏移（`:22-28`）。它在 dev 也加密，所以本地 localStorage 里的 token 是 JWE 串。
 
@@ -100,7 +103,8 @@ Token 的值另有机制，且不受 `shouldEncrypt` 影响：`encryptToken()` �
 - **`userStore.refreshToken` 这个属性不存在**：`fetcher.ts:96,190` 读它，而 user store 的 return 列表（`user.ts:163-181`）里没有 `refreshToken`，运行时恒为 `undefined`，实际取值全靠 `cache.getItem`。
 - **`setToken` 的第二个形参被当过期时间用了**：`fetcher.ts:128` 传的是 `newRefresh`，签名却是 `setToken(newToken: string, expire?: number)`（`user.ts:51`），字符串进 `expire && expire > 0` 判定为假 → 刷新后的 token **不带 TTL**。
 
-另外两个"没人调"的点：`initToken()` 被导出但全仓无调用（`user.ts:30-40,174`），所以刷新后 `token.value` 是 `decryptToken` **之前**的 JWE 串；`clearDict()` 同理（`dict.ts:131-134`），登出并不会清字典缓存，靠的是那条 1 小时 `loadedAt` 自然过期。:::
+另外两个"没人调"的点：`initToken()` 被导出但全仓无调用（`user.ts:30-40,174`），所以刷新后 `token.value` 是 `decryptToken` **之前**的 JWE 串；`clearDict()` 同理（`dict.ts:131-134`），登出并不会清字典缓存，靠的是那条 1 小时 `loadedAt` 自然过期。
+:::
 
 ## 浏览器存储的真实使用情况
 
@@ -121,7 +125,10 @@ Token 的值另有机制，且不受 `shouldEncrypt` 影响：`encryptToken()` �
 - 跨介质同理：dev 写的明文在 build 里解不开，换前缀后按新前缀的密钥也解不开 —— `cache.test.ts:106-118` 就是把"另一套前缀解密失败并降级为 `null`"这个行为钉住的用例。
 - Token 那条链的失效条件更微妙：设备指纹变了（浏览器升级、改时区、换屏幕/旋转、`navigator.language` 变化）→ 派生密钥变 → `decryptToken` 对 JWE 串返回 `null`（`tokenCrypto.ts:106-139`，只有不含 `.` 的旧明文才回退）。表现就是"没换密码却掉登录"。
 
-::: tip 加一份持久化状态之前先决定键放哪：跟应用生命周期走的就照 `dict.ts` —— `CacheKey` 加一项（顺手真的引用它）、在 `watch` 里 `cache.setItem`、并把它加进 `user.ts` 的 `logout()` 清理列表。只是界面外观的偏好不要自己开 key，走 `packages/preferences`（见 [状态管理](/zh/guide/essentials/stores)）。裸 `localStorage` 只留给"跟缓存语义无关"的数据（菜单可见性覆盖、分片续传进度），并自己带上过期判定。:::
+::: tip
+
+加一份持久化状态之前先决定键放哪：跟应用生命周期走的就照 `dict.ts` —— `CacheKey` 加一项（顺手真的引用它）、在 `watch` 里 `cache.setItem`、并把它加进 `user.ts` 的 `logout()` 清理列表。只是界面外观的偏好不要自己开 key，走 `packages/preferences`（见 [状态管理](/zh/guide/essentials/stores)）。裸 `localStorage` 只留给"跟缓存语义无关"的数据（菜单可见性覆盖、分片续传进度），并自己带上过期判定。
+:::
 
 ## 相关页面
 

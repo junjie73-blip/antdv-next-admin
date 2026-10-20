@@ -5,11 +5,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "clean": "rimraf .turbo",
+    "build": "vite build",
+    "clean": "rimraf dist .turbo",
     "test:unit": "vitest run",
     "type-check": "tsc --noEmit"
   },
   "files": [
+    "dist",
     "src"
   ],
   "main": "./src/index.ts",
@@ -28,9 +30,11 @@
   },
   "devDependencies": {
     "@antdv/tsconfig": "workspace:*",
+    "@antdv/vite-config": "workspace:*",
     "happy-dom": "catalog:",
     "rimraf": "catalog:",
     "typescript": "catalog:",
+    "vite": "catalog:",
     "vitest": "catalog:",
     "vue-router": "catalog:"
   }

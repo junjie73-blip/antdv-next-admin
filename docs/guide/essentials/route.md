@@ -15,14 +15,17 @@ function buildAppRoutes(autoRoutes: RouteRecordRaw[]): RouteRecordRaw[] {
 | --- | --- | --- |
 | 约定路由 | `src/views` 下的 `.vue`/`.tsx` 按目录生成路径，路由名由 `getFileBasedRouteName` 推导 | `internal/vite-config/src/plugins/vue.ts:18-37`，类型落在 `apps/web/types/router.d.ts` |
 | 布局层 | `vite-plugin-vue-layouts-next` 把页面塞进 `{ component: LayoutWrapper, meta.isLayout }` 的**无名父记录** | `internal/vite-config/src/plugins/vue.ts:52-55`、`apps/web/src/router/index.ts:51` |
-| 静态路由 | `/`→`/login`、`/login`、`/register`、`/redirect/:path(.*)` | `apps/web/src/router/routes.ts:7-56` |
-| 兜底 | `/:pathMatch(.*)*` → `/error/404` | `apps/web/src/router/routes.ts:58-68` |
+| 静态路由 | `/`→`/login`、`/login`、`/register`、`/redirect/:path(.*)` | `apps/web/src/router/routes.ts:9-58` |
+| 兜底 | `/:pathMatch(.*)*` → 按全量快照现算分岔：页面存在而未授权 → `/error/403`，真的没这个地址 → `/error/404` | `apps/web/src/router/routes.ts:69-82`（`:72-75` 判 `isUngrantedExistingPage`） |
 
 排除规则要记住三条：`**/*/components/*` 不进路由表（页面内私有组件）、`account|login|register/**` 的 `index` 不当约定路由处理、布局插件同样跳过 `**/components/**` 与 `**/widgets/**`。
 
 Router 本体：`createWebHashHistory()` + `strict: true` + 每次导航滚回顶部（`apps/web/src/router/index.ts:33-41`）。
 
-::: warning `/redirect/:path(.*)` 必须显式注册 `views/redirect/index.vue` 只会生成精确匹配的 `/redirect`，接不住标签页"刷新当前"用的 `/redirect/system/user`。它写在 `constantRoutes` 里，先于约定路由生效（`apps/web/src/router/routes.ts:39-45`）。删它之前先想清楚标签页刷新怎么补救。:::
+::: warning
+
+`/redirect/:path(.*)` 必须显式注册 `views/redirect/index.vue` 只会生成精确匹配的 `/redirect`，接不住标签页"刷新当前"用的 `/redirect/system/user`。它写在 `constantRoutes` 里，先于约定路由生效（`apps/web/src/router/routes.ts:48-57`）。删它之前先想清楚标签页刷新怎么补救。
+:::
 
 ## meta 里能写什么
 
@@ -49,22 +52,25 @@ progress → auth → dynamicRoutes → title → navLog
 ```
 
 1. **progress**（`guards/progress.ts:24-52`）：NProgress 起/停。必须返回 `undefined`，返回别的会把导航吞掉。
-2. **auth**（`guards/auth.ts:14-37`）：已登录访问登录页→踢回首页；`requiresAuth: false` 或白名单放行；否则跳 `LOGIN_PATH` 并带 `query.redirect`。白名单与首页常量在 `apps/web/src/config/constants.ts:9-18`（`HOME_PATH = '/dashboard/analysis'`）。
-3. **dynamicRoutes**（`guards/dynamic-route.ts:51-104`）：首次导航懒加载 `loadRoutes()`；加载失败**吞掉异常后放行**（`:71-78`）；`canAccess({name, path})` 不通过→ `/error/403`；点在目录节点上→ `resolveDirectory` 落到第一个可见子页（应用实现 `apps/web/src/router/guards/index.ts:85-91`）。
+2. **auth**（`guards/auth.ts:14-37`）：已登录访问登录页→踢回首页；`requiresAuth: false` 或白名单放行；否则跳 `LOGIN_PATH` 并带 `query.redirect`。白名单与首页常量在 `apps/web/src/config/constants.ts:6-15`（`HOME_PATH = '/dashboard/analysis'`）。
+3. **dynamicRoutes**（`guards/dynamic-route.ts:51-104`）：首次导航懒加载 `loadRoutes()`；加载失败**吞掉异常后放行**（`:71-78`）；`canAccess({name, path})` 不通过→ `/error/403`；点在目录节点上→ `resolveDirectory` 落到第一个可见子页（应用实现 `apps/web/src/router/guards/index.ts:81-89`）。
 4. **title**（`guards/title.ts:20-51`）：`页面标题 | VITE_APP_TITLE`，并滚回顶部。
-5. **navLog**：埋点。应用侧还额外挂了一个 `beforeEach` 做注册表自愈（`:129-132`）。
+5. **navLog**：埋点。应用侧还额外挂了一个 `beforeEach` 做注册表自愈（`apps/web/src/router/guards/index.ts:127-130`）。
 
 ## 菜单来自后端，不来自路由表
 
-::: warning 这是最容易搞反的一点侧栏**不是**从 routes 递归出来的。登录后 `GET /menus` 返回菜单树（`packages/stores/src/route.ts:112-117`），前端只做三件事：:::
+::: warning
 
-1. `normalize()` 把后端字段映射成内部结构：`menuName → title`，带 `icon/hidden/isExternal/path/keepAlive/children`； **不排序**，顺序就是数组顺序（`route.ts:86-99`）。
+这是最容易搞反的一点侧栏**不是**从 routes 递归出来的。登录后 `GET /menus` 返回菜单树（`packages/stores/src/route.ts:112-117`），前端只做三件事：
+:::
+
+1. `normalize()` 把后端字段映射成内部结构：`menuName → title`，带 `icon/hidden/isExternal/path/keepAlive/children`； **不排序**，顺序就是数组顺序（`route.ts:87-100`）。
 2. `attachMenuPaths()` 拿菜单去路由表里反查真实 path，五级优先级匹配（`packages/utils/src/menu.ts:258-314`）。菜单里写了个路由表没有的 path，页面就打不开。
 3. `syncRouteRegistry()` 反过来**裁剪路由**：白名单豁免、`requiresAuth: false` 豁免、父节点因子节点保留而保留、重复 path 取首个，增量 `addRoute`/`removeRoute` （**从不用 `clearRoutes`**）（`route.ts:189-263`、`packages/utils/src/menu.ts:82-106`）。
 
-渲染层：`buildMenuItems` 的 key 依次取 `name → path → title`（`menu.ts:32-36,561-591`），外链渲染成 `<a target="_blank">`（`:440-455`），顶层节点按布局蓝图分派到顶栏 / 图标栏 / 侧栏（`packages/layouts/src/menu-source.ts:165-191`），嵌套树**不拍平**。
+渲染层：菜单 key 由 `menuKeyOf` 依次取 `name → path → title`（`packages/utils/src/menu.ts:28-32`），`toMenuNodes` 把菜单树归一成渲染节点、只给外链打一个 `external` 标记（`packages/core/ui-kit/menu-ui/src/menu-tree.ts:14-52`），真正的 `<a target="_blank">` 由 `packages/core/ui-kit/menu-ui/src/components/MenuRow.vue:89` 画出，顶层节点按布局蓝图分派到顶栏 / 图标栏 / 侧栏（`packages/layouts/src/menu-source.ts:165-191`），嵌套树**不拍平**。
 
-本地还有个只影响显示的"导航显示"开关，落在 `localStorage['xy-menu-hidden-overrides']` （`route.ts:27,324-331`）—— 它不改变可访问性，藏起来的路由照样能直达。
+本地还有个只影响显示的"导航显示"开关，落在 `localStorage['xy-menu-hidden-overrides']` （`route.ts:26,28-46`）—— 它不改变可访问性，藏起来的路由照样能直达。
 
 ## dev 下的 HMR 坑
 
@@ -73,7 +79,7 @@ progress → auth → dynamicRoutes → title → navLog
 表现与结论：
 
 - 自己写 HMR 分支、只"补布局"的增量修补是**错**的——静态路由（登录、`/redirect/**`、404 兜底）会被同一次 `clearRoutes()` 清掉，漏掉兜底就是"乱敲地址白屏"。
-- 裁剪用的快照 `appRoutes` 只在启动时定格一次（`router/index.ts:31`、 `stores/modules/route.ts:289-292`），HMR 不会让它漂移。
+- 裁剪用的快照 `appRoutes` 只在启动时定格一次（`router/index.ts:31`、 `packages/stores/src/route.ts:306-312`），HMR 不会让它漂移。
 - 这段只影响 dev：`import.meta.hot` 在生产构建里被常量替换，整段不进包。
 
 ## 加一个页面要动几处
@@ -85,7 +91,10 @@ progress → auth → dynamicRoutes → title → navLog
 | 新增公开页 | 放进 `constantRoutes` 并显式 `requiresAuth: false`，同时加进 `WHITE_LIST` |
 | 只想让它套空白布局 | `meta.layout = 'blank'` |
 
-::: warning 只建文件不加菜单的结果路由存在、守卫能进，但侧栏看不到——因为侧栏读的是 `/menus`。反过来，只加菜单不建文件， `attachMenuPaths` 反查不到 path，点击不跳转。两边都得有。:::
+::: warning
+
+只建文件不加菜单的结果路由存在、守卫能进，但侧栏看不到——因为侧栏读的是 `/menus`。反过来，只加菜单不建文件， `attachMenuPaths` 反查不到 path，点击不跳转。两边都得有。
+:::
 
 ## 微前端路由
 

@@ -22,7 +22,12 @@ pnpm version     # pnpm exec changeset version && pnpm install --no-frozen-lockf
 pnpm release     # pnpm run build && pnpm exec changeset publish
 ```
 
-顺序不能省：**改动合入时带 changeset 文件**（`.changeset/` 下现存 15 个待发布的条目，如 `monorepo-shared-packages.md` 把 13 个包全列成 minor）； `version` 把摘要吃进各包 CHANGELOG、写版本号、删掉 changeset 文件并重算 lockfile； `release` 先全量构建再 publish。`version` 后必须跟一次 `pnpm install --no-frozen-lockfile` —— 脚本里已经这么写了，手工拆步时别漏。
+顺序不能省：**改动合入时带 changeset 文件**（`.changeset/` 下现存 25 个待发布的条目，如 `monorepo-shared-packages.md` 把 13 个包全列成 minor）； `version` 把摘要吃进各包 CHANGELOG、写版本号、删掉 changeset 文件并重算 lockfile； `release` 先全量构建再 publish。`version` 后必须跟一次 `pnpm install --no-frozen-lockfile` —— 脚本里已经这么写了，手工拆步时别漏。
+
+::: danger 这条链路今天跑不动
+
+`changeset version` 在组装 release plan 时会校验每个 changeset 的包名是否还在 workspace 里，而 `.changeset/monorepo-shared-packages.md:4-5` 里的 `@antdv/composables`（现在是 `@antdv/hooks`）与 `@antdv/ui`（现在是 ui-kit 那批 `@antdv/*-ui`）都不在了，于是 `pnpm changeset status` / `version` / `release` 全部硬失败 —— 不是跳过那一条，是整条中断。修法与复验口径见[更新日志](/guide/other/changelog)的「发版链路现在是断的」。CI 里没有 job 跑 changesets，所以这个问题只在真要发版时才现形。
+:::
 
 ## catalog 与 workspace 版本策略
 

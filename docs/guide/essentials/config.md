@@ -8,7 +8,7 @@
 | 用户偏好 | `packages/core/preferences` + `apps/web/src/settings/index.ts` | 运行时，落在 localStorage | 不要，刷新即可 |
 | 应用常量 | `apps/web/src/config/*.ts` | 编译期常量 | 不要（HMR） |
 
-第一套决定"这个包怎么被打出来、连哪个后端"，第二套决定"界面长什么样"，第三套是写死的业务约定（缓存键名、首页路径、表格分页字段）。**偏好不是配置文件的运行时副本**：它有默认值、有净化、有迁移，见下文。
+第一套决定"这个包怎么被打出来、连哪个后端"，第二套决定"界面长什么样"，第三套是写死的业务约定（路由白名单、首页 / 登录路径、滚动条形态）。**偏好不是配置文件的运行时副本**：它有默认值、有净化、有迁移，见下文。
 
 ## 环境变量：两份读取路径，两种类型
 
@@ -46,10 +46,10 @@ Vite 的合并顺序是 `.env` → `.env.[mode]` → `.env.local` → `.env.[mod
 | `VITE_DEVTOOLS` | 关 | `vite-plugin-vue-devtools` | `plugins/index.ts:105-107` |
 | `VITE_VISUALIZER` | 关 | 产出 `stats.html`（`vite-bundle-analyzer`） | `:110-111` |
 | `VITE_TURBO_CONSOLE` | 关 | `unplugin-console-highlight` 终端高亮 | `:112-113` |
-| `VITE_ARCHIVER` | 关 | 构建产物打成 zip | `:119` |
-| `VITE_PWA` | 关 | manifest + service worker（`registerType: 'prompt'`） | `:120` |
-| `VITE_COMPRESS` | 关 | gzip + brotli，阈值 10 KB | `:121-122`、`plugins/compress.ts` |
-| `VITE_EXTRA_APP` | 关 | 把 env 抽成 `_app-config-<version>-<hash>.js` 并在 HTML 里引 | `:123-127` |
+| `VITE_ARCHIVER` | 关 | 构建产物打成 zip | `:119-120` |
+| `VITE_PWA` | 关 | manifest + service worker（`registerType: 'prompt'`） | `:121-122` |
+| `VITE_COMPRESS` | 关 | gzip + brotli，阈值 10 KB | `:123-124`、`plugins/compress.ts` |
+| `VITE_EXTRA_APP` | 关 | 把 env 抽成 `_app-config-<version>-<hash>.js` 并在 HTML 里引 | `:125-129` |
 | `VITE_PRINT` | 关 | 自定义 dev 启动横幅 | `:136` |
 | `VITE_INJECT_APP_LOADING` | 关（两个模式文件都写了 `true`） | 首屏遮罩注入（插件本体**永远注册**，见下） | `:145` |
 | `VITE_APP_LOADING_DEV` / `_BUILD` / `_DURATION` / `_PATH` | 前两个在未关注入时默认开 | 分别控制 dev/build 注入、淡出时长、自定义遮罩 HTML | `:175-189` |
@@ -63,7 +63,8 @@ Vite 的合并顺序是 `.env` → `.env.[mode]` → `.env.local` → `.env.[mod
 
 - `VITE_NAMESPACE`：只在 `.env` 与 `types/env.d.ts` 里出现，全仓无引用。缓存前缀实际来自 `VITE_APP_TITLE`，别再按名字猜它有隔离作用。
 - `VITE_APP_VERSION`：`plugins/metadata.ts:104` 用 `define` 造出来的，应用代码里没有读它。
-- `VITE_MINIO_PUBLIC_URL`、`VITE_SENTRY_DSN`：代码里读（`bootstrap/env.ts`、`main.ts`），但三份 `.env` 都没写，运行时是 `undefined`。Sentry 只在 `import.meta.env.PROD` 分支初始化，DSN 为空即不实际上报；MinIO 直链没配时下载走代理前缀（`packages/core/base/shared/src/utils/download.ts`）。:::
+- `VITE_MINIO_PUBLIC_URL`、`VITE_SENTRY_DSN`：代码里读（`bootstrap/env.ts`、`main.ts`），但三份 `.env` 都没写，运行时是 `undefined`。Sentry 只在 `import.meta.env.PROD` 分支初始化，DSN 为空即不实际上报；MinIO 直链没配时下载走代理前缀（`packages/core/base/shared/src/utils/download.ts`）。
+:::
 
 `vite-plugin-iconify-offline`、`@vitejs/plugin-legacy`、`vite-plugin-cdn-import` 在 `apps/web/package.json` 的 devDependencies 里，但**没有任何 import**；图标离线由 `@tomjs/vite-plugin-iconify` 负责（见[图标](/guide/essentials/icons)）。加依赖前先搜一遍有没有人用。
 
@@ -94,42 +95,47 @@ export default defineApplicationConfig({
 
 `createPlugins()` 按产物形态分派（`internal/vite-config/src/plugins/index.ts:49-195`）： `application` 才有 HTML 注入、PWA、归档、metadata；`library` 只留编译链与 `.d.ts`。
 
-::: warning `VITE_INJECT_APP_LOADING=false` 不等于关掉插件入口是常驻的 `import { loadingFadeOut } from 'virtual:app-loading'`。把插件整个跳过会让虚拟模块无法解析，构建期直接 500；所以开关只决定"注不注入"，未注入时那些函数找不到容器、自然空转（`plugins/index.ts:139-145`）。:::
+::: warning
+
+`VITE_INJECT_APP_LOADING=false` 不等于关掉插件入口是常驻的 `import { loadingFadeOut } from 'virtual:app-loading'`。把插件整个跳过会让虚拟模块无法解析，构建期直接 500；所以开关只决定"注不注入"，未注入时那些函数找不到容器、自然空转（`plugins/index.ts:139-145`）。
+:::
 
 ## 用户偏好
 
-`packages/core/preferences` 是无单例的工厂，项目适配层在 `apps/web/src/settings/index.ts`：
+`packages/core/preferences` 对外只给工厂函数和一个"创建时机归应用"的模块级单例（`preferences.ts:148-155`），项目适配层在 `apps/web/src/settings/index.ts`：
 
 ```ts
-// apps/web/src/settings/index.ts:60-113
+// apps/web/src/settings/index.ts:61-64
 export const APP_DEFAULTS: AppSetting = withDefaultPreferences({
   copyrightCompany: import.meta.env.VITE_APP_TITLE || 'Antdv Admin',
   watermarkContent: import.meta.env.VITE_APP_TITLE || 'Admin',
 });
+```
 
+```ts
+// apps/web/src/settings/index.ts:92-97
 export function getPreferences(): PreferencesInstance {
-  instance ??= createPreferences({
+  return initPreferences({
     defaults: APP_DEFAULTS,
     migrate: migratePreferences,
   });
-  return instance;
 }
 ```
 
 三条设计值得记住：
 
-- **必须懒创建**。顶层直接 `createPreferences()` 会跑在 `bootstrap/env` 注入前缀之前，读写的都是默认 `app_cache_*` 键，症状是"设置保存了但刷新就丢"。
-- **默认值里不许有 `import.meta.env`**（`packages/core/preferences/src/config.ts:6-14`）：包体在 dist 里，拿不到静态替换，字段会静默变成空串。项目差异值只能由应用通过 `defaults` 注入。
-- **读取链是 缓存 → `migrate` → `pickKnownPreferences` → 与默认值合并** （`packages/core/preferences/src/preferences.ts:129-133`）。`pickKnownPreferences` 按类型丢脏值， `migrate` 处理"值合法但枚举已过时"（布局名 `mixed` → 新名字）；迁移只在读时做一次。
+- **必须懒创建**。顶层直接 `initPreferences()` 会跑在 `bootstrap/env` 注入前缀之前，读写的都是默认 `app_cache_*` 键（默认前缀在 `packages/core/base/shared/src/utils/env.ts:27`），症状是"设置保存了但刷新就丢"。单例归包管：`initPreferences()` 幂等（`current ??= createPreferences(options)`，`preferences.ts:160-165`），所以 `getPreferences()` 可以在任意调用点再调一次；而没 init 就 `usePreferences()` 是直接抛错（`getPreferencesInstance()`，`preferences.ts:168-175`），不会静默造一份新配置。
+- **默认值里不许有 `import.meta.env`**（`packages/core/preferences/src/config.ts:10-14`）：包体在 dist 里，拿不到静态替换，字段会静默变成空串。项目差异值只能由应用通过 `defaults` 注入。
+- **读取链是 缓存 → `migrate` → `pickKnownPreferences` → 与默认值合并** （`packages/core/preferences/src/preferences.ts:56-60` 的 `readMerged()`）。`pickKnownPreferences` 按类型丢脏值， `migrate` 处理"值合法但枚举已过时"（布局名 `mixed` → 新名字）；迁移只在读时做一次。
 
-全量键与分组（主题 / 布局 / 小部件 / 底栏 / 通用）在 `defaults.ts:16-70`，落盘键是 `appSetting` （`store.ts:21`，带缓存前缀）。怎么用它们驱动 DOM 与 antd 主题见[主题与偏好设置](/guide/in-depth/theme)， `appStore` 如何把它们展平见[状态管理](/guide/essentials/stores)。
+全量键与分组（主题 / 布局 / 小部件 / 底栏 / 通用）在 `packages/core/preferences/src/config.ts:20-80` 的 `DEFAULT_PREFERENCES`，落盘键是 `constants.ts:11` 的 `PREFERENCES_CACHE_KEY = 'appSetting'` （经 `createCache` 叠上缓存前缀，`shared/src/cache/index.ts:40-45`）。怎么用它们驱动 DOM 与 antd 主题见[主题与偏好设置](/guide/in-depth/theme)， `appStore` 如何把它们展平见[状态管理](/guide/essentials/stores)。
 
 ## 应用常量
 
 | 文件 | 内容 | 备注 |
 | --- | --- | --- |
-| `src/config/constants.ts` | `TOKEN_KEY`、`USER_INFO_KEY`、`WHITE_LIST`、`HOME_PATH = '/dashboard/analysis'`、`LOGIN_PATH` | 守卫与登录流程读它，别在页面里写死路径 |
-| `src/config/project.ts` | `projectConfig`：`table.fetchSetting/sortSetting`、`pageSizeOptions`、`routeMap`、`scrollbar.native` | 目前只有 `scrollbar.native` 有消费者（`ModalWrapper.vue`、`SettingDrawer/index.vue`）；表格字段名来自 `useDataSource.ts:17` 的 `DEFAULT_FETCH_SETTING`，`routeMap` 无人读 |
+| `src/config/constants.ts` | `WHITE_LIST`（`:6-12`）、`HOME_PATH = '/dashboard/analysis'`（`:14`）、`LOGIN_PATH`（`:15`），共 15 行 | 守卫与登录流程读它（`router/guards/index.ts:8,48-51`、`plugins/request-runtime.ts:4,17`），别在页面里写死路径。**缓存键名不在这里**（`:4` 的注释就这么说），token / 用户信息键统一在 `@antdv/enums` 的 `CacheKey`（`packages/enums/src/cache.ts:7-16`：`ACCESS_TOKEN = 'auth_token'`、`USER_INFO = 'user_info'` 等），`packages/stores/src/user.ts:14` 把它们别名成 `TOKEN_KEY` / `USER_INFO_KEY` |
+| `src/config/project.ts` | `projectConfig`：`projectName`、`table.fetchSetting/sortSetting`、`pageSizeOptions`、`routeMap`、`scrollbar.native` | 全仓只有 `apps/web/src/plugins/layouts-host.ts:39` 读它（`scrollbar.native` → 注入给 `@antdv/layouts`），`table.*` 与 `routeMap` 无人消费；表格字段名实际来自 `packages/core/ui-kit/table-ui/src/hooks/useDataSource.ts:18` 的 `DEFAULT_FETCH_SETTING` |
 | `src/config/micro-app.ts` | 子应用注册表 + `enabled`（`VITE_MICRO_APP`） | 见[外部模块](/guide/essentials/external) |
 | `src/config/color.ts` | `COLOR_LIST` 主题预设色 | 与偏好的 `primaryColor` 配合 |
 | `src/settings/index.ts` | 偏好适配层 | 上文 |

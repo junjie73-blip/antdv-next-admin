@@ -5,11 +5,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "clean": "rimraf .turbo",
+    "build": "vite build",
+    "clean": "rimraf dist .turbo",
     "test:unit": "vitest run",
     "type-check": "vue-tsc --noEmit"
   },
   "files": [
+    "dist",
     "src"
   ],
   "main": "./src/index.ts",
@@ -38,12 +40,14 @@
   "devDependencies": {
     "@antdv/design": "workspace:*",
     "@antdv/tsconfig": "workspace:*",
+    "@antdv/vite-config": "workspace:*",
     "@types/sortablejs": "catalog:",
     "@vitejs/plugin-vue": "catalog:",
     "@vue/test-utils": "catalog:",
     "jsdom": "catalog:",
     "rimraf": "catalog:",
     "typescript": "catalog:",
+    "vite": "catalog:",
     "vitest": "catalog:",
     "vue-tsc": "catalog:"
   }

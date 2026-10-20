@@ -21,7 +21,10 @@ full-content · horizontal · mixed-two-column · mixed-vertical · side-nav · 
 | `hideSidebarWhenEmpty` | When the sidebar has no content the whole block disappears and takes up no width |
 | `headerLead` | Whether the left end of the top bar is the logo or the breadcrumb |
 
-::: tip Adding an 8th mode Add one entry to `LAYOUT_BLUEPRINTS` plus one literal to the `LayoutMode` union type, and the layout components don't have to change. That's the point of expressing mode differences as data instead of `if/else`. The legacy value `'mixed'` was renamed to `'mixed-vertical'`; `normalizeLayoutMode()` migrates old cached values while reading preferences, without persisting them. :::
+::: tip
+
+Adding an 8th mode Add one entry to `LAYOUT_BLUEPRINTS` plus one literal to the `LayoutMode` union type, and the layout components don't have to change. That's the point of expressing mode differences as data instead of `if/else`. The legacy value `'mixed'` was renamed to `'mixed-vertical'`; `normalizeLayoutMode()` migrates old cached values while reading preferences, without persisting them.
+:::
 
 ## Content area padding belongs to the layout
 
@@ -60,7 +63,10 @@ Tab page state moved out of the components into a store, so drag-to-reorder, the
 - **Caching**: wired up to `keep-alive`, so pinned tabs and pages marked "cache" don't re-request when you switch back to them.
 - **External links**: menu items with `isExternal` don't enter the tab pages.
 
-::: warning One trap to avoid when sweeping The shell's own multi-tab bar renders as `a[href^="#/..."]`. When writing a case, anything that "counts links in the content area" has to be scoped into `<main>` first, otherwise you always count a few extra — that's exactly how the overview page's card wall came out above 1 when filtered down to empty. :::
+::: warning
+
+One trap to avoid when sweeping The shell's own multi-tab bar renders as `a[href^="#/..."]`. When writing a case, anything that "counts links in the content area" has to be scoped into `<main>` first, otherwise you always count a few extra — that's exactly how the overview page's card wall came out above 1 when filtered down to empty.
+:::
 
 ## Breadcrumb
 
@@ -68,4 +74,6 @@ The breadcrumb is derived from the menu tree (`breadcrumb.ts` in `@antdv/layouts
 
 ## Scrollbar
 
-Content scrolling across the whole app goes through the self-drawn `Scrollbar` from `@antdv/common-ui` instead of each page writing its own `overflow: auto` + `::-webkit-scrollbar`: the latter behaves inconsistently on Firefox / Safari, while `Scrollbar` is one shared set of DOM and styles, which is the only way the three engines can get the same end-to-end result.
+Content scrolling across the whole app goes through the self-drawn `Scrollbar` from `@antdv/common-ui` instead of each page writing its own `overflow: auto` + `::-webkit-scrollbar`: the latter behaves inconsistently on Firefox / Safari, while `Scrollbar` is one shared set of DOM and styles, which is the only way the three engines can get the same end-to-end result. The sidebar menu, the tab bar, the tree table and the content area all use it (`packages/core/ui-kit/layout-ui/src/components/layout-sidebar/index.vue:155-157` is the menu's call site), and nowhere in the app hand-writes a sidebar scrollbar skin any more.
+
+The default visibility is "only while actually scrolling": `Scrollbar` asks `ScrollArea` for `type="scroll"` (`always` is the switch that keeps it resident), so while idle the track is not in the DOM at all, resting the pointer inside the area does not reveal it either, and it collapses `hideDelay` (800 ms by default) after scrolling stops. The native bar on the scroll box is turned off by reka (`scrollbar-width: none`), which is the computed style to read when checking that no system bar leaked. The `@layer base` rules in `packages/core/base/design/src/css/scrollbar.css` are not for the sidebar — they only catch native scroll elements inside third-party components (textarea, pre, virtual lists), and they live in the base layer precisely so reka's injected hide rules can win. The end-to-end anchor is `apps/web/e2e/ui-adapt-radius-scrollbar.spec.ts`: hidden while idle, revealed by scrolling, auto-collapsed afterwards, and no scrollable element outside the self-drawn bars — run once per engine.

@@ -120,7 +120,8 @@ The binding logic is at `BasicTable.vue:300-349`: every configuration option pas
 ::: warning Two limits worth knowing
 
 1. **With client-side pagination only the current page is reordered.** When `pagination` is on and the data is a local `dataSource`, row indices only cover the current page — for "the order I drag out is the order of the whole set", set `pagination: false` or use server-side pagination (the literal comment at `types.ts:682-688`).
-2. **The leading-row index offset is defended**: `hooks/useDragSort.ts:33-46` measures, per event, how many rows precede the first `<tr>` carrying `data-row-key`, then restores the data index with `dataIndex(i) = i - leadingOffset()`. The `<tbody>` is drawn by this component, and the current implementation never inserts a measurement row (the comment at `:26-32` writes it as a defence against "the caller may insert rows"), so this normally returns 0; should a placeholder or group row ever be added before the data rows, this code still does not need to be revisited. :::
+2. **The leading-row index offset is defended**: `hooks/useDragSort.ts:33-46` measures, per event, how many rows precede the first `<tr>` carrying `data-row-key`, then restores the data index with `dataIndex(i) = i - leadingOffset()`. The `<tbody>` is drawn by this component, and the current implementation never inserts a measurement row (the comment at `:26-32` writes it as a defence against "the caller may insert rows"), so this normally returns 0; should a placeholder or group row ever be added before the data rows, this code still does not need to be revisited.
+:::
 
 ## TreeTable
 
@@ -149,4 +150,7 @@ The divider in between is draggable — `treeMinWidth` / `treeMaxWidth` are the 
 - **`#/components/table/tree-table`** — a single card, "组织架构 - 员工管理". Clicking a department node on the left triggers `tableApi`; the demo's `fetchTableData` slices `mockEmployees[treeKey]` and `setTimeout`s 300 ms to fake latency (`views/components/table/tree-table/index.vue:224-242`), never touching the backend.
 - **`#/components/table/animation`** — three cards: a basic table plus "刷新数据" (turn `setLoading(true)` on and switch it off after 2000 ms, `views/components/table/animation/index.vue:83-86`), the skeleton loading animation (five `Skeleton` rows from `@antdv/shadcn-ui` rendered under `v-if="loading"`, the last one `w-4/5`, `:123-129`; a button toggles `loading`, which is not antd's `:loading` + `active` pair of attributes), and the row animation card.
 
-::: danger The demo page is wrong about its third card The third card's alert reads "添加/删除行时会有平滑的过渡动画效果" — "rows animate smoothly when added or removed" (`views/components/table/animation/index.vue:145`), yet this card **has no add or delete row control**, and `BasicTable.vue` contains no `TransitionGroup` or row transition style either (0 hits when grepping the whole table-ui directory) — the behaviour this line of text advertises does not exist in the current implementation. To see animation, go to the first two cards: the loading state and the skeleton. :::
+::: danger
+
+The demo page is wrong about its third card The third card's alert reads "添加/删除行时会有平滑的过渡动画效果" — "rows animate smoothly when added or removed" (`views/components/table/animation/index.vue:145`), yet this card **has no add or delete row control**, and `BasicTable.vue` contains no `TransitionGroup` or row transition style either (0 hits when grepping the whole table-ui directory) — the behaviour this line of text advertises does not exist in the current implementation. To see animation, go to the first two cards: the loading state and the skeleton.
+:::

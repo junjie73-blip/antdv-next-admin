@@ -235,11 +235,11 @@ describe('主色派生链', () => {
 });
 
 describe('themeOverridesFrom', () => {
-  it('圆角倍率乘基准 8px', () => {
-    expect(themeOverridesFrom(prefs({ borderRadius: 1 })).borderRadius).toBe(8);
+  it('圆角倍率乘基准 16px', () => {
+    expect(themeOverridesFrom(prefs({ borderRadius: 1 })).borderRadius).toBe(16);
     expect(themeOverridesFrom(prefs({ borderRadius: 0 })).borderRadius).toBe(0);
     expect(themeOverridesFrom(prefs({ borderRadius: 0.5 })).borderRadius).toBe(
-      4,
+      8,
     );
   });
 
@@ -250,9 +250,9 @@ describe('themeOverridesFrom', () => {
     );
     expect(
       themeOverridesFrom(prefs({ borderRadius: Number.NaN })).borderRadius,
-    ).toBe(8);
+    ).toBe(16);
     expect(themeOverridesFrom(prefs({ borderRadius: -1 })).borderRadius).toBe(
-      8,
+      16,
     );
   });
 });

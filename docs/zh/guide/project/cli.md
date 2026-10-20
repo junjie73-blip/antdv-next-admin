@@ -32,7 +32,10 @@ pnpm build:docker     # scripts/deploy/build-local-docker-image.sh
 pnpm --filter @antdv/web build            # 单包构建
 ```
 
-::: warning 体积分析走环境变量，不走 `build:analyze` 根 scripts 里的 `build:analyze` 指向的 turbo 任务在 `turbo.json` 里**没有定义**，会报找不到任务。实际可用的路径是：`VITE_VISUALIZER=true pnpm build` （`createVisualizerPlugin` 按该开关挂 `vite-bundle-analyzer`，见 [Vite Config](/zh/guide/project/vite)）。:::
+::: warning
+
+体积分析走环境变量，不走 `build:analyze` 根 scripts 里的 `build:analyze` 指向的 turbo 任务在 `turbo.json` 里**没有定义**，会报找不到任务。实际可用的路径是：`VITE_VISUALIZER=true pnpm build` （`createVisualizerPlugin` 按该开关挂 `vite-bundle-analyzer`，见 [Vite Config](/zh/guide/project/vite)）。
+:::
 
 turbo 任务图（`turbo.json`）：`build / dev / type-check / test:unit / test:e2e` 全部 `dependsOn ^build`（先构建依赖包再动本包）；`dev / test:e2e / clean` 不缓存； `build` 的 outputs 声明了 `dist / .output / .nitro / .vitepress/dist`。改了 `packages/*` 后浏览器读的是子包 `dist`，dev 缓存没失效时会"改了没反应"——重启 dev 是 [测试](/zh/guide/project/testing)文末清单里的固定动作。
 
@@ -44,7 +47,7 @@ pnpm check:type       # turbo run type-check（apps/web 是两个 vue-tsc 项目
 pnpm lint             # vsh lint（oxlint/oxfmt/eslint/stylelint 四连，见[规范](/zh/guide/project/protocol)）
 pnpm format           # vsh lint --format
 pnpm publint          # vsh publint：发布前检查包导出面
-pnpm test:unit        # turbo run test:unit（21 个任务）
+pnpm test:unit        # turbo run test:unit（24 个子包声明了 test:unit）
 pnpm test:e2e         # turbo run test:e2e
 pnpm test:e2e:install # playwright install（三引擎内核，首次必跑）
 pnpm test:benchmark   # vitest bench --run

@@ -2,15 +2,17 @@
 import { computed, ref } from 'vue';
 
 import {
+  Calendar,
   Popover,
   PopoverContent,
   PopoverTrigger,
+  RangeCalendar,
 } from '@antdv/shadcn-ui';
-import { Calendar, RangeCalendar } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 import { CalendarDate } from '@internationalized/date';
 import { X } from '@lucide/vue';
 import dayjs from 'dayjs';
+import { useLocale } from 'reka-ui';
 
 interface Props {
   allowClear?: boolean;
@@ -63,10 +65,7 @@ const emitValue = (d: dayjs.Dayjs | null) => {
     emit('update:value', undefined);
     return;
   }
-  emit(
-    'update:value',
-    props.valueFormat ? d.format(props.valueFormat) : d,
-  );
+  emit('update:value', props.valueFormat ? d.format(props.valueFormat) : d);
 };
 
 const currentValue = computed(() => toDayjs(props.value));
@@ -80,7 +79,10 @@ const displayText = computed(() => {
     const arr = Array.isArray(props.value) ? props.value : [];
     const [start, end] = [toDayjs(arr[0]), toDayjs(arr[1])];
     if (!start && !end) return '';
-    return [start?.format(displayFormat.value), end?.format(displayFormat.value)]
+    return [
+      start?.format(displayFormat.value),
+      end?.format(displayFormat.value),
+    ]
       .filter(Boolean)
       .join(' ~ ');
   }
@@ -111,7 +113,10 @@ function onCalendarSelect(cal: any) {
   }
   if (props.showTime) {
     const [h, m] = timeValue.value.split(':').map(Number);
-    d = d.hour(h || 0).minute(m || 0).second(0);
+    d = d
+      .hour(h || 0)
+      .minute(m || 0)
+      .second(0);
     emitValue(d);
     return;
   }
@@ -123,7 +128,12 @@ function onTimeInput(event: Event) {
   const raw = (event.target as HTMLInputElement).value;
   const base = currentValue.value ?? dayjs();
   const [h, m] = raw.split(':').map(Number);
-  emitValue(base.hour(h || 0).minute(m || 0).second(0));
+  emitValue(
+    base
+      .hour(h || 0)
+      .minute(m || 0)
+      .second(0),
+  );
 }
 
 const rangeValue = computed(() => {
@@ -148,20 +158,19 @@ function onRangeSelect(evt: any) {
   open.value = false;
 }
 
-const MONTHS = [
-  '一月',
-  '二月',
-  '三月',
-  '四月',
-  '五月',
-  '六月',
-  '七月',
-  '八月',
-  '九月',
-  '十月',
-  '十一月',
-  '十二月',
-];
+/**
+ * 语言只有 `ConfigProvider` 一个来源：reka 的 `useLocale()` 读的就是它注入的
+ * `locale`。原先这里写死中文月名，切语言时"按钮变了、日历没变"就是这一处造成的。
+ * `monthLabels` 依赖 `locale.value`，换语言时自己重算，不需要额外触发。
+ */
+const locale = useLocale();
+
+const monthLabels = computed(() => {
+  const format = new Intl.DateTimeFormat(locale.value, { month: 'long' });
+  return Array.from({ length: 12 }, (_, index) =>
+    format.format(new Date(monthYear.value, index, 1)),
+  );
+});
 
 function pickMonth(monthIndex: number) {
   emitValue(dayjs(new Date(monthYear.value, monthIndex, 1)));
@@ -191,7 +200,9 @@ function clear(event: MouseEvent) {
         "
       >
         <span class="truncate">{{
-          hasValue ? displayText : placeholder || (range ? '开始日期 - 结束日期' : '请选择日期')
+          hasValue
+            ? displayText
+            : placeholder || (range ? '开始日期 - 结束日期' : '请选择日期')
         }}</span>
         <span
           v-if="allowClear && hasValue && !disabled"
@@ -229,7 +240,6 @@ function clear(event: MouseEvent) {
           :model-value="rangeValue"
           :number-of-months="2"
           hide-weekdays
-          locale="zh-CN"
           @update:model-value="onRangeSelect"
         />
       </div>
@@ -237,17 +247,27 @@ function clear(event: MouseEvent) {
       <!-- 月份选择 -->
       <div v-else-if="picker === 'month'" class="p-2">
         <div class="mb-2 flex items-center justify-between px-1">
-          <button type="button" class="rounded px-1.5 text-sm hover:bg-accent" aria-label="上一年" @click="monthYear -= 1">
+          <button
+            type="button"
+            class="rounded px-1.5 text-sm hover:bg-accent"
+            aria-label="上一年"
+            @click="monthYear -= 1"
+          >
             ‹
           </button>
           <span class="text-sm font-medium">{{ monthYear }}</span>
-          <button type="button" class="rounded px-1.5 text-sm hover:bg-accent" aria-label="下一年" @click="monthYear += 1">
+          <button
+            type="button"
+            class="rounded px-1.5 text-sm hover:bg-accent"
+            aria-label="下一年"
+            @click="monthYear += 1"
+          >
             ›
           </button>
         </div>
         <div class="grid grid-cols-3 gap-1">
           <button
-            v-for="(name, idx) in MONTHS"
+            v-for="(name, idx) in monthLabels"
             :key="name"
             type="button"
             :class="
@@ -270,7 +290,6 @@ function clear(event: MouseEvent) {
       <div v-else class="p-2">
         <Calendar
           :model-value="currentValue ? toCal(currentValue) : undefined"
-          locale="zh-CN"
           fixed-weeks
           @update:model-value="onCalendarSelect"
         />

@@ -37,7 +37,10 @@ The handler argument of `defineMockRoute` lines up with the legacy mock: `data` 
 
 Responses all go through the envelope in `utils/response.ts`: `success(data, message)` / `bizError(code, message)`, with the same fields as the Mock envelope in `@antdv/types`.
 
-::: tip Route precedence The legacy fake-server took the first match in registration order, which is why `withRuntime` had to manually put parameterless paths first; Nitro uses a radix tree, where static segments naturally win over `:param`, so **reordering is no longer needed**. :::
+::: tip
+
+Route precedence The legacy fake-server took the first match in registration order, which is why `withRuntime` had to manually put parameterless paths first; Nitro uses a radix tree, where static segments naturally win over `:param`, so **reordering is no longer needed**.
+:::
 
 ## Runtime capabilities: the mock-center admin endpoints
 
@@ -63,7 +66,10 @@ curl -s -X POST localhost:6080/api/mock-center/runtime \
   -d '{"defaultDelay":800}'
 ```
 
-::: warning The panel page is not wired into the routes yet `apps/web/src/views/tool/mock/**` only keeps the private modules (actions / columns / schemas / types / constants), there is no `index.vue` and nothing else imports them; `apps/web/src/api/mock.ts` is the client for this group of endpoints. In other words the "data center" can currently only be driven through the HTTP endpoints above — the UI layer is a gap still to be restored, so this page documents the endpoints first and adds screenshots once the page comes back. :::
+::: warning
+
+The panel page is not wired into the routes yet `apps/web/src/views/tool/mock/**` only keeps the private modules (actions / columns / schemas / types / constants), there is no `index.vue` and nothing else imports them; `apps/web/src/api/mock.ts` is the client for this group of endpoints. In other words the "data center" can currently only be driven through the HTTP endpoints above — the UI layer is a gap still to be restored, so this page documents the endpoints first and adds screenshots once the page comes back.
+:::
 
 Runtime config is persisted to `.mock-state.json` (already gitignored). Note that **the filename carries no path**: the mock is started in-process by the `apps/web` dev process, so the persist file lands in the cwd that launched it (`apps/web/.mock-state.json`), not under `apps/backend-mock/` — check there first when debugging "why didn't my switch get saved".
 
@@ -88,8 +94,14 @@ main.ts ── activate.ts ──(PROD && VITE_MOCK)──► import('./browser'
 - **Uploads**: multipart cannot be captured and the reply has to be unique per call, so `/upload` and `/upload/:variant` are excluded from the fixtures and answered on the spot by `dynamic.ts` (`fileId` / `storedPath` / inline SVG preview URL), mirroring Nitro's `server/utils/upload.ts`. The example pages therefore all go through `customRequest` → the project's `http`: antd's default uploader uses **XHR**, which walks straight past the fetch-level hijack.
 - **Menus and permissions**: `/menus` is trimmed by the session account's allow-list, the frontend flattens the trimmed tree into allowedNames/allowedPaths, unauthorized routes are never registered, and navigation falls into the wildcard catch-all → 403. Switching accounts really does change what is reachable.
 
-::: warning `vite preview` is not a production test `internal/vite-config` has no `preview` block, and Vite's preview server **inherits `server.proxy`** — `/api` gets answered by the dev Nitro again, so "production works" becomes a false positive. Verify against a proxy-free static server instead (serve `apps/web/dist` directly and **skip** the SPA history fallback: it would disguise an uncaught endpoint as `200 + index.html`). `apps/web/scripts/verify-prod-mock.mjs` is kept in the repo for this: a Playwright pass over login / menus / CRUD / locale switch / 403 / upload that counts "requests that escaped to the network" as a hard failure. :::
+::: warning
+
+`vite preview` is not a production test `internal/vite-config` has no `preview` block, and Vite's preview server **inherits `server.proxy`** — `/api` gets answered by the dev Nitro again, so "production works" becomes a false positive. Verify against a proxy-free static server instead (serve `apps/web/dist` directly and **skip** the SPA history fallback: it would disguise an uncaught endpoint as `200 + index.html`). `apps/web/scripts/verify-prod-mock.mjs` is kept in the repo for this: a Playwright pass over login / menus / CRUD / locale switch / 403 / upload that counts "requests that escaped to the network" as a hard failure.
+:::
 
 With `VITE_MOCK=false` the switch never opens (`activate.ts:19-22`; it also stays closed in dev — Nitro is already serving there, and intercepting too would freeze the Mock Center panel's delay/disable/generate features). Because the interceptor and its fixtures arrive through `import()`, that chunk is never even loaded; requests pass through and relative paths such as `/api` reach the real backend via the hosting platform's forwarding rules or a reverse proxy. `VITE_APP_BASE_API` remains the only source of the prefix (`/api` in dev); don't hardcode a full domain in code.
 
-::: warning Don't let the mock turn into a requirements document The mock's job is "keep the 21 menu pages clickable when there is no backend", not reproduce real business rules. For real endpoints the field semantics follow the backend you integrate with; when the mock and the backend disagree, **change the mock to match the backend**, don't write frontend branches that "are compatible with both". :::
+::: warning
+
+Don't let the mock turn into a requirements document The mock's job is "keep the 21 menu pages clickable when there is no backend", not reproduce real business rules. For real endpoints the field semantics follow the backend you integrate with; when the mock and the backend disagree, **change the mock to match the backend**, don't write frontend branches that "are compatible with both".
+:::

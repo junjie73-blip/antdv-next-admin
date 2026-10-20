@@ -31,10 +31,10 @@ const [register, tableRef] = useTable({ api: fetchUsers, useSearchForm: true });
 
 | Hook | 返回 | 用法 |
 | --- | --- | --- |
-| `useTable(props?)` | `[register, Ref<null | TableActionType>]` | 第二个是**实例 ref**：`tableRef.value?.reload()`，判空 |
+| `useTable(props?)` | `[register, Ref<null \| TableActionType>]` | 第二个是**实例 ref**：`tableRef.value?.reload()`，判空 |
 | `useForm(props?)` | `[register, FormActionType]` | 第二个是**方法对象**：`methods.setFieldsValue(values)` |
 | `useModal()` / `useDrawer()` | `[register, methods]` | 方法对象内部 `waitForInstance()`：最多重试 10 次 × (nextTick + 50ms)，拿不到实例抛错而不是静默 |
-| ::: |
+:::
 
 注册时传入的初始 props 通过 `instance.setProps(props)` 合并进组件，因此 `useTable({ api })` 和模板上写 `:api` 是同一件事的两个入口，opts 版本先执行。
 

@@ -24,7 +24,10 @@ iconifyOffline({
 
 其中 `mdi` 与 `fa6-regular` 目前**没有任何代码引用**（`apps`/`packages` 下 0 处字面量），它们存在的意义是让用户在 `IconPicker` 里挑得到。也就是说：离线列表 = 挑选器可搜的集合，不等于"用掉的集合"。
 
-::: warning 列表外（或没装）的集合不会报错，只会变空白 `<Icon icon="carbon:card" />` 写错名字时 Vue 不报错：构建期查不到就是**空 span**，若走到运行时取图则变成一次网络请求（还常被本站 CSP 挡掉）。表现是"菜单有的项有图标、有的整格空白，标题被顶得左右不齐"——看着像样式坏了，其实是数据写错。:::
+::: warning
+
+列表外（或没装）的集合不会报错，只会变空白 `<Icon icon="carbon:card" />` 写错名字时 Vue 不报错：构建期查不到就是**空 span**，若走到运行时取图则变成一次网络请求（还常被本站 CSP 挡掉）。表现是"菜单有的项有图标、有的整格空白，标题被顶得左右不齐"——看着像样式坏了，其实是数据写错。
+:::
 
 `vite-plugin-iconify-offline` 也在 `apps/web` 的 devDependencies 里（catalog `^0.4.3`），但全仓**没有任何 import**，起作用的是上面那个 `@tomjs/*`。
 
@@ -47,7 +50,8 @@ iconifyOffline({
 2. `auto-import.ts:56` 的 `local` 数组；
 3. `IconPicker.vue` 的 `Prefix` 联合类型（`:53`）、`COLLECTIONS`（`:62`）、`COLLECTION_LOADERS`（`:75`）（漏了就选不到也搜不出来）；
 4. `apps/web/test/icon-names.test.ts` 的 `COLLECTIONS` 和 `LITERAL` 正则里的集合名分支；
-5. 跑一次 `pnpm --filter @antdv/web build` 确认离线数据真的进了产物。:::
+5. 跑一次 `pnpm --filter @antdv/web build` 确认离线数据真的进了产物。
+:::
 
 ## 图标名对账测试（本仓库的硬约束）
 
@@ -65,7 +69,10 @@ iconifyOffline({
 
 跑法：`pnpm test:unit`（turbo 全仓）或 `pnpm --filter @antdv/web test:unit`（只跑应用，含这条）。
 
-::: warning 类名形式的图标在本仓库不生效 `views/system/micro-app/index.vue` 与 `components/business/MicroAppContainer.vue` 里还能看到 `class="i-carbon-search"`、`i-carbon-application` 这类 UnoCSS 风格写法。仓库里没有 UnoCSS，也没有任何把 `i-*` 编译成 CSS 的插件（样式是 Tailwind v4，见[设计令牌与全局样式](/zh/guide/essentials/design)），这些 span 渲染出来是**纯空白**。新代码一律写组件形式：`<Icon icon="carbon:search" />`。:::
+::: warning
+
+类名形式的图标在本仓库不生效 `views/system/micro-app/index.vue` 与 `components/business/MicroAppContainer.vue` 里还能看到 `class="i-carbon-search"`、`i-carbon-application` 这类 UnoCSS 风格写法。仓库里没有 UnoCSS，也没有任何把 `i-*` 编译成 CSS 的插件（样式是 Tailwind v4，见[设计令牌与全局样式](/zh/guide/essentials/design)），这些 span 渲染出来是**纯空白**。新代码一律写组件形式：`<Icon icon="carbon:search" />`。
+:::
 
 ## 图标名从哪来
 

@@ -2,7 +2,10 @@
 import { computed } from 'vue';
 
 import { autoPrefixTransformer, px2remTransformer } from '@antdv-next/cssinjs';
-import { ConfigProvider as SystemConfigProvider, Toaster } from '@antdv/common-ui';
+import {
+  ConfigProvider as SystemConfigProvider,
+  Toaster,
+} from '@antdv/common-ui';
 import { NOTIFICATION_TOASTER_ID } from '@antdv/popup-ui';
 import { useAppStore } from '@antdv/stores';
 import { App as AApp, ConfigProvider, StyleProvider } from 'antdv-next';
@@ -78,12 +81,6 @@ const globalConfig = computed(() => ({
           :locale="globalConfig.locale"
         >
           <router-view />
-          <!--
-            ⭐ 两只 toaster：无 id 的那只收 `message.*`，带 id 的那只收 `notification.*`（见 @antdv/popup-ui）。
-            轻提示固定在顶部居中：它是"打断式"提示，正中间会挡住正文操作区。
-            只有通知那只开 `close-button`：轻提示 3 秒自己走，通知会一直停在角落，
-            用户要能主动关掉它；轻提示带关闭按钮反而多出一块可点区域，与"读完即走"的语义相悖。
-          -->
           <Toaster position="top-center" :theme="appStore.resolvedTheme" />
           <Toaster
             :id="NOTIFICATION_TOASTER_ID"

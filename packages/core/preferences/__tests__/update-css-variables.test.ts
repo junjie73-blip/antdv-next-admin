@@ -70,7 +70,9 @@ describe('applyPreferencesToDom', () => {
     applyPreferencesToDom(prefs({ primaryColor: 'rgb(255, 92, 92)' }), {
       target: html,
     });
-    expect(html.style.getPropertyValue('--app-primary')).toBe('rgb(255, 92, 92)');
+    expect(html.style.getPropertyValue('--app-primary')).toBe(
+      'rgb(255, 92, 92)',
+    );
     expect(html.style.getPropertyValue('--ant-color-primary')).toBe('');
     expect(html.style.getPropertyValue('--ant-primary-color')).toBe('');
     expect(html.style.getPropertyValue('--ant-border-radius')).toBe('');
@@ -80,8 +82,8 @@ describe('applyPreferencesToDom', () => {
     applyPreferencesToDom(prefs({ borderRadius: 0.5, fontSize: 15 }), {
       target: html,
     });
-    // 基准 8px（= token 的 --radius-lg 档），0.5 档就是 4px
-    expect(html.style.getPropertyValue('--app-border-radius')).toBe('4px');
+    // 基准 16px（= token 的 --radius-lg 档），0.5 档就是 8px
+    expect(html.style.getPropertyValue('--app-border-radius')).toBe('8px');
     // 15px 正文 ÷ 基准 14px = 107.14%。写 `15px` 是错的：根字号一变，
     // 所有 rem 尺寸（间距、图标、控件高）会跟着文字一起缩。
     expect(html.style.getPropertyValue('--app-font-size')).toBe('107.14%');

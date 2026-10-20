@@ -5,7 +5,7 @@ import type { HTMLAttributes } from "vue"
 import type { toggleVariants } from '../toggle'
 import { reactiveOmit } from "@vueuse/core"
 import { ToggleGroupRoot, useForwardPropsEmits } from "reka-ui"
-import { provide } from "vue"
+import { provide, reactive } from "vue"
 import { cn } from '@antdv/shared/utils/cn'
 
 type ToggleGroupVariants = VariantProps<typeof toggleVariants>
@@ -21,11 +21,16 @@ const props = withDefaults(defineProps<ToggleGroupRootProps & {
 
 const emits = defineEmits<ToggleGroupRootEmits>()
 
-provide("toggleGroup", {
-  variant: props.variant,
-  size: props.size,
-  spacing: props.spacing,
-})
+/**
+ * 带 getter 的 reactive，而不是普通对象：普通对象是 setup 那一刻的快照，
+ * 之后 `size` 变了（全局尺寸档位被切）子项读到的还是旧档 —— 组自己身上的
+ * `data-size` 会跟着变、按钮高度却不动，看起来就像"档位只写了个属性"。
+ */
+provide("toggleGroup", reactive({
+  get size() { return props.size },
+  get spacing() { return props.spacing },
+  get variant() { return props.variant },
+}))
 
 const delegatedProps = reactiveOmit(props, "class", "size", "variant")
 const forwarded = useForwardPropsEmits(delegatedProps, emits)

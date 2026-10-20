@@ -38,7 +38,7 @@ describe('渲染模式', () => {
     expect(wrapper.find(BAR).exists()).toBe(false);
   });
 
-  it('always 时两条轨道常驻，hover 模式下不渲染', async () => {
+  it('always 时两条轨道常驻，默认不常驻', async () => {
     const always = await mountScrollbar({ always: true });
     expect(always.findAll(BAR)).toHaveLength(2);
     expect(always.find(`${BAR}[data-orientation="vertical"]`).exists()).toBe(
@@ -48,8 +48,33 @@ describe('渲染模式', () => {
       true,
     );
 
-    const hover = await mountScrollbar({ always: false });
-    expect(hover.find(BAR).exists()).toBe(false);
+    const auto = await mountScrollbar();
+    expect(auto.find(BAR).exists()).toBe(false);
+  });
+
+  /**
+   * 默认是 reka 的 `scroll` 显隐：空闲时不渲染轨道，滚动过程中才出现，停止后按
+   * `hideDelay` 收起 —— 指针一直停在区域内不影响收起（`hover` 型做不到，鼠标停在
+   * 侧栏上轨道就长亮）。reka 先用 100ms 防抖确认"滚动停了"，才进入 hideDelay 倒计时。
+   */
+  it('滚动时轨道出现，停止后按 hideDelay 自动收起', async () => {
+    vi.useFakeTimers();
+    const wrapper = await mountScrollbar({ hideDelay: 500 });
+    const wrapEl = wrapper.find('.scrollbar__wrap').element as HTMLElement;
+
+    wrapEl.scrollTop = 80;
+    await wrapper.find('.scrollbar__wrap').trigger('scroll');
+    await vi.advanceTimersByTimeAsync(0);
+    await flushPromises();
+    expect(wrapper.find(BAR).exists()).toBe(true);
+
+    await vi.advanceTimersByTimeAsync(100);
+    await flushPromises();
+    expect(wrapper.find(BAR).exists()).toBe(true);
+
+    await vi.advanceTimersByTimeAsync(500);
+    await flushPromises();
+    expect(wrapper.find(BAR).exists()).toBe(false);
   });
 
   it('view 用 tag 指定的标签渲染 slot', async () => {

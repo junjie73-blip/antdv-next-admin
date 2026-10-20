@@ -10,7 +10,10 @@
 | 组合式 | `packages/core/hooks/src/**`、`packages/request/src/**` | 分片上传、文件读取、打印、水印、路由 Loading、ECharts、权限判定、CRUD 骨架、响应式缓存；HTTP / SSE / WebSocket | 只用 Vue 响应式 API，应用能力靠参数注入 |
 | 应用薄壳 | `apps/web/src/utils/**`、`apps/web/src/composables/**`、`apps/web/src/components/common/**` | 需要 store / api / 应用内类型的接线 | 例 `utils/ws.ts:6`（拼 `eventBus`）、`utils/securityInit.ts:9`（启动 CSRF）、`composables/useLocale.ts:4`（写偏好里的 locale） |
 
-::: tip 自动导入不负责本仓库的包 `internal/vite-config/src/plugins/auto-import.ts` 只注入框架 API。`import { cn } from '@antdv/shared/utils/cn'` 这类写法必须自己写（同[基础概念](/guide/essentials/concepts)）。:::
+::: tip
+
+自动导入不负责本仓库的包 `internal/vite-config/src/plugins/auto-import.ts` 只注入框架 API。`import { cn } from '@antdv/shared/utils/cn'` 这类写法必须自己写（同[基础概念](/guide/essentials/concepts)）。
+:::
 
 ## 子路径即模块
 
@@ -30,7 +33,10 @@ import { useWebSocket } from '@antdv/request/websocket';
 import { menuKeyOf } from '@antdv/utils/menu';
 ```
 
-::: warning 通配符入口只属于走 dist 的包 只有 `@antdv/shared` 与 `@antdv/hooks` 有 `"./*"`。给源码包加通配符会让 `import type` 的解析路径也跟着变宽，类型检查与打包器看到的不是同一张表。:::
+::: warning
+
+通配符入口只属于走 dist 的包 只有 `@antdv/shared` 与 `@antdv/hooks` 有 `"./*"`。给源码包加通配符会让 `import type` 的解析路径也跟着变宽，类型检查与打包器看到的不是同一张表。
+:::
 
 ## `@antdv/shared` 清单
 
@@ -56,14 +62,17 @@ import { menuKeyOf } from '@antdv/utils/menu';
 | `utils/masking` | `maskPhone` / `maskEmail` / `maskIdCard`（`src/utils/masking.ts:22,30,40`）、`MASKING_RULES`（`:84`） | **无调用点** | 有 |
 | `utils/scroll` | `computeOverflow`（`src/utils/scroll.ts:28`）、`useHorizontalScroll`（`:72`）、`pickHorizontalDelta`（`:47`） | `packages/core/ui-kit/menu-ui/src/BasicMenu.vue:10`、`tabs-ui/src/TabsBar.vue:17` | 有 |
 | `utils/template` | `generateTemplate`（`src/utils/template.ts:30`） | `apps/web/src/components/business/ImportExport.vue:11` | 有 |
-| `utils/xss` | `safeHtmlDirective`（`src/utils/xss.ts:446`）、`escapeDirective`（`:463`）、`escapeHtml`（`:179`） | `apps/web/src/directives/index.ts:17` → `main.ts:122,126`；`packages/core/hooks/src/use-print.ts:2`；`common-ui/.../MarkdownEditor.vue` | 有 |
+| `utils/xss` | `safeHtmlDirective`（`src/utils/xss.ts:446`）、`escapeDirective`（`:463`）、`escapeHtml`（`:179`） | `apps/web/src/directives/index.ts:17` → `main.ts:122,126`；`packages/core/hooks/src/use-print.ts:2`；`packages/core/ui-kit/common-ui/src/components/markdown-editor/MarkdownEditor.vue:24` | 有 |
 | `store` | `src/store.ts:12` 整包转发 `@tanstack/vue-store` | 暂无调用点：共享状态的写法统一从这里取，不再各建 ref 单例 | 由 `__tests__/structure.test.ts` 覆盖 |
 
-::: warning 两件事已经从 shared 搬走了 菜单树与 key 体系（`menuKeyOf`、`attachMenuPaths`、`MenuPathRouter`）现在在 `packages/utils/src/menu.ts:28,258,393`，同包的 `theme-mode.ts` 管主题模式解析与系统深色探测 —— 因为 `@antdv/shared` 不许依赖 `@antdv/types` 之外的菜单词汇表，而 `@antdv/utils` 只吃这两个包。`utils/welcome.ts`（登录欢迎提示）整个文件已经不存在，别按名字找。:::
+::: warning
+
+两件事已经从 shared 搬走了 菜单树与 key 体系（`menuKeyOf`、`attachMenuPaths`、`MenuPathRouter`）现在在 `packages/utils/src/menu.ts:28,258,393`，同包的 `theme-mode.ts` 管主题模式解析与系统深色探测 —— 因为 `@antdv/shared` 不许依赖 `@antdv/types` 之外的菜单词汇表，而 `@antdv/utils` 只吃这两个包。`utils/welcome.ts`（登录欢迎提示）整个文件已经不存在，别按名字找。
+:::
 
 ## `@antdv/hooks` 清单
 
-这一层的用例（`packages/core/hooks/__tests__/`）比 shared 还全 —— 九个 hook 加 `echarts` 都有对应测试，另外还有一份 `boundary.test.ts` 守包边界。
+这一层的用例（`packages/core/hooks/__tests__/`）比 shared 还全 —— 八个 hook 加 `echarts` 都有对应测试，另外还有一份 `boundary.test.ts` 守包边界。
 
 | 导出 | 入口 | 消费者 | 单测 |
 | --- | --- | --- | --- |
@@ -93,7 +102,10 @@ SSE 与 WebSocket 不在这里。实时通信的代码统一收在 `@antdv/reque
 
 `apps/web/src/utils/**` 与应用侧薄壳**没有单元测试**：`apps/web/src/` 下已经没有 `__tests__` 里的 utils 用例（逻辑搬进包后就有了对应用例：请求层在 `packages/request/__tests__/`，组合式函数在 `packages/core/hooks/__tests__/`）。这正是"包里有测试、应用薄壳没测试"的分工结果 —— 逻辑应该在包里。
 
-::: warning 包里的组件不能反向 import 应用 通知、全局搜索这类小部件迁进 `packages/layouts` 以后，不能再直接 `import '~/api'` / `'~/utils/ws'`（包反向依赖应用就是循环）。所有"只有应用才知道的能力"从 `apps/web/src/plugins/layouts-host.ts` 一次性注入：`:9` 拿 ws 通道、`:6` 拿语言候选、`:5` 拿通知接口；`:17-19` 解释了为什么它单独一个文件而不并进 `ui-runtime.ts`（`test/setup.ts` 会调用后者，而 setup 比用例里的 `vi.mock` 先执行，摸过的模块之后 mock 不掉）。:::
+::: warning
+
+包里的组件不能反向 import 应用 通知、全局搜索这类小部件迁进 `packages/layouts` 以后，不能再直接 `import '~/api'` / `'~/utils/ws'`（包反向依赖应用就是循环）。所有"只有应用才知道的能力"从 `apps/web/src/plugins/layouts-host.ts` 一次性注入：`:9` 拿 ws 通道、`:6` 拿语言候选、`:5` 拿通知接口；`:17-19` 解释了为什么它单独一个文件而不并进 `ui-runtime.ts`（`test/setup.ts` 会调用后者，而 setup 比用例里的 `vi.mock` 先执行，摸过的模块之后 mock 不掉）。
+:::
 
 ## 硬边界：包不许碰 pinia / 应用别名 / env
 
@@ -103,7 +115,7 @@ SSE 与 WebSocket 不在这里。实时通信的代码统一收在 `@antdv/reque
 | --- | --- | --- |
 | 不许 import `pinia` | 全仓 `packages/**/src` 里只有 `packages/stores/src/{app,route,tabs,user}.ts` 命中 —— 那个包的职责就是放 store | 只有 `@antdv/stores` |
 | 不许用 `~/` 别名 | `packages/**/src` 只剩 `packages/core/hooks/src/use-chunk-upload.ts:32` 注释里的示例 | 无 |
-| 不许读 `import.meta.env` | 包源码里的命中**全在注释里**（`shared/src/cache/index.ts:29-30`、`shared/src/utils/env.ts:4-8`、`preferences/src/config.ts:10-12`、`common-ui/.../ErrorBoundary.vue:31`）；env 由应用入口注入 | 无 |
+| 不许读 `import.meta.env` | 包源码里的命中**全在注释里**（`packages/core/base/shared/src/cache/index.ts:29-30`、`packages/core/base/shared/src/utils/env.ts:4-8`、`packages/core/preferences/src/config.ts:10-12`、`packages/core/ui-kit/common-ui/src/components/error-boundary/ErrorBoundary.vue:31`）；env 由应用入口注入 | 无 |
 | 尽量不依赖 `vue-router` 运行时 | 需要路由实例的地方集中在两处：`packages/core/hooks/src/use-route-loading.ts:2` 与 `packages/layouts/src/**`（布局本来就要路由）。其余包只拿类型，例如 `packages/utils/src/menu.ts:3` 的 `import type { RouteRecordRaw }` | layouts 与那条 hook |
 
 ## 靠依赖注入拿应用能力
@@ -151,7 +163,10 @@ pnpm --filter @antdv/shared build      # 或 @antdv/hooks / @antdv/preferences �
 
 `turbo` 的 `dev` / `build` 带 `dependsOn: ["^build"]`，所以 `pnpm dev`（走 `turbo-run`）与整仓 `build` 会先把上游包出 dist；但 `pnpm dev:web`（`package.json:25`）是 `pnpm --filter @antdv/web run dev`，**只起 vite**。包各自的 `dev` 脚本是 `tsdown --watch`（`packages/core/base/shared/package.json:10`、`packages/core/hooks/package.json:10`），想要边改边生效就单独把它挂着。
 
-::: warning 症状是"改了没反应，也不报错" 表现：改 `packages/core/base/shared/src/**` → 保存 → 页面行为与类型都纹丝不动。原因是 Vite 的依赖缓存与 `optimizeDeps` 都指向 dist。先 `build` 再重启，别在应用侧绕开包自己抄一份实现。:::
+::: warning
+
+症状是"改了没反应，也不报错" 表现：改 `packages/core/base/shared/src/**` → 保存 → 页面行为与类型都纹丝不动。原因是 Vite 的依赖缓存与 `optimizeDeps` 都指向 dist。先 `build` 再重启，别在应用侧绕开包自己抄一份实现。
+:::
 
 ## 相关页面
 

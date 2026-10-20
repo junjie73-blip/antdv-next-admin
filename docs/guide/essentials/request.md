@@ -19,16 +19,19 @@ views / stores ──► api/*.ts ──► api/request.ts(get/post/put/del)
 | `loginPath` | 会话失效后回哪个页面（hash 路由下是 `/login`） | `apps/web/src/config/constants.ts` 的 `LOGIN_PATH` |
 | `onLogout` | 会话没了要清哪些状态 | `useUserStore().logout()` |
 
-::: warning 注入必须赶在第一发请求之前，而且只能在应用入口调 `configureRequestRuntime()`。没注入就跑请求会直接抛错（`getRequestRuntime()`，`runtime.ts:48-56`），不会静默用空凭证发请求。这个文件会把 `~/stores` 拖进模块图，和 `table-runtime.ts`、`ui-runtime.ts` 同一个约束：**测试 setup 不能碰**，否则别人的 `vi.mock` 失效。:::
+::: warning
+
+注入必须赶在第一发请求之前，而且只能在应用入口调 `configureRequestRuntime()`。没注入就跑请求会直接抛错（`getRequestRuntime()`，`runtime.ts:48-56`），不会静默用空凭证发请求。这个文件会把 `~/stores` 拖进模块图，和 `table-runtime.ts`、`ui-runtime.ts` 同一个约束：**测试 setup 不能碰**，否则别人的 `vi.mock` 失效。
+:::
 
 ## 环境变量
 
 | 变量 | dev | prod | 作用 | 事实来源 |
 | --- | --- | --- | --- | --- |
-| `VITE_APP_BASE_API` | `/api` | 真实后端地址 | 注入给 `createFetcher` 的 `baseUrl`，缺省 `''` | `apps/web/.env.development:18`、`apps/web/src/plugins/request-runtime.ts:16`、`fetcher.ts:162` |
-| `VITE_MOCK` | `true` | `false` | 是否让 dev server 把 `/api` 代理给 Nitro | `.env.development:19`、`internal/vite-config/src/utils/proxy.ts:40-57` |
+| `VITE_APP_BASE_API` | `/api` | `/api`（打包产物里同样是这个值） | 注入给 `createFetcher` 的 `baseUrl`，缺省 `''` | `apps/web/.env.development:19`、`apps/web/.env.production:12`、`apps/web/src/plugins/request-runtime.ts:16`、`fetcher.ts:162` |
+| `VITE_MOCK` | `true` | `true` | dev 下让 dev server 把 `/api` 代理给 Nitro；prod 下改由打进产物的浏览器侧 fixtures 在 fetch 出口拦截，不再需要 Node mock 服务 | `.env.development:18`、`.env.production:7-10`、`internal/vite-config/src/utils/proxy.ts:40-57` |
 | `VITE_MOCK_SERVER` | `http://localhost:5320` | — | 代理目标，与 mock 进程端口是同一个值 | `.env.development:20` |
-| `VITE_WS_URL` | 空 | 空 | 通知中心 WebSocket；留空即**不连** | `apps/web/src/utils/ws.ts:105-112` |
+| `VITE_WS_URL` | 空 | 空 | 通知中心 WebSocket；留空即**不连** | `apps/web/src/utils/ws.ts:107-112` |
 
 超时默认 `30_000` ms（`fetcher.ts:163`，单次调用可在 `executor.ts:177` 覆盖）。
 
@@ -43,7 +46,7 @@ views / stores ──► api/*.ts ──► api/request.ts(get/post/put/del)
 
 ## 入站：afterFetch 判业务码
 
-接口约定是信封结构，HTTP 200 不代表成功（`apps/web/src/api/request.ts:3-16`）：
+接口约定是信封结构，HTTP 200 不代表成功（`apps/web/src/api/request.ts:5-18`）：
 
 ```ts
 interface R<T> {
@@ -91,9 +94,12 @@ export function updateUser(id: number, data: Record<string, unknown>) {
 }
 ```
 
-::: danger `get`/`del` 的第二个实参**就是查询串本身** `request.ts:22-26` 把 `params` 直接交给 `buildUrl`。如果你写成 `get(url, { params })`，发出去的是 `?params=[object Object]`，筛选和分页条件整批丢失——表现是"搜索框输什么都一样、翻到第二页还是第一页的数据"。`post`/`put` 才有第三个参数用于查询串。:::
+::: danger
 
-封装函数返回的是 `res.data`，也就是**整个信封**（`request.ts:26`），所以调用方拿到的 `R<T>` 还要自己取 `.data`；这一层刻意不做二次解包，方便二进制与空 data 的场景。
+`get`/`del` 的第二个实参**就是查询串本身** `request.ts:22-26` 把 `params` 直接交给 `buildUrl`。如果你写成 `get(url, { params })`，发出去的是 `?params=[object Object]`，筛选和分页条件整批丢失——表现是"搜索框输什么都一样、翻到第二页还是第一页的数据"。`post`/`put` 才有第三个参数用于查询串。
+:::
+
+封装函数返回的是 `res.data`，也就是**整个信封**（`request.ts:29`），所以调用方拿到的 `R<T>` 还要自己取 `.data`；这一层刻意不做二次解包，方便二进制与空 data 的场景。
 
 ## Mock 侧的对应关系
 
@@ -104,6 +110,9 @@ export function updateUser(id: number, data: Record<string, unknown>) {
 
 ## WebSocket
 
-`utils/ws.ts` 的单例读 `VITE_WS_URL`，连接时自动附 `token` 与 `type=notice`，未配置就不连（`:105-112,310`）；消费方只有通知中心 `layouts/widgets/WidgetNotice.vue:73`。应用侧没有 SSE 端点（`packages/request/src/sse` 是独立能力包，未接入）。
+`apps/web/src/utils/ws.ts` 的单例读 `VITE_WS_URL`，连接时自动附 `token` 与 `type=notice`（`resolveWsUrl` `:107-112`），没配就根本不发起连接（`:312-319`）。消费方只有一条链路：`apps/web/src/plugins/layouts-host.ts:22` 取出 `onNotice`，注入 `configureLayoutHost({ notice: { onPush } })`（`:40-48`），最终由 `packages/layouts/src/widgets/notification/index.vue:84` 订阅。`apps/web/src/composables/useNotice.ts:74` 里还有一次 `useWebSocket()` 调用，但 `useNotice()` 全仓库没有调用点，这条属于死代码。应用侧也没有 SSE 端点（`@antdv/request/sse` 只有 `packages/request/__tests__/sse.spec.ts` 在用）。
 
-::: warning 不要绕过共享 client 所有 `api/*.ts` 与 store 只 import `~/api/request` 或 `~/composables` 的 http（例如 `stores/modules/route.ts:18`、`stores/modules/user.ts:7`）。这条目前是**约定而不是 lint 规则**——ESLint 只锁 import 边界（`internal/lint-configs/eslint-config/src/custom-config.ts:31-113`），不禁止裸 `fetch`。绕过之后 CSRF、401 刷新、统一提示全部失效，而且很难在 code review 里发现。:::
+::: warning
+
+不要绕过共享 client 应用侧的 `api/*.ts` 只经 `~/api/request`（它把 `~/composables` 转出的 `http` 再包一层信封类型）；`packages/stores` 根本不引用应用路径，直接 import `@antdv/request` 的 `http`（例如 `packages/stores/src/route.ts:8`、`packages/stores/src/user.ts:6`）。这条目前是**约定而不是 lint 规则**——ESLint 只锁 import 边界（`internal/lint-configs/eslint-config/src/custom-config.ts:31-113`），不禁止裸 `fetch`。绕过之后 CSRF、401 刷新、统一提示全部失效，而且很难在 code review 里发现。
+:::

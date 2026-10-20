@@ -4,6 +4,8 @@ import { computed } from 'vue';
 import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import { cn } from '@antdv/shared/utils/cn';
 
+import { useGlobalConfig } from '../config-provider';
+
 defineOptions({ name: 'Steps' });
 
 const props = withDefaults(
@@ -20,7 +22,7 @@ const props = withDefaults(
     current: 0,
     direction: 'horizontal',
     items: () => [],
-    size: 'default',
+    size: undefined,
     status: undefined,
   },
 );
@@ -44,7 +46,11 @@ const CIRCLE: Record<StepStatus, string> = {
 
 const vertical = computed(() => props.direction === 'vertical');
 
-const small = computed(() => props.size === 'small');
+/** 档位兜底到全局 `componentSize`：这一族只有"小一档"与"默认"两种视觉，large 落回默认 */
+const globalConfig = useGlobalConfig();
+const small = computed(
+  () => (props.size ?? globalConfig.componentSize) === 'small',
+);
 
 const iconSize = computed(() => (small.value ? 12 : 14));
 

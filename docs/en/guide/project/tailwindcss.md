@@ -22,7 +22,7 @@ In one sentence: **Tailwind v4, CSS-first — there is no `tailwind.config.*` an
 @custom-variant dark (&:where(.dark, .dark *)); /* dark mode: class strategy */
 ```
 
-- **The layer order is deliberate**: `utilities` comes last so template utility classes can override `components`-layer rules (the hand-drawn Scrollbar and layout shell rely on it). The `antd` slot is a reserved placeholder — antdv-next's own styles are injected at runtime by cssinjs and never land in these layers.
+- **The layer order is deliberate**: `utilities` comes last so template utility classes can override `components`-layer rules (the hand-drawn Scrollbar and layout shell rely on it).
 - `@custom-variant dark` binds `dark:` to the `.dark` class, which `applyPreferencesToDom()` from `@antdv/preferences` toggles (`themeMode: auto` is first resolved through `matchMedia`). **Dark mode is not the media strategy** — otherwise the settings-drawer switch would be dead. Full theming chain: [Theming & preferences](/en/guide/in-depth/theme).
 
 ## Coexisting with antdv-next
@@ -35,13 +35,16 @@ antd styles come from the `@antdv-next/cssinjs` runtime (`StyleProvider` in App.
 cn('bg-primary text-primary-foreground shadow-primary/30'); // always follows the primary color
 ```
 
-::: danger Don't use `*-ant-primary` That family only exists if antdv-next's Tailwind compatibility layer (`@antdv-next/tailwind/compat.css`) is imported, and `@antdv/design` no longer imports it — so the failure is not a wrong colour, it is **the utility never being generated at all**. :::
+::: danger
 
-The login page pins this as a source contract: `views/login/__tests__/login-styles.spec.ts` asserts accent colors may only come from this package's primary tokens. Hardcoded `bg-blue-600` / `#1677ff` breaks on primary change or dark mode (some view files still carry legacy hardcoded blues — known debt, same warning as the theme page).
+Don't use `*-ant-primary` That family only exists if antdv-next's Tailwind compatibility layer (`@antdv-next/tailwind/compat.css`) is imported, and `@antdv/design` no longer imports it — so the failure is not a wrong colour, it is **the utility never being generated at all**.
+:::
+
+Hardcoded `bg-blue-600` / `#1677ff` breaks on primary change or dark mode. The contract that used to pin this — `views/login/__tests__/login-styles.spec.ts` — was deleted when the login page was rebuilt, so the rule is a convention only now (some view files still carry legacy hardcoded blues — known debt, same warning as the theme page).
 
 ## Responsive rules and house style
 
-- Use the default `sm/md/lg/xl` breakpoints. The login page's brand/form split is pure utility classes (`views/login/index.vue` is the reference: the `data-auth="brand"` section hides on narrow screens, the logo collapses into the card).
+- Use the default `sm/md/lg/xl` breakpoints. The login page's brand/form split is pure utility classes (`packages/core/ui-kit/common-ui/src/components/auth/AuthPageLayout.vue` is the reference: the brand column is `hidden` + `lg:flex` (`:101-102`), the form column swaps width via `lg:w-[54%]` (`:192`), and the logo sits in an `absolute` header at the top-left (`:46-48`) at every width. `views/login/index.vue` only passes props and slots and writes no breakpoints).
 - Anything over one line or conditionally combined goes through `cn()` (`packages/core/base/shared/src/utils/cn.ts` — clsx + tailwind-merge; twMerge guarantees "the later conflicting class wins", which is what makes `setProps` able to override style classes in the register-props components).
 - Long class strings are extracted into the module's `constants.ts` (`CODE_STANDARD.md` 7.2); templates only reference the variable.
 - The rare raw-CSS cases (view transitions, `::selection`) live in `packages/core/base/design/src/css/base.css` **outside any @layer** — unlayered rules outrank every layer, so `html/body` sizing can't be accidentally overridden by utilities.

@@ -93,7 +93,7 @@ function writeThemeCssVars(target: HTMLElement, preferences: AppSetting): void {
     target.style.removeProperty(APP_PRIMARY);
   }
 
-  // borderRadius 存的是倍率（0 / 0.25 / 0.5 / 0.75 / 1），基准 8px 即 token 的 `--radius-lg` 档
+  // borderRadius 存的是倍率（0 / 0.25 / 0.5 / 0.75 / 1），基准 16px 即 token 的 `--radius-lg` 档
   setCssVar(
     target,
     APP_BORDER_RADIUS,

@@ -5,8 +5,9 @@
 ::: warning 三条要先说的
 
 1. **`RelativeTime` 组件不存在**：`apps/web/src/components/business/` 下没有这个目录，全仓库也没有 `RelativeTime` 的 import。`/components/relative-time` 只是一个用了 `a-timeline` + **绝对时间**的页面（详见[相对时间](#相对时间-pages-components-relative-time)）。
-2. **`Description` 的 `setData()` 是空壳**，只 `console.warn`（`packages/core/ui-kit/common-ui/src/components/description/Description.vue:156-158`）。
-3. **`Loading` 的文案属性是 `tip`，不是 `description`**；`useLoading` 的 `target` 必须显式给（选择器 / 元素 / ref / getter），否则覆盖层静默不挂载，只留一句 `console.warn`（`packages/core/ui-kit/common-ui/src/components/loading/overlay.ts:101-105`）。:::
+2. **`Description` 的 `setData()` 是空壳**，只 `console.warn`（`packages/core/ui-kit/common-ui/src/components/description/Description.vue:175-177`）。
+3. **`Loading` 的文案属性是 `tip`，不是 `description`**；`useLoading` 的 `target` 必须显式给（选择器 / 元素 / ref / getter），否则覆盖层静默不挂载，只留一句 `console.warn`（`packages/core/ui-kit/common-ui/src/components/loading/overlay.ts:101-105`）。
+:::
 
 ## 这六页现在为什么都是二级菜单
 
@@ -41,45 +42,46 @@
 
 ### 真实 API
 
-组件默认值在 `Description/Description.vue:21-28`，取值链路在 `:37-136`。
+组件默认值在 `description/Description.vue:22-29`，取值链路在 `:63-171`。
 
 | prop | 默认 | 行为 / 位置 |
 | --- | --- | --- |
-| `title` | 无 | 透传给 antd `Descriptions`（`:176`） |
-| `data` | 无 | 字段值来源；内部 `computed` 兜底成 `{}`（`:32`） |
-| `schema` | 无 | 配置数组；`show === false` 的项被过滤掉（`:33-35`） |
-| `column` | `3` | **类型只有 `number`**，没有 antd 的断点对象（`:178`） |
-| `size` | 无 | 只映射两档，见下方 warning（`:150-152`） |
-| `layout` | `'horizontal'` | 透传（`:180`） |
-| `bordered` | `false` | 透传（`:181`） |
-| `colon` | `true` | 透传（`:182`） |
-| `loading` | `false` | 为真时渲染组件自己的转圈占位，`Descriptions` 整个 `v-else` 掉（`:165-175`） |
-| `emptyText` | `'-'` | `null` / `undefined` / `''` 都替换成它（`:40`） |
-| `className` / `style` | 无 | 绑在最外层 `div.description-wrapper`（`:164`） |
+| `title` | 无 | 透传给 common-ui 自己的 `Descriptions`（`:18`、`:195`） |
+| `data` | 无 | 字段值来源；内部 `computed` 兜底成 `{}`（`:50`） |
+| `schema` | 无 | 配置数组；`show === false` 的项被过滤掉（`:51-53`） |
+| `column` | `3` | **类型只有 `number`**，没有断点对象（`:196`，类型声明 `types.ts:120`） |
+| `size` | 无 | 只映射两档，见下方 warning（`:59-61`、`:197`） |
+| `layout` | `'horizontal'` | 透传（`:198`） |
+| `bordered` | `false` | 透传（`:199`） |
+| `colon` | `true` | 为真时在标签文本后补一个 `:`（`:209`） |
+| `loading` | `false` | 为真时渲染组件自己的转圈占位（`:184-191`），`Descriptions` 整个 `v-else` 掉（`:193-194`） |
+| `emptyText` | `'-'` | `null` / `undefined` / `''` 都替换成它（默认值 `:28`、替换点 `:66`） |
+| `className` / `style` | 无 | 绑在最外层 `div.description-wrapper`（`:183`） |
 
-`DescriptionItem` 的字段（`types.ts:30-88`）与它们的**取值优先级**：
+`DescriptionItem` 的字段（`types.ts:37-96`）与它们的**取值优先级**：
 
 | 顺序 | 机制 | 位置 |
 | --- | --- | --- |
-| 1 | 具名插槽 `#<field>` | `:85-86` |
-| 2 | `render(value, data)`，返回字符串/数字会被包一层 `span` | `:88-93` |
-| 3 | `type` 内置渲染（`date` / `datetime` / `image` / `images` / `dict` / `text`） | `:95-135` |
-| 4 | 纯文本 | `:128-134` |
+| 1 | 具名插槽 `#<field>` | `:120-121` |
+| 2 | `render(value, data)`，返回字符串/数字会被包一层 `span` | `:123-128` |
+| 3 | `type` 内置渲染（`date` / `datetime` / `image` / `images` / `dict` / `text`） | `:130-169` |
+| 4 | 纯文本 | `:163-169` |
 
-标签同理：`#<field>-label` 插槽 → `renderLabel` → `label` → `field`（`:44-50`）。其余字段：`value` 直接给定值（`:39`，优先于 `data[field]`，见 `:38-39`）、`span` 缺省 1（`:144`）、`labelStyle` / `contentStyle` 逐项透传（`:145-146`）、`dateFormat` 缺省 `YYYY-MM-DD` 与 `YYYY-MM-DD HH:mm:ss`（`:115`、`:124`）、`imageSize` 缺省 60（`:105`、`:108`）。
+标签同理：`#<field>-label` 插槽 → `renderLabel` → `label` → `field`（`:70-76`）。其余字段：`value` 直接给定值（`:63-68`，优先于 `data[field]`，见 `:64-65`）、`span` 缺省 1（`:204`）、`labelStyle` / `contentStyle` 逐项透传（`:207`、`:212`）、`dateFormat` 缺省 `YYYY-MM-DD` 与 `YYYY-MM-DD HH:mm:ss`（`:150`、`:159`）、`imageSize` 缺省 60（`:140`、`:143`）。
 
 ::: warning 四个照实的限制
 
-- **`size="large"` 与 `"default"` 渲染完全一致**：`antSize` 只判断 `small`，其余一律 `'default'`（`Description.vue:150-152`），而 `DescriptionSize` 明明声明了三档（`types.ts:8`）。示例页的尺寸切换器因此只给 `default` / `small` 两个按钮，并把这句话写在正文里（`views/components/description/index.vue:382-383`、`:396-402`）。
-- **`type: 'tag'` 不会渲染 Tag**：`case 'tag'` 与 `case 'text'` 落到同一个 default 分支（`:128-134`）。想要标签得用 `render` 自己 `h(Tag, ...)` —— 示例页就是这么做的（`index.vue:101-107`）。
-- **`type: 'dict'` 依赖字典 store**：走 `~/utils/dict` 的 `getDictLabel` / `getDictLabels`（`:19`、`:96-103`），`dictType` 缺失时直接退回原文（`:97`）；多值判定是「数组 或 字符串含逗号」（`:98`）。示例页**没有一项用到 `dict`**，正文提了一句（`index.vue:57`）但没有可点的演示。
-- **`setData()` 是空的**：类型里声明了（`types.ts:165-174`），实现只 `console.warn('[Description] setData 不支持在只读模式下使用')`（`Description.vue:156-158`）。组件是只读的：改数据就换 `data`（示例页用一个 `computed` 数据源做脱敏开关，`index.vue:133-145`）。可用的实例方法只有 `getData()`（`:155`，`defineExpose` 在 `:160`）。
+- **`size="large"` 与不传渲染完全一致**：`descriptionsSize` 只把 `small` / `middle` 原样透传，其余一律落到 `'default'`（`Description.vue:59-61`、`:197`），而 `DescriptionSize` 声明了三档 `'large' | 'middle' | 'small'`（`types.ts:15`）。示例页的切换器因此给的是 `large` / `middle` / `small` 三个按钮（`views/components/description/index.vue:448-455`），并把「`default` 已废弃、等价写法是 `large`」写在正文里（`:431-435`）。
+- **`type: 'tag'` 不会渲染 Tag**：`case 'tag'` 与 `case 'text'`、`default` 落到同一个分支（`Description.vue:163-169`）。想要标签得用 `render` 自己 `h(Tag, ...)` —— 示例页就是这么做的（`index.vue:118`）。
+- **`type: 'dict'` 不再直接读字典 store**：公共组件包不允许引入 pinia 与 `~/...` 别名，所以这一分支改成了注入式 —— 宿主 `provide(DESCRIPTION_DICT_RESOLVER, fn)`（`description/context.ts:8-18`，组件侧 `Description.vue:20`、`:37`）；没注入时命中不了就显示原值（`:41`）、空值给 `-`（`:45`）。`dictType` 缺失时直接退回原文（`:132`），多值判定是「数组 或 字符串含逗号」（`:133`、`:46`）。示例页**没有一项用到 `dict`**，只在注释里提了一句（`index.vue:63`），没有可点的演示。
+- **`setData()` 是空的**：类型里声明了（`types.ts:172-182`），实现只 `console.warn('[Description] setData 不支持在只读模式下使用')`（`Description.vue:175-177`）。组件是只读的：改数据就换 `data`（示例页用一个 `computed` 数据源做脱敏开关，`index.vue:148-159`）。可用的实例方法只有 `getData()`（`:174`，`defineExpose` 在 `:179`）。
 
-另外 `types.ts:18` 定义的 `DescriptionBordered = 'bordered' | 'none' | boolean` 没有任何地方使用（`DescriptionProps.bordered` 是 `boolean`，`types.ts:131`）—— 一个遗留类型，照此记录以免误用。:::
+另外 `types.ts:25` 定义的 `DescriptionBordered = 'bordered' | 'none' | boolean` 没有任何地方使用（全仓只有这一处声明；`DescriptionProps.bordered` 是 `boolean`，`types.ts:138`）—— 一个遗留类型，照此记录以免误用。
+:::
 
 ### 在线示例：`/components/description`
 
-`http://localhost:6080/#/components/description`，源码 `apps/web/src/views/components/description/index.vue`（437 行，4 张小节）。本页数据全是页面内 `ref` / `computed`，「模拟刷新详情」只是一个 700ms 的 `setTimeout`（`:158-166`），没有任何后端请求。
+`http://localhost:6080/#/components/description`，源码 `apps/web/src/views/components/description/index.vue`（496 行，4 张小节）。本页数据全是页面内 `ref` / `computed`，「模拟刷新详情」只是一个 700ms 的 `setTimeout`（`:158-166`），没有任何后端请求。
 
 | 小节 | 点什么 | 看到什么 |
 | --- | --- | --- |
@@ -91,51 +93,55 @@
 |  | 「模拟刷新详情」 | 组件先转圈（`:364-371` 的 `:loading`），700ms 后换成新值并弹 message |
 |  | 「调用 getData()」 | message 里报出读到的字段数与字段名（`:168-176`）—— 这是**唯一**能用的实例方法 |
 | 响应式列数与分组（`:375-435`） | `columnMode` 分段器 + 拖窄窗口 | `column` 由 `useBreakpoints` 算出来再传数字（`:249-261`）；`md` 以下 1 列、`xl` 以下 2 列。当前值显示在蓝色 `a-tag` 上（`:411`） |
-|  | `size` / `bordered` / `colon` | 实时切换；`size` 只有两档可选，原因见上 |
+|  | `size` / `bordered` / `colon` | 实时切换；`size` 给的是 `large` / `middle` / `small` 三档，其中 `large` 与不传渲染一致，原因见上 |
 
 ## CountTo（数字滚动）
 
 ### 它解决什么问题
 
-KPI 卡、看板上的数字滚动。核心是**用 `requestAnimationFrame` 驱动**，不是 `setInterval`：`useRafFn`（`@vueuse/core`）拿到帧时间戳，按 `(timestamp - start) / duration` 算进度再套缓动函数（`packages/core/ui-kit/common-ui/src/components/count-to/CountTo.vue:54-76`）。带来的实际差别是：帧率跟着浏览器走、标签页隐藏时 rAF 自然停、卸载时 `useRafFn` 自己 `pause`（组件注释在 `:111`）。
+KPI 卡、看板上的数字滚动。核心是**用 `requestAnimationFrame` 驱动**，不是 `setInterval`：`useRafFn`（`@vueuse/core`）拿到帧时间戳，按 `(timestamp - start) / duration` 算进度再套缓动函数（`packages/core/ui-kit/common-ui/src/components/count-to/CountTo.vue:57-79`）。带来的实际差别是：帧率跟着浏览器走、标签页隐藏时 rAF 自然停、卸载时 `useRafFn` 自己 `pause`（组件注释在 `:114`）。
 
 ### 真实 API
 
-默认值在 `CountTo/CountTo.vue:9-21`，类型在 `CountTo/types.ts:4-78`。
+默认值在 `count-to/CountTo.vue:9-21`，类型在 `count-to/types.ts:4-78`。
 
 | prop | 默认 | 行为 / 位置 |
 | --- | --- | --- |
-| `startVal` / `endVal` | `0` / `0` | 起止值；进度按 `startVal + (endVal - startVal) * eased` 计算（`:65-66`） |
-| `duration` | `2000` | 毫秒，直接当分母（`:57-59`） |
-| `autoplay` | `true` | 挂载即播（`:107-109`），且 `endVal` 变化时重播（`:97-105`） |
-| `decimals` | `0` | `toFixed` 位数（`:42`） |
-| `decimal` | `'.'` | 小数点字符（`:47`） |
-| `separator` | `','` | 千分位，正则替换（`:43-46`） |
-| `prefix` / `suffix` | `''` | 拼在格式化结果两侧（`:48`） |
-| `useEasing` | `true` | `false` 时进度线性（`:61-63`） |
-| `easingFn` | `'easeOutExpo'` | **只有三个可选值**：`easeOutExpo` / `linear` / `easeInOutCubic`（`:29-34`） |
-| `className` / `style` | 无 | 绑在输出用的 `<span class="count-to">`（`:122`） |
+| `startVal` / `endVal` | `0` / `0` | 起止值；进度按 `startVal + (endVal - startVal) * eased` 计算（`:68-69`） |
+| `duration` | `2000` | 毫秒，直接当分母（`:60-63`） |
+| `autoplay` | `true` | 挂载即播（`:110-112`），且 `endVal` 变化时重播（`:100-108`） |
+| `decimals` | `0` | `toFixed` 位数（`:43-45`） |
+| `decimal` | `'.'` | 小数点字符（`:50`） |
+| `separator` | `','` | 千分位，正则替换（`:46-49`） |
+| `prefix` / `suffix` | `''` | 拼在格式化结果两侧（`:51`） |
+| `useEasing` | `true` | `false` 时进度线性（`:64-66`） |
+| `easingFn` | `'easeOutExpo'` | **只有三个可选值**：`easeOutExpo` / `linear` / `easeInOutCubic`（`:29-35`） |
+| `className` / `style` | 无 | 绑在输出用的 `<span class="count-to">`（`:125`） |
 
 事件（`:23-26`）：
 
 | 事件 | 载荷 | 触发 |
 | --- | --- | --- |
-| `change` | 当前数值 | **每一帧一次**（`:67`）—— 别在监听里做重活 |
-| `finished` | 无 | 进度到 1，同时把值钉到 `endVal` 并 `pause()`（`:69-73`） |
+| `change` | 当前数值 | **每一帧一次**（`:70`）—— 别在监听里做重活 |
+| `finished` | 无 | 进度到 1，同时把值钉到 `endVal` 并 `pause()`（`:72-76`） |
 
-实例方法（`defineExpose`，`:113-118`）：`start()` / `pause()` / `reset()` / `getCurrentValue()`。
+实例方法（`defineExpose`，`:116-121`）：`start()` / `pause()` / `reset()` / `getCurrentValue()`。
 
 ::: warning 可中断性：能暂停，不能续播
 
-- `start()` 第一件事是 `if (isActive.value) return`（`:80`）：动画进行中再调它**什么都不做**。
-- 紧接着 `start()` 会把 `currentValue` 写回 `startVal` 并重置时间戳（`:81-82`）。
-- `useRafFn` 的 `resume()` **没有被暴露**（`:54` 解构出来的三个东西里，只有 `pause`/`resume`/`isActive`，对外只有 `:113-118` 那四个）。所以「暂停 → 从暂停处继续」这个能力不存在：`pause()` 之后能做的只有 `reset()` + `start()`（从头再来）。示例页的「🔄 重播动画」就是这个两步（`views/components/count-to/index.vue:151-157`）。:::
+- `start()` 第一件事是 `if (isActive.value) return`（`:83`）：动画进行中再调它**什么都不做**。
+- 紧接着 `start()` 会把 `currentValue` 写回 `startVal` 并重置时间戳（`:84-85`）。
+- `useRafFn` 的 `resume()` **没有被暴露**（`:57` 解构出来的三个东西里，只有 `pause`/`resume`/`isActive`，对外只有 `:116-121` 那四个）。所以「暂停 → 从暂停处继续」这个能力不存在：`pause()` 之后能做的只有 `reset()` + `start()`（从头再来）。示例页的「🔄 重播动画」就是这个两步（`views/components/count-to/index.vue:151-157`）。
+:::
 
-::: tip 只有 endVal 会自动重播 `watch` 盯的是 `props.endVal`（`:97-105`），改 `startVal` 或 `duration` 不会重启动画 —— 「🎲 随机生成新数值」之所以能自动重播，是因为它只改 `dynamicEndVal`（`index.vue:143-146`、`:540-547`）。:::
+::: tip
+
+只有 endVal 会自动重播 `watch` 盯的是 `props.endVal`（`:100-108`），改 `startVal` 或 `duration` 不会重启动画 —— 「🎲 随机生成新数值」之所以能自动重播，是因为它只改 `dynamicEndVal`（`index.vue:143-146`、`:540-547`）。
+:::
 
 ### 在线示例：`/components/count-to`
 
-`http://localhost:6080/#/components/count-to`，源码 `apps/web/src/views/components/count-to/index.vue`（564 行，8 个小节，全部是静态数据，没有请求）。
+`http://localhost:6080/#/components/count-to`，源码 `apps/web/src/views/components/count-to/index.vue`（572 行，8 个小节，全部是静态数据，没有请求）。
 
 | 小节 | 看什么 |
 | --- | --- |
@@ -150,13 +156,16 @@ KPI 卡、看板上的数字滚动。核心是**用 `requestAnimationFrame` 驱�
 
 ## 相对时间页：`/components/relative-time` {#相对时间-pages-components-relative-time}
 
-::: warning 这一节没有组件可写 `apps/web/src/components/business/` 下**没有 `RelativeTime` 目录**，全仓库也搜不到 `RelativeTime` 的导入或使用。菜单名叫「相对时间」（`apps/backend-mock/server/api/menus.get.ts:276-281`），但示例页做的是**时间轴 + 绝对时间**：
+::: warning
+
+这一节没有组件可写 `apps/web/src/components/business/` 下**没有 `RelativeTime` 目录**，全仓库也搜不到 `RelativeTime` 的导入或使用。菜单名叫「相对时间」（`apps/backend-mock/server/api/menus.get.ts:276-281`），但示例页做的是**时间轴 + 绝对时间**：
 
 - 第一张卡「基础用法」把 `item.time` 这些 **ISO 字符串原样打印**（`apps/web/src/views/components/relative-time/index.vue:96-108`，数据 `:11-57`）。
 - 第二张卡「自定义颜色和位置」是硬编码日期文本（`:111-135`）。
 - 第三张卡「表格中的相对时间」用 `new Date(record.time).toLocaleString('zh-CN')`（`:144-148`）—— 这是**本地化绝对时间**，不是相对时间。
 
-页面里没有 `dayjs` 的 `fromNow()`、没有 `relativeTime` 插件、也没有任何定时器。所以「谁驱动刷新」这个问题在这页没有答案：没有需要刷新的东西。想抄相对时间，请去用真正实现了它的地方（下表）。:::
+页面里没有 `dayjs` 的 `fromNow()`、没有 `relativeTime` 插件、也没有任何定时器。所以「谁驱动刷新」这个问题在这页没有答案：没有需要刷新的东西。想抄相对时间，请去用真正实现了它的地方（下表）。
+:::
 
 仓库里相对时间的真实出处：
 
@@ -177,7 +186,7 @@ KPI 卡、看板上的数字滚动。核心是**用 `requestAnimationFrame` 驱�
 
 ### 真实 API
 
-源码 `packages/core/base/icons/src/icon/IconPicker.vue`（396 行），默认值在 `:34-40`。
+源码 `packages/core/base/icons/src/icon/IconPicker.vue`（404 行），默认值在 `:34-40`。
 
 | prop | 默认 | 行为 / 位置 |
 | --- | --- | --- |
@@ -208,11 +217,14 @@ KPI 卡、看板上的数字滚动。核心是**用 `requestAnimationFrame` 驱�
 | 预加载 | 翻页时把当前页图标喂给 `loadIcons`，50ms 防抖 | `:151-160` |
 | 弹出层 | shadcn `Popover` click 触发，`PopoverContent` 宽 560px（`w-[560px] max-w-[92vw]`），网格区固定高 360px（`SCROLLER_HEIGHT`）滚动交给 `Scrollbar` | `:232`、`:278`、`:314-320`、`:51` |
 
-::: tip 包内为什么能只用 shadcn 的标签 `IconPicker.vue` 一个 antdv-next 组件都没用：`Popover` / `Select` / `Input` / `Spinner` / `Empty` / `Tooltip` 全部从 `@antdv/shadcn-ui` **显式 import**（`:5-22`），滚动区从 `@antdv/common-ui` 显式 import（`:4`），图标本身用 `@iconify/vue` 的 `<Icon>`（`:24`）。组件解析器已经从 `internal/vite-config` 撤掉，所以包内不存在"靠宿主插件注入"的隐性依赖 —— 换宿主工程只要装上这几个 workspace 包就能跑。机制见[外部模块](/guide/essentials/external)。:::
+::: tip
+
+包内为什么能只用 shadcn 的标签 `IconPicker.vue` 一个 antdv-next 组件都没用：`Popover` / `Select` / `Input` / `Spinner` / `Empty` / `Tooltip` 全部从 `@antdv/shadcn-ui` **显式 import**（`:5-22`），滚动区从 `@antdv/common-ui` 显式 import（`:4`），图标本身用 `@iconify/vue` 的 `<Icon>`（`:24`）。组件解析器已经从 `internal/vite-config` 撤掉，所以包内不存在"靠宿主插件注入"的隐性依赖 —— 换宿主工程只要装上这几个 workspace 包就能跑。机制见[外部模块](/guide/essentials/external)。
+:::
 
 ### 在线示例：`/components/icon-picker`
 
-`http://localhost:6080/#/components/icon-picker`，源码 `apps/web/src/views/components/icon-picker/index.vue`（134 行，5 张小节，无请求）。
+`http://localhost:6080/#/components/icon-picker`，源码 `apps/web/src/views/components/icon-picker/index.vue`（136 行，5 张小节，无请求）。
 
 | 小节 | 点什么 | 看到什么 |
 | --- | --- | --- |
@@ -237,7 +249,10 @@ KPI 卡、看板上的数字滚动。核心是**用 `requestAnimationFrame` 驱�
 | 文案 | **`tip`**；`LoadingProps` 里没有 `description` 这个字段 | `types.ts:20` |
 | 显隐 | `v-show` + `loading-fade` 过渡 300ms | `:87-96`、`:101-109` |
 
-::: tip 档位钩子 `.loading-small` / `.loading-large` 尺寸类名之外还挂了两个无语义的作用域类（`:48-49`）：宿主样式和 e2e 用它们认档位，因为 `size-*` 工具类会被 `cn()` 的 tailwind-merge 合并掉，直接断言类名不可靠。:::
+::: tip
+
+档位钩子 `.loading-small` / `.loading-large` 尺寸类名之外还挂了两个无语义的作用域类（`:48-49`）：宿主样式和 e2e 用它们认档位，因为 `size-*` 工具类会被 `cn()` 的 tailwind-merge 合并掉，直接断言类名不可靠。
+:::
 
 ### `useLoading` / `createLoading` / `v-loading`
 
@@ -252,7 +267,9 @@ KPI 卡、看板上的数字滚动。核心是**用 `requestAnimationFrame` 驱�
 
 实例方法语义：`close()` 等淡出后自动清理 DOM，`destroy()` 强制立即清理且**不触发 `onClose`**（`components/loading/types.ts:59-84` 的注释）。`setVisible(true)` 与直接写 `loading.value = true` 的差别是：状态本来就是 `true` 时，`setVisible` 仍会**重试挂载**（`overlay.ts:43-47`、`:179-184`）—— 容器模式的 `target` 晚于 `open()` 出现就靠它补救。
 
-::: warning 容器模式的 target 怎么才拿得到 `resolveContainer` 支持 CSS 选择器字符串 / 元素 / ref / getter，解析不出就 `console.warn('[@antdv/common-ui] loading: target 容器不存在，覆盖层未挂载')` 然后**什么都不发生**（`overlay.ts:78-87`、`:101-105`）。示例页第 5 节把这条写成了页内注释：
+::: warning
+
+容器模式的 target 怎么才拿得到 `resolveContainer` 支持 CSS 选择器字符串 / 元素 / ref / getter，解析不出就 `console.warn('[@antdv/common-ui] loading: target 容器不存在，覆盖层未挂载')` 然后**什么都不发生**（`overlay.ts:78-87`、`:101-105`）。示例页第 5 节把这条写成了页内注释：
 
 ```ts
 // views/components/loading/index.vue:292-301
@@ -268,39 +285,48 @@ const hookLoading = useLoading({
 });
 ```
 
-`target` 传 getter 是安全的：解析被推迟到真正要显示的那一刻（`components/loading/types.ts:89-108` 的注释），所以 setup 期引用还没挂载的模板 ref 不会抛错。:::
+`target` 传 getter 是安全的：解析被推迟到真正要显示的那一刻（`components/loading/types.ts:89-108` 的注释），所以 setup 期引用还没挂载的模板 ref 不会抛错。
+:::
 
 ::: warning 这个家族历史上修过的三个真 bug（现在都是修好的样子）
 
 1. **文案属性写成 `description`** —— `Loading` 只有 `tip`，示例页把这句话留在代码注释里：`<!-- tip 才是 Loading 组件的文案属性（没有 description 这个 prop） -->`（`views/components/loading/index.vue:951`）。
 2. **`useLoading()` 拿不到目标** —— 见上一个 warning，`useTemplateRef` 必须显式传 key（`index.vue:292-296`）。
-3. **实例创建时传快照导致 `open()` 无效** —— `createApp(Loading, { loading: loading.value })` 交出去的是当刻的值，之后写 ref 不会有视觉变化；现在改成在 `render()` 里读 ref，Vue 才能建立依赖（`overlay.ts:120-133`，注释明确写着"这是本包抽离时修掉的原始 bug"）。同类的一次：`v-loading` 的实例挂在 `WeakMap` 上并复用（`directive.ts:45`、`:70-73`），所以**元素挂上之后再改 `loading-size` / `loading-theme` / `loading-background` 属性不会被重读**，只有 `binding.arg`（`v-loading:文本=`）在 `updated` 里会被同步进 tip（`:93-99`）。顺带一句：`directive.ts:17` 的注释写「优先级 属性 > 指令参数」，与代码相反 —— `:81` 是 `tip: binding.arg ?? attributeProps.tip`，**指令参数优先**。:::
+3. **实例创建时传快照导致 `open()` 无效** —— `createApp(Loading, { loading: loading.value })` 交出去的是当刻的值，之后写 ref 不会有视觉变化；现在改成在 `render()` 里读 ref，Vue 才能建立依赖（`overlay.ts:120-133`，注释明确写着"这是本包抽离时修掉的原始 bug"）。同类的一次：`v-loading` 的实例挂在 `WeakMap` 上并复用（`directive.ts:45`、`:70-73`），所以**元素挂上之后再改 `loading-size` / `loading-theme` / `loading-background` 属性不会被重读**，只有 `binding.arg`（`v-loading:文本=`）在 `updated` 里会被同步进 tip（`:93-99`）。顺带一句：`directive.ts:17` 的注释写「优先级 属性 > 指令参数」，与代码相反 —— `:81` 是 `tip: binding.arg ?? attributeProps.tip`，**指令参数优先**。
+:::
 
-::: tip 没有的东西 `@antdv/common-ui` **没有 `delay` 属性**，也没有节流/防抖。示例页「PageLoading 与延迟遮罩」那张卡用两个真实定时器手写这个逻辑（请求快于 300ms 就取消尚未亮起的遮罩），正文里也写明了"遮罩延迟这层由调用方决定"（`index.vue:319-350`、`:969-971`）。:::
+::: tip
+
+没有的东西 `@antdv/common-ui` **没有 `delay` 属性**，也没有节流/防抖。示例页「PageLoading 与延迟遮罩」那张卡用两个真实定时器手写这个逻辑（请求快于 300ms 就取消尚未亮起的遮罩），正文里也写明了"遮罩延迟这层由调用方决定"（`index.vue:319-350`、`:969-971`）。
+:::
 
 ### Scrollbar（滚动区域）
 
-自绘滚动条，替掉系统滚动条 —— 这是本仓库的硬约定（弹窗、抽屉、菜单都用它）。源码 `packages/core/ui-kit/common-ui/src/components/scrollbar/Scrollbar.vue`（417 行），props 类型在 `components/scrollbar/types.ts:25-40`，默认值在 `Scrollbar.vue:22-41`。
+自绘滚动条，替掉系统滚动条。但这条约定**不**覆盖弹窗与抽屉内置的那层 body 滚动 —— 那一层直接用 shadcn 的 `ScrollArea`（`packages/core/ui-kit/popup-ui/src/drawer/BasicDrawer.vue:371`、`packages/core/ui-kit/popup-ui/src/modal/ModalWrapper.vue:60`）；`Scrollbar` 用在菜单、标签栏、树表、布局内容区，以及「调用方自己接管滚动」的抽屉内容里。源码 `packages/core/ui-kit/common-ui/src/components/scrollbar/Scrollbar.vue`（186 行），props 类型在 `components/scrollbar/types.ts:8-22`，默认值在 `Scrollbar.vue:15-27`，对外实例形状在 `types.ts:24-30`。
 
 | prop | 默认 | 行为 / 位置 |
 | --- | --- | --- |
-| `native` | `false` | `true` 交回浏览器默认滚动条，自绘 `Bar` 整块不渲染（`:288`、`:65`） |
-| `rootClass` | 无 → `'h-full'` | 根节点类名；没传就是 `h-full`（`:271`） |
-| `wrapClass` / `wrapStyle` / `viewClass` / `viewStyle` | `''` | 分别作用于滚动层与内容层（`:275-288`） |
-| `maxHeight` | 无 | **只有传了才会写 `max-height` 内联样式**（`:93-99`），值是响应式算出来的，见下方 warning |
-| `always` | `false` | `true` 时滚动条常驻不淡出（`:82`） |
-| `hideDelay` | `800` | 停止滚动后隐藏自绘条的延迟（`:73-79`） |
-| `minSize` | `20` | 滚动条最小长度（`:146`、`:152`） |
-| `tag` | `'div'` | 内容层标签（`:281-283`） |
-| `noresize` / `scrollHeight` | `false` / `0` | 见类型声明；示例页没有用到 |
+| `native` | `false` | `true` 交回浏览器默认滚动条：改渲染自己那层 `div.scrollbar__wrap`（`:107-122`），`ScrollArea` 整块走 `v-else` 不出现（`:130-148`）；真正的滚动盒 `wrap` 也随之指向这个 div（`:56-58`），`native` 变化后重新解析（`:62`） |
+| `rootClass` | 无 → `'h-full'` | 根节点类名；没传就是 `h-full`（`:103`） |
+| `wrapClass` / `wrapStyle` / `viewClass` / `viewStyle` | `''` | 分别作用于滚动层与内容层：原生分支绑在 wrap 与 view 上（`:111-112`、`:117-118`）；`ScrollArea` 分支的 `wrapClass` 用 `cn` 合并进 viewport（`:135-136`），view 仍是 `:143-144` |
+| `maxHeight` | 无 | **只有传了才会写 `max-height` 内联样式**（`:46-48`），值是响应式算出来的，见下方 warning |
+| `always` | `false` | 默认只在**真正滚动的过程中**亮条（`ScrollArea` 的 `type` 取 `scroll`，`:133`）：空闲与指针停留都不出现，停止滚动 `hideDelay` 后收起；`true` 切成 `always`，两条轨道常驻不淡出 |
+| `hideDelay` | `800` | 停止滚动后隐藏自绘条的延迟，透传成 `scroll-hide-delay`（`:134`，默认值 `:26`） |
+| `tag` | `'div'` | 内容层标签，两个分支都用 `<component :is="tag">`（`:114-121`、`:140-147`） |
 
-事件只有一个：`@scroll`，载荷 `{ scrollTop, scrollLeft }`（`:43-45`、`:127`）。实例方法：`wrap`（滚动容器元素 ref）、`update`、`setScrollTop`、`setScrollLeft`、`scrollTo`、`handleScroll`（`defineExpose` 在 `:257-264`）。`setScrollTop/Left` 会挡掉 `NaN` 与非有限值 —— 注释解释了原因：把 `NaN` 写进 `scrollTop` 会被浏览器静默当成 `0`（`:234-254`）。
+事件只有一个：`@scroll`，载荷 `{ scrollTop, scrollLeft }`（`:29-31` 声明、`:64-68` 发出、`:70` 用 `useEventListener` 以 `passive` 挂在 `wrap` 上）。实例方法只有四个：`wrap`（滚动容器元素 ref）、`setScrollTop`、`setScrollLeft`、`scrollTo`（`defineExpose` 在 `:91-96`，对应 `types.ts:24-30`）—— 没有 `update`，也没有把 `handleScroll` 暴露出去。`setScrollTop/Left` 会挡掉 `NaN` 与非有限值 —— 注释解释了原因：把 `NaN` 写进 `scrollTop` 会被浏览器静默当成 `0`（`:72-77` 判定、`:79-85` 两个 setter）。
 
-::: warning `max-height` 属性别随便用 `maxHeight` 传给 `useResponsiveMaxHeight` 当基准值，缺省基准是 495（`Scrollbar.vue:47-48`）；该 hook 的下限 `min` 默认 **712px**，指数 1.938，基准分辨率 1080（`packages/core/ui-kit/common-ui/src/components/scrollbar/useResponsiveMaxHeight.ts:42-52`）。所以在 1080 高的窗口里传 `:max-height="400"`，经过 `clamp(400, 712, ∞)` 会变成 **712px** —— 比你要的小了 312px 的效果是拿不到的。想要一个更小的固定高度，就像抽屉示例那样用类名：`root-class="h-60"`（`apps/web/src/views/components/modal-drawer/index.vue:540-543`、`:577-580`）。:::
+::: warning
 
-::: warning 样式不依赖宿主 Tailwind `Scrollbar.vue` 的 `<style>` 块刻意没用 `@apply`，而是把工具类展开成等价原生 CSS 并写进 `@layer components`（`:316-324` 的注释说明了原因：独立 SFC 里没有 `@import 'tailwindcss'`，构建期会报 `Cannot apply unknown utility class`；写进 components 层是为了让模板上的 `flex-1 / min-h-0` 这些 utilities 仍能覆盖）。这也是它敢作为独立包被消费的前提。:::
+`max-height` 别随便传：`props.maxHeight` 是当作**基准值**喂给 `useResponsiveMaxHeight` 的，缺省基准 495（`Scrollbar.vue:39-41`）；该 hook 的下限 `min` 默认 **712px**，指数 1.938，基准分辨率 1080（`packages/core/ui-kit/common-ui/src/components/scrollbar/useResponsiveMaxHeight.ts:44-48`），最后一行 `clamp` 在 `:52`。所以在 1080 高的窗口里传 `:max-height="400"`，`400` 经过 `clamp(400, 712, ∞)` 会变成 **712px** —— 比 712 更矮的效果是拿不到的。另外基准那行判的是 `isNumber`（`:40`），所以类型上允许的字符串写法（`types.ts:18`）会回落到 495 基准，写进内联样式的仍是 hook 算出来的 px。想要一个更小的固定高度，就像抽屉示例那样用类名：`root-class="h-60"`（`apps/web/src/views/components/modal-drawer/index.vue:655-668`，页面自己在 `:617-620` 写了这个原因）。
+:::
 
-组件注册上，`Scrollbar` 一律**显式 import**：`views/components/scroll/basic/index.vue:4`、`BasicDrawer.vue:9`、`ModalWrapper.vue:4`、`TreeTable.vue:12` 等都是 `import { Scrollbar } from '@antdv/common-ui'`。`internal/vite-config` 里已经没有组件解析器，所以不可能再出现"裸写标签靠 `components.d.ts` 生成"的用法（见[外部模块](/guide/essentials/external)）。
+::: warning
+
+样式不依赖宿主 Tailwind。`Scrollbar.vue` 的 `<style>` 块刻意没用 `@apply`，而是把工具类展开成等价原生 CSS 并写进 `@layer components`（`:158`）；`:152-156` 的注释说明了原因：独立 SFC 的 style block 里没有 Tailwind 主题入口，构建期会报 `Cannot apply unknown utility class`，写进 components 层是为了让模板上的 `flex-1 / min-h-0` 这些 utilities 仍能覆盖。同一段样式里还有一条不变量注释在 `:170-180`：reka 会在 viewport 与 slot 之间插一层没有高度的 content div，还带上内联 `min-width: fit-content`，于是 `:181-184` 把高度与最小宽度钉回容器宽度（内联样式只能以 important 顶掉）。这也是它敢作为独立包被消费的前提。
+:::
+
+组件注册上，`Scrollbar` 一律**显式 import**：`apps/web/src/views/components/scroll/basic/index.vue:4`、`packages/core/ui-kit/menu-ui/src/BasicMenu.vue:8`、`packages/core/ui-kit/tabs-ui/src/TabsBar.vue:14`、`packages/core/ui-kit/table-ui/src/components/TreeTable.vue:15`、`packages/core/ui-kit/layout-ui/src/components/layout-content/index.vue:8` 等都是 `import { Scrollbar } from '@antdv/common-ui'`。`internal/vite-config/src/plugins/auto-import.ts:27-29` 的 `Components()` 没有配任何 `resolvers`，所以共享包组件进不了 `apps/web/types/components.d.ts`（那份声明 `:15-22` 只有应用自己 `src/components` 目录下的项），裸写 `<Scrollbar>` 是解析不出来的（见[外部模块](/guide/essentials/external)）。
 
 ### 在线示例：`/components/loading` 与 `/components/scroll/basic`
 
@@ -321,23 +347,26 @@ const hookLoading = useLoading({
 | 按钮加载态 `:1105-1149` | antdv-next `Button` 自带 `loading`，与本项目无关 |
 | 全局加载遮罩 `:1151-1185` | 「模拟 API 请求 (全屏遮罩)」→ `createLoading` 起全屏，1.5s 时 `setTip('即将完成...')`，3s 时 `close()`（`:400-415`） |
 
-`http://localhost:6080/#/components/scroll/basic` —— 源码 `apps/web/src/views/components/scroll/basic/index.vue`（201 行，3 张小节，外层都套了一个固定高度的 `overflow-hidden` 容器，滚动完全交给 `Scrollbar`）：
+`http://localhost:6080/#/components/scroll/basic` —— 源码 `apps/web/src/views/components/scroll/basic/index.vue`（205 行，3 张小节，外层都套了一个固定高度的 `overflow-hidden` 容器，滚动完全交给 `Scrollbar`）：
 
 | 小节 | 点什么 | 看到什么 |
 | --- | --- | --- |
-| Basic Scroll（`:94-134`） | 拖动列表 | 30 条数据在 `h-80` 容器里由自绘条滚动；停止 800ms 后滚动条淡出 |
+| Basic Scroll（`:96-137`） | 拖动列表 | 30 条数据在 `h-80` 容器里由自绘条滚动；停止 800ms 后滚动条淡出 |
 |  | **点「Add Item」** | **什么都不会发生** —— 见下面的 warning |
-| Horizontal Scroll（`:136-155`） | 横向拖 | 10 个框架卡片，`flex min-w-max` 撑出横向溢出，自绘横向滚动条出现（`hasHorizontal` 分支，`Scrollbar.vue:161`、`:293`） |
-| Chat Scroll（`:157-199`） | 输入框回车或点 Send | 消息追加进 `chatMessages`（一个 `ref`，`:29-73`），气泡左右分侧；`Scrollbar class="flex-1 p-4"`（`:162`）在 flex 列里占满剩余高度 |
+| Horizontal Scroll（`:139-159`） | 横向拖 | 10 个框架卡片，`flex min-w-max` 撑出横向溢出（`:144`），`ScrollArea` 自己发现横向溢出后给出横向条 —— `Scrollbar` 里没有横向开关，只有 `data-[orientation=horizontal]:h-1.5` 决定它的粗细（`Scrollbar.vue:131`），上面那条 `min-width: 100% !important` 保证横向溢出不会顶宽内容盒（`Scrollbar.vue:175-178`） |
+| Chat Scroll（`:161-203`） | 输入框回车或点 Send | 消息追加进 `chatMessages`（一个 `ref`，`:31-75`，`sendMessage` 在 `:79-91`），气泡左右分侧；`Scrollbar class="flex-1 p-4"`（`:166`）在 flex 列里占满剩余高度 |
 
-::: warning 「Add Item」是这页目前唯一坏掉的按钮 `basicItems` 声明成了**普通数组常量**，不是 `ref` 也不是 `reactive`：
+::: warning
+
+「Add Item」是这页目前唯一坏掉的按钮 `basicItems` 声明成了**普通数组常量**，不是 `ref` 也不是 `reactive`：
 
 ```ts
-// views/components/scroll/basic/index.vue:10
+// apps/web/src/views/components/scroll/basic/index.vue:12-16
 const basicItems = Array.from({ length: 30 }, (_, i) => ({/* ... */}));
 ```
 
-按钮里执行的是 `basicItems.push(...)`（`:96-106`）。因为没有任何响应式代理，`v-for="item in basicItems"`（`:113`）不会重新渲染，所以点了之后**列表长度不变、也没有报错**。对照着看：同页的 Chat 小节用的是 `ref([])`（`:29`），它的 Send 就正常。要修的话把 `basicItems` 包成 `ref` 即可，本文只记录现状。:::
+按钮里执行的是 `basicItems.push(...)`（`:101-105`）。因为没有任何响应式代理，`v-for="item in basicItems"`（`:116`）不会重新渲染，所以点了之后**列表长度不变、也没有报错**。对照着看：同页的 Chat 小节把消息放在 `ref(...)` 里（`:31`），它的 Send 就正常。要修的话把 `basicItems` 包成 `ref` 即可，本文只记录现状。
+:::
 
 ## 这几个原子分别住在哪个包
 
@@ -346,24 +375,24 @@ const basicItems = Array.from({ length: 30 }, (_, i) => ({/* ... */}));
 | 包 | 内容 | 边界（写在 description 里） | 导出 |
 | --- | --- | --- | --- |
 | `@antdv/icons`（`packages/core/base/icons`） | `IconPicker` / `IconifyIcon` / `SvgIcon` | 只管图标：加载遮罩归 `@antdv/common-ui`，滚动条归 `@antdv/common-ui` | `.:src/index.ts` + `./icon` 子路径 + `createIconInstaller()`（`:13-31`） |
-| `@antdv/common-ui`（`packages/core/ui-kit/common-ui/src/components/loading`） | `Loading` + `useLoading` + `createLoading` / `createContainerLoading` / `createFullscreenLoading` + `vLoading` | 不依赖 pinia、vue-router、业务 store 或应用配置 | 单入口 barrel（`src/index.ts:1-26`） |
-| `@antdv/common-ui`（`packages/core/ui-kit/common-ui/src/components/scrollbar`） | `Scrollbar` + `Bar` | 样式随组件走，不依赖宿主 Tailwind 配置，也不依赖 store / 应用配置 | 单入口 barrel（`src/index.ts:1-10`） |
+| `@antdv/common-ui`（`packages/core/ui-kit/common-ui/src/components/loading`） | `Loading` + `useLoading` + `createLoading` / `createContainerLoading` / `createFullscreenLoading` + `vLoading` | 不依赖 pinia、vue-router、业务 store 或应用配置 | 单入口 barrel（根入口 `src/index.ts:74-81` 给值、`:82-90` 给类型） |
+| `@antdv/common-ui`（`packages/core/ui-kit/common-ui/src/components/scrollbar`） | 只有 `Scrollbar` 一个组件（没有单独的 `Bar`） | 样式随组件走，不依赖宿主 Tailwind 配置，也不依赖 store / 应用配置 | 目录 barrel `components/scrollbar/index.ts:1-3`：`Scrollbar` ＋ `ScrollbarProps` / `ScrollbarStyle` / `ScrollbarType` 三个类型；根入口 `src/index.ts:111` 与 `:112-116` |
 
-三个包的 `files` 都只有 `src`、`main/types` 都指向 `./src/index.ts` —— 也就是**源码发布**，宿主 Vite 直接编译，没有 dist 构建步骤（原因见[外部模块](/guide/essentials/external)）。
+这两个包的 `files` 都只有 `src`、`main/types` 都指向 `./src/index.ts` —— 也就是**源码发布**，宿主 Vite 直接编译，没有 dist 构建步骤（原因见[外部模块](/guide/essentials/external)）。
 
 | 约定 | 出处 |
 | --- | --- |
-| 「不依赖 pinia、vue-router、业务 store 或应用配置」，需要这些的薄壳自己成一层 | 三个 `package.json` 的 description 字段（`packages/core/base/icons/package.json:4` 等）；"薄壳留在应用里"的口径已经变了 —— 那层壳现在是 `@antdv/layouts` 这个装配层包，应用侧只剩 `apps/web/src/layouts/index.vue` |
-| 包内组件**一律显式 import**，不靠宿主的解析器 | `IconPicker.vue:4-24`；解析器已从 `internal/vite-config/src/plugins/auto-import.ts` 撤掉 |
+| 「不依赖 pinia、vue-router、业务 store 或应用配置」，需要这些的薄壳自己成一层 | `package.json` 的 description 字段（`packages/core/base/icons/package.json:4`、`packages/core/ui-kit/common-ui/package.json:4`）；"薄壳留在应用里"的口径已经变了 —— 那层壳现在是 `@antdv/layouts` 这个装配层包，应用侧只剩 `apps/web/src/layouts/index.vue` |
+| 包内组件**一律显式 import**，不靠宿主的解析器 | `IconPicker.vue:4-24`；`internal/vite-config/src/plugins/auto-import.ts:27-29` 的 `Components()` 不配 `resolvers`，包组件不会进 `components.d.ts` |
 | 包内**不用 auto-import 的隐式全局**：`useResponsiveMaxHeight.ts` 显式 import `toValue` / `MaybeRefOrGetter`，注释解释换工程就会 `toValue is not defined` | `packages/core/ui-kit/common-ui/src/components/scrollbar/useResponsiveMaxHeight.ts:1-12` |
-| 配置不进包：`native` 由调用方传，包不读 app 配置 | `packages/core/ui-kit/common-ui/src/components/scrollbar/Scrollbar.vue:22-41` |
-| 样式自持，不靠宿主 Tailwind | `Scrollbar.vue:316-324` |
+| 配置不进包：`native` 由调用方传，包不读 app 配置 | `packages/core/ui-kit/common-ui/src/components/scrollbar/Scrollbar.vue:15-17`（`:16` 就是这条注释） |
+| 样式自持，不靠宿主 Tailwind | `Scrollbar.vue:152-158` |
 | 反过来，装配层该读 store 就读：`PageLoading` 读 `useAppStore().resolvedTheme` | `packages/layouts/src/basic/content/page-loading.vue:6`、`:23-25` |
 
 ## 相关页面
 
 - [组件示例](/components/) —— 本章目录、示例页打开方式与统一约定
-- [弹窗与抽屉](/components/modal-drawer) —— `ModalWrapper` 与抽屉 body 都用这里的 `Scrollbar`
+- [弹窗与抽屉](/components/modal-drawer) —— 它们内置的 body 滚动层用的是 shadcn `ScrollArea`；那一页展示的是在这里嵌套 `Scrollbar` 的场景
 - [表格](/components/table) —— `Description` 常与表格组成详情页
 - [图标指南](/guide/essentials/icons) —— 离线 Iconify 集合、新增集合的步骤
 - [加载系统](/guide/in-depth/loading) —— 路由级 loading 与本页组件的分工

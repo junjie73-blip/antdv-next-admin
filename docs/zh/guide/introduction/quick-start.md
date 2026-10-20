@@ -13,7 +13,10 @@ corepack enable
 corepack prepare pnpm@10.12.4 --activate
 ```
 
-::: warning 别用 npm / yarn 根目录的 `preinstall` 脚本会直接拦掉非 pnpm 安装；而且 workspace 依赖、catalog 版本、`internal/*` 的软链都依赖 pnpm 的语义，混用会装出一片假的 `node_modules`。:::
+::: warning
+
+别用 npm / yarn 根目录的 `preinstall` 脚本会直接拦掉非 pnpm 安装；而且 workspace 依赖、catalog 版本、`internal/*` 的软链都依赖 pnpm 的语义，混用会装出一片假的 `node_modules`。
+:::
 
 ## 2. 安装与启动
 
@@ -44,7 +47,7 @@ apps/web dev server ──── 6080 ─  前端（Vite 8 + Vue 3 + antdv-next 
 pnpm dev              # turbo-run dev，web + mock 一起
 pnpm build            # turbo build，按依赖图构建全部包
 pnpm preview          # 预览构建产物
-pnpm test:unit        # 全仓单测（turbo，21 个任务）
+pnpm test:unit        # 全仓单测（turbo；24 个子包声明了 test:unit）
 pnpm test:e2e         # Playwright（会自己起 dev server）
 pnpm lint             # eslint（内部 lint-configs 里的那套共享配置）
 pnpm check:type       # vue-tsc 逐包 type-check
@@ -66,7 +69,8 @@ pnpm --filter @antdv/shared build   # 或直接 pnpm build
 - vite 的 `optimizeDeps` 和类型解析在 alias 到源码时经常和构建结果不一致；
 - `turbo dev` 已经用 `dependsOn: ["^build"]` 保证启动前依赖包是最新的，代价只是首次构建慢一点。
 
-`apps/web/.env.development` 里留了个 `VITE_DEV_POLLING` 开关，在映射盘（本机仓库在 `J:`）上实测**救不回 HMR**，所以保持注释状态，别指望它。:::
+`apps/web/.env.development` 里留了个 `VITE_DEV_POLLING` 开关，在映射盘（本机仓库在 `J:`）上实测**救不回 HMR**，所以保持注释状态，别指望它。
+:::
 
 ## 4. 目录速览
 

@@ -83,7 +83,7 @@ export interface AppSetting {
   theme: ThemeMode;
   themeStyle: ThemeStyle;
   primaryColor: string;
-  /** 圆角倍率：0 / 0.25 / 0.5 / 0.75 / 1，1 档 = 8px（`--radius-lg` 的基准） */
+  /** 圆角倍率：0 / 0.25 / 0.5 / 0.75 / 1，1 档 = 16px（`--radius-lg` 的基准） */
   borderRadius: number;
   /** 正文字号（px），写侧按它折算根字号百分比 */
   fontSize: number;

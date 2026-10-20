@@ -13,7 +13,7 @@ export interface ScrollbarProps {
   viewClass?: (string | undefined)[] | string;
   viewStyle?: ScrollbarStyle;
   tag?: string;
-  /** 滚动条常驻 */
+  /** 滚动条常驻；默认只在滚动过程中显示 */
   always?: boolean;
   maxHeight?: number | string;
   rootClass?: (string | undefined)[] | string;

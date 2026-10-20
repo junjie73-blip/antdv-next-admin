@@ -125,15 +125,15 @@ test.describe('偏好项的实际生效', () => {
      */
     const tiles = drawer.locator('.grid.grid-cols-5 > button');
 
-    // 默认倍率 1 × 基准 8px
+    // 默认倍率 1 × 基准 16px
     await expect
       .poll(() => cssVar(page, '--app-border-radius'))
-      .toBe('8px');
+      .toBe('16px');
 
     await tiles.nth(2).click(); // 0.5
     await expect
       .poll(() => cssVar(page, '--app-border-radius'))
-      .toBe('4px');
+      .toBe('8px');
     await tiles.nth(0).click(); // 0
     await expect
       .poll(() => cssVar(page, '--app-border-radius'))
@@ -157,7 +157,7 @@ test.describe('偏好项的实际生效', () => {
     await tiles.nth(4).click(); // 恢复 1
     await expect
       .poll(() => cssVar(page, '--app-border-radius'))
-      .toBe('8px');
+      .toBe('16px');
 
     await closePreferenceDrawer(page);
     expect(errors.errors).toEqual([]);

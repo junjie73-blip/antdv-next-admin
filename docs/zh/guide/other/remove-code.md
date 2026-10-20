@@ -12,7 +12,10 @@
 
 于是两种"只删一半"的结局不同但都坏：**只删页面不删菜单** = 侧栏留一条死链，点开是 404； **只删菜单不删页面** = 页面还在、还能被直达链接访问（除非你连文件一起删），但没人能进， `site-sweep` 也扫不到它。
 
-::: warning `hidden` 不是删除 `hidden: true` 只表示"不进导航"，节点照样进授权集合（`menus.get.ts` 的注释专门在讲这件事）。菜单管理页那个「导航显示」开关也**不写库**：它只写 localStorage 的 `xy-menu-hidden-overrides` （`stores/modules/route.ts`），而 `apps/web/src/api/menu.ts` 里只有一个 `getMenus()`——没有任何菜单写接口。所以"删掉一条菜单"在本地就等价于改那份 mock 种子文件；接真后端时才是删表数据。:::
+::: warning
+
+`hidden` 不是删除 `hidden: true` 只表示"不进导航"，节点照样进授权集合（`menus.get.ts` 的注释专门在讲这件事）。菜单管理页那个「导航显示」开关也**不写库**：它只写 localStorage 的 `xy-menu-hidden-overrides` （`stores/modules/route.ts`），而 `apps/web/src/api/menu.ts` 里只有一个 `getMenus()`——没有任何菜单写接口。所以"删掉一条菜单"在本地就等价于改那份 mock 种子文件；接真后端时才是删表数据。
+:::
 
 ## 删除清单（按依赖顺序）
 
@@ -48,7 +51,10 @@
 | 系统管理 `views/system/**` | 13 个页面目录 | `api/system.ts`、mock 端 `server/api/system/**`（11 个域）、菜单 `SystemManage` 子树、`stores/modules/dict.ts`（字典 store 消费 system 接口，删了它 `v-*` 里的字典渲染就没数据）、`e2e` 里 13 个 spec 引用 `/system/` |
 | 仪表盘 `views/dashboard/**` | `analysis/` + `__tests__/` | **先改 `HOME_PATH`**（`src/config/constants.ts:17` = `/dashboard/analysis`），否则登录成功与目录节点兜底跳转都会落进 404；`stores/__tests__/route-menu.spec.ts` 与 `views/dashboard/__tests__/analysis-merge.spec.ts` 也把这条路径当锚点 |
 
-::: danger 有一条静态契约专门盯着菜单与页面的对应关系 `apps/web/src/views/dashboard/__tests__/analysis-merge.spec.ts` 直接读 `apps/backend-mock/server/api/menus.get.ts` 的源码，把里面所有 `path: '/...'` 提成集合，再断言分析页快捷操作的跳转目标都在其中。它的注释写得很直白："菜单种子同时是路由表和权限来源"、"删页面必须连种子一起删"。这是全仓最会把"删一半"立刻变红的地方——好事。:::
+::: danger
+
+有一条静态契约专门盯着菜单与页面的对应关系 `apps/web/src/views/dashboard/__tests__/analysis-merge.spec.ts` 直接读 `apps/backend-mock/server/api/menus.get.ts` 的源码，把里面所有 `path: '/...'` 提成集合，再断言分析页快捷操作的跳转目标都在其中。它的注释写得很直白："菜单种子同时是路由表和权限来源"、"删页面必须连种子一起删"。这是全仓最会把"删一半"立刻变红的地方——好事。
+:::
 
 ## 案例 C：删一个 workspace 包
 
@@ -80,7 +86,10 @@
 
 视频三件套是干净的样本：`@videojs-player/vue`、`@videojs/http-streaming`、`video.js` 在 `apps/web/src`、`packages`、`internal`、`apps/web/e2e` 里**零处 import**（`grep -rn -i "videojs\|video-js"` 只剩下文档站自己的两句叙述）。清掉它：删 `apps/web/package.json` 里那三行 → `pnpm install` 同步 lockfile → 要彻底就顺手删 `pnpm-workspace.yaml` catalog 里的对应三行（留着不影响解析，只是下次审计时又得重新确认一遍）。
 
-::: warning "没人 import"和"可以删"是两件事 `pnpm check:dep`（knip）会报一批未使用依赖，但它的默认配置 ignore 了 `docs/**`，`ignoreDependencies` 里还写死了 `playwright`、`rimraf`、`tailwindcss` 等（见 `scripts/vsh/src/check-dep/index.ts`）。构建期才用到的插件、被 CDN 引入的包，在它眼里都是"未使用"。删之前自己 `grep` 一次源码与 `internal/vite-config`。:::
+::: warning
+
+"没人 import"和"可以删"是两件事 `pnpm check:dep`（knip）会报一批未使用依赖，但它的默认配置 ignore 了 `docs/**`，`ignoreDependencies` 里还写死了 `playwright`、`rimraf`、`tailwindcss` 等（见 `scripts/vsh/src/check-dep/index.ts`）。构建期才用到的插件、被 CDN 引入的包，在它眼里都是"未使用"。删之前自己 `grep` 一次源码与 `internal/vite-config`。
+:::
 
 ## 删完用什么兜底
 

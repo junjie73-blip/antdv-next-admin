@@ -12,7 +12,10 @@
 
 **整个工作区只有 3 个依赖没走 catalog**：`apps/web` 的 `clsx@^2.1.1`、`pinia@^3.0.4`、 `vue@^3.5.43`。前两个是历史遗留（`overrides` 已经把它们按回 catalog 口径），`vue` 那行即使写了范围号也会被 `overrides` 顶成 `3.5.43`。改版本就改 `catalog:` 那一行，别在子包补字面量。
 
-::: warning 一处死配置 `pnpm-workspace.yaml` 末尾还有个具名 catalog `catalogs.conflicts_vue_h3_5_43`（`vue: ^3.5.43`），但全仓没有任何 package.json 写 `catalog(conflicts_vue_h3_5_43)` —— 它不参与解析，别指望它生效。:::
+::: warning
+
+一处死配置 `pnpm-workspace.yaml` 末尾还有个具名 catalog `catalogs.conflicts_vue_h3_5_43`（`vue: ^3.5.43`），但全仓没有任何 package.json 写 `catalog(conflicts_vue_h3_5_43)` —— 它不参与解析，别指望它生效。
+:::
 
 ## 安装期真正生效的开关
 
@@ -43,7 +46,10 @@ pnpm release                      # pnpm build && changeset publish
 
 `.changeset/config.json` 里三个决定值得注意：`fixed: [["@antdv/*", "@antdv/*"]]` 让所有 `@antdv/*` 包**永远同版本号一起跳**（所以各包 package.json 都是 0.4.0，包括 `scripts/turbo-run` 与 `scripts/vsh` 这两个还是 5.8.0 的）；`privatePackages: { version: true, tag: true }` 允许给私有包写版本和打标签； `updateInternalDependencies: "patch"`。changelog 走 `@changesets/changelog-github`，仓库名写死为 `junjie73-blip/antdv-next-admin`。
 
-::: danger 别把 `pnpm release` 当成"发 npm" `packages/*`、`apps/*` 与根包的 package.json **全部是 `"private": true`**，也没有 `publishConfig`。changesets 在这里只产出 CHANGELOG 与 git tag，不会往 registry 推任何东西。发布历史也确实薄： `git tag` 现在只有 `v0.0.3` 和一个 `vnull`，而版本号已经走到 0.4.0；`.github/workflows/` 里只有 `docs.yml`（它的注释还引用了一个不存在的 `ci.yml`）。**升级与发版目前是一次纯本地动作**，要打标签得自己 `git tag && git push --tags`。:::
+::: danger
+
+别把 `pnpm release` 当成"发 npm" `packages/*`、`apps/*` 与根包的 package.json **全部是 `"private": true`**，也没有 `publishConfig`。changesets 在这里只产出 CHANGELOG 与 git tag，不会往 registry 推任何东西。发布历史也确实薄： `git tag` 现在只有 `v0.0.3` 和一个 `vnull`，而版本号已经走到 0.4.0；`.github/workflows/` 里只有 `docs.yml`（它的注释还引用了一个不存在的 `ci.yml`）。**升级与发版目前是一次纯本地动作**，要打标签得自己 `git tag && git push --tags`。
+:::
 
 ## 一次 antdv-next 升级怎么跑
 
@@ -75,6 +81,9 @@ cd apps/web && pnpm exec playwright test --project=chromium --reporter=line
 4. **"用错也不报错"的 API**。`apps/web/src/views/__tests__/gallery-api-usage.spec.ts` 会先替你抓到三类：具名 `useApp`（1.6 只有 `App.useApp()`）、把权限指令的参数写成修饰符（`v-permission:role` 才对）、Tabs 绑 `@add`（1.6 只有 `@edit`）。
 5. **图标**。`@antdv-next/icons` + 5 个 `@iconify-json/*` 集合 + `internal/vite-config/src/plugins/auto-import.ts` 的离线列表。写错的图标名不报错，只是空白方块，所以有 `apps/web/test/icon-names.test.ts` 扫 `apps/backend-mock/server`、`apps/web/src`、`packages` 三个根做对账。
 
-::: tip Vue 是唯一被钉死的运行时 catalog 里 `vue: 3.5.43` 是**精确版本**，注释写明了原因：范围号会让部分第三方 peer 树停在 3.5.42，于是 `@vue/runtime-core` 出现两份类型，跨包传 Directive 直接打架。升 Vue 之前先读懂这条注释，再决定 `overrides` 要不要跟着动。:::
+::: tip
+
+Vue 是唯一被钉死的运行时 catalog 里 `vue: 3.5.43` 是**精确版本**，注释写明了原因：范围号会让部分第三方 peer 树停在 3.5.42，于是 `@vue/runtime-core` 出现两份类型，跨包传 Directive 直接打架。升 Vue 之前先读懂这条注释，再决定 `overrides` 要不要跟着动。
+:::
 
 要把不需要的东西拆掉，看[移除代码](/zh/guide/other/remove-code)；工程侧的其它约定见 [开发规范与环境变量](/zh/guide/essentials/development)、[目录说明](/zh/guide/project/dir)。

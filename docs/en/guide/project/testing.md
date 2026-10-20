@@ -5,7 +5,7 @@ The quality bar is three things holding at the same time: **unit tests green, en
 ## Unit tests
 
 ```bash
-pnpm test:unit                 # turbo across the whole repo (21 tasks, ^build first per the dependency graph)
+pnpm test:unit                 # turbo across the whole repo (24 sub-packages declare test:unit, ^build first per the dependency graph)
 pnpm --filter @antdv/shared test:unit
 cd apps/web && pnpm exec vitest run src/views/__tests__/page-root-padding.spec.ts
 cd apps/web && pnpm exec vitest run -t "keyword"
@@ -19,9 +19,15 @@ The layered approach:
 | `apps/web/src/**/__tests__` | The composition layer inside the app: stores, layout assembly, **source contracts** |
 | `apps/web/test/` | Repo-level reconciliation checks, for example whether icon names are real |
 
-::: tip "Source contracts" are this project's signature layer Some rules only pin down when you scan the source: route page root containers must not declare padding (`page-root-padding.spec.ts`), the login page accent color must not be hardcoded (`login-styles.spec.ts`), the tab style class set (`tab-style.spec.ts`), APIs must not be silently misused (`gallery-api-usage.spec.ts`). :::
+::: tip
 
-::: danger Static guards need positive and negative samples Asserting "0 matches in the code that exists today" is not enough — when the regex is wrong (a missed escape, the wrong directory scanned) the result is 0 matches as well, and the guard silently turns into a check that is always green. So every rule ships two sample sets: the wrong form that **must be caught** and the correct form that **must not be flagged**, plus a sanity assertion that the scanned set is not empty (such as `expect(FILES.length).toBeGreaterThan(30)`). :::
+"Source contracts" are this project's signature layer. Some rules only pin down when you scan the source: route page root containers must not declare padding (`apps/web/src/views/__tests__/page-root-padding.spec.ts`), APIs must not be silently misused (`gallery-api-usage.spec.ts`, same directory), the class set for the five tab styles (the `useTabStyle` block starting at `packages/core/ui-kit/tabs-ui/__tests__/actions-and-style.test.ts:184`). The contract that used to pin "the login page accent colour must not be hardcoded" — `views/login/__tests__/login-styles.spec.ts` — was deleted when the login page was rebuilt, so that rule is now only a convention on the [theme page](/en/guide/in-depth/theme) with no test behind it.
+:::
+
+::: danger
+
+Static guards need positive and negative samples Asserting "0 matches in the code that exists today" is not enough — when the regex is wrong (a missed escape, the wrong directory scanned) the result is 0 matches as well, and the guard silently turns into a check that is always green. So every rule ships two sample sets: the wrong form that **must be caught** and the correct form that **must not be flagged**, plus a sanity assertion that the scanned set is not empty (such as `expect(FILES.length).toBeGreaterThan(30)`).
+:::
 
 ## End-to-end
 
@@ -53,7 +59,10 @@ The e2e fixtures live in `apps/web/e2e/utils/app.ts`: `signIn` / `go` / `navigat
 1. **False positive**: the sweep catches dead links by looking for `页面不存在` in the content area's text, and an example page happens to display the 404 `a-result` as demo material inside an `a-card` — a good page got judged as a fallback page. The fix is to make the check **skip text inside cards** (the real fallback page is a bare h1/p), plus a positive-and-negative case proving "dead links are still recognized, the example page's 404 card is not misjudged".
 2. **False red**: during a full WebKit run `/system/user` was judged red, while the failure snapshot sat on the **previous** page (the real-time monitoring big screen, whose own timers were still running) and the tab never appeared — navigation was still in flight, the page was not broken. The sweep is an existence check that "every page opens", not a performance gate, so this engine alone gets a relaxed wait; the other two engines stay tight, and a real regression goes red immediately.
 
-::: tip Telling a timing problem from something that is really broken Rerun that one engine and that one case only: `--project=webkit e2e/xxx.spec.ts -g "name"`. Green when run alone + red in a full run ⇒ environment/concurrency; red when run alone ⇒ a real problem, go read `error-context.md`. :::
+::: tip
+
+Telling a timing problem from something that is really broken Rerun that one engine and that one case only: `--project=webkit e2e/xxx.spec.ts -g "name"`. Green when run alone + red in a full run ⇒ environment/concurrency; red when run alone ⇒ a real problem, go read `error-context.md`.
+:::
 
 ## Assertions must land on outcomes the user can see
 

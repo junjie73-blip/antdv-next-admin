@@ -5,10 +5,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "clean": "rimraf .turbo",
+    "build": "vite build",
+    "clean": "rimraf dist .turbo",
     "test:unit": "vitest run"
   },
   "files": [
+    "dist",
     "src"
   ],
   "main": "./src/index.css",
@@ -34,7 +36,9 @@
   },
   "devDependencies": {
     "@antdv/tsconfig": "workspace:*",
+    "@antdv/vite-config": "workspace:*",
     "rimraf": "catalog:",
+    "vite": "catalog:",
     "vitest": "catalog:"
   }
 }

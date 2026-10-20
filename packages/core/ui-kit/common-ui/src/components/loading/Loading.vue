@@ -6,17 +6,32 @@ import { computed } from 'vue';
 import { Spinner } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 
+import { useGlobalConfig } from '../config-provider';
+
 /**
  * Loading 加载组件
  * 支持全屏和容器内两种模式
  */
 
 const props = withDefaults(defineProps<LoadingProps>(), {
-  size: 'default',
   absolute: false,
   loading: false,
+  size: undefined,
   theme: 'light',
 });
+
+/**
+ * 档位兜底到 `ConfigProvider` 的 `componentSize`：`medium` 对应本组件的
+ * `default` 档，所以不挂 provider 时表现与原来一致。
+ */
+const globalConfig = useGlobalConfig();
+const resolvedSize = computed(
+  () =>
+    props.size ??
+    (globalConfig.componentSize === 'medium'
+      ? 'default'
+      : globalConfig.componentSize),
+);
 
 /**
  * 计算样式
@@ -45,8 +60,8 @@ const wrapperClassName = computed(() => {
     // 绝对定位模式（容器内）
     props.absolute && 'absolute inset-0 size-full',
     // 尺寸钩子：宿主样式与 e2e 用 `.loading-small/.loading-large` 认档位
-    props.size === 'small' && 'loading-small',
-    props.size === 'large' && 'loading-large',
+    resolvedSize.value === 'small' && 'loading-small',
+    resolvedSize.value === 'large' && 'loading-large',
     // 主题背景色（仅当没有自定义背景时）
     !props.background &&
       !props.absolute &&
@@ -76,9 +91,9 @@ const wrapperClassName = computed(() => {
 const spinnerClassName = computed(() =>
   cn(
     'animate-spin',
-    props.size === 'small' && 'size-4',
-    props.size === 'default' && 'size-6',
-    props.size === 'large' && 'size-9',
+    resolvedSize.value === 'small' && 'size-4',
+    resolvedSize.value === 'default' && 'size-6',
+    resolvedSize.value === 'large' && 'size-9',
   ),
 );
 </script>

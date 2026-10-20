@@ -5,6 +5,8 @@ import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import { ToggleGroup, ToggleGroupItem } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 
+import { useGlobalConfig } from '../config-provider';
+
 defineOptions({ name: 'Segmented' });
 
 const props = withDefaults(
@@ -19,7 +21,7 @@ const props = withDefaults(
     block: false,
     disabled: false,
     options: () => [],
-    size: 'middle',
+    size: undefined,
     value: undefined,
   },
 );
@@ -42,9 +44,18 @@ const items = computed<SegmentedOption[]>(() =>
   ),
 );
 
-const groupSize = computed(() =>
-  props.size === 'large' ? 'lg' : props.size === 'small' ? 'sm' : 'default',
+/** 档位兜底到全局 `componentSize`；这一族把中等档叫 `middle`，不叫 `default` */
+const globalConfig = useGlobalConfig();
+const resolvedSize = computed(() =>
+  props.size === undefined && globalConfig.componentSize === 'medium'
+    ? 'middle'
+    : (props.size ?? globalConfig.componentSize),
 );
+
+const groupSize = computed(() => {
+  if (resolvedSize.value === 'large') return 'lg';
+  return resolvedSize.value === 'small' ? 'sm' : 'default';
+});
 
 function select(item: SegmentedOption) {
   if (props.disabled || item.disabled) return;

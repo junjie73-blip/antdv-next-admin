@@ -40,7 +40,10 @@ internal/   构建期工具：只在 Node 里跑，不进产物
 | `@antdv/utils`（`packages/utils`） | 应用无关的纯函数：`menu.ts`（`attachMenuPaths` / `localizeMenus`）、`theme-mode.ts`（`resolveThemeMode`） | 任何有状态的依赖 |
 | `@antdv/enums`（`packages/enums`） | 跨层枚举与字面量：`CacheKey`、字典相关 | 任何运行时依赖 |
 
-::: tip 为什么每张表都多一列"不许 import" 这是这些包能被客户项目单独复用的唯一原因。凡是"要读用户权限 / 要拿菜单 / 要看偏好"的地方，一律通过**依赖注入**把函数或 ref 传进来，包自己不认识 pinia。于是包能保持纯 TS + Vue 组合式、能脱离应用做单测，也不会出现"store 引包、包又反过来引 store"的环。新增能力时先想清楚这条边界，再决定放应用里还是放子包里 —— 需要 store 的薄壳留在 `apps/web`。:::
+::: tip
+
+为什么每张表都多一列"不许 import" 这是这些包能被客户项目单独复用的唯一原因。凡是"要读用户权限 / 要拿菜单 / 要看偏好"的地方，一律通过**依赖注入**把函数或 ref 传进来，包自己不认识 pinia。于是包能保持纯 TS + Vue 组合式、能脱离应用做单测，也不会出现"store 引包、包又反过来引 store"的环。新增能力时先想清楚这条边界，再决定放应用里还是放子包里 —— 需要 store 的薄壳留在 `apps/web`。
+:::
 
 ## 依赖方向
 
@@ -50,7 +53,7 @@ apps/web    ──►  packages/*、packages/core/ui-kit/*（运行时）
 packages/*  ──►  packages/*，且必须单向（types ← 其他所有包）
 ```
 
-环由 CI 里的 `pnpm check:circular`（`vsh check-circular`，底层 `circular-dependency-scanner`）钉住； `pnpm check:dep` 检查依赖声明规范，`pnpm publint` 检查包发布产物，`knip` 找未使用的依赖与导出。
+环由 `pnpm check:circular`（`vsh check-circular`，底层 `circular-dependency-scanner`）钉住 —— 注意这是**手动/本地**的门禁，`.github/workflows/` 里只有 `docs.yml` 一个 job，CI 并不跑它； `pnpm check:dep` 检查依赖声明规范，`pnpm publint` 检查包发布产物，`knip` 找未使用的依赖与导出。
 
 ## 版本从哪来：catalog
 

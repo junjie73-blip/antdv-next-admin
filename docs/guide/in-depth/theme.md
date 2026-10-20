@@ -24,7 +24,10 @@ preferences store（持久化）
 | `--app-primary`（**只有自定义色才写**） | 取色器选的颜色不在任何色板里，只能内联覆盖；预设档写了反而会把暗色档提亮过的主色压回亮色值（`css-vars.ts:23-27`） |
 | `--app-border-radius` / `--app-font-size` / `--app-filter` | 圆角倍率折成 px、正文 px 折成根字号百分比、色弱/灰度滤镜链 |
 
-::: warning `--ant-*` 那四条桥已经整体删掉。`--ant-color-primary`、`--ant-primary-color`、`--ant-border-radius` 等原本是给页面上 antd 组件的桥，antd 的 DOM 请出去之后它们只剩"每次换主题多写几条没人读的声明"，于是连同变量名单一起清了（`@antdv/shared/constants` 的 `css-vars.ts:9-11` 写了这条名单纪律：**只收有读取点的名字**）。契约测试 `packages/core/preferences/__tests__/update-css-variables.test.ts:74-75` 反向钉住"内联样式上不许再出现这两个名字"。:::
+::: warning
+
+`--ant-*` 那四条桥已经整体删掉。`--ant-color-primary`、`--ant-primary-color`、`--ant-border-radius` 等原本是给页面上 antd 组件的桥，antd 的 DOM 请出去之后它们只剩"每次换主题多写几条没人读的声明"，于是连同变量名单一起清了（`@antdv/shared/constants` 的 `css-vars.ts:9-11` 写了这条名单纪律：**只收有读取点的名字**）。契约测试 `packages/core/preferences/__tests__/update-css-variables.test.ts:74-75` 反向钉住"内联样式上不许再出现这两个名字"。
+:::
 
 ## 用 Tailwind 写主题色
 
@@ -36,9 +39,15 @@ cn('bg-primary text-primary-foreground shadow-lg shadow-primary/30');
 cn('bg-primary/10 text-primary ring-1 ring-primary/20');
 ```
 
-::: danger 不要再写 `*-ant-primary`。那组工具类来自 antdv-next 的 Tailwind 兼容层（`@antdv-next/tailwind/compat.css`），`@antdv/design` 已经不引它 —— 不是"颜色不对"，而是**整条类根本不生成**，表现成元素没底色、没边框。目录里现在没有任何包依赖 `@antdv-next/tailwind`（catalog 还挂着 `^1.1.2` 这一条，但引用点为零），并且有测试反着钉：`design.test.ts:399-411` 断言 token 源码里不出现 `--ant-` 与 `-ant-[a-z]`，`:527` 断言本包依赖名单里不许出现 `@antdv-next/tailwind`。:::
+::: danger
 
-::: warning 别写死蓝色 `bg-blue-600`、`text-blue-500`、`#1677ff` 这类硬编码在浅色下看着对，换主色 / 进暗黑就露馅。新写的页面请只从主色令牌取强调色。（存量：部分 view 文件里还留着 `blue-*` / `#1677ff`，属于逐步清理的技术债；原先钉这一条的 `views/login/__tests__/login-styles.spec.ts` 已随登录页迁到 `@antdv/shadcn-ui` 后删除。）:::
+不要再写 `*-ant-primary`。那组工具类来自 antdv-next 的 Tailwind 兼容层（`@antdv-next/tailwind/compat.css`），`@antdv/design` 已经不引它 —— 不是"颜色不对"，而是**整条类根本不生成**，表现成元素没底色、没边框。目录里现在没有任何包依赖 `@antdv-next/tailwind`（catalog 还挂着 `^1.1.2` 这一条，但引用点为零），并且有测试反着钉：`design.test.ts:399-405` 断言 token 源码里不出现 `--ant-` 与 `-ant-[a-z]`，`:527` 断言本包依赖名单里不许出现 `@antdv-next/tailwind`。
+:::
+
+::: warning
+
+别写死蓝色 `bg-blue-600`、`text-blue-500`、`#1677ff` 这类硬编码在浅色下看着对，换主色 / 进暗黑就露馅。新写的页面请只从主色令牌取强调色。（存量：部分 view 文件里还留着 `blue-*` / `#1677ff`，属于逐步清理的技术债；原先钉这一条的 `views/login/__tests__/login-styles.spec.ts` 已随登录页改版删除。）
+:::
 
 ## 每个主题都是一份完整色板
 
@@ -54,13 +63,16 @@ antd 把 `colorLink` 绑在自己的 `#1677ff` 上，而不是从 `colorPrimary`
 
 `ThemeMode = 'auto' | 'dark' | 'light'`。系统那一侧由 `createSystemDark()` 订阅 `matchMedia('(prefers-color-scheme: dark)')`（不支持 SSR/老浏览器时恒为浅色，`packages/utils/src/theme-mode.ts:43`），`auto` 再由 `resolveThemeMode(mode, isSystemDark)`（`:14`）折叠成真正生效的 dark / light。两个函数都从 `@antdv/utils` 出口，`~/settings` 再转口一次。
 
-::: warning 判断"现在是不是深色"要用解析结果 `appStore.themeMode === 'dark'` 在 `auto` 模式下**永远为 false**，即使系统已经是深色。需要按明暗分支的地方（ECharts 配色、大屏底色）要读 `resolvedTheme`，不能读 `themeMode`。:::
+::: warning
+
+判断"现在是不是深色"要用解析结果 `appStore.themeMode === 'dark'` 在 `auto` 模式下**永远为 false**，即使系统已经是深色。需要按明暗分支的地方（ECharts 配色、大屏底色）要读 `resolvedTheme`，不能读 `themeMode`。
+:::
 
 DOM 侧的 class 由 `applyPreferencesToDom()` 增删（默认 `dark`，可传 `darkClass`），Tailwind 的 `dark:` 变体和 `@antdv/design` 的 dark 规则都挂在这个 class 上。
 
 ## 风格预设是注册式的
 
-`ThemeStyle` 有 11 个值（`default / compact / dark / geek / glass / bootstrap / cartoon / illustration / mui / shadcn / skeuomorphism`，`packages/core/base/typings/src/app.ts:68-78`），但 antd 侧**不内置**全部视觉方案，只留了注入口，否则设置面板里的"风格"下拉就是个摆设。注意这张注册表住在**应用**里（`apps/web/src/settings/theme/index.ts:57`，从 `~/settings` 出口），不在 `@antdv/preferences`：
+`ThemeStyle` 有 11 个值（`default / compact / dark / geek / glass / bootstrap / cartoon / illustration / mui / shadcn / skeuomorphism`，`packages/core/base/typings/src/app.ts:68-79`），但 antd 侧**不内置**全部视觉方案，只留了注入口，否则设置面板里的"风格"下拉就是个摆设。注意这张注册表住在**应用**里（`apps/web/src/settings/theme/index.ts:57`，从 `~/settings` 出口），不在 `@antdv/preferences`：
 
 ```ts
 import { registerThemePreset } from '~/settings';
@@ -76,7 +88,7 @@ registerThemePreset('glass', {
 
 ## 圆角是倍率，字号是 px
 
-偏好里 `borderRadius` 存倍率（`0 / 0.25 / 0.5 / 0.75 / 1`，默认 `1`，见 `packages/core/preferences/src/config.ts` 的 `DEFAULT_PREFERENCES`），基准 8px（`BORDER_RADIUS_BASE`，即 `@antdv/design` 里 `--radius-lg` 的档）。换算有两条出口且同源：`themeOverridesFrom()` 把倍率换成 px 交给 antd token（`settings/theme/index.ts:125`），`writeThemeCssVars()` 把同一个 px 写成 `--app-border-radius`。Tailwind 的 `rounded-*` 只认 `--radius-*` 那一份表，所以这个变量是唯一例外——它进的是 `--radius-*` 命名空间而不是颜色命名空间（`design.test.ts:123-133` 的注释与用例）。
+偏好里 `borderRadius` 存倍率（`0 / 0.25 / 0.5 / 0.75 / 1`，默认 `1`，见 `packages/core/preferences/src/config.ts` 的 `DEFAULT_PREFERENCES`），基准 16px（`BORDER_RADIUS_BASE`，即 `@antdv/design` 里 `--radius-lg` 的档）。换算有两条出口且同源：`themeOverridesFrom()` 把倍率换成 px 交给 antd token（`settings/theme/index.ts:125`），`writeThemeCssVars()` 把同一个 px 写成 `--app-border-radius`。Tailwind 的 `rounded-*` 只认 `--radius-*` 那一份表，所以这个变量是唯一例外——它进的是 `--radius-*` 命名空间而不是颜色命名空间（`design.test.ts:123-133` 的注释与用例）。
 
 `fontSize` 存的是 px 本身（默认 `14`）：`themeOverridesFrom()` 里 `0`/`NaN` 会退回基准 16px，免得整棵组件树字号塌成 0。CSS 侧写的不是 px 而是根字号百分比（`--app-font-size`），因为正文用的是 `text-sm` = 0.875rem，直接写 px 会让所有 rem 尺寸一起缩。
 

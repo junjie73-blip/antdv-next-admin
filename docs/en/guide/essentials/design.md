@@ -33,7 +33,8 @@ Light and dark are **two independent value sets**, not "light with a few tweaks"
 
 - **No components**: the package has not a single `.vue` file and no `src/index.ts`. The shared display components (Card, Tag, Steps …) live in `@antdv/common-ui`, the icon atoms in `@antdv/icons`; the comment at `index.css:18` states exactly this boundary.
 - **No component-library awareness**: it imports no JS from any component library and no style compatibility layer either — every token and rule is owned by this package, so renaming or swapping a component library never requires a change here. The one leftover is the pair of `.ant-upload` cursor rules in `css/base.css:128-134` (antd leaves `cursor: pointer` off its upload trigger; deletable once that DOM is gone from the page).
-- **No business styling**: thin shells that need a store (for instance `packages/layouts/src/basic/content/page-loading.vue`) stay in the app and are never moved here. :::
+- **No business styling**: thin shells that need a store (for instance `packages/layouts/src/basic/content/page-loading.vue`) stay in the app and are never moved here.
+:::
 
 ## The layer order is declared explicitly
 
@@ -118,13 +119,19 @@ The convention is **utilities + `cn()`**, where `cn()` = clsx + tailwind-merge (
 | Small reusable chunks | the shared classes `.icon`, `.outline-box`, `.outline-box-active` (`css/base.css:70-80`) |
 | Transitions / keyframes | only then open a `<style scoped>` |
 
-::: warning Tailwind only understands literal class names
+::: warning
+
+Tailwind only understands literal class names
 
 - A class name must be **a complete string as it appears in the source**. Concatenation (`text-${color}-500`), building a step name out of variables, or writing classes in a directory that `@source` does not cover all produce **no CSS and no error**.
 - Do not write `cn(...)` in a template attribute with a **trailing comma**; the form used across the component packages is to collapse it into a `computed` in `<script setup>` and let the template reference the variable — that is how every component in `packages/core/ui-kit/common-ui` does it, which keeps expressions out of the template and keeps the class strings literal.
-- Status-to-color mappings go through a **lookup table** (`Record<string, string>` whose values are full class strings), never `cn('text-' + tone)`. See the `STATUS_DOT` / `CIRCLE` / `PRESET` constants in `packages/core/ui-kit/common-ui/src/components/badge/Badge.vue`, `steps/Steps.vue` and `tag/Tag.vue`. :::
+- Status-to-color mappings go through a **lookup table** (`Record<string, string>` whose values are full class strings), never `cn('text-' + tone)`. See the `STATUS_DOT` / `CIRCLE` / `PRESET` constants in `packages/core/ui-kit/common-ui/src/components/badge/Badge.vue`, `steps/Steps.vue` and `tag/Tag.vue`.
+:::
 
-::: warning Do not pad the outer container of a route page. Content padding belongs to the layout; a page that adds its own layer doubles it when the layout shape changes. See [Local development](/en/guide/essentials/development) and [Layout and tabs](/en/guide/in-depth/layout). :::
+::: warning
+
+Do not pad the outer container of a route page. Content padding belongs to the layout; a page that adds its own layer doubles it when the layout shape changes. See [Local development](/en/guide/essentials/development) and [Layout and tabs](/en/guide/in-depth/layout).
+:::
 
 Do not pin colors. Under dark mode the component library **recomputes the primary color** on `.ant-app`, so overrides belong on the seed variables on `html`, and test assertions must not name concrete color values — a trap this repository has already fallen into; details in [Theming](/en/guide/in-depth/theme).
 

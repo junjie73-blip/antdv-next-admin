@@ -23,7 +23,7 @@
 - **回跳不能写死 `/dashboard`**。那是菜单目录节点，本身没有页面组件，跳过去是 "外壳都在、内容区空白"。守卫侧还有一道兜底：`resolveDirectory` 会把目录落到它的第一个可见叶子（`router/guards/index.ts`）。
 - **演示账号是 `admin / admin123`**，账号表在 `apps/backend-mock/server/utils/accounts.ts`（`authenticate` / `issueToken` 都从这里出），token 形如 `mock_token_<username>_<timestamp>`；页面底部有提示文案。
 - **手机号登录 tab 没有接到后端**。`handleLogin` 无论哪种模式都调用 `userStore.login(username, password)`，"发送验证码"只弹一条 message； `remember` 复选框同样没有被消费。接真实后端时这几处都要补。
-- 加密失败会**降级明文存储**并 `console.warn`（`setToken` 的 try/catch），不会把用户挡在登录页外。
+- 加密失败会**降级明文存储**并 `console.warn`（`login()` 里包着 `setToken` 调用的 try/catch，`user.ts:135-145`），不会把用户挡在登录页外。注意 `setToken` 本身（`user.ts:56-61`）没有降级分支，密文写盘失败就往上抛，兜底逻辑在 `login()`。
 
 ## 守卫如何拦截与放行
 
@@ -44,9 +44,15 @@
 2. 收到 401 时 `doOnceWithAuthReplay` 会**刷新一次并重放一次**；认证端点自身、已在登出流程、或已重放过的直接抛错，避免死循环。
 3. `forceLogout`（`packages/request/src/fetcher.ts:73-88`）做两件事：调应用注入的 `onLogout()`（应用侧 `plugins/request-runtime.ts` 把它绑到 `useUserStore().logout()` 这一唯一出口），然后 **改 hash** 回 `#/login?redirect=…`。本应用是 `createWebHashHistory`，写 `location.href = '/login'` 会触发整页重载、打断进行中的导航并把 redirect 弄丢。
 
-::: warning Mock 环境没有 `/auth/refresh` `backend-mock/server/api/auth/` 下只有 `login` / `logout` / `user-info`，登录响应也不发 refresh token。所以演示环境里 401 的直接结果就是 `forceLogout`。刷新链路是按 `REFRESH_TOKEN_KEY`（`config/constants.ts`）设计的，接真实后端才会被激活。:::
+::: warning
 
-::: tip token 解密要显式触发 store 初始化只把缓存里的密文原样读进 `token`；`initToken()` 负责异步解密（解密失败回落原值，兼容旧明文）。它不在应用启动路径上，改这条链路时记得验证 "刷新页面后 Authorization 头里是可用的 token"。:::
+Mock 环境没有 `/auth/refresh` `backend-mock/server/api/auth/` 下只有 `login` / `logout` / `user-info`，登录响应也不发 refresh token。所以演示环境里 401 的直接结果就是 `forceLogout`。刷新链路是按 `REFRESH_TOKEN_KEY`（`config/constants.ts`）设计的，接真实后端才会被激活。
+:::
+
+::: tip
+
+token 解密要显式触发：store 建好时只会把缓存里的密文原样同步读进 `token`（`user.ts:19-20`）；`initToken()` 才负责异步解密，解密失败时回落原值以兼容旧明文（`user.ts:36-45`）。它就在应用启动路径上——`main.ts` 的 `bootstrap()` 会在装路由与挂载之前 `await useUserStore().initToken()`（`main.ts:167-171`），且必须早于首次导航，否则守卫拿到的仍是密文、`Authorization` 头会 401。
+:::
 
 ## 登出清哪四件套
 

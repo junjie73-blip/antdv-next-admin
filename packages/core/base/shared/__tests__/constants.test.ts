@@ -90,11 +90,12 @@ describe('theme', () => {
 
   /**
    * 两个基准值决定了"偏好里的倍率/px 换算成什么"，挪动它们等于全站半径与字号一起变。
-   * 8px 是 Tailwind 的 `--radius-lg` 档（1 档 = 默认），14 是正文 `text-sm` 的 px 值，
-   * 于是默认偏好（倍率 1、字号 14）换算后落回 `--app-font-size: 100%` —— 首屏零位移。
+   * 圆角基准固定在 16px：倍率 1 就是 `--radius-lg` = 16px，整条刻度按它派生。
+   * 字号基准 14 是正文 `text-sm` 的 px 值，所以默认偏好（倍率 1、字号 14）换算后
+   * 落回 `--app-font-size: 100%` —— 字号首屏零位移（半径是有意变大，不是漂移）。
    */
-  it('圆角与字号的换算基准：默认偏好换算后不改变视觉', () => {
-    expect(BORDER_RADIUS_BASE).toBe(8);
+  it('圆角基准固定 16px，字号基准换算后默认偏好落回 100%', () => {
+    expect(BORDER_RADIUS_BASE).toBe(16);
     expect(BASE_FONT_SIZE).toBe(14);
   });
 });

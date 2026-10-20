@@ -220,7 +220,6 @@ async function fetchApi(params: Record<string, any>) {
   </BasicTable>
 </template>
 ```
-
 - `columns.ts` 定义列
 - `schemas.ts` 定义搜索/弹窗表单
 - `actions.ts` 定义行操作（无状态 + ctx）
@@ -495,3 +494,15 @@ import type { UserRecord } from './types';
 - 频繁触发的回调用 `useDebounceFn` / `useThrottleFn`
 - 路由懒加载（`defineAsyncComponent` / 动态 import）
 - 避免在 `setup` 里做重计算，用 `computed` 工厂函数
+
+---
+
+## 21. 子包构建
+
+统一构建标准，禁止"某些包 build、某些包只热更新"的混配（细则与踩过的坑见 `docs/guide/essentials/development.md` 的「子包统一构建标准」）：
+
+- 每个子包必须有 `build`；纯 JSON / CSS 预设包（`tsconfig`、`stylelint-config`、`commitlint-config`）除外，例外要在守卫脚本里登记理由
+- `stub` 不能是唯一的构建方式；要留必须与真 `build` 并存
+- 按源码发布（`exports` 指向 `./src/**`）的包：`vite.config.mts` 写 `defineLibraryConfig()`，`build` 用 `vite build`，**不挂自己的 `dev` / `watch`**（热更新由宿主应用的 dev server 提供）
+- 按产物发布（`exports` 指向 `./dist/**`）的包与 `internal/*`、`scripts/*`：`build` 用 `pnpm exec tsdown`，`files` 必须列出 `dist`
+- 提交前跑 `pnpm check:builds`；产物是否覆盖 `exports` 每个子路径由包内 `antdv:validate-dist` 在构建期把关

@@ -8,13 +8,16 @@ The only `app.directive(...)` calls in the entire repository are these five, at 
 
 | Directive | Implementation lives in | App-side injection | Production use sites (outside the demo) |
 | --- | --- | --- | --- |
-| `v-permission` | `packages/directives/src/permission/index.ts:57` | `apps/web/src/directives/index.ts:19-36` | `apps/web/src/components/business/ImportExport.vue:206, 223` |
-| `v-loading` | `packages/core/ui-kit/common-ui/src/components/loading/directive.ts:88-107` | the `vLoading` from `@antdv/common-ui`, registered directly (`main.ts:8, 113`) | `apps/web/src/views/components/loading/index.vue:1026` onwards |
-| `v-lazy` | `packages/directives/src/lazy.ts:145, 311` | re-exported at `apps/web/src/directives/index.ts:16` | **no usage outside the demo page** (see below) |
+| `v-permission` | `packages/directives/src/permission/index.ts:57` | `apps/web/src/directives/index.ts:19-36` | `apps/web/src/components/business/ImportExport.vue:234, 244` |
+| `v-loading` | `packages/core/ui-kit/common-ui/src/components/loading/directive.ts:88-107` | the `vLoading` from `@antdv/common-ui`, registered directly (`main.ts:8, 132`) | `apps/web/src/views/components/loading/index.vue:1236` onwards |
+| `v-lazy` | `packages/directives/src/lazy.ts:145, 316` | re-exported at `apps/web/src/directives/index.ts:16` | **no usage outside the demo page** (see below) |
 | `v-safe-html` | `packages/core/base/shared/src/utils/xss.ts:446` | re-exported at `apps/web/src/directives/index.ts:17` | `markdown-editor/MarkdownEditor.vue:664`, editor demo `editor/index.vue:880` |
-| `v-escape` | `packages/core/base/shared/src/utils/xss.ts:454-462` | re-exported at `apps/web/src/directives/index.ts:17` | **no usage outside the demo page** (see below) |
+| `v-escape` | `packages/core/base/shared/src/utils/xss.ts:463-471` | re-exported at `apps/web/src/directives/index.ts:17` | **no usage outside the demo page** (see below) |
 
-::: warning Don't look for everything under the package name `@antdv/directives` contains **only permission and lazy** (its `src/index.ts:10-11` has exactly those two exports). `escape` / `safe-html` live in `@antdv/shared/utils/xss`, `v-loading` lives in `@antdv/common-ui`. `apps/web/src/directives/index.ts` exists to inject project dependencies into the factories: the packages never import pinia / stores (the design constraint is stated at `packages/directives/src/index.ts:4-7`); checkers and the subscription source come from the app. :::
+::: warning
+
+Don't look for everything under the package name `@antdv/directives` contains **only permission and lazy** (its `src/index.ts:10-11` has exactly those two exports). `escape` / `safe-html` live in `@antdv/shared/utils/xss`, `v-loading` lives in `@antdv/common-ui`. `apps/web/src/directives/index.ts` exists to inject project dependencies into the factories: the packages never import pinia / stores (the design constraint is stated at `packages/directives/src/index.ts:4-7`); checkers and the subscription source come from the app.
+:::
 
 ## v-permission: decisions outside the package, DOM flags inside it
 
@@ -44,13 +47,17 @@ The only `app.directive(...)` calls in the entire repository are these five, at 
 
 1. **`:role` is an arg, `.role` is a modifier** — the evaluator only reads the arg (`utils.ts:41`); `.role` silently degrades to permission-code interpretation. The demo prints this on its UI (`apps/web/src/views/components/directive/index.vue:284-289`).
 2. **Empty values pass**: `undefined` / `null` / `''` / `[]` all grant access (`utils.ts:90-97`). `v-permission="[]"` is the same as not writing it.
-3. **Mode precedence**: `mode` in the object > `.all` modifier > default `any` (`utils.ts:100-101`); once the object sets `mode: 'all'`, `.all` no longer says anything. :::
+3. **Mode precedence**: `mode` in the object > `.all` modifier > default `any` (`utils.ts:100-101`); once the object sets `mode: 'all'`, `.all` no longer says anything.
+:::
 
 ### What happens to the DOM when access is denied
 
-`applyPermissionState()` (`utils.ts:176-209`): the default hiding mode sets `display: none` plus the `disabled` attribute, `aria-disabled`, and the class `permission-disabled`; `.disabled` keeps the element visible and only disables it. **Nodes are never removed** — deleting a node leaves Vue's patch without an anchor and corrupts sibling diffing (comment at `utils.ts:172-174`). The degraded style is `packages/core/base/design/src/css/permission.css:12-17` (`cursor-not-allowed opacity-50 saturate-50 select-none` + `pointer-events: none`, because non-form elements ignore the `disabled` attribute), with an escape hatch class `permission-disabled--passthrough` (`permission.css:21-23`) for "looks degraded but still interactive". The stylesheet is pulled in by `packages/core/base/design/src/index.css:26`.
+`applyPermissionState()` (`utils.ts:176-209`): the default hiding mode sets `display: none` plus the `disabled` attribute, `aria-disabled`, and the class `permission-disabled`; `.disabled` keeps the element visible and only disables it. **Nodes are never removed** — deleting a node leaves Vue's patch without an anchor and corrupts sibling diffing (comment at `utils.ts:172-174`). The degraded style is `packages/core/base/design/src/css/permission.css:12-17` (`cursor-not-allowed opacity-50 saturate-50 select-none` + `pointer-events: none`, because non-form elements ignore the `disabled` attribute), with an escape hatch class `permission-disabled--passthrough` (`permission.css:21-23`) for "looks degraded but still interactive". The stylesheet is pulled in by `packages/core/base/design/src/index.css:35`.
 
-::: tip The router layer reads none of this The `RouteMeta` type declares `roles?: string[]` / `permissions?: string[]` (`packages/core/base/typings/src/app-router.ts:9-10`), but **nothing anywhere in `apps/web/src/router/**` or `packages/router/src/**` reads them** — route admission is actually driven by menu data ("menu is the permission"; `packages/stores/src/route.ts:181, 210` only handles `meta.requiresAuth`). `v-permission` governs only the element layer; the full three-layer picture is in [Access control](/en/guide/in-depth/access). :::
+::: tip
+
+The router layer reads none of this The `RouteMeta` type declares `roles?: string[]` / `permissions?: string[]` (`packages/core/base/typings/src/app-router.ts:9-10`), but **nothing anywhere in `apps/web/src/router/**` or `packages/router/src/**` reads them** — route admission is actually driven by menu data ("menu is the permission"; `packages/stores/src/route.ts:181, 210` only handles `meta.requiresAuth`). `v-permission` governs only the element layer; the full three-layer picture is in [Access control](/en/guide/in-depth/access).
+:::
 
 ## v-loading: boolean-driven, configuration read from attributes
 
@@ -60,11 +67,14 @@ The directive value is a `boolean` (type annotation at `packages/core/ui-kit/com
 - **Mount target is decided by modifiers**: `.fullscreen` or `.body` pins the overlay to `body`, covering the whole page (`directive.ts:59-61`); the default covers the element itself.
 - **Overlay instances are created lazily and kept in a WeakMap** (`directive.ts:45, 69-86`): `mounted` creates an instance even when the value is `false` (hidden), `updated` only toggles visibility (`directive.ts:93-99`), `unmounted` destroys it (`directive.ts:101-104`).
 
-::: warning Attributes are read exactly once, at overlay creation `getPropsFromAttributes()` runs only when the overlay instance is **first created** (`directive.ts:70-76` — an existing instance is returned as-is). Changing `loading-tip` / `loading-theme` attributes after mount has **no effect**; the only hot-updatable setting is the directive arg `binding.arg` (`directive.ts:96-98`). :::
+::: warning
+
+Attributes are read exactly once, at overlay creation `getPropsFromAttributes()` runs only when the overlay instance is **first created** (`directive.ts:70-76` — an existing instance is returned as-is). Changing `loading-tip` / `loading-theme` attributes after mount has **no effect**; the only hot-updatable setting is the directive arg `binding.arg` (`directive.ts:96-98`).
+:::
 
 ## v-lazy: the default instance plus a four-layer resolution
 
-`app.directive('lazy', vLazy)` registers the default instance produced by calling `createLazyDirective()` with no options (`packages/directives/src/lazy.ts:311`). The binding value is an object or a string (the string is `src`, `lazy.ts:24`); the directive is only meant for `<img>` elements.
+`app.directive('lazy', vLazy)` registers the default instance produced by calling `createLazyDirective()` with no options (`packages/directives/src/lazy.ts:316`). The binding value is an object or a string (the string is `src`, `lazy.ts:24`); the directive is only meant for `<img>` elements.
 
 | Option | Default | Notes |
 | --- | --- | --- |
@@ -80,17 +90,17 @@ Resolution precedence: **`binding.value` > `data-*` attributes > factory-level `
 
 ### v-safe-html
 
-The `updateSafeHtml()` pipeline (`packages/core/base/shared/src/utils/xss.ts:476-533`): **regex-strip the worst content first, then hand the result to DOMPurify with a tag whitelist**. The binding value is a string or a `{ content, allowedTags, … }` object (options are `XssFilterOptions`, `xss.ts:21-38;` the caller's fields override the defaults, `xss.ts:514-519`).
+The `updateSafeHtml()` pipeline (`packages/core/base/shared/src/utils/xss.ts:485-542`): **regex-strip the worst content first, then hand the result to DOMPurify with a tag whitelist**. The binding value is a string or a `{ content, allowedTags, … }` object (options are `XssFilterOptions`, `xss.ts:21-38;` the caller's fields override the defaults, `xss.ts:514-519`).
 
 - Stage one, `stripDangerousMarkup()` (`xss.ts:127-153`): paired deletion of `<script>/<iframe>/<object>/<embed>/<applet>`, then a sweep of leftover fragments; strips every `on*=` handler and `srcdoc`. The stated motivation: DOMPurify may parse inconsistently in SSR / test environments, so this strip guarantees a **floor in every runtime** (`xss.ts:119-126`).
-- Stage two, DOMPurify (`xss.ts:523-530`): whitelist `defaultSafeTags` (`xss.ts:482-511` — paragraphs, headings, lists, tables, `a`, `img` and friends), with `ALLOW_DATA_ATTR: false`. If DOMPurify is unavailable the pipeline falls back to full `escapeHtml()` (`xss.ts:530`).
-- The result is written straight to `el.innerHTML` (`xss.ts:532`) — **existing child nodes of the host are discarded**; use it on empty elements only.
+- Stage two, DOMPurify (`xss.ts:531-539`): whitelist `defaultSafeTags` (`xss.ts:491-520` — paragraphs, headings, lists, tables, `a`, `img` and friends), with `ALLOW_DATA_ATTR: false`. If DOMPurify is unavailable the pipeline falls back to full `escapeHtml()` (`xss.ts:539`).
+- The result is written straight to `el.innerHTML` (`xss.ts:541`) — **existing child nodes of the host are discarded**; use it on empty elements only.
 
 ### v-escape
 
-`escapeDirective` does one thing: write the value into `el.textContent` (`xss.ts:470-474`), so content can never be parsed as HTML. The arg selects the context (`EscapeType`, `xss.ts:41`):
+`escapeDirective` does one thing: write the value into `el.textContent` (`xss.ts:481-482`), so content can never be parsed as HTML. The arg selects the context (`EscapeType`, `xss.ts:41`):
 
-- default / `:html`: **displayed verbatim** — no entity encoding, because `textContent` already doesn't parse tags and double-encoding would only show the user `&lt;` noise (comment at `xss.ts:464-469`).
+- default / `:html`: **displayed verbatim** — no entity encoding, because `textContent` already doesn't parse tags and double-encoding would only show the user `&lt;` noise (comment at `xss.ts:473-478`).
 - `:url`: dangerous protocols (`javascript:` / `vbscript:` / `data:text/html`) are replaced wholesale by `#unsafe-url` with a `console.warn` (`xss.ts:198-214`); everything else goes through `encodeURI`.
 - `:js` / `:css` / `:attr`: a semantic transformation first, then still displayed as text (`smartEscape`, `xss.ts:286-310`).
 
@@ -108,34 +118,37 @@ Open `http://localhost:6080/#/components/directive` (for starting the services a
 
 ## Drag layout: VueDraggable (the component, not the directive)
 
-The whole `/components/drag-layout` page is built on `vue-draggable-plus`'s **`VueDraggable` component** (`apps/web/src/views/components/drag-layout/index.vue:7`). Dependency and version: `apps/web/package.json:107` (`"vue-draggable-plus": "catalog:"`, a runtime dependency) → pinned at `^0.6.1` in `pnpm-workspace.yaml:216`; it entered the repo with the architecture commit (`ea1ffefc`), while the demo directory itself is still an untracked new page in the working tree (menu node `DemoDragLayout` at `menus.get.ts:335-340`, path `/components/drag-layout` at `menus.get.ts:339`).
+The whole `/components/drag-layout` page is built on `vue-draggable-plus`'s **`VueDraggable` component** (`apps/web/src/views/components/drag-layout/index.vue:5`). Dependency and version: `apps/web/package.json:105` (`"vue-draggable-plus": "catalog:"`, a runtime dependency) → pinned at `^0.6.1` in `pnpm-workspace.yaml:239`; it entered the repo with the architecture commit (`ea1ffefc`), while the demo directory itself is still an untracked new page in the working tree (menu node `DemoDragLayout` at `menus.get.ts:342-347`, path `/components/drag-layout` at `menus.get.ts:339`).
 
-::: tip The component form is used; the library's other two forms have no callers `vue-draggable-plus` also exports a `v-draggable` directive and a `useDraggable` composable (three entry points in `dist/index.d.ts`), but a repository-wide search finds **zero call sites** — neither this demo nor the table's `dragSort` uses them (table row dragging binds Sortable inside `BasicTable`; see `packages/core/ui-kit/table-ui/src/hooks/useDragSort.ts`, documented on the [Table](/en/components/table) page, not repeated here). :::
+::: tip
+
+The component form is used; the library's other two forms have no callers `vue-draggable-plus` also exports a `v-draggable` directive and a `useDraggable` composable (three entry points in `dist/index.d.ts`), but a repository-wide search finds **zero call sites** — neither this demo nor the table's `dragSort` uses them (table row dragging binds Sortable inside `BasicTable`; see `packages/core/ui-kit/table-ui/src/hooks/useDragSort.ts`, documented on the [Table](/en/components/table) page, not repeated here).
+:::
 
 ### Props are sortablejs Options
 
-`VueDraggable`'s props are the full sortablejs `Options` plus `modelValue` / `tag` / `target` (the library's type definition: `IProps extends UseDraggableOptions`; the demo's header comment says the same, `drag-layout/index.vue:13-14`). Event names are the sortablejs callbacks with the `on` prefix dropped: `@start` / `@update` / `@add` / `@remove` / `@end` / `@filter`. Each of the five blocks demonstrates a different configuration concern:
+`VueDraggable`'s props are the full sortablejs `Options` plus `modelValue` / `tag` / `target` (the library's type definition: `IProps extends UseDraggableOptions`; the demo's header comment says the same, `drag-layout/index.vue:15-16`). Event names are the sortablejs callbacks with the `on` prefix dropped: `@start` / `@update` / `@add` / `@remove` / `@end` / `@filter`. Each of the five blocks demonstrates a different configuration concern:
 
 | Card | Demonstrates | Key config, with source |
 | --- | --- | --- |
-| Basic list | `v-model` owns the array | `v-model="basicList"` (a local ref, `index.vue:131-138`), `:animation="150"`, `ghost-class` / `chosen-class` (`index.vue:265-271`); the tag strip below tracks v-model live (`index.vue:278-283`) |
-| Handle | trigger zone narrowed to ⠿ | `handle=".drag-grip"` (`index.vue:295`); the grip class sits on the row's span (`gripClassName`, `index.vue:68-77`; template at `index.vue:302`). Row text stays selectable (`selectableClassName`, `index.vue:67`) |
-| Two lists | cross-container group | both sides share the module-level constant `panelGroup = { name: 'drag-layout-panel', pull: true, put: true }` (`index.vue:162-166`), bound to two refs `candidateList` / `chosenList` (`index.vue:181-182, 330, 351`) |
-| Grid cards | list → grid, zero config changes | `VueDraggable` itself is the grid container (`:class="cardGridClassName"`, the `grid grid-cols-1 … xl:grid-cols-4` at `index.vue:92, 382-387`) |
-| Constraints | disabled / filter / onEnd | `:disabled="dragDisabled"` (`index.vue:419`, switch at `index.vue:230`), `:filter="lockedSelector"` (`index.vue:420`, selector `.drag-locked` at `index.vue:212`), `:prevent-on-filter="false"` (`index.vue:421`), `@end="handleEnd"` (`index.vue:426`) |
+| Basic list | `v-model` owns the array | `v-model="basicList"` (a local ref, `index.vue:206, 391`), `:animation="150"`, `ghost-class` / `chosen-class` (`index.vue:392-394`); the tag strip below tracks v-model live (`index.vue:278-283`) |
+| Handle | trigger zone narrowed to ⠿ | `handle=".drag-grip"` (`index.vue:424`); the grip class sits on the row's span (`gripClassName`, `index.vue:99`; template at `index.vue:435`). Row text stays selectable (`selectableClassName`, `index.vue:67`) |
+| Two lists | cross-container group | both sides share the module-level constant `panelGroup = { name: 'drag-layout-panel', pull: true, put: true }` (`index.vue:249`), bound to two refs `candidateList` / `chosenList` (`index.vue:181-182, 330, 351`) |
+| Grid cards | list → grid, zero config changes | `VueDraggable` itself is the grid container (`:class="cardGridClassName"`, the `grid grid-cols-1 … xl:grid-cols-4` at `index.vue:136, 529`) |
+| Constraints | disabled / filter / onEnd | `:disabled="dragDisabled"` (`index.vue:575`, switch at `index.vue:353`), `:filter="lockedSelector"` (`index.vue:576`, selector `.drag-locked` at `index.vue:335`), `:prevent-on-filter="false"` (`index.vue:577`), `@end="handleEnd"` (`index.vue:426`) |
 
 Hard conclusions read straight from the source:
 
-- **You don't sync the order yourself.** Sortable fires `update` first — and the library has already spliced the `v-model` array by then — before firing `end`; manually moving items inside `end` is duplicate work, and stacking the two reorders garbles the sequence (comment at `index.vue:236-243`). The `v-for` `key` must be a stable id: keys by index fight Sortable's real-DOM node moves and produce visible misplacement (`index.vue:259-263`).
-- **Don't write `group` as a template literal.** `:group="{ name: 'x' }"` creates a new object on every render; the library deep-compares options and re-applies them one by one via `sortable.option(...)`, wasting work and risking a momentary config mismatch mid-drag — hence the module-level constant (`index.vue:156-161`).
-- **An empty container needs height.** `emptyInsertThreshold` defaults to 5px; a collapsed zero-height list can't catch a drop. The right-hand "已选上墙" panel still accepts drops when emptied because its list carries `min-h-[112px]` (`index.vue:90-91`; copy at `index.vue:314-317`).
-- **The grid has exactly one constraint**: the `VueDraggable` layer must itself be the grid container (it renders a `div` by default; `tag` changes that) — wrapping the cards in an extra layer kills dragging, because Sortable only recognises the container's direct children (`index.vue:372-378`).
-- **`preventOnFilter` defaults to `true` and bites buttons**: it calls `preventDefault()` on elements hit by `filter`, which makes the row's "unlock" button unresponsive; the demo sets `:prevent-on-filter="false"` explicitly — items stay undraggable, buttons work (`index.vue:421, 450-454`). Also, changing `disabled` / `filter` needs no instance rebuild; the library re-applies options item by item after a deep compare (`index.vue:453-454`).
+- **You don't sync the order yourself.** Sortable fires `update` first — and the library has already spliced the `v-model` array by then — before firing `end`; manually moving items inside `end` is duplicate work, and stacking the two reorders garbles the sequence (comment at `index.vue:363-364`). The `v-for` `key` must be a stable id: keys by index fight Sortable's real-DOM node moves and produce visible misplacement (`index.vue:259-263`).
+- **Don't write `group` as a template literal.** `:group="{ name: 'x' }"` creates a new object on every render; the library deep-compares options and re-applies them one by one via `sortable.option(...)`, wasting work and risking a momentary config mismatch mid-drag — hence the module-level constant (`index.vue:244-249`).
+- **An empty container needs height.** `emptyInsertThreshold` defaults to 5px; a collapsed zero-height list can't catch a drop. The right-hand "已选上墙" panel still accepts drops when emptied because its list carries `min-h-[112px]` (`index.vue:134-135, 451`; copy at `index.vue:485`).
+- **The grid has exactly one constraint**: the `VueDraggable` layer must itself be the grid container (it renders a `div` by default; `tag` changes that) — wrapping the cards in an extra layer kills dragging, because Sortable only recognises the container's direct children (`index.vue:515-520`).
+- **`preventOnFilter` defaults to `true` and bites buttons**: it calls `preventDefault()` on elements hit by `filter`, which makes the row's "unlock" button unresponsive; the demo sets `:prevent-on-filter="false"` explicitly — items stay undraggable, buttons work (`index.vue:577, 617`). Also, changing `disabled` / `filter` needs no instance rebuild; the library re-applies options item by item after a deep compare (`index.vue:453-454`).
 - **Ghost/chosen styles need `:deep()`.** `ghost-class` / `chosen-class` pass class-name strings that Sortable applies to the real dragged node; cross-container moves transplant that node into another component's DOM, where `<style scoped>` matching via `data-v-*` attributes no longer hits — hence `:deep(.drag-ghost)` / `:deep(.drag-chosen)` as plain selectors (`index.vue:460-476`).
 
 ### Where the dragged order goes: a local ref, no backend
 
-**There are no network requests** and no localStorage. On drop, `handleEnd()` merely joins the current ids into a string and writes it to a local `ref` (`lastOrder`, `index.vue:232, 244-248`); the monospace line "onEnd 得到的顺序" on the page is exactly the payload you would POST to a sort endpoint (`index.vue:410, 442-449`) — the demo prints it but never sends it. A refresh restores the initial order; the "还原" buttons just re-copy initial array literals (`resetPanelLists` at `index.vue:184-187`; `resetCardOrder` at `index.vue:204-206`).
+**There are no network requests** and no localStorage. On drop, `handleEnd()` merely joins the current ids into a string and writes it to a local `ref` (`lastOrder`, `index.vue:355, 244-248`); the monospace line "onEnd 得到的顺序" on the page is exactly the payload you would POST to a sort endpoint (`index.vue:410, 442-449`) — the demo prints it but never sends it. A refresh restores the initial order; the "还原" buttons just re-copy initial array literals (`resetPanelLists` at `index.vue:184-187`; `resetCardOrder` at `index.vue:204-206`).
 
 ## Live example: /components/drag-layout
 
@@ -143,8 +156,8 @@ Open `http://localhost:6080/#/components/drag-layout`. Per card: on the first, d
 
 ## Verified absent or silently inert
 
-- **The demo's claim that route-switch fullscreen loading "does the same thing via `createFullscreenLoading()`" is not true** (`apps/web/src/views/components/directive/index.vue:368-371`). `createFullscreenLoading()` is exported (`packages/core/ui-kit/common-ui/src/components/loading/createLoading.ts:66-74`) but has **zero call sites** in the repository; the actual route-switch loading comes from `useRouteLoading()` + `RouteLoadingBar` + `PageLoading` (`apps/web/src/layouts/index.vue:14, 160-167, 177-183, 225-229`) and has nothing to do with that function.
-- **`v-lazy` and `v-escape` are registered but used only by the demo page itself** (registration: `main.ts:107, 111`; usage search finds hits only in `views/components/directive/index.vue`). The "avatar list" rationale behind the `data-*` fallbacks (`lazy.ts:154-155`) also has no consumer in this repository.
+- **The demo's claim that route-switch fullscreen loading "does the same thing via `createFullscreenLoading()`" is not true** (`apps/web/src/views/components/directive/index.vue:439-441`). `createFullscreenLoading()` is exported (`packages/core/ui-kit/common-ui/src/components/loading/createLoading.ts:66-74`) but has **zero call sites** in the repository; the actual route-switch loading comes from `useRouteLoading()` + `RouteLoadingBar` + `PageLoading`, all three in the assembly package: `packages/layouts/src/basic/layout.vue:8, 20, 22, 207-214, 224-230, 275-279`, the two components being `packages/layouts/src/basic/content/route-loading-bar.vue` and `page-loading.vue`, which have nothing to do with that function.
+- **`v-lazy` and `v-escape` are registered but used only by the demo page itself** (registration: `main.ts:126, 130`; usage search finds hits only in `views/components/directive/index.vue`). The "avatar list" rationale behind the `data-*` fallbacks (`lazy.ts:154-155`) also has no consumer in this repository.
 - **`vue-draggable-plus`'s `v-draggable` directive and `useDraggable` composable have no call sites** (see the tip above), and `RouteMeta.roles` / `RouteMeta.permissions` have no readers (see the v-permission tip). These, like `packages/core/base/typings/src/app-router.ts:9-10` and the library's `dist/index.d.ts`, are cases of "declared ≠ used".
 - **The `'*'` wildcard works entirely through the injected checkers — `packages/directives` does not understand it on its own**: the evaluation chain `resolveAccess()` (`utils.ts:82-108`) has no `'*'` branch, it just delegates all the way down to the injected `checkers.hasAnyPermission` / `hasAllPermissions` (`matchGroup()`, `utils.ts:53-68`). What this project injects is `usePermission()` from `@antdv/hooks`, and the first thing `checkArrayMatch()` does is return `true` when `userList.includes('*')` (`packages/core/hooks/src/use-permission.ts:91-93`, unit test `packages/core/hooks/__tests__/use-permission.test.ts:49-56`) — so the `permissions: ['*']` the mock hands to the admin account (`apps/backend-mock/server/utils/accounts.ts:48`) **is a full grant** at the element layer. In a host application this contract has to be re-established: inject checkers that only do `Array.includes` and `['*']` degrades into an ordinary permission code, with the symptom being " the account holding the wildcard sees nothing at all".
 - **`v-loading` reads its attribute configuration only at overlay creation** (`packages/core/ui-kit/common-ui/src/components/loading/directive.ts:69-76`); mutating `loading-tip` and friends afterwards is silently ineffective — only `binding.arg` hot-updates (`directive.ts:96-98`).

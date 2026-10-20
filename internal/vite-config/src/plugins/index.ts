@@ -29,9 +29,15 @@ import { createVuePlugins } from './vue';
  * - `application`：有 index.html、要跑 dev server、要出静态站点
  *   → HTML 注入、首屏 Loading、PWA、归档压缩、metadata 产物都归这里。
  * - `library`：lib 模式打包，没有 HTML，产物要能被消费方再次 tree-shake
- *   → 只留编译链（Vue / 自动导入 / 样式资源）与 .d.ts。
+ *   → 只留最小编译链（Vue / JSX / Tailwind）与 .d.ts。
  *
- * 两种形态混用的典型症状：应用构建时 vite-plugin-dts 抱怨
+ * 库形态一定要比应用形态瘦，不只是"用不上"：自动导入 / iconify / svg-icons /
+ * 文件路由这些插件都按宿主环境工作，它们会往 `cwd/types/*.d.ts` 回写声明、
+ * 要求 `@iconify-json/*` 与 `src/assets/icons` 存在。子包按自己的目录构建时
+ * 这些前提都不成立 —— 实测 `@antdv/enums` 直接在配置加载期就抛
+ * `Please install "@iconify/json" or "@iconify-json/*" package`。
+ *
+ * 两种形态混用的另一个典型症状：应用构建时 vite-plugin-dts 抱怨
  * "You are building a library that may not need to generate declaration files"，
  * 顺带把 public/ 与 HTML 流程也拖进库产物里。
  */
@@ -56,21 +62,7 @@ export async function createPlugins(
   const root = options.root ?? process.cwd();
   const envConfig = loadEnv(mode);
 
-  const plugins: PluginOption[] = [
-    ...createVuePlugins(),
-
-    // dts 回写在映射盘上是"偶发但会带走进程"的失败点，见 ./auto-import 的注释；
-    // 默认保留，需要时用 VITE_WRITE_DTS=false 关掉（构建产物与入库的 .d.ts 不受影响，
-    // 只是 dev 期间新增的全局组件不会即时进声明文件）。
-    ...createAutoImportPlugins({
-      dts: isEnvEnabled(envConfig.VITE_WRITE_DTS ?? true),
-    }),
-
-    // 静态资源处理
-    createSvgIconsPlugin(),
-    createImageminPlugin(),
-    viteDayjsPlugin(),
-  ];
+  const plugins: PluginOption[] = [...createVuePlugins(kind)];
 
   /**
    * CSP 的 `upgrade-insecure-requests` 按产物形态给值，完整理由见 `./csp`：
@@ -81,8 +73,20 @@ export async function createPlugins(
   const cspUpgrade = cspUpgradeInsecureRequests(isProd);
 
   if (isApp) {
-    // 基础 HTML 处理插件
     plugins.push(
+      // dts 回写在映射盘上是"偶发但会带走进程"的失败点，见 ./auto-import 的注释；
+      // 默认保留，需要时用 VITE_WRITE_DTS=false 关掉（构建产物与入库的 .d.ts 不受影响，
+      // 只是 dev 期间新增的全局组件不会即时进声明文件）。
+      ...createAutoImportPlugins({
+        dts: isEnvEnabled(envConfig.VITE_WRITE_DTS ?? true),
+      }),
+
+      // 静态资源处理
+      createSvgIconsPlugin(),
+      createImageminPlugin(),
+      viteDayjsPlugin(),
+
+      // 基础 HTML 处理插件
       viteHtmlPlugin({
         inject: {
           data: {
@@ -97,7 +101,22 @@ export async function createPlugins(
   } else if (options.dts !== false) {
     // TypeScript 声明文件生成：只有库模式才需要
     plugins.push(
-      viteDtsPlugin({ entryRoot: `${root}/src`, insertTypesEntry: true }),
+      viteDtsPlugin({
+        entryRoot: `${root}/src`,
+        // 消费方 tsconfig 的 include 覆盖测试与配置文件（它们要能 type-check），
+        // 但声明文件只该有公共面 —— 留着默认值会把 __tests__ 一起编出 .d.ts，
+        // 既拖慢构建，也会在产物里长出 dist/__tests__。
+        exclude: [
+          '**/__mocks__/**',
+          '**/__tests__/**',
+          '**/node_modules/**',
+          '**/*.spec.ts',
+          '**/*.test.ts',
+          'vite.config.*',
+          'vitest.config.*',
+        ],
+        tsconfigPath: `${root}/tsconfig.json`,
+      }),
     );
   }
 

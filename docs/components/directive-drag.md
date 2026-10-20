@@ -8,13 +8,16 @@
 
 | 指令 | 实现所在 | 应用侧注入 | 生产使用点（示例页以外） |
 | --- | --- | --- | --- |
-| `v-permission` | `packages/directives/src/permission/index.ts:57` | `apps/web/src/directives/index.ts:19-36` | `apps/web/src/components/business/ImportExport.vue:206, 223` |
-| `v-loading` | `packages/core/ui-kit/common-ui/src/components/loading/directive.ts:88-107` | 直接注册 `@antdv/common-ui` 的 `vLoading`（`main.ts:8, 113`） | `apps/web/src/views/components/loading/index.vue:1026` 起 |
-| `v-lazy` | `packages/directives/src/lazy.ts:145, 311` | `apps/web/src/directives/index.ts:16` 转出 | **除示例页外没有使用点**（见下文） |
+| `v-permission` | `packages/directives/src/permission/index.ts:57` | `apps/web/src/directives/index.ts:19-36` | `apps/web/src/components/business/ImportExport.vue:234, 244` |
+| `v-loading` | `packages/core/ui-kit/common-ui/src/components/loading/directive.ts:88-107` | 直接注册 `@antdv/common-ui` 的 `vLoading`（`main.ts:8, 132`） | `apps/web/src/views/components/loading/index.vue:1236` 起 |
+| `v-lazy` | `packages/directives/src/lazy.ts:145, 316` | `apps/web/src/directives/index.ts:16` 转出 | **除示例页外没有使用点**（见下文） |
 | `v-safe-html` | `packages/core/base/shared/src/utils/xss.ts:446` | `apps/web/src/directives/index.ts:17` 转出 | `markdown-editor/MarkdownEditor.vue:664`、编辑器示例页 `editor/index.vue:880` |
-| `v-escape` | `packages/core/base/shared/src/utils/xss.ts:454-462` | `apps/web/src/directives/index.ts:17` 转出 | **除示例页外没有使用点**（见下文） |
+| `v-escape` | `packages/core/base/shared/src/utils/xss.ts:463-471` | `apps/web/src/directives/index.ts:17` 转出 | **除示例页外没有使用点**（见下文） |
 
-::: warning 别按包名找实现 `@antdv/directives` 包里**只有 permission 和 lazy** 两条（`packages/directives/src/index.ts:10-11` 就这两个 export）。`escape` / `safe-html` 的实现住在 `@antdv/shared/utils/xss`，`v-loading` 住在 `@antdv/common-ui`。`apps/web/src/directives/index.ts` 的定位是「把项目依赖注进工厂」：包内不 import pinia / store（`packages/directives/src/index.ts:4-7` 的设计约束），判定函数、订阅源都由应用侧提供。:::
+::: warning
+
+别按包名找实现 `@antdv/directives` 包里**只有 permission 和 lazy** 两条（`packages/directives/src/index.ts:10-11` 就这两个 export）。`escape` / `safe-html` 的实现住在 `@antdv/shared/utils/xss`，`v-loading` 住在 `@antdv/common-ui`。`apps/web/src/directives/index.ts` 的定位是「把项目依赖注进工厂」：包内不 import pinia / store（`packages/directives/src/index.ts:4-7` 的设计约束），判定函数、订阅源都由应用侧提供。
+:::
 
 ## v-permission：判定在包外，打标记在包内
 
@@ -44,13 +47,17 @@
 
 1. **`:role` 是参数（arg），`.role` 是修饰符**——判定只认 arg（`utils.ts:41`），写成 `.role` 会静默地按权限码解释。示例页把这条印在界面上（`apps/web/src/views/components/directive/index.vue:284-289`）。
 2. **空值 = 放行**：`undefined` / `null` / `''` / `[]` 一律通过（`utils.ts:90-97`）。`v-permission="[]"` 等于没写。
-3. **mode 优先级**：对象里的 `mode` > `.all` 修饰符 > 默认 `any`（`utils.ts:100-101`）；对象写了 `mode: 'all'` 时 `.all` 就不再说话。:::
+3. **mode 优先级**：对象里的 `mode` > `.all` 修饰符 > 默认 `any`（`utils.ts:100-101`）；对象写了 `mode: 'all'` 时 `.all` 就不再说话。
+:::
 
 ### 无权限时 DOM 上发生什么
 
-`applyPermissionState()`（`utils.ts:176-209`）：默认隐藏走 `display: none` + `disabled` 属性 + `aria-disabled` + 叠加 class `permission-disabled`；`.disabled` 模式保留可见只禁用。**从不删节点**——删节点会让 Vue 的 patch 找不到锚点、兄弟 diff 错乱（`utils.ts:172-174` 注释）。降级样式在 `packages/core/base/design/src/css/permission.css:12-17`（`cursor-not-allowed opacity-50 saturate-50 select-none` + `pointer-events: none`，非表单元素不认 `disabled` 属性所以统一挡交互），逃生舱 class `permission-disabled--passthrough`（`permission.css:21-23`）允许「看着降级但还能点」。样式由 `packages/core/base/design/src/index.css:26` 统一引入。
+`applyPermissionState()`（`utils.ts:176-209`）：默认隐藏走 `display: none` + `disabled` 属性 + `aria-disabled` + 叠加 class `permission-disabled`；`.disabled` 模式保留可见只禁用。**从不删节点**——删节点会让 Vue 的 patch 找不到锚点、兄弟 diff 错乱（`utils.ts:172-174` 注释）。降级样式在 `packages/core/base/design/src/css/permission.css:12-17`（`cursor-not-allowed opacity-50 saturate-50 select-none` + `pointer-events: none`，非表单元素不认 `disabled` 属性所以统一挡交互），逃生舱 class `permission-disabled--passthrough`（`permission.css:21-23`）允许「看着降级但还能点」。样式由 `packages/core/base/design/src/index.css:35` 统一引入。
 
-::: tip 路由层不读 roles `RouteMeta` 类型声明了 `roles?: string[]` / `permissions?: string[]`（`packages/core/base/typings/src/app-router.ts:9-10`），但 `apps/web/src/router/**` 与 `packages/router/src/**` 里**没有任何读取点**——路由准入实际靠菜单数据（「菜单即权限」，`packages/stores/src/route.ts:289-297` 只处理 `meta.requiresAuth`）。`v-permission` 管的只是元素这一层，三层的完整讲法见[权限与菜单访问](/guide/in-depth/access)。:::
+::: tip
+
+路由层不读 roles `RouteMeta` 类型声明了 `roles?: string[]` / `permissions?: string[]`（`packages/core/base/typings/src/app-router.ts:9-10`），但 `apps/web/src/router/**` 与 `packages/router/src/**` 里**没有任何读取点**——路由准入实际靠菜单数据（「菜单即权限」，`packages/stores/src/route.ts:289-297` 只处理 `meta.requiresAuth`）。`v-permission` 管的只是元素这一层，三层的完整讲法见[权限与菜单访问](/guide/in-depth/access)。
+:::
 
 ## v-loading：布尔值驱动，配置从属性读
 
@@ -60,11 +67,14 @@
 - **挂载位置由修饰符决定**：`.fullscreen` 或 `.body` 时覆盖层挂 body 盖整页（`directive.ts:59-61`），默认覆盖元素自身。
 - **遮罩实例懒创建、挂 WeakMap**（`directive.ts:45, 69-86`）：`mounted` 时值为 `false` 也会建实例但不显示，`updated` 只管显隐（`directive.ts:93-99`），`unmounted` 销毁（`directive.ts:101-104`）。
 
-::: warning 属性只在创建那一次被读 `getPropsFromAttributes()` 只在**遮罩实例首次创建**时执行（`directive.ts:70-76`，已有实例直接返回）。挂载之后再改 `loading-tip` / `loading-theme` 属性值**不会生效**，想动态改文案要用指令参数 `binding.arg`（`directive.ts:96-98` 是 `updated` 里唯一会热更的配置项）。:::
+::: warning
+
+属性只在创建那一次被读 `getPropsFromAttributes()` 只在**遮罩实例首次创建**时执行（`directive.ts:70-76`，已有实例直接返回）。挂载之后再改 `loading-tip` / `loading-theme` 属性值**不会生效**，想动态改文案要用指令参数 `binding.arg`（`directive.ts:96-98` 是 `updated` 里唯一会热更的配置项）。
+:::
 
 ## v-lazy：默认实例 + 四层取值
 
-`app.directive('lazy', vLazy)` 注册的是 `createLazyDirective()` 无参调用的默认实例（`packages/directives/src/lazy.ts:311`）。指令值是对象或字符串（字符串即 `src`，`lazy.ts:24`），只该用在 `<img>` 上。
+`app.directive('lazy', vLazy)` 注册的是 `createLazyDirective()` 无参调用的默认实例（`packages/directives/src/lazy.ts:316`）。指令值是对象或字符串（字符串即 `src`，`lazy.ts:24`），只该用在 `<img>` 上。
 
 | 选项 | 默认 | 说明 |
 | --- | --- | --- |
@@ -80,17 +90,17 @@
 
 ### v-safe-html
 
-`updateSafeHtml()`（`packages/core/base/shared/src/utils/xss.ts:476-533`）的管线：**先正则剥离最危险内容，再交 DOMPurify 按白名单清理**。指令值是字符串，或 `{ content, allowedTags, … }` 对象（选项即 `XssFilterOptions`，`xss.ts:21-38`；外部传的对象字段覆盖默认值，`xss.ts:514-519`）。
+`updateSafeHtml()`（`packages/core/base/shared/src/utils/xss.ts:485-542`）的管线：**先正则剥离最危险内容，再交 DOMPurify 按白名单清理**。指令值是字符串，或 `{ content, allowedTags, … }` 对象（选项即 `XssFilterOptions`，`xss.ts:21-38`；外部传的对象字段覆盖默认值，`xss.ts:514-519`）。
 
 - 第一道 `stripDangerousMarkup()`（`xss.ts:127-153`）：成对删 `<script>/<iframe>/<object>/<embed>/<applet>`，再兜底清扫残标签；摘掉所有 `on*=` 属性处理器与 `srcdoc`。注释写明了动机：DOMPurify 在 SSR / 测试环境可能解析不一致，这道剥离保证**任何环境都有下限**（`xss.ts:119-126`）。
-- 第二道 DOMPurify（`xss.ts:523-530`）：白名单 `defaultSafeTags`（`xss.ts:482-511`，段落/标题/列表/表格/`a`/`img` 等富文本常用标签），`ALLOW_DATA_ATTR: false`。DOMPurify 不可用时退回 `escapeHtml()` 全转义（`xss.ts:530`）。
-- 结果直接写 `el.innerHTML`（`xss.ts:532`）——**容器内原有的子节点会被清掉**，指令只该用在空元素上。
+- 第二道 DOMPurify（`xss.ts:531-539`）：白名单 `defaultSafeTags`（`xss.ts:491-520`，段落/标题/列表/表格/`a`/`img` 等富文本常用标签），`ALLOW_DATA_ATTR: false`。DOMPurify 不可用时退回 `escapeHtml()` 全转义（`xss.ts:539`）。
+- 结果直接写 `el.innerHTML`（`xss.ts:541`）——**容器内原有的子节点会被清掉**，指令只该用在空元素上。
 
 ### v-escape
 
-`escapeDirective` 只做一件事：把值写进 `el.textContent`（`xss.ts:470-474`），内容永远不会被解析成 HTML。指令参数切语境（`EscapeType`，`xss.ts:41`）：
+`escapeDirective` 只做一件事：把值写进 `el.textContent`（`xss.ts:481-482`），内容永远不会被解析成 HTML。指令参数切语境（`EscapeType`，`xss.ts:41`）：
 
-- 默认 / `:html`：**原样显示**，不再做实体编码——`textContent` 本来就不解析标签，再转一道只会让用户看见 `&lt;` 噪音（`xss.ts:464-469` 注释）。
+- 默认 / `:html`：**原样显示**，不再做实体编码——`textContent` 本来就不解析标签，再转一道只会让用户看见 `&lt;` 噪音（`xss.ts:473-478` 注释）。
 - `:url`：伪协议（`javascript:` / `vbscript:` / `data:text/html`）整个换成 `#unsafe-url` 并 `console.warn`（`xss.ts:198-214`），其余 `encodeURI`。
 - `:js` / `:css` / `:attr`：语义变换后仍作为文字显示（`smartEscape`，`xss.ts:286-310`）。
 
@@ -108,34 +118,37 @@
 
 ## 拖拽布局：VueDraggable（组件形态，不是指令）
 
-`/components/drag-layout` 整页基于 `vue-draggable-plus` 的 **`VueDraggable` 组件**（`apps/web/src/views/components/drag-layout/index.vue:7`）。依赖与版本：`apps/web/package.json:107`（`"vue-draggable-plus": "catalog:"`，运行时依赖）→ `pnpm-workspace.yaml:216` 锁 `^0.6.1`，随架构整理提交（`ea1ffefc`）进的仓库；示例页目录本身还是工作区里的未跟踪新页（`menus.get.ts:335-340` 挂了菜单节点 `DemoDragLayout`，路径 `/components/drag-layout`，`menus.get.ts:339`）。
+`/components/drag-layout` 整页基于 `vue-draggable-plus` 的 **`VueDraggable` 组件**（`apps/web/src/views/components/drag-layout/index.vue:5`）。依赖与版本：`apps/web/package.json:105`（`"vue-draggable-plus": "catalog:"`，运行时依赖）→ `pnpm-workspace.yaml:239` 锁 `^0.6.1`，随架构整理提交（`ea1ffefc`）进的仓库；示例页目录本身还是工作区里的未跟踪新页（`menus.get.ts:342-347` 挂了菜单节点 `DemoDragLayout`，路径 `/components/drag-layout`，`menus.get.ts:339`）。
 
-::: tip 用的是组件，库的另外两种形态没人用 `vue-draggable-plus` 同时导出 `v-draggable` 指令和 `useDraggable` 组合式（`dist/index.d.ts` 三个出口），但全仓库检索不到任何调用点——本页示例、表格的 `dragSort` 都不走这两条路（表格行拖拽是 `BasicTable` 内部直接绑 Sortable，见 `packages/core/ui-kit/table-ui/src/hooks/useDragSort.ts`，那部分归[表格](/components/table)页，这里不展开）。:::
+::: tip
+
+用的是组件，库的另外两种形态没人用 `vue-draggable-plus` 同时导出 `v-draggable` 指令和 `useDraggable` 组合式（`dist/index.d.ts` 三个出口），但全仓库检索不到任何调用点——本页示例、表格的 `dragSort` 都不走这两条路（表格行拖拽是 `BasicTable` 内部直接绑 Sortable，见 `packages/core/ui-kit/table-ui/src/hooks/useDragSort.ts`，那部分归[表格](/components/table)页，这里不展开）。
+:::
 
 ### props 就是 sortablejs 的 Options
 
-`VueDraggable` 的 props 是 sortablejs `Options` 全集，外加 `modelValue` / `tag` / `target` 三个（库的类型定义 `IProps extends UseDraggableOptions`；示例页头注释也写明，`drag-layout/index.vue:13-14`）。事件名是 sortablejs 回调去掉 `on` 的小写形式：`@start` / `@update` / `@add` / `@remove` / `@end` / `@filter`。五个示例块各自对应一类配置问题：
+`VueDraggable` 的 props 是 sortablejs `Options` 全集，外加 `modelValue` / `tag` / `target` 三个（库的类型定义 `IProps extends UseDraggableOptions`；示例页头注释也写明，`drag-layout/index.vue:15-16`）。事件名是 sortablejs 回调去掉 `on` 的小写形式：`@start` / `@update` / `@add` / `@remove` / `@end` / `@filter`。五个示例块各自对应一类配置问题：
 
 | 卡片 | 演示点 | 关键配置与源码 |
 | --- | --- | --- |
-| 基础列表拖拽 | `v-model` 直接接管数组 | `v-model="basicList"`（本地 ref，`index.vue:131-138`），`:animation="150"`、`ghost-class` / `chosen-class`（`index.vue:265-271`）；底部 tag 墙实时跟着 v-model 变（`index.vue:278-283`） |
-| 手柄拖拽 | 触发区收敛到 ⠿ | `handle=".drag-grip"`（`index.vue:295`）；grip 类名在行的 span 上（`gripClassName`，`index.vue:68-77`；模板 `index.vue:302`）。行内文字保持可选中（`selectableClassName`，`index.vue:67`） |
-| 两个列表互拖 | 跨容器 group | 两边共用模块级常量 `panelGroup = { name: 'drag-layout-panel', pull: true, put: true }`（`index.vue:162-166`），分别绑 `candidateList` / `chosenList` 两个 ref（`index.vue:181-182, 330, 351`） |
-| 栅格卡片布局 | 列表换网格零改动 | `VueDraggable` 自己就是栅格容器（`:class="cardGridClassName"` 的 `grid grid-cols-1 … xl:grid-cols-4`，`index.vue:92, 382-387`） |
-| 约束与开关 | disabled / filter / onEnd | `:disabled="dragDisabled"`（`index.vue:419`，开关 `index.vue:230`）、`:filter="lockedSelector"`（`index.vue:420`，选择器 `.drag-locked`，`index.vue:212`）、`:prevent-on-filter="false"`（`index.vue:421`）、`@end="handleEnd"`（`index.vue:426`） |
+| 基础列表拖拽 | `v-model` 直接接管数组 | `v-model="basicList"`（本地 ref，`index.vue:206, 391`），`:animation="150"`、`ghost-class` / `chosen-class`（`index.vue:392-394`）；底部 tag 墙实时跟着 v-model 变（`index.vue:278-283`） |
+| 手柄拖拽 | 触发区收敛到 ⠿ | `handle=".drag-grip"`（`index.vue:424`）；grip 类名在行的 span 上（`gripClassName`，`index.vue:99`；模板 `index.vue:435`）。行内文字保持可选中（`selectableClassName`，`index.vue:67`） |
+| 两个列表互拖 | 跨容器 group | 两边共用模块级常量 `panelGroup = { name: 'drag-layout-panel', pull: true, put: true }`（`index.vue:249`），分别绑 `candidateList` / `chosenList` 两个 ref（`index.vue:181-182, 330, 351`） |
+| 栅格卡片布局 | 列表换网格零改动 | `VueDraggable` 自己就是栅格容器（`:class="cardGridClassName"` 的 `grid grid-cols-1 … xl:grid-cols-4`，`index.vue:136, 529`） |
+| 约束与开关 | disabled / filter / onEnd | `:disabled="dragDisabled"`（`index.vue:575`，开关 `index.vue:353`）、`:filter="lockedSelector"`（`index.vue:576`，选择器 `.drag-locked`，`index.vue:335`）、`:prevent-on-filter="false"`（`index.vue:577`）、`@end="handleEnd"`（`index.vue:426`） |
 
 几条从源码里读出来的硬结论：
 
-- **排序结果不需要同步**。Sortable 先派发 `update`——库在这一拍已经把 `v-model` 的数组按下标 splice 好——再派发 `end`；所以在 `end` 里手动 move 一次是重复劳动，两次重排叠加还会把顺序排乱（`index.vue:236-243` 注释）。`v-for` 的 `key` 必须是稳定 id，写 index 会和 Sortable 搬真实 DOM 节点打架，出现错位闪动（`index.vue:259-263`）。
-- **`group` 别写成模板字面量**。`:group="{ name: 'x' }"` 每次渲染都是新对象，库深比较后会把 options 逐个 `sortable.option(...)` 回灌，拖拽中途重渲染还可能出现配置短暂不一致——所以提成模块级常量（`index.vue:156-161`）。
-- **空容器必须给高度**。`emptyInsertThreshold` 默认只有 5px，塌成 0 高的空列表接不住落点；右侧「已选上墙」清空后照样能拖入，靠的是列表容器 `min-h-[112px]`（`index.vue:90-91`；文案 `index.vue:314-317`）。
-- **网格形态的约束只有一条**：这层 `VueDraggable` 必须自己就是栅格容器（默认渲染 `div`，可用 `tag` 换），卡片外面再套 wrapper 就拖不动——Sortable 只认「容器的直接子元素」（`index.vue:372-378`）。
-- **`preventOnFilter` 默认 true 会误伤按钮**：它对被 `filter` 命中的元素 `preventDefault()`，行里的「解锁」按钮会点了没反应；示例显式设 `:prevent-on-filter="false"`，条目照样拖不起、按钮恢复正常（`index.vue:421, 450-454`）。另外 `disabled` / `filter` 改值不需要重建实例，库深比较后逐项回灌（`index.vue:453-454`）。
+- **排序结果不需要同步**。Sortable 先派发 `update`——库在这一拍已经把 `v-model` 的数组按下标 splice 好——再派发 `end`；所以在 `end` 里手动 move 一次是重复劳动，两次重排叠加还会把顺序排乱（`index.vue:363-364` 注释）。`v-for` 的 `key` 必须是稳定 id，写 index 会和 Sortable 搬真实 DOM 节点打架，出现错位闪动（`index.vue:259-263`）。
+- **`group` 别写成模板字面量**。`:group="{ name: 'x' }"` 每次渲染都是新对象，库深比较后会把 options 逐个 `sortable.option(...)` 回灌，拖拽中途重渲染还可能出现配置短暂不一致——所以提成模块级常量（`index.vue:244-249`）。
+- **空容器必须给高度**。`emptyInsertThreshold` 默认只有 5px，塌成 0 高的空列表接不住落点；右侧「已选上墙」清空后照样能拖入，靠的是列表容器 `min-h-[112px]`（`index.vue:134-135, 451`；文案 `index.vue:485`）。
+- **网格形态的约束只有一条**：这层 `VueDraggable` 必须自己就是栅格容器（默认渲染 `div`，可用 `tag` 换），卡片外面再套 wrapper 就拖不动——Sortable 只认「容器的直接子元素」（`index.vue:515-520`）。
+- **`preventOnFilter` 默认 true 会误伤按钮**：它对被 `filter` 命中的元素 `preventDefault()`，行里的「解锁」按钮会点了没反应；示例显式设 `:prevent-on-filter="false"`，条目照样拖不起、按钮恢复正常（`index.vue:577, 617`）。另外 `disabled` / `filter` 改值不需要重建实例，库深比较后逐项回灌（`index.vue:453-454`）。
 - **ghost/chosen 样式要 `:deep()`**。`ghost-class` / `chosen-class` 传给 Sortable 的是类名字符串，落在被拖的真实节点上；跨容器搬运时节点会被挪进另一个组件的 DOM，`<style scoped>` 靠 `data-v-*` 属性命中会失效，所以用 `:deep(.drag-ghost)` / `:deep(.drag-chosen)` 退成普通选择器（`index.vue:460-476`）。
 
 ### 拖出来的顺序存在哪：本地 ref，没有后端
 
-**没有任何网络请求**，也没有 localStorage。`@end` 落定时 `handleEnd()` 只是把当前 id 顺序拼成字符串写进一个本地 `ref`（`lastOrder`，`index.vue:232, 244-248`），页面上那行等宽字「onEnd 得到的顺序」就是将来该 POST 给排序接口的 payload（`index.vue:410, 442-449`）——示例把它印出来给你看，但没发出去。刷新即回初始顺序；「还原示例数据 / 还原卡片顺序」也只是重新拷贝初始数组字面量（`resetPanelLists` `index.vue:184-187`；`resetCardOrder` `index.vue:204-206`）。
+**没有任何网络请求**，也没有 localStorage。`@end` 落定时 `handleEnd()` 只是把当前 id 顺序拼成字符串写进一个本地 `ref`（`lastOrder`，`index.vue:355, 244-248`），页面上那行等宽字「onEnd 得到的顺序」就是将来该 POST 给排序接口的 payload（`index.vue:410, 442-449`）——示例把它印出来给你看，但没发出去。刷新即回初始顺序；「还原示例数据 / 还原卡片顺序」也只是重新拷贝初始数组字面量（`resetPanelLists` `index.vue:184-187`；`resetCardOrder` `index.vue:204-206`）。
 
 ## 在线示例：/components/drag-layout
 

@@ -25,14 +25,17 @@ app.use(pinia);
 
 `packages/stores/src/session.ts` 不是 store，是**会话作废的登记处**：`onSessionReset(handler)` 登记、`notifySessionReset()` 逐个跑（`session.ts:18-21`、`:29-37`）。页面缓存这类"住在别的包里"的派生状态靠它清理（`packages/layouts/src/hooks/use-page-cache.ts:74`）——直接 import 会让依赖方向倒过来（stores → layouts），包图成环。
 
-::: warning 出口是两个，别走错包`@antdv/stores` 的 barrel 全量导出五个模块：`packages/stores/src/index.ts:1-5`（app / route / session / tabs / user）。`apps/web/src/stores/index.ts:1-2` 只 re-export auth / dict，所以 `~/stores` 里**拿不到**那四个 —— 应用代码统一 `import { useUserStore } from '@antdv/stores'`，私有 store 走 `~/stores`。:::
+::: warning
+
+出口是两个，别走错包`@antdv/stores` 的 barrel 全量导出五个模块：`packages/stores/src/index.ts:1-5`（app / route / session / tabs / user）。`apps/web/src/stores/index.ts:1-2` 只 re-export auth / dict，所以 `~/stores` 里**拿不到**那四个 —— 应用代码统一 `import { useUserStore } from '@antdv/stores'`，私有 store 走 `~/stores`。
+:::
 
 ## 约定
 
 - **清一色 setup store**：`defineStore(id, () => { ... })`，getter 用 `computed` 返回、动作用具名函数返回，最后整体 `return { ... }`（`auth.ts:13-44`、`route.ts:421-438`）。没有 option store 写法。
 - 命名 `useXxxStore`，文件名与 id 对应。
 - **组件外使用**：没有 `pinia` 实例注入技巧，一律在函数/守卫回调里即时调用（`router/guards/index.ts:49`、`plugins/request-runtime.ts:18`、`directives/index.ts:35`）。这意味着不能在模块顶层拿 store——那时 pinia 还没装。
-- 登出只有一个聚合出口：`user.ts:163-169` 先把 token 与用户信息置空、删掉两个缓存键，再调 `clearDerivedSession()`（`:85-89`），由它依次跑 `notifySessionReset()`（页面缓存等外部登记项）、`useRouteStore().resetRoutes()`、`useTabsStore().reset()`。新增需要清理的状态就登记到 `onSessionReset`，不要散着写在登出流程里。
+- 登出只有一个聚合出口：`user.ts:164-170` 先把 token 与用户信息置空、删掉两个缓存键，再调 `clearDerivedSession()`（`:85-89`），由它依次跑 `notifySessionReset()`（页面缓存等外部登记项）、`useRouteStore().resetRoutes()`、`useTabsStore().reset()`。新增需要清理的状态就登记到 `onSessionReset`，不要散着写在登出流程里。
 
 ## 持久化：手写，且各 key 规则不同
 
@@ -47,7 +50,10 @@ app.use(pinia);
 | 菜单"导航显示"覆盖 | `xy-menu-hidden-overrides` | 裸 `localStorage`，不走 cache 前缀也不加密 | `route.ts:26,38-46` |
 | 偏好设置（含 `locale`） | `appSetting`（带前缀） | preferences 实例自己 `persist`，每次 commit 都写 | `preferences.ts:31-32,71-77,87-97` |
 
-::: warning `VITE_NAMESPACE` 是个死变量它只出现在 `apps/web/.env:1`、`apps/web/types/env.d.ts:28` 和这份文档里，**没有任何代码路径读它**。想按环境隔离 localStorage，目前只能靠 `VITE_APP_TITLE` 前缀（改 title 会让全部旧缓存失效，这是它的实际效果）。别指望设个 namespace 就能多标签隔离。:::
+::: warning
+
+`VITE_NAMESPACE` 是个死变量它只出现在 `apps/web/.env:1`、`apps/web/types/env.d.ts:28` 和这份文档里，**没有任何代码路径读它**。想按环境隔离 localStorage，目前只能靠 `VITE_APP_TITLE` 前缀（改 title 会让全部旧缓存失效，这是它的实际效果）。别指望设个 namespace 就能多标签隔离。
+:::
 
 ## app store 是偏好的门面，不是第二份状态
 
@@ -73,4 +79,7 @@ app.use(pinia);
 | 只有父组件和子组件要 | `provide` / `inject` 或 props，别进全局 |
 | 一个页面的表单草稿 | 组件内 `ref` |
 
-::: tip 想加一个新 store应用级状态照 `apps/web/src/stores/modules/dict.ts` 写，跨包共享的才进 `packages/stores/src/`：setup store、`defineStore('xxx')` 的第一参数用稳定 id、需要落盘就在 `watch` 里显式 `cache.setItem`，键名加进 `packages/enums/src/cache.ts` 的 `CacheKey`，并在登出流程（或 `onSessionReset` 登记）里加清理。别忘了同步 `packages/stores/src/index.ts` 或 `apps/web/src/stores/index.ts` 的导出。:::
+::: tip
+
+想加一个新 store应用级状态照 `apps/web/src/stores/modules/dict.ts` 写，跨包共享的才进 `packages/stores/src/`：setup store、`defineStore('xxx')` 的第一参数用稳定 id、需要落盘就在 `watch` 里显式 `cache.setItem`，键名加进 `packages/enums/src/cache.ts` 的 `CacheKey`，并在登出流程（或 `onSessionReset` 登记）里加清理。别忘了同步 `packages/stores/src/index.ts` 或 `apps/web/src/stores/index.ts` 的导出。
+:::

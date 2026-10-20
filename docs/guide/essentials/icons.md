@@ -4,7 +4,7 @@
 
 | 通道 | 依赖 | 写法 | 现状 |
 | --- | --- | --- | --- |
-| Iconify 离线集合 | `@iconify/vue` `^5.0.3` + 五套 `@iconify-json/*` | `<Icon icon="carbon:search" />` | 主力：`apps` 与 `packages` 下 `carbon:` 466 处、`ant-design:` 99 处、`lucide:` 11 处（几乎都在 `IconPicker` 与 `@iconify` 自己的加载器里） |
+| Iconify 离线集合 | `@iconify/vue` `^5.0.3` + 五套 `@iconify-json/*` | `<Icon icon="carbon:search" />` | 主力：`carbon:` 444 处、`ant-design:` 99 处、`lucide:` 7 处。口径与对账测试一致 —— 只数带引号的整串字面量，扫描 `apps/backend-mock/server`、`apps/web/src`、`packages` 下的 `.ts/.tsx/.vue`，`lucide` 几乎都在 `IconPicker` 与 `@iconify` 自己的加载器里 |
 | antdv-next 自带图标组件 | `@antdv-next/icons` `^1.1.2` | `import { FullscreenOutlined } from '@antdv-next/icons'` | 只剩 1 个源文件：`apps/web/src/views/screen/components/ScreenHeader.vue:4`（另有 `views/screen/__tests__/screen-header.spec.ts` 一个测试引用）。登录/注册/导入导出/租户选择那几处早已换成 Iconify |
 | 本地 SVG 雪碧图 | `vite-plugin-svg-icons` `^2.0.1` | `<SvgIcon name="logo" />` | `apps/web/src/assets/icons` 目前放着 `github / google / qq / wechat` 四个（登录页的 social 按钮用它们，见[登录与鉴权](/guide/in-depth/login)） |
 
@@ -22,9 +22,12 @@ iconifyOffline({
 
 `local` 列表里的集合会被读成 `@iconify-json/<name>/icons.json`，由插件在构建期供给 `@iconify/vue`，**不会**在运行时去打 Iconify API。装了哪五套看依赖：`packages/core/base/icons/package.json` 里五套齐全（`:27-31`），`apps/web` 把 `carbon` 放在 dependencies（`:48`），另外四套 `ant-design` / `fa6-regular` / `lucide` / `mdi` 放在 devDependencies（`:116-119`）。
 
-`mdi` 的引用点只有两处：`IconPicker` 自己的集合加载表（`packages/core/base/icons/src/icon/IconPicker.vue:80`）和一条单测样例。`fa6-regular` 目前**没有任何代码引用**。它们存在的意义是让用户在 `IconPicker` 里挑得到。也就是说：离线列表 = 挑选器可搜的集合，不等于"用掉的集合"。
+`mdi` 的引用点只有两处来源：`IconPicker` 自己的集合加载表（`packages/core/base/icons/src/icon/IconPicker.vue:80`）和 `common-ui/__tests__/auth.test.ts:183,184,215` 的三条单测样例。`fa6-regular` 目前**没有任何代码引用**。它们存在的意义是让用户在 `IconPicker` 里挑得到。也就是说：离线列表 = 挑选器可搜的集合，不等于"用掉的集合"。
 
-::: warning 列表外（或没装）的集合不会报错，只会变空白 `<Icon icon="carbon:card" />` 写错名字时 Vue 不报错：构建期查不到就是**空 span**，若走到运行时取图则变成一次网络请求（还常被本站 CSP 挡掉）。表现是"菜单有的项有图标、有的整格空白，标题被顶得左右不齐"——看着像样式坏了，其实是数据写错。:::
+::: warning
+
+列表外（或没装）的集合不会报错，只会变空白 `<Icon icon="carbon:card" />` 写错名字时 Vue 不报错：构建期查不到就是**空 span**，若走到运行时取图则变成一次网络请求（还常被本站 CSP 挡掉）。表现是"菜单有的项有图标、有的整格空白，标题被顶得左右不齐"——看着像样式坏了，其实是数据写错。
+:::
 
 `vite-plugin-iconify-offline` 也在 `apps/web` 的 devDependencies 里（catalog `^0.4.3`），但全仓**没有任何 import**，起作用的是上面那个 `@tomjs/*`。
 
@@ -47,7 +50,8 @@ iconifyOffline({
 2. `auto-import.ts:31` 的 `local` 数组；
 3. `IconPicker.vue` 的 `Prefix` 联合类型（`:53`）、`COLLECTIONS`（`:62`）、`COLLECTION_LOADERS`（`:75`）（漏了就选不到也搜不出来）；
 4. `apps/web/test/icon-names.test.ts` 的 `COLLECTIONS` 和 `LITERAL` 正则里的集合名分支；
-5. 跑一次 `pnpm --filter @antdv/web build` 确认离线数据真的进了产物。:::
+5. 跑一次 `pnpm --filter @antdv/web build` 确认离线数据真的进了产物。
+:::
 
 ## 图标名对账测试（本仓库的硬约束）
 
@@ -65,7 +69,10 @@ iconifyOffline({
 
 跑法：`pnpm test:unit`（turbo 全仓）或 `pnpm --filter @antdv/web test:unit`（只跑应用，含这条）。
 
-::: warning 类名形式的图标在本仓库不生效 `apps/web/src/views/system/micro-app/index.vue` 里还能看到 `class="i-carbon-search"`、`i-carbon-application` 这类 UnoCSS 风格写法（`MicroAppContainer` 已迁进 `@antdv/common-ui`，那份引用跟着没了，视图里还剩一处）。仓库里没有 UnoCSS，也没有任何把 `i-*` 编译成 CSS 的插件（样式是 Tailwind v4，见[设计令牌与全局样式](/guide/essentials/design)），这些 span 渲染出来是**纯空白**。新代码一律写组件形式：`<Icon icon="carbon:search" />`。:::
+::: warning
+
+类名形式的图标在本仓库不生效 `apps/web/src/views/system/micro-app/index.vue` 里还能看到 4 处 UnoCSS 风格的 `class="i-carbon-search"` / `i-carbon-application` 写法（`:195`、`:333`、`:408`、`:450`；`MicroAppContainer` 已迁进 `@antdv/common-ui`，它那份引用跟着一起没了）。仓库里没有 UnoCSS，也没有任何把 `i-*` 编译成 CSS 的插件（样式是 Tailwind v4，见[设计令牌与全局样式](/guide/essentials/design)），这些 span 渲染出来是**纯空白**。新代码一律写组件形式：`<Icon icon="carbon:search" />`。
+:::
 
 ## 图标名从哪来
 

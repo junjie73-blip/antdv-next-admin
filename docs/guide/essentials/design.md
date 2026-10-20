@@ -33,7 +33,8 @@ packages/core/base/design/
 
 - **不含组件**：包里没有一行 `.vue`，也没有 `src/index.ts`。卡片、标签、步骤条这类公共展示件在 `@antdv/common-ui`，图标原子在 `@antdv/icons`，`index.css:18` 的注释专门写了这条边界。
 - **不感知组件库**：不 import 任何组件库的 JS，也不引它们的样式兼容层 —— 令牌与规则全部来自本包，组件包改名或换库都不需要动这里。唯一的残留是 `css/base.css:128-134` 那两条 `.ant-upload` 光标补丁（antd 给上传触发区漏了 `cursor: pointer`，页面里还有它的 DOM 时得补），组件库 DOM 一走就可以删掉。
-- **不含业务样式**：需要读 store 的薄壳（如 `packages/layouts/src/basic/content/page-loading.vue`）留在应用里，不往本包搬。:::
+- **不含业务样式**：需要读 store 的薄壳（如 `packages/layouts/src/basic/content/page-loading.vue`）留在应用里，不往本包搬。
+:::
 
 ## 层顺序是显式声明的
 
@@ -122,9 +123,13 @@ Tailwind v4 的自动内容检测从**构建根**开始扫，而应用侧的构�
 
 - 类名必须是**源码里出现的完整字符串**。拼接（`text-${color}-500`）、把档位拼进变量、或写进 `@source` 没覆盖到的目录，都不会生成对应 CSS，而且不报错。
 - `cn(...)` 不要写在模板属性里带**尾随逗号**（`cn('a', cond && 'b',)` 之外的 `:class="cn('a',)"` 形式同理易被格式工具改坏）；组件包里的通行做法是**在 `<script setup>` 里收成 `computed`**，模板只引用变量 —— `packages/core/ui-kit/common-ui` 的各组件都这么写，既避免模板里塞表达式，也让 class 字符串保持是字面量。
-- 状态到配色一律用**查表**（`Record<string, string>`，值是完整类名串），不要 `cn('text-' + tone)`。常见例子见 `packages/core/ui-kit/common-ui/src/components/badge/Badge.vue`、`steps/Steps.vue`、`tag/Tag.vue` 里的 `STATUS_DOT` / `CIRCLE` / `PRESET` 常量。:::
+- 状态到配色一律用**查表**（`Record<string, string>`，值是完整类名串），不要 `cn('text-' + tone)`。常见例子见 `packages/core/ui-kit/common-ui/src/components/badge/Badge.vue`、`steps/Steps.vue`、`tag/Tag.vue` 里的 `STATUS_DOT` / `CIRCLE` / `PRESET` 常量。
+:::
 
-::: warning 不要在路由页面的外层容器写 padding 内容区内边距归布局管。页面自己加一层 padding 会在切布局形态时重复。见[开发规范与环境变量](/guide/essentials/development)与[布局、菜单与标签页](/guide/in-depth/layout)。:::
+::: warning
+
+不要在路由页面的外层容器写 padding 内容区内边距归布局管。页面自己加一层 padding 会在切布局形态时重复。见[开发规范与环境变量](/guide/essentials/development)与[布局、菜单与标签页](/guide/in-depth/layout)。
+:::
 
 颜色不要钉死。页面里同时住着两套主色：本包的 `--app-primary`（钉在 `html` 上，portal 出去的浮层也取得到）与 antdv-next 运行时在 `.ant-app` 上**按暗底重算**的同族变量。一条链取种子、一条链取重算值，混用就会在同一屏里出现两种橙色。所以新页面一律走 `*-primary` 这套令牌，写测试断言时也别说死色值 —— 要么在浅色下断，要么断"同源关系"（两个元素的计算色相等）。细节见[主题与偏好设置](/guide/in-depth/theme)。
 

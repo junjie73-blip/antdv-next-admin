@@ -48,7 +48,7 @@
   --app-info: var(--app-primary);
 
   /* 尺度 token：名单与亮色一致，取值各自独立 */
-  --app-border-radius: 8px;
+  --app-border-radius: 16px;
   --app-font-size: 100%;
   --app-filter: none;
 }

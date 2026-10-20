@@ -8,7 +8,7 @@ There are **three unrelated configuration surfaces** in this repository, and con
 | User preferences | `packages/core/preferences` + `apps/web/src/settings/index.ts` | at runtime, persisted to localStorage | no, a reload is enough |
 | Application constants | `apps/web/src/config/*.ts` | compile-time constants | no (HMR) |
 
-The first decides how the bundle is produced and which backend it talks to, the second decides what the UI looks like, the third holds hard-coded product decisions (cache key names, home path, table pagination fields). Preferences are **not a runtime copy of a config file**: they have defaults, sanitization, and migration — see below.
+The first decides how the bundle is produced and which backend it talks to, the second decides what the UI looks like, the third holds hard-coded product decisions (the route allow-list, the home / login paths, the scrollbar flavour). Preferences are **not a runtime copy of a config file**: they have defaults, sanitization, and migration — see below.
 
 ## Env vars: two read paths, opposite types
 
@@ -46,10 +46,10 @@ Build side only (read inside `internal/vite-config`, invisible to the browser):
 | `VITE_DEVTOOLS` | off | `vite-plugin-vue-devtools` | `plugins/index.ts:105-107` |
 | `VITE_VISUALIZER` | off | emits `stats.html` via `vite-bundle-analyzer` | `:110-111` |
 | `VITE_TURBO_CONSOLE` | off | terminal highlighting through `unplugin-console-highlight` | `:112-113` |
-| `VITE_ARCHIVER` | off | zips the build output | `:119` |
-| `VITE_PWA` | off | manifest + service worker (`registerType: 'prompt'`) | `:120` |
-| `VITE_COMPRESS` | off | gzip + brotli above a 10 KB threshold | `:121-122`, `plugins/compress.ts` |
-| `VITE_EXTRA_APP` | off | extracts env into `_app-config-<version>-<hash>.js` and loads it from HTML | `:123-127` |
+| `VITE_ARCHIVER` | off | zips the build output | `:119-120` |
+| `VITE_PWA` | off | manifest + service worker (`registerType: 'prompt'`) | `:121-122` |
+| `VITE_COMPRESS` | off | gzip + brotli above a 10 KB threshold | `:123-124`, `plugins/compress.ts` |
+| `VITE_EXTRA_APP` | off | extracts env into `_app-config-<version>-<hash>.js` and loads it from HTML | `:125-129` |
 | `VITE_PRINT` | off | custom dev startup banner | `:136` |
 | `VITE_INJECT_APP_LOADING` | off (both mode files set it to `true`) | injects the first-paint overlay; the plugin itself is **always registered**, see below | `:145` |
 | `VITE_APP_LOADING_DEV` / `_BUILD` / `_DURATION` / `_PATH` | the first two default to on when injection is enabled | dev/build injection, fade duration, custom overlay HTML | `:175-189` |
@@ -59,11 +59,14 @@ Build side only (read inside `internal/vite-config`, invisible to the browser):
 | `VITE_PROXY` | none | extra `[prefix, target][]` proxy entries; the mock proxy always wins | `config/application.ts:106` |
 | `VITE_APP_BASE_URL` | none | injected into `canonical` / `og:url` in `index.html` | `plugins/index.ts:88-92` |
 
-::: warning Three variables that look live but are not read anywhere
+::: warning
+
+Three variables that look live but are not read anywhere
 
 - `VITE_NAMESPACE`: appears only in `.env` and `types/env.d.ts`, zero references in code. The cache prefix actually comes from `VITE_APP_TITLE`, so don't trust the name.
 - `VITE_APP_VERSION`: produced by a `define` in `plugins/metadata.ts:104`; no application code reads it.
-- `VITE_MINIO_PUBLIC_URL` and `VITE_SENTRY_DSN`: read in code (`bootstrap/env.ts`, `main.ts`) but absent from all three `.env` files, so they are `undefined` at runtime. Sentry only initializes inside the `import.meta.env.PROD` branch and a missing DSN means nothing is reported; without a MinIO URL, downloads keep going through the proxy prefix (`packages/core/base/shared/src/utils/download.ts`). :::
+- `VITE_MINIO_PUBLIC_URL` and `VITE_SENTRY_DSN`: read in code (`bootstrap/env.ts`, `main.ts`) but absent from all three `.env` files, so they are `undefined` at runtime. Sentry only initializes inside the `import.meta.env.PROD` branch and a missing DSN means nothing is reported; without a MinIO URL, downloads keep going through the proxy prefix (`packages/core/base/shared/src/utils/download.ts`).
+:::
 
 `vite-plugin-iconify-offline`, `@vitejs/plugin-legacy` and `vite-plugin-cdn-import` are listed in `apps/web/package.json` devDependencies but **never imported**. Offline icons come from `@tomjs/vite-plugin-iconify` (see [Icons](/en/guide/essentials/icons)). Search for an import before assuming a declared plugin is active.
 
@@ -94,42 +97,47 @@ Merge order is `common → application → overrides` (two `mergeConfig` calls a
 
 `createPlugins()` branches on artifact kind (`internal/vite-config/src/plugins/index.ts:49-195`): only `application` gets HTML injection, PWA, archiving and metadata; `library` keeps the compile chain plus `.d.ts`.
 
-::: warning `VITE_INJECT_APP_LOADING=false` does not skip the plugin The entry always contains `import { loadingFadeOut } from 'virtual:app-loading'`. Skipping the plugin entirely makes the virtual module unresolvable and the build fails with a 500; the switch therefore only controls injection, and when nothing was injected those functions find no container and do nothing (`plugins/index.ts:139-145`). :::
+::: warning
+
+`VITE_INJECT_APP_LOADING=false` does not skip the plugin The entry always contains `import { loadingFadeOut } from 'virtual:app-loading'`. Skipping the plugin entirely makes the virtual module unresolvable and the build fails with a 500; the switch therefore only controls injection, and when nothing was injected those functions find no container and do nothing (`plugins/index.ts:139-145`).
+:::
 
 ## User preferences
 
-`packages/core/preferences` exposes a factory with no global singleton; the project adapter is `apps/web/src/settings/index.ts`:
+`packages/core/preferences` exposes a factory plus a module-level singleton whose _creation moment belongs to the app_ (`preferences.ts:148-155`); the project adapter is `apps/web/src/settings/index.ts`:
 
 ```ts
-// apps/web/src/settings/index.ts:60-113
+// apps/web/src/settings/index.ts:61-64
 export const APP_DEFAULTS: AppSetting = withDefaultPreferences({
   copyrightCompany: import.meta.env.VITE_APP_TITLE || 'Antdv Admin',
   watermarkContent: import.meta.env.VITE_APP_TITLE || 'Admin',
 });
+```
 
+```ts
+// apps/web/src/settings/index.ts:92-97
 export function getPreferences(): PreferencesInstance {
-  instance ??= createPreferences({
+  return initPreferences({
     defaults: APP_DEFAULTS,
     migrate: migratePreferences,
   });
-  return instance;
 }
 ```
 
 Three decisions worth remembering:
 
-- **The instance must be created lazily.** Calling `createPreferences()` at module top level runs before `bootstrap/env` injects the prefix, so reads and writes hit the default `app_cache_*` keys — the symptom is "my settings save but vanish on reload".
-- **No `import.meta.env` inside defaults** (`packages/core/preferences/src/config.ts:6-14`): the package output sits in `dist`, out of reach of static replacement, so such fields silently become empty strings. Project-specific values enter through `defaults`.
-- **The read chain is cache → `migrate` → `pickKnownPreferences` → merged over defaults** (`packages/core/preferences/src/preferences.ts:129-133`). `pickKnownPreferences` drops type-mismatched values; `migrate` handles values that are valid strings but obsolete enum members (old layout names). Migration runs on read only.
+- **The instance must be created lazily.** Calling `initPreferences()` at module top level runs before `bootstrap/env` injects the prefix, so reads and writes hit the default `app_cache_*` keys (that default prefix is `packages/core/base/shared/src/utils/env.ts:27`) — the symptom is "my settings save but vanish on reload". The singleton belongs to the package: `initPreferences()` is idempotent (`current ??= createPreferences(options)`, `preferences.ts:160-165`), so `getPreferences()` may be called again from any call site; using it before initialization throws instead of silently building a second config (`getPreferencesInstance()`, `preferences.ts:168-175`).
+- **No `import.meta.env` inside defaults** (`packages/core/preferences/src/config.ts:10-14`): the package output sits in `dist`, out of reach of static replacement, so such fields silently become empty strings. Project-specific values enter through `defaults`.
+- **The read chain is cache → `migrate` → `pickKnownPreferences` → merged over defaults** (`readMerged()`, `packages/core/preferences/src/preferences.ts:56-60`). `pickKnownPreferences` drops type-mismatched values; `migrate` handles values that are valid strings but obsolete enum members (old layout names). Migration runs on read only.
 
-The full key list, grouped as theme / layout / widgets / footer / general, is in `defaults.ts:16-70`; persistence uses the `appSetting` key (`store.ts:21`, prefixed by the cache layer). How those keys drive the DOM and the antd theme is in [Theming and preferences](/en/guide/in-depth/theme), and how `appStore` flattens them is in [State management](/en/guide/essentials/stores).
+The full key list, grouped as theme / layout / widgets / footer / general, is `DEFAULT_PREFERENCES` at `packages/core/preferences/src/config.ts:20-80`; persistence uses `PREFERENCES_CACHE_KEY = 'appSetting'` (`constants.ts:11`), prefixed by the cache layer (`shared/src/cache/index.ts:40-45`). How those keys drive the DOM and the antd theme is in [Theming and preferences](/en/guide/in-depth/theme), and how `appStore` flattens them is in [State management](/en/guide/essentials/stores).
 
 ## Application constants
 
 | File | Contents | Notes |
 | --- | --- | --- |
-| `src/config/constants.ts` | `TOKEN_KEY`, `USER_INFO_KEY`, `WHITE_LIST`, `HOME_PATH = '/dashboard/analysis'`, `LOGIN_PATH` | guards and the login flow read these; don't hardcode paths in pages |
-| `src/config/project.ts` | `projectConfig`: `table.fetchSetting/sortSetting`, `pageSizeOptions`, `routeMap`, `scrollbar.native` | only `scrollbar.native` has consumers today (`ModalWrapper.vue`, `SettingDrawer/index.vue`); table field names come from `DEFAULT_FETCH_SETTING` at `useDataSource.ts:17`, and `routeMap` is unread |
+| `src/config/constants.ts` | `WHITE_LIST` (`:6-12`), `HOME_PATH = '/dashboard/analysis'` (`:14`), `LOGIN_PATH` (`:15`) — 15 lines in total | guards and the login flow read these (`router/guards/index.ts:8,48-51`, `plugins/request-runtime.ts:4,17`); don't hardcode paths in pages. **The cache key names are not here** — the file's own comment at `:4` says so; token / user-info keys live in `CacheKey` from `@antdv/enums` (`packages/enums/src/cache.ts:7-16`: `ACCESS_TOKEN = 'auth_token'`, `USER_INFO = 'user_info'`, …), aliased to `TOKEN_KEY` / `USER_INFO_KEY` at `packages/stores/src/user.ts:14` |
+| `src/config/project.ts` | `projectConfig`: `projectName`, `table.fetchSetting/sortSetting`, `pageSizeOptions`, `routeMap`, `scrollbar.native` | the only consumer in the whole repo is `apps/web/src/plugins/layouts-host.ts:39` (`scrollbar.native`, injected into `@antdv/layouts`); `table.*` and `routeMap` are unused, and the actual table field names come from `DEFAULT_FETCH_SETTING` at `packages/core/ui-kit/table-ui/src/hooks/useDataSource.ts:18` |
 | `src/config/micro-app.ts` | sub-app registry plus `enabled` (from `VITE_MICRO_APP`) | see [External modules](/en/guide/essentials/external) |
 | `src/config/color.ts` | `COLOR_LIST` theme presets | feeds the `primaryColor` preference |
 | `src/settings/index.ts` | preferences adapter | covered above |

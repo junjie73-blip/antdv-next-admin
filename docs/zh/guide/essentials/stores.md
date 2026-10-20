@@ -23,7 +23,10 @@ app.use(pinia);
 | dict | `dict.ts:55` | 字典 map + `getOptions` / `getLabel` | 启动时 `layouts/index.vue:153` 拉取 |
 | auth | `auth.ts:13` | token + userInfo + roles（**与 user 重复，全仓无消费者**） | 无人使用，见下方警告 |
 
-::: warning `stores/index.ts` 只 re-export 四个 `stores/index.ts:1-4` 导出 app / auth / dict / route，**tabs 与 user 必须从 `~/stores/modules/*` 直接 import**。这不是笔误，是历史遗留的收敛缺口，已记在待办里。:::
+::: warning
+
+`stores/index.ts` 只 re-export 四个 `stores/index.ts:1-4` 导出 app / auth / dict / route，**tabs 与 user 必须从 `~/stores/modules/*` 直接 import**。这不是笔误，是历史遗留的收敛缺口，已记在待办里。
+:::
 
 ## 约定
 
@@ -45,7 +48,10 @@ app.use(pinia);
 | 偏好设置 | `appSetting`（带前缀） | preferences store 自己 persist | `packages/preferences/src/store.ts:104-105,144-150` |
 | 语言 | `locale` | **裸 key**，与偏好的 `locale` 是两套 | `src/locales/index.ts:11`、`composables/web/useLocale.ts:20-25` |
 
-::: warning `VITE_NAMESPACE` 是个死变量它只出现在 `apps/web/.env:1`、`types/env.d.ts:31` 和这份文档里，**没有任何代码路径读它**。想按环境隔离 localStorage，目前只能靠 `VITE_APP_TITLE` 前缀（改 title 会让全部旧缓存失效，这是它的实际效果）。别指望设个 namespace 就能多标签隔离。:::
+::: warning
+
+`VITE_NAMESPACE` 是个死变量它只出现在 `apps/web/.env:1`、`types/env.d.ts:31` 和这份文档里，**没有任何代码路径读它**。想按环境隔离 localStorage，目前只能靠 `VITE_APP_TITLE` 前缀（改 title 会让全部旧缓存失效，这是它的实际效果）。别指望设个 namespace 就能多标签隔离。
+:::
 
 ## app store 是偏好的门面，不是第二份状态
 
@@ -69,4 +75,7 @@ app.use(pinia);
 | 只有父组件和子组件要 | `provide` / `inject` 或 props，别进全局 |
 | 一个页面的表单草稿 | 组件内 `ref` |
 
-::: tip 想加一个新 store 照着 `dict.ts` 写：setup store、`defineStore('dict')` 风格的第一参数用稳定 id、需要落盘就在 `watch` 里显式 `cache.setItem`，并在 `user.ts` 的登出流程里加清理。别忘了同步更新 `stores/index.ts` 的导出，或者直接按 `~/stores/modules/xxx` 引。:::
+::: tip
+
+想加一个新 store 照着 `dict.ts` 写：setup store、`defineStore('dict')` 风格的第一参数用稳定 id、需要落盘就在 `watch` 里显式 `cache.setItem`，并在 `user.ts` 的登出流程里加清理。别忘了同步更新 `stores/index.ts` 的导出，或者直接按 `~/stores/modules/xxx` 引。
+:::

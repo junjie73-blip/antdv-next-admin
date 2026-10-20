@@ -2,15 +2,18 @@ import { defineConfig } from 'vitepress';
 
 /**
  * 站点文档（VitePress）配置。中英双语，`/` 与 `/en/` 各一套内容；**默认中文** ——
- * 根路径 `docs/index.md` 只有一条 `redirect: /`，打开站点直接落到中文首页，
- * 英文靠语言菜单跳到 `/en/`（不再有"选择语言"中间页）。
+ * 根路径 `docs/index.md` 本身就是中文首页（`layout: home` 的 hero，不是一条 `redirect`，
+ * 也不是"选择语言"中间页），英文靠语言菜单跳到 `/en/`。
  *
  * 信息架构参考 vue-vben-admin（doc.vben.pro）：正文在 `guide/` 下按 `introduction`（介绍）/
  * `essentials`（基础）/ `in-depth`（深入）/ `project`（工程）/ `other`（其他）分层，
  * 示例文档另起一章 `components/`（组件示例）并**用独立的侧栏键**（`/components/`）——
  * 混进 `guide` 的侧栏会让读指南的人全程拖着 9 条示例页。两边**目录与文件名逐一对应**，
  * 侧栏分组与阅读顺序一致 —— 一份 `sidebar` 里出现的每个 link，两边都要有同名文件。
- * 加页面时先在 `zh` 落地，再补同路径的 `en`，只补一边会让语言切换跳到 404。
+ * 加页面时先在**正文树**（`docs/guide/**`、`docs/components/**`，中文）落地，再补同路径的
+ * `en`，只补一边会让语言切换跳到 404。仓库里另有一份 `docs/zh/**`（34 个文件）既没有
+ * 任何 `nav`/`sidebar` 条目指向它，也没有一篇正文链接它，只是被站点一起构建成 `/zh/` 路由
+ * 并进搜索索引 —— 它是改造中途留下的副本，内容已经落后于正文树，别再往里写东西。
  *
  * 这个包不参与应用构建：`@antdv/web` 不依赖它，`turbo build` 只把它当成一个独立的
  * build 任务。部署走 GitHub Actions + GitHub Pages（`.github/workflows/docs.yml`），
@@ -27,8 +30,10 @@ import { defineConfig } from 'vitepress';
  * 只负责把这个菜单的标签本地化。注意顶栏那份只在视口 ≥1280px 出现，更窄的窗口靠汉堡
  * 菜单里那份 —— 这是上游的响应式取舍，不必为此另写组件。
  *
- * `base` 由环境变量决定：GitHub Pages 的项目站挂在 `/<仓库名>/` 下，路径不对会出现
- * "HTML 在、样式全 404"；本地 dev / preview 挂在根路径，所以默认 `/`。
+ * `base` 由 `VITEPRESS_BASE` 决定，缺省 `/antdv-next-admin`：GitHub Pages 的项目站挂在
+ * `/<仓库名>/` 下，路径不对会出现"HTML 在、样式全 404"。注意这个环境变量现在**没有任何地方
+ * 设置**（`docs/package.json` 的三条 vitepress 脚本和 `.github/workflows/docs.yml` 都没设），
+ * 所以 dev / preview / build / CI 全部走同一个缺省值，本地也是 `http://localhost:5200/antdv-next-admin/`。
  *
  * logo 与图标来自 `docs/public/`，源头是 web 子包（`apps/web/public/favicon.ico`、
  * `apps/web/public/pwa-icons/{logo,apple-touch-icon-180x180}.png`）—— VitePress 只能服务

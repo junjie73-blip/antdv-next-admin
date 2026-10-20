@@ -1,18 +1,26 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+
 import { IconifyIcon as Icon } from '@antdv/icons/icon';
 
-withDefaults(
+import { useGlobalConfig } from '../config-provider';
+
+const props = withDefaults(
   defineProps<{
-    title?: string;
     description?: string;
     icon?: string;
+    title?: string;
   }>(),
   {
-    title: '暂无数据',
     description: '',
     icon: 'ant-design:inbox-outlined',
+    title: undefined,
   },
 );
+
+/** 标题兜底到全局词条，切语言时这里跟着变 */
+const globalConfig = useGlobalConfig();
+const title = computed(() => props.title ?? globalConfig.emptyText);
 </script>
 
 <template>

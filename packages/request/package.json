@@ -5,11 +5,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "clean": "rimraf .turbo",
+    "build": "vite build",
+    "clean": "rimraf dist .turbo",
     "test:unit": "vitest run",
     "type-check": "vue-tsc --noEmit"
   },
   "files": [
+    "dist",
     "src"
   ],
   "main": "./src/index.ts",
@@ -33,6 +35,7 @@
   },
   "devDependencies": {
     "@antdv/tsconfig": "workspace:*",
+    "@antdv/vite-config": "workspace:*",
     "@types/qs": "catalog:",
     "happy-dom": "catalog:",
     "rimraf": "catalog:",

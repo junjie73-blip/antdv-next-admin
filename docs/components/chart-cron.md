@@ -25,7 +25,10 @@
 - **销毁时机**：`onBeforeUnmount` 摘掉 resize 监听并 `dispose()`（`charts/ECharts.vue:57-60`）。
 - **主题不联动**：`echarts.init(el.value)` 不传主题参数（`charts/ECharts.vue:28`），封装也**没有 `theme` 入参**——注册过的 ECharts 主题、偏好里的深色模式都不会自动作用到图上。
 
-::: warning 明暗适配是示例页自己做的「图表」示例页的做法是：读 `appStore.resolvedTheme` 得到 `isDark`（`chart/index.vue:22`；store 侧 `packages/stores/src/app.ts:44`），把所有颜色写成 `computed` 里的 option 字段（文字/轴线/tooltip 背景都按明暗两套取值，`chart/index.vue:24-51`），主题切换时 `computed` 重算、触发组件的 notMerge 重绘（页面注释原话在 `chart/index.vue:20-21`）。换你自己的页面时，这是封装可用能力的全部：其余的「深色主题」都得这样进 option。:::
+::: warning
+
+明暗适配是示例页自己做的「图表」示例页的做法是：读 `appStore.resolvedTheme` 得到 `isDark`（`chart/index.vue:22`；store 侧 `packages/stores/src/app.ts:44`），把所有颜色写成 `computed` 里的 option 字段（文字/轴线/tooltip 背景都按明暗两套取值，`chart/index.vue:24-51`），主题切换时 `computed` 重算、触发组件的 notMerge 重绘（页面注释原话在 `chart/index.vue:20-21`）。换你自己的页面时，这是封装可用能力的全部：其余的「深色主题」都得这样进 option。
+:::
 
 ### 一个存在但没被接线的全功能 composable
 
@@ -64,7 +67,10 @@ Props 与事件（`CronEditor.vue:27-33`）：
 
 组件对表达式的「校验」就是把生成结果丢给 `cronstrue.toString(expr, { locale: 'zh_CN' })`，抛异常时把描述区改成「表达式无效」（`CronEditor.vue:199-205`）——**不阻止输出**，`change` 照抛。示例页在此之上自建了 `check()` 把错误收进 `{ text, error }`（`views/components/cron/index.vue:49-61`），非法时标红/弹 warning（如 `:63-71,84-98`）。
 
-::: warning 组件不支持手动输入展示表达式的那个 `Input` 是 `readonly` 的（`CronEditor.vue:330-336`）；antd 时代脚本里那段无模板绑定点的死代码 `handleInputChange` 已在迁入 `@antdv/common-ui` 时删除。想手输表达式得像示例页第 3 张卡片那样自己放输入框。:::
+::: warning
+
+组件不支持手动输入展示表达式的那个 `Input` 是 `readonly` 的（`CronEditor.vue:330-336`）；antd 时代脚本里那段无模板绑定点的死代码 `handleInputChange` 已在迁入 `@antdv/common-ui` 时删除。想手输表达式得像示例页第 3 张卡片那样自己放输入框。
+:::
 
 ### 曾经的 type-check 报错文件：迁移时已消解
 

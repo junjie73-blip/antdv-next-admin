@@ -8,7 +8,8 @@ This page covers exactly one demo route — `/components/modal-drawer` — and t
 2. `ModalProps` / `DrawerProps` contain fields that are **declared but never read by the components**: `helpMessage`, `maskStyle`, plus `bodyStyle` on the modal side (see the two props tables below).
 3. `useDrawerInner` **is only an alias export of `useDrawer`** (`drawer/index.ts:13-15`), not a second "inner-component" implementation; the drawer side has no data channel, only `useModalInner` does.
 
-Every section below cites the behaviour code; do not copy the fields from item 2 into product code as if they were API.:::
+Every section below cites the behaviour code; do not copy the fields from item 2 into product code as if they were API.
+:::
 
 ## What problem they solve
 
@@ -81,7 +82,10 @@ const register = (instance: ModalInnerMethods) => {
 
 Because the outer `useModal` keeps the **same object reference**, its `instance.openModal(...)` call resolves to the wrapped version (`useModal.ts:42-45`), so a parent page's `openModal(true, data)` enters the child callback first. Two registrations can be fed by a single `register` emit thanks to attribute forwarding: in the demo `InnerForm` does not declare a `register` emit, so the parent's listener stays in `$attrs` and `v-bind="$attrs"` passes it on to `BasicModal` (`views/components/modal-drawer/components/InnerForm.vue:71`, mechanism explained in the comment at `:7-21`); `inheritAttrs: false` (`:22`) exists so the default single-root forwarding does not call `onRegister` twice.
 
-::: tip When you do not need useModalInner Modal content written directly in the page template (demo sections 2, 3 and 5 work that way) has no child component at all, so nobody can receive `data` — read the page's own `ref`s instead. The demo page prints this sentence in its info bar (`modal-drawer/index.vue:305-310`).:::
+::: tip
+
+When you do not need useModalInner Modal content written directly in the page template (demo sections 2, 3 and 5 work that way) has no child component at all, so nobody can receive `data` — read the page's own `ref`s instead. The demo page prints this sentence in its info bar (`modal-drawer/index.vue:305-310`).
+:::
 
 ## BasicModal API
 
@@ -152,7 +156,10 @@ The reason for calling `preventDefault()` and then running `closeModal()` oursel
 | `getVisible()` | `types.ts:110` | Reads the internal `visibleRef` (`:123`) |
 | `setModalProps(partial)` | `types.ts:108` | **Works**: the overrides are merged into `propOverrides` and `merged` recomputes (`:118-122`); passing `open` / `loading` also updates the internal refs |
 
-::: warning The OK button loading: either close the modal or reset it yourself `handleOk` sets `okLoadingRef` to `true` unconditionally (`:154-156`), and the component's only automatic reset point is `closeModal()` (`:112`). What `BasicModal` emits is **`innerMethods`, which contains `changeOkLoading` / `changeLoading`** (`:126-134`, `:137`), so only a component that destructures `useModalInner()` inside the modal gets those two methods (`useModalInner.ts:64-69`); the page-level `useModal()` forwards only four keys (`useModal.ts:41-55`). Consequence: if your `@ok` handler decides to keep the modal open (validation failure, for instance), either call `changeOkLoading(false)` in the child component, or close the modal. Every submit path in demo section 1 closes, and the page prints that precondition on screen (`modal-drawer/index.vue:360-377`).:::
+::: warning
+
+The OK button loading: either close the modal or reset it yourself `handleOk` sets `okLoadingRef` to `true` unconditionally (`:154-156`), and the component's only automatic reset point is `closeModal()` (`:112`). What `BasicModal` emits is **`innerMethods`, which contains `changeOkLoading` / `changeLoading`** (`:126-134`, `:137`), so only a component that destructures `useModalInner()` inside the modal gets those two methods (`useModalInner.ts:64-69`); the page-level `useModal()` forwards only four keys (`useModal.ts:41-55`). Consequence: if your `@ok` handler decides to keep the modal open (validation failure, for instance), either call `changeOkLoading(false)` in the child component, or close the modal. Every submit path in demo section 1 closes, and the page prints that precondition on screen (`modal-drawer/index.vue:360-377`).
+:::
 
 ## BasicDrawer API
 
@@ -201,7 +208,9 @@ This decision changed direction once: the early implementation used Sheet (Dialo
 
 `useDrawer()` returns `openDrawer / closeDrawer / setDrawerProps / getVisible` (`useDrawer.ts:40-54`), and its semantics are perfectly symmetric with `useModal`: `waitForInstance` is the same 10 rounds of `nextTick` + 50ms and throws `[useDrawer] Drawer instance not found` on timeout (`:26-38`); `getVisible` is synchronous and does not wait again (`:53`). `setDrawerProps` genuinely works this time — it merges the overrides into `propOverrides` (`BasicDrawer.vue:156-161`), so the title, button labels and width all re-render with the override values.
 
-::: warning useDrawerInner is not an "inner" hook `drawer/index.ts:13-15` is the same module exported on two lines:
+::: warning
+
+useDrawerInner is not an "inner" hook `drawer/index.ts:13-15` is the same module exported on two lines:
 
 ```ts
 export { useDrawer } from './useDrawer';
@@ -209,7 +218,8 @@ export { useDrawer } from './useDrawer';
 export { useDrawer as useDrawerInner } from './useDrawer';
 ```
 
-So the `callback` of `useDrawerInner(callback)` **is neither accepted nor invoked** (the signature at `useDrawer.ts:10` takes no parameters at all) — the drawer side has no data channel comparable to `useModalInner`. The destructured second element really contains only the four keys `openDrawer/closeDrawer/setDrawerProps/getVisible`; destructuring `changeOkLoading` / `changeLoading` off it (as `DrawerInnerMethods`, `drawer/types.ts:71-78` invites you to) yields `undefined`, and calling it throws a `TypeError`. `BasicDrawer` does prepare an `innerMethods` containing those two methods and sends it as the `register` payload (`:165-173`, `:180-189`), but `useDrawer` only forwards four keys (`useDrawer.ts:40-54`), so the two ends still never meet. Demo section 4 therefore uses only `openDrawer/closeDrawer`.:::
+So the `callback` of `useDrawerInner(callback)` **is neither accepted nor invoked** (the signature at `useDrawer.ts:10` takes no parameters at all) — the drawer side has no data channel comparable to `useModalInner`. The destructured second element really contains only the four keys `openDrawer/closeDrawer/setDrawerProps/getVisible`; destructuring `changeOkLoading` / `changeLoading` off it (as `DrawerInnerMethods`, `drawer/types.ts:71-78` invites you to) yields `undefined`, and calling it throws a `TypeError`. `BasicDrawer` does prepare an `innerMethods` containing those two methods and sends it as the `register` payload (`:165-173`, `:180-189`), but `useDrawer` only forwards four keys (`useDrawer.ts:40-54`), so the two ends still never meet. Demo section 4 therefore uses only `openDrawer/closeDrawer`.
+:::
 
 ## Body scrolling and the loading overlay
 
@@ -258,11 +268,14 @@ How to open it: `pnpm dev:web` + `pnpm --filter @antdv/backend-mock dev`, then v
 | Each drawer's X / mask / ESC | All go through `closeDrawer()` and are therefore bound by `closeFunc` — section 5 verifies exactly this |
 | Drag the header | Hold the drawer header's **empty space** and flick toward the opening edge: past 40px (or fast enough on release) the swipe-close runs, still governed by `closeFunc`; when the gesture starts on a button or an input the primitive does not accept it |
 
-### 4. Scrolling inside a drawer (`index.vue:602-681`, logic `:197-232`)
+### 4. Scrolling inside a drawer (`index.vue:602-680`, logic `:203-231`)
 
-`打开长内容抽屉` (`:606`) opens a `:size="560"` drawer (`:632-681`): the 16 outer clauses scroll inside `BasicDrawer`'s built-in `ScrollArea` (`bodyScroll` defaults to true) while the header and footer stay fixed; nested inside is a second `Scrollbar` from `@antdv/common-ui` with `root-class="h-60"` (i.e. 240px, `:656-669`), which writes `scrollTop` back into page state through its `@scroll` event (logic `:219-226`; the `wrap` element comes from the component's `defineExpose`, see `packages/core/ui-kit/common-ui/src/components/scrollbar/Scrollbar.vue`). Only after reaching the bottom (`scrollTop + clientHeight >= scrollHeight - 4`) can 「我已阅读完附加条款」 be checked (`:670-679`), and while it is unchecked the drawer's OK button stays disabled through `:ok-button-props="{ disabled: !agreement }"` (`:637`).
+`打开长内容抽屉` (`:605`) opens a `:size="560"` drawer (`:631-680`): the 16 outer clauses scroll inside `BasicDrawer`'s built-in `ScrollArea` (`bodyScroll` defaults to true) while the header and footer stay fixed; nested inside is a second `Scrollbar` from `@antdv/common-ui` with `root-class="h-60"` (i.e. 240px, `:655-668`), which writes `scrollTop` back into page state through its `@scroll` event (logic `:218-225`; the `wrap` element comes from the component's `defineExpose`, see `packages/core/ui-kit/common-ui/src/components/scrollbar/Scrollbar.vue:91-96`). Only after reaching the bottom (`scrollTop + clientHeight >= scrollHeight - 4`) can 「我已阅读完附加条款」 be checked (`:669-678`), and while it is unchecked the drawer's OK button stays disabled through `:ok-button-props="{ disabled: !agreement }"` (`:636`).
 
-::: tip Why the height uses `root-class` instead of `max-height` The page text (`:608-622`) gives the reason: the `max-height` prop is recomputed by `Scrollbar`'s internal `useResponsiveMaxHeight` with a 712px floor, so the height is pinned with `root-class="h-60"` here; the same sentence also notes that the built-in `ScrollArea` layer can be turned off with `:body-scroll="false"`. Details in the scrolling section of [Data and display](/en/components/display).:::
+::: tip
+
+Why the height uses `root-class` instead of `max-height` The page text (`:607-621`) gives the reason: the `max-height` prop is recomputed by `Scrollbar`'s internal `useResponsiveMaxHeight` with a 712px floor, so the height is pinned with `root-class="h-60"` here; the same sentence also notes that the built-in `ScrollArea` layer can be turned off with `:body-scroll="false"`. Details in the scrolling section of [Data and display](/en/components/display).
+:::
 
 ### 5. Nesting and close interception (`index.vue:683-759`, logic `:233-280`)
 
@@ -308,8 +321,11 @@ All of it lives in `packages/core/ui-kit/common-ui/src/components/toast/Toaster.
 - The close button is `border-0! bg-transparent!`, and `[data-close-button-position]` pulls it 8px inside the card instead of letting it straddle the border (`:188-199`). Note that selector keys off the **button's** position attribute, not the toaster's `data-x/y-position` — the two do not follow each other. The `.antdv-toaster` prefix is this package's own hook, not a shadcn-ui class name.
 - Z-index needs no handling: vue-sonner pins `[data-sonner-toaster]` at `z-index: 999999999` and writes each toast's `--z-index` inline as `toasts.length - index`, so setting it on the parent is overwritten — it looks like you raised the layer and changes nothing.
 
-::: warning Do not touch the top block of `message/index.ts`
-`:16-20` are, in order, the CSS side-effect type-declaration comment, `// oxlint-disable-next-line typescript/triple-slash-reference`, the `<reference path="../types/css.d.ts" />` directive, `import { toast } from 'vue-sonner'`, and `import 'vue-sonner/style.css'`. This package ships source, so downstream cannot see popup-ui's own tsconfig include — that `<reference>` directive is the only thing typing the CSS side-effect import for consumers. **It has to stay a real triple-slash directive (`/// <reference … />`)**: `eslint --fix`'s `spaced-comment` rule rewrites `///` into the space-separated `// /`, which silently disables the directive and makes downstream `vue-tsc` fail with TS2882 — line `:18` in the current source already shows that split `// /` form, so this block must stay out of `--fix` range.:::
+::: warning
+
+Do not touch the top block of `message/index.ts`
+`:16-20` are, in order, the CSS side-effect type-declaration comment, `// oxlint-disable-next-line typescript/triple-slash-reference`, the `<reference path="../types/css.d.ts" />` directive, `import { toast } from 'vue-sonner'`, and `import 'vue-sonner/style.css'`. This package ships source, so downstream cannot see popup-ui's own tsconfig include — that `<reference>` directive is the only thing typing the CSS side-effect import for consumers. **It has to stay a real triple-slash directive (`/// <reference … />`)**: `eslint --fix`'s `spaced-comment` rule rewrites `///` into the space-separated `// /`, which silently disables the directive and makes downstream `vue-tsc` fail with TS2882 — line `:18` in the current source already shows that split `// /` form, so this block must stay out of `--fix` range.
+:::
 
 ### Live example: `/components/feedback`
 

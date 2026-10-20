@@ -103,4 +103,7 @@ features:
 | 想知道这一版改了什么           | [更新日志](/guide/other/changelog)                                                      |
 | 撞上别人踩过的坑               | [常见问题](/guide/other/faq)                                                            |
 
-::: info 约定文档里的命令行都在仓库根目录执行，包管理器固定 `pnpm@10.12.4`（`packageManager` 字段已锁），Node 要求 `>=22`，本地用 `.node-version` 里的 24.0.0。:::
+::: info
+
+约定文档里的命令行都在仓库根目录执行，包管理器固定 `pnpm@10.12.4`（`packageManager` 字段已锁），Node 要求 `>=22`，本地用 `.node-version` 里的 24.0.0。
+:::

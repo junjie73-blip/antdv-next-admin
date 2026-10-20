@@ -21,7 +21,10 @@ full-content · horizontal · mixed-two-column · mixed-vertical · side-nav · 
 | `hideSidebarWhenEmpty` | 侧栏没内容时整块消失，不占宽度 |
 | `headerLead` | 顶栏左端是 Logo 还是面包屑 |
 
-::: tip 加第 8 种形态只在 `LAYOUT_BLUEPRINTS` 里加一条 + `LayoutMode` 联合类型里加一个字面量，布局组件不用动。这就是把形态差异做成数据而不是 `if/else` 的目的。历史值 `'mixed'` 已重命名为 `'mixed-vertical'`，旧缓存由 `normalizeLayoutMode()` 在读偏好时迁移，不入库。:::
+::: tip
+
+加第 8 种形态只在 `LAYOUT_BLUEPRINTS` 里加一条 + `LayoutMode` 联合类型里加一个字面量，布局组件不用动。这就是把形态差异做成数据而不是 `if/else` 的目的。历史值 `'mixed'` 已重命名为 `'mixed-vertical'`，旧缓存由 `normalizeLayoutMode()` 在读偏好时迁移，不入库。
+:::
 
 ## 内容区内边距归布局管
 
@@ -60,7 +63,10 @@ full-content · horizontal · mixed-two-column · mixed-vertical · side-nav · 
 - **缓存**：接通 `keep-alive`，固定标签与"缓存"标记的页面切回去不重新请求。
 - **外链**：`isExternal` 的菜单项不进标签页。
 
-::: warning 巡检时要避开的一条陷阱外壳的多标签页本身渲染成 `a[href^="#/..."]`。写用例时凡是"数内容区里的链接"都必须先圈进 `<main>`，否则永远多算几枚 —— 总览页的卡片墙过滤到空时数出来 1 个以上，就是这么来的。:::
+::: warning
+
+巡检时要避开的一条陷阱外壳的多标签页本身渲染成 `a[href^="#/..."]`。写用例时凡是"数内容区里的链接"都必须先圈进 `<main>`，否则永远多算几枚 —— 总览页的卡片墙过滤到空时数出来 1 个以上，就是这么来的。
+:::
 
 ## 面包屑
 
@@ -68,4 +74,6 @@ full-content · horizontal · mixed-two-column · mixed-vertical · side-nav · 
 
 ## 滚动条
 
-全站内容滚动统一走 `@antdv/common-ui` 的自绘 `Scrollbar`，不用各页面自己写 `overflow: auto` + `::-webkit-scrollbar`：后者在 Firefox / Safari 上表现不一致，而 `Scrollbar` 是同一套 DOM 与样式，三引擎端到端才可能得到一样的结果。
+全站内容滚动统一走 `@antdv/common-ui` 的自绘 `Scrollbar`，不用各页面自己写 `overflow: auto` + `::-webkit-scrollbar`：后者在 Firefox / Safari 上表现不一致，而 `Scrollbar` 是同一套 DOM 与样式，三引擎端到端才可能得到一样的结果。侧边栏菜单区、标签栏、树表与内容区都走它（`packages/core/ui-kit/layout-ui/src/components/layout-sidebar/index.vue:155-157` 就是菜单那一处），没有任何地方再为侧边栏手写滚动条皮肤。
+
+默认显隐是"只在真正滚动的过程中亮"：`Scrollbar` 把 `ScrollArea` 的 `type` 取成 `scroll`（`always` 才是常驻开关），空闲时轨道根本不在 DOM 里，指针停在区域上也不会亮，停止滚动 `hideDelay`（默认 800ms）后收起。滚动盒上的原生条由 reka 关掉（`scrollbar-width: none`），所以判"没露出系统条"要读这个计算样式。`packages/core/base/design/src/css/scrollbar.css` 那层 ` base` 的规则不是给侧边栏用的，它只兜住第三方组件内部的原生滚动元素（textarea、pre、虚拟列表），放在 base 层是为了让 reka 注入的隐藏规则能盖过它。端到端锚点在 `apps/web/e2e/ui-adapt-radius-scrollbar.spec.ts`：空闲不亮、滚动时出现、停下自动收起、页面里没有自绘条之外的可滚元素，三引擎各跑一遍。

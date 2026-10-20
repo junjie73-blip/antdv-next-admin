@@ -9,6 +9,7 @@ import type { FormSchema, NamePath, Recordable } from './schema';
 
 import {
   computed,
+  getCurrentInstance,
   onBeforeUnmount,
   onMounted,
   provide,
@@ -126,16 +127,42 @@ const formModel = new Proxy({} as Recordable, {
 });
 
 // ============ 合并 props（schemas 不参与合并） ============
+/**
+ * 父级**真的绑过**的 prop 键名。
+ *
+ * Vue 会把 Boolean 类型的 prop 在"父级没传"时 cast 成 `false`，`withDefaults` 的默认值
+ * 也落在同一个对象里；`deepMerge` 的标量规则是"目标优先"，于是这些合成值会盖掉
+ * `setProps` 传进来的配置 —— 而 `useForm(options)` 的配置正是走 `setProps` 这条路，
+ * 结果就是 `showAdvancedButton: true` 这类开关永远打不开。
+ * 只有 `vnode.props` 里出现过的键才算父级的显式意图。
+ */
+const instance = getCurrentInstance();
+const explicitPropKeys = computed(() => {
+  const raw = instance?.vnode?.props ?? {};
+  const keys = new Set<string>();
+  for (const key of Object.keys(raw)) {
+    keys.add(key);
+    keys.add(key.replaceAll(/-([a-z])/gu, (_m, c: string) => c.toUpperCase()));
+  }
+  return keys;
+});
+
 const getProps = computed(() => {
-  const merged = deepMerge({ ...props }, { ...unref(propsRef) }) as FormProps;
+  const merged = { ...props } as Record<string, any>;
+  const runtime = unref(propsRef) as Record<string, any>;
+  for (const key of Object.keys(runtime)) {
+    const value = runtime[key];
+    if (value === undefined || explicitPropKeys.value.has(key)) continue;
+    merged[key] = value;
+  }
   merged.schemas = unref(schemaRef);
-  return merged;
+  return merged as FormProps;
 });
 
 // ============ 实际生效的列数 ============
 const effectiveCols = computed(() => {
   const configured = getProps.value.grid?.cols;
-  if (configured != null && configured >= 1 && configured <= 4)
+  if (configured !== undefined && configured >= 1 && configured <= 4)
     return configured;
   return responsiveCols.value;
 });
@@ -198,31 +225,48 @@ provide<FormContext>(FORM_CONTEXT_KEY, {
 // ============ 折叠行数 ============
 const alwaysShowLines = computed(() => getProps.value.alwaysShowLines ?? 3);
 
+/** 栅格总数：`colProps.span` 与行分组都以 24 为单位 */
+const GRID_TOTAL = 24;
+
+/**
+ * 一行字段。
+ *
+ * `span` 是这一行**已经占用**的栅格数，动作区靠它决定自己还能占多少（见 `actionsSpan`）。
+ */
+interface FormRow {
+  isDivider: boolean;
+  schemas: FormSchema[];
+  span: number;
+}
+
 // ============ 核心：按行分组 ============
-const allRows = computed<FormSchema[][]>(() => {
+const allRows = computed<FormRow[]>(() => {
   const schemas = unref(schemaRef) || [];
   const defaultSpan = gridColSpan.value;
-  const rows: FormSchema[][] = [];
+  const rows: FormRow[] = [];
   let currentRow: FormSchema[] = [];
   let currentSpan = 0;
+
+  const flush = () => {
+    if (currentRow.length === 0) return;
+    rows.push({ isDivider: false, schemas: currentRow, span: currentSpan });
+    currentRow = [];
+    currentSpan = 0;
+  };
 
   for (const schema of schemas) {
     if (!schema) continue;
     if (!schema.field && schema.component !== 'Divider') continue;
 
     if (schema.component === 'Divider') {
-      if (currentRow.length > 0) {
-        rows.push(currentRow);
-        currentRow = [];
-        currentSpan = 0;
-      }
-      rows.push([schema]);
+      flush();
+      rows.push({ isDivider: true, schemas: [schema], span: GRID_TOTAL });
       continue;
     }
 
     const span = (schema.colProps?.span ?? defaultSpan) as number;
-    if (currentSpan + span > 24) {
-      if (currentRow.length > 0) rows.push(currentRow);
+    if (currentSpan + span > GRID_TOTAL) {
+      flush();
       currentRow = [schema];
       currentSpan = span;
     } else {
@@ -230,7 +274,7 @@ const allRows = computed<FormSchema[][]>(() => {
       currentSpan += span;
     }
   }
-  if (currentRow.length > 0) rows.push(currentRow);
+  flush();
   return rows;
 });
 
@@ -241,12 +285,22 @@ const needCollapse = computed(() => {
   );
 });
 
-const displayRows = computed<FormSchema[][]>(() => {
+const displayRows = computed<FormRow[]>(() => {
   const rows = allRows.value;
   if (needCollapse.value && !unref(isAdvanced)) {
     return rows.slice(0, alwaysShowLines.value);
   }
   return rows;
+});
+
+/**
+ * 渲染用的行：schema 为空时也要给动作区留一个宿主行容器，
+ * 否则「只有按钮组」的表单会一个节点都不渲染。
+ */
+const rowsWithActions = computed<FormRow[]>(() => {
+  const rows = displayRows.value;
+  if (rows.length > 0 || !getProps.value.showActionButtonGroup) return rows;
+  return [{ isDivider: false, schemas: [], span: 0 }];
 });
 
 // ============ 行容器样式（gutter 负边距，FormField 自带左右 padding） ============
@@ -265,8 +319,22 @@ const rowStyle = computed<Record<string, any>>(() => {
   };
 });
 
-const isDividerRow = (row: FormSchema[]) =>
-  row.length === 1 && row[0]?.component === 'Divider';
+const isDividerRow = (row: FormRow) => row.isDivider;
+
+/**
+ * 动作区能占的栅格数：优先填满**最后一个可见行**的剩余空间，
+ * 只剩 Divider 行、或该行已被字段占满（24）时才退回独占一行。
+ *
+ * 折叠与展开走的是同一个计算（都读 `rowsWithActions` 的末行），
+ * 切换时动作区只是换宿主行，不会因为两套规则而抖动。
+ */
+const actionsSpan = computed(() => {
+  const rows = rowsWithActions.value;
+  const last = rows[rows.length - 1];
+  if (!last || last.isDivider) return GRID_TOTAL;
+  const remaining = GRID_TOTAL - last.span;
+  return remaining > 0 ? remaining : GRID_TOTAL;
+});
 
 // ============ 按钮配置 ============
 const getSubmitButtonOptions = computed(() => ({
@@ -504,7 +572,9 @@ async function appendSchemaByField(
 async function setProps(newProps: Partial<FormProps>) {
   // schemas 单独处理，绝不进入 propsRef，避免合并时数组被拼接
   const { schemas, ...rest } = newProps;
-  propsRef.value = deepMerge(unref(propsRef) || {}, rest);
+  /* `deepMerge` 的标量规则是"目标优先"，所以把新来的补丁放在 target：
+     后一次 `setProps` 要能改掉前一次的配置（`disabled: true` 关不回 false 就是 bug）。 */
+  propsRef.value = deepMerge({ ...rest }, unref(propsRef) || {});
   if (schemas) {
     schemaRef.value = schemas;
     initFormModel();
@@ -565,7 +635,7 @@ defineExpose(formActionType);
 <template>
   <form ref="rootRef" @submit.prevent="handleSubmit">
     <div
-      v-for="(row, rowIndex) in displayRows"
+      v-for="(row, rowIndex) in rowsWithActions"
       :key="`row-${rowIndex}`"
       class="form-row"
       :style="rowStyle"
@@ -575,7 +645,7 @@ defineExpose(formActionType);
           <div class="flex min-h-9 items-center gap-2">
             <Separator class="flex-1" />
             <span class="text-sm text-muted-foreground">{{
-              row[0]?.label
+              row.schemas[0]?.label
             }}</span>
             <Separator class="flex-1" />
           </div>
@@ -583,7 +653,11 @@ defineExpose(formActionType);
       </template>
 
       <template v-else>
-        <FormField v-for="schema in row" :key="schema.field" :schema="schema">
+        <FormField
+          v-for="schema in row.schemas"
+          :key="schema.field"
+          :schema="schema"
+        >
           <template
             v-for="(_, slotName) in $slots"
             :key="slotName"
@@ -593,33 +667,36 @@ defineExpose(formActionType);
           </template>
         </FormField>
       </template>
-    </div>
 
-    <!-- 操作按钮 -->
-    <FormActions
-      v-if="getProps.showActionButtonGroup"
-      :action-col-style="getProps.actionColOptions?.style"
-      :advanced-options="getAdvancedButtonOptions"
-      :collapse="needCollapse"
-      :disabled="getProps.disabled"
-      :gutter-px="gutterPx"
-      :reset-options="getResetButtonOptions"
-      :row-style="rowStyle"
-      :show-reset="getProps.showResetButton"
-      :show-submit="getProps.showSubmitButton"
-      :submit-options="getSubmitButtonOptions"
-      @reset="handleReset"
-      @toggle-advanced="toggleAdvanced"
-    >
-      <template #submitBefore>
-        <slot name="submitBefore"></slot>
-      </template>
-      <template #resetBefore>
-        <slot name="resetBefore"></slot>
-      </template>
-      <template #actionAfter>
-        <slot name="actionAfter"></slot>
-      </template>
-    </FormActions>
+      <!-- 操作按钮：挂在最后一个可见行里，占该行的剩余栅格 -->
+      <FormActions
+        v-if="
+          getProps.showActionButtonGroup &&
+          rowIndex === rowsWithActions.length - 1
+        "
+        :action-col-style="getProps.actionColOptions?.style"
+        :advanced-options="getAdvancedButtonOptions"
+        :collapse="needCollapse"
+        :disabled="getProps.disabled"
+        :gutter-px="gutterPx"
+        :reset-options="getResetButtonOptions"
+        :show-reset="getProps.showResetButton"
+        :show-submit="getProps.showSubmitButton"
+        :span="actionsSpan"
+        :submit-options="getSubmitButtonOptions"
+        @reset="handleReset"
+        @toggle-advanced="toggleAdvanced"
+      >
+        <template #submitBefore>
+          <slot name="submitBefore"></slot>
+        </template>
+        <template #resetBefore>
+          <slot name="resetBefore"></slot>
+        </template>
+        <template #actionAfter>
+          <slot name="actionAfter"></slot>
+        </template>
+      </FormActions>
+    </div>
   </form>
 </template>

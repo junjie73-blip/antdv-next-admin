@@ -61,4 +61,7 @@ http://localhost:6080/#/components/chart
 
 每个被记录的组件按同一顺序：**它解决什么问题** → **真实 API**（从组件源码读出来的 props / 事件 / 实例方法，附源码路径）→ **在线示例**（路由 + 点哪里）。
 
-::: warning 缺陷照实写 `setModalProps` / `setDrawerProps` 是静默空操作、`useDrawerInner` 只是 `useDrawer` 的别名、`Modal` 的 `changeOkLoading` 拿不到 —— 这些都验证到行为代码了（见对应小节的 file:line），本章不会把它们写成可用 API。示例页自己也把这些话印在界面上。:::
+::: warning
+
+缺陷照实写 `setModalProps` / `setDrawerProps` 是静默空操作、`useDrawerInner` 只是 `useDrawer` 的别名、`Modal` 的 `changeOkLoading` 拿不到 —— 这些都验证到行为代码了（见对应小节的 file:line），本章不会把它们写成可用 API。示例页自己也把这些话印在界面上。
+:::

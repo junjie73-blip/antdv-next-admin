@@ -8,7 +8,8 @@
 2. `ModalProps` / `DrawerProps` 里有**声明了但组件从不读取**的字段：`helpMessage`、`maskStyle`，弹窗侧还要再加一个 `bodyStyle`（详见下面两张 props 表）。
 3. `useDrawerInner` **只是 `useDrawer` 的别名导出**（`drawer/index.ts:13-15`），不是「内层专用」的另一套实现；抽屉侧没有数据通道，`useModalInner` 才有。
 
-下面每一节都会给出对应的行为代码，别把第 2 条那几个字段当 API 抄进业务。:::
+下面每一节都会给出对应的行为代码，别把第 2 条那几个字段当 API 抄进业务。
+:::
 
 ## 它解决什么问题
 
@@ -81,7 +82,10 @@ const register = (instance: ModalInnerMethods) => {
 
 因为外层 `useModal` 保存的是**同一个对象引用**，它调用 `instance.openModal(...)` 时取到的是包装后的版本（`useModal.ts:42-45`），所以父页面 `openModal(true, data)` 会先进子组件回调。两个注册函数能被同一个 emit 喂到，靠的是 attrs 透传 —— 示例里 `InnerForm` 没有声明 `register` 这个 emit，父级的监听函数留在 `$attrs` 里，再由 `v-bind="$attrs"` 交给 `BasicModal`（`views/components/modal-drawer/components/InnerForm.vue:71`，机制解释在 `:7-21` 注释）；`inheritAttrs: false`（`:22`）是为了避免单根组件的默认透传把 `onRegister` 调用两遍。
 
-::: tip 什么时候不必用 useModalInner 弹窗内容直接写在页面模板里（示例页第 2、3、5 节就是这样），子组件根本不存在，`data` 也就没人收 —— 直接读页面自己的 `ref` 即可。示例页把这句话印在了信息条里（`modal-drawer/index.vue:305-310`）。:::
+::: tip
+
+什么时候不必用 useModalInner 弹窗内容直接写在页面模板里（示例页第 2、3、5 节就是这样），子组件根本不存在，`data` 也就没人收 —— 直接读页面自己的 `ref` 即可。示例页把这句话印在了信息条里（`modal-drawer/index.vue:305-310`）。
+:::
 
 ## BasicModal 的 API
 
@@ -152,7 +156,10 @@ const register = (instance: ModalInnerMethods) => {
 | `getVisible()` | `types.ts:110` | 读内部 `visibleRef`（`:123`） |
 | `setModalProps(partial)` | `types.ts:108` | **真生效**：覆盖值并进 `propOverrides`，`merged` 重算（`:118-122`）；传 `open` / `loading` 还会同步改内部 ref |
 
-::: warning 确认按钮的 loading 要么关窗要么自己复位 `handleOk` 无条件把 `okLoadingRef` 置 `true`（`:154-156`），组件内部唯一的自动复位点是 `closeModal()`（`:112`）。`BasicModal` emit 出去的是**含 `changeOkLoading` / `changeLoading` 的 `innerMethods`**（`:126-134`、`:137`），所以只有在弹窗内部用 `useModalInner()` 解构才拿得到这两个方法（`useModalInner.ts:64-69`）；页面级 `useModal()` 只转发四个键（`useModal.ts:41-55`）。结论：`@ok` 的处理函数如果决定留着弹窗（例如校验失败），要么在子组件里调 `changeOkLoading(false)`，要么就关窗。示例页第 1 节所有提交路径都会关窗，并把这个前提写在页面上（`modal-drawer/index.vue:360-377`）。:::
+::: warning
+
+确认按钮的 loading 要么关窗要么自己复位 `handleOk` 无条件把 `okLoadingRef` 置 `true`（`:154-156`），组件内部唯一的自动复位点是 `closeModal()`（`:112`）。`BasicModal` emit 出去的是**含 `changeOkLoading` / `changeLoading` 的 `innerMethods`**（`:126-134`、`:137`），所以只有在弹窗内部用 `useModalInner()` 解构才拿得到这两个方法（`useModalInner.ts:64-69`）；页面级 `useModal()` 只转发四个键（`useModal.ts:41-55`）。结论：`@ok` 的处理函数如果决定留着弹窗（例如校验失败），要么在子组件里调 `changeOkLoading(false)`，要么就关窗。示例页第 1 节所有提交路径都会关窗，并把这个前提写在页面上（`modal-drawer/index.vue:360-377`）。
+:::
 
 ## BasicDrawer 的 API
 
@@ -201,7 +208,9 @@ const register = (instance: ModalInnerMethods) => {
 
 `useDrawer()` 的返回是 `openDrawer / closeDrawer / setDrawerProps / getVisible`（`useDrawer.ts:40-54`），语义与 `useModal` 完全对称：`waitForInstance` 同样是 10 轮 `nextTick` + 50ms、超时抛 `[useDrawer] Drawer instance not found`（`:26-38`）；`getVisible` 同样同步不等待（`:53`）。`setDrawerProps` 这次是真生效的——它把覆盖值并进 `propOverrides`（`BasicDrawer.vue:156-161`），标题、按钮文案、宽度都会按覆盖值重渲染。
 
-::: warning `useDrawerInner` 不是「内层专用」 `drawer/index.ts:13-15` 是同一模块的两行导出：
+::: warning
+
+`useDrawerInner` 不是「内层专用」 `drawer/index.ts:13-15` 是同一模块的两行导出：
 
 ```ts
 export { useDrawer } from './useDrawer';
@@ -209,7 +218,8 @@ export { useDrawer } from './useDrawer';
 export { useDrawer as useDrawerInner } from './useDrawer';
 ```
 
-所以 `useDrawerInner(callback)` 的 `callback` **不会被接收也不会被调用**（`useDrawer.ts:10` 的签名没有任何参数）—— 抽屉侧没有 `useModalInner` 那样的数据通道。解构出来的第二个元素实际只有 `openDrawer/closeDrawer/setDrawerProps/getVisible` 四个键，按 `DrawerInnerMethods`（`drawer/types.ts:71-78`）去解构 `changeOkLoading` / `changeLoading` 会得到 `undefined`，调用即 `TypeError`。`BasicDrawer` 确实准备好了含这两个方法的 `innerMethods` 并把它作为 `register` 的载荷发出去（`:165-173`、`:180-189`），但 `useDrawer` 侧只转发四个键（`useDrawer.ts:40-54`），两头还是没接上。示例页第 4 节因此只用 `openDrawer/closeDrawer`。:::
+所以 `useDrawerInner(callback)` 的 `callback` **不会被接收也不会被调用**（`useDrawer.ts:10` 的签名没有任何参数）—— 抽屉侧没有 `useModalInner` 那样的数据通道。解构出来的第二个元素实际只有 `openDrawer/closeDrawer/setDrawerProps/getVisible` 四个键，按 `DrawerInnerMethods`（`drawer/types.ts:71-78`）去解构 `changeOkLoading` / `changeLoading` 会得到 `undefined`，调用即 `TypeError`。`BasicDrawer` 确实准备好了含这两个方法的 `innerMethods` 并把它作为 `register` 的载荷发出去（`:165-173`、`:180-189`），但 `useDrawer` 侧只转发四个键（`useDrawer.ts:40-54`），两头还是没接上。示例页第 4 节因此只用 `openDrawer/closeDrawer`。
+:::
 
 ## 内容区滚动与 loading 遮罩
 
@@ -258,11 +268,14 @@ export { useDrawer as useDrawerInner } from './useDrawer';
 | 每个抽屉的 X / 蒙层 / ESC | 都会走 `closeDrawer()`，因此都受 `closeFunc` 约束 —— 第 5 节专门验证这条 |
 | 拖头部 | 按住抽屉头部**空白处**往开口方向甩：过了 40px（或松手时够快）就走滑动关闭，同样归 `closeFunc` 管；起点落在按钮/输入框上时原语不认这个手势 |
 
-### 4. 抽屉内滚动（`index.vue:602-681`，逻辑 `:197-232`）
+### 4. 抽屉内滚动（`index.vue:602-680`，逻辑 `:203-231`）
 
-`打开长内容抽屉`（`:606`）弹出 `:size="560"` 的抽屉（`:632-681`）：外层 16 条条款在 `BasicDrawer` 内置的 `ScrollArea` 里滚（`bodyScroll` 默认为真），标题与底部固定；里面再嵌一个 `@antdv/common-ui` 的 `Scrollbar`（`root-class="h-60"`，即 240px，`:656-669`），通过它的 `@scroll` 事件把 `scrollTop` 写回页面状态（逻辑 `:219-226`，`wrap` 元素来自组件 `defineExpose`，见 `packages/core/ui-kit/common-ui/src/components/scrollbar/Scrollbar.vue`）。只有滚到底（`scrollTop + clientHeight >= scrollHeight - 4`）才能勾选「我已阅读完附加条款」（`:670-679`），没勾选时抽屉的确认按钮通过 `:ok-button-props="{ disabled: !agreement }"`（`:637`）保持禁用。
+`打开长内容抽屉`（`:605`）弹出 `:size="560"` 的抽屉（`:631-680`）：外层 16 条条款在 `BasicDrawer` 内置的 `ScrollArea` 里滚（`bodyScroll` 默认为真），标题与底部固定；里面再嵌一个 `@antdv/common-ui` 的 `Scrollbar`（`root-class="h-60"`，即 240px，`:655-668`），通过它的 `@scroll` 事件把 `scrollTop` 写回页面状态（逻辑 `:218-225`，`wrap` 元素来自组件 `defineExpose`，见 `packages/core/ui-kit/common-ui/src/components/scrollbar/Scrollbar.vue:91-96`）。只有滚到底（`scrollTop + clientHeight >= scrollHeight - 4`）才能勾选「我已阅读完附加条款」（`:669-678`），没勾选时抽屉的确认按钮通过 `:ok-button-props="{ disabled: !agreement }"`（`:636`）保持禁用。
 
-::: tip 高度为什么用 `root-class` 而不是 `max-height` 页面文字（`:608-622`）给了原因：`max-height` 属性会被 `Scrollbar` 内部的 `useResponsiveMaxHeight` 以 712px 为下限重新算掉，所以这里用 `root-class="h-60"` 固定高度；同一句里还写了内置那层 `ScrollArea` 可以用 `:body-scroll="false"` 关掉。细节见[数据与展示](/components/display)的滚动一节。:::
+::: tip
+
+高度为什么用 `root-class` 而不是 `max-height` 页面文字（`:607-621`）给了原因：`max-height` 属性会被 `Scrollbar` 内部的 `useResponsiveMaxHeight` 以 712px 为下限重新算掉，所以这里用 `root-class="h-60"` 固定高度；同一句里还写了内置那层 `ScrollArea` 可以用 `:body-scroll="false"` 关掉。细节见[数据与展示](/components/display)的滚动一节。
+:::
 
 ### 5. 嵌套与关闭拦截（`index.vue:683-759`，逻辑 `:233-280`）
 
@@ -309,7 +322,9 @@ export { useDrawer as useDrawerInner } from './useDrawer';
 - 层级不用操心：vue-sonner 给 `[data-sonner-toaster]` 钉了 `z-index: 999999999`，而每条 toast 的 `--z-index` 由库内联写成 `toasts.length - index`，在父级设 `--z-index` 会被盖掉 —— 加了等于没加。
 
 ::: warning `message/index.ts` 顶部这一段不要动
-`:16-20` 依次是「CSS 副作用导入的类型声明说明注释」+ `// oxlint-disable-next-line typescript/triple-slash-reference` + `<reference path="../types/css.d.ts" />` 指令 + `import { toast } from 'vue-sonner'` + `import 'vue-sonner/style.css'`。本包按源码发布，下游看不见 popup-ui 自己的 tsconfig include，那条 `<reference>` 指令是 CSS 副作用导入唯一的类型出口。**它必须是三斜线指令形式（`/// <reference … />`）**：`eslint --fix` 的 `spaced-comment` 规则会把 `///` 顶成带空格的 `// /`，指令随之失效、下游 `vue-tsc` 立刻报 TS2882 —— 当前源码的 `:18` 正是这种被拆开的 `// /` 形式，所以这一段要留在 `--fix` 射程之外。:::
+
+`:16-20` 依次是「CSS 副作用导入的类型声明说明注释」+ `// oxlint-disable-next-line typescript/triple-slash-reference` + `<reference path="../types/css.d.ts" />` 指令 + `import { toast } from 'vue-sonner'` + `import 'vue-sonner/style.css'`。本包按源码发布，下游看不见 popup-ui 自己的 tsconfig include，那条 `<reference>` 指令是 CSS 副作用导入唯一的类型出口。**它必须是三斜线指令形式（`/// <reference … />`）**：`eslint --fix` 的 `spaced-comment` 规则会把 `///` 顶成带空格的 `// /`，指令随之失效、下游 `vue-tsc` 立刻报 TS2882 —— 当前源码的 `:18` 正是这种被拆开的 `// /` 形式，所以这一段要留在 `--fix` 射程之外。
+:::
 
 ### 在线示例：`/components/feedback`
 

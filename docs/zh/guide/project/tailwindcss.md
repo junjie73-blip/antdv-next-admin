@@ -36,7 +36,10 @@ antd 侧的样式来自 `@antdv-next/cssinjs` 运行时（App.vue 的 `StyleProv
 cn('bg-primary text-primary-foreground shadow-primary/30'); // 永远跟主色
 ```
 
-::: danger 不要用 `*-ant-primary`。那组类来自 antdv-next 的 Tailwind 兼容层（`@antdv-next/tailwind/compat.css`），本包已不引它 —— 不是颜色不对，而是**整条类根本不生成**。:::
+::: danger
+
+不要用 `*-ant-primary`。那组类来自 antdv-next 的 Tailwind 兼容层（`@antdv-next/tailwind/compat.css`），本包已不引它 —— 不是颜色不对，而是**整条类根本不生成**。
+:::
 
 登录页有 `views/login/__tests__/login-styles.spec.ts` 用源码契约钉住"强调色只能来自本包的主色令牌"。写死 `bg-blue-600` / `#1677ff` 在换主色或进暗黑时必露馅（存量 view 文件里还有硬编码，属逐步清理的技术债 —— 见主题页同款警告）。
 

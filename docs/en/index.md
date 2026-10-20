@@ -103,4 +103,7 @@ features:
 | Want to know what changed in this round | [Changelog](/en/guide/other/changelog) |
 | Hitting a pitfall someone already hit | [FAQ](/en/guide/other/faq) |
 
-::: info Conventions Every command in the docs runs from the repo root. The package manager is pinned to `pnpm@10.12.4` (locked by the `packageManager` field), Node is required to be `>=22`, and locally we use 24.0.0 from `.node-version`. :::
+::: info
+
+Conventions Every command in the docs runs from the repo root. The package manager is pinned to `pnpm@10.12.4` (locked by the `packageManager` field), Node is required to be `>=22`, and locally we use 24.0.0 from `.node-version`.
+:::

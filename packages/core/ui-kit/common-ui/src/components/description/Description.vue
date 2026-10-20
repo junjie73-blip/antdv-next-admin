@@ -15,6 +15,7 @@ import { dayjs } from '@antdv/shared/utils/dayjs';
 import { isNil, isString } from 'es-toolkit';
 import { isArray } from 'es-toolkit/compat';
 
+import { useGlobalConfig } from '../config-provider';
 import { Descriptions, DescriptionsItem } from '../descriptions';
 import { Image } from '../image';
 import { DESCRIPTION_DICT_RESOLVER } from './context';
@@ -24,25 +25,34 @@ const props = withDefaults(defineProps<DescriptionProps>(), {
   layout: 'horizontal',
   bordered: false,
   colon: true,
+  emptyText: undefined,
   loading: false,
-  emptyText: '-',
+  size: undefined,
 });
 
 const slots = useSlots();
 
 /**
- * 字典解析器由宿主注入；缺省时回退到「空值给 `-`、其余显示原值」，
+ * 空值占位符与尺寸档位都兜底到 `ConfigProvider`：换语言时占位符跟着词条走，
+ * 全局调档位时不用逐个页面补 `size`。显式 prop 仍然优先。
+ */
+const globalConfig = useGlobalConfig();
+const emptyText = computed(() => props.emptyText ?? globalConfig.placeholder);
+
+/**
+ * 字典解析器由宿主注入；缺省时回退到「空值给占位符、其余显示原值」，
  * 与迁移前字典 store 未加载时的表现一致（见 ./context.ts）。
  */
 const dictResolver = inject(DESCRIPTION_DICT_RESOLVER, undefined);
 
 function resolveDictLabel(dictType: string, value: unknown): string {
-  if (value === undefined || value === null || value === '') return '-';
+  if (value === undefined || value === null || value === '')
+    return globalConfig.placeholder;
   return dictResolver?.(dictType, value) ?? String(value);
 }
 
 function resolveDictLabels(dictType: string, value: string | string[]): string {
-  if (!value) return '-';
+  if (!value) return globalConfig.placeholder;
   const values = isArray(value) ? value : String(value).split(',');
   return values.map((v) => resolveDictLabel(dictType, v)).join('、');
 }
@@ -56,14 +66,15 @@ const filteredSchema = computed(() =>
  * common-ui 的 `Descriptions` 只认 `default | middle | small` 三档；
  * 对外的 `large`（旧默认档的等价写法）落回 `default`。
  */
-const descriptionsSize = computed(() =>
-  props.size === 'small' || props.size === 'middle' ? props.size : 'default',
-);
+const descriptionsSize = computed(() => {
+  const size = props.size ?? globalConfig.componentSize;
+  return size === 'small' || size === 'middle' ? size : 'default';
+});
 
 function getFieldValue(item: DescriptionItem): unknown {
   const value =
     item.value === undefined ? dataRef.value[item.field] : item.value;
-  if (isNil(value) || value === '') return props.emptyText;
+  if (isNil(value) || value === '') return emptyText.value;
   return value;
 }
 
@@ -93,14 +104,14 @@ function pickUrl(v: unknown): string {
 }
 
 function renderImage(value: unknown, size = 60): VNodeChild {
-  if (isNil(value) || value === props.emptyText)
-    return h('span', props.emptyText);
+  if (isNil(value) || value === emptyText.value)
+    return h('span', emptyText.value);
   return h(Image, { src: pickUrl(value), width: size, preview: true });
 }
 
 function renderImages(value: unknown, size = 60): VNodeChild {
-  if (isNil(value) || value === props.emptyText)
-    return h('span', props.emptyText);
+  if (isNil(value) || value === emptyText.value)
+    return h('span', emptyText.value);
   const list: string[] = isArray(value)
     ? value.map(pickUrl)
     : String(value).split(',').filter(Boolean);
@@ -145,7 +156,7 @@ function renderValue(item: DescriptionItem): VNodeChild {
     case 'date': {
       return h(
         'span',
-        value === props.emptyText
+        value === emptyText.value
           ? value
           : dayjs(value as string).format(item.dateFormat || 'YYYY-MM-DD'),
       );
@@ -153,7 +164,7 @@ function renderValue(item: DescriptionItem): VNodeChild {
     case 'datetime': {
       return h(
         'span',
-        value === props.emptyText
+        value === emptyText.value
           ? value
           : dayjs(value as string).format(
               item.dateFormat || 'YYYY-MM-DD HH:mm:ss',

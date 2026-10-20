@@ -26,16 +26,16 @@ Two parallel pieces with different jobs:
 
 | Piece | Source | Notes |
 | --- | --- | --- |
-| NProgress | configured in `router/guards/index.ts` (`minimum: 0.1`, `trickleSpeed: 200`); styles in `@antdv/design`' `css/nprogress.css` | the thin line on top; preference `showProgressBar` (default true) controls its visibility |
-| `RouteLoadingBar` + `PageLoading` | `apps/web/src/components/common/Loading/`, state from `@antdv/composables/useRouteLoading` | in `layouts/index.vue`: `useRouteLoading({ minDuration: 400, auto: true })`; the bar runs with `:duration="250"`, percentage on, cancellable (`@cancel="cancelRouteLoading"`), slow threshold 3000ms; `PageLoading` in the content area binds the same `isLoading`, with `isSlow` surfacing as an error hint |
+| NProgress | assembled in `apps/web/src/router/guards/index.ts:15-19` (`minimum: 0.1`, `trickleSpeed: 200`, `showSpinner: false`), with `start`/`done` handed to `@antdv/router`'s `applyRouterGuards` as callbacks (`:32-45`); styles in `packages/core/base/design/src/css/nprogress.css` | the thin line on top; preference `showProgressBar` (default true, `packages/core/preferences/src/config.ts:76`) controls its visibility |
+| `RouteLoadingBar` + `PageLoading` | `packages/layouts/src/basic/content/` (`route-loading-bar.vue`, `page-loading.vue`, exported from `packages/layouts/src/index.ts:39,41`), state from `@antdv/hooks/use-route-loading` (`packages/core/hooks/src/use-route-loading.ts:24`) | assembled at `packages/layouts/src/basic/layout.vue:206-229`: `useRouteLoading({ minDuration: 400, auto: true })`; the bar runs with `:duration="250"`, percentage on, cancellable (`@cancel="cancelRouteLoading"`), slow threshold 3000ms; `PageLoading` in the content area binds the same `isRouteLoading`, with `isSlow` surfacing as an error hint (`:275-278`) |
 
 `minDuration` is an **anti-flicker** rule: even an instant navigation keeps the loading visible for that long, otherwise a flashing bar is more anxiety-inducing than helpful. The composable also offers `withLoading(fn)` to wrap async work (state is set synchronously, not deferred to rAF — the source comment records a fixed bug where fast calls hit the "not started yet" branch and the bar never came down).
 
-Enter animations live in `components/layout/PageTransition.vue`: `@vueuse/motion` plays the variant from preference `transitionEffect` (default `fade-slide`, variants in `transitions.ts`); when `usePreferredReducedMotion` reports `reduce` it jumps straight to the end state — respecting the OS setting is not optional.
+Enter animations live in `packages/layouts/src/basic/content/page-transition.vue`: `useMotion` from `@vueuse/motion` (`:5-18`) plays the enter variant from preference `transitionEffect` (`:30`, `:45`; default `fade-slide`, variants in `transitions.ts` in the same directory); when `usePreferredReducedMotion` (`:24`) reports `reduce` it jumps straight to the end state — respecting the OS setting is not optional.
 
 ## 3. Element-level masks
 
-The three tools from `@antdv/common-ui` (the entry point takes `vLoading` at `main.ts:8` and registers it at `:113`: `app.directive('loading', vLoading)`):
+The three tools from `@antdv/common-ui` (the entry point takes `vLoading` at `main.ts:8` and registers it at `:132`: `app.directive('loading', vLoading)`):
 
 ```vue
 <!-- directive: config comes from attributes; the arg is the tip text -->
@@ -57,7 +57,7 @@ The three tools from `@antdv/common-ui` (the entry point takes `vLoading` at `ma
 ## 4. Component-internal and skeletons
 
 - `BasicTable` has its own `hooks/useLoading`; while `api` runs it spins automatically and `setLoading(value)` on the instance intervenes manually — do not cover a table with a second `v-loading`.
-- Skeletons: `apps/web/src/components/common/Skeleton/` (`PageSkeleton`, `TableSkeleton`) for first-paint placeholders; empty and error states are `EmptyState` and `ErrorBoundary`.
+- Skeletons: `packages/core/ui-kit/common-ui/src/components/skeleton/` (`PageSkeleton`, `TableSkeleton`) for first-paint placeholders; empty and error states are separate — `EmptyState` and `ErrorBoundary`.
 - The request layer (`packages/request/`) deliberately provides **no global loading**; it owns cache, dedupe, retry and the 401 replay. Adding an implicit overlay there would fight the four layers above.
 
 ## Switch matrix
@@ -70,3 +70,8 @@ The three tools from `@antdv/common-ui` (the entry point takes `vLoading` at `ma
 | `transitionEffect` | preferences | page enter animation style |
 
 Gate all of these through the `isEnvEnabled` semantics — see the env-coercion trap in [Vite config](/en/guide/project/vite).
+
+## Related pages
+
+- Layout and tabs: [Layout & tabs](/en/guide/in-depth/layout)
+- Theme and CSS variables: [Theme & preferences](/en/guide/in-depth/theme)

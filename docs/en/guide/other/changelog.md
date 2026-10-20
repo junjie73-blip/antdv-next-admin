@@ -10,13 +10,13 @@ Versions move with the changes, not with whoever remembers to write them down af
 | --- | --- | --- |
 | `pnpm changeset` | Interactively picks the affected packages and bump level and writes one `.changeset/xxx.md` | Commit it together with the code it describes |
 | `pnpm version` | Runs `changeset version`: consumes every changeset, raises versions, appends to `CHANGELOG.md`, deletes the changesets it consumed; then `pnpm install --no-frozen-lockfile` so the lockfile catches up | **Commit it yourself** |
-| `pnpm release` | `pnpm build` first, then `changeset publish` | Tag and push |
+| `pnpm release` | `pnpm build` first (with `NODE_OPTIONS=--max-old-space-size=8192`), then `changeset publish` | Tag and push |
 
 Fields in `.changeset/config.json` that change the behaviour:
 
-- `"fixed": [["@antdv/*", "@antdv/*"]]` — every workspace package moves **in lockstep** to the same version. The cost: one patch on one package nudges the whole set by one. The gain: version skew between packages simply cannot happen, and one number tells you which round everything is from.
+- `"fixed": [["@antdv/*", "@antdv/*"]]` — moves every workspace package **in lockstep** to the same version. The cost: one patch on one package nudges the whole set by one. The gain: version skew between packages cannot pile up. **But this is a mechanism that fires at release time, not a live invariant** — it aligns the set once per `version` run, and no `version` has run since `v0.0.3`, so the repository is *not* on one number today (see "Where the versions actually sit" below).
 - `"privatePackages": { "version": true, "tag": true }` — all `@antdv/*` packages are `"private": true` (nothing is published to npm), and this setting decides whether private packages take part in versioning and tagging at all. It is spelled out rather than inherited: changesets changed this default late in 2.x, and a release chain should not rest on somebody else's default. With it on, non-published members such as `@antdv/web` and `@antdv/backend-mock` still get versions and tags, so a deployed build can be matched to a number.
-- `"changelog": ["@changesets/changelog-github", { "repo": "junjie73-blip/antdv-next-admin" }]` — generated entries link straight to their commits, and this is the only place the repository URL is configured. Forking means editing it here and the `socialLinks` entry in `docs/.vitepress/config.mts`.
+- `"changelog": ["@changesets/changelog-github", { "repo": "junjie73-blip/antdv-next-admin" }]` — generated entries link straight to their commits, and this is the only place the repository URL is configured. Forking means editing it here and the `socialLinks` entry in `docs/.vitepress/config.mts` (`:329-334`).
 - `"commit": false` — `version` touches files but does not commit, so you write the message (the convention so far is `chore(release): x.y.z`, which is what `v0.0.3` carries).
 - `"baseBranch": "main"` — the branch changesets measures "what belongs to this round" against.
 
@@ -24,23 +24,63 @@ Fields in `.changeset/config.json` that change the behaviour:
 
 | Version | Status | Notes |
 | --- | --- | --- |
-| 0.4.0 | Current working version, unpublished | The number in the root `package.json` and in every `@antdv/*` package. Once `pnpm version` consumes the 16 pending changesets listed below, it moves from here |
+| 0.4.0 | Current working version, **unpublished** | The number carried by the root `antdv-next-admin` package and by 20 of the members. No tag, and nothing in `CHANGELOG.md` yet |
 | 0.0.3 | Tagged (`v0.0.3` → `de5f7b14`, 2026-09-25) | Commit message `chore(release): 0.0.3` |
-| 0.0.1 / 0.0.0 | See the root `CHANGELOG.md` (2026-06-05) | Written back when the repo used standard-version — the "See standard-version" line at the top of that file refers to this. After the switch to changesets that pipeline stopped maintaining the file; it is kept as history |
+| 0.0.1 / 0.0.0 | See the root `CHANGELOG.md` (2026-06-05) | Written back when the repo used standard-version — the "See standard-version" line at the top of that file refers to this. After the switch to changesets that pipeline stopped maintaining the file; it is kept as history. (That file prints `## 0.0.0 (2026-06-05)` twice — another reason not to treat it as authoritative.) |
 
-There is no tag between 0.0.3 and 0.4.0: that stretch was the monorepo rework (packages extracted, the request layer replaced, the docs site stood up) and never went through a full `version` + `publish` cycle, so the number moved without a release record. There is also a stray `vnull` tag left by a mis-fired command (it points at a commit named "📦 准备提交"). It takes part in no build or release logic; ignore it when you see it.
+There is no tag between 0.0.3 and 0.4.0: that stretch was the monorepo rework (packages extracted, the request layer replaced, the docs site stood up) and never went through a full `version` + `publish` cycle, so the number moved without a release record. There is also a stray `vnull` tag left by a mis-fired command (→ `3d54de9b`, pointing at a commit named "📦 准备提交"). It takes part in no build or release logic; ignore it when you see it.
+
+### Where the versions actually sit
+
+`fixed` describes what the *next* release will do; it does not mean the tree agrees today. Packages created during the rework were hand-numbered at birth, and `pnpm version` has not run since `v0.0.3`, so 34 `@antdv/*` members are currently spread over five numbers:
+
+| Version | Count | Members |
+| --- | --- | --- |
+| 0.4.0 | 20 | `web` `backend-mock` `shared` `types` `icons` `design` `hooks` `preferences` `form-ui` `table-ui` `popup-ui` `menu-ui` `layout-ui` `shadcn-ui` `tabs-ui` `router` `directives` `vite-config` `node-utils` `tsconfig` |
+| 0.5.0 | 1 | `layouts` — hand-numbered at extraction, now ahead of the set |
+| 0.1.0 | 5 | `common-ui` `enums` `request` `stores` `utils` — new packages started at 0.1.0 |
+| 0.0.0 | 6 | `docs` plus the five `internal/lint-configs/` packages |
+| 5.8.0 | 2 | `turbo-run` `vsh` — numbers inherited from upstream `vue-vben-admin`, never reset |
+
+The practical consequence: check where the first real `pnpm version` will land before trusting it. The highest number in the lockstep group is currently 5.8.0, so "move the whole set to one version" may not resolve to 0.4.x. Either normalise those two numbers first, or run `version` on a throwaway branch and look at the result — not on `main`, because `version` rewrites 34 `package.json` files, appends to `CHANGELOG.md` and deletes the 25 files in `.changeset/`.
+
+### The release chain does not run at all right now
+
+The paragraph above is about landing on an unexpected number. This one is about not finishing. `pnpm changeset status` fails outright today (changesets 3.0.3):
+
+```
+Error: Found changeset monorepo-shared-packages for package @antdv/composables
+which is not in the workspace
+```
+
+The cause: `.changeset/monorepo-shared-packages.md` was filed with package names that the rework later replaced. Line 4 says `@antdv/composables`, which is `@antdv/hooks` now; line 5 says `@antdv/ui`, which became the `@antdv/*-ui` family under `packages/core/ui-kit/`. The body of that file still names both old packages at line 19, so it needs fixing too.
+
+`assemble-release-plan` hard-fails the whole chain on this rather than skipping the changeset: `status`, `version` and `release` all throw at the same step, so no release can complete until it is fixed. There are only two ways out, and which one is right depends on who was meant to move when this changeset was written — either rewrite those two lines as `@antdv/hooks` plus the new ui-kit packages, or drop them. Re-check with `pnpm changeset status` afterwards; it is read-only, so it is safe to run as often as you like.
+
+Worth noting: no CI job touches changesets (`.github/workflows/` contains only `docs.yml`), so nothing surfaces this break until someone actually tries to release.
 
 ## Pending changes
 
-Registered in `.changeset/`, not yet consumed by `pnpm version` — 16 entries. Grouped by the bump level the changeset declares (`minor` covers features and non-breaking restructures, `patch` is fixes and interaction corrections):
+Registered in `.changeset/`, not yet consumed by `pnpm version` — **25 entries**, filed between 2026-10-10 and 2026-10-19. Grouped by the bump level the changeset declares: 11 carry a `minor`, 14 are `patch` throughout, and the two lists below split them exactly that way.
 
 **minor**
 
-- Architecture: reusable capabilities extracted out of the app into their own packages (`monorepo-shared-packages`)
+- Architecture: reusable capabilities extracted out of the app into their own packages (`monorepo-shared-packages`, 13 packages minor together)
 - New bilingual VitePress docs site, with CI gates and two independent release pipelines (`docs-site-bilingual-and-pages-ci`)
 - Component gallery expanded by category, and the misused APIs inside the demos fixed in one pass (`gallery-example-pages`)
 - Interaction sweep finished, and Ctrl+K search turned from a stub into a real feature (`sweep-fixes-and-menu-search`)
 - The production bundle ships its own in-browser mock, so a static deployment needs no backend (`prod-browser-mock`)
+- Five defects in the preferences drawer and multi-layout behaviour fixed (`setting-drawer-and-layout-fixes`; the `minor` goes only to `@antdv/types`, while `layouts` and `web` are `patch`)
+- common-ui gains `BorderBeam` and `Listy`; toasts and notifications drop their coloured backgrounds and keep only the status badge (`border-beam-listy-and-neutral-toast`)
+- `Listy` gets a virtual-scroll mode — ten-odd rows rendered for a list of ten thousand (`listy-virtual-scroll`)
+- The `chrome` tab style rebuilt after real browser tabs: the selected tab grows inverse corners, and the hairlines between tabs give way (`chrome-tabs-concave-feet`)
+- MarkdownEditor moved into `@antdv/common-ui`, and the `FMarkdown` field swapped from a textarea to tiptap (`markdown-editor-into-common-ui`)
+- The generic composables and business-free components leave `apps/web` for their packages (hooks / common-ui / table-ui); the app keeps only what is bound to it (`web-composables-and-components-into-packages`)
+
+::: warning One bump level looks mis-picked
+
+`basic-drawer-on-drawer-primitives` describes swapping the interaction primitive underneath a drawer, but only declares a `patch` on popup-ui and shadcn-ui — while `markdown-editor-into-common-ui`, which also swaps an implementation, declares `minor`. It changes no build, only the version number, so it is worth confirming before the next `pnpm version`.
+:::
 
 **patch**
 
@@ -53,14 +93,32 @@ Registered in `.changeset/`, not yet consumed by `pnpm version` — 16 entries. 
 - Route pages stop adding their own padding; padding belongs to the layout (`page-root-padding-owned-by-layout`)
 - Charts on the monitoring screen resize to their **container** (`screen-chart-auto-resize`)
 - Screen scaling now measures the content area instead of the viewport (`screen-fit-content-area`)
-- Five defects in the preferences drawer and multi-layout behaviour fixed (`setting-drawer-and-layout-fixes`)
+- `BasicDrawer` rebuilt on the shadcn **Drawer** primitive instead of Sheet; gains drag-to-dismiss, plus the two accessibility gaps the primitive was missing (`basic-drawer-on-drawer-primitives` — a `patch` on both popup-ui and shadcn-ui, see the warning above)
 - Changing the theme colour actually changes it, rather than only moving a CSS variable (`theme-primary-follow-through`)
+- The design layer cut loose from antdv-next for good, plus the three style defects the migration left behind: fixed columns overlapping, header rows one line shorter than data rows, and overlays losing to the drawer (`design-tokens-off-antd-table-popup-fixes`, 9 packages)
+- "Cross-package imports go through the package name only" is now enforced by a test; `ErrorBoundary` stops routing through its own barrel (`package-import-hygiene`)
+- Leftover `vben` naming purged; upstream attribution is written as `vue-vben-admin` (`vben-naming-purge`, 10 packages)
 
 Each of those files explains the symptom, the root cause, the trade-off that was taken and how it is tested — reading the changeset is faster than reading the diff when you want to know _why_.
 
 ## Maintaining this page
 
-After a release, move the whole "Pending changes" block into a new row of the version table and re-list whatever is left in `.changeset/`. This page is a hand-maintained summary; **`CHANGELOG.md` and `.changeset/` are the sources of truth**. When they disagree with this page, they win — and fix the page.
+After a release, move the whole "Pending changes" block into a new row of the version table and re-list whatever is left in `.changeset/`. Never write the entry count from memory — count it:
+
+```bash
+ls .changeset/*.md | wc -l
+```
+
+Same for the version distribution:
+
+```bash
+for f in $(find apps packages internal docs scripts -name package.json \
+  -not -path '*/node_modules/*' -not -path '*/dist/*' -not -path '*/.output/*'); do
+  node -e "const p=require('./$f');if(p.name)console.log(p.version, p.name)"
+done | sort
+```
+
+This page is a hand-maintained summary; **`CHANGELOG.md` and `.changeset/` are the sources of truth**. When they disagree with this page, they win — and fix the page.
 
 ## Related
 

@@ -25,14 +25,17 @@ The first four live in `@antdv/stores` (`packages/stores/src/`); the last two ar
 
 `packages/stores/src/session.ts` is not a store, it is the **session-reset registry**: `onSessionReset(handler)` registers, `notifySessionReset()` runs them in order (`session.ts:18-21`, `:29-37`). Derived state that lives in a *different* package — like the page cache — clears through it (`packages/layouts/src/hooks/use-page-cache.ts:74`); importing that package directly would invert the dependency direction (stores → layouts) and cycle the package graph.
 
-::: warning Two barrels, don't use the wrong one The `@antdv/stores` barrel exports all five modules: `packages/stores/src/index.ts:1-5` (app / route / session / tabs / user). `apps/web/src/stores/index.ts:1-2` only re-exports auth / dict, so those four are **not** reachable via `~/stores` — app code does `import { useUserStore } from '@antdv/stores'` uniformly, and private stores come from `~/stores`. :::
+::: warning
+
+Two barrels, don't use the wrong one The `@antdv/stores` barrel exports all five modules: `packages/stores/src/index.ts:1-5` (app / route / session / tabs / user). `apps/web/src/stores/index.ts:1-2` only re-exports auth / dict, so those four are **not** reachable via `~/stores` — app code does `import { useUserStore } from '@antdv/stores'` uniformly, and private stores come from `~/stores`.
+:::
 
 ## Conventions
 
 - **All setup stores**: `defineStore(id, () => { ... })`, getters returned as `computed`, actions as named functions, everything `return { ... }` at the end (`auth.ts:13-44`, `route.ts:421-438`). No option-store syntax.
 - Naming `useXxxStore`; file name matches the id.
 - **Use outside a component**: there is no `pinia`-instance injection trick; stores are called lazily inside functions / guard callbacks (`router/guards/index.ts:49`, `plugins/request-runtime.ts:18`, `directives/index.ts:35`). That means you cannot grab a store at module top level — pinia isn't installed yet.
-- Logout has a single aggregated exit: `user.ts:163-169` first nulls the token and user info, removes two cache keys, then calls `clearDerivedSession()` (`:85-89`), which runs `notifySessionReset()` (page cache and other external registrations), `useRouteStore().resetRoutes()`, `useTabsStore().reset()` in turn. Register new state you need to clean via `onSessionReset`; don't scatter it through the logout flow.
+- Logout has a single aggregated exit: `user.ts:164-170` first nulls the token and user info, removes two cache keys, then calls `clearDerivedSession()` (`:85-89`), which runs `notifySessionReset()` (page cache and other external registrations), `useRouteStore().resetRoutes()`, `useTabsStore().reset()` in turn. Register new state you need to clean via `onSessionReset`; don't scatter it through the logout flow.
 
 ## Persistence: hand-written, and each key has its own rules
 
@@ -47,7 +50,10 @@ The `cache` join rule is `` `${prefix}_${key}` ``, where prefix is injected at s
 | menu "navigation visibility" overrides | `xy-menu-hidden-overrides` | bare `localStorage`, no cache prefix, no encryption | `route.ts:26,38-46` |
 | preferences (incl. `locale`) | `appSetting` (prefixed) | the preferences instance persists itself, writing on every commit | `preferences.ts:31-32,71-77,87-97` |
 
-::: warning `VITE_NAMESPACE` is a dead variable it only appears in `apps/web/.env:1`, `apps/web/types/env.d.ts:28` and this document — **no code path reads it**. To isolate localStorage per environment you currently only have the `VITE_APP_TITLE` prefix (changing the title invalidates all old caches; that is its real effect). Don't expect a namespace to give you per-tab isolation. :::
+::: warning
+
+`VITE_NAMESPACE` is a dead variable it only appears in `apps/web/.env:1`, `apps/web/types/env.d.ts:28` and this document — **no code path reads it**. To isolate localStorage per environment you currently only have the `VITE_APP_TITLE` prefix (changing the title invalidates all old caches; that is its real effect). Don't expect a namespace to give you per-tab isolation.
+:::
 
 ## The app store is a façade over preferences, not a second copy of state
 
@@ -73,4 +79,7 @@ See [Theming & preferences](/en/guide/in-depth/theme).
 | only the parent and child component need it | `provide` / `inject` or props, keep it out of global |
 | one page's form draft | a component-local `ref` |
 
-::: tip Adding a new store Write app-level state following `apps/web/src/stores/modules/dict.ts`; only cross-package-shared state goes into `packages/stores/src/`: a setup store, a stable id as the first arg of `defineStore('xxx')`, explicit `cache.setItem` in a `watch` when it must persist, add the key to `CacheKey` in `packages/enums/src/cache.ts`, and hook cleanup into logout (or register via `onSessionReset`). Don't forget to sync the exports in `packages/stores/src/index.ts` or `apps/web/src/stores/index.ts`. :::
+::: tip
+
+Adding a new store Write app-level state following `apps/web/src/stores/modules/dict.ts`; only cross-package-shared state goes into `packages/stores/src/`: a setup store, a stable id as the first arg of `defineStore('xxx')`, explicit `cache.setItem` in a `watch` when it must persist, add the key to `CacheKey` in `packages/enums/src/cache.ts`, and hook cleanup into logout (or register via `onSessionReset`). Don't forget to sync the exports in `packages/stores/src/index.ts` or `apps/web/src/stores/index.ts`.
+:::

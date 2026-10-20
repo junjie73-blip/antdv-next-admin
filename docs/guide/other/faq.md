@@ -19,8 +19,8 @@
 | 页面能直达，但侧栏看不到 | 侧栏读 `GET /menus`，**不是**从路由表递归的 | 后端加菜单项；本地可先在菜单管理页建 |
 | 菜单点了不跳转 | `attachMenuPaths` 在路由表里反查不到该 path | 菜单的 path 必须命中已生成的约定路由，见[路由与菜单](/guide/essentials/route) |
 | 进页面被踢到 403 | 菜单里没有它 → 路由被 `removeRoute` 裁掉 | 这是"菜单即权限"的正常结果，不是 bug |
-| 公开页被重定向到登录 | 缺省即 `requiresAuth` | 显式写 `meta.requiresAuth: false` 并加进 `WHITE_LIST`（`apps/web/src/config/constants.ts:9-18`） |
-| 标签页"刷新当前"白屏 | `/redirect/:path(.*)` 被删了 | 它必须显式注册，约定路由只给精确的 `/redirect`（`router/routes.ts:46-55`） |
+| 公开页被重定向到登录 | 缺省即 `requiresAuth` | 显式写 `meta.requiresAuth: false` 并加进 `WHITE_LIST`（`apps/web/src/config/constants.ts:6-12`） |
+| 标签页"刷新当前"白屏 | `/redirect/:path(.*)` 被删了 | 它必须显式注册，约定路由只给精确的 `/redirect`（`apps/web/src/router/routes.ts:48-57`） |
 | 切二级页面后布局外壳消失（dev） | 同第一条 HMR 问题 | 同上；生产不受影响，`import.meta.hot` 那段不进包 |
 
 ## 请求与接口
@@ -28,11 +28,11 @@
 | 症状 | 原因 | 处理 |
 | --- | --- | --- |
 | 搜索框输什么都一样、翻页还是第一页数据 | `get(url, { params })` 多包了一层，发出去是 `?params=[object Object]` | `get`/`del` 的**第二个实参就是查询串**（`apps/web/src/api/request.ts:22-26`） |
-| HTTP 200 但业务失败没提示 | 信封 `code !== 200` 时 `afterFetch` 抛 `RequestError` 并标 `handled` | 别在调用处 catch 掉就完事，`fetcher.ts:283-297` |
+| HTTP 200 但业务失败没提示 | 信封 `code !== 200` 时 `afterFetch` 抛 `RequestError` 并标 `handled` | 别在调用处 catch 掉就完事，`fetcher.ts:287-298` |
 | 收到强制下线但不跳登录 | WebSocket 消息类型写成 `forceLogout` | 用 `force-logout`（连字符） |
-| WS 一直重连刷日志 | 没配 `VITE_WS_URL` | 单例在 URL 为空时**直接不连**（`apps/web/src/utils/ws.ts:105-112,310`） |
-| 上传接口报 `Content-Type` 不对 | 手写 JSON 头覆盖了 FormData | 走共享 client：`FormData` 时它会**故意置空** `Content-Type`（`fetcher.ts:243-252`） |
-| 登录接口带了 Bearer 头被后端拒 | token 注入跳过了 auth 端点判定 | 新增登录类端点要进 `isAuthEndpoint` 名单（`fetcher.ts:186`） |
+| WS 一直重连刷日志 | 没配 `VITE_WS_URL` | 单例在 URL 为空时**直接不连**（`apps/web/src/utils/ws.ts:107-112,312-319`） |
+| 上传接口报 `Content-Type` 不对 | 手写 JSON 头覆盖了 FormData | 走共享 client：`FormData` 时它会**故意置空** `Content-Type`（`fetcher.ts:245-259`） |
+| 登录接口带了 Bearer 头被后端拒 | token 注入跳过了 auth 端点判定 | 新增登录类端点要进 `AUTH_ENDPOINTS` 名单（`fetcher.ts:18-27`） |
 
 ## 主题与样式
 
@@ -69,13 +69,16 @@
 
 | 位置 | 状态 |
 | --- | --- |
-| `stores/modules/auth.ts` | 与 `user.ts` 重复，**全仓零消费者** |
-| 偏好里的 `routeMode` | 声明在 `packages/core/preferences/src/config.ts:73`，应用代码无读取点 |
+| `stores/modules/auth.ts` | 与 `@antdv/stores` 的 `user.ts` 重复，**全仓零消费者**（挂住它的只有 `apps/web/src/stores/index.ts:1` 那句 `export *`） |
+| 偏好里的 `routeMode` | 声明在 `packages/core/preferences/src/config.ts:79`，应用代码无读取点 |
 | `VITE_NAMESPACE` | 无任何代码路径读它，前缀实际来自 `VITE_APP_TITLE` |
-| vue-i18n | **已接线，不是死代码**：外壳有 10 个 `.vue` 用 `useI18n`，菜单标题经 `localizeMenus` 翻译（`layouts/composables/useMenuTree.ts:22`），顶栏有语言切换（`layouts/components/LocaleSwitcher.vue` 调 `useLocale.ts:71` 的 `setLocale`）。仍然没接上的是业务页面：`src/views/**` 一个 `useI18n` 都没有，文案硬编码中文，`.vue` 里也没有 `$t()` |
-| `apps/web/src/assets/icons/` | 空目录，sprite 链路已接通但无自定义图标 |
+| vue-i18n | **已接线，不是死代码**：全仓 `useI18n()` 的真实调用只有一处 —— `apps/web/src/composables/useLocale.ts:65`（`layout-ui/src/layout.ts` 里那句只是注释）。菜单标题由 `localizeMenus` 翻译（`packages/layouts/src/hooks/use-menu-tree.ts:25`），译文查找函数 `translateMenu` 由宿主注入（`apps/web/src/plugins/ui-runtime.ts:20-21`），包内不 import vue-i18n。顶栏语言切换在 `packages/layouts/src/widgets/language-toggle/index.vue`，写入走 `appStore.updateSetting({ locale })`（`:38`），应用侧同一个入口是 `useLocale.ts:70` 的 `setLocale`。仍然没接上的是业务页面：`src/views/**` 一个 `useI18n` 都没有，文案硬编码中文，`.vue` 里也没有 `$t()` |
+| `apps/web/src/assets/icons/` | 4 枚宿主自带 SVG（github / wechat / qq / google），`vite-plugin-svg-icons` 打成 `#icon-<文件名>` 雪碧图，注册在 `apps/web/src/main.ts:42`，消费点 `apps/web/src/config/auth-social.ts:17-25`。**不是空目录** |
 | `views/tool/mock/**` | 只剩私有模块，没有 `index.vue`，mock-center 面板只能走 HTTP 接口 |
-| stylelint | 规则包存在，**没有落地配置文件**，lefthook 步骤被注释（`lefthook.yml:16-18`） |
+| stylelint | 规则包 `@antdv/stylelint-config` 与 `apps/web` 的 stylelint 依赖都在，但**仓库里没有任何 `.stylelintrc*` / `stylelint.config.*`，也没有 stylelint 脚本**；`lefthook.yml` 整个文件从第 1 行起就被注释掉，所以 pre-commit 一个任务都不跑 |
 | `docs/` 与 `apps/web/public/pwa-icons/` 的 logo | **拷贝**关系，不是引用；换 logo 要两边一起改 |
 
-::: tip 想清理按"死代码"的代价排序最划算的是：i18n 的外壳与菜单标题已经接上，剩下来的是业务页面文案（要么补 `useI18n`，要么承认中文就是这个界面的语言）；`auth` store 直接删（挂住它的只有 `stores/index.ts:2` 那句 `export *`）；`routeMode` / `VITE_NAMESPACE` 二选一——要么实现要么从 `.env` 与 `types/env.d.ts` 移除。清理完记得同步这份 FAQ；删的顺序与牵动面见[移除代码](/guide/other/remove-code)。:::
+::: tip
+
+想清理按"死代码"的代价排序最划算的是：i18n 的外壳与菜单标题已经接上，剩下来的是业务页面文案（要么补 `useI18n`，要么承认中文就是这个界面的语言）；`auth` store 直接删（上表已给出唯一挂点）；`routeMode` / `VITE_NAMESPACE` 二选一——要么实现要么从 `.env` 与 `types/env.d.ts` 移除。清理完记得同步这份 FAQ；删的顺序与牵动面见[移除代码](/guide/other/remove-code)。
+:::

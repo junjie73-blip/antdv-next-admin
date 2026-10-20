@@ -12,7 +12,10 @@
 
 **依赖版本没有一处字面量**：所有包（含 `apps/web`）的依赖一律 `catalog:` 或 `workspace:*`。唯一的形式差异是 `apps/web` 的 `vue` 走的是**具名 catalog** —— `"vue": "catalog:conflicts_vue_h3_5_43"`（`apps/web/package.json:101`，`dependencies` 块从 `:17` 到 `:111`）。改版本就改 `pnpm-workspace.yaml` 的 `catalog:` 那一行，别在子包补字面量。
 
-::: warning 具名 catalog 只有一条，而且被 overrides 顶住了 `catalogs.conflicts_vue_h3_5_43`（`pnpm-workspace.yaml:270-272`，`vue: ^3.5.43`）确实被 `apps/web` 引用，不是死配置；但 `overrides.vue: 'catalog:'`（`:298-303`）会把它按回默认 catalog 里的**精确** `3.5.43`（`:235`）。也就是说这条具名通道现在解析不出任何不同的版本，留着它只是历史痕迹 —— 真要升 Vue，改 `catalog:` 的 `:235` 那一行就够了。:::
+::: warning
+
+具名 catalog 只有一条，而且被 overrides 顶住了 `catalogs.conflicts_vue_h3_5_43`（`pnpm-workspace.yaml:270-272`，`vue: ^3.5.43`）确实被 `apps/web` 引用，不是死配置；但 `overrides.vue: 'catalog:'`（`:298-303`）会把它按回默认 catalog 里的**精确** `3.5.43`（`:235`）。也就是说这条具名通道现在解析不出任何不同的版本，留着它只是历史痕迹 —— 真要升 Vue，改 `catalog:` 的 `:235` 那一行就够了。
+:::
 
 ## 安装期真正生效的开关
 
@@ -43,9 +46,15 @@ pnpm release                      # pnpm build && changeset publish
 
 `.changeset/config.json` 里三个决定值得注意：`fixed: [["@antdv/*", "@antdv/*"]]`（`:10`）让所有 `@antdv/*` 包**在同一次 `pnpm version` 里一起跳版本号**；`privatePackages: { version: true, tag: true }`（`:14-17`）允许给私有包写版本和打标签；`updateInternalDependencies: "patch"`（`:21`）。changelog 走 `@changesets/changelog-github`，仓库名写死为 `junjie73-blip/antdv-next-admin`（`:3-8`）。
 
-::: warning `fixed` 不等于"现在大家都是同一个号" 上一次 `pnpm version` 之后新建的包是**带着自己的初版号进组的**，所以当前仓库的版本号是散的：多数包 `0.4.0`（= 根包 `package.json:3`），`@antdv/layouts` 已经 `0.5.0`，`@antdv/{common-ui,enums,request,stores,utils}` 从 `0.1.0` 起步，`internal/lint-configs/*` 与 `@antdv/docs` 停在 `0.0.0`，`scripts/*` 两个（`@antdv/turbo-run`、`@antdv/vsh`）还是脚手架带来的 `5.8.0`。下一次 `pnpm version` 才会把它们拉齐 —— 别按号判断"这个包比那个包新"。:::
+::: warning
 
-::: danger 别把 `pnpm release` 当成"发 npm" `packages/*`、`apps/*`、`docs` 与根包的 package.json **全部是 `"private": true`**（唯一的 `publishConfig` 在 `packages/core/ui-kit/shadcn-ui/package.json:29`，它只是把 `src` 的 exports 原样重复一遍，那个包同样是 private）。changesets 在这里只产出 CHANGELOG 与 git tag，不会往 registry 推任何东西。发布历史也确实薄： `git tag` 现在只有 `v0.0.3` 和一个 `vnull`，而版本号已经走到 0.4.0；`.github/workflows/` 里只有 `docs.yml` 一个文件。**升级与发版目前是一次纯本地动作**，要打标签得自己 `git tag && git push --tags`。:::
+`fixed` 不等于"现在大家都是同一个号" 上一次 `pnpm version` 之后新建的包是**带着自己的初版号进组的**，所以当前仓库的版本号是散的：多数包 `0.4.0`（= 根包 `package.json:3`），`@antdv/layouts` 已经 `0.5.0`，`@antdv/{common-ui,enums,request,stores,utils}` 从 `0.1.0` 起步，`internal/lint-configs/*` 与 `@antdv/docs` 停在 `0.0.0`，`scripts/*` 两个（`@antdv/turbo-run`、`@antdv/vsh`）还是脚手架带来的 `5.8.0`。下一次 `pnpm version` 才会把它们拉齐 —— 别按号判断"这个包比那个包新"。
+:::
+
+::: danger
+
+别把 `pnpm release` 当成"发 npm" `packages/*`、`apps/*`、`docs` 与根包的 package.json **全部是 `"private": true`**（唯一的 `publishConfig` 在 `packages/core/ui-kit/shadcn-ui/package.json:29`，它只是把 `src` 的 exports 原样重复一遍，那个包同样是 private）。changesets 在这里只产出 CHANGELOG 与 git tag，不会往 registry 推任何东西。发布历史也确实薄： `git tag` 现在只有 `v0.0.3` 和一个 `vnull`，而版本号已经走到 0.4.0；`.github/workflows/` 里只有 `docs.yml` 一个文件。**升级与发版目前是一次纯本地动作**，要打标签得自己 `git tag && git push --tags`。
+:::
 
 ## 一次 antdv-next 升级怎么跑
 
@@ -78,6 +87,9 @@ cd apps/web && pnpm exec playwright test --project=chromium --reporter=line
 4. **"用错也不报错"的 API**。`apps/web/src/views/__tests__/gallery-api-usage.spec.ts` 会先替你抓到三类：具名 `useApp`（1.6 只有 `App.useApp()`）、把权限指令的参数写成修饰符（`v-permission:role` 才对）、Tabs 绑 `@add`（1.6 只有 `@edit`）。
 5. **图标**。`@antdv-next/icons`（catalog `:23`，`apps/web/package.json:19`）+ 5 个 `@iconify-json/*` 集合（catalog `:43-47`）+ `internal/vite-config/src/plugins/auto-import.ts:30-32` 的离线列表（`local: ['carbon', 'ant-design', 'lucide', 'fa6-regular', 'mdi']`，名单必须与依赖同步，少一个就变成构建期现拉或直接空白）。写错的图标名不报错，只是空白方块，所以有 `apps/web/test/icon-names.test.ts` 扫 `apps/backend-mock/server`、`apps/web/src`、`packages` 三个根做对账（`SCAN_ROOTS`，`:45`）。
 
-::: tip Vue 是被精确钉死的运行时 默认 catalog 里 `vue: 3.5.43`（`pnpm-workspace.yaml:235`）没有范围号；catalog 里另有 11 个精确版本（`reka-ui`、`@vueuse/core`、`vee-validate` 等），但只有 `vue` 同时出现在 `overrides`（`:298-303`）里，等于强制整棵树只有一份实例。原因是范围号会让部分第三方 peer 树停在 3.5.42，于是 `@vue/runtime-core` 出现两份类型，跨包传 Directive 直接打架。升 Vue 之前先决定 `overrides` 要不要跟着动。:::
+::: tip
+
+Vue 是被精确钉死的运行时 默认 catalog 里 `vue: 3.5.43`（`pnpm-workspace.yaml:235`）没有范围号；catalog 里另有 11 个精确版本（`reka-ui`、`@vueuse/core`、`vee-validate` 等），但只有 `vue` 同时出现在 `overrides`（`:298-303`）里，等于强制整棵树只有一份实例。原因是范围号会让部分第三方 peer 树停在 3.5.42，于是 `@vue/runtime-core` 出现两份类型，跨包传 Directive 直接打架。升 Vue 之前先决定 `overrides` 要不要跟着动。
+:::
 
 要把不需要的东西拆掉，看[移除代码](/guide/other/remove-code)；工程侧的其它约定见 [开发规范与环境变量](/guide/essentials/development)、[目录说明](/guide/project/dir)。

@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+// CSS 副作用导入的类型声明只能引用、不能复制：下游按源码消费本包时看不到 common-ui 的 tsconfig include。
+// oxlint-disable-next-line typescript/triple-slash-reference
+/// <reference path="../../types/css.d.ts" />
 import type { CSSProperties } from 'vue';
 import type { ToasterProps } from 'vue-sonner';
 

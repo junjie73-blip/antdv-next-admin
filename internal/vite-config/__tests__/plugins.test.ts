@@ -14,9 +14,12 @@ import { createPlugins } from '../src/plugins';
  */
 const APP_ROOT = fileURLToPath(new URL('../../../apps/web', import.meta.url));
 
+/** 数组型插件（unplugin 系会返回 `[插件, 插件…]`）可能再套一层，展平到能拿到 name 即可 */
+const PLUGIN_FLAT_DEPTH = 4;
+
 function pluginNames(plugins: PluginOption[]): string[] {
   return plugins
-    .flat(4)
+    .flat(PLUGIN_FLAT_DEPTH)
     .filter((plugin): plugin is { name: string } =>
       Boolean(
         plugin &&
@@ -62,20 +65,45 @@ describe('createPlugins 按产物形态分层', () => {
     expect(list).not.toContain('vite:dts');
   });
 
-  it('两种形态共用同一条编译链（Vue / 自动导入 / 组件 / 图标 / 样式）', async () => {
-    const shared = (list: string[]) =>
-      list.filter((name) =>
-        /^(vite:vue|@tailwindcss|unplugin-|vite-plugin-vue-layouts|tomjs:iconify|vite-plugin-env-parse|vite:svg-icons|vite:imagemin|vite-dayjs-plugin|vue-router)/.test(
-          name,
-        ),
-      );
-
-    const app = shared(pluginNames(await createPlugins('development')));
-    const lib = shared(
-      pluginNames(await createPlugins('development', { kind: 'library' })),
+  it('两种形态共用编译链，但库形态不带任何按宿主环境工作的插件', async () => {
+    const app = pluginNames(await createPlugins('development'));
+    const lib = pluginNames(
+      await createPlugins('development', { kind: 'library' }),
     );
 
-    expect(app.length).toBeGreaterThan(10);
-    expect(lib).toEqual(app);
+    // SFC / TSX / Tailwind 两边都要有，否则子包的 .vue、.tsx 与原子类编译不出来
+    const compile = [
+      'vite:vue',
+      'vite:vue-jsx',
+      '@tailwindcss/vite:scan',
+      '@tailwindcss/vite:generate:build',
+    ];
+    for (const name of compile) {
+      expect(app).toContain(name);
+      expect(lib).toContain(name);
+    }
+
+    expect(app.length).toBeGreaterThan(lib.length);
+
+    // 这些插件扫 src/views、回写 cwd/types/*.d.ts、要求 @iconify-json/* 与
+    // src/assets/icons 存在 —— 子包按自己的目录构建时前提全不成立。
+    const appOnly = [
+      'vue-router',
+      'vite-plugin-vue-layouts-next',
+      'unplugin-vue-i18n:resource',
+      'vite-plugin-inspect',
+      'unplugin-auto-import',
+      'unplugin-vue-components',
+      'tomjs:iconify',
+      'vite:svg-icons',
+      'vite:imagemin',
+      'vite-dayjs-plugin',
+      'vite:html',
+      'vite-plugin-app-loading',
+    ];
+    for (const name of appOnly) {
+      expect(app).toContain(name);
+      expect(lib).not.toContain(name);
+    }
   });
 });
