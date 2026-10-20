@@ -139,7 +139,6 @@ export default {
     DemoEditor: 'Editor',
     DemoFormBasic: 'Basic Form',
     DemoFormCustom: 'Custom Components',
-    DemoFormDesigner: 'Form Designer',
     DemoFormSteps: 'Step Form',
     DemoFormValidation: 'Form Validation',
     DemoGalleryForm: 'Form',

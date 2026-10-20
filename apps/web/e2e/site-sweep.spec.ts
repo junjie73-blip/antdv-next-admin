@@ -85,14 +85,12 @@ interface SweepRow {
  * 只允许"本站代码改不到"的东西进来，所以判据是**页面 + 文案**两个都对上才洗：
  * 本站自己写错 props 触发的同类告警（路径不同）照样会红。
  *
- * - `/components/form-designer`：`@form-create/designer` 把 antd 的弹窗写在了它的
- *   打包产物里，仍在传 `destroyOnClose`；antd 1.6 已把它更名为 `destroyOnHidden`。
- *   升级设计器之前我们无法修，且它只是 deprecation 提示，不影响设计器可用。
- *   本站自己的弹窗（BasicModal）已全部改用 `destroy-on-hidden`。
+ * 表单设计器（`@form-create/antd-designer`，曾在 `/components/form-designer` 传 antd 1.6
+ * 已更名为 `destroyOnHidden` 的 `destroyOnClose`）随 `antdv-next` 依赖一起移除了，
+ * 所以现在这份表是空的 —— 保着这条通道，是为了下次引入第三方组件时先登记、
+ * 而不是为了让巡检变绿而临时放宽判据。
  */
-const VENDOR_CONSOLE_NOISE: Record<string, string[]> = {
-  '/components/form-designer': ['[antd: Modal] `destroyOnClose` is deprecated'],
-};
+const VENDOR_CONSOLE_NOISE: Record<string, string[]> = {};
 
 function splitVendorNoise(path: string, errors: string[]) {
   const patterns = VENDOR_CONSOLE_NOISE[path] ?? [];

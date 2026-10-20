@@ -1,40 +1,18 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import { autoPrefixTransformer, px2remTransformer } from '@antdv-next/cssinjs';
 import {
   ConfigProvider as SystemConfigProvider,
   Toaster,
 } from '@antdv/common-ui';
 import { NOTIFICATION_TOASTER_ID } from '@antdv/popup-ui';
 import { useAppStore } from '@antdv/stores';
-import { App as AApp, ConfigProvider, StyleProvider } from 'antdv-next';
+
 import { useLocaleSync } from '~/composables/useLocale';
-import { getThemeConfig } from '~/settings';
 
 const appStore = useAppStore();
-const antdLocale = useLocaleSync();
-
-/**
- * 剩下的 antd DOM 只有 `@form-create/antd-designer`（模板预编译，靠全局注册找组件）。
- * 它的主题与 `@antdv/design` 那套 token **同源**：两边读的都是偏好里的
- * `primaryColor / borderRadius / fontSize`，所以不存在"换主题、设计器还是蓝的"
- * 的第二条链路 —— 有第二条的形态是它自己另存一份色板，这里没有。
- */
-const themeConfig = computed(() =>
-  getThemeConfig(appStore.appSetting, appStore.isSystemDark),
-);
-
-const getPopupContainer = (triggerNode?: HTMLElement): HTMLElement => {
-  if (
-    triggerNode?.closest(
-      '.ant-table-cell-fix, .ant-table-cell-fix-start, .ant-table-cell-fix-end',
-    )
-  ) {
-    return document.body;
-  }
-  return triggerNode?.parentElement || document.body;
-};
+/** locale 效应的唯一出口：i18n 文案、`<html lang>`、dayjs 格式化都在这一步展开 */
+useLocaleSync();
 
 /** 偏好项沿用 antd 的驼峰命名，sonner 的位置写法是连字符，这里做一次映射 */
 const TOAST_POSITIONS = {
@@ -57,7 +35,9 @@ const notificationPosition = computed(
  *
  * 语言与尺寸档位由这里下发，包内组件（Popconfirm 的确定/取消等）读
  * `useGlobalConfig()` 而不是各写死一份中文 —— 切语言时这些内置文案才会跟着变。
- * 主题色/圆角不在这条链路上，它们由偏好直接写 CSS 变量（见 `applyPreferencesToDom`）。
+ * 主题色/圆角不在这条链路上，它们由偏好直接写 CSS 变量（见 `applyPreferencesToDom`）：
+ * 组件的配色一律走 `var(--app-*)` / `bg-primary` 这类 token，所以**只有这一条链路**，
+ * 不存在"换了主题色、某块 DOM 还是蓝的"的第二份色板。
  */
 const globalConfig = computed(() => ({
   componentSize: appStore.componentSize,
@@ -66,31 +46,18 @@ const globalConfig = computed(() => ({
 </script>
 
 <template>
-  <StyleProvider>
-    <ConfigProvider
-      :theme="themeConfig"
-      :locale="antdLocale"
-      :transformers="[autoPrefixTransformer, px2remTransformer]"
-      :get-popup-container="getPopupContainer"
-      :component-size="appStore.componentSize"
-      virtual
-    >
-      <AApp>
-        <SystemConfigProvider
-          :component-size="globalConfig.componentSize"
-          :locale="globalConfig.locale"
-        >
-          <router-view />
-          <Toaster position="top-center" :theme="appStore.resolvedTheme" />
-          <Toaster
-            :id="NOTIFICATION_TOASTER_ID"
-            :position="notificationPosition"
-            :theme="appStore.resolvedTheme"
-            close-button
-            close-button-position="top-right"
-          />
-        </SystemConfigProvider>
-      </AApp>
-    </ConfigProvider>
-  </StyleProvider>
+  <SystemConfigProvider
+    :component-size="globalConfig.componentSize"
+    :locale="globalConfig.locale"
+  >
+    <router-view />
+    <Toaster position="top-center" :theme="appStore.resolvedTheme" />
+    <Toaster
+      :id="NOTIFICATION_TOASTER_ID"
+      :position="notificationPosition"
+      :theme="appStore.resolvedTheme"
+      close-button
+      close-button-position="top-right"
+    />
+  </SystemConfigProvider>
 </template>

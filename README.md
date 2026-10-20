@@ -2,7 +2,7 @@
 
 [English](./README.en.md) | **简体中文**
 
-现代化企业级后台管理系统模板：Vue 3 + TypeScript + antdv-next + Tailwind CSS v4，pnpm Monorepo。开发期零后端即可跑通（进程内 Nitro Mock），并带 chromium / firefox / webkit 三引擎端到端测试。
+现代化企业级后台管理系统模板：Vue 3 + TypeScript + reka-ui / shadcn-vue + Tailwind CSS v4，pnpm Monorepo。开发期零后端即可跑通（进程内 Nitro Mock），并带 chromium / firefox / webkit 三引擎端到端测试。
 
 ---
 
@@ -11,7 +11,7 @@
 | 类别   | 技术               | 版本         |
 | ------ | ------------------ | ------------ |
 | 框架   | Vue 3 + TypeScript | 3.5.43 / 6.0 |
-| UI     | antdv-next         | ^1.6.0       |
+| UI     | reka-ui + shadcn   | 2.11.0       |
 | 样式   | Tailwind CSS v4    | ^4.3.3       |
 | 状态   | Pinia 3            | ^3.0.4       |
 | 路由   | Vue Router         | ^5.3.1       |

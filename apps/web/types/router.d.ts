@@ -136,13 +136,6 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/components/form-designer/': RouteRecordInfo<
-      '/components/form-designer/',
-      '/components/form-designer',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/components/icon-picker/': RouteRecordInfo<
       '/components/icon-picker/',
       '/components/icon-picker',
@@ -530,14 +523,6 @@ declare module 'vue-router/auto-routes' {
     'src/views/components/form/validation/index.vue': {
       routes:
         | '/components/form/validation/'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
-    'src/views/components/form-designer/index.vue': {
-      routes:
-        | '/components/form-designer/'
       views:
         | never
       pathParamNames:

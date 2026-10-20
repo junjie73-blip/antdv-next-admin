@@ -61,7 +61,7 @@ export function createOptimizeDeps(): UserConfig['optimizeDeps'] {
     exclude: ['vue'],
     // 必须是真实包名：写成裸的 '@vueuse' 会报
     // "Failed to resolve dependency: @vueuse, present in optimizeDeps.include"
-    include: ['@vueuse/core', 'antdv-next', 'es-toolkit'],
+    include: ['@vueuse/core', 'es-toolkit'],
   };
 }
 

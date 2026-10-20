@@ -7,9 +7,6 @@ import 'vue-pdf-embed/dist/styles/textLayer.css';
 
 import { vLoading } from '@antdv/common-ui';
 import { useUserStore } from '@antdv/stores';
-import FcDesigner from '@form-create/antd-designer';
-import formCreate from '@form-create/antdv-next';
-import install from '@form-create/antdv-next/auto-import';
 import * as Sentry from '@sentry/vue';
 import { MotionPlugin } from '@vueuse/motion';
 import PdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
@@ -33,7 +30,6 @@ import { configureLayoutsHost } from './plugins/layouts-host';
 import { configureRequestRuntime } from './plugins/request-runtime';
 import { configureTableRuntime } from './plugins/table-runtime';
 import { configureUiKitRuntimes } from './plugins/ui-runtime';
-import { registerVendorAntdComponents } from './plugins/vendor-antd-components';
 import { setupRouter } from './router';
 import { getPreferences } from './settings';
 import { initSecuritySystem } from './utils/securityInit';
@@ -46,15 +42,7 @@ import 'virtual:svg-icons-register';
  */
 import '@antdv/design';
 
-// 按需导入 form-create 组件
-formCreate.use(install);
 const app = createApp(App);
-/**
- * 第三方预编译模板（表单设计器）在运行时按 `a-*` 名字找组件，本仓库的显式 import 是
- * 局部绑定、覆盖不到它，不注册的话设计器整个外壳会渲染成空白标签。
- * 详见 `plugins/vendor-antd-components.ts`。
- */
-registerVendorAntdComponents(app);
 const pinia = createPinia();
 app.use(pinia);
 app.use(i18n);
@@ -79,8 +67,6 @@ configureTableRuntime();
  * 晚一步就会被包默认值占位 —— 表现是水印/版权没了、老布局名读不出来，且不报错。
  */
 getPreferences();
-app.use(formCreate);
-app.use(FcDesigner);
 app.use(MotionPlugin);
 setupVueQuery(app);
 

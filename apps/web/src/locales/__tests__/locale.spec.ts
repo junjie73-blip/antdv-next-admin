@@ -15,19 +15,23 @@ import { useAppStore } from '@antdv/stores';
 /**
  * locale 的接入与切换。
  *
- * 这一轮的缺陷根源是"两个真相"：偏好里的 `locale`（管 antd / dayjs）和
+ * 这一轮的缺陷根源是"两个真相"：偏好里的 `locale`（管 dayjs）和
  * vue-i18n 的全局 locale（管文案）各写各的存储，切一次语言只有一半界面跟着变。
- * 所以测试全部围绕"写一处、五处跟着动"来写：
- * i18n 文案、antd 语言包、dayjs、`<html lang>`、持久化。
+ * 所以测试全部围绕"写一处、四处跟着动"来写：
+ * i18n 文案、dayjs、`<html lang>`、持久化。
+ *
+ * 组件的内置文案（Popconfirm 的确定/取消、空状态等）不在这一串里：它只吃
+ * `'en-US' | 'zh-CN'` 这个字符串，展开发生在 `@antdv/common-ui` 的 ConfigProvider
+ * （`textsByLocale`，单测在包内），日期排版则走 reka-ui 的 locale 注入。
  */
 
 /** 挂载用的壳：`useLocaleSync` 要有组件作用域才挂得上 watch */
 const Harness = defineComponent({
   name: 'LocaleHarness',
   setup() {
-    const antdLocale = useLocaleSync();
+    useLocaleSync();
     const { locale, setLocale, t } = useLocale();
-    return { antdLocale, locale, setLocale, t };
+    return { locale, setLocale, t };
   },
   render: () => h('div'),
 });
@@ -52,7 +56,7 @@ beforeEach(() => {
 });
 
 describe('useLocaleSync —— locale 的唯一出口', () => {
-  it('默认是中文，首屏就把五处都对上', async () => {
+  it('默认是中文，首屏就把四处都对上', async () => {
     const { wrapper } = mountHarness();
     await settle();
 
@@ -63,7 +67,7 @@ describe('useLocaleSync —— locale 的唯一出口', () => {
     expect(wrapper.vm.t('header.logout')).toBe('退出登录');
   });
 
-  it('写偏好（唯一的写入点）就带动 i18n / antd / dayjs / html lang / 存储', async () => {
+  it('写偏好（唯一的写入点）就带动 i18n / dayjs / html lang / 存储', async () => {
     const { appStore, wrapper } = mountHarness();
 
     appStore.updateSetting({ locale: 'en-US' });
@@ -80,21 +84,6 @@ describe('useLocaleSync —— locale 的唯一出口', () => {
       cache.getItem<{ locale: string }>(PREFERENCES_CACHE_KEY)?.locale,
     ).toBe('en-US');
     expect(window.localStorage.getItem('app_cache_locale')).toBeNull();
-  });
-
-  it('configProvider 拿到的 antd 语言包跟着切换', async () => {
-    const { appStore, wrapper } = mountHarness();
-    // 语言包是动态 import（要走模块加载，不止一个微任务），按状态等而不是拍脑袋 sleep
-    await vi.waitFor(() => expect(wrapper.vm.antdLocale?.locale).toBe('zh-cn'));
-    const zh = wrapper.vm.antdLocale;
-
-    appStore.updateSetting({ locale: 'en-US' });
-    await nextTick();
-    await vi.waitFor(() => expect(wrapper.vm.antdLocale?.locale).toBe('en'));
-
-    // 切换后必须是换成英文那份，而不是留着中文
-    expect(wrapper.vm.antdLocale).not.toBe(zh);
-    expect(wrapper.vm.antdLocale?.Pagination?.items_per_page).toBe('/ page');
   });
 
   it('setLocale 与 updateSetting 两条路互不漂移', async () => {
@@ -137,7 +126,7 @@ describe('文案表对齐', () => {
   });
 });
 
-/** 语言包是动态 import，等一次微任务队列 */
+/** 切一次的效应挂在 watch 回调里，等 watcher 队列 + 微任务都排空 */
 async function settle() {
   await nextTick();
   await flushPromises();

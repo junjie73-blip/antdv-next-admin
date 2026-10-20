@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 
-import { FullscreenExitOutlined, FullscreenOutlined } from '@antdv-next/icons';
 import { cn } from '@antdv/shared/utils/cn';
+import { Icon } from '@iconify/vue';
 import dayjs from 'dayjs';
 
 defineOptions({ name: 'ScreenHeader' });
@@ -100,8 +100,10 @@ onBeforeUnmount(() => {
         :aria-label="isFullscreen ? '退出全屏' : '全屏'"
         @click="toggleFullscreen"
       >
-        <FullscreenExitOutlined v-if="isFullscreen" class="text-xs" />
-        <FullscreenOutlined v-else class="text-xs" />
+        <Icon
+          class="text-xs"
+          :icon="isFullscreen ? 'carbon:minimize' : 'carbon:maximize'"
+        />
         {{ isFullscreen ? '退出全屏' : '全屏' }}
       </button>
     </div>

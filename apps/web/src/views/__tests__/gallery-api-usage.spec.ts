@@ -9,34 +9,23 @@ import { describe, expect, it } from 'vitest';
  * 示例页是别人直接抄的模板，而这批 API 写法错误的共同症状是
  * **页面照样渲染、点了没反应**，靠人眼巡检发现不了，端到端又只能覆盖到被写进用例的那些页：
  *
- * 1. `antdv-next` 1.6 的根导出是 `_default as App`（`App.useApp` 挂在它上面），
- *    **没有具名的 `useApp`**。写成 `import { useApp }` 后异步块加载失败、导航中止，
- *    界面上就是"点菜单没反应"（首轮 `/components/feedback` 就是这么废的）。
- * 2. 权限指令的 `role` / `admin` 是**参数（arg）**，不是修饰符：
+ * 1. 权限指令的 `role` / `admin` 是**参数（arg）**，不是修饰符：
  *    `v-permission:role="'auditor'"`、`v-permission:admin` 才走对应通道，
  *    写成 `.role` / `.admin` 判根本不读（`resolveAccess` 只看 `binding.arg`）。
- * 3. Tabs 1.6 没有 `add` 事件，只有 `edit(key | MouseEvent, 'add' | 'remove')`；
- *    绑 `@add` 不报错，只是新增按钮点了没反应。
+ * 2. 页面里不许出现第三方组件库的依赖。原先那两条针对 `antdv-next` 的
+ *    检查（`import { useApp }` 这个不存在的具名导出、`<a-tabs @add>` 这个不存在的事件）
+ *    随着 antd 一起删掉了 —— 库都不在，规则没有作用对象；取而代之的是
+ *    下面那条「依赖清零」的硬断言，它拦的是更靠前的那一步。
  */
 
 const SCAN_ROOTS = ['src/views', 'src/components', 'src/layouts'];
 
-/** 三条规则的出处与判据，报错信息里要能直接看到该改什么 */
+/** 权限指令把 arg 写成 modifier —— 判据不报错，只是永远判不过 */
 const RULES: Array<{
   find: (text: string) => string[];
   hint: string;
   name: string;
 }> = [
-  {
-    find: (text) =>
-      [
-        ...text.matchAll(
-          /import\s*\{[^}]*\buseApp\b[^}]*\}\s*from\s*['"]antdv-next['"]/g,
-        ),
-      ].map((m) => m[0]),
-    hint: "改成 `import { App } from 'antdv-next'` + `App.useApp()`",
-    name: '具名 useApp 不存在',
-  },
   {
     find: (text) =>
       [...text.matchAll(/v-[a-z-]+[.\w-]*?\.(?:role|admin)\b[^\n]*/g)].map(
@@ -45,25 +34,26 @@ const RULES: Array<{
     hint: '`role` / `admin` 是参数：`v-permission:role="\'auditor\'"`、`v-permission:admin`',
     name: '权限指令把 arg 写成了 modifier',
   },
-  {
-    find: (text) =>
-      [...text.matchAll(/<a-tabs\b[^>]*?@add\b[^>]*?>/gs)].map((m) => m[0]),
-    hint: '1.6 只有 `@edit`：`@edit="(key, action) => ..."`',
-    name: 'Tabs 绑了不存在的 @add',
-  },
 ];
 
-function vueFiles(dir: string, out: string[] = []): string[] {
+function sourceFiles(
+  dir: string,
+  extensions: string[],
+  out: string[] = [],
+): string[] {
   for (const name of readdirSync(dir)) {
     const full = join(dir, name);
     if (statSync(full).isDirectory()) {
-      if (name !== '__tests__') vueFiles(full, out);
+      // 守卫自己的坏样例就写在 __tests__ 里，不能把它当成违规
+      if (name !== '__tests__') sourceFiles(full, extensions, out);
       continue;
     }
-    if (name.endsWith('.vue')) out.push(full);
+    if (extensions.some((ext) => name.endsWith(ext))) out.push(full);
   }
   return out;
 }
+
+const vueFiles = (dir: string) => sourceFiles(dir, ['.vue']);
 
 const FILES = SCAN_ROOTS.flatMap((root) => vueFiles(join(process.cwd(), root)));
 
@@ -80,28 +70,19 @@ describe('示例与布局模板里不能出现静默失效的 API 写法', () =>
    * 图标名对账那条用 `checked > 100` 兜的就是同一个坑，这里按规则各补一发。
    */
   const CONTROLS: Record<string, string> = {
-    'Tabs 绑了不存在的 @add': `<template><a-tabs type="editable-card" @add="onAdd" /></template>`,
-    '具名 useApp 不存在': `<script setup lang="ts">
-import { useApp } from 'antdv-next';
-</script>`,
     '权限指令把 arg 写成了 modifier': `<template>
-  <a-button v-permission.role="'auditor'">按角色</a-button>
-  <a-button v-permission.admin>仅超管</a-button>
+  <Button v-permission.role="'auditor'">按角色</Button>
+  <Button v-permission.admin>仅超管</Button>
 </template>`,
   };
 
   /** 正确写法不能被抓到，否则守卫只是逼人绕开它 */
   const NEGATIVES: Record<string, string> = {
-    '具名 useApp 不存在': `<script setup lang="ts">
-import { App } from 'antdv-next';
-const { message } = App.useApp();
-</script>`,
     '权限指令把 arg 写成了 modifier': `<template>
-  <a-button v-permission:role="'auditor'">按角色</a-button>
-  <a-button v-permission:admin>仅超管</a-button>
-  <a-button v-permission.disabled="'user:add'">置灰</a-button>
+  <Button v-permission:role="'auditor'">按角色</Button>
+  <Button v-permission:admin>仅超管</Button>
+  <Button v-permission.disabled="'user:add'">置灰</Button>
 </template>`,
-    'Tabs 绑了不存在的 @add': `<template><a-tabs type="editable-card" @edit="onEdit" /></template>`,
   };
 
   for (const rule of RULES) {
@@ -131,25 +112,60 @@ const { message } = App.useApp();
   /**
    * 示例页是别人直接抄的模板，所以只允许出现仓库自己封装的那套组件
    * （`@antdv/common-ui` / `@antdv/shadcn-ui` / `@antdv/popup-ui` / `@antdv/table-ui` …）。
-   * 直接引 antd 原语的话，组件库就成了隐式依赖：换库时这些页面全部要重写，
+   * 直接引第三方原语的话，组件库就成了隐式依赖：换库时这些页面全部要重写，
    * 而且示例展示的不再是本仓库的设计语言。
+   *
+   * 判据与 `packages/core/hooks/__tests__/boundary.test.ts` 一致：只拦「导入形态」和
+   * `<a-xxx>` 标签形态，注释与 mock 数据里残留的历史名字不算违规。
    */
-  it('示例与布局不得直接引入 antdv-next 组件', () => {
-    const hits = SCAN_ROOTS.flatMap((root) =>
-      vueFiles(join(process.cwd(), root)),
-    )
-      .map(
-        (file) =>
-          [file, readFileSync(file, 'utf8').replaceAll('\r\n', '\n')] as const,
-      )
-      .flatMap(([file, text]) =>
-        [...text.matchAll(/from\s*['"]antdv-next['"]/g)].map(
-          () => `${relative(process.cwd(), file).replaceAll('\\', '/')}`,
-        ),
+  const VENDOR_IMPORT =
+    /(?:from|import)\s*\(?\s*['"](?:antdv-next|@antdv-next\/[^'"]*|@form-create\/[^'"]*)['"]/gu;
+  const VENDOR_TAG = /<a-[a-z]+(?:-[a-z]+)*\b/gu;
+
+  /** 整个 `src`（不只是示例目录）—— 依赖一旦回来，先回来的往往不是页面 */
+  const APP_FILES = sourceFiles(join(process.cwd(), 'src'), [
+    '.ts',
+    '.tsx',
+    '.vue',
+  ]);
+
+  function hitsOf(pattern: RegExp): string[] {
+    pattern.lastIndex = 0;
+    return APP_FILES.flatMap((file) => {
+      const text = readFileSync(file, 'utf8').replaceAll('\r\n', '\n');
+      const matched = [...text.matchAll(pattern)];
+      return matched.map(
+        (m) =>
+          `${relative(process.cwd(), file).replaceAll('\\', '/')}  ${(m[0] ?? '').trim()}`,
       );
+    });
+  }
+
+  it('应用源码不得再引入第三方组件库', () => {
+    expect(APP_FILES.length, '扫描范围为空说明目录约定变了').toBeGreaterThan(
+      100,
+    );
+    const hits = [...hitsOf(VENDOR_IMPORT), ...hitsOf(VENDOR_TAG)];
     expect(
-      [...new Set(hits)],
-      '示例与布局改用 @antdv/* 封装组件（common-ui / shadcn-ui / popup-ui）：',
+      hits,
+      '改用 @antdv/* 封装组件（common-ui / shadcn-ui / popup-ui / form-ui / table-ui）：\n',
     ).toEqual([]);
+  });
+
+  it('清零守卫自己抓得到样例、不误伤本仓库的包名', () => {
+    const bad = `import { Button } from 'antdv-next';
+import '@antdv-next/icons/styles';
+import FcDesigner from '@form-create/antd-designer';
+const m = await import('antdv-next');
+<template><a-tag color="blue">x</a-tag></template>`;
+    expect([...bad.matchAll(VENDOR_IMPORT)].length).toBe(4);
+    expect([...bad.matchAll(VENDOR_TAG)].length).toBe(1);
+
+    const good = `import { Button, Tag } from '@antdv/common-ui';
+import { cn } from '@antdv/shared/utils/cn';
+import { message } from '@antdv/popup-ui';
+<template><Tag color="blue">x</Tag><a href="https://antdv-next.com">外链</a></template>`;
+    expect([...good.matchAll(VENDOR_IMPORT)]).toEqual([]);
+    expect([...good.matchAll(VENDOR_TAG)]).toEqual([]);
   });
 });

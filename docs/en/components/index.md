@@ -41,7 +41,7 @@ The sidebar keeps a third level for "Table" and "Form" only; every other demo is
 | Docs page | Routes it documents |
 | --- | --- |
 | [Table](/en/components/table) | `/components/table/basic`, `/components/table/crud`, `/components/table/drag-sort`, `/components/table/tree-table`, `/components/table/animation` |
-| [Form](/en/components/form) | `/components/form/basic`, `/components/form/steps`, `/components/form/validation`, `/components/form/custom-component`, `/components/form-designer` |
+| [Form](/en/components/form) | `/components/form/basic`, `/components/form/steps`, `/components/form/validation`, `/components/form/custom-component` |
 | [Modal and drawer](/en/components/modal-drawer) | `/components/modal-drawer`, `/components/feedback` |
 | [Data and display](/en/components/display) | `/components/description`, `/components/count-to`, `/components/relative-time`, `/components/icon-picker`, `/components/loading`, `/components/scroll/basic` |
 | [Shared components](/en/components/common-ui) | `/components/border-beam`, `/components/listy` |

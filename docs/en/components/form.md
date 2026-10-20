@@ -224,7 +224,6 @@ Three methods have no caller anywhere in the repository `validateFields`, `scrol
 | `#/components/form/steps` | four segments, all **running the whole flow on one `BasicForm` instance**, switching steps with `setProps({ schemas })` (`views/components/form/steps/index.vue:22-23,134,200,225`): ① "next" gated by the current step, ending in a local summary; ② "next" without validation plus drafts; ③ a clickable step bar with the bottom buttons moved into `#submitBefore` / `#actionAfter`; ④ `slot` fields for a table-style multi-select and a read-only summary |
 | `#/components/form/validation` | four cards, four schemas: required & format (`:394`), length & numeric range (`:429`), async & cross-field validation (`:470`), validation timing & result (`:509`) |
 | `#/components/form/custom-component` | four cards: the built-in `MarkdownEditor` extension (`:239`, the field value is decided by `FMarkdown` and stores Markdown source), `addComponent('TagPickerField', …)` (`:254`, registered at `:96`), `ifShow`/`show`/`dynamicDisabled`/`dynamicRules` linkage (`:278`), and a custom `validator` blocking submit (`:295`) |
-| `#/components/form-designer` | a third-party form designer, see the next section |
 
 ::: warning
 
@@ -244,13 +243,11 @@ The step form's draft uses key names invented by the demo page The key `demo:for
 The "validation timing" card demonstrates two spellings that no longer do anything The fourth card switches timing with `itemProps: { validateTrigger: 'blur' | 'change' }` and a rule-level `trigger: 'blur'` (`validation/index.vue:358-385`), but only `required` / `style` / `wrapperCol.style` of `itemProps` are ever read (`form-field.vue:112,152,168`), and the rule-level `trigger` is declared as a compatibility field (`schema.ts:39-40`). The actual timing is decided by `submitAttempted` (`form-field.vue:38-45`): before the first submit only submit runs, and after one submit change corrects in real time. Seeing no difference when the switch is toggled is **what the implementation does**, not a bug reproduction.
 :::
 
-## The form designer is not `BasicForm`
+## The form designer was removed together with `antdv-next`
 
-`#/components/form-designer` is 39 lines in total and renders a single third-party component: `<fc-designer ref="designerRef" height="100%" :config="designerConfig" />` (`views/components/form-designer/index.vue:37`), provided by `@form-create/antd-designer` and installed globally at the entry point (`apps/web/src/main.ts:10-12,50,82-83`).
+The former `#/components/form-designer` rendered a single third-party component (`<fc-designer>` from `@form-create/antd-designer`), and its templates were compiled before publication — they look components up at runtime through `resolveComponent('a-…')`. Serving it meant hand-registering a batch of `a-*` global components at the entry point (`registerVendorAntdComponents`). That page, that registration table and the `antdv-next` dependency are all gone now: every `a-*` in this repository has always gone through its own explicit import per file (a local binding), so the global table was scaffolding for a third-party template only, and keeping it around suggested it was a pattern to copy.
 
-- `designerConfig` is nothing but those 15 switches (14 `show*` flags plus one `autoActive`, `form-designer/index.vue:12-27`), and no logic anywhere reads the designer's output.
-- It depends on `registerVendorAntdComponents(app)` (`main.ts:57`): every `a-*` in this repository goes through its own explicit import in each file, which is a **local binding**, while the designer's templates were compiled before publication and only call `resolveComponent('a-layout-sider')` at runtime, so local bindings cannot help them — without that global registration you get "no error but the whole block is blank" (the comment at `plugins/vendor-antd-components.ts:44-58`, `main.ts:49-57`). This is the only reason `antdv-next` is still kept in `apps/web` after the migration, and also the reason it appears on **this one page** only.
-- What the designer produces is form-create's own rule JSON (`type` / `field` / `title` / `validate`), **not this repository's `FormSchema` (`component` / `rules`, `schema.ts:86-136`)** — the field names are not the same set, and the page contains no converter or save logic, so wiring it to `BasicForm` means writing the mapping yourself.
+To bring drag-and-drop form building back, the missing piece is not a registration table but a mapping: the designer emits form-create's own rule JSON (`type` / `field` / `title` / `validate`), **not this repository's `FormSchema` (`component` / `rules`, `schema.ts:86-136`)** — the field names are not the same set, so feeding it to `BasicForm` means writing the converter yourself.
 
 ## Related
 

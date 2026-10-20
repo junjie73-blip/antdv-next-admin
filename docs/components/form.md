@@ -224,7 +224,6 @@ schema 上这些字段是死的 `subLabel`、`emptySpan`、`disabledLabelWidth`�
 | `#/components/form/steps` | 四段，全部**一个 `BasicForm` 实例跑完整条流程**，换步骤靠 `setProps({ schemas })`（`views/components/form/steps/index.vue:22-23,134,200,225`）：① 下一步带本步门禁、最后出本地摘要；② 下一步不校验 + 草稿；③ 步骤条可点回退 + 底部按钮塞进 `#submitBefore` / `#actionAfter`；④ `slot` 字段做表格化多选与只读摘要 |
 | `#/components/form/validation` | 四张卡片对应四份 schema：必填与格式（`:394`）、长度与数值区间（`:429`）、异步与跨字段校验（`:470`）、校验时机与结果（`:509`） |
 | `#/components/form/custom-component` | 四张卡片：`MarkdownEditor` 内置扩展（`:239`，字段值由 `FMarkdown` 决定，存的是 Markdown 源码）、`addComponent('TagPickerField', …)`（`:254`，注册在 `:96`）、`ifShow`/`show`/`dynamicDisabled`/`dynamicRules` 联动（`:278`）、自定义 `validator` 拦截提交（`:295`） |
-| `#/components/form-designer` | 第三方表单设计器，见下一节 |
 
 ::: warning
 
@@ -244,13 +243,11 @@ schema 上这些字段是死的 `subLabel`、`emptySpan`、`disabledLabelWidth`�
 「校验时机」那张卡片演示的是两个已经失效的写法 第四张卡片用 `itemProps: { validateTrigger: 'blur' | 'change' }` 和规则级 `trigger: 'blur'` 去切时机（`validation/index.vue:358-385`），但 `itemProps` 只有 `required` / `style` / `wrapperCol.style` 会被读（`form-field.vue:112,152,168`），规则级 `trigger` 也声明成兼容字段（`schema.ts:39-40`）。实际时机由 `submitAttempted` 决定（`form-field.vue:38-45`）：首次提交前只有 submit 跑，提交过之后 change 实时纠正。开关拨动看不到差别是**符合实现**的，不是 bug 复现。
 :::
 
-## 表单设计器不是 `BasicForm`
+## 表单设计器已随 `antdv-next` 一起移除
 
-`#/components/form-designer` 整页 39 行，只渲染一个第三方组件：`<fc-designer ref="designerRef" height="100%" :config="designerConfig" />`（`views/components/form-designer/index.vue:37`），来自 `@form-create/antd-designer`，在入口全局安装（`apps/web/src/main.ts:10-12,50,82-83`）。
+原先的 `#/components/form-designer` 整页只渲染一个第三方组件（`@form-create/antd-designer` 的 `<fc-designer>`），而它的模板是发布前就编译好的，运行时才 `resolveComponent('a-…')` 找组件 —— 为了它，入口里必须手工登记一批 `a-*` 全局组件（`registerVendorAntdComponents`）。这一页、那份注册和 `antdv-next` 依赖现在都删了：本仓库的 `a-*` 历来走各文件自己的显式 import（局部绑定），全局注册表只是第三方模板的脚手架，留着只会让人以为可以照抄。
 
-- `designerConfig` 就是那 15 个开关（14 个 `show*` 加一个 `autoActive`，`form-designer/index.vue:12-27`），没有任何逻辑读取设计器的产出。
-- 它依赖 `registerVendorAntdComponents(app)`（`main.ts:57`）：本仓库的 `a-*` 全部走各文件自己的显式 import，那是**局部绑定**；而设计器的模板是发布前就编译好的，运行时才 `resolveComponent('a-layout-sider')`，局部绑定帮不到它，缺这份全局注册就会「没报错但整块空白」（`plugins/vendor-antd-components.ts:44-58` 的注释、`main.ts:49-57`）。这是 `antdv-next` 在迁移后仍然留在 `apps/web` 的唯一原因，也是它只在**这一个页面**出现的原因。
-- 设计器产出的是 form-create 自己的 rule JSON（`type` / `field` / `title` / `validate`），**和本仓库的 `FormSchema`（`component` / `rules`，`schema.ts:86-136`）不是同一套字段名**，页面里也没有任何转换器或保存逻辑 —— 想接 `BasicForm` 得自己写映射。
+要重新做「拖拽生成表单」，缺的不是注册表而是映射：设计器产出 form-create 自己的 rule JSON（`type` / `field` / `title` / `validate`），**和本仓库的 `FormSchema`（`component` / `rules`，`schema.ts:86-136`）不是同一套字段名**，得自己写转换器才能喂给 `BasicForm`。
 
 ## 相关页面 / Related
 

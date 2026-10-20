@@ -6,7 +6,6 @@ export function createChunkGroups() {
         debugName: 'antdv-vendor',
         name(id: string) {
           if (id.includes('node_modules')) {
-            if (id.includes('antdv-next')) return 'vendor-ui';
             if (
               id.includes('vue') ||
               id.includes('pinia') ||
@@ -26,11 +25,7 @@ export function createChunkGroups() {
             if (id.includes('@intlify') || id.includes('vue-i18n'))
               return 'vendor-i18n';
             if (id.includes('highlight.js')) return 'vendor-highlight';
-            if (
-              id.includes('@form-create') ||
-              id.includes('prosemirror') ||
-              id.includes('marked')
-            )
+            if (id.includes('prosemirror') || id.includes('marked'))
               return 'vendor-editor';
             return 'vendor';
           }

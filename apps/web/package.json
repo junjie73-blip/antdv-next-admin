@@ -15,8 +15,6 @@
     "verify:prod-mock": "node scripts/verify-prod-mock.mjs"
   },
   "dependencies": {
-    "@antdv-next/cssinjs": "catalog:",
-    "@antdv-next/icons": "catalog:",
     "@antdv/common-ui": "workspace:*",
     "@antdv/design": "workspace:*",
     "@antdv/directives": "workspace:*",
@@ -43,8 +41,6 @@
     "@codemirror/lang-sql": "catalog:",
     "@codemirror/lang-vue": "catalog:",
     "@codemirror/theme-one-dark": "catalog:",
-    "@form-create/antd-designer": "catalog:",
-    "@form-create/antdv-next": "catalog:",
     "@iconify-json/carbon": "catalog:",
     "@iconify/vue": "catalog:",
     "@sentry/vue": "catalog:",
@@ -64,7 +60,6 @@
     "@vue-office/pptx": "catalog:",
     "@vueuse/core": "catalog:",
     "@vueuse/motion": "catalog:",
-    "antdv-next": "catalog:",
     "bpmn-js": "catalog:",
     "bpmn-js-i18n-zh": "catalog:",
     "bpmn-js-properties-panel": "catalog:",

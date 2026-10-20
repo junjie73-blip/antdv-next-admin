@@ -56,7 +56,7 @@ export function createAppInfo(root: string, now = new Date()): AppInfo {
 /**
  * 库模式的 external 清单：dependencies + peerDependencies 的包名。
  *
- * 这些包不该被打进产物 —— 打进来会带第二份 vue / antdv-next，
+ * 这些包不该被打进产物 —— 打进来会带第二份 vue，
  * 体积爆炸且响应式系统会分裂。前缀匹配交给 vite 的 `external` 函数处理。
  */
 export function resolveLibExternals(

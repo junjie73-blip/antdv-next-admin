@@ -1,3 +1,4 @@
+import { Icon } from '@iconify/vue';
 import { flushPromises, mount } from '@vue/test-utils';
 import { nextTick } from 'vue';
 
@@ -65,7 +66,7 @@ function restoreFullscreen() {
 
 /**
  * 大屏头部的两条约束：
- * 1. 图标是真的组件（`@antdv-next/icons`），不是模板里凭空写的标签 ——
+ * 1. 图标是真的组件（`@iconify/vue` 的 `Icon`），不是模板里凭空写的标签 ——
  *    之前这里直接写 `<FullscreenOutlined />` 而没 import，浏览器控制台报
  *    "Failed to resolve component"，大屏顶栏上按钮只剩文字、图标全空；
  * 2. `fullscreenchange` 的监听必须能摘掉 —— 之前 add/remove 用的是两个不同的
@@ -114,10 +115,12 @@ describe('screenHeader', () => {
     expect(removeSpy.mock.calls[0]![1]).toBe(addSpy.mock.calls[0]![1]);
   });
 
-  it('图标组件解析成功：按钮里渲染出 anticon 容器', () => {
+  it('图标是真的组件实例：按钮里解析得到 Icon，不是凭空写的标签', () => {
     const wrapper = mount(ScreenHeader, { props: { title: '监控大屏' } });
-    // 解析不到组件时这里只剩文字，.anticon 一个都不会有
-    expect(wrapper.findAll('.anticon').length).toBeGreaterThan(0);
+    // jsdom 里 @iconify/vue 取不到图标数据（不请求在线 API），svg 可能是空的，
+    // 所以判据是"组件实例存在"：写成没 import 的裸标签时这里是 0，
+    // 控制台只会留一句 Failed to resolve component，按钮上只剩文字。
+    expect(wrapper.findComponent(Icon).exists()).toBe(true);
     expect(wrapper.text()).toContain('全屏');
   });
 

@@ -91,7 +91,7 @@ const detailSchemas: DescriptionItem[] = [
   {
     field: 'key',
     label: '配置键',
-    render: (value: string) => <a-tag color="blue">{value}</a-tag>,
+    render: (value: string) => <Tag color="blue">{value}</Tag>,
   },
   { field: 'name', label: '配置名称' },
   { field: 'value', label: '配置值' },
@@ -99,18 +99,16 @@ const detailSchemas: DescriptionItem[] = [
     field: 'type',
     label: '配置类型',
     render: (_: string, record: any) => (
-      <a-tag color={typeColorMap[record.type] || 'default'}>
+      <Tag color={typeColorMap[record.type] || 'default'}>
         {typeLabelMap[record.type] || record.type}
-      </a-tag>
+      </Tag>
     ),
   },
   {
     field: 'group',
     label: '所属分组',
     render: (_: string, record: any) => (
-      <a-tag color={groupColorMap[record.group] || 'default'}>
-        {record.group}
-      </a-tag>
+      <Tag color={groupColorMap[record.group] || 'default'}>{record.group}</Tag>
     ),
   },
   { field: 'description', label: '描述信息' },
@@ -118,9 +116,9 @@ const detailSchemas: DescriptionItem[] = [
     field: 'enabled',
     label: '启用状态',
     render: (_: any, record: any) => (
-      <a-tag color={record.enabled ? 'green' : 'red'}>
+      <Tag color={record.enabled ? 'green' : 'red'}>
         {record.enabled ? '已启用' : '已禁用'}
-      </a-tag>
+      </Tag>
     ),
   },
   { field: 'createdAt', label: '创建时间' },

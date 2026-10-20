@@ -6,9 +6,12 @@ import { initPreferences, withDefaultPreferences } from '@antdv/preferences';
 /**
  * 应用侧的偏好入口：`@antdv/preferences` 的项目适配层。
  *
- * 包本身不认识本项目的 `VITE_APP_TITLE`；"这一份配置属于 web 应用"这件事留在这里，
- * 连"偏好 → antd `ThemeConfig`""偏好 → antd locale"这两段翻译也留在这里 ——
- * 偏好包只存值与写 CSS 变量，不认识任何 UI 库。
+ * 包本身不认识本项目的 `VITE_APP_TITLE`；"这一份配置属于 web 应用"这件事留在这里。
+ * 到这里为止的翻译只剩"偏好 → DOM"（`applyPreferencesToDom` 写 CSS 变量），
+ * 不再有"偏好 → 某个 UI 库的 ThemeConfig"——组件配色一律走 `var(--app-*)` token，
+ * 主题只有一条链路。`ThemeStyle` 里现在只有 `geek` 还有读者（标签栏配色，
+ * 见 `packages/layouts/src/basic/layout.vue:88`），原先靠 antd 算法实现的
+ * `compact` 等档位随依赖一起退场。
  */
 
 export type {
@@ -27,9 +30,6 @@ export type {
   TransitionEffect,
 } from '@antdv/preferences';
 
-/** antd 主题与语言包：类型与函数都出自本目录，不再经由偏好包转发 */
-export type { ThemeAlgorithm, ThemePreset } from './theme';
-
 export {
   applyPreferencesToDom,
   clearPreferencesFromDom,
@@ -42,15 +42,6 @@ export {
 } from '@antdv/preferences';
 
 export { createSystemDark, resolveThemeMode } from '@antdv/utils';
-
-export {
-  getAntdTheme,
-  getThemeConfig,
-  registerThemePreset,
-  themeOverridesFrom,
-} from './theme';
-
-export { getLocaleModule, loadLocale } from './locale';
 
 /**
  * 项目级默认值。

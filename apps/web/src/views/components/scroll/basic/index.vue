@@ -50,7 +50,7 @@ const chatMessages = ref([
   },
   {
     id: 5,
-    text: 'A Vue 3 admin system with antdv-next.',
+    text: 'A Vue 3 admin system with shadcn-vue.',
     time: '10:34',
     self: false,
   },

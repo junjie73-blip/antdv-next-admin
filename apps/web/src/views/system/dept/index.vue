@@ -212,9 +212,6 @@ const modalFormSchemas: FormSchema[] = [
       allowClear: true,
       treeDefaultExpandAll: true,
       showSearch: true,
-      treeNodeFilterProp: 'name',
-      // 这版 antdv-next 用语义化 `styles.popup.root`，`dropdownStyle` 已废弃（控制台会警告）
-      styles: { popup: { root: { maxHeight: '400px', overflow: 'auto' } } },
     },
   },
   {

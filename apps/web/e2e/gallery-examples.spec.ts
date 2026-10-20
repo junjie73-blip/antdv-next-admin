@@ -39,11 +39,14 @@ const DESCRIPTION = '/components/description';
 const DIRECTIVE = '/components/directive';
 
 /**
- * 菜单 Demo 段的叶子数（`apps/backend-mock/server/api/menus.get.ts`）：
- * 总览 1 + 表格 5 + 表单 5（含 form-designer）+ 二级散页 14 = 25，
- * 其中「示例总览」本页不进卡片墙（`SELF_PATH` 被过滤），所以墙上是 24 张卡。
+ * 菜单 Demo 段的叶子数（`apps/backend-mock/server/api/menus.get.ts`，与
+ * `apps/web/src/mock/fixtures.json` 的 `/menus` 是同一份数据的两个副本）：
+ * 总览 1 + 表格 5 + 表单 4 + 二级散页 17 = 27，
+ * 其中「示例总览」本页不进卡片墙（`SELF_PATH` 被过滤），所以墙上是 26 张卡。
+ * 菜单叶子 → 卡片之间没有任何过滤（`status` / `permission` / `hidden` 都不参与，
+ * 见 `packages/stores/src/route.ts` 的 `normalize`），所以加一页就是 +1 张卡。
  */
-const OVERVIEW_CARD_COUNT = 24;
+const OVERVIEW_CARD_COUNT = 26;
 
 /** 进页面并顺手把"控制台错误 / 接口 4xx"记进同一个桶 */
 async function open(page: Page, path: string) {

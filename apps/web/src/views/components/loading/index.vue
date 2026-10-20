@@ -774,8 +774,8 @@ function triggerGlobalLoading() {
           <p :class="hintClassName">
             组件内部是一张 <code :class="codeClassName">MAP</code>
             把状态原文案与
-            <code :class="codeClassName">a-tag</code>
-            的颜色一次配好：<code :class="codeClassName">completed</code>
+            <code :class="codeClassName">Tag</code>
+            的预设色一次配好：<code :class="codeClassName">completed</code>
             成功绿、 <code :class="codeClassName">processing</code> /
             <code :class="codeClassName">pending</code> 进行蓝、
             <code :class="codeClassName">3</code> 挂起橙、

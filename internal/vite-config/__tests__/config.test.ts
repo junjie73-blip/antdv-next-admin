@@ -130,8 +130,10 @@ describe('createApplicationBuildConfig', () => {
       .groups[0];
     const nameOf = (id: string) => group.name(id);
 
+    // antd 依赖已从仓库清零，`vendor-ui` 分组跟着删了；
+    // 保留这条断言是为了防止有人把 antd 塞回构建又不补分组规则
     expect(nameOf('/node_modules/antdv-next/es/button/index.js')).toBe(
-      'vendor-ui',
+      'vendor',
     );
     expect(nameOf('/node_modules/pinia/dist/pinia.mjs')).toBe('vendor-vue');
     expect(nameOf('/node_modules/echarts/lib/echarts.js')).toBe(
@@ -150,7 +152,7 @@ describe('createOptimizeDeps', () => {
     const deps = createOptimizeDeps();
     expect(deps?.exclude).toEqual(['vue']);
     expect(deps?.include).toEqual(
-      expect.arrayContaining(['@vueuse/core', 'antdv-next', 'es-toolkit']),
+      expect.arrayContaining(['@vueuse/core', 'es-toolkit']),
     );
     // 裸 scope 名不是真实包，Vite 会报 "Failed to resolve dependency"
     expect(deps?.include).not.toContain('@vueuse');

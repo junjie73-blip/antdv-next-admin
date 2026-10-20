@@ -2,7 +2,7 @@
 
 **English** | [简体中文](./README.md)
 
-A modern enterprise admin template: Vue 3 + TypeScript + antdv-next + Tailwind CSS v4, pnpm monorepo. It runs with zero backend during development (in-process Nitro mock) and ships chromium / firefox / webkit end-to-end tests.
+A modern enterprise admin template: Vue 3 + TypeScript + reka-ui / shadcn-vue + Tailwind CSS v4, pnpm monorepo. It runs with zero backend during development (in-process Nitro mock) and ships chromium / firefox / webkit end-to-end tests.
 
 ---
 
@@ -11,7 +11,7 @@ A modern enterprise admin template: Vue 3 + TypeScript + antdv-next + Tailwind C
 | Category        | Technology         | Version      |
 | --------------- | ------------------ | ------------ |
 | Framework       | Vue 3 + TypeScript | 3.5.43 / 6.0 |
-| UI              | antdv-next         | ^1.6.0       |
+| UI              | reka-ui + shadcn   | 2.11.0       |
 | Styling         | Tailwind CSS v4    | ^4.3.3       |
 | State           | Pinia 3            | ^3.0.4       |
 | Routing         | Vue Router         | ^5.3.1       |

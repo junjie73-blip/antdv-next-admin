@@ -140,7 +140,6 @@ export default {
     DemoEditor: '编辑器',
     DemoFormBasic: '基础表单',
     DemoFormCustom: '自定义组件',
-    DemoFormDesigner: '表单设计器',
     DemoFormSteps: '分步表单',
     DemoFormValidation: '表单校验',
     DemoGalleryForm: '表单',

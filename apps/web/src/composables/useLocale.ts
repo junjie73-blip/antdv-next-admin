@@ -1,9 +1,8 @@
-import { computed, shallowRef, watch } from 'vue';
+import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import dayjs from '@antdv/shared/utils/dayjs';
 import i18n from '~/locales';
-import { loadLocale } from '~/settings';
 import { useAppStore } from '@antdv/stores';
 
 import 'dayjs/locale/en';
@@ -24,7 +23,7 @@ const DAYJS_LOCALE_MAP: Record<LocaleType, string> = {
 };
 
 /**
- * 把 locale 展开成界面的四件事：i18n 文案、`<html lang>`、dayjs 格式化、antd 内置文案。
+ * 把 locale 展开成界面的三件事：i18n 文案、`<html lang>`、dayjs 格式化。
  *
  * 只应由 `useLocaleSync` 调用；任何组件都不该再自己写 `i18n.global.locale`，
  * 两处各写一份就会漂移 —— 表现是「切了语言，菜单变英文、分页器还是中文」。
@@ -36,28 +35,21 @@ function applyLocale(locale: LocaleType): void {
 }
 
 /**
- * locale 效应的唯一出口，返回 antd 的 locale 对象给 `ConfigProvider :locale`。
+ * locale 效应的唯一出口：偏好里的 `locale` 一变，就把 i18n、`<html lang>` 与 dayjs 一起对齐。
  *
- * 语言包按需动态 import，所以是异步的；这一步以前是注释掉的，`antdLocale` 恒为
- * undefined，ConfigProvider 退回英文兜底 —— 整站中文的界面里 antd 自带文案
- * （Popconfirm 的 OK/Cancel、表格空状态、分页器）全是英文，属于全站性缺陷。
+ * 以前这里还多返回一个 antd 的 locale 对象给 `ConfigProvider :locale`（内置文案
+ * OK/Cancel、分页器「条/页」那种）。antd 依赖移除后，组件的内置文案由
+ * `@antdv/common-ui` 的 ConfigProvider 按 `'en-US' | 'zh-CN'` 自己展开（`textsByLocale`），
+ * 日期排版走 reka-ui 的 locale 注入，两条链路都只需要那个字符串，所以这里不再有返回值。
  */
-export function useLocaleSync() {
+export function useLocaleSync(): void {
   const appStore = useAppStore();
-  // `loadLocale` 返回 unknown（antd 的 `Locale` 类型没有从 antdv-next 包根导出），
-  // 这个值只用于透传给 ConfigProvider 的 `:locale`。
-  const antdLocale = shallowRef<any>();
 
   watch(
     () => appStore.locale as LocaleType,
-    async (locale) => {
-      applyLocale(locale);
-      antdLocale.value = await loadLocale(locale);
-    },
+    (locale) => applyLocale(locale),
     { immediate: true },
   );
-
-  return antdLocale;
 }
 
 export function useLocale() {

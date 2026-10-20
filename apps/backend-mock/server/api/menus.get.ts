@@ -253,12 +253,6 @@ const list: BackendMenu[] = [
             icon: 'carbon:apps',
             path: '/components/form/custom-component',
           },
-          {
-            menuName: '表单设计器',
-            name: 'DemoFormDesigner',
-            icon: 'carbon:flow',
-            path: '/components/form-designer',
-          },
         ],
       },
       {

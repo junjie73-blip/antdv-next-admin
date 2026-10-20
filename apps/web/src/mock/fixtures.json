@@ -949,17 +949,6 @@
                       "permission": "components:form:custom-component:list",
                       "sortOrder": 4,
                       "status": "1"
-                    },
-                    {
-                      "component": "components/form-designer/index",
-                      "icon": "carbon:flow",
-                      "menuName": "表单设计器",
-                      "menuType": 2,
-                      "name": "DemoFormDesigner",
-                      "path": "/components/form-designer",
-                      "permission": "components:form-designer:list",
-                      "sortOrder": 5,
-                      "status": "1"
                     }
                   ],
                   "icon": "carbon:checkbox-checked",
