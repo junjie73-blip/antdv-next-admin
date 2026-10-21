@@ -22,7 +22,7 @@ afterEach(() => {
   for (const wrapper of mounted.splice(0)) wrapper.unmount();
 });
 
-describe('LayoutNavRail - 列表与高亮', () => {
+describe('layoutNavRail - 列表与高亮', () => {
   it('每一项都带 key 钩子，宽度默认取图标栏常量', async () => {
     const wrapper = mountRail();
     await nextTick();
@@ -76,7 +76,7 @@ describe('LayoutNavRail - 列表与高亮', () => {
   });
 });
 
-describe('LayoutNavRail - 品牌位与配色', () => {
+describe('layoutNavRail - 品牌位与配色', () => {
   it('图标栏形态下品牌位住在这一列', async () => {
     const wrapper = mountRail({ logo: '/logo.svg', title: '控制台' });
     await nextTick();

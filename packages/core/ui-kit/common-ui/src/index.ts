@@ -66,6 +66,8 @@ export { Empty } from './components/empty';
 export { EmptyState } from './components/empty-state';
 export { ErrorBoundary } from './components/error-boundary';
 export { Image } from './components/image';
+export { PERMISSION_CHECK } from './components/import-export/context';
+export type { PermissionChecker } from './components/import-export/context';
 export { Listy } from './components/listy';
 export type {
   ListyEmits,
@@ -113,6 +115,7 @@ export type {
   MicroAppContainerProps,
 } from './components/micro-app-container';
 export { Popconfirm } from './components/popconfirm';
+export { ReloadPrompt } from './components/reload-prompt';
 export { Result } from './components/result';
 export { Scrollbar } from './components/scrollbar';
 export type {

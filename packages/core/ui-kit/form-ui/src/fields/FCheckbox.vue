@@ -32,9 +32,7 @@ const groupValue = computed<any[]>(() =>
   Array.isArray(props.value) ? props.value : [],
 );
 
-const singleChecked = computed(
-  () => props.value === true,
-);
+const singleChecked = computed(() => props.value === true);
 
 function toggleOption(val: any, optDisabled?: boolean) {
   if (props.disabled || optDisabled) return;

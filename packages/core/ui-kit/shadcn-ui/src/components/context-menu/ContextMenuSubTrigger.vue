@@ -1,19 +1,23 @@
 <script setup lang="ts">
-import type { ContextMenuSubTriggerProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { ChevronRight } from "@lucide/vue"
-import { reactiveOmit } from "@vueuse/core"
-import {
-  ContextMenuSubTrigger,
-  useForwardProps,
-} from "reka-ui"
-import { cn } from '@antdv/shared/utils/cn'
+import type { ContextMenuSubTriggerProps } from 'reka-ui';
 
-const props = defineProps<ContextMenuSubTriggerProps & { class?: HTMLAttributes["class"], inset?: boolean }>()
+import type { HTMLAttributes } from 'vue';
 
-const delegatedProps = reactiveOmit(props, "class")
+import { cn } from '@antdv/shared/utils/cn';
+import { ChevronRight } from '@lucide/vue';
+import { reactiveOmit } from '@vueuse/core';
+import { ContextMenuSubTrigger, useForwardProps } from 'reka-ui';
 
-const forwardedProps = useForwardProps(delegatedProps)
+const props = defineProps<
+  ContextMenuSubTriggerProps & {
+    class?: HTMLAttributes['class'];
+    inset?: boolean;
+  }
+>();
+
+const delegatedProps = reactiveOmit(props, 'class');
+
+const forwardedProps = useForwardProps(delegatedProps);
 </script>
 
 <template>
@@ -21,12 +25,14 @@ const forwardedProps = useForwardProps(delegatedProps)
     data-slot="context-menu-sub-trigger"
     :data-inset="inset ? '' : undefined"
     v-bind="forwardedProps"
-    :class="cn(
-      `focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4`,
-      props.class,
-    )"
+    :class="
+      cn(
+        `focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4`,
+        props.class,
+      )
+    "
   >
-    <slot />
+    <slot></slot>
     <ChevronRight class="ml-auto" />
   </ContextMenuSubTrigger>
 </template>

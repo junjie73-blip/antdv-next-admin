@@ -86,12 +86,10 @@ test.describe('Listy 虚拟滚动', () => {
     expect(new Set(heights)).toEqual(new Set([ITEM_HEIGHT]));
 
     // 占位块：窗口之前的偏移 + 剩下的尾巴 = 内容总高
-    const spacer = await fixed
-      .locator('ul.listy__rows')
-      .evaluate((el) => ({
-        height: Number.parseFloat(el.style.height || '0'),
-        offset: Number.parseFloat(el.style.marginTop || '0'),
-      }));
+    const spacer = await fixed.locator('ul.listy__rows').evaluate((el) => ({
+      height: Number.parseFloat(el.style.height || '0'),
+      offset: Number.parseFloat(el.style.marginTop || '0'),
+    }));
     expect(spacer.height + spacer.offset).toBe(CONTENT_HEIGHT);
     // 容器自己能滚到那个高度，说明滚动条不是"算出来的"而是真的存在
     await expect
@@ -99,7 +97,10 @@ test.describe('Listy 虚拟滚动', () => {
         viewport(fixed).evaluate((el) => el.scrollHeight - el.clientHeight),
       )
       .toBeGreaterThan(CONTENT_HEIGHT - 1000);
-    await expect(stats(page)).toHaveAttribute('data-total', String(CONTENT_HEIGHT));
+    await expect(stats(page)).toHaveAttribute(
+      'data-total',
+      String(CONTENT_HEIGHT),
+    );
     expect(errors.errors).toEqual([]);
   });
 
@@ -123,12 +124,12 @@ test.describe('Listy 虚拟滚动', () => {
     expect(indices.at(-1)!).toBeGreaterThanOrEqual(1006);
     expect(indices.length).toBeLessThan(ROW_LIMIT);
     // 被滚过去的那些行确实不在 DOM 里
-    await expect(
-      fixed.locator('[data-listy-index="0"]'),
-    ).toHaveCount(0);
+    await expect(fixed.locator('[data-listy-index="0"]')).toHaveCount(0);
   });
 
-  test('scrollToIndex 把目标行送到窗口顶部（平滑滚动也要落准）', async ({ page }) => {
+  test('scrollToIndex 把目标行送到窗口顶部（平滑滚动也要落准）', async ({
+    page,
+  }) => {
     await go(page, LISTY_PATH);
     const fixed = listBox(page, 'virtual-fixed');
     await page.getByRole('button', { name: '跳到 #10000' }).click();
@@ -164,12 +165,14 @@ test.describe('Listy 虚拟滚动', () => {
       .locator(`[data-listy-index="${TOTAL - 1}"]`)
       .boundingBox();
     expect(last).not.toBeNull();
-    expect(Math.round(box!.y + box!.height - (last!.y + last!.height))).toBeLessThan(
-      ITEM_HEIGHT,
-    );
+    expect(
+      Math.round(box!.y + box!.height - (last!.y + last!.height)),
+    ).toBeLessThan(ITEM_HEIGHT);
   });
 
-  test('容器变矮，窗口行数跟着变少（ResizeObserver 自动重算）', async ({ page }) => {
+  test('容器变矮，窗口行数跟着变少（ResizeObserver 自动重算）', async ({
+    page,
+  }) => {
     await go(page, LISTY_PATH);
     const fixed = listBox(page, 'virtual-fixed');
     const tall = await rows(fixed).count();
@@ -213,16 +216,16 @@ test.describe('Listy 虚拟滚动', () => {
     );
     expect(measuredTotal).toBeGreaterThan(TOTAL * 52);
     // 行与行之间不留缝：窗口偏移等于前面所有行的高度之和（同一套算术）
-    const spacer = await dynamic
-      .locator('ul.listy__rows')
-      .evaluate((el) => ({
-        height: Number.parseFloat(el.style.height || '0'),
-        offset: Number.parseFloat(el.style.marginTop || '0'),
-      }));
+    const spacer = await dynamic.locator('ul.listy__rows').evaluate((el) => ({
+      height: Number.parseFloat(el.style.height || '0'),
+      offset: Number.parseFloat(el.style.marginTop || '0'),
+    }));
     expect(spacer.height + spacer.offset).toBe(measuredTotal);
   });
 
-  test('直排对照：不开 virtual 就全量渲染，外层不接管滚动', async ({ page }) => {
+  test('直排对照：不开 virtual 就全量渲染，外层不接管滚动', async ({
+    page,
+  }) => {
     await go(page, LISTY_PATH);
     const plain = listBox(page, 'plain-30');
     await expect(rows(plain)).toHaveCount(30);

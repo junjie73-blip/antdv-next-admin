@@ -179,11 +179,14 @@ function handleMessage(raw: unknown): void {
         : notice.noticeType === 3
           ? 'warning'
           : 'info';
-    toast[toastType](`新${noticeTypeConfig[notice.noticeType]?.label || '通知'}`, {
-      description: notice.title,
-      duration: 3000,
-      toasterId: NOTIFICATION_TOASTER_ID,
-    });
+    toast[toastType](
+      `新${noticeTypeConfig[notice.noticeType]?.label || '通知'}`,
+      {
+        description: notice.title,
+        duration: 3000,
+        toasterId: NOTIFICATION_TOASTER_ID,
+      },
+    );
     return;
   }
 

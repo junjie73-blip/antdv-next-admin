@@ -1,9 +1,9 @@
 import type { MenuConfig } from '@antdv/types';
 
 import { mount } from '@vue/test-utils';
+import { nextTick } from 'vue';
 
 import { afterEach, describe, expect, it } from 'vitest';
-import { nextTick } from 'vue';
 
 import BasicMenu from '../src/BasicMenu.vue';
 import { configureMenu } from '../src/config';
@@ -56,7 +56,7 @@ async function hover(row: {
   await nextTick();
 }
 
-describe('BasicMenu —— 动效', () => {
+describe('basicMenu —— 动效', () => {
   /**
    * 就地展开的子树必须是 reka 的 Collapsible 容器：高度动画的尺寸由它算，
    * 类名里的 `animate-collapsible-*` 是动画生效的唯一开关（CSS 侧没有兜底规则）。

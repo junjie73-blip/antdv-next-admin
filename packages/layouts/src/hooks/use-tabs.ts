@@ -4,8 +4,8 @@ import { computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { useLayoutI18n } from '@antdv/layout-ui';
-import { findMenuByPath, normalizeMenuPath, visibleMenus } from '@antdv/utils';
 import { useRouteStore, useTabsStore } from '@antdv/stores';
+import { findMenuByPath, normalizeMenuPath, visibleMenus } from '@antdv/utils';
 
 import { useLocalizedMenus } from './use-menu-tree';
 import { usePageCache } from './use-page-cache';

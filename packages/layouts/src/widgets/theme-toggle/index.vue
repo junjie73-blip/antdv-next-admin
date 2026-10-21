@@ -3,9 +3,9 @@ import { computed, watch } from 'vue';
 
 import { useLayoutI18n } from '@antdv/layout-ui';
 import { cn } from '@antdv/shared/utils/cn';
+import { useAppStore } from '@antdv/stores';
 import { Icon } from '@iconify/vue';
 import { useColorMode } from '@vueuse/core';
-import { useAppStore } from '@antdv/stores';
 
 defineOptions({ name: 'ThemeToggle' });
 

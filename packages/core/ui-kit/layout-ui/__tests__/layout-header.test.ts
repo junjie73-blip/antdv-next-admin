@@ -23,7 +23,7 @@ afterEach(() => {
   configureLayout({ t: (key: string) => key });
 });
 
-describe('LayoutHeader - 形态由 lead 决定', () => {
+describe('layoutHeader - 形态由 lead 决定', () => {
   it('lead=breadcrumb：左侧留给面包屑，不出现 Logo 与横向导航', () => {
     const wrapper = mountHeader({
       lead: 'breadcrumb',
@@ -68,7 +68,7 @@ describe('LayoutHeader - 形态由 lead 决定', () => {
   });
 });
 
-describe('LayoutHeader - 侧栏触发按钮', () => {
+describe('layoutHeader - 侧栏触发按钮', () => {
   it('默认不渲染，只有使用方明确要求时才出现', () => {
     expect(
       mountHeader({ lead: 'breadcrumb' })
@@ -117,7 +117,7 @@ describe('LayoutHeader - 侧栏触发按钮', () => {
   });
 });
 
-describe('LayoutHeader - 导航配色与事件', () => {
+describe('layoutHeader - 导航配色与事件', () => {
   it('深色顶栏偏好把横向导航切成 dark 主题', async () => {
     const wrapper = mountHeader({
       lead: 'logo',
@@ -180,7 +180,7 @@ describe('LayoutHeader - 导航配色与事件', () => {
  * 所以 Logo 图必须自己画出来 —— 以前这里只有一颗通用立方体，
  * 手机上"整站没有品牌"就是这一步漏的。
  */
-describe('LayoutHeader - 品牌位的 Logo', () => {
+describe('layoutHeader - 品牌位的 Logo', () => {
   it('给了 logo 就画真图，alt 用产品名', () => {
     const wrapper = mountHeader({
       lead: 'logo',

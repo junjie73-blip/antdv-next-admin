@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import type { BackendMenu, MenuConfig, MicroAppConfig } from '@antdv/types';
 import type { FormSchema } from '@antdv/form-ui';
 import type { BasicColumn } from '@antdv/table-ui';
+import type { BackendMenu, MenuConfig, MicroAppConfig } from '@antdv/types';
 
 import { computed, ref, watch } from 'vue';
 
-import { IconPicker } from '@antdv/icons/icon';
-import { cn } from '@antdv/shared/utils/cn';
-import { Icon } from '@iconify/vue';
 import { Card, Divider, Popconfirm, Tag } from '@antdv/common-ui';
-import { Button, Switch } from '@antdv/shadcn-ui';
-import { BasicDrawer, message, useDrawer } from '@antdv/popup-ui';
-import { BasicForm, useForm } from '@antdv/form-ui';
-import { BasicTable, useTable } from '@antdv/table-ui';
 import { DictType } from '@antdv/enums';
+import { BasicForm, useForm } from '@antdv/form-ui';
+import { IconPicker } from '@antdv/icons/icon';
+import { BasicDrawer, message, useDrawer } from '@antdv/popup-ui';
+import { Button, Switch } from '@antdv/shadcn-ui';
+import { cn } from '@antdv/shared/utils/cn';
 import { useRouteStore } from '@antdv/stores';
+import { BasicTable, useTable } from '@antdv/table-ui';
+import { Icon } from '@iconify/vue';
 import { useDictStore } from '~/stores';
 
 defineOptions({ name: 'SystemMenu' });

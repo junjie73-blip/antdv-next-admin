@@ -189,7 +189,7 @@ export function useLayoutStyle(options: () => LayoutTone): LayoutStyleApi {
    */
   const contentClass = () =>
     cn(
-      'box-border relative flex min-h-0 flex-1 flex-col',
+      'relative box-border flex min-h-0 flex-1 flex-col',
       tone.value.geek ? 'bg-[#0a0a0a]' : 'bg-gray-50 dark:bg-gray-900',
     );
 

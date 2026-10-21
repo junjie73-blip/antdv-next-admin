@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import type { MenuBadge as MenuBadgeConfig, MenuBadgeStatus } from '@antdv/types';
+import type {
+  MenuBadge as MenuBadgeConfig,
+  MenuBadgeStatus,
+} from '@antdv/types';
 
 defineOptions({ name: 'MenuBadge' });
 
@@ -43,12 +46,14 @@ function displayText(badge: MenuBadgeConfig): string {
 <template>
   <span
     v-if="badge?.dot"
-    class="inline-block h-1.5 w-1.5 shrink-0 rounded-full" :class="[dotClass(badge.status)]"
+    class="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
+    :class="[dotClass(badge.status)]"
     data-menu-badge="dot"
   ></span>
   <span
     v-else-if="badge && displayText(badge)"
-    class="inline-block min-w-4 shrink-0 rounded-full px-1 text-center text-[11px] leading-4" :class="[
+    class="inline-block min-w-4 shrink-0 rounded-full px-1 text-center text-[11px] leading-4"
+    :class="[
       badge.status
         ? `${dotClass(badge.status)} text-white`
         : 'bg-red-500 text-white shadow-[0_0_0_1px_#fff]',

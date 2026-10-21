@@ -167,7 +167,7 @@ function onSelectAll(
 function move(to: TransferDirection) {
   const from: TransferDirection = to === 'right' ? 'left' : 'right';
   const movedKeys = selectedKeysOf(from);
-  if (!movedKeys.length) return;
+  if (movedKeys.length === 0) return;
 
   const current = targetKeys.value ?? [];
   let next: TransferKey[];

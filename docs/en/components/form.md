@@ -54,13 +54,11 @@ const [register, { validate, setFieldsValue, getFieldsValue }] = useForm({
 
 ::: tip
 
-The pending queue: `setFieldsValue` before mount is not lost either `useForm` first checks whether the instance is still on the component tree before `setFieldsValue` / `resetFields` (the live-instance check at `use-antdv-form.ts:25-30`, based on the component's `isMounted`: set at `form.vue:589,535`, flipped at `:623-630`); with a dead instance the values **accumulate** in `pendingValues` first (`:53-64`, the comment at `:17-23`) and get written on the next `register`. `resetFields` clears the queue first (`:66-73`) so the next mount is not stamped over with stale data. This queue exists precisely to rescue the "fill the values first, then `openModal`" pattern: modals destroy their content by default, so writing into the dead object from the previous `register` fails silently. The behaviour is unit-tested (`form-ui/__tests__/useForm.test.ts:37,52,67,76`).
-:::
+The pending queue: `setFieldsValue` before mount is not lost either `useForm` first checks whether the instance is still on the component tree before `setFieldsValue` / `resetFields` (the live-instance check at `use-antdv-form.ts:25-30`, based on the component's `isMounted`: set at `form.vue:589,535`, flipped at `:623-630`); with a dead instance the values **accumulate** in `pendingValues` first (`:53-64`, the comment at `:17-23`) and get written on the next `register`. `resetFields` clears the queue first (`:66-73`) so the next mount is not stamped over with stale data. This queue exists precisely to rescue the "fill the values first, then `openModal`" pattern: modals destroy their content by default, so writing into the dead object from the previous `register` fails silently. The behaviour is unit-tested (`form-ui/__tests__/useForm.test.ts:37,52,67,76`). :::
 
 ::: warning
 
-The queue only protects writes, not validation or reads Only `setFieldsValue` / `resetFields` go through the live-instance check; `getFieldsValue`, `validate`, `validateFields`, `updateSchema` and the rest use `getFormInstance()`, which does not look at mount state (`use-antdv-form.ts:43-45,47-136`). With the form not mounted, **`validate()` does not throw — it returns `{}`** (`:75-81`), so using it as the "validation passed" condition is always true.
-:::
+The queue only protects writes, not validation or reads Only `setFieldsValue` / `resetFields` go through the live-instance check; `getFieldsValue`, `validate`, `validateFields`, `updateSchema` and the rest use `getFormInstance()`, which does not look at mount state (`use-antdv-form.ts:43-45,47-136`). With the form not mounted, **`validate()` does not throw — it returns `{}`** (`:75-81`), so using it as the "validation passed" condition is always true. :::
 
 **There is no `useModalForm` / `useDrawerForm`.** The form module ships no modal / drawer bridge (nothing in `src/index.ts:1-43`, and neither name can be found anywhere in the repository); what `views/system/*` does is have each page write its own schema and attach it as a template prop.
 
@@ -95,8 +93,7 @@ Declared but never read The fields below are legal `FormProps` entries in `types
 - `baseColProps`, `autoFocusFirstItem`, `compact`, `autoSetPlaceHolder`, `autoAdvancedLine`, `mergeDynamicData`, `size`.
 - Top-level `rulesMessageJoinLabel` — the one that takes effect is **the copy on the schema** (`helper.ts:156,185`, see also `rule-registry.ts:161-164`).
 
-`colon` and `scrollToFirstError` are no longer dead fields: the former enters the context and decides whether a colon is appended after the label (`form-field.vue:186`, `form-label.vue:57`), the latter decides whether a validation failure scrolls to the first error field (`form.vue:414-416`, `:524-529`). Both can be changed with `setProps`.
-:::
+`colon` and `scrollToFirstError` are no longer dead fields: the former enters the context and decides whether a colon is appended after the label (`form-field.vue:186`, `form-label.vue:57`), the latter decides whether a validation failure scrolls to the first error field (`form.vue:414-416`, `:524-529`). Both can be changed with `setProps`. :::
 
 ## What `setProps` can and cannot change
 
@@ -119,8 +116,7 @@ Because `setProps` makes the target the **previous `propsRef`** (`form.vue:572-5
 
 ::: tip
 
-How to actually replace something that already has a value Recompute the whole `schemas` array and `setProps({ schemas })` (that is exactly what the step form does, `views/components/form/steps/index.vue:134,200,225`), or bind a `computed` as a template prop (`views/components/form/validation/index.vue`'s four schemas are four independent constants).
-:::
+How to actually replace something that already has a value Recompute the whole `schemas` array and `setProps({ schemas })` (that is exactly what the step form does, `views/components/form/steps/index.vue:134,200,225`), or bind a `computed` as a template prop (`views/components/form/validation/index.vue`'s four schemas are four independent constants). :::
 
 ## FormSchema: the field config
 
@@ -148,8 +144,7 @@ Defined at `schema.ts:86-136` (`BaseFormSchema` 86-126, `FormSchema` 128-136 add
 
 ::: warning
 
-These schema fields are dead `subLabel`, `emptySpan`, `disabledLabelWidth`, `render`, `renderColContent`, `renderComponentContent`, `colSlot`, `isAdvanced`, `children`, `changeEvent`, `helpComponentProps` — all present in `schema.ts:86-126`, none of them read by `form.vue` / `form-field.vue` / `helper.ts`. In particular, do not import vue-vben-admin habits and write `render` / `colSlot`: this `form-field.vue` has exactly one custom render path, `slot` (`:247-253`), and a `render` function produces neither an error nor any output. The rule-level `trigger` is likewise only a compatibility field: this implementation runs rules at two moments only, change (and only after the first submit) and submit (`schema.ts:39-40`, `form-field.vue:38-45`).
-:::
+These schema fields are dead `subLabel`, `emptySpan`, `disabledLabelWidth`, `render`, `renderColContent`, `renderComponentContent`, `colSlot`, `isAdvanced`, `children`, `changeEvent`, `helpComponentProps` — all present in `schema.ts:86-126`, none of them read by `form.vue` / `form-field.vue` / `helper.ts`. In particular, do not import vue-vben-admin habits and write `render` / `colSlot`: this `form-field.vue` has exactly one custom render path, `slot` (`:247-253`), and a `render` function produces neither an error nor any output. The rule-level `trigger` is likewise only a compatibility field: this implementation runs rules at two moments only, change (and only after the first submit) and submit (`schema.ts:39-40`, `form-field.vue:38-45`). :::
 
 ## How `component` strings resolve: `componentMap` only
 
@@ -157,8 +152,7 @@ The `component` string has **one resolution path**: the `componentMap` table —
 
 ::: tip
 
-Nothing to do with `types/components.d.ts` `apps/web/types/components.d.ts` is the **template tag** artifact produced by `unplugin-vue-components` scanning directories; schema resolution never goes through it. Write `component: 'AInput'` or any name absent from the table and `getComponent` returns `undefined`: no error, no warning — the field degrades into one line of plain text <code v-pre>{{ formModel[field] }}</code> (`form-field.vue:274-276`, value retrieval and serialization at `:215-220`, objects going through `JSON.stringify`).
-:::
+Nothing to do with `types/components.d.ts` `apps/web/types/components.d.ts` is the **template tag** artifact produced by `unplugin-vue-components` scanning directories; schema resolution never goes through it. Write `component: 'AInput'` or any name absent from the table and `getComponent` returns `undefined`: no error, no warning — the field degrades into one line of plain text <code v-pre>{{ formModel[field] }}</code> (`form-field.vue:274-276`, value retrieval and serialization at `:215-220`, objects going through `JSON.stringify`). :::
 
 A few points that are easy to get wrong:
 
@@ -203,8 +197,7 @@ The method set `FormActionType` (`types.ts:81-114`) is implemented entirely in `
 
 ::: warning
 
-Three methods have no caller anywhere in the repository `validateFields`, `scrollToField`, and `updateSchema` / `appendSchemaByField` / `removeSchemaByField` turn up in `apps/web/src` nowhere but their type declarations and their own implementations (the three corresponding forwarders on the table instance are literally empty functions — see below). They are usable APIs, but **no demo or business page has ever exercised them**.
-:::
+Three methods have no caller anywhere in the repository `validateFields`, `scrollToField`, and `updateSchema` / `appendSchemaByField` / `removeSchemaByField` turn up in `apps/web/src` nowhere but their type declarations and their own implementations (the three corresponding forwarders on the table instance are literally empty functions — see below). They are usable APIs, but **no demo or business page has ever exercised them**. :::
 
 ## Relationship with the table search area
 
@@ -227,21 +220,18 @@ Three methods have no caller anywhere in the repository `validateFields`, `scrol
 
 ::: warning
 
-The step form's draft uses key names invented by the demo page The key `demo:form-steps:draft` is defined in `views/components/form/steps/index.vue:62`, and writing/reading/deleting are this page's own `saveDraft`, `readStoredDraft` / `restoreDraft` and `clearDraft` (the block at `:534-595`, reading and writing `localStorage` directly). **`BasicForm` has no draft capability at all** and `FormProps` has no related field; the draft stores the `JSON.stringify` of `{ savedAt, step, values }` and only lives in this browser. Likewise, "submit" only runs a whole-form validation and prints the values — it issues no request at all.
-:::
+The step form's draft uses key names invented by the demo page The key `demo:form-steps:draft` is defined in `views/components/form/steps/index.vue:62`, and writing/reading/deleting are this page's own `saveDraft`, `readStoredDraft` / `restoreDraft` and `clearDraft` (the block at `:534-595`, reading and writing `localStorage` directly). **`BasicForm` has no draft capability at all** and `FormProps` has no related field; the draft stores the `JSON.stringify` of `{ savedAt, step, values }` and only lives in this browser. Likewise, "submit" only runs a whole-form validation and prints the values — it issues no request at all. :::
 
 ::: tip Two hard rules for step forms
 
 1. **Do not write `defaultValue` on step schemas** — every `setProps({ schemas })` re-runs `initFormModel()` and stamps the fields back to their defaults (`form.vue:358-367,508-511`); instead seed the initial values once with `setFieldsValue` before mount, which works thanks to the pending-write queue (`steps/index.vue:96`, mechanism at `use-antdv-form.ts:17-23,53-64`). This is the page's own comment, printed on the UI (`steps/index.vue:69-76`).
-2. **A whole-form check must re-mount the other steps with `show: false` before validating**: the candidate fields of `validate()` come from `schemas` (`form.vue:383-386`), so the page assembles the schemas of all steps into one temporary full table and adds `show: false` to the non-current steps (`steps/index.vue:188-200`), and on failure looks up which step to jump back to through `errorFields[0].name[0]` (`:206-211`). Note that `ifShow: false` and `show: false` **both take part in validation** (they differ only in rendering); the page's comment claiming "switching to `ifShow: false` really unmounts it, i.e. no validation at all" does not match observed behaviour; what really does not get validated are collapsed rows (`form.vue:288-294` skips the FormField entirely) and fields already removed from `schemas`.
-:::
+2. **A whole-form check must re-mount the other steps with `show: false` before validating**: the candidate fields of `validate()` come from `schemas` (`form.vue:383-386`), so the page assembles the schemas of all steps into one temporary full table and adds `show: false` to the non-current steps (`steps/index.vue:188-200`), and on failure looks up which step to jump back to through `errorFields[0].name[0]` (`:206-211`). Note that `ifShow: false` and `show: false` **both take part in validation** (they differ only in rendering); the page's comment claiming "switching to `ifShow: false` really unmounts it, i.e. no validation at all" does not match observed behaviour; what really does not get validated are collapsed rows (`form.vue:288-294` skips the FormField entirely) and fields already removed from `schemas`. :::
 
 **Which rules on the validation page are home-grown**: the repository ships exactly one "rule preset", the `required` shorthand (`helper.ts:181-189`). Everything else is a native field of `Rule` (`schema.ts:17-42`): `type: 'email'` / `type: 'url'` / `type: 'number'`, `min` / `max`, `pattern` (in the several schemas of `validation/index.vue`), plus three validators written in the page itself — username duplication (`setTimeout(600ms)` plus the local array `OCCUPIED_NAMES`, **no endpoint**, `validation/index.vue:168,227-241`), password strength regex (`:256-264`), and password confirmation with province/city/district cross-field consistency (`:275-341`, through `dynamicRules`).
 
 ::: warning
 
-The "validation timing" card demonstrates two spellings that no longer do anything The fourth card switches timing with `itemProps: { validateTrigger: 'blur' | 'change' }` and a rule-level `trigger: 'blur'` (`validation/index.vue:358-385`), but only `required` / `style` / `wrapperCol.style` of `itemProps` are ever read (`form-field.vue:112,152,168`), and the rule-level `trigger` is declared as a compatibility field (`schema.ts:39-40`). The actual timing is decided by `submitAttempted` (`form-field.vue:38-45`): before the first submit only submit runs, and after one submit change corrects in real time. Seeing no difference when the switch is toggled is **what the implementation does**, not a bug reproduction.
-:::
+The "validation timing" card demonstrates two spellings that no longer do anything The fourth card switches timing with `itemProps: { validateTrigger: 'blur' | 'change' }` and a rule-level `trigger: 'blur'` (`validation/index.vue:358-385`), but only `required` / `style` / `wrapperCol.style` of `itemProps` are ever read (`form-field.vue:112,152,168`), and the rule-level `trigger` is declared as a compatibility field (`schema.ts:39-40`). The actual timing is decided by `submitAttempted` (`form-field.vue:38-45`): before the first submit only submit runs, and after one submit change corrects in real time. Seeing no difference when the switch is toggled is **what the implementation does**, not a bug reproduction. :::
 
 ## The form designer was removed together with `antdv-next`
 

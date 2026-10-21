@@ -1,17 +1,19 @@
-<script lang='ts' setup>
-import type { PrimitiveProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { Primitive } from "reka-ui"
-import { cn } from '@antdv/shared/utils/cn'
+<script lang="ts" setup>
+import type { PrimitiveProps } from 'reka-ui';
+
+import type { HTMLAttributes } from 'vue';
+
+import { cn } from '@antdv/shared/utils/cn';
+import { Primitive } from 'reka-ui';
 
 interface Props extends PrimitiveProps {
-  class?: HTMLAttributes["class"]
-  align?: "start" | "end"
+  class?: HTMLAttributes['class'];
+  align?: 'end' | 'start';
 }
 const props = withDefaults(defineProps<Props>(), {
-  align: "start",
-  as: "div",
-})
+  align: 'start',
+  as: 'div',
+});
 </script>
 
 <template>
@@ -20,11 +22,13 @@ const props = withDefaults(defineProps<Props>(), {
     :data-align="align"
     :as="as"
     :as-child="asChild"
-    :class="cn(
-      'text-sm gap-2 group/message relative flex w-full min-w-0 data-[align=end]:flex-row-reverse',
-      props.class,
-    )"
+    :class="
+      cn(
+        'text-sm gap-2 group/message relative flex w-full min-w-0 data-[align=end]:flex-row-reverse',
+        props.class,
+      )
+    "
   >
-    <slot />
+    <slot></slot>
   </Primitive>
 </template>

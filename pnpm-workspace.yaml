@@ -9,14 +9,29 @@ packages:
   - docs
   - scripts/*
 
-allowBuilds:
-  '@parcel/watcher': true
-  core-js: true
-  esbuild: true
-  lefthook: true
-  vue-demi: true
+publicHoistPattern:
+  - lefthook
+  - eslint
+  - oxfmt
+  - oxlint
+  - stylelint
+  - '*postcss*'
+  - '@commitlint/*'
+  - czg
+
+strictPeerDependencies: false
 
 autoInstallPeers: true
+
+dedupePeerDependents: true
+
+verifyDepsBeforeRun: false
+overrides:
+  '@ast-grep/napi': 'catalog:'
+  '@ctrl/tinycolor': 'catalog:'
+  clsx: 'catalog:'
+  pinia: 'catalog:'
+  vue: 'catalog:'
 
 catalog:
   '@ast-grep/napi': ^0.45.2
@@ -41,9 +56,9 @@ catalog:
   '@iconify-json/lucide': ^1.2.140
   '@iconify-json/mdi': ^1.2.3
   '@iconify/vue': ^5.0.3
+  '@internationalized/date': ^3.12.4
   '@intlify/core-base': ^11.4.10
   '@intlify/unplugin-vue-i18n': ^11.2.5
-  '@internationalized/date': ^3.12.4
   '@jspm/generator': ^2.16.3
   '@lucide/vue': 1.55.0
   '@manypkg/get-packages': ^3.1.0
@@ -183,12 +198,16 @@ catalog:
   pkg-types: ^2.3.3
   playwright: ^1.63.0
   postcss: ^8.5.29
+  postcss-html: ^1.8.1
+  postcss-scss: ^4.0.9
   publint: ^0.3.25
   qrcode: ^1.5.4
   qs: ^6.16.0
   reka-ui: 2.11.0
   resize-observer-polyfill: ^1.5.1
   rimraf: ^6.1.3
+  rolldown: ^1.2.12
+  secure-ls: ^2.0.0
   sm-crypto: ^0.3.14
   sortablejs: ^1.15.7
   spark-md5: ^3.0.2
@@ -241,8 +260,6 @@ catalog:
   watermark-plus: ^1.6.1
   workbox-window: ^7.4.1
   xlsx: ^0.18.5
-  rolldown: ^1.2.12
-  secure-ls: ^2.0.0
   stylelint: ^17.16.0
   stylelint-config-recess-order: ^7.8.0
   stylelint-config-recommended: ^18.0.0
@@ -257,15 +274,18 @@ catalog:
   vue-i18n: ^11.4.13
   vue-json-pretty: ^2.6.0
   yaml-eslint-parser: ^2.1.0
-  postcss-html: ^1.8.1
-  postcss-scss: ^4.0.9
   zod: 3.25.76
 
 catalogs:
   conflicts_vue_h3_5_43:
     vue: ^3.5.43
 
-dedupePeerDependents: true
+allowBuilds:
+  '@parcel/watcher': true
+  core-js: true
+  esbuild: true
+  lefthook: true
+  vue-demi: true
 
 ignoredBuiltDependencies:
   - core-js
@@ -289,23 +309,3 @@ onlyBuiltDependencies:
   - '@vue-office/pdf'
   - '@vue-office/pptx'
 
-overrides:
-  '@ast-grep/napi': 'catalog:'
-  '@ctrl/tinycolor': 'catalog:'
-  clsx: 'catalog:'
-  pinia: 'catalog:'
-  vue: 'catalog:'
-
-publicHoistPattern:
-  - lefthook
-  - eslint
-  - oxfmt
-  - oxlint
-  - stylelint
-  - '*postcss*'
-  - '@commitlint/*'
-  - czg
-
-strictPeerDependencies: false
-
-verifyDepsBeforeRun: false

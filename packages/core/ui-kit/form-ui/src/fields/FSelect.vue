@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@antdv/shadcn-ui';
+import { Popover, PopoverContent, PopoverTrigger } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 import { X } from '@lucide/vue';
 
@@ -50,7 +46,9 @@ const filtered = computed(() => {
   const keyword = search.value.trim().toLowerCase();
   if (!props.showSearch || !keyword) return normalized.value;
   return normalized.value.filter((opt) =>
-    String(opt.label ?? '').toLowerCase().includes(keyword),
+    String(opt.label ?? '')
+      .toLowerCase()
+      .includes(keyword),
   );
 });
 
@@ -58,9 +56,7 @@ const selectedValues = computed<any[]>(() => {
   if (props.mode === 'multiple') {
     return Array.isArray(props.value) ? props.value : [];
   }
-  return props.value === undefined || props.value === null
-    ? []
-    : [props.value];
+  return props.value === undefined || props.value === null ? [] : [props.value];
 });
 
 const isSelected = (val: any) =>
@@ -83,9 +79,7 @@ const multipleLabels = computed(() =>
 const hasValue = computed(() =>
   props.mode === 'multiple'
     ? selectedValues.value.length > 0
-    : props.value !== undefined &&
-      props.value !== null &&
-      props.value !== '',
+    : props.value !== undefined && props.value !== null && props.value !== '',
 );
 
 function toggleOption(val: any, disabled?: boolean) {
@@ -151,7 +145,11 @@ function clear(event: MouseEvent) {
           </template>
           <template v-else>
             <span class="truncate">{{
-              hasValue ? (mode === 'multiple' ? '' : displayLabel) : placeholder || '请选择'
+              hasValue
+                ? mode === 'multiple'
+                  ? ''
+                  : displayLabel
+                : placeholder || '请选择'
             }}</span>
           </template>
         </span>
@@ -205,7 +203,8 @@ function clear(event: MouseEvent) {
           :class="
             cn(
               'flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50',
-              isSelected(opt.value) && 'bg-accent font-medium text-accent-foreground',
+              isSelected(opt.value) &&
+                'bg-accent font-medium text-accent-foreground',
             )
           "
           @click="toggleOption(opt.value, opt.disabled)"

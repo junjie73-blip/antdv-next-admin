@@ -8,10 +8,10 @@ import type {
 import { computed, ref, useTemplateRef } from 'vue';
 
 import { Card, Image, Scrollbar, Upload } from '@antdv/common-ui';
+import { AvatarUploader } from '@antdv/common-ui/avatar-uploader';
 // ===== 大文件切片上传 =====
 import { useChunkUpload } from '@antdv/hooks/use-chunk-upload';
 import { message } from '@antdv/popup-ui';
-
 import {
   Button,
   Dialog,
@@ -1048,9 +1048,7 @@ function handlePreviewOpenChange(value: boolean) {
                       :class="largeFileTableProgressFillClassName"
                     ></div>
                   </div>
-                  <span :class="largeFileTableProgressTextClassName"
-                    >{{ record.progress }}%</span
-                  >
+                  <span :class="largeFileTableProgressTextClassName">{{ record.progress }}%</span>
                 </div>
               </template>
               <template v-else-if="column.key === 'status'">

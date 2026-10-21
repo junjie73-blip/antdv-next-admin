@@ -1,5 +1,5 @@
-import type { MockTemplatePreset } from '~/api/mock';
 import type { FormSchema, Rule } from '@antdv/form-ui';
+import type { MockTemplatePreset } from '~/api/mock';
 
 import type { ComputedRef, Ref } from 'vue';
 

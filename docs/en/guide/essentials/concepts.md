@@ -26,8 +26,7 @@ Evidence: the `main` field of each `packages/**/package.json` (base layer under 
 
 ::: warning
 
-You edited a dist-published package and nothing changed This is the most common "I clearly changed it" in this repository. Vite's dependency cache and `optimizeDeps` both point at `dist`, so `src` is simply not in the build graph. You edit, save, and see nothing — and get no error either.
-:::
+You edited a dist-published package and nothing changed This is the most common "I clearly changed it" in this repository. Vite's dependency cache and `optimizeDeps` both point at `dist`, so `src` is simply not in the build graph. You edit, save, and see nothing — and get no error either. :::
 
 Being source-published has a cost: those packages have no `build` script at all (`packages/core/base/icons/package.json` only defines `clean` / `test:unit` / `type-check`), and their `<script setup>` blocks are compiled by the app's `@vitejs/plugin-vue`. So they cannot be consumed outside a Vite build.
 
@@ -50,8 +49,7 @@ The one exception is `packages/utils/src/menu.ts:3`, which imports a **type** fr
 
 ::: tip
 
-Where new code goes Relevant to one page only → inside that page's `views/<module>/<page>/` directory. App-wide but app-specific (stores, api, ws) → the matching folder under `apps/web/src/`. Pure functions that another project could reuse → `packages/core/base/shared` or `packages/core/hooks`. Requires pinia, the router, or backend data to work → keep a thin shell in the app and let the package receive the capability as an argument.
-:::
+Where new code goes Relevant to one page only → inside that page's `views/<module>/<page>/` directory. App-wide but app-specific (stores, api, ws) → the matching folder under `apps/web/src/`. Pure functions that another project could reuse → `packages/core/base/shared` or `packages/core/hooks`. Requires pinia, the router, or backend data to work → keep a thin shell in the app and let the package receive the capability as an argument. :::
 
 ## Aliases and auto-import
 
@@ -69,9 +67,9 @@ Auto-import covers **framework APIs — not this repository's packages and not a
 - `AutoImport` (`:23-26`): `vue`, `@vueuse/core`, `pinia`, `VueRouterAutoImports`. The four functional entry points of `antdv-next` (`message`, `notification`, `Modal`, `Drawer`) used to be listed here; they have been **removed** — import them yourself.
 - `Components` (`:27-29`): **no resolvers at all**. It used to carry three — `AntdvNextResolver` (`a-*`), `AntdvUiResolver` (the sub-package components) and `IconifyResolver` (bare `<Icon>`) — and all three channels are now closed. The plugin keeps only its built-in behaviour: scan the app's `src/components` directory so local components need no import.
 - The same factory also registers `iconifyOffline({ local: [...] })` (`:30-32`, the module being `@tomjs/vite-plugin-iconify`, imported at `:7`) plus `envParse` (`:33-37`); see [Icons](/en/guide/essentials/icons).
-- The generated declarations `apps/web/types/auto-imports.d.ts` and `components.d.ts` are committed. Plugins rewrite them during the build, and on a Windows mapped drive that write occasionally fails with `UNKNOWN (errno -4094)` and takes the dev server down, hence the `VITE_WRITE_DTS=false` escape hatch — the switch itself is at `internal/vite-config/src/plugins/index.ts:65-67` and the comment explaining the trade-off at `:62-64` of that file (`auto-import.ts` carries no such comment).
+- The generated declarations `apps/web/types/auto-imports.d.ts` and `components.d.ts` are committed. Plugins rewrite them during the build, and on a Windows mapped drive that write occasionally fails with `UNKNOWN (errno -4094)` and takes the dev server down, hence the `VITE_WRITE_DTS=false` escape hatch — the switch itself is at `internal/vite-config/src/plugins/index.ts:80-81` and the comment explaining the trade-off at `:62-64` of that file (`auto-import.ts` carries no such comment).
 
-Consequence: components and component-library APIs are **always imported explicitly**, in 100+ app files (106 of them import from `@antdv/*`) — for example `apps/web/src/components/business/ImportExport.vue:7-12`:
+Consequence: components and component-library APIs are **always imported explicitly**, in 100+ app files (106 of them import from `@antdv/*`) — for example `packages/core/ui-kit/common-ui/src/components/import-export/ImportExport.vue:7-12`:
 
 ```ts
 import { Scrollbar, Space } from '@antdv/common-ui';

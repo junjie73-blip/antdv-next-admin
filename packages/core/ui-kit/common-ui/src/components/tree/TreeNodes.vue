@@ -33,9 +33,9 @@ const isHalf = (node: NormalTreeNode) =>
 function rowClass(node: NormalTreeNode) {
   const { blockNode, selectable } = props.context;
   return cn(
-    'flex items-center gap-1 rounded py-1 pr-2 text-sm',
+    'flex items-center gap-1 rounded-sm py-1 pr-2 text-sm',
     blockNode ? 'w-full' : '',
-    selectable && !node.disabled ? 'cursor-pointer hover:bg-muted' : '',
+    selectable && !node.disabled ? 'hover:bg-muted cursor-pointer' : '',
     isSelected(node) ? 'bg-primary/10 text-primary' : '',
   );
 }

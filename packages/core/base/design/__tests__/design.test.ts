@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -33,7 +33,7 @@ const ALL_SOURCES = [index, ...THEME_PARTS, ...CSS_PARTS];
 
 /** 去掉注释后的源码：断言"不存在某类写法"时要用它，否则注释自己会命中 */
 const stripComments = (source: string) =>
-  source.replace(/\/\*[\s\S]*?\*\//gmu, '');
+  source.replaceAll(/\/\*[\s\S]*?\*\//gmu, '');
 
 describe('@antdv/design —— 入口', () => {
   it('第一句必须是层级顺序声明，utilities 排在最后', () => {
@@ -115,12 +115,12 @@ const SHADCN_COLORS = [
 /**
  * 尺度 token：偏好面板写在 html 内联样式上，主题文件里只负责给首屏兜底值。
  *
- * 它们不进 `@theme` 的**颜色**命名空间 —— 把 `--app-filter` 映成 `--color-*`
+ * 它们不进 `@theme` 的**颜色**命名空间 —— 把 `--filter` 映成 `--color-*`
  * 只会生成一条没人用的工具类，还会把色板名单弄脏（名单是逐条比对亮暗两套的）。
  * 圆角是唯一例外，它进的是 `--radius-*` 命名空间：Tailwind 的 `rounded-*`
- * 类只认那一份表，偏好要能拖动全站半径，就必须把 `--app-border-radius` 接进去。
+ * 类只认那一份表，偏好要能拖动全站半径，就必须把 `--radius` 接进去。
  */
-const THEME_SCALARS = ['border-radius', 'filter', 'font-size'];
+const THEME_SCALARS = ['filter', 'font-size', 'radius'];
 
 type Block = {
   selectors: string[];
@@ -141,10 +141,9 @@ function parseBlocks(source: string): Block[] {
         .map((selector) => selector.trim())
         .filter(Boolean),
       vars: new Map(
-        [...match[2]!.matchAll(/--app-([a-z-]+):\s*([^;]*)/gmu)].map((decl) => [
-          decl[1]!,
-          decl[2]!.trim(),
-        ]),
+        [...match[2]!.matchAll(/--([a-z][a-z0-9-]*):\s*([^;]*)/gmu)].map(
+          (decl) => [decl[1]!, decl[2]!.trim()],
+        ),
       ),
     }),
   );
@@ -191,7 +190,7 @@ function appColorNames(source: string): string[] {
 describe('@antdv/design —— shadcn 色板', () => {
   it('每个语义色都在 token 入口里导出成 --color-* token', () => {
     for (const name of SHADCN_COLORS) {
-      expect(tokenEntry).toContain(`--color-${name}: var(--app-${name});`);
+      expect(tokenEntry).toContain(`--color-${name}: hsl(var(--${name}));`);
     }
   });
 
@@ -199,7 +198,9 @@ describe('@antdv/design —— shadcn 色板', () => {
     const mapped = [
       ...new Set(
         [
-          ...tokenEntry.matchAll(/--color-[a-z-]+: var\(--app-([a-z-]+)\);/gmu),
+          ...tokenEntry.matchAll(
+            /--color-[a-z-]+: hsl\(var\(--([a-z-]+)\)\);/gmu,
+          ),
         ].map((match) => match[1]),
       ),
     ].sort();
@@ -233,7 +234,7 @@ describe('@antdv/design —— shadcn 色板', () => {
         for (const color of SHADCN_COLORS) {
           expect(
             block.vars.has(color),
-            `${file} 的 ${name} 预设缺 --app-${color}`,
+            `${file} 的 ${name} 预设缺 --${color}`,
           ).toBe(true);
         }
       }
@@ -287,7 +288,7 @@ describe('@antdv/design —— shadcn 色板', () => {
       for (const color of canvas) {
         expect(
           darkBlock.vars.get(color),
-          `${name} 预设的 --app-${color} 明暗同值，深色模式没换画布`,
+          `${name} 预设的 --${color} 明暗同值，深色模式没换画布`,
         ).not.toBe(lightBlock.vars.get(color));
       }
     }
@@ -296,16 +297,16 @@ describe('@antdv/design —— shadcn 色板', () => {
   it('尺度 token 两套基础主题各自完整：偏好落盘前的一帧也有兜底值', () => {
     const colorNamespace = new Set(
       [
-        ...tokenEntry.matchAll(/--color-[a-z-]+: var\(--app-([a-z-]+)\);/gmu),
+        ...tokenEntry.matchAll(
+          /--color-[a-z-]+: hsl\(var\(--([a-z-]+)\)\);/gmu,
+        ),
       ].map((match) => match[1]),
     );
     for (const name of THEME_SCALARS) {
       expect(baseBlock(tokenDefault).vars.has(name)).toBe(true);
       expect(baseBlock(tokenDark).vars.has(name)).toBe(true);
       // 尺度值只准待在尺度命名空间里；混进颜色名单就是一堆没人用的工具类
-      expect(colorNamespace, `--app-${name} 不该映射成颜色`).not.toContain(
-        name,
-      );
+      expect(colorNamespace, `--${name} 不该映射成颜色`).not.toContain(name);
     }
   });
 
@@ -314,37 +315,48 @@ describe('@antdv/design —— shadcn 色板', () => {
    * 变量断了不会报错，只会"设置保存了但页面没反应"，所以把两条接线钉住。
    */
   it('尺度 token 接到使用点：圆角进 --radius-* 表，字号进根字号', () => {
-    expect(tokenEntry).toContain('--radius-lg: var(--app-border-radius);');
-    expect(base).toContain('font-size: var(--app-font-size');
+    expect(tokenEntry).toContain('--radius-lg: var(--radius);');
+    expect(base).toContain('font-size: var(--font-size');
   });
 
   /**
-   * shadcn-vue 的规范变量名（无前缀）必须存在。
+   * 命名空间只有 shadcn 规范名这一套，变量里存的是**颜色通道**。
    *
-   * `npx shadcn-vue add` 拉下来的组件与它的初始化脚本读的是 `var(--border)`、
-   * `var(--primary)` 这批裸名字；缺了不是"颜色不对"而是解析成空值 —— 边框消失、
-   * 背景透明，又是一类静默丢样式。所以别名层同样按名单逐条比对，而不是"看着有"。
+   * `npx shadcn-vue add` 拉下来的组件与官方样板写的就是 `hsl(var(--border))`，
+   * 所以 `@theme inline` 只能用 `hsl(var(--x))` 组合颜色，值本身不能是完整颜色：
+   * 一旦有人把 `#f0f0f0` 或 `hsl(...)` 写回变量，`hsl(#f0f0f0)` 解析失败，
+   * 表现是边框消失、背景透明，又不报错 —— 属于最难查的那类静默丢样式。
+   * 反过来，混用 `--app-*` 前缀等于"别名层与事实来源"分家，两条都在这一条里钉住。
    *
-   * 别名只写在 `:root` 与 `.app-theme-scope`（ConfigProvider 的宿主）两处：
-   * `[data-theme]` 档位、`.dark` 开关和偏好内联主色全都落在 `<html>` 上，
-   * 而自定义属性的替换发生在声明所在元素的 computed value 上，
-   * 所以一份声明就能跟着换主题 —— 反过来说，子树覆盖 `--app-*` 必须靠那个类重算，
-   * 两条选择器少一条都是"改了不动"的静默失效。
+   * 子树覆盖不再需要 `.app-theme-scope` 那种类：`@theme inline` 把 `hsl(var(--x))`
+   * 内联进工具类，替换发生在用到它的那个元素上，所以 ConfigProvider 只要往容器
+   * 内联写 `--primary` / `--radius` 就能带着整棵子树重算。
    */
-  it('shadcn 规范名别名层：每个语义色都有无前缀别名，且接到对应的 --app-*', () => {
-    const alias = /:root,\s*\.app-theme-scope\s*\{([^}]*)\}/u.exec(
-      stripComments(tokenEntry),
-    )?.[1];
-    expect(alias, 'token 入口里找不到规范名别名块').toBeTruthy();
-
-    for (const name of [...SHADCN_COLORS, 'success', 'warning', 'info']) {
-      expect(
-        alias,
-        `规范名 --${name} 缺失或没接到 var(--app-${name})`,
-      ).toContain(`--${name}: var(--app-${name});`);
+  it('规范名单一事实来源：变量存通道，颜色由 hsl(var(--x)) 组合', () => {
+    const channel = /^[\d.]+ [\d.]+% [\d.]+%(?: \/ [\d.]+)?$/u;
+    for (const [file, source] of [
+      ['default.css', tokenDefault],
+      ['dark.css', tokenDark],
+    ]) {
+      for (const { vars } of [
+        baseBlock(source),
+        ...presetBlocks(source).values(),
+      ]) {
+        for (const [name, value] of vars) {
+          if (THEME_SCALARS.includes(name) || value.startsWith('var('))
+            continue;
+          expect(value, `${file} 的 --${name} 不是颜色通道`).toMatch(channel);
+        }
+      }
     }
-    // 尺度别名：圆角是 shadcn 名单里唯一的一条非颜色变量
-    expect(alias).toContain('--radius: var(--app-border-radius);');
+    // 只剩规范名一个命名空间（注释里讲历史可以，声明里不行）
+    expect(stripComments(ALL_SOURCES.join('\n'))).not.toMatch(/--app-/u);
+    // 状态色也在 @theme 里，否则 `bg-success` 这类工具类根本不生成
+    for (const name of ['success', 'warning', 'info']) {
+      expect(tokenEntry).toContain(`--color-${name}: hsl(var(--${name}));`);
+    }
+    // 圆角刻度基准就是规范名 `--radius`（偏好面板往 html 内联写的那一条）
+    expect(tokenEntry).toContain('--radius-lg: var(--radius);');
   });
 
   /**
@@ -356,10 +368,9 @@ describe('@antdv/design —— shadcn 色板', () => {
       ['default.css', tokenDefault],
       ['dark.css', tokenDark],
     ]) {
-      expect(
-        baseBlock(source).vars.get('border-radius'),
-        `${file} 的圆角基准`,
-      ).toBe('1rem');
+      expect(baseBlock(source).vars.get('radius'), `${file} 的圆角基准`).toBe(
+        '1rem',
+      );
     }
   });
 
@@ -380,25 +391,27 @@ describe('@antdv/design —— shadcn 色板', () => {
   });
 
   /**
-   * 偏好面板只往 html 内联写一条 `--app-primary`（见 @antdv/utils 的 css-vars）。
-   * 派生色写成 `var(--app-*)`，自定义主色才会连带染到 ring 与整条侧栏；
-   * 反过来，如果这里钉死 hex，"换了主题色、弹层还是蓝的"就又回来了。
+   * 偏好面板只往 html 内联写一条 `--primary`（见 @antdv/shared 的 css-vars）。
+   * 派生色写成 `var(--基色)`，自定义主色才会连带染到 ring 与整条侧栏；
+   * 反过来，如果这里钉死取值，"换了主题色、弹层还是蓝的"就又回来了。
    */
-  it('主色与它的派生族：一条 var(--app-primary) 串起 ring 和侧栏', () => {
+  it('主色与它的派生族：一条 var(--primary) 串起 ring 和侧栏', () => {
     for (const [file, source] of [
       ['default.css', tokenDefault],
       ['dark.css', tokenDark],
     ]) {
       const { vars } = baseBlock(source);
-      // 基础值是自洽实色，不读组件库变量
-      expect(vars.get('primary')).toMatch(/^#/u);
+      // 基础值是自洽的 hsl 通道，不读组件库变量
+      expect(vars.get('primary'), `${file} 的主色不是颜色通道`).toMatch(
+        /^[\d.]+ [\d.]+% [\d.]+%$/u,
+      );
       for (const derived of ['ring', 'sidebar-primary', 'sidebar-ring']) {
         expect(vars.get(derived), `${file} 的 ${derived}`).toBe(
-          'var(--app-primary)',
+          'var(--primary)',
         );
       }
-      expect(vars.get('sidebar-foreground')).toBe('var(--app-foreground)');
-      expect(vars.get('sidebar-border')).toBe('var(--app-border)');
+      expect(vars.get('sidebar-foreground')).toBe('var(--foreground)');
+      expect(vars.get('sidebar-border')).toBe('var(--border)');
     }
   });
 
@@ -452,7 +465,7 @@ describe('@antdv/design —— shadcn 色板', () => {
   });
 
   it('值不依赖 antd 作用域变量（浮层 portal 在 .ant-app 之外）', () => {
-    expect([...baseBlock(tokenDefault).vars.values()].join()).not.toMatch(
+    expect([...baseBlock(tokenDefault).vars.values()].join(',')).not.toMatch(
       /--ant-/u,
     );
   });
@@ -503,8 +516,8 @@ describe('@antdv/design —— 分部职责', () => {
     // 带 ARIA role 的自定义控件（评分、开关等）：role 本身就是在宣布"这里能点"
     expect(base).toContain("[role='radio']:not([aria-disabled='true'])");
     expect(base).toContain("[role='button'][disabled]");
-    // antd 唯独漏了上传触发区（里面包的是 span，不是 button）
-    expect(base).toContain('.ant-upload:not(.ant-upload-disabled)');
+    // antdv-next 已退场，`.ant-upload` 那类第三方作用域类不该再出现在全局分部里
+    expect(stripComments(base)).not.toContain('.ant-');
   });
 
   it('scrollbar：第三方滚动区兜底，且必须写在 base 层', () => {
@@ -524,17 +537,17 @@ describe('@antdv/design —— 分部职责', () => {
 
   it('nprogress：进度条配色读本包主色 token，不写死蓝色', () => {
     expect(nprogress).toContain('#nprogress .bar');
-    expect(nprogress).toContain('var(--app-primary, #1677ff)');
+    expect(nprogress).toContain('hsl(var(--primary, ');
     expect(nprogress).toMatch(
       /@apply fixed top-0 left-0 z-\[9999\] h-\[3px\] w-full/u,
     );
   });
 
-  it('a11y：色弱/灰色模式消费 preferences 写的 --app-filter', () => {
+  it('a11y：色弱/灰色模式消费 preferences 写的 --filter', () => {
     expect(a11y).toContain('html.color-weak');
     expect(a11y).toContain('html.gray-mode');
-    expect(a11y).toContain('var(--app-filter');
-    // 滤镜值要和 packages/core/preferences/src/css-vars.ts 的常量对得上
+    expect(a11y).toContain('var(--filter');
+    // 滤镜值要和 packages/core/base/shared/src/constants/css-vars.ts 的常量对得上
     expect(a11y).toContain('invert(80%) grayscale(100%)');
     expect(a11y).toContain('grayscale(100%)');
   });

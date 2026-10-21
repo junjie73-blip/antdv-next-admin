@@ -3,8 +3,8 @@ import type { MenuKey } from '@antdv/types';
 import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
-import { findAncestorKeys } from '@antdv/utils';
 import { useAppStore } from '@antdv/stores';
+import { findAncestorKeys } from '@antdv/utils';
 
 import { useShell } from './use-layout';
 

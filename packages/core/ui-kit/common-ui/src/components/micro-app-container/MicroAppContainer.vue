@@ -4,8 +4,8 @@ import type { MicroAppContainerEmits, MicroAppContainerProps } from './types';
 import { computed, ref } from 'vue';
 
 import { IconifyIcon as Icon } from '@antdv/icons/icon';
-import { cn } from '@antdv/shared/utils/cn';
 import { Button, Spinner } from '@antdv/shadcn-ui';
+import { cn } from '@antdv/shared/utils/cn';
 import { useEventListener, useTimeoutFn } from '@vueuse/core';
 
 /**
@@ -38,7 +38,7 @@ const containerClassName = computed(() =>
 
 const overlayClassName = cn(
   'absolute inset-0 z-10 flex flex-col items-center justify-center',
-  'rounded-lg bg-background/80 backdrop-blur-sm',
+  'bg-background/80 rounded-lg backdrop-blur-sm',
 );
 
 function handleBeforeLoad() {

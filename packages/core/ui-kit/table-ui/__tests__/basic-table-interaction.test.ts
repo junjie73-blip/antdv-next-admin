@@ -46,10 +46,14 @@ beforeEach(() => {
   vi.useRealTimers();
 });
 
-describe('BasicTable 排序', () => {
+describe('basicTable 排序', () => {
   const sortableColumns: BasicColumn[] = [
     { dataIndex: 'name', title: '名称' },
-    { dataIndex: 'age', sorter: (a: Recordable, b: Recordable) => a.age - b.age, title: '年龄' },
+    {
+      dataIndex: 'age',
+      sorter: (a: Recordable, b: Recordable) => a.age - b.age,
+      title: '年龄',
+    },
   ];
 
   it('sorter 函数走本地比较，点击表头升序 → 降序 → 取消', async () => {
@@ -93,9 +97,9 @@ describe('BasicTable 排序', () => {
       columns: sortableColumns,
       showSorterTooltip: true,
     });
-    expect(
-      wrapper.find('th[data-column-key="age"]').attributes('title'),
-    ).toBe('点击排序');
+    expect(wrapper.find('th[data-column-key="age"]').attributes('title')).toBe(
+      '点击排序',
+    );
     expect(
       wrapper.find('th[data-column-key="name"]').attributes('title'),
     ).toBeUndefined();
@@ -191,7 +195,7 @@ describe('BasicTable 排序', () => {
   });
 });
 
-describe('BasicTable 过滤', () => {
+describe('basicTable 过滤', () => {
   const filterColumns: BasicColumn[] = [
     {
       dataIndex: 'status',
@@ -230,7 +234,9 @@ describe('BasicTable 过滤', () => {
     const [activeBox] = panel!.querySelectorAll('input[type="checkbox"]');
     (activeBox as HTMLInputElement).click();
     await nextTick();
-    (panel!.querySelector('.basic-table-filter-confirm') as HTMLElement).click();
+    (
+      panel!.querySelector('.basic-table-filter-confirm') as HTMLElement
+    ).click();
     await settle();
 
     expect(cellTexts(wrapper).map((cells) => cells[0])).toEqual([
@@ -271,7 +277,7 @@ describe('BasicTable 过滤', () => {
   });
 });
 
-describe('BasicTable 分页', () => {
+describe('basicTable 分页', () => {
   const manyRows = Array.from({ length: 25 }, (_, i) => ({
     age: i,
     id: i + 1,
@@ -301,7 +307,9 @@ describe('BasicTable 分页', () => {
     expect(cellTexts(wrapper)[0]![0]).toBe('用户11');
     await wrapper.find('.basic-table-next').trigger('click');
     await settle();
-    expect(wrapper.find('.basic-table-next').attributes('disabled')).toBeDefined();
+    expect(
+      wrapper.find('.basic-table-next').attributes('disabled'),
+    ).toBeDefined();
   });
 
   it('页码超过 7 页时收拢成省略号', () => {
@@ -400,7 +408,7 @@ describe('BasicTable 分页', () => {
   });
 });
 
-describe('BasicTable 行选择', () => {
+describe('basicTable 行选择', () => {
   const selection = (extra: Recordable = {}) => {
     const state = reactive<any>({
       selectedRowKeys: [],
@@ -535,7 +543,7 @@ describe('BasicTable 行选择', () => {
   });
 });
 
-describe('BasicTable 树形展开', () => {
+describe('basicTable 树形展开', () => {
   const treeRows: Recordable[] = [
     {
       children: [
@@ -563,9 +571,7 @@ describe('BasicTable 树形展开', () => {
       '父2',
     ]);
     // 子行首列前有缩进占位
-    const indent = wrapper
-      .findAll('tbody tr')[1]!
-      .find('td span.inline-block');
+    const indent = wrapper.findAll('tbody tr')[1]!.find('td span.inline-block');
     expect(indent.attributes('style')).toContain('width: 20px');
   });
 
@@ -596,7 +602,10 @@ describe('BasicTable 树形展开', () => {
     expect(bodyRows(wrapper)).toHaveLength(4);
     expect(icon().classes()).toContain('basic-table-row-expand-icon-expanded');
     // 数字主键不做 String 归一，否则 includes(1) 永不命中
-    expect(onExpand).toHaveBeenCalledWith(true, expect.objectContaining({ id: 1 }));
+    expect(onExpand).toHaveBeenCalledWith(
+      true,
+      expect.objectContaining({ id: 1 }),
+    );
     expect(onExpandedRowsChange).toHaveBeenLastCalledWith([1]);
 
     await icon().trigger('click');
@@ -642,9 +651,7 @@ describe('BasicTable 树形展开', () => {
     });
     expect(wrapper.findAll('.basic-table-row-expand-icon')).toHaveLength(2);
 
-    await wrapper
-      .findAll('.basic-table-row-expand-icon')[0]!
-      .trigger('click');
+    await wrapper.findAll('.basic-table-row-expand-icon')[0]!.trigger('click');
     await nextTick();
     expect(wrapper.find('.basic-table-expanded-row').exists()).toBe(true);
     expect(wrapper.find('.my-expand').text()).toBe('详情-张三');
@@ -659,15 +666,13 @@ describe('BasicTable 树形展开', () => {
         },
       },
     );
-    await wrapper
-      .find('.basic-table-row-expand-icon')
-      .trigger('click');
+    await wrapper.find('.basic-table-row-expand-icon').trigger('click');
     await nextTick();
     expect(wrapper.find('.basic-table-expanded-row').text()).toBe('slot-1');
   });
 });
 
-describe('BasicTable 列宽拖拽', () => {
+describe('basicTable 列宽拖拽', () => {
   it('resizable 列渲染手柄，按下后由 TanStack 接管 sizing', async () => {
     const wrapper = mountTable({
       columns: [

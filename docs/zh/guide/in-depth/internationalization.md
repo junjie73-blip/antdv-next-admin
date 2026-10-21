@@ -26,9 +26,7 @@ antdLocale.value = await loadLocale(locale); // 4. antd 内置文案
 
 第 4 件事的教训写在源码注释里：这一步曾经是注释掉的，`antdLocale` 恒为undefined，`ConfigProvider` 退回英文兜底 —— 整站中文界面里内置文案是英文、表格空状态是英文。现在 `App.vue` 把它接进 `ConfigProvider :locale`。
 
-::: warning 内置文案有两层 provider，别记混
-`Popconfirm` 的确定/取消、`Empty` / `EmptyState` / `Transfer` 的空态文案读的是 `@antdv/common-ui` 的 `ConfigProvider`（`apps/web/src/App.vue:76-79`，同样取 `appStore.locale`），与 antd 无关；antd 那只现在只剩表单设计器还在用。两层都从同一个偏好取值，所以切语言会一起动 —— 反过来说，谁在子树里新挂一层 provider 却忘了传 `locale`，就会出现"主体已切英文、包内组件仍是中文"这种半套状态。API 见 [公共组件](/components/common-ui)。
-:::
+::: warning 内置文案有两层 provider，别记混 `Popconfirm` 的确定/取消、`Empty` / `EmptyState` / `Transfer` 的空态文案读的是 `@antdv/common-ui` 的 `ConfigProvider`（`apps/web/src/App.vue:76-79`，同样取 `appStore.locale`），与 antd 无关；antd 那只现在只剩表单设计器还在用。两层都从同一个偏好取值，所以切语言会一起动 —— 反过来说，谁在子树里新挂一层 provider 却忘了传 `locale`，就会出现"主体已切英文、包内组件仍是中文"这种半套状态。API 见 [公共组件](/components/common-ui)。:::
 
 `useLocaleSync()` 是**唯一**做这个展开的地方（App.vue 调用），任何组件都不该再自己写 `i18n.global.locale`。
 

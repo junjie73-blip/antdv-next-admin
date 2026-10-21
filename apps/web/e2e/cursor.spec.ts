@@ -78,8 +78,13 @@ const DECORATIVE_HOVER_ALLOWLIST: string[] = [
    * 所以"点了有事"还不成立，给指针同样是撒谎。
    * 哪天某个页面真的开始消费 `rowClick`，就要给 `basic-table-row` 补 `cursor-pointer`
    * 并把这一条从这里删掉。
+   *
+   * 这里的快照是"标签 + class 的前四枚"，不是选择器：上一轮把行样式改成
+   * `basic-table-row group border-b border-gray-100 bg-card …` 时，插入的 `group`
+   * 把前四枚换掉了，这条没能匹配上，全站扫描就把同一行又报了一遍
+   * （类名没变义、光标也没坏，纯粹是快照过期）。改模板里的工具类顺序记得同步这里。
    */
-  'tr|basic-table-row border-b border-gray-100 transition-colors',
+  'tr|basic-table-row group border-b border-gray-100',
 ];
 
 /**

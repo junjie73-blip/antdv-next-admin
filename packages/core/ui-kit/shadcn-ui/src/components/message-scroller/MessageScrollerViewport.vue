@@ -1,15 +1,21 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue"
-import { cn } from '@antdv/shared/utils/cn'
-import { SCROLL_KEYS, useMessageScrollerContext } from "./useMessageScroller"
+import type { HTMLAttributes } from 'vue';
 
-const props = withDefaults(defineProps<{
-  class?: HTMLAttributes["class"]
-  preserveScrollOnPrepend?: boolean
-}>(), {
-  preserveScrollOnPrepend: true,
-})
+import { onBeforeUnmount, onMounted, useTemplateRef, watch } from 'vue';
+
+import { cn } from '@antdv/shared/utils/cn';
+
+import { SCROLL_KEYS, useMessageScrollerContext } from './useMessageScroller';
+
+const props = withDefaults(
+  defineProps<{
+    class?: HTMLAttributes['class'];
+    preserveScrollOnPrepend?: boolean;
+  }>(),
+  {
+    preserveScrollOnPrepend: true,
+  },
+);
 
 const {
   autoscrolling,
@@ -19,38 +25,38 @@ const {
   setViewportElement,
   syncAfterScroll,
   userScrollIntent,
-} = useMessageScrollerContext()
+} = useMessageScrollerContext();
 
-const viewportEl = useTemplateRef<HTMLElement>("viewport")
+const viewportEl = useTemplateRef<HTMLElement>('viewport');
 
-watch(() => props.preserveScrollOnPrepend, setPreserveScrollOnPrepend, { immediate: true })
+watch(() => props.preserveScrollOnPrepend, setPreserveScrollOnPrepend, {
+  immediate: true,
+});
 
 function onKeyDown(event: KeyboardEvent) {
-  if (SCROLL_KEYS.has(event.key))
-    userScrollIntent()
+  if (SCROLL_KEYS.has(event.key)) userScrollIntent();
 }
 
-let resizeObserver: ResizeObserver | null = null
-let resizeFrame = 0
+let resizeObserver: null | ResizeObserver = null;
+let resizeFrame = 0;
 
 onMounted(() => {
-  const viewport = viewportEl.value
-  setViewportElement(viewport)
-  if (!viewport || typeof ResizeObserver === "undefined")
-    return
+  const viewport = viewportEl.value;
+  setViewportElement(viewport);
+  if (!viewport || typeof ResizeObserver === 'undefined') return;
   resizeObserver = new ResizeObserver(() => {
-    window.cancelAnimationFrame(resizeFrame)
-    resizeFrame = window.requestAnimationFrame(handleResize)
-  })
-  resizeObserver.observe(viewport)
-})
+    window.cancelAnimationFrame(resizeFrame);
+    resizeFrame = window.requestAnimationFrame(handleResize);
+  });
+  resizeObserver.observe(viewport);
+});
 
 onBeforeUnmount(() => {
-  window.cancelAnimationFrame(resizeFrame)
-  resizeObserver?.disconnect()
-  resizeObserver = null
-  setViewportElement(null)
-})
+  window.cancelAnimationFrame(resizeFrame);
+  resizeObserver?.disconnect();
+  resizeObserver = null;
+  setViewportElement(null);
+});
 </script>
 
 <template>
@@ -62,15 +68,17 @@ onBeforeUnmount(() => {
     :tabindex="0"
     :data-scrollable="scrollableAttr"
     :data-autoscrolling="autoscrolling ? '' : undefined"
-    :class="cn(
-      'size-full min-h-0 min-w-0 scroll-fade-b scrollbar-thin scrollbar-gutter-stable overflow-y-auto overscroll-contain contain-content data-autoscrolling:scrollbar-thumb-transparent data-autoscrolling:scrollbar-track-transparent',
-      props.class,
-    )"
+    :class="
+      cn(
+        'size-full min-h-0 min-w-0 scroll-fade-b scrollbar-thin scrollbar-gutter-stable overflow-y-auto overscroll-contain contain-content data-autoscrolling:scrollbar-thumb-transparent data-autoscrolling:scrollbar-track-transparent',
+        props.class,
+      )
+    "
     @scroll="syncAfterScroll()"
     @wheel="userScrollIntent()"
     @touchmove="userScrollIntent()"
     @keydown="onKeyDown"
   >
-    <slot />
+    <slot></slot>
   </div>
 </template>

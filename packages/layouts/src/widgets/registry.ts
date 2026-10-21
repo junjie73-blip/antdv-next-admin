@@ -1,6 +1,6 @@
-import type { WidgetKey, WidgetMeta } from './types';
-
 import type { ComputedRef } from 'vue';
+
+import type { WidgetKey, WidgetMeta } from './types';
 
 import { computed, defineAsyncComponent } from 'vue';
 

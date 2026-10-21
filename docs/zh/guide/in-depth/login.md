@@ -44,13 +44,11 @@
 
 ::: warning
 
-Mock 环境没有 `/auth/refresh` `backend-mock/server/api/auth/` 下只有 `login` / `logout` / `user-info`，登录响应也不发 refresh token。所以演示环境里 401 的直接结果就是 `forceLogout`。刷新链路是按 `REFRESH_TOKEN_KEY`（`config/constants.ts`）设计的，接真实后端才会被激活。
-:::
+Mock 环境没有 `/auth/refresh` `backend-mock/server/api/auth/` 下只有 `login` / `logout` / `user-info`，登录响应也不发 refresh token。所以演示环境里 401 的直接结果就是 `forceLogout`。刷新链路是按 `REFRESH_TOKEN_KEY`（`config/constants.ts`）设计的，接真实后端才会被激活。:::
 
 ::: tip
 
-token 解密要显式触发 store 初始化只把缓存里的密文原样读进 `token`；`initToken()` 负责异步解密（解密失败回落原值，兼容旧明文）。它不在应用启动路径上，改这条链路时记得验证 "刷新页面后 Authorization 头里是可用的 token"。
-:::
+token 解密要显式触发 store 初始化只把缓存里的密文原样读进 `token`；`initToken()` 负责异步解密（解密失败回落原值，兼容旧明文）。它不在应用启动路径上，改这条链路时记得验证 "刷新页面后 Authorization 头里是可用的 token"。:::
 
 ## 登出清哪四件套
 

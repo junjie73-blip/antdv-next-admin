@@ -3,23 +3,22 @@ import type {
   UploadChangeParam,
   UploadFile,
   UploadRequestOptions,
-} from '@antdv/common-ui';
-
-import type { UploadInstance, UploadProps } from './types';
+} from '../upload';
+import type { FileUploadInstance, FileUploadProps } from './types';
 
 import { ref, watch } from 'vue';
 
-import { Upload as BaseUpload } from '@antdv/common-ui';
 import { message } from '@antdv/popup-ui';
 import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 
+import { Upload as BaseUpload } from '../upload';
 import { uploadSingleFile } from './api';
 
-defineOptions({ name: 'Upload' });
+defineOptions({ name: 'FileUpload' });
 
-const props = withDefaults(defineProps<UploadProps>(), {
+const props = withDefaults(defineProps<FileUploadProps>(), {
   multiple: false,
   showUploadList: true,
   listType: 'text',
@@ -127,7 +126,7 @@ function clear() {
   emit('update:value', []);
 }
 
-defineExpose<UploadInstance>({
+defineExpose<FileUploadInstance>({
   getFileList,
   setFileList,
   clear,

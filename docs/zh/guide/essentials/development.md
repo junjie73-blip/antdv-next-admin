@@ -23,16 +23,14 @@
 
 ::: warning
 
-布尔开关用 `isEnvEnabled` 判断，不要写 `=== true` `VITE_*` 从环境里拿到的是字符串。`VITE_MICRO_APP === true` 这种写法永远为 false，表现是"我明明打开了开关，微前端页还是一直报连不上"。
-:::
+布尔开关用 `isEnvEnabled` 判断，不要写 `=== true` `VITE_*` 从环境里拿到的是字符串。`VITE_MICRO_APP === true` 这种写法永远为 false，表现是"我明明打开了开关，微前端页还是一直报连不上"。:::
 
 ::: warning 两个默认关掉的开关是有原因的
 
 - `VITE_MICRO_APP=false`：子应用要真的跑在注册表配的端口上（`src/config/micro-app.ts`），否则「微前端」菜单页会去连不通的地址。
 - `VITE_WS_URL=`（空）：Nitro mock 没有 `/ws` 处理器，而重连是**无限**的 —— 在没有后端的情况下发起连接，只会把控制台和端到端用例淹掉。接真实后端时填完整地址（如 `ws://localhost:8080/ws`），token 由前端自动附加。
 
-`VITE_DEV_POLLING` 也在 `.env.development` 里注释着：仓库放在映射盘（本机是 `J:`）时 inotify 事件不送达，看起来该开。实测**开了也救不回来** —— 配置确实拿到了 `server.watch.usePolling`，用 chokidar 直接轮询同目录能收到 change，但 dev server 的模块图始终不失效（旧模块一直服务到重启）。白烧 CPU 换不到 HMR，所以保持注释，改完共享包按 [快速开始](/zh/guide/introduction/quick-start#_3-改了共享包却没生效) 的流程重新构建 + 重启。
-:::
+`VITE_DEV_POLLING` 也在 `.env.development` 里注释着：仓库放在映射盘（本机是 `J:`）时 inotify 事件不送达，看起来该开。实测**开了也救不回来** —— 配置确实拿到了 `server.watch.usePolling`，用 chokidar 直接轮询同目录能收到 change，但 dev server 的模块图始终不失效（旧模块一直服务到重启）。白烧 CPU 换不到 HMR，所以保持注释，改完共享包按 [快速开始](/zh/guide/introduction/quick-start#_3-改了共享包却没生效) 的流程重新构建 + 重启。:::
 
 ## 编码规范
 
@@ -40,7 +38,7 @@
 
 1. **页面按 `views/<模块>/<页面>/index.vue` 摆放**，页面私有逻辑放同目录的 `actions.ts` / `columns.ts` / `schemas.ts`；`components/`、`widgets/` 子目录里的是 **私有组件，不是路由页面** —— 文件约定路由和"根容器不许加 padding"的守卫都用这个口径排除它们。
 2. **路由页面外层容器不写 padding**，内边距归布局管（见[布局、菜单与标签页](/zh/guide/in-depth/layout#内容区内边距归布局管)）。
-3. **强调色只用 `@antdv/design` 的主色令牌**（`bg-primary` / `text-primary` / `var(--app-primary)`），不写 antd 兼容层的 `*-ant-*`（那组类已不再生成），也不写死 `blue-*` 或 `#1677ff`（见[主题与偏好设置](/zh/guide/in-depth/theme#用-tailwind-写主题色)）。
+3. **强调色只用 `@antdv/design` 的主色令牌**（`bg-primary` / `text-primary` / `var(--primary)`），不写 antd 兼容层的 `*-ant-*`（那组类已不再生成），也不写死 `blue-*` 或 `#1677ff`（见[主题与偏好设置](/zh/guide/in-depth/theme#用-tailwind-写主题色)）。
 
 跑检查：
 
@@ -51,7 +49,7 @@ pnpm check           # circular + dep + type + builds + cspell 五件套
 pnpm publint         # 子包产物是否可发布
 ```
 
-`check:type` 目前**存量 253 条错误**（`components/business/**`、`api/mock.ts`、 `security/dashboard/**`、`form/validation` 等）。CI 里它以"继续但不阻断"的方式跑，理由与收敛计划见 [CI 与部署](/zh/guide/essentials/deploy#type-check-为什么先设成非阻断)。
+`check:type` 目前**存量 253 条错误**（`api/mock.ts`、`security/dashboard/**`、`form/validation` 等；原先排在最前面的应用侧 `components/business/**` 已随迁移进了 UI 包）。CI 里它以"继续但不阻断"的方式跑，理由与收敛计划见 [CI 与部署](/zh/guide/essentials/deploy#type-check-为什么先设成非阻断)。
 
 ## 子包统一构建标准
 
@@ -105,8 +103,7 @@ pnpm commit :f       # 别名直接预填 "docs: fix typos"
 
 ::: warning
 
-本地钩子目前是关的 `lefthook.yml` 里所有 hook 都被注释掉了（`prepare` 仍会执行 `lefthook install`，但没有实际拦截）。所以**别指望提交时自动跑 lint**，也别忘了 `pnpm exec lefthook run pre-commit` 现在等于什么都没做 ——真正的门禁在 CI 那侧，见 [CI 与部署](/zh/guide/essentials/deploy)。
-:::
+本地钩子目前是关的 `lefthook.yml` 里所有 hook 都被注释掉了（`prepare` 仍会执行 `lefthook install`，但没有实际拦截）。所以**别指望提交时自动跑 lint**，也别忘了 `pnpm exec lefthook run pre-commit` 现在等于什么都没做 ——真正的门禁在 CI 那侧，见 [CI 与部署](/zh/guide/essentials/deploy)。:::
 
 ## changeset
 

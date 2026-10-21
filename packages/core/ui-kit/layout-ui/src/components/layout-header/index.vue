@@ -8,8 +8,8 @@ import { computed } from 'vue';
 import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import { BasicMenu } from '@antdv/menu-ui';
 
-import { LAYOUT_HEADER_ROW_STYLE, layoutRuntime } from '../../layout';
 import { useLayoutStyle } from '../../hooks/use-layout';
+import { LAYOUT_HEADER_ROW_STYLE, layoutRuntime } from '../../layout';
 import SidebarCollapsedButton from '../widgets/sidebar-collapsed-button/index.vue';
 
 defineOptions({ name: 'LayoutHeader' });

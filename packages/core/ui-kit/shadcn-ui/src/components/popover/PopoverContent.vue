@@ -1,30 +1,28 @@
 <script setup lang="ts">
-import type { PopoverContentEmits, PopoverContentProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import {
-  PopoverContent,
-  PopoverPortal,
-  useForwardPropsEmits,
-} from "reka-ui"
-import { cn } from '@antdv/shared/utils/cn'
+import type { PopoverContentEmits, PopoverContentProps } from 'reka-ui';
+
+import type { HTMLAttributes } from 'vue';
+
+import { cn } from '@antdv/shared/utils/cn';
+import { reactiveOmit } from '@vueuse/core';
+import { PopoverContent, PopoverPortal, useForwardPropsEmits } from 'reka-ui';
 
 defineOptions({
   inheritAttrs: false,
-})
+});
 
 const props = withDefaults(
-  defineProps<PopoverContentProps & { class?: HTMLAttributes["class"] }>(),
+  defineProps<PopoverContentProps & { class?: HTMLAttributes['class'] }>(),
   {
-    align: "center",
+    align: 'center',
     sideOffset: 4,
   },
-)
-const emits = defineEmits<PopoverContentEmits>()
+);
+const emits = defineEmits<PopoverContentEmits>();
 
-const delegatedProps = reactiveOmit(props, "class")
+const delegatedProps = reactiveOmit(props, 'class');
 
-const forwarded = useForwardPropsEmits(delegatedProps, emits)
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
 
 <template>
@@ -39,7 +37,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
         )
       "
     >
-      <slot />
+      <slot></slot>
     </PopoverContent>
   </PopoverPortal>
 </template>

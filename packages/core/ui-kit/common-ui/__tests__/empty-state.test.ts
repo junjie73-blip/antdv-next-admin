@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import EmptyState from '../src/components/empty-state/EmptyState.vue';
 
-describe('EmptyState', () => {
+describe('emptyState', () => {
   it('默认标题为「暂无数据」，无 description 时不渲染副标题段', () => {
     const wrapper = mount(EmptyState);
     expect(wrapper.text()).toContain('暂无数据');

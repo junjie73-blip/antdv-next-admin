@@ -23,8 +23,8 @@ internal/   构建期工具：只在 Node 里跑，不进产物
 | `@antdv/design`（`core/base/design`） | 两个二级目录：`token/`（default / dark 两套 shadcn 变量 + `@theme inline` 映射）与 `css/`（基础层、NProgress、无障碍、权限降级、滚动条兜底），由 Tailwind v4 入口 `src/index.css` 引齐 | 只写变量与 CSS，不含组件逻辑 |
 | `@antdv/icons`（`core/base/icons`） | 只管图标：Iconify 包装、SVG 雪碧图图标、图标选择器（shadcn 实现），5 个 `@iconify-json/*` 集合声明在本包 `dependencies` | pinia / vue-router / 业务 store / 应用配置 / antdv-next |
 | `@antdv/hooks`（`core/hooks`） | 组合式函数：`use-cache`、`use-chunk-upload`、`use-crud`、`use-file-reader`、`use-permission`、`use-print`、`use-route-loading`、`use-watermark` + `echarts/` 子入口 | store / api / 路由实例 |
-| `@antdv/preferences`（`core/preferences`） | 偏好默认值（`src/config.ts`）、持久化、`applyPreferencesToDom()` 落 DOM（`src/update-css-variables.ts`）、启动主题快照 | pinia / store；**不认识 antd** —— "偏好 → antd `ThemeConfig`" 的翻译在应用侧 `apps/web/src/settings/theme/index.ts:2-4` |
-| `@antdv/common-ui`（`core/ui-kit/common-ui`） | 公共展示件与外壳：`Loading` + `useLoading` / `createLoading`、自绘 `Scrollbar` + `Bar`、`Alert`、`Badge`、`BorderBeam`、`Card`、`CountTo`、`CronEditor`、`Description(s)`、`Divider`、`Empty` / `EmptyState`、`ErrorBoundary`、`Image`、`Listy`、`MarkdownEditor`、`PageSkeleton` / `TableSkeleton`、`Popconfirm`、`Result`、`Segmented`、`Space`、`Statistic`、`StatusTag`、`Steps`、`Tabs` / `TabPane`、`Tag`、`Timeline`、`Toaster`、`Tooltip`、`Transfer`、`Tree`、`Upload`、登录页外壳 `AuthPageLayout` / `AuthFormPanel` / `AuthColorPresets`、`ConfigProvider`，全部由 `@antdv/shadcn-ui` 的原语组合出来 | 应用 store / api |
+| `@antdv/preferences`（`core/preferences`） | 偏好默认值（`src/config.ts`）、持久化、`applyPreferencesToDom()` 落 DOM（`src/update-css-variables.ts`）、启动主题快照（`src/boot-theme.ts`） | pinia / store；**不认识 antd，也不认识任何组件库** —— 偏好直接落成 `<html>` 上的 `--primary` / `--radius` / `--font-size` / `--filter`，没有"偏好 → `ThemeConfig`"这一层翻译（曾经承担这件事的 `apps/web/src/settings/theme/` 已随 antd 一起删除） |
+| `@antdv/common-ui`（`core/ui-kit/common-ui`） | 公共展示件与外壳：`Loading` + `useLoading` / `createLoading`、自绘 `Scrollbar`（只有这一个组件，没有单独的 `Bar`）、`Alert`、`Badge`、`BorderBeam`、`Card`、`CountTo`、`CronEditor`、`Description(s)`、`Divider`、`Empty` / `EmptyState`、`ErrorBoundary`、`Image`、`Listy`、`MarkdownEditor`、`PageSkeleton` / `TableSkeleton`、`Popconfirm`、`Result`、`Segmented`、`Space`、`Statistic`、`StatusTag`、`Steps`、`Tabs` / `TabPane`、`Tag`、`Timeline`、`Toaster`、`Tooltip`、`Transfer`、`Tree`、`Upload`、登录页外壳 `AuthPageLayout` / `AuthFormPanel` / `AuthColorPresets`、`ConfigProvider`，全部由 `@antdv/shadcn-ui` 的原语组合出来 | 应用 store / api |
 | `@antdv/shadcn-ui`（`core/ui-kit/shadcn-ui`） | shadcn-vue 原子件（Dialog / Popover / Select / Spinner…），上面几包的实现底座 | 业务逻辑 |
 | `@antdv/form-ui`（`core/ui-kit/form-ui`） | `@tanstack/vue-form` 之上的 schema 表单：`BasicForm` / `useForm` / `componentMap` | 应用 store |
 | `@antdv/table-ui`（`core/ui-kit/table-ui`） | `@tanstack/vue-table` 之上的 `BasicTable` / `useTable` + hooks | 应用 store |
@@ -42,8 +42,7 @@ internal/   构建期工具：只在 Node 里跑，不进产物
 
 ::: tip
 
-为什么每张表都多一列"不许 import" 这是这些包能被客户项目单独复用的唯一原因。凡是"要读用户权限 / 要拿菜单 / 要看偏好"的地方，一律通过**依赖注入**把函数或 ref 传进来，包自己不认识 pinia。于是包能保持纯 TS + Vue 组合式、能脱离应用做单测，也不会出现"store 引包、包又反过来引 store"的环。新增能力时先想清楚这条边界，再决定放应用里还是放子包里 —— 需要 store 的薄壳留在 `apps/web`。
-:::
+为什么每张表都多一列"不许 import" 这是这些包能被客户项目单独复用的唯一原因。凡是"要读用户权限 / 要拿菜单 / 要看偏好"的地方，一律通过**依赖注入**把函数或 ref 传进来，包自己不认识 pinia。于是包能保持纯 TS + Vue 组合式、能脱离应用做单测，也不会出现"store 引包、包又反过来引 store"的环。新增能力时先想清楚这条边界，再决定放应用里还是放子包里 —— 需要 store 的薄壳留在 `apps/web`。:::
 
 ## 依赖方向
 

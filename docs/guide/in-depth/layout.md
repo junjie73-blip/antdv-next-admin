@@ -23,8 +23,7 @@ full-content · horizontal · mixed-two-column · mixed-vertical · side-nav · 
 
 ::: tip
 
-加第 8 种形态只在 `LAYOUT_BLUEPRINTS` 里加一条 + `LayoutMode` 联合类型里加一个字面量，布局组件不用动。这就是把形态差异做成数据而不是 `if/else` 的目的。历史值 `'mixed'` 已重命名为 `'mixed-vertical'`，旧缓存由 `normalizeLayoutMode()` 在读偏好时迁移，不入库。
-:::
+加第 8 种形态只在 `LAYOUT_BLUEPRINTS` 里加一条 + `LayoutMode` 联合类型里加一个字面量，布局组件不用动。这就是把形态差异做成数据而不是 `if/else` 的目的。历史值 `'mixed'` 已重命名为 `'mixed-vertical'`，旧缓存由 `normalizeLayoutMode()` 在读偏好时迁移，不入库。:::
 
 ## 内容区内边距归布局管
 
@@ -65,8 +64,7 @@ full-content · horizontal · mixed-two-column · mixed-vertical · side-nav · 
 
 ::: warning
 
-巡检时要避开的一条陷阱外壳的多标签页本身渲染成 `a[href^="#/..."]`。写用例时凡是"数内容区里的链接"都必须先圈进 `<main>`，否则永远多算几枚 —— 总览页的卡片墙过滤到空时数出来 1 个以上，就是这么来的。
-:::
+巡检时要避开的一条陷阱外壳的多标签页本身渲染成 `a[href^="#/..."]`。写用例时凡是"数内容区里的链接"都必须先圈进 `<main>`，否则永远多算几枚 —— 总览页的卡片墙过滤到空时数出来 1 个以上，就是这么来的。:::
 
 ## 面包屑
 

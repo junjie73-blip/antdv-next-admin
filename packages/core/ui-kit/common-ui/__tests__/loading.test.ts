@@ -1,14 +1,14 @@
+import { mount } from '@vue/test-utils';
 import { nextTick } from 'vue';
 
-import { mount } from '@vue/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   createContainerLoading,
   createLoading,
 } from '../src/components/loading/createLoading';
-import Loading from '../src/components/loading/Loading.vue';
 import loadingDirective from '../src/components/loading/directive';
+import Loading from '../src/components/loading/Loading.vue';
 import { LEAVE_DURATION } from '../src/components/loading/overlay';
 import { useLoading } from '../src/components/loading/useLoading';
 
@@ -42,7 +42,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe('Loading 组件', () => {
+describe('loading 组件', () => {
   it('loading 为 false 时遮罩不可见', () => {
     const wrapper = mount(Loading, { props: { loading: false } });
     expect(wrapper.find('.loading-wrapper').isVisible()).toBe(false);
@@ -92,7 +92,7 @@ describe('Loading 组件', () => {
     });
     expect(withTip.find('.loading-tip').text()).toBe('加载中…');
     /*
-     * 文字颜色必须走主题主色（`text-primary` → `--color-primary` → `--app-primary`），
+     * 文字颜色必须走主题主色（`text-primary` → `--color-primary` → 色板里的 `--primary`），
      * 不能是继承下来的黑字，也不能写死色值。
      */
     expect(withTip.find('.loading-tip').classes()).toContain('text-primary');

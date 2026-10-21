@@ -4,20 +4,19 @@ This page covers two demo routes: `/components/directive` (the **five globally r
 
 ## The five global directives: exactly two registration sites
 
-The only `app.directive(...)` calls in the entire repository are these five, at `apps/web/src/main.ts:122-132`:
+The only `app.directive(...)` calls in the entire repository are these five, at `apps/web/src/main.ts:108-118`:
 
 | Directive | Implementation lives in | App-side injection | Production use sites (outside the demo) |
 | --- | --- | --- | --- |
-| `v-permission` | `packages/directives/src/permission/index.ts:57` | `apps/web/src/directives/index.ts:19-36` | `apps/web/src/components/business/ImportExport.vue:234, 244` |
-| `v-loading` | `packages/core/ui-kit/common-ui/src/components/loading/directive.ts:88-107` | the `vLoading` from `@antdv/common-ui`, registered directly (`main.ts:8, 132`) | `apps/web/src/views/components/loading/index.vue:1236` onwards |
+| `v-permission` | `packages/directives/src/permission/index.ts:54` | `apps/web/src/directives/index.ts:19-36` | `packages/core/ui-kit/common-ui/src/components/import-export/ImportExport.vue:234, 244` |
+| `v-loading` | `packages/core/ui-kit/common-ui/src/components/loading/directive.ts:88-107` | the `vLoading` from `@antdv/common-ui`, registered directly (`main.ts:8, 118`) | `apps/web/src/views/components/loading/index.vue:1236` onwards |
 | `v-lazy` | `packages/directives/src/lazy.ts:145, 316` | re-exported at `apps/web/src/directives/index.ts:16` | **no usage outside the demo page** (see below) |
 | `v-safe-html` | `packages/core/base/shared/src/utils/xss.ts:446` | re-exported at `apps/web/src/directives/index.ts:17` | `markdown-editor/MarkdownEditor.vue:664`, editor demo `editor/index.vue:880` |
 | `v-escape` | `packages/core/base/shared/src/utils/xss.ts:463-471` | re-exported at `apps/web/src/directives/index.ts:17` | **no usage outside the demo page** (see below) |
 
 ::: warning
 
-Don't look for everything under the package name `@antdv/directives` contains **only permission and lazy** (its `src/index.ts:10-11` has exactly those two exports). `escape` / `safe-html` live in `@antdv/shared/utils/xss`, `v-loading` lives in `@antdv/common-ui`. `apps/web/src/directives/index.ts` exists to inject project dependencies into the factories: the packages never import pinia / stores (the design constraint is stated at `packages/directives/src/index.ts:4-7`); checkers and the subscription source come from the app.
-:::
+Don't look for everything under the package name `@antdv/directives` contains **only permission and lazy** (its `src/index.ts:10-11` has exactly those two exports). `escape` / `safe-html` live in `@antdv/shared/utils/xss`, `v-loading` lives in `@antdv/common-ui`. `apps/web/src/directives/index.ts` exists to inject project dependencies into the factories: the packages never import pinia / stores (the design constraint is stated at `packages/directives/src/index.ts:4-7`); checkers and the subscription source come from the app. :::
 
 ## v-permission: decisions outside the package, DOM flags inside it
 
@@ -47,8 +46,7 @@ Don't look for everything under the package name `@antdv/directives` contains **
 
 1. **`:role` is an arg, `.role` is a modifier** — the evaluator only reads the arg (`utils.ts:41`); `.role` silently degrades to permission-code interpretation. The demo prints this on its UI (`apps/web/src/views/components/directive/index.vue:284-289`).
 2. **Empty values pass**: `undefined` / `null` / `''` / `[]` all grant access (`utils.ts:90-97`). `v-permission="[]"` is the same as not writing it.
-3. **Mode precedence**: `mode` in the object > `.all` modifier > default `any` (`utils.ts:100-101`); once the object sets `mode: 'all'`, `.all` no longer says anything.
-:::
+3. **Mode precedence**: `mode` in the object > `.all` modifier > default `any` (`utils.ts:100-101`); once the object sets `mode: 'all'`, `.all` no longer says anything. :::
 
 ### What happens to the DOM when access is denied
 
@@ -56,8 +54,7 @@ Don't look for everything under the package name `@antdv/directives` contains **
 
 ::: tip
 
-The router layer reads none of this The `RouteMeta` type declares `roles?: string[]` / `permissions?: string[]` (`packages/core/base/typings/src/app-router.ts:9-10`), but **nothing anywhere in `apps/web/src/router/**` or `packages/router/src/**` reads them** — route admission is actually driven by menu data ("menu is the permission"; `packages/stores/src/route.ts:181, 210` only handles `meta.requiresAuth`). `v-permission` governs only the element layer; the full three-layer picture is in [Access control](/en/guide/in-depth/access).
-:::
+The router layer reads none of this The `RouteMeta` type declares `roles?: string[]` / `permissions?: string[]` (`packages/core/base/typings/src/app-router.ts:9-10`), but **nothing anywhere in `apps/web/src/router/**` or `packages/router/src/**` reads them** — route admission is actually driven by menu data ("menu is the permission"; `packages/stores/src/route.ts:181, 210` only handles `meta.requiresAuth`). `v-permission` governs only the element layer; the full three-layer picture is in [Access control](/en/guide/in-depth/access). :::
 
 ## v-loading: boolean-driven, configuration read from attributes
 
@@ -69,8 +66,7 @@ The directive value is a `boolean` (type annotation at `packages/core/ui-kit/com
 
 ::: warning
 
-Attributes are read exactly once, at overlay creation `getPropsFromAttributes()` runs only when the overlay instance is **first created** (`directive.ts:70-76` — an existing instance is returned as-is). Changing `loading-tip` / `loading-theme` attributes after mount has **no effect**; the only hot-updatable setting is the directive arg `binding.arg` (`directive.ts:96-98`).
-:::
+Attributes are read exactly once, at overlay creation `getPropsFromAttributes()` runs only when the overlay instance is **first created** (`directive.ts:70-76` — an existing instance is returned as-is). Changing `loading-tip` / `loading-theme` attributes after mount has **no effect**; the only hot-updatable setting is the directive arg `binding.arg` (`directive.ts:96-98`). :::
 
 ## v-lazy: the default instance plus a four-layer resolution
 
@@ -122,8 +118,7 @@ The whole `/components/drag-layout` page is built on `vue-draggable-plus`'s **`V
 
 ::: tip
 
-The component form is used; the library's other two forms have no callers `vue-draggable-plus` also exports a `v-draggable` directive and a `useDraggable` composable (three entry points in `dist/index.d.ts`), but a repository-wide search finds **zero call sites** — neither this demo nor the table's `dragSort` uses them (table row dragging binds Sortable inside `BasicTable`; see `packages/core/ui-kit/table-ui/src/hooks/useDragSort.ts`, documented on the [Table](/en/components/table) page, not repeated here).
-:::
+The component form is used; the library's other two forms have no callers `vue-draggable-plus` also exports a `v-draggable` directive and a `useDraggable` composable (three entry points in `dist/index.d.ts`), but a repository-wide search finds **zero call sites** — neither this demo nor the table's `dragSort` uses them (table row dragging binds Sortable inside `BasicTable`; see `packages/core/ui-kit/table-ui/src/hooks/useDragSort.ts`, documented on the [Table](/en/components/table) page, not repeated here). :::
 
 ### Props are sortablejs Options
 
@@ -157,7 +152,7 @@ Open `http://localhost:6080/#/components/drag-layout`. Per card: on the first, d
 ## Verified absent or silently inert
 
 - **The demo's claim that route-switch fullscreen loading "does the same thing via `createFullscreenLoading()`" is not true** (`apps/web/src/views/components/directive/index.vue:439-441`). `createFullscreenLoading()` is exported (`packages/core/ui-kit/common-ui/src/components/loading/createLoading.ts:66-74`) but has **zero call sites** in the repository; the actual route-switch loading comes from `useRouteLoading()` + `RouteLoadingBar` + `PageLoading`, all three in the assembly package: `packages/layouts/src/basic/layout.vue:8, 20, 22, 207-214, 224-230, 275-279`, the two components being `packages/layouts/src/basic/content/route-loading-bar.vue` and `page-loading.vue`, which have nothing to do with that function.
-- **`v-lazy` and `v-escape` are registered but used only by the demo page itself** (registration: `main.ts:126, 130`; usage search finds hits only in `views/components/directive/index.vue`). The "avatar list" rationale behind the `data-*` fallbacks (`lazy.ts:154-155`) also has no consumer in this repository.
+- **`v-lazy` and `v-escape` are registered but used only by the demo page itself** (registration: `v-escape` at `main.ts:112`, `v-lazy` at `:116`; usage search finds hits only in `views/components/directive/index.vue`). The "avatar list" rationale behind the `data-*` fallbacks (`lazy.ts:154-155`) also has no consumer in this repository.
 - **`vue-draggable-plus`'s `v-draggable` directive and `useDraggable` composable have no call sites** (see the tip above), and `RouteMeta.roles` / `RouteMeta.permissions` have no readers (see the v-permission tip). These, like `packages/core/base/typings/src/app-router.ts:9-10` and the library's `dist/index.d.ts`, are cases of "declared ≠ used".
 - **The `'*'` wildcard works entirely through the injected checkers — `packages/directives` does not understand it on its own**: the evaluation chain `resolveAccess()` (`utils.ts:82-108`) has no `'*'` branch, it just delegates all the way down to the injected `checkers.hasAnyPermission` / `hasAllPermissions` (`matchGroup()`, `utils.ts:53-68`). What this project injects is `usePermission()` from `@antdv/hooks`, and the first thing `checkArrayMatch()` does is return `true` when `userList.includes('*')` (`packages/core/hooks/src/use-permission.ts:91-93`, unit test `packages/core/hooks/__tests__/use-permission.test.ts:49-56`) — so the `permissions: ['*']` the mock hands to the admin account (`apps/backend-mock/server/utils/accounts.ts:48`) **is a full grant** at the element layer. In a host application this contract has to be re-established: inject checkers that only do `Array.includes` and `['*']` degrades into an ordinary permission code, with the symptom being " the account holding the wildcard sees nothing at all".
 - **`v-loading` reads its attribute configuration only at overlay creation** (`packages/core/ui-kit/common-ui/src/components/loading/directive.ts:69-76`); mutating `loading-tip` and friends afterwards is silently ineffective — only `binding.arg` hot-updates (`directive.ts:96-98`).

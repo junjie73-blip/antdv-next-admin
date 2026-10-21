@@ -59,7 +59,7 @@ const typeItemClassName = (active: boolean) =>
     'transition-colors duration-200',
     'hover:bg-gray-50 dark:hover:bg-gray-800',
     active &&
-      'border-l-[3px] border-l-(--app-primary) bg-blue-50 dark:bg-blue-900/20',
+      'border-l-[3px] border-l-(--primary) bg-blue-50 dark:bg-blue-900/20',
   );
 const typeItemNameClassName = cn(
   'truncate text-sm font-medium text-gray-800 dark:text-gray-200',

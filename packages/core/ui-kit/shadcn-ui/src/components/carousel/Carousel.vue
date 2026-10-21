@@ -1,15 +1,29 @@
 <script setup lang="ts">
-import type { CarouselEmits, CarouselProps, WithClassAsProps } from "./interface"
-import { cn } from '@antdv/shared/utils/cn'
-import { useProvideCarousel } from "./useCarousel"
+import type {
+  CarouselEmits,
+  CarouselProps,
+  WithClassAsProps,
+} from './interface';
+
+import { cn } from '@antdv/shared/utils/cn';
+
+import { useProvideCarousel } from './useCarousel';
 
 const props = withDefaults(defineProps<CarouselProps & WithClassAsProps>(), {
-  orientation: "horizontal",
-})
+  orientation: 'horizontal',
+});
 
-const emits = defineEmits<CarouselEmits>()
+const emits = defineEmits<CarouselEmits>();
 
-const { canScrollNext, canScrollPrev, carouselApi, carouselRef, orientation, scrollNext, scrollPrev } = useProvideCarousel(props, emits)
+const {
+  canScrollNext,
+  canScrollPrev,
+  carouselApi,
+  carouselRef,
+  orientation,
+  scrollNext,
+  scrollPrev,
+} = useProvideCarousel(props, emits);
 
 defineExpose({
   canScrollNext,
@@ -19,22 +33,22 @@ defineExpose({
   orientation,
   scrollNext,
   scrollPrev,
-})
+});
 
 function onKeyDown(event: KeyboardEvent) {
-  const prevKey = props.orientation === "vertical" ? "ArrowUp" : "ArrowLeft"
-  const nextKey = props.orientation === "vertical" ? "ArrowDown" : "ArrowRight"
+  const prevKey = props.orientation === 'vertical' ? 'ArrowUp' : 'ArrowLeft';
+  const nextKey = props.orientation === 'vertical' ? 'ArrowDown' : 'ArrowRight';
 
   if (event.key === prevKey) {
-    event.preventDefault()
-    scrollPrev()
+    event.preventDefault();
+    scrollPrev();
 
-    return
+    return;
   }
 
   if (event.key === nextKey) {
-    event.preventDefault()
-    scrollNext()
+    event.preventDefault();
+    scrollNext();
   }
 }
 </script>
@@ -48,6 +62,14 @@ function onKeyDown(event: KeyboardEvent) {
     tabindex="0"
     @keydown="onKeyDown"
   >
-    <slot :can-scroll-next :can-scroll-prev :carousel-api :carousel-ref :orientation :scroll-next :scroll-prev />
+    <slot
+      :can-scroll-next
+      :can-scroll-prev
+      :carousel-api
+      :carousel-ref
+      :orientation
+      :scroll-next
+      :scroll-prev
+    ></slot>
   </div>
 </template>

@@ -1,20 +1,23 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import { cn } from '@antdv/shared/utils/cn'
+import type { HTMLAttributes } from 'vue';
+
+import { cn } from '@antdv/shared/utils/cn';
 
 defineProps<{
-  class?: HTMLAttributes["class"]
-}>()
+  class?: HTMLAttributes['class'];
+}>();
 </script>
 
 <template>
   <p
     data-slot="empty-description"
-    :class="cn(
-      'text-muted-foreground [&>a:hover]:text-primary text-sm/relaxed [&>a]:underline [&>a]:underline-offset-4',
-      $attrs.class ?? '',
-    )"
+    :class="
+      cn(
+        'text-muted-foreground [&>a:hover]:text-primary text-sm/relaxed [&>a]:underline [&>a]:underline-offset-4',
+        $attrs.class ?? '',
+      )
+    "
   >
-    <slot />
+    <slot></slot>
   </p>
 </template>

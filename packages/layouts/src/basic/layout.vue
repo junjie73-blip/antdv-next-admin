@@ -9,8 +9,8 @@ import { useRouteLoading } from '@antdv/hooks/use-route-loading';
 import { useWatermark } from '@antdv/hooks/use-watermark';
 import { LayoutShell } from '@antdv/layout-ui';
 import { eventBus } from '@antdv/shared';
-import { isExternalPath } from '@antdv/utils';
 import { useAppStore, useTabsStore } from '@antdv/stores';
+import { isExternalPath } from '@antdv/utils';
 
 import { useHeaderMenu } from '../hooks/use-header-menu';
 import { useBreadcrumb, useShell } from '../hooks/use-layout';

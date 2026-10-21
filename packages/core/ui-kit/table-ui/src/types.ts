@@ -694,11 +694,17 @@ export interface BasicTableProps {
     handle?: string;
     /** 是否启用动画 */
     animation?: number;
-    /** 是否禁用 */
+    /**
+     * 禁用拖拽：`true` 整表冻结；函数形态按行判定，返回 `true` 的那一行拖不起来。
+     * 两种形态都是按下瞬间现读的，改配置不需要重建 Sortable。
+     */
     disabled?: ((record: Recordable) => boolean) | boolean;
     /** 拖拽完成回调 */
     onDragEnd?: (newData: Recordable[], oldData: Recordable[]) => void;
-    /** 是否可以放置 */
+    /**
+     * 落点判定：返回 `false` 时，拖起的行不能落到 `dropRecord` 那一行上，
+     * 也就是绕不过它。拖动过程中每次换行都会重新问一次。
+     */
     canDrop?: (dragRecord: Recordable, dropRecord: Recordable) => boolean;
   };
 

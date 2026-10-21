@@ -27,14 +27,20 @@ describe('generateThemeSyncScript', () => {
     expect(script).toContain("root.style.colorScheme=dark?'dark':'light'");
   });
 
-  it('只有 custom 档内联主色，预设档交给色板', () => {
+  /**
+   * 颜色搬运必须过版本门：`--primary` 里的值从"完整颜色"换成了"HSL 三段"，
+   * v1 快照那种 `#1677ff` 拼进 `hsl(var(--x))` 解析失败，遮罩直接染成透明 ——
+   * 现象是首屏白屏，而且构建一声不吭。明暗 class 与档位跟格式无关，不受门限制。
+   */
+  it('只有 custom 档内联主色，且颜色搬运 gated 在快照版本上', () => {
     const script = generateThemeSyncScript(options);
-    expect(script).toContain("if(s.themeKey==='custom'&&v.primary)");
+    expect(script).toContain('var ok=s.version===2;');
+    expect(script).toContain("if(ok&&s.themeKey==='custom'&&v.primary)");
   });
 
   it('快照模式与当前解析出的模式一致才用快照实色', () => {
     const script = generateThemeSyncScript(options);
-    expect(script).toContain("if(s.mode===(dark?'dark':'light')){");
+    expect(script).toContain("if(ok&&s.mode===(dark?'dark':'light')){");
   });
 
   it('darkClass 与键后缀可配，值以字面量注入而非拼接', () => {
@@ -80,9 +86,17 @@ describe('themeSyncTag / injectThemeSync', () => {
 });
 
 describe('默认 loading 模板的颜色链路', () => {
+  /**
+   * 三级回退，而且每一级都是 HSL 三段（不是完整颜色）：模板把变量套进 `hsl()`，
+   * 上游谁写进来都必须是通道形状，否则整条 `--app-loading-primary` 失效，
+   * 遮罩跟着变成透明。用 `\s*` 而不是单行精确匹配 —— 长串会被格式化工具折行。
+   */
   it('三级回退：首屏快照 → 应用色板 → 按明暗兜底', () => {
-    expect(DEFAULT_LOADING_HTML).toContain(
-      '--app-loading-primary: var(--loading-primary, var(--app-primary, #1677ff));',
+    expect(DEFAULT_LOADING_HTML).toMatch(
+      /--app-loading-primary:\s*hsl\(\s*var\(--loading-primary,\s*var\(--primary,\s*215\.02 100% 54\.31%\)\)\s*\)/u,
+    );
+    expect(DEFAULT_LOADING_HTML).toMatch(
+      /--app-loading-bg:\s*hsl\(\s*var\(--loading-background,\s*var\(--background,\s*0 0% 100%\)\)\s*\)/u,
     );
   });
 
@@ -91,6 +105,13 @@ describe('默认 loading 模板的颜色链路', () => {
     // 表现正是"遮罩一直是出厂蓝，跟全局主色没关系"
     expect(DEFAULT_LOADING_HTML).not.toContain('--color-primary');
     expect(DEFAULT_LOADING_HTML).not.toContain('--color-bg-layout');
+  });
+
+  it('不再读已退役的 --app-* 主题变量', () => {
+    // 只有遮罩自己的三个局部变量保留 `--app-loading-*` 命名（它们不出模板）
+    expect(DEFAULT_LOADING_HTML).not.toMatch(
+      /var\(--app-(?!loading-)[\w-]+\)/u,
+    );
   });
 
   it('渐变第二档用 color-mix 现算，不依赖额外的主色派生变量', () => {

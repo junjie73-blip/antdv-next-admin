@@ -65,7 +65,8 @@ export default {
     codePlaceholder: '请输入验证码',
     codeSent: '验证码已发送',
     createAccount: '创建账号',
-    demoHint: '演示账号：admin / admin123（全部页面）· custom / custom123（部分页面，越界跳 403）',
+    demoHint:
+      '演示账号：admin / admin123（全部页面）· custom / custom123（部分页面，越界跳 403）',
     forgotPassword: '忘记密码？',
     forgotTip: '请联系管理员重置密码',
     hidePassword: '隐藏密码',

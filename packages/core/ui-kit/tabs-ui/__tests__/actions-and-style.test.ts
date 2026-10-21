@@ -76,7 +76,7 @@ describe('tabsRuntime —— 文案注入点', () => {
   });
 });
 
-describe('TAB_ACTIONS —— 菜单结构与文案', () => {
+describe('tAB_ACTIONS —— 菜单结构与文案', () => {
   it('顺序与旧实现一致：单标签操作在前，批量关闭在后，中间一条分隔线', () => {
     expect(TAB_ACTIONS.map((action) => action.key)).toEqual([...MENU_ORDER]);
   });
@@ -249,7 +249,7 @@ describe('useTabStyle —— 五种风格的类名', () => {
   });
 });
 
-describe('TAB_STYLE_OPTIONS —— 设置面板选项', () => {
+describe('tAB_STYLE_OPTIONS —— 设置面板选项', () => {
   it('五个风格全在，label 读的是 tabs.styleXxx', () => {
     expect(TAB_STYLE_OPTIONS.map((option) => option.value)).toEqual([
       'card',

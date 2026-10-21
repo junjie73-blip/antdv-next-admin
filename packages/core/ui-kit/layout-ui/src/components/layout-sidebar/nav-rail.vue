@@ -3,8 +3,8 @@ import type { MenuConfig, MenuKey } from '@antdv/types';
 
 import type { LayoutRailConfig } from '../../layout';
 
-import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import { Scrollbar } from '@antdv/common-ui';
+import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import {
   Tooltip,
   TooltipContent,
@@ -13,8 +13,8 @@ import {
 } from '@antdv/shadcn-ui';
 import { menuKeyOf } from '@antdv/utils';
 
-import { LAYOUT_HEADER_ROW_STYLE, LAYOUT_RAIL_WIDTH } from '../../layout';
 import { useLayoutStyle } from '../../hooks/use-layout';
+import { LAYOUT_HEADER_ROW_STYLE, LAYOUT_RAIL_WIDTH } from '../../layout';
 
 defineOptions({ name: 'LayoutNavRail' });
 

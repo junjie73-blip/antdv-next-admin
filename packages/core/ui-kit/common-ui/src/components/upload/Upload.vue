@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import type { Ref } from 'vue';
+
 import type { UploadChangeParam, UploadFile } from './types';
 
-import { computed, onBeforeUnmount, ref, type Ref } from 'vue';
+import { computed, onBeforeUnmount, ref } from 'vue';
 
 import { cn } from '@antdv/shared/utils/cn';
 import { useFileDialog } from '@vueuse/core';
@@ -81,8 +83,8 @@ const {
 });
 
 onDialogChange((picked: FileList | null) => {
-  const files = Array.from(picked ?? []);
-  if (files.length) processFiles(files);
+  const files = [...(picked ?? [])];
+  if (files.length > 0) processFiles(files);
 });
 
 let uidCounter = 0;
@@ -99,10 +101,10 @@ const rootClass = computed(() => cn('inline-block'));
 const triggerClass = computed(() =>
   cn(
     props.drag
-      ? 'rounded-md border border-dashed border-gray-300 bg-gray-50/50 p-6 text-center transition-colors hover:border-primary dark:border-gray-600 dark:bg-gray-800/40'
+      ? 'hover:border-primary rounded-md border border-dashed border-gray-300 bg-gray-50/50 p-6 text-center transition-colors dark:border-gray-600 dark:bg-gray-800/40'
       : 'inline-block',
     props.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
-    isDragging.value ? 'border-primary bg-primary/5' : '',
+    isDragging.value ? 'bg-primary/5 border-primary' : '',
   ),
 );
 
@@ -124,9 +126,9 @@ function revoke(uid: string) {
 
 /** 统一提交：重排数组触发 v-model，再按需抛 change（对齐 antd 的 file + fileList） */
 function commit(next: UploadFile[], changeFile?: UploadFile, event?: any) {
-  fileList.value = next.slice();
+  fileList.value = [...next];
   if (changeFile)
-    emit('change', { file: changeFile, fileList: next.slice(), event });
+    emit('change', { file: changeFile, fileList: [...next], event });
 }
 
 function updateFile(uid: string, patch: Partial<UploadFile>, notify = true) {
@@ -135,7 +137,7 @@ function updateFile(uid: string, patch: Partial<UploadFile>, notify = true) {
   );
   const target = next.find((f) => f.uid === uid);
   if (notify && target) commit(next, target);
-  else fileList.value = next.slice();
+  else fileList.value = [...next];
 }
 
 function startUpload(uf: UploadFile, raw: File) {
@@ -167,7 +169,7 @@ function startUpload(uf: UploadFile, raw: File) {
 
 async function processFiles(rawFiles: File[]) {
   const list =
-    rawFiles.length && props.multiple ? rawFiles : rawFiles.slice(0, 1);
+    rawFiles.length > 0 && props.multiple ? rawFiles : rawFiles.slice(0, 1);
 
   for (const raw of list) {
     let toUse: File = raw;
@@ -222,8 +224,8 @@ function onDrop(event: DragEvent) {
   isDragging.value = false;
   if (props.disabled) return;
   emit('drop', event);
-  const files = Array.from(event.dataTransfer?.files ?? []);
-  if (files.length) processFiles(files);
+  const files = [...(event.dataTransfer?.files ?? [])];
+  if (files.length > 0) processFiles(files);
 }
 
 function handleRemove(file: UploadFile) {

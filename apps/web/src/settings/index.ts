@@ -8,7 +8,7 @@ import { initPreferences, withDefaultPreferences } from '@antdv/preferences';
  *
  * 包本身不认识本项目的 `VITE_APP_TITLE`；"这一份配置属于 web 应用"这件事留在这里。
  * 到这里为止的翻译只剩"偏好 → DOM"（`applyPreferencesToDom` 写 CSS 变量），
- * 不再有"偏好 → 某个 UI 库的 ThemeConfig"——组件配色一律走 `var(--app-*)` token，
+ * 不再有"偏好 → 某个 UI 库的 ThemeConfig"——组件配色一律走 shadcn 规范名 token，
  * 主题只有一条链路。`ThemeStyle` 里现在只有 `geek` 还有读者（标签栏配色，
  * 见 `packages/layouts/src/basic/layout.vue:88`），原先靠 antd 算法实现的
  * `compact` 等档位随依赖一起退场。

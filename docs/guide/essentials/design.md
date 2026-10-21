@@ -12,11 +12,11 @@
 packages/core/base/design/
 ├─ package.json              包名 @antdv/design，exports 只到 .css 粒度
 └─ src/
-   ├─ index.css         ← 唯一入口，apps/web/src/main.ts:45 引一次
+   ├─ index.css         ← 唯一入口，apps/web/src/main.ts:43 引一次
    ├─ token/                 主题令牌，内容只有变量声明
    │  ├─ default.css         亮色：`:root` / `.light` + 13 套 `[data-theme]` 预设色板
    │  ├─ dark.css            暗色：`.dark` + 同样 13 套 `[data-theme]` 预设色板
-   │  └─ index.css           引两套值 + `@theme inline`，把 `--app-*` 映射成 `--color-*`
+   │  └─ index.css           引两套值 + `@theme inline`，把 `--*` 映射成 `--color-*`
    └─ css/                   公共样式，按职责再分文件
       ├─ base.css            文档根 / 选中态 / 视图过渡 / 通用交互类
       ├─ nprogress.css       顶部路由进度条
@@ -33,8 +33,7 @@ packages/core/base/design/
 
 - **不含组件**：包里没有一行 `.vue`，也没有 `src/index.ts`。卡片、标签、步骤条这类公共展示件在 `@antdv/common-ui`，图标原子在 `@antdv/icons`，`index.css:18` 的注释专门写了这条边界。
 - **不感知组件库**：不 import 任何组件库的 JS，也不引它们的样式兼容层 —— 令牌与规则全部来自本包，组件包改名或换库都不需要动这里。唯一的残留是 `css/base.css:128-134` 那两条 `.ant-upload` 光标补丁（antd 给上传触发区漏了 `cursor: pointer`，页面里还有它的 DOM 时得补），组件库 DOM 一走就可以删掉。
-- **不含业务样式**：需要读 store 的薄壳（如 `packages/layouts/src/basic/content/page-loading.vue`）留在应用里，不往本包搬。
-:::
+- **不含业务样式**：需要读 store 的薄壳（如 `packages/layouts/src/basic/content/page-loading.vue`）留在应用里，不往本包搬。:::
 
 ## 层顺序是显式声明的
 
@@ -44,7 +43,7 @@ packages/core/base/design/
 @layer theme, base, components, utilities;
 @import 'tailwindcss';
 @import 'tw-animate-css';
-@import './token/index.css';   /* 里面再引 ./default.css + ./dark.css */
+@import './token/index.css'; /* 里面再引 ./default.css + ./dark.css */
 @import './css/base.css';
 /* …css/nprogress · css/a11y · css/permission · css/scrollbar */
 
@@ -60,7 +59,7 @@ packages/core/base/design/
 
 - 层表里**没有组件库的份**：本包不给 antd 让位，`utilities` 排最后，模板里写的工具类才覆盖得住 `components` 层的规则（自绘 `Scrollbar`、布局外壳都依赖这一点）。
 - `dark` 变体绑定 `.dark` class（由偏好写到 `html` 上），不是媒体查询 —— 所以 `theme: 'auto'` 下 Tailwind 与组件库看到的是同一个结果。
-- `apps/web` 自己不保留 `global.css`，原因写在 `main.ts:40-43` 的注释里：全局样式归 `@antdv/design`。
+- `apps/web` 自己不保留 `global.css`，原因写在 `main.ts:39-42` 的注释里：全局样式归 `@antdv/design`。
 
 Tailwind 通过 `@tailwindcss/vite` 接入（`internal/vite-config/src/plugins/vue.ts`），版本来自 catalog（`pnpm-workspace.yaml`）。
 
@@ -81,14 +80,14 @@ Tailwind v4 的自动内容检测从**构建根**开始扫，而应用侧的构�
 
 | 段 | 位置 | 内容 |
 | --- | --- | --- |
-| 种子变量 | `token/default.css:24`（`:root` / `.light` / `.light[data-theme=…]`）、`token/dark.css:13`（`.dark` / `.dark[data-theme=…]`） | `--app-background` / `--app-foreground` / `--app-card` / `--app-popover` / `--app-primary` / `--app-secondary` / `--app-muted` / `--app-accent` / `--app-destructive` / `--app-border` / `--app-input` / `--app-ring`，再加一整套 `--app-sidebar-*`，以及四条尺度变量 |
-| Tailwind token | `token/index.css:22-51` 的 `@theme inline` | 把每个 `--app-*` 映射成 `--color-*`，于是 `bg-popover`、`text-muted-foreground`、`border-input` 这些工具类才存在 |
+| 种子变量 | `token/default.css:25-78`（`:root` / `.light` / `.light[data-theme=…]`）、`token/dark.css:13-54`（`.dark` / `.dark[data-theme=…]`） | `--background` / `--foreground` / `--card` / `--popover` / `--primary` / `--secondary` / `--muted` / `--accent` / `--destructive` / `--border` / `--input` / `--ring`，再加一整套 `--sidebar-*`（两块合起来 27 条语义色）、三条状态色 `--success / --warning / --info` 与三条尺度变量 `--radius / --font-size / --filter` |
+| Tailwind token | `token/index.css:30-82` 的 `@theme inline` | 把每个 `--*` 映射成 `--color-*`，于是 `bg-popover`、`text-muted-foreground`、`border-input` 这些工具类才存在 |
 
 写法上有三个决定不能改回去：
 
-- **值必须是自洽的实色，不读 `var(--ant-color-*)`**：antd 的 CSS 变量挂在 `ConfigProvider` 生成的作用域类上，而 reka/shadcn 的弹层 portal 到 `body`（在 `.ant-app` 之外），取不到变量就只剩透明底。明暗两套值钉在根元素上，body 里的浮层与页面内部同解。
-- **派生色写 `var(--app-*)`，不重复钉值**：`--app-ring` / `--app-sidebar-primary` / `--app-sidebar-ring` 都指向同块的 `--app-primary`，中性色同理。自定义主色时运行时只内联一条 `--app-primary`（预设主题则整块色板由 `[data-theme]` 给，不写内联），其余变量在同一元素上自动跟上。
-- **`@theme inline` 而不是 `@theme`**：inline 让工具类直接内联 `var(--app-*)`，于是 `.dark` 与 `[data-theme]` 的覆盖能生效；写成 `--color-x: var(--app-x)` 的非 inline 形式会在 `:root` 求值一次，暗色切换就冻在亮色值上了。
+- **值必须是自洽的实色三段（`H S% L%`），不读任何外部变量**：这条纪律当年是为了躲开 antd 的 CSS 变量 —— 它们挂在 `ConfigProvider` 生成的作用域类上，而 reka/shadcn 的弹层 portal 到 `body`（在那个作用域之外），取不到变量就只剩透明底。库已经移除，纪律留在测试里反向钉住：`__tests__/design.test.ts:459-465` 断言全包（注释除外）不许出现 `--ant-`、`@antdv-next/` 与 `-ant-x` 工具类，`:467-471` 再单独查基础块。明暗两套值钉在根元素上，body 里的浮层与页面内部同解。
+- **派生色写 `var(--*)`，不重复钉值**：`--ring` / `--sidebar-primary` / `--sidebar-ring` 都指向同块的 `--primary`，中性色同理。自定义主色时运行时只内联一条 `--primary`（预设主题则整块色板由 `[data-theme]` 给，不写内联），其余变量在同一元素上自动跟上。
+- **`@theme inline` 而不是 `@theme`**：inline 让工具类直接内联 `hsl(var(--*))`，于是 `.dark` 与 `[data-theme]` 的覆盖能生效；写成 `--color-x: var(--x)` 的非 inline 形式会在 `:root` 求值一次，暗色切换就冻在亮色值上了。
 
 `[data-theme]` 的 13 套预设（`violet / pink / rose / sky-blue / deep-blue / green / deep-green / orange / yellow / zinc / neutral / slate / gray`）在明暗两侧各自写满这 27 条语义色 —— 换主题换掉的是整块画布的色温，不是只有一个按钮。名单与取值由 `__tests__/design.test.ts` 钉住：每套齐全、各套互不相同、明暗两版真的换了值，且预设名与 `@antdv/shared` 的 `THEME_PRESETS` 完全一致。
 
@@ -97,14 +96,19 @@ Tailwind v4 的自动内容检测从**构建根**开始扫，而应用侧的构�
 ```vue
 <template>
   <!-- 1. 走工具类（推荐）：令牌名即类名 -->
-  <div class="rounded-lg border border-input bg-popover text-muted-foreground" />
+  <div
+    class="rounded-lg border border-input bg-popover text-muted-foreground"
+  />
 
   <!-- 2. 需要写进 style / 传参时直接引用变量 -->
-  <span class="bg-[var(--app-primary)]" :style="{ color: 'var(--app-foreground)' }" />
+  <span
+    class="bg-[hsl(var(--primary))]"
+    :style="{ color: 'hsl(var(--foreground))' }"
+  />
 </template>
 ```
 
-侧栏自成一套（`--app-sidebar-*`）：暗色侧栏是刻意偏好，不是暗色模式，值要能独立调。暗色里的中性色一律用半透明叠加（`.08` / `.12` 两档对应次要与悬停两级反馈）而不是钉死 hex，预设主题反过来才用实色底 —— 因为整套色温要一起换，原因写在 `token/dark.css` 文件头。
+侧栏自成一套（`--sidebar-*`）：暗色侧栏是刻意偏好，不是暗色模式，值要能独立调。暗色里的中性色一律用半透明叠加（`.08` / `.12` 两档对应次要与悬停两级反馈）而不是钉死 hex，预设主题反过来才用实色底 —— 因为整套色温要一起换，原因写在 `token/dark.css` 文件头。
 
 主题色怎么落到这些变量上，见[主题与偏好设置](/guide/in-depth/theme)。
 
@@ -115,23 +119,21 @@ Tailwind v4 的自动内容检测从**构建根**开始扫，而应用侧的构�
 | 要做的事 | 写法 |
 | --- | --- |
 | 条件类名 / 合并外部 class | `cn('base', cond && 'x', props.class)` |
-| 用主题色 | 本包的裸名令牌 `bg-primary` / `text-muted-foreground` / `border-input`；需要写进 style 或传参时用 `bg-[var(--app-primary)]`。**不要**再用 antd 兼容层的 `*-ant-*`，那组类已不生成 |
-| 复用的小块样式 | 共享类 `.icon`、`.outline-box`、`.outline-box-active`（`css/base.css:70-80`） |
+| 用主题色 | 本包的裸名令牌 `bg-primary` / `text-muted-foreground` / `border-input`；需要写进 style 或传参时用 `bg-[hsl(var(--primary))]`。曾经并存的 antd 兼容层类（`*-ant-*`）已不再生成，写上去是**静默丢样式**（本包源码里连 `-ant-` 都不许出现，`__tests__/design.test.ts:464` 钉着） |
+| 复用的小块样式 | 共享类 `.icon`、`.outline-box`、`.outline-box-active`（`css/base.css:83-92`） |
 | 过渡 / keyframes | 才开 `<style scoped>` |
 
 ::: warning Tailwind 只认字面量类名
 
 - 类名必须是**源码里出现的完整字符串**。拼接（`text-${color}-500`）、把档位拼进变量、或写进 `@source` 没覆盖到的目录，都不会生成对应 CSS，而且不报错。
 - `cn(...)` 不要写在模板属性里带**尾随逗号**（`cn('a', cond && 'b',)` 之外的 `:class="cn('a',)"` 形式同理易被格式工具改坏）；组件包里的通行做法是**在 `<script setup>` 里收成 `computed`**，模板只引用变量 —— `packages/core/ui-kit/common-ui` 的各组件都这么写，既避免模板里塞表达式，也让 class 字符串保持是字面量。
-- 状态到配色一律用**查表**（`Record<string, string>`，值是完整类名串），不要 `cn('text-' + tone)`。常见例子见 `packages/core/ui-kit/common-ui/src/components/badge/Badge.vue`、`steps/Steps.vue`、`tag/Tag.vue` 里的 `STATUS_DOT` / `CIRCLE` / `PRESET` 常量。
-:::
+- 状态到配色一律用**查表**（`Record<string, string>`，值是完整类名串），不要 `cn('text-' + tone)`。常见例子见 `packages/core/ui-kit/common-ui/src/components/badge/Badge.vue`、`steps/Steps.vue`、`tag/Tag.vue` 里的 `STATUS_DOT` / `CIRCLE` / `PRESET` 常量。:::
 
 ::: warning
 
-不要在路由页面的外层容器写 padding 内容区内边距归布局管。页面自己加一层 padding 会在切布局形态时重复。见[开发规范与环境变量](/guide/essentials/development)与[布局、菜单与标签页](/guide/in-depth/layout)。
-:::
+不要在路由页面的外层容器写 padding 内容区内边距归布局管。页面自己加一层 padding 会在切布局形态时重复。见[开发规范与环境变量](/guide/essentials/development)与[布局、菜单与标签页](/guide/in-depth/layout)。:::
 
-颜色不要钉死。页面里同时住着两套主色：本包的 `--app-primary`（钉在 `html` 上，portal 出去的浮层也取得到）与 antdv-next 运行时在 `.ant-app` 上**按暗底重算**的同族变量。一条链取种子、一条链取重算值，混用就会在同一屏里出现两种橙色。所以新页面一律走 `*-primary` 这套令牌，写测试断言时也别说死色值 —— 要么在浅色下断，要么断"同源关系"（两个元素的计算色相等）。细节见[主题与偏好设置](/guide/in-depth/theme)。
+颜色不要钉死。全站只有**一条**主色链路：偏好由 `applyPreferencesToDom()`（`packages/core/preferences/src/update-css-variables.ts:39`）折算成 `<html>` 上的 `--primary`（只有取色器自选的颜色才内联，预设主题把整块色板交给 `[data-theme]`），`@theme inline` 再把它映射成 `bg-primary` 这一族工具类 —— 页面内部与 portal 出去的浮层解的是同一份值，所以同一屏不可能出现两种橙色。写测试时别把色值钉死：要么在浅色下断，要么断"同源关系"（两个元素的计算色相等）。细节见[主题与偏好设置](/guide/in-depth/theme)。
 
 ## stylelint 现状
 
@@ -144,7 +146,7 @@ Tailwind v4 的自动内容检测从**构建根**开始扫，而应用侧的构�
 ## 相关页面
 
 - [Tailwind CSS](/guide/project/tailwindcss) —— 本包作为唯一入口在应用侧怎么接线
-- [主题与偏好设置](/guide/in-depth/theme) —— `data-theme` 档位与 `--app-*` / `--ant-*` 的写入方
+- [主题与偏好设置](/guide/in-depth/theme) —— `data-theme` 档位与 `--primary` / `--radius` / `--font-size` / `--filter` 的写入方
 - [权限、指令与光标](/guide/in-depth/access) —— `permission.css` 里 `permission-disabled` 的触发方
 - [组件示例](/components/common-ui) —— 这些令牌被 `@antdv/common-ui` 各组件消费的实例
 - [外部模块](/guide/essentials/external) —— 源码发布包（含本包）为什么没有 build 步骤

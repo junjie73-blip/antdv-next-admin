@@ -1,7 +1,8 @@
+import type { VueWrapper } from '@vue/test-utils';
+
 import { readFileSync } from 'node:fs';
 
 import { flushPromises, mount } from '@vue/test-utils';
-import type { VueWrapper } from '@vue/test-utils';
 import { defineComponent, h } from 'vue';
 
 import { createPinia, setActivePinia } from 'pinia';
@@ -16,7 +17,7 @@ import { useLockScreen } from '../src/widgets/user-dropdown/use-lock-screen';
  * 钉四件事：
  * 1. 入口是数据驱动菜单里多出来的一项，原有三项照旧 —— 非侵入式扩展；
  * 2. 锁上之后视口与 `<html>` 都滚不动、按键被吞掉并解锁，解锁后滚动锁还原；
- * 3. 圆角全部从 `--app-border-radius`（rem）派生，源码里一个 px 圆角都没有；
+ * 3. 圆角全部从 `--radius`（rem）派生，源码里一个 px 圆角都没有；
  * 4. 下拉解锁按阈值判定，阈值上下两侧各打一次。
  *
  * 遮罩与下拉菜单都是 Teleport / Portal 出去的，断言一律查 `document`。
@@ -89,7 +90,7 @@ function inBody(testId: string) {
   return document.body.querySelector<HTMLElement>(`[data-testid="${testId}"]`);
 }
 
-function pointer(el: null | HTMLElement, type: string, clientY: number) {
+function pointer(el: HTMLElement | null, type: string, clientY: number) {
   el?.dispatchEvent(
     new MouseEvent(type, { bubbles: true, cancelable: true, clientY }),
   );
@@ -115,6 +116,19 @@ describe('用户下拉 —— 锁屏入口', () => {
       'user-menu-docs',
       'user-menu-lock',
     ]);
+  });
+
+  it('触发器只留图标：用户名从 `aria-label` 念，不再常驻文本', async () => {
+    const wrapper = await mountDropdown();
+    const trigger = wrapper.get('[data-testid="header-user"]');
+
+    // 与 `widget-button.vue` 同一条规矩：顶栏按钮一律不带文字，
+    // 窄视口里多一段用户名（约 60px）就把菜单和 logo 挤没了。
+    // 按钮里只剩头像兜底字符，读屏与 tooltip 走 aria-label / title。
+    expect(trigger.text().trim()).toBe('U');
+    const label = trigger.attributes('aria-label');
+    expect(label).toBeTruthy();
+    expect(trigger.attributes('title')).toBe(label);
   });
 
   it('点「锁屏」挂出遮罩，点遮罩上的解锁按钮收掉', async () => {
@@ -222,7 +236,7 @@ describe('圆角口径（rem）', () => {
     }
   });
 
-  it('基准取 `--app-border-radius`，卡片是它的 1.5 倍，把手与按钮跟基准', async () => {
+  it('基准取 `--radius`，卡片是它的 1.5 倍，把手与按钮跟基准', async () => {
     mountLockHarness();
     inBody('harness-lock')?.click();
     await flushPromises();

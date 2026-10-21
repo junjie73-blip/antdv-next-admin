@@ -153,24 +153,28 @@ describe('isDarkColor / isLightColor', () => {
 });
 
 describe('generatorColorVariables', () => {
+  /*
+   * `name` 是调用方给的档位组名，与变量命名口径无关 —— 这里用 `brand`，
+   * 免得测试里出现退役已久的 `--ant-*` 字样，被读成"还留着兼容层"。
+   */
   it('一个主色铺成 50~950 档，值是可组合的 HSL 三段', () => {
     const vars = generatorColorVariables([
-      { alias: 'app-primary', color: '#1677ff', name: 'ant-primary' },
+      { alias: 'primary', color: '#1677ff', name: 'brand' },
     ]);
 
-    expect(vars['--ant-primary-500']).toBe('215 100% 54%');
+    expect(vars['--brand-500']).toBe('215 100% 54%');
     /* 钉死一档非 500 的值：色阶由 theme-colors 生成，不是本地换算出来的 */
-    expect(vars['--ant-primary-50']).toBe('215 100% 98%');
+    expect(vars['--brand-50']).toBe('215 100% 98%');
     expect(Object.keys(vars)).toHaveLength(23);
   });
 
   it('alias 额外挂一组同名档位，并让裸名等于 500 档', () => {
     const vars = generatorColorVariables([
-      { alias: 'app-primary', color: 'rgb(22, 119, 255)', name: 'ant-primary' },
+      { alias: 'primary', color: 'rgb(22, 119, 255)', name: 'brand' },
     ]);
 
-    expect(vars['--app-primary-500']).toBe(vars['--ant-primary-500']);
-    expect(vars['--app-primary']).toBe('215 100% 54%');
+    expect(vars['--primary-500']).toBe(vars['--brand-500']);
+    expect(vars['--primary']).toBe('215 100% 54%');
   });
 
   it('入参写法不影响结果：rgb 字符串先归一成 hex 再铺档', () => {

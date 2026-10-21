@@ -270,7 +270,7 @@ const detailSchemas: DescriptionItem[] = [
     label: '请求参数',
     render: (value) => (
       <code
-        class="block max-w-[400px] truncate rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800"
+        class="block max-w-[400px] truncate rounded-sm bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800"
         title={(value as string) || '-'}
       >
         {(value as string) || '-'}
@@ -283,7 +283,7 @@ const detailSchemas: DescriptionItem[] = [
     render: (value) =>
       value ? (
         <code
-          class="block max-w-[400px] truncate rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800"
+          class="block max-w-[400px] truncate rounded-sm bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800"
           title={value as string}
         >
           {value as string}

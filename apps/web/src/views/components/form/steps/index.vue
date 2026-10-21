@@ -895,9 +895,7 @@ function setAgreed(model: Recordable, field: string, checked: unknown) {
       <p :class="hintClassName">
         一个 <code>BasicForm</code> 实例跑三步：点「下一步」先校验这一步的字段
         （<code>validate(fieldsOf(当前步))</code>），不过就原地停住；「上一步」直接换
-        schema 不校验。换步骤只调 <code>setProps({ schemas })</code>，<code
-          >formModel</code
-        >
+        schema 不校验。换步骤只调 <code>setProps({ schemas })</code>，<code>formModel</code>
         不动， 所以来回切步骤值都在 —— 下面那行「已攒 N 个字段」就是这个意思。
       </p>
       <p :class="hintClassName">
@@ -970,10 +968,8 @@ function setAgreed(model: Recordable, field: string, checked: unknown) {
         草稿的持久化是
         <code>localStorage</code>，<strong>不是后端接口</strong>：
         「保存草稿」把当前值连同步号 <code>JSON.stringify</code> 后写进
-        <code>localStorage['demo:form-steps:draft']</code
-        >，「恢复草稿」再把它读回来灌进表单 （先换 schema 再
-        <code>setFieldsValue</code
-        >）。刷新页面草稿还在，但它只活在这台浏览器里。
+        <code>localStorage['demo:form-steps:draft']</code>，「恢复草稿」再把它读回来灌进表单 （先换 schema 再
+        <code>setFieldsValue</code>）。刷新页面草稿还在，但它只活在这台浏览器里。
       </p>
 
       <div :class="stepClassName">
@@ -1066,17 +1062,14 @@ function setAgreed(model: Recordable, field: string, checked: unknown) {
         <code>clickable</code> 就每步接点击，没走过的步骤点下去由
         <code>jumpTo</code> 的守卫拦下来并给一句提示，走过的点下去直接
         <code>gotoStep</code> 换回那一步的 schema（跳转不校验，值照样带得走）。
-        <strong>别用 <code>v-model:current</code></strong
-        >：<code>current</code> 是受控的， 单向写步骤号会把步骤号和字段拆开 ——
+        <strong>别用 <code>v-model:current</code></strong>：<code>current</code> 是受控的， 单向写步骤号会把步骤号和字段拆开 ——
         指示条到第 3 步了，表单还在渲染第 1 步的字段。 这里只绑
         <code>:current</code> + <code>@change</code>，让步骤号必须经过换 schema
         的那条路。
       </p>
       <p :class="hintClassName">
         底部按钮不在卡片里另起一行，而是塞进 <code>BasicForm</code> 的动作区插槽
-        （<code>#submitBefore</code> 排在按钮位的第一格，<code
-          >#actionAfter</code
-        >
+        （<code>#submitBefore</code> 排在按钮位的第一格，<code>#actionAfter</code>
         排在最后）， 同时用模板 prop 关掉内置的查询/重置按钮 —— 注意
         <code>showSubmitButton</code> 这类有
         <code>withDefaults</code> 默认值的开关，塞进 <code>useForm</code> 会被

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 
-import { Button, Input, Label, Textarea } from '@antdv/shadcn-ui';
 import { BasicModal, message, useModalInner } from '@antdv/popup-ui';
+import { Button, Input, Label, Textarea } from '@antdv/shadcn-ui';
 
 /**
  * 页面私有子组件（`views/<page>/components/**` 不参与路由），只服务示例页第 1 节。

@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-import {
-  Popover,
-  PopoverAnchor,
-  PopoverContent,
-} from '@antdv/shadcn-ui';
+import { Popover, PopoverAnchor, PopoverContent } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 
 import { normalizeOptions } from './utils';
@@ -33,10 +29,14 @@ const open = ref(false);
 const normalized = computed(() => normalizeOptions(props.options));
 
 const filtered = computed(() => {
-  const keyword = String(props.value ?? '').trim().toLowerCase();
+  const keyword = String(props.value ?? '')
+    .trim()
+    .toLowerCase();
   if (!keyword) return normalized.value;
   return normalized.value.filter((opt) =>
-    String(opt.label ?? '').toLowerCase().includes(keyword),
+    String(opt.label ?? '')
+      .toLowerCase()
+      .includes(keyword),
   );
 });
 

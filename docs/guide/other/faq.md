@@ -38,8 +38,8 @@
 
 | 症状 | 原因 | 处理 |
 | --- | --- | --- |
-| 换主色，菜单选中项不变 | 只改了 antd token，或只写了一个变量名 | 主色只有一条链：档位写在 `<html data-theme>`，自定义色再内联 `--app-primary`（`packages/core/preferences/src/update-css-variables.ts:85-116`）。给 antd 的 `--ant-*` 桥已经整体删掉，不要再往那个方向补变量 |
-| 深色下主色和自己设的不一样 | 预设档位**故意不写**内联 `--app-primary`：暗色色板在 `@antdv/design` 的 `token/dark.css` 里已经按该主题提亮过一遍，内联会把亮色值又压回去 | 只有取色器选的自定义色才需要内联（此时 `data-theme='custom'`）；新页面统一走 `@antdv/design` 的 `*-primary` 令牌；测试断言别钉色值，要么在浅色下断，要么断"同源关系"（见[主题与偏好设置](/guide/in-depth/theme)） |
+| 换主色，菜单选中项不变 | 只改了 antd token，或只写了一个变量名 | 主色只有一条链：档位写在 `<html data-theme>`，自定义色再内联 `--primary`（`packages/core/preferences/src/update-css-variables.ts:85-116`）。给 antd 的 `--ant-*` 桥已经整体删掉，不要再往那个方向补变量 |
+| 深色下主色和自己设的不一样 | 预设档位**故意不写**内联 `--primary`：暗色色板在 `@antdv/design` 的 `token/dark.css` 里已经按该主题提亮过一遍，内联会把亮色值又压回去 | 只有取色器选的自定义色才需要内联（此时 `data-theme='custom'`）；新页面统一走 `@antdv/design` 的 `*-primary` 令牌；测试断言别钉色值，要么在浅色下断，要么断"同源关系"（见[主题与偏好设置](/guide/in-depth/theme)） |
 | 工具类盖不住 `components` 层规则 | Tailwind 层顺序被改动 | `@layer theme, base, components, utilities` 必须显式声明且 `utilities` 在最后（`packages/core/base/design/src/index.css:27`） |
 | 页面之间间距不一致 | 路由页面外层自己写了 padding | 内边距归布局管，见[开发规范与环境变量](/guide/essentials/development) |
 | 生产包里图标是空白方块 | 用了离线列表外的 Iconify 前缀 | 新集合要同时加 catalog 依赖与 `internal/vite-config/src/plugins/auto-import.ts:30-32` 的 `iconifyOffline({ local: [...] })` 列表 |
@@ -72,13 +72,12 @@
 | `stores/modules/auth.ts` | 与 `@antdv/stores` 的 `user.ts` 重复，**全仓零消费者**（挂住它的只有 `apps/web/src/stores/index.ts:1` 那句 `export *`） |
 | 偏好里的 `routeMode` | 声明在 `packages/core/preferences/src/config.ts:79`，应用代码无读取点 |
 | `VITE_NAMESPACE` | 无任何代码路径读它，前缀实际来自 `VITE_APP_TITLE` |
-| vue-i18n | **已接线，不是死代码**：全仓 `useI18n()` 的真实调用只有一处 —— `apps/web/src/composables/useLocale.ts:65`（`layout-ui/src/layout.ts` 里那句只是注释）。菜单标题由 `localizeMenus` 翻译（`packages/layouts/src/hooks/use-menu-tree.ts:25`），译文查找函数 `translateMenu` 由宿主注入（`apps/web/src/plugins/ui-runtime.ts:20-21`），包内不 import vue-i18n。顶栏语言切换在 `packages/layouts/src/widgets/language-toggle/index.vue`，写入走 `appStore.updateSetting({ locale })`（`:38`），应用侧同一个入口是 `useLocale.ts:70` 的 `setLocale`。仍然没接上的是业务页面：`src/views/**` 一个 `useI18n` 都没有，文案硬编码中文，`.vue` 里也没有 `$t()` |
-| `apps/web/src/assets/icons/` | 4 枚宿主自带 SVG（github / wechat / qq / google），`vite-plugin-svg-icons` 打成 `#icon-<文件名>` 雪碧图，注册在 `apps/web/src/main.ts:42`，消费点 `apps/web/src/config/auth-social.ts:17-25`。**不是空目录** |
+| vue-i18n | **已接线，不是死代码**：全仓 `useI18n()` 的真实调用只有一处 —— `packages/core/hooks/src/use-locale.ts:65`（`layout-ui/src/layout.ts` 里那句只是注释）。菜单标题由 `localizeMenus` 翻译（`packages/layouts/src/hooks/use-menu-tree.ts:25`），译文查找函数 `translateMenu` 由宿主注入（`apps/web/src/plugins/ui-runtime.ts:20-21`），包内不 import vue-i18n。顶栏语言切换在 `packages/layouts/src/widgets/language-toggle/index.vue`，写入走 `appStore.updateSetting({ locale })`（`:38`），应用侧同一个入口是 `useLocale.ts:70` 的 `setLocale`。仍然没接上的是业务页面：`src/views/**` 一个 `useI18n` 都没有，文案硬编码中文，`.vue` 里也没有 `$t()` |
+| `apps/web/src/assets/icons/` | 4 枚宿主自带 SVG（github / wechat / qq / google），`vite-plugin-svg-icons` 打成 `#icon-<文件名>` 雪碧图，注册在 `apps/web/src/main.ts:38`，消费点 `apps/web/src/config/auth-social.ts:17-25`。**不是空目录** |
 | `views/tool/mock/**` | 只剩私有模块，没有 `index.vue`，mock-center 面板只能走 HTTP 接口 |
 | stylelint | 规则包 `@antdv/stylelint-config` 与 `apps/web` 的 stylelint 依赖都在，但**仓库里没有任何 `.stylelintrc*` / `stylelint.config.*`，也没有 stylelint 脚本**；`lefthook.yml` 整个文件从第 1 行起就被注释掉，所以 pre-commit 一个任务都不跑 |
 | `docs/` 与 `apps/web/public/pwa-icons/` 的 logo | **拷贝**关系，不是引用；换 logo 要两边一起改 |
 
 ::: tip
 
-想清理按"死代码"的代价排序最划算的是：i18n 的外壳与菜单标题已经接上，剩下来的是业务页面文案（要么补 `useI18n`，要么承认中文就是这个界面的语言）；`auth` store 直接删（上表已给出唯一挂点）；`routeMode` / `VITE_NAMESPACE` 二选一——要么实现要么从 `.env` 与 `types/env.d.ts` 移除。清理完记得同步这份 FAQ；删的顺序与牵动面见[移除代码](/guide/other/remove-code)。
-:::
+想清理按"死代码"的代价排序最划算的是：i18n 的外壳与菜单标题已经接上，剩下来的是业务页面文案（要么补 `useI18n`，要么承认中文就是这个界面的语言）；`auth` store 直接删（上表已给出唯一挂点）；`routeMode` / `VITE_NAMESPACE` 二选一——要么实现要么从 `.env` 与 `types/env.d.ts` 移除。清理完记得同步这份 FAQ；删的顺序与牵动面见[移除代码](/guide/other/remove-code)。:::

@@ -1,7 +1,7 @@
 {
   "name": "@antdv/request",
   "version": "0.1.0",
-  "description": "实时通信层：HTTP（csrf / 令牌刷新 / 401 收尾 / 缓存与去重 / 超时 / qs 参数序列化 / useRequest）+ SSE + WebSocket。凭证存储与登录页路径由应用 configureRequest() 注入，包不碰 pinia 也不读 import.meta.env",
+  "description": "实时通信层：HTTP（csrf / 令牌刷新 / 401 收尾 / 缓存与去重 / 超时 / qs 参数序列化 / useRequest）+ SSE + WebSocket + vue-query 客户端（`./vue-query`，重试策略与 executor 对齐）。凭证存储与登录页路径由应用 configureRequest() 注入，包不碰 pinia 也不读 import.meta.env",
   "private": true,
   "type": "module",
   "scripts": {
@@ -17,17 +17,19 @@
   "main": "./src/index.ts",
   "module": "./src/index.ts",
   "types": "./src/index.ts",
-  "//exports": "入口 barrel 之外只开三档：runtime 给应用接线时只拿注入点，\n sse / websocket 是独立子路径——它们各带一组管理器类，不进 barrel，\n 免得 `import { requestClient }` 也顺带解析出实时通信那套代码。",
+  "//exports": "入口 barrel 之外只开四档：runtime 给应用接线时只拿注入点，\n sse / websocket 是独立子路径——它们各带一组管理器类，不进 barrel，\n vue-query 同理（一套 QueryClient 与插件安装），\n 免得 `import { requestClient }` 也顺带解析出实时通信与查询缓存那套代码。",
   "exports": {
     ".": "./src/index.ts",
     "./runtime": "./src/runtime.ts",
     "./sse": "./src/sse/index.ts",
+    "./vue-query": "./src/vue-query.ts",
     "./websocket": "./src/websocket/index.ts",
     "./package.json": "./package.json"
   },
   "dependencies": {
     "@antdv/popup-ui": "workspace:*",
     "@antdv/shared": "workspace:*",
+    "@tanstack/vue-query": "catalog:",
     "@vueuse/core": "catalog:",
     "es-toolkit": "catalog:",
     "qs": "catalog:",

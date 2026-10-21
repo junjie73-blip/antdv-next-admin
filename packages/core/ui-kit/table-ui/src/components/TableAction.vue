@@ -85,7 +85,7 @@ function getButtonClass(action: ActionItem) {
 }
 
 function getButtonSize(action: ActionItem) {
-  if (!action.size) return undefined;
+  if (action.size === 0) return undefined;
   return action.size === 'small' ? 'xs' : action.size === 'large' ? 'lg' : 'sm';
 }
 
@@ -255,7 +255,7 @@ function renderDropdownAction(
           {
             key: confirmKey,
             class: cn(
-              'mx-1 my-1 rounded-md border bg-muted/60 p-2 text-sm',
+              'bg-muted/60 mx-1 my-1 rounded-md border p-2 text-sm',
               'flex flex-col gap-2',
             ),
           },

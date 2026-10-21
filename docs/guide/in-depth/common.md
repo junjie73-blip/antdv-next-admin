@@ -1,15 +1,15 @@
 # 常用功能
 
-一句话：**应用级复合组件在 `apps/web/src/components/business/`，库无关的基础件在 `@antdv/icons` 与 `packages/core/ui-kit/` 下那八个包，通用 hooks 在 `@antdv/hooks`；`Basic*` 系列统一用 `[register, methods]` 的注册式写法驱动。**
+一句话：**组件都在 `packages/core/ui-kit/` 下那八个包里（`apps/web/src/components/` 已整目录迁空），图标原子在 `@antdv/icons`，通用 hooks 在 `@antdv/hooks`；`Basic*` 系列统一用 `[register, methods]` 的注册式写法驱动。**
 
 ## 三层拆分
 
 | 层 | 位置 | 放什么 |
 | --- | --- | --- |
-| 应用业务组件 | `apps/web/src/components/business/` | 只剩 `ImportExport`、`TenantSelect`；`TreeTable` 在 `@antdv/table-ui`，`MicroAppContainer` 在 `@antdv/common-ui`；`BasicTable`/`TableAction`、`BasicForm`、`BasicModal`/`BasicDrawer` 在 `@antdv/{table-ui,form-ui,popup-ui}` |
+| 应用级整件 | `packages/core/ui-kit/common-ui`（根入口 + `/avatar-uploader`、`/chunk-upload`、`/import-export` 子路径） | `ImportExport`、`AvatarUploader`、分片上传、`ReloadPrompt` 都在这；`TreeTable` 在 `@antdv/table-ui`，`MicroAppContainer` 在 `@antdv/common-ui`；`BasicTable`/`TableAction`、`BasicForm`、`BasicModal`/`BasicDrawer` 在 `@antdv/{table-ui,form-ui,popup-ui}`。原来放这批件的 `apps/web/src/components/` 已经整目录迁空，`TenantSelect` 连同它引用的租户 store 一起删了 |
 | 库无关基础件 | `packages/core/base/icons`（`@antdv/icons`）+ `packages/core/ui-kit/*` | `IconifyIcon`、`IconPicker`、`SvgIcon` 在 `@antdv/icons`；`Loading` + `v-loading` 在 `@antdv/common-ui`；`Scrollbar` 在 `@antdv/common-ui`；`shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` 各自一包。这批包一律不依赖 antdv-next，组件也不靠自动导入，宿主必须显式 import |
-| 通用组合式 | `packages/core/hooks`（`@antdv/hooks`，消费 dist 产物） | 根入口只收轻量件：`useCRUD` / `useCache` / `useChunkUpload` / `useFileReader` / `usePermission` / `usePrint` / `useRouteLoading` / `useWatermark`；`useEcharts` 走子路径 `@antdv/hooks/echarts`，避免 `import { usePrint }` 也付出一份图表库。SSE 与 WebSocket 不在这里，实时通信统一在 `@antdv/request` |
-| 应用级 hooks | `apps/web/src/composables/` | `useLocale` / `useLocaleSync`（`useLocale.ts:45,63`）、`useNotice`、`usePasswordPolicy`、`http`（请求层出口）；`useCRUD`、`usePermission` 已迁到 `@antdv/hooks`，消费点在 `directives/index.ts:13`、`plugins/table-runtime.ts:1`、`views/components/table/crud/index.vue:34` |
+| 通用组合式 | `packages/core/hooks`（`@antdv/hooks`，消费 dist 产物） | 根入口只收轻量件：`useCRUD` / `useCache` / `useChunkUpload` / `useFileReader` / `usePermission` / `usePrint` / `useRouteLoading` / `useWatermark`；`useEcharts` 走子路径 `@antdv/hooks/echarts`，避免 `import { usePrint }` 也付出一份图表库；`useLocale` / `useLocaleSync` 走 `@antdv/hooks/use-locale`（它是唯一牵 vue-i18n 的组合式函数，塞进根入口等于让所有消费者都付一份 i18n 运行时）。SSE 与 WebSocket 不在这里，实时通信统一在 `@antdv/request` |
+| 应用级 hooks | `apps/web/src/composables/` | 只剩 `useNotice`、`usePasswordPolicy` 与请求出口 `index.ts`（现在只 `export * from '@antdv/request'`，页面仍从 `~/composables` 拿 `http`）；`useLocale` / `useLocaleSync` 已迁到 `@antdv/hooks/use-locale`，消费点是 `App.vue`、`plugins/layouts-host.ts`、`views/{login,register}/index.vue`；`useCRUD`、`usePermission` 已迁到 `@antdv/hooks`，消费点在 `directives/index.ts:13`、`plugins/table-runtime.ts:1`、`views/components/table/crud/index.vue:34` |
 
 ## 注册式（register-props）模式
 
@@ -34,7 +34,7 @@ const [register, tableRef] = useTable({ api: fetchUsers, useSearchForm: true });
 | `useTable(props?)` | `[register, Ref<null \| TableActionType>]` | 第二个是**实例 ref**：`tableRef.value?.reload()`，判空 |
 | `useForm(props?)` | `[register, FormActionType]` | 第二个是**方法对象**：`methods.setFieldsValue(values)` |
 | `useModal()` / `useDrawer()` | `[register, methods]` | 方法对象内部 `waitForInstance()`：最多重试 10 次 × (nextTick + 50ms)，拿不到实例抛错而不是静默 |
-:::
+| ::: |
 
 注册时传入的初始 props 通过 `instance.setProps(props)` 合并进组件，因此 `useTable({ api })` 和模板上写 `:api` 是同一件事的两个入口，opts 版本先执行。
 
@@ -64,7 +64,7 @@ const [register, tableRef] = useTable({ api: fetchUsers, useSearchForm: true });
 
 - `CountTo`：数字滚动，住在 `@antdv/common-ui`（`packages/core/ui-kit/common-ui/src/components/count-to/`），props 在 `types.ts`（`startVal` / `endVal` / `duration` / `autoplay` / `decimals`）。
 - `MarkdownEditor`：基于 tiptap 的编辑器封装，住在 `@antdv/common-ui`（`packages/core/ui-kit/common-ui/src/components/markdown-editor/`），带 `ImageUploadConfig`（走 Minio 上传配置）；`contentType` 决定 value 是 HTML 还是 Markdown 源码。
-- `Description` / `TreeTable` / `ImportExport`：详情列表、树表格、导入导出。前两个已进包（`@antdv/common-ui`、`@antdv/table-ui`），`ImportExport` 还在应用侧 `components/business/`；导出能力依赖 `@antdv/shared` 的 `excel.ts`。
+- `Description` / `TreeTable` / `ImportExport`：详情列表、树表格、导入导出，三件都在包里（`@antdv/common-ui`、`@antdv/table-ui`、`@antdv/common-ui/import-export`）；导出能力依赖 `@antdv/shared` 的 `excel.ts`。
 - 全局注册：`@antdv/icons` 提供 `createIconInstaller()`（`packages/core/base/icons/src/index.ts:19`），`@antdv/common-ui` 的 loading barrel 具名导出 `vLoading`（`packages/core/ui-kit/common-ui/src/components/loading/index.ts:7`）；应用侧不用 installer，一律显式 import，保留 tree-shaking（组件 resolver 已从 `internal/vite-config` 撤掉，裸标签不会被注入）。
 
 ## 相关页面

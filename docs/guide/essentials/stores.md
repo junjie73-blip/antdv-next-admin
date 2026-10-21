@@ -3,7 +3,7 @@
 状态层是 **Pinia + 一套手写缓存**：store 里不放持久化插件，落盘全部走 `@antdv/shared` 的 `cache`（或直接 `localStorage`）。这一点和多数模板不同——没有 `pinia-plugin-persistedstate`，所以"哪些状态会留下来"是个显式决定，而不是一个 `persist: true` 开关。
 
 ```ts
-// apps/web/src/main.ts:58-59
+// apps/web/src/main.ts:46-47
 const pinia = createPinia();
 app.use(pinia);
 ```
@@ -27,8 +27,7 @@ app.use(pinia);
 
 ::: warning
 
-出口是两个，别走错包`@antdv/stores` 的 barrel 全量导出五个模块：`packages/stores/src/index.ts:1-5`（app / route / session / tabs / user）。`apps/web/src/stores/index.ts:1-2` 只 re-export auth / dict，所以 `~/stores` 里**拿不到**那四个 —— 应用代码统一 `import { useUserStore } from '@antdv/stores'`，私有 store 走 `~/stores`。
-:::
+出口是两个，别走错包`@antdv/stores` 的 barrel 全量导出五个模块：`packages/stores/src/index.ts:1-5`（app / route / session / tabs / user）。`apps/web/src/stores/index.ts:1-2` 只 re-export auth / dict，所以 `~/stores` 里**拿不到**那四个 —— 应用代码统一 `import { useUserStore } from '@antdv/stores'`，私有 store 走 `~/stores`。:::
 
 ## 约定
 
@@ -52,14 +51,13 @@ app.use(pinia);
 
 ::: warning
 
-`VITE_NAMESPACE` 是个死变量它只出现在 `apps/web/.env:1`、`apps/web/types/env.d.ts:28` 和这份文档里，**没有任何代码路径读它**。想按环境隔离 localStorage，目前只能靠 `VITE_APP_TITLE` 前缀（改 title 会让全部旧缓存失效，这是它的实际效果）。别指望设个 namespace 就能多标签隔离。
-:::
+`VITE_NAMESPACE` 是个死变量它只出现在 `apps/web/.env:1`、`apps/web/types/env.d.ts:28` 和这份文档里，**没有任何代码路径读它**。想按环境隔离 localStorage，目前只能靠 `VITE_APP_TITLE` 前缀（改 title 会让全部旧缓存失效，这是它的实际效果）。别指望设个 namespace 就能多标签隔离。:::
 
 ## app store 是偏好的门面，不是第二份状态
 
 真正的所有权在 `packages/core/preferences`：`createPreferences()` 给出一组 ref/computed（`packages/core/preferences/src/preferences.ts:27`），`updateSetting` / `toggle` 提交后由 `commit()` 同步 persist + 写 DOM（`:87-97`，写 DOM 的具体动作在 `update-css-variables.ts`）。`app.ts:29-97` 用 `pick()` / `toRef` 把它**展平**成 `appStore.primaryColor` 这类只读 ref，`app.ts:102-126` 再把 `updateSetting`、`resetSetting`、`toggles.*` 暴露成写入 API。
 
-语言没有第二份状态：`locale` 只是偏好快照里的一个字段（`app.ts:97`），写入唯一一条路是 `appStore.updateSetting({ locale })`，之后由 `useLocaleSync` 把它展开成 i18n 文案、`<html lang>`、dayjs 与组件内置文案四件事（`apps/web/src/composables/useLocale.ts:32-61`）。`apps/web/src/locales/index.ts:11-19` 里的 `locale: 'zh-CN'` 只是 createI18n 的初始值，不是第二个真相来源。
+语言没有第二份状态：`locale` 只是偏好快照里的一个字段（`packages/stores/src/app.ts:97`），写入唯一一条路是 `appStore.updateSetting({ locale })`，之后由 `useLocaleSync` 把它展开成三件事 —— i18n 文案、`<html lang>`、dayjs（`packages/core/hooks/src/use-locale.ts:41-56`，三行赋值在 `:46-48`）。以前这里还有第四件：返回一个 antd 的 locale 对象给 `ConfigProvider :locale`，antd 依赖移除后已经没有了（说明在 `:34-37`），组件内置文案改由 `@antdv/common-ui` 的 `ConfigProvider` 按 `'en-US' | 'zh-CN'` 自己展开。`apps/web/src/locales/index.ts:11-19` 里的 `locale: 'zh-CN'` 只是 createI18n 的初始值，不是第二个真相来源。
 
 所以：
 
@@ -81,5 +79,4 @@ app.use(pinia);
 
 ::: tip
 
-想加一个新 store应用级状态照 `apps/web/src/stores/modules/dict.ts` 写，跨包共享的才进 `packages/stores/src/`：setup store、`defineStore('xxx')` 的第一参数用稳定 id、需要落盘就在 `watch` 里显式 `cache.setItem`，键名加进 `packages/enums/src/cache.ts` 的 `CacheKey`，并在登出流程（或 `onSessionReset` 登记）里加清理。别忘了同步 `packages/stores/src/index.ts` 或 `apps/web/src/stores/index.ts` 的导出。
-:::
+想加一个新 store应用级状态照 `apps/web/src/stores/modules/dict.ts` 写，跨包共享的才进 `packages/stores/src/`：setup store、`defineStore('xxx')` 的第一参数用稳定 id、需要落盘就在 `watch` 里显式 `cache.setItem`，键名加进 `packages/enums/src/cache.ts` 的 `CacheKey`，并在登出流程（或 `onSessionReset` 登记）里加清理。别忘了同步 `packages/stores/src/index.ts` 或 `apps/web/src/stores/index.ts` 的导出。:::

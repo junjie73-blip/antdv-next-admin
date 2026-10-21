@@ -37,6 +37,8 @@ import { createBandwidthLimiter } from './useBandwidth';
 import { computeFileHash } from './useHashWorker';
 
 interface UseChunkUploaderOptions {
+  /** 秒传哈希的 worker 工厂，原样转给 `computeFileHash`；不给就走主线程 */
+  createWorker?: () => Worker;
   chunkSize?: number;
   concurrency?: number;
   maxRetry?: number;
@@ -107,7 +109,11 @@ export function useChunkUploader(options: UseChunkUploaderOptions = {}) {
   ): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       const hashTask = computeFileHash(
-        { file: task.file, chunkSize: task.chunkSize },
+        {
+          chunkSize: task.chunkSize,
+          createWorker: options.createWorker,
+          file: task.file,
+        },
         {
           onProgress: (_r, _t, percent) => {
             task.hashProgress = percent;

@@ -3,8 +3,8 @@ import type { PluginOption, UserConfig } from 'vite';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { defineConfig, mergeConfig } from 'vite';
 import { globSync } from 'tinyglobby';
+import { defineConfig, mergeConfig } from 'vite';
 
 import { createPlugins } from '../plugins';
 import { loadEnv } from '../utils/env';

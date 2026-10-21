@@ -18,7 +18,11 @@ import { describe, expect, it } from 'vitest';
  *    下面那条「依赖清零」的硬断言，它拦的是更靠前的那一步。
  */
 
-const SCAN_ROOTS = ['src/views', 'src/components', 'src/layouts'];
+/*
+ * `src/components` 不在名单里了：那批业务组件已搬进 `@antdv/common-ui` 等子包
+ * （应用侧不再有 `src/components/` 目录），权限指令的写法只可能出现在页面与布局模板里。
+ */
+const SCAN_ROOTS = ['src/views', 'src/layouts'];
 
 /** 权限指令把 arg 写成 modifier —— 判据不报错，只是永远判不过 */
 const RULES: Array<{

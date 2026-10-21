@@ -1,7 +1,7 @@
 {
   "name": "@antdv/hooks",
   "version": "0.4.0",
-  "description": "通用组合式函数：缓存、文件读取、分片上传、打印、路由 Loading、水印、权限判定、增删改查骨架、ECharts（只依赖 @antdv/stores 的会话状态，不读路由实例、不发自定义请求）。SSE 与 WebSocket 在 @antdv/request",
+  "description": "通用组合式函数：缓存、文件读取、分片上传、打印、路由 Loading、水印、权限判定、增删改查骨架、语言（locale → i18n/html lang/dayjs）、ECharts（只依赖 @antdv/stores 的会话状态，不读路由实例、不发自定义请求）。SSE 与 WebSocket 在 @antdv/request",
   "private": true,
   "type": "module",
   "scripts": {
@@ -41,10 +41,12 @@
     "@antdv/table-ui": "workspace:*",
     "@antdv/types": "workspace:*",
     "@vueuse/core": "catalog:",
+    "dayjs": "catalog:",
     "echarts": "catalog:",
     "es-toolkit": "catalog:",
     "pinia": "catalog:",
     "vue": "catalog:",
+    "vue-i18n": "catalog:",
     "vue-router": "catalog:",
     "watermark-plus": "catalog:"
   },
@@ -54,8 +56,8 @@
     "happy-dom": "catalog:",
     "rimraf": "catalog:",
     "tsdown": "catalog:",
-    "vite": "catalog:",
     "typescript": "catalog:",
+    "vite": "catalog:",
     "vitest": "catalog:",
     "vue-tsc": "catalog:"
   }

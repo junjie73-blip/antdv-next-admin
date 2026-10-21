@@ -19,7 +19,7 @@ const gridClassName = cn(
   'grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3',
 );
 const demoClassName = cn('p-6 text-sm');
-const labelClassName = cn('text-xs text-muted-foreground');
+const labelClassName = cn('text-muted-foreground text-xs');
 
 /** 演示用的几组配置，直接对应组件的可配项 */
 const VARIANTS = [
@@ -31,7 +31,7 @@ const VARIANTS = [
   {
     desc: 'color / tailColor 换成琥珀到透明',
     props: {
-      color: 'var(--app-warning)',
+      color: 'hsl(var(--warning))',
       tailColor: 'rgba(250, 173, 20, 0.15)',
     },
     title: '自定义颜色',

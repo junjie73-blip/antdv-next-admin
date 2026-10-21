@@ -23,8 +23,7 @@ Three files, merged per Vite mode (`.env` as the base, `.env.development` / `.en
 
 ::: warning
 
-Use `isEnvEnabled` for boolean switches, don't write `=== true` `VITE_*` values come out of the environment as strings. Writing `VITE_MICRO_APP === true` is always false, and the symptom is "I clearly turned the switch on, yet the micro-frontend page keeps reporting that it can't connect".
-:::
+Use `isEnvEnabled` for boolean switches, don't write `=== true` `VITE_*` values come out of the environment as strings. Writing `VITE_MICRO_APP === true` is always false, and the symptom is "I clearly turned the switch on, yet the micro-frontend page keeps reporting that it can't connect". :::
 
 ::: warning
 
@@ -33,8 +32,7 @@ The two switches that default to off are off for a reason
 - `VITE_MICRO_APP=false`: the child app has to actually run on the port configured in the registry (`src/config/micro-app.ts`), otherwise the "Micro frontend" menu page tries to connect to an address that isn't reachable.
 - `VITE_WS_URL=` (empty): the Nitro mock has no `/ws` handler, and reconnection is **unlimited** — starting a connection with no backend only floods the console and the end-to-end cases. When you hook up a real backend, fill in the full address (for example `ws://localhost:8080/ws`); the frontend attaches the token automatically.
 
-`VITE_DEV_POLLING` is also left commented out in `.env.development`: when the repo sits on a mapped drive (`J:` here) inotify events never arrive, so it looks like it should be enabled. Measured in practice **enabling it doesn't save it either** — the config does get `server.watch.usePolling`, and polling the same directory directly with chokidar does deliver change events, but the dev server's module graph never invalidates (stale modules keep being served until a restart). You burn CPU and still get no HMR, so it stays commented; after changing a shared package, rebuild and restart following [Getting started](/en/guide/introduction/quick-start#_3-you-changed-a-shared-package-but-nothing-took-effect).
-:::
+`VITE_DEV_POLLING` is also left commented out in `.env.development`: when the repo sits on a mapped drive (`J:` here) inotify events never arrive, so it looks like it should be enabled. Measured in practice **enabling it doesn't save it either** — the config does get `server.watch.usePolling`, and polling the same directory directly with chokidar does deliver change events, but the dev server's module graph never invalidates (stale modules keep being served until a restart). You burn CPU and still get no HMR, so it stays commented; after changing a shared package, rebuild and restart following [Getting started](/en/guide/introduction/quick-start#_3-you-changed-a-shared-package-but-nothing-took-effect). :::
 
 ## Coding conventions
 
@@ -42,7 +40,7 @@ The details live in `CODE_STANDARD.md` at the repo root (20 sections: directory 
 
 1. **Pages are laid out as `views/<module>/<page>/index.vue`**, with page-private logic in `actions.ts` / `columns.ts` / `schemas.ts` next to it; what sits inside the `components/` and `widgets/` subdirectories is a **private component, not a route page** — both file-convention routing and the "no padding on the root container" guard exclude them on that same criterion.
 2. **The outer container of a route page declares no padding**; inner spacing is the layout's job (see [Layout, menu, and tab pages](/en/guide/in-depth/layout#content-area-padding-belongs-to-the-layout)).
-3. **Accent colors only come from `@antdv/design`'s primary tokens** (`bg-primary` / `text-primary` / `var(--app-primary)`) — never the antd compatibility layer's `*-ant-*` (those utilities are no longer generated) and never a hardcoded `blue-*` or `#1677ff` (see [Theme and preferences](/en/guide/in-depth/theme#writing-the-primary-color-with-tailwind)).
+3. **Accent colors only come from `@antdv/design`'s primary tokens** (`bg-primary` / `text-primary` / `var(--primary)`) — never the antd compatibility layer's `*-ant-*` (those utilities are no longer generated) and never a hardcoded `blue-*` or `#1677ff` (see [Theme and preferences](/en/guide/in-depth/theme#writing-the-primary-color-with-tailwind)).
 
 Running the checks:
 
@@ -53,12 +51,11 @@ pnpm check           # the five checks: circular + dep + type + builds + cspell
 pnpm publint         # are the sub-package build outputs publishable
 ```
 
-`check:type` currently has **253 pre-existing errors** (`components/business/**`, `api/mock.ts`, `security/dashboard/**`, `form/validation`, etc.). In CI it runs as "continue but don't block"; the reasoning and the convergence plan are in [CI and deployment](/en/guide/essentials/deploy#why-type-check-is-non-blocking-at-first).
+`check:type` currently has **253 pre-existing errors** (`api/mock.ts`, `security/dashboard/**`, `form/validation`, etc. — the app-side `components/business/**` that used to top that list now lives in the UI packages). In CI it runs as "continue but don't block"; the reasoning and the convergence plan are in [CI and deployment](/en/guide/essentials/deploy#why-type-check-is-non-blocking-at-first).
 
 ## One build standard for every package
 
-All 34 packages in the workspace come in exactly two legal shapes. There is no
-"some packages hot-reload, only some get compiled" mix:
+All 34 packages in the workspace come in exactly two legal shapes. There is no "some packages hot-reload, only some get compiled" mix:
 
 | Shape | Who uses it | What `build` does |
 | --- | --- | --- |
@@ -67,27 +64,12 @@ All 34 packages in the workspace come in exactly two legal shapes. There is no
 
 Four hard rules:
 
-1. **Every package has a `build`.** The only exceptions are packages whose content is
-   configuration rather than code (`@antdv/tsconfig`, `@antdv/stylelint-config`,
-   `@antdv/commitlint-config` — plain JSON / CSS presets). The list and the reasons live at
-   the top of `scripts/check-uniform-build.mjs`.
-2. **`stub` cannot be the only build.** tsdown's `stub` drops a trampoline into `dist`; the
-   artifacts were never actually compiled, so type errors, missing dependencies and failed SFC
-   compactions are postponed until the host app's dev server trips over them.
-   `@antdv/node-utils` keeps `stub` because its script toolchain runs sources through the
-   trampoline — but it ships a real `build` alongside it.
-3. **Source-published packages do not declare their own `dev` / `watch`.** Their hot reload
-   comes from the host app (`apps/web`): Vite reads the sources directly, so editing a package
-   takes effect immediately. Adding a `vite build --watch` on top only races the host over the
-   same directories.
-4. **The artifacts must cover every public sub-path in `exports`.** `defineLibraryConfig()`
-   derives the entries from the package's own `exports` map (wildcards like `./*` included), and
-   `antdv:validate-dist` then checks, entry by entry, that `dist/<name>.js` really landed on disk
-   (`.css` for style entries, plus the matching `.d.ts` when declarations are enabled). A single
-   missing entry fails the build and names the sub-path.
+1. **Every package has a `build`.** The only exceptions are packages whose content is configuration rather than code (`@antdv/tsconfig`, `@antdv/stylelint-config`, `@antdv/commitlint-config` — plain JSON / CSS presets). The list and the reasons live at the top of `scripts/check-uniform-build.mjs`.
+2. **`stub` cannot be the only build.** tsdown's `stub` drops a trampoline into `dist`; the artifacts were never actually compiled, so type errors, missing dependencies and failed SFC compactions are postponed until the host app's dev server trips over them. `@antdv/node-utils` keeps `stub` because its script toolchain runs sources through the trampoline — but it ships a real `build` alongside it.
+3. **Source-published packages do not declare their own `dev` / `watch`.** Their hot reload comes from the host app (`apps/web`): Vite reads the sources directly, so editing a package takes effect immediately. Adding a `vite build --watch` on top only races the host over the same directories.
+4. **The artifacts must cover every public sub-path in `exports`.** `defineLibraryConfig()` derives the entries from the package's own `exports` map (wildcards like `./*` included), and `antdv:validate-dist` then checks, entry by entry, that `dist/<name>.js` really landed on disk (`.css` for style entries, plus the matching `.d.ts` when declarations are enabled). A single missing entry fails the build and names the sub-path.
 
-The standard is a runnable guard. `check:builds` sits inside `pnpm check`, but that chain still
-short-circuits at `check:type` today, so run it on its own:
+The standard is a runnable guard. `check:builds` sits inside `pnpm check`, but that chain still short-circuits at `check:type` today, so run it on its own:
 
 ```bash
 pnpm check:builds
@@ -95,34 +77,19 @@ pnpm check:builds
 # ("Every package has a build / no stub-only / source-published packages install no watchers.")
 ```
 
-A new package only needs three things: `vite.config.mts` containing
-`export default defineLibraryConfig();`; a `package.json` with `build: vite build`,
-`clean: rimraf dist .turbo` and `files: ["dist", "src"]`; and `@antdv/vite-config` plus `vite`
-in `devDependencies`. The guard catches whatever is missed.
+A new package only needs three things: `vite.config.mts` containing `export default defineLibraryConfig();`; a `package.json` with `build: vite build`, `clean: rimraf dist .turbo` and `files: ["dist", "src"]`; and `@antdv/vite-config` plus `vite` in `devDependencies`. The guard catches whatever is missed.
 
 ::: warning Three library-mode details we learned the hard way
 
-- **Do not use `build.lib.fileName`.** It is a single-entry prefix option: the string
-  `'[name]'` leaves CSS assets out of the substitution (you get `dist/_name_.css`), and the
-  function form pushes JS into `dist/es/`. Multi-entry artifact names always go through
-  `rolldownOptions.output.entryFileNames` + `assetFileNames`.
-- **A CSS-only entry needs `cssCodeSplit: true` explicitly.** Library mode defaults it to
-  `false`, and in that mode Vite refuses CSS entries outright
-  (`"rolldownOptions.input" should not include CSS files`) — which is how `@antdv/design` started.
-- **`dts` follows where `types` points.** Declarations are only emitted when `types` resolves
-  into `dist`. For source-published packages (`types: ./src/index.ts`) the generated `.d.ts` has
-  no readers — each package's own `type-check` guards the public surface — and emitting them
-  anyway doubles the build (`@antdv/menu-ui`: 27 s → 7.5 s).
+- **Do not use `build.lib.fileName`.** It is a single-entry prefix option: the string `'[name]'` leaves CSS assets out of the substitution (you get `dist/_name_.css`), and the function form pushes JS into `dist/es/`. Multi-entry artifact names always go through `rolldownOptions.output.entryFileNames` + `assetFileNames`.
+- **A CSS-only entry needs `cssCodeSplit: true` explicitly.** Library mode defaults it to `false`, and in that mode Vite refuses CSS entries outright (`"rolldownOptions.input" should not include CSS files`) — which is how `@antdv/design` started.
+- **`dts` follows where `types` points.** Declarations are only emitted when `types` resolves into `dist`. For source-published packages (`types: ./src/index.ts`) the generated `.d.ts` has no readers — each package's own `type-check` guards the public surface — and emitting them anyway doubles the build (`@antdv/menu-ui`: 27 s → 7.5 s).
 
 :::
 
 ::: tip What it costs, and when it is paid
 
-A full `pnpm build` is currently 31 tasks and roughly 4 minutes; a single source package takes
-7–10 s. In `turbo.json`, `dev`, `type-check` and `test:unit` all `dependsOn ^build`, so the very
-first `pnpm dev` after a clean cache pays about a minute building the dependency packages, then
-hits the cache. That is not a regression — it is the price of a broken package going red before
-the commit instead of in someone's browser.
+A full `pnpm build` is currently 31 tasks and roughly 4 minutes; a single source package takes 7–10 s. In `turbo.json`, `dev`, `type-check` and `test:unit` all `dependsOn ^build`, so the very first `pnpm dev` after a clean cache pays about a minute building the dependency packages, then hits the cache. That is not a regression — it is the price of a broken package going red before the commit instead of in someone's browser.
 
 :::
 
@@ -139,8 +106,7 @@ The other hard constraints: `header-max-length` 108, `body-leading-blank` (a bla
 
 ::: warning
 
-Local hooks are currently off Every hook in `lefthook.yml` is commented out (`prepare` still runs `lefthook install`, but nothing actually intercepts). So **don't expect lint to run automatically on commit**, and keep in mind that `pnpm exec lefthook run pre-commit` currently does nothing — the real CI gate is on the CI side, see [CI and deployment](/en/guide/essentials/deploy).
-:::
+Local hooks are currently off Every hook in `lefthook.yml` is commented out (`prepare` still runs `lefthook install`, but nothing actually intercepts). So **don't expect lint to run automatically on commit**, and keep in mind that `pnpm exec lefthook run pre-commit` currently does nothing — the real CI gate is on the CI side, see [CI and deployment](/en/guide/essentials/deploy). :::
 
 ## Changeset
 

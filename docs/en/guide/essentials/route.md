@@ -24,8 +24,7 @@ The Router itself: `createWebHashHistory()` + `strict: true` + scrolling back to
 
 ::: warning
 
-`/redirect/:path(.*)` must be registered explicitly `views/redirect/index.vue` only generates the exact match `/redirect`; it can't catch the `/redirect/system/user` used by the tab's "refresh current". It's written in `constantRoutes` and takes effect before the conventional routes (`apps/web/src/router/routes.ts:48-57`). Think through how to recover the tab refresh before deleting it.
-:::
+`/redirect/:path(.*)` must be registered explicitly `views/redirect/index.vue` only generates the exact match `/redirect`; it can't catch the `/redirect/system/user` used by the tab's "refresh current". It's written in `constantRoutes` and takes effect before the conventional routes (`apps/web/src/router/routes.ts:48-57`). Think through how to recover the tab refresh before deleting it. :::
 
 ## What you can put in meta
 
@@ -61,8 +60,7 @@ progress → auth → dynamicRoutes → title → navLog
 
 ::: warning
 
-This is the point most easily got backwards The sidebar is **not** recursed out of routes. After login `GET /menus` returns the menu tree (`packages/stores/src/route.ts:112-117`), and the frontend only does three things:
-:::
+This is the point most easily got backwards The sidebar is **not** recursed out of routes. After login `GET /menus` returns the menu tree (`packages/stores/src/route.ts:112-117`), and the frontend only does three things: :::
 
 1. `normalize()` maps the backend fields into the internal structure: `menuName → title`, carrying `icon/hidden/isExternal/path/keepAlive/children`; it **does not sort**, the order is just the array order (`route.ts:87-100`).
 2. `attachMenuPaths()` takes the menu and reverse-looks-up the real path in the route table, with five-level priority matching (`packages/utils/src/menu.ts:258-314`). If the menu writes a path the route table doesn't have, the page won't open.
@@ -93,8 +91,7 @@ The symptoms and conclusions:
 
 ::: warning
 
-What happens when you only create the file but add no menu The route exists and the guard lets you in, but the sidebar doesn't show it — because the sidebar reads `/menus`. Conversely, adding only the menu without creating the file, `attachMenuPaths` can't reverse-look-up the path and clicking doesn't navigate. Both sides need to be there.
-:::
+What happens when you only create the file but add no menu The route exists and the guard lets you in, but the sidebar doesn't show it — because the sidebar reads `/menus`. Conversely, adding only the menu without creating the file, `attachMenuPaths` can't reverse-look-up the path and clicking doesn't navigate. Both sides need to be there. :::
 
 ## Micro-frontend routing
 

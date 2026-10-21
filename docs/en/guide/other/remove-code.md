@@ -14,8 +14,7 @@ The two half-deletions fail differently and both fail badly: **delete the page b
 
 ::: warning
 
-`hidden` is not deletion `hidden: true` only means "not in the navigation"; the node still enters the access set — the comment block in `menus.get.ts` exists precisely to say so. The "show in nav" switch on the menu management page writes to no backend either: it stores `xy-menu-hidden-overrides` in localStorage (`packages/stores/src/route.ts:26,38-46`), and `apps/web/src/api/menu.ts` contains nothing but `getMenus()` — there is no menu write endpoint at all. Locally, "delete a menu record" means editing that seed file; on a real backend it means deleting the row.
-:::
+`hidden` is not deletion `hidden: true` only means "not in the navigation"; the node still enters the access set — the comment block in `menus.get.ts` exists precisely to say so. The "show in nav" switch on the menu management page writes to no backend either: it stores `xy-menu-hidden-overrides` in localStorage (`packages/stores/src/route.ts:26,38-46`), and `apps/web/src/api/menu.ts` contains nothing but `getMenus()` — there is no menu write endpoint at all. Locally, "delete a menu record" means editing that seed file; on a real backend it means deleting the row. :::
 
 ## The deletion checklist, in dependency order
 
@@ -53,8 +52,7 @@ The overview page builds its card wall from `routeStore.menus` (`views/component
 
 ::: danger
 
-A static contract ties pages to the menu seed on purpose `apps/web/src/views/dashboard/__tests__/analysis-merge.spec.ts` reads `apps/backend-mock/server/api/menus.get.ts` as text, lifts every `path: '/...'` into a set, and asserts that each quick action on the analysis page targets one of them. Its comments state the policy plainly: "the menu seed is both the route table and the permission source", "deleting a page means deleting the seed entry with it". Fastest place in the repo for a half-deletion to turn red — which is the point.
-:::
+A static contract ties pages to the menu seed on purpose `apps/web/src/views/dashboard/__tests__/analysis-merge.spec.ts` reads `apps/backend-mock/server/api/menus.get.ts` as text, lifts every `path: '/...'` into a set, and asserts that each quick action on the analysis page targets one of them. Its comments state the policy plainly: "the menu seed is both the route table and the permission source", "deleting a page means deleting the seed entry with it". Fastest place in the repo for a half-deletion to turn red — which is the point. :::
 
 ## Case C: a workspace package
 
@@ -66,7 +64,7 @@ Short answer: none of the 21 packages under `packages/` can be deleted by removi
 | `@antdv/types` | 12 | `preferences` / `layout-ui` / `menu-ui` / `tabs-ui` / `layouts` / `stores` / `utils` + `apps/backend-mock` (`server/api/menus.get.ts:1` etc.) | type surface spread over every layer |
 | `@antdv/shadcn-ui` | 55 | the implementation base of `icons` / `common-ui` / `form-ui` / `layout-ui` / `menu-ui` / `popup-ui` / `table-ui` / `tabs-ui` / `layouts` | that whole group collapses with it, i.e. there is no UI layer left |
 | `@antdv/common-ui` | 63 | **not "app only"**: `form-ui` / `layout-ui` / `menu-ui` / `table-ui` / `tabs-ui` / `layouts` all import it; it depends on `icons` / `shadcn-ui` / `shared` (loading and scrollbar now live inside it) | the shared display components (Card, Tag, Steps, Upload, Transfer, skeletons) all go; `@antdv/design`'s `index.css:39-48` carries ten `@source` lines, and the matching one must be deleted in the same change |
-| `@antdv/popup-ui` | 44 | `hooks` / `common-ui` / `table-ui` / `layouts` / `request`; the app's `BasicModal` / `BasicDrawer` / `useModal` / `useDrawer` / `confirm` / `message` **all come from this package** (`apps/web/src/components/business/` now holds only `ImportExport.vue` and `TenantSelect.vue`) | modals, drawers, imperative confirms and the global toast break together, see [Modal and drawer](/en/components/modal-drawer) |
+| `@antdv/popup-ui` | 44 | `hooks` / `common-ui` / `table-ui` / `layouts` / `request`; the app's `BasicModal` / `BasicDrawer` / `useModal` / `useDrawer` / `confirm` / `message` **all come from this package** (`apps/web/src/components/` is now empty — nothing but the packaged `Basic*` family is left to import) | modals, drawers, imperative confirms and the global toast break together, see [Modal and drawer](/en/components/modal-drawer) |
 | `@antdv/table-ui` | 22 | `hooks` (`useCRUD`'s boundary spec imports it); the app's `BasicTable` / `useTable` / `BasicColumn` come from it | every list page loses its table |
 | `@antdv/form-ui` | 20 | `hooks` / `table-ui` (editable cells); the app's `BasicForm` / `useForm` / `FormSchema` come from it | search forms and form pages break together |
 | `@antdv/layout-ui` | 3 | the render base layer under `@antdv/layouts` (shell, five regions, size contract and the text injection point) | the DOM for all seven layout shapes lives here, so the composition layer would have nothing left to render |
@@ -94,8 +92,7 @@ The video trio is a clean case: `@videojs-player/vue`, `@videojs/http-streaming`
 
 ::: warning
 
-"nothing imports it" is not "safe to delete" `pnpm check:dep` (knip) reports a batch of unused dependencies, but its built-in config ignores `docs/**` and hardcodes an `ignoreDependencies` list containing `playwright`, `rimraf`, `tailwindcss` and more (see `scripts/vsh/src/check-dep/index.ts`). Build-time plugins and CDN-loaded libraries all look "unused" to it — grep the app source and `internal/vite-config` yourself before deleting.
-:::
+"nothing imports it" is not "safe to delete" `pnpm check:dep` (knip) reports a batch of unused dependencies, but its built-in config ignores `docs/**` and hardcodes an `ignoreDependencies` list containing `playwright`, `rimraf`, `tailwindcss` and more (see `scripts/vsh/src/check-dep/index.ts`). Build-time plugins and CDN-loaded libraries all look "unused" to it — grep the app source and `internal/vite-config` yourself before deleting. :::
 
 ## What catches what you broke
 
@@ -113,7 +110,7 @@ Who catches what: `src/views/__tests__/page-root-padding.spec.ts` checks root-co
 
 - The menu is **a static seed plus per-browser localStorage overrides**, with no write API. Any "menu deleted" action is a source edit, and browsers that already flipped the switch keep their override locally.
 - `internal/*` and `scripts/*` are not optional trim: `@antdv/vite-config` assembles conventional routing, the layouts plugin, auto-imports for framework APIs plus both generated `.d.ts` files, the iconify offline sets, the Nitro mock proxy and the chunking strategy — and it imports `@antdv/node-utils` itself. Editing it is editing the build.
-- i18n is wired into the menu and the shell, but **only by injection — there is one real call site in the whole repository**: the three ui-kit packages (`layout-ui` / `menu-ui` / `tabs-ui`) never import vue-i18n; they receive `t` and `translateMenu` from `configureUiKitRuntimes()` (`apps/web/src/plugins/ui-runtime.ts:13-25`, whose comment explains why they must not touch `~/stores`), and the single `useI18n()` call lives at `apps/web/src/composables/useLocale.ts:65`. The header language switch is `packages/layouts/src/widgets/language-toggle/index.vue`, with its candidate table injected by `apps/web/src/plugins/layouts-host.ts:35-38`. Business-page copy is still hardcoded Chinese. Before deleting a locale pack, check `src/locales/__tests__/locale.spec.ts` and `packages/layouts/src/hooks/use-menu-tree.ts`.
+- i18n is wired into the menu and the shell, but **only by injection — there is one real call site in the whole repository**: the three ui-kit packages (`layout-ui` / `menu-ui` / `tabs-ui`) never import vue-i18n; they receive `t` and `translateMenu` from `configureUiKitRuntimes()` (`apps/web/src/plugins/ui-runtime.ts:13-25`, whose comment explains why they must not touch `~/stores`), and the single `useI18n()` call lives at `packages/core/hooks/src/use-locale.ts:65`. The header language switch is `packages/layouts/src/widgets/language-toggle/index.vue`, with its candidate table injected by `apps/web/src/plugins/layouts-host.ts:35-38`. Business-page copy is still hardcoded Chinese. Before deleting a locale pack, check `src/locales/__tests__/locale.spec.ts` and `packages/layouts/src/hooks/use-menu-tree.ts`.
 - `docs/` sits level with `apps/` in `pnpm-workspace.yaml`: delete it and half the language switcher goes with it.
 
 Related: [Routes and menu](/en/guide/essentials/route), [Mock server (Nitro)](/en/guide/essentials/mock), [Testing strategy](/en/guide/project/testing), [Keeping the template up to date](/en/guide/other/project-update).

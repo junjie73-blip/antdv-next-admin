@@ -1,11 +1,20 @@
 <script lang="ts" setup>
-import type { CSSProperties } from 'vue'
-import type { ToasterProps } from "vue-sonner"
-import { CircleCheckIcon, InfoIcon, Loader2Icon, OctagonXIcon, TriangleAlertIcon, XIcon } from "@lucide/vue"
-import { Toaster as Sonner } from "vue-sonner"
-import { cn } from '@antdv/shared/utils/cn'
+import type { CSSProperties } from 'vue';
+import type { ToasterProps } from 'vue-sonner';
 
-const props = defineProps<ToasterProps>()
+import { Toaster as Sonner } from 'vue-sonner';
+
+import { cn } from '@antdv/shared/utils/cn';
+import {
+  CircleCheckIcon,
+  InfoIcon,
+  Loader2Icon,
+  OctagonXIcon,
+  TriangleAlertIcon,
+  XIcon,
+} from '@lucide/vue';
+
+const props = defineProps<ToasterProps>();
 
 /**
  * sonner 的样式契约：它只认 CSS 变量，不认 Tailwind 工具类。
@@ -21,31 +30,38 @@ const props = defineProps<ToasterProps>()
  * （要排在 `v-bind` 之后才压得过 props 的默认 false）。不开富色时 sonner 只画图标、
  * 底色一律 `--normal-bg`，四种类型就是一模一样的白块。
  *
- * 底色一律从 `--app-popover` 派生而非钉死实色：弹层 portal 到 body，落在
+ * 底色一律从 `--popover` 派生而非钉死实色：弹层 portal 到 body，落在
  * `.dark` / `[data-theme]` 的作用域里，换明暗换主题都自动跟上。
  */
 const toasterVars = {
-  '--normal-bg': 'var(--app-popover)',
-  '--normal-text': 'var(--app-popover-foreground)',
-  '--normal-border': 'var(--app-border)',
-  '--border-radius': 'var(--app-border-radius)',
+  '--normal-bg': 'hsl(var(--popover))',
+  '--normal-text': 'hsl(var(--popover-foreground))',
+  '--normal-border': 'hsl(var(--border))',
+  '--border-radius': 'var(--radius)',
 
-  '--success-bg': 'color-mix(in oklab, var(--app-success) 12%, var(--app-popover))',
-  '--success-border': 'color-mix(in oklab, var(--app-success) 35%, var(--app-popover))',
-  '--success-text': 'var(--app-success)',
+  '--success-bg':
+    'color-mix(in oklab, hsl(var(--success)) 12%, hsl(var(--popover)))',
+  '--success-border':
+    'color-mix(in oklab, hsl(var(--success)) 35%, hsl(var(--popover)))',
+  '--success-text': 'hsl(var(--success))',
 
-  '--info-bg': 'color-mix(in oklab, var(--app-info) 12%, var(--app-popover))',
-  '--info-border': 'color-mix(in oklab, var(--app-info) 35%, var(--app-popover))',
-  '--info-text': 'var(--app-info)',
+  '--info-bg': 'color-mix(in oklab, hsl(var(--info)) 12%, hsl(var(--popover)))',
+  '--info-border':
+    'color-mix(in oklab, hsl(var(--info)) 35%, hsl(var(--popover)))',
+  '--info-text': 'hsl(var(--info))',
 
-  '--warning-bg': 'color-mix(in oklab, var(--app-warning) 16%, var(--app-popover))',
-  '--warning-border': 'color-mix(in oklab, var(--app-warning) 40%, var(--app-popover))',
-  '--warning-text': 'var(--app-warning)',
+  '--warning-bg':
+    'color-mix(in oklab, hsl(var(--warning)) 16%, hsl(var(--popover)))',
+  '--warning-border':
+    'color-mix(in oklab, hsl(var(--warning)) 40%, hsl(var(--popover)))',
+  '--warning-text': 'hsl(var(--warning))',
 
-  '--error-bg': 'color-mix(in oklab, var(--app-destructive) 12%, var(--app-popover))',
-  '--error-border': 'color-mix(in oklab, var(--app-destructive) 35%, var(--app-popover))',
-  '--error-text': 'var(--app-destructive)',
-} satisfies CSSProperties
+  '--error-bg':
+    'color-mix(in oklab, hsl(var(--destructive)) 12%, hsl(var(--popover)))',
+  '--error-border':
+    'color-mix(in oklab, hsl(var(--destructive)) 35%, hsl(var(--popover)))',
+  '--error-text': 'hsl(var(--destructive))',
+} satisfies CSSProperties;
 </script>
 
 <template>

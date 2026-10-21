@@ -21,8 +21,9 @@ import { onUnmounted, ref } from 'vue';
 export function useModalInner<T = any>(
   callback?: CallbackFn<T>,
 ): UseModalInnerReturnType {
-  const modalInstance: Ref<Nullable<ModalInnerMethods & Partial<ModalMethods>>> =
-    ref(null);
+  const modalInstance: Ref<
+    Nullable<ModalInnerMethods & Partial<ModalMethods>>
+  > = ref(null);
   const dataRef: Ref<null | T> = ref(null);
 
   // 卸载清理挂在调用方的 setup 上，理由同 useDrawer：

@@ -8,8 +8,7 @@ This page covers exactly one demo route — `/components/modal-drawer` — and t
 2. `ModalProps` / `DrawerProps` contain fields that are **declared but never read by the components**: `helpMessage`, `maskStyle`, plus `bodyStyle` on the modal side (see the two props tables below).
 3. `useDrawerInner` **is only an alias export of `useDrawer`** (`drawer/index.ts:13-15`), not a second "inner-component" implementation; the drawer side has no data channel, only `useModalInner` does.
 
-Every section below cites the behaviour code; do not copy the fields from item 2 into product code as if they were API.
-:::
+Every section below cites the behaviour code; do not copy the fields from item 2 into product code as if they were API. :::
 
 ## What problem they solve
 
@@ -84,8 +83,7 @@ Because the outer `useModal` keeps the **same object reference**, its `instance.
 
 ::: tip
 
-When you do not need useModalInner Modal content written directly in the page template (demo sections 2, 3 and 5 work that way) has no child component at all, so nobody can receive `data` — read the page's own `ref`s instead. The demo page prints this sentence in its info bar (`modal-drawer/index.vue:305-310`).
-:::
+When you do not need useModalInner Modal content written directly in the page template (demo sections 2, 3 and 5 work that way) has no child component at all, so nobody can receive `data` — read the page's own `ref`s instead. The demo page prints this sentence in its info bar (`modal-drawer/index.vue:305-310`). :::
 
 ## BasicModal API
 
@@ -158,8 +156,7 @@ The reason for calling `preventDefault()` and then running `closeModal()` oursel
 
 ::: warning
 
-The OK button loading: either close the modal or reset it yourself `handleOk` sets `okLoadingRef` to `true` unconditionally (`:154-156`), and the component's only automatic reset point is `closeModal()` (`:112`). What `BasicModal` emits is **`innerMethods`, which contains `changeOkLoading` / `changeLoading`** (`:126-134`, `:137`), so only a component that destructures `useModalInner()` inside the modal gets those two methods (`useModalInner.ts:64-69`); the page-level `useModal()` forwards only four keys (`useModal.ts:41-55`). Consequence: if your `@ok` handler decides to keep the modal open (validation failure, for instance), either call `changeOkLoading(false)` in the child component, or close the modal. Every submit path in demo section 1 closes, and the page prints that precondition on screen (`modal-drawer/index.vue:360-377`).
-:::
+The OK button loading: either close the modal or reset it yourself `handleOk` sets `okLoadingRef` to `true` unconditionally (`:154-156`), and the component's only automatic reset point is `closeModal()` (`:112`). What `BasicModal` emits is **`innerMethods`, which contains `changeOkLoading` / `changeLoading`** (`:126-134`, `:137`), so only a component that destructures `useModalInner()` inside the modal gets those two methods (`useModalInner.ts:64-69`); the page-level `useModal()` forwards only four keys (`useModal.ts:41-55`). Consequence: if your `@ok` handler decides to keep the modal open (validation failure, for instance), either call `changeOkLoading(false)` in the child component, or close the modal. Every submit path in demo section 1 closes, and the page prints that precondition on screen (`modal-drawer/index.vue:360-377`). :::
 
 ## BasicDrawer API
 
@@ -218,8 +215,7 @@ export { useDrawer } from './useDrawer';
 export { useDrawer as useDrawerInner } from './useDrawer';
 ```
 
-So the `callback` of `useDrawerInner(callback)` **is neither accepted nor invoked** (the signature at `useDrawer.ts:10` takes no parameters at all) — the drawer side has no data channel comparable to `useModalInner`. The destructured second element really contains only the four keys `openDrawer/closeDrawer/setDrawerProps/getVisible`; destructuring `changeOkLoading` / `changeLoading` off it (as `DrawerInnerMethods`, `drawer/types.ts:71-78` invites you to) yields `undefined`, and calling it throws a `TypeError`. `BasicDrawer` does prepare an `innerMethods` containing those two methods and sends it as the `register` payload (`:165-173`, `:180-189`), but `useDrawer` only forwards four keys (`useDrawer.ts:40-54`), so the two ends still never meet. Demo section 4 therefore uses only `openDrawer/closeDrawer`.
-:::
+So the `callback` of `useDrawerInner(callback)` **is neither accepted nor invoked** (the signature at `useDrawer.ts:10` takes no parameters at all) — the drawer side has no data channel comparable to `useModalInner`. The destructured second element really contains only the four keys `openDrawer/closeDrawer/setDrawerProps/getVisible`; destructuring `changeOkLoading` / `changeLoading` off it (as `DrawerInnerMethods`, `drawer/types.ts:71-78` invites you to) yields `undefined`, and calling it throws a `TypeError`. `BasicDrawer` does prepare an `innerMethods` containing those two methods and sends it as the `register` payload (`:165-173`, `:180-189`), but `useDrawer` only forwards four keys (`useDrawer.ts:40-54`), so the two ends still never meet. Demo section 4 therefore uses only `openDrawer/closeDrawer`. :::
 
 ## Body scrolling and the loading overlay
 
@@ -274,8 +270,7 @@ How to open it: `pnpm dev:web` + `pnpm --filter @antdv/backend-mock dev`, then v
 
 ::: tip
 
-Why the height uses `root-class` instead of `max-height` The page text (`:607-621`) gives the reason: the `max-height` prop is recomputed by `Scrollbar`'s internal `useResponsiveMaxHeight` with a 712px floor, so the height is pinned with `root-class="h-60"` here; the same sentence also notes that the built-in `ScrollArea` layer can be turned off with `:body-scroll="false"`. Details in the scrolling section of [Data and display](/en/components/display).
-:::
+Why the height uses `root-class` instead of `max-height` The page text (`:607-621`) gives the reason: the `max-height` prop is recomputed by `Scrollbar`'s internal `useResponsiveMaxHeight` with a 712px floor, so the height is pinned with `root-class="h-60"` here; the same sentence also notes that the built-in `ScrollArea` layer can be turned off with `:body-scroll="false"`. Details in the scrolling section of [Data and display](/en/components/display). :::
 
 ### 5. Nesting and close interception (`index.vue:683-759`, logic `:233-280`)
 
@@ -291,33 +286,33 @@ The real mechanism behind the stacking and the release:
 
 ## Messages and notifications (`message` / `notification`)
 
-Both live in `packages/core/ui-kit/popup-ui/src/message/index.ts` (128 lines) on top of vue-sonner, keeping the old `message.success/error/info/warning` call shape. What draws them is the themed `<Toaster />` shell exported by `@antdv/common-ui` (mounted at `apps/web/src/App.vue:59-71`).
+Both live in `packages/core/ui-kit/popup-ui/src/message/index.ts` (141 lines) on top of vue-sonner, keeping the old `message.success/error/info/warning` call shape. What draws them is the themed `<Toaster />` shell exported by `@antdv/common-ui` (mounted at `apps/web/src/App.vue:60-70`).
 
-The two channels are **two instances of the same `createFeedback(toasterId?)` factory** (`:123`, `:126`): same method roster, same default dwell time, same clearing logic. The only difference is which toaster they land in.
+The two channels are **two instances of the same `createFeedback(toasterId?)` factory** (`:136`, `:139`): same method roster, same default dwell time, same clearing logic, same close-button rule. The only difference is which toaster they land in.
 
 | Entry | Signature | Default duration |
 | --- | --- | --- |
-| `message` / `notification` `.success` / `.error` / `.info` / `.warning` | `(content: string, init?: number \| string \| ToastInit)` | 3000ms (`TOAST_DURATION`, `:43`) |
-| `.loading` | `(content: string)` | stays until dismissed (`:113`) |
-| `.close(id)` / `.closeAll()` | vue-sonner's `toast.dismiss` (`:99`, `:104`) | — |
-| `toast` | re-exported vue-sonner as-is (`:128`) | caller's business |
+| `message` / `notification` `.success` / `.error` / `.info` / `.warning` | `(content: string, init?: number \| string \| ToastInit)` | 3000ms (`TOAST_DURATION`, `:44`) |
+| `.loading` | `(content: string)` | stays until dismissed (`:126`) |
+| `.close(id)` / `.closeAll()` | vue-sonner's `toast.dismiss` (`:112`, `:117`) | — |
+| `toast` | re-exported vue-sonner as-is (`:141`) | caller's business |
 
-The second argument accepts three shapes: a number is the dwell time (`message.success('已保存', 5000)` — exactly the old call), a string is the description (`notification.info('标题', '描述')`), an object is `{ description, duration }`. Only keys that actually carry a value are written into the payload, so a message emits neither a `description` nor a `toasterId` key at all. For anything beyond these shapes (`action`, `cancel`, `promise`, custom ids) use the exported `toast`.
+The second argument accepts three shapes: a number is the dwell time (`message.success('已保存', 5000)` — exactly the old call), a string is the description (`notification.info('标题', '描述')`), an object is `{ description, duration, closeButton }`. Only keys that actually carry a value are written into the payload, so a message emits neither a `description` nor a `toasterId` key at all, and **no `closeButton` key either when you leave it out**. `closeButton` only exists in the object form — the two shorthand slots already mean something else. For anything beyond these shapes (`action`, `cancel`, `promise`, custom ids) use the exported `toast`.
 
 ### Why the host mounts **two** `<Toaster />` elements
 
-`apps/web/src/App.vue:59-71` mounts both (importing `Toaster` from `@antdv/common-ui`): the id-less one (`position="top-center"`) receives `message.*`, the one with `:id="NOTIFICATION_TOASTER_ID"` (the constant is `'notification'`, `message/index.ts:33`) receives `notification.*` and takes its position from the `notificationPosition` preference. **Both enable `close-button`**, with the ✕ in the card's top-right corner.
+`apps/web/src/App.vue:60-70` mounts both (importing `Toaster` from `@antdv/common-ui`): the id-less one (`position="top-center"`) receives `message.*`, the one with `:id="NOTIFICATION_TOASTER_ID"` (the constant is `'notification'`, `message/index.ts:34`) receives `notification.*` and takes its position from the `notificationPosition` preference. **Neither enables `close-button`**: `close-button-position="top-right"` stays, it only sets the corner for the toasts that do ask for a ✕. So the button is always in the card's top-right corner — but it exists only when that single toast asked for it.
 
 - **Not one toaster with a per-toast `position`**: sonner keeps exactly one stack per position. Messages and notifications differ in exit position and stack limit, so sharing a toaster makes them evict each other (one notification pushes three messages out).
 - **Routing rule** (vue-sonner 2.0.9): a toast without `toasterId` only enters the **id-less** toaster, one with `toasterId` only enters the matching one. `message.*` therefore never passes it — if the host forgets the notification toaster, messages are still visible, and nothing can cross over the other way.
-- **Both can be closed by hand**: messages used to omit the ✕ ("3 seconds and it's gone, an extra hit area contradicts that"). The cost was that the same sentence behaved differently per channel — 3s versus 8s, closable versus not — so users had to learn two rules. Dwell time and the dismiss action are now one implementation; what still separates the channels is the exit position and the optional description line.
+- **The dismiss button is a per-toast switch, off by default**: `init.closeButton: true` renders the ✕, leaving it out renders nothing; both channels read the same key through the same check (`toToastOptions` writes `closeButton` into the payload only when it is not `undefined`). It sits on the toast rather than on the toaster because vue-sonner resolves `toast.closeButton ?? toaster.closeButton` — a per-toast explicit `false` can veto a host that enabled the button globally, while a toaster-level switch has no way to express "not on this one". And a ✕ on every 3-second short message is just noise. What _is_ unified across the two channels is the rule, not the button: the same sentence gets the same dwell time and the same dismiss semantics instead of 3s-closable-here versus 8s-not-closable-there; only the exit position and the description line still differ.
 
 ### Colour contract: neutral card, state only in the badge
 
 All of it lives in `packages/core/ui-kit/common-ui/src/components/toast/Toaster.vue` (204 lines); applications configure nothing:
 
-- **Why this layer sits in common-ui instead of `@antdv/shadcn-ui`'s `Sonner.vue`**: that component hardcodes `rich-colors` *after* `v-bind` (so nothing can pass it in) and hardcodes its four state icons as `<template #xxx-icon>` (so nothing can pass them out — SFCs do not forward slots). Replacing those two things without editing its source would mean betting our selectors on which lucide icons it happens to use, and the bet expires on the next upgrade. So the styling layer is its own component: the engine is still vue-sonner, props and slots are the same shape (`ToasterProps` passes through untouched, `@antdv/shadcn-ui` did not change by a line), and nothing that package adds, removes or iterates can reach this one.
-- Background, border, text and radius come from sonner's `--normal-*` variable group (`:43-48`), fed by `--app-popover` / `--app-popover-foreground` / `--app-border` / `--app-border-radius`. **All four types share one neutral card — no rich colours**: `rich-colors` makes sonner repaint the whole card with `--{type}-bg` and recolors `[data-description]` along with it, which destroys body-text contrast.
+- **Why this layer sits in common-ui instead of `@antdv/shadcn-ui`'s `Sonner.vue`**: that component hardcodes `rich-colors` _after_ `v-bind` (so nothing can pass it in) and hardcodes its four state icons as `<template #xxx-icon>` (so nothing can pass them out — SFCs do not forward slots). Replacing those two things without editing its source would mean betting our selectors on which lucide icons it happens to use, and the bet expires on the next upgrade. So the styling layer is its own component: the engine is still vue-sonner, props and slots are the same shape (`ToasterProps` passes through untouched, `@antdv/shadcn-ui` did not change by a line), and nothing that package adds, removes or iterates can reach this one.
+- Background, border, text and radius come from sonner's `--normal-*` variable group (`:43-48`), fed by `--popover` / `--popover-foreground` / `--border` / `--radius`. **All four types share one neutral card — no rich colours**: `rich-colors` makes sonner repaint the whole card with `--{type}-bg` and recolors `[data-description]` along with it, which destroys body-text contrast.
 - State is the **20px solid disc badge with reversed-out strokes** on the left (`:96-165`): `bg-success`, `bg-info`, `bg-warning`, `bg-destructive` — a semantic palette deliberately decoupled from the theme presets, so changing the primary colour does not move them. Check and cross come from `@lucide/vue`; the exclamation and the info dot are hand-written paths, because lucide's `CircleAlert` / `Info` already carry a ring and would produce a box inside a box. All six slots (four states plus loading and close) are "named slot with default content", so a host can swap any badge by passing the same slot name — no edit to this layer.
 - Per-part tweaks go through `toastOptions.classes` **with `!`** (`:58-63`): sonner's built-in rules sit at `[data-sonner-toast][data-styled='true'] [data-icon]` specificity inside package CSS, so a non-important utility cannot beat them. The host's `toast-options` is merged **entry by entry with the host winning** (`:69-72`), so passing `{ duration: 1000 }` does not silently replace the whole palette.
 - The close button is `border-0! bg-transparent!`, and `[data-close-button-position]` pulls it 8px inside the card instead of letting it straddle the border (`:188-199`). Note that selector keys off the **button's** position attribute, not the toaster's `data-x/y-position` — the two do not follow each other. The `.antdv-toaster` prefix is this package's own hook, not a shadcn-ui class name.
@@ -325,13 +320,11 @@ All of it lives in `packages/core/ui-kit/common-ui/src/components/toast/Toaster.
 
 ::: warning
 
-Do not touch the top block of `message/index.ts`
-`:16-20` are, in order, the CSS side-effect type-declaration comment, `// oxlint-disable-next-line typescript/triple-slash-reference`, the `<reference path="../types/css.d.ts" />` directive, `import { toast } from 'vue-sonner'`, and `import 'vue-sonner/style.css'`. This package ships source, so downstream cannot see popup-ui's own tsconfig include — that `<reference>` directive is the only thing typing the CSS side-effect import for consumers. **It has to stay a real triple-slash directive (`/// <reference … />`)**: `eslint --fix`'s `spaced-comment` rule rewrites `///` into the space-separated `// /`, which silently disables the directive and makes downstream `vue-tsc` fail with TS2882 — line `:18` in the current source already shows that split `// /` form, so this block must stay out of `--fix` range.
-:::
+Do not touch the top block of `message/index.ts` `:25-31` are, in order, the CSS side-effect type-declaration comment, `// oxlint-disable-next-line typescript/triple-slash-reference`, the `<reference path="../types/css.d.ts" />` directive, `import type { ExternalToast }`, `import { toast } from 'vue-sonner'`, and `import 'vue-sonner/style.css'`. This package ships source, so downstream cannot see popup-ui's own tsconfig include — that `<reference>` directive is the only thing typing the CSS side-effect import for consumers. **It has to stay a real triple-slash directive (`/// <reference … />`)**: `eslint --fix`'s `spaced-comment` rule rewrites `///` into the space-separated `// /`, which silently disables the directive and makes downstream `vue-tsc` fail with TS2882 — line `:27` in the current source is the compliant form, so this block must stay out of `--fix` range. :::
 
 ### Live example: `/components/feedback`
 
-One button per channel and per state (four `message.*`, four `notification.*`) plus the loading prompt and a "default / Promise" pair (through the exported `toast`, covering the badge-less `default` type and the pending spinner), with the page itself stating "click the ✕ in the corner or wait 3 seconds". The same page is the regression scene for the toast palette — `apps/web/e2e/preference-effects.spec.ts` asserts the `--app-popover` card colour, the badge colours, the close-button offset and the two-toaster separation item by item.
+One button per channel and per state (four `message.*`, four `notification.*`) plus the loading prompt and a "default / Promise" pair (through the exported `toast`, covering the badge-less `default` type and the pending spinner). The notification group passes `{ description, closeButton: true }`, so it is the only one that carries a ✕; a separate "close-button switch" card demonstrates all four combinations — message with ✕, message without, notification with ✕, notification with nothing passed — on both channels. The same page is the regression scene for the toast palette — `apps/web/e2e/preference-effects.spec.ts` asserts the `--popover` card colour, the badge colours, the close-button offset and the two-toaster separation item by item, and pins one case to the switch itself: the toast that asked for a ✕ closes immediately when clicked, the one that did not render no `[data-close-button]` at all.
 
 ## What this page does not have
 

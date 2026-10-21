@@ -7,8 +7,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
  * **不带** id 的只进没有 id 的那只。所以 `message.*` 必须一律不传 `toasterId` ——
  * 传了就把轻提示送进通知那只，宿主没挂第二只时轻提示直接消失（不报错，只是看不见）。
  *
- * 停留时长只有一份常量（3 秒），两条通道都靠它自动消失；能不能点 ✕ 手动关
- * 由宿主那只 `<Toaster close-button>` 决定，不在这一层分叉。
+ * 停留时长只有一份常量（3 秒），两条通道都靠它自动消失；右上角那个 ✕ 是**单条**的
+ * 可选项（`closeButton`），两条通道同一个开关，不传就不写进载荷（宿主那两只
+ * `<Toaster>` 已经不整体开 `close-button`，所以没配置就是没有按钮）。
  */
 vi.mock('vue-sonner', () => ({
   toast: {
@@ -23,7 +24,7 @@ vi.mock('vue-sonner', () => ({
 
 import { toast } from 'vue-sonner';
 
-import { message, NOTIFICATION_TOASTER_ID, notification } from '../src/message';
+import { message, notification, NOTIFICATION_TOASTER_ID } from '../src/message';
 
 type ToastMethod = 'error' | 'info' | 'loading' | 'success' | 'warning';
 
@@ -141,5 +142,56 @@ describe('两条通道的 API 形状', () => {
     const id = message.success('内容');
     message.close(id);
     expect(spies.dismiss).toHaveBeenCalledWith('toast-42');
+  });
+});
+
+describe('closeButton —— 关闭按钮是可选项，默认不渲染', () => {
+  it('两条通道的默认载荷里连这个键都没有', () => {
+    message.info('内容');
+    notification.info('标题', '描述');
+    for (const call of spies.info.mock.calls) {
+      expect(call[1] ?? {}, JSON.stringify(call[1])).not.toHaveProperty(
+        'closeButton',
+      );
+    }
+  });
+
+  it('数字与字符串简写不带开关：旧签名调用不会突然多出 ✕', () => {
+    message.error('内容', 1500);
+    notification.warning('标题', '描述');
+    expect(spies.error.mock.calls[0]?.[1]).not.toHaveProperty('closeButton');
+    expect(spies.warning.mock.calls[0]?.[1]).not.toHaveProperty('closeButton');
+  });
+
+  it('传 true 原样交给 sonner，且开关与另外两个可选项互不干扰', () => {
+    message.success('内容', { closeButton: true });
+    expect(spies.success).toHaveBeenCalledWith('内容', {
+      closeButton: true,
+      duration: 3000,
+    });
+
+    notification.info('标题', {
+      closeButton: true,
+      description: '描述',
+      duration: 5000,
+    });
+    expect(spies.info.mock.calls.at(-1)?.[1]).toStrictEqual({
+      closeButton: true,
+      description: '描述',
+      duration: 5000,
+      toasterId: NOTIFICATION_TOASTER_ID,
+    });
+  });
+
+  it('轻提示那侧同样认这个开关：它只看这一条传没传，与走哪条通道无关', () => {
+    message.error('内容', { closeButton: true });
+    const options = spies.error.mock.calls.at(-1)?.[1];
+    expect(options).not.toHaveProperty('toasterId');
+    expect(options?.closeButton).toBe(true);
+  });
+
+  it('显式 false 要写进载荷：宿主整体开启时，false 是唯一能关掉单条的写法', () => {
+    notification.error('标题', { closeButton: false });
+    expect(spies.error.mock.calls[0]?.[1]).toHaveProperty('closeButton', false);
   });
 });

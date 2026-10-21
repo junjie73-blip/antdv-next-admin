@@ -35,10 +35,12 @@ afterEach(() => {
 
 describe('configureTable / tableRuntime', () => {
   it('默认实现：Error 用 message，其他用 fallback，权限一律放行', () => {
-    expect(
-      tableRuntime.resolveErrorMessage(new Error('炸了'), '默认'),
-    ).toBe('炸了');
-    expect(tableRuntime.resolveErrorMessage('字符串错', '默认')).toBe('字符串错');
+    expect(tableRuntime.resolveErrorMessage(new Error('炸了'), '默认')).toBe(
+      '炸了',
+    );
+    expect(tableRuntime.resolveErrorMessage('字符串错', '默认')).toBe(
+      '字符串错',
+    );
     expect(tableRuntime.resolveErrorMessage({}, '默认')).toBe('默认');
     expect(tableRuntime.checkAuth('any')).toBe(true);
     expect(tableRuntime.checkAnyAuth(['a', 'b'])).toBe(true);
@@ -54,9 +56,9 @@ describe('configureTable / tableRuntime', () => {
     });
     expect(tableRuntime.checkAuth('ok')).toBe(true);
     expect(tableRuntime.checkAuth('nope')).toBe(false);
-    expect(
-      tableRuntime.resolveErrorMessage(new Error('x'), '兜底'),
-    ).toBe('翻译后的文案');
+    expect(tableRuntime.resolveErrorMessage(new Error('x'), '兜底')).toBe(
+      '翻译后的文案',
+    );
     expect(resolveErrorMessage).toHaveBeenCalledOnce();
     tableRuntime.notifyError('出错了');
     expect(notifyError).toHaveBeenCalledWith('出错了');

@@ -124,8 +124,14 @@ function onClick() {
     <Icon
       v-if="hasChildren"
       :class="context.style.arrowClass(variant)"
-      :icon="variant === 'inline' ? 'carbon:chevron-down' : 'carbon:chevron-right'"
-      :style="variant === 'inline' && expanded ? { transform: 'rotate(180deg)' } : undefined"
+      :icon="
+        variant === 'inline' ? 'carbon:chevron-down' : 'carbon:chevron-right'
+      "
+      :style="
+        variant === 'inline' && expanded
+          ? { transform: 'rotate(180deg)' }
+          : undefined
+      "
       aria-hidden="true"
       data-menu-arrow
     />

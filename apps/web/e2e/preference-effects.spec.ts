@@ -128,15 +128,15 @@ test.describe('偏好项的实际生效', () => {
     const tiles = drawer.locator('.grid.grid-cols-5 > button');
 
     // 默认倍率 1 × 基准 16px，写侧统一落 rem
-    await expect.poll(() => cssVar(page, '--app-border-radius')).toBe('1rem');
+    await expect.poll(() => cssVar(page, '--radius')).toBe('1rem');
 
     await tiles.nth(2).click(); // 0.5
-    await expect.poll(() => cssVar(page, '--app-border-radius')).toBe('0.5rem');
+    await expect.poll(() => cssVar(page, '--radius')).toBe('0.5rem');
     await tiles.nth(0).click(); // 0
-    await expect.poll(() => cssVar(page, '--app-border-radius')).toBe('0rem');
+    await expect.poll(() => cssVar(page, '--radius')).toBe('0rem');
 
     /*
-     * 变量写了不等于界面变了：`--app-border-radius` 要真的被
+     * 变量写了不等于界面变了：`--radius` 要真的被
      * `--radius-lg` 读走、`rounded-lg` 再读 `--radius-lg`，链路断在任何一环
      * 表现都是"设置里点了没反应"。用一枚探针量到最终像素值。
      */
@@ -151,7 +151,7 @@ test.describe('偏好项的实际生效', () => {
     expect(radius, '倍率 0 时 rounded-lg 应当没有圆角').toBe('0px');
 
     await tiles.nth(4).click(); // 恢复 1
-    await expect.poll(() => cssVar(page, '--app-border-radius')).toBe('1rem');
+    await expect.poll(() => cssVar(page, '--radius')).toBe('1rem');
 
     await closePreferenceDrawer(page);
     expect(errors.errors).toEqual([]);
@@ -177,7 +177,7 @@ test.describe('偏好项的实际生效', () => {
 
     /*
      * 16 / 14 = 114.29% 的根字号 → 16px × 1.1429 ≈ 18.29px。
-     * 根字号是整条 rem 链路的锚点（`html { font-size: var(--app-font-size) }`），
+     * 根字号是整条 rem 链路的锚点（`html { font-size: var(--font-size) }`），
      * 它一动页面里所有 em/rem 尺寸跟着缩放 —— 量到的 18px 级就是
      * 「设置里改一个数字，全站真的变大」的证据。
      * 换算写成 px 的话根字号只会变成 16px（看不出效果），写成固定 em 又不会缩放全局。
@@ -338,9 +338,9 @@ test.describe('轻提示通道', () => {
      * 顺带把 `[data-description]` 的颜色改成 `inherit`（描述跟着变彩），
      * 琥珀/红底上的正文对比度会掉下去 —— 所以这里验的是"它关着"。
      */
-    const popover = await painted(page, 'var(--app-popover)');
-    const foreground = await painted(page, 'var(--app-popover-foreground)');
-    const border = await painted(page, 'var(--app-border)');
+    const popover = await painted(page, 'hsl(var(--popover))');
+    const foreground = await painted(page, 'hsl(var(--popover-foreground))');
+    const border = await painted(page, 'hsl(var(--border))');
     expect(first.background, 'success 卡片不该被染上状态底色').toBe(popover);
     expect(first.border).toBe(border);
     expect(first.text, '正文始终是弹层前景色，不跟状态走').toBe(foreground);
@@ -348,7 +348,7 @@ test.describe('轻提示通道', () => {
 
     const successBadge = await readBadge(success);
     expect(successBadge.background, '徽标底色取成功色令牌').toBe(
-      await painted(page, 'var(--app-success)'),
+      await painted(page, 'hsl(var(--success))'),
     );
     expect(successBadge.glyphColor, '徽标里的笔画反白').toBe(
       'rgb(255, 255, 255)',
@@ -367,7 +367,7 @@ test.describe('轻提示通道', () => {
       first.background,
     );
     expect(info.text).toBe(foreground);
-    expect(infoBadge.background).toBe(await painted(page, 'var(--app-info)'));
+    expect(infoBadge.background).toBe(await painted(page, 'hsl(var(--info))'));
     expect(infoBadge.background, 'info 与 success 只差在徽标上').not.toBe(
       successBadge.background,
     );
@@ -385,7 +385,7 @@ test.describe('轻提示通道', () => {
     expect(errorToast.background).toBe(popover);
     expect(errorToast.text).toBe(foreground);
     expect(errorBadge.background).toBe(
-      await painted(page, 'var(--app-destructive)'),
+      await painted(page, 'hsl(var(--destructive))'),
     );
 
     expect(errors.errors).toEqual([]);
@@ -400,16 +400,22 @@ test.describe('轻提示通道', () => {
     await page.getByRole('button', { name: '更新密码', exact: true }).click();
     const warning = toast(page, 'warning');
     await expect(warning).toBeVisible();
+    /*
+     * 这条也要先停下动画再量：slide-in 的头几帧整张卡片还在视口上沿之外，
+     * `elementFromPoint(中心)` 拿到的是 `null`，`hitSelf` 就假红。
+     * Chromium / Firefox 恰好读得晚所以看不出来，WebKit 每帧慢 → 稳定撞红（实测）。
+     */
+    await settleToast(warning);
 
     const read = await readToast(warning);
     const badge = await readBadge(warning);
     expect(read.background, '警告也不给卡片加底色').toBe(
-      await painted(page, 'var(--app-popover)'),
+      await painted(page, 'hsl(var(--popover))'),
     );
     expect(read.text).toBe(
-      await painted(page, 'var(--app-popover-foreground)'),
+      await painted(page, 'hsl(var(--popover-foreground))'),
     );
-    expect(badge.background).toBe(await painted(page, 'var(--app-warning)'));
+    expect(badge.background).toBe(await painted(page, 'hsl(var(--warning))'));
     expect(badge.glyphColor).toBe('rgb(255, 255, 255)');
     expect(read.hitSelf).toBe(true);
     expect(errors.errors).toEqual([]);
@@ -437,10 +443,10 @@ test.describe('轻提示通道', () => {
 
     const card = await readToast(notice);
     expect(card.background, '通知卡片同样是弹层底色').toBe(
-      await painted(page, 'var(--app-popover)'),
+      await painted(page, 'hsl(var(--popover))'),
     );
     expect(card.text).toBe(
-      await painted(page, 'var(--app-popover-foreground)'),
+      await painted(page, 'hsl(var(--popover-foreground))'),
     );
     expect(card.hitSelf, '通知浮在内容之上且可交互').toBe(true);
 
@@ -449,16 +455,16 @@ test.describe('轻提示通道', () => {
     expect(
       await description.evaluate((el) => getComputedStyle(el).color),
       '描述文字取次要色，不跟着状态变彩',
-    ).toBe(await painted(page, 'var(--app-muted-foreground)'));
+    ).toBe(await painted(page, 'hsl(var(--muted-foreground))'));
 
     const badge = await readBadge(notice);
-    expect(badge.background).toBe(await painted(page, 'var(--app-success)'));
+    expect(badge.background).toBe(await painted(page, 'hsl(var(--success))'));
 
     /*
-     * 关闭按钮：两只 toaster 都开（`apps/web/src/App.vue` 的 `close-button`）。
-     * 通知与轻提示共用同一套"3 秒自动消失 + 手动关闭"的实现，
-     * 所以这条 ✕ 不再是通知独有；位置要落在卡片**内侧**右上角
-     * （sonner 默认让它骑在边框上，规范图里不是这样），且是裸图标 —— 不带底和描边。
+     * 关闭按钮：这一组通知显式传了 `closeButton: true`（宿主那两只 toaster
+     * 已不再整体开 `close-button`，没配置就没有按钮）。
+     * 位置要落在卡片**内侧**右上角（sonner 默认让它骑在边框上，规范图里不是这样），
+     * 且是裸图标 —— 不带底和描边。
      */
     const closeButton = notice.locator('[data-close-button]');
     await expect(closeButton).toHaveCount(1);
@@ -580,18 +586,18 @@ test.describe('轻提示通道', () => {
     /*
      * 样式一致性：同类型（success）在两条通道上应当读回同一组卡片样式。
      * 宽高不比（通知多一行描述，天然更高），比的是配色、描边、圆角、内边距、
-     * 字体，以及那枚徽标容器和关闭按钮的有无。
+     * 字体，以及那枚徽标容器。
+     * **不比 ✕ 的有无**：那是单条的可选项（`closeButton`），这一页轻提示按默认不传、
+     * 通知显式传了 true，本来就该不一样；有无的口径由下面那条用例专门管。
      */
     async function styleOf(target: Locator) {
       return target.evaluate((el) => {
         const cs = getComputedStyle(el);
-        const close = el.querySelector<HTMLElement>('[data-close-button]');
         const icon = el.querySelector<HTMLElement>('[data-icon]');
         const disc = icon?.firstElementChild as HTMLElement | null;
         return {
           background: cs.backgroundColor,
           border: `${cs.borderTopWidth} ${cs.borderTopStyle} ${cs.borderTopColor}`,
-          closeCount: close ? 1 : 0,
           discRadius: disc
             ? Number.parseFloat(getComputedStyle(disc).borderTopLeftRadius)
             : 0,
@@ -633,19 +639,81 @@ test.describe('轻提示通道', () => {
     );
 
     /*
-     * 手动关闭：两条通道各自点 ✕，都应当立刻收掉。
-     * 上界 2 秒是退场动画的时间预算，"点了没反应、还得等 3 秒"那种实现会直接撞红。
+     * 手动关闭只在该条开了 ✕ 时才存在：这一页轻提示按默认写法（没有按钮），
+     * 通知显式传 `closeButton: true`（有按钮）。上界 2 秒是退场动画的时间预算，
+     * "点了没反应、还得等 3 秒"那种实现会直接撞红。
      */
-    for (const [name, target] of [
-      ['轻提示', hint],
-      ['通知', notice],
-    ] as const) {
-      await expect(target).toBeVisible();
-      await target.locator('[data-close-button]').click();
-      await expect(target, `${name}点 ✕ 没关掉`).toHaveCount(0, {
-        timeout: 2000,
-      });
-    }
+    await expect(
+      hint.locator('[data-close-button]'),
+      '轻提示没传 closeButton，不该渲染 ✕',
+    ).toHaveCount(0);
+    const noticeClose = notice.locator('[data-close-button]');
+    await expect(noticeClose, '通知传了 true，应当有 ✕').toHaveCount(1);
+    await expect(notice).toBeVisible();
+    await noticeClose.click();
+    await expect(notice, '通知点 ✕ 没关掉').toHaveCount(0, { timeout: 2000 });
+
+    await clearToasts(page);
+    expect(errors.errors).toEqual([]);
+  });
+
+  /*
+   * ✕ 是**单条**的可选项，不看走哪条通道。三种写法各钉一次：
+   * 轻提示传 true（有，且点得掉）、通知不传（没有）、轻提示不传（没有）。
+   * 症状都很具体——"默认就该有按钮"那种实现会把没传的也钉上 ✕，
+   * "只有通知能开"那种实现会让轻提示那句 true 失效。
+   */
+  test('关闭按钮只看这一条传没传 closeButton，两条通道同口径', async ({
+    page,
+  }) => {
+    const errors = watchErrors(page);
+    await signIn(page);
+    await go(page, '/components/feedback');
+    await clearToasts(page);
+
+    const hintWithButton = messageToaster(page)
+      .locator('li[data-sonner-toast][data-type="info"]')
+      .filter({ hasText: '这条轻提示带手动关闭' })
+      .first();
+    await page
+      .getByRole('button', { name: '轻提示 · 开启 ✕', exact: true })
+      .click();
+    await expect(hintWithButton).toBeVisible();
+    await settleToast(hintWithButton);
+
+    const closeButton = hintWithButton.locator('[data-close-button]');
+    await expect(closeButton, '轻提示传了 true，应当有 ✕').toHaveCount(1);
+    // 立刻点掉：那条只停 3 秒，留到最后再点会撞上"自己消失了"
+    await closeButton.click();
+    await expect(hintWithButton, '点 ✕ 没关掉').toHaveCount(0, {
+      timeout: 2000,
+    });
+
+    const noticeWithoutButton = notificationToaster(page, 'right', 'bottom')
+      .locator('li[data-sonner-toast][data-type="success"]')
+      .filter({ hasText: '这条通知没有 ✕' })
+      .first();
+    await page
+      .getByRole('button', { name: '通知 · 不传（无 ✕）', exact: true })
+      .click();
+    await expect(noticeWithoutButton).toBeVisible();
+    await settleToast(noticeWithoutButton);
+    await expect(
+      noticeWithoutButton.locator('[data-close-button]'),
+      '通知不传 closeButton 也不该有 ✕',
+    ).toHaveCount(0);
+
+    const plainHint = messageToaster(page)
+      .locator('li[data-sonner-toast][data-type="info"]')
+      .filter({ hasText: '新版本可用' })
+      .first();
+    await page.getByRole('button', { name: '信息提示', exact: true }).click();
+    await expect(plainHint).toBeVisible();
+    await settleToast(plainHint);
+    await expect(
+      plainHint.locator('[data-close-button]'),
+      '默认写法的轻提示不该渲染 ✕',
+    ).toHaveCount(0);
 
     await clearToasts(page);
     expect(errors.errors).toEqual([]);
@@ -653,100 +721,128 @@ test.describe('轻提示通道', () => {
 });
 
 /**
- * shadcn 规范名别名层。
+ * 设计 token 的变量格式：shadcn-vue 的裸规范名 + HSL 通道三段。
  *
- * `@antdv/design` 的 `token/index.css` 里有一条 `:root, .app-theme-scope` 规则，
- * 把 shadcn 官方样板的裸名字（`--background` / `--primary` / `--radius` …）
- * 全部写成 `var(--app-*)`。`--app-*` 仍是唯一来源：偏好写它、`[data-theme]` 档位换它、
- * `ConfigProvider` 子树覆盖它，别名只负责让官方格式的变量名也能取到同一份值。
+ * `--background` / `--primary` / `--border` … 这些名字就是唯一来源：偏好写它、
+ * `[data-theme]` 档位换它、`ConfigProvider` 子树覆盖它，读侧统一 `hsl(var(--x))`。
  *
- * 这层的失效方式很具体 —— **别名被抄成字面量**（哪怕只在 `.dark` 里抄一次）：
- * 表现是浅色一切正常，切深色或换主题预设后某个颜色冻在首屏值上。
- * 所以断言不能只在默认态比一次，必须换深色、换预设、换刻度各比一次。
- * 子树内（`.app-theme-scope`）重算那一条住在 `config-provider.spec.ts`，那里有现成的宿主。
+ * 两种失效方式都很具体，各钉一条：
+ * 1. **值被写成完整颜色**（`#1677ff`）—— `hsl(var(--x))` 解析失败，边框与底色整体消失，
+ *    构建一声不吭，只有页面知道；
+ * 2. **档位被抄成字面量**（哪怕只在 `.dark` 里抄一次）—— 浅色一切正常，切深色或换预设后
+ *    某个颜色冻在首屏值上。所以断言不能只看默认态，要换深色、换预设、换刻度各比一次。
+ *
+ * 子树覆盖那条住在 `config-provider.spec.ts`，那里有现成的宿主。
  */
-const ALIAS_PAIRS: Array<[string, string]> = [
-  ['--background', '--app-background'],
-  ['--foreground', '--app-foreground'],
-  ['--card', '--app-card'],
-  ['--popover', '--app-popover'],
-  ['--primary', '--app-primary'],
-  ['--muted', '--app-muted'],
-  ['--muted-foreground', '--app-muted-foreground'],
-  ['--border', '--app-border'],
-  ['--ring', '--app-ring'],
-  ['--sidebar', '--app-sidebar'],
-  ['--radius', '--app-border-radius'],
-];
+const COLOR_VARS = [
+  '--background',
+  '--foreground',
+  '--card',
+  '--popover',
+  '--primary',
+  '--secondary',
+  '--muted',
+  '--muted-foreground',
+  '--accent',
+  '--destructive',
+  '--border',
+  '--input',
+  '--ring',
+  '--sidebar',
+  '--sidebar-foreground',
+] as const;
 
-/** 一次性读回 `<html>` 上成对的规范名与 `--app-*` 计算值 */
-function readAliases(page: Page) {
-  return page.evaluate((pairs) => {
-    const cs = getComputedStyle(document.documentElement);
-    const names = pairs.flat();
-    return names.map(
-      (name) => [name, cs.getPropertyValue(name).trim()] as const,
-    );
-  }, ALIAS_PAIRS);
-}
+/** HSL 三段（带 alpha 时末尾多一截 ` / 0.88`），不含 `hsl(` 前缀，也不含 hex */
+const HSL_CHANNELS = /^[\d.]+ [\d.]+% [\d.]+%(?: \/ [\d.]+)?$/u;
 
-/** 两边逐项对齐，并且不许有哪个名字压根没定义（读到空串就是漏了一条声明） */
-function expectAliasPairs(pairs: Array<readonly [string, string]>) {
-  const map = new Map(pairs.map(([name, value]) => [name, value] as const));
-  for (const [canonical, source] of ALIAS_PAIRS) {
-    const canonicalValue = map.get(canonical);
-    expect(canonicalValue, `${canonical} 压根没定义`).not.toBe('');
-    expect(
-      map.get(source),
-      `${canonical} 与 ${source} 不同源（多半是被抄成了字面量）`,
-    ).toBe(canonicalValue);
-  }
-  return map;
+/** `<html>` 上这一整套变量的计算值；一次 evaluate 读齐，避免逐条往返时读到不同帧 */
+function readTokens(page: Page) {
+  return page.evaluate(
+    (names) => {
+      const cs = getComputedStyle(document.documentElement);
+      return Object.fromEntries(
+        names.map((name) => [name, cs.getPropertyValue(name).trim()]),
+      ) as Record<string, string>;
+    },
+    [...COLOR_VARS, '--radius'],
+  );
 }
 
 /**
- * 取某个规范名的计算值。
- * 读不到就直接抛：`Map.get` 的 `undefined` 不该用 `!` 蒙过去，
- * 蒙过去就是把"变量压根没声明"变成一条永远为真的断言。
+ * 每个颜色变量都得有值，而且必须是通道形状。
+ * 空串意味着这个名字压根没声明 —— 预设档少写一条就是这个现象。
  */
-function pick(map: Map<string, string>, name: string) {
-  const value = map.get(name);
-  if (value === undefined || value === '')
-    throw new Error(`${name} 没有计算值`);
+function expectTokenShape(tokens: Record<string, string>) {
+  for (const name of COLOR_VARS) {
+    const value = tokens[name];
+    expect(value, `${name} 压根没定义`).not.toBe('');
+    expect(
+      value,
+      `${name} 必须存 HSL 三段，读侧才能写 hsl(var(${name}))`,
+    ).toMatch(HSL_CHANNELS);
+  }
+  return tokens;
+}
+
+/** 取某个变量的计算值；读不到直接抛，别把"变量没声明"变成一条永远为真的断言 */
+function pick(tokens: Record<string, string>, name: string) {
+  const value = tokens[name];
+  if (!value) throw new Error(`${name} 没有计算值`);
   return value;
 }
 
-test.describe('shadcn 规范名别名层', () => {
-  test('规范名与 --app-* 同源，切深色、换预设、换刻度之后仍然同源', async ({
+/**
+ * 把 `hsl(var(--primary))` 交给浏览器算成实际颜色。
+ *
+ * 变量里的形状不能直接跟 `#FA541C` 比，而组件那侧的 `color` 是 rgb ——
+ * 挂一枚探针元素继承 `<html>` 的变量，两边就落到同一个可比口径上。
+ * 顺带现形"格式看着对、但拼不进 hsl()"那一类：解析失败会得到 `rgb(0, 0, 0)`。
+ */
+function resolveToken(page: Page, name: string) {
+  return page.evaluate((varName) => {
+    const probe = document.createElement('i');
+    probe.style.color = `hsl(var(${varName}))`;
+    document.documentElement.append(probe);
+    const rgb = getComputedStyle(probe).color;
+    probe.remove();
+    return rgb;
+  }, name);
+}
+
+test.describe('设计 token 的变量格式与档位重算', () => {
+  test('颜色存 HSL 三段，切深色、换预设、换刻度之后按当刻档位重算', async ({
     page,
   }) => {
     const errors = watchErrors(page);
     await signIn(page);
     await go(page, '/system/user');
 
-    const light = expectAliasPairs(await readAliases(page));
-    /**
-     * 单位口径：`--radius` 与 `--app-border-radius` 同为 rem
-     * （官方样板写的也是 `--radius: 0.5rem`，不是 px）。
-     */
+    const light = expectTokenShape(await readTokens(page));
+    // 单位口径：全站圆角只认 rem，倍率 1 落在 `--radius` = 1rem
     expect(pick(light, '--radius'), '--radius 应当是 rem 口径').toBe('1rem');
+    // 反证：默认主色不是橙，后面"换预设生效"才有对照
+    expect(await resolveToken(page, '--primary')).not.toBe('rgb(250, 84, 28)');
 
     /*
-     * 先在浅色下换预设。`[data-theme]` 档位深浅各写一份（`default.css` 的
-     * `#fa541c` 与 `dark.css` 的 `#fb923c`），先浅色才能把"预设生效"和
-     * "深浅色重算"拆成两条各自的证据，混在一起就分不清是没换还是换错了档。
+     * 先在浅色下换预设。`[data-theme]` 档位深浅各写一份（浅色 `#fa541c`、
+     * 深色 `#fb923c`），先浅色才能把"预设生效"和"深浅色重算"拆成两条各自的证据，
+     * 混在一起就分不清是没换还是换错了档。
      */
     const drawer = await openPreferenceDrawer(page, '外观');
     await drawer.getByRole('button', { name: '橙黄色' }).click();
     await closePreferenceDrawer(page);
-    const picked = expectAliasPairs(await readAliases(page));
+    const picked = expectTokenShape(await readTokens(page));
     expect(
       pick(picked, '--primary'),
-      '换预设后 --primary 没跟着 --app-primary 走',
+      '换预设后 --primary 还停在首屏那档',
     ).not.toBe(pick(light, '--primary'));
-    expect(pick(picked, '--primary').toUpperCase()).toBe('#FA541C');
+    await expect
+      .poll(() => resolveToken(page, '--primary'), {
+        message: '色板换了档，但 hsl() 组合不出这个颜色',
+      })
+      .toBe('rgb(250, 84, 28)');
 
-    // 切深色：同一档位换的是深色那份色板，别名得跟着重算，不能停在浅色的 #FA541C
+    // 切深色：同一档位换的是深色那份色板，不能停在浅色的 #FA541C
     const toDark = page.getByRole('button', { name: '切换到深色' }).first();
     await toDark.click();
     await expect
@@ -756,21 +852,23 @@ test.describe('shadcn 规范名别名层', () => {
         ),
       )
       .toBe(true);
-    const dark = expectAliasPairs(await readAliases(page));
+    const dark = expectTokenShape(await readTokens(page));
     expect(
       pick(dark, '--background'),
-      '深色下背景压根没变，后面比同源就是空过',
+      '深色下背景压根没变，后面比重算就是空过',
     ).not.toBe(pick(light, '--background'));
-    expect(pick(dark, '--primary').toUpperCase()).toBe('#FB923C');
+    await expect
+      .poll(() => resolveToken(page, '--primary'))
+      .toBe('rgb(251, 146, 60)');
     expect(pick(dark, '--radius'), '深色下圆角刻度被另写了一份').toBe(
       pick(light, '--radius'),
     );
 
-    // 换圆角刻度：写在 `<html>` 上的 rem 倍率要一路透到规范名
+    // 换圆角刻度：写在 `<html>` 上的 rem 倍率要一路透到整条刻度
     const look = await openPreferenceDrawer(page, '外观');
     await look.locator('.grid.grid-cols-5 > button').nth(2).click(); // 0.5
     await expect.poll(() => cssVar(page, '--radius')).toBe('0.5rem');
-    expectAliasPairs(await readAliases(page));
+    expectTokenShape(await readTokens(page));
     await look.locator('.grid.grid-cols-5 > button').nth(4).click(); // 恢复 1
     await expect.poll(() => cssVar(page, '--radius')).toBe('1rem');
     await closePreferenceDrawer(page);

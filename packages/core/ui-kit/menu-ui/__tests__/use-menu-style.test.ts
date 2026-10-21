@@ -5,8 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { useMenuStyle } from '../src/useMenuStyle';
 
 /** 排版是纯函数：把 options 当输入传进去，不需要组件上下文 */
-const styles = (options: MenuVisualOptions = {}) =>
-  useMenuStyle(() => options);
+const styles = (options: MenuVisualOptions = {}) => useMenuStyle(() => options);
 
 describe('useMenuStyle —— 与迁移前 antd 排版的对齐口径', () => {
   it('行基线：40px 高、圆角 lg、上下 2px 间隙', () => {

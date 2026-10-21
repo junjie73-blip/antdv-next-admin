@@ -1,19 +1,25 @@
 /*
  * shadcn-vue 语义色板的 token 入口：两套主题值 + 到 Tailwind token 的映射。
  *
- * 为什么要单独补这一层：vendored 的 shadcn 组件写的是裸名字 —— `bg-popover`、
- * `text-muted-foreground`、`border-input`，而 Tailwind v4 只为 `@theme` 里声明过的
- * token 生成工具类，没声明不是"样式被覆盖"，而是**整条类根本不生成**，
- * 表现就是弹层没有底色、次要文字没有灰度、hover 没有反馈。
+ * 变量格式对齐 shadcn-vue 官方规范（见其 `index.css` 的 `:root` / `.dark`）：
+ * 名单用**裸规范名**（`--background`、`--primary`、`--border`、`--radius`…），
+ * 值只放**颜色通道**（`215 100% 54.31%`，带透明度时 `0 0% 100% / 0.88`），
+ * 完整颜色由消费侧的 `hsl(var(--x))` 组合出来。
+ * 为什么要照这个格式：`npx shadcn-vue add` 拉下来的组件与官方样板写的就是
+ * `hsl(var(--border))` 这类表达式，变量里存完整颜色的话 `hsl(#f0f0f0)` 解析失败，
+ * 表现是边框消失、背景透明 —— 属于最难查的那类静默丢样式。
+ *
+ * 代价也说清楚：裸名是全局命名空间，第三方组件库若也声明 `--border` / `--accent`
+ * 会直接改掉我们的视觉。本仓库的组件库是自己维护的（`@antdv/*`），这个风险已知且接受。
  *
  * 主题值按明暗拆成两个文件（default / dark），每个文件里都是"基础主题 + 13 套
  * `[data-theme]` 预设"；名单必须一致、取值各自独立。下面的 `@theme inline` 才是
  * 本包唯一的 Tailwind 契约，所以留在入口里，主题文件只管变量值，不掺映射规则。
  *
- * `@theme inline` 而不是 `@theme`：inline 让工具类直接内联 `var(--app-*)`，
- * 于是 `.dark` 与 `[data-theme]` 的覆盖能生效；写成 `--color-x: var(--app-x)`
+ * `@theme inline` 而不是 `@theme`：inline 让工具类直接内联 `hsl(var(--x))`，
+ * 于是 `.dark` 与 `[data-theme]` 的覆盖能生效；写成 `--color-x: var(--x)`
  * 的非 inline 形式会在 :root 求值一次，换主题就冻在首屏值上了。
- * 同一件事也决定了圆角：`rounded-lg` 内联的是 `var(--app-border-radius)` 本身，
+ * 同一件事也决定了圆角：`rounded-lg` 内联的是 `var(--radius)` 本身，
  * 偏好面板往 html 上内联写一条新值，全站半径才跟着动。
  */
 
@@ -22,129 +28,55 @@
 @import './dark.css';
 
 @theme inline {
-  --color-background: var(--app-background);
-  --color-foreground: var(--app-foreground);
-  --color-card: var(--app-card);
-  --color-card-foreground: var(--app-card-foreground);
-  --color-popover: var(--app-popover);
-  --color-popover-foreground: var(--app-popover-foreground);
-  --color-primary: var(--app-primary);
-  --color-primary-foreground: var(--app-primary-foreground);
-  --color-secondary: var(--app-secondary);
-  --color-secondary-foreground: var(--app-secondary-foreground);
-  --color-muted: var(--app-muted);
-  --color-muted-foreground: var(--app-muted-foreground);
-  --color-accent: var(--app-accent);
-  --color-accent-foreground: var(--app-accent-foreground);
-  --color-destructive: var(--app-destructive);
-  --color-destructive-foreground: var(--app-destructive-foreground);
-  --color-border: var(--app-border);
-  --color-input: var(--app-input);
-  --color-ring: var(--app-ring);
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
 
-  --color-sidebar: var(--app-sidebar);
-  --color-sidebar-foreground: var(--app-sidebar-foreground);
-  --color-sidebar-primary: var(--app-sidebar-primary);
-  --color-sidebar-primary-foreground: var(--app-sidebar-primary-foreground);
-  --color-sidebar-accent: var(--app-sidebar-accent);
-  --color-sidebar-accent-foreground: var(--app-sidebar-accent-foreground);
-  --color-sidebar-border: var(--app-sidebar-border);
-  --color-sidebar-ring: var(--app-sidebar-ring);
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
 
-  --color-success: var(--app-success);
-  --color-warning: var(--app-warning);
-  --color-info: var(--app-info);
+  /* 状态色：shadcn 官方名单里没有，但我们的组件与浮层按规范名取用 */
+  --color-success: hsl(var(--success));
+  --color-warning: hsl(var(--warning));
+  --color-info: hsl(var(--info));
 
   /*
-   * 圆角刻度：以 `--app-border-radius` 为 lg 档基准，其余按比例派生。
+   * 圆角刻度：以 `--radius` 为 lg 档基准，其余按比例派生。
    *
-   * 基准固定在 1rem（`BORDER_RADIUS_BASE` = 16px，默认根字号下两者等价），
-   * 倍率 1 时整条刻度是 4/8/12/16/24/32/48。
-   * 全站只认这一个基准：偏好面板、`--radius-*` 工具类、antd 侧的 `borderRadius`
-   * 都从它换算，所以改一处就一起改，不会出现"卡片圆角变了、按钮没变"那种两套尺度。
+   * 基准固定在 1rem（偏好档位 1 = 16px，默认根字号下两者等价），刻意不跟官方样板的
+   * `0.5rem` —— 全站半径、`--radius-*` 工具类都从这一条换算，改一处就一起改，
+   * 不会出现"卡片圆角变了、按钮没变"那种两套尺度。
+   * 单位一律 rem：圆角跟着 `--font-size` 一起缩放。
    * 用乘法而不是 shadcn 官方的 `calc(var(--radius) ± 4px)`：减法档在 0 时算出负半径，
    * 那条声明会被浏览器丢掉， xl/2xl 就还是圆的，"取消圆角"取消不干净。
    */
-  --radius-xs: calc(var(--app-border-radius) * 0.25);
-  --radius-sm: calc(var(--app-border-radius) * 0.5);
-  --radius-md: calc(var(--app-border-radius) * 0.75);
-  --radius-lg: var(--app-border-radius);
-  --radius-xl: calc(var(--app-border-radius) * 1.5);
-  --radius-2xl: calc(var(--app-border-radius) * 2);
-  --radius-3xl: calc(var(--app-border-radius) * 3);
-}
-
-/*
- * shadcn-vue 规范名别名层：把 `--background` / `--primary` / `--radius` 这批
- * **无前缀**的官方变量名接在我们的 `--app-*` 之上。
- *
- * 为什么需要这一层：`npx shadcn-vue add` 拉下来的组件与它的 CLI 初始化脚本认的是
- * shadcn 的规范名（见官方 `index.css` 的 `:root` / `.dark` 名单），而我们全站只有
- * `--app-*`。缺了裸名字不是"颜色不对"，是 `var(--border)` 直接解析成空值 ——
- * 边框消失、背景透明，属于最难查的那类静默丢样式。
- *
- * 为什么只写一份就够：`[data-theme]` 档位、`.dark` 开关和偏好内联的 `--app-primary`
- * **全都落在 `<html>` 上**，而自定义属性的替换发生在"声明所在的那个元素"的
- * computed value 上。所以 `:root` 这一条 `--primary: var(--app-primary)` 会跟着
- * 同元素上的 `--app-primary` 一起变 —— 换预设、切深色、取色器选自定义色都不需要
- * 在 26 个预设块里各抄一遍，也不会有"别名停在首屏值上"的冻结问题。
- *
- * `.app-theme-scope` 是 `ConfigProvider` 的宿主类：它在子树里覆盖 `--app-*` 时
- * （见 common-ui 的 ConfigProvider），别名必须在那个子树里重算，否则子树内的
- * shadcn 组件会拿到 `<html>` 的旧值。
- *
- * 单位口径：这一层的 `--radius` 与 `--app-border-radius` 同为 rem，
- * 对齐 shadcn 官方 `--radius: 0.5rem` 的写法；档位差异（官方把 `--radius` 当
- * `rounded-md` 基准，我们当 `rounded-lg` 基准）由上面 `--radius-*` 刻度表承担，
- * 不在这里做二次换算。
- *
- * 只准出现 `--变量: var(--app-*)` 形式的声明：这里是变量表，不掺视觉规则
- * （`* { @apply border-border }` 那两条官方写法住在 `css/base.css`，已经接好了）。
- */
-:root,
-.app-theme-scope {
-  --background: var(--app-background);
-  --foreground: var(--app-foreground);
-
-  --card: var(--app-card);
-  --card-foreground: var(--app-card-foreground);
-
-  --popover: var(--app-popover);
-  --popover-foreground: var(--app-popover-foreground);
-
-  --primary: var(--app-primary);
-  --primary-foreground: var(--app-primary-foreground);
-
-  --secondary: var(--app-secondary);
-  --secondary-foreground: var(--app-secondary-foreground);
-
-  --muted: var(--app-muted);
-  --muted-foreground: var(--app-muted-foreground);
-
-  --accent: var(--app-accent);
-  --accent-foreground: var(--app-accent-foreground);
-
-  --destructive: var(--app-destructive);
-  --destructive-foreground: var(--app-destructive-foreground);
-
-  --border: var(--app-border);
-  --input: var(--app-input);
-  --ring: var(--app-ring);
-
-  --radius: var(--app-border-radius);
-
-  /* 官方新样板带的侧栏色板，我们本来就有对应 token，一并给出规范名 */
-  --sidebar: var(--app-sidebar);
-  --sidebar-foreground: var(--app-sidebar-foreground);
-  --sidebar-primary: var(--app-sidebar-primary);
-  --sidebar-primary-foreground: var(--app-sidebar-primary-foreground);
-  --sidebar-accent: var(--app-sidebar-accent);
-  --sidebar-accent-foreground: var(--app-sidebar-accent-foreground);
-  --sidebar-border: var(--app-sidebar-border);
-  --sidebar-ring: var(--app-sidebar-ring);
-
-  /* 状态色：shadcn 官方名单里没有，但我们的组件与浮层按规范名取用 */
-  --success: var(--app-success);
-  --warning: var(--app-warning);
-  --info: var(--app-info);
+  --radius-xs: calc(var(--radius) * 0.25);
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.75);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.5);
+  --radius-2xl: calc(var(--radius) * 2);
+  --radius-3xl: calc(var(--radius) * 3);
 }

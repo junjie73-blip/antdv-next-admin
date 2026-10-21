@@ -335,13 +335,13 @@ test.describe('交互巡检：导航精简、首屏出数、查询串、抽屉�
     const rows = () => page.locator('tr.basic-table-row');
     await expect(rows().first()).toBeVisible();
 
-    // antd 给每行的层级 class（`ant-table-row-level-N`）：
+    // `<tr data-row-level="N">`（`BasicTable.vue` 把 `displayRows` 的深度原样挂上）：
     // 只数顶层等于没测——折叠态下顶层照样全在，少的是下面的层级。
     await expect(
-      rows().filter({ hasClass: 'ant-table-row-level-1' }).first(),
+      page.locator('tr.basic-table-row[data-row-level="1"]').first(),
     ).toBeVisible();
     await expect(
-      rows().filter({ hasClass: 'ant-table-row-level-2' }).first(),
+      page.locator('tr.basic-table-row[data-row-level="2"]').first(),
     ).toBeVisible();
 
     // 顶层 + 各级子项全都渲染出来了（折叠时只有目录那几行）

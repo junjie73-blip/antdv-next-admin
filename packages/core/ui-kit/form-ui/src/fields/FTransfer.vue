@@ -49,7 +49,11 @@ const targetSearch = ref('');
 function filterList(list: any[], keyword: string) {
   const k = keyword.trim().toLowerCase();
   if (!k) return list;
-  return list.filter((o) => String(o.label ?? '').toLowerCase().includes(k));
+  return list.filter((o) =>
+    String(o.label ?? '')
+      .toLowerCase()
+      .includes(k),
+  );
 }
 
 function toggleChecked(list: any[], val: any) {
@@ -60,10 +64,10 @@ function toggleChecked(list: any[], val: any) {
 
 function moveToTarget() {
   if (props.disabled) return;
-  emit(
-    'update:value',
-    [...targetValues.value, ...sourceChecked.value.splice(0)],
-  );
+  emit('update:value', [
+    ...targetValues.value,
+    ...sourceChecked.value.splice(0),
+  ]);
 }
 
 function moveToSource() {
@@ -100,7 +104,9 @@ function moveToSource() {
           <input
             type="checkbox"
             class="size-3.5 accent-primary"
-            :checked="sourceChecked.some((v) => optionValueEquals(v, opt.value))"
+            :checked="
+              sourceChecked.some((v) => optionValueEquals(v, opt.value))
+            "
             :disabled="opt.disabled"
             @change="toggleChecked(sourceChecked, opt.value)"
           />
@@ -148,7 +154,9 @@ function moveToSource() {
           <input
             type="checkbox"
             class="size-3.5 accent-primary"
-            :checked="targetChecked.some((v) => optionValueEquals(v, opt.value))"
+            :checked="
+              targetChecked.some((v) => optionValueEquals(v, opt.value))
+            "
             :disabled="opt.disabled"
             @change="toggleChecked(targetChecked, opt.value)"
           />

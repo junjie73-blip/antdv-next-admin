@@ -6,6 +6,7 @@ import 'vue-pdf-embed/dist/styles/annotationLayer.css';
 import 'vue-pdf-embed/dist/styles/textLayer.css';
 
 import { vLoading } from '@antdv/common-ui';
+import { setupVueQuery } from '@antdv/request/vue-query';
 import { useUserStore } from '@antdv/stores';
 import * as Sentry from '@sentry/vue';
 import { MotionPlugin } from '@vueuse/motion';
@@ -25,7 +26,6 @@ import {
 } from './directives';
 import i18n from './locales';
 import { installBrowserMockIfEnabled } from './mock/activate';
-import { setupVueQuery } from './plugins/query';
 import { configureLayoutsHost } from './plugins/layouts-host';
 import { configureRequestRuntime } from './plugins/request-runtime';
 import { configureTableRuntime } from './plugins/table-runtime';

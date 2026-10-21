@@ -1,15 +1,15 @@
 # Reusable components
 
-In one sentence: **app-level composite components live in `apps/web/src/components/business/`, library-agnostic primitives in `@antdv/icons` and the eight packages under `packages/core/ui-kit/`, generic hooks in `@antdv/hooks`; the `Basic*` family is driven by one `[register, methods]` convention.**
+In one sentence: **every component lives in one of the eight packages under `packages/core/ui-kit/` (`apps/web/src/components/` is now empty as a directory), icon atoms in `@antdv/icons`, generic hooks in `@antdv/hooks`; the `Basic*` family is driven by one `[register, methods]` convention.**
 
 ## The three layers
 
 | Layer | Where | What lives there |
 | --- | --- | --- |
-| App business components | `apps/web/src/components/business/` | Only `ImportExport` and `TenantSelect` remain; `TreeTable` lives in `@antdv/table-ui`, `MicroAppContainer` in `@antdv/common-ui`; `BasicTable`/`TableAction`, `BasicForm` and `BasicModal`/`BasicDrawer` are in `@antdv/{table-ui,form-ui,popup-ui}` |
+| App-level composite components | `packages/core/ui-kit/common-ui` (root barrel plus the `/avatar-uploader`, `/chunk-upload`, `/import-export` subpaths) | `ImportExport`, `AvatarUploader`, the chunked-upload stack and `ReloadPrompt` all live here; `TreeTable` is in `@antdv/table-ui`, `MicroAppContainer` in `@antdv/common-ui`; `BasicTable`/`TableAction`, `BasicForm`, `BasicModal`/`BasicDrawer` are in `@antdv/{table-ui,form-ui,popup-ui}`. The directory that used to hold this batch, `apps/web/src/components/`, is now empty, and `TenantSelect` was deleted together with the tenant store it imported |
 | Library-agnostic primitives | `packages/core/base/icons` (`@antdv/icons`) + `packages/core/ui-kit/*` | `IconifyIcon`, `IconPicker`, `SvgIcon` in `@antdv/icons`; `Loading` + `v-loading` in `@antdv/common-ui`; `Scrollbar` in `@antdv/common-ui`; `shadcn-ui` / `form-ui` / `table-ui` / `popup-ui` / `layout-ui` / `menu-ui` / `tabs-ui` one package each. None of these depends on antdv-next, and none relies on auto-import — the host must import them explicitly |
-| Generic composables | `packages/core/hooks` (`@antdv/hooks`, consumed from `dist`) | The root barrel only exports the light ones: `useCRUD` / `useCache` / `useChunkUpload` / `useFileReader` / `usePermission` / `usePrint` / `useRouteLoading` / `useWatermark`; `useEcharts` comes from the subpath `@antdv/hooks/echarts` so that `import { usePrint }` does not pay for a chart library. SSE and WebSocket are not here at all — realtime traffic lives in `@antdv/request` |
-| App-level hooks | `apps/web/src/composables/` | `useLocale` / `useLocaleSync` (`useLocale.ts:45,63`), `useNotice`, `usePasswordPolicy` and `http` (the request layer's exit); `useCRUD` and `usePermission` moved into `@antdv/hooks`, with call sites at `directives/index.ts:13`, `plugins/table-runtime.ts:1` and `views/components/table/crud/index.vue:34` |
+| Generic composables | `packages/core/hooks` (`@antdv/hooks`, consumed from `dist`) | The root barrel only exports the light ones: `useCRUD` / `useCache` / `useChunkUpload` / `useFileReader` / `usePermission` / `usePrint` / `useRouteLoading` / `useWatermark`; `useEcharts` comes from the subpath `@antdv/hooks/echarts` so that `import { usePrint }` does not pay for a chart library, and `useLocale` / `useLocaleSync` come from `@antdv/hooks/use-locale` for the same reason (it is the only hook that pulls in vue-i18n). SSE and WebSocket are not here at all — realtime traffic lives in `@antdv/request` |
+| App-level hooks | `apps/web/src/composables/` | only `useNotice`, `usePasswordPolicy` and the request exit `index.ts` (which now just does `export * from '@antdv/request'`, so pages still take `http` from `~/composables`); `useLocale` / `useLocaleSync` moved into `@antdv/hooks/use-locale`, with call sites in `App.vue`, `plugins/layouts-host.ts` and `views/{login,register}/index.vue`; `useCRUD` and `usePermission` moved into `@antdv/hooks`, with call sites at `directives/index.ts:13`, `plugins/table-runtime.ts:1` and `views/components/table/crud/index.vue:34` |
 
 ## The register-props pattern
 
@@ -36,7 +36,7 @@ The second return value is not uniform — do not code from vue-vben-admin muscl
 | `useTable(props?)` | `[register, Ref<null \| TableActionType>]` | The second value is an **instance ref**: `tableRef.value?.reload()`, null-check it |
 | `useForm(props?)` | `[register, FormActionType]` | The second value is a **methods object**: `methods.setFieldsValue(values)` |
 | `useModal()` / `useDrawer()` | `[register, methods]` | Internally `waitForInstance()`: up to 10 retries of (nextTick + 50ms), then throws instead of failing silently |
-:::
+| ::: |
 
 Initial props passed to the hook are merged via `instance.setProps(props)` at register time, so `useTable({ api })` and a template `:api` binding are two entrances to the same thing — the hook version lands first.
 
@@ -66,7 +66,7 @@ Confirmation has two separate rules — don't remember it as "all built-in confi
 
 - `CountTo`: animated number, now in `@antdv/common-ui` (`packages/core/ui-kit/common-ui/src/components/count-to/`), props in `types.ts` (`startVal` / `endVal` / `duration` / `autoplay` / `decimals`).
 - `MarkdownEditor`: a tiptap-based wrapper now living in `@antdv/common-ui` (`packages/core/ui-kit/common-ui/src/components/markdown-editor/`), with an `ImageUploadConfig` hooking into the Minio upload settings; `contentType` decides whether the value is HTML or Markdown source.
-- `Description`, `TreeTable`, `ImportExport`: detail panes, tree tables, import/export. The first two are packaged (`@antdv/common-ui`, `@antdv/table-ui`); `ImportExport` is still app-side in `components/business/`. Export relies on `excel.ts` in `@antdv/shared`.
+- `Description`, `TreeTable`, `ImportExport`: detail panes, tree tables, import/export — all three are packaged now (`@antdv/common-ui`, `@antdv/table-ui`, `@antdv/common-ui/import-export`). Export relies on `excel.ts` in `@antdv/shared`.
 - Global registration: `@antdv/icons` ships `createIconInstaller()` (`packages/core/base/icons/src/index.ts:19`) and the loading barrel re-exports the directive under the name `vLoading` (`packages/core/ui-kit/common-ui/src/components/loading/index.ts:7`); the app uses no installer and imports everything explicitly so tree-shaking survives (the component resolvers were withdrawn from `internal/vite-config`, so a bare tag is never injected).
 
 ## Related pages

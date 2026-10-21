@@ -31,7 +31,7 @@ const closePopper = () => {
     .forEach((el) => el.remove());
 };
 
-describe('TablePagination', () => {
+describe('tablePagination', () => {
   it('总数文案：showTotal 拿到总数与当前区间', async () => {
     const wrapper = mountPager({
       current: 2,
@@ -75,13 +75,19 @@ describe('TablePagination', () => {
 
   it('首尾页禁用上/下页按钮', async () => {
     const first = mountPager({ current: 1 });
-    expect(first.find('.basic-table-prev').attributes('disabled')).toBeDefined();
-    expect(first.find('.basic-table-next').attributes('disabled')).toBeUndefined();
+    expect(
+      first.find('.basic-table-prev').attributes('disabled'),
+    ).toBeDefined();
+    expect(
+      first.find('.basic-table-next').attributes('disabled'),
+    ).toBeUndefined();
     first.unmount();
 
     const last = mountPager({ current: 3 });
     expect(last.find('.basic-table-next').attributes('disabled')).toBeDefined();
-    expect(last.find('.basic-table-prev').attributes('disabled')).toBeUndefined();
+    expect(
+      last.find('.basic-table-prev').attributes('disabled'),
+    ).toBeUndefined();
     last.unmount();
   });
 
@@ -118,8 +124,9 @@ describe('TablePagination', () => {
     await trigger.trigger('pointerdown');
     await trigger.trigger('click');
     await settle();
-    const option20 = [...document.querySelectorAll('[data-slot="select-item"]')]
-      .find((el) => el.textContent?.includes('20'))!;
+    const option20 = [
+      ...document.querySelectorAll('[data-slot="select-item"]'),
+    ].find((el) => el.textContent?.includes('20'))!;
     option20.firstElementChild!.dispatchEvent(
       new PointerEvent('pointerup', { bubbles: true }),
     );
@@ -148,7 +155,10 @@ describe('TablePagination', () => {
   });
 
   it('showSizeChanger / showQuickJumper 关掉后不渲染', async () => {
-    const wrapper = mountPager({ showQuickJumper: false, showSizeChanger: false });
+    const wrapper = mountPager({
+      showQuickJumper: false,
+      showSizeChanger: false,
+    });
     expect(wrapper.find('.basic-table-page-size').exists()).toBe(false);
     expect(wrapper.find('.basic-table-quick-jumper').exists()).toBe(false);
     expect(wrapper.find('.basic-table-page-1').exists()).toBe(true);

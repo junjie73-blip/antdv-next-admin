@@ -13,10 +13,9 @@ import type {
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 
 import { Scrollbar, Tree } from '@antdv/common-ui';
-
 import { IconifyIcon as Icon } from '@antdv/icons/icon';
-import { cn } from '@antdv/shared/utils/cn';
 import { Input } from '@antdv/shadcn-ui';
+import { cn } from '@antdv/shared/utils/cn';
 import { useDebounceFn, useEventListener } from '@vueuse/core';
 
 import BasicTable from '../BasicTable.vue';
@@ -176,7 +175,7 @@ onBeforeUnmount(() => {
 // ============ 样式类名 ============
 // 一律语义 token：写死 gray-100 / white 的面板在深色下是白底白字
 const containerClassName = cn(
-  'flex h-full overflow-hidden rounded-xl border bg-card',
+  'bg-card flex h-full overflow-hidden rounded-xl border',
 );
 
 const treePanelClassName = computed(() =>
@@ -191,14 +190,14 @@ const treePanelStyle = computed(() => ({ width: `${panelWidth.value}px` }));
 const treeHeaderClassName = cn(
   'flex shrink-0 items-center justify-between border-b px-4 py-3',
 );
-const treeHeaderTitleClassName = cn('text-sm font-medium text-foreground');
+const treeHeaderTitleClassName = cn('text-foreground text-sm font-medium');
 const treeBodyClassName = cn('min-h-0 flex-1 overflow-hidden p-2');
 const treeSearchClassName = cn('mb-2');
 
 const resizeHandleClassName = computed(() =>
   cn(
     'w-1 shrink-0 cursor-col-resize',
-    'bg-transparent transition-colors hover:bg-primary/30',
+    'hover:bg-primary/30 bg-transparent transition-colors',
     isDragging.value && 'bg-primary/40',
   ),
 );
@@ -209,15 +208,15 @@ const tablePanelClassName = cn(
 const tableHeaderClassName = cn(
   'flex shrink-0 items-center justify-between border-b px-4 py-3',
 );
-const tableHeaderTitleClassName = cn('text-sm font-medium text-foreground');
+const tableHeaderTitleClassName = cn('text-foreground text-sm font-medium');
 const tableBodyClassName = cn('flex-1 overflow-hidden');
 const emptyClassName = cn(
-  'flex flex-col items-center justify-center py-16 text-muted-foreground',
+  'text-muted-foreground flex flex-col items-center justify-center py-16',
 );
 const placeholderClassName = cn(
-  'flex h-full flex-col items-center justify-center text-muted-foreground',
+  'text-muted-foreground flex h-full flex-col items-center justify-center',
 );
-const nothingSelectedClassName = cn('ml-2 text-xs text-muted-foreground');
+const nothingSelectedClassName = cn('text-muted-foreground ml-2 text-xs');
 </script>
 
 <template>

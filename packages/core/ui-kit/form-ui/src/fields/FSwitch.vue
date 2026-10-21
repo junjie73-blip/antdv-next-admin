@@ -26,7 +26,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{ 'update:value': [value: any] }>();
 
-const onValue = () => (props.checkedValue === undefined ? true : props.checkedValue);
+const onValue = () =>
+  props.checkedValue === undefined ? true : props.checkedValue;
 const offValue = () =>
   props.unCheckedValue === undefined ? false : props.unCheckedValue;
 
@@ -41,12 +42,17 @@ const checked = () => props.value === onValue();
       :id="id"
       data-field-control
       :class="cn()"
-      @update:model-value="(v: boolean) => emit('update:value', v ? onValue() : offValue())"
+      @update:model-value="
+        (v: boolean) => emit('update:value', v ? onValue() : offValue())
+      "
     />
     <span v-if="checked() && checkedChildren !== undefined" class="text-sm">
       {{ checkedChildren }}
     </span>
-    <span v-else-if="!checked() && unCheckedChildren !== undefined" class="text-sm text-muted-foreground">
+    <span
+      v-else-if="!checked() && unCheckedChildren !== undefined"
+      class="text-sm text-muted-foreground"
+    >
       {{ unCheckedChildren }}
     </span>
   </span>

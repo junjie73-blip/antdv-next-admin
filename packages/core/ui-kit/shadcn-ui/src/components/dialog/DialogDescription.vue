@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import type { DialogDescriptionProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { DialogDescription, useForwardProps } from "reka-ui"
-import { cn } from '@antdv/shared/utils/cn'
+import type { DialogDescriptionProps } from 'reka-ui';
 
-const props = defineProps<DialogDescriptionProps & { class?: HTMLAttributes["class"] }>()
+import type { HTMLAttributes } from 'vue';
 
-const delegatedProps = reactiveOmit(props, "class")
+import { cn } from '@antdv/shared/utils/cn';
+import { reactiveOmit } from '@vueuse/core';
+import { DialogDescription, useForwardProps } from 'reka-ui';
 
-const forwardedProps = useForwardProps(delegatedProps)
+const props = defineProps<
+  DialogDescriptionProps & { class?: HTMLAttributes['class'] }
+>();
+
+const delegatedProps = reactiveOmit(props, 'class');
+
+const forwardedProps = useForwardProps(delegatedProps);
 </script>
 
 <template>
@@ -18,6 +22,6 @@ const forwardedProps = useForwardProps(delegatedProps)
     v-bind="forwardedProps"
     :class="cn('text-muted-foreground text-sm', props.class)"
   >
-    <slot />
+    <slot></slot>
   </DialogDescription>
 </template>

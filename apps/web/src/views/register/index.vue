@@ -16,6 +16,7 @@ import {
   AuthSocialLogin,
 } from '@antdv/common-ui';
 import { runRule } from '@antdv/form-ui';
+import { useLocale } from '@antdv/hooks/use-locale';
 import {
   LayoutWidgetColorToggle,
   LayoutWidgetLanguageToggle,
@@ -31,7 +32,6 @@ import { THEME_PRESETS } from '@antdv/shared/constants';
 import { useAppStore } from '@antdv/stores';
 import { Icon } from '@iconify/vue';
 import logoUrl from '~/assets/images/logo.png';
-import { useLocale } from '~/composables/useLocale';
 import { AUTH_SOCIAL_ITEMS } from '~/config/auth-social';
 
 const router = useRouter();
@@ -96,7 +96,11 @@ const rules = computed<Record<string, Rule[]>>(() => ({
     },
   ],
   email: [
-    { message: t('register.emailPlaceholder'), required: true, trigger: 'blur' },
+    {
+      message: t('register.emailPlaceholder'),
+      required: true,
+      trigger: 'blur',
+    },
     {
       message: t('register.emailInvalid'),
       pattern: /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/u,
@@ -282,7 +286,11 @@ function handleSocial(item: AuthSocialItem) {
                 @blur="validateNames(['password'])"
               />
               <button
-                :aria-label="passwordVisible ? t('login.hidePassword') : t('login.showPassword')"
+                :aria-label="
+                  passwordVisible
+                    ? t('login.hidePassword')
+                    : t('login.showPassword')
+                "
                 class="text-foreground/50 hover:text-foreground absolute top-1/2 right-2 flex size-7 -translate-y-1/2 items-center justify-center"
                 type="button"
                 @click="passwordVisible = !passwordVisible"
@@ -317,7 +325,11 @@ function handleSocial(item: AuthSocialItem) {
                 @blur="validateNames(['confirmPassword'])"
               />
               <button
-                :aria-label="confirmPasswordVisible ? t('login.hidePassword') : t('login.showPassword')"
+                :aria-label="
+                  confirmPasswordVisible
+                    ? t('login.hidePassword')
+                    : t('login.showPassword')
+                "
                 class="text-foreground/50 hover:text-foreground absolute top-1/2 right-2 flex size-7 -translate-y-1/2 items-center justify-center"
                 type="button"
                 @click="confirmPasswordVisible = !confirmPasswordVisible"
@@ -380,7 +392,9 @@ function handleSocial(item: AuthSocialItem) {
       />
 
       <div class="mt-3 text-center text-sm">
-        <span class="text-muted-foreground">{{ t('register.hasAccount') }}</span>
+        <span class="text-muted-foreground">{{
+          t('register.hasAccount')
+        }}</span>
         <AButton
           class="h-auto px-0 text-sm"
           data-auth="to-login"

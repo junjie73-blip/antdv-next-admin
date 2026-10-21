@@ -19,7 +19,7 @@ function mountBreadcrumb(props: Record<string, unknown> = {}) {
   return mount(LayoutBreadcrumb, { props: { items, ...props } });
 }
 
-describe('LayoutBreadcrumb - 可见性', () => {
+describe('layoutBreadcrumb - 可见性', () => {
   it('有层级就渲染，并给出稳定的区域钩子', () => {
     const wrapper = mountBreadcrumb();
     expect(wrapper.find('[data-layout-region="breadcrumb"]').exists()).toBe(
@@ -55,7 +55,7 @@ describe('LayoutBreadcrumb - 可见性', () => {
   });
 });
 
-describe('LayoutBreadcrumb - 链接', () => {
+describe('layoutBreadcrumb - 链接', () => {
   it('href 由使用方的 resolveHref 生成，包内不碰 vue-router', () => {
     const wrapper = mountBreadcrumb({
       resolveHref: (path: string) => `#/before${path}`,
@@ -100,7 +100,7 @@ describe('LayoutBreadcrumb - 链接', () => {
   });
 });
 
-describe('LayoutBreadcrumb - 图标与分隔符', () => {
+describe('layoutBreadcrumb - 图标与分隔符', () => {
   it('每一级只画自己声明的图标，渲染侧不补房子或文件夹', () => {
     const wrapper = mountBreadcrumb({
       items: [

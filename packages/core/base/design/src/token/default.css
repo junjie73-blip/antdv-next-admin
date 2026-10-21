@@ -6,10 +6,10 @@
  * 1. **值必须是自洽的实色**，不读 `var(--ant-color-*)` 这类外部变量。
  *    antd 的 CSS 变量挂在 ConfigProvider 生成的作用域类上，而 reka/shadcn 的弹层
  *    portal 到 `body`（在 `.ant-app` 之外），取不到变量就只剩透明底。
- *    主题色由偏好面板**内联写在 html 上**（`--app-primary`），样式表只给默认值。
+ *    主题色由偏好面板**内联写在 html 上**（`--primary`），样式表只给默认值。
  *
- * 2. **派生色写 `var(--app-*)`，不重复钉值**。`ring` 与整个 `sidebar-*` 家族都从
- *    同块基色派生：自定义主色时运行时只改 `--app-primary` 一条，其余在同一元素上
+ * 2. **派生色写 `var(--基色)`，不重复钉值**。`ring` 与整个 `sidebar-*` 家族都从
+ *    同块基色派生：自定义主色时运行时只改 `--primary` 一条，其余在同一元素上
  *    按 computed value 自动跟上（自定义色因此不会只染到一个按钮）。
  *
  * 3. **每个 `[data-theme]` 块都是完整名单**，27 条语义色一条不少。
@@ -26,462 +26,462 @@
 .light,
 .light[data-theme='custom'],
 .light[data-theme='default'] {
-  --app-background: #fff;
-  --app-foreground: rgb(0 0 0 / 88%);
-  --app-card: #fff;
-  --app-card-foreground: rgb(0 0 0 / 88%);
-  --app-popover: #fff;
-  --app-popover-foreground: rgb(0 0 0 / 88%);
-  --app-primary: #1677ff;
-  --app-primary-foreground: #fff;
-  --app-secondary: #f5f5f5;
-  --app-secondary-foreground: rgb(0 0 0 / 88%);
-  --app-muted: #f5f5f5;
-  --app-muted-foreground: rgb(0 0 0 / 45%);
-  --app-accent: rgb(0 0 0 / 6%);
-  --app-accent-foreground: rgb(0 0 0 / 88%);
-  --app-destructive: #ff4d4f;
-  --app-destructive-foreground: #fff;
-  --app-border: #f0f0f0;
-  --app-input: #d9d9d9;
-  --app-ring: var(--app-primary);
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0% / 0.88;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 0% / 0.88;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 0% / 0.88;
+  --primary: 215.02 100% 54.31%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 96.08%;
+  --secondary-foreground: 0 0% 0% / 0.88;
+  --muted: 0 0% 96.08%;
+  --muted-foreground: 0 0% 0% / 0.45;
+  --accent: 0 0% 0% / 0.06;
+  --accent-foreground: 0 0% 0% / 0.88;
+  --destructive: 359.33 100% 65.1%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 94.12%;
+  --input: 0 0% 85.1%;
+  --ring: var(--primary);
 
-  --app-sidebar: #fafafa;
-  --app-sidebar-foreground: var(--app-foreground);
-  --app-sidebar-primary: var(--app-primary);
-  --app-sidebar-primary-foreground: var(--app-primary-foreground);
-  --app-sidebar-accent: rgb(0 0 0 / 4%);
-  --app-sidebar-accent-foreground: var(--app-accent-foreground);
-  --app-sidebar-border: var(--app-border);
-  --app-sidebar-ring: var(--app-primary);
+  --sidebar: 0 0% 98.04%;
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: 0 0% 0% / 0.04;
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--primary);
 
   /*
    * 状态色：不随预设主题走（`success` 在樱花粉预设里也必须是绿的），
    * 所以只写在基础块，靠层叠从任何 `[data-theme]` 预设里透出来。
    * `info` 派生自主色，换主题时提示气泡跟着换色温。
    */
-  --app-success: #52c41a;
-  --app-warning: #faad14;
-  --app-info: var(--app-primary);
+  --success: 100.24 76.58% 43.53%;
+  --warning: 39.91 95.83% 52.94%;
+  --info: var(--primary);
 
   /*
    * 尺度 token：名单与 dark 一致，取值各自独立。
-   * `--app-border-radius` 是圆角刻度（`--radius-*` 工具类的基准档，档位 1 = 16px）；
+   * `--radius` 是圆角刻度（`--radius-*` 工具类的基准档，档位 1 = 16px）；
    * 单位一律 rem —— 1rem 在默认根字号下就是 16px，计算值不变，但圆角从此跟着
-   * `--app-font-size` 一起缩放，不会出现"文字变小了、圆角没变"的第二套尺度。
-   * `--app-font-size` 是**相对根字号**（100% = 浏览器 16px = 正文 14px 那一档），
+   * `--font-size` 一起缩放，不会出现"文字变小了、圆角没变"的第二套尺度。
+   * `--font-size` 是**相对根字号**（100% = 浏览器 16px = 正文 14px 那一档），
    * 写成倍率而不是 px，rem 体系的间距与行高才会一起缩放。
    */
-  --app-border-radius: 1rem;
-  --app-font-size: 100%;
-  --app-filter: none;
+  --radius: 1rem;
+  --font-size: 100%;
+  --filter: none;
 }
 
 /* ------------------------------------------------------------------ *
  * 预设主题：每套都给完整名单，且取值互不相同。
- * `--app-primary` 就是设置面板里那颗色块，其余中性色按同色系的 shadcn 配方走 ——
+ * `--primary` 就是设置面板里那颗色块，其余中性色按同色系的 shadcn 配方走 ——
  * 所以换主题换掉的不只是一个按钮的颜色，而是整块画布的色温。
  * ------------------------------------------------------------------ */
 
 .light[data-theme='violet'],
 [data-theme='violet'] {
-  --app-background: hsl(0 0% 100%);
-  --app-foreground: hsl(224 71.4% 4.1%);
-  --app-card: hsl(0 0% 100%);
-  --app-card-foreground: hsl(224 71.4% 4.1%);
-  --app-popover: hsl(0 0% 100%);
-  --app-popover-foreground: hsl(224 71.4% 4.1%);
-  --app-primary: #722ed1;
-  --app-primary-foreground: hsl(210 20% 98%);
-  --app-secondary: hsl(220 14.3% 95.9%);
-  --app-secondary-foreground: hsl(220.9 39.3% 11%);
-  --app-muted: hsl(220 14.3% 95.9%);
-  --app-muted-foreground: hsl(220 8.9% 46.1%);
-  --app-accent: hsl(220 14.3% 95.9%);
-  --app-accent-foreground: hsl(220.9 39.3% 11%);
-  --app-destructive: hsl(0 84.2% 60.2%);
-  --app-destructive-foreground: hsl(210 20% 98%);
-  --app-border: hsl(220 13% 91%);
-  --app-input: hsl(220 13% 91%);
-  --app-ring: var(--app-primary);
-  --app-sidebar: hsl(220 14.3% 95.9%);
-  --app-sidebar-foreground: var(--app-foreground);
-  --app-sidebar-primary: var(--app-primary);
-  --app-sidebar-primary-foreground: var(--app-primary-foreground);
-  --app-sidebar-accent: var(--app-accent);
-  --app-sidebar-accent-foreground: var(--app-accent-foreground);
-  --app-sidebar-border: var(--app-border);
-  --app-sidebar-ring: var(--app-primary);
+  --background: 0 0% 100%;
+  --foreground: 224 71.4% 4.1%;
+  --card: 0 0% 100%;
+  --card-foreground: 224 71.4% 4.1%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 224 71.4% 4.1%;
+  --primary: 265.03 63.92% 50%;
+  --primary-foreground: 210 20% 98%;
+  --secondary: 220 14.3% 95.9%;
+  --secondary-foreground: 220.9 39.3% 11%;
+  --muted: 220 14.3% 95.9%;
+  --muted-foreground: 220 8.9% 46.1%;
+  --accent: 220 14.3% 95.9%;
+  --accent-foreground: 220.9 39.3% 11%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 20% 98%;
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --ring: var(--primary);
+  --sidebar: 220 14.3% 95.9%;
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--primary);
 }
 
 .light[data-theme='pink'],
 [data-theme='pink'] {
-  --app-background: hsl(0 0% 100%);
-  --app-foreground: hsl(240 10% 3.9%);
-  --app-card: hsl(0 0% 100%);
-  --app-card-foreground: hsl(240 10% 3.9%);
-  --app-popover: hsl(0 0% 100%);
-  --app-popover-foreground: hsl(240 10% 3.9%);
-  --app-primary: #eb2f96;
-  --app-primary-foreground: hsl(355.7 100% 97.3%);
-  --app-secondary: hsl(240 4.8% 95.9%);
-  --app-secondary-foreground: hsl(240 5.9% 10%);
-  --app-muted: hsl(240 4.8% 95.9%);
-  --app-muted-foreground: hsl(240 3.8% 46.1%);
-  --app-accent: hsl(240 4.8% 95.9%);
-  --app-accent-foreground: hsl(240 5.9% 10%);
-  --app-destructive: hsl(0 84.2% 60.2%);
-  --app-destructive-foreground: hsl(0 0% 98%);
-  --app-border: hsl(240 5.9% 90%);
-  --app-input: hsl(240 5.9% 90%);
-  --app-ring: var(--app-primary);
-  --app-sidebar: hsl(240 4.8% 95.9%);
-  --app-sidebar-foreground: var(--app-foreground);
-  --app-sidebar-primary: var(--app-primary);
-  --app-sidebar-primary-foreground: var(--app-primary-foreground);
-  --app-sidebar-accent: var(--app-accent);
-  --app-sidebar-accent-foreground: var(--app-accent-foreground);
-  --app-sidebar-border: var(--app-border);
-  --app-sidebar-ring: var(--app-primary);
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --primary: 327.13 82.46% 55.29%;
+  --primary-foreground: 355.7 100% 97.3%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: var(--primary);
+  --sidebar: 240 4.8% 95.9%;
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--primary);
 }
 
 .light[data-theme='rose'],
 [data-theme='rose'] {
-  --app-background: hsl(0 0% 100%);
-  --app-foreground: hsl(350 90% 4.9%);
-  --app-card: hsl(0 0% 100%);
-  --app-card-foreground: hsl(350 90% 4.9%);
-  --app-popover: hsl(0 0% 100%);
-  --app-popover-foreground: hsl(350 90% 4.9%);
-  --app-primary: #f5222d;
-  --app-primary-foreground: hsl(355.7 100% 97.3%);
-  --app-secondary: hsl(350 30% 95.9%);
-  --app-secondary-foreground: hsl(350 40% 10%);
-  --app-muted: hsl(350 30% 95.9%);
-  --app-muted-foreground: hsl(350 8% 46.1%);
-  --app-accent: hsl(350 30% 95.9%);
-  --app-accent-foreground: hsl(350 40% 10%);
-  --app-destructive: hsl(0 84.2% 60.2%);
-  --app-destructive-foreground: hsl(0 0% 98%);
-  --app-border: hsl(350 40% 91%);
-  --app-input: hsl(350 40% 91%);
-  --app-ring: var(--app-primary);
-  --app-sidebar: hsl(350 30% 95.9%);
-  --app-sidebar-foreground: var(--app-foreground);
-  --app-sidebar-primary: var(--app-primary);
-  --app-sidebar-primary-foreground: var(--app-primary-foreground);
-  --app-sidebar-accent: var(--app-accent);
-  --app-sidebar-accent-foreground: var(--app-accent-foreground);
-  --app-sidebar-border: var(--app-border);
-  --app-sidebar-ring: var(--app-primary);
+  --background: 0 0% 100%;
+  --foreground: 350 90% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 350 90% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 350 90% 4.9%;
+  --primary: 356.87 91.34% 54.71%;
+  --primary-foreground: 355.7 100% 97.3%;
+  --secondary: 350 30% 95.9%;
+  --secondary-foreground: 350 40% 10%;
+  --muted: 350 30% 95.9%;
+  --muted-foreground: 350 8% 46.1%;
+  --accent: 350 30% 95.9%;
+  --accent-foreground: 350 40% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 350 40% 91%;
+  --input: 350 40% 91%;
+  --ring: var(--primary);
+  --sidebar: 350 30% 95.9%;
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--primary);
 }
 
 .light[data-theme='sky-blue'],
 [data-theme='sky-blue'] {
-  --app-background: hsl(0 0% 100%);
-  --app-foreground: hsl(222.2 84% 4.9%);
-  --app-card: hsl(0 0% 100%);
-  --app-card-foreground: hsl(222.2 84% 4.9%);
-  --app-popover: hsl(0 0% 100%);
-  --app-popover-foreground: hsl(222.2 84% 4.9%);
-  --app-primary: #1890ff;
-  --app-primary-foreground: hsl(210 40% 98%);
-  --app-secondary: hsl(210 40% 96.1%);
-  --app-secondary-foreground: hsl(222.2 47.4% 11.2%);
-  --app-muted: hsl(210 40% 96.1%);
-  --app-muted-foreground: hsl(215.4 16.3% 46.9%);
-  --app-accent: hsl(210 40% 96.1%);
-  --app-accent-foreground: hsl(222.2 47.4% 11.2%);
-  --app-destructive: hsl(0 84.2% 60.2%);
-  --app-destructive-foreground: hsl(210 40% 98%);
-  --app-border: hsl(214.3 31.8% 91.4%);
-  --app-input: hsl(214.3 31.8% 91.4%);
-  --app-ring: var(--app-primary);
-  --app-sidebar: hsl(210 40% 96.1%);
-  --app-sidebar-foreground: var(--app-foreground);
-  --app-sidebar-primary: var(--app-primary);
-  --app-sidebar-primary-foreground: var(--app-primary-foreground);
-  --app-sidebar-accent: var(--app-accent);
-  --app-sidebar-accent-foreground: var(--app-accent-foreground);
-  --app-sidebar-border: var(--app-border);
-  --app-sidebar-ring: var(--app-primary);
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 208.83 100% 54.71%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: var(--primary);
+  --sidebar: 210 40% 96.1%;
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--primary);
 }
 
 .light[data-theme='deep-blue'],
 [data-theme='deep-blue'] {
-  --app-background: hsl(0 0% 100%);
-  --app-foreground: hsl(230 80% 4.9%);
-  --app-card: hsl(0 0% 100%);
-  --app-card-foreground: hsl(230 80% 4.9%);
-  --app-popover: hsl(0 0% 100%);
-  --app-popover-foreground: hsl(230 80% 4.9%);
-  --app-primary: #1d39c4;
-  --app-primary-foreground: hsl(210 40% 98%);
-  --app-secondary: hsl(228 60% 95.1%);
-  --app-secondary-foreground: hsl(230 53% 11.2%);
-  --app-muted: hsl(228 60% 95.1%);
-  --app-muted-foreground: hsl(228 15% 46.9%);
-  --app-accent: hsl(228 60% 95.1%);
-  --app-accent-foreground: hsl(230 53% 11.2%);
-  --app-destructive: hsl(0 84.2% 60.2%);
-  --app-destructive-foreground: hsl(210 40% 98%);
-  --app-border: hsl(228 45% 90.4%);
-  --app-input: hsl(228 45% 90.4%);
-  --app-ring: var(--app-primary);
-  --app-sidebar: hsl(228 60% 95.1%);
-  --app-sidebar-foreground: var(--app-foreground);
-  --app-sidebar-primary: var(--app-primary);
-  --app-sidebar-primary-foreground: var(--app-primary-foreground);
-  --app-sidebar-accent: var(--app-accent);
-  --app-sidebar-accent-foreground: var(--app-accent-foreground);
-  --app-sidebar-border: var(--app-border);
-  --app-sidebar-ring: var(--app-primary);
+  --background: 0 0% 100%;
+  --foreground: 230 80% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 230 80% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 230 80% 4.9%;
+  --primary: 229.94 74.22% 44.12%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 228 60% 95.1%;
+  --secondary-foreground: 230 53% 11.2%;
+  --muted: 228 60% 95.1%;
+  --muted-foreground: 228 15% 46.9%;
+  --accent: 228 60% 95.1%;
+  --accent-foreground: 230 53% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 228 45% 90.4%;
+  --input: 228 45% 90.4%;
+  --ring: var(--primary);
+  --sidebar: 228 60% 95.1%;
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--primary);
 }
 
 .light[data-theme='green'],
 [data-theme='green'] {
-  --app-background: hsl(0 0% 100%);
-  --app-foreground: hsl(142 72% 3.9%);
-  --app-card: hsl(0 0% 100%);
-  --app-card-foreground: hsl(142 72% 3.9%);
-  --app-popover: hsl(0 0% 100%);
-  --app-popover-foreground: hsl(142 72% 3.9%);
-  --app-primary: #52c41a;
-  --app-primary-foreground: hsl(0 0% 98%);
-  --app-secondary: hsl(144 30% 95.1%);
-  --app-secondary-foreground: hsl(143 40% 10%);
-  --app-muted: hsl(144 30% 95.1%);
-  --app-muted-foreground: hsl(143 8% 44.1%);
-  --app-accent: hsl(144 30% 95.1%);
-  --app-accent-foreground: hsl(143 40% 10%);
-  --app-destructive: hsl(0 84.2% 60.2%);
-  --app-destructive-foreground: hsl(0 0% 98%);
-  --app-border: hsl(143 40% 90%);
-  --app-input: hsl(143 40% 90%);
-  --app-ring: var(--app-primary);
-  --app-sidebar: hsl(144 30% 95.1%);
-  --app-sidebar-foreground: var(--app-foreground);
-  --app-sidebar-primary: var(--app-primary);
-  --app-sidebar-primary-foreground: var(--app-primary-foreground);
-  --app-sidebar-accent: var(--app-accent);
-  --app-sidebar-accent-foreground: var(--app-accent-foreground);
-  --app-sidebar-border: var(--app-border);
-  --app-sidebar-ring: var(--app-primary);
+  --background: 0 0% 100%;
+  --foreground: 142 72% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 142 72% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 142 72% 3.9%;
+  --primary: 100.24 76.58% 43.53%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 144 30% 95.1%;
+  --secondary-foreground: 143 40% 10%;
+  --muted: 144 30% 95.1%;
+  --muted-foreground: 143 8% 44.1%;
+  --accent: 144 30% 95.1%;
+  --accent-foreground: 143 40% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 143 40% 90%;
+  --input: 143 40% 90%;
+  --ring: var(--primary);
+  --sidebar: 144 30% 95.1%;
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--primary);
 }
 
 .light[data-theme='deep-green'],
 [data-theme='deep-green'] {
-  --app-background: hsl(0 0% 100%);
-  --app-foreground: hsl(180 72% 3.9%);
-  --app-card: hsl(0 0% 100%);
-  --app-card-foreground: hsl(180 72% 3.9%);
-  --app-popover: hsl(0 0% 100%);
-  --app-popover-foreground: hsl(180 72% 3.9%);
-  --app-primary: #13c2c2;
-  --app-primary-foreground: hsl(180 100% 97.3%);
-  --app-secondary: hsl(180 30% 95.1%);
-  --app-secondary-foreground: hsl(180 40% 10%);
-  --app-muted: hsl(180 30% 95.1%);
-  --app-muted-foreground: hsl(180 8% 44.1%);
-  --app-accent: hsl(180 30% 95.1%);
-  --app-accent-foreground: hsl(180 40% 10%);
-  --app-destructive: hsl(0 84.2% 60.2%);
-  --app-destructive-foreground: hsl(0 0% 98%);
-  --app-border: hsl(180 40% 90%);
-  --app-input: hsl(180 40% 90%);
-  --app-ring: var(--app-primary);
-  --app-sidebar: hsl(180 30% 95.1%);
-  --app-sidebar-foreground: var(--app-foreground);
-  --app-sidebar-primary: var(--app-primary);
-  --app-sidebar-primary-foreground: var(--app-primary-foreground);
-  --app-sidebar-accent: var(--app-accent);
-  --app-sidebar-accent-foreground: var(--app-accent-foreground);
-  --app-sidebar-border: var(--app-border);
-  --app-sidebar-ring: var(--app-primary);
+  --background: 0 0% 100%;
+  --foreground: 180 72% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 180 72% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 180 72% 3.9%;
+  --primary: 180 82.16% 41.76%;
+  --primary-foreground: 180 100% 97.3%;
+  --secondary: 180 30% 95.1%;
+  --secondary-foreground: 180 40% 10%;
+  --muted: 180 30% 95.1%;
+  --muted-foreground: 180 8% 44.1%;
+  --accent: 180 30% 95.1%;
+  --accent-foreground: 180 40% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 180 40% 90%;
+  --input: 180 40% 90%;
+  --ring: var(--primary);
+  --sidebar: 180 30% 95.1%;
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--primary);
 }
 
 .light[data-theme='orange'],
 [data-theme='orange'] {
-  --app-background: hsl(0 0% 100%);
-  --app-foreground: hsl(14 80% 4.1%);
-  --app-card: hsl(0 0% 100%);
-  --app-card-foreground: hsl(14 80% 4.1%);
-  --app-popover: hsl(0 0% 100%);
-  --app-popover-foreground: hsl(14 80% 4.1%);
-  --app-primary: #fa541c;
-  --app-primary-foreground: hsl(60 9.1% 97.8%);
-  --app-secondary: hsl(20 40% 95.1%);
-  --app-secondary-foreground: hsl(15 40% 10%);
-  --app-muted: hsl(20 40% 95.1%);
-  --app-muted-foreground: hsl(17 10% 44.7%);
-  --app-accent: hsl(20 40% 95.1%);
-  --app-accent-foreground: hsl(15 40% 10%);
-  --app-destructive: hsl(0 84.2% 60.2%);
-  --app-destructive-foreground: hsl(60 9.1% 97.8%);
-  --app-border: hsl(16 50% 90%);
-  --app-input: hsl(16 50% 90%);
-  --app-ring: var(--app-primary);
-  --app-sidebar: hsl(20 40% 95.1%);
-  --app-sidebar-foreground: var(--app-foreground);
-  --app-sidebar-primary: var(--app-primary);
-  --app-sidebar-primary-foreground: var(--app-primary-foreground);
-  --app-sidebar-accent: var(--app-accent);
-  --app-sidebar-accent-foreground: var(--app-accent-foreground);
-  --app-sidebar-border: var(--app-border);
-  --app-sidebar-ring: var(--app-primary);
+  --background: 0 0% 100%;
+  --foreground: 14 80% 4.1%;
+  --card: 0 0% 100%;
+  --card-foreground: 14 80% 4.1%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 14 80% 4.1%;
+  --primary: 15.14 95.69% 54.51%;
+  --primary-foreground: 60 9.1% 97.8%;
+  --secondary: 20 40% 95.1%;
+  --secondary-foreground: 15 40% 10%;
+  --muted: 20 40% 95.1%;
+  --muted-foreground: 17 10% 44.7%;
+  --accent: 20 40% 95.1%;
+  --accent-foreground: 15 40% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 60 9.1% 97.8%;
+  --border: 16 50% 90%;
+  --input: 16 50% 90%;
+  --ring: var(--primary);
+  --sidebar: 20 40% 95.1%;
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--primary);
 }
 
 .light[data-theme='yellow'],
 [data-theme='yellow'] {
-  --app-background: hsl(0 0% 100%);
-  --app-foreground: hsl(40 80% 4.1%);
-  --app-card: hsl(0 0% 100%);
-  --app-card-foreground: hsl(40 80% 4.1%);
-  --app-popover: hsl(0 0% 100%);
-  --app-popover-foreground: hsl(40 80% 4.1%);
-  --app-primary: #faad14;
-  --app-primary-foreground: hsl(26 83.3% 14.1%);
-  --app-secondary: hsl(50 50% 95.1%);
-  --app-secondary-foreground: hsl(45 40% 10%);
-  --app-muted: hsl(50 50% 95.1%);
-  --app-muted-foreground: hsl(45 10% 44.7%);
-  --app-accent: hsl(50 50% 95.1%);
-  --app-accent-foreground: hsl(45 40% 10%);
-  --app-destructive: hsl(0 84.2% 60.2%);
-  --app-destructive-foreground: hsl(60 9.1% 97.8%);
-  --app-border: hsl(48 50% 90%);
-  --app-input: hsl(48 50% 90%);
-  --app-ring: var(--app-primary);
-  --app-sidebar: hsl(50 50% 95.1%);
-  --app-sidebar-foreground: var(--app-foreground);
-  --app-sidebar-primary: var(--app-primary);
-  --app-sidebar-primary-foreground: var(--app-primary-foreground);
-  --app-sidebar-accent: var(--app-accent);
-  --app-sidebar-accent-foreground: var(--app-accent-foreground);
-  --app-sidebar-border: var(--app-border);
-  --app-sidebar-ring: var(--app-primary);
+  --background: 0 0% 100%;
+  --foreground: 40 80% 4.1%;
+  --card: 0 0% 100%;
+  --card-foreground: 40 80% 4.1%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 40 80% 4.1%;
+  --primary: 39.91 95.83% 52.94%;
+  --primary-foreground: 26 83.3% 14.1%;
+  --secondary: 50 50% 95.1%;
+  --secondary-foreground: 45 40% 10%;
+  --muted: 50 50% 95.1%;
+  --muted-foreground: 45 10% 44.7%;
+  --accent: 50 50% 95.1%;
+  --accent-foreground: 45 40% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 60 9.1% 97.8%;
+  --border: 48 50% 90%;
+  --input: 48 50% 90%;
+  --ring: var(--primary);
+  --sidebar: 50 50% 95.1%;
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--primary);
 }
 
 .light[data-theme='zinc'],
 [data-theme='zinc'] {
-  --app-background: hsl(0 0% 100%);
-  --app-foreground: hsl(240 10% 3.9%);
-  --app-card: hsl(0 0% 100%);
-  --app-card-foreground: hsl(240 10% 3.9%);
-  --app-popover: hsl(0 0% 100%);
-  --app-popover-foreground: hsl(240 10% 3.9%);
-  --app-primary: #262626;
-  --app-primary-foreground: hsl(0 0% 98%);
-  --app-secondary: hsl(240 4.8% 95.9%);
-  --app-secondary-foreground: hsl(240 5.9% 10%);
-  --app-muted: hsl(240 4.8% 95.9%);
-  --app-muted-foreground: hsl(240 3.8% 46.1%);
-  --app-accent: hsl(240 4.8% 95.9%);
-  --app-accent-foreground: hsl(240 5.9% 10%);
-  --app-destructive: hsl(0 84.2% 60.2%);
-  --app-destructive-foreground: hsl(0 0% 98%);
-  --app-border: hsl(240 5.9% 90%);
-  --app-input: hsl(240 5.9% 90%);
-  --app-ring: var(--app-primary);
-  --app-sidebar: hsl(240 4.8% 95.9%);
-  --app-sidebar-foreground: var(--app-foreground);
-  --app-sidebar-primary: var(--app-primary);
-  --app-sidebar-primary-foreground: var(--app-primary-foreground);
-  --app-sidebar-accent: var(--app-accent);
-  --app-sidebar-accent-foreground: var(--app-accent-foreground);
-  --app-sidebar-border: var(--app-border);
-  --app-sidebar-ring: var(--app-primary);
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --primary: 0 0% 14.9%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: var(--primary);
+  --sidebar: 240 4.8% 95.9%;
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--primary);
 }
 
 .light[data-theme='neutral'],
 [data-theme='neutral'] {
-  --app-background: hsl(0 0% 100%);
-  --app-foreground: hsl(0 0% 3.9%);
-  --app-card: hsl(0 0% 100%);
-  --app-card-foreground: hsl(0 0% 3.9%);
-  --app-popover: hsl(0 0% 100%);
-  --app-popover-foreground: hsl(0 0% 3.9%);
-  --app-primary: #2f54eb;
-  --app-primary-foreground: hsl(0 0% 98%);
-  --app-secondary: hsl(0 0% 96.1%);
-  --app-secondary-foreground: hsl(0 0% 9%);
-  --app-muted: hsl(0 0% 96.1%);
-  --app-muted-foreground: hsl(0 0% 45.1%);
-  --app-accent: hsl(0 0% 96.1%);
-  --app-accent-foreground: hsl(0 0% 9%);
-  --app-destructive: hsl(0 84.2% 60.2%);
-  --app-destructive-foreground: hsl(0 0% 98%);
-  --app-border: hsl(0 0% 89.8%);
-  --app-input: hsl(0 0% 89.8%);
-  --app-ring: var(--app-primary);
-  --app-sidebar: hsl(0 0% 96.1%);
-  --app-sidebar-foreground: var(--app-foreground);
-  --app-sidebar-primary: var(--app-primary);
-  --app-sidebar-primary-foreground: var(--app-primary-foreground);
-  --app-sidebar-accent: var(--app-accent);
-  --app-sidebar-accent-foreground: var(--app-accent-foreground);
-  --app-sidebar-border: var(--app-border);
-  --app-sidebar-ring: var(--app-primary);
+  --background: 0 0% 100%;
+  --foreground: 0 0% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --primary: 228.19 82.46% 55.29%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 0 0% 96.1%;
+  --secondary-foreground: 0 0% 9%;
+  --muted: 0 0% 96.1%;
+  --muted-foreground: 0 0% 45.1%;
+  --accent: 0 0% 96.1%;
+  --accent-foreground: 0 0% 9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 89.8%;
+  --input: 0 0% 89.8%;
+  --ring: var(--primary);
+  --sidebar: 0 0% 96.1%;
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--primary);
 }
 
 .light[data-theme='slate'],
 [data-theme='slate'] {
-  --app-background: hsl(0 0% 100%);
-  --app-foreground: hsl(222.2 60% 6.9%);
-  --app-card: hsl(0 0% 100%);
-  --app-card-foreground: hsl(222.2 60% 6.9%);
-  --app-popover: hsl(0 0% 100%);
-  --app-popover-foreground: hsl(222.2 60% 6.9%);
-  --app-primary: #1f2937;
-  --app-primary-foreground: hsl(210 40% 98%);
-  --app-secondary: hsl(210 30% 95.1%);
-  --app-secondary-foreground: hsl(222.2 47.4% 11.2%);
-  --app-muted: hsl(210 30% 95.1%);
-  --app-muted-foreground: hsl(215.4 16.3% 46.9%);
-  --app-accent: hsl(210 30% 95.1%);
-  --app-accent-foreground: hsl(222.2 47.4% 11.2%);
-  --app-destructive: hsl(0 84.2% 60.2%);
-  --app-destructive-foreground: hsl(210 40% 98%);
-  --app-border: hsl(214.3 26% 89.4%);
-  --app-input: hsl(214.3 26% 89.4%);
-  --app-ring: var(--app-primary);
-  --app-sidebar: hsl(210 30% 95.1%);
-  --app-sidebar-foreground: var(--app-foreground);
-  --app-sidebar-primary: var(--app-primary);
-  --app-sidebar-primary-foreground: var(--app-primary-foreground);
-  --app-sidebar-accent: var(--app-accent);
-  --app-sidebar-accent-foreground: var(--app-accent-foreground);
-  --app-sidebar-border: var(--app-border);
-  --app-sidebar-ring: var(--app-primary);
+  --background: 0 0% 100%;
+  --foreground: 222.2 60% 6.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 60% 6.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 60% 6.9%;
+  --primary: 215 27.91% 16.86%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 30% 95.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 30% 95.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 30% 95.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 26% 89.4%;
+  --input: 214.3 26% 89.4%;
+  --ring: var(--primary);
+  --sidebar: 210 30% 95.1%;
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--primary);
 }
 
 .light[data-theme='gray'],
 [data-theme='gray'] {
-  --app-background: hsl(0 0% 100%);
-  --app-foreground: hsl(224 50% 6.1%);
-  --app-card: hsl(0 0% 100%);
-  --app-card-foreground: hsl(224 50% 6.1%);
-  --app-popover: hsl(0 0% 100%);
-  --app-popover-foreground: hsl(224 50% 6.1%);
-  --app-primary: #374151;
-  --app-primary-foreground: hsl(210 20% 98%);
-  --app-secondary: hsl(220 14.3% 95.9%);
-  --app-secondary-foreground: hsl(220.9 39.3% 11%);
-  --app-muted: hsl(220 14.3% 95.9%);
-  --app-muted-foreground: hsl(220 8.9% 46.1%);
-  --app-accent: hsl(220 14.3% 95.9%);
-  --app-accent-foreground: hsl(220.9 39.3% 11%);
-  --app-destructive: hsl(0 84.2% 60.2%);
-  --app-destructive-foreground: hsl(210 20% 98%);
-  --app-border: hsl(220 13% 91%);
-  --app-input: hsl(220 13% 91%);
-  --app-ring: var(--app-primary);
-  --app-sidebar: hsl(220 14.3% 95.9%);
-  --app-sidebar-foreground: var(--app-foreground);
-  --app-sidebar-primary: var(--app-primary);
-  --app-sidebar-primary-foreground: var(--app-primary-foreground);
-  --app-sidebar-accent: var(--app-accent);
-  --app-sidebar-accent-foreground: var(--app-accent-foreground);
-  --app-sidebar-border: var(--app-border);
-  --app-sidebar-ring: var(--app-primary);
+  --background: 0 0% 100%;
+  --foreground: 224 50% 6.1%;
+  --card: 0 0% 100%;
+  --card-foreground: 224 50% 6.1%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 224 50% 6.1%;
+  --primary: 216.92 19.12% 26.67%;
+  --primary-foreground: 210 20% 98%;
+  --secondary: 220 14.3% 95.9%;
+  --secondary-foreground: 220.9 39.3% 11%;
+  --muted: 220 14.3% 95.9%;
+  --muted-foreground: 220 8.9% 46.1%;
+  --accent: 220 14.3% 95.9%;
+  --accent-foreground: 220.9 39.3% 11%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 20% 98%;
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --ring: var(--primary);
+  --sidebar: 220 14.3% 95.9%;
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--primary);
 }

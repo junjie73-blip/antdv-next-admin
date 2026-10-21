@@ -40,7 +40,7 @@ const formatted = computed(() => {
   const fixed =
     props.precision === undefined ? raw : raw.toFixed(props.precision);
   const [int = '0', decimal] = String(fixed).split('.');
-  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, props.groupSeparator);
+  const grouped = int.replaceAll(/\B(?=(\d{3})+(?!\d))/g, props.groupSeparator);
   return decimal ? `${grouped}${props.decimalSeparator}${decimal}` : grouped;
 });
 </script>

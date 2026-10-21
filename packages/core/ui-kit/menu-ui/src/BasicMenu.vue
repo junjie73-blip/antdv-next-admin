@@ -4,8 +4,8 @@ import type { MenuConfig, MenuKey } from '@antdv/types';
 
 import { computed, useTemplateRef, watch } from 'vue';
 
-import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import { Scrollbar } from '@antdv/common-ui';
+import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import { cn } from '@antdv/shared/utils/cn';
 import { useHorizontalScroll } from '@antdv/shared/utils/scroll';
 
@@ -152,7 +152,7 @@ const listWrapClass = computed(() =>
 
 const arrowClass = computed(() =>
   cn(
-    'absolute inset-y-0 z-20 flex size-7 my-auto cursor-pointer items-center justify-center rounded-full border',
+    'absolute inset-y-0 z-20 my-auto flex size-7 cursor-pointer items-center justify-center rounded-full border',
     'transition-colors duration-200',
     props.theme === 'dark' || props.geek
       ? 'border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700'

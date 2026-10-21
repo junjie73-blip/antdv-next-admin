@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { useLayoutI18n } from '@antdv/layout-ui';
-
 import { confirm, message } from '@antdv/popup-ui';
 import { cache } from '@antdv/shared/cache';
 import { cn } from '@antdv/shared/utils/cn';
+import { useAppStore, useUserStore } from '@antdv/stores';
 import { Icon } from '@iconify/vue';
 import { useClipboard } from '@vueuse/core';
-import { useAppStore, useUserStore } from '@antdv/stores';
 defineOptions({ name: 'SettingFooter' });
 
 const emit = defineEmits<{ close: [] }>();

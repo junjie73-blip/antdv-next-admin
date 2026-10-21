@@ -1,16 +1,14 @@
 <script setup lang="ts">
 import type { ConfigProviderProps } from 'reka-ui';
+
 import type { CSSProperties } from 'vue';
 
 import type { GlobalConfig, GlobalTheme, ResolvedGlobalConfig } from './types';
 
 import { computed, inject, provide, reactive, useAttrs, watch } from 'vue';
 
-import {
-  APP_BORDER_RADIUS,
-  APP_PRIMARY,
-  THEME_SCOPE_CLASS,
-} from '@antdv/shared/constants';
+import { convertToHslCssVar } from '@antdv/shared/color';
+import { CSS_VAR_PRIMARY, CSS_VAR_RADIUS } from '@antdv/shared/constants';
 import { cn } from '@antdv/shared/utils/cn';
 import { radiusToRem } from '@antdv/shared/utils/radius';
 import { usePreferredDark } from '@vueuse/core';
@@ -143,18 +141,20 @@ function toRadiusValue(radius: NonNullable<GlobalTheme['radius']>): string {
  *
  * 只写"这次覆盖里给了的"那几条：写成 `undefined` 会让 Vue 删掉这条声明，
  * 于是子树重新继承 `<html>` 的值 —— 这正是"留空 = 不覆盖"要的语义。
- * `--app-*` 之所以能在子树生效，靠的是 `@antdv/design` 用 `@theme inline`
- * 把工具类编译成 `var(--app-x)` 本身（而不是在 `:root` 求过一次值）。
+ * 规范名之所以能在子树生效，靠的是 `@antdv/design` 用 `@theme inline`
+ * 把工具类编译成 `hsl(var(--x))` 本身（而不是在 `:root` 求过一次值）。
  */
 const themeVars = computed<Record<string, string>>(() => {
   const vars: Record<string, string> = {};
   const { primary, radius } = config.theme;
-  if (primary) vars[APP_PRIMARY] = primary;
-  if (radius !== undefined) vars[APP_BORDER_RADIUS] = toRadiusValue(radius);
+  // 主色存 HSL 通道串：读侧是 `hsl(var(--primary))`，把 `#ff5c5c` 原样写进去
+  // 会让这条声明在子树里把所有用到主色的地方变成非法值。
+  if (primary) vars[CSS_VAR_PRIMARY] = convertToHslCssVar(primary);
+  if (radius !== undefined) vars[CSS_VAR_RADIUS] = toRadiusValue(radius);
   return vars;
 });
 
-/** `cssVars` 是"任意 `--app-*` / `--radius-*` 覆盖"的出口，排在 `themeVars` 之后 */
+/** `cssVars` 是"任意规范名 / `--radius-*` 覆盖"的出口，排在 `themeVars` 之后 */
 const cssVarsStyle = computed<Record<string, string>>(() => {
   const out: Record<string, string> = {};
   for (const [name, value] of Object.entries(config.cssVars)) {
@@ -172,9 +172,9 @@ const wrapperClass = computed(() =>
     // 而 CSS 变量按 DOM 树继承，照样能下发给子节点。
     // 宿主用内联 `style="display:flex"` 覆盖它也不会破坏变量传递（继承看 DOM 树）。
     'contents',
-    // 让 `@antdv/design` 的 shadcn 规范名别名层在本子树重算一遍：
-    // 别名是按"同一个元素上把 --app-* 换出来"实现的，只挂在 `<html>` 上就接不到这里的覆盖。
-    THEME_SCOPE_CLASS,
+    // 明暗档位落在这个元素上：token 的 `.dark` / `.light` 块就是按 class 选择器
+    // 给整套色板，所以子树换明暗不需要额外作用域类 —— 规范名本身即变量本体，
+    // 内联覆盖的那几条沿 DOM 树继承下去即可。
     resolvedMode.value,
     attrs.class as string | undefined,
   ),

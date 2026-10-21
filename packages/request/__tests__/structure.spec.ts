@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { describe, expect, it, vi } from 'vitest';
@@ -34,6 +34,7 @@ describe('request 包边界', () => {
       'types.ts',
       'url.ts',
       'useRequest.ts',
+      'vue-query.ts',
     ]);
   });
 

@@ -64,7 +64,7 @@ configureSharedEnv({
 | `antdv_dict_data` | dict store | 走 `localStorageCacheStorage`，信封外**又套一层** `loadedAt` 判 1 小时过期 | `apps/web/src/stores/modules/dict.ts:35,48-49`、`packages/enums/src/cache.ts` |
 | `appSetting` | preferences（自带 `createCache`） | `PREFERENCES_CACHE_KEY`，`options.expire` 缺省即永不过期 | `packages/core/preferences/src/constants.ts:11`、`preferences.ts:31-32,71-73` |
 | `xy-menu-hidden-overrides` | route store | **裸 `localStorage` + 裸 JSON**，不走 cache、没有前缀 | `packages/stores/src/route.ts:26,30,42` |
-| `chunk-upload:<hash>` | 上传组件 | **裸 `localStorage`**，自有 `updatedAt` 7 天过期 | `apps/web/src/components/common/Upload/constants.ts:8-9`、`apps/web/src/components/common/Upload/utils.ts:50-52,56-60` |
+| `chunk-upload:<hash>` | 上传组件 | **裸 `localStorage`**，自有 `updatedAt` 7 天过期 | `packages/core/ui-kit/common-ui/src/components/chunk-upload/constants.ts:8-9`、`packages/core/ui-kit/common-ui/src/components/chunk-upload/utils.ts:50-52,56-60` |
 
 `apps/web/src/config/constants.ts` 现在只剩路由白名单与两个路径（`WHITE_LIST` / `HOME_PATH` / `LOGIN_PATH`），文件头的注释直接把缓存键名推给了 `@antdv/enums`：「缓存键名不在这里，统一在 `@antdv/enums` 的 `CacheKey`」。早先那份 `TOKEN_EXPIRES_IN` / `REFRESH_TOKEN_EXPIRE` / `PERMISSIONS_KEY` 已经从这个文件里删掉了，全仓零引用 —— 别照着旧文档去那里找键名。真正在用的过期常量是 `packages/stores/src/user.ts:15` 的局部 `TOKEN_EXPIRE`（`24 * 60 * 60`，秒）。`VITE_NAMESPACE` 只在 `apps/web/types/env.d.ts:28` 留了个类型声明，没有任何读取方，也不参与键拼接（见[配置](/guide/essentials/config)）。
 
@@ -80,8 +80,7 @@ configureSharedEnv({
 2. 生产环境缺这个变量**不会**触发 `env.ts:59-68` 那个"必须配置密钥"的抛错，那条分支在缓存路径上是死代码。
 3. SM4 密钥 = `padKey(VITE_APP_TITLE)`（截断/补齐到 32 字符，`encrypt.ts:18,93-98`）。也就是说 **改 title 同时改了键名和密钥**，跨项目抄同一个 title 等于共用一把密钥。
 
-派生密钥那一套（SHA-256 + 设备指纹，`encrypt.ts:40-75`）只服务于异步版 `encryptValue` / `decryptValue`，而这两个函数**全仓没有调用方**。
-:::
+派生密钥那一套（SHA-256 + 设备指纹，`encrypt.ts:40-75`）只服务于异步版 `encryptValue` / `decryptValue`，而这两个函数**全仓没有调用方**。:::
 
 Token 的值另有机制，且不受 `shouldEncrypt` 影响：`encryptToken()` 用 `jose` 的 `EncryptJWT` （`alg: 'dir'` + `A256GCM`，`tokenCrypto.ts:86-90`），密钥由 PBKDF2（10 万次迭代）从**设备指纹**派生（`tokenCrypto.ts:21-69`），指纹因子含 `navigator.userAgent`、`navigator.language`、`screen.width/height`、时区偏移（`:22-28`）。它在 dev 也加密，所以本地 localStorage 里的 token 是 JWE 串。
 
@@ -101,14 +100,13 @@ Token 的值另有机制，且不受 `shouldEncrypt` 影响：`encryptToken()` �
 - **`logout()` 不清 `refresh_token`**：`user.ts:164-169` 只删 `auth_token` 与 `user_info`，而 `request-runtime.ts:24` 写过的 `refresh_token` 会留在盘上（`cache.clear()` 那种全清才带得走）。
 - **登录流程从不写 `refresh_token`**：`user.ts` 的登录响应体里只有 `user.token`（`:96-104`），全程没有调用 `setRefresh`。于是第一次 `doRefreshToken()` 撞上 `tokens.refresh()` 返回空 → `缺少 refresh token`（`fetcher.ts:96-97`）。
 
-两个曾经的缺陷已经修掉、别再照旧文档找：`initToken()` 现在在 `main.ts:168` 被 await 调用，刷新后 `token.value` 是 `decryptToken` **之后**的明文，不是 JWE 串（回归用例 `packages/stores/__tests__/user-session.test.ts:166-212`）；刷新令牌改走 `request-runtime.ts:24` 的 `setRefresh`（`cache.setItem`，明文、无 TTL），不再拿 `setToken` 的第二个形参当过期时间用。另外 `clearDict()` 全仓仍无调用方，登出不会清字典缓存，靠的是那条 1 小时 `loadedAt` 自然过期（`apps/web/src/stores/modules/dict.ts:39,133`）。
-:::
+两个曾经的缺陷已经修掉、别再照旧文档找：`initToken()` 现在在 `main.ts:153` 被 await 调用，刷新后 `token.value` 是 `decryptToken` **之后**的明文，不是 JWE 串（回归用例 `packages/stores/__tests__/user-session.test.ts:166-212`）；刷新令牌改走 `request-runtime.ts:24` 的 `setRefresh`（`cache.setItem`，明文、无 TTL），不再拿 `setToken` 的第二个形参当过期时间用。另外 `clearDict()` 全仓仍无调用方，登出不会清字典缓存，靠的是那条 1 小时 `loadedAt` 自然过期（`apps/web/src/stores/modules/dict.ts:39,133`）。:::
 
 ## 浏览器存储的真实使用情况
 
 | 介质 | 状态 |
 | --- | --- |
-| `localStorage` | 主战场：cache 的默认介质 + 两处裸用（`packages/stores/src/route.ts:30,42`、`apps/web/src/components/common/Upload/utils.ts:56,83,91`） |
+| `localStorage` | 主战场：cache 的默认介质 + 两处裸用（`packages/stores/src/route.ts:30,42`、`packages/core/ui-kit/common-ui/src/components/chunk-upload/utils.ts:56,83,91`） |
 | `sessionStorage` | **有适配器，无人使用**。`createStorage('session')` 只在 `storage.ts:71` 导出成 `sessionStorageAdapter`，全仓没有 `createCache({ type: 'session' })`；应用代码里唯一的 session 操作是 SettingFooter 那次 `clear()` |
 | `memory` | `type: 'memory'` 只出现在 `packages/core/base/shared/__tests__/cache.test.ts:137`，应用没用 |
 | IndexedDB | **没有**。源码里 `indexedDB` 零命中，只有 PWA 打开时（`VITE_PWA`）构建产物里的 workbox 运行时会用（`apps/web/dist/workbox-*.js`），跟应用状态持久化无关 |
@@ -125,8 +123,7 @@ Token 的值另有机制，且不受 `shouldEncrypt` 影响：`encryptToken()` �
 
 ::: tip
 
-加一份持久化状态之前先决定键放哪：跟应用生命周期走的就照 `dict.ts` —— `CacheKey` 加一项（顺手真的引用它）、在 `watch` 里 `cache.setItem`、并把它加进 `user.ts` 的 `logout()` 清理列表。只是界面外观的偏好不要自己开 key，走 `packages/core/preferences`（见 [状态管理](/guide/essentials/stores)）。裸 `localStorage` 只留给"跟缓存语义无关"的数据（菜单可见性覆盖、分片续传进度），并自己带上过期判定。
-:::
+加一份持久化状态之前先决定键放哪：跟应用生命周期走的就照 `dict.ts` —— `CacheKey` 加一项（顺手真的引用它）、在 `watch` 里 `cache.setItem`、并把它加进 `user.ts` 的 `logout()` 清理列表。只是界面外观的偏好不要自己开 key，走 `packages/core/preferences`（见 [状态管理](/guide/essentials/stores)）。裸 `localStorage` 只留给"跟缓存语义无关"的数据（菜单可见性覆盖、分片续传进度），并自己带上过期判定。:::
 
 ## 相关页面
 

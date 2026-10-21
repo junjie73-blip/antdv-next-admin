@@ -200,11 +200,11 @@ const viewportStyle = computed<StyleValue>(() =>
  * 给纯展示的列表加上 hover 也是在骗用户去点一个点了没用的东西。
  */
 const rowClass = computed(() =>
-  cn('flex items-center border-b border-border last:border-b-0', {
-    'gap-4 px-4 py-4': props.size === 'large',
+  cn('border-border flex items-center border-b last:border-b-0', {
+    'gap-4 p-4 ': props.size === 'large',
     'gap-3 px-4 py-3': props.size === 'middle',
     'gap-2 px-3 py-2': props.size === 'small',
-    'cursor-pointer transition-colors hover:bg-accent': props.selectable,
+    'hover:bg-accent cursor-pointer transition-colors': props.selectable,
   }),
 );
 

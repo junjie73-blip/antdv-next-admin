@@ -1,19 +1,26 @@
 <script setup lang="ts">
-import type { TagsInputItemTextProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { TagsInputItemText, useForwardProps } from "reka-ui"
-import { cn } from '@antdv/shared/utils/cn'
+import type { TagsInputItemTextProps } from 'reka-ui';
 
-const props = defineProps<TagsInputItemTextProps & { class?: HTMLAttributes["class"] }>()
+import type { HTMLAttributes } from 'vue';
 
-const delegatedProps = reactiveOmit(props, "class")
+import { cn } from '@antdv/shared/utils/cn';
+import { reactiveOmit } from '@vueuse/core';
+import { TagsInputItemText, useForwardProps } from 'reka-ui';
 
-const forwardedProps = useForwardProps(delegatedProps)
+const props = defineProps<
+  TagsInputItemTextProps & { class?: HTMLAttributes['class'] }
+>();
+
+const delegatedProps = reactiveOmit(props, 'class');
+
+const forwardedProps = useForwardProps(delegatedProps);
 </script>
 
 <template>
-  <TagsInputItemText v-bind="forwardedProps" :class="cn('py-0.5 px-2 text-sm rounded bg-transparent', props.class)">
-    <slot />
+  <TagsInputItemText
+    v-bind="forwardedProps"
+    :class="cn('py-0.5 px-2 text-sm rounded bg-transparent', props.class)"
+  >
+    <slot></slot>
   </TagsInputItemText>
 </template>

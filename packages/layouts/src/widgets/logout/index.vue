@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useLayoutI18n } from '@antdv/layout-ui';
 import { confirm, message } from '@antdv/popup-ui';
-import { Icon } from '@iconify/vue';
 import { useUserStore } from '@antdv/stores';
+import { Icon } from '@iconify/vue';
 
 import WidgetButton from '../widget-button.vue';
 

@@ -43,7 +43,13 @@ vi.mock('sortablejs', () => ({ default: vi.fn(FakeSortable) }));
 const tabs = (): TabItemData[] => [
   { affix: true, closable: false, key: 'home', path: '/home', title: '首页' },
   { closable: true, key: 'a', path: '/a', title: '标签 A' },
-  { closable: true, icon: 'carbon:document', key: 'b', path: '/b', title: '标签 B' },
+  {
+    closable: true,
+    icon: 'carbon:document',
+    key: 'b',
+    path: '/b',
+    title: '标签 B',
+  },
 ];
 
 function mountList(props: Record<string, any> = {}) {
@@ -65,7 +71,7 @@ beforeEach(() => {
   instances.length = 0;
 });
 
-describe('TabItem —— 单个标签的渲染', () => {
+describe('tabItem —— 单个标签的渲染', () => {
   it('标题、data 钩子与选中态都在', () => {
     const wrapper = mount(TabItem as any, {
       props: {
@@ -169,12 +175,16 @@ describe('TabItem —— 单个标签的渲染', () => {
   });
 });
 
-describe('TabList —— 列表渲染与事件透传', () => {
+describe('tabList —— 列表渲染与事件透传', () => {
   it('按 tabs 顺序渲染，选中项拿到 active 类名', () => {
     const wrapper = mountList();
     const items = wrapper.findAll('.tab-item');
     expect(items).toHaveLength(3);
-    expect(items.map((item) => item.text())).toEqual(['首页', '标签 A', '标签 B']);
+    expect(items.map((item) => item.text())).toEqual([
+      '首页',
+      '标签 A',
+      '标签 B',
+    ]);
     expect(items[0]?.classes()).toContain('is-idle');
     expect(items[1]?.classes()).toContain('is-active');
   });
@@ -206,7 +216,8 @@ describe('TabList —— 列表渲染与事件透传', () => {
     await wrapper.findAll('.tab-item')[2]?.trigger('click');
     expect(wrapper.emitted('activate')?.[0]).toEqual(['b']);
 
-    await wrapper.findAll('.tab-item')[1]
+    await wrapper
+      .findAll('.tab-item')[1]
       ?.find('.tab-item__close')
       .trigger('click');
     expect(wrapper.emitted('close')?.[0]).toEqual(['a']);
@@ -222,7 +233,7 @@ describe('TabList —— 列表渲染与事件透传', () => {
   });
 });
 
-describe('TabList —— 拖拽排序接线', () => {
+describe('tabList —— 拖拽排序接线', () => {
   it('挂载后把 Sortable 绑在容器上，默认不禁用', () => {
     const wrapper = mountList();
     expect(instances).toHaveLength(1);
@@ -258,8 +269,7 @@ describe('TabList —— 拖拽排序接线', () => {
     const list = wrapper.find('.tab-list').element;
     const nodes = [...list.children] as HTMLElement[];
     // 每次都现量容器子节点，才是"真实 DOM 的顺序"
-    const keys = () =>
-      [...list.children].map((node) => node.getAttribute('data-scroll-key'));
+    const keys = () => [...list.children].map((node) => node.dataset.scrollKey);
 
     expect(keys()).toEqual(['home', 'a', 'b']);
 
@@ -291,9 +301,11 @@ describe('TabList —— 拖拽排序接线', () => {
 
     // 把 a（下标 1）拖到最后一位
     list.append(nodes[1]!);
-    expect(
-      [...list.children].map((node) => node.getAttribute('data-scroll-key')),
-    ).toEqual(['home', 'b', 'a']);
+    expect([...list.children].map((node) => node.dataset.scrollKey)).toEqual([
+      'home',
+      'b',
+      'a',
+    ]);
 
     instances[0]?.options.onEnd({
       from: list,
@@ -303,9 +315,11 @@ describe('TabList —— 拖拽排序接线', () => {
       to: list,
     });
 
-    expect(
-      [...list.children].map((node) => node.getAttribute('data-scroll-key')),
-    ).toEqual(['home', 'a', 'b']);
+    expect([...list.children].map((node) => node.dataset.scrollKey)).toEqual([
+      'home',
+      'a',
+      'b',
+    ]);
     expect(wrapper.emitted('reorder')?.[0]?.[0]).toMatchObject([
       { key: 'home' },
       { key: 'b' },
@@ -337,11 +351,17 @@ describe('TabList —— 拖拽排序接线', () => {
     const onMove = instances[0]?.options.onMove;
 
     // 拖固定标签本身
-    expect(onMove({ dragged: nodes[0], from: list, related: nodes[1], to: list })).toBe(false);
+    expect(
+      onMove({ dragged: nodes[0], from: list, related: nodes[1], to: list }),
+    ).toBe(false);
     // 落点越过固定区
-    expect(onMove({ dragged: nodes[1], from: list, related: nodes[0], to: list })).toBe(false);
+    expect(
+      onMove({ dragged: nodes[1], from: list, related: nodes[0], to: list }),
+    ).toBe(false);
     // 两个非固定标签之间
-    expect(onMove({ dragged: nodes[1], from: list, related: nodes[2], to: list })).toBe(true);
+    expect(
+      onMove({ dragged: nodes[1], from: list, related: nodes[2], to: list }),
+    ).toBe(true);
     wrapper.unmount();
   });
 

@@ -1,15 +1,19 @@
 <script lang="ts" setup>
-import type { RangeCalendarGridProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { RangeCalendarGrid, useForwardProps } from "reka-ui"
-import { cn } from '@antdv/shared/utils/cn'
+import type { RangeCalendarGridProps } from 'reka-ui';
 
-const props = defineProps<RangeCalendarGridProps & { class?: HTMLAttributes["class"] }>()
+import type { HTMLAttributes } from 'vue';
 
-const delegatedProps = reactiveOmit(props, "class")
+import { cn } from '@antdv/shared/utils/cn';
+import { reactiveOmit } from '@vueuse/core';
+import { RangeCalendarGrid, useForwardProps } from 'reka-ui';
 
-const forwardedProps = useForwardProps(delegatedProps)
+const props = defineProps<
+  RangeCalendarGridProps & { class?: HTMLAttributes['class'] }
+>();
+
+const delegatedProps = reactiveOmit(props, 'class');
+
+const forwardedProps = useForwardProps(delegatedProps);
 </script>
 
 <template>
@@ -18,6 +22,6 @@ const forwardedProps = useForwardProps(delegatedProps)
     :class="cn('w-full border-collapse space-x-1', props.class)"
     v-bind="forwardedProps"
   >
-    <slot />
+    <slot></slot>
   </RangeCalendarGrid>
 </template>

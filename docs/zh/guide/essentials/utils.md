@@ -12,8 +12,7 @@
 
 ::: tip
 
-自动导入不负责本仓库的包 `internal/vite-config/src/plugins/auto-import.ts` 只注入框架 API。`import { cn } from '@antdv/shared/utils/cn'` 这类写法必须自己写（同 [基础概念](/zh/guide/essentials/concepts)）。
-:::
+自动导入不负责本仓库的包 `internal/vite-config/src/plugins/auto-import.ts` 只注入框架 API。`import { cn } from '@antdv/shared/utils/cn'` 这类写法必须自己写（同 [基础概念](/zh/guide/essentials/concepts)）。:::
 
 ## 子路径即模块
 
@@ -53,7 +52,7 @@ import { useWebSocket } from '@antdv/composables/websocket';
 | `menu` | `menuKeyOf`（`src/utils/menu.ts:32`）、`attachMenuPaths`（`:258`）、`buildMenuItems`（`:561`）、`MenuPathRouter`（`:393`） | `stores/modules/route.ts:1-15`、`layouts/composables/useSidebarMenu.ts:10`、`packages/layouts/src/menu-source.ts:18` | 有 |
 | `scroll` | `computeOverflow`（`src/utils/scroll.ts:28`）、`useHorizontalScroll`（`:72`）、`pickHorizontalDelta`（`:47`） | `packages/core/ui-kit/menu-ui/src/BasicMenu.vue`、`tabs-ui/src/TabsBar.vue` | 有 |
 | `store` | `useStore` / `useAtom` / `useSelector`（`src/store.ts:12`，整包转发 `@tanstack/vue-store`） | 暂无调用点：共享状态的写法统一从这里取，不再各建 ref 单例 | 由 `__tests__/structure.test.ts` 覆盖 |
-| `template` | `generateTemplate`（`src/utils/template.ts:30`） | `components/business/ImportExport.vue:7,194` | 有 |
+| `template` | `generateTemplate`（`src/utils/template.ts:30`） | `packages/core/ui-kit/common-ui/src/components/import-export/ImportExport.vue:7,194` | 有 |
 | `welcome` | `showLoginWelcome`（`src/utils/welcome.ts:114`）、`getPersonalizedWelcome`（`:66`） | **无调用点** | 有 |
 | `xss` | `safeHtmlDirective`（`src/utils/xss.ts:437`）、`escapeDirective`（`:454`）、`escapeHtml`（`:173`） | `directives/index.ts:17` → `main.ts:103,107`；`escapeHtml` 被 `packages/core/composables/src/usePrint.ts:2` | 有 |
 
@@ -64,7 +63,7 @@ import { useWebSocket } from '@antdv/composables/websocket';
 | 导出 | 入口 | 消费者 | 单测 |
 | --- | --- | --- | --- |
 | `useChunkUpload` | `@antdv/composables/useChunkUpload`（`src/useChunkUpload.ts:76`） | `views/components/upload/index.vue:7,356` | 有 |
-| `useFileReader` | `.../useFileReader`（`src/useFileReader.ts:3`） | `components/common/AvatarUploader.vue:6` | 有 |
+| `useFileReader` | `.../useFileReader`（`src/useFileReader.ts:3`） | `packages/core/ui-kit/common-ui/src/components/avatar-uploader/AvatarUploader.vue:6` | 有 |
 | `usePrint` | `.../usePrint`（`src/usePrint.ts:47`） | `views/system/user/index.vue:7,344` 等 3 页 | 有 |
 | `useRouteLoading` | `.../useRouteLoading`（`src/useRouteLoading.ts:24`） | `layouts/index.vue:8,164` | 有 |
 | `useWatermark` | `.../useWatermark`（`src/useWatermark.ts:48`） | `layouts/index.vue:9,169` | 有 |
@@ -75,19 +74,15 @@ import { useWebSocket } from '@antdv/composables/websocket';
 
 ::: warning
 
-空目录不是"还没写"，是"搬走了" `apps/web/src/composables/web/sse/` 与 `apps/web/src/composables/web/websocket/` 已经空了 —— 实现迁到了 `packages/composables`。应用侧保留的是需要 store 的那一层（`utils/ws.ts` 里拼通知、发 `eventBus`、拿 token）。在里面新建文件之前，先确认这个能力是不是已经在包里。
-:::
+空目录不是"还没写"，是"搬走了" `apps/web/src/composables/web/sse/` 与 `apps/web/src/composables/web/websocket/` 已经空了 —— 实现迁到了 `packages/core/hooks`。应用侧保留的是需要 store 的那一层（`utils/ws.ts` 里拼通知、发 `eventBus`、拿 token）。在里面新建文件之前，先确认这个能力是不是已经在包里。:::
 
 ## 应用侧薄壳
 
 | 文件 | 导出 | 状态 |
 | --- | --- | --- |
-| `apps/web/src/utils/dict.ts:7,18` | `getDictLabel` / `getDictLabels` | 在用（`components/business/Description/Description.vue:19`） |
 | `apps/web/src/utils/ws.ts:338` | `useWebSocket`、`WS_EVENTS`（`:76`）、`noticeTypeConfig`（`:52`） | 在用（`composables/useNotice.ts:11`、`layouts/widgets/WidgetNotice.vue:15`） |
 | `apps/web/src/utils/securityInit.ts:16` | `initSecuritySystem` | 在用（`main.ts:35,95`） |
-| `apps/web/src/utils/crud-actions.ts:15` | `createCrudActions` | **无调用点** |
-| `apps/web/src/utils/routePreload.ts:38,110,130` | `preloadRoute` / `preloadRoutes` / `useRoutePreloader` | **无调用点**（只被 `utils/index.ts:3` re-export） |
-| `apps/web/src/composables/index.ts:6` | 只剩 `@antdv/request` 整包（`http` / `request` / `ExecuteOptions`） | 请求层在用（`api/request.ts:3`、`api/query.ts:10`、`components/common/AvatarUploader.vue:13` 等 6 处）；`useCRUD`、`usePermission` 已迁进 `@antdv/hooks`，页面与指令都从包里引（`views/components/table/crud/index.vue:34`、`directives/index.ts:13`）；stores 不绕这层，直接 `import { http } from '@antdv/request'`（`packages/stores/src/user.ts:6`、`route.ts:8`） |
+| `apps/web/src/composables/index.ts:6` | 只剩 `@antdv/request` 整包（`http` / `request` / `ExecuteOptions`） | 请求层在用（`api/request.ts:3`、`api/query.ts:10`、`packages/core/ui-kit/common-ui/src/components/avatar-uploader/AvatarUploader.vue:13` 等 6 处）；`useCRUD`、`usePermission` 已迁进 `@antdv/hooks`，页面与指令都从包里引（`views/components/table/crud/index.vue:34`、`directives/index.ts:13`）；stores 不绕这层，直接 `import { http } from '@antdv/request'`（`packages/stores/src/user.ts:6`、`route.ts:8`） |
 | `apps/web/src/composables/useNotice.ts:62` | `useNotice` | **无调用点** |
 | `apps/web/src/composables/usePasswordPolicy.ts:24` | `usePasswordPolicy` | **无调用点** |
 
@@ -144,8 +139,7 @@ pnpm --filter @antdv/shared build      # 或 @antdv/composables
 
 ::: warning
 
-症状是"改了没反应，也不报错" 表现：改 `packages/shared/src/**` → 保存 → 页面行为与类型都纹丝不动。原因是 Vite 的依赖缓存与 `optimizeDeps` 都指向 dist。先 `build` 再重启，别在应用侧绕开包自己抄一份实现。
-:::
+症状是"改了没反应，也不报错" 表现：改 `packages/shared/src/**` → 保存 → 页面行为与类型都纹丝不动。原因是 Vite 的依赖缓存与 `optimizeDeps` 都指向 dist。先 `build` 再重启，别在应用侧绕开包自己抄一份实现。:::
 
 ## 相关页面
 

@@ -1,11 +1,12 @@
-import type { VNode } from 'vue';
 import type { MenuConfig, TabItem } from '@antdv/types';
+
+import type { VNode } from 'vue';
 
 import { mount } from '@vue/test-utils';
 import { defineComponent, h, KeepAlive, nextTick, ref } from 'vue';
 
-import { createPinia, setActivePinia } from 'pinia';
 import { useRouteStore, useTabsStore } from '@antdv/stores';
+import { createPinia, setActivePinia } from 'pinia';
 
 import { resetPageCache, usePageCache } from '../src/hooks/use-page-cache';
 

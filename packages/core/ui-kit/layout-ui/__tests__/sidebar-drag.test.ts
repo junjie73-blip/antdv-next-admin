@@ -87,7 +87,7 @@ afterEach(() => {
   document.body.style.userSelect = '';
 });
 
-describe('LayoutSider - 拖拽改宽度', () => {
+describe('layoutSider - 拖拽改宽度', () => {
   it('常驻展开态才有拖拽条，折叠态与浮动态都不给', () => {
     expect(mountSider().find('[data-layout-sidebar-drag]').exists()).toBe(true);
     expect(

@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import type { FormSchema } from './schema';
-
 import type { FormContext } from './context';
+import type { FormSchema } from './schema';
 
 import { computed, inject, unref, useId } from 'vue';
 
@@ -39,7 +38,9 @@ const field = useField({
     // 首次提交前不跑规则：抽屉/弹窗打开时 `setFieldsValue` 灌初值会把字段标成
     // touched，change 校验一跑就是一屏"该项为必填项"。提交过之后才实时纠正。
     onChangeAsync: async ({ value }: { value: any }) =>
-      ctx?.submitAttempted?.value ? runCurrentRules(value, 'change') : undefined,
+      ctx?.submitAttempted?.value
+        ? runCurrentRules(value, 'change')
+        : undefined,
     onSubmitAsync: async ({ value }: { value: any }) =>
       runCurrentRules(value, 'submit'),
   },
@@ -191,7 +192,7 @@ const errorMessage = computed(() => {
     meta.isTouched || meta.isBlurred || !!ctx?.submitAttempted?.value;
   if (!shown) return '';
   const errors = meta.errors ?? [];
-  return errors.length ? String(errors[0]) : '';
+  return errors.length > 0 ? String(errors[0]) : '';
 });
 
 function handleValueChange(value: any) {

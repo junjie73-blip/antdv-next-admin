@@ -220,6 +220,7 @@ async function fetchApi(params: Record<string, any>) {
   </BasicTable>
 </template>
 ```
+
 - `columns.ts` 定义列
 - `schemas.ts` 定义搜索/弹窗表单
 - `actions.ts` 定义行操作（无状态 + ctx）

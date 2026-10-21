@@ -3,7 +3,7 @@
 The state layer is **Pinia plus a hand-written cache**: no persistence plugin lives inside the stores — everything that hits disk goes through `cache` from `@antdv/shared` (or `localStorage` directly). This differs from most templates: there is no `pinia-plugin-persistedstate`, so "which state survives" is an explicit decision rather than a `persist: true` switch.
 
 ```ts
-// apps/web/src/main.ts:58-59
+// apps/web/src/main.ts:46-47
 const pinia = createPinia();
 app.use(pinia);
 ```
@@ -23,12 +23,11 @@ app.use(pinia);
 
 The first four live in `@antdv/stores` (`packages/stores/src/`); the last two are app-private stores in `apps/web/src/stores/modules/`. This boundary is hard: only these two locations ever call `defineStore`; the rest of `packages/*` (layouts, ui-kit, hooks…) has **none** — a shared package that needs state takes it in via props / inject, it may not spin up its own store.
 
-`packages/stores/src/session.ts` is not a store, it is the **session-reset registry**: `onSessionReset(handler)` registers, `notifySessionReset()` runs them in order (`session.ts:18-21`, `:29-37`). Derived state that lives in a *different* package — like the page cache — clears through it (`packages/layouts/src/hooks/use-page-cache.ts:74`); importing that package directly would invert the dependency direction (stores → layouts) and cycle the package graph.
+`packages/stores/src/session.ts` is not a store, it is the **session-reset registry**: `onSessionReset(handler)` registers, `notifySessionReset()` runs them in order (`session.ts:18-21`, `:29-37`). Derived state that lives in a _different_ package — like the page cache — clears through it (`packages/layouts/src/hooks/use-page-cache.ts:74`); importing that package directly would invert the dependency direction (stores → layouts) and cycle the package graph.
 
 ::: warning
 
-Two barrels, don't use the wrong one The `@antdv/stores` barrel exports all five modules: `packages/stores/src/index.ts:1-5` (app / route / session / tabs / user). `apps/web/src/stores/index.ts:1-2` only re-exports auth / dict, so those four are **not** reachable via `~/stores` — app code does `import { useUserStore } from '@antdv/stores'` uniformly, and private stores come from `~/stores`.
-:::
+Two barrels, don't use the wrong one The `@antdv/stores` barrel exports all five modules: `packages/stores/src/index.ts:1-5` (app / route / session / tabs / user). `apps/web/src/stores/index.ts:1-2` only re-exports auth / dict, so those four are **not** reachable via `~/stores` — app code does `import { useUserStore } from '@antdv/stores'` uniformly, and private stores come from `~/stores`. :::
 
 ## Conventions
 
@@ -52,14 +51,13 @@ The `cache` join rule is `` `${prefix}_${key}` ``, where prefix is injected at s
 
 ::: warning
 
-`VITE_NAMESPACE` is a dead variable it only appears in `apps/web/.env:1`, `apps/web/types/env.d.ts:28` and this document — **no code path reads it**. To isolate localStorage per environment you currently only have the `VITE_APP_TITLE` prefix (changing the title invalidates all old caches; that is its real effect). Don't expect a namespace to give you per-tab isolation.
-:::
+`VITE_NAMESPACE` is a dead variable it only appears in `apps/web/.env:1`, `apps/web/types/env.d.ts:28` and this document — **no code path reads it**. To isolate localStorage per environment you currently only have the `VITE_APP_TITLE` prefix (changing the title invalidates all old caches; that is its real effect). Don't expect a namespace to give you per-tab isolation. :::
 
 ## The app store is a façade over preferences, not a second copy of state
 
 Real ownership sits in `packages/core/preferences`: `createPreferences()` hands back a set of refs/computed (`packages/core/preferences/src/preferences.ts:27`), and `updateSetting` / `toggle` persist synchronously after `commit()` and write the DOM (`:87-97`, the actual DOM write is in `update-css-variables.ts`). `app.ts:29-97` uses `pick()` / `toRef` to **flatten** it into read-only refs like `appStore.primaryColor`, and `app.ts:102-126` exposes `updateSetting`, `resetSetting`, `toggles.*` as the write API.
 
-There is no second source of truth for language: `locale` is just one field in the preferences snapshot (`app.ts:97`), the only write path is `appStore.updateSetting({ locale })`, after which `useLocaleSync` expands it into four things — i18n messages, `<html lang>`, dayjs and component built-in text (`apps/web/src/composables/useLocale.ts:32-61`). The `locale: 'zh-CN'` in `apps/web/src/locales/index.ts:11-19` is only the `createI18n` initial value, not a second source of truth.
+There is no second source of truth for language: `locale` is just one field in the preferences snapshot (`packages/stores/src/app.ts:97`), the only write path is `appStore.updateSetting({ locale })`, after which `useLocaleSync` expands it into three things — i18n messages, `<html lang>` and dayjs (`packages/core/hooks/src/use-locale.ts:41-56`, the three assignments at `:46-48`). There used to be a fourth: returning an antd locale object for `ConfigProvider :locale`, which disappeared with the antd dependency (the note is at `:34-37`); component built-in text is now expanded by `@antdv/common-ui`'s own `ConfigProvider` from `'en-US' | 'zh-CN'`. The `locale: 'zh-CN'` in `apps/web/src/locales/index.ts:11-19` is only the `createI18n` initial value, not a second source of truth.
 
 So:
 
@@ -81,5 +79,4 @@ See [Theming & preferences](/en/guide/in-depth/theme).
 
 ::: tip
 
-Adding a new store Write app-level state following `apps/web/src/stores/modules/dict.ts`; only cross-package-shared state goes into `packages/stores/src/`: a setup store, a stable id as the first arg of `defineStore('xxx')`, explicit `cache.setItem` in a `watch` when it must persist, add the key to `CacheKey` in `packages/enums/src/cache.ts`, and hook cleanup into logout (or register via `onSessionReset`). Don't forget to sync the exports in `packages/stores/src/index.ts` or `apps/web/src/stores/index.ts`.
-:::
+Adding a new store Write app-level state following `apps/web/src/stores/modules/dict.ts`; only cross-package-shared state goes into `packages/stores/src/`: a setup store, a stable id as the first arg of `defineStore('xxx')`, explicit `cache.setItem` in a `watch` when it must persist, add the key to `CacheKey` in `packages/enums/src/cache.ts`, and hook cleanup into logout (or register via `onSessionReset`). Don't forget to sync the exports in `packages/stores/src/index.ts` or `apps/web/src/stores/index.ts`. :::

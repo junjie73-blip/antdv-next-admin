@@ -9,7 +9,7 @@ import CountTo from '../src/components/count-to/CountTo.vue';
 const mountStatic = (props: Record<string, unknown>) =>
   mount(CountTo, { props: { autoplay: false, ...props } });
 
-describe('CountTo', () => {
+describe('countTo', () => {
   it('默认渲染起始值 0', () => {
     const wrapper = mountStatic({});
     expect(wrapper.text()).toBe('0');
@@ -68,6 +68,8 @@ describe('CountTo', () => {
   });
 
   it('autoplay=true 挂载后不抛错（raf 正常调度）', () => {
-    expect(() => mount(CountTo, { props: { autoplay: true, endVal: 10 } })).not.toThrow();
+    expect(() =>
+      mount(CountTo, { props: { autoplay: true, endVal: 10 } }),
+    ).not.toThrow();
   });
 });

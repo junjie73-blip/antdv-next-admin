@@ -43,7 +43,7 @@ function clickButtonByText(text: string) {
   return btn;
 }
 
-describe('BasicDrawer', () => {
+describe('basicDrawer', () => {
   let wrapper: null | ReturnType<typeof mountDrawer> = null;
 
   afterEach(() => {

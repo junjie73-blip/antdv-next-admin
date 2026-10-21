@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useLayoutI18n } from '@antdv/layout-ui';
 import { Segmented } from '@antdv/common-ui';
+import { useLayoutI18n } from '@antdv/layout-ui';
 import {
   Input,
   Select,

@@ -2,9 +2,9 @@
 import { nextTick, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
+import { useAppStore } from '@antdv/stores';
 import { usePreferredReducedMotion, useRafFn } from '@vueuse/core';
 import { useMotion } from '@vueuse/motion';
-import { useAppStore } from '@antdv/stores';
 
 import { getTransitionVariants, NO_MOTION_VARIANT } from './transitions';
 

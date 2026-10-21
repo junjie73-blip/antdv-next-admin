@@ -4,20 +4,19 @@
 
 ## 五条全局指令：注册只有两处
 
-全仓库的 `app.directive(...)` 调用点只有 `apps/web/src/main.ts:122-132` 这五条：
+全仓库的 `app.directive(...)` 调用点只有 `apps/web/src/main.ts:108-118` 这五条：
 
 | 指令 | 实现所在 | 应用侧注入 | 生产使用点（示例页以外） |
 | --- | --- | --- | --- |
-| `v-permission` | `packages/directives/src/permission/index.ts:57` | `apps/web/src/directives/index.ts:19-36` | `apps/web/src/components/business/ImportExport.vue:234, 244` |
-| `v-loading` | `packages/core/ui-kit/common-ui/src/components/loading/directive.ts:88-107` | 直接注册 `@antdv/common-ui` 的 `vLoading`（`main.ts:8, 132`） | `apps/web/src/views/components/loading/index.vue:1236` 起 |
+| `v-permission` | `packages/directives/src/permission/index.ts:54` | `apps/web/src/directives/index.ts:19-36` | `packages/core/ui-kit/common-ui/src/components/import-export/ImportExport.vue:234, 244` |
+| `v-loading` | `packages/core/ui-kit/common-ui/src/components/loading/directive.ts:88-107` | 直接注册 `@antdv/common-ui` 的 `vLoading`（`main.ts:8, 118`） | `apps/web/src/views/components/loading/index.vue:1236` 起 |
 | `v-lazy` | `packages/directives/src/lazy.ts:145, 316` | `apps/web/src/directives/index.ts:16` 转出 | **除示例页外没有使用点**（见下文） |
 | `v-safe-html` | `packages/core/base/shared/src/utils/xss.ts:446` | `apps/web/src/directives/index.ts:17` 转出 | `markdown-editor/MarkdownEditor.vue:664`、编辑器示例页 `editor/index.vue:880` |
 | `v-escape` | `packages/core/base/shared/src/utils/xss.ts:463-471` | `apps/web/src/directives/index.ts:17` 转出 | **除示例页外没有使用点**（见下文） |
 
 ::: warning
 
-别按包名找实现 `@antdv/directives` 包里**只有 permission 和 lazy** 两条（`packages/directives/src/index.ts:10-11` 就这两个 export）。`escape` / `safe-html` 的实现住在 `@antdv/shared/utils/xss`，`v-loading` 住在 `@antdv/common-ui`。`apps/web/src/directives/index.ts` 的定位是「把项目依赖注进工厂」：包内不 import pinia / store（`packages/directives/src/index.ts:4-7` 的设计约束），判定函数、订阅源都由应用侧提供。
-:::
+别按包名找实现 `@antdv/directives` 包里**只有 permission 和 lazy** 两条（`packages/directives/src/index.ts:10-11` 就这两个 export）。`escape` / `safe-html` 的实现住在 `@antdv/shared/utils/xss`，`v-loading` 住在 `@antdv/common-ui`。`apps/web/src/directives/index.ts` 的定位是「把项目依赖注进工厂」：包内不 import pinia / store（`packages/directives/src/index.ts:4-7` 的设计约束），判定函数、订阅源都由应用侧提供。:::
 
 ## v-permission：判定在包外，打标记在包内
 
@@ -47,8 +46,7 @@
 
 1. **`:role` 是参数（arg），`.role` 是修饰符**——判定只认 arg（`utils.ts:41`），写成 `.role` 会静默地按权限码解释。示例页把这条印在界面上（`apps/web/src/views/components/directive/index.vue:284-289`）。
 2. **空值 = 放行**：`undefined` / `null` / `''` / `[]` 一律通过（`utils.ts:90-97`）。`v-permission="[]"` 等于没写。
-3. **mode 优先级**：对象里的 `mode` > `.all` 修饰符 > 默认 `any`（`utils.ts:100-101`）；对象写了 `mode: 'all'` 时 `.all` 就不再说话。
-:::
+3. **mode 优先级**：对象里的 `mode` > `.all` 修饰符 > 默认 `any`（`utils.ts:100-101`）；对象写了 `mode: 'all'` 时 `.all` 就不再说话。:::
 
 ### 无权限时 DOM 上发生什么
 
@@ -56,8 +54,7 @@
 
 ::: tip
 
-路由层不读 roles `RouteMeta` 类型声明了 `roles?: string[]` / `permissions?: string[]`（`packages/core/base/typings/src/app-router.ts:9-10`），但 `apps/web/src/router/**` 与 `packages/router/src/**` 里**没有任何读取点**——路由准入实际靠菜单数据（「菜单即权限」，`packages/stores/src/route.ts:289-297` 只处理 `meta.requiresAuth`）。`v-permission` 管的只是元素这一层，三层的完整讲法见[权限与菜单访问](/guide/in-depth/access)。
-:::
+路由层不读 roles `RouteMeta` 类型声明了 `roles?: string[]` / `permissions?: string[]`（`packages/core/base/typings/src/app-router.ts:9-10`），但 `apps/web/src/router/**` 与 `packages/router/src/**` 里**没有任何读取点**——路由准入实际靠菜单数据（「菜单即权限」，`packages/stores/src/route.ts:289-297` 只处理 `meta.requiresAuth`）。`v-permission` 管的只是元素这一层，三层的完整讲法见[权限与菜单访问](/guide/in-depth/access)。:::
 
 ## v-loading：布尔值驱动，配置从属性读
 
@@ -69,8 +66,7 @@
 
 ::: warning
 
-属性只在创建那一次被读 `getPropsFromAttributes()` 只在**遮罩实例首次创建**时执行（`directive.ts:70-76`，已有实例直接返回）。挂载之后再改 `loading-tip` / `loading-theme` 属性值**不会生效**，想动态改文案要用指令参数 `binding.arg`（`directive.ts:96-98` 是 `updated` 里唯一会热更的配置项）。
-:::
+属性只在创建那一次被读 `getPropsFromAttributes()` 只在**遮罩实例首次创建**时执行（`directive.ts:70-76`，已有实例直接返回）。挂载之后再改 `loading-tip` / `loading-theme` 属性值**不会生效**，想动态改文案要用指令参数 `binding.arg`（`directive.ts:96-98` 是 `updated` 里唯一会热更的配置项）。:::
 
 ## v-lazy：默认实例 + 四层取值
 
@@ -122,8 +118,7 @@
 
 ::: tip
 
-用的是组件，库的另外两种形态没人用 `vue-draggable-plus` 同时导出 `v-draggable` 指令和 `useDraggable` 组合式（`dist/index.d.ts` 三个出口），但全仓库检索不到任何调用点——本页示例、表格的 `dragSort` 都不走这两条路（表格行拖拽是 `BasicTable` 内部直接绑 Sortable，见 `packages/core/ui-kit/table-ui/src/hooks/useDragSort.ts`，那部分归[表格](/components/table)页，这里不展开）。
-:::
+用的是组件，库的另外两种形态没人用 `vue-draggable-plus` 同时导出 `v-draggable` 指令和 `useDraggable` 组合式（`dist/index.d.ts` 三个出口），但全仓库检索不到任何调用点——本页示例、表格的 `dragSort` 都不走这两条路（表格行拖拽是 `BasicTable` 内部直接绑 Sortable，见 `packages/core/ui-kit/table-ui/src/hooks/useDragSort.ts`，那部分归[表格](/components/table)页，这里不展开）。:::
 
 ### props 就是 sortablejs 的 Options
 
@@ -157,7 +152,7 @@
 ## 查证后确认「不存在 / 静默失效」的
 
 - **示例页那句「路由切换时的全屏 loading 由 `createFullscreenLoading()` 做同一件事」不成立**（`apps/web/src/views/components/directive/index.vue:439-441`）。`createFullscreenLoading()` 确实导出（`packages/core/ui-kit/common-ui/src/components/loading/createLoading.ts:66-74`），但全仓库检索**没有任何调用点**；路由切换的 loading 实际来自 `useRouteLoading()` + `RouteLoadingBar` + `PageLoading`，三者都在装配层包里：`packages/layouts/src/basic/layout.vue:8, 20, 22, 207-214, 224-230, 275-279`，两个组件是 `packages/layouts/src/basic/content/route-loading-bar.vue` 与 `page-loading.vue`，和这个函数无关。
-- **`v-lazy`、`v-escape` 注册了但全应用只有示例页自己在用**（注册：`main.ts:126, 130`；使用点检索除 `views/components/directive/index.vue` 外为零）。`lazy.ts:154-155` 注释里「头像列表逐张传对象太啰嗦」的 `data-*` 理由在本仓库也没有对应消费方。
+- **`v-lazy`、`v-escape` 注册了但全应用只有示例页自己在用**（注册：`v-escape` `main.ts:112`、`v-lazy` `:116`；使用点检索除 `views/components/directive/index.vue` 外为零）。`lazy.ts:154-155` 注释里「头像列表逐张传对象太啰嗦」的 `data-*` 理由在本仓库也没有对应消费方。
 - **`vue-draggable-plus` 的 `v-draggable` 指令与 `useDraggable` 组合式没有使用点**（见上文的 tip）；`RouteMeta.roles` / `RouteMeta.permissions` 类型字段没有读取方（见 v-permission 的 tip）。这三条和 `packages/core/base/typings/src/app-router.ts:9-10`、库的 `dist/index.d.ts` 一样：声明 ≠ 在用。
 - **`'*'` 通配完全依赖注入的 checkers，`packages/directives` 自己不懂它**：判定链 `resolveAccess()`（`utils.ts:82-108`）里没有 `'*'` 分支，它一路委托给注入进来的 `checkers.hasAnyPermission` / `hasAllPermissions`（`matchGroup()`，`utils.ts:53-68`）。本项目注入的是 `@antdv/hooks` 的 `usePermission()`，而 `checkArrayMatch()` 做的第一件事就是 `userList.includes('*')` 直接返回 true（`packages/core/hooks/src/use-permission.ts:91-93`，单测 `packages/core/hooks/__tests__/use-permission.test.ts:49-56`）—— 所以 mock 给 admin 账号发的 `permissions: ['*']`（`apps/backend-mock/server/utils/accounts.ts:48`）在元素层是**全量放行**的。换宿主工程时这条契约要自己补齐：注入一套只会 `Array.includes` 的 checkers，`['*']` 就退化成一个普通权限码，现象是"有通配的账号反而什么都看不见"。
 - **`v-loading` 的属性配置只在遮罩创建那一次被读**（`packages/core/ui-kit/common-ui/src/components/loading/directive.ts:69-76`），挂载后改 `loading-tip` 等属性静默无效；能热更的只有 `binding.arg`（`directive.ts:96-98`）。

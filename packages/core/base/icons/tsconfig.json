@@ -8,6 +8,7 @@
     "src/**/*.ts",
     "src/**/*.vue",
     "__tests__/**/*.ts",
-    "__tests__/**/*.tsx"
-, "vitest.config.ts"  ]
+    "__tests__/**/*.tsx",
+    "vitest.config.ts"
+  ]
 }

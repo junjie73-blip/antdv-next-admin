@@ -28,7 +28,7 @@ export const cardClassName = cn('shadow-sm', 'rounded-lg');
 
 ## Comment language and spirit
 
-There is no written clause, but the codebase is unanimous: **comments are Chinese and explain "why"**, and many of them record a bug already fixed (e.g. why `logout()` must call `resetRoutes()` in `packages/stores/src/user.ts:78-82`, why the first-screen Loading plugin can never be wrapped in the `VITE_INJECT_APP_LOADING` switch in `internal/vite-config/src/plugins/index.ts:140-145`). New comments should follow that: never restate what the code does — only what a reader could not infer and would trip over again.
+There is no written clause, but the codebase is unanimous: **comments are Chinese and explain "why"**, and many of them record a bug already fixed (e.g. why `logout()` must call `resetRoutes()` in `packages/stores/src/user.ts:78-82`, why the first-screen Loading plugin can never be wrapped in the `VITE_INJECT_APP_LOADING` switch in `internal/vite-config/src/plugins/index.ts:157-164`). New comments should follow that: never restate what the code does — only what a reader could not infer and would trip over again.
 
 ## The four-piece toolchain
 

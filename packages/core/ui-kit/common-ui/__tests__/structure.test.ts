@@ -10,7 +10,9 @@ describe('common-ui 目录结构', () => {
   const entries = readdirSync(COMPONENTS);
 
   it('components 下只有组件目录', () => {
-    const loose = entries.filter((name) => !statSync(join(COMPONENTS, name)).isDirectory());
+    const loose = entries.filter(
+      (name) => !statSync(join(COMPONENTS, name)).isDirectory(),
+    );
     expect(loose, '应移入同名目录').toEqual([]);
   });
 

@@ -15,8 +15,7 @@ The old `editor/markdown` and `editor/rich-text` demo pages were deleted; there 
 
 ::: warning
 
-There is no wangEditor on the rich-text side `MarkdownEditor` is the tiptap replacement written for the former `@wangeditor/editor`, with toolbar key names and todo/video nodes aligned to wangEditor's legacy format (`editor/index.vue:45-50`; extension assembly at `markdown-editor/extensions/index.ts:31-58`). Its dependencies live in `packages/core/ui-kit/common-ui/package.json:31-39` (9 `@tiptap/*` entries, `marked` at `:44`); `apps/web/package.json` no longer declares `@tiptap/*`, and **`@wangeditor/*` was never installed**. So "rich text" today means the tiptap-based `MarkdownEditor`; whatever wangEditor-only capabilities old docs describe are simply gone, and wangEditor configuration does not transfer to this component.
-:::
+There is no wangEditor on the rich-text side `MarkdownEditor` is the tiptap replacement written for the former `@wangeditor/editor`, with toolbar key names and todo/video nodes aligned to wangEditor's legacy format (`editor/index.vue:45-50`; extension assembly at `markdown-editor/extensions/index.ts:31-58`). Its dependencies live in `packages/core/ui-kit/common-ui/package.json:31-39` (9 `@tiptap/*` entries, `marked` at `:44`); `apps/web/package.json` no longer declares `@tiptap/*`, and **`@wangeditor/*` was never installed**. So "rich text" today means the tiptap-based `MarkdownEditor`; whatever wangEditor-only capabilities old docs describe are simply gone, and wangEditor configuration does not transfer to this component. :::
 
 ### What the Markdown tab actually provides
 
@@ -48,17 +47,16 @@ There is no wangEditor on the rich-text side `MarkdownEditor` is the tiptap repl
 
 **The Markdown ↔ document round-trip lives in `markdown.ts`**: `docToMarkdown(JSONContent)` (`markdown.ts:588`) serializes a ProseMirror document into Markdown source, `markdownToDoc(markdown)` (`markdown.ts:593`) parses it back with the `marked` lexer — including a `case 'html'` branch, so feeding HTML still works (which is why `contentType="html"` callers are unaffected). The header comment of `markdown.ts` records why `@tiptap/markdown` was not used instead: this editor has a custom `todo` node and block-level `text-align`, neither of which the official markdown serializer covers.
 
-**Colours come entirely from design tokens**: the outer frame, toolbar divider and table rules use `border-border` (i.e. `--app-border`, `#f0f0f0` in light), the shell uses `bg-card`, dropdown panels `bg-popover`, code and table headers `bg-muted`, body text `text-card-foreground`, active toolbar keys `text-primary` (MarkdownEditor.vue:606-621, content styles `:697-855`). There is **no** hard-coded `gray-*` palette and no `.dark` branch left in the component — the variables in `packages/core/base/design/src/token/{default,dark}.css` take over, so all fourteen theme presets (`packages/core/base/shared/src/constants/theme-presets.ts:26-41`) move the editor's borders and surfaces with them. Measured: outer border `rgb(240,240,240)` in light and `rgba(255,255,255,.12)` in dark; panel `#fff` / `#1f1f1f`.
+**Colours come entirely from design tokens**: the outer frame, toolbar divider and table rules use `border-border` (i.e. `--border`, `#f0f0f0` in light), the shell uses `bg-card`, dropdown panels `bg-popover`, code and table headers `bg-muted`, body text `text-card-foreground`, active toolbar keys `text-primary` (MarkdownEditor.vue:606-621, content styles `:697-855`). There is **no** hard-coded `gray-*` palette and no `.dark` branch left in the component — the variables in `packages/core/base/design/src/token/{default,dark}.css` take over, so all fourteen theme presets (`packages/core/base/shared/src/constants/theme-presets.ts:26-41`) move the editor's borders and surfaces with them. Measured: outer border `rgb(240,240,240)` in light and `rgba(255,255,255,.12)` in dark; panel `#fff` / `#1f1f1f`.
 
 **v-model behaviour**: content changes emit `update:value` (`MarkdownEditor.vue:167`); an equivalent value sent back from the parent is skipped during a 200 ms "echo suppression" window so the caret doesn't jump, while genuine external rewrites still land via a text-equality check (`MarkdownEditor.vue:141-150,487-521`). **Pass the initial value through the `value` prop instead of calling `setHtml()` after mount** — the latter can fall inside the suppression window; the demo comment records exactly this bug history (`editor/index.vue:427-433`).
 
 ::: warning Two pitfalls read straight from the source
 
-1. **The `theme` prop does nothing**: declared at `types.ts:119`, defaulted at `MarkdownEditor.vue:42`, but no code inside the component ever reads it — light/dark styling is handled by the `--app-*` tokens above. Passing `theme="dark"` changes nothing.
+1. **The `theme` prop does nothing**: declared at `types.ts:119`, defaulted at `MarkdownEditor.vue:42`, but no code inside the component ever reads it — light/dark styling is handled by the `--*` tokens above. Passing `theme="dark"` changes nothing.
 2. **`imageUpload.onProgress` / `videoUpload.onProgress` never fire**: declared at `types.ts:65` and `utils.ts:71`, but the upload call only forwards `file/server/fieldName/meta` (`MarkdownEditor.vue:305-310,328-333`) and `uploadFile` never consumes `onProgress` (`utils.ts:77-103`). The built-in upload has no progress reporting.
 
-The third item that used to sit here — "`getMarkdown()` / `setMarkdown()` are HTML" — is fixed: those two methods now run the real `docToMarkdown` / `markdownToDoc` round-trip (`MarkdownEditor.vue:557-562,580`), and the demo's "导出 Markdown" button logs Markdown source.
-:::
+The third item that used to sit here — "`getMarkdown()` / `setMarkdown()` are HTML" — is fixed: those two methods now run the real `docToMarkdown` / `markdownToDoc` round-trip (`MarkdownEditor.vue:557-562,580`), and the demo's "导出 Markdown" button logs Markdown source. :::
 
 **Default toolbar keys**: `DEFAULT_TOOLBAR_KEYS` at `constants.ts:8-39` (headerSelect, bold/italic/underline/strike, colors, font size/family/line height, lists/todo, alignment, link, uploadImage, uploadVideo, table, codeBlock, undo/redo, fullScreen). The key vocabulary is `types.ts:12-37`.
 
@@ -94,15 +92,13 @@ Where progress and failure come from The first seven cards used to point straigh
 
 The price is that progress is no longer real: `uploadRequest` fires `onProgress({ percent: 100 })` once when the reply arrives (`upload/index.vue:63-64`), so the bar jumps 0 → 100, and "failure" now means the request was rejected (an interceptor throw, `:69-71`) rather than a non-2xx code.
 
-"Success" is still entirely mock-supplied: in dev Nitro answers it (`server/api/upload.post.ts`, `upload/[variant].post.ts`), in production `apps/web/src/mock/dynamic.ts` builds an isomorphic envelope on the spot (`/upload` and `/upload/:variant` are deliberately absent from the fixtures — multipart cannot be captured, and the reply has to be unique per call). Both sides return `data.url` as an inline SVG data URL (`server/utils/upload.ts:64-106`) — the image wall and avatar do render a "large preview", but that is a placeholder picture, not your file.
-:::
+"Success" is still entirely mock-supplied: in dev Nitro answers it (`server/api/upload.post.ts`, `upload/[variant].post.ts`), in production `apps/web/src/mock/dynamic.ts` builds an isomorphic envelope on the spot (`/upload` and `/upload/:variant` are deliberately absent from the fixtures — multipart cannot be captured, and the reply has to be unique per call). Both sides return `data.url` as an inline SVG data URL (`server/utils/upload.ts:64-106`) — the image wall and avatar do render a "large preview", but that is a placeholder picture, not your file. :::
 
 The image wall resolves preview URLs in the order `thumbUrl → url → response.data.url → response.url` (`upload/index.vue:113-120`; the comment at 106-112 explains why reading only `response.url` made clicks look dead); clicking a thumbnail must `preventDefault` the `<a target="_blank">` antd renders (`upload/index.vue:126-132`).
 
 ::: tip
 
-Drag-sorting is gone The file-upload menu **no longer includes drag sorting** (removed in this round of work; the `drag-sort` variant still listed in the mock comment `upload/[variant].post.ts:7` is a historical residue with no entry point on the page). The `:drag="true"` above is "drop files onto the area", unrelated to reordering a list.
-:::
+Drag-sorting is gone The file-upload menu **no longer includes drag sorting** (removed in this round of work; the `drag-sort` variant still listed in the mock comment `upload/[variant].post.ts:7` is a historical residue with no entry point on the page). The `:drag="true"` above is "drop files onto the area", unrelated to reordering a list. :::
 
 ### Large files: local chunk scheduling, no requests
 
@@ -110,7 +106,7 @@ The last card uses `useChunkUpload` from `@antdv/hooks` (`upload/index.vue:12,43
 
 ### The real chunked / instant-upload wrapper exists in the repo — but this page does not demo it
 
-`apps/web/src/components/common/Upload/` holds the full pipeline: `ChunkUpload.vue` + `composables/useChunkUploader.ts` + `api.ts`. The flow is: compute hash → `POST /upload/check` instant-upload probe (a hit finishes immediately, `useChunkUploader.ts:239-256`) → `GET /upload/check` for already-uploaded chunks (resume, `:260-280`) → concurrent `POST /upload/chunk` with retries (`useChunkUploader.ts:137-150`; the concurrency scheduling at `:300-309`) → `POST /upload/merge` → if not finished, poll `GET /upload/merge/status` (`:329-404`). Endpoint definitions: `Upload/api.ts:34-154`.
+`packages/core/ui-kit/common-ui/src/components/chunk-upload/` holds the full pipeline: `ChunkUpload.vue` + `composables/useChunkUploader.ts` + `api.ts`. The flow is: compute hash → `POST /upload/check` instant-upload probe (a hit finishes immediately, `useChunkUploader.ts:239-256`) → `GET /upload/check` for already-uploaded chunks (resume, `:260-280`) → concurrent `POST /upload/chunk` with retries (`useChunkUploader.ts:137-150`; the concurrency scheduling at `:300-309`) → `POST /upload/merge` → if not finished, poll `GET /upload/merge/status` (`:329-404`). Endpoint definitions: `Upload/api.ts:34-154`.
 
 Three things to know before trusting that pipeline in this environment:
 
@@ -120,14 +116,13 @@ Three things to know before trusting that pipeline in this environment:
 
 ### In-house `AvatarUploader`: the whole chain works against the mock
 
-The component itself (`apps/web/src/components/common/AvatarUploader.vue`, 186 lines): props `modelValue / maxSizeMb(5) / outputSize(256) / round(true) / size(80)` (interface `:15-21`, defaults `:23-29`), events `update:modelValue` / `uploaded` (`:31-34`). Flow: `useFileDialog` picks the file (`:72-82`, replacing antd's Upload) → format and size validation (`:52-60`) → `useFileReader` produces a DataURL (`:41,63-69`; the composable lives at `packages/core/hooks/src/use-file-reader.ts`) → a vue-cropper 1:1 dialog inside `BasicModal` (`:150-184`) → `getCropBlob` yields a PNG (`:88-93`) → `http.Post('/upload/avatar', formData)` uploads it and the URL is emitted back (`:101-112`).
+The component itself (`packages/core/ui-kit/common-ui/src/components/avatar-uploader/AvatarUploader.vue`, 186 lines): props `modelValue / maxSizeMb(5) / outputSize(256) / round(true) / size(80)` (interface `:15-21`, defaults `:23-29`), events `update:modelValue` / `uploaded` (`:31-34`). Flow: `useFileDialog` picks the file (`:72-82`, replacing antd's Upload) → format and size validation (`:52-60`) → `useFileReader` produces a DataURL (`:41,63-69`; the composable lives at `packages/core/hooks/src/use-file-reader.ts`) → a vue-cropper 1:1 dialog inside `BasicModal` (`:150-184`) → `getCropBlob` yields a PNG (`:88-93`) → `http.Post('/upload/avatar', formData)` uploads it and the URL is emitted back (`:101-112`).
 
 ::: info Three things the code actually says
 
 - **It deliberately does not use `~/api/system`'s `uploadFile`**: the source comment gives the reason — that endpoint is the file-manager's **metadata registration** call (its parameter is `Record<string, unknown>` at `api/system.ts:146`, the mock only pushes metadata into an in-memory table at `server/api/system/file/upload.post.ts:19-38`, and the returned `FileRecord` has **no `url` field** at all, `server/utils/db/file.ts:19-34`), so posting an avatar through it could never produce a URL to write back (`AvatarUploader.vue:98-100`). The request layer only JSON-stringifies plain objects and passes FormData through untouched (`packages/request/src/executor.ts:147-150,164-168`), so the binary does go out.
 - **`/upload/avatar` is caught by the variant route**: `server/api/upload/[variant].post.ts:13-23` (`path: '/upload/:variant'` at `:21`). The envelope's `data.url` is an inline SVG data URL (`buildUploadResult` at `server/utils/upload.ts:94-106`, `previewDataUrl` at `:64-79`; `:9-12` explains why nothing is stored on disk). The component requires `res.data.url` and otherwise throws "上传接口未返回 url" (upload response has no url) (`AvatarUploader.vue:108-109`); on failure it resets the OK button's loading state by hand (`:119-120`).
-- **`outputSize` only affects the label**: the cropper is hard-coded to `:output-size="1"` (`AvatarUploader.vue:175`); the prop's 256 appears only in the hint text (`:180`), and the demo keeps a matching local constant `inhouseAvatarOutputSize = 256` (`upload/index.vue:327-328`). "256×256 output" is wording — the real output is 1× the crop box.
-:::
+- **`outputSize` only affects the label**: the cropper is hard-coded to `:output-size="1"` (`AvatarUploader.vue:175`); the prop's 256 appears only in the hint text (`:180`), and the demo keeps a matching local constant `inhouseAvatarOutputSize = 256` (`upload/index.vue:327-328`). "256×256 output" is wording — the real output is 1× the crop box. :::
 
 What remains genuinely demoable on the card: the round avatar frame, the crop modal, and drag/zoom selection (vue-cropper itself works), and the select → crop → upload → write-back chain runs through on the mock; the write-back and reset logic is at `upload/index.vue:342-349`.
 

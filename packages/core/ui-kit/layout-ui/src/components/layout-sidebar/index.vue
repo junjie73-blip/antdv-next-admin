@@ -10,6 +10,8 @@ import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import { BasicMenu } from '@antdv/menu-ui';
 import { cn } from '@antdv/shared/utils/cn';
 
+import { useLayoutStyle } from '../../hooks/use-layout';
+import { useSidebarDrag } from '../../hooks/use-sidebar-drag';
 import {
   LAYOUT_DRAWER_WIDTH,
   LAYOUT_HEADER_ROW_STYLE,
@@ -17,8 +19,6 @@ import {
   LAYOUT_SIDEBAR_WIDTH,
   layoutRuntime,
 } from '../../layout';
-import { useLayoutStyle } from '../../hooks/use-layout';
-import { useSidebarDrag } from '../../hooks/use-sidebar-drag';
 import SidebarCollapsedButton from '../widgets/sidebar-collapsed-button/index.vue';
 
 defineOptions({ name: 'LayoutSider' });

@@ -10,17 +10,32 @@ const data = [
   { key: '2', title: '李四' },
 ];
 
-const panel = (wrapper: ReturnType<typeof mount>, direction: 'left' | 'right') =>
+const panel = (
+  wrapper: ReturnType<typeof mount>,
+  direction: 'left' | 'right',
+) =>
   wrapper.find(`[data-common-transfer-panel][data-direction="${direction}"]`);
-const items = (wrapper: ReturnType<typeof mount>, direction: 'left' | 'right') =>
-  panel(wrapper, direction).findAll('[data-common-transfer-item]');
-const item = (wrapper: ReturnType<typeof mount>, direction: 'left' | 'right', key: string) =>
-  panel(wrapper, direction).find(`[data-common-transfer-item][data-key="${key}"]`);
+const items = (
+  wrapper: ReturnType<typeof mount>,
+  direction: 'left' | 'right',
+) => panel(wrapper, direction).findAll('[data-common-transfer-item]');
+const item = (
+  wrapper: ReturnType<typeof mount>,
+  direction: 'left' | 'right',
+  key: string,
+) =>
+  panel(wrapper, direction).find(
+    `[data-common-transfer-item][data-key="${key}"]`,
+  );
 
-describe('Transfer', () => {
+describe('transfer', () => {
   it('按 targetKeys 拆分左右两栏并渲染标题', () => {
     const wrapper = mount(Transfer, {
-      props: { dataSource: data, targetKeys: ['2'], titles: ['待选用户', '已选用户'] },
+      props: {
+        dataSource: data,
+        targetKeys: ['2'],
+        titles: ['待选用户', '已选用户'],
+      },
     });
     expect(items(wrapper, 'left')).toHaveLength(2);
     expect(items(wrapper, 'right')).toHaveLength(1);
@@ -31,7 +46,11 @@ describe('Transfer', () => {
 
   it('render 自定义条目文案', () => {
     const wrapper = mount(Transfer, {
-      props: { dataSource: data, render: (item: any) => `#${item.key}`, targetKeys: [] },
+      props: {
+        dataSource: data,
+        render: (item: any) => `#${item.key}`,
+        targetKeys: [],
+      },
     });
     expect(item(wrapper, 'left', '1').text()).toContain('#1');
   });
@@ -45,9 +64,7 @@ describe('Transfer', () => {
       .trigger('click');
     expect(wrapper.emitted('select')?.[0]).toEqual(['left', [1]]);
 
-    await wrapper
-      .find('[data-common-transfer-move="right"]')
-      .trigger('click');
+    await wrapper.find('[data-common-transfer-move="right"]').trigger('click');
     expect(wrapper.emitted('update:targetKeys')?.[0]).toEqual([['2', 1]]);
     expect(wrapper.emitted('change')?.[0]).toEqual([['2', 1], 'right', [1]]);
   });
@@ -110,9 +127,13 @@ describe('Transfer', () => {
     const wrapper = mount(Transfer, {
       props: { dataSource: data, oneWay: true, targetKeys: [] },
     });
-    expect(wrapper.find('[data-common-transfer-move="left"]').exists()).toBe(false);
+    expect(wrapper.find('[data-common-transfer-move="left"]').exists()).toBe(
+      false,
+    );
     expect(
-      wrapper.find('[data-common-transfer-move="right"]').attributes('disabled'),
+      wrapper
+        .find('[data-common-transfer-move="right"]')
+        .attributes('disabled'),
     ).toBeDefined();
   });
 });

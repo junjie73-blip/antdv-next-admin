@@ -27,8 +27,7 @@ Behaviour, line by line against the source:
 
 ::: warning
 
-Dark mode is the demo page's own doing The chart demo's approach: derive `isDark` from `appStore.resolvedTheme` (`chart/index.vue:22`; store side at `packages/stores/src/app.ts:44`), and write every color as an option field inside `computed` values (text/axis/tooltip colors each have a light and dark variant, `chart/index.vue:24-51`). When the theme flips, the computed re-runs and the component's notMerge re-render repaints the chart (the page's own comment, `chart/index.vue:20-21`). That is the full extent of what the wrapper gives you here: any other "dark theme" work has to happen inside your option.
-:::
+Dark mode is the demo page's own doing The chart demo's approach: derive `isDark` from `appStore.resolvedTheme` (`chart/index.vue:22`; store side at `packages/stores/src/app.ts:44`), and write every color as an option field inside `computed` values (text/axis/tooltip colors each have a light and dark variant, `chart/index.vue:24-51`). When the theme flips, the computed re-runs and the component's notMerge re-render repaints the chart (the page's own comment, `chart/index.vue:20-21`). That is the full extent of what the wrapper gives you here: any other "dark theme" work has to happen inside your option. :::
 
 ### A full-featured composable that exists but is not wired in
 
@@ -69,8 +68,7 @@ The component's notion of "validation" is feeding the generated expression to `c
 
 ::: warning
 
-The component cannot be typed into The `Input` that displays the expression is `readonly` (`CronEditor.vue:330-336`); the old antd-era `handleInputChange` — dead code with no template binding — was removed when the component moved into `@antdv/common-ui`. To enter an expression by hand, do what card 3 of the demo does and place your own input.
-:::
+The component cannot be typed into The `Input` that displays the expression is `readonly` (`CronEditor.vue:330-336`); the old antd-era `handleInputChange` — dead code with no template binding — was removed when the component moved into `@antdv/common-ui`. To enter an expression by hand, do what card 3 of the demo does and place your own input. :::
 
 ### A former type-check error file, resolved by the migration
 

@@ -8,8 +8,7 @@
 2. `ModalProps` / `DrawerProps` 里有**声明了但组件从不读取**的字段：`helpMessage`、`maskStyle`，弹窗侧还要再加一个 `bodyStyle`（详见下面两张 props 表）。
 3. `useDrawerInner` **只是 `useDrawer` 的别名导出**（`drawer/index.ts:13-15`），不是「内层专用」的另一套实现；抽屉侧没有数据通道，`useModalInner` 才有。
 
-下面每一节都会给出对应的行为代码，别把第 2 条那几个字段当 API 抄进业务。
-:::
+下面每一节都会给出对应的行为代码，别把第 2 条那几个字段当 API 抄进业务。:::
 
 ## 它解决什么问题
 
@@ -84,8 +83,7 @@ const register = (instance: ModalInnerMethods) => {
 
 ::: tip
 
-什么时候不必用 useModalInner 弹窗内容直接写在页面模板里（示例页第 2、3、5 节就是这样），子组件根本不存在，`data` 也就没人收 —— 直接读页面自己的 `ref` 即可。示例页把这句话印在了信息条里（`modal-drawer/index.vue:305-310`）。
-:::
+什么时候不必用 useModalInner 弹窗内容直接写在页面模板里（示例页第 2、3、5 节就是这样），子组件根本不存在，`data` 也就没人收 —— 直接读页面自己的 `ref` 即可。示例页把这句话印在了信息条里（`modal-drawer/index.vue:305-310`）。:::
 
 ## BasicModal 的 API
 
@@ -158,8 +156,7 @@ const register = (instance: ModalInnerMethods) => {
 
 ::: warning
 
-确认按钮的 loading 要么关窗要么自己复位 `handleOk` 无条件把 `okLoadingRef` 置 `true`（`:154-156`），组件内部唯一的自动复位点是 `closeModal()`（`:112`）。`BasicModal` emit 出去的是**含 `changeOkLoading` / `changeLoading` 的 `innerMethods`**（`:126-134`、`:137`），所以只有在弹窗内部用 `useModalInner()` 解构才拿得到这两个方法（`useModalInner.ts:64-69`）；页面级 `useModal()` 只转发四个键（`useModal.ts:41-55`）。结论：`@ok` 的处理函数如果决定留着弹窗（例如校验失败），要么在子组件里调 `changeOkLoading(false)`，要么就关窗。示例页第 1 节所有提交路径都会关窗，并把这个前提写在页面上（`modal-drawer/index.vue:360-377`）。
-:::
+确认按钮的 loading 要么关窗要么自己复位 `handleOk` 无条件把 `okLoadingRef` 置 `true`（`:154-156`），组件内部唯一的自动复位点是 `closeModal()`（`:112`）。`BasicModal` emit 出去的是**含 `changeOkLoading` / `changeLoading` 的 `innerMethods`**（`:126-134`、`:137`），所以只有在弹窗内部用 `useModalInner()` 解构才拿得到这两个方法（`useModalInner.ts:64-69`）；页面级 `useModal()` 只转发四个键（`useModal.ts:41-55`）。结论：`@ok` 的处理函数如果决定留着弹窗（例如校验失败），要么在子组件里调 `changeOkLoading(false)`，要么就关窗。示例页第 1 节所有提交路径都会关窗，并把这个前提写在页面上（`modal-drawer/index.vue:360-377`）。:::
 
 ## BasicDrawer 的 API
 
@@ -218,8 +215,7 @@ export { useDrawer } from './useDrawer';
 export { useDrawer as useDrawerInner } from './useDrawer';
 ```
 
-所以 `useDrawerInner(callback)` 的 `callback` **不会被接收也不会被调用**（`useDrawer.ts:10` 的签名没有任何参数）—— 抽屉侧没有 `useModalInner` 那样的数据通道。解构出来的第二个元素实际只有 `openDrawer/closeDrawer/setDrawerProps/getVisible` 四个键，按 `DrawerInnerMethods`（`drawer/types.ts:71-78`）去解构 `changeOkLoading` / `changeLoading` 会得到 `undefined`，调用即 `TypeError`。`BasicDrawer` 确实准备好了含这两个方法的 `innerMethods` 并把它作为 `register` 的载荷发出去（`:165-173`、`:180-189`），但 `useDrawer` 侧只转发四个键（`useDrawer.ts:40-54`），两头还是没接上。示例页第 4 节因此只用 `openDrawer/closeDrawer`。
-:::
+所以 `useDrawerInner(callback)` 的 `callback` **不会被接收也不会被调用**（`useDrawer.ts:10` 的签名没有任何参数）—— 抽屉侧没有 `useModalInner` 那样的数据通道。解构出来的第二个元素实际只有 `openDrawer/closeDrawer/setDrawerProps/getVisible` 四个键，按 `DrawerInnerMethods`（`drawer/types.ts:71-78`）去解构 `changeOkLoading` / `changeLoading` 会得到 `undefined`，调用即 `TypeError`。`BasicDrawer` 确实准备好了含这两个方法的 `innerMethods` 并把它作为 `register` 的载荷发出去（`:165-173`、`:180-189`），但 `useDrawer` 侧只转发四个键（`useDrawer.ts:40-54`），两头还是没接上。示例页第 4 节因此只用 `openDrawer/closeDrawer`。:::
 
 ## 内容区滚动与 loading 遮罩
 
@@ -274,8 +270,7 @@ export { useDrawer as useDrawerInner } from './useDrawer';
 
 ::: tip
 
-高度为什么用 `root-class` 而不是 `max-height` 页面文字（`:607-621`）给了原因：`max-height` 属性会被 `Scrollbar` 内部的 `useResponsiveMaxHeight` 以 712px 为下限重新算掉，所以这里用 `root-class="h-60"` 固定高度；同一句里还写了内置那层 `ScrollArea` 可以用 `:body-scroll="false"` 关掉。细节见[数据与展示](/components/display)的滚动一节。
-:::
+高度为什么用 `root-class` 而不是 `max-height` 页面文字（`:607-621`）给了原因：`max-height` 属性会被 `Scrollbar` 内部的 `useResponsiveMaxHeight` 以 712px 为下限重新算掉，所以这里用 `root-class="h-60"` 固定高度；同一句里还写了内置那层 `ScrollArea` 可以用 `:body-scroll="false"` 关掉。细节见[数据与展示](/components/display)的滚动一节。:::
 
 ### 5. 嵌套与关闭拦截（`index.vue:683-759`，逻辑 `:233-280`）
 
@@ -291,33 +286,33 @@ export { useDrawer as useDrawerInner } from './useDrawer';
 
 ## 轻提示与通知（`message` / `notification`）
 
-同一对入口在 `packages/core/ui-kit/popup-ui/src/message/index.ts`（128 行），底层都是 vue-sonner，签名沿用旧 `message.success/error/info/warning`；负责把它们画出来的那只 `<Toaster />` 是 `@antdv/common-ui` 的主题化外壳（挂在 `apps/web/src/App.vue:59-71`）。
+同一对入口在 `packages/core/ui-kit/popup-ui/src/message/index.ts`（141 行），底层都是 vue-sonner，签名沿用旧 `message.success/error/info/warning`；负责把它们画出来的那只 `<Toaster />` 是 `@antdv/common-ui` 的主题化外壳（挂在 `apps/web/src/App.vue:60-70`）。
 
-两条通道是**同一个 `createFeedback(toasterId?)` 工厂的两份实例**（`:123`、`:126`），方法清单、默认时长、清除逻辑完全一致，唯一的差别是落到哪只 toaster。
+两条通道是**同一个 `createFeedback(toasterId?)` 工厂的两份实例**（`:136`、`:139`），方法清单、默认时长、清除逻辑、关闭按钮的口径完全一致，唯一的差别是落到哪只 toaster。
 
 | 入口 | 签名 | 默认停留 |
 | --- | --- | --- |
-| `message` / `notification` 的 `.success` / `.error` / `.info` / `.warning` | `(content: string, init?: number \| string \| ToastInit)` | 3000ms（`TOAST_DURATION`，`:43`） |
-| `.loading` | `(content: string)` | 不自动消失（`:113`） |
-| `.close(id)` / `.closeAll()` | vue-sonner 的 `toast.dismiss`（`:100`、`:106`） | — |
-| `toast` | vue-sonner 原样出口（`:128`） | 调用方自己给 |
+| `message` / `notification` 的 `.success` / `.error` / `.info` / `.warning` | `(content: string, init?: number \| string \| ToastInit)` | 3000ms（`TOAST_DURATION`，`:44`） |
+| `.loading` | `(content: string)` | 不自动消失（`:126`） |
+| `.close(id)` / `.closeAll()` | vue-sonner 的 `toast.dismiss`（`:112`、`:117`） | — |
+| `toast` | vue-sonner 原样出口（`:141`） | 调用方自己给 |
 
-第二个参数收三种写法：数字 = 停留时长（`message.success('已保存', 5000)`，与旧调用完全兼容），字符串 = 描述（`notification.info('标题', '描述')`），对象 = `{ description, duration }`。只有真正给了值的键才会写进 payload，所以轻提示那条根本不带 `description`、也不带 `toasterId`。要 sonner 的全部能力（`action`、`cancel`、`promise`、自定义 id）就直接用导出的 `toast`。
+第二个参数收三种写法：数字 = 停留时长（`message.success('已保存', 5000)`，与旧调用完全兼容），字符串 = 描述（`notification.info('标题', '描述')`），对象 = `{ description, duration, closeButton }`。只有真正给了值的键才会写进 payload，所以轻提示那条根本不带 `description`、也不带 `toasterId`；**不传 `closeButton` 时这个键也不写**（见下）。`closeButton` 只认对象写法，简写那两档已经有含义。要 sonner 的全部能力（`action`、`cancel`、`promise`、自定义 id）就直接用导出的 `toast`。
 
 ### 为什么根部要挂**两只** `<Toaster />`
 
-宿主在 `apps/web/src/App.vue:59-71` 挂了两只（`Toaster` 从 `@antdv/common-ui` 导入）：无 `id` 的那只 `position="top-center"` 收 `message.*`，`:id="NOTIFICATION_TOASTER_ID"`（常量值 `'notification'`，`message/index.ts:33`）的那只收 `notification.*`，位置取偏好 `notificationPosition`。**两只都开 `close-button`**，✕ 一律在卡片右上角。
+宿主在 `apps/web/src/App.vue:60-70` 挂了两只（`Toaster` 从 `@antdv/common-ui` 导入）：无 `id` 的那只 `position="top-center"` 收 `message.*`，`:id="NOTIFICATION_TOASTER_ID"`（常量值 `'notification'`，`message/index.ts:34`）的那只收 `notification.*`，位置取偏好 `notificationPosition`。**两只都不开 `close-button`**：`close-button-position="top-right"` 留着，只是给"这一条要 ✕"时定朝向；✕ 一律在卡片右上角，但只有单条自己开了才有。
 
 - **不是一只 toaster 给每条 toast 传 `position`**：sonner 同一个位置只维护一个堆栈，轻提示与通知的出场位置、堆叠上限是两回事，混进同一只就会互相顶位（一条通知把三条轻提示挤下去）。
 - **路由规则**（vue-sonner 2.0.9）：不带 `toasterId` 的 toast 只进**没有 id** 的那只，带了 `toasterId` 的只进同名的那只。所以 `message.*` 一律不传 —— 宿主漏挂通知那只时轻提示仍然可见，反过来也不会串位。
-- **手动关闭两条都有**：轻提示原来不带 ✕，理由是"3 秒自己走，多一块可点区域反而与语义相悖"；但同一份内容在两条通道上一个是 3 秒一个是 8 秒、一条能点关一条不能，用户学到的是两套规则。现在时长与关闭动作都归一，通知与轻提示的差别只剩出场位置和那一行描述。
+- **手动关闭是单条的开关，默认关**：`init.closeButton` 传 `true` 才有 ✕，不传就没有；两条通道同一个键、同一条判断（`toToastOptions` 只在 `closeButton !== undefined` 时写入 payload）。之所以收在单条而不是 toaster 上：vue-sonner 的解析顺序是 `toast.closeButton ?? toaster.closeButton`，单条显式 `false` 也能在宿主整体开启时关掉某一条 —— 反过来（只在 toaster 上开）就没有"这一条不要按钮"的表达方式，而"每条提示都挂一个 ✕"对 3 秒就走的短文案只是噪声。归一的是**口径**：同一段文案在两条通道上停留时长与关闭语义一致，不再一个是 3 秒一个是 8 秒、一条能点关一条不能；差别只剩出场位置和那一行描述。
 
 ### 配色：底色中性，状态只在徽标上
 
 样式全部收在 `packages/core/ui-kit/common-ui/src/components/toast/Toaster.vue`（204 行），应用侧不需要再配：
 
 - **为什么这层在 common-ui 而不是 `@antdv/shadcn-ui` 的 `Sonner.vue` 里**：shadcn 那只把 `rich-colors` 写死在 `v-bind` 之后（外部传不进来），四枚状态图标也是写死的 `<template #xxx-icon>`（外部传不进去，SFC 不转发插槽）。要在不改它源码的前提下换掉这两样，只能用选择器去赌它内部选了哪几个 lucide 图标，子包一升级就失效。所以样式层自建：底座仍然是 vue-sonner，props 与插槽与它同形（`ToasterProps` 原样透传，`@antdv/shadcn-ui` 一行未动），那边新增/删除/迭代任何组件都波及不到这里。
-- 底色/边框/正文走 sonner 的 `--normal-*` 变量组（`:43-48`），值取自 `--app-popover` / `--app-popover-foreground` / `--app-border`，圆角取 `--app-border-radius`。**四种类型共用同一块中性底，不做富色** —— `rich-colors` 会把整块底色换成 `--{type}-bg` 并连带把描述染成彩色，正文对比度当场掉下去。
+- 底色/边框/正文走 sonner 的 `--normal-*` 变量组（`:43-48`），值取自 `--popover` / `--popover-foreground` / `--border`，圆角取 `--radius`。**四种类型共用同一块中性底，不做富色** —— `rich-colors` 会把整块底色换成 `--{type}-bg` 并连带把描述染成彩色，正文对比度当场掉下去。
 - 状态体现在左侧那枚 **20px 实色圆徽 + 反白笔画**（`:96-165`）：成功 `bg-success`、信息 `bg-info`、警告 `bg-warning`、错误 `bg-destructive`，色板是刻意与主题预设解耦的语义色（换主色不跟着变）。勾与叉取 `@lucide/vue`，感叹号与信息符手写 path —— lucide 的 `CircleAlert` / `Info` 自带一圈，画进圆底就成了框中框。六档插槽（四类 + loading + close）都写成"具名插槽 + 默认内容"，宿主传同名插槽即可替换，不必改这层源码。
 - 微调一律走 `toastOptions.classes` 且**带 `!`**（`:58-63`）：sonner 内置规则是 `[data-sonner-toast][data-styled='true'] [data-icon]` 这类三选择器特异度，不带 important 的工具类压不住。宿主的 `toast-options` 与这组默认值**逐档合并、宿主优先**（`:69-72`），传 `{ duration: 1000 }` 不会顺手把配色整体替换掉。
 - 关闭按钮 `border-0! bg-transparent!`，并用 `[data-close-button-position]` 把它从"骑在边框上"收回卡片内侧 8px（`:188-199`）。注意选择器用的是**按钮**的朝向属性，不是 toaster 的 `data-x/y-position`，两者互不跟随；前缀 `.antdv-toaster` 是本包自己的钩子，不依赖 shadcn-ui 的任何类名。
@@ -325,12 +320,11 @@ export { useDrawer as useDrawerInner } from './useDrawer';
 
 ::: warning `message/index.ts` 顶部这一段不要动
 
-`:16-20` 依次是「CSS 副作用导入的类型声明说明注释」+ `// oxlint-disable-next-line typescript/triple-slash-reference` + `<reference path="../types/css.d.ts" />` 指令 + `import { toast } from 'vue-sonner'` + `import 'vue-sonner/style.css'`。本包按源码发布，下游看不见 popup-ui 自己的 tsconfig include，那条 `<reference>` 指令是 CSS 副作用导入唯一的类型出口。**它必须是三斜线指令形式（`/// <reference … />`）**：`eslint --fix` 的 `spaced-comment` 规则会把 `///` 顶成带空格的 `// /`，指令随之失效、下游 `vue-tsc` 立刻报 TS2882 —— 当前源码的 `:18` 正是这种被拆开的 `// /` 形式，所以这一段要留在 `--fix` 射程之外。
-:::
+`:25-31` 依次是「CSS 副作用导入的类型声明说明注释」+ `// oxlint-disable-next-line typescript/triple-slash-reference` + `<reference path="../types/css.d.ts" />` 指令 + `import type { ExternalToast }` + `import { toast } from 'vue-sonner'` + `import 'vue-sonner/style.css'`。本包按源码发布，下游看不见 popup-ui 自己的 tsconfig include，那条 `<reference>` 指令是 CSS 副作用导入唯一的类型出口。**它必须是三斜线指令形式（`/// <reference … />`）**：`eslint --fix` 的 `spaced-comment` 规则会把 `///` 顶成带空格的 `// /`，指令随之失效、下游 `vue-tsc` 立刻报 TS2882 —— 当前源码的 `:27` 是合规形式，这一段要留在 `--fix` 射程之外。:::
 
 ### 在线示例：`/components/feedback`
 
-侧栏「反馈与交互」：四个 `message.*` 与四个 `notification.*` 各一枚按钮，外加加载提示与「默认 / Promise」两枚（走导出的 `toast`，用来验证无徽标的 `default` 与 pending 阶段的转圈），页面上写明了「点右上角 ✕ 或等 3 秒都会收起」。同一页也是 toast 配色的回归现场（`apps/web/e2e/preference-effects.spec.ts` 按 `--app-popover`、圆徽底色与关闭按钮位移逐项断言）。
+侧栏「反馈与交互」：四个 `message.*` 与四个 `notification.*` 各一枚按钮，外加加载提示与「默认 / Promise」两枚（走导出的 `toast`，用来验证无徽标的 `default` 与 pending 阶段的转圈）。通知那组传的是 `{ description, closeButton: true }`，所以只有它带 ✕；另有一枚「关闭按钮开关」卡把四档都点出来 —— 轻提示开 ✕、轻提示不开、通知开 ✕、通知不传，两通道同口径。同一页也是 toast 配色的回归现场（`apps/web/e2e/preference-effects.spec.ts` 按 `--popover`、圆徽底色与关闭按钮位移逐项断言，并单列一条断言「有 ✕ 的点了立刻收、没传的渲染时就没有 `[data-close-button]`」）。
 
 ## 这页没有的能力
 

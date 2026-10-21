@@ -1,8 +1,8 @@
 import { flushPromises, mount } from '@vue/test-utils';
 import { defineComponent, h, nextTick } from 'vue';
 
-import { createPinia, setActivePinia } from 'pinia';
 import { useAppStore } from '@antdv/stores';
+import { createPinia, setActivePinia } from 'pinia';
 
 import { configureLayoutHost, layoutHost } from '../src/host';
 import LocaleSwitcher from '../src/widgets/language-toggle/index.vue';
@@ -37,7 +37,7 @@ afterEach(() => {
   document.body.innerHTML = '';
 });
 
-describe('LocaleSwitcher —— 选项与写入偏好', () => {
+describe('localeSwitcher —— 选项与写入偏好', () => {
   it('触发器只有图标不带常驻文本，当前语言在菜单里标出', async () => {
     const { wrapper } = await mountSwitcher();
 

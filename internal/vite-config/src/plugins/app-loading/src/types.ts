@@ -43,7 +43,7 @@ export interface AppLoadingOptions {
   /** 扫描 CSS 变量的 glob 匹配（相对项目根目录） */
   cssVariableSources?: string[];
 
-  /** 仅提取指定前缀的 CSS 变量，例如 '--app-'，不传则全部提取 */
+  /** 仅提取指定前缀的 CSS 变量，例如 '--color-'，不传则全部提取 */
   cssVariablePrefix?: string;
 
   /** 排除匹配的变量名 */

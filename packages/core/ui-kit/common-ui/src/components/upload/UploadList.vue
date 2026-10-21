@@ -38,7 +38,7 @@ const listClass = computed(() =>
 
 const itemClass = computed(() =>
   cn(
-    'group flex items-center gap-2 rounded px-2 py-1 transition-colors',
+    'group flex items-center gap-2 rounded-sm px-2 py-1 transition-colors',
     isCard.value
       ? 'flex-col items-stretch border border-gray-200 p-0 dark:border-gray-700'
       : 'hover:bg-gray-50 dark:hover:bg-gray-800',

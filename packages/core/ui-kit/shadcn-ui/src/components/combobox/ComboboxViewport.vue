@@ -1,23 +1,32 @@
 <script setup lang="ts">
-import type { ComboboxViewportProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { ComboboxViewport, useForwardProps } from "reka-ui"
-import { cn } from '@antdv/shared/utils/cn'
+import type { ComboboxViewportProps } from 'reka-ui';
 
-const props = defineProps<ComboboxViewportProps & { class?: HTMLAttributes["class"] }>()
+import type { HTMLAttributes } from 'vue';
 
-const delegatedProps = reactiveOmit(props, "class")
+import { cn } from '@antdv/shared/utils/cn';
+import { reactiveOmit } from '@vueuse/core';
+import { ComboboxViewport, useForwardProps } from 'reka-ui';
 
-const forwarded = useForwardProps(delegatedProps)
+const props = defineProps<
+  ComboboxViewportProps & { class?: HTMLAttributes['class'] }
+>();
+
+const delegatedProps = reactiveOmit(props, 'class');
+
+const forwarded = useForwardProps(delegatedProps);
 </script>
 
 <template>
   <ComboboxViewport
     data-slot="combobox-viewport"
     v-bind="forwarded"
-    :class="cn('max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto', props.class)"
+    :class="
+      cn(
+        'max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto',
+        props.class,
+      )
+    "
   >
-    <slot />
+    <slot></slot>
   </ComboboxViewport>
 </template>

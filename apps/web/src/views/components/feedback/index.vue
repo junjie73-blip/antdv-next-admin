@@ -12,8 +12,12 @@ import { cn } from '@antdv/shared/utils/cn';
  * `NOTIFICATION_TOASTER_ID` → 进位置由偏好 `notificationPosition` 决定的那只。
  * 所以这一页同时点两边，能直接看出两条通道各堆各的、不会互相顶位。
  *
- * 停留时长与关闭动作两条通道共用一份实现（3 秒 + 右上角 ✕），差别只在出场位置，
- * 以及通知通常多带一行描述。
+ * 停留时长与关闭动作两条通道共用一份实现（3 秒自动消失 + `closeButton` 那个开关），
+ * 差别只在出场位置，以及通知通常多带一行描述。
+ *
+ * 关闭按钮**默认不显示**：`message.*` 这一页按默认走（没有 ✕），
+ * `notification.*` 显式传 `{ closeButton: true }` 才有 ✕。开关在两条通道上是同一个，
+ * 见下面「关闭按钮开关」那张卡把四种组合都点一遍。
  *
  * 配色规范：卡片一律弹层底色，状态只由左侧那枚实色圆徽表达（成功绿 / 信息主色 /
  * 警告琥珀 / 错误红），通知比轻提示多一行灰色描述。
@@ -66,7 +70,26 @@ function showMessage(status: Status) {
 
 function showNotification(status: Status) {
   const item = STATUS.find((s) => s.key === status)!;
-  notification[status](item.title, item.desc);
+  // 通知要留一行描述，也允许用户自己收掉，所以显式开 ✕（不传就没有）
+  notification[status](item.title, {
+    closeButton: true,
+    description: item.desc,
+  });
+}
+
+/**
+ * `closeButton` 是**单条**的开关，两条通道共用：不传就没有 ✕，传了才有。
+ * 下面两个入口把"默认"与"开启"各演示一次，另一种组合由上面两张卡提供
+ * （轻提示默认无 ✕、通知显式开启有 ✕）。
+ */
+function showMessageWithClose() {
+  message.info('这条轻提示带手动关闭', { closeButton: true });
+}
+
+function showNotificationWithoutClose() {
+  notification.success('这条通知没有 ✕', {
+    description: '不传 closeButton 时不渲染关闭按钮',
+  });
 }
 
 /**
@@ -113,15 +136,15 @@ function showPromise() {
         </Button>
       </div>
       <p :class="tipClassName">
-        卡片底色始终是弹层底色，四种状态靠左侧的实色圆徽区分；右上角 ✕ 与 3
-        秒自动消失两条通道都一样。
+        卡片底色始终是弹层底色，四种状态靠左侧的实色圆徽区分；这一组按默认写法，
+        不挂右上角 ✕，3 秒后自己消失。
       </p>
     </Card>
 
     <Card title="通知 notification" variant="borderless">
       <template #extra>
         <span :class="cardExtraClassName">
-          位置跟随偏好「通知位置」，带描述与关闭按钮
+          位置跟随偏好「通知位置」，带描述；传 `closeButton: true` 才有 ✕
         </span>
       </template>
       <div :class="buttonGroupClassName">
@@ -135,16 +158,32 @@ function showPromise() {
         </Button>
       </div>
       <p :class="tipClassName">
-        通知比轻提示多一行灰色描述，位置跟随偏好；点右上角 ✕ 或等 3
-        秒都会收起，不会挡住正文操作区。
+        通知比轻提示多一行灰色描述，位置跟随偏好；这一组显式开了关闭按钮，
+        点右上角 ✕ 或等 3 秒都会收起，不会挡住正文操作区。
+      </p>
+    </Card>
+
+    <Card title="关闭按钮开关" variant="borderless">
+      <template #extra>
+        <span :class="cardExtraClassName">
+          <code>closeButton</code> 是单条的可选项，两条通道共用，默认不渲染
+        </span>
+      </template>
+      <div :class="buttonGroupClassName">
+        <Button @click="showMessageWithClose">轻提示 · 开启 ✕</Button>
+        <Button variant="outline" @click="showNotificationWithoutClose">
+          通知 · 不传（无 ✕）
+        </Button>
+      </div>
+      <p :class="tipClassName">
+        开关只看这一条有没有传，跟走哪条通道无关：轻提示传了照样有 ✕，
+        通知不传照样没有。
       </p>
     </Card>
 
     <Card title="加载提示" variant="borderless">
       <template #extra>
-        <span :class="cardExtraClassName"
-          >toast.loading 常驻，直到手动关闭</span
-        >
+        <span :class="cardExtraClassName">toast.loading 常驻，直到手动关闭</span>
       </template>
       <div :class="buttonGroupClassName">
         <Button @click="message.loading('正在同步数据…')">

@@ -4,8 +4,8 @@ import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { layoutRuntime } from '@antdv/layout-ui';
-import { localizeMenus } from '@antdv/utils';
 import { useRouteStore } from '@antdv/stores';
+import { localizeMenus } from '@antdv/utils';
 
 import { createMenuTreeSource } from '../menu-source';
 

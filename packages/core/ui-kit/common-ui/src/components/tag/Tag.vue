@@ -56,7 +56,7 @@ const customStyle = computed(() => {
 
 const rootClass = computed(() =>
   cn(
-    'gap-1 rounded px-2 py-0.5 text-xs font-normal',
+    'gap-1 rounded-sm px-2 py-0.5 text-xs font-normal',
     customStyle.value ? '' : presetClass.value,
     // 放在色板之后：preset 里带 `border-*-200`，先写的 `border-transparent`
     // 会被 twMerge 当成同一个 border-color 冲突项吃掉

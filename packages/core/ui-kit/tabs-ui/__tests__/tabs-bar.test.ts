@@ -51,7 +51,9 @@ function track<T extends { unmount: () => void }>(wrapper: T): T {
  * 上下文的最小可用形态：按需覆盖单个字段，其余为"什么都没有"。
  * 传进组件的是这个对象，动作集由组件自己现算。
  */
-const context = (overrides: Partial<TabActionContext> = {}): TabActionContext => ({
+const context = (
+  overrides: Partial<TabActionContext> = {},
+): TabActionContext => ({
   affixed: false,
   closeableLeft: 0,
   closeableRight: 0,
@@ -82,7 +84,7 @@ afterEach(() => {
   document.body.innerHTML = '';
 });
 
-describe('TabContextMenu —— 右键菜单', () => {
+describe('tabContextMenu —— 右键菜单', () => {
   function mountMenu(payload: any, ctx: Partial<TabActionContext> = {}) {
     return track(
       mount(TabContextMenu as any, {
@@ -132,10 +134,13 @@ describe('TabContextMenu —— 右键菜单', () => {
   });
 
   it('禁用项点不动（首页的 affix 与固定标签的 close）', async () => {
-    const wrapper = mountMenu({ key: 'home', x: 20, y: 20 }, {
-      affixed: true,
-      isHome: true,
-    });
+    const wrapper = mountMenu(
+      { key: 'home', x: 20, y: 20 },
+      {
+        affixed: true,
+        isHome: true,
+      },
+    );
     const items = menuItems();
     const affix = items.find((item) =>
       item.textContent?.includes('tabs.affixOff'),
@@ -155,7 +160,8 @@ describe('TabContextMenu —— 右键菜单', () => {
     const wrapper = mountMenu({ key: 'a', x: 20, y: 20 });
     await nextTick();
 
-    document.body.querySelector('[role="menu"]')
+    document.body
+      .querySelector('[role="menu"]')
       ?.querySelector('button')
       ?.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
     await nextTick();
@@ -183,7 +189,7 @@ describe('TabContextMenu —— 右键菜单', () => {
   });
 });
 
-describe('TabActions —— 右上角下拉', () => {
+describe('tabActions —— 右上角下拉', () => {
   function mountActions(ctx: Partial<TabActionContext> = {}) {
     return track(
       mount(TabActions as any, {
@@ -239,7 +245,7 @@ describe('TabActions —— 右上角下拉', () => {
   });
 });
 
-describe('TabsBar —— 标签宿主条', () => {
+describe('tabsBar —— 标签宿主条', () => {
   function mountBar(props: Record<string, any> = {}) {
     return track(
       mount(TabsBar as any, {
@@ -255,7 +261,9 @@ describe('TabsBar —— 标签宿主条', () => {
     expect(bar.exists()).toBe(true);
     expect(wrapper.findAll('.tab-item')).toHaveLength(3);
     expect(
-      wrapper.findAll('.tab-item').map((item) => item.attributes('data-active')),
+      wrapper
+        .findAll('.tab-item')
+        .map((item) => item.attributes('data-active')),
     ).toEqual(['false', 'true', 'false']);
   });
 
@@ -307,7 +315,8 @@ describe('TabsBar —— 标签宿主条', () => {
     await wrapper.findAll('.tab-item')[2]?.trigger('click');
     expect(wrapper.emitted('activate')?.[0]).toEqual(['b']);
 
-    await wrapper.findAll('.tab-item')[1]
+    await wrapper
+      .findAll('.tab-item')[1]
       ?.find('.tab-item__close')
       .trigger('click');
     expect(wrapper.emitted('close')?.[0]).toEqual(['a']);
@@ -327,11 +336,9 @@ describe('TabsBar —— 标签宿主条', () => {
 
   it('拖拽排序的结果原样上报给使用方', async () => {
     const wrapper = mountBar();
-    wrapper.findComponent({ name: 'TabList' }).vm.$emit('reorder', [
-      { key: 'a' },
-      { key: 'b' },
-      { key: 'home' },
-    ]);
+    wrapper
+      .findComponent({ name: 'TabList' })
+      .vm.$emit('reorder', [{ key: 'a' }, { key: 'b' }, { key: 'home' }]);
     await nextTick();
     expect(wrapper.emitted('reorder')?.[0]?.[0]).toMatchObject([
       { key: 'a' },
@@ -402,9 +409,7 @@ describe('TabsBar —— 标签宿主条', () => {
 
   it('右上角动作不带标签 key：缺省即表示以当前激活标签为目标', async () => {
     const wrapper = mountBar();
-    wrapper
-      .findComponent({ name: 'TabActions' })
-      .vm.$emit('action', 'refresh');
+    wrapper.findComponent({ name: 'TabActions' }).vm.$emit('action', 'refresh');
     await nextTick();
     expect(wrapper.emitted('action')?.[0]).toEqual(['refresh']);
   });

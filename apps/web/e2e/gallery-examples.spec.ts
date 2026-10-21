@@ -237,7 +237,7 @@ function resultBox(scope: Locator) {
 async function drawerSide(page: Page, panel: Locator) {
   let box = await panel.boundingBox();
   let stable = 0;
-  const deadline = Date.now() + 3_000;
+  const deadline = Date.now() + 3000;
   while (stable < 3 && Date.now() < deadline) {
     await page.waitForTimeout(100);
     const next = await panel.boundingBox();
@@ -511,33 +511,23 @@ test.describe('表格拖拽排序页', () => {
   });
 
   /**
-   * 「禁止某些行被拖动 / 禁止落点」那张卡的三条约束，现在**一条都拦不住** —— 这是组件缺陷，
-   * 所以这里用 `test.fail()` 把正确的契约留在用例里，而不是把断言放宽成"现在是什么就断言什么"。
+   * 「禁止某些行被拖动 / 禁止落点」那张卡的三条约束。
    *
-   * 根因两条，都在 `packages/core/ui-kit/table-ui/src/hooks/useDragSort.ts`：
-   * 1. `disabled`（布尔与函数两种形态）靠 `onStart` 里 `evt.preventDefault(); return false`
-   *    取消拖拽（该文件 53-61 行），可 sortablejs 1.15.7 派发用户回调时只是
-   *    `options[onName].call(sortable, evt)`，**返回值与 preventDefault 一概不看**
-   *    （`apps/web/node_modules/sortablejs/src/EventDispatcher.js:54-56`），拖拽照旧开始；
-   *    `onEnd`（同文件 80-104 行）也没有再查一遍 `disabled`，于是新顺序照样 splice 进数据源。
-   * 2. `canDrop` 读的是 `evt.draggedRowIndex / relatedRowIndex / oldIndex / newIndex`
-   *    （该文件 62-79 行），而 sortablejs 给 `onMove` 的事件对象上**这四个字段一个都没有**
-   *    （`apps/web/node_modules/sortablejs/src/Sortable.js:1769-1798` 只设 to/from/dragged/related/…），
-   *    于是每次比较的都是数据源第 0 条和自己比，"不能越过锁定行"从不生效。
+   * 三条都靠 `packages/core/ui-kit/table-ui/src/hooks/useDragSort.ts` 兜住，各自的落点不同：
+   * 1. 函数形态与布尔形态的 `disabled` 都走 Sortable 的 `filter`——它是每次按下都重新问一次的
+   *    真闸门；早先把判定写在 `onStart` 里 `preventDefault()` + `return false`，而 Sortable
+   *    派发用户回调时（`EventDispatcher.js`）压根不看返回值，于是禁用行照样拖得动。
+   * 2. `canDrop` 走 `onMove`，用事件上的 `dragged` / `related` 两个 `<tr>` 认行——
+   *    Sortable 给 `onMove` 的事件没有下标字段，只能拿元素反查记录。
+   *    另外落点约束不只判"落到的那一行"，还判这一步跨过的那几行：`dragTo` 是一步到位的手势，
+   *    中间行根本不会被 hover，不判路径就永远拦不住"跨越锁定行"。
    *
-   * 组件侧修好后，本用例会以 `Expected to fail, but passed` 变红 —— 那时删掉 `test.fail()` 即可。
-   * 页面侧的文案（"开关切成布尔形态一次性冻结整张表""任何行都无法越过它"）也要一起复核。
+   * 这三条在 jsdom 里已由 `packages/core/ui-kit/table-ui/__tests__/drag-sort.test.ts` 逐条断言，
+   * 这里要的是真实浏览器里的原生拖拽链路。
    */
-  test('整表冻结 / 置顶行不可拖 / 落点不可越线：三条约束目前全部拦不住（已知缺陷）', async ({
+  test('整表冻结 / 置顶行不可拖 / 落点不可越线：三条约束都拦得住', async ({
     page,
   }) => {
-    test.fail();
-    test.info().annotations.push({
-      type: '缺陷',
-      description:
-        'packages/core/ui-kit/table-ui/src/hooks/useDragSort.ts:53-79 —— onStart 的取消在 sortablejs 1.15.7 里无效；onMove 拿到的事件没有下标字段',
-    });
-
     const errors = await open(page, DRAG_SORT);
     const box = cardByTitle(page, '禁止某些行被拖动');
     const rows = tableRows(box);
@@ -554,6 +544,8 @@ test.describe('表格拖拽排序页', () => {
     expect(await cellTexts(rows)).toEqual(initial);
 
     // 对照组：不涉及 pinned / locked 的相邻拖拽，这张卡是真的绑上了 Sortable
+    await settledBox(page, rows.nth(4));
+    await settledBox(page, rows.nth(5));
     await rows.nth(4).dragTo(rows.nth(5));
     await expect
       .poll(() => cellTexts(rows), { message: '普通相邻行要能换位' })
@@ -567,6 +559,8 @@ test.describe('表格拖拽排序页', () => {
       ]);
 
     // 函数形态 `disabled`：置顶公告标着「置顶 · 不可拖动」，不该被拖走
+    await settledBox(page, rows.nth(0));
+    await settledBox(page, rows.nth(1));
     await rows.nth(0).dragTo(rows.nth(1));
     await expect
       .poll(() => cellTexts(rows), { message: 'pinned 行不该起拖' })
@@ -579,7 +573,10 @@ test.describe('表格拖拽排序页', () => {
         '版本说明',
       ]);
 
-    // `canDrop`：版本说明要往前挪，路径上必须经过锁定的系统基线，不该让它过去
+    // `canDrop`：第 5 行要往前挪到「活动 Banner」那一格，路径上必须经过锁定的
+    // 「系统基线」，一步到位的手势也要被拦下（落点约束覆盖被跨过的每一行）
+    await settledBox(page, rows.nth(4));
+    await settledBox(page, rows.nth(1));
     await rows.nth(4).dragTo(rows.nth(1));
     await expect
       .poll(() => cellTexts(rows), { message: '不能越过 locked 行' })
@@ -596,6 +593,8 @@ test.describe('表格拖拽排序页', () => {
     const freeze = box.locator('[role="switch"]');
     await freeze.click();
     await expect(freeze).toHaveAttribute('data-state', 'checked');
+    await settledBox(page, rows.nth(1));
+    await settledBox(page, rows.nth(2));
     await rows.nth(1).dragTo(rows.nth(2));
     await expect
       .poll(() => cellTexts(rows), { message: '整表冻结后行序不该动' })

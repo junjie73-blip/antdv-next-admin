@@ -1,21 +1,24 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import { cn } from '@antdv/shared/utils/cn'
+import type { HTMLAttributes } from 'vue';
+
+import { cn } from '@antdv/shared/utils/cn';
 
 const props = defineProps<{
-  class?: HTMLAttributes["class"]
-}>()
+  class?: HTMLAttributes['class'];
+}>();
 </script>
 
 <template>
   <span
     data-slot="attachment-description"
-    :class="cn(
-      'mt-0.5 text-xs block min-w-0 truncate text-muted-foreground group-data-[state=error]/attachment:text-destructive/80',
-      'max-w-full',
-      props.class,
-    )"
+    :class="
+      cn(
+        'mt-0.5 text-xs block min-w-0 truncate text-muted-foreground group-data-[state=error]/attachment:text-destructive/80',
+        'max-w-full',
+        props.class,
+      )
+    "
   >
-    <slot />
+    <slot></slot>
   </span>
 </template>

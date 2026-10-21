@@ -59,12 +59,12 @@ beforeEach(() => {
 });
 
 // reka 的浮层定位与菜单溢出判定会用到这两样，jsdom 都没有
-if (typeof globalThis.CSS === 'undefined') {
+if (globalThis.CSS === undefined) {
   Object.defineProperty(globalThis, 'CSS', {
     configurable: true,
     value: {
       escape: (value: string) =>
-        String(value).replace(/[^\w-]/g, (c) => `\\${c}`),
+        String(value).replaceAll(/[^\w-]/g, (c) => `\\${c}`),
     },
   });
 }

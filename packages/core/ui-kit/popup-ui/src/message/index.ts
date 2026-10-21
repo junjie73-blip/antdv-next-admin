@@ -4,7 +4,8 @@
  * 用法与旧 `message.success/error/info/warning` 对齐；应用需要在根部挂**两只**
  * `<Toaster />`（`@antdv/common-ui` 导出的主题化外壳）：一只不带 `id`（轻提示，位置固定居中），
  * 一只 `:id="NOTIFICATION_TOASTER_ID"`（通知，位置由偏好 `notificationPosition` 决定）。
- * 两只都开 `close-button` —— 手动关闭是两条通道共有的能力，不是通知的专属特性。
+ * 两只都**不**开 `close-button`：手动关闭是单条的决定，由第三个参数的 `closeButton` 开，
+ * 不传就没有 ✕（两条通道口径一致，短文案挂个按钮只是噪声）。
  *
  * 为什么分两只而不是给每条 toast 传 `position`：sonner 同一个位置只维护一个堆栈，
  * 轻提示与通知各自的出场位置、堆叠上限是两回事，混进同一只 toaster
@@ -23,7 +24,7 @@
  */
 // CSS 副作用导入的类型声明只能引用、不能复制：下游按源码消费本包时看不到 popup-ui 的 tsconfig include。
 // oxlint-disable-next-line typescript/triple-slash-reference
-/// <reference path="../types/css.d.ts" />
+// / <reference path="../types/css.d.ts" />
 import type { ExternalToast } from 'vue-sonner';
 
 import { toast } from 'vue-sonner';
@@ -38,7 +39,7 @@ export const NOTIFICATION_TOASTER_ID = 'notification';
  * 沿用旧 `message` 的 3 秒 —— 够读完一行标题加一行描述，又不至于挡路。
  * 之前通知单独给 8 秒，理由是"挂了常驻关闭按钮就不能短到按钮还没看清就消失"，
  * 但实际后果是同一段文案在两条通道上停留时间不一样，用户读完还得等它自己走；
- * 关闭按钮该不该给由宿主那只 toaster 的 `close-button` 决定，不该反向决定时长。
+ * 关闭按钮该不该给由单条的 `closeButton` 决定（见 `ToastInit`），不该反向决定时长。
  */
 const TOAST_DURATION = 3000;
 
@@ -46,7 +47,7 @@ const TOAST_DURATION = 3000;
 type ToastType = 'error' | 'info' | 'success' | 'warning';
 
 /** vue-sonner 的 toast 标识（库里没导出同名类型，按它的返回值声明） */
-export type ToastId = string | number;
+export type ToastId = number | string;
 
 /** 第三个参数的对象写法 */
 export interface ToastInit {
@@ -54,21 +55,32 @@ export interface ToastInit {
   description?: string;
   /** 本次的停留时长，不传走 `TOAST_DURATION` */
   duration?: number;
+  /**
+   * 这一条要不要挂手动关闭的 ✕，**两条通道共用这一个开关**。
+   *
+   * 不传就没有按钮：宿主那两只 `<Toaster>` 不再整体开 `close-button`，
+   * 默认状态由"这条内容需不需要用户手动收掉"决定，而不是由通道决定。
+   * 传 `false` 与不传不是一回事 —— sonner 的取值是
+   * `toast.closeButton ?? toaster.closeButton`，显式 `false` 能在宿主整体开启时
+   * 关掉单条，不传则是把决定权留给宿主。
+   */
+  closeButton?: boolean;
 }
 
 /**
  * 内容之外的可选项，收三种写法：
  * 数字 = 停留时长（与旧 `message.error(text, 1500)` 完全兼容），
  * 字符串 = 描述（与旧 `notification.info(title, desc)` 完全兼容），
- * 对象 = 两者都给。
+ * 对象 = 三者都给（`description` / `duration` / `closeButton`）。
  *
  * 之所以压成一个参数而不是 `(content, description, duration)`：两条通道要用
  * **同一个签名**才谈得上"共用一份实现"，而 `notification` 从来不需要只改时长
  * 不写描述，`(content, , 2000)` 这种写法不该出现在 API 里。
+ * `closeButton` 只走对象写法：简写那两档已经有含义，再往里塞开关只会让人猜。
  */
 export type ToastInitInput = number | string | ToastInit;
 
-/** 把三种简写归一成 `{ description, duration }`，认不出的写法（没传）就当空对象 */
+/** 把三种简写归一成 `{ closeButton, description, duration }`，认不出的写法（没传）就当空对象 */
 function normalizeInit(init: ToastInitInput | undefined): ToastInit {
   if (typeof init === 'number') return { duration: init };
   if (typeof init === 'string') return { description: init };
@@ -80,9 +92,10 @@ function toToastOptions(
   init: ToastInitInput | undefined,
   toasterId?: string,
 ): ExternalToast {
-  const { description, duration } = normalizeInit(init);
+  const { closeButton, description, duration } = normalizeInit(init);
   const options: ExternalToast = { duration: duration ?? TOAST_DURATION };
   if (description !== undefined) options.description = description;
+  if (closeButton !== undefined) options.closeButton = closeButton;
   if (toasterId !== undefined) options.toasterId = toasterId;
   return options;
 }

@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import type { PrimitiveProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { cn } from '@antdv/shared/utils/cn'
+import type { PrimitiveProps } from 'reka-ui';
+
+import type { HTMLAttributes } from 'vue';
+
+import { cn } from '@antdv/shared/utils/cn';
 
 interface Props extends PrimitiveProps {
-  class?: HTMLAttributes["class"]
+  class?: HTMLAttributes['class'];
 }
 const props = withDefaults(defineProps<Props>(), {
-  as: "button",
-})
+  as: 'button',
+});
 </script>
 
 <template>
@@ -18,6 +20,6 @@ const props = withDefaults(defineProps<Props>(), {
     :as-child="asChild"
     :class="cn('absolute inset-0 z-10 outline-none', props.class)"
   >
-    <slot />
+    <slot></slot>
   </Primitive>
 </template>

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { Alert, Card, Divider, Space, Tag } from '../src';
 
-describe('Card', () => {
+describe('card', () => {
   it('标题与 extra 落在同一行，正文走默认插槽', () => {
     const wrapper = mount(Card, {
       props: { title: '任务列表' },
@@ -28,7 +28,7 @@ describe('Card', () => {
   });
 });
 
-describe('Tag', () => {
+describe('tag', () => {
   it('预设色名映射到对应色板', () => {
     const wrapper = mount(Tag, { props: { color: 'green' } });
     expect(wrapper.classes().join(' ')).toContain('text-emerald-600');
@@ -36,7 +36,9 @@ describe('Tag', () => {
 
   it('非预设色当作自定义底色', () => {
     const wrapper = mount(Tag, { props: { color: '#722ed1' } });
-    expect(wrapper.attributes('style')).toContain('background-color: rgb(114, 46, 209)');
+    expect(wrapper.attributes('style')).toContain(
+      'background-color: rgb(114, 46, 209)',
+    );
   });
 
   it('bordered=false 时不描边', () => {
@@ -45,7 +47,7 @@ describe('Tag', () => {
   });
 });
 
-describe('Divider', () => {
+describe('divider', () => {
   it('竖向走 separator 的 vertical 方向', () => {
     const wrapper = mount(Divider, { props: { type: 'vertical' } });
     expect(wrapper.attributes('data-orientation')).toBe('vertical');
@@ -63,24 +65,24 @@ describe('Divider', () => {
   });
 });
 
-describe('Space', () => {
+describe('space', () => {
   it('size 档位换成像素 gap', () => {
-    expect(mount(Space, { props: { size: 'middle' } }).attributes('style')).toContain(
-      'gap: 16px',
-    );
+    expect(
+      mount(Space, { props: { size: 'middle' } }).attributes('style'),
+    ).toContain('gap: 16px');
     expect(mount(Space, { props: { size: 6 } }).attributes('style')).toContain(
       'gap: 6px',
     );
   });
 
   it('direction=vertical 换成列方向', () => {
-    expect(mount(Space, { props: { direction: 'vertical' } }).classes()).toContain(
-      'flex-col',
-    );
+    expect(
+      mount(Space, { props: { direction: 'vertical' } }).classes(),
+    ).toContain('flex-col');
   });
 });
 
-describe('Alert', () => {
+describe('alert', () => {
   it('error 用 destructive，其余按类型上色', () => {
     expect(
       mount(Alert, { props: { message: '失败', type: 'error' } })

@@ -39,8 +39,7 @@ export default defineMockRoute({
 
 ::: tip
 
-路由优先级 legacy 的 fake-server 按注册顺序取首个命中，所以 `withRuntime` 需要手工把"无参数路径"排前面；Nitro 用 radix 树，静态段天然优先于 `:param`，**不再需要重排**。
-:::
+路由优先级 legacy 的 fake-server 按注册顺序取首个命中，所以 `withRuntime` 需要手工把"无参数路径"排前面；Nitro 用 radix 树，静态段天然优先于 `:param`，**不再需要重排**。:::
 
 ## 运行时能力：mock-center 管理接口
 
@@ -68,8 +67,7 @@ curl -s -X POST localhost:6080/api/mock-center/runtime \
 
 ::: warning
 
-面板页目前没有挂在路由上 `apps/web/src/views/tool/mock/**` 只剩私有模块（actions / columns / schemas / types / constants），没有 `index.vue`，也没有别处引用它们；`apps/web/src/api/mock.ts` 是这组接口的客户端。也就是说"数据中心"目前只能通过上面的 HTTP 接口操作，UI 那一层是待恢复的缺口 ——文档先按接口写，等页面回来再补截图。
-:::
+面板页目前没有挂在路由上 `apps/web/src/views/tool/mock/**` 只剩私有模块（actions / columns / schemas / types / constants），没有 `index.vue`，也没有别处引用它们；`apps/web/src/api/mock.ts` 是这组接口的客户端。也就是说"数据中心"目前只能通过上面的 HTTP 接口操作，UI 那一层是待恢复的缺口 ——文档先按接口写，等页面回来再补截图。:::
 
 运行时配置落在 `.mock-state.json`（已 gitignore）。注意**文件名不带路径**：mock 由 `apps/web` 的 dev 进程在进程内拉起，persist 文件落在启动它的 cwd（`apps/web/.mock-state.json`），而不是 `apps/backend-mock/` 下 —— 找"为什么我的开关没保存"时先看这里。
 
@@ -96,12 +94,10 @@ main.ts ── activate.ts ──(PROD && VITE_MOCK)──► import('./browser'
 
 ::: warning
 
-`vite preview` 不能用来验生产 `internal/vite-config` 没写 `preview` 段，而 Vite 的 preview server 会**继承 `server.proxy`** ——于是 `/api` 又被 dev 的 Nitro 接住，你看到的"生产能跑"是假阳性。要验就换一个不带代理的静态服务（把 `apps/web/dist` 直接 serve 出去，并且**不要**配 SPA history 兜底：那会把一条没接住的接口伪装成 `200 + index.html`）。仓库里留了 `apps/web/scripts/verify-prod-mock.mjs`：Playwright 打一遍登录 / 菜单 / 增删改查 / 语言切换 / 越权 403 / 上传，并把「逃逸到网络的接口请求」统计成硬失败。
-:::
+`vite preview` 不能用来验生产 `internal/vite-config` 没写 `preview` 段，而 Vite 的 preview server 会**继承 `server.proxy`** ——于是 `/api` 又被 dev 的 Nitro 接住，你看到的"生产能跑"是假阳性。要验就换一个不带代理的静态服务（把 `apps/web/dist` 直接 serve 出去，并且**不要**配 SPA history 兜底：那会把一条没接住的接口伪装成 `200 + index.html`）。仓库里留了 `apps/web/scripts/verify-prod-mock.mjs`：Playwright 打一遍登录 / 菜单 / 增删改查 / 语言切换 / 越权 403 / 上传，并把「逃逸到网络的接口请求」统计成硬失败。:::
 
 `VITE_MOCK=false` 时开关不成立（`activate.ts:19-22`，dev 下它也成立不了 —— 那时有 Nitro 实时服务，再拦一道会把「数据中心」面板的延迟/停用/生成功能顶掉）。拦截器与 fixtures 因为是 `import()` 进来的独立 chunk，压根不会被加载；接口请求原样透传，`/api` 之类的相对路径由部署平台的转发规则或反代给到真实后端。 `VITE_APP_BASE_API` 是唯一的前缀来源（dev 为 `/api`），代码里不要写死完整域名。
 
 ::: warning
 
-别让 mock 变成需求文档 mock 的职责是"让 21 个菜单页面在没有后端时也能点得动"，不是复刻真实业务规则。真接口的字段口径以对接的后端为准；发现 mock 与后端不一致时，**改 mock 去对齐后端**，不要在前端写"两边都兼容"的分支。
-:::
+别让 mock 变成需求文档 mock 的职责是"让 21 个菜单页面在没有后端时也能点得动"，不是复刻真实业务规则。真接口的字段口径以对接的后端为准；发现 mock 与后端不一致时，**改 mock 去对齐后端**，不要在前端写"两边都兼容"的分支。:::

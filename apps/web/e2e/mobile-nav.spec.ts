@@ -61,7 +61,7 @@ function headerWidgets(page: Page) {
 }
 
 /** 主题切换那颗按钮：文案跟着当前明暗换，两种都认 */
-function themeButton(scope: Page | Locator) {
+function themeButton(scope: Locator | Page) {
   return scope.locator(
     'button[aria-label="切换到深色"], button[aria-label="切换到浅色"]',
   );

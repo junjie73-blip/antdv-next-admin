@@ -1,13 +1,17 @@
 <script lang="ts" setup>
-import type { DrawerTitleProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { DrawerTitle } from "reka-ui"
-import { cn } from '@antdv/shared/utils/cn'
+import type { DrawerTitleProps } from 'reka-ui';
 
-const props = defineProps<DrawerTitleProps & { class?: HTMLAttributes["class"] }>()
+import type { HTMLAttributes } from 'vue';
 
-const delegatedProps = reactiveOmit(props, "class")
+import { cn } from '@antdv/shared/utils/cn';
+import { reactiveOmit } from '@vueuse/core';
+import { DrawerTitle } from 'reka-ui';
+
+const props = defineProps<
+  DrawerTitleProps & { class?: HTMLAttributes['class'] }
+>();
+
+const delegatedProps = reactiveOmit(props, 'class');
 </script>
 
 <template>
@@ -16,6 +20,6 @@ const delegatedProps = reactiveOmit(props, "class")
     v-bind="delegatedProps"
     :class="cn('text-foreground font-semibold', props.class)"
   >
-    <slot />
+    <slot></slot>
   </DrawerTitle>
 </template>

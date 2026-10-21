@@ -15,11 +15,11 @@ import {
  *
  * 原缺陷：偏好里换了主色，只有 CSS 变量跟着动，组件侧一片纹丝不动 ——
  * 侧栏"选中父级"的字色、表格里 link 型操作按钮、输入框聚焦光晕全还是蓝的。
- * 根因是当初有两条互不相干的主色链路：设计 token 读 `--app-primary`，
+ * 根因是当初有两条互不相干的主色链路：设计 token 读自己那组变量，
  * 而组件那侧的值被按 Tailwind 蓝写死（`colorPrimaryHover`、`Menu.itemSelectedColor`、
  * `colorLink*` 这些本该由算法从种子色派生的键），盖在用户选的颜色之上。
  * 现在全站只有一条链路：预设色 = `[data-theme]` 色板，自定义色 = `html` 上的内联
- * `--app-primary`，组件一律读 `bg-primary` / `text-primary` 这一类语义 token。
+ * `--primary`，组件一律读 `bg-primary` / `text-primary` 这一类语义 token。
  *
  * 所以这里不测"设置面板有没有把值存进去"（那层一直是好的），
  * 测**浏览器实际算出来的颜色**：计算样式是唯一能同时穿过 token、CSS 变量、
@@ -32,23 +32,25 @@ function colorOf(locator: Locator) {
 }
 
 /**
- * 设计规范自己那条主色链路（`@antdv/design` 的 `[data-theme]` 色板 → `--app-primary`）。
+ * 设计规范自己那条主色链路（`@antdv/design` 的 `[data-theme]` 色板 → `--primary`）。
  *
  * 预设档不内联变量，值从色板里来；取色器选的自定义色才写在 `html` 的 style 上。
- * 读计算样式两条都覆盖，而 `--ant-color-primary` 那组兼容层变量已经整体删掉了。
+ * 变量存的是 HSL 三段（`215.02 100% 54.31%`），不是能直接比的字符串 ——
+ * 所以挂一枚探针元素让浏览器把 `hsl(var(--primary))` 算成实际颜色，
+ * 预设档与自定义档于是有同一个口径，也跟组件那侧的 `colorOf` 可比。
  */
 function cssPrimary(page: Page) {
-  return page.evaluate(() =>
-    getComputedStyle(document.documentElement)
-      .getPropertyValue('--app-primary')
-      .trim()
-      // 色板里的写法是小写（`shared/constants/theme-presets.ts`），大小写不是契约的一部分
-      .toUpperCase(),
-  );
+  return page.evaluate(() => {
+    const probe = document.createElement('i');
+    probe.style.color = 'hsl(var(--primary))';
+    document.documentElement.append(probe);
+    const rgb = getComputedStyle(probe).color;
+    probe.remove();
+    return rgb;
+  });
 }
 
-const PICKED = '#FA541C';
-/** 计算样式里的写法 */
+/** 偏好面板里那颗「橙黄色」预设 */
 const PICKED_RGB = 'rgb(250, 84, 28)';
 
 /**
@@ -91,7 +93,7 @@ test.describe('主题色真的生效', () => {
      */
     await expect
       .poll(() => cssPrimary(page), { message: '主色变量没换' })
-      .toBe(PICKED);
+      .toBe(PICKED_RGB);
     await expect
       .poll(() => colorOf(selectedParent), {
         message: '选中的父级菜单还是原色',
@@ -123,9 +125,7 @@ test.describe('主题色真的生效', () => {
       .toBe('rgb(235, 47, 150)');
   });
 
-  test('时区小部件的选中态跟着主色走（这里曾经写死蓝色）', async ({
-    page,
-  }) => {
+  test('时区小部件的选中态跟着主色走（这里曾经写死蓝色）', async ({ page }) => {
     await signIn(page);
     await go(page, '/system/user');
 

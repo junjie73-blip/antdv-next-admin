@@ -22,7 +22,7 @@ afterEach(() => {
   document.body.innerHTML = '';
 });
 
-describe('LayoutFooter - 版权行', () => {
+describe('layoutFooter - 版权行', () => {
   it('给出稳定的区域钩子，年份可以显式传入以免随日期漂移', () => {
     const wrapper = mount(LayoutFooter, { props: { year: 2026 } });
     expect(wrapper.find('[data-layout-region="footer"]').exists()).toBe(true);
@@ -56,7 +56,7 @@ describe('LayoutFooter - 版权行', () => {
   });
 });
 
-describe('LayoutContent - 滚动容器', () => {
+describe('layoutContent - 滚动容器', () => {
   it('内容区钩子与宽度策略分开：行内样式来自 resolveContentStyle', () => {
     const wrapper = mount(LayoutContent, {
       props: { contentStyle: { maxWidth: '1200px' } },
@@ -112,7 +112,7 @@ describe('LayoutContent - 滚动容器', () => {
   });
 });
 
-describe('LayoutOverlay - 浮层侧栏', () => {
+describe('layoutOverlay - 浮层侧栏', () => {
   it('收起时不往 body 上留任何东西', () => {
     track(mount(LayoutOverlay, { props: { open: false } }));
     expect(document.body.querySelector('[data-layout-overlay]')).toBeNull();
@@ -172,7 +172,7 @@ describe('LayoutOverlay - 浮层侧栏', () => {
  * 以及三个 `data-layout-*` 钩子还落在原来的层上。
  * 真实的滑入与淡入由 e2e 在浏览器里看。
  */
-describe('LayoutOverlay - 开合动画', () => {
+describe('layoutOverlay - 开合动画', () => {
   const SOURCE = readFileSync(
     'src/components/layout-sidebar/overlay.vue',
     'utf8',

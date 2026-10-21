@@ -43,7 +43,7 @@ Vite 的合并顺序是 `.env` → `.env.[mode]` → `.env.local` → `.env.[mod
 | 变量 | 默认 | 打开后的效果 | 定义处 |
 | --- | --- | --- | --- |
 | `VITE_PORT` | `5173`（`DEFAULT_PORT`） | dev server 端口；`Number()` 失败才回落到 `options.port` | `config/application.ts:105` |
-| `VITE_DEVTOOLS` | 关 | `vite-plugin-vue-devtools` | `plugins/index.ts:105-107` |
+| `VITE_DEVTOOLS` | 关 | `vite-plugin-vue-devtools` | `plugins/index.ts:123-126` |
 | `VITE_VISUALIZER` | 关 | 产出 `stats.html`（`vite-bundle-analyzer`） | `:110-111` |
 | `VITE_TURBO_CONSOLE` | 关 | `unplugin-console-highlight` 终端高亮 | `:112-113` |
 | `VITE_ARCHIVER` | 关 | 构建产物打成 zip | `:119-120` |
@@ -57,14 +57,13 @@ Vite 的合并顺序是 `.env` → `.env.[mode]` → `.env.local` → `.env.[mod
 | `VITE_DEV_POLLING` | 关 | `server.watch.usePolling`；映射盘上的结论写在[本地开发](/guide/essentials/development) | `config/application.ts:119-123` |
 | `VITE_MOCK_SERVER` / `VITE_MOCK_PORT` | `http://localhost:5320` / `5320` | dev 代理目标与内嵌 Nitro 端口，必须同源推导 | `utils/proxy.ts:40-90` |
 | `VITE_PROXY` | 无 | 额外代理表 `[prefix, target][]`，Mock 代理优先级更高 | `config/application.ts:106` |
-| `VITE_APP_BASE_URL` | 无 | 注入 `index.html` 的 `canonical` / `og:url` | `plugins/index.ts:88-92` |
+| `VITE_APP_BASE_URL` | 无 | 注入 `index.html` 的 `canonical` / `og:url` | `plugins/index.ts:90-97` |
 
 ::: warning 三个"看着有、其实没人读"的变量
 
 - `VITE_NAMESPACE`：只在 `.env` 与 `types/env.d.ts` 里出现，全仓无引用。缓存前缀实际来自 `VITE_APP_TITLE`，别再按名字猜它有隔离作用。
 - `VITE_APP_VERSION`：`plugins/metadata.ts:104` 用 `define` 造出来的，应用代码里没有读它。
-- `VITE_MINIO_PUBLIC_URL`、`VITE_SENTRY_DSN`：代码里读（`bootstrap/env.ts`、`main.ts`），但三份 `.env` 都没写，运行时是 `undefined`。Sentry 只在 `import.meta.env.PROD` 分支初始化，DSN 为空即不实际上报；MinIO 直链没配时下载走代理前缀（`packages/core/base/shared/src/utils/download.ts`）。
-:::
+- `VITE_MINIO_PUBLIC_URL`、`VITE_SENTRY_DSN`：代码里读（`bootstrap/env.ts`、`main.ts`），但三份 `.env` 都没写，运行时是 `undefined`。Sentry 只在 `import.meta.env.PROD` 分支初始化，DSN 为空即不实际上报；MinIO 直链没配时下载走代理前缀（`packages/core/base/shared/src/utils/download.ts`）。:::
 
 `vite-plugin-iconify-offline`、`@vitejs/plugin-legacy`、`vite-plugin-cdn-import` 在 `apps/web/package.json` 的 devDependencies 里，但**没有任何 import**；图标离线由 `@tomjs/vite-plugin-iconify` 负责（见[图标](/guide/essentials/icons)）。加依赖前先搜一遍有没有人用。
 
@@ -93,12 +92,11 @@ export default defineApplicationConfig({
 
 合并顺序 `common → application → overrides`（`mergeConfig` 两次，见 `:127-130`）。要偏离默认就走 `overrides`，不要在应用里重写整份 config：`createCommonConfig()` 里的别名与 `dedupe` 一旦丢，症状是"能跑，但类型检查炸 / 运行期出现两份 Vue"。
 
-`createPlugins()` 按产物形态分派（`internal/vite-config/src/plugins/index.ts:49-195`）： `application` 才有 HTML 注入、PWA、归档、metadata；`library` 只留编译链与 `.d.ts`。
+`createPlugins()` 按产物形态分派（`internal/vite-config/src/plugins/index.ts:55-213`）： `application` 才有 HTML 注入、PWA、归档、metadata；`library` 只留编译链与 `.d.ts`。
 
 ::: warning
 
-`VITE_INJECT_APP_LOADING=false` 不等于关掉插件入口是常驻的 `import { loadingFadeOut } from 'virtual:app-loading'`。把插件整个跳过会让虚拟模块无法解析，构建期直接 500；所以开关只决定"注不注入"，未注入时那些函数找不到容器、自然空转（`plugins/index.ts:139-145`）。
-:::
+`VITE_INJECT_APP_LOADING=false` 不等于关掉插件入口是常驻的 `import { loadingFadeOut } from 'virtual:app-loading'`。把插件整个跳过会让虚拟模块无法解析，构建期直接 500；所以开关只决定"注不注入"，未注入时那些函数找不到容器、自然空转（`plugins/index.ts:157-164`）。:::
 
 ## 用户偏好
 

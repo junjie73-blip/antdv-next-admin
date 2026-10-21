@@ -9,8 +9,6 @@ import type { BasicColumn, Recordable } from '@antdv/table-ui';
 
 import { computed, ref, useTemplateRef } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
-import { Icon } from '@iconify/vue';
 import {
   Alert,
   Card,
@@ -19,7 +17,12 @@ import {
   Tree,
   UploadDragger,
 } from '@antdv/common-ui';
+import { BasicForm, useForm } from '@antdv/form-ui';
+import { BasicModal, confirm, message, useModal } from '@antdv/popup-ui';
 import { Button } from '@antdv/shadcn-ui';
+import { cn } from '@antdv/shared/utils/cn';
+import { BasicTable, useTable } from '@antdv/table-ui';
+import { Icon } from '@iconify/vue';
 import {
   createFolder,
   deleteFile,
@@ -28,9 +31,6 @@ import {
   renameFile,
   uploadFile,
 } from '~/api/system';
-import { BasicForm, useForm } from '@antdv/form-ui';
-import { BasicModal, confirm, message, useModal } from '@antdv/popup-ui';
-import { BasicTable, useTable } from '@antdv/table-ui';
 
 defineOptions({ name: 'SystemFile' });
 
@@ -470,8 +470,7 @@ const columns: BasicColumn[] = [
             <a
               class="cursor-pointer transition-colors hover:text-blue-500"
               @click="handleNavigateToFolder(item)"
-              >{{ item.title }}</a
-            >
+              >{{ item.title }}</a>
             <span v-if="index < currentPath.length - 1" class="mx-1">/</span>
           </template>
         </div>
@@ -551,8 +550,7 @@ const columns: BasicColumn[] = [
               <span
                 class="cursor-pointer truncate transition-colors hover:text-blue-500"
                 :title="record.name"
-                >{{ record.name }}</span
-              >
+                >{{ record.name }}</span>
             </div>
           </template>
 

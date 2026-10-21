@@ -41,9 +41,11 @@ function readSidebarScroll(root: HTMLElement) {
   ) as HTMLElement | null;
   if (!viewport) throw new Error('侧边栏里没有内置 Scrollbar 的滚动盒');
   const area = viewport.closest('[data-slot="scroll-area"]') as HTMLElement;
-  const bars = Array.from(
-    area.querySelectorAll<HTMLElement>('[data-slot="scroll-area-scrollbar"]'),
-  ).map((bar) => ({
+  const bars = [
+    ...area.querySelectorAll<HTMLElement>(
+      '[data-slot="scroll-area-scrollbar"]',
+    ),
+  ].map((bar) => ({
     orientation: bar.dataset.orientation ?? '',
     state: bar.dataset.state ?? '',
   }));
@@ -65,7 +67,7 @@ test.describe('圆角基准与侧边栏滚动条', () => {
 
     const appRadius = await page.evaluate(() =>
       getComputedStyle(document.documentElement)
-        .getPropertyValue('--app-border-radius')
+        .getPropertyValue('--radius')
         .trim(),
     );
     expect(
@@ -159,7 +161,7 @@ test.describe('圆角基准与侧边栏滚动条', () => {
 
     const leaks = await page.evaluate(() => {
       const out: string[] = [];
-      for (const node of Array.from(document.querySelectorAll('*'))) {
+      for (const node of [...document.querySelectorAll('*')]) {
         const el = node as HTMLElement;
         if (el.scrollHeight <= el.clientHeight + 2) continue;
         if (el.closest('[data-reka-scroll-area-viewport]')) continue;

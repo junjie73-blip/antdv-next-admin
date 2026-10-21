@@ -8,7 +8,14 @@ import type {
 
 import { computed, h, ref } from 'vue';
 
-import { Card, Divider, Segmented, Space, Tag } from '@antdv/common-ui';
+import {
+  Card,
+  Description,
+  Divider,
+  Segmented,
+  Space,
+  Tag,
+} from '@antdv/common-ui';
 import { message } from '@antdv/popup-ui';
 import { Button, Switch } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
@@ -20,7 +27,6 @@ import {
 } from '@vueuse/core';
 import certUrl from '~/assets/images/img.jpg';
 import avatarUrl from '~/assets/images/logo.png';
-import { Description } from '@antdv/common-ui';
 
 defineOptions({ name: 'ComponentsDescription' });
 
@@ -311,15 +317,11 @@ const size = ref<DescriptionSize>('large');
 
     <Card title="值渲染与插槽" variant="borderless">
       <p :class="hintClassName">
-        取值的优先级是：<strong
-          >具名插槽 <code>#字段名</code> → <code>render</code> 函数 →
-          <code>type</code> 内置渲染 → 文本</strong
-        >。 头像走 <code>type: 'image'</code>（<code>imageSize</code>
+        取值的优先级是：<strong>具名插槽 <code>#字段名</code> → <code>render</code> 函数 →
+          <code>type</code> 内置渲染 → 文本</strong>。 头像走 <code>type: 'image'</code>（<code>imageSize</code>
         控制尺寸，可点击预览）， 资质证书走
         <code>type: 'images'</code>，在职状态用 <code>render</code> 返回一个
-        <code>Tag</code>，邮箱与技能栈则由页面的 <code>#email</code>、<code
-          >#skills</code
-        >
+        <code>Tag</code>，邮箱与技能栈则由页面的 <code>#email</code>、<code>#skills</code>
         插槽接管， 标签也能单独换成 <code>#department-label</code> 插槽。
       </p>
       <Description
@@ -340,8 +342,7 @@ const size = ref<DescriptionSize>('large');
           <span class="inline-flex items-center gap-1">
             <code
               class="rounded-sm bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800"
-              >{{ value }}</code
-            >
+              >{{ value }}</code>
             <Button
               variant="ghost"
               size="icon-sm"
@@ -365,9 +366,7 @@ const size = ref<DescriptionSize>('large');
 
     <Card title="动态切换（编辑态 / 只读态）" variant="borderless">
       <p :class="hintClassName">
-        同一份 <code>schema</code> + <code>data</code> 全程响应式：<code
-          >show: false</code
-        >
+        同一份 <code>schema</code> + <code>data</code> 全程响应式：<code>show: false</code>
         的项被组件过滤掉（身份证、发票抬头），把 <code>data</code> 换成脱敏后的
         <code>computed</code> 就等于切换了字段值，<code>loading</code>
         为真时组件切到自己那层转圈占位。 组件是只读的，实例上只暴露
@@ -428,9 +427,7 @@ const size = ref<DescriptionSize>('large');
         的声明类型只是
         <code>number</code>，所以「窄屏降列」是在页面这层用断点算出来的 ——
         把窗口拖窄到 <code>md</code> 以下会看到每行从 3 列变 1
-        列；<code>bordered</code>、 <code>colon</code>、<code>size</code>（<code
-          >large</code
-        >
+        列；<code>bordered</code>、 <code>colon</code>、<code>size</code>（<code>large</code>
         / <code>middle</code> / <code>small</code> 三档，<code>default</code>
         已废弃，等价写法是 <code>large</code>）可实时切换。
       </p>

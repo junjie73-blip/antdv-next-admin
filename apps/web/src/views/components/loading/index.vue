@@ -15,7 +15,7 @@ import {
   TableSkeleton,
   useLoading,
 } from '@antdv/common-ui';
-
+import { PageLoading } from '@antdv/layouts';
 import {
   Button,
   Checkbox,
@@ -38,7 +38,6 @@ import {
   TableRow,
 } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
-import { PageLoading } from '@antdv/layouts';
 import { Icon } from '@iconify/vue';
 
 import ErrorProneContent from './components/ErrorProneContent.vue';
@@ -63,8 +62,8 @@ const frameClassName = cn(
 /** 旧版「按钮式单选」的观感：RadioGroupItem 藏进 sr-only，label 本身画成按钮段 */
 const radioGroupClassName = cn('flex flex-wrap');
 const radioOptionClassName = cn(
-  'relative m-0 -ms-px flex min-h-9 cursor-pointer items-center justify-center border border-input bg-transparent px-3 py-1.5 text-sm first:ms-0 first:rounded-s-md last:rounded-e-md',
-  'has-[[data-state=checked]]:z-10 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary has-[[data-state=checked]]:font-medium has-[[data-state=checked]]:[&>span]:text-primary-foreground',
+  'border-input relative m-0 -ms-px flex min-h-9 cursor-pointer items-center justify-center border bg-transparent px-3 py-1.5 text-sm first:ms-0 first:rounded-s-md last:rounded-e-md',
+  'has-[[data-state=checked]]:[&>span]:text-primary-foreground has-[[data-state=checked]]:bg-primary has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:z-10 has-[[data-state=checked]]:font-medium',
 );
 
 /* ============================================================
@@ -558,8 +557,7 @@ function triggerGlobalLoading() {
                   <span :class="hintClassName">{{ row.label }}</span>
                   <span
                     class="font-mono text-sm text-gray-900 dark:text-gray-100"
-                    >{{ row.value }}</span
-                  >
+                    >{{ row.value }}</span>
                 </div>
               </div>
             </PageSkeleton>
@@ -704,11 +702,9 @@ function triggerGlobalLoading() {
             <code :class="codeClassName">onErrorCaptured</code>
             收子组件 setup / render / 生命周期钩子 / watcher
             阶段的异常，命中就换成兜底 UI，并向外
-            <code :class="codeClassName">emit('error')</code
-            >。兜底里的「重试」调
+            <code :class="codeClassName">emit('error')</code>。兜底里的「重试」调
             <code :class="codeClassName">resetError()</code> 后会 emit
-            <code :class="codeClassName">reset</code
-            >，页面在这个回调里关掉抛错开关，
+            <code :class="codeClassName">reset</code>，页面在这个回调里关掉抛错开关，
             所以重试是真的恢复到内容，而不是原地再崩一次。
           </p>
           <div class="mb-3 flex flex-wrap items-center gap-4">
@@ -721,9 +717,7 @@ function triggerGlobalLoading() {
               模拟一次崩溃
             </Button>
             <Button variant="outline" @click="healChild">恢复子组件</Button>
-            <span :class="hintClassName"
-              >已重试 {{ boundaryResetCount }} 次</span
-            >
+            <span :class="hintClassName">已重试 {{ boundaryResetCount }} 次</span>
           </div>
           <p :class="cn(hintClassName, 'mb-3 break-all')">
             最近捕获：{{ lastBoundaryError }}
@@ -745,8 +739,7 @@ function triggerGlobalLoading() {
             <code :class="codeClassName">fallback</code> 是个渲染函数
             <code :class="codeClassName">(error, reset) =&gt; VNode</code>
             ，业务想换成品牌化的报错卡、或带「上报工单」按钮时用这一档；出口必须保留
-            <code :class="codeClassName">reset</code
-            >，否则用户就被困死在兜底页。
+            <code :class="codeClassName">reset</code>，否则用户就被困死在兜底页。
           </p>
           <div class="mb-3 flex flex-wrap items-center gap-3">
             <Button
@@ -807,8 +800,7 @@ function triggerGlobalLoading() {
                     <StatusTag :status="row.status" />
                     <span
                       :class="cn(hintClassName, 'ml-2 font-mono text-xs')"
-                      >{{ row.status }}</span
-                    >
+                      >{{ row.status }}</span>
                   </template>
                   <template v-else>{{ row[col.dataIndex] }}</template>
                 </TableCell>
@@ -1076,9 +1068,7 @@ function triggerGlobalLoading() {
         </p>
 
         <div class="flex items-center gap-4">
-          <span class="text-sm font-medium text-gray-600 dark:text-gray-400"
-            >尺寸：</span
-          >
+          <span class="text-sm font-medium text-gray-600 dark:text-gray-400">尺寸：</span>
           <RadioGroup
             :model-value="componentSize"
             :class="radioGroupClassName"
@@ -1102,9 +1092,7 @@ function triggerGlobalLoading() {
         </div>
 
         <div class="flex items-center gap-4">
-          <span class="text-sm font-medium text-gray-600 dark:text-gray-400"
-            >主题：</span
-          >
+          <span class="text-sm font-medium text-gray-600 dark:text-gray-400">主题：</span>
           <RadioGroup
             :model-value="componentTheme"
             :class="radioGroupClassName"

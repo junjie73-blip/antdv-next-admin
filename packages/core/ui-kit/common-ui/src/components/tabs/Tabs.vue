@@ -76,11 +76,11 @@ const listClass = computed(() =>
 const triggerClass = computed(() => {
   if (props.type === 'line') {
     return cn(
-      'rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none',
+      'data-[state=active]:border-primary rounded-none border-b-2 border-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none',
     );
   }
   return cn(
-    'rounded-t-md border border-b-0 bg-gray-50 dark:bg-gray-800/60 data-[state=active]:bg-background data-[state=active]:shadow-none',
+    'data-[state=active]:bg-background rounded-t-md border border-b-0 bg-gray-50 data-[state=active]:shadow-none dark:bg-gray-800/60',
   );
 });
 </script>

@@ -1,22 +1,20 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import { cn } from '@antdv/shared/utils/cn'
+import type { HTMLAttributes } from 'vue';
+
+import { cn } from '@antdv/shared/utils/cn';
 
 const props = defineProps<{
-  class?: HTMLAttributes["class"]
-}>()
+  class?: HTMLAttributes['class'];
+}>();
 </script>
 
 <template>
   <div
     data-slot="alert-dialog-footer"
     :class="
-      cn(
-        'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end',
-        props.class,
-      )
+      cn('flex flex-col-reverse gap-2 sm:flex-row sm:justify-end', props.class)
     "
   >
-    <slot />
+    <slot></slot>
   </div>
 </template>

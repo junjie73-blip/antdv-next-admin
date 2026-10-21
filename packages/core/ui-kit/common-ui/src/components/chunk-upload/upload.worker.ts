@@ -29,7 +29,10 @@ interface CancelMessage {
 }
 
 type WorkerMessage = CancelMessage | ChunkMessage | InitMessage;
-let spark: null | SparkMD5['ArrayBuffer'] = null;
+// `SparkMD5['ArrayBuffer']` 取的是「实例上的 ArrayBuffer 属性」，@types 里它是命名空间成员，
+// 只能顺着构造函数的实例类型拿。
+type SparkHasher = InstanceType<typeof SparkMD5.ArrayBuffer>;
+let spark: null | SparkHasher = null;
 let totalChunks = 0;
 let receivedChunks = 0;
 let canceled = false;

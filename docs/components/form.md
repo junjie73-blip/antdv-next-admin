@@ -54,13 +54,11 @@ const [register, { validate, setFieldsValue, getFieldsValue }] = useForm({
 
 ::: tip
 
-待写入队列：`setFieldsValue` 在没挂载时也不会丢 `useForm` 对 `setFieldsValue` / `resetFields` 会先判断实例是否还挂在组件树上（活实例判定 `use-antdv-form.ts:25-30`，依据是组件的 `isMounted`：`form.vue:589,535` 置位、`:623-630` 翻转），实例是死的就先把值**累加**进 `pendingValues`（`:53-64`，注释在 `:17-23`），等下一次 `register` 再补写。`resetFields` 会先把队列清空（`:66-73`），避免下次挂载被旧数据盖回来。这套队列专门救「先灌值、再 `openModal`」的写法：弹窗默认销毁内容，写进上一次 register 的死对象是静默失败的。行为有单测覆盖（`form-ui/__tests__/useForm.test.ts:37,52,67,76`）。
-:::
+待写入队列：`setFieldsValue` 在没挂载时也不会丢 `useForm` 对 `setFieldsValue` / `resetFields` 会先判断实例是否还挂在组件树上（活实例判定 `use-antdv-form.ts:25-30`，依据是组件的 `isMounted`：`form.vue:589,535` 置位、`:623-630` 翻转），实例是死的就先把值**累加**进 `pendingValues`（`:53-64`，注释在 `:17-23`），等下一次 `register` 再补写。`resetFields` 会先把队列清空（`:66-73`），避免下次挂载被旧数据盖回来。这套队列专门救「先灌值、再 `openModal`」的写法：弹窗默认销毁内容，写进上一次 register 的死对象是静默失败的。行为有单测覆盖（`form-ui/__tests__/useForm.test.ts:37,52,67,76`）。:::
 
 ::: warning
 
-队列只保护写值，不保护校验和取值只有 `setFieldsValue` / `resetFields` 走活实例判定；`getFieldsValue`、`validate`、`validateFields`、`updateSchema` 等用的是不校验挂载状态的 `getFormInstance()`（`use-antdv-form.ts:43-45,47-136`）。表单没挂载时 **`validate()` 不报错，直接返回 `{}`**（`:75-81`）—— 拿它当「校验通过」的判断条件会永远为真。
-:::
+队列只保护写值，不保护校验和取值只有 `setFieldsValue` / `resetFields` 走活实例判定；`getFieldsValue`、`validate`、`validateFields`、`updateSchema` 等用的是不校验挂载状态的 `getFormInstance()`（`use-antdv-form.ts:43-45,47-136`）。表单没挂载时 **`validate()` 不报错，直接返回 `{}`**（`:75-81`）—— 拿它当「校验通过」的判断条件会永远为真。:::
 
 **没有 `useModalForm` / `useDrawerForm`。** 表单模块不提供弹窗/抽屉的桥接（`src/index.ts:1-43` 里没有，全仓也搜不到这两个名字）；`views/system/*` 的做法就是页面自己写一份 schema 再用模板 prop 挂上去。
 
@@ -95,8 +93,7 @@ const [register, { validate, setFieldsValue, getFieldsValue }] = useForm({
 - `baseColProps`、`autoFocusFirstItem`、`compact`、`autoSetPlaceHolder`、`autoAdvancedLine`、`mergeDynamicData`、`size`。
 - 顶层 `rulesMessageJoinLabel` —— 起作用的是 **schema 上那一份**（`helper.ts:156,185`，另见 `rule-registry.ts:161-164`）。
 
-`colon` 与 `scrollToFirstError` 已经不是死字段：前者进 context 决定 label 后要不要补冒号（`form-field.vue:186`、`form-label.vue:57`），后者决定校验失败时是否滚到第一个错误字段（`form.vue:414-416`、`:524-529`）。两者都可以用 `setProps` 改。
-:::
+`colon` 与 `scrollToFirstError` 已经不是死字段：前者进 context 决定 label 后要不要补冒号（`form-field.vue:186`、`form-label.vue:57`），后者决定校验失败时是否滚到第一个错误字段（`form.vue:414-416`、`:524-529`）。两者都可以用 `setProps` 改。:::
 
 ## setProps 的「目标优先」
 
@@ -119,8 +116,7 @@ const [register, { validate, setFieldsValue, getFieldsValue }] = useForm({
 
 ::: tip
 
-想真正换掉一个已有配置把整份 `schemas` 数组重算一遍再 `setProps({ schemas })`（分步表单就是这么做的，`views/components/form/steps/index.vue:134,200,225`），或者直接用模板 prop 绑一个 `computed`（`views/components/form/validation/index.vue` 的四份 schema 就是四份独立常量）。
-:::
+想真正换掉一个已有配置把整份 `schemas` 数组重算一遍再 `setProps({ schemas })`（分步表单就是这么做的，`views/components/form/steps/index.vue:134,200,225`），或者直接用模板 prop 绑一个 `computed`（`views/components/form/validation/index.vue` 的四份 schema 就是四份独立常量）。:::
 
 ## FormSchema：字段配置
 
@@ -148,8 +144,7 @@ const [register, { validate, setFieldsValue, getFieldsValue }] = useForm({
 
 ::: warning
 
-schema 上这些字段是死的 `subLabel`、`emptySpan`、`disabledLabelWidth`、`render`、`renderColContent`、`renderComponentContent`、`colSlot`、`isAdvanced`、`children`、`changeEvent`、`helpComponentProps`（`schema.ts:86-126` 里都在，`form.vue` / `form-field.vue` / `helper.ts` 一个都没读）。尤其别按 vue-vben-admin 的经验去写 `render` / `colSlot` —— 这里的 `form-field.vue` 只有 `slot` 一条自定义渲染路径（`:247-253`），`render` 写了不报错，也不显示。规则级的 `trigger` 同样只是兼容字段：本实现统一在 change（且仅限首次提交之后）与 submit 两个时机跑（`schema.ts:39-40`、`form-field.vue:38-45`）。
-:::
+schema 上这些字段是死的 `subLabel`、`emptySpan`、`disabledLabelWidth`、`render`、`renderColContent`、`renderComponentContent`、`colSlot`、`isAdvanced`、`children`、`changeEvent`、`helpComponentProps`（`schema.ts:86-126` 里都在，`form.vue` / `form-field.vue` / `helper.ts` 一个都没读）。尤其别按 vue-vben-admin 的经验去写 `render` / `colSlot` —— 这里的 `form-field.vue` 只有 `slot` 一条自定义渲染路径（`:247-253`），`render` 写了不报错，也不显示。规则级的 `trigger` 同样只是兼容字段：本实现统一在 change（且仅限首次提交之后）与 submit 两个时机跑（`schema.ts:39-40`、`form-field.vue:38-45`）。:::
 
 ## 组件解析：只查 `componentMap`
 
@@ -157,8 +152,7 @@ schema 上这些字段是死的 `subLabel`、`emptySpan`、`disabledLabelWidth`�
 
 ::: tip
 
-和 `types/components.d.ts` 没有关系 `apps/web/types/components.d.ts` 是 `unplugin-vue-components` 扫目录得到的**模板标签**产物，schema 解析完全不经过它。写 `component: 'AInput'` 或任何不在表里的名字，`getComponent` 返回 `undefined`，字段既不报错也不警告，直接退化成一行纯文本 <code v-pre>{{ formModel[field] }}</code>（`form-field.vue:274-276`，取值与序列化在 `:215-220`，对象走 `JSON.stringify`）。
-:::
+和 `types/components.d.ts` 没有关系 `apps/web/types/components.d.ts` 是 `unplugin-vue-components` 扫目录得到的**模板标签**产物，schema 解析完全不经过它。写 `component: 'AInput'` 或任何不在表里的名字，`getComponent` 返回 `undefined`，字段既不报错也不警告，直接退化成一行纯文本 <code v-pre>{{ formModel[field] }}</code>（`form-field.vue:274-276`，取值与序列化在 `:215-220`，对象走 `JSON.stringify`）。:::
 
 几个容易误会的点：
 
@@ -203,8 +197,7 @@ schema 上这些字段是死的 `subLabel`、`emptySpan`、`disabledLabelWidth`�
 
 ::: warning
 
-三个方法在仓库里没有任何调用点 `validateFields`、`scrollToField`、`updateSchema` / `appendSchemaByField` / `removeSchemaByField` 在 `apps/web/src` 里除了类型声明和自身实现之外搜不到使用者（表格实例上对应的三个转发方法直接是空函数，见下）。它们是可用 API，但**没有示例或业务页验证过**。
-:::
+三个方法在仓库里没有任何调用点 `validateFields`、`scrollToField`、`updateSchema` / `appendSchemaByField` / `removeSchemaByField` 在 `apps/web/src` 里除了类型声明和自身实现之外搜不到使用者（表格实例上对应的三个转发方法直接是空函数，见下）。它们是可用 API，但**没有示例或业务页验证过**。:::
 
 ## 和表格搜索区的关系
 
@@ -227,21 +220,18 @@ schema 上这些字段是死的 `subLabel`、`emptySpan`、`disabledLabelWidth`�
 
 ::: warning
 
-分步表单的草稿是示例页自己写的键名 `demo:form-steps:draft` 定义在 `views/components/form/steps/index.vue:62`，写/读/删分别是本页的 `saveDraft`、`readStoredDraft` / `restoreDraft`、`clearDraft`（`:534-595` 那一段，直接读写 `localStorage`）。**`BasicForm` 完全没有草稿能力**，`FormProps` 里也没有相关字段；草稿存的是 `{ savedAt, step, values }` 的 `JSON.stringify`，只活在这台浏览器里。同理，「提交」只做整表校验并把值打出来，一个请求都不发。
-:::
+分步表单的草稿是示例页自己写的键名 `demo:form-steps:draft` 定义在 `views/components/form/steps/index.vue:62`，写/读/删分别是本页的 `saveDraft`、`readStoredDraft` / `restoreDraft`、`clearDraft`（`:534-595` 那一段，直接读写 `localStorage`）。**`BasicForm` 完全没有草稿能力**，`FormProps` 里也没有相关字段；草稿存的是 `{ savedAt, step, values }` 的 `JSON.stringify`，只活在这台浏览器里。同理，「提交」只做整表校验并把值打出来，一个请求都不发。:::
 
 ::: tip 分步的两个硬约束
 
 1. **步骤 schema 上不要写 `defaultValue`** —— 每次 `setProps({ schemas })` 都会重跑 `initFormModel()` 把字段盖回默认值（`form.vue:358-367,508-511`），初值改成挂载前 `setFieldsValue` 灌一次，靠的就是那条待写入队列（`steps/index.vue:96`，机制在 `use-antdv-form.ts:17-23,53-64`）。这条是页面自己的注释写在界面上的（`steps/index.vue:69-76`）。
-2. **整表校验必须把别的步骤挂成 `show: false` 再校验**：`validate()` 的候选字段来自 `schemas`（`form.vue:383-386`），所以页面的做法是把各步 schema 拼成一份临时全量表、非当前步骤加 `show: false`（`steps/index.vue:188-200`），失败时按 `errorFields[0].name[0]` 反查该跳回哪一步（`:206-211`）。注意 `ifShow: false` 与 `show: false` **都参与校验**（区别只在渲染），页面注释里「换成 `ifShow: false` 就真卸载了，等于没校验」那句与实测不符；真正不参与校验的是被折叠掉的行（`form.vue:288-294` 把 FormField 整个省掉）和已从 `schemas` 移除的字段。
-:::
+2. **整表校验必须把别的步骤挂成 `show: false` 再校验**：`validate()` 的候选字段来自 `schemas`（`form.vue:383-386`），所以页面的做法是把各步 schema 拼成一份临时全量表、非当前步骤加 `show: false`（`steps/index.vue:188-200`），失败时按 `errorFields[0].name[0]` 反查该跳回哪一步（`:206-211`）。注意 `ifShow: false` 与 `show: false` **都参与校验**（区别只在渲染），页面注释里「换成 `ifShow: false` 就真卸载了，等于没校验」那句与实测不符；真正不参与校验的是被折叠掉的行（`form.vue:288-294` 把 FormField 整个省掉）和已从 `schemas` 移除的字段。:::
 
 **校验页里哪些规则是自己写的**：仓库只有一条自带的「规则预设」，就是 `required` 简写（`helper.ts:181-189`）。其余全是 `Rule` 的原生字段（`schema.ts:17-42`）：`type: 'email'` / `type: 'url'` / `type: 'number'`、`min` / `max`、`pattern`（`validation/index.vue` 的几份 schema 里）、以及页面上手写的三条 validator —— 用户名查重（`setTimeout(600ms)` + 本地数组 `OCCUPIED_NAMES`，**没有接口**，`validation/index.vue:168,227-241`）、密码强度正则（`:256-264`）、确认密码与省/市/区跨字段一致性（`:275-341`，走 `dynamicRules`）。
 
 ::: warning
 
-「校验时机」那张卡片演示的是两个已经失效的写法 第四张卡片用 `itemProps: { validateTrigger: 'blur' | 'change' }` 和规则级 `trigger: 'blur'` 去切时机（`validation/index.vue:358-385`），但 `itemProps` 只有 `required` / `style` / `wrapperCol.style` 会被读（`form-field.vue:112,152,168`），规则级 `trigger` 也声明成兼容字段（`schema.ts:39-40`）。实际时机由 `submitAttempted` 决定（`form-field.vue:38-45`）：首次提交前只有 submit 跑，提交过之后 change 实时纠正。开关拨动看不到差别是**符合实现**的，不是 bug 复现。
-:::
+「校验时机」那张卡片演示的是两个已经失效的写法 第四张卡片用 `itemProps: { validateTrigger: 'blur' | 'change' }` 和规则级 `trigger: 'blur'` 去切时机（`validation/index.vue:358-385`），但 `itemProps` 只有 `required` / `style` / `wrapperCol.style` 会被读（`form-field.vue:112,152,168`），规则级 `trigger` 也声明成兼容字段（`schema.ts:39-40`）。实际时机由 `submitAttempted` 决定（`form-field.vue:38-45`）：首次提交前只有 submit 跑，提交过之后 change 实时纠正。开关拨动看不到差别是**符合实现**的，不是 bug 复现。:::
 
 ## 表单设计器已随 `antdv-next` 一起移除
 

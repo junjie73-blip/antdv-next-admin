@@ -1,4 +1,5 @@
 import type { ConfigProviderProps } from 'reka-ui';
+
 import type { InjectionKey } from 'vue';
 
 /** 支持的界面语言。与 `@antdv/shared` 的偏好取值一致，只这两套内置词条。 */
@@ -22,8 +23,8 @@ export type ResolvedComponentSize = 'large' | 'medium' | 'small';
  * 局部主题覆盖，写在 `ConfigProvider` 的那个元素上。
  *
  * 与偏好的分工：偏好是**全站唯一写侧**（`@antdv/preferences` 把值写在 `<html>`），
- * 这里是**子树覆盖**——只在这棵子树里改写 `--app-*`，不动 `<html>`，
- * 所以"某个抽屉里想要另一套主色"不会把整个应用换色。
+ * 这里是**子树覆盖**——只在这棵子树里改写规范名变量（`--primary`、`--radius`），
+ * 不动 `<html>`，所以"某个抽屉里想要另一套主色"不会把整个应用换色。
  * 字段留空即"不覆盖"，不是"覆盖成默认值"。
  */
 export interface GlobalTheme {
@@ -38,10 +39,11 @@ export interface GlobalTheme {
    * 留空 = 沿用外层档位；填 `'custom'` 时整套色板由 `primary` 决定。
    */
   preset?: string;
-  /** 主色，写成 `--app-primary`。只有需要"这一块换个主色"时才用 */
+  /** 主色，写成 `--primary`。只有需要"这一块换个主色"时才用 */
   primary?: string;
   /**
-   * 圆角。数值按 px 处理（`8` → `8px`），字符串原样写入。
+   * 圆角。数值按 px 语义给出，落地一律换算成 rem（`8` → `0.5rem`，见
+   * `@antdv/shared/utils` 的 `radiusToRem`），字符串原样写入。
    *
    * 注意与偏好不同：偏好的 `borderRadius` 存的是**倍率**（0–1，基准 16px），
    * 这里是绝对值——子树覆盖是给"这一块要更方/更圆"用的，倍率会让人以为在调全局刻度。
@@ -111,7 +113,7 @@ export interface ResolvedGlobalConfig {
  * 类型为 `| null`：最外层 provider 需要区分"上面没有配置"与"上面配置成默认值"，
  * 前者才按 `locale` 展开词条。
  */
-export const GLOBAL_CONFIG_KEY: InjectionKey<ResolvedGlobalConfig | null> =
+export const GLOBAL_CONFIG_KEY: InjectionKey<null | ResolvedGlobalConfig> =
   Symbol('antdv-global-config');
 
 /** 未挂 `ConfigProvider` 时的兜底配置：中文、中等尺寸、不动主题 */

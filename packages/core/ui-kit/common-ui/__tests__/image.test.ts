@@ -7,7 +7,7 @@ import Image from '../src/components/image/Image.vue';
 const previewOverlay = () =>
   document.body.querySelector('[data-common-image-preview]');
 
-describe('Image', () => {
+describe('image', () => {
   it('src / alt / 数字宽高落到 img', () => {
     const wrapper = mount(Image, {
       props: { alt: '头像', height: 60, src: 'a.png', width: 100 },
@@ -49,7 +49,10 @@ describe('Image', () => {
   it('受控 visible=true 直接挂载预览弹层', async () => {
     const wrapper = mount(Image, {
       attachTo: document.body,
-      props: { preview: { onVisibleChange: vi.fn(), visible: true }, src: 'a.png' },
+      props: {
+        preview: { onVisibleChange: vi.fn(), visible: true },
+        src: 'a.png',
+      },
     });
     await flushPromises();
     expect(previewOverlay()).not.toBeNull();

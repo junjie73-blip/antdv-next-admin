@@ -1,16 +1,16 @@
 import { flushPromises, mount } from '@vue/test-utils';
 import { defineComponent, h, nextTick } from 'vue';
 
+import { useLocale, useLocaleSync } from '@antdv/hooks/use-locale';
 import { PREFERENCES_CACHE_KEY } from '@antdv/preferences';
 import { cache } from '@antdv/shared/cache';
 import dayjs from '@antdv/shared/utils/dayjs';
+import { useAppStore } from '@antdv/stores';
 import { createPinia } from 'pinia';
-import { useLocale, useLocaleSync } from '~/composables/useLocale';
 import i18n from '~/locales';
 import enUS from '~/locales/lang/en-US';
 import zhCN from '~/locales/lang/zh-CN';
 import { getPreferences } from '~/settings';
-import { useAppStore } from '@antdv/stores';
 
 /**
  * locale 的接入与切换。

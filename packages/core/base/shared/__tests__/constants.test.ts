@@ -1,13 +1,13 @@
-import { readFileSync, readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
 import {
-  APP_BORDER_RADIUS,
-  APP_FILTER,
-  APP_FONT_SIZE,
-  APP_PRIMARY,
+  CSS_VAR_FILTER,
+  CSS_VAR_FONT_SIZE,
+  CSS_VAR_PRIMARY,
+  CSS_VAR_RADIUS,
   PREFERENCE_CSS_VARS,
 } from '../src/constants/css-vars';
 import {
@@ -46,19 +46,26 @@ describe('css-vars', () => {
   /**
    * 名单纪律：只收有读取点的名字。
    * 多一项 = `clearPreferencesFromDom` 多清一个僵尸变量；少一项 = 偏好写的值清不掉。
-   * `--ant-*` 那四条是 antd 兼容层的桥，桥对面已经没人站着了，所以这里反向钉住它不回来。
+   * 名字一律是 shadcn-vue 的裸规范名（不带 `--app-`、也不带回撤的 `--ant-*` 兼容层），
+   * 一旦有人把前缀加回来，偏好写到 `<html>` 上的值就再也读不到。
    */
-  it('四条偏好变量各就各位，没有 --ant-* 兼容层', () => {
-    expect([...PREFERENCE_CSS_VARS].sort()).toEqual(
-      [APP_BORDER_RADIUS, APP_FILTER, APP_FONT_SIZE, APP_PRIMARY].sort(),
+  it('四条偏好变量各就各位，用裸规范名且没有 --ant-* 兼容层', () => {
+    expect([...PREFERENCE_CSS_VARS].toSorted()).toEqual(
+      [
+        CSS_VAR_FILTER,
+        CSS_VAR_FONT_SIZE,
+        CSS_VAR_PRIMARY,
+        CSS_VAR_RADIUS,
+      ].toSorted(),
     );
     expect(PREFERENCE_CSS_VARS.join(' ')).not.toContain('--ant-');
+    expect(PREFERENCE_CSS_VARS.join(' ')).not.toContain('--app-');
   });
 
   it('每个偏好变量在 @antdv/design 里都有读取点', () => {
     // 写侧与读侧分家时的失效形态是"保存了但页面不动"，构建一声不吭，只能这样钉
     for (const name of PREFERENCE_CSS_VARS) {
-      expect(designCss, `--app 变量 ${name} 没有任何样式读它`).toContain(
+      expect(designCss, `变量 ${name} 没有任何样式读它`).toContain(
         `var(${name}`,
       );
     }
@@ -90,9 +97,9 @@ describe('theme', () => {
 
   /**
    * 两个基准值决定了"偏好里的倍率/px 换算成什么"，挪动它们等于全站半径与字号一起变。
-   * 圆角基准固定在 16px：倍率 1 就是 `--radius-lg` = 16px，整条刻度按它派生。
+   * 圆角基准固定在 16px：倍率 1 就是 `--radius` = 1rem，整条刻度按它派生。
    * 字号基准 14 是正文 `text-sm` 的 px 值，所以默认偏好（倍率 1、字号 14）换算后
-   * 落回 `--app-font-size: 100%` —— 字号首屏零位移（半径是有意变大，不是漂移）。
+   * 落回 `--font-size: 100%` —— 字号首屏零位移（半径是有意变大，不是漂移）。
    */
   it('圆角基准固定 16px，字号基准换算后默认偏好落回 100%', () => {
     expect(BORDER_RADIUS_BASE).toBe(16);

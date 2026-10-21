@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import type { WithClassAsProps } from "./interface"
-import { cn } from '@antdv/shared/utils/cn'
-import { useCarousel } from "./useCarousel"
+import type { WithClassAsProps } from './interface';
 
-const props = defineProps<WithClassAsProps>()
+import { cn } from '@antdv/shared/utils/cn';
 
-const { orientation } = useCarousel()
+import { useCarousel } from './useCarousel';
+
+const props = defineProps<WithClassAsProps>();
+
+const { orientation } = useCarousel();
 </script>
 
 <template>
@@ -13,12 +15,14 @@ const { orientation } = useCarousel()
     data-slot="carousel-item"
     role="group"
     aria-roledescription="slide"
-    :class="cn(
-      'min-w-0 shrink-0 grow-0 basis-full',
-      orientation === 'horizontal' ? 'pl-4' : 'pt-4',
-      props.class,
-    )"
+    :class="
+      cn(
+        'min-w-0 shrink-0 grow-0 basis-full',
+        orientation === 'horizontal' ? 'pl-4' : 'pt-4',
+        props.class,
+      )
+    "
   >
-    <slot />
+    <slot></slot>
   </div>
 </template>

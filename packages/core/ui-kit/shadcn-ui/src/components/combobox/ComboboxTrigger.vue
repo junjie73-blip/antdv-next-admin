@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import type { ComboboxTriggerProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { ComboboxTrigger, useForwardProps } from "reka-ui"
-import { cn } from '@antdv/shared/utils/cn'
+import type { ComboboxTriggerProps } from 'reka-ui';
 
-const props = defineProps<ComboboxTriggerProps & { class?: HTMLAttributes["class"] }>()
+import type { HTMLAttributes } from 'vue';
 
-const delegatedProps = reactiveOmit(props, "class")
+import { cn } from '@antdv/shared/utils/cn';
+import { reactiveOmit } from '@vueuse/core';
+import { ComboboxTrigger, useForwardProps } from 'reka-ui';
 
-const forwarded = useForwardProps(delegatedProps)
+const props = defineProps<
+  ComboboxTriggerProps & { class?: HTMLAttributes['class'] }
+>();
+
+const delegatedProps = reactiveOmit(props, 'class');
+
+const forwarded = useForwardProps(delegatedProps);
 </script>
 
 <template>
@@ -19,6 +23,6 @@ const forwarded = useForwardProps(delegatedProps)
     :class="cn('', props.class)"
     tabindex="0"
   >
-    <slot />
+    <slot></slot>
   </ComboboxTrigger>
 </template>

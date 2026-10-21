@@ -8,7 +8,7 @@ In one sentence: **this repository's "check for updates" is the PWA route (vite-
 | --- | --- | --- |
 | Plugin wiring | `internal/vite-config/src/plugins/pwa.ts`, registered when `VITE_PWA=true` (already on in `.env.production`) | `VitePWA({ registerType: 'prompt', strategies: 'generateSW', injectRegister: 'script-defer' })`, `devOptions.enabled: true` |
 | Precache list | same file | `workbox.globPatterns` covers js/css/html/ico/png/svg/woff2, 20MB per-file cap; images additionally get a runtime `CacheFirst` route (50 entries / 30 days) |
-| Prompt component | `apps/web/src/components/layout/ReloadPrompt.vue` | Fully implemented: `useRegisterSW` `needRefresh` / `offlineReady`, polling, countdown, update button |
+| Prompt component | `packages/core/ui-kit/common-ui/src/components/reload-prompt/ReloadPrompt.vue` | Fully implemented: `useRegisterSW` `needRefresh` / `offlineReady`, polling, countdown, update button |
 | Mounting | — | **No template renders `<ReloadPrompt />` anywhere.** Its only mention is a `types/components.d.ts` entry — the artifact of `unplugin-vue-components` scanning the `src/components` directory, which lists every local component; that is not usage |
 
 So the live behavior is: the SW registers via the injected script, and after a new build Workbox detects a waiting SW; but `registerType: 'prompt'` means **something must call `updateServiceWorker()`**, and that something is not on screen — users never see the "new version" card and keep the old bundle until they refresh on their own.
@@ -30,8 +30,7 @@ What is NOT here — do not look for vue-vben-admin's mechanisms
 
 - No endpoint polling of a published version / no `buildTime` diff service;
 - `__APP_INFO__` (build time + dependency manifest, injected by `defineApplicationConfig`) exists, but nothing consumes it for update detection — it is build metadata only;
-- No version-info page. To get the full "new version detected" experience, step one is mounting `<ReloadPrompt />` in a layout (e.g. next to the root of `apps/web/src/layouts/index.vue`); everything else is already written.
-:::
+- No version-info page. To get the full "new version detected" experience, step one is mounting `<ReloadPrompt />` in a layout (e.g. next to the root of `apps/web/src/layouts/index.vue`); everything else is already written. :::
 
 ## Verifying locally
 

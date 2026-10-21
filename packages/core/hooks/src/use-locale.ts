@@ -1,8 +1,10 @@
+import type { ComputedRef } from 'vue';
+import type { ComposerTranslation } from 'vue-i18n';
+
 import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import dayjs from '@antdv/shared/utils/dayjs';
-import i18n from '~/locales';
 import { useAppStore } from '@antdv/stores';
 
 import 'dayjs/locale/en';
@@ -23,27 +25,28 @@ const DAYJS_LOCALE_MAP: Record<LocaleType, string> = {
 };
 
 /**
- * 把 locale 展开成界面的三件事：i18n 文案、`<html lang>`、dayjs 格式化。
- *
- * 只应由 `useLocaleSync` 调用；任何组件都不该再自己写 `i18n.global.locale`，
- * 两处各写一份就会漂移 —— 表现是「切了语言，菜单变英文、分页器还是中文」。
- */
-function applyLocale(locale: LocaleType): void {
-  i18n.global.locale.value = locale;
-  document.documentElement.lang = locale;
-  dayjs.locale(DAYJS_LOCALE_MAP[locale]);
-}
-
-/**
  * locale 效应的唯一出口：偏好里的 `locale` 一变，就把 i18n、`<html lang>` 与 dayjs 一起对齐。
+ *
+ * 必须在组件 setup 里调用（`useI18n` 要有注入上下文）。它写的是 i18n **全局 composer**
+ * 的 `locale`，与 `i18n.global.locale` 是同一个 ref，所以不存在「两处各写一份」的漂移 ——
+ * 表现曾经是「切了语言，菜单变英文、分页器还是中文」。
  *
  * 以前这里还多返回一个 antd 的 locale 对象给 `ConfigProvider :locale`（内置文案
  * OK/Cancel、分页器「条/页」那种）。antd 依赖移除后，组件的内置文案由
  * `@antdv/common-ui` 的 ConfigProvider 按 `'en-US' | 'zh-CN'` 自己展开（`textsByLocale`），
  * 日期排版走 reka-ui 的 locale 注入，两条链路都只需要那个字符串，所以这里不再有返回值。
+ *
+ * i18n 实例本身不在这里 import：语言包是应用的东西，包只认「装好的那个 i18n」。
  */
 export function useLocaleSync(): void {
   const appStore = useAppStore();
+  const { locale: i18nLocale } = useI18n({ useScope: 'global' });
+
+  function applyLocale(locale: LocaleType): void {
+    i18nLocale.value = locale as typeof i18nLocale.value;
+    document.documentElement.lang = locale;
+    dayjs.locale(DAYJS_LOCALE_MAP[locale]);
+  }
 
   watch(
     () => appStore.locale as LocaleType,
@@ -52,7 +55,16 @@ export function useLocaleSync(): void {
   );
 }
 
-export function useLocale() {
+/**
+ * 返回类型必须写死：`t` 的推断类型要借 `@intlify/core-base` 里的 `RemoveIndexSignature`
+ * 才表达得出来，tsdown 出 `.d.ts` 时会以「不可移植」直接拒绝构建（TS2883）。
+ */
+export function useLocale(): {
+  availableLocales: string[];
+  locale: ComputedRef<LocaleType>;
+  setLocale: (next: LocaleType) => void;
+  t: ComposerTranslation;
+} {
   const appStore = useAppStore();
   const { t, availableLocales } = useI18n({ useScope: 'global' });
 

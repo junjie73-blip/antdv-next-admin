@@ -1,13 +1,14 @@
-import type { LayoutMode, LayoutRegionFlags } from '../src';
 import type { MenuConfig } from '@antdv/types';
+
+import type { LayoutMode, LayoutRegionFlags } from '../src';
 
 import { mount } from '@vue/test-utils';
 import { defineComponent, effectScope, h, nextTick } from 'vue';
 import { createMemoryHistory, createRouter } from 'vue-router';
 
+import { useAppStore, useRouteStore, useTabsStore } from '@antdv/stores';
 import { createPinia, setActivePinia } from 'pinia';
 import { vi } from 'vitest';
-import { useAppStore, useRouteStore, useTabsStore } from '@antdv/stores';
 
 import { useLayout, useShell } from '../src/hooks/use-layout';
 

@@ -18,41 +18,36 @@
  * 收敛成一张区域蓝图（`LAYOUT_BLUEPRINTS`）后，新增形态只加一行表项。
  */
 
+export { default as PageLoading } from './basic/content/page-loading.vue';
+
+export { default as PageTransition } from './basic/content/page-transition.vue';
+export { default as RouteLoadingBar } from './basic/content/route-loading-bar.vue';
+// 外壳与它的几个零件：宿主只需要 `BasicLayout` + logo/标题 + 顶栏插槽
+export { default as BasicLayout } from './basic/layout.vue';
+export { default as LayoutTabs } from './basic/tabbar/index.vue';
 export * from './breadcrumb';
 
 export * from './content';
-export * from './host';
-export * from './menu-search';
-export * from './menu-source';
-export * from './modes';
-
 export * from './hooks/use-header-menu';
 export * from './hooks/use-layout';
 export * from './hooks/use-menu-tree';
 export * from './hooks/use-page-cache';
 export * from './hooks/use-sidebar-menu';
 export * from './hooks/use-tabs';
-export type { ContentMode, LayoutMode } from '@antdv/types';
 
-// 外壳与它的几个零件：宿主只需要 `BasicLayout` + logo/标题 + 顶栏插槽
-export { default as BasicLayout } from './basic/layout.vue';
-export { default as PageLoading } from './basic/content/page-loading.vue';
-export { default as PageTransition } from './basic/content/page-transition.vue';
-export { default as RouteLoadingBar } from './basic/content/route-loading-bar.vue';
-export { default as LayoutTabs } from './basic/tabbar/index.vue';
-
+export * from './host';
+export * from './menu-search';
+export * from './menu-source';
+export * from './modes';
 // 住在装配层的组件：面包屑（依赖上面的推导函数）、命令面板与布局形态示意图
 export { default as LayoutBreadcrumb } from './widgets/breadcrumb.vue';
-export { default as LayoutGlobalSearch } from './widgets/global-search/index.vue';
-export { default as LayoutIcon } from './widgets/layout-icon.vue';
-// 顶栏右侧那一排：宿主薄壳只需要摆这两个（小部件的可见性由偏好开关决定）
-export { default as LayoutUserDropdown } from './widgets/user-dropdown/index.vue';
-export { default as LayoutWidgetBar } from './widgets/widget-bar.vue';
+
 /*
  * 明暗开关与语言开关单独导出：认证页（登录/注册）在布局外壳之外，
  * 但右上角那颗工具条要用同一套控件 —— 复制一份就会分叉（文案、偏好写侧各一套）。
  */
 export { default as LayoutWidgetColorToggle } from './widgets/color-toggle/index.vue';
+export { default as LayoutGlobalSearch } from './widgets/global-search/index.vue';
 export { default as LayoutWidgetLanguageToggle } from './widgets/language-toggle/index.vue';
 export {
   DEFAULT_ICON_PALETTE,
@@ -62,6 +57,7 @@ export type {
   IconPaletteSet,
   LayoutIconPalette,
 } from './widgets/layout-icon-palette';
+export { default as LayoutIcon } from './widgets/layout-icon.vue';
 export {
   LAYOUT_ICON_FALLBACK,
   LAYOUT_ICON_SHAPES,
@@ -73,3 +69,7 @@ export type {
   IconRect,
   LayoutIconType,
 } from './widgets/layout-icons';
+// 顶栏右侧那一排：宿主薄壳只需要摆这两个（小部件的可见性由偏好开关决定）
+export { default as LayoutUserDropdown } from './widgets/user-dropdown/index.vue';
+export { default as LayoutWidgetBar } from './widgets/widget-bar.vue';
+export type { ContentMode, LayoutMode } from '@antdv/types';

@@ -116,7 +116,9 @@ describe('alert()', () => {
     void alertBox({ title: '提示', content: '仅通知' });
     await settle();
     expect(dialogEl()).not.toBeNull();
-    const buttons = [...document.querySelectorAll('button')].map((b) => b.textContent?.trim());
+    const buttons = [...document.querySelectorAll('button')].map((b) =>
+      b.textContent?.trim(),
+    );
     expect(buttons.some((t) => t?.includes('取消'))).toBe(false);
     expect(buttons.some((t) => t?.includes('知道了'))).toBe(true);
   });

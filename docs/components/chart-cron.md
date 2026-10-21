@@ -27,8 +27,7 @@
 
 ::: warning
 
-明暗适配是示例页自己做的「图表」示例页的做法是：读 `appStore.resolvedTheme` 得到 `isDark`（`chart/index.vue:22`；store 侧 `packages/stores/src/app.ts:44`），把所有颜色写成 `computed` 里的 option 字段（文字/轴线/tooltip 背景都按明暗两套取值，`chart/index.vue:24-51`），主题切换时 `computed` 重算、触发组件的 notMerge 重绘（页面注释原话在 `chart/index.vue:20-21`）。换你自己的页面时，这是封装可用能力的全部：其余的「深色主题」都得这样进 option。
-:::
+明暗适配是示例页自己做的「图表」示例页的做法是：读 `appStore.resolvedTheme` 得到 `isDark`（`chart/index.vue:22`；store 侧 `packages/stores/src/app.ts:44`），把所有颜色写成 `computed` 里的 option 字段（文字/轴线/tooltip 背景都按明暗两套取值，`chart/index.vue:24-51`），主题切换时 `computed` 重算、触发组件的 notMerge 重绘（页面注释原话在 `chart/index.vue:20-21`）。换你自己的页面时，这是封装可用能力的全部：其余的「深色主题」都得这样进 option。:::
 
 ### 一个存在但没被接线的全功能 composable
 
@@ -69,8 +68,7 @@ Props 与事件（`CronEditor.vue:27-33`）：
 
 ::: warning
 
-组件不支持手动输入展示表达式的那个 `Input` 是 `readonly` 的（`CronEditor.vue:330-336`）；antd 时代脚本里那段无模板绑定点的死代码 `handleInputChange` 已在迁入 `@antdv/common-ui` 时删除。想手输表达式得像示例页第 3 张卡片那样自己放输入框。
-:::
+组件不支持手动输入展示表达式的那个 `Input` 是 `readonly` 的（`CronEditor.vue:330-336`）；antd 时代脚本里那段无模板绑定点的死代码 `handleInputChange` 已在迁入 `@antdv/common-ui` 时删除。想手输表达式得像示例页第 3 张卡片那样自己放输入框。:::
 
 ### 曾经的 type-check 报错文件：迁移时已消解
 

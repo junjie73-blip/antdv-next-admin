@@ -71,7 +71,7 @@ test.describe('抽屉头部与滑动动画', () => {
     await expect(header).toHaveCSS('border-bottom-width', '1px');
     await expect(header).toHaveCSS(
       'border-bottom-color',
-      await painted(page, 'var(--app-border)'),
+      await painted(page, 'hsl(var(--border))'),
     );
     // 内置头部与插槽头部共用同一圈内边距，插槽内容不再贴着抽屉边缘
     await expect(header).toHaveCSS('padding-left', '24px');
@@ -173,10 +173,10 @@ test.describe('路由加载指示器', () => {
 
       const overlay = page.getByRole('status', { name: '页面加载中' });
       await expect(overlay, '组件还没出库时应当挂着加载遮罩').toBeVisible({
-        timeout: 8_000,
+        timeout: 8000,
       });
 
-      const primary = await painted(page, 'var(--app-primary)');
+      const primary = await painted(page, 'hsl(var(--primary))');
       /**
        * 原缺陷：旋转指示器是写死的灰黑色。`Spinner` 画的是 `currentColor` 描边，
        * 所以决定转圈颜色的是元素自己算出来的 `color` —— 这里要它等于主色令牌。
@@ -200,14 +200,14 @@ test.describe('路由加载指示器', () => {
     await expectActivePath(page, '/system/user');
 
     /*
-     * 顶部进度条取色：`barColor` 走 `var(--app-primary)` 而不是十六进制字面量。
+     * 顶部进度条取色：`barColor` 走 `var(--primary)` 而不是十六进制字面量。
      * 导航结束后进度归零、整条淡出，但底色仍是同一个变量，所以这时读也稳。
      */
     const bar = page.locator('[role="progressbar"]').first();
     await expect(bar).toHaveAttribute('aria-label', /加载/);
     await expect(bar.locator('div').first()).toHaveCSS(
       'background-color',
-      await painted(page, 'var(--app-primary)'),
+      await painted(page, 'hsl(var(--primary))'),
     );
 
     expect(errors.errors).toEqual([]);
@@ -247,16 +247,14 @@ test.describe('大文件上传列表', () => {
      * 判据是"这一张表里没有任何一个格子还是别的对齐方式"，
      * 把没对齐的那格连文字一起打出来，方便定位是哪一列漏了类。
      */
-    const misaligned = await card
-      .locator('th, td')
-      .evaluateAll((cells) =>
-        cells
-          .filter((cell) => getComputedStyle(cell).textAlign !== 'center')
-          .map((cell) => ({
-            tag: cell.tagName.toLowerCase(),
-            text: (cell.textContent ?? '').trim().slice(0, 16),
-          })),
-      );
+    const misaligned = await card.locator('th, td').evaluateAll((cells) =>
+      cells
+        .filter((cell) => getComputedStyle(cell).textAlign !== 'center')
+        .map((cell) => ({
+          tag: cell.tagName.toLowerCase(),
+          text: (cell.textContent ?? '').trim().slice(0, 16),
+        })),
+    );
     expect(misaligned, '存在未居中的单元格').toEqual([]);
 
     /**

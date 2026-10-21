@@ -1,7 +1,7 @@
 import type { TabItem } from '@antdv/types';
 
-import { createPinia, setActivePinia } from 'pinia';
 import { useTabsStore } from '@antdv/stores';
+import { createPinia, setActivePinia } from 'pinia';
 
 /**
  * 标签固定态（toggleAffix）的 store 测试。

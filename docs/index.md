@@ -70,7 +70,7 @@ features:
     linkText: 测试策略
   - icon: 🖼
     title: 设计令牌与全局样式
-    details: Tailwind v4 显式层顺序，覆盖组件库不用 !important；shadcn 语义色板的 --app-* 令牌钉在根元素上，弹层与页面同解。
+    details: Tailwind v4 显式层顺序，覆盖组件库不用 !important；shadcn 语义色板的 --* 令牌钉在根元素上，弹层与页面同解。
     link: /guide/essentials/design
     linkText: 设计令牌
   - icon: 📦
@@ -87,23 +87,22 @@ features:
 
 ## 这套文档想回答什么
 
-| 你的处境                       | 直接去                                                                                  |
-| ------------------------------ | --------------------------------------------------------------------------------------- |
-| 刚 clone，想跑起来             | [快速开始](/guide/introduction/quick-start)                                             |
-| 想知道有哪些组件可以用、怎么用 | [组件示例](/components/)、[公共组件](/components/common-ui)                             |
-| 想知道代码为什么这么摆         | [基础概念](/guide/essentials/concepts)、[目录说明](/guide/project/dir)                  |
-| 要加一个页面 / 一条菜单        | [路由与菜单](/guide/essentials/route)、[布局、菜单与标签页](/guide/in-depth/layout)     |
-| 要调接口、加字段               | [请求层与接口约定](/guide/essentials/request)、[数据 Mock](/guide/essentials/mock)      |
-| 要存跨页面共享的状态           | [状态管理](/guide/essentials/stores)                                                    |
-| 要写样式、找图标               | [设计令牌与全局样式](/guide/essentials/design)                                          |
-| 要换主题色、加偏好开关         | [主题与偏好设置](/guide/in-depth/theme)                                                 |
-| 要控制按钮 / 路由权限          | [权限、指令与光标](/guide/in-depth/access)                                              |
-| 提交前要过什么检查             | [开发规范与环境变量](/guide/essentials/development)、[测试策略](/guide/project/testing) |
-| 要上线                         | [构建与部署](/guide/essentials/deploy)                                                  |
-| 想知道这一版改了什么           | [更新日志](/guide/other/changelog)                                                      |
-| 撞上别人踩过的坑               | [常见问题](/guide/other/faq)                                                            |
+| 你的处境 | 直接去 |
+| --- | --- |
+| 刚 clone，想跑起来 | [快速开始](/guide/introduction/quick-start) |
+| 想知道有哪些组件可以用、怎么用 | [组件示例](/components/)、[公共组件](/components/common-ui) |
+| 想知道代码为什么这么摆 | [基础概念](/guide/essentials/concepts)、[目录说明](/guide/project/dir) |
+| 要加一个页面 / 一条菜单 | [路由与菜单](/guide/essentials/route)、[布局、菜单与标签页](/guide/in-depth/layout) |
+| 要调接口、加字段 | [请求层与接口约定](/guide/essentials/request)、[数据 Mock](/guide/essentials/mock) |
+| 要存跨页面共享的状态 | [状态管理](/guide/essentials/stores) |
+| 要写样式、找图标 | [设计令牌与全局样式](/guide/essentials/design) |
+| 要换主题色、加偏好开关 | [主题与偏好设置](/guide/in-depth/theme) |
+| 要控制按钮 / 路由权限 | [权限、指令与光标](/guide/in-depth/access) |
+| 提交前要过什么检查 | [开发规范与环境变量](/guide/essentials/development)、[测试策略](/guide/project/testing) |
+| 要上线 | [构建与部署](/guide/essentials/deploy) |
+| 想知道这一版改了什么 | [更新日志](/guide/other/changelog) |
+| 撞上别人踩过的坑 | [常见问题](/guide/other/faq) |
 
 ::: info
 
-约定文档里的命令行都在仓库根目录执行，包管理器固定 `pnpm@10.12.4`（`packageManager` 字段已锁），Node 要求 `>=22`，本地用 `.node-version` 里的 24.0.0。
-:::
+约定文档里的命令行都在仓库根目录执行，包管理器固定 `pnpm@10.12.4`（`packageManager` 字段已锁），Node 要求 `>=22`，本地用 `.node-version` 里的 24.0.0。:::

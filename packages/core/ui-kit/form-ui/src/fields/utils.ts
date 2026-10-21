@@ -41,7 +41,8 @@ export function optionValueEquals(a: any, b: any): boolean {
   if (a === b) return true;
   if (Array.isArray(a) && Array.isArray(b)) {
     return (
-      a.length === b.length && a.every((item, i) => optionValueEquals(item, b[i]))
+      a.length === b.length &&
+      a.every((item, i) => optionValueEquals(item, b[i]))
     );
   }
   if (a && b && typeof a === 'object' && typeof b === 'object') {
@@ -65,7 +66,11 @@ export function flattenTree(
   const valueKey = fieldNames?.value ?? 'value';
   const result: FlattenedTreeOption[] = [];
 
-  const walk = (nodes: any[] | undefined, level: number, parentVisible: boolean) => {
+  const walk = (
+    nodes: any[] | undefined,
+    level: number,
+    parentVisible: boolean,
+  ) => {
     (nodes ?? []).forEach((node) => {
       if (node === null || node === undefined) return;
       const value = node[valueKey] ?? node.value;

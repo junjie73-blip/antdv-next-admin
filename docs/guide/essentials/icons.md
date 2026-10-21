@@ -1,14 +1,15 @@
 # 图标
 
-仓库里同时存在**三条图标通道**，各自的适用面不同，出错方式也不同：
+仓库里同时存在**两条图标通道**，各自的适用面不同，出错方式也不同：
 
 | 通道 | 依赖 | 写法 | 现状 |
 | --- | --- | --- | --- |
-| Iconify 离线集合 | `@iconify/vue` `^5.0.3` + 五套 `@iconify-json/*` | `<Icon icon="carbon:search" />` | 主力：`carbon:` 444 处、`ant-design:` 99 处、`lucide:` 7 处。口径与对账测试一致 —— 只数带引号的整串字面量，扫描 `apps/backend-mock/server`、`apps/web/src`、`packages` 下的 `.ts/.tsx/.vue`，`lucide` 几乎都在 `IconPicker` 与 `@iconify` 自己的加载器里 |
-| antdv-next 自带图标组件 | `@antdv-next/icons` `^1.1.2` | `import { FullscreenOutlined } from '@antdv-next/icons'` | 只剩 1 个源文件：`apps/web/src/views/screen/components/ScreenHeader.vue:4`（另有 `views/screen/__tests__/screen-header.spec.ts` 一个测试引用）。登录/注册/导入导出/租户选择那几处早已换成 Iconify |
-| 本地 SVG 雪碧图 | `vite-plugin-svg-icons` `^2.0.1` | `<SvgIcon name="logo" />` | `apps/web/src/assets/icons` 目前放着 `github / google / qq / wechat` 四个（登录页的 social 按钮用它们，见[登录与鉴权](/guide/in-depth/login)） |
+| Iconify 离线集合 | `@iconify/vue` `^5.0.3` + 五套 `@iconify-json/*` | `<Icon icon="carbon:search" />` | 主力，共 535 处引用：`carbon:` 430 处、`ant-design:` 98 处、`lucide:` 7 处。口径与对账测试一致 —— 只数带引号的整串字面量，扫描 `apps/backend-mock/server`、`apps/web/src`、`packages` 下的 `.ts/.tsx/.vue`，`lucide` 几乎都在 `IconPicker` 与 `@iconify` 自己的加载器里 |
+| 本地 SVG 雪碧图 | `vite-plugin-svg-icons` `^2.0.1`，渲染用 `@antdv/icons` 的 `SvgIcon` | `<SvgIcon name="logo" />` | `apps/web/src/assets/icons` 目前放着 `github / google / qq / wechat` 四个（登录页的 social 按钮用它们，见[登录与鉴权](/guide/in-depth/login)） |
 
 版本都来自 `pnpm-workspace.yaml` 的 catalog，别按子包 package.json 查。
+
+::: info 第三条通道已经没了 `@antdv-next/icons`（组件式图标，`import { FullscreenOutlined } from '@antdv-next/icons'`）随 antdv-next 一起退出依赖：catalog 里查不到这个包，全仓源码 0 处 import —— 只剩 `apps/web/src/views/__tests__/gallery-api-usage.spec.ts` 把它当**坏样例**写在守卫里。最后一个消费者是大屏头部的全屏按钮，它现在用 `<Icon :icon="isFullscreen ? 'carbon:minimize' : 'carbon:maximize'" />`（`apps/web/src/views/screen/components/ScreenHeader.vue:105`）。要图标一律走上面两条。:::
 
 ## Iconify：默认走离线数据
 
@@ -26,8 +27,7 @@ iconifyOffline({
 
 ::: warning
 
-列表外（或没装）的集合不会报错，只会变空白 `<Icon icon="carbon:card" />` 写错名字时 Vue 不报错：构建期查不到就是**空 span**，若走到运行时取图则变成一次网络请求（还常被本站 CSP 挡掉）。表现是"菜单有的项有图标、有的整格空白，标题被顶得左右不齐"——看着像样式坏了，其实是数据写错。
-:::
+列表外（或没装）的集合不会报错，只会变空白 `<Icon icon="carbon:card" />` 写错名字时 Vue 不报错：构建期查不到就是**空 span**，若走到运行时取图则变成一次网络请求（还常被本站 CSP 挡掉）。表现是"菜单有的项有图标、有的整格空白，标题被顶得左右不齐"——看着像样式坏了，其实是数据写错。:::
 
 `vite-plugin-iconify-offline` 也在 `apps/web` 的 devDependencies 里（catalog `^0.4.3`），但全仓**没有任何 import**，起作用的是上面那个 `@tomjs/*`。
 
@@ -50,8 +50,7 @@ iconifyOffline({
 2. `auto-import.ts:31` 的 `local` 数组；
 3. `IconPicker.vue` 的 `Prefix` 联合类型（`:53`）、`COLLECTIONS`（`:62`）、`COLLECTION_LOADERS`（`:75`）（漏了就选不到也搜不出来）；
 4. `apps/web/test/icon-names.test.ts` 的 `COLLECTIONS` 和 `LITERAL` 正则里的集合名分支；
-5. 跑一次 `pnpm --filter @antdv/web build` 确认离线数据真的进了产物。
-:::
+5. 跑一次 `pnpm --filter @antdv/web build` 确认离线数据真的进了产物。:::
 
 ## 图标名对账测试（本仓库的硬约束）
 
@@ -71,8 +70,7 @@ iconifyOffline({
 
 ::: warning
 
-类名形式的图标在本仓库不生效 `apps/web/src/views/system/micro-app/index.vue` 里还能看到 4 处 UnoCSS 风格的 `class="i-carbon-search"` / `i-carbon-application` 写法（`:195`、`:333`、`:408`、`:450`；`MicroAppContainer` 已迁进 `@antdv/common-ui`，它那份引用跟着一起没了）。仓库里没有 UnoCSS，也没有任何把 `i-*` 编译成 CSS 的插件（样式是 Tailwind v4，见[设计令牌与全局样式](/guide/essentials/design)），这些 span 渲染出来是**纯空白**。新代码一律写组件形式：`<Icon icon="carbon:search" />`。
-:::
+类名形式的图标在本仓库不生效 `apps/web/src/views/system/micro-app/index.vue` 里还能看到 4 处 UnoCSS 风格的 `class="i-carbon-search"` / `i-carbon-application` 写法（`:195`、`:333`、`:408`、`:450`；`MicroAppContainer` 已迁进 `@antdv/common-ui`，它那份引用跟着一起没了）。仓库里没有 UnoCSS，也没有任何把 `i-*` 编译成 CSS 的插件（样式是 Tailwind v4，见[设计令牌与全局样式](/guide/essentials/design)），这些 span 渲染出来是**纯空白**。新代码一律写组件形式：`<Icon icon="carbon:search" />`。:::
 
 ## 图标名从哪来
 
@@ -83,7 +81,7 @@ iconifyOffline({
 
 面包屑对空值的处理：`toText()`（`packages/layouts/src/breadcrumb.ts:49-51`）把"不是非空字符串"统一折成 `undefined`，视图侧再靠 `v-if="showIcon && entry.icon"` 决定渲不渲 `<Icon>`（`packages/layouts/src/widgets/breadcrumb.vue:111-113`）——空串不再往 `<Icon :icon>` 里塞，也就不会有"图标位占了一格但什么都不画"的对不齐问题。
 
-`antdv-next` 组件内部自己的图标（表单校验、选择器下拉箭头等）走 `@antdv-next/icons`，与上面这套无关。页面上还剩的 antd DOM 只有表单设计器，所以这条通道今天真正被业务代码用着的只有大屏头部那两只全屏箭头（`views/screen/components/ScreenHeader.vue:4`）；除此之外要图标一律走 Iconify。
+**包内部的图标是第四条路**：表单字段的清除/眼睛/搜索、toast 的勾与叉、下拉箭头这类图标由 `@lucide/vue`（catalog `:48`，精确钉 `1.55.0`）提供 —— 10 个源文件、分布在 `common-ui` / `form-ui` / `popup-ui` / `shadcn-ui` 四个包，例如 `packages/core/ui-kit/common-ui/src/components/toast/Toaster.vue:13`。它们不经过 Iconify 的离线集合，也不参加上面那套对账。至于"`antdv-next` 组件自带一套图标"那条通道，随库一起没了（见开头）。
 
 ## 相关页面
 

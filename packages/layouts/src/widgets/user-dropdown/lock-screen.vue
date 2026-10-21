@@ -2,11 +2,21 @@
 import { ref, watch } from 'vue';
 
 import { useLayoutI18n } from '@antdv/layout-ui';
-import { APP_BORDER_RADIUS } from '@antdv/shared/constants';
+import { CSS_VAR_RADIUS } from '@antdv/shared/constants';
 import { Icon } from '@iconify/vue';
 import { useCssVar } from '@vueuse/core';
 
 defineOptions({ name: 'LockScreen' });
+
+const props = withDefaults(
+  defineProps<{
+    /** 向下拖过多少像素算解锁 */
+    threshold?: number;
+  }>(),
+  { threshold: UNLOCK_PULL_THRESHOLD },
+);
+
+const emit = defineEmits<{ unlock: [] }>();
 
 /**
  * 锁屏遮罩：盖住整个视口，把滚动与页面上的默认交互全部挡在下面。
@@ -27,23 +37,13 @@ defineOptions({ name: 'LockScreen' });
  */
 const UNLOCK_PULL_THRESHOLD = 96;
 
-const props = withDefaults(
-  defineProps<{
-    /** 向下拖过多少像素算解锁 */
-    threshold?: number;
-  }>(),
-  { threshold: UNLOCK_PULL_THRESHOLD },
-);
-
-const emit = defineEmits<{ unlock: [] }>();
-
 const { t } = useLayoutI18n();
 
 /* ---------------------------------------------------------------- 样式变量
  * 一律走 VueUse 的 `useCssVar`：读取要跟随偏好实时变（圆角刻度是可配的），
  * 写入要在元素销毁前收干净，两头都不该由组件自己拼 `style` 字符串。
  *
- * 圆角的唯一来源是 `--app-border-radius`，它在 token 里就是 `1rem`，
+ * 圆角的唯一来源是 `--radius`，它在 token 里就是 `1rem`，
  * 偏好改的是倍数（见 `@antdv/preferences` 的 `radiusToRem`），
  * 所以这里所有半径都是 `calc(rem 基准 × 倍数)`，源码里不出现任何 px 圆角。
  * 圆形那枚把手用 `rounded-full`（无穷大半径，不是长度单位）。
@@ -51,7 +51,7 @@ const { t } = useLayoutI18n();
 const cardEl = ref<HTMLElement | null>(null);
 
 /** 基准圆角：跟着 `<html>` 上的内联值与 class 走，明暗/主题/刻度换哪个都能收到 */
-const baseRadius = useCssVar(APP_BORDER_RADIUS, document.documentElement, {
+const baseRadius = useCssVar(CSS_VAR_RADIUS, document.documentElement, {
   initialValue: '1rem',
   observe: true,
 });
@@ -176,29 +176,29 @@ function release() {
 }
 
 .lock-card {
-  background: var(--app-popover);
+  background: hsl(var(--popover));
   border-radius: var(--lock-card-radius);
-  color: var(--app-popover-foreground);
+  color: hsl(var(--popover-foreground));
   box-shadow: 0 18px 48px rgb(0 0 0 / 32%);
 }
 
 .lock-badge {
-  background: var(--app-primary);
-  color: var(--app-primary-foreground);
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
 }
 
 .lock-title {
-  color: var(--app-popover-foreground);
+  color: hsl(var(--popover-foreground));
 }
 
 .lock-hint {
-  color: var(--app-muted-foreground);
+  color: hsl(var(--muted-foreground));
 }
 
 .lock-button {
-  background: var(--app-primary);
+  background: hsl(var(--primary));
   border-radius: var(--lock-handle-radius);
-  color: var(--app-primary-foreground);
+  color: hsl(var(--primary-foreground));
 }
 
 .lock-button:hover {
@@ -206,8 +206,8 @@ function release() {
 }
 
 .lock-handle {
-  background: var(--app-muted);
-  color: var(--app-muted-foreground);
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
 }
 
 /* 下拉进度：把手按 var 位移，箭头跟着透明度渐显，两个量都由 JS 写的那个数换算 */

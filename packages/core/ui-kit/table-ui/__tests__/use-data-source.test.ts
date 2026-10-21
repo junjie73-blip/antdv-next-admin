@@ -9,7 +9,11 @@ import { useDataSource } from '../src/hooks/useDataSource';
 
 function makeOptions(overrides: Record<string, any> = {}) {
   const loading = { setLoading: vi.fn() };
-  const paginationState: PaginationProps = { current: 1, pageSize: 10, total: 0 };
+  const paginationState: PaginationProps = {
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  };
   const pagination = {
     getPagination: () => paginationState,
     setPagination: (info: Partial<PaginationProps>) => {
@@ -47,7 +51,9 @@ describe('useDataSource — 无 api 的本地数据模式', () => {
 
   it('外部 dataSource 变化会刷新，且 rawDataSource 是深拷贝', async () => {
     const source = ref<Recordable[]>([{ id: 1, name: 'a' }]);
-    const { options } = makeOptions({ dataSource: computed(() => source.value) });
+    const { options } = makeOptions({
+      dataSource: computed(() => source.value),
+    });
     const hook = useDataSource(options as any);
 
     source.value = [{ id: 1, name: 'b' }];
@@ -66,11 +72,7 @@ describe('useDataSource — 无 api 的本地数据模式', () => {
     const hook = useDataSource(options as any);
 
     hook.insertTableDataRecord({ id: '3', name: 'c' }, 1);
-    expect(hook.dataSourceRef.value.map((r) => r.id)).toEqual([
-      '1',
-      '3',
-      '2',
-    ]);
+    expect(hook.dataSourceRef.value.map((r) => r.id)).toEqual(['1', '3', '2']);
 
     expect(hook.findTableDataRecord('3')).toMatchObject({ name: 'c' });
 
@@ -120,7 +122,9 @@ describe('useDataSource — api 取数', () => {
       await flush();
       expect(hook.dataSourceRef.value).toHaveLength(length);
       // 有 total 字段时用字段，没有时退化成条数
-      expect(paginationState.total).toBe(body.totalCount ?? body.total ?? length);
+      expect(paginationState.total).toBe(
+        body.totalCount ?? body.total ?? length,
+      );
     }
   });
 
@@ -204,7 +208,9 @@ describe('useDataSource — api 取数', () => {
     expect(api).not.toHaveBeenCalled();
 
     await hook.reload();
-    expect(api).toHaveBeenCalledWith(expect.not.objectContaining({ keyword: 'abc' }));
+    expect(api).toHaveBeenCalledWith(
+      expect.not.objectContaining({ keyword: 'abc' }),
+    );
   });
 
   it('reload 回到第一页', async () => {
@@ -247,7 +253,9 @@ describe('useDataSource — api 取数', () => {
     });
     useDataSource(options as any);
     await flush();
-    expect(api).toHaveBeenCalledWith(expect.objectContaining({ injected: true }));
+    expect(api).toHaveBeenCalledWith(
+      expect.objectContaining({ injected: true }),
+    );
   });
 
   it('afterFetch 加工列表', async () => {
@@ -288,7 +296,10 @@ describe('useDataSource — api 取数', () => {
           call += 1;
           const mine = call;
           // 先发的请求反而更慢到
-          setTimeout(() => resolve({ list: [{ id: mine }], total: mine }), mine === 1 ? 30 : 5);
+          setTimeout(
+            () => resolve({ list: [{ id: mine }], total: mine }),
+            mine === 1 ? 30 : 5,
+          );
         }),
     );
     const { options } = makeOptions({ api, immediate: false });

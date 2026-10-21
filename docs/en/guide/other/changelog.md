@@ -14,7 +14,7 @@ Versions move with the changes, not with whoever remembers to write them down af
 
 Fields in `.changeset/config.json` that change the behaviour:
 
-- `"fixed": [["@antdv/*", "@antdv/*"]]` — moves every workspace package **in lockstep** to the same version. The cost: one patch on one package nudges the whole set by one. The gain: version skew between packages cannot pile up. **But this is a mechanism that fires at release time, not a live invariant** — it aligns the set once per `version` run, and no `version` has run since `v0.0.3`, so the repository is *not* on one number today (see "Where the versions actually sit" below).
+- `"fixed": [["@antdv/*", "@antdv/*"]]` — moves every workspace package **in lockstep** to the same version. The cost: one patch on one package nudges the whole set by one. The gain: version skew between packages cannot pile up. **But this is a mechanism that fires at release time, not a live invariant** — it aligns the set once per `version` run, and no `version` has run since `v0.0.3`, so the repository is _not_ on one number today (see "Where the versions actually sit" below).
 - `"privatePackages": { "version": true, "tag": true }` — all `@antdv/*` packages are `"private": true` (nothing is published to npm), and this setting decides whether private packages take part in versioning and tagging at all. It is spelled out rather than inherited: changesets changed this default late in 2.x, and a release chain should not rest on somebody else's default. With it on, non-published members such as `@antdv/web` and `@antdv/backend-mock` still get versions and tags, so a deployed build can be matched to a number.
 - `"changelog": ["@changesets/changelog-github", { "repo": "junjie73-blip/antdv-next-admin" }]` — generated entries link straight to their commits, and this is the only place the repository URL is configured. Forking means editing it here and the `socialLinks` entry in `docs/.vitepress/config.mts` (`:329-334`).
 - `"commit": false` — `version` touches files but does not commit, so you write the message (the convention so far is `chore(release): x.y.z`, which is what `v0.0.3` carries).
@@ -32,7 +32,7 @@ There is no tag between 0.0.3 and 0.4.0: that stretch was the monorepo rework (p
 
 ### Where the versions actually sit
 
-`fixed` describes what the *next* release will do; it does not mean the tree agrees today. Packages created during the rework were hand-numbered at birth, and `pnpm version` has not run since `v0.0.3`, so 34 `@antdv/*` members are currently spread over five numbers:
+`fixed` describes what the _next_ release will do; it does not mean the tree agrees today. Packages created during the rework were hand-numbered at birth, and `pnpm version` has not run since `v0.0.3`, so 34 `@antdv/*` members are currently spread over five numbers:
 
 | Version | Count | Members |
 | --- | --- | --- |
@@ -79,8 +79,7 @@ Registered in `.changeset/`, not yet consumed by `pnpm version` — **25 entries
 
 ::: warning One bump level looks mis-picked
 
-`basic-drawer-on-drawer-primitives` describes swapping the interaction primitive underneath a drawer, but only declares a `patch` on popup-ui and shadcn-ui — while `markdown-editor-into-common-ui`, which also swaps an implementation, declares `minor`. It changes no build, only the version number, so it is worth confirming before the next `pnpm version`.
-:::
+`basic-drawer-on-drawer-primitives` describes swapping the interaction primitive underneath a drawer, but only declares a `patch` on popup-ui and shadcn-ui — while `markdown-editor-into-common-ui`, which also swaps an implementation, declares `minor`. It changes no build, only the version number, so it is worth confirming before the next `pnpm version`. :::
 
 **patch**
 

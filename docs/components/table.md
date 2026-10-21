@@ -120,8 +120,7 @@ dragSortConfig?: {
 ::: warning 两个边界
 
 1. **前端分页只重排当前页**。`pagination` 开着且数据是本地 `dataSource` 时，行下标只覆盖当前页 —— 要「拖出来的顺序就是全量顺序」，配 `pagination: false` 或走服务端分页（`types.ts:682-688` 的注释原文）。
-2. **前导行的下标错位有防御**：`hooks/useDragSort.ts:33-46` 每次事件都现量「第一个带 `data-row-key` 的 `<tr>` 前面有几行」，再用 `dataIndex(i) = i - leadingOffset()` 还原数据下标。`<tbody>` 由本组件自绘，当前实现里并不会插测量行（`:26-32` 的注释把它写成"调用方可能插行"的防御前提），所以这段常态返回 0；一旦将来在数据行前面加了占位/分组行，也不用回来改这里。
-:::
+2. **前导行的下标错位有防御**：`hooks/useDragSort.ts:33-46` 每次事件都现量「第一个带 `data-row-key` 的 `<tr>` 前面有几行」，再用 `dataIndex(i) = i - leadingOffset()` 还原数据下标。`<tbody>` 由本组件自绘，当前实现里并不会插测量行（`:26-32` 的注释把它写成"调用方可能插行"的防御前提），所以这段常态返回 0；一旦将来在数据行前面加了占位/分组行，也不用回来改这里。:::
 
 ## TreeTable
 
@@ -152,5 +151,4 @@ dragSortConfig?: {
 
 ::: danger
 
-示例页自己说错了第三张卡片的 alert 写「添加/删除行时会有平滑的过渡动画效果」（`views/components/table/animation/index.vue:145`），但这个卡片**没有添加/删除行的入口**，`BasicTable.vue` 里也没有任何 `TransitionGroup` 或行过渡样式（table-ui 全目录检索 0 命中）—— 这行文案描述的行为在当前实现里不存在。要看动画请往前两张卡：loading 态和骨架屏。
-:::
+示例页自己说错了第三张卡片的 alert 写「添加/删除行时会有平滑的过渡动画效果」（`views/components/table/animation/index.vue:145`），但这个卡片**没有添加/删除行的入口**，`BasicTable.vue` 里也没有任何 `TransitionGroup` 或行过渡样式（table-ui 全目录检索 0 命中）—— 这行文案描述的行为在当前实现里不存在。要看动画请往前两张卡：loading 态和骨架屏。:::

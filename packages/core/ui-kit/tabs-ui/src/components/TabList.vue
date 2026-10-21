@@ -48,11 +48,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
-    ref="list"
-    class="tab-list"
-    :class="props.listClass"
-  >
+  <div ref="list" class="tab-list" :class="props.listClass">
     <TabItemView
       v-for="tab in props.tabs"
       :key="tab.key"

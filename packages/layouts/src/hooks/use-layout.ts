@@ -1,7 +1,7 @@
+import type { ComputedRef } from 'vue';
+
 import type { BreadcrumbItem } from '../breadcrumb';
 import type { LayoutRegionFlags, MenuTreeSource } from '../menu-source';
-
-import type { ComputedRef } from 'vue';
 
 import { computed, onScopeDispose, ref } from 'vue';
 import { useRoute } from 'vue-router';
@@ -13,7 +13,6 @@ import { createBreadcrumbSource } from '../breadcrumb';
 import { resolveContentStyle } from '../content';
 import { useLayoutRegions } from '../menu-source';
 import { getBlueprint } from '../modes';
-
 import { useMenuTree } from './use-menu-tree';
 
 /* ============================================================

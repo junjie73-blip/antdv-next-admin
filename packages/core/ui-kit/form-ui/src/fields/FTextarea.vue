@@ -26,7 +26,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{ 'update:value': [value: any] }>();
 
-function onValueChange(next: string | number) {
+function onValueChange(next: number | string) {
   emit('update:value', next);
 }
 </script>

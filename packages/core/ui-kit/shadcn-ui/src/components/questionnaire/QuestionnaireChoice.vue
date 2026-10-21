@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from 'vue';
-import { CheckIcon } from '@lucide/vue';
+
 import { computed, onBeforeUnmount, ref, useId, watch } from 'vue';
+
 import { cn } from '@antdv/shared/utils/cn';
+import { CheckIcon } from '@lucide/vue';
+
 import {
   getAnswerKeyShortcuts,
   injectQuestionnaireItemContext,
@@ -212,7 +215,7 @@ onBeforeUnmount(() => {
       <span
         data-slot="questionnaire-choice-indicator-dot"
         class="bg-primary-foreground size-2 hidden rounded-full group-data-[type=checkbox]/questionnaire-choice:hidden group-data-checked/questionnaire-choice:block"
-      />
+      ></span>
       <CheckIcon
         data-slot="questionnaire-choice-indicator-check"
         class="size-3.5 hidden group-data-[type=radio]/questionnaire-choice:hidden group-data-checked/questionnaire-choice:block"
@@ -227,7 +230,7 @@ onBeforeUnmount(() => {
         :disabled="disabled"
         :shortcut="shortcut"
         :type="type"
-      />
+      ></slot>
     </span>
     <span
       v-if="shortcut"

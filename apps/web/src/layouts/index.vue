@@ -6,7 +6,6 @@ import {
   LayoutUserDropdown,
   LayoutWidgetBar,
 } from '@antdv/layouts';
-
 import logoUrl from '~/assets/images/logo.png';
 import { useDictStore } from '~/stores';
 

@@ -696,8 +696,7 @@ function handleDiscard() {
           抽屉里改几个字，再分别用
           X、蒙层、ESC、底部「关闭」去关：四种路径最后都会调用
           <code>closeDrawer()</code>，而 BasicDrawer 的
-          <code>closeFunc</code>（<code>: () =&gt; Promise&lt;boolean&gt;</code
-          >）被 await 且返回 false 时不关闭 ——
+          <code>closeFunc</code>（<code>: () =&gt; Promise&lt;boolean&gt;</code>）被 await 且返回 false 时不关闭 ——
           这是组件自带的钩子，不需要自己接按钮。 拦截后弹出的确认框用
           <code>:z-index="1100"</code> 压在抽屉之上：抽屉与弹窗默认都落在 shadcn
           浮层的 <code>z-50</code> 这一档，<code>zIndex</code>

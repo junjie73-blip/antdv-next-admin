@@ -625,7 +625,7 @@ test.describe('侧边菜单样式', () => {
       for (const row of el.querySelectorAll(
         '[role="menuitem"][data-menu-depth]',
       )) {
-        const depth = Number(row.getAttribute('data-menu-depth')) || 0;
+        const depth = Number(row.dataset.menuDepth) || 0;
         const title = row.querySelector('[data-menu-label]');
         if (!title) continue;
         const rect = title.getBoundingClientRect();

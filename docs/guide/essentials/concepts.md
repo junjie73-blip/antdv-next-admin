@@ -26,8 +26,7 @@ scripts/           仓库任务（vsh、turbo-run、clean、deploy）
 
 ::: warning
 
-改了 dist 发布包却没生效这是本仓库最常见的"我明明改了"。Vite 的依赖缓存和 `optimizeDeps` 都指向 dist， `src` 不在构建图里。表现是改代码、保存、页面毫无变化，且不报错。
-:::
+改了 dist 发布包却没生效这是本仓库最常见的"我明明改了"。Vite 的依赖缓存和 `optimizeDeps` 都指向 dist， `src` 不在构建图里。表现是改代码、保存、页面毫无变化，且不报错。:::
 
 源码发布是有代价的：这些包没有 build 脚本（`packages/core/base/icons/package.json` 只有 `clean` / `test:unit` / `type-check`），组件里的 `<script setup>` 由应用的 `@vitejs/plugin-vue` 编译，所以它们**不能**被脱离 Vite 的消费者直接用。
 
@@ -50,8 +49,7 @@ scripts/           仓库任务（vsh、turbo-run、clean、deploy）
 
 ::: tip
 
-新代码该放哪只跟这个页面有关 → 页面目录里（`views/<模块>/<页面>/`）。跨页面但只服务应用（store、api、ws） → `apps/web/src/` 对应目录。纯函数、不依赖应用状态、换个项目还想用 → `packages/core/base/shared` 或 `packages/core/hooks`。需要 pinia / router / 后端数据才能工作 → 留在应用里做薄壳，包只接收注入。
-:::
+新代码该放哪只跟这个页面有关 → 页面目录里（`views/<模块>/<页面>/`）。跨页面但只服务应用（store、api、ws） → `apps/web/src/` 对应目录。纯函数、不依赖应用状态、换个项目还想用 → `packages/core/base/shared` 或 `packages/core/hooks`。需要 pinia / router / 后端数据才能工作 → 留在应用里做薄壳，包只接收注入。:::
 
 ## 路径别名与自动导入
 
@@ -69,9 +67,9 @@ scripts/           仓库任务（vsh、turbo-run、clean、deploy）
 - `AutoImport`（`:23-26`）：`vue`、`@vueuse/core`、`pinia`、`VueRouterAutoImports`。`antdv-next` 的 `message` / `notification` / `Modal` / `Drawer` 以前也在这里，现在**已经移除**，要用就自己 import。
 - `Components`（`:27-29`）：**没有配任何 resolver**。以前是 `AntdvNextResolver`（`a-*`）+ `AntdvUiResolver`（子包组件）+ `IconifyResolver`（裸写 `<Icon>`）三个，现在这三条通道全部关掉，插件只保留它自带的"扫描应用内 `src/components` 目录、本地组件免 import"能力。
 - 同一个工厂还注册了 `iconifyOffline({ local: [...] })`（`:30-32`，本体是 `@tomjs/vite-plugin-iconify`，import 在 `:7`）与 `envParse`（`:33-37`），见[图标](/guide/essentials/icons)。
-- 声明文件 `apps/web/types/auto-imports.d.ts`、`components.d.ts` 是入库的。它们由插件在构建时回写，Windows 映射盘上偶发 `UNKNOWN (errno -4094)` 直接把 dev server 带走，所以留了 `VITE_WRITE_DTS=false` 跳过写入（开关在 `internal/vite-config/src/plugins/index.ts:65-67`，解释这段取舍的注释在同一个文件的 `:62-64`，`auto-import.ts` 里没有注释）。
+- 声明文件 `apps/web/types/auto-imports.d.ts`、`components.d.ts` 是入库的。它们由插件在构建时回写，Windows 映射盘上偶发 `UNKNOWN (errno -4094)` 直接把 dev server 带走，所以留了 `VITE_WRITE_DTS=false` 跳过写入（开关在 `internal/vite-config/src/plugins/index.ts:80-81`，解释这段取舍的注释在同一个文件的 `:62-64`，`auto-import.ts` 里没有注释）。
 
-结论：组件与组件库 API **一律显式 import**，应用里 100 多个文件（106 个 import 了 `@antdv/*`）都是这么写的，例如 `apps/web/src/components/business/ImportExport.vue:7-12`：
+结论：组件与组件库 API **一律显式 import**，应用里 100 多个文件（106 个 import 了 `@antdv/*`）都是这么写的，例如 `packages/core/ui-kit/common-ui/src/components/import-export/ImportExport.vue:7-12`：
 
 ```ts
 import { Scrollbar, Space } from '@antdv/common-ui';

@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@antdv/shadcn-ui';
+import { Popover, PopoverContent, PopoverTrigger } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 import { X } from '@lucide/vue';
 
@@ -42,15 +38,15 @@ const emit = defineEmits<{ 'update:value': [value: any] }>();
 const open = ref(false);
 const search = ref('');
 
-const flatNodes = computed(() =>
-  flattenTree(props.treeData, props.fieldNames),
-);
+const flatNodes = computed(() => flattenTree(props.treeData, props.fieldNames));
 
 const filtered = computed(() => {
   const keyword = search.value.trim().toLowerCase();
   if (!props.showSearch || !keyword) return flatNodes.value;
   return flatNodes.value.filter((node) =>
-    String(node.label ?? '').toLowerCase().includes(keyword),
+    String(node.label ?? '')
+      .toLowerCase()
+      .includes(keyword),
   );
 });
 
@@ -58,9 +54,7 @@ const selectedValues = computed<any[]>(() => {
   if (props.multiple) {
     return Array.isArray(props.value) ? props.value : [];
   }
-  return props.value === undefined || props.value === null
-    ? []
-    : [props.value];
+  return props.value === undefined || props.value === null ? [] : [props.value];
 });
 
 const isSelected = (val: any) =>
@@ -74,7 +68,7 @@ const displayLabel = computed(() => {
 const multipleLabels = computed(() =>
   selectedValues.value.map((v) => {
     const labels = findTreeLabels(props.treeData, v, props.fieldNames);
-    return labels.length ? labels.join(' / ') : String(v);
+    return labels.length > 0 ? labels.join(' / ') : String(v);
   }),
 );
 
@@ -197,7 +191,8 @@ function clear(event: MouseEvent) {
           :class="
             cn(
               'flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50',
-              isSelected(node.value) && 'bg-accent font-medium text-accent-foreground',
+              isSelected(node.value) &&
+                'bg-accent font-medium text-accent-foreground',
             )
           "
           @click="toggleNode(node.value, node.disabled)"

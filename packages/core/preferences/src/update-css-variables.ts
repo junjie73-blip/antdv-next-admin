@@ -2,14 +2,15 @@ import type { AppSetting } from '@antdv/types';
 
 import type { ApplyPreferencesToDomOptions } from './types';
 
+import { convertToHslCssVar } from '@antdv/shared/color';
 import {
-  APP_BORDER_RADIUS,
-  APP_FILTER,
-  APP_FONT_SIZE,
-  APP_PRIMARY,
   BASE_FONT_SIZE,
   BORDER_RADIUS_BASE,
   COLOR_WEAK_CLASS,
+  CSS_VAR_FILTER,
+  CSS_VAR_FONT_SIZE,
+  CSS_VAR_PRIMARY,
+  CSS_VAR_RADIUS,
   CUSTOM_THEME_KEY,
   GRAY_MODE_CLASS,
   PREFERENCE_CSS_VARS,
@@ -17,7 +18,6 @@ import {
   themeKeyByColor,
 } from '@antdv/shared/constants';
 import { radiusToRem } from '@antdv/shared/utils';
-
 import { resolveThemeMode } from '@antdv/utils';
 
 import {
@@ -29,7 +29,7 @@ import {
 /**
  * 把偏好落到 DOM 上：class 开关 + CSS 变量。
  *
- * 为什么包要管 DOM：`html.dark`、`--app-primary`、色弱滤镜这三件事散在 App.vue 的
+ * 为什么包要管 DOM：`html.dark`、`--primary`、色弱滤镜这三件事散在 App.vue 的
  * 三个 watch 里时，漏一个就出现"设置面板改了、界面不动"。
  * 收敛成一个函数后，应用只需要在偏好变化时调一次。
  *
@@ -62,7 +62,7 @@ export function applyPreferencesToDom(
   ].filter(Boolean);
   const filterValue = filters.length > 0 ? filters.join(' ') : 'none';
   // 变量给样式层（@antdv/design）消费，内联 filter 保证没有样式表时开关也立即生效
-  setCssVar(target, APP_FILTER, filterValue);
+  setCssVar(target, CSS_VAR_FILTER, filterValue);
   target.style.filter = filterValue;
 
   if (options.cssVars !== false) {
@@ -76,7 +76,7 @@ export function applyPreferencesToDom(
  * 写主题相关的 CSS 变量与主题档位。
  *
  * 主题档位写在 `<html data-theme>` 上：预设主题各自带一整套色板（`@antdv/design`
- * 的 token 文件），所以只有取色器选的颜色才需要内联 `--app-primary` —— 预设时
+ * 的 token 文件），所以只有取色器选的颜色才需要内联 `--primary` —— 预设时
  * 内联反而会把暗色档提亮过的主色压回亮色值。
  *
  * 圆角与字号写的是 `@antdv/design` 里那条**唯一**的变量：半径走 `--radius-*`
@@ -89,17 +89,19 @@ function writeThemeCssVars(target: HTMLElement, preferences: AppSetting): void {
 
   target.setAttribute(THEME_DATA_ATTRIBUTE, themeKey);
   if (themeKey === CUSTOM_THEME_KEY) {
-    setCssVar(target, APP_PRIMARY, primaryColor);
+    // 变量里只存 HSL 三段：读侧统一是 `hsl(var(--primary))`，把 `#1677ff` 这种
+    // 完整颜色写进去会让外层再套一层 hsl()，解析失败后主色直接变成不合法值。
+    setCssVar(target, CSS_VAR_PRIMARY, convertToHslCssVar(primaryColor));
   } else {
-    target.style.removeProperty(APP_PRIMARY);
+    target.style.removeProperty(CSS_VAR_PRIMARY);
   }
 
-  // borderRadius 存的是倍率（0 / 0.25 / 0.5 / 0.75 / 1），基准 16px 即 token 的 `--radius-lg` 档。
+  // borderRadius 存的是倍率（0 / 0.25 / 0.5 / 0.75 / 1），基准 16px 即 token 的 `--radius` 档。
   // 单位一律 rem（`radiusToRem` 是全站唯一的 px→rem 换算出口）：默认根字号下 1rem = 16px，
-  // 计算值与改造前一致，但圆角从此跟着 `--app-font-size` 一起缩放。
+  // 计算值与改造前一致，但圆角从此跟着 `--font-size` 一起缩放。
   setCssVar(
     target,
-    APP_BORDER_RADIUS,
+    CSS_VAR_RADIUS,
     radiusToRem(borderRadius * BORDER_RADIUS_BASE),
   );
 
@@ -112,7 +114,7 @@ function writeThemeCssVars(target: HTMLElement, preferences: AppSetting): void {
    */
   setCssVar(
     target,
-    APP_FONT_SIZE,
+    CSS_VAR_FONT_SIZE,
     `${Math.round((fontSize / BASE_FONT_SIZE) * 10_000) / 100}%`,
   );
 }

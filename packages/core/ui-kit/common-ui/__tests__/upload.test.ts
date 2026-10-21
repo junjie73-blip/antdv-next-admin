@@ -38,7 +38,7 @@ beforeEach(() => {
   }
 });
 
-describe('Upload', () => {
+describe('upload', () => {
   it('渲染默认插槽触发区', () => {
     const wrapper = mount(Upload, {
       slots: { default: '<b class="t">选择</b>' },
@@ -141,7 +141,7 @@ describe('Upload', () => {
     expect(wrapper.emitted('drop')).toBeTruthy();
   });
 
-  it('UploadDragger 转发到 Upload：拖拽区 + 默认插槽 + change', async () => {
+  it('uploadDragger 转发到 Upload：拖拽区 + 默认插槽 + change', async () => {
     const onChange = vi.fn();
     const wrapper = mount(UploadDragger, {
       props: { fileList: [], customRequest: (o: any) => o.onSuccess({}) },

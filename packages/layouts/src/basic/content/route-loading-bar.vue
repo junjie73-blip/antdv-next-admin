@@ -61,9 +61,9 @@ const barColor = computed(() => {
   if (props.color) return props.color;
   // 走 CSS 变量而不是写死十六进制：明暗两档由 `@antdv/design` 的 token 各自给值，
   // 这里再按 resolvedTheme 分叉就是把 token 体系抄一遍，抄错一处就和全站不同色。
-  if (isError.value) return 'var(--app-destructive)';
+  if (isError.value) return 'hsl(var(--destructive))';
   if (isSlowState.value) return '#f59e0b';
-  return 'var(--app-primary)';
+  return 'hsl(var(--primary))';
 });
 
 /* ============================================================

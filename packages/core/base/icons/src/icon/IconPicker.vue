@@ -372,9 +372,7 @@ const prefixOptions = COLLECTIONS.map((c) => ({
         v-if="totalCount > PAGE_SIZE"
         class="border-input mt-3 flex items-center justify-between border-t pt-3"
       >
-        <span class="text-muted-foreground text-xs"
-          >{{ totalCount }} 个图标</span
-        >
+        <span class="text-muted-foreground text-xs">{{ totalCount }} 个图标</span>
         <div class="flex items-center gap-1">
           <button
             type="button"

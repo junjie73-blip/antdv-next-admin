@@ -43,7 +43,7 @@ function clickButtonByText(text: string) {
   return btn;
 }
 
-describe('BasicModal', () => {
+describe('basicModal', () => {
   let wrapper: null | ReturnType<typeof mountModal> = null;
 
   afterEach(() => {
@@ -146,16 +146,16 @@ describe('BasicModal', () => {
 
     instance.changeOkLoading(true);
     await flushPromises();
-    const okBtn = [...document.querySelectorAll(`${MODAL_SELECTOR} button`)].find((b) =>
-      b.textContent?.includes('保存'),
-    ) as HTMLButtonElement;
+    const okBtn = [
+      ...document.querySelectorAll(`${MODAL_SELECTOR} button`),
+    ].find((b) => b.textContent?.includes('保存')) as HTMLButtonElement;
     expect(okBtn.disabled).toBe(true);
 
     instance.changeOkLoading(false);
     await flushPromises();
-    const okBtn2 = [...document.querySelectorAll(`${MODAL_SELECTOR} button`)].find((b) =>
-      b.textContent?.includes('保存'),
-    ) as HTMLButtonElement;
+    const okBtn2 = [
+      ...document.querySelectorAll(`${MODAL_SELECTOR} button`),
+    ].find((b) => b.textContent?.includes('保存')) as HTMLButtonElement;
     expect(okBtn2.disabled).toBe(false);
   });
 
@@ -202,9 +202,9 @@ describe('BasicModal', () => {
     const instance = await getRegisteredInstance(wrapper);
     instance.openModal(true);
     await flushPromises();
-    const okBtn = [...document.querySelectorAll(`${MODAL_SELECTOR} button`)].find((b) =>
-      b.textContent?.includes('保存'),
-    );
+    const okBtn = [
+      ...document.querySelectorAll(`${MODAL_SELECTOR} button`),
+    ].find((b) => b.textContent?.includes('保存'));
     expect(okBtn!.className).toContain('destructive');
   });
 
@@ -228,7 +228,11 @@ describe('useModal / useModalInner', () => {
         const [register, m] = useModal();
         methods = m;
         return () =>
-          h(BasicModal, { title: '宿主弹窗', onRegister: register }, { default: () => '宿主内容' });
+          h(
+            BasicModal,
+            { title: '宿主弹窗', onRegister: register },
+            { default: () => '宿主内容' },
+          );
       },
     });
 

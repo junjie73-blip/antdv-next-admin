@@ -1,8 +1,8 @@
 import type { AppSetting } from '@antdv/types';
 
-import { DEFAULT_PRIMARY_COLOR } from '@antdv/shared/constants';
-
 import type { BooleanPreferenceKey, PreferenceKey } from './types';
+
+import { DEFAULT_PRIMARY_COLOR } from '@antdv/shared/constants';
 
 /**
  * 偏好默认值。

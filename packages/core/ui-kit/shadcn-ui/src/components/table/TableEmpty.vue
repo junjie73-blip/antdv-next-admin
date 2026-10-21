@@ -1,18 +1,23 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { cn } from '@antdv/shared/utils/cn'
-import TableCell from "./TableCell.vue"
-import TableRow from "./TableRow.vue"
+import type { HTMLAttributes } from 'vue';
 
-const props = withDefaults(defineProps<{
-  class?: HTMLAttributes["class"]
-  colspan?: number
-}>(), {
-  colspan: 1,
-})
+import { cn } from '@antdv/shared/utils/cn';
+import { reactiveOmit } from '@vueuse/core';
 
-const delegatedProps = reactiveOmit(props, "class")
+import TableCell from './TableCell.vue';
+import TableRow from './TableRow.vue';
+
+const props = withDefaults(
+  defineProps<{
+    class?: HTMLAttributes['class'];
+    colspan?: number;
+  }>(),
+  {
+    colspan: 1,
+  },
+);
+
+const delegatedProps = reactiveOmit(props, 'class');
 </script>
 
 <template>
@@ -27,7 +32,7 @@ const delegatedProps = reactiveOmit(props, "class")
       v-bind="delegatedProps"
     >
       <div class="flex items-center justify-center py-10">
-        <slot />
+        <slot></slot>
       </div>
     </TableCell>
   </TableRow>

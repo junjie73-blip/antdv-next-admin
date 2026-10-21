@@ -47,7 +47,7 @@ const input = (field: string, span?: number): FormSchema => ({
   label: field,
 });
 
-describe('BasicForm 动作区的栅格归属', () => {
+describe('basicForm 动作区的栅格归属', () => {
   beforeEach(() => {
     document.body.innerHTML = '';
     vi.spyOn(console, 'error').mockImplementation(() => {});

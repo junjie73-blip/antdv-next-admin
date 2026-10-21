@@ -18,19 +18,24 @@ describe('resolvePopupButton', () => {
   });
 
   it('显式 variant 优先于 type 映射', () => {
-    expect(resolvePopupButton({ type: 'primary', variant: 'secondary' }).variant).toBe(
-      'secondary',
-    );
+    expect(
+      resolvePopupButton({ type: 'primary', variant: 'secondary' }).variant,
+    ).toBe('secondary');
   });
 
   it('loading 合并自身与外部（okLoading）', () => {
     expect(resolvePopupButton({ loading: true }).loading).toBe(true);
     expect(resolvePopupButton(undefined, 'primary', true).loading).toBe(true);
-    expect(resolvePopupButton({ loading: false }, 'primary', false).loading).toBe(false);
+    expect(
+      resolvePopupButton({ loading: false }, 'primary', false).loading,
+    ).toBe(false);
   });
 
   it('其余属性原样透传', () => {
-    const resolved = resolvePopupButton({ disabled: true, size: 'small', class: 'x' }, 'primary');
+    const resolved = resolvePopupButton(
+      { disabled: true, size: 'small', class: 'x' },
+      'primary',
+    );
     expect(resolved.disabled).toBe(true);
     expect(resolved.size).toBe('small');
     expect(resolved.class).toBe('x');

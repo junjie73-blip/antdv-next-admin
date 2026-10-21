@@ -3,8 +3,9 @@ import path from 'node:path';
 
 const root = process.argv[2];
 const cfg = readFileSync(path.join(root, '.vitepress/config.mts'), 'utf8');
-const links = [...cfg.matchAll(/link: '(\/(?:guide|components|en|zh)\/[^']*)'/g)]
-  .map((m) => m[1]);
+const links = [
+  ...cfg.matchAll(/link: '(\/(?:guide|components|en|zh)\/[^']*)'/g),
+].map((m) => m[1]);
 const missing = [];
 for (const l of links) {
   const rel = l.replace(/^\//, '').replace(/\/$/, '/index');

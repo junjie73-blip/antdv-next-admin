@@ -61,7 +61,8 @@ async function expectScaled(page: Page) {
       async () =>
         page.evaluate(
           () =>
-            document.querySelector('#screen-content')?.style.transform ?? '',
+            (document.querySelector('#screen-content') as HTMLElement | null)
+              ?.style.transform ?? '',
         ),
       { timeout: 40_000 },
     )

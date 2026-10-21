@@ -1,20 +1,23 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import { cn } from '@antdv/shared/utils/cn'
+import type { HTMLAttributes } from 'vue';
+
+import { cn } from '@antdv/shared/utils/cn';
 
 const props = defineProps<{
-  class?: HTMLAttributes["class"]
-}>()
+  class?: HTMLAttributes['class'];
+}>();
 </script>
 
 <template>
   <span
     data-slot="attachment-title"
-    :class="cn(
-      'font-medium block max-w-full min-w-0 truncate group-data-[state=processing]/attachment:shimmer group-data-[state=uploading]/attachment:shimmer',
-      props.class,
-    )"
+    :class="
+      cn(
+        'font-medium block max-w-full min-w-0 truncate group-data-[state=processing]/attachment:shimmer group-data-[state=uploading]/attachment:shimmer',
+        props.class,
+      )
+    "
   >
-    <slot />
+    <slot></slot>
   </span>
 </template>

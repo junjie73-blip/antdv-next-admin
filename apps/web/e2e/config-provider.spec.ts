@@ -33,7 +33,7 @@ function readHost(page: Page) {
     const rect = host.getBoundingClientRect();
     return {
       display: getComputedStyle(host).display,
-      hasInlinePrimary: host.style.getPropertyValue('--app-primary'),
+      hasInlinePrimary: host.style.getPropertyValue('--primary'),
       height: rect.height,
       locale: host.dataset.configLocale ?? '',
       size: host.dataset.configSize ?? '',
@@ -79,7 +79,7 @@ test.describe('ConfigProvider 装配后的四条链路', () => {
     ).toEqual([0, 0]);
     /**
      * 全站主色只有偏好一个写侧（`applyPreferencesToDom` 写 `<html>`）。
-     * 根部这里没传 `theme`，所以宿主上不该出现第二条 `--app-primary`。
+     * 根部这里没传 `theme`，所以宿主上不该出现第二条 `--primary`。
      */
     expect(before.hasInlinePrimary, '根 provider 不该写主色').toBe('');
 
@@ -180,8 +180,9 @@ test.describe('ConfigProvider 装配后的四条链路', () => {
       const host = document.querySelector(
         '[data-common-config-provider]',
       ) as HTMLElement;
+      // 全站那一档的主色（HSL 三段），子树覆盖撤掉之后要回到它
       const htmlPrimary = getComputedStyle(document.documentElement)
-        .getPropertyValue('--app-primary')
+        .getPropertyValue('--primary')
         .trim();
 
       // 子节点与对照节点用同一个工具类，差别只在是否位于 provider 子树内
@@ -193,40 +194,43 @@ test.describe('ConfigProvider 装配后的四条链路', () => {
       document.body.append(outside);
 
       const inherited = getComputedStyle(inside).backgroundColor;
-      // 这一步就是 `:theme="{ primary: ... }"` 落地后发生的事
-      host.style.setProperty('--app-primary', 'rgb(0, 0, 255)');
+      /*
+       * 这一步就是 `:theme="{ primary: '#0000ff' }"` 落地时发生的事。
+       * 变量里存的是通道三段，纯蓝写作 `240 100% 50%` —— 写 `#0000ff` 的话
+       * `hsl(var(--primary))` 解析失败，子树整块主色直接消失。
+       */
+      host.style.setProperty('--primary', '240 100% 50%');
       const afterInside = getComputedStyle(inside).backgroundColor;
       const afterOutside = getComputedStyle(outside).backgroundColor;
       /*
-       * shadcn 规范名的别名层（`--primary: var(--app-primary)`）声明在
-       * `:root, .app-theme-scope` 上，`.app-theme-scope` 就是这一层宿主。
-       * 少写这半条选择器时子树里的官方格式组件会拿到 `<html>` 的旧值，
-       * 表现是"子树里工具类变色了、按规范名取值的样式没变"。
+       * 变量本身也要在子树里重算。`@theme inline` 把 `hsl(var(--primary))` 折进工具类，
+       * 取值按 DOM 继承链走，所以这两条证明的是"覆盖到了变量层"，
+       * 而不是"某个类碰巧变了"；少了变量层的继承，子树外的对照节点会一起变色。
        */
-      const aliasInside = getComputedStyle(inside)
+      const varInside = getComputedStyle(inside)
         .getPropertyValue('--primary')
         .trim();
-      const aliasOutside = getComputedStyle(outside)
+      const varOutside = getComputedStyle(outside)
         .getPropertyValue('--primary')
         .trim();
 
-      host.style.removeProperty('--app-primary');
+      host.style.removeProperty('--primary');
       inside.remove();
       outside.remove();
       return {
         afterInside,
         afterOutside,
-        aliasInside,
-        aliasOutside,
         htmlPrimary,
         inherited,
         restored: getComputedStyle(document.documentElement)
-          .getPropertyValue('--app-primary')
+          .getPropertyValue('--primary')
           .trim(),
+        varInside,
+        varOutside,
       };
     });
 
-    // 继承链在 provider 处成立：`@theme inline` 把 `bg-primary` 编成 `var(--app-primary)`，
+    // 继承链在 provider 处成立：`@theme inline` 把 `bg-primary` 编成 `hsl(var(--primary))`，
     // 变量按 DOM 树继承，所以 `display: contents` 的宿主照样能下发。
     expect(result.afterInside).toBe('rgb(0, 0, 255)');
     // 覆盖只吃这棵子树：`<html>` 上的全站主色不动，子树外的同一工具类不变色。
@@ -234,11 +238,9 @@ test.describe('ConfigProvider 装配后的四条链路', () => {
     expect(result.inherited).toBe(result.afterOutside);
     expect(result.htmlPrimary).not.toBe('');
     expect(result.restored).toBe(result.htmlPrimary);
-    // 规范名跟着子树重算，子树外仍是全站那份
-    expect(result.aliasInside, '别名层没覆盖到 .app-theme-scope 子树').toBe(
-      'rgb(0, 0, 255)',
-    );
-    expect(result.aliasOutside).not.toBe('rgb(0, 0, 255)');
+    // 子树内取到新值，子树外仍是全站那一份
+    expect(result.varInside, '子树里的 --primary 没重算').toBe('240 100% 50%');
+    expect(result.varOutside).toBe(result.htmlPrimary);
 
     expect(errors.errors).toEqual([]);
   });

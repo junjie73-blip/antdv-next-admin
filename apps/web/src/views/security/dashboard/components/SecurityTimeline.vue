@@ -16,7 +16,6 @@ import {
   Timeline,
   TimelineItem,
 } from '@antdv/common-ui';
-
 import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 import dayjs from 'dayjs';
@@ -267,8 +266,7 @@ onMounted(async () => {
                 <div class="mb-1 flex flex-wrap items-center gap-2">
                   <span
                     class="text-sm font-medium text-gray-800 dark:text-gray-200"
-                    >{{ event.title }}</span
-                  >
+                    >{{ event.title }}</span>
                   <Tag
                     :color="getLevelTagColor(event.level)"
                     class="text-[10px]"

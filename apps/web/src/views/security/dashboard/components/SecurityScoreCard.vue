@@ -3,12 +3,11 @@ import { computed, onMounted, ref } from 'vue';
 // 监听暗色模式变化
 import { watch } from 'vue';
 
-import { Tag } from '@antdv/common-ui';
+import { CountTo, Tag } from '@antdv/common-ui';
 import { cn } from '@antdv/shared/utils/cn';
+import { useAppStore } from '@antdv/stores';
 import * as echarts from 'echarts';
 import { getSecurityScore } from '~/api/security';
-import { CountTo } from '@antdv/common-ui';
-import { useAppStore } from '@antdv/stores';
 
 defineOptions({ name: 'SecurityScoreCard' });
 
@@ -238,8 +237,7 @@ watch(isDark, () => {
             :class="
               cn('text-lg font-bold tabular-nums', getScoreColor(dim.score))
             "
-            >{{ dim.score }}</span
-          >
+            >{{ dim.score }}</span>
           <div
             class="h-1.5 w-1.5 rounded-full"
             :style="{ backgroundColor: getStatusColor(dim.status) }"

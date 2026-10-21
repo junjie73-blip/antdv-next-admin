@@ -105,7 +105,10 @@ function handleAction(key: string) {
       :aria-label="tabsRuntime.t('shell.tabActions')"
     >
       <template v-for="item in items" :key="`${item.key}-${item.label}`">
-        <div v-if="item.divider" class="my-1 h-px bg-gray-200 dark:bg-gray-700"></div>
+        <div
+          v-if="item.divider"
+          class="my-1 h-px bg-gray-200 dark:bg-gray-700"
+        ></div>
         <button
           v-else
           type="button"

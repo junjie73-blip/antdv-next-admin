@@ -5,11 +5,11 @@ import { defineComponent } from 'vue';
 
 import { describe, expect, it } from 'vitest';
 
-import LayoutIcon from '../src/widgets/layout-icon.vue';
 import {
   DEFAULT_ICON_PALETTE,
   resolveIconPalette,
 } from '../src/widgets/layout-icon-palette';
+import LayoutIcon from '../src/widgets/layout-icon.vue';
 import {
   LAYOUT_ICON_FALLBACK,
   LAYOUT_ICON_SHAPES,
@@ -102,7 +102,7 @@ describe('布局示意图 - 调色板', () => {
   });
 });
 
-describe('LayoutIcon - 渲染', () => {
+describe('layoutIcon - 渲染', () => {
   it('按形态渲染矩形，并把类型与选中态写进数据钩子', () => {
     const wrapper = mount(LayoutIcon, {
       props: { active: true, type: 'mixed-two-column' },

@@ -24,8 +24,7 @@ export function toMenuNodes(
        * `<a>`，不再要求 path 必须是绝对 URL —— 后端偶尔给相对路径也标外链，
        * 渲染层擅自改语义就会出现"点外链变成了站内跳转"。
        */
-      const external =
-        menu.isExternal && menu.path ? menu.path : undefined;
+      const external = menu.isExternal && menu.path ? menu.path : undefined;
       // 深度截断后不再下探：被截断的目录 `children` 为空，`leaf` 为真，
       // 于是横向导航的一级项点击即导航，与迁移前 antd `@click` 的表现一致。
       const children =

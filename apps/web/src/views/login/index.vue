@@ -16,6 +16,7 @@ import {
   AuthSocialLogin,
 } from '@antdv/common-ui';
 import { runRule } from '@antdv/form-ui';
+import { useLocale } from '@antdv/hooks/use-locale';
 import {
   LayoutWidgetColorToggle,
   LayoutWidgetLanguageToggle,
@@ -31,7 +32,6 @@ import { THEME_PRESETS } from '@antdv/shared/constants';
 import { useAppStore, useUserStore } from '@antdv/stores';
 import { Icon } from '@iconify/vue';
 import logoUrl from '~/assets/images/logo.png';
-import { useLocale } from '~/composables/useLocale';
 import { AUTH_SOCIAL_ITEMS } from '~/config/auth-social';
 import { HOME_PATH } from '~/config/constants';
 
@@ -52,7 +52,7 @@ const colorPresets: AuthColorPreset[] = THEME_PRESETS.map((preset) => ({
 }));
 const currentColor = computed(() => appStore.primaryColor);
 
-/** 写偏好是唯一出口：`data-theme` 档位、`--app-primary`、首屏快照都由偏好包串起来 */
+/** 写偏好是唯一出口：`data-theme` 档位、`--primary`、首屏快照都由偏好包串起来 */
 function pickColor(preset: AuthColorPreset) {
   appStore.updateSetting({ primaryColor: preset.color });
 }

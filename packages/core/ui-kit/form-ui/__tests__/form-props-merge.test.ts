@@ -1,6 +1,7 @@
 import type { FormActionType } from '../src/types';
 
 import { flushPromises, mount } from '@vue/test-utils';
+
 import { describe, expect, it, vi } from 'vitest';
 
 import BasicForm from '../src/components/form-render/form.vue';
@@ -24,7 +25,7 @@ function mountForm(props: Record<string, any> = {}) {
   return { instance: registered as FormActionType, wrapper };
 }
 
-describe('BasicForm 配置优先级', () => {
+describe('basicForm 配置优先级', () => {
   it('useForm/setProps 的布尔开关能生效（Vue 把未传的 Boolean prop cast 成 false）', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     const { instance, wrapper } = mountForm();

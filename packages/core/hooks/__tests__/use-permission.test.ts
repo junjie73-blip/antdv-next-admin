@@ -1,10 +1,8 @@
 import type { UserInfo } from '@antdv/types';
 
-import { createPinia, setActivePinia } from 'pinia';
-
-import { describe, expect, it } from 'vitest';
-
 import { useUserStore } from '@antdv/stores';
+import { createPinia, setActivePinia } from 'pinia';
+import { describe, expect, it } from 'vitest';
 
 import { usePermission } from '../src/use-permission';
 

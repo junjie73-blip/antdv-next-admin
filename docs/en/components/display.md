@@ -4,10 +4,9 @@ This page covers six demo routes — `/components/description`, `/components/cou
 
 ::: warning Three things to say up front
 
-1. **There is no `RelativeTime` component**: no such directory under `apps/web/src/components/business/`, and no import of `RelativeTime` anywhere in the repository. `/components/relative-time` is just a page built from `a-timeline` plus **absolute timestamps** (see [relative time](#relative-time-pages-components-relative-time)).
+1. **There is no `RelativeTime` component**: nothing called `RelativeTime` exists in the repository (the app-side `apps/web/src/components/` directory is now empty) and there is no import of it anywhere. `/components/relative-time` is just a page built from `a-timeline` plus **absolute timestamps** (see [relative time](#relative-time-pages-components-relative-time)).
 2. **`Description`'s `setData()` is a stub** that only calls `console.warn` (`packages/core/ui-kit/common-ui/src/components/description/Description.vue:175-177`).
-3. **The text prop of `Loading` is `tip`, not `description`**, and `useLoading` needs an explicit `target` (selector / element / ref / getter) — otherwise the overlay silently never mounts and only prints a `console.warn` (`packages/core/ui-kit/common-ui/src/components/loading/overlay.ts:101-105`).
-:::
+3. **The text prop of `Loading` is `tip`, not `description`**, and `useLoading` needs an explicit `target` (selector / element / ref / getter) — otherwise the overlay silently never mounts and only prints a `console.warn` (`packages/core/ui-kit/common-ui/src/components/loading/overlay.ts:101-105`). :::
 
 ## Why these six pages are all second-level menu entries
 
@@ -76,8 +75,7 @@ Labels work the same way: `#<field>-label` slot → `renderLabel` → `label` �
 - **`type: 'dict'` no longer reads the dictionary store**: a shared component package may not pull in pinia or the `~/...` alias, so this branch became injection-based — the host does `provide(DESCRIPTION_DICT_RESOLVER, fn)` (`description/context.ts:8-18`, consumed at `Description.vue:20`, `:37`); with nothing injected, an unmatched value renders as-is (`:41`) and an empty value becomes `-` (`:45`). It falls back to the raw text when `dictType` is missing (`:132`), and multi-value detection is "array, or string containing a comma" (`:133`, `:46`). The demo page **never uses `dict`** — a comment mentions it once (`index.vue:63`) but there is nothing clickable to show it.
 - **`setData()` is empty**: declared in the type (`types.ts:172-182`), implemented as `console.warn('[Description] setData 不支持在只读模式下使用')` (`Description.vue:175-177`). The component is read-only: to change data, replace `data` (the demo drives its masking switch with a `computed` data source, `index.vue:148-159`). The only usable instance method is `getData()` (`:174`; `defineExpose` at `:179`).
 
-For the record, the type `DescriptionBordered = 'bordered' | 'none' | boolean` at `types.ts:25` is not used anywhere (that declaration is its only occurrence in the repository; `DescriptionProps.bordered` is a plain `boolean`, `types.ts:138`) — a leftover, documented here so nobody reaches for it.
-:::
+For the record, the type `DescriptionBordered = 'bordered' | 'none' | boolean` at `types.ts:25` is not used anywhere (that declaration is its only occurrence in the repository; `DescriptionProps.bordered` is a plain `boolean`, `types.ts:138`) — a leftover, documented here so nobody reaches for it. :::
 
 ### Live example: `/components/description`
 
@@ -133,13 +131,11 @@ Interruptibility: it pauses, it does not resume
 
 - The first thing `start()` does is `if (isActive.value) return` (`:80`): calling it while an animation is running **does nothing**.
 - Immediately after that guard, `start()` writes `currentValue` back to `startVal` and resets the timestamp (`:81-82`).
-- `useRafFn`'s `resume()` is **never exposed** (`:54` destructures `pause` / `resume` / `isActive`, but the outside world only gets the four methods at `:113-118`). So "pause → continue from where it stopped" does not exist: after `pause()` your only option is `reset()` + `start()` (from the beginning). The demo's "🔄 replay animation" button is exactly those two steps (`views/components/count-to/index.vue:151-157`).
-:::
+- `useRafFn`'s `resume()` is **never exposed** (`:54` destructures `pause` / `resume` / `isActive`, but the outside world only gets the four methods at `:113-118`). So "pause → continue from where it stopped" does not exist: after `pause()` your only option is `reset()` + `start()` (from the beginning). The demo's "🔄 replay animation" button is exactly those two steps (`views/components/count-to/index.vue:151-157`). :::
 
 ::: tip
 
-Only endVal auto-replays The `watch` tracks `props.endVal` (`:97-105`) — changing `startVal` or `duration` does not restart the animation. "🎲 generate a new value" replays by itself only because it touches `dynamicEndVal` and nothing else (`index.vue:143-146`, `:540-547`).
-:::
+Only endVal auto-replays The `watch` tracks `props.endVal` (`:97-105`) — changing `startVal` or `duration` does not restart the animation. "🎲 generate a new value" replays by itself only because it touches `dynamicEndVal` and nothing else (`index.vue:143-146`, `:540-547`). :::
 
 ### Live example: `/components/count-to`
 
@@ -160,14 +156,13 @@ Only endVal auto-replays The `watch` tracks `props.endVal` (`:97-105`) — chang
 
 ::: warning
 
-This section has no component to document There is **no `RelativeTime` directory** under `apps/web/src/components/business/`, and no import or usage of `RelativeTime` anywhere in the repository. The menu entry is called "相对时间" (relative time) (`apps/backend-mock/server/api/menus.get.ts:276-281`), but the page is built as **a timeline plus absolute timestamps**:
+This section has no component to document There is **no `RelativeTime` component** anywhere in the repository (the app-side `apps/web/src/components/` directory is now empty), and no import or usage of it. The menu entry is called "相对时间" (relative time) (`apps/backend-mock/server/api/menus.get.ts:276-281`), but the page is built as **a timeline plus absolute timestamps**:
 
 - The first card, "basic usage", prints `item.time` as the **raw ISO string** (`apps/web/src/views/components/relative-time/index.vue:96-108`, data at `:11-57`).
 - The second card, "custom colors and position", hardcodes date text (`:111-135`).
 - The third card, "relative time in a table", renders `new Date(record.time).toLocaleString('zh-CN')` (`:144-148`) — a **localized absolute time**, not a relative one.
 
-The page contains no `fromNow()` from dayjs, no `relativeTime` plugin, and no timer of any kind. So the question "what drives the refresh" has no answer here: nothing needs refreshing. To copy relative-time code, go to the places that actually implement it (table below).
-:::
+The page contains no `fromNow()` from dayjs, no `relativeTime` plugin, and no timer of any kind. So the question "what drives the refresh" has no answer here: nothing needs refreshing. To copy relative-time code, go to the places that actually implement it (table below). :::
 
 Where relative time really comes from in this repository:
 
@@ -221,8 +216,7 @@ Internals:
 
 ::: tip
 
-Why the package only needs shadcn tags `IconPicker.vue` uses no antdv-next component at all: `Popover` / `Select` / `Input` / `Spinner` / `Empty` / `Tooltip` are **explicitly imported** from `@antdv/shadcn-ui` (`:5-22`), `Scrollbar` from `@antdv/common-ui` (`:4`), and the icons themselves come from `@iconify/vue`'s `<Icon>` (`:24`). Component resolvers have been removed from `internal/vite-config`, so there is no "the host injects the tags for us" implicit dependency left — any host that has these workspace packages installed can consume it. See [External modules](/en/guide/essentials/external).
-:::
+Why the package only needs shadcn tags `IconPicker.vue` uses no antdv-next component at all: `Popover` / `Select` / `Input` / `Spinner` / `Empty` / `Tooltip` are **explicitly imported** from `@antdv/shadcn-ui` (`:5-22`), `Scrollbar` from `@antdv/common-ui` (`:4`), and the icons themselves come from `@iconify/vue`'s `<Icon>` (`:24`). Component resolvers have been removed from `internal/vite-config`, so there is no "the host injects the tags for us" implicit dependency left — any host that has these workspace packages installed can consume it. See [External modules](/en/guide/essentials/external). :::
 
 ### Live example: `/components/icon-picker`
 
@@ -253,8 +247,7 @@ A mask that serves both fullscreen and container modes; inside it is a single sh
 
 ::: tip
 
-The `.loading-small` / `.loading-large` hooks Besides the size classes the component also carries two meaningless scope classes (`:48-49`): host styles and the e2e specs read the size tier through them, because `size-*` is exactly what `cn()`'s tailwind-merge collapses away.
-:::
+The `.loading-small` / `.loading-large` hooks Besides the size classes the component also carries two meaningless scope classes (`:48-49`): host styles and the e2e specs read the size tier through them, because `size-*` is exactly what `cn()`'s tailwind-merge collapses away. :::
 
 ### `useLoading` / `createLoading` / `v-loading`
 
@@ -274,7 +267,7 @@ Instance-method semantics: `close()` waits for the fade-out and then cleans the 
 How to actually get the target in container mode `resolveContainer` accepts a CSS selector string, an element, a ref or a getter; if it resolves to nothing it prints `console.warn('[@antdv/common-ui] loading: target 容器不存在，覆盖层未挂载')` and **nothing else happens** (`overlay.ts:78-87`, `:101-105`). Section 5 of the demo turns this into an in-file comment (source comments quoted verbatim):
 
 ```ts
-// views/components/loading/index.vue:292-301
+// views/components/loading/index.vue:344-352
 /**
  * key 必须显式传给 `useTemplateRef`：无参写法在这个 Vue 版本里解析不出变量名，
  * `target` 拿到 undefined，`open()` 静默什么都不做（这条就是本页最早"点了没反应"的坑）。
@@ -287,22 +280,19 @@ const hookLoading = useLoading({
 });
 ```
 
-Passing a getter as `target` is safe: resolution is deferred until the moment the overlay actually wants to display (comment in `components/loading/types.ts:89-108`), so referencing a not-yet-mounted template ref during setup does not throw.
-:::
+Passing a getter as `target` is safe: resolution is deferred until the moment the overlay actually wants to display (comment in `components/loading/types.ts:89-108`), so referencing a not-yet-mounted template ref during setup does not throw. :::
 
 ::: warning
 
 Three real bugs this family used to have (all fixed as of now)
 
-1. **The text prop was written as `description`** — `Loading` only has `tip`, and the demo keeps that lesson in a code comment: `<!-- tip 才是 Loading 组件的文案属性（没有 description 这个 prop） -->` (`views/components/loading/index.vue:951`).
-2. **`useLoading()` could not find its target** — see the warning above; `useTemplateRef` must be given the key explicitly (`index.vue:292-296`).
-3. **Passing a snapshot at instance creation made `open()` a no-op** — `createApp(Loading, { loading: loading.value })` hands over the value of that instant, so later writes to the ref produce no visual change. The fix reads the refs inside `render()` so Vue can establish the dependency (`overlay.ts:120-133`; the comment states outright that this was the original bug fixed during extraction). The same class of issue once in `v-loading`: instances are cached and reused on a `WeakMap` (`directive.ts:45`, `:70-73`), so **changing `loading-size` / `loading-theme` / `loading-background` after the element is mounted is not re-read**; only `binding.arg` (`v-loading:文本=`) is synced into the tip on `updated` (`:93-99`). One more: the comment at `directive.ts:17` claims "priority: attribute > directive argument", which is the opposite of the code — `:81` reads `tip: binding.arg ?? attributeProps.tip`, so **the directive argument wins**.
-:::
+1. **The text prop was written as `description`** — `Loading` only has `tip`, and the demo keeps that lesson in a code comment: `<!-- tip 才是 Loading 组件的文案属性（没有 description 这个 prop） -->` (`views/components/loading/index.vue:1147`).
+2. **`useLoading()` could not find its target** — see the warning above; `useTemplateRef` must be given the key explicitly (`index.vue:344-348`).
+3. **Passing a snapshot at instance creation made `open()` a no-op** — `createApp(Loading, { loading: loading.value })` hands over the value of that instant, so later writes to the ref produce no visual change. The fix reads the refs inside `render()` so Vue can establish the dependency (`overlay.ts:120-133`; the comment states outright that this was the original bug fixed during extraction). The same class of issue once in `v-loading`: instances are cached and reused on a `WeakMap` (`directive.ts:45`, `:70-73`), so **changing `loading-size` / `loading-theme` / `loading-background` after the element is mounted is not re-read**; only `binding.arg` (`v-loading:文本=`) is synced into the tip on `updated` (`:93-99`). One more: the comment at `directive.ts:17` claims "priority: attribute > directive argument", which is the opposite of the code — `:81` reads `tip: binding.arg ?? attributeProps.tip`, so **the directive argument wins**. :::
 
 ::: tip
 
-What does not exist `@antdv/common-ui` has **no `delay` prop** and no throttling or debouncing. The "PageLoading and delayed mask" card in the demo hand-rolls that behaviour with two real timers (a request finishing under 300ms cancels the mask before it ever lights up), and its body text says explicitly that the delay policy belongs to the caller (`index.vue:319-350`, `:969-971`).
-:::
+What does not exist `@antdv/common-ui` has **no `delay` prop** and no throttling or debouncing. The "PageLoading and delayed mask" card in the demo hand-rolls that behaviour with two real timers (a request finishing under 300ms cancels the mask before it ever lights up), and its body text says explicitly that the delay policy belongs to the caller (`index.vue:371-402`, `:1163-1170`). :::
 
 ### `Scrollbar`
 
@@ -322,34 +312,32 @@ There is exactly one event: `@scroll`, payload `{ scrollTop, scrollLeft }` (decl
 
 ::: warning
 
-Do not pass `max-height` casually: `props.maxHeight` is fed to `useResponsiveMaxHeight` as the _base value_ (base default 495, `Scrollbar.vue:39-41`), and that hook's `min` floor defaults to **712px** with exponent 1.938 against a 1080 reference height (`packages/core/ui-kit/common-ui/src/components/scrollbar/useResponsiveMaxHeight.ts:44-48`), with the final `clamp` at `:52`. So on a 1080-high window, `:max-height="400"` goes through `clamp(400, 712, ∞)` and becomes **712px** — anything shorter than 712 is unreachable. Also note the base line tests `isNumber` (`:40`), so the string form the type allows (`types.ts:18`) falls back to the 495 base and what ends up inline is still the hook's computed px. For a genuinely smaller fixed height, use a class like the drawer demo does: `root-class="h-60"` (`apps/web/src/views/components/modal-drawer/index.vue:655-668`, which spells out the reason in its own copy at `:617-620`).
-:::
+Do not pass `max-height` casually: `props.maxHeight` is fed to `useResponsiveMaxHeight` as the _base value_ (base default 495, `Scrollbar.vue:39-41`), and that hook's `min` floor defaults to **712px** with exponent 1.938 against a 1080 reference height (`packages/core/ui-kit/common-ui/src/components/scrollbar/useResponsiveMaxHeight.ts:44-48`), with the final `clamp` at `:52`. So on a 1080-high window, `:max-height="400"` goes through `clamp(400, 712, ∞)` and becomes **712px** — anything shorter than 712 is unreachable. Also note the base line tests `isNumber` (`:40`), so the string form the type allows (`types.ts:18`) falls back to the 495 base and what ends up inline is still the hook's computed px. For a genuinely smaller fixed height, use a class like the drawer demo does: `root-class="h-60"` (`apps/web/src/views/components/modal-drawer/index.vue:655-668`, which spells out the reason in its own copy at `:617-620`). :::
 
 ::: warning
 
-Its styles do not depend on the host Tailwind. The `<style>` block in `Scrollbar.vue` deliberately avoids `@apply` and expands the utility classes into equivalent native CSS inside `@layer components` (`:158`); the comment at `:152-156` gives the reason: a standalone SFC style block has no Tailwind theme entry, so the build fails with `Cannot apply unknown utility class`, and the components layer keeps the template's own `flex-1 / min-h-0` utilities able to override. A second invariant comment at `:170-180` explains that reka inserts a height-less content div between the viewport and the slot and stamps it with inline `min-width: fit-content`, so `:181-184` pins height and min-width back to the container (only `important` can beat the inline style). This is precisely what lets the component live in its own package.
-:::
+Its styles do not depend on the host Tailwind. The `<style>` block in `Scrollbar.vue` deliberately avoids `@apply` and expands the utility classes into equivalent native CSS inside `@layer components` (`:158`); the comment at `:152-156` gives the reason: a standalone SFC style block has no Tailwind theme entry, so the build fails with `Cannot apply unknown utility class`, and the components layer keeps the template's own `flex-1 / min-h-0` utilities able to override. A second invariant comment at `:170-180` explains that reka inserts a height-less content div between the viewport and the slot and stamps it with inline `min-width: fit-content`, so `:181-184` pins height and min-width back to the container (only `important` can beat the inline style). This is precisely what lets the component live in its own package. :::
 
 As for registration, `Scrollbar` is **always imported explicitly**: `apps/web/src/views/components/scroll/basic/index.vue:4`, `packages/core/ui-kit/menu-ui/src/BasicMenu.vue:8`, `packages/core/ui-kit/tabs-ui/src/TabsBar.vue:14`, `packages/core/ui-kit/table-ui/src/components/TreeTable.vue:15`, `packages/core/ui-kit/layout-ui/src/components/layout-content/index.vue:8` and the rest all do `import { Scrollbar } from '@antdv/common-ui'`. The `Components()` call at `internal/vite-config/src/plugins/auto-import.ts:27-29` configures no `resolvers` at all, so package components never reach `apps/web/types/components.d.ts` (that file's `:15-22` only lists the app's own `src/components` entries) and a bare `<Scrollbar>` simply fails to resolve (see [External modules](/en/guide/essentials/external)).
 
 ### Live examples: `/components/loading` and `/components/scroll/basic`
 
-`http://localhost:6080/#/components/loading` — source `apps/web/src/views/components/loading/index.vue` (1432 lines, **12 sections**; the page owns no private shells any more — every demo piece comes from a shared package: skeletons / `EmptyState` / `ErrorBoundary` / `StatusTag` / `Loading` / `useLoading` from `@antdv/common-ui` (`:6-17`), `Spinner` and `Skeleton` from `@antdv/shadcn-ui` (`:19-38`), `PageLoading` from `@antdv/layouts` (`:41`)). Every "load duration" here is a `setTimeout` inside the page — there is no backend. The script opens with a timer registry plus unmount cleanup (`:38-66`), and leaving the page explicitly `destroy()`s even the fullscreen mask (`:60-66`).
+`http://localhost:6080/#/components/loading` — source `apps/web/src/views/components/loading/index.vue` (1432 lines, **12 sections**; the page owns no private shells any more — every demo piece comes from a shared package: skeletons / `EmptyState` / `ErrorBoundary` / `StatusTag` / `createLoading` / `Loading` / `useLoading` from `@antdv/common-ui` (`:6-18`), `Spinner`, `Skeleton`, `Button` and the other atoms from `@antdv/shadcn-ui` (`:20-41`), `PageLoading` from `@antdv/layouts` (`:43`), and the spinning glyphs used for the "three styles" come from `@iconify/vue` (`:44`)). Every "load duration" here is a `setTimeout` inside the page — there is no backend. The script opens with a timer registry plus unmount cleanup (`:70-97`), and leaving the page explicitly `destroy()`s even the fullscreen mask (`:96`).
 
 | Section | What to click / look at |
 | --- | --- |
-| Skeleton screens (PageSkeleton / TableSkeleton) `:421-524` | a switch toggles skeleton vs real content; `variant` (card/detail/form/page), row count, sidebar toggle; cancelling mid-flight **cancels the previous timer**, otherwise the delayed reveal would cut short a re-opened skeleton (`:88-113`) |
-| Empty state (EmptyState) `:526-606` | the application-side generic empty-state shell |
-| Error boundary (ErrorBoundary) `:608-666` | a button throws inside child content, to show how the boundary catches it |
-| Status tag (StatusTag) `:668-739` | status → colour mapping |
-| Spin loaders `:741-844` | plain antdv-next `Spin` in three styles (circle/dot/grid) plus tip |
-| Skeleton `:846-907` | plain antdv-next `Skeleton` |
-| `Loading` component (project wrapper) `:909-961` | sizes `small/default/large` × themes `light/dark`; "触发 Loading" shows the in-container mask; the `tip="组件式加载中..."` line and its `description` correction comment are at `:951-958` |
-| PageLoading and delayed mask `:1159-1221` | left: `PageLoading` over a container — no longer an "application-side shell": the layout shell moved into `@antdv/layouts` (the demo imports it as `import { PageLoading } from '@antdv/layouts'`, `:41`), and the component itself reads `resolvedTheme` from `@antdv/stores` to decide light/dark (`packages/layouts/src/basic/content/page-loading.vue:6`, `:23-25`); right: "fast request 150ms" never flashes the mask, "slow request 1800ms" does |
-| `v-loading` directive `:1014-1058` | three blocks: default light (`v-loading="directiveLoading"`), dark + large + the `loading-tip` attribute, and `v-loading.fullscreen` for the whole page; the directive is registered in `apps/web/src/main.ts:132` (implementation in `packages/core/ui-kit/common-ui/src/components/loading/directive.ts`) |
-| `useLoading` hook `:1060-1103` | "触发 useLoading" → an in-container mask for 2.5s; the section also prints a `target / body / tip` snippet |
-| Button loading state `:1105-1149` | antdv-next `Button`'s own `loading` prop — unrelated to this project |
-| Global mask `:1151-1185` | "模拟 API 请求 (全屏遮罩)" → `createLoading` opens fullscreen, `setTip('即将完成...')` at 1.5s, `close()` at 3s (`:400-415`) |
+| Skeleton screens (PageSkeleton / TableSkeleton) `:474-615` | a switch toggles skeleton vs real content; `variant` (card/detail/form/page), row count, sidebar toggle; cancelling mid-flight **cancels the previous timer** (`cancelScheduled` at `:126`, `:141`, `:151`), otherwise the delayed reveal would cut short a re-opened skeleton |
+| Empty state (EmptyState) `:616-695` | the application-side generic empty-state shell |
+| Error boundary (ErrorBoundary) `:696-769` | a button throws inside child content, to show how the boundary catches it |
+| Status tag (StatusTag) `:770-863` | status → colour mapping |
+| Spin loaders `:864-990` | basics are `Spinner` (`@antdv/shadcn-ui`) plus the project `Loading` container mask; the "three styles" are **not** antdv-next `Spin` sizes but three different glyphs — `circle` renders `Spinner class="size-8"`, `dot` the Iconify icon `svg-spinners:pulse-multiple`, `grid` `svg-spinners:bars-scale-fade` (`:974-984`), driven by `spinStyle` (`:336`) through `toggleSpinStyle()` (`:429`) |
+| Skeleton `:991-1069` | `Skeleton` also comes from `@antdv/shadcn-ui`; shape is assembled purely with classes (`size-12 shrink-0 rounded-full` for the avatar, `h-4 w-full` for the text lines) — the primitive exposes no animation configuration |
+| `Loading` component (project wrapper) `:1070-1158` | sizes `small/default/large` × themes `light/dark`; "触发 Loading" shows the in-container mask; `tip="组件式加载中..."` is at `:1153` and the comment directly above it (`:1147`) is the correction — **"`tip` is the text prop; there is no `description` prop"** (`description` belongs to the neighbouring `EmptyState`, `:624`) |
+| PageLoading and delayed mask `:1159-1222` | left: `PageLoading` over a container — no longer an "application-side shell": the layout shell moved into `@antdv/layouts` (the demo imports it at `:43`), and the component itself reads `resolvedTheme` from `@antdv/stores` to decide light/dark (`packages/layouts/src/basic/content/page-loading.vue:6`, `:24-25`); right: "fast request 150ms" never flashes the mask, "slow request 1800ms" does — the two timers are at `:382-396` |
+| `v-loading` directive `:1223-1283` | three blocks: default light (`v-loading="directiveLoading"`), dark + large + the `loading-tip` attribute (`:1244`), and `v-loading.fullscreen` for the whole page; the directive is registered in `apps/web/src/main.ts:118` (implementation in `packages/core/ui-kit/common-ui/src/components/loading/directive.ts`) |
+| `useLoading` hook `:1284-1327` | "触发 useLoading" → an in-container mask for 2.5s; the section also prints a `target / body / tip` snippet |
+| Button loading state `:1328-1399` | **`Button` has no built-in `loading` prop** — the section's own body text says so (`:1331-1336`): the loading state is `disabled` plus an `animate-spin` Iconify `svg-spinners:bouncing-ball` (`:1340-1346`), with the 2000 / 2500 / 3000ms durations computed by `triggerBtnLoading()` (`:448-451`) |
+| Global mask `:1400-1432` | "模拟 API 请求 (全屏遮罩)" → `createLoading({ tip, theme: 'dark', background })` opens fullscreen, `setTip('即将完成...')` at 1.5s, `close()` at 3s — the implementation is `triggerGlobalLoading()` (`:453-469`) |
 
 `http://localhost:6080/#/components/scroll/basic` — source `apps/web/src/views/components/scroll/basic/index.vue` (205 lines, 3 sections; each wraps content in a fixed-height `overflow-hidden` container so scrolling is entirely delegated to `Scrollbar`):
 
@@ -369,20 +357,19 @@ As for registration, `Scrollbar` is **always imported explicitly**: `apps/web/sr
 const basicItems = Array.from({ length: 30 }, (_, i) => ({/* ... */}));
 ```
 
-The button runs `basicItems.push(...)` (`:101-105`). With no reactive proxy behind it, `v-for="item in basicItems"` (`:116`) never re-renders, so clicking leaves the list the same length and raises no error. For contrast, the chat section on the same page keeps its messages in a `ref(...)` (`:31`) and its Send works. Wrapping `basicItems` in a `ref` would fix it; this page documents the current state only.
-:::
+The button runs `basicItems.push(...)` (`:101-105`). With no reactive proxy behind it, `v-for="item in basicItems"` (`:116`) never re-renders, so clicking leaves the list the same length and raises no error. For contrast, the chat section on the same page keeps its messages in a `ref(...)` (`:31`) and its Send works. Wrapping `basicItems` in a `ref` would fix it; this page documents the current state only. :::
 
 ## Which package each atom lives in
 
-The old `@antdv/ui` package has been taken apart, and the three atoms on this page each have their own home; the pure-antd demos (`Spin`, `Skeleton`) do not count:
+The old `@antdv/ui` package has been taken apart, and the three atoms on this page each have their own home; the `Spin` / `Skeleton` sections of this page demonstrate `@antdv/shadcn-ui` primitives and are not part of the three packages below:
 
 | Package | Contents | Boundary (written into `description`) | Exports |
 | --- | --- | --- | --- |
-| `@antdv/icons` (`packages/core/base/icons`) | `IconPicker` / `IconifyIcon` / `SvgIcon` | icons only: loading overlays belong to `@antdv/common-ui`, scrollbars to `@antdv/common-ui` | `.:src/index.ts` + the `./icon` subpath + `createIconInstaller()` (`:13-31`) |
-| `@antdv/common-ui` (`packages/core/ui-kit/common-ui/src/components/loading`) | `Loading` + `useLoading` + `createLoading` / `createContainerLoading` / `createFullscreenLoading` + `vLoading` | no pinia, vue-router, business stores or application configuration | single-entry barrel (root `src/index.ts:74-81` for values, `:82-90` for types) |
-| `@antdv/common-ui` (`packages/core/ui-kit/common-ui/src/components/scrollbar`) | `Scrollbar` only — there is no separate `Bar` component | styles travel with the component — no host Tailwind config, no store or app configuration | folder barrel `components/scrollbar/index.ts:1-3`: `Scrollbar` plus the `ScrollbarProps` / `ScrollbarStyle` / `ScrollbarType` types; root barrel `src/index.ts:111` and `:112-116` |
+| `@antdv/icons` (`packages/core/base/icons`) | `IconPicker` / `IconifyIcon` / `SvgIcon` | icons only: loading overlays belong to `@antdv/common-ui`, scrollbars to `@antdv/common-ui` | `.:src/index.ts` + the `./icon` subpath + a `./*` wildcard (`package.json:20-25`) + `createIconInstaller()` (`src/index.ts:19-31`) |
+| `@antdv/common-ui` (`packages/core/ui-kit/common-ui/src/components/loading`) | `Loading` + `useLoading` + `createLoading` / `createContainerLoading` / `createFullscreenLoading` + `vLoading` | no pinia, vue-router, business stores or application configuration | single-entry barrel (root `src/index.ts:81-87` for values, `:88-96` for types) |
+| `@antdv/common-ui` (`packages/core/ui-kit/common-ui/src/components/scrollbar`) | `Scrollbar` only — there is no separate `Bar` component | styles travel with the component — no host Tailwind config, no store or app configuration | folder barrel `components/scrollbar/index.ts:1-3`: `Scrollbar` plus the `ScrollbarProps` / `ScrollbarStyle` / `ScrollbarType` types; root barrel `src/index.ts:120` and `:121-125` |
 
-Both packages have `files: ["src"]` and point `main`/`types` at `./src/index.ts` — that is, **source-published**: the host Vite compiles them directly and there is no dist build step (rationale in [External modules](/en/guide/essentials/external)).
+Both packages ship `files: ["dist", "src"]` (`packages/core/base/icons/package.json:13-16`, `packages/core/ui-kit/common-ui/package.json:13-16`) while `main` / `module` / `types` and `exports["."]` still point at `./src/index.ts` (`:17-19`, `:22`) — that is, **source resolution**: the host Vite compiles the `.vue` files directly and edits hot-update immediately. The `build: vite build` script has since been added (`:8`) and the emitted `dist` exists for the publication side, which has not switched its entry over yet. The three-way trade-off is laid out in [External modules](/en/guide/essentials/external).
 
 | Convention | Source |
 | --- | --- |

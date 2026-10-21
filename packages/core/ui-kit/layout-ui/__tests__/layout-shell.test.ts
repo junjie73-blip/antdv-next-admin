@@ -3,8 +3,8 @@ import { nextTick } from 'vue';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import LayoutShell from '../src/layout.vue';
 import { configureLayout } from '../src/layout';
+import LayoutShell from '../src/layout.vue';
 import { menuTree, regions } from './fixtures';
 
 const mounted: Array<{ unmount: () => void }> = [];
@@ -40,7 +40,7 @@ afterEach(() => {
   configureLayout({ t: (key: string) => key });
 });
 
-describe('LayoutShell - 顶栏住在哪一行', () => {
+describe('layoutShell - 顶栏住在哪一行', () => {
   it('headerLead=logo 时顶栏横贯全宽，面包屑退到内容列第一行', async () => {
     const wrapper = mountShell(
       regions({
@@ -133,7 +133,7 @@ describe('LayoutShell - 顶栏住在哪一行', () => {
   });
 });
 
-describe('LayoutShell - 三列的嵌套顺序', () => {
+describe('layoutShell - 三列的嵌套顺序', () => {
   it('图标栏、侧栏、内容列是同一行的兄弟节点', async () => {
     const wrapper = mountShell(
       regions({
@@ -175,7 +175,7 @@ describe('LayoutShell - 三列的嵌套顺序', () => {
   });
 });
 
-describe('LayoutShell - 常驻侧栏与浮层的互斥', () => {
+describe('layoutShell - 常驻侧栏与浮层的互斥', () => {
   it('overlaySidebar 时常驻那一列消失，抽屉改由遮罩 + 面板承载', async () => {
     const wrapper = mountShell(
       regions({
@@ -292,7 +292,7 @@ describe('LayoutShell - 常驻侧栏与浮层的互斥', () => {
   });
 });
 
-describe('LayoutShell - 侧栏触发按钮的位置', () => {
+describe('layoutShell - 侧栏触发按钮的位置', () => {
   it('常驻侧栏在场时顶栏不再重复一个入口（折叠条住在列底）', async () => {
     const wrapper = mountShell(
       regions({
@@ -355,7 +355,7 @@ describe('LayoutShell - 侧栏触发按钮的位置', () => {
   });
 });
 
-describe('LayoutShell - 品牌位只出现一次', () => {
+describe('layoutShell - 品牌位只出现一次', () => {
   it('图标栏在场时侧栏不再画 Logo', async () => {
     const wrapper = mountShell(
       regions({
@@ -417,7 +417,7 @@ describe('LayoutShell - 品牌位只出现一次', () => {
   });
 });
 
-describe('LayoutShell - 标签页、底栏与沉浸视角', () => {
+describe('layoutShell - 标签页、底栏与沉浸视角', () => {
   it('tabsVisible 决定标签页插槽是否落在内容列里，并给出 tabs 区域钩子', () => {
     const on = mountShell(
       regions({ tabsVisible: true }),
@@ -510,7 +510,7 @@ describe('LayoutShell - 标签页、底栏与沉浸视角', () => {
   });
 });
 
-describe('LayoutShell - 事件上抛', () => {
+describe('layoutShell - 事件上抛', () => {
   it('侧栏、图标栏、顶栏导航的点击统一成 navigate(key)', async () => {
     const wrapper = mountShell(
       regions({
@@ -563,7 +563,7 @@ describe('LayoutShell - 事件上抛', () => {
   });
 });
 
-describe('LayoutShell - 配色与插槽的分发', () => {
+describe('layoutShell - 配色与插槽的分发', () => {
   it('同一份 tone 发给各区域，深色侧栏偏好只影响左那一列', async () => {
     const wrapper = mountShell(
       regions({

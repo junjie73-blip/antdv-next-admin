@@ -76,7 +76,7 @@ const bubbleClass = computed(() =>
     'z-10 rounded-full text-xs leading-none text-white',
     standalone.value
       ? 'inline-flex'
-      : 'absolute right-0 top-0 -translate-x-1/2 -translate-y-1/2',
+      : 'absolute top-0 right-0 -translate-x-1/2 -translate-y-1/2',
     props.dot ? 'size-2' : 'px-1.5 py-0.5',
     props.color ? '' : 'bg-destructive',
   ),
@@ -89,7 +89,7 @@ const bubbleStyle = computed<CSSProperties | undefined>(() => {
     style.marginLeft = `${props.offset[0]}px`;
     style.marginTop = `${props.offset[1]}px`;
   }
-  return Object.keys(style).length ? style : undefined;
+  return Object.keys(style).length > 0 ? style : undefined;
 });
 
 const statusDotClass = computed(() =>
@@ -124,7 +124,6 @@ const statusDotStyle = computed(() =>
       :class="bubbleClass"
       :style="bubbleStyle"
       :title="props.title"
-      >{{ display }}</sup
-    >
+      >{{ display }}</sup>
   </span>
 </template>

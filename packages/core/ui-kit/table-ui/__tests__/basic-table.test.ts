@@ -38,7 +38,7 @@ const cellTexts = (wrapper: ReturnType<typeof mountTable>) =>
     row.findAll('td').map((cell) => cell.text().trim()),
   );
 
-describe('BasicTable 基础渲染', () => {
+describe('basicTable 基础渲染', () => {
   it('渲染表头与数据行，行上带 data-row-key', () => {
     const wrapper = mountTable();
     expect(wrapper.findAll('.basic-table-head')).toHaveLength(2);
@@ -59,7 +59,9 @@ describe('BasicTable 基础渲染', () => {
   });
 
   it('rowKey 为函数时用返回值做 data-row-key', () => {
-    const wrapper = mountTable({ rowKey: (record: Recordable) => `k-${record.id}` });
+    const wrapper = mountTable({
+      rowKey: (record: Recordable) => `k-${record.id}`,
+    });
     expect(bodyRows(wrapper)[0]!.attributes('data-row-key')).toBe('k-1');
   });
 
@@ -100,23 +102,29 @@ describe('BasicTable 基础渲染', () => {
       { dataSource: [] },
       { slots: { empty: () => h('span', '自定义空态') } },
     );
-    expect(slotted.find('.basic-table-empty-row').text()).toContain('自定义空态');
+    expect(slotted.find('.basic-table-empty-row').text()).toContain(
+      '自定义空态',
+    );
   });
 
   it('loading 时显示遮罩', () => {
-    expect(mountTable({ loading: true }).find('.basic-table-loading').exists()).toBe(
-      true,
-    );
+    expect(
+      mountTable({ loading: true }).find('.basic-table-loading').exists(),
+    ).toBe(true);
     expect(mountTable().find('.basic-table-loading').exists()).toBe(false);
   });
 
   it('showHeader=false 不渲染表头', () => {
-    expect(mountTable({ showHeader: false }).find('thead').exists()).toBe(false);
+    expect(mountTable({ showHeader: false }).find('thead').exists()).toBe(
+      false,
+    );
   });
 
   it('scroll.x 决定表格最小宽度，scroll.y 决定 body 最大高度与吸顶表头', () => {
     const wrapper = mountTable({ scroll: { x: 1200, y: 300 } });
-    expect(wrapper.find('table').attributes('style')).toContain('min-width: 1200px');
+    expect(wrapper.find('table').attributes('style')).toContain(
+      'min-width: 1200px',
+    );
     expect(wrapper.find('.basic-table-body').attributes('style')).toContain(
       'max-height: 300px',
     );
@@ -140,7 +148,9 @@ describe('BasicTable 基础渲染', () => {
 
     // 左固定列与右固定操作列：实色底（从行继承）+ 压住普通单元格的层级
     for (const cell of pinned) {
-      expect(cell.classes()).toEqual(expect.arrayContaining(['bg-inherit', 'z-[2]']));
+      expect(cell.classes()).toEqual(
+        expect.arrayContaining(['bg-inherit', 'z-[2]']),
+      );
     }
     expect(pinned[0]!.attributes('style')).toContain('left: 0px');
     expect(pinned[1]!.attributes('style')).toContain('right: 0px');
@@ -151,13 +161,17 @@ describe('BasicTable 基础渲染', () => {
     expect(normal!.classes()).not.toContain('bg-inherit');
 
     // 底色来自 `<tr>`，所以行背景必须是实色，否则固定列照样透
-    expect(first.classes()).toEqual(expect.arrayContaining(['group', 'bg-card']));
+    expect(first.classes()).toEqual(
+      expect.arrayContaining(['group', 'bg-card']),
+    );
     for (const cls of wrapper.findAll('.basic-table-head')) {
       expect(cls.classes()).toEqual(expect.arrayContaining(['bg-gray-50']));
       expect(cls.classes().join(' ')).not.toContain('gray-800/');
     }
     // 固定表头压住固定单元格
-    expect(wrapper.findAll('.basic-table-head')[0]!.classes()).toContain('z-20');
+    expect(wrapper.findAll('.basic-table-head')[0]!.classes()).toContain(
+      'z-20',
+    );
   });
 
   it('表头与单元格共用同一套盒模型（行高不一致会错位）', () => {
@@ -165,7 +179,13 @@ describe('BasicTable 基础渲染', () => {
     const head = wrapper.findAll('.basic-table-head')[0]!.classes();
     const cell = bodyRows(wrapper)[0]!.findAll('td')[0]!.classes();
     // 行高取 24px 的文本行盒：单元格住的不只是一行文字，20px 时表头比数据行矮一线
-    for (const cls of ['px-3', 'py-2', 'text-sm', 'leading-6', 'align-middle']) {
+    for (const cls of [
+      'px-3',
+      'py-2',
+      'text-sm',
+      'leading-6',
+      'align-middle',
+    ]) {
       expect(head).toContain(cls);
       expect(cell).toContain(cls);
     }
@@ -205,7 +225,7 @@ describe('BasicTable 基础渲染', () => {
   });
 });
 
-describe('BasicTable 单元格渲染优先级', () => {
+describe('basicTable 单元格渲染优先级', () => {
   it('customRender 最高优先', () => {
     const wrapper = mountTable({
       columns: [
@@ -227,9 +247,9 @@ describe('BasicTable 单元格渲染优先级', () => {
         { dataIndex: 'age', title: '年龄' },
       ],
     });
-    expect(
-      bodyRows(wrapper)[0]!.findAll('td')[0]!.find('b').exists(),
-    ).toBe(true);
+    expect(bodyRows(wrapper)[0]!.findAll('td')[0]!.find('b').exists()).toBe(
+      true,
+    );
   });
 
   it('format 函数返回 VNode 时直接渲染', () => {
@@ -263,10 +283,17 @@ describe('BasicTable 单元格渲染优先级', () => {
     const wrapper = mountTable(
       {
         columns: [
-          { customRender: () => h('span', 'rendered'), dataIndex: 'name', key: 'name', title: '名称' },
+          {
+            customRender: () => h('span', 'rendered'),
+            dataIndex: 'name',
+            key: 'name',
+            title: '名称',
+          },
         ],
       },
-      { slots: { 'cell-name': (props: any) => h('span', `slot-${props.text}`) } },
+      {
+        slots: { 'cell-name': (props: any) => h('span', `slot-${props.text}`) },
+      },
     );
     expect(bodyRows(wrapper)[0]!.text()).toBe('slot-张三');
   });
@@ -294,7 +321,7 @@ describe('BasicTable 单元格渲染优先级', () => {
   });
 });
 
-describe('BasicTable 行事件', () => {
+describe('basicTable 行事件', () => {
   it('rowClick / rowDbClick 抛出记录与下标', async () => {
     const wrapper = mountTable();
     await bodyRows(wrapper)[1]!.trigger('click');
@@ -322,7 +349,7 @@ describe('BasicTable 行事件', () => {
   });
 });
 
-describe('BasicTable 工具栏', () => {
+describe('basicTable 工具栏', () => {
   it('toolbar 插槽渲染', () => {
     const wrapper = mountTable(
       {},
@@ -332,7 +359,7 @@ describe('BasicTable 工具栏', () => {
   });
 });
 
-describe('BasicTable 实例注册', () => {
+describe('basicTable 实例注册', () => {
   beforeEach(() => {
     vi.useRealTimers();
   });
@@ -395,12 +422,10 @@ describe('BasicTable 实例注册', () => {
   });
 
   it('reload 回到第一页并重新取数', async () => {
-    const api = vi
-      .fn()
-      .mockImplementation(async (params: any) => ({
-        list: rows.slice(0, params.pageSize),
-        total: 30,
-      }));
+    const api = vi.fn().mockImplementation(async (params: any) => ({
+      list: rows.slice(0, params.pageSize),
+      total: 30,
+    }));
     const wrapper = mountTable({
       api,
       dataSource: undefined,

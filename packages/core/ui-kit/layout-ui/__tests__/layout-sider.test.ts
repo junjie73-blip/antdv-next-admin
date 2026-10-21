@@ -32,7 +32,7 @@ afterEach(() => {
   configureLayout({ t: (key: string) => key });
 });
 
-describe('LayoutSider - 宽度与折叠', () => {
+describe('layoutSider - 宽度与折叠', () => {
   it('默认用偏好里的展开宽度', () => {
     expect(mountSider().attributes('style')).toContain(
       `width: ${LAYOUT_SIDEBAR_WIDTH}px`,
@@ -92,7 +92,7 @@ describe('LayoutSider - 宽度与折叠', () => {
   });
 });
 
-describe('LayoutSider - Logo 位', () => {
+describe('layoutSider - Logo 位', () => {
   it('showLogo 关掉时整格不渲染，避免与图标栏/顶栏重复占高', () => {
     expect(
       mountSider({ logo: '/logo.svg', showLogo: false, title: '控制台' })
@@ -120,7 +120,7 @@ describe('LayoutSider - Logo 位', () => {
   });
 });
 
-describe('LayoutSider - 菜单交互', () => {
+describe('layoutSider - 菜单交互', () => {
   it('叶子点击向上抛 navigate，key 与菜单同源', async () => {
     const wrapper = mountSider({
       menus: [{ name: 'Analysis', path: '/analysis', title: '分析面板' }],

@@ -153,7 +153,9 @@ function toggleViewportHeight() {
         <Listy class="mt-4" :items="[]">
           <template #empty>
             <div class="flex flex-col items-center gap-2 py-10">
-              <p class="text-sm text-muted-foreground">#empty 插槽接管整块空状态</p>
+              <p class="text-sm text-muted-foreground">
+                #empty 插槽接管整块空状态
+              </p>
               <Button size="sm" @click="reload">用插槽里的按钮加载</Button>
             </div>
           </template>
@@ -171,7 +173,11 @@ function toggleViewportHeight() {
             </span>
           </template>
           <template #item-extra="{ index }">
-            <Button size="sm" variant="outline" @click="onPick(rows[index]!, index)">
+            <Button
+              size="sm"
+              variant="outline"
+              @click="onPick(rows[index]!, index)"
+            >
               查看
             </Button>
           </template>
@@ -195,7 +201,11 @@ function toggleViewportHeight() {
       <Card title="固定行高 · 20 000 条" variant="borderless">
         <template #extra>
           <div class="flex flex-wrap items-center gap-2">
-            <Button size="sm" variant="outline" @click="fixedListy?.scrollToTop()">
+            <Button
+              size="sm"
+              variant="outline"
+              @click="fixedListy?.scrollToTop()"
+            >
               顶部
             </Button>
             <Button
@@ -237,9 +247,10 @@ function toggleViewportHeight() {
           :data-total="fixedStats?.scrollHeight ?? 0"
           :data-top="Math.round(fixedStats?.scrollTop ?? 0)"
         >
-          渲染 {{ fixedStats?.visibleCount ?? 0 }} 行 · 窗口
-          #{{ fixedStats?.startIndex ?? 0 }}–#{{ fixedStats?.endIndex ?? 0 }} ·
-          scrollTop {{ Math.round(fixedStats?.scrollTop ?? 0) }}px · 总高
+          渲染 {{ fixedStats?.visibleCount ?? 0 }} 行 · 窗口 #{{
+            fixedStats?.startIndex ?? 0
+          }}–#{{ fixedStats?.endIndex ?? 0 }} · scrollTop
+          {{ Math.round(fixedStats?.scrollTop ?? 0) }}px · 总高
           {{ fixedStats?.scrollHeight ?? 0 }}px · 进度
           {{ ((fixedStats?.progress ?? 0) * 100).toFixed(1) }}% · 事件
           {{ scrollEvents }} 次（{{ lastEmit }}）
@@ -280,7 +291,8 @@ function toggleViewportHeight() {
         </Listy>
         <p :class="tipClassName">
           行高按规则变化时不必实测：把同一个函数交给 `item-height`，
-          总高与偏移都用它算，所以滚动条仍然精确（本页 20 000 行合计 936 000px）。
+          总高与偏移都用它算，所以滚动条仍然精确（本页 20 000 行合计 936
+          000px）。
         </p>
       </Card>
 

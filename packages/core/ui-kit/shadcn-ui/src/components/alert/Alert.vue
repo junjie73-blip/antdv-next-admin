@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import type { AlertVariants } from "."
-import { cn } from '@antdv/shared/utils/cn'
-import { alertVariants } from "."
+import type { HTMLAttributes } from 'vue';
+
+import type { AlertVariants } from '.';
+
+import { cn } from '@antdv/shared/utils/cn';
+
+import { alertVariants } from '.';
 
 const props = defineProps<{
-  class?: HTMLAttributes["class"]
-  variant?: AlertVariants["variant"]
-}>()
+  class?: HTMLAttributes['class'];
+  variant?: AlertVariants['variant'];
+}>();
 </script>
 
 <template>
@@ -16,6 +19,6 @@ const props = defineProps<{
     :class="cn(alertVariants({ variant }), props.class)"
     role="alert"
   >
-    <slot />
+    <slot></slot>
   </div>
 </template>

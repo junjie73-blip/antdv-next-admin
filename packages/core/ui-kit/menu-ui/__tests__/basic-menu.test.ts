@@ -38,7 +38,12 @@ const tree: MenuConfig[] = [
     path: '',
     title: '组件示例',
   },
-  { badge: { dot: true }, name: 'Dashboard', path: '/dashboard', title: '分析面板' },
+  {
+    badge: { dot: true },
+    name: 'Dashboard',
+    path: '/dashboard',
+    title: '分析面板',
+  },
   { extra: '3', name: 'Notice', path: '/notice', title: '通知' },
   { extra: true, name: 'Flag', path: '/flag', title: '布尔附加' },
   { hidden: true, name: 'Secret', path: '/secret', title: '隐藏页' },
@@ -74,7 +79,7 @@ afterEach(() => {
   configureMenu({ t: (key: string) => key });
 });
 
-describe('BasicMenu —— 内联形态', () => {
+describe('basicMenu —— 内联形态', () => {
   it('只画可见项，且未展开的目录不带子行', () => {
     const wrapper = mountMenu();
     const keys = topRows(wrapper).map((row) => row.attributes('data-menu-key'));
@@ -86,7 +91,14 @@ describe('BasicMenu —— 内联形态', () => {
     const wrapper = mountMenu({ openKeys: ['Demo'] });
     expect(wrapper.find('[data-menu-submenu]').exists()).toBe(true);
     const keys = rows(wrapper).map((row) => row.attributes('data-menu-key'));
-    expect(keys).toEqual(['Demo', 'DemoForm', 'AntdvDoc', 'Dashboard', 'Notice', 'Flag']);
+    expect(keys).toEqual([
+      'Demo',
+      'DemoForm',
+      'AntdvDoc',
+      'Dashboard',
+      'Notice',
+      'Flag',
+    ]);
   });
 
   it('点目录上抛展开状态，不导航', async () => {
@@ -158,7 +170,10 @@ describe('BasicMenu —— 内联形态', () => {
     expect(padding('DemoForm')).toContain('padding-left: 32px');
     expect(padding('BasicForm')).toContain('padding-left: 48px');
 
-    const wider = mountMenu({ inlineIndent: 24, openKeys: ['Demo', 'DemoForm'] });
+    const wider = mountMenu({
+      inlineIndent: 24,
+      openKeys: ['Demo', 'DemoForm'],
+    });
     expect(
       wider
         .findAll('[data-menu-key]')
@@ -189,7 +204,7 @@ describe('BasicMenu —— 内联形态', () => {
   });
 });
 
-describe('BasicMenu —— 徽标与附加信息', () => {
+describe('basicMenu —— 徽标与附加信息', () => {
   it('dot 徽标渲染成圆点', () => {
     const wrapper = mountMenu();
     const badge = wrapper.find('[data-menu-badge="dot"]');
@@ -201,22 +216,31 @@ describe('BasicMenu —— 徽标与附加信息', () => {
     const wrapper = mountMenu({
       menus: [
         { badge: { text: 120 }, name: 'A', path: '/a', title: '甲' },
-        { badge: { overflowCount: 10, text: 42 }, name: 'B', path: '/b', title: '乙' },
+        {
+          badge: { overflowCount: 10, text: 42 },
+          name: 'B',
+          path: '/b',
+          title: '乙',
+        },
         { badge: { text: 'NEW' }, name: 'C', path: '/c', title: '丙' },
       ],
     });
-    const counts = wrapper.findAll('[data-menu-badge="count"]').map((node) => node.text());
+    const counts = wrapper
+      .findAll('[data-menu-badge="count"]')
+      .map((node) => node.text());
     expect(counts).toEqual(['99+', '10+', 'NEW']);
   });
 
   it('extra 只渲染文本，布尔值不当内容画出来', () => {
     const wrapper = mountMenu();
-    const extras = wrapper.findAll('[data-menu-extra]').map((node) => node.text());
+    const extras = wrapper
+      .findAll('[data-menu-extra]')
+      .map((node) => node.text());
     expect(extras).toEqual(['3']);
   });
 });
 
-describe('BasicMenu —— 横向形态', () => {
+describe('basicMenu —— 横向形态', () => {
   it('按 bar 排版，点一级目录也上抛 select（停在 404 时点一级菜单要有反应）', async () => {
     const wrapper = mountMenu({ mode: 'horizontal' });
     const list = wrapper.find('[data-menu-variant="bar"]');
@@ -248,9 +272,19 @@ describe('BasicMenu —— 横向形态', () => {
       scrollLeft: Object.getOwnPropertyDescriptor(proto, 'scrollLeft'),
       scrollWidth: Object.getOwnPropertyDescriptor(proto, 'scrollWidth'),
     };
-    Object.defineProperty(proto, 'clientWidth', { configurable: true, get: () => 400 });
-    Object.defineProperty(proto, 'scrollWidth', { configurable: true, get: () => 800 });
-    Object.defineProperty(proto, 'scrollLeft', { configurable: true, get: () => 100, set: () => {} });
+    Object.defineProperty(proto, 'clientWidth', {
+      configurable: true,
+      get: () => 400,
+    });
+    Object.defineProperty(proto, 'scrollWidth', {
+      configurable: true,
+      get: () => 800,
+    });
+    Object.defineProperty(proto, 'scrollLeft', {
+      configurable: true,
+      get: () => 100,
+      set: () => {},
+    });
     (Element.prototype as unknown as { scrollTo: unknown }).scrollTo = scrollTo;
 
     configureMenu({

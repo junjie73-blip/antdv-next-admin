@@ -79,8 +79,7 @@ which is not in the workspace
 
 ::: warning 有一条的 bump 级别看着选错了
 
-`basic-drawer-on-drawer-primitives` 正文写的是"抽屉换掉底层交互原语"，级别却只给了 popup-ui / shadcn-ui 一个 `patch`；同样换了实现的 `markdown-editor-into-common-ui` 给的是 `minor`。不影响构建，只影响版本号 —— 下一次 `pnpm version` 之前值得确认一下。
-:::
+`basic-drawer-on-drawer-primitives` 正文写的是"抽屉换掉底层交互原语"，级别却只给了 popup-ui / shadcn-ui 一个 `patch`；同样换了实现的 `markdown-editor-into-common-ui` 给的是 `minor`。不影响构建，只影响版本号 —— 下一次 `pnpm version` 之前值得确认一下。:::
 
 **patch**
 

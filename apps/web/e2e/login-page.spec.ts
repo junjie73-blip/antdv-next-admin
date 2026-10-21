@@ -71,7 +71,7 @@ test.describe('登录页的样式', () => {
       .toBe(true);
 
     /*
-     * 认证外壳的强调色全部挂在 app 主色 token 上（`--app-primary`）：预设档由
+     * 认证外壳的强调色全部挂在 app 主色 token 上（`--primary`）：预设档由
      * `@antdv/design` 的 `[data-theme]` 色板给值，取色器选的自定义色才内联写在 `<html>`。
      * 同一颗主色在明暗两套色板里的取值本来就不同（橙黄在暗底上要单独调一档），
      * 所以这里不钉色值，只钉两件事：
@@ -164,9 +164,7 @@ test.describe('登录页的样式', () => {
 
     await expect(auth(page, 'brand-title')).toBeVisible();
     await expect(auth(page, 'brand-desc')).toBeVisible();
-    await expect
-      .poll(() => auth(page, 'brand-features').count())
-      .toBe(1);
+    await expect.poll(() => auth(page, 'brand-features').count()).toBe(1);
     expect(
       await page.locator('[data-auth="brand-feature"]').count(),
     ).toBeGreaterThanOrEqual(3);

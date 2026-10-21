@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import { cn } from '@antdv/shared/utils/cn'
+import type { HTMLAttributes } from 'vue';
+
+import { cn } from '@antdv/shared/utils/cn';
 
 const props = defineProps<{
-  class?: HTMLAttributes["class"]
-}>()
+  class?: HTMLAttributes['class'];
+}>();
 </script>
 
 <template>
@@ -12,6 +13,6 @@ const props = defineProps<{
     data-slot="table-body"
     :class="cn('[&_tr:last-child]:border-0', props.class)"
   >
-    <slot />
+    <slot></slot>
   </tbody>
 </template>

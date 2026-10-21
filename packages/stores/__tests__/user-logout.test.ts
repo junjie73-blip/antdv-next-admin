@@ -1,6 +1,7 @@
 import type { BackendMenu } from '@antdv/types';
 
 import { createPinia, setActivePinia } from 'pinia';
+
 import { useRouteStore } from '../src/route';
 import { useTabsStore } from '../src/tabs';
 import { useUserStore } from '../src/user';

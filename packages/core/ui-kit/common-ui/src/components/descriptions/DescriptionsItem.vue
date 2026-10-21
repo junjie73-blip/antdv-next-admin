@@ -46,7 +46,7 @@ const cellClass = computed(() =>
 const labelClass = computed(() =>
   bordered.value
     ? cn(
-        'flex shrink-0 items-center bg-muted/40 font-medium',
+        'bg-muted/40 flex shrink-0 items-center font-medium',
         cellClass.value,
         isVertical.value ? 'border-b' : 'border-r',
       )
@@ -57,7 +57,7 @@ const labelClass = computed(() =>
 );
 
 const valueClass = computed(() =>
-  cn('min-w-0 flex-1 break-words', bordered.value ? cellClass.value : ''),
+  cn('min-w-0 flex-1 wrap-break-word', bordered.value ? cellClass.value : ''),
 );
 </script>
 

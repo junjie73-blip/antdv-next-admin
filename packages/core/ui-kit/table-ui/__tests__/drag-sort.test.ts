@@ -10,17 +10,42 @@ import { useDragSort } from '../src/hooks/useDragSort';
 
 // Sortable 在 jsdom 里不会真的移动 DOM 节点，这里只记录传入的选项，
 // 用生命周期回调验证下标换算与重排逻辑。
-const instances: Array<{ destroy: any; el: HTMLElement; options: any }> = [];
+interface FakeSortable {
+  destroy: () => void;
+  el: HTMLElement;
+  options: Record<string, any>;
+}
+
+const instances: FakeSortable[] = [];
 
 vi.mock('sortablejs', () => ({
   // 必须是函数表达式：`useDragSort` 用 `new Sortable(...)` 实例化，箭头函数不能当构造器
   // eslint-disable-next-line prefer-arrow-callback
-  default: vi.fn(function FakeSortable(this: any, el: HTMLElement, options: any) {
+  default: vi.fn(function FakeSortable(
+    this: any,
+    el: HTMLElement,
+    options: any,
+  ) {
     const destroy = vi.fn();
     instances.push({ destroy, el, options });
     return { destroy, option: vi.fn() };
   }),
 }));
+
+/** 第 n 次创建的 Sortable（含它的选项与 destroy）；取不到就是用例时序写错了 */
+function created(index = 0): FakeSortable {
+  const found = instances[index];
+  if (!found) throw new TypeError(`没有记录到第 ${index + 1} 个 Sortable 实例`);
+  return found;
+}
+
+/** 取容器里第 index 个子节点（一行 `<tr>`）；取不到就是用例下标写错了 */
+function childRow(el: HTMLElement, index: number): HTMLElement {
+  const found = el.children[index] as HTMLElement | undefined;
+  if (!found)
+    throw new TypeError(`${el.tagName} 里没有第 ${index + 1} 个子节点`);
+  return found;
+}
 
 const rows = (): Recordable[] => [
   { id: 1, name: 'a' },
@@ -52,16 +77,64 @@ async function setupDragSort(options: Record<string, any> = {}) {
   return { ctl: ctl.value, dataSource, wrapper };
 }
 
-const makeEvt = (extra: Record<string, any>) => ({
-  preventDefault: vi.fn(),
-  ...extra,
+/**
+ * 按 `BasicTable` 的真实结构铺三行 `<tbody>`：每行一个 `data-row-key`。
+ * 行给成 a / b / c 三个具名字段，用例里就不必按下标取再逐个断言非空。
+ */
+function mountRows(data: Recordable[]) {
+  const tbody = document.createElement('tbody');
+  const rowOf = (index: number) => {
+    const record = data[index];
+    if (!record) throw new TypeError(`测试数据不足 ${index + 1} 行`);
+    const tr = document.createElement('tr');
+    tr.dataset.rowKey = String(record.id);
+    tbody.append(tr);
+    return tr;
+  };
+  return { a: rowOf(0), b: rowOf(1), c: rowOf(2), tbody };
+}
+
+/** 前面压着 `leading` 行占位行的版本（模拟测量行 / 展开详情行） */
+function mountRowsWithLeading(data: Recordable[], leading: number) {
+  const tbody = document.createElement('tbody');
+  for (let i = 0; i < leading; i += 1) {
+    tbody.append(document.createElement('tr'));
+  }
+  for (const record of data) {
+    const tr = document.createElement('tr');
+    tr.dataset.rowKey = String(record.id);
+    tbody.append(tr);
+  }
+  return tbody;
+}
+
+/** Sortable 传给 `filter` 的第一个参数是原生 pointerdown，这里只需要它存在 */
+const pointerDown = new MouseEvent('mousedown', {
+  bubbles: true,
+  cancelable: true,
 });
+
+/** 问一次 Sortable 的 `filter` 闸门：返回真值 = 这次拖拽被取消 */
+const askFilter = (index = 0, target?: HTMLElement): boolean => {
+  // 这里的 `filter` 是 Sortable 的回调选项，不是数组方法；按名字匹配的两条规则会误报
+  // oxlint-disable-next-line unicorn/no-array-method-this-argument, unicorn/no-array-callback-reference
+  return created(index).options.filter(pointerDown, target) as boolean;
+};
+
+/**
+ * 复现真实起拖顺序：pointerdown 先过 `filter`，再 `onStart`，最后才 `onEnd`。
+ * 「DOM 行 ↔ 数据行」的快照就在前两步里量，跳过它们直接调 onMove/onEnd 不是合法时序。
+ */
+const startDrag = (index = 0, target?: HTMLElement) => {
+  askFilter(index, target);
+  created(index).options.onStart({});
+};
 
 beforeEach(() => {
   instances.length = 0;
 });
 
-describe('useDragSort', () => {
+describe('useDragSort 的下标换算', () => {
   it('enabled 为假时不创建 Sortable 实例', async () => {
     const { ctl } = await setupDragSort({ enabled: false });
     ctl.initSortable(document.createElement('tbody'));
@@ -72,10 +145,10 @@ describe('useDragSort', () => {
     const { ctl } = await setupDragSort({ handle: '.drag-handle' });
     const tbody = document.createElement('tbody');
     ctl.initSortable(tbody);
-    expect(instances[0]!.el).toBe(tbody);
-    expect(instances[0]!.options.handle).toBe('.drag-handle');
-    expect(instances[0]!.options.animation).toBe(100);
-    expect(instances[0]!.options.disabled).toBe(false);
+    expect(created().el).toBe(tbody);
+    expect(created().options.handle).toBe('.drag-handle');
+    expect(created().options.animation).toBe(100);
+    expect(created().options.disabled).toBe(false);
 
     ctl.destroySortable();
     expect(ctl.initSortable).toBeTypeOf('function');
@@ -92,42 +165,27 @@ describe('useDragSort', () => {
   it('onEnd 重排数据源并回调新旧两份数据', async () => {
     const onDragEnd = vi.fn();
     const { ctl, dataSource } = await setupDragSort({ onDragEnd });
-    const tbody = document.createElement('tbody');
-    for (const row of dataSource.value) {
-      const tr = document.createElement('tr');
-      tr.setAttribute('data-row-key', String(row.id));
-      tbody.append(tr);
-    }
+    const { a, tbody } = mountRows(dataSource.value);
     ctl.initSortable(tbody);
 
-    instances[0]!.options.onEnd({ newIndex: 2, oldIndex: 0 });
+    startDrag(0, a);
+    created().options.onEnd({ newIndex: 2, oldIndex: 0 });
+    const [newData, oldData] = onDragEnd.mock.lastCall ?? [];
     expect(dataSource.value.map((row) => row.id)).toEqual([2, 3, 1]);
-    expect(onDragEnd.mock.calls[0]![0].map((r: Recordable) => r.id)).toEqual([
-      2,
-      3,
-      1,
-    ]);
+    expect(newData.map((row: Recordable) => row.id)).toEqual([2, 3, 1]);
     // 旧数据保持拖拽前的顺序
-    expect(onDragEnd.mock.calls[0]![1].map((r: Recordable) => r.id)).toEqual([
-      1,
-      2,
-      3,
-    ]);
+    expect(oldData.map((row: Recordable) => row.id)).toEqual([1, 2, 3]);
   });
 
   it('下标相同或越界时不改数据', async () => {
     const onDragEnd = vi.fn();
     const { ctl, dataSource } = await setupDragSort({ onDragEnd });
-    const tbody = document.createElement('tbody');
-    for (const row of dataSource.value) {
-      const tr = document.createElement('tr');
-      tr.setAttribute('data-row-key', String(row.id));
-      tbody.append(tr);
-    }
+    const { a, tbody } = mountRows(dataSource.value);
     ctl.initSortable(tbody);
 
-    instances[0]!.options.onEnd({ newIndex: 1, oldIndex: 1 });
-    instances[0]!.options.onEnd({ newIndex: undefined, oldIndex: 0 });
+    startDrag(0, a);
+    created().options.onEnd({ newIndex: 1, oldIndex: 1 });
+    created().options.onEnd({ newIndex: undefined, oldIndex: 0 });
     expect(onDragEnd).not.toHaveBeenCalled();
     expect(dataSource.value.map((row) => row.id)).toEqual([1, 2, 3]);
   });
@@ -135,53 +193,79 @@ describe('useDragSort', () => {
   it('测量行/占位行造成的前导偏移会被扣掉', async () => {
     const onDragEnd = vi.fn();
     const { ctl, dataSource } = await setupDragSort({ onDragEnd });
-    const tbody = document.createElement('tbody');
     // 两行没有 data-row-key 的测量行在前
-    tbody.append(document.createElement('tr'), document.createElement('tr'));
-    for (const row of dataSource.value) {
-      const tr = document.createElement('tr');
-      tr.setAttribute('data-row-key', String(row.id));
-      tbody.append(tr);
-    }
+    const tbody = mountRowsWithLeading(dataSource.value, 2);
     ctl.initSortable(tbody);
 
+    startDrag(0, childRow(tbody, 2));
     // Sortable 给的是 tbody 子节点下标：2 → 4 实际是数据行 0 → 2
-    instances[0]!.options.onEnd({ newIndex: 4, oldIndex: 2 });
+    created().options.onEnd({ newIndex: 4, oldIndex: 2 });
     expect(dataSource.value.map((row) => row.id)).toEqual([2, 3, 1]);
   });
 
-  it('disabled 命中的行拖不动', async () => {
+  it('组件卸载时销毁实例', async () => {
+    const { ctl, wrapper } = await setupDragSort();
+    const tbody = document.createElement('tbody');
+    ctl.initSortable(tbody);
+    expect(created().destroy).not.toHaveBeenCalled();
+    wrapper.unmount();
+    expect(created().destroy).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('useDragSort 的 disabled 闸门', () => {
+  it('布尔形态整表冻结，任何一行都起不了拖', async () => {
+    const { ctl, dataSource } = await setupDragSort({ disabled: true });
+    const { a, b, c, tbody } = mountRows(dataSource.value);
+    ctl.initSortable(tbody);
+
+    expect(askFilter(0, a)).toBe(true);
+    expect(askFilter(0, b)).toBe(true);
+    expect(askFilter(0, c)).toBe(true);
+  });
+
+  it('函数形态只冻结命中的那一行', async () => {
     const { ctl, dataSource } = await setupDragSort({
       disabled: (row: Recordable) => row.id === 2,
     });
-    const tbody = document.createElement('tbody');
-    for (const row of dataSource.value) {
-      const tr = document.createElement('tr');
-      tr.setAttribute('data-row-key', String(row.id));
-      tbody.append(tr);
-    }
+    const { a, b, c, tbody } = mountRows(dataSource.value);
     ctl.initSortable(tbody);
 
-    expect(instances[0]!.options.onStart(makeEvt({ oldIndex: 1 }))).toBe(false);
-    expect(instances[0]!.options.onStart(makeEvt({ oldIndex: 0 }))).toBe(true);
+    expect(askFilter(0, b)).toBe(true);
+    expect(askFilter(0, a)).toBe(false);
+    expect(askFilter(0, c)).toBe(false);
   });
 
-  it('canDrop 决定能否落到目标行', async () => {
-    const canDrop = vi.fn(() => false);
-    const { ctl, dataSource } = await setupDragSort({ canDrop });
-    const tbody = document.createElement('tbody');
-    for (const row of dataSource.value) {
-      const tr = document.createElement('tr');
-      tr.setAttribute('data-row-key', String(row.id));
-      tbody.append(tr);
-    }
+  it('前导偏移存在时，函数形态也按数据行对齐', async () => {
+    const { ctl, dataSource } = await setupDragSort({
+      disabled: (row: Recordable) => row.id === 3,
+    });
+    const tbody = mountRowsWithLeading(dataSource.value, 2);
     ctl.initSortable(tbody);
 
-    const result = instances[0]!.options.onMove({
-      draggedRowIndex: 0,
-      newindex: 1,
-      relatedRowIndex: 2,
-    });
+    // 第 4 个子节点才是数据行 index 2（id 3）
+    expect(askFilter(0, childRow(tbody, 4))).toBe(true);
+    expect(askFilter(0, childRow(tbody, 2))).toBe(false);
+  });
+
+  it('没传 disabled 时不设限', async () => {
+    const { ctl, dataSource } = await setupDragSort();
+    const { a, tbody } = mountRows(dataSource.value);
+    ctl.initSortable(tbody);
+
+    expect(askFilter(0, a)).toBe(false);
+  });
+});
+
+describe('useDragSort 的 canDrop 落点判定', () => {
+  it('拿到的是「拖的那条 + 落的那条」两条记录', async () => {
+    const canDrop = vi.fn(() => false);
+    const { ctl, dataSource } = await setupDragSort({ canDrop });
+    const { a, c, tbody } = mountRows(dataSource.value);
+    ctl.initSortable(tbody);
+    startDrag(0, a);
+
+    const result = created().options.onMove({ dragged: a, related: c });
     expect(result).toBe(false);
     expect(canDrop).toHaveBeenCalledWith(
       expect.objectContaining({ id: 1 }),
@@ -189,17 +273,120 @@ describe('useDragSort', () => {
     );
   });
 
-  it('组件卸载时销毁实例', async () => {
-    const { ctl, wrapper } = await setupDragSort();
-    const tbody = document.createElement('tbody');
+  it('跨越路径上的每一行都要过 canDrop，一步拖过去也不例外', async () => {
+    // 落点那行本身允许，但中间夹了一条不许跨越的
+    const canDrop = vi.fn(
+      (_drag: Recordable, drop: Recordable) => drop.id !== 2,
+    );
+    const { ctl, dataSource } = await setupDragSort({ canDrop });
+    const { a, b, c, tbody } = mountRows(dataSource.value);
     ctl.initSortable(tbody);
-    expect(instances[0]!.destroy).not.toHaveBeenCalled();
-    wrapper.unmount();
-    expect(instances[0]!.destroy).toHaveBeenCalledTimes(1);
+    startDrag(0, a);
+
+    // a → c 的路径上压着 id 2 那一行
+    expect(created().options.onMove({ dragged: a, related: c })).toBe(false);
+    expect(canDrop).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 1 }),
+      expect.objectContaining({ id: 2 }),
+    );
+
+    // 直接落在不许跨越的那一行上，第一道判定就拦下
+    expect(created().options.onMove({ dragged: a, related: b })).toBe(false);
+  });
+
+  it('落点与路径都干净就放行', async () => {
+    const canDrop = vi.fn(() => true);
+    const { ctl, dataSource } = await setupDragSort({ canDrop });
+    const { a, c, tbody } = mountRows(dataSource.value);
+    ctl.initSortable(tbody);
+    startDrag(0, a);
+
+    expect(created().options.onMove({ dragged: a, related: c })).toBe(true);
+    // 落点那一行 + 被跨过的那一行，各问一次
+    expect(canDrop).toHaveBeenCalledTimes(2);
+  });
+
+  it('拖过之后 DOM 已经换位，落点仍按行认人而不是按位置', async () => {
+    const canDrop = vi.fn(() => true);
+    const { ctl, dataSource } = await setupDragSort({ canDrop });
+    const { a, b, tbody } = mountRows(dataSource.value);
+    ctl.initSortable(tbody);
+    startDrag(0, a);
+
+    // a 已经挪到 b 后面：Sortable 真的会这么改 DOM
+    b.after(a);
+    created().options.onMove({ dragged: a, related: b });
+
+    // 按子节点下标取记录会算成 dataSource[1] 与 dataSource[0] 互换，
+    // 这里必须是拖走的 id 1 落到 id 2 那一行上
+    expect(canDrop).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: 1 }),
+      expect.objectContaining({ id: 2 }),
+    );
+  });
+
+  it('落点没有对应数据行时不许落', async () => {
+    const canDrop = vi.fn(() => true);
+    const { ctl, dataSource } = await setupDragSort({ canDrop });
+    const { a, tbody } = mountRows(dataSource.value);
+    ctl.initSortable(tbody);
+    startDrag(0, a);
+
+    expect(created().options.onMove({ dragged: a, related: tbody })).toBe(
+      false,
+    );
+    expect(canDrop).not.toHaveBeenCalled();
+  });
+
+  it('悬在自己原位不交给 canDrop 判断', async () => {
+    const canDrop = vi.fn(() => false);
+    const { ctl, dataSource } = await setupDragSort({ canDrop });
+    const { a, tbody } = mountRows(dataSource.value);
+    ctl.initSortable(tbody);
+    startDrag(0, a);
+
+    expect(created().options.onMove({ dragged: a, related: a })).toBe(true);
+    expect(canDrop).not.toHaveBeenCalled();
+  });
+
+  it('没传 canDrop 时不设限', async () => {
+    const { ctl, dataSource } = await setupDragSort();
+    const { a, c, tbody } = mountRows(dataSource.value);
+    ctl.initSortable(tbody);
+    startDrag(0, a);
+
+    expect(created().options.onMove({ dragged: a, related: c })).toBe(true);
+  });
+
+  it('前导偏移存在时，落点记录也按数据行对齐', async () => {
+    const canDrop = vi.fn(() => true);
+    const { ctl, dataSource } = await setupDragSort({ canDrop });
+    const tbody = mountRowsWithLeading(dataSource.value, 2);
+    ctl.initSortable(tbody);
+    startDrag(0, childRow(tbody, 2));
+
+    created().options.onMove({
+      dragged: childRow(tbody, 2),
+      related: childRow(tbody, 3),
+    });
+    expect(canDrop).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 1 }),
+      expect.objectContaining({ id: 2 }),
+    );
   });
 });
 
-describe('BasicTable 拖拽接线', () => {
+describe('拖拽接线到 BasicTable', () => {
+  /** 取表格 `<tbody>` 里的三行，按 a/b/c 具名交给用例 */
+  const tableRowsOf = (wrapper: ReturnType<typeof mount>) => {
+    const body = wrapper.find('tbody').element as HTMLElement;
+    return {
+      a: childRow(body, 0),
+      b: childRow(body, 1),
+      c: childRow(body, 2),
+    };
+  };
+
   it('dragSort 打开时把 Sortable 绑在 tbody 上', async () => {
     const wrapper = mount(BasicTable as any, {
       props: {
@@ -211,8 +398,41 @@ describe('BasicTable 拖拽接线', () => {
     });
     await flushPromises();
     expect(instances).toHaveLength(1);
-    expect(instances[0]!.el).toBe(wrapper.find('tbody').element);
-    expect(instances[0]!.options.handle).toBe('tr');
+    expect(created().el).toBe(wrapper.find('tbody').element);
+    expect(created().options.handle).toBe('tr');
+    wrapper.unmount();
+  });
+
+  it('dragSortConfig 的 disabled / canDrop 走 props 现读，换引用也不重建实例', async () => {
+    const canDrop = vi.fn(() => true);
+    const wrapper = mount(BasicTable as any, {
+      props: {
+        columns: [{ dataIndex: 'name', title: '名称' }],
+        dataSource: rows(),
+        dragSort: true,
+        dragSortConfig: {
+          canDrop,
+          disabled: (row: Recordable) => row.id === 2,
+        },
+      },
+    });
+    await flushPromises();
+    const { a, b, c } = tableRowsOf(wrapper);
+
+    expect(askFilter(0, b)).toBe(true);
+    expect(askFilter(0, a)).toBe(false);
+
+    startDrag(0, a);
+    created().options.onMove({ dragged: a, related: c });
+    expect(canDrop).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 1 }),
+      expect.objectContaining({ id: 3 }),
+    );
+
+    // 整表冻结：只换 dragSortConfig 的引用，Sortable 实例还是同一个
+    await wrapper.setProps({ dragSortConfig: { canDrop, disabled: true } });
+    expect(instances).toHaveLength(1);
+    expect(askFilter(0, a)).toBe(true);
     wrapper.unmount();
   });
 
@@ -227,7 +447,7 @@ describe('BasicTable 拖拽接线', () => {
     expect(instances).toHaveLength(0);
   });
 
-  it('onDragEnd 会同步写回 rawDataSource，避免"重置"退回旧顺序', async () => {
+  it('onDragEnd 会同步写回 rawDataSource，避免「重置」退回旧顺序', async () => {
     const onDragEnd = vi.fn();
     const wrapper = mount(BasicTable as any, {
       props: {
@@ -239,7 +459,7 @@ describe('BasicTable 拖拽接线', () => {
     }) as any;
     await flushPromises();
 
-    instances[0]!.options.onEnd({ newIndex: 1, oldIndex: 0 });
+    created().options.onEnd({ newIndex: 1, oldIndex: 0 });
     await flushPromises();
 
     expect(onDragEnd).toHaveBeenCalledTimes(1);

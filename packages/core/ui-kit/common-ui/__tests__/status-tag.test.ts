@@ -5,12 +5,9 @@ import { describe, expect, it } from 'vitest';
 import StatusTag from '../src/components/status-tag/StatusTag.vue';
 
 const tagClasses = (wrapper: ReturnType<typeof mount>) =>
-  wrapper
-    .find('[data-common-tag]')
-    .attributes('class')
-    ?.split(' ');
+  wrapper.find('[data-common-tag]').attributes('class')?.split(' ');
 
-describe('StatusTag', () => {
+describe('statusTag', () => {
   it('已知状态映射到语义标签与预设色（1→已完成/green）', () => {
     const wrapper = mount(StatusTag, { props: { status: '1' } });
     expect(wrapper.text()).toBe('已完成');
@@ -19,15 +16,15 @@ describe('StatusTag', () => {
   });
 
   it('processing 走 blue、warning 走 gold、error 走 red', () => {
-    expect(tagClasses(mount(StatusTag, { props: { status: 'processing' } }))).toContain(
-      'bg-blue-50',
-    );
+    expect(
+      tagClasses(mount(StatusTag, { props: { status: 'processing' } })),
+    ).toContain('bg-blue-50');
     expect(tagClasses(mount(StatusTag, { props: { status: '3' } }))).toContain(
       'bg-amber-50',
     );
-    expect(tagClasses(mount(StatusTag, { props: { status: 'failed' } }))).toContain(
-      'bg-red-50',
-    );
+    expect(
+      tagClasses(mount(StatusTag, { props: { status: 'failed' } })),
+    ).toContain('bg-red-50');
   });
 
   it('未知状态回退：label 原样显示、颜色走 default', () => {

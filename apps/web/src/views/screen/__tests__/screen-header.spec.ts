@@ -1,7 +1,7 @@
-import { Icon } from '@iconify/vue';
 import { flushPromises, mount } from '@vue/test-utils';
 import { nextTick } from 'vue';
 
+import { Icon } from '@iconify/vue';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import ScreenHeader from '../components/ScreenHeader.vue';

@@ -7,8 +7,8 @@
 | 位置 | 内容 |
 | --- | --- |
 | `apps/web/src/views/components/**` | 全部示例页的 `.vue` 源码，路径与菜单路径一一对应 |
-| `apps/web/src/components/business/**` | 仍留在应用侧的只有 `ImportExport` / `TenantSelect` 两个（都还没有示例页引用）；Table、Form、Modal/Drawer、Description、CountTo 等已迁到 `@antdv/{table-ui,form-ui,popup-ui,common-ui}`，`TreeTable` 在 `@antdv/table-ui`，`MicroAppContainer` 在 `@antdv/common-ui` |
-| `apps/web/src/components/common/**` | 只剩 `AvatarUploader.vue` 与 `Upload/**`（分片上传的接口层与示例壳）；`Auth`、`ECharts`、`Loading`、`MarkdownEditor`、`CronEditor`、`EmptyState`、`StatusTag`、`Description`、`CountTo`、`Scrollbar` 等已进 `@antdv/common-ui`，其中图表在子路径 `@antdv/common-ui/charts` |
+| `packages/core/ui-kit/common-ui/src/components/**` | `apps/web/src/components/` 已整目录迁空：`ImportExport`、`AvatarUploader`、`Upload/**`（分片上传的接口层与示例壳）与 `ReloadPrompt` 都进了这里，`TenantSelect` 随它的租户 store 一起删除。Table、Form、Modal/Drawer、Description、CountTo 等此前已在 `@antdv/{table-ui,form-ui,popup-ui,common-ui}`，`TreeTable` 在 `@antdv/table-ui` |
+| `@antdv/common-ui` 的子路径 | `Auth`、`ECharts`、`Loading`、`MarkdownEditor`、`CronEditor`、`EmptyState`、`StatusTag`、`Description`、`CountTo`、`Scrollbar`、`MicroAppContainer` 等走根入口；带自己第三方依赖的整件各走独立子路径：`/avatar-uploader`（vue-cropper）、`/chunk-upload`（spark-md5 + worker）、`/import-export`（xlsx 模板生成）、`/charts`（echarts） |
 | `packages/core/base/icons/src/**` | 图标原子（`IconPicker` / `IconifyIcon` / `SvgIcon`），包名 `@antdv/icons` |
 | `packages/core/ui-kit/**` | 无状态 UI 原子：`shadcn-ui` 与 common / form / table / popup / tabs / menu / layout 的封装层（`loading-ui`、`scrollbar-ui` 已并入 `common-ui`） |
 | `apps/backend-mock/server/api/menus.get.ts:161-366` | 示例页的**唯一权威清单**：菜单即权限，没进菜单的路由进不去 |
@@ -55,7 +55,7 @@ http://localhost:6080/#/components/chart
 - **页面根节点不加内边距**。滚动容器由布局层提供，示例页自己只放 `space-y-6` / `flex h-full flex-col` 这类间距，`a-card` 统一 `variant="borderless"`。
 - **示例没有后端**。除了 `menus.get.ts` 和 `api/**` 这几个 Nitro handler，示例页的"保存"基本都是本地 ref 或 localStorage。每个用到这种情况的小节都会明说（典型：表格拖拽排序的「保存顺序」、分步表单的「草稿」）。
 - **组件名要靠 `defineOptions({ name })`**。示例页被 keep-alive 缓存，name 与菜单的 `name` 字段对上才缓存得住（`apps/backend-mock/server/api/menus.get.ts` 里每个 Demo 节点的 `name`，如 `DemoModalDrawer`）。
-- **只有 `apps/web/src/components/**` 里的组件不用 import**。`unplugin-vue-components` 的 `dirs` 默认就是这一层，清单见 `apps/web/types/components.d.ts`（现在只剩 `AvatarUploader` 真的被裸用，`ImportExport` / `TenantSelect` / `Upload/**` 是没人引的存量）；只要组件迁进了 `@antdv/*` 子包就必须显式 `import`，比如 `import { ECharts } from '@antdv/common-ui/charts'`。
+- **示例页里的组件全部要显式 import**。`unplugin-vue-components` 的 `dirs` 仍是默认的 `src/components/**`，但这个目录已经整体迁空（清单见 `apps/web/types/components.d.ts`，现在只剩 `RouterLink` / `RouterView`），所以任何 `@antdv/*` 子包组件都得写 import，比如 `import { ECharts } from '@antdv/common-ui/charts'`、`import { AvatarUploader } from '@antdv/common-ui/avatar-uploader'`。渲染函数 `h(Scrollbar, …)` 里同理 —— 自动导入只重写模板标签，不重写 `h()` 的参数。
 
 ## 本章怎么写
 
@@ -63,5 +63,4 @@ http://localhost:6080/#/components/chart
 
 ::: warning
 
-缺陷照实写 `setModalProps` / `setDrawerProps` 是静默空操作、`useDrawerInner` 只是 `useDrawer` 的别名、`Modal` 的 `changeOkLoading` 拿不到 —— 这些都验证到行为代码了（见对应小节的 file:line），本章不会把它们写成可用 API。示例页自己也把这些话印在界面上。
-:::
+缺陷照实写 `setModalProps` / `setDrawerProps` 是静默空操作、`useDrawerInner` 只是 `useDrawer` 的别名、`Modal` 的 `changeOkLoading` 拿不到 —— 这些都验证到行为代码了（见对应小节的 file:line），本章不会把它们写成可用 API。示例页自己也把这些话印在界面上。:::

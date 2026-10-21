@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import type { DialogTitleProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { DialogTitle } from "reka-ui"
-import { cn } from '@antdv/shared/utils/cn'
+import type { DialogTitleProps } from 'reka-ui';
 
-const props = defineProps<DialogTitleProps & { class?: HTMLAttributes["class"] }>()
+import type { HTMLAttributes } from 'vue';
 
-const delegatedProps = reactiveOmit(props, "class")
+import { cn } from '@antdv/shared/utils/cn';
+import { reactiveOmit } from '@vueuse/core';
+import { DialogTitle } from 'reka-ui';
+
+const props = defineProps<
+  DialogTitleProps & { class?: HTMLAttributes['class'] }
+>();
+
+const delegatedProps = reactiveOmit(props, 'class');
 </script>
 
 <template>
@@ -16,6 +20,6 @@ const delegatedProps = reactiveOmit(props, "class")
     :class="cn('text-foreground font-semibold', props.class)"
     v-bind="delegatedProps"
   >
-    <slot />
+    <slot></slot>
   </DialogTitle>
 </template>

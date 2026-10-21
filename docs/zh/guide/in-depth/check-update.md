@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | 插件装配 | `internal/vite-config/src/plugins/pwa.ts`，由 `VITE_PWA=true` 时挂上（`.env.production` 已开） | `VitePWA({ registerType: 'prompt', strategies: 'generateSW', injectRegister: 'script-defer' })`，`devOptions.enabled: true` |
 | 缓存清单 | 同上 | `workbox.globPatterns` 收 js/css/html/ico/png/svg/woff2，单文件上限 20MB；图片另走 `CacheFirst` 运行时缓存（50 条 / 30 天） |
-| 提示组件 | `apps/web/src/components/layout/ReloadPrompt.vue` | 完整实现：`useRegisterSW` 的 `needRefresh` / `offlineReady`、轮询、倒计时、更新按钮 |
+| 提示组件 | `packages/core/ui-kit/common-ui/src/components/reload-prompt/ReloadPrompt.vue` | 完整实现：`useRegisterSW` 的 `needRefresh` / `offlineReady`、轮询、倒计时、更新按钮 |
 | 挂载 | —— | **没有任何模板引用 `<ReloadPrompt />`**。它只在 `types/components.d.ts` 里有条目（`unplugin-vue-components` 扫 `src/components` 目录的产物，本地组件都会被列进去），这不等于被使用 |
 
 所以当前线上行为是：SW 由注入的注册脚本正常装好，构建产物变化后 Workbox 会检测到新 SW 进入 waiting 状态；但 `registerType: 'prompt'` 意味着**需要 UI 去调 `updateServiceWorker()`**，而这个 UI 没挂 —— 用户看不到"发现新版本"的卡片，旧版本会一直用到下次自然刷新。
@@ -28,8 +28,7 @@
 
 - 没有接口轮询 `package.json` 版本号 / `buildTime` 对比的"版本检查服务"；
 - 没有 `__APP_INFO__`（构建时间 + 依赖清单，`defineApplicationConfig` 会注入）与运行时对比的逻辑 —— 它目前只是构建元数据，没有消费者拿它做更新判定；
-- 没有版本信息展示页。想要"检测到新版本文案 + 立即刷新"的完整体验，第一步就是把 `<ReloadPrompt />` 挂进布局（例如 `apps/web/src/layouts/index.vue` 根节点旁），其余逻辑都是现成的。
-:::
+- 没有版本信息展示页。想要"检测到新版本文案 + 立即刷新"的完整体验，第一步就是把 `<ReloadPrompt />` 挂进布局（例如 `apps/web/src/layouts/index.vue` 根节点旁），其余逻辑都是现成的。:::
 
 ## 本地验证
 

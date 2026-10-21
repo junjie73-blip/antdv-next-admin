@@ -2,9 +2,9 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import { cn } from '@antdv/shared/utils/cn';
+import { useAppStore } from '@antdv/stores';
 import * as echarts from 'echarts';
 import { getSecurityStats } from '~/api/security';
-import { useAppStore } from '@antdv/stores';
 
 defineOptions({ name: 'SecurityStatsCharts' });
 

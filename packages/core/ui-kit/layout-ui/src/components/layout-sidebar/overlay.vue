@@ -5,8 +5,8 @@ import { computed } from 'vue';
 
 import { onKeyStroke } from '@vueuse/core';
 
-import { LAYOUT_DRAWER_WIDTH } from '../../layout';
 import { useLayoutStyle } from '../../hooks/use-layout';
+import { LAYOUT_DRAWER_WIDTH } from '../../layout';
 
 defineOptions({ name: 'LayoutOverlay' });
 

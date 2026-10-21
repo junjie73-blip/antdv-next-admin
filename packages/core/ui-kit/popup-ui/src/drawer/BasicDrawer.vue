@@ -316,7 +316,9 @@ const cancelBtn = computed(() =>
       </div>
       <div
         v-else
-        :class="cn('drawer-header border-border flex items-center border-b px-6 py-4')"
+        :class="
+          cn('drawer-header border-border flex items-center border-b px-6 py-4')
+        "
         :style="merged.headerStyle"
       >
         <!-- 面板自己带 aria-labelledby，插槽标题不可见时补一个供读屏器定位 -->
@@ -362,8 +364,7 @@ const cancelBtn = computed(() =>
             <span
               v-if="merged.loadingTip"
               :class="cn('text-muted-foreground text-sm')"
-              >{{ merged.loadingTip }}</span
-            >
+              >{{ merged.loadingTip }}</span>
           </div>
         </div>
 

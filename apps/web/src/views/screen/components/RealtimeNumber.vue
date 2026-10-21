@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { cn } from '@antdv/shared/utils/cn';
 import { CountTo } from '@antdv/common-ui';
+import { cn } from '@antdv/shared/utils/cn';
 
 defineOptions({ name: 'RealtimeNumber' });
 

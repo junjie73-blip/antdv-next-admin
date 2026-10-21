@@ -47,7 +47,7 @@ Two details matter: the prefix **contains a space** (`VITE_APP_TITLE` verbatim, 
 
 ### The `CacheKey` enum
 
-`packages/enums/src/cache.ts:8-16` defines four members, and every one of them is actually referenced: `DICT_DATA` (`apps/web/src/stores/modules/dict.ts:35,49,133`), `ACCESS_TOKEN` (destructured as `TOKEN_KEY` in `packages/stores/src/user.ts:14`), `REFRESH_TOKEN` (`apps/web/src/plugins/request-runtime.ts:22,24`) and `USER_INFO` (destructured as `USER_INFO_KEY` in `user.ts:14`). The enum values *are* the on-disk key names (`auth_token` / `refresh_token` / `user_info` / `antdv_dict_data`), matching what the app writes, so the enum can serve as the single source of truth — the comment at the top of that file says to check that both the writer and the reader use it before adding a member.
+`packages/enums/src/cache.ts:8-16` defines four members, and every one of them is actually referenced: `DICT_DATA` (`apps/web/src/stores/modules/dict.ts:35,49,133`), `ACCESS_TOKEN` (destructured as `TOKEN_KEY` in `packages/stores/src/user.ts:14`), `REFRESH_TOKEN` (`apps/web/src/plugins/request-runtime.ts:22,24`) and `USER_INFO` (destructured as `USER_INFO_KEY` in `user.ts:14`). The enum values _are_ the on-disk key names (`auth_token` / `refresh_token` / `user_info` / `antdv_dict_data`), matching what the app writes, so the enum can serve as the single source of truth — the comment at the top of that file says to check that both the writer and the reader use it before adding a member.
 
 **There is no `ROLES`, `PERMISSIONS`, `THEME`, `SIDEBAR` or `LOCALE`.** Roles and permissions live in the user store's in-memory state (persisted as part of `user_info`), preferences (theme and language included) have their own `appSetting` entry, and menu-visibility overrides go through bare `localStorage` (see the table below) — none of them occupies a `CacheKey`. After the language-switching change the locale is not stored separately either; it only lives inside the preferences snapshot, and the test asserts exactly that: persistence is a single copy and `app_cache_locale` must be `null` (`apps/web/src/locales/__tests__/locale.spec.ts:80-82`).
 
@@ -62,7 +62,7 @@ Keys that really exist on disk:
 | `antdv_dict_data` | dict store | goes through `localStorageCacheStorage`, and **adds a second** `loadedAt` 1-hour check on top of the envelope | `apps/web/src/stores/modules/dict.ts:35,48-49`, `packages/enums/src/cache.ts` |
 | `appSetting` | preferences (its own `createCache`) | `PREFERENCES_CACHE_KEY`; with `options.expire` left out it never expires | `packages/core/preferences/src/constants.ts:11`, `preferences.ts:31-32,71-73` |
 | `xy-menu-hidden-overrides` | route store | **bare `localStorage` + bare JSON**, no cache, no prefix | `packages/stores/src/route.ts:26,30,42` |
-| `chunk-upload:<hash>` | upload component | **bare `localStorage`**, its own `updatedAt` with a 7-day window | `apps/web/src/components/common/Upload/constants.ts:8-9`, `apps/web/src/components/common/Upload/utils.ts:50-52,56-60` |
+| `chunk-upload:<hash>` | upload component | **bare `localStorage`**, its own `updatedAt` with a 7-day window | `packages/core/ui-kit/common-ui/src/components/chunk-upload/constants.ts:8-9`, `packages/core/ui-kit/common-ui/src/components/chunk-upload/utils.ts:50-52,56-60` |
 
 `apps/web/src/config/constants.ts` now holds only the route whitelist and two paths (`WHITE_LIST` / `HOME_PATH` / `LOGIN_PATH`); its header comment hands cache key names over to `@antdv/enums` — "cache key names do not live here, they are all in `CacheKey` in `@antdv/enums`". The older `TOKEN_EXPIRES_IN` / `REFRESH_TOKEN_EXPIRE` / `PERMISSIONS_KEY` trio has been deleted from that file and has no reference anywhere, so do not go looking for key names there on the strength of old docs. The expiry constant actually in use is the local `TOKEN_EXPIRE` at `packages/stores/src/user.ts:15` (`24 * 60 * 60`, seconds). `VITE_NAMESPACE` survives only as a type declaration in `apps/web/types/env.d.ts:28`, has no reader, and never joins into a key (see [Configuration](/en/guide/essentials/config)).
 
@@ -78,8 +78,7 @@ the SM4 key for cached values is the prefix, not `VITE_CACHE_ENCRYPT_KEY` `index
 2. Missing it in production does **not** trigger the "a key is required" throw at `env.ts:59-68`; that branch is dead code for caching.
 3. The SM4 key is `padKey(VITE_APP_TITLE)` (padded or truncated to 32 characters, `encrypt.ts:18,93-98`), which means **changing the title changes the key names and the key together**, and any project reusing the same title reuses the same key.
 
-The derived-key machinery (SHA-256 over a device fingerprint, `encrypt.ts:40-75`) only serves the async `encryptValue` / `decryptValue`, and **nothing in the repository calls those two functions**.
-:::
+The derived-key machinery (SHA-256 over a device fingerprint, `encrypt.ts:40-75`) only serves the async `encryptValue` / `decryptValue`, and **nothing in the repository calls those two functions**. :::
 
 The token value has its own mechanism, independent of `shouldEncrypt`: `encryptToken()` builds a `jose` `EncryptJWT` with `alg: 'dir'` + `A256GCM` (`tokenCrypto.ts:86-90`), keyed by PBKDF2 (100 000 iterations) over a **device fingerprint** (`tokenCrypto.ts:21-69`) whose factors are `navigator.userAgent`, `navigator.language`, `screen.width/height` and the timezone offset (`:22-28`). It encrypts in dev too, which is why tokens in your local localStorage are JWE strings.
 
@@ -101,14 +100,13 @@ two places along that chain still do not line up (read from the code, not guesse
 - **`logout()` never clears `refresh_token`**: `user.ts:164-169` only removes `auth_token` and `user_info`, so the `refresh_token` written at `request-runtime.ts:24` stays on disk (only a full `cache.clear()` takes it away).
 - **The login flow never writes `refresh_token`**: the login response handled in `user.ts` carries only `user.token` (`:96-104`) and nothing calls `setRefresh`, so the first `doRefreshToken()` reaches `tokens.refresh()` returning empty → `缺少 refresh token` (`fetcher.ts:96-97`).
 
-Two defects that used to sit here are now fixed, so stop looking for them in the old wording: `initToken()` is awaited at `main.ts:168`, so after a reload `token.value` holds the plaintext **after** `decryptToken`, not the JWE string (regression spec `packages/stores/__tests__/user-session.test.ts:166-212`); and refresh tokens go through `setRefresh` at `request-runtime.ts:24` (`cache.setItem`, plaintext, no TTL) instead of abusing the second parameter of `setToken` as an expiry. One thing is still open: `clearDict()` has no call site anywhere, so logout does not clear dictionaries — they rely on the 1-hour `loadedAt` window expiring on its own (`apps/web/src/stores/modules/dict.ts:39,133`).
-:::
+Two defects that used to sit here are now fixed, so stop looking for them in the old wording: `initToken()` is awaited at `main.ts:153`, so after a reload `token.value` holds the plaintext **after** `decryptToken`, not the JWE string (regression spec `packages/stores/__tests__/user-session.test.ts:166-212`); and refresh tokens go through `setRefresh` at `request-runtime.ts:24` (`cache.setItem`, plaintext, no TTL) instead of abusing the second parameter of `setToken` as an expiry. One thing is still open: `clearDict()` has no call site anywhere, so logout does not clear dictionaries — they rely on the 1-hour `loadedAt` window expiring on its own (`apps/web/src/stores/modules/dict.ts:39,133`). :::
 
 ## Which browser storage is actually used
 
 | Medium | Status |
 | --- | --- |
-| `localStorage` | The main battlefield: the default cache medium, plus two bare uses (`packages/stores/src/route.ts:30,42`, `apps/web/src/components/common/Upload/utils.ts:56,83,91`) |
+| `localStorage` | The main battlefield: the default cache medium, plus two bare uses (`packages/stores/src/route.ts:30,42`, `packages/core/ui-kit/common-ui/src/components/chunk-upload/utils.ts:56,83,91`) |
 | `sessionStorage` | **Adapter exists, nobody uses it.** `createStorage('session')` only produces the `sessionStorageAdapter` export at `storage.ts:71`; no `createCache({ type: 'session' })` exists in the app, and the only session operation in app code is the `clear()` in SettingFooter |
 | `memory` | `type: 'memory'` appears only in `packages/core/base/shared/__tests__/cache.test.ts:137`; the app never uses it |
 | IndexedDB | **None.** `indexedDB` has zero hits in source; the only place it shows up is the workbox runtime inside the build output when the PWA is on (`VITE_PWA`, `apps/web/dist/workbox-*.js`), which has nothing to do with app state |
@@ -125,8 +123,7 @@ After you change the prefix (`VITE_APP_TITLE`) or the encryption shape, old cach
 
 ::: tip
 
-before you add another piece of persisted state Decide the key first. Application-scoped state follows `dict.ts`: add a `CacheKey` member (and actually reference it), `cache.setItem` inside a `watch`, and add the cleanup to `logout()` in `user.ts`. Purely visual preferences must not open their own key — they belong to `packages/core/preferences` (see [State management](/en/guide/essentials/stores)). Bare `localStorage` is for data that has nothing to do with cache semantics (menu visibility overrides, upload resume progress), and it must carry its own expiry check.
-:::
+before you add another piece of persisted state Decide the key first. Application-scoped state follows `dict.ts`: add a `CacheKey` member (and actually reference it), `cache.setItem` inside a `watch`, and add the cleanup to `logout()` in `user.ts`. Purely visual preferences must not open their own key — they belong to `packages/core/preferences` (see [State management](/en/guide/essentials/stores)). Bare `localStorage` is for data that has nothing to do with cache semantics (menu visibility overrides, upload resume progress), and it must carry its own expiry check. :::
 
 ## Related pages
 

@@ -43,7 +43,7 @@ afterEach(() => {
   });
 });
 
-describe('TableAction 可见性', () => {
+describe('tableAction 可见性', () => {
   it('默认放行：不配 auth 就全部渲染', () => {
     const wrapper = mountAction([
       { label: '编辑', onClick: vi.fn() },
@@ -66,7 +66,10 @@ describe('TableAction 可见性', () => {
   it('ifShow 支持布尔与函数', () => {
     const wrapper = mountAction([
       { ifShow: false, label: '隐藏' },
-      { ifShow: (row: Recordable) => row.status === 'draft', label: '草稿才见' },
+      {
+        ifShow: (row: Recordable) => row.status === 'draft',
+        label: '草稿才见',
+      },
       { ifShow: (row: Recordable) => row.status === 'done', label: '完成才见' },
     ]);
     expect(buttonTexts(wrapper)).toEqual(['草稿才见']);
@@ -86,11 +89,13 @@ describe('TableAction 可见性', () => {
 
   it('danger 用红色样式区分危险操作', () => {
     const wrapper = mountAction([{ danger: true, label: '删除' }]);
-    expect(wrapper.find('button').classes().join(' ')).toContain('text-red-500');
+    expect(wrapper.find('button').classes().join(' ')).toContain(
+      'text-red-500',
+    );
   });
 });
 
-describe('TableAction 标签与点击', () => {
+describe('tableAction 标签与点击', () => {
   it('label 支持字符串、函数与 VNode', () => {
     const wrapper = mountAction([
       { label: '字符串' },
@@ -133,7 +138,7 @@ describe('TableAction 标签与点击', () => {
   });
 });
 
-describe('TableAction 二次确认', () => {
+describe('tableAction 二次确认', () => {
   it('popConfirm 打开弹层，确定走 confirm、取消走 cancel', async () => {
     const confirm = vi.fn();
     const cancel = vi.fn();
@@ -193,7 +198,7 @@ describe('TableAction 二次确认', () => {
   });
 });
 
-describe('TableAction 下拉与"更多"', () => {
+describe('tableAction 下拉与"更多"', () => {
   it('dropdown 子项渲染在弹层里，点击子项只触发该子项', async () => {
     const parentClick = vi.fn();
     const subClick = vi.fn();
@@ -240,13 +245,9 @@ describe('TableAction 下拉与"更多"', () => {
   });
 
   it('未超过 maxShowCount 时不出现"更多"', () => {
-    const wrapper = mountAction(
-      [
-        { label: '编辑' },
-        { label: '删除' },
-      ],
-      { maxShowCount: 4 },
-    );
+    const wrapper = mountAction([{ label: '编辑' }, { label: '删除' }], {
+      maxShowCount: 4,
+    });
     expect(buttonTexts(wrapper)).toEqual(['编辑', '删除']);
   });
 
@@ -279,10 +280,9 @@ describe('TableAction 下拉与"更多"', () => {
   });
 
   it('record 为空对象时也能安全渲染', () => {
-    const wrapper = mount(
-      TableAction as any,
-      { props: { actions: [{ label: '编辑' }] } },
-    );
+    const wrapper = mount(TableAction as any, {
+      props: { actions: [{ label: '编辑' }] },
+    });
     expect(buttonTexts(wrapper as any)).toEqual(['编辑']);
   });
 });

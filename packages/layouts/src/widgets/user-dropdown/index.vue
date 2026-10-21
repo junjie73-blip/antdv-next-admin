@@ -12,8 +12,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@antdv/shadcn-ui';
-import { Icon } from '@iconify/vue';
 import { useUserStore } from '@antdv/stores';
+import { Icon } from '@iconify/vue';
 
 import AccountDrawer from '../account-drawer/index.vue';
 import LockScreen from './lock-screen.vue';
@@ -106,6 +106,13 @@ function handleUserMenuClick(key: string) {
 const avatarFallback = computed(
   () => userStore.username?.charAt(0)?.toUpperCase() || 'U',
 );
+
+/**
+ * 触发器只有图标（与 `widget-button.vue` 的"顶栏按钮一律不带文字"同源）：
+ * 用户名不再常驻显示，改喂 `aria-label` 与 `title` —— 窄视口少一段 30px 文本，
+ * 读屏软件照样念得出"这个按钮是谁"，用例也仍能用 `data-testid="header-user"` 钉住。
+ */
+const triggerLabel = computed(() => userStore.username || t('shell.user'));
 </script>
 
 <template>
@@ -116,7 +123,9 @@ const avatarFallback = computed(
         同时给一个稳定钩子（用例与 e2e 都能钉，不必再依赖组件库内部类名）。
       -->
       <button
-        class="flex cursor-pointer items-center gap-2 rounded-xl py-0.5 pr-2 pl-1 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+        :aria-label="triggerLabel"
+        :title="triggerLabel"
+        class="flex cursor-pointer items-center gap-1 rounded-xl py-0.5 pr-1.5 pl-1 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
         data-testid="header-user"
         type="button"
       >
@@ -126,9 +135,6 @@ const avatarFallback = computed(
             {{ avatarFallback }}
           </AvatarFallback>
         </Avatar>
-        <span class="hidden text-sm text-gray-700 sm:inline dark:text-gray-200">
-          {{ userStore.username || t('shell.user') }}
-        </span>
         <Icon icon="carbon:chevron-down" class="text-xs text-gray-400" />
       </button>
     </DropdownMenuTrigger>

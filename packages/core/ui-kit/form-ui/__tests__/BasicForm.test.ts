@@ -23,7 +23,7 @@ function getInstance(wrapper: any): FormActionType {
   return events[0][0] as FormActionType;
 }
 
-describe('BasicForm', () => {
+describe('basicForm', () => {
   beforeEach(() => {
     document.body.innerHTML = '';
     vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -188,9 +188,7 @@ describe('BasicForm', () => {
       { component: 'Input', field: 'username', label: '用户名' },
     ]);
     await flushPromises();
-    expect(
-      wrapper.find('.form-item > div').classes(),
-    ).toContain('gap-x-2');
+    expect(wrapper.find('.form-item > div').classes()).toContain('gap-x-2');
   });
 
   it('校验通过后 submit 触发 emit(submit)', async () => {

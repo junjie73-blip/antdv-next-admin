@@ -20,7 +20,13 @@ const props = withDefaults(
     keepIconSlot?: boolean;
     title: string;
   }>(),
-  { badge: undefined, collapsed: false, extra: undefined, icon: undefined, keepIconSlot: false },
+  {
+    badge: undefined,
+    collapsed: false,
+    extra: undefined,
+    icon: undefined,
+    keepIconSlot: false,
+  },
 );
 
 /**

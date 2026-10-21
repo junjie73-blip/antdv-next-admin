@@ -21,8 +21,13 @@ views / stores ──► api/*.ts ──► api/request.ts(get/post/put/del)
 
 ::: warning
 
-The injection has to happen before the first request, and only from the application entry calling `configureRequestRuntime()`. Running a request without it throws straight away (`getRequestRuntime()`, `runtime.ts:48-56`) — it never silently sends a request with empty credentials. This file pulls `~/stores` into the module graph, the same constraint as `table-runtime.ts` and `ui-runtime.ts`: **test setup must not touch it**, or everyone else's `vi.mock` stops working.
-:::
+The injection has to happen before the first request, and only from the application entry calling `configureRequestRuntime()`. Running a request without it throws straight away (`getRequestRuntime()`, `runtime.ts:48-56`) — it never silently sends a request with empty credentials. This file pulls `~/stores` into the module graph, so `test/setup.ts` must not touch it (same for `table-runtime.ts` and `layouts-host.ts`): setup runs before the `vi.mock` calls in a spec, and a module it has imported can no longer be replaced. That is why the specs in `apps/web/src/plugins/__tests__/` mock nothing — they inject, then read the runtime back from the package. `ui-runtime.ts` is the only one setup does call, because it injects copy and nothing else. :::
+
+## The data-fetching client: `@antdv/request/vue-query`
+
+The `QueryClient` and its installer live in the request package too (`packages/request/src/vue-query.ts`): the entry calls `setupVueQuery(app)` (`apps/web/src/main.ts:71`) and pages must not `new QueryClient()` themselves. The default policy pins three things — `retry: false` (transport retries belong to the executor's `withRetry` + 401 replay; two layers stacking would multiply the request volume), `refetchOnWindowFocus: false`, `staleTime: 30_000` — and `packages/request/__tests__/vue-query.spec.ts` keeps that honest.
+
+It is a **subpath export** and stays out of the root barrel, the same way `./sse` and `./websocket` do: a page that only wants `requestClient` should not drag all of vue-query into its module graph.
 
 ## Environment variables
 
@@ -96,8 +101,7 @@ export function updateUser(id: number, data: Record<string, unknown>) {
 
 ::: danger
 
-The second argument of `get`/`del` **is the query string itself** `request.ts:22-26` hands `params` directly to `buildUrl`. If you write `get(url, { params })`, what goes out is `?params=[object Object]`, and the whole batch of filter and pagination conditions is lost — the symptom is "typing anything into the search box gives the same result, and going to page 2 still shows page 1's data". Only `post`/`put` have a third argument for the query string.
-:::
+The second argument of `get`/`del` **is the query string itself** `request.ts:22-26` hands `params` directly to `buildUrl`. If you write `get(url, { params })`, what goes out is `?params=[object Object]`, and the whole batch of filter and pagination conditions is lost — the symptom is "typing anything into the search box gives the same result, and going to page 2 still shows page 1's data". Only `post`/`put` have a third argument for the query string. :::
 
 The wrapper functions return `res.data`, which is **the whole envelope** (`request.ts:29`), so the caller's `R<T>` still has to take `.data` itself; this layer deliberately does no second-level unwrapping, to accommodate binary and empty-data cases.
 
@@ -114,5 +118,4 @@ The singleton in `apps/web/src/utils/ws.ts` reads `VITE_WS_URL` and attaches `to
 
 ::: warning
 
-Don't bypass the shared client The app's `api/*.ts` go only through `~/api/request` (which re-exports the `http` from `~/composables` under envelope types); `packages/stores` never references app paths at all and imports the `http` from `@antdv/request` directly (e.g. `packages/stores/src/route.ts:8`, `packages/stores/src/user.ts:6`). This is currently **a convention, not a lint rule** — ESLint only locks import boundaries (`internal/lint-configs/eslint-config/src/custom-config.ts:31-113`) and doesn't forbid bare `fetch`. Once bypassed, CSRF, 401 refresh, and unified messaging all stop working, and it's hard to catch in code review.
-:::
+Don't bypass the shared client The app's `api/*.ts` go only through `~/api/request` (which re-exports the `http` from `~/composables` under envelope types); `packages/stores` never references app paths at all and imports the `http` from `@antdv/request` directly (e.g. `packages/stores/src/route.ts:8`, `packages/stores/src/user.ts:6`). This is currently **a convention, not a lint rule** — ESLint only locks import boundaries (`internal/lint-configs/eslint-config/src/custom-config.ts:31-113`) and doesn't forbid bare `fetch`. Once bypassed, CSRF, 401 refresh, and unified messaging all stop working, and it's hard to catch in code review. :::

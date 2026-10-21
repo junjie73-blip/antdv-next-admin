@@ -5,10 +5,9 @@ import {
   ConfigProvider as SystemConfigProvider,
   Toaster,
 } from '@antdv/common-ui';
+import { useLocaleSync } from '@antdv/hooks/use-locale';
 import { NOTIFICATION_TOASTER_ID } from '@antdv/popup-ui';
 import { useAppStore } from '@antdv/stores';
-
-import { useLocaleSync } from '~/composables/useLocale';
 
 const appStore = useAppStore();
 /** locale 效应的唯一出口：i18n 文案、`<html lang>`、dayjs 格式化都在这一步展开 */
@@ -36,7 +35,7 @@ const notificationPosition = computed(
  * 语言与尺寸档位由这里下发，包内组件（Popconfirm 的确定/取消等）读
  * `useGlobalConfig()` 而不是各写死一份中文 —— 切语言时这些内置文案才会跟着变。
  * 主题色/圆角不在这条链路上，它们由偏好直接写 CSS 变量（见 `applyPreferencesToDom`）：
- * 组件的配色一律走 `var(--app-*)` / `bg-primary` 这类 token，所以**只有这一条链路**，
+ * 组件的配色一律走 `hsl(var(--x))` / `bg-primary` 这类 token，所以**只有这一条链路**，
  * 不存在"换了主题色、某块 DOM 还是蓝的"的第二份色板。
  */
 const globalConfig = computed(() => ({
@@ -53,18 +52,18 @@ const globalConfig = computed(() => ({
     <router-view />
     <!--
       两只 toaster 的分工见 `@antdv/popup-ui` 的 message 模块：不带 id 的收轻提示，
-      带 `NOTIFICATION_TOASTER_ID` 的收通知。`close-button` 两边都开 ——
-      手动关闭是两条通道共有的交互，只有出场位置不同。
+      带 `NOTIFICATION_TOASTER_ID` 的收通知。这里**都不开 `close-button`**：
+      手动关闭是单条的决定（第三个参数的 `closeButton`），整体开一次就等于给每条
+      都钉一个 ✕，短文案上那个按钮只是噪声。`close-button-position` 留着，
+      给显式开了 ✕ 的那条定位置。
     -->
     <Toaster
-      close-button
       close-button-position="top-right"
       position="top-center"
       :theme="appStore.resolvedTheme"
     />
     <Toaster
       :id="NOTIFICATION_TOASTER_ID"
-      close-button
       close-button-position="top-right"
       :position="notificationPosition"
       :theme="appStore.resolvedTheme"

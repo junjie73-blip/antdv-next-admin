@@ -11,9 +11,9 @@ import {
   buildIframeSandbox,
   canEscapeSandbox,
 } from '@antdv/shared/utils/iframe';
+import { useUserStore } from '@antdv/stores';
 import { Icon } from '@iconify/vue';
 import { microAppConfig as registry } from '~/config/micro-app';
-import { useUserStore } from '@antdv/stores';
 
 interface Props {
   className?: string;

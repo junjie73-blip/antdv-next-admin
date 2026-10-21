@@ -558,20 +558,18 @@ export function cssVar(page: Page, name: string) {
 /**
  * 把一个 CSS 颜色值算成浏览器实际画出来的颜色。
  *
- * 不能直接比字符串：`var(--app-success)` 在令牌里是 `#52c41a`，画出来是
- * `rgb(82, 196, 26)`，而 `color-mix(in oklab, …)` 算出来是 `oklab(…)`。
- * 挂一个探针元素让浏览器自己换算，拿到的两边才是同一种口音。
+ * 不能直接比字符串：令牌里存的是 HSL 三段（`--success: 100.24 76.58% 43.53%`），
+ * 画出来是 `rgb(82, 196, 26)`，而 `color-mix(in oklab, …)` 算出来是 `oklab(…)`。
+ * 所以传进来的得是 `hsl(var(--success))` 这样一条完整声明，由浏览器换算，
+ * 拿到的两边才是同一种口音。
  */
 export function painted(page: Page, cssValue: string) {
-  return page.evaluate(
-    (value) => {
-      const probe = document.createElement('span');
-      probe.style.color = value;
-      document.body.append(probe);
-      const color = getComputedStyle(probe).color;
-      probe.remove();
-      return color;
-    },
-    cssValue,
-  );
+  return page.evaluate((value) => {
+    const probe = document.createElement('span');
+    probe.style.color = value;
+    document.body.append(probe);
+    const color = getComputedStyle(probe).color;
+    probe.remove();
+    return color;
+  }, cssValue);
 }

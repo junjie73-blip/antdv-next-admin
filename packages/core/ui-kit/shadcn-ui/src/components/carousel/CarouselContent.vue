@@ -1,20 +1,22 @@
 <script setup lang="ts">
-import type { ComponentPublicInstance } from "vue"
+import type { ComponentPublicInstance } from 'vue';
 
-import type { WithClassAsProps } from "./interface"
-import { cn } from '@antdv/shared/utils/cn'
-import { useCarousel } from "./useCarousel"
+import type { WithClassAsProps } from './interface';
+
+import { cn } from '@antdv/shared/utils/cn';
+
+import { useCarousel } from './useCarousel';
 
 defineOptions({
   inheritAttrs: false,
-})
+});
 
-const props = defineProps<WithClassAsProps>()
+const props = defineProps<WithClassAsProps>();
 
-const { carouselRef, orientation } = useCarousel()
+const { carouselRef, orientation } = useCarousel();
 
 function setContentRef(el: ComponentPublicInstance | Element | null) {
-  carouselRef.value = (el as HTMLElement) ?? undefined
+  carouselRef.value = (el as HTMLElement) ?? undefined;
 }
 </script>
 
@@ -30,10 +32,11 @@ function setContentRef(el: ComponentPublicInstance | Element | null) {
           'flex',
           orientation === 'horizontal' ? '-ml-4' : '-mt-4 flex-col',
           props.class,
-        )"
+        )
+      "
       v-bind="$attrs"
     >
-      <slot />
+      <slot></slot>
     </div>
   </div>
 </template>

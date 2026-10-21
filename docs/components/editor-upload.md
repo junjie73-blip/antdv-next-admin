@@ -15,8 +15,7 @@
 
 ::: warning
 
-富文本这一侧没有 wangEditor `MarkdownEditor` 是当年 `@wangeditor/editor` 的 tiptap 替代实现，工具栏按键名、待办/视频节点按 wangEditor 存量格式对齐（`editor/index.vue:45-50`；扩展组装见 `markdown-editor/extensions/index.ts:31-58`）。依赖清单在 `packages/core/ui-kit/common-ui/package.json:31-39`（9 个 `@tiptap/*`，`marked` 在 `:44`），应用侧 `apps/web/package.json` 已经不再声明 `@tiptap/*`，**也从来没有装过 `@wangeditor/*`**。所以「富文本」现在指 tiptap 版 `MarkdownEditor`，wangEditor 那套能力（如它自己的菜单体系）不存在，也不要把旧文档里的 wangEditor 配置往这上面套。
-:::
+富文本这一侧没有 wangEditor `MarkdownEditor` 是当年 `@wangeditor/editor` 的 tiptap 替代实现，工具栏按键名、待办/视频节点按 wangEditor 存量格式对齐（`editor/index.vue:45-50`；扩展组装见 `markdown-editor/extensions/index.ts:31-58`）。依赖清单在 `packages/core/ui-kit/common-ui/package.json:31-39`（9 个 `@tiptap/*`，`marked` 在 `:44`），应用侧 `apps/web/package.json` 已经不再声明 `@tiptap/*`，**也从来没有装过 `@wangeditor/*`**。所以「富文本」现在指 tiptap 版 `MarkdownEditor`，wangEditor 那套能力（如它自己的菜单体系）不存在，也不要把旧文档里的 wangEditor 配置往这上面套。:::
 
 ### Markdown Tab 实际提供了什么
 
@@ -48,17 +47,16 @@
 
 **Markdown ↔ 文档的往返在 `markdown.ts`**：`docToMarkdown(JSONContent)`（`markdown.ts:588`）把 ProseMirror 文档序列化成 Markdown 源码，`markdownToDoc(markdown)`（`markdown.ts:593`）用 `marked` 的 lexer 反解回文档，其中 `case 'html'` 分支保证喂 HTML 也解得开（`contentType="html"` 的老调用因此不受影响）。没有改用 `@tiptap/markdown` 的理由写在 `markdown.ts` 头注释里：本编辑器有自定义 `todo` 节点和块级 `text-align`，官方 markdown 序列化器覆盖不了这两样。
 
-**配色全走 design token**：外框/工具栏分隔线/表格线用 `border-border`（即 `--app-border`，亮色 `#f0f0f0`），面板底色 `bg-card`、下拉弹层 `bg-popover`、代码与表头底 `bg-muted`、正文 `text-card-foreground`、选中态 `text-primary`（`MarkdownEditor.vue:606-621`、内容样式 `:697-855`）。组件里**没有**任何 `gray-*` 之类的硬编码色，也没有 `.dark` 分支——切主题时由 `packages/core/base/design/src/token/{default,dark}.css` 的变量接管，因此 14 套预设主题（`packages/core/base/shared/src/constants/theme-presets.ts:26-41`）各自的边框/底色都会跟着变。实测：亮色外框 `rgb(240,240,240)`、深色 `rgba(255,255,255,.12)`，弹层亮 `#fff` / 深 `#1f1f1f`。
+**配色全走 design token**：外框/工具栏分隔线/表格线用 `border-border`（即 `--border`，亮色 `#f0f0f0`），面板底色 `bg-card`、下拉弹层 `bg-popover`、代码与表头底 `bg-muted`、正文 `text-card-foreground`、选中态 `text-primary`（`MarkdownEditor.vue:606-621`、内容样式 `:697-855`）。组件里**没有**任何 `gray-*` 之类的硬编码色，也没有 `.dark` 分支——切主题时由 `packages/core/base/design/src/token/{default,dark}.css` 的变量接管，因此 14 套预设主题（`packages/core/base/shared/src/constants/theme-presets.ts:26-41`）各自的边框/底色都会跟着变。实测：亮色外框 `rgb(240,240,240)`、深色 `rgba(255,255,255,.12)`，弹层亮 `#fff` / 深 `#1f1f1f`。
 
 **v-model 行为**：内容变化时抛 `update:value`（`MarkdownEditor.vue:167`）；外部回传等价内容会被 200ms「回声屏蔽期」跳过以免光标跳文首，但真·外部改写按文本比对后仍会落地（`MarkdownEditor.vue:141-150,487-521`）。**初值请走 `value` prop 而不是挂载后 `setHtml()`**——后者可能落在屏蔽期里被吞，示例页注释记录了这条踩坑史（`editor/index.vue:427-433`）。
 
 ::: warning 读源码读出来的两个坑
 
-1. **`theme` prop 不生效**：声明在 `types.ts:119`、默认值在 `MarkdownEditor.vue:42`，但组件内部没有任何地方读它；深浅色实际由上面的 `--app-*` token 自动切换。传 `theme="dark"` 什么都不会发生。
+1. **`theme` prop 不生效**：声明在 `types.ts:119`、默认值在 `MarkdownEditor.vue:42`，但组件内部没有任何地方读它；深浅色实际由上面的 `--*` token 自动切换。传 `theme="dark"` 什么都不会发生。
 2. **`imageUpload.onProgress` / `videoUpload.onProgress` 从不触发**：回调声明在 `types.ts:65`、`utils.ts:71`，但上传调用只透传 `file/server/fieldName/meta`（`MarkdownEditor.vue:305-310,328-333`），`uploadFile` 的实现根本没有消费 `onProgress`（`utils.ts:77-103`）。内置上传没有进度上报。
 
-原先这里的第三条「`getMarkdown()` / `setMarkdown()` 其实是 HTML」已经修掉了：现在这两个方法走 `docToMarkdown` / `markdownToDoc` 的真往返（`MarkdownEditor.vue:557-562,580`），示例页「导出 Markdown」打到控制台的是 Markdown 源码。
-:::
+原先这里的第三条「`getMarkdown()` / `setMarkdown()` 其实是 HTML」已经修掉了：现在这两个方法走 `docToMarkdown` / `markdownToDoc` 的真往返（`MarkdownEditor.vue:557-562,580`），示例页「导出 Markdown」打到控制台的是 Markdown 源码。:::
 
 **工具栏默认按键**：`constants.ts:8-39` 的 `DEFAULT_TOOLBAR_KEYS`（headerSelect、粗斜体下划线删除线、颜色、字号字体行高、列表/待办、对齐、链接、uploadImage、uploadVideo、表格、代码块、undo/redo、fullScreen）。按键名的字典是 `types.ts:12-37`。
 
@@ -94,15 +92,13 @@
 
 代价是进度不再真实：`uploadRequest` 只在应答回来时补一次 `onProgress({ percent: 100 })`（`upload/index.vue:63-64`），所以是 0 → 100 一跳；「失败」也变成请求被拒绝（拦截器抛错，`:69-71`），而不是非 2xx 状态码。
 
-「成功」仍然全部来自 mock：dev 由 Nitro 的 `server/api/upload.post.ts`、`upload/[variant].post.ts` 应答，生产由 `apps/web/src/mock/dynamic.ts` 现造同构信封（`/upload` 与 `/upload/:variant` 在 fixtures 里是缺席的 —— multipart 抓不了，而且返回值要求每次唯一）。两边的 `data.url` 都是内联 SVG data URL（`server/utils/upload.ts:64-106`）——图片墙、头像能显示大图，但那是占位图，不是你的文件。
-:::
+「成功」仍然全部来自 mock：dev 由 Nitro 的 `server/api/upload.post.ts`、`upload/[variant].post.ts` 应答，生产由 `apps/web/src/mock/dynamic.ts` 现造同构信封（`/upload` 与 `/upload/:variant` 在 fixtures 里是缺席的 —— multipart 抓不了，而且返回值要求每次唯一）。两边的 `data.url` 都是内联 SVG data URL（`server/utils/upload.ts:64-106`）——图片墙、头像能显示大图，但那是占位图，不是你的文件。:::
 
 图片墙的预览地址按 `thumbUrl → url → response.data.url → response.url` 顺序解析（`upload/index.vue:113-120`，注释 106-112 解释了为什么只读 `response.url` 会「点了没反应」）；点击缩略图必须 `preventDefault` 吃掉 antd 渲染的 `<a target="_blank">`（`upload/index.vue:126-132`）。
 
 ::: tip
 
-没有拖拽排序文件上传菜单里**不再有拖拽排序**演示（本次改造已删除；mock 注释 `upload/[variant].post.ts:7` 残留的 `drag-sort` 变体名只是历史痕迹，页面没有对应入口）。上面的 `:drag="true"` 是「拖拽文件到区域」，与列表项重排无关。
-:::
+没有拖拽排序文件上传菜单里**不再有拖拽排序**演示（本次改造已删除；mock 注释 `upload/[variant].post.ts:7` 残留的 `drag-sort` 变体名只是历史痕迹，页面没有对应入口）。上面的 `:drag="true"` 是「拖拽文件到区域」，与列表项重排无关。:::
 
 ### 大文件上传：本地切片调度，不发请求
 
@@ -110,7 +106,7 @@
 
 ### 真正的分片/秒传封装在仓库里，但这个页面没有演示它
 
-`apps/web/src/components/common/Upload/` 才是完整链路：`ChunkUpload.vue` + `composables/useChunkUploader.ts` + `api.ts`。流程为 计算哈希 → `POST /upload/check` 秒传检查（命中直接成功，`useChunkUploader.ts:239-256`）→ `GET /upload/check` 查已传分片（断点续传，`:260-280`）→ 并发传 `POST /upload/chunk`（带重试，`useChunkUploader.ts:137-150`；并发调度 `:300-309`）→ `POST /upload/merge` → 未完成则 `GET /upload/merge/status` 轮询（`:329-404`）。endpoint 定义见 `Upload/api.ts:34-154`。
+`packages/core/ui-kit/common-ui/src/components/chunk-upload/` 才是完整链路：`ChunkUpload.vue` + `composables/useChunkUploader.ts` + `api.ts`。流程为 计算哈希 → `POST /upload/check` 秒传检查（命中直接成功，`useChunkUploader.ts:239-256`）→ `GET /upload/check` 查已传分片（断点续传，`:260-280`）→ 并发传 `POST /upload/chunk`（带重试，`useChunkUploader.ts:137-150`；并发调度 `:300-309`）→ `POST /upload/merge` → 未完成则 `GET /upload/merge/status` 轮询（`:329-404`）。endpoint 定义见 `Upload/api.ts:34-154`。
 
 但要知道三件事：
 
@@ -120,14 +116,13 @@
 
 ### 自研 `AvatarUploader`：链路在 mock 上是通的
 
-组件本体 `apps/web/src/components/common/AvatarUploader.vue`（186 行）：props `modelValue / maxSizeMb(5) / outputSize(256) / round(true) / size(80)`（接口 `:15-21`、默认值 `:23-29`），事件 `update:modelValue` / `uploaded`（`:31-34`）。流程是 `useFileDialog` 选文件（`:72-82`，取代 antd 的 Upload）→ 格式与体积校验（`:52-60`）→ `useFileReader` 读成 DataURL（`:41,63-69`，composable 在 `packages/core/hooks/src/use-file-reader.ts`）→ `BasicModal` 里 vue-cropper 1:1 裁剪（`:150-184`）→ `getCropBlob` 出 PNG（`:88-93`）→ `http.Post('/upload/avatar', formData)` 上传，拿到 url 后回抛（`:101-112`）。
+组件本体 `packages/core/ui-kit/common-ui/src/components/avatar-uploader/AvatarUploader.vue`（186 行）：props `modelValue / maxSizeMb(5) / outputSize(256) / round(true) / size(80)`（接口 `:15-21`、默认值 `:23-29`），事件 `update:modelValue` / `uploaded`（`:31-34`）。流程是 `useFileDialog` 选文件（`:72-82`，取代 antd 的 Upload）→ 格式与体积校验（`:52-60`）→ `useFileReader` 读成 DataURL（`:41,63-69`，composable 在 `packages/core/hooks/src/use-file-reader.ts`）→ `BasicModal` 里 vue-cropper 1:1 裁剪（`:150-184`）→ `getCropBlob` 出 PNG（`:88-93`）→ `http.Post('/upload/avatar', formData)` 上传，拿到 url 后回抛（`:101-112`）。
 
 ::: info 三处要按代码说
 
 - **它不走 `~/api/system` 的 `uploadFile`，而且是故意的**：源码注释写了理由——那个接口是文件管理页的**元数据登记**（入参 `Record<string, unknown>` 在 `api/system.ts:146`，mock 只把元数据推进内存表 `server/api/system/file/upload.post.ts:19-38`，返回的 `FileRecord` 里根本没有 `url` 字段，`server/utils/db/file.ts:19-34`），拿它传头像永远回填不了地址（`AvatarUploader.vue:98-100`）。请求层只对普通对象做 `JSON.stringify`，FormData 原样透传（`packages/request/src/executor.ts:147-150,164-168`），所以二进制能正常发出去。
 - **`/upload/avatar` 由变体路由接住**：`server/api/upload/[variant].post.ts:13-23`（`path: '/upload/:variant'` 在 `:21`），返回的信封里 `data.url` 是一张内联 SVG data URL（`server/utils/upload.ts:94-106` 的 `buildUploadResult`、`:64-79` 的 `previewDataUrl`，`:9-12` 解释了为什么不落盘）。组件要求 `res.data.url`，缺了就抛「上传接口未返回 url」（`AvatarUploader.vue:108-109`），失败时手动复位确认按钮的 loading（`:119-120`）。
-- **`outputSize` 只影响文案**：裁剪器固定 `:output-size="1"`（`AvatarUploader.vue:175`），props 的 256 只出现在提示文字里（`:180`）；示例页另存了一个同值常量 `inhouseAvatarOutputSize = 256`（`upload/index.vue:327-328`）。「输出 256×256」是展示口径，实际输出尺寸是选区的 1 倍。
-:::
+- **`outputSize` 只影响文案**：裁剪器固定 `:output-size="1"`（`AvatarUploader.vue:175`），props 的 256 只出现在提示文字里（`:180`）；示例页另存了一个同值常量 `inhouseAvatarOutputSize = 256`（`upload/index.vue:327-328`）。「输出 256×256」是展示口径，实际输出尺寸是选区的 1 倍。:::
 
 页面上仍然值得点的部分：圆形头像框、裁剪弹窗、拖拽缩放选区（vue-cropper 本身可用）；头像卡片从选图到回填整条链路在 mock 上跑通，回填与重置逻辑在 `upload/index.vue:342-349`。
 

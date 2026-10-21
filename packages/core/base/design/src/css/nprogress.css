@@ -11,15 +11,15 @@
   @apply fixed top-0 left-0 z-[9999] h-[3px] w-full;
   background: linear-gradient(
     90deg,
-    var(--app-primary, #1677ff) 0%,
-    var(--app-primary, #1677ff) 100%
+    hsl(var(--primary, 215.02 100% 54.31%)) 0%,
+    hsl(var(--primary, 215.02 100% 54.31%)) 100%
   );
 }
 
 #nprogress .peg {
   @apply absolute right-0 block h-full w-[100px] opacity-100;
   box-shadow:
-    0 0 10px var(--app-primary, #1677ff),
-    0 0 5px var(--app-primary, #1677ff);
+    0 0 10px hsl(var(--primary, 215.02 100% 54.31%)),
+    0 0 5px hsl(var(--primary, 215.02 100% 54.31%));
   transform: rotate(3deg) translate(0, -4px);
 }

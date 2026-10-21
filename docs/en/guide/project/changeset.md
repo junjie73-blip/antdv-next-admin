@@ -26,8 +26,7 @@ The order is the contract: **every change ships with its changeset file** (`.cha
 
 ::: danger The chain does not run today
 
-`changeset version` validates that every package named in a changeset is still in the workspace, and `.changeset/monorepo-shared-packages.md:4-5` names `@antdv/composables` (now `@antdv/hooks`) and `@antdv/ui` (now the `@antdv/*-ui` packages in ui-kit), neither of which exists. So `pnpm changeset status` / `version` / `release` all fail hard — the whole plan is aborted, not just that one changeset skipped. The fix and the re-check command are in the [changelog](/en/guide/other/changelog) under "The release chain does not run at all right now". No CI job runs changesets, so this only surfaces when someone actually tries to release.
-:::
+`changeset version` validates that every package named in a changeset is still in the workspace, and `.changeset/monorepo-shared-packages.md:4-5` names `@antdv/composables` (now `@antdv/hooks`) and `@antdv/ui` (now the `@antdv/*-ui` packages in ui-kit), neither of which exists. So `pnpm changeset status` / `version` / `release` all fail hard — the whole plan is aborted, not just that one changeset skipped. The fix and the re-check command are in the [changelog](/en/guide/other/changelog) under "The release chain does not run at all right now". No CI job runs changesets, so this only surfaces when someone actually tries to release. :::
 
 ## Catalog + workspace versioning
 

@@ -405,9 +405,17 @@ test.describe('标签页交互', () => {
       const after = getComputedStyle(el, '::after');
       return {
         bg: cs.backgroundColor,
-        left: { clip: before.clipPath, shadow: before.boxShadow, w: before.width },
+        left: {
+          clip: before.clipPath,
+          shadow: before.boxShadow,
+          w: before.width,
+        },
         radius: cs.borderTopLeftRadius,
-        right: { clip: after.clipPath, shadow: after.boxShadow, w: after.width },
+        right: {
+          clip: after.clipPath,
+          shadow: after.boxShadow,
+          w: after.width,
+        },
       };
     });
 
@@ -416,7 +424,9 @@ test.describe('标签页交互', () => {
     for (const foot of [geometry.left, geometry.right]) {
       expect(foot.w).toBe('20px');
       // 只留靠标签那一侧的下半象限；-10px 那一路是给扩散阴影留的越界余量
-      expect(foot.clip).toMatch(/^inset\(50% -10px 0px 50%\)|^inset\(50% 50% 0px -10px\)/);
+      expect(foot.clip).toMatch(
+        /^inset\(50% -10px 0px 50%\)|^inset\(50% 50% 0px -10px\)/,
+      );
       // 脚的颜色 == 标签体的颜色，否则弧与标签之间露出色差
       expect(foot.shadow).toContain(geometry.bg);
     }

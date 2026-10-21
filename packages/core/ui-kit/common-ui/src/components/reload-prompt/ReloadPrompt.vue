@@ -1,88 +1,60 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
 
 import { Button } from '@antdv/shadcn-ui';
 import { Icon } from '@iconify/vue';
 import {
+  tryOnScopeDispose,
   useDocumentVisibility,
   useIntervalFn,
   useTimeoutFn,
   useTimestamp,
 } from '@vueuse/core';
-import { useRegisterSW } from 'virtual:pwa-register/vue';
 
 defineOptions({ name: 'ReloadPrompt' });
 
-const AUTO_COUNTDOWN = 10;
-const POLL_INTERVAL = 5 * 60 * 1000;
-const ROUTE_CHECK_THROTTLE = 30_000;
-const VISIBILITY_CHECK_DELAY = 1000;
-
-const router = useRouter();
-const visibility = useDocumentVisibility();
-
-/* ============================================================
- * PWA 注册
- * ============================================================ */
-let swRegistration: ServiceWorkerRegistration | undefined;
-
-const { offlineReady, needRefresh, updateServiceWorker } = useRegisterSW({
-  onRegisteredSW(swUrl, registration) {
-    console.log('[PWA] Service Worker registered:', swUrl);
-    if (!registration || !import.meta.env.PROD) return;
-    swRegistration = registration;
-
-    // useIntervalFn：自动挂载/卸载 interval
-    const { pause: stopPolling, resume: startPolling } = useIntervalFn(
-      () => {
-        registration.update().catch(() => {});
-      },
-      POLL_INTERVAL,
-      { immediate: false },
-    );
-
-    // useTimeoutFn：页面可见时的延迟检查
-    const { start: startVisibilityCheck } = useTimeoutFn(
-      () => {
-        registration.update().catch(() => {});
-        startPolling();
-      },
-      VISIBILITY_CHECK_DELAY,
-      { immediate: false },
-    );
-
-    // 监听可见性：可见恢复轮询，不可见暂停
-    watch(visibility, (v) => {
-      if (v === 'visible') startVisibilityCheck();
-      else stopPolling();
-    });
-
-    // 路由切换检查（节流）
-    let lastRouteCheck = 0;
-    const removeRouterHook = router.afterEach(() => {
-      const now = Date.now();
-      if (now - lastRouteCheck < ROUTE_CHECK_THROTTLE) return;
-      lastRouteCheck = now;
-      registration.update().catch(() => {});
-    });
-
-    // 组件 scope 销毁时清理
-    tryOnScopeDispose(() => {
-      stopPolling();
-      removeRouterHook();
-    });
-
-    startPolling();
-  },
-  onRegisterError(error: unknown) {
-    console.error('[PWA] Service Worker registration failed:', error);
-  },
+const props = withDefaults(defineProps<Props>(), {
+  autoCountdown: 10,
+  offlineReady: false,
+  onCheckUpdate: undefined,
+  pollInterval: 5 * 60 * 1000,
+  visibilityCheckDelay: 1000,
+  needRefresh: false,
 });
 
-/* ============================================================
- * 状态
- * ============================================================ */
+const emit = defineEmits<{
+  /** 用户点「立即更新」或倒计时到点：宿主在这一步调 `updateServiceWorker(true)` */
+  update: [reloadPage: boolean];
+  /** 关闭 / 「知道了」：宿主据此清掉自己的两个状态 */
+  dismiss: [];
+}>();
+
+interface Props {
+  /** 提示出现后多少秒自动更新；0 或负数表示不自动更新 */
+  autoCountdown?: number;
+  /** 离线就绪态（`useRegisterSW` 的 offlineReady） */
+  offlineReady?: boolean;
+  /** 轮询 SW 更新的间隔（毫秒） */
+  pollInterval?: number;
+  /** 页面重新可见后延迟多久再检查一次（毫秒） */
+  visibilityCheckDelay?: number;
+  /** 有新版本待刷新（`useRegisterSW` 的 needRefresh） */
+  needRefresh?: boolean;
+  /**
+   * 宿主提供的「去问一次有没有新版本」。
+   *
+   * `virtual:pwa-register/vue` 是 Vite 插件注入的虚拟模块，公共组件包里引它，
+   * 本包自己的 lib 构建与单测就解析不到（虚拟模块只存在于装了插件的宿主图上），
+   * 所以注册 Service Worker 这一步留在宿主侧，这里只负责什么时候该问一次。
+   */
+  onCheckUpdate?: () => Promise<void> | void;
+}
+
+// 路由切换节流：与迁移前一致，30 秒内不重复问
+const ROUTE_CHECK_THROTTLE = 30_000;
+
+const visibility = useDocumentVisibility();
+
 const updating = ref(false);
 const autoUpdateCancelled = ref(false);
 const countdown = ref(0);
@@ -91,13 +63,53 @@ const countdown = ref(0);
 const endTime = ref(0);
 const timestamp = useTimestamp({ interval: 500 });
 
-const visible = computed(() => offlineReady.value || needRefresh.value);
-const isUpdate = computed(() => needRefresh.value);
+const visible = computed(() => props.offlineReady || props.needRefresh);
+const isUpdate = computed(() => props.needRefresh);
 
 const countdownProgress = computed(() => {
   if (!isUpdate.value || countdown.value === 0) return 0;
-  return ((AUTO_COUNTDOWN - countdown.value) / AUTO_COUNTDOWN) * 100;
+  return ((props.autoCountdown - countdown.value) / props.autoCountdown) * 100;
 });
+
+function checkUpdate() {
+  return props.onCheckUpdate?.();
+}
+
+/* ============================================================
+ * 轮询：更新检查的节奏都在这——定时 + 可见性恢复 + 路由切换节流
+ * ============================================================ */
+const { pause: stopPolling, resume: startPolling } = useIntervalFn(
+  () => void checkUpdate(),
+  () => props.pollInterval,
+  { immediate: false },
+);
+
+const { start: startVisibilityCheck } = useTimeoutFn(
+  () => {
+    void checkUpdate();
+    startPolling();
+  },
+  () => props.visibilityCheckDelay,
+  { immediate: false },
+);
+
+// 监听可见性：可见恢复轮询，不可见暂停
+watch(visibility, (v) => {
+  if (v === 'visible') startVisibilityCheck();
+  else stopPolling();
+});
+
+let lastRouteCheck = 0;
+/**
+ * 路由切换时的检查入口。迁移前是本组件自己 `useRouter().afterEach(...)`，
+ * 公共包不吃 vue-router，改成宿主在自己的路由钩子里调这一句（节流仍在组件里）。
+ */
+function onRouteChange() {
+  const now = Date.now();
+  if (now - lastRouteCheck < ROUTE_CHECK_THROTTLE) return;
+  lastRouteCheck = now;
+  void checkUpdate();
+}
 
 /* ============================================================
  * 倒计时（用 useTimestamp 计算剩余秒数）
@@ -120,9 +132,9 @@ const { pause: stopCountdownInterval, resume: startCountdownInterval } =
   );
 
 function startCountdown() {
-  if (AUTO_COUNTDOWN <= 0 || autoUpdateCancelled.value) return;
-  countdown.value = AUTO_COUNTDOWN;
-  endTime.value = Date.now() + AUTO_COUNTDOWN * 1000;
+  if (props.autoCountdown <= 0 || autoUpdateCancelled.value) return;
+  countdown.value = props.autoCountdown;
+  endTime.value = Date.now() + props.autoCountdown * 1000;
   startCountdownInterval();
 }
 
@@ -132,7 +144,7 @@ function stopCountdown() {
 }
 
 watch(
-  () => needRefresh.value,
+  () => props.needRefresh,
   (need) => {
     if (need) {
       autoUpdateCancelled.value = false;
@@ -147,15 +159,11 @@ watch(
 /* ============================================================
  * 操作
  * ============================================================ */
-async function handleUpdate() {
+function handleUpdate() {
   stopCountdown();
+  // 与迁移前一致：只有失败才复位按钮的 loading —— 成功就意味着页面要重载，没有下一步
   updating.value = true;
-  try {
-    await updateServiceWorker(true);
-  } catch (error) {
-    console.error('[PWA] update failed:', error);
-    updating.value = false;
-  }
+  emit('update', true);
 }
 
 function handleLater() {
@@ -165,23 +173,23 @@ function handleLater() {
 
 function close() {
   stopCountdown();
-  offlineReady.value = false;
-  needRefresh.value = false;
+  emit('dismiss');
 }
 
 /* ============================================================
- * 开发调试
+ * 装配：一挂上就开始轮询
  * ============================================================ */
 onMounted(() => {
-  (window as any).__pwaCheckUpdate = async () => {
-    const reg = swRegistration ?? (await navigator.serviceWorker.ready);
-    await reg.update();
-    console.log('[PWA] Manual update check triggered');
-  };
+  startPolling();
 });
 
-// 顶层清理：组件卸载时取消倒计时
-tryOnScopeDispose(stopCountdown);
+// 顶层清理：组件卸载时取消倒计时与轮询
+tryOnScopeDispose(() => {
+  stopCountdown();
+  stopPolling();
+});
+
+defineExpose({ checkUpdate, onRouteChange });
 </script>
 
 <template>

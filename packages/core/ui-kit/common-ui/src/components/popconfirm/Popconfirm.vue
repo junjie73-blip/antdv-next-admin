@@ -40,15 +40,14 @@ const props = withDefaults(
   },
 );
 
-/** 按钮文案：显式 prop > 全局配置 > 包内置词条 */
-const globalConfig = useGlobalConfig();
-const okLabel = computed(() => props.okText ?? globalConfig.okText);
-const cancelLabel = computed(() => props.cancelText ?? globalConfig.cancelText);
-
 const emit = defineEmits<{
   cancel: [e: MouseEvent];
   confirm: [e: MouseEvent];
 }>();
+/** 按钮文案：显式 prop > 全局配置 > 包内置词条 */
+const globalConfig = useGlobalConfig();
+const okLabel = computed(() => props.okText ?? globalConfig.okText);
+const cancelLabel = computed(() => props.cancelText ?? globalConfig.cancelText);
 
 const open = defineModel<boolean>('open', { default: false });
 

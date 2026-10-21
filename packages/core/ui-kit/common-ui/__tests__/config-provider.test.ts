@@ -1,14 +1,15 @@
 // @vitest-environment happy-dom
 import { mount } from '@vue/test-utils';
-import { injectConfigProviderContext } from 'reka-ui';
 import { defineComponent, h, nextTick, ref } from 'vue';
+
+import { injectConfigProviderContext } from 'reka-ui';
 import { describe, expect, it } from 'vitest';
 
-import ConfigProvider from '../src/components/config-provider/ConfigProvider.vue';
 import {
   normalizeComponentSize,
   useGlobalConfig,
 } from '../src/components/config-provider';
+import ConfigProvider from '../src/components/config-provider/ConfigProvider.vue';
 import Empty from '../src/components/empty/Empty.vue';
 import Loading from '../src/components/loading/Loading.vue';
 import Popconfirm from '../src/components/popconfirm/Popconfirm.vue';
@@ -58,7 +59,7 @@ function withProvider(props: Record<string, unknown>, child: () => unknown) {
   });
 }
 
-describe('ConfigProvider 全局配置', () => {
+describe('configProvider 全局配置', () => {
   it('不挂 provider 时读到的就是内置默认（中文 + medium）', () => {
     const wrapper = mount(Reader);
     expect(wrapper.text()).toBe('zh-CN|确定|medium');
@@ -112,7 +113,7 @@ describe('ConfigProvider 全局配置', () => {
     wrapper.unmount();
   });
 
-  it('Popconfirm 的按钮文案来自全局配置，显式 prop 仍然优先', async () => {
+  it('popconfirm 的按钮文案来自全局配置，显式 prop 仍然优先', async () => {
     const open = ref(true);
     const Host = defineComponent({
       setup: () => () =>
@@ -150,7 +151,7 @@ describe('ConfigProvider 全局配置', () => {
   });
 });
 
-describe('ConfigProvider 到 reka-ui 底座的桥接', () => {
+describe('configProvider 到 reka-ui 底座的桥接', () => {
   it('默认就把中文语言交给 reka（reka 自带默认是 en）', () => {
     const wrapper = mount(withProvider({}, () => h(RekaReader)));
     const [dir, locale, scrollBody, nonce, teleportTo, useIdType] = wrapper
@@ -199,16 +200,21 @@ describe('ConfigProvider 到 reka-ui 底座的桥接', () => {
   });
 });
 
-describe('ConfigProvider 的子树主题与样式变量', () => {
-  it('theme.primary / theme.radius 写成 --app-* 变量，数值按 px 处理', () => {
+describe('configProvider 的子树主题与样式变量', () => {
+  /**
+   * 子树覆盖写的是 shadcn-vue 的裸规范名，而且主色存 HSL 三段：
+   * 读侧统一 `hsl(var(--primary))`，把 `rgb(255 92 92)` 原样写进去这一档就解析失败，
+   * 表现是"包了 ConfigProvider 的那块区域主色消失"。
+   */
+  it('theme.primary 写成 --primary 的 HSL 三段，theme.radius 按 px 换算成 rem', () => {
     const wrapper = mount(
       withProvider({ theme: { primary: 'rgb(255 92 92)', radius: 8 } }, () =>
         h('i', 'x'),
       ),
     );
     const style = hostOf(wrapper).style;
-    expect(style.getPropertyValue('--app-primary')).toBe('rgb(255 92 92)');
-    expect(style.getPropertyValue('--app-border-radius')).toBe('0.5rem');
+    expect(style.getPropertyValue('--primary')).toBe('0 100% 68%');
+    expect(style.getPropertyValue('--radius')).toBe('0.5rem');
     wrapper.unmount();
   });
 
@@ -216,7 +222,7 @@ describe('ConfigProvider 的子树主题与样式变量', () => {
     const wrapper = mount(
       withProvider({ theme: { radius: 'var(--radius-md)' } }, () => h('i')),
     );
-    expect(hostOf(wrapper).style.getPropertyValue('--app-border-radius')).toBe(
+    expect(hostOf(wrapper).style.getPropertyValue('--radius')).toBe(
       'var(--radius-md)',
     );
     wrapper.unmount();
@@ -225,7 +231,7 @@ describe('ConfigProvider 的子树主题与样式变量', () => {
   it('不给 theme 时一条变量声明都不写，子树继续继承 <html> 的档位', () => {
     const wrapper = mount(withProvider({}, () => h('i')));
     const el = hostOf(wrapper);
-    expect(el.getAttribute('style') ?? '').not.toContain('--app-primary');
+    expect(el.getAttribute('style') ?? '').not.toContain('--primary');
     expect(el.classList.contains('dark')).toBe(false);
     expect(el.classList.contains('light')).toBe(false);
     wrapper.unmount();
@@ -257,24 +263,25 @@ describe('ConfigProvider 的子树主题与样式变量', () => {
       withProvider({ theme: { mode: 'dark', preset: 'violet' } }, () => h('i')),
     );
     const el = hostOf(wrapper);
-    expect(el.getAttribute('data-theme')).toBe('violet');
+    expect(el.dataset.theme).toBe('violet');
     expect(el.classList.contains('dark')).toBe(true);
     wrapper.unmount();
   });
 
   it('cssVars 最后写入，优先级高于 theme 派生的同名变量', () => {
+    // cssVars 是原样落盘的逃生门：不做颜色换算，写进去什么就是什么
     const wrapper = mount(
       withProvider(
         {
-          cssVars: { '--app-primary': '#111', '--app-card': '#eee' },
+          cssVars: { '--card': '#eee', '--primary': '#111' },
           theme: { primary: 'rgb(255 92 92)' },
         },
         () => h('i'),
       ),
     );
     const style = hostOf(wrapper).style;
-    expect(style.getPropertyValue('--app-primary')).toBe('#111');
-    expect(style.getPropertyValue('--app-card')).toBe('#eee');
+    expect(style.getPropertyValue('--primary')).toBe('#111');
+    expect(style.getPropertyValue('--card')).toBe('#eee');
     wrapper.unmount();
   });
 
@@ -282,25 +289,20 @@ describe('ConfigProvider 的子树主题与样式变量', () => {
     const wrapper = mount(
       defineComponent({
         render: () =>
-          h(
-            ConfigProvider,
-            { theme: { primary: 'rgb(1 2 3)', radius: 8 } },
-            () =>
-              h(ConfigProvider, { theme: { radius: 12 } }, () =>
-                h('i', 'inner'),
-              ),
+          h(ConfigProvider, { theme: { primary: '#ff0000', radius: 8 } }, () =>
+            h(ConfigProvider, { theme: { radius: 12 } }, () => h('i', 'inner')),
           ),
       }),
     );
     const inner = wrapper.findAll('[data-common-config-provider]')[1]!
       .element as HTMLElement;
-    expect(inner.style.getPropertyValue('--app-border-radius')).toBe('0.75rem');
-    expect(inner.style.getPropertyValue('--app-primary')).toBe('rgb(1 2 3)');
+    expect(inner.style.getPropertyValue('--radius')).toBe('0.75rem');
+    expect(inner.style.getPropertyValue('--primary')).toBe('0 100% 50%');
     wrapper.unmount();
   });
 });
 
-describe('ConfigProvider 容器与 attrs 透传', () => {
+describe('configProvider 容器与 attrs 透传', () => {
   it('容器不带盒子（display: contents），宿主仍可覆盖它', () => {
     const wrapper = mount(
       withProvider({ style: { display: 'flex' } }, () => h('i')),
@@ -318,7 +320,7 @@ describe('ConfigProvider 容器与 attrs 透传', () => {
     const el = hostOf(wrapper);
     expect(el.classList.contains('contents')).toBe(true);
     expect(el.classList.contains('host-layer')).toBe(true);
-    expect(el.getAttribute('data-testid')).toBe('cfg');
+    expect(el.dataset.testid).toBe('cfg');
     wrapper.unmount();
   });
 
@@ -327,15 +329,15 @@ describe('ConfigProvider 容器与 attrs 透传', () => {
       withProvider({ componentSize: 'large', locale: 'en-US' }, () => h('i')),
     );
     const el = hostOf(wrapper);
-    expect(el.getAttribute('data-config-locale')).toBe('en-US');
-    expect(el.getAttribute('data-config-size')).toBe('large');
+    expect(el.dataset.configLocale).toBe('en-US');
+    expect(el.dataset.configSize).toBe('large');
     expect(el.getAttribute('dir')).toBe('ltr');
     wrapper.unmount();
   });
 });
 
-describe('ConfigProvider 的读侧组件', () => {
-  it('Empty 的默认描述跟着 locale 走，显式 prop 与 false 都保留原意', () => {
+describe('configProvider 的读侧组件', () => {
+  it('empty 的默认描述跟着 locale 走，显式 prop 与 false 都保留原意', () => {
     const zh = mount(withProvider({}, () => h(Empty)));
     expect(zh.text()).toContain('暂无数据');
     zh.unmount();
@@ -351,7 +353,7 @@ describe('ConfigProvider 的读侧组件', () => {
     off.unmount();
   });
 
-  it('Loading 的档位来自 componentSize，显式 size 仍然优先', () => {
+  it('loading 的档位来自 componentSize，显式 size 仍然优先', () => {
     const small = mount(
       withProvider({ componentSize: 'small' }, () =>
         h(Loading, { loading: true }),
@@ -370,7 +372,7 @@ describe('ConfigProvider 的读侧组件', () => {
     explicit.unmount();
   });
 
-  it('Segmented 把档位换算成 shadcn 的 h-8 / h-9 / h-10', () => {
+  it('segmented 把档位换算成 shadcn 的 h-8 / h-9 / h-10', () => {
     const render = (componentSize: 'large' | 'medium' | 'small') =>
       mount(
         withProvider(

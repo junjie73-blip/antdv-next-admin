@@ -1,5 +1,5 @@
-import type { MenuPathRouter } from '@antdv/utils';
 import type { BackendMenu, MenuConfig } from '@antdv/types';
+import type { MenuPathRouter } from '@antdv/utils';
 
 import type { RouteRecordRaw } from 'vue-router';
 

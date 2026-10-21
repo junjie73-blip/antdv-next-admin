@@ -1,14 +1,7 @@
 <script setup lang="ts">
 import type { ModalInnerMethods, ModalMethods, ModalProps } from '../types';
 
-import {
-  computed,
-  onMounted,
-  ref,
-  useId,
-  useSlots,
-  watch,
-} from 'vue';
+import { computed, onMounted, ref, useId, useSlots, watch } from 'vue';
 
 import {
   Button,
@@ -88,7 +81,7 @@ const contentClass = computed(() =>
     CLOSED_PANEL_INERT,
     merged.value.centered
       ? ''
-      : '!top-20 translate-y-0 data-[state=open]:animate-none',
+      : 'top-20! translate-y-0 data-[state=open]:animate-none',
     merged.value.wrapClassName,
   ),
 );
@@ -183,7 +176,11 @@ function onEscapeKeyDown(event: Event) {
 }
 
 const okBtn = computed(() =>
-  resolvePopupButton(merged.value.okButtonProps, merged.value.okType ?? 'primary', okLoadingRef.value),
+  resolvePopupButton(
+    merged.value.okButtonProps,
+    merged.value.okType ?? 'primary',
+    okLoadingRef.value,
+  ),
 );
 const cancelBtn = computed(() =>
   resolvePopupButton(merged.value.cancelButtonProps, 'default'),
@@ -191,7 +188,11 @@ const cancelBtn = computed(() =>
 </script>
 
 <template>
-  <Dialog :open="visibleRef" :modal="merged.mask" @update:open="(v: boolean) => v || handleCancel()">
+  <Dialog
+    :open="visibleRef"
+    :modal="merged.mask"
+    @update:open="(v: boolean) => v || handleCancel()"
+  >
     <DialogContent
       :class="contentClass"
       :style="contentStyle"
@@ -206,7 +207,9 @@ const cancelBtn = computed(() =>
       <div
         :id="modalTitleId"
         :class="
-          cn('modal-header border-border flex items-center justify-between border-b px-6 py-4')
+          cn(
+            'modal-header border-border flex items-center justify-between border-b px-6 py-4',
+          )
         "
       >
         <div :class="cn('flex items-center gap-2')">
@@ -253,7 +256,11 @@ const cancelBtn = computed(() =>
 
       <!-- 底部按钮 -->
       <div
-        v-if="merged.showFooter && !slots.footer && (merged.showCancelBtn || merged.showOkBtn)"
+        v-if="
+          merged.showFooter &&
+          !slots.footer &&
+          (merged.showCancelBtn || merged.showOkBtn)
+        "
         :class="
           cn(
             'modal-footer border-border flex items-center justify-center gap-3 border-t px-6 py-4',

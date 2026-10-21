@@ -23,7 +23,7 @@ describe('helper/setComponentProps', () => {
     expect(props.allowClear).toBe(true);
   });
 
-  it('Select 使用"请选择"模板，RangePicker 带"范围"后缀', () => {
+  it('select 使用"请选择"模板，RangePicker 带"范围"后缀', () => {
     const select = setComponentProps(
       { field: 'a', label: '状态', component: 'Select' } as any,
       {},
@@ -67,7 +67,7 @@ describe('helper/setComponentProps', () => {
     );
   });
 
-  it('Rate 不在自动 allowClear 名单', () => {
+  it('rate 不在自动 allowClear 名单', () => {
     const props = setComponentProps(
       { field: 'r', label: '评分', component: 'Rate' } as any,
       {},
@@ -200,7 +200,7 @@ describe('helper/formatDateFields', () => {
     expect(result.created).toBe('formatted:YYYY-MM-DD');
   });
 
-  it('RangePicker 字段跳过转换（与旧实现一致）', () => {
+  it('rangePicker 字段跳过转换（与旧实现一致）', () => {
     const fakeDayjs = { format: () => 'X' };
     const result = formatDateFields({ range: [fakeDayjs, fakeDayjs] }, [
       { field: 'range', component: 'RangePicker' },

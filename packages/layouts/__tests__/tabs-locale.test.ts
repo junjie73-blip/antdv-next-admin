@@ -4,9 +4,9 @@ import { flushPromises, mount } from '@vue/test-utils';
 import { defineComponent, h, ref } from 'vue';
 import { createMemoryHistory, createRouter } from 'vue-router';
 
-import { createPinia, setActivePinia } from 'pinia';
 import { configureLayout } from '@antdv/layout-ui';
 import { useRouteStore, useTabsStore } from '@antdv/stores';
+import { createPinia, setActivePinia } from 'pinia';
 
 import { useTabs } from '../src/hooks/use-tabs';
 

@@ -4,20 +4,24 @@ import { buildStorageKey } from '@antdv/shared/cache';
 import { themeKeyByColor } from '@antdv/shared/constants';
 import { resolveThemeMode } from '@antdv/utils';
 
-import { BOOT_THEME_CACHE_KEY } from './constants';
+import { BOOT_THEME_CACHE_KEY, BOOT_THEME_SNAPSHOT_VERSION } from './constants';
 
 /**
- * 快照里带的三条实色。
+ * 快照里带的三条颜色。
  *
  * 名字来自 `@antdv/design/src/token/{default,dark}.css`，这里**只读不写**：
  * 预设主题的主色在暗色档会被提亮一档（JS 侧的 `THEME_PRESETS` 只有亮色值），
  * 所以取"当时 DOM 上算出来的值"比重新推导一套更可靠 —— 写快照的那一刻样式必然
  * 已经生效，读到的就是用户此刻真正看到的颜色。
+ *
+ * 读回来的是 shadcn 规范名里那串 **HSL 通道值**（`215 100% 54%`），不是完整颜色。
+ * 读侧（loading 模板）负责套 `hsl()`，快照本身只负责搬运，不在这里做格式转换 ——
+ * 转换过一遍就得再转回来，`color-mix()` 与 alpha 都会在半路丢掉。
  */
 const BOOT_THEME_VARS = {
-  background: '--app-background',
-  foreground: '--app-foreground',
-  primary: '--app-primary',
+  background: '--background',
+  foreground: '--foreground',
+  primary: '--primary',
 } as const;
 
 export type BootThemeVarName = keyof typeof BOOT_THEME_VARS;
@@ -31,9 +35,9 @@ export interface BootThemeSnapshot {
    * `vars` 是在哪一档明暗下取的。
    *
    * 存下来而不是让读侧猜：`theme: 'auto'` 的用户可能在关掉页面之后把系统主题改了，
-   * 这时快照里的实色属于另一个模式，直接用会深色底上贴一块亮色遮罩。
-   * 读侧只在模式一致时才用快照值，否则退回模板的 `var(--app-*)` 链（那条链跟着
-   * design 色板走，样式表落地后自然就是对的）。
+   * 这时快照里的颜色属于另一个模式，直接用会深色底上贴一块亮色遮罩。
+   * 读侧只在模式一致时才用快照值，否则退回模板的 `hsl(var(--x, 兜底))` 链
+   * （那条链跟着 design 色板走，样式表落地后自然就是对的）。
    */
   mode: 'dark' | 'light';
   /** 主题档位，即 `<html data-theme>` 的值，与 `themeKeyByColor` 同一份推导 */
@@ -43,8 +47,17 @@ export interface BootThemeSnapshot {
    * 存解析结果会把用户某天在系统里换深色这件事冻在旧值上。
    */
   theme: AppSetting['theme'];
-  /** 写快照那一刻的色板实色，取不到（SSR / 无样式环境）就是空串 */
+  /** 写快照那一刻的色板值（HSL 通道串），取不到（SSR / 无样式环境）就是空串 */
   vars: Record<BootThemeVarName, string>;
+  /**
+   * 快照格式版本。
+   *
+   * token 从"完整颜色"换成"HSL 通道串"是一次不兼容变更：老快照里的 `#1677ff`
+   * 套进模板的 `hsl(var(--loading-background))` 会解析失败，遮罩直接变透明。
+   * 键名保持不动、只加版本号，是因为 `commit()` 每次都会重写快照 —— 换新键会
+   * 在盘上留一条永远没人清的孤儿数据，而版本号让读侧一次判断、下次写入自然覆盖。
+   */
+  version: number;
 }
 
 function readThemeVar(name: string): string {
@@ -73,6 +86,7 @@ export function buildBootThemeSnapshot(
       foreground: readThemeVar(BOOT_THEME_VARS.foreground),
       primary: readThemeVar(BOOT_THEME_VARS.primary),
     },
+    version: BOOT_THEME_SNAPSHOT_VERSION,
   };
 }
 
@@ -91,7 +105,8 @@ export function writeBootThemeCache(
   preferences: AppSetting,
   isSystemDark = false,
 ): void {
-  if (typeof document === 'undefined' || typeof localStorage === 'undefined') return;
+  if (typeof document === 'undefined' || typeof localStorage === 'undefined')
+    return;
 
   try {
     localStorage.setItem(
@@ -103,11 +118,16 @@ export function writeBootThemeCache(
   }
 }
 
-export function readBootThemeCache(): null | BootThemeSnapshot {
+export function readBootThemeCache(): BootThemeSnapshot | null {
   if (typeof localStorage === 'undefined') return null;
   try {
     const raw = localStorage.getItem(buildStorageKey(BOOT_THEME_CACHE_KEY));
-    return raw ? (JSON.parse(raw) as BootThemeSnapshot) : null;
+    if (!raw) return null;
+    const snapshot = JSON.parse(raw) as BootThemeSnapshot;
+    // 老格式的快照（完整颜色）与读侧的 `hsl(var(--x))` 组合不兼容，当成没有：
+    // 首屏退回模板兜底色，下一次 commit 就会覆盖成新版式。
+    if (snapshot.version !== BOOT_THEME_SNAPSHOT_VERSION) return null;
+    return snapshot;
   } catch {
     return null;
   }

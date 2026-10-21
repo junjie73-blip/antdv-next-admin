@@ -4,7 +4,6 @@ import type { AlertItem, SecurityEventLevel } from '~/api/security';
 import { onMounted, ref } from 'vue';
 
 import { Empty, Loading, Scrollbar, Tag } from '@antdv/common-ui';
-
 import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
@@ -181,8 +180,7 @@ onMounted(async () => {
               <div class="mb-0.5 flex items-center gap-2">
                 <span
                   class="truncate text-sm font-medium text-gray-800 dark:text-gray-200"
-                  >{{ alert.message }}</span
-                >
+                  >{{ alert.message }}</span>
                 <Tag
                   :color="
                     alert.level === 'critical'

@@ -38,8 +38,8 @@
 
 | 症状 | 原因 | 处理 |
 | --- | --- | --- |
-| 换主色，菜单选中项不变 | 只改了 antd token，或只写了一个变量名 | 主色只有一条链：档位写在 `<html data-theme>`，自定义色再内联 `--app-primary`；给 antdv-next 的桥 `--ant-color-primary` 与旧命名 `--ant-primary-color` 都要写（`packages/utils/src/css-vars.ts:104-127`） |
-| 深色下主色和自己设的不一样 | 页面混用了两条链：`--app-primary` 取的是 html 上的种子，antdv-next 在 `.ant-app` 上还有一份按暗底重算的同名族变量 | 新页面统一走 `@antdv/design` 的 `*-primary` 令牌；测试断言别钉色值，要么在浅色下断，要么断"同源关系"（见[主题与偏好设置](/zh/guide/in-depth/theme)） |
+| 换主色，菜单选中项不变 | 只改了 antd token，或只写了一个变量名 | 主色只有一条链：档位写在 `<html data-theme>`，自定义色再内联 `--primary`；给 antdv-next 的桥 `--ant-color-primary` 与旧命名 `--ant-primary-color` 都要写（`packages/utils/src/css-vars.ts:104-127`） |
+| 深色下主色和自己设的不一样 | 页面混用了两条链：`--primary` 取的是 html 上的种子，antdv-next 在 `.ant-app` 上还有一份按暗底重算的同名族变量 | 新页面统一走 `@antdv/design` 的 `*-primary` 令牌；测试断言别钉色值，要么在浅色下断，要么断"同源关系"（见[主题与偏好设置](/zh/guide/in-depth/theme)） |
 | 工具类盖不住 `components` 层规则 | Tailwind 层顺序被改动 | `@layer theme, base, components, utilities` 必须显式声明且 `utilities` 在最后（`packages/core/base/design/src/index.css:27`） |
 | 页面之间间距不一致 | 路由页面外层自己写了 padding | 内边距归布局管，见[开发规范与环境变量](/zh/guide/essentials/development) |
 | 生产包里图标是空白方块 | 用了离线列表外的 Iconify 前缀 | 新集合要同时加 catalog 依赖与 `auto-import.ts:95-97` 的离线列表 |
@@ -80,5 +80,4 @@
 
 ::: tip
 
-想清理按"死代码"的代价排序最划算的是：i18n 的外壳与菜单标题已经接上，剩下来的是业务页面文案（要么补 `useI18n`，要么承认中文就是这个界面的语言）；`auth` store 直接删（挂住它的只有 `stores/index.ts:2` 那句 `export *`）；`routeMode` / `VITE_NAMESPACE` 二选一——要么实现要么从 `.env` 与 `types/env.d.ts` 移除。清理完记得同步这份 FAQ；删的顺序与牵动面见[移除代码](/zh/guide/other/remove-code)。
-:::
+想清理按"死代码"的代价排序最划算的是：i18n 的外壳与菜单标题已经接上，剩下来的是业务页面文案（要么补 `useI18n`，要么承认中文就是这个界面的语言）；`auth` store 直接删（挂住它的只有 `stores/index.ts:2` 那句 `export *`）；`routeMode` / `VITE_NAMESPACE` 二选一——要么实现要么从 `.env` 与 `types/env.d.ts` 移除。清理完记得同步这份 FAQ；删的顺序与牵动面见[移除代码](/zh/guide/other/remove-code)。:::

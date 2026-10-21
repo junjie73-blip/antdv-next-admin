@@ -2,11 +2,7 @@ import type { MenuConfig } from '@antdv/types';
 
 import { describe, expect, it } from 'vitest';
 
-import {
-  containsKey,
-  isBranchSelected,
-  toMenuNodes,
-} from '../src/menu-tree';
+import { containsKey, isBranchSelected, toMenuNodes } from '../src/menu-tree';
 
 /**
  * 三级树：目录 → 子目录 → 叶子。

@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-import type { HTMLAttributes } from "vue"
-import { cn } from '@antdv/shared/utils/cn'
+import type { HTMLAttributes } from 'vue';
+
+import { cn } from '@antdv/shared/utils/cn';
 
 const props = defineProps<{
-  class?: HTMLAttributes["class"]
-}>()
+  class?: HTMLAttributes['class'];
+}>();
 </script>
 
 <template>
@@ -12,6 +13,6 @@ const props = defineProps<{
     data-slot="breadcrumb-item"
     :class="cn('inline-flex items-center gap-1.5', props.class)"
   >
-    <slot />
+    <slot></slot>
   </li>
 </template>

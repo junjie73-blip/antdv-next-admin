@@ -14,8 +14,7 @@
 
 ::: warning
 
-`hidden` 不是删除 `hidden: true` 只表示"不进导航"，节点照样进授权集合（`menus.get.ts` 的注释专门在讲这件事）。菜单管理页那个「导航显示」开关也**不写库**：它只写 localStorage 的 `xy-menu-hidden-overrides` （`stores/modules/route.ts`），而 `apps/web/src/api/menu.ts` 里只有一个 `getMenus()`——没有任何菜单写接口。所以"删掉一条菜单"在本地就等价于改那份 mock 种子文件；接真后端时才是删表数据。
-:::
+`hidden` 不是删除 `hidden: true` 只表示"不进导航"，节点照样进授权集合（`menus.get.ts` 的注释专门在讲这件事）。菜单管理页那个「导航显示」开关也**不写库**：它只写 localStorage 的 `xy-menu-hidden-overrides` （`stores/modules/route.ts`），而 `apps/web/src/api/menu.ts` 里只有一个 `getMenus()`——没有任何菜单写接口。所以"删掉一条菜单"在本地就等价于改那份 mock 种子文件；接真后端时才是删表数据。:::
 
 ## 删除清单（按依赖顺序）
 
@@ -53,8 +52,7 @@
 
 ::: danger
 
-有一条静态契约专门盯着菜单与页面的对应关系 `apps/web/src/views/dashboard/__tests__/analysis-merge.spec.ts` 直接读 `apps/backend-mock/server/api/menus.get.ts` 的源码，把里面所有 `path: '/...'` 提成集合，再断言分析页快捷操作的跳转目标都在其中。它的注释写得很直白："菜单种子同时是路由表和权限来源"、"删页面必须连种子一起删"。这是全仓最会把"删一半"立刻变红的地方——好事。
-:::
+有一条静态契约专门盯着菜单与页面的对应关系 `apps/web/src/views/dashboard/__tests__/analysis-merge.spec.ts` 直接读 `apps/backend-mock/server/api/menus.get.ts` 的源码，把里面所有 `path: '/...'` 提成集合，再断言分析页快捷操作的跳转目标都在其中。它的注释写得很直白："菜单种子同时是路由表和权限来源"、"删页面必须连种子一起删"。这是全仓最会把"删一半"立刻变红的地方——好事。:::
 
 ## 案例 C：删一个 workspace 包
 
@@ -88,8 +86,7 @@
 
 ::: warning
 
-"没人 import"和"可以删"是两件事 `pnpm check:dep`（knip）会报一批未使用依赖，但它的默认配置 ignore 了 `docs/**`，`ignoreDependencies` 里还写死了 `playwright`、`rimraf`、`tailwindcss` 等（见 `scripts/vsh/src/check-dep/index.ts`）。构建期才用到的插件、被 CDN 引入的包，在它眼里都是"未使用"。删之前自己 `grep` 一次源码与 `internal/vite-config`。
-:::
+"没人 import"和"可以删"是两件事 `pnpm check:dep`（knip）会报一批未使用依赖，但它的默认配置 ignore 了 `docs/**`，`ignoreDependencies` 里还写死了 `playwright`、`rimraf`、`tailwindcss` 等（见 `scripts/vsh/src/check-dep/index.ts`）。构建期才用到的插件、被 CDN 引入的包，在它眼里都是"未使用"。删之前自己 `grep` 一次源码与 `internal/vite-config`。:::
 
 ## 删完用什么兜底
 

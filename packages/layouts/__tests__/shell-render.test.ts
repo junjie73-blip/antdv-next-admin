@@ -1,13 +1,14 @@
-import type { LayoutMode } from '../src';
 import type { MenuConfig } from '@antdv/types';
+
+import type { LayoutMode } from '../src';
 
 import { flushPromises, mount } from '@vue/test-utils';
 import { defineComponent, h } from 'vue';
 import { createMemoryHistory, createRouter } from 'vue-router';
 
-import { createPinia, setActivePinia } from 'pinia';
 import { configureLayout } from '@antdv/layout-ui';
 import { useAppStore, useRouteStore, useTabsStore } from '@antdv/stores';
+import { createPinia, setActivePinia } from 'pinia';
 
 import BasicLayout from '../src/basic/layout.vue';
 

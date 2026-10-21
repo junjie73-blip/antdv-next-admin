@@ -1,10 +1,6 @@
 import type { Ref } from 'vue';
 
-import type {
-  ModalMethods,
-  Nullable,
-  UseModalReturnType,
-} from '../types';
+import type { ModalMethods, Nullable, UseModalReturnType } from '../types';
 
 import { nextTick, onUnmounted, ref } from 'vue';
 

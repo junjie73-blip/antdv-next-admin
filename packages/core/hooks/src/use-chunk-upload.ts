@@ -29,7 +29,7 @@ export interface ChunkUploadOptions {
   /**
    * worker 工厂。Vite 下推荐这种用法，因为 `?worker` 导入的是构造器而不是 URL：
    *
-   *   import HashWorker from '~/components/common/Upload/upload.worker?worker';
+   *   import HashWorker from '@antdv/common-ui/chunk-upload/upload.worker?worker';
    *   useChunkUpload({ createWorker: () => new HashWorker() });
    */
   createWorker?: () => Worker;

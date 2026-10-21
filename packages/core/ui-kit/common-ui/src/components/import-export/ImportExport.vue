@@ -1,19 +1,27 @@
 <script setup lang="ts">
 import type { TemplateColumn } from '@antdv/shared/utils/template';
 
-import { h, ref } from 'vue';
+import { computed, h, inject, ref } from 'vue';
 
-// 自动导入（unplugin-vue-components）只重写模板标签；这里的滚动区在 h() 渲染函数里，必须显式 import
-import { Scrollbar, Space } from '@antdv/common-ui';
 import { alert, message } from '@antdv/popup-ui';
-
+import { request } from '@antdv/request';
 import { Button } from '@antdv/shadcn-ui';
 import { generateTemplate } from '@antdv/shared/utils/template';
 import { Icon } from '@iconify/vue';
 import { useFileDialog } from '@vueuse/core';
 import { isError } from 'es-toolkit';
-import { request } from '~/composables';
-import { submitExport } from '~/views/system/export/api';
+
+// 这里的滚动区要出现在 h() 渲染函数里，模板标签的自动重写帮不上忙，全部显式 import
+import { Scrollbar } from '../scrollbar';
+import { Space } from '../space';
+import { PERMISSION_CHECK } from './context';
+
+/** 提交导出任务的入参与回参：回参只需要任务号，用于提示「去导出中心看进度」 */
+interface ExportTaskPayload {
+  bizType?: string;
+  exportFormat?: string;
+  queryParams: Record<string, any>;
+}
 
 interface Props {
   module: string;
@@ -33,6 +41,13 @@ interface Props {
   permissions: string[];
   importProps?: Record<string, any>;
   exportProps?: Record<string, any>;
+  /**
+   * 导出任务的提交通道。默认 POST `${module}/export` 并读信封里的 `data.taskId`；
+   * 后端不是这个形状（异步队列、独立导出服务）时由宿主传进来替换。
+   */
+  submitExport?: (
+    payload: ExportTaskPayload,
+  ) => Promise<{ taskId: null | string }>;
 }
 
 interface ImportResult {
@@ -51,6 +66,7 @@ const props = withDefaults(defineProps<Props>(), {
   onExportSuccess: undefined,
   onImportError: undefined,
   onImportSuccess: undefined,
+  submitExport: undefined,
   fieldName: 'file',
   accept: '.xlsx,.xls',
   maxSizeMB: 10,
@@ -68,6 +84,33 @@ const emit = defineEmits<{
 const exporting = ref(false);
 const importing = ref(false);
 
+/** 未注入判定器时一律放行：见 `./context` 的说明 */
+const hasPermission = inject(PERMISSION_CHECK, () => true);
+const canExport = computed(() => hasPermission(props.permissions[1] ?? []));
+const canImport = computed(() => hasPermission(props.permissions[0] ?? []));
+
+/**
+ * 提交导出任务。
+ *
+ * 迁移前这里 import 的是 `~/views/system/export/api` 的 `submitExport`，
+ * 而那个模块在应用里并不存在（这条引用一直是悬空的，只因为组件没人用才没暴露）；
+ * 公共包里更不能反向引应用，于是默认走 `${module}/export`，宿主可注入替换。
+ */
+async function submitExportTask(
+  payload: ExportTaskPayload,
+): Promise<null | string> {
+  if (props.submitExport) {
+    const { taskId } = await props.submitExport(payload);
+    return taskId;
+  }
+  const res = await request.post<{
+    code: number;
+    data?: { taskId?: string };
+    message?: string;
+  }>(`${props.module}/export`, payload);
+  return res?.data?.taskId ?? null;
+}
+
 async function handleExport() {
   if (exporting.value) return;
   exporting.value = true;
@@ -82,15 +125,15 @@ async function handleExport() {
   if (Array.isArray(ids)) params.ids = ids.join(',');
 
   try {
-    const {
-      data: { taskId },
-    } = await submitExport({
+    const taskId = await submitExportTask({
       bizType: props.exportProps?.bizType,
       exportFormat: props.exportProps?.exportFormat ?? 'xlsx',
       queryParams: params,
     });
     message.success(
-      `导出任务已提交（ID: ${taskId.slice(0, 8)}），可在「导出中心」查看进度`,
+      taskId
+        ? `导出任务已提交（ID: ${taskId.slice(0, 8)}），可在「导出中心」查看进度`
+        : '导出任务已提交，可在「导出中心」查看进度',
     );
     props.onExportSuccess?.();
   } catch (error) {
@@ -201,9 +244,11 @@ function handleImportResult(result: ImportResult) {
 }
 
 function downloadTemplate() {
+  const columns = props.importTemplate;
+  if (!columns) return;
   generateTemplate(
     props.filename ?? `${props.module.split('/').pop()}导入模板`,
-    props.importTemplate!,
+    columns,
   );
 }
 
@@ -217,7 +262,7 @@ const { open: openImportPicker, onChange: onImportChange } = useFileDialog({
 });
 
 onImportChange((picked: FileList | null) => {
-  const file = Array.from(picked ?? [])[0];
+  const file = picked?.[0];
   if (file) handleBeforeUpload(file);
 });
 
@@ -230,8 +275,8 @@ function handleImportClick() {
 <template>
   <Space>
     <Button
+      v-if="canExport"
       :disabled="disableExport || exporting"
-      v-permission="permissions[1]"
       @click="handleExport"
     >
       <Icon v-if="!exporting" icon="carbon:download" />
@@ -240,8 +285,8 @@ function handleImportClick() {
     </Button>
 
     <Button
+      v-if="canImport"
       :disabled="disableImport || importing"
-      v-permission="permissions[0]"
       @click="handleImportClick"
     >
       <Icon v-if="!importing" icon="carbon:upload" />
@@ -249,7 +294,7 @@ function handleImportClick() {
       {{ importText }}
     </Button>
 
-    <Button @click="downloadTemplate">
+    <Button v-if="importTemplate?.length" @click="downloadTemplate">
       <Icon icon="carbon:download" />
       导入模板
     </Button>

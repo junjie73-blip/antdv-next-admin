@@ -704,7 +704,7 @@ const toolbarClassName = computed(() =>
   padding: 12px 16px;
   font-size: 14px;
   line-height: 1.6;
-  color: var(--app-card-foreground);
+  color: hsl(var(--card-foreground));
   outline: none;
 }
 
@@ -771,18 +771,18 @@ const toolbarClassName = computed(() =>
 .markdown-editor :deep(.md-content blockquote) {
   margin: 0.5em 0;
   padding-left: 12px;
-  border-left: 4px solid var(--app-border);
-  color: var(--app-muted-foreground);
+  border-left: 4px solid hsl(var(--border));
+  color: hsl(var(--muted-foreground));
 }
 
 .markdown-editor :deep(.md-content hr) {
   margin: 1em 0;
   border: none;
-  border-top: 1px solid var(--app-border);
+  border-top: 1px solid hsl(var(--border));
 }
 
 .markdown-editor :deep(.md-content a) {
-  color: var(--app-primary);
+  color: hsl(var(--primary));
   text-decoration: underline;
   cursor: pointer;
 }
@@ -790,7 +790,7 @@ const toolbarClassName = computed(() =>
 .markdown-editor :deep(.md-content code) {
   padding: 1px 4px;
   border-radius: 0.1875rem;
-  background-color: var(--app-muted);
+  background-color: hsl(var(--muted));
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.9em;
 }
@@ -820,7 +820,7 @@ const toolbarClassName = computed(() =>
 
 .markdown-editor :deep(.md-content img.ProseMirror-selectednode),
 .markdown-editor :deep(.md-content video.ProseMirror-selectednode) {
-  outline: 2px solid var(--app-ring);
+  outline: 2px solid hsl(var(--ring));
 }
 
 /* 表格 */
@@ -835,12 +835,12 @@ const toolbarClassName = computed(() =>
 .markdown-editor :deep(.md-content td) {
   min-width: 1em;
   padding: 6px 8px;
-  border: 1px solid var(--app-border);
+  border: 1px solid hsl(var(--border));
   vertical-align: top;
 }
 
 .markdown-editor :deep(.md-content th) {
-  background-color: var(--app-muted);
+  background-color: hsl(var(--muted));
   font-weight: 600;
   text-align: left;
 }
@@ -849,7 +849,7 @@ const toolbarClassName = computed(() =>
 .markdown-editor :deep(.md-content .is-empty::before) {
   float: left;
   height: 0;
-  color: var(--app-muted-foreground);
+  color: hsl(var(--muted-foreground));
   content: attr(data-placeholder);
   pointer-events: none;
 }

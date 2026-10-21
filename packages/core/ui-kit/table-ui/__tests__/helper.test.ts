@@ -69,9 +69,9 @@ describe('取数与读写', () => {
   it('readCellText：字符串 dataIndex 是单键名，数组才是路径（与 antd 一致）', () => {
     const record = { 'a.b': 1, a: { b: 2 } };
     expect(readCellText(record, { dataIndex: 'a.b' } as BasicColumn)).toBe(1);
-    expect(
-      readCellText(record, { dataIndex: ['a', 'b'] } as BasicColumn),
-    ).toBe(2);
+    expect(readCellText(record, { dataIndex: ['a', 'b'] } as BasicColumn)).toBe(
+      2,
+    );
     expect(readCellText(record, {} as BasicColumn)).toBeUndefined();
   });
 
@@ -227,9 +227,9 @@ describe('convertColumns', () => {
         sorter: { compare: (a: any, b: any) => b.n - a.n },
       },
     ] as BasicColumn[]);
-    expect(def.sortFn!({ original: { n: 1 } }, { original: { n: 2 } }, 'n')).toBe(
-      1,
-    );
+    expect(
+      def.sortFn!({ original: { n: 1 } }, { original: { n: 2 } }, 'n'),
+    ).toBe(1);
   });
 
   it('enableSorting / enableResizing 跟着声明走', () => {
@@ -272,4 +272,3 @@ describe('convertColumns', () => {
     expect(def.header!({})).toBe('A');
   });
 });
-

@@ -1,21 +1,19 @@
-import { describe, expect, it } from 'vitest';
-
 import { flushPromises, mount } from '@vue/test-utils';
 import { defineComponent, h, nextTick } from 'vue';
 import { createMemoryHistory, createRouter } from 'vue-router';
 
-import { createPinia, setActivePinia } from 'pinia';
 import { configureLayout } from '@antdv/layout-ui';
+import { createPinia, setActivePinia } from 'pinia';
+import { describe, expect, it } from 'vitest';
 
 import { configureLayoutHost } from '../src/host';
-
+import WidgetNotice from '../src/widgets/notification/index.vue';
 import {
   countUnread,
   mapNotice,
   mapNoticeList,
   NOTICE_TYPE_LABELS,
 } from '../src/widgets/notification/notice';
-import WidgetNotice from '../src/widgets/notification/index.vue';
 
 /**
  * 顶栏铃铛的数据层测试。
@@ -221,7 +219,7 @@ afterEach(() => {
   api.getNoticeList.mockResolvedValue({ list: [] });
 });
 
-describe('WidgetNotice —— 弹层、角标与三分支渲染', () => {
+describe('widgetNotice —— 弹层、角标与三分支渲染', () => {
   it('点铃铛展开面板，未读角标与列表里的未读条数一致', async () => {
     api.getNoticeList.mockResolvedValue({ list: RAW_NOTICES });
     const bell = await mountBell();

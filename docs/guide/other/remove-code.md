@@ -14,8 +14,7 @@
 
 ::: warning
 
-`hidden` 不是删除 `hidden: true` 只表示"不进导航"，节点照样进授权集合（`menus.get.ts` 的注释专门在讲这件事）。菜单管理页那个「导航显示」开关也**不写库**：它只写 localStorage 的 `xy-menu-hidden-overrides` （`packages/stores/src/route.ts:26,38-46`），而 `apps/web/src/api/menu.ts` 里只有一个 `getMenus()`——没有任何菜单写接口。所以"删掉一条菜单"在本地就等价于改那份 mock 种子文件；接真后端时才是删表数据。
-:::
+`hidden` 不是删除 `hidden: true` 只表示"不进导航"，节点照样进授权集合（`menus.get.ts` 的注释专门在讲这件事）。菜单管理页那个「导航显示」开关也**不写库**：它只写 localStorage 的 `xy-menu-hidden-overrides` （`packages/stores/src/route.ts:26,38-46`），而 `apps/web/src/api/menu.ts` 里只有一个 `getMenus()`——没有任何菜单写接口。所以"删掉一条菜单"在本地就等价于改那份 mock 种子文件；接真后端时才是删表数据。:::
 
 ## 删除清单（按依赖顺序）
 
@@ -53,8 +52,7 @@
 
 ::: danger
 
-有一条静态契约专门盯着菜单与页面的对应关系 `apps/web/src/views/dashboard/__tests__/analysis-merge.spec.ts` 直接读 `apps/backend-mock/server/api/menus.get.ts` 的源码，把里面所有 `path: '/...'` 提成集合，再断言分析页快捷操作的跳转目标都在其中。它的注释写得很直白："菜单种子同时是路由表和权限来源"、"删页面必须连种子一起删"。这是全仓最会把"删一半"立刻变红的地方——好事。
-:::
+有一条静态契约专门盯着菜单与页面的对应关系 `apps/web/src/views/dashboard/__tests__/analysis-merge.spec.ts` 直接读 `apps/backend-mock/server/api/menus.get.ts` 的源码，把里面所有 `path: '/...'` 提成集合，再断言分析页快捷操作的跳转目标都在其中。它的注释写得很直白："菜单种子同时是路由表和权限来源"、"删页面必须连种子一起删"。这是全仓最会把"删一半"立刻变红的地方——好事。:::
 
 ## 案例 C：删一个 workspace 包
 
@@ -66,7 +64,7 @@
 | `@antdv/types` | 12 | `preferences` / `layout-ui` / `menu-ui` / `tabs-ui` / `layouts` / `stores` / `utils` + `apps/backend-mock`（`server/api/menus.get.ts:1` 等） | 类型面全域铺开 |
 | `@antdv/shadcn-ui` | 55 | `icons` / `common-ui` / `form-ui` / `layout-ui` / `menu-ui` / `popup-ui` / `table-ui` / `tabs-ui` / `layouts` 的实现底座 | 上面这批包一起塌，等于没有 UI 层 |
 | `@antdv/common-ui` | 63 | **不是"只被应用引用"**：`form-ui` / `layout-ui` / `menu-ui` / `table-ui` / `tabs-ui` / `layouts` 都 import 它；它自己依赖 `icons` / `shadcn-ui` / `shared`（loading 与 scrollbar 已并入本包） | 卡片、标签、步骤条、上传、穿梭框、骨架屏这类展示件一起没；`@antdv/design` 的 `index.css:39-48` 有十条 `@source`，删包要同步删对应那行 |
-| `@antdv/popup-ui` | 44 | `hooks` / `common-ui` / `table-ui` / `layouts` / `request`；应用侧的 `BasicModal` / `BasicDrawer` / `useModal` / `useDrawer` / `confirm` / `message` **全部来自这个包**（`apps/web/src/components/business/` 现在只剩 `ImportExport.vue` 与 `TenantSelect.vue`） | 弹窗、抽屉、命令式确认与全局提示一起断，见[弹窗与抽屉](/components/modal-drawer) |
+| `@antdv/popup-ui` | 44 | `hooks` / `common-ui` / `table-ui` / `layouts` / `request`；应用侧的 `BasicModal` / `BasicDrawer` / `useModal` / `useDrawer` / `confirm` / `message` **全部来自这个包**（应用侧 `apps/web/src/components/` 已整目录迁空，`Basic*` 之外没有本地组件） | 弹窗、抽屉、命令式确认与全局提示一起断，见[弹窗与抽屉](/components/modal-drawer) |
 | `@antdv/table-ui` | 22 | `hooks`（`useCRUD` 的边界测试引它）；应用侧 `BasicTable` / `useTable` / `BasicColumn` 来自它 | 列表页全都没表格 |
 | `@antdv/form-ui` | 20 | `hooks` / `table-ui`（可编辑单元格）；应用侧 `BasicForm` / `useForm` / `FormSchema` 来自它 | 搜索表单与表单页一起断 |
 | `@antdv/layout-ui` | 3 | `layouts` 的渲染底座（外壳、五个区域、尺寸契约与文案注入点都在这） | 七种布局形态的 DOM 在这一层，装配层就没有可渲染的件了 |
@@ -94,8 +92,7 @@
 
 ::: warning
 
-"没人 import"和"可以删"是两件事 `pnpm check:dep`（knip）会报一批未使用依赖，但它的默认配置 ignore 了 `docs/**`，`ignoreDependencies` 里还写死了 `playwright`、`rimraf`、`tailwindcss` 等（见 `scripts/vsh/src/check-dep/index.ts`）。构建期才用到的插件、被 CDN 引入的包，在它眼里都是"未使用"。删之前自己 `grep` 一次源码与 `internal/vite-config`。
-:::
+"没人 import"和"可以删"是两件事 `pnpm check:dep`（knip）会报一批未使用依赖，但它的默认配置 ignore 了 `docs/**`，`ignoreDependencies` 里还写死了 `playwright`、`rimraf`、`tailwindcss` 等（见 `scripts/vsh/src/check-dep/index.ts`）。构建期才用到的插件、被 CDN 引入的包，在它眼里都是"未使用"。删之前自己 `grep` 一次源码与 `internal/vite-config`。:::
 
 ## 删完用什么兜底
 
@@ -113,7 +110,7 @@ cd docs && pnpm exec vitepress build   # 文档里指向被删页面的死链
 
 - 菜单是**静态种子 + 浏览器 localStorage 覆盖**，没有写接口。任何"删了菜单"的操作都要落到改文件；拨过开关的那台浏览器还会把 override 留在本地。
 - `internal/*` 与 `scripts/*` 不是装饰：`@antdv/vite-config` 装配了约定路由、布局插件、框架 API 的 auto-import 与两份 `.d.ts` 生成、iconify 离线集合、Nitro mock 代理与分包策略，它自己又 import `@antdv/node-utils`。动它们等于动构建。
-- i18n 已经接到菜单与外壳，但**只有注入没有本地调用**：三个 ui-kit 包（`layout-ui` / `menu-ui` / `tabs-ui`）不 import vue-i18n，文案靠应用侧 `configureUiKitRuntimes()` 注入 `t` 与 `translateMenu`（`apps/web/src/plugins/ui-runtime.ts:13-25`，注释里写明了为什么不能碰 `~/stores`）；全仓 `useI18n()` 真实调用只有一处（`apps/web/src/composables/useLocale.ts:65`）。顶栏那份语言切换是 `packages/layouts/src/widgets/language-toggle/index.vue`，候选表由 `apps/web/src/plugins/layouts-host.ts:35-38` 注入。业务页面文案仍是硬编码中文。删语言包前先确认 `src/locales/__tests__/locale.spec.ts` 与 `packages/layouts/src/hooks/use-menu-tree.ts`。
+- i18n 已经接到菜单与外壳，但**只有注入没有本地调用**：三个 ui-kit 包（`layout-ui` / `menu-ui` / `tabs-ui`）不 import vue-i18n，文案靠应用侧 `configureUiKitRuntimes()` 注入 `t` 与 `translateMenu`（`apps/web/src/plugins/ui-runtime.ts:13-25`，注释里写明了为什么不能碰 `~/stores`）；全仓 `useI18n()` 真实调用只有一处（`packages/core/hooks/src/use-locale.ts:65`）。顶栏那份语言切换是 `packages/layouts/src/widgets/language-toggle/index.vue`，候选表由 `apps/web/src/plugins/layouts-host.ts:35-38` 注入。业务页面文案仍是硬编码中文。删语言包前先确认 `src/locales/__tests__/locale.spec.ts` 与 `packages/layouts/src/hooks/use-menu-tree.ts`。
 - `docs/` 与 `apps` 齐平写在 `pnpm-workspace.yaml` 里：删掉它，中英切换的另一半就没了。
 
 相关页面：[路由与菜单](/guide/essentials/route)、[Mock 服务（Nitro）](/guide/essentials/mock)、 [测试策略](/guide/project/testing)、[项目更新](/guide/other/project-update)。

@@ -104,46 +104,47 @@ export function confirm(options: ConfirmOptions): Promise<boolean> {
     const VNodeConfirm = () =>
       h(
         AlertDialog,
-        { open: true, 'onUpdate:open': (val: boolean) => !val && scheduleCancel() },
-        () =>
-          [
-            h(
-              AlertDialogContent,
-              { class: cn('sm:max-w-[416px]') },
-              () => [
-                h(AlertDialogHeader, () => [
-                  h(AlertDialogTitle, () => title),
-                  h(
-                    AlertDialogDescription,
-                    { class: content === undefined ? 'sr-only' : 'text-muted-foreground' },
-                    () => (content === undefined ? title : renderNode(content)),
-                  ),
-                ]),
-                h(AlertDialogFooter, () => [
-                  showCancel
-                    ? h(
-                        AlertDialogCancel,
-                        { onClick: handleCancel },
-                        () => cancelText,
-                      )
-                    : null,
-                  h(
-                    AlertDialogAction,
-                    {
-                      class: danger
-                        ? cn('bg-destructive text-white hover:bg-destructive/90')
-                        : undefined,
-                      onClick: (e: MouseEvent) => {
-                        e.preventDefault();
-                        void handleOk();
-                      },
-                    },
-                    () => okText,
-                  ),
-                ]),
-              ],
-            ),
-          ],
+        {
+          open: true,
+          'onUpdate:open': (val: boolean) => !val && scheduleCancel(),
+        },
+        () => [
+          h(AlertDialogContent, { class: cn('sm:max-w-[416px]') }, () => [
+            h(AlertDialogHeader, () => [
+              h(AlertDialogTitle, () => title),
+              h(
+                AlertDialogDescription,
+                {
+                  class:
+                    content === undefined ? 'sr-only' : 'text-muted-foreground',
+                },
+                () => (content === undefined ? title : renderNode(content)),
+              ),
+            ]),
+            h(AlertDialogFooter, () => [
+              showCancel
+                ? h(
+                    AlertDialogCancel,
+                    { onClick: handleCancel },
+                    () => cancelText,
+                  )
+                : null,
+              h(
+                AlertDialogAction,
+                {
+                  class: danger
+                    ? cn('bg-destructive hover:bg-destructive/90 text-white')
+                    : undefined,
+                  onClick: (e: MouseEvent) => {
+                    e.preventDefault();
+                    void handleOk();
+                  },
+                },
+                () => okText,
+              ),
+            ]),
+          ]),
+        ],
       );
 
     render(h(VNodeConfirm), container);

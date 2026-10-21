@@ -1,6 +1,6 @@
 import type { FormActionType } from '@antdv/form-ui';
-import type { TableActionType } from '@antdv/table-ui';
 import type { ModalMethods } from '@antdv/popup-ui';
+import type { TableActionType } from '@antdv/table-ui';
 
 import { ref } from 'vue';
 

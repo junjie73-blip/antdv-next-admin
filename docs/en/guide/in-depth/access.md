@@ -10,8 +10,7 @@
 
 ::: tip
 
-Fallback pages don't belong in tab pages `/error/403` and `/error/404` are not menu items at all — the backend menu seed (`apps/backend-mock/server/api/menus.get.ts`) has no `/error` entry, and the three error pages are just conventional-route files (`apps/web/src/views/error/403.vue`, etc.). They reach anonymous users through the explicit paths in `WHITE_LIST` (`apps/web/src/config/constants.ts:9-11`), escape menu pruning via the built-in path list (`packages/utils/src/menu.ts:96-103`), and are skipped by the tab-registration logic because they're "neither in the menu nor carrying a `meta.title`" (`packages/layouts/src/hooks/use-tabs.ts:101-102`) — opening an error page once leaves no "404" behind in the tab bar. The site-wide sweep decides "landed on a fallback page" from the address (`toHaveURL(/#\/error\/404/)`) — not from which tab is active.
-:::
+Fallback pages don't belong in tab pages `/error/403` and `/error/404` are not menu items at all — the backend menu seed (`apps/backend-mock/server/api/menus.get.ts`) has no `/error` entry, and the three error pages are just conventional-route files (`apps/web/src/views/error/403.vue`, etc.). They reach anonymous users through the explicit paths in `WHITE_LIST` (`apps/web/src/config/constants.ts:9-11`), escape menu pruning via the built-in path list (`packages/utils/src/menu.ts:96-103`), and are skipped by the tab-registration logic because they're "neither in the menu nor carrying a `meta.title`" (`packages/layouts/src/hooks/use-tabs.ts:101-102`) — opening an error page once leaves no "404" behind in the tab bar. The site-wide sweep decides "landed on a fallback page" from the address (`toHaveURL(/#\/error\/404/)`) — not from which tab is active. :::
 
 ## 403 or 404 — the fork isn't hardcoded
 
@@ -56,15 +55,12 @@ import { Button } from '@antdv/shadcn-ui';
 
 ::: danger
 
-`role` / `admin` are args, not modifiers Write `v-permission.role="'auditor'"` or `v-permission.admin` and the check **never reads them at all**, so the element is visible forever — no error, no warning: the hardest class of permission bug to notice. (The only real modifiers are `.all` and `.disabled`.) `apps/web/src/views/__tests__/gallery-api-usage.spec.ts` has a static guard that catches exactly this pattern, with two sample sets — "must match" and "must not over-match" — so the rule itself can't be silently empty.
-:::
+`role` / `admin` are args, not modifiers Write `v-permission.role="'auditor'"` or `v-permission.admin` and the check **never reads them at all**, so the element is visible forever — no error, no warning: the hardest class of permission bug to notice. (The only real modifiers are `.all` and `.disabled`.) `apps/web/src/views/__tests__/gallery-api-usage.spec.ts` has a static guard that catches exactly this pattern, with two sample sets — "must match" and "must not over-match" — so the rule itself can't be silently empty. :::
 
 The object form can carry its own criteria, and then `arg` no longer takes part in interpretation:
 
 ```vue
-<Button
-  v-permission="{ mode: 'all', permissions: ['a', 'b'], roles: ['ops'] }"
->
+<Button v-permission="{ mode: 'all', permissions: ['a', 'b'], roles: ['ops'] }">
   Mixed check
 </Button>
 ```

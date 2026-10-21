@@ -1,7 +1,13 @@
 import type { PopupButtonProps } from '../types';
 
 export interface ResolvedPopupButton {
-  variant: 'default' | 'destructive' | 'ghost' | 'link' | 'outline' | 'secondary';
+  variant:
+    | 'default'
+    | 'destructive'
+    | 'ghost'
+    | 'link'
+    | 'outline'
+    | 'secondary';
   disabled?: boolean;
   loading?: boolean;
   class?: string;
@@ -27,12 +33,7 @@ export function resolvePopupButton(
   fallbackType: PopupButtonProps['type'] = 'default',
   extraLoading = false,
 ): ResolvedPopupButton {
-  const {
-    type,
-    loading,
-    variant,
-    ...rest
-  } = buttonProps ?? {};
+  const { type, loading, variant, ...rest } = buttonProps ?? {};
   const mapped = TYPE_TO_VARIANT[type ?? fallbackType] ?? 'outline';
   return {
     ...rest,

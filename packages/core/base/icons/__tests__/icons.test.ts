@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 /**
@@ -52,9 +52,13 @@ describe('@antdv/icons —— 导出面', () => {
 
   it('全局注册表里只有图标', () => {
     const block = /const COMPONENTS[^{]*\{([^}]*)\}/u.exec(entry)?.[1] ?? '';
-    expect(Object.keys(Object.fromEntries(
-      [...block.matchAll(/(\w+),/gu)].map((m) => [m[1], true]),
-    )).sort()).toEqual(['IconPicker', 'IconifyIcon', 'SvgIcon']);
+    expect(
+      Object.keys(
+        Object.fromEntries(
+          [...block.matchAll(/(\w+),/gu)].map((m) => [m[1], true]),
+        ),
+      ).sort(),
+    ).toEqual(['IconPicker', 'IconifyIcon', 'SvgIcon']);
     expect(entry).not.toMatch(/vLoading/u);
   });
 

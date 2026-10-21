@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import type { ComboboxAnchorProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { ComboboxAnchor, useForwardProps } from "reka-ui"
-import { cn } from '@antdv/shared/utils/cn'
+import type { ComboboxAnchorProps } from 'reka-ui';
 
-const props = defineProps<ComboboxAnchorProps & { class?: HTMLAttributes["class"] }>()
+import type { HTMLAttributes } from 'vue';
 
-const delegatedProps = reactiveOmit(props, "class")
+import { cn } from '@antdv/shared/utils/cn';
+import { reactiveOmit } from '@vueuse/core';
+import { ComboboxAnchor, useForwardProps } from 'reka-ui';
 
-const forwarded = useForwardProps(delegatedProps)
+const props = defineProps<
+  ComboboxAnchorProps & { class?: HTMLAttributes['class'] }
+>();
+
+const delegatedProps = reactiveOmit(props, 'class');
+
+const forwarded = useForwardProps(delegatedProps);
 </script>
 
 <template>
@@ -18,6 +22,6 @@ const forwarded = useForwardProps(delegatedProps)
     v-bind="forwarded"
     :class="cn('w-[200px]', props.class)"
   >
-    <slot />
+    <slot></slot>
   </ComboboxAnchor>
 </template>

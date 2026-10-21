@@ -10,8 +10,7 @@
 
 ::: tip
 
-兜底页不该进标签页 `/error/403`、`/error/404` 在菜单里标 `hidden`，也不参与标签页注册 —— 用户点开一次错误页不该在标签栏留一枚"404"。全站巡检判断"落到兜底页"靠的是地址（`toHaveURL(/#\/error\/404/)`），不是标签激活状态。
-:::
+兜底页不该进标签页 `/error/403`、`/error/404` 在菜单里标 `hidden`，也不参与标签页注册 —— 用户点开一次错误页不该在标签栏留一枚"404"。全站巡检判断"落到兜底页"靠的是地址（`toHaveURL(/#\/error\/404/)`），不是标签激活状态。:::
 
 ## 越权落 403 还是 404（不是写死的）
 
@@ -50,8 +49,7 @@ redirect: (to) =>
 
 ::: danger
 
-`role` / `admin` 是参数，不是修饰符写成 `v-permission.role="'auditor'"` 或 `v-permission.admin`，判定**根本不读**，元素永远可见 —— 不报错、不警告，是最难发现的一类权限漏洞。（真正的修饰符只有 `.all` 和 `.disabled`。） `apps/web/src/views/__tests__/gallery-api-usage.spec.ts` 里有一条静态守卫专门抓这种写法，并配了"必须命中 / 不许误伤"两组样例，防止规则本身写空。
-:::
+`role` / `admin` 是参数，不是修饰符写成 `v-permission.role="'auditor'"` 或 `v-permission.admin`，判定**根本不读**，元素永远可见 —— 不报错、不警告，是最难发现的一类权限漏洞。（真正的修饰符只有 `.all` 和 `.disabled`。） `apps/web/src/views/__tests__/gallery-api-usage.spec.ts` 里有一条静态守卫专门抓这种写法，并配了"必须命中 / 不许误伤"两组样例，防止规则本身写空。:::
 
 对象写法可以自带口径，此时 `arg` 不再参与解释：
 

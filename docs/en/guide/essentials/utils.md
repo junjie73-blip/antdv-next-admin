@@ -8,12 +8,11 @@ One criterion decides where a utility lives: **would it still work in another pr
 | --- | --- | --- | --- |
 | Pure utilities | `packages/core/base/shared/src/**`, `packages/utils/src/**`, `packages/enums/src/**` | Caching, crypto, colour conversion, dates, download, Excel, masking, XSS, event bus; menu-tree and theme-mode resolution; cache keys and dictionary enums | No framework state: pure functions or self-contained singletons |
 | Composables | `packages/core/hooks/src/**`, `packages/request/src/**` | Chunked upload, file reading, print, watermark, route loading, ECharts, permission checks, CRUD skeleton, reactive cache; HTTP / SSE / WebSocket | Uses Vue reactivity only; application capabilities arrive as parameters |
-| App shells | `apps/web/src/utils/**`, `apps/web/src/composables/**`, `apps/web/src/components/common/**` | Wiring that needs a store / api / app-internal types | E.g. `utils/ws.ts:6` (assembles `eventBus`), `utils/securityInit.ts:9` (starts CSRF), `composables/useLocale.ts:4` (writes the locale into preferences) |
+| App shells | `apps/web/src/utils/**`, `apps/web/src/composables/**`, `apps/web/src/plugins/**` | Wiring that needs a store / api / app-internal types | E.g. `utils/ws.ts:6` (assembles `eventBus`), `utils/securityInit.ts:9` (starts CSRF), `hooks/src/use-locale.ts:4` (writes the locale into preferences) |
 
 ::: tip
 
-Auto-import does not cover this repository's packages `internal/vite-config/src/plugins/auto-import.ts` only injects framework APIs. A line such as `import { cn } from '@antdv/shared/utils/cn'` has to be written by hand (see [Core concepts](/en/guide/essentials/concepts)).
-:::
+Auto-import does not cover this repository's packages `internal/vite-config/src/plugins/auto-import.ts` only injects framework APIs. A line such as `import { cn } from '@antdv/shared/utils/cn'` has to be written by hand (see [Core concepts](/en/guide/essentials/concepts)). :::
 
 ## Every subpath is a module
 
@@ -35,8 +34,7 @@ import { menuKeyOf } from '@antdv/utils/menu';
 
 ::: warning
 
-The wildcard entry belongs only to the dist-published packages. Only `@antdv/shared` and `@antdv/hooks` have `"./*"`. Adding a wildcard to a source-published package widens the resolution path for `import type` as well, and then type-checking and the bundler are no longer looking at the same table.
-:::
+The wildcard entry belongs only to the dist-published packages. Only `@antdv/shared` and `@antdv/hooks` have `"./*"`. Adding a wildcard to a source-published package widens the resolution path for `import type` as well, and then type-checking and the bundler are no longer looking at the same table. :::
 
 ## `@antdv/shared` inventory
 
@@ -46,11 +44,11 @@ The wildcard entry belongs only to the dist-published packages. Only `@antdv/sha
 | --- | --- | --- | --- |
 | `cache` | `cache` (`src/cache/index.ts:197`), `createCache` (`:60`), `buildStorageKey` (`:40`), `encryptToken` / `decryptToken` (`src/cache/tokenCrypto.ts:77,106`) | `packages/stores/src/user.ts:7`, `apps/web/src/plugins/request-runtime.ts:3`, `packages/core/preferences/src/preferences.ts:11` (14 files) | yes |
 | `color` | `parseColor` (`src/color/convert.ts:32`), `toRgbString` / `toHex` (`:41,46`), `mixWithWhite` (`:55`) | `packages/layouts/src/widgets/setting-drawer/components/appearance-panel.vue:21`, `layout-panel.vue` | yes |
-| `constants` | `PREFERENCE_CSS_VARS` (`src/constants/css-vars.ts:37`), `DARK_CLASS` / `COLOR_WEAK_CLASS` / `GRAY_MODE_CLASS` (`src/constants/dom-classes.ts:10,12,14`), `DEFAULT_PRIMARY_COLOR` and `BORDER_RADIUS_BASE` (`src/constants/theme.ts:9,13`), `THEME_PRESETS` / `themeKeyByColor` (`src/constants/theme-presets.ts:26,59`) | `packages/core/preferences/src/update-css-variables.ts` (the writer), `packages/core/preferences/src/config.ts`, `apps/web/src/settings/theme/index.ts` (13 files) | yes |
+| `constants` | `PREFERENCE_CSS_VARS` (`src/constants/css-vars.ts:45`), `DARK_CLASS` / `COLOR_WEAK_CLASS` / `GRAY_MODE_CLASS` (`src/constants/dom-classes.ts:10,12,14`), `DEFAULT_PRIMARY_COLOR` and `BORDER_RADIUS_BASE` (`src/constants/theme.ts:9,18`), `THEME_PRESETS` / `themeKeyByColor` (`src/constants/theme-presets.ts:26,59`) | `packages/core/preferences/src/update-css-variables.ts` (the writer), `src/boot-theme.ts`, `src/config.ts`, `@antdv/common-ui`'s `config-provider/ConfigProvider.vue`, `packages/layouts/src/widgets/setting-drawer/constants.ts`, `apps/web/src/views/login/index.vue` (14 files, one of them a unit test and one an e2e spec) | yes |
 | `utils/cn` | `cn()` (`src/utils/cn.ts:6`) | 459 files repo-wide, e.g. `packages/layouts/src/widgets/breadcrumb.vue` | yes |
 | `utils/crypto` | `encrypt` / `decrypt` / `encryptObject` / `decryptObject` (`src/utils/crypto/aes.ts:14,19,24,31`), `md5` / `md5File` / `sha256` / `hash` (`src/utils/crypto/hash.ts:3,7,32,40`) | **no call sites** | no |
 | `utils/csrf` | `config` (`src/utils/csrf.ts:67`), `initCsrfProtection` (`:111`), `getCsrfToken` (`:164`) | `packages/request/src/fetcher.ts:8`, `apps/web/src/utils/securityInit.ts:9` | yes |
-| `utils/dayjs` | `dayjs` (`src/utils/dayjs.ts:136`), `setTimezone` (`:62`), `nowTz` (`:116`) | `packages/stores/src/app.ts:8`, `packages/layouts/src/widgets/timezone/index.vue:12`, `apps/web/src/composables/useLocale.ts:4` (8 files) | yes |
+| `utils/dayjs` | `dayjs` (`src/utils/dayjs.ts:136`), `setTimezone` (`:62`), `nowTz` (`:116`) | `packages/stores/src/app.ts:8`, `packages/layouts/src/widgets/timezone/index.vue:12`, `packages/core/hooks/src/use-locale.ts:4` (8 files) | yes |
 | `utils/domUtils` | `getBoundingClientRect` (`src/utils/domUtils.ts:14`), `getViewportOffset` (`:89`), `useRafThrottle` (`:187`) | **no call sites** | yes |
 | `utils/download` | `saveBlob` (`src/utils/download.ts:159`), `downloadFile` (`:248`), `downloadWithAuth` (`:416`), `downloadMultiple` (`:552`) | **no call sites** (downloads go through `@antdv/request`'s response handling) | no |
 | `utils/env` | `configureSharedEnv` (`src/utils/env.ts:32`), `isEnvEnabled` (`:88`), `getCachePrefix` (`:74`) | `apps/web/src/bootstrap/env.ts:1`, `apps/web/src/mock/activate.ts`, `apps/web/src/config/micro-app.ts` (8 files) | yes |
@@ -61,14 +59,13 @@ The wildcard entry belongs only to the dist-published packages. Only `@antdv/sha
 | `utils/jwt` | `isTokenExpired` (`src/utils/jwt.ts:97`); `parseJwt` (`:70`), `isJwtFormat` (`:138`), `getTokenRemainingSeconds` (`:121`) | `packages/request/src/fetcher.ts:9` (only `isTokenExpired`) | yes |
 | `utils/masking` | `maskPhone` / `maskEmail` / `maskIdCard` (`src/utils/masking.ts:22,30,40`), `MASKING_RULES` (`:84`) | **no call sites** | yes |
 | `utils/scroll` | `computeOverflow` (`src/utils/scroll.ts:28`), `useHorizontalScroll` (`:72`), `pickHorizontalDelta` (`:47`) | `packages/core/ui-kit/menu-ui/src/BasicMenu.vue:10`, `tabs-ui/src/TabsBar.vue:17` | yes |
-| `utils/template` | `generateTemplate` (`src/utils/template.ts:30`) | `apps/web/src/components/business/ImportExport.vue:11` | yes |
-| `utils/xss` | `safeHtmlDirective` (`src/utils/xss.ts:446`), `escapeDirective` (`:463`), `escapeHtml` (`:179`) | `apps/web/src/directives/index.ts:17` → `main.ts:122,126`; `packages/core/hooks/src/use-print.ts:2`; `packages/core/ui-kit/common-ui/src/components/markdown-editor/MarkdownEditor.vue:24` | yes |
+| `utils/template` | `generateTemplate` (`src/utils/template.ts:30`) | `packages/core/ui-kit/common-ui/src/components/import-export/ImportExport.vue:11` | yes |
+| `utils/xss` | `safeHtmlDirective` (`src/utils/xss.ts:446`), `escapeDirective` (`:463`), `escapeHtml` (`:179`) | `apps/web/src/directives/index.ts:17` → `main.ts:108,112`; `packages/core/hooks/src/use-print.ts:2`; `packages/core/ui-kit/common-ui/src/components/markdown-editor/MarkdownEditor.vue:24` | yes |
 | `store` | `src/store.ts:12` forwards `@tanstack/vue-store` wholesale | none yet: shared state is supposed to come from here instead of per-feature ref singletons | covered by `__tests__/structure.test.ts` |
 
 ::: warning
 
-Two things have already moved out of shared. The menu tree and key system (`menuKeyOf`, `attachMenuPaths`, `MenuPathRouter`) now live in `packages/utils/src/menu.ts:28,258,393`, and `theme-mode.ts` in the same package handles theme-mode resolution and system-dark detection — because `@antdv/shared` is not allowed to depend on a menu vocabulary beyond `@antdv/types`, while `@antdv/utils` consumes only those two packages. `utils/welcome.ts` (the login welcome toast) no longer exists as a file at all; do not go looking for it by name.
-:::
+Two things have already moved out of shared. The menu tree and key system (`menuKeyOf`, `attachMenuPaths`, `MenuPathRouter`) now live in `packages/utils/src/menu.ts:28,258,393`, and `theme-mode.ts` in the same package handles theme-mode resolution and system-dark detection — because `@antdv/shared` is not allowed to depend on a menu vocabulary beyond `@antdv/types`, while `@antdv/utils` consumes only those two packages. `utils/welcome.ts` (the login welcome toast) no longer exists as a file at all; do not go looking for it by name. :::
 
 ## `@antdv/hooks` inventory
 
@@ -77,7 +74,7 @@ This layer is actually better tested than `shared` — all eight hooks plus `ech
 | Export | Entry | Consumers | Tested |
 | --- | --- | --- | --- |
 | `useChunkUpload` | `@antdv/hooks/use-chunk-upload` (`src/use-chunk-upload.ts:76`) | `apps/web/src/views/components/upload/index.vue` | yes |
-| `useFileReader` | `.../use-file-reader` (`src/use-file-reader.ts:3`) | `apps/web/src/components/common/AvatarUploader.vue` | yes |
+| `useFileReader` | `.../use-file-reader` (`src/use-file-reader.ts:3`) | `packages/core/ui-kit/common-ui/src/components/avatar-uploader/AvatarUploader.vue` | yes |
 | `usePrint` | `.../use-print` (`src/use-print.ts:47`) | `apps/web/src/views/system/user/index.vue` and two more pages | yes |
 | `useRouteLoading` | `.../use-route-loading` (`src/use-route-loading.ts:24`) | `packages/layouts/src/basic/layout.vue` | yes |
 | `useWatermark` | `.../use-watermark` (`src/use-watermark.ts:48`) | `packages/layouts/src/basic/layout.vue` | yes |
@@ -93,10 +90,10 @@ SSE and WebSocket are not here. Real-time code is collected in `@antdv/request` 
 | File | Exports | Status |
 | --- | --- | --- |
 | `apps/web/src/utils/ws.ts:340` | `useWebSocket` (the shell), `WS_EVENTS` (`:75`), `noticeTypeConfig` (`:51`) | in use: the notification widget in `packages/layouts` reaches it through injection at `plugins/layouts-host.ts:9` |
-| `apps/web/src/utils/securityInit.ts:16` | `initSecuritySystem` | in use (`main.ts:39,114`) |
+| `apps/web/src/utils/securityInit.ts:16` | `initSecuritySystem` | in use (`main.ts:35,100`) |
 | `apps/web/src/utils/excel.ts:10` | `exportToExcel` | in use: wires the return value of `@antdv/shared/utils/excel` to a `@antdv/popup-ui` toast |
 | `apps/web/src/composables/index.ts:6` | `export * from '@antdv/request'` | the request layer is in use (`api/request.ts`, `api/query.ts`, …); `useCRUD` and `usePermission` have moved into `@antdv/hooks` and pages and directives import them from the package |
-| `apps/web/src/composables/useLocale.ts` | `useLocale` / `useLocaleSync` / `localeLabels` | in use (`App.vue:9`, `plugins/layouts-host.ts:6`, `views/login/index.vue:34`) |
+| `packages/core/hooks/src/use-locale.ts` | `useLocale` / `useLocaleSync` / `localeLabels` | in use (`App.vue:9`, `plugins/layouts-host.ts:6`, `views/login/index.vue:34`) |
 | `apps/web/src/composables/useNotice.ts` | `useNotice` | **no call sites** — the notification logic moved into `packages/layouts` with the widget and is host-injected |
 | `apps/web/src/composables/usePasswordPolicy.ts` | `usePasswordPolicy` | **no call sites** |
 
@@ -104,8 +101,7 @@ SSE and WebSocket are not here. Real-time code is collected in `@antdv/request` 
 
 ::: warning
 
-Components inside a package must not import the app back. After widgets such as notifications and global search moved into `packages/layouts`, they can no longer `import '~/api'` or `'~/utils/ws'` directly (a package depending on the app is a cycle). Every "only the app knows this" capability is injected once from `apps/web/src/plugins/layouts-host.ts`: `:9` for the ws channel, `:6` for the locale candidates, `:5` for the notice api; `:17-19` explain why that file stands alone instead of being folded into `ui-runtime.ts` (`test/setup.ts` calls the latter, setup runs before the `vi.mock` in a case, and a module touched once cannot be mocked afterwards).
-:::
+Components inside a package must not import the app back. After widgets such as notifications and global search moved into `packages/layouts`, they can no longer `import '~/api'` or `'~/utils/ws'` directly (a package depending on the app is a cycle). Every "only the app knows this" capability is injected once from `apps/web/src/plugins/layouts-host.ts`: `:9` for the ws channel, `:6` for the locale candidates, `:5` for the notice api; `:17-19` explain why that file stands alone instead of being folded into `ui-runtime.ts` (`test/setup.ts` calls the latter, setup runs before the `vi.mock` in a case, and a module touched once cannot be mocked afterwards). :::
 
 ## The hard boundary: no pinia, no app alias, no env inside packages
 
@@ -126,8 +122,9 @@ These three rules are not style preferences — `packages/request/__tests__/stru
 | Environment info | `configureSharedEnv({ cachePrefix, cacheEncryptKey, minioPublicUrl, production })` (`packages/core/base/shared/src/utils/env.ts:32-42`) | `apps/web/src/bootstrap/env.ts:1-7` |
 | Credentials, login route, logout cleanup | `configureRequest(runtime)` (`packages/request/src/runtime.ts:43`, type at `:20`) | `apps/web/src/plugins/request-runtime.ts:2,15` |
 | Permission checks | `createPermissionDirective({ checkers, onCheck, subscribe })` (`packages/directives/src/permission/index.ts:54`) | `apps/web/src/directives/index.ts:19` |
-| Chunk processing | `useChunkUpload({ createWorker, workerUrl })` (`packages/core/hooks/src/use-chunk-upload.ts:35-38`) | The app supplies `apps/web/src/components/common/Upload/upload.worker.ts` |
+| Chunk processing | `useChunkUpload({ createWorker, workerUrl })` (`packages/core/hooks/src/use-chunk-upload.ts:35-38`) | The app supplies `packages/core/ui-kit/common-ui/src/components/chunk-upload/upload.worker.ts` |
 | Widget api / push / pages | `configureLayoutHost({ ... })` (`packages/layouts`) | `apps/web/src/plugins/layouts-host.ts:24` |
+| The vue-query client and its install | The package ships `queryClient` / `setupVueQuery` itself (`packages/request/src/vue-query.ts`), with a retry policy aligned to the executor | Nothing to inject — the entry installs it once (`apps/web/src/main.ts:71`); pages must not `new QueryClient()` |
 
 `MemoryCache` in `packages/core/base/shared/src/cache/memory.ts` is the counter-example of that boundary: it genuinely does get built (the `src/*/*.ts` pattern in `tsdown.config.ts` covers it, `dist/cache/memory.js` exists, and the `"./*"` wildcard lets `@antdv/shared/cache/memory` resolve), but `cache/index.ts` does not re-export it and there are **zero call sites** repo-wide — dead code. Do not assume you are a consumer because the name looks sensible; for a memory-backed store use `createStorage('memory')` (`src/cache/storage.ts:56,72`).
 
@@ -165,8 +162,7 @@ pnpm --filter @antdv/shared build      # or @antdv/hooks / @antdv/preferences �
 
 ::: warning
 
-The symptom is "nothing changed, and nothing failed". You edit `packages/core/base/shared/src/**`, save, and behaviour and types stay exactly as they were, with no error, because Vite's dependency cache and `optimizeDeps` both point at `dist`. Build first, restart second; do not copy the implementation into the app to work around it.
-:::
+The symptom is "nothing changed, and nothing failed". You edit `packages/core/base/shared/src/**`, save, and behaviour and types stay exactly as they were, with no error, because Vite's dependency cache and `optimizeDeps` both point at `dist`. Build first, restart second; do not copy the implementation into the app to work around it. :::
 
 ## Related pages
 

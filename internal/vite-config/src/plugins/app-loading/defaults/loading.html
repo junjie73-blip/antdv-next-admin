@@ -23,6 +23,18 @@
     }
 
     /* ==================== Loading 容器 ==================== */
+    /*
+     * 三条颜色的取值顺序：
+     * 1. --loading-* —— head 里的主题同步脚本按 localStorage 的主题快照写入，
+     *    覆盖"应用样式还没落地"的那几百毫秒；
+     * 2. shadcn 规范名 —— @antdv/design 的色板，样式表一进来就由它接手（含预设主题与深色档）；
+     * 3. 兜底 —— 首次访问、没有快照时按当前明暗各给一个值，避免出现出厂蓝。
+     *
+     * 三层给的都必须是 **HSL 通道串**（`215 100% 54%`），由最外层统一套一次 `hsl()`：
+     * token 换格式之后 `--background` / `--primary` 里存的就是通道，
+     * 再往 `var()` 里塞完整颜色会得到 `hsl(#1677ff)` 这种非法值 —— 它不报错，
+     * 只是让整条声明失效，遮罩变成透明。
+     */
     .app-loading {
       position: fixed;
       inset: 0;
@@ -37,22 +49,15 @@
       align-items: center;
       justify-content: center;
 
-      /*
-       * 三条颜色的取值顺序：
-       * 1. --loading-* —— head 里的主题同步脚本按 localStorage 的主题快照写入，
-       *    覆盖"应用样式还没落地"的那几百毫秒；
-       * 2. --app-* —— @antdv/design 的色板，样式表一进来就由它接手（含预设主题与深色档）；
-       * 3. 兜底 —— 首次访问、没有快照时按当前明暗各给一个实色，避免出现出厂蓝。
-       */
-      --app-loading-bg: var(
-        --loading-background,
-        var(--app-background, #fff)
+      --app-loading-bg: hsl(
+        var(--loading-background, var(--background, 0 0% 100%))
       );
-      --app-loading-fg: var(
-        --loading-foreground,
-        var(--app-foreground, rgb(0 0 0 / 88%))
+      --app-loading-fg: hsl(
+        var(--loading-foreground, var(--foreground, 0 0% 0% / 0.88))
       );
-      --app-loading-primary: var(--loading-primary, var(--app-primary, #1677ff));
+      --app-loading-primary: hsl(
+        var(--loading-primary, var(--primary, 215.02 100% 54.31%))
+      );
 
       background: var(--app-loading-bg);
 
@@ -63,13 +68,11 @@
     /* 没有快照时，深色档的兜底由这条规则给（有快照时上面那条已经是对的） */
     html.dark .app-loading,
     [data-theme='dark'] .app-loading {
-      --app-loading-bg: var(
-        --loading-background,
-        var(--app-background, #141414)
+      --app-loading-bg: hsl(
+        var(--loading-background, var(--background, 0 0% 7.84%))
       );
-      --app-loading-fg: var(
-        --loading-foreground,
-        var(--app-foreground, rgb(255 255 255 / 85%))
+      --app-loading-fg: hsl(
+        var(--loading-foreground, var(--foreground, 0 0% 100% / 0.85))
       );
     }
 

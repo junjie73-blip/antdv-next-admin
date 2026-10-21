@@ -1,8 +1,4 @@
-import type {
-  BasicColumn,
-  PaginationProps,
-  Recordable,
-} from '../src/types';
+import type { BasicColumn, PaginationProps, Recordable } from '../src/types';
 
 import { computed, nextTick, ref } from 'vue';
 
@@ -117,9 +113,9 @@ describe('usePagination', () => {
       showTotal: expect.any(Function),
       total: 0,
     });
-    expect(p.getPagination.value && p.getPagination.value.showTotal!(5, [1, 5])).toBe(
-      '共 5 条',
-    );
+    expect(
+      p.getPagination.value && p.getPagination.value.showTotal!(5, [1, 5]),
+    ).toBe('共 5 条');
   });
 
   it('false 关闭分页', () => {

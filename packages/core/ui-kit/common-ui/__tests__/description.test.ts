@@ -11,10 +11,13 @@ const flush = async () => {
   await nextTick();
 };
 
-describe('Description', () => {
+describe('description', () => {
   it('文本字段渲染 label + 值，默认带冒号', async () => {
     const wrapper = mount(Description, {
-      props: { data: { name: '张三' }, schema: [{ field: 'name', label: '姓名' }] },
+      props: {
+        data: { name: '张三' },
+        schema: [{ field: 'name', label: '姓名' }],
+      },
     });
     await flush();
     expect(wrapper.text()).toContain('姓名:');

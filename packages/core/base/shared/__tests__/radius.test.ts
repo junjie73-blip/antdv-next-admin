@@ -25,9 +25,7 @@ describe('radiusToRem', () => {
   });
 
   it('字符串原样透传，便于写 var() 与 calc()', () => {
-    expect(radiusToRem('var(--app-border-radius)')).toBe(
-      'var(--app-border-radius)',
-    );
+    expect(radiusToRem('var(--radius)')).toBe('var(--radius)');
     expect(radiusToRem('9999px')).toBe('9999px');
   });
 

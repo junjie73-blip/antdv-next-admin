@@ -1,17 +1,25 @@
 <script setup lang="ts">
-import type { PrimitiveProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { Primitive } from "reka-ui"
-import { cn } from '@antdv/shared/utils/cn'
-import { injectQuestionnaireItemContext } from "./useQuestionnaire"
+import type { PrimitiveProps } from 'reka-ui';
 
-const props = withDefaults(defineProps<PrimitiveProps & {
-  class?: HTMLAttributes["class"]
-}>(), {
-  as: "div",
-})
+import type { HTMLAttributes } from 'vue';
 
-const item = injectQuestionnaireItemContext()
+import { cn } from '@antdv/shared/utils/cn';
+import { Primitive } from 'reka-ui';
+
+import { injectQuestionnaireItemContext } from './useQuestionnaire';
+
+const props = withDefaults(
+  defineProps<
+    PrimitiveProps & {
+      class?: HTMLAttributes['class'];
+    }
+  >(),
+  {
+    as: 'div',
+  },
+);
+
+const item = injectQuestionnaireItemContext();
 </script>
 
 <template>
@@ -22,6 +30,6 @@ const item = injectQuestionnaireItemContext()
     :data-shortcuts="item.shortcuts.value ?? undefined"
     :class="cn('gap-3 group/questionnaire-choices grid min-w-0', props.class)"
   >
-    <slot :shortcuts="item.shortcuts.value" />
+    <slot :shortcuts="item.shortcuts.value"></slot>
   </Primitive>
 </template>

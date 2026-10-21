@@ -1,28 +1,18 @@
 <script setup lang="ts">
 import type { Dayjs } from 'dayjs';
+
 import type { BellNotice } from './notice';
 
 import { computed } from 'vue';
 
 import { useLayoutI18n } from '@antdv/layout-ui';
-import { dayjs } from '@antdv/shared/utils/dayjs';
 import { cn } from '@antdv/shared/utils/cn';
+import { dayjs } from '@antdv/shared/utils/dayjs';
 import { Icon } from '@iconify/vue';
 
 import { NOTICE_TYPE_LABELS } from './notice';
 
 defineOptions({ name: 'NoticeItem' });
-
-/**
- * `@antdv/shared/utils/dayjs` 在运行时已经 extend 过 relativeTime，
- * 但它发布的类型没带上这次增强，`fromNow` 在包这边看不见 —— 补一个窄接口，
- * 比在这里再 extend 一次（两份注册、两个入口）更省事也不会漏。
- */
-function fromNow(value: string): string {
-  return (
-    dayjs(value) as Dayjs & { fromNow: (hideSuffix?: boolean) => string }
-  ).fromNow();
-}
 
 /**
  * 铃铛面板里的单条通知。
@@ -39,6 +29,17 @@ const emit = defineEmits<{
   click: [item: BellNotice];
   viewAll: [];
 }>();
+
+/**
+ * `@antdv/shared/utils/dayjs` 在运行时已经 extend 过 relativeTime，
+ * 但它发布的类型没带上这次增强，`fromNow` 在包这边看不见 —— 补一个窄接口，
+ * 比在这里再 extend 一次（两份注册、两个入口）更省事也不会漏。
+ */
+function fromNow(value: string): string {
+  return (
+    dayjs(value) as Dayjs & { fromNow: (hideSuffix?: boolean) => string }
+  ).fromNow();
+}
 
 const { t } = useLayoutI18n();
 

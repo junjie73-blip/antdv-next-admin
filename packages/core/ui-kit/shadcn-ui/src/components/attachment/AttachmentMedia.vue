@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import type { AttachmentMediaVariants } from "."
-import { cn } from '@antdv/shared/utils/cn'
-import { attachmentMediaVariants } from "."
+import type { HTMLAttributes } from 'vue';
+
+import type { AttachmentMediaVariants } from '.';
+
+import { cn } from '@antdv/shared/utils/cn';
+
+import { attachmentMediaVariants } from '.';
 
 const props = defineProps<{
-  class?: HTMLAttributes["class"]
-  variant?: AttachmentMediaVariants["variant"]
-}>()
+  class?: HTMLAttributes['class'];
+  variant?: AttachmentMediaVariants['variant'];
+}>();
 </script>
 
 <template>
@@ -16,6 +19,6 @@ const props = defineProps<{
     :data-variant="variant"
     :class="cn(attachmentMediaVariants({ variant }), props.class)"
   >
-    <slot />
+    <slot></slot>
   </div>
 </template>

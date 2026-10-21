@@ -42,7 +42,10 @@ const singleValue = computed(() => {
 
 const rangeValues = computed(() => {
   const arr = Array.isArray(props.value) ? props.value : [];
-  return [toDayjs(arr[0])?.format('HH:mm:ss') ?? '', toDayjs(arr[1])?.format('HH:mm:ss') ?? ''];
+  return [
+    toDayjs(arr[0])?.format('HH:mm:ss') ?? '',
+    toDayjs(arr[1])?.format('HH:mm:ss') ?? '',
+  ];
 });
 
 function emitOne(d: dayjs.Dayjs | null) {
@@ -69,8 +72,8 @@ function onTimeInput(index: null | number, raw: string) {
   } else {
     const arr = Array.isArray(props.value) ? [...props.value] : [];
     const next = [
-      index === 0 ? base : toDayjs(arr[0]) ?? base,
-      index === 1 ? base : toDayjs(arr[1]) ?? base,
+      index === 0 ? base : (toDayjs(arr[0]) ?? base),
+      index === 1 ? base : (toDayjs(arr[1]) ?? base),
     ];
     emit(
       'update:value',

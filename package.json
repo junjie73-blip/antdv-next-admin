@@ -46,6 +46,9 @@
     "catalog": "pnpm dlx codemod pnpm/catalog",
     "sync-upstream": " sync-upstream"
   },
+  "dependencies": {
+    "@tanstack/vue-store": "catalog:"
+  },
   "devDependencies": {
     "@antdv/commitlint-config": "workspace:*",
     "@antdv/eslint-config": "workspace:*",
@@ -80,8 +83,5 @@
   "engines": {
     "node": ">=22.0.0"
   },
-  "packageManager": "pnpm@10.12.4",
-  "dependencies": {
-    "@tanstack/vue-store": "^0.11.2"
-  }
+  "packageManager": "pnpm@10.12.4"
 }

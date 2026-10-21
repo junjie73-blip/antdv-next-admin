@@ -49,7 +49,9 @@ export interface MenuStyleApi {
 export function useMenuStyle(
   options: () => MenuVisualOptions & { mode?: MenuMode },
 ): MenuStyleApi {
-  const resolve = (): Required<Pick<MenuVisualOptions, 'collapsed' | 'geek' | 'theme'>> & {
+  const resolve = (): Required<
+    Pick<MenuVisualOptions, 'collapsed' | 'geek' | 'theme'>
+  > & {
     mode: MenuMode;
   } => {
     const value = options();
@@ -86,9 +88,7 @@ export function useMenuStyle(
     return cn(
       'font-semibold',
       deep ? 'bg-primary/18' : 'bg-primary/8',
-      isGeek()
-        ? 'text-[#00ff88]'
-        : 'text-primary',
+      isGeek() ? 'text-[#00ff88]' : 'text-primary',
     );
   };
 
@@ -98,11 +98,12 @@ export function useMenuStyle(
       // 横向栏只区分「命中」与「未命中」，不叠底色：整条栏一列底色会盖住 Logo 区的层次
       const barActive = variant === 'bar' && (active || state.inSelectedPath);
       // 侧栏里当前页所在子树的父级也跟着主色（antd 的 submenu-selected），但不加粗
-      const pathTinted = barActive || (variant !== 'bar' && state.inSelectedPath);
+      const pathTinted =
+        barActive || (variant !== 'bar' && state.inSelectedPath);
 
       return cn(
-        'group/menu-row relative flex w-full cursor-pointer select-none items-center gap-2',
-        'rounded-lg pr-3 text-sm outline-none transition-colors duration-200',
+        'group/menu-row relative flex w-full cursor-pointer items-center gap-2 select-none',
+        'rounded-lg pr-3 text-sm transition-colors duration-200 outline-none',
         variant === 'bar' ? 'h-10 shrink-0' : 'my-0.5 h-10',
         textClass(),
         !state.disabled && hoverClass(),
@@ -111,7 +112,7 @@ export function useMenuStyle(
         variant !== 'bar' && active && selectedClass(),
         pathTinted && (isGeek() ? 'text-[#00ff88]' : 'text-primary'),
         // 键盘可达性：焦点环用主色，避免深色侧栏上看不见
-        'focus-visible:ring-2 focus-visible:ring-ring/60',
+        'focus-visible:ring-ring/60 focus-visible:ring-2',
       );
     },
 
@@ -121,7 +122,9 @@ export function useMenuStyle(
       }
       return cn(
         'm-0 list-none p-0',
-        variant === 'popup' ? 'flex min-w-[160px] flex-col' : 'flex w-full flex-col',
+        variant === 'popup'
+          ? 'flex min-w-[160px] flex-col'
+          : 'flex w-full flex-col',
       );
     },
 
@@ -143,10 +146,10 @@ export function useMenuStyle(
 
     activeBarClass() {
       return cn(
-        'pointer-events-none absolute left-0 top-1/2 h-[22px] w-[3px] -translate-y-1/2 rounded-r-[3px]',
+        'pointer-events-none absolute top-1/2 left-0 h-[22px] w-[3px] -translate-y-1/2 rounded-r-[3px]',
         'bg-primary',
         isGeek() && 'bg-[#00ff88]',
-        'shadow-[0_0_6px_color-mix(in_srgb,var(--app-primary)_60%,transparent)]',
+        'shadow-[0_0_6px_color-mix(in_srgb,hsl(var(--primary))_60%,transparent)]',
       );
     },
   };

@@ -4,15 +4,15 @@ import type { BasicColumn } from '@antdv/table-ui';
 
 import { computed, onMounted, ref, useTemplateRef } from 'vue';
 
-import { cn } from '@antdv/shared/utils/cn';
-import { Icon } from '@iconify/vue';
 import { Badge, Card, Divider, Popconfirm, Tag, Tree } from '@antdv/common-ui';
-import { Button } from '@antdv/shadcn-ui';
-import { addDept, deleteDept, getDeptTree, updateDept } from '~/api/system';
+import { DictType } from '@antdv/enums';
 import { BasicForm, useForm } from '@antdv/form-ui';
 import { BasicModal, message, useModal } from '@antdv/popup-ui';
+import { Button } from '@antdv/shadcn-ui';
+import { cn } from '@antdv/shared/utils/cn';
 import { BasicTable, useTable } from '@antdv/table-ui';
-import { DictType } from '@antdv/enums';
+import { Icon } from '@iconify/vue';
+import { addDept, deleteDept, getDeptTree, updateDept } from '~/api/system';
 import { useDictStore } from '~/stores';
 
 defineOptions({ name: 'SystemDept' });

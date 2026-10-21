@@ -8,12 +8,11 @@
 | --- | --- | --- | --- |
 | 纯工具 | `packages/core/base/shared/src/**`、`packages/utils/src/**`、`packages/enums/src/**` | 缓存、加密、色值、日期、下载、Excel、脱敏、XSS、事件总线；菜单树与主题模式解析；缓存键与字典枚举 | 无框架状态，纯函数或自建单例 |
 | 组合式 | `packages/core/hooks/src/**`、`packages/request/src/**` | 分片上传、文件读取、打印、水印、路由 Loading、ECharts、权限判定、CRUD 骨架、响应式缓存；HTTP / SSE / WebSocket | 只用 Vue 响应式 API，应用能力靠参数注入 |
-| 应用薄壳 | `apps/web/src/utils/**`、`apps/web/src/composables/**`、`apps/web/src/components/common/**` | 需要 store / api / 应用内类型的接线 | 例 `utils/ws.ts:6`（拼 `eventBus`）、`utils/securityInit.ts:9`（启动 CSRF）、`composables/useLocale.ts:4`（写偏好里的 locale） |
+| 应用薄壳 | `apps/web/src/utils/**`、`apps/web/src/composables/**`、`apps/web/src/plugins/**` | 需要 store / api / 应用内类型的接线 | 例 `utils/ws.ts:6`（拼 `eventBus`）、`utils/securityInit.ts:9`（启动 CSRF）、`hooks/src/use-locale.ts:4`（写偏好里的 locale） |
 
 ::: tip
 
-自动导入不负责本仓库的包 `internal/vite-config/src/plugins/auto-import.ts` 只注入框架 API。`import { cn } from '@antdv/shared/utils/cn'` 这类写法必须自己写（同[基础概念](/guide/essentials/concepts)）。
-:::
+自动导入不负责本仓库的包 `internal/vite-config/src/plugins/auto-import.ts` 只注入框架 API。`import { cn } from '@antdv/shared/utils/cn'` 这类写法必须自己写（同[基础概念](/guide/essentials/concepts)）。:::
 
 ## 子路径即模块
 
@@ -35,8 +34,7 @@ import { menuKeyOf } from '@antdv/utils/menu';
 
 ::: warning
 
-通配符入口只属于走 dist 的包 只有 `@antdv/shared` 与 `@antdv/hooks` 有 `"./*"`。给源码包加通配符会让 `import type` 的解析路径也跟着变宽，类型检查与打包器看到的不是同一张表。
-:::
+通配符入口只属于走 dist 的包 只有 `@antdv/shared` 与 `@antdv/hooks` 有 `"./*"`。给源码包加通配符会让 `import type` 的解析路径也跟着变宽，类型检查与打包器看到的不是同一张表。:::
 
 ## `@antdv/shared` 清单
 
@@ -46,11 +44,11 @@ import { menuKeyOf } from '@antdv/utils/menu';
 | --- | --- | --- | --- |
 | `cache` | `cache`（`src/cache/index.ts:197`）、`createCache`（`:60`）、`buildStorageKey`（`:40`）、`encryptToken` / `decryptToken`（`src/cache/tokenCrypto.ts:77,106`） | `packages/stores/src/user.ts:7`、`apps/web/src/plugins/request-runtime.ts:3`、`packages/core/preferences/src/preferences.ts:11`（14 个文件） | 有 |
 | `color` | `parseColor`（`src/color/convert.ts:32`）、`toRgbString` / `toHex`（`:41,46`）、`mixWithWhite`（`:55`） | `packages/layouts/src/widgets/setting-drawer/components/appearance-panel.vue:21`、`layout-panel.vue` | 有 |
-| `constants` | `PREFERENCE_CSS_VARS`（`src/constants/css-vars.ts:37`）、`DARK_CLASS` / `COLOR_WEAK_CLASS` / `GRAY_MODE_CLASS`（`src/constants/dom-classes.ts:10,12,14`）、`DEFAULT_PRIMARY_COLOR` 与 `BORDER_RADIUS_BASE`（`src/constants/theme.ts:9,13`）、`THEME_PRESETS` / `themeKeyByColor`（`src/constants/theme-presets.ts:26,59`） | `packages/core/preferences/src/update-css-variables.ts`（写侧）、`packages/core/preferences/src/config.ts`、`apps/web/src/settings/theme/index.ts`（13 个文件） | 有 |
+| `constants` | `PREFERENCE_CSS_VARS`（`src/constants/css-vars.ts:45`）、`DARK_CLASS` / `COLOR_WEAK_CLASS` / `GRAY_MODE_CLASS`（`src/constants/dom-classes.ts:10,12,14`）、`DEFAULT_PRIMARY_COLOR` 与 `BORDER_RADIUS_BASE`（`src/constants/theme.ts:9,18`）、`THEME_PRESETS` / `themeKeyByColor`（`src/constants/theme-presets.ts:26,59`） | `packages/core/preferences/src/update-css-variables.ts`（写侧）、`src/boot-theme.ts`、`src/config.ts`、`@antdv/common-ui` 的 `config-provider/ConfigProvider.vue`、`packages/layouts/src/widgets/setting-drawer/constants.ts`、`apps/web/src/views/login/index.vue`（14 个文件，含 1 份单测与 1 份 e2e） | 有 |
 | `utils/cn` | `cn()`（`src/utils/cn.ts:6`） | 全仓 459 个文件，如 `packages/layouts/src/widgets/breadcrumb.vue` | 有 |
 | `utils/crypto` | `encrypt` / `decrypt` / `encryptObject` / `decryptObject`（`src/utils/crypto/aes.ts:14,19,24,31`）、`md5` / `md5File` / `sha256` / `hash`（`src/utils/crypto/hash.ts:3,7,32,40`） | **无调用点** | 无 |
 | `utils/csrf` | `config`（`src/utils/csrf.ts:67`）、`initCsrfProtection`（`:111`）、`getCsrfToken`（`:164`） | `packages/request/src/fetcher.ts:8`、`apps/web/src/utils/securityInit.ts:9` | 有 |
-| `utils/dayjs` | `dayjs`（`src/utils/dayjs.ts:136`）、`setTimezone`（`:62`）、`nowTz`（`:116`） | `packages/stores/src/app.ts:8`、`packages/layouts/src/widgets/timezone/index.vue:12`、`apps/web/src/composables/useLocale.ts:4`（8 个文件） | 有 |
+| `utils/dayjs` | `dayjs`（`src/utils/dayjs.ts:136`）、`setTimezone`（`:62`）、`nowTz`（`:116`） | `packages/stores/src/app.ts:8`、`packages/layouts/src/widgets/timezone/index.vue:12`、`packages/core/hooks/src/use-locale.ts:4`（8 个文件） | 有 |
 | `utils/domUtils` | `getBoundingClientRect`（`src/utils/domUtils.ts:14`）、`getViewportOffset`（`:89`）、`useRafThrottle`（`:187`） | **无调用点** | 有 |
 | `utils/download` | `saveBlob`（`src/utils/download.ts:159`）、`downloadFile`（`:248`）、`downloadWithAuth`（`:416`）、`downloadMultiple`（`:552`） | **无调用点**（下载走 `@antdv/request` 的响应处理） | 无 |
 | `utils/env` | `configureSharedEnv`（`src/utils/env.ts:32`）、`isEnvEnabled`（`:88`）、`getCachePrefix`（`:74`） | `apps/web/src/bootstrap/env.ts:1`、`apps/web/src/mock/activate.ts`、`apps/web/src/config/micro-app.ts`（8 个文件） | 有 |
@@ -61,14 +59,13 @@ import { menuKeyOf } from '@antdv/utils/menu';
 | `utils/jwt` | `isTokenExpired`（`src/utils/jwt.ts:97`）；`parseJwt`（`:70`）、`isJwtFormat`（`:138`）、`getTokenRemainingSeconds`（`:121`） | `packages/request/src/fetcher.ts:9`（只用 `isTokenExpired`） | 有 |
 | `utils/masking` | `maskPhone` / `maskEmail` / `maskIdCard`（`src/utils/masking.ts:22,30,40`）、`MASKING_RULES`（`:84`） | **无调用点** | 有 |
 | `utils/scroll` | `computeOverflow`（`src/utils/scroll.ts:28`）、`useHorizontalScroll`（`:72`）、`pickHorizontalDelta`（`:47`） | `packages/core/ui-kit/menu-ui/src/BasicMenu.vue:10`、`tabs-ui/src/TabsBar.vue:17` | 有 |
-| `utils/template` | `generateTemplate`（`src/utils/template.ts:30`） | `apps/web/src/components/business/ImportExport.vue:11` | 有 |
-| `utils/xss` | `safeHtmlDirective`（`src/utils/xss.ts:446`）、`escapeDirective`（`:463`）、`escapeHtml`（`:179`） | `apps/web/src/directives/index.ts:17` → `main.ts:122,126`；`packages/core/hooks/src/use-print.ts:2`；`packages/core/ui-kit/common-ui/src/components/markdown-editor/MarkdownEditor.vue:24` | 有 |
+| `utils/template` | `generateTemplate`（`src/utils/template.ts:30`） | `packages/core/ui-kit/common-ui/src/components/import-export/ImportExport.vue:11` | 有 |
+| `utils/xss` | `safeHtmlDirective`（`src/utils/xss.ts:446`）、`escapeDirective`（`:463`）、`escapeHtml`（`:179`） | `apps/web/src/directives/index.ts:17` → `main.ts:108,112`；`packages/core/hooks/src/use-print.ts:2`；`packages/core/ui-kit/common-ui/src/components/markdown-editor/MarkdownEditor.vue:24` | 有 |
 | `store` | `src/store.ts:12` 整包转发 `@tanstack/vue-store` | 暂无调用点：共享状态的写法统一从这里取，不再各建 ref 单例 | 由 `__tests__/structure.test.ts` 覆盖 |
 
 ::: warning
 
-两件事已经从 shared 搬走了 菜单树与 key 体系（`menuKeyOf`、`attachMenuPaths`、`MenuPathRouter`）现在在 `packages/utils/src/menu.ts:28,258,393`，同包的 `theme-mode.ts` 管主题模式解析与系统深色探测 —— 因为 `@antdv/shared` 不许依赖 `@antdv/types` 之外的菜单词汇表，而 `@antdv/utils` 只吃这两个包。`utils/welcome.ts`（登录欢迎提示）整个文件已经不存在，别按名字找。
-:::
+两件事已经从 shared 搬走了 菜单树与 key 体系（`menuKeyOf`、`attachMenuPaths`、`MenuPathRouter`）现在在 `packages/utils/src/menu.ts:28,258,393`，同包的 `theme-mode.ts` 管主题模式解析与系统深色探测 —— 因为 `@antdv/shared` 不许依赖 `@antdv/types` 之外的菜单词汇表，而 `@antdv/utils` 只吃这两个包。`utils/welcome.ts`（登录欢迎提示）整个文件已经不存在，别按名字找。:::
 
 ## `@antdv/hooks` 清单
 
@@ -77,7 +74,7 @@ import { menuKeyOf } from '@antdv/utils/menu';
 | 导出 | 入口 | 消费者 | 单测 |
 | --- | --- | --- | --- |
 | `useChunkUpload` | `@antdv/hooks/use-chunk-upload`（`src/use-chunk-upload.ts:76`） | `apps/web/src/views/components/upload/index.vue` | 有 |
-| `useFileReader` | `.../use-file-reader`（`src/use-file-reader.ts:3`） | `apps/web/src/components/common/AvatarUploader.vue` | 有 |
+| `useFileReader` | `.../use-file-reader`（`src/use-file-reader.ts:3`） | `packages/core/ui-kit/common-ui/src/components/avatar-uploader/AvatarUploader.vue` | 有 |
 | `usePrint` | `.../use-print`（`src/use-print.ts:47`） | `apps/web/src/views/system/user/index.vue` 等 3 页 | 有 |
 | `useRouteLoading` | `.../use-route-loading`（`src/use-route-loading.ts:24`） | `packages/layouts/src/basic/layout.vue` | 有 |
 | `useWatermark` | `.../use-watermark`（`src/use-watermark.ts:48`） | `packages/layouts/src/basic/layout.vue` | 有 |
@@ -93,10 +90,10 @@ SSE 与 WebSocket 不在这里。实时通信的代码统一收在 `@antdv/reque
 | 文件 | 导出 | 状态 |
 | --- | --- | --- |
 | `apps/web/src/utils/ws.ts:340` | `useWebSocket`（薄壳）、`WS_EVENTS`（`:75`）、`noticeTypeConfig`（`:51`） | 在用：`packages/layouts` 的通知小部件靠 `plugins/layouts-host.ts:9` 注入进来 |
-| `apps/web/src/utils/securityInit.ts:16` | `initSecuritySystem` | 在用（`main.ts:39,114`） |
+| `apps/web/src/utils/securityInit.ts:16` | `initSecuritySystem` | 在用（`main.ts:35,100`） |
 | `apps/web/src/utils/excel.ts:10` | `exportToExcel` | 在用：把 `@antdv/shared/utils/excel` 的返回值接上 `@antdv/popup-ui` 的 toast |
 | `apps/web/src/composables/index.ts:6` | `export * from '@antdv/request'` | 请求层在用（`api/request.ts`、`api/query.ts` 等）；`useCRUD`、`usePermission` 已迁进 `@antdv/hooks`，页面与指令都从包里引 |
-| `apps/web/src/composables/useLocale.ts` | `useLocale` / `useLocaleSync` / `localeLabels` | 在用（`App.vue:9`、`plugins/layouts-host.ts:6`、`views/login/index.vue:34`） |
+| `packages/core/hooks/src/use-locale.ts` | `useLocale` / `useLocaleSync` / `localeLabels` | 在用（`App.vue:9`、`plugins/layouts-host.ts:6`、`views/login/index.vue:34`） |
 | `apps/web/src/composables/useNotice.ts` | `useNotice` | **无调用点** —— 通知逻辑已随小部件进 `packages/layouts`，靠 host 注入 |
 | `apps/web/src/composables/usePasswordPolicy.ts` | `usePasswordPolicy` | **无调用点** |
 
@@ -104,8 +101,7 @@ SSE 与 WebSocket 不在这里。实时通信的代码统一收在 `@antdv/reque
 
 ::: warning
 
-包里的组件不能反向 import 应用 通知、全局搜索这类小部件迁进 `packages/layouts` 以后，不能再直接 `import '~/api'` / `'~/utils/ws'`（包反向依赖应用就是循环）。所有"只有应用才知道的能力"从 `apps/web/src/plugins/layouts-host.ts` 一次性注入：`:9` 拿 ws 通道、`:6` 拿语言候选、`:5` 拿通知接口；`:17-19` 解释了为什么它单独一个文件而不并进 `ui-runtime.ts`（`test/setup.ts` 会调用后者，而 setup 比用例里的 `vi.mock` 先执行，摸过的模块之后 mock 不掉）。
-:::
+包里的组件不能反向 import 应用 通知、全局搜索这类小部件迁进 `packages/layouts` 以后，不能再直接 `import '~/api'` / `'~/utils/ws'`（包反向依赖应用就是循环）。所有"只有应用才知道的能力"从 `apps/web/src/plugins/layouts-host.ts` 一次性注入：`:9` 拿 ws 通道、`:6` 拿语言候选、`:5` 拿通知接口；`:17-19` 解释了为什么它单独一个文件而不并进 `ui-runtime.ts`（`test/setup.ts` 会调用后者，而 setup 比用例里的 `vi.mock` 先执行，摸过的模块之后 mock 不掉）。:::
 
 ## 硬边界：包不许碰 pinia / 应用别名 / env
 
@@ -126,8 +122,9 @@ SSE 与 WebSocket 不在这里。实时通信的代码统一收在 `@antdv/reque
 | 环境信息 | `configureSharedEnv({ cachePrefix, cacheEncryptKey, minioPublicUrl, production })`（`packages/core/base/shared/src/utils/env.ts:32-42`） | `apps/web/src/bootstrap/env.ts:1-7` |
 | 凭证、登录页路径、登出清理 | `configureRequest(runtime)`（`packages/request/src/runtime.ts:43`，类型 `:20`） | `apps/web/src/plugins/request-runtime.ts:2,15` |
 | 权限判定 | `createPermissionDirective({ checkers, onCheck, subscribe })`（`packages/directives/src/permission/index.ts:54`） | `apps/web/src/directives/index.ts:19` |
-| 文件切片处理 | `useChunkUpload({ createWorker, workerUrl })`（`packages/core/hooks/src/use-chunk-upload.ts:35-38`） | 应用提供 `apps/web/src/components/common/Upload/upload.worker.ts` |
+| 文件切片处理 | `useChunkUpload({ createWorker, workerUrl })`（`packages/core/hooks/src/use-chunk-upload.ts:35-38`） | 应用提供 `packages/core/ui-kit/common-ui/src/components/chunk-upload/upload.worker.ts` |
 | 顶栏小部件的接口 / 推送 / 页面 | `configureLayoutHost({ ... })`（`packages/layouts`） | `apps/web/src/plugins/layouts-host.ts:24` |
+| vue-query 客户端与安装 | 包里自带 `queryClient` / `setupVueQuery`（`packages/request/src/vue-query.ts`），重试策略与 executor 对齐 | 不用注入，入口 `apps/web/src/main.ts:71` 装一次；页面不要再 `new QueryClient()` |
 
 `packages/core/base/shared/src/cache/memory.ts` 的 `MemoryCache` 是这套边界下的反面教材：入口里确实编得出来（`tsdown.config.ts` 的 `src/*/*.ts` 覆盖了它，`dist/cache/memory.js` 也在，`"./*"` 通配符能让 `@antdv/shared/cache/memory` 解析成功），但 `cache/index.ts` 不导出它，全仓也**零调用点** —— 纯死代码。别按名字以为自己是它的消费者，要内存介质用 `createStorage('memory')`（`src/cache/storage.ts:56,72`）。
 
@@ -165,8 +162,7 @@ pnpm --filter @antdv/shared build      # 或 @antdv/hooks / @antdv/preferences �
 
 ::: warning
 
-症状是"改了没反应，也不报错" 表现：改 `packages/core/base/shared/src/**` → 保存 → 页面行为与类型都纹丝不动。原因是 Vite 的依赖缓存与 `optimizeDeps` 都指向 dist。先 `build` 再重启，别在应用侧绕开包自己抄一份实现。
-:::
+症状是"改了没反应，也不报错" 表现：改 `packages/core/base/shared/src/**` → 保存 → 页面行为与类型都纹丝不动。原因是 Vite 的依赖缓存与 `optimizeDeps` 都指向 dist。先 `build` 再重启，别在应用侧绕开包自己抄一份实现。:::
 
 ## 相关页面
 

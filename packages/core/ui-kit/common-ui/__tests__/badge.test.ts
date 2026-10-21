@@ -8,7 +8,7 @@ import Badge from '../src/components/badge/Badge.vue';
 const bubble = (wrapper: ReturnType<typeof mount>) =>
   wrapper.find('[data-common-badge-dot]');
 
-describe('Badge', () => {
+describe('badge', () => {
   it('count 直接渲染进气泡', () => {
     const wrapper = mount(Badge, { props: { count: 3 } });
     expect(wrapper.find('[data-common-badge]').exists()).toBe(true);

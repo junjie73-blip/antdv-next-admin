@@ -24,8 +24,7 @@ Router 本体：`createWebHashHistory()` + `strict: true` + 每次导航滚回�
 
 ::: warning
 
-`/redirect/:path(.*)` 必须显式注册 `views/redirect/index.vue` 只会生成精确匹配的 `/redirect`，接不住标签页"刷新当前"用的 `/redirect/system/user`。它写在 `constantRoutes` 里，先于约定路由生效（`apps/web/src/router/routes.ts:48-57`）。删它之前先想清楚标签页刷新怎么补救。
-:::
+`/redirect/:path(.*)` 必须显式注册 `views/redirect/index.vue` 只会生成精确匹配的 `/redirect`，接不住标签页"刷新当前"用的 `/redirect/system/user`。它写在 `constantRoutes` 里，先于约定路由生效（`apps/web/src/router/routes.ts:48-57`）。删它之前先想清楚标签页刷新怎么补救。:::
 
 ## meta 里能写什么
 
@@ -61,8 +60,7 @@ progress → auth → dynamicRoutes → title → navLog
 
 ::: warning
 
-这是最容易搞反的一点侧栏**不是**从 routes 递归出来的。登录后 `GET /menus` 返回菜单树（`packages/stores/src/route.ts:112-117`），前端只做三件事：
-:::
+这是最容易搞反的一点侧栏**不是**从 routes 递归出来的。登录后 `GET /menus` 返回菜单树（`packages/stores/src/route.ts:112-117`），前端只做三件事：:::
 
 1. `normalize()` 把后端字段映射成内部结构：`menuName → title`，带 `icon/hidden/isExternal/path/keepAlive/children`； **不排序**，顺序就是数组顺序（`route.ts:87-100`）。
 2. `attachMenuPaths()` 拿菜单去路由表里反查真实 path，五级优先级匹配（`packages/utils/src/menu.ts:258-314`）。菜单里写了个路由表没有的 path，页面就打不开。
@@ -93,8 +91,7 @@ progress → auth → dynamicRoutes → title → navLog
 
 ::: warning
 
-只建文件不加菜单的结果路由存在、守卫能进，但侧栏看不到——因为侧栏读的是 `/menus`。反过来，只加菜单不建文件， `attachMenuPaths` 反查不到 path，点击不跳转。两边都得有。
-:::
+只建文件不加菜单的结果路由存在、守卫能进，但侧栏看不到——因为侧栏读的是 `/menus`。反过来，只加菜单不建文件， `attachMenuPaths` 反查不到 path，点击不跳转。两边都得有。:::
 
 ## 微前端路由
 

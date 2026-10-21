@@ -14,11 +14,11 @@ import {
   PopoverTrigger,
   Switch,
 } from '@antdv/shadcn-ui';
-import { cn } from '@antdv/shared/utils/cn';
-import { Icon } from '@iconify/vue';
-import { useAppStore } from '@antdv/stores';
-
 import { parseColor, toHex, toRgbString } from '@antdv/shared/color';
+import { cn } from '@antdv/shared/utils/cn';
+import { useAppStore } from '@antdv/stores';
+import { Icon } from '@iconify/vue';
+
 import ThemeToggle from '../../theme-toggle/index.vue';
 import { BORDER_RADIUS_OPTIONS, PRIMARY_COLORS } from '../constants';
 import SettingGroup from './setting-group.vue';

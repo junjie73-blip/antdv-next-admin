@@ -1,5 +1,4 @@
-import type { UploadFile } from '@antdv/common-ui';
-
+import type { UploadFile } from '../upload';
 import type { UploadErrorCode } from './constants';
 
 /* ============================================================
@@ -8,9 +7,9 @@ import type { UploadErrorCode } from './constants';
 
 export type { UploadFile };
 /** 变更参数与 common-ui Upload 对齐（file + fileList），供消费方按需引用 */
-export type { UploadChangeParam } from '@antdv/common-ui';
+export type { UploadChangeParam } from '../upload';
 
-export interface UploadProps {
+export interface FileUploadProps {
   /** 文件列表（v-model:value） */
   value?: UploadFile[];
   /** 是否多选 */
@@ -54,7 +53,7 @@ export interface UploadProps {
   onRemove?: (file: UploadFile) => boolean | Promise<boolean>;
 }
 
-export interface UploadInstance {
+export interface FileUploadInstance {
   getFileList: () => UploadFile[];
   setFileList: (fileList: UploadFile[]) => void;
   clear: () => void;
@@ -116,6 +115,11 @@ export interface ChunkUploadTask {
 }
 
 export interface ChunkUploadProps {
+  /**
+   * 秒传哈希的 worker 工厂，由宿主注入；不给就走主线程增量哈希。
+   * 为什么不在包内写死 `?worker`：见 `composables/useHashWorker` 的注释。
+   */
+  createWorker?: () => Worker;
   chunkSize?: number;
   concurrency?: number;
   maxRetry?: number;

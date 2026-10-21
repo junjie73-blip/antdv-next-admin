@@ -72,11 +72,21 @@ const rowKeys = (wrapper: ReturnType<typeof mount>) =>
     row.attributes('data-row-key'),
   );
 
-describe('BasicTable —— 树形首屏展开', () => {
+const rowLevels = (wrapper: ReturnType<typeof mount>) =>
+  [...wrapper.findAll('.basic-table-row')].map((row) =>
+    row.attributes('data-row-level'),
+  );
+
+describe('basicTable —— 树形首屏展开', () => {
   it('数字主键：子行不用点箭头就在表体里（含第三层）', async () => {
     const wrapper = await renderTree(TREE);
 
     expect(rowKeys(wrapper)).toEqual(['11', '21', '31']);
+    /*
+     * `data-row-level` 是缩进深度的自述，也是 e2e（`ops-sweep.spec.ts` 的"树表首屏展开"）
+     * 区分顶层与子项的唯一抓手 —— 只数总行数证不了"下面的层级真的出来了"。
+     */
+    expect(rowLevels(wrapper)).toEqual(['0', '1', '2']);
     expect(
       wrapper
         .find(
@@ -97,7 +107,9 @@ describe('BasicTable —— 树形首屏展开', () => {
 
     const toggle = () =>
       wrapper
-        .find('.basic-table-row[data-row-key="11"] .basic-table-row-expand-icon')
+        .find(
+          '.basic-table-row[data-row-key="11"] .basic-table-row-expand-icon',
+        )
         .trigger('click');
 
     await toggle();

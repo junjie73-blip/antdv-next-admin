@@ -23,7 +23,7 @@ if (!window.matchMedia) {
 // jsdom 没有 CSS.escape，reka / TanStack 的定位逻辑会用到
 if (!(globalThis as any).CSS) {
   (globalThis as any).CSS = {
-    escape: (s: string) => String(s).replace(/[^\w-]/g, (c) => `\${c}`),
+    escape: (s: string) => String(s).replaceAll(/[^\w-]/g, (c) => `\${c}`),
   };
 }
 

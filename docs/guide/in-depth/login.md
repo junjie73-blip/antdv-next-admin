@@ -46,13 +46,11 @@
 
 ::: warning
 
-Mock 环境没有 `/auth/refresh` `backend-mock/server/api/auth/` 下只有 `login` / `logout` / `user-info`，登录响应也不发 refresh token。所以演示环境里 401 的直接结果就是 `forceLogout`。刷新链路是按 `REFRESH_TOKEN_KEY`（`config/constants.ts`）设计的，接真实后端才会被激活。
-:::
+Mock 环境没有 `/auth/refresh` `backend-mock/server/api/auth/` 下只有 `login` / `logout` / `user-info`，登录响应也不发 refresh token。所以演示环境里 401 的直接结果就是 `forceLogout`。刷新链路是按 `REFRESH_TOKEN_KEY`（`config/constants.ts`）设计的，接真实后端才会被激活。:::
 
 ::: tip
 
-token 解密要显式触发：store 建好时只会把缓存里的密文原样同步读进 `token`（`user.ts:19-20`）；`initToken()` 才负责异步解密，解密失败时回落原值以兼容旧明文（`user.ts:36-45`）。它就在应用启动路径上——`main.ts` 的 `bootstrap()` 会在装路由与挂载之前 `await useUserStore().initToken()`（`main.ts:167-171`），且必须早于首次导航，否则守卫拿到的仍是密文、`Authorization` 头会 401。
-:::
+token 解密要显式触发：store 建好时只会把缓存里的密文原样同步读进 `token`（`user.ts:19-20`）；`initToken()` 才负责异步解密，解密失败时回落原值以兼容旧明文（`user.ts:36-45`）。它就在应用启动路径上——`main.ts` 的 `bootstrap()` 会在装路由与挂载之前 `await useUserStore().initToken()`（`main.ts:153-157`），且必须早于首次导航，否则守卫拿到的仍是密文、`Authorization` 头会 401。:::
 
 ## 登出清哪四件套
 

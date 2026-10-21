@@ -15,8 +15,7 @@ corepack prepare pnpm@10.12.4 --activate
 
 ::: warning
 
-别用 npm / yarn 根目录的 `preinstall` 脚本会直接拦掉非 pnpm 安装；而且 workspace 依赖、catalog 版本、`internal/*` 的软链都依赖 pnpm 的语义，混用会装出一片假的 `node_modules`。
-:::
+别用 npm / yarn 根目录的 `preinstall` 脚本会直接拦掉非 pnpm 安装；而且 workspace 依赖、catalog 版本、`internal/*` 的软链都依赖 pnpm 的语义，混用会装出一片假的 `node_modules`。:::
 
 ## 2. 安装与启动
 
@@ -69,8 +68,7 @@ pnpm --filter @antdv/shared build   # 或直接 pnpm build
 - vite 的 `optimizeDeps` 和类型解析在 alias 到源码时经常和构建结果不一致；
 - `turbo dev` 已经用 `dependsOn: ["^build"]` 保证启动前依赖包是最新的，代价只是首次构建慢一点。
 
-`apps/web/.env.development` 里留了个 `VITE_DEV_POLLING` 开关，在映射盘（本机仓库在 `J:`）上实测**救不回 HMR**，所以保持注释状态，别指望它。
-:::
+`apps/web/.env.development` 里留了个 `VITE_DEV_POLLING` 开关，在映射盘（本机仓库在 `J:`）上实测**救不回 HMR**，所以保持注释状态，别指望它。:::
 
 ## 4. 目录速览
 

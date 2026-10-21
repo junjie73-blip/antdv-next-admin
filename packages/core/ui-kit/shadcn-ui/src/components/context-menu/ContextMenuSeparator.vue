@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import type { ContextMenuSeparatorProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import {
-  ContextMenuSeparator,
-} from "reka-ui"
-import { cn } from '@antdv/shared/utils/cn'
+import type { ContextMenuSeparatorProps } from 'reka-ui';
 
-const props = defineProps<ContextMenuSeparatorProps & { class?: HTMLAttributes["class"] }>()
+import type { HTMLAttributes } from 'vue';
 
-const delegatedProps = reactiveOmit(props, "class")
+import { cn } from '@antdv/shared/utils/cn';
+import { reactiveOmit } from '@vueuse/core';
+import { ContextMenuSeparator } from 'reka-ui';
+
+const props = defineProps<
+  ContextMenuSeparatorProps & { class?: HTMLAttributes['class'] }
+>();
+
+const delegatedProps = reactiveOmit(props, 'class');
 </script>
 
 <template>

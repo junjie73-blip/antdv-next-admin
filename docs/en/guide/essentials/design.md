@@ -12,11 +12,11 @@ There are exactly two second-level directories, split on **variable or rule**: `
 packages/core/base/design/
 ├─ package.json              named @antdv/design, exports are .css-granular
 └─ src/
-   ├─ index.css         ← the only entry, imported once in apps/web/src/main.ts:45
+   ├─ index.css         ← the only entry, imported once in apps/web/src/main.ts:43
    ├─ token/                 theme tokens — variable declarations only
    │  ├─ default.css         light: `:root` / `.light` + 13 `[data-theme]` preset palettes
    │  ├─ dark.css            dark: `.dark` + the same 13 `[data-theme]` preset palettes
-   │  └─ index.css           imports both sets + the `@theme inline` mapping `--app-*` → `--color-*`
+   │  └─ index.css           imports both sets + the `@theme inline` mapping `--*` → `--color-*`
    └─ css/                   shared styles, one file per concern
       ├─ base.css            document root / selection / view transitions / shared interaction classes
       ├─ nprogress.css       the route progress bar on top
@@ -33,8 +33,7 @@ Light and dark are **two independent value sets**, not "light with a few tweaks"
 
 - **No components**: the package has not a single `.vue` file and no `src/index.ts`. The shared display components (Card, Tag, Steps …) live in `@antdv/common-ui`, the icon atoms in `@antdv/icons`; the comment at `index.css:18` states exactly this boundary.
 - **No component-library awareness**: it imports no JS from any component library and no style compatibility layer either — every token and rule is owned by this package, so renaming or swapping a component library never requires a change here. The one leftover is the pair of `.ant-upload` cursor rules in `css/base.css:128-134` (antd leaves `cursor: pointer` off its upload trigger; deletable once that DOM is gone from the page).
-- **No business styling**: thin shells that need a store (for instance `packages/layouts/src/basic/content/page-loading.vue`) stay in the app and are never moved here.
-:::
+- **No business styling**: thin shells that need a store (for instance `packages/layouts/src/basic/content/page-loading.vue`) stay in the app and are never moved here. :::
 
 ## The layer order is declared explicitly
 
@@ -44,7 +43,7 @@ Light and dark are **two independent value sets**, not "light with a few tweaks"
 @layer theme, base, components, utilities;
 @import 'tailwindcss';
 @import 'tw-animate-css';
-@import './token/index.css';   /* which in turn imports ./default.css + ./dark.css */
+@import './token/index.css'; /* which in turn imports ./default.css + ./dark.css */
 @import './css/base.css';
 /* …css/nprogress · css/a11y · css/permission · css/scrollbar */
 
@@ -60,7 +59,7 @@ Light and dark are **two independent value sets**, not "light with a few tweaks"
 
 - The layer list has **no slot for a component library**: this package yields to none. `utilities` comes last, which is what lets utility classes in templates override `components`-layer rules (the self-drawn `Scrollbar` and the layout shells both depend on it).
 - The `dark` variant is bound to the `.dark` class (written on `html` by the preferences), not to a media query — so under `theme: 'auto'` Tailwind and the component library see the same result.
-- `apps/web` keeps no `global.css` of its own; the reason is in the comment at `main.ts:42-45`: global styles belong to `@antdv/design`.
+- `apps/web` keeps no `global.css` of its own; the reason is in the comment at `main.ts:39-42`: global styles belong to `@antdv/design`.
 
 Tailwind is wired in through `@tailwindcss/vite` (`internal/vite-config/src/plugins/vue.ts`), with the version coming from the catalog (`pnpm-workspace.yaml`).
 
@@ -81,14 +80,14 @@ The chain has two links:
 
 | Link | Location | Contents |
 | --- | --- | --- |
-| Seed variables | `token/default.css:24` (`:root` / `.light` / `.light[data-theme=…]`), `token/dark.css:13` (`.dark` / `.dark[data-theme=…]`) | `--app-background` / `--app-foreground` / `--app-card` / `--app-popover` / `--app-primary` / `--app-secondary` / `--app-muted` / `--app-accent` / `--app-destructive` / `--app-border` / `--app-input` / `--app-ring`, plus a whole `--app-sidebar-*` set and the four scale variables |
-| Tailwind tokens | the `@theme inline` block, `token/index.css:22-51` | maps each `--app-*` onto a `--color-*`, which is what makes `bg-popover`, `text-muted-foreground` and `border-input` exist as classes |
+| Seed variables | `token/default.css:25-78` (`:root` / `.light` / `.light[data-theme=…]`), `token/dark.css:13-54` (`.dark` / `.dark[data-theme=…]`) | `--background` / `--foreground` / `--card` / `--popover` / `--primary` / `--secondary` / `--muted` / `--accent` / `--destructive` / `--border` / `--input` / `--ring`, plus a whole `--sidebar-*` set (27 semantic colors across the two blocks), the three status colors `--success / --warning / --info` and the three scale variables `--radius / --font-size / --filter` |
+| Tailwind tokens | the `@theme inline` block, `token/index.css:30-82` | maps each `--*` onto a `--color-*`, which is what makes `bg-popover`, `text-muted-foreground` and `border-input` exist as classes |
 
 Three decisions here must not be reverted:
 
-- **Values are self-contained literals and never read `var(--ant-color-*)`**: antd's CSS variables hang off the scoped class generated by `ConfigProvider`, while reka/shadcn popovers portal to `body` (outside `.ant-app`) and would resolve to nothing but a transparent background. Both light and dark value sets are pinned to the root element, so overlays in `body` and content inside the page resolve identically.
-- **Derived colors are written as `var(--app-*)`, never repeated literals**: `--app-ring`, `--app-sidebar-primary` and `--app-sidebar-ring` all point at the block's own `--app-primary`. A custom color inlines one `--app-primary` on `<html>` (a preset instead takes the whole `[data-theme]` palette and gets no inline value) and everything else follows on the same element.
-- **`@theme inline`, not `@theme`**: inline makes the utility class inline `var(--app-*)`, so the `.dark` and `[data-theme]` overrides apply; the non-inline form `--color-x: var(--app-x)` is evaluated once at `:root` and the dark switch freezes on light values.
+- **Colour values are self-contained channel triplets (`H S% L%`) and never read an external variable**: the rule dates from antd's CSS variables hanging off the scoped class generated by `ConfigProvider`, while reka/shadcn popovers portal to `body` (outside that scope) and would resolve to nothing but a transparent background. The library is gone, the discipline is pinned in reverse by the tests — `__tests__/design.test.ts:459-465` asserts the whole package (comments stripped) contains no `--ant-`, no `@antdv-next/` and no `-ant-x` utility, and `:467-471` checks the base block again. Both light and dark value sets are pinned to the root element, so overlays in `body` and content inside the page resolve identically.
+- **Derived colors are written as `var(--*)`, never repeated literals**: `--ring`, `--sidebar-primary` and `--sidebar-ring` all point at the block's own `--primary`. A custom color inlines one `--primary` on `<html>` (a preset instead takes the whole `[data-theme]` palette and gets no inline value) and everything else follows on the same element.
+- **`@theme inline`, not `@theme`**: inline makes the utility class inline `hsl(var(--*)`, so the `.dark` and `[data-theme]` overrides apply; the non-inline form `--color-x: var(--x)` is evaluated once at `:root` and the dark switch freezes on light values.
 
 The 13 `[data-theme]` presets (`violet / pink / rose / sky-blue / deep-blue / green / deep-green / orange / yellow / zinc / neutral / slate / gray`) write out all 27 semantic colors on both the light and the dark side — switching a theme moves the whole canvas temperature, not one button. `__tests__/design.test.ts` pins the contract: every preset complete, no two presets identical, light and dark genuinely different, and the preset names match `THEME_PRESETS` from `@antdv/shared` exactly.
 
@@ -97,14 +96,19 @@ Two ways to consume them:
 ```vue
 <template>
   <!-- 1. utility classes (preferred): the token name is the class name -->
-  <div class="rounded-lg border border-input bg-popover text-muted-foreground" />
+  <div
+    class="rounded-lg border border-input bg-popover text-muted-foreground"
+  />
 
   <!-- 2. reference the variable directly when you need it inside style / as a value -->
-  <span class="bg-[var(--app-primary)]" :style="{ color: 'var(--app-foreground)' }" />
+  <span
+    class="bg-[hsl(var(--primary))]"
+    :style="{ color: 'hsl(var(--foreground))' }"
+  />
 </template>
 ```
 
-The sidebar has its own set (`--app-sidebar-*`): a dark sidebar is a deliberate preference, not dark mode, so its values must stay independently tunable. In dark mode the neutral colors are translucent overlays (the `.08` / `.12` steps are the secondary and hover feedback levels) rather than pinned hex values, while presets deliberately use solid backgrounds because the whole colour temperature has to move together — the reasoning is in the header of `token/dark.css`.
+The sidebar has its own set (`--sidebar-*`): a dark sidebar is a deliberate preference, not dark mode, so its values must stay independently tunable. In dark mode the neutral colors are translucent overlays (the `.08` / `.12` steps are the secondary and hover feedback levels) rather than pinned hex values, while presets deliberately use solid backgrounds because the whole colour temperature has to move together — the reasoning is in the header of `token/dark.css`.
 
 How the theme color lands on these variables is covered in [Theming](/en/guide/in-depth/theme).
 
@@ -115,8 +119,8 @@ The convention is **utilities + `cn()`**, where `cn()` = clsx + tailwind-merge (
 | Goal | How |
 | --- | --- |
 | Conditional class names / merging an incoming class | `cn('base', cond && 'x', props.class)` |
-| Theme colors | this package's bare token names `bg-primary` / `text-muted-foreground` / `border-input`; in inline styles or passed params, `bg-[var(--app-primary)]`. **Not** the antd compatibility layer's `*-ant-*` — those utilities are no longer generated |
-| Small reusable chunks | the shared classes `.icon`, `.outline-box`, `.outline-box-active` (`css/base.css:70-80`) |
+| Theme colors | this package's bare token names `bg-primary` / `text-muted-foreground` / `border-input`; in inline styles or passed params, `bg-[hsl(var(--primary))]`. The antd compatibility layer's `*-ant-*` utilities are no longer generated — writing them silently drops the style, which `__tests__/design.test.ts:464` guards |
+| Small reusable chunks | the shared classes `.icon`, `.outline-box`, `.outline-box-active` (`css/base.css:83-92`) |
 | Transitions / keyframes | only then open a `<style scoped>` |
 
 ::: warning
@@ -125,15 +129,13 @@ Tailwind only understands literal class names
 
 - A class name must be **a complete string as it appears in the source**. Concatenation (`text-${color}-500`), building a step name out of variables, or writing classes in a directory that `@source` does not cover all produce **no CSS and no error**.
 - Do not write `cn(...)` in a template attribute with a **trailing comma**; the form used across the component packages is to collapse it into a `computed` in `<script setup>` and let the template reference the variable — that is how every component in `packages/core/ui-kit/common-ui` does it, which keeps expressions out of the template and keeps the class strings literal.
-- Status-to-color mappings go through a **lookup table** (`Record<string, string>` whose values are full class strings), never `cn('text-' + tone)`. See the `STATUS_DOT` / `CIRCLE` / `PRESET` constants in `packages/core/ui-kit/common-ui/src/components/badge/Badge.vue`, `steps/Steps.vue` and `tag/Tag.vue`.
-:::
+- Status-to-color mappings go through a **lookup table** (`Record<string, string>` whose values are full class strings), never `cn('text-' + tone)`. See the `STATUS_DOT` / `CIRCLE` / `PRESET` constants in `packages/core/ui-kit/common-ui/src/components/badge/Badge.vue`, `steps/Steps.vue` and `tag/Tag.vue`. :::
 
 ::: warning
 
-Do not pad the outer container of a route page. Content padding belongs to the layout; a page that adds its own layer doubles it when the layout shape changes. See [Local development](/en/guide/essentials/development) and [Layout and tabs](/en/guide/in-depth/layout).
-:::
+Do not pad the outer container of a route page. Content padding belongs to the layout; a page that adds its own layer doubles it when the layout shape changes. See [Local development](/en/guide/essentials/development) and [Layout and tabs](/en/guide/in-depth/layout). :::
 
-Do not pin colors. Under dark mode the component library **recomputes the primary color** on `.ant-app`, so overrides belong on the seed variables on `html`, and test assertions must not name concrete color values — a trap this repository has already fallen into; details in [Theming](/en/guide/in-depth/theme).
+Do not pin colors. There is now exactly **one** primary-colour chain: the preference is folded into `--primary` on `<html>` by `applyPreferencesToDom()` (`packages/core/preferences/src/update-css-variables.ts:39`) — only a hand-picked colour is inlined, a preset hands the whole palette to `[data-theme]` — and `@theme inline` maps it onto the `bg-primary` family, so content inside the page and overlays portalled to `body` resolve the same value; one screen cannot contain two oranges. Test assertions must still not name concrete color values — assert under light mode, or assert the _same-source relation_ (two elements' computed colours are equal). Details in [Theming](/en/guide/in-depth/theme).
 
 ## stylelint status
 
@@ -146,7 +148,7 @@ Icons are not part of this package. The Iconify + SVG sprite setup, the collecti
 ## Related pages
 
 - [Tailwind CSS](/en/guide/project/tailwindcss) — how this package is wired in as the only entry
-- [Theming](/en/guide/in-depth/theme) — who writes the `data-theme` tier and the `--app-*` / `--ant-*` variables
+- [Theming](/en/guide/in-depth/theme) — who writes the `data-theme` tier and the `--primary` / `--radius` / `--font-size` / `--filter` variables
 - [Access control](/en/guide/in-depth/access) — what triggers `permission-disabled` in `permission.css`
 - [Examples: shared components](/en/components/common-ui) — how `@antdv/common-ui` consumes these tokens
 - [External modules](/en/guide/essentials/external) — why source-published packages (this one included) have no build step

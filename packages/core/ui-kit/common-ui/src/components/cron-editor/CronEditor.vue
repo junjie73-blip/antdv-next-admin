@@ -242,7 +242,7 @@ function handleFieldSelect(key: string, value: unknown) {
 // ========== 类名（复杂 class 提到脚本，规避模板内联 cn 的解析坑） ==========
 function modeButtonClass(active: boolean) {
   return cn(
-    'rounded px-3 py-1 text-xs transition-colors',
+    'rounded-sm px-3 py-1 text-xs transition-colors',
     active
       ? 'bg-blue-500 text-white'
       : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
@@ -251,7 +251,7 @@ function modeButtonClass(active: boolean) {
 
 function presetButtonClass(preset: CronPreset) {
   return cn(
-    'rounded border px-3 py-2 text-sm transition-all',
+    'rounded-sm border px-3 py-2 text-sm transition-all',
     props.modelValue === preset.value
       ? 'border-blue-500 bg-blue-50 font-medium text-blue-600'
       : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300 hover:bg-blue-50/50',

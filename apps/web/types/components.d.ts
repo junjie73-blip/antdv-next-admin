@@ -12,25 +12,13 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    AvatarUploader: typeof import('./../src/components/common/AvatarUploader.vue')['default']
-    ChunkUpload: typeof import('./../src/components/common/Upload/ChunkUpload.vue')['default']
-    ImportExport: typeof import('./../src/components/business/ImportExport.vue')['default']
-    ReloadPrompt: typeof import('./../src/components/layout/ReloadPrompt.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    TenantSelect: typeof import('./../src/components/business/TenantSelect.vue')['default']
-    Upload: typeof import('./../src/components/common/Upload/Upload.vue')['default']
   }
 }
 
 // For TSX support
 declare global {
-  const AvatarUploader: typeof import('./../src/components/common/AvatarUploader.vue')['default']
-  const ChunkUpload: typeof import('./../src/components/common/Upload/ChunkUpload.vue')['default']
-  const ImportExport: typeof import('./../src/components/business/ImportExport.vue')['default']
-  const ReloadPrompt: typeof import('./../src/components/layout/ReloadPrompt.vue')['default']
   const RouterLink: typeof import('vue-router')['RouterLink']
   const RouterView: typeof import('vue-router')['RouterView']
-  const TenantSelect: typeof import('./../src/components/business/TenantSelect.vue')['default']
-  const Upload: typeof import('./../src/components/common/Upload/Upload.vue')['default']
 }

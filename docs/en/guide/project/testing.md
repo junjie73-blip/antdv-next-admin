@@ -21,13 +21,11 @@ The layered approach:
 
 ::: tip
 
-"Source contracts" are this project's signature layer. Some rules only pin down when you scan the source: route page root containers must not declare padding (`apps/web/src/views/__tests__/page-root-padding.spec.ts`), APIs must not be silently misused (`gallery-api-usage.spec.ts`, same directory), the class set for the five tab styles (the `useTabStyle` block starting at `packages/core/ui-kit/tabs-ui/__tests__/actions-and-style.test.ts:184`). The contract that used to pin "the login page accent colour must not be hardcoded" — `views/login/__tests__/login-styles.spec.ts` — was deleted when the login page was rebuilt, so that rule is now only a convention on the [theme page](/en/guide/in-depth/theme) with no test behind it.
-:::
+"Source contracts" are this project's signature layer. Some rules only pin down when you scan the source: route page root containers must not declare padding (`apps/web/src/views/__tests__/page-root-padding.spec.ts`), APIs must not be silently misused (`gallery-api-usage.spec.ts`, same directory), the class set for the five tab styles (the `useTabStyle` block starting at `packages/core/ui-kit/tabs-ui/__tests__/actions-and-style.test.ts:184`). The contract that used to pin "the login page accent colour must not be hardcoded" — `views/login/__tests__/login-styles.spec.ts` — was deleted when the login page was rebuilt, so that rule is now only a convention on the [theme page](/en/guide/in-depth/theme) with no test behind it. :::
 
 ::: danger
 
-Static guards need positive and negative samples Asserting "0 matches in the code that exists today" is not enough — when the regex is wrong (a missed escape, the wrong directory scanned) the result is 0 matches as well, and the guard silently turns into a check that is always green. So every rule ships two sample sets: the wrong form that **must be caught** and the correct form that **must not be flagged**, plus a sanity assertion that the scanned set is not empty (such as `expect(FILES.length).toBeGreaterThan(30)`).
-:::
+Static guards need positive and negative samples Asserting "0 matches in the code that exists today" is not enough — when the regex is wrong (a missed escape, the wrong directory scanned) the result is 0 matches as well, and the guard silently turns into a check that is always green. So every rule ships two sample sets: the wrong form that **must be caught** and the correct form that **must not be flagged**, plus a sanity assertion that the scanned set is not empty (such as `expect(FILES.length).toBeGreaterThan(30)`). :::
 
 ## End-to-end
 
@@ -61,8 +59,7 @@ The e2e fixtures live in `apps/web/e2e/utils/app.ts`: `signIn` / `go` / `navigat
 
 ::: tip
 
-Telling a timing problem from something that is really broken Rerun that one engine and that one case only: `--project=webkit e2e/xxx.spec.ts -g "name"`. Green when run alone + red in a full run ⇒ environment/concurrency; red when run alone ⇒ a real problem, go read `error-context.md`.
-:::
+Telling a timing problem from something that is really broken Rerun that one engine and that one case only: `--project=webkit e2e/xxx.spec.ts -g "name"`. Green when run alone + red in a full run ⇒ environment/concurrency; red when run alone ⇒ a real problem, go read `error-context.md`. :::
 
 ## Assertions must land on outcomes the user can see
 

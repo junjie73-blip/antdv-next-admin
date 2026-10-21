@@ -23,7 +23,7 @@ const mountList = (options: Record<string, unknown> = {}) =>
 const rowsOf = (wrapper: ReturnType<typeof mountList>) =>
   wrapper.findAll('ul > li');
 
-describe('Listy', () => {
+describe('listy', () => {
   it('基础渲染：标题、描述、行尾次要内容与行首图标位', () => {
     const wrapper = mountList();
     const first = rowsOf(wrapper)[0]!;
@@ -91,10 +91,15 @@ describe('Listy', () => {
   });
 
   it('#header / #footer 缺席时整块不渲染', () => {
-    expect(mountList().findAll('.listy__header, .listy__footer')).toHaveLength(0);
+    expect(mountList().findAll('.listy__header, .listy__footer')).toHaveLength(
+      0,
+    );
     const withHead = mount(Listy, {
       props: { items: ITEMS },
-      slots: { footer: '<span>共 2 条</span>', header: '<span>任务列表</span>' },
+      slots: {
+        footer: '<span>共 2 条</span>',
+        header: '<span>任务列表</span>',
+      },
     });
     expect(withHead.findAll('.listy__header, .listy__footer')).toHaveLength(2);
     expect(withHead.text()).toContain('任务列表');
@@ -108,7 +113,9 @@ describe('Listy', () => {
   });
 
   it('selectable 才给行加"可点"的视觉暗示', () => {
-    expect(mountList().find('ul > li').classes()).not.toContain('cursor-pointer');
+    expect(mountList().find('ul > li').classes()).not.toContain(
+      'cursor-pointer',
+    );
     const wired = mount(Listy, {
       props: { items: ITEMS, selectable: true },
     });
@@ -123,7 +130,9 @@ describe('Listy', () => {
     const pick = vi.fn((index: number, item: Record<string, unknown>) =>
       String(item.id ?? index),
     );
-    expect(rowsOf(mount(Listy, { props: { itemKey: 'id', items: data } }))).toHaveLength(2);
+    expect(
+      rowsOf(mount(Listy, { props: { itemKey: 'id', items: data } })),
+    ).toHaveLength(2);
     const byFn = mount(Listy, { props: { itemKey: pick, items: data } });
     expect(pick).toHaveBeenCalledWith(0, data[0]);
     expect(pick).toHaveBeenCalledWith(1, data[1]);
@@ -136,12 +145,17 @@ describe('Listy', () => {
     );
   });
 
-  it('size 换的是行的紧凑程度', () => {    expect(mountList().find('ul > li').classes()).toContain('px-4');
+  it('size 换的是行的紧凑程度', () => {
+    expect(mountList().find('ul > li').classes()).toContain('px-4');
     expect(
-      mountList({ props: { items: ITEMS, size: 'small' } }).find('ul > li').classes(),
+      mountList({ props: { items: ITEMS, size: 'small' } })
+        .find('ul > li')
+        .classes(),
     ).toContain('px-3');
     expect(
-      mountList({ props: { items: ITEMS, size: 'large' } }).find('ul > li').classes(),
+      mountList({ props: { items: ITEMS, size: 'large' } })
+        .find('ul > li')
+        .classes(),
     ).toContain('py-4');
   });
 });

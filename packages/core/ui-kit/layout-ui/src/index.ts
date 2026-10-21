@@ -11,30 +11,30 @@
  * 壳要用这两样东西，让它们反过来住上层就成环了。
  */
 
-// 外壳
-export { default as LayoutShell } from './layout.vue';
-
 // 各区域
 export { default as LayoutContent } from './components/layout-content/index.vue';
+
 export { default as LayoutFooter } from './components/layout-footer/index.vue';
 export { default as LayoutHeader } from './components/layout-header/index.vue';
+export { default as LayoutSidebar } from './components/layout-sidebar/index.vue';
 export { default as LayoutNavRail } from './components/layout-sidebar/nav-rail.vue';
 export { default as LayoutOverlay } from './components/layout-sidebar/overlay.vue';
-export { default as LayoutSidebar } from './components/layout-sidebar/index.vue';
 export { default as LayoutTabbar } from './components/layout-tabbar/index.vue';
-
 // 侧栏小部件
 export { default as SidebarCollapsedButton } from './components/widgets/sidebar-collapsed-button/index.vue';
 
 // 排版（明暗 / 极客 / 深色侧栏 / 深色顶栏四档的全部类名）与侧栏拖拽
 export { useLayoutStyle } from './hooks/use-layout';
-export { useSidebarDrag } from './hooks/use-sidebar-drag';
 
 export type { LayoutStyleApi } from './hooks/use-layout';
+export { useSidebarDrag } from './hooks/use-sidebar-drag';
+
 export type {
   SidebarDragApi,
   SidebarDragOptions,
 } from './hooks/use-sidebar-drag';
-
 // 渲染契约：区域与输入的类型、外壳尺寸常量、多语言注入点
 export * from './layout';
+
+// 外壳
+export { default as LayoutShell } from './layout.vue';

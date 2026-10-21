@@ -1,19 +1,26 @@
 <script lang="ts" setup>
-import type { StepperTitleProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { StepperTitle, useForwardProps } from "reka-ui"
-import { cn } from '@antdv/shared/utils/cn'
+import type { StepperTitleProps } from 'reka-ui';
 
-const props = defineProps<StepperTitleProps & { class?: HTMLAttributes["class"] }>()
+import type { HTMLAttributes } from 'vue';
 
-const delegatedProps = reactiveOmit(props, "class")
+import { cn } from '@antdv/shared/utils/cn';
+import { reactiveOmit } from '@vueuse/core';
+import { StepperTitle, useForwardProps } from 'reka-ui';
 
-const forwarded = useForwardProps(delegatedProps)
+const props = defineProps<
+  StepperTitleProps & { class?: HTMLAttributes['class'] }
+>();
+
+const delegatedProps = reactiveOmit(props, 'class');
+
+const forwarded = useForwardProps(delegatedProps);
 </script>
 
 <template>
-  <StepperTitle v-bind="forwarded" :class="cn('text-md font-semibold whitespace-nowrap', props.class)">
-    <slot />
+  <StepperTitle
+    v-bind="forwarded"
+    :class="cn('text-md font-semibold whitespace-nowrap', props.class)"
+  >
+    <slot></slot>
   </StepperTitle>
 </template>

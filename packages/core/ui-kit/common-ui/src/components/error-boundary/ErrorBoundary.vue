@@ -3,10 +3,11 @@ import type { VNode } from 'vue';
 
 import { onErrorCaptured, ref } from 'vue';
 
-import Scrollbar from '../scrollbar/Scrollbar.vue';
 import { cn } from '@antdv/shared/utils/cn';
 import { isProduction } from '@antdv/shared/utils/env';
 import { isError, isString } from 'es-toolkit';
+
+import Scrollbar from '../scrollbar/Scrollbar.vue';
 
 interface Props {
   fallback?: (error: Error, reset: () => void) => VNode;

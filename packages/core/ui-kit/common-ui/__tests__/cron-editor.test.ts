@@ -17,8 +17,10 @@ async function build(props: Record<string, unknown> = {}) {
 }
 
 /** 模式切换按钮（常用预设 / 自定义） */
-const modeButton = (wrapper: Awaited<ReturnType<typeof build>>, label: string) =>
-  wrapper.findAll('button').find((node) => node.text() === label)!;
+const modeButton = (
+  wrapper: Awaited<ReturnType<typeof build>>,
+  label: string,
+) => wrapper.findAll('button').find((node) => node.text() === label)!;
 
 /** 切到自定义模式，返回六个字段的 reka Select 实例 */
 async function toCustomMode(wrapper: Awaited<ReturnType<typeof build>>) {
@@ -31,7 +33,7 @@ async function toCustomMode(wrapper: Awaited<ReturnType<typeof build>>) {
 const fieldValuesOf = (selects: Array<{ props: (key: string) => unknown }>) =>
   selects.map((node) => node.props('modelValue'));
 
-describe('CronEditor', () => {
+describe('cronEditor', () => {
   describe('预设模式', () => {
     it('默认渲染 12 个预设按钮与 2 个模式按钮', async () => {
       const wrapper = await build();
@@ -45,7 +47,9 @@ describe('CronEditor', () => {
     it('点击预设同时上报 update:modelValue 与 change', async () => {
       const wrapper = await build();
       await modeButton(wrapper, '每天 8 点').trigger('click');
-      expect(wrapper.emitted('update:modelValue')?.[0]).toEqual(['0 0 8 * * *']);
+      expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([
+        '0 0 8 * * *',
+      ]);
       expect(wrapper.emitted('change')?.[0]).toEqual(['0 0 8 * * *']);
     });
 
@@ -75,7 +79,9 @@ describe('CronEditor', () => {
       const wrapper = await build({ modelValue: '0 15 10 * * 1' });
       await toCustomMode(wrapper);
       await modeButton(wrapper, '常用预设').trigger('click');
-      expect(wrapper.emitted('update:modelValue')?.[0]).toEqual(['0 * * * * *']);
+      expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([
+        '0 * * * * *',
+      ]);
       expect(wrapper.emitted('change')?.[0]).toEqual(['0 * * * * *']);
     });
 
@@ -113,7 +119,9 @@ describe('CronEditor', () => {
       // 「分」字段改成 30
       selects[1]!.vm.$emit('update:modelValue', '30');
       await nextTick();
-      expect(wrapper.emitted('update:modelValue')?.[0]).toEqual(['0 30 0 * * *']);
+      expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([
+        '0 30 0 * * *',
+      ]);
       expect(wrapper.emitted('change')?.[0]).toEqual(['0 30 0 * * *']);
       // 数字值经 String() 桥接后写回字段绑定
       expect(fieldValuesOf(wrapper.findAllComponents(Select))).toEqual([
@@ -126,6 +134,12 @@ describe('CronEditor', () => {
       ]);
     });
 
+    /*
+     * 显式给 20 秒预算：这条要按三种组合各挂一次整棵 CronEditor 并跑 cronstrue，
+     * 单文件跑（`vitest run __tests__/cron-editor.test.ts`）全文件 5.8 秒就过，
+     * 但整包并发时同包的其他文件（含打 Iconify 的那些）把 worker 压满，
+     * 实测会被默认的 5 秒咬掉，报成"这条挂了"。超时给足，断言一条不松。
+     */
     it('每个时间模式的字段值组合都对应预期的 cronstrue 描述', async () => {
       const cases: Array<[number, string, string]> = [
         [1, '*/10', '0 */10 0 * * *'],
@@ -142,7 +156,7 @@ describe('CronEditor', () => {
           cronstrue.toString(expected, { locale: 'zh_CN' }),
         );
       }
-    });
+    }, 20_000);
 
     it('字段值拼出非法表达式时提示「表达式无效」但不阻止上报', async () => {
       const wrapper = await build({ modelValue: '0 0 0 * * *' });

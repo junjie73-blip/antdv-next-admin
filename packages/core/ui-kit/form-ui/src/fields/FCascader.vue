@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@antdv/shadcn-ui';
+import { Popover, PopoverContent, PopoverTrigger } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 import { X } from '@lucide/vue';
 
@@ -48,9 +44,12 @@ const columns = computed<any[][]>(() => {
     if (!nodes?.length) break;
     cols.push(nodes);
     const found = nodes.find((n) =>
-      optionValueEquals(n?.[props.fieldNames?.value ?? 'value'] ?? n?.value, selected),
+      optionValueEquals(
+        n?.[props.fieldNames?.value ?? 'value'] ?? n?.value,
+        selected,
+      ),
     );
-    nodes = found ? found[childrenKey] ?? found.children : undefined;
+    nodes = found ? (found[childrenKey] ?? found.children) : undefined;
     if (!nodes?.length) break;
   }
   if (cols.length === 0 || (nodes?.length && cols.length < 4)) {
@@ -66,17 +65,23 @@ const displayLabel = computed(() => {
       let nodes = props.options;
       for (let j = 0; j < i; j++) {
         const found = (nodes ?? []).find((n: any) =>
-          optionValueEquals(n?.[props.fieldNames?.value ?? 'value'] ?? n?.value, path.value[j]),
+          optionValueEquals(
+            n?.[props.fieldNames?.value ?? 'value'] ?? n?.value,
+            path.value[j],
+          ),
         );
         nodes = found
-          ? found[props.fieldNames?.children ?? 'children'] ?? found.children
+          ? (found[props.fieldNames?.children ?? 'children'] ?? found.children)
           : [];
       }
       const node = (nodes ?? []).find((n: any) =>
-        optionValueEquals(n?.[props.fieldNames?.value ?? 'value'] ?? n?.value, v),
+        optionValueEquals(
+          n?.[props.fieldNames?.value ?? 'value'] ?? n?.value,
+          v,
+        ),
       );
       return node
-        ? node[props.fieldNames?.label ?? 'label'] ?? node.label
+        ? (node[props.fieldNames?.label ?? 'label'] ?? node.label)
         : String(v);
     })
     .filter((l) => l !== undefined && l !== null);
@@ -136,7 +141,9 @@ function clear(event: MouseEvent) {
           )
         "
       >
-        <span class="truncate">{{ hasValue ? displayLabel : placeholder || '请选择' }}</span>
+        <span class="truncate">{{
+          hasValue ? displayLabel : placeholder || '请选择'
+        }}</span>
         <span
           v-if="allowClear && hasValue && !disabled"
           class="shrink-0 cursor-pointer opacity-60 hover:opacity-100"
@@ -145,17 +152,23 @@ function clear(event: MouseEvent) {
           <X class="size-3.5" />
         </span>
         <span v-else class="shrink-0 text-muted-foreground" aria-hidden="true">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <path d="m6 9 6 6 6-9" />
           </svg>
         </span>
       </button>
     </PopoverTrigger>
-    <PopoverContent
-      align="start"
-      :side-offset="4"
-      class="min-w-40 p-0"
-    >
+    <PopoverContent align="start" :side-offset="4" class="min-w-40 p-0">
       <div class="flex">
         <div
           v-for="(col, colIndex) in columns"
@@ -177,7 +190,10 @@ function clear(event: MouseEvent) {
             @click="pick(colIndex, node)"
           >
             <span class="truncate">{{ labelOf(node) }}</span>
-            <span v-if="childrenOf(node)?.length" class="shrink-0 text-muted-foreground">›</span>
+            <span
+              v-if="childrenOf(node)?.length"
+              class="shrink-0 text-muted-foreground"
+              >›</span>
           </button>
         </div>
       </div>

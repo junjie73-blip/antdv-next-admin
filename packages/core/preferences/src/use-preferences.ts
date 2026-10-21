@@ -1,4 +1,4 @@
-import type { PreferenceToggles, PreferencesInstance } from './types';
+import type { PreferencesInstance, PreferenceToggles } from './types';
 
 import { booleanPreferenceKeys } from './config';
 import { getPreferencesInstance } from './preferences';

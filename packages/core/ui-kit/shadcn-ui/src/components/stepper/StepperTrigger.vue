@@ -1,22 +1,31 @@
 <script lang="ts" setup>
-import type { StepperTriggerProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { StepperTrigger, useForwardProps } from "reka-ui"
-import { cn } from '@antdv/shared/utils/cn'
+import type { StepperTriggerProps } from 'reka-ui';
 
-const props = defineProps<StepperTriggerProps & { class?: HTMLAttributes["class"] }>()
+import type { HTMLAttributes } from 'vue';
 
-const delegatedProps = reactiveOmit(props, "class")
+import { cn } from '@antdv/shared/utils/cn';
+import { reactiveOmit } from '@vueuse/core';
+import { StepperTrigger, useForwardProps } from 'reka-ui';
 
-const forwarded = useForwardProps(delegatedProps)
+const props = defineProps<
+  StepperTriggerProps & { class?: HTMLAttributes['class'] }
+>();
+
+const delegatedProps = reactiveOmit(props, 'class');
+
+const forwarded = useForwardProps(delegatedProps);
 </script>
 
 <template>
   <StepperTrigger
     v-bind="forwarded"
-    :class="cn('p-1 flex flex-col items-center text-center gap-1 rounded-md', props.class)"
+    :class="
+      cn(
+        'p-1 flex flex-col items-center text-center gap-1 rounded-md',
+        props.class,
+      )
+    "
   >
-    <slot />
+    <slot></slot>
   </StepperTrigger>
 </template>

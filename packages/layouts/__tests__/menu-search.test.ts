@@ -4,8 +4,8 @@ import { flushPromises, mount } from '@vue/test-utils';
 import { defineComponent, h, nextTick } from 'vue';
 import { createMemoryHistory, createRouter } from 'vue-router';
 
-import { createPinia, setActivePinia } from 'pinia';
 import { useRouteStore } from '@antdv/stores';
+import { createPinia, setActivePinia } from 'pinia';
 
 import { flattenMenus, matchEntries } from '../src/menu-search';
 import LayoutGlobalSearch from '../src/widgets/global-search/index.vue';
@@ -245,7 +245,7 @@ afterEach(() => {
   document.body.innerHTML = '';
 });
 
-describe('LayoutGlobalSearch —— 弹窗与键盘输入', () => {
+describe('layoutGlobalSearch —— 弹窗与键盘输入', () => {
   it('未打开时不渲染，`open` 置真后出现弹窗并把焦点交给搜索框', async () => {
     const { open, q, wrapper } = await mountSearch();
     expect(q('[data-testid="menu-search-input"]')).toBeNull();
@@ -317,7 +317,7 @@ describe('LayoutGlobalSearch —— 弹窗与键盘输入', () => {
     expect(qa('[data-testid="menu-search-item"]')).toEqual([]);
   });
 
-  it('Escape 关掉弹窗', async () => {
+  it('escape 关掉弹窗', async () => {
     const { open, q, wrapper } = await mountSearch();
     await open();
 

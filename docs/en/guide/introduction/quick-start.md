@@ -15,8 +15,7 @@ corepack prepare pnpm@10.12.4 --activate
 
 ::: warning
 
-Don't use npm / yarn The root `preinstall` script blocks non-pnpm installs outright. Beyond that, workspace dependencies, catalog versions, and the symlinks under `internal/*` all rely on pnpm's semantics — mix package managers and you end up with a bogus `node_modules`.
-:::
+Don't use npm / yarn The root `preinstall` script blocks non-pnpm installs outright. Beyond that, workspace dependencies, catalog versions, and the symlinks under `internal/*` all rely on pnpm's semantics — mix package managers and you end up with a bogus `node_modules`. :::
 
 ## 2. Install and start
 
@@ -39,7 +38,7 @@ apps/web dev server ──── 6080 ─  frontend (Vite 8 + Vue 3 + antdv-next
         └─ in-process Nitro Mock ── 5320 ─  /api/**, data for login, upload and all 50 menu paths
 ```
 
-The mock isn't "another process": `VITE_MOCK=true` in `apps/web/.env.development:18` makes the Vite assembly register `viteNitroMockPlugin` (`internal/vite-config/src/plugins/index.ts:130-135`), which calls `createDevServer().listen(5320)` inside the same Node process. The ports aren't hardcoded either: the same file sets `VITE_PORT=6080` (`:1`) and `VITE_MOCK_SERVER=http://localhost:5320` (`:20`), and the dev server proxies `/api` through. So **you don't need a backend prepared separately**.
+The mock isn't "another process": `VITE_MOCK=true` in `apps/web/.env.development:18` makes the Vite assembly register `viteNitroMockPlugin` (`internal/vite-config/src/plugins/index.ts:149-154`), which calls `createDevServer().listen(5320)` inside the same Node process. The ports aren't hardcoded either: the same file sets `VITE_PORT=6080` (`:1`) and `VITE_MOCK_SERVER=http://localhost:5320` (`:20`), and the dev server proxies `/api` through. So **you don't need a backend prepared separately**.
 
 Other scripts you'll use:
 
@@ -75,8 +74,7 @@ Why the dist packages don't just alias to src
 - Vite's `optimizeDeps` and type resolution often disagree with the build result when aliased to source;
 - `turbo dev` already uses `dependsOn: ["^build"]` to guarantee dependency packages are up to date before it starts; the only cost is a slower first build.
 
-`apps/web/.env.development` keeps a `VITE_DEV_POLLING` switch. Tested on a mapped drive (this repo sits on `J:` locally) it **does not bring HMR back**, so it stays commented out — don't count on it.
-:::
+`apps/web/.env.development` keeps a `VITE_DEV_POLLING` switch. Tested on a mapped drive (this repo sits on `J:` locally) it **does not bring HMR back**, so it stays commented out — don't count on it. :::
 
 ## 4. Directory at a glance
 

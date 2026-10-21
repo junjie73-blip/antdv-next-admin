@@ -1,29 +1,39 @@
 <script setup lang="ts">
-import type { PrimitiveProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { Primitive } from "reka-ui"
-import { computed, onBeforeUnmount, useId } from "vue"
-import { cn } from '@antdv/shared/utils/cn'
-import { injectQuestionnaireItemContext } from "./useQuestionnaire"
+import type { PrimitiveProps } from 'reka-ui';
 
-const props = withDefaults(defineProps<PrimitiveProps & {
-  class?: HTMLAttributes["class"]
-  id?: string
-}>(), {
-  as: "p",
-})
+import type { HTMLAttributes } from 'vue';
 
-const item = injectQuestionnaireItemContext()
+import { computed, onBeforeUnmount, useId } from 'vue';
 
-const errorId = props.id ?? useId()
-const unregisterError = item.registerError(errorId)
+import { cn } from '@antdv/shared/utils/cn';
+import { Primitive } from 'reka-ui';
+
+import { injectQuestionnaireItemContext } from './useQuestionnaire';
+
+const props = withDefaults(
+  defineProps<
+    PrimitiveProps & {
+      class?: HTMLAttributes['class'];
+      id?: string;
+    }
+  >(),
+  {
+    as: 'p',
+  },
+);
+
+const item = injectQuestionnaireItemContext();
+
+const errorId = props.id ?? useId();
+const unregisterError = item.registerError(errorId);
 
 const fallback = computed(() =>
   item.required.value
-    ? "Choose an answer to continue."
-    : "Choose an answer or skip this question.")
+    ? 'Choose an answer to continue.'
+    : 'Choose an answer or skip this question.',
+);
 
-onBeforeUnmount(unregisterError)
+onBeforeUnmount(unregisterError);
 </script>
 
 <template>

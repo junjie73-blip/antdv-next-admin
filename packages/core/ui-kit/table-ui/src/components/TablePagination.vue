@@ -119,7 +119,7 @@ function jump(e: KeyboardEvent) {
               )
             "
             :is-active="item.value === props.current"
-            :size="'icon-xs'"
+            size="icon-xs"
             :value="item.value as number"
           />
         </template>

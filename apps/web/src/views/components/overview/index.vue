@@ -11,8 +11,8 @@ import {
   InputGroupInput,
 } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
-import { Icon } from '@iconify/vue';
 import { useRouteStore } from '@antdv/stores';
+import { Icon } from '@iconify/vue';
 
 /**
  * 组件示例总览。

@@ -4,7 +4,6 @@ import type { MicroAppItem } from '@antdv/types';
 import { computed, ref, watch } from 'vue';
 
 import { Scrollbar, Tag, Tooltip } from '@antdv/common-ui';
-
 import {
   Button,
   InputGroup,

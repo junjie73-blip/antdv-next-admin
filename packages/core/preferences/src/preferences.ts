@@ -154,7 +154,7 @@ export function createPreferences(
  * 刷新就丢"）。所以这里只给 `initPreferences`，不给隐式默认实例。
  * ============================================================ */
 
-let current: PreferencesInstance | null = null;
+let current: null | PreferencesInstance = null;
 
 /** 创建（或复用）全局偏好实例；幂等，第二次调用返回第一次那份 */
 export function initPreferences(

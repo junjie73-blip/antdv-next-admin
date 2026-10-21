@@ -54,7 +54,7 @@ function normalizeHex(value: string): string | undefined {
  * 由当前主色反查预设档位。
  *
  * 匹配不上（取色器选的任意颜色、`rgb()` 串）一律回 `custom`：
- * 那一档不覆盖色板，运行时把主色内联写在 html 上，派生色靠 `var(--app-primary)` 跟上。
+ * 那一档不覆盖色板，运行时把主色内联写在 html 上，派生色靠 `hsl(var(--primary))` 跟上。
  */
 export function themeKeyByColor(color?: string): string {
   const hex = color ? normalizeHex(color) : undefined;

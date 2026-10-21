@@ -9,8 +9,12 @@
     // Adjust lib and types accordingly.
     "lib": [],
     // 用例里 `describe / it / expect / vi` 是运行时全局（vitest.config 开了 `globals`），
-    // 不给 TS 登记 `vitest/globals` 就会满屏 "Cannot find name 'describe'"
-    "types": ["node", "jsdom", "vitest/globals"]
+    // 不给 TS 登记 `vitest/globals` 就会满屏 "Cannot find name 'describe'"。
+    // `vite/client` 必须一起列上：这里写 `types` 是**覆盖**而不是追加，漏了它
+    // `ImportMetaEnv` 就没有那条索引签名，被测源码里的 `import.meta.env.VITE_*`
+    // 全部报 TS2339（`types/env.d.ts` 顶部那几行 `<reference>` 是被 spaced-comment
+    // 拆开的 `// /`，指望不上）。
+    "types": ["node", "jsdom", "vite/client", "vitest/globals"]
   },
   // Override to include only test files and clear exclusions.
   // Application code imported in tests is automatically included via module resolution.

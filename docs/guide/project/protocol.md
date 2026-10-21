@@ -28,7 +28,7 @@ export const cardClassName = cn('shadow-sm', 'rounded-lg');
 
 ## 注释语言与写法
 
-仓库没有成文的注释语言条款，但既有代码的实际口径高度一致：**注释写中文、讲"为什么"**，并且大量注释记录的是修复过的坑（例如 `packages/stores/src/user.ts:78-82` 解释 logout 为什么必须 `resetRoutes()`、`internal/vite-config/src/plugins/index.ts:140-145` 解释首屏 Loading 插件为什么不能被开关整块包住）。新写注释请沿这个口径：不复述代码行为，只留"读代码看不出来、下次会再踩"的信息。
+仓库没有成文的注释语言条款，但既有代码的实际口径高度一致：**注释写中文、讲"为什么"**，并且大量注释记录的是修复过的坑（例如 `packages/stores/src/user.ts:78-82` 解释 logout 为什么必须 `resetRoutes()`、`internal/vite-config/src/plugins/index.ts:157-164` 解释首屏 Loading 插件为什么不能被开关整块包住）。新写注释请沿这个口径：不复述代码行为，只留"读代码看不出来、下次会再踩"的信息。
 
 ## 工具链四件套
 

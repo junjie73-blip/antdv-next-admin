@@ -14,11 +14,12 @@
 
 ## 1. 首屏遮罩：`vite:app-loading`
 
-自研插件 `internal/vite-config/src/plugins/app-loading`，把一段 HTML 注入到 `#app` **之外**（body prepend），所以 Vue 挂载碰不到它。三个必须知道的约定：
+自研插件 `internal/vite-config/src/plugins/app-loading`，把一段 HTML 注入到 `#app` **之外**（body prepend），所以 Vue 挂载碰不到它。四个必须知道的约定：
 
 - 应用入口**常驻** `import { loadingFadeOut } from 'virtual:app-loading'`， `main.ts` 在 `app.mount('#app')` 后 `void nextTick(() => loadingFadeOut())`。插件刻意配 `autoRemove: false`：挂载动作顶不掉遮罩，没人调用它就永远盖住页面并吞掉所有点击。
 - 虚拟模块**永远可解析**，与开关无关：`VITE_INJECT_APP_LOADING` 只决定注入不注入（见 `.env.development` / `.env.production` 均为 true），把整个插件包进 if 里会让构建期 resolve 失败直接 500。
 - 遮罩主题自动跟随 CSS 变量（`autoTheme: true`，扫描 `src/**/*.css` 等，前缀 `--color-`，排除 `--ant-*` / `--tw-*` 等），淡出时长走 `VITE_APP_LOADING_DURATION`。
+- **模板本体是一个 HTML 文件**，不是 TS 里的模板字符串：`internal/vite-config/src/plugins/app-loading/defaults/loading.html`，插件以 `?raw` 在构建期读成字符串（`src/index.ts:10`），靠 `internal/vite-config/tsdown.config.ts:26` 的 `loader: { '.html': 'text' }` 内联进 dist —— 所以产物旁边不存在也不该有 `defaults/` 目录，运行时用 `__dirname` 去读文件必然 ENOENT。两种替换语法：EJS 风格 `<%= VAR %>` / `<%= VAR || '兜底' %>`（`src/html-injector.ts:60-64`，变量来自 `config.env` 与 `htmlVariables`）和 Vite 原生 `%VAR%`（`:66-68`，未识别的原样保留）。换自己的模板：`loadingHtmlPath`（应用侧已接 `VITE_APP_LOADING_PATH`，`internal/vite-config/src/plugins/index.ts:207`；路径解析不到时 `console.warn` 一句再回落内置模板，`src/index.ts:104-119`），或直接传 `loadingHtml` 字符串（优先级更高）。模板里的圆角一律 rem，颜色一律"CSS 变量 + 兜底值"。
 
 ## 2. 路由切换层
 
@@ -35,7 +36,7 @@
 
 ## 3. 元素级遮罩
 
-`@antdv/common-ui` 三件套（指令在 `main.ts:8` 取 `vLoading`、`:132` 注册：`app.directive('loading', vLoading)`）：
+`@antdv/common-ui` 三件套（指令在 `main.ts:8` 取 `vLoading`、`:118` 注册：`app.directive('loading', vLoading)`）：
 
 ```vue
 <!-- 指令：配置从属性读，arg 是提示文本 -->

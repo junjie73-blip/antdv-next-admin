@@ -2,8 +2,6 @@
 import { computed, inject, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { cn } from '@antdv/shared/utils/cn';
-import { Icon } from '@iconify/vue';
 import {
   Card,
   Descriptions,
@@ -18,7 +16,9 @@ import {
 } from '@antdv/common-ui';
 import { confirm, message } from '@antdv/popup-ui';
 import { Button } from '@antdv/shadcn-ui';
+import { cn } from '@antdv/shared/utils/cn';
 import { useUserStore } from '@antdv/stores';
+import { Icon } from '@iconify/vue';
 
 const userStore = useUserStore();
 const router = useRouter();
@@ -333,12 +333,8 @@ function handleDeleteDevice(device: LoginDevice) {
           <div class="space-y-6">
             <div class="space-y-2">
               <div :class="securityHeaderClassName">
-                <span class="font-medium text-gray-700 dark:text-gray-300"
-                  >密码强度</span
-                >
-                <span class="text-sm text-green-600 dark:text-green-400"
-                  >{{ securityInfo.passwordStrength }}%</span
-                >
+                <span class="font-medium text-gray-700 dark:text-gray-300">密码强度</span>
+                <span class="text-sm text-green-600 dark:text-green-400">{{ securityInfo.passwordStrength }}%</span>
               </div>
               <div :class="passwordStrengthBarClassName">
                 <div
@@ -355,9 +351,7 @@ function handleDeleteDevice(device: LoginDevice) {
 
             <div class="space-y-2">
               <div :class="securityHeaderClassName">
-                <span class="font-medium text-gray-700 dark:text-gray-300"
-                  >双因素认证</span
-                >
+                <span class="font-medium text-gray-700 dark:text-gray-300">双因素认证</span>
                 <span :class="twoFactorBadgeClassName">
                   <Icon icon="carbon:checkmark-filled" width="14" height="14" />
                   已启用
@@ -371,9 +365,7 @@ function handleDeleteDevice(device: LoginDevice) {
             <Divider />
 
             <div class="space-y-3">
-              <span class="font-medium text-gray-700 dark:text-gray-300"
-                >登录设备</span
-              >
+              <span class="font-medium text-gray-700 dark:text-gray-300">登录设备</span>
               <div
                 v-for="device in securityInfo.loginDevices"
                 :key="device.device"

@@ -13,13 +13,12 @@ import {
   PopoverTrigger,
   Spinner,
 } from '@antdv/shadcn-ui';
-
 import { Icon } from '@iconify/vue';
 
 import { layoutHost } from '../../host';
-import NoticeItem from './notice-item.vue';
 import WidgetButton from '../widget-button.vue';
 import { countUnread, mapNoticeList } from './notice';
+import NoticeItem from './notice-item.vue';
 
 defineOptions({ name: 'WidgetNotice' });
 

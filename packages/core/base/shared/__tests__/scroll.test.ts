@@ -274,7 +274,7 @@ describe('useHorizontalScroll', () => {
   it('把选中项滚进可视区，只在真的看不见时动', () => {
     const { api, container } = setup(600, 400);
     const item = document.createElement('div');
-    item.setAttribute('data-scroll-key', 'b');
+    item.dataset.scrollKey = 'b';
     // offsetLeft/offsetWidth 在 happy-dom 里同样是 0，钉成"看得见"的位置
     Object.defineProperty(item, 'offsetLeft', {
       configurable: true,

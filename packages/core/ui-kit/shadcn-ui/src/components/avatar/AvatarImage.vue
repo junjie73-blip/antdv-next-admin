@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { AvatarImageProps } from "reka-ui"
-import { AvatarImage } from "reka-ui"
+import type { AvatarImageProps } from 'reka-ui';
 
-const props = defineProps<AvatarImageProps>()
+import { AvatarImage } from 'reka-ui';
+
+const props = defineProps<AvatarImageProps>();
 </script>
 
 <template>
@@ -11,6 +12,6 @@ const props = defineProps<AvatarImageProps>()
     v-bind="props"
     class="aspect-square size-full"
   >
-    <slot />
+    <slot></slot>
   </AvatarImage>
 </template>

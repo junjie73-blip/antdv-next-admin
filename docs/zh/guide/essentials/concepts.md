@@ -26,8 +26,7 @@ scripts/           仓库任务（vsh、turbo-run、clean、deploy）
 
 ::: warning
 
-改了 dist 发布包却没生效这是本仓库最常见的"我明明改了"。Vite 的依赖缓存和 `optimizeDeps` 都指向 dist， `src` 不在构建图里。表现是改代码、保存、页面毫无变化，且不报错。
-:::
+改了 dist 发布包却没生效这是本仓库最常见的"我明明改了"。Vite 的依赖缓存和 `optimizeDeps` 都指向 dist， `src` 不在构建图里。表现是改代码、保存、页面毫无变化，且不报错。:::
 
 源码发布是有代价的：这些包没有 build 脚本（`packages/core/base/icons/package.json` 只有 `clean` / `test:unit` / `type-check`），组件里的 `<script setup>` 由应用的 `@vitejs/plugin-vue` 编译，所以它们**不能**被脱离 Vite 的消费者直接用。
 
@@ -50,8 +49,7 @@ scripts/           仓库任务（vsh、turbo-run、clean、deploy）
 
 ::: tip
 
-新代码该放哪只跟这个页面有关 → 页面目录里（`views/<模块>/<页面>/`）。跨页面但只服务应用（store、api、ws） → `apps/web/src/` 对应目录。纯函数、不依赖应用状态、换个项目还想用 → `packages/core/base/shared` 或 `packages/core/composables`。需要 pinia / router / 后端数据才能工作 → 留在应用里做薄壳，包只接收注入。
-:::
+新代码该放哪只跟这个页面有关 → 页面目录里（`views/<模块>/<页面>/`）。跨页面但只服务应用（store、api、ws） → `apps/web/src/` 对应目录。纯函数、不依赖应用状态、换个项目还想用 → `packages/core/base/shared` 或 `packages/core/composables`。需要 pinia / router / 后端数据才能工作 → 留在应用里做薄壳，包只接收注入。:::
 
 ## 路径别名与自动导入
 

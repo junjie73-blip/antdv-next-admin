@@ -1,22 +1,21 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import { cn } from '@antdv/shared/utils/cn'
-import { Input } from '../input'
+import type { HTMLAttributes } from 'vue';
+
+import { cn } from '@antdv/shared/utils/cn';
+
+import { Input } from '../input';
 
 const props = defineProps<{
-  class?: HTMLAttributes["class"]
-}>()
+  class?: HTMLAttributes['class'];
+}>();
 </script>
 
 <template>
   <Input
     data-slot="sidebar-input"
     data-sidebar="input"
-    :class="cn(
-      'bg-background h-8 w-full shadow-none',
-      props.class,
-    )"
+    :class="cn('bg-background h-8 w-full shadow-none', props.class)"
   >
-    <slot />
+    <slot></slot>
   </Input>
 </template>

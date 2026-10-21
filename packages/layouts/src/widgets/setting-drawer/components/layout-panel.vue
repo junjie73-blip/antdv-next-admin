@@ -19,21 +19,21 @@ import {
   Slider,
   Switch,
 } from '@antdv/shadcn-ui';
-import { TAB_STYLE_OPTIONS } from '@antdv/tabs-ui';
-import { useAppStore } from '@antdv/stores';
-
 import { mixWithWhite } from '@antdv/shared/color';
+import { useAppStore } from '@antdv/stores';
+import { TAB_STYLE_OPTIONS } from '@antdv/tabs-ui';
+
 import {
   CONTENT_MAX_WIDTH,
   CONTENT_MIN_WIDTH,
   CONTENT_MODE_OPTIONS,
 } from '../../../content';
-import LayoutIcon from '../../layout-icon.vue';
 import {
   LAYOUT_MODE_OPTIONS,
   showsHeaderNav,
   showsNavRail,
 } from '../../../modes';
+import LayoutIcon from '../../layout-icon.vue';
 import SettingGroup from './setting-group.vue';
 import SettingItem from './setting-item.vue';
 

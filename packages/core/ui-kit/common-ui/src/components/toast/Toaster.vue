@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 // CSS 副作用导入的类型声明只能引用、不能复制：下游按源码消费本包时看不到 common-ui 的 tsconfig include。
 // oxlint-disable-next-line typescript/triple-slash-reference
-/// <reference path="../../types/css.d.ts" />
+// / <reference path="../../types/css.d.ts" />
 import type { CSSProperties } from 'vue';
 import type { ToasterProps } from 'vue-sonner';
 
@@ -34,7 +34,7 @@ const props = defineProps<ToasterProps>();
  * 在父级上设 `--z-index` 会被那条内联值直接盖掉 —— 所以不要在这里加，
  * 加了自己看着"层级提高了"，实际一个像素都没变（e2e 里按实值断言兜住）。
  *
- * 底色一律 `--app-popover`，四种类型共用，**不做富色**：`rich-colors` 一旦打开，
+ * 底色一律 `--popover`，四种类型共用，**不做富色**：`rich-colors` 一旦打开，
  * sonner 就用 `[data-rich-colors='true'][data-type='xxx']` 把整块底色换成
  * `--{type}-bg`，并顺带把 `[data-description]` 的颜色改成 `inherit`（描述跟着变彩）。
  * 轻提示与通知的正文是给用户读的，底色染成琥珀/红色会让文字对比度掉下去，
@@ -44,10 +44,10 @@ const props = defineProps<ToasterProps>();
  * 的作用域里，换明暗换主题都自动跟上。
  */
 const toasterVars = {
-  '--normal-bg': 'var(--app-popover)',
-  '--normal-text': 'var(--app-popover-foreground)',
-  '--normal-border': 'var(--app-border)',
-  '--border-radius': 'var(--app-border-radius)',
+  '--normal-bg': 'hsl(var(--popover))',
+  '--normal-text': 'hsl(var(--popover-foreground))',
+  '--normal-border': 'hsl(var(--border))',
+  '--border-radius': 'var(--radius)',
 } satisfies CSSProperties;
 
 /**
@@ -56,7 +56,7 @@ const toasterVars = {
  * 全部带 `!`：sonner 的内置规则是 `[data-sonner-toast][data-styled='true'] [data-icon]`
  * 这类三选择器特异度，且写在包内 CSS 里，不带 important 的工具类压不住。
  * `icon` 那档要把 16px 的方框放大到 20px，圆徽才有实色底可铺；
- * `description` 和 `closeButton` 走中性灰，正文与标题保持 `--app-popover-foreground`。
+ * `description` 和 `closeButton` 走中性灰，正文与标题保持 `--popover-foreground`。
  */
 const toasterClasses = {
   icon: 'size-5!',
@@ -75,7 +75,7 @@ const toastOptions = computed<ToasterProps['toastOptions']>(() => ({
 }));
 
 const toasterStyle = computed<CSSProperties>(
-  () => ({ ...toasterVars, ...(props.style ?? {}) }) as CSSProperties,
+  () => ({ ...toasterVars, ...props.style }) as CSSProperties,
 );
 </script>
 
@@ -87,7 +87,7 @@ const toasterStyle = computed<CSSProperties>(
     :toast-options="toastOptions"
   >
     <!--
-      状态徽标：实色圆底 + 反白笔画，色板取 `--app-{success,warning,info,destructive}`
+      状态徽标：实色圆底 + 反白笔画，色板取 `{success,warning,info,destructive}`
       （这四个是刻意与主题预设解耦的语义色，换主色也不跟着变）。
       勾与叉用 @lucide/vue 现成图标；感叹号与信息符没有"只有笔画、不带外框"的
       lucide 图标（`CircleAlert` / `Info` 都自带一圈），画进圆底就成了框中框，

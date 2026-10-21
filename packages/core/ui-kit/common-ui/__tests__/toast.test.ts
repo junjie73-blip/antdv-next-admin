@@ -24,18 +24,18 @@ afterEach(() => {
   toast.dismiss();
 });
 
-describe('Toaster —— 主题覆写层', () => {
+describe('toaster —— 主题覆写层', () => {
   it('钩子类与主题变量落在容器上，底色只有一套中性值', async () => {
     const wrapper = mount(Toaster);
     const toaster = wrapper.find('[data-sonner-toaster]');
     expect(toaster.classes()).toContain('antdv-toaster');
 
     const { style } = toaster.element as HTMLElement;
-    expect(style.getPropertyValue('--normal-bg')).toBe('var(--app-popover)');
-    expect(style.getPropertyValue('--normal-border')).toBe('var(--app-border)');
-    expect(style.getPropertyValue('--border-radius')).toBe(
-      'var(--app-border-radius)',
+    expect(style.getPropertyValue('--normal-bg')).toBe('hsl(var(--popover))');
+    expect(style.getPropertyValue('--normal-border')).toBe(
+      'hsl(var(--border))',
     );
+    expect(style.getPropertyValue('--border-radius')).toBe('var(--radius)');
 
     /*
      * 富色必须关着：打开后 sonner 会把整块底色染成 `--{type}-bg`，
@@ -52,8 +52,7 @@ describe('Toaster —— 主题覆写层', () => {
     const wrapper = mount(Toaster, {
       props: { style: { '--normal-bg': 'green' } },
     });
-    const { style } = wrapper
-      .find('[data-sonner-toaster]')
+    const { style } = wrapper.find('[data-sonner-toaster]')
       .element as HTMLElement;
     expect(style.getPropertyValue('--normal-bg')).toBe('green');
   });
@@ -108,9 +107,8 @@ describe('Toaster —— 主题覆写层', () => {
     } as const;
 
     for (const type of ['success', 'info', 'warning', 'error'] as const) {
-      const badge = wrapper.find(
-        `[data-type='${type}'] [data-icon] > span`,
-      ).element as HTMLElement;
+      const badge = wrapper.find(`[data-type='${type}'] [data-icon] > span`)
+        .element as HTMLElement;
       expect(badge.className, `${type} 少了徽标容器`).toContain('rounded-full');
       expect(badge.className).toContain(badgeClass[type]);
       expect(badge.className).toContain('text-white');
@@ -153,6 +151,22 @@ describe('Toaster —— 主题覆写层', () => {
     );
   });
 
+  it('外壳不整体开就没有任何 ✕，单条传 closeButton 才给自己挂上', async () => {
+    // 应用入口那两只 `<Toaster>` 就是这个形态：只配朝向，不配 `close-button`
+    const wrapper = mount(Toaster, {
+      props: { closeButtonPosition: 'top-right' },
+    });
+
+    toast.info('默认写法');
+    await flush();
+    expect(wrapper.find('[data-close-button]').exists()).toBe(false);
+
+    toast.dismiss();
+    toast.success('这一条要手动关闭', { closeButton: true });
+    await flush();
+    expect(wrapper.find('[data-close-button]').exists()).toBe(true);
+  });
+
   it('宿主传同名插槽可以替换徽标，不必改这层源码', async () => {
     const wrapper = mount(Toaster, {
       slots: { 'success-icon': () => h('i', { 'data-custom-badge': '' }) },
@@ -161,8 +175,8 @@ describe('Toaster —— 主题覆写层', () => {
     await flush();
 
     expect(wrapper.find('[data-custom-badge]').exists()).toBe(true);
-    expect(wrapper.find('[data-type=success] [data-icon] > span').exists()).toBe(
-      false,
-    );
+    expect(
+      wrapper.find('[data-type=success] [data-icon] > span').exists(),
+    ).toBe(false);
   });
 });

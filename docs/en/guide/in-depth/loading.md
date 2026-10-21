@@ -14,11 +14,12 @@ navigate to a page
 
 ## 1. First screen: `vite:app-loading`
 
-A home-grown plugin, `internal/vite-config/src/plugins/app-loading`, prepends an HTML snippet **outside** `#app`, so mounting Vue cannot touch it. Three conventions to know:
+A home-grown plugin, `internal/vite-config/src/plugins/app-loading`, prepends an HTML snippet **outside** `#app`, so mounting Vue cannot touch it. Four conventions to know:
 
 - The entry **always** does `import { loadingFadeOut } from 'virtual:app-loading'`, and `main.ts` runs `void nextTick(() => loadingFadeOut())` after `app.mount('#app')`. The plugin deliberately sets `autoRemove: false`: mounting does not clear the overlay, so if nobody calls the fade-out it covers the page and swallows every click.
 - The virtual module is **always resolvable**, switch or not: `VITE_INJECT_APP_LOADING` only decides whether to inject (true in both `.env.development` and `.env.production`). Wrapping the whole plugin in that if breaks the build with a resolve error.
 - The overlay theme tracks CSS variables automatically (`autoTheme: true`, scanning `src/**/*.css` etc. with prefix `--color-`, excluding `--ant-*` / `--tw-*`); fade duration comes from `VITE_APP_LOADING_DURATION`.
+- **The template is an HTML file**, not a TS template string: `internal/vite-config/src/plugins/app-loading/defaults/loading.html`, read as a string at build time through `?raw` (`src/index.ts:10`) thanks to `loader: { '.html': 'text' }` in `internal/vite-config/tsdown.config.ts:26`. It is inlined into `dist`, so no `defaults/` directory exists (or should exist) next to the bundle — reading it with `__dirname` at runtime would be an `ENOENT`. Two substitution syntaxes: EJS-style `<%= VAR %>` / `<%= VAR || 'fallback' %>` (`src/html-injector.ts:60-64`, values from `config.env` plus `htmlVariables`) and Vite's native `%VAR%` (`:66-68`, unrecognised names are left alone). To bring your own template: `loadingHtmlPath` (already wired to `VITE_APP_LOADING_PATH` for the app, `internal/vite-config/src/plugins/index.ts:207`; an unresolvable path prints a `console.warn` and falls back to the built-in template, `src/index.ts:104-119`), or pass `loadingHtml` as a string, which wins. Inside the template, radii are always rem and colours are always "CSS variable + fallback".
 
 ## 2. Route-change layer
 
@@ -35,7 +36,7 @@ Enter animations live in `packages/layouts/src/basic/content/page-transition.vue
 
 ## 3. Element-level masks
 
-The three tools from `@antdv/common-ui` (the entry point takes `vLoading` at `main.ts:8` and registers it at `:132`: `app.directive('loading', vLoading)`):
+The three tools from `@antdv/common-ui` (the entry point takes `vLoading` at `main.ts:8` and registers it at `:118`: `app.directive('loading', vLoading)`):
 
 ```vue
 <!-- directive: config comes from attributes; the arg is the tip text -->

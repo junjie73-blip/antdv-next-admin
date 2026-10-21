@@ -13,15 +13,15 @@
  * 4. 按源码发布的包（入口指向 `src/`）不得自带 `dev` / watch —— 它的热更新由宿主应用
  *    的 dev server 提供；自己再挂一个 watcher 就是"一半构建、一半热更新"的混合配置。
  */
-import { readFileSync, readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join, normalize } from 'node:path';
 import process from 'node:process';
 
 /** 只出 JSON / ESM 原文件，没有需要编译的源 */
 const NO_BUILD_PACKAGES = new Map([
-  ['@antdv/tsconfig', '只有 base.json / node.json / web.json 三份 tsconfig'],
-  ['@antdv/stylelint-config', '入口就是 index.mjs 本身'],
   ['@antdv/commitlint-config', '入口就是 index.mjs 本身'],
+  ['@antdv/stylelint-config', '入口就是 index.mjs 本身'],
+  ['@antdv/tsconfig', '只有 base.json / node.json / web.json 三份 tsconfig'],
 ]);
 
 const SCOPES = ['packages', 'internal', 'scripts', 'apps', 'docs'];

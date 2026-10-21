@@ -18,13 +18,15 @@ const mountPresets = (props: Record<string, any>) =>
     global: {
       stubs: {
         DropdownMenuContent: { template: '<div><slot /></div>' },
-        DropdownMenuItem: { template: '<button type="button"><slot /></button>' },
+        DropdownMenuItem: {
+          template: '<button type="button"><slot /></button>',
+        },
       },
     },
     props,
   });
 
-describe('AuthPageLayout', () => {
+describe('authPageLayout', () => {
   it('三段式骨架：品牌栏、表单栏、logo 与工具条各有数据钩子', () => {
     const wrapper = mount(AuthPageLayout, { props: { appName: 'Antdv' } });
     expect(wrapper.find('[data-auth="page"]').exists()).toBe(true);
@@ -113,19 +115,25 @@ describe('AuthPageLayout', () => {
 
   it('品牌栏的主色铭牌挂在 slogan-mark 上（端到端拿它和主按钮比对色链路）', () => {
     const wrapper = mount(AuthPageLayout);
-    expect(
-      wrapper.find('[data-auth="slogan-mark"]').classes(),
-    ).toContain('bg-primary');
+    expect(wrapper.find('[data-auth="slogan-mark"]').classes()).toContain(
+      'bg-primary',
+    );
   });
 
   it('版权与备案成页脚两行，icpLink 存在时备案变成外链', () => {
     const wrapper = mount(AuthPageLayout, {
-      props: { copyright: 'Antdv 2026', icp: '京ICP备000号', icpLink: 'https://beian.miit.gov.cn' },
+      props: {
+        copyright: 'Antdv 2026',
+        icp: '京ICP备000号',
+        icpLink: 'https://beian.miit.gov.cn',
+      },
     });
     const footer = wrapper.find('[data-auth="footer"]');
     expect(footer.text()).toContain('Copyright ©');
     expect(footer.text()).toContain('Antdv 2026');
-    expect(footer.find('a').attributes('href')).toBe('https://beian.miit.gov.cn');
+    expect(footer.find('a').attributes('href')).toBe(
+      'https://beian.miit.gov.cn',
+    );
 
     const plain = mount(AuthPageLayout, { props: { icp: '京ICP备000号' } });
     expect(plain.find('[data-auth="footer"] a').exists()).toBe(false);
@@ -150,7 +158,7 @@ describe('AuthPageLayout', () => {
   });
 });
 
-describe('AuthFormPanel', () => {
+describe('authFormPanel', () => {
   it('标题与描述各自可选', () => {
     const full = mount(AuthFormPanel, {
       props: { description: '描述', title: '欢迎回来' },
@@ -178,7 +186,7 @@ describe('AuthFormPanel', () => {
   });
 });
 
-describe('AuthSocialLogin', () => {
+describe('authSocialLogin', () => {
   const items = [
     { icon: 'mdi:github', label: 'GitHub', value: 'github' },
     { icon: 'mdi:wechat', label: 'WeChat', value: 'wechat' },
@@ -225,7 +233,7 @@ describe('AuthSocialLogin', () => {
   });
 });
 
-describe('AuthColorPresets', async () => {
+describe('authColorPresets', async () => {
   const presets = [
     { color: '#1677ff', key: 'default' },
     { color: '#722ed1', key: 'purple' },

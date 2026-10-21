@@ -1,17 +1,23 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import { cn } from '@antdv/shared/utils/cn'
+import type { HTMLAttributes } from 'vue';
+
+import { cn } from '@antdv/shared/utils/cn';
 
 const props = defineProps<{
-  class?: HTMLAttributes["class"]
-}>()
+  class?: HTMLAttributes['class'];
+}>();
 </script>
 
 <template>
   <tr
     data-slot="table-row"
-    :class="cn('hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors', props.class)"
+    :class="
+      cn(
+        'hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors',
+        props.class,
+      )
+    "
   >
-    <slot />
+    <slot></slot>
   </tr>
 </template>

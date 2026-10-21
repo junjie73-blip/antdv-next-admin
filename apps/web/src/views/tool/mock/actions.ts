@@ -1,5 +1,5 @@
-import type { MockRequestLog } from '~/api/mock';
 import type { ActionItem } from '@antdv/table-ui';
+import type { MockRequestLog } from '~/api/mock';
 
 import type { MockRouteRow } from './types';
 

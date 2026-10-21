@@ -1,27 +1,33 @@
 <script lang="ts" setup>
-import type { StepperSeparatorProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { StepperSeparator, useForwardProps } from "reka-ui"
-import { cn } from '@antdv/shared/utils/cn'
+import type { StepperSeparatorProps } from 'reka-ui';
 
-const props = defineProps<StepperSeparatorProps & { class?: HTMLAttributes["class"] }>()
+import type { HTMLAttributes } from 'vue';
 
-const delegatedProps = reactiveOmit(props, "class")
+import { cn } from '@antdv/shared/utils/cn';
+import { reactiveOmit } from '@vueuse/core';
+import { StepperSeparator, useForwardProps } from 'reka-ui';
 
-const forwarded = useForwardProps(delegatedProps)
+const props = defineProps<
+  StepperSeparatorProps & { class?: HTMLAttributes['class'] }
+>();
+
+const delegatedProps = reactiveOmit(props, 'class');
+
+const forwarded = useForwardProps(delegatedProps);
 </script>
 
 <template>
   <StepperSeparator
     v-bind="forwarded"
-    :class="cn(
-      'bg-muted',
-      // Disabled
-      'group-data-[disabled]:bg-muted group-data-[disabled]:opacity-50',
-      // Completed
-      'group-data-[state=completed]:bg-accent',
-      props.class,
-    )"
+    :class="
+      cn(
+        'bg-muted',
+        // Disabled
+        'group-data-[disabled]:bg-muted group-data-[disabled]:opacity-50',
+        // Completed
+        'group-data-[state=completed]:bg-accent',
+        props.class,
+      )
+    "
   />
 </template>

@@ -5,12 +5,11 @@ import { computed, nextTick, ref, watch } from 'vue';
 import { VueCropper } from 'vue-cropper';
 import 'vue-cropper/dist/index.css';
 
-import { useFileReader } from '@antdv/hooks/use-file-reader';
 import { BasicModal, message } from '@antdv/popup-ui';
+import { request } from '@antdv/request';
 import { Button } from '@antdv/shadcn-ui';
 import { Icon } from '@iconify/vue';
 import { useFileDialog } from '@vueuse/core';
-import { http } from '~/composables';
 
 interface Props {
   modelValue?: string;
@@ -38,8 +37,23 @@ const uploading = ref(false);
 const cropperRef = ref<InstanceType<typeof VueCropper> | null>(null);
 const modalApi = ref<(ModalInnerMethods & ModalMethods) | null>(null);
 
-const { read: readFile } = useFileReader();
 const imgSrc = ref<null | string>(null);
+
+/**
+ * 读成 DataURL 交给 vue-cropper。
+ *
+ * 这里为什么不复用 `@antdv/hooks/use-file-reader`：那个包依赖 table-ui / form-ui，
+ * 而它们反过来吃本包 —— 引一下就成环，turbo 整条任务链直接失败。
+ * 只有「拿一张 DataURL」这一点用量，就地读完比绕环便宜。
+ */
+function readAsDataURL(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ''));
+    reader.onerror = () => reject(new Error('文件读取失败'));
+    reader.readAsDataURL(file);
+  });
+}
 
 const previewStyle = computed(() => ({
   width: `${props.size}px`,
@@ -59,14 +73,17 @@ function handleFile(file: File) {
     return;
   }
 
-  // useFileReader 读取为 DataURL
-  readFile(file).then((data) => {
-    imgSrc.value = typeof data === 'string' ? data : null;
-    visible.value = true;
-    nextTick(() => {
-      cropperRef.value?.refresh?.();
+  readAsDataURL(file)
+    .then((data) => {
+      imgSrc.value = data;
+      visible.value = true;
+      nextTick(() => {
+        cropperRef.value?.refresh?.();
+      });
+    })
+    .catch((error: unknown) => {
+      message.error(error instanceof Error ? error.message : '文件读取失败');
     });
-  });
 }
 
 // 选文件通道：vueuse useFileDialog 替代 antdv Upload
@@ -77,16 +94,17 @@ const { open: openPicker, onChange: onPicked } = useFileDialog({
   reset: true,
 });
 onPicked((picked: FileList | null) => {
-  const file = Array.from(picked ?? [])[0];
+  const file = picked?.[0];
   if (file) handleFile(file);
 });
 
 async function handleConfirm() {
-  if (!cropperRef.value) return;
+  const cropper = cropperRef.value;
+  if (!cropper) return;
   uploading.value = true;
   try {
     const blob: Blob = await new Promise((resolve, reject) => {
-      cropperRef.value!.getCropBlob((data: Blob) => {
+      cropper.getCropBlob((data: Blob) => {
         if (data && data.size > 0) resolve(data);
         else reject(new Error('裁剪失败'));
       });
@@ -100,7 +118,7 @@ async function handleConfirm() {
     // 用它上传头像永远拿不到可回填的地址。
     const formData = new FormData();
     formData.append('file', file);
-    const res = await http.Post<{
+    const res = await request.post<{
       code: number;
       data: { url: string };
       message?: string;

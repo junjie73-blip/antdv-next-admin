@@ -1,23 +1,29 @@
 <script lang="ts" setup>
-import type { RangeCalendarHeaderProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { RangeCalendarHeader, useForwardProps } from "reka-ui"
-import { cn } from '@antdv/shared/utils/cn'
+import type { RangeCalendarHeaderProps } from 'reka-ui';
 
-const props = defineProps<RangeCalendarHeaderProps & { class?: HTMLAttributes["class"] }>()
+import type { HTMLAttributes } from 'vue';
 
-const delegatedProps = reactiveOmit(props, "class")
+import { cn } from '@antdv/shared/utils/cn';
+import { reactiveOmit } from '@vueuse/core';
+import { RangeCalendarHeader, useForwardProps } from 'reka-ui';
 
-const forwardedProps = useForwardProps(delegatedProps)
+const props = defineProps<
+  RangeCalendarHeaderProps & { class?: HTMLAttributes['class'] }
+>();
+
+const delegatedProps = reactiveOmit(props, 'class');
+
+const forwardedProps = useForwardProps(delegatedProps);
 </script>
 
 <template>
   <RangeCalendarHeader
     data-slot="range-calendar-header"
-    :class="cn('flex justify-center pt-1 relative items-center w-full', props.class)"
+    :class="
+      cn('flex justify-center pt-1 relative items-center w-full', props.class)
+    "
     v-bind="forwardedProps"
   >
-    <slot />
+    <slot></slot>
   </RangeCalendarHeader>
 </template>

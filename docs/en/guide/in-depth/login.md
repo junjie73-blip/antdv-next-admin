@@ -46,13 +46,11 @@ Rules implemented in the request layer (`packages/request/src/fetcher.ts` + `exe
 
 ::: warning
 
-The mock backend has no `/auth/refresh` `backend-mock/server/api/auth/` contains only `login` / `logout` / `user-info`, and the login response issues no refresh token. So in the demo environment a 401 simply ends in `forceLogout`. The refresh path is designed around `REFRESH_TOKEN_KEY` (`config/constants.ts`) and only becomes live against a real backend.
-:::
+The mock backend has no `/auth/refresh` `backend-mock/server/api/auth/` contains only `login` / `logout` / `user-info`, and the login response issues no refresh token. So in the demo environment a 401 simply ends in `forceLogout`. The refresh path is designed around `REFRESH_TOKEN_KEY` (`config/constants.ts`) and only becomes live against a real backend. :::
 
 ::: tip
 
-Token decryption is opt-in Store initialization only reads the ciphertext from cache as-is into `token` (`user.ts:19-20`); `initToken()` decrypts it asynchronously, falling back to the raw value when decryption fails (for legacy plaintext) (`user.ts:36-45`). It IS on the bootstrap path — `bootstrap()` in `main.ts` runs `await useUserStore().initToken()` before installing the router and mounting (`main.ts:167-171`), and it must happen before the first navigation, otherwise the guard still holds ciphertext and the `Authorization` header 401s.
-:::
+Token decryption is opt-in Store initialization only reads the ciphertext from cache as-is into `token` (`user.ts:19-20`); `initToken()` decrypts it asynchronously, falling back to the raw value when decryption fails (for legacy plaintext) (`user.ts:36-45`). It IS on the bootstrap path — `bootstrap()` in `main.ts` runs `await useUserStore().initToken()` before installing the router and mounting (`main.ts:153-157`), and it must happen before the first navigation, otherwise the guard still holds ciphertext and the `Authorization` header 401s. :::
 
 ## The four things logout must clear
 

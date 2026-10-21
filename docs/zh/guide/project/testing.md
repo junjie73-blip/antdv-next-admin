@@ -21,13 +21,11 @@ cd apps/web && pnpm exec vitest run -t "关键字"
 
 ::: tip
 
-"源码契约"是本项目的特色层有些规则只有扫源码才钉得住：路由页面根容器不许写 padding（`page-root-padding.spec.ts`）、登录页强调色不许写死（`login-styles.spec.ts`）、标签风格 class 集合（`tab-style.spec.ts`）、API 不许静默用错（`gallery-api-usage.spec.ts`）。
-:::
+"源码契约"是本项目的特色层有些规则只有扫源码才钉得住：路由页面根容器不许写 padding（`page-root-padding.spec.ts`）、登录页强调色不许写死（`login-styles.spec.ts`）、标签风格 class 集合（`tab-style.spec.ts`）、API 不许静默用错（`gallery-api-usage.spec.ts`）。:::
 
 ::: danger
 
-静态守卫必须配正反样例只断言"现存代码里 0 命中"是不够的 —— 正则写错（比如漏了转义、扫错了目录）时结果同样是 0 命中，守卫会静默变成一条永远绿的空检查。所以每条规则都带两组样例：**必须被抓到**的错写法，和**不许误伤**的正确写法，外加一条"扫描范围非空"的 sanity 断言（如 `expect(FILES.length).toBeGreaterThan(30)`）。
-:::
+静态守卫必须配正反样例只断言"现存代码里 0 命中"是不够的 —— 正则写错（比如漏了转义、扫错了目录）时结果同样是 0 命中，守卫会静默变成一条永远绿的空检查。所以每条规则都带两组样例：**必须被抓到**的错写法，和**不许误伤**的正确写法，外加一条"扫描范围非空"的 sanity 断言（如 `expect(FILES.length).toBeGreaterThan(30)`）。:::
 
 ## 端到端
 
@@ -61,8 +59,7 @@ e2e 夹具在 `apps/web/e2e/utils/app.ts`：`signIn` / `go` / `navigate` / `expe
 
 ::: tip
 
-判断"计时问题"还是"真坏了" 只重跑那一个引擎、那一条用例：`--project=webkit e2e/xxx.spec.ts -g "名字"`。单跑立刻绿 + 整跑红 ⇒ 环境/并发；单跑也红 ⇒ 真问题，去读 `error-context.md`。
-:::
+判断"计时问题"还是"真坏了" 只重跑那一个引擎、那一条用例：`--project=webkit e2e/xxx.spec.ts -g "名字"`。单跑立刻绿 + 整跑红 ⇒ 环境/并发；单跑也红 ⇒ 真问题，去读 `error-context.md`。:::
 
 ## 断言要落在"用户看得见的结果"上
 

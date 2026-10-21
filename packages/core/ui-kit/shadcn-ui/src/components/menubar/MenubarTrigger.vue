@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import type { MenubarTriggerProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { MenubarTrigger, useForwardProps } from "reka-ui"
-import { cn } from '@antdv/shared/utils/cn'
+import type { MenubarTriggerProps } from 'reka-ui';
 
-const props = defineProps<MenubarTriggerProps & { class?: HTMLAttributes["class"] }>()
+import type { HTMLAttributes } from 'vue';
 
-const delegatedProps = reactiveOmit(props, "class")
+import { cn } from '@antdv/shared/utils/cn';
+import { reactiveOmit } from '@vueuse/core';
+import { MenubarTrigger, useForwardProps } from 'reka-ui';
 
-const forwardedProps = useForwardProps(delegatedProps)
+const props = defineProps<
+  MenubarTriggerProps & { class?: HTMLAttributes['class'] }
+>();
+
+const delegatedProps = reactiveOmit(props, 'class');
+
+const forwardedProps = useForwardProps(delegatedProps);
 </script>
 
 <template>
@@ -23,6 +27,6 @@ const forwardedProps = useForwardProps(delegatedProps)
       )
     "
   >
-    <slot />
+    <slot></slot>
   </MenubarTrigger>
 </template>

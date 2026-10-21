@@ -5,23 +5,23 @@ import type { BasicColumn } from '@antdv/table-ui';
 
 import { ref } from 'vue';
 
-import { usePrint } from '@antdv/hooks/use-print';
 import {
   Alert,
   Card,
+  Description as DetailDescription,
   Divider,
   Popconfirm,
   Statistic,
   Tag,
 } from '@antdv/common-ui';
-import { cn } from '@antdv/shared/utils/cn';
-import { exportToExcel } from '~/utils/excel';
+import { usePrint } from '@antdv/hooks/use-print';
+import { BasicDrawer, message, useDrawer } from '@antdv/popup-ui';
 import { Button } from '@antdv/shadcn-ui';
+import { cn } from '@antdv/shared/utils/cn';
+import { BasicTable, useTable } from '@antdv/table-ui';
 import { Icon } from '@iconify/vue';
 import { getLoginLogList, getLoginLogStats } from '~/api/system';
-import { Description as DetailDescription } from '@antdv/common-ui';
-import { BasicDrawer, message, useDrawer } from '@antdv/popup-ui';
-import { BasicTable, useTable } from '@antdv/table-ui';
+import { exportToExcel } from '~/utils/excel';
 
 defineOptions({ name: 'SystemLoginLog' });
 
@@ -159,7 +159,7 @@ const detailSchemas: DescriptionItem[] = [
     label: 'User-Agent',
     render: (value) => (
       <code
-        class="block max-w-[480px] truncate rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800"
+        class="block max-w-[480px] truncate rounded-sm bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800"
         title={(value as string) || '-'}
       >
         {(value as string) || '-'}

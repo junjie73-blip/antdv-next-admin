@@ -1,7 +1,6 @@
+import { useAppStore } from '@antdv/stores';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it } from 'vitest';
-
-import { useAppStore } from '@antdv/stores';
 
 import {
   partitionVisibleWidgets,

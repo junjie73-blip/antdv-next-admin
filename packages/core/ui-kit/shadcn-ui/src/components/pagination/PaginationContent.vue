@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import type { PaginationListProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { PaginationList } from "reka-ui"
-import { cn } from '@antdv/shared/utils/cn'
+import type { PaginationListProps } from 'reka-ui';
 
-const props = defineProps<PaginationListProps & { class?: HTMLAttributes["class"] }>()
+import type { HTMLAttributes } from 'vue';
 
-const delegatedProps = reactiveOmit(props, "class")
+import { cn } from '@antdv/shared/utils/cn';
+import { reactiveOmit } from '@vueuse/core';
+import { PaginationList } from 'reka-ui';
+
+const props = defineProps<
+  PaginationListProps & { class?: HTMLAttributes['class'] }
+>();
+
+const delegatedProps = reactiveOmit(props, 'class');
 </script>
 
 <template>
@@ -17,6 +21,6 @@ const delegatedProps = reactiveOmit(props, "class")
     v-bind="delegatedProps"
     :class="cn('flex flex-row items-center gap-1', props.class)"
   >
-    <slot v-bind="slotProps" />
+    <slot v-bind="slotProps"></slot>
   </PaginationList>
 </template>

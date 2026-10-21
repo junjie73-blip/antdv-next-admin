@@ -1,17 +1,23 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import { cn } from '@antdv/shared/utils/cn'
+import type { HTMLAttributes } from 'vue';
+
+import { cn } from '@antdv/shared/utils/cn';
 
 const props = defineProps<{
-  class?: HTMLAttributes["class"]
-}>()
+  class?: HTMLAttributes['class'];
+}>();
 </script>
 
 <template>
   <div
     data-slot="alert-title"
-    :class="cn('col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight', props.class)"
+    :class="
+      cn(
+        'col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight',
+        props.class,
+      )
+    "
   >
-    <slot />
+    <slot></slot>
   </div>
 </template>

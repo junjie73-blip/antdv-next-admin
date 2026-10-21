@@ -5,8 +5,8 @@ import { useMagicKeys, whenever } from '@vueuse/core';
 
 import { useMobile } from '../hooks/use-layout';
 import GlobalSearch from './global-search/index.vue';
-import SettingDrawer from './setting-drawer/index.vue';
 import { partitionVisibleWidgets, useVisibleWidgets } from './registry';
+import SettingDrawer from './setting-drawer/index.vue';
 
 defineOptions({ name: 'LayoutWidgetBar' });
 

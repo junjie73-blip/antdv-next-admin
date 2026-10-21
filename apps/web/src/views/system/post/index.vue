@@ -13,6 +13,7 @@ import {
   Tag,
   Transfer,
 } from '@antdv/common-ui';
+import { DictType } from '@antdv/enums';
 import { BasicForm, useForm } from '@antdv/form-ui';
 import {
   BasicDrawer,
@@ -27,7 +28,6 @@ import { BasicTable, useTable } from '@antdv/table-ui';
 import { faker } from '@faker-js/faker/locale/zh_CN';
 import { Icon } from '@iconify/vue';
 import { addPost, deletePost, getPostList, updatePost } from '~/api/system';
-import { DictType } from '@antdv/enums';
 import { useDictStore } from '~/stores';
 
 defineOptions({ name: 'SystemPost' });
@@ -67,7 +67,7 @@ const actionClassName = cn(
 const btnClassName = cn('h-auto', 'px-0.5!');
 const dangerLinkBtnClassName = cn(
   btnClassName,
-  'text-destructive hover:text-destructive',
+  'hover:text-destructive text-destructive',
 );
 const dividerClassName = cn('mx-0');
 
@@ -575,21 +575,13 @@ const columns: BasicColumn[] = [
         <div
           class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400"
         >
-          <span
-            >岗位编码：<Tag color="blue">{{
+          <span>岗位编码：<Tag color="blue">{{
               assignPostRecord?.code
-            }}</Tag></span
-          >
-          <span
-            >所属部门：<Tag color="cyan">{{
+            }}</Tag></span>
+          <span>所属部门：<Tag color="cyan">{{
               assignPostRecord?.deptName
-            }}</Tag></span
-          >
-          <span
-            >已选：<Tag color="orange"
-              >{{ selectedAssignUserIds.length }} 人</Tag
-            ></span
-          >
+            }}</Tag></span>
+          <span>已选：<Tag color="orange">{{ selectedAssignUserIds.length }} 人</Tag></span>
         </div>
 
         <!-- 搜索框 -->

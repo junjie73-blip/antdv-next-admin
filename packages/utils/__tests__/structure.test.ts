@@ -3,8 +3,8 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import * as barrel from '../src/index';
 import pkg from '../package.json';
+import * as barrel from '../src/index';
 
 const srcDir = path.resolve(import.meta.dirname, '../src');
 

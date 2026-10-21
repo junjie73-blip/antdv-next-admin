@@ -4,8 +4,8 @@ import { useRouter } from 'vue-router';
 
 import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
-import { HOME_PATH, LOGIN_PATH } from '~/config/constants';
 import { useUserStore } from '@antdv/stores';
+import { HOME_PATH, LOGIN_PATH } from '~/config/constants';
 
 const router = useRouter();
 const userStore = useUserStore();

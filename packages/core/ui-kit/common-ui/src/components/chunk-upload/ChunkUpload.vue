@@ -7,11 +7,11 @@ import type {
 
 import { computed } from 'vue';
 
-import { Tag } from '@antdv/common-ui';
 import { message } from '@antdv/popup-ui';
 import { cn } from '@antdv/shared/utils/cn';
 import { Icon } from '@iconify/vue';
 
+import { Tag } from '../tag';
 import { useChunkUploader } from './composables/useChunkUploader';
 import { classifyUploadError, STATUS_COLOR } from './constants';
 import { formatBytes, formatDuration } from './utils';
@@ -42,6 +42,7 @@ const uploader = useChunkUploader({
   bandwidth: bandwidthLimit.value,
   chunkSize: props.chunkSize,
   concurrency: props.concurrency,
+  createWorker: props.createWorker,
   maxRetry: props.maxRetry,
 
   onUpdate: (task) => {
@@ -468,9 +469,7 @@ const hasPaused = computed(() =>
             v-else-if="task.status === 'success'"
             class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
           >
-            <span class="text-green-600 dark:text-green-400"
-              >✓ 已上传并入库</span
-            >
+            <span class="text-green-600 dark:text-green-400">✓ 已上传并入库</span>
             <a
               v-if="task.result?.url"
               :href="task.result.url"

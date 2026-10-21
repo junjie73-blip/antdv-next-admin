@@ -964,9 +964,7 @@ const outputPreClassName = cn(
             <p :class="hintClassName">
               「导出 Markdown」与「取值」只读本地内容，结果打到控制台；
               「插入图片」用的是本地生成的 data URL，不请求接口。
-              工具栏上的「上传图片 / 上传视频」才会走组件内置上传 （<code
-                >POST /api/upload/file</code
-              >），本地由 mock 返回一张内联 SVG 占位图，不落盘。
+              工具栏上的「上传图片 / 上传视频」才会走组件内置上传 （<code>POST /api/upload/file</code>），本地由 mock 返回一张内联 SVG 占位图，不落盘。
             </p>
           </Card>
 

@@ -34,6 +34,8 @@ interface BootSnapshot {
   theme: 'auto' | 'dark' | 'light';
   themeKey: string;
   vars: { background: string; foreground: string; primary: string };
+  /** 快照格式版本：v2 起颜色存 HSL 三段，v1 存的是完整颜色 */
+  version: number;
 }
 
 /** 偏好包写下的首屏快照（明文，键名带应用前缀，按后缀找） */
@@ -61,17 +63,20 @@ function readFirstPaint(page: Page) {
     const root = document.documentElement;
     return {
       accent: getComputedStyle(loader, '::after').backgroundColor,
-      appPrimaryInline: root.style.getPropertyValue('--app-primary'),
+      appPrimaryInline: root.style.getPropertyValue('--primary'),
       booted: (document.querySelector('#app')?.childElementCount ?? 0) > 0,
       dark: root.classList.contains('dark'),
-      dataTheme: root.getAttribute('data-theme'),
+      dataTheme: root.dataset.theme,
       loadingPrimary: root.style.getPropertyValue('--loading-primary'),
     };
   });
 }
 
-async function firstPaint(page: Page) {
-  let captured: Awaited<ReturnType<typeof readFirstPaint>> = null;
+/** 抢到那次"应用挂载之前"的读数 */
+type FirstPaint = NonNullable<Awaited<ReturnType<typeof readFirstPaint>>>;
+
+async function firstPaint(page: Page): Promise<FirstPaint> {
+  let captured: FirstPaint | null = null;
   await expect
     .poll(
       async () => {
@@ -82,11 +87,14 @@ async function firstPaint(page: Page) {
       { message: '没能在应用挂载前读到遮罩的颜色' },
     )
     .not.toBeNull();
-  return captured as NonNullable<Awaited<ReturnType<typeof readFirstPaint>>>;
+  // 类型看不出闭包里的赋值，用一次显式判空把"轮询已保证非空"还给编译器
+  const beforeBoot: FirstPaint | null = captured;
+  if (!beforeBoot) throw new Error('轮询结束时没有抓到挂载前的读数');
+  return beforeBoot;
 }
 
 async function pickAppearance(page: Page, ...labels: string[]) {
-  const drawer = await openPreferenceDrawer(page, '外观');
+  await openPreferenceDrawer(page, '外观');
   for (const label of labels) {
     await page
       .getByRole('button', { name: label, exact: true })
@@ -148,7 +156,7 @@ test.describe('首屏 Loading 的主题色同步', () => {
     await signIn(page);
     await go(page, '/system/user');
 
-    const drawer = await openPreferenceDrawer(page, '外观');
+    await openPreferenceDrawer(page, '外观');
     await page.getByRole('button', { name: '自定义', exact: true }).click();
     await page.locator('input[type="color"]').fill('#123456');
     await closePreferenceDrawer(page);
@@ -172,6 +180,57 @@ test.describe('首屏 Loading 的主题色同步', () => {
     expect(paint.appPrimaryInline.trim()).toBe(snapshot?.vars.primary.trim());
   });
 
+  /**
+   * 把快照退回 v1 的形状：没有版本号，颜色存的是整色而不是 HSL 三段。
+   *
+   * 真实场景是"升级前存下的缓存"—— 格式换了但键名没换，读侧只能靠 `version` 认。
+   */
+  async function downgradeSnapshot(page: Page) {
+    await page.evaluate(() => {
+      const key = Object.keys(localStorage).find((name) =>
+        name.endsWith('_bootTheme'),
+      );
+      if (!key) throw new Error('前置没成立：本地没有首屏快照');
+      const snapshot = JSON.parse(localStorage.getItem(key) as string);
+      snapshot.version = 1;
+      snapshot.vars = {
+        background: '#ffffff',
+        foreground: '#000000',
+        primary: 'rgb(18, 52, 86)',
+      };
+      localStorage.setItem(key, JSON.stringify(snapshot));
+    });
+  }
+
+  test('旧格式快照只复原明暗与档位，颜色不参与首屏染色', async ({ page }) => {
+    await signIn(page);
+    await go(page, '/system/user');
+
+    await openPreferenceDrawer(page, '外观');
+    await page.getByRole('button', { name: '自定义', exact: true }).click();
+    await page.locator('input[type="color"]').fill('#123456');
+    await closePreferenceDrawer(page);
+
+    await expect
+      .poll(() => readSnapshot(page).then((s) => s?.themeKey), {
+        message: '自定义色没被记成 custom 档',
+      })
+      .toBe('custom');
+
+    await downgradeSnapshot(page);
+    await page.reload({ waitUntil: 'commit' });
+    const paint = await firstPaint(page);
+
+    // 与格式无关的三条照旧复原
+    expect(paint.dataTheme).toBe('custom');
+    /*
+     *  gated 在版本号上的两条：把 v1 的整色写进 `--primary` / `--loading-primary`
+     *  会让 `hsl(var(--loading-primary, …))` 整条失效，遮罩直接变透明 —— 比"没同步"更糟。
+     */
+    expect(paint.appPrimaryInline, 'v1 的整色被搬进了 html').toBe('');
+    expect(paint.loadingPrimary, 'v1 的整色被搬进了首屏变量').toBe('');
+  });
+
   test('没有快照时首屏退回兜底色，应用照常起来', async ({ page }) => {
     const errors = watchErrors(page);
 
@@ -189,7 +248,8 @@ test.describe('首屏 Loading 的主题色同步', () => {
 
     // 同步脚本本身是静默的：读不到快照就 return，不抛错、不挡挂载
     await expect(page.getByPlaceholder('请输入用户名')).toBeVisible();
-    const injections = (await page.content()).split(THEME_SYNC_MARKER).length - 1;
+    const html = await page.content();
+    const injections = html.split(THEME_SYNC_MARKER).length - 1;
     expect(injections, '同步脚本被重复注入').toBe(1);
     expect(errors.errors, errors.errors.join('\n')).toEqual([]);
     errors.stop();

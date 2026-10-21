@@ -30,7 +30,7 @@
 
 antd 侧的样式来自 `@antdv-next/cssinjs` 运行时（App.vue 的 `StyleProvider` + `autoPrefixTransformer / px2remTransformer`），**没有 import 过 antd 静态 CSS**，所以不存在"preflight 重置覆盖 antd 组件"的经典冲突：antd 组件自带 cssinjs 的 hash 优先级，工具类要改它得走 `:deep()`（`CODE_STANDARD.md` 第 7 节规定的第四优先级）。
 
-**颜色只有一条路**：`@antdv/design` 的 `token/index.css` 用 `@theme inline` 把本包的 `--app-*` 接成 Tailwind 变量（`--color-primary: var(--app-primary)`、`--color-muted-foreground` 等一整套 27 个语义色），于是：
+**颜色只有一条路**：`@antdv/design` 的 `token/index.css` 用 `@theme inline` 把本包的 `--*` 接成 Tailwind 变量（`--color-primary: var(--primary)`、`--color-muted-foreground` 等一整套 27 个语义色），于是：
 
 ```ts
 cn('bg-primary text-primary-foreground shadow-primary/30'); // 永远跟主色
@@ -38,8 +38,7 @@ cn('bg-primary text-primary-foreground shadow-primary/30'); // 永远跟主色
 
 ::: danger
 
-不要用 `*-ant-primary`。那组类来自 antdv-next 的 Tailwind 兼容层（`@antdv-next/tailwind/compat.css`），本包已不引它 —— 不是颜色不对，而是**整条类根本不生成**。
-:::
+不要用 `*-ant-primary`。那组类来自 antdv-next 的 Tailwind 兼容层（`@antdv-next/tailwind/compat.css`），本包已不引它 —— 不是颜色不对，而是**整条类根本不生成**。:::
 
 登录页有 `views/login/__tests__/login-styles.spec.ts` 用源码契约钉住"强调色只能来自本包的主色令牌"。写死 `bg-blue-600` / `#1677ff` 在换主色或进暗黑时必露馅（存量 view 文件里还有硬编码，属逐步清理的技术债 —— 见主题页同款警告）。
 

@@ -2,8 +2,8 @@
 import { computed } from 'vue';
 
 import { useLayoutI18n } from '@antdv/layout-ui';
-import { Icon } from '@iconify/vue';
 import { useAppStore } from '@antdv/stores';
+import { Icon } from '@iconify/vue';
 
 import { useThemeTransition } from '../../hooks/use-theme-transition';
 import WidgetButton from '../widget-button.vue';

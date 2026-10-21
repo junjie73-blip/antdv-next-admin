@@ -23,8 +23,7 @@ full-content · horizontal · mixed-two-column · mixed-vertical · side-nav · 
 
 ::: tip
 
-Adding an 8th mode Add one entry to `LAYOUT_BLUEPRINTS` plus one literal to the `LayoutMode` union type, and the layout components don't have to change. That's the point of expressing mode differences as data instead of `if/else`. The legacy value `'mixed'` was renamed to `'mixed-vertical'`; `normalizeLayoutMode()` migrates old cached values while reading preferences, without persisting them.
-:::
+Adding an 8th mode Add one entry to `LAYOUT_BLUEPRINTS` plus one literal to the `LayoutMode` union type, and the layout components don't have to change. That's the point of expressing mode differences as data instead of `if/else`. The legacy value `'mixed'` was renamed to `'mixed-vertical'`; `normalizeLayoutMode()` migrates old cached values while reading preferences, without persisting them. :::
 
 ## Content area padding belongs to the layout
 
@@ -65,8 +64,7 @@ Tab page state moved out of the components into a store, so drag-to-reorder, the
 
 ::: warning
 
-One trap to avoid when sweeping The shell's own multi-tab bar renders as `a[href^="#/..."]`. When writing a case, anything that "counts links in the content area" has to be scoped into `<main>` first, otherwise you always count a few extra — that's exactly how the overview page's card wall came out above 1 when filtered down to empty.
-:::
+One trap to avoid when sweeping The shell's own multi-tab bar renders as `a[href^="#/..."]`. When writing a case, anything that "counts links in the content area" has to be scoped into `<main>` first, otherwise you always count a few extra — that's exactly how the overview page's card wall came out above 1 when filtered down to empty. :::
 
 ## Breadcrumb
 

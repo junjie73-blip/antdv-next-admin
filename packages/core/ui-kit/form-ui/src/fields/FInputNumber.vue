@@ -88,20 +88,48 @@ function stepBy(direction: number) {
       <button
         type="button"
         class="px-1.5 text-muted-foreground hover:text-foreground disabled:opacity-50"
-        :disabled="disabled || (max !== undefined && (value ?? -Infinity) >= max)"
+        :disabled="
+          disabled || (max !== undefined && (value ?? -Infinity) >= max)
+        "
         aria-label="增加"
         @click="stepBy(1)"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6" /></svg>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="m18 15-6-6-6 6" />
+        </svg>
       </button>
       <button
         type="button"
         class="border-t px-1.5 text-muted-foreground hover:text-foreground disabled:opacity-50"
-        :disabled="disabled || (min !== undefined && (value ?? Infinity) <= min)"
+        :disabled="
+          disabled || (min !== undefined && (value ?? Infinity) <= min)
+        "
         aria-label="减少"
         @click="stepBy(-1)"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-9" /></svg>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="m6 9 6 6 6-9" />
+        </svg>
       </button>
     </div>
   </div>

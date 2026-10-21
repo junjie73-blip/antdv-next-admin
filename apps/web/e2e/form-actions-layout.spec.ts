@@ -52,17 +52,17 @@ function snapshot(page: Page) {
       btnTexts: [...actionsEl.querySelectorAll('button')].map((b) =>
         (b.textContent ?? '').trim(),
       ),
-      cells: [
-        ...rowEl.querySelectorAll<HTMLElement>('[data-field]'),
-      ].map((el) => {
-        const r = el.getBoundingClientRect();
-        return {
-          field: el.dataset.field ?? '',
-          left: Math.round(r.left - base.left),
-          right: Math.round(r.right - base.left),
-          top: Math.round(r.top - base.top),
-        };
-      }),
+      cells: [...rowEl.querySelectorAll<HTMLElement>('[data-field]')].map(
+        (el) => {
+          const r = el.getBoundingClientRect();
+          return {
+            field: el.dataset.field ?? '',
+            left: Math.round(r.left - base.left),
+            right: Math.round(r.right - base.left),
+            top: Math.round(r.top - base.top),
+          };
+        },
+      ),
       rowCount: document.querySelectorAll('.form-row').length,
       row: {
         left: Math.round(rowRect.left - base.left),

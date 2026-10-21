@@ -70,7 +70,7 @@ features:
     linkText: Testing strategy
   - icon: 🖼
     title: Design tokens and global styles
-    details: Tailwind v4 with an explicit layer order, so overriding the component library needs no !important; the shadcn semantic palette ships as --app-* variables pinned to the root element, so overlays and pages resolve identically.
+    details: Tailwind v4 with an explicit layer order, so overriding the component library needs no !important; the shadcn semantic palette ships as --* variables pinned to the root element, so overlays and pages resolve identically.
     link: /en/guide/essentials/design
     linkText: Design tokens
   - icon: 📦
@@ -105,5 +105,4 @@ features:
 
 ::: info
 
-Conventions Every command in the docs runs from the repo root. The package manager is pinned to `pnpm@10.12.4` (locked by the `packageManager` field), Node is required to be `>=22`, and locally we use 24.0.0 from `.node-version`.
-:::
+Conventions Every command in the docs runs from the repo root. The package manager is pinned to `pnpm@10.12.4` (locked by the `packageManager` field), Node is required to be `>=22`, and locally we use 24.0.0 from `.node-version`. :::

@@ -1,4 +1,4 @@
-import { request } from '~/composables';
+import { request } from '@antdv/request';
 
 /* ============================================================
  * 类型
@@ -43,13 +43,16 @@ export function uploadSingleFile(
     }
   }
 
-  return request.post<{
-    code: number;
-    data: UploadedFileResult;
-    message?: string;
-  }>('/upload/file', formData, {
-    timeout: 5 * 60 * 1000,
-  });
+  // 与其它几个接口同一口径：`request.post` 拿回的是整封响应，`data` 才是文件记录
+  return request
+    .post<{
+      code: number;
+      data: UploadedFileResult;
+      message?: string;
+    }>('/upload/file', formData, {
+      timeout: 5 * 60 * 1000,
+    })
+    .then((res) => res.data);
 }
 
 /* ============================================================
@@ -88,7 +91,7 @@ export function checkInstant(input: {
 /* ============================================================
  * ⭐ 上传单个分片（60s 超时）
  * ============================================================ */
-export function uploadChunk(params: {
+export async function uploadChunk(params: {
   uploadId: string;
   index: number;
   total: number;
@@ -103,7 +106,7 @@ export function uploadChunk(params: {
   formData.append('totalChunks', String(total));
   formData.append('file', chunk, `${filename}.part${index}`);
 
-  return request.post<{ code: number; message?: string }>(
+  await request.post<{ code: number; message?: string }>(
     '/upload/chunk',
     formData,
     {
@@ -138,8 +141,8 @@ export function mergeChunks(params: {
 /* ============================================================
  * 删除物理文件
  * ============================================================ */
-export function deletePhysicalFile(url: string): Promise<void> {
-  return request.post<{ code: number; message?: string }>('/upload/delete', {
+export async function deletePhysicalFile(url: string): Promise<void> {
+  await request.post<{ code: number; message?: string }>('/upload/delete', {
     url,
   });
 }

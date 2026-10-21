@@ -3,7 +3,6 @@ import { ref } from 'vue';
 
 import { Card, Scrollbar } from '@antdv/common-ui';
 import { Button, Input } from '@antdv/shadcn-ui';
-
 import { cn } from '@antdv/shared/utils/cn';
 
 const containerClassName = cn('space-y-6');
@@ -149,8 +148,7 @@ function sendMessage() {
             >
               <span
                 class="text-lg font-semibold text-gray-800 dark:text-gray-200"
-                >{{ item }}</span
-              >
+                >{{ item }}</span>
               <span class="mt-1 text-xs text-gray-400">#{{ index + 1 }}</span>
             </div>
           </div>

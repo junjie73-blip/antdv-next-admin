@@ -1,11 +1,12 @@
 <script lang="ts" setup>
-import type { HTMLAttributes } from "vue"
-import { MoreHorizontal } from "@lucide/vue"
-import { cn } from '@antdv/shared/utils/cn'
+import type { HTMLAttributes } from 'vue';
+
+import { cn } from '@antdv/shared/utils/cn';
+import { MoreHorizontal } from '@lucide/vue';
 
 const props = defineProps<{
-  class?: HTMLAttributes["class"]
-}>()
+  class?: HTMLAttributes['class'];
+}>();
 </script>
 
 <template>

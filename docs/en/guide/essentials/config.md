@@ -43,7 +43,7 @@ Build side only (read inside `internal/vite-config`, invisible to the browser):
 | Variable | Default | What turning it on does | Defined at |
 | --- | --- | --- | --- |
 | `VITE_PORT` | `5173` (`DEFAULT_PORT`) | dev server port; falls back to `options.port` only when `Number()` fails | `config/application.ts:105` |
-| `VITE_DEVTOOLS` | off | `vite-plugin-vue-devtools` | `plugins/index.ts:105-107` |
+| `VITE_DEVTOOLS` | off | `vite-plugin-vue-devtools` | `plugins/index.ts:123-126` |
 | `VITE_VISUALIZER` | off | emits `stats.html` via `vite-bundle-analyzer` | `:110-111` |
 | `VITE_TURBO_CONSOLE` | off | terminal highlighting through `unplugin-console-highlight` | `:112-113` |
 | `VITE_ARCHIVER` | off | zips the build output | `:119-120` |
@@ -57,7 +57,7 @@ Build side only (read inside `internal/vite-config`, invisible to the browser):
 | `VITE_DEV_POLLING` | off | sets `server.watch.usePolling`; the measured conclusion is in [Local development](/en/guide/essentials/development) | `config/application.ts:119-123` |
 | `VITE_MOCK_SERVER` / `VITE_MOCK_PORT` | `http://localhost:5320` / `5320` | proxy target and embedded Nitro port; both derive from the same variable on purpose | `utils/proxy.ts:40-90` |
 | `VITE_PROXY` | none | extra `[prefix, target][]` proxy entries; the mock proxy always wins | `config/application.ts:106` |
-| `VITE_APP_BASE_URL` | none | injected into `canonical` / `og:url` in `index.html` | `plugins/index.ts:88-92` |
+| `VITE_APP_BASE_URL` | none | injected into `canonical` / `og:url` in `index.html` | `plugins/index.ts:90-97` |
 
 ::: warning
 
@@ -65,8 +65,7 @@ Three variables that look live but are not read anywhere
 
 - `VITE_NAMESPACE`: appears only in `.env` and `types/env.d.ts`, zero references in code. The cache prefix actually comes from `VITE_APP_TITLE`, so don't trust the name.
 - `VITE_APP_VERSION`: produced by a `define` in `plugins/metadata.ts:104`; no application code reads it.
-- `VITE_MINIO_PUBLIC_URL` and `VITE_SENTRY_DSN`: read in code (`bootstrap/env.ts`, `main.ts`) but absent from all three `.env` files, so they are `undefined` at runtime. Sentry only initializes inside the `import.meta.env.PROD` branch and a missing DSN means nothing is reported; without a MinIO URL, downloads keep going through the proxy prefix (`packages/core/base/shared/src/utils/download.ts`).
-:::
+- `VITE_MINIO_PUBLIC_URL` and `VITE_SENTRY_DSN`: read in code (`bootstrap/env.ts`, `main.ts`) but absent from all three `.env` files, so they are `undefined` at runtime. Sentry only initializes inside the `import.meta.env.PROD` branch and a missing DSN means nothing is reported; without a MinIO URL, downloads keep going through the proxy prefix (`packages/core/base/shared/src/utils/download.ts`). :::
 
 `vite-plugin-iconify-offline`, `@vitejs/plugin-legacy` and `vite-plugin-cdn-import` are listed in `apps/web/package.json` devDependencies but **never imported**. Offline icons come from `@tomjs/vite-plugin-iconify` (see [Icons](/en/guide/essentials/icons)). Search for an import before assuming a declared plugin is active.
 
@@ -95,12 +94,11 @@ Options accepted by `defineApplicationConfig(options)` (`internal/vite-config/sr
 
 Merge order is `common → application → overrides` (two `mergeConfig` calls at `:127-130`). Deviate through `overrides` rather than rewriting the config in the app: if `createCommonConfig()`'s aliases and `dedupe` get lost, the symptom is "it runs, but type-check explodes / two Vue runtimes appear at runtime".
 
-`createPlugins()` branches on artifact kind (`internal/vite-config/src/plugins/index.ts:49-195`): only `application` gets HTML injection, PWA, archiving and metadata; `library` keeps the compile chain plus `.d.ts`.
+`createPlugins()` branches on artifact kind (`internal/vite-config/src/plugins/index.ts:55-213`): only `application` gets HTML injection, PWA, archiving and metadata; `library` keeps the compile chain plus `.d.ts`.
 
 ::: warning
 
-`VITE_INJECT_APP_LOADING=false` does not skip the plugin The entry always contains `import { loadingFadeOut } from 'virtual:app-loading'`. Skipping the plugin entirely makes the virtual module unresolvable and the build fails with a 500; the switch therefore only controls injection, and when nothing was injected those functions find no container and do nothing (`plugins/index.ts:139-145`).
-:::
+`VITE_INJECT_APP_LOADING=false` does not skip the plugin The entry always contains `import { loadingFadeOut } from 'virtual:app-loading'`. Skipping the plugin entirely makes the virtual module unresolvable and the build fails with a 500; the switch therefore only controls injection, and when nothing was injected those functions find no container and do nothing (`plugins/index.ts:157-164`). :::
 
 ## User preferences
 

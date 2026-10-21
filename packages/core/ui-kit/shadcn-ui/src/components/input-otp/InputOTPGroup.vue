@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { useForwardProps } from "reka-ui"
-import { cn } from '@antdv/shared/utils/cn'
+import type { HTMLAttributes } from 'vue';
 
-const props = defineProps<{ class?: HTMLAttributes["class"] }>()
+import { cn } from '@antdv/shared/utils/cn';
+import { reactiveOmit } from '@vueuse/core';
+import { useForwardProps } from 'reka-ui';
 
-const delegatedProps = reactiveOmit(props, "class")
+const props = defineProps<{ class?: HTMLAttributes['class'] }>();
 
-const forwarded = useForwardProps(delegatedProps)
+const delegatedProps = reactiveOmit(props, 'class');
+
+const forwarded = useForwardProps(delegatedProps);
 </script>
 
 <template>
@@ -17,6 +18,6 @@ const forwarded = useForwardProps(delegatedProps)
     v-bind="forwarded"
     :class="cn('flex items-center', props.class)"
   >
-    <slot />
+    <slot></slot>
   </div>
 </template>

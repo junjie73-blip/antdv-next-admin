@@ -10,7 +10,7 @@ import TableSkeleton from '../src/components/skeleton/TableSkeleton.vue';
 const bars = (wrapper: ReturnType<typeof mount>) =>
   wrapper.findAll('[data-slot="skeleton"]').length;
 
-describe('PageSkeleton', () => {
+describe('pageSkeleton', () => {
   it('page 变体默认：标题1 + 操作3 + 行5 = 9 块', () => {
     expect(bars(mount(PageSkeleton, { props: { variant: 'page' } }))).toBe(9);
   });
@@ -77,21 +77,21 @@ describe('PageSkeleton', () => {
   });
 });
 
-describe('TableSkeleton', () => {
+describe('tableSkeleton', () => {
   it('默认：表头6 + 数据48 + 分页6 = 60 块', () => {
     expect(bars(mount(TableSkeleton))).toBe(6 + 8 * 6 + 6);
   });
 
   it('showActions=false 去掉操作列（表头/数据各减）', () => {
-    expect(
-      bars(mount(TableSkeleton, { props: { showActions: false } })),
-    ).toBe(5 + 8 * 5 + 6);
+    expect(bars(mount(TableSkeleton, { props: { showActions: false } }))).toBe(
+      5 + 8 * 5 + 6,
+    );
   });
 
   it('showHeader=false 去掉表头', () => {
-    expect(
-      bars(mount(TableSkeleton, { props: { showHeader: false } })),
-    ).toBe(0 + 8 * 6 + 6);
+    expect(bars(mount(TableSkeleton, { props: { showHeader: false } }))).toBe(
+      0 + 8 * 6 + 6,
+    );
   });
 
   it('showPagination=false 去掉分页占位', () => {
@@ -110,8 +110,8 @@ describe('TableSkeleton', () => {
   });
 
   it('columns/rows 驱动数量', () => {
-    expect(
-      bars(mount(TableSkeleton, { props: { columns: 2, rows: 3 } })),
-    ).toBe(3 + 3 * 3 + 6);
+    expect(bars(mount(TableSkeleton, { props: { columns: 2, rows: 3 } }))).toBe(
+      3 + 3 * 3 + 6,
+    );
   });
 });

@@ -14,8 +14,7 @@
 
 ::: warning
 
-一处死配置 `pnpm-workspace.yaml` 末尾还有个具名 catalog `catalogs.conflicts_vue_h3_5_43`（`vue: ^3.5.43`），但全仓没有任何 package.json 写 `catalog(conflicts_vue_h3_5_43)` —— 它不参与解析，别指望它生效。
-:::
+一处死配置 `pnpm-workspace.yaml` 末尾还有个具名 catalog `catalogs.conflicts_vue_h3_5_43`（`vue: ^3.5.43`），但全仓没有任何 package.json 写 `catalog(conflicts_vue_h3_5_43)` —— 它不参与解析，别指望它生效。:::
 
 ## 安装期真正生效的开关
 
@@ -48,8 +47,7 @@ pnpm release                      # pnpm build && changeset publish
 
 ::: danger
 
-别把 `pnpm release` 当成"发 npm" `packages/*`、`apps/*` 与根包的 package.json **全部是 `"private": true`**，也没有 `publishConfig`。changesets 在这里只产出 CHANGELOG 与 git tag，不会往 registry 推任何东西。发布历史也确实薄： `git tag` 现在只有 `v0.0.3` 和一个 `vnull`，而版本号已经走到 0.4.0；`.github/workflows/` 里只有 `docs.yml`（它的注释还引用了一个不存在的 `ci.yml`）。**升级与发版目前是一次纯本地动作**，要打标签得自己 `git tag && git push --tags`。
-:::
+别把 `pnpm release` 当成"发 npm" `packages/*`、`apps/*` 与根包的 package.json **全部是 `"private": true`**，也没有 `publishConfig`。changesets 在这里只产出 CHANGELOG 与 git tag，不会往 registry 推任何东西。发布历史也确实薄： `git tag` 现在只有 `v0.0.3` 和一个 `vnull`，而版本号已经走到 0.4.0；`.github/workflows/` 里只有 `docs.yml`（它的注释还引用了一个不存在的 `ci.yml`）。**升级与发版目前是一次纯本地动作**，要打标签得自己 `git tag && git push --tags`。:::
 
 ## 一次 antdv-next 升级怎么跑
 
@@ -75,15 +73,14 @@ cd apps/web && pnpm exec playwright test --project=chromium --reporter=line
 
 ## 破坏性升级最先敲门的五处
 
-1. **`ConfigProvider` 的 theme 形状**（`apps/web/src/App.vue:27-28、50-51`）。`theme` 对象由 `packages/core/preferences/src/theme/index.ts` 组装：`algorithm`（`darkAlgorithm` / `defaultAlgorithm` / `compactAlgorithm`）、`token`（`lightToken` / `darkToken` + 注册式风格预设 + 运行时覆盖）、`components` 三层。算法字段改名不会报错，只会让深色/紧凑主题静默退回默认。同一层还要留意 `packages/utils/src/css-vars.ts` 把主色**写两遍**（`--ant-color-primary` 与旧命名 `--ant-primary-color`，都是给 antdv-next 的桥；设计规范本身只读 `--app-*`），主题口径见 [主题与偏好设置](/zh/guide/in-depth/theme)。
+1. **偏好 → DOM 的唯一出口**。`packages/core/preferences/src/update-css-variables.ts` 的 `applyPreferencesToDom()`与它内部的 `writeThemeCssVars()` 把 `primaryColor / borderRadius / fontSize` 与灰度·色弱开关落成 `<html>` 上的 `--primary` / `--radius` / `--font-size` / `--filter` 加 `dark` class 与 `data-theme` 档位。两条格式纪律最容易在升级时踩：颜色变量的值必须是 **HSL 三段**（`convertToHslCssVar()` 生成），写整色会让 `hsl(var(--x))` 整条失效；圆角必须是 **rem**（`radiusToRem()` 是唯一的 px→rem 出口）。曾经给 antdv-next 用的 `--ant-color-primary` / `--ant-primary-color` / `--ant-border-radius` 桥已经删干净，并被 `packages/core/preferences/__tests__/update-css-variables.test.ts:80-82` 反向钉住"不许再出现"。主题口径见 [主题与偏好设置](/zh/guide/in-depth/theme)。
 2. **子组件模板写法**。还有 4 个页面在用 antd 子组件（`views/account/center`、 `views/components/form/steps`、`views/components/table/crud`、`views/system/notice`），而 resolver 下线后它们全部走显式 import（`import { DescriptionsItem as ADescriptionsItem } from 'antdv-next'`）—— `apps/web/src` 里已经没有一个裸 `<a-descriptions-item>` 标签了。这把第一方源码的失败面堵住了，但堵不住预编译的第三方模板：`@form-create/antd-designer` 在运行时靠 `resolveComponent('a-…')` 找组件，服务它的是 `apps/web/src/plugins/vendor-antd-components.ts` 里那 36 条 kebab-case 注册 —— 新增子组件要补的是这张表。名字缺失**不会让构建失败**，只有一句 `Failed to resolve component` warning + 一块空节点，所以 `apps/web/e2e/gallery-examples.spec.ts` 既去数 `.ant-descriptions-item-label` 的条数，也顺手断言了那句 warning。
-3. **Table**。`App.vue` 全开了 `virtual`，antd 因此要求 `scroll.y` 是数值，`BasicTable.vue` 用 `mergedVirtual` 兜住"业务页只写 `{ x: 1400 }`"的情况；固定表头/横向滚动又会在 `<tbody>` 前面插一行 `ant-table-measure-row`，`useDragSort.ts` 靠数 `data-row-key` 来算前导偏移。两处都有单测（`components/business/Table/__tests__/drag-sort.spec.ts`）。
+3. **Table**。`App.vue` 全开了 `virtual`，antd 因此要求 `scroll.y` 是数值，`BasicTable.vue` 用 `mergedVirtual` 兜住"业务页只写 `{ x: 1400 }`"的情况；固定表头/横向滚动又会在 `<tbody>` 前面插一行 `ant-table-measure-row`，`useDragSort.ts` 靠数 `data-row-key` 来算前导偏移。两处都有单测（`packages/core/ui-kit/table-ui/__tests__/drag-sort.test.ts`）。
 4. **"用错也不报错"的 API**。`apps/web/src/views/__tests__/gallery-api-usage.spec.ts` 会先替你抓到三类：具名 `useApp`（1.6 只有 `App.useApp()`）、把权限指令的参数写成修饰符（`v-permission:role` 才对）、Tabs 绑 `@add`（1.6 只有 `@edit`）。
 5. **图标**。`@antdv-next/icons` + 5 个 `@iconify-json/*` 集合 + `internal/vite-config/src/plugins/auto-import.ts` 的离线列表。写错的图标名不报错，只是空白方块，所以有 `apps/web/test/icon-names.test.ts` 扫 `apps/backend-mock/server`、`apps/web/src`、`packages` 三个根做对账。
 
 ::: tip
 
-Vue 是唯一被钉死的运行时 catalog 里 `vue: 3.5.43` 是**精确版本**，注释写明了原因：范围号会让部分第三方 peer 树停在 3.5.42，于是 `@vue/runtime-core` 出现两份类型，跨包传 Directive 直接打架。升 Vue 之前先读懂这条注释，再决定 `overrides` 要不要跟着动。
-:::
+Vue 是唯一被钉死的运行时 catalog 里 `vue: 3.5.43` 是**精确版本**，注释写明了原因：范围号会让部分第三方 peer 树停在 3.5.42，于是 `@vue/runtime-core` 出现两份类型，跨包传 Directive 直接打架。升 Vue 之前先读懂这条注释，再决定 `overrides` 要不要跟着动。:::
 
 要把不需要的东西拆掉，看[移除代码](/zh/guide/other/remove-code)；工程侧的其它约定见 [开发规范与环境变量](/zh/guide/essentials/development)、[目录说明](/zh/guide/project/dir)。

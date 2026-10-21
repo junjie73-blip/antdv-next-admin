@@ -15,13 +15,13 @@ import Tree from '../src/components/tree/Tree.vue';
 
 const item = DescriptionsItem;
 
-describe('Descriptions', () => {
+describe('descriptions', () => {
   it('栅格列数跟随 column，条目按 span 占列', () => {
     const wrapper = mount(
       h(Descriptions, { column: 2, title: '基础信息' }, () => [
         h(item, { label: '用户名' }, () => 'zhang'),
         h(item, { label: '简介', span: 2 }, () => 'hello'),
-      ])
+      ]),
     );
 
     expect(wrapper.text()).toContain('基础信息');
@@ -36,14 +36,16 @@ describe('Descriptions', () => {
 
   it('bordered 时标签格带上底色', () => {
     const wrapper = mount(
-      h(Descriptions, { bordered: true }, () => h(item, { label: '用户名' }, () => 'zhang'))
+      h(Descriptions, { bordered: true }, () =>
+        h(item, { label: '用户名' }, () => 'zhang'),
+      ),
     );
     const label = wrapper.find('[data-common-descriptions-item] div');
     expect(label.classes().join(' ')).toContain('bg-muted/40');
   });
 });
 
-describe('Timeline', () => {
+describe('timeline', () => {
   it('条目渲染出自定义 dot 与内容', () => {
     const wrapper = mount(
       h(Timeline, () => [
@@ -52,7 +54,7 @@ describe('Timeline', () => {
           dot: () => h('i', { class: 'custom-dot' }),
         }),
         h(TimelineItem, { color: 'red' }, () => '修改密码'),
-      ])
+      ]),
     );
 
     expect(wrapper.findAll('[data-common-timeline-item]')).toHaveLength(2);
@@ -67,7 +69,7 @@ describe('Timeline', () => {
   });
 });
 
-describe('Segmented', () => {
+describe('segmented', () => {
   const options = ['甲', { label: '乙', value: 'b' }];
 
   it('字符串与对象选项都能渲染', () => {
@@ -97,13 +99,13 @@ describe('Segmented', () => {
   });
 });
 
-describe('Statistic', () => {
+describe('statistic', () => {
   it('千分位与小数位', () => {
     const wrapper = mount(Statistic, {
       props: { precision: 2, title: '总量', value: 1_234_567.891 },
     });
     expect(wrapper.find('[data-common-statistic-value]').text()).toBe(
-      '1,234,567.89'
+      '1,234,567.89',
     );
     expect(wrapper.text()).toContain('总量');
   });
@@ -114,7 +116,7 @@ describe('Statistic', () => {
   });
 });
 
-describe('Empty', () => {
+describe('empty', () => {
   it('默认文案是"暂无数据"，image=false 时不渲染图标', () => {
     const wrapper = mount(Empty, { props: { image: false } });
     expect(wrapper.text()).toContain('暂无数据');
@@ -127,7 +129,7 @@ describe('Empty', () => {
   });
 });
 
-describe('Popconfirm', () => {
+describe('popconfirm', () => {
   it('未打开时只有触发区，打开后面板带确定与取消', async () => {
     const wrapper = mount(Popconfirm, {
       props: { title: '删除该条记录？' },
@@ -162,7 +164,9 @@ describe('Popconfirm', () => {
   }
 
   it('标题与说明各占一档行距，说明走 muted 而不是写死的灰', async () => {
-    const { panel, wrapper } = await openPanel({ description: '删除后不可恢复' });
+    const { panel, wrapper } = await openPanel({
+      description: '删除后不可恢复',
+    });
     const desc = [...panel.querySelectorAll('div')]
       .filter((el) => el.textContent?.includes('删除后不可恢复'))
       .at(-1);
@@ -210,7 +214,7 @@ const rows = (wrapper: ReturnType<typeof mount>) =>
 const boxes = (wrapper: ReturnType<typeof mount>) =>
   wrapper.findAll('[data-common-tree-checkbox] button');
 
-describe('Tree', () => {
+describe('tree', () => {
   it('默认收起，只渲染根节点', () => {
     const wrapper = mount(Tree, { props: { fieldNames, treeData } });
     expect(rows(wrapper)).toHaveLength(2);
@@ -227,7 +231,9 @@ describe('Tree', () => {
   it('点展开箭头抛出 update:expandedKeys 并渲染子节点', async () => {
     const wrapper = mount(Tree, { props: { fieldNames, treeData } });
     await wrapper.find('[data-common-tree-switcher]').trigger('click');
-    expect((wrapper.emitted('update:expandedKeys')?.[0]?.[0] as string[])).toContain('1');
+    expect(
+      wrapper.emitted('update:expandedKeys')?.[0]?.[0] as string[],
+    ).toContain('1');
     expect(rows(wrapper)).toHaveLength(4);
   });
 
@@ -278,7 +284,7 @@ describe('Tree', () => {
     await boxes(wrapper)[1]!.trigger('click');
     const root = wrapper.findAll('[data-common-tree-node]')[0]!;
     expect(
-      root.find('[data-common-tree-checkbox] button').attributes('data-state')
+      root.find('[data-common-tree-checkbox] button').attributes('data-state'),
     ).toBe('indeterminate');
   });
 });

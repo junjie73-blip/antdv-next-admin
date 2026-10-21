@@ -906,7 +906,7 @@ const headStyle = (col: BasicColumn): CSSProperties => {
     position: stickyPosition(col),
     right: stickyRight(col),
     width: typeof size === 'number' ? `${size}px` : size,
-    ...(col.headerStyle || {}),
+    ...col.headerStyle,
   };
 };
 
@@ -919,7 +919,7 @@ const cellStyleOf = (
     ? col.cellStyle(record, index)
     : col.cellStyle;
   return {
-    ...(custom || {}),
+    ...custom,
     left: stickyLeft(col),
     position: stickyPosition(col),
     right: stickyRight(col),
@@ -965,7 +965,7 @@ const headClass = (col: BasicColumn) =>
   cn(
     'basic-table-head',
     cellBoxClass,
-    'font-medium text-muted-foreground',
+    'text-muted-foreground font-medium',
     'bg-gray-50 dark:bg-gray-800',
     mergedScrollY.value !== undefined && 'sticky top-0 z-10',
     pinnedHeadClass(col),
@@ -980,7 +980,7 @@ const cellClass = (col: BasicColumn, record: Recordable, index: number) => {
     : mergedCellClassName.value;
   return cn(
     cellBoxClass,
-    col.ellipsis ? 'max-w-[1px] truncate' : 'whitespace-nowrap',
+    col.ellipsis ? 'max-w-px truncate' : 'whitespace-nowrap',
     pinnedCellClass(col),
     col.className,
     userClass,
@@ -992,7 +992,7 @@ const rowClass = (record: Recordable, index: number) => {
     ? mergedRowClassName.value(record, index)
     : mergedRowClassName.value;
   return cn(
-    'basic-table-row group border-b border-gray-100 bg-card transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800',
+    'basic-table-row bg-card group border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800',
     userClass,
     // 主色 8% 与卡片底色混出实色，固定列继承后依然不透
     isSelected(record) &&
@@ -1362,6 +1362,7 @@ defineExpose(tableActionType);
             <tr
               v-bind="getRowProps(row.record, row.index)"
               :data-row-key="String(row.rowKey)"
+              :data-row-level="row.depth"
             >
               <!-- 选择列 -->
               <td

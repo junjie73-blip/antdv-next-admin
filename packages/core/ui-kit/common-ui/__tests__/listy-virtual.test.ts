@@ -44,8 +44,7 @@ const mountVirtual = (options: Record<string, unknown> = {}) =>
     ...options,
   });
 
-const rowsOf = (wrapper: VueWrapper) =>
-  wrapper.findAll('ul.listy__rows > li');
+const rowsOf = (wrapper: VueWrapper) => wrapper.findAll('ul.listy__rows > li');
 
 const viewportOf = (wrapper: VueWrapper) =>
   wrapper.get('[data-listy-viewport]');
@@ -58,7 +57,7 @@ function fakeScrollTop(element: Element, value: number) {
   });
 }
 
-describe('Listy 虚拟滚动', () => {
+describe('listy 虚拟滚动', () => {
   it('万级数据只渲染窗口内的十几行，不是全部', async () => {
     const wrapper = await mountVirtual({ items: makeItems(20_000) });
     const rows = rowsOf(wrapper);
@@ -94,9 +93,9 @@ describe('Listy 虚拟滚动', () => {
     expect(rows[0]!.attributes('style')).toContain('height: 50px');
     expect(rows[1]!.attributes('style')).toContain('height: 30px');
     // 500×50 + 500×30
-    expect(
-      (wrapper.vm as unknown as { totalHeight: number }).totalHeight,
-    ).toBe(40_000);
+    expect((wrapper.vm as unknown as { totalHeight: number }).totalHeight).toBe(
+      40_000,
+    );
   });
 
   it('measure-heights 打开时不写内联高度，把真实高度留给内容撑开', async () => {
@@ -126,7 +125,9 @@ describe('Listy 虚拟滚动', () => {
     fakeScrollTop(viewportOf(wrapper).element, 4000);
     (wrapper.vm as unknown as { recalc: () => void }).recalc();
     await nextTick();
-    const indices = rowsOf(wrapper).map((row) => Number(row.attributes('data-listy-index')));
+    const indices = rowsOf(wrapper).map((row) =>
+      Number(row.attributes('data-listy-index')),
+    );
     const first = indices[0]!;
     expect(first).toBeGreaterThan(0);
     // 每行都收到自己的 index：窗口移动后仍是连续递增的绝对下标
@@ -250,9 +251,9 @@ describe('Listy 虚拟滚动', () => {
     const before = (wrapper.vm as unknown as { totalHeight: number })
       .totalHeight;
     await wrapper.setProps({ items: [...items, ...makeItems(10)] });
-    expect(
-      (wrapper.vm as unknown as { totalHeight: number }).totalHeight,
-    ).toBe(before + 400);
+    expect((wrapper.vm as unknown as { totalHeight: number }).totalHeight).toBe(
+      before + 400,
+    );
   });
 
   it('loading 与空态仍然优先于虚拟渲染', async () => {

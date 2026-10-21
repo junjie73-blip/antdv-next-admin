@@ -15,7 +15,7 @@ const states = (wrapper: ReturnType<typeof mount>) =>
     .findAll('[data-common-steps-item]')
     .map((node) => node.attributes('data-status'));
 
-describe('Steps', () => {
+describe('steps', () => {
   it('按 items 渲染每一步标题', () => {
     const wrapper = mount(Steps, { props: { items } });
     expect(wrapper.find('[data-common-steps]').exists()).toBe(true);
@@ -36,10 +36,9 @@ describe('Steps', () => {
   });
 
   it('status 只改写当前这一步', () => {
-    const wrapper = mount(
-      Steps,
-      { props: { current: 1, items, status: 'error' } },
-    );
+    const wrapper = mount(Steps, {
+      props: { current: 1, items, status: 'error' },
+    });
     expect(states(wrapper)).toEqual(['finish', 'error', 'wait']);
     expect(wrapper.text()).toContain('审核');
   });

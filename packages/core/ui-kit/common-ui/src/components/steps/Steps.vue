@@ -92,7 +92,7 @@ const circleClass = (index: number) =>
 
 const titleClass = (index: number) =>
   cn(
-    'text-sm leading-6',
+    'text-sm/6 ',
     stateOf(index) === 'wait' ? 'text-muted-foreground' : 'font-medium',
     stateOf(index) === 'error' ? 'text-destructive' : '',
   );
@@ -107,7 +107,7 @@ const hLineClass = (index: number) =>
 
 const vLineClass = (index: number) =>
   cn(
-    'absolute bottom-0 top-7 w-px',
+    'absolute top-7 bottom-0 w-px',
     small.value ? 'left-2.5' : 'left-3',
     index < props.current ? 'bg-primary' : 'bg-border',
   );

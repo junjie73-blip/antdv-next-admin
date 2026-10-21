@@ -65,7 +65,8 @@ export default {
     codePlaceholder: 'Please enter code',
     codeSent: 'Code sent',
     createAccount: 'Create an account',
-    demoHint: 'Demo accounts: admin / admin123 (all pages) · custom / custom123 (some pages, others go to 403)',
+    demoHint:
+      'Demo accounts: admin / admin123 (all pages) · custom / custom123 (some pages, others go to 403)',
     forgotPassword: 'Forgot password?',
     forgotTip: 'Please contact the administrator to reset it',
     hidePassword: 'Hide password',

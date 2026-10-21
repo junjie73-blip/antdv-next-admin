@@ -116,7 +116,7 @@ function readRadii(page: Page) {
       handle: radiusOf('.lock-handle'),
       handleCircle: isCircle('.lock-handle'),
       inlineBase: getComputedStyle(document.documentElement)
-        .getPropertyValue('--app-border-radius')
+        .getPropertyValue('--radius')
         .trim(),
       inlineCardRadius: card.style
         .getPropertyValue('--lock-card-radius')
@@ -328,7 +328,7 @@ test.describe('锁屏', () => {
     await go(page, '/system/user');
 
     /*
-     * 360 / 768 / 1440 三档各锁一次。基准写在 `<html>` 上（`--app-border-radius`，
+     * 360 / 768 / 1440 三档各锁一次。基准写在 `<html>` 上（`--radius`，
      * 默认 `1rem`），卡片是它的 1.5 倍、按钮与把手跟基准 —— 三档量出来的
      * 像素值必须完全相同：宽屏与窄屏拿到不同半径，就是有人把圆角写成了视口相关的量。
      */
@@ -399,7 +399,7 @@ test.describe('锁屏', () => {
      */
     const drawer = await openPreferenceDrawer(page, '外观');
     await drawer.locator('.grid.grid-cols-5 > button').nth(2).click(); // 0.5
-    await expect.poll(() => cssVar(page, '--app-border-radius')).toBe('0.5rem');
+    await expect.poll(() => cssVar(page, '--radius')).toBe('0.5rem');
     await closePreferenceDrawer(page);
 
     await lock(page);

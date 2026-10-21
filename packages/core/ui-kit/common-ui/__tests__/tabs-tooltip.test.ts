@@ -13,7 +13,11 @@ async function buildTabs(props: Record<string, any> = {}) {
     h(Tabs, props, () => [
       h(TabPane, { tab: '基本信息', value: 'basic' }, () => '基础内容'),
       h(TabPane, { tab: '安全设置', value: 'security' }, () => '安全内容'),
-      h(TabPane, { disabled: true, tab: '团队', value: 'team' }, () => '团队内容'),
+      h(
+        TabPane,
+        { disabled: true, tab: '团队', value: 'team' },
+        () => '团队内容',
+      ),
     ]),
   );
   await nextTick();
@@ -30,7 +34,7 @@ const visibleTextOf = (wrapper: Awaited<ReturnType<typeof buildTabs>>) =>
     .map((node) => node.text())
     .join('|');
 
-describe('Tabs / TabPane', () => {
+describe('tabs / TabPane', () => {
   it('标签头由注册的 TabPane 生成', async () => {
     const wrapper = await buildTabs();
     const triggers = triggersOf(wrapper);
@@ -84,10 +88,12 @@ describe('Tabs / TabPane', () => {
   });
 });
 
-describe('Tooltip', () => {
+describe('tooltip', () => {
   it('有标题时把子节点变成悬浮触发器', () => {
     const wrapper = mount(
-      h(Tooltip, { placement: 'right', title: '提示文案' }, () => h('button', '目标')),
+      h(Tooltip, { placement: 'right', title: '提示文案' }, () =>
+        h('button', '目标'),
+      ),
     );
     expect(wrapper.find('[data-slot="tooltip-trigger"]').exists()).toBe(true);
     expect(wrapper.text()).toBe('目标');

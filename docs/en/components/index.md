@@ -7,8 +7,8 @@ This chapter documents **this repository's own demo gallery**, not the antdv-nex
 | Location | Contents |
 | --- | --- |
 | `apps/web/src/views/components/**` | Every demo page; the directory mirrors the menu path |
-| `apps/web/src/components/business/**` | Only `ImportExport` and `TenantSelect` are left on the app side (neither has a demo page importing it yet); Table, Form, Modal/Drawer, Description and CountTo have moved into `@antdv/{table-ui,form-ui,popup-ui,common-ui}`, `TreeTable` into `@antdv/table-ui`, `MicroAppContainer` into `@antdv/common-ui` |
-| `apps/web/src/components/common/**` | `AvatarUploader.vue` and `Upload/**` (the chunked-upload API layer plus its demo shell) are all that remains; `Auth`, `ECharts`, `Loading`, `MarkdownEditor`, `CronEditor`, `EmptyState`, `StatusTag`, `Description`, `CountTo`, `Scrollbar` etc. now live in `@antdv/common-ui`, with the chart on the subpath `@antdv/common-ui/charts` |
+| `packages/core/ui-kit/common-ui/src/components/**` | `apps/web/src/components/` is now empty — every component that lived there moved into `common-ui`: `ImportExport`, `AvatarUploader`, `Upload/**` (the chunked-upload API layer plus its demo shell) and `ReloadPrompt`, while `TenantSelect` was deleted together with the tenant store it imported. Table, Form, Modal/Drawer, Description and CountTo were already in `@antdv/{table-ui,form-ui,popup-ui,common-ui}`, `TreeTable` in `@antdv/table-ui` |
+| `@antdv/common-ui` sub-paths | `Auth`, `ECharts`, `Loading`, `MarkdownEditor`, `CronEditor`, `EmptyState`, `StatusTag`, `Description`, `CountTo`, `Scrollbar`, `MicroAppContainer` etc. come from the root entry; the pieces that drag their own third-party deps get a sub-path each: `/avatar-uploader` (vue-cropper), `/chunk-upload` (spark-md5 + worker), `/import-export` (xlsx template generation), `/charts` (echarts) |
 | `packages/core/base/icons/src/**` | Icon atoms (`IconPicker` / `IconifyIcon` / `SvgIcon`), package name `@antdv/icons` |
 | `packages/core/ui-kit/**` | Stateless UI atoms: `shadcn-ui` plus the common / form / table / popup / tabs / menu / layout wrapper layers (`loading-ui` and `scrollbar-ui` have been folded into `common-ui`) |
 | `apps/backend-mock/server/api/menus.get.ts:161-366` | The **only authoritative list** of demo routes — menu entries are also the permission source, so a route that is not in the menu cannot be reached |
@@ -55,7 +55,7 @@ The sidebar keeps a third level for "Table" and "Form" only; every other demo is
 - **Page roots carry no padding.** The layout owns the scroll container, so demo pages only add spacing (`space-y-6`, `flex h-full flex-col`) and every `a-card` is `variant="borderless"`.
 - **Demos have no backend.** Apart from a handful of Nitro handlers under `api/**`, "save" buttons write a local `ref` or `localStorage`. Each section that relies on this says so explicitly (the table drag-sort "保存顺序" / Save order button and the step form draft are the two clear cases).
 - **Component names must match `defineOptions({ name })`.** Pages are kept alive by keep-alive, which matches the route's `name` against the menu entry's `name` field (e.g. `DemoModalDrawer` in `menus.get.ts`).
-- **Only components under `apps/web/src/components/**` need no import.** That directory is `unplugin-vue-components`' default `dirs`, and the generated list is `apps/web/types/components.d.ts` — today only `AvatarUploader` is actually used bare (`ImportExport`, `TenantSelect` and `Upload/**` are leftovers with no importer). Anything that moved into an `@antdv/*` sub-package must be imported explicitly, e.g. `import { ECharts } from '@antdv/common-ui/charts'`.
+- **Every component in a demo page must be imported explicitly.** `unplugin-vue-components` still defaults `dirs` to `src/components/**`, but that directory is now empty (the generated `apps/web/types/components.d.ts` only lists `RouterLink` / `RouterView`), so anything from an `@antdv/*` package needs an import — `import { ECharts } from '@antdv/common-ui/charts'`, `import { AvatarUploader } from '@antdv/common-ui/avatar-uploader'`. The same applies inside render functions: auto-import rewrites template tags only, never the arguments of `h(Scrollbar, …)`.
 
 ## How this chapter is structured
 
@@ -63,5 +63,4 @@ For each documented component, in this order: **what problem it solves** → **t
 
 ::: warning
 
-Defects stay in the text `setModalProps` and `setDrawerProps` are silent no-ops, `useDrawerInner` is only an alias of `useDrawer`, and `changeOkLoading` on a modal is unreachable. Each of these was verified in behaviour, and the file:line is cited in the relevant section. They are not documented as working APIs — the demo pages themselves print these caveats in the UI.
-:::
+Defects stay in the text `setModalProps` and `setDrawerProps` are silent no-ops, `useDrawerInner` is only an alias of `useDrawer`, and `changeOkLoading` on a modal is unreachable. Each of these was verified in behaviour, and the file:line is cited in the relevant section. They are not documented as working APIs — the demo pages themselves print these caveats in the UI. :::

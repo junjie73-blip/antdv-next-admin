@@ -602,9 +602,7 @@ function toggleLocked(item: RuleItem) {
         </div>
       </VueDraggable>
       <div :class="payloadRowClassName">
-        <span :class="noteClassName"
-          >onEnd 得到的顺序（第 {{ endCount }} 次落定）：</span
-        >
+        <span :class="noteClassName">onEnd 得到的顺序（第 {{ endCount }} 次落定）：</span>
         <span :class="payloadClassName">
           {{ lastOrder || '还没拖过，先把上面的行拖一下' }}
         </span>

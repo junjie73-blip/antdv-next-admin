@@ -235,8 +235,8 @@ function openContextMenu(event: MouseEvent, key: string) {
 .tab-bar[data-tab-style='chrome'] .tab-item[data-active='true'] {
   --tab-chrome-fill: color-mix(
     in oklab,
-    var(--app-primary) 12%,
-    var(--app-background)
+    hsl(var(--primary)) 12%,
+    hsl(var(--background))
   );
 
   z-index: 1;
@@ -281,7 +281,7 @@ function openContextMenu(event: MouseEvent, key: string) {
   height: 16px;
   margin: auto;
   content: '';
-  background-color: var(--app-border);
+  background-color: hsl(var(--border));
   transition: opacity 0.3s ease;
 }
 .tab-bar[data-tab-style='chrome']

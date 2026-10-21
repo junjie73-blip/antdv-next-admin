@@ -1,13 +1,13 @@
 # Composables
 
-The `use*` functions in this repo live in three places, and the rule for where one belongs is **"what does it depend on"**: hooks that drive a specific `Basic*` component sit in that component's package (`packages/core/ui-kit/<layer>/src/`); app-level hooks that fire a request, navigate or read the i18n singleton live in `apps/web/src/composables/`; anything that only touches the DOM, a browser API or the session store goes into `packages/core/hooks` (`@antdv/hooks`). This page follows that order, with the emphasis on **how the first two groups drive components** — the `useTable` / `useForm` / `useModal` / `useCRUD` wiring is the skeleton of every list page here, and several parts of it will bite you if you write them from memory of vue-vben-admin.
+The `use*` functions in this repo live in three places, and the rule for where one belongs is **"what does it depend on"**: hooks that drive a specific `Basic*` component sit in that component's package (`packages/core/ui-kit/<layer>/src/`); app-level hooks that fire a request or navigate live in `apps/web/src/composables/`; anything that only touches the DOM, a browser API or the session store goes into `packages/core/hooks` (`@antdv/hooks`) — and so does a hook that drags in a heavy runtime (`useLocale` pulls vue-i18n), exposed there through a subpath only. Realtime traffic lives in `packages/request` (`@antdv/request`). This page follows that order, with the emphasis on **how the first two groups drive components** — the `useTable` / `useForm` / `useModal` / `useCRUD` wiring is the skeleton of every list page here, and several parts of it will bite you if you write them from memory of vue-vben-admin.
 
 ## Where things live and how you import them
 
 | Group | Location | Import path | Typical members |
 | --- | --- | --- | --- |
 | Component drivers | `packages/core/ui-kit/<layer>/src/` (`useTable` in table-ui, `useForm` in form-ui, `useModal` / `useDrawer` in popup-ui) | from that package's root entry | `useTable`, `useForm`, `useModal`, `useModalInner`, `useDrawer` |
-| App-level | `apps/web/src/composables/` | `~/composables` (barrel) or the file directly | `http` / `request` / `useRequest` / `requestCache` (the barrel only forwards `@antdv/request`), `useLocale`, `useLocaleSync`, `useNotice`, `usePasswordPolicy` |
+| App-level | `apps/web/src/composables/` | `~/composables` (barrel) or the file directly | `http` / `request` / `useRequest` / `requestCache` (the barrel only forwards `@antdv/request`), `useNotice`, `usePasswordPolicy` |
 | App-agnostic utilities | `@antdv/hooks` | root barrel, heavy ones via subpath | `useCache`, `useChunkUpload`, `useFileReader`, `usePrint`, `useRouteLoading`, `useWatermark`, `useCRUD`, `usePermission`; `@antdv/hooks/echarts`. These hooks never fire a request or read a router instance; their UI-side dependency is the `message` / `confirm` from `@antdv/popup-ui` (a vue-sonner wrapper) used by `usePrint` and `useCRUD`. `usePermission` is the one that reads session state, and only through the `@antdv/stores` user store |
 
 ::: warning
@@ -16,15 +16,14 @@ Nothing in this repo is auto-imported `unplugin-auto-import` lists only `vue` / 
 
 Name collisions are nastier than a missing import: `@vueuse/core` already exports `usePermission` (the browser Permissions API) and `useWebSocket`, and both are pre-registered in `apps/web/types/auto-imports.d.ts:232` and `:293`. Forget the import and nothing errors — you just get the other function's return value, and vueuse's `usePermission()` returns a single `{ permissions }` ref with no `hasPermission` method.
 
-`echarts` is deliberately kept out of the `@antdv/hooks` root barrel: it drags in the whole chart registry, and putting it in the root entry would make `import { usePrint }` pay for parsing a chart library (`packages/core/hooks/src/index.ts`; the `exports` map is in `packages/core/hooks/package.json`, where the `"./*"` wildcard is what lets single-file modules be imported by name — `@antdv/hooks/use-print`, `@antdv/hooks/use-crud`). SSE and WebSocket do not live here; they are in `@antdv/request`.
-:::
+`echarts` is deliberately kept out of the `@antdv/hooks` root barrel: it drags in the whole chart registry, and putting it in the root entry would make `import { usePrint }` pay for parsing a chart library (`packages/core/hooks/src/index.ts`; the `exports` map is in `packages/core/hooks/package.json`, where the `"./*"` wildcard is what lets single-file modules be imported by name — `@antdv/hooks/use-print`, `@antdv/hooks/use-crud`). SSE and WebSocket do not live here; they are in `@antdv/request`. :::
 
-Barrel coverage is worth memorising too: `apps/web/src/composables/index.ts` now does one thing — it re-exports the whole of `@antdv/request`, so old call sites keep taking `http` / `request` from `~/composables`. `useCRUD` and `usePermission` moved into `@antdv/hooks`, and `useLocale` / `useLocaleSync` / `useNotice` / `usePasswordPolicy` must be imported by file path:
+Barrel coverage is worth memorising too: `apps/web/src/composables/index.ts` now does one thing — it re-exports the whole of `@antdv/request`, so old call sites keep taking `http` / `request` from `~/composables`. `useCRUD` and `usePermission` moved into `@antdv/hooks`, `useLocale` / `useLocaleSync` come from `@antdv/hooks/use-locale` (it is the only hook that pulls in vue-i18n, and putting it in the root barrel makes every `@antdv/hooks` consumer pay for that runtime), while `useNotice` / `usePasswordPolicy` must still be imported by file path:
 
 ```ts
 import { http } from '~/composables';
 import { useCRUD, usePermission } from '@antdv/hooks';
-import { useLocaleSync } from '~/composables/useLocale';
+import { useLocaleSync } from '@antdv/hooks/use-locale';
 ```
 
 `useThemeTransition` used to be in that list; it now lives in the composition layer: `import { useThemeTransition } from '@antdv/layouts/hooks/use-theme-transition'` (`packages/layouts/src/hooks/use-theme-transition.ts`), and the only consumer left in the repository is the header widget.
@@ -58,8 +57,7 @@ const [register, tableRef] = useTable({
 | `useModalInner(cb?)` | `modal/useModalInner.ts:21-73` | `[register, ModalInnerMethods]` | used **inside the modal component** |
 | `useDrawer()` | `packages/core/ui-kit/popup-ui/src/drawer/useDrawer.ts:10-57` | `[register, DrawerMethods]` | same shape as `useModal` |
 
-The header comment in `useTable.ts` already shows `tableRef.value?.reload()` (`:18`) — follow it. Also note that `drawer/index.ts:15` exports `useDrawerInner` as a plain **alias** of `useDrawer` (`export { useDrawer as useDrawerInner }`, with the reason in the comment at `:14`); it has none of `useModalInner`'s "receive payload via callback" semantics. Only Modal has a data channel.
-:::
+The header comment in `useTable.ts` already shows `tableRef.value?.reload()` (`:18`) — follow it. Also note that `drawer/index.ts:15` exports `useDrawerInner` as a plain **alias** of `useDrawer` (`export { useDrawer as useDrawerInner }`, with the reason in the comment at `:14`); it has none of `useModalInner`'s "receive payload via callback" semantics. Only Modal has a data channel. :::
 
 What happens when the instance isn't there yet also differs per hook, and that decides whether you need a null check:
 
@@ -114,8 +112,7 @@ const [register, { closeModal, setModalProps, changeOkLoading }] =
 
 ::: warning
 
-Lifecycle hooks must be registered during setup The `onUnmounted` in `useModal` / `useDrawer` / `useModalInner` sits at the top level of the hook body, and the comments explain why (`useDrawer.ts:12-23` is the most detailed): `register` is the callback of the child's `emit('register', instance)`. At that moment Vue's `currentInstance` points at the child — or has already been cleared — so calling `onUnmounted` inside the callback only warns, attaches to nothing, and the modal instance stays in the reference forever. Same rule for your own hooks: never hide a lifecycle call inside a callback.
-:::
+Lifecycle hooks must be registered during setup The `onUnmounted` in `useModal` / `useDrawer` / `useModalInner` sits at the top level of the hook body, and the comments explain why (`useDrawer.ts:12-23` is the most detailed): `register` is the callback of the child's `emit('register', instance)`. At that moment Vue's `currentInstance` points at the child — or has already been cleared — so calling `onUnmounted` inside the callback only warns, attaches to nothing, and the modal instance stays in the reference forever. Same rule for your own hooks: never hide a lifecycle call inside a callback. :::
 
 ## 2. useCRUD: modal + form + table in one declaration
 
@@ -191,13 +188,11 @@ Return value: refs `isEditing`, `currentRecord`, `loading`, plus `handleAdd` / `
 
 ::: warning
 
-Validation failure vs API failure `handleSave` puts `validate()` and the submit in the same `try`: a rejected validation goes through `message.error`, but the modal **stays open**, `loading` returns to `false`, and the user can fix the field and retry. API 4xx/5xx behave the same way. That's intentional — don't wrap `handleSave` in your own `try/catch` and toast twice.
-:::
+Validation failure vs API failure `handleSave` puts `validate()` and the submit in the same `try`: a rejected validation goes through `message.error`, but the modal **stays open**, `loading` returns to `false`, and the user can fix the field and retry. API 4xx/5xx behave the same way. That's intentional — don't wrap `handleSave` in your own `try/catch` and toast twice. :::
 
 ::: warning
 
-handleSave drops empty-string fields Keys whose value is `''` are deleted before submit (`:279-283`). The semantics are "not filled in = don't send this field", which stops optional text inputs from blanking stored values; the flip side is that **you cannot clear a field by leaving it empty** — send `null`, or use an endpoint that explicitly supports clearing.
-:::
+handleSave drops empty-string fields Keys whose value is `''` are deleted before submit (`:279-283`). The semantics are "not filled in = don't send this field", which stops optional text inputs from blanking stored values; the flip side is that **you cannot clear a field by leaving it empty** — send `null`, or use an endpoint that explicitly supports clearing. :::
 
 ::: danger
 
@@ -206,8 +201,7 @@ One confirmation per delete — and neither is hand-rolled in the page
 - **Single delete**: `handleDelete` shows no dialog. Confirmation is described by the row action's `ActionItem.popConfirm` (next section), which is the `CODE_STANDARD.md` rule.
 - **Batch delete**: `handleBatchDelete` **includes** one `Modal.confirm` (fixed title 「批量删除」; the `content` is `messages.batchDeleteConfirm` with `（N 条）` appended by the composable). Toolbar buttons have no popconfirm host, so this single confirmation is required — do **not** add another layer in the page.
 
-The confirm dialog's `onOk` is async and non-blocking, so its rejection never reaches the outer `try`; the failure toast therefore lives inside `onOk` (`:239-271` documents exactly this). Also note `loading` only resets in `onOk`'s `finally`: while the dialog is open it stays `true`, intentionally — nothing has been decided yet.
-:::
+The confirm dialog's `onOk` is async and non-blocking, so its rejection never reaches the outer `try`; the failure toast therefore lives inside `onOk` (`:239-271` documents exactly this). Also note `loading` only resets in `onOk`'s `finally`: while the dialog is open it stays `true`, intentionally — nothing has been decided yet. :::
 
 ::: warning
 
@@ -220,13 +214,11 @@ function clearSelection() {
 }
 ```
 
-And pass a **snapshot** to `handleBatchDelete` (`[...selectedRows.value]`), not a live array — the confirm dialog is non-blocking, so cancelling or completing the delete would leave the array out of sync with the table (example page: `crud/index.vue:342`).
-:::
+And pass a **snapshot** to `handleBatchDelete` (`[...selectedRows.value]`), not a live array — the confirm dialog is non-blocking, so cancelling or completing the delete would leave the array out of sync with the table (example page: `crud/index.vue:342`). :::
 
 ::: danger
 
-The API helpers already unwrapped the envelope `get/post/put/del` in `~/api/request.ts` are `http.Get<R<T>(… ).then(res => res.data)` internally (`api/request.ts:20-56`), i.e. **they resolve to the payload itself**. So `onCreate: (values) => addTask(values)` passes the function straight through — don't add another `.then(res => res.data)`. Unwrapping twice yields `undefined`, whose symptom is "save succeeded but the new row isn't in the table / the edit modal prefills empty".
-:::
+The API helpers already unwrapped the envelope `get/post/put/del` in `~/api/request.ts` are `http.Get<R<T>(… ).then(res => res.data)` internally (`api/request.ts:20-56`), i.e. **they resolve to the payload itself**. So `onCreate: (values) => addTask(values)` passes the function straight through — don't add another `.then(res => res.data)`. Unwrapping twice yields `undefined`, whose symptom is "save succeeded but the new row isn't in the table / the edit modal prefills empty". :::
 
 The behaviour is pinned by unit tests: `packages/core/hooks/__tests__/use-crud.test.ts` (23 cases, minimal stubs for the three components that record **call order**, so requirements like "resetFields before setFieldsValue" are actually asserted — getting it wrong shows up as the modal flashing the previous record). Run that file before and after touching `useCRUD`.
 
@@ -327,8 +319,7 @@ await http.Delete('/demo/task/1', undefined, { body: { force: true } }); // DELE
 
 ::: warning
 
-Retries apply to every verb by default The `retries` wrapper sits around `runRequest` and doesn't look at the method (`:363-389`). `isRetryable` only exempts `400_001 / 401_001 / 403_001 / 404_001`; `status === 0` (network down) and any 5xx are retried (`:137-144`). In other words **a 500 on a POST is hammered three times** — non-idempotent create endpoints need an idempotency key on the server, or `retries: 0` on the call site.
-:::
+Retries apply to every verb by default The `retries` wrapper sits around `runRequest` and doesn't look at the method (`:363-389`). `isRetryable` only exempts `400_001 / 401_001 / 403_001 / 404_001`; `status === 0` (network down) and any 5xx are retried (`:137-144`). In other words **a 500 on a POST is hammered three times** — non-idempotent create endpoints need an idempotency key on the server, or `retries: 0` on the call site. :::
 
 ### What the interceptors do (four things you need when debugging)
 
@@ -359,16 +350,15 @@ Retries apply to every verb by default The `retries` wrapper sits around `runReq
 
 ::: warning
 
-Two things you have to know 1) **there is no business call site anywhere in the repository** — `useRequest` is only asserted to still be in the export list by `packages/request/__tests__/structure.spec.ts:36,77`. Declarative fetching goes through `@tanstack/vue-query` (`apps/web/src/api/query.ts:1,9,33` wire the hardened fetch into `useQuery`), so don't mix the two in a new page. 2) **`data` is the whole response body, not the payload** — `afterFetch` returns the parsed `payload` unchanged and the executor hands the entire envelope up, so `useRequest().data.value` is `{ code, data, message }`. Check whether an endpoint carries an envelope before binding `:options` straight to it; every mock endpoint here does.
-:::
+Two things you have to know 1) **there is no business call site anywhere in the repository** — `useRequest` is only asserted to still be in the export list by `packages/request/__tests__/structure.spec.ts:36,77`. Declarative fetching goes through `@tanstack/vue-query` (`apps/web/src/api/query.ts:1,9,33` wire the hardened fetch into `useQuery`), so don't mix the two in a new page. 2) **`data` is the whole response body, not the payload** — `afterFetch` returns the parsed `payload` unchanged and the executor hands the entire envelope up, so `useRequest().data.value` is `{ code, data, message }`. Check whether an endpoint carries an envelope before binding `:options` straight to it; every mock endpoint here does. :::
 
 `requestCache` (`executor.ts:60-115`) exists for cache management: `clear` / `delete(key)` / `clearByUrl(url)` / `clearByPattern(re)` / `has` / `get` / `set` / `size`, backed by a module-level `Map` with LRU eviction at `MAX_CACHE_SIZE = 200`. Nothing calls it today — when you need "invalidate the list cache right after a write", `invalidate()` is cheaper than manual clearing.
 
 ## 5. UI environment: useLocale / useLocaleSync / useThemeTransition
 
-`useLocale()` (`apps/web/src/composables/useLocale.ts:63-80`) is the template-facing one: `{ availableLocales, locale, setLocale, t }`. **There is exactly one way to write**: `setLocale` changes the preference (`appStore.updateSetting({ locale })`, `:71`) and `useLocaleSync` expands the effect. No component should touch `i18n.global.locale` directly — two writers always drift, and the symptom is "the menu switched to English but the pagination is still Chinese" (the comment at `:26-31` records exactly that).
+`useLocale()` (`packages/core/hooks/src/use-locale.ts:62-84`) is the template-facing one: `{ availableLocales, locale, setLocale, t }`. **There is exactly one way to write**: `setLocale` changes the preference (`appStore.updateSetting({ locale })`, `:75`) and `useLocaleSync` expands the effect. No component should touch `i18n.global.locale` directly — two writers always drift, and the symptom is "the menu switched to English but the pagination is still Chinese" (the comment at `:30-32` records exactly that).
 
-`useLocaleSync()` (`:45-61`) is the single exit for locale side effects. `apps/web/src/App.vue:13` calls it once at the root and binds the returned `antdLocale` to `ConfigProvider :locale` (`:67-69`). It watches the preference and expands four things: i18n messages, `<html lang>`, the dayjs locale (note dayjs uses lowercase short codes — `zh-cn`, not the BCP 47 value stored in preferences, `:20-24`), and an on-demand dynamic import of antd's built-in locale (`:41-43` records that this step was once commented out, which left every antd-built-in string in English). Language names are always endonyms (`localeLabels`, `:15-18`). The language-switch UI moved into the composition layer: `packages/layouts/src/widgets/language-toggle/index.vue:28` reads only the host-injected `layoutHost.locales` (the comment at `:23` explains the convention), and that candidate table is built from `localeLabels` in `apps/web/src/plugins/layouts-host.ts:35-38`; writing is still the single preference update. The wider contract is in [Internationalization](/en/guide/in-depth/internationalization).
+`useLocaleSync()` (`:41-56`) is the single exit for locale side effects; `apps/web/src/App.vue:14` calls it once at the root and it **returns nothing now**. It watches the preference and expands three things: i18n messages, `<html lang>`, and the dayjs locale (note dayjs uses lowercase short codes — `zh-cn`, not the BCP 47 value stored in preferences, `:22-25`). There used to be a fourth: an on-demand dynamic import of antd's locale object fed to `ConfigProvider :locale` — that step carried a defect where commenting it out left every built-in string in English. It went away with the antd dependency (the motive is at `:34-37`); component built-in text is now expanded by `@antdv/common-ui`'s own `ConfigProvider` from `'en-US' | 'zh-CN'` (`App.vue:41-44` computes it, `:48-51` mounts the provider). Language names are always endonyms (`localeLabels`, `:16-19`). The language-switch UI moved into the composition layer: `packages/layouts/src/widgets/language-toggle/index.vue:28` reads only the host-injected `layoutHost.locales` (the comment at `:22-27` explains the convention), and that candidate table is built from `localeLabels` in `apps/web/src/plugins/layouts-host.ts:35-38`; writing is still the single preference update. The wider contract is in [Internationalization](/en/guide/in-depth/internationalization).
 
 `useThemeTransition()` (`packages/layouts/src/hooks/use-theme-transition.ts:37-114`) owns the circular-expanding theme switch:
 
@@ -398,8 +388,8 @@ On the WebSocket side the rule is: business code subscribes to the **app-level s
 | Export | Signature and key defaults | Used here by |
 | --- | --- | --- |
 | `useCache(key, options?)` | `{ defaultValue = null, expire = 0, deep = true, immediate = false }` (`use-cache.ts:45-50`), `expire` is in **seconds**, `0` = never | nothing (unit tests only) |
-| `useChunkUpload(options?)` | `{ chunkSize = 5 MB, concurrent = 3, createWorker?, workerUrl? }` (`use-chunk-upload.ts:35-37`) | `views/components/upload/index.vue:435`; `components/common/Upload/composables/useChunkUploader.ts:53` wraps it |
-| `useFileReader()` | no options; `read(file, readAs = 'readAsDataURL')` | `components/common/AvatarUploader.vue` |
+| `useChunkUpload(options?)` | `{ chunkSize = 5 MB, concurrent = 3, createWorker?, workerUrl? }` (`use-chunk-upload.ts:35-37`) | `views/components/upload/index.vue:435`; `packages/core/ui-kit/common-ui/src/components/chunk-upload/composables/useChunkUploader.ts:53` wraps it |
+| `useFileReader()` | no options; `read(file, readAs = 'readAsDataURL')` | `packages/core/ui-kit/common-ui/src/components/avatar-uploader/AvatarUploader.vue` |
 | `usePrint(options)` | `target` **required**, `title = document.title`, `showHeader/showFooter = true`; returns `void` | `views/system/{login-log,online,user}` — three pages |
 | `useRouteLoading(options?)` | `{ minDuration = 300, auto = true }` | `packages/layouts/src/basic/layout.vue:8` |
 | `useWatermark(options?)` | `{ content?, enabled?, style? }`, style defaults `200×150 / rotate 330 / alpha 0.15 / 14px / #666666` | `packages/layouts/src/basic/layout.vue:9` |

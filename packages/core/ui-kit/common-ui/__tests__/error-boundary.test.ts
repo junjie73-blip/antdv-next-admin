@@ -1,8 +1,9 @@
 import type { VNode } from 'vue';
 
-import { configureSharedEnv } from '@antdv/shared/utils/env';
 import { flushPromises, mount } from '@vue/test-utils';
 import { defineComponent, h, nextTick, onMounted } from 'vue';
+
+import { configureSharedEnv } from '@antdv/shared/utils/env';
 import { afterAll, describe, expect, it } from 'vitest';
 
 import ErrorBoundary from '../src/components/error-boundary/ErrorBoundary.vue';
@@ -19,7 +20,7 @@ const makeBoom = (msg = 'boom') =>
     },
   });
 
-describe('ErrorBoundary', () => {
+describe('errorBoundary', () => {
   it('无错误时渲染 default 插槽', async () => {
     const wrapper = mount(ErrorBoundary, {
       slots: { default: () => h('div', 'child-content') },

@@ -1,14 +1,15 @@
 # Icons
 
-Three icon channels coexist here, each with its own use case and its own failure mode:
+Two icon channels coexist here, each with its own use case and its own failure mode:
 
 | Channel | Dependency | How you write it | State in this repo |
 | --- | --- | --- | --- |
-| Offline Iconify sets | `@iconify/vue` `^5.0.3` + five `@iconify-json/*` sets | `<Icon icon="carbon:search" />` | the workhorse: 444 `carbon:`, 99 `ant-design:` and 7 `lucide:` literals. The counting method matches the audit test — whole quoted literals only, scanned over `.ts/.tsx/.vue` under `apps/backend-mock/server`, `apps/web/src` and `packages`; almost all `lucide:` hits sit in `IconPicker` and `@iconify`'s own loaders |
-| antdv-next's own icon components | `@antdv-next/icons` `^1.1.2` | `import { FullscreenOutlined } from '@antdv-next/icons'` | one source file left: `apps/web/src/views/screen/components/ScreenHeader.vue:4` (plus one spec, `views/screen/__tests__/screen-header.spec.ts`). Login, register, import/export and tenant select switched to Iconify long ago |
-| Local SVG sprite | `vite-plugin-svg-icons` `^2.0.1` | `<SvgIcon name="logo" />` | wired up: `apps/web/src/assets/icons` holds `github / google / qq / wechat` (the login page's social buttons use them — see [Login and auth](/en/guide/in-depth/login)) |
+| Offline Iconify sets | `@iconify/vue` `^5.0.3` + five `@iconify-json/*` sets | `<Icon icon="carbon:search" />` | the workhorse — 535 literals in total: 430 `carbon:`, 98 `ant-design:`, 7 `lucide:`. The counting method matches the audit test — whole quoted literals only, scanned over `.ts/.tsx/.vue` under `apps/backend-mock/server`, `apps/web/src` and `packages`; almost all `lucide:` hits sit in `IconPicker` and `@iconify`'s own loaders |
+| Local SVG sprite | `vite-plugin-svg-icons` `^2.0.1`, rendered through `SvgIcon` from `@antdv/icons` | `<SvgIcon name="logo" />` | wired up: `apps/web/src/assets/icons` holds `github / google / qq / wechat` (the login page's social buttons use them — see [Login and auth](/en/guide/in-depth/login)) |
 
 Versions come from the catalog in `pnpm-workspace.yaml`; don't read a sub-package manifest to find one.
+
+::: info The third channel is gone `@antdv-next/icons` (component-style icons, `import { FullscreenOutlined } from '@antdv-next/icons'`) left the dependency graph with antdv-next: the package is no longer in the catalog and no source file imports it — the only mention left is `apps/web/src/views/__tests__/gallery-api-usage.spec.ts`, which keeps it as a **bad sample** inside the guard. Its last consumer was the big-screen header's fullscreen button, now `<Icon :icon="isFullscreen ? 'carbon:minimize' : 'carbon:maximize'" />` (`apps/web/src/views/screen/components/ScreenHeader.vue:105`). :::
 
 ## Iconify: offline data by default
 
@@ -26,8 +27,7 @@ Each set listed in `local` is read from `@iconify-json/<name>/icons.json` and ha
 
 ::: warning
 
-A set outside that list fails silently A typo like `<Icon icon="carbon:card" />` produces no Vue error. During the build an unknown name renders an **empty span**; if the lookup falls through to runtime it becomes a network request that our CSP usually blocks. The visible symptom is "some menu rows have icons, some have a blank square, and the labels no longer line up" — it looks like a CSS bug and is actually bad data.
-:::
+A set outside that list fails silently A typo like `<Icon icon="carbon:card" />` produces no Vue error. During the build an unknown name renders an **empty span**; if the lookup falls through to runtime it becomes a network request that our CSP usually blocks. The visible symptom is "some menu rows have icons, some have a blank square, and the labels no longer line up" — it looks like a CSS bug and is actually bad data. :::
 
 `vite-plugin-iconify-offline` (catalog `^0.4.3`) is also in `apps/web` devDependencies but is **imported nowhere**; the plugin doing the work is the `@tomjs/*` one above.
 
@@ -50,8 +50,7 @@ A set outside that list fails silently A typo like `<Icon icon="carbon:card" />`
 2. the `local` array at `auto-import.ts:31`;
 3. `IconPicker.vue` — the `Prefix` union (`:53`), `COLLECTIONS` (`:62`) and `COLLECTION_LOADERS` (`:75`) (miss this and the set can neither be selected nor searched);
 4. `apps/web/test/icon-names.test.ts` — `COLLECTIONS` and the collection alternation in `LITERAL`;
-5. run `pnpm --filter @antdv/web build` once to confirm the data really is in the output.
-:::
+5. run `pnpm --filter @antdv/web build` once to confirm the data really is in the output. :::
 
 ## The icon-name audit test (a hard constraint here)
 
@@ -71,8 +70,7 @@ How to run it: `pnpm test:unit` (whole repository through turbo) or `pnpm --filt
 
 ::: warning
 
-Class-based icon names do not work in this repository `apps/web/src/views/system/micro-app/index.vue` still contains four UnoCSS-style `class="i-carbon-search"` / `i-carbon-application` spans (`:195`, `:333`, `:408`, `:450`; `MicroAppContainer` moved into `@antdv/common-ui` and its copy of that markup went with it). There is no UnoCSS here and no plugin compiling `i-*` into CSS (styling is Tailwind v4, see [Design tokens and global styles](/en/guide/essentials/design)), so those spans render **empty**. New code always writes the component form: `<Icon icon="carbon:search" />`.
-:::
+Class-based icon names do not work in this repository `apps/web/src/views/system/micro-app/index.vue` still contains four UnoCSS-style `class="i-carbon-search"` / `i-carbon-application` spans (`:195`, `:333`, `:408`, `:450`; `MicroAppContainer` moved into `@antdv/common-ui` and its copy of that markup went with it). There is no UnoCSS here and no plugin compiling `i-*` into CSS (styling is Tailwind v4, see [Design tokens and global styles](/en/guide/essentials/design)), so those spans render **empty**. New code always writes the component form: `<Icon icon="carbon:search" />`. :::
 
 ## Where icon names come from
 
@@ -83,7 +81,7 @@ Two runtime sources, neither hardcoded inside a component:
 
 The breadcrumb's handling of the empty value is worth copying: `toText()` (`packages/layouts/src/breadcrumb.ts:49-51`) folds "not a non-empty string" into `undefined`, and the view then decides whether to render `<Icon>` at all via `v-if="showIcon && entry.icon"` (`packages/layouts/src/widgets/breadcrumb.vue:111-113`) — an empty string never reaches `<Icon :icon>`, so there is no "icon slot occupies a cell but draws nothing" misalignment.
 
-Icons used _inside_ antdv-next components (form validation, the select arrow, and so on) come from `@antdv-next/icons` and are unrelated to the pipeline above. The only antd DOM left on a page is the form designer, so the one place business code still takes that package is the pair of fullscreen arrows in the big-screen header (`views/screen/components/ScreenHeader.vue:4`); everywhere else, go through Iconify.
+**Icons _inside_ the packages are a fourth route**: a field's clear/eye/search glyph, the toast's check and cross, a dropdown arrow and so on come from `@lucide/vue` (catalog `:48`, pinned exactly at `1.55.0`) — 10 source files spread over `common-ui` / `form-ui` / `popup-ui` / `shadcn-ui`, for instance `packages/core/ui-kit/common-ui/src/components/toast/Toaster.vue:13`. Those never touch the offline Iconify sets and take no part in the audit above. The channel where "antdv-next components shipped their own icon set" went away with the library (see the note at the top of the page).
 
 ## Related pages
 

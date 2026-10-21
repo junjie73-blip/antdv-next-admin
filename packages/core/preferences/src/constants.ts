@@ -1,4 +1,3 @@
-
 /**
  * 偏好域的固定字面量。
  *
@@ -19,6 +18,14 @@ export const PREFERENCES_CACHE_KEY = 'appSetting';
  * 这里只写"首屏画对颜色所需"的三五个字段，明文落盘。
  */
 export const BOOT_THEME_CACHE_KEY = 'bootTheme';
+
+/**
+ * 首屏快照的格式版本，读侧（插件注入的内联脚本与 `readBootThemeCache`）按它放行。
+ *
+ * v2 = 颜色字段是 HSL 通道串（`215 100% 54%`）。v1 存的是完整颜色，套进
+ * `hsl(var(--x))` 会解析失败，所以换格式时必须升版本，而不是指望用户清缓存。
+ */
+export const BOOT_THEME_SNAPSHOT_VERSION = 2;
 
 /** 缺省的深色 class 名，Tailwind `@custom-variant dark` 与应用注入的那份同源 */
 export { DARK_CLASS as DEFAULT_DARK_CLASS } from '@antdv/shared/constants';

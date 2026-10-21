@@ -313,10 +313,8 @@ describe('dOM 落地', () => {
   it('创建时即应用当前偏好', () => {
     // 用非预设色：预设档只挂 `data-theme`（色板在 @antdv/design 里），内联主色只在 custom 档写
     make({ applyToDom: true, defaults: { primaryColor: 'rgb(255, 92, 92)' } });
-    expect(html.style.getPropertyValue('--app-primary')).toBe(
-      'rgb(255, 92, 92)',
-    );
-    expect(html.style.getPropertyValue('--app-border-radius')).toBe('1rem');
+    expect(html.style.getPropertyValue('--primary')).toBe('0 100% 68%');
+    expect(html.style.getPropertyValue('--radius')).toBe('1rem');
   });
 
   it('patch 后 class 与变量同步更新', () => {

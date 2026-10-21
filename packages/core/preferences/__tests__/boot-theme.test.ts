@@ -9,7 +9,10 @@ import {
   writeBootThemeCache,
 } from '../src/boot-theme';
 import { DEFAULT_PREFERENCES } from '../src/config';
-import { BOOT_THEME_CACHE_KEY } from '../src/constants';
+import {
+  BOOT_THEME_CACHE_KEY,
+  BOOT_THEME_SNAPSHOT_VERSION,
+} from '../src/constants';
 import { createPreferences } from '../src/preferences';
 import { clearPreferencesFromDom } from '../src/update-css-variables';
 
@@ -85,6 +88,7 @@ describe('writeBootThemeCache', () => {
 
   it('没有样式表时 vars 是空串而不是抛错', () => {
     const snapshot = buildBootThemeSnapshot({ ...DEFAULT_PREFERENCES });
+    expect(snapshot.version).toBe(BOOT_THEME_SNAPSHOT_VERSION);
     expect(Object.keys(snapshot.vars).sort()).toEqual([
       'background',
       'foreground',
@@ -93,6 +97,22 @@ describe('writeBootThemeCache', () => {
     for (const value of Object.values(snapshot.vars)) {
       expect(typeof value).toBe('string');
     }
+  });
+
+  /**
+   * 变量格式换代（v1 存完整颜色 → v2 存 HSL 三段）是一次不兼容变更：旧快照里的
+   * `#1677ff` 拼不进首屏脚本的 `hsl(var(--x))`，照抄只会染出一层透明遮罩。
+   * 换存储键会在盘上留一条永远没人清的孤儿数据，所以由读侧按 version 直接拒收。
+   */
+  it('版本对不上的旧快照当作没有缓存', () => {
+    writeBootThemeCache({ ...DEFAULT_PREFERENCES });
+    localStorage.setItem(
+      rawKey(),
+      JSON.stringify({ ...readBootThemeCache(), version: 1 }),
+    );
+
+    expect(rawSnapshot()?.version).toBe(1);
+    expect(readBootThemeCache()).toBeNull();
   });
 
   it('clearBootThemeCache 只清这一条，不动完整偏好', () => {

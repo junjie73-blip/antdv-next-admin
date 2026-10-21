@@ -22,7 +22,7 @@ const icon = (wrapper: ReturnType<typeof mount>) =>
     '[data-common-result] svg, [data-common-result] [class*="iconify"]',
   );
 
-describe('Result', () => {
+describe('result', () => {
   it('默认是 info，整体居中', () => {
     const wrapper = mount(Result, { props: { title: '已提交' } });
     expect(wrapper.find('[data-common-result]').exists()).toBe(true);
@@ -51,9 +51,7 @@ describe('Result', () => {
       props: { status: 'error', subTitle: '订单号不存在', title: '出错了' },
     });
     expect(wrapper.text()).toContain('出错了');
-    expect(wrapper.find('.text-muted-foreground').text()).toBe(
-      '订单号不存在',
-    );
+    expect(wrapper.find('.text-muted-foreground').text()).toBe('订单号不存在');
   });
 
   it('extra 插槽渲染成居中的操作行', () => {

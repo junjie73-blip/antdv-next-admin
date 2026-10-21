@@ -1,11 +1,18 @@
 <script setup lang="tsx">
+import type { DescriptionItem } from '@antdv/common-ui';
 import type { FormSchema } from '@antdv/form-ui';
 import type { BasicColumn } from '@antdv/table-ui';
-import type { DescriptionItem } from '@antdv/common-ui';
 
 import { computed, ref } from 'vue';
 
-import { Card, Divider, Tag, Tooltip } from '@antdv/common-ui';
+import {
+  Card,
+  Description as DetailDescription,
+  Divider,
+  Tag,
+  Tooltip,
+} from '@antdv/common-ui';
+import { DictType } from '@antdv/enums';
 import { BasicForm, useForm } from '@antdv/form-ui';
 import { BasicDrawer, message, useDrawer } from '@antdv/popup-ui';
 import { BasicModal, useModal } from '@antdv/popup-ui';
@@ -19,8 +26,6 @@ import {
   getSettingsList,
   updateSetting,
 } from '~/api/system';
-import { Description as DetailDescription } from '@antdv/common-ui';
-import { DictType } from '@antdv/enums';
 import { useDictStore } from '~/stores';
 
 defineOptions({ name: 'SystemSettings' });

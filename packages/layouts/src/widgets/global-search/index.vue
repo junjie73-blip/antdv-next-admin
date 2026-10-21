@@ -2,18 +2,18 @@
 import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
+import { Scrollbar } from '@antdv/common-ui';
+import { useLayoutI18n } from '@antdv/layout-ui';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
 } from '@antdv/shadcn-ui';
-import { Scrollbar } from '@antdv/common-ui';
-import { useLayoutI18n } from '@antdv/layout-ui';
 import { Icon } from '@iconify/vue';
 
-import { flattenMenus, matchEntries } from '../../menu-search';
 import { useLocalizedMenus } from '../../hooks/use-menu-tree';
+import { flattenMenus, matchEntries } from '../../menu-search';
 
 defineOptions({ name: 'LayoutGlobalSearch' });
 

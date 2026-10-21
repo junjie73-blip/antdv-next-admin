@@ -6,7 +6,6 @@ import { computed, ref } from 'vue';
 import { Card, Scrollbar } from '@antdv/common-ui';
 import { BasicForm, useForm } from '@antdv/form-ui';
 import { message } from '@antdv/popup-ui';
-
 import { Button, Switch } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 
@@ -431,15 +430,12 @@ const timingSchemas = computed<FormSchema[]>(() => [
         字符串长度用
         <code :class="inlineCodeClassName">min</code>/<code
           :class="inlineCodeClassName"
-          >max</code
-        >， 数值区间写
+          >max</code>， 数值区间写
         <code :class="inlineCodeClassName">{ type: 'number', min, max }</code>
         —— 同一对 <code :class="inlineCodeClassName">min/max</code> 在
         <code :class="inlineCodeClassName">type: 'number'</code>
         下按区间比，在字符串下按长度比。 实时字数有两种现成写法：
-        <code :class="inlineCodeClassName"
-          >componentProps: { showCount: true }</code
-        >
+        <code :class="inlineCodeClassName">componentProps: { showCount: true }</code>
         是 antd TextArea 自带的能力，昵称那格用的是本仓库 schema 的
         <code :class="inlineCodeClassName">suffix</code>
         字段（函数形式，读的就是当前表单值）。注意
@@ -478,16 +474,13 @@ const timingSchemas = computed<FormSchema[]>(() => [
         （admin / root / superuser /
         test）模拟的，<strong>没有后端接口</strong>，也没有发请求。 跨字段比较走
         schema 的
-        <code :class="inlineCodeClassName">dynamicRules</code
-        >：它是函数，每次求值都能拿到整份
+        <code :class="inlineCodeClassName">dynamicRules</code>：它是函数，每次求值都能拿到整份
         <code :class="inlineCodeClassName">formModel</code>，确认密码因此能读到
         password 的最新值；省 / 市 /
         区同理——换省份不会自动清空已选城市，再次校验（或改动该字段）时
         由规则判出「城市不属于所选省份」。
         <code :class="inlineCodeClassName">dynamicRules</code>
-        会整份接管该字段的规则，<code :class="inlineCodeClassName"
-          >required</code
-        >
+        会整份接管该字段的规则，<code :class="inlineCodeClassName">required</code>
         简写不再起作用，必填得在函数里自己写。
       </p>
       <BasicForm
@@ -518,9 +511,7 @@ const timingSchemas = computed<FormSchema[]>(() => [
         <code :class="inlineCodeClassName">trigger</code>
         覆盖自己的时机（备注里的 pattern
         规则就固定失焦才跑）。切换只影响后续触发，
-        已有的错误提示请用「清除校验」（<code :class="inlineCodeClassName"
-          >clearValidate</code
-        >）去掉， 「重置」调的是
+        已有的错误提示请用「清除校验」（<code :class="inlineCodeClassName">clearValidate</code>）去掉， 「重置」调的是
         <code :class="inlineCodeClassName">resetFields</code>，会把值退回 schema
         的 <code :class="inlineCodeClassName">defaultValue</code>。
         <code :class="inlineCodeClassName">validate()</code>

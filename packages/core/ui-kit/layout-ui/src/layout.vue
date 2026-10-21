@@ -15,7 +15,6 @@ import { computed } from 'vue';
 
 import { IconifyIcon as Icon } from '@antdv/icons/icon';
 
-import { layoutRuntime } from './layout';
 import LayoutContent from './components/layout-content/index.vue';
 import LayoutFooter from './components/layout-footer/index.vue';
 import LayoutHeader from './components/layout-header/index.vue';
@@ -24,6 +23,7 @@ import LayoutNavRail from './components/layout-sidebar/nav-rail.vue';
 import LayoutOverlay from './components/layout-sidebar/overlay.vue';
 import LayoutTabbar from './components/layout-tabbar/index.vue';
 import { useLayoutStyle } from './hooks/use-layout';
+import { layoutRuntime } from './layout';
 
 defineOptions({ name: 'LayoutShell' });
 

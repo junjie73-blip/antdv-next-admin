@@ -13,10 +13,10 @@ defineOptions({ name: 'BorderBeam' });
 const props = withDefaults(defineProps<BorderBeamProps>(), {
   borderWidth: 2,
   class: undefined,
-  color: 'var(--app-primary)',
+  color: 'hsl(var(--primary))',
   delay: 0,
   duration: 6,
-  radius: 'var(--app-border-radius)',
+  radius: 'var(--radius)',
   size: 25,
   style: undefined,
   tailColor: 'transparent',
@@ -31,7 +31,7 @@ const rootStyle = computed<CSSProperties>(() => ({
   '--bb-color': props.color,
   '--bb-size': `${props.size}%`,
   '--bb-tail': props.tailColor,
-  // 圆角一律 rem（`radiusToRem` 对字符串原样放行，所以 `var(--app-border-radius)` 照旧生效）
+  // 圆角一律 rem（`radiusToRem` 对字符串原样放行，所以 `var(--radius)` 照旧生效）
   borderRadius: radiusToRem(props.radius),
   ...props.style,
 }));

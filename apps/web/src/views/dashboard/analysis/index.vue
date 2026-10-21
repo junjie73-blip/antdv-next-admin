@@ -4,14 +4,14 @@ import type { Ref } from 'vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 
-import { cn } from '@antdv/shared/utils/cn';
-import { Icon } from '@iconify/vue';
-import { useEventListener } from '@vueuse/core';
 import { Card, Segmented, Space, Tag } from '@antdv/common-ui';
 import { message } from '@antdv/popup-ui';
 import { Button } from '@antdv/shadcn-ui';
-import * as echarts from 'echarts';
+import { cn } from '@antdv/shared/utils/cn';
 import { useAppStore } from '@antdv/stores';
+import { Icon } from '@iconify/vue';
+import { useEventListener } from '@vueuse/core';
+import * as echarts from 'echarts';
 
 defineOptions({ name: 'DashboardAnalysis' });
 const appStore = useAppStore();
@@ -212,12 +212,12 @@ function activityDotColor(type: string): string {
 }
 
 function activityDotClass(type: string): string {
-  return cn('mt-2 h-1.5 w-1.5 shrink-0 rounded-full', activityDotColor(type));
+  return cn('mt-2 size-1.5  shrink-0 rounded-full', activityDotColor(type));
 }
 
 function quickActionIconClass(color: string): string {
   return cn(
-    'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
+    'flex size-9  shrink-0 items-center justify-center rounded-lg',
     color,
   );
 }
@@ -1084,7 +1084,7 @@ onBeforeUnmount(() => {
 
       <!-- 主趋势图：全宽 -->
       <Card
-        :class="[analyticsCardClassName, 'mt-6']"
+        class="mt-6" :class="[analyticsCardClassName]"
         variant="borderless"
         body-class="px-6 py-5"
       >
@@ -1171,7 +1171,7 @@ onBeforeUnmount(() => {
       <div class="grid grid-cols-12 items-stretch gap-4">
         <div class="col-span-12 mb-2 lg:col-span-5">
           <Card
-            :class="[analyticsCardClassName, 'h-full']"
+            class="h-full" :class="[analyticsCardClassName]"
             variant="borderless"
             body-class="flex flex-col px-6 py-5"
           >
@@ -1185,7 +1185,7 @@ onBeforeUnmount(() => {
         </div>
         <div class="col-span-12 mb-2 lg:col-span-7">
           <Card
-            :class="[analyticsCardClassName, 'h-full']"
+            class="h-full" :class="[analyticsCardClassName]"
             variant="borderless"
             body-class="flex flex-col px-6 py-5"
           >
@@ -1224,8 +1224,7 @@ onBeforeUnmount(() => {
                 <span class="min-w-0">
                   <span
                     class="block text-sm font-medium text-gray-700 transition-colors group-hover:text-primary dark:text-gray-300"
-                    >{{ action.title }}</span
-                  >
+                    >{{ action.title }}</span>
                   <span class="mt-0.5 block text-[11px] text-gray-400">{{
                     action.desc
                   }}</span>
@@ -1251,8 +1250,7 @@ onBeforeUnmount(() => {
                 <span class="min-w-0 flex-1">
                   <span
                     class="block truncate text-gray-600 dark:text-gray-400"
-                    >{{ activity.action }}</span
-                  >
+                    >{{ activity.action }}</span>
                   <span class="mt-0.5 block text-[11px] text-gray-400">{{
                     activity.time
                   }}</span>

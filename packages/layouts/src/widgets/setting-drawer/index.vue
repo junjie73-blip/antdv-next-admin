@@ -3,14 +3,12 @@ import type { SettingSection } from './constants';
 
 import { computed, ref } from 'vue';
 
-import { useLayoutI18n } from '@antdv/layout-ui';
 import { Scrollbar, Segmented } from '@antdv/common-ui';
+import { useLayoutI18n } from '@antdv/layout-ui';
 import { BasicDrawer } from '@antdv/popup-ui';
-
-import { useWindowSize } from '@vueuse/core';
-
 import { DrawerTitle } from '@antdv/shadcn-ui';
 import { Icon } from '@iconify/vue';
+import { useWindowSize } from '@vueuse/core';
 
 import { layoutHost } from '../../host';
 import AppearancePanel from './components/appearance-panel.vue';

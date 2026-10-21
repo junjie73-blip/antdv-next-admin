@@ -65,11 +65,15 @@ afterEach(() => {
   document.body.innerHTML = '';
 });
 
-describe('BasicMenu —— 子菜单浮层', () => {
+describe('basicMenu —— 子菜单浮层', () => {
   it('横向形态：hover 一级目录弹出子树，只到二级（更深的交给就地展开）', async () => {
     const wrapper = mountMenu({ mode: 'horizontal' });
-    const first = wrapper.get('[data-menu-variant="bar"] > li > [data-menu-key="Demo"]');
-    expect(document.body.querySelector('[data-menu-variant="popup"]')).toBeNull();
+    const first = wrapper.get(
+      '[data-menu-variant="bar"] > li > [data-menu-key="Demo"]',
+    );
+    expect(
+      document.body.querySelector('[data-menu-variant="popup"]'),
+    ).toBeNull();
 
     await hover(first);
     expect(flyoutRows()).toEqual(['DemoForm', 'Table']);
@@ -77,7 +81,9 @@ describe('BasicMenu —— 子菜单浮层', () => {
 
   it('浮层里的目录本身也挂着浮层（三级菜单不会丢）', async () => {
     const wrapper = mountMenu({ mode: 'horizontal' });
-    const first = wrapper.get('[data-menu-variant="bar"] > li > [data-menu-key="Demo"]');
+    const first = wrapper.get(
+      '[data-menu-variant="bar"] > li > [data-menu-key="Demo"]',
+    );
     await hover(first);
 
     const panel = document.body.querySelector<HTMLElement>(
@@ -103,7 +109,9 @@ describe('BasicMenu —— 子菜单浮层', () => {
 
   it('浮层里的叶子点击后上抛 key；目录点击不改展开状态', async () => {
     const wrapper = mountMenu({ mode: 'horizontal' });
-    const first = wrapper.get('[data-menu-variant="bar"] > li > [data-menu-key="Demo"]');
+    const first = wrapper.get(
+      '[data-menu-variant="bar"] > li > [data-menu-key="Demo"]',
+    );
     await hover(first);
 
     const table = document.body.querySelector<HTMLElement>(
@@ -118,7 +126,9 @@ describe('BasicMenu —— 子菜单浮层', () => {
 
   it('浮层缩进从面板第一级重新起算（不会继承外层深度）', async () => {
     const wrapper = mountMenu({ inlineIndent: 16, mode: 'horizontal' });
-    const first = wrapper.get('[data-menu-variant="bar"] > li > [data-menu-key="Demo"]');
+    const first = wrapper.get(
+      '[data-menu-variant="bar"] > li > [data-menu-key="Demo"]',
+    );
     await hover(first);
 
     const panel = document.body.querySelector<HTMLElement>(

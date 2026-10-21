@@ -64,7 +64,7 @@ configureSharedEnv({
 | `antdv_dict_data` | dict store | 走 `localStorageCacheStorage`，信封外**又套一层** `loadedAt` 判 1 小时过期 | `dict.ts:35,49`、`enums/cache.ts:4` |
 | `appSetting` | preferences（自带 `createCache`） | `PREFERENCES_CACHE_KEY`，永不过期 | `packages/preferences/src/store.ts:21,104,146` |
 | `xy-menu-hidden-overrides` | route store | **裸 `localStorage` + 裸 JSON**，不走 cache、没有前缀 | `stores/modules/route.ts:27,31,43` |
-| `chunk-upload:<hash>` | 上传组件 | **裸 `localStorage`**，自有 `updatedAt` 7 天过期 | `components/common/Upload/constants.ts:8-9`、`Upload/utils.ts:50-52,56-60` |
+| `chunk-upload:<hash>` | 上传组件 | **裸 `localStorage`**，自有 `updatedAt` 7 天过期 | `packages/core/ui-kit/common-ui/src/components/chunk-upload/constants.ts:8-9`、`Upload/utils.ts:50-52,56-60` |
 
 `config/constants.ts` 里的 `TOKEN_EXPIRES_IN` / `REFRESH_TOKEN_EXPIRE` / `PERMISSIONS_KEY` 无任何引用（`TOKEN_EXPIRE` 的三处命中是 `user.ts:16` 自己的同名局部常量）。`VITE_NAMESPACE` 同样没人读，它不参与键拼接（见[配置](/zh/guide/essentials/config)）。
 
@@ -80,8 +80,7 @@ configureSharedEnv({
 2. 生产环境缺这个变量**不会**触发 `env.ts:57-66` 那个"必须配置密钥"的抛错，那条分支在缓存路径上是死代码。
 3. SM4 密钥 = `padKey(VITE_APP_TITLE)`（截断/补齐到 32 字符，`encrypt.ts:18,93-98`）。也就是说 **改 title 同时改了键名和密钥**，跨项目抄同一个 title 等于共用一把密钥。
 
-派生密钥那一套（SHA-256 + 设备指纹，`encrypt.ts:40-75`）只服务于异步版 `encryptValue` / `decryptValue`，而这两个函数**全仓没有调用方**。
-:::
+派生密钥那一套（SHA-256 + 设备指纹，`encrypt.ts:40-75`）只服务于异步版 `encryptValue` / `decryptValue`，而这两个函数**全仓没有调用方**。:::
 
 Token 的值另有机制，且不受 `shouldEncrypt` 影响：`encryptToken()` 用 `jose` 的 `EncryptJWT` （`alg: 'dir'` + `A256GCM`，`tokenCrypto.ts:86-90`），密钥由 PBKDF2（10 万次迭代）从**设备指纹**派生（`tokenCrypto.ts:21-69`），指纹因子含 `navigator.userAgent`、`navigator.language`、`screen.width/height`、时区偏移（`:22-28`）。它在 dev 也加密，所以本地 localStorage 里的 token 是 JWE 串。
 
@@ -103,8 +102,7 @@ Token 的值另有机制，且不受 `shouldEncrypt` 影响：`encryptToken()` �
 - **`userStore.refreshToken` 这个属性不存在**：`fetcher.ts:96,190` 读它，而 user store 的 return 列表（`user.ts:163-181`）里没有 `refreshToken`，运行时恒为 `undefined`，实际取值全靠 `cache.getItem`。
 - **`setToken` 的第二个形参被当过期时间用了**：`fetcher.ts:128` 传的是 `newRefresh`，签名却是 `setToken(newToken: string, expire?: number)`（`user.ts:51`），字符串进 `expire && expire > 0` 判定为假 → 刷新后的 token **不带 TTL**。
 
-另外两个"没人调"的点：`initToken()` 被导出但全仓无调用（`user.ts:30-40,174`），所以刷新后 `token.value` 是 `decryptToken` **之前**的 JWE 串；`clearDict()` 同理（`dict.ts:131-134`），登出并不会清字典缓存，靠的是那条 1 小时 `loadedAt` 自然过期。
-:::
+另外两个"没人调"的点：`initToken()` 被导出但全仓无调用（`user.ts:30-40,174`），所以刷新后 `token.value` 是 `decryptToken` **之前**的 JWE 串；`clearDict()` 同理（`dict.ts:131-134`），登出并不会清字典缓存，靠的是那条 1 小时 `loadedAt` 自然过期。:::
 
 ## 浏览器存储的真实使用情况
 
@@ -127,8 +125,7 @@ Token 的值另有机制，且不受 `shouldEncrypt` 影响：`encryptToken()` �
 
 ::: tip
 
-加一份持久化状态之前先决定键放哪：跟应用生命周期走的就照 `dict.ts` —— `CacheKey` 加一项（顺手真的引用它）、在 `watch` 里 `cache.setItem`、并把它加进 `user.ts` 的 `logout()` 清理列表。只是界面外观的偏好不要自己开 key，走 `packages/preferences`（见 [状态管理](/zh/guide/essentials/stores)）。裸 `localStorage` 只留给"跟缓存语义无关"的数据（菜单可见性覆盖、分片续传进度），并自己带上过期判定。
-:::
+加一份持久化状态之前先决定键放哪：跟应用生命周期走的就照 `dict.ts` —— `CacheKey` 加一项（顺手真的引用它）、在 `watch` 里 `cache.setItem`、并把它加进 `user.ts` 的 `logout()` 清理列表。只是界面外观的偏好不要自己开 key，走 `packages/preferences`（见 [状态管理](/zh/guide/essentials/stores)）。裸 `localStorage` 只留给"跟缓存语义无关"的数据（菜单可见性覆盖、分片续传进度），并自己带上过期判定。:::
 
 ## 相关页面
 

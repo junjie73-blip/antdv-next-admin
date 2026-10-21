@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import { TabsBar } from '@antdv/tabs-ui';
 import { useAppStore } from '@antdv/stores';
+import { TabsBar } from '@antdv/tabs-ui';
 
 import { useTabs } from '../../hooks/use-tabs';
 

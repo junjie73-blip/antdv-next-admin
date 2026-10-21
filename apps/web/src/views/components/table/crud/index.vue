@@ -1,11 +1,4 @@
 <script setup lang="ts">
-import type {
-  TaskFormValues,
-  TaskOption,
-  TaskPriority,
-  TaskRecord,
-  TaskStatus,
-} from '~/api/demo';
 import type { FormSchema } from '@antdv/form-ui';
 import type {
   ActionItem,
@@ -13,11 +6,23 @@ import type {
   FetchParams,
   Recordable,
 } from '@antdv/table-ui';
+import type {
+  TaskFormValues,
+  TaskOption,
+  TaskPriority,
+  TaskRecord,
+  TaskStatus,
+} from '~/api/demo';
 
 import { computed, onMounted, ref } from 'vue';
 
 import { Card, Descriptions, DescriptionsItem, Tag } from '@antdv/common-ui';
+import { BasicForm, useForm } from '@antdv/form-ui';
+import { useCRUD, usePermission } from '@antdv/hooks';
+import { BasicModal, useModal } from '@antdv/popup-ui';
+import { Button, Progress } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
+import { BasicTable, useTable } from '@antdv/table-ui';
 import { Icon } from '@iconify/vue';
 import {
   addTask,
@@ -27,11 +32,6 @@ import {
   getTaskOptions,
   updateTask,
 } from '~/api/demo';
-import { BasicForm, useForm } from '@antdv/form-ui';
-import { BasicModal, useModal } from '@antdv/popup-ui';
-import { Button, Progress } from '@antdv/shadcn-ui';
-import { BasicTable, useTable } from '@antdv/table-ui';
-import { useCRUD, usePermission } from '@antdv/hooks';
 
 /**
  * 增删改查示例：把「表格 + 搜索表单 + 编辑弹窗」这套后台最常见的组合，
@@ -425,8 +425,7 @@ const canBatchDelete = computed(() => hasPermission('demo:task:remove'));
         按钮级权限同样在跑：当前账号的权限码若是
         <code class="font-mono">['*']</code>（超管）全部可见； 换成
         <code class="font-mono">custom</code> 登录，它没有
-        <code class="font-mono">demo:task:remove</code
-        >，删除与批量删除都会消失。
+        <code class="font-mono">demo:task:remove</code>，删除与批量删除都会消失。
       </p>
     </Card>
 
@@ -461,9 +460,7 @@ const canBatchDelete = computed(() => hasPermission('demo:task:remove'));
           确认交互（这里用操作列的
           <code class="font-mono">popConfirm</code>）、字段映射
           <code class="font-mono">getFormValues</code>、以及业务规则钩子
-          <code class="font-mono"
-            >beforeCreate / beforeUpdate / beforeDelete</code
-          >。
+          <code class="font-mono">beforeCreate / beforeUpdate / beforeDelete</code>。
         </DescriptionsItem>
       </Descriptions>
     </Card>

@@ -20,7 +20,7 @@ const baseSchemas = [
   { component: 'Input', field: 'name' },
 ] as FormSchema[];
 
-describe('TableImg', () => {
+describe('tableImg', () => {
   it('按 imgList 渲染缩略图，尺寸来自 size', () => {
     const wrapper = mount(TableImg, {
       props: { imgList: ['https://x/a.png', 'https://x/b.png'], size: 32 },
@@ -47,7 +47,7 @@ describe('TableImg', () => {
   });
 });
 
-describe('TableHeaderCell', () => {
+describe('tableHeaderCell', () => {
   it('渲染 title 与默认插槽', () => {
     const wrapper = mount(TableHeaderCell, {
       props: { column: { title: '名称' } },
@@ -98,7 +98,7 @@ describe('TableHeaderCell', () => {
   });
 });
 
-describe('TableEditableCell', () => {
+describe('tableEditableCell', () => {
   it('非编辑列就是纯文本', () => {
     const wrapper = mount(TableEditableCell, {
       props: { column: {}, dataIndex: 'name', record, value: '张三' },
@@ -125,7 +125,12 @@ describe('TableEditableCell', () => {
 
   it('文本组件靠回车保存，值随 save 一起抛出', async () => {
     const wrapper = mount(TableEditableCell, {
-      props: { column: { edit: true }, dataIndex: 'name', record, value: '张三' },
+      props: {
+        column: { edit: true },
+        dataIndex: 'name',
+        record,
+        value: '张三',
+      },
     });
     await wrapper.find('[title="点击编辑"]').trigger('click');
     await nextTick();
@@ -141,13 +146,20 @@ describe('TableEditableCell', () => {
 
   it('保存按钮直接保存，取消按钮回滚值并抛 cancel', async () => {
     const wrapper = mount(TableEditableCell, {
-      props: { column: { edit: true }, dataIndex: 'name', record, value: '张三' },
+      props: {
+        column: { edit: true },
+        dataIndex: 'name',
+        record,
+        value: '张三',
+      },
     });
     await wrapper.find('[title="点击编辑"]').trigger('click');
     await nextTick();
     await wrapper.find('input').setValue('改了但不保存');
     await wrapper.find('button[title="取消"]').trigger('click');
-    expect(wrapper.emitted('cancel')?.[0]).toMatchObject([{ dataIndex: 'name' }]);
+    expect(wrapper.emitted('cancel')?.[0]).toMatchObject([
+      { dataIndex: 'name' },
+    ]);
     expect(wrapper.emitted('save')).toBeUndefined();
 
     await wrapper.find('[title="点击编辑"]').trigger('click');
@@ -364,9 +376,12 @@ describe('useTableForm', () => {
   });
 });
 
-describe('BasicTable 搜索表单联动', () => {
+describe('basicTable 搜索表单联动', () => {
   it('useSearchForm 渲染搜索表单，提交后条件进入请求参数', async () => {
-    const api = vi.fn<(params: any) => Promise<any>>(async () => ({ list: [], total: 0 }));
+    const api = vi.fn<(params: any) => Promise<any>>(async () => ({
+      list: [],
+      total: 0,
+    }));
     const wrapper = mount(BasicTable as any, {
       props: {
         api,

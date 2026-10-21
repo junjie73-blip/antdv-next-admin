@@ -1,49 +1,61 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import { computed, onMounted, ref } from "vue"
-import { cn } from '@antdv/shared/utils/cn'
-import { useChart } from "."
+import type { HTMLAttributes } from 'vue';
 
-const props = withDefaults(defineProps<{
-  hideIcon?: boolean
-  nameKey?: string
-  verticalAlign?: "bottom" | "top"
-  // payload?: any[]
-  class?: HTMLAttributes["class"]
-}>(), {
-  verticalAlign: "bottom",
-})
+import { computed, onMounted, ref } from 'vue';
 
-const { id, config } = useChart()
+import { cn } from '@antdv/shared/utils/cn';
 
-const payload = computed(() => Object.entries(config.value).map(([key, value]) => {
-  return {
-    key: props.nameKey || key,
-    itemConfig: value,
-  }
-}))
+import { useChart } from '.';
 
-const containerSelector = ref("")
+const props = withDefaults(
+  defineProps<{
+    hideIcon?: boolean;
+    nameKey?: string;
+    verticalAlign?: 'bottom' | 'top';
+    // payload?: any[]
+    class?: HTMLAttributes['class'];
+  }>(),
+  {
+    verticalAlign: 'bottom',
+  },
+);
+
+const { id, config } = useChart();
+
+const payload = computed(() =>
+  Object.entries(config.value).map(([key, value]) => {
+    return {
+      key: props.nameKey || key,
+      itemConfig: value,
+    };
+  }),
+);
+
+const containerSelector = ref('');
 onMounted(() => {
-  containerSelector.value = `[data-chart="chart-${id}"]>[data-vis-xy-container]`
-})
+  containerSelector.value = `[data-chart="chart-${id}"]>[data-vis-xy-container]`;
+});
 </script>
 
 <template>
   <div
     v-if="containerSelector"
-    :class="cn(
-      'flex items-center justify-center gap-4',
-      verticalAlign === 'top' ? 'pb-3' : 'pt-3',
-      props.class,
-    )"
+    :class="
+      cn(
+        'flex items-center justify-center gap-4',
+        verticalAlign === 'top' ? 'pb-3' : 'pt-3',
+        props.class,
+      )
+    "
   >
     <div
       v-for="{ key, itemConfig } in payload"
       :key="key"
-      :class="cn(
-        '[&>svg]:text-muted-foreground flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3',
-      )"
+      :class="
+        cn(
+          '[&>svg]:text-muted-foreground flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3',
+        )
+      "
     >
       <component :is="itemConfig.icon" v-if="itemConfig.icon" />
       <div
@@ -52,7 +64,7 @@ onMounted(() => {
         :style="{
           backgroundColor: itemConfig?.color,
         }"
-      />
+      ></div>
 
       {{ itemConfig.label }}
     </div>

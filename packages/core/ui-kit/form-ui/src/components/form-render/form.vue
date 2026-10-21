@@ -2,9 +2,7 @@
 import type { ComputedRef, Ref } from 'vue';
 
 import type { FormActionType, FormProps, FormValidateError } from '../../types';
-
 import type { FormContext } from './context';
-
 import type { FormSchema, NamePath, Recordable } from './schema';
 
 import {
@@ -24,10 +22,10 @@ import { Separator } from '@antdv/shadcn-ui';
 import { useForm as useTanstackForm } from '@tanstack/vue-form';
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
 
-import { deepMerge, formatDateFields, handleRangeValue } from './utils';
-import { FORM_CONTEXT_KEY } from './context';
 import FormActions from '../form-actions.vue';
+import { FORM_CONTEXT_KEY } from './context';
 import FormField from './form-field.vue';
+import { deepMerge, formatDateFields, handleRangeValue } from './utils';
 
 defineOptions({
   name: 'BasicForm',
@@ -92,7 +90,7 @@ const propsRef = ref<Partial<FormProps>>({});
 const isAdvanced = ref(false);
 const rootRef = ref<HTMLFormElement>();
 
-const getValues = (): Recordable => ({ ...(form.state.values ?? {}) });
+const getValues = (): Recordable => ({ ...form.state.values });
 
 /**
  * 给插槽用的表单值代理。
@@ -368,7 +366,7 @@ function initFormModel() {
 
 // ============ 表单验证 ============
 function collectValues(nameList?: NamePath[]): Recordable {
-  const all = { ...(form.state.values ?? {}) };
+  const all = { ...form.state.values };
   if (!nameList || nameList.length === 0) return all;
   const picked: Recordable = {};
   nameList.forEach((name) => {
@@ -471,7 +469,7 @@ async function handleReset() {
     await getProps.value.resetFunc();
     return;
   }
-  const values = { ...(form.state.values ?? {}) };
+  const values = { ...form.state.values };
   await resetFields();
   if (getProps.value.submitOnReset) {
     await handleSubmit();
@@ -498,7 +496,7 @@ async function setFieldsValue<T>(values: T) {
 }
 
 function getFieldsValue(): Recordable {
-  return { ...(form.state.values ?? {}) };
+  return { ...form.state.values };
 }
 
 async function clearValidate(name?: string | string[]) {
