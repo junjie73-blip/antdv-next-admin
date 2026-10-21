@@ -10,7 +10,7 @@ export interface BorderBeamProps {
   delay?: number;
   /** 绕容器一圈的时长，单位秒 */
   duration?: number;
-  /** 圆角：数字按 px，字符串原样写入 CSS（默认跟随全局 `--app-border-radius`） */
+  /** 圆角：数字按 rem 写（16px 基准，见 `@antdv/shared` 的 `radiusToRem`），字符串原样写入 CSS（默认跟随全局 `--app-border-radius`） */
   radius?: number | string;
   /** 光带长度，占一圈角度的百分比 */
   size?: number;

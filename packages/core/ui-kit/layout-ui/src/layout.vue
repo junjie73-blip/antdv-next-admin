@@ -130,8 +130,16 @@ const sidebarOpen = computed(() =>
 );
 
 /**
- * 侧栏 Logo 的默认值：图标栏在场时品牌位在图标栏，顶栏带 Logo 的形态在顶栏，
- * 这两种情况这一列都不该重复占一行高度。使用方显式传 `showLogo` 时以它为准。
+ * 侧栏 / 抽屉那一列的输入。
+ *
+ * `title` 与图标栏同源（宿主传下来的产品名）：以前只有 `railProps` 补了它，
+ * 使用方不显式塞 `sider.title` 时，品牌那一行只剩图没有字。
+ *
+ * Logo 的默认显隐：图标栏在场时品牌位在图标栏，顶栏带 Logo 的形态在顶栏，
+ * 这两种情况这一列都不该重复占一行高度。
+ * 注意这里**不**排除浮层形态 —— 窄屏下常驻那一列变成抽屉，
+ * 而面包屑系形态（垂直 / 双列）的顶栏没有品牌位，再不画整站就找不到 Logo 了。
+ * 使用方显式传 `showLogo` 时以它为准。
  */
 const siderProps = computed(() => ({
   collapsed: false,
@@ -142,10 +150,8 @@ const siderProps = computed(() => ({
   selectedKeys: [],
   ...props.sider,
   showLogo:
-    props.sider?.showLogo ??
-    (!showNavRail.value &&
-      !headerNavInFlow.value &&
-      !props.regions.overlaySidebar),
+    props.sider?.showLogo ?? (!showNavRail.value && !headerNavInFlow.value),
+  title: props.sider?.title ?? props.title,
   tone: props.tone,
 }));
 
@@ -188,6 +194,7 @@ const exitLabel = computed(() =>
       v-if="showTopHeader"
       data-layout-shell="header-full"
       :lead="props.regions.headerLead"
+      :logo="props.logo"
       :nav="navProps"
       :show-sidebar-trigger="showSidebarTrigger"
       :sidebar-open="sidebarOpen"
@@ -229,6 +236,7 @@ const exitLabel = computed(() =>
           v-if="showColumnHeader"
           data-layout-shell="header-column"
           :lead="props.regions.headerLead"
+          :logo="props.logo"
           :nav="navProps"
           :show-sidebar-trigger="showSidebarTrigger"
           :sidebar-open="sidebarOpen"

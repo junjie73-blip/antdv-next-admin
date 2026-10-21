@@ -249,7 +249,8 @@ function openContextMenu(event: MouseEvent, key: string) {
   width: 20px;
   height: 20px;
   content: '';
-  border-radius: 9999px;
+  /*  chrome 风格那对"肩膀"弧：半径只要大于尺寸就是整圆，单位跟全站一样用 rem */
+  border-radius: 99rem;
   box-shadow: 0 0 0 30px var(--tab-chrome-fill);
 }
 .tab-bar[data-tab-style='chrome'] .tab-item[data-active='true']::before {

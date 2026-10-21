@@ -295,15 +295,17 @@ describe('@antdv/design —— shadcn 色板', () => {
 
   it('尺度 token 两套基础主题各自完整：偏好落盘前的一帧也有兜底值', () => {
     const colorNamespace = new Set(
-      [...tokenEntry.matchAll(/--color-[a-z-]+: var\(--app-([a-z-]+)\);/gmu)].map(
-        (match) => match[1],
-      ),
+      [
+        ...tokenEntry.matchAll(/--color-[a-z-]+: var\(--app-([a-z-]+)\);/gmu),
+      ].map((match) => match[1]),
     );
     for (const name of THEME_SCALARS) {
       expect(baseBlock(tokenDefault).vars.has(name)).toBe(true);
       expect(baseBlock(tokenDark).vars.has(name)).toBe(true);
       // 尺度值只准待在尺度命名空间里；混进颜色名单就是一堆没人用的工具类
-      expect(colorNamespace, `--app-${name} 不该映射成颜色`).not.toContain(name);
+      expect(colorNamespace, `--app-${name} 不该映射成颜色`).not.toContain(
+        name,
+      );
     }
   });
 
@@ -314,6 +316,51 @@ describe('@antdv/design —— shadcn 色板', () => {
   it('尺度 token 接到使用点：圆角进 --radius-* 表，字号进根字号', () => {
     expect(tokenEntry).toContain('--radius-lg: var(--app-border-radius);');
     expect(base).toContain('font-size: var(--app-font-size');
+  });
+
+  /**
+   * shadcn-vue 的规范变量名（无前缀）必须存在。
+   *
+   * `npx shadcn-vue add` 拉下来的组件与它的初始化脚本读的是 `var(--border)`、
+   * `var(--primary)` 这批裸名字；缺了不是"颜色不对"而是解析成空值 —— 边框消失、
+   * 背景透明，又是一类静默丢样式。所以别名层同样按名单逐条比对，而不是"看着有"。
+   *
+   * 别名只写在 `:root` 与 `.app-theme-scope`（ConfigProvider 的宿主）两处：
+   * `[data-theme]` 档位、`.dark` 开关和偏好内联主色全都落在 `<html>` 上，
+   * 而自定义属性的替换发生在声明所在元素的 computed value 上，
+   * 所以一份声明就能跟着换主题 —— 反过来说，子树覆盖 `--app-*` 必须靠那个类重算，
+   * 两条选择器少一条都是"改了不动"的静默失效。
+   */
+  it('shadcn 规范名别名层：每个语义色都有无前缀别名，且接到对应的 --app-*', () => {
+    const alias = /:root,\s*\.app-theme-scope\s*\{([^}]*)\}/u.exec(
+      stripComments(tokenEntry),
+    )?.[1];
+    expect(alias, 'token 入口里找不到规范名别名块').toBeTruthy();
+
+    for (const name of [...SHADCN_COLORS, 'success', 'warning', 'info']) {
+      expect(
+        alias,
+        `规范名 --${name} 缺失或没接到 var(--app-${name})`,
+      ).toContain(`--${name}: var(--app-${name});`);
+    }
+    // 尺度别名：圆角是 shadcn 名单里唯一的一条非颜色变量
+    expect(alias).toContain('--radius: var(--app-border-radius);');
+  });
+
+  /**
+   * 圆角全站只准 rem。px 与 rem 混写时，根字号一缩放就出现"文字变了、圆角没变"，
+   * 而这条分裂在默认字号下量不出来 —— 所以钉的是声明里的单位，不是计算值。
+   */
+  it('圆角基准写 rem，不写 px', () => {
+    for (const [file, source] of [
+      ['default.css', tokenDefault],
+      ['dark.css', tokenDark],
+    ]) {
+      expect(
+        baseBlock(source).vars.get('border-radius'),
+        `${file} 的圆角基准`,
+      ).toBe('1rem');
+    }
   });
 
   it('token 目录只写变量声明，不掺视觉规则', () => {

@@ -6,6 +6,7 @@ import type { BorderBeamProps } from './types';
 import { computed } from 'vue';
 
 import { cn } from '@antdv/shared/utils/cn';
+import { radiusToRem } from '@antdv/shared/utils/radius';
 
 defineOptions({ name: 'BorderBeam' });
 
@@ -21,7 +22,7 @@ const props = withDefaults(defineProps<BorderBeamProps>(), {
   tailColor: 'transparent',
 });
 
-/** 数字按 px、字符串原样落进 CSS：`radius` 要能写 `var(--app-border-radius)` */
+/** 数字按 px、字符串原样落进 CSS：只有 `borderWidth` 用它，圆角另有规矩 */
 function toLength(value: number | string) {
   return typeof value === 'number' ? `${value}px` : value;
 }
@@ -30,7 +31,8 @@ const rootStyle = computed<CSSProperties>(() => ({
   '--bb-color': props.color,
   '--bb-size': `${props.size}%`,
   '--bb-tail': props.tailColor,
-  borderRadius: toLength(props.radius),
+  // 圆角一律 rem（`radiusToRem` 对字符串原样放行，所以 `var(--app-border-radius)` 照旧生效）
+  borderRadius: radiusToRem(props.radius),
   ...props.style,
 }));
 

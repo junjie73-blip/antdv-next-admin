@@ -291,28 +291,30 @@ export { useDrawer as useDrawerInner } from './useDrawer';
 
 ## 轻提示与通知（`message` / `notification`）
 
-同一对入口在 `packages/core/ui-kit/popup-ui/src/message/index.ts`（75 行），底层都是 vue-sonner，签名沿用旧 `message.success/error/info/warning`；负责把它们画出来的那只 `<Toaster />` 是 `@antdv/common-ui` 的主题化外壳（挂在 `apps/web/src/App.vue:87-94`）。
+同一对入口在 `packages/core/ui-kit/popup-ui/src/message/index.ts`（128 行），底层都是 vue-sonner，签名沿用旧 `message.success/error/info/warning`；负责把它们画出来的那只 `<Toaster />` 是 `@antdv/common-ui` 的主题化外壳（挂在 `apps/web/src/App.vue:59-71`）。
+
+两条通道是**同一个 `createFeedback(toasterId?)` 工厂的两份实例**（`:123`、`:126`），方法清单、默认时长、清除逻辑完全一致，唯一的差别是落到哪只 toaster。
 
 | 入口 | 签名 | 默认停留 |
 | --- | --- | --- |
-| `message.success` / `.error` / `.info` / `.warning` | `(content: string, duration?: number)` | 3000ms（`MESSAGE_DURATION`，`:32`） |
-| `message.loading` | `(content: string)` | 不自动消失（`toast.loading`，`:40`） |
-| `notification.success` / `.error` / `.info` / `.warning` | `(content: string, description?: string, duration?: number)` | 8000ms（`NOTIFICATION_DURATION`，`:33`） |
-| `toast` | vue-sonner 原样出口（`:75`） | 调用方自己给 |
+| `message` / `notification` 的 `.success` / `.error` / `.info` / `.warning` | `(content: string, init?: number \| string \| ToastInit)` | 3000ms（`TOAST_DURATION`，`:43`） |
+| `.loading` | `(content: string)` | 不自动消失（`:113`） |
+| `.close(id)` / `.closeAll()` | vue-sonner 的 `toast.dismiss`（`:100`、`:106`） | — |
+| `toast` | vue-sonner 原样出口（`:128`） | 调用方自己给 |
 
-`duration` 是**位置参数**而不是 options 对象：`message.success('已保存', 5000)`；只有不传时才回落默认值（`duration ?? MESSAGE_DURATION`）。要 sonner 的全部能力（`action`、`cancel`、`promise`、自定义 id）就直接用导出的 `toast`，这两个包装器只是把最常见的两种调用形状钉住。
+第二个参数收三种写法：数字 = 停留时长（`message.success('已保存', 5000)`，与旧调用完全兼容），字符串 = 描述（`notification.info('标题', '描述')`），对象 = `{ description, duration }`。只有真正给了值的键才会写进 payload，所以轻提示那条根本不带 `description`、也不带 `toasterId`。要 sonner 的全部能力（`action`、`cancel`、`promise`、自定义 id）就直接用导出的 `toast`。
 
 ### 为什么根部要挂**两只** `<Toaster />`
 
-宿主在 `apps/web/src/App.vue:87-94` 挂了两只（`Toaster` 从 `@antdv/common-ui` 导入）：无 `id` 的那只 `position="top-center"` 收 `message.*`，`:id="NOTIFICATION_TOASTER_ID"`（常量值 `'notification'`，`message/index.ts:23`）的那只收 `notification.*`，位置取偏好 `notificationPosition`，并且**只有它开 `close-button`**。
+宿主在 `apps/web/src/App.vue:59-71` 挂了两只（`Toaster` 从 `@antdv/common-ui` 导入）：无 `id` 的那只 `position="top-center"` 收 `message.*`，`:id="NOTIFICATION_TOASTER_ID"`（常量值 `'notification'`，`message/index.ts:33`）的那只收 `notification.*`，位置取偏好 `notificationPosition`。**两只都开 `close-button`**，✕ 一律在卡片右上角。
 
-- **不是一只 toaster 给每条 toast 传 `position`**：sonner 同一个位置只维护一个堆栈，轻提示与通知的出场位置、停留时长、堆叠上限是两回事，混进同一只就会互相顶位（一条通知把三条轻提示挤下去）。
+- **不是一只 toaster 给每条 toast 传 `position`**：sonner 同一个位置只维护一个堆栈，轻提示与通知的出场位置、堆叠上限是两回事，混进同一只就会互相顶位（一条通知把三条轻提示挤下去）。
 - **路由规则**（vue-sonner 2.0.9）：不带 `toasterId` 的 toast 只进**没有 id** 的那只，带了 `toasterId` 的只进同名的那只。所以 `message.*` 一律不传 —— 宿主漏挂通知那只时轻提示仍然可见，反过来也不会串位。
-- **轻提示不带关闭按钮**：3 秒自己走，读完即走，多一块可点区域反而与语义相悖；通知会一直停在角落，必须能主动关。
+- **手动关闭两条都有**：轻提示原来不带 ✕，理由是"3 秒自己走，多一块可点区域反而与语义相悖"；但同一份内容在两条通道上一个是 3 秒一个是 8 秒、一条能点关一条不能，用户学到的是两套规则。现在时长与关闭动作都归一，通知与轻提示的差别只剩出场位置和那一行描述。
 
 ### 配色：底色中性，状态只在徽标上
 
-样式全部收在 `packages/core/ui-kit/common-ui/src/components/toast/Toaster.vue`（201 行），应用侧不需要再配：
+样式全部收在 `packages/core/ui-kit/common-ui/src/components/toast/Toaster.vue`（204 行），应用侧不需要再配：
 
 - **为什么这层在 common-ui 而不是 `@antdv/shadcn-ui` 的 `Sonner.vue` 里**：shadcn 那只把 `rich-colors` 写死在 `v-bind` 之后（外部传不进来），四枚状态图标也是写死的 `<template #xxx-icon>`（外部传不进去，SFC 不转发插槽）。要在不改它源码的前提下换掉这两样，只能用选择器去赌它内部选了哪几个 lucide 图标，子包一升级就失效。所以样式层自建：底座仍然是 vue-sonner，props 与插槽与它同形（`ToasterProps` 原样透传，`@antdv/shadcn-ui` 一行未动），那边新增/删除/迭代任何组件都波及不到这里。
 - 底色/边框/正文走 sonner 的 `--normal-*` 变量组（`:43-48`），值取自 `--app-popover` / `--app-popover-foreground` / `--app-border`，圆角取 `--app-border-radius`。**四种类型共用同一块中性底，不做富色** —— `rich-colors` 会把整块底色换成 `--{type}-bg` 并连带把描述染成彩色，正文对比度当场掉下去。
@@ -328,7 +330,7 @@ export { useDrawer as useDrawerInner } from './useDrawer';
 
 ### 在线示例：`/components/feedback`
 
-侧栏「反馈与交互」：四个 `message.*` 与四个 `notification.*` 各一枚按钮，外加加载提示与「默认 / Promise」两枚（走导出的 `toast`，用来验证无徽标的 `default` 与 pending 阶段的转圈），页面上写明了「点右上角 ✕ 或等 8 秒都会收起」。同一页也是 toast 配色的回归现场（`apps/web/e2e/preference-effects.spec.ts` 按 `--app-popover`、圆徽底色与关闭按钮位移逐项断言）。
+侧栏「反馈与交互」：四个 `message.*` 与四个 `notification.*` 各一枚按钮，外加加载提示与「默认 / Promise」两枚（走导出的 `toast`，用来验证无徽标的 `default` 与 pending 阶段的转圈），页面上写明了「点右上角 ✕ 或等 3 秒都会收起」。同一页也是 toast 配色的回归现场（`apps/web/e2e/preference-effects.spec.ts` 按 `--app-popover`、圆徽底色与关闭按钮位移逐项断言）。
 
 ## 这页没有的能力
 

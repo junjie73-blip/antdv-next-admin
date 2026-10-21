@@ -36,7 +36,8 @@
 
   ::-webkit-scrollbar-thumb {
     background-color: rgb(148 163 184 / 45%);
-    border-radius: 9999px;
+    /* 胶囊：半径取一个足够大的 rem，效果等同 9999px，但单位与全站圆角口径一致 */
+    border-radius: 99rem;
     /* 用透明边框把滑块"缩"出一点缝隙，视觉上和自绘条的 6px 轨道一致 */
     border: 2px solid transparent;
     background-clip: content-box;

@@ -35,7 +35,7 @@ const STYLE_MAP: Record<TabStyle, TabStyleClasses> = {
    * 因为标签体与它的两只"脚"必须共用同一个颜色值。
    */
   chrome: {
-    item: 'relative h-8 gap-1.5 rounded-[10px] px-3.5',
+    item: 'relative h-8 gap-1.5 rounded-[0.625rem] px-3.5',
     active: 'text-primary',
     bar: 'items-stretch',
     list: 'h-full items-end gap-1 px-2.5',

@@ -316,7 +316,7 @@ describe('dOM 落地', () => {
     expect(html.style.getPropertyValue('--app-primary')).toBe(
       'rgb(255, 92, 92)',
     );
-    expect(html.style.getPropertyValue('--app-border-radius')).toBe('16px');
+    expect(html.style.getPropertyValue('--app-border-radius')).toBe('1rem');
   });
 
   it('patch 后 class 与变量同步更新', () => {

@@ -75,6 +75,7 @@ describe('shared 目录结构', () => {
       'index.ts',
       'jwt.ts',
       'masking.ts',
+      'radius.ts',
       'scroll.ts',
       'template.ts',
       'xss.ts',

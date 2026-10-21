@@ -174,3 +174,42 @@ describe('LayoutHeader - 导航配色与事件', () => {
     expect(wrapper.text()).toContain('me');
   });
 });
+
+/**
+ * 窄屏（< 768px）时顶栏只剩这一格品牌位：产品名从 `sm` 档起才出现，
+ * 所以 Logo 图必须自己画出来 —— 以前这里只有一颗通用立方体，
+ * 手机上"整站没有品牌"就是这一步漏的。
+ */
+describe('LayoutHeader - 品牌位的 Logo', () => {
+  it('给了 logo 就画真图，alt 用产品名', () => {
+    const wrapper = mountHeader({
+      lead: 'logo',
+      logo: '/img/logo.png',
+      title: '控制台',
+    });
+    const image = wrapper.find('img[data-layout-logo-image="header"]');
+    expect(image.attributes('src')).toBe('/img/logo.png');
+    expect(image.attributes('alt')).toBe('控制台');
+    // 有真图时不再叠一颗默认立方体
+    expect(wrapper.find('[data-layout-logo="header"] svg').exists()).toBe(
+      false,
+    );
+  });
+
+  it('没给 logo 时退回立方体，且不会留一张空 img', () => {
+    const wrapper = mountHeader({ lead: 'logo', title: '控制台' });
+    expect(wrapper.find('img').exists()).toBe(false);
+    expect(wrapper.find('[data-layout-logo="header"]').exists()).toBe(true);
+  });
+
+  it('产品名只在 sm 档以上出现，窄屏让位给触发按钮与用户区', () => {
+    const wrapper = mountHeader({
+      lead: 'logo',
+      logo: '/img/logo.png',
+      title: '控制台',
+    });
+    expect(
+      wrapper.find('[data-layout-logo="header"] span').classes(),
+    ).toContain('sm:inline');
+  });
+});

@@ -789,7 +789,7 @@ const toolbarClassName = computed(() =>
 
 .markdown-editor :deep(.md-content code) {
   padding: 1px 4px;
-  border-radius: 3px;
+  border-radius: 0.1875rem;
   background-color: var(--app-muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.9em;
@@ -799,7 +799,7 @@ const toolbarClassName = computed(() =>
   margin: 0.5em 0;
   padding: 8px 12px;
   overflow-x: auto;
-  border-radius: 4px;
+  border-radius: 0.25rem;
   background-color: #1f2937;
   color: #e5e7eb;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;

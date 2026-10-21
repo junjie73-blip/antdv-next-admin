@@ -152,6 +152,14 @@ test.describe('可交互元素的光标', () => {
       if (!visited.has(path)) {
         await go(page, path, NAV_TIMEOUT);
         visited.add(path);
+        /*
+         * `BasicForm` 折叠态只把第一行的字段挂进 DOM（`isAdvanced` 那套），
+         * 「评分」排在末行之后，不展开就根本查不到这个节点。
+         * 只对这一页做：别的面板也有叫「展开」的按钮，全局点会误伤。
+         */
+        if (path === '/components/form/basic') {
+          await page.getByRole('button', { exact: true, name: '展开' }).click();
+        }
       }
       const target = page.locator(selector).first();
       // 先确认这个可点件真的在页面上：选择器写错了要红，不能空过

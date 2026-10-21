@@ -16,6 +16,7 @@ import {
   THEME_DATA_ATTRIBUTE,
   themeKeyByColor,
 } from '@antdv/shared/constants';
+import { radiusToRem } from '@antdv/shared/utils';
 
 import { resolveThemeMode } from '@antdv/utils';
 
@@ -93,11 +94,13 @@ function writeThemeCssVars(target: HTMLElement, preferences: AppSetting): void {
     target.style.removeProperty(APP_PRIMARY);
   }
 
-  // borderRadius 存的是倍率（0 / 0.25 / 0.5 / 0.75 / 1），基准 16px 即 token 的 `--radius-lg` 档
+  // borderRadius 存的是倍率（0 / 0.25 / 0.5 / 0.75 / 1），基准 16px 即 token 的 `--radius-lg` 档。
+  // 单位一律 rem（`radiusToRem` 是全站唯一的 px→rem 换算出口）：默认根字号下 1rem = 16px，
+  // 计算值与改造前一致，但圆角从此跟着 `--app-font-size` 一起缩放。
   setCssVar(
     target,
     APP_BORDER_RADIUS,
-    `${Math.round(borderRadius * BORDER_RADIUS_BASE * 100) / 100}px`,
+    radiusToRem(borderRadius * BORDER_RADIUS_BASE),
   );
 
   /*

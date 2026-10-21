@@ -65,14 +65,14 @@ describe('tabsRuntime —— 文案注入点', () => {
 
   it('label 在调用那一刻才读 t，注入新翻译后不必换上下文', () => {
     const ctx = makeCtx();
-    expect(buildTabActions(ctx).find((item) => item.key === 'close')?.label).toBe(
-      'tabs.closeCurrent',
-    );
+    expect(
+      buildTabActions(ctx).find((item) => item.key === 'close')?.label,
+    ).toBe('tabs.closeCurrent');
 
     configureTabs({ t: () => '关闭当前' });
-    expect(buildTabActions(ctx).find((item) => item.key === 'close')?.label).toBe(
-      '关闭当前',
-    );
+    expect(
+      buildTabActions(ctx).find((item) => item.key === 'close')?.label,
+    ).toBe('关闭当前');
   });
 });
 
@@ -211,7 +211,7 @@ describe('useTabStyle —— 五种风格的类名', () => {
 
     // 反向圆角由 TabsBar 的样式块按 [data-tab-style] 画，类名这边只留几何与文字色
     expect(itemClass(true)).toContain('relative');
-    expect(itemClass(true)).toContain('rounded-[10px]');
+    expect(itemClass(true)).toContain('rounded-[0.625rem]');
     expect(itemClass(true)).toContain('text-primary');
     // 标签体底色与两只脚共用 `--tab-chrome-fill`，所以这里不能再出现底色工具类
     expect(itemClass(true)).not.toContain('bg-');

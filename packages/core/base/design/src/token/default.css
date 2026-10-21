@@ -67,10 +67,12 @@
   /*
    * 尺度 token：名单与 dark 一致，取值各自独立。
    * `--app-border-radius` 是圆角刻度（`--radius-*` 工具类的基准档，档位 1 = 16px）；
+   * 单位一律 rem —— 1rem 在默认根字号下就是 16px，计算值不变，但圆角从此跟着
+   * `--app-font-size` 一起缩放，不会出现"文字变小了、圆角没变"的第二套尺度。
    * `--app-font-size` 是**相对根字号**（100% = 浏览器 16px = 正文 14px 那一档），
    * 写成倍率而不是 px，rem 体系的间距与行高才会一起缩放。
    */
-  --app-border-radius: 16px;
+  --app-border-radius: 1rem;
   --app-font-size: 100%;
   --app-filter: none;
 }

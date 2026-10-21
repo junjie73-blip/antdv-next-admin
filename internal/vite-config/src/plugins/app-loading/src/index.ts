@@ -7,10 +7,14 @@ import { join } from 'node:path';
 import { pathExistsSync, readTextFileSync } from '@antdv/node-utils';
 
 import { isEnvEnabled } from '../../../utils/env';
-import { DEFAULT_LOADING_HTML } from '../defaults/loading-html';
+import DEFAULT_LOADING_HTML from '../defaults/loading.html?raw';
 import { DEFAULT_OPTIONS } from './constants';
 import { scanCssVariables } from './css-variables';
-import { injectLoadingHtml, injectThemeSync, resolveLoadingHtml } from './html-injector';
+import {
+  injectLoadingHtml,
+  injectThemeSync,
+  resolveLoadingHtml,
+} from './html-injector';
 import { generateThemeStyle } from './theme';
 import { themeSyncTag } from './theme-sync';
 import { resolveVirtualModule } from './virtual-module';
@@ -108,7 +112,8 @@ function loadLoadingHtml(options: Required<AppLoadingOptions>): string {
     );
   }
 
-  // 内置模板直接来自 bundle 里的字符串常量：产物旁边没有 defaults/ 目录，
+  // 内置模板是 defaults/loading.html，构建期被 `?raw` 编译成字符串常量内联进 bundle：
+  // vite-config 打成单个 dist/index.mjs，产物旁边没有 defaults/ 目录，
   // 任何 `__dirname` 文件读取在打包后都会失败
   return DEFAULT_LOADING_HTML;
 }

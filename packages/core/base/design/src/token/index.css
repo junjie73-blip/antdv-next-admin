@@ -58,7 +58,8 @@
   /*
    * 圆角刻度：以 `--app-border-radius` 为 lg 档基准，其余按比例派生。
    *
-   * 基准固定在 16px（`BORDER_RADIUS_BASE`），倍率 1 时整条刻度是 4/8/12/16/24/32/48。
+   * 基准固定在 1rem（`BORDER_RADIUS_BASE` = 16px，默认根字号下两者等价），
+   * 倍率 1 时整条刻度是 4/8/12/16/24/32/48。
    * 全站只认这一个基准：偏好面板、`--radius-*` 工具类、antd 侧的 `borderRadius`
    * 都从它换算，所以改一处就一起改，不会出现"卡片圆角变了、按钮没变"那种两套尺度。
    * 用乘法而不是 shadcn 官方的 `calc(var(--radius) ± 4px)`：减法档在 0 时算出负半径，
@@ -71,4 +72,79 @@
   --radius-xl: calc(var(--app-border-radius) * 1.5);
   --radius-2xl: calc(var(--app-border-radius) * 2);
   --radius-3xl: calc(var(--app-border-radius) * 3);
+}
+
+/*
+ * shadcn-vue 规范名别名层：把 `--background` / `--primary` / `--radius` 这批
+ * **无前缀**的官方变量名接在我们的 `--app-*` 之上。
+ *
+ * 为什么需要这一层：`npx shadcn-vue add` 拉下来的组件与它的 CLI 初始化脚本认的是
+ * shadcn 的规范名（见官方 `index.css` 的 `:root` / `.dark` 名单），而我们全站只有
+ * `--app-*`。缺了裸名字不是"颜色不对"，是 `var(--border)` 直接解析成空值 ——
+ * 边框消失、背景透明，属于最难查的那类静默丢样式。
+ *
+ * 为什么只写一份就够：`[data-theme]` 档位、`.dark` 开关和偏好内联的 `--app-primary`
+ * **全都落在 `<html>` 上**，而自定义属性的替换发生在"声明所在的那个元素"的
+ * computed value 上。所以 `:root` 这一条 `--primary: var(--app-primary)` 会跟着
+ * 同元素上的 `--app-primary` 一起变 —— 换预设、切深色、取色器选自定义色都不需要
+ * 在 26 个预设块里各抄一遍，也不会有"别名停在首屏值上"的冻结问题。
+ *
+ * `.app-theme-scope` 是 `ConfigProvider` 的宿主类：它在子树里覆盖 `--app-*` 时
+ * （见 common-ui 的 ConfigProvider），别名必须在那个子树里重算，否则子树内的
+ * shadcn 组件会拿到 `<html>` 的旧值。
+ *
+ * 单位口径：这一层的 `--radius` 与 `--app-border-radius` 同为 rem，
+ * 对齐 shadcn 官方 `--radius: 0.5rem` 的写法；档位差异（官方把 `--radius` 当
+ * `rounded-md` 基准，我们当 `rounded-lg` 基准）由上面 `--radius-*` 刻度表承担，
+ * 不在这里做二次换算。
+ *
+ * 只准出现 `--变量: var(--app-*)` 形式的声明：这里是变量表，不掺视觉规则
+ * （`* { @apply border-border }` 那两条官方写法住在 `css/base.css`，已经接好了）。
+ */
+:root,
+.app-theme-scope {
+  --background: var(--app-background);
+  --foreground: var(--app-foreground);
+
+  --card: var(--app-card);
+  --card-foreground: var(--app-card-foreground);
+
+  --popover: var(--app-popover);
+  --popover-foreground: var(--app-popover-foreground);
+
+  --primary: var(--app-primary);
+  --primary-foreground: var(--app-primary-foreground);
+
+  --secondary: var(--app-secondary);
+  --secondary-foreground: var(--app-secondary-foreground);
+
+  --muted: var(--app-muted);
+  --muted-foreground: var(--app-muted-foreground);
+
+  --accent: var(--app-accent);
+  --accent-foreground: var(--app-accent-foreground);
+
+  --destructive: var(--app-destructive);
+  --destructive-foreground: var(--app-destructive-foreground);
+
+  --border: var(--app-border);
+  --input: var(--app-input);
+  --ring: var(--app-ring);
+
+  --radius: var(--app-border-radius);
+
+  /* 官方新样板带的侧栏色板，我们本来就有对应 token，一并给出规范名 */
+  --sidebar: var(--app-sidebar);
+  --sidebar-foreground: var(--app-sidebar-foreground);
+  --sidebar-primary: var(--app-sidebar-primary);
+  --sidebar-primary-foreground: var(--app-sidebar-primary-foreground);
+  --sidebar-accent: var(--app-sidebar-accent);
+  --sidebar-accent-foreground: var(--app-sidebar-accent-foreground);
+  --sidebar-border: var(--app-sidebar-border);
+  --sidebar-ring: var(--app-sidebar-ring);
+
+  /* 状态色：shadcn 官方名单里没有，但我们的组件与浮层按规范名取用 */
+  --success: var(--app-success);
+  --warning: var(--app-warning);
+  --info: var(--app-info);
 }

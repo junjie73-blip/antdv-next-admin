@@ -197,6 +197,18 @@ test.describe('ConfigProvider 装配后的四条链路', () => {
       host.style.setProperty('--app-primary', 'rgb(0, 0, 255)');
       const afterInside = getComputedStyle(inside).backgroundColor;
       const afterOutside = getComputedStyle(outside).backgroundColor;
+      /*
+       * shadcn 规范名的别名层（`--primary: var(--app-primary)`）声明在
+       * `:root, .app-theme-scope` 上，`.app-theme-scope` 就是这一层宿主。
+       * 少写这半条选择器时子树里的官方格式组件会拿到 `<html>` 的旧值，
+       * 表现是"子树里工具类变色了、按规范名取值的样式没变"。
+       */
+      const aliasInside = getComputedStyle(inside)
+        .getPropertyValue('--primary')
+        .trim();
+      const aliasOutside = getComputedStyle(outside)
+        .getPropertyValue('--primary')
+        .trim();
 
       host.style.removeProperty('--app-primary');
       inside.remove();
@@ -204,6 +216,8 @@ test.describe('ConfigProvider 装配后的四条链路', () => {
       return {
         afterInside,
         afterOutside,
+        aliasInside,
+        aliasOutside,
         htmlPrimary,
         inherited,
         restored: getComputedStyle(document.documentElement)
@@ -220,6 +234,11 @@ test.describe('ConfigProvider 装配后的四条链路', () => {
     expect(result.inherited).toBe(result.afterOutside);
     expect(result.htmlPrimary).not.toBe('');
     expect(result.restored).toBe(result.htmlPrimary);
+    // 规范名跟着子树重算，子树外仍是全站那份
+    expect(result.aliasInside, '别名层没覆盖到 .app-theme-scope 子树').toBe(
+      'rgb(0, 0, 255)',
+    );
+    expect(result.aliasOutside).not.toBe('rgb(0, 0, 255)');
 
     expect(errors.errors).toEqual([]);
   });

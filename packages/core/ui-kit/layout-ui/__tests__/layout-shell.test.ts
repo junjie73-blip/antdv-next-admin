@@ -221,6 +221,66 @@ describe('LayoutShell - 常驻侧栏与浮层的互斥', () => {
     expect(document.body.querySelector('[data-layout-overlay]')).toBeNull();
   });
 
+  /**
+   * 窄屏的品牌位。
+   *
+   * 面包屑系形态（垂直 / 双列）的顶栏没有 Logo 格，常驻那一列又会在窄屏变成抽屉；
+   * 以前 `showLogo` 的默认值把浮层一并排除，于是手机上整站找不到品牌。
+   * 现在抽屉顶部要画出宿主那张 Logo 图与产品名。
+   */
+  it('浮层里的抽屉顶上画得出品牌位（图 + 产品名）', async () => {
+    mountShell(
+      regions({
+        headerVisible: true,
+        overlaySidebar: true,
+        sidebarVisible: true,
+      }),
+      { logo: '/img/logo.png', overlayOpen: true, sider: siderProps },
+    );
+    await nextTick();
+    const panel = document.body.querySelector('[data-layout-overlay-panel]');
+    const logo = panel?.querySelector('[data-layout-logo="sidebar"]');
+    expect(logo).not.toBeNull();
+    expect(logo?.querySelector('img')?.getAttribute('src')).toBe(
+      '/img/logo.png',
+    );
+    expect(logo?.textContent).toContain('控制台');
+  });
+
+  it('logo-lead 形态的品牌位仍归顶栏，抽屉不重复占一行', async () => {
+    mountShell(
+      regions({
+        headerLead: 'logo',
+        headerNavVisible: true,
+        headerVisible: true,
+        overlaySidebar: true,
+        sidebarVisible: true,
+      }),
+      {
+        logo: '/img/logo.png',
+        nav: navProps,
+        overlayOpen: true,
+        sider: siderProps,
+      },
+    );
+    await nextTick();
+    expect(
+      document
+        .querySelector('[data-layout-overlay-panel]')
+        ?.querySelector('[data-layout-logo="sidebar"]'),
+    ).toBeNull();
+  });
+
+  it('使用方只交壳级 title 时，侧栏那一列也拿得到产品名', () => {
+    const wrapper = mountShell(
+      regions({ headerVisible: true, sidebarVisible: true }),
+      { logo: '/img/logo.png', sider: { menus: menuTree }, title: '控制台' },
+    );
+    const logo = wrapper.find('[data-layout-logo="sidebar"]');
+    expect(logo.exists()).toBe(true);
+    expect(logo.text()).toContain('控制台');
+  });
+
   it('点遮罩把开合交回使用方', async () => {
     const wrapper = mountShell(
       regions({ overlaySidebar: true, sidebarVisible: true }),

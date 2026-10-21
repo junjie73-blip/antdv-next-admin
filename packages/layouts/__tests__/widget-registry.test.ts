@@ -3,7 +3,11 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { useAppStore } from '@antdv/stores';
 
-import { useVisibleWidgets, WIDGET_MAP } from '../src/widgets/registry';
+import {
+  partitionVisibleWidgets,
+  useVisibleWidgets,
+  WIDGET_MAP,
+} from '../src/widgets/registry';
 
 /**
  * 小部件清单必须跟着偏好走。
@@ -40,5 +44,43 @@ describe('useVisibleWidgets', () => {
 
     appStore.updateSetting({ widgetTimezone: true });
     expect(keys()).toContain('timezone');
+  });
+});
+
+/**
+ * 窄屏分流（`partitionVisibleWidgets`）。
+ *
+ * 顶栏那圈胶囊在 390px 的手机上会挤掉 Logo 与侧栏触发按钮 —— 8 颗按钮各 32px，
+ * 加上间距就是 300px。收口的口径写在这里而不是组件模板里，是为了能直接单测：
+ * 视口判定与偏好开关是两个独立来源，混起来只能靠挂组件验。
+ */
+describe('partitionVisibleWidgets', () => {
+  const all = () => Object.values(WIDGET_MAP);
+  const keysOf = (list: ReturnType<typeof all>) => list.map((meta) => meta.key);
+
+  it('宽屏：偏好开着的都留在顶栏，悬浮簇为空', () => {
+    const { floating, header } = partitionVisibleWidgets(all(), false);
+    expect(keysOf(header)).toEqual(Object.keys(WIDGET_MAP));
+    expect(floating).toEqual([]);
+  });
+
+  it('窄屏：顶栏只剩退出登录，主题切换与设置抽屉进悬浮簇', () => {
+    const { floating, header } = partitionVisibleWidgets(all(), true);
+    expect(keysOf(header)).toEqual(['logout']);
+    // 顺序仍按 WIDGET_MAP 声明序（theme 在 preferences 之前）
+    expect(keysOf(floating)).toEqual(['theme', 'preferences']);
+  });
+
+  it('窄屏也不越过偏好：用户关掉的主题切换不会被强行塞回悬浮簇', () => {
+    const visible = all().filter((meta) => meta.key !== 'theme');
+    const { floating, header } = partitionVisibleWidgets(visible, true);
+    expect(keysOf(floating)).toEqual(['preferences']);
+    expect(keysOf(header)).toEqual(['logout']);
+  });
+
+  it('窄屏下顶栏可以空掉（只留退出登录的开关也被关掉时）', () => {
+    const visible = all().filter((meta) => meta.key !== 'logout');
+    const { header } = partitionVisibleWidgets(visible, true);
+    expect(header).toEqual([]);
   });
 });

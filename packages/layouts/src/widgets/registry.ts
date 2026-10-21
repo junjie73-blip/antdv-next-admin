@@ -102,4 +102,45 @@ export function useVisibleWidgets(): ComputedRef<WidgetMeta[]> {
   );
 }
 
+/**
+ * 窄屏（< 768px）屏幕右缘居中悬浮的那一簇：设置抽屉入口 + 主题切换。
+ *
+ * 这两样是"改外观"的高频入口，手机上不该藏在已经挤爆的顶栏里，
+ * 也不该多一步才能打开；其余小部件要么用不上（时区、搜索、通知面板 380px 宽，
+ * 在 360px 上比视口还大），要么已经有别的入口。
+ */
+export const WIDGET_FLOATING_KEYS: readonly WidgetKey[] = [
+  'preferences',
+  'theme',
+];
+
+/**
+ * 窄屏顶栏工具区只留「退出登录」。
+ *
+ * 顶栏胶囊里按钮的账：8 颗 × 32px + 间距 ≈ 300px，390px 的手机上
+ * Logo 与侧栏触发按钮直接被挤出视口（就是那张窄屏截图的现场）。
+ * 于是小屏可见的功能项收敛成两个 —— 悬浮簇里的主题切换 + 顶栏的退出登录，
+ * 头像下拉的位置与交互不参与这次收口。
+ */
+export const WIDGET_MOBILE_KEYS: readonly WidgetKey[] = ['logout'];
+
+/**
+ * 把"偏好开了哪些"拆成"这一档视口该渲染哪些"。
+ *
+ * 单独抽成纯函数是为了能直接单测：窄屏判定（`useMobile`）与偏好开关（store）
+ * 是两个独立来源，混在组件里就只能靠挂组件去验，而挂组件要拖进异步小部件与 i18n。
+ */
+export function partitionVisibleWidgets(
+  visible: WidgetMeta[],
+  mobile: boolean,
+): { floating: WidgetMeta[]; header: WidgetMeta[] } {
+  if (!mobile) {
+    return { floating: [], header: visible };
+  }
+  return {
+    floating: visible.filter((meta) => WIDGET_FLOATING_KEYS.includes(meta.key)),
+    header: visible.filter((meta) => WIDGET_MOBILE_KEYS.includes(meta.key)),
+  };
+}
+
 export type { WidgetKey, WidgetMeta } from './types';

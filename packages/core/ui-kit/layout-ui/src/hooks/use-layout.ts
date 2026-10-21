@@ -90,10 +90,14 @@ export function useLayoutStyle(options: () => LayoutTone): LayoutStyleApi {
    *
    * 深色判定用 `headerDark()` 而不是 `isDark()`：偏好里的「顶栏反转色」正是
    * "浅色模式下也要一条深色顶栏"，读整体明暗时那个开关就永远不动。
+   *
+   * 左右内边距分两档：`md`（768px）正是本包的窄屏判据 `MOBILE_BREAKPOINT`，
+   * 360px 的手机上 24px×2 会直接吃掉 13% 的宽度 —— 触发按钮、Logo 与用户区
+   * 就是在这条上被挤掉的（改 12px 后桌面档逐像素不变）。
    */
   const headerClass = () =>
     cn(
-      'flex min-w-0 items-center justify-between px-6',
+      'flex min-w-0 items-center justify-between px-3 md:px-6',
       'shrink-0 border-b shadow-sm',
       tone.value.geek
         ? 'border-[#1a1a1a] bg-[#0a0a0a] text-[#00ff88]'
@@ -102,10 +106,16 @@ export function useLayoutStyle(options: () => LayoutTone): LayoutStyleApi {
           : 'border-gray-200 bg-white text-gray-800',
     );
 
-  /** 顶栏里的图标按钮（侧栏触发）：跟随顶栏本身明暗，与 headerClass 同判据 */
+  /**
+   * 顶栏里的图标按钮（侧栏触发）：跟随顶栏本身明暗，与 headerClass 同判据。
+   *
+   * 窄屏给它一层淡底：那条抽屉是手机上唯一的菜单入口，
+   * 一个没有背景的图标在 360px 上很容易被当成装饰，用户不知道这里能点。
+   */
   const triggerClass = () =>
     cn(
       'flex size-8 shrink-0 items-center justify-center rounded-lg',
+      'max-md:bg-black/6 max-md:dark:bg-white/12',
       'transition-colors duration-200',
       tone.value.geek
         ? 'text-[#00ff88] hover:bg-[#00ff88]/10'

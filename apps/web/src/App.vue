@@ -51,13 +51,23 @@ const globalConfig = computed(() => ({
     :locale="globalConfig.locale"
   >
     <router-view />
-    <Toaster position="top-center" :theme="appStore.resolvedTheme" />
+    <!--
+      两只 toaster 的分工见 `@antdv/popup-ui` 的 message 模块：不带 id 的收轻提示，
+      带 `NOTIFICATION_TOASTER_ID` 的收通知。`close-button` 两边都开 ——
+      手动关闭是两条通道共有的交互，只有出场位置不同。
+    -->
     <Toaster
-      :id="NOTIFICATION_TOASTER_ID"
-      :position="notificationPosition"
-      :theme="appStore.resolvedTheme"
       close-button
       close-button-position="top-right"
+      position="top-center"
+      :theme="appStore.resolvedTheme"
+    />
+    <Toaster
+      :id="NOTIFICATION_TOASTER_ID"
+      close-button
+      close-button-position="top-right"
+      :position="notificationPosition"
+      :theme="appStore.resolvedTheme"
     />
   </SystemConfigProvider>
 </template>

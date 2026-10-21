@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEFAULT_LOADING_HTML } from '../src/plugins/app-loading/defaults/loading-html';
+import DEFAULT_LOADING_HTML from '../src/plugins/app-loading/defaults/loading.html?raw';
 import { DEFAULT_OPTIONS } from '../src/plugins/app-loading/src/constants';
 import { injectThemeSync } from '../src/plugins/app-loading/src/html-injector';
 import {
@@ -21,7 +21,7 @@ describe('generateThemeSyncScript', () => {
 
   it('明暗走 class 开关，并按当前系统偏好解析 auto', () => {
     const script = generateThemeSyncScript(options);
-    expect(script).toContain("classList.toggle(DARK,dark)");
+    expect(script).toContain('classList.toggle(DARK,dark)');
     expect(script).toContain("s.theme==='auto'");
     expect(script).toContain('prefers-color-scheme: dark');
     expect(script).toContain("root.style.colorScheme=dark?'dark':'light'");
@@ -55,7 +55,8 @@ describe('generateThemeSyncScript', () => {
 });
 
 describe('themeSyncTag / injectThemeSync', () => {
-  const html = '<html><head><title>t</title></head><body><div id="app"></div></body></html>';
+  const html =
+    '<html><head><title>t</title></head><body><div id="app"></div></body></html>';
 
   it('带上可去重的标记属性', () => {
     expect(themeSyncTag(options)).toContain(`<script ${THEME_SYNC_MARKER}>`);
@@ -94,5 +95,40 @@ describe('默认 loading 模板的颜色链路', () => {
 
   it('渐变第二档用 color-mix 现算，不依赖额外的主色派生变量', () => {
     expect(DEFAULT_LOADING_HTML).toContain('color-mix(in srgb');
+  });
+});
+
+/**
+ * 模板本体是 `defaults/loading.html`，构建期经 `?raw` 内联成字符串。
+ *
+ * 这三条钉的是"它仍然是一份能直接注入 index.html 的 HTML 片段"这件事：
+ * 从 TS 迁到 HTML 之后，模板不再经过任何拼接或转义，所以根节点、注入用的
+ * 容器 id 与 rem 圆角口径都得在这里看一眼，坏了就是首屏白屏那一类。
+ */
+describe('默认 loading 模板（HTML 文件）', () => {
+  it('是一段以遮罩容器打头的 HTML 片段，容器 id 与默认选择器一致', () => {
+    expect(DEFAULT_LOADING_HTML.trimStart().startsWith('<!--')).toBe(true);
+    expect(DEFAULT_LOADING_HTML).toContain('<div id="__app-loading__"');
+    expect(DEFAULT_LOADING_HTML.trimEnd().endsWith('</div>')).toBe(true);
+  });
+
+  it('样式随容器一起注入，不产生游离的 <style>', () => {
+    // 数闭合标签而不是开标签：模板头部的注释里也提到了 `<style>` 这个词
+    expect(DEFAULT_LOADING_HTML.match(/<\/style>/gu)?.length).toBe(1);
+    expect(DEFAULT_LOADING_HTML.lastIndexOf('<style>')).toBeGreaterThan(
+      DEFAULT_LOADING_HTML.indexOf('<div id="__app-loading__"'),
+    );
+  });
+
+  it('圆角一律 rem（50% 这类比例值不是长度，保留）', () => {
+    const radii = [
+      ...DEFAULT_LOADING_HTML.matchAll(/border(?:-\w+)*-radius:\s*([^;]+);/gmu),
+    ].flatMap((match) => (match[1] === undefined ? [] : [match[1].trim()]));
+    expect(radii.length).toBeGreaterThan(0);
+    for (const value of radii) {
+      expect(value, `圆角 "${value}" 必须写成 rem`).toMatch(
+        /^(\d+(?:\.\d+)?rem|50%)$/u,
+      );
+    }
   });
 });

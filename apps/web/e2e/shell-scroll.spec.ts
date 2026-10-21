@@ -164,23 +164,48 @@ test.describe('全站滚动条：用封装组件，不用系统内置', () => {
       ).toHaveAttribute('data-reka-scroll-area-viewport', '');
     }
 
-    /**
-     * 内容区超长时自绘条要出现。默认是 hover 模式，轨道只在指针进入后才挂进 DOM，
-     * 所以先悬停再断言 —— 只有 wrap 没有条就等于既藏了原生条又没给用户任何滚动指示。
+    /*
+     * 内容区超长时自绘轨道要出现，停下之后要收起。
+     *
+     * `<Scrollbar>` 用的是 reka 的 `scroll` 档而不是 `hover`（见 Scrollbar.vue 里那段注释：
+     * hover 档下指针停在侧栏上轨道就常驻，"自动隐藏"名存实亡）。这一档的轨道只在真正
+     * 滚动的过程中挂进 DOM，`scroll-hide-delay`（800ms）之后整枚摘掉，所以鼠标悬停
+     * 已经召不出它 —— 判据必须自己造一次滚动。
+     *
+     * 出现与收起两头都要断：只断出现，"常驻不收起"会当通过；只断收起，"压根没挂上"也当通过。
+     * 出现这一条用页面内采样（滚动到摘除只有几百毫秒，Playwright 再去 round-trip 一次会读到已收起的状态）。
      */
     const contentWrap = page.locator('main .scrollbar__wrap').first();
+    const bar = page.locator(
+      'main [data-slot="scroll-area-scrollbar"][data-orientation="vertical"]',
+    );
     const overflows = await contentWrap.evaluate(
       (el) => el.scrollHeight > el.clientHeight + 1,
     );
     if (overflows) {
-      await contentWrap.hover();
-      await expect(
-        page
-          .locator(
+      const shown = await contentWrap.evaluate(async (el) => {
+        let seen = '';
+        const timer = setInterval(() => {
+          const node = document.querySelector<HTMLElement>(
             'main [data-slot="scroll-area-scrollbar"][data-orientation="vertical"]',
-          )
-          .first(),
-      ).toBeVisible();
+          );
+          if (node) seen = node.dataset.state ?? 'mounted';
+        }, 40);
+        el.scrollBy({ top: 160 });
+        // 采样窗口要盖住整段亮条（800ms 隐藏延迟），所以转满 1.2s 再收
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+        clearInterval(timer);
+        return seen;
+      });
+      expect(shown, '滚动过程中自绘轨道没有挂出来').toBe('visible');
+
+      // 静止过隐藏延迟：轨道整枚从 DOM 摘掉，不是留一根透明占位
+      await expect
+        .poll(() => bar.count(), {
+          message: '停下后自绘轨道没有收起',
+          timeout: 5000,
+        })
+        .toBe(0);
     }
   });
 

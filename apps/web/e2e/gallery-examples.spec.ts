@@ -95,39 +95,44 @@ function cjkButton(scope: Page | ReturnType<typeof card>, label: string) {
 }
 
 /**
+ * 量一个"布局真的停住了"的包围盒。
+ *
+ * 整跑时这些路由是第一次进（dev 要现场编译整棵子树），入场动画 + 编译期补渲染会让
+ * 落点在"跳"完之后才停到最终位置；起拖前不等稳，量到的坐标是动画中间帧，
+ * Sortable 收到的 `onMove` 全落在错误的行上，表现成"两边计数原地不动"的假红
+ * （热跑 4/4 成、冷跑偶发红，就是这个时机差）。
+ */
+async function settledBox(page: Page, locator: Locator) {
+  await locator.scrollIntoViewIfNeeded();
+  let previous = await locator.boundingBox();
+  for (let step = 0; step < 20; step += 1) {
+    await page.waitForTimeout(120);
+    const next = await locator.boundingBox();
+    if (
+      previous &&
+      next &&
+      Math.abs(previous.x - next.x) < 1 &&
+      Math.abs(previous.y - next.y) < 1 &&
+      Math.abs(previous.height - next.height) < 1
+    ) {
+      return next;
+    }
+    previous = next;
+  }
+  throw new Error('落点/起点包围盒一直没停住');
+}
+
+/**
  * 跨容器互拖：把 `source` 拖进 `targetList` 这块容器的空白带。
  *
- * 不用一句 `dragTo` 了 —— 它只往落点**跳一次**再松手，只派发一次 pointermove。
- * 整跑时这条路由是第一次进（dev 要现场编译整棵子树），入场动画 + 编译期补渲染会让
- * 目标容器在"跳"完之后才停到最终位置：实测热跑 4/4 成、冷跑就出现两边计数原地不动的假红。
- * 这里按人的动作来：先把两边滚进视口、等包围盒连续两次读数一致（布局真的停住了），
- * 再走一串中间点，最后在容器底部空白处停两帧才松手 —— Sortable 需要看到
- * 落点里持续进来的 `onMove` 才会把 ghost 插进目标列表。
+ * 不用一句 `dragTo` 了 —— 它只往落点**跳一次**再松手，只派发一次 pointermove，
+ * 而 Sortable 需要看到落点里持续进来的 `onMove` 才会把 ghost 插进目标列表。
+ * 这里按人的动作来：两边先等包围盒停稳，再走一串中间点，
+ * 最后在容器底部空白处停两帧才松手。
  */
 async function dragIntoList(page: Page, source: Locator, targetList: Locator) {
-  await targetList.scrollIntoViewIfNeeded();
-
-  const settledBox = async (locator: Locator) => {
-    let previous = await locator.boundingBox();
-    for (let i = 0; i < 20; i += 1) {
-      await page.waitForTimeout(120);
-      const next = await locator.boundingBox();
-      if (
-        previous &&
-        next &&
-        Math.abs(previous.x - next.x) < 1 &&
-        Math.abs(previous.y - next.y) < 1 &&
-        Math.abs(previous.height - next.height) < 1
-      ) {
-        return next;
-      }
-      previous = next;
-    }
-    throw new Error('落点/起点包围盒一直没停住');
-  };
-
-  const from = await settledBox(source);
-  const to = await settledBox(targetList);
+  const from = await settledBox(page, source);
+  const to = await settledBox(page, targetList);
   const start = { x: from.x + from.width / 2, y: from.y + from.height / 2 };
   // 底部空白带：`min-h-[112px]` 给出来的那截，正是页面文案说的"空容器要给高度"
   const end = { x: to.x + 50, y: to.y + to.height - 10 };
@@ -465,23 +470,38 @@ test.describe('表格拖拽排序页', () => {
     ];
 
     await expect(rows).toHaveCount(5);
-    expect(await cellTexts(rows, 1)).toEqual(initial);
+    // 折叠/入场动画还在跑的时候读一次是会被打脸的，轮询到初始顺序自洽再起拖
+    await expect
+      .poll(() => cellTexts(rows, 1), { message: '手柄卡没按初始顺序画出来' })
+      .toEqual(initial);
 
-    // 抓把手 ⠿ 拖：换位
-    await rows
-      .nth(0)
-      .locator('.drag-handle')
-      .dragTo(rows.nth(2).locator('.drag-handle'));
+    /*
+     * 抓把手 ⠿ 拖：换位。
+     *
+     * 两端先等包围盒停稳再起拖（见 `settledBox`）—— 实测 `dragTo` 这条原生 HTML5 拖拽
+     * 链路本身是稳的（同一手势连跑每次都换位），整跑的偶发红全来自"量到动画中间帧的坐标"：
+     * 行还在往下挪时松手，`oldIndex` 与 `newIndex` 相同，`useDragSort` 的 `onEnd` 直接 return，
+     * 于是数据原地不动，`expect.poll` 干等满 10s。
+     */
+    const dragHandle = async (from: Locator, to: Locator) => {
+      await settledBox(page, from);
+      await settledBox(page, to);
+      await from.dragTo(to);
+    };
+
+    await dragHandle(
+      rows.nth(0).locator('.drag-handle'),
+      rows.nth(2).locator('.drag-handle'),
+    );
     await expect
       .poll(() => cellTexts(rows, 1), { message: '从把手拖要能换位' })
       .toEqual(['消息通知', '常用报表', '快捷入口', '审批流模板', '帮助文档']);
 
     // 从第二格（功能块文字）拖：`handle` 不匹配 → 一行都不该动
-    await rows
-      .nth(0)
-      .locator('td')
-      .nth(1)
-      .dragTo(rows.nth(2).locator('td').nth(1));
+    await dragHandle(
+      rows.nth(0).locator('td').nth(1),
+      rows.nth(2).locator('td').nth(1),
+    );
     await expect
       .poll(() => cellTexts(rows, 1), { message: '不是把手就不该起拖' })
       .toEqual(['消息通知', '常用报表', '快捷入口', '审批流模板', '帮助文档']);
@@ -494,15 +514,15 @@ test.describe('表格拖拽排序页', () => {
    * 「禁止某些行被拖动 / 禁止落点」那张卡的三条约束，现在**一条都拦不住** —— 这是组件缺陷，
    * 所以这里用 `test.fail()` 把正确的契约留在用例里，而不是把断言放宽成"现在是什么就断言什么"。
    *
-   * 根因两条，都在 `apps/web/src/components/business/Table/hooks/useDragSort.ts`：
+   * 根因两条，都在 `packages/core/ui-kit/table-ui/src/hooks/useDragSort.ts`：
    * 1. `disabled`（布尔与函数两种形态）靠 `onStart` 里 `evt.preventDefault(); return false`
-   *    取消拖拽（该文件 69-76 行），可 sortablejs 1.15.7 派发用户回调时只是
-   *    `options.onStart.call(sortable, evt)`，**返回值与 preventDefault 一概不看**
-   *    （`node_modules/sortablejs/src/EventDispatcher.js:48-50`），拖拽照旧开始；
-   *    `onEnd`（同文件 95-114 行）也没有再查一遍 `disabled`，于是新顺序照样 splice 进数据源。
+   *    取消拖拽（该文件 53-61 行），可 sortablejs 1.15.7 派发用户回调时只是
+   *    `options[onName].call(sortable, evt)`，**返回值与 preventDefault 一概不看**
+   *    （`apps/web/node_modules/sortablejs/src/EventDispatcher.js:54-56`），拖拽照旧开始；
+   *    `onEnd`（同文件 80-104 行）也没有再查一遍 `disabled`，于是新顺序照样 splice 进数据源。
    * 2. `canDrop` 读的是 `evt.draggedRowIndex / relatedRowIndex / oldIndex / newIndex`
-   *    （该文件 77-94 行），而 sortablejs 给 `onMove` 的事件对象上**这四个字段一个都没有**
-   *    （`node_modules/sortablejs/src/Sortable.js:1769-1795` 只设 to/from/dragged/related/…），
+   *    （该文件 62-79 行），而 sortablejs 给 `onMove` 的事件对象上**这四个字段一个都没有**
+   *    （`apps/web/node_modules/sortablejs/src/Sortable.js:1769-1798` 只设 to/from/dragged/related/…），
    *    于是每次比较的都是数据源第 0 条和自己比，"不能越过锁定行"从不生效。
    *
    * 组件侧修好后，本用例会以 `Expected to fail, but passed` 变红 —— 那时删掉 `test.fail()` 即可。
@@ -515,7 +535,7 @@ test.describe('表格拖拽排序页', () => {
     test.info().annotations.push({
       type: '缺陷',
       description:
-        'apps/web/src/components/business/Table/hooks/useDragSort.ts:69-94 —— onStart 的取消在 sortablejs 1.15.7 里无效；onMove 拿到的事件没有下标字段',
+        'packages/core/ui-kit/table-ui/src/hooks/useDragSort.ts:53-79 —— onStart 的取消在 sortablejs 1.15.7 里无效；onMove 拿到的事件没有下标字段',
     });
 
     const errors = await open(page, DRAG_SORT);

@@ -38,11 +38,14 @@ afterEach(() => {
 });
 
 describe('LocaleSwitcher —— 选项与写入偏好', () => {
-  it('触发器显示当前语言，展开后列出已注册的语言并标出当前项', async () => {
+  it('触发器只有图标不带常驻文本，当前语言在菜单里标出', async () => {
     const { wrapper } = await mountSwitcher();
 
     const trigger = wrapper.get('[data-testid="locale-switcher"]');
-    expect(trigger.text()).toContain('简体中文');
+    // 顶栏按钮一律不挂文本（8 个按钮各多一段文字，窄视口就把菜单和 logo 挤没了）；
+    // "当前是哪门语言"由菜单项的 aria-current 承担，名字靠 label 走无障碍。
+    expect(trigger.text()).not.toContain('简体中文');
+    expect(trigger.attributes('title')).toBeTruthy();
 
     await trigger.trigger('click');
     await nextTick();

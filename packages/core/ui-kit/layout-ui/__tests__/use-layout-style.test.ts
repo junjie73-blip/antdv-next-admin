@@ -118,3 +118,24 @@ describe('useLayoutStyle - 细节档位', () => {
     );
   });
 });
+
+/**
+ * 窄屏档。
+ *
+ * `md` 就是本包的窄屏判据 `MOBILE_BREAKPOINT`（768px），两档在同一个宽度上切换，
+ * 不会出现"已经按手机分流渲染、内边距还是桌面那 24px"的错位。
+ */
+describe('useLayoutStyle - 窄屏档', () => {
+  it('顶栏左右内边距收到 12px，桌面档逐像素不变', () => {
+    const cls = styleOf({}).headerClass();
+    expect(cls).toContain('px-3');
+    expect(cls).toContain('md:px-6');
+  });
+
+  it('侧栏触发按钮在窄屏给一层淡底，让它看起来能点', () => {
+    const cls = styleOf({}).triggerClass();
+    expect(cls).toContain('max-md:bg-black/6');
+    // 常驻那一列的底部折叠条不受影响（它只在桌面档出现）
+    expect(styleOf({}).collapseBarClass()).not.toContain('max-md:');
+  });
+});

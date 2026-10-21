@@ -26,7 +26,7 @@ const RADIUS_RATIO: Record<string, number> = {
   'rounded-xs': 0.25,
 };
 
-/** 全站唯一的圆角基准（px），改这个值要同时改 `BORDER_RADIUS_BASE` 与两处 token */
+/** 全站唯一的圆角基准（px 语义，写侧按 rem 落盘），改这个值要同时改 `BORDER_RADIUS_BASE` 与两处 token */
 const BASELINE = 16;
 
 /**
@@ -63,13 +63,15 @@ test.describe('圆角基准与侧边栏滚动条', () => {
     await signIn(page);
     await go(page, '/system/user');
 
-    const appRadius = await page.evaluate(
-      () =>
-        getComputedStyle(document.documentElement)
-          .getPropertyValue('--app-border-radius')
-          .trim(),
+    const appRadius = await page.evaluate(() =>
+      getComputedStyle(document.documentElement)
+        .getPropertyValue('--app-border-radius')
+        .trim(),
     );
-    expect(appRadius, '偏好倍率 1 时基准必须是 16px').toBe('16px');
+    expect(
+      appRadius,
+      '偏好倍率 1 时基准必须是 1rem（= 默认根字号下的 16px）',
+    ).toBe('1rem');
 
     const measured = await page.evaluate((classes) => {
       const probe = (cls: string) => {
@@ -115,10 +117,9 @@ test.describe('圆角基准与侧边栏滚动条', () => {
     const idle = await read();
     expect(idle.overflowY).toBe('scroll');
     expect(idle.scrollbarWidth, '原生滚动条必须由 reka 关掉').toBe('none');
-    expect(
-      idle.scrollHeight,
-      '菜单没溢出就无法验证滚动条显隐',
-    ).toBeGreaterThan(idle.clientHeight);
+    expect(idle.scrollHeight, '菜单没溢出就无法验证滚动条显隐').toBeGreaterThan(
+      idle.clientHeight,
+    );
     expect(idle.bars, '空闲时不该有轨道挂在 DOM 上').toEqual([]);
 
     const box = await sidebar.boundingBox();
@@ -148,7 +149,9 @@ test.describe('圆角基准与侧边栏滚动条', () => {
     expect(again.bars.map((bar) => bar.state)).toEqual(['visible']);
   });
 
-  test('页面里没有自绘条之外的滚动区（统一走内置 Scrollbar）', async ({ page }) => {
+  test('页面里没有自绘条之外的滚动区（统一走内置 Scrollbar）', async ({
+    page,
+  }) => {
     await signIn(page);
     await go(page, '/system/user');
     await page.setViewportSize({ height: 300, width: 1280 });

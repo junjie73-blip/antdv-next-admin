@@ -6,8 +6,13 @@ import type { GlobalConfig, GlobalTheme, ResolvedGlobalConfig } from './types';
 
 import { computed, inject, provide, reactive, useAttrs, watch } from 'vue';
 
-import { APP_BORDER_RADIUS, APP_PRIMARY } from '@antdv/shared/constants';
+import {
+  APP_BORDER_RADIUS,
+  APP_PRIMARY,
+  THEME_SCOPE_CLASS,
+} from '@antdv/shared/constants';
 import { cn } from '@antdv/shared/utils/cn';
+import { radiusToRem } from '@antdv/shared/utils/radius';
 import { usePreferredDark } from '@vueuse/core';
 import { ConfigProvider as RekaConfigProvider } from 'reka-ui';
 
@@ -128,9 +133,9 @@ const resolvedMode = computed<'dark' | 'light' | undefined>(() => {
   return mode;
 });
 
-/** 数值按 px 处理，字符串原样（详见 `GlobalTheme.radius`） */
+/** 数值按 px 语义给出，统一换算成 rem 落进 CSS（字符串原样，详见 `GlobalTheme.radius`） */
 function toRadiusValue(radius: NonNullable<GlobalTheme['radius']>): string {
-  return typeof radius === 'number' ? `${radius}px` : radius;
+  return radiusToRem(radius);
 }
 
 /**
@@ -167,6 +172,9 @@ const wrapperClass = computed(() =>
     // 而 CSS 变量按 DOM 树继承，照样能下发给子节点。
     // 宿主用内联 `style="display:flex"` 覆盖它也不会破坏变量传递（继承看 DOM 树）。
     'contents',
+    // 让 `@antdv/design` 的 shadcn 规范名别名层在本子树重算一遍：
+    // 别名是按"同一个元素上把 --app-* 换出来"实现的，只挂在 `<html>` 上就接不到这里的覆盖。
+    THEME_SCOPE_CLASS,
     resolvedMode.value,
     attrs.class as string | undefined,
   ),

@@ -12,8 +12,11 @@ import { cn } from '@antdv/shared/utils/cn';
  * `NOTIFICATION_TOASTER_ID` → 进位置由偏好 `notificationPosition` 决定的那只。
  * 所以这一页同时点两边，能直接看出两条通道各堆各的、不会互相顶位。
  *
+ * 停留时长与关闭动作两条通道共用一份实现（3 秒 + 右上角 ✕），差别只在出场位置，
+ * 以及通知通常多带一行描述。
+ *
  * 配色规范：卡片一律弹层底色，状态只由左侧那枚实色圆徽表达（成功绿 / 信息主色 /
- * 警告琥珀 / 错误红），通知比轻提示多一行灰色描述与右上角关闭按钮。
+ * 警告琥珀 / 错误红），通知比轻提示多一行灰色描述。
  */
 
 const containerClassName = cn('space-y-6');
@@ -28,10 +31,30 @@ const tipClassName = cn('mt-3 text-sm text-gray-400');
 
 /** 四种状态在两条通道上各演示一次，文案对齐色彩规范图 */
 const STATUS = [
-  { key: 'success', label: '成功', title: '操作成功', desc: '已完成 12 条记录的数据同步' },
-  { key: 'info', label: '信息', title: '新版本可用', desc: 'v2.4.0 已发布，建议刷新页面' },
-  { key: 'warning', label: '警告', title: '磁盘空间不足', desc: '剩余 8%，请及时清理日志' },
-  { key: 'error', label: '错误', title: '请求失败', desc: '网关 502，请稍后重试' },
+  {
+    key: 'success',
+    label: '成功',
+    title: '操作成功',
+    desc: '已完成 12 条记录的数据同步',
+  },
+  {
+    key: 'info',
+    label: '信息',
+    title: '新版本可用',
+    desc: 'v2.4.0 已发布，建议刷新页面',
+  },
+  {
+    key: 'warning',
+    label: '警告',
+    title: '磁盘空间不足',
+    desc: '剩余 8%，请及时清理日志',
+  },
+  {
+    key: 'error',
+    label: '错误',
+    title: '请求失败',
+    desc: '网关 502，请稍后重试',
+  },
 ] as const;
 
 type Status = (typeof STATUS)[number]['key'];
@@ -90,7 +113,8 @@ function showPromise() {
         </Button>
       </div>
       <p :class="tipClassName">
-        卡片底色始终是弹层底色，四种状态靠左侧的实色圆徽区分；轻提示不带关闭按钮。
+        卡片底色始终是弹层底色，四种状态靠左侧的实色圆徽区分；右上角 ✕ 与 3
+        秒自动消失两条通道都一样。
       </p>
     </Card>
 
@@ -111,13 +135,16 @@ function showPromise() {
         </Button>
       </div>
       <p :class="tipClassName">
-        通知比轻提示多一行灰色描述；点右上角 ✕ 或等 8 秒都会收起，不会挡住正文操作区。
+        通知比轻提示多一行灰色描述，位置跟随偏好；点右上角 ✕ 或等 3
+        秒都会收起，不会挡住正文操作区。
       </p>
     </Card>
 
     <Card title="加载提示" variant="borderless">
       <template #extra>
-        <span :class="cardExtraClassName">toast.loading 常驻，直到手动关闭</span>
+        <span :class="cardExtraClassName"
+          >toast.loading 常驻，直到手动关闭</span
+        >
       </template>
       <div :class="buttonGroupClassName">
         <Button @click="message.loading('正在同步数据…')">
@@ -142,7 +169,8 @@ function showPromise() {
         </Button>
       </div>
       <p :class="tipClassName">
-        默认类型没有状态徽标，只有正文；Promise 在 pending 阶段是转圈，落地后换成对应类型的圆徽。
+        默认类型没有状态徽标，只有正文；Promise 在 pending
+        阶段是转圈，落地后换成对应类型的圆徽。
       </p>
     </Card>
   </div>

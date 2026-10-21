@@ -18,8 +18,12 @@ describe('BorderBeam', () => {
     expect(styleOf(wrapper)).toContain('--bb-color: var(--app-primary)');
     expect(styleOf(wrapper)).toContain('--bb-size: 25%');
     expect(styleOf(wrapper)).toContain('--bb-tail: transparent');
-    expect(styleOf(wrapper)).toContain('border-radius: var(--app-border-radius)');
-    expect(styleOf(wrapper.find('.border-beam__ring'))).toContain('padding: 2px');
+    expect(styleOf(wrapper)).toContain(
+      'border-radius: var(--app-border-radius)',
+    );
+    expect(styleOf(wrapper.find('.border-beam__ring'))).toContain(
+      'padding: 2px',
+    );
     expect(styleOf(wrapper.find('.border-beam__spin'))).toContain(
       'animation-duration: 6s',
     );
@@ -36,7 +40,9 @@ describe('BorderBeam', () => {
     expect(styleOf(wrapper)).toContain('--bb-color: #ff0000');
     expect(styleOf(wrapper)).toContain('--bb-tail: #00ff00');
     expect(styleOf(wrapper)).toContain('--bb-size: 40%');
-    expect(styleOf(wrapper.find('.border-beam__ring'))).toContain('padding: 6px');
+    expect(styleOf(wrapper.find('.border-beam__ring'))).toContain(
+      'padding: 6px',
+    );
     expect(styleOf(wrapper.find('.border-beam__spin'))).toContain(
       'animation-duration: 12s',
     );
@@ -49,11 +55,11 @@ describe('BorderBeam', () => {
     );
   });
 
-  it('radius：数字按 px，字符串交给 CSS 自己解释', () => {
-    expect(styleOf(mountBeam({ radius: 16 }))).toContain('border-radius: 16px');
-    expect(styleOf(mountBeam({ radius: '999px' }))).toContain(
-      'border-radius: 999px',
-    );
+  it('radius：数字按 rem 落进 CSS，字符串原样交给 CSS 解释', () => {
+    expect(styleOf(mountBeam({ radius: 16 }))).toContain('border-radius: 1rem');
+    expect(
+      styleOf(mountBeam({ radius: 'var(--app-border-radius)' })),
+    ).toContain('border-radius: var(--app-border-radius)');
   });
 
   it('默认插槽渲染正文，光带层不带无障碍语义', () => {
@@ -71,7 +77,9 @@ describe('BorderBeam', () => {
     expect(wrapper.classes()).toContain('w-64');
     expect(wrapper.classes()).toContain('relative');
     expect(styleOf(wrapper)).toContain('color: rgb(1, 2, 3)');
-    expect(styleOf(wrapper)).toContain('border-radius: var(--app-border-radius)');
+    expect(styleOf(wrapper)).toContain(
+      'border-radius: var(--app-border-radius)',
+    );
   });
 
   it('调用方传 border 工具类时，钩子类不会被 tailwind-merge 吃掉', () => {

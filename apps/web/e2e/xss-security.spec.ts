@@ -42,8 +42,21 @@ test.describe('XSS 安全基线', () => {
           inlineHandlers: document.querySelectorAll(
             '[onclick],[onload],[onerror],[onmouseover]',
           ).length,
-          injectedScripts:
-            document.querySelectorAll('script:not([src])').length,
+          /**
+           * 内联 `<script>` 只算"没有本站标记"的那些。
+           *
+           * 首屏主题脚本（`vite-plugin-app-loading` 注入 `<head>` 的
+           * `data-app-loading-theme-sync`）是构建期就写死在文档里的一段自包含 ES5，
+           * 跑在应用 bundle 之前、只回填 dark / data-theme / 三个 `--loading-*` 变量，
+           * 属于出厂产物而不是运行时注入 —— 按原始数断言会永远红。
+           * 下面用 `bootThemeScripts === 1` 反证这条豁免没被滥用：标记脚本还在且只有一枚。
+           */
+          injectedScripts: document.querySelectorAll(
+            'script:not([src]):not([data-app-loading-theme-sync])',
+          ).length,
+          bootThemeScripts: document.querySelectorAll(
+            'script[data-app-loading-theme-sync]',
+          ).length,
           javascriptLinks: text('a[href^="javascript:"]').length,
           // 内容区里出现 <script> 标签通常意味着某处把未净化的 HTML 直接塞进了 DOM
           scriptTagsInContent: document.querySelectorAll(
@@ -56,6 +69,10 @@ test.describe('XSS 安全基线', () => {
       expect(audit.inlineHandlers).toBe(0);
       expect(audit.scriptTagsInContent).toBe(0);
       expect(audit.injectedScripts).toBe(0);
+      expect(
+        audit.bootThemeScripts,
+        '标记脚本没了，上面那条豁免就成了空过',
+      ).toBe(1);
       expect(errors.errors).toEqual([]);
     });
   }

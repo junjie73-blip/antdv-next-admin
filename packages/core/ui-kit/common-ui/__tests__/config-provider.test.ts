@@ -208,7 +208,7 @@ describe('ConfigProvider 的子树主题与样式变量', () => {
     );
     const style = hostOf(wrapper).style;
     expect(style.getPropertyValue('--app-primary')).toBe('rgb(255 92 92)');
-    expect(style.getPropertyValue('--app-border-radius')).toBe('8px');
+    expect(style.getPropertyValue('--app-border-radius')).toBe('0.5rem');
     wrapper.unmount();
   });
 
@@ -294,7 +294,7 @@ describe('ConfigProvider 的子树主题与样式变量', () => {
     );
     const inner = wrapper.findAll('[data-common-config-provider]')[1]!
       .element as HTMLElement;
-    expect(inner.style.getPropertyValue('--app-border-radius')).toBe('12px');
+    expect(inner.style.getPropertyValue('--app-border-radius')).toBe('0.75rem');
     expect(inner.style.getPropertyValue('--app-primary')).toBe('rgb(1 2 3)');
     wrapper.unmount();
   });

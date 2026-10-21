@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { SettingSection } from './constants';
 
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 import { useLayoutI18n } from '@antdv/layout-ui';
 import { Scrollbar, Segmented } from '@antdv/common-ui';
 import { BasicDrawer } from '@antdv/popup-ui';
+
+import { useWindowSize } from '@vueuse/core';
 
 import { DrawerTitle } from '@antdv/shadcn-ui';
 import { Icon } from '@iconify/vue';
@@ -27,6 +29,18 @@ const { t } = useLayoutI18n();
 
 const visible = defineModel<boolean>('visible', { default: false });
 
+/**
+ * 抽屉宽度：桌面固定 380px，窄屏跟着视口收。
+ *
+ * `BasicDrawer` 的 `size` 是数值（右侧档要横向占位），写死 380 在 360px 的手机上
+ * 会把整块内容顶出视口 —— 左边留 24px 让它贴边，再兜一个 280px 的下限，
+ * 保证极窄视口下也不会缩到面板没法用。
+ */
+const { width: viewportWidth } = useWindowSize();
+const drawerSize = computed(() =>
+  Math.max(280, Math.min(380, viewportWidth.value - 24)),
+);
+
 /** `setting-drawer` 是样式覆盖和 e2e 定位的作用域钩子，改名会同时打断两边 */
 const activeSection = ref<SettingSection>('appearance');
 
@@ -40,7 +54,7 @@ function handleClose() {
   <BasicDrawer
     v-model:open="visible"
     placement="right"
-    :size="380"
+    :size="drawerSize"
     :closable="false"
     :body-scroll="false"
     :use-wrapper="false"

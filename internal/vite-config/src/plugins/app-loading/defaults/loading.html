@@ -1,24 +1,16 @@
-/**
- * vite-plugin-app-loading 默认 Loading 模板。
- *
- * 为什么是字符串常量而不是 defaults/loading.html：
- * vite-config 会被 tsdown 打成单个 dist/index.mjs，产物旁边并不存在 defaults/ 目录，
- * 运行时用 `__dirname` 去读文件必然抛 `ReferenceError / ENOENT`；
- * 内联进 bundle 才是「被打包消费的包」应有的做法，也保证模板与代码一起版本化。
- *
- * - 由插件在 transformIndexHtml 阶段注入到 index.html
- * - 支持 `<%= VITE_APP_TITLE %>` 等 HTML 环境变量（由 vite-plugin-html 处理）
- * - 颜色一律走三级链：`--loading-*`（首屏脚本从主题快照写入）→ `--app-*`（`@antdv/design`
- *   的色板，应用样式生效后接手）→ 按明暗分档的兜底色
- * - `<style>` 内联在容器内部，随容器一起移除，不产生样式残留
- */
-export const DEFAULT_LOADING_HTML = `<!--
+<!--
   vite-plugin-app-loading 默认 Loading 模板
   ------------------------------------------------------------
-  - 由插件在 transformIndexHtml 阶段注入到 index.html
+  这个文件就是模板本体：插件在 transformIndexHtml 阶段把它整段注入 index.html。
+  它不是 Vue/JSX 组件，也不参与打包时的作用域处理 —— 构建期由 rolldown 的
+  `moduleTypes: { '.html': 'text' }` 原样读成字符串内联进 dist/index.mjs，
+  所以产物旁边不需要（也不该有）defaults/ 目录：vite-config 是单文件 bundle，
+  运行时用 `__dirname` 去读文件必然抛 ENOENT。
+
   - 支持 <%= VITE_APP_TITLE %> 等 HTML 环境变量（由 vite-plugin-html 处理）
   - 全部颜色/尺寸使用 CSS 变量 + fallback，配合插件 autoTheme 自动主题
   - <style> 内联在容器内部，随容器一起移除，不产生样式残留
+  - 圆角一律 rem（全站口径，见 @antdv/design 的 token）；50% 这类比例值不是长度，保留
 -->
 <div id="__app-loading__" class="app-loading">
   <div class="app-loading__loader"></div>
@@ -115,7 +107,7 @@ export const DEFAULT_LOADING_HTML = `<!--
       top: 0;
       width: 100%;
       height: 100%;
-      border-radius: 4px;
+      border-radius: 0.25rem;
       background: var(--app-loading-primary);
       animation: app-loading-jump 0.5s linear infinite;
     }
@@ -160,13 +152,13 @@ export const DEFAULT_LOADING_HTML = `<!--
     /* ==================== 动画关键帧 ==================== */
     @keyframes app-loading-jump {
       15% {
-        border-bottom-right-radius: 3px;
+        border-bottom-right-radius: 0.1875rem;
       }
       25% {
         transform: translateY(9px) rotate(22.5deg);
       }
       50% {
-        border-bottom-right-radius: 40px;
+        border-bottom-right-radius: 2.5rem;
         transform: translateY(18px) scaleY(0.9) rotate(45deg);
       }
       75% {
@@ -199,4 +191,3 @@ export const DEFAULT_LOADING_HTML = `<!--
     }
   </style>
 </div>
-`;

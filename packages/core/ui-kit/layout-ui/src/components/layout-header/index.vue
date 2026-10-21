@@ -21,9 +21,15 @@ defineOptions({ name: 'LayoutHeader' });
  *
  * 组件不接收 `show-collapse-trigger` 之外的形态开关，也不写 `layout === 'xxx'` 分支。
  * 工具区与用户区是插槽：小部件、头像下拉、抽屉这些都带业务依赖，留在使用方。
+ *
+ * 品牌位的取值顺序是「插槽 → `logo` 图片 → 默认立方体」，产品名从 `sm` 档起才出现。
+ * 窄屏下这一行只剩图标：文字让位给侧栏触发按钮和右侧用户区，
+ * 但品牌不能整块消失（水平 / 混合 / 侧边导航是顶栏带 Logo 的形态，侧栏那一列在窄屏会变成抽屉）。
  */
 const props = withDefaults(
   defineProps<{
+    /** 品牌图标（宿主打包进来的资源路径）；没给时退回默认立方体 */
+    logo?: string;
     lead?: HeaderLead;
     /** 横向导航：`menus` 为空时整块不渲染 */
     nav?: LayoutNavConfig;
@@ -33,6 +39,7 @@ const props = withDefaults(
     tone?: LayoutTone;
   }>(),
   {
+    logo: undefined,
     lead: 'breadcrumb',
     nav: undefined,
     showSidebarTrigger: false,
@@ -72,7 +79,7 @@ const triggerLabel = computed(() =>
     :class="style.headerClass()"
     :style="LAYOUT_HEADER_ROW_STYLE"
   >
-    <div class="flex min-w-0 flex-1 items-center gap-4">
+    <div class="flex min-w-0 flex-1 items-center gap-2 md:gap-4">
       <!-- 侧栏触发：只在"侧栏不在场"的形态里出现（浮层抽屉 / 只剩图标栏） -->
       <SidebarCollapsedButton
         v-if="props.showSidebarTrigger"
@@ -95,11 +102,24 @@ const triggerLabel = computed(() =>
             showNav ? 'border-r border-gray-200 pr-4 dark:border-gray-700' : ''
           "
         >
-          <!-- 品牌位可整体替换（用真 Logo 图片时），默认是一颗主色立方体 -->
+          <!--
+            品牌位可整体替换（`#logo` 插槽），默认给"真 Logo 图 + 产品名"。
+            产品名在窄屏（< 640px）只留图标：那几十像素要给侧栏触发按钮和用户区，
+            但 Logo 图本身必须画出来 —— 以前这里只有一颗通用立方体，
+            窄屏下标题又被 `sm:` 藏掉，整站品牌位等于消失。
+          -->
           <slot name="logo">
+            <img
+              v-if="props.logo"
+              :alt="props.title ?? ''"
+              :src="props.logo"
+              class="h-7 w-7 shrink-0 object-contain"
+              data-layout-logo-image="header"
+            />
             <Icon
+              v-else
               icon="carbon:cube"
-              class="text-2xl"
+              class="shrink-0 text-2xl"
               :class="props.tone.geek ? 'text-[#00ff88]' : 'text-primary'"
             />
             <span
@@ -142,7 +162,7 @@ const triggerLabel = computed(() =>
       外面那一圈 rounded-xl 的胶囊容器是"小部件条"的既有观感，迁移前就无条件存在，
       这里保持一致（内容有没有都由使用方的插槽决定）。
     -->
-    <div class="flex min-w-0 shrink-0 items-center gap-3">
+    <div class="flex min-w-0 shrink-0 items-center gap-2 md:gap-3">
       <div
         class="flex items-center gap-0.5 rounded-xl bg-white px-0.5 py-0.5 shadow-lg shadow-gray-300/40 dark:bg-gray-800 dark:shadow-black/40"
       >

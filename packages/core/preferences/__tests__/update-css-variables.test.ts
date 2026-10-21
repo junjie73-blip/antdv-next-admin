@@ -78,12 +78,13 @@ describe('applyPreferencesToDom', () => {
     expect(html.style.getPropertyValue('--ant-border-radius')).toBe('');
   });
 
-  it('圆角倍率换算成 px，字号折算成根字号百分比', () => {
+  it('圆角倍率换算成 rem，字号折算成根字号百分比', () => {
     applyPreferencesToDom(prefs({ borderRadius: 0.5, fontSize: 15 }), {
       target: html,
     });
-    // 基准 16px（= token 的 --radius-lg 档），0.5 档就是 8px
-    expect(html.style.getPropertyValue('--app-border-radius')).toBe('8px');
+    // 基准 16px（= token 的 --radius-lg 档），0.5 档就是 8px = 0.5rem。
+    // 单位是 rem 而不是 px：默认根字号下计算值一样，但圆角会跟着 --app-font-size 缩放。
+    expect(html.style.getPropertyValue('--app-border-radius')).toBe('0.5rem');
     // 15px 正文 ÷ 基准 14px = 107.14%。写 `15px` 是错的：根字号一变，
     // 所有 rem 尺寸（间距、图标、控件高）会跟着文字一起缩。
     expect(html.style.getPropertyValue('--app-font-size')).toBe('107.14%');

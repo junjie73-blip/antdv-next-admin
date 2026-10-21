@@ -35,17 +35,6 @@
 @import './css/permission.css';
 @import './css/scrollbar.css';
 
-/* 自带工具类的组件包（路径相对本文件） */
-@source '../../../../layouts/src';
-@source '../../icons/src';
-@source '../../../ui-kit/common-ui/src';
-@source '../../../ui-kit/form-ui/src';
-@source '../../../ui-kit/layout-ui/src';
-@source '../../../ui-kit/menu-ui/src';
-@source '../../../ui-kit/popup-ui/src';
-@source '../../../ui-kit/shadcn-ui/src';
-@source '../../../ui-kit/table-ui/src';
-@source '../../../ui-kit/tabs-ui/src';
 
 @plugin "@tailwindcss/typography";
 @plugin "@tailwindcss/nesting";

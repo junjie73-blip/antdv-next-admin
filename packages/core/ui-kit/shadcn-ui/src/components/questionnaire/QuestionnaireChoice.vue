@@ -1,139 +1,169 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import { CheckIcon } from "@lucide/vue"
-import { computed, onBeforeUnmount, ref, useId, watch } from "vue"
-import { cn } from '@antdv/shared/utils/cn'
-import { getAnswerKeyShortcuts, injectQuestionnaireItemContext } from "./useQuestionnaire"
+import type { HTMLAttributes } from 'vue';
+import { CheckIcon } from '@lucide/vue';
+import { computed, onBeforeUnmount, ref, useId, watch } from 'vue';
+import { cn } from '@antdv/shared/utils/cn';
+import {
+  getAnswerKeyShortcuts,
+  injectQuestionnaireItemContext,
+} from './useQuestionnaire';
 
-const props = withDefaults(defineProps<{
-  /** Controlled checked state. Use with `v-model:checked`. */
-  checked?: boolean
-  class?: HTMLAttributes["class"]
-  /** Checks the choice on mount and after a native form reset. */
-  defaultChecked?: boolean
-  disabled?: boolean
-  /** Submitted as the answer of the parent item. */
-  value: string
-}>(), {
-  // `undefined` keeps the choice uncontrolled. Without this default, Vue casts
-  // the absent boolean prop to `false` and every choice looks controlled.
-  checked: undefined,
-  defaultChecked: false,
-  disabled: false,
-})
+const props = withDefaults(
+  defineProps<{
+    /** Controlled checked state. Use with `v-model:checked`. */
+    checked?: boolean;
+    class?: HTMLAttributes['class'];
+    /** Checks the choice on mount and after a native form reset. */
+    defaultChecked?: boolean;
+    disabled?: boolean;
+    /** Submitted as the answer of the parent item. */
+    value: string;
+  }>(),
+  {
+    // `undefined` keeps the choice uncontrolled. Without this default, Vue casts
+    // the absent boolean prop to `false` and every choice looks controlled.
+    checked: undefined,
+    defaultChecked: false,
+    disabled: false,
+  },
+);
 
 const emits = defineEmits<{
-  "change": [event: Event]
-  "update:checked": [checked: boolean]
-}>()
+  change: [event: Event];
+  'update:checked': [checked: boolean];
+}>();
 
-const item = injectQuestionnaireItemContext()
+const item = injectQuestionnaireItemContext();
 
-const answerId = useId()
-const inputElement = ref<HTMLInputElement | null>(null)
-const initialDefaultChecked = props.defaultChecked
+const answerId = useId();
+const inputElement = ref<HTMLInputElement | null>(null);
+const initialDefaultChecked = props.defaultChecked;
 
-const controlled = computed(() => props.checked !== undefined)
-const disabled = computed(() => item.disabled.value || props.disabled)
-const selected = computed(() => item.selectedAnswerIds.value.includes(answerId))
+const controlled = computed(() => props.checked !== undefined);
+const disabled = computed(() => item.disabled.value || props.disabled);
+const selected = computed(() =>
+  item.selectedAnswerIds.value.includes(answerId),
+);
 const checked = computed(() => {
   if (!controlled.value) {
-    return selected.value
+    return selected.value;
   }
 
   // A skipped item clears every answer, including controlled ones.
-  return item.status.value === "skipped" ? false : props.checked!
-})
-const type = computed(() => (item.multiple.value ? "checkbox" : "radio"))
-const shortcut = computed(() =>
-  item.shortcutByChoiceValue.value?.get(props.value)
-  ?? item.shortcutByAnswerId.value.get(answerId)
-  ?? null)
+  return item.status.value === 'skipped' ? false : props.checked!;
+});
+const type = computed(() => (item.multiple.value ? 'checkbox' : 'radio'));
+const shortcut = computed(
+  () =>
+    item.shortcutByChoiceValue.value?.get(props.value) ??
+    item.shortcutByAnswerId.value.get(answerId) ??
+    null,
+);
 
 function syncCheckedElement() {
   if (inputElement.value && inputElement.value.checked !== checked.value) {
-    inputElement.value.checked = checked.value
+    inputElement.value.checked = checked.value;
   }
 }
 
 function handleChange(event: Event) {
-  emits("change", event)
+  emits('change', event);
 
   if (event.defaultPrevented) {
-    syncCheckedElement()
-    return
+    syncCheckedElement();
+    return;
   }
 
-  const nextChecked = (event.target as HTMLInputElement).checked
+  const nextChecked = (event.target as HTMLInputElement).checked;
 
-  emits("update:checked", nextChecked)
+  emits('update:checked', nextChecked);
 
   if (!controlled.value) {
-    item.setAnswerSelectionFromInteraction(answerId, nextChecked)
-    return
+    item.setAnswerSelectionFromInteraction(answerId, nextChecked);
+    return;
   }
 
   // Re-selecting the same controlled choice has to clear the skipped state.
-  if (item.status.value === "skipped" && props.checked === nextChecked) {
-    item.setAnswerSelectionFromInteraction(answerId, props.checked)
+  if (item.status.value === 'skipped' && props.checked === nextChecked) {
+    item.setAnswerSelectionFromInteraction(answerId, props.checked);
   }
 
   // Checking a radio clears its siblings, so the whole group has to re-sync in
   // case the host keeps the previous answer.
-  item.requestControlSync()
+  item.requestControlSync();
 }
 
-const unregisterSelection = item.registerAnswerSelection(answerId, initialDefaultChecked)
+const unregisterSelection = item.registerAnswerSelection(
+  answerId,
+  initialDefaultChecked,
+);
 
-let unregisterControl: (() => void) | null = null
+let unregisterControl: (() => void) | null = null;
 
-watch([inputElement, disabled, () => props.disabled, () => props.value], ([element]) => {
-  unregisterControl?.()
-  unregisterControl = null
+watch(
+  [inputElement, disabled, () => props.disabled, () => props.value],
+  ([element]) => {
+    unregisterControl?.();
+    unregisterControl = null;
 
-  if (!element) {
-    return
-  }
+    if (!element) {
+      return;
+    }
 
-  unregisterControl = item.registerAnswerControl({
-    disabled: disabled.value,
-    element,
-    id: answerId,
-    ownDisabled: props.disabled,
-    type: "choice",
-    value: props.value,
-  })
-}, { flush: "post" })
+    unregisterControl = item.registerAnswerControl({
+      disabled: disabled.value,
+      element,
+      id: answerId,
+      ownDisabled: props.disabled,
+      type: 'choice',
+      value: props.value,
+    });
+  },
+  { flush: 'post' },
+);
 
-watch(() => props.defaultChecked, (defaultChecked) => {
-  item.setAnswerDefault(answerId, defaultChecked)
-})
+watch(
+  () => props.defaultChecked,
+  (defaultChecked) => {
+    item.setAnswerDefault(answerId, defaultChecked);
+  },
+);
 
-watch([() => props.checked, item.resetVersion], () => {
-  if (controlled.value) {
-    item.syncControlledAnswerSelection(answerId, props.checked!)
-  }
-}, { immediate: true })
+watch(
+  [() => props.checked, item.resetVersion],
+  () => {
+    if (controlled.value) {
+      item.syncControlledAnswerSelection(answerId, props.checked!);
+    }
+  },
+  { immediate: true },
+);
 
-watch(item.controlSyncVersion, syncCheckedElement, { flush: "post" })
+watch(item.controlSyncVersion, syncCheckedElement, { flush: 'post' });
 
-watch([checked, inputElement, () => props.defaultChecked, item.resetVersion], () => {
-  if (!inputElement.value) {
-    return
-  }
+watch(
+  [checked, inputElement, () => props.defaultChecked, item.resetVersion],
+  () => {
+    if (!inputElement.value) {
+      return;
+    }
 
-  // Keep the native reset target aligned with the questionnaire owned default,
-  // including controlled choices whose `checked` prop stays authoritative.
-  inputElement.value.defaultChecked = controlled.value ? props.checked! : props.defaultChecked
+    // Keep the native reset target aligned with the questionnaire owned default,
+    // including controlled choices whose `checked` prop stays authoritative.
+    inputElement.value.defaultChecked = controlled.value
+      ? props.checked!
+      : props.defaultChecked;
 
-  syncCheckedElement()
-}, { flush: "post" })
+    syncCheckedElement();
+  },
+  { flush: 'post' },
+);
 
 onBeforeUnmount(() => {
-  unregisterControl?.()
-  unregisterControl = null
-  unregisterSelection()
-})
+  unregisterControl?.();
+  unregisterControl = null;
+  unregisterSelection();
+});
 </script>
 
 <template>
@@ -145,11 +175,13 @@ onBeforeUnmount(() => {
     :data-shortcut="shortcut ?? undefined"
     :data-type="type"
     :data-unchecked="checked ? undefined : ''"
-    :class="cn(
-      'border-input dark:bg-input/20 hover:bg-muted/50 data-checked:border-primary/40 data-checked:bg-muted dark:data-checked:bg-muted data-invalid:border-destructive has-[>input:focus-visible]:border-ring has-[>input:focus-visible]:ring-ring/50 gap-3 rounded-md border bg-transparent px-4 py-3.5 text-sm shadow-xs has-[>input:focus-visible]:ring-3 group/questionnaire-choice relative flex min-h-11 cursor-pointer items-start text-start transition-colors outline-none select-none',
-      'data-disabled:pointer-events-none data-disabled:cursor-not-allowed data-disabled:opacity-50',
-      props.class,
-    )"
+    :class="
+      cn(
+        'border-input dark:bg-input/20 hover:bg-muted/50 data-checked:border-primary/40 data-checked:bg-muted dark:data-checked:bg-muted data-invalid:border-destructive has-[>input:focus-visible]:border-ring has-[>input:focus-visible]:ring-ring/50 gap-3 rounded-md border bg-transparent px-4 py-3.5 text-sm shadow-xs has-[>input:focus-visible]:ring-3 group/questionnaire-choice relative flex min-h-11 cursor-pointer items-start text-start transition-colors outline-none select-none',
+        'data-disabled:pointer-events-none data-disabled:cursor-not-allowed data-disabled:opacity-50',
+        props.class,
+      )
+    "
   >
     <input
       :id="answerId"
@@ -163,15 +195,19 @@ onBeforeUnmount(() => {
       :data-unchecked="checked ? undefined : ''"
       :disabled="disabled"
       :name="item.status.value === 'skipped' ? undefined : item.name.value"
-      :required="item.required.value && !item.multiple.value && !item.hasInputAnswer.value"
+      :required="
+        item.required.value &&
+        !item.multiple.value &&
+        !item.hasInputAnswer.value
+      "
       :type="type"
       :value="props.value"
       @change="handleChange"
-    >
+    />
     <span
       aria-hidden="true"
       data-slot="questionnaire-choice-indicator"
-      class="border-input dark:bg-input/30 group-data-checked/questionnaire-choice:bg-primary dark:group-data-checked/questionnaire-choice:bg-primary group-data-checked/questionnaire-choice:text-primary-foreground group-data-checked/questionnaire-choice:border-primary size-4 translate-y-[--spacing(0.45)] group-has-data-[slot=questionnaire-choice-description]/questionnaire-choice:translate-y-0.5 rounded-[4px] pointer-events-none relative flex shrink-0 items-center justify-center border group-data-[type=radio]/questionnaire-choice:rounded-full"
+      class="border-input dark:bg-input/30 group-data-checked/questionnaire-choice:bg-primary dark:group-data-checked/questionnaire-choice:bg-primary group-data-checked/questionnaire-choice:text-primary-foreground group-data-checked/questionnaire-choice:border-primary size-4 translate-y-[--spacing(0.45)] group-has-data-[slot=questionnaire-choice-description]/questionnaire-choice:translate-y-0.5 rounded-[0.25rem] pointer-events-none relative flex shrink-0 items-center justify-center border group-data-[type=radio]/questionnaire-choice:rounded-full"
     >
       <span
         data-slot="questionnaire-choice-indicator-dot"
@@ -186,7 +222,12 @@ onBeforeUnmount(() => {
       data-slot="questionnaire-choice-label"
       class="gap-1 flex min-w-0 flex-1 flex-col leading-snug"
     >
-      <slot :checked="checked" :disabled="disabled" :shortcut="shortcut" :type="type" />
+      <slot
+        :checked="checked"
+        :disabled="disabled"
+        :shortcut="shortcut"
+        :type="type"
+      />
     </span>
     <span
       v-if="shortcut"

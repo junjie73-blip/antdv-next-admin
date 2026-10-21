@@ -254,7 +254,7 @@ function baseOption(extra: Record<string, any> = {}): Record<string, any> {
       borderColor: borderColor(),
       textStyle: { color: textColor(), fontSize: 13 },
       extraCssText:
-        'border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1);',
+        'border-radius: 0.5rem; box-shadow: 0 4px 16px rgba(0,0,0,0.1);',
     },
     ...extra,
   };

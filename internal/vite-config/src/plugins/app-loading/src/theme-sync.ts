@@ -21,7 +21,7 @@ export const THEME_SYNC_MARKER = 'data-app-loading-theme-sync';
 export function generateThemeSyncScript(options: ResolvedOptions): string {
   const { darkClass, themeCacheKeySuffix } = options;
 
-  // 变量名与快照字段名一一对应，模板侧的消费见 defaults/loading-html.ts
+  // 变量名与快照字段名一一对应，模板侧的消费见 defaults/loading.html
   const varMap = JSON.stringify({
     background: '--loading-background',
     foreground: '--loading-foreground',

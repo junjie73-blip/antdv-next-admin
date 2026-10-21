@@ -27,11 +27,6 @@ const { t } = useLayoutI18n();
  */
 const items = computed(() => layoutHost.locales);
 const locale = computed(() => appStore.locale);
-const currentLabel = computed(
-  () =>
-    items.value.find((item) => item.code === locale.value)?.label ??
-    locale.value,
-);
 
 /** 写入只有一条路：改偏好。语言包、`<html lang>`、dayjs、antd 文案由宿主的 locale 效应统一展开 */
 function handleSelect(code: string) {
@@ -55,7 +50,6 @@ function itemClass(code: string) {
     <DropdownMenuTrigger as-child>
       <WidgetButton
         :label="`${t('header.language')}`"
-        :text="currentLabel"
         aria-haspopup="menu"
         data-testid="locale-switcher"
       >

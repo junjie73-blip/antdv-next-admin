@@ -291,28 +291,30 @@ The real mechanism behind the stacking and the release:
 
 ## Messages and notifications (`message` / `notification`)
 
-Both live in `packages/core/ui-kit/popup-ui/src/message/index.ts` (75 lines) on top of vue-sonner, keeping the old `message.success/error/info/warning` call shape. What draws them is the themed `<Toaster />` shell exported by `@antdv/common-ui` (mounted at `apps/web/src/App.vue:87-94`).
+Both live in `packages/core/ui-kit/popup-ui/src/message/index.ts` (128 lines) on top of vue-sonner, keeping the old `message.success/error/info/warning` call shape. What draws them is the themed `<Toaster />` shell exported by `@antdv/common-ui` (mounted at `apps/web/src/App.vue:59-71`).
+
+The two channels are **two instances of the same `createFeedback(toasterId?)` factory** (`:123`, `:126`): same method roster, same default dwell time, same clearing logic. The only difference is which toaster they land in.
 
 | Entry | Signature | Default duration |
 | --- | --- | --- |
-| `message.success` / `.error` / `.info` / `.warning` | `(content: string, duration?: number)` | 3000ms (`MESSAGE_DURATION`, `:32`) |
-| `message.loading` | `(content: string)` | stays until dismissed (`toast.loading`, `:40`) |
-| `notification.success` / `.error` / `.info` / `.warning` | `(content: string, description?: string, duration?: number)` | 8000ms (`NOTIFICATION_DURATION`, `:33`) |
-| `toast` | re-exported vue-sonner as-is (`:75`) | caller's business |
+| `message` / `notification` `.success` / `.error` / `.info` / `.warning` | `(content: string, init?: number \| string \| ToastInit)` | 3000ms (`TOAST_DURATION`, `:43`) |
+| `.loading` | `(content: string)` | stays until dismissed (`:113`) |
+| `.close(id)` / `.closeAll()` | vue-sonner's `toast.dismiss` (`:99`, `:104`) | — |
+| `toast` | re-exported vue-sonner as-is (`:128`) | caller's business |
 
-`duration` is a **positional argument**, not an options object: `message.success('已保存', 5000)`. The default only applies when it is omitted (`duration ?? MESSAGE_DURATION`). For anything beyond these shapes (`action`, `cancel`, `promise`, custom ids) use the exported `toast` — the two wrappers exist only to pin down the commonest call forms.
+The second argument accepts three shapes: a number is the dwell time (`message.success('已保存', 5000)` — exactly the old call), a string is the description (`notification.info('标题', '描述')`), an object is `{ description, duration }`. Only keys that actually carry a value are written into the payload, so a message emits neither a `description` nor a `toasterId` key at all. For anything beyond these shapes (`action`, `cancel`, `promise`, custom ids) use the exported `toast`.
 
 ### Why the host mounts **two** `<Toaster />` elements
 
-`apps/web/src/App.vue:87-94` mounts both (importing `Toaster` from `@antdv/common-ui`): the id-less one (`position="top-center"`) receives `message.*`, the one with `:id="NOTIFICATION_TOASTER_ID"` (the constant is `'notification'`, `message/index.ts:23`) receives `notification.*`, takes its position from the `notificationPosition` preference, and **is the only one with `close-button`**.
+`apps/web/src/App.vue:59-71` mounts both (importing `Toaster` from `@antdv/common-ui`): the id-less one (`position="top-center"`) receives `message.*`, the one with `:id="NOTIFICATION_TOASTER_ID"` (the constant is `'notification'`, `message/index.ts:33`) receives `notification.*` and takes its position from the `notificationPosition` preference. **Both enable `close-button`**, with the ✕ in the card's top-right corner.
 
-- **Not one toaster with a per-toast `position`**: sonner keeps exactly one stack per position. Messages and notifications differ in exit position, dwell time and stack limit, so sharing a toaster makes them evict each other (one notification pushes three messages out).
+- **Not one toaster with a per-toast `position`**: sonner keeps exactly one stack per position. Messages and notifications differ in exit position and stack limit, so sharing a toaster makes them evict each other (one notification pushes three messages out).
 - **Routing rule** (vue-sonner 2.0.9): a toast without `toasterId` only enters the **id-less** toaster, one with `toasterId` only enters the matching one. `message.*` therefore never passes it — if the host forgets the notification toaster, messages are still visible, and nothing can cross over the other way.
-- **Messages carry no close button**: they leave after 3 seconds, and an extra hit area contradicts "read it and it's gone". Notifications sit in a corner indefinitely, so the user must be able to close them.
+- **Both can be closed by hand**: messages used to omit the ✕ ("3 seconds and it's gone, an extra hit area contradicts that"). The cost was that the same sentence behaved differently per channel — 3s versus 8s, closable versus not — so users had to learn two rules. Dwell time and the dismiss action are now one implementation; what still separates the channels is the exit position and the optional description line.
 
 ### Colour contract: neutral card, state only in the badge
 
-All of it lives in `packages/core/ui-kit/common-ui/src/components/toast/Toaster.vue` (201 lines); applications configure nothing:
+All of it lives in `packages/core/ui-kit/common-ui/src/components/toast/Toaster.vue` (204 lines); applications configure nothing:
 
 - **Why this layer sits in common-ui instead of `@antdv/shadcn-ui`'s `Sonner.vue`**: that component hardcodes `rich-colors` *after* `v-bind` (so nothing can pass it in) and hardcodes its four state icons as `<template #xxx-icon>` (so nothing can pass them out — SFCs do not forward slots). Replacing those two things without editing its source would mean betting our selectors on which lucide icons it happens to use, and the bet expires on the next upgrade. So the styling layer is its own component: the engine is still vue-sonner, props and slots are the same shape (`ToasterProps` passes through untouched, `@antdv/shadcn-ui` did not change by a line), and nothing that package adds, removes or iterates can reach this one.
 - Background, border, text and radius come from sonner's `--normal-*` variable group (`:43-48`), fed by `--app-popover` / `--app-popover-foreground` / `--app-border` / `--app-border-radius`. **All four types share one neutral card — no rich colours**: `rich-colors` makes sonner repaint the whole card with `--{type}-bg` and recolors `[data-description]` along with it, which destroys body-text contrast.
@@ -329,7 +331,7 @@ Do not touch the top block of `message/index.ts`
 
 ### Live example: `/components/feedback`
 
-One button per channel and per state (four `message.*`, four `notification.*`) plus the loading prompt and a "default / Promise" pair (through the exported `toast`, covering the badge-less `default` type and the pending spinner), with the page itself stating "click the ✕ in the corner or wait 8 seconds". The same page is the regression scene for the toast palette — `apps/web/e2e/preference-effects.spec.ts` asserts the `--app-popover` card colour, the badge colours, the close-button offset and the two-toaster separation item by item.
+One button per channel and per state (four `message.*`, four `notification.*`) plus the loading prompt and a "default / Promise" pair (through the exported `toast`, covering the badge-less `default` type and the pending spinner), with the page itself stating "click the ✕ in the corner or wait 3 seconds". The same page is the regression scene for the toast palette — `apps/web/e2e/preference-effects.spec.ts` asserts the `--app-popover` card colour, the badge colours, the close-button offset and the two-toaster separation item by item.
 
 ## What this page does not have
 

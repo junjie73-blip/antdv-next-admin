@@ -16,6 +16,8 @@ import { Icon } from '@iconify/vue';
 import { useUserStore } from '@antdv/stores';
 
 import AccountDrawer from '../account-drawer/index.vue';
+import LockScreen from './lock-screen.vue';
+import { useLockScreen } from './use-lock-screen';
 
 defineOptions({ name: 'HeaderUser' });
 
@@ -28,6 +30,8 @@ defineOptions({ name: 'HeaderUser' });
 const userStore = useUserStore();
 const { t } = useLayoutI18n();
 const accountDrawerRef = ref<InstanceType<typeof AccountDrawer> | null>(null);
+/** 锁屏：下拉里多点一项，其余交互与之前完全一致（状态机见 `use-lock-screen.ts`） */
+const { lock, locked, unlock } = useLockScreen();
 
 /**
  * 头像下拉是"个人中心"唯一的入口。
@@ -38,6 +42,11 @@ const accountDrawerRef = ref<InstanceType<typeof AccountDrawer> | null>(null);
  *
  * 菜单项是数据驱动的：`kind: 'divider'` 那一项渲染成分隔线，其余按 key 分流动作，
  * 增删入口只改这张表，模板不用跟着动。
+ *
+ * 「锁屏」是这次新增的唯一入口：点它就调用 `useLockScreen().lock()`，
+ * 遮罩由 `lock-screen.vue` 承住。原有三项（个人中心 / 账户设置 / 文档中心）的
+ * 分流与触发方式一行没改 —— 新能力靠这张表多一项、`handleUserMenuClick` 多一个分支
+ * 接进来，属于非侵入式扩展。
  */
 type UserMenuItem =
   | { kind: 'divider' }
@@ -63,6 +72,12 @@ const userDropdownItems = computed<UserMenuItem[]>(() => [
     label: t('header.docs'),
     icon: 'carbon:book',
   },
+  {
+    kind: 'item',
+    key: 'lock',
+    label: t('header.lockScreen'),
+    icon: 'carbon:locked',
+  },
 ]);
 
 /**
@@ -82,6 +97,8 @@ function handleUserMenuClick(key: string) {
     accountDrawerRef.value?.open(key === 'settings' ? 'settings' : 'center');
   } else if (key === 'docs') {
     window.open(DOCS_URL, '_blank');
+  } else if (key === 'lock') {
+    lock();
   }
 }
 
@@ -119,7 +136,11 @@ const avatarFallback = computed(
     <DropdownMenuContent align="end" class="min-w-[180px]" side="bottom">
       <template v-for="(item, index) in userDropdownItems" :key="index">
         <DropdownMenuSeparator v-if="item.kind === 'divider'" />
-        <DropdownMenuItem v-else @click="handleUserMenuClick(item.key)">
+        <DropdownMenuItem
+          v-else
+          :data-testid="`user-menu-${item.key}`"
+          @click="handleUserMenuClick(item.key)"
+        >
           <Icon :icon="item.icon" />
           <span>{{ item.label }}</span>
         </DropdownMenuItem>
@@ -128,4 +149,6 @@ const avatarFallback = computed(
   </DropdownMenu>
 
   <AccountDrawer ref="accountDrawerRef" />
+  <!-- 锁屏遮罩自己 Teleport 到 body，这里只决定挂不挂 -->
+  <LockScreen v-if="locked" @unlock="unlock" />
 </template>

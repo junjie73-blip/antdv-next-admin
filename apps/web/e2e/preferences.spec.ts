@@ -6,6 +6,7 @@ import {
   closePreferenceDrawer,
   openPreferenceDrawer,
   segmentedControl,
+  setPreference,
   signIn,
   watchErrors,
 } from './utils/app';
@@ -147,28 +148,60 @@ test.describe('谷歌风格标签页', () => {
       .toBe('flex-end');
 
     /**
-     * 只有顶部两个圆角、且不画底边 —— 这是浏览器标签和卡片风格最直观的区别。
-     * 底边由标签栏自己的 border-b 接续，所以选中页看着像和内容区连成一片。
+     * chrome 档的选中页是**四角同半径**的胶囊（`useTabStyle.ts` 里 chrome.item 写的就是
+     * `rounded-[0.625rem]`），与内容区相接那两段凹弧由 `::before/::after` 画；
+     * 弧的几何在 `tabs.spec.ts` 已逐条钉过，这里不重复，只管半径与不描边。
+     *
+     * 半径按当刻根字号换算，而不是抄一个 px 字面量：下面把字号抬到 16，四角必须同倍率
+     * 一起变大。抄死成 `10px` 通不过第二条。这条用例原来钉的是 8px —— 基准还在 8px
+     * 时代（且只有顶部两角）的旧值，两处都跟着 chrome 档的重画过期了。
      */
-    const radii = await active.evaluate((el) => {
-      const style = getComputedStyle(el);
-      return {
-        bottomLeft: style.borderBottomLeftRadius,
-        bottomRight: style.borderBottomRightRadius,
-        borderTopLeft: style.borderTopLeftRadius,
-        borderTopRight: style.borderTopRightRadius,
-        bottomWidth: style.borderBottomWidth,
-      };
-    });
-    expect(radii.borderTopLeft).toBe('8px');
-    expect(radii.borderTopRight).toBe('8px');
-    expect(radii.bottomLeft).toBe('0px');
-    expect(radii.bottomRight).toBe('0px');
-    expect(radii.bottomWidth).toBe('0px');
+    const readActive = () =>
+      active.evaluate((el) => {
+        const style = getComputedStyle(el);
+        const root = Number.parseFloat(
+          getComputedStyle(document.documentElement).fontSize,
+        );
+        return {
+          bottomWidth: Number.parseFloat(style.borderBottomWidth),
+          corners: [
+            style.borderTopLeftRadius,
+            style.borderTopRightRadius,
+            style.borderBottomLeftRadius,
+            style.borderBottomRightRadius,
+          ].map((value) => Number.parseFloat(value)),
+          /** `0.625rem` 在当前根字号下应当落到的像素值 */
+          expected: root * 0.625,
+        };
+      });
 
-    // 标签条带主色淡染（浏览器工具栏那层底色），不是原来的中性灰
+    const base = await readActive();
+    for (const corner of base.corners)
+      expect(corner).toBeCloseTo(base.expected, 1);
+    // 不描边：chrome 靠底色和两只脚分层次，标签自己一圈 border 都不画
+    expect(base.bottomWidth).toBe(0);
+
+    /*
+     * rem 口径的反证：字号从 14 抬到 16，根字号跟着变大，四角必须一起涨；
+     * 同时每个角相对"当刻的 0.625rem"仍要自洽（px 字面量在这一步会原地不动）。
+     */
+    await setPreference(page, { fontSize: 16 });
     await expect
-      .poll(() => bar.evaluate((el) => getComputedStyle(el).backgroundColor))
+      .poll(async () => {
+        const scaled = await readActive();
+        const ratios = scaled.corners.map((corner) => corner / scaled.expected);
+        return (
+          Math.min(...scaled.corners) > Math.min(...base.corners) &&
+          Math.max(...ratios) - Math.min(...ratios) < 0.01 &&
+          Math.min(...ratios) > 0.99
+        );
+      })
+      .toBe(true);
+    await setPreference(page, { fontSize: 14 });
+
+    // 选中页带主色淡染（`--tab-chrome-fill`），标签栏那条带本身保持中性灰
+    await expect
+      .poll(() => active.evaluate((el) => getComputedStyle(el).backgroundColor))
       .not.toBe('rgba(0, 0, 0, 0)');
 
     // 切回卡片风格：排布与圆角都回到原样，证明风格是"可切换"而不是一次性

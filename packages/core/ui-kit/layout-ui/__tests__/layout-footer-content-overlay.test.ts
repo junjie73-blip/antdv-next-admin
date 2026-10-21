@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 import { mount } from '@vue/test-utils';
 import { defineComponent, h } from 'vue';
 
@@ -158,5 +160,84 @@ describe('LayoutOverlay - 浮层侧栏', () => {
     expect(panel?.querySelector('[data-layout-sidebar-collapse]')).toBeNull();
     expect(panel?.querySelector('[data-mark]')).not.toBeNull();
     expect(panel?.getAttribute('style')).toContain('width: 300px');
+  });
+});
+
+/**
+ * 开合动画。
+ *
+ * jsdom 不解析组件的 `<style>`，也没有真的过渡时长，所以"往哪滑、淡不淡"只能在源码层面钉；
+ * DOM 这边钉的是这个结构的两个前提：包裹层自己不参与布局（`display: contents`、
+ * 不带 transform —— 祖先一旦有变换，两个 `fixed` 子层就改以它为包含块，遮罩不再铺满全屏），
+ * 以及三个 `data-layout-*` 钩子还落在原来的层上。
+ * 真实的滑入与淡入由 e2e 在浏览器里看。
+ */
+describe('LayoutOverlay - 开合动画', () => {
+  const SOURCE = readFileSync(
+    'src/components/layout-sidebar/overlay.vue',
+    'utf8',
+  );
+
+  it('面板从左侧滑入、遮罩淡入，收起走同一套档位', () => {
+    for (const state of ['enter-from', 'appear-from', 'leave-to'] as const) {
+      expect(
+        SOURCE.includes(`.layout-overlay-${state} [data-layout-overlay-panel]`),
+      ).toBe(true);
+      expect(
+        SOURCE.includes(`.layout-overlay-${state} [data-layout-overlay-mask]`),
+      ).toBe(true);
+    }
+    expect(SOURCE).toContain('transform: translateX(-100%)');
+    expect(SOURCE).toContain('opacity: 0');
+  });
+
+  it('动画前缀与样式里的选择器同名（改名要两边一起改）', () => {
+    expect(SOURCE).toContain('<Transition appear name="layout-overlay">');
+  });
+
+  /**
+   * 取某条规则里第一条 `transition` 声明的秒数（没有就当 0）。
+   *
+   * 为什么要在源码里比大小：Vue 决定"何时摘掉离场节点"读的是**挂动画类那一层**的时长。
+   * 包裹层是 `display: contents`，没有盒、不会真的派发 transitionend，
+   * 时长读成 0 就等于"没有过渡"→ leave 第一帧把面板 detach，子层那条滑出根本没机会开始。
+   * 所以挂点必须自带一条不短于子层最长过渡的时长（到点由 Vue 的兜底定时器 resolve）。
+   * 这条不变量只在浏览器里看得见（e2e 的 `mobile-nav.spec.ts` 量滑出），jsdom 里必须靠源码钉。
+   */
+  function transitionSeconds(selector: string): number {
+    const start = SOURCE.indexOf(`\n${selector} {`);
+    expect(start, `样式里找不到 ${selector} 这条规则`).toBeGreaterThan(-1);
+    const body = SOURCE.slice(start, SOURCE.indexOf('}', start));
+    const raw = /transition:[^;]*?([\d.]+)s/.exec(body)?.[1];
+    return raw ? Number.parseFloat(raw) : 0;
+  }
+
+  it('挂动画类的包裹层自带时长，且不短于子层最长的那条', () => {
+    const panel = transitionSeconds('[data-layout-overlay-panel]');
+    const shade = transitionSeconds('[data-layout-overlay-mask]');
+    expect(Math.max(panel, shade), '子层压根没有时长').toBeGreaterThan(0);
+    expect(transitionSeconds('[data-layout-overlay]')).toBeGreaterThanOrEqual(
+      Math.max(panel, shade),
+    );
+  });
+
+  it('包裹层只当动画挂点：自己是 contents，不带自己的盒模型', async () => {
+    const wrapper = track(
+      mount(LayoutOverlay, { props: { open: false }, attachTo: document.body }),
+    );
+    await wrapper.setProps({ open: true });
+
+    const overlay = document.body.querySelector<HTMLElement>(
+      '[data-layout-overlay]',
+    );
+    expect(overlay).not.toBeNull();
+    expect(overlay?.classList.contains('contents')).toBe(true);
+    // jsdom 里没有真的过渡时长，enter 类在下一帧就被摘掉，所以这里钉的是结构不是类名
+    expect(overlay?.style.transform).toBe('');
+    // 遮罩与面板还是那两个固定层，钩子位置没被动画改写
+    expect(overlay?.querySelector('[data-layout-overlay-mask]')).not.toBeNull();
+    expect(
+      overlay?.querySelector('[data-layout-overlay-panel]'),
+    ).not.toBeNull();
   });
 });
