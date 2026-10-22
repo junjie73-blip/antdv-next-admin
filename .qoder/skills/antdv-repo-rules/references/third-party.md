@@ -60,8 +60,7 @@ pnpm check:dep && pnpm check:circular && pnpm check:builds
 
 ## 6. 合规与安全要求
 
-- **许可证**：进产物的包按 MIT / Apache-2.0 / BSD / ISC / 0BSD / CC0 放行；GPL/AGPL/LGPL 与"仅非商用"一律拒绝（会污染整包分发）。已核对：`reka-ui` MIT、`vue-sonner` MIT、`codemirror` MIT、`sortablejs` MIT、`vue-cropper` ISC、`watermark-plus` ISC、`standard-version` ISC、`pdfjs-dist`/`video.js`/`xlsx` Apache-2.0、`@sentry/vue` MIT、`mockjs` MIT。
-  **需要人工读一遍 LICENSE 文本**：`bpmn-js*`（package.json 写 `SEE LICENSE IN LICENSE`，抬头是 Camunda Services GmbH 版权）、`@tiptap/*`、`dompurify`、`qrcode`、`@vue-office/*`、`xlsx`（该包已不在公共 registry 常态发布，来源要固定并留档）。
+- **许可证**：进产物的包按 MIT / Apache-2.0 / BSD / ISC / 0BSD / CC0 放行；GPL/AGPL/LGPL 与"仅非商用"一律拒绝（会污染整包分发）。已核对：`reka-ui` MIT、`vue-sonner` MIT、`codemirror` MIT、`sortablejs` MIT、`vue-cropper` ISC、`watermark-plus` ISC、`standard-version` ISC、`pdfjs-dist`/`video.js`/`xlsx` Apache-2.0、`@sentry/vue` MIT、`mockjs` MIT。 **需要人工读一遍 LICENSE 文本**：`bpmn-js*`（package.json 写 `SEE LICENSE IN LICENSE`，抬头是 Camunda Services GmbH 版权）、`@tiptap/*`、`dompurify`、`qrcode`、`@vue-office/*`、`xlsx`（该包已不在公共 registry 常态发布，来源要固定并留档）。
 - **联网与遥测**：图标默认离线编译（不连 Iconify）；`@sentry/vue` 只在 `PROD` 初始化、DSN 取 `VITE_SENTRY_DSN`，含 Session Replay（录制用户画面 → 属于个人信息处理，上线前要有告知与开关）；`apps/web/src/main.ts:91` 的 `tracePropagationTargets` 里写死了一个外部地址，替换成部署方域名后再上线。mock 头像用的是 `api.dicebear.com` 外链，内网部署要么换成本地资源、要么在 e2e 的"外站资源失败"分桶里继续豁免（`e2e/utils/app.ts`）。
 - **凭据卫生**：依赖安装脚本、示例代码、e2e 断言里不得出现真实 token/cookie/密码；`.env.production` 的 `VITE_CACHE_ENCRYPT_KEY` 示例值上线前必须换。仓库里有一处历史遗留的调试语句含 token 字样（文件已在 `references/forbidden.md` ⚪ 节点名），处理动作是删除该语句，**不要把内容贴进日志、提交信息或聊天记录**。
 - **已知的"无效防护"必须讲清楚**：`CODE_STANDARD.md` §11.2 记录 CSRF token 目前是前端生成的，不构成真实防护；对外部署要改后端 `Set-Cookie` 下发，别在文档里写成已具备。

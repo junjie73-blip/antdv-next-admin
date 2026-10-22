@@ -10,6 +10,7 @@ import {
   Card,
   Description as DetailDescription,
   Divider,
+  PageHeader,
   Popconfirm,
   Statistic,
   Tag,
@@ -42,12 +43,15 @@ interface LoginLogRecord {
 
 const containerClassName = cn('space-y-4');
 const cardClassName = cn('shadow-sm');
-const statsGridClassName = cn('grid', 'grid-cols-4', 'gap-4');
+// 窄屏两列、宽屏四列：写死 grid-cols-4 时，统计数字在 1280 以下会挤成竖条
+const statsGridClassName = cn('grid grid-cols-2 gap-4 lg:grid-cols-4');
 const tagClassName = cn('inline-flex', 'items-center', 'gap-1');
 const actionClassName = cn('flex', 'items-center', 'justify-center');
 const btnClassName = cn('h-auto', 'px-0.5!');
 const dividerClassName = cn('mx-0');
-const failCardClassName = cn('border-red-200', 'dark:border-red-900');
+// 失败统计是"警示"而非"报错文本"，用 destructive 的淡边框，跟预设走
+const failCardClassName = cn('border-destructive/40');
+const dangerValueStyle = { color: 'hsl(var(--destructive))' };
 
 // 统计数据 — 从 API 获取
 const todayLoginCount = ref(0);
@@ -159,7 +163,7 @@ const detailSchemas: DescriptionItem[] = [
     label: 'User-Agent',
     render: (value) => (
       <code
-        class="block max-w-[480px] truncate rounded-sm bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800"
+        class="bg-muted text-foreground block max-w-[480px] truncate rounded-sm px-1.5 py-0.5 font-mono text-xs"
         title={(value as string) || '-'}
       >
         {(value as string) || '-'}
@@ -296,20 +300,26 @@ const columns: BasicColumn[] = [
 </script>
 
 <template>
-  <div :class="containerClassName">
+  <div data-page-view :class="containerClassName">
+    <PageHeader
+      title="登录日志"
+      description="按账号、IP 与时间检索登录轨迹，展开可查看设备、耗时与消息"
+      icon="carbon:login"
+    />
+
     <!-- 统计卡片区域 -->
     <div :class="statsGridClassName">
       <Card :class="cardClassName">
         <Statistic title="今日登录次数" :value="todayLoginCount" suffix="次">
           <template #prefix>
-            <Icon icon="carbon:login" class="mr-1 text-lg text-blue-500" />
+            <Icon icon="carbon:login" class="mr-1 text-lg text-primary" />
           </template>
         </Statistic>
       </Card>
       <Card :class="cardClassName">
         <Statistic title="本周登录次数" :value="weekLoginCount" suffix="次">
           <template #prefix>
-            <Icon icon="carbon:calendar" class="mr-1 text-lg text-green-500" />
+            <Icon icon="carbon:calendar" class="mr-1 text-lg text-success" />
           </template>
         </Statistic>
       </Card>
@@ -318,7 +328,7 @@ const columns: BasicColumn[] = [
           <template #prefix>
             <Icon
               icon="carbon:chart-line-data"
-              class="mr-1 text-lg text-orange-500"
+              class="mr-1 text-lg text-warning"
             />
           </template>
         </Statistic>
@@ -328,10 +338,10 @@ const columns: BasicColumn[] = [
           title="今日失败次数"
           :value="todayFailCount"
           suffix="次"
-          :value-style="{ color: '#cf1322' }"
+          :value-style="dangerValueStyle"
         >
           <template #prefix>
-            <Icon icon="carbon:error" class="mr-1 text-lg text-red-500" />
+            <Icon icon="carbon:error" class="mr-1 text-lg text-destructive" />
           </template>
         </Statistic>
       </Card>
@@ -339,10 +349,20 @@ const columns: BasicColumn[] = [
 
     <!-- 表格区域 -->
     <Card
-      title="登录日志"
+      title="登录记录"
       :class="cardClassName"
       body-class="login-log-print-area"
     >
+      <template #extra>
+        <Button variant="outline" @click="handleExport">
+          <Icon icon="carbon:export" />
+          导出
+        </Button>
+        <Button variant="outline" @click="handlePrint">
+          <Icon icon="carbon:printer" />
+          打印
+        </Button>
+      </template>
       <BasicTable
         :columns="columns"
         :api="mockApi"
@@ -358,15 +378,8 @@ const columns: BasicColumn[] = [
         :scroll="{ x: 1600 }"
         @register="tableRegister"
       >
-        <template #toolbar>
-          <Button variant="outline" @click="handleExport">
-            <Icon icon="carbon:export" />
-            导出
-          </Button>
-          <Button variant="outline" @click="handlePrint">
-            <Icon icon="carbon:printer" />
-            打印
-          </Button>
+        <!-- 危险操作贴着它们作用的列表放，不与卡头的导出/打印混在一组 -->
+        <template #toolbar-actions>
           <Button variant="destructive" @click="handleBatchDelete">
             <Icon icon="ant-design:delete-outlined" />
             批量删除
@@ -443,7 +456,7 @@ const columns: BasicColumn[] = [
         bordered
       />
 
-      <div class="mt-6 border-t border-gray-200 pt-4 dark:border-gray-700">
+      <div class="mt-6 border-t border-border pt-4">
         <Alert
           message="提示：如发现异常登录记录，请及时修改密码并联系安全管理人员"
           type="warning"

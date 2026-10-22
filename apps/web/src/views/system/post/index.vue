@@ -9,6 +9,7 @@ import {
   Badge,
   Card,
   Divider,
+  PageHeader,
   Popconfirm,
   Tag,
   Transfer,
@@ -445,8 +446,21 @@ const columns: BasicColumn[] = [
 </script>
 
 <template>
-  <div :class="containerClassName">
-    <Card title="岗位管理" :class="cardClassName">
+  <div data-page-view :class="containerClassName">
+    <PageHeader
+      title="岗位管理"
+      description="维护岗位信息与排序，用于人事编制与岗位归属"
+      icon="carbon:badge"
+    >
+      <template #extra>
+        <Button @click="handleAdd">
+          <Icon icon="ant-design:plus-outlined" />
+          新增岗位
+        </Button>
+      </template>
+    </PageHeader>
+
+    <Card title="岗位列表" :class="cardClassName">
       <BasicTable
         ref="tableRef"
         :columns="columns"
@@ -462,13 +476,6 @@ const columns: BasicColumn[] = [
         :action-column="{ width: 280, title: '操作', fixed: 'right' }"
         @register="tableRegister"
       >
-        <template #toolbar>
-          <Button @click="handleAdd">
-            <Icon icon="ant-design:plus-outlined" />
-            新增岗位
-          </Button>
-        </template>
-
         <template #cell-status="{ record }">
           <Tag :color="statusColorMap[record.status] || 'default'">
             <span :class="tagClassName">
@@ -572,9 +579,7 @@ const columns: BasicColumn[] = [
           show-icon
         />
 
-        <div
-          class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400"
-        >
+        <div class="flex items-center gap-4 text-muted-foreground text-sm">
           <span>岗位编码：<Tag color="blue">{{
               assignPostRecord?.code
             }}</Tag></span>
@@ -587,7 +592,7 @@ const columns: BasicColumn[] = [
         <!-- 搜索框 -->
         <div class="relative">
           <Icon
-            class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+            class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
             icon="ant-design:search-outlined"
           />
           <Input

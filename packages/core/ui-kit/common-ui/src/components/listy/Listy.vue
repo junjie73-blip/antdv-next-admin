@@ -201,7 +201,7 @@ const viewportStyle = computed<StyleValue>(() =>
  */
 const rowClass = computed(() =>
   cn('border-border flex items-center border-b last:border-b-0', {
-    'gap-4 p-4 ': props.size === 'large',
+    'gap-4 p-4': props.size === 'large',
     'gap-3 px-4 py-3': props.size === 'middle',
     'gap-2 px-3 py-2': props.size === 'small',
     'hover:bg-accent cursor-pointer transition-colors': props.selectable,

@@ -24,7 +24,7 @@
 | 状态 | Pinia；持久化只点名需要的 key，禁止全量落盘；跨页共享进 `@antdv/stores`，宿主专属进 `apps/web/src/stores` |
 | 请求 | 接口在 `apps/web/src/api/*.ts` 集中导出函数，组件里只 import 函数；401/4xx/5xx 已由请求层统一处理，业务侧不再 try/catch 弹提示 |
 | WS | 只用 `apps/web/src/utils/ws.ts` 的单例 `useWebSocket()`，订阅返回解订函数并在 `onUnmounted` 调用；消息类型是 `notice` / `force-logout` / `connected` |
-| 表格/CRUD | `const [register, tableRef] = useTable()`（第二个返回值是 `Ref<TableActionType | null>`，调方法要 `tableRef.value?.reload()`）；`actions.ts` 无状态、副作用经 `ctx` 注入；单条删除靠 `popConfirm`，批量删除只留 `useCRUD` 内置那一次 `Modal.confirm` |
+| 表格/CRUD | `const [register, tableRef] = useTable()`（第二个返回值是 `Ref<TableActionType | null>`，调方法要 `tableRef.value?.reload()`）；`actions.ts`无状态、副作用经`ctx`注入；单条删除靠`popConfirm`，批量删除只留 `useCRUD`内置那一次`Modal.confirm` |
 | 表单 schema | 依赖响应式数据时**必须用 `computed` 工厂**，`ifShow`/`componentProps` 用函数不用布尔值 |
 | i18n | 用户可见文本走 `$t('key')`，key 形如 `system.user.create`；`zh-CN` / `en-US` 两份同步 |
 | 安全 | HTML 用 `v-safe-html`、URL 用 `sanitizeUrl`；token 走 `cache`（SM4）加密，不拼进 URL、不打进 console、不进 `localStorage`；`password`/`token` 不进日志与提交信息 |
@@ -65,13 +65,14 @@
 
 | 层 | 怎么跑 | 口径 |
 | --- | --- | --- |
-| 静态体检 | `node .qoder/skills/antdv-repo-rules/scripts/check-repo.mjs` | 只读、秒级，先挡住依赖边界/token/`@source`/写死版本 |
+| 静态体检 | `node <skill-dir>/scripts/check-repo.mjs`（`<skill-dir>` 是本技能目录，项目级安装时为 `.qoder/skills/antdv-repo-rules`） | 只读、秒级，先挡住依赖边界/token/`@source`/写死版本 |
 | 单元测试 | `npx turbo run test:unit --concurrency=1`；**慢/红用例必须单文件复跑再判** | `pnpm exec vitest run` 在仓库根直接崩，别用。环境按包：`design`=node、`hooks`=happy-dom、`form-ui` 等 DOM 包=jsdom、`apps/web`=复用应用 vite 配置（`mode:'test'` 下 `VITE_MOCK=false`，不拉 Nitro） |
 | 类型检查 | 包内 `vue-tsc --noEmit`；`apps/web` 必须分别跑 `tsconfig.app.json` 与 `tsconfig.vitest.json` | 后者是给测试文件单独定的 `types`（覆盖不是追加，漏 `vite/client` 会让 `import.meta.env.VITE_*` 全报 TS2339） |
 | 端到端 | `npx playwright test [<spec>] --project=<chromium\|firefox\|webkit>`，本地默认 `E2E_WORKERS=3` | **三引擎都绿才算绿**；`--project=chromium` 单跑不构成证据；假红先隔离复跑（`--workers=1`）再判，不许先改断言 |
 | 产物核验 | `pnpm build:web` + `node apps/web/scripts/verify-prod-mock.mjs` | 产物里没有 Node mock，接口由包内 fixtures 在 fetch 出口应答；"逃逸到网络的非资源请求"按硬失败统计 |
 
 写用例的三条仓库约定：
+
 1. **判据要能反证**：静态扫描/几何断言类用例必须配反向对照（造一个坏样本证明判据抓得住），否则等于没写。
 2. **不为个别假红放宽全局**：只允许给特定引擎放宽墙钟（WebKit 已是 `actionTimeout 45s`/`timeout 240s`），单步 `expect(10s)` 不动；`e2e/utils/app.ts` 的 `externalResourceFailure()` 只准加更窄判据。
 3. **快照式白名单要同步**：像 `cursor.spec.ts` 的 `DECORATIVE_HOVER_ALLOWLIST` 用「标签 + class 前四枚」做键，改模板里的工具类顺序会把它顶掉——同批改，别把匹配放宽成子串。

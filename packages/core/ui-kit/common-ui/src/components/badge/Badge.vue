@@ -74,9 +74,7 @@ const rootClass = computed(() =>
 const bubbleClass = computed(() =>
   cn(
     'z-10 rounded-full text-xs leading-none text-white',
-    standalone.value
-      ? 'inline-flex'
-      : 'absolute top-0 right-0 -translate-x-1/2 -translate-y-1/2',
+    standalone.value ? 'inline-flex' : 'absolute top-0 right-0 -translate-1/2 ',
     props.dot ? 'size-2' : 'px-1.5 py-0.5',
     props.color ? '' : 'bg-destructive',
   ),

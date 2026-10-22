@@ -5,7 +5,7 @@ import type { BasicColumn } from '@antdv/table-ui';
 
 import { ref } from 'vue';
 
-import { Divider, Popconfirm, Tag } from '@antdv/common-ui';
+import { Divider, PageHeader, Popconfirm, Tag } from '@antdv/common-ui';
 import { BasicDrawer, message, useDrawer } from '@antdv/popup-ui';
 import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
@@ -51,11 +51,10 @@ interface LoginLogRecord {
 
 // 样式变量
 const containerClassName = cn('space-y-4');
-const cardClassName = cn(
-  'rounded-lg border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900',
-);
+/* 手写面板与 Card 同一套底色：写死 bg-white / gray-900 就不跟主题预设走 */
+const cardClassName = cn('bg-card border-border rounded-lg border shadow-sm');
 const filterBarClassName = cn(
-  'flex flex-wrap items-center gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-800',
+  'border-border flex flex-wrap items-center gap-3 border-b px-6 py-4',
 );
 const dividerClassName = cn('mx-0');
 const actionClassName = cn('flex items-center justify-center');
@@ -74,7 +73,7 @@ const tabClassName = (active: boolean) =>
     'cursor-pointer border-x-0 border-t-0 border-b-2 bg-transparent px-5 py-3 font-[inherit] text-sm font-medium transition-colors duration-150',
     active
       ? 'border-primary text-primary'
-      : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
+      : 'hover:text-foreground text-muted-foreground border-transparent',
   );
 
 // 操作类型映射
@@ -270,7 +269,7 @@ const detailSchemas: DescriptionItem[] = [
     label: '请求参数',
     render: (value) => (
       <code
-        class="block max-w-[400px] truncate rounded-sm bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800"
+        class="bg-muted text-foreground block max-w-[400px] truncate rounded-sm px-1.5 py-0.5 font-mono text-xs"
         title={(value as string) || '-'}
       >
         {(value as string) || '-'}
@@ -283,13 +282,13 @@ const detailSchemas: DescriptionItem[] = [
     render: (value) =>
       value ? (
         <code
-          class="block max-w-[400px] truncate rounded-sm bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800"
+          class="bg-muted text-foreground block max-w-[400px] truncate rounded-sm px-1.5 py-0.5 font-mono text-xs"
           title={value as string}
         >
           {value as string}
         </code>
       ) : (
-        <span class="text-gray-400">-</span>
+        <span class="text-muted-foreground">-</span>
       ),
   },
   {
@@ -307,13 +306,13 @@ const detailSchemas: DescriptionItem[] = [
     render: (value) =>
       (value as string) ? (
         <span
-          class="block max-w-[400px] truncate text-red-500"
+          class="text-destructive block max-w-[400px] truncate"
           title={value as string}
         >
           {value as string}
         </span>
       ) : (
-        <span class="text-gray-400">-</span>
+        <span class="text-muted-foreground">-</span>
       ),
   },
   { field: 'operTime', label: '操作时间' },
@@ -502,10 +501,16 @@ const loginColumns: BasicColumn[] = [
 </script>
 
 <template>
-  <div :class="containerClassName">
+  <div data-page-view :class="containerClassName">
+    <PageHeader
+      title="系统日志"
+      description="按模块检索操作审计与登录记录，定位是谁在什么时候改了什么"
+      icon="carbon:activity"
+    />
+
     <div :class="cardClassName">
       <!-- 标签页 -->
-      <div class="mb-4 flex border-b border-gray-200 px-6 dark:border-gray-700">
+      <div class="mb-4 flex border-b border-border px-6">
         <button
           v-for="tab in tabItems"
           :key="tab.key"
@@ -533,7 +538,8 @@ const loginColumns: BasicColumn[] = [
           :scroll="{ x: 1300 }"
           @register="tableRegister"
         >
-          <template #toolbar>
+          <!-- 这一栏只对「操作日志」这个页签有意义，所以留在表格内而不是页头 -->
+          <template #toolbar-actions>
             <Button variant="outline" @click="handleExport">
               <Icon icon="carbon:export" />
               导出
@@ -648,14 +654,12 @@ const loginColumns: BasicColumn[] = [
         <div class="py-20 text-center">
           <Icon
             icon="carbon:checkmark-outline"
-            class="mb-4 text-6xl text-gray-300 dark:text-gray-600"
+            class="mb-4 text-6xl text-muted-foreground/50"
           />
-          <div
-            class="mb-2 text-lg font-semibold text-gray-500 dark:text-gray-400"
-          >
+          <div class="mb-2 text-lg font-semibold text-muted-foreground">
             暂无错误日志
           </div>
-          <div class="text-sm text-gray-400">
+          <div class="text-sm text-muted-foreground">
             系统运行正常，当前没有错误日志记录
           </div>
         </div>
@@ -670,29 +674,27 @@ const loginColumns: BasicColumn[] = [
       @register="drawerRegister"
     >
       <div v-if="viewingRecord" class="relative pl-6">
-        <div
-          class="absolute top-0 bottom-0 left-[7px] w-[2px] bg-gray-200 dark:bg-gray-700"
-        ></div>
+        <div class="absolute top-0 bottom-0 left-[7px] w-[2px] bg-border"></div>
         <div class="space-y-6">
           <div class="relative pb-6">
             <div
-              class="absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 border-green-500 bg-white dark:bg-gray-900"
+              class="absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 border-success bg-card"
             ></div>
-            <div class="mb-1 text-xs text-gray-400">操作时间</div>
+            <div class="mb-1 text-xs text-muted-foreground">操作时间</div>
             <div class="text-sm">{{ viewingRecord.operTime }}</div>
           </div>
           <div class="relative pb-6">
             <div
-              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
+              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-card"
             ></div>
-            <div class="mb-1 text-xs text-gray-400">操作模块</div>
+            <div class="mb-1 text-xs text-muted-foreground">操作模块</div>
             <div class="text-sm">{{ viewingRecord.title }}</div>
           </div>
           <div class="relative pb-6">
             <div
-              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
+              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-card"
             ></div>
-            <div class="mb-1 text-xs text-gray-400">操作类型</div>
+            <div class="mb-1 text-xs text-muted-foreground">操作类型</div>
             <div class="text-sm">
               <Tag
                 :color="operTypeColorMap[viewingRecord.operType] || 'default'"
@@ -703,9 +705,9 @@ const loginColumns: BasicColumn[] = [
           </div>
           <div class="relative pb-6">
             <div
-              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
+              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-card"
             ></div>
-            <div class="mb-1 text-xs text-gray-400">操作人员</div>
+            <div class="mb-1 text-xs text-muted-foreground">操作人员</div>
             <div class="text-sm">
               <span class="text-primary font-medium">{{
                 viewingRecord.operName
@@ -714,36 +716,36 @@ const loginColumns: BasicColumn[] = [
           </div>
           <div class="relative pb-6">
             <div
-              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
+              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-card"
             ></div>
-            <div class="mb-1 text-xs text-gray-400">请求URL</div>
+            <div class="mb-1 text-xs text-muted-foreground">请求URL</div>
             <div class="text-sm">
               <code
-                class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800"
+                class="bg-muted text-foreground rounded px-1.5 py-0.5 font-mono text-xs"
                 >{{ viewingRecord.operUrl }}</code>
             </div>
           </div>
           <div class="relative pb-6">
             <div
-              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
+              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-card"
             ></div>
-            <div class="mb-1 text-xs text-gray-400">IP地址</div>
+            <div class="mb-1 text-xs text-muted-foreground">IP地址</div>
             <div class="text-sm">
               <code
-                class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-800"
+                class="bg-muted text-foreground rounded px-1.5 py-0.5 font-mono text-xs"
                 >{{ viewingRecord.operIp }}</code>
             </div>
           </div>
           <div class="relative pb-6">
             <div
-              class="absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
+              class="absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-card"
               :class="
                 viewingRecord.status === 0
-                  ? 'border-green-500'
-                  : 'border-red-500'
+                  ? 'border-success'
+                  : 'border-destructive'
               "
             ></div>
-            <div class="mb-1 text-xs text-gray-400">执行状态</div>
+            <div class="mb-1 text-xs text-muted-foreground">执行状态</div>
             <div class="text-sm">
               <Tag :color="statusColorMap[viewingRecord.status] || 'default'">
                 {{ statusLabelMap[viewingRecord.status] || '未知' }}
@@ -752,18 +754,20 @@ const loginColumns: BasicColumn[] = [
           </div>
           <div class="relative">
             <div
-              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-white dark:bg-gray-900"
+              class="border-primary absolute top-[2px] left-[-23px] z-[1] h-3 w-3 rounded-full border-2 bg-card"
             ></div>
-            <div class="mb-1 text-xs text-gray-400">耗时</div>
+            <div class="mb-1 text-xs text-muted-foreground">耗时</div>
             <div class="text-sm">{{ viewingRecord.costTime }}ms</div>
           </div>
         </div>
         <div
           v-if="viewingRecord.errorMsg"
-          class="mt-4 rounded-md border-l-[3px] border-red-500 bg-red-50 p-3 dark:bg-red-900/20"
+          class="mt-4 rounded-md border-l-[3px] border-destructive bg-destructive/10 p-3"
         >
-          <div class="mb-1 text-sm font-semibold text-red-500">错误信息</div>
-          <div class="text-sm text-gray-600 dark:text-gray-400">
+          <div class="mb-1 text-sm font-semibold text-destructive">
+            错误信息
+          </div>
+          <div class="text-sm text-muted-foreground">
             {{ viewingRecord.errorMsg }}
           </div>
         </div>

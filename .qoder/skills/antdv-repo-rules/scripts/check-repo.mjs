@@ -2,9 +2,12 @@
 /**
  * 仓库静态体检（只读，不改任何文件）。
  *
- *   node .qoder/skills/antdv-repo-rules/scripts/check-repo.mjs
- *   node .qoder/skills/antdv-repo-rules/scripts/check-repo.mjs --only tokens,@source
- *   node .qoder/skills/antdv-repo-rules/scripts/check-repo.mjs --json
+ * 在本仓库根执行（`<skill-dir>` 是本技能 SKILL.md 所在目录，项目级安装时为
+ * `.qoder/skills/antdv-repo-rules`；用户级或其它平台安装时换成实际路径即可）：
+ *
+ *   node <skill-dir>/scripts/check-repo.mjs
+ *   node <skill-dir>/scripts/check-repo.mjs --only tokens,@source
+ *   node <skill-dir>/scripts/check-repo.mjs --json
  *
  * 只做"机器能判、且判错代价低"的事：依赖边界、跨包路径、@source 覆盖与失效、
  * token 命名空间、写死版本号的依赖、交付卫生。
@@ -12,12 +15,35 @@
  */
 /* oxlint-disable no-console unicorn/no-process-exit -- CLI 脚本：stdout 是产物，退出码是结论（仓库对 scripts/** 也是这个口径） */
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const ROOT = resolve(HERE, '../../../..');
+
+/** 仓库根靠工作区标记认，不靠"技能装在第几层"：项目级、用户级与其它 Agent 平台的安装深度不同。 */
+const isWorkspaceRoot = (dir) =>
+  existsSync(join(dir, 'pnpm-workspace.yaml')) &&
+  existsSync(join(dir, 'turbo.json'));
+function findRoot(start) {
+  let dir = resolve(start);
+  for (;;) {
+    if (isWorkspaceRoot(dir)) return dir;
+    const parent = dirname(dir);
+    if (parent === dir) return undefined;
+    dir = parent;
+  }
+}
+const ROOT = findRoot(HERE) ?? findRoot(process.cwd());
+if (ROOT === undefined) {
+  console.error(
+    '未找到仓库根：请在含 pnpm-workspace.yaml 与 turbo.json 的仓库内运行本脚本。',
+  );
+  process.exit(1);
+}
+
+/** 环境退化提示：不算违反，但要让读结果的人知道某一步没跑（避免"静默变绿"） */
+const notes = [];
 
 const SKIP_DIRS = new Set([
   '.git',
@@ -32,7 +58,7 @@ const SKIP_DIRS = new Set([
   'test-results',
 ]);
 
-const SOURCE_EXT = new Set(['.ts', '.tsx', '.js', '.mjs', '.cjs', '.vue']);
+const SOURCE_EXT = new Set(['.cjs', '.js', '.mjs', '.ts', '.tsx', '.vue']);
 
 function walk(dir, out = []) {
   let entries = [];
@@ -162,7 +188,7 @@ const CHECKS = {
   },
 
   /** @source 只住在 design，且每个带 .vue 的包都登记、路径解析得到真实目录 */
-  '@source'() {
+  '@source': function() {
     const hits = [];
     const cssIndex = join(ROOT, 'packages/core/base/design/src/index.css');
     if (!existsSync(cssIndex)) return ['design/src/index.css 不见了'];
@@ -304,6 +330,9 @@ const CHECKS = {
       }).split('\n');
     } catch {
       tracked = [];
+      notes.push(
+        'git 不可用：已跟踪文件名扫描未执行，这一项不构成"已跟踪文件也干净"的结论',
+      );
     }
     for (const n of tracked) {
       if (/console\.log/iu.test(n)) {
@@ -344,7 +373,7 @@ for (const name of names) {
 }
 
 if (json) {
-  console.log(JSON.stringify({ root: ROOT, failed, results }, null, 2));
+  console.log(JSON.stringify({ root: ROOT, failed, results, notes }, null, 2));
 } else {
   console.log(
     `antdv 仓库体检 · ${ROOT} · 包源码 ${files.length} 个文件 / ${pkgs.length} 个 @antdv/* 包 / 应用侧 ${appSource.length} 个文件`,
@@ -359,6 +388,7 @@ if (json) {
     for (const h of hits.slice(0, 8)) console.log(`        - ${h}`);
     if (hits.length > 8) console.log(`        - …另有 ${hits.length - 8} 处`);
   }
+  for (const note of notes) console.log(`  提示  ${note}`);
   console.log(
     failed === 0
       ? '结论：静态硬约束无违反项。'

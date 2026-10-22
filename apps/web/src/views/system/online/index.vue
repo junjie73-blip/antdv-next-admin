@@ -10,6 +10,7 @@ import {
   Card,
   Description as DetailDescription,
   Divider,
+  PageHeader,
   Popconfirm,
   Statistic,
   Tag,
@@ -295,23 +296,26 @@ const columns: BasicColumn[] = [
 </script>
 
 <template>
-  <div :class="containerClassName">
+  <div data-page-view :class="containerClassName">
+    <PageHeader
+      title="在线用户"
+      description="查看当前在线会话与登录来源，异常会话可强制下线"
+      icon="carbon:connect"
+    />
+
     <!-- 在线统计卡片 -->
-    <div class="grid grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <Card :class="cardClassName">
         <Statistic title="当前在线" :value="onlineCount" suffix="人">
           <template #prefix>
-            <Icon
-              icon="carbon:user-online"
-              class="mr-1 text-lg text-green-500"
-            />
+            <Icon icon="carbon:user-online" class="mr-1 text-lg text-success" />
           </template>
         </Statistic>
       </Card>
       <Card :class="cardClassName">
         <Statistic title="今日登录" :value="28" suffix="人次">
           <template #prefix>
-            <Icon icon="carbon:login" class="mr-1 text-lg text-blue-500" />
+            <Icon icon="carbon:login" class="mr-1 text-lg text-primary" />
           </template>
         </Statistic>
       </Card>
@@ -320,7 +324,7 @@ const columns: BasicColumn[] = [
           <template #prefix>
             <Icon
               icon="carbon:chart-line-data"
-              class="mr-1 text-lg text-orange-500"
+              class="mr-1 text-lg text-warning"
             />
           </template>
         </Statistic>
@@ -328,17 +332,35 @@ const columns: BasicColumn[] = [
       <Card :class="cardClassName">
         <Statistic title="平均在线时长" value="2.5" suffix="小时">
           <template #prefix>
-            <Icon icon="carbon:time" class="mr-1 text-lg text-purple-500" />
+            <Icon
+              icon="carbon:time"
+              class="mr-1 text-lg text-muted-foreground"
+            />
           </template>
         </Statistic>
       </Card>
     </div>
 
     <Card
-      title="在线用户"
+      title="会话列表"
       :class="cardClassName"
       body-class="online-print-area"
     >
+      <!-- 强退是不可逆操作，和它作用的复选框同处一栏，不放页头 -->
+      <template #extra>
+        <Button variant="outline" @click="handleExport">
+          <Icon icon="carbon:export" />
+          导出
+        </Button>
+        <Button variant="outline" @click="handlePrint">
+          <Icon icon="carbon:printer" />
+          打印
+        </Button>
+        <Button variant="destructive" @click="handleBatchForceLogout">
+          <Icon icon="carbon:logout" />
+          批量强退
+        </Button>
+      </template>
       <BasicTable
         :columns="columns"
         :api="mockApi"
@@ -354,21 +376,6 @@ const columns: BasicColumn[] = [
         :scroll="{ x: 1500 }"
         @register="tableRegister"
       >
-        <template #toolbar>
-          <Button variant="outline" @click="handleExport">
-            <Icon icon="carbon:export" />
-            导出
-          </Button>
-          <Button variant="outline" @click="handlePrint">
-            <Icon icon="carbon:printer" />
-            打印
-          </Button>
-          <Button variant="destructive" @click="handleBatchForceLogout">
-            <Icon icon="carbon:logout" />
-            批量强退
-          </Button>
-        </template>
-
         <template #cell-status="{ record }">
           <Tag :color="record.status === 0 ? 'green' : 'default'">
             <span :class="tagClassName">
@@ -409,7 +416,9 @@ const columns: BasicColumn[] = [
                 <Icon icon="carbon:logout" />
                 强退
               </Button>
-              <span v-else class="text-xs text-gray-400"> 当前用户 </span>
+              <span v-else class="text-muted-foreground text-xs">
+                当前用户
+              </span>
             </Popconfirm>
           </div>
         </template>
@@ -431,7 +440,7 @@ const columns: BasicColumn[] = [
         bordered
       />
 
-      <div class="mt-6 border-t border-gray-200 pt-4 dark:border-gray-700">
+      <div class="mt-6 border-border border-t pt-4">
         <Alert
           message="提示：该用户的会话信息将在下次请求时失效"
           type="info"

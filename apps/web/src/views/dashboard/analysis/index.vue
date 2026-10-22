@@ -4,7 +4,7 @@ import type { Ref } from 'vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 
-import { Card, Segmented, Space, Tag } from '@antdv/common-ui';
+import { Card, PageHeader, Segmented, Tag } from '@antdv/common-ui';
 import { message } from '@antdv/popup-ui';
 import { Button } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
@@ -36,15 +36,17 @@ const userJourneyRef = ref<HTMLDivElement>();
 const moduleRankRef = ref<HTMLDivElement>();
 
 // ========== 样式类名（数据分析） ==========
+// 面板底色走 --card、描边走 --border：写死 white/gray-900 时，换主题预设只会变主色，
+// 卡片却永远停在原来那两档灰白上，深预设下会亮得像贴上去的补丁。
 const analyticsCardClassName = cn(
-  'rounded-lg border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900',
+  'bg-card border-border rounded-lg border',
   'shadow-sm transition-all duration-300 hover:shadow-md',
 );
 const sectionTitleClassName = cn(
-  'mb-4 text-base font-semibold text-gray-800 dark:text-gray-200',
+  'text-foreground mb-4 text-base font-semibold',
 );
 const kpiCardClassName = cn(
-  'h-full rounded-lg border border-gray-100 bg-white p-5 dark:border-gray-800 dark:bg-gray-900',
+  'bg-card border-border h-full rounded-lg border p-5',
   'transition-all duration-300 hover:shadow-md',
 );
 
@@ -132,9 +134,9 @@ function kpiIconWrap(color: string): string {
 }
 
 function kpiTrendColor(trend: number): string {
-  return trend >= 0
-    ? 'text-emerald-600 dark:text-emerald-400'
-    : 'text-red-600 dark:text-red-400';
+  // 涨跌是语义状态，不是配色装饰：必须用 success / destructive，
+  // 否则换预设或深色档时"绿色上涨"会跟其它绿色元素抢注意力，且深浅两档各写一遍容易漏。
+  return trend >= 0 ? 'text-success' : 'text-destructive';
 }
 
 function kpiTrendTextClass(trend: number): string {
@@ -203,21 +205,22 @@ const recentActivities = [
 ];
 
 function activityDotColor(type: string): string {
+  // 圆点在这里是"这条动态属于哪类事件"，与右侧文字同属语义状态，所以全部走状态色 token
   const map: Record<string, string> = {
-    alert: 'bg-red-400',
+    alert: 'bg-destructive',
     login: 'bg-primary',
-    permission: 'bg-amber-400',
+    permission: 'bg-warning',
   };
-  return map[type] || 'bg-gray-400 dark:bg-gray-600';
+  return map[type] || 'bg-muted-foreground/40';
 }
 
 function activityDotClass(type: string): string {
-  return cn('mt-2 size-1.5  shrink-0 rounded-full', activityDotColor(type));
+  return cn('mt-2 size-1.5 shrink-0 rounded-full', activityDotColor(type));
 }
 
 function quickActionIconClass(color: string): string {
   return cn(
-    'flex size-9  shrink-0 items-center justify-center rounded-lg',
+    'flex size-9 shrink-0 items-center justify-center rounded-lg',
     color,
   );
 }
@@ -1015,29 +1018,24 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div>
-    <!-- 页面标题 -->
-    <div class="mb-2 flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
-          分析面板
-        </h1>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          系统数据分析与可视化 · {{ todayLabel }}
-        </p>
-      </div>
-      <Space>
+  <div data-page-view>
+    <PageHeader
+      title="分析面板"
+      :description="`系统数据分析与可视化 · ${todayLabel}`"
+      icon="carbon:chart-line-data"
+    >
+      <template #extra>
         <Segmented
           v-model:value="rangeTab"
           :options="['今日', '近7天', '近30天']"
           size="small"
         />
-        <Button size="sm" @click="handleExportReport">
+        <Button @click="handleExportReport">
           <Icon icon="carbon:download" />
           导出报告
         </Button>
-      </Space>
-    </div>
+      </template>
+    </PageHeader>
 
     <!-- 数据分析内容 -->
     <div class="space-y-8">
@@ -1051,11 +1049,11 @@ onBeforeUnmount(() => {
               </div>
               <div class="min-w-0 flex-1">
                 <p
-                  class="text-2xl leading-tight font-bold tracking-tight text-gray-800 dark:text-white"
+                  class="text-foreground text-2xl leading-tight font-bold tracking-tight"
                 >
                   {{ kpi.value }}
                 </p>
-                <p class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+                <p class="text-muted-foreground mt-1 text-sm">
                   {{ kpi.title }}
                 </p>
                 <div class="mt-1.5 flex items-center gap-1">
@@ -1066,15 +1064,16 @@ onBeforeUnmount(() => {
                     :width="12"
                     :height="12"
                     :class="
-                      kpi.trend >= 0 ? 'text-emerald-500' : 'text-red-500'
+                      kpi.trend >= 0 ? 'text-success' : 'text-destructive'
                     "
                   />
                   <span :class="kpiTrendTextClass(kpi.trend)">
                     {{ Math.abs(kpi.trend) }}%
                   </span>
-                  <span v-if="kpi.trendLabel" class="text-xs text-gray-400">{{
-                    kpi.trendLabel
-                  }}</span>
+                  <span
+                    v-if="kpi.trendLabel"
+                    class="text-muted-foreground text-xs"
+                    >{{ kpi.trendLabel }}</span>
                 </div>
               </div>
             </div>
@@ -1084,7 +1083,8 @@ onBeforeUnmount(() => {
 
       <!-- 主趋势图：全宽 -->
       <Card
-        class="mt-6" :class="[analyticsCardClassName]"
+        class="mt-6"
+        :class="[analyticsCardClassName]"
         variant="borderless"
         body-class="px-6 py-5"
       >
@@ -1171,7 +1171,8 @@ onBeforeUnmount(() => {
       <div class="grid grid-cols-12 items-stretch gap-4">
         <div class="col-span-12 mb-2 lg:col-span-5">
           <Card
-            class="h-full" :class="[analyticsCardClassName]"
+            class="h-full"
+            :class="[analyticsCardClassName]"
             variant="borderless"
             body-class="flex flex-col px-6 py-5"
           >
@@ -1185,7 +1186,8 @@ onBeforeUnmount(() => {
         </div>
         <div class="col-span-12 mb-2 lg:col-span-7">
           <Card
-            class="h-full" :class="[analyticsCardClassName]"
+            class="h-full"
+            :class="[analyticsCardClassName]"
             variant="borderless"
             body-class="flex flex-col px-6 py-5"
           >
@@ -1216,18 +1218,18 @@ onBeforeUnmount(() => {
                 v-for="action in quickActions"
                 :key="action.title"
                 :to="action.path"
-                class="group flex items-center gap-3 rounded-lg p-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                class="group flex items-center gap-3 rounded-lg p-3 transition-colors hover:bg-accent"
               >
                 <span :class="quickActionIconClass(action.color)">
                   <Icon :icon="action.icon" :width="18" :height="18" />
                 </span>
                 <span class="min-w-0">
                   <span
-                    class="block text-sm font-medium text-gray-700 transition-colors group-hover:text-primary dark:text-gray-300"
+                    class="text-foreground group-hover:text-primary block text-sm font-medium transition-colors"
                     >{{ action.title }}</span>
-                  <span class="mt-0.5 block text-[11px] text-gray-400">{{
-                    action.desc
-                  }}</span>
+                  <span
+                    class="text-muted-foreground mt-0.5 block text-[11px]"
+                    >{{ action.desc }}</span>
                 </span>
               </RouterLink>
             </div>
@@ -1248,12 +1250,12 @@ onBeforeUnmount(() => {
               >
                 <span :class="activityDotClass(activity.type)"></span>
                 <span class="min-w-0 flex-1">
-                  <span
-                    class="block truncate text-gray-600 dark:text-gray-400"
-                    >{{ activity.action }}</span>
-                  <span class="mt-0.5 block text-[11px] text-gray-400">{{
-                    activity.time
+                  <span class="text-muted-foreground block truncate">{{
+                    activity.action
                   }}</span>
+                  <span
+                    class="text-muted-foreground mt-0.5 block text-[11px]"
+                    >{{ activity.time }}</span>
                 </span>
               </li>
             </ul>

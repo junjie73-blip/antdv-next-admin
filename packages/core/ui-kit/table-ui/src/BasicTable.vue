@@ -26,6 +26,7 @@ import {
   watch,
 } from 'vue';
 
+import { PageToolbar } from '@antdv/common-ui';
 import { BasicForm } from '@antdv/form-ui';
 import { IconifyIcon as Icon } from '@antdv/icons/icon';
 import {
@@ -1165,26 +1166,32 @@ defineExpose(tableActionType);
       />
     </div>
 
-    <!-- 工具栏 -->
-    <div
-      v-if="$slots.toolbar || renderTitle"
-      class="mb-4 flex items-center justify-between gap-2"
+    <!--
+      工具栏：标题与插槽内容靠左，页面级操作（导出/打印/批量）靠右。
+      左右两栏用共享的 PageToolbar 而不是就地拼 flex，是为了让表格页与
+      非表格页（安全概览、字典之类）的间距和窄屏堆叠行为只有一个来源。
+    -->
+    <PageToolbar
+      v-if="$slots.toolbar || $slots['toolbar-actions'] || renderTitle"
+      class="mb-4"
     >
-      <div class="flex flex-wrap items-center gap-2">
-        <span
-          v-if="renderTitle"
-          class="text-sm font-medium text-gray-700 dark:text-gray-300"
-        >
-          <RenderVNode :vnode="renderTitle" />
-        </span>
-        <slot name="toolbar"></slot>
-      </div>
-    </div>
+      <span
+        v-if="renderTitle"
+        class="text-foreground mr-1 text-sm font-medium"
+        data-table="toolbar-title"
+      >
+        <RenderVNode :vnode="renderTitle" />
+      </span>
+      <slot name="toolbar"></slot>
+      <template v-if="$slots['toolbar-actions']" #actions>
+        <slot name="toolbar-actions"></slot>
+      </template>
+    </PageToolbar>
 
     <div :class="bodyClassName" :style="bodyStyle">
       <div
         v-if="loadingRef"
-        class="basic-table-loading absolute inset-0 z-20 flex items-center justify-center bg-white/60 dark:bg-gray-900/60"
+        class="basic-table-loading absolute inset-0 z-20 flex items-center justify-center bg-background/60"
       >
         <Icon
           class="animate-spin text-base text-primary"

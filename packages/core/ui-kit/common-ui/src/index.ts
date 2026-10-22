@@ -114,6 +114,13 @@ export type {
   MicroAppContainerEmits,
   MicroAppContainerProps,
 } from './components/micro-app-container';
+export { PageHeader } from './components/page-header';
+export type { PageHeaderProps } from './components/page-header';
+export { PageToolbar, ToolbarField } from './components/page-toolbar';
+export type {
+  PageToolbarProps,
+  ToolbarFieldProps,
+} from './components/page-toolbar';
 export { Popconfirm } from './components/popconfirm';
 export { ReloadPrompt } from './components/reload-prompt';
 export { Result } from './components/result';

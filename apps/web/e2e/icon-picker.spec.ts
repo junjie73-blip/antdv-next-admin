@@ -129,13 +129,18 @@ test.describe('IconPicker（shadcn-ui 重写）', () => {
     expect(rect, '面板没量到盒子').not.toBeNull();
     const { height, y } = rect as { height: number; y: number };
 
-    expect(y, `面板顶出视口上方（y=${Math.round(y)}）`).toBeGreaterThanOrEqual(0);
+    expect(y, `面板顶出视口上方（y=${Math.round(y)}）`).toBeGreaterThanOrEqual(
+      0,
+    );
     expect(
       y + height,
       `面板底边超出视口（bottom=${Math.round(y + height)} / 视口高 560）`,
     ).toBeLessThanOrEqual(560);
     // 反向自证：收进视口不等于压扁，网格至少还能放下两行图标
-    expect(height, `面板被压得太矮（height=${Math.round(height)}）`).toBeGreaterThan(120);
+    expect(
+      height,
+      `面板被压得太矮（height=${Math.round(height)}）`,
+    ).toBeGreaterThan(120);
     await expect(cells(box)).toHaveCount(PAGE_SIZE);
   });
 

@@ -32,6 +32,19 @@ body {
 }
 
 /*
+ * body 铺一层不透明的 `--background`。
+ *
+ * 布局外壳与内容区的底色是 `bg-muted`，而 `--muted` 在深色档里是
+ * `0 0% 100% / 0.08` 这种**带 alpha 的叠加值**（它本来是给浮层当"叠一层白"用的）。
+ * 底下没有东西接着，浏览器默认就是白底 —— 深色模式下整屏会透出白来。
+ * 所以先给 body 一个不透明底色，让 `--muted` 永远叠在"当前主题的背景"上，
+ * 而不是叠在白纸中。
+ */
+body {
+  @apply bg-background text-foreground;
+}
+
+/*
  * 全局字号的唯一落点：偏好面板把 `fontSize` 折算成根字号百分比写在 html 上
  * （见 @antdv/preferences 的 writeThemeCssVars）。
  *

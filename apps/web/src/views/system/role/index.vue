@@ -4,7 +4,15 @@ import type { BasicColumn } from '@antdv/table-ui';
 
 import { computed, ref } from 'vue';
 
-import { Alert, Card, Divider, Popconfirm, Tag, Tree } from '@antdv/common-ui';
+import {
+  Alert,
+  Card,
+  Divider,
+  PageHeader,
+  Popconfirm,
+  Tag,
+  Tree,
+} from '@antdv/common-ui';
 import { DictType } from '@antdv/enums';
 import { BasicForm, useForm } from '@antdv/form-ui';
 import { BasicDrawer, message, useDrawer } from '@antdv/popup-ui';
@@ -197,13 +205,9 @@ const drawerFormSchemas: FormSchema[] = [
 async function mockApi(params: Record<string, any>) {
   try {
     const res = await getRoleList(params);
-    console.log('[Role] raw response:', res);
     // 兼容 mock 直接返回完整响应或已解包的数据
     const data = res?.data ?? res;
-    console.log('[Role] parsed data:', data);
-    const result = { items: data?.list || [], total: data?.total || 0 };
-    console.log('[Role] result:', result);
-    return result;
+    return { items: data?.list || [], total: data?.total || 0 };
   } catch (error) {
     console.error('[Role] mockApi error:', error);
     return { items: [], total: 0 };
@@ -346,8 +350,27 @@ const columns: BasicColumn[] = [
 </script>
 
 <template>
-  <div :class="containerClassName">
-    <Card title="角色管理" :class="cardClassName">
+  <div data-page-view :class="containerClassName">
+    <PageHeader
+      title="角色管理"
+      description="维护角色及其菜单权限，账号通过角色获得页面与操作能力"
+      icon="carbon:user-role"
+    >
+      <template #extra>
+        <Button @click="handleAdd">
+          <Icon icon="ant-design:plus-outlined" />
+          新增角色
+        </Button>
+      </template>
+    </PageHeader>
+
+    <Card title="角色列表" :class="cardClassName">
+      <template #extra>
+        <Button variant="outline" @click="handleExport">
+          <Icon icon="carbon:export" />
+          导出
+        </Button>
+      </template>
       <BasicTable
         :columns="columns"
         :api="mockApi"
@@ -361,17 +384,6 @@ const columns: BasicColumn[] = [
         :action-column="{ width: 280, title: '操作', fixed: 'right' }"
         @register="tableRegister"
       >
-        <template #toolbar>
-          <Button @click="handleExport">
-            <Icon icon="carbon:export" />
-            导出
-          </Button>
-          <Button @click="handleAdd">
-            <Icon icon="ant-design:plus-outlined" />
-            新增角色
-          </Button>
-        </template>
-
         <template #cell-status="{ record }">
           <Tag :color="statusColorMap[record.status] || 'default'">
             <span :class="tagClassName">
@@ -470,13 +482,13 @@ const columns: BasicColumn[] = [
           type="info"
           show-icon
         />
-        <div class="text-sm text-gray-500 dark:text-gray-400">
+        <div class="text-muted-foreground text-sm">
           角色编码：<Tag color="blue">
             {{ currentRecord?.code }}
           </Tag>
         </div>
-        <div class="text-sm text-gray-500 dark:text-gray-400">
-          角色描述：<span class="text-gray-700 dark:text-gray-300">{{
+        <div class="text-muted-foreground text-sm">
+          角色描述：<span class="text-foreground">{{
             currentRecord?.description
           }}</span>
         </div>

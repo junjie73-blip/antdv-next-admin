@@ -63,7 +63,7 @@ const frameClassName = cn(
 const radioGroupClassName = cn('flex flex-wrap');
 const radioOptionClassName = cn(
   'border-input relative m-0 -ms-px flex min-h-9 cursor-pointer items-center justify-center border bg-transparent px-3 py-1.5 text-sm first:ms-0 first:rounded-s-md last:rounded-e-md',
-  'has-[[data-state=checked]]:[&>span]:text-primary-foreground has-[[data-state=checked]]:bg-primary has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:z-10 has-[[data-state=checked]]:font-medium',
+  'has-[[data-state=checked]]:[&>span]:text-primary-foreground has-[[data-state=checked]]:bg-primary has-[[data-state=checked]]:border-primary has-data-[state=checked]:z-10 has-data-[state=checked]:font-medium',
 );
 
 /* ============================================================

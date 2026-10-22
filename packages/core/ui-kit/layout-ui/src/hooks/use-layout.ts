@@ -66,11 +66,15 @@ export function useLayoutStyle(options: () => LayoutTone): LayoutStyleApi {
    *
    * `gap-4` 是七种形态共用的"区域之间留白"，`overflow-hidden` 保证内部
    * 任何一列溢出都不会把整页撑出滚动条（内容区自己有 Scrollbar）。
+   *
+   * 底色走 `--muted` 而不是写死 `bg-gray-50 dark:bg-gray-900`：前者跟着 14 套
+   * 预设的明暗与色相走（橙黄预设下画布是暖灰，而不是同一张中性灰纸），
+   * 明暗也不需要再挂 `dark:` 变体 —— token 自己翻。
    */
   const shellClass = () =>
     cn(
       'flex h-screen flex-col gap-4 overflow-hidden',
-      tone.value.geek ? 'bg-[#0a0a0a]' : 'bg-gray-50 dark:bg-gray-900',
+      tone.value.geek ? 'bg-[#0a0a0a]' : 'bg-muted',
     );
 
   /** 「图标栏 + 侧栏 + 内容列」这一整行必须是横向 flex */
@@ -190,7 +194,7 @@ export function useLayoutStyle(options: () => LayoutTone): LayoutStyleApi {
   const contentClass = () =>
     cn(
       'relative box-border flex min-h-0 flex-1 flex-col',
-      tone.value.geek ? 'bg-[#0a0a0a]' : 'bg-gray-50 dark:bg-gray-900',
+      tone.value.geek ? 'bg-[#0a0a0a]' : 'bg-muted',
     );
 
   /** 浮层侧栏的面板：定位与遮罩由 LayoutOverlay 负责，这里只给底色 */

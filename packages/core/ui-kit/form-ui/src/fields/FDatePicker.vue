@@ -214,7 +214,9 @@ function clear(event: MouseEvent) {
           )
         "
       >
-        <span class="truncate">{{ hasValue ? displayText : placeholderText }}</span>
+        <span class="truncate">{{
+          hasValue ? displayText : placeholderText
+        }}</span>
         <span
           v-if="allowClear && hasValue && !disabled"
           class="shrink-0 cursor-pointer opacity-60 hover:opacity-100"

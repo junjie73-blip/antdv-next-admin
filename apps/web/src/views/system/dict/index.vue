@@ -4,7 +4,13 @@ import type { BasicColumn } from '@antdv/table-ui';
 
 import { computed, ref } from 'vue';
 
-import { Divider, Popconfirm, Scrollbar, Tag } from '@antdv/common-ui';
+import {
+  Divider,
+  PageHeader,
+  Popconfirm,
+  Scrollbar,
+  Tag,
+} from '@antdv/common-ui';
 import { DictType } from '@antdv/enums';
 import { BasicForm, useForm } from '@antdv/form-ui';
 import { BasicModal, message, useModal } from '@antdv/popup-ui';
@@ -47,41 +53,51 @@ interface DictTypeRecord {
   items: DictItemRecord[];
 }
 
-const containerClassName = cn('flex gap-4');
-const leftPanelClassName = cn('w-[280px] shrink-0');
-const rightPanelClassName = cn('min-w-0 flex-1');
+/* 页头独占一行，下面左类型右字典项（grid 口径同用户管理） */
+const containerClassName = cn('grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]');
+const headerRowClassName = cn('lg:col-span-2');
+const leftPanelClassName = cn('min-w-0');
+const rightPanelClassName = cn('min-w-0');
 const cardClassName = cn('shadow-sm');
+/**
+ * 这一页的两块面板是手写的 div，不是 `Card` 组件。
+ * 底色一律走 `bg-card` + `border-border`：写死 `bg-white dark:bg-gray-900`
+ * 的面板不跟 14 套预设走，换一档主题就露出一块"不属于本主题的白"。
+ */
+const panelClassName = cn(
+  cardClassName,
+  'bg-card border-border rounded-lg border',
+);
 const typeItemClassName = (active: boolean) =>
   cn(
     'flex items-center justify-between',
     'cursor-pointer px-4 py-3',
-    'border-b border-gray-100 dark:border-gray-800',
+    'border-border border-b',
     'transition-colors duration-200',
-    'hover:bg-gray-50 dark:hover:bg-gray-800',
-    active &&
-      'border-l-[3px] border-l-(--primary) bg-blue-50 dark:bg-blue-900/20',
+    'hover:bg-accent',
+    active && 'bg-primary/5 border-l-[3px] border-l-(--primary)',
   );
 const typeItemNameClassName = cn(
-  'truncate text-sm font-medium text-gray-800 dark:text-gray-200',
+  'text-foreground truncate text-sm font-medium',
 );
-const typeItemCodeClassName = cn('mt-0.5 truncate text-xs text-gray-400');
+const typeItemCodeClassName = cn(
+  'text-muted-foreground mt-0.5 truncate text-xs',
+);
 const typeItemActionsClassName = cn('ml-2 flex shrink-0 items-center gap-1');
 const typeItemBtnClassName = cn('min-w-0! p-0.5!');
 const emptyClassName = cn(
-  'flex flex-col items-center justify-center py-10 text-gray-400',
+  'text-muted-foreground flex flex-col items-center justify-center py-10',
 );
 const emptyIconClassName = cn('mb-3 text-4xl opacity-30');
 const emptyTitleClassName = cn('text-sm font-medium');
 const emptyDescClassName = cn('mt-1 text-xs');
 const cardFooterClassName = cn(
-  'flex justify-start border-t border-gray-100 px-4 py-3 dark:border-gray-800',
+  'border-border flex justify-start border-t px-4 py-3',
 );
 const cardHeaderClassName = cn(
-  'flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-800',
+  'border-border flex items-center justify-between border-b px-4 py-3',
 );
-const cardTitleClassName = cn(
-  'text-sm font-semibold text-gray-800 dark:text-gray-200',
-);
+const cardTitleClassName = cn('text-foreground text-sm font-semibold');
 const actionClassName = cn('flex', 'items-center', 'justify-center');
 const btnClassName = cn('h-auto', 'px-0.5!');
 const dividerClassName = cn('mx-0');
@@ -440,14 +456,17 @@ loadDictTypes();
 </script>
 
 <template>
-  <div :class="containerClassName">
+  <div data-page-view :class="containerClassName">
+    <PageHeader
+      :class="headerRowClassName"
+      title="字典管理"
+      description="维护字典类型与字典项，下拉选项统一从这里取"
+      icon="carbon:book"
+    />
+
     <!-- 左侧：字典类型列表 -->
     <div :class="leftPanelClassName">
-      <div
-        :class="`${
-          cardClassName
-        } rounded-lg border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900`"
-      >
+      <div :class="panelClassName">
         <div :class="cardHeaderClassName">
           <span :class="cardTitleClassName">字典类型</span>
         </div>
@@ -518,11 +537,7 @@ loadDictTypes();
 
     <!-- 右侧：字典项 -->
     <div :class="rightPanelClassName">
-      <div
-        :class="`${
-          cardClassName
-        } rounded-lg border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900`"
-      >
+      <div :class="panelClassName">
         <div :class="cardHeaderClassName">
           <span :class="cardTitleClassName">
             {{ selectedType ? `${selectedType.typeName} - 字典项` : '字典项' }}

@@ -92,7 +92,7 @@ const circleClass = (index: number) =>
 
 const titleClass = (index: number) =>
   cn(
-    'text-sm/6 ',
+    'text-sm/6',
     stateOf(index) === 'wait' ? 'text-muted-foreground' : 'font-medium',
     stateOf(index) === 'error' ? 'text-destructive' : '',
   );

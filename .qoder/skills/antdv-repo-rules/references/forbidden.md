@@ -1,14 +1,13 @@
 # 禁止修改清单
 
-每条给出：**对象** → **原因** → **边界（什么可以动、什么必须问）**。
-分四级：`🔴 硬禁`（改了必然出事，必须先取得用户确认）、`🟠 需同步`（可以改，但同一批必须改守门人/文档）、`🟡 谨慎`（改前读注释，多数历史坑已写在原地）、`⚪ 环境`（本机事实，不属于仓库，别写进代码）。
+每条给出：**对象** → **原因** → **边界（什么可以动、什么必须问）**。分四级：`🔴 硬禁`（改了必然出事，必须先取得用户确认）、`🟠 需同步`（可以改，但同一批必须改守门人/文档）、`🟡 谨慎`（改前读注释，多数历史坑已写在原地）、`⚪ 环境`（本机事实，不属于仓库，别写进代码）。
 
 ## 1. 核心模块与依赖边界
 
 | 级别 | 对象 | 原因 | 边界 |
 | --- | --- | --- | --- |
 | 🔴 | `packages/**` 源码里的组件库导入（`antdv-next`、`@antdv-next/*`） | 引一行就等于全部子包产物都背一套 UI 库；`shared`/`preferences`/`utils`/`types`/`hooks` 历史上都因此被逐个拆开。守门：`packages/core/hooks/__tests__/boundary.test.ts:136` | 只拦「导入形态」，注释与字符串字面量不算；`devDependencies` 里为对照实验装的允许存在。要新能力就在 `ui-kit/*` 里用 reka-ui 原语组合 |
-| 🔴 | 跨包的相对路径导入、盘符/绝对路径 | 换一台机器或搬一次目录就失效；turbo 的依赖图只认 `package.json`，相对导入会让构建顺序与缓存全错。守门：`boundary.test.ts:188`、`:62` | 唯一例外是 `@antdv/design` 的 `@source` 名单——Tailwind 的内容登记只认文件系统路径 |
+| 🔴 | 跨包的相对路径导入、盘符/绝对路径 | 换一台机器或搬一次目录就失效；turbo 的依赖图只认 `package.json`，相对导入会让构建顺序与缓存全错。守门：`boundary.test.ts` 的「跨包只走包名导入」与判据常量 `ABSOLUTE_SPECIFIER` | 唯一例外是 `@antdv/design` 的 `@source` 名单——Tailwind 的内容登记只认文件系统路径 |
 | 🔴 | 子包反向 import `apps/web/**` | 会形成 turbo 认不出的环：`Cyclic dependency detected` 时整个 `turbo run <task>` **一条都不执行** | 子包需要宿主能力就暴露可变 runtime + `configureX()`，由 `apps/web/src/plugins/**` 注入 |
 | 🔴 | `apps/web/src/plugins/**` 之外触碰 `~/stores`、`~/api`、`~/views`、`~/locales` | 运行时装配只允许一个入口，否则同一个 runtime 被两处配置、偏好落盘顺序不可控 | 新增装配模块就加在 `plugins/` 里，并在 `main.ts` 注册 |
 | 🟠 | `@source` 名单（`packages/core/base/design/src/index.css:46-55`） | 构建根是 `apps/web`，`@antdv/*` 走软链在自动检测之外；少登记一个包 = 该包模板里全部工具类静默不生成（页面渲染正常、就是不定位）。**已发生过一次**：071dad02 重排这个文件时把整块 `@source` 删掉了，因为消费方读的是上一轮 `dist` 里的 CSS，构建与页面都不报错，直到静态检查与浏览器复核才发现 | 名单只属于 design；新增带 `.vue` 的子包同批补登记，`design.test.ts:628` 会反查 |
@@ -53,5 +52,5 @@
 | 🟠 | `lefthook.yml`（pre-commit 全部注释状态） | 注释里写了原因：串行都想避开 `check:type` 期间的内存/CPU 峰值。启用前请确认机器承受力 | 别把它当成"仓库有自动把关"，交付检查必须手跑 |
 | 🟡 | `commitlint.config.mjs` 的 `types` 名单 | `pnpm commit`（czg）的可选类型；加类型要同步给评审口径 | — |
 | 🟡 | `.changeset/` | 发布走 changesets，漏写就没有变更记录、版本号不动 | 每个用户可见变更一条 |
-| ⚪ | 本机路径事实 | `J:` 是映射盘：Vite 的 inotify 不送达（`VITE_DEV_POLLING` 打开也救不回来），dev 验证前必须清 `apps/web/node_modules/.vite` 并重启；`/api` 前缀只在 `.env.development` 有值，生产产物里是空串 | 这些是环境事实，不要写进源码或 CI 假设 |
+| ⚪ | 开发机的挂载方式（本仓库当前放在映射盘/网络盘上，具体盘符属个人环境、不写进任何清单） | 映射盘上 Vite 的 inotify 事件不送达（`VITE_DEV_POLLING` 打开也救不回来），dev 验证前必须清 `apps/web/node_modules/.vite` 并重启；`/api` 前缀只在 `.env.development` 有值，生产产物里是空串 | 这些是环境事实，只在当轮验证时用；不要写进源码、脚本或 CI 假设，也不要在文档里落成一个具体绝对路径 |
 | ⚪ | 仓库根的未入库碎片：`dist.zip`、`dev8.log`、`e2e-p14.log`、`.sync-state.json`（已被 `*.zip` / `.tmp/*` 等规则忽略）；以及**已跟踪**的 `console.log(j.data.user.token))` | 上游模板遗留的调试碎片，文件名含 token 字样，属于凭据卫生风险。体检脚本只列名字、不读内容 | 删除需要用户确认；任何情况下不要把它贴进日志或提交信息 |

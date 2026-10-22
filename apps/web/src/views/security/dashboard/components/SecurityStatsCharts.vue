@@ -13,7 +13,7 @@ const isDark = computed(() => appStore.themeMode === 'dark');
 
 const containerClassName = cn('rounded-xl p-5');
 const sectionTitleClassName = cn(
-  'mb-3 text-sm font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400',
+  'text-muted-foreground mb-3 text-sm font-semibold tracking-wider uppercase',
 );
 
 // 图表 DOM 引用
@@ -390,41 +390,20 @@ onBeforeUnmount(disposeAll);
     <!-- 威胁类型分布 + 攻击来源 -->
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <!-- 饼图：威胁分布 -->
-      <div
-        :class="
-          cn(
-            containerClassName,
-            'border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900',
-          )
-        "
-      >
+      <div :class="cn(containerClassName, 'border-border bg-card')">
         <h4 :class="sectionTitleClassName">威胁类型分布</h4>
         <div ref="pieRef" style="height: 260px"></div>
       </div>
 
       <!-- 柱状图：攻击来源地区 -->
-      <div
-        :class="
-          cn(
-            containerClassName,
-            'border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900',
-          )
-        "
-      >
+      <div :class="cn(containerClassName, 'border-border bg-card')">
         <h4 :class="sectionTitleClassName">攻击来源地区 TOP7</h4>
         <div ref="barRef" style="height: 260px"></div>
       </div>
     </div>
 
     <!-- 趋势图：每日事件 + 响应时间（全宽） -->
-    <div
-      :class="
-        cn(
-          containerClassName,
-          'border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900',
-        )
-      "
-    >
+    <div :class="cn(containerClassName, 'border-border bg-card')">
       <h4 :class="sectionTitleClassName">事件趋势 & 响应时间</h4>
       <div ref="lineRef" style="height: 280px"></div>
     </div>

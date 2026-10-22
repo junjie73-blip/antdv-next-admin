@@ -357,6 +357,36 @@ describe('basicTable 工具栏', () => {
     );
     expect(wrapper.text()).toContain('新增');
   });
+
+  /**
+   * 工具栏这行现在由共享的 PageToolbar 拼：左侧放标题与 `toolbar`，
+   * 右侧放 `toolbar-actions`（导出/打印/批量这类"对这份列表做点什么"的操作）。
+   * 钉住三条，免得以后有人又把它改回只有一个左对齐的 div。
+   */
+  it('toolbar-actions 落在右侧操作组，与左侧同属一行工具栏', () => {
+    const wrapper = mountTable(
+      {},
+      {
+        slots: {
+          toolbar: () => h('button', '查询'),
+          'toolbar-actions': () => h('button', '导出'),
+        },
+      },
+    );
+    const toolbar = wrapper.find('[data-page="toolbar"]');
+    expect(toolbar.exists()).toBe(true);
+    expect(toolbar.find('[data-page="toolbar-filters"]').text()).toContain(
+      '查询',
+    );
+    expect(toolbar.find('[data-page="toolbar-actions"]').text()).toContain(
+      '导出',
+    );
+  });
+
+  it('两个工具栏插槽都没传时整行不渲染', () => {
+    const wrapper = mountTable();
+    expect(wrapper.find('[data-page="toolbar"]').exists()).toBe(false);
+  });
 });
 
 describe('basicTable 实例注册', () => {

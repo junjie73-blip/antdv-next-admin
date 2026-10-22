@@ -33,18 +33,26 @@ describe('useLayoutStyle - 区域骨架', () => {
 });
 
 describe('useLayoutStyle - 配色优先级 geek > dark > light', () => {
-  it('浅色档用白底深字', () => {
+  /**
+   * 外壳与内容区的底色在明暗两档是**同一个类名**（`bg-muted`）：颜色由 token 自己翻，
+   * 所以这里钉的是"没有再挂 `dark:` 变体、也没有写死灰阶"。
+   * 顶栏与侧栏仍然按明暗给两套类名，因为「深色顶栏 / 深色侧栏」是独立偏好开关，
+   * 那两列不能跟着整体明暗走。
+   */
+  it('浅色档：顶栏白底深字，画布走 muted token', () => {
     const style = styleOf({});
     expect(style.headerClass()).toContain('bg-white');
     expect(style.siderClass()).toContain('bg-white');
-    expect(style.shellClass()).toContain('bg-gray-50');
+    expect(style.shellClass()).toContain('bg-muted');
+    expect(style.contentClass()).toContain('bg-muted');
+    expect(style.shellClass()).not.toContain('dark:');
   });
 
-  it('深色档用灰底白字', () => {
+  it('深色档：顶栏与侧栏换成深灰类名，画布仍是同一个 token 类', () => {
     const style = styleOf({ dark: true });
     expect(style.headerClass()).toContain('bg-gray-800');
     expect(style.siderClass()).toContain('bg-gray-900');
-    expect(style.shellClass()).toContain('dark:bg-gray-900');
+    expect(style.shellClass()).toContain('bg-muted');
   });
 
   it('极客档固定深色 + 荧光绿，且不与 dark 叠加出别的颜色', () => {
@@ -80,7 +88,9 @@ describe('useLayoutStyle - 「深色侧栏 / 深色顶栏」偏好', () => {
     expect(style.headerClass()).toContain('border-gray-700');
     expect(style.triggerClass()).toContain('text-gray-300');
     expect(style.siderClass()).toContain('bg-white');
-    expect(style.shellClass()).toContain('bg-gray-50');
+    // 外壳画布走 token，不跟着"深色顶栏"开关变深（token 类名恒定，所以反证不吃深灰类）
+    expect(style.shellClass()).toContain('bg-muted');
+    expect(style.shellClass()).not.toMatch(/gray-(7|8|9)00/);
   });
 
   it('整体深色时两个偏好开关多余，左右两列与顶栏都深色', () => {

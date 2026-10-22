@@ -5,7 +5,7 @@ import type { BackendMenu, MenuConfig, MicroAppConfig } from '@antdv/types';
 
 import { computed, ref, watch } from 'vue';
 
-import { Card, Divider, Popconfirm, Tag } from '@antdv/common-ui';
+import { Card, Divider, PageHeader, Popconfirm, Tag } from '@antdv/common-ui';
 import { DictType } from '@antdv/enums';
 import { BasicForm, useForm } from '@antdv/form-ui';
 import { IconPicker } from '@antdv/icons/icon';
@@ -757,8 +757,21 @@ const columns: BasicColumn[] = [
 </script>
 
 <template>
-  <div :class="containerClassName">
-    <Card title="菜单管理" :class="cardClassName">
+  <div data-page-view :class="containerClassName">
+    <PageHeader
+      title="菜单管理"
+      description="配置后台菜单、路由与按钮权限，决定各角色能看到什么"
+      icon="carbon:menu"
+    >
+      <template #extra>
+        <Button @click="handleAdd">
+          <Icon icon="ant-design:plus-outlined" />
+          新增菜单
+        </Button>
+      </template>
+    </PageHeader>
+
+    <Card title="菜单树" :class="cardClassName">
       <BasicTable
         :columns="columns"
         :api="mockApi"
@@ -772,12 +785,6 @@ const columns: BasicColumn[] = [
         :scroll="{ x: 1500 }"
         @register="tableRegister"
       >
-        <template #toolbar>
-          <Button @click="handleAdd">
-            <Icon icon="ant-design:plus-outlined" />
-            新增菜单
-          </Button>
-        </template>
         <template #cell-icon="{ record }">
           <div class="flex items-center justify-center">
             <Icon v-if="record.icon" :icon="record.icon" class="text-lg" />

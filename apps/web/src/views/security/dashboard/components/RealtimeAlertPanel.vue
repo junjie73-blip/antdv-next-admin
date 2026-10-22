@@ -29,26 +29,26 @@ function getLevelConfig(level: SecurityEventLevel) {
     { color: string; bg: string; icon: string; label: string }
   > = {
     critical: {
-      color: 'text-red-500',
-      bg: 'bg-red-50 dark:bg-red-950/30',
+      color: 'text-destructive',
+      bg: 'bg-destructive/10',
       icon: 'carbon:warning-filled',
       label: '严重',
     },
     high: {
-      color: 'text-orange-500',
-      bg: 'bg-orange-50 dark:bg-orange-950/30',
+      color: 'text-warning',
+      bg: 'bg-warning/10',
       icon: 'carbon:warning-alt',
       label: '高危',
     },
     medium: {
-      color: 'text-blue-500',
-      bg: 'bg-blue-50 dark:bg-blue-950/30',
+      color: 'text-primary',
+      bg: 'bg-primary/10',
       icon: 'carbon:information',
       label: '中危',
     },
     low: {
-      color: 'text-gray-400',
-      bg: 'bg-gray-50 dark:bg-gray-800',
+      color: 'text-muted-foreground',
+      bg: 'bg-muted',
       icon: 'carbon:checkmark',
       label: '低危',
     },
@@ -117,30 +117,21 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div
-    :class="
-      cn(
-        containerClassName,
-        'border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900',
-      )
-    "
-  >
+  <div :class="cn(containerClassName, 'border-border bg-card')">
     <!-- 标题 -->
     <div class="mb-4 flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <h3 class="text-base font-semibold text-gray-800 dark:text-white">
-          实时告警
-        </h3>
+        <h3 class="text-base font-semibold text-foreground">实时告警</h3>
         <!-- 脉冲指示灯 -->
         <span class="relative flex h-2.5 w-2.5">
           <span
-            class="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"
+            class="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive/60"
           ></span>
           <span
-            class="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500"
+            class="relative inline-flex h-2.5 w-2.5 rounded-full bg-destructive"
           ></span>
         </span>
-        <span class="text-xs text-red-400">LIVE</span>
+        <span class="text-xs text-destructive">LIVE</span>
       </div>
       <Button size="sm" variant="link" class="h-auto px-0" @click="alerts = []">
         清空已读
@@ -159,8 +150,8 @@ onMounted(async () => {
               cn(
                 alertCardClassName,
                 isHighPriority(alert.level)
-                  ? 'border-red-200 bg-red-50/50 dark:border-red-800/40 dark:bg-red-950/10'
-                  : 'border-gray-100 dark:border-gray-800',
+                  ? 'border-destructive/30 bg-destructive/5'
+                  : 'border-border',
                 isHighPriority(alert.level) && 'animate-pulse-subtle',
               )
             "
@@ -178,9 +169,9 @@ onMounted(async () => {
             <!-- 内容 -->
             <div class="min-w-0 flex-1">
               <div class="mb-0.5 flex items-center gap-2">
-                <span
-                  class="truncate text-sm font-medium text-gray-800 dark:text-gray-200"
-                  >{{ alert.message }}</span>
+                <span class="truncate text-sm font-medium text-foreground">{{
+                  alert.message
+                }}</span>
                 <Tag
                   :color="
                     alert.level === 'critical'
@@ -195,10 +186,10 @@ onMounted(async () => {
                 </Tag>
               </div>
               <div class="mt-1 flex items-center justify-between">
-                <span class="font-mono text-[11px] text-gray-400">{{
+                <span class="font-mono text-[11px] text-muted-foreground">{{
                   alert.source
                 }}</span>
-                <span class="text-[11px] text-gray-400">{{
+                <span class="text-[11px] text-muted-foreground">{{
                   new Date(alert.timestamp).toLocaleTimeString('zh-CN')
                 }}</span>
               </div>

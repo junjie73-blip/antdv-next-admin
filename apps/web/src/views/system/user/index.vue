@@ -4,7 +4,14 @@ import type { BasicColumn } from '@antdv/table-ui';
 
 import { computed, onMounted, ref } from 'vue';
 
-import { Card, Divider, Popconfirm, Tag, Tree } from '@antdv/common-ui';
+import {
+  Card,
+  Divider,
+  PageHeader,
+  Popconfirm,
+  Tag,
+  Tree,
+} from '@antdv/common-ui';
 import { DictType } from '@antdv/enums';
 import { BasicForm, useForm } from '@antdv/form-ui';
 import { usePrint } from '@antdv/hooks/use-print';
@@ -46,9 +53,18 @@ interface DeptNode {
   children?: DeptNode[];
 }
 
-const containerClassName = cn('flex gap-4');
-const leftPanelClassName = cn('w-[240px] shrink-0');
-const rightPanelClassName = cn('min-w-0 flex-1');
+/*
+ * 版式约定：页头（标题 + 说明 + 主操作）独占一行，下面才是「左树右表」。
+ * 用 grid 而不是 flex：`minmax(0, 1fr)` 让右侧那列能真正收缩，
+ * 表格 1400px 的横向滚动宽度不会把整页撑破；窄屏自动退回单列堆叠，
+ * 部门树不再把表格挤到没法读。
+ * 根元素不带 padding —— 内容区内边距由布局的 view-class 统一给，
+ * 这一条有 page-padding 端到端用例守着。
+ */
+const containerClassName = cn('grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)]');
+const headerClassName = cn('lg:col-span-2');
+const leftPanelClassName = cn('min-w-0');
+const rightPanelClassName = cn('min-w-0');
 const cardClassName = cn('shadow-sm');
 const treeCardClassName = cn('h-full shadow-sm');
 const statusTagClassName = cn('inline-flex items-center gap-1');
@@ -343,7 +359,9 @@ function handleExport() {
 function handlePrint() {
   usePrint({
     title: '用户列表',
-    target: '[data-slot="card-content"]',
+    // 页面上有两张卡片（部门树 + 用户列表），只打表格里的那块；
+    // 以前写死 `[data-slot="card-content"]` 命中的是第一张，纸上印的是部门树。
+    target: '[data-print="user-table"] [data-slot="card-content"]',
   });
 }
 
@@ -442,7 +460,22 @@ const columns: BasicColumn[] = [
 </script>
 
 <template>
-  <div :class="containerClassName">
+  <!-- `data-page-view`：端到端用例用它把断言只圈在这一页（force-mount 的抽屉面板也在 DOM 里） -->
+  <div data-page-view :class="containerClassName">
+    <PageHeader
+      :class="headerClassName"
+      title="用户管理"
+      description="维护后台账号及其部门、角色归属；左侧选部门可过滤当前列表"
+      icon="carbon:user-multiple"
+    >
+      <template #extra>
+        <Button @click="handleAdd">
+          <Icon icon="ant-design:plus-outlined" />
+          新增用户
+        </Button>
+      </template>
+    </PageHeader>
+
     <div :class="leftPanelClassName">
       <Card :class="treeCardClassName" title="部门列表">
         <Tree
@@ -464,7 +497,18 @@ const columns: BasicColumn[] = [
     </div>
 
     <div :class="rightPanelClassName">
-      <Card title="用户管理" :class="cardClassName">
+      <Card title="用户列表" :class="cardClassName" data-print="user-table">
+        <!-- 次要操作放分节标题栏右侧：描边样式，与页头的实心主操作拉开层级 -->
+        <template #extra>
+          <Button variant="outline" @click="handleExport">
+            <Icon icon="carbon:export" />
+            导出
+          </Button>
+          <Button variant="outline" @click="handlePrint">
+            <Icon icon="carbon:printer" />
+            打印
+          </Button>
+        </template>
         <BasicTable
           :columns="columns"
           :api="mockApi"
@@ -480,20 +524,6 @@ const columns: BasicColumn[] = [
           :scroll="{ x: 1400 }"
           @register="tableRegister"
         >
-          <template #toolbar>
-            <Button @click="handleAdd">
-              <Icon icon="ant-design:plus-outlined" />
-              新增用户
-            </Button>
-            <Button @click="handleExport">
-              <Icon icon="carbon:export" />
-              导出
-            </Button>
-            <Button @click="handlePrint">
-              <Icon icon="carbon:printer" />
-              打印
-            </Button>
-          </template>
           <template #cell-status="{ record }">
             <Tag :color="statusColorMap[record.status] || 'default'">
               <span :class="statusTagClassName">

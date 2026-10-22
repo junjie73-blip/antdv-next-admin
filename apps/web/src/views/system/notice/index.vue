@@ -9,6 +9,8 @@ import {
   Descriptions,
   DescriptionsItem,
   Divider,
+  PageHeader,
+  PageToolbar,
   Popconfirm,
   Statistic,
   TabPane,
@@ -327,14 +329,10 @@ const columns: BasicColumn[] = [
     customRender: ({ record }: any) => (
       <div class="flex items-center gap-2">
         {record.status === 0 && (
-          <span class="size-2 shrink-0 rounded-full bg-blue-500" />
+          <span class="bg-primary size-2 shrink-0 rounded-full" />
         )}
         <span
-          class={
-            record.priority === 2
-              ? 'font-medium text-red-600 dark:text-red-400'
-              : ''
-          }
+          class={record.priority === 2 ? 'text-destructive font-medium' : ''}
         >
           {record.title}
         </span>
@@ -411,15 +409,28 @@ const columns: BasicColumn[] = [
 </script>
 
 <template>
-  <div :class="containerClassName">
-    <!-- 统计卡片 -->
-    <div class="grid grid-cols-4 gap-4">
+  <div data-page-view :class="containerClassName">
+    <PageHeader
+      title="通知管理"
+      description="发布系统公告与待办提醒，支持按状态筛选和已读回执"
+      icon="carbon:notification"
+    >
+      <template #extra>
+        <Button @click="handleAdd">
+          <Icon icon="ant-design:plus-outlined" />
+          新增消息
+        </Button>
+      </template>
+    </PageHeader>
+
+    <!-- 统计卡片：点一张卡就等于切到对应的筛选页签 -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <Card :class="statCardClassName" @click="handleTabChange('unread')">
         <Statistic title="未读消息" :value="unreadCount" suffix="条">
           <template #prefix>
             <Icon
               icon="carbon:notification-new"
-              class="mr-1 text-lg text-blue-500"
+              class="mr-1 text-lg text-primary"
             />
           </template>
         </Statistic>
@@ -429,7 +440,7 @@ const columns: BasicColumn[] = [
           <template #prefix>
             <Icon
               icon="carbon:notification"
-              class="mr-1 text-lg text-green-500"
+              class="mr-1 text-lg text-success"
             />
           </template>
         </Statistic>
@@ -437,22 +448,25 @@ const columns: BasicColumn[] = [
       <Card :class="statCardClassName" @click="handleTabChange('2')">
         <Statistic title="通知消息" :value="noticeCount" suffix="条">
           <template #prefix>
-            <Icon icon="carbon:email" class="mr-1 text-lg text-orange-500" />
+            <Icon icon="carbon:email" class="mr-1 text-lg text-warning" />
           </template>
         </Statistic>
       </Card>
       <Card :class="statCardClassName" @click="handleTabChange('3')">
         <Statistic title="待办提醒" :value="todoCount" suffix="条">
           <template #prefix>
-            <Icon icon="carbon:task" class="mr-1 text-lg text-purple-500" />
+            <Icon
+              icon="carbon:task"
+              class="mr-1 text-lg text-muted-foreground"
+            />
           </template>
         </Statistic>
       </Card>
     </div>
 
-    <!-- Tab 切换 + 工具栏 -->
     <Card :class="cardClassName">
-      <div class="mb-4 flex items-center justify-between">
+      <!-- 页签是"看哪一类"，属于筛选那一侧；全部已读是对这份列表的操作，靠右 -->
+      <PageToolbar class="mb-4">
         <Tabs v-model:active-key="activeTabKey" @change="handleTabChange">
           <TabPane value="all" tab="全部消息" />
           <TabPane value="unread" tab="未读消息" />
@@ -460,17 +474,13 @@ const columns: BasicColumn[] = [
           <TabPane value="2" tab="通知消息" />
           <TabPane value="3" tab="待办提醒" />
         </Tabs>
-        <div class="flex gap-2">
-          <Button @click="handleAdd">
-            <Icon icon="ant-design:plus-outlined" />
-            新增消息
-          </Button>
+        <template #actions>
           <Button variant="outline" @click="handleMarkAllRead">
             <Icon icon="carbon:checkmark-outline" />
             全部已读
           </Button>
-        </div>
-      </div>
+        </template>
+      </PageToolbar>
 
       <BasicTable
         :columns="columns"
@@ -570,10 +580,10 @@ const columns: BasicColumn[] = [
           </Descriptions>
 
           <!-- 内容区域 -->
-          <div class="mt-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
+          <div class="bg-muted mt-4 rounded-lg p-4">
             <h4 class="mb-2 font-medium">消息内容</h4>
             <div
-              class="leading-relaxed whitespace-pre-wrap text-gray-700 dark:text-gray-300"
+              class="text-card-foreground leading-relaxed whitespace-pre-wrap"
             >
               {{ viewingNotice.content }}
             </div>
@@ -582,9 +592,7 @@ const columns: BasicColumn[] = [
       </template>
 
       <template #footer>
-        <div
-          class="flex justify-end gap-2 border-t border-gray-200 px-4 py-3 dark:border-gray-800"
-        >
+        <div class="flex justify-end gap-2 border-border border-t px-4 py-3">
           <Button variant="outline" @click="showDetailDrawer = false">
             关闭
           </Button>

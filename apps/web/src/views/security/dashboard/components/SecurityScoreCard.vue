@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
-// 监听暗色模式变化
-import { watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 
 import { CountTo, Tag } from '@antdv/common-ui';
 import { cn } from '@antdv/shared/utils/cn';
@@ -45,10 +43,10 @@ function getStatusColor(status: string): string {
 /** 状态背景色 */
 function getStatusBg(status: string): string {
   const map: Record<string, string> = {
-    excellent: 'bg-emerald-50 dark:bg-emerald-950/30',
-    good: 'bg-blue-50 dark:bg-blue-950/30',
-    warning: 'bg-orange-50 dark:bg-orange-950/30',
-    critical: 'bg-red-50 dark:bg-red-950/30',
+    excellent: 'bg-success/10',
+    good: 'bg-primary/10',
+    warning: 'bg-warning/10',
+    critical: 'bg-destructive/10',
   };
   return map[status] ?? map.good;
 }
@@ -63,10 +61,10 @@ function getScoreLabel(score: number): string {
 
 /** 评分颜色 */
 function getScoreColor(score: number): string {
-  if (score >= 90) return 'text-emerald-500';
-  if (score >= 75) return 'text-blue-500';
-  if (score >= 60) return 'text-orange-500';
-  return 'text-red-500';
+  if (score >= 90) return 'text-success';
+  if (score >= 75) return 'text-primary';
+  if (score >= 60) return 'text-warning';
+  return 'text-destructive';
 }
 
 // 趋势图相关
@@ -146,21 +144,14 @@ watch(isDark, () => {
 </script>
 
 <template>
-  <div
-    :class="
-      cn(
-        containerClassName,
-        'border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900',
-      )
-    "
-  >
+  <div :class="cn(containerClassName, 'border-border bg-card')">
     <!-- 标题 -->
     <div class="mb-4 flex items-center justify-between">
       <div>
-        <h3 class="text-base font-semibold text-gray-800 dark:text-white">
-          安全评分
-        </h3>
-        <p class="mt-0.5 text-xs text-gray-400">基于多维度安全指标综合评估</p>
+        <h3 class="text-base font-semibold text-foreground">安全评分</h3>
+        <p class="mt-0.5 text-xs text-muted-foreground">
+          基于多维度安全指标综合评估
+        </p>
       </div>
       <Tag
         :color="
@@ -212,7 +203,7 @@ watch(isDark, () => {
             :class="cn(scoreValueClassName, getScoreColor(totalScore))"
             :duration="1500"
           />
-          <span class="-mt-1 text-[10px] text-gray-400">/ 100</span>
+          <span class="-mt-1 text-[10px] text-muted-foreground">/ 100</span>
         </div>
       </div>
 
@@ -229,9 +220,7 @@ watch(isDark, () => {
         :key="dim.name"
         :class="cn(dimensionCardClassName, getStatusBg(dim.status))"
       >
-        <span class="text-sm text-gray-600 dark:text-gray-300">{{
-          dim.name
-        }}</span>
+        <span class="text-sm text-muted-foreground">{{ dim.name }}</span>
         <div class="flex items-center gap-2">
           <span
             :class="

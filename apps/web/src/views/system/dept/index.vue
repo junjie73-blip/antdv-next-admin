@@ -4,7 +4,15 @@ import type { BasicColumn } from '@antdv/table-ui';
 
 import { computed, onMounted, ref, useTemplateRef } from 'vue';
 
-import { Badge, Card, Divider, Popconfirm, Tag, Tree } from '@antdv/common-ui';
+import {
+  Badge,
+  Card,
+  Divider,
+  PageHeader,
+  Popconfirm,
+  Tag,
+  Tree,
+} from '@antdv/common-ui';
 import { DictType } from '@antdv/enums';
 import { BasicForm, useForm } from '@antdv/form-ui';
 import { BasicModal, message, useModal } from '@antdv/popup-ui';
@@ -39,14 +47,16 @@ interface DeptTreeNode {
 }
 
 // ========== 样式类名 ==========
-const containerClassName = cn('flex gap-4');
-const leftPanelClassName = cn('w-[280px] shrink-0');
-const rightPanelClassName = cn('min-w-0 flex-1');
+/* 页头独占一行，下面左树右表；grid + minmax(0,1fr) 让表格横向滚动不撑破页面（同用户管理） */
+const containerClassName = cn('grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]');
+const headerRowClassName = cn('lg:col-span-2');
+const leftPanelClassName = cn('min-w-0');
+const rightPanelClassName = cn('min-w-0');
 const cardClassName = cn('shadow-sm');
 const treeCardClassName = cn('h-full shadow-sm');
 const headerClassName = cn('mb-4 flex items-center justify-between');
-const statClassName = cn('text-sm text-gray-500');
-const statNumClassName = cn('text-lg font-bold text-blue-600');
+const statClassName = cn('text-muted-foreground text-sm');
+const statNumClassName = cn('text-primary text-lg font-semibold');
 const statusTagClassName = cn('inline-flex items-center gap-1');
 const actionClassName = cn('flex', 'items-center', 'justify-center');
 const btnClassName = cn('h-auto', 'px-0.5!');
@@ -484,7 +494,21 @@ const columns: BasicColumn[] = [
 </script>
 
 <template>
-  <div :class="containerClassName">
+  <div data-page-view :class="containerClassName">
+    <PageHeader
+      :class="headerRowClassName"
+      title="部门管理"
+      description="按组织架构维护部门层级，用户与岗位都挂在部门下"
+      icon="carbon:diagram"
+    >
+      <template #extra>
+        <Button @click="handleAdd">
+          <Icon icon="ant-design:plus-outlined" />
+          新增部门
+        </Button>
+      </template>
+    </PageHeader>
+
     <!-- 左侧部门树 -->
     <div :class="leftPanelClassName">
       <Card :class="treeCardClassName" title="部门架构">
@@ -525,7 +549,7 @@ const columns: BasicColumn[] = [
         <div :class="headerClassName">
           <div :class="statClassName">
             当前选中：
-            <span class="font-medium text-gray-700 dark:text-gray-300">{{
+            <span class="font-medium text-foreground">{{
               flatAllDepts.find((d) => d.id === selectedDeptId)?.name
             }}</span>
             <span class="mx-2">|</span>
@@ -555,13 +579,6 @@ const columns: BasicColumn[] = [
           :action-column="{ width: 280, title: '操作', fixed: 'right' }"
           @register="tableRegister"
         >
-          <template #toolbar>
-            <Button @click="handleAdd">
-              <Icon icon="ant-design:plus-outlined" />
-              新增部门
-            </Button>
-          </template>
-
           <template #cell-status="{ record }">
             <Tag :color="statusColorMap[record.status] || 'default'">
               <span :class="statusTagClassName">

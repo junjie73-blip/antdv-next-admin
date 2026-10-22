@@ -46,7 +46,7 @@ const hasHead = computed(
 
 const headerClass = computed(() =>
   cn(
-    'flex items-center justify-between gap-2 border-b border-gray-100 px-4 py-3 dark:border-gray-800',
+    'border-border flex items-center justify-between gap-2 border-b px-4 py-3',
     slots.extra ? 'flex-wrap' : '',
   ),
 );

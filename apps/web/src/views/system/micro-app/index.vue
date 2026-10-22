@@ -3,7 +3,7 @@ import type { MicroAppItem } from '@antdv/types';
 
 import { computed, ref, watch } from 'vue';
 
-import { Scrollbar, Tag, Tooltip } from '@antdv/common-ui';
+import { PageHeader, Scrollbar, Tag, Tooltip } from '@antdv/common-ui';
 import {
   Button,
   InputGroup,
@@ -62,31 +62,33 @@ const filteredApps = computed(() => {
 });
 
 // 样式类名
+// 概览小卡嵌在左侧面板里：用 muted 而不是 card，否则和外面的面板一个颜色、看不出是格子
+// 内边距留给模板上的 `p-2` 指定 —— 这里再写 `p-4` 会出现两个 padding 档位打架
 const statCardClassName = cn(
-  'rounded-lg border bg-white p-4 dark:bg-gray-800',
-  'border-gray-200 transition-shadow hover:shadow-md dark:border-gray-700',
+  'bg-muted border-border rounded-lg border transition-shadow hover:shadow-md',
 );
 
 function getStatusTagClass(active: boolean) {
   return cn(
     'rounded-full px-2.5 py-1 text-xs font-medium',
     active
-      ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
-      : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
+      ? 'bg-success/15 text-success'
+      : 'bg-muted border-border text-muted-foreground border',
   );
 }
 
+/**
+ * 加载方式标签。
+ *
+ * iframe 与 Web Component 是两类东西，颜色要能分开；但不能写死 `purple-50` / `blue-50`
+ * 那类调色板色 —— 换预设时它们不跟主色走，深浅色下还得各配一遍 dark。
+ * 这里用状态色与主色的淡档：iframe 走 warning（隔离成本高），WC 走主色。
+ */
 function getLoaderBadgeClass(loader?: string) {
   if (loader === 'iframe') {
-    return cn(
-      'rounded-sm px-2 py-0.5 text-xs',
-      'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-    );
+    return cn('bg-warning/15 text-warning rounded-sm px-2 py-0.5 text-xs');
   }
-  return cn(
-    'rounded-sm px-2 py-0.5 text-xs',
-    'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  );
+  return cn('bg-primary/10 text-primary rounded-sm px-2 py-0.5 text-xs');
 }
 
 // 操作函数
@@ -169,59 +171,54 @@ watch(
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-4">
-    <!-- 页面标题 -->
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-xl font-bold text-gray-900 dark:text-white">
-          微前端管理
-        </h1>
-        <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
-          子应用注册与预览（iframe 嵌套模式）
-        </p>
-      </div>
-      <Button v-if="isEnabled && currentApp" @click="handleRefreshIframe">
-        <Icon icon="carbon:restart" class="mr-1" />
-        刷新预览
-      </Button>
-    </div>
+  <div data-page-view class="flex h-full flex-col gap-4">
+    <PageHeader
+      title="微前端管理"
+      description="登记子应用并在右侧预览；沙箱策略跟着注册表里的 sameOrigin 配置"
+      icon="carbon:application-web"
+    >
+      <template #extra>
+        <Button v-if="isEnabled && currentApp" @click="handleRefreshIframe">
+          <Icon icon="carbon:restart" />
+          刷新预览
+        </Button>
+      </template>
+    </PageHeader>
 
     <!-- 未启用提示 -->
     <div
       v-if="!isEnabled"
-      class="rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-800 dark:bg-yellow-900/20"
+      class="border-warning/30 bg-warning/10 text-warning flex items-center gap-2 rounded-lg border p-3 text-sm"
     >
-      <span class="i-carbon-warning-alt mr-2 text-yellow-500"></span>
-      <span class="text-sm text-yellow-800 dark:text-yellow-200">
-        微前端功能未启用，请在 .env 中设置 VITE_MICRO_APP=true
-      </span>
+      <Icon icon="carbon:warning-alt" class="shrink-0" />
+      <span>微前端功能未启用，请在 .env 中设置 VITE_MICRO_APP=true</span>
     </div>
 
     <!-- 主内容区：左右分栏 -->
     <div class="flex min-h-0 flex-1 gap-4">
       <!-- 左侧：应用列表 -->
       <div
-        class="flex w-[320px] shrink-0 flex-col gap-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-800"
+        class="flex w-[320px] shrink-0 flex-col gap-3 rounded-lg border-border bg-card border p-3"
       >
         <!-- 统计概览 -->
         <div class="grid grid-cols-3 gap-2">
           <div :class="statCardClassName" class="p-2 text-center">
-            <p class="text-lg font-bold text-gray-900 dark:text-white">
+            <p class="text-foreground text-lg font-bold">
               {{ apps.length }}
             </p>
-            <p class="text-[10px] text-gray-500">总数</p>
+            <p class="text-[10px] text-muted-foreground">总数</p>
           </div>
           <div :class="statCardClassName" class="p-2 text-center">
-            <p class="text-lg font-bold text-green-600">
+            <p class="text-success text-lg font-bold">
               {{ apps.filter((a) => a.active).length }}
             </p>
-            <p class="text-[10px] text-gray-500">运行</p>
+            <p class="text-[10px] text-muted-foreground">运行</p>
           </div>
           <div :class="statCardClassName" class="p-2 text-center">
-            <p class="text-lg font-bold text-gray-500">
+            <p class="text-muted-foreground text-lg font-bold">
               {{ apps.filter((a) => !a.active).length }}
             </p>
-            <p class="text-[10px] text-gray-500">停止</p>
+            <p class="text-[10px] text-muted-foreground">停止</p>
           </div>
         </div>
 
@@ -270,10 +267,10 @@ watch(
               :class="
                 cn(
                   'cursor-pointer rounded-lg border p-3 transition-all duration-150',
-                  'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800',
+                  'border-border bg-card',
                   activeAppKey === app.name
-                    ? 'border-blue-400 bg-blue-50/50 shadow-sm dark:border-blue-500 dark:bg-blue-900/20'
-                    : 'hover:border-blue-300 hover:shadow-sm',
+                    ? 'border-primary bg-primary/5 shadow-sm'
+                    : 'hover:border-primary/40 hover:shadow-sm',
                 )
               "
               @click="handleSelectApp(app)"
@@ -281,28 +278,25 @@ watch(
               <!-- 应用头部 -->
               <div class="mb-1.5 flex items-center gap-2">
                 <div
-                  class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-sm"
+                  class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md"
                   :class="
                     app.active
-                      ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
-                      : 'bg-gray-100 dark:bg-gray-700'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-muted-foreground'
                   "
                 >
-                  <span
-                    v-if="app.icon"
-                    :class="[
-                      app.icon,
-                      app.active ? 'text-white' : 'text-gray-500',
-                    ]"
-                  ></span>
+                  <!--
+                    注册表存的是 Iconify 名（`carbon:application`），必须交给 Icon 组件渲染。
+                    写成 `:class="app.icon"` 时项目里没有 unocss 图标预设，
+                    结果每个子应用的头像都是一只空色块 —— 不报错，只是看不见。
+                  -->
+                  <Icon v-if="app.icon" :icon="app.icon" class="size-4" />
                 </div>
                 <div class="min-w-0 flex-1">
-                  <p
-                    class="truncate text-sm font-medium text-gray-900 dark:text-white"
-                  >
+                  <p class="text-foreground truncate text-sm font-medium">
                     {{ app.title }}
                   </p>
-                  <p class="truncate text-[10px] text-gray-400">
+                  <p class="text-muted-foreground truncate text-[10px]">
                     {{ app.name }}
                   </p>
                 </div>
@@ -315,7 +309,9 @@ watch(
               </div>
 
               <!-- 元信息 -->
-              <div class="flex items-center gap-2 text-[10px] text-gray-500">
+              <div
+                class="text-muted-foreground flex items-center gap-2 text-[10px]"
+              >
                 <span>v{{ app.version ?? '-' }}</span>
                 <span :class="getLoaderBadgeClass(app.loader)">{{
                   app.loader === 'iframe' ? 'iframe' : 'WC'
@@ -326,11 +322,9 @@ watch(
             <!-- 空状态 -->
             <div
               v-if="filteredApps.length === 0"
-              class="flex flex-col items-center justify-center py-8 text-gray-400"
+              class="text-muted-foreground flex flex-col items-center justify-center py-8"
             >
-              <span
-                class="i-carbon-application mb-2 text-3xl opacity-30"
-              ></span>
+              <Icon icon="carbon:application" class="mb-2 size-8 opacity-40" />
               <p class="text-xs">无匹配的子应用</p>
             </div>
           </div>
@@ -339,36 +333,33 @@ watch(
 
       <!-- 右侧：iframe 预览区域 -->
       <div
-        class="flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
+        class="flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border-border bg-muted border"
       >
         <!-- 预览头部信息栏 -->
         <div
           v-if="currentApp"
-          class="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-2.5 dark:border-gray-700 dark:bg-gray-800"
+          class="flex items-center justify-between border-border bg-card border-b px-4 py-2.5"
         >
           <div class="flex items-center gap-3">
             <div
               class="flex h-8 w-8 items-center justify-center rounded-lg"
               :class="
                 currentApp.active
-                  ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
-                  : 'bg-gray-100 dark:bg-gray-700'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground'
               "
             >
-              <span
+              <Icon
                 v-if="currentApp.icon"
-                :class="[
-                  currentApp.icon,
-                  currentApp.active ? 'text-white' : 'text-gray-500',
-                ]"
-                class="text-base"
-              ></span>
+                :icon="currentApp.icon"
+                class="size-5"
+              />
             </div>
             <div>
-              <p class="text-sm font-semibold text-gray-900 dark:text-white">
+              <p class="text-foreground text-sm font-semibold">
                 {{ currentApp.title }}
               </p>
-              <p class="text-[10px] text-gray-500">
+              <p class="text-[10px] text-muted-foreground">
                 {{ previewUrl(currentApp) }}
               </p>
             </div>
@@ -392,7 +383,7 @@ watch(
         </div>
 
         <!-- iframe 容器 -->
-        <div class="relative flex-1 bg-white dark:bg-gray-800">
+        <div class="relative flex-1 bg-card">
           <!--
             未启用时不做"假预览"。
             过去这里会把子应用 URL 映射到本站页面（/#/dashboard 之类）来"演示"嵌入效果，
@@ -401,11 +392,11 @@ watch(
           -->
           <div
             v-if="!isEnabled"
-            class="flex h-full flex-col items-center justify-center gap-1 px-6 text-center text-gray-400"
+            class="flex h-full flex-col items-center justify-center gap-1 px-6 text-center text-muted-foreground"
           >
-            <span
-              class="i-carbon-document-blurred mb-2 text-5xl opacity-20"
-            ></span>
+            <!-- 原来的 i-carbon-document-blurred 既没有 unocss 预设，名字也不在 carbon 集合里，
+                 渲染出来是一只空框；换成真实存在的 Iconify 名。 -->
+            <Icon icon="carbon:video-off" class="mb-2 size-12 opacity-20" />
             <p class="text-sm">预览未启用</p>
             <p class="mt-1 max-w-md text-xs opacity-70">
               设置 VITE_MICRO_APP=true 并重启后，这里会按注册表里的 URL
@@ -417,10 +408,10 @@ watch(
             <!-- 加载态 -->
             <div
               v-if="currentApp && !iframeLoaded[currentApp.name]"
-              class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900"
+              class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-card"
             >
               <Spinner class="size-8" />
-              <p class="mt-2 text-xs text-gray-500">
+              <p class="text-muted-foreground mt-2 text-xs">
                 正在加载子应用 {{ currentApp.title }}...
               </p>
             </div>
@@ -443,11 +434,9 @@ watch(
             <!-- 无选中状态 -->
             <div
               v-if="!currentApp"
-              class="flex h-full flex-col items-center justify-center text-gray-400"
+              class="flex h-full flex-col items-center justify-center text-muted-foreground"
             >
-              <span
-                class="i-carbon-application mb-3 text-5xl opacity-20"
-              ></span>
+              <Icon icon="carbon:application" class="mb-3 size-12 opacity-20" />
               <p class="text-sm">选择左侧子应用开始预览</p>
               <p class="mt-1 text-xs opacity-60">支持 iframe 嵌套模式</p>
             </div>

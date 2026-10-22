@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import {
@@ -7,7 +7,7 @@ import {
   Descriptions,
   DescriptionsItem,
   Divider,
-  Space,
+  PageHeader,
   TabPane,
   Tabs,
   Tag,
@@ -22,10 +22,6 @@ import { Icon } from '@iconify/vue';
 
 const userStore = useUserStore();
 const router = useRouter();
-const switchAccountTab = inject<((tab: 'center' | 'settings') => void) | null>(
-  'switchAccountTab',
-  null,
-);
 
 const activeTab = ref('basic');
 
@@ -41,7 +37,11 @@ interface LoginDevice {
   icon: string;
 }
 
-const containerClassName = cn('space-y-6');
+// 左栏档案 + 右栏分节内容：个人中心是"看一个人"的页面，堆成一列会失去这种主辅关系
+const containerClassName = cn('grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]');
+const headerClassName = cn('lg:col-span-2');
+const profileClassName = cn('min-w-0');
+const contentClassName = cn('min-w-0');
 
 const displayRole = computed(() => {
   const roles = userStore.roles;
@@ -88,74 +88,62 @@ const activityLogs = [
   {
     action: '登录成功',
     time: '2026-05-21 09:30:00',
-    color: 'text-green-600 dark:text-green-400',
+    color: 'text-success',
   },
   {
     action: '更新个人资料',
     time: '2026-05-20 14:22:00',
-    color: 'text-blue-600 dark:text-blue-400',
+    color: 'text-primary',
   },
   {
     action: '修改密码',
     time: '2026-05-18 11:05:00',
-    color: 'text-amber-600 dark:text-amber-400',
+    color: 'text-warning',
   },
   {
     action: '登录成功',
     time: '2026-05-18 09:15:00',
-    color: 'text-green-600 dark:text-green-400',
+    color: 'text-success',
   },
   {
     action: '导出报告数据',
     time: '2026-05-17 16:45:00',
-    color: 'text-purple-600 dark:text-purple-400',
+    color: 'text-foreground',
   },
 ];
 
-const userCardClassName = computed(() =>
-  cn(
-    'rounded-xl border border-gray-100 dark:border-gray-800',
-    'bg-linear-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/30 dark:to-indigo-950/30',
-  ),
-);
+// 档案卡用主色的极淡一档做提示，颜色仍从 --primary 换算，换预设会跟过去
+const userCardClassName = cn('bg-card border-border rounded-xl border');
 
 const avatarWrapperClassName = cn(
   'flex size-20 items-center justify-center overflow-hidden rounded-full',
-  'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400',
+  'bg-primary/10 text-primary',
 );
 
 const avatarImgClassName = cn('size-full object-cover');
 
-const statItemClassName = cn(
-  'flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400',
-);
-
 const securityHeaderClassName = cn('flex items-center justify-between');
 
 const passwordStrengthBarClassName = cn(
-  'h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700',
+  'bg-muted h-2 overflow-hidden rounded-full',
 );
 
 const passwordStrengthFillClassName = cn(
-  'h-full rounded-full bg-green-500 transition-all duration-500',
+  'bg-success h-full rounded-full transition-all duration-500',
 );
 
 const twoFactorBadgeClassName = cn(
   'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium',
-  'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  'bg-success/15 text-success',
 );
 
-const cardClassName = cn(
-  'rounded-xl border border-gray-100 dark:border-gray-800',
-);
+const cardClassName = cn('border-border rounded-xl border');
 
 const teamInfoItemClassName = cn('flex items-center gap-3');
 
-const teamInfoLabelClassName = cn(
-  'min-w-12 text-sm text-gray-500 dark:text-gray-400',
-);
+const teamInfoLabelClassName = cn('text-muted-foreground min-w-12 text-sm');
 
-const teamInfoValueClassName = cn('text-sm text-gray-800 dark:text-gray-200');
+const teamInfoValueClassName = cn('text-foreground text-sm');
 
 const permissionTagClassName = cn('mr-1 mb-1');
 
@@ -256,222 +244,248 @@ function handleDeleteDevice(device: LoginDevice) {
 </script>
 
 <template>
-  <div :class="containerClassName">
-    <Card variant="borderless" :class="userCardClassName">
-      <div class="flex items-start gap-6">
-        <div :class="avatarWrapperClassName">
-          <template v-if="hasAvatar">
-            <img
-              :src="userStore.avatar"
-              :alt="userStore.nickname"
-              :class="avatarImgClassName"
-            />
-          </template>
-          <template v-else>
-            <Icon icon="carbon:user-avatar-filled" width="42" height="42" />
-          </template>
-        </div>
-        <div class="min-w-0 flex-1">
-          <div class="mb-2 flex items-center gap-3">
-            <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
+  <div data-page-view :class="containerClassName">
+    <PageHeader
+      :class="headerClassName"
+      title="个人中心"
+      description="账号身份、安全状态与最近活动都在这里；改资料请去账户设置"
+      icon="carbon:user-profile"
+    >
+      <template #extra>
+        <Button @click="router.push('/account/settings')">
+          <Icon icon="carbon:settings" />
+          账户设置
+        </Button>
+      </template>
+    </PageHeader>
+
+    <div :class="profileClassName">
+      <Card variant="borderless" title="账号档案" :class="userCardClassName">
+        <div class="flex flex-col items-center gap-4 text-center">
+          <div :class="avatarWrapperClassName">
+            <template v-if="hasAvatar">
+              <img
+                :src="userStore.avatar"
+                :alt="userStore.nickname"
+                :class="avatarImgClassName"
+              />
+            </template>
+            <template v-else>
+              <Icon icon="carbon:user-avatar-filled" width="42" height="42" />
+            </template>
+          </div>
+          <div class="min-w-0">
+            <h2 class="text-foreground truncate text-lg font-semibold">
               {{ userStore.nickname || userStore.username }}
-            </h1>
-            <Tag color="blue">
-              {{ displayRole }}
-            </Tag>
+            </h2>
+            <Tag class="mt-2" color="blue">{{ displayRole }}</Tag>
           </div>
-          <div class="mb-3 flex items-center gap-6">
-            <span :class="statItemClassName">
+          <!-- 联系方式竖排：横向三列在窄栏里必然挤断，邮箱还会长到溢出 -->
+          <ul class="text-muted-foreground w-full space-y-2 text-left text-sm">
+            <li class="flex items-center gap-2">
               <Icon icon="carbon:building" width="16" height="16" />
-              技术研发部
-            </span>
-            <span :class="statItemClassName">
+              <span class="truncate">技术研发部</span>
+            </li>
+            <li class="flex items-center gap-2">
               <Icon icon="carbon:email" width="16" height="16" />
-              {{ userStore.email }}
-            </span>
-            <span :class="statItemClassName">
+              <span class="truncate">{{ userStore.email }}</span>
+            </li>
+            <li class="flex items-center gap-2">
               <Icon icon="carbon:phone" width="16" height="16" />
-              {{ userStore.phone }}
-            </span>
-          </div>
+              <span class="truncate">{{ userStore.phone }}</span>
+            </li>
+          </ul>
         </div>
-        <div class="flex-shrink-0">
-          <Space>
-            <Button>编辑资料</Button>
-            <Button variant="outline">分享</Button>
-          </Space>
-        </div>
-      </div>
-    </Card>
+      </Card>
+    </div>
 
-    <Card variant="borderless" :class="cardClassName">
-      <Tabs v-model:active-key="activeTab">
-        <TabPane value="basic" tab="基本信息">
-          <Descriptions :column="2" bordered size="middle">
-            <DescriptionsItem label="用户名">
-              {{ userStore.username }}
-            </DescriptionsItem>
-            <DescriptionsItem label="昵称">
-              {{ userStore.nickname }}
-            </DescriptionsItem>
-            <DescriptionsItem label="邮箱">
-              {{ userStore.email }}
-            </DescriptionsItem>
-            <DescriptionsItem label="手机号">
-              {{ userStore.phone }}
-            </DescriptionsItem>
-            <DescriptionsItem label="性别" :span="2"> 未设置 </DescriptionsItem>
-            <DescriptionsItem label="生日" :span="2"> 未设置 </DescriptionsItem>
-            <DescriptionsItem label="地址" :span="2"> 未设置 </DescriptionsItem>
-            <DescriptionsItem label="个人简介" :span="2">
-              未设置
-            </DescriptionsItem>
-          </Descriptions>
-        </TabPane>
+    <div :class="contentClassName">
+      <Card variant="borderless" :class="cardClassName">
+        <Tabs v-model:active-key="activeTab">
+          <TabPane value="basic" tab="基本信息">
+            <Descriptions :column="2" bordered size="middle">
+              <DescriptionsItem label="用户名">
+                {{ userStore.username }}
+              </DescriptionsItem>
+              <DescriptionsItem label="昵称">
+                {{ userStore.nickname }}
+              </DescriptionsItem>
+              <DescriptionsItem label="邮箱">
+                {{ userStore.email }}
+              </DescriptionsItem>
+              <DescriptionsItem label="手机号">
+                {{ userStore.phone }}
+              </DescriptionsItem>
+              <DescriptionsItem label="性别" :span="2">
+                未设置
+              </DescriptionsItem>
+              <DescriptionsItem label="生日" :span="2">
+                未设置
+              </DescriptionsItem>
+              <DescriptionsItem label="地址" :span="2">
+                未设置
+              </DescriptionsItem>
+              <DescriptionsItem label="个人简介" :span="2">
+                未设置
+              </DescriptionsItem>
+            </Descriptions>
+          </TabPane>
 
-        <TabPane value="security" tab="安全设置">
-          <div class="space-y-6">
-            <div class="space-y-2">
-              <div :class="securityHeaderClassName">
-                <span class="font-medium text-gray-700 dark:text-gray-300">密码强度</span>
-                <span class="text-sm text-green-600 dark:text-green-400">{{ securityInfo.passwordStrength }}%</span>
-              </div>
-              <div :class="passwordStrengthBarClassName">
-                <div
-                  :class="passwordStrengthFillClassName"
-                  :style="{ width: `${securityInfo.passwordStrength}%` }"
-                ></div>
-              </div>
-              <Button size="sm" @click="switchAccountTab?.('settings')">
-                前往修改
-              </Button>
-            </div>
-
-            <Divider />
-
-            <div class="space-y-2">
-              <div :class="securityHeaderClassName">
-                <span class="font-medium text-gray-700 dark:text-gray-300">双因素认证</span>
-                <span :class="twoFactorBadgeClassName">
-                  <Icon icon="carbon:checkmark-filled" width="14" height="14" />
-                  已启用
-                </span>
-              </div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                您的账户已受双因素认证保护。
-              </p>
-            </div>
-
-            <Divider />
-
-            <div class="space-y-3">
-              <span class="font-medium text-gray-700 dark:text-gray-300">登录设备</span>
-              <div
-                v-for="device in securityInfo.loginDevices"
-                :key="device.device"
-                class="relative overflow-hidden rounded-lg select-none"
-                :class="{
-                  'cursor-grabbing': draggingDeviceId === device.device,
-                  'cursor-grab': !draggingDeviceId,
-                }"
-                @mousedown="
-                  (e: MouseEvent) => handleSwipeStart(e, device.device)
-                "
-              >
-                <div
-                  class="flex items-center justify-between rounded-lg border border-gray-100 p-3 transition-transform duration-200 dark:border-gray-800"
-                  :class="{
-                    'translate-x-[-80px]': swipedDeviceId === device.device,
-                  }"
-                  :style="{
-                    transform:
-                      draggingDeviceId === device.device
-                        ? `translateX(-${swipeCurrentX}px)`
-                        : undefined,
-                  }"
-                >
-                  <div class="flex items-center gap-3">
-                    <div
-                      class="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-500 dark:bg-gray-800"
-                    >
-                      <Icon :icon="device.icon" width="20" height="20" />
-                    </div>
-                    <div>
-                      <p class="font-medium text-gray-800 dark:text-gray-200">
-                        {{ device.device }}
-                      </p>
-                      <p class="text-xs text-gray-500 dark:text-gray-400">
-                        {{ device.location }}
-                      </p>
-                    </div>
-                  </div>
-                  <span class="shrink-0 text-xs text-gray-400">{{
-                    device.time
-                  }}</span>
+          <TabPane value="security" tab="安全设置">
+            <div class="space-y-6">
+              <div class="space-y-2">
+                <div :class="securityHeaderClassName">
+                  <span class="font-medium text-foreground">密码强度</span>
+                  <span class="text-success text-sm">{{ securityInfo.passwordStrength }}%</span>
                 </div>
-                <!-- 右滑显示的删除按钮 -->
-                <div
-                  v-if="swipedDeviceId === device.device"
-                  class="absolute top-0 right-0 bottom-0 flex w-20 cursor-pointer items-center justify-center rounded-r-lg bg-red-500 transition-opacity duration-150"
-                  @click.stop="handleDeleteDevice(device)"
+                <div :class="passwordStrengthBarClassName">
+                  <div
+                    :class="passwordStrengthFillClassName"
+                    :style="{ width: `${securityInfo.passwordStrength}%` }"
+                  ></div>
+                </div>
+                <!-- 原来 inject('switchAccountTab') 没有任何组件 provide，这颗按钮点了没反应 -->
+                <Button
+                  size="sm"
+                  variant="outline"
+                  @click="router.push('/account/settings')"
                 >
-                  <div class="flex flex-col items-center gap-0.5 text-white">
+                  前往修改
+                </Button>
+              </div>
+
+              <Divider />
+
+              <div class="space-y-2">
+                <div :class="securityHeaderClassName">
+                  <span class="font-medium text-foreground">双因素认证</span>
+                  <span :class="twoFactorBadgeClassName">
                     <Icon
-                      icon="ant-design:delete-outlined"
-                      width="18"
-                      height="18"
+                      icon="carbon:checkmark-filled"
+                      width="14"
+                      height="14"
                     />
-                    <span class="text-xs">删除</span>
+                    已启用
+                  </span>
+                </div>
+                <p class="text-muted-foreground text-sm">
+                  您的账户已受双因素认证保护。
+                </p>
+              </div>
+
+              <Divider />
+
+              <div class="space-y-3">
+                <span class="font-medium text-foreground">登录设备</span>
+                <div
+                  v-for="device in securityInfo.loginDevices"
+                  :key="device.device"
+                  class="relative overflow-hidden rounded-lg select-none"
+                  :class="{
+                    'cursor-grabbing': draggingDeviceId === device.device,
+                    'cursor-grab': !draggingDeviceId,
+                  }"
+                  @mousedown="
+                    (e: MouseEvent) => handleSwipeStart(e, device.device)
+                  "
+                >
+                  <div
+                    class="flex items-center justify-between border-border rounded-lg border p-3 transition-transform duration-200"
+                    :class="{
+                      'translate-x-[-80px]': swipedDeviceId === device.device,
+                    }"
+                    :style="{
+                      transform:
+                        draggingDeviceId === device.device
+                          ? `translateX(-${swipeCurrentX}px)`
+                          : undefined,
+                    }"
+                  >
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="flex h-9 w-9 items-center justify-center bg-muted rounded-lg"
+                      >
+                        <Icon :icon="device.icon" width="20" height="20" />
+                      </div>
+                      <div>
+                        <p class="text-foreground font-medium">
+                          {{ device.device }}
+                        </p>
+                        <p class="text-muted-foreground text-xs">
+                          {{ device.location }}
+                        </p>
+                      </div>
+                    </div>
+                    <span class="text-muted-foreground shrink-0 text-xs">{{
+                      device.time
+                    }}</span>
+                  </div>
+                  <!-- 右滑显示的删除按钮 -->
+                  <div
+                    v-if="swipedDeviceId === device.device"
+                    class="absolute top-0 right-0 bottom-0 flex w-20 cursor-pointer items-center justify-center bg-destructive rounded-r-lg transition-opacity duration-150"
+                    @click.stop="handleDeleteDevice(device)"
+                  >
+                    <div
+                      class="text-destructive-foreground flex flex-col items-center gap-0.5"
+                    >
+                      <Icon
+                        icon="ant-design:delete-outlined"
+                        width="18"
+                        height="18"
+                      />
+                      <span class="text-xs">删除</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </TabPane>
+          </TabPane>
 
-        <TabPane value="activity" tab="活动日志">
-          <Timeline>
-            <TimelineItem v-for="log in activityLogs" :key="log.time">
-              <template #dot>
-                <div
-                  class="h-2.5 w-2.5 rounded-full bg-blue-500 ring-4 ring-blue-100 dark:ring-blue-900/30"
-                ></div>
-              </template>
-              <div class="ml-1">
-                <p :class="getActivityColorClass(log.color)">
-                  {{ log.action }}
-                </p>
-                <p class="mt-0.5 text-xs text-gray-400">
-                  {{ log.time }}
-                </p>
-              </div>
-            </TimelineItem>
-          </Timeline>
-        </TabPane>
+          <TabPane value="activity" tab="活动日志">
+            <Timeline>
+              <TimelineItem v-for="log in activityLogs" :key="log.time">
+                <template #dot>
+                  <div
+                    class="h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-primary/15"
+                  ></div>
+                </template>
+                <div class="ml-1">
+                  <p :class="getActivityColorClass(log.color)">
+                    {{ log.action }}
+                  </p>
+                  <p class="text-muted-foreground mt-0.5 text-xs">
+                    {{ log.time }}
+                  </p>
+                </div>
+              </TimelineItem>
+            </Timeline>
+          </TabPane>
 
-        <TabPane value="team" tab="团队信息">
-          <div class="space-y-4">
-            <div :class="teamInfoItemClassName">
-              <span :class="teamInfoLabelClassName">角色</span>
-              <span :class="teamInfoValueClassName">{{ displayRole }}</span>
-            </div>
-            <Divider />
-            <div :class="teamInfoItemClassName">
-              <span :class="teamInfoLabelClassName">权限</span>
-              <div class="flex-1">
-                <Tag
-                  v-for="perm in userStore.permissions"
-                  :key="perm"
-                  :class="permissionTagClassName"
-                  :color="perm === '*' ? 'purple' : 'blue'"
-                >
-                  {{ perm }}
-                </Tag>
+          <TabPane value="team" tab="团队信息">
+            <div class="space-y-4">
+              <div :class="teamInfoItemClassName">
+                <span :class="teamInfoLabelClassName">角色</span>
+                <span :class="teamInfoValueClassName">{{ displayRole }}</span>
+              </div>
+              <Divider />
+              <div :class="teamInfoItemClassName">
+                <span :class="teamInfoLabelClassName">权限</span>
+                <div class="flex-1">
+                  <Tag
+                    v-for="perm in userStore.permissions"
+                    :key="perm"
+                    :class="permissionTagClassName"
+                    :color="perm === '*' ? 'purple' : 'blue'"
+                  >
+                    {{ perm }}
+                  </Tag>
+                </div>
               </div>
             </div>
-          </div>
-        </TabPane>
-      </Tabs>
-    </Card>
+          </TabPane>
+        </Tabs>
+      </Card>
+    </div>
   </div>
 </template>

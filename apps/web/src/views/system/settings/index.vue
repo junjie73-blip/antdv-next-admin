@@ -9,13 +9,19 @@ import {
   Card,
   Description as DetailDescription,
   Divider,
+  PageHeader,
   Tag,
   Tooltip,
 } from '@antdv/common-ui';
 import { DictType } from '@antdv/enums';
 import { BasicForm, useForm } from '@antdv/form-ui';
-import { BasicDrawer, message, useDrawer } from '@antdv/popup-ui';
-import { BasicModal, useModal } from '@antdv/popup-ui';
+import {
+  BasicDrawer,
+  BasicModal,
+  message,
+  useDrawer,
+  useModal,
+} from '@antdv/popup-ui';
 import { Button, Switch } from '@antdv/shadcn-ui';
 import { cn } from '@antdv/shared/utils/cn';
 import { BasicTable, useTable } from '@antdv/table-ui';
@@ -393,8 +399,21 @@ const columns: BasicColumn[] = [
 </script>
 
 <template>
-  <div :class="containerClassName">
-    <Card title="系统设置" :class="cardClassName">
+  <div data-page-view :class="containerClassName">
+    <PageHeader
+      title="系统设置"
+      description="集中管理后台运行参数，改动即时生效于对应模块"
+      icon="carbon:settings"
+    >
+      <template #extra>
+        <Button @click="handleAdd">
+          <Icon icon="ant-design:plus-outlined" />
+          新增设置
+        </Button>
+      </template>
+    </PageHeader>
+
+    <Card title="参数列表" :class="cardClassName">
       <BasicTable
         :columns="columns"
         :api="mockApi"
@@ -405,12 +424,6 @@ const columns: BasicColumn[] = [
         :action-column="{ width: 280, title: '操作', fixed: 'right' }"
         @register="tableRegister"
       >
-        <template #toolbar>
-          <Button @click="handleAdd">
-            <Icon icon="ant-design:plus-outlined" />
-            新增设置
-          </Button>
-        </template>
         <template #cell-type="{ record }">
           <Tag :color="typeColorMap[record.type] || 'default'">
             {{ typeLabelMap[record.type] || record.type }}

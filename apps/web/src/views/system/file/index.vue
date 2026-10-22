@@ -13,6 +13,7 @@ import {
   Alert,
   Card,
   Divider,
+  PageHeader,
   Popconfirm,
   Tree,
   UploadDragger,
@@ -52,13 +53,15 @@ interface FileRecord {
 }
 
 // ========== 样式类名 ==========
-const containerClassName = cn('flex gap-4');
-const leftPanelClassName = cn('w-[240px] shrink-0');
-const rightPanelClassName = cn('min-w-0 flex-1');
+/* 页头独占一行，下面左树右表（同用户管理：grid + minmax(0,1fr) 才不会被宽表格撑破） */
+const containerClassName = cn('grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)]');
+const headerRowClassName = cn('lg:col-span-2');
+const leftPanelClassName = cn('min-w-0');
+const rightPanelClassName = cn('min-w-0');
 const cardClassName = cn('shadow-sm');
 const treeCardClassName = cn('h-full shadow-sm');
 const breadcrumbClassName = cn(
-  'mb-4 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400',
+  'text-muted-foreground mb-4 flex items-center gap-2 text-sm',
 );
 const actionClassName = cn(
   'flex',
@@ -447,7 +450,25 @@ const columns: BasicColumn[] = [
 </script>
 
 <template>
-  <div :class="containerClassName">
+  <div data-page-view :class="containerClassName">
+    <PageHeader
+      :class="headerRowClassName"
+      title="文件管理"
+      description="管理上传的文件与目录，支持分片上传与在线预览"
+      icon="carbon:folder"
+    >
+      <template #extra>
+        <Button variant="outline" @click="handleCreateFolder">
+          <Icon icon="ant-design:folder-add-outlined" />
+          新建文件夹
+        </Button>
+        <Button @click="handleUpload">
+          <Icon icon="ant-design:cloud-upload-outlined" />
+          上传文件
+        </Button>
+      </template>
+    </PageHeader>
+
     <!-- 左侧文件树 -->
     <div :class="leftPanelClassName">
       <Card :class="treeCardClassName" title="文件结构">
@@ -463,12 +484,21 @@ const columns: BasicColumn[] = [
     <!-- 右侧内容区 -->
     <div :class="rightPanelClassName">
       <Card title="文件列表" :class="cardClassName">
+        <!-- 批量删除作用于列表勾选，留在这一栏而不是页头 -->
+        <template #extra>
+          <Button variant="destructive" @click="handleBatchDelete">
+            <Icon icon="ant-design:delete-outlined" />
+            批量删除 (
+            {{ selectedRowKeys.length }}
+            )
+          </Button>
+        </template>
         <!-- 面包屑导航 -->
         <div :class="breadcrumbClassName">
           <span>当前位置：</span>
           <template v-for="(item, index) in currentPath" :key="item.key">
             <a
-              class="cursor-pointer transition-colors hover:text-blue-500"
+              class="cursor-pointer transition-colors hover:text-primary"
               @click="handleNavigateToFolder(item)"
               >{{ item.title }}</a>
             <span v-if="index < currentPath.length - 1" class="mx-1">/</span>
@@ -477,7 +507,7 @@ const columns: BasicColumn[] = [
 
         <!-- 统计信息 -->
         <div
-          class="mb-4 flex items-center gap-4 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+          class="mb-4 flex items-center gap-4 rounded-lg border border-border bg-muted px-3 py-2 text-xs text-muted-foreground"
         >
           <span>
             共
@@ -487,14 +517,14 @@ const columns: BasicColumn[] = [
           <span>|</span>
           <span>
             文件夹：
-            <span class="font-medium text-orange-500">{{
+            <span class="font-medium text-warning">{{
               currentStats.folders
             }}</span>
           </span>
           <span>|</span>
           <span>
             文件：
-            <span class="font-medium text-blue-500">{{
+            <span class="font-medium text-primary">{{
               currentStats.files
             }}</span>
           </span>
@@ -520,23 +550,6 @@ const columns: BasicColumn[] = [
           :action-column="{ width: 280, title: '操作', fixed: 'right' }"
           @register="tableRegister"
         >
-          <template #toolbar>
-            <Button @click="handleCreateFolder">
-              <Icon icon="ant-design:folder-add-outlined" />
-              新建文件夹
-            </Button>
-            <Button @click="handleUpload">
-              <Icon icon="ant-design:cloud-upload-outlined" />
-              上传文件
-            </Button>
-            <Button variant="destructive" @click="handleBatchDelete">
-              <Icon icon="ant-design:delete-outlined" />
-              批量删除 (
-              {{ selectedRowKeys.length }}
-              )
-            </Button>
-          </template>
-
           <template #cell-name="{ record }">
             <div class="flex min-w-0 items-center gap-2">
               <Icon
@@ -548,7 +561,7 @@ const columns: BasicColumn[] = [
                 class="shrink-0"
               />
               <span
-                class="cursor-pointer truncate transition-colors hover:text-blue-500"
+                class="cursor-pointer truncate transition-colors hover:text-primary"
                 :title="record.name"
                 >{{ record.name }}</span>
             </div>
@@ -638,12 +651,12 @@ const columns: BasicColumn[] = [
             />
           </p>
           <p class="text-sm">点击或拖拽文件到此区域上传</p>
-          <p class="mt-1 text-xs text-gray-400">
+          <p class="text-muted-foreground mt-1 text-xs">
             支持单个或批量上传，最大支持 10 个文件，单个文件不超过 100MB
           </p>
         </UploadDragger>
 
-        <div class="border-t border-gray-200 pt-3 dark:border-gray-700">
+        <div class="border-border border-t pt-3">
           <Button class="w-full" @click="handleSimulateUpload()">
             模拟上传（测试用）
           </Button>

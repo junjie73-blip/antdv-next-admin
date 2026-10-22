@@ -234,17 +234,22 @@ describe('data-theme 档位', () => {
     expect(html.style.getPropertyValue('--primary')).toBe('');
   });
 
+  /**
+   * 断言用 `hasAttribute` 而不是 `dataset.theme`。
+   * 属性缺席时 DOM 给的是 `undefined`，而 `toBeNull()` 只认 `null` ——
+   * 这条在 happy-dom 与 jsdom 下都会红，红的还是"实现是对的"那一侧。
+   */
   it('cssVars: false 时连档位一起不写', () => {
     applyPreferencesToDom(prefs({ primaryColor: '#722ed1' }), {
       cssVars: false,
       target: html,
     });
-    expect(html.dataset.theme).toBeNull();
+    expect(Object.hasOwn(html.dataset, 'theme')).toBe(false);
   });
 
   it('清场时把档位一并摘掉：残留的 data-theme 会让下次打开直接套上旧配色', () => {
     applyPreferencesToDom(prefs({ primaryColor: '#722ed1' }), { target: html });
     clearPreferencesFromDom({ target: html });
-    expect(html.dataset.theme).toBeNull();
+    expect(Object.hasOwn(html.dataset, 'theme')).toBe(false);
   });
 });

@@ -146,27 +146,18 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div
-    :class="
-      cn(
-        containerClassName,
-        'border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900',
-      )
-    "
-  >
+  <div :class="cn(containerClassName, 'border-border bg-card')">
     <!-- 标题 -->
     <div class="mb-4 flex items-center justify-between">
       <div>
-        <h3 class="text-base font-semibold text-gray-800 dark:text-white">
-          安全事件时间线
-        </h3>
-        <p class="mt-0.5 text-xs text-gray-400">近期安全事件追踪</p>
+        <h3 class="text-base font-semibold text-foreground">安全事件时间线</h3>
+        <p class="mt-0.5 text-xs text-muted-foreground">近期安全事件追踪</p>
       </div>
       <Badge
         :count="filteredEvents.filter((e) => e.status === 'pending').length"
         :offset="[2, 0]"
       >
-        <span class="text-xs text-gray-400">待处理</span>
+        <span class="text-xs text-muted-foreground">待处理</span>
       </Badge>
     </div>
 
@@ -237,7 +228,7 @@ onMounted(async () => {
             :color="getTimelineColor(event.level)"
           >
             <div
-              class="group -ml-4 flex items-start gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
+              class="group -ml-4 flex items-start gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted"
             >
               <!-- 图标 -->
               <div
@@ -245,12 +236,12 @@ onMounted(async () => {
                 :class="
                   cn(
                     event.level === 'critical'
-                      ? 'bg-red-50 text-red-500 dark:bg-red-950/30'
+                      ? 'bg-destructive/10 text-destructive'
                       : event.level === 'high'
-                        ? 'bg-orange-50 text-orange-500 dark:bg-orange-950/30'
+                        ? 'bg-warning/10 text-warning'
                         : event.level === 'medium'
-                          ? 'bg-blue-50 text-blue-500 dark:bg-blue-950/30'
-                          : 'bg-gray-50 text-gray-400 dark:bg-gray-800',
+                          ? 'bg-primary/10 text-primary'
+                          : 'bg-muted text-muted-foreground',
                   )
                 "
               >
@@ -264,9 +255,9 @@ onMounted(async () => {
               <!-- 内容 -->
               <div class="min-w-0 flex-1">
                 <div class="mb-1 flex flex-wrap items-center gap-2">
-                  <span
-                    class="text-sm font-medium text-gray-800 dark:text-gray-200"
-                    >{{ event.title }}</span>
+                  <span class="text-sm font-medium text-foreground">{{
+                    event.title
+                  }}</span>
                   <Tag
                     :color="getLevelTagColor(event.level)"
                     class="text-[10px]"
@@ -291,13 +282,11 @@ onMounted(async () => {
                     已处理
                   </Tag>
                 </div>
-                <p
-                  class="line-clamp-1 text-xs text-gray-500 dark:text-gray-400"
-                >
+                <p class="line-clamp-1 text-xs text-muted-foreground">
                   {{ event.description }}
                 </p>
                 <div
-                  class="mt-1.5 flex items-center gap-3 text-[11px] text-gray-400"
+                  class="mt-1.5 flex items-center gap-3 text-[11px] text-muted-foreground"
                 >
                   <span class="flex items-center gap-1">
                     <Icon icon="carbon:location" :width="12" :height="12" />

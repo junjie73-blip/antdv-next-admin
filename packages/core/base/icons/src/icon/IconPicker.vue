@@ -327,7 +327,10 @@ const prefixOptions = COLLECTIONS.map((c) => ({
         `[&>div]:min-h-full` 补的是 reka 插在 viewport 与 slot 之间那层没有高度的
         content div —— 没有它，"加载中"的 h-full 量不到高度，垂直居中就没了。
       -->
-      <div class="min-h-0 shrink pr-1" :style="{ height: `${SCROLLER_HEIGHT}px` }">
+      <div
+        class="min-h-0 shrink pr-1"
+        :style="{ height: `${SCROLLER_HEIGHT}px` }"
+      >
         <ScrollArea
           class="h-full"
           scrollbar-class="p-0 data-[orientation=horizontal]:h-1.5 data-[orientation=vertical]:w-1.5"
