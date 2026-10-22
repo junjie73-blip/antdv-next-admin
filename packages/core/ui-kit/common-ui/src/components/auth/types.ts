@@ -45,6 +45,12 @@ export interface AuthPageLayoutProps {
   appName?: string;
   /** 官方 logo 图片地址；不传则用 `#logo` 插槽，再没有就退成内置图标 */
   appLogo?: string;
+  /**
+   * 品牌栏大标题上方的引导语（如「企业级中后台解决方案」）。
+   *
+   * 只补一行小字：分栏版式里左栏是整屏高度的画布，光一句标题压不住那半屏空白。
+   */
+  brandBadge?: string;
   /** 页脚版权行 */
   copyright?: string;
   /** 品牌栏底部的特性列表，空数组时整块不渲染 */

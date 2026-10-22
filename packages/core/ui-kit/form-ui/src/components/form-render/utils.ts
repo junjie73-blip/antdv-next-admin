@@ -121,9 +121,17 @@ function isDayjsOrDate(value: unknown): value is Date | DayjsLike {
   return false;
 }
 
+function formatDateValue(value: unknown, formatStr: string): unknown {
+  if (!isDayjsOrDate(value)) return value;
+  return value instanceof Date
+    ? formatDate(value, formatStr)
+    : value.format(formatStr);
+}
+
 /**
  * 把日期类字段的值统一成字符串（dayjs / Date 都吃，控件返回哪个都行）。
- * 区间字段不在这里处理——它由 `handleRangeValue` 负责拆成起止两个键。
+ * 区间字段是 `[起, 止]`，逐位转换后仍保持数组形态：查询串靠 `arrayFormat: repeat`
+ * 出两个同名参数，后端才还原得回数组。
  */
 export function formatDateFields(
   values: Recordable,
@@ -148,17 +156,12 @@ export function formatDateFields(
         formatStr;
     }
 
-    if (component === 'RangePicker' || component === 'TimeRangePicker') {
+    if (Array.isArray(value)) {
+      result[field] = value.map((item) => formatDateValue(item, formatStr));
       return;
     }
 
-    if (isDayjsOrDate(value)) {
-      if (value instanceof Date) {
-        result[field] = formatDate(value, formatStr);
-      } else {
-        result[field] = value.format(formatStr);
-      }
-    }
+    result[field] = formatDateValue(value, formatStr);
   });
 
   return result;

@@ -12,10 +12,10 @@ const props = withDefaults(defineProps<AuthFormPanelProps>(), {
 
 <template>
   <!--
-    认证页表单列：`md:max-w-md` 是参考实现的收口宽度，窄屏靠 `px-6` 留出边距，
-    所以这里只管"多宽"，不管"多高"——垂直居中交给 `AuthPageLayout` 的表单栏。
+    认证页表单列：`md:max-w-md` 是参考实现的收口宽度，窄屏靠外层 `px-5` 留出边距，
+    所以这里只管"多宽"，不管"多高"——垂直居中与上下留白由 `AuthPageLayout` 的表单栏负责。
   -->
-  <div class="mt-6 w-full sm:mx-auto md:max-w-md" data-auth="form-panel">
+  <div class="w-full sm:mx-auto md:max-w-md" data-auth="form-panel">
     <div
       v-if="props.badge || props.title || props.description || $slots.extra"
       class="mb-7"

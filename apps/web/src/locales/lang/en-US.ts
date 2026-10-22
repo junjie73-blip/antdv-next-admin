@@ -48,6 +48,7 @@ export default {
 
   // ========== Auth shell (slogan copy shared by login / register) ==========
   auth: {
+    brandBadge: 'Enterprise admin platform',
     pointDesign: 'Modern UI design',
     pointPerformance: 'Fast developer experience',
     pointSecurity: 'Enterprise-grade security',

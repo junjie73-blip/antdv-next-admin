@@ -504,7 +504,11 @@ function onScroll(state: ListyScrollState) {
 
 ## Auth 系列（登录 / 注册页版式）
 
-`components/auth/` 四个组件：`AuthPageLayout`（三段式骨架 + 品牌栏）、`AuthFormPanel`（标题区 + 表单槽）、`AuthSocialLogin`（第三方入口行）、`AuthColorPresets`（工具条里的主题色触发点）。这一层不认识 store、路由与 i18n，文案和色板一律由宿主算好后传进来。
+`components/auth/` 四个组件：`AuthPageLayout`（整屏左右分栏外壳 + 品牌栏）、`AuthFormPanel`（标题区 + 表单槽）、`AuthSocialLogin`（第三方入口行）、`AuthColorPresets`（工具条里的主题色触发点）。这一层不认识 store、路由与 i18n，文案和色板一律由宿主算好后传进来。
+
+`AuthPageLayout` 的骨架是三层：`[data-auth="canvas"]` 是纯装饰层（`aria-hidden` + `pointer-events: none` + `overflow: hidden`，主色光斑 / 网格 / 蓝图圆弧 / 地平线都在这层，只从 `--primary` 推导，不引入第二套颜色），`[data-auth="card"]` 是分栏行本身（`lg` 以上左栏 `52%` 品牌、右栏 `48%` 表单，`lg` 以下收成单列、品牌栏直接 `hidden`），`[data-auth="footer"]` 绝对定位在底部（`lg` 起左对齐，跟品牌栏共用同一组水平内边距）。注意 `card` 这个钩子的语义已经从"视口正中那张卡片"变成"铺满视口宽度的分栏行"，几何断言要按这个来写。
+
+品牌栏右侧默认是一台界面示意（`[data-auth="slogan-visual"]`：窗口栏 + 侧边栏 + 三张 KPI 卡 + 12 根柱状 + 表格行），柱高是组件内写死的一组装饰值 —— 认证外壳刻意不接数据源，真接就得认识 store。`#sloganVisual` 插槽可以整块换掉，传了 `sloganImage` 则换成图片。`brandBadge` 是大标题上方那行引导语（如「企业级中后台解决方案」）：分栏版式的左栏是整屏高度的画布，光一句标题压不住那半屏空白。光斑漂移与网格视差是 28–40s 的慢周期动效，`prefers-reduced-motion: reduce` 下全部 `animation: none`。
 
 `AuthSocialItem.icon` 有两种形态：**字符串**按 iconify 图标名解析，**Vue 组件**原样渲染。组件形态是给"图标不在 iconify 离线集里"的场景留的口子 —— 品牌 logo 只能宿主自带。登录 / 注册页那四枚（GitHub / WeChat / QQ / Google）走的就是这条路：SVG 放在 `apps/web/src/assets/icons/`，`vite-plugin-svg-icons` 把它们打成 `#icon-<文件名>` 的雪碧图（注册脚本是 `main.ts` 里的 `import 'virtual:svg-icons-register'`），再用 `@antdv/icons` 的 `SvgIcon` 包一层：
 

@@ -27,7 +27,7 @@ import { go, HOME_PATH, signIn, watchErrors } from './utils/app';
  * 而 `SelectContent` 因为模板里写了 `relative` 才是 `relative`）—— 判据不能建立在
  * "某个包恰好多写了一个类"上，锚点交给下面的几何检查。
  */
-const CHECK = ([trigger, content]: [HTMLElement, HTMLElement]) => {
+const CHECK = ([trigger, content]: (HTMLElement | SVGElement)[]) => {
   const t = trigger.getBoundingClientRect();
   const r = content.getBoundingClientRect();
   const s = getComputedStyle(content);
@@ -126,7 +126,14 @@ const LAYERS: Array<{
     path: HOME_PATH,
     content: '[data-slot="dropdown-menu-content"]',
     open: async (page) => {
-      const trigger = page.getByRole('button', { name: '标签页操作' });
+      /*
+       * 这里不能用 `getByRole('button', { name: '标签页操作' })`：菜单是模态层，
+       * 打开后 reka 会给层外的一切（包括触发器本体）挂 `aria-hidden`，可访问名字
+       * 随之消失，role 定位器就从"点得到"变成"量不到"。测量用的是 DOM 归属，
+       * 所以锚在组件自带的钩子类上；名字对不对由上面 `expect(...).toBeVisible()`
+       * 与 `tabs.spec.ts` 负责。
+       */
+      const trigger = page.locator('button.tab-actions-trigger');
       await trigger.click();
       return trigger;
     },

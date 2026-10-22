@@ -278,9 +278,18 @@ const prefixOptions = COLLECTIONS.map((c) => ({
       </button>
     </PopoverTrigger>
 
-    <PopoverContent align="start" class="w-[560px] max-w-[92vw] p-3">
+    <!--
+      `max-h-(--reka-popover-content-available-height)`：reka 把"触发器到视口边缘的
+      可用高度"挂在这个变量上。不接它，面板就是净高 360 + 工具栏 + 分页的固定高度，
+      从别的页面跳进来（可用高度只剩 400 出头）时面板会顶出视口底部 —— 滚动区自己
+      能滚，但整块浮层超出屏幕，最下面一排图标点不到。
+    -->
+    <PopoverContent
+      align="start"
+      class="flex max-h-(--reka-popover-content-available-height) w-[560px] max-w-[92vw] flex-col p-3"
+    >
       <!-- 工具栏：分类下拉 + 搜索，同一行更紧凑 -->
-      <div class="mb-3 flex items-center gap-2">
+      <div class="mb-3 flex shrink-0 items-center gap-2">
         <Select v-model="selectedPrefix">
           <SelectTrigger class="w-[150px]" size="sm">
             <SelectValue placeholder="图标集" />
@@ -311,12 +320,14 @@ const prefixOptions = COLLECTIONS.map((c) => ({
       </div>
 
       <!--
-        图标网格：固定高度，滚动直接用 shadcn 的 ScrollArea（本包只引 shadcn-ui 原语，
+        图标网格：默认 360 高，空间不够时让它先缩（`min-h-0 shrink` 让行内 height
+        变成"可缩小的 flex-basis"，否则 flex 项的自动最小尺寸会顶住 360 不让缩）。
+        滚动直接用 shadcn 的 ScrollArea（本包只引 shadcn-ui 原语，
         不反向依赖 common-ui，否则 icons ↔ common-ui 会成环）。
         `[&>div]:min-h-full` 补的是 reka 插在 viewport 与 slot 之间那层没有高度的
         content div —— 没有它，"加载中"的 h-full 量不到高度，垂直居中就没了。
       -->
-      <div class="pr-1" :style="{ height: `${SCROLLER_HEIGHT}px` }">
+      <div class="min-h-0 shrink pr-1" :style="{ height: `${SCROLLER_HEIGHT}px` }">
         <ScrollArea
           class="h-full"
           scrollbar-class="p-0 data-[orientation=horizontal]:h-1.5 data-[orientation=vertical]:w-1.5"
@@ -370,7 +381,7 @@ const prefixOptions = COLLECTIONS.map((c) => ({
       <!-- 底部分页：仅超过一页时显示 -->
       <div
         v-if="totalCount > PAGE_SIZE"
-        class="border-input mt-3 flex items-center justify-between border-t pt-3"
+        class="border-input mt-3 flex shrink-0 items-center justify-between border-t pt-3"
       >
         <span class="text-muted-foreground text-xs">{{ totalCount }} 个图标</span>
         <div class="flex items-center gap-1">

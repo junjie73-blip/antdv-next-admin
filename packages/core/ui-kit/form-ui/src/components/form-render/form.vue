@@ -428,11 +428,13 @@ async function validate(nameList?: NamePath[]): Promise<Recordable> {
     throw failure;
   }
 
-  let processed = formatDateFields(values, schemas);
   const fieldMapToTime = getProps.value.fieldMapToTime;
-  return fieldMapToTime
-    ? handleRangeValue(processed, fieldMapToTime)
-    : processed;
+  // 先拆区间再格式化：`handleRangeValue` 拿到的是控件原值（dayjs/Date），
+  // 反过来会先出串再 `new Date(串)`，Safari 对 `'YYYY-MM-DD HH:mm:ss'` 不友好。
+  const ranged = fieldMapToTime
+    ? handleRangeValue(values, fieldMapToTime)
+    : values;
+  return formatDateFields(ranged, schemas);
 }
 
 async function validateFields(nameList?: NamePath[]): Promise<Recordable> {
@@ -444,18 +446,12 @@ async function handleSubmit() {
   try {
     const values = await validate();
     if (values) {
-      const schemas = unref(schemaRef) || [];
-      let processed = formatDateFields({ ...values }, schemas);
-      const fieldMapToTime = getProps.value.fieldMapToTime;
-      if (fieldMapToTime)
-        processed = handleRangeValue(processed, fieldMapToTime);
-
       if (typeof attrs.onFinish === 'function') {
-        (attrs.onFinish as (v: Recordable) => void)(processed);
+        (attrs.onFinish as (v: Recordable) => void)(values);
       } else if (getProps.value.submitFunc) {
         await getProps.value.submitFunc();
       } else {
-        emit('submit', processed);
+        emit('submit', values);
       }
     }
   } catch (error) {

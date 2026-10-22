@@ -35,6 +35,24 @@
 @import './css/permission.css';
 @import './css/scrollbar.css';
 
+/*
+ * 自带工具类的组件包（路径相对本文件）。
+ *
+ * 名单必须与 `packages/core/ui-kit/*` 的目录清单一一对上，漏一条就是那个包
+ * 模板里全部工具类静默不生成 —— 构建照样绿，只有样式没了。
+ * 守门：`__tests__/design.test.ts` 的「每个子包的源码目录都登记了 @source」
+ * 与 `@antdv/hooks` 的「@source 名单只属于 design」。
+ */
+@source '../../../../layouts/src';
+@source '../../icons/src';
+@source '../../../ui-kit/common-ui/src';
+@source '../../../ui-kit/form-ui/src';
+@source '../../../ui-kit/layout-ui/src';
+@source '../../../ui-kit/menu-ui/src';
+@source '../../../ui-kit/popup-ui/src';
+@source '../../../ui-kit/shadcn-ui/src';
+@source '../../../ui-kit/table-ui/src';
+@source '../../../ui-kit/tabs-ui/src';
 
 @plugin "@tailwindcss/typography";
 @plugin "@tailwindcss/nesting";

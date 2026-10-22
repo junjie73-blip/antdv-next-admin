@@ -200,12 +200,34 @@ describe('helper/formatDateFields', () => {
     expect(result.created).toBe('formatted:YYYY-MM-DD');
   });
 
-  it('rangePicker 字段跳过转换（与旧实现一致）', () => {
-    const fakeDayjs = { format: () => 'X' };
-    const result = formatDateFields({ range: [fakeDayjs, fakeDayjs] }, [
-      { field: 'range', component: 'RangePicker' },
+  it('区间字段逐位转成字符串，保持数组形态（查询串要 repeat 双值）', () => {
+    const start = { format: (f: string) => `S:${f}` };
+    const end = { format: (f: string) => `E:${f}` };
+    const result = formatDateFields({ dateRange: [start, end] }, [
+      {
+        field: 'dateRange',
+        component: 'RangePicker',
+        componentProps: { format: 'YYYY-MM-DD HH:mm:ss' },
+      },
     ] as any);
-    expect(result.range[0]).toBe(fakeDayjs);
+    expect(result.dateRange).toEqual([
+      'S:YYYY-MM-DD HH:mm:ss',
+      'E:YYYY-MM-DD HH:mm:ss',
+    ]);
+  });
+
+  it('区间里的 Date 也按 format 出串，字符串值原样保留', () => {
+    const result = formatDateFields(
+      { dateRange: [new Date(2024, 0, 2), '2024-01-01'] },
+      [
+        {
+          field: 'dateRange',
+          component: 'RangePicker',
+          componentProps: { valueFormat: 'YYYY-MM-DD' },
+        },
+      ] as any,
+    );
+    expect(result.dateRange).toEqual(['2024-01-02', '2024-01-01']);
   });
 });
 

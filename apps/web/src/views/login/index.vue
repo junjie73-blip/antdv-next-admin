@@ -208,6 +208,7 @@ function handleSocial(item: AuthSocialItem) {
   <AuthPageLayout
     :app-logo="logoUrl"
     :app-name="appTitle"
+    :brand-badge="t('auth.brandBadge')"
     :copyright="`Antdv Admin ${new Date().getFullYear()}`"
     :features="features"
     :page-description="t('auth.sloganDesc')"
@@ -400,20 +401,22 @@ function handleSocial(item: AuthSocialItem) {
       <div class="mb-2 mt-4 flex items-center justify-between gap-4">
         <AButton
           :variant="loginType === 'account' ? 'default' : 'outline'"
-          class="flex-1"
+          class="flex-1 gap-1.5"
           data-auth="mode-account"
           type="button"
           @click="loginType = 'account'"
         >
+          <Icon class="size-4" icon="carbon:user" />
           {{ t('login.accountLogin') }}
         </AButton>
         <AButton
           :variant="loginType === 'mobile' ? 'default' : 'outline'"
-          class="flex-1"
+          class="flex-1 gap-1.5"
           data-auth="mode-mobile"
           type="button"
           @click="loginType = 'mobile'"
         >
+          <Icon class="size-4" icon="carbon:mobile" />
           {{ t('login.mobileLogin') }}
         </AButton>
       </div>
@@ -437,12 +440,17 @@ function handleSocial(item: AuthSocialItem) {
         </AButton>
       </div>
 
-      <p
-        class="mt-3 text-center text-xs leading-relaxed text-muted-foreground"
+      <!-- 演示账号提示：后台系统的登录页普遍带这一条，做成信息条而不是孤立的小字 -->
+      <div
+        class="border-border/70 bg-foreground/[0.03] text-muted-foreground mt-5 flex items-start gap-2 rounded-lg border px-3 py-2.5 text-left text-xs leading-relaxed"
         data-auth="hint"
       >
-        {{ t('login.demoHint') }}
-      </p>
+        <Icon
+          class="text-primary mt-0.5 size-3.5 shrink-0"
+          icon="carbon:information-filled"
+        />
+        <span>{{ t('login.demoHint') }}</span>
+      </div>
     </AuthFormPanel>
   </AuthPageLayout>
 </template>

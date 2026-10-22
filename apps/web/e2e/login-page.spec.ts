@@ -107,7 +107,7 @@ test.describe('登录页的样式', () => {
 
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(auth(page, 'brand')).toBeHidden();
-    // 表单列不随断点消失，只是从 2/5 宽收成整屏
+    // 表单列不随断点消失，只是从半屏宽收成整屏
     await expect(auth(page, 'panel')).toBeVisible();
     await expect(auth(page, 'submit')).toBeVisible();
     // 装饰层溢出过一整次横向滚动条，这里钉住"不溢出视口"
@@ -185,19 +185,26 @@ test.describe('登录页的样式', () => {
     ).toBe(true);
   });
 
-  test('卡片左右两栏各占一半以上，表单不会挤成窄条', async ({ page }) => {
+  test('整屏左右分栏：两栏铺满视口宽度，表单列不被挤成窄条', async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/#/login');
 
     const card = await auth(page, 'card').boundingBox();
     const brand = await auth(page, 'brand').boundingBox();
     const panel = await auth(page, 'panel').boundingBox();
-    expect(card?.width).toBeCloseTo(1152, 0); // 1440 已过 xl 断点，卡片走 max-w-6xl
-    // 品牌栏 46% / 表单栏 54%，两栏加起来正好铺满卡片内容区（各边 1px 边框之外）
-    expect(brand!.width / card!.width).toBeGreaterThan(0.4);
-    expect(panel!.width / card!.width).toBeGreaterThan(0.5);
-    expect(brand!.width + panel!.width).toBeCloseTo(card!.width - 2, 0);
-    // 两栏顶边对齐，否则视觉上卡片像被切了一刀
-    expect(Math.abs(brand!.y - panel!.y)).toBeLessThan(1);
+    if (!card || !brand || !panel) throw new Error('分栏三块容器没有全部渲染');
+    // 版式从"视口正中一张卡片"换成了整屏分栏，容器宽度不再由 max-w 决定，而是跟着视口走
+    expect(card.width).toBeCloseTo(1440, 0);
+    // 品牌栏 52% / 表单栏 48%，两栏加起来正好铺满整屏
+    expect(brand.width / card.width).toBeGreaterThanOrEqual(0.5);
+    expect(panel.width / card.width).toBeGreaterThanOrEqual(0.45);
+    expect(brand.width + panel.width).toBeCloseTo(card.width, 0);
+    // 两栏顶边对齐且等高，否则分栏接缝会斜
+    expect(Math.abs(brand.y - panel.y)).toBeLessThan(1);
+    expect(Math.abs(brand.height - panel.height)).toBeLessThan(1);
+    // 表单列留出可用的输入宽度（AuthFormPanel 收口在 max-w-md，两边还要放得下内边距）
+    expect(panel.width).toBeGreaterThan(560);
   });
 });

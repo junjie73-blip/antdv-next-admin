@@ -658,7 +658,7 @@ importers:
   .:
     dependencies:
       '@tanstack/vue-store':
-        specifier: ^0.11.2
+        specifier: 'catalog:'
         version: 0.11.2(vue@3.5.43(typescript@6.0.3))
     devDependencies:
       '@antdv/commitlint-config':

@@ -6,6 +6,7 @@ import { MarkdownEditor } from '@antdv/common-ui';
 import { describe, expect, it, vi } from 'vitest';
 
 import FCheckbox from '../src/fields/FCheckbox.vue';
+import FDatePicker from '../src/fields/FDatePicker.vue';
 import FInput from '../src/fields/FInput.vue';
 import FInputNumber from '../src/fields/FInputNumber.vue';
 import FMarkdown from '../src/fields/FMarkdown.vue';
@@ -73,6 +74,62 @@ describe('fInputNumber', () => {
     const wrapper = mount(FInputNumber, { props: { value: 5 } });
     await wrapper.find('input').setValue('');
     expect(wrapper.emitted('update:value')?.[0]).toEqual([undefined]);
+  });
+});
+
+/**
+ * 区间模式的占位符全站四个调用点传的都是**数组**（`['开始时间', '结束时间']`），
+ * 而 props 里一度只声明 `string`：Vue 只打一条 "Invalid prop" warning 就照常渲染，
+ * 显示时数组被 `join(',')` 成"开始时间,结束时间"，跟内置默认的 ` - ` 分隔不一致。
+ * 症状是"页面看着没坏、控制台一直在报"，所以文案与 warning 一起钉住。
+ */
+describe('fDatePicker', () => {
+  function controlText(wrapper: ReturnType<typeof mount>) {
+    return wrapper.find('[data-field-control]').text().trim();
+  }
+
+  it('区间模式接得住数组占位符，并按内置分隔符连接', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const wrapper = mount(FDatePicker, {
+      props: { range: true, placeholder: ['开始时间', '结束时间'] },
+    });
+
+    expect(controlText(wrapper)).toBe('开始时间 - 结束时间');
+    expect(
+      warn.mock.calls.map((args) => args.join(' ')).join('\n'),
+    ).not.toContain('Invalid prop');
+
+    warn.mockRestore();
+  });
+
+  it('单值模式字符串占位符照原样显示', () => {
+    const wrapper = mount(FDatePicker, { props: { placeholder: '出货日期' } });
+    expect(controlText(wrapper)).toBe('出货日期');
+  });
+
+  it('不传占位符时按模式回落：单日期 / 区间各一条', () => {
+    expect(controlText(mount(FDatePicker))).toBe('请选择日期');
+    expect(controlText(mount(FDatePicker, { props: { range: true } }))).toBe(
+      '开始日期 - 结束日期',
+    );
+  });
+
+  it('空字符串与空数组也算没传，不许显示成空白格子', () => {
+    expect(
+      controlText(mount(FDatePicker, { props: { placeholder: '' } })),
+    ).toBe('请选择日期');
+    expect(
+      controlText(
+        mount(FDatePicker, { props: { range: true, placeholder: [] } }),
+      ),
+    ).toBe('开始日期 - 结束日期');
+  });
+
+  it('有值时显示格式化结果而不是占位符', () => {
+    const wrapper = mount(FDatePicker, {
+      props: { value: '2026-01-05', placeholder: '请选择日期' },
+    });
+    expect(controlText(wrapper)).toContain('2026-01-05');
   });
 });
 

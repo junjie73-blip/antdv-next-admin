@@ -205,6 +205,7 @@ function handleSocial(item: AuthSocialItem) {
   <AuthPageLayout
     :app-logo="logoUrl"
     :app-name="appTitle"
+    :brand-badge="t('auth.brandBadge')"
     :copyright="`Antdv Admin ${new Date().getFullYear()}`"
     :features="features"
     :page-description="t('auth.sloganDesc')"

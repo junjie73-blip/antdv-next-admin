@@ -103,6 +103,42 @@ test.describe('IconPicker（shadcn-ui 重写）', () => {
     errors.stop();
   });
 
+  /**
+   * 矮视口：面板必须自己收进视口，而不是把网格顶到屏幕外。
+   *
+   * 面板原本是"固定净高 + 工具栏 + 分页"的硬高度，从别的页面跳进来时
+   * 触发器到视口底部只剩 400 出头，多出来的那截看不见也点不到，
+   * 而构建、单测、常规视口下的用例全都察觉不到。
+   * 判据只看浏览器算出来的盒子：面板上下都必须在视口内，
+   * 并且仍然有可用的网格高度（否则"收进视口"会退化成"压成一条"也算过）。
+   */
+  test('矮视口下面板完整落在视口内', async ({ page }) => {
+    await page.setViewportSize({ height: 560, width: 1280 });
+    await go(page, ICON_PICKER);
+
+    const basic = card(page, '基础用法');
+    await trigger(page, basic).click();
+
+    const box = panel(page);
+    await expect(box).toBeVisible();
+    await box.evaluate((el) =>
+      Promise.all(el.getAnimations().map((a) => a.finished)).then(() => null),
+    );
+
+    const rect = await box.boundingBox();
+    expect(rect, '面板没量到盒子').not.toBeNull();
+    const { height, y } = rect as { height: number; y: number };
+
+    expect(y, `面板顶出视口上方（y=${Math.round(y)}）`).toBeGreaterThanOrEqual(0);
+    expect(
+      y + height,
+      `面板底边超出视口（bottom=${Math.round(y + height)} / 视口高 560）`,
+    ).toBeLessThanOrEqual(560);
+    // 反向自证：收进视口不等于压扁，网格至少还能放下两行图标
+    expect(height, `面板被压得太矮（height=${Math.round(height)}）`).toBeGreaterThan(120);
+    await expect(cells(box)).toHaveCount(PAGE_SIZE);
+  });
+
   test('换分类：动态 chunk 生效，搜索框占位符跟着换', async ({ page }) => {
     const errors = watchErrors(page);
     await go(page, ICON_PICKER);

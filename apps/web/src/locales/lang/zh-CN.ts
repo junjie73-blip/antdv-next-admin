@@ -48,6 +48,7 @@ export default {
 
   // ========== 认证页外壳（登录 / 注册共用的版式文案） ==========
   auth: {
+    brandBadge: '企业级中后台解决方案',
     pointDesign: '现代化 UI 设计',
     pointPerformance: '极速开发体验',
     pointSecurity: '企业级安全保障',

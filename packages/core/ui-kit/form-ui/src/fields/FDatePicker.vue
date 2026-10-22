@@ -20,7 +20,13 @@ interface Props {
   format?: string;
   id?: string;
   picker?: 'date' | 'month' | 'week';
-  placeholder?: string;
+  /**
+   * 区间选择器传数组（`['开始时间', '结束时间']`）是全站四个调用点的既有写法，
+   * schema 那侧不做转换，所以这里必须接得住：写成 `string` 的话 Vue 只会打一条
+   * prop 类型 warning，显示时数组被 `join(',')` 成"开始时间,结束时间"，
+   * 分隔符与全站统一的"空格 - 空格"不一致，但看着也不算坏 —— 属于不会有人发现的那种。
+   */
+  placeholder?: string | string[];
   range?: boolean;
   showTime?: boolean;
   value?: any;
@@ -97,6 +103,15 @@ const hasValue = computed(() =>
       (toDayjs(props.value[0]) || toDayjs(props.value[1]))
     : currentValue.value !== null,
 );
+
+/** 数组取两端、用与内置区间占位一致的 ` - ` 连接；空串与空数组一律回落到默认文案 */
+const placeholderText = computed(() => {
+  const raw = Array.isArray(props.placeholder)
+    ? props.placeholder.filter(Boolean).join(' - ')
+    : props.placeholder;
+  if (raw) return raw;
+  return props.range ? '开始日期 - 结束日期' : '请选择日期';
+});
 
 const timeValue = computed(() => {
   const d = currentValue.value;
@@ -199,11 +214,7 @@ function clear(event: MouseEvent) {
           )
         "
       >
-        <span class="truncate">{{
-          hasValue
-            ? displayText
-            : placeholder || (range ? '开始日期 - 结束日期' : '请选择日期')
-        }}</span>
+        <span class="truncate">{{ hasValue ? displayText : placeholderText }}</span>
         <span
           v-if="allowClear && hasValue && !disabled"
           class="shrink-0 cursor-pointer opacity-60 hover:opacity-100"

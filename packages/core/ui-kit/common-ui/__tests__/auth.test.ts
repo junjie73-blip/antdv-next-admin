@@ -144,6 +144,38 @@ describe('authPageLayout', () => {
     expect(wrapper.find('[data-auth="footer"]').exists()).toBe(false);
   });
 
+  it('背景画布是装饰层：存在、有 data 钩子、对读屏与鼠标都不参与', () => {
+    const wrapper = mount(AuthPageLayout);
+    const canvas = wrapper.find('[data-auth="canvas"]');
+    expect(canvas.exists()).toBe(true);
+    expect(canvas.attributes('aria-hidden')).toBe('true');
+    // 画布压在整页底下，一旦带上内容就会把表单的点击与选区全吃掉
+    expect(canvas.findAll('img, a, button, input')).toHaveLength(0);
+  });
+
+  it('brandBadge 画在品牌栏铭牌上，不传就整条不留', () => {
+    const withBadge = mount(AuthPageLayout, {
+      props: { brandBadge: '企业级中后台' },
+    });
+    expect(withBadge.find('[data-auth="brand-badge"]').text()).toBe(
+      '企业级中后台',
+    );
+
+    const bare = mount(AuthPageLayout);
+    expect(bare.find('[data-auth="brand-badge"]').exists()).toBe(false);
+  });
+
+  it('界面示意是纯 CSS 骨架，柱状图的高度逐条落到内联样式上', () => {
+    const wrapper = mount(AuthPageLayout);
+    const bars = wrapper.findAll(
+      '[data-auth="slogan-visual"] .auth-console__bar',
+    );
+    expect(bars.length).toBeGreaterThan(8);
+    const firstBarStyle = bars[0]?.attributes('style') ?? '';
+    expect(firstBarStyle).toContain('height:');
+    expect(firstBarStyle).not.toContain('height: undefined');
+  });
+
   it('appLogo 有值时左上用图片，否则用主色方块', () => {
     const withLogo = mount(AuthPageLayout, {
       props: { appLogo: '/logo.png', appName: 'Antdv' },

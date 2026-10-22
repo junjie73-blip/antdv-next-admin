@@ -41,7 +41,7 @@ function isIconifyName(icon: AuthSocialItem['icon']): icon is string {
         :key="item.value"
         :aria-label="item.label"
         :title="item.label"
-        class="hover:text-primary hover:bg-primary/10 inline-flex size-8 cursor-pointer items-center justify-center rounded-full text-foreground/70 transition-colors"
+        class="border-border/70 text-foreground/70 hover:border-primary/50 hover:text-primary inline-flex size-9 cursor-pointer items-center justify-center rounded-full border transition-[color,border-color,transform] duration-200 hover:-translate-y-0.5"
         type="button"
         @click="emit('select', item)"
       >
