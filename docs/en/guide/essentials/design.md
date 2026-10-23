@@ -32,7 +32,7 @@ Light and dark are **two independent value sets**, not "light with a few tweaks"
 ::: warning What `@antdv/design` does not contain
 
 - **No components**: the package has not a single `.vue` file and no `src/index.ts`. The shared display components (Card, Tag, Steps …) live in `@antdv/common-ui`, the icon atoms in `@antdv/icons`; the comment at `index.css:18` states exactly this boundary.
-- **No component-library awareness**: it imports no JS from any component library and no style compatibility layer either — every token and rule is owned by this package, so renaming or swapping a component library never requires a change here. The one leftover is the pair of `.ant-upload` cursor rules in `css/base.css:128-134` (antd leaves `cursor: pointer` off its upload trigger; deletable once that DOM is gone from the page).
+- **No component-library awareness**: it imports no JS from any component library and no style compatibility layer either — every token and rule is owned by this package, so renaming or swapping a component library never requires a change here. The two leftover `.ant-upload` cursor rules (antd forgot `cursor: pointer` on its upload trigger) retired together with that DOM, and the boundary is now **nailed shut from the other side**: outside comments, `.ant-` may not appear in the global partials (`__tests__/design.test.ts:528-529`), with separate guards for `--ant-` and the `-ant-` utility family (`:461`, `:464`). Every clickable element's cursor is attached by this package, by tag and by `role` (`css/base.css:123-129` buttons, `:154-164` checkbox/radio/select, `:175-192` the ARIA role group, `:144-148` `<a href>`), so nothing relies on a browser user-agent stylesheet any more.
 - **No business styling**: thin shells that need a store (for instance `packages/layouts/src/basic/content/page-loading.vue`) stay in the app and are never moved here. :::
 
 ## The layer order is declared explicitly
@@ -120,7 +120,7 @@ The convention is **utilities + `cn()`**, where `cn()` = clsx + tailwind-merge (
 | --- | --- |
 | Conditional class names / merging an incoming class | `cn('base', cond && 'x', props.class)` |
 | Theme colors | this package's bare token names `bg-primary` / `text-muted-foreground` / `border-input`; in inline styles or passed params, `bg-[hsl(var(--primary))]`. The antd compatibility layer's `*-ant-*` utilities are no longer generated — writing them silently drops the style, which `__tests__/design.test.ts:464` guards |
-| Small reusable chunks | the shared classes `.icon`, `.outline-box`, `.outline-box-active` (`css/base.css:83-92`) |
+| Small reusable chunks | the shared classes `.icon`, `.outline-box`, `.outline-box-active` (`css/base.css:96-107`) |
 | Transitions / keyframes | only then open a `<style scoped>` |
 
 ::: warning
@@ -136,6 +136,26 @@ Tailwind only understands literal class names
 Do not pad the outer container of a route page. Content padding belongs to the layout; a page that adds its own layer doubles it when the layout shape changes. See [Local development](/en/guide/essentials/development) and [Layout and tabs](/en/guide/in-depth/layout). :::
 
 Do not pin colors. There is now exactly **one** primary-colour chain: the preference is folded into `--primary` on `<html>` by `applyPreferencesToDom()` (`packages/core/preferences/src/update-css-variables.ts:39`) — only a hand-picked colour is inlined, a preset hands the whole palette to `[data-theme]` — and `@theme inline` maps it onto the `bg-primary` family, so content inside the page and overlays portalled to `body` resolve the same value; one screen cannot contain two oranges. Test assertions must still not name concrete color values — assert under light mode, or assert the _same-source relation_ (two elements' computed colours are equal). Details in [Theming](/en/guide/in-depth/theme).
+
+## The admin page shell (header / sections / surfaces)
+
+The layout pass distilled "what an admin page looks like" into four rules. 17 business pages (all of `system`, plus `security/dashboard`, `account/center`, `account/settings`, `dashboard/analysis`) and 4 page-private components already follow them, and the rules are **written as a source contract**:
+
+| Rule | What it means in practice |
+| --- | --- |
+| One source for the page header | Every page puts `<PageHeader>` at its root; the `<h1>` is rendered by it, and a hand-written `<h1>` in the page template turns the guard red. Right-side actions go into `#extra`, the note into `description`, the badge into `icon` (the primary-tinted chip only renders when it is given). Component details in [Shared components · page shell](/en/components/common-ui) |
+| Sections are `Card`, not bare `div` | Several blocks on one page are separated by `Card` (default `outlined`); the page name is already stated in the header, so card titles do not repeat it |
+| Neutral surfaces always use tokens | Backgrounds, borders and body greys come only from the `bg-background` / `bg-card` / `bg-muted` / `border-border` / `text-muted-foreground` family; `bg-white`, `text-gray-*`, `border-slate-*`, `bg-zinc-*`, pure white and pure black may not appear in the listed files' source — switch to dark or to a preset and a hard-coded grey scale is exactly how "white text on white" happens. **Categorical colours are exempt** (a `blue` / `violet` / `emerald` / `amber` / `cyan` palette labels "things of the same kind", it is not status semantics, and squeezing it into the four status colours would flatten the distinction; the exempt family is the `CATEGORICAL` list at `page-shell-convention.spec.ts:32-33`, which also covers indigo / sky / teal / rose / orange / fuchsia / purple / green / red / yellow), but they **must be paired with a `dark:` step** or dark mode smudges the same way |
+| One owner for vertical rhythm | The page root container writes no padding (content padding belongs to the layout — see the warning above), and the gaps between pages and between blocks come from the root's `space-y-*` / `gap`. The **root elements of `PageHeader` / `PageToolbar` carry no margin or padding** — whoever adds a step there breaks the guard, because double spacing is the symptom this pass removed |
+
+The guarding is split in two, each covering the dimension the other cannot:
+
+- Source side: `apps/web/src/views/__tests__/page-shell-convention.spec.ts` — whether the listed pages and their private components use only token greys, whether categorical colours come in pairs, whether `<PageHeader>` + `data-page-view` are mounted, whether a hand-written `<h1>` slipped into the template, and whether the two shell components' root elements grew spacing. End-to-end cannot judge these: the browser sees the whole subtree and counts the utility classes the shared components bring themselves (shadcn's destructive button literally says `text-white dark:bg-destructive/60`).
+- Rendered side: `apps/web/e2e/page-shell.spec.ts` plus `apps/web/src/views/__tests__/page-root-padding.spec.ts` — in the real DOM whether the header renders, whether there is exactly one `h1`, whether the content background equals the current theme's `--muted`, whether narrow screens stack as intended.
+
+::: warning Known debt (not in the list, not covered by the sweep)
+
+Outside the list there are still **38 files / 289 lines** of hard-coded neutral utilities (measured with the guard's own criteria: same regex, comments stripped first, same file list) — concentrated in the `views/components/**` example pages, worst first: editor 37 lines, upload 28, loading 26, modal-drawer 26, image-crop 19, drag-layout 16, scroll 14, count-to 12 — plus 13 lines across `views/error/{403,404,503}.vue`, 8 in `views/micro-app/SubAppView.vue` and 10 in `views/screen/**`. Those are examples and error pages, deliberately left out of this pass. A new business page should start from the skeleton the listed pages use (`apps/web/src/views/system/user/index.vue` is the reference page) and add its path to `PAGES` in `page-shell-convention.spec.ts`. :::
 
 ## stylelint status
 

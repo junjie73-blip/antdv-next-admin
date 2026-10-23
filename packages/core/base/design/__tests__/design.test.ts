@@ -516,6 +516,15 @@ describe('@antdv/design —— 分部职责', () => {
     // 带 ARIA role 的自定义控件（评分、开关等）：role 本身就是在宣布"这里能点"
     expect(base).toContain("[role='radio']:not([aria-disabled='true'])");
     expect(base).toContain("[role='button'][disabled]");
+    /*
+     * `<a href>`：Chromium 的 UA 表给 pointer，WebKit 静止态算 `auto`（三引擎整跑时
+     * 只有 webkit 在 `cursor.spec.ts` 的全站扫描里红）。所以链接的光标也必须自己写死，
+     * 并且要待在 `@layer base` 里 —— 层外规则压过工具类，会把
+     * `<a class="cursor-not-allowed">` 这类显式表态盖掉。
+     */
+    expect(base).toMatch(
+      /@layer base\s*\{[^}]*a\[href\]\s*\{\s*@apply cursor-pointer;/u,
+    );
     // antdv-next 已退场，`.ant-upload` 那类第三方作用域类不该再出现在全局分部里
     expect(stripComments(base)).not.toContain('.ant-');
   });

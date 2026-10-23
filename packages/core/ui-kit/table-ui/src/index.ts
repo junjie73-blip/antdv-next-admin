@@ -35,14 +35,35 @@ export {
   truncateText,
 } from './helper';
 
+export { resolveCellContent } from './helpers/cellContent';
+export type {
+  CellContentHandlers,
+  CellEditPayload,
+} from './helpers/cellContent';
+// 单元格渲染与 VNode 落地的辅助件（模板里渲染 `title` / `footer` / `customRender` 用的就是它们）
+export { RenderVNode } from './helpers/renderVNode';
 // Hooks
 export { useColumns } from './hooks/useColumns';
 export { useDataSource } from './hooks/useDataSource';
 export { useDragSort } from './hooks/useDragSort';
 export { useLoading } from './hooks/useLoading';
+export { useMergedProps } from './hooks/useMergedProps';
 export { usePagination } from './hooks/usePagination';
+export { usePaginationModel } from './hooks/usePaginationModel';
+export type { PaginationInfo } from './hooks/usePaginationModel';
 export { useRowSelection } from './hooks/useRowSelection';
+export { useSelectionColumn } from './hooks/useSelectionColumn';
+export { useStickyColumns } from './hooks/useStickyColumns';
+export { useTableApi } from './hooks/useTableApi';
+export { useTableChange } from './hooks/useTableChange';
+export { useTableClasses } from './hooks/useTableClasses';
+
+export { useTableFilters } from './hooks/useTableFilters';
 export { useTableForm } from './hooks/useTableForm';
+export { useTableRows } from './hooks/useTableRows';
+export type { DisplayRow } from './hooks/useTableRows';
+export { useTableSorting } from './hooks/useTableSorting';
+export type { SorterPayload } from './hooks/useTableSorting';
 // 类型
 export type {
   ActionColumnProps,

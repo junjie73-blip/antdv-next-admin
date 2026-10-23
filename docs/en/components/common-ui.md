@@ -1,6 +1,6 @@
 # Shared Components (`@antdv/common-ui`)
 
-This page documents `packages/core/ui-kit/common-ui` — the route-agnostic, cross-page presentational components: 56 exported values. Every one of them is **composed from primitives in `@antdv/shadcn-ui`** (reka-ui); the package does not know antdv-next exists and does not know the app exists — no store, no router, no `~/...` alias inside.
+This page documents `packages/core/ui-kit/common-ui` — the route-agnostic, cross-page presentational components: 61 exported values. Every one of them is **composed from primitives in `@antdv/shadcn-ui`** (reka-ui); the package does not know antdv-next exists and does not know the app exists — no store, no router, no `~/...` alias inside.
 
 The refactor landed in code before it landed in docs, so this page is the catch-up: `Description` and `CountTo`, which used to live in `apps/web/src/components/business/`, are now in this package, and a second batch (Badge, Steps, Result, Transfer, Image, Upload, Tabs …) was extracted from demo pages that each kept their own copy.
 
@@ -41,11 +41,12 @@ Internal cross-references use relative paths (`status-tag/StatusTag.vue:6` impor
 
 ## Full export list
 
-The 56 value exports from `src/index.ts`, grouped by purpose:
+The 61 value exports from `src/index.ts`, grouped by purpose:
 
 | Group | Exports |
 | --- | --- |
 | Containers & layout | `Card`, `Divider`, `Space`, `Empty`, `EmptyState`, `ErrorBoundary` |
+| Page shell | `PageHeader`, `PageToolbar`, `ToolbarField` |
 | Status & identity | `Badge`, `Tag`, `StatusTag`, `Alert`, `Result`, `Steps` |
 | Data display | `Description`, `Descriptions`, `DescriptionsItem`, `Statistic`, `CountTo`, `Image`, `Listy`, `Timeline`, `TimelineItem`, `Tooltip` |
 | Interaction & switching | `Tabs`, `TabPane`, `Segmented`, `Popconfirm`, `Transfer`, `Tree` |
@@ -55,15 +56,16 @@ The 56 value exports from `src/index.ts`, grouped by purpose:
 | Editors | `CronEditor`, `MarkdownEditor` |
 | Auth page chrome | `AuthColorPresets`, `AuthFormPanel`, `AuthPageLayout`, `AuthSocialLogin` |
 | Toast container | `Toaster` |
+| Update prompt | `ReloadPrompt` (the floating button from the update checker, see `guide/in-depth/check-update.md`) |
 | Global config | `ConfigProvider`, `DEFAULT_GLOBAL_CONFIG`, `GLOBAL_CONFIG_KEY`, `normalizeComponentSize`, `textsByLocale`, `useGlobalConfig` |
 | Decorative motion | `BorderBeam` |
-| Injection key | `DESCRIPTION_DICT_RESOLVER` |
+| Injection keys | `DESCRIPTION_DICT_RESOLVER`, `PERMISSION_CHECK` (the permission hook the import/export components call) |
 
-Type exports: `BorderBeamProps`, `CountToEvents` / `CountToInstance` / `CountToProps`, `CronEditorEmits` / `CronEditorProps` / `CronField` / `CronPreset`, `DescriptionInstance` / `DescriptionItem` / `DescriptionLayout` / `DescriptionProps` / `DescriptionSize` / `DictResolver`, `ComponentSizeOption` / `Direction` / `GlobalConfig` / `GlobalTheme` / `LocaleKey` / `ResolvedComponentSize` / `ResolvedGlobalConfig`, `ListyEmits` / `ListyItem` / `ListyItemHeight` / `ListyProps` / `ListyRow` / `ListyScrollState` / `ListyScrollToOptions` / `ListySize`, `LoadingProps` / `LoadingSize` / `LoadingTheme` / `LoadingInstance` / `CreateLoadingOptions` / `UseLoadingOptions` / `LoadingDirectiveBinding`, the ten `markdown-editor` types (seven `MarkdownEditor*` plus `ImageUploadConfig` / `UploadResponse` / `VideoUploadConfig`), `MicroAppContainerProps` / `MicroAppContainerEmits`, `ScrollbarProps` / `ScrollbarStyle` / `ScrollbarType`, `TabPaneProps`, `ToasterProps` (vue-sonner's type, re-exported), `TransferDirection` / `TransferItem` / `TransferKey`, `NormalTreeNode` / `TreeContext` / `TreeFieldNames` / `TreeKey`, `UploadChangeParam` / `UploadFile` / `UploadListType` / `UploadRequestOptions`, plus the `Auth*Props` types with `AuthColorPreset` / `AuthFeatureItem` / `AuthSocialItem`. `EChartsProps` is not on this list — it only leaves through `@antdv/common-ui/charts`.
+Type exports: `BorderBeamProps`, `CountToEvents` / `CountToInstance` / `CountToProps`, `CronEditorEmits` / `CronEditorProps` / `CronField` / `CronPreset`, `DescriptionInstance` / `DescriptionItem` / `DescriptionLayout` / `DescriptionProps` / `DescriptionSize` / `DictResolver`, `ComponentSizeOption` / `Direction` / `GlobalConfig` / `GlobalTheme` / `LocaleKey` / `ResolvedComponentSize` / `ResolvedGlobalConfig`, `ListyEmits` / `ListyItem` / `ListyItemHeight` / `ListyProps` / `ListyRow` / `ListyScrollState` / `ListyScrollToOptions` / `ListySize`, `LoadingProps` / `LoadingSize` / `LoadingTheme` / `LoadingInstance` / `CreateLoadingOptions` / `UseLoadingOptions` / `LoadingDirectiveBinding`, the ten `markdown-editor` types (seven `MarkdownEditor*` plus `ImageUploadConfig` / `UploadResponse` / `VideoUploadConfig`), `MicroAppContainerProps` / `MicroAppContainerEmits`, `PageHeaderProps` / `PageToolbarProps` / `ToolbarFieldProps`, `PermissionChecker`, `ScrollbarProps` / `ScrollbarStyle` / `ScrollbarType`, `TabPaneProps`, `ToasterProps` (vue-sonner's type, re-exported), `TransferDirection` / `TransferItem` / `TransferKey`, `NormalTreeNode` / `TreeContext` / `TreeFieldNames` / `TreeKey`, `UploadChangeParam` / `UploadFile` / `UploadListType` / `UploadRequestOptions`, plus the `Auth*Props` types with `AuthColorPreset` / `AuthFeatureItem` / `AuthSocialItem`. `EChartsProps` is not on this list — it only leaves through `@antdv/common-ui/charts`.
 
 ::: warning `UploadProps` is not exported
 
-`components/upload/index.ts` declares `export type { UploadProps }`, but the re-export block in `src/index.ts:144-150` does not include it. To type Upload props in a page, compose `import type { UploadFile, UploadChangeParam } from '@antdv/common-ui'` instead — or leave it untyped. :::
+`components/upload/index.ts` declares `export type { UploadProps }`, but the re-export block in `packages/core/ui-kit/common-ui/src/index.ts:161-166` does not include it. To type Upload props in a page, compose `import type { UploadFile, UploadChangeParam } from '@antdv/common-ui'` instead — or leave it untyped. :::
 
 ## ConfigProvider (global config)
 
@@ -74,9 +76,9 @@ Type exports: `BorderBeamProps`, `CountToEvents` / `CountToInstance` / `CountToP
 | prop | default | behaviour |
 | --- | --- | --- |
 | `locale` | `'zh-CN'` | Drives the built-in copy (`okText` / `cancelText` / `emptyText`) and is handed to the reka base, where the date and number primitives read it through `useLocale()` for `Intl` typography — see [Date typography goes through reka's injection](#date-typography-goes-through-reka-s-injection) |
-| `okText` / `cancelText` / `emptyText` | expanded from `locale` | `textsByLocale` (`types.ts:131-139`) ships exactly two locales; passing one explicitly overrides that word |
+| `okText` / `cancelText` / `emptyText` | expanded from `locale` | `textsByLocale` (`config-provider/types.ts:132-141`) ships exactly two locales; passing one explicitly overrides that word |
 | `placeholder` | `'-'` | Empty-value placeholder, used by `Description` and when a dictionary lookup misses |
-| `componentSize` | `'medium'` | Size scale. `'middle'` is the legacy alias in `@antdv/types`, folded into `'medium'` while resolving (`normalizeComponentSize`, `types.ts:141-146`), so readers only ever see three levels |
+| `componentSize` | `'medium'` | Size scale. `'middle'` is the legacy alias in `@antdv/types`, folded into `'medium'` while resolving (`normalizeComponentSize`, `config-provider/types.ts:143-148`), so readers only ever see three levels |
 | `dir` | `'ltr'` | Text direction — passed to reka (popup placement, typography) and written as the container's `dir` attribute |
 | `theme` | `{}` | Sub-tree theme override: `mode` (`dark` / `light` / `system`), `preset`, `primary`, `radius` — see `GlobalTheme` (`types.ts:29-50`) |
 | `cssVars` | `{}` | Escape hatch for arbitrary CSS variables, written **last**, so it wins over the variables derived from `theme` |
@@ -135,7 +137,7 @@ An inner provider overrides only the fields it explicitly sets and inherits the 
 - Copy inherits the outer **resolved** value: if the outer provider pins `okText: 'Confirm'`, the inner one does not fall back to "确定 / OK". But an inner provider that changes `locale` re-expands the words for that language — someone switching language wants that language, not an ancestor's custom strings.
 - `theme` and `cssVars` merge shallowly: changing only `radius` inside keeps the outer primary colour and mode.
 
-Real usage: `apps/web/src/App.vue:76-79` mounts it at the root with just `component-size` and `locale` (preferences stay the single source). `theme` / `cssVars` are intentionally left empty there, so the primary colour and radius keep being written by `applyPreferencesToDom()` on `<html>` — one write side per concern.
+Real usage: `apps/web/src/App.vue:48-51` (the config object is at `:41-44`) mounts it at the root with just `component-size` and `locale` (preferences stay the single source). `theme` / `cssVars` are intentionally left empty there, so the primary colour and radius keep being written by `applyPreferencesToDom()` on `<html>` — one write side per concern.
 
 ## Badge
 
@@ -363,7 +365,7 @@ Two components solve the same job: `Descriptions` + `DescriptionsItem` are **dec
 Four limits, each verified against behaviour
 
 - **`type: 'tag'` does not render a Tag**: `case 'tag'` falls into the same default branch as `case 'text'` (`:163-165`). Use `render` with `h(Tag,...)` instead.
-- **`type: 'dict'` no longer reads the pinia dictionary store**: it is injection-based now — the host calls `provide(DESCRIPTION_DICT_RESOLVER, fn)` (`description/context.ts:16`; the comment records that a shared component package may not import pinia or `~/...`). Without a provider, `dictResolver?.(...) ?? String(value)` (`:39-41`)means **the raw value is shown**, and empty values show `-`. As of this update nothing in the repo provides the key (only the unit test does), so `type: 'dict'` currently only echoes raw values in the app — provide a resolver if you need real dictionaries.
+- **`type: 'dict'` no longer reads the pinia dictionary store**: it is injection-based now — the host calls `provide(DESCRIPTION_DICT_RESOLVER, fn)` (`description/context.ts:16`; the comment records that a shared component package may not import pinia or `~/...`). Without a provider, `dictResolver?.(...) ?? String(value)` (`description/Description.vue:51`, injected at `:46`)means **the raw value is shown**, and empty values show `-`. As of this update nothing in the repo provides the key (only the unit test does), so `type: 'dict'` currently only echoes raw values in the app — provide a resolver if you need real dictionaries.
 - **`setData()` is a stub**: its implementation only calls `console.warn('[Description] setData 不支持在只读模式下使用')` (`:175-177`). The component is read-only; the only usable instance method is `getData()` (`:174`, `defineExpose` at `:179`).
 - **`DescriptionBordered` (`types.ts:25`)is used nowhere** — a leftover type; recorded so nobody reaches for it. :::
 
@@ -506,6 +508,36 @@ Virtual mode needs a box that can actually scroll `container-height: '100%'` req
 
 Real usage: `apps/web/src/views/components/listy/index.vue` (eight cards: basic, loading, empty, slots, then fixed heights over 20 000 rows, function heights, measured dynamic heights and a plain-mode control). Two unit files: `__tests__/listy.test.ts` (12 cases) and `__tests__/listy-virtual.test.ts` (17 cases — jsdom pins state and styles only). The scroll geometry is measured in the browser by `apps/web/e2e/listy-virtual.spec.ts` (8 cases × three engines): whether rows really come out 48px tall, whether `marginTop + height` equals the content height, and whether the window shrinks when the container does.
 
+## PageHeader / PageToolbar / ToolbarField (page shell)
+
+The three pieces that make up the "front door" of an admin page: `components/page-header/PageHeader.vue` (63 lines, props at `types.ts:1-8`), `components/page-toolbar/PageToolbar.vue` (58 lines, props `types.ts:1-13`) and `components/page-toolbar/ToolbarField.vue` (28 lines). They exist because of one finding from the layout pass: **write the same thing 17 ways across 17 pages and you get 17 versions** — that is how the title sizes, the vertical rhythm between header and toolbar, the three greys of the same label, and the "Add" button pushed off-viewport on narrow screens all grew.
+
+### PageHeader
+
+| Prop | Default | Notes |
+| --- | --- | --- |
+| `title` | `''` | the page title, rendered as the page's **only** `<h1>` (`:39-44`); use the `#title` slot when you need badges or counts inline |
+| `description` | `''` | the line under the title; an empty string skips the row entirely (`:45-52`) |
+| `icon` | `''` | an iconify name. Only when given does the `size-10` primary-tinted badge render (`:31-37`, `bg-primary/10 text-primary`); otherwise the header is text only |
+
+Slots: `title`, `description`, `extra` (`extra` is the right-hand action area, and its container is only emitted when the slot exists, `:55-62`). Hooks: `data-page="header"` / `"header-icon"` / `"header-title"` / `"header-desc"` / `"header-extra"` — the end-to-end sweep and the style regressions locate elements by these markers, so **renaming one means editing `apps/web/src/views/__tests__/page-shell-convention.spec.ts:187-196` in the same change**.
+
+The two deliberate trade-offs are recorded in the component comment (`:16-25`): the root element carries **no outer or inner padding of its own** (the page root container's `space-y-*` / `gap` is the single owner of vertical rhythm — adding another `mb-*` here stacks two spacings); and the action area wraps onto the next row on narrow screens instead of squeezing the title (`flex-wrap` + `min-w-0` + `truncate`) — a page whose title wraps to three lines does not look finished.
+
+### PageToolbar
+
+| Prop | Default | Notes |
+| --- | --- | --- |
+| `stackOnNarrow` | `true` | below 640px the action area takes a whole row, right-aligned: `max-sm:w-full max-sm:justify-end` (`:18-25`). Filter controls already wrap, so pinning the actions to the right pushes them out of view — and an invisible "Add" button is no "Add" button |
+
+The slot split is the point of this shell: `#filters` (or the default slot — one or the other, see `hasFilters` at `:16`) groups the filters on the left, `#actions` groups the page-level commands on the right (export / print / bulk). Previously one row held both "Search / Reset" and "Add / Export" as solid primary buttons, and it read as neither "query" nor "do". Hooks: `data-page="toolbar"` / `"toolbar-filters"` / `"toolbar-actions"`. The root element again carries no spacing.
+
+### ToolbarField
+
+One filter item = label + control (`:18-27`, hooks `data-page="toolbar-field"` / `"toolbar-field-label"`). It exists for exactly one reason: the label's size, colour and gap to the control used to be rewritten per page, so the same "Status" label came out in three different greys across three pages. Without `label` only the control itself renders (for a bare input).
+
+Real usage: `apps/web/src/views/system/notice/index.vue` composes the filter row directly out of `PageToolbar` + `ToolbarField`; `apps/web/src/views/system/log/index.vue` and `apps/web/src/views/system/login-log/index.vue` go through `BasicTable`'s `toolbar` / `toolbar-actions` slots — a table page does not need to place its own toolbar, because the one inside `BasicTable` _is_ this `PageToolbar` (see `components/table.md`).
+
 ## Auth family (login / register chrome)
 
 `components/auth/` ships four pieces: `AuthPageLayout` (a full-screen two-column shell plus the brand panel), `AuthFormPanel` (title block plus the form slot), `AuthSocialLogin` (the third-party entry row) and `AuthColorPresets` (the theme-colour trigger in the toolbar). This layer knows nothing about stores, routers or i18n — copy and colour swatches are computed by the host and passed in.
@@ -597,7 +629,7 @@ Getting these wrong produces no error — only silent breakage. Each line was ve
 
 | convention | why |
 | --- | --- |
-| `Checkbox` / `Switch` always use `:model-value` + `@update:model-value` (or plain `v-model`) | Those two primitives are **not in this barrel**; they come from `@antdv/shadcn-ui` (`src/index.ts:15`, `:58`), and the wrappers simply `useForwardPropsEmits` onto reka-ui's `CheckboxRoot` / `SwitchRoot`, whose model name in reka v2 is `modelValue`. Writing `:checked` is ignored (the control stays at its initial value)and `@change` never fires. The correct in-repo example is `apps/web/src/views/account/settings/index.vue:286-291`. The confusion comes from antdv-next's `Switch`, which does use `:checked` — but nothing in the repo imports `Switch` from `antdv-next` any more (measured: `grep -rn Switch` crossed with `antdv-next` returns zero hits), and the `SettingDrawer/**` directory that used to owe this debt no longer exists; the settings drawer is `packages/layouts/src/widgets/setting-drawer/**` now and takes `Switch` from `@antdv/shadcn-ui` |
+| `Checkbox` / `Switch` always use `:model-value` + `@update:model-value` (or plain `v-model`) | Those two primitives are **not in this barrel**; they come from `@antdv/shadcn-ui` (`packages/core/ui-kit/shadcn-ui/src/index.ts:15`, `:58`), and the wrappers simply `useForwardPropsEmits` onto reka-ui's `CheckboxRoot` / `SwitchRoot`, whose model name in reka v2 is `modelValue`. Writing `:checked` is ignored (the control stays at its initial value)and `@change` never fires. The correct in-repo example is `apps/web/src/views/account/settings/index.vue:286-291`. The confusion comes from antdv-next's `Switch`, which does use `:checked` — but nothing in the repo imports `Switch` from `antdv-next` any more (measured: `grep -rn Switch` crossed with `antdv-next` returns zero hits), and the `SettingDrawer/**` directory that used to owe this debt no longer exists; the settings drawer is `packages/layouts/src/widgets/setting-drawer/**` now and takes `Switch` from `@antdv/shadcn-ui` |
 | `<TabPane value="...">`, never `key` | The required prop in `TabPane.vue:13` is `value`; `key` is eaten by Vue and the pane registers as `undefined` (see the Tabs section) |
 | `Popconfirm` uses `danger`, not `ok-type="danger"` | `popconfirm/Popconfirm.vue:22` declares `danger?: boolean` (default `false` at `:33`); there is no `ok-type` prop in the file, so passing it neither errors nor works |
 | `Modal.confirm` → `confirm()`; `message` also comes from `@antdv/popup-ui` | `packages/core/ui-kit/popup-ui/src/index.ts` is four `export *` lines (`:1-4`: alert, drawer, message, modal) plus types, and all four entry points live in that package. On the app side **44 files** import `@antdv/popup-ui` (counting method: `grep -rl "@antdv/popup-ui" apps/web/src \| wc -l` = 44, of which 39 are `.vue`; the spread is views 35 / components 5 / utils 2 / plugins 1 / the root `App.vue` 1), plus 5 more inside `@antdv/layouts`' widgets (`notification`, `account-drawer`, `logout`, `setting-drawer/index.vue`, `setting-drawer/components/setting-footer.vue`). The typical line is `import { confirm, message } from '@antdv/popup-ui'` (e.g. `apps/web/src/views/account/center/index.vue:19`) |

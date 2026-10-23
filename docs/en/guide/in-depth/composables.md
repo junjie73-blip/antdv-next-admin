@@ -53,7 +53,7 @@ const [register, tableRef] = useTable({
 | --- | --- | --- | --- |
 | `useTable(props?)` | `packages/core/ui-kit/table-ui/src/useTable.ts:20-37` | `[register, Ref<null \| TableActionType>]` | it's an **instance ref**: `tableRef.value?.reload()` |
 | `useForm(props?)` | `packages/core/ui-kit/form-ui/src/use-antdv-form.ts:13-157` | `[register, FormActionType]` | a **method object**: `formMethods.setFieldsValue(v)` |
-| `useModal()` | `packages/core/ui-kit/popup-ui/src/modal/useModal.ts:13-58` | `[register, ModalMethods]` | method object, waits for the instance internally |
+| `useModal()` | `packages/core/ui-kit/popup-ui/src/modal/useModal.ts:9-54` | `[register, ModalMethods]` | method object, waits for the instance internally |
 | `useModalInner(cb?)` | `modal/useModalInner.ts:21-73` | `[register, ModalInnerMethods]` | used **inside the modal component** |
 | `useDrawer()` | `packages/core/ui-kit/popup-ui/src/drawer/useDrawer.ts:10-57` | `[register, DrawerMethods]` | same shape as `useModal` |
 
@@ -79,7 +79,7 @@ function register(instance: TableActionType) {
 }
 ```
 
-So `useTable({ api })` and `:api="api"` in the template are two entry points to the same thing; the one passed to `useTable` runs **first**. The full props contract, the response-unwrapping sniff order (`listField → items → data → records → bare array`) and the `fetchSetting` defaults `pageNum / pageSize / list / total` are covered in [Table](/en/components/table) and won't be duplicated here. What matters is that the instance methods are declared as `TableActionType` (`packages/core/ui-kit/table-ui/src/types.ts:776`): `reload` / `setProps` / `getSelectRows` / `clearSelectedRowKeys` / `setTableData` / `expandAll` and friends, plus the set forwarded to the built-in search form (`getFormValues`, `updateFormSchema`, …).
+So `useTable({ api })` and `:api="api"` in the template are two entry points to the same thing; the one passed to `useTable` runs **first**. The full props contract, the response-unwrapping sniff order (`listField → items → data → records → bare array`) and the `fetchSetting` defaults `pageNum / pageSize / list / total` are covered in [Table](/en/components/table) and won't be duplicated here. What matters is that the instance methods are declared as `TableActionType` (`packages/core/ui-kit/table-ui/src/types.ts:782`): `reload` / `setProps` / `getSelectRows` / `clearSelectedRowKeys` / `setTableData` / `expandAll` and friends, plus the set forwarded to the built-in search form (`getFormValues`, `updateFormSchema`, …).
 
 ### useForm: `pendingValues` is why edit modals can prefill
 

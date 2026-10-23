@@ -129,6 +129,25 @@ button:disabled {
 }
 
 /*
+ * 链接同样不能靠浏览器内建样式表。
+ *
+ * 这一条比 `button` 那条更隐蔽：**Chromium 的 UA 表给 `<a href>` 指针，WebKit 在静止态
+ * 算出来是 `auto`**（同一份 `setContent` 的裸 `<a href>` 探针实测 chromium=`pointer`、
+ * webkit=`auto`）。于是面包屑的"系统管理"和顶栏的 GitHub 链接在 Safari 内核里"看着像
+ * 普通文字"，`e2e/cursor.spec.ts` 的全站扫描也只有 webkit 红 —— 又是"只在 Chromium 验过
+ * = 没验过"的那一类。在自己的样式层写死，三个引擎才算出同一个光标。
+ *
+ * 与上面几条不同，这一条**必须待在 `@layer base` 里**：无层级规则压过全部工具类，
+ * 写在层外会让 `<a class="cursor-not-allowed">` 这类显式意图失效（链接比按钮更常
+ * 用工具类表态，比如禁用态的下载链接）。边框兜底那条也是同一个理由。
+ */
+@layer base {
+  a[href] {
+    @apply cursor-pointer;
+  }
+}
+
+/*
  * 勾选框/单选框/下拉框同样是 UA 默认光标。antd 的 hover 反馈做在这些元素
  * **外层**的盒子上，光标却归元素自己，不接上就会出现"盒子亮了、鼠标还是箭头"。
  */

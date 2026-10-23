@@ -83,8 +83,15 @@ const DECORATIVE_HOVER_ALLOWLIST: string[] = [
    * `basic-table-row group border-b border-gray-100 bg-card …` 时，插入的 `group`
    * 把前四枚换掉了，这条没能匹配上，全站扫描就把同一行又报了一遍
    * （类名没变义、光标也没坏，纯粹是快照过期）。改模板里的工具类顺序记得同步这里。
+   *
+   * 换成 shadcn 原语之后，`TableRow` 的出厂类经 `cn` 做冲突消解会产出**四种**不同的行，
+   * 前四枚各不相同，所以四种各登记一条（少一条就是一条红，别指望它们互相覆盖）：
+   * 未选中数据行 / 选中数据行（`bg-card` 被 `color-mix` 顶掉，顺序随之变）/ 表头行 / 展开内容行。
    */
-  'tr|basic-table-row group border-b border-gray-100',
+  'tr|basic-table-row group bg-card border-b',
+  'tr|basic-table-row group border-b transition-colors',
+  'tr|data-[state=selected]:bg-muted border-b transition-colors bg-muted',
+  'tr|data-[state=selected]:bg-muted transition-colors basic-table-expanded-row border-b-0',
 ];
 
 /**

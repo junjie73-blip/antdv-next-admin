@@ -69,9 +69,10 @@ const DRAFT_STORAGE_KEY = 'demo:form-steps:draft';
  * 1. 步骤 schema 上**不要写 `defaultValue`**。`setProps({ schemas })` 每次都会跑一遍
  *    `initFormModel()`，把带默认值的字段重新盖成默认值 —— 于是「上一步 → 下一步」
  *    之间用户刚填的内容被抹平。初值改成挂载前 `setFieldsValue` 灌一次。
- * 2. `showActionButtonGroup` / `showSubmitButton` / `showResetButton` 这些在
- *    `BasicForm` 里有 `withDefaults` 默认值，而 `setProps` 走的 `deepMerge` 是
- *    「目标优先」，标量塞不进去 —— 要关内置按钮只能在模板上直接传 prop。
+ * 2. 内置按钮的开关（`showActionButtonGroup` / `showSubmitButton` / `showResetButton`）
+ *    在 `BasicForm` 里有 `withDefaults` 默认值，但 `setProps` 把「新来的补丁」放在
+ *    target 位（`useFormConfig.ts`），所以 `useForm({ showSubmitButton: false })`
+ *    一样生效；只有「模板上显式绑过的键」优先级更高（模板绑定 > setProps > 默认值）。
  */
 function useStepFlow(
   steps: StepConfig[],
@@ -183,11 +184,12 @@ function useStepFlow(
   /**
    * 提交前的整表校验。
    *
-   * 不带字段名的 `validate()` 只覆盖当前挂载的字段：前面几步的 a-form-item 已经卸载，
-   * 不在 form 的字段注册表里，脏值会静默过关 —— 分步表单最容易踩的就是这个坑。
+   * 不带字段名的 `validate()` 只覆盖当前 `schemas` 里的字段：换步骤时别的步骤的
+   * schema 已经被 `setProps({ schemas })` 整体替掉了，脏值会静默过关 ——
+   * 分步表单最容易踩的就是这个坑。
    * 这里把各步 schema 拼成一份临时全量表挂上去，非当前步骤加 `show: false`：
-   * FormItem 用的是 v-show，字段仍在注册表里参与校验，又不会闪出别的步骤的输入框。
-   * （换成 `ifShow: false` 就真卸载了，等于没校验。）
+   * FormItem 用的是 v-show，别的步骤的输入框不会闪出来，整表又都在 schema 里。
+   * （其实 `ifShow: false` 也一样参与校验 —— 校验候选取自 schema 列表，不是渲染中的字段。）
    */
   async function validateAll(): Promise<null | Recordable> {
     const snapshot = collect();
@@ -1070,10 +1072,10 @@ function setAgreed(model: Recordable, field: string, checked: unknown) {
       <p :class="hintClassName">
         底部按钮不在卡片里另起一行，而是塞进 <code>BasicForm</code> 的动作区插槽
         （<code>#submitBefore</code> 排在按钮位的第一格，<code>#actionAfter</code>
-        排在最后）， 同时用模板 prop 关掉内置的查询/重置按钮 —— 注意
-        <code>showSubmitButton</code> 这类有
-        <code>withDefaults</code> 默认值的开关，塞进 <code>useForm</code> 会被
-        <code>deepMerge</code> 的「目标优先」吃掉，必须在模板上传。
+        排在最后）， 同时关掉内置的查询/重置按钮。这类开关写在这里用的是模板
+        prop， 但塞进
+        <code>useForm</code> 也一样生效：配置优先级是「模板显式绑定 &gt;
+        <code>setProps</code> &gt; <code>withDefaults</code> 默认值」。
       </p>
 
       <div :class="stepClassName">

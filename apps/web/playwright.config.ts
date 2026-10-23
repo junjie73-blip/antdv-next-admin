@@ -72,11 +72,16 @@ export default defineConfig({
        * 这类正常但慢的用例；把它们单独跑就又绿了。
        * 注意这里只放宽**整条用例的总时长**，各步的 actionTimeout(45s) 与 expect(10s)
        * 一个没动 —— 功能真坏了仍然立刻红，不会靠墙钟兜住。
+       *
+       * `timeout` 必须是**项目级**字段，不能塞进 `use`：`use` 装的是 fixture 选项，
+       * 而 timeout 不在其中，写进去会被静默忽略（不报错、不生效）。实测证据是失败信息
+       * 里的 "Test timeout of 90000ms exceeded" —— 顶层是 90s，说明那 240s 从没生效，
+       * "webkit 单跑立刻绿"这条经验一直只写在注释里、实际没落地。
        */
+      timeout: 240_000,
       use: {
         ...devices['Desktop Safari'],
         actionTimeout: 45_000,
-        timeout: 240_000,
       },
     },
   ],

@@ -1,29 +1,3 @@
-/*
- * 全局样式入口。
- *
- * 层级顺序必须显式声明：`utilities` 排在最后，模板里写的工具类才能覆盖
- * `components` 层的规则（自绘 Scrollbar、布局外壳都依赖这一点）。
- *
- * 二级目录只有两个，按"是不是变量"分：
- * - token/ 主题令牌，内容只有 shadcn-vue 需要的 CSS 变量
- *            default.css / dark.css 是明暗两套值，各自带 13 套 `[data-theme]` 预设
- *            index.css 把它们映射成 `--color-*`
- * - css/   公共样式，按职责再分文件：
- *            base.css       文档根 / 选中态 / 视图过渡 / 通用交互类
- *            nprogress.css  顶部路由进度条
- *            a11y.css       色弱 / 灰色模式（类名由 @antdv/preferences 开关）
- *            permission.css 无权限降级（class 由 @antdv/directives 的 v-permission 打上）
- *            scrollbar.css  第三方组件内部滚动区的系统滚动条兜底美化
- *
- * 组件自身的样式不放这里 —— 随组件走，见 @antdv/common-ui 的 Scrollbar.vue。
- *
- * 组件包里的工具类必须显式登记（下面的 `@source`）：Tailwind v4 的自动内容检测
- * 从**构建根**开始扫，而应用侧的构建根是 `apps/web`，`@antdv/*` 全在仓库根的
- * `packages/` 下（软链进 node_modules，也在检测范围之外）。漏登记的 Symptoms 是
- * "组件渲染出来了但没样式"——侧栏白底不缩进、标签栏挤成一行，且不报任何错。
- *
- * 注意：CSS 规范只允许 @import 出现在普通规则之前，所以 token 与各 css 分部必须在这儿引完。
- */
 @layer theme, base, components, utilities;
 
 @import 'tailwindcss';
@@ -34,25 +8,6 @@
 @import './css/a11y.css';
 @import './css/permission.css';
 @import './css/scrollbar.css';
-
-/*
- * 自带工具类的组件包（路径相对本文件）。
- *
- * 名单必须与 `packages/core/ui-kit/*` 的目录清单一一对上，漏一条就是那个包
- * 模板里全部工具类静默不生成 —— 构建照样绿，只有样式没了。
- * 守门：`__tests__/design.test.ts` 的「每个子包的源码目录都登记了 @source」
- * 与 `@antdv/hooks` 的「@source 名单只属于 design」。
- */
-@source '../../../../layouts/src';
-@source '../../icons/src';
-@source '../../../ui-kit/common-ui/src';
-@source '../../../ui-kit/form-ui/src';
-@source '../../../ui-kit/layout-ui/src';
-@source '../../../ui-kit/menu-ui/src';
-@source '../../../ui-kit/popup-ui/src';
-@source '../../../ui-kit/shadcn-ui/src';
-@source '../../../ui-kit/table-ui/src';
-@source '../../../ui-kit/tabs-ui/src';
 
 @plugin "@tailwindcss/typography";
 @plugin "@tailwindcss/nesting";

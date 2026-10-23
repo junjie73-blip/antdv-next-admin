@@ -1,5 +1,6 @@
 import type { ComputedRef, Ref } from 'vue';
 
+import type { ColEx, FormActionType } from '../../types';
 import type { Recordable } from './schema';
 
 /**
@@ -12,7 +13,8 @@ import type { Recordable } from './schema';
 export interface FormContext {
   /** 底层 @tanstack/vue-form 实例 */
   form: any;
-  formActionTypeRef: Ref<any>;
+  /** 对外实例；`form.vue` 在装配末尾才填，所以这里是可空 */
+  formActionTypeRef: Ref<FormActionType | null>;
   /** 插槽里直接读写的表单值代理（`getValues()` 是快照，写不回去） */
   getValues: () => Recordable;
   grid: {
@@ -20,11 +22,12 @@ export interface FormContext {
     gutter?: ComputedRef<[number, number] | number>;
     span?: ComputedRef<number>;
   };
-  labelCol: ComputedRef<any>;
+  /** 由 `useFormGrid` 的 `resolveLabelCol` 算出：`labelWidth` 或 `span`，二选一 */
+  labelCol: ComputedRef<Partial<ColEx>>;
   model: Recordable;
   /** 校验失败时用于决定错误信息是否展示 */
   submitAttempted?: Ref<boolean>;
-  wrapperCol: ComputedRef<any>;
+  wrapperCol: ComputedRef<Partial<ColEx>>;
   getProps: ComputedRef<any>;
 }
 

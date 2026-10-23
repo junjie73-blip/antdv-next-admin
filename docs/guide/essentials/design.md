@@ -32,7 +32,7 @@ packages/core/base/design/
 ::: warning `@antdv/design` 不包含什么
 
 - **不含组件**：包里没有一行 `.vue`，也没有 `src/index.ts`。卡片、标签、步骤条这类公共展示件在 `@antdv/common-ui`，图标原子在 `@antdv/icons`，`index.css:18` 的注释专门写了这条边界。
-- **不感知组件库**：不 import 任何组件库的 JS，也不引它们的样式兼容层 —— 令牌与规则全部来自本包，组件包改名或换库都不需要动这里。唯一的残留是 `css/base.css:128-134` 那两条 `.ant-upload` 光标补丁（antd 给上传触发区漏了 `cursor: pointer`，页面里还有它的 DOM 时得补），组件库 DOM 一走就可以删掉。
+- **不感知组件库**：不 import 任何组件库的 JS，也不引它们的样式兼容层 —— 令牌与规则全部来自本包，组件包改名或换库都不需要动这里。早先残留的两条 `.ant-upload` 光标补丁（antd 给上传触发区漏了 `cursor: pointer`）已经随组件库 DOM 一起退场，现在**反向钉死**：全局分部的注释外不许出现 `.ant-`（`__tests__/design.test.ts:528-529`），`--ant-` 与 `-ant-` 这一族也各自有守门（`:461`、`:464`）。能点元素的光标全部由本包按标签与 `role` 接上（`css/base.css:123-129` 按钮、`:154-164` 勾选/单选/下拉、`:175-192` ARIA role 那组、`:144-148` 的 `<a href>`），不再依赖任何浏览器内建样式表。
 - **不含业务样式**：需要读 store 的薄壳（如 `packages/layouts/src/basic/content/page-loading.vue`）留在应用里，不往本包搬。:::
 
 ## 层顺序是显式声明的
@@ -120,7 +120,7 @@ Tailwind v4 的自动内容检测从**构建根**开始扫，而应用侧的构�
 | --- | --- |
 | 条件类名 / 合并外部 class | `cn('base', cond && 'x', props.class)` |
 | 用主题色 | 本包的裸名令牌 `bg-primary` / `text-muted-foreground` / `border-input`；需要写进 style 或传参时用 `bg-[hsl(var(--primary))]`。曾经并存的 antd 兼容层类（`*-ant-*`）已不再生成，写上去是**静默丢样式**（本包源码里连 `-ant-` 都不许出现，`__tests__/design.test.ts:464` 钉着） |
-| 复用的小块样式 | 共享类 `.icon`、`.outline-box`、`.outline-box-active`（`css/base.css:83-92`） |
+| 复用的小块样式 | 共享类 `.icon`、`.outline-box`、`.outline-box-active`（`css/base.css:96-107`） |
 | 过渡 / keyframes | 才开 `<style scoped>` |
 
 ::: warning Tailwind 只认字面量类名
@@ -134,6 +134,26 @@ Tailwind v4 的自动内容检测从**构建根**开始扫，而应用侧的构�
 不要在路由页面的外层容器写 padding 内容区内边距归布局管。页面自己加一层 padding 会在切布局形态时重复。见[开发规范与环境变量](/guide/essentials/development)与[布局、菜单与标签页](/guide/in-depth/layout)。:::
 
 颜色不要钉死。全站只有**一条**主色链路：偏好由 `applyPreferencesToDom()`（`packages/core/preferences/src/update-css-variables.ts:39`）折算成 `<html>` 上的 `--primary`（只有取色器自选的颜色才内联，预设主题把整块色板交给 `[data-theme]`），`@theme inline` 再把它映射成 `bg-primary` 这一族工具类 —— 页面内部与 portal 出去的浮层解的是同一份值，所以同一屏不可能出现两种橙色。写测试时别把色值钉死：要么在浅色下断，要么断"同源关系"（两个元素的计算色相等）。细节见[主题与偏好设置](/guide/in-depth/theme)。
+
+## 后台页面的外壳约定（页头 / 分节 / 底色）
+
+这轮改版式把"一个后台页应该长什么样"收敛成四条，17 个业务页（`system` 全部 + `security/dashboard` + `account/center` + `account/settings` + `dashboard/analysis`）与 4 个页面私有组件已按它落地，并且**写成了源码契约**：
+
+| 约定 | 具体口径 |
+| --- | --- |
+| 页头只有一个来源 | 每页根上挂 `<PageHeader>`，`<h1>` 由它渲染；页面模板里自写 `<h1>` 直接红。右侧操作走 `#extra`，说明走 `description`，图标走 `icon`（给了才出那枚主色徽标底）。组件细节见[公共组件 · 页面外壳](/components/common-ui) |
+| 分节靠 `Card`，不靠裸 `div` | 一页里多块内容用 `Card`（默认 `outlined`）分节；页名已经在页头说过一次，卡片标题不再重复页名 |
+| 中性面一律走 token | 底色 / 边框 / 正文灰只用 `bg-background`、`bg-card`、`bg-muted`、`border-border`、`text-muted-foreground` 这一族；`bg-white`、`text-gray-*`、`border-slate-*`、`bg-zinc-*`、纯白纯黑都不许出现在名单页的源码里 —— 切深色档或切预设时，写死的灰阶就是"白底白字"的那一条。**分类色豁免**（`blue` / `violet` / `emerald` / `amber` / `cyan` 这类"给同类事物分个颜色"的调色板不是状态语义，硬压成四个状态色反而抹平区分度；豁免族以 `page-shell-convention.spec.ts:32-33` 的 `CATEGORICAL` 名单为准，里面还列了 indigo / sky / teal / rose / orange / fuchsia / purple / green / red / yellow），但**必须成对带 `dark:` 档**，否则深色模式同样糊 |
+| 竖向节奏只有一个所有者 | 页面根容器不写 padding（内边距归布局管，见下方那条 warning），页与页、块与块之间的间距由根容器的 `space-y-*` / `gap` 决定；`PageHeader` / `PageToolbar` 的**根元素不带 margin/padding**，谁往根上加一档就红 —— 叠两层就是这轮要消除的症状 |
+
+守门分两层，各管各的维度：
+
+- 源码侧 `apps/web/src/views/__tests__/page-shell-convention.spec.ts` —— 名单页与页面私有组件的中性色、分类色是否成对、是否挂了 `<PageHeader>` + `data-page-view`、模板里有没有自写 `<h1>`、两个外壳组件的根元素有没有长出间距。这些端到端判不准：浏览器看到的是整棵子树，共享组件自带的工具类会一起被算进来（shadcn 的 destructive 按钮本身就写着 `text-white dark:bg-destructive/60`）。
+- 渲染侧 `apps/web/e2e/page-shell.spec.ts` + `apps/web/src/views/__tests__/page-root-padding.spec.ts` —— 真实 DOM 里页头是否渲染、`h1` 是否恰好一个、内容区底色是否等于当前主题的 `--muted`、窄屏是否按预期堆叠。
+
+::: warning 已知的欠账（不在名单里，巡检也不覆盖）
+
+名单外还有 **38 个文件 / 289 行**写死的中性色工具类（口径与守门测试完全一致：同一条正则、同样先剥注释、同一份名单），集中在 `views/components/**` 的示例页 —— 最多的是编辑器 37 行、上传 28、loading 26、弹窗抽屉 26、图片裁剪 19、拖拽布局 16、滚动 14、数字滚动 12 —— 外加 `views/error/{403,404,503}.vue` 共 13 行、`views/micro-app/SubAppView.vue` 8 行、`views/screen/**` 10 行。它们是示例与异常页，本轮没纳入名单；新业务页请直接从名单里那套骨架起步（`apps/web/src/views/system/user/index.vue` 是样板页），并把路径加进 `page-shell-convention.spec.ts` 的 `PAGES`。:::
 
 ## stylelint 现状
 

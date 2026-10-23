@@ -1,6 +1,6 @@
 # 公共组件（`@antdv/common-ui`）
 
-这一页讲 `packages/core/ui-kit/common-ui` —— 与路由无关、跨页面复用的展示型组件，56 个值导出。它们**全部由 `@antdv/shadcn-ui` 的原语（reka-ui）组合出来**，不认得 antdv-next，也不认得应用：包里没有 store、没有路由、没有 `~/...` 别名。
+这一页讲 `packages/core/ui-kit/common-ui` —— 与路由无关、跨页面复用的展示型组件，61 个值导出。它们**全部由 `@antdv/shadcn-ui` 的原语（reka-ui）组合出来**，不认得 antdv-next，也不认得应用：包里没有 store、没有路由、没有 `~/...` 别名。
 
 迁移落地的顺序是「代码先动、文档后动」，所以这一页是补齐的：原先散在 `apps/web/src/components/business/` 下的 `Description`、`CountTo` 已经进了这个包，另一批（Badge、Steps、Result、Transfer、Image、Upload、Tabs……）是从示例页里"每页各写一份"抽出来的。
 
@@ -41,11 +41,12 @@ packages/core/ui-kit/common-ui/src/components/<kebab>/
 
 ## 全量导出
 
-从 `src/index.ts` 数出来的 56 个值导出，按用途分组：
+从 `src/index.ts` 数出来的 61 个值导出，按用途分组：
 
 | 组 | 导出名 |
 | --- | --- |
 | 容器与排版 | `Card`、`Divider`、`Space`、`Empty`、`EmptyState`、`ErrorBoundary` |
+| 页面外壳 | `PageHeader`、`PageToolbar`、`ToolbarField` |
 | 状态与标识 | `Badge`、`Tag`、`StatusTag`、`Alert`、`Result`、`Steps` |
 | 数据展示 | `Description`、`Descriptions`、`DescriptionsItem`、`Statistic`、`CountTo`、`Image`、`Listy`、`Timeline`、`TimelineItem`、`Tooltip` |
 | 交互与容器切换 | `Tabs`、`TabPane`、`Segmented`、`Popconfirm`、`Transfer`、`Tree` |
@@ -55,15 +56,16 @@ packages/core/ui-kit/common-ui/src/components/<kebab>/
 | 编辑器 | `CronEditor`、`MarkdownEditor` |
 | 登录页版式 | `AuthColorPresets`、`AuthFormPanel`、`AuthPageLayout`、`AuthSocialLogin` |
 | 提示容器 | `Toaster` |
+| 更新提示 | `ReloadPrompt`（`check-update` 的那枚浮动按钮，见 `guide/in-depth/check-update.md`） |
 | 全局配置 | `ConfigProvider`、`DEFAULT_GLOBAL_CONFIG`、`GLOBAL_CONFIG_KEY`、`normalizeComponentSize`、`textsByLocale`、`useGlobalConfig` |
 | 装饰动效 | `BorderBeam` |
-| 注入键 | `DESCRIPTION_DICT_RESOLVER` |
+| 注入键 | `DESCRIPTION_DICT_RESOLVER`、`PERMISSION_CHECK`（导入导出组件的权限判定入口） |
 
-类型导出：`BorderBeamProps`、`CountToEvents` / `CountToInstance` / `CountToProps`、`CronEditorEmits` / `CronEditorProps` / `CronField` / `CronPreset`、`DescriptionInstance` / `DescriptionItem` / `DescriptionLayout` / `DescriptionProps` / `DescriptionSize` / `DictResolver`、`ComponentSizeOption` / `Direction` / `GlobalConfig` / `GlobalTheme` / `LocaleKey` / `ResolvedComponentSize` / `ResolvedGlobalConfig`、`ListyEmits` / `ListyItem` / `ListyItemHeight` / `ListyProps` / `ListyRow` / `ListyScrollState` / `ListyScrollToOptions` / `ListySize`、`LoadingProps` / `LoadingSize` / `LoadingTheme` / `LoadingInstance` / `CreateLoadingOptions` / `UseLoadingOptions` / `LoadingDirectiveBinding`、`markdown-editor` 的 10 个类型（`MarkdownEditor*` 七个 + `ImageUploadConfig` / `UploadResponse` / `VideoUploadConfig`）、`MicroAppContainerProps` / `MicroAppContainerEmits`、`ScrollbarProps` / `ScrollbarStyle` / `ScrollbarType`、`TabPaneProps`、`ToasterProps`（vue-sonner 同名类型原样转口）、`TransferDirection` / `TransferItem` / `TransferKey`、`NormalTreeNode` / `TreeContext` / `TreeFieldNames` / `TreeKey`、`UploadChangeParam` / `UploadFile` / `UploadListType` / `UploadRequestOptions`、`Auth*Props` 与 `AuthColorPreset` / `AuthFeatureItem` / `AuthSocialItem`。`EChartsProps` 不在这份清单里 —— 它只从 `@antdv/common-ui/charts` 出口。
+类型导出：`BorderBeamProps`、`CountToEvents` / `CountToInstance` / `CountToProps`、`CronEditorEmits` / `CronEditorProps` / `CronField` / `CronPreset`、`DescriptionInstance` / `DescriptionItem` / `DescriptionLayout` / `DescriptionProps` / `DescriptionSize` / `DictResolver`、`ComponentSizeOption` / `Direction` / `GlobalConfig` / `GlobalTheme` / `LocaleKey` / `ResolvedComponentSize` / `ResolvedGlobalConfig`、`ListyEmits` / `ListyItem` / `ListyItemHeight` / `ListyProps` / `ListyRow` / `ListyScrollState` / `ListyScrollToOptions` / `ListySize`、`LoadingProps` / `LoadingSize` / `LoadingTheme` / `LoadingInstance` / `CreateLoadingOptions` / `UseLoadingOptions` / `LoadingDirectiveBinding`、`markdown-editor` 的 10 个类型（`MarkdownEditor*` 七个 + `ImageUploadConfig` / `UploadResponse` / `VideoUploadConfig`）、`MicroAppContainerProps` / `MicroAppContainerEmits`、`PageHeaderProps` / `PageToolbarProps` / `ToolbarFieldProps`、`PermissionChecker`、`ScrollbarProps` / `ScrollbarStyle` / `ScrollbarType`、`TabPaneProps`、`ToasterProps`（vue-sonner 同名类型原样转口）、`TransferDirection` / `TransferItem` / `TransferKey`、`NormalTreeNode` / `TreeContext` / `TreeFieldNames` / `TreeKey`、`UploadChangeParam` / `UploadFile` / `UploadListType` / `UploadRequestOptions`、`Auth*Props` 与 `AuthColorPreset` / `AuthFeatureItem` / `AuthSocialItem`。`EChartsProps` 不在这份清单里 —— 它只从 `@antdv/common-ui/charts` 出口。
 
 ::: warning `UploadProps` 没有对外导出
 
-`components/upload/index.ts` 里声明了 `export type { UploadProps }`，但 `src/index.ts:144-150` 的再导出不含它。想在页面里标注 Upload 的 props 类型，只能自己 `import type { UploadFile, UploadChangeParam } from '@antdv/common-ui'` 拼，或者不标。:::
+`components/upload/index.ts` 里声明了 `export type { UploadProps }`，但 `packages/core/ui-kit/common-ui/src/index.ts:161-166` 的再导出不含它。想在页面里标注 Upload 的 props 类型，只能自己 `import type { UploadFile, UploadChangeParam } from '@antdv/common-ui'` 拼，或者不标。:::
 
 ## ConfigProvider（全局配置）
 
@@ -74,9 +76,9 @@ packages/core/ui-kit/common-ui/src/components/<kebab>/
 | prop | 默认 | 说明 |
 | --- | --- | --- |
 | `locale` | `'zh-CN'` | 决定内置词条（`okText` / `cancelText` / `emptyText`），同时透传给 reka 底座：日期与数字类原语经 `useLocale()` 读它做 `Intl` 排版，见[日期排版走 reka 的注入](#日期排版走-reka-的注入) |
-| `okText` / `cancelText` / `emptyText` | 按 `locale` 展开 | `textsByLocale`（`types.ts:131-139`）只有中英两套；显式给出即覆盖词条 |
+| `okText` / `cancelText` / `emptyText` | 按 `locale` 展开 | `textsByLocale`（`config-provider/types.ts:132-141`）只有中英两套；显式给出即覆盖词条 |
 | `placeholder` | `'-'` | 空值占位符，`Description` 与字典取不到值时用它 |
-| `componentSize` | `'medium'` | 尺寸档位。`'middle'` 是 `@antdv/types` 的存量别名，解析时折成 `'medium'`（`normalizeComponentSize`，`types.ts:141-146`），读侧只见三档 |
+| `componentSize` | `'medium'` | 尺寸档位。`'middle'` 是 `@antdv/types` 的存量别名，解析时折成 `'medium'`（`normalizeComponentSize`，`config-provider/types.ts:143-148`），读侧只见三档 |
 | `dir` | `'ltr'` | 阅读方向，透传 reka（弹层定位、排版方向）并写在容器 `dir` 属性上 |
 | `theme` | `{}` | 子树主题覆盖：`mode`（`dark` / `light` / `system`）、`preset`、`primary`、`radius`，见 `GlobalTheme`（`types.ts:29-50`） |
 | `cssVars` | `{}` | 任意 CSS 变量的出口，**最后写入**，优先级高于 `theme` 派生出的那两条 |
@@ -135,7 +137,7 @@ packages/core/ui-kit/common-ui/src/components/<kebab>/
 - 文案继承的是外层的**成品值**，外层写死 `okText: 'Confirm'` 时内层不会退回"确定 / OK"；但内层自己换 `locale` 会按新语言重新展开词条 —— 换语言的人要的是那种语言的说法。
 - `theme` / `cssVars` 是浅合并：内层只改 `radius`，外层的主色与明暗仍然在。
 
-真实用例：`apps/web/src/App.vue:76-79` 在根部挂了它，只下发 `component-size` 与 `locale`（偏好是唯一来源）；`theme` / `cssVars` 故意留空，主题色与圆角仍由 `applyPreferencesToDom()` 写在 `<html>` 上，避免同一份配置两个写侧。
+真实用例：`apps/web/src/App.vue:48-51`（配置对象在 `:41-44`）在根部挂了它，只下发 `component-size` 与 `locale`（偏好是唯一来源）；`theme` / `cssVars` 故意留空，主题色与圆角仍由 `applyPreferencesToDom()` 写在 `<html>` 上，避免同一份配置两个写侧。
 
 ## Badge（徽标）
 
@@ -359,7 +361,7 @@ Tabs 事件：`change: [number | string]`、`update:activeKey: [number \| string
 ::: warning 四条限制（都验证到行为）
 
 - **`type: 'tag'` 不渲染 Tag**：`case 'tag'` 与 `case 'text'` 与 `default` 落到同一个分支（`:163-165`）。要标签请用 `render` 自己 `h(Tag, ...)`。
-- **`type: 'dict'` 不再读 pinia 字典 store**：改成注入式 —— 宿主 `provide(DESCRIPTION_DICT_RESOLVER, fn)`（`description/context.ts:16`，注释说明了包不允许引 pinia / `~/...`）。没注入时 `dictResolver?.(...) ?? String(value)`（`:39-41`），即**显示原值**，空值显示 `-`。截至本文更新，本仓库没有任何地方 provide 这个键（只单测里 provide 过），所以应用里 `type: 'dict'` 目前只会回显原值 —— 要用真字典，自己 provide。
+- **`type: 'dict'` 不再读 pinia 字典 store**：改成注入式 —— 宿主 `provide(DESCRIPTION_DICT_RESOLVER, fn)`（`description/context.ts:16`，注释说明了包不允许引 pinia / `~/...`）。没注入时 `dictResolver?.(...) ?? String(value)`（`description/Description.vue:51`，注入在 `:46`），即**显示原值**，空值显示 `-`。截至本文更新，本仓库没有任何地方 provide 这个键（只单测里 provide 过），所以应用里 `type: 'dict'` 目前只会回显原值 —— 要用真字典，自己 provide。
 - **`setData()` 是空壳**：实现只 `console.warn('[Description] setData 不支持在只读模式下使用')`（`:175-177`），组件只读，可用实例方法只有 `getData()`（`:174`，`defineExpose` 在 `:179`）。
 - **`DescriptionBordered`（`types.ts:25`）没有任何地方使用**，遗留类型。:::
 
@@ -502,6 +504,36 @@ function onScroll(state: ListyScrollState) {
 
 真实用例：`apps/web/src/views/components/listy/index.vue`（基础 / 加载 / 空状态 / 插槽 + 固定行高 20 000 条 / 函数行高 / 动态实测 / 直排对照，共八张卡）。单测两份：`__tests__/listy.test.ts`（12 例）与 `__tests__/listy-virtual.test.ts`（17 例，jsdom 只钉状态与样式）；滚动几何由 `apps/web/e2e/listy-virtual.spec.ts`（8 例 × 三引擎）在浏览器里量：行高是否真等于 48px、`marginTop + height` 是否等于内容总高、容器变矮后行数是否跟着缩。
 
+## PageHeader / PageToolbar / ToolbarField（页面外壳）
+
+后台页的"门面"三件套：`components/page-header/PageHeader.vue`（63 行，props 在 `types.ts:1-8`）、`components/page-toolbar/PageToolbar.vue`（58 行，props `types.ts:1-13`）、`components/page-toolbar/ToolbarField.vue`（28 行）。存在的理由是这轮改版式的一条判断：**同一件事在 17 个页面里各写一遍，就一定有 17 个版本** —— 标题字号、页头与工具栏的竖向节奏、标签的三种灰、窄屏下被顶出视口的新增按钮，都是这么长出来的。
+
+### PageHeader
+
+| prop | 默认 | 说明 |
+| --- | --- | --- |
+| `title` | `''` | 页面标题，渲染成页内**唯一的** `<h1>`（`:39-44`）；要塞徽标/计数就用 `#title` 插槽覆盖 |
+| `description` | `''` | 标题下一行说明；空串整行不渲染（`:45-52`） |
+| `icon` | `''` | iconify 图标名。给了才渲染那枚 `size-10` 的主色徽标底（`:31-37`，`bg-primary/10 text-primary`），没给就是纯文字标题 |
+
+插槽：`title`、`description`、`extra`（`extra` 是右侧操作区，只在有该插槽时挂出容器，`:55-62`）。钩子：`data-page="header"` / `"header-icon"` / `"header-title"` / `"header-desc"` / `"header-extra"` —— 端到端巡检与样式回归都按这些标记找元素，**改名要同批改 `apps/web/src/views/__tests__/page-shell-convention.spec.ts:187-196`**。
+
+两条刻意的取舍写在组件注释里（`:16-25`）：根元素**不带任何上下外边距与内边距**（页面根容器的 `space-y-*` / `gap` 是竖向节奏的唯一来源，页头再加一档 `mb-*` 就叠成两种间距）；操作区在窄屏折到下一行而不是挤压标题（`flex-wrap` + `min-w-0` + `truncate`），标题被挤成三行的页面看起来就不像成品。
+
+### PageToolbar
+
+| prop | 默认 | 说明 |
+| --- | --- | --- |
+| `stackOnNarrow` | `true` | 窄屏（`< 640px`）时操作区独占一行右对齐：`max-sm:w-full max-sm:justify-end`（`:18-25`）。筛选控件本来就会换行，操作区继续钉右侧会被顶出可视区 —— "看不见的新增按钮"等于没有新增 |
+
+插槽分工是这套外壳的关键：`#filters`（或默认插槽，两者取其一，见 `hasFilters`，`:16`）靠左成一组放筛选，`#actions` 靠右成一组放页面级操作（导出 / 打印 / 批量）。之前同一行里既有"查询 / 重置"又有"新增 / 导出"，两组都是实心主色，读起来分不清"这是查还是这是做"。钩子：`data-page="toolbar"` / `"toolbar-filters"` / `"toolbar-actions"`。根元素同样不带间距。
+
+### ToolbarField
+
+一个筛选项 = 标签 + 控件（`:18-27`，钩子 `data-page="toolbar-field"` / `"toolbar-field-label"`）。它存在的理由只有一个：标签的字号、颜色与控件间距原来每页各写一遍，同一个"状态"标签在三页里是三种灰。`label` 不传时只剩控件本身（用于纯输入框占位）。
+
+真实用例：`apps/web/src/views/system/notice/index.vue`（直接用 `PageToolbar` + `ToolbarField` 组筛选行）；`apps/web/src/views/system/log/index.vue`、`apps/web/src/views/system/login-log/index.vue` 走的是 `BasicTable` 的 `toolbar` / `toolbar-actions` 两个插槽 —— 表格页不必自己再摆一台工具栏，`BasicTable` 内部就是这套 `PageToolbar`（见 `components/table.md`）。
+
 ## Auth 系列（登录 / 注册页版式）
 
 `components/auth/` 四个组件：`AuthPageLayout`（整屏左右分栏外壳 + 品牌栏）、`AuthFormPanel`（标题区 + 表单槽）、`AuthSocialLogin`（第三方入口行）、`AuthColorPresets`（工具条里的主题色触发点）。这一层不认识 store、路由与 i18n，文案和色板一律由宿主算好后传进来。
@@ -593,7 +625,7 @@ shadcn 那只 `Sonner.vue` 把 `rich-colors` 写死在 `v-bind` 之后、状态�
 
 | 约定 | 为什么 |
 | --- | --- |
-| `Checkbox` / `Switch` 永远用 `:model-value` + `@update:model-value`（或直接 `v-model`） | 这两个原语**不在本包的 barrel 里**，来自 `@antdv/shadcn-ui`（`src/index.ts:15`、`:58`），组件体只是把 props / emits 原样 `useForwardPropsEmits` 给 reka-ui 的 `CheckboxRoot` / `SwitchRoot`，reka v2 的模型名是 `modelValue`。写 `:checked` 会被忽略（勾选框永远停在初始值），写 `@change` 收不到。仓库里的正确写法：`apps/web/src/views/account/settings/index.vue:286-291`。会混淆是因为 antdv-next 的 `Switch` 才是 `:checked` —— 但仓库里已经没有任何文件再从 `antdv-next` 引 `Switch`（实测 `grep -rn Switch \| grep antdv-next` 零命中），早先欠这笔债的 `SettingDrawer/**` 目录也不存在了，设置抽屉现在是 `packages/layouts/src/widgets/setting-drawer/**`，`Switch` 取自 `@antdv/shadcn-ui` |
+| `Checkbox` / `Switch` 永远用 `:model-value` + `@update:model-value`（或直接 `v-model`） | 这两个原语**不在本包的 barrel 里**，来自 `@antdv/shadcn-ui`（`packages/core/ui-kit/shadcn-ui/src/index.ts:15`、`:58`），组件体只是把 props / emits 原样 `useForwardPropsEmits` 给 reka-ui 的 `CheckboxRoot` / `SwitchRoot`，reka v2 的模型名是 `modelValue`。写 `:checked` 会被忽略（勾选框永远停在初始值），写 `@change` 收不到。仓库里的正确写法：`apps/web/src/views/account/settings/index.vue:286-291`。会混淆是因为 antdv-next 的 `Switch` 才是 `:checked` —— 但仓库里已经没有任何文件再从 `antdv-next` 引 `Switch`（实测 `grep -rn Switch \| grep antdv-next` 零命中），早先欠这笔债的 `SettingDrawer/**` 目录也不存在了，设置抽屉现在是 `packages/layouts/src/widgets/setting-drawer/**`，`Switch` 取自 `@antdv/shadcn-ui` |
 | `<TabPane value="...">`，不是 `key` | `TabPane.vue:13` 的必填 prop 叫 `value`；`key` 被 Vue 吃掉，pane 注册成 `undefined`（见上方 Tabs 小节） |
 | `Popconfirm` 用 `danger`，不是 `ok-type="danger"` | `popconfirm/Popconfirm.vue:22` 声明的就是 `danger?: boolean`（默认 `false` 在 `:33`）；`okType` 这个 prop 全文件不存在，传了不报错也不生效 |
 | `Modal.confirm` → `confirm()`；`message` → 也从 `@antdv/popup-ui` 拿 | `packages/core/ui-kit/popup-ui/src/index.ts` 就四行 `export *`（`:1-4`：alert、drawer、message、modal）加类型，四个入口都在那个包。应用侧 **44 个文件**引 `@antdv/popup-ui`（口径：`grep -rl "@antdv/popup-ui" apps/web/src \| wc -l` = 44，其中 `.vue` 39 个；分布是 views 35 / components 5 / utils 2 / plugins 1 / 根 `App.vue` 1），`@antdv/layouts` 的 widgets 里另有 5 个（`notification`、`account-drawer`、`logout`、`setting-drawer/index.vue`、`setting-drawer/components/setting-footer.vue`）。典型写法 `import { confirm, message } from '@antdv/popup-ui'`（如 `apps/web/src/views/account/center/index.vue:19`） |

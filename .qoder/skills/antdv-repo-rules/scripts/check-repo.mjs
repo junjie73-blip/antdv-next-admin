@@ -188,7 +188,7 @@ const CHECKS = {
   },
 
   /** @source 只住在 design，且每个带 .vue 的包都登记、路径解析得到真实目录 */
-  '@source': function() {
+  '@source': function () {
     const hits = [];
     const cssIndex = join(ROOT, 'packages/core/base/design/src/index.css');
     if (!existsSync(cssIndex)) return ['design/src/index.css 不见了'];

@@ -53,7 +53,7 @@ const [register, tableRef] = useTable({
 | --- | --- | --- | --- |
 | `useTable(props?)` | `packages/core/ui-kit/table-ui/src/useTable.ts:20-37` | `[register, Ref<null \| TableActionType>]` | 是**实例 ref**：`tableRef.value?.reload()` |
 | `useForm(props?)` | `packages/core/ui-kit/form-ui/src/use-antdv-form.ts:13-157` | `[register, FormActionType]` | 是**方法对象**：`formMethods.setFieldsValue(v)` |
-| `useModal()` | `packages/core/ui-kit/popup-ui/src/modal/useModal.ts:13-58` | `[register, ModalMethods]` | 方法对象，内部等实例 |
+| `useModal()` | `packages/core/ui-kit/popup-ui/src/modal/useModal.ts:9-54` | `[register, ModalMethods]` | 方法对象，内部等实例 |
 | `useModalInner(cb?)` | `packages/core/ui-kit/popup-ui/src/modal/useModalInner.ts:21-73` | `[register, ModalInnerMethods]` | 在**弹窗组件内部**用 |
 | `useDrawer()` | `packages/core/ui-kit/popup-ui/src/drawer/useDrawer.ts:10-57` | `[register, DrawerMethods]` | 同 `useModal` |
 
@@ -79,7 +79,7 @@ function register(instance: TableActionType) {
 }
 ```
 
-所以 `useTable({ api })` 和模板上写 `:api="api"` 是同一件事的两个入口，`useTable` 里那份**先**执行。表格 props 的完整口径、响应解包顺序（`listField → items → data → records → 裸数组`）、`fetchSetting` 默认 `pageNum / pageSize / list / total` 都在[表格](/components/table)里写过，这里不再抄一遍。要记的是实例方法清单在 `packages/core/ui-kit/table-ui/src/types.ts:776` 的 `TableActionType`，`reload` / `setProps` / `getSelectRows` / `clearSelectedRowKeys` / `setTableData` / `expandAll` 等，以及转发给内置搜索表单的那一组（`getFormValues`、`updateFormSchema`…）。
+所以 `useTable({ api })` 和模板上写 `:api="api"` 是同一件事的两个入口，`useTable` 里那份**先**执行。表格 props 的完整口径、响应解包顺序（`listField → items → data → records → 裸数组`）、`fetchSetting` 默认 `pageNum / pageSize / list / total` 都在[表格](/components/table)里写过，这里不再抄一遍。要记的是实例方法清单在 `packages/core/ui-kit/table-ui/src/types.ts:782` 的 `TableActionType`，`reload` / `setProps` / `getSelectRows` / `clearSelectedRowKeys` / `setTableData` / `expandAll` 等，以及转发给内置搜索表单的那一组（`getFormValues`、`updateFormSchema`…）。
 
 ### useForm：`pendingValues` 是编辑弹窗能回填的原因
 
@@ -323,7 +323,7 @@ await http.Delete('/demo/task/1', undefined, { body: { force: true } }); // DELE
 
 `fetcher.ts:160-326` 的 `createFetcher()`：
 
-- **凭证只从注入的 runtime 拿**：`beforeFetch` 里 `getRequestRuntime().tokens.access()`（`:185-195`），不回退去读缓存 —— 缓存里存的是 JWE 密文，当凭证发出去必然 401（这个口径由应用侧的注入实现，`apps/web/src/plugins/request-runtime.ts:19-24`：`access` 读 user store，`refresh` 读缓存）。无 access 有 refresh 就先刷新，刷新失败直接 `forceLogout()`；`isTokenExpired(token, 60)` 提前 60 s 续期（`:214`）。
+- **凭证只从注入的 runtime 拿**：`beforeFetch` 里 `getRequestRuntime().tokens.access()`（`:185-195`），不回退去读缓存 —— 缓存里存的是 JWE 密文，当凭证发出去必然 401（这个口径由应用侧的注入实现，`apps/web/src/plugins/request-runtime.ts:19-24`：`access` 读 user store，`refresh` 读缓存）。无 access 有 refresh 就先刷新，刷新失败直接 `forceLogout()`；`isTokenExpired(token, 60)` 提前 60 s 续期（`packages/request/src/fetcher.ts:214`）。
 - **CSRF 只对写操作**：`STATE_CHANGING` 的方法才带 `X-CSRF-Token`（`:233-245`，头名在 `:165-171` 的 `initCsrfProtection({ headerName: 'X-CSRF-Token', doubleSubmit: true, autoRotate: true })` 里定），另外顺带一组安全头（`nosniff`、`X-Frame-Options: DENY`…`:248-262`）。
 - **`AUTH_ENDPOINTS` 白名单**（`:18-27`，判定 `:36`）：登录/登出/刷新/租户选项等接口不注入 token、也不参与 401 重放，避免死循环。
 - **业务码在非 200 时抛 `RequestError`**：`afterFetch` 见 `payload.code !== 200` 就抛并标记 `handled = true`（`:264-301`），`onFetchError` 因此不会重复弹一条 toast。5xx 走"服务器繁忙，请稍后重试"，其余取 `message`/`msg`（`resolveErrorMessage`，`:329`）；`401` 在 `SILENT_CODES` 里（`:29`，判定 `:350`），**不弹通知**，由跳转登录表达。

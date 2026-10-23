@@ -145,6 +145,14 @@ describe('listy', () => {
     );
   });
 
+  /**
+   * 行内边距跟着 `size` 走：middle 是 `px-4 py-3`、small 是 `px-3 py-2`，
+   * large 写成简写 `p-4`（等价于 `px-4 py-4`）。
+   *
+   * 断言取的是**实际下发的工具类**而不是等价写法 —— 上一版在这里等 `py-4`，
+   * 而组件给的是 `p-4`：`cn()` 后面没有再冲突的 padding，`p-4` 就原样留着，
+   * 于是"large 行更松"这件事其实是生效的，红的只是这条对不上的断言。
+   */
   it('size 换的是行的紧凑程度', () => {
     expect(mountList().find('ul > li').classes()).toContain('px-4');
     expect(
@@ -156,6 +164,6 @@ describe('listy', () => {
       mountList({ props: { items: ITEMS, size: 'large' } })
         .find('ul > li')
         .classes(),
-    ).toContain('py-4');
+    ).toContain('p-4');
   });
 });

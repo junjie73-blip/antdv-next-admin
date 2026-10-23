@@ -85,10 +85,15 @@ describe('basicTable 基础渲染', () => {
 
   it('空数据渲染空态行，跨全部列', () => {
     const wrapper = mountTable({ dataSource: [] });
+    // 原语 `TableEmpty` 自己生成 `<tr>`，把 class 落在 `<td>` 上，
+    // 所以 `.basic-table-empty-row` 这个钩子指向的是那个跨列单元格
     const empty = wrapper.find('.basic-table-empty-row');
     expect(empty.exists()).toBe(true);
+    expect(empty.element.tagName.toLowerCase()).toBe('td');
     expect(empty.text()).toContain('暂无数据');
-    expect(empty.find('td').attributes('colspan')).toBe('2');
+    expect(empty.attributes('colspan')).toBe('2');
+    // 空态与数据行互斥：不该再渲染任何数据行
+    expect(bodyRows(wrapper)).toHaveLength(0);
   });
 
   it('emptyText / locale.emptyText 与 empty 插槽可替换空态', () => {
@@ -120,15 +125,22 @@ describe('basicTable 基础渲染', () => {
     );
   });
 
-  it('scroll.x 决定表格最小宽度，scroll.y 决定 body 最大高度与吸顶表头', () => {
+  it('scroll.x 决定表格最小宽度，scroll.y 决定滚动区高度上限与吸顶表头', () => {
     const wrapper = mountTable({ scroll: { x: 1200, y: 300 } });
-    expect(wrapper.find('table').attributes('style')).toContain(
-      'min-width: 1200px',
-    );
-    expect(wrapper.find('.basic-table-body').attributes('style')).toContain(
-      'max-height: 300px',
+    // shadcn `Table` 唯一的滚动容器是它自己那层 `data-slot="table-container"`
+    // （`.basic-table-body` 只留边框/定位钩子，不再参与滚动，否则 sticky 会认内层）
+    const scroller = wrapper.find('[data-slot="table-container"]');
+    expect(scroller.exists()).toBe(true);
+    expect(scroller.classes()).toContain('overflow-auto');
+    const scrollerStyle = scroller.attributes('style') ?? '';
+    expect(scrollerStyle).toContain('max-height: 300px');
+    // 宽度下限走 CSS 变量：容器上给值，`<table>` 用一个字面量类名引用它
+    expect(scrollerStyle).toContain('--basic-table-min-width: 1200px');
+    expect(wrapper.find('table').classes()).toContain(
+      'min-w-[var(--basic-table-min-width)]',
     );
     expect(wrapper.find('.basic-table-head').classes()).toContain('sticky');
+    expect(wrapper.find('.basic-table-head').classes()).toContain('top-0');
   });
 
   it('固定列自带不透明底色与层级，横向滚动时不被同行单元格穿透', () => {
@@ -165,8 +177,11 @@ describe('basicTable 基础渲染', () => {
       expect.arrayContaining(['group', 'bg-card']),
     );
     for (const cls of wrapper.findAll('.basic-table-head')) {
-      expect(cls.classes()).toEqual(expect.arrayContaining(['bg-gray-50']));
-      expect(cls.classes().join(' ')).not.toContain('gray-800/');
+      // token 化后表头底色是 `bg-muted`（原先写死的 `bg-gray-50` 已废弃）
+      expect(cls.classes()).toEqual(expect.arrayContaining(['bg-muted']));
+      // 关键是"实色"：带透明度的 `muted/50` 一透，固定列表头就压不住滚过来的数据行
+      expect(cls.classes().join(' ')).not.toContain('muted/');
+      expect(cls.classes().join(' ')).not.toContain('bg-card/');
     }
     // 固定表头压住固定单元格
     expect(wrapper.findAll('.basic-table-head')[0]!.classes()).toContain(

@@ -255,7 +255,7 @@ function renderDropdownAction(
           {
             key: confirmKey,
             class: cn(
-              'bg-muted/60 m-1  rounded-md border p-2 text-sm',
+              'bg-muted/60 m-1 rounded-md border p-2 text-sm',
               'flex flex-col gap-2',
             ),
           },

@@ -1,8 +1,32 @@
 # Table
 
-`BasicTable` shapes the table into a "config-driven + imperative instance" component: data source, pagination, columns, search form and row selection all come in through props, and the page gets a method bag back through `@register` to drive the table imperatively. What it removes is the repeated labour of admin list pages — the loading state, pagination parameter assembly, response unwrapping, column visibility caching and selection bookkeeping every list writes again are folded into one hook here. The base is `@tanstack/vue-table` (sorting / filtering / the row model are handed to it, and `BasicTable.vue:288-291` explains specifically why the **sorting-stage** model is the one taken — the filtering model cannot see the sorted result), while `<table>` / `<thead>` / `<tbody>` and the cells are rendered by the component itself: it no longer borrows any third-party table's DOM.
+`BasicTable` shapes the table into a "config-driven + imperative instance" component: data source, pagination, columns, search form and row selection all come in through props, and the page gets a method bag back through `@register` to drive the table imperatively. What it removes is the repeated labour of admin list pages — the loading state, pagination parameter assembly, response unwrapping, column visibility caching and selection bookkeeping every list writes again are folded into one hook here. The base is `@tanstack/vue-table` (sorting / filtering / the row model are handed to it, and `BasicTable.vue:276-281` explains specifically why the **sorting-stage** model is the one taken — the filtering model cannot see the sorted result). The DOM skeleton is not hand-rolled: everything goes through the `@antdv/shadcn-ui` Table primitives (`Table` / `TableHeader` / `TableBody` / `TableRow` / `TableHead` / `TableCell` / `TableFooter` / `TableCaption` / `TableEmpty`), the same convention the rest of the repository follows. The primitives only declare a `class` prop, so `style` passes through to their own scroll container, `div[data-slot="table-container"]` (`relative overflow-auto`) — that is the **only** layer that scrolls; `.basic-table-body` just hosts the loading overlay, the `bordered` outline and the stable test hook. Letting both layers scroll would drag the `sticky top-0` header along with them.
 
-Source: `packages/core/ui-kit/table-ui/src/` (`BasicTable.vue` / `useTable.ts` / `types.ts` / `features.ts` / `hooks/` / `components/`). The exported list is in `src/index.ts`.
+Source: `packages/core/ui-kit/table-ui/src/` (`BasicTable.vue` is "contract + assembly + layout"; the logic lives in the `hooks/` and `helpers/` directories, plus `useTable.ts` / `types.ts` / `features.ts` / `components/`). The exported list is in `src/index.ts`.
+
+## Internal structure: the 19 files around `BasicTable.vue`
+
+`BasicTable.vue` now does three things only: it declares props / emits / expose (the contract), assembles the hooks (the wiring), and renders the template (the layout). Every other block of logic has its own file, so a behaviour change has exactly one place to edit.
+
+| File | Its single job |
+| --- | --- |
+| `hooks/useMergedProps.ts` | the only source of the `merged*` derived values (props + `propsRef` overrides + defaults) |
+| `hooks/useDataSource.ts` | requests, unwrapping, pagination assembly, `reload`, and local insert/update/delete |
+| `hooks/usePagination.ts` / `usePaginationModel.ts` | pagination state / converting it into the explicit props `TablePagination` wants |
+| `hooks/useColumns.ts` | column caching, visibility, per-column permission and merging |
+| `hooks/useTableRows.ts` | row visibility: page slice → tree flattening → expansion state |
+| `hooks/useRowSelection.ts` / `useSelectionColumn.ts` | selection state / the selection column's view model (tri-state select-all, what a click emits) |
+| `hooks/useTableSorting.ts` / `useTableFilters.ts` / `useTableChange.ts` | the header sort cycle / the filter panel / the shared tail after sort, filter or page changes |
+| `hooks/useStickyColumns.ts` | pinned-column widths, `left`/`right` offsets and their classes |
+| `hooks/useTableClasses.ts` | the classes and CSS variables of the five layers (root → scroll container → `<table>` → row → cell); this is where `scroll.x` becomes `--basic-table-min-width` |
+| `hooks/useLoading.ts` | loading state |
+| `hooks/useTableForm.ts` | wiring the built-in search form (`getFormProps` / `registerForm` / time-field mapping) |
+| `hooks/useDragSort.ts` | the Sortable binding and the "DOM row ↔ data row" index conversion |
+| `hooks/useTableApi.ts` | assembles the public API (`TableActionType`), which is also the `emit('register')` payload |
+| `helpers/cellContent.ts` | the cell-content precedence chain: slot → `customRender` → `format` → editable → image → raw value |
+| `helpers/renderVNode.ts` | `RenderVNode`: rendering `string \| VNode \| array` through one path |
+
+::: tip Why split it this way Modules that need another hook's results — `useStickyColumns` is the obvious one — take them as **parameters** (`getColumn` / `getHeader` / `visibleColumns`) instead of importing a sibling hook. The assembly graph appears exactly once, in `BasicTable.vue`, and unit tests can feed each hook plain fakes. :::
 
 ## useTable: registration and instance
 
@@ -52,24 +76,24 @@ function handleRefresh() {
 </template>
 ```
 
-The moment `register` receives the instance it merges in the initial props handed to `useTable(props)` (`useTable.ts:26-34` → `setProps` at `BasicTable.vue:729-731`). The table's `setProps` **genuinely works**: it folds the new values into the internal `propsRef` (`propsRef.value = { ...unref(propsRef), ...p }`) instead of doing `Object.assign(props, …)`. `setModalProps` / `setDrawerProps` over in [Modal and drawer](/en/components/modal-drawer) behave the same way — they write into `propOverrides`, which `merged = { ...props, ...propOverrides }` then recomputes, so the earlier "silent no-op" claim was retired together with the reimplementation.
+The moment `register` receives the instance it merges in the initial props handed to `useTable(props)` (`useTable.ts:26-34` → `setProps` at `BasicTable.vue:152-154`). The table's `setProps` **genuinely works**: it folds the new values into the internal `propsRef` (`propsRef.value = { ...unref(propsRef), ...p }`) instead of doing `Object.assign(props, …)`. `setModalProps` / `setDrawerProps` over in [Modal and drawer](/en/components/modal-drawer) behave the same way — they write into `propOverrides`, which `merged = { ...props, ...propOverrides }` then recomputes, so the earlier "silent no-op" claim was retired together with the reimplementation.
 
 ## Frequently used BasicTableProps
 
-The types live at `types.ts:515-775`; the defaults are in the `withDefaults` call at `BasicTable.vue:67-80`: `rowKey: 'id'`, `showIndexColumn: false`, `immediate: true`, `canResize: false`, `resizeHeightOffset: 0`, `showHeader: true`, `size: 'small'`, `tableLayout: 'fixed'`, `scroll: () => ({ y: 440 })`, `defaultExpandAllRows: true` (the comment on the last one explains why it must be written out explicitly: Vue turns an omitted boolean prop into `false`, so leaving it out means treating "not passed" as "passed `false`").
+The types live at `types.ts:515-775`; the defaults are in the `withDefaults` call at `BasicTable.vue:78-91`: `rowKey: 'id'`, `showIndexColumn: false`, `immediate: true`, `canResize: false`, `resizeHeightOffset: 0`, `showHeader: true`, `size: 'small'`, `tableLayout: 'fixed'`, `scroll: () => ({ y: 440 })`, `defaultExpandAllRows: true` (the comment on the last one explains why it must be written out explicitly: Vue turns an omitted boolean prop into `false`, so leaving it out means treating "not passed" as "passed `false`").
 
 | Prop | Type | Notes |
 | --- | --- | --- |
 | `api` | `ApiFn` | request function; paginated responses are unwrapped by the table itself |
 | `dataSource` | `Recordable[]` | local data, one or the other with `api` |
 | `columns` | `BasicColumn[]` | column config |
-| `pagination` | `PaginationProps \| boolean` | `false` turns pagination off (`PaginationProps` is at `types.ts:50-73`, the field declaration at `:532`) |
+| `pagination` | `PaginationProps \| boolean` | `false` turns pagination off (`PaginationProps` is at `types.ts:50-66`, the field declaration at `:532`) |
 | `fetchSetting` | `{ pageField, sizeField, listField, totalField }` | defaults `pageNum / pageSize / list / total` (`hooks/useDataSource.ts:18-23`, written with `satisfies FetchSetting` rather than a type annotation) |
 | `useSearchForm` / `formConfig` | `boolean` / `Partial<FormProps>` | the table's built-in search area, see [Form](/en/components/form) |
 | `rowSelection` | `boolean \| TableRowSelection` | passing an object means checkboxes, `type: 'radio'` for single select |
 | `actionColumn` | `ActionColumnProps` | the action column; `actions(record)` returns `ActionItem[]` |
 | `dragSort` / `dragSortConfig` | `boolean` / object | see drag sorting below |
-| `scroll` | `{ x, y, scrollToFirstRowOnChange }` | horizontal / vertical scrolling, the default being `{ y: 440 }` (`BasicTable.vue:76`), so full-height fitting needs an explicit override |
+| `scroll` | `{ x, y, scrollToFirstRowOnChange }` | horizontal / vertical scrolling, the default being `{ y: 440 }` (`BasicTable.vue:87`), so full-height fitting needs an explicit override. `x` goes through a CSS variable (`--basic-table-min-width` on the container plus `min-w-[var(--basic-table-min-width)]` on the `<table>`), `y` becomes the scroll container's `max-height`; both act on the `data-slot="table-container"` layer the shadcn `Table` primitive brings |
 | `immediate` | `boolean` | fetch on mount, default `true` |
 | `beforeFetch` / `afterFetch` | `(p) => false \| p` / `(d) => d[]` | intercept the request params, post-process the result |
 
@@ -77,7 +101,7 @@ The types live at `types.ts:515-775`; the defaults are in the `withDefaults` cal
 
 ## Columns (BasicColumn)
 
-`types.ts:110-249`. The fields you actually reach for:
+`types.ts:110-247`. The fields you actually reach for:
 
 | Field | Notes |
 | --- | --- |
@@ -93,18 +117,22 @@ The types live at `types.ts:515-775`; the defaults are in the `withDefaults` cal
 | `ifShow` / `defaultHidden` / `auth` | visibility and per-column permission |
 | `resizable` | drag to resize the column |
 
-Editable columns use **the Table's own `ComponentType` union** (`types.ts:90-108`, 17 keys; the comment at `:89` states it is "aligned with the form-ui `ComponentType` naming, a subset of the intersection"). It is a good deal shorter than the form's list, and it adds four `Api*` entries (`ApiSelect` / `ApiTreeSelect` / `ApiCascader` / `ApiRadioGroup`) — those four are **not registered** in form-ui's `componentMap` (`config.ts:67-101`, 28 entries): the two lines at `:98-99` are the downgraded shells `ASelect: FSelect` and `ATreeSelect: FTreeSelect`, which do not understand the `api` / `resultField` / `labelField` set of parameters. Conversely the form's `Select`, `Cascader`, `DatePicker` and so on do exist in this union and work normally. A name outside the intersection does not blank the cell out either: `TableEditableCell.vue:80` is `getComponent(name) ?? getComponent('Input')`, so `ApiSelect` and its friends quietly degrade into a text input (the case is in `__tests__/cells-and-form.test.ts:193-200`). So do not copy component names between the two from memory.
+Editable columns use **the Table's own `ComponentType` union** (`types.ts:90-107`, 17 keys; the comment at `:89` states it is "aligned with the form-ui `ComponentType` naming, a subset of the intersection"). It is a good deal shorter than the form's list, and it adds four `Api*` entries (`ApiSelect` / `ApiTreeSelect` / `ApiCascader` / `ApiRadioGroup`) — those four are **not registered** in form-ui's `componentMap` (`packages/core/ui-kit/form-ui/src/config.ts:67-101`, 28 entries): the two lines at `:97-98` are the downgraded shells `ASelect: FSelect` and `ATreeSelect: FTreeSelect`, which do not understand the `api` / `resultField` / `labelField` set of parameters. Conversely the form's `Select`, `Cascader`, `DatePicker` and so on do exist in this union and work normally. A name outside the intersection does not blank the cell out either: `TableEditableCell.vue:80` is `getComponent(name) ?? getComponent('Input')`, so `ApiSelect` and its friends quietly degrade into a text input (the case is in `__tests__/cells-and-form.test.ts:205-218`). So do not copy component names between the two from memory.
 
-Slots (all in the `BasicTable.vue` template): `#toolbar` (1180), `#header-{col.key}` (1258), `#index` (1402), `#action` (1415), `#cell-{col.key}` (1431), `#cell-{col.dataIndex}` (1440), bare `#{col.dataIndex}` (1452), `#expandedRowRender` (1519), `#empty` (1546), `#summary` (1557) — the last three (`cell` / bare name) are a `v-if` / `v-else-if` precedence chain, so only one of them takes effect for a given field. The `#actionHeader` / `#indexHeader` slots no longer exist at all (0 hits when grepping the whole directory), so do not write from old notes. Events are in `defineEmits` (`BasicTable.vue:82-114`): `change`, `rowClick`, `rowDbClick`, `register`, `headerEdit`, `cellSave`, `cellCancel`, `cellChange` (kebab spellings such as `@row-click` in a template are normalized by Vue onto the camelCase event of the same name).
+Slots (all in the `BasicTable.vue` template): `#toolbar` (593), `#toolbar-actions` (595), `#header-{col.key}` (660), `#index` (794), `#action` (807), `#cell-{col.key}` (823), `#cell-{col.dataIndex}` (832), bare `#{col.dataIndex}` (844), `#expandedRowRender` (911), `#empty` (938), `#summary` (949) — the last three (`cell` / bare name) are a `v-if` / `v-else-if` precedence chain, so only one of them takes effect for a given field. The `#actionHeader` / `#indexHeader` slots no longer exist at all (0 hits when grepping the whole directory), so do not write from old notes.
 
-Instance methods (`TableActionType`, `types.ts:776-915`; the instance object is built at `BasicTable.vue:1071-1144`): `setProps`, `reload`, `setLoading`, `getRawDataSource`, `get/setColumns`, `updateColumn`, `getVisibleColumns`, `getCacheColumns`, `expandAll`/`collapseAll`/`expandRows`/`collapseRows`, `scrollTo`, `selectRows`, `getSelectRows`, `getSelectRowKeys`, `clearSelectedRowKeys`, `deleteSelectRowByKey`, `getPaginationRef`, `setPagination`, `setShowPagination`, `getShowPagination`, `getDataSource`, `setTableData`, `insertTableDataRecord`, `updateTableDataRecord`, `deleteTableDataRecord`, `findTableDataRecord`, plus `getFormValues`/`setFormValues`/`resetForm`/`submitForm`/`validateForm`/`updateFormSchema`/`appendFormSchema`/`removeFormSchema`/`getForm`, which forward to the built-in search form. Note that `redoHeight` is now an empty stub (`redoHeight: async () => {}` at `BasicTable.vue:1077`), kept only for old callers — calling it does nothing; for table height fitting change `canResize` / `scroll.y`.
+`#toolbar` and `#toolbar-actions` follow the same split as [Common components · page shell](/en/components/common-ui): the toolbar inside a table _is_ a `PageToolbar`, the `title` prop and `#toolbar` land in the left column (filters and notes; the title carries the `data-table="toolbar-title"` hook) and `#toolbar-actions` forwards to `PageToolbar`'s `#actions` (right column, page-level commands: export / print / bulk), collapsing to its own right-aligned row on narrow screens. Examples: `apps/web/src/views/system/log/index.vue`, `apps/web/src/views/system/login-log/index.vue`.
+
+Events are in `defineEmits` (`BasicTable.vue:93-125`): `change`, `rowClick`, `rowDbClick`, `register`, `headerEdit`, `cellSave`, `cellCancel`, `cellChange` (kebab spellings such as `@row-click` in a template are normalized by Vue onto the camelCase event of the same name).
+
+Instance methods (`TableActionType`, `types.ts:782-912`; the instance object is assembled at `hooks/useTableApi.ts:78-136`, which is both the `emit('register')` payload and the `defineExpose` outlet): `setProps`, `reload`, `setLoading`, `getRawDataSource`, `get/setColumns`, `updateColumn`, `getVisibleColumns`, `getCacheColumns`, `expandAll`/`collapseAll`/`expandRows`/`collapseRows`, `scrollTo`, `selectRows`, `getSelectRows`, `getSelectRowKeys`, `clearSelectedRowKeys`, `deleteSelectRowByKey`, `getPaginationRef`, `setPagination`, `setShowPagination`, `getShowPagination`, `getDataSource`, `setTableData`, `insertTableDataRecord`, `updateTableDataRecord`, `deleteTableDataRecord`, `findTableDataRecord`, plus `getFormValues`/`setFormValues`/`resetForm`/`submitForm`/`validateForm`/`updateFormSchema`/`appendFormSchema`/`removeFormSchema`/`getForm`, which forward to the built-in search form. Note that `redoHeight` is now an empty stub (`redoHeight: async () => {}` at `hooks/useTableApi.ts:82`), kept only for old callers — calling it does nothing; for table height fitting change `canResize` / `scroll.y`. `scrollTo` scrolls the `data-slot="table-container"` layer (falling back to `.basic-table-body` only if that is missing); `updateFormSchema` / `appendFormSchema` / `removeFormSchema` are still empty implementations (the search form's schema is declared through `formConfig`, there is no imperative entry point).
 
 ## Drag sorting (dragSort)
 
 Wired into `BasicTable` only recently: after the component mounts it binds Sortable to its own `<tbody>`, the reorder mutates the internal data source straight away, and the page only writes the new order back into its own state inside `onDragEnd`.
 
 ```ts
-// packages/core/ui-kit/table-ui/src/types.ts:689-703
+// packages/core/ui-kit/table-ui/src/types.ts:689-710
 dragSort?: boolean;
 dragSortConfig?: {
   handle?: string;
@@ -115,16 +143,16 @@ dragSortConfig?: {
 };
 ```
 
-The binding logic is at `BasicTable.vue:300-349`: every configuration option passed to `useDragSort` is a **getter** (written as `get handle() { return getMergedProps.value.dragSortConfig?.handle }`) reading the merged props, so swapping `dragSortConfig` for a new reference does not require rebuilding Sortable; `watch(() => getMergedProps.value.dragSort)` (`:344-349`) calls `destroySortable()` and then `syncDragSort()` again (which runs `querySelector('.basic-table-tbody')` after `await nextTick()`, `:333-342`), and inside `onDragEnd`, besides the callback, `dataSource.setTableData(newData)` also runs — the comment states this step is there so that "reset data" falls back to the snapshot taken **after** the drag rather than before it.
+The binding logic is at `BasicTable.vue:294-339`: every configuration option passed to `useDragSort` is a **getter** (`:296-310`, written as `get handle() { return getMergedProps.value.dragSortConfig?.handle }`) reading the merged props, so swapping `dragSortConfig` for a new reference does not require rebuilding Sortable; `watch(() => getMergedProps.value.dragSort)` (`:333-339`) calls `destroySortable()` and then `syncDragSort()` again (`:323-331`: `await nextTick()`, then `querySelector('.basic-table-tbody')`, then `initSortable(tbody)`), and the same `syncDragSort()` runs on mount (`:561`). Inside `onDragEnd`, besides the callback, `dataSource.setTableData(newData)` also runs (`:311-316`) — the comment states this step is there so that "reset data" falls back to the snapshot taken **after** the drag rather than before it. The binding target is the `<tbody>` rendered by the shadcn `TableBody` primitive; the stable hook this component puts on it is `class="basic-table-tbody"` (`:762`).
 
 ::: warning Two limits worth knowing
 
 1. **With client-side pagination only the current page is reordered.** When `pagination` is on and the data is a local `dataSource`, row indices only cover the current page — for "the order I drag out is the order of the whole set", set `pagination: false` or use server-side pagination (the literal comment at `types.ts:682-688`).
-2. **The leading-row index offset is defended**: `hooks/useDragSort.ts:33-46` measures, per event, how many rows precede the first `<tr>` carrying `data-row-key`, then restores the data index with `dataIndex(i) = i - leadingOffset()`. The `<tbody>` is drawn by this component, and the current implementation never inserts a measurement row (the comment at `:26-32` writes it as a defence against "the caller may insert rows"), so this normally returns 0; should a placeholder or group row ever be added before the data rows, this code still does not need to be revisited. :::
+2. **The leading-row index offset is defended**: `snapshotRows()` at `hooks/useDragSort.ts:44-59` measures, once before every drag, how many rows precede the first `<tr>` carrying `data-row-key` (it runs in both `filter` and `onStart`, `:101` and `:109`), then restores the data index with `dataIndex(i) = i - leadingRowCount` (`:41-42`); records are looked up by `data-row-key` first, and the index conversion is only the fallback (`:62-67`). The `<tbody>` is drawn by this component (`BasicTable.vue:762`), and the current implementation never inserts a measurement row — the comment at `:21-31` frames it as a defence against "a measurement / placeholder row before the first data row", so this normally returns 0; should a placeholder or group row ever be added before the data rows, this code still does not need to be revisited. :::
 
 ## TreeTable
 
-The tree-plus-table composite page: `packages/core/ui-kit/table-ui/src/components/TreeTable.vue`, imported from the package root as `import { TreeTable } from '@antdv/table-ui'`. The reason it lives in table-ui rather than common-ui is that the component renders a `BasicTable` internally, and the `table-ui → common-ui` dependency edge already exists — the reverse reference would turn the two packages into a cycle. Its types (`TreeDataNode` / `TreeTableProps` / `TreeTableFetchParams` / `TreeTableEmits`) sit in the same package at `types.ts:1072-1108`. In `TreeTableProps` only `treeData` and `tableColumns` are required, the rest carry defaults (`TreeTable.vue:31-44`: `treeTitle: '目录'`, `treeDefaultExpandAll: true`, `treeSearchPlaceholder: '请输入关键词搜索'`, `treeWidth: 260`, `treeMinWidth: 200`, `treeMaxWidth: 480`, `tableTitle: '列表'`, `tableRowKey: 'id'`, `tablePageSize: 10`, `showSearch: true`, `treeEmptyText`/`tableEmptyText: '暂无数据'`). The table on the right is yet another `BasicTable` inside the component; `tableApi` receives `{ treeKey, page, pageSize }` and returns `{ list, total }` (`page` is converted by the component from `BasicTable`'s `pageNum`, `TreeTable.vue:136-142`), and the only emitted event is `treeSelect(key, node)`.
+The tree-plus-table composite page: `packages/core/ui-kit/table-ui/src/components/TreeTable.vue`, imported from the package root as `import { TreeTable } from '@antdv/table-ui'`. The reason it lives in table-ui rather than common-ui is that the component renders a `BasicTable` internally, and the `table-ui → common-ui` dependency edge already exists — the reverse reference would turn the two packages into a cycle. Its types (`TreeDataNode` / `TreeTableProps` / `TreeTableFetchParams` / `TreeTableEmits`) sit in the same package at `types.ts:1078-1110`. In `TreeTableProps` only `treeData` and `tableColumns` are required, the rest carry defaults (`TreeTable.vue:31-44`: `treeTitle: '目录'`, `treeDefaultExpandAll: true`, `treeSearchPlaceholder: '请输入关键词搜索'`, `treeWidth: 260`, `treeMinWidth: 200`, `treeMaxWidth: 480`, `tableTitle: '列表'`, `tableRowKey: 'id'`, `tablePageSize: 10`, `showSearch: true`, `treeEmptyText`/`tableEmptyText: '暂无数据'`). The table on the right is yet another `BasicTable` inside the component; `tableApi` receives `{ treeKey, page, pageSize }` and returns `{ list, total }` (`page` is converted by the component from `BasicTable`'s `pageNum`, `TreeTable.vue:136-142`), and the only emitted event is `treeSelect(key, node)`.
 
 ```vue
 <TreeTable
