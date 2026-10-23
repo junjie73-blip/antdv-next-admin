@@ -104,9 +104,9 @@ The `components/` and `widgets/` subfolders are what "private component" means o
 
 ## Versions and releases
 
-`version` in the root `package.json` (currently `0.4.0`) is the baseline for the whole repository, and every dependency version lives in the `catalog` block of `pnpm-workspace.yaml` — sub-packages only write `"xxx": "catalog:"`. To find a library's real version, read the catalog, not a sub-package manifest.
+`version` in the root `package.json` (currently `0.1.0`) is the baseline for the whole repository, and every dependency version lives in the `catalog` block of `pnpm-workspace.yaml` — sub-packages only write `"xxx": "catalog:"`. To find a library's real version, read the catalog, not a sub-package manifest. Note that the root package `antdv-next-admin` **is not a workspace member**, so changesets never touch its `version`; keeping it in step with the set is manual work.
 
-Releases go through changesets: `pnpm changeset` writes a file into `.changeset/`, `pnpm version` consumes those and updates `CHANGELOG.md`, `pnpm release` publishes. `.changeset/config.json` declares `fixed: [["@antdv/*", "@antdv/*"]]`, so bumping **any** package moves every `@antdv/*` to the same version — that is the price paid for inter-package imports never drifting apart.
+Releases go through changesets: `pnpm changeset` writes a file into `.changeset/`, `pnpm version` consumes those and updates **each package's** `CHANGELOG.md`, `pnpm exec changeset tag` tags every package as `<pkg>@<version>`, and `pnpm release` publishes (all packages are private, so publishing is a no-op today). `.changeset/config.json` declares `fixed: [["@antdv/*", "@antdv/*"]]`, so bumping **any** package moves every `@antdv/*` to the same version — that is the price paid for inter-package imports never drifting apart.
 
 ## Keep reading
 

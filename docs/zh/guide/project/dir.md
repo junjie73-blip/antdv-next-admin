@@ -71,14 +71,15 @@ packages/*  ──►  packages/*，且必须单向（types ← 其他所有包�
 
 ```bash
 pnpm changeset          # 声明本次改动影响哪些包、什么级别的版本
-pnpm version            # 消耗 changeset，升版本号并写 CHANGELOG.md，再 install 同步锁文件
-pnpm release            # build + changeset publish
+pnpm version            # 消耗 changeset，升各包版本号并写它们的 CHANGELOG.md，再 install 同步锁文件
+pnpm exec changeset tag # 按各包当前版本打 <pkg>@<version> tag；git push 默认不带 tag，要 --follow-tags
+pnpm release            # build + changeset publish（全套包 private，当前是空操作）
 ```
 
 `.changeset/config.json` 里三个字段决定了实际行为：
 
-- `changelog: @changesets/changelog-github` + `repo` —— CHANGELOG 每条带 PR 链接；
-- `fixed: [["@antdv/*", "@antdv/*"]]` —— **所有 `@antdv/*` 锁步升版**，任一包 patch 会带着大家一起走同一版本号（所以现在每个包都是 `0.4.0`）。这是刻意的：内部包互相引用，版本分散会让 "装哪几个版本能一起跑"变成谜题；
+- `changelog: "@changesets/changelog-git"` —— CHANGELOG 每条带 commit 短 SHA，不需要任何凭据（`changelog-github` 会按 commit 去 GitHub API 查 PR，缺 `GITHUB_TOKEN` 时整条 `version` 抛错退出）。各包自己的 `CHANGELOG.md` 已在 2026-10-23 首次 `pnpm version` 里生成（34 份）；仓库根那个仍是改造前 `standard-version` 的旧文件，changesets 不碰它。
+- `fixed: [["@antdv/*", "@antdv/*"]]` —— **所有 `@antdv/*` 锁步升版**，一次 `pnpm version` 把整套抬到同一个号，落点取组内当前最高号叠加本轮最大 bump 级别。这是刻意的：内部包互相引用，版本分散会让 "装哪几个版本能一起跑"变成谜题。首次发版前各包是手工写死的、摊在五个号上（`0.0.0` / `0.1.0` / `0.4.0` / `0.5.0` / `5.8.0`，最后一个是 `scripts/` 下 `turbo-run` / `vsh` 从上游模板带来的），照原样跑会把整套推到 `5.9.0`；因此先把全部成员归零到 `0.0.0`，首个统一版本落在 `0.1.0`。**新建包一律从 `0.0.0` 出厂** —— 组里最高的那个号替整套决定落点。
 - `privatePackages: { version: true, tag: true }` —— `private: true` 的 `@antdv/web` / `docs` / `backend-mock` 也一起升版打 tag，虽然不发布到 npm。
 
 以前那套 `standard-version` 已随 monorepo 改造移除 —— 单个仓库版本号对多包不够用。

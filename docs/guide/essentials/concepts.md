@@ -104,9 +104,9 @@ views/system/user/
 
 ## 版本与发版
 
-根 `package.json` 的 `version`（当前 `0.4.0`）是整仓基线，具体依赖版本一律写在 `pnpm-workspace.yaml` 的 `catalog` 里，子包只写 `"xxx": "catalog:"`。所以查某个库的真实版本去看 catalog，而不是子包 package.json。
+根 `package.json` 的 `version`（当前 `0.1.0`）是整仓基线，具体依赖版本一律写在 `pnpm-workspace.yaml` 的 `catalog` 里，子包只写 `"xxx": "catalog:"`。所以查某个库的真实版本去看 catalog，而不是子包 package.json。注意根包 `antdv-next-admin` **不是 workspace 成员**，changesets 不碰它的 `version`，跟整套对齐是手工的事。
 
-版本变更走 changesets：`pnpm changeset` 生成 `.changeset/*.md`，`pnpm version` 消费并回写 `CHANGELOG.md`，`pnpm release` 发布。`.changeset/config.json` 里的 `fixed: [["@antdv/*", "@antdv/*"]]` 意味着**任一**包升版会带着全部 `@antdv/*` 一起走同一版本号，这是子包之间互相 import 时不出现版本漂移的代价与保障。
+版本变更走 changesets：`pnpm changeset` 生成 `.changeset/*.md`，`pnpm version` 消费并回写**各包**的 `CHANGELOG.md`，`pnpm exec changeset tag` 打 `<pkg>@<version>` tag，`pnpm release` 发布（全套包 private，publish 当前是空操作）。`.changeset/config.json` 里的 `fixed: [["@antdv/*", "@antdv/*"]]` 意味着**任一**包升版会带着全部 `@antdv/*` 一起走同一版本号，这是子包之间互相 import 时不出现版本漂移的代价与保障。
 
 ## 继续阅读
 

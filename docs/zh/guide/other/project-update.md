@@ -43,11 +43,11 @@ pnpm version                      # changeset version && pnpm install --no-froze
 pnpm release                      # pnpm build && changeset publish
 ```
 
-`.changeset/config.json` 里三个决定值得注意：`fixed: [["@antdv/*", "@antdv/*"]]` 让所有 `@antdv/*` 包**永远同版本号一起跳**（所以各包 package.json 都是 0.4.0，包括 `scripts/turbo-run` 与 `scripts/vsh` 这两个还是 5.8.0 的）；`privatePackages: { version: true, tag: true }` 允许给私有包写版本和打标签； `updateInternalDependencies: "patch"`。changelog 走 `@changesets/changelog-github`，仓库名写死为 `junjie73-blip/antdv-next-admin`。
+`.changeset/config.json` 里三个决定值得注意：`fixed: [["@antdv/*", "@antdv/*"]]` 让所有 `@antdv/*` 包**在同一次 `pnpm version` 里一起跳版本号**（落点取组内当前最高版本再叠加本轮最大 bump 级别，所以新建包一律从 `0.0.0` 出厂）；`privatePackages: { version: true, tag: true }` 允许给私有包写版本和打标签； `updateInternalDependencies: "patch"`。changelog 走 `@changesets/changelog-git`，条目按 commit 短 SHA 生成，不需要 `GITHUB_TOKEN`（换成 `changelog-github` 时没配 token 会让 `version` 整条抛错退出）。
 
 ::: danger
 
-别把 `pnpm release` 当成"发 npm" `packages/*`、`apps/*` 与根包的 package.json **全部是 `"private": true`**，也没有 `publishConfig`。changesets 在这里只产出 CHANGELOG 与 git tag，不会往 registry 推任何东西。发布历史也确实薄： `git tag` 现在只有 `v0.0.3` 和一个 `vnull`，而版本号已经走到 0.4.0；`.github/workflows/` 里只有 `docs.yml`（它的注释还引用了一个不存在的 `ci.yml`）。**升级与发版目前是一次纯本地动作**，要打标签得自己 `git tag && git push --tags`。:::
+别把 `pnpm release` 当成"发 npm" `packages/*`、`apps/*` 与根包的 package.json **全部是 `"private": true`**，也没有 `publishConfig`。changesets 在这里只产出各包的 CHANGELOG 与 git tag，不会往 registry 推任何东西。发布历史也确实薄：`.github/workflows/` 里只有 `docs.yml`（它的注释还引用了一个不存在的 `ci.yml`），也没有 job 跑 changesets；0.1.0 之前仓库只有 `v0.0.3` 和一个误操作留下的 `vnull`。**升级与发版目前是一次纯本地动作**，`version` 之后自己提交，再 `pnpm exec changeset tag` 打 tag，推送要 `git push --follow-tags`（`git push` 默认不带 tag）。:::
 
 ## 一次 antdv-next 升级怎么跑
 

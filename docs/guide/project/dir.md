@@ -75,14 +75,15 @@ packages/*  ──►  packages/*，且必须单向（types ← 其他所有包�
 
 ```bash
 pnpm changeset          # 声明本次改动影响哪些包、什么级别的版本
-pnpm version            # 消耗 changeset，升版本号并写 CHANGELOG.md，再 install 同步锁文件
-pnpm release            # build + changeset publish
+pnpm version            # 消耗 changeset，升各包版本号并写它们的 CHANGELOG.md，再 install 同步锁文件
+pnpm exec changeset tag # 按各包当前版本打 <pkg>@<version> tag；git push 默认不带 tag，要 --follow-tags
+pnpm release            # build + changeset publish（全套包 private，当前是空操作）
 ```
 
 `.changeset/config.json` 里这几个字段决定了实际行为：
 
-- `changelog: ["@changesets/changelog-github", { repo }]` —— 生成 CHANGELOG 时每条带 PR 链接；**目前还没有任何一包有 `CHANGELOG.md`**（`pnpm version` 一次都没跑过），仓库根那个 `CHANGELOG.md` 是改造前 `standard-version` 留下的旧文件。
-- `fixed: [["@antdv/*", "@antdv/*"]]` —— **`@antdv/*` 锁步升版**：一次 `pnpm version` 里被同一批 changeset 带到的包会一起跳到同一个号。这是刻意的：内部包互相引用，版本分散会让"装哪几个版本能一起跑"变成谜题。但锁步不等于全体相等 —— 没被这批 changeset 触及的包保持原号，所以现在（按各 `package.json` 实测）：多数包 `0.4.0`，`@antdv/layouts` `0.5.0`，`common-ui` / `enums` / `request` / `stores` / `utils` 还是 `0.1.0`，5 个 `*-config` 与 `docs` 是 `0.0.0`，`scripts/` 下的 `turbo-run` / `vsh` 是另一条线上的 `5.8.0`。别在文档里写"所有包都是同一个版本"。
+- `changelog: "@changesets/changelog-git"` —— 生成 CHANGELOG 时每条带 commit 短 SHA，不需要任何凭据。各包的 `CHANGELOG.md` 已经在 2026-10-23 的首次 `pnpm version` 里生成（34 份）；仓库根那个 `CHANGELOG.md` 仍是改造前 `standard-version` 留下的旧文件，changesets 不碰它。
+- `fixed: [["@antdv/*", "@antdv/*"]]` —— **`@antdv/*` 锁步升版**：一次 `pnpm version` 里整套被抬到同一个号，落点取组内当前最高号叠加本轮最大 bump 级别。这是刻意的：内部包互相引用，版本分散会让"装哪几个版本能一起跑"变成谜题。首轮（0.1.0）之前各包是手工写死的、摊在五个号上（`0.0.0` / `0.1.0` / `0.4.0` / `0.5.0` / `5.8.0`），照原样跑会把整套推到 `5.9.0`，所以发版前先把全部成员归零到 `0.0.0`；现在 34 个包同号 `0.1.0`。**新建包一律从 `0.0.0` 出厂**，否则你写的号会替整套决定落点。
 - `privatePackages: { version: true, tag: true }` —— 34 个 workspace 成员**全部** `private: true`（含 `@antdv/web` / `@antdv/backend-mock` / `@antdv/docs`），这个开关让它们也一起升版打 tag，虽然不会发布到 npm。
 - `baseBranch: "main"`、`updateInternalDependencies: "patch"`、`linked: []`、`ignore: []`。
 

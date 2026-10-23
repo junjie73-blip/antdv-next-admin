@@ -44,15 +44,15 @@ pnpm version                      # changeset version && pnpm install --no-froze
 pnpm release                      # pnpm build && changeset publish
 ```
 
-`.changeset/config.json` 里三个决定值得注意：`fixed: [["@antdv/*", "@antdv/*"]]`（`:10`）让所有 `@antdv/*` 包**在同一次 `pnpm version` 里一起跳版本号**；`privatePackages: { version: true, tag: true }`（`:14-17`）允许给私有包写版本和打标签；`updateInternalDependencies: "patch"`（`:21`）。changelog 走 `@changesets/changelog-github`，仓库名写死为 `junjie73-blip/antdv-next-admin`（`:3-8`）。
+`.changeset/config.json` 里三个决定值得注意：`fixed: [["@antdv/*", "@antdv/*"]]`（`:5`）让所有 `@antdv/*` 包**在同一次 `pnpm version` 里一起跳版本号**；`privatePackages: { version: true, tag: true }`（`:9-12`）允许给私有包写版本和打标签；`updateInternalDependencies: "patch"`（`:16`）。changelog 走 `@changesets/changelog-git`，条目按 commit 短 SHA 生成，不需要 `GITHUB_TOKEN`（换成 `changelog-github` 的话，没配 token 会让 `version` 整条抛错退出）。
 
 ::: warning
 
-`fixed` 不等于"现在大家都是同一个号" 上一次 `pnpm version` 之后新建的包是**带着自己的初版号进组的**，所以当前仓库的版本号是散的：多数包 `0.4.0`（= 根包 `package.json:3`），`@antdv/layouts` 已经 `0.5.0`，`@antdv/{common-ui,enums,request,stores,utils}` 从 `0.1.0` 起步，`internal/lint-configs/*` 与 `@antdv/docs` 停在 `0.0.0`，`scripts/*` 两个（`@antdv/turbo-run`、`@antdv/vsh`）还是脚手架带来的 `5.8.0`。下一次 `pnpm version` 才会把它们拉齐 —— 别按号判断"这个包比那个包新"。:::
+`fixed` 讲的是"下一次发版一起抬到同一个号"，落点取组内**当前最高版本**再叠加本轮最大 bump 级别。2026-10-23 第一次真跑 `pnpm version` 之前就吃过这个亏：各包是改造期手工写死出厂的，摊在 `0.0.0` / `0.1.0` / `0.4.0` / `0.5.0` / `5.8.0` 五个号上，其中 `scripts/*`（`@antdv/turbo-run`、`@antdv/vsh`）还带着上游 `vue-vben-admin` 的 `5.8.0` —— 照原样跑会把整套推到 `5.9.0`。做法是先把全部成员归零到 `0.0.0` 再跑，于是首个统一版本落在 `0.1.0`。**所以新建包请一律从 `0.0.0` 出厂**：组里最高的那个号替整套决定落点。:::
 
 ::: danger
 
-别把 `pnpm release` 当成"发 npm" `packages/*`、`apps/*`、`docs` 与根包的 package.json **全部是 `"private": true`**（唯一的 `publishConfig` 在 `packages/core/ui-kit/shadcn-ui/package.json:31`，它只是把 `src` 的 exports 原样重复一遍，那个包同样是 private）。changesets 在这里只产出 CHANGELOG 与 git tag，不会往 registry 推任何东西。发布历史也确实薄： `git tag` 现在只有 `v0.0.3` 和一个 `vnull`，而版本号已经走到 0.4.0；`.github/workflows/` 里只有 `docs.yml` 一个文件。**升级与发版目前是一次纯本地动作**，要打标签得自己 `git tag && git push --tags`。:::
+别把 `pnpm release` 当成"发 npm" `packages/*`、`apps/*`、`docs` 与根包的 package.json **全部是 `"private": true`**（唯一的 `publishConfig` 在 `packages/core/ui-kit/shadcn-ui/package.json:31`，它只是把 `src` 的 exports 原样重复一遍，那个包同样是 private）。changesets 在这里只产出各包的 CHANGELOG 与 git tag，不会往 registry 推任何东西。发布历史也确实薄：`.github/workflows/` 里只有 `docs.yml` 一个文件，没有 job 跑 changesets；0.1.0 之前仓库只有 `v0.0.3` 和一个误操作留下的 `vnull`。**升级与发版目前是一次纯本地动作**，`version` 之后自己提交，再 `pnpm exec changeset tag` 打 tag，推送时记得 `git push --follow-tags`（`git push` 默认不带 tag）。:::
 
 ## 一次组件栈升级怎么跑
 

@@ -1,22 +1,23 @@
 # 更新日志
 
-变更记录住在两个地方，各司其职：`.changeset/*.md` 是**每一条变更在写代码当天登记的原稿**，根目录 `CHANGELOG.md` 是**发版时由 changesets 汇总出来的成品**。文档站这一页只做两件事：把"现在发到哪了"说清楚，以及把"下一版会带上什么"列出来。
+变更记录住在两个地方，各司其职：`.changeset/*.md` 是**每一条变更在写代码当天登记的原稿**，各包目录下的 `CHANGELOG.md` 是**发版时由 changesets 汇总出来的成品**。文档站这一页只做两件事：把"现在发到哪了"说清楚，以及把"下一版会带上什么"列出来。
 
 ## 发布机制
 
-版本跟着变更走，不是发版那天补写的。流程三步，脚本都在根 `package.json`：
+版本跟着变更走，不是发版那天补写的。流程四步，前三步的脚本都在根 `package.json`：
 
 | 命令 | 做什么 | 之后要做的 |
 | --- | --- | --- |
 | `pnpm changeset` | 交互式选受影响的包与 bump 级别，生成一条 `.changeset/xxx.md` | 把生成的文件和代码一起提交 |
-| `pnpm version` | `changeset version`：消费所有 changeset，抬版本号并写进 `CHANGELOG.md`，删掉用掉的 changeset 文件；再 `pnpm install --no-frozen-lockfile` 让 lockfile 跟上新版本 | **自己提交**这次改动 |
-| `pnpm release` | 先 `pnpm build`（带 `NODE_OPTIONS=--max-old-space-size=8192`），再 `changeset publish` | 打 tag、推远程 |
+| `pnpm version` | `changeset version`：消费所有 changeset，抬各包版本号、写各包 `CHANGELOG.md`，删掉用掉的 changeset 文件；再 `pnpm install --no-frozen-lockfile` 让 lockfile 跟上新版本 | **自己提交**这次改动（惯例 `chore(release): x.y.z`） |
+| `pnpm exec changeset tag` | 按各包当前版本号打 `<pkg>@<version>` tag | `git push --follow-tags`（`git push` 默认不推 tag） |
+| `pnpm release` | 先 `pnpm build`（带 `NODE_OPTIONS=--max-old-space-size=8192`），再 `changeset publish` | 全套包都是 `private`，publish 现在是空操作，留着等真有包要发 npm |
 
 `.changeset/config.json` 里几个决定行为的字段：
 
-- `"fixed": [["@antdv/*", "@antdv/*"]]` —— 让所有 workspace 包**锁步**抬到同一个版本号。代价是任何一个包的一个 patch 会把整套包一起推一格；换来的是"版本对不上"这类问题不会积累。**但它是发版那一刻才生效的机制，不是实时约束**：跑一次 `version` 才对齐一次，而 `v0.0.3` 之后一次都没跑过，所以今天的仓库并不同号（见下「版本号的真实分布」）。
+- `"fixed": [["@antdv/*", "@antdv/*"]]` —— 让所有 workspace 包**锁步**抬到同一个版本号。代价是任何一个包的一个 patch 会把整套包一起推一格；换来的是"版本对不上"这类问题不会积累。**它是发版那一刻才生效的机制，不是实时约束**：跑一次 `version` 才对齐一次。落点算法见下面「锁步落点是怎么算的」。
 - `"privatePackages": { "version": true, "tag": true }` —— 全套 `@antdv/*` 包都写着 `"private": true`（没有包发到 npm），这一项决定私有包要不要参与版本与 tag。显式写出来而不是靠依赖的默认值：changesets 在 2.x 后期改过一次这个默认行为，靠默认值就等于把发版链路挂在别人的改动上。打开之后 `@antdv/web`、`@antdv/backend-mock` 这些不发包的成员照样抬版本、照样进 tag，线上部署因此能按版本号对齐。
-- `"changelog": ["@changesets/changelog-github", { "repo": "junjie73-blip/antdv-next-admin" }]` —— 生成的条目自带指向 commit 的链接，仓库地址就写在这一处；换 fork 时改这里，同时改掉文档站的 GitHub 链接（`docs/.vitepress/config.mts` 的 `socialLinks`，`:329-334`）。
+- `"changelog": "@changesets/changelog-git"` —— 生成的条目自带 commit 短 SHA，不需要任何凭据。原先这里是 `["@changesets/changelog-github", { repo: "junjie73-blip/antdv-next-admin" }]`，它会把每条 changeset 对应的 commit 拿去 GitHub API 查 PR 编号，**没有 `GITHUB_TOKEN` 就整条 `version` 抛错退出**（`Please create a GitHub personal access token…`），且失败时明确"no files should have been affected"，等于发版直接卡死。全套包都不发 npm，PR 链接不是刚需，因此换成 `changelog-git`。要切回去：config 与根 devDependency（以及 catalog 条目）一起改，并给本地和 CI 配 `GITHUB_TOKEN`。
 - `"commit": false` —— `version` 只改文件不自动提交，提交信息留给你（惯例是 `chore(release): x.y.z`，`v0.0.3` 就是这个格式）。
 - `"baseBranch": "main"` —— changesets 判断"哪些提交算这一轮"的基准分支。
 
@@ -24,81 +25,47 @@
 
 | 版本 | 状态 | 说明 |
 | --- | --- | --- |
-| 0.4.0 | 当前工作版本，**未发布** | 根包 `antdv-next-admin` 与 20 个成员的号；没有任何 tag，也没有进过 `CHANGELOG.md` |
+| 0.1.0 | 当前版本，34 个包同号 | 2026-10-23 第一次真跑通 `version` + `tag`：消费 38 条 changeset（18 条含 `minor`、20 条纯 `patch`），34 个成员各生成一份 `CHANGELOG.md`，锁步落到 0.1.0 |
 | 0.0.3 | 已打 tag（`v0.0.3` → `de5f7b14`，2026-09-25） | 提交说明 `chore(release): 0.0.3` |
-| 0.0.1 / 0.0.0 | 见根目录 `CHANGELOG.md`（2026-06-05） | 仓库早期用 standard-version 生成的历史，`CHANGELOG.md` 开头那句"See standard-version"说的就是它。改用 changesets 之后这份文件不再由那条链路更新，留着当考古（顺带一提：里面 `## 0.0.0 (2026-06-05)` 出现了两次，standard-version 的产物本来就别当权威） |
+| 0.0.1 / 0.0.0 | 见根目录 `CHANGELOG.md`（2026-06-05） | 仓库早期用 standard-version 生成的历史，`CHANGELOG.md` 开头那句"See standard-version"说的就是它。改用 changesets 之后根目录这份文件不再被任何链路更新（成品住在**各包**的 `CHANGELOG.md`），留着当考古（顺带一提：里面 `## 0.0.0 (2026-06-05)` 出现了两次，standard-version 的产物本来就别当权威） |
 
-版本号从 0.0.3 跳到 0.4.0 中间没有对应的 tag：这一段是 monorepo 改造期（子包拆出去、请求层换掉、文档站建起来），期间没有走完整的 `version` + `publish`，所以只有号没有发布记录。另外仓库里还有一个误操作留下的 `vnull` tag（→ `3d54de9b`，指向一次提交说明为「📦 准备提交」的提交），它不参与任何构建或发布逻辑，看到时不必当真。
+0.0.3 到 0.1.0 之间没有 tag：那一段是 monorepo 改造期（子包拆出去、请求层换掉、文档站建起来），期间没走过完整的 `version` + `tag`，只有手工写死的版本号在动。另外仓库里还有一个误操作留下的 `vnull` tag（→ `3d54de9b`，2026-09-25，提交说明为「📦 准备提交」），它不参与任何构建或发布逻辑，看到时不必当真。
 
-### 版本号的真实分布
+根 `package.json`（`antdv-next-admin`）**不是 workspace 成员**，changesets 不碰它的 `version`，跟着整套走是手工的事；本轮已手工对齐到 0.1.0，下轮发版记得一起改。
 
-`fixed` 讲的是"下一次发版会一起抬"，不是"现在同号"。改造期新建的包是手工写死版本号出厂的，而 `pnpm version` 从 `v0.0.3` 之后没跑过，于是 34 个 `@antdv/*` 成员现在摊在五个号上：
+### 锁步落点是怎么算的
 
-| 版本号 | 个数 | 成员 |
-| --- | --- | --- |
-| 0.4.0 | 20 | `web` `backend-mock` `shared` `types` `icons` `design` `hooks` `preferences` `form-ui` `table-ui` `popup-ui` `menu-ui` `layout-ui` `shadcn-ui` `tabs-ui` `router` `directives` `vite-config` `node-utils` `tsconfig` |
-| 0.5.0 | 1 | `layouts` —— 拆包时手工写的号，比整套还高一格 |
-| 0.1.0 | 5 | `common-ui` `enums` `request` `stores` `utils` —— 新建子包从 0.1.0 起 |
-| 0.0.0 | 6 | `docs` + `internal/lint-configs/` 下 5 个 config 包 |
-| 5.8.0 | 2 | `turbo-run` `vsh` —— 从上游 `vue-vben-admin` 带过来的号，一直没归零 |
+`fixed` 组的落点 = 组内**当前最高版本号**叠加本轮最大的 bump 级别，不是"从 0.1.0 起"。0.1.0 之前 34 个成员摊在五个号上（`0.0.0` / `0.1.0` / `0.4.0` / `0.5.0` / `5.8.0`）：`layouts` 是拆包时手工写成 `0.5.0` 的，`scripts/turbo-run` 与 `scripts/vsh` 还带着上游 `vue-vben-admin` 的 `5.8.0`。照原样跑第一次 `version`，整套（包括当时还是 `0.0.0` 的 `docs` 与五个 lint-config）会被推到 `5.9.0` —— 凭空多出五个前置版本。
 
-后果是发版前要先看一眼：锁步组里现在最高的是 5.8.0，照着"整套抬到同一个号"的语义，第一次真跑 `pnpm version` 落点未必是 0.4.x。要么先把 `turbo-run` / `vsh` 这两个号改齐，要么在临时分支上跑一次 `version` 看结果再决定 —— 别在 `main` 上试，`version` 会改 34 个 `package.json`、`CHANGELOG.md` 并删掉 `.changeset/` 里那 25 个文件。
+本轮的处理是**先把 34 个成员的 version 全部归零到 `0.0.0`，再跑 `version`**，落点因此是 0.1.0；同时删掉此前 `changeset tag` 打下、但从未推送也从未与 `version` 结果对应的 34 个本地 tag（远端一直是 0 个 tag），免得 HEAD 上同时挂着两代 tag。
 
-### 发版链路现在是断的
+::: warning 两条现在仍然成立的规矩
 
-上面那些是"落点可能不合预期"，这一条是**跑不起来**。`pnpm changeset status` 现在就报错退出（changesets 3.0.3）：
+- 新建包一律从 `0.0.0` 出厂。锁步组里最高的那个号替整套决定落点，手工写一个"更像正式版"的号等于悄悄改了整套的基线。
+- 包改名 / 拆分时，`.changeset/*.md` 里登记的包名也在改名范围内（见下一节）。
+
+:::
+
+## 包改名会把整条发版链路硬断
+
+`assemble-release-plan` 遇到 changeset 引用不存在的包时是**整条链路硬失败**，不是跳过那一条 —— `status`、`version`、`publish` 在同一步抛出，修掉之前任何一次发版都跑不完。0.1.0 之前撞上的正是这条：
 
 ```
 Error: Found changeset monorepo-shared-packages for package @antdv/composables
 which is not in the workspace
 ```
 
-原因是 `.changeset/monorepo-shared-packages.md` 登记时用的包名，后来在改包里换掉了：`:4` 的 `@antdv/composables` 现在是 `@antdv/hooks`，`:5` 的 `@antdv/ui` 被拆成了 `packages/core/ui-kit/` 下的一批 `@antdv/*-ui`。正文 `:19` 那句还照旧名写着这两个包，一起改才对得上。
+`.changeset/monorepo-shared-packages.md` 登记时用的是改名前的包名：`@antdv/composables` 随 `packages/composables` → `packages/core/hooks` 变成了 `@antdv/hooks`；`@antdv/ui` 那批公共组件现在住在 `packages/core/ui-kit/common-ui`（`@antdv/common-ui`），同一次拆包另有一半成了 `@antdv/icons`。两行 bump 声明都已改成新名。
 
-`assemble-release-plan` 对这种引用是**整条链路硬失败**，不是跳过：`status`、`version`、`release` 全部在同一步抛出，所以修掉之前，任何一次发版都跑不完。修法只有两种，取决于这次架构调整原来想让谁抬版本 —— 把两行改成 `@antdv/hooks` 与新 ui-kit 各包，或者删掉这两行。改完用 `pnpm changeset status` 复验（它是只读的，可以随便跑）。
+::: tip 这类断裂为什么没人提前发现
 
-顺带一句：CI 里没有任何 job 跑 changesets（`.github/workflows/` 只有 `docs.yml`），所以这条断裂不会被流水线发现，只有真发版那天才会撞上。
+CI 里没有任何 job 跑 changesets（`.github/workflows/` 只有 `docs.yml`），所以它只在真发版那天暴露。`pnpm changeset status` 是只读的，可以随便跑 —— 想让它变常驻门禁，就把这条命令加进流水线。
+
+:::
 
 ## 待发布
 
-`.changeset/` 里已登记、还没被 `pnpm version` 消费的变更，共 **25 条**（登记时间 2026-10-10 ~ 10-19）。类型按 changeset 的 bump 级别归：11 条含 `minor`，14 条全是 `patch`。下面两段就按"含不含 minor"分。
-
-**minor**
-
-- 架构调整：把可复用能力从应用里拆成独立子包（`monorepo-shared-packages`，13 个包一起 minor）
-- 新增中英双语 VitePress 文档站，并补上 CI 门禁与两条独立发布链路（`docs-site-bilingual-and-pages-ci`）
-- 组件示例按分类补齐页面，并把示例里的 API 用错处一次性修掉（`gallery-example-pages`）
-- 全站交互巡检收尾，并把 Ctrl+K 搜索从假功能做成真功能（`sweep-fixes-and-menu-search`）
-- 生产产物自带浏览器内 mock，静态部署不需要任何后端（`prod-browser-mock`）
-- 修复偏好设置抽屉与多布局的五处体验缺陷（`setting-drawer-and-layout-fixes`；minor 只给 `@antdv/types`，`layouts` / `web` 是 patch）
-- common-ui 新增 `BorderBeam` 与 `Listy`；轻提示/通知去掉彩色底色，状态只留徽标（`border-beam-listy-and-neutral-toast`）
-- `Listy` 加虚拟滚动模式，万级数据只渲染视口内那十几行（`listy-virtual-scroll`）
-- 谷歌风格（`chrome`）标签按浏览器标签重做：选中页长出反向圆角，标签之间是让位的发丝线（`chrome-tabs-concave-feet`）
-- MarkdownEditor 迁入 `@antdv/common-ui`，`FMarkdown` 字段从 textarea 换成 tiptap（`markdown-editor-into-common-ui`，common-ui + form-ui）
-- `apps/web` 的通用 composables 与无业务耦合组件迁进对应子包（hooks / common-ui / table-ui），web 侧只留业务件（`web-composables-and-components-into-packages`）
-
-::: warning 有一条的 bump 级别看着选错了
-
-`basic-drawer-on-drawer-primitives` 正文写的是"抽屉换掉底层交互原语"，级别却只给了 popup-ui / shadcn-ui 一个 `patch`；同样换了实现的 `markdown-editor-into-common-ui` 给的是 `minor`。不影响构建，只影响版本号 —— 下一次 `pnpm version` 之前值得确认一下。:::
-
-**patch**
-
-- 能点的盒子都有可点光标，禁用的不再装成能点（`cursor-for-hoverable-boxes`）
-- 分析面板吸收工作台，`/dashboard/workbench` 下线（`dashboard-merge-workbench`）
-- 开发态改页面文件不再把一级布局改没（`dev-route-hmr-layout`）
-- 交互巡检第二轮：把"看起来能用、实际点不动"的一批缺陷清掉（`interaction-sweep-round-two`）
-- 登录页改成跟随偏好主色与暗色模式（`login-page-theme-aware`）
-- 导航与面包屑接回同一份数据（`navigation-breadcrumb-and-collapse-bar`）
-- 路由页面不再重复加内边距，内边距归布局管（`page-root-padding-owned-by-layout`）
-- 实时监控大屏的图表跟随容器自动 resize（`screen-chart-auto-resize`）
-- 大屏缩放改为按内容区计算，不再按视口（`screen-fit-content-area`）
-- `BasicDrawer` 改用 shadcn 的 Drawer 原语替换 Sheet，多出「甩动关闭」并补掉原语的两个无障碍缺口（`basic-drawer-on-drawer-primitives`，popup-ui + shadcn-ui 各一个 `patch` —— 见上面那条警告）
-- 换主题色真的换色，不再只有 CSS 变量在动（`theme-primary-follow-through`）
-- 设计规范彻底脱离 antdv-next，并修掉迁移留下的三处样式缺陷：固定列重叠、表头比数据行矮一线、浮层被抽屉压住（`design-tokens-off-antd-table-popup-fixes`，9 个包）
-- 把"跨包只走包名导入"写成测试守住；`ErrorBoundary` 不再从自己的 barrel 绕路（`package-import-hygiene`）
-- 清掉仓库里残留的 vben 命名，上游归属统一写成 `vue-vben-admin`（`vben-naming-purge`，10 个包）
-
-每条的正文都写明了现象、根因、取舍和测试口径 —— 想追溯"为什么这么改"，直接读对应的 changeset 文件比读 diff 快。
+`.changeset/` 现在只剩 `config.json`：38 条登记已全部被 0.1.0 消费。下一轮从 `pnpm changeset` 开始重新登记。
 
 ## 这一页怎么维护
 
@@ -117,7 +84,7 @@ for f in $(find apps packages internal docs scripts -name package.json \
 done | sort
 ```
 
-本页是手工维护的摘要，**权威来源始终是 `CHANGELOG.md` 与 `.changeset/`**：两者与本页冲突时，以前者为准，并顺手把这里改掉。
+tag 用 `git tag -l '@antdv/*'` 看；本页是手工维护的摘要，**权威来源始终是各包 `CHANGELOG.md` 与 `.changeset/`**：两者与本页冲突时，以前者为准，并顺手把这里改掉。
 
 ## 相关
 

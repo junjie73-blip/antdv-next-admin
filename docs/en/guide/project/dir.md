@@ -73,14 +73,15 @@ Internal packages reference each other with `workspace:*`, which installs as a s
 
 ```bash
 pnpm changeset          # declare which packages this change touches and at what bump level
-pnpm version            # consume the changesets, bump versions, write CHANGELOG.md, then install to sync the lockfile
-pnpm release            # build + changeset publish
+pnpm version            # consume the changesets, bump versions, write each package's CHANGELOG.md, then install to sync the lockfile
+pnpm exec changeset tag # tag every package at its version as <pkg>@<version>; a plain `git push` skips tags, use --follow-tags
+pnpm release            # build + changeset publish (all packages are private, so this is a no-op today)
 ```
 
 Three fields in `.changeset/config.json` decide the actual behavior:
 
-- `changelog: @changesets/changelog-github` + `repo` — every generated CHANGELOG entry carries a commit link; **no package has a `CHANGELOG.md` yet** (`pnpm version` has never run), and the one at the repository root is a leftover `standard-version` file from before the monorepo rework;
-- `fixed: [["@antdv/*", "@antdv/*"]]` — **`@antdv/*` bumps in lockstep**: within one `pnpm version` run, the packages carried by the same batch of changesets jump to the same number. That is deliberate — the internal packages reference each other, and scattered versions would turn "which versions can be installed together and still run" into a puzzle. But lockstep is not equality: packages untouched by that batch keep their own number, so today (measured against each `package.json`) most are on `0.4.0`, `@antdv/layouts` is on `0.5.0`, `common-ui` / `enums` / `request` / `stores` / `utils` are still on `0.1.0`, the five `*-config` packages plus `docs` sit at `0.0.0`, and `scripts/`'s `turbo-run` / `vsh` carry the `5.8.0` inherited from the template. Do not write "every package is on the same version" in documentation;
+- `changelog: "@changesets/changelog-git"` — generated CHANGELOG entries carry the short commit SHA and need no credentials (`changelog-github` would query the GitHub API per commit and aborts the whole `version` run without `GITHUB_TOKEN`). The 34 per-package `CHANGELOG.md` files were created by the first `pnpm version`, on 2026-10-23; the file at the repository root is still a leftover `standard-version` relic that changesets never touches;
+- `fixed: [["@antdv/*", "@antdv/*"]]` — **`@antdv/*` bumps in lockstep**: one `pnpm version` run moves the whole set to a single number, computed as the **highest version currently in the group** plus the largest bump level of the round. That is deliberate — the internal packages reference each other, and scattered versions would turn "which versions can be installed together and still run" into a puzzle. The cost showed up before the first release: the packages had been hand-numbered during the rework and sat on five numbers (`0.0.0` / `0.1.0` / `0.4.0` / `0.5.0` / `5.8.0`, the last one inherited from the upstream template by `scripts/`'s `turbo-run` / `vsh`), so running it as-is would have landed the whole set on `5.9.0`. Every member was reset to `0.0.0` first, and 0.1.0 is the first unified number. **New packages are born at `0.0.0`** — the highest number in the group decides the landing point for all of them;
 - `privatePackages: { version: true, tag: true }` — all **34 workspace members** are `private: true` (including `@antdv/web`, `@antdv/backend-mock` and `@antdv/docs`), and this switch makes them take part in version bumps and tagging even though nothing is published to npm;
 - `baseBranch: "main"`, `updateInternalDependencies: "patch"`, `linked: []`, `ignore: []`.
 

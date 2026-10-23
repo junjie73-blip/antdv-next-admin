@@ -48,6 +48,9 @@ export default defineConfig({
   description: 'Vue 3 + antdv-next 后台管理模板：架构、开发、测试与部署说明',
   lastUpdated: true,
   cleanUrls: true,
+  // @antdv/docs 的包级 CHANGELOG.md 落在 docs/ 根目录，会被当成一个页面编译（并在 SSR 时炸掉）；
+  // 站点自己那一页是 guide/other/changelog，这里把它排除掉。
+  srcExclude: ['**/CHANGELOG.md'],
   base,
 
   head: [
