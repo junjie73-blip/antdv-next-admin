@@ -1,6 +1,6 @@
 {
   "name": "@antdv/tabs-ui",
-  "version": "0.4.0",
+  "version": "0.1.0",
   "description": "shadcn-vue 多标签页包：TabList / TabItem / TabActions / TabContextMenu 与标签宿主条，store 无关（数据与回调由使用方注入）",
   "private": true,
   "type": "module",

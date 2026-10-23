@@ -1,6 +1,6 @@
 {
   "name": "@antdv/icons",
-  "version": "0.4.0",
+  "version": "0.1.0",
   "description": "图标子包：Iconify 图标、SVG 雪碧图图标与图标选择器。边界：只组合 @antdv/shadcn-ui 原语，不引 ui-kit 上层包（否则 icons ↔ common-ui 成环）；加载遮罩与滚动条的封装见 @antdv/common-ui",
   "private": true,
   "type": "module",

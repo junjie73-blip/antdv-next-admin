@@ -1,6 +1,6 @@
 {
   "name": "@antdv/layout-ui",
-  "version": "0.4.0",
+  "version": "0.1.0",
   "description": "shadcn-vue 布局渲染层：布局壳与五个区域（Header/Sidebar/NavRail/Tabbar/Content/Footer）+ 侧栏折叠按钮与拖拽 hook + 外壳尺寸与文案注入契约，纯表现层；形态蓝图、面包屑与示意图在 @antdv/layouts，不依赖 pinia、vue-router、业务 store",
   "private": true,
   "type": "module",

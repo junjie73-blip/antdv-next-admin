@@ -1,6 +1,6 @@
 {
   "name": "@antdv/table-ui",
-  "version": "0.4.0",
+  "version": "0.1.0",
   "description": "shadcn-vue 表格包：schema/config 驱动的 BasicTable / useTable，基于 @tanstack/vue-table，搜索表单接 @antdv/form-ui",
   "private": true,
   "type": "module",

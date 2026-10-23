@@ -1,11 +1,6 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
-  "changelog": [
-    "@changesets/changelog-github",
-    {
-      "repo": "junjie73-blip/antdv-next-admin"
-    }
-  ],
+  "changelog": "@changesets/changelog-git",
   "commit": false,
   "fixed": [["@antdv/*", "@antdv/*"]],
   "snapshot": {

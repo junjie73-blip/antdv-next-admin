@@ -1,6 +1,6 @@
 {
   "name": "@antdv/form-ui",
-  "version": "0.4.0",
+  "version": "0.1.0",
   "description": "shadcn-vue 表单包：schema 驱动的 BasicForm / useForm，基于 @tanstack/vue-form 与 shadcn-ui 控件",
   "private": true,
   "type": "module",

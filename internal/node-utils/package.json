@@ -1,6 +1,6 @@
 {
   "name": "@antdv/node-utils",
-  "version": "0.4.0",
+  "version": "0.1.0",
   "description": "Node 侧共享工具：fs / path / git / hash / date / formatter / workspace 解析与终端日志",
   "private": true,
   "type": "module",

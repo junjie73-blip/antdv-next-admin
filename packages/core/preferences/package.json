@@ -1,6 +1,6 @@
 {
   "name": "@antdv/preferences",
-  "version": "0.4.0",
+  "version": "0.1.0",
   "description": "用户偏好设置：默认值、持久化、CSS 变量落地与组件侧读写入口；不依赖 pinia、vue-router 与任何具体 UI 库",
   "private": true,
   "type": "module",

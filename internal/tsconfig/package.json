@@ -1,6 +1,6 @@
 {
   "name": "@antdv/tsconfig",
-  "version": "0.4.0",
+  "version": "0.1.0",
   "description": "Monorepo 共享 TypeScript 配置",
   "private": true,
   "type": "module",

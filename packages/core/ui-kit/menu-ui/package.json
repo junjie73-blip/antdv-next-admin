@@ -1,6 +1,6 @@
 {
   "name": "@antdv/menu-ui",
-  "version": "0.4.0",
+  "version": "0.1.0",
   "description": "shadcn-vue 菜单包：BasicMenu（侧栏内联菜单 / 水平菜单），数据取自 @antdv/shared/menu 模型，不依赖 pinia、vue-router",
   "private": true,
   "type": "module",

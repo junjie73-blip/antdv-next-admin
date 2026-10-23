@@ -1,6 +1,6 @@
 {
   "name": "@antdv/popup-ui",
-  "version": "0.4.0",
+  "version": "0.1.0",
   "description": "shadcn-vue 弹层包：BasicModal / BasicDrawer / confirm·alert（AlertDialog）与 useModal / useDrawer 钩子",
   "private": true,
   "type": "module",

@@ -1,6 +1,6 @@
 {
   "name": "@antdv/backend-mock",
-  "version": "0.4.0",
+  "version": "0.1.0",
   "description": "基于 Nitro 的 Mock 服务：业务接口 + 运行时控制面（供 Mock 数据中心面板消费）",
   "private": true,
   "type": "module",

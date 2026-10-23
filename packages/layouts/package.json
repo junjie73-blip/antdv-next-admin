@@ -1,6 +1,6 @@
 {
   "name": "@antdv/layouts",
-  "version": "0.5.0",
+  "version": "0.1.0",
   "description": "布局装配层：外壳装配（basic）、菜单与标签页的行为 hook（hooks）、顶栏小部件（widgets）、页面缓存（route-cached）与 7 种菜单形态的区域蓝图。状态读 @antdv/stores，路由用 vue-router 的组合式 API，文案与品牌资源由宿主注入",
   "private": true,
   "type": "module",

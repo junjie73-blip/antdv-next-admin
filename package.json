@@ -1,6 +1,6 @@
 {
   "name": "antdv-next-admin",
-  "version": "0.4.0",
+  "version": "0.1.0",
   "private": true,
   "repository": {
     "type": "git",
@@ -58,7 +58,7 @@
     "@antdv/turbo-run": "workspace:*",
     "@antdv/vite-config": "workspace:*",
     "@antdv/vsh": "workspace:*",
-    "@changesets/changelog-github": "catalog:",
+    "@changesets/changelog-git": "catalog:",
     "@changesets/cli": "catalog:",
     "@commitlint/cli": "catalog:",
     "@types/node": "catalog:",
