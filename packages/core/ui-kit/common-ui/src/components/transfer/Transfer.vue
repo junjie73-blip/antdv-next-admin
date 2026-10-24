@@ -211,7 +211,7 @@ const canMoveLeft = computed(
             "
           />
           <span class="min-w-0 flex-1 truncate">{{ panel.title }}</span>
-          <span class="text-xs text-gray-400">
+          <span class="text-xs text-muted-foreground">
             {{ panel.checkedCount }}/{{ panel.items.length }}
           </span>
         </div>
@@ -240,7 +240,7 @@ const canMoveLeft = computed(
               cn(
                 'flex items-center gap-2 px-3 py-1.5',
                 item.disabled || props.disabled
-                  ? 'cursor-not-allowed text-gray-400'
+                  ? 'cursor-not-allowed text-muted-foreground/60'
                   : '',
               )
             "
@@ -256,13 +256,13 @@ const canMoveLeft = computed(
           </div>
           <div
             v-if="!panel.items.length"
-            class="py-6 text-center text-xs text-gray-400"
+            class="py-6 text-center text-xs text-muted-foreground"
           >
             {{ globalConfig.emptyText }}
           </div>
         </div>
 
-        <div class="border-t px-3 py-2 text-xs text-gray-400">
+        <div class="border-t px-3 py-2 text-xs text-muted-foreground">
           共 {{ panel.total }} 条
         </div>
       </div>

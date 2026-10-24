@@ -240,12 +240,14 @@ function handleFieldSelect(key: string, value: unknown) {
 }
 
 // ========== 类名（复杂 class 提到脚本，规避模板内联 cn 的解析坑） ==========
+// 选中态取 `primary` 家族、未选中的中性面取 `muted`/`accent`：预设主题（`[data-theme]`）
+// 一改主色，这里就跟着变；写死 `blue-500` 会让按钮在紫色主题上仍是蓝色。
 function modeButtonClass(active: boolean) {
   return cn(
     'rounded-sm px-3 py-1 text-xs transition-colors',
     active
-      ? 'bg-blue-500 text-white'
-      : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
+      ? 'bg-primary text-primary-foreground'
+      : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground',
   );
 }
 
@@ -253,8 +255,8 @@ function presetButtonClass(preset: CronPreset) {
   return cn(
     'rounded-sm border px-3 py-2 text-sm transition-all',
     props.modelValue === preset.value
-      ? 'border-blue-500 bg-blue-50 font-medium text-blue-600'
-      : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300 hover:bg-blue-50/50',
+      ? 'border-primary bg-primary/10 font-medium text-primary'
+      : 'border-border bg-card text-card-foreground hover:border-primary/50 hover:bg-primary/5',
   );
 }
 </script>
@@ -299,7 +301,9 @@ function presetButtonClass(preset: CronPreset) {
     <div v-else class="space-y-2">
       <div class="grid grid-cols-6 gap-2">
         <div v-for="f in fields" :key="f.key" class="flex flex-col gap-1">
-          <label class="text-center text-xs text-gray-500">{{ f.label }}</label>
+          <label class="text-center text-xs text-muted-foreground">{{
+            f.label
+          }}</label>
           <!-- 值统一按字符串桥接（reka Select 的 value 只能是字符串） -->
           <Select
             :disabled="disabled"
@@ -337,7 +341,7 @@ function presetButtonClass(preset: CronPreset) {
           :model-value="modelValue"
         />
       </div>
-      <div class="pt-1.5 text-xs whitespace-nowrap text-gray-500">
+      <div class="pt-1.5 text-xs whitespace-nowrap text-muted-foreground">
         <Icon icon="carbon:information" class="inline" />
         {{ cronDescription }}
       </div>

@@ -71,33 +71,30 @@ function handleRetry() {
 const defaultFallbackClassName = cn(
   'flex flex-col items-center justify-center',
   'min-h-[200px] p-6',
-  'bg-red-50 dark:bg-red-900/10',
-  'rounded-lg border border-red-200 dark:border-red-800',
+  'bg-destructive/5',
+  'rounded-lg border border-destructive/30',
 );
 
-const titleClassName = cn(
-  'text-lg font-semibold text-red-700 dark:text-red-400',
-  'mb-2',
-);
+const titleClassName = cn('text-lg font-semibold text-destructive', 'mb-2');
 
 const messageClassName = cn(
-  'text-sm text-red-600 dark:text-red-300',
+  'text-sm text-destructive',
   'mb-4 max-w-md text-center',
   'break-all',
 );
 
 const retryButtonClassName = cn(
   'px-4 py-2',
-  'rounded-md bg-red-600 text-white hover:bg-red-700',
+  'rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90',
   'transition-colors duration-200',
-  'focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none',
+  'focus:ring-2 focus:ring-destructive focus:ring-offset-2 focus:outline-none',
   'cursor-pointer',
 );
 
 const detailsClassName = cn(
   'mt-4 w-full max-w-lg p-3',
-  'rounded-sm border border-red-200 bg-white dark:border-red-700 dark:bg-gray-800',
-  'text-xs text-gray-600 dark:text-gray-400',
+  'rounded-sm border border-destructive/30 bg-card',
+  'text-xs text-muted-foreground',
 );
 </script>
 
@@ -137,7 +134,7 @@ const detailsClassName = cn(
       <slot name="loading">
         <div class="flex items-center justify-center p-8">
           <div
-            class="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"
+            class="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"
           ></div>
         </div>
       </slot>

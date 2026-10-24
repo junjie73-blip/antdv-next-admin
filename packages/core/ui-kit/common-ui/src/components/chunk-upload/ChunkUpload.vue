@@ -265,7 +265,7 @@ const hasPaused = computed(() =>
     <!-- 工具栏 -->
     <div class="flex flex-wrap items-center justify-between gap-3">
       <label
-        class="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:border-blue-400 hover:text-blue-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:border-blue-500 dark:hover:text-blue-400"
+        class="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-sm text-card-foreground transition-colors hover:border-primary hover:text-primary"
       >
         <Icon icon="carbon:upload" />
         <span>选择文件</span>
@@ -281,7 +281,7 @@ const hasPaused = computed(() =>
         <button
           v-if="hasWaiting"
           type="button"
-          class="rounded-md bg-blue-500 px-3 py-1.5 text-sm text-white hover:bg-blue-600 disabled:opacity-50"
+          class="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           @click="handleStartAll"
         >
           开始全部
@@ -289,7 +289,7 @@ const hasPaused = computed(() =>
         <button
           v-if="hasActive"
           type="button"
-          class="rounded-md bg-amber-500 px-3 py-1.5 text-sm text-white hover:bg-amber-600"
+          class="rounded-md bg-warning px-3 py-1.5 text-sm text-white hover:bg-warning/90"
           @click="handlePauseAll"
         >
           暂停全部
@@ -297,7 +297,7 @@ const hasPaused = computed(() =>
         <button
           v-if="hasPaused"
           type="button"
-          class="rounded-md bg-blue-500 px-3 py-1.5 text-sm text-white hover:bg-blue-600"
+          class="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground hover:bg-primary/90"
           @click="handleResumeAll"
         >
           继续全部
@@ -305,7 +305,7 @@ const hasPaused = computed(() =>
         <button
           v-if="tasks.length > 0"
           type="button"
-          class="rounded-md border border-gray-200 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+          class="rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
           @click="handleClear"
         >
           清空
@@ -316,7 +316,7 @@ const hasPaused = computed(() =>
     <!-- 空状态 -->
     <div
       v-if="tasks.length === 0"
-      class="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-200 py-12 text-gray-400 dark:border-gray-700 dark:text-gray-500"
+      class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-12 text-muted-foreground"
     >
       <Icon icon="carbon:cloud-upload" class="mb-2 text-4xl" />
       <p class="text-sm">点击"选择文件"开始上传</p>
@@ -327,17 +327,17 @@ const hasPaused = computed(() =>
       <div
         v-for="task in tasks"
         :key="task.uid"
-        class="rounded-lg border border-gray-100 bg-white p-3 dark:border-gray-800 dark:bg-gray-900"
+        class="rounded-lg border border-border bg-card p-3"
       >
         <div class="flex items-start justify-between gap-3">
           <div class="flex min-w-0 flex-1 items-start gap-2">
             <Icon
               icon="carbon:document"
-              class="mt-0.5 shrink-0 text-base text-gray-400 dark:text-gray-500"
+              class="mt-0.5 shrink-0 text-base text-muted-foreground"
             />
             <div class="min-w-0 flex-1">
               <div
-                class="truncate text-sm font-medium text-gray-800 dark:text-gray-100"
+                class="truncate text-sm font-medium text-card-foreground"
                 :title="task.filename"
               >
                 {{ task.filename }}
@@ -345,12 +345,12 @@ const hasPaused = computed(() =>
               <div
                 class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
               >
-                <span class="text-gray-500 dark:text-gray-400">
+                <span class="text-muted-foreground">
                   {{ formatBytes(task.loaded) }} / {{ formatBytes(task.total) }}
                 </span>
                 <span
                   v-if="task.status !== 'merging'"
-                  class="text-gray-400 dark:text-gray-500"
+                  class="text-muted-foreground"
                 >
                   {{ getPercent(task) }}%
                 </span>
@@ -361,7 +361,7 @@ const hasPaused = computed(() =>
                   {{ getStatusText(task) }}
                 </Tag>
 
-                <span class="text-gray-400 dark:text-gray-500">
+                <span class="text-muted-foreground">
                   {{ formatBytes(task.chunkSize) }} × {{ task.totalChunks }} 片
                 </span>
 
@@ -374,14 +374,14 @@ const hasPaused = computed(() =>
 
                 <span
                   v-if="task.status === 'uploading' && task.speed > 0"
-                  class="text-gray-500 dark:text-gray-400"
+                  class="text-muted-foreground"
                 >
                   {{ formatBytes(task.speed) }}/s · 剩余
                   {{ formatDuration(task.remaining) }}
                 </span>
                 <span
                   v-if="task.retryCount > 0 && task.status === 'uploading'"
-                  class="text-amber-500"
+                  class="text-warning"
                 >
                   重试 {{ task.retryCount }} 次
                 </span>
@@ -393,7 +393,7 @@ const hasPaused = computed(() =>
             <button
               v-if="task.status === 'waiting'"
               type="button"
-              class="text-primary rounded p-1 hover:bg-blue-50 dark:hover:bg-blue-950"
+              class="text-primary rounded p-1 hover:bg-primary/10"
               title="开始"
               @click="handleStartOne(task.uid)"
             >
@@ -404,7 +404,7 @@ const hasPaused = computed(() =>
             <button
               v-if="['uploading', 'hashing'].includes(task.status)"
               type="button"
-              class="rounded p-1 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950"
+              class="rounded p-1 text-warning hover:bg-warning/10"
               title="暂停"
               @click="handlePause(task.uid)"
             >
@@ -414,7 +414,7 @@ const hasPaused = computed(() =>
             <button
               v-if="task.status === 'paused'"
               type="button"
-              class="text-primary rounded p-1 hover:bg-blue-50 dark:hover:bg-blue-950"
+              class="text-primary rounded p-1 hover:bg-primary/10"
               title="继续"
               @click="handleResume(task.uid)"
             >
@@ -422,16 +422,14 @@ const hasPaused = computed(() =>
             </button>
             <div
               v-if="task.status === 'error'"
-              class="mt-2 flex items-center justify-between rounded-md bg-red-50 px-2.5 py-1.5 text-xs dark:bg-red-950/30"
+              class="mt-2 flex items-center justify-between rounded-md bg-destructive/10 px-2.5 py-1.5 text-xs"
             >
-              <div
-                class="flex items-center gap-1.5 text-red-600 dark:text-red-400"
-              >
+              <div class="flex items-center gap-1.5 text-destructive">
                 <Icon icon="carbon:warning-alt" class="shrink-0" />
                 <span>{{ getErrorHint(task) }}</span>
                 <span
                   v-if="task.retryCount > 0"
-                  class="rounded bg-red-100 px-1.5 py-0.5 text-[10px] dark:bg-red-900/40"
+                  class="rounded bg-destructive/15 px-1.5 py-0.5 text-[10px]"
                 >
                   已重试 {{ task.retryCount }} 次
                 </span>
@@ -439,7 +437,7 @@ const hasPaused = computed(() =>
               <button
                 v-if="canRetry(task)"
                 type="button"
-                class="shrink-0 rounded px-2 py-0.5 text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/40"
+                class="shrink-0 rounded px-2 py-0.5 text-destructive hover:bg-destructive/15"
                 @click="handleRetry(task.uid)"
               >
                 重试
@@ -447,7 +445,7 @@ const hasPaused = computed(() =>
             </div>
             <button
               type="button"
-              class="rounded p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+              class="rounded p-1 text-muted-foreground hover:bg-accent"
               title="移除"
               @click="handleRemove(task.uid)"
             >
@@ -457,9 +455,7 @@ const hasPaused = computed(() =>
         </div>
 
         <!-- 进度条 -->
-        <div
-          class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800"
-        >
+        <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
           <!-- 合并中：脉动动画（无具体进度） -->
           <div
             v-if="task.status === 'merging'"
@@ -469,19 +465,19 @@ const hasPaused = computed(() =>
             v-else-if="task.status === 'success'"
             class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
           >
-            <span class="text-green-600 dark:text-green-400">✓ 已上传并入库</span>
+            <span class="text-success">✓ 已上传并入库</span>
             <a
               v-if="task.result?.url"
               :href="task.result.url"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-primary hover:text-blue-600 dark:text-blue-400"
+              class="text-primary hover:text-primary/80"
             >
               查看文件
             </a>
             <span
               v-if="task.hash"
-              class="text-gray-400 dark:text-gray-500"
+              class="text-muted-foreground"
               :title="task.hash"
             >
               MD5: {{ task.hash.slice(0, 8) }}...
@@ -493,12 +489,12 @@ const hasPaused = computed(() =>
             :class="
               cn(
                 'h-full rounded-full transition-all duration-300',
-                task.status === 'error' && 'bg-red-500',
-                task.status === 'paused' && 'bg-amber-500',
+                task.status === 'error' && 'bg-destructive',
+                task.status === 'paused' && 'bg-warning',
                 task.status === 'hashing' && 'bg-purple-500',
-                task.status === 'uploading' && 'bg-blue-500',
-                task.status === 'waiting' && 'bg-gray-300 dark:bg-gray-700',
-                task.status === 'canceled' && 'bg-gray-300 dark:bg-gray-700',
+                task.status === 'uploading' && 'bg-primary',
+                task.status === 'waiting' && 'bg-muted-foreground/60',
+                task.status === 'canceled' && 'bg-muted-foreground/60',
               )
             "
             :style="{
@@ -508,7 +504,7 @@ const hasPaused = computed(() =>
         </div>
         <div
           v-if="task.status === 'uploading' && task.retryCount > 0"
-          class="mt-1 text-xs text-amber-500"
+          class="mt-1 text-xs text-warning"
         >
           重试第 {{ task.retryCount }} 轮…
         </div>
@@ -516,16 +512,16 @@ const hasPaused = computed(() =>
         <!-- 错误提示 -->
         <div
           v-if="task.status === 'error'"
-          class="mt-2 flex items-center justify-between rounded-md bg-red-50 px-2.5 py-1.5 text-xs dark:bg-red-950/30"
+          class="mt-2 flex items-center justify-between rounded-md bg-destructive/10 px-2.5 py-1.5 text-xs"
         >
-          <div class="flex items-center gap-1.5 text-red-600 dark:text-red-400">
+          <div class="flex items-center gap-1.5 text-destructive">
             <Icon icon="carbon:warning-alt" class="shrink-0" />
             <span>{{ task.error || '上传失败' }}</span>
           </div>
           <button
             v-if="task.errorRetryable !== false"
             type="button"
-            class="shrink-0 rounded px-2 py-0.5 text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/40"
+            class="shrink-0 rounded px-2 py-0.5 text-destructive hover:bg-destructive/15"
             @click="handleRetry(task.uid)"
           >
             重试
@@ -537,19 +533,19 @@ const hasPaused = computed(() =>
           v-if="task.status === 'success'"
           class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
         >
-          <span class="text-green-600 dark:text-green-400">已上传并入库</span>
+          <span class="text-success">已上传并入库</span>
           <a
             v-if="task.result?.url"
             :href="task.result.url"
             target="_blank"
             rel="noopener noreferrer"
-            class="text-primary hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+            class="text-primary hover:text-primary/80"
           >
             查看文件
           </a>
           <span
             v-if="task.hash"
-            class="text-gray-400 dark:text-gray-500"
+            class="text-muted-foreground"
             :title="task.hash"
           >
             MD5: {{ task.hash.slice(0, 8) }}...

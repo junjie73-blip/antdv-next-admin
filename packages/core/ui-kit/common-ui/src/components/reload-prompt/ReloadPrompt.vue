@@ -205,14 +205,14 @@ defineExpose({ checkUpdate, onRouteChange });
       v-if="visible"
       role="alert"
       aria-live="polite"
-      class="fixed right-4 bottom-4 z-[9999] w-[calc(100vw-2rem)] max-w-[380px] overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-[0_12px_40px_-12px_rgba(15,23,42,0.18),0_4px_12px_-6px_rgba(15,23,42,0.08)] backdrop-blur-xl backdrop-saturate-150 sm:w-[380px] dark:border-slate-700/60 dark:bg-slate-900/95 dark:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.6),0_4px_12px_-6px_rgba(0,0,0,0.4)]"
+      class="fixed right-4 bottom-4 z-[9999] w-[calc(100vw-2rem)] max-w-[380px] overflow-hidden rounded-2xl border border-border/80 bg-background/95 shadow-[0_12px_40px_-12px_rgba(15,23,42,0.18),0_4px_12px_-6px_rgba(15,23,42,0.08)] backdrop-blur-xl backdrop-saturate-150 sm:w-[380px] dark:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.6),0_4px_12px_-6px_rgba(0,0,0,0.4)]"
     >
       <div
         class="absolute inset-x-0 top-0 h-px"
         :class="
           isUpdate
-            ? 'bg-gradient-to-r from-transparent via-blue-500/80 to-transparent'
-            : 'bg-gradient-to-r from-transparent via-emerald-500/80 to-transparent'
+            ? 'bg-gradient-to-r from-transparent via-primary/80 to-transparent'
+            : 'bg-gradient-to-r from-transparent via-success/80 to-transparent'
         "
       ></div>
 
@@ -222,8 +222,8 @@ defineExpose({ checkUpdate, onRouteChange });
             class="flex h-10 w-10 items-center justify-center rounded-2xl transition-colors duration-300"
             :class="
               isUpdate
-                ? 'text-primary bg-blue-50 dark:bg-blue-500/15 dark:text-blue-400'
-                : 'bg-emerald-50 text-emerald-500 dark:bg-emerald-500/15 dark:text-emerald-400'
+                ? 'bg-primary/10 text-primary'
+                : 'bg-success/10 text-success'
             "
           >
             <Icon
@@ -236,20 +236,16 @@ defineExpose({ checkUpdate, onRouteChange });
           </div>
           <span
             v-if="isUpdate"
-            class="pointer-events-none absolute inset-0 animate-[ping_2.5s_ease-out_infinite] rounded-2xl bg-blue-400/20"
+            class="pointer-events-none absolute inset-0 animate-[ping_2.5s_ease-out_infinite] rounded-2xl bg-primary/20"
           ></span>
         </div>
 
         <div class="min-w-0 flex-1">
-          <h3
-            class="text-sm leading-5 font-semibold text-slate-800 dark:text-slate-100"
-          >
+          <h3 class="text-sm leading-5 font-semibold text-foreground">
             {{ isUpdate ? '发现新版本' : '离线可用' }}
           </h3>
 
-          <p
-            class="mt-1 text-[12.5px] leading-relaxed text-slate-500 dark:text-slate-400"
-          >
+          <p class="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
             {{
               isUpdate
                 ? autoUpdateCancelled
@@ -274,13 +270,13 @@ defineExpose({ checkUpdate, onRouteChange });
               <Button
                 variant="outline"
                 size="sm"
-                class="h-8 rounded-lg px-3 text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                class="h-8 rounded-lg px-3 text-xs text-muted-foreground hover:text-foreground"
                 @click="handleLater"
               >
                 稍后
                 <span
                   v-if="countdown > 0 && !autoUpdateCancelled"
-                  class="ml-1 text-slate-400 tabular-nums dark:text-slate-500"
+                  class="ml-1 text-muted-foreground/70 tabular-nums"
                 >
                   ({{ countdown }}s)
                 </span>
@@ -300,7 +296,7 @@ defineExpose({ checkUpdate, onRouteChange });
 
         <button
           type="button"
-          class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors duration-200 hover:bg-accent hover:text-foreground"
           aria-label="关闭"
           @click="close"
         >
@@ -310,7 +306,7 @@ defineExpose({ checkUpdate, onRouteChange });
 
       <div
         v-if="isUpdate && countdown > 0 && !autoUpdateCancelled"
-        class="h-0.5 w-full bg-slate-100/80 dark:bg-slate-800/60"
+        class="h-0.5 w-full bg-muted"
       >
         <div
           class="bg-primary h-full transition-[width] duration-1000 ease-linear"

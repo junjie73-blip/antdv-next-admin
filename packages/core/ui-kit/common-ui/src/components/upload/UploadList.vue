@@ -40,8 +40,8 @@ const itemClass = computed(() =>
   cn(
     'group flex items-center gap-2 rounded-sm px-2 py-1 transition-colors',
     isCard.value
-      ? 'flex-col items-stretch border border-gray-200 p-0 dark:border-gray-700'
-      : 'hover:bg-gray-50 dark:hover:bg-gray-800',
+      ? 'flex-col items-stretch border border-border p-0'
+      : 'hover:bg-accent',
   ),
 );
 
@@ -88,7 +88,7 @@ function onPreview(file: UploadFile, event: MouseEvent) {
         <!-- 上传中：进度条 + 百分比 -->
         <div v-if="file.status === 'uploading'" class="flex items-center gap-2">
           <Progress :model-value="file.percent ?? 0" class="h-1.5 flex-1" />
-          <span class="w-10 text-right text-xs text-gray-500">
+          <span class="w-10 text-right text-xs text-muted-foreground">
             {{ Math.round(file.percent ?? 0) }}%
           </span>
         </div>
@@ -98,17 +98,17 @@ function onPreview(file: UploadFile, event: MouseEvent) {
       <Icon
         v-if="file.status === 'done'"
         icon="ant-design:check-outlined"
-        class="shrink-0 text-green-500"
+        class="shrink-0 text-success"
       />
 
       <!-- error：红色重试 + 关闭 -->
       <template v-else-if="file.status === 'error'">
         <Icon
           icon="ant-design:reload-outlined"
-          class="shrink-0 cursor-pointer text-gray-400 hover:text-primary"
+          class="shrink-0 cursor-pointer text-muted-foreground hover:text-primary"
           @click="emit('retry', file)"
         />
-        <span class="shrink-0 text-red-500">
+        <span class="shrink-0 text-destructive">
           <Icon icon="ant-design:close-circle-filled" />
         </span>
       </template>
@@ -117,7 +117,7 @@ function onPreview(file: UploadFile, event: MouseEvent) {
       <button
         v-if="showRemoveIcon && !disabled"
         type="button"
-        class="shrink-0 cursor-pointer text-gray-400 transition-colors hover:text-gray-600"
+        class="shrink-0 cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
         :aria-label="`移除 ${file.name}`"
         @click="emit('remove', file)"
       >

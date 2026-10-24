@@ -54,18 +54,22 @@ describe('cronEditor', () => {
     });
 
     it('v-model 往返：外部值命中预设时高亮对应按钮', async () => {
+      // 按整枚类名判定而不是 join 后包含：未选中态也带 `hover:border-primary/50`，
+      // 子串匹配会让"没高亮"这条断言假红。
+      const isAccented = (node: { classes(): string[] }) =>
+        node.classes().includes('border-primary');
       const wrapper = await build({ modelValue: '0 0 0 * * 1' });
       const hit = wrapper
         .findAll('button')
         .find((node) => node.text() === '每周一 0 点')!;
-      expect(hit.classes().join(' ')).toContain('border-blue-500');
+      expect(isAccented(hit)).toBe(true);
 
       await wrapper.setProps({ modelValue: '0 0 12 * * *' });
-      expect(hit.classes().join(' ')).not.toContain('border-blue-500');
+      expect(isAccented(hit)).toBe(false);
       const other = wrapper
         .findAll('button')
         .find((node) => node.text() === '每天 12 点')!;
-      expect(other.classes().join(' ')).toContain('border-blue-500');
+      expect(isAccented(other)).toBe(true);
     });
 
     it('只读输入框回显当前表达式', async () => {

@@ -101,7 +101,7 @@ const rootClass = computed(() => cn('inline-block'));
 const triggerClass = computed(() =>
   cn(
     props.drag
-      ? 'hover:border-primary rounded-md border border-dashed border-gray-300 bg-gray-50/50 p-6 text-center transition-colors dark:border-gray-600 dark:bg-gray-800/40'
+      ? 'rounded-md border border-dashed border-input bg-muted/40 p-6 text-center transition-colors hover:border-primary'
       : 'inline-block',
     props.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
     isDragging.value ? 'bg-primary/5 border-primary' : '',

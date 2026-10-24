@@ -20,6 +20,8 @@ import {
  * `colorLink*` 这些本该由算法从种子色派生的键），盖在用户选的颜色之上。
  * 现在全站只有一条链路：预设色 = `[data-theme]` 色板，自定义色 = `html` 上的内联
  * `--primary`，组件一律读 `bg-primary` / `text-primary` 这一类语义 token。
+ * 后两条用例看的是 `@antdv/common-ui`：那批组件的选中态与悬停态原先直接写 Tailwind 的
+ * `blue-500` / `gray-*` / `slate-*`，属于这条链路上最后一片写死区。
  *
  * 所以这里不测"设置面板有没有把值存进去"（那层一直是好的），
  * 测**浏览器实际算出来的颜色**：计算样式是唯一能同时穿过 token、CSS 变量、
@@ -29,6 +31,16 @@ import {
 /** 元素的实际字色，`rgb(r, g, b)` 形式 */
 function colorOf(locator: Locator) {
   return locator.evaluate((node) => getComputedStyle(node).color);
+}
+
+/** 元素的实际底色（淡染档会算成 `oklab(...)` / 带透明度，只用于互相比对） */
+function backgroundOf(locator: Locator) {
+  return locator.evaluate((node) => getComputedStyle(node).backgroundColor);
+}
+
+/** 元素的上边框颜色：`border-primary` / `hover:border-primary` 这一族都落在它上面 */
+function borderColorOf(locator: Locator) {
+  return locator.evaluate((node) => getComputedStyle(node).borderTopColor);
 }
 
 /**
@@ -156,5 +168,93 @@ test.describe('主题色真的生效', () => {
         activeOption.evaluate((node) => getComputedStyle(node).backgroundColor),
       )
       .not.toBe('rgb(239, 246, 255)');
+  });
+
+  /*
+   * common-ui 那批组件曾经把主色写成 Tailwind 的 `blue-500`、把中性面写成 `gray-*`/`slate-*`，
+   * 于是换主题时只有 CSS 变量跟着动，选中按钮仍然是蓝的。现在一律走语义 token。
+   *
+   * 判据拿"当刻 `--primary` 的计算值"去比，而不是钉一支具体的蓝：默认档的主色是
+   * hsl(215.02 100% 54.31%)（即 #1677FF），和 Tailwind 的 blue-500（#3B82F6）本来就差一档，
+   * 钉任何一边都会把另一边的合理值当成缺陷。
+   */
+  test('cron 编辑器的选中态与悬停态跟着主色走', async ({ page }) => {
+    await signIn(page);
+    await go(page, '/components/cron');
+
+    // 页面上有好几个 CronEditor（演示卡片各自嵌了一个），取第一个
+    const editor = page.locator('.cron-editor').first();
+    const modeButton = editor
+      .getByRole('button', { name: '常用预设', exact: true })
+      .first();
+    await expect(modeButton).toBeVisible();
+
+    // 模式开关的选中档：底色 = 主色（原来是写死的 `bg-blue-500`）
+    await expect
+      .poll(() => backgroundOf(modeButton), {
+        message: '选中的模式按钮底色不是主色',
+      })
+      .toBe(await cssPrimary(page));
+
+    // 点中某个预设：字色与描边都取主色（原来是 `border-blue-500 text-blue-600`）
+    const pickedPreset = editor
+      .getByRole('button', { name: '每分钟', exact: true })
+      .first();
+    await pickedPreset.click();
+    await expect
+      .poll(() => colorOf(pickedPreset), { message: '选中预设的字色不是主色' })
+      .toBe(await cssPrimary(page));
+    await expect
+      .poll(() => borderColorOf(pickedPreset), {
+        message: '选中预设的描边不是主色',
+      })
+      .toBe(await cssPrimary(page));
+
+    // 未选中的预设悬停：底色是主色的 5% 淡染（原来是 `hover:bg-blue-50/50` 那支实色浅蓝）
+    const idlePreset = editor
+      .getByRole('button', { name: '每天 12 点', exact: true })
+      .first();
+    await idlePreset.hover();
+    const hoverBefore = await backgroundOf(idlePreset);
+    expect(hoverBefore, '悬停底色还是写死的 blue-50').not.toBe(
+      'rgb(239, 246, 255)',
+    );
+
+    const drawer = await openPreferenceDrawer(page, '外观');
+    await drawer.getByRole('button', { name: '橙黄色' }).click();
+    await closePreferenceDrawer(page);
+
+    await expect
+      .poll(() => backgroundOf(modeButton), {
+        message: '换主题后选中档还是蓝的',
+      })
+      .toBe(PICKED_RGB);
+    await expect
+      .poll(() => colorOf(pickedPreset), {
+        message: '换主题后选中的预设还是蓝的',
+      })
+      .toBe(PICKED_RGB);
+
+    // 悬停淡染同样要跟过去：抽屉收掉后重新落指针，再比对换色前后的读数
+    await idlePreset.hover();
+    await expect
+      .poll(() => backgroundOf(idlePreset), {
+        message: '换主题后悬停底色没变，说明它不来自主色',
+      })
+      .not.toBe(hoverBefore);
+  });
+
+  test('拖拽上传区的悬停描边取自主色', async ({ page }) => {
+    await signIn(page);
+    await go(page, '/components/upload');
+
+    const area = page.locator('[data-common-upload] > div').first();
+    await expect(area).toBeVisible();
+    await area.hover();
+    await expect
+      .poll(() => borderColorOf(area), {
+        message: '悬停描边不是主色（原来写死 hover:border-blue-400）',
+      })
+      .toBe(await cssPrimary(page));
   });
 });

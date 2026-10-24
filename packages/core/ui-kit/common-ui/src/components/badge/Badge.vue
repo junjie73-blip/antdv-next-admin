@@ -36,11 +36,11 @@ const props = withDefaults(
 
 /** status 模式的圆点色板，literal class 才能被 Tailwind 扫到 */
 const STATUS_DOT: Record<string, string> = {
-  default: 'bg-gray-400 dark:bg-gray-600',
-  error: 'bg-red-500',
-  processing: 'animate-pulse bg-blue-500',
-  success: 'bg-emerald-500',
-  warning: 'bg-amber-500',
+  default: 'bg-muted-foreground/60',
+  error: 'bg-destructive',
+  processing: 'animate-pulse bg-info',
+  success: 'bg-success',
+  warning: 'bg-warning',
 };
 
 const slots = useSlots();
