@@ -9,7 +9,7 @@
 | Tailwind | `^4.3.3`（catalog `pnpm-workspace.yaml:198`，`@tailwindcss/vite` 同档 `:57`） | 版本只钉在 catalog 一处，其余全写 `catalog:`（`apps/web/package.json:47-49,144`、`internal/vite-config/package.json:35`、`packages/core/base/design/package.json:32-35`） |
 | Vite 插件 | `@tailwindcss/vite ^4.3.3`，在 `internal/vite-config/src/plugins/vue.ts:35` 里 `tailwindcss()` 注册 | 应用与库共用这套插件装配 |
 | 动画 | `tw-animate-css ^1.4.0`（catalog `:202`；**不是** v3 时代的 tailwindcss-animate） | `index.css:30` 的 `@import 'tw-animate-css'` |
-| 排版 | `@plugin "@tailwindcss/typography"`；`@plugin "@tailwindcss/nesting"`（`index.css:39-40`） | catalog `:56` / `:55` |
+| 排版 | `@plugin "@tailwindcss/typography"`；`@plugin "@tailwindcss/nesting"`（`index.css:57-58`） | catalog `:56` / `:55` |
 | 入口 | `main.ts:43` 一句 `import '@antdv/design'`，全局样式只此一处 | 应用侧不再维护 global.css（`@antdv/design` 的 `main` 就是 `src/index.css`） |
 
 ## 入口 CSS 的三件关键事
@@ -20,14 +20,14 @@
 @import 'tw-animate-css'; /* :30 */
 @import './token/index.css'; /* :31 shadcn-vue 令牌 → --color-* */
 @import './css/base.css'; /* :32-36 基础层 / nprogress / a11y / permission / scrollbar */
-@plugin "@tailwindcss/typography"; /* :39-40 */
-@source '../../../ui-kit/common-ui/src'; /* :47-56 十个组件包的扫描路径 */
-@custom-variant dark (&:where(.dark, .dark *)); /* :58 暗黑：class 策略 */
+@source '../../../ui-kit/common-ui/src'; /* :46-55 十个组件包的扫描路径 */
+@plugin "@tailwindcss/typography"; /* :57-58 */
+@custom-variant dark (&:where(.dark, .dark *)); /* :60 暗黑：class 策略 */
 ```
 
 - **层级顺序是刻意的**：`utilities` 排最后，模板里的工具类才能覆盖 `components` 层规则（自绘 Scrollbar、布局外壳依赖这一点）。
-- `@source`（`:47-56`，共 10 条）必须逐个登记自带工具类的组件包：v4 的内容检测从**构建根**（`apps/web`）往下扫，而 `@antdv/*` 都在仓库根的 `packages/` 下（软链进 `node_modules`，也在检测范围之外）。漏登记的表现是"组件渲染出来了但没样式"，且不报错。`__tests__/design.test.ts:628-660` 按 ui-kit 目录清单反查：漏登记或路径解析不到真实目录时，测试先红。
-- `@custom-variant dark`（`:58`）把 `dark:` 变体绑到 `.dark` class，而这个 class 由 `applyPreferencesToDom()`（`packages/core/preferences/src/update-css-variables.ts:39`）增删（`theme: 'auto'` 先经 `matchMedia` 解析）。**暗黑不是 media 策略**，否则偏好抽屉里的开关就失效了。明暗链路的完整口径见[主题与偏好设置](/guide/in-depth/theme)。
+- `@source`（`:46-55`，共 10 条）必须逐个登记自带工具类的组件包：v4 的内容检测从**构建根**（`apps/web`）往下扫，而 `@antdv/*` 都在仓库根的 `packages/` 下（软链进 `node_modules`，也在检测范围之外）。漏登记的表现是"组件渲染出来了但没样式"，且不报错。`__tests__/design.test.ts:637-669` 按 ui-kit 目录清单反查：漏登记或路径解析不到真实目录时，测试先红。**这段名单被跟样式无关的重构提交整段删过一次** —— 改到 `index.css` 后必须跑这条，别只看构建绿。
+- `@custom-variant dark`（`:60`）把 `dark:` 变体绑到 `.dark` class，而这个 class 由 `applyPreferencesToDom()`（`packages/core/preferences/src/update-css-variables.ts:39`）增删（`theme: 'auto'` 先经 `matchMedia` 解析）。**暗黑不是 media 策略**，否则偏好抽屉里的开关就失效了。明暗链路的完整口径见[主题与偏好设置](/guide/in-depth/theme)。
 
 ## 样式只有一条链路
 

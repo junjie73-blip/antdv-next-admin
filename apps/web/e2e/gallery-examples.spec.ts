@@ -896,7 +896,11 @@ test.describe('分步表单页', () => {
     await field(box, '手机号').fill('1234');
     await cjkButton(box, '下一步').click();
     await expect(meta).toContainText('第 2/3 步');
-    expect(await box.locator('.form-item-error').allTextContents()).toEqual([
+    // 必须先等错误条挂出来再读文案：第 1 步的那条断言（步骤号）此刻本来就成立，
+    // 拦不住异步校验的落地时机，直接 allTextContents() 会读到空数组（实测并发下三跑一红）。
+    const phoneErrors = box.locator('.form-item-error');
+    await expect(phoneErrors).toHaveCount(1);
+    expect(await phoneErrors.allTextContents()).toEqual([
       '11 位手机号，别带空格',
     ]);
 

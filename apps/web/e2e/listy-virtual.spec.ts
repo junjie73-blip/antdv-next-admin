@@ -183,8 +183,15 @@ test.describe('Listy 虚拟滚动', () => {
     await expect
       .poll(() => viewport(fixed).evaluate((el) => el.clientHeight))
       .toBe(200);
-    const short = await rows(fixed).count();
-    expect(short).toBeLessThan(tall);
+    // 只等 clientHeight 不够：那是 CSS 立刻给出的几何值，而行数要等 ResizeObserver
+    // 回调 → 重算窗口 → 重新渲染才变。三引擎全量并跑时这一跳会被调度挤掉，
+    // 读一次就拿到旧值（实测 webkit 读出 12/12 假红）。轮询到真的变少为止，
+    // 组件不重算时这条照样超时失败，不会把缺陷等成绿灯。
+    await expect
+      .poll(() => rows(fixed).count(), {
+        message: '容器变矮后窗口行数没重算',
+      })
+      .toBeLessThan(tall);
     // 行数变了但占位块底边不动：总高只由数据决定，与视口高度无关
     await expect(stats(page)).toHaveAttribute(
       'data-total',

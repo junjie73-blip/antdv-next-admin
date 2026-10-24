@@ -9,7 +9,7 @@ In one sentence: **Tailwind v4, CSS-first — there is no `tailwind.config.*` an
 | Tailwind | `^4.3.3` (catalog `pnpm-workspace.yaml:198`, `@tailwindcss/vite` at the same level `:57`) | The version is pinned in the catalog only; every consumer writes `catalog:` (`apps/web/package.json:47-49,144`, `internal/vite-config/package.json:35`, `packages/core/base/design/package.json:32-35`) |
 | Vite plugin | `@tailwindcss/vite ^4.3.3`, registered as `tailwindcss()` at `internal/vite-config/src/plugins/vue.ts:35` | shared plugin assembly for apps and libraries |
 | Animations | `tw-animate-css ^1.4.0` (catalog `:202`; **not** the v3-era tailwindcss-animate) | the `@import 'tw-animate-css'` at `index.css:30` |
-| Plugins | `@plugin "@tailwindcss/typography"`, `@plugin "@tailwindcss/nesting"` (`index.css:39-40`) | catalog `:56` / `:55` |
+| Plugins | `@plugin "@tailwindcss/typography"`, `@plugin "@tailwindcss/nesting"` (`index.css:57-58`) | catalog `:56` / `:55` |
 | Entry | one line at `main.ts:43`: `import '@antdv/design'` — the only global stylesheet | the app keeps no global.css; `@antdv/design`'s `main` _is_ `src/index.css` |
 
 ## The three key things in the entry CSS
@@ -20,14 +20,14 @@ In one sentence: **Tailwind v4, CSS-first — there is no `tailwind.config.*` an
 @import 'tw-animate-css'; /* :30 */
 @import './token/index.css'; /* :31 shadcn-vue tokens → --color-* */
 @import './css/base.css'; /* :32-36 base / nprogress / a11y / permission / scrollbar */
-@plugin "@tailwindcss/typography"; /* :39-40 */
-@source '../../../ui-kit/common-ui/src'; /* :47-56 the ten package scan paths */
-@custom-variant dark (&:where(.dark, .dark *)); /* :58 dark mode: class strategy */
+@source '../../../ui-kit/common-ui/src'; /* :46-55 the ten package scan paths */
+@plugin "@tailwindcss/typography"; /* :57-58 */
+@custom-variant dark (&:where(.dark, .dark *)); /* :60 dark mode: class strategy */
 ```
 
 - **The layer order is deliberate**: `utilities` comes last so template utility classes can override `components`-layer rules (the hand-drawn Scrollbar and layout shell rely on it).
-- `@source` (`:47-56`, ten entries) has to register every component package that ships utility classes: v4's content detection scans down from the **build root** (`apps/web`), while `@antdv/*` all live under the repo-root `packages/` (symlinked into `node_modules`, also outside detection). A missing entry shows up as "the component rendered but has no styles" — and no error. `__tests__/design.test.ts:628-660` reverse-checks the list against the ui-kit directory listing, so a forgotten registration turns that test red first.
-- `@custom-variant dark` (`:58`) binds `dark:` to the `.dark` class, which `applyPreferencesToDom()` (`packages/core/preferences/src/update-css-variables.ts:39`) toggles (`theme: 'auto'` is first resolved through `matchMedia`). **Dark mode is not the media strategy** — otherwise the settings-drawer switch would be dead. Full theming chain: [Theming & preferences](/en/guide/in-depth/theme).
+- `@source` (`:46-55`, ten entries) has to register every component package that ships utility classes: v4's content detection scans down from the **build root** (`apps/web`), while `@antdv/*` all live under the repo-root `packages/` (symlinked into `node_modules`, also outside detection). A missing entry shows up as "the component rendered but has no styles" — and no error. `__tests__/design.test.ts:637-669` reverse-checks the list against the ui-kit directory listing, so a forgotten registration turns that test red first. **An unrelated refactor commit once deleted this whole block** — after touching `index.css`, run that test instead of trusting a green build.
+- `@custom-variant dark` (`:60`) binds `dark:` to the `.dark` class, which `applyPreferencesToDom()` (`packages/core/preferences/src/update-css-variables.ts:39`) toggles (`theme: 'auto'` is first resolved through `matchMedia`). **Dark mode is not the media strategy** — otherwise the settings-drawer switch would be dead. Full theming chain: [Theming & preferences](/en/guide/in-depth/theme).
 
 ## One style pipeline
 
