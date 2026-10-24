@@ -114,7 +114,8 @@ export function useTableClasses(options: UseTableClassesOptions) {
   /**
    * 挂在 `<table>` 上的类：边框合并 + 下限宽。
    *
-   * `min-w-[var(--basic-table-min-width)]` 必须是**字面量**写在这里 ——
+   * `min-w-(--basic-table-min-width)`（v4 的变量简写，等价于
+   * `min-w-[var(--basic-table-min-width)]`）必须是**字面量**写在这里 ——
    * Tailwind 只认源码里出现过的类名，拼出来的字符串不会生成任何工具类
    * （`@source` 已覆盖 `table-ui/src`，见 design 包的说明）。
    */

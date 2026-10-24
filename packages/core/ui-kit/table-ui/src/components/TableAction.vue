@@ -85,7 +85,6 @@ function getButtonClass(action: ActionItem) {
 }
 
 function getButtonSize(action: ActionItem) {
-  if (action.size === 0) return undefined;
   return action.size === 'small' ? 'xs' : action.size === 'large' ? 'lg' : 'sm';
 }
 

@@ -269,7 +269,8 @@ describe('tabList —— 拖拽排序接线', () => {
     const list = wrapper.find('.tab-list').element;
     const nodes = [...list.children] as HTMLElement[];
     // 每次都现量容器子节点，才是"真实 DOM 的顺序"
-    const keys = () => [...list.children].map((node) => node.dataset.scrollKey);
+    const keys = () =>
+      [...list.children].map((node) => (node as HTMLElement).dataset.scrollKey);
 
     expect(keys()).toEqual(['home', 'a', 'b']);
 
@@ -301,11 +302,9 @@ describe('tabList —— 拖拽排序接线', () => {
 
     // 把 a（下标 1）拖到最后一位
     list.append(nodes[1]!);
-    expect([...list.children].map((node) => node.dataset.scrollKey)).toEqual([
-      'home',
-      'b',
-      'a',
-    ]);
+    expect(
+      [...list.children].map((node) => (node as HTMLElement).dataset.scrollKey),
+    ).toEqual(['home', 'b', 'a']);
 
     instances[0]?.options.onEnd({
       from: list,
@@ -315,11 +314,9 @@ describe('tabList —— 拖拽排序接线', () => {
       to: list,
     });
 
-    expect([...list.children].map((node) => node.dataset.scrollKey)).toEqual([
-      'home',
-      'a',
-      'b',
-    ]);
+    expect(
+      [...list.children].map((node) => (node as HTMLElement).dataset.scrollKey),
+    ).toEqual(['home', 'a', 'b']);
     expect(wrapper.emitted('reorder')?.[0]?.[0]).toMatchObject([
       { key: 'home' },
       { key: 'b' },

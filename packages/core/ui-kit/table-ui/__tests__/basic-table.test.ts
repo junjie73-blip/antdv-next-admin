@@ -136,8 +136,11 @@ describe('basicTable 基础渲染', () => {
     expect(scrollerStyle).toContain('max-height: 300px');
     // 宽度下限走 CSS 变量：容器上给值，`<table>` 用一个字面量类名引用它
     expect(scrollerStyle).toContain('--basic-table-min-width: 1200px');
+    // 类名按 v4 的变量简写断言（`min-w-(--x)` 等价于 `min-w-[var(--x)]`，
+    // 与 shadcn-ui 其余组件同一写法）。这里钉的是**字面量本身**，不是两种写法哪种顺眼：
+    // 一旦有人把它改成拼接出来的字符串，Tailwind 扫不到，最小宽度静默失效。
     expect(wrapper.find('table').classes()).toContain(
-      'min-w-[var(--basic-table-min-width)]',
+      'min-w-(--basic-table-min-width)',
     );
     expect(wrapper.find('.basic-table-head').classes()).toContain('sticky');
     expect(wrapper.find('.basic-table-head').classes()).toContain('top-0');
