@@ -83,8 +83,8 @@ export interface DataSourceRunnerOptions {
   fetcher?: DataSourceFetcher;
   /** 传函数是为了让宿主在运行期换实现而不用重建 runner */
   functions?:
-    | (() => Record<string, DataSourceFunction>)
-    | Record<string, DataSourceFunction>;
+  | (() => Record<string, DataSourceFunction>)
+  | Record<string, DataSourceFunction>;
   now?: () => number;
   timeoutMs?: number;
 }
@@ -245,9 +245,9 @@ export function createDataSourceRunner(
             spec.body === undefined
               ? undefined
               : resolveValue(spec.body, scope ?? {}, {
-                  ctx: baseContext(),
-                  evaluator,
-                }),
+                ctx: baseContext(),
+                evaluator,
+              }),
           headers: spec.headers,
           method: (spec.method ?? 'GET').toUpperCase(),
           params,
@@ -394,11 +394,11 @@ export function createDataSourceRunner(
         updatedAt: now(),
       });
     } catch (error) {
-      const error = DataSourceError.is(error) ? error : undefined;
+      const err = DataSourceError.is(error) ? error : undefined;
       return write(id, {
-        code: error?.code ?? 'fetch-failed',
+        code: err?.code ?? 'fetch-failed',
         // 保留上一次的数据：页面「有旧数据就别白屏」比「一切归零」好过
-        error: messageOf(error),
+        error: messageOf(err),
         loading: false,
         path: spec.path,
       });
